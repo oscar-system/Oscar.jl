@@ -10,6 +10,6 @@ module Oscar
 import AbstractAlgebra
 import Nemo
 import Hecke
-
+import Polymake
 
 end # module
