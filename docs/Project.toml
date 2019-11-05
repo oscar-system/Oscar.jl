@@ -1,0 +1,6 @@
+[deps]
+Oscar = "f1435218-dba5-11e9-1e4d-f1a5fab5fc13"
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+
+[compat]
+Documenter = "~0.19"
