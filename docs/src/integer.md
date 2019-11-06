@@ -2,6 +2,10 @@
 CurrentModule = Oscar
 ```
 
+```@setup oscar
+using Oscar
+```
+
 # Integers
 
 An important design decision in Oscar.jl is to use Julia as the user language
@@ -12,7 +16,7 @@ are Julia integers.
 For performance reasons, Oscar has its own integer format. These are
 entered using the `ZZ` constructor.
 
-```@repl
+```@repl oscar
 a = ZZ(2)^100
 ```
 
@@ -20,35 +24,30 @@ For convenience, many Oscar functions also accept Julia integers as inputs by
 converting them to Oscar integers, especially if they do not fit in a machine
 word. For example:
 
-```@repl
-R, x = ZZ["x"] # create a polynomial ring over the integers
-f = 2x
+```@repl oscar
+divexact(ZZ(234), 2)
 ```
 
 In this example, `2` is a Julia integer but is still valid in the
-call to the Oscar polynomial multiplication function that is implicit in the
-expression `2x`.
+call to `divexact` because the first argument is an Oscar integer.
 
-!!! note
-	In Julia, `2^64` will return `0`, as the Julia integer `2` is a machine
-	word. In Oscar, the expression `ZZ(2)^64` will return the expected
-	result (and as an Oscar integer). In general, Oscar can only do an
-	automatic conversion to an Oscar integer if the Julia integer is
-	combined with another Oscar expression, or passed to an Oscar function.
-
-In the following, unless stated otherwise, when we refer to integers, we mean
-Oscar integers. When we refer to an `Int` we mean the Julia `Int`.
-
-!!! note
-	The Julia `Int` type is either a 32 or 64 bit integer, depending on
-	the machine architecture (usually 64 bits on most modern machines). The
-	range of values is machine dependent, but can be found by typing
-	`typemin(Int)` and `typemax(Int)` in Julia.
+In general, Oscar can only automatically convert from Julia integers to Oscar
+integers if they are combined with other Oscar objects or passed to Oscar
+functions.
 
 Oscar integers have the same limitations as [GMP](https://gmplib.org/)
 multiprecision integers, namely that they are limited by the available memory
 on the machine and in any case to signed integers whose absolute value does not
 exceed ``2^{37}`` binary bits.
+
+In the following, unless stated otherwise, when we refer to integers, we mean
+Oscar integers. When we refer to an `Int` we mean the Julia `Int`.
+
+!!! note
+   The Julia `Int` type is either a 32 or 64 bit integer, depending on
+   the machine architecture (usually 64 bits on most modern machines). The
+   range of values is machine dependent, but can be found by typing
+   `typemin(Int)` and `typemax(Int)` in Julia.
 
 ## Basic arithmetic
 
@@ -81,7 +80,7 @@ The result of the exact division of two integers will always be another
 integer. Exact division raises an exception if the division is not exact, or if
 division by zero is attempted.
 
-```@repl
+```@repl oscar
 divexact(ZZ(6), ZZ(3))
 divexact(ZZ(6), ZZ(0))
 divexact(ZZ(6), ZZ(5))
@@ -92,7 +91,7 @@ divexact(ZZ(6), ZZ(5))
 Powering of integers is performed using the caret operator `^`. The exponent
 can be any Julia `Int`.
 
-```@repl
+```@repl oscar
 ZZ(37)^37
 ZZ(1)^(-2)
 ```
@@ -103,6 +102,11 @@ ZZ(1)^(-2)
 
 The following is allowed for convenience.
 
-```@repl
+```@repl oscar
 ZZ(0)^0
 ```
+
+!!! note
+        In Julia, `2^64` will return `0`, as the Julia integer `2` is a machine
+        word. In Oscar, the expression `ZZ(2)^64` will return the expected
+        result.
