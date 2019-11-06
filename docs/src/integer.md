@@ -11,28 +11,29 @@ using Oscar
 An important design decision in Oscar.jl is to use Julia as the user language
 by default. This means that integers typed at the
 [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop)
-are [Julia integers](https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/).
+are [Julia integers](https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/). However, for performance reasons, Oscar has its own integer format.
+
+In the following, unless stated otherwise, when we refer to integers, we mean
+Oscar integers. When we refer to an `Int` we mean the Julia `Int`.
 
 ### Constructors
 
-For performance reasons, Oscar has its own integer format. These are
-entered using the `ZZ` constructor.
+Oscar integers are created using the `ZZ` constructor.
 
 ```@repl oscar
-a = ZZ(2)^100
+ZZ(2)^100
 ```
 
 ### Julia integers in Oscar functions
 
-For convenience, many Oscar functions also accept Julia integers as inputs by
-converting them to Oscar integers. For example:
+For convenience, many Oscar functions also accept Julia integers. For example:
 
 ```@repl oscar
 divexact(ZZ(234), 2)
 ```
 
 In this example, `2` is a Julia integer but is still valid in the
-call to `divexact` because the first argument is an Oscar integer.
+call to the Oscar function `divexact`.
 
 In general, Oscar can only automatically convert from Julia integers to Oscar
 integers if they are combined with other Oscar objects or passed to Oscar
@@ -44,9 +45,6 @@ Oscar integers have the same limitations as [GMP](https://gmplib.org/)
 multiprecision integers, namely that they are limited by the available memory
 on the machine and in any case to signed integers whose absolute value does not
 exceed ``2^{37}`` binary bits.
-
-In the following, unless stated otherwise, when we refer to integers, we mean
-Oscar integers. When we refer to an `Int` we mean the Julia `Int`.
 
 !!! note
     The Julia 'Int' type is either a 32 or 64 bit integer, depending on the
@@ -73,8 +71,8 @@ These choices have been made for maximum parsimony with the Julia language.
 
 !!! note
     It is a common error to enter '1/2' for the fraction 'one half' in Julia.
-    In the Julia language, this expression is reserved for floating point
-    division. Instead, the double slash operator is used for fractions.
+    This expression is reserved for floating point division. Instead, the
+    double slash operator '//' should be used for fractions.
 
 ### Exact Division
 
