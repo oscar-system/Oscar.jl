@@ -7,9 +7,12 @@ module Oscar
     * support Linux and OSX
   More to come soon....
 =#
+
 import AbstractAlgebra
 import Nemo
 import Hecke
 import Polymake
+
+include("Rings/integer.jl")
 
 end # module
