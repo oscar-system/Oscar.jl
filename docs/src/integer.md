@@ -30,13 +30,79 @@ call to the Oscar polynomial multiplication function that is implicit in the
 expression `2x`.
 
 !!! note
-
 	In Julia, `2^64` will return `0`, as the Julia integer `2` is a machine
-	word. In Oscar, the expression `ZZ(2)^64` will return the correct
-	result (as an Oscar integer). In general, Oscar can only do an
+	word. In Oscar, the expression `ZZ(2)^64` will return the expected
+	result (and as an Oscar integer). In general, Oscar can only do an
 	automatic conversion to an Oscar integer if the Julia integer is
 	combined with another Oscar expression, or passed to an Oscar function.
 
+In the following, unless stated otherwise, when we refer to integers, we mean
+Oscar integers. When we refer to an `Int` we mean the Julia `Int`.
 
+!!! note
+	The Julia `Int` type is either a 32 or 64 bit integer, depending on
+	the machine architecture (usually 64 bits on most modern machines). The
+	range of values is machine dependent, but can be found by typing
+	`typemin(Int)` and `typemax(Int)` in Julia.
 
+Oscar integers have the same limitations as [GMP](https://gmplib.org/)
+multiprecision integers, namely that they are limited by the available memory
+on the machine and in any case to signed integers whose absolute value does not
+exceed ``2^{37}`` binary bits.
 
+## Basic arithmetic
+
+Oscar provides the basic arithmetic operations `+`, `-` and `*` for integers.
+
+### Division
+
+Oscar distinguishes a number of different kinds of division:
+
+* Exact division (`divexact`)
+* Euclidean division (`div`, `divrem`, `rem`)
+* Construction of fractions (`a//b`)
+* Floating point division (`a/b`)
+* Reciprocals (`inv`)
+* Divisibility testing (`divides`)
+
+These choices have been made for maximum parsimony with the Julia language.
+
+!!! note
+	It is a common error to enter `1/2` for the fraction one half in Julia.
+	In the Julia language, this expression is reserved for floating point
+	division. Instead, the double slash operator is used for fractions.
+
+Here we discuss only exact division and inversion/reciprocals. Euclidean
+division and divisibility testing are discussed below, floating point division
+is not defined for Oscar integers to avoid confusion, and fractions are
+discussed on the page for rational numbers.
+
+The result of the exact division of two integers will always be another
+integer. Exact division raises an exception if the division is not exact, or if
+division by zero is attempted.
+
+```@repl
+divexact(ZZ(6), ZZ(3))
+divexact(ZZ(6), ZZ(0))
+divexact(ZZ(6), ZZ(5))
+```
+
+### Powering
+
+Powering of integers is performed using the caret operator `^`. The exponent
+can be any Julia `Int`.
+
+```@repl
+ZZ(37)^37
+ZZ(1)^(-2)
+```
+
+!!! note
+	An exception will be raised if an integer outside the range
+        ``[-1, 1]`` is raised to a negative exponent.
+
+The following is allowed for convenience.
+
+```@repl
+ZZ(0)^0
+```
