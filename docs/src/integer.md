@@ -44,10 +44,10 @@ In the following, unless stated otherwise, when we refer to integers, we mean
 Oscar integers. When we refer to an `Int` we mean the Julia `Int`.
 
 !!! note
-   The Julia `Int` type is either a 32 or 64 bit integer, depending on
-   the machine architecture (usually 64 bits on most modern machines). The
-   range of values is machine dependent, but can be found by typing
-   `typemin(Int)` and `typemax(Int)` in Julia.
+    The Julia 'Int' type is either a 32 or 64 bit integer, depending on the
+   machine architecture (usually 64 bits on most modern machines). The range of
+   values is machine dependent, but can be found by typing 'typemin(Int)' and
+   'typemax(Int)' in Julia.
 
 ## Basic arithmetic
 
@@ -67,9 +67,9 @@ Oscar distinguishes a number of different kinds of division:
 These choices have been made for maximum parsimony with the Julia language.
 
 !!! note
-	It is a common error to enter `1/2` for the fraction one half in Julia.
-	In the Julia language, this expression is reserved for floating point
-	division. Instead, the double slash operator is used for fractions.
+    It is a common error to enter '1/2' for the fraction one half in Julia.
+    In the Julia language, this expression is reserved for floating point
+    division. Instead, the double slash operator is used for fractions.
 
 Here we discuss only exact division and inversion/reciprocals. Euclidean
 division and divisibility testing are discussed below, floating point division
@@ -97,8 +97,8 @@ ZZ(1)^(-2)
 ```
 
 !!! note
-	An exception will be raised if an integer outside the range
-        ``[-1, 1]`` is raised to a negative exponent.
+    An exception will be raised if an integer outside the range [-1, 1] is
+    raised to a negative exponent.
 
 The following is allowed for convenience.
 
@@ -107,6 +107,6 @@ ZZ(0)^0
 ```
 
 !!! note
-        In Julia, `2^64` will return `0`, as the Julia integer `2` is a machine
-        word. In Oscar, the expression `ZZ(2)^64` will return the expected
-        result.
+    In Julia, '2^64' will return 0, as the Julia integer 2 is a machine word.
+    In Oscar, the expression 'ZZ(2)^64' will return the expected result.
+

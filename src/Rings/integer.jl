@@ -1,4 +1,4 @@
 import Nemo: ZZ, divexact
 
-export ZZ
+export ZZ, divexact
 
