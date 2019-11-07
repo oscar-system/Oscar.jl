@@ -31,7 +31,8 @@ ZZ(618970019642690137449562111)
 
 The following special constructors are also provided:
 
-* `zero(ZZ)` : the integer 0                                                             * `one(ZZ)` : the integer 1
+* `zero(ZZ)` : the integer 0
+* `one(ZZ)` : the integer 1
 
 ### Limitations
 
