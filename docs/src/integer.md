@@ -13,8 +13,8 @@ by default. This means that integers typed at the
 [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop)
 are [Julia integers](https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/). However, for performance reasons, Oscar has its own integer format.
 
-In the following, unless stated otherwise, when we refer to integers, we mean
-Oscar integers. When we refer to an `Int` we mean the Julia `Int`.
+In the following, unless stated otherwise, when we refer to integers we mean
+Oscar integers; when we refer to an `Int` we mean the Julia `Int`.
 
 ### Constructors
 
@@ -44,7 +44,7 @@ functions.
 Oscar integers have the same limitations as [GMP](https://gmplib.org/)
 multiprecision integers, namely that they are limited by the available memory
 on the machine and in any case to signed integers whose absolute value does not
-exceed ``2^{37}`` binary bits.
+exceed ``2^{37}`` bits.
 
 !!! note
     The Julia 'Int' type is either a 32 or 64 bit integer, depending on the
@@ -54,18 +54,19 @@ exceed ``2^{37}`` binary bits.
 
 ## Basic arithmetic
 
-Oscar provides the basic arithmetic operations `+`, `-` and `*`, and division
+Oscar provides the basic arithmetic operations `+`, `-` and `*`, including
+mixed operations between Julia and Oscar integers. It also provides division
 and powering as described below.
 
 ### Division in Oscar
 
 Oscar distinguishes a number of different kinds of division:
 
-* Exact division (`divexact`)
-* Euclidean division (`div`, `divrem`, `mod`, `rem`)
+* [Exact division](@ref integer_exact_division) (`divexact`)
+* [Euclidean division](@ref integer_euclidean_division) (`div`, `divrem`, `mod`, `rem`)
 * Construction of fractions (`a//b`)
 * Floating point division (`a/b`)
-* Divisibility testing (`divides`)
+* [Divisibility testing](@ref integer_divisibility_testing) (`divides`)
 
 These choices have been made for maximum parsimony with the Julia language.
 
@@ -74,7 +75,7 @@ These choices have been made for maximum parsimony with the Julia language.
     This expression is reserved for floating point division. Instead, the
     double slash operator '//' should be used for fractions.
 
-### Exact Division
+### [Exact Division](@id integer_exact_division)
 
 The result of the exact division of two integers will always be another
 integer. Exact division raises an exception if the division is not exact, or if
@@ -109,4 +110,43 @@ ZZ(0)^0
 !!! note
     In Julia, '2^64' will return 0, as the Julia integer 2 is a machine word.
     In Oscar, the expression 'ZZ(2)^64' will return the expected result.
+
+### [Euclidean division](@id integer_euclidean_division)
+
+The ring of integers is a Euclidean domain and Oscar provides Euclidean
+division.
+
+The `divrem` function returns both quotient and remainder, whilst `div` returns
+just the quotient and `mod` returns just the remainder.
+
+The remainder is taken to be the least non-negative residue, i.e. if ``a`` and
+``m`` are integers, Euclidean division in Oscar finds a quotient ``q`` and
+remainder ``r`` such that ``a = q|m| + r`` where ``0 \leq r < |m|``.
+
+```@repl
+q, r = divrem(ZZ(5), ZZ(-3))
+q = div(ZZ(7), ZZ(2)
+r = mod(ZZ(4), ZZ(3)
+```
+
+### [Divisibility testing](@id integer_divisibility_testing)
+
+In Oscar, we say that ``b`` divides ``a`` if there exists ``c`` in the same
+ring such that ``a = bc``.
+
+The call `divides(a, b)` returns a tuple `(flag, q)` where `flag` is either
+`true` if `b` divides `a` and `q` is a quotient, or `false` if `b` does not
+divide `a` and `q` is an integer whose value is not defined.
+ 
+```repl
+divides(ZZ(6), ZZ(3))
+divides(ZZ(5), ZZ(2))
+```
+
+Note that for convenience we define:
+
+```repl
+divides(ZZ(0), ZZ(0))
+```
+
 
