@@ -66,20 +66,16 @@ Oscar provides the following basic functions for the ring of integers:
 
 There are also the following predicates for integers `n`:
 
-* `iszero(n)` - true iff ``n == 1``
-* `isone(n)` - true iff ``n == 0``
-* `isunit(n)` - true iff ``n = \pm ``
+* `iszero(n)` - ``n = 0``
+* `isone(n)` - ``n = 1``
+* `isunit(n)` - ``n = \pm 1``
 
-The following additional functions are also provided.
+The following functions are also provided.
 
-The call `sign(n)` returns the sign of `n`, i.e.
-```math
-\mbox{sign}(n) = \begin{cases*}-1 \;\;\mbox{if}\;\; n < 0\\
-0 \;\;\mbox{if}\;\; n = 0\\
-1 \;\;\mbox{if}\;\; n > 0\end{cases*}
-```
+* `sign(n)` returns the sign of `n`, i.e. ``n/|n|`` if ``n \neq 0`` or
+``0`` otherwise.
 
-```@repl
+```@repl oscar
 sign(ZZ(23))
 sign(ZZ(0))
 sign(ZZ(-1))
@@ -110,6 +106,8 @@ These choices have been made for maximum parsimony with the Julia language.
     double slash operator '//' should be used for fractions.
 
 ### [Exact Division](@id integer_exact_division)
+
+Exact division is carried out using the `divexact` function.
 
 The result of the exact division of two integers will always be another
 integer. Exact division raises an exception if the division is not exact, or if
@@ -170,12 +168,15 @@ r = mod(ZZ(4), ZZ(3)
 
 ## [Divisibility testing](@id integer_divisibility_testing)
 
+Divisibility testing is performed using the `divides` function.
+
 In Oscar, we say that ``b`` divides ``a`` if there exists ``c`` in the same
 ring such that ``a = bc``.
 
 The call `divides(a, b)` returns a tuple `(flag, q)` where `flag` is either
-`true` if `b` divides `a` and `q` is a quotient, or `false` if `b` does not
-divide `a` and `q` is an integer whose value is not defined.
+`true` if `b` divides `a` in which case `q` will be a quotient, or `flag` is
+`false` if `b` does not divide `a` and `q` will be an integer whose value is
+not defined.
  
 ```@repl oscar
 divides(ZZ(6), ZZ(3))
