@@ -20,7 +20,7 @@ are [Julia integers](https://docs.julialang.org/en/v1/manual/integers-and-floati
 In the following, unless stated otherwise, when we refer to integers we mean
 Oscar integers; when we refer to an `Int` we mean the Julia `Int`.
 
-### Constructors
+## Constructors
 
 Oscar integers are created using the `ZZ` constructor.
 
@@ -28,21 +28,6 @@ Oscar integers are created using the `ZZ` constructor.
 ZZ(2)^100
 ZZ(618970019642690137449562111)
 ```
-
-### Julia integers in Oscar functions
-
-For convenience, many Oscar functions also accept Julia integers. For example:
-
-```@repl oscar
-divexact(ZZ(234), 2)
-```
-
-In this example, `2` is a Julia integer but is still valid in the
-call to the Oscar function `divexact`.
-
-In general, Oscar can only automatically convert from Julia integers to Oscar
-integers if they are combined with other Oscar objects or passed to Oscar
-functions.
 
 ### Limitations
 
@@ -57,6 +42,21 @@ exceed ``2^{37}`` bits.
     values is machine dependent, but can be found by typing 'typemin(Int)' and
     'typemax(Int)' in Julia.
 
+## Julia integers in Oscar functions
+
+For convenience, many Oscar functions also accept Julia integers. For example:
+
+```@repl oscar
+divexact(ZZ(234), 2)
+```
+
+In this example, `2` is a Julia integer but is still valid in the
+call to the Oscar function `divexact`.
+
+In general, Oscar can only automatically convert from Julia integers to Oscar
+integers if they are combined with other Oscar objects or passed to Oscar
+functions.
+
 ## Basic functionality
 
 Oscar provides the following basic functions for the ring of integers:
@@ -64,7 +64,8 @@ Oscar provides the following basic functions for the ring of integers:
 * `zero(ZZ)` - return the integer 0
 * `one(ZZ)` - return the integer 1
 
-There are also the following predicates for integers `n`:
+There are also the following predicates for integers `n` which return `true` or
+`false`:
 
 * `iszero(n)` - ``n = 0``
 * `isone(n)` - ``n = 1``
