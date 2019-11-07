@@ -7,7 +7,7 @@ using Oscar
 ```
 
 ```@content
-   [Pages = ["integers.md"]
+Pages = ["integers.md"]
 ```
 
 # Integers
@@ -55,6 +55,34 @@ exceed ``2^{37}`` bits.
     machine architecture (usually 64 bits on most modern machines). The range of
     values is machine dependent, but can be found by typing 'typemin(Int)' and
     'typemax(Int)' in Julia.
+
+## Basic functionality
+
+Oscar provides the following basic functions for the ring of integers:
+
+* `zero(ZZ)` - return the integer 0
+* `one(ZZ)` - return the integer 1
+
+There are also the following predicates for integers `n`:
+
+* `iszero(n)` - true iff ``n == 1``
+* `isone(n)` - true iff ``n == 0``
+* `isunit(n)` - true iff ``n = \pm ``
+
+The following additional functions are also provided.
+
+The call `sign(n)` returns the sign of `n`, i.e.
+```math
+\mbox{sign}(n) = \begin{cases*}-1 \;\;\mbox{if}\;\; n < 0\\
+0 \;\;\mbox{if}\;\; n = 0\\
+1 \;\;\mbox{if}\;\; n > 0\end{cases*}
+```
+
+```@repl
+sign(ZZ(23))
+sign(ZZ(0))
+sign(ZZ(-1))
+```
 
 ## Basic arithmetic
 
