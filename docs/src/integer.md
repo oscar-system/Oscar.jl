@@ -62,7 +62,7 @@ In general, Oscar can only automatically convert from Julia integers to Oscar
 integers if they are combined with other Oscar objects or passed to Oscar
 functions.
 
-## Basic functionality
+## Predicates and properties
 
 The following predicates are provided, which return `true` or `false`:
 
