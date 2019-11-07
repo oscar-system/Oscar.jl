@@ -7,7 +7,7 @@ using Oscar
 ```
 
 ```@content
-   [Pages = ["integers.md"]
+Pages = ["integers.md"]
 ```
 
 # Integers
