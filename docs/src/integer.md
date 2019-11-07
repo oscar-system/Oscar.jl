@@ -6,7 +6,7 @@ CurrentModule = Oscar
 using Oscar
 ```
 
-```@content
+```@contents
 Pages = ["integers.md"]
 ```
 
@@ -26,6 +26,7 @@ Oscar integers are created using the `ZZ` constructor.
 
 ```@repl oscar
 ZZ(2)^100
+ZZ(618970019642690137449562111)
 ```
 
 ### Julia integers in Oscar functions
