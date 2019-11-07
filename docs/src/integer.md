@@ -72,14 +72,10 @@ There are also the following predicates for integers `n`:
 
 The following additional functions are also provided.
 
-The call `sign(n)` returns the sign of `n`, i.e.
-```math
-\mbox{sign}(n) = \begin{cases*}-1 \;\;\mbox{if}\;\; n < 0\\
-0 \;\;\mbox{if}\;\; n = 0\\
-1 \;\;\mbox{if}\;\; n > 0\end{cases*}
-```
+The call `sign(n)` returns the sign of `n`, i.e. ``n/|n|`` if ``n \neq 0`` or
+``0`` otherwise.
 
-```@repl
+```@repl oscar
 sign(ZZ(23))
 sign(ZZ(0))
 sign(ZZ(-1))
