@@ -29,6 +29,10 @@ ZZ(2)^100
 ZZ(618970019642690137449562111)
 ```
 
+The following special constructors are also provided:
+
+* `zero(ZZ)` : the integer 0                                                             * `one(ZZ)` : the integer 1
+
 ### Limitations
 
 Oscar integers have the same limitations as [GMP](https://gmplib.org/)
@@ -59,19 +63,13 @@ functions.
 
 ## Basic functionality
 
-Oscar provides the following basic functions for the ring of integers:
+The following predicates are provided, which return `true` or `false`:
 
-* `zero(ZZ)` - return the integer 0
-* `one(ZZ)` - return the integer 1
+* `iszero(n)` : ``n = 0``
+* `isone(n)` : ``n = 1``
+* `isunit(n)` : ``n = \pm 1``
 
-There are also the following predicates for integers `n` which return `true` or
-`false`:
-
-* `iszero(n)` - ``n = 0``
-* `isone(n)` - ``n = 1``
-* `isunit(n)` - ``n = \pm 1``
-
-The following functions are also provided.
+The following properties can also be computed:
 
 * `sign(n)` returns the sign of `n`, i.e. ``n/|n|`` if ``n \neq 0`` or ``0``
   otherwise.
@@ -162,6 +160,8 @@ q, r = divrem(ZZ(5), ZZ(-3))
 q = div(ZZ(7), ZZ(2)
 r = mod(ZZ(4), ZZ(3)
 ```
+
+All three functions raise an exception if the modulus ``m`` is zero.
 
 !!! note
     The results of `divrem`, `div` and `mod` do not agree with their namesakes
