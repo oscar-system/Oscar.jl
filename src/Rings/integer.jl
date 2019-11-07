@@ -1,4 +1,4 @@
-import Nemo: ZZ, divexact, divides
+import Nemo: ZZ, divexact, divides, isunit
 
-export ZZ, divexact, divides
+export ZZ, divexact, divides, isunit
 
