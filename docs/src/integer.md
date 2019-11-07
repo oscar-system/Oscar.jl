@@ -7,7 +7,7 @@ using Oscar
 ```
 
 ```@contents
-Pages = ["integers.md"]
+Pages = ["integer.md"]
 ```
 
 # Integers
@@ -72,8 +72,8 @@ There are also the following predicates for integers `n`:
 
 The following functions are also provided.
 
-* `sign(n)` returns the sign of `n`, i.e. ``n/|n|`` if ``n \neq 0`` or
-``0`` otherwise.
+* `sign(n)` returns the sign of `n`, i.e. ``n/|n|`` if ``n \neq 0`` or ``0``
+  otherwise.
 
 ```@repl oscar
 sign(ZZ(23))
