@@ -6,6 +6,10 @@ CurrentModule = Oscar
 using Oscar
 ```
 
+```@content
+   [Pages = ["integers.md"]
+```
+
 # Integers
 
 An important design decision in Oscar.jl is to use Julia as the user language
@@ -54,9 +58,10 @@ exceed ``2^{37}`` bits.
 
 ## Basic arithmetic
 
-Oscar provides the basic arithmetic operations `+`, `-` and `*`, including
-mixed operations between Julia and Oscar integers. It also provides division
-and powering as described below.
+Oscar provides the basic arithmetic operations `+`, `-` and `*` and comparison
+operators `==`, `!=`, `<`, `<=`, `>`, `>=`, including mixed operations between
+Julia and Oscar integers. It also provides division and powering as described
+below.
 
 ### Division in Oscar
 
@@ -111,7 +116,8 @@ ZZ(0)^0
     In Julia, '2^64' will return 0, as the Julia integer 2 is a machine word.
     In Oscar, the expression 'ZZ(2)^64' will return the expected result.
 
-### [Euclidean division](@id integer_euclidean_division)
+
+## [Euclidean division](@id integer_euclidean_division)
 
 The ring of integers is a Euclidean domain and Oscar provides Euclidean
 division.
@@ -123,7 +129,7 @@ The remainder is taken to be the least non-negative residue, i.e. if ``a`` and
 ``m`` are integers, Euclidean division in Oscar finds a quotient ``q`` and
 remainder ``r`` such that ``a = q|m| + r`` where ``0 \leq r < |m|``.
 
-```@repl
+```@repl oscar
 q, r = divrem(ZZ(5), ZZ(-3))
 q = div(ZZ(7), ZZ(2)
 r = mod(ZZ(4), ZZ(3)
@@ -133,7 +139,7 @@ r = mod(ZZ(4), ZZ(3)
     The results of `divrem`, `div` and `mod` do not agree with their namesakes
     in Julia when the modulus ``m`` is negative.
 
-### [Divisibility testing](@id integer_divisibility_testing)
+## [Divisibility testing](@id integer_divisibility_testing)
 
 In Oscar, we say that ``b`` divides ``a`` if there exists ``c`` in the same
 ring such that ``a = bc``.
@@ -142,14 +148,14 @@ The call `divides(a, b)` returns a tuple `(flag, q)` where `flag` is either
 `true` if `b` divides `a` and `q` is a quotient, or `false` if `b` does not
 divide `a` and `q` is an integer whose value is not defined.
  
-```repl
+```@repl oscar
 divides(ZZ(6), ZZ(3))
 divides(ZZ(5), ZZ(2))
 ```
 
 Note that for convenience we define:
 
-```repl
+```@repl oscar
 divides(ZZ(0), ZZ(0))
 ```
 
