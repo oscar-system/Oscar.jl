@@ -163,6 +163,8 @@ q = div(ZZ(7), ZZ(2)
 r = mod(ZZ(4), ZZ(3)
 ```
 
+All three functions raise an exception if the modulus ``m`` is zero.
+
 !!! note
     The results of `divrem`, `div` and `mod` do not agree with their namesakes
     in Julia when the modulus ``m`` is negative.
