@@ -158,4 +158,9 @@ end
    @test_throws DomainError ZZ(2)^-1
    @test_throws DomainError ZZ(-2)^-2
    @test_throws DomainError ZZ(2)^-1
+
+   @test ZZ(-3)^3 == -27
+   @test ZZ(-1)^3 == -1
+   @test ZZ(-1)^2 == 1
+   @test ZZ(-1)^1 == -1
 end
