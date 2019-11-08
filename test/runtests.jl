@@ -1,3 +1,5 @@
 using Oscar
-using Base.Test
+using Test
+
+include("Rings/integer-test.jl")
 

@@ -28,6 +28,11 @@ Oscar integers are created using the `ZZ` constructor.
 ZZ(2)^100
 ZZ(618970019642690137449562111)
 ```
+One can also construct the zero integer with the empty constructor:
+
+```@repl oscar
+ZZ()
+```
 
 The following special constructors are also provided:
 
@@ -73,7 +78,7 @@ The following predicates are provided, which return `true` or `false`:
 The following properties can also be computed:
 
 * `sign(n)` returns the sign of `n`, i.e. ``n/|n|`` if ``n \neq 0`` or ``0``
-  otherwise.
+  otherwise. The return value is a Julia `Int`.
 
 ```@repl oscar
 sign(ZZ(23))
@@ -130,7 +135,7 @@ ZZ(1)^(-2)
 ```
 
 !!! note
-    An exception will be raised if an integer outside the range [-1, 1] is
+    An exception will be raised if an integer other than ``-1`` or ``1`` is
     raised to a negative exponent.
 
 The following is allowed for convenience.
