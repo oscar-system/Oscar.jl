@@ -28,6 +28,11 @@ Oscar integers are created using the `ZZ` constructor.
 ZZ(2)^100
 ZZ(618970019642690137449562111)
 ```
+One can also construct the zero integer with the empty constructor:
+
+```@repl oscar
+ZZ()
+```
 
 The following special constructors are also provided:
 
@@ -49,7 +54,8 @@ exceed ``2^{37}`` bits.
 
 ## Julia integers in Oscar functions
 
-For convenience, many Oscar functions also accept Julia integers. For example:
+For convenience, basic arithmetic and exact division functions in Oscar also
+accept Julia integers. For example:
 
 ```@repl oscar
 divexact(ZZ(234), 2)
@@ -57,10 +63,6 @@ divexact(ZZ(234), 2)
 
 In this example, `2` is a Julia integer but is still valid in the
 call to the Oscar function `divexact`.
-
-In general, Oscar can only automatically convert from Julia integers to Oscar
-integers if they are combined with other Oscar objects or passed to Oscar
-functions.
 
 ## Predicates and properties
 
@@ -73,7 +75,7 @@ The following predicates are provided, which return `true` or `false`:
 The following properties can also be computed:
 
 * `sign(n)` returns the sign of `n`, i.e. ``n/|n|`` if ``n \neq 0`` or ``0``
-  otherwise.
+  otherwise. The return value is a Julia `Int`.
 
 ```@repl oscar
 sign(ZZ(23))
@@ -130,7 +132,7 @@ ZZ(1)^(-2)
 ```
 
 !!! note
-    An exception will be raised if an integer outside the range [-1, 1] is
+    An exception will be raised if an integer other than ``-1`` or ``1`` is
     raised to a negative exponent.
 
 The following is allowed for convenience.
@@ -149,24 +151,34 @@ ZZ(0)^0
 The ring of integers is a Euclidean domain and Oscar provides Euclidean
 division.
 
-The `divrem` function returns both quotient and remainder, whilst `div` returns
-just the quotient and `mod` returns just the remainder.
+In a Euclidean domain in Oscar the `divrem` function returns both quotient
+and remainder, `div` returns just the quotient and `rem` returns just the
+remainder.
 
-The remainder is taken to be the least non-negative residue, i.e. if ``a`` and
-``m`` are integers, Euclidean division in Oscar finds a quotient ``q`` and
-remainder ``r`` such that ``a = q|m| + r`` where ``0 \leq r < |m|``.
+Euclidean division of ``a`` by ``n`` computes a quotient and remainder such
+that
+```@math
+a = qn + r
+```
+where $|r| < |n|$. For conformity with Julia, when ``r \neq 0`` the sign of
+``r`` will be the same as the sign of ``a``.
+
+It is often convenient to have Euclidean remainder with ``r`` and ``n`` having
+the same sign, so that if ``n > 0`` the remainder is non-negative. For this we
+have `mod`.
+
+remainder | division   | sign             | rounding
+----------|------------|------------------|---------------------
+rem       | div/divrem | same as dividend | towards zero
+mod       |            | same as divisor  | towards ``-\infty``
 
 ```@repl oscar
-q, r = divrem(ZZ(5), ZZ(-3))
+q, r = divrem(ZZ(5), ZZ(3))
 q = div(ZZ(7), ZZ(2)
 r = mod(ZZ(4), ZZ(3)
 ```
 
 All three functions raise an exception if the modulus ``m`` is zero.
-
-!!! note
-    The results of `divrem`, `div` and `mod` do not agree with their namesakes
-    in Julia when the modulus ``m`` is negative.
 
 ## [Divisibility testing](@id integer_divisibility_testing)
 
