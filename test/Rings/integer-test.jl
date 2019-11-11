@@ -236,31 +236,31 @@ end
    @test mod(2, ZZ(3)) isa Oscar.fmpz
    @test rem(2, ZZ(3)) isa Oscar.fmpz
    @test div(2, ZZ(3)) isa Oscar.fmpz
-   @test divrem(2, ZZ(3)) isa Oscar.fmpz
+   @test divrem(2, ZZ(3)) isa Tuple{Oscar.fmpz, Oscar.fmpz}
 
    @test mod(ZZ(2), 3) isa Oscar.fmpz
    @test rem(ZZ(2), 3) isa Oscar.fmpz
    @test div(ZZ(2), 3) isa Oscar.fmpz
-   @test divrem(ZZ(2), 3) isa Tuple{Oscar.fmpz}
+   @test divrem(ZZ(2), 3) isa Tuple{Oscar.fmpz, Oscar.fmpz}
 
    @test mod(Int128(2), ZZ(3)) isa Oscar.fmpz
    @test rem(Int128(2), ZZ(3)) isa Oscar.fmpz
    @test div(Int128(2), ZZ(3)) isa Oscar.fmpz
-   @test divrem(Int128(2), ZZ(3)) isa Oscar.fmpz
+   @test divrem(Int128(2), ZZ(3)) isa Tuple{Oscar.fmpz, Oscar.fmpz}
 
    @test mod(ZZ(2), Int128(3)) isa Oscar.fmpz
    @test rem(ZZ(2), Int128(3)) isa Oscar.fmpz
    @test div(ZZ(2), Int128(3)) isa Oscar.fmpz
-   @test divrem(ZZ(2), Int128(3)) isa Tuple{Oscar.fmpz}
+   @test divrem(ZZ(2), Int128(3)) isa Tuple{Oscar.fmpz, Oscar.fmpz}
 
    @test mod(BigInt(2), ZZ(3)) isa Oscar.fmpz
    @test rem(BigInt(2), ZZ(3)) isa Oscar.fmpz
    @test div(BigInt(2), ZZ(3)) isa Oscar.fmpz
-   @test divrem(BigInt(2), ZZ(3)) isa Oscar.fmpz
+   @test divrem(BigInt(2), ZZ(3)) isa Tuple{Oscar.fmpz, Oscar.fmpz}
 
    @test mod(ZZ(2), BigInt(3)) isa Oscar.fmpz
    @test rem(ZZ(2), BigInt(3)) isa Oscar.fmpz
    @test div(ZZ(2), BigInt(3)) isa Oscar.fmpz
-   @test divrem(ZZ(2), BigInt(3)) isa Tuple{Oscar.fmpz}
+   @test divrem(ZZ(2), BigInt(3)) isa Tuple{Oscar.fmpz, Oscar.fmpz}
 end
 
