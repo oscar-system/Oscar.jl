@@ -289,3 +289,27 @@ end
    @test_throws DivideError divrem(ZZ(0), 0)
 end
 
+@testset "Rings.ZZ.conversion" begin
+   @test Int(ZZ(123)) == 123
+   @test Int(ZZ(0)) == 0
+   @test Int(ZZ(-123)) == -123
+   @test Int(ZZ(typemin(Int))) == typemin(Int)
+   @test Int(ZZ(typemax(Int))) == typemax(Int)
+
+   @test_throws InexactError Int(ZZ(typemin(Int)) - 1)
+   @test_throws InexactError Int(ZZ(typemax(Int)) + 1)
+
+   @test fits(Int, ZZ(123))
+   @test fits(Int, ZZ(typemin(Int)))
+   @test fits(Int, ZZ(typemax(Int)))
+
+   @test Int(ZZ(123)) isa Int
+   @test Int(ZZ(0)) isa Int
+
+   @test BigInt(ZZ(123)) == 123
+   @test BigInt(ZZ(0)) == 0
+   @test BigInt(ZZ(1234498543743857934594389)) == 1234498543743857934594389
+
+   @test BigInt(ZZ(123)) isa BigInt
+   @test BigInt(ZZ(0)) isa BigInt
+end
