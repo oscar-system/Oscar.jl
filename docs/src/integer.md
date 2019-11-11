@@ -174,11 +174,15 @@ mod       |            | same as divisor  | towards ``-\infty``
 
 ```@repl oscar
 q, r = divrem(ZZ(5), ZZ(3))
-q = div(ZZ(7), ZZ(2)
-r = mod(ZZ(4), ZZ(3)
+q = div(ZZ(7), ZZ(2))
+r = mod(ZZ(4), ZZ(3))
 ```
 
 All three functions raise an exception if the modulus ``m`` is zero.
+
+!!! note
+    The rem function does not provide a minimal set of representatives modulo
+    the divisor.
 
 ## [Divisibility testing](@id integer_divisibility_testing)
 
