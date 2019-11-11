@@ -173,23 +173,94 @@ end
 end
 
 @testset "Rings.ZZ.euclidean_division" begin
-   @test mod(ZZ(2), ZZ(3)) == 2
-   @test mod(ZZ(2), ZZ(-3)) == -1
-   @test mod(ZZ(-2), ZZ(3)) == 1
-   @test mod(ZZ(-2), ZZ(-3)) == -2
+   @test mod(ZZ(2), ZZ(3)) == mod(2, 3)
+   @test mod(ZZ(2), ZZ(-3)) == mod(2, -3)
+   @test mod(ZZ(-2), ZZ(3)) == mod(-2, 3)
+   @test mod(ZZ(-2), ZZ(-3)) == mod(-2, -3)
 
-   @test rem(ZZ(2), ZZ(3)) == 2
-   @test rem(ZZ(2), ZZ(-3)) == 2
-   @test rem(ZZ(-2), ZZ(3)) == -2
-   @test rem(ZZ(-2), ZZ(-3)) == -2
+   @test rem(ZZ(2), ZZ(3)) == rem(2, 3)
+   @test rem(ZZ(2), ZZ(-3)) == rem(2, -3)
+   @test rem(ZZ(-2), ZZ(3)) == rem(-2, 3)
+   @test rem(ZZ(-2), ZZ(-3)) == rem(-2, -3)
 
-   @test div(ZZ(2), ZZ(3)) == 0
-   @test div(ZZ(2), ZZ(-3)) == 0
-   @test div(ZZ(-2), ZZ(3)) == 0
-   @test div(ZZ(-2), ZZ(-3)) == 0
+   @test div(ZZ(2), ZZ(3)) == div(2, 3)
+   @test div(ZZ(2), ZZ(-3)) == div(2, -3)
+   @test div(ZZ(-2), ZZ(3)) == div(-2, 3)
+   @test div(ZZ(-2), ZZ(-3)) == div(-2, -3)
 
-   @test divrem(ZZ(2), ZZ(3)) == (0, 2)
-   @test divrem(ZZ(2), ZZ(-3)) == (0, 2)
-   @test divrem(ZZ(-2), ZZ(3)) == (0, -2)
-   @test divrem(ZZ(-2), ZZ(-3)) == (0, -2)
+   @test divrem(ZZ(2), ZZ(3)) == divrem(2, 3)
+   @test divrem(ZZ(2), ZZ(-3)) == divrem(2, -3)
+   @test divrem(ZZ(-2), ZZ(3)) == divrem(-2, 3)
+   @test divrem(ZZ(-2), ZZ(-3)) == divrem(-2, -3)
+
+   @test mod(ZZ(2), 3) == mod(2, 3)
+   @test mod(ZZ(2), -3) == mod(2, -3)
+   @test mod(ZZ(-2), 3) == mod(-2, 3)
+   @test mod(ZZ(-2), -3) == mod(-2, -3)
+
+   @test rem(ZZ(2), 3) == rem(2, 3)
+   @test rem(ZZ(2), -3) == rem(2, -3)
+   @test rem(ZZ(-2), 3) == rem(-2, 3)
+   @test rem(ZZ(-2), -3) == rem(-2, -3)
+
+   @test div(ZZ(2), 3) == div(2, 3)
+   @test div(ZZ(2), -3) == div(2, -3)
+   @test div(ZZ(-2), 3) == div(-2, 3)
+   @test div(ZZ(-2), -3) == div(-2, -3)
+
+   @test divrem(ZZ(2), 3) == divrem(2, 3)
+   @test divrem(ZZ(2), -3) == divrem(2, -3)
+   @test divrem(ZZ(-2), 3) == divrem(-2, 3)
+   @test divrem(ZZ(-2), -3) == divrem(-2, -3)
+
+   @test mod(2, ZZ(3)) == mod(2, 3)
+   @test mod(2, ZZ(-3)) == mod(2, -3)
+   @test mod(-2, ZZ(3)) == mod(-2, 3)
+   @test mod(-2, ZZ(-3)) == mod(-2, -3)
+
+   @test rem(2, ZZ(3)) == rem(2, 3)
+   @test rem(2, ZZ(-3)) == rem(2, -3)
+   @test rem(-2, ZZ(3)) == rem(-2, 3)
+   @test rem(-2, ZZ(-3)) == rem(-2, -3)
+
+   @test div(2, ZZ(3)) == div(2, 3)
+   @test div(2, ZZ(-3)) == div(2, -3)
+   @test div(-2, ZZ(3)) == div(-2, 3)
+   @test div(-2, ZZ(-3)) == div(-2, -3)
+
+   @test divrem(2, ZZ(3)) == divrem(2, 3)
+   @test divrem(2, ZZ(-3)) == divrem(2, -3)
+   @test divrem(-2, ZZ(3)) == divrem(-2, 3)
+   @test divrem(-2, ZZ(-3)) == divrem(-2, -3)
+
+   @test mod(2, ZZ(3)) isa Oscar.fmpz
+   @test rem(2, ZZ(3)) isa Oscar.fmpz
+   @test div(2, ZZ(3)) isa Oscar.fmpz
+   @test divrem(2, ZZ(3)) isa Oscar.fmpz
+
+   @test mod(ZZ(2), 3) isa Oscar.fmpz
+   @test rem(ZZ(2), 3) isa Oscar.fmpz
+   @test div(ZZ(2), 3) isa Oscar.fmpz
+   @test divrem(ZZ(2), 3) isa Tuple{Oscar.fmpz}
+
+   @test mod(Int128(2), ZZ(3)) isa Oscar.fmpz
+   @test rem(Int128(2), ZZ(3)) isa Oscar.fmpz
+   @test div(Int128(2), ZZ(3)) isa Oscar.fmpz
+   @test divrem(Int128(2), ZZ(3)) isa Oscar.fmpz
+
+   @test mod(ZZ(2), Int128(3)) isa Oscar.fmpz
+   @test rem(ZZ(2), Int128(3)) isa Oscar.fmpz
+   @test div(ZZ(2), Int128(3)) isa Oscar.fmpz
+   @test divrem(ZZ(2), Int128(3)) isa Tuple{Oscar.fmpz}
+
+   @test mod(BigInt(2), ZZ(3)) isa Oscar.fmpz
+   @test rem(BigInt(2), ZZ(3)) isa Oscar.fmpz
+   @test div(BigInt(2), ZZ(3)) isa Oscar.fmpz
+   @test divrem(BigInt(2), ZZ(3)) isa Oscar.fmpz
+
+   @test mod(ZZ(2), BigInt(3)) isa Oscar.fmpz
+   @test rem(ZZ(2), BigInt(3)) isa Oscar.fmpz
+   @test div(ZZ(2), BigInt(3)) isa Oscar.fmpz
+   @test divrem(ZZ(2), BigInt(3)) isa Tuple{Oscar.fmpz}
 end
+
