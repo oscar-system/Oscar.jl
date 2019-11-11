@@ -216,4 +216,26 @@ Note that for convenience we define:
 divides(ZZ(0), ZZ(0))
 ```
 
+## Conversions
 
+Oscar integers can be converted to Julia `Int`'s and `BigInt`'s in the usual
+Julia way:
+
+```@repl oscar
+n = ZZ(123)
+Int(n)
+BigInt(n)
+```
+
+If the Oscar integer is too large to fit in an `Int`, an exception is raised.
+
+```@repl oscar
+Int(ZZ(12348732648732648763274868732687324))
+```
+
+The `fits` function can be used to determine whether an Oscar integer will fit
+in a Julia `Int`:
+
+```@repl oscar
+fits(Int, ZZ(12348732648732648763274868732687324))
+```
