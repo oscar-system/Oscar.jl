@@ -83,6 +83,16 @@ sign(ZZ(0))
 sign(ZZ(-1))
 ```
 
+Every object in Oscar representing a mathematical element has a parent. This is
+an object encoding information about where that element belongs.
+
+The parent of an Oscar integer is the ring of integers `ZZ`.
+
+```@repl oscar
+R = parent(ZZ(2))
+R == ZZ
+```
+
 ## Basic arithmetic
 
 Oscar provides the basic arithmetic operations `+`, `-` and `*` and comparison

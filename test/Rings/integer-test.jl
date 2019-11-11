@@ -29,6 +29,9 @@ end
    @test sign(ZZ(2)) isa Int
    @test sign(ZZ(0)) isa Int
    @test sign(ZZ(-2)) isa Int
+
+   @test parent(ZZ(2)) == ZZ
+   @test parent(ZZ()) == ZZ
 end
 
 @testset "Rings.ZZ.arithmetic" begin
