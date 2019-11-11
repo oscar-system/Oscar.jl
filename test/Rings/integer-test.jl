@@ -163,4 +163,33 @@ end
    @test ZZ(-1)^3 == -1
    @test ZZ(-1)^2 == 1
    @test ZZ(-1)^1 == -1
+
+   @test ZZ(2)^62 isa Oscar.fmpz
+   @test ZZ(2)^63 isa Oscar.fmpz
+   @test ZZ(2)^64 isa Oscar.fmpz
+   @test ZZ(2)^62 == BigInt(2)^62
+   @test ZZ(2)^63 == BigInt(2)^63
+   @test ZZ(2)^64 == BigInt(2)^64
+end
+
+@testset "Rings.ZZ.euclidean_division" begin
+   @test mod(ZZ(2), ZZ(3)) == 2
+   @test mod(ZZ(2), ZZ(-3)) == -1
+   @test mod(ZZ(-2), ZZ(3)) == 1
+   @test mod(ZZ(-2), ZZ(-3)) == -2
+
+   @test rem(ZZ(2), ZZ(3)) == 2
+   @test rem(ZZ(2), ZZ(-3)) == 2
+   @test rem(ZZ(-2), ZZ(3)) == -2
+   @test rem(ZZ(-2), ZZ(-3)) == -2
+
+   @test div(ZZ(2), ZZ(3)) == 0
+   @test div(ZZ(2), ZZ(-3)) == 0
+   @test div(ZZ(-2), ZZ(3)) == 0
+   @test div(ZZ(-2), ZZ(-3)) == 0
+
+   @test divrem(ZZ(2), ZZ(3)) == (0, 2)
+   @test divrem(ZZ(2), ZZ(-3)) == (0, 2)
+   @test divrem(ZZ(-2), ZZ(3)) == (0, -2)
+   @test divrem(ZZ(-2), ZZ(-3)) == (0, -2)
 end
