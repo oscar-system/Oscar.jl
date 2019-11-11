@@ -107,6 +107,8 @@ end
 
    @test_throws DivideError divexact(ZZ(2), ZZ(0))
    @test_throws DivideError divexact(ZZ(0), ZZ(0))
+   @test_throws DivideError divexact(ZZ(2), 0)
+   @test_throws DivideError divexact(ZZ(0), 0)
 
    @test_throws ErrorException divexact(ZZ(2), ZZ(3))
    @test_throws ErrorException divexact(ZZ(2), 3)
@@ -262,5 +264,25 @@ end
    @test rem(ZZ(2), BigInt(3)) isa Oscar.fmpz
    @test div(ZZ(2), BigInt(3)) isa Oscar.fmpz
    @test divrem(ZZ(2), BigInt(3)) isa Tuple{Oscar.fmpz, Oscar.fmpz}
+
+   @test_throws DivideError mod(ZZ(2), ZZ(0))
+   @test_throws DivideError mod(ZZ(0), ZZ(0))
+   @test_throws DivideError mod(ZZ(2), 0)
+   @test_throws DivideError mod(ZZ(0), 0)
+
+   @test_throws DivideError rem(ZZ(2), ZZ(0))
+   @test_throws DivideError rem(ZZ(0), ZZ(0))
+   @test_throws DivideError rem(ZZ(2), 0)
+   @test_throws DivideError rem(ZZ(0), 0)
+
+   @test_throws DivideError div(ZZ(2), ZZ(0))
+   @test_throws DivideError div(ZZ(0), ZZ(0))
+   @test_throws DivideError div(ZZ(2), 0)
+   @test_throws DivideError div(ZZ(0), 0)
+
+   @test_throws DivideError divrem(ZZ(2), ZZ(0))
+   @test_throws DivideError divrem(ZZ(0), ZZ(0))
+   @test_throws DivideError divrem(ZZ(2), 0)
+   @test_throws DivideError divrem(ZZ(0), 0)
 end
 
