@@ -95,7 +95,7 @@ below.
 Oscar distinguishes a number of different kinds of division:
 
 * [Exact division](@ref integer_exact_division) (`divexact`)
-* [Euclidean division](@ref integer_euclidean_division) (`div`, `divrem`, `mod`, `rem`)
+* [Euclidean division](@ref integer_euclidean_division) (`div`, `rem`, `divrem` and `mod`)
 * Construction of fractions (`a//b`)
 * Floating point division (`a/b`)
 * [Divisibility testing](@ref integer_divisibility_testing) (`divides`)
@@ -155,17 +155,16 @@ In a Euclidean domain in Oscar the `divrem` function returns both quotient
 and remainder, `div` returns just the quotient and `rem` returns just the
 remainder.
 
-Euclidean division of ``a`` by ``n`` computes a quotient and remainder such
-that
+For integers, Euclidean division of ``a`` by ``n`` computes a quotient and
+remainder such that
 ```@math
 a = qn + r
 ```
 where $|r| < |n|$. For conformity with Julia, when ``r \neq 0`` the sign of
 ``r`` will be the same as the sign of ``a``.
 
-It is often convenient to have Euclidean remainder with ``r`` and ``n`` having
-the same sign, so that if ``n > 0`` the remainder is non-negative. For this we
-have `mod`.
+If one instead wants Euclidean remainder with ``r`` and ``n`` having the same
+sign, one can use `mod`. Then if ``n > 0`` the remainder will be non-negative.
 
 remainder | division   | sign             | rounding
 ----------|------------|------------------|---------------------
@@ -181,8 +180,8 @@ r = mod(ZZ(4), ZZ(3))
 All three functions raise an exception if the modulus ``m`` is zero.
 
 !!! note
-    The rem function does not provide a minimal set of representatives modulo
-    the divisor.
+    The rem function does not provide a minimal set of representatives, e.g.
+    rem(-2, 3) = -2 but rem(1, 3) = 1.
 
 ## [Divisibility testing](@id integer_divisibility_testing)
 
