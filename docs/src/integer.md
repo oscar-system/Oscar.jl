@@ -20,9 +20,22 @@ are [Julia integers](https://docs.julialang.org/en/v1/manual/integers-and-floati
 In the following, unless stated otherwise, when we refer to integers we mean
 Oscar integers; when we refer to an `Int` we mean the Julia `Int`.
 
-## Constructors
+## The ring of integers
 
-Oscar integers are created using the `ZZ` constructor.
+Every object in Oscar representing a mathematical element has a parent. This is
+an object encoding information about where that element belongs.
+
+The parent of an Oscar integer is the ring of integers `ZZ`.
+
+```@repl oscar
+ZZ
+R = parent(ZZ(2))
+R == ZZ
+```
+
+### Integer constructors
+
+Oscar integers are created using `ZZ`:
 
 ```@repl oscar
 ZZ(2)^100
@@ -91,16 +104,6 @@ The following properties can also be computed:
 sign(ZZ(23))
 sign(ZZ(0))
 sign(ZZ(-1))
-```
-
-Every object in Oscar representing a mathematical element has a parent. This is
-an object encoding information about where that element belongs.
-
-The parent of an Oscar integer is the ring of integers `ZZ`.
-
-```@repl oscar
-R = parent(ZZ(2))
-R == ZZ
 ```
 
 ## Basic arithmetic
@@ -229,7 +232,7 @@ Note that for convenience we define:
 divides(ZZ(0), ZZ(0))
 ```
 
-## GCD and LCM
+## Gcd and lcm
 
 The `gcd` function returns the greatest common divisor of its inputs, which is
 by definition the largest integer dividing the two inputs unless both inputs
