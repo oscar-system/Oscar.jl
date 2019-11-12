@@ -272,21 +272,29 @@ end
    @test_throws DivideError mod(ZZ(0), ZZ(0))
    @test_throws DivideError mod(ZZ(2), 0)
    @test_throws DivideError mod(ZZ(0), 0)
+   @test_throws DivideError mod(2, ZZ(0))
+   @test_throws DivideError mod(0, ZZ(0))
 
    @test_throws DivideError rem(ZZ(2), ZZ(0))
    @test_throws DivideError rem(ZZ(0), ZZ(0))
    @test_throws DivideError rem(ZZ(2), 0)
    @test_throws DivideError rem(ZZ(0), 0)
+   @test_throws DivideError rem(2, ZZ(0))
+   @test_throws DivideError rem(0, ZZ(0))
 
    @test_throws DivideError div(ZZ(2), ZZ(0))
    @test_throws DivideError div(ZZ(0), ZZ(0))
    @test_throws DivideError div(ZZ(2), 0)
    @test_throws DivideError div(ZZ(0), 0)
+   @test_throws DivideError div(2, ZZ(0))
+   @test_throws DivideError div(0, ZZ(0))
 
    @test_throws DivideError divrem(ZZ(2), ZZ(0))
    @test_throws DivideError divrem(ZZ(0), ZZ(0))
    @test_throws DivideError divrem(ZZ(2), 0)
    @test_throws DivideError divrem(ZZ(0), 0)
+   @test_throws DivideError divrem(2, ZZ(0))
+   @test_throws DivideError divrem(0, ZZ(0))
 end
 
 @testset "Rings.ZZ.conversion" begin
