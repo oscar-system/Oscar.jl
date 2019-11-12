@@ -248,6 +248,48 @@ lcm(ZZ(0), ZZ(0))
 
 Both `gcd` and `lcm` accept Julia `Int`'s for one of their arguments.
 
+## Roots
+
+Julia and Oscar distinguish two kinds of square root:
+
+* Integer square root (`isqrt`)
+* Floating point square root (`sqrt`)
+
+The `isqrt` function returns the floor of the square root of its argument, i.e.
+the largest integer whose square does not exceed its input. An exception is
+raised if a negative input is passed.
+
+```@repl oscar
+isqrt(ZZ(16))
+isqrt(ZZ(0))
+isqrt(ZZ(5))
+isqrt(ZZ(-3))
+```
+
+If the remainder is also required, there is the `isqrtrem` function. It returns
+a tuple `(s, r)` such that ``s`` is the same as the return value of the `isqrt`
+function and ``s^2 + r`` is equal to the input.
+
+```@repl oscar
+isqrtrem(ZZ(16))
+isqrtrem(ZZ(5))
+```
+
+The function `root(a, n)` will return the value of largest absolute value whose
+``n``-th power does not exceed ``a``. When ``n`` is even, ``a`` must be
+non-negative and the return value will always be non-negative. The value of
+``a`` may be negative if ``n`` is negative. The value ``n`` must always be
+a positive Julia `Int`.
+
+```@repl oscar
+root(ZZ(16), 4)
+root(ZZ(5), 2)
+root(ZZ(-5), 3)
+root(ZZ(0), 4)
+root(ZZ(-5), 2)
+root(ZZ(12), -2)
+```
+
 ## Conversions
 
 Oscar integers can be converted to Julia `Int`'s and `BigInt`'s in the usual
