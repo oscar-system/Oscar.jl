@@ -1,6 +1,6 @@
-import Nemo: ZZ, divexact, divides, fits, fmpz, isprime, isprobable_prime,
-         isqrtrem, issquare, isunit, root
+import Nemo: ZZ, divexact, divides, factor, fits, fmpz, isprime,
+         isprobable_prime, isqrtrem, issquare, isunit, root, unit
 
-export ZZ, divexact, divides, fits, isprime, isprobable_prime,
-         isqrtrem, issquare, isunit, root
+export ZZ, divexact, divides, factor, fits, isprime,
+         isprobable_prime, isqrtrem, issquare, isunit, root, unit
 

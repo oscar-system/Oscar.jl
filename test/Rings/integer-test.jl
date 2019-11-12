@@ -421,3 +421,31 @@ end
    @test_throws DomainError root(ZZ(-2), 2)
    @test_throws DomainError root(ZZ(-2), 0)
 end
+
+@testset "Rings.ZZ.factorisation" begin
+   F = factor(ZZ(-60))
+
+   @test unit(F) == -1
+   @test unit(F) isa Oscar.fmpz
+
+   @test length(collect(F)) == 3
+   @test 2 in F
+   @test ZZ(3) in F
+   @test F[2] == 2
+   @test F[ZZ(3)] == 1
+   @test !(ZZ(-1) in F)
+   @test !(-1 in F)
+   @test !(ZZ(0) in F)
+   @test !(0 in F)
+   @test !(7 in F)
+   
+   F = factor(ZZ(60))
+
+   @test unit(F) == 1
+
+   @test_throws ArgumentError factor(ZZ(0))
+   @test_throws ErrorException F[0]
+   @test_throws ErrorException F[7]
+   @test_throws ErrorException F[ZZ(0)]
+   @test_throws ErrorException F[ZZ(7)]
+end
