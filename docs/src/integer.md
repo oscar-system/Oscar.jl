@@ -325,3 +325,52 @@ in a Julia `Int`:
 fits(Int, ZZ(12348732648732648763274868732687324))
 ```
 
+## Factorisation
+
+Factorisation of nonzero integers is provided by the `factor` function.
+
+```@repl oscar
+factor(ZZ(-6000361807272228723606))
+factor(ZZ(0))
+```
+
+The unit (``\pm 1``) can be accessed via the `unit` function:
+
+```@repl oscar
+F = factor(ZZ(-12))
+unit(F)
+```
+
+Once created, a factorisation is iterable:
+
+```@repl oscar
+F = factor(ZZ(-60))
+for (p, e) in F; println("$p^$e"); end
+```
+
+The pairs `(p, e)` represent the prime power factors ``p^e`` of the non-unit
+part of the factorisation. They can be placed in an array using `collect`:
+
+```@repl oscar
+F = factor(ZZ(-60))
+collect(F)
+```
+
+One can also determine whether a given prime is in the non-unit part of a
+factorisation and if so return its exponent. If the exponent of a prime that
+is not in a factorisation is requested, an exception is raised.
+
+For convenience, a Julia `Int` can be used instead of an Oscar integer for this
+functionality.
+
+```@repl oscar
+F = factor(ZZ(-60))
+5 in F
+ZZ(3) in F
+7 in F
+F[3]
+F[ZZ(7)]
+```
+
+
+
