@@ -73,6 +73,14 @@ The following predicates are provided, which return `true` or `false`:
 * `iszero(n)` : ``n = 0``
 * `isone(n)` : ``n = 1``
 * `isunit(n)` : ``n = \pm 1``
+* `issquare(n)`
+* `isprime(n)`
+* `isprobable_prime(n)`
+
+The `isprime` predicate will prove primality, whereas `isprobable_prime` may
+declare a composite number to be prime with very low probability.
+
+Negative numbers, ``0`` and ``1`` are not considered prime by these predicates.
 
 The following properties can also be computed:
 

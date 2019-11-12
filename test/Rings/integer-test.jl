@@ -29,6 +29,22 @@ end
    @test sign(ZZ(2)) isa Int
    @test sign(ZZ(0)) isa Int
    @test sign(ZZ(-2)) isa Int
+   @test issquare(ZZ(0))
+   @test issquare(ZZ(1))
+   @test !issquare(ZZ(2))
+   @test issquare(ZZ(4))
+   @test !issquare(ZZ(-1))
+   @test !issquare(ZZ(-4))
+   @test isprime(ZZ(2))
+   @test !isprime(ZZ(-2))
+   @test !isprime(ZZ(-1))
+   @test !isprime(ZZ(0))
+   @test !isprime(ZZ(1))
+   @test isprobable_prime(ZZ(2))
+   @test !isprobable_prime(ZZ(-2))
+   @test !isprobable_prime(ZZ(-1))
+   @test !isprobable_prime(ZZ(0))
+   @test !isprobable_prime(ZZ(1))
 
    @test parent(ZZ(2)) == ZZ
    @test parent(ZZ()) == ZZ
