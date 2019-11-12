@@ -216,6 +216,30 @@ Note that for convenience we define:
 divides(ZZ(0), ZZ(0))
 ```
 
+## GCD and LCM
+
+The `gcd` function returns the greatest common divisor of its inputs, which is
+by definition the largest integer dividing the two inputs. The result will
+always be non-negative and will only be zero if both inputs are zero.
+
+```@repl oscar
+gcd(ZZ(34), ZZ(17))
+gcd(ZZ(3), ZZ(0))
+```
+
+The `lcm` function returns the least positive multiple of its inputs, unless
+one or more of its inputs is zero, in which case it returns zero.
+
+```@repl oscar
+lcm(ZZ(6), ZZ(21))
+lcm(ZZ(0), ZZ(0))
+```
+
+!!! note
+    The identity ``gcd(m, n)lcm(m, n) = mn`` does not hold for the definition
+    that Oscar uses, unless both ``m`` and ``n`` are the same sign or one of
+    them is zero.
+
 ## Conversions
 
 Oscar integers can be converted to Julia `Int`'s and `BigInt`'s in the usual
@@ -239,3 +263,4 @@ in a Julia `Int`:
 ```@repl oscar
 fits(Int, ZZ(12348732648732648763274868732687324))
 ```
+

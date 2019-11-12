@@ -321,3 +321,48 @@ end
    @test BigInt(ZZ(123)) isa BigInt
    @test BigInt(ZZ(0)) isa BigInt
 end
+
+@testset "Rings.ZZ.gcd" begin
+   @test gcd(ZZ(2), ZZ(3)) == 1
+   @test gcd(ZZ(2), ZZ(-3)) == 1
+   @test gcd(ZZ(-2), ZZ(3)) == 1
+   @test gcd(ZZ(-2), ZZ(-3)) == 1
+
+   @test gcd(ZZ(2), ZZ(0)) == 2
+   @test gcd(ZZ(0), ZZ(2)) == 2
+   @test gcd(ZZ(0), ZZ(0)) == 0
+
+   @test gcd(ZZ(2), 0) == 2
+   @test gcd(0, ZZ(2)) == 2
+   @test gcd(ZZ(0), 0) == 0
+   @test gcd(0, ZZ(0)) == 0
+
+   @test gcd(ZZ(2), 3) isa Oscar.fmpz
+   @test gcd(2, ZZ(3)) isa Oscar.fmpz
+   @test gcd(ZZ(2), 0) isa Oscar.fmpz
+   @test gcd(0, ZZ(2)) isa Oscar.fmpz
+   @test gcd(ZZ(0), 0) isa Oscar.fmpz
+   @test gcd(0, ZZ(0)) isa Oscar.fmpz
+
+   @test lcm(ZZ(2), ZZ(3)) == 6
+   @test lcm(ZZ(2), ZZ(-3)) == 6
+   @test lcm(ZZ(-2), ZZ(3)) == 6
+   @test lcm(ZZ(-2), ZZ(-3)) == 6
+
+   @test lcm(ZZ(2), ZZ(0)) == 0
+   @test lcm(ZZ(0), ZZ(2)) == 0
+   @test lcm(ZZ(0), ZZ(0)) == 0
+
+   @test lcm(ZZ(2), 0) == 0
+   @test lcm(0, ZZ(2)) == 0
+   @test lcm(ZZ(0), 0) == 0
+   @test lcm(0, ZZ(0)) == 0
+
+   @test lcm(ZZ(2), 3) isa Oscar.fmpz
+   @test lcm(2, ZZ(3)) isa Oscar.fmpz
+   @test lcm(ZZ(2), 0) isa Oscar.fmpz
+   @test lcm(0, ZZ(2)) isa Oscar.fmpz
+   @test lcm(ZZ(0), 0) isa Oscar.fmpz
+   @test lcm(0, ZZ(0)) isa Oscar.fmpz
+end
+
