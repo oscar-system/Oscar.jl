@@ -64,6 +64,8 @@ divexact(ZZ(234), 2)
 In this example, `2` is a Julia integer but is still valid in the
 call to the Oscar function `divexact`.
 
+A number of other integer functions also accept Julia `Int`'s, as noted below.
+
 ## Predicates and properties
 
 The following predicates are provided, which return `true` or `false`:
@@ -193,6 +195,9 @@ All three functions raise an exception if the modulus ``m`` is zero.
     The rem function does not provide a minimal set of representatives, e.g.
     rem(-2, 3) = -2 but rem(1, 3) = 1.
 
+All integer Euclidean division functions accept a Julia `Int` for one of their
+arguments.
+
 ## [Divisibility testing](@id integer_divisibility_testing)
 
 Divisibility testing is performed using the `divides` function.
@@ -240,6 +245,8 @@ lcm(ZZ(0), ZZ(0))
     The identity ``\gcd(m, n)\lcm(m, n) = mn`` does not hold for the definition
     that Oscar uses, unless both ``m`` and ``n`` are the same sign or one of
     them is zero.
+
+Both `gcd` and `lcm` accept Julia `Int`'s for one of their arguments.
 
 ## Conversions
 
