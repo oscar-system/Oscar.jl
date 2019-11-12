@@ -236,7 +236,7 @@ lcm(ZZ(0), ZZ(0))
 ```
 
 !!! note
-    The identity ``gcd(m, n)lcm(m, n) = mn`` does not hold for the definition
+    The identity ``\gcd(m, n)\lcm(m, n) = mn`` does not hold for the definition
     that Oscar uses, unless both ``m`` and ``n`` are the same sign or one of
     them is zero.
 

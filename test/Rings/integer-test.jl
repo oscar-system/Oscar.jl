@@ -344,6 +344,11 @@ end
    @test gcd(ZZ(0), 0) isa Oscar.fmpz
    @test gcd(0, ZZ(0)) isa Oscar.fmpz
 
+   @test gcd(ZZ(2), Int128(3)) isa Oscar.fmpz
+   @test gcd(ZZ(2), BigInt(3)) isa Oscar.fmpz
+   @test gcd(Int128(2), ZZ(3)) isa Oscar.fmpz
+   @test gcd(BigInt(2), ZZ(3)) isa Oscar.fmpz
+
    @test lcm(ZZ(2), ZZ(3)) == 6
    @test lcm(ZZ(2), ZZ(-3)) == 6
    @test lcm(ZZ(-2), ZZ(3)) == 6
