@@ -344,6 +344,11 @@ end
    @test gcd(ZZ(0), 0) isa Oscar.fmpz
    @test gcd(0, ZZ(0)) isa Oscar.fmpz
 
+   @test gcd(ZZ(2), Int128(3)) isa Oscar.fmpz
+   @test gcd(ZZ(2), BigInt(3)) isa Oscar.fmpz
+   @test gcd(Int128(2), ZZ(3)) isa Oscar.fmpz
+   @test gcd(BigInt(2), ZZ(3)) isa Oscar.fmpz
+
    @test lcm(ZZ(2), ZZ(3)) == 6
    @test lcm(ZZ(2), ZZ(-3)) == 6
    @test lcm(ZZ(-2), ZZ(3)) == 6
@@ -366,3 +371,37 @@ end
    @test lcm(0, ZZ(0)) isa Oscar.fmpz
 end
 
+@testset "Rings.ZZ.roots" begin
+   @test isqrt(ZZ(16)) == 4
+   @test isqrt(ZZ(5)) == 2
+   @test isqrt(ZZ(0)) == 0
+   @test isqrt(ZZ(1)) == 1
+
+   @test_throws DomainError isqrt(ZZ(-1))
+   @test_throws DomainError isqrt(ZZ(-4))
+
+   @test isqrtrem(ZZ(16)) == (4, 0)
+   @test isqrtrem(ZZ(5)) == (2, 1)
+   @test isqrtrem(ZZ(0)) == (0, 0)
+   @test isqrtrem(ZZ(1)) == (1, 0)
+
+   @test_throws DomainError isqrtrem(ZZ(-1))
+   @test_throws DomainError isqrtrem(ZZ(-4))
+
+   @test root(ZZ(16), 2) == 4
+   @test root(ZZ(5), 3) == 1
+   @test root(ZZ(-8), 3) == -2
+   @test root(ZZ(0), 2) == 0
+   @test root(ZZ(0), 3) == 0
+   @test root(ZZ(1), 1) == 1
+   @test root(ZZ(-1), 1) == -1
+   @test root(ZZ(1), 2) == 1
+
+   @test_throws DomainError root(ZZ(2), -3)
+   @test_throws DomainError root(ZZ(2), 0)
+   @test_throws DomainError root(ZZ(1), -1)
+   @test_throws DomainError root(ZZ(1), 0)
+   @test_throws DomainError root(ZZ(0), 0)
+   @test_throws DomainError root(ZZ(-2), 2)
+   @test_throws DomainError root(ZZ(-2), 0)
+end

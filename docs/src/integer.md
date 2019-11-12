@@ -64,6 +64,8 @@ divexact(ZZ(234), 2)
 In this example, `2` is a Julia integer but is still valid in the
 call to the Oscar function `divexact`.
 
+A number of other integer functions also accept Julia `Int`'s, as noted below.
+
 ## Predicates and properties
 
 The following predicates are provided, which return `true` or `false`:
@@ -193,6 +195,9 @@ All three functions raise an exception if the modulus ``m`` is zero.
     The rem function does not provide a minimal set of representatives, e.g.
     rem(-2, 3) = -2 but rem(1, 3) = 1.
 
+All integer Euclidean division functions accept a Julia `Int` for one of their
+arguments.
+
 ## [Divisibility testing](@id integer_divisibility_testing)
 
 Divisibility testing is performed using the `divides` function.
@@ -219,8 +224,9 @@ divides(ZZ(0), ZZ(0))
 ## GCD and LCM
 
 The `gcd` function returns the greatest common divisor of its inputs, which is
-by definition the largest integer dividing the two inputs. The result will
-always be non-negative and will only be zero if both inputs are zero.
+by definition the largest integer dividing the two inputs unless both inputs
+are zero in which case it returns zero. The result will always be non-negative
+and will only be zero if both inputs are zero.
 
 ```@repl oscar
 gcd(ZZ(34), ZZ(17))
@@ -236,9 +242,53 @@ lcm(ZZ(0), ZZ(0))
 ```
 
 !!! note
-    The identity ``gcd(m, n)lcm(m, n) = mn`` does not hold for the definition
+    The identity ``\gcd(m, n)\lcm(m, n) = mn`` does not hold for the definition
     that Oscar uses, unless both ``m`` and ``n`` are the same sign or one of
     them is zero.
+
+Both `gcd` and `lcm` accept Julia `Int`'s for one of their arguments.
+
+## Roots
+
+Julia and Oscar distinguish two kinds of square root:
+
+* Integer square root (`isqrt`)
+* Floating point square root (`sqrt`)
+
+The `isqrt` function returns the floor of the square root of its argument, i.e.
+the largest integer whose square does not exceed its input. An exception is
+raised if a negative input is passed.
+
+```@repl oscar
+isqrt(ZZ(16))
+isqrt(ZZ(0))
+isqrt(ZZ(5))
+isqrt(ZZ(-3))
+```
+
+If the remainder is also required, there is the `isqrtrem` function. It returns
+a tuple `(s, r)` such that ``s`` is the same as the return value of the `isqrt`
+function and ``s^2 + r`` is equal to the input.
+
+```@repl oscar
+isqrtrem(ZZ(16))
+isqrtrem(ZZ(5))
+```
+
+The function `root(a, n)` will return the value of largest absolute value whose
+``n``-th power does not exceed ``a``. When ``n`` is even, ``a`` must be
+non-negative and the return value will always be non-negative. The value of
+``a`` may be negative if ``n`` is negative. The value ``n`` must always be
+a positive Julia `Int`.
+
+```@repl oscar
+root(ZZ(16), 4)
+root(ZZ(5), 2)
+root(ZZ(-5), 3)
+root(ZZ(0), 4)
+root(ZZ(-5), 2)
+root(ZZ(12), -2)
+```
 
 ## Conversions
 
