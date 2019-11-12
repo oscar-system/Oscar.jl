@@ -219,8 +219,9 @@ divides(ZZ(0), ZZ(0))
 ## GCD and LCM
 
 The `gcd` function returns the greatest common divisor of its inputs, which is
-by definition the largest integer dividing the two inputs. The result will
-always be non-negative and will only be zero if both inputs are zero.
+by definition the largest integer dividing the two inputs unless both inputs
+are zero in which case it returns zero. The result will always be non-negative
+and will only be zero if both inputs are zero.
 
 ```@repl oscar
 gcd(ZZ(34), ZZ(17))
