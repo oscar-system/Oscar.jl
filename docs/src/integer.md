@@ -348,8 +348,9 @@ F = factor(ZZ(-60))
 for (p, e) in F; println("$p^$e"); end
 ```
 
-The pairs `(p, e)` represent the prime power factors ``p^e`` of the non-unit
-part of the factorisation. They can be placed in an array using `collect`:
+The pairs `(p, e)` in a factorisation represent the prime power factors
+``p^e`` of the non-unit part of the factorisation. They can be placed in an
+array using `collect`:
 
 ```@repl oscar
 F = factor(ZZ(-60))
@@ -371,6 +372,105 @@ ZZ(3) in F
 F[3]
 F[ZZ(7)]
 ```
+
+## Combinatorial functions
+
+The following combinatorial functions are provided
+
+* `Oscar.factorial(n)`
+
+Returns the factorial of ``n``, i.e. ``n!``. Here ``n`` should be a Julia
+`Int`. The return value is an Oscar integer. An exception is raised if
+``n < 0``. We define ``0! = 1``.
+
+!!! note
+    The function `factorial` is already defined in Julia, but returns a Julia
+    `Int`, which overflows when the result is too large. To disambiguate the
+    Oscar version of the function it is accessed via 'Oscar.factorial'.
+
+* `rising_factorial(x, n)`
+
+Returns ``x(x + 1)(x + 2)\ldots(x + n - 1)``. The value ``x`` can be an Oscar
+integer or a Julia integer, but ``n`` must be a Julia `Int`. An exception is
+raised if ``n < 0``. We define `rising_factorial(x, 0)` to be ``1``.
+
+* `primorial(n)`
+
+Returns the ``n``-th primorial number ``P(n)``, i.e. the product of all primes
+less than or equal to ``n``. An exception is raised if ``n < 0``. We define
+``P(0) = P(1) = 1``. The value ``n`` must be a Julia `Int`.
+
+* `bell(n)`
+
+Returns the ``n``-th Bell number ``B(n)``, i.e. the number of ways of
+partitioning a set of ``n`` elements. An exception is raised if ``n < 0``. The
+value ``n`` must be a Julia `Int`.
+
+* `Oscar.binomial(n, k)`
+
+Returns the binomial coefficient ``\frac{n!}{k!(n - k)!}``. If ``n, k < 0`` or
+``k > n`` we return zero. Both ``n`` and ``k`` must be Julia `Int`'s. Note that
+Julia already defines the `binomial` function, thus the Oscar version is
+accessed as `Oscar.binomial`.
+
+* `number_of_partitions(n)`
+
+Returns the number of integer partitions ``p(n)`` of ``n``, i.e. the number
+of distinct ways to write ``n`` as a sum of positive integers. An exception
+is raised if ``n \leq 0``. The argument ``n`` must be a Julia `Int` and the
+result is an Oscar integer.
+
+## Number theoretic functionality
+
+* `fibonacci(n)`
+
+Returns the ``n``-th Fibonacci number ``F(n)``, defined by the recurrence
+relation ``F(1) = 1``, ``F(2) = 1`` and ``F(n) = F(n - 1) + F(n - 2)`` for
+``n \geq 3``. For convenience we define ``F(0) = 0``. An exception is raised
+if ``n < 0``. The value ``n`` must be a Julia `Int`.
+
+* `moebius_mu(n)`
+
+Return the Moebius function ``\mu(n)``, which is defined to be ``0`` if
+``n`` is not squarefree and otherwise is defined to be ``+1`` or ``-1`` if
+``n`` has an even or odd number of prime factors, respectively. Alternatively,
+``\mu(n)`` can be defined to be the sum of the primitive ``n``-th roots of
+unity.  The parameter ``n`` can be a Julia integer or an Oscar integer. The
+result will be a Julia `Int`. An exception is raised if ``n < 0``.
+
+* `jacobi_symbol(m, n)`
+
+Return the Jacobi symbol ``\left(\frac{m}{n}\right)``, which is defined for
+integers ``m`` and odd positive integers ``n``. If the factorisation of ``n``
+is ``n = p_1^{i_1}p_2^{i_2}\ldots p_r^{i_r}`` then we define
+```math
+\left(\frac{m}{n}\right) = \left(\frac{m}{p_1}\right)^i_1\left(\frac{m}{p_2}\right)^i_2\ldots \left(\frac{m}{p_r}\right)^i_r
+```
+where ``\left(\frac{m}{p}\right)`` on the right hand side is the Legendre
+symbol, which is defined for an odd prime number ``p`` to be ``0`` if ``p``
+divides ``m`` and otherwise ``+1`` or ``-1`` depending on whether ``m`` is
+a square modulo ``p`` or not. An exception is raised if ``n`` is even or
+not positive. The values ``m`` and ``n`` can either both be Julia integers or
+both Oscar integers. The result is a Julia `Int`.
+
+* `divisor_sigma(m, n)`
+
+Return the sum of the ``n``-th powers of the divisors of ``m``
+```math
+\sigma(m, n) = \sum_{d\;|\;m} d^n.
+```
+We define ``\sigma(0, n) = 0`` for all ``n``. If ``n < 0`` we raise an
+exception. The value ``m`` can be a Julia integer or an Oscar integer. The
+return value is an Oscar integer.
+
+* `euler_phi(n)`
+
+Return the Euler totient function ``\varphi(n)``, i.e. the number of positive
+integers ``1 \leq x \leq n`` which are coprime to ``n``. Note that
+``varphi(1) = 1`` and ``varphi(0) = 0``. We raise an exception if ``n < 0``.
+The argument ``n`` may be an Oscar integer or a Julia integer. The result is
+an Oscar integer.
+
 
 
 
