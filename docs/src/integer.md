@@ -409,7 +409,7 @@ value ``n`` must be a Julia `Int`.
 Returns the binomial coefficient ``\frac{n!}{k!(n - k)!}``. If ``n, k < 0`` or
 ``k > n`` we return zero. Both ``n`` and ``k`` must be Julia `Int`'s.
 
-``` note
+!!! note
     Julia already defines the `binomial` function,  which returns an `Int` that
     may overflow when the result is too large. To disambiguate the Oscar
     version of the function it is accessed via `Oscar.binomial`.
