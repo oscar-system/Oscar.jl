@@ -418,7 +418,7 @@ Returns the binomial coefficient ``\frac{n!}{k!(n - k)!}``. If ``n, k < 0`` or
 
 Returns the number of integer partitions ``p(n)`` of ``n``, i.e. the number
 of distinct ways to write ``n`` as a sum of positive integers. Note that
-``p(0) = 1, as the empty sum is counted. For ``n < 0`` we return zero.
+``p(0) = 1``, as the empty sum is counted. For ``n < 0`` we return zero.
 The argument ``n`` can be a Julia integer or an Oscar integer and the result
 is an Oscar integer.
 
