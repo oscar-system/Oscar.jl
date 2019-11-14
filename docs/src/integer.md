@@ -41,7 +41,7 @@ Oscar integers are created using `ZZ`:
 ZZ(2)^100
 ZZ(618970019642690137449562111)
 ```
-One can also construct the zero integer with the empty constructor:
+One can also construct the integer ``0`` with the empty constructor:
 
 ```@repl oscar
 ZZ()
@@ -60,10 +60,10 @@ on the machine and in any case to signed integers whose absolute value does not
 exceed ``2^{37}`` bits.
 
 !!! note
-    The Julia 'Int' type is either a 32 or 64 bit integer, depending on the
+    The Julia `Int` type is either a 32 or 64 bit integer, depending on the
     machine architecture (usually 64 bits on most modern machines). The range of
-    values is machine dependent, but can be found by typing 'typemin(Int)' and
-    'typemax(Int)' in Julia.
+    values is machine dependent, but can be found by typing `typemin(Int)` and
+    `typemax(Int)` in Julia.
 
 ## Julia integers in Oscar functions
 
@@ -126,9 +126,9 @@ Oscar distinguishes a number of different kinds of division:
 These choices have been made for maximum parsimony with the Julia language.
 
 !!! note
-    It is a common error to enter '1/2' for the fraction 'one half' in Julia.
+    It is a common error to enter `1/2` for the fraction 'one half' in Julia.
     This expression is reserved for floating point division. Instead, the
-    double slash operator '//' should be used for fractions.
+    double slash operator `//` should be used for fractions.
 
 ### [Exact Division](@id integer_exact_division)
 
@@ -165,8 +165,8 @@ ZZ(0)^0
 ```
 
 !!! note
-    In Julia, '2^64' will return 0, as the Julia integer 2 is a machine word.
-    In Oscar, the expression 'ZZ(2)^64' will return the expected result.
+    In Julia, `2^64` will return zero, as the Julia integer ``2`` is a machine
+    word. In Oscar, the expression `ZZ(2)^64` will return the expected result.
 
 
 ## [Euclidean division](@id integer_euclidean_division)
@@ -204,7 +204,7 @@ All three functions raise an exception if the modulus ``m`` is zero.
 
 !!! note
     The rem function does not provide a minimal set of representatives, e.g.
-    rem(-2, 3) = -2 but rem(1, 3) = 1.
+    `rem(-2, 3) = -2` but `rem(1, 3) = 1`.
 
 All integer Euclidean division functions accept a Julia `Int` for one of their
 arguments.
@@ -375,8 +375,6 @@ F[ZZ(7)]
 
 ## Combinatorial functions
 
-The following combinatorial functions are provided
-
 * `Oscar.factorial(n)`
 
 Returns the factorial of ``n``, i.e. ``n!``. Here ``n`` should be a Julia
@@ -386,7 +384,7 @@ Returns the factorial of ``n``, i.e. ``n!``. Here ``n`` should be a Julia
 !!! note
     The function `factorial` is already defined in Julia, but returns a Julia
     `Int`, which overflows when the result is too large. To disambiguate the
-    Oscar version of the function it is accessed via 'Oscar.factorial'.
+    Oscar version of the function it is accessed via `Oscar.factorial`.
 
 * `rising_factorial(x, n)`
 
@@ -409,15 +407,18 @@ value ``n`` must be a Julia `Int`.
 * `Oscar.binomial(n, k)`
 
 Returns the binomial coefficient ``\frac{n!}{k!(n - k)!}``. If ``n, k < 0`` or
-``k > n`` we return zero. Both ``n`` and ``k`` must be Julia `Int`'s. Note that
-Julia already defines the `binomial` function, thus the Oscar version is
-accessed as `Oscar.binomial`.
+``k > n`` we return zero. Both ``n`` and ``k`` must be Julia `Int`'s.
+
+``` note
+    Julia already defines the `binomial` function,  which returns an `Int` that
+    may overflow when the result is too large. To disambiguate the Oscar
+    version of the function it is accessed via `Oscar.binomial`.
 
 * `number_of_partitions(n)`
 
 Returns the number of integer partitions ``p(n)`` of ``n``, i.e. the number
 of distinct ways to write ``n`` as a sum of positive integers. Note that
-``p(0) = 1, as the empty sum is counted. For ``n < 0`` we return ``0``.
+``p(0) = 1, as the empty sum is counted. For ``n < 0`` we return zero.
 The argument ``n`` can be a Julia integer or an Oscar integer and the result
 is an Oscar integer.
 
@@ -445,7 +446,7 @@ Return the Jacobi symbol ``\left(\frac{m}{n}\right)``, which is defined for
 integers ``m`` and odd positive integers ``n``. If the factorisation of ``n``
 is ``n = p_1^{i_1}p_2^{i_2}\ldots p_r^{i_r}`` then we define
 ```math
-\left(\frac{m}{n}\right) = \left(\frac{m}{p_1}\right)^i_1\left(\frac{m}{p_2}\right)^i_2\ldots \left(\frac{m}{p_r}\right)^i_r
+\left(\frac{m}{n}\right) = \left(\frac{m}{p_1}\right)^{i_1}\left(\frac{m}{p_2}\right)^{i_2}\ldots \left(\frac{m}{p_r}\right)^{i_r}
 ```
 where ``\left(\frac{m}{p}\right)`` on the right hand side is the Legendre
 symbol, which is defined for an odd prime number ``p`` to be ``0`` if ``p``
@@ -468,7 +469,7 @@ return value is an Oscar integer.
 
 Return the Euler totient function ``\varphi(n)``, i.e. the number of positive
 integers ``1 \leq x \leq n`` which are coprime to ``n``. Note that
-``varphi(1) = 1`` and ``varphi(0) = 0``. We raise an exception if ``n < 0``.
+``\varphi(1) = 1`` and ``\varphi(0) = 0``. We raise an exception if ``n < 0``.
 The argument ``n`` may be an Oscar integer or a Julia integer. The result is
 an Oscar integer.
 
