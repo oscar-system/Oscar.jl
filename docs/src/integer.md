@@ -416,9 +416,10 @@ accessed as `Oscar.binomial`.
 * `number_of_partitions(n)`
 
 Returns the number of integer partitions ``p(n)`` of ``n``, i.e. the number
-of distinct ways to write ``n`` as a sum of positive integers. An exception
-is raised if ``n \leq 0``. The argument ``n`` must be a Julia `Int` and the
-result is an Oscar integer.
+of distinct ways to write ``n`` as a sum of positive integers. Note that
+``p(0) = 1, as the empty sum is counted. For ``n < 0`` we return ``0``.
+The argument ``n`` can be a Julia integer or an Oscar integer and the result
+is an Oscar integer.
 
 ## Number theoretic functionality
 
