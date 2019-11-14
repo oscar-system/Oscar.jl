@@ -41,7 +41,7 @@ Oscar integers are created using `ZZ`:
 ZZ(2)^100
 ZZ(618970019642690137449562111)
 ```
-One can also construct the zero integer with the empty constructor:
+One can also construct the integer ``0`` with the empty constructor:
 
 ```@repl oscar
 ZZ()
@@ -165,7 +165,7 @@ ZZ(0)^0
 ```
 
 !!! note
-    In Julia, `2^64` will return ``0``, as the Julia integer ``2`` is a machine
+    In Julia, `2^64` will return zero, as the Julia integer ``2`` is a machine
     word. In Oscar, the expression `ZZ(2)^64` will return the expected result.
 
 
@@ -418,7 +418,7 @@ Returns the binomial coefficient ``\frac{n!}{k!(n - k)!}``. If ``n, k < 0`` or
 
 Returns the number of integer partitions ``p(n)`` of ``n``, i.e. the number
 of distinct ways to write ``n`` as a sum of positive integers. Note that
-``p(0) = 1, as the empty sum is counted. For ``n < 0`` we return ``0``.
+``p(0) = 1, as the empty sum is counted. For ``n < 0`` we return zero.
 The argument ``n`` can be a Julia integer or an Oscar integer and the result
 is an Oscar integer.
 
@@ -446,7 +446,7 @@ Return the Jacobi symbol ``\left(\frac{m}{n}\right)``, which is defined for
 integers ``m`` and odd positive integers ``n``. If the factorisation of ``n``
 is ``n = p_1^{i_1}p_2^{i_2}\ldots p_r^{i_r}`` then we define
 ```math
-\left(\frac{m}{n}\right) = \left(\frac{m}{p_1}\right)^i_1\left(\frac{m}{p_2}\right)^i_2\ldots \left(\frac{m}{p_r}\right)^i_r
+\left(\frac{m}{n}\right) = \left(\frac{m}{p_1}\right)^{i_1}\left(\frac{m}{p_2}\right)^{i_2}\ldots \left(\frac{m}{p_r}\right)^{i_r}
 ```
 where ``\left(\frac{m}{p}\right)`` on the right hand side is the Legendre
 symbol, which is defined for an odd prime number ``p`` to be ``0`` if ``p``
@@ -469,7 +469,7 @@ return value is an Oscar integer.
 
 Return the Euler totient function ``\varphi(n)``, i.e. the number of positive
 integers ``1 \leq x \leq n`` which are coprime to ``n``. Note that
-``varphi(1) = 1`` and ``varphi(0) = 0``. We raise an exception if ``n < 0``.
+``\varphi(1) = 1`` and ``\varphi(0) = 0``. We raise an exception if ``n < 0``.
 The argument ``n`` may be an Oscar integer or a Julia integer. The result is
 an Oscar integer.
 
