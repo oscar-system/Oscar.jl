@@ -534,6 +534,12 @@ Returns the number of integer partitions ``p(n)`` of ``n``, i.e. the number
 of distinct ways to write ``n`` as a sum of positive integers. Note that
 ``p(0) = 1``, as the empty sum is counted. For ``n < 0`` we return zero.
 
+```@repl oscar
+primorial(100)
+Oscar.binomial(72, 15)
+number_of_partitions(10^6)
+```
+
 ## Number theoretic functionality
 
 ### Fibonacci sequence
@@ -594,6 +600,10 @@ Return the Euler totient function ``\varphi(n)``, i.e. the number of positive
 integers ``1 \leq x \leq n`` which are coprime to ``n``. Note that
 ``\varphi(1) = 1`` and ``\varphi(0) = 0``. We raise an exception if ``n < 0``.
 
-
+```@repl oscar
+fibonacci(100)
+jacobi_symbol(3, 37)
+divisor_sigma(60, 5)
+```
 
 
