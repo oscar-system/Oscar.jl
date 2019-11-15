@@ -498,6 +498,10 @@ Returns the factorial of ``n``, i.e. ``n!``. An exception is raised if
 Returns ``x(x + 1)(x + 2)\ldots(x + n - 1)``. An exception is raised if
 ``n < 0``. We define `rising_factorial(x, 0)` to be ``1``.
 
+```@repl oscar
+Oscar.factorial(30)
+```
+
 ### Primorial
 
 * `primorial(n::Base.Int) -> Oscar.Integer`
@@ -506,12 +510,20 @@ Returns the promorial ``P(n)``, i.e. the product of all primes less than or
 equal to ``n``. An exception is raised if ``n < 0``. We define
 ``P(0) = P(1) = 1``.
 
+```@repl oscar
+primorial(100)
+```
+
 ### Bell numbers
 
 * `bell(n::Base.Int) -> Oscar.Integer`
 
 Returns the ``n``-th Bell number ``B(n)``, i.e. the number of ways of
 partitioning a set of ``n`` elements. An exception is raised if ``n < 0``.
+
+```@repl oscar
+bell(20)
+```
 
 ### Binomial coefficients
 
@@ -525,6 +537,10 @@ Returns the binomial coefficient ``\frac{n!}{k!(n - k)!}``. If ``n, k < 0`` or
     that may overflow when the result is too large. To disambiguate the Oscar
     version of the function it is accessed via `Oscar.binomial`.
 
+```@repl oscar
+Oscar.binomial(72, 15)
+```
+
 ### Integer partitions
 
 * `number_of_partitions(n::Oscar.Integer) -> Oscar.Integer`
@@ -535,8 +551,6 @@ of distinct ways to write ``n`` as a sum of positive integers. Note that
 ``p(0) = 1``, as the empty sum is counted. For ``n < 0`` we return zero.
 
 ```@repl oscar
-primorial(100)
-Oscar.binomial(72, 15)
 number_of_partitions(10^6)
 ```
 
@@ -551,6 +565,10 @@ relation ``F(1) = 1``, ``F(2) = 1`` and ``F(n) = F(n - 1) + F(n - 2)`` for
 ``n \geq 3``. For convenience we define ``F(0) = 0``. An exception is raised
 if ``n < 0``.
 
+```@repl oscar
+fibonacci(100)
+```
+
 ### Moebius mu function
 
 * `moebius_mu(n::Oscar.Integer) -> Base.Int`
@@ -561,6 +579,10 @@ Return the Moebius function ``\mu(n)``, which is defined to be ``0`` if
 ``n`` has an even or odd number of prime factors, respectively. Alternatively,
 ``\mu(n)`` can be defined to be the sum of the primitive ``n``-th roots of
 unity. An exception is raised if ``n < 0``.
+
+```@repl oscar
+moebius_mu(30)
+```
 
 ### Jacobi symbols
 
@@ -579,6 +601,10 @@ divides ``m`` and otherwise ``+1`` or ``-1`` depending on whether ``m`` is
 a square modulo ``p`` or not. An exception is raised if ``n`` is even or
 not positive.
 
+```@repl oscar
+jacobi_symbol(3, 37)
+```
+
 ### Sigma function
 
 * `divisor_sigma(m::Oscar.Integer, n::Oscar.Integer) -> Oscar.Integer`
@@ -591,6 +617,10 @@ Return the sum of the ``n``-th powers of the divisors of ``m``
 We define ``\sigma(0, n) = 0`` for all ``n``. If ``n < 0`` we raise an
 exception.
 
+```@repl oscar
+divisor_sigma(60, 5)
+```
+
 ### Euler totient function
 
 * `euler_phi(n::Oscar.Integer) -> Oscar.Integer`
@@ -601,9 +631,6 @@ integers ``1 \leq x \leq n`` which are coprime to ``n``. Note that
 ``\varphi(1) = 1`` and ``\varphi(0) = 0``. We raise an exception if ``n < 0``.
 
 ```@repl oscar
-fibonacci(100)
-jacobi_symbol(3, 37)
-divisor_sigma(60, 5)
+euler_phi(200)
 ```
-
 
