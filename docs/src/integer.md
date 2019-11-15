@@ -40,9 +40,6 @@ In the documentation below, we always use `Base.Integer` for a Julia integer
 and `Oscar.Integer` for an Oscar integer. Some functions accept only machine
 integers for certain arguments; in such cases, we refer to `Base.Int`.
 
-Some functions can accept an Oscar integer or a Julia integer, which we denote
-by the Julia union `Union{Oscar.Integer, Base.Integer}`.
-
 ## The ring of integers
 
 Every object in Oscar representing a mathematical element has a parent. This is
