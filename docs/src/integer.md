@@ -221,6 +221,8 @@ a = qb + r
 ```
 with ``|r| < |b|``.
 
+### Division with remainder
+
 * `divrem(a::Oscar.Integer, b::Oscar.Integer) -> (Oscar.Integer, Oscar.Integer)` : division with remainder
 * `div(a::Oscar.Integer, b::Oscar.Integer) -> Oscar.Integer` : quotient only
 * `rem(a::Oscar.Integer, b::Oscar.Integer) -> Oscar.Integer` : remainder only
@@ -231,6 +233,21 @@ result will be a Julia integer not an Oscar integer.
 Both `rem` and `divrem` compute the remainder ``r`` such that when ``r \neq 0``
 the sign of ``r`` is the same as the sign of ``a``.
 
+All three functions raise an exception if the modulus ``b`` is zero.
+
+```@repl oscar
+divrem(ZZ(5), ZZ(3))
+div(ZZ(7), ZZ(2))
+rem(ZZ(4), ZZ(3))
+div(ZZ(2), ZZ(0))
+```
+
+!!! note
+    The rem function does not provide a minimal set of representatives, e.g.
+    `rem(-2, 3) = -2` but `rem(1, 3) = 1`.
+
+### Modular reduction
+
 * `mod(a::Oscar.Integer, b::Oscar.Integer) -> Oscar.Integer` : remainder only
 
 One or both arguments may be Julia integers, however if they both are, the
@@ -238,8 +255,10 @@ result will be a Julia integer not an Oscar integer.
 
 The `mod` function computes a remainder ``r`` such that when ``r \neq 0`` the
 sign of ``r`` is the same as the sign of ``b``. Thus, if ``b > 0`` then
-`mod(a, b)` will be in the range ``[0, b)``. There is no function implemented
-to compute the corresponding quotient.
+`mod(a, b)` will be in the range ``[0, b)``. An exception is raised if the
+modulus ``b`` is zero.
+
+There is no function implemented to compute the corresponding quotient.
 
 remainder | division   | sign             | rounding
 ----------|------------|------------------|---------------------
@@ -247,16 +266,9 @@ rem       | div/divrem | same as dividend | towards zero
 mod       |            | same as divisor  | towards ``-\infty``
 
 ```@repl oscar
-q, r = divrem(ZZ(5), ZZ(3))
-q = div(ZZ(7), ZZ(2))
-r = mod(ZZ(4), ZZ(3))
+mod(ZZ(4), ZZ(3))
+mod(ZZ(2), ZZ(0))
 ```
-
-All three functions raise an exception if the modulus ``b`` is zero.
-
-!!! note
-    The rem function does not provide a minimal set of representatives, e.g.
-    `rem(-2, 3) = -2` but `rem(1, 3) = 1`.
 
 ## [Divisibility testing](@id integer_divisibility_testing)
 
