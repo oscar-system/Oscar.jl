@@ -67,8 +67,13 @@ ZZ()
 
 The following special constructors are also provided:
 
-* `zero(ZZ)` : the integer 0
-* `one(ZZ)` : the integer 1
+* `zero(ZZ)`
+* `one(ZZ)`
+
+```@repl oscar
+zero(ZZ)
+one(ZZ)
+```
 
 Note that `ZZ` is not a Julia type, but the above methods of constructing
 Oscar integers are similar to the way that Julia integer types can be used to
@@ -246,6 +251,8 @@ rem(ZZ(4), ZZ(3))
     The rem function does not provide a minimal set of representatives, e.g.
     `rem(-2, 3) = -2` but `rem(1, 3) = 1`.
 
+## Modular arithmetic
+
 ### Modular reduction
 
 * `mod(a::Oscar.Integer, b::Oscar.Integer) -> Oscar.Integer` : remainder only
@@ -256,14 +263,15 @@ result will be a Julia integer not an Oscar integer.
 The `mod` function computes a remainder ``r`` such that when ``r \neq 0`` the
 sign of ``r`` is the same as the sign of ``b``. Thus, if ``b > 0`` then
 `mod(a, b)` will be in the range ``[0, b)``. An exception is raised if the
-modulus ``b`` is zero.
-
-There is no function implemented to compute the corresponding quotient.
+modulus ``b`` is zero. This is summarised in the following table.
 
 remainder | division   | sign             | rounding
 ----------|------------|------------------|---------------------
 rem       | div/divrem | same as dividend | towards zero
 mod       |            | same as divisor  | towards ``-\infty``
+
+There is no function implemented to compute the quotient corresponding to
+the remainder given by `mod`.
 
 ```@repl oscar
 mod(ZZ(4), ZZ(3))
@@ -526,6 +534,12 @@ Returns the number of integer partitions ``p(n)`` of ``n``, i.e. the number
 of distinct ways to write ``n`` as a sum of positive integers. Note that
 ``p(0) = 1``, as the empty sum is counted. For ``n < 0`` we return zero.
 
+```@repl oscar
+primorial(100)
+Oscar.binomial(72, 15)
+number_of_partitions(10^6)
+```
+
 ## Number theoretic functionality
 
 ### Fibonacci sequence
@@ -586,6 +600,10 @@ Return the Euler totient function ``\varphi(n)``, i.e. the number of positive
 integers ``1 \leq x \leq n`` which are coprime to ``n``. Note that
 ``\varphi(1) = 1`` and ``\varphi(0) = 0``. We raise an exception if ``n < 0``.
 
-
+```@repl oscar
+fibonacci(100)
+jacobi_symbol(3, 37)
+divisor_sigma(60, 5)
+```
 
 
