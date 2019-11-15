@@ -221,7 +221,7 @@ a = qb + r
 ```
 with ``|r| < |b|``.
 
-* `divrem(a::Oscar.Integer, b::Oscar.Integer) -> Oscar.Integer` : division with remainder
+* `divrem(a::Oscar.Integer, b::Oscar.Integer) -> (Oscar.Integer, Oscar.Integer)` : division with remainder
 * `div(a::Oscar.Integer, b::Oscar.Integer) -> Oscar.Integer` : quotient only
 * `rem(a::Oscar.Integer, b::Oscar.Integer) -> Oscar.Integer` : remainder only
 
