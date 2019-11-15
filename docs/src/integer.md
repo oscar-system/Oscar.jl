@@ -283,6 +283,8 @@ divides(ZZ(0), ZZ(0))
 
 ## Greatest common divisor
 
+### Greatest common divisor
+
 * `gcd(a::Oscar.Integer, b::Oscar.Integer) -> Oscar.Integer`
 
 One or both arguments may be Julia integers, however if they both are, the
@@ -297,6 +299,8 @@ zero if both inputs are zero.
 gcd(ZZ(34), ZZ(17))
 gcd(ZZ(3), ZZ(0))
 ```
+
+### Least common multiple
 
 * `lcm(a::Oscar.Integer, b::Oscar.Integer) -> Oscar.Integer`
 
@@ -318,6 +322,8 @@ lcm(ZZ(0), ZZ(0))
     or one of them is zero.
 
 ## Roots
+
+### Square roots
 
 Julia and Oscar distinguish two kinds of square root:
 
@@ -348,6 +354,8 @@ Returns the tuple `(s, r)` such that ``s`` is equal to `isqrt(n)` and
 isqrtrem(ZZ(16))
 isqrtrem(ZZ(5))
 ```
+
+### General roots
 
 * `root(a::Oscar.Integer, n::Base.Int) -> Oscar.Integer`
 
@@ -453,6 +461,8 @@ F[ZZ(7)]
 
 ## Combinatorial functions
 
+### Factorial
+
 * `Oscar.factorial(n::Base.Int) -> Oscar.Integer`
 
 Returns the factorial of ``n``, i.e. ``n!``. An exception is raised if
@@ -468,16 +478,22 @@ Returns the factorial of ``n``, i.e. ``n!``. An exception is raised if
 Returns ``x(x + 1)(x + 2)\ldots(x + n - 1)``. An exception is raised if
 ``n < 0``. We define `rising_factorial(x, 0)` to be ``1``.
 
+### Primorial
+
 * `primorial(n::Base.Int) -> Oscar.Integer`
 
-Returns the ``n``-th primorial number ``P(n)``, i.e. the product of all primes
-less than or equal to ``n``. An exception is raised if ``n < 0``. We define
+Returns the promorial ``P(n)``, i.e. the product of all primes less than or
+equal to ``n``. An exception is raised if ``n < 0``. We define
 ``P(0) = P(1) = 1``.
+
+### Bell numbers
 
 * `bell(n::Base.Int) -> Oscar.Integer`
 
 Returns the ``n``-th Bell number ``B(n)``, i.e. the number of ways of
 partitioning a set of ``n`` elements. An exception is raised if ``n < 0``.
+
+### Binomial coefficients
 
 * `Oscar.binomial(n::Base.Int, k::Base.Int) -> Oscar.Integer`
 
@@ -489,6 +505,8 @@ Returns the binomial coefficient ``\frac{n!}{k!(n - k)!}``. If ``n, k < 0`` or
     that may overflow when the result is too large. To disambiguate the Oscar
     version of the function it is accessed via `Oscar.binomial`.
 
+### Integer partitions
+
 * `number_of_partitions(n::Oscar.Integer) -> Oscar.Integer`
 * `number_of_partitions(n::Base.Integer) -> Oscar.Integer`
 
@@ -498,12 +516,16 @@ of distinct ways to write ``n`` as a sum of positive integers. Note that
 
 ## Number theoretic functionality
 
+### Fibonacci sequence
+
 * `fibonacci(n::Base.Int) -> Oscar.Integer`
 
 Returns the ``n``-th Fibonacci number ``F(n)``, defined by the recurrence
 relation ``F(1) = 1``, ``F(2) = 1`` and ``F(n) = F(n - 1) + F(n - 2)`` for
 ``n \geq 3``. For convenience we define ``F(0) = 0``. An exception is raised
 if ``n < 0``.
+
+### Moebius mu function
 
 * `moebius_mu(n::Oscar.Integer) -> Base.Int`
 * `moebius_mu(n::Base.Integer) -> Base.Int` 
@@ -514,11 +536,13 @@ Return the Moebius function ``\mu(n)``, which is defined to be ``0`` if
 ``\mu(n)`` can be defined to be the sum of the primitive ``n``-th roots of
 unity. An exception is raised if ``n < 0``.
 
+### Jacobi symbols
+
 * `jacobi_symbol(m::Oscar.Integer, n::Oscar.Integer) -> Base.Int`
 * `jacobi_symbol(m::Base.Integer, n::Base.Integer) -> Base.Int`
 
 Return the Jacobi symbol ``\left(\frac{m}{n}\right)``, which is defined for
-integers ``m`` and odd positive integers ``n``. If the factorisation of ``n``
+integers ``m`` and odd, positive integers ``n``. If the factorisation of ``n``
 is ``n = p_1^{i_1}p_2^{i_2}\ldots p_r^{i_r}`` then we define
 ```math
 \left(\frac{m}{n}\right) = \left(\frac{m}{p_1}\right)^{i_1}\left(\frac{m}{p_2}\right)^{i_2}\ldots \left(\frac{m}{p_r}\right)^{i_r}
@@ -529,6 +553,8 @@ divides ``m`` and otherwise ``+1`` or ``-1`` depending on whether ``m`` is
 a square modulo ``p`` or not. An exception is raised if ``n`` is even or
 not positive.
 
+### Sigma function
+
 * `divisor_sigma(m::Oscar.Integer, n::Oscar.Integer) -> Oscar.Integer`
 * `divisor_sigma(m::Base.Integer, n::Base.Integer) -> Oscar.Integer`
 
@@ -538,6 +564,8 @@ Return the sum of the ``n``-th powers of the divisors of ``m``
 ```
 We define ``\sigma(0, n) = 0`` for all ``n``. If ``n < 0`` we raise an
 exception.
+
+### Euler totient function
 
 * `euler_phi(n::Oscar.Integer) -> Oscar.Integer`
 * `euler_phi(n::Base.Integer) -> Oscar.Integer`
