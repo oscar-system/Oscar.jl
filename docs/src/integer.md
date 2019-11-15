@@ -239,7 +239,7 @@ All three functions raise an exception if the modulus ``b`` is zero.
 divrem(ZZ(5), ZZ(3))
 div(ZZ(7), ZZ(2))
 rem(ZZ(4), ZZ(3))
-div(ZZ(2), ZZ(0))
+# div(ZZ(2), ZZ(0))
 ```
 
 !!! note
@@ -267,7 +267,7 @@ mod       |            | same as divisor  | towards ``-\infty``
 
 ```@repl oscar
 mod(ZZ(4), ZZ(3))
-mod(ZZ(2), ZZ(0))
+# mod(ZZ(2), ZZ(0)) 
 ```
 
 ## [Divisibility testing](@id integer_divisibility_testing)
