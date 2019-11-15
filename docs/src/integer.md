@@ -124,8 +124,9 @@ Negative numbers, ``0`` and ``1`` are not considered prime by these predicates.
 
 The following properties can also be computed:
 
-* `sign(n::Oscar.Integer) -> Base.Int` returns the sign of `n`, i.e. ``n/|n|``
-if ``n \neq 0`` or ``0`` otherwise.
+* `sign(n::Oscar.Integer) -> Base.Int`
+
+Returns the sign of `n`, i.e. ``n/|n|`` if ``n \neq 0`` or ``0`` otherwise.
 
 ```@repl oscar
 sign(ZZ(23))
@@ -388,7 +389,7 @@ fits(Int, ZZ(12348732648732648763274868732687324))
 
 ## Factorisation
 
-* ``factor(n::Oscar.Integer) -> Fac``
+* `factor(n::Oscar.Integer) -> Fac`
 
 Returns a factorisation of the given integer. The return value is a special
 factorisation struct which can be manipulated using the functions below.
