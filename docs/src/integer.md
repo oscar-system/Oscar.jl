@@ -221,7 +221,7 @@ a = qb + r
 ```
 with ``|r| < |b|``.
 
-* `divrem(a::Oscar.Integer, b::Oscar.Integer) -> Oscar.Integer` : division with remainder
+* `divrem(a::Oscar.Integer, b::Oscar.Integer) -> (Oscar.Integer, Oscar.Integer)` : division with remainder
 * `div(a::Oscar.Integer, b::Oscar.Integer) -> Oscar.Integer` : quotient only
 * `rem(a::Oscar.Integer, b::Oscar.Integer) -> Oscar.Integer` : remainder only
 
@@ -260,7 +260,7 @@ All three functions raise an exception if the modulus ``b`` is zero.
 
 ## [Divisibility testing](@id integer_divisibility_testing)
 
-* `divides(a::Oscar.Integer, b::Oscar.Integer) -> Oscar.Integer`
+* `divides(a::Oscar.Integer, b::Oscar.Integer) -> (Bool, Oscar.Integer)`
 
 In Oscar, we say that ``b`` divides ``a`` if there exists ``c`` in the same
 ring such that ``a = bc``.
