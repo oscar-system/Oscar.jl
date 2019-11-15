@@ -13,6 +13,8 @@ import Nemo
 import Hecke
 import Polymake
 
+include("OscarTypes.jl")
+
 include("Rings/integer.jl")
 
 end # module
