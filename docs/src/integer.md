@@ -106,13 +106,11 @@ divexact(ZZ(234), 2)
 In this example, `2` is a Julia integer but is still valid in the
 call to the Oscar function `divexact`.
 
-## Predicates and properties
+## Predicates
 
-The following predicates are provided, which return `true` or `false`:
-
-* `iszero(n::Oscar.Integer) -> Bool` : ``n = 0``
-* `isone(n::Oscar.Integer) -> Bool` : ``n = 1``
-* `isunit(n::Oscar.Integer) -> Bool` : ``n = \pm 1``
+* `iszero(n::Oscar.Integer) -> Bool`
+* `isone(n::Oscar.Integer) -> Bool`
+* `isunit(n::Oscar.Integer) -> Bool`
 * `issquare(n::Oscar.Integer) -> Bool`
 * `isprime(n::Oscar.Integer) -> Bool`
 * `isprobable_prime(n::Oscar.Integer) -> Bool`
@@ -120,13 +118,21 @@ The following predicates are provided, which return `true` or `false`:
 The `isprime` predicate will prove primality, whereas `isprobable_prime` may
 declare a composite number to be prime with very low probability.
 
-Negative numbers, ``0`` and ``1`` are not considered prime by these predicates.
+Negative numbers, ``0`` and ``1`` are not considered prime by `isprime` and
+`isprobable_prime`.
 
-The following properties can also be computed:
+```@repl oscar
+isone(ZZ(1))
+isunit(ZZ(-1))
+issquare(ZZ(16))
+isprobable_prime(ZZ(23))
+```
+
+## Properties
 
 * `sign(n::Oscar.Integer) -> Base.Int`
 
-Returns the sign of `n`, i.e. ``n/|n|`` if ``n \neq 0`` or ``0`` otherwise.
+Returns the sign of `n`, i.e. ``n/|n|`` if ``n \neq 0``, or ``0`` otherwise.
 
 ```@repl oscar
 sign(ZZ(23))
@@ -273,9 +279,9 @@ Note that for convenience we define:
 divides(ZZ(0), ZZ(0))
 ```
 
-## Gcd and lcm
+## Greatest common divisor
 
-* `gcd(a::Oscar.Integer, b::Oscar.Integer) -> Oscar.Integer)`
+* `gcd(a::Oscar.Integer, b::Oscar.Integer) -> Oscar.Integer`
 
 One or both arguments may be Julia integers, however if they both are, the
 result will be a Julia integer not an Oscar integer.
@@ -290,13 +296,14 @@ gcd(ZZ(34), ZZ(17))
 gcd(ZZ(3), ZZ(0))
 ```
 
-* `lcm(a::Oscar.Integer, b::Oscar.Integer) -> Oscar.Integer)`
+* `lcm(a::Oscar.Integer, b::Oscar.Integer) -> Oscar.Integer`
 
 One or both arguments may be Julia integers, however if they both are, the
 result will be a Julia integer not an Oscar integer.
 
-Returns the least positive multiple of its inputs, unless one or more of its
-inputs is zero, in which case it returns zero.
+Returns the least common multiple of ``a`` and ``b``. This is the least
+positive multiple of ``a`` and ``b``, unless ``a = 0`` or ``b = 0``
+which case we define the least common multiple to be zero.
 
 ```@repl oscar
 lcm(ZZ(6), ZZ(21))
