@@ -67,8 +67,13 @@ ZZ()
 
 The following special constructors are also provided:
 
-* `zero(ZZ)` : the integer 0
-* `one(ZZ)` : the integer 1
+* `zero(ZZ)`
+* `one(ZZ)`
+
+```@repl oscar
+zero(ZZ)
+one(ZZ)
+```
 
 Note that `ZZ` is not a Julia type, but the above methods of constructing
 Oscar integers are similar to the way that Julia integer types can be used to
@@ -246,6 +251,8 @@ rem(ZZ(4), ZZ(3))
     The rem function does not provide a minimal set of representatives, e.g.
     `rem(-2, 3) = -2` but `rem(1, 3) = 1`.
 
+## Modular arithmetic
+
 ### Modular reduction
 
 * `mod(a::Oscar.Integer, b::Oscar.Integer) -> Oscar.Integer` : remainder only
@@ -256,14 +263,15 @@ result will be a Julia integer not an Oscar integer.
 The `mod` function computes a remainder ``r`` such that when ``r \neq 0`` the
 sign of ``r`` is the same as the sign of ``b``. Thus, if ``b > 0`` then
 `mod(a, b)` will be in the range ``[0, b)``. An exception is raised if the
-modulus ``b`` is zero.
-
-There is no function implemented to compute the corresponding quotient.
+modulus ``b`` is zero. This is summarised in the following table.
 
 remainder | division   | sign             | rounding
 ----------|------------|------------------|---------------------
 rem       | div/divrem | same as dividend | towards zero
 mod       |            | same as divisor  | towards ``-\infty``
+
+There is no function implemented to compute the quotient corresponding to
+the remainder given by `mod`.
 
 ```@repl oscar
 mod(ZZ(4), ZZ(3))
