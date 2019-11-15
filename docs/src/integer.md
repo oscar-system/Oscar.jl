@@ -214,6 +214,13 @@ ZZ(0)^0
 The ring of integers is a Euclidean domain and Oscar provides Euclidean
 division through the functions `divrem`, `div` and `rem`.
 
+Integer Euclidean division of ``a`` by ``b`` computes a quotient and
+remainder such that
+```@math
+a = qb + r
+```
+with ``|r| < |b|``.
+
 * `divrem(a::Oscar.Integer, b::Oscar.Integer) -> Oscar.Integer` : division with remainder
 * `div(a::Oscar.Integer, b::Oscar.Integer) -> Oscar.Integer` : quotient only
 * `rem(a::Oscar.Integer, b::Oscar.Integer) -> Oscar.Integer` : remainder only
@@ -221,23 +228,18 @@ division through the functions `divrem`, `div` and `rem`.
 One or both arguments may be Julia integers, however if they both are, the
 result will be a Julia integer not an Oscar integer.
 
-Integer Euclidean division of ``a`` by ``b`` computes a quotient and
-remainder such that
-```@math
-a = qb + r
-```
-where $|r| < |b|$. 
-
-When ``r \neq 0`` the sign of ``r`` will be the same as the sign of ``a``.
+Both `rem` and `divrem` compute the remainder ``r`` such that when ``r \neq 0``
+the sign of ``r`` is the same as the sign of ``a``.
 
 * `mod(a::Oscar.Integer, b::Oscar.Integer) -> Oscar.Integer` : remainder only
 
 One or both arguments may be Julia integers, however if they both are, the
 result will be a Julia integer not an Oscar integer.
 
-Returns a remainder which is either ``0`` or the same sign as ``b``. Thus, if
-``b > 0`` then `mod(a, b)` will be in the range ``[0, b)``. There is no
-function implemented to compute the corresponding quotient.
+The `mod` function computes a remainder ``r`` such that when ``r \neq 0`` the
+sign of ``r`` is the same as the sign of ``b``. Thus, if ``b > 0`` then
+`mod(a, b)` will be in the range ``[0, b)``. There is no function implemented
+to compute the corresponding quotient.
 
 remainder | division   | sign             | rounding
 ----------|------------|------------------|---------------------
