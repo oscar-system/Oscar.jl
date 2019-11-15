@@ -17,8 +17,26 @@ by default. This means that integers typed at the
 [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop)
 are [Julia integers](https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/). However, for performance reasons, Oscar has its own integer format.
 
-In the following, unless stated otherwise, when we refer to integers we mean
-Oscar integers; when we refer to an `Int` we mean the Julia `Int`.
+Julia has a number of different integer types, but the two that are most
+relevant here are `Base.Int` and `Base.BigInt`. All the Julia integer types
+belong to `Base.Integer`.
+
+The `Base.Int` type is for machine integers which are signed, twos-complement
+integers of either ``32`` or ``64`` bits depending on the machine architecture.
+
+The `Base.BigInt` type is backed by GMP multiprecision integers.
+
+Oscar currently only has one integer type, Oscar.fmpz which for performance
+reasons scales internally from machine integers to GMP multiprecision integers.
+The Oscar integer type belongs to `Oscar.Integer`.
+
+This situation is illustrated in the following diagram.
+
+![alt text](img/IntegerTypes.svg)
+
+In the documentation below, we always use `Base.Integer` for a Julia integer
+and `Oscar.Integer` for an Oscar integer. Some functions accept only machine
+integers for certain arguments; in such cases, we refer to `Base.Int`.
 
 ## The ring of integers
 
