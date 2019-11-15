@@ -470,8 +470,8 @@ Returns ``x(x + 1)(x + 2)\ldots(x + n - 1)``. An exception is raised if
 
 * `primorial(n::Base.Int) -> Oscar.Integer`
 
-Returns the ``n``-th primorial number ``P(n)``, i.e. the product of all primes
-less than or equal to ``n``. An exception is raised if ``n < 0``. We define
+Returns the promorial ``P(n)``, i.e. the product of all primes less than or
+equal to ``n``. An exception is raised if ``n < 0``. We define
 ``P(0) = P(1) = 1``.
 
 * `bell(n::Base.Int) -> Oscar.Integer`

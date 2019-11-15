@@ -449,3 +449,77 @@ end
    @test_throws ErrorException F[ZZ(0)]
    @test_throws ErrorException F[ZZ(7)]
 end
+
+@testset "Rings.ZZ.combinatorial" begin
+   @test Oscar.factorial(0) == 1
+   @test Oscar.factorial(1) == 1
+   @test Oscar.factorial(3) == 6
+
+   @test Oscar.factorial(0) isa Oscar.fmpz
+   @test Oscar.factorial(3) isa Oscar.fmpz
+
+   @test_throws DomainError Oscar.factorial(-1)
+
+   @test rising_factorial(ZZ(3), 2) == 12
+   @test rising_factorial(ZZ(3), 0) == 1
+   @test rising_factorial(ZZ(0), 3) == 0
+   @test rising_factorial(ZZ(-3), 3) == -6
+
+   @test rising_factorial(ZZ(2), 3) isa Oscar.fmpz
+   @test rising_factorial(ZZ(2), 0) isa Oscar.fmpz
+
+   @test_throws DomainError rising_factorial(ZZ(0), -1)
+   @test_throws DomainError rising_factorial(ZZ(-3), -5)
+
+   @test primorial(6) == 30
+   @test primorial(5) == 30
+   @test primorial(2) == 2
+   @test primorial(1) == 1
+   @test primorial(0) == 1
+
+   @test_throws DomainError primorial(-1)
+
+   @test bell(0) == 1
+   @test bell(1) == 1
+   @test bell(3) == 5
+
+   @test bell(0) isa Oscar.fmpz
+   @test bell(1) isa Oscar.fmpz
+   @test bell(3) isa Oscar.fmpz
+
+   @test_throws DomainError bell(-1)
+
+   @test Oscar.binomial(3, 2) == 3
+   @test Oscar.binomial(3, 0) == 1
+   @test Oscar.binomial(3, 3) == 1
+   @test Oscar.binomial(0, 0) == 1
+   @test Oscar.binomial(1, 0) == 1
+   @test Oscar.binomial(1, 1) == 1
+
+   @test Oscar.binomial(-3, 2) == 0
+   @test Oscar.binomial(-3, 0) == 0
+   @test Oscar.binomial(2, -3) == 0
+   @test Oscar.binomial(0, -3) == 0
+   @test Oscar.binomial(-1, -1) == 0
+   @test Oscar.binomial(3, 5) == 0
+
+   @test Oscar.binomial(3, 2) isa Oscar.fmpz
+   @test Oscar.binomial(0, 0) isa Oscar.fmpz
+   @test Oscar.binomial(-3, 2) isa Oscar.fmpz
+   @test Oscar.binomial(2, -3) isa Oscar.fmpz
+   @test Oscar.binomial(3, 5) isa Oscar.fmpz
+
+   @test number_of_partitions(0) == 1
+   @test number_of_partitions(ZZ(0)) == 1
+   @test number_of_partitions(3) == 3
+   @test number_of_partitions(ZZ(3)) == 3
+   @test number_of_partitions(-1) == 0
+   @test number_of_partitions(ZZ(-1)) == 0
+
+   @test number_of_partitions(0) isa Oscar.fmpz
+   @test number_of_partitions(ZZ(0)) isa Oscar.fmpz
+   @test number_of_partitions(3) isa Oscar.fmpz
+   @test number_of_partitions(ZZ(3)) isa Oscar.fmpz
+   @test number_of_partitions(-1) isa Oscar.fmpz
+   @test number_of_partitions(ZZ(-1)) isa Oscar.fmpz
+end
