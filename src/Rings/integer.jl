@@ -1,13 +1,15 @@
-import Nemo: ZZ, bell, binomial, divexact, divides,
-         factor, factorial, fits, fmpz, isprime,
+import Nemo: ZZ, bell, binomial, divexact, divides, divisor_sigma, euler_phi,
+         factor, factorial, fibonacci, fits, fmpz, isprime,
          isprobable_prime, isqrtrem, issquare,
-         isunit, number_of_partitions, primorial, rising_factorial,
+         isunit, jacobi_symbol, moebius_mu, number_of_partitions,
+         primorial, rising_factorial,
          root, unit
 
 # Do not export factorial or binomial as these conflict with Base
-export ZZ, bell, divexact, divides,
-         factor, fits, isprime,
+export ZZ, bell, divexact, divides, divisor_sigma, euler_phi,
+         factor, fibonacci, fits, isprime,
          isprobable_prime, isqrtrem, issquare,
-         isunit, number_of_partitions, primorial, rising_factorial,
+         isunit, jacobi_symbol, moebius_mu, number_of_partitions,
+         primorial, rising_factorial,
          root, unit
 

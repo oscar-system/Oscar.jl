@@ -129,9 +129,9 @@ end
    @test_throws DivideError divexact(ZZ(2), 0)
    @test_throws DivideError divexact(ZZ(0), 0)
 
-   @test_throws ErrorException divexact(ZZ(2), ZZ(3))
-   @test_throws ErrorException divexact(ZZ(2), 3)
-   @test_throws ErrorException divexact(2, ZZ(3))
+   @test_throws ArgumentError divexact(ZZ(2), ZZ(3))
+   @test_throws ArgumentError divexact(ZZ(2), 3)
+   @test_throws ArgumentError divexact(2, ZZ(3))
 
    @test divexact(ZZ(6), 2) isa Oscar.fmpz
    @test divexact(6, ZZ(2)) isa Oscar.fmpz
@@ -522,4 +522,112 @@ end
    @test number_of_partitions(ZZ(3)) isa Oscar.fmpz
    @test number_of_partitions(-1) isa Oscar.fmpz
    @test number_of_partitions(ZZ(-1)) isa Oscar.fmpz
+end
+
+@testset "Rings.ZZ.number_theoretical" begin
+   @test fibonacci(0) == 0
+   @test fibonacci(1) == 1
+   @test fibonacci(2) == 1
+   @test fibonacci(3) == 2
+
+   @test fibonacci(0) isa Oscar.fmpz
+   @test fibonacci(1) isa Oscar.fmpz
+   @test fibonacci(2) isa Oscar.fmpz
+   @test fibonacci(3) isa Oscar.fmpz
+
+   @test_throws DomainError fibonacci(-1)
+
+   @test moebius_mu(0) == 0
+   @test moebius_mu(1) == 1
+   @test moebius_mu(2) == -1
+   @test moebius_mu(6) == 1
+
+   @test moebius_mu(ZZ(0)) == 0
+   @test moebius_mu(ZZ(1)) == 1
+   @test moebius_mu(ZZ(2)) == -1
+   @test moebius_mu(ZZ(6)) == 1
+
+   @test moebius_mu(0) isa Int
+   @test moebius_mu(1) isa Int
+   @test moebius_mu(2) isa Int
+
+   @test moebius_mu(ZZ(0)) isa Int
+   @test moebius_mu(ZZ(1)) isa Int
+   @test moebius_mu(ZZ(2)) isa Int
+
+   @test_throws DomainError moebius_mu(-1)
+   @test_throws DomainError moebius_mu(ZZ(-1))
+
+   @test jacobi_symbol(2, 3) == -1
+   @test jacobi_symbol(1, 3) == 1
+   @test jacobi_symbol(0, 3) == 0
+   @test jacobi_symbol(-1, 3) == -1
+   @test jacobi_symbol(14, 15) == -1
+   @test jacobi_symbol(1, 15) == 1
+   @test jacobi_symbol(5, 15) == 0
+   @test jacobi_symbol(2, 45) == -1
+
+   @test jacobi_symbol(ZZ(2), ZZ(3)) == -1
+   @test jacobi_symbol(ZZ(1), ZZ(3)) == 1
+   @test jacobi_symbol(ZZ(0), ZZ(3)) == 0
+   @test jacobi_symbol(ZZ(-1), ZZ(3)) == -1
+   @test jacobi_symbol(ZZ(14), ZZ(15)) == -1
+   @test jacobi_symbol(ZZ(1), ZZ(15)) == 1
+   @test jacobi_symbol(ZZ(5), ZZ(15)) == 0
+   @test jacobi_symbol(ZZ(2), ZZ(45)) == -1
+
+   @test jacobi_symbol(2, 3) isa Int
+   @test jacobi_symbol(1, 3) isa Int
+   @test jacobi_symbol(0, 3) isa Int
+   @test jacobi_symbol(-1, 3) isa Int
+
+   @test jacobi_symbol(ZZ(2), ZZ(3)) isa Int
+   @test jacobi_symbol(ZZ(1), ZZ(3)) isa Int
+   @test jacobi_symbol(ZZ(0), ZZ(3)) isa Int
+   @test jacobi_symbol(ZZ(-1), ZZ(3)) isa Int
+
+   @test_throws DomainError jacobi_symbol(2, 0)
+   @test_throws DomainError jacobi_symbol(ZZ(2), ZZ(0))
+   @test_throws DomainError jacobi_symbol(2, 2)
+   @test_throws DomainError jacobi_symbol(ZZ(2), ZZ(2))
+   @test_throws DomainError jacobi_symbol(2, -1)
+   @test_throws DomainError jacobi_symbol(ZZ(2), ZZ(-1))
+
+   @test divisor_sigma(6, 0) == 4
+   @test divisor_sigma(6, 1) == 12
+   @test divisor_sigma(6, 2) == 50
+
+   @test divisor_sigma(ZZ(6), 0) == 4
+   @test divisor_sigma(ZZ(6), 1) == 12
+   @test divisor_sigma(ZZ(6), 2) == 50
+
+   @test divisor_sigma(6, 0) isa Oscar.fmpz
+   @test divisor_sigma(6, 1) isa Oscar.fmpz
+   @test divisor_sigma(6, 2) isa Oscar.fmpz
+
+   @test divisor_sigma(ZZ(6), 0) isa Oscar.fmpz
+   @test divisor_sigma(ZZ(6), 1) isa Oscar.fmpz
+   @test divisor_sigma(ZZ(6), 2) isa Oscar.fmpz
+
+   @test_throws DomainError divisor_sigma(6, -1)
+   @test_throws DomainError divisor_sigma(ZZ(6), -1)
+
+   @test euler_phi(0) == 0
+   @test euler_phi(1) == 1
+   @test euler_phi(2) == 1
+
+   @test euler_phi(ZZ(0)) == 0
+   @test euler_phi(ZZ(1)) == 1
+   @test euler_phi(ZZ(2)) == 1
+
+   @test euler_phi(0) isa Oscar.fmpz
+   @test euler_phi(1) isa Oscar.fmpz
+   @test euler_phi(2) isa Oscar.fmpz
+
+   @test euler_phi(ZZ(0)) isa Oscar.fmpz
+   @test euler_phi(ZZ(1)) isa Oscar.fmpz
+   @test euler_phi(ZZ(2)) isa Oscar.fmpz
+
+   @test_throws DomainError euler_phi(-1)
+   @test_throws DomainError euler_phi(ZZ(-1))
 end
