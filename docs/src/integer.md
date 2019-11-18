@@ -481,84 +481,93 @@ F[ZZ(7)]
 
 ## Combinatorial functions
 
+!!! note
+    The functions in this section that take `Base.Int` arguments will return
+    a `Base.Int`, which may overflow. Use the `Oscar.Integer` versions if this
+    is not the desired behaviour.
+
 ### Factorial
 
-* `Oscar.factorial(n::Base.Int) -> Oscar.Integer`
+* `factorial(n::Oscar.Integer) -> Oscar.Integer`
 
 Returns the factorial of ``n``, i.e. ``n!``. An exception is raised if
 ``n < 0``. We define ``0! = 1``.
 
 !!! note
-    The function `factorial` is already defined in Julia, but returns a Julia
-    `Base.Int`, which overflows when the result is too large. To disambiguate
-    the Oscar version of the function it is accessed via `Oscar.factorial`.
+    The function `factorial` is already defined in Julia for `Base.Int`.
 
+* `rising_factorial(x::Base.Int, n::Base.Int) -> Base.Int`
 * `rising_factorial(x::Oscar.Integer, n::Base.Int) -> Oscar.Integer`
+* `rising_factorial(x::Oscar.Integer, n::Oscar.Integer) -> Oscar.Integer`
 
 Returns ``x(x + 1)(x + 2)\ldots(x + n - 1)``. An exception is raised if
 ``n < 0``. We define `rising_factorial(x, 0)` to be ``1``.
 
 ```@repl oscar
-Oscar.factorial(30)
+factorial(ZZ(30))
+rising_factorial(ZZ(-30), 3)
 ```
 
 ### Primorial
 
-* `primorial(n::Base.Int) -> Oscar.Integer`
+* `primorial(n::Base.Int) -> Base.Int`
+* `primorial(n::Oscar.Integer) -> Oscar.Integer`
 
 Returns the promorial ``P(n)``, i.e. the product of all primes less than or
 equal to ``n``. An exception is raised if ``n < 0``. We define
 ``P(0) = P(1) = 1``.
 
 ```@repl oscar
-primorial(100)
+primorial(ZZ(100))
 ```
 
 ### Bell numbers
 
-* `bell(n::Base.Int) -> Oscar.Integer`
+* `bell(n::Base.Int) -> Base.Int`
+* `bell(n::Oscar.Integer) -> Oscar.Integer`
 
 Returns the ``n``-th Bell number ``B(n)``, i.e. the number of ways of
 partitioning a set of ``n`` elements. An exception is raised if ``n < 0``.
 
 ```@repl oscar
-bell(20)
+bell(ZZ(20))
 ```
 
 ### Binomial coefficients
 
-* `Oscar.binomial(n::Base.Int, k::Base.Int) -> Oscar.Integer`
+* `binomial(n::Oscar.Integer, k::Oscar.Integer) -> Oscar.Integer`
 
 Returns the binomial coefficient ``\frac{n!}{k!(n - k)!}``. If ``n, k < 0`` or
 ``k > n`` we return zero.
 
 !!! note
-    Julia already defines the `binomial` function,  which returns a `Base.Int`
-    that may overflow when the result is too large. To disambiguate the Oscar
-    version of the function it is accessed via `Oscar.binomial`.
+    Julia already defines the `binomial` function for `Base.Int`.
 
 ```@repl oscar
-Oscar.binomial(72, 15)
+binomial(ZZ(72), ZZ(15))
 ```
 
 ### Integer partitions
 
+* `number_of_partitions(n::Base.Int) -> Base.Int`
 * `number_of_partitions(n::Oscar.Integer) -> Oscar.Integer`
-* `number_of_partitions(n::Base.Integer) -> Oscar.Integer`
 
 Returns the number of integer partitions ``p(n)`` of ``n``, i.e. the number
 of distinct ways to write ``n`` as a sum of positive integers. Note that
 ``p(0) = 1``, as the empty sum is counted. For ``n < 0`` we return zero.
 
 ```@repl oscar
-number_of_partitions(10^6)
+number_of_partitions(ZZ(10^6))
 ```
 
 ## Number theoretic functionality
 
+!!! note                                                                                     The functions in this section that take `Base.Int` arguments will return                 a `Base.Int`, which may overflow. Use the `Oscar.Integer` versions if this               is not the desired behaviour.
+
 ### Fibonacci sequence
 
-* `fibonacci(n::Base.Int) -> Oscar.Integer`
+* `fibonacci(n::Base.Int) -> Base.Int`
+* `fibonacci(n::Oscar.Integer) -> Oscar.Integer`
 
 Returns the ``n``-th Fibonacci number ``F(n)``, defined by the recurrence
 relation ``F(1) = 1``, ``F(2) = 1`` and ``F(n) = F(n - 1) + F(n - 2)`` for
@@ -566,13 +575,13 @@ relation ``F(1) = 1``, ``F(2) = 1`` and ``F(n) = F(n - 1) + F(n - 2)`` for
 if ``n < 0``.
 
 ```@repl oscar
-fibonacci(100)
+fibonacci(ZZ(100))
 ```
 
 ### Moebius mu function
 
-* `moebius_mu(n::Oscar.Integer) -> Base.Int`
-* `moebius_mu(n::Base.Integer) -> Base.Int` 
+* `moebius_mu(n::Base.Int) -> Base.Int`
+* `moebius_mu(n::Oscar.Integer) -> Base.Int` 
 
 Return the Moebius function ``\mu(n)``, which is defined to be ``0`` if
 ``n`` is not squarefree and otherwise is defined to be ``+1`` or ``-1`` if
@@ -586,8 +595,8 @@ moebius_mu(30)
 
 ### Jacobi symbols
 
+* `jacobi_symbol(m::Base.Int, n::Base.Int) -> Base.Int`
 * `jacobi_symbol(m::Oscar.Integer, n::Oscar.Integer) -> Base.Int`
-* `jacobi_symbol(m::Base.Integer, n::Base.Integer) -> Base.Int`
 
 Return the Jacobi symbol ``\left(\frac{m}{n}\right)``, which is defined for
 integers ``m`` and odd, positive integers ``n``. If the factorisation of ``n``
@@ -607,8 +616,9 @@ jacobi_symbol(3, 37)
 
 ### Sigma function
 
+* `divisor_sigma(m::Base.Int, n::Base.Int) -> Base.Int`
+* `divisor_sigma(m::Oscar.Integer, n::Base.Int) -> Oscar.Integer`
 * `divisor_sigma(m::Oscar.Integer, n::Oscar.Integer) -> Oscar.Integer`
-* `divisor_sigma(m::Base.Integer, n::Base.Integer) -> Oscar.Integer`
 
 Return the sum of the ``n``-th powers of the divisors of ``m``
 ```math
@@ -623,8 +633,8 @@ divisor_sigma(60, 5)
 
 ### Euler totient function
 
+* `euler_phi(n::Base.Int) -> Base.Int`
 * `euler_phi(n::Oscar.Integer) -> Oscar.Integer`
-* `euler_phi(n::Base.Integer) -> Oscar.Integer`
 
 Return the Euler totient function ``\varphi(n)``, i.e. the number of positive
 integers ``1 \leq x \leq n`` which are coprime to ``n``. Note that
