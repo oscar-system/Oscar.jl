@@ -451,14 +451,25 @@ end
 end
 
 @testset "Rings.ZZ.combinatorial" begin
-   @test Oscar.factorial(0) == 1
-   @test Oscar.factorial(1) == 1
-   @test Oscar.factorial(3) == 6
+   @test factorial(ZZ(0)) == 1
+   @test factorial(ZZ(1)) == 1
+   @test factorial(ZZ(3)) == 6
 
-   @test Oscar.factorial(0) isa Oscar.fmpz
-   @test Oscar.factorial(3) isa Oscar.fmpz
+   @test factorial(ZZ(0)) isa Oscar.fmpz
+   @test factorial(ZZ(3)) isa Oscar.fmpz
 
-   @test_throws DomainError Oscar.factorial(-1)
+   @test_throws DomainError factorial(ZZ(-1))
+
+   @test rising_factorial(3, 2) == 12
+   @test rising_factorial(3, 0) == 1
+   @test rising_factorial(0, 3) == 0
+   @test rising_factorial(-3, 3) == -6
+
+   @test rising_factorial(2, 3) isa Int
+   @test rising_factorial(2, 0) isa Int
+
+   @test_throws DomainError rising_factorial(0, -1)
+   @test_throws DomainError rising_factorial(-3, -5)
 
    @test rising_factorial(ZZ(3), 2) == 12
    @test rising_factorial(ZZ(3), 0) == 1
@@ -471,43 +482,80 @@ end
    @test_throws DomainError rising_factorial(ZZ(0), -1)
    @test_throws DomainError rising_factorial(ZZ(-3), -5)
 
+   @test rising_factorial(ZZ(3), ZZ(2)) == 12
+   @test rising_factorial(ZZ(3), ZZ(0)) == 1
+   @test rising_factorial(ZZ(0), ZZ(3)) == 0
+   @test rising_factorial(ZZ(-3), ZZ(3)) == -6
+
+   @test rising_factorial(ZZ(2), ZZ(3)) isa Oscar.fmpz
+   @test rising_factorial(ZZ(2), ZZ(0)) isa Oscar.fmpz
+
+   @test_throws DomainError rising_factorial(ZZ(0), ZZ(-1))
+   @test_throws DomainError rising_factorial(ZZ(-3), ZZ(-5))
+
    @test primorial(6) == 30
    @test primorial(5) == 30
    @test primorial(2) == 2
    @test primorial(1) == 1
    @test primorial(0) == 1
 
+   @test primorial(0) isa Int
+   @test primorial(1) isa Int
+   @test primorial(2) isa Int
+
    @test_throws DomainError primorial(-1)
+
+   @test primorial(ZZ(6)) == 30
+   @test primorial(ZZ(5)) == 30
+   @test primorial(ZZ(2)) == 2
+   @test primorial(ZZ(1)) == 1
+   @test primorial(ZZ(0)) == 1
+
+   @test primorial(ZZ(0)) isa Oscar.Integer
+   @test primorial(ZZ(1)) isa Oscar.Integer
+   @test primorial(ZZ(2)) isa Oscar.Integer
+
+   @test_throws DomainError primorial(ZZ(-1))
 
    @test bell(0) == 1
    @test bell(1) == 1
    @test bell(3) == 5
 
-   @test bell(0) isa Oscar.fmpz
-   @test bell(1) isa Oscar.fmpz
-   @test bell(3) isa Oscar.fmpz
+   @test bell(0) isa Int
+   @test bell(1) isa Int
+   @test bell(3) isa Int
 
    @test_throws DomainError bell(-1)
 
-   @test Oscar.binomial(3, 2) == 3
-   @test Oscar.binomial(3, 0) == 1
-   @test Oscar.binomial(3, 3) == 1
-   @test Oscar.binomial(0, 0) == 1
-   @test Oscar.binomial(1, 0) == 1
-   @test Oscar.binomial(1, 1) == 1
+   @test bell(ZZ(0)) == 1
+   @test bell(ZZ(1)) == 1
+   @test bell(ZZ(3)) == 5
 
-   @test Oscar.binomial(-3, 2) == 0
-   @test Oscar.binomial(-3, 0) == 0
-   @test Oscar.binomial(2, -3) == 0
-   @test Oscar.binomial(0, -3) == 0
-   @test Oscar.binomial(-1, -1) == 0
-   @test Oscar.binomial(3, 5) == 0
+   @test bell(ZZ(0)) isa Oscar.fmpz
+   @test bell(ZZ(1)) isa Oscar.fmpz
+   @test bell(ZZ(3)) isa Oscar.fmpz
 
-   @test Oscar.binomial(3, 2) isa Oscar.fmpz
-   @test Oscar.binomial(0, 0) isa Oscar.fmpz
-   @test Oscar.binomial(-3, 2) isa Oscar.fmpz
-   @test Oscar.binomial(2, -3) isa Oscar.fmpz
-   @test Oscar.binomial(3, 5) isa Oscar.fmpz
+   @test_throws DomainError bell(ZZ(-1))
+
+   @test binomial(ZZ(3), ZZ(2)) == 3
+   @test binomial(ZZ(3), ZZ(0)) == 1
+   @test binomial(ZZ(3), ZZ(3)) == 1
+   @test binomial(ZZ(0), ZZ(0)) == 1
+   @test binomial(ZZ(1), ZZ(0)) == 1
+   @test binomial(ZZ(1), ZZ(1)) == 1
+
+   @test binomial(ZZ(-3), ZZ(2)) == 0
+   @test binomial(ZZ(-3), ZZ(0)) == 0
+   @test binomial(ZZ(2), ZZ(-3)) == 0
+   @test binomial(ZZ(0), ZZ(-3)) == 0
+   @test binomial(ZZ(-1), ZZ(-1)) == 0
+   @test binomial(ZZ(3), ZZ(5)) == 0
+
+   @test binomial(ZZ(3), ZZ(2)) isa Oscar.fmpz
+   @test binomial(ZZ(0), ZZ(0)) isa Oscar.fmpz
+   @test binomial(ZZ(-3), ZZ(2)) isa Oscar.fmpz
+   @test binomial(ZZ(2), ZZ(-3)) isa Oscar.fmpz
+   @test binomial(ZZ(3), ZZ(5)) isa Oscar.fmpz
 
    @test number_of_partitions(0) == 1
    @test number_of_partitions(ZZ(0)) == 1
@@ -516,11 +564,11 @@ end
    @test number_of_partitions(-1) == 0
    @test number_of_partitions(ZZ(-1)) == 0
 
-   @test number_of_partitions(0) isa Oscar.fmpz
+   @test number_of_partitions(0) isa Int
    @test number_of_partitions(ZZ(0)) isa Oscar.fmpz
-   @test number_of_partitions(3) isa Oscar.fmpz
+   @test number_of_partitions(3) isa Int
    @test number_of_partitions(ZZ(3)) isa Oscar.fmpz
-   @test number_of_partitions(-1) isa Oscar.fmpz
+   @test number_of_partitions(-1) isa Int
    @test number_of_partitions(ZZ(-1)) isa Oscar.fmpz
 end
 
@@ -530,12 +578,24 @@ end
    @test fibonacci(2) == 1
    @test fibonacci(3) == 2
 
-   @test fibonacci(0) isa Oscar.fmpz
-   @test fibonacci(1) isa Oscar.fmpz
-   @test fibonacci(2) isa Oscar.fmpz
-   @test fibonacci(3) isa Oscar.fmpz
+   @test fibonacci(0) isa Int
+   @test fibonacci(1) isa Int
+   @test fibonacci(2) isa Int
+   @test fibonacci(3) isa Int
 
    @test_throws DomainError fibonacci(-1)
+
+   @test fibonacci(ZZ(0)) == 0
+   @test fibonacci(ZZ(1)) == 1
+   @test fibonacci(ZZ(2)) == 1
+   @test fibonacci(ZZ(3)) == 2
+
+   @test fibonacci(ZZ(0)) isa Oscar.fmpz
+   @test fibonacci(ZZ(1)) isa Oscar.fmpz
+   @test fibonacci(ZZ(2)) isa Oscar.fmpz
+   @test fibonacci(ZZ(3)) isa Oscar.fmpz
+
+   @test_throws DomainError fibonacci(ZZ(-1))
 
    @test moebius_mu(0) == 0
    @test moebius_mu(1) == 1
@@ -601,16 +661,25 @@ end
    @test divisor_sigma(ZZ(6), 1) == 12
    @test divisor_sigma(ZZ(6), 2) == 50
 
-   @test divisor_sigma(6, 0) isa Oscar.fmpz
-   @test divisor_sigma(6, 1) isa Oscar.fmpz
-   @test divisor_sigma(6, 2) isa Oscar.fmpz
+   @test divisor_sigma(ZZ(6), ZZ(0)) == 4
+   @test divisor_sigma(ZZ(6), ZZ(1)) == 12
+   @test divisor_sigma(ZZ(6), ZZ(2)) == 50
+
+   @test divisor_sigma(6, 0) isa Int
+   @test divisor_sigma(6, 1) isa Int
+   @test divisor_sigma(6, 2) isa Int
 
    @test divisor_sigma(ZZ(6), 0) isa Oscar.fmpz
    @test divisor_sigma(ZZ(6), 1) isa Oscar.fmpz
    @test divisor_sigma(ZZ(6), 2) isa Oscar.fmpz
 
+   @test divisor_sigma(ZZ(6), ZZ(0)) isa Oscar.fmpz
+   @test divisor_sigma(ZZ(6), ZZ(1)) isa Oscar.fmpz
+   @test divisor_sigma(ZZ(6), ZZ(2)) isa Oscar.fmpz
+
    @test_throws DomainError divisor_sigma(6, -1)
    @test_throws DomainError divisor_sigma(ZZ(6), -1)
+   @test_throws DomainError divisor_sigma(ZZ(6), ZZ(-1))
 
    @test euler_phi(0) == 0
    @test euler_phi(1) == 1
@@ -620,9 +689,9 @@ end
    @test euler_phi(ZZ(1)) == 1
    @test euler_phi(ZZ(2)) == 1
 
-   @test euler_phi(0) isa Oscar.fmpz
-   @test euler_phi(1) isa Oscar.fmpz
-   @test euler_phi(2) isa Oscar.fmpz
+   @test euler_phi(0) isa Int
+   @test euler_phi(1) isa Int
+   @test euler_phi(2) isa Int
 
    @test euler_phi(ZZ(0)) isa Oscar.fmpz
    @test euler_phi(ZZ(1)) isa Oscar.fmpz
