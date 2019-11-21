@@ -597,24 +597,22 @@ end
 
    @test_throws DomainError fibonacci(ZZ(-1))
 
-   @test moebius_mu(0) == 0
    @test moebius_mu(1) == 1
    @test moebius_mu(2) == -1
    @test moebius_mu(6) == 1
 
-   @test moebius_mu(ZZ(0)) == 0
    @test moebius_mu(ZZ(1)) == 1
    @test moebius_mu(ZZ(2)) == -1
    @test moebius_mu(ZZ(6)) == 1
 
-   @test moebius_mu(0) isa Int
    @test moebius_mu(1) isa Int
    @test moebius_mu(2) isa Int
 
-   @test moebius_mu(ZZ(0)) isa Int
    @test moebius_mu(ZZ(1)) isa Int
    @test moebius_mu(ZZ(2)) isa Int
 
+   @test_throws DomainError moebius_mu(0)
+   @test_throws DomainError moebius_mu(ZZ(0))
    @test_throws DomainError moebius_mu(-1)
    @test_throws DomainError moebius_mu(ZZ(-1))
 
@@ -677,26 +675,28 @@ end
    @test divisor_sigma(ZZ(6), ZZ(1)) isa Oscar.fmpz
    @test divisor_sigma(ZZ(6), ZZ(2)) isa Oscar.fmpz
 
+   @test_throws DomainError divisor_sigma(0, 1)
+   @test_throws DomainError divisor_sigma(ZZ(0), 1)
+   @test_throws DomainError divisor_sigma(-1, 1)
+   @test_throws DomainError divisor_sigma(ZZ(-1), 1)
    @test_throws DomainError divisor_sigma(6, -1)
    @test_throws DomainError divisor_sigma(ZZ(6), -1)
    @test_throws DomainError divisor_sigma(ZZ(6), ZZ(-1))
 
-   @test euler_phi(0) == 0
    @test euler_phi(1) == 1
    @test euler_phi(2) == 1
 
-   @test euler_phi(ZZ(0)) == 0
    @test euler_phi(ZZ(1)) == 1
    @test euler_phi(ZZ(2)) == 1
 
-   @test euler_phi(0) isa Int
    @test euler_phi(1) isa Int
    @test euler_phi(2) isa Int
 
-   @test euler_phi(ZZ(0)) isa Oscar.fmpz
    @test euler_phi(ZZ(1)) isa Oscar.fmpz
    @test euler_phi(ZZ(2)) isa Oscar.fmpz
 
+   @test_throws DomainError euler_phi(0)
+   @test_throws DomainError euler_phi(ZZ(0))
    @test_throws DomainError euler_phi(-1)
    @test_throws DomainError euler_phi(ZZ(-1))
 end

@@ -627,7 +627,7 @@ Return the sum of the ``n``-th powers of the divisors of ``m``
 ```math
 \sigma(m, n) = \sum_{d\;|\;m} d^n.
 ```
-If ``n \leq 0`` we raise an exception.
+If ``n \leq 0`` or ``m \leq 0`` we raise an exception.
 
 ```@repl oscar
 divisor_sigma(60, 5)
