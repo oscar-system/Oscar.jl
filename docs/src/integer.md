@@ -176,14 +176,15 @@ These choices have been made for maximum parsimony with the Julia language.
 One or both arguments may be Julia integers, however if they both are, the
 result will be a Julia integer not an Oscar integer.
 
-The result of the exact division of two integers will always be another
-integer. Exact division raises an exception if the division is not exact, or if
-division by zero is attempted.
+Returns the quotient of ``a`` by ``b``. The result of the exact division of two
+integers will always be another integer. Exact division raises an exception if
+the division is not exact, or if division by zero is attempted.
 
 ```@repl oscar
 divexact(ZZ(6), ZZ(3))
 divexact(ZZ(6), ZZ(0))
 divexact(ZZ(6), ZZ(5))
+divexact(ZZ(6), 2)
 ```
 
 ### Powering
@@ -574,8 +575,7 @@ number_of_partitions(ZZ(10^6))
 
 Returns the ``n``-th Fibonacci number ``F(n)``, defined by the recurrence
 relation ``F(1) = 1``, ``F(2) = 1`` and ``F(n) = F(n - 1) + F(n - 2)`` for
-``n \geq 3``. For convenience we define ``F(0) = 0``. An exception is raised
-if ``n < 0``.
+``n \geq 3``. An exception is raised if ``n \leq 0``.
 
 ```@repl oscar
 fibonacci(ZZ(100))
@@ -610,8 +610,8 @@ is ``n = p_1^{i_1}p_2^{i_2}\ldots p_r^{i_r}`` then we define
 where ``\left(\frac{m}{p}\right)`` on the right hand side is the Legendre
 symbol, which is defined for an odd prime number ``p`` to be ``0`` if ``p``
 divides ``m`` and otherwise ``+1`` or ``-1`` depending on whether ``m`` is
-a square modulo ``p`` or not. An exception is raised if ``n`` is even or
-not positive.
+a square modulo ``p`` or not. An exception is raised if ``n`` is even or if
+``n \leq 0``.
 
 ```@repl oscar
 jacobi_symbol(3, 37)
@@ -627,7 +627,7 @@ Return the sum of the ``n``-th powers of the divisors of ``m``
 ```math
 \sigma(m, n) = \sum_{d\;|\;m} d^n.
 ```
-If ``n \leq 0`` or ``m \leq 0`` we raise an exception.
+If ``m \leq 0`` or ``n < 0`` we raise an exception.
 
 ```@repl oscar
 divisor_sigma(60, 5)
