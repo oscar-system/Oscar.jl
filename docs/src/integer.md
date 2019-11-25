@@ -326,14 +326,15 @@ gcd(ZZ(3), ZZ(0))
 * `gcdx(a::Oscar.Integer, b::Oscar.Integer) -> (Oscar.Integer, Oscar.Integer, Oscar.Integer)`
 
 One or both arguments may be Julia integers, however if they both are, the
-result will be a Julia integer not an Oscar integer.
+result will be a tuple of Julia integers not Oscar integers.
 
 Returns a tuple ``(g, s, t)`` such that ``g`` is the greatest common divisor of
 ``a`` and ``b`` and ``g = as + bt``. Normally ``s`` and ``t`` are chosen so
 that ``|s| < |b|/(2g)`` and ``|t| < |a|/(2g)``, where this uniquely defines
-``s`` and ``t``. But the following cases are handled specially: i) if
-``|a| = |b|`` then ``t = b/|b|``, ii) if ``b = 0`` or ``|b| = 2g`` then
-``s = a/|a|``, iii) if ``a = 0`` or ``|a| = 2g`` then ``t = b/|b|``.
+``s`` and ``t``. But the following cases are handled specially:
+1. if ``|a| = |b|`` then ``t = b/|b|``
+2. if ``b = 0`` or ``|b| = 2g`` then ``s = a/|a|``
+3. if ``a = 0`` or ``|a| = 2g`` then ``t = b/|b|``
 
 ### Least common multiple
 
