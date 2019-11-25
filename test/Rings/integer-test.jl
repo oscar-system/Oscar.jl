@@ -386,35 +386,24 @@ end
    @test lcm(ZZ(0), 0) isa Oscar.fmpz
    @test lcm(0, ZZ(0)) isa Oscar.fmpz
 
-   @test gcdx(ZZ(2), ZZ(3)) == (1, 2, -1)
-   @test gcdx(ZZ(2), ZZ(0)) == (2, 1, 0)
-   @test gcdx(ZZ(0), ZZ(3)) == (3, 0, 1)
-   @test gcdx(ZZ(0), ZZ(0)) == (0, 1, 0)
-   @test gcdx(ZZ(2), ZZ(1)) == (1, 0, 1)
-   @test gcdx(ZZ(1), ZZ(3)) == (1, 1, 0)
-   @test gcdx(ZZ(-1), ZZ(1)) == (1, -1, 0)
-   @test gcdx(ZZ(-1), ZZ(-1)) == (1, -1, 0)
-   @test gcdx(ZZ(1), ZZ(-1)) == (1, 1, 0)
-
-   @test gcdx(ZZ(2), 3) == (1, 2, -1)
-   @test gcdx(ZZ(2), 0) == (2, 1, 0)
-   @test gcdx(ZZ(0), 3) == (3, 0, 1)
-   @test gcdx(ZZ(0), 0) == (0, 1, 0)
-   @test gcdx(ZZ(2), 1) == (1, 0, 1)
-   @test gcdx(ZZ(1), 3) == (1, 1, 0)
-   @test gcdx(ZZ(-1), 1) == (1, -1, 0)
-   @test gcdx(ZZ(-1), -1) == (1, -1, 0)
-   @test gcdx(ZZ(1), -1) == (1, 1, 0)
-
-   @test gcdx(2, ZZ(3)) == (1, 2, -1)
-   @test gcdx(2, ZZ(0)) == (2, 1, 0)
-   @test gcdx(0, ZZ(3)) == (3, 0, 1)
-   @test gcdx(0, ZZ(0)) == (0, 1, 0)
-   @test gcdx(2, ZZ(1)) == (1, 0, 1)
-   @test gcdx(1, ZZ(3)) == (1, 1, 0)
-   @test gcdx(-1, ZZ(1)) == (1, -1, 0)
-   @test gcdx(-1, ZZ(-1)) == (1, -1, 0)
-   @test gcdx(1, ZZ(-1)) == (1, 1, 0)
+   for a = -10:10
+      for b = -10:10
+         g, s, t = gcdx(ZZ(a), ZZ(b))
+         gcdx(ZZ(a), b) == g, s, t
+         gcdx(a, ZZ(b)) == g, s, t
+         @test g == a*s + b*t
+         if abs(a) == abs(b)
+            @test t == sign(b)
+         elseif b == 0 || abs(b) == 2*g
+            @test s == sign(a)
+         elseif a == 0 || abs(a) == 2*g
+            @test t == sign(b)
+         else
+            @test 2*g*abs(s) < abs(b)
+            @test 2*g*abs(t) < abs(a)
+         end
+      end
+   end
 
    @test gcdx(ZZ(2), ZZ(3)) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
    @test gcdx(ZZ(2), ZZ(0)) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
