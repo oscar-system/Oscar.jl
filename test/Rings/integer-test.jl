@@ -385,6 +385,60 @@ end
    @test lcm(0, ZZ(2)) isa Oscar.fmpz
    @test lcm(ZZ(0), 0) isa Oscar.fmpz
    @test lcm(0, ZZ(0)) isa Oscar.fmpz
+
+   @test gcdx(ZZ(2), ZZ(3)) == (1, 2, -1)
+   @test gcdx(ZZ(2), ZZ(0)) == (2, 1, 0)
+   @test gcdx(ZZ(0), ZZ(3)) == (3, 0, 1)
+   @test gcdx(ZZ(0), ZZ(0)) == (0, 1, 0)
+   @test gcdx(ZZ(2), ZZ(1)) == (1, 0, 1)
+   @test gcdx(ZZ(1), ZZ(3)) == (1, 1, 0)
+   @test gcdx(ZZ(-1), ZZ(1)) == (1, -1, 0)
+   @test gcdx(ZZ(-1), ZZ(-1)) == (1, -1, 0)
+   @test gcdx(ZZ(1), ZZ(-1)) == (1, 1, 0)
+
+   @test gcdx(ZZ(2), 3) == (1, 2, -1)
+   @test gcdx(ZZ(2), 0) == (2, 1, 0)
+   @test gcdx(ZZ(0), 3) == (3, 0, 1)
+   @test gcdx(ZZ(0), 0) == (0, 1, 0)
+   @test gcdx(ZZ(2), 1) == (1, 0, 1)
+   @test gcdx(ZZ(1), 3) == (1, 1, 0)
+   @test gcdx(ZZ(-1), 1) == (1, -1, 0)
+   @test gcdx(ZZ(-1), -1) == (1, -1, 0)
+   @test gcdx(ZZ(1), -1) == (1, 1, 0)
+
+   @test gcdx(2, ZZ(3)) == (1, 2, -1)
+   @test gcdx(2, ZZ(0)) == (2, 1, 0)
+   @test gcdx(0, ZZ(3)) == (3, 0, 1)
+   @test gcdx(0, ZZ(0)) == (0, 1, 0)
+   @test gcdx(2, ZZ(1)) == (1, 0, 1)
+   @test gcdx(1, ZZ(3)) == (1, 1, 0)
+   @test gcdx(-1, ZZ(1)) == (1, -1, 0)
+   @test gcdx(-1, ZZ(-1)) == (1, -1, 0)
+   @test gcdx(1, ZZ(-1)) == (1, 1, 0)
+
+   @test gcdx(ZZ(2), ZZ(3)) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
+   @test gcdx(ZZ(2), ZZ(0)) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
+   @test gcdx(ZZ(0), ZZ(3)) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
+   @test gcdx(ZZ(0), ZZ(0)) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
+   @test gcdx(ZZ(2), ZZ(1)) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
+   @test gcdx(ZZ(1), ZZ(3)) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
+   @test gcdx(ZZ(-1), ZZ(-1)) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
+
+   @test gcdx(ZZ(2), 3) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
+   @test gcdx(ZZ(2), 0) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
+   @test gcdx(ZZ(0), 3) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
+   @test gcdx(ZZ(0), 0) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
+   @test gcdx(ZZ(2), 1) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
+   @test gcdx(ZZ(1), 3) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
+   @test gcdx(ZZ(-1), -1) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
+
+   @test gcdx(2, ZZ(3)) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
+   @test gcdx(2, ZZ(0)) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
+   @test gcdx(0, ZZ(3)) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
+   @test gcdx(0, ZZ(0)) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
+   @test gcdx(2, ZZ(1)) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
+   @test gcdx(1, ZZ(3)) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
+   @test gcdx(-1, ZZ(-1)) isa Tuple{Oscar.fmpz, Oscar.fmpz, Oscar.fmpz}
 end
 
 @testset "Rings.ZZ.roots" begin
