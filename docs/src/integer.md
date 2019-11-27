@@ -576,13 +576,6 @@ of distinct ways to write ``n`` as a sum of positive integers. Note that
 number_of_partitions(ZZ(10^6))
 ```
 
-## Number theoretic functionality
-
-!!! note
-    The functions in this section that take `Base.Int` arguments will return
-    a `Base.Int`, which may overflow. Use the `Oscar.Integer` versions if this
-    is not the desired behaviour.
-
 ### Fibonacci sequence
 
 * `fibonacci(n::Base.Int) -> Base.Int`
@@ -597,6 +590,13 @@ relation ``F(1) = 1``, ``F(2) = 1`` and ``F(n) = F(n - 1) + F(n - 2)`` for
 fibonacci(ZZ(100))
 fibonacci(-2)
 ```
+
+## Number theoretic functionality
+
+!!! note
+    The functions in this section that take `Base.Int` arguments will return
+    a `Base.Int`, which may overflow. Use the `Oscar.Integer` versions if this
+    is not the desired behaviour.
 
 ### Moebius mu function
 
