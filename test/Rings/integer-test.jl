@@ -619,24 +619,28 @@ end
    @test fibonacci(1) == 1
    @test fibonacci(2) == 1
    @test fibonacci(3) == 2
+   @test fibonacci(0) == 0
+   @test fibonacci(-1) == 1
+   @test fibonacci(-2) == -1
 
    @test fibonacci(1) isa Int
    @test fibonacci(2) isa Int
    @test fibonacci(3) isa Int
-
-   @test_throws DomainError fibonacci(0)
-   @test_throws DomainError fibonacci(-1)
+   @test fibonacci(0) isa Int
+   @test fibonacci(-1) isa Int
 
    @test fibonacci(ZZ(1)) == 1
    @test fibonacci(ZZ(2)) == 1
    @test fibonacci(ZZ(3)) == 2
+   @test fibonacci(ZZ(0)) == 0
+   @test fibonacci(ZZ(-1)) == 1
+   @test fibonacci(ZZ(-2)) == -1
 
    @test fibonacci(ZZ(1)) isa Oscar.fmpz
    @test fibonacci(ZZ(2)) isa Oscar.fmpz
    @test fibonacci(ZZ(3)) isa Oscar.fmpz
-
-   @test_throws DomainError fibonacci(ZZ(0))
-   @test_throws DomainError fibonacci(ZZ(-1))
+   @test fibonacci(ZZ(0)) isa Oscar.fmpz
+   @test fibonacci(ZZ(-1)) isa Oscar.fmpz
 
    @test moebius_mu(1) == 1
    @test moebius_mu(2) == -1
