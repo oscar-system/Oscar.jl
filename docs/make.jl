@@ -8,7 +8,8 @@ makedocs(
          doctest = false,
          pages    = [
              "index.md",
-             "Rings" => [ "Rings/integer.md"]
+             "Rings" => [ "Rings/integer.md",
+			  "Rings/fraction.md"]
          ]
 )
 
