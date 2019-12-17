@@ -51,8 +51,8 @@ Oscar rationals can be created using `QQ`. Two arguments can be passed to
 specify numerator and denominator. If a single argument is passed, the
 denominator is set to `1`.
 
-For convenience, `QQ` also accepts Julia integers, but will always construct
-an Oscar rational.
+For convenience, `QQ` also accepts Julia integers and rationals, but will
+always construct an Oscar rational.
 
 Naturally, Julia's double slash operator can also be used to construct
 fractions. However, unlike `QQ`, the double slash operator only constructs an
@@ -65,6 +65,7 @@ QQ(1, 2)
 QQ(5)
 ZZ(3)//5
 1//ZZ(7)
+QQ(2//3)
 ```
 One can also construct the rational number ``0`` with the empty constructor:
 

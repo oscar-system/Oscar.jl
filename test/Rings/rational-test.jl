@@ -37,6 +37,12 @@
 
    @test QQ() == 0
 
+   @test QQ(2//3) == 2//3
+   @test QQ(-2//3) == -2//3
+   @test QQ(0//3) == 0
+
+   @test QQ(BigInt(2)//3) == 2//3
+
    @test ZZ(1)//(-2) == -1//2
    @test ZZ(-1)//2 == -1//2
    @test ZZ(-1)//-2 == 1//2
@@ -58,6 +64,8 @@
    @test QQ(typemax(Int), -1) == -BigInt(typemax(Int)) # must use BigInt
    @test QQ(-1, typemin(Int)) == 1//-BigInt(typemin(Int)) # must use BigInt
    @test QQ(-1, typemax(Int)) == -1//typemax(Int)
+
+   @test QQ(2//typemin(Int)) == 1//(div(typemin(Int), 2))
 
    @test_throws DivideError ZZ(2)//0
    @test_throws DivideError 2//ZZ(0)
