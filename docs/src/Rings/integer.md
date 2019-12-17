@@ -34,7 +34,7 @@ The Oscar integer type belongs to `Oscar.Integer`.
 
 This situation is illustrated in the following diagram.
 
-![alt text](img/IntegerTypes.svg)
+![alt text](../img/IntegerTypes.svg)
 
 In the documentation below, we always use `Base.Integer` for a Julia integer
 and `Oscar.Integer` for an Oscar integer. Some functions accept only machine

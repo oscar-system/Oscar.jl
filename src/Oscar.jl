@@ -16,5 +16,6 @@ import Polymake
 include("OscarTypes.jl")
 
 include("Rings/integer.jl")
+include("Rings/rational.jl")
 
 end # module
