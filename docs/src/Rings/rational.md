@@ -77,3 +77,22 @@ The following special constructors are also provided:
 * `zero(QQ)`
 * `one(QQ)`
 
+```@repl oscar
+zero(QQ)
+one(QQ)
+```
+
+## Predicates
+
+* `iszero(n::Oscar.Rational) -> Bool`
+* `isone(n::Oscar.Rational) -> Bool`
+* `isunit(n::Oscar.Rational) -> Bool`
+
+The `isunit` function will return `true` iff ``n \neq 0``.
+
+```@repl oscar
+iszero(QQ())
+isone(one(QQ))
+isunit(QQ(-2, 3))
+```
+
