@@ -1,4 +1,6 @@
 @testset "Rings.QQ.constructors" begin
+   @test QQ === FractionField(ZZ)
+
    @test QQ(1, 2) isa Oscar.fmpq
    @test QQ(1, ZZ(2)) isa Oscar.fmpq
    @test QQ(ZZ(1), 2) isa Oscar.fmpq
