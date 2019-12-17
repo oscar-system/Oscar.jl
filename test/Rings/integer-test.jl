@@ -29,6 +29,18 @@ end
    @test sign(ZZ(2)) isa Int
    @test sign(ZZ(0)) isa Int
    @test sign(ZZ(-2)) isa Int
+   @test abs(ZZ(2)) == 2
+   @test abs(ZZ(-2)) == 2
+   @test abs(ZZ(0)) == 0
+   @test isodd(ZZ(3))
+   @test isodd(ZZ(-1))
+   @test !isodd(ZZ(2))
+   @test !isodd(ZZ(0))
+   @test !isodd(ZZ(-2))
+   @test iseven(ZZ(2))
+   @test iseven(ZZ(0))
+   @test iseven(ZZ(-2))
+   @test !iseven(ZZ(-1))
    @test issquare(ZZ(0))
    @test issquare(ZZ(1))
    @test !issquare(ZZ(2))

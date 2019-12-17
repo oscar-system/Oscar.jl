@@ -116,6 +116,8 @@ call to the Oscar function `divexact`.
 * `iszero(n::Oscar.Integer) -> Bool`
 * `isone(n::Oscar.Integer) -> Bool`
 * `isunit(n::Oscar.Integer) -> Bool`
+* `isodd(n::Oscar.Integer) -> Bool`
+* `iseven(n::Oscar.Integer) -> Bool`
 * `issquare(n::Oscar.Integer) -> Bool`
 * `isprime(n::Oscar.Integer) -> Bool`
 * `isprobable_prime(n::Oscar.Integer) -> Bool`
@@ -143,6 +145,16 @@ Returns the sign of `n`, i.e. ``n/|n|`` if ``n \neq 0``, or ``0`` otherwise.
 sign(ZZ(23))
 sign(ZZ(0))
 sign(ZZ(-1))
+```
+
+* `abs(n::Oscar.Integer) -> Oscar.Integer`
+
+Return the absolute value of ``n``, i.e. ``n`` if ``n \geq 0`` and ``-n``
+otherwise
+
+
+```@repl oscar
+abs(ZZ(-3))
 ```
 
 ## Basic arithmetic
