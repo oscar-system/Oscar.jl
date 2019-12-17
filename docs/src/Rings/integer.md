@@ -116,6 +116,8 @@ call to the Oscar function `divexact`.
 * `iszero(n::Oscar.Integer) -> Bool`
 * `isone(n::Oscar.Integer) -> Bool`
 * `isunit(n::Oscar.Integer) -> Bool`
+* `isodd(n::Oscar.Integer) -> Bool`
+* `iseven(n::Oscar.Integer) -> Bool`
 * `issquare(n::Oscar.Integer) -> Bool`
 * `isprime(n::Oscar.Integer) -> Bool`
 * `isprobable_prime(n::Oscar.Integer) -> Bool`
@@ -143,6 +145,16 @@ Returns the sign of `n`, i.e. ``n/|n|`` if ``n \neq 0``, or ``0`` otherwise.
 sign(ZZ(23))
 sign(ZZ(0))
 sign(ZZ(-1))
+```
+
+* `abs(n::Oscar.Integer) -> Oscar.Integer`
+
+Return the absolute value of ``n``, i.e. ``n`` if ``n \geq 0`` and ``-n``
+otherwise
+
+
+```@repl oscar
+abs(ZZ(-3))
 ```
 
 ## Basic arithmetic
@@ -245,7 +257,7 @@ All three functions raise an exception if the modulus ``b`` is zero.
 divrem(ZZ(5), ZZ(3))
 div(ZZ(7), ZZ(2))
 rem(ZZ(4), ZZ(3))
-# div(ZZ(2), ZZ(0))
+div(ZZ(2), ZZ(0))
 ```
 
 !!! note
@@ -276,7 +288,7 @@ the remainder given by `mod`.
 
 ```@repl oscar
 mod(ZZ(4), ZZ(3))
-# mod(ZZ(2), ZZ(0)) 
+mod(ZZ(2), ZZ(0)) 
 ```
 
 ## [Divisibility testing](@id integer_divisibility_testing)
