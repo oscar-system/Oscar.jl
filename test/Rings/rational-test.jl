@@ -50,6 +50,15 @@
    @test 0//ZZ(2) == 0
    @test 0//ZZ(-1) == 0
 
+   @test QQ(1, typemax(Int)) == 1//typemax(Int)
+   @test QQ(typemax(Int), 1) == typemax(Int)
+   @test QQ(1, typemin(Int)) == 1//BigInt(typemin(Int)) # must use BigInt
+   @test QQ(typemin(Int), 1) == typemin(Int)
+   @test QQ(typemin(Int), -1) == -BigInt(typemin(Int)) # must use BigInt
+   @test QQ(typemax(Int), -1) == -BigInt(typemax(Int)) # must use BigInt
+   @test QQ(-1, typemin(Int)) == 1//-BigInt(typemin(Int)) # must use BigInt
+   @test QQ(-1, typemax(Int)) == -1//typemax(Int)
+
    @test_throws DivideError ZZ(2)//0
    @test_throws DivideError 2//ZZ(0)
    @test_throws DivideError ZZ(2)//ZZ(0)
