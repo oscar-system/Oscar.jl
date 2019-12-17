@@ -9,7 +9,7 @@ makedocs(
          pages    = [
              "index.md",
              "Rings" => [ "Rings/integer.md",
-			  "Rings/fraction.md"]
+			  "Rings/rational.md"]
          ]
 )
 
