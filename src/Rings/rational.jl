@@ -1,3 +1,3 @@
-import Nemo: QQ, fmpq
+import Nemo: QQ, FractionField, fmpq
 
-export QQ
+export QQ, FractionField
