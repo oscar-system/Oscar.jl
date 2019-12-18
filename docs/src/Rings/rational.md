@@ -117,14 +117,14 @@ sign(QQ(-1))
 * `abs(n::Oscar.Rational) -> Oscar.Rational`
 
 Return the absolute value of ``n``, i.e. ``n`` if ``n \geq 0`` and ``-n``
-otherwise
+otherwise.
 
 
 ```@repl oscar
 abs(QQ(-3, 2))
 ```
 
-* height(n::Oscar.Rational) -> Oscar.Integer`
+* `height(n::Oscar.Rational) -> Oscar.Integer`
 
 Return the maximum of the absolute values of the numerator and denominator of
 $n$.
