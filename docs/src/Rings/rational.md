@@ -133,3 +133,17 @@ $n$.
 height(QQ(324987329, -8372492324))
 ```
 
+* `floor(n::Oscar.Rational) -> Oscar.Rational`
+
+Return the greatest integer $m$ such that $m \leq n$.
+
+* `ceil(n::Oscar.Rational) -> Oscar.Rational`
+
+Return the least integer $m$ such that $m \geq n$.
+
+```@repl oscar
+floor(QQ(-2, 3))
+ceil(QQ(7, 2))
+ceil(QQ(5))
+```
+

@@ -152,4 +152,26 @@ end
    @test height(QQ()) == 1
    @test height(QQ(-1)) == 1
    @test height(QQ(2)) == 2
+
+   @test floor(QQ(-2, 3)) isa Oscar.fmpq
+   @test floor(QQ(7, 5)) isa Oscar.fmpq
+   @test floor(QQ(2)) isa Oscar.fmpq
+   @test floor(QQ()) isa Oscar.fmpq
+
+   @test ceil(QQ(-2, 3)) isa Oscar.fmpq
+   @test ceil(QQ(7, 5)) isa Oscar.fmpq
+   @test ceil(QQ(2)) isa Oscar.fmpq
+   @test ceil(QQ()) isa Oscar.fmpq
+
+   @test floor(QQ(-1, 2)) == -1
+   @test floor(QQ(1, 2)) == 0
+   @test floor(QQ(1)) == 1
+   @test floor(QQ(0)) == 0
+   @test floor(QQ(-1)) == -1
+
+   @test floor(QQ(-1, 2)) == -1
+   @test floor(QQ(1, 2)) == 0
+   @test floor(QQ(1)) == 1
+   @test floor(QQ(0)) == 0
+   @test floor(QQ(-1)) == -1
 end
