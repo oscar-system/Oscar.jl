@@ -140,4 +140,16 @@ end
    @test abs(QQ(-2, 3)) isa Oscar.fmpq
    @test abs(QQ()) isa Oscar.fmpq
    @test abs(QQ(2)) isa Oscar.fmpq
+
+   @test height(QQ(-2, 3)) isa Oscar.fmpz
+   @test height(QQ()) isa Oscar.fmpz
+   @test height(QQ(2)) isa Oscar.fmpz
+
+   @test height(QQ(-3, 2)) == 3
+   @test height(QQ(-2, 3)) == 3
+   @test height(QQ(7, 5)) == 7
+   @test height(QQ(5, 7)) == 7
+   @test height(QQ()) == 1
+   @test height(QQ(-1)) == 1
+   @test height(QQ(2)) == 2
 end
