@@ -286,3 +286,30 @@ end
    @test QQ(2, 3) < QQ(1)
 end
 
+@testset "Rings.QQ.divexact" begin
+   @test divexact(QQ(2, 3), QQ(3, 2)) isa Oscar.fmpq
+   @test divexact(QQ(2, 3), 3//2) isa Oscar.fmpq
+   @test divexact(QQ(2, 3), BigInt(3)//2) isa Oscar.fmpq
+   @test divexact(2//3, QQ(2, 3)) isa Oscar.fmpq
+   @test divexact(BigInt(2)//3, QQ(2, 3)) isa Oscar.fmpq
+
+   @test divexact(QQ(2, 3), 2) isa Oscar.fmpq
+   @test divexact(QQ(2, 3), BigInt(2)) isa Oscar.fmpq
+   @test divexact(QQ(2, 3), ZZ(2)) isa Oscar.fmpq
+   @test divexact(2, QQ(2, 3)) isa Oscar.fmpq
+   @test divexact(BigInt(2), QQ(2, 3)) isa Oscar.fmpq
+   @test divexact(ZZ(2), QQ(2, 3)) isa Oscar.fmpq
+
+   @test divexact(QQ(2, 3), QQ(2, 3)) == 1
+   @test divexact(QQ(2, 3), 5) == 2//15
+   @test divexact(QQ(2, 3), ZZ(5)) == 2//15
+   @test divexact(5, QQ(2, 3)) == 15//2
+   @test divexact(ZZ(5), QQ(2, 3)) == 15//2
+
+   @test_throws DivideError divexact(QQ(2, 3), 0)
+   @test_throws DivideError divexact(QQ(2, 3), BigInt(0))
+   @test_throws DivideError divexact(QQ(2, 3), ZZ(0))
+   @test_throws DivideError divexact(QQ(2, 3), 0//1)
+   @test_throws DivideError divexact(QQ(2, 3), BigInt(0)//1)
+   @test_throws DivideError divexact(QQ(2, 3), QQ(0))
+end
