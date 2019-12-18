@@ -117,19 +117,33 @@ sign(QQ(-1))
 * `abs(n::Oscar.Rational) -> Oscar.Rational`
 
 Return the absolute value of ``n``, i.e. ``n`` if ``n \geq 0`` and ``-n``
-otherwise
+otherwise.
 
 
 ```@repl oscar
 abs(QQ(-3, 2))
 ```
 
-* height(n::Oscar.Rational) -> Oscar.Integer`
+* `height(n::Oscar.Rational) -> Oscar.Integer`
 
 Return the maximum of the absolute values of the numerator and denominator of
 $n$.
 
 ```@repl oscar
 height(QQ(324987329, -8372492324))
+```
+
+* `floor(n::Oscar.Rational) -> Oscar.Rational`
+
+Return the greatest integer $m$ such that $m \leq n$.
+
+* `ceil(n::Oscar.Rational) -> Oscar.Rational`
+
+Return the least integer $m$ such that $m \geq n$.
+
+```@repl oscar
+floor(QQ(-2, 3))
+ceil(QQ(7, 2))
+ceil(QQ(5))
 ```
 
