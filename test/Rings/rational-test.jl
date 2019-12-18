@@ -175,3 +175,141 @@ end
    @test floor(QQ(0)) == 0
    @test floor(QQ(-1)) == -1
 end
+
+@testset "Rings.QQ.arithmetic" begin
+   @test QQ(2, 3) + 1 isa Oscar.fmpq
+   @test QQ(2, 3) - 1 isa Oscar.fmpq
+   @test QQ(2, 3)*2 isa Oscar.fmpq
+   @test QQ(1, 2) + 12345678901234567890 isa Oscar.fmpq
+   @test QQ(1, 2) + 1234567890123456789012345678901234567890 isa Oscar.fmpq
+   @test QQ(1, 2) - 12345678901234567890 isa Oscar.fmpq
+   @test QQ(1, 2) - 1234567890123456789012345678901234567890 isa Oscar.fmpq
+   @test QQ(1, 2)*12345678901234567890 isa Oscar.fmpq
+   @test QQ(1, 2)*1234567890123456789012345678901234567890 isa Oscar.fmpq
+
+   @test 1 + QQ(2, 3) isa Oscar.fmpq
+   @test 1 - QQ(2, 3) isa Oscar.fmpq
+   @test 2*QQ(2, 3) isa Oscar.fmpq
+   @test 12345678901234567890 + QQ(1, 2) isa Oscar.fmpq
+   @test 1234567890123456789012345678901234567890 + QQ(1, 2) isa Oscar.fmpq
+   @test 12345678901234567890 - QQ(1, 2) isa Oscar.fmpq
+   @test 1234567890123456789012345678901234567890 - QQ(1, 2) isa Oscar.fmpq
+   @test 12345678901234567890*QQ(1, 2) isa Oscar.fmpq
+   @test 1234567890123456789012345678901234567890*QQ(1, 2) isa Oscar.fmpq
+
+   @test QQ(2, 3) + 2//5 isa Oscar.fmpq
+   @test QQ(2, 3) - 2//5 isa Oscar.fmpq
+   @test QQ(2, 3)*(2//5) isa Oscar.fmpq
+   @test QQ(2, 3) + 12345678901234567890//5 isa Oscar.fmpq
+   @test QQ(2, 3) - 12345678901234567890//5 isa Oscar.fmpq
+   @test QQ(2, 3)*(12345678901234567890//5) isa Oscar.fmpq
+   @test QQ(2, 3) + BigInt(2)//5 isa Oscar.fmpq
+   @test QQ(2, 3) - BigInt(2)//5 isa Oscar.fmpq
+   @test QQ(2, 3)*(BigInt(2)//5) isa Oscar.fmpq
+
+   @test 2//5 + QQ(2, 3) isa Oscar.fmpq
+   @test 2//5 - QQ(2, 3) isa Oscar.fmpq
+   @test (2//5)*QQ(2, 3) isa Oscar.fmpq
+   @test 12345678901234567890//5 + QQ(2, 3) isa Oscar.fmpq
+   @test 12345678901234567890//5 - QQ(2, 3) isa Oscar.fmpq
+   @test (12345678901234567890//5)*QQ(2, 3) isa Oscar.fmpq
+   @test BigInt(2)//5 + QQ(2, 3) isa Oscar.fmpq
+   @test BigInt(2)//5 - QQ(2, 3) isa Oscar.fmpq
+   @test (BigInt(2)//5)*QQ(2, 3) isa Oscar.fmpq
+
+   a = QQ(2, 3)
+
+   @test a !== a + 0
+   @test a !== a + BigInt(0)
+   @test a !== a + ZZ(0)
+   @test a !== a + QQ(0)
+   @test a !== a + 0//1
+   @test a !== a + BigInt(0)//1
+   @test a !== 0 + a
+   @test a !== BigInt(0) + a
+   @test a !== ZZ(0) + a
+   @test a !== QQ(0) + a
+   @test a !== 0//1 + a
+   @test a !== BigInt(0)//1 + a
+
+   @test a !== a - 0
+   @test a !== a - BigInt(0)
+   @test a !== a - ZZ(0)
+   @test a !== a - QQ(0)
+   @test a !== a - 0//1
+   @test a !== a - BigInt(0)//1
+   
+
+   @test a !== a*1
+   @test a !== a*BigInt(1)
+   @test a !== a*ZZ(1)
+   @test a !== a*QQ(1)
+   @test a !== a*(1//1)
+   @test a !== a*(BigInt(1)//1)
+   @test a !== 1*a
+   @test a !== BigInt(1)*a
+   @test a !== ZZ(1)*a
+   @test a !== QQ(1)*a
+   @test a !== (1//1)*a
+   @test a !== (BigInt(1)//1)*a
+end
+
+@testset "Rings.QQ.comparison" begin
+   @test QQ(2, 3) == QQ(2, 3)
+
+   @test QQ(2, 3) == 2//3
+   @test QQ(2, 3) == BigInt(2)//3
+
+   @test QQ(2) == 2
+   @test QQ(2) == BigInt(2)
+   @test QQ(2) == ZZ(2)
+
+   @test 2//3 == QQ(2, 3)
+   @test BigInt(2)//3 == QQ(2, 3)
+
+   @test 2 == QQ(2)
+   @test BigInt(2) == QQ(2)
+   @test ZZ(2) == QQ(2)
+
+   @test QQ(2, 3) > 0
+   @test QQ(2, 3) > BigInt(0)
+   @test QQ(2, 3) > 0//1
+   @test QQ(2, 3) > BigInt(0)//1
+   @test QQ(2, 3) > ZZ(0)
+   @test QQ(2, 3) > QQ(0)
+
+   @test QQ(2, 3) < 1
+   @test QQ(2, 3) < BigInt(1)
+   @test QQ(2, 3) < 1//1
+   @test QQ(2, 3) < BigInt(1)//1
+   @test QQ(2, 3) < ZZ(1)
+   @test QQ(2, 3) < QQ(1)
+end
+
+@testset "Rings.QQ.divexact" begin
+   @test divexact(QQ(2, 3), QQ(3, 2)) isa Oscar.fmpq
+   @test divexact(QQ(2, 3), 3//2) isa Oscar.fmpq
+   @test divexact(QQ(2, 3), BigInt(3)//2) isa Oscar.fmpq
+   @test divexact(2//3, QQ(2, 3)) isa Oscar.fmpq
+   @test divexact(BigInt(2)//3, QQ(2, 3)) isa Oscar.fmpq
+
+   @test divexact(QQ(2, 3), 2) isa Oscar.fmpq
+   @test divexact(QQ(2, 3), BigInt(2)) isa Oscar.fmpq
+   @test divexact(QQ(2, 3), ZZ(2)) isa Oscar.fmpq
+   @test divexact(2, QQ(2, 3)) isa Oscar.fmpq
+   @test divexact(BigInt(2), QQ(2, 3)) isa Oscar.fmpq
+   @test divexact(ZZ(2), QQ(2, 3)) isa Oscar.fmpq
+
+   @test divexact(QQ(2, 3), QQ(2, 3)) == 1
+   @test divexact(QQ(2, 3), 5) == 2//15
+   @test divexact(QQ(2, 3), ZZ(5)) == 2//15
+   @test divexact(5, QQ(2, 3)) == 15//2
+   @test divexact(ZZ(5), QQ(2, 3)) == 15//2
+
+   @test_throws DivideError divexact(QQ(2, 3), 0)
+   @test_throws DivideError divexact(QQ(2, 3), BigInt(0))
+   @test_throws DivideError divexact(QQ(2, 3), ZZ(0))
+   @test_throws DivideError divexact(QQ(2, 3), 0//1)
+   @test_throws DivideError divexact(QQ(2, 3), BigInt(0)//1)
+   @test_throws DivideError divexact(QQ(2, 3), QQ(0))
+end

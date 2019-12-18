@@ -72,6 +72,28 @@ end
    @test 0*ZZ(2) isa Oscar.fmpz
    @test ZZ(2)*0 isa Oscar.fmpz
 
+   a = ZZ(2)
+
+   @test a !== a + 0
+   @test a !== a + BigInt(0)
+   @test a !== a + ZZ(0)
+   @test a !== 0 + a
+   @test a !== BigInt(0) + a
+   @test a !== ZZ(0) + a
+   
+   @test a !== a - 0
+   @test a !== a - BigInt(0)
+   @test a !== a - ZZ(0)
+
+   @test a !== a*1
+   @test a !== a*BigInt(1)
+   @test a !== a*ZZ(1)
+   @test a !== 1*a
+   @test a !== BigInt(1)*a
+   @test a !== ZZ(1)*a
+end
+
+@testset "Rings.ZZ.comparison" begin
    @test ZZ(2) == ZZ(2)
    @test ZZ(0) == ZZ(0)
    @test ZZ(-2) == ZZ(-2)

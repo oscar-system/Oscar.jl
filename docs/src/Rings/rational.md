@@ -148,3 +148,28 @@ ceil(QQ(7, 2))
 ceil(QQ(5))
 ```
 
+## Basic arithmetic
+
+Oscar provides the basic arithmetic operations `+`, `-` and `*` and comparison
+operators `==`, `!=`, `<`, `<=`, `>`, `>=`, including mixed operations between
+Julia and Oscar rationals and integers.
+
+### [Exact Division]
+
+* `divexact(a::Oscar.Rational, b::Oscar.Rational) -> Oscar.Rational`
+* `divexact(a::Oscar.Rational, b::Oscar.Integer) -> Oscar.Rational`
+* `divexact(a::Oscar.Integer, b::Oscar.Rational) -> Oscar.Rational`
+
+In the first signature, one of the arguments may be a Julia rational and in the
+other two signatures the integers may be Julia integers.
+
+Returns the quotient of ``a`` by ``b``. Exact division raises an exception if
+division by zero is attempted.
+
+```@repl oscar
+divexact(QQ(2, 3), QQ(3, 5))
+divexact(QQ(1, 3), ZZ(0))
+divexact(QQ(3, 4), ZZ(5))
+divexact(ZZ(6), QQ(2, 3))
+divexact(QQ(1, 3), 5)
+```
