@@ -148,3 +148,8 @@ ceil(QQ(7, 2))
 ceil(QQ(5))
 ```
 
+## Basic arithmetic
+
+Oscar provides the basic arithmetic operations `+`, `-` and `*` and comparison
+operators `==`, `!=`, `<`, `<=`, `>`, `>=`, including mixed operations between
+Julia and Oscar rationals and integers.
