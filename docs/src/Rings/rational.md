@@ -123,3 +123,13 @@ otherwise
 ```@repl oscar
 abs(QQ(-3, 2))
 ```
+
+* height(n::Oscar.Rational) -> Oscar.Integer`
+
+Return the maximum of the absolute values of the numerator and denominator of
+$n$.
+
+```@repl oscar
+height(QQ(324987329, -8372492324))
+```
+
