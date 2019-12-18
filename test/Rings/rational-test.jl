@@ -110,4 +110,34 @@ end
 
    @test numerator(QQ()) == 0
    @test denominator(QQ()) == 1
+
+   @test numerator(QQ(-2, 3)) isa Oscar.fmpz
+   @test denominator(QQ(-2, 3)) isa Oscar.fmpz
+
+   @test numerator(QQ()) isa Oscar.fmpz
+   @test denominator(QQ()) isa Oscar.fmpz
+
+   @test numerator(QQ(1)) isa Oscar.fmpz
+   @test denominator(QQ(1)) isa Oscar.fmpz
+
+   @test sign(QQ(-2, 3)) == -1
+   @test sign(QQ()) == 0
+   @test sign(QQ(2, 3)) == 1
+   @test sign(QQ(1)) == 1
+   @test sign(QQ(-1)) == -1
+   @test sign(QQ(-2)) == -1
+   @test sign(QQ(0)) == 0
+
+   @test sign(QQ(-2, 3)) isa Oscar.fmpq
+   @test sign(QQ()) isa Oscar.fmpq
+   @test sign(QQ(1)) isa Oscar.fmpq
+   @test sign(QQ(-1)) isa Oscar.fmpq
+
+   @test abs(QQ(-2, 3)) == 2//3
+   @test abs(QQ()) == 0
+   @test abs(QQ(2)) == 2
+
+   @test abs(QQ(-2, 3)) isa Oscar.fmpq
+   @test abs(QQ()) isa Oscar.fmpq
+   @test abs(QQ(2)) isa Oscar.fmpq
 end

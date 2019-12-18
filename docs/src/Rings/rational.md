@@ -97,3 +97,29 @@ isone(one(QQ))
 isunit(QQ(-2, 3))
 ```
 
+## Properties
+
+* `numerator(n::Oscar.Rational) -> Oscar.Integer`
+* `denominator(n::Oscar.Rational) -> Oscar.Integer`
+
+Return the numerator and denominator respectively, of $n$.
+
+* `sign(n::Oscar.Rational) -> Oscar.Rational`
+
+Returns the sign of `n`, i.e. ``n/|n|`` if ``n \neq 0``, or ``0`` otherwise.
+
+```@repl oscar
+sign(QQ(2, 3))
+sign(QQ())
+sign(QQ(-1))
+```
+
+* `abs(n::Oscar.Rational) -> Oscar.Rational`
+
+Return the absolute value of ``n``, i.e. ``n`` if ``n \geq 0`` and ``-n``
+otherwise
+
+
+```@repl oscar
+abs(QQ(-3, 2))
+```
