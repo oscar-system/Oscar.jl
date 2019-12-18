@@ -38,7 +38,7 @@ The parent of an Oscar rational number is the field of rationals. It can be
 constructed from the ring of integers `ZZ` using the `FractionField`
 constructor.
 
-For convenience, `QQ` is already defined to be the field of rationals numbers.
+For convenience, `QQ` is already defined to be the field of rational numbers.
 
 ```@repl oscar
 S = FractionField(ZZ)
@@ -66,6 +66,7 @@ QQ(5)
 ZZ(3)//5
 1//ZZ(7)
 QQ(2//3)
+ZZ(3)//0
 ```
 One can also construct the rational number ``0`` with the empty constructor:
 
