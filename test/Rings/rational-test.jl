@@ -254,3 +254,35 @@ end
    @test a !== (BigInt(1)//1)*a
 end
 
+@testset "Rings.QQ.comparison" begin
+   @test QQ(2, 3) == QQ(2, 3)
+
+   @test QQ(2, 3) == 2//3
+   @test QQ(2, 3) == BigInt(2)//3
+
+   @test QQ(2) == 2
+   @test QQ(2) == BigInt(2)
+   @test QQ(2) == ZZ(2)
+
+   @test 2//3 == QQ(2, 3)
+   @test BigInt(2)//3 == QQ(2, 3)
+
+   @test 2 == QQ(2)
+   @test BigInt(2) == QQ(2)
+   @test ZZ(2) == QQ(2)
+
+   @test QQ(2, 3) > 0
+   @test QQ(2, 3) > BigInt(0)
+   @test QQ(2, 3) > 0//1
+   @test QQ(2, 3) > BigInt(0)//1
+   @test QQ(2, 3) > ZZ(0)
+   @test QQ(2, 3) > QQ(0)
+
+   @test QQ(2, 3) < 1
+   @test QQ(2, 3) < BigInt(1)
+   @test QQ(2, 3) < 1//1
+   @test QQ(2, 3) < BigInt(1)//1
+   @test QQ(2, 3) < ZZ(1)
+   @test QQ(2, 3) < QQ(1)
+end
+

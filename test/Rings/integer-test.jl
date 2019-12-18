@@ -91,7 +91,9 @@ end
    @test a !== 1*a
    @test a !== BigInt(1)*a
    @test a !== ZZ(1)*a
+end
 
+@testset "Rings.ZZ.comparison" begin
    @test ZZ(2) == ZZ(2)
    @test ZZ(0) == ZZ(0)
    @test ZZ(-2) == ZZ(-2)
