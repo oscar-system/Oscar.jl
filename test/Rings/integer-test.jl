@@ -26,9 +26,9 @@ end
    @test sign(ZZ(2)) == 1
    @test sign(ZZ(0)) == 0
    @test sign(-ZZ(2)) == -1
-   @test sign(ZZ(2)) isa Int
-   @test sign(ZZ(0)) isa Int
-   @test sign(ZZ(-2)) isa Int
+   @test sign(ZZ(2)) isa Oscar.fmpz
+   @test sign(ZZ(0)) isa Oscar.fmpz
+   @test sign(ZZ(-2)) isa Oscar.fmpz
    @test abs(ZZ(2)) == 2
    @test abs(ZZ(-2)) == 2
    @test abs(ZZ(0)) == 0
