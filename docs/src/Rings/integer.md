@@ -137,7 +137,7 @@ isprobable_prime(ZZ(23))
 
 ## Properties
 
-* `sign(n::Oscar.Integer) -> Base.Int`
+* `sign(n::Oscar.Integer) -> Oscar.Integer`
 
 Returns the sign of `n`, i.e. ``n/|n|`` if ``n \neq 0``, or ``0`` otherwise.
 

@@ -173,3 +173,25 @@ divexact(QQ(3, 4), ZZ(5))
 divexact(ZZ(6), QQ(2, 3))
 divexact(QQ(1, 3), 5)
 ```
+
+### Powering
+
+* `^(a::Oscar.Rational, b::Base.Int) -> Oscar.Rational`
+
+Powering can be accomplished naturally using the special caret infix
+operator:
+
+```@repl oscar
+QQ(5, 7)^32
+QQ(1, 2)^(-2)
+```
+
+The following is allowed for convenience.
+
+```@repl oscar
+QQ(0)^0
+```
+
+!!! note
+    In line with Julia, the rational number ``0`` when raised to a negative
+    power returns ``1``.

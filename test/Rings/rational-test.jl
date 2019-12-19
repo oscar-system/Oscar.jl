@@ -313,3 +313,34 @@ end
    @test_throws DivideError divexact(QQ(2, 3), BigInt(0)//1)
    @test_throws DivideError divexact(QQ(2, 3), QQ(0))
 end
+
+@testset "Rings.QQ.powering" begin
+   @test QQ(2, 3)^0 isa Oscar.fmpq
+   @test QQ(2, 3)^1 isa Oscar.fmpq
+   @test QQ(2, 3)^2 isa Oscar.fmpq
+   @test QQ(2, 3)^-1 isa Oscar.fmpq
+   @test QQ(2, 3)^-1 isa Oscar.fmpq
+
+   @test QQ(2, 3)^0 == 1
+   @test QQ(2, 3)^1 == 2//3
+   @test QQ(2, 3)^2 == 4//9
+   @test QQ(2, 3)^-1 == 3//2
+   @test QQ(2, 3)^-2 == 9//4
+
+   @test QQ(1)^0 == 1
+   @test QQ(1)^1 == 1
+   @test QQ(-1)^0 == 1
+   @test QQ(-1)^1 == -1
+   @test QQ(-1)^2 == 1
+   @test QQ(-1)^-1 == -1
+   @test QQ(-1)^-2 == 1
+   @test QQ(2)^3 == 8
+   @test QQ(2)^-3 == 1//8
+
+   @test QQ(0)^1 == 0
+   @test QQ(0)^0 == 1
+   
+   # these two are indefensible, but in line with Julia
+   @test QQ(0)^-1 == 1
+   @test QQ(0)^-2 == 1
+end
