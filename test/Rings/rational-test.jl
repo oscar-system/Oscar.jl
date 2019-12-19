@@ -340,6 +340,7 @@ end
    @test QQ(0)^1 == 0
    @test QQ(0)^0 == 1
    
-   @test_throws DivideError QQ(0)^-1
-   @test_throws DivideError QQ(0)^-2
+   # these two are indefensible, but in line with Julia
+   @test QQ(0)^-1 == 1
+   @test QQ(0)^-2 == 1
 end
