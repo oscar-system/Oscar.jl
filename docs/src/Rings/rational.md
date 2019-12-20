@@ -193,5 +193,11 @@ QQ(0)^0
 ```
 
 !!! note
-    In line with Julia, the rational number ``0`` when raised to a negative
-    power returns ``1``.
+    In Julia, the rational number ``0//1`` when raised to a negative power
+    returns ``1/0`` to indicate that the value is undefined. Oscar follows
+    this convention.
+
+```@repl oscar
+QQ(0)^-2
+```
+
