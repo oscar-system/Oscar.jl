@@ -12,7 +12,7 @@ Polymake = "d720cf60-89b5-51f5-aff5-213f193123e7"
 [compat]
 Julia = "1.0, 1.1, 1.2"
 AbstractAlgebra = "^0.8.0"
-Hecke = "^0.7.1"
+Hecke = "^0.7.0"
 Nemo = "^0.16.0"
 Polymake = "^0.2.2"
 
