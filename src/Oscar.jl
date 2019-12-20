@@ -3,15 +3,16 @@ module Oscar
 #=
   We currently only import packages which:
     * are registered
-    * have BinaryBuilder (including for dependencies)
+    * have BinaryBuilder or build in a few minutes
     * support Linux and OSX
-  More to come soon....
 =#
 
 import AbstractAlgebra
 import Nemo
 import Hecke
 import Polymake
+import Gap
+import Singular
 
 include("OscarTypes.jl")
 
