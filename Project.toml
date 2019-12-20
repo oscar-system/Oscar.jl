@@ -17,6 +17,6 @@ AbstractAlgebra = "^0.8.0"
 Hecke = "^0.7.1"
 Nemo = "^0.16.0"
 Polymake = "^0.2.2"
-Singular = "^0.1.0
+Singular = "^0.1.0"
 Gap = "^0.2.2"
 
