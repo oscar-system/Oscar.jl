@@ -11,8 +11,6 @@ import AbstractAlgebra
 import Nemo
 import Hecke
 import Polymake
-import Gap
-import Singular
 
 include("OscarTypes.jl")
 
