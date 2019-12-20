@@ -194,8 +194,8 @@ QQ(0)^0
 
 !!! note
     In Julia, the rational number ``0//1`` when raised to a negative power
-    returns ``1/0`` to indicate that the value is undefined. Oscar follows
-    this convention.
+    returns ``1//0`` to indicate that the value is undefined. Oscar raises
+    an exception.
 
 ```@repl oscar
 QQ(0)^-2
