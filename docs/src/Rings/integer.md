@@ -215,6 +215,11 @@ ZZ(1)^(-2)
     An exception will be raised if an integer other than ``-1`` or ``1`` is
     raised to a negative exponent.
 
+!!! note
+    In Julia ``2^-2`` is called a literal power. The value returned is a
+    floating point value. To get behaviour that agrees with Oscar, one can
+    write ``2^Int(-2)``.
+
 The following is allowed for convenience.
 
 ```@repl oscar

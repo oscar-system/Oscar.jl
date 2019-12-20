@@ -337,10 +337,14 @@ end
    @test QQ(2)^3 == 8
    @test QQ(2)^-3 == 1//8
 
+   @test QQ(0)^-1 isa Oscar.fmpq
+   @test QQ(0)^-2 isa Oscar.fmpq
+
    @test QQ(0)^1 == 0
    @test QQ(0)^0 == 1
+      
+   @test QQ(0)^-1 == 1//0
+   @test QQ(0)^-2 == 1//0
+
    
-   # these two are indefensible, but in line with Julia
-   @test QQ(0)^-1 == 1
-   @test QQ(0)^-2 == 1
 end
