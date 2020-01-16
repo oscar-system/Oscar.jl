@@ -13,6 +13,8 @@ import Hecke
 import Polymake
 #import Singular
 
+export Polymake
+
 include("OscarTypes.jl")
 
 include("Rings/integer.jl")
