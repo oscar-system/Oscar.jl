@@ -11,7 +11,8 @@ import AbstractAlgebra
 import Nemo
 import Hecke
 import Polymake
-#import Singular
+import Singular
+import GAP
 
 export Polymake
 
