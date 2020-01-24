@@ -20,5 +20,6 @@ include("Rings/rational.jl")
 include("Rings/Hecke.jl")
 #include("Rings/mpoly.jl")
 #include("Rings/mpoly-graded.jl")
+#include("Modules/FreeModules-graded.jl")
 
 end # module

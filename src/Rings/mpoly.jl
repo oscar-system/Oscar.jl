@@ -55,7 +55,7 @@ function Base.getindex(A::BiPolyArray, ::Val{:S}, i::Int)
 end
 
 function Base.getindex(A::BiPolyArray, ::Val{:O}, i::Int)
-  if A.O[i] === undef
+  if !isassigned(A.O, i)
     A.O[i] = convert(A.Ox, A.S[i])
   end
   return A.O[i]
@@ -155,12 +155,6 @@ function singular_assure(I::MPolyIdeal)
   end
 end
 
-function oscar_assure(I::MPolyIdeal)
-  if !isdefined(I.gens, :O)
-    f = I.gens[Val(:O), 1]
-  end
-end
-
 function *(I::MPolyIdeal, J::MPolyIdeal)
   singular_assure(I)
   singular_assure(J)
@@ -202,8 +196,7 @@ function Base.issubset(I::MPolyIdeal, J::MPolyIdeal)
 end
 
 function gens(I::MPolyIdeal)
-  oscar_assure(I)
-  return I.gens.O
+  return [I.gens[Val(:O), i] for i=1:ngens(I)]
 end
 
 function groebner_assure(I::MPolyIdeal)
