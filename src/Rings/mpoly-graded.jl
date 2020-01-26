@@ -25,7 +25,7 @@ mutable struct MPolyRing_dec{T} <: AbstractAlgebra.Ring
 end
 
 isgraded(W::MPolyRing_dec) = !isdefined(W, :lt)
-isfiltrated(W::MPolyRing_dec) =isdefined(W, :lt)
+isfiltrated(W::MPolyRing_dec) = isdefined(W, :lt)
 
 function show(io::IO, W::MPolyRing_dec)
   Hecke.@show_name(io, W)
@@ -100,8 +100,12 @@ elem_type(::MPolyRing_dec{T}) where {T} = MPolyElem_dec{elem_type(T)}
 elem_type(::Type{MPolyRing_dec{T}}) where {T} = MPolyElem_dec{elem_type(T)}
 parent_type(::Type{MPolyElem_dec{T}}) where {T} = MPolyRing_dec{parent_type(T)}
 
+(W::MPolyRing_dec)(i::Int) = MPolyElem_dec(W.R(i), W)
+(W::MPolyRing_dec)(i::RingElem) = MPolyElem_dec(W.R(i), W)
 (W::MPolyRing_dec)(f::MPolyElem) = MPolyElem_dec(f, W)
 (W::MPolyRing_dec)(g::MPolyElem_dec) = MPolyElem_dec(g.f, W)
+one(W::MPolyRing_dec) = MPolyElem_dec(one(W.R), W)
+zero(W::MPolyRing_dec) = MPolyElem_dec(zero(W.R), W)
 
 +(a::MPolyElem_dec{T}, b::MPolyElem_dec{T}) where {T} = MPolyElem_dec(a.f+b.f, a.parent)
 *(a::MPolyElem_dec{T}, b::MPolyElem_dec{T}) where {T} = MPolyElem_dec(a.f*b.f, a.parent)
@@ -204,6 +208,8 @@ function show_homo_comp(io::IO, M)
 end
 
 function homogenous_component(W::MPolyRing_dec, d::GrpAbFinGenElem)
+  #TODO: lazy: ie. no enumeration of points
+  #      aparently it is possible to get the number of points faster than the points
   D = W.D
   h = hom(FreeAbelianGroup(ngens(W)), W.d)
   fl, p = haspreimage(h, d)
@@ -243,6 +249,8 @@ end
 
 basis(F::Generic.FreeModule) = gens(F) # needs to be in AA
 
+###########################################
+# needs re-thought
 function (W::MPolyRing_dec)(m::Generic.FreeModuleElem) 
   h = hasrelshp(parent(m), W)
   if h !== nothing
