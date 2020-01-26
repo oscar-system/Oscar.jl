@@ -1,14 +1,3 @@
-module FreeModDec
-
-using Oscar
-using Hecke
-import Singular
-
-import Base: show, +,-, *, ==, convert, zero, length, getindex, iterate
-import Oscar: ngens, dim, basis, degree, base_ring, singular_ring, parent_type, parent, 
-              elem_type, MPolyRing_dec, MPolyElem_dec, FreeModule, isgraded, sub, quo, gens,
-              image, hom, kernel, iszero
-
 #TODO make d and S a function optionally - to support HUGE degree
 mutable struct FreeModule_dec
   d::Array{GrpAbFinGenElem, 1}
@@ -379,10 +368,6 @@ function Singular.intersection(a::Singular.smodule, b::Singular.smodule)
   c = base_ring(a)
   return Singular.Module(c, Singular.libSingular.id_Intersection(a.ptr, b.ptr, c.ptr))
 end
-
-end
-
-using ..FreeModDec
 
 #=
 

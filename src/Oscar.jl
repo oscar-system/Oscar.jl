@@ -11,15 +11,21 @@ import AbstractAlgebra
 import Nemo
 import Hecke
 import Polymake
-#import Singular
+import Singular
+
+#function load()
+#  s = joinpath(dirname(pathof(Oscar)), "Modules/FreeModules-graded.jl")
+#  Base.include(Oscar, s)
+#  Revise.track(Oscar, s)
+#end
 
 include("OscarTypes.jl")
 
 include("Rings/integer.jl")
 include("Rings/rational.jl")
 include("Rings/Hecke.jl")
-#include("Rings/mpoly.jl")
-#include("Rings/mpoly-graded.jl")
-#include("Modules/FreeModules-graded.jl")
+include("Rings/mpoly.jl")
+include("Rings/mpoly-graded.jl")
+include("Modules/FreeModules-graded.jl")
 
 end # module
