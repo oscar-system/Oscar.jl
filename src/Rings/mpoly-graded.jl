@@ -247,7 +247,6 @@ function homogenous_component(W::MPolyRing_dec, d::GrpAbFinGenElem)
   return M, h
 end
 
-basis(F::Generic.FreeModule) = gens(F) # needs to be in AA
 
 ###########################################
 # needs re-thought

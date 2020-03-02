@@ -13,7 +13,7 @@ import Base: +, *, ==, ^, -
 import Hecke
 import Hecke: MapHeader
 
-export PolynomialRing, total_degree, degree, MPolyElem, ordering, ideal
+export PolynomialRing, total_degree, degree, MPolyElem, ordering, ideal, groebner_basis
 
 #TODO/ to think
 #  default in Nemo is     :lex
@@ -23,6 +23,7 @@ export PolynomialRing, total_degree, degree, MPolyElem, ordering, ideal
 #
 #for std: abstraction to allow Christian to be used
 #
+#type for orderings, use this...
 #in general: all algos here needs revision: do they benefit from gb or not?
 
 mutable struct BiPolyArray
@@ -63,10 +64,17 @@ end
 
 function Base.length(A::BiPolyArray)
   if isdefined(A, :S)
-    return Singular.length(A.S)
+    return Singular.ngens(A.S)
   else
     return length(A.O)
   end
+end
+
+function Base.iterate(A::BiPolyArray, s::Int = 1)
+  if s > length(A)
+    return nothing
+  end
+  return A[Val(:O), s], s+1
 end
 
 function Base.convert(Ox::MPolyRing, f::MPolyElem) 
@@ -94,8 +102,11 @@ function (S::Singular.Rationals)(a::fmpq)
   b = Base.Rational{BigInt}(a)
   return S(b)
 end
+(F::Singular.N_ZpField)(a::Nemo.gfp_elem) = F(lift(a))
+(F::Nemo.GaloisField)(a::Singular.n_Zp) = F(Int(a))
 
 singular_ring(::Nemo.FlintRationalField) = Singular.Rationals()
+singular_ring(F::Nemo.GaloisField) = Singular.Fp(Int(characteristic(F)))
 
 function singular_ring(Rx::Nemo.FmpqMPolyRing; keep_ordering::Bool = true)
   if keep_ordering
@@ -108,6 +119,33 @@ function singular_ring(Rx::Nemo.FmpqMPolyRing; keep_ordering::Bool = true)
               [string(x) for x = Nemo.symbols(Rx)],
               cached = false)[1]
   end          
+end
+
+function singular_ring(Rx::Generic.MPolyRing{T}; keep_ordering::Bool = true) where {T <: RingElem}
+  if keep_ordering
+    return Singular.PolynomialRing(singular_ring(base_ring(Rx)), 
+              [string(x) for x = Nemo.symbols(Rx)],
+              ordering = ordering(Rx),
+              cached = false)[1]
+  else
+    return Singular.PolynomialRing(singular_ring(base_ring(Rx)), 
+              [string(x) for x = Nemo.symbols(Rx)],
+              cached = false)[1]
+  end          
+end
+
+function singular_ring(Rx::Nemo.FmpqMPolyRing, ord::Symbol)
+  return Singular.PolynomialRing(singular_ring(base_ring(Rx)), 
+              [string(x) for x = Nemo.symbols(Rx)],
+              ordering = ord,
+              cached = false)[1]
+end
+
+function singular_ring(Rx::Generic.MPolyRing{T}, ord::Symbol) where {T <: RingElem}
+  return Singular.PolynomialRing(singular_ring(base_ring(Rx)), 
+              [string(x) for x = Nemo.symbols(Rx)],
+              ordering = ord,
+              cached = false)[1]
 end
 
 mutable struct MPolyIdeal <: Ideal{MPolyElem}
@@ -288,6 +326,17 @@ function eliminate(I::MPolyIdeal, l::Array{<:MPolyElem, 1})
   #wrong!!! ideal intersection is not eliminate!!! 
   J = ideal(base_ring(I), [x for x in gens(base_ring(I)) if !(x in l)])
   return intersect(I, J)
+end
+
+function groebner_basis(I::MPolyIdeal)
+  groebner_assure(I)
+  return collect(I.gb)
+end
+
+function groebner_basis(I::MPolyIdeal, ord::Symbol)
+  R = singular_ring(base_ring(I), ord)
+  i = Singular.Ideal(R, [convert(R, x) for x = gens(I)])
+  return collect(BiPolyArray(base_ring(I), i))
 end
 
 #end #MPolyModule

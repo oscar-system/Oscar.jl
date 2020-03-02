@@ -10,8 +10,13 @@ module Oscar
 import AbstractAlgebra
 import Nemo
 import Hecke
-import Polymake
 import Singular
+import Polymake
+
+function __init__()
+  println("Oscar")
+  println("...combining (and extending) Gap, Hecke, Nemo, Polymake and Singular")
+end
 
 #function load()
 #  s = joinpath(dirname(pathof(Oscar)), "Modules/FreeModules-graded.jl")
