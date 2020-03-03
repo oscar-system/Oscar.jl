@@ -14,6 +14,8 @@ import Singular
 import Polymake
 using Markdown
 
+import AbstractAlgebra: @show_name, @show_special
+
 function __init__()
   println(" -----    -----    -----      -      -----   ")
   println("|     |  |     |  |     |    | |    |     |  ")
