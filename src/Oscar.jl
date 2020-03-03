@@ -12,9 +12,17 @@ import Nemo
 import Hecke
 import Singular
 import Polymake
+using Markdown
 
 function __init__()
-  println("Oscar")
+  println(" -----    -----    -----      -      -----   ")
+  println("|     |  |     |  |     |    | |    |     |  ")
+  println("|     |  |        |         |   |   |     |  ")
+  println("|     |   -----   |        |     |  |-----   ")
+  println("|     |        |  |        |-----|  |   |    ")
+  println("|     |  |     |  |     |  |     |  |    |   ")
+  println(" -----    -----    -----   -     -  -     -  ")
+  println()
   println("...combining (and extending) Gap, Hecke, Nemo, Polymake and Singular")
 end
 
@@ -32,5 +40,7 @@ include("Rings/Hecke.jl")
 include("Rings/mpoly.jl")
 include("Rings/mpoly-graded.jl")
 include("Modules/FreeModules-graded.jl")
+include("Polymake/Ineq.jl")
+include("Polymake/NmbThy.jl")
 
 end # module
