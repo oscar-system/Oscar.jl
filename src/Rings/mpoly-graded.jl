@@ -61,6 +61,7 @@ end
 
 function filtrate(R::MPolyRing, v::Array{Int, 1})
   A = AbelianGroup([0])
+  Hecke.set_special(A, :show_elem => show_special_elem_grad) 
   return MPolyRing_dec(R, [i*A[1] for i = v], (x,y) -> x[1] < y[1])
 end
 
@@ -83,11 +84,12 @@ struct MPolyElem_dec{T} <: AbstractAlgebra.RingElem
   parent::AbstractAlgebra.Ring
   function MPolyElem_dec(f::T, p) where {T}
     r = new{T}(f, p)
-    if isgraded(p) && length(r) > 1
-      if !ishomogenous(r)
-        error("element not homogenous")
-      end
-    end
+#    if isgraded(p) && length(r) > 1
+#      if !ishomogenous(r)
+#        error("element not homogenous")
+#      end
+#both wrong and undesired.
+#    end
     return r
   end
 end
@@ -174,20 +176,21 @@ function homogenous_components(a::MPolyElem_dec)
   return h
 end
 
-function homogenous_component(a::MPolyElem_dec, d::GrpAbFinGenElem)
+function homogenous_component(a::MPolyElem_dec, g::GrpAbFinGenElem)
   R = parent(a).R
   r = R(0)
+  d = parent(a).d
   for (c, m) = Base.Iterators.zip(MPolyCoeffs(a.f), Generic.MPolyMonomials(a.f))
     e = exponent_vector(m, 1)
     u = parent(a).D[0]
     for i=1:length(e)
       u += e[i]*d[i]
     end
-    if u == d
+    if u == g
       r += c*m
     end
   end
-  return W(r)
+  return parent(a)(r)
 end
 
 base_ring(W::MPolyRing_dec) = base_ring(W.R)
