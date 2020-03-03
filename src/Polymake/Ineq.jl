@@ -18,12 +18,12 @@ function _polytope(; A::fmpz_mat=zero_matrix(FlintZZ, 1, 1), b::fmpz_mat=zero_ma
     zI = Array{BigInt, 2}(undef, 0, 0)
   end
   if length(zbA) == 0
-    p =  polytope.Polytope(INEQUALITIES = zI)
+    p =  Polymake.polytope.Polytope(INEQUALITIES = zI)
   else
     if nrows(zI) == 0
-      p = polytope.Polytope(EQUATIONS = zbA)
+      p = Polymake.polytope.Polytope(EQUATIONS = zbA)
     else
-      p = polytope.Polytope(EQUATIONS = zbA, INEQUALITIES = zI)
+      p = Polymake.polytope.Polytope(EQUATIONS = zbA, INEQUALITIES = zI)
     end
   end
   return p
