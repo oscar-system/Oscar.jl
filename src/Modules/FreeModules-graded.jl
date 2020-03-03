@@ -22,8 +22,9 @@ function FreeModule(R::MPolyRing_dec, d::Array{GrpAbFinGenElem, 1})
 end
 
 function show(io::IO, F::FreeModule_dec)
-  Hecke.@show_name(io, F)
-  Hecke.@show_special(io, F)
+  @show_name(io, F)
+  @show_special(io, F)
+
   print(io, "Free module of rank $(length(F.d)) over ")
   print(IOContext(io, :compact =>true), F.R)
   if isgraded(F.R)
@@ -72,6 +73,13 @@ function basis(F::FreeModule_dec)
   end
   return bas
 end
+gens(F::FreeModule_dec) = basis(F)
+
+function gen(F::FreeModule_dec, i::Int)
+  @assert 0< i <= ngens(F)
+  s = Hecke.sparse_row(F.R, [(i, F.R(1))])
+  return FreeModuleElem_dec(s, F)
+end
 
 base_ring(F::FreeModule_dec) = F.R
 
@@ -110,12 +118,38 @@ function degree(a::FreeModuleElem_dec)
   return w
 end
 
+function homogenous_components(a::FreeModuleElem_dec)
+  res = Dict{GrpAbFinGenElem, FreeModuleElem_dec}()
+  F = parent(a)
+  for (p,v) = a.r
+    c = homogenous_components(v)
+    for (pp, vv) = c
+      w = pp + F.d[p]
+      if haskey(res, w)
+        res[w] += vv*gen(F, p)
+      else
+        res[w] = vv*gen(F, p)
+      end
+    end
+  end
+  return res
+end
+
+function homogenous_component(a::FreeModuleElem_dec, g::GrpAbFinGenElem)
+  F = parent(a)
+  x = zero(F)
+  for (p,v) = a.r
+    x += homogenous_component(v, g-F.d[p])*gen(F, p)
+  end
+  return x
+end
+
 mutable struct BiModArray
   O::Array{FreeModuleElem_dec, 1}
   S::Singular.smodule
   F::FreeModule_dec
   SF::Singular.FreeMod
-  function BiModArray(O::Array{FreeModuleElem_dec, 1})
+  function BiModArray(O::Array{<:FreeModuleElem_dec, 1})
     r = new()
     r.O = O
     r.SF = singular_module(parent(O[1]))
@@ -177,13 +211,22 @@ function convert(SF::Singular.FreeMod, m::FreeModuleElem_dec)
 end
 
 function convert(F::FreeModule_dec, s::Singular.svector)
-  A = Array(s) # should be a proper iterator!! (which is missing)
   pv = Tuple{Int, elem_type(base_ring(F))}[]
-  for i = 1:length(A)
-    if !iszero(A[i])
-      push!(pv, (i, base_ring(F)(convert(base_ring(F).R, A[i]))))
+  pos = Int[]
+  values = []
+  Rx = base_ring(F)
+  R = base_ring(Rx)
+  for (i, e, c) = s
+    @show i, c, e
+    f = Base.findfirst(x->x==i, pos)
+    if f === nothing
+      push!(values, MPolyBuildCtx(base_ring(F).R))
+      f = length(values)
+      push!(pos, i)
     end
+    push_term!(values[f], R(c), e)
   end
+  pv = Tuple{Int, elem_type(Rx)}[(pos[i], base_ring(F)(finish(values[i]))) for i=1:length(pos)]
   return FreeModuleElem_dec(sparse_row(base_ring(F), pv), F)
 end
 
