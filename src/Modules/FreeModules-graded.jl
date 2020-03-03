@@ -144,6 +144,25 @@ function homogenous_component(a::FreeModuleElem_dec, g::GrpAbFinGenElem)
   return x
 end
 
+function ishomogenous(a::FreeModuleElem_dec)
+  if iszero(a)
+    return true
+  end
+  F = parent(a)
+  first = true
+  local d::GrpAbFinGenElem
+  for (p,v) = a.r
+    ishomogenous(v) || return false
+    if first
+      d = F.d[p] + degree(v)
+      first = false
+    else
+      F.d[p] + degree(v) == d || return false
+    end
+  end
+  return true
+end
+
 mutable struct BiModArray
   O::Array{FreeModuleElem_dec, 1}
   S::Singular.smodule
@@ -217,7 +236,6 @@ function convert(F::FreeModule_dec, s::Singular.svector)
   Rx = base_ring(F)
   R = base_ring(Rx)
   for (i, e, c) = s
-    @show i, c, e
     f = Base.findfirst(x->x==i, pos)
     if f === nothing
       push!(values, MPolyBuildCtx(base_ring(F).R))
@@ -237,13 +255,13 @@ mutable struct SubQuo_dec
   quo::BiModArray
   std_sub::BiModArray
   std_quo::BiModArray
-  function SubQuo_dec(F::FreeModule_dec, O::Array{FreeModuleElem_dec, 1})
+  function SubQuo_dec(F::FreeModule_dec, O::Array{<:FreeModuleElem_dec, 1})
     r = new()
     r.F = F
     r.sub = BiModArray(O)
     return r
   end
-  function SubQuo_dec(S::SubQuo_dec, O::Array{FreeModuleElem_dec, 1})
+  function SubQuo_dec(S::SubQuo_dec, O::Array{<:FreeModuleElem_dec, 1})
     r = new()
     r.F = S.F
     r.sub = S.sub
@@ -282,16 +300,18 @@ function show(io::IO, SQ::SubQuo_dec)
   end
 end
 
-function sub(F::FreeModule_dec, O::Array{FreeModuleElem_dec, 1})
+function sub(F::FreeModule_dec, O::Array{<:FreeModuleElem_dec, 1})
+  all(ishomogenous, O) || error("generators have to be homogenous")
   return SubQuo_dec(F, O)
 end
 
-function quo(F::FreeModule_dec, O::Array{FreeModuleElem_dec, 1})
+function quo(F::FreeModule_dec, O::Array{<:FreeModuleElem_dec, 1})
   S = SubQuo_dec(F, basis(F))
   return SubQuo_dec(S, O)
 end
 
-function quo(F::SubQuo_dec, O::Array{FreeModuleElem_dec, 1})
+function quo(F::SubQuo_dec, O::Array{<:FreeModuleElem_dec, 1})
+  all(ishomogenous, O) || error("generators have to be homogenous")
   if isdefined(F, :quo)
     t = BiModArray(F, O)
     t[Val{:S}, 1]
@@ -338,7 +358,7 @@ iszero(a::FreeModuleElem_dec) = length(a.r) == 0
 mutable struct SubQuoHom_dec{T1, T2} <: Map{T1, T2, Hecke.HeckeMap, SubQuoHom_dec}
   header::Hecke.MapHeader
   im::Array{FreeModuleElem_dec, 1}
-  function SubQuoHom_dec(D::SubQuo_dec, C::SubQuo_dec, im::Array{FreeModuleElem_dec, 1})
+  function SubQuoHom_dec(D::SubQuo_dec, C::SubQuo_dec, im::Array{<:FreeModuleElem_dec, 1})
     b = basis(D.F)
     first = true
     @assert length(im) == length(b)
@@ -362,7 +382,7 @@ mutable struct SubQuoHom_dec{T1, T2} <: Map{T1, T2, Hecke.HeckeMap, SubQuoHom_de
   end
 end
 
-hom(D::SubQuo_dec, C::SubQuo_dec, A::Array{FreeModuleElem_dec, 1}) = SubQuoHom_dec(D, C, A)
+hom(D::SubQuo_dec, C::SubQuo_dec, A::Array{<:FreeModuleElem_dec, 1}) = SubQuoHom_dec(D, C, A)
 
 function image(f::SubQuoHom_dec, a::FreeModuleElem_dec)
   i = zero(codomain(f).F)
