@@ -1,11 +1,11 @@
 #TODO make d and S a function optionally - to support HUGE degree
-mutable struct FreeModule_dec
+mutable struct FreeModule_dec{T}
   d::Array{GrpAbFinGenElem, 1}
-  R::MPolyRing_dec
+  R::MPolyRing_dec{T}
   S::Array{Symbol, 1}
-  Hecke.@declare_other
+  AbstractAlgebra.@declare_other
   function FreeModule_dec(a,b,c)
-    r = new()
+    r = new{typeof(b.R)}()
     r.d = a
     r.R = b
     r.S = c
@@ -47,8 +47,9 @@ struct FreeModuleElem_dec{T}
   parent::FreeModule_dec
 end
 
-elem_type(::Type{FreeModule_dec}) = FreeModuleElem_dec
-parent_type(::Type{FreeModuleElem_dec}) = FreeModule_dec
+elem_type(::Type{FreeModule_dec{T}}) where {T} = FreeModuleElem_dec{elem_type(T)}
+parent_type(::Type{FreeModuleElem_dec{T}}) where {T} = FreeModule_dec{parent_type(T)}
+elem_type(::FreeModule_dec{T}) where {T} = FreeModuleElem_dec{elem_type(T)}
 
 function show(io::IO, e::FreeModuleElem_dec)
   if length(e.r) == 0
@@ -66,7 +67,7 @@ function show(io::IO, e::FreeModuleElem_dec)
 end
 
 function basis(F::FreeModule_dec)
-  bas = FreeModuleElem_dec[]
+  bas = elem_type(F)[]
   for i=1:dim(F)
     s = Hecke.sparse_row(F.R, [(i, F.R(1))])
     push!(bas, FreeModuleElem_dec(s, F))
@@ -163,24 +164,24 @@ function ishomogenous(a::FreeModuleElem_dec)
   return true
 end
 
-mutable struct BiModArray
-  O::Array{FreeModuleElem_dec, 1}
+mutable struct BiModArray{T}
+  O::Array{FreeModuleElem_dec{T}, 1}
   S::Singular.smodule
   F::FreeModule_dec
   SF::Singular.FreeMod
-  function BiModArray(O::Array{<:FreeModuleElem_dec, 1})
-    r = new()
+  function BiModArray(O::Array{<:FreeModuleElem_dec{T}, 1}) where {T}
+    r = new{T}()
     r.O = O
     r.SF = singular_module(parent(O[1]))
     r.F = parent(O[1])
     return r
   end
-  function BiModArray(F::FreeModule_dec, s::Singular.smodule)
-    r = new()
+  function BiModArray(F::FreeModule_dec{S}, s::Singular.smodule) where {S}
+    r = new{elem_type(S)}()
     r.F = F
     r.SF = parent(s[1])
     r.S = s
-    r.O = Array{FreeModuleElem_dec, 1}(undef, Singular.ngens(s))
+    r.O = Array{FreeModuleElem_dec{elem_type(S)}, 1}(undef, Singular.ngens(s))
     return r
   end
 end
@@ -253,6 +254,87 @@ function convert(F::FreeModule_dec, s::Singular.svector)
   return FreeModuleElem_dec(sparse_row(base_ring(F), pv), F)
 end
 
+isgraded(F::FreeModule_dec) = isgraded(F.R)
+isfiltrated(F::FreeModule_dec) = isfiltrated(F.R)
+
+mutable struct FreeModuleHom_dec{T1, T2} <: Map{T1, T2, Hecke.HeckeMap, FreeModuleHom_dec}
+  header::MapHeader
+  Hecke.@declare_other
+  function FreeModuleHom_dec(F::FreeModule_dec{T}, G::S, a::Array{<:Any, 1}) where {T, S}
+    @assert isfiltrated(F) || all(ishomogenous, a) #neccessary and suffient according to Hans
+    #for filtrations, all is legal...
+    r= new{typeof(F), typeof(G)}()
+    function im_func(x::FreeModuleElem_dec)
+      b = zero(G)
+      for (i,v) = x.r
+        b += v*a[i]
+      end
+      return b
+    end
+    r.header = MapHeader{typeof(F), typeof(G)}(F, G, x->im_func(x))
+    return r
+  end
+end
+(h::FreeModuleHom_dec)(a::FreeModuleElem_dec) = image(h, a)
+
+hom(F::FreeModule_dec{T}, G, a) where {T} = FreeModuleHom_dec(F, G, a)
+
+function ishomogenous(h::T) where {T <: FreeModuleHom_dec}
+  first = true
+  local d::GrpAbFinGenElem
+  for i = gens(domain(h))
+    hi = h(i)
+    iszero(hi) && continue
+
+    if first
+      d = degree(hi) - degree(i)
+      first = false
+    end
+    d == degree(hi) - degree(i) || return false
+  end
+  return true
+end
+
+function degree(h::T) where {T <: FreeModuleHom_dec}
+  first = true
+  local d::GrpAbFinGenElem
+  for i = gens(domain(h))
+    hi = h(i)
+    iszero(hi) && continue
+    if first
+      d = degree(hi) - degree(i)
+      first = false
+    end
+    d == degree(hi) - degree(i) || error("hom is not homogenous")
+  end
+  if first
+    error("hom is zero")
+  end
+  return d
+end
+
+function homogenous_components(h::T) where {T <: FreeModuleHom_dec}
+  c = Dict{GrpAbFinGenElem, typeof(h)}()
+  d = Dict{GrpAbFinGenElem, Array{Int, 1}}()
+  F = domain(h)
+  im = elem_type(codomain(h))[]
+  for i = 1:ngens(F)
+    hi = h(gen(F, i))
+    push!(im, hi)
+    iszero(hi) && continue
+    x = degree(hi) - degree(gen(F, i))
+    if haskey(d, x)
+      push!(d[x], i)
+    else
+      d[x] = [i]
+    end
+  end
+  for (k,v) = d
+    c[k] = hom(F, codomain(h), [j in v ? im[j] : zero(codomain(h)) for j=1:ngens(F)])
+  end
+  return c
+end
+
 mutable struct SubQuo_dec 
   #meant to represent sub+ quo mod quo - as lazy as possible
   F::FreeModule_dec
@@ -273,7 +355,7 @@ mutable struct SubQuo_dec
     r.F = S.F
     r.sub = S.sub
     r.quo = BiModArray(O)
-    r.sum = BiModArray(collect(r.sub), collect(r.quo))
+    r.sum = BiModArray(vcat(collect(r.sub), collect(r.quo)))
     return r
   end
   function SubQuo_dec(F::FreeModule_dec, s::Singular.smodule)
@@ -395,14 +477,16 @@ function gen(F::SubQuo_dec, i::Int)
 end
 
 ngens(F::SubQuo_dec) = length(F.sub)
+base_ring(SQ::SubQuo_dec) = base_ring(SQ.F)
 
-function iterate(F::BiModArray, i::Int = 1)
+function Base.iterate(F::BiModArray, i::Int = 1)
   if i>length(F)
     return nothing
   else
     return F[i], i+1
   end
 end
+Base.eltype(::BiModArray{T}) where {T} = FreeModuleElem_dec{T} 
 
 #??? A scalar product....
 function *(a::FreeModuleElem_dec, b::Array{FreeModuleElem_dec, 1})
@@ -419,6 +503,23 @@ iszero(a::FreeModuleElem_dec) = length(a.r) == 0
 function presentation(SQ::SubQuo_dec)
   #A+B/B is generated by A and B
   #the relations are A meet B? written wrt to A
+  s = syzygie_module(SQ.sum)
+  c = collect(s.sub)
+  R = base_ring(SQ)
+  F = FreeModule(R, [degree(x) for x = collect(SQ.sub)])
+  q = elem_type(F)[]
+  for x = c
+    b = sparse_row(R)
+    for (i,v) = x.r
+      if i>ngens(F)
+        break
+      end
+      push!(b.pos, i)
+      push!(b.values, v)
+    end
+    push!(q, FreeModuleElem_dec(b, F))
+  end
+  return quo(F, q)
 end
 
 mutable struct SubQuoHom_dec{T1, T2} <: Map{T1, T2, Hecke.HeckeMap, SubQuoHom_dec}
