@@ -44,7 +44,7 @@ function show(io::IO, W::MPolyRing_dec)
 end
 
 function decorate(R::MPolyRing)
-  A = AbelianGroup([0])
+  A = abelian_group([0])
   return MPolyRing_dec(R, [0*A[1] for i = v], (x,y) -> x[1] < y[1])
 end
 
@@ -60,13 +60,13 @@ function show_special_elem_grad(io::IO, a::GrpAbFinGenElem)
 end
 
 function filtrate(R::MPolyRing, v::Array{Int, 1})
-  A = AbelianGroup([0])
+  A = abelian_group([0])
   Hecke.set_special(A, :show_elem => show_special_elem_grad) 
   return MPolyRing_dec(R, [i*A[1] for i = v], (x,y) -> x[1] < y[1])
 end
 
 function grade(R::MPolyRing, v::Array{Int, 1})
-  A = AbelianGroup([0])
+  A = abelian_group([0])
   Hecke.set_special(A, :show_elem => show_special_elem_grad) 
   return MPolyRing_dec(R, [i*A[1] for i = v])
 end
@@ -214,7 +214,7 @@ function homogenous_component(W::MPolyRing_dec, d::GrpAbFinGenElem)
   #TODO: lazy: ie. no enumeration of points
   #      aparently it is possible to get the number of points faster than the points
   D = W.D
-  h = hom(FreeAbelianGroup(ngens(W)), W.d)
+  h = hom(free_abelian_group(ngens(W)), W.d)
   fl, p = haspreimage(h, d)
   R = base_ring(W)
   @assert fl

@@ -15,6 +15,31 @@ import Hecke: MapHeader
 
 export PolynomialRing, total_degree, degree, MPolyElem, ordering, ideal, groebner_basis
 
+#allows
+# PolynomialRing(QQ, :a=>1:3, "b"=>1:3, "c=>1:5:10)
+# -> QQx, [a1, a2, a3], [b1 ,b2, b3], ....
+function PolynomialRing(R::AbstractAlgebra.Ring, v::Pair{<:Union{String, Symbol}, <:Union{StepRange{Int, Int}, UnitRange{Int}}}...; cached::Bool = false)
+  s = String[]
+  g = []
+  j = 1
+  for (a, b) = v
+    h = []
+    for i = b
+      if occursin('#', "$a")
+        aa = replace("$a", '#' => "$i")
+      else
+        aa = "$a$i"
+      end
+      push!(s, aa)
+      push!(h, j)
+      j += 1
+    end
+    push!(g, h)
+  end
+  Rx, c = PolynomialRing(R, s, cached = cached)
+  return Rx, [c[x] for x = g]...
+end
+
 #TODO/ to think
 #  default in Nemo is     :lex
 #             Singular is :degrevlex -> better for std
