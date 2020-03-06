@@ -15,12 +15,12 @@ mutable struct FreeModule_dec{T} <: ModuleFP_dec{T}
   end
 end
 
-function FreeModule(R::MPolyRing_dec, n::Int; cached::Bool = false)
-  return FreeModule_dec([R.D[0] for i=1:n], R, [Symbol("e[$i]") for i=1:n])
+function FreeModule(R::MPolyRing_dec, n::Int, name::String = "e"; cached::Bool = false)
+  return FreeModule_dec([R.D[0] for i=1:n], R, [Symbol("$name[$i]") for i=1:n])
 end
 
-function FreeModule(R::MPolyRing_dec, d::Array{GrpAbFinGenElem, 1})
-  return FreeModule_dec(d, R, [Symbol("e[$i]") for i=1:length(d)])
+function FreeModule(R::MPolyRing_dec, d::Array{GrpAbFinGenElem, 1}, name::String = "e")
+  return FreeModule_dec(d, R, [Symbol("$name[$i]") for i=1:length(d)])
 end
 
 ^(R::MPolyRing_dec, n::Int) = FreeModule(R, n)
@@ -64,10 +64,8 @@ function show(io::IO, F::FreeModule_dec)
   end
 end
 
-
 dim(F::FreeModule_dec)  = length(F.d)
 ngens(F::FreeModule_dec) = dim(F)
-
 
 struct FreeModuleElem_dec{T}
   r::SRow{MPolyElem_dec{T}}
@@ -197,9 +195,13 @@ mutable struct BiModArray{T}
   F::FreeModule_dec
   SF::Singular.FreeMod
   function BiModArray(O::Array{<:FreeModuleElem_dec{T}, 1}) where {T}
+    SF = singular_module(parent(O[1]))
+    return BiModArray(O, SF)
+  end
+  function BiModArray(O::Array{<:FreeModuleElem_dec{T}, 1}, SF::Singular.FreeMod) where {T}
     r = new{T}()
     r.O = O
-    r.SF = singular_module(parent(O[1]))
+    r.SF = SF
     r.F = parent(O[1])
     return r
   end
@@ -464,7 +466,7 @@ function groebner_basis(F::BiModArray)
 end
 
 function show(io::IO, b::SubQuoElem_dec)
-  println(io, b.a)
+  print(io, b.a)
 end
 
 parent(b::SubQuoElem_dec) = b.parent
@@ -474,7 +476,7 @@ function (R::SubQuo_dec)(a::FreeModuleElem_dec; check::Bool = true)
     b = convert(R.sum.SF, a)
     sum_gb_assure(R)
     c = _reduce(b, R.sum.S)
-    c == 0*c || error("not in the module")
+    iszero(x) || error("not in the module")
   end
   return SubQuoElem_dec(a, R)
 end
@@ -489,9 +491,24 @@ function sub(F::FreeModule_dec, O::Array{<:FreeModuleElem_dec, 1})
   return SubQuo_dec(F, O)
 end
 
+function sub(F::FreeModule_dec, O::Array{<:SubQuoElem_dec, 1})
+  all(ishomogenous, O) || error("generators have to be homogenous")
+  return SubQuo_dec(F, [x.a for x = O])
+end
+
+function sub(F::FreeModule_dec, s::SubQuo_dec)
+  @assert !isdefined(s, :quo)
+  return s
+end
+
 function quo(F::FreeModule_dec, O::Array{<:FreeModuleElem_dec, 1})
   S = SubQuo_dec(F, basis(F))
   return SubQuo_dec(S, O)
+end
+
+function quo(F::FreeModule_dec, O::Array{<:SubQuoElem_dec, 1})
+  S = SubQuo_dec(F, basis(F))
+  return SubQuo_dec(S, [x.a for x = O])
 end
 
 function quo(F::SubQuo_dec, O::Array{<:FreeModuleElem_dec, 1})
@@ -505,6 +522,15 @@ function quo(F::SubQuo_dec, O::Array{<:FreeModuleElem_dec, 1})
     return SubQuo_dec(F.F, F.sub.S, s)
   end
   return SubQuo_dec(F, O)
+end
+
+function quo(S::SubQuo_dec, O::Array{<:SubQuoElem_dec, 1})
+  return SubQuo_dec(S, [x.a for x = O])
+end
+
+function quo(S::SubQuo_dec, T::SubQuo_dec)
+  @assert !isdefined(T, :quo)
+  return quo(S, gens(T))
 end
 
 function syzygie_module(F::BiModArray; sub = 0)
@@ -604,7 +630,7 @@ end
 
 mutable struct SubQuoHom_dec{T1, T2} <: Map_dec{T1, T2}
   header::Hecke.MapHeader
-  im::Array{FreeModuleElem_dec, 1}
+  im::Array{<:Any, 1}
   function SubQuoHom_dec(D::SubQuo_dec, C::ModuleFP_dec, im::Array{<:Any, 1})
     first = true
     @assert length(im) == ngens(D)
@@ -632,26 +658,50 @@ mutable struct SubQuoHom_dec{T1, T2} <: Map_dec{T1, T2}
 end
 
 function coordinates(a::FreeModuleElem_dec, SQ::SubQuo_dec)
-  singular_assure(SQ.sub)
-  singular_assure(SQ.quo)
-  aS = convert(QS.sub.SF, a)
-  la = Singular.lift()
-  
+  singular_assure(SQ.sum)
+  b = BiModArray([a], SQ.sum.SF)
+  singular_assure(b)
+  s, r = Singular.lift(SQ.sum.S, b.S)
+  if !iszero(r)
+    error("elem not in module")
+  end
+  p = Int[]
+  v = MPolyBuildCtx[]
+  Sx = base_ring(SQ)
+  Rx = Sx.R
+  R = base_ring(Rx)
+  for (i, e, c) = s[1]
+    if i > ngens(SQ)
+      break
+    end
+    if i in p
+      f = findfirst(x->x==i, p)
+    else
+      push!(p, i)
+      push!(v, MPolyBuildCtx(Rx))
+      f = length(v)
+    end
+    push_term!(v[f], R(c), e)
+  end
+  pv = Tuple{Int, elem_type(Sx)}[(p[i], Sx(finish(v[i]))) for i=1:length(p)]
+  return sparse_row(Sx, pv)
 end
 
 hom(D::SubQuo_dec, C::ModuleFP_dec, A::Array{<:Any, 1}) = SubQuoHom_dec(D, C, A)
 
 function image(f::SubQuoHom_dec, a::SubQuoElem_dec)
-  i = zero(codomain(f).F)
+  i = zero(codomain(f))
+  D = domain(f)
   b = coordinates(a.a, D)
-  for (p,v) = b.r
+  for (p,v) = b
     i += v*f.im[p]
   end
   return i
 end
 
 function image(f::SubQuoHom_dec, a::FreeModuleElem_dec)
-  i = zero(codomain(f).F)
+  i = zero(codomain(f))
+  D = domain(f)
   b = coordinates(a, D)
   for (p,v) = b.r
     i += v*f.im[p]
@@ -659,6 +709,7 @@ function image(f::SubQuoHom_dec, a::FreeModuleElem_dec)
   return i
 end
 (f::SubQuoHom_dec)(a::FreeModuleElem_dec) = image(f, a)
+(f::SubQuoHom_dec)(a::SubQuoElem_dec) = image(f, a)
 
 function degree(h::SubQuoHom_dec)
   b = basis(domain(h).F)
@@ -669,6 +720,7 @@ function degree(h::SubQuoHom_dec)
     end
   end
 end
+#ishom, homcompo missing
 
 function degree(a::FreeModuleElem_dec, C::SubQuo_dec)
   if !isdefined(C, :quo)
@@ -685,7 +737,7 @@ end
 function ishomogenous(a::SubQuoElem_dec)
   C = parent(a)
   if !isdefined(C, :quo)
-    return ishomogenous(a)
+    return ishomogenous(a.a)
   end
   if !isdefined(C, :std_quo)
     singular_assure(C.quo)
@@ -705,7 +757,7 @@ function iszero(a::SubQuoElem_dec)
     C.std_quo = BiModArray(C.quo.F, Singular.std(C.quo.S))
   end
   x = _reduce(convert(C.quo.SF, a.a), C.std_quo.S)
-  return x == 0*x
+  return iszero(x)
 end
 
 function degree(a::SubQuoElem_dec)
@@ -715,6 +767,7 @@ end
 function hom(F::FreeModule_dec, G::FreeModule_dec)
   @assert base_ring(F) == base_ring(G)
   GH = FreeModule(F.R, [y-x for x = F.d for y = G.d])
+  GH.S = [Symbol("($i -> $j)") for i = F.S for j = G.S]
   Hecke.set_special(GH, :show => Hecke.show_hom, :hom => (F, G))
 
   #list is g1 - f1, g2-f1, g3-f1, ...
@@ -744,13 +797,19 @@ function kernel(h::FreeModuleHom_dec)  #ONLY for free modules...
   G = domain(h)
   b = BiModArray(map(h, basis(G)))
   k = syzygie_module(b, sub = G)
-#  @assert k.F == G
+  @assert k.F == G
   c = collect(k.sub)
   return k, hom(k, parent(c[1]), c)
 end
 
+function image(h::FreeModuleHom_dec)
+  s = sub(codomain(h), map(h, basis(domain(h))))
+  return s, hom(s, codomain(h), map(h, basis(domain(h))))
+end
+
 function image(h::SubQuoHom_dec)
-  return sub(codomain(h), h.im)
+  s = sub(codomain(h), h.im)
+  return s, hom(s, codomain(h), h.im)
 end
 
 function hom(F::SubQuo_dec, G::SubQuo_dec)
@@ -759,8 +818,9 @@ function hom(F::SubQuo_dec, G::SubQuo_dec)
   k, mk = kernel(map(p2, 1))
   #Janko: have R^t1 -- g1 = map(p2, 0) -> R^t0 -> G
   #kernel g1: k -> R^t1
+  #source: Janko's CA script: https://www.mathematik.uni-kl.de/~boehm/lehre/17_CA/ca.pdf
   D = decoration(F)
-  F = FreeModule(base_ring(F), [degree(x) for x = gens(k)])
+  F = FreeModule(base_ring(F), [iszero(x) ? D[0] : degree(x) for x = gens(k)])
   g2 = hom(F, codomain(mk), collect(k.sub)) #not clean - but maps not (yet) working
   #step 2
   H_s0_t0, mH_s0_t0 = hom(domain(map(p1, 2)), domain(map(p2, 2)))
@@ -779,7 +839,10 @@ function hom(F::SubQuo_dec, G::SubQuo_dec)
   rho = hom(E, D, [emb[1](preimage(mH_s0_t0, mH_s0_t1(pr[1](g))*map(p2, 1))) + 
                    emb[2](preimage(mH_s1_t1, map(p1, 1)*mH_s0_t1(pr[1](g)) - mH_s1_t2(pr[2](g))*g2)) for g = gens(E)])
   #need quo(image(delta), kern(rho))                 
-  return delta, rho
+  #return delta, rho
+
+  H = quo(sub(D, kernel(delta)[1]), image(rho)[1])
+  #x in ker delta: mH_s0_t0(pro[1](x)) should be a hom from M to N
 end
 
 function *(h::FreeModuleHom_dec, g::FreeModuleHom_dec) 
@@ -791,6 +854,28 @@ end
 function direct_product(F::FreeModule_dec{T}...; task::Symbol = :sum) where {T}
   R = base_ring(F[1])
   G = FreeModule(R, vcat([f.d for f = F]...))
+  G.S = []
+  for i = 1:length(F)
+    s = "("
+    for j=1:i-1
+      s *= "0, "
+    end
+    e = ""
+    if i<length(F)
+      e*=", "
+    end
+    for j=i+1:length(F)-1
+      e *= "0, "
+    end
+    if i<length(F)
+      e *= "0"
+    end
+    e*=")"
+
+    for t = F[i].S
+      push!(G.S, Symbol(s*string(t)*e))
+    end
+  end
   Hecke.set_special(G, :show => Hecke.show_direct_product, :direct_product => F)
   emb = []
   pro = []
