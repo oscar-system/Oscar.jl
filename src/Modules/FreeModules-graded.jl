@@ -439,15 +439,15 @@ end
   FreeModule F. It represents $(A+B)/B$, so elements are given as elements
   in $A+B$
 """
-struct SubQuoElem_dec
- a::FreeModuleElem_dec
+struct SubQuoElem_dec{T}
+ a::FreeModuleElem_dec{T}
  parent::SubQuo_dec
 end
 
-elem_type(::SubQuo_dec) = SubQuoElem_dec
-parent_type(::SubQuoElem_dec) = SubQuo_dec
-elem_type(::Type{SubQuo_dec}) = SubQuoElem_dec
-parent_type(::Type{SubQuoElem_dec}) = SubQuo_dec
+elem_type(::SubQuo_dec{T}) where {T} = SubQuoElem_dec{elem_type(T)}
+parent_type(::SubQuoElem_dec{T}) where {T} = SubQuo_dec{parent_type(T)}
+elem_type(::Type{SubQuo_dec{T}}) where {T} = SubQuoElem_dec{elem_type(T)}
+parent_type(::Type{SubQuoElem_dec{T}}) where {T} = SubQuo_dec{parent_type(T)}
 
 function sum_gb_assure(SQ::SubQuo_dec)
   singular_assure(SQ.sum)
@@ -488,7 +488,7 @@ end
 
 function sub(F::FreeModule_dec, O::Array{<:FreeModuleElem_dec, 1})
   all(ishomogenous, O) || error("generators have to be homogenous")
-  return SubQuo_dec(F, O)
+  s = SubQuo_dec(F, O)
 end
 
 function sub(F::FreeModule_dec, O::Array{<:SubQuoElem_dec, 1})
@@ -592,6 +592,7 @@ function presentation(SQ::SubQuo_dec)
   F = FreeModule(R, [degree(x) for x = collect(SQ.sub)])
   q = elem_type(F)[]
   w = GrpAbFinGenElem[]
+
   for x = c
     b = sparse_row(R)
     e = zero(SQ.F)
@@ -605,18 +606,6 @@ function presentation(SQ::SubQuo_dec)
     end
     push!(q, FreeModuleElem_dec(b, F))
     push!(w, iszero(e) ? decoration(F)[0] : degree(e)) #TODO: 0 is typically wrong. I have choice
-  end
-  #at this point, w should have 0 and one other value.
-  ds = Set(w)
-  @assert length(ds) <= 2
-  if length(ds) == 2
-    pop!(ds, decoration(F)[0])
-    x = pop!(ds)
-    for i=1:length(w)
-      if iszero(w[i])
-        w[i] = x
-      end
-    end
   end
   #want R^a -> R^b -> SQ -> 0
   G = FreeModule(R, w)
@@ -840,7 +829,7 @@ function hom(F::SubQuo_dec, G::SubQuo_dec)
                    emb[2](preimage(mH_s1_t1, map(p1, 1)*mH_s0_t1(pr[1](g)) - mH_s1_t2(pr[2](g))*g2)) for g = gens(E)])
   #need quo(image(delta), kern(rho))                 
   #return delta, rho
-
+ 
   H = quo(sub(D, kernel(delta)[1]), image(rho)[1])
   #x in ker delta: mH_s0_t0(pro[1](x)) should be a hom from M to N
 end
@@ -887,7 +876,7 @@ function direct_product(F::FreeModule_dec{T}...; task::Symbol = :sum) where {T}
     if task in [:prod, :both]
       push!(pro, hom(G, f, vcat(elem_type(f)[zero(f) for j=1:i], gens(f), elem_type(f)[zero(f) for j=i+ngens(f)+1:ngens(G)])))
     end
-    i + ngens(f)
+    i += ngens(f)
   end
   if task == :none
     return G
