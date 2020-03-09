@@ -600,17 +600,22 @@ function presentation(SQ::SubQuo_dec)
       if i>ngens(F)
         break
       end
-      e += v*SQ.sub[Val(:O), i]
+      e += v*gen(SQ.F, i)
       push!(b.pos, i)
       push!(b.values, v)
     end
+    if iszero(e)
+      continue
+    end
     push!(q, FreeModuleElem_dec(b, F))
-    push!(w, iszero(e) ? decoration(F)[0] : degree(e)) #TODO: 0 is typically wrong. I have choice
+    push!(w, degree(q[end]))
   end
   #want R^a -> R^b -> SQ -> 0
   G = FreeModule(R, w)
   h_G_F = hom(G, F, q)
+  @assert iszero(degree(h_G_F))
   h_F_SQ = hom(F, SQ, gens(SQ))
+  @assert iszero(degree(h_F_SQ))
   Z = FreeModule(F.R, GrpAbFinGenElem[])
   Hecke.set_special(Z, :name => "Zero")
   h_SQ_Z = hom(SQ, Z, [zero(Z) for i=1:ngens(SQ)])
