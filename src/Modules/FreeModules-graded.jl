@@ -113,9 +113,12 @@ base_ring(F::FreeModule_dec) = F.R
 -(a::FreeModuleElem_dec, b::FreeModuleElem_dec) = FreeModuleElem_dec(a.r-b.r, a.parent)
 +(a::FreeModuleElem_dec, b::FreeModuleElem_dec) = FreeModuleElem_dec(a.r+b.r, a.parent)
 *(a::MPolyElem_dec, b::FreeModuleElem_dec) = FreeModuleElem_dec(a*b.r, b.parent)
+*(a::MPolyElem, b::FreeModuleElem_dec) = FreeModuleElem_dec(parent(b).R(a)*b.r, b.parent)
+*(a::Int, b::FreeModuleElem_dec) = FreeModuleElem_dec(a*b.r, b.parent)
 ==(a::FreeModuleElem_dec, b::FreeModuleElem_dec) = a.r == b.r
 zero(F::FreeModule_dec) = FreeModuleElem_dec(sparse_row(F.R, Tuple{Int, elem_type(F.R)}[]), F)
 parent(a::FreeModuleElem_dec) = a.parent
+iszero(a::FreeModuleElem_dec) = length(a.r) == 0
 
 function degree(a::FreeModuleElem_dec)
   if iszero(a)
@@ -485,6 +488,9 @@ end
 -(a::SubQuoElem_dec, b::SubQuoElem_dec) = SubQuoElem_dec(a.a-b.a, a.parent)
 -(a::SubQuoElem_dec) = SubQuoElem_dec(-a.a, a.parent)
 *(a::MPolyElem_dec, b::SubQuoElem_dec) = SubQuoElem_dec(a*b.a, b.parent)
+*(a::MPolyElem, b::SubQuoElem_dec) = SubQuoElem_dec(a*b.a, b.parent)
+*(a::Int, b::SubQuoElem_dec) = SubQuoElem_dec(a*b.a, b.parent)
+==(a::SubQuoElem_dec, b::SubQuoElem_dec) = iszero(a-b)
 
 function sub(F::FreeModule_dec, O::Array{<:FreeModuleElem_dec, 1})
   all(ishomogenous, O) || error("generators have to be homogenous")
@@ -652,11 +658,14 @@ mutable struct SubQuoHom_dec{T1, T2} <: Map_dec{T1, T2}
 end
 
 function coordinates(a::FreeModuleElem_dec, SQ::SubQuo_dec)
+  if iszero(a)
+    return sparse_row(base_ring(parent(a)))
+  end
   singular_assure(SQ.sum)
   b = BiModArray([a], SQ.sum.SF)
   singular_assure(b)
   s, r = Singular.lift(SQ.sum.S, b.S)
-  if !iszero(r)
+  if Singular.ngens(s) == 0 || iszero(s[1])
     error("elem not in module")
   end
   p = Int[]
@@ -806,15 +815,15 @@ function image(h::SubQuoHom_dec)
   return s, hom(s, codomain(h), h.im)
 end
 
-function hom(F::SubQuo_dec, G::SubQuo_dec)
-  p1 = presentation(F)
-  p2 = presentation(G)
+function hom(M::SubQuo_dec, N::SubQuo_dec)
+  p1 = presentation(M)
+  p2 = presentation(N)
   k, mk = kernel(map(p2, 1))
   #Janko: have R^t1 -- g1 = map(p2, 0) -> R^t0 -> G
   #kernel g1: k -> R^t1
   #source: Janko's CA script: https://www.mathematik.uni-kl.de/~boehm/lehre/17_CA/ca.pdf
-  D = decoration(F)
-  F = FreeModule(base_ring(F), [iszero(x) ? D[0] : degree(x) for x = gens(k)])
+  D = decoration(M)
+  F = FreeModule(base_ring(M), [iszero(x) ? D[0] : degree(x) for x = gens(k)])
   g2 = hom(F, codomain(mk), collect(k.sub)) #not clean - but maps not (yet) working
   #step 2
   H_s0_t0, mH_s0_t0 = hom(domain(map(p1, 2)), domain(map(p2, 2)))
@@ -837,6 +846,11 @@ function hom(F::SubQuo_dec, G::SubQuo_dec)
  
   H = quo(sub(D, kernel(delta)[1]), image(rho)[1])
   #x in ker delta: mH_s0_t0(pro[1](x)) should be a hom from M to N
+  function im(x::SubQuoElem_dec)
+    @assert parent(x) == H
+    return hom(M, N, [map(p2, 2)(mH_s0_t0(pro[1](x.a))(g)) for g = gens(domain(map(p1, 2)))])
+  end
+  return H, MapFromFunc(im, H, Hecke.MapParent(M, N, "homomorphisms"))
 end
 
 function *(h::FreeModuleHom_dec, g::FreeModuleHom_dec) 
