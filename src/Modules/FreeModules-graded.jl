@@ -109,6 +109,7 @@ end
 
 base_ring(F::FreeModule_dec) = F.R
 
+<<<<<<< Updated upstream
 function homogenous_component(F::FreeModule_dec, d::GrpAbFinGenElem)
   #TODO: lazy: ie. no enumeration of points
   #      aparently it is possible to get the number of points faster than the points
@@ -148,6 +149,9 @@ function homogenous_component(F::FreeModule_dec, d::GrpAbFinGenElem)
   return X, Hecke.MapFromFunc(im, pr, X, F)
 end
 
+=======
+#TODO: Parent - checks everywhere!!!
+>>>>>>> Stashed changes
 
 -(a::FreeModuleElem_dec) = FreeModuleElem_dec(-a.r, a.parent)
 -(a::FreeModuleElem_dec, b::FreeModuleElem_dec) = FreeModuleElem_dec(a.r-b.r, a.parent)
