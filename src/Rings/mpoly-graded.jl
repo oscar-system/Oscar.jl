@@ -197,6 +197,7 @@ base_ring(W::MPolyRing_dec) = base_ring(W.R)
 Nemo.ngens(W::MPolyRing_dec) = Nemo.ngens(W.R)
 Nemo.ngens(R::MPolyRing) = Nemo.nvars(R)
 Nemo.gens(W::MPolyRing_dec) = map(W, gens(W.R))
+Nemo.gen(W::MPolyRing_dec, i::Int) = W(gen(W.R, i))
 
 *(r::fmpq, w::MPolyElem_dec) = parent(w)(r*w.f)
 
@@ -223,9 +224,10 @@ function homogenous_component(W::MPolyRing_dec, d::GrpAbFinGenElem)
   #Ax = b, Cx >= 0
   C = identity_matrix(FlintZZ, ngens(W))
   A = vcat([x.coeff for x = W.d])
-  k = Hecke.solve_mixed(A', d.coeff', C)
+  k = solve_mixed(A', d.coeff', C)
   B = []
-  for e = k
+  for ee = 1:nrows(k)
+    e = k[ee, :]
     a = MPolyBuildCtx(W.R)
     push_term!(a, R(1), [Int(x) for x = e])
     push!(B, W(finish(a)))

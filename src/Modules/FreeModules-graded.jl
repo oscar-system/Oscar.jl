@@ -36,16 +36,20 @@ function AbstractAlgebra.extra_name(F::FreeModule_dec)
   if length(Set(F.d)) == 1
     n = Hecke.get_special(F.R, :name)
     if n !== nothing
-      return "$n^$(ngens(F))($(F.d[1]))"
+      return "$n^$(ngens(F))($(-F.d[1]))"
     end
   end
   return nothing
 end
 
 function (F::FreeModule_dec)(a::GrpAbFinGenElem) 
-  G = FreeModule(F.R, [x+a for x = F.d])
+  G = FreeModule(F.R, [x-a for x = F.d])
   Hecke.set_special(G, :twist => (F, a))
   return G
+end
+
+function (F::FreeModule_dec)()
+  return FreeModuleElem_dec(sparse_row(base_ring(F)), F)
 end
 
 function show(io::IO, F::FreeModule_dec)
@@ -109,49 +113,7 @@ end
 
 base_ring(F::FreeModule_dec) = F.R
 
-<<<<<<< Updated upstream
-function homogenous_component(F::FreeModule_dec, d::GrpAbFinGenElem)
-  #TODO: lazy: ie. no enumeration of points
-  #      aparently it is possible to get the number of points faster than the points
-  W = base_ring(F)
-  D = decoration(F)
-  #have gens for W that can be combined
-  #              F that can only be used
-  #F ni f = sum c_i,j F[i]*w[j]
-  #want deg(F[i]) + deg(w[j]) = d
-  all = []
-  for g = gens(F)
-    Md, mMd = homogenous_component(W, d-degree(g))
-    if dim(Md) > 0
-      push!(all, (g, mMd))
-    end
-  end
-  d = sum(x->dim(domain(x[1])), all)
-  X = FreeModule(base_ring(W), d)
-  B = []
-  for (g, mMd) = all
-    for x = gens(domain(mMd))
-      push!(B, mMd(x)*g)
-    end
-  end
-  function im(f)
-    sum(f[i]*B[i] for i=1:dim(X))
-  end
-  function pr(g::FreeModuleElem_dec)
-    z = F()
-    for (p,v) = g.r
-      i = findfirst(x->gen(F, p) == x[1], all)
-      j = preimage(all[i][2], v)
-      #put coeffs of j into proper spots in z
-    end
-    return z
-  end
-  return X, Hecke.MapFromFunc(im, pr, X, F)
-end
-
-=======
 #TODO: Parent - checks everywhere!!!
->>>>>>> Stashed changes
 
 -(a::FreeModuleElem_dec) = FreeModuleElem_dec(-a.r, a.parent)
 -(a::FreeModuleElem_dec, b::FreeModuleElem_dec) = FreeModuleElem_dec(a.r-b.r, a.parent)
@@ -159,6 +121,8 @@ end
 *(a::MPolyElem_dec, b::FreeModuleElem_dec) = FreeModuleElem_dec(a*b.r, b.parent)
 *(a::MPolyElem, b::FreeModuleElem_dec) = FreeModuleElem_dec(parent(b).R(a)*b.r, b.parent)
 *(a::Int, b::FreeModuleElem_dec) = FreeModuleElem_dec(a*b.r, b.parent)
+*(a::Integer, b::FreeModuleElem_dec) = FreeModuleElem_dec(b.parent.R(a)*b.r, b.parent)
+*(a::fmpq, b::FreeModuleElem_dec) = FreeModuleElem_dec(b.parent.R(a)*b.r, b.parent)
 ==(a::FreeModuleElem_dec, b::FreeModuleElem_dec) = a.r == b.r
 zero(F::FreeModule_dec) = FreeModuleElem_dec(sparse_row(F.R, Tuple{Int, elem_type(F.R)}[]), F)
 parent(a::FreeModuleElem_dec) = a.parent
@@ -356,18 +320,14 @@ mutable struct FreeModuleHom_dec{T1, T2} <: Map_dec{T1, T2}
     end
     function pr_func(x::FreeModuleElem_dec)
       @assert parent(x) == G
-      c = coordinates(x, BiModArray(s))
+      c = coordinates(x, sub(G, a))
       return FreeModuleElem_dec(c, F)
     end
-    function pr_func(x::S)
+    function pr_func(x)
       @assert parent(x) == G
       #assume S == SubQuoElem_dec which cannot be asserted here, the type if defined too late
-      if isdefined(G, :quo)
-        c = coordinates(x, BiModArray(vcat(s, gens(G.quo))))
-      else
-        c = coordinates(x, BiModArray(s))
-      end
-      return FreeModuleElem_dec(c[1:ngens(G)], G)
+      c = coordinates(x.a, sub(G, a))
+      return FreeModuleElem_dec(c, F)
     end
     r.header = MapHeader{typeof(F), typeof(G)}(F, G, im_func, pr_func)
     return r
@@ -376,6 +336,21 @@ end
 (h::FreeModuleHom_dec)(a::FreeModuleElem_dec) = image(h, a)
 
 hom(F::FreeModule_dec{T}, G, a) where {T} = FreeModuleHom_dec(F, G, a)
+
+function getindex(a::Hecke.SRow, b::AbstractArray{Int, 1})
+  if length(a.pos) == 0
+    return a
+  end
+  m = minimum(b)
+  b = sparse_row(parent(a.values[1]))
+  for (k,v) = a
+    if k in b
+      push!(b.pos, k-b+1)
+      push!(b.values, v)
+    end
+  end
+  return b
+end
 
 #TODO: should work with general Map_dec
 #TODO: which should be renamed
@@ -538,9 +513,16 @@ function (R::SubQuo_dec)(a::FreeModuleElem_dec; check::Bool = true)
     b = convert(R.sum.SF, a)
     sum_gb_assure(R)
     c = _reduce(b, R.sum.S)
-    iszero(x) || error("not in the module")
+    iszero(c) || error("not in the module")
   end
   return SubQuoElem_dec(a, R)
+end
+
+function (R::SubQuo_dec)(a::SubQuoElem_dec)
+  if parent(a) == R
+    return a
+  end
+  error("illegal coercion")
 end
 
 +(a::SubQuoElem_dec, b::SubQuoElem_dec) = SubQuoElem_dec(a.a+b.a, a.parent)
@@ -549,6 +531,8 @@ end
 *(a::MPolyElem_dec, b::SubQuoElem_dec) = SubQuoElem_dec(a*b.a, b.parent)
 *(a::MPolyElem, b::SubQuoElem_dec) = SubQuoElem_dec(a*b.a, b.parent)
 *(a::Int, b::SubQuoElem_dec) = SubQuoElem_dec(a*b.a, b.parent)
+*(a::Integer, b::SubQuoElem_dec) = SubQuoElem_dec(a*b.a, b.parent)
+*(a::fmpq, b::SubQuoElem_dec) = SubQuoElem_dec(a*b.a, b.parent)
 ==(a::SubQuoElem_dec, b::SubQuoElem_dec) = iszero(a-b)
 
 function sub(F::FreeModule_dec, O::Array{<:FreeModuleElem_dec, 1})
@@ -564,6 +548,15 @@ end
 function sub(F::FreeModule_dec, s::SubQuo_dec)
   @assert !isdefined(s, :quo)
   return s
+end
+
+function sub(S::SubQuo_dec, O::Array{<:SubQuoElem_dec, 1})
+  t = sub(S.F, O)
+  if isdefined(S, :quo)
+    return quo(t, collect(S.quo))
+  else
+    return t
+  end
 end
 
 function quo(F::FreeModule_dec, O::Array{<:FreeModuleElem_dec, 1})
@@ -596,6 +589,11 @@ end
 function quo(S::SubQuo_dec, T::SubQuo_dec)
   @assert !isdefined(T, :quo)
   return quo(S, gens(T))
+end
+
+function quo(F::FreeModule_dec, T::SubQuo_dec)
+  @assert !isdefined(T, :quo)
+  return quo(F, gens(T))
 end
 
 function syzygie_module(F::BiModArray; sub = 0)
@@ -660,14 +658,14 @@ function presentation(SQ::SubQuo_dec)
     b = sparse_row(R)
     e = zero(SQ.F)
     for (i,v) = x.r
-      if i>ngens(F)
+      if i>ngens(SQ)
         break
       end
-      e += v*gen(SQ.F, i)
+      e += v*gen(SQ, i).a
       push!(b.pos, i)
       push!(b.values, v)
     end
-    if iszero(e)
+    if length(b) == 0
       continue
     end
     push!(q, FreeModuleElem_dec(b, F))
@@ -709,6 +707,7 @@ mutable struct SubQuoHom_dec{T1, T2} <: Map_dec{T1, T2}
     r = new{SubQuo_dec, typeof(C)}()
     r.header = Hecke.MapHeader(D, C)
     r.header.image = x->image(r, x)
+    r.header.preimage = x->preimage(r, x)
     r.im =  im
     return r
   end
@@ -763,16 +762,28 @@ function image(f::SubQuoHom_dec, a::FreeModuleElem_dec)
   i = zero(codomain(f))
   D = domain(f)
   b = coordinates(a, D)
-  for (p,v) = b.r
+  for (p,v) = b
     i += v*f.im[p]
   end
   return i
 end
+
+function preimage(f::SubQuoHom_dec, a::FreeModuleElem_dec)
+  @assert parent(a) == codomain(f)
+  D = domain(f)
+  i = zero(D)
+  b = coordinates(a, image(f)[1])
+  for (p,v) = b
+    i += v*gen(D, p)
+  end
+  return i
+end
+
 (f::SubQuoHom_dec)(a::FreeModuleElem_dec) = image(f, a)
 (f::SubQuoHom_dec)(a::SubQuoElem_dec) = image(f, a)
 
 function degree(h::SubQuoHom_dec)
-  b = basis(domain(h).F)
+  b = gens(domain(h))
   first = true
   for i = 1:length(b)
     if !iszero(h.im[i])
@@ -821,7 +832,17 @@ function iszero(a::SubQuoElem_dec)
 end
 
 function degree(a::SubQuoElem_dec)
-  return degree(a.a, parent(a))
+  C = parent(a)
+  if !isdefined(C, :quo)
+    return degree(a.a)
+  end
+  if !isdefined(C, :std_quo)
+    singular_assure(C.quo)
+    C.std_quo = BiModArray(C.quo.F, Singular.std(C.quo.S))
+  end
+  x = _reduce(convert(C.quo.SF, a.a), C.std_quo.S)
+  return degree(convert(parent(a.a), x))
+
 end
 
 function hom(F::FreeModule_dec, G::FreeModule_dec)
@@ -865,8 +886,9 @@ function kernel(h::FreeModuleHom_dec)  #ONLY for free modules...
 end
 
 function image(h::FreeModuleHom_dec)
-  s = sub(codomain(h), map(h, basis(domain(h))))
-  return s, hom(s, codomain(h), map(h, basis(domain(h))))
+  si = [x for x = map(h, basis(domain(h))) if !iszero(x)]
+  s = sub(codomain(h), si)
+  return s, hom(s, codomain(h), si)
 end
 
 function image(h::SubQuoHom_dec)
@@ -904,16 +926,17 @@ function hom(M::SubQuo_dec, N::SubQuo_dec)
 
   rho = hom(E, D, [emb[1](preimage(mH_s0_t0, mH_s0_t1(pr[1](g))*map(p2, 1))) + 
                    emb[2](preimage(mH_s1_t1, map(p1, 1)*mH_s0_t1(pr[1](g)) - mH_s1_t2(pr[2](g))*g2)) for g = gens(E)])
-  #need quo(image(delta), kern(rho))                 
-  #return delta, rho
+  #need quo(kern(delta), image(rho))                 
  
-  H = quo(sub(D, kernel(delta)[1]), image(rho)[1])
+  kDelta = kernel(delta)
+  psi = hom(kDelta[1], H_s0_t0, [pro[1](g.a) for g = gens(kDelta[1])])
+  H = quo(sub(D, kDelta[1]), image(rho)[1])
   Hecke.set_special(H, :show => Hecke.show_hom, :hom => (M, N))
 
   #x in ker delta: mH_s0_t0(pro[1](x)) should be a hom from M to N
   function im(x::SubQuoElem_dec)
     @assert parent(x) == H
-    return hom(M, N, [map(p2, 2)(mH_s0_t0(pro[1](x.a))(g)) for g = gens(domain(map(p1, 2)))])
+    return hom(M, N, [map(p2, 2)(mH_s0_t0(pro[1](x.a))(preimage(map(p1, 2), g))) for g = gens(M)])
   end
 
   function pr(f::SubQuoHom_dec)
@@ -921,8 +944,10 @@ function hom(M::SubQuo_dec, N::SubQuo_dec)
     @assert codomain(f) == N
     Rs0 = domain(map(p1, 2))
     Rt0 = domain(map(p2, 2))
-    g = hom(Rs0, Rt0, [FreeModuleElem_dec(preimage(map(p2, 2), f(map(p1, 2)(g)), N), Rt0) for g = gens(Rs0)])
-    SubQuoElem_dec(emb[1](preimage(mH_s0_t0, g)), H)
+    g = hom(Rs0, Rt0, [preimage(map(p2, 2), f(map(p1, 2)(g))) for g = gens(Rs0)])
+
+    return H(preimage(psi, (preimage(mH_s0_t0, g))).a)
+    return SubQuoElem_dec(emb[1](preimage(mH_s0_t0, g)), H)
   end
   return H, MapFromFunc(im, pr, H, Hecke.MapParent(M, N, "homomorphisms"))
 end
@@ -985,6 +1010,64 @@ function direct_product(F::FreeModule_dec{T}...; task::Symbol = :sum) where {T}
     return G, pro, emb
   end
 end
+
+function homogenous_component(F::T, d::GrpAbFinGenElem) where {T <: Union{FreeModule_dec, SubQuo_dec}}
+
+  #TODO: lazy: ie. no enumeration of points
+  #      aparently it is possible to get the number of points faster than the points
+  W = base_ring(F)
+  D = decoration(F)
+  #have gens for W that can be combined
+  #              F that can only be used
+  #F ni f = sum c_i,j F[i]*w[j]
+  #want deg(F[i]) + deg(w[j]) = d
+  all = []
+  for g = gens(F)
+    if iszero(g)
+      continue
+    end
+    Md, mMd = homogenous_component(W, d - degree(g))
+    if dim(Md) > 0
+      push!(all, (g, mMd))
+    end
+  end
+
+  B = []
+  for (g, mMd) = all
+    for x = gens(domain(mMd))
+      y = mMd(x) * g
+      iszero(y) && continue
+      @assert !iszero(y)
+      push!(B, y)
+    end
+  end
+
+  deg = length(B)
+  X = FreeModule(base_ring(W), deg)
+  Hecke.set_special(X, :show => show_homo_comp, :data => (F, d))
+
+  function im(f)
+    sum(f[i]*B[i] for i=1:dim(X))
+  end
+  function pr(g::S) where {S <: Union{FreeModuleElem_dec, SubQuoElem_dec}}
+    #TODO: add X() and some sane setting of coeffs in FreeElems
+    @assert elem_type(F) == typeof(g)
+    @assert parent(g) == F
+    z = zero(X)
+    for (p,v) = g.r
+      i = findfirst(x->gen(F, p) == x[1], all)
+      j = preimage(all[i][2], v)
+      o = i == 1 ?  0 : sum(x->dim(domain(x[2])), all[1:i-1]) 
+      for k = 1:dim(parent(j))
+        z.v[1,o+k] = j[k]
+      end
+    end
+    return z
+  end
+  return X, Hecke.MapFromFunc(im, pr, X, F)
+end
+
+
 
 #############################
 #TODO move to Hecke
