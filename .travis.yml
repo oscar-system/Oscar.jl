@@ -1,3 +1,6 @@
+# CxxWrap 0.9 needs a recent gcc
+dist: bionic
+
 language: julia
 sudo: false
 os:
