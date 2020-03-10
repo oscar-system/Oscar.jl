@@ -109,6 +109,46 @@ end
 
 base_ring(F::FreeModule_dec) = F.R
 
+function homogenous_component(F::FreeModule_dec, d::GrpAbFinGenElem)
+  #TODO: lazy: ie. no enumeration of points
+  #      aparently it is possible to get the number of points faster than the points
+  W = base_ring(F)
+  D = decoration(F)
+  #have gens for W that can be combined
+  #              F that can only be used
+  #F ni f = sum c_i,j F[i]*w[j]
+  #want deg(F[i]) + deg(w[j]) = d
+  all = []
+  for g = gens(F)
+    Md, mMd = homogenous_component(W, d-degree(g))
+    if dim(Md) > 0
+      push!(all, (g, mMd))
+    end
+  end
+  d = sum(x->dim(domain(x[1])), all)
+  X = FreeModule(base_ring(W), d)
+  B = []
+  for (g, mMd) = all
+    for x = gens(domain(mMd))
+      push!(B, mMd(x)*g)
+    end
+  end
+  function im(f)
+    sum(f[i]*B[i] for i=1:dim(X))
+  end
+  function pr(g::FreeModuleElem_dec)
+    z = F()
+    for (p,v) = g.r
+      i = findfirst(x->gen(F, p) == x[1], all)
+      j = preimage(all[i][2], v)
+      #put coeffs of j into proper spots in z
+    end
+    return z
+  end
+  return X, Hecke.MapFromFunc(im, pr, X, F)
+end
+
+
 -(a::FreeModuleElem_dec) = FreeModuleElem_dec(-a.r, a.parent)
 -(a::FreeModuleElem_dec, b::FreeModuleElem_dec) = FreeModuleElem_dec(a.r-b.r, a.parent)
 +(a::FreeModuleElem_dec, b::FreeModuleElem_dec) = FreeModuleElem_dec(a.r+b.r, a.parent)
@@ -310,7 +350,22 @@ mutable struct FreeModuleHom_dec{T1, T2} <: Map_dec{T1, T2}
       end
       return b
     end
-    r.header = MapHeader{typeof(F), typeof(G)}(F, G, x->im_func(x))
+    function pr_func(x::FreeModuleElem_dec)
+      @assert parent(x) == G
+      c = coordinates(x, BiModArray(s))
+      return FreeModuleElem_dec(c, F)
+    end
+    function pr_func(x::S)
+      @assert parent(x) == G
+      #assume S == SubQuoElem_dec which cannot be asserted here, the type if defined too late
+      if isdefined(G, :quo)
+        c = coordinates(x, BiModArray(vcat(s, gens(G.quo))))
+      else
+        c = coordinates(x, BiModArray(s))
+      end
+      return FreeModuleElem_dec(c[1:ngens(G)], G)
+    end
+    r.header = MapHeader{typeof(F), typeof(G)}(F, G, im_func, pr_func)
     return r
   end
 end
@@ -582,8 +637,6 @@ function *(a::FreeModuleElem_dec, b::Array{FreeModuleElem_dec, 1})
   return s
 end
 
-iszero(a::FreeModuleElem_dec) = length(a.r) == 0
-
 decoration(F::FreeModule_dec) = decoration(F.R)
 decoration(R::MPolyRing_dec) = R.D
 decoration(SQ::SubQuo_dec) = decoration(SQ.F)
@@ -798,6 +851,8 @@ end
 
 function kernel(h::FreeModuleHom_dec)  #ONLY for free modules...
   G = domain(h)
+  @assert isa(codomain(h), FreeModule_dec)
+  #TODO allow sub-quo here as well
   b = BiModArray(map(h, basis(G)))
   k = syzygie_module(b, sub = G)
   @assert k.F == G
@@ -813,6 +868,10 @@ end
 function image(h::SubQuoHom_dec)
   s = sub(codomain(h), h.im)
   return s, hom(s, codomain(h), h.im)
+end
+
+function kernel(h::SubQuoHom_dec)
+  error("not done yet")
 end
 
 function hom(M::SubQuo_dec, N::SubQuo_dec)
@@ -845,19 +904,34 @@ function hom(M::SubQuo_dec, N::SubQuo_dec)
   #return delta, rho
  
   H = quo(sub(D, kernel(delta)[1]), image(rho)[1])
+  Hecke.set_special(H, :show => Hecke.show_hom, :hom => (M, N))
+
   #x in ker delta: mH_s0_t0(pro[1](x)) should be a hom from M to N
   function im(x::SubQuoElem_dec)
     @assert parent(x) == H
     return hom(M, N, [map(p2, 2)(mH_s0_t0(pro[1](x.a))(g)) for g = gens(domain(map(p1, 2)))])
   end
-  return H, MapFromFunc(im, H, Hecke.MapParent(M, N, "homomorphisms"))
+
+  function pr(f::SubQuoHom_dec)
+    @assert domain(f) == M
+    @assert codomain(f) == N
+    Rs0 = domain(map(p1, 2))
+    Rt0 = domain(map(p2, 2))
+    g = hom(Rs0, Rt0, [FreeModuleElem_dec(preimage(map(p2, 2), f(map(p1, 2)(g)), N), Rt0) for g = gens(Rs0)])
+    SubQuoElem_dec(emb[1](preimage(mH_s0_t0, g)), H)
+  end
+  return H, MapFromFunc(im, pr, H, Hecke.MapParent(M, N, "homomorphisms"))
 end
+#TODO
+#  replace the +/- for the homs by proper constructors for homs and direct sums
+#  relshp to store the maps elsewhere
 
 function *(h::FreeModuleHom_dec, g::FreeModuleHom_dec) 
   @assert codomain(h) == domain(g)
   return hom(domain(h), codomain(g), [g(h(x)) for x = gens(domain(h))])
 end
 -(h::FreeModuleHom_dec, g::FreeModuleHom_dec) = hom(domain(h), codomain(h), [h(x) - g(x) for x = gens(domain(h))])
++(h::FreeModuleHom_dec, g::FreeModuleHom_dec) = hom(domain(h), codomain(h), [h(x) + g(x) for x = gens(domain(h))])
 
 function direct_product(F::FreeModule_dec{T}...; task::Symbol = :sum) where {T}
   R = base_ring(F[1])
