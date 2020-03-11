@@ -1,5 +1,6 @@
 #TODO make d and S a function optionally - to support HUGE degree
-export presentation
+export presentation, decoration
+
 abstract type ModuleFP_dec{T} end
 mutable struct FreeModule_dec{T} <: ModuleFP_dec{T}
   d::Array{GrpAbFinGenElem, 1}
@@ -676,7 +677,7 @@ function presentation(SQ::SubQuo_dec)
   h_G_F = hom(G, F, q)
   @assert iszero(degree(h_G_F))
   h_F_SQ = hom(F, SQ, gens(SQ))
-  @assert iszero(degree(h_F_SQ))
+  @assert iszero(h_F_SQ) || iszero(degree(h_F_SQ))
   Z = FreeModule(F.R, GrpAbFinGenElem[])
   Hecke.set_special(Z, :name => "Zero")
   h_SQ_Z = hom(SQ, Z, [zero(Z) for i=1:ngens(SQ)])
@@ -900,6 +901,35 @@ function kernel(h::SubQuoHom_dec)
   error("not done yet")
 end
 
+function free_resolution(S::SubQuo_dec)
+  p = presentation(S)
+  mp = [map(p, j) for j=1:length(p)]
+  D = decoration(S)
+  while true
+    k, mk = kernel(mp[1])
+    nz = findall(x->!iszero(x), gens(k))
+    if length(nz) == 0
+      Z = FreeModule(base_ring(S), GrpAbFinGenElem[])
+      Hecke.set_special(Z, :name => "Zero")
+      h = hom(Z, domain(mp[1]), FreeModuleElem_dec[])
+      insert!(mp, 1, h)
+      break
+    end
+    F = FreeModule(base_ring(S), [iszero(x) ? D[0] : degree(x) for x = gens(k)[nz]])
+    g = hom(F, codomain(mk), collect(k.sub)[nz])
+    insert!(mp, 1, g)
+  end
+  return Hecke.ChainComplex(ModuleFP_dec, mp, check = false)
+end
+
+function iszero(f::FreeModuleHom_dec)
+  return all(iszero, map(f, gens(domain(f))))
+end
+
+function iszero(g::SubQuoHom_dec)
+  return all(iszero, map(g, gens(domain(g))))
+end
+
 function hom(M::SubQuo_dec, N::SubQuo_dec)
   p1 = presentation(M)
   p2 = presentation(N)
@@ -929,7 +959,10 @@ function hom(M::SubQuo_dec, N::SubQuo_dec)
   #need quo(kern(delta), image(rho))                 
  
   kDelta = kernel(delta)
-  psi = hom(kDelta[1], H_s0_t0, [pro[1](g.a) for g = gens(kDelta[1])])
+
+  psi = kDelta[2]*pro[1]
+  psi = hom(kDelta[1], H_s0_t0, [psi(g) for g = gens(kDelta[1])])
+
   H = quo(sub(D, kDelta[1]), image(rho)[1])
   Hecke.set_special(H, :show => Hecke.show_hom, :hom => (M, N))
 
@@ -951,6 +984,7 @@ function hom(M::SubQuo_dec, N::SubQuo_dec)
   end
   return H, MapFromFunc(im, pr, H, Hecke.MapParent(M, N, "homomorphisms"))
 end
+
 #TODO
 #  replace the +/- for the homs by proper constructors for homs and direct sums
 #  relshp to store the maps elsewhere
@@ -962,6 +996,9 @@ end
 -(h::FreeModuleHom_dec, g::FreeModuleHom_dec) = hom(domain(h), codomain(h), [h(x) - g(x) for x = gens(domain(h))])
 +(h::FreeModuleHom_dec, g::FreeModuleHom_dec) = hom(domain(h), codomain(h), [h(x) + g(x) for x = gens(domain(h))])
 
+##################################################
+#
+##################################################
 function direct_product(F::FreeModule_dec{T}...; task::Symbol = :sum) where {T}
   R = base_ring(F[1])
   G = FreeModule(R, vcat([f.d for f = F]...))
@@ -1011,6 +1048,16 @@ function direct_product(F::FreeModule_dec{T}...; task::Symbol = :sum) where {T}
   end
 end
 
+#TODO
+#  direct_product for SubQuo_dec and mixed
+#  tensor product
+#  free res
+#  hom lift => hom and tensor functor
+#  filtrations
+#  more constructors
+#################################################
+#
+#################################################
 function homogenous_component(F::T, d::GrpAbFinGenElem) where {T <: Union{FreeModule_dec, SubQuo_dec}}
 
   #TODO: lazy: ie. no enumeration of points
