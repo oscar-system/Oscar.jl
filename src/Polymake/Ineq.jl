@@ -38,6 +38,7 @@ Solves $Ax<=b$, assumes finite set of solutions.
 """
 function solve_ineq(A::fmpz_mat, b::fmpz_mat)
   p = _polytope(C = hcat(b, -A))
+  p.BOUNDED || error("not a bounded set")
   inner = p.INTERIOR_LATTICE_POINTS
   out = p.BOUNDARY_LATTICE_POINTS
 
@@ -64,6 +65,7 @@ Finds all solutions to $Ax = b$, $x>=0$. Assumes a finite set of solutions.
 """
 function solve_non_negative(A::fmpz_mat, b::fmpz_mat)
   p = _polytope(A = A, b = b, C = identity_matrix(FlintZZ, ncols(A)))
+  p.BOUNDED || error("not a bounded set")
   inner = p.INTERIOR_LATTICE_POINTS
   out = p.BOUNDARY_LATTICE_POINTS
 
@@ -90,6 +92,7 @@ Solves $Ax = b$ under $Cx >= 0$, assumes a finite solution set.
 """
 function solve_mixed(A::fmpz_mat, b::fmpz_mat, C::fmpz_mat)  # Ax == b && Cx >= 0
   p = _polytope(A = A, b = b, C = C)
+  p.BOUNDED || error("not a bounded set")
   inner = p.INTERIOR_LATTICE_POINTS
   out = p.BOUNDARY_LATTICE_POINTS
 
