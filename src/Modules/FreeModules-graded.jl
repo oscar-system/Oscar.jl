@@ -60,13 +60,38 @@ function show(io::IO, F::FreeModule_dec)
   print(io, "Free module of rank $(length(F.d)) over ")
   print(IOContext(io, :compact =>true), F.R)
   if isgraded(F.R)
-    print(io, ", graded by\n")
+    print(io, ", graded as ")
   else
-    print(io, ", filtrated by\n")
+    print(io, ", filtrated as ")
   end
-  for i=1:dim(F)
-    println(io, "\t$(F.S[i]) -> $(F.d[i])")
+  #TODO: on creation, in the resolution, sort the exponents
+  md = MSet(F.d)
+  first = true
+  for (k,v) = md.dict
+    if !first
+      print(io, " + ")
+    else
+      first = false
+    end
+    print(IOContext(io, :compact => true), F.R, "^$v(", k, ")")
   end
+
+#=
+  i = 1
+  while i < dim(F)
+    d = F.d[i]
+    j = 1
+    while i+j <= dim(F) && d == F.d[i+j]
+      j += 1
+    end
+    print(IOContext(io, :compact => true), F.R, "^$j")
+    print(IOContext(io, :compact => true), "(", -d, ")")
+    if i+j < dim(F)
+      print(io, " + ")
+    end
+    i += j
+  end
+  =#
 end
 
 dim(F::FreeModule_dec)  = length(F.d)
@@ -112,13 +137,29 @@ function gen(F::FreeModule_dec, i::Int)
   return FreeModuleElem_dec(s, F)
 end
 
+function Base.getindex(F::FreeModule_dec, i::Int)
+  i == 0 && return zero(F)
+  return gen(F, i)
+end
+
 base_ring(F::FreeModule_dec) = F.R
 
 #TODO: Parent - checks everywhere!!!
 
 -(a::FreeModuleElem_dec) = FreeModuleElem_dec(-a.r, a.parent)
 -(a::FreeModuleElem_dec, b::FreeModuleElem_dec) = FreeModuleElem_dec(a.r-b.r, a.parent)
-+(a::FreeModuleElem_dec, b::FreeModuleElem_dec) = FreeModuleElem_dec(a.r+b.r, a.parent)
+
+function check_parent(a::FreeModuleElem_dec, b::FreeModuleElem_dec)
+  if parent(a) !== parent(b)
+    error("elements not compatible")
+  end  
+end
+
+function +(a::FreeModuleElem_dec, b::FreeModuleElem_dec)
+   check_parent(a, b)
+   return FreeModuleElem_dec(a.r+b.r, a.parent)
+end
+
 *(a::MPolyElem_dec, b::FreeModuleElem_dec) = FreeModuleElem_dec(a*b.r, b.parent)
 *(a::MPolyElem, b::FreeModuleElem_dec) = FreeModuleElem_dec(parent(b).R(a)*b.r, b.parent)
 *(a::Int, b::FreeModuleElem_dec) = FreeModuleElem_dec(a*b.r, b.parent)
@@ -620,6 +661,11 @@ ngens(F::SubQuo_dec) = length(F.sub)
 base_ring(SQ::SubQuo_dec) = base_ring(SQ.F)
 
 zero(SQ::SubQuo_dec) = SubQuoElem_dec(zero(SQ.F), SQ)
+
+function Base.getindex(F::SubQuo_dec, i::Int)
+  i == 0 && return zero(F)
+  return gen(F, i)
+end
 
 function Base.iterate(F::BiModArray, i::Int = 1)
   if i>length(F)
