@@ -198,6 +198,7 @@ Nemo.ngens(W::MPolyRing_dec) = Nemo.ngens(W.R)
 Nemo.ngens(R::MPolyRing) = Nemo.nvars(R)
 Nemo.gens(W::MPolyRing_dec) = map(W, gens(W.R))
 Nemo.gen(W::MPolyRing_dec, i::Int) = W(gen(W.R, i))
+Base.getindex(W::MPolyRing_dec, i::Int) = W(W.R[i])
 
 *(r::fmpq, w::MPolyElem_dec) = parent(w)(r*w.f)
 

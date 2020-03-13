@@ -40,6 +40,11 @@ function PolynomialRing(R::AbstractAlgebra.Ring, v::Pair{<:Union{String, Symbol}
   return Rx, [c[x] for x = g]...
 end
 
+function Base.getindex(R::MPolyRing, i::Int)
+  i == 0 && return zero(R)
+  return gen(R, i)
+end
+
 #TODO/ to think
 #  default in Nemo is     :lex
 #             Singular is :degrevlex -> better for std
