@@ -442,7 +442,7 @@ function degree(h::T) where {T <: Map_dec}
         d = dd
       end
     else
-      d == dd - degree(i) || error("hom is not homogenous")
+      d == dd || error("hom is not homogenous")
     end
   end
   if first
@@ -753,6 +753,12 @@ function presentation(SQ::SubQuo_dec)
   return Hecke.ChainComplex(Oscar.ModuleFP_dec, Oscar.Map_dec[h_G_F, h_F_SQ, h_SQ_Z], check = false)
 end
 
+function presentation(F::FreeModule_dec)
+  Z = FreeModule(F.R, GrpAbFinGenElem[])
+  Hecke.set_special(Z, :name => "Zero")
+  return Hecke.ChainComplex(ModuleFP_dec, Map_dec[hom(Z, F, FreeModuleElem_dec[]), hom(F, F, gens(F)), hom(F, Z, [zero(Z) for i=1:ngens(F)])], check = false)
+end
+
 mutable struct SubQuoHom_dec{T1, T2} <: Map_dec{T1, T2}
   header::Hecke.MapHeader
   im::Array{<:Any, 1}
@@ -989,6 +995,10 @@ function kernel(h::SubQuoHom_dec)
   error("not done yet")
 end
 
+function free_resolution(F::FreeModule_dec)
+  return presentation(F)
+end
+
 function free_resolution(S::SubQuo_dec)
   p = presentation(S)
   mp = [map(p, j) for j=1:length(p)]
@@ -1010,15 +1020,11 @@ function free_resolution(S::SubQuo_dec)
   return Hecke.ChainComplex(ModuleFP_dec, mp, check = false)
 end
 
-function iszero(f::FreeModuleHom_dec)
+function iszero(f::Map_dec)
   return all(iszero, map(f, gens(domain(f))))
 end
 
-function iszero(g::SubQuoHom_dec)
-  return all(iszero, map(g, gens(domain(g))))
-end
-
-function hom(M::SubQuo_dec, N::SubQuo_dec)
+function hom(M::ModuleFP_dec, N::ModuleFP_dec)
   p1 = presentation(M)
   p2 = presentation(N)
   k, mk = kernel(map(p2, 1))
