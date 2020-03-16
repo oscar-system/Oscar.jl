@@ -247,10 +247,17 @@ mutable struct BiModArray{T}
   S::Singular.smodule
   F::FreeModule_dec
   SF::Singular.FreeMod
+
   function BiModArray(O::Array{<:FreeModuleElem_dec{T}, 1}) where {T}
     SF = singular_module(parent(O[1]))
     return BiModArray(O, SF)
   end
+
+  function BiModArray(O::Array{<:FreeModuleElem_dec{T}, 1}, F::FreeModule_dec) where {T}
+    SF = singular_module(F)
+    return BiModArray(O, F, SF)
+  end
+
   function BiModArray(O::Array{<:FreeModuleElem_dec{T}, 1}, SF::Singular.FreeMod) where {T}
     r = new{T}()
     r.O = O
@@ -258,10 +265,27 @@ mutable struct BiModArray{T}
     r.F = parent(O[1])
     return r
   end
+
+  function BiModArray(O::Array{<:FreeModuleElem_dec{T}, 1}, SF::Singular.FreeMod) where {T}
+    return BiModArray(O, parent(O[1]), SF)
+  end
+
+  function BiModArray(O::Array{<:FreeModuleElem_dec{T}, 1}, F::FreeModule_dec, SF::Singular.FreeMod) where {T}
+    r = new{T}()
+    r.O = O
+    r.SF = SF
+    r.F = F
+    return r
+  end
+
   function BiModArray(F::FreeModule_dec{S}, s::Singular.smodule) where {S}
     r = new{elem_type(S)}()
     r.F = F
-    r.SF = parent(s[1])
+    if Singular.ngens(s) == 0
+      r.SF = Singular.FreeModule(base_ring(s), 0)
+    else
+      r.SF = parent(s[1])
+    end
     r.S = s
     r.O = Array{FreeModuleElem_dec{elem_type(S)}, 1}(undef, Singular.ngens(s))
     return r
@@ -297,6 +321,10 @@ function getindex(F::BiModArray, ::Val{:S}, i::Int)
 end
 
 function singular_assure(F::BiModArray)
+  if length(F) == 0 && !isdefined(F, :S)
+    F.S = Singular.smodule{elem_type(base_ring(F.SF))}(base_ring(F.SF), F.SF())
+    return
+  end
   F[Val(:S), 1]
 end
 
@@ -309,7 +337,7 @@ end
 
 function convert(SF::Singular.FreeMod, m::FreeModuleElem_dec)
   g = Singular.gens(SF)
-  e = 0*g[1]
+  e = SF()
   Sx = base_ring(SF)
   for (p,v) = m.r
     e += convert(Sx, v.f)*g[p]
@@ -345,6 +373,7 @@ abstract type Map_dec{T1, T2} <: Map{T1, T2, Hecke.HeckeMap, ModuleFPHom_dec} en
 mutable struct FreeModuleHom_dec{T1, T2} <: Map_dec{T1, T2} 
   header::MapHeader
   Hecke.@declare_other
+
   function FreeModuleHom_dec(F::FreeModule_dec{T}, G::S, a::Array{<:Any, 1}) where {T, S}
 #    @assert isfiltrated(F) || all(ishomogenous, a) #neccessary and suffient according to Hans XXX
 #same as non-homogenous elements are required, this too must not be enforced
@@ -379,24 +408,7 @@ end
 
 hom(F::FreeModule_dec{T}, G, a) where {T} = FreeModuleHom_dec(F, G, a)
 
-function getindex(a::Hecke.SRow, b::AbstractArray{Int, 1})
-  if length(a.pos) == 0
-    return a
-  end
-  m = minimum(b)
-  b = sparse_row(parent(a.values[1]))
-  for (k,v) = a
-    if k in b
-      push!(b.pos, k-b+1)
-      push!(b.values, v)
-    end
-  end
-  return b
-end
-
-#TODO: should work with general Map_dec
-#TODO: which should be renamed
-function ishomogenous(h::T) where {T <: FreeModuleHom_dec}
+function ishomogenous(h::T) where {T <: Map_dec}
   first = true
   local d::GrpAbFinGenElem
   for i = gens(domain(h))
@@ -412,9 +424,11 @@ function ishomogenous(h::T) where {T <: FreeModuleHom_dec}
   return true
 end
 
-function degree(h::T) where {T <: FreeModuleHom_dec}
+function degree(h::T) where {T <: Map_dec}
   first = true
   local d::GrpAbFinGenElem
+  D = domain(h)
+  R = base_ring(D)
   for i = gens(domain(h))
     hi = h(i)
     iszero(hi) && continue
@@ -422,7 +436,14 @@ function degree(h::T) where {T <: FreeModuleHom_dec}
       d = degree(hi) - degree(i)
       first = false
     end
-    d == degree(hi) - degree(i) || error("hom is not homogenous")
+    dd = degree(hi) - degree(i)
+    if isfiltrated(R)
+      if R.lt(d, dd)
+        d = dd
+      end
+    else
+      d == dd - degree(i) || error("hom is not homogenous")
+    end
   end
   if first
     error("hom is zero")
@@ -430,7 +451,7 @@ function degree(h::T) where {T <: FreeModuleHom_dec}
   return d
 end
 
-function homogenous_components(h::T) where {T <: FreeModuleHom_dec}
+function homogenous_components(h::T) where {T <: Map_dec}
   c = Dict{GrpAbFinGenElem, typeof(h)}()
   d = Dict{GrpAbFinGenElem, Array{Int, 1}}()
   F = domain(h)
@@ -461,10 +482,11 @@ mutable struct SubQuo_dec{T} <: ModuleFP_dec{T}
   std_sub::BiModArray
   std_quo::BiModArray
   AbstractAlgebra.@declare_other
+
   function SubQuo_dec(F::FreeModule_dec{R}, O::Array{<:FreeModuleElem_dec, 1}) where {R}
     r = new{R}()
     r.F = F
-    r.sub = BiModArray(O)
+    r.sub = BiModArray(O, F, singular_module(F))
     r.sum = r.sub
     return r
   end
@@ -472,8 +494,8 @@ mutable struct SubQuo_dec{T} <: ModuleFP_dec{T}
     r = new{parent_type(L)}()
     r.F = S.F
     r.sub = S.sub
-    r.quo = BiModArray(O)
-    r.sum = BiModArray(vcat(collect(r.sub), collect(r.quo)))
+    r.quo = BiModArray(O, S.F, S.sub.SF)
+    r.sum = BiModArray(vcat(collect(r.sub), collect(r.quo)), S.F, S.sub.SF)
     return r
   end
   function SubQuo_dec(F::FreeModule_dec{R}, s::Singular.smodule) where {R}
@@ -719,9 +741,10 @@ function presentation(SQ::SubQuo_dec)
     push!(w, degree(q[end]))
   end
   #want R^a -> R^b -> SQ -> 0
+  #TODO sort decoration and fix maps, same decoration should be bundled (to match pretty printing)
   G = FreeModule(R, w)
   h_G_F = hom(G, F, q)
-  @assert iszero(degree(h_G_F))
+  @assert iszero(h_G_F) || iszero(degree(h_G_F))
   h_F_SQ = hom(F, SQ, gens(SQ))
   @assert iszero(h_F_SQ) || iszero(degree(h_F_SQ))
   Z = FreeModule(F.R, GrpAbFinGenElem[])
@@ -759,6 +782,21 @@ mutable struct SubQuoHom_dec{T1, T2} <: Map_dec{T1, T2}
     return r
   end
 end
+
+function hom(G::ModuleFP_dec, H::ModuleFP_dec, A::Array{ <: Map_dec, 1})
+  tG = get_special(G, :tensor_product)
+  tG === nothing && error("both modules must be tensor products")
+  tH = get_special(H, :tensor_product)
+  tH === nothing && error("both modules must be tensor products")
+  @assert length(tG) == length(tH) == length(A)
+  @assert all(i-> domain(A[i]) == tG[i] && codomain(A[i]) == tH[i], 1:length(A))
+  error("not done yet")
+end
+#TODO: special hom constructor for direct_prod
+# canonical_injection, projection, see GrpAbFinGen
+# tensor and hom functors for chain complex
+# homology
+# dual
 
 function coordinates(a::FreeModuleElem_dec, SQ::SubQuo_dec)
   if iszero(a)
@@ -923,6 +961,10 @@ end
 
 function kernel(h::FreeModuleHom_dec)  #ONLY for free modules...
   G = domain(h)
+  if ngens(G) == 0
+    s = sub(G, gens(G))
+    return s, hom(s, G, gens(G))
+  end
   @assert isa(codomain(h), FreeModule_dec)
   #TODO allow sub-quo here as well
   b = BiModArray(map(h, basis(G)))
@@ -984,7 +1026,7 @@ function hom(M::SubQuo_dec, N::SubQuo_dec)
   #kernel g1: k -> R^t1
   #source: Janko's CA script: https://www.mathematik.uni-kl.de/~boehm/lehre/17_CA/ca.pdf
   D = decoration(M)
-  F = FreeModule(base_ring(M), [iszero(x) ? D[0] : degree(x) for x = gens(k)])
+  F = FreeModule(base_ring(M), GrpAbFinGenElem[iszero(x) ? D[0] : degree(x) for x = gens(k)])
   g2 = hom(F, codomain(mk), collect(k.sub)) #not clean - but maps not (yet) working
   #step 2
   H_s0_t0, mH_s0_t0 = hom(domain(map(p1, 2)), domain(map(p2, 2)))
@@ -1094,10 +1136,97 @@ function direct_product(F::FreeModule_dec{T}...; task::Symbol = :sum) where {T}
   end
 end
 
+##################################################
+# Tensor
+##################################################
+
+function tensor_product(G::FreeModule_dec...; task::Symbol = :none)
+  d = G[1].d
+  s = G[1].S
+  t = [[x] for x = 1:ngens(G[1])]
+  for H = G[2:end]
+    d = [x + y for x = d  for y = H.d]
+    s = [Symbol("$x \\otimes $y") for x = s  for y = H.S]
+    t = [push!(deepcopy(x), y) for x = t  for y = 1:ngens(H)]
+  end
+
+  F = FreeModule(G[1].R, d)
+  F.S = s
+  Hecke.set_special(F, :show => Hecke.show_tensor_product, :tensor_product => G)
+  if task == :none
+    return F
+  end
+
+  function pure(g::FreeModuleElem_dec...)
+    @assert length(g) == length(G)
+    @assert all(i-> parent(g[i]) == G[i], 1:length(G))
+    z = [[x] for x = g[1].r.pos]
+    zz = g[1].r.values
+    for h = g[2:end]
+      for i = 1:length(z)
+        zzz = Array{Int, 1}[]
+        zzzz = elem_type(F.R)[]
+        for (p, v) = h.r
+          push!(zzz, push!(deepcopy(z[i]), p))
+          push!(zzzz, zz[i]*v)
+        end
+        z = zzz
+        zz = zzzz
+      end
+    end
+    return FreeModuleElem_dec(sparse_row(F.R, [findfirst(x->x == y, t) for y = z], zz), F)
+  end
+  function pure(T::Tuple)
+    return pure(T...)
+  end
+  function inv_pure(e::FreeModuleElem_dec)
+    if length(e.r.pos) == 0
+      return Tuple(zero(g) for g = G)
+    end
+    @assert length(e.r.pos) == 1
+    @assert isone(e.r.values[1])
+    return Tuple(gen(G[i], t[e.r.pos[1]][i]) for i = 1:length(G))
+  end
+
+  return F, MapFromFunc(pure, inv_pure, Hecke.TupleParent(Tuple([g[0] for g = G])), F)
+end
+
+function free_module(F::FreeModule_dec)
+  return F
+end
+
+function free_module(F::SubQuo_dec)
+  return F.F
+end
+
+gens(F::FreeModule_dec, G::FreeModule_dec) = gens(F)
+gens(F::SubQuo_dec, G::FreeModule_dec) = [x.a for x = gens(F)]
+rels(F::FreeModule_dec) = elem_type(F)[]
+rels(F::SubQuo_dec) = isdefined(F, :quo) ? collect(F.quo) : elem_type(F.F)[]
+
+@doc Markdown.doc"""
+    tensor_product(G::ModuleFP_dec...; task::Symbol = :map) -> SubQuo_dec, Map
+Given modules $G_i$ compute the tensor product $G_1\otimes \cdots \otimes G_n$.
+If `task` is set to ":map", a map $\phi$ is returned that
+maps tuples in $G_1 \times \cdots \times G_n$ to pure tensors
+$g_1 \otimes \cdots \otimes g_n$. The map admits a preimage as well.
+"""
+function tensor_product(G::ModuleFP_dec...; task::Symbol = :none)
+  F, mF = tensor_product([free_module(x) for x = G]..., task = :map)
+  s = sub(F, vec([mF(x) for x = Base.Iterators.ProductIterator(Tuple(gens(x, free_module(x)) for x = G))]))
+  q = vcat([vec([mF(x) for x = Base.Iterators.ProductIterator(Tuple(i == j ? rels(G[i]) : gens(free_module(G[i])) for i=1:length(G)))]) for j=1:length(G)]...) 
+  if length(q) != 0
+    s = quo(s, q)
+  end
+  if task == :none
+    return s
+  else
+    return s, mF
+  end
+end
+
 #TODO
 #  direct_product for SubQuo_dec and mixed
-#  tensor product
-#  free res
 #  hom lift => hom and tensor functor
 #  filtrations
 #  more constructors
@@ -1120,6 +1249,7 @@ function homogenous_component(F::T, d::GrpAbFinGenElem) where {T <: Union{FreeMo
       continue
     end
     Md, mMd = homogenous_component(W, d - degree(g))
+    #TODO careful <0> is 0-dim but non empty...
     if dim(Md) > 0
       push!(all, (g, mMd))
     end
@@ -1164,6 +1294,7 @@ end
 
 #############################
 #TODO move to Hecke
+#  re-evaluate and use or not
 function Base.getindex(r::Hecke.SRow, R::AbstractAlgebra.Ring, u::UnitRange)
   s = sparse_row(R)
   shift = 1-first(u)
@@ -1175,6 +1306,22 @@ function Base.getindex(r::Hecke.SRow, R::AbstractAlgebra.Ring, u::UnitRange)
   end
   return s
 end
+
+function getindex(a::Hecke.SRow, b::AbstractArray{Int, 1})
+  if length(a.pos) == 0
+    return a
+  end
+  m = minimum(b)
+  b = sparse_row(parent(a.values[1]))
+  for (k,v) = a
+    if k in b
+      push!(b.pos, k-b+1)
+      push!(b.values, v)
+    end
+  end
+  return b
+end
+
 ##############################
 #should be in Singular.jl
 function Singular.intersection(a::Singular.smodule, b::Singular.smodule)
