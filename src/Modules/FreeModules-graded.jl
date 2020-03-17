@@ -998,18 +998,20 @@ function free_resolution(F::FreeModule_dec)
   return presentation(F)
 end
 
-function free_resolution(S::SubQuo_dec)
+function free_resolution(S::SubQuo_dec, limit::Int = -1)
   p = presentation(S)
   mp = [map(p, j) for j=1:length(p)]
   D = decoration(S)
   while true
     k, mk = kernel(mp[1])
     nz = findall(x->!iszero(x), gens(k))
-    if length(nz) == 0
+    if length(nz) == 0 
       Z = FreeModule(base_ring(S), GrpAbFinGenElem[])
       Hecke.set_special(Z, :name => "Zero")
       h = hom(Z, domain(mp[1]), FreeModuleElem_dec[])
       insert!(mp, 1, h)
+      break
+    elseif limit != -1 && length(mp) > limit
       break
     end
     F = FreeModule(base_ring(S), [iszero(x) ? D[0] : degree(x) for x = gens(k)[nz]])
@@ -1090,7 +1092,7 @@ end
 +(h::FreeModuleHom_dec, g::FreeModuleHom_dec) = hom(domain(h), codomain(h), [h(x) + g(x) for x = gens(domain(h))])
 
 ##################################################
-#
+# direct product
 ##################################################
 function direct_product(F::FreeModule_dec{T}...; task::Symbol = :sum) where {T}
   R = base_ring(F[1])
@@ -1141,6 +1143,24 @@ function direct_product(F::FreeModule_dec{T}...; task::Symbol = :sum) where {T}
   end
 end
 
+function direct_product(G::ModuleFP_dec...; task::Symbol = :none)
+  F, pro, mF = direct_product([free_module(x) for x = G]..., task = :both)
+  s = sub(F, vcat([[mF[i](y) for y = gens(G[i], free_module(G[i]))] for i=1:length(G)]...))
+  q = vcat([[mF[i](y) for y = rels(G[i])] for i=1:length(G)]...)
+  if length(q) != 0
+    s = quo(s, q)
+  end
+  if task == :none
+    return s
+  elseif task == :prod
+    return s, pro
+  elseif task == :sum
+    return s, mF
+  else
+    return s, pro, mF
+  end
+end
+
 ##################################################
 # Tensor
 ##################################################
@@ -1168,16 +1188,16 @@ function tensor_product(G::FreeModule_dec...; task::Symbol = :none)
     z = [[x] for x = g[1].r.pos]
     zz = g[1].r.values
     for h = g[2:end]
+      zzz = Array{Int, 1}[]
+      zzzz = elem_type(F.R)[]
       for i = 1:length(z)
-        zzz = Array{Int, 1}[]
-        zzzz = elem_type(F.R)[]
         for (p, v) = h.r
           push!(zzz, push!(deepcopy(z[i]), p))
           push!(zzzz, zz[i]*v)
         end
-        z = zzz
-        zz = zzzz
       end
+      z = zzz
+      zz = zzzz
     end
     return FreeModuleElem_dec(sparse_row(F.R, [findfirst(x->x == y, t) for y = z], zz), F)
   end
@@ -1346,4 +1366,4 @@ function _reduce(a::Singular.svector, b::Singular.smodule)
   return Singular.Module(base_ring(b), p)[1]
 end
 
-
+#TODO: tensor_product vom Raul's H is broken
