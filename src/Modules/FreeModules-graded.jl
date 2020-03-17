@@ -266,14 +266,6 @@ mutable struct BiModArray{T}
   end
 
   function BiModArray(O::Array{<:FreeModuleElem_dec{T}, 1}, SF::Singular.FreeMod) where {T}
-    r = new{T}()
-    r.O = O
-    r.SF = SF
-    r.F = parent(O[1])
-    return r
-  end
-
-  function BiModArray(O::Array{<:FreeModuleElem_dec{T}, 1}, SF::Singular.FreeMod) where {T}
     return BiModArray(O, parent(O[1]), SF)
   end
 
