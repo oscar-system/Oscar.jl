@@ -24,7 +24,14 @@ function FreeModule(R::MPolyRing_dec, d::Array{GrpAbFinGenElem, 1}, name::String
   return FreeModule_dec(d, R, [Symbol("$name[$i]") for i=1:length(d)])
 end
 
+#=XXX this cannot be as it is inherently ambigous
+  - FreeModule(R, n)
+  - direct sum of rings, ie. a ring
+  - set of n-th powers of R
+thus the "categroy" needs to be set explicitly
+
 ^(R::MPolyRing_dec, n::Int) = FreeModule(R, n)
+=#
 
 function AbstractAlgebra.extra_name(F::FreeModule_dec)
   t = Hecke.get_special(F, :twist)
