@@ -788,20 +788,37 @@ mutable struct SubQuoHom_dec{T1, T2} <: Map_dec{T1, T2}
   end
 end
 
-function hom(G::ModuleFP_dec, H::ModuleFP_dec, A::Array{ <: Map_dec, 1})
+function hom_tensor(G::ModuleFP_dec, H::ModuleFP_dec, A::Array{ <: Map_dec, 1})
   tG = get_special(G, :tensor_product)
   tG === nothing && error("both modules must be tensor products")
   tH = get_special(H, :tensor_product)
   tH === nothing && error("both modules must be tensor products")
   @assert length(tG) == length(tH) == length(A)
   @assert all(i-> domain(A[i]) == tG[i] && codomain(A[i]) == tH[i], 1:length(A))
+  #gens of G are G[i][j] tensor G[h][l] for i != h and all j, l
+  #such a pure tensor is mapped to A[i](G[i][j]) tensor A[h](G[j][l])
+  #thus need the pure map - and re-create the careful ordering of the generators as in the 
+  # constructor
+  #store the maps? and possibly more data, like the ordeing
+  error("not done yet")
+  return hom(G, H)
+end
+
+function hom_prod_prod(G::ModuleFP_dec, H::ModuleFP_dec, A::Array{ <: Map_dec, 2})
+  tG = get_special(G, :tensor_product)
+  tG === nothing && error("both modules must be direct products")
+  tH = get_special(H, :tensor_product)
+  tH === nothing && error("both modules must be direct products")
+  @assert length(tG) == size(A, 1) && length(tH) == size(A, 2)
+  @assert all((i,j)-> domain(A[i,j]) == tG[i] && codomain(A[i,j]) == tH[j], Base.Iterators.ProductIterator((1:size(A, 1), 1:size(A, 2))))
+  #need the canonical maps..., maybe store them as well?
   error("not done yet")
 end
-#TODO: special hom constructor for direct_prod
-# canonical_injection, projection, see GrpAbFinGen
+# hom(prod -> X), hom(x -> prod)
+# if too much time: improve the hom(A, B) in case of A and/or B are products - or maybe not...
 # tensor and hom functors for chain complex
 # homology
-# dual
+# dual: ambig: hom(M, R) or hom(M, Q(R))?
 
 function coordinates(a::FreeModuleElem_dec, SQ::SubQuo_dec)
   if iszero(a)
@@ -1161,6 +1178,26 @@ function direct_product(G::ModuleFP_dec...; task::Symbol = :none)
   end
 end
 
+function Hecke.canonical_injection(G::ModuleFP_dec, i::Int)
+  H = Hecke.get_special(G, :direct_product)
+  if H === nothing
+    error("module not a direct product")
+  end
+  0<i<= length(H) || error("index out of bound")
+  j = i == 1 ? 0 : sum(ngens(H[l]) for l=1:i-1) -1
+  return hom(H[i], G, [G[l+j] for l = 1:ngens(H[i])])
+end
+
+function Hecke.canonical_projection(G::ModuleFP_dec, i::Int)
+  H = Hecke.get_special(G, :direct_product)
+  if H === nothing
+    error("module not a direct product")
+  end
+  0<i<= length(H) || error("index out of bound")
+  j = i == 1 ? 0 : sum(ngens(H[l]) for l=1:i-1) 
+  return hom(G, H[i], vcat([zero(H[i]) for l=1:j], gens(H[i]), [zero(H[i]) for l=1+j+ngens(H[i]):ngens(G)]))
+end
+    
 ##################################################
 # Tensor
 ##################################################
@@ -1251,8 +1288,7 @@ function tensor_product(G::ModuleFP_dec...; task::Symbol = :none)
 end
 
 #TODO
-#  direct_product for SubQuo_dec and mixed
-#  hom lift => hom and tensor functor
+#  (hom lift) => hom and tensor functor
 #  filtrations
 #  more constructors
 #################################################
