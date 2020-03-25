@@ -30,7 +30,7 @@ function __init__()
   printstyled(" $VERSION_NUMBER ", color = :green)
   print("... \n ... which comes with absolutely no warranty whatsoever")
   println()
-  println("(c) 2020-2019 by The Oscar Development Team")
+  println("(c) 2019-2020 by The Oscar Development Team")
 end
 
 
