@@ -1,5 +1,5 @@
 module Oscar
-
+const global VERSION_NUMBER = v"0.1.1"
 #=
   We currently only import packages which:
     * are registered
@@ -26,13 +26,13 @@ function __init__()
   println(" -----    -----    -----   -     -  -     -  ")
   println()
   println("...combining (and extending) Gap, Hecke, Nemo, Polymake and Singular")
+  print("Version")
+  printstyled(" $VERSION_NUMBER ", color = :green)
+  print("... \n ... which comes with absolutely no warranty whatsoever")
+  println()
+  println("(c) 2020-2019 by The Oscar Development Team")
 end
 
-#function load()
-#  s = joinpath(dirname(pathof(Oscar)), "Modules/FreeModules-graded.jl")
-#  Base.include(Oscar, s)
-#  Revise.track(Oscar, s)
-#end
 
 include("OscarTypes.jl")
 
