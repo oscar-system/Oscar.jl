@@ -13,7 +13,37 @@ import Base: +, *, ==, ^, -
 import Hecke
 import Hecke: MapHeader
 
-export PolynomialRing, total_degree, degree, MPolyElem, ordering, ideal
+export PolynomialRing, total_degree, degree, MPolyElem, ordering, ideal, groebner_basis
+
+#allows
+# PolynomialRing(QQ, :a=>1:3, "b"=>1:3, "c=>1:5:10)
+# -> QQx, [a1, a2, a3], [b1 ,b2, b3], ....
+function PolynomialRing(R::AbstractAlgebra.Ring, v::Pair{<:Union{String, Symbol}, <:Union{StepRange{Int, Int}, UnitRange{Int}}}...; cached::Bool = false)
+  s = String[]
+  g = []
+  j = 1
+  for (a, b) = v
+    h = []
+    for i = b
+      if occursin('#', "$a")
+        aa = replace("$a", '#' => "$i")
+      else
+        aa = "$a$i"
+      end
+      push!(s, aa)
+      push!(h, j)
+      j += 1
+    end
+    push!(g, h)
+  end
+  Rx, c = PolynomialRing(R, s, cached = cached)
+  return Rx, [c[x] for x = g]...
+end
+
+function Base.getindex(R::MPolyRing, i::Int)
+  i == 0 && return zero(R)
+  return gen(R, i)
+end
 
 #TODO/ to think
 #  default in Nemo is     :lex
@@ -23,6 +53,7 @@ export PolynomialRing, total_degree, degree, MPolyElem, ordering, ideal
 #
 #for std: abstraction to allow Christian to be used
 #
+#type for orderings, use this...
 #in general: all algos here needs revision: do they benefit from gb or not?
 
 mutable struct BiPolyArray
@@ -55,7 +86,7 @@ function Base.getindex(A::BiPolyArray, ::Val{:S}, i::Int)
 end
 
 function Base.getindex(A::BiPolyArray, ::Val{:O}, i::Int)
-  if A.O[i] === undef
+  if !isassigned(A.O, i)
     A.O[i] = convert(A.Ox, A.S[i])
   end
   return A.O[i]
@@ -63,10 +94,17 @@ end
 
 function Base.length(A::BiPolyArray)
   if isdefined(A, :S)
-    return Singular.length(A.S)
+    return Singular.ngens(A.S)
   else
     return length(A.O)
   end
+end
+
+function Base.iterate(A::BiPolyArray, s::Int = 1)
+  if s > length(A)
+    return nothing
+  end
+  return A[Val(:O), s], s+1
 end
 
 function Base.convert(Ox::MPolyRing, f::MPolyElem) 
@@ -94,8 +132,11 @@ function (S::Singular.Rationals)(a::fmpq)
   b = Base.Rational{BigInt}(a)
   return S(b)
 end
+(F::Singular.N_ZpField)(a::Nemo.gfp_elem) = F(lift(a))
+(F::Nemo.GaloisField)(a::Singular.n_Zp) = F(Int(a))
 
 singular_ring(::Nemo.FlintRationalField) = Singular.Rationals()
+singular_ring(F::Nemo.GaloisField) = Singular.Fp(Int(characteristic(F)))
 
 function singular_ring(Rx::Nemo.FmpqMPolyRing; keep_ordering::Bool = true)
   if keep_ordering
@@ -108,6 +149,33 @@ function singular_ring(Rx::Nemo.FmpqMPolyRing; keep_ordering::Bool = true)
               [string(x) for x = Nemo.symbols(Rx)],
               cached = false)[1]
   end          
+end
+
+function singular_ring(Rx::Generic.MPolyRing{T}; keep_ordering::Bool = true) where {T <: RingElem}
+  if keep_ordering
+    return Singular.PolynomialRing(singular_ring(base_ring(Rx)), 
+              [string(x) for x = Nemo.symbols(Rx)],
+              ordering = ordering(Rx),
+              cached = false)[1]
+  else
+    return Singular.PolynomialRing(singular_ring(base_ring(Rx)), 
+              [string(x) for x = Nemo.symbols(Rx)],
+              cached = false)[1]
+  end          
+end
+
+function singular_ring(Rx::Nemo.FmpqMPolyRing, ord::Symbol)
+  return Singular.PolynomialRing(singular_ring(base_ring(Rx)), 
+              [string(x) for x = Nemo.symbols(Rx)],
+              ordering = ord,
+              cached = false)[1]
+end
+
+function singular_ring(Rx::Generic.MPolyRing{T}, ord::Symbol) where {T <: RingElem}
+  return Singular.PolynomialRing(singular_ring(base_ring(Rx)), 
+              [string(x) for x = Nemo.symbols(Rx)],
+              ordering = ord,
+              cached = false)[1]
 end
 
 mutable struct MPolyIdeal <: Ideal{MPolyElem}
@@ -155,12 +223,6 @@ function singular_assure(I::MPolyIdeal)
   end
 end
 
-function oscar_assure(I::MPolyIdeal)
-  if !isdefined(I.gens, :O)
-    f = I.gens[Val(:O), 1]
-  end
-end
-
 function *(I::MPolyIdeal, J::MPolyIdeal)
   singular_assure(I)
   singular_assure(J)
@@ -202,8 +264,7 @@ function Base.issubset(I::MPolyIdeal, J::MPolyIdeal)
 end
 
 function gens(I::MPolyIdeal)
-  oscar_assure(I)
-  return I.gens.O
+  return [I.gens[Val(:O), i] for i=1:ngens(I)]
 end
 
 function groebner_assure(I::MPolyIdeal)
@@ -221,7 +282,6 @@ function dim(I::MPolyIdeal)
   I.dim = Singular.dimension(I.gb.S)
   return I.dim
 end
-
 
 function Base.in(f::MPolyElem, I::MPolyIdeal)
   groebner_assure(I)
@@ -295,6 +355,341 @@ function eliminate(I::MPolyIdeal, l::Array{<:MPolyElem, 1})
   #wrong!!! ideal intersection is not eliminate!!! 
   J = ideal(base_ring(I), [x for x in gens(base_ring(I)) if !(x in l)])
   return intersect(I, J)
+end
+
+function groebner_basis(I::MPolyIdeal)
+  groebner_assure(I)
+  return collect(I.gb)
+end
+
+function groebner_basis(I::MPolyIdeal, ord::Symbol)
+  R = singular_ring(base_ring(I), ord)
+  i = Singular.Ideal(R, [convert(R, x) for x = gens(I)])
+  return collect(BiPolyArray(base_ring(I), i))
+end
+
+# Some isless functions for orderings:
+# _isless_:ord(f, k, l) returns true if the k-th term is lower than the l-th
+# term of f in the ordering :ord.
+
+function _isless_lex(f::MPolyElem, k::Int, l::Int)
+  n = nvars(parent(f))
+  for i = 1:n
+    ek = exponent(f, k, i)
+    el = exponent(f, l, i)
+    if ek == el
+      continue
+    elseif ek > el
+      return false
+    else
+      return true
+    end
+  end
+  return false
+end
+
+function _isless_neglex(f::MPolyElem, k::Int, l::Int)
+  n = nvars(parent(f))
+  for i = 1:n
+    ek = exponent(f, k, i)
+    el = exponent(f, l, i)
+    if ek == el
+      continue
+    elseif ek < el
+      return false
+    else
+      return true
+    end
+  end
+  return false
+end
+
+function _isless_revlex(f::MPolyElem, k::Int, l::Int)
+  n = nvars(parent(f))
+  for i = n:-1:1
+    ek = exponent(f, k, i)
+    el = exponent(f, l, i)
+    if ek == el
+      continue
+    elseif ek > el
+      return false
+    else
+      return true
+    end
+  end
+  return false
+end
+
+function _isless_negrevlex(f::MPolyElem, k::Int, l::Int)
+  n = nvars(parent(f))
+  for i = n:-1:1
+    ek = exponent(f, k, i)
+    el = exponent(f, l, i)
+    if ek == el
+      continue
+    elseif ek < el
+      return false
+    else
+      return true
+    end
+  end
+  return false
+end
+
+function _isless_deglex(f::MPolyElem, k::Int, l::Int)
+  tdk = total_degree(term(f, k))
+  tdl = total_degree(term(f, l))
+  if tdk < tdl
+    return true
+  elseif tdk > tdl
+    return false
+  end
+  return _isless_lex(f, k, l)
+end
+
+function _isless_degrevlex(f::MPolyElem, k::Int, l::Int)
+  tdk = total_degree(term(f, k))
+  tdl = total_degree(term(f, l))
+  if tdk < tdl
+    return true
+  elseif tdk > tdl
+    return false
+  end
+  return _isless_negrevlex(f, k, l)
+end
+
+function _isless_negdeglex(f::MPolyElem, k::Int, l::Int)
+  tdk = total_degree(term(f, k))
+  tdl = total_degree(term(f, l))
+  if tdk > tdl
+    return true
+  elseif tdk < tdl
+    return false
+  end
+  return _isless_lex(f, k, l)
+end
+
+function _isless_negdegrevlex(f::MPolyElem, k::Int, l::Int)
+  tdk = total_degree(term(f, k))
+  tdl = total_degree(term(f, l))
+  if tdk > tdl
+    return true
+  elseif tdk < tdl
+    return false
+  end
+  return _isless_negrevlex(f, k, l)
+end
+
+# Returns the degree of the k-th term of f weighted by w,
+# that is deg(x^a) = w_1a_1 + ... + w_na_n.
+# No sanity checks are performed!
+function weighted_degree(f::MPolyElem, k::Int, w::Vector{Int})
+  ek = exponent_vector(f, k)
+  return dot(ek, w)
+end
+
+function _isless_weightlex(f::MPolyElem, k::Int, l::Int, w::Vector{Int})
+  dk = weighted_degree(f, k, w)
+  dl = weighted_degree(f, l, w)
+  if dk < dl
+    return true
+  elseif dk > dl
+    return false
+  end
+  return _isless_lex(f, k, l)
+end
+
+function _isless_weightrevlex(f::MPolyElem, k::Int, l::Int, w::Vector{Int})
+  dk = weighted_degree(f, k, w)
+  dl = weighted_degree(f, l, w)
+  if dk < dl
+    return true
+  elseif dk > dl
+    return false
+  end
+  return _isless_negrevlex(f, k, l)
+end
+
+function _isless_weightneglex(f::MPolyElem, k::Int, l::Int, w::Vector{Int})
+  dk = weighted_degree(f, k, w)
+  dl = weighted_degree(f, l, w)
+  if dk < dl
+    return true
+  elseif dk > dl
+    return false
+  end
+  return _isless_lex(f, k, l)
+end
+
+function _isless_weightnegrevlex(f::MPolyElem, k::Int, l::Int, w::Vector{Int})
+  dk = weighted_degree(f, k, w)
+  dl = weighted_degree(f, l, w)
+  if dk > dl
+    return true
+  elseif dk < dl
+    return false
+  end
+  return _isless_negrevlex(f, k, l)
+end
+
+function _isless_matrix(f::MPolyElem, k::Int, l::Int, M::Union{ Array{T, 2}, MatElem{T} }) where T
+  ek = exponent_vector(f, k)
+  el = exponent_vector(f, l)
+  n = nvars(parent(f))
+  for i = 1:n
+    eki = sum( M[i, j]*ek[j] for j = 1:n )
+    eli = sum( M[i, j]*el[j] for j = 1:n )
+    if eki == eli
+      continue
+    elseif eki > eli
+      return false
+    else
+      return true
+    end
+  end
+  return false
+end
+
+function _perm_of_terms(f::MPolyElem, ord_lt::Function)
+  p = collect(1:length(f))
+  sort!(p, lt = (k, l) -> ord_lt(f, k, l), rev = true)
+  return p
+end
+
+# Requiring R for consistence with the other lt_from_ordering functions
+function lt_from_ordering(R::MPolyRing, ord::Symbol)
+  if ord == :lex || ord == :lp
+    return _isless_lex
+  elseif ord == :revlex || ord == :rp
+    return _isless_revlex
+  elseif ord == :deglex || ord == :Dp
+    return _isless_deglex
+  elseif ord == :degrevlex || ord == :dp
+    return _isless_degrevlex
+  elseif ord == :neglex || ord == :ls
+    return _isless_neglex
+  elseif ord == :negrevlex || ord == :rs
+    return _isless_negrevlex
+  elseif ord == :negdeglex || ord == :Ds
+    return _isless_negdeglex
+  elseif ord == :negdegrevlex || ord == :ds
+    return _isless_negdegrevlex
+  else
+    error("Ordering $ord not available")
+  end
+end
+
+function lt_from_ordering(R::MPolyRing, ord::Symbol, w::Vector{Int})
+  @assert length(w) == nvars(R) "Number of weights has to match number of variables"
+
+  if ord == :weightlex || ord == :Wp
+    @assert all(x -> x > 0, w) "Weights have to be positive"
+    return (f, k, l) -> _isless_weightlex(f, k, l, w)
+  elseif ord == :weightrevlex || ord == :wp
+    @assert all(x -> x > 0, w) "Weights have to be positive"
+    return (f, k, l) -> _isless_weightrevlex(f, k, l, w)
+  elseif ord == :weightneglex || ord == :Ws
+    @assert !iszero(w[1]) "First weight must not be 0"
+    return (f, k, l) -> _isless_weightneglex(f, k, l, w)
+  elseif ord == :weightnegrevlex || ord == :ws
+    @assert !iszero(w[1]) "First weight must not be 0"
+    return (f, k, l) -> _isless_weightnegrevlex(f, k, l, w)
+  else
+    error("Ordering $ord not available")
+  end
+end
+
+function lt_from_ordering(R::MPolyRing, M::Union{ Array{T, 2}, MatElem{T} }) where T
+  @assert size(M, 1) == nvars(R) && size(M, 2) == nvars(R) "Matrix dimensions have to match number of variables"
+
+  return (f, k, l) -> _isless_matrix(f, k, l, M)
+end
+
+function terms(f::MPolyElem, ord::Function)
+  perm = _perm_of_terms(f, ord)
+  return ( term(f, perm[i]) for i = 1:length(f) )
+end
+
+function coeffs(f::MPolyElem, ord::Function)
+  perm = _perm_of_terms(f, ord)
+  return ( coeff(f, perm[i]) for i = 1:length(f) )
+end
+
+function exponent_vectors(f::MPolyElem, ord::Function)
+  perm = _perm_of_terms(f, ord)
+  return ( exponent_vector(f, perm[i]) for i = 1:length(f) )
+end
+
+function monomials(f::MPolyElem, ord::Function)
+  perm = _perm_of_terms(f, ord)
+  return ( monomial(f, perm[i]) for i = 1:length(f) )
+end
+
+for s in (:terms, :coeffs, :exponent_vectors, :monomials)
+  @eval begin
+    function ($s)(f::MPolyElem, ord::Symbol)
+      R = parent(f)
+      if ord == ordering(R)
+        return ($s)(f)
+      end
+
+      lt = lt_from_ordering(R, ord)
+      return ($s)(f, lt)
+    end
+
+    function ($s)(f::MPolyElem, M::Union{ Array{T, 2}, MatElem{T} }) where T
+      R = parent(f)
+      lt = lt_from_ordering(R, M)
+      return ($s)(f, lt)
+    end
+
+    function ($s)(f::MPolyElem, ord::Symbol, weights::Vector{Int})
+      R = parent(f)
+      lt = lt_from_ordering(R, ord, weights)
+      return ($s)(f, lt)
+    end
+  end
+end
+
+for s in ("term", "coeff", "monomial")
+  @eval begin
+    function ($(Symbol("leading_$s")))(args...)
+      return first($(Symbol("$(s)s"))(args...))
+    end
+  end
+end
+
+function leading_term(f::MPolyElem)
+  return leading_term(f, ordering(parent(f)))
+end
+
+function leading_coeff(f::MPolyElem)
+  return leading_coeff(f, ordering(parent(f)))
+end
+
+function leading_monomial(f::MPolyElem)
+  return leading_monomial(f, ordering(parent(f)))
+end
+
+function leading_ideal(g::Array{T, 1}, args...) where { T <: MPolyElem }
+  return ideal([ leading_monomial(f, args...) for f in g ])
+end
+
+function leading_ideal(g::Array{Any, 1}, args...)
+  return leading_ideal(typeof(g[1])[ f for f in g ], args...)
+end
+
+function leading_ideal(Rx::MPolyRing, g::Array{Any, 1}, args...)
+  h = elem_type(Rx)[ Rx(f) for f in g ]
+  return leading_ideal(h, args...)
+end
+
+function leading_ideal(I::MPolyIdeal)
+  return leading_ideal(groebner_basis(I))
+end
+
+function leading_ideal(I::MPolyIdeal, ord::Symbol)
+  return leading_ideal(groebner_basis(I, ord), ord)
 end
 
 #end #MPolyModule

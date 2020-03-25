@@ -1,18 +1,20 @@
 name = "Oscar"
 uuid = "f1435218-dba5-11e9-1e4d-f1a5fab5fc13"
 authors = ["William Hart <goodwillhart@googlemail.com>"]
-version = "0.1.0"
+version = "0.1.1"
 
 [deps]
 AbstractAlgebra = "c3fe647b-3220-5bb0-a1ea-a7954cac585d"
 Hecke = "3e1990a7-5d81-5526-99ce-9ba3ff248f21"
 Nemo = "2edaba10-b0f1-5616-af89-8c11ac63239a"
 Polymake = "d720cf60-89b5-51f5-aff5-213f193123e7"
+Singular = "bcd08a7b-43d2-5ff7-b6d4-c458787f915c"
+Markdown = "d6f4376e-aef5-505a-96c1-9c027394607a"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
-julia = "1.0, 1.1, 1.2"
-AbstractAlgebra = "^0.8.0"
-Hecke = "^0.7.0"
-Nemo = "^0.16.0"
-Polymake = "^0.2.2"
-
+AbstractAlgebra = "^0.9.0"
+Hecke = "^0.8.0"
+Nemo = "^0.17.0"
+Polymake = "^0.2.2, 0.3"
+julia = "1.3"
