@@ -56,6 +56,7 @@ julia> using Oscar
 ...combining (and extending) GAP, Hecke, Nemo, Polymake and Singular
 Version 0.1.1 ... 
  ... which comes with absolutely no warranty whatsoever
+Type: '?Oscar' for more information
 (c) 2019-2020 by The Oscar Development Team
 
 
@@ -137,6 +138,6 @@ H_[0] of dim 2 to H defined by a julia-function with inverse
 Of course, the cornerstones are also available directly:
 
 ```
-julia> import Polymake
+julia> Polymake.tropical
 ...
 ```
