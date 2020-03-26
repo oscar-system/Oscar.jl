@@ -136,16 +136,29 @@ height(QQ(324987329, -8372492324))
 
 * `floor(n::Oscar.Rational) -> Oscar.Rational`
 
-Return the greatest integer $m$ such that $m \leq n$.
+Return the greatest integer $m$ (as a rational number) such that $m \leq n$.
 
 * `ceil(n::Oscar.Rational) -> Oscar.Rational`
 
-Return the least integer $m$ such that $m \geq n$.
+Return the least integer $m$ (as a rational number) such that $m \geq n$.
 
 ```@repl oscar
 floor(QQ(-2, 3))
 ceil(QQ(7, 2))
 ceil(QQ(5))
+```
+* `floor(Oscar.Integer, n::Oscar.Rational) -> Oscar.Integer`
+
+Return the greatest integer $m$ such that $m \leq n$.
+
+* `ceil(Oscar.Integer, n::Oscar.Rational) -> Oscar.Integer`
+
+Return the least integer $m$ such that $m \geq n$.
+
+```@repl oscar
+floor(Oscar.Integer, QQ(-2, 3))
+ceil(Oscar.Integer, QQ(7, 2))
+ceil(Oscar.Integer, QQ(5))
 ```
 
 ## Basic arithmetic
@@ -199,5 +212,25 @@ QQ(0)^0
 
 ```@repl oscar
 QQ(0)^-2
+```
+
+* `ispower(a::Oscar.Rational, b::Base.Int) -> Bool, Oscar.Rational`
+
+Tests if ``a`` is an ``n``-th power. If so, return ```true``` and the root,
+```false``` and any rational otherwise.
+
+* `ispower(a::Oscar.Rational) -> Int, Oscar.Rational`
+
+Finds the largest ``n`` such that ``a`` is an ``n``-th power. Return ``n`` and the root.
+
+* `root(a::Oscar.Rational, b::Base.Int) -> Oscar.Rational`
+
+Computes an ``n``-th root of ``a``, raises an error if ``a`` is not an ``n``-th power.
+
+```@repl oscar
+ispower(QQ(8), 3)
+ispower(QQ(8), 2)
+ispower(QQ(9//16))
+root(QQ(25//9), 2)
 ```
 
