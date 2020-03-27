@@ -145,6 +145,7 @@ Return the least integer $m$ (as a rational number) such that $m \geq n$.
 ```@repl oscar
 floor(QQ(-2, 3))
 ceil(QQ(7, 2))
+typeof(ans)
 ceil(QQ(5))
 ```
 * `floor(Oscar.Integer, n::Oscar.Rational) -> Oscar.Integer`
@@ -158,6 +159,7 @@ Return the least integer $m$ such that $m \geq n$.
 ```@repl oscar
 floor(Oscar.Integer, QQ(-2, 3))
 ceil(Oscar.Integer, QQ(7, 2))
+typeof(ans)
 ceil(Oscar.Integer, QQ(5))
 ```
 
