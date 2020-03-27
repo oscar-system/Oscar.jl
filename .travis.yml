@@ -3,21 +3,18 @@ dist: bionic
 
 language: julia
 sudo: false
+
 os:
   - linux
   - osx
+
 julia:
   - 1.3
 #  - nightly
   
-branches:
-  only:
-  - master
-
 jobs:
   allow_failures:
     - julia: nightly
-
    include:
      - stage: "Test"
        julia: 1.3
@@ -30,12 +27,6 @@ jobs:
 
 notifications:
   - email: false
-# Use the default script
-#script:
-#  - julia -e 'using Pkg; Pkg.clone(pwd());'
-#  - while sleep 30; do echo "still alive"; done &
-#  - julia -e 'using Pkg; Pkg.build("Nemo");'
-#  - julia -e 'using Pkg; Pkg.test("Nemo");'
 
 env:
    global:
