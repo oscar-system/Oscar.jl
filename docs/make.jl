@@ -1,7 +1,8 @@
-using Documenter, Oscar
+using Documenter, Oscar, DocumenterMarkdown
 
 makedocs(
-         format   = :html,
+         format   = Documenter.HTML(),
+#         format   = Markdown(),
          sitename = "Oscar.jl",
          modules = [Oscar],
          clean = true,
@@ -13,11 +14,20 @@ makedocs(
          ]
 )
 
+#deploydocs(
+#   julia = "1.3",
+#   repo   = "github.com/oscar-system/Oscar.jl.git",
+#   target = "build",
+#   deps = nothing,
+#   make   = nothing,
+#   osname = "linux"
+#)
+
 deploydocs(
-   julia = "1.0",
    repo   = "github.com/oscar-system/Oscar.jl.git",
-   target = "build",
+#  deps = Deps.pip("pymdown-extensions", "pygments", "mkdocs", "python-markdown-math", "mkdocs-material", "mkdocs-cinder"),
    deps = nothing,
-   make   = nothing,
-   osname = "linux"
+   target = "build",
+#  make = () -> run(`mkdocs build`),
+   make = nothing
 )
