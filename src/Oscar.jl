@@ -55,6 +55,7 @@ function __init__()
   println()
   println("Type: '?Oscar' for more information")
   println("(c) 2019-2020 by The Oscar Development Team")
+  @show "hi"
 end
 
 
