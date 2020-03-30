@@ -138,6 +138,18 @@ H_[0] of dim 2 to H defined by a julia-function with inverse
 Of course, the cornerstones are also available directly:
 
 ```
-julia> Polymake.tropical
-...
+julia> C = Polymake.polytope.cube(3);
+
+julia> C.F_VECTOR
+pm::Vector<pm::Integer>
+8 12 6
+
+julia> RP2 = Polymake.topaz.real_projective_plane();
+
+julia> RP2.HOMOLOGY
+PropertyValue wrapping pm::Array<polymake::topaz::HomologyGroup<pm::Integer>>
+({} 0)
+({(2 1)} 0)
+({} 0)
+
 ```
