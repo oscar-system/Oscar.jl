@@ -1,8 +1,8 @@
 @doc Markdown.doc"""
-Welcome to OSCAR version 0.1.1
+Welcome to OSCAR version 0.2.0
 
 OSCAR is developed by a large group of international collaborators, coordinated
-currently, mainly at the technical university of Kaiseslautern.
+currently, mainly at the Technische Universität Kaiserslautern.
 
 Written in Julia, it combines the well established systems
  * Singular
@@ -31,11 +31,12 @@ import Nemo
 import Hecke
 import Singular
 import Polymake
+import GAP
 using Markdown
 # to allow access to the cornerstones! Otherwise, not even import or using from the
 # user level will work as none of them will have been "added" by the user.
 # possibly all should add a doc string to the module?
-export Nemo, Hecke, Singular, Polymake, AbstractAlgebra
+export Nemo, Hecke, Singular, Polymake, AbstractAlgebra, GAP
 
 import AbstractAlgebra: @show_name, @show_special
 
@@ -68,5 +69,8 @@ include("Rings/mpoly-graded.jl")
 include("Modules/FreeModules-graded.jl")
 include("Polymake/Ineq.jl")
 include("Polymake/NmbThy.jl")
+const global OSCAR = Oscar
+const global oscar = Oscar
+export OSCAR, oscar
 
 end # module

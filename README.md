@@ -15,15 +15,15 @@ julia> Pkg.add("Oscar")
 julia> using Oscar
 ```
 
-or, (currently) to be at cutting edge:
+or, to be at cutting edge:
 
 ```
 julia> using Pkg
-julia> Pkg.add("https://github.org/oscar-system/Oscar.jl#master")
+julia> Pkg.add(Oscar#master)
 julia> using Oscar
 ```
 
-Installation will take about a minute.
+Installation will take a couple of minutes.
 
 ## Current requirements
 
