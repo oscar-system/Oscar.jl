@@ -41,6 +41,17 @@ export Nemo, Hecke, Singular, Polymake, AbstractAlgebra, GAP
 
 import AbstractAlgebra: @show_name, @show_special, force_coerce, force_op
 
+import Base.==
+import Base.rand
+import Base.conj
+import Base.show
+import Base.conj!
+import Base.parent
+import Base.eltype
+import Base.iterate
+import Base.collect
+import GAP.GapObj
+
 function __init__()
   println(" -----    -----    -----      -      -----   ")
   println("|     |  |     |  |     |    | |    |     |  ")
@@ -57,6 +68,14 @@ function __init__()
   println()
   println("Type: '?Oscar' for more information")
   println("(c) 2019-2020 by The Oscar Development Team")
+
+  append!(_gap_group_types,
+    [
+        (GAP.Globals.IsPermGroup, PermGroup),
+        (GAP.Globals.IsPcGroup, PcGroup),
+        (GAP.Globals.IsMatrixGroup, MatrixGroup),
+        (GAP.Globals.IsFpGroup, FPGroup),
+    ])
 end
 
 if VERSION >= v"1.4"
@@ -82,6 +101,12 @@ else
 end
 
 include("OscarTypes.jl")
+
+include("Groups/types.jl")
+include("Groups/group_constructors.jl")
+include("Groups/sub.jl")
+include("Groups/cosets.jl")
+include("Groups/GAPGroups.jl")
 
 include("Rings/integer.jl")
 include("Rings/rational.jl")
