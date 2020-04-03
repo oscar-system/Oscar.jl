@@ -60,11 +60,16 @@ function __init__()
 end
 
 if VERSION >= v"1.4"
-  ver = Pkg.dependencies()[Base.UUID("f1435218-dba5-11e9-1e4d-f1a5fab5fc13")]
-  if occursin("/dev/", ver.source)
-    global VERSION_NUMBER = VersionNumber("$(ver.version)-dev")
+  deps = Pkg.dependencies()
+  if Base.haskey(deps, Base.UUID("f1435218-dba5-11e9-1e4d-f1a5fab5fc13"))
+    ver = Pkg.dependencies()[Base.UUID("f1435218-dba5-11e9-1e4d-f1a5fab5fc13")]
+    if occursin("/dev/", ver.source)
+      global VERSION_NUMBER = VersionNumber("$(ver.version)-dev")
+    else
+      global VERSION_NUMBER = VersionNumber("$(ver.version)")
+    end
   else
-    global VERSION_NUMBER = VersionNumber("$(ver.version)")
+    global VERSION_NUMBER = "building"
   end
 else
   ver = Pkg.installed()["Oscar"]
@@ -75,8 +80,6 @@ else
     global VERSION_NUMBER = VersionNumber("$(ver)")
   end
 end
-
-
 
 include("OscarTypes.jl")
 
