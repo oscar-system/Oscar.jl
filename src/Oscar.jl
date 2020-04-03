@@ -1,5 +1,5 @@
 @doc Markdown.doc"""
-Welcome to OSCAR version 0.2.0
+Welcome to OSCAR version $(VERSION_NUMBER)
 
 OSCAR is developed by a large group of international collaborators, coordinated
 currently, mainly at the Technische Universität Kaiserslautern.
@@ -18,7 +18,7 @@ into a comprehensive tool for computational algebra.
 Oscar is licensed under the GLP 3 (see LICENSE.md).
 """
 module Oscar
-const global VERSION_NUMBER = v"0.2.0"
+
 #=
   We currently only import packages which:
     * are registered
@@ -32,13 +32,14 @@ import Hecke
 import Singular
 import Polymake
 import GAP
+import Pkg
 using Markdown
 # to allow access to the cornerstones! Otherwise, not even import or using from the
 # user level will work as none of them will have been "added" by the user.
 # possibly all should add a doc string to the module?
 export Nemo, Hecke, Singular, Polymake, AbstractAlgebra, GAP
 
-import AbstractAlgebra: @show_name, @show_special
+import AbstractAlgebra: @show_name, @show_special, force_coerce, force_op
 
 function __init__()
   println(" -----    -----    -----      -      -----   ")
@@ -57,6 +58,24 @@ function __init__()
   println("Type: '?Oscar' for more information")
   println("(c) 2019-2020 by The Oscar Development Team")
 end
+
+if VERSION >= v"1.4"
+  ver = Pkg.dependencies()[Base.UUID("f1435218-dba5-11e9-1e4d-f1a5fab5fc13")]
+  if occursin("/dev/", ver.source)
+    global VERSION_NUMBER = VersionNumber("$(ver.version)-dev")
+  else
+    global VERSION_NUMBER = VersionNumber("$(ver.version)")
+  end
+else
+  ver = Pkg.installed()["Oscar"]
+  dir = dirname(@__DIR__)
+  if occursin("/dev/", dir)
+    global VERSION_NUMBER = VersionNumber("$(ver)-dev")
+  else
+    global VERSION_NUMBER = VersionNumber("$(ver)")
+  end
+end
+
 
 
 include("OscarTypes.jl")
