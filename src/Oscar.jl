@@ -81,6 +81,26 @@ else
   end
 end
 
+const pkgdir = joinpath(dirname(pathof(Oscar)), "..")
+
+
+function example(s::String)
+  Base.include(Main, joinpath(dirname(pathof(Oscar)), "..", "examples", s))
+end
+
+function revise(s::String)
+  s = joinpath(dirname(pathof(Oscar)), "..", "examples", s)
+  Main.Revise.track(Main, s)
+end
+
+function system(s::String)
+  Base.include(Main, joinpath(dirname(pathof(Oscar)), "..", "system", s))
+end
+
+function build()
+  system("Build.jl")
+end
+
 include("OscarTypes.jl")
 
 include("Rings/integer.jl")
