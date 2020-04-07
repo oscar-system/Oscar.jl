@@ -10,10 +10,8 @@ include(joinpath(Oscar.pkgdir, "test", "runtests.jl"))
 Hecke.test_module("runtests", false)
 """)
 
-PackageCompiler.create_sysimage([:Oscar, :Hecke, :Nemo, :AbstractAlgebra, :Singular, :Polymake, :GAP], sysimage_path="/tmp/Oscar.so", precompile_execution_file="/tmp/CompileOscar.jl")        
+sysimage="/tmp/Oscar.$(Libdl.dlext)"
+PackageCompiler.create_sysimage([:Oscar], sysimage_path=sysimage, precompile_execution_file="/tmp/CompileOscar.jl")
 
 println("(re)start julia as")
-println("\tjulia -J /tmp/Oscar.so")
-
-
-
+println("\tjulia -J $(sysimage)")
