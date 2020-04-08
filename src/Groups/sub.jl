@@ -149,6 +149,9 @@ function haspreimage(f::GAPGroupHomomorphism, x::GroupElem)
   end
 end
 
+"""
+TODO: document this
+"""
 function preimage(f::GAPGroupHomomorphism{S, T}, H::T) where S <: Group where T <: Group
   H1 = GAP.Globals.PreImage(f.map, H.X)
   return _as_subgroup(H1, domain(f))

@@ -99,7 +99,7 @@ end
 
 end
 
-TestDirectProds=function(G1::Group, G2::Group)
+TestDirectProds=function(G1,G2)
    G,f1,f2,p1,p2 = direct_product(G1,G2, :both)
 
    @test isinjective(f1)
@@ -120,14 +120,14 @@ TestDirectProds=function(G1::Group, G2::Group)
       @test f1(G1[i])==G[i]
    end
    for i in 1:ngens(G2)
-      @test f2(G2[i])==G[i+ngens(G2)]
+      @test f2(G2[i])==G[i+ngens(G1)]
    end
    q1=p1*f1
    q2=p2*f2
-   @test isisomorphic(kernel(q1)[1],G2)
-   @test isisomorphic(image(q1)[1],G1)
-   @test isisomorphic(kernel(q2)[1],G1)
-   @test isisomorphic(image(q2)[1],G2)
+   @test isisomorphic(kernel(q1)[1],G2)[1]
+   @test isisomorphic(image(q1)[1],G1)[1]
+   @test isisomorphic(kernel(q2)[1],G1)[1]
+   @test isisomorphic(image(q2)[1],G2)[1]
 end
 
 @testset "Direct product" begin
@@ -157,5 +157,49 @@ end
    TestDirectProds(S4,A5)
    @test order(G)==1440
    @test typeof(G)==PermGroup
+end
+
+TestKernels = function(G,H,f)
+   K,i = kernel(f)
+   Im = image(f)[1]
+
+   @test preimage(f,H)==(G,id_hom(G))
+   @test preimage(f,sub(H,[one(H)])[1])==(K,i)
+   z=rand(Im)
+   @test haspreimage(f,z)[1]
+   @test f(haspreimage(f,z)[2])==z
+
+   @test isinjective(i)
+   for j in 1:ngens(K)
+      @test i(K[j]) in G
+      @test (i*f)(K[j])==one(H)
+      @test index(G,K)==order(Im)
+   end
+   if isnormal(H,Im) 
+      C,p = cokernel(f)
+        @test issurjective(p)
+      for j in 1:ngens(G)
+         @test (f*p)(G[j])==one(C)
+      end
+      @test index(H,Im)==order(C)
+   end
+end
+   
+@testset "Kernel and cokernel" begin
+   G=symmetric_group(4)
+   z=rand(G)
+   TestKernels(G,G,hom(G,G, x -> x^z))
+   
+   C=cyclic_group(2)
+   TestKernels(G,C,hom(G,C,gens(G),[C[1],C[1]]))      #sign
+
+   G=GL(2,7)
+   C=cyclic_group(6)
+   TestKernels(G,C,hom(G,C,gens(G),[C[1],one(C)]))        #determinant
+
+   G=abelian_group([3,3,3])
+   H=abelian_group([3,3])
+   f=hom(G,H,gens(G),[H[1],one(H),one(H)])
+   TestKernels(G,H,f)
 end
 
