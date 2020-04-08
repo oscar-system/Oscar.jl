@@ -1,7 +1,8 @@
 using Pkg
 Pkg.add("PackageCompiler")
+Pkg.add("Libdl")
 
-using PackageCompiler
+using PackageCompiler, Libdl
 
 write("/tmp/CompileOscar.jl", """
 using Oscar
