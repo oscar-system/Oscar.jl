@@ -145,13 +145,13 @@ function haspreimage(f::GAPGroupHomomorphism, x::GroupElem)
   if r == GAP.Globals.fail
     return false, one(domain(f))
   else
-    return true, group_elem(domain(f), r)
+    return true, group_element(domain(f), r)
   end
 end
 
-function preimage(f::GAPGroupHomomorphism{S, T}, H::S) where S <: Group where T <: Group
+function preimage(f::GAPGroupHomomorphism{S, T}, H::T) where S <: Group where T <: Group
   H1 = GAP.Globals.PreImage(f.map, H.X)
-  return _as_subgroup(H1, codomain(f))
+  return _as_subgroup(H1, domain(f))
 end
 
 ################################################################################
@@ -302,7 +302,7 @@ end
 function __create_fun(mp, codom, ::Type{S}) where S
   function mp_julia(x::S)
     el = GAP.Globals.Image(mp, x.X)
-    return group_elem(codom, el)
+    return group_element(codom, el)
   end
   return mp_julia
 end
