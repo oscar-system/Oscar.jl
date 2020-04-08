@@ -6,8 +6,8 @@ Polymake, Antic and Singular.
 
 ## Installation
 
-* Download Julia version 1.3 or higher
-* In Julia type
+OSCAR requires Julia 1.3 or newer. In principle it can be installed and used
+like any other Julia package; doing so will take a couple of minutes:
 
 ```
 julia> using Pkg
@@ -15,30 +15,9 @@ julia> Pkg.add("Oscar")
 julia> using Oscar
 ```
 
-or, to be at cutting edge:
-
-```
-julia> using Pkg
-julia> Pkg.add(Oscar#master)
-julia> using Oscar
-```
-
-Installation will take a couple of minutes.
-
-## Current requirements
-
-* we support Julia 1.3 and we try to get ready a.s.a.p. for the upcoming Julia 1.4
-* target platforms: x86_64-linux-gnu, x86_64-apple-darwin14
-* CxxWrap 0.9.0
-* travis: distribution ubuntu bionic
-
-Some explanations:
-
-* Julia 1.0 is the latest LTS version, but it seems unlikely that GAP (with its garbage collection) can ever be supported
-* Julia 1.1 and 1.2 do not receive any back ports any more
-* Windows support only through WSL (i.e., this is covered by x86_64-linux-gnu)
-* The travis configuration is important for building CxxWrap; otherwise the compiler is too old.
-
+However, some of Oscar's components have additional requirements.
+For more detailed information, please consult the [installation
+instructions](https://oscar.computeralgebra.de/install/) on our website.
 
 ## Examples of usage
 
