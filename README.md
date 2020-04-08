@@ -132,3 +132,9 @@ PropertyValue wrapping pm::Array<polymake::topaz::HomologyGroup<pm::Integer>>
 ({} 0)
 
 ```
+
+## Funding
+
+The development of this Julia package is supported by the Deutsche
+Forschungsgemeinschaft DFG within the
+[Collaborative Research Center TRR 195](https://www.computeralgebra.de/sfb/).
