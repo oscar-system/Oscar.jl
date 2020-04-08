@@ -69,15 +69,20 @@ if VERSION >= v"1.4"
       global VERSION_NUMBER = VersionNumber("$(ver.version)")
     end
   else
-    global VERSION_NUMBER = "building"
+    global VERSION_NUMBER = "not installed"
   end
 else
-  ver = Pkg.installed()["Oscar"]
-  dir = dirname(@__DIR__)
-  if occursin("/dev/", dir)
-    global VERSION_NUMBER = VersionNumber("$(ver)-dev")
+  deps = Pkg.installed()
+  if haskey(deps, "Oscar")
+    ver = deps["Oscar"]
+    dir = dirname(@__DIR__)
+    if occursin("/dev/", dir)
+      global VERSION_NUMBER = VersionNumber("$(ver)-dev")
+    else
+      global VERSION_NUMBER = VersionNumber("$(ver)")
+    end
   else
-    global VERSION_NUMBER = VersionNumber("$(ver)")
+    global VERSION_NUMBER = "not installed"
   end
 end
 
