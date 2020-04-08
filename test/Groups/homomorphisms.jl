@@ -99,3 +99,63 @@ end
 
 end
 
+TestDirectProds=function(G1::Group, G2::Group)
+   G,f1,f2,p1,p2 = direct_product(G1,G2, :both)
+
+   @test isinjective(f1)
+   @test isinjective(f2)
+   @test issurjective(p1)
+   @test issurjective(p2)
+   @test domain(f1)==G1
+   @test codomain(f1)==G
+   @test domain(f2)==G2
+   @test codomain(f2)==G
+   @test domain(p1)==G
+   @test codomain(p1)==G1
+   @test domain(p2)==G
+   @test codomain(p2)==G2
+   @test f1*p1==id_hom(G1)
+   @test f2*p2==id_hom(G2)
+   for i in 1:ngens(G1)
+      @test f1(G1[i])==G[i]
+   end
+   for i in 1:ngens(G2)
+      @test f2(G2[i])==G[i+ngens(G2)]
+   end
+   q1=p1*f1
+   q2=p2*f2
+   @test isisomorphic(kernel(q1)[1],G2)
+   @test isisomorphic(image(q1)[1],G1)
+   @test isisomorphic(kernel(q2)[1],G1)
+   @test isisomorphic(image(q2)[1],G2)
+end
+
+@testset "Direct product" begin
+   C2 = cyclic_group(2)
+   C4 = cyclic_group(4)
+   G = direct_product(C2,C4)[1]
+   TestDirectProds(C2,C4)
+   @test order(G)==8
+   @test isabelian(G)
+   @test !iscyclic(G)
+   @test typeof(G)==PcGroup
+   @test Set([order(x) for x in G])==Set([1,2,4])
+
+   C3 = cyclic_group(3)
+   C7 = cyclic_group(7)
+   G = direct_product(C3,C7)[1]
+   TestDirectProds(C3,C7)
+   @test order(G)==21
+   @test isabelian(G)
+   @test iscyclic(G)
+   @test typeof(G)==PcGroup
+   @test Set([order(x) for x in G])==Set([1,3,7,21])
+
+   S4 = symmetric_group(4)
+   A5 = alternating_group(5)
+   G = direct_product(S4,A5)[1]
+   TestDirectProds(S4,A5)
+   @test order(G)==1440
+   @test typeof(G)==PermGroup
+end
+
