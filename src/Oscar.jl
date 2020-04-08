@@ -72,7 +72,7 @@ if VERSION >= v"1.4"
     global VERSION_NUMBER = "not installed"
   end
 else
-  deps = Pkg.installed()
+  deps = Pkg.API.__installed(Pkg.PKGMODE_MANIFEST) #to also get installed dependencies
   if haskey(deps, "Oscar")
     ver = deps["Oscar"]
     dir = dirname(@__DIR__)
