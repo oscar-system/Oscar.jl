@@ -66,7 +66,13 @@ struct GAPGroupElem{T<:Group} <: AbstractAlgebra.GroupElem
 end
 
 """
-TODO: document this
+    PermGroup
+Groups of permutations. Every group of this type is the subgroup of Sym(n) for some n.
+#Examples
+- `symmetric_group(n::Int)`: the symmetric group Sym(n)
+- `alternating_group(n::Int)`: the alternating group Alt(n)
+- subgroups of Sym(n)
+- `dihedral_group(PermGroup, n::Int)`: the dihedral group D(n) as group of permutations. Same holds replacing `dihedral_group` by `quaternion_group`
 """
 struct PermGroup <: Group
    X::GapObj

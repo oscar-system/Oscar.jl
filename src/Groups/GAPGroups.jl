@@ -102,7 +102,16 @@ function ==(x::T, y::T) where T <: GAPGroupElem
    return x.X == y.X
 end
 
+"""
+    one(G::Group) -> x::GAPGroupElem{typeof(G)}
+Returns the one element of the group G.
+"""
 Base.:one(x::Group) = group_element(x, GAP.Globals.Identity(x.X))
+
+"""
+    one(x::GAPGroupElement{T}) -> x::GAPGroupElem{T}
+Returns the one element of the parent of x.
+"""
 Base.:one(x::GAPGroupElem) = one(parent(x))
 one!(x::GAPGroupElem) = one(parent(x))
 
@@ -152,10 +161,22 @@ function iterate(G::Group, state)
   return group_element(G, i), state
 end
 
+"""
+    perm(L::Array{Int64,1})
+Given the array of positive integers `V`, returns the permutation `x` sending V[i] into V[i+1] for every i. V must contain exactly one time every integer from 1 to n for n = length(V).
+
+The parent of `x` is set as Sym(n), where n is the largest moved point of `x`.
+"""
 function perm(L::Array{Int64,1})
    return PermGroupElem(symmetric_group(length(L)), GAP.Globals.PermList(GAP.julia_to_gap(L)))
 end
 
+"""
+    perm(L::Array{Int64,1})
+Given the array of positive integers `V`, returns the permutation `x` sending V[i] into V[i+1] for every i. V must contain exactly one time every integer from 1 to n for n = length(V).
+
+The parent of `x` is G. If `x` is not in G, it return ERROR.
+"""
 function perm(g::PermGroup, L::Array{Int64,1})
    x = GAP.Globals.PermList(GAP.julia_to_gap(L))
    if GAP.Globals.IN(x,g.X) 
@@ -166,6 +187,15 @@ end
 
 # cperm stays for "cycle permutation", but we can change name if we want
 # takes as input a list of arrays (not necessarly disjoint)
+"""
+    cperm(L::Union{Array{Int64,1},UnitRange{Int64}}...)
+For given lists of positive integers `[a_1, a_2, ..., a_n],[b_1, b_2, ... , b_m], ...` return the
+permutation `x = (a_1,a_2,...,a_n)(b_1,b_2,...,b_m)...`. The array `[n,n+1,...,n+k]` can be replaced by `n:n+k`.
+  
+If a list is epmty or contains duplicates or holes, it fails.
+
+The parent of `x` is set as Sym(n), where n is the largest moved point of `x`.
+"""
 function cperm(L::Union{Array{Int64,1},UnitRange{Int64}}...)
    if length(L)==0
       return one(symmetric_group(1))
@@ -177,6 +207,16 @@ end
 # cperm stays for "cycle permutation", but we can change name if we want
 # takes as input a list of arrays (not necessarly disjoint)
 # WARNING: we allow e.g. PermList([2,3,1,4,5,6]) in Sym(3)
+
+"""
+    cperm(G::PermGroup, L::Union{Array{Int64,1},UnitRange{Int64}}...)
+For given lists of positive integers `[a_1, a_2, ..., a_n],[b_1, b_2, ... , b_m], ...` return the
+permutation `(a_1,a_2,...,a_n)(b_1,b_2,...,b_m)...`. The array `[n,n+1,...,n+k]` can be replaced by `n:n+k`.
+  
+If a list is epmty or contains duplicates or holes, it fails.
+
+The parent of `x` is G. If `x` is not in G, it return ERROR.
+"""
 function cperm(g::PermGroup,L::Union{Array{Int64,1},UnitRange{Int64}}...)
    if length(L)==0
       return one(g)
