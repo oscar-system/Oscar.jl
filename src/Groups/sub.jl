@@ -1,5 +1,3 @@
-
-
 export id_hom, trivial_morphism, hom, domain, codomain, image, issurjective, isinjective, 
        isinvertible, isbijective, automorphism_group, sub, quo, kernel, cokernel, haspreimage, isisomorphic,
        center, index, centralizer, order

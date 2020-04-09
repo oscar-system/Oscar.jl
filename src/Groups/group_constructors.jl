@@ -4,9 +4,33 @@
 #  
 ################################################################################
 
-export symmetric_group, alternating_group, issymmetric_group, isalternating_group, small_group, small_groups_id, transitive_group,
-       cyclic_group, abelian_group, mathieu_group, free_group, free_abelian_group, dihedral_group,
-       quaternion_group, GL, SL, symplectic_group, unitary_group, special_unitary_group, orthogonal_group, special_orthogonal_group, omega_group, isquaternion_group, isabelian, iscyclic, isdihedral_group
+export
+    abelian_group,
+    alternating_group,
+    cyclic_group,
+    dihedral_group,
+    free_abelian_group,
+    free_group,
+    GL,
+    isabelian,
+    isalternating_group,
+    iscyclic,
+    isdihedral_group,
+    isquaternion_group,
+    issymmetric_group,
+    mathieu_group,
+    omega_group,
+    orthogonal_group,
+    quaternion_group,
+    SL,
+    small_group,
+    small_groups_id,
+    special_orthogonal_group,
+    special_unitary_group,
+    symmetric_group,
+    symplectic_group,
+    transitive_group,
+    unitary_group
 
 
 _gap_filter(::Type{PermGroup}) = GAP.Globals.IsPermGroup
@@ -120,9 +144,11 @@ function free_group(L::String...)
    return FPGroup(GAP.Globals.FreeGroup(J))
 end
 
-function free_abelian_group(n::Int)
-  return FPGroup(GAP.Globals.FreeAbelianGroup(n))
-end
+# FIXME: a function `free_abelian_group` with the same signature is
+# already being defined by Hecke
+#function free_abelian_group(n::Int)
+#  return FPGroup(GAP.Globals.FreeAbelianGroup(n))
+#end
 
 # for the definition of group modulo relations, see the quo function in the sub.jl section
 

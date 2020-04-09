@@ -1,9 +1,56 @@
-export PermGroup, PermGroupElem,
-       MatrixGroup, MatrixGroupElem,
-       PcGroup, PcGroupElem,
-       FPGroup, FPGroupElem,
-       AutomorphismGroup, AutomorphismGroupElem,
-       elem_type
+import Hecke:
+    abelian_group,
+    automorphism_group,
+    center,
+    codomain,
+    cokernel,
+    compose,
+    degree,
+    derived_series,
+    direct_product,
+    domain,
+    elem_type,
+    elements,
+    free_abelian_group,
+    gens,
+    haspreimage,
+    hom,
+    id_hom,
+    image,
+    index,
+    inv!,
+    isabelian,
+    isbijective,
+    ischaracteristic,
+    isconjugate,
+    iscyclic,
+    isinjective,
+    isinvertible,
+    isisomorphic,
+    isnormal,
+    issimple,
+    issurjective,
+    kernel,
+    mul,
+    mul!,
+    ngens,
+    one!,
+    order,
+    perm,
+    preimage,
+    quo,
+    representative,
+    small_group,
+    sub,
+    subgroups
+
+
+export PermGroup, PermGroupElem
+export MatrixGroup, MatrixGroupElem
+export PcGroup, PcGroupElem
+export FPGroup, FPGroupElem
+export AutomorphismGroup, AutomorphismGroupElem
+export elem_type
 
 """
 TODO: document this
