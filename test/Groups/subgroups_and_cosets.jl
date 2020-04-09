@@ -1,3 +1,34 @@
+@testset "Subgroups" begin
+   G = symmetric_group(7)
+   x = cperm(G,[1,2,3,4,5,6,7])
+   y = cperm(G,[1,2,3])
+   z = cperm(G,[1,2])
+
+   H,f=sub(G,[x,y])
+   K,g=sub(x,y)
+   @test H isa PermGroup
+   @test H==alternating_group(7)
+   @test domain(f)==H
+   @test codomain(f)==G
+   @test [f(x) for x in gens(H)]==gens(H)
+   @test (H,f)==(K,g)
+   @test isnormal(G,H)
+   H,f=sub(G,[x,z])
+   @test H==G
+   @test f==id_hom(G)
+
+
+   G = symmetric_group(4)
+   L = subgroups(G)
+   @test length(L)==30
+   @test L[1] isa Tuple{PermGroup,Oscar.GAPGroupHomomorphism{PermGroup,PermGroup}}
+   L1 = [x for x in L if isnormal(G,x[1])]
+   K = [H[1] for H in normal_subgroups(G)]
+   @test length(K)==4
+   for H in L1
+      @test H[1] in K
+   end
+end
 
 @testset "Cosets" begin
   
