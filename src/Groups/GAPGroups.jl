@@ -12,7 +12,7 @@ right_cosets , right_transversal, conjugacy_class, conjugacy_classes, number_con
 
 
 function group_element(G::T, x::GapObj) where T <: Group
-  return GroupElem{T}(G, x)
+  return GAPGroupElem{T}(G, x)
 end
 
 function elements(G::T) where T <: Group
@@ -27,9 +27,9 @@ function elements(G::T) where T <: Group
 end
 
 # to be fixed later
-Base.:hash(x::GroupElem) = 0
+Base.:hash(x::GAPGroupElem) = 0
 
-function parent(x::GroupElem)
+function parent(x::GAPGroupElem)
   return x.parent
 end
 
@@ -53,11 +53,11 @@ function order(x::Group)
    return GAP.gap_to_julia(GAP.Globals.Size(x.X))
 end
 
-function order(x::GroupElem)
+function order(x::GAPGroupElem)
    return GAP.gap_to_julia(GAP.Globals.Order(x.X))
 end
 
-function order(::Type{T}, x::Union{GroupElem, Group}) where T<:Number
+function order(::Type{T}, x::Union{GAPGroupElem, Group}) where T<:Number
    return T(order(x))
 end
 
@@ -87,53 +87,53 @@ function _maxgroup(x::T, y::T) where T <: Group
 end
 
 #We need a lattice of groups to implement this properly
-function _prod(x::T, y::T) where T <: GroupElem
+function _prod(x::T, y::T) where T <: GAPGroupElem
   G = _maxgroup(parent(x), parent(y))
   return group_element(G, x.X*y.X)
 end
 
-Base.:*(x::GroupElem, y::GroupElem) = _prod(x, y)
+Base.:*(x::GAPGroupElem, y::GAPGroupElem) = _prod(x, y)
 
 function ==(x::Group, y::Group)
    return x.X == y.X
 end
 
-function ==(x::T, y::T) where T <: GroupElem
+function ==(x::T, y::T) where T <: GAPGroupElem
    return x.X == y.X
 end
 
 Base.:one(x::Group) = group_element(x, GAP.Globals.Identity(x.X))
-Base.:one(x::GroupElem) = one(parent(x))
-one!(x::GroupElem) = one(parent(x))
+Base.:one(x::GAPGroupElem) = one(parent(x))
+one!(x::GAPGroupElem) = one(parent(x))
 
-Base.:show(io::IO, x::GroupElem) =  print(io, GAP.gap_to_julia(GAP.Globals.StringView(x.X)))
+Base.:show(io::IO, x::GAPGroupElem) =  print(io, GAP.gap_to_julia(GAP.Globals.StringView(x.X)))
 Base.:show(io::IO, x::Group) = print(io, GAP.gap_to_julia(GAP.Globals.StringView(x.X)))
 
-Base.:isone(x::GroupElem) = x == one(parent(x))
+Base.:isone(x::GAPGroupElem) = x == one(parent(x))
 
-Base.:inv(x::GroupElem) = group_element(parent(x), GAP.Globals.Inverse(x.X))
+Base.:inv(x::GAPGroupElem) = group_element(parent(x), GAP.Globals.Inverse(x.X))
 
-inv!(out::GroupElem, x::GroupElem) = inv(x)  #if needed later
+inv!(out::GAPGroupElem, x::GAPGroupElem) = inv(x)  #if needed later
 
-Base.:^(x::GroupElem, y::Int) = group_element(parent(x), x.X ^ y)
+Base.:^(x::GAPGroupElem, y::Int) = group_element(parent(x), x.X ^ y)
 
 Base.:<(x::PermGroupElem, y::PermGroupElem) = x.X < y.X
 
-Base.:/(x::GroupElem, y::GroupElem) = x*y^-1
+Base.:/(x::GAPGroupElem, y::GAPGroupElem) = x*y^-1
 
-mul(x::GroupElem, y::GroupElem) = x*y
-mul!(out::GroupElem, x::GroupElem, y::GroupElem) = x*y
+mul(x::GAPGroupElem, y::GAPGroupElem) = x*y
+mul!(out::GAPGroupElem, x::GAPGroupElem, y::GAPGroupElem) = x*y
 
-div_right(x::GroupElem, y::GroupElem) = x*inv(y)
-div_left(x::GroupElem, y::GroupElem) = inv(y)*x
-div_right!(out::GroupElem, x::GroupElem, y::GroupElem) = x*inv(y)
-div_left!(out::GroupElem, x::GroupElem, y::GroupElem) = inv(y)*x
+div_right(x::GAPGroupElem, y::GAPGroupElem) = x*inv(y)
+div_left(x::GAPGroupElem, y::GAPGroupElem) = inv(y)*x
+div_right!(out::GAPGroupElem, x::GAPGroupElem, y::GAPGroupElem) = x*inv(y)
+div_left!(out::GAPGroupElem, x::GAPGroupElem, y::GAPGroupElem) = inv(y)*x
 
-conj(x::GroupElem, y::GroupElem) = x^y
-conj!(out::GroupElem, x::GroupElem, y::GroupElem) = x^y
+conj(x::GAPGroupElem, y::GAPGroupElem) = x^y
+conj!(out::GAPGroupElem, x::GAPGroupElem, y::GAPGroupElem) = x^y
 
-comm(x::GroupElem, y::GroupElem) = x^-1*x^y
-comm!(out::GroupElem, x::GroupElem, y::GroupElem) = x^-1*x^y
+comm(x::GAPGroupElem, y::GAPGroupElem) = x^-1*x^y
+comm!(out::GAPGroupElem, x::GAPGroupElem, y::GAPGroupElem) = x^-1*x^y
 
 function iterate(G::Group)
   L=GAP.Globals.Iterator(G.X)
@@ -228,7 +228,7 @@ function (x::PermGroupElem)(n)
    return GAP.Globals.OnPoints(n,x.X)
 end
 
-function conjugate_subgroup(G::T, x::GroupElem) where T<:Group
+function conjugate_subgroup(G::T, x::GAPGroupElem) where T<:Group
   return T(GAP.Globals.ConjugateSubgroup(G.X,x.X))
 end
 
@@ -238,7 +238,7 @@ end
 #
 ################################################################################
 
-struct GroupConjClass{T<:Group, S<:Union{GroupElem,Group}}
+struct GroupConjClass{T<:Group, S<:Union{GAPGroupElem,Group}}
    X::T
    repr::S
    CC::GapObj
@@ -259,15 +259,15 @@ representative(C::GroupConjClass) = C.repr
 number_conjugacy_classes(G::Group) = GAP.Globals.NrConjugacyClasses(G.X)
 
 # START elements conjugation
-function conjugacy_class(G::Group, g::GroupElem)
+function conjugacy_class(G::Group, g::GAPGroupElem)
    return _conjugacy_class(G, g, GAP.Globals.ConjugacyClass(G.X,g.X))
 end
 
-function rand(C::GroupConjClass{S,T}) where S where T<:GroupElem
+function rand(C::GroupConjClass{S,T}) where S where T<:GAPGroupElem
    return group_element(C.X, GAP.Globals.Random(C.CC))
 end
 
-function elements(C::GroupConjClass{S, T}) where S where T<:GroupElem
+function elements(C::GroupConjClass{S, T}) where S where T<:GAPGroupElem
    L=GAP.gap_to_julia(GAP.Globals.AsList(C.CC))
    return T[group_element(C.X,x) for x in L]
 end
@@ -277,9 +277,9 @@ function conjugacy_classes(G::Group)
    return GroupConjClass{typeof(G), elem_type(G)}[ _conjugacy_class(G,group_element(G,GAP.Globals.Representative(cc)),cc) for cc in L]
 end
 
-Base.:^(x::GroupElem, y::GroupElem) = group_element(_maxgroup(parent(x), parent(y)), x.X ^ y.X)
+Base.:^(x::GAPGroupElem, y::GAPGroupElem) = group_element(_maxgroup(parent(x), parent(y)), x.X ^ y.X)
 
-function isconjugate(G::Group, x::GroupElem, y::GroupElem)
+function isconjugate(G::Group, x::GAPGroupElem, y::GAPGroupElem)
    if GAP.Globals.IsConjugate(G.X, x.X, y.X)
       return true, group_element(G,GAP.Globals.RepresentativeAction(G.X, x.X, y.X))
    else
@@ -316,7 +316,7 @@ function conjugacy_classes_maximal_subgroups(G::Group)
   return res
 end
 
-Base.:^(H::Group, y::GroupElem) = typeof(H)(H.X ^ y.X)
+Base.:^(H::Group, y::GAPGroupElem) = typeof(H)(H.X ^ y.X)
 
 function is_conjugate(G::Group, H::Group, K::Group)
    if GAP.Globals.IsConjugate(G.X, H.X, K.X)
@@ -337,7 +337,7 @@ end
 
 normalizer(G::T, H::T) where T<:Group = _as_subgroup(GAP.Globals.Normalizer(G.X,H.X),G)
 
-normalizer(G::Group, x::GroupElem) = _as_subgroup(GAP.Globals.Normalizer(G.X,x.X),G)
+normalizer(G::Group, x::GAPGroupElem) = _as_subgroup(GAP.Globals.Normalizer(G.X,x.X),G)
 
 normaliser = normalizer
 

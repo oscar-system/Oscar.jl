@@ -60,7 +60,7 @@ abstract type Group <: AbstractAlgebra.Group end
 """
 TODO: document this
 """
-struct GroupElem{T<:Group} <: AbstractAlgebra.GroupElem
+struct GAPGroupElem{T<:Group} <: AbstractAlgebra.GroupElem
    parent::T
    X::GapObj
 end
@@ -89,7 +89,7 @@ end
 """
 TODO: document this
 """
-const PermGroupElem = GroupElem{PermGroup}
+const PermGroupElem = GAPGroupElem{PermGroup}
 
 """
 TODO: document this
@@ -106,7 +106,7 @@ end
 """
 TODO: document this
 """
-const MatrixGroupElem = GroupElem{MatrixGroup}
+const MatrixGroupElem = GAPGroupElem{MatrixGroup}
 
 """
 TODO: document this
@@ -123,7 +123,7 @@ end
 """
 TODO: document this
 """
-const PcGroupElem = GroupElem{PcGroup}
+const PcGroupElem = GAPGroupElem{PcGroup}
 
 """
 TODO: document this
@@ -141,7 +141,7 @@ end
 """
 TODO: document this
 """
-const FPGroupElem = GroupElem{FPGroup}
+const FPGroupElem = GAPGroupElem{FPGroup}
 
 """
 TODO: document this
@@ -159,20 +159,20 @@ end
 """
 TODO: document this
 """
-const AutomorphismGroupElem = GroupElem{AutomorphismGroup}
+const AutomorphismGroupElem = GAPGroupElem{AutomorphismGroup}
 
 
 """
 TODO: document this
 
 `elem_type` maps a group to the type of its elements. For now,
-a group of type `T` has elements of type `GroupElem{T}`. So
+a group of type `T` has elements of type `GAPGroupElem{T}`. So
 we provide it mostly for consistency with other parts of OSCAR.
 In the future, a more elaborate setup for group element types
 might also be needed.
 """
 
-elem_type(::T) where T <: Group = GroupElem{T}
+elem_type(::T) where T <: Group = GAPGroupElem{T}
 
 
 #

@@ -1,7 +1,7 @@
 export right_coset, left_coset, representative, elements, isbicoset, right_cosets, right_transversal, double_coset, acting_domain
 
 # T=type of the group, S=type of the element
-mutable struct GroupCoset{T<: Group, S <: GroupElem} 
+mutable struct GroupCoset{T<: Group, S <: GAPGroupElem} 
    X::T                    # big group containing the subgroup and the element
    H::T                    # subgroup
    repr::S                 # element
@@ -9,11 +9,11 @@ mutable struct GroupCoset{T<: Group, S <: GroupElem}
    coset::GapObj           # GapObj(H*repr)
 end
 
-function _group_coset(X::Group, H::Group, repr::GroupElem, side::Symbol, coset::GapObj)
+function _group_coset(X::Group, H::Group, repr::GAPGroupElem, side::Symbol, coset::GapObj)
   return GroupCoset{typeof(X), typeof(repr)}(X, H, repr, side, coset)
 end
 
-function right_coset(H::Group, g::GroupElem)
+function right_coset(H::Group, g::GAPGroupElem)
    @assert elem_type(H) == typeof(g)
    if !GAP.Globals.IsSubset(parent(g).X, H.X)
       throw(ArgumentError("H is not a subgroup of parent(g)"))
@@ -21,7 +21,7 @@ function right_coset(H::Group, g::GroupElem)
    return _group_coset(parent(g), H, g, :right, GAP.Globals.RightCoset(H.X,g.X))
 end
 
-function left_coset(H::Group, g::GroupElem)
+function left_coset(H::Group, g::GAPGroupElem)
    @assert elem_type(H) == typeof(g)
    if !GAP.Globals.IsSubset(parent(g).X, H.X)
       throw(ArgumentError("H is not a subgroup of parent(g)"))
@@ -90,7 +90,7 @@ end
 
 
 # T=type of the group, S=type of the element
-mutable struct GroupDoubleCoset{T <: Group, S <: GroupElem}
+mutable struct GroupDoubleCoset{T <: Group, S <: GAPGroupElem}
    X::T
    G::T
    H::T
@@ -100,7 +100,7 @@ end
 
 Base.:show(io::IO, x::GroupDoubleCoset) =  print(io, GAP.gap_to_julia(GAP.Globals.StringView(x.G.X))*" * "*GAP.gap_to_julia(GAP.Globals.StringView(x.repr.X))*" * "*GAP.gap_to_julia(GAP.Globals.StringView(x.H.X)))
 
-function double_coset(G::Group, g::GroupElem, H::Group)
+function double_coset(G::Group, g::GAPGroupElem, H::Group)
    if !GAP.Globals.IsSubset(parent(g).X,G.X)
       throw(ArgumentError("G is not a subgroup of parent(g)"))
    end

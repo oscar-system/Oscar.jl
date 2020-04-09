@@ -90,9 +90,9 @@ function codomain(f::GAPGroupHomomorphism)
   return f.codomain
 end
 
-(f::GAPGroupHomomorphism)(x::GroupElem) = image(f, x)
+(f::GAPGroupHomomorphism)(x::GAPGroupElem) = image(f, x)
 
-function image(f::GAPGroupHomomorphism, x::GroupElem)
+function image(f::GAPGroupHomomorphism, x::GAPGroupElem)
   return group_element(codomain(f), GAP.Globals.Image(f.map,x.X))
 end
 
@@ -138,7 +138,7 @@ function cokernel(f::GAPGroupHomomorphism)
   return quo(codomain(f), K)
 end
 
-function haspreimage(f::GAPGroupHomomorphism, x::GroupElem)
+function haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem)
   r = GAP.Globals.PreImagesRepresentative(f.map, x.X)
   if r == GAP.Globals.fail
     return false, one(domain(f))
@@ -175,7 +175,7 @@ function _as_subgroup(H::GapObj, G::T) where T <: Group
   return __as_subgroup(H, G, S)
 end
 
-function sub(G::T, elements::Vector{S}) where T <: Group where S <: GroupElem
+function sub(G::T, elements::Vector{S}) where T <: Group where S <: GAPGroupElem
   @assert elem_type(G) == S
   elems_in_GAP = GAP.julia_to_gap(GapObj[x.X for x in elements])
   H = GAP.Globals.Group(elems_in_GAP)
@@ -183,7 +183,7 @@ function sub(G::T, elements::Vector{S}) where T <: Group where S <: GroupElem
   return _as_subgroup(H, G)
 end
 
-function sub(L::GroupElem...)
+function sub(L::GAPGroupElem...)
    if length(L)==0 throw(ArgumentError("Empty list")) end
    l=collect(L)
    @assert all(x -> parent(x) == parent(l[1]), l)
@@ -237,7 +237,7 @@ function centralizer(G::Group, H::Group)
   return _as_subgroup(C, G)
 end
 
-function centralizer(G::Group, x::GroupElem)
+function centralizer(G::Group, x::GAPGroupElem)
   C = GAP.Globals.Centralizer(G.X, x.X)
   return _as_subgroup(C, G)
 end
@@ -271,7 +271,7 @@ end
 #
 ################################################################################
 
-function quo(G::FPGroup, elements::Vector{S}) where T <: Group where S <: GroupElem
+function quo(G::FPGroup, elements::Vector{S}) where T <: Group where S <: GAPGroupElem
   @assert elem_type(G) == S
   elems_in_gap = GAP.julia_to_gap(GapObj[x.X for x in elements])
   Q=FPGroup((G.X)/elems_in_gap)
@@ -281,7 +281,7 @@ function quo(G::FPGroup, elements::Vector{S}) where T <: Group where S <: GroupE
   return Q, hom(G,Q,proj)
 end
 
-function quo(G::T, elements::Vector{S}) where T <: Group where S <: GroupElem
+function quo(G::T, elements::Vector{S}) where T <: Group where S <: GAPGroupElem
   @assert elem_type(G) == S
   elems_in_gap = GAP.julia_to_gap(GapObj[x.X for x in elements])
   H = GAP.Globals.NormalClosure(GAP.Globals.Group(elems_in_gap))
@@ -414,9 +414,9 @@ function hom(x::AutomorphismGroupElem)
   return _hom_from_gap_map(G, G, x)
 end
 
-(f::AutomorphismGroupElem)(x::GroupElem) = apply_automorphism(f, x)
+(f::AutomorphismGroupElem)(x::GAPGroupElem) = apply_automorphism(f, x)
 
-function apply_automorphism(f::GroupElem{AutomorphismGroup{T}}, x::GroupElem{T}; check = true) where T <: Group
+function apply_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, x::GAPGroupElem{T}; check = true) where T <: Group
   A = parent(f)
   G = parent(x)
   if check
@@ -425,7 +425,7 @@ function apply_automorphism(f::GroupElem{AutomorphismGroup{T}}, x::GroupElem{T};
   return typeof(x)(G, f.X(x.X))
 end
 
-function inner_automorphism(g::GroupElem)
+function inner_automorphism(g::GAPGroupElem)
   return _hom_from_gap_map(parent(g), parent(g), GAP.Globals.ConjugatorAutomorphism(parent(g).X, g.X))
 end
 
