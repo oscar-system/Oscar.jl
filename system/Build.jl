@@ -7,12 +7,12 @@ using PackageCompiler, Libdl
 write("/tmp/CompileOscar.jl", """
 using Oscar
 using Pkg, Test
-include(joinpath(Oscar.pkgdir, "test", "runtests.jl"))
-Hecke.test_module("runtests", false)
+Oscar.system("precompile.jl")
 """)
 
 sysimage="/tmp/Oscar.$(Libdl.dlext)"
-PackageCompiler.create_sysimage([:Oscar], sysimage_path=sysimage, precompile_execution_file="/tmp/CompileOscar.jl")
+#PackageCompiler.create_sysimage([:Oscar], sysimage_path=sysimage, precompile_execution_file="/tmp/CompileOscar.jl")
+PackageCompiler.create_sysimage([:Oscar], sysimage_path=sysimage, precompile_statements_file="/tmp/Oscar")
 
 println("(re)start julia as")
 println("\tjulia -J $(sysimage)")
