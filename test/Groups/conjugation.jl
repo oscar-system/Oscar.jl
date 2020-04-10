@@ -54,4 +54,32 @@
      y = rand(C[(i%5)+1])
      @test !isconjugate(G,x,y)[1]
   end
+
+  CC = conjugacy_classes_subgroups(G)
+  @test length(CC)==11
+  @testset for i in 1:length(CC)
+     @test CC[i] == conjugacy_class(G,representative(CC[i]))
+     @test order(CC[i]) == index(G, normalizer(G,representative(CC[i]))[1])
+  end
+  H=rand(subgroups(G))[1]
+  @test sum([order(c) for c in CC]) == length(subgroups(G))
+  @test sum([H in elements(c) for c in CC]) == 1         # H belongs to a unique conjugacy class
+  @testset for i in 1:length(CC)
+     c = CC[i]
+     x = rand(c)
+     y = rand(c)
+     @test isconjugate(G,x,y)[1]
+     z = isconjugate(G,x,y)[2]
+     @test x^z == y
+     y = rand(CC[(i % length(CC))+1])
+     @test !isconjugate(G,x,y)[1]
+  end
+
+  G = symmetric_group(10)
+  x = rand(G)
+  H = sub(G,[x])[1]
+  z = rand(G)
+  K = H^z
+  @test Set(K) == Set([y^z for y in H])
+
 end
