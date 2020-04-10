@@ -2,7 +2,7 @@
 
 export order, perm, cperm, isfinite, gens, ngens, comm, comm!, inv!, rand_pseudo, one!, div_right,
 div_left, div_right!, div_left!, deg, mul, mul!, listperm, degree, elements, right_coset, coset_decomposition,
-right_cosets , right_transversal, conjugacy_class, conjugacy_classes, number_conjugacy_classes, isconjugate
+right_cosets , right_transversal, conjugacy_class, conjugacy_classes, number_conjugacy_classes, isconjugate, conjugacy_classes_subgroups, conjugacy_classes_maximal_subgroups, normalizer
      #conj!, conj
 
 
@@ -164,7 +164,6 @@ end
 """
     perm(L::Array{Int64,1})
 Given the array of positive integers `V`, returns the permutation `x` sending V[i] into V[i+1] for every i. V must contain exactly one time every integer from 1 to n for n = length(V).
-
 The parent of `x` is set as Sym(n), where n is the largest moved point of `x`.
 """
 function perm(L::Array{Int64,1})
@@ -174,7 +173,6 @@ end
 """
     perm(L::Array{Int64,1})
 Given the array of positive integers `V`, returns the permutation `x` sending V[i] into V[i+1] for every i. V must contain exactly one time every integer from 1 to n for n = length(V).
-
 The parent of `x` is G. If `x` is not in G, it return ERROR.
 """
 function perm(g::PermGroup, L::Array{Int64,1})
@@ -193,7 +191,6 @@ For given lists of positive integers `[a_1, a_2, ..., a_n],[b_1, b_2, ... , b_m]
 permutation `x = (a_1,a_2,...,a_n)(b_1,b_2,...,b_m)...`. The array `[n,n+1,...,n+k]` can be replaced by `n:n+k`.
   
 If a list is epmty or contains duplicates or holes, it fails.
-
 The parent of `x` is set as Sym(n), where n is the largest moved point of `x`.
 """
 function cperm(L::Union{Array{Int64,1},UnitRange{Int64}}...)
@@ -214,7 +211,6 @@ For given lists of positive integers `[a_1, a_2, ..., a_n],[b_1, b_2, ... , b_m]
 permutation `(a_1,a_2,...,a_n)(b_1,b_2,...,b_m)...`. The array `[n,n+1,...,n+k]` can be replaced by `n:n+k`.
   
 If a list is epmty or contains duplicates or holes, it fails.
-
 The parent of `x` is G. If `x` is not in G, it return ERROR.
 """
 function cperm(g::PermGroup,L::Union{Array{Int64,1},UnitRange{Int64}}...)
@@ -330,7 +326,7 @@ end
 
 # START subgroups conjugation
 function conjugacy_class(G::T, g::T) where T<:Group
-   return _conjugacy_class{typeof(G), typeof(g)}(G, g, GAP.Globals.ConjugacyClassSubgroups(G.X,g.X))
+   return _conjugacy_class(G, g, GAP.Globals.ConjugacyClassSubgroups(G.X,g.X))
 end
 
 function rand(C::GroupConjClass{S,T}) where S where T<:Group
@@ -348,17 +344,13 @@ function conjugacy_classes_subgroups(G::Group)
 end
 
 function conjugacy_classes_maximal_subgroups(G::Group)
-  lS = GAP.Globals.ConjugacyClassesMaximalSubgroups(G.X)
-  res = Vector{GroupConjClass{typeof(G), elem_type(G)}}(undef, length(lS))
-  for i = 1:length(res)
-    res[i] = _conjugacy_class(G, typeof(G)(GAP.Globals.Representative(cc)), ls[i])
-  end
-  return res
+  L = GAP.gap_to_julia(GAP.Globals.ConjugacyClassesMaximalSubgroups(G.X))
+   return GroupConjClass{typeof(G), typeof(G)}[ _conjugacy_class(G,typeof(G)(GAP.Globals.Representative(cc)),cc) for cc in L]
 end
 
 Base.:^(H::Group, y::GAPGroupElem) = typeof(H)(H.X ^ y.X)
 
-function is_conjugate(G::Group, H::Group, K::Group)
+function isconjugate(G::Group, H::Group, K::Group)
    if GAP.Globals.IsConjugate(G.X, H.X, K.X)
       return true, group_element(G,GAP.Globals.RepresentativeAction(G.X, H.X, K.X))
    else
@@ -469,7 +461,6 @@ end
 
 """
     isperfect(G)
-
 Test whether `G` is a perfect group, i.e., equal to its derived subgroup.
 """
 isperfect(G::Group) = GAP.Globals.IsPerfectGroup(G.X)
@@ -491,4 +482,3 @@ function relators(G::FPGroup)
    F=free_group(G)
    return [group_element(F,x) for x in L]
 end
-
