@@ -6,7 +6,7 @@ currently, mainly at the Technische Universität Kaiserslautern.
 
 Written in Julia, it combines the well established systems
  * Singular
- * Gap
+ * GAP
  * Polymake
  * Hecke, Nemo and AbstractAlgebra
 into a comprehensive tool for computational algebra.

@@ -1,7 +1,7 @@
 # Oscar.jl
 
 Welcome to the OSCAR project, a visionary new computer algebra system
-which combines the capabilities of four cornerstone systems: Gap,
+which combines the capabilities of four cornerstone systems: GAP,
 Polymake, Antic and Singular.
 
 ## Installation
