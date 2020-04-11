@@ -1,5 +1,10 @@
 # Oscar.jl
 
+| **Documentation**                                                 | **Build Status**                                                                                |
+|:-----------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------:|
+| [![][docs-stable-img]][docs-stable-url] [![][docs-dev-img]][docs-dev-url] | [![][travis-img]][travis-url] [![][codecov-img]][codecov-url] |
+
+
 Welcome to the OSCAR project, a visionary new computer algebra system
 which combines the capabilities of four cornerstone systems: GAP,
 Polymake, Antic and Singular.
@@ -138,3 +143,18 @@ PropertyValue wrapping pm::Array<polymake::topaz::HomologyGroup<pm::Integer>>
 The development of this Julia package is supported by the Deutsche
 Forschungsgemeinschaft DFG within the
 [Collaborative Research Center TRR 195](https://www.computeralgebra.de/sfb/).
+
+[docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
+[docs-dev-url]: https://oscar-system.github.io/Oscar.jl/dev/
+
+[docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
+[docs-stable-url]: https://oscar-system.github.io/Oscar.jl/stable/
+
+[travis-img]: https://travis-ci.com/oscar-system/Oscar.jl.svg?branch=master
+[travis-url]: https://travis-ci.com/oscar-system/Oscar.jl
+
+[appveyor-img]: https://ci.appveyor.com/api/projects/status/github/oscar-system/Oscar.jl?svg=true
+[appveyor-url]: https://ci.appveyor.com/project/oscar-system/Oscar-jl
+
+[codecov-img]: https://codecov.io/gh/oscar-system/Oscar.jl/branch/master/graph/badge.svg
+[codecov-url]: https://codecov.io/gh/oscar-system/Oscar.jl
