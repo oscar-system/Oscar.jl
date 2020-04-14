@@ -18,7 +18,7 @@ into a comprehensive tool for computational algebra.
 Oscar is licensed under the GLP 3 (see LICENSE.md).
 """
 module Oscar
-
+ENV["WE'RE_OSCAR_NO_BANNERS_PLEASE!"] = true
 #=
   We currently only import packages which:
     * are registered
