@@ -28,6 +28,78 @@
    for H in L1
       @test H[1] in K
    end
+   
+   @test derived_subgroup(G)[1] == alternating_group(4)
+   L = derived_series(G)
+   @test L[1][1] == G
+   @test L[2][1] == alternating_group(4)
+   @test L[3][1] == sub(G, [cperm([1,2],[3,4]), cperm([1,3],[2,4])])[1]
+   @test L[4][1] == sub(G, [one(G)])[1]
+end
+
+@testset "Centralizers and Normalizers in Sym(n)" begin
+   G = symmetric_group(6)
+   x = cperm(G,[1,2])
+   y = cperm(G,[1,2,3,4])
+
+   Cx = centralizer(G,x)[1]
+   Cy = centralizer(G,y)[1]
+   @testset for i in 1:ngens(Cx)
+      @test Cx[i]*x == x*Cx[i]
+   end
+   @testset for i in 1:ngens(Cy)
+      @test Cy[i]*y == y*Cy[i]
+   end
+   notx = setdiff(G,Cx)
+   noty = setdiff(G,Cy)
+   @testset for i in 1:3
+      z=rand(notx)
+      @test z*x != x*z
+      z=rand(noty)
+      @test z*y != y*z
+   end
+   @test x in Cx
+   @test one(G) in Cx
+   @test isisomorphic(Cx, direct_product(symmetric_group(2),symmetric_group(4))[1])[1]
+   @test isisomorphic(Cy, direct_product(sub(G,[y])[1], symmetric_group(2))[1])[1]
+
+   Nx = normalizer(G,Cx)[1]
+   Ny = normalizer(G,Cy)[1]
+   @test isnormal(Nx,Cx)
+   @test isnormal(Ny,Cy)
+   notx = setdiff(G,Nx)
+   noty = setdiff(G,Ny)
+   @testset for i in 1:3
+      z=rand(notx)
+      @test Cx^z != Cx
+      z=rand(noty)
+      @test Cy^z != Cy
+   end
+
+   CCx = centralizer(G,Cx)[1]
+   CCy = centralizer(G,Cy)[1]
+   @testset for i in 1:ngens(Cx)
+      for j in 1:ngens(CCx)
+         @test Cx[i]*CCx[j] == CCx[j]*Cx[i]
+      end
+   end
+   @testset for i in 1:ngens(Cy)
+      for j in 1:ngens(CCy)
+         @test Cy[i]*CCy[j] == CCy[j]*Cy[i]
+      end
+   end
+   notx = setdiff(G,Nx)
+   noty = setdiff(G,Ny)
+   @testset for i in 1:3
+      z=rand(notx)
+      @testset for j in 1:ngens(Cx)
+         @test z*Cx[j] != Cx[j]*z
+      end
+      z=rand(noty)
+      @testset for j in 1:ngens(Cy)
+         @test z*Cy[j] != Cy[j]*z
+      end
+   end
 end
 
 @testset "Cosets" begin

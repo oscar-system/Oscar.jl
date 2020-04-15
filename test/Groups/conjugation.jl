@@ -83,3 +83,36 @@
   @test Set(K) == Set([y^z for y in H])
 
 end
+
+function TestConjCentr(G,x)
+   Cx = centralizer(G,x)[1]
+   cc = conjugacy_class(G,x)
+   @test index(G,Cx)==order(cc)
+   T=right_transversal(G,Cx)
+   @testset for y in elements(cc)
+       @test sum([y==x^t for t in T])==1
+   end
+   
+   cs = conjugacy_class(G,Cx)
+   Nx = normalizer(G,Cx)[1]
+   @test index(G,Nx)==order(cs)
+   T=right_transversal(G,Nx)
+   # Set([Cx^t for t in T]) == Set(elements(cs)) does not work
+   @testset for H in elements(cs)
+       @test sum([H==Cx^t for t in T])==1
+   end
+end
+
+@testset "Conjugation and centralizers" begin
+   G = symmetric_group(6)
+   x = cperm(G,[1,2,3,4])
+   TestConjCentr(G,x)
+
+   G = GL(3,3)
+   x = G[2]
+   TestConjCentr(G,x)
+
+   G = special_unitary_group(2,3)
+   x = G[1]
+   TestConjCentr(G,x)
+end

@@ -28,6 +28,7 @@ n = 6
    @test g^(og+1) == g
    @test g^(1-og) == g
 
+   @test !isisomorphic(symmetric_group(4), symmetric_group(3))[1]
 end
 
 @testset "Operations on homomorphism in Sym($n)" begin
