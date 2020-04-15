@@ -67,7 +67,10 @@ end
 function right_transversal(G::T, H::T) where T<: Group
    L = GAP.Globals.RightTransversal(G.X,H.X)
    l = Vector{elem_type(G)}(undef, length(L))
-   return elem_type(G)[group_element(G, x) for x in GAP.gap_to_julia(L)]
+   for i in 1:length(l)
+      l[i] = group_element(G,L[i])
+   end
+   return l
 end
 
 

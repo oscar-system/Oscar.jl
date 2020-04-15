@@ -1,6 +1,6 @@
 export id_hom, trivial_morphism, hom, domain, codomain, image, issurjective, isinjective, 
        isinvertible, isbijective, automorphism_group, sub, quo, kernel, cokernel, haspreimage, isisomorphic,
-       center, index, centralizer, order, normal_subgroups
+       center, index, centralizer, order, normal_subgroups, derived_subgroup, derived_series
 
 
 function Base.show(io::IO, x::GAPGroupHomomorphism)

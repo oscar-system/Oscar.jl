@@ -304,8 +304,12 @@ function rand(C::GroupConjClass{S,T}) where S where T<:GAPGroupElem
 end
 
 function elements(C::GroupConjClass{S, T}) where S where T<:GAPGroupElem
-   L=GAP.gap_to_julia(GAP.Globals.AsList(C.CC))
-   return T[group_element(C.X,x) for x in L]
+   L=GAP.Globals.AsList(C.CC)
+   l = Vector{T}(undef, length(L))
+   for i in 1:length(l)
+      l[i] = group_element(C.X,L[i])
+   end
+   return l
 end
 
 function conjugacy_classes(G::Group)
@@ -334,8 +338,12 @@ function rand(C::GroupConjClass{S,T}) where S where T<:Group
 end
 
 function elements(C::GroupConjClass{S, T}) where S where T<:Group
-   L=GAP.gap_to_julia(GAP.Globals.AsList(C.CC))
-   return T[T(x) for x in L]
+   L=GAP.Globals.AsList(C.CC)
+   l = Vector{T}(undef, length(L))
+   for i in 1:length(l)
+      l[i] = _as_subgroup(L[i],C.X)[1]
+   end
+   return l
 end
 
 function conjugacy_classes_subgroups(G::Group)
