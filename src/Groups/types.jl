@@ -68,7 +68,8 @@ end
 """
     PermGroup
 Groups of permutations. Every group of this type is the subgroup of Sym(n) for some n.
-#Examples
+
+# Examples
 - `symmetric_group(n::Int)`: the symmetric group Sym(n)
 - `alternating_group(n::Int)`: the alternating group Alt(n)
 - subgroups of Sym(n)
@@ -93,12 +94,23 @@ struct PermGroup <: Group
 end
 
 """
-TODO: document this
+    PermGroupElem
+
+Element of a group of permutation. It is displayed as product of disjoint cycles.
+# Assumptions:
+- for `x`,`y` in Sym(n), the product `xy` is read from left to right;
+- for `x` in Sym(n) and `i` in {1,...,n}, `x(i)` return the image of `i` under the action of `x`.
 """
 const PermGroupElem = GAPGroupElem{PermGroup}
 
 """
-TODO: document this
+    MatrixGroup
+Groups of matrices. Every group of this type is the subgroup of GL(n,q) for some integer `n` and prime power `q`
+
+# Examples
+- `GL(n::Int, q::Int)`: the general linear group GL(n,q)
+- `SL(n::Int)`: the special linear group SL(n,q)
+- groups of isometries
 """
 struct MatrixGroup <: Group
   X::GapObj
@@ -110,12 +122,17 @@ struct MatrixGroup <: Group
 end
 
 """
-TODO: document this
+    MatrixGroupElem
+Element of a matrix group.
 """
 const MatrixGroupElem = GAPGroupElem{MatrixGroup}
 
 """
-TODO: document this
+    PcGroup
+Polycyclic group
+# Examples:
+- `cyclic_group(n::Int)`: cyclic group of order `n`
+- `abelian_group(v::Vector{Int})`: direct product of cyclic groups of order v[1],v[2],...,v[length(v)]
 """
 struct PcGroup <: Group
   X::GapObj

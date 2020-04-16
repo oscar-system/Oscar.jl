@@ -1,6 +1,6 @@
 export id_hom, trivial_morphism, hom, domain, codomain, image, issurjective, isinjective, 
        isinvertible, isbijective, automorphism_group, sub, quo, kernel, cokernel, haspreimage, isisomorphic,
-       center, index, centralizer, order, normal_subgroups, derived_subgroup, derived_series
+       center, index, centralizer, order, normal_subgroups, derived_subgroup, derived_series, intersection
 
 
 function Base.show(io::IO, x::GAPGroupHomomorphism)
@@ -381,6 +381,16 @@ function direct_product(G::Group, H::Group, task::Symbol = :sum)
   else
     return GH
   end
+end
+
+################################################################################
+#
+#  Intersection
+#
+################################################################################
+
+function intersection(G::T, H::T) where T<:Group
+   return T(GAP.Globals.Intersection(G.X,H.X))
 end
 
 ################################################################################

@@ -2,7 +2,7 @@
 
 export order, perm, cperm, isfinite, gens, ngens, comm, comm!, inv!, rand_pseudo, one!, div_right,
 div_left, div_right!, div_left!, deg, mul, mul!, listperm, degree, elements, right_coset, coset_decomposition,
-right_cosets , right_transversal, conjugacy_class, conjugacy_classes, number_conjugacy_classes, isconjugate, conjugacy_classes_subgroups, conjugacy_classes_maximal_subgroups, normalizer
+right_cosets , right_transversal, conjugacy_class, conjugacy_classes, number_conjugacy_classes, isconjugate, conjugacy_classes_subgroups, conjugacy_classes_maximal_subgroups, normalizer, normaliser, core, pcore, fitting_subgroup, frattini_subgroup, radical_subgroup, socle, sylow_subgroup, hall_subgroup, sylow_system, complement_system, hall_system
      #conj!, conj
 
 
@@ -171,9 +171,9 @@ function perm(L::Array{Int64,1})
 end
 
 """
-    perm(L::Array{Int64,1})
+    perm(g::PermGroup, L::Array{Int64,1})
 Given the array of positive integers `V`, returns the permutation `x` sending V[i] into V[i+1] for every i. V must contain exactly one time every integer from 1 to n for n = length(V).
-The parent of `x` is G. If `x` is not in G, it return ERROR.
+The parent of `x` is g. If `x` is not in g, it return ERROR.
 """
 function perm(g::PermGroup, L::Array{Int64,1})
    x = GAP.Globals.PermList(GAP.julia_to_gap(L))
@@ -224,10 +224,18 @@ function cperm(g::PermGroup,L::Union{Array{Int64,1},UnitRange{Int64}}...)
    end
 end
 
+"""
+    listperm(x::PermGroupElem)
+is the list L defined by L = [ `x`(i) for i in 1:n ], where Sym(n) = parent(`x`).
+"""
 function listperm(x::PermGroupElem)
    return [x(i) for i in 1:x.parent.deg]
 end
 
+"""
+    gens(G::Group)
+return an array of generators of the group `G`.
+"""
 function gens(G::Group)
    L = GAP.Globals.GeneratorsOfGroup(G.X)
    res = Vector{elem_type(G)}(undef, length(L))
@@ -237,12 +245,24 @@ function gens(G::Group)
    return res
 end
 
+"""
+
+    gens(G::Group, i::Int)
+return the `i`-th element of the array gens(`G`). If `i` is greater than the length of gens(`G`), an ERROR is returned.
+"""
 function gens(G::Group, i::Int)
    L = GAP.Globals.GeneratorsOfGroup(G.X)
    @assert length(L) >= i "The number of generators is lower than the given index"
    return group_element(G, L[i])
 end
 
+"""
+    ngens(G::Group) -> Int
+return the length of the array gens(G).
+
+!!! warning "WARNING:" 
+    this is *NOT*, in general, the minimum number of generators for G.
+"""
 ngens(G::Group) = length(GAP.Globals.GeneratorsOfGroup(G.X))
 
 
@@ -274,6 +294,12 @@ end
 #
 ################################################################################
 
+"""
+    GroupConjClass
+it could be either the conjugacy class of an element or of a subgroup in a group G. It is displayed as
+    cc = x ^ G
+where G is a group and x = `representative`(`cc`) is either an element or a subgroup of G.
+"""
 struct GroupConjClass{T<:Group, S<:Union{GAPGroupElem,Group}}
    X::T
    repr::S
@@ -295,6 +321,11 @@ representative(C::GroupConjClass) = C.repr
 number_conjugacy_classes(G::Group) = GAP.Globals.NrConjugacyClasses(G.X)
 
 # START elements conjugation
+
+"""
+    conjugacy_class(G::Group, g::GAPGroupElem) -> GroupConjClass
+return the conjugacy class `cc` of `g` in `G`, where `g` = `representative`(`cc`).
+"""
 function conjugacy_class(G::Group, g::GAPGroupElem)
    return _conjugacy_class(G, g, GAP.Globals.ConjugacyClass(G.X,g.X))
 end
@@ -303,6 +334,10 @@ function rand(C::GroupConjClass{S,T}) where S where T<:GAPGroupElem
    return group_element(C.X, GAP.Globals.Random(C.CC))
 end
 
+"""
+    elements(C::GroupConjClass)
+return the array of the elements in C.
+"""
 function elements(C::GroupConjClass{S, T}) where S where T<:GAPGroupElem
    L=GAP.Globals.AsList(C.CC)
    l = Vector{T}(undef, length(L))
@@ -312,6 +347,10 @@ function elements(C::GroupConjClass{S, T}) where S where T<:GAPGroupElem
    return l
 end
 
+"""
+    conjugacy_classes(G::Group)
+returns the array of all conjugacy classes of elements in G. It is guaranteed that the class of the identity is in the first position.
+"""
 function conjugacy_classes(G::Group)
    L=GAP.gap_to_julia(GAP.Globals.ConjugacyClasses(G.X))
    return GroupConjClass{typeof(G), elem_type(G)}[ _conjugacy_class(G,group_element(G,GAP.Globals.Representative(cc)),cc) for cc in L]
@@ -319,6 +358,17 @@ end
 
 Base.:^(x::GAPGroupElem, y::GAPGroupElem) = group_element(_maxgroup(parent(x), parent(y)), x.X ^ y.X)
 
+"""
+    isconjugate(G::Group, x::GAPGroupElem, y::GAPGroupElem)
+if `x`,`y` are conjugate in `G`, return 
+```
+true, z
+```
+where `x^z=y`; otherwise, return
+```
+false, nothing
+```
+"""
 function isconjugate(G::Group, x::GAPGroupElem, y::GAPGroupElem)
    if GAP.Globals.IsConjugate(G.X, x.X, y.X)
       return true, group_element(G,GAP.Globals.RepresentativeAction(G.X, x.X, y.X))
@@ -329,6 +379,10 @@ end
 # END elements conjugation 
 
 # START subgroups conjugation
+"""
+    conjugacy_class(G::T, H::T) where T<:Group -> GroupConjClass
+return the subgroup conjugacy class `cc` of `H` in `G`, where `H` = `representative`(`cc`).
+"""
 function conjugacy_class(G::T, g::T) where T<:Group
    return _conjugacy_class(G, g, GAP.Globals.ConjugacyClassSubgroups(G.X,g.X))
 end
@@ -346,11 +400,19 @@ function elements(C::GroupConjClass{S, T}) where S where T<:Group
    return l
 end
 
+"""
+    conjugacy_classes_subgroups(G::Group)
+returns the array of all conjugacy classes of subgroups of G.
+"""
 function conjugacy_classes_subgroups(G::Group)
    L=GAP.gap_to_julia(GAP.Globals.ConjugacyClassesSubgroups(G.X))
    return GroupConjClass{typeof(G), typeof(G)}[ _conjugacy_class(G,typeof(G)(GAP.Globals.Representative(cc)),cc) for cc in L]
 end
 
+"""
+    conjugacy_classes_maximal_subgroups(G::Group)
+returns the array of all conjugacy classes of maximal subgroups of G.
+"""
 function conjugacy_classes_maximal_subgroups(G::Group)
   L = GAP.gap_to_julia(GAP.Globals.ConjugacyClassesMaximalSubgroups(G.X))
    return GroupConjClass{typeof(G), typeof(G)}[ _conjugacy_class(G,typeof(G)(GAP.Globals.Representative(cc)),cc) for cc in L]
@@ -358,6 +420,17 @@ end
 
 Base.:^(H::Group, y::GAPGroupElem) = typeof(H)(H.X ^ y.X)
 
+"""
+    isconjugate(G::Group, H::Group, K::Group)
+if `H`,`K` are conjugate subgroups in `G`, return 
+```
+true, z
+```
+where `H^z=K`; otherwise, return
+```
+false, nothing
+```
+"""
 function isconjugate(G::Group, H::Group, K::Group)
    if GAP.Globals.IsConjugate(G.X, H.X, K.X)
       return true, group_element(G,GAP.Globals.RepresentativeAction(G.X, H.X, K.X))
@@ -375,17 +448,39 @@ end
 #
 ################################################################################
 
+"""
+```
+    normalizer(G::Group, H::Group)
+    normaliser(G::Group, H::Group)
+```
+returns `N,f`, where `N` is the normalizer of `H` in `G` and `f` is the embedding morphism of `N` into `G`.
+"""
 normalizer(G::T, H::T) where T<:Group = _as_subgroup(GAP.Globals.Normalizer(G.X,H.X),G)
 
+"""
+```
+    normalizer(G::Group, x::GAPGroupElem)
+    normaliser(G::Group, x::GAPGroupElem)
+```
+returns `N,f`, where `N` is the normalizer of <`x`> in `G` and `f` is the embedding morphism of `N` into `G`.
+"""
 normalizer(G::Group, x::GAPGroupElem) = _as_subgroup(GAP.Globals.Normalizer(G.X,x.X),G)
 
 normaliser = normalizer
 
+"""
+    core(G::Group, H::Group)
+returns `C,f`, where `C` is the normal core of `H` in `G`, and `f` is the embedding morphism of `C` into `G`.
+"""
 core(G::T, H::T) where T<:Group = _as_subgroup(GAP.Globals.Core(G.X,H.X),G)
 
 # normal_closure(G::T, H::T) where T<:Group = T(GAP.Globals.NormalClosure(G.X,H.X))
 # we don't know how G,H embeds into N_C(G,H) 
 
+"""
+    pcore(G::Group, p::Int64)
+return `C,f`, where `C` is the `p`-core (i.e. the largest normal `p`-subgroup) of `G` and `f` is the embedding morphism of `C` into `G`.
+"""
 function pcore(G::Group, p::Int64)
    if !GAP.Globals.IsPrime(p)
       throw(ArgumentError("p is not a prime"))
@@ -424,7 +519,7 @@ function sylow_subgroup(G::Group, p::Int64)
    if !GAP.Globals.IsPrime(p)
       throw(ArgumentError("p is not a prime"))
    end
-   return _as_subgroup(GAP.Globals.SylowSubgroup(G.X),G)
+   return _as_subgroup(GAP.Globals.SylowSubgroup(G.X,p),G)
 end
 
 function hall_subgroup(G::Group, P::Array{Int64})
