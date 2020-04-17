@@ -46,7 +46,7 @@ end
   @test isa(cyclic_group(5), PcGroup)
   @test isa(cyclic_group(PermGroup, 5), PermGroup)
   
-  G = abelian_group([2, 3])
+  G = abelian_group(PcGroup,[2, 3])
   @test isa(G, PcGroup)
   @test iscyclic(G)
   G1 = abelian_group(PermGroup, [2, 3])

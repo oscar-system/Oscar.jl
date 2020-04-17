@@ -198,8 +198,8 @@ end
    C=cyclic_group(6)
    TestKernels(G,C,hom(G,C,gens(G),[C[1],one(C)]))        #determinant
 
-   G=abelian_group([3,3,3])
-   H=abelian_group([3,3])
+   G=abelian_group(PcGroup,[3,3,3])
+   H=abelian_group(PcGroup,[3,3])
    f=hom(G,H,gens(G),[H[1],one(H),one(H)])
    TestKernels(G,H,f)
 end
