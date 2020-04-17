@@ -1,6 +1,6 @@
 export id_hom, trivial_morphism, hom, domain, codomain, image, issurjective, isinjective, 
        isinvertible, isbijective, automorphism_group, sub, quo, kernel, cokernel, haspreimage, isisomorphic,
-       center, index, centralizer, order, normal_subgroups, derived_subgroup, derived_series, intersection
+       center, index, centralizer, order, normal_subgroups, derived_subgroup, derived_series, intersection, inner_automorphism, isinner_automorphism, isinvariant, induced_automorphism
 
 
 function Base.show(io::IO, x::GAPGroupHomomorphism)
@@ -393,7 +393,7 @@ end
 ################################################################################
 
 function intersection(G::T, H::T) where T<:Group
-   return T(GAP.Globals.Intersection(G.X,H.X))
+  # return T(GAP.Globals.Intersection(G.X,H.X))
 end
 
 ################################################################################
@@ -421,13 +421,24 @@ function automorphism_group(G::Group)
   return AutomorphismGroup{typeof(G)}(AutGAP, G)
 end
 
-function hom(x::AutomorphismGroupElem)
+# TODO: why (x::AutomorphismGroupElem) does not work?
+
+function hom(x::GAPGroupElem{AutomorphismGroup{T}}) where T
   A = parent(x)
   G = A.G
-  return _hom_from_gap_map(G, G, x)
+  return _hom_from_gap_map(G, G, x.X)
 end
 
 (f::AutomorphismGroupElem)(x::GAPGroupElem) = apply_automorphism(f, x)
+
+# to be fixed
+#=
+function (A::AutomorphismGroup{T})(f::GAPGroupHomomorphism) where T <: Group
+   @assert domain(f)==A.G && codomain(f)==A.G "f not in A"
+   @assert isbijective(f) "f not in A"
+   return AutomorphismGroupElem{typeof(A.G)}(A,f.map)
+end
+=#
 
 function apply_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, x::GAPGroupElem{T}; check = true) where T <: Group
   A = parent(f)
@@ -442,6 +453,8 @@ function inner_automorphism(g::GAPGroupElem)
   return _hom_from_gap_map(parent(g), parent(g), GAP.Globals.ConjugatorAutomorphism(parent(g).X, g.X))
 end
 
+Base.:*(f::GAPGroupElem{AutomorphismGroup{T}}, g::GAPGroupHomomorphism) where T = hom(f)*g
+Base.:*(f::GAPGroupHomomorphism, g::GAPGroupElem{AutomorphismGroup{T}}) where T = f*hom(g)
 
 function isinner_automorphism(f::GAPGroupHomomorphism)
   @assert domain(f) == codomain(f) "Not an automorphism!"

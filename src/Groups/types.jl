@@ -127,6 +127,8 @@ Element of a matrix group.
 """
 const MatrixGroupElem = GAPGroupElem{MatrixGroup}
 
+#display(x::MatrixGroupElem) = GAP.Globals.Display(x.X)
+
 """
     PcGroup
 Polycyclic group
