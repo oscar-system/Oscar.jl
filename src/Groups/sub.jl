@@ -138,6 +138,9 @@ function cokernel(f::GAPGroupHomomorphism)
   return quo(codomain(f), K)
 end
 
+"""
+TODO: document this
+"""
 function haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem)
   r = GAP.Globals.PreImagesRepresentative(f.map, x.X)
   if r == GAP.Globals.fail

@@ -106,6 +106,8 @@ function iscyclic(G::Group)
   return GAP.Globals.IsCyclic(G.X)
 end
 
+# already defined in Hecke
+#=
 function abelian_group(v::Vector{Int})
   for i = 1:length(v)
     iszero(v[i]) && error("Cannot represent an infinite group as a polycyclic group")
@@ -113,6 +115,7 @@ function abelian_group(v::Vector{Int})
   v1 = GAP.julia_to_gap(v)
   return PcGroup(GAP.Globals.AbelianGroup(v1))
 end
+=#
 
 function abelian_group(::Type{T}, v::Vector{Int}) where T <: Group
   v1 = GAP.julia_to_gap(v)
