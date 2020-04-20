@@ -172,7 +172,6 @@ function __as_subgroup(H::GapObj, G::T, ::Type{S}) where { T, S }
   return H1, hom(H1, G, img)
 end
 
-
 function _as_subgroup(H::GapObj, G::T) where T <: Group
   S = elem_type(G)
   return __as_subgroup(H, G, S)
@@ -421,6 +420,8 @@ function automorphism_group(G::Group)
   return AutomorphismGroup{typeof(G)}(AutGAP, G)
 end
 
+Base.:show(io::IO, A::AutomorphismGroup{T}) where T <: Group = print(io, "Aut( "* GAP.gap_to_julia(GAP.Globals.StringView(A.G.X)) *" )")
+
 # TODO: why (x::AutomorphismGroupElem) does not work?
 
 function hom(x::GAPGroupElem{AutomorphismGroup{T}}) where T
@@ -429,24 +430,21 @@ function hom(x::GAPGroupElem{AutomorphismGroup{T}}) where T
   return _hom_from_gap_map(G, G, x.X)
 end
 
-(f::AutomorphismGroupElem)(x::GAPGroupElem) = apply_automorphism(f, x)
+(f::GAPGroupElem{AutomorphismGroup{T}})(x::GAPGroupElem{T}) where T <: Group = apply_automorphism(f, x)
 
-# to be fixed
-#=
-function (A::AutomorphismGroup{T})(f::GAPGroupHomomorphism) where T <: Group
+function (A::AutomorphismGroup{T})(f::GAPGroupHomomorphism{T,T}) where T <: Group
    @assert domain(f)==A.G && codomain(f)==A.G "f not in A"
    @assert isbijective(f) "f not in A"
-   return AutomorphismGroupElem{typeof(A.G)}(A,f.map)
+   return group_element(A, f.map)
 end
-=#
 
-function apply_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, x::GAPGroupElem{T}; check = true) where T <: Group
+function apply_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, x::GAPGroupElem{T}, check=true) where T <: Group
   A = parent(f)
   G = parent(x)
   if check
     @assert A.G == G || GAP.Globals.IN(x.X, A.G.X) "Not in the domain of f!"
   end
-  return typeof(x)(G, f.X(x.X))
+  return typeof(x)(G, GAP.Globals.Image(f.X,x.X))
 end
 
 function inner_automorphism(g::GAPGroupElem)
@@ -461,10 +459,19 @@ function isinner_automorphism(f::GAPGroupHomomorphism)
   return GAP.Globals.IsInnerAutomorphism(f.map)
 end
 
+function isinner_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}) where T<:Group
+  return GAP.Globals.IsInnerAutomorphism(f.X)
+end
+
 function isinvariant(f::GAPGroupHomomorphism, H::Group)
-  @assert domain(f) == codomain(f) "Not an automorphism!"
+  @assert domain(f) == codomain(f) "Not an endomorphism!"
   @assert GAP.Globals.IsSubset(codomain(f).X, H.X) "Not a subgroup of the domain"
   return GAP.Globals.Image(f.map, H.X) == H.X
+end
+
+function isinvariant(f::GAPGroupElem{AutomorphismGroup{T}}, H::T) where T<:Group
+  @assert GAP.Globals.IsSubset(parent(f).G.X, H.X) "Not a subgroup of the domain"
+  return GAP.Globals.Image(f.X, H.X) == H.X
 end
 
 function induced_automorphism(f::GAPGroupHomomorphism, mH::GAPGroupHomomorphism)
@@ -475,6 +482,15 @@ end
 
 function restrict_automorphism(f::GAPGroupHomomorphism, H::Group)
   return _hom_from_gap_map(H, H, f.map)
+end
+
+## the next function needs a redefinition if G is an AutomorphismGroup
+function __as_subgroup(H::GapObj, G::AutomorphismGroup{T}, ::Type{S}) where { T, S }
+  function img(x::S)
+    return group_element(G, x.X)
+  end
+  H1 = AutomorphismGroup{T}(H,G.G)
+  return H1, hom(H1, G, img)
 end
 
 ################################################################################

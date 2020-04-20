@@ -175,7 +175,7 @@ struct AutomorphismGroup{T} <: Group
   X::GapObj
   G::T
   function AutomorphismGroup{T}(G::GapObj, H::T) where T
-    @assert GAP.Globals.IsAutomorphismGroup(G)
+    @assert GAP.Globals.IsGroupOfAutomorphisms(G)
     z = new{T}(G, H)
     return z
   end
