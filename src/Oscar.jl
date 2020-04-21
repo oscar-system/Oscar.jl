@@ -42,21 +42,23 @@ export Nemo, Hecke, Singular, Polymake, AbstractAlgebra, GAP
 import AbstractAlgebra: @show_name, @show_special, force_coerce, force_op
 
 function __init__()
-  println(" -----    -----    -----      -      -----   ")
-  println("|     |  |     |  |     |    | |    |     |  ")
-  println("|     |  |        |         |   |   |     |  ")
-  println("|     |   -----   |        |     |  |-----   ")
-  println("|     |        |  |        |-----|  |   |    ")
-  println("|     |  |     |  |     |  |     |  |    |   ")
-  println(" -----    -----    -----   -     -  -     -  ")
-  println()
-  println("...combining (and extending) GAP, Hecke, Nemo, Polymake and Singular")
-  print("Version")
-  printstyled(" $VERSION_NUMBER ", color = :green)
-  print("... \n ... which comes with absolutely no warranty whatsoever")
-  println()
-  println("Type: '?Oscar' for more information")
-  println("(c) 2019-2020 by The Oscar Development Team")
+  if isinteractive()
+    println(" -----    -----    -----      -      -----   ")
+    println("|     |  |     |  |     |    | |    |     |  ")
+    println("|     |  |        |         |   |   |     |  ")
+    println("|     |   -----   |        |     |  |-----   ")
+    println("|     |        |  |        |-----|  |   |    ")
+    println("|     |  |     |  |     |  |     |  |    |   ")
+    println(" -----    -----    -----   -     -  -     -  ")
+    println()
+    println("...combining (and extending) GAP, Hecke, Nemo, Polymake and Singular")
+    print("Version")
+    printstyled(" $VERSION_NUMBER ", color = :green)
+    print("... \n ... which comes with absolutely no warranty whatsoever")
+    println()
+    println("Type: '?Oscar' for more information")
+    println("(c) 2019-2020 by The Oscar Development Team")
+  end
 end
 
 if VERSION >= v"1.4"
