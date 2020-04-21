@@ -6,7 +6,7 @@ currently, mainly at the Technische Universität Kaiserslautern.
 
 Written in Julia, it combines the well established systems
  * Singular
- * Gap
+ * GAP
  * Polymake
  * Hecke, Nemo and AbstractAlgebra
 into a comprehensive tool for computational algebra.
@@ -42,21 +42,23 @@ export Nemo, Hecke, Singular, Polymake, AbstractAlgebra, GAP
 import AbstractAlgebra: @show_name, @show_special, force_coerce, force_op
 
 function __init__()
-  println(" -----    -----    -----      -      -----   ")
-  println("|     |  |     |  |     |    | |    |     |  ")
-  println("|     |  |        |         |   |   |     |  ")
-  println("|     |   -----   |        |     |  |-----   ")
-  println("|     |        |  |        |-----|  |   |    ")
-  println("|     |  |     |  |     |  |     |  |    |   ")
-  println(" -----    -----    -----   -     -  -     -  ")
-  println()
-  println("...combining (and extending) GAP, Hecke, Nemo, Polymake and Singular")
-  print("Version")
-  printstyled(" $VERSION_NUMBER ", color = :green)
-  print("... \n ... which comes with absolutely no warranty whatsoever")
-  println()
-  println("Type: '?Oscar' for more information")
-  println("(c) 2019-2020 by The Oscar Development Team")
+  if isinteractive()
+    println(" -----    -----    -----      -      -----   ")
+    println("|     |  |     |  |     |    | |    |     |  ")
+    println("|     |  |        |         |   |   |     |  ")
+    println("|     |   -----   |        |     |  |-----   ")
+    println("|     |        |  |        |-----|  |   |    ")
+    println("|     |  |     |  |     |  |     |  |    |   ")
+    println(" -----    -----    -----   -     -  -     -  ")
+    println()
+    println("...combining (and extending) GAP, Hecke, Nemo, Polymake and Singular")
+    print("Version")
+    printstyled(" $VERSION_NUMBER ", color = :green)
+    print("... \n ... which comes with absolutely no warranty whatsoever")
+    println()
+    println("Type: '?Oscar' for more information")
+    println("(c) 2019-2020 by The Oscar Development Team")
+  end
 
   append!(_gap_group_types,
     [
@@ -77,16 +79,41 @@ if VERSION >= v"1.4"
       global VERSION_NUMBER = VersionNumber("$(ver.version)")
     end
   else
-    global VERSION_NUMBER = "building"
+    global VERSION_NUMBER = "not installed"
   end
 else
-  ver = Pkg.installed()["Oscar"]
-  dir = dirname(@__DIR__)
-  if occursin("/dev/", dir)
-    global VERSION_NUMBER = VersionNumber("$(ver)-dev")
+  deps = Pkg.API.__installed(Pkg.PKGMODE_MANIFEST) #to also get installed dependencies
+  if haskey(deps, "Oscar")
+    ver = deps["Oscar"]
+    dir = dirname(@__DIR__)
+    if occursin("/dev/", dir)
+      global VERSION_NUMBER = VersionNumber("$(ver)-dev")
+    else
+      global VERSION_NUMBER = VersionNumber("$(ver)")
+    end
   else
-    global VERSION_NUMBER = VersionNumber("$(ver)")
+    global VERSION_NUMBER = "not installed"
   end
+end
+
+const pkgdir = joinpath(dirname(pathof(Oscar)), "..")
+
+
+function example(s::String)
+  Base.include(Main, joinpath(dirname(pathof(Oscar)), "..", "examples", s))
+end
+
+function revise(s::String)
+  s = joinpath(dirname(pathof(Oscar)), "..", "examples", s)
+  Main.Revise.track(Main, s)
+end
+
+function system(s::String)
+  Base.include(Main, joinpath(dirname(pathof(Oscar)), "..", "system", s))
+end
+
+function build()
+  system("Build.jl")
 end
 
 include("OscarTypes.jl")
