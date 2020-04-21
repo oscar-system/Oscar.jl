@@ -1,6 +1,6 @@
 export id_hom, trivial_morphism, hom, domain, codomain, image, issurjective, isinjective, 
        isinvertible, isbijective, automorphism_group, sub, quo, kernel, cokernel, haspreimage, isisomorphic,
-       center, index, centralizer, order, normal_subgroups, derived_subgroup, derived_series, intersection, inner_automorphism, isinner_automorphism, isinvariant, induced_automorphism
+       center, index, centralizer, order, normal_subgroups, derived_subgroup, derived_series, intersection, inner_automorphism, isinner_automorphism, inner_automorphisms_group, isinvariant, induced_automorphism
 
 
 function Base.show(io::IO, x::GAPGroupHomomorphism)
@@ -415,6 +415,12 @@ end
 #
 ################################################################################
 
+"""
+    automorphism_group(G::Group) -> A::AutomorphismGroup{T}
+return the full automorphism group of `G`. If `f` is an object of type ``GAPGroupHomomorphism`` and it is bijective from `G` to itself, then `A(f)` return the embedding of `f` in `A`. 
+
+Elements of `A` can be multiplied with other elements of `A` or by elements of type ``GAPGroupHomomorphism``; in this last case, the result has type ``GAPGroupHomomorphism``.
+"""
 function automorphism_group(G::Group)
   AutGAP = GAP.Globals.AutomorphismGroup(G.X)
   return AutomorphismGroup{typeof(G)}(AutGAP, G)
@@ -424,6 +430,10 @@ Base.:show(io::IO, A::AutomorphismGroup{T}) where T <: Group = print(io, "Aut( "
 
 # TODO: why (x::AutomorphismGroupElem) does not work?
 
+"""
+    hom(f::GAPGroupElem{AutomorphismGroup{T}}) where T
+return the element f of type ``GAPGroupHomomorphism``.
+"""
 function hom(x::GAPGroupElem{AutomorphismGroup{T}}) where T
   A = parent(x)
   G = A.G
@@ -447,22 +457,45 @@ function apply_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, x::GAPGroupEl
   return typeof(x)(G, GAP.Globals.Image(f.X,x.X))
 end
 
+Base.:*(f::GAPGroupElem{AutomorphismGroup{T}}, g::GAPGroupHomomorphism) where T = hom(f)*g
+Base.:*(f::GAPGroupHomomorphism, g::GAPGroupElem{AutomorphismGroup{T}}) where T = f*hom(g)
+
+"""
+    inner_automorphism(g::GAPGroupElem)
+return the inner automorphism in `automorphism_group(G)` defined by `x` -> `x^g`.
+"""
 function inner_automorphism(g::GAPGroupElem)
   return _hom_from_gap_map(parent(g), parent(g), GAP.Globals.ConjugatorAutomorphism(parent(g).X, g.X))
 end
 
-Base.:*(f::GAPGroupElem{AutomorphismGroup{T}}, g::GAPGroupHomomorphism) where T = hom(f)*g
-Base.:*(f::GAPGroupHomomorphism, g::GAPGroupElem{AutomorphismGroup{T}}) where T = f*hom(g)
-
+"""
+    isinner_automorphism(f::GAPGroupHomomorphism)
+    isinner_automorphism(g::AutomorphismGroupElem)
+return whether `f` is an inner automorphism.
+"""
 function isinner_automorphism(f::GAPGroupHomomorphism)
   @assert domain(f) == codomain(f) "Not an automorphism!"
   return GAP.Globals.IsInnerAutomorphism(f.map)
 end
 
-function isinner_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}) where T<:Group
+function isinner_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}) where T <: Group
   return GAP.Globals.IsInnerAutomorphism(f.X)
 end
 
+"""
+    inner_automorphisms_group(A::AutomorphismGroup{T})
+return the subgroup of `A` of the inner automorphisms.
+"""
+function inner_automorphisms_group(A::AutomorphismGroup{T}) where T <: Group
+   AutGAP = GAP.Globals.InnerAutomorphismsAutomorphismGroup(A.X)
+   return _as_subgroup(AutGAP, A)
+end
+
+"""
+    isinvariant(f::GAPGroupHomomorphism, H::Group)
+    isinvariant(f::GAPGroupElem{AutomorphismGroup{T}}, H::T)
+return whether `f`(`H`) == `H`.
+"""
 function isinvariant(f::GAPGroupHomomorphism, H::Group)
   @assert domain(f) == codomain(f) "Not an endomorphism!"
   @assert GAP.Globals.IsSubset(codomain(f).X, H.X) "Not a subgroup of the domain"
