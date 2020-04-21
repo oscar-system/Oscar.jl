@@ -204,3 +204,61 @@ end
    TestKernels(G,H,f)
 end
 
+@testset "Automorphism group of Sym(n)" begin
+   G=symmetric_group(4)
+   A=automorphism_group(G)
+
+   @test A isa AutomorphismGroup
+   @test A isa AutomorphismGroup{PermGroup}
+   @test A.G == G
+   @test isisomorphic(G,A)[1]
+   @test order(A) == 24
+   @test A==inner_automorphisms_group(A)[1]
+
+   f = rand(A)
+   g = rand(A)
+   x = rand(G)
+   o = order(f)
+   fh = hom(f)
+   @test f isa Oscar.GAPGroupElem{typeof(A)}
+   @test fh isa Oscar.GAPGroupHomomorphism{PermGroup,PermGroup}
+   @test A(fh)==f
+   @test f^o == one(A)
+   @test f*f^-1 == one(A)
+   @test (f*g)(x) == g(f(x))
+   @test comm(f,g) == f^-1*g^-1*f*g
+   @test f(G[1])==fh(G[1])
+   @test f(G[2])==fh(G[2])
+   alt = alternating_group(4)
+   N,e = sub(G,[alt[1],alt[2]])
+   @test e*f==e*fh
+
+   C=cyclic_group(2)
+   g = hom(G,C,x -> C[1]^((1-sign(x))÷2) )
+   @test f*g == fh*g
+   @test kernel(f*g)==kernel(g)
+
+   @test isinner_automorphism(f)
+   g1 = inner_automorphism(G(alt[1]))
+   @test !(g in A)
+   g1 = A(g1)
+   @test g1 in A
+   g2 = A(inner_automorphism(G(alt[2])))
+   AA,phi = sub(A,[g1,g2])
+   @test isisomorphic(AA,alt)[1]
+   @test index(A,AA)==2
+   @test isnormal(A,AA)
+   @test phi(AA[1])==AA[1]
+   @test phi(AA[2])==AA[2]
+   @test order(quo(A,AA)[1])==2
+   @test isinvariant(f,alt)
+end
+
+@testset "Other automorphisms groups" begin
+   C = cyclic_group(3)
+   G = direct_product(C,C)[1]
+   A = automorphism_group(G)
+
+   @test isisomorphic(A,GL(2,3))[1]
+   @test order(inner_automorphisms_group(A)[1])==1
+end
