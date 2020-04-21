@@ -74,7 +74,7 @@ function right_transversal(G::T, H::T) where T<: Group
 end
 
 
-function iterate(G::GroupCoset)
+function Base.iterate(G::GroupCoset)
   L=GAP.Globals.Iterator(G.coset)
   if GAP.Globals.IsDoneIterator(L)
     return nothing
@@ -83,7 +83,7 @@ function iterate(G::GroupCoset)
   return group_element(G.X, i), L
 end
 
-function iterate(G::GroupCoset, state)
+function Base.iterate(G::GroupCoset, state)
   if GAP.Globals.IsDoneIterator(state)
     return nothing
   end
@@ -101,7 +101,7 @@ mutable struct GroupDoubleCoset{T <: Group, S <: GAPGroupElem}
    coset::GapObj
 end
 
-Base.:show(io::IO, x::GroupDoubleCoset) =  print(io, GAP.gap_to_julia(GAP.Globals.StringView(x.G.X))*" * "*GAP.gap_to_julia(GAP.Globals.StringView(x.repr.X))*" * "*GAP.gap_to_julia(GAP.Globals.StringView(x.H.X)))
+Base.show(io::IO, x::GroupDoubleCoset) =  print(io, GAP.gap_to_julia(GAP.Globals.StringView(x.G.X))*" * "*GAP.gap_to_julia(GAP.Globals.StringView(x.repr.X))*" * "*GAP.gap_to_julia(GAP.Globals.StringView(x.H.X)))
 
 function double_coset(G::Group, g::GAPGroupElem, H::Group)
    if !GAP.Globals.IsSubset(parent(g).X,G.X)
@@ -119,11 +119,11 @@ function elements(C::GroupDoubleCoset)
 end
 
 order(C::Union{GroupCoset,GroupDoubleCoset}) = GAP.Globals.Size(C.coset)
-Base.:length(C::Union{GroupCoset,GroupDoubleCoset}) = GAP.Globals.Size(C.coset)
+Base.length(C::Union{GroupCoset,GroupDoubleCoset}) = GAP.Globals.Size(C.coset)
 
-rand(C::Union{GroupCoset,GroupDoubleCoset}) = group_element(C.X, GAP.Globals.Random(C.coset))
+Base.rand(C::Union{GroupCoset,GroupDoubleCoset}) = group_element(C.X, GAP.Globals.Random(C.coset))
 
-function iterate(G::GroupDoubleCoset)
+function Base.iterate(G::GroupDoubleCoset)
   L=GAP.Globals.Iterator(G.coset)
   if GAP.Globals.IsDoneIterator(L)
     return nothing
@@ -132,7 +132,7 @@ function iterate(G::GroupDoubleCoset)
   return group_element(G.X, i), L
 end
 
-function iterate(G::GroupDoubleCoset, state)
+function Base.iterate(G::GroupDoubleCoset, state)
   if GAP.Globals.IsDoneIterator(state)
     return nothing
   end

@@ -8,7 +8,6 @@ import Nemo
 import Nemo: fmpz, fmpq
 
 import Singular
-import Base: +, *, ==, ^, -
 
 import Hecke
 import Hecke: MapHeader
@@ -223,26 +222,26 @@ function singular_assure(I::MPolyIdeal)
   end
 end
 
-function *(I::MPolyIdeal, J::MPolyIdeal)
+function Base.:*(I::MPolyIdeal, J::MPolyIdeal)
   singular_assure(I)
   singular_assure(J)
   return MPolyIdeal(I.gens.Ox, I.gens.S * J.gens.S)
 end
 
-function +(I::MPolyIdeal, J::MPolyIdeal)
+function Base.:+(I::MPolyIdeal, J::MPolyIdeal)
   singular_assure(I)
   singular_assure(J)
   return MPolyIdeal(I.gens.Ox, I.gens.S + J.gens.S)
 end
--(I::MPolyIdeal, J::MPolyIdeal) = I+J
+Base.:-(I::MPolyIdeal, J::MPolyIdeal) = I+J
 
-function ==(I::MPolyIdeal, J::MPolyIdeal)
+function Base.:(==)(I::MPolyIdeal, J::MPolyIdeal)
   singular_assure(I)
   singular_assure(J)
   return Singular.equal(I.gens.S, J.gens.S)
 end
 
-function ^(I::MPolyIdeal, j::Int)
+function Base.:^(I::MPolyIdeal, j::Int)
   singular_assure(I)
   return MPolyIdeal(I.gens.Ox, I.gens.S^j)
 end

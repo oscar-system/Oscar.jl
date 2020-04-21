@@ -44,6 +44,9 @@ import Hecke:
     sub,
     subgroups
 
+import Base: ==, parent, show
+
+import GAP.GapObj
 
 export PermGroup, PermGroupElem
 export MatrixGroup, MatrixGroupElem

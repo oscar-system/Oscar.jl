@@ -41,17 +41,6 @@ export Nemo, Hecke, Singular, Polymake, AbstractAlgebra, GAP
 
 import AbstractAlgebra: @show_name, @show_special, force_coerce, force_op
 
-import Base.==
-import Base.rand
-import Base.conj
-import Base.show
-import Base.conj!
-import Base.parent
-import Base.eltype
-import Base.iterate
-import Base.collect
-import GAP.GapObj
-
 function __init__()
   println(" -----    -----    -----      -      -----   ")
   println("|     |  |     |  |     |    | |    |     |  ")
