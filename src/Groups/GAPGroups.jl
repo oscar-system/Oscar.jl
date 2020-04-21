@@ -1,9 +1,8 @@
-# further possible functions: similar, iterate, literal_pow, parent_type
+# further possible functions: similar, literal_pow, parent_type
 
 export order, perm, cperm, isfinite, gens, ngens, comm, comm!, inv!, rand_pseudo, one!, div_right,
 div_left, div_right!, div_left!, deg, mul, mul!, listperm, degree, elements, right_coset, coset_decomposition,
 right_cosets , right_transversal, conjugacy_class, conjugacy_classes, number_conjugacy_classes, isconjugate, conjugacy_classes_subgroups, conjugacy_classes_maximal_subgroups, normalizer, normaliser, core, pcore, fitting_subgroup, frattini_subgroup, radical_subgroup, socle, sylow_subgroup, hall_subgroup, sylow_system, complement_system, hall_system
-     #conj!, conj
 
 
 # TODO: as soon as GAP packages like `polycyclic` or `rcwa` are loaded,
@@ -27,7 +26,7 @@ function elements(G::T) where T <: Group
 end
 
 # to be fixed later
-Base.:hash(x::GAPGroupElem) = 0
+Base.hash(x::GAPGroupElem) = 0
 
 function parent(x::GAPGroupElem)
   return x.parent
@@ -61,17 +60,17 @@ function order(::Type{T}, x::Union{GAPGroupElem, Group}) where T<:Number
    return T(order(x))
 end
 
-Base.:exponent(x::Group) = GAP.Globals.Exponent(x.X)
+Base.exponent(x::Group) = GAP.Globals.Exponent(x.X)
 
-Base.:length(x::Group) = order(x)
+Base.length(x::Group) = order(x)
 
-function rand(x::Group)
+function Base.rand(x::Group)
    s = GAP.Globals.Random(x.X)
    return group_element(x, s)
 end
 
 # one of the following should be non-parametric
-rand_pseudo(G::Group) = rand(G)
+rand_pseudo(G::Group) = Base.rand(G)
 
 
 function _maxgroup(x::T, y::T) where T <: Group
@@ -106,21 +105,21 @@ end
     one(G::Group) -> x::GAPGroupElem{typeof(G)}
 Returns the one element of the group G.
 """
-Base.:one(x::Group) = group_element(x, GAP.Globals.Identity(x.X))
+Base.one(x::Group) = group_element(x, GAP.Globals.Identity(x.X))
 
 """
     one(x::GAPGroupElement{T}) -> x::GAPGroupElem{T}
 Returns the one element of the parent of x.
 """
-Base.:one(x::GAPGroupElem) = one(parent(x))
+Base.one(x::GAPGroupElem) = one(parent(x))
 one!(x::GAPGroupElem) = one(parent(x))
 
-Base.:show(io::IO, x::GAPGroupElem) =  print(io, GAP.gap_to_julia(GAP.Globals.StringView(x.X)))
-Base.:show(io::IO, x::Group) = print(io, GAP.gap_to_julia(GAP.Globals.StringView(x.X)))
+Base.show(io::IO, x::GAPGroupElem) =  print(io, GAP.gap_to_julia(GAP.Globals.StringView(x.X)))
+Base.show(io::IO, x::Group) = print(io, GAP.gap_to_julia(GAP.Globals.StringView(x.X)))
 
-Base.:isone(x::GAPGroupElem) = x == one(parent(x))
+Base.isone(x::GAPGroupElem) = x == one(parent(x))
 
-Base.:inv(x::GAPGroupElem) = group_element(parent(x), GAP.Globals.Inverse(x.X))
+Base.inv(x::GAPGroupElem) = group_element(parent(x), GAP.Globals.Inverse(x.X))
 
 inv!(out::GAPGroupElem, x::GAPGroupElem) = inv(x)  #if needed later
 
@@ -138,13 +137,13 @@ div_left(x::GAPGroupElem, y::GAPGroupElem) = inv(y)*x
 div_right!(out::GAPGroupElem, x::GAPGroupElem, y::GAPGroupElem) = x*inv(y)
 div_left!(out::GAPGroupElem, x::GAPGroupElem, y::GAPGroupElem) = inv(y)*x
 
-conj(x::GAPGroupElem, y::GAPGroupElem) = x^y
-conj!(out::GAPGroupElem, x::GAPGroupElem, y::GAPGroupElem) = x^y
+Base.conj(x::GAPGroupElem, y::GAPGroupElem) = x^y
+Base.conj!(out::GAPGroupElem, x::GAPGroupElem, y::GAPGroupElem) = x^y
 
 comm(x::GAPGroupElem, y::GAPGroupElem) = x^-1*x^y
 comm!(out::GAPGroupElem, x::GAPGroupElem, y::GAPGroupElem) = x^-1*x^y
 
-function iterate(G::Group)
+function Base.iterate(G::Group)
   L=GAP.Globals.Iterator(G.X)
   if GAP.Globals.IsDoneIterator(L)
     return nothing
@@ -153,7 +152,7 @@ function iterate(G::Group)
   return group_element(G, i), L
 end
 
-function iterate(G::Group, state)
+function Base.iterate(G::Group, state)
   if GAP.Globals.IsDoneIterator(state)
     return nothing
   end
@@ -267,9 +266,9 @@ ngens(G::Group) = length(GAP.Globals.GeneratorsOfGroup(G.X))
 
 
 Base.getindex(G::Group, i::Int) = gens(G, i)
-Base.:sign(x::PermGroupElem) = GAP.Globals.SignPerm(x.X)
+Base.sign(x::PermGroupElem) = GAP.Globals.SignPerm(x.X)
 
-Base.:isless(x::PermGroupElem, y::PermGroupElem) = x<y
+Base.isless(x::PermGroupElem, y::PermGroupElem) = x<y
 
 #embedding of a permutation in permutation group
 function (G::PermGroup)(x::PermGroupElem)
@@ -306,7 +305,7 @@ struct GroupConjClass{T<:Group, S<:Union{GAPGroupElem,Group}}
    CC::GapObj
 end
 
-Base.:show(io::IO, x::GroupConjClass) = print(io, GAP.gap_to_julia(GAP.Globals.StringView(x.repr))*" ^ "*GAP.gap_to_julia(GAP.Globals.StringView(x.X)))
+Base.show(io::IO, x::GroupConjClass) = print(io, GAP.gap_to_julia(GAP.Globals.StringView(x.repr))*" ^ "*GAP.gap_to_julia(GAP.Globals.StringView(x.X)))
 
 function _conjugacy_class(G, g, cc::GapObj)         # function for assignment
   return GroupConjClass{typeof(G), typeof(g)}(G, g, cc)
@@ -330,7 +329,7 @@ function conjugacy_class(G::Group, g::GAPGroupElem)
    return _conjugacy_class(G, g, GAP.Globals.ConjugacyClass(G.X,g.X))
 end
 
-function rand(C::GroupConjClass{S,T}) where S where T<:GAPGroupElem
+function Base.rand(C::GroupConjClass{S,T}) where S where T<:GAPGroupElem
    return group_element(C.X, GAP.Globals.Random(C.CC))
 end
 
@@ -387,7 +386,7 @@ function conjugacy_class(G::T, g::T) where T<:Group
    return _conjugacy_class(G, g, GAP.Globals.ConjugacyClassSubgroups(G.X,g.X))
 end
 
-function rand(C::GroupConjClass{S,T}) where S where T<:Group
+function Base.rand(C::GroupConjClass{S,T}) where S where T<:Group
    return T(GAP.Globals.Random(C.CC))
 end
 

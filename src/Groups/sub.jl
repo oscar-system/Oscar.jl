@@ -16,7 +16,7 @@ end
 
 Base.:*(f::GAPGroupHomomorphism{S, T}, g::GAPGroupHomomorphism{T, U}) where S where T where U = compose(g, f)
 
-function Base.:inv(f::GAPGroupHomomorphism{S,T}) where S where T
+function Base.inv(f::GAPGroupHomomorphism{S,T}) where S where T
    return GAPGroupHomomorphism{T,S}(codomain(f), domain(f), GAP.Globals.InverseGeneralMapping(f.map))
 end
 
@@ -426,7 +426,7 @@ function automorphism_group(G::Group)
   return AutomorphismGroup{typeof(G)}(AutGAP, G)
 end
 
-Base.:show(io::IO, A::AutomorphismGroup{T}) where T <: Group = print(io, "Aut( "* GAP.gap_to_julia(GAP.Globals.StringView(A.G.X)) *" )")
+Base.show(io::IO, A::AutomorphismGroup{T}) where T <: Group = print(io, "Aut( "* GAP.gap_to_julia(GAP.Globals.StringView(A.G.X)) *" )")
 
 # TODO: why (x::AutomorphismGroupElem) does not work?
 

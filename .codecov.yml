@@ -1,0 +1,13 @@
+coverage:
+  precision: 2
+  round: down
+  range: "70...100"
+
+  status:
+    project: off
+    patch: off
+    changes: off
+
+comment:
+  layout: "header, diff, changes, tree"
+  behavior: default

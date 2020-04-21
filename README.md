@@ -1,13 +1,18 @@
 # Oscar.jl
 
+| **Documentation**                                                 | **Build Status**                                                                                |
+|:-----------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------:|
+| [![][docs-stable-img]][docs-stable-url] [![][docs-dev-img]][docs-dev-url] | [![][travis-img]][travis-url] [![][codecov-img]][codecov-url] |
+
+
 Welcome to the OSCAR project, a visionary new computer algebra system
-which combines the capabilities of four cornerstone systems: Gap,
+which combines the capabilities of four cornerstone systems: GAP,
 Polymake, Antic and Singular.
 
 ## Installation
 
-* Download Julia version 1.3 or higher
-* In Julia type
+OSCAR requires Julia 1.3 or newer. In principle it can be installed and used
+like any other Julia package; doing so will take a couple of minutes:
 
 ```
 julia> using Pkg
@@ -15,30 +20,9 @@ julia> Pkg.add("Oscar")
 julia> using Oscar
 ```
 
-or, to be at cutting edge:
-
-```
-julia> using Pkg
-julia> Pkg.add(Oscar#master)
-julia> using Oscar
-```
-
-Installation will take a couple of minutes.
-
-## Current requirements
-
-* we support Julia 1.3 and we try to get ready a.s.a.p. for the upcoming Julia 1.4
-* target platforms: x86_64-linux-gnu, x86_64-apple-darwin14
-* CxxWrap 0.9.0
-* travis: distribution ubuntu bionic
-
-Some explanations:
-
-* Julia 1.0 is the latest LTS version, but it seems unlikely that GAP (with its garbage collection) can ever be supported
-* Julia 1.1 and 1.2 do not receive any back ports any more
-* Windows support only through WSL (i.e., this is covered by x86_64-linux-gnu)
-* The travis configuration is important for building CxxWrap; otherwise the compiler is too old.
-
+However, some of Oscar's components have additional requirements.
+For more detailed information, please consult the [installation
+instructions](https://oscar.computeralgebra.de/install/) on our website.
 
 ## Examples of usage
 
@@ -153,3 +137,24 @@ PropertyValue wrapping pm::Array<polymake::topaz::HomologyGroup<pm::Integer>>
 ({} 0)
 
 ```
+
+## Funding
+
+The development of this Julia package is supported by the Deutsche
+Forschungsgemeinschaft DFG within the
+[Collaborative Research Center TRR 195](https://www.computeralgebra.de/sfb/).
+
+[docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
+[docs-dev-url]: https://oscar-system.github.io/Oscar.jl/dev/
+
+[docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
+[docs-stable-url]: https://oscar-system.github.io/Oscar.jl/stable/
+
+[travis-img]: https://travis-ci.com/oscar-system/Oscar.jl.svg?branch=master
+[travis-url]: https://travis-ci.com/oscar-system/Oscar.jl
+
+[appveyor-img]: https://ci.appveyor.com/api/projects/status/github/oscar-system/Oscar.jl?svg=true
+[appveyor-url]: https://ci.appveyor.com/project/oscar-system/Oscar-jl
+
+[codecov-img]: https://codecov.io/gh/oscar-system/Oscar.jl/branch/master/graph/badge.svg
+[codecov-url]: https://codecov.io/gh/oscar-system/Oscar.jl
