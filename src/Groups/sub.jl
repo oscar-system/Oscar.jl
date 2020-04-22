@@ -1,6 +1,6 @@
 export id_hom, trivial_morphism, hom, domain, codomain, image, issurjective, isinjective, 
        isinvertible, isbijective, automorphism_group, sub, quo, kernel, cokernel, haspreimage, isisomorphic,
-       center, index, centralizer, order, normal_subgroups, derived_subgroup, derived_series, intersection, inner_automorphism, isinner_automorphism, inner_automorphisms_group, isinvariant, induced_automorphism
+       center, index, centralizer, order, normal_subgroups, derived_subgroup, derived_series, intersection, inner_automorphism, isinner_automorphism, inner_automorphisms_group, isinvariant, restrict_automorphism, restrict_homomorphism, wreath_product
 
 
 function Base.show(io::IO, x::GAPGroupHomomorphism)
@@ -110,6 +110,28 @@ end
 
 function isbijective(f::GAPGroupHomomorphism)
   return GAP.Globals.IsBijective(f.map)
+end
+
+
+"""
+    isinvariant(f::GAPGroupHomomorphism, H::Group)
+    isinvariant(f::GAPGroupElem{AutomorphismGroup{T}}, H::T)
+return whether `f`(`H`) == `H`.
+"""
+function isinvariant(f::GAPGroupHomomorphism, H::Group)
+  @assert domain(f) == codomain(f) "Not an endomorphism!"
+  @assert GAP.Globals.IsSubset(codomain(f).X, H.X) "Not a subgroup of the domain"
+  return GAP.Globals.Image(f.map, H.X) == H.X
+end
+
+"""
+    restrict_homomorphism(f::GAPGroupHomomorphism, H::Group)
+    restrict_homomorphism(f::GAPGroupElem{AutomorphismGroup{T}}, H::T) where T <: Group
+if `H` is invariant under `f`, returns the restriction of `f` to `H`; otherwise it return ERROR.
+"""
+function restrict_homomorphism(f::GAPGroupHomomorphism, H::Group)
+  @assert isinvariant(f,H) "H is not invariant under f!"
+  return _hom_from_gap_map(H, H, GAP.Globals.RestrictedMapping(f.map,H.X))
 end
 
 ################################################################################
@@ -336,6 +358,10 @@ end
 #
 ################################################################################
 
+"""
+    isisomorphic(G::Group, H::Group)
+return (`true`,`f`) if `G` and `H` are isomorphic groups, where `f` is a group isomorphism. Otherwise, return (`false`,`f`), where `f` is the trivial homomorphism.
+"""
 function isisomorphic(G::Group, H::Group)
   mp = GAP.Globals.IsomorphismGroups(G.X, H.X)
   if mp == GAP.Globals.fail
@@ -391,8 +417,15 @@ end
 #
 ################################################################################
 
+"""
+    intersection(G::T, H::T) where T<:Group
+return the group intersection of `G` and `H`, together with the embeddings into `G` and `H` respectively.
+"""
 function intersection(G::T, H::T) where T<:Group
-  # return T(GAP.Globals.Intersection(G.X,H.X))
+   K = GAP.Globals.Intersection(G.X,H.X)
+   h = _as_subgroup(K,H)[2]
+   K,g = _as_subgroup(K,G)
+   return K,g,h
 end
 
 ################################################################################
@@ -403,7 +436,7 @@ end
 
 #To be done properly
 function wreath_product(G::Group, H::PermGroup)
-  wGH = GAP.Globals.WreathProduct(G, H)
+  wGH = GAP.Globals.WreathProduct(G.X, H.X)
   T = _get_type(wGH)
   return T(wGH)
 end
@@ -432,7 +465,7 @@ Base.show(io::IO, A::AutomorphismGroup{T}) where T <: Group = print(io, "Aut( "*
 
 """
     hom(f::GAPGroupElem{AutomorphismGroup{T}}) where T
-return the element f of type ``GAPGroupHomomorphism``.
+return the element f of type ``GAPGroupHomomorphism{T,T}``.
 """
 function hom(x::GAPGroupElem{AutomorphismGroup{T}}) where T
   A = parent(x)
@@ -462,7 +495,7 @@ Base.:*(f::GAPGroupHomomorphism, g::GAPGroupElem{AutomorphismGroup{T}}) where T 
 
 """
     inner_automorphism(g::GAPGroupElem)
-return the inner automorphism in `automorphism_group(G)` defined by `x` -> `x^g`.
+return the inner automorphism in `automorphism_group(parent(g))` defined by `x` -> `x^g`.
 """
 function inner_automorphism(g::GAPGroupElem)
   return _hom_from_gap_map(parent(g), parent(g), GAP.Globals.ConjugatorAutomorphism(parent(g).X, g.X))
@@ -491,17 +524,6 @@ function inner_automorphisms_group(A::AutomorphismGroup{T}) where T <: Group
    return _as_subgroup(AutGAP, A)
 end
 
-"""
-    isinvariant(f::GAPGroupHomomorphism, H::Group)
-    isinvariant(f::GAPGroupElem{AutomorphismGroup{T}}, H::T)
-return whether `f`(`H`) == `H`.
-"""
-function isinvariant(f::GAPGroupHomomorphism, H::Group)
-  @assert domain(f) == codomain(f) "Not an endomorphism!"
-  @assert GAP.Globals.IsSubset(codomain(f).X, H.X) "Not a subgroup of the domain"
-  return GAP.Globals.Image(f.map, H.X) == H.X
-end
-
 function isinvariant(f::GAPGroupElem{AutomorphismGroup{T}}, H::T) where T<:Group
   @assert GAP.Globals.IsSubset(parent(f).G.X, H.X) "Not a subgroup of the domain"
   return GAP.Globals.Image(f.X, H.X) == H.X
@@ -513,8 +535,18 @@ function induced_automorphism(f::GAPGroupHomomorphism, mH::GAPGroupHomomorphism)
   return _hom_from_gap_map(codomain(mH), codomain(mH), map)
 end
 
-function restrict_automorphism(f::GAPGroupHomomorphism, H::Group)
-  return _hom_from_gap_map(H, H, f.map)
+"""
+    restrict_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, H::T) where T <: Group
+if `H` is invariant under `f`, returns the restriction of `f` to `H` as automorphism of `H`; otherwise it returns ERROR.
+"""
+function restrict_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, H::T, A=automorphism_group(H)) where T <: Group
+  @assert isinvariant(f,H) "H is not invariant under f!"
+  fh = hom(H,H,gens(H), [f(x) for x in gens(H)])
+  return A(fh)
+end
+
+function restrict_homomorphism(f::GAPGroupElem{AutomorphismGroup{T}}, H::T) where T <: Group
+  return restrict_homomorphism(hom(f),H)
 end
 
 ## the next function needs a redefinition if G is an AutomorphismGroup

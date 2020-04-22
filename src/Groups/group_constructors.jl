@@ -36,6 +36,7 @@ export
 _gap_filter(::Type{PermGroup}) = GAP.Globals.IsPermGroup
 _gap_filter(::Type{PcGroup}) = GAP.Globals.IsPcGroup
 _gap_filter(::Type{FPGroup}) = GAP.Globals.IsFpGroup
+_gap_filter(::Type{MatrixGroup}) = GAP.Globals.IsMatrixGroup
 
 # TODO: matrix group handling usually is more complex: there usually
 # is another extra argument then to specify the base field
@@ -187,7 +188,11 @@ end
 #
 ################################################################################
 
-
+"""
+    dihedral_group(n::Int)
+    dihedral_group(::Type{T}, n::Int)
+return the dihedral group of order `n` of type `T`, where `T` is in {``PcGroup``,``PermGroup``,``FPGroup``}. In the first case, the type is set as ``PcGroup``.
+"""
 function dihedral_group(n::Int)
   @assert iseven(n)
   return PcGroup(GAP.Globals.DihedralGroup(n))
@@ -198,14 +203,19 @@ function dihedral_group(::Type{T}, n::Int) where T <: Group
   return T(GAP.Globals.DihedralGroup(_gap_filter(T), n))
 end
 
+"""
+    quaternion_group(n::Int)
+    quaternion_group(::Type{T}, n::Int)
+return the quaternion group of order `n` of type `T`, where `T` is in {``PcGroup``,``PermGroup``,``FPGroup``,``MatrixGroup``}. In the first case, the type is set as ``PcGroup``.
+"""
 function quaternion_group(n::Int)
   @assert iszero(mod(n, 4))
   return PcGroup(GAP.Globals.QuaternionGroup(n))
 end
 
 function quaternion_group(::Type{T}, n::Int) where T <: Group 
-  @assert divisible(n, 4)
-  return T(GAP.Globals.QuaternionGroup(_gap_filter(T)), n)
+   @assert iszero(mod(n, 4))
+  return T(GAP.Globals.QuaternionGroup(_gap_filter(T), n))
 end
 
 function isquaternion_group(G::Group)
