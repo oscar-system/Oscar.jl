@@ -19,10 +19,12 @@ end
 function FreeModule(R::MPolyRing_dec, n::Int, name::String = "e"; cached::Bool = false)
   return FreeModule_dec([R.D[0] for i=1:n], R, [Symbol("$name[$i]") for i=1:n])
 end
+free_module(R::MPolyRing_dec, n::Int, name::String = "e"; cached::Bool = false) = FreeModule(R, n, name, cached = cached)
 
-function FreeModule(R::MPolyRing_dec, d::Array{GrpAbFinGenElem, 1}, name::String = "e")
+function FreeModule(R::MPolyRing_dec, d::Array{GrpAbFinGenElem, 1}, name::String = "e"; cached::Bool = false)
   return FreeModule_dec(d, R, [Symbol("$name[$i]") for i=1:length(d)])
 end
+free_module(R::MPolyRing_dec, d::Array{GrpAbFinGenElem, 1}, name::String = "e"; cached::Bool = false) = FreeModule(R, d, name, cached = cached)
 
 #=XXX this cannot be as it is inherently ambigous
   - FreeModule(R, n)
@@ -368,7 +370,7 @@ isfiltrated(F::FreeModule_dec) = isfiltrated(F.R)
 
 abstract type ModuleFPHom_dec end
 abstract type Map_dec{T1, T2} <: Map{T1, T2, Hecke.HeckeMap, ModuleFPHom_dec} end
-  
+
 mutable struct FreeModuleHom_dec{T1, T2} <: Map_dec{T1, T2} 
   header::MapHeader
   Hecke.@declare_other
@@ -379,9 +381,8 @@ mutable struct FreeModuleHom_dec{T1, T2} <: Map_dec{T1, T2}
     @assert all(x->parent(x) == G, a)
     @assert length(a) == ngens(F)
     #for filtrations, all is legal...
-    r= new{typeof(F), typeof(G)}()
+    r = new{typeof(F), typeof(G)}()
     function im_func(x::FreeModuleElem_dec)
-      @assert parent(x) == F
       b = zero(G)
       for (i,v) = x.r
         b += v*a[i]
@@ -650,7 +651,7 @@ function quo(S::SubQuo_dec, O::Array{<:SubQuoElem_dec, 1})
 end
 
 function quo(S::SubQuo_dec, T::SubQuo_dec)
-  @assert !isdefined(T, :quo)
+#  @assert !isdefined(T, :quo)
   return quo(S, gens(T))
 end
 
@@ -660,12 +661,13 @@ function quo(F::FreeModule_dec, T::SubQuo_dec)
 end
 
 function syzygie_module(F::BiModArray; sub = 0)
-  F[Val(:S), 1]
+  F[Val(:S), 1] #to force the existence of F.S
   s = Singular.syz(F.S)
   if sub !== 0
     G = sub
   else
-    G = FreeModule(base_ring(F.F), [degree(x) for x = F.O])
+    z = decoration(base_ring(F.F))[0]
+    G = FreeModule(base_ring(F.F), [iszero(x) ? z : degree(x) for x = F.O])
   end
   return SubQuo_dec(G, s)
 end
@@ -817,7 +819,6 @@ end
 # hom(prod -> X), hom(x -> prod)
 # if too much time: improve the hom(A, B) in case of A and/or B are products - or maybe not...
 # tensor and hom functors for chain complex
-# homology
 # dual: ambig: hom(M, R) or hom(M, Q(R))?
 
 function coordinates(a::FreeModuleElem_dec, SQ::SubQuo_dec)
@@ -987,10 +988,23 @@ function kernel(h::FreeModuleHom_dec)  #ONLY for free modules...
     s = sub(G, gens(G))
     return s, hom(s, G, gens(G))
   end
-  @assert isa(codomain(h), FreeModule_dec)
+  g = map(h, basis(G))
+  if isa(codomain(h), SubQuo_dec)
+    g = [x.a for x = g]
+    if isdefined(codomain(h), :quo)
+      append!(g, collect(codomain(h).quo))
+    end
+  end
   #TODO allow sub-quo here as well
-  b = BiModArray(map(h, basis(G)))
-  k = syzygie_module(b, sub = G)
+  b = BiModArray(g)
+  k = syzygie_module(b)
+  if isa(codomain(h), SubQuo_dec)
+    s = collect(k.sub)
+    k = sub(G, [FreeModuleElem_dec(x.r[1:dim(G)], G) for x = s])
+  else
+    #the syzygie_module creates a new free module to work in
+    k = sub(G, [FreeModuleElem_dec(x.r, G) for x = collect(k.sub)])
+  end
   @assert k.F == G
   c = collect(k.sub)
   return k, hom(k, parent(c[1]), c)
@@ -1008,7 +1022,17 @@ function image(h::SubQuoHom_dec)
 end
 
 function kernel(h::SubQuoHom_dec)
-  error("not done yet")
+  D = domain(h)
+  R = base_ring(D)
+  F = FreeModule(R, ngens(D))
+  hh = hom(F, codomain(h), map(h, gens(D)))
+  k = kernel(hh)
+  @assert domain(k[2]) == k[1]
+  @assert codomain(k[2]) == F
+  hh = hom(F, D, gens(D))
+  im = map(x->hh(k[2](x)), gens(k[1]))
+  k = sub(D, im)
+  return k, hom(k, D, im)
 end
 
 function free_resolution(F::FreeModule_dec)
@@ -1177,6 +1201,8 @@ function direct_product(G::ModuleFP_dec...; task::Symbol = :none)
     return s, pro, mF
   end
 end
+⊕(M::ModuleFP_dec...) = direct_product(M..., task = :none)
+
 
 function Hecke.canonical_injection(G::ModuleFP_dec, i::Int)
   H = Hecke.get_special(G, :direct_product)
@@ -1252,6 +1278,8 @@ function tensor_product(G::FreeModule_dec...; task::Symbol = :none)
 
   return F, MapFromFunc(pure, inv_pure, Hecke.TupleParent(Tuple([g[0] for g = G])), F)
 end
+
+⊗(G::ModuleFP_dec...) = tensor_product(G..., task = :none)
 
 function free_module(F::FreeModule_dec)
   return F
@@ -1354,6 +1382,14 @@ end
 
 
 #############################
+function homology(C::Hecke.ChainComplex{ModuleFP_dec})
+  H = SubQuo_dec[]
+  for i=1:length(C)-1
+    push!(H, quo(kernel(C.maps[i+1])[1], image(C.maps[i])[1])[1])
+  end
+  return H
+end
+#############################
 #TODO move to Hecke
 #  re-evaluate and use or not
 function Base.getindex(r::Hecke.SRow, R::AbstractAlgebra.Ring, u::UnitRange)
@@ -1402,4 +1438,4 @@ function _reduce(a::Singular.svector, b::Singular.smodule)
   return Singular.Module(base_ring(b), p)[1]
 end
 
-#TODO: tensor_product vom Raul's H is broken
+#TODO: tensor_product from Raul's H is broken
