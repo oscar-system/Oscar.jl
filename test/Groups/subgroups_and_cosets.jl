@@ -88,17 +88,13 @@ end
          @test Cy[i]*CCy[j] == CCy[j]*Cy[i]
       end
    end
-   notx = setdiff(G,Nx)
-   noty = setdiff(G,Ny)
+   notx = setdiff(G,CCx)
+   noty = setdiff(G,CCy)
    @testset for i in 1:3
       z=rand(notx)
-      @testset for j in 1:ngens(Cx)
-         @test z*Cx[j] != Cx[j]*z
-      end
+      @test 1 in [z*k != k*z for k in gens(Cx)]
       z=rand(noty)
-      @testset for j in 1:ngens(Cy)
-         @test z*Cy[j] != Cy[j]*z
-      end
+      @test 1 in [z*k != k*z for k in gens(Cy)]
    end
 end
 
@@ -111,8 +107,6 @@ end
   
    C = right_coset(H, G[1])
    @test order(C) == length(elements(C))
-  
-   @test length(right_cosets(G, H)) == index(G, H)
   
    @test length(right_transversal(G, H)) == index(G, H)
 
@@ -132,8 +126,12 @@ end
       lc = left_coset(H,x)
       dc = double_coset(H,x,K)
       @test acting_domain(rc) == H
+      @test acting_domain(lc) == H
+      @test left_acting_group(dc) == H
+      @test right_acting_group(dc) == K
       @test representative(rc) == x
       @test representative(lc) == x
+      @test representative(dc) == x
       @test Set(elements(rc)) == Set([z for z in rc])          # test iterator
       @test Set(elements(dc)) == Set([z for z in dc])
       @test Set(elements(rc)) == Set([h*x for h in H])
@@ -150,6 +148,32 @@ end
       @test issubset(left_coset(K,x),dc)
       @test !isbicoset(rc)
    end
+
+   H = sub(G, [cperm(G,[1,2,3]), cperm(G,[2,3,4])])[1]
+   L = right_cosets(G,H)
+   T = right_transversal(G,H)
+   @test length(L)==10
+   @test length(T)==10
+   @testset for t in T
+       @test sum([t in l for l in L]) == 1
+   end
+   rc = L[1]
+   r = representative(rc)
+   rc1 = right_coset(H, H[1]*r)
+   @test representative(rc1) != representative(rc)
+   @test rc1 == rc
+   L = left_cosets(G,H)
+   T = left_transversal(G,H)
+   @test length(L)==10
+   @test length(T)==10
+   @testset for t in T
+       @test sum([t in l for l in L]) == 1
+   end
+   lc = L[1]
+   r = representative(lc)
+   lc1 = left_coset(H, r*H[1])
+   @test representative(lc1) != representative(lc)
+   @test lc1 == lc
 
 end
 
