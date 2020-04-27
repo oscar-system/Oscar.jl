@@ -177,3 +177,58 @@ end
 
 end
 
+@testset "Predicates for groups" begin
+   @test !issimple(alternating_group(4))
+   @test issimple(alternating_group(5))
+   @test issimple(quo(SL(4,3), center(SL(4,3))[1])[1])
+
+   @test isalmostsimple(symmetric_group(5))
+   @test !issimple(symmetric_group(5))
+
+   @test isperfect(alternating_group(5))
+   @test !isperfect(alternating_group(4))
+   
+   @test !ispgroup(alternating_group(4))[1]
+   @test ispgroup(alternating_group(3)) == (true,3)
+   @test ispgroup(quaternion_group(8)) == (true,2)
+end
+
+@testset "Sylow and Hall subgroups" begin
+   G = symmetric_group(4)
+
+   P = sylow_subgroup(G,2)[1]
+   @test order(P)==8
+   @test isisomorphic(P,dihedral_group(8))[1]
+   P = sylow_subgroup(G,3)[1]
+   @test order(P)==3
+   @test isconjugate(G, P, sub(G, [cperm(1:3)])[1])[1]
+   P = sylow_subgroup(G,5)[1]
+   @test P==sub(G,[one(G)])[1]
+   @test_throws ArgumentError P=sylow_subgroup(G,4)
+
+   G = cyclic_group(210)
+   g = G[1]
+   @testset for i in [2,3,5,7]
+      @test sylow_subgroup(G,i) == sub(G,[g^(210 ÷ i)])
+   end
+   L = [[2],[3],[5],[7],[2,3],[2,5],[2,7],[3,5],[3,7],[5,7],[2,3,5],[2,3,7],[2,5,7],[3,5,7],[2,3,5,7]]
+   @testset for l in L
+      @test hall_subgroup(G,l) == sub(G,[g^(210÷lcm(l))])
+   end
+   @test hall_subgroup(G,Int64[])==sub(G,[one(G)])
+   @test_throws ArgumentError P=hall_subgroup(G,[4])
+   @test_throws ArgumentError P=hall_subgroup(symmetric_group(5),[2,3])
+
+   L = sylow_system(G)
+   Lo = [order(l[1]) for l in L]
+   @test length(Lo)==length(factor(order(G)))
+   @test prod(Lo) == order(G)
+   @test [isprime(ispower(l)[2]) for l in Lo] == [1 for i in 1:length(L)]
+   L = complement_system(G)
+   Lo = [index(G,l[1]) for l in L]
+   @test length(Lo)==length(factor(order(G)))
+   @test prod(Lo) == order(G)
+   @test [isprime(ispower(l)[2]) for l in Lo] == [1 for i in 1:length(L)]
+   
+end
+
