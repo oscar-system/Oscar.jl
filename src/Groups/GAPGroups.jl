@@ -2,7 +2,7 @@
 
 export order, perm, cperm, isfinite, gens, ngens, comm, comm!, inv!, rand_pseudo, one!, div_right,
 div_left, div_right!, div_left!, deg, mul, mul!, listperm, degree, elements, right_coset, coset_decomposition,
-right_cosets , right_transversal, conjugacy_class, conjugacy_classes, number_conjugacy_classes, isconjugate, conjugacy_classes_subgroups, conjugacy_classes_maximal_subgroups, normalizer, normaliser, core, pcore, fitting_subgroup, frattini_subgroup, radical_subgroup, socle, sylow_subgroup, hall_subgroup, sylow_system, complement_system, hall_system
+right_cosets , right_transversal, conjugacy_class, conjugacy_classes, number_conjugacy_classes, isconjugate, conjugacy_classes_subgroups, conjugacy_classes_maximal_subgroups, normalizer, normaliser, core, pcore, fitting_subgroup, frattini_subgroup, radical_subgroup, socle, sylow_subgroup, hall_subgroup, sylow_system, complement_system, hall_system, relators, isperfect, issimple, isalmostsimple, ispgroup
 
 
 # TODO: as soon as GAP packages like `polycyclic` or `rcwa` are loaded,
@@ -513,7 +513,10 @@ socle(G::Group) = _as_subgroup(GAP.Globals.Socle(G.X),G)
 #
 ################################################################################
 
-
+"""
+    sylow_subgroup(G::Group, p::Int64)
+return a Sylow `p`-subgroup of `G`.
+"""
 function sylow_subgroup(G::Group, p::Int64)
    if !GAP.Globals.IsPrime(p)
       throw(ArgumentError("p is not a prime"))
@@ -521,6 +524,10 @@ function sylow_subgroup(G::Group, p::Int64)
    return _as_subgroup(GAP.Globals.SylowSubgroup(G.X,p),G)
 end
 
+"""
+    hall_subgroup(G::Group, P::Array{Int64})
+return a Hall `P`-subgroup of `G`. It works only if `G` is solvable.
+"""
 function hall_subgroup(G::Group, P::Array{Int64})
    noprime=false
    for p in P
@@ -535,22 +542,34 @@ function hall_subgroup(G::Group, P::Array{Int64})
    return _as_subgroup(GAP.Globals.HallSubgroup(G.X,GAP.julia_to_gap(P)),G)
 end
 
+"""
+    sylow_system(G::Group)
+return an array of Sylow ``p``-subgroups of `G`, where ``p`` runs over the prime factors of |`G`|, such that every two such subgroups commute each other (as subgroups). It works only if `G` is solvable.
+"""
 function sylow_system(G::Group)
    if !issolvable(G) throw(ArgumentError("The group is not solvable")) end
    L=GAP.gap_to_julia(GAP.Globals.SylowSystem(G.X))
-   return typeof(G)[_as_subgroup(G,x) for x in L]
+   return [_as_subgroup(x,G) for x in L]
 end
 
+"""
+    complement_system(G::Group)
+return an array of ``p'``-Hall subgroups of `G`, where ``p`` runs over the prime factors of |`G`|. It works only if `G` is solvable.
+"""
 function complement_system(G::Group)
    if !issolvable(G) throw(ArgumentError("The group is not solvable")) end
    L=GAP.gap_to_julia(GAP.Globals.ComplementSystem(G.X))
-   return typeof(G)[_as_subgroup(G,x) for x in L]
+   return [_as_subgroup(x,G) for x in L]
 end
 
+"""
+    hall_system(G::Group)
+return an array of ``P``-Hall subgroups of `G`, where ``P`` runs over the subsets of prime factors of |`G`|. It works only if `G` is solvable.
+"""
 function hall_system(G::Group)
    if !issolvable(G) throw(ArgumentError("The group is not solvable")) end
    L=GAP.gap_to_julia(GAP.Globals.HallSystem(G.X))
-   return typeof(G)[_as_subgroup(G,x) for x in L]
+   return [_as_subgroup(x,G) for x in L]
 end
 
 
@@ -563,17 +582,29 @@ end
 
 """
     isperfect(G)
-Test whether `G` is a perfect group, i.e., equal to its derived subgroup.
+return whether `G` is a perfect group, i.e., equal to its derived subgroup.
 """
 isperfect(G::Group) = GAP.Globals.IsPerfectGroup(G.X)
 
+"""
+    issimple(G)
+return whether `G` is a simple group, i.e., it has not non-trivial normal subgroups.
+"""
 issimple(G::Group) = GAP.Globals.IsSimpleGroup(G.X)
 
+"""
+    isalmostsimple(G)
+return whether `G` is an almost simple group, i.e., if `S` < `G` < `Aut(S)` for some non-abelian simple group `S`.
+"""
 isalmostsimple(G::Group) = GAP.Globals.IsAlmostSimpleGroup(G.X)
 
+"""
+    ispgroup(G)
+return (``true``,``p``) if |`G`| is a non-trivial ``p``-power, (``false``,nothing) otherwise.
+"""
 function ispgroup(G::Group)
    if GAP.Globals.IsPGroup(G.X)
-      return true, PrimePGroup(G.X)
+      return true, GAP.Globals.PrimePGroup(G.X)
    else
       return false, nothing
    end

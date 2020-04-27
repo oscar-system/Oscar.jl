@@ -314,6 +314,10 @@ function quo(G::T, elements::Vector{S}) where T <: Group where S <: GAPGroupElem
   return quo(G, H1)
 end
 
+"""
+    quo(G::T, H::T) where T <: Group
+returns the quotient group `G/H` of type ``PcGroup``, together with the projection `G` -> `G/H`.
+"""
 function quo(G::T, H::T) where T <: Group
   mp = GAP.Globals.NaturalHomomorphismByNormalSubgroup(G.X, H.X)
   cod = GAP.Globals.ImagesSource(mp)
