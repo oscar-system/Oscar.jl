@@ -692,4 +692,11 @@ function leading_ideal(I::MPolyIdeal, ord::Symbol)
   return leading_ideal(groebner_basis(I, ord), ord)
 end
 
+
+function factor(f::MPolyElem)
+  I = ideal(parent(f), [f])
+  fS = Singular.factor(I.gens[Val(:S), 1])
+  R = parent(f)
+  return Nemo.Fac(convert(R, fS.unit), Dict(convert(R, k) =>v for (k,v) = fS.fac))
+end
 #end #MPolyModule
