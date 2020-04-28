@@ -59,6 +59,7 @@ export elem_type
 TODO: document this
 """
 abstract type Group <: AbstractAlgebra.Group end
+#abstract type GroupElem <: AbstractAlgebra.GroupElem
 
 """
 TODO: document this

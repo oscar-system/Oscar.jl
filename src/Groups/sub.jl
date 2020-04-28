@@ -364,7 +364,7 @@ end
 
 """
     isisomorphic(G::Group, H::Group)
-return (`true`,`f`) if `G` and `H` are isomorphic groups, where `f` is a group isomorphism. Otherwise, return (`false`,`f`), where `f` is the trivial homomorphism.
+Return (`true`,`f`) if `G` and `H` are isomorphic groups, where `f` is a group isomorphism. Otherwise, return (`false`,`f`), where `f` is the trivial homomorphism.
 """
 function isisomorphic(G::Group, H::Group)
   mp = GAP.Globals.IsomorphismGroups(G.X, H.X)
@@ -454,7 +454,7 @@ end
 
 """
     automorphism_group(G::Group) -> A::AutomorphismGroup{T}
-return the full automorphism group of `G`. If `f` is an object of type ``GAPGroupHomomorphism`` and it is bijective from `G` to itself, then `A(f)` return the embedding of `f` in `A`. 
+Return the full automorphism group of `G`. If `f` is an object of type ``GAPGroupHomomorphism`` and it is bijective from `G` to itself, then `A(f)` return the embedding of `f` in `A`. 
 
 Elements of `A` can be multiplied with other elements of `A` or by elements of type ``GAPGroupHomomorphism``; in this last case, the result has type ``GAPGroupHomomorphism``.
 """
@@ -469,7 +469,7 @@ Base.show(io::IO, A::AutomorphismGroup{T}) where T <: Group = print(io, "Aut( "*
 
 """
     hom(f::GAPGroupElem{AutomorphismGroup{T}}) where T
-return the element f of type ``GAPGroupHomomorphism{T,T}``.
+Return the element f of type ``GAPGroupHomomorphism{T,T}``.
 """
 function hom(x::GAPGroupElem{AutomorphismGroup{T}}) where T
   A = parent(x)
@@ -499,7 +499,7 @@ Base.:*(f::GAPGroupHomomorphism, g::GAPGroupElem{AutomorphismGroup{T}}) where T 
 
 """
     inner_automorphism(g::GAPGroupElem)
-return the inner automorphism in `automorphism_group(parent(g))` defined by `x` -> `x^g`.
+Return the inner automorphism in `automorphism_group(parent(g))` defined by `x` -> `x^g`.
 """
 function inner_automorphism(g::GAPGroupElem)
   return _hom_from_gap_map(parent(g), parent(g), GAP.Globals.ConjugatorAutomorphism(parent(g).X, g.X))
@@ -508,7 +508,7 @@ end
 """
     isinner_automorphism(f::GAPGroupHomomorphism)
     isinner_automorphism(g::AutomorphismGroupElem)
-return whether `f` is an inner automorphism.
+Return whether `f` is an inner automorphism.
 """
 function isinner_automorphism(f::GAPGroupHomomorphism)
   @assert domain(f) == codomain(f) "Not an automorphism!"
@@ -521,7 +521,7 @@ end
 
 """
     inner_automorphisms_group(A::AutomorphismGroup{T})
-return the subgroup of `A` of the inner automorphisms.
+Return the subgroup of `A` of the inner automorphisms.
 """
 function inner_automorphisms_group(A::AutomorphismGroup{T}) where T <: Group
    AutGAP = GAP.Globals.InnerAutomorphismsAutomorphismGroup(A.X)
@@ -541,7 +541,7 @@ end
 
 """
     restrict_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, H::T) where T <: Group
-if `H` is invariant under `f`, returns the restriction of `f` to `H` as automorphism of `H`; otherwise it returns ERROR.
+If `H` is invariant under `f`, returns the restriction of `f` to `H` as automorphism of `H`; otherwise it returns ERROR.
 """
 function restrict_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, H::T, A=automorphism_group(H)) where T <: Group
   @assert isinvariant(f,H) "H is not invariant under f!"

@@ -45,7 +45,7 @@ _gap_filter(::Type{MatrixGroup}) = GAP.Globals.IsMatrixGroup
 
 function symmetric_group(n::Int64)
   if n < 1
-    throw(ArgumentError("it must be a positive integer"))
+    throw(ArgumentError("n must be a positive integer"))
   end
   return PermGroup(GAP.Globals.SymmetricGroup(n), n)
 end
@@ -63,14 +63,14 @@ end
 
 function alternating_group(n::Int64)
   if n < 1
-    throw(ArgumentError("it must be a positive integer"))
+    throw(ArgumentError("n must be a positive integer"))
   end
   return PermGroup(GAP.Globals.AlternatingGroup(n), n)
 end
 
 function alternating_group(::Type{T}, n::Int) where T <: Group
   if n < 1
-    throw(ArgumentError("it must be a positive integer"))
+    throw(ArgumentError("n must be a positive integer"))
   end
   return T(GAP.Globals.AlternatingGroup(_gap_filter(T), n))
 end
@@ -120,7 +120,7 @@ end
 
 """
     abelian_group(::Type{T}, v::Vector{Int}) where T <: Group -> PcGroup
-return the direct product of cyclic groups of order v[1] x v[2] x ... x v[n], as group of type `T`. Here, `T` must be of type `PermGroup`, `FPGroup` or `PcGroup`.
+Return the direct product of cyclic groups of order v[1] x v[2] x ... x v[n], as group of type `T`. Here, `T` must be of type `PermGroup`, `FPGroup` or `PcGroup`.
 """
 function abelian_group(::Type{T}, v::Vector{Int}) where T <: Group
   v1 = GAP.julia_to_gap(v)
@@ -129,7 +129,7 @@ end
 
 """
     isabelian(G::Group)
-returns whether `G` is abelian.
+Return whether `G` is abelian.
 """
 function isabelian(G::Group)
   return GAP.Globals.IsAbelian(G.X)
@@ -149,9 +149,10 @@ end
 
 """
     free_group
-There are three ways to define a free group.
+There are four ways to define a free group.
 - `free_group(n::Int) -> FPGroup`; return the free group of rank `n`, with generators printed as `"f1"`,`"f2"`,`"f3"`, etc.
 - `free_group(L::String...) -> FPGroup`; return the free group with length(`L`) generators, printed as `L[1]`, `L[2]`, `L[3]`, etc.
+- `free_group(L::Array{String,1}) -> FPGroup`; same as above.
 - `free_group(n::Int, s::String) -> FPGroup`; return the free group of rank `n`, with generators printed as `"s1"`, `"s2"`, `"s3"`, etc.
 
 !!! warning "Note"
@@ -159,6 +160,12 @@ There are three ways to define a free group.
 """
 function free_group(n::Int)
    return FPGroup(GAP.Globals.FreeGroup(n))
+end
+
+
+function free_group(L::Array{String,1})
+   J=GAP.julia_to_gap([GAP.julia_to_gap(x) for x in L])
+   return FPGroup(GAP.Globals.FreeGroup(J))
 end
 
 function free_group(L::String...)
@@ -191,7 +198,7 @@ end
 """
     dihedral_group(n::Int)
     dihedral_group(::Type{T}, n::Int)
-return the dihedral group of order `n` of type `T`, where `T` is in {``PcGroup``,``PermGroup``,``FPGroup``}. In the first case, the type is set as ``PcGroup``.
+Return the dihedral group of order `n` of type `T`, where `T` is in {``PcGroup``,``PermGroup``,``FPGroup``}. In the first case, the type is set as ``PcGroup``.
 """
 function dihedral_group(n::Int)
   @assert iseven(n)
@@ -206,7 +213,7 @@ end
 """
     quaternion_group(n::Int)
     quaternion_group(::Type{T}, n::Int)
-return the quaternion group of order `n` of type `T`, where `T` is in {``PcGroup``,``PermGroup``,``FPGroup``,``MatrixGroup``}. In the first case, the type is set as ``PcGroup``.
+Return the quaternion group of order `n` of type `T`, where `T` is in {``PcGroup``,``PermGroup``,``FPGroup``,``MatrixGroup``}. In the first case, the type is set as ``PcGroup``.
 """
 function quaternion_group(n::Int)
   @assert iszero(mod(n, 4))
