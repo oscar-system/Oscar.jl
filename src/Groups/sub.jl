@@ -49,19 +49,19 @@ function compose(g::GAPGroupHomomorphism{T, U}, f::GAPGroupHomomorphism{S, T}) w
   return GAPGroupHomomorphism{S, U}(dom, cod, mp)
 end
 
-function id_hom(G::Group)
+function id_hom(G::GAPGroup)
   return hom(G, G, x -> x)
 end
 
-function trivial_morphism(G::Group, H::Group)
+function trivial_morphism(G::GAPGroup, H::GAPGroup)
   return hom(G, H, x -> one(H))
 end
 
-function _hom_from_gap_map(G::Group, H::Group, mp::GapObj)
+function _hom_from_gap_map(G::GAPGroup, H::GAPGroup, mp::GapObj)
   return GAPGroupHomomorphism{typeof(G), typeof(H)}(G, H, mp)
 end
 
-function hom(G::Group, H::Group, img::Function)
+function hom(G::GAPGroup, H::GAPGroup, img::Function)
   
   #I create the gap function from the julia function
   #The julia function is supposed to be defined on GAPGroupElem
@@ -75,7 +75,7 @@ function hom(G::Group, H::Group, img::Function)
   return GAPGroupHomomorphism{typeof(G), typeof(H)}(G, H, mp)
 end
 
-function hom(G::Group, H::Group, gensG::Vector, imgs::Vector)
+function hom(G::GAPGroup, H::GAPGroup, gensG::Vector, imgs::Vector)
   vgens = GAP.julia_to_gap(GapObj[x.X for x in gensG])
   vimgs = GAP.julia_to_gap(GapObj[x.X for x in imgs])
   mp = GAP.Globals.GroupHomomorphismByImages(G.X, H.X, vgens, vimgs)
@@ -118,7 +118,7 @@ end
     isinvariant(f::GAPGroupElem{AutomorphismGroup{T}}, H::T)
 return whether `f`(`H`) == `H`.
 """
-function isinvariant(f::GAPGroupHomomorphism, H::Group)
+function isinvariant(f::GAPGroupHomomorphism, H::GAPGroup)
   @assert domain(f) == codomain(f) "Not an endomorphism!"
   @assert GAP.Globals.IsSubset(codomain(f).X, H.X) "Not a subgroup of the domain"
   return GAP.Globals.Image(f.map, H.X) == H.X
@@ -129,7 +129,7 @@ end
     restrict_homomorphism(f::GAPGroupElem{AutomorphismGroup{T}}, H::T) where T <: Group
 if `H` is invariant under `f`, returns the restriction of `f` to `H`; otherwise it return ERROR.
 """
-function restrict_homomorphism(f::GAPGroupHomomorphism, H::Group)
+function restrict_homomorphism(f::GAPGroupHomomorphism, H::GAPGroup)
   @assert isinvariant(f,H) "H is not invariant under f!"
   return _hom_from_gap_map(H, H, GAP.Globals.RestrictedMapping(f.map,H.X))
 end
@@ -150,7 +150,7 @@ function image(f::GAPGroupHomomorphism)
   return _as_subgroup(K, codomain(f))
 end
 
-function image(f::GAPGroupHomomorphism{S, T}, H::S) where S <: Group where T <: Group
+function image(f::GAPGroupHomomorphism{S, T}, H::S) where S <: GAPGroup where T <: GAPGroup
   H1 = GAP.Globals.Image(H.X)
   return _as_subgroup(H1, codomain(f))
 end
@@ -175,7 +175,7 @@ end
 """
 TODO: document this
 """
-function preimage(f::GAPGroupHomomorphism{S, T}, H::T) where S <: Group where T <: Group
+function preimage(f::GAPGroupHomomorphism{S, T}, H::T) where S <: GAPGroup where T <: GAPGroup
   H1 = GAP.Globals.PreImage(f.map, H.X)
   return _as_subgroup(H1, domain(f))
 end
@@ -190,16 +190,20 @@ function __as_subgroup(H::GapObj, G::T, ::Type{S}) where { T, S }
   function img(x::S)
     return group_element(G, x.X)
   end
-  H1 = T(H)
+  if T==PermGroup
+    H1 = T(H, G.deg)
+  else
+     H1 = T(H)
+  end
   return H1, hom(H1, G, img)
 end
 
-function _as_subgroup(H::GapObj, G::T) where T <: Group
+function _as_subgroup(H::GapObj, G::T) where T <: GAPGroup
   S = elem_type(G)
   return __as_subgroup(H, G, S)
 end
 
-function sub(G::T, elements::Vector{S}) where T <: Group where S <: GAPGroupElem
+function sub(G::T, elements::Vector{S}) where T <: GAPGroup where S <: GAPGroupElem
   @assert elem_type(G) == S
   elems_in_GAP = GAP.julia_to_gap(GapObj[x.X for x in elements])
   H = GAP.Globals.Group(elems_in_GAP)
@@ -220,7 +224,7 @@ end
 #
 ###############################################################################
 
-function index(G::T, H::T) where T <: Group
+function index(G::T, H::T) where T <: GAPGroup
   i = GAP.Globals.Index(G.X, H.X)
   return GAP.gap_to_julia(i)
 end
@@ -231,7 +235,7 @@ end
 #
 ###############################################################################
 
-function normal_subgroups(G::Group)
+function normal_subgroups(G::GAPGroup)
   nsubs = GAP.gap_to_julia(GAP.Globals.NormalSubgroups(G.X))
   res = Vector{Tuple{typeof(G), GAPGroupHomomorphism{typeof(G), typeof(G)}}}(undef, length(nsubs))
   for i = 1:length(res)
@@ -241,7 +245,7 @@ function normal_subgroups(G::Group)
   return res
 end
 
-function subgroups(G::Group)
+function subgroups(G::GAPGroup)
   subs = GAP.gap_to_julia(GAP.Globals.AllSubgroups(G.X))
   res = Vector{Tuple{typeof(G), GAPGroupHomomorphism{typeof(G), typeof(G)}}}(undef, length(subs))
   for i = 1:length(res)
@@ -251,17 +255,17 @@ function subgroups(G::Group)
   return res
 end
 
-function center(G::Group)
+function center(G::GAPGroup)
   Z = GAP.Globals.Center(G.X)
   return _as_subgroup(Z, G)
 end
 
-function centralizer(G::Group, H::Group)
+function centralizer(G::GAPGroup, H::GAPGroup)
   C = GAP.Globals.Centralizer(G.X, H.X)
   return _as_subgroup(C, G)
 end
 
-function centralizer(G::Group, x::GAPGroupElem)
+function centralizer(G::GAPGroup, x::GAPGroupElem)
   C = GAP.Globals.Centralizer(G.X, x.X)
   return _as_subgroup(C, G)
 end
@@ -273,19 +277,19 @@ end
 #
 ################################################################################
 
-function isnormal(G::T, H::T) where T <: Group
+function isnormal(G::T, H::T) where T <: GAPGroup
   return GAP.Globals.IsNormal(G.X, H.X)
 end
 
-function ischaracteristic(G::T, H::T) where T <: Group
+function ischaracteristic(G::T, H::T) where T <: GAPGroup
   return GAP.Globals.IsCharacteristicSubgroup(G.X, H.X)
 end
 
-function issolvable(G::Group)
+function issolvable(G::GAPGroup)
   return GAP.Globals.IsSolvable(G.X)
 end
 
-function isnilpotent(G::Group)
+function isnilpotent(G::GAPGroup)
   return GAP.Globals.IsNilpotent(G.X)
 end
 
@@ -295,7 +299,7 @@ end
 #
 ################################################################################
 
-function quo(G::FPGroup, elements::Vector{S}) where T <: Group where S <: GAPGroupElem
+function quo(G::FPGroup, elements::Vector{S}) where T <: GAPGroup where S <: GAPGroupElem
   @assert elem_type(G) == S
   elems_in_gap = GAP.julia_to_gap(GapObj[x.X for x in elements])
   Q=FPGroup((G.X)/elems_in_gap)
@@ -305,10 +309,10 @@ function quo(G::FPGroup, elements::Vector{S}) where T <: Group where S <: GAPGro
   return Q, hom(G,Q,proj)
 end
 
-function quo(G::T, elements::Vector{S}) where T <: Group where S <: GAPGroupElem
+function quo(G::T, elements::Vector{S}) where T <: GAPGroup where S <: GAPGroupElem
   @assert elem_type(G) == S
   elems_in_gap = GAP.julia_to_gap(GapObj[x.X for x in elements])
-  H = GAP.Globals.NormalClosure(GAP.Globals.Group(elems_in_gap))
+  H = GAP.Globals.NormalClosure(GAP.Globals.GAPGroup(elems_in_gap))
   @assert GAP.Globals.IsNormal(G.X, H)
   H1 = T(H)
   return quo(G, H1)
@@ -318,7 +322,7 @@ end
     quo(G::T, H::T) where T <: Group
 returns the quotient group `G/H` of type ``PcGroup``, together with the projection `G` -> `G/H`.
 """
-function quo(G::T, H::T) where T <: Group
+function quo(G::T, H::T) where T <: GAPGroup
   mp = GAP.Globals.NaturalHomomorphismByNormalSubgroup(G.X, H.X)
   cod = GAP.Globals.ImagesSource(mp)
   S = elem_type(G)
@@ -342,12 +346,12 @@ end
 #  
 ################################################################################
 
-function derived_subgroup(G::Group)
+function derived_subgroup(G::GAPGroup)
   H = GAP.Globals.DerivedSubgroup(G.X)
   return _as_subgroup(H, G)
 end
 
-function derived_series(G::Group)
+function derived_series(G::GAPGroup)
   L = GAP.Globals.DerivedSeries(G.X)
   res = Vector{Tuple{typeof(G), GAPGroupHomomorphism}}(undef, length(L))
   for i = 1:length(res)
@@ -366,7 +370,7 @@ end
     isisomorphic(G::Group, H::Group)
 Return (`true`,`f`) if `G` and `H` are isomorphic groups, where `f` is a group isomorphism. Otherwise, return (`false`,`f`), where `f` is the trivial homomorphism.
 """
-function isisomorphic(G::Group, H::Group)
+function isisomorphic(G::GAPGroup, H::GAPGroup)
   mp = GAP.Globals.IsomorphismGroups(G.X, H.X)
   if mp == GAP.Globals.fail
     return false, trivial_morphism(G, H)
@@ -382,7 +386,7 @@ end
 # 
 ################################################################################
 
-function direct_product(G::Group, H::Group, task::Symbol = :sum)
+function direct_product(G::GAPGroup, H::GAPGroup, task::Symbol = :sum)
   @assert task in [:prod, :sum, :both, :none]
 
   GH_GAP = GAP.Globals.DirectProduct(G.X, H.X)
@@ -425,7 +429,7 @@ end
     intersection(G::T, H::T) where T<:Group
 return the group intersection of `G` and `H`, together with the embeddings into `G` and `H` respectively.
 """
-function intersection(G::T, H::T) where T<:Group
+function intersection(G::T, H::T) where T<:GAPGroup
    K = GAP.Globals.Intersection(G.X,H.X)
    h = _as_subgroup(K,H)[2]
    K,g = _as_subgroup(K,G)
@@ -439,7 +443,7 @@ end
 ################################################################################
 
 #To be done properly
-function wreath_product(G::Group, H::PermGroup)
+function wreath_product(G::GAPGroup, H::PermGroup)
   wGH = GAP.Globals.WreathProduct(G.X, H.X)
   T = _get_type(wGH)
   return T(wGH)
@@ -458,12 +462,12 @@ Return the full automorphism group of `G`. If `f` is an object of type ``GAPGrou
 
 Elements of `A` can be multiplied with other elements of `A` or by elements of type ``GAPGroupHomomorphism``; in this last case, the result has type ``GAPGroupHomomorphism``.
 """
-function automorphism_group(G::Group)
+function automorphism_group(G::GAPGroup)
   AutGAP = GAP.Globals.AutomorphismGroup(G.X)
   return AutomorphismGroup{typeof(G)}(AutGAP, G)
 end
 
-Base.show(io::IO, A::AutomorphismGroup{T}) where T <: Group = print(io, "Aut( "* GAP.gap_to_julia(GAP.Globals.StringView(A.G.X)) *" )")
+Base.show(io::IO, A::AutomorphismGroup{T}) where T <: GAPGroup = print(io, "Aut( "* GAP.gap_to_julia(GAP.Globals.StringView(A.G.X)) *" )")
 
 # TODO: why (x::AutomorphismGroupElem) does not work?
 
@@ -477,15 +481,15 @@ function hom(x::GAPGroupElem{AutomorphismGroup{T}}) where T
   return _hom_from_gap_map(G, G, x.X)
 end
 
-(f::GAPGroupElem{AutomorphismGroup{T}})(x::GAPGroupElem{T}) where T <: Group = apply_automorphism(f, x)
+(f::GAPGroupElem{AutomorphismGroup{T}})(x::GAPGroupElem{T}) where T <: GAPGroup = apply_automorphism(f, x)
 
-function (A::AutomorphismGroup{T})(f::GAPGroupHomomorphism{T,T}) where T <: Group
+function (A::AutomorphismGroup{T})(f::GAPGroupHomomorphism{T,T}) where T <: GAPGroup
    @assert domain(f)==A.G && codomain(f)==A.G "f not in A"
    @assert isbijective(f) "f not in A"
    return group_element(A, f.map)
 end
 
-function apply_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, x::GAPGroupElem{T}, check=true) where T <: Group
+function apply_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, x::GAPGroupElem{T}, check=true) where T <: GAPGroup
   A = parent(f)
   G = parent(x)
   if check
@@ -515,7 +519,7 @@ function isinner_automorphism(f::GAPGroupHomomorphism)
   return GAP.Globals.IsInnerAutomorphism(f.map)
 end
 
-function isinner_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}) where T <: Group
+function isinner_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup
   return GAP.Globals.IsInnerAutomorphism(f.X)
 end
 
@@ -523,12 +527,12 @@ end
     inner_automorphisms_group(A::AutomorphismGroup{T})
 Return the subgroup of `A` of the inner automorphisms.
 """
-function inner_automorphisms_group(A::AutomorphismGroup{T}) where T <: Group
+function inner_automorphisms_group(A::AutomorphismGroup{T}) where T <: GAPGroup
    AutGAP = GAP.Globals.InnerAutomorphismsAutomorphismGroup(A.X)
    return _as_subgroup(AutGAP, A)
 end
 
-function isinvariant(f::GAPGroupElem{AutomorphismGroup{T}}, H::T) where T<:Group
+function isinvariant(f::GAPGroupElem{AutomorphismGroup{T}}, H::T) where T<:GAPGroup
   @assert GAP.Globals.IsSubset(parent(f).G.X, H.X) "Not a subgroup of the domain"
   return GAP.Globals.Image(f.X, H.X) == H.X
 end
@@ -543,13 +547,13 @@ end
     restrict_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, H::T) where T <: Group
 If `H` is invariant under `f`, returns the restriction of `f` to `H` as automorphism of `H`; otherwise it returns ERROR.
 """
-function restrict_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, H::T, A=automorphism_group(H)) where T <: Group
+function restrict_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, H::T, A=automorphism_group(H)) where T <: GAPGroup
   @assert isinvariant(f,H) "H is not invariant under f!"
   fh = hom(H,H,gens(H), [f(x) for x in gens(H)])
   return A(fh)
 end
 
-function restrict_homomorphism(f::GAPGroupElem{AutomorphismGroup{T}}, H::T) where T <: Group
+function restrict_homomorphism(f::GAPGroupElem{AutomorphismGroup{T}}, H::T) where T <: GAPGroup
   return restrict_homomorphism(hom(f),H)
 end
 
@@ -572,7 +576,7 @@ _get_iso_function(::Type{PermGroup}) = GAP.Globals.IsomorphismPermGroup
 _get_iso_function(::Type{FPGroup}) = GAP.Globals.IsomorphismFpGroup
 _get_iso_function(::Type{PcGroup}) = GAP.Globals.IsomorphismPcGroup
 
-function isomorphic_group(::Type{T}, G::Group) where T <: Group
+function isomorphic_group(::Type{T}, G::GAPGroup) where T <: GAPGroup
   f = _get_iso_function(T)
   mp = f(G.X)
   G1 = T(GAP.Globals.ImagesSource(mp))

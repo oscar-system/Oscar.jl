@@ -50,14 +50,14 @@ function symmetric_group(n::Int64)
   return PermGroup(GAP.Globals.SymmetricGroup(n), n)
 end
 
-function symmetric_group(::Type{T}, n::Int) where T <: Group
+function symmetric_group(::Type{T}, n::Int) where T <: GAPGroup
   if n < 1
     throw(ArgumentError("n must be a positive integer"))
   end
   return T(GAP.Globals.SymmetricGroup(_gap_filter(T), n))
 end
 
-function issymmetric_group(G::Group)
+function issymmetric_group(G::GAPGroup)
   return GAP.Globals.IsSymmetricGroup(G.X)
 end
 
@@ -68,14 +68,14 @@ function alternating_group(n::Int64)
   return PermGroup(GAP.Globals.AlternatingGroup(n), n)
 end
 
-function alternating_group(::Type{T}, n::Int) where T <: Group
+function alternating_group(::Type{T}, n::Int) where T <: GAPGroup
   if n < 1
     throw(ArgumentError("n must be a positive integer"))
   end
   return T(GAP.Globals.AlternatingGroup(_gap_filter(T), n))
 end
 
-function isalternating_group(G::Group)
+function isalternating_group(G::GAPGroup)
   return GAP.Globals.IsAlternatingGroup(G.X)
 end
 
@@ -85,7 +85,7 @@ function small_group(n::Int, m::Int)
   return T(G)
 end
 
-function small_groups_id(G::Group)
+function small_groups_id(G::GAPGroup)
   r = GAP.Globals.IdGroup(G.X)
   res = GAP.gap_to_julia(GAP.gap_to_julia(r))
   return (res[1], res[2])
@@ -99,11 +99,11 @@ function cyclic_group(n::Int)
   return PcGroup(GAP.Globals.CyclicGroup(n))
 end
 
-function cyclic_group(::Type{T}, n::Int) where T <: Group
+function cyclic_group(::Type{T}, n::Int) where T <: GAPGroup
   return T(GAP.Globals.CyclicGroup(_gap_filter(T), n))
 end
 
-function iscyclic(G::Group)
+function iscyclic(G::GAPGroup)
   return GAP.Globals.IsCyclic(G.X)
 end
 
@@ -122,7 +122,7 @@ end
     abelian_group(::Type{T}, v::Vector{Int}) where T <: Group -> PcGroup
 Return the direct product of cyclic groups of order v[1] x v[2] x ... x v[n], as group of type `T`. Here, `T` must be of type `PermGroup`, `FPGroup` or `PcGroup`.
 """
-function abelian_group(::Type{T}, v::Vector{Int}) where T <: Group
+function abelian_group(::Type{T}, v::Vector{Int}) where T <: GAPGroup
   v1 = GAP.julia_to_gap(v)
   return T(GAP.Globals.AbelianGroup(_gap_filter(T), v1))
 end
@@ -131,7 +131,7 @@ end
     isabelian(G::Group)
 Return whether `G` is abelian.
 """
-function isabelian(G::Group)
+function isabelian(G::GAPGroup)
   return GAP.Globals.IsAbelian(G.X)
 end
 
@@ -205,7 +205,7 @@ function dihedral_group(n::Int)
   return PcGroup(GAP.Globals.DihedralGroup(n))
 end
 
-function dihedral_group(::Type{T}, n::Int) where T <: Group
+function dihedral_group(::Type{T}, n::Int) where T <: GAPGroup
   @assert iseven(n)
   return T(GAP.Globals.DihedralGroup(_gap_filter(T), n))
 end
@@ -220,12 +220,12 @@ function quaternion_group(n::Int)
   return PcGroup(GAP.Globals.QuaternionGroup(n))
 end
 
-function quaternion_group(::Type{T}, n::Int) where T <: Group 
+function quaternion_group(::Type{T}, n::Int) where T <: GAPGroup 
    @assert iszero(mod(n, 4))
   return T(GAP.Globals.QuaternionGroup(_gap_filter(T), n))
 end
 
-function isquaternion_group(G::Group)
+function isquaternion_group(G::GAPGroup)
   return GAP.Globals.IsQuaternionGroup(G.X)
 end
 
@@ -239,7 +239,7 @@ function GL(n::Int, q::Int)
   return MatrixGroup(GAP.Globals.GL(n, q))
 end
 
-function GL(::Type{T}, n::Int, q::Int) where T <: Group
+function GL(::Type{T}, n::Int, q::Int) where T <: GAPGroup
   return T(GAP.Globals.GL(_gap_filter(T),n, q))
 end
 
@@ -247,7 +247,7 @@ function SL(n::Int, q::Int)
   return MatrixGroup(GAP.Globals.SL(n, q))
 end
 
-function SL(::Type{T}, n::Int, q::Int) where T <: Group
+function SL(::Type{T}, n::Int, q::Int) where T <: GAPGroup
   return T(GAP.Globals.SL(_gap_filter(T), n, q))
 end
 
@@ -255,7 +255,7 @@ function symplectic_group(n::Int, q::Int)
   return MatrixGroup(GAP.Globals.Sp(n, q))
 end
 
-function symplectic_group(::Type{T}, n::Int, q::Int) where T <: Group
+function symplectic_group(::Type{T}, n::Int, q::Int) where T <: GAPGroup
   return T(GAP.Globals.Sp(_gap_filter(T), n, q))
 end
 
@@ -263,7 +263,7 @@ function unitary_group(n::Int, q::Int)
   return MatrixGroup(GAP.Globals.GU(n, q))
 end
 
-function unitary_group(::Type{T}, n::Int, q::Int) where T <: Group
+function unitary_group(::Type{T}, n::Int, q::Int) where T <: GAPGroup
   return T(GAP.Globals.GU(_gap_filter(T), n, q))
 end
 
@@ -271,7 +271,7 @@ function special_unitary_group(n::Int, q::Int)
   return MatrixGroup(GAP.Globals.SU(n, q))
 end
 
-function special_unitary_group(::Type{T}, n::Int, q::Int) where T <: Group
+function special_unitary_group(::Type{T}, n::Int, q::Int) where T <: GAPGroup
   return T(GAP.Globals.SU(_gap_filter(T), n, q))
 end
 
@@ -279,7 +279,7 @@ function orthogonal_group(n::Int, q::Int)
   return MatrixGroup(GAP.Globals.GO(n, q))
 end
 
-function orthogonal_group(::Type{T}, n::Int, q::Int) where T <: Group
+function orthogonal_group(::Type{T}, n::Int, q::Int) where T <: GAPGroup
   return T(GAP.Globals.GO(_gap_filter(T), n, q))
 end
 
@@ -287,7 +287,7 @@ function orthogonal_group(e::Int, n::Int, q::Int)
   return MatrixGroup(GAP.Globals.GO(e, n, q))
 end
 
-function orthogonal_group(::Type{T}, e::Int, n::Int, q::Int) where T <: Group
+function orthogonal_group(::Type{T}, e::Int, n::Int, q::Int) where T <: GAPGroup
   return T(GAP.Globals.GO(_gap_filter(T), e, n, q))
 end
 
@@ -295,7 +295,7 @@ function special_orthogonal_group(n::Int, q::Int)
   return MatrixGroup(GAP.Globals.SO(n, q))
 end
 
-function special_orthogonal_group(::Type{T}, n::Int, q::Int) where T <: Group
+function special_orthogonal_group(::Type{T}, n::Int, q::Int) where T <: GAPGroup
   return T(GAP.Globals.SO(_gap_filter(T), n, q))
 end
 
@@ -303,7 +303,7 @@ function special_orthogonal_group(e::Int, n::Int, q::Int)
   return MatrixGroup(GAP.Globals.SO(e, n, q))
 end
 
-function special_orthogonal_group(::Type{T}, e::Int, n::Int, q::Int) where T <: Group
+function special_orthogonal_group(::Type{T}, e::Int, n::Int, q::Int) where T <: GAPGroup
   return T(GAP.Globals.SO(_gap_filter(T), e, n, q))
 end
 
@@ -311,7 +311,7 @@ function omega_group(n::Int, q::Int)
   return MatrixGroup(GAP.Globals.Omega(n, q))
 end
 
-function omega_group(::Type{T}, n::Int, q::Int) where T <: Group
+function omega_group(::Type{T}, n::Int, q::Int) where T <: GAPGroup
   return T(GAP.Globals.Omega(_gap_filter(T), n, q))
 end
 
@@ -319,7 +319,7 @@ function omega_group(e::Int, n::Int, q::Int)
   return MatrixGroup(GAP.Globals.Omega(e, n, q))
 end
 
-function omega_group(::Type{T}, e::Int, n::Int, q::Int) where T <: Group
+function omega_group(::Type{T}, e::Int, n::Int, q::Int) where T <: GAPGroup
   return T(GAP.Globals.Omega(_gap_filter(T), e, n, q))
 end
 

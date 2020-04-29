@@ -58,13 +58,13 @@ export elem_type
 """
 TODO: document this
 """
-abstract type Group <: AbstractAlgebra.Group end
+abstract type GAPGroup <: AbstractAlgebra.Group end
 #abstract type GroupElem <: AbstractAlgebra.GroupElem
 
 """
 TODO: document this
 """
-struct GAPGroupElem{T<:Group} <: AbstractAlgebra.GroupElem
+struct GAPGroupElem{T<:GAPGroup} <: AbstractAlgebra.GroupElem
    parent::T
    X::GapObj
 end
@@ -79,7 +79,7 @@ Groups of permutations. Every group of this type is the subgroup of Sym(n) for s
 - subgroups of Sym(n)
 - `dihedral_group(PermGroup, n::Int)`: the dihedral group D(n) as group of permutations. Same holds replacing `dihedral_group` by `quaternion_group`
 """
-struct PermGroup <: Group
+struct PermGroup <: GAPGroup
    X::GapObj
    deg::Int64       # G < Sym(deg)
    
@@ -116,7 +116,7 @@ Groups of matrices. Every group of this type is the subgroup of GL(n,q) for some
 - `SL(n::Int)`: the special linear group SL(n,q)
 - groups of isometries
 """
-struct MatrixGroup <: Group
+struct MatrixGroup <: GAPGroup
   X::GapObj
   function MatrixGroup(G::GapObj)
     @assert GAP.Globals.IsMatrixGroup(G)
@@ -140,7 +140,7 @@ Polycyclic group
 - `cyclic_group(n::Int)`: cyclic group of order `n`
 - `abelian_group(v::Vector{Int})`: direct product of cyclic groups of order v[1],v[2],...,v[length(v)]
 """
-struct PcGroup <: Group
+struct PcGroup <: GAPGroup
   X::GapObj
   function PcGroup(G::GapObj)
     @assert GAP.Globals.IsPcGroup(G)
@@ -157,7 +157,7 @@ const PcGroupElem = GAPGroupElem{PcGroup}
 """
 TODO: document this
 """
-struct FPGroup <: Group
+struct FPGroup <: GAPGroup
   X::GapObj
   
   function FPGroup(G::GapObj)
@@ -175,7 +175,7 @@ const FPGroupElem = GAPGroupElem{FPGroup}
 """
 TODO: document this
 """
-struct AutomorphismGroup{T} <: Group
+struct AutomorphismGroup{T} <: GAPGroup
   X::GapObj
   G::T
   function AutomorphismGroup{T}(G::GapObj, H::T) where T
@@ -201,7 +201,7 @@ In the future, a more elaborate setup for group element types
 might also be needed.
 """
 
-elem_type(::T) where T <: Group = GAPGroupElem{T}
+elem_type(::T) where T <: GAPGroup = GAPGroupElem{T}
 
 
 #
@@ -227,7 +227,7 @@ end
 #
 ################################################################################
 
-struct GAPGroupHomomorphism{S<: Group, T<: Group}
+struct GAPGroupHomomorphism{S<: GAPGroup, T<: GAPGroup}
    domain::S
    codomain::T
    map::GapObj
