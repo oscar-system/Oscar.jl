@@ -75,3 +75,50 @@ end
   
 end
 
+@testset "Classical groups" begin
+   @testset for n in 2:5
+      @testset for q in [2,3,5,7,8,9]
+         G = GL(n,q)
+         S = SL(n,q)
+         @test G==general_linear_group(n,q)
+         @test S==special_linear_group(n,q)
+         @test order(S)==prod(BigInt[q^n-q^i for i in 0:(n-1)])÷(q-1)
+         @test index(G,S)==q-1
+      end
+   end
+
+   @testset for n in 1:3
+      @testset for q in [2,3,4,5]
+         @test unitary_group(n,q)==GU(n,q)
+         @test special_unitary_group(n,q)==SU(n,q)
+         @test index(GU(n,q),SU(n,q))==q+1
+      end
+   end
+
+   @testset for n in [2,4,6]
+      @testset for q in [2,3,4,5,9]
+         @test symplectic_group(n,q)==Sp(n,q)
+      end
+   end
+
+   @testset for q in [2,3,4,5,9]
+      @testset for n in [4,6]
+         @testset for e in [+1,-1]
+            @test GO(e,n,q)==orthogonal_group(e,n,q)
+            @test SO(e,n,q)==special_orthogonal_group(e,n,q)
+            if isodd(q)
+               @test index(GO(e,n,q),SO(e,n,q))==2
+           #    @test index(SO(e,n,q),omega_group(e,n,q))==2
+            else
+           #    @test index(GO(e,n,q),omega_group(e,n,q))==2
+            end
+         end
+      end
+      @testset for n in [3,5]
+         @test GO(n,q)==orthogonal_group(n,q)
+         @test SO(n,q)==special_orthogonal_group(n,q)
+         if isodd(q) @test index(GO(n,q),SO(n,q))==2 end
+    #     @test index(SO(n,q),omega_group(n,q))==2
+      end
+   end
+end
