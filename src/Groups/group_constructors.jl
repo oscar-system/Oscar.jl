@@ -11,7 +11,7 @@ export
     dihedral_group,
     free_abelian_group,
     free_group,
-    GL,
+    general_linear_group,
     isabelian,
     isalternating_group,
     iscyclic,
@@ -22,15 +22,16 @@ export
     omega_group,
     orthogonal_group,
     quaternion_group,
-    SL,
     small_group,
     small_groups_id,
+    special_linear_group,
     special_orthogonal_group,
     special_unitary_group,
     symmetric_group,
     symplectic_group,
     transitive_group,
-    unitary_group
+    unitary_group,
+    GL, GO, GU, SL, SO, Sp, SU
 
 
 _gap_filter(::Type{PermGroup}) = GAP.Globals.IsPermGroup
@@ -235,22 +236,40 @@ end
 #
 ################################################################################
 
-function GL(n::Int, q::Int)
+"""
+    general_linear_group(n::Int, q::Int)
+    general_linear_group(T::Type, n::Int, q::Int)
+    GL = general_linear_group
+return the general linear group of dimension `n` over the field GF(`q`). It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
+"""
+function general_linear_group(n::Int, q::Int)
   return MatrixGroup(GAP.Globals.GL(n, q))
 end
 
-function GL(::Type{T}, n::Int, q::Int) where T <: GAPGroup
+function general_linear_group(::Type{T}, n::Int, q::Int) where T <: GAPGroup
   return T(GAP.Globals.GL(_gap_filter(T),n, q))
 end
 
-function SL(n::Int, q::Int)
+"""
+    special_linear_group(n::Int, q::Int)
+    special_linear_group(T::Type, n::Int, q::Int)
+    SL = special_linear_group
+return the special linear group of dimension `n` over the field GF(`q`). It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
+"""
+function special_linear_group(n::Int, q::Int)
   return MatrixGroup(GAP.Globals.SL(n, q))
 end
 
-function SL(::Type{T}, n::Int, q::Int) where T <: GAPGroup
+function special_linear_group(::Type{T}, n::Int, q::Int) where T <: GAPGroup
   return T(GAP.Globals.SL(_gap_filter(T), n, q))
 end
 
+"""
+    symplectic_group(n::Int, q::Int)
+    symplectic_group(T::Type, n::Int, q::Int)
+    Sp = symplectic_group
+return the special linear group of dimension `n` over the field GF(`q`), for `n` even. It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
+"""
 function symplectic_group(n::Int, q::Int)
   return MatrixGroup(GAP.Globals.Sp(n, q))
 end
@@ -259,6 +278,12 @@ function symplectic_group(::Type{T}, n::Int, q::Int) where T <: GAPGroup
   return T(GAP.Globals.Sp(_gap_filter(T), n, q))
 end
 
+"""
+    unitary_group(n::Int, q::Int)
+    unitary_group(T::Type, n::Int, q::Int)
+    GU = unitary_group
+return the unitary group of dimension `n` over the field GF(`q^2`). It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
+"""
 function unitary_group(n::Int, q::Int)
   return MatrixGroup(GAP.Globals.GU(n, q))
 end
@@ -267,6 +292,12 @@ function unitary_group(::Type{T}, n::Int, q::Int) where T <: GAPGroup
   return T(GAP.Globals.GU(_gap_filter(T), n, q))
 end
 
+"""
+    special_unitary_group(n::Int, q::Int)
+    special_unitary_group(T::Type, n::Int, q::Int)
+    SU = special_unitary_group
+return the special unitary group of dimension `n` over the field GF(`q^2`). It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
+"""
 function special_unitary_group(n::Int, q::Int)
   return MatrixGroup(GAP.Globals.SU(n, q))
 end
@@ -275,6 +306,15 @@ function special_unitary_group(::Type{T}, n::Int, q::Int) where T <: GAPGroup
   return T(GAP.Globals.SU(_gap_filter(T), n, q))
 end
 
+
+"""
+    orthogonal_group(n::Int, q::Int)
+    orthogonal_group(T::Type, n::Int, q::Int)
+    orthogonal_group(e::Int, n::Int, q::Int)
+    orthogonal_group(::Type{T}, e::Int, n::Int, q::Int)
+    GO = orthogonal_group
+return the orthogonal group of dimension `n` over the field GF(`q`) of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0` for `n` odd. If `n` is odd, `e` can be omitted. It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
+"""
 function orthogonal_group(n::Int, q::Int)
   return MatrixGroup(GAP.Globals.GO(n, q))
 end
@@ -291,6 +331,14 @@ function orthogonal_group(::Type{T}, e::Int, n::Int, q::Int) where T <: GAPGroup
   return T(GAP.Globals.GO(_gap_filter(T), e, n, q))
 end
 
+"""
+    special_orthogonal_group(n::Int, q::Int)
+    special_orthogonal_group(T::Type, n::Int, q::Int)
+    special_orthogonal_group(e::Int, n::Int, q::Int)
+    special_orthogonal_group(::Type{T}, e::Int, n::Int, q::Int)
+    SO = special_orthogonal_group
+return the special orthogonal group of dimension `n` over the field GF(`q`) of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0` for `n` odd. If `n` is odd, `e` can be omitted. It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
+"""
 function special_orthogonal_group(n::Int, q::Int)
   return MatrixGroup(GAP.Globals.SO(n, q))
 end
@@ -307,6 +355,13 @@ function special_orthogonal_group(::Type{T}, e::Int, n::Int, q::Int) where T <: 
   return T(GAP.Globals.SO(_gap_filter(T), e, n, q))
 end
 
+"""
+    omega_group(n::Int, q::Int)
+    omega_group(T::Type, n::Int, q::Int)
+    omega_group(e::Int, n::Int, q::Int)
+    omega_group(::Type{T}, e::Int, n::Int, q::Int)
+return the Omega group of dimension `n` over the field GF(`q`) of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0` for `n` odd. If `n` is odd, `e` can be omitted. It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
+"""
 function omega_group(n::Int, q::Int)
   return MatrixGroup(GAP.Globals.Omega(n, q))
 end
@@ -322,6 +377,67 @@ end
 function omega_group(::Type{T}, e::Int, n::Int, q::Int) where T <: GAPGroup
   return T(GAP.Globals.Omega(_gap_filter(T), e, n, q))
 end
+
+"""
+    general_linear_group(n::Int, q::Int)
+    general_linear_group(T::Type, n::Int, q::Int)
+    GL(n::Int, q::Int)
+return the general linear group of dimension `n` over the field GF(`q`). It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
+"""
+GL = general_linear_group
+
+"""
+    special_linear_group(n::Int, q::Int)
+    special_linear_group(T::Type, n::Int, q::Int)
+    SL(n::Int, q::Int)
+return the special linear group of dimension `n` over the field GF(`q`). It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
+"""
+SL = special_linear_group
+
+"""
+    symplectic_group(n::Int, q::Int)
+    symplectic_group(T::Type, n::Int, q::Int)
+    Sp(n::Int, q::Int)
+return the special linear group of dimension `n` over the field GF(`q`), for `n` even. It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
+"""
+Sp = symplectic_group
+
+"""
+    unitary_group(n::Int, q::Int)
+    unitary_group(T::Type, n::Int, q::Int)
+    GU(n::Int, q::Int)
+return the unitary group of dimension `n` over the field GF(`q^2`). It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
+"""
+GU = unitary_group
+
+"""
+    special_unitary_group(n::Int, q::Int)
+    special_unitary_group(T::Type, n::Int, q::Int)
+    SU(n::Int, q::Int)
+return the special unitary group of dimension `n` over the field GF(`q^2`). It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
+"""
+SU = special_unitary_group
+
+"""
+    orthogonal_group(n::Int, q::Int)
+    orthogonal_group(T::Type, n::Int, q::Int)
+    orthogonal_group(e::Int, n::Int, q::Int)
+    orthogonal_group(::Type{T}, e::Int, n::Int, q::Int)
+    GO = orthogonal_group
+return the orthogonal group of dimension `n` over the field GF(`q`) of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0` for `n` odd. If `n` is odd, `e` can be omitted. It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
+"""
+GO = orthogonal_group
+
+"""
+    special_orthogonal_group(n::Int, q::Int)
+    special_orthogonal_group(T::Type, n::Int, q::Int)
+    special_orthogonal_group(e::Int, n::Int, q::Int)
+    special_orthogonal_group(::Type{T}, e::Int, n::Int, q::Int)
+    SO = special_orthogonal_group
+return the special orthogonal group of dimension `n` over the field GF(`q`) of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0` for `n` odd. If `n` is odd, `e` can be omitted. It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
+"""
+SO = special_orthogonal_group
+
 
 ################################################################################
 #

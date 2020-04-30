@@ -186,7 +186,7 @@ Base.length(x::GAPGroup)::Int = order(x)
 
 """
     perm(L::AbstractVector{<:Integer})
-Return the permutation `x` sending `L[i]` into `L[i+1]` for every `i`. `L` must contain exactly one time every integer from 1 to n for n = length(`L`).
+Return the permutation `x` sending `i` into `L[i]` for every `i`. `L` must contain exactly one time every integer from 1 to n for n = length(`L`).
 The parent of `x` is set as Sym(n), where n is the largest moved point of `x`.
 """
 function perm(L::AbstractVector{<:Int64})
@@ -196,8 +196,8 @@ end
 """
     perm(G::PermGroup, L::AbstractVector{<:Integer})
     (g::PermGroup)(L::AbstractVector{<:Integer})
-Return the permutation `x` sending `L[i]` into `L[i+1]` for every `i`. `L` must contain exactly one time every integer from 1 to n for n = length(`L`).
-The parent of `x` is `G`. If `x` is not in `G`, it return ERROR.
+Return the permutation `x` sending `i` into `L[i]` for every `i`. `L` must contain exactly one time every integer from 1 to n for n = length(`L`).
+The parent of `x` is `G`. If `x` is not in `G`, return ERROR.
 """
 function perm(g::PermGroup, L::AbstractVector{Int64})
    x = GAP.Globals.PermList(GAP.julia_to_gap(L))

@@ -46,10 +46,12 @@ function left_coset(H::GAPGroup, g::GAPGroupElem)
 end
 
 function show(io::IO, x::GroupCoset)
+   a = GAP.gap_to_julia(GAP.Globals.StringView(x.H.X))
+   b = GAP.gap_to_julia(GAP.Globals.StringView(x.repr.X))
    if x.side == :right
-      print(io, GAP.gap_to_julia(GAP.Globals.StringView(x.H.X))*" * "*GAP.gap_to_julia(GAP.Globals.StringView(x.repr.X)))
+      print(io, a, " * ", b)
    else
-      print(io, GAP.gap_to_julia(GAP.Globals.StringView(x.repr.X))*" * "*GAP.gap_to_julia(GAP.Globals.StringView(x.H.X)))
+      print(io, b, " * ", a)
    end
    return nothing
 end
