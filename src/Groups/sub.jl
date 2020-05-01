@@ -1,6 +1,6 @@
 export id_hom, trivial_morphism, hom, domain, codomain, image, issurjective, isinjective, 
        isinvertible, isbijective, automorphism_group, sub, quo, kernel, cokernel, haspreimage, isisomorphic,
-       center, index, centralizer, order, normal_subgroups, derived_subgroup, derived_series, intersection, inner_automorphism, isinner_automorphism, inner_automorphisms_group, isinvariant, restrict_automorphism, restrict_homomorphism, wreath_product
+       centre, index, centralizer, order, normal_subgroups, derived_subgroup, derived_series, intersection, inner_automorphism, isinner_automorphism, inner_automorphisms_group, isinvariant, restrict_automorphism, restrict_homomorphism, wreath_product
 
 
 function Base.show(io::IO, x::GAPGroupHomomorphism)
@@ -255,7 +255,7 @@ function subgroups(G::GAPGroup)
   return res
 end
 
-function center(G::GAPGroup)
+function centre(G::GAPGroup)
   Z = GAP.Globals.Center(G.X)
   return _as_subgroup(Z, G)
 end
@@ -270,6 +270,7 @@ function centralizer(G::GAPGroup, x::GAPGroupElem)
   return _as_subgroup(C, G)
 end
 
+centraliser = centralizer
 
 ################################################################################
 #
@@ -309,10 +310,14 @@ function quo(G::FPGroup, elements::Vector{S}) where T <: GAPGroup where S <: GAP
   return Q, hom(G,Q,proj)
 end
 
+"""
+    quo(G::T, elements::Vector{S})
+return the quotient group `G/H` of type ``FPGroup`` (if `T`=``FPGroup``) or ``PcGroup`` (otherwise), where `H` is the normal closure of `elements` in `G`.
+"""
 function quo(G::T, elements::Vector{S}) where T <: GAPGroup where S <: GAPGroupElem
   @assert elem_type(G) == S
   elems_in_gap = GAP.julia_to_gap(GapObj[x.X for x in elements])
-  H = GAP.Globals.NormalClosure(GAP.Globals.GAPGroup(elems_in_gap))
+  H = GAP.Globals.NormalClosure(G.X,GAP.Globals.Group(elems_in_gap))
   @assert GAP.Globals.IsNormal(G.X, H)
   H1 = T(H)
   return quo(G, H1)
@@ -320,7 +325,7 @@ end
 
 """
     quo(G::T, H::T) where T <: Group
-returns the quotient group `G/H` of type ``PcGroup``, together with the projection `G` -> `G/H`.
+return the quotient group `G/H` of type ``PcGroup``, together with the projection `G` -> `G/H`.
 """
 function quo(G::T, H::T) where T <: GAPGroup
   mp = GAP.Globals.NaturalHomomorphismByNormalSubgroup(G.X, H.X)

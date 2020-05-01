@@ -189,7 +189,7 @@ Base.length(x::GAPGroup)::Int = order(x)
 Return the permutation `x` sending `i` into `L[i]` for every `i`. `L` must contain exactly one time every integer from 1 to n for n = length(`L`).
 The parent of `x` is set as Sym(n), where n is the largest moved point of `x`.
 """
-function perm(L::AbstractVector{<:Int64})
+function perm(L::AbstractVector{<:Base.Integer})
    return PermGroupElem(symmetric_group(length(L)), GAP.Globals.PermList(GAP.julia_to_gap(L)))
 end
 
@@ -199,7 +199,7 @@ end
 Return the permutation `x` sending `i` into `L[i]` for every `i`. `L` must contain exactly one time every integer from 1 to n for n = length(`L`).
 The parent of `x` is `G`. If `x` is not in `G`, return ERROR.
 """
-function perm(g::PermGroup, L::AbstractVector{Int64})
+function perm(g::PermGroup, L::AbstractVector{<:Base.Integer})
    x = GAP.Globals.PermList(GAP.julia_to_gap(L))
    if GAP.Globals.IN(x,g.X) 
      return PermGroupElem(g, x)
@@ -207,7 +207,7 @@ function perm(g::PermGroup, L::AbstractVector{Int64})
    throw(ArgumentError("the element does not embed in the group"))
 end
 
-function (g::PermGroup)(L::AbstractVector{Int64})
+function (g::PermGroup)(L::AbstractVector{<:Base.Integer})
    x = GAP.Globals.PermList(GAP.julia_to_gap(L))
    if GAP.Globals.IN(x,g.X) 
      return PermGroupElem(g, x)
@@ -225,7 +225,7 @@ permutation `x = (a_1,a_2,...,a_n)(b_1,b_2,...,b_m)...`. The array `[n,n+1,...,n
 If a list is empty or contains duplicates or holes, it fails.
 The parent of `x` is set as Sym(n), where n is the largest moved point of `x`.
 """
-function cperm(L::AbstractVector{Int64}...)
+function cperm(L::AbstractVector{<:Base.Integer}...)
    if length(L)==0
       return one(symmetric_group(1))
    else
@@ -245,7 +245,7 @@ permutation `(a_1,a_2,...,a_n)(b_1,b_2,...,b_m)...`. The array `[n,n+1,...,n+k]`
 If a list is empty or contains duplicates or holes, it fails.
 The parent of `x` is G. If `x` is not in G, it return ERROR.
 """
-function cperm(g::PermGroup,L::AbstractVector{Int64}...)
+function cperm(g::PermGroup,L::AbstractVector{<:Base.Integer}...)
    if length(L)==0
       return one(g)
    else
@@ -559,7 +559,7 @@ end
     hall_subgroup(G::Group, P::Array{Int64})
 Return a Hall `P`-subgroup of `G`. It works only if `G` is solvable.
 """
-function hall_subgroup(G::GAPGroup, P::AbstractVector{Int})
+function hall_subgroup(G::GAPGroup, P::AbstractVector{<:Base.Integer})
    P = unique(P)
    for p in P
       if !GAP.Globals.IsPrime(p)
