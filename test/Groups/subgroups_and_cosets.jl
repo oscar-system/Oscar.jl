@@ -106,7 +106,7 @@ end
 @testset "Cosets" begin
   
    G = dihedral_group(8)
-   H, mH = center(G)
+   H, mH = centre(G)
   
    @test index(G, H) == 4
   
@@ -185,7 +185,7 @@ end
 @testset "Predicates for groups" begin
    @test !issimple(alternating_group(4))
    @test issimple(alternating_group(5))
-   @test issimple(quo(SL(4,3), center(SL(4,3))[1])[1])
+   @test issimple(quo(SL(4,3), centre(SL(4,3))[1])[1])
 
    @test isalmostsimple(symmetric_group(5))
    @test !issimple(symmetric_group(5))

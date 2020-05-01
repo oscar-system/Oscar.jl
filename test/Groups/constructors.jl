@@ -101,7 +101,7 @@ end
       end
    end
 
-   @testset for q in [2,3,4,5,9]
+   @testset for q in [2,3,4,5]
       @testset for n in [4,6]
          @testset for e in [+1,-1]
             @test GO(e,n,q)==orthogonal_group(e,n,q)
