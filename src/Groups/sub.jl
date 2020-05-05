@@ -441,6 +441,19 @@ function intersection(G::T, H::T) where T<:GAPGroup
    return K,g,h
 end
 
+# intersection of arbitrarly many subgroups. To be sorted out later.
+#=
+function intersection(V::T...) where T<:GAPGroup
+   L = GAP.julia_to_gap([G.X for G in V])
+   K = GAP.Globals.Intersection(L)
+   Embds = [_as_subgroup(K,G)[2] for G in V]
+   K = _as_subgroup(K,V[1])[1]
+ #  h = _as_subgroup(K,H)[2]
+ #  K,g = _as_subgroup(K,G)
+   return K, Embds
+end
+=#
+
 ################################################################################
 #
 #  Wreath Product
