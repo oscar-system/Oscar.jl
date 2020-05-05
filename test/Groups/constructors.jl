@@ -77,7 +77,7 @@ end
 
 @testset "Classical groups" begin
    @testset for n in 2:5
-      @testset for q in [2,3,5,7,8,9]
+      @testset for q in [2,3,4,9]
          G = GL(n,q)
          S = SL(n,q)
          @test G==general_linear_group(n,q)
@@ -88,7 +88,7 @@ end
    end
 
    @testset for n in 1:3
-      @testset for q in [2,3,4,5]
+      @testset for q in [2,3,4]
          @test unitary_group(n,q)==GU(n,q)
          @test special_unitary_group(n,q)==SU(n,q)
          @test index(GU(n,q),SU(n,q))==q+1
@@ -96,7 +96,7 @@ end
    end
 
    @testset for n in [2,4,6]
-      @testset for q in [2,3,4,5,9]
+      @testset for q in [2,3,4,9]
          @test symplectic_group(n,q)==Sp(n,q)
       end
    end

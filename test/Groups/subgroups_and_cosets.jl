@@ -20,6 +20,7 @@
    H=sub(G,[G([2,3,1]),G([2,1])])[1]
    @test H != symmetric_group(3)
    @test isisomorphic(H, symmetric_group(3))[1]
+   @test isisomorphic(H, symmetric_group(3))[2]==id_hom(H)       # TODO: this in future may change to false.
    @test listperm(H[1])==[2,3,1,4,5,6,7]
    @test listperm(symmetric_group(3)(H[1]))==[2,3,1]
 
@@ -34,6 +35,17 @@
       @test H[1] in K
    end
    
+   H1,h1 = sub(G, gens(symmetric_group(3)))
+   H2,h2 = sub(G, gens(alternating_group(4)))
+   K,f1,f2 = intersection(H1,H2)
+   @test domain(f1)==K
+   @test domain(f2)==K
+   @test codomain(f1)==H1
+   @test codomain(f2)==H2
+   @test f1*h1==f2*h2
+   @test degree(K)==degree(G)
+   @test (K,f1*h1)==sub(G, gens(alternating_group(3)))
+
    @test derived_subgroup(G)[1] == alternating_group(4)
    L = derived_series(G)
    @test L[1][1] == G
@@ -237,3 +249,17 @@ end
    
 end
 
+@testset "Some specific subgroups" begin
+   G = GL(2,3)
+   S = symmetric_group(4)
+
+   @test order(fitting_subgroup(G)[1])==8
+   @test fitting_subgroup(S)==sub(S,[S([3,4,1,2]), S([4,3,2,1])])
+   @test frattini_subgroup(S)==sub(S,[one(S)])
+   @test frattini_subgroup(G)==centre(G)
+   @test socle(G)==frattini_subgroup(G)
+   @test socle(S)==fitting_subgroup(S)   
+   @test radical_subgroup(S)[1]==S
+   S = symmetric_group(5)
+   @test radical_subgroup(S)==sub(S,[one(S)])
+end
