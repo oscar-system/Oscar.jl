@@ -43,7 +43,11 @@ mutable struct QabElem <: Nemo.FieldElem
 end
 
 function Base.show(io::IO, a::QabElem)
-  print(io, a.data, " in Q(z_$(a.c))")
+  if get(io, :compact, false) == true
+    print(io, a.data)
+  else
+    print(io, a.data, " in Q(z_$(a.c))")
+  end
 end
 
 function Base.show(io::IO, ::MIME"text/html", a::QabElem)
@@ -53,7 +57,11 @@ function Base.show(io::IO, ::MIME"text/html", a::QabElem)
 end
 
 function Hecke.math_html(io::IO, a::QabElem)
-  print(io, a.data, " \\in Q(z_{$(a.c)})")
+  if get(io, :compact, false) == true
+    print(io, a.data)
+  else
+    print(io, a.data, " \\in Q(z_{$(a.c)})")
+  end
 end
 
 function Oscar.singular_ring(F::QabField)
@@ -92,6 +100,8 @@ import Base.+, Base.*, Base.-, Base.//, Base.==, Base.zero, Base.one, Base.^
 import Nemo.mul!, Nemo.addeq!, Nemo.divexact, Nemo.iszero
 
 Oscar.show_minus_one(::Type{QabElem}) = false
+Oscar.needs_parentheses(a::QabElem) = Oscar.needs_parentheses(a.data)
+Oscar.displayed_with_minus_in_front(a::QabElem) = Oscar.displayed_with_minus_in_front(a.data)
 
 ==(::QabField, ::QabField) = true
 
@@ -209,7 +219,6 @@ Base.parent(::QabElem) = QabField()
 Base.one(::QabField) = QabField()(1)
 Base.one(::QabElem) = QabField()(1)
 
-Oscar.needs_parentheses(::QabElem) = true
 Oscar.isnegative(::QabElem) = false
 
 #perhaps the following is not necessary
