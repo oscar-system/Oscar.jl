@@ -63,12 +63,17 @@ function math_html(io::IO, R::MPolyRing)
   math_html(io, base_ring(R))
 end
 
-function Base.show(io::IO, ::MIME"text/html", R::MPolyElem)
-  show(io, R)
+function math_html(io::IO, R::MPolyElem)
+  f = "$R"
+  f = replace(f, "*" => "")
+  f = replace(f, r"\^([0-9]*)" => s"^{\1}")
+  print(io, f)
 end
 
-function math_html(io::IO, R::MPolyElem)
-  show(io, R)
+function Base.show(io::IO, ::MIME"text/html", R::MPolyElem)
+  print(io, "\$")
+  math_html(io, R)
+  print(io, "\$")
 end
 
 #TODO/ to think
@@ -253,10 +258,11 @@ function math_html(io::IO, I::MPolyIdeal)
   first = true
   for i = g
     if first
-      print(io, i)
+      math_html(io, i)
       first = false
     else
-      print(io, ", ", i)
+      print(io, ", ")
+      math_html(io, i)
     end
   end
   print(io, "")
