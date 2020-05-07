@@ -12,6 +12,9 @@
    @test codomain(f)==G
    @test [f(x) for x in gens(H)]==gens(H)
    @test (H,f)==(K,g)
+   @test issubgroup(G,K)[1]
+   @test g==issubgroup(G,K)[2]
+   @test g==embedding(G,K)
    @test isnormal(G,H)
    H,f=sub(G,[x,z])
    @test H==G
@@ -25,6 +28,7 @@
    @test listperm(symmetric_group(3)(H[1]))==[2,3,1]
 
    G = symmetric_group(4)
+   A = alternating_group(4)
    L = subgroups(G)
    @test length(L)==30
    @test L[1] isa Tuple{PermGroup,Oscar.GAPGroupHomomorphism{PermGroup,PermGroup}}
@@ -34,7 +38,15 @@
    for H in L1
       @test H[1] in K
    end
-   
+   @test length(maximal_subgroups(G))==8
+   @test (A,embedding(G,A)) in maximal_subgroups(G)
+   @test maximal_normal_subgroups(G)==[(A,embedding(G,A))]
+   H = sub(G,[G([3,4,1,2]), G([2,1,4,3])])
+   @test minimal_normal_subgroups(G)==[H]
+   @test length(characteristic_subgroups(G))==4
+   @test H in characteristic_subgroups(G)
+   @test ischaracteristic_subgroup(G,H[1])
+
    H1,h1 = sub(G, gens(symmetric_group(3)))
    H2,h2 = sub(G, gens(alternating_group(4)))
    K,f1,f2 = intersection(H1,H2)
@@ -256,7 +268,9 @@ end
    @test order(fitting_subgroup(G)[1])==8
    @test fitting_subgroup(S)==sub(S,[S([3,4,1,2]), S([4,3,2,1])])
    @test frattini_subgroup(S)==sub(S,[one(S)])
+   @test frattini_subgroup(G)[1]==intersection([H[1] for H in maximal_subgroups(G)])[1]
    @test frattini_subgroup(G)==centre(G)
+   @test ischaracteristic_subgroup(G,centre(G)[1])
    @test socle(G)==frattini_subgroup(G)
    @test socle(S)==fitting_subgroup(S)   
    @test radical_subgroup(S)[1]==S
