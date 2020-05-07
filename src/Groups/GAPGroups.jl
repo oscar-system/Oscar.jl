@@ -210,7 +210,7 @@ end
 
 """
     perm(G::PermGroup, L::AbstractVector{<:Integer})
-    (g::PermGroup)(L::AbstractVector{<:Integer})
+    (G::PermGroup)(L::AbstractVector{<:Integer})
 Return the permutation `x` sending `i` into `L[i]` for every `i`. `L` must contain exactly one time every integer from 1 to n for n = length(`L`).
 The parent of `x` is `G`. If `x` is not in `G`, return ERROR.
 """

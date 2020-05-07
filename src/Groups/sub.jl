@@ -1,6 +1,6 @@
 export id_hom, trivial_morphism, hom, domain, codomain, image, issurjective, isinjective, 
-       isinvertible, isbijective, automorphism_group, sub, quo, kernel, cokernel, haspreimage, isisomorphic,
-       centre, index, centralizer, order, normal_subgroups, derived_subgroup, derived_series, intersection, inner_automorphism, isinner_automorphism, inner_automorphisms_group, isinvariant, restrict_automorphism, restrict_homomorphism, wreath_product
+       isinvertible, isbijective, automorphism_group, sub, embedding, quo, kernel, cokernel, haspreimage, isisomorphic,
+       centre, index, centralizer, order, maximal_subgroups, normal_subgroups, maximal_normal_subgroups, minimal_normal_subgroups, characteristic_subgroups, ischaracteristic_subgroup, derived_subgroup, derived_series, intersection, inner_automorphism, isinner_automorphism, inner_automorphisms_group, isinvariant, restrict_automorphism, restrict_homomorphism, wreath_product
 
 
 function Base.show(io::IO, x::GAPGroupHomomorphism)
@@ -218,6 +218,31 @@ function sub(L::GAPGroupElem...)
    return sub(parent(l[1]),l)
 end
 
+"""
+    issubgroup(G::T, H::T) where T <: GAPGroup
+Return whether `H` is a subgroup of `G`, together with the embedding morphism.
+"""
+function issubgroup(G::T, H::T) where T <: GAPGroup
+   if false in [h in G for h in gens(H)]
+      return (false, Nothing)
+   else
+      return (true, _as_subgroup(H.X,G)[2])
+   end
+end
+
+"""
+    embedding(G::T, H::T) where T <: GAPGroup
+Return the embedding morphism of `H` into `G`. It throws ERROR if `H` is not a subgroup of `G`.
+"""
+function embedding(G::T, H::T) where T <: GAPGroup
+   a,f = issubgroup(G,H)
+   if !a
+      throw(ArgumentError("Not a subgroup"))
+   else
+      return f
+   end
+end
+
 ###############################################################################
 #
 #  Index
@@ -235,6 +260,10 @@ end
 #
 ###############################################################################
 
+"""
+   normal_subgroups(G::Group)
+Return the list of normal subgroups of `G`, together with their embeddings into `G`.
+"""
 function normal_subgroups(G::GAPGroup)
   nsubs = GAP.gap_to_julia(GAP.Globals.NormalSubgroups(G.X))
   res = Vector{Tuple{typeof(G), GAPGroupHomomorphism{typeof(G), typeof(G)}}}(undef, length(nsubs))
@@ -245,6 +274,10 @@ function normal_subgroups(G::GAPGroup)
   return res
 end
 
+"""
+   subgroups(G::Group)
+Return the list of subgroups of `G`, together with their embeddings into `G`.
+"""
 function subgroups(G::GAPGroup)
   subs = GAP.gap_to_julia(GAP.Globals.AllSubgroups(G.X))
   res = Vector{Tuple{typeof(G), GAPGroupHomomorphism{typeof(G), typeof(G)}}}(undef, length(subs))
@@ -255,16 +288,92 @@ function subgroups(G::GAPGroup)
   return res
 end
 
+"""
+   maximal_subgroups(G::Group)
+Return the list of maximal subgroups of `G`, together with their embeddings into `G`.
+"""
+function maximal_subgroups(G::GAPGroup)
+  msubs = GAP.gap_to_julia(GAP.Globals.MaximalSubgroups(G.X))
+  res = Vector{Tuple{typeof(G), GAPGroupHomomorphism{typeof(G), typeof(G)}}}(undef, length(msubs))
+  for i = 1:length(res)
+    N = msubs[i]
+    res[i] = _as_subgroup(N, G)
+  end
+  return res
+end
+
+"""
+   maximal_normal_subgroups(G::Group)
+Return the list of maximal normal subgroups of `G`, together with their embeddings into `G`.
+"""
+function maximal_normal_subgroups(G::GAPGroup)
+  msubs = GAP.gap_to_julia(GAP.Globals.MaximalNormalSubgroups(G.X))
+  res = Vector{Tuple{typeof(G), GAPGroupHomomorphism{typeof(G), typeof(G)}}}(undef, length(msubs))
+  for i = 1:length(res)
+    N = msubs[i]
+    res[i] = _as_subgroup(N, G)
+  end
+  return res
+end
+
+"""
+   minimal_normal_subgroups(G::Group)
+Return the list of minimal normal subgroups of `G`, together with their embeddings into `G`.
+"""
+function minimal_normal_subgroups(G::GAPGroup)
+  msubs = GAP.gap_to_julia(GAP.Globals.MinimalNormalSubgroups(G.X))
+  res = Vector{Tuple{typeof(G), GAPGroupHomomorphism{typeof(G), typeof(G)}}}(undef, length(msubs))
+  for i = 1:length(res)
+    N = msubs[i]
+    res[i] = _as_subgroup(N, G)
+  end
+  return res
+end
+
+"""
+   characteristic_subgroups(G::Group)
+Return the list of characteristic subgroups of `G`, i.e. the subgroups that are invariant under all automorphisms of `G`, together with their embeddings into `G`.
+"""
+function characteristic_subgroups(G::GAPGroup)
+  msubs = GAP.gap_to_julia(GAP.Globals.CharacteristicSubgroups(G.X))
+  res = Vector{Tuple{typeof(G), GAPGroupHomomorphism{typeof(G), typeof(G)}}}(undef, length(msubs))
+  for i = 1:length(res)
+    N = msubs[i]
+    res[i] = _as_subgroup(N, G)
+  end
+  return res
+end
+
+"""
+    ischaracteristic_subgroup(G::T, H::T) where T <: Group
+Return whether `H` is a characteristic subgroup of `G`, i.e. `H` is invariant under all automorphisms of `G`.
+"""
+function ischaracteristic_subgroup(G::T, H::T) where T <: GAPGroup
+   return GAP.Globals.IsCharacteristicSubgroup(G.X,H.X)
+end
+
+"""
+    centre(G::Group)
+Return the centre of `G`, i.e. the subgroup of all `x` in `G` such that `xy`=`yx` for every `y` in `G`, together with its embedding morphism into `G`.
+"""
 function centre(G::GAPGroup)
   Z = GAP.Globals.Center(G.X)
   return _as_subgroup(Z, G)
 end
 
-function centralizer(G::GAPGroup, H::GAPGroup)
+"""
+   centralizer(G::Group, H::Group)
+Return the centralizer of `H` in `G`, i.e. the subgroup of all `g` in `G` such that `gh=hg` for every `h` in `H`, together with its embedding morphism into `G`.
+"""
+function centralizer(G::T, H::T) where T <: GAPGroup
   C = GAP.Globals.Centralizer(G.X, H.X)
   return _as_subgroup(C, G)
 end
 
+"""
+   centralizer(G::Group, x::GroupElem) 
+Return the centralizer of `x` in `G`, i.e. the subgroup of all `g` in `G` such that `gx=xg`, together with its embedding morphism into `G`.
+"""
 function centralizer(G::GAPGroup, x::GAPGroupElem)
   C = GAP.Globals.Centralizer(G.X, x.X)
   return _as_subgroup(C, G)
@@ -431,28 +540,28 @@ end
 ################################################################################
 
 """
-    intersection(G::T, H::T) where T<:Group
-return the group intersection of `G` and `H`, together with the embeddings into `G` and `H` respectively.
+    intersection(V::T...) where T <: Group
+    intersection(V::AbstractVector{T}) where T <: Group
+If `V` = [`G_1`, ... , `G_n`], return the group intersection `K` of the groups `G_1`, ..., `G_n`, together with the embeddings `K` -> `G_i`.
 """
-function intersection(G::T, H::T) where T<:GAPGroup
-   K = GAP.Globals.Intersection(G.X,H.X)
-   h = _as_subgroup(K,H)[2]
-   K,g = _as_subgroup(K,G)
-   return K,g,h
-end
-
-# intersection of arbitrarly many subgroups. To be sorted out later.
-#=
 function intersection(V::T...) where T<:GAPGroup
    L = GAP.julia_to_gap([G.X for G in V])
    K = GAP.Globals.Intersection(L)
    Embds = [_as_subgroup(K,G)[2] for G in V]
    K = _as_subgroup(K,V[1])[1]
- #  h = _as_subgroup(K,H)[2]
- #  K,g = _as_subgroup(K,G)
-   return K, Embds
+   Arr = Tuple(vcat([K],Embds))
+   return Arr
 end
-=#
+
+function intersection(V::AbstractVector{T}) where T<:GAPGroup
+   L = GAP.julia_to_gap([G.X for G in V])
+   K = GAP.Globals.Intersection(L)
+   Embds = [_as_subgroup(K,G)[2] for G in V]
+   K = _as_subgroup(K,V[1])[1]
+   Arr = Tuple(vcat([K],Embds))
+   return Arr
+end
+
 
 ################################################################################
 #
