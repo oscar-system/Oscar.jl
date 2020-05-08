@@ -184,6 +184,11 @@ end
 #  return FPGroup(GAP.Globals.FreeAbelianGroup(n))
 #end
 
+function free_abelian_group(::Type{FPGroup}, n::Int)
+ return FPGroup(GAP.Globals.FreeAbelianGroup(n))
+end
+
+
 # for the definition of group modulo relations, see the quo function in the sub.jl section
 
 function free_group(G::FPGroup)

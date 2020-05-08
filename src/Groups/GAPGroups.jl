@@ -17,7 +17,7 @@ function group_element(G::T, x::GapObj) where T <: GAPGroup
 end
 
 function elements(G::T) where T <: GAPGroup
-  els = GAP.gap_to_julia(GAP.Globals.Elements(G.X))
+  els = GAP.gap_to_julia(GAP.Globals.Elements(G.X); recursive = false)
   elems = Vector{elem_type(G)}(undef, length(els))
   i = 1
   for x in els
@@ -57,16 +57,12 @@ function degree(x::PermGroup)
    return x.deg
 end
 
-function order(x::GAPGroup)
-   return GAP.gap_to_julia(GAP.Globals.Order(x.X))
-end
-
-function order(x::GAPGroupElem)
+function order(x::Union{GAPGroupElem, GAPGroup})
    return GAP.gap_to_julia(GAP.Globals.Order(x.X))
 end
 
 function order(::Type{T}, x::Union{GAPGroupElem, GAPGroup}) where T<:Number
-   return T(order(x))
+   return GAP.gap_to_julia(T, GAP.Globals.Order(x.X))
 end
 
 """
@@ -356,7 +352,11 @@ struct GroupConjClass{T<:GAPGroup, S<:Union{GAPGroupElem,GAPGroup}}
    CC::GapObj
 end
 
-Base.show(io::IO, x::GroupConjClass) = print(io, GAP.gap_to_julia(GAP.Globals.StringView(x.repr))*" ^ "*GAP.gap_to_julia(GAP.Globals.StringView(x.X)))
+function Base.show(io::IO, x::GroupConjClass)
+  print(io, GAP.gap_to_julia(GAP.Globals.StringView(x.repr)),
+            " ^ ",
+            GAP.gap_to_julia(GAP.Globals.StringView(x.X)))
+end
 
 function _conjugacy_class(G, g, cc::GapObj)         # function for assignment
   return GroupConjClass{typeof(G), typeof(g)}(G, g, cc)
@@ -402,7 +402,7 @@ end
 Return the array of all conjugacy classes of elements in G. It is guaranteed that the class of the identity is in the first position.
 """
 function conjugacy_classes(G::GAPGroup)
-   L=GAP.gap_to_julia(GAP.Globals.ConjugacyClasses(G.X))
+   L=GAP.gap_to_julia(GAP.Globals.ConjugacyClasses(G.X); recursive = false)
    return GroupConjClass{typeof(G), elem_type(G)}[ _conjugacy_class(G,group_element(G,GAP.Globals.Representative(cc)),cc) for cc in L]
 end
 
@@ -455,7 +455,7 @@ end
 Return the array of all conjugacy classes of subgroups of G.
 """
 function conjugacy_classes_subgroups(G::GAPGroup)
-   L=GAP.gap_to_julia(GAP.Globals.ConjugacyClassesSubgroups(G.X))
+   L=GAP.gap_to_julia(GAP.Globals.ConjugacyClassesSubgroups(G.X); recursive = false)
    return GroupConjClass{typeof(G), typeof(G)}[ _conjugacy_class(G,typeof(G)(GAP.Globals.Representative(cc)),cc) for cc in L]
 end
 
@@ -464,7 +464,7 @@ end
 Return the array of all conjugacy classes of maximal subgroups of G.
 """
 function conjugacy_classes_maximal_subgroups(G::GAPGroup)
-  L = GAP.gap_to_julia(GAP.Globals.ConjugacyClassesMaximalSubgroups(G.X))
+  L = GAP.gap_to_julia(GAP.Globals.ConjugacyClassesMaximalSubgroups(G.X); recursive = false)
    return GroupConjClass{typeof(G), typeof(G)}[ _conjugacy_class(G,typeof(G)(GAP.Globals.Representative(cc)),cc) for cc in L]
 end
 
@@ -608,8 +608,7 @@ Return an array of Sylow ``p``-subgroups of `G`, where ``p`` runs over the prime
 """
 function sylow_system(G::GAPGroup)
    if !issolvable(G) throw(ArgumentError("The group is not solvable")) end
-   L=GAP.gap_to_julia(GAP.Globals.SylowSystem(G.X))
-   return [_as_subgroup(x,G) for x in L]
+   return _as_subgroups(GAP.Globals.SylowSystem(G.X), G)
 end
 
 """
@@ -618,8 +617,7 @@ Return an array of ``p'``-Hall subgroups of `G`, where ``p`` runs over the prime
 """
 function complement_system(G::GAPGroup)
    if !issolvable(G) throw(ArgumentError("The group is not solvable")) end
-   L=GAP.gap_to_julia(GAP.Globals.ComplementSystem(G.X))
-   return [_as_subgroup(x,G) for x in L]
+   return _as_subgroups(GAP.Globals.ComplementSystem(G.X), G)
 end
 
 """
@@ -628,10 +626,8 @@ Return an array of ``P``-Hall subgroups of `G`, where ``P`` runs over the subset
 """
 function hall_system(G::GAPGroup)
    if !issolvable(G) throw(ArgumentError("The group is not solvable")) end
-   L=GAP.gap_to_julia(GAP.Globals.HallSystem(G.X))
-   return [_as_subgroup(x,G) for x in L]
+   return _as_subgroups(GAP.Globals.HallSystem(G.X), G)
 end
-
 
 
 ################################################################################
@@ -671,7 +667,10 @@ function ispgroup(G::GAPGroup)
 end
 
 function relators(G::FPGroup)
-   L=GAP.gap_to_julia(GAP.Globals.RelatorsOfFpGroup(G.X))
+   L=GAP.gap_to_julia(GAP.Globals.RelatorsOfFpGroup(G.X); recursive = false)
    F=free_group(G)
    return [group_element(F,x) for x in L]
 end
+
+#
+describe(G::GAPGroup) = String(GAP.Globals.StructureDescription(G.X))

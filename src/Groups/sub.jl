@@ -186,21 +186,24 @@ end
 #
 ################################################################################
 
-function __as_subgroup(H::GapObj, G::T, ::Type{S}) where { T, S }
-  function img(x::S)
-    return group_element(G, x.X)
-  end
+# TODO: swap order of arguments for _as_subgroup
+
+function _as_subgroup_bare(H::GapObj, G::T) where T
   if T==PermGroup
     H1 = T(H, G.deg)
   else
-     H1 = T(H)
+    H1 = T(H)
   end
-  return H1, hom(H1, G, img)
+  return H1
+end
+
+function _as_subgroup(H::GapObj, G::T, ::Type{S}) where { T, S }
+  H1 = _as_subgroup_bare(H, G)
+  return H1, hom(H1, G, x::S -> group_element(G, x.X))
 end
 
 function _as_subgroup(H::GapObj, G::T) where T <: GAPGroup
-  S = elem_type(G)
-  return __as_subgroup(H, G, S)
+  return _as_subgroup(H, G, elem_type(G))
 end
 
 function sub(G::T, elements::Vector{S}) where T <: GAPGroup where S <: GAPGroupElem
@@ -260,18 +263,31 @@ end
 #
 ###############################################################################
 
+# convert a list of subgroups
+function _as_subgroups(subs::GapObj, G::T, ::Type{S}) where { T, S }
+  nsubs = GAP.gap_to_julia(subs; recursive = false)
+  res = Vector{Tuple{T, GAPGroupHomomorphism{T, T}}}(undef, length(nsubs))
+  for i = 1:length(res)
+    res[i] = _as_subgroup(nsubs[i], G, S)
+  end
+  return res
+end
+
+function _as_subgroups(subs::GapObj, G::T) where T <: GAPGroup
+  res = Vector{T}(undef, length(subs))
+  for i = 1:length(res)
+    res[i] = _as_subgroup_bare(subs[i], G)
+  end
+  return res
+end
+
+
 """
    normal_subgroups(G::Group)
 Return the list of normal subgroups of `G`, together with their embeddings into `G`.
 """
 function normal_subgroups(G::GAPGroup)
-  nsubs = GAP.gap_to_julia(GAP.Globals.NormalSubgroups(G.X))
-  res = Vector{Tuple{typeof(G), GAPGroupHomomorphism{typeof(G), typeof(G)}}}(undef, length(nsubs))
-  for i = 1:length(res)
-    N = nsubs[i]
-    res[i] = _as_subgroup(N, G)
-  end
-  return res
+  return _as_subgroups(GAP.Globals.NormalSubgroups(G.X))
 end
 
 """
@@ -279,13 +295,7 @@ end
 Return the list of subgroups of `G`, together with their embeddings into `G`.
 """
 function subgroups(G::GAPGroup)
-  subs = GAP.gap_to_julia(GAP.Globals.AllSubgroups(G.X))
-  res = Vector{Tuple{typeof(G), GAPGroupHomomorphism{typeof(G), typeof(G)}}}(undef, length(subs))
-  for i = 1:length(res)
-    N = subs[i]
-    res[i] = _as_subgroup(N, G)
-  end
-  return res
+  return _as_subgroups(GAP.Globals.AllSubgroups(G.X))
 end
 
 """
@@ -293,13 +303,7 @@ end
 Return the list of maximal subgroups of `G`, together with their embeddings into `G`.
 """
 function maximal_subgroups(G::GAPGroup)
-  msubs = GAP.gap_to_julia(GAP.Globals.MaximalSubgroups(G.X))
-  res = Vector{Tuple{typeof(G), GAPGroupHomomorphism{typeof(G), typeof(G)}}}(undef, length(msubs))
-  for i = 1:length(res)
-    N = msubs[i]
-    res[i] = _as_subgroup(N, G)
-  end
-  return res
+  return _as_subgroups(GAP.Globals.MaximalSubgroups(G.X), G)
 end
 
 """
@@ -307,13 +311,7 @@ end
 Return the list of maximal normal subgroups of `G`, together with their embeddings into `G`.
 """
 function maximal_normal_subgroups(G::GAPGroup)
-  msubs = GAP.gap_to_julia(GAP.Globals.MaximalNormalSubgroups(G.X))
-  res = Vector{Tuple{typeof(G), GAPGroupHomomorphism{typeof(G), typeof(G)}}}(undef, length(msubs))
-  for i = 1:length(res)
-    N = msubs[i]
-    res[i] = _as_subgroup(N, G)
-  end
-  return res
+  return _as_subgroups(GAP.Globals.MaximalNormalSubgroups(G.X), G)
 end
 
 """
@@ -321,13 +319,7 @@ end
 Return the list of minimal normal subgroups of `G`, together with their embeddings into `G`.
 """
 function minimal_normal_subgroups(G::GAPGroup)
-  msubs = GAP.gap_to_julia(GAP.Globals.MinimalNormalSubgroups(G.X))
-  res = Vector{Tuple{typeof(G), GAPGroupHomomorphism{typeof(G), typeof(G)}}}(undef, length(msubs))
-  for i = 1:length(res)
-    N = msubs[i]
-    res[i] = _as_subgroup(N, G)
-  end
-  return res
+  return _as_subgroups(GAP.Globals.MinimalNormalSubgroups(G.X), G)
 end
 
 """
@@ -335,13 +327,7 @@ end
 Return the list of characteristic subgroups of `G`, i.e. the subgroups that are invariant under all automorphisms of `G`, together with their embeddings into `G`.
 """
 function characteristic_subgroups(G::GAPGroup)
-  msubs = GAP.gap_to_julia(GAP.Globals.CharacteristicSubgroups(G.X))
-  res = Vector{Tuple{typeof(G), GAPGroupHomomorphism{typeof(G), typeof(G)}}}(undef, length(msubs))
-  for i = 1:length(res)
-    N = msubs[i]
-    res[i] = _as_subgroup(N, G)
-  end
-  return res
+  return _as_subgroups(GAP.Globals.CharacteristicSubgroups(G.X), G)
 end
 
 """
@@ -466,12 +452,7 @@ function derived_subgroup(G::GAPGroup)
 end
 
 function derived_series(G::GAPGroup)
-  L = GAP.Globals.DerivedSeries(G.X)
-  res = Vector{Tuple{typeof(G), GAPGroupHomomorphism}}(undef, length(L))
-  for i = 1:length(res)
-    res[i] = _as_subgroup(L[i], G)    
-  end
-  return res
+  return _as_subgroups(GAP.Globals.DerivedSeries(G.X), G)
 end
 
 ################################################################################
@@ -594,7 +575,9 @@ function automorphism_group(G::GAPGroup)
   return AutomorphismGroup{typeof(G)}(AutGAP, G)
 end
 
-Base.show(io::IO, A::AutomorphismGroup{T}) where T <: GAPGroup = print(io, "Aut( "* GAP.gap_to_julia(GAP.Globals.StringView(A.G.X)) *" )")
+function Base.show(io::IO, A::AutomorphismGroup{T}) where T <: GAPGroup
+  print(io, "Aut( "* GAP.gap_to_julia(GAP.Globals.StringView(A.G.X)) *" )")
+end
 
 # TODO: why (x::AutomorphismGroupElem) does not work?
 
@@ -685,7 +668,7 @@ function restrict_homomorphism(f::GAPGroupElem{AutomorphismGroup{T}}, H::T) wher
 end
 
 ## the next function needs a redefinition if G is an AutomorphismGroup
-function __as_subgroup(H::GapObj, G::AutomorphismGroup{T}, ::Type{S}) where { T, S }
+function _as_subgroup(H::GapObj, G::AutomorphismGroup{T}, ::Type{S}) where { T, S }
   function img(x::S)
     return group_element(G, x.X)
   end

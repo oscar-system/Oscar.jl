@@ -1,4 +1,17 @@
-export right_coset, left_coset, representative, elements, isbicoset, right_cosets, left_cosets, right_transversal, left_transversal, double_coset, acting_domain, left_acting_group, right_acting_group
+export acting_domain,
+       double_coset,
+       double_cosets,
+       elements,
+       isbicoset,
+       left_acting_group,
+       left_coset,
+       left_cosets,
+       left_transversal,
+       representative,
+       right_acting_group,
+       right_coset,
+       right_cosets,
+       right_transversal
 
 # T=type of the group, S=type of the element
 """
@@ -169,13 +182,21 @@ function ==(x::GroupDoubleCoset, y::GroupDoubleCoset)
    return x.coset == y.coset
 end
 
-Base.show(io::IO, x::GroupDoubleCoset) =  print(io, GAP.gap_to_julia(GAP.Globals.StringView(x.G.X))*" * "*GAP.gap_to_julia(GAP.Globals.StringView(x.repr.X))*" * "*GAP.gap_to_julia(GAP.Globals.StringView(x.H.X)))
+function Base.show(io::IO, x::GroupDoubleCoset)
+  print(io, GAP.gap_to_julia(GAP.Globals.StringView(x.G.X)),
+            " * ",
+            GAP.gap_to_julia(GAP.Globals.StringView(x.repr.X)),
+            " * ",
+            GAP.gap_to_julia(GAP.Globals.StringView(x.H.X)))
+end
 
 """
     double_coset(H::Group, x::GAPGroupElem, K::Group)
 returns the double coset `HxK`.
 """
-function double_coset(G::GAPGroup, g::GAPGroupElem, H::GAPGroup)
+function double_coset(G::T, g::GAPGroupElem{T}, H::T) where T<: GAPGroup
+   # TODO: enforce that G, H have same type
+   # TODO: enforce that G, H have common overgroup
    if !GAP.Globals.IsSubset(parent(g).X,G.X)
       throw(ArgumentError("G is not a subgroup of parent(g)"))
    end
@@ -185,8 +206,24 @@ function double_coset(G::GAPGroup, g::GAPGroupElem, H::GAPGroup)
    return GroupDoubleCoset(parent(g),G,H,g,GAP.Globals.DoubleCoset(G.X,g.X,H.X))
 end
 
+# TODO: document this
+# TODO: also allow access to DoubleCosetsNC
+function double_cosets(G::T, U::T, V::T) where T<: GAPGroup
+   # TODO: enforce that G is overgroup of U, V
+   dcs = GAP.Globals.DoubleCosets(G.X,U.X,V.X)
+   # FIXME: use proper type
+   res = Vector{GroupDoubleCoset}(undef, length(dcs))
+   for i = 1:length(res)
+     dc = dcs[i]
+     g = group_element(G, GAP.Globals.Representative(dc))
+     res[i] = GroupDoubleCoset(G,U,V,g,dc)
+   end
+   return res
+   #return [GroupDoubleCoset(G,U,V,group_element(G.X,GAP.Globals.Representative(dc)),dc) for dc in dcs]
+end
+
 function elements(C::GroupDoubleCoset)
-   L=GAP.gap_to_julia(GAP.Globals.AsList(C.coset))
+   L=GAP.gap_to_julia(GAP.Globals.AsList(C.coset); recursive = false)
    return elem_type(C.X)[group_element(C.X,x) for x in L]
 end
 
