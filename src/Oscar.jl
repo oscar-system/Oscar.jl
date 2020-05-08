@@ -5,10 +5,10 @@ OSCAR is developed by a large group of international collaborators, coordinated
 currently, mainly at the Technische Universität Kaiserslautern.
 
 Written in Julia, it combines the well established systems
- * Singular
- * GAP
- * Polymake
- * ANTIC (comprising Hecke, Nemo and AbstractAlgebra)
+ * [`Singular`](@ref Singular)
+ * [`GAP`](@ref GAP)
+ * [`Polymake`](@ref Polymake)
+ * [`ANTIC`](@ref ANTIC) (comprising [`Hecke`](@ref Hecke), [`Nemo`](@ref Nemo) and [`AbstractAlgebra`](@ref AbstractAlgebra))
 into a comprehensive tool for computational algebra.
 
   For more information please visit
