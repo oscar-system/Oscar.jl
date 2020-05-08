@@ -10,7 +10,7 @@ using DelimitedFiles
 export isbinomial, iscellular, isunital, QabField, Binomial, Cellular
 
 import Oscar: singular_assure, MPolyIdeal
-import Singular: std, Ideal, lead_exponent
+import Oscar.Singular: std, Ideal, lead_exponent
 
 #functions in this file:
 
