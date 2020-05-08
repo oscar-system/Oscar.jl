@@ -186,7 +186,7 @@ function double_coset(G::GAPGroup, g::GAPGroupElem, H::GAPGroup)
 end
 
 function elements(C::GroupDoubleCoset)
-   L=GAP.gap_to_julia(GAP.Globals.AsList(C.coset))
+   L=GAP.gap_to_julia(GAP.Globals.AsList(C.coset); recursive = false)
    return elem_type(C.X)[group_element(C.X,x) for x in L]
 end
 

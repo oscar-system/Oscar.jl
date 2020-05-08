@@ -17,7 +17,7 @@ function group_element(G::T, x::GapObj) where T <: GAPGroup
 end
 
 function elements(G::T) where T <: GAPGroup
-  els = GAP.gap_to_julia(GAP.Globals.Elements(G.X))
+  els = GAP.gap_to_julia(GAP.Globals.Elements(G.X); recursive = false)
   elems = Vector{elem_type(G)}(undef, length(els))
   i = 1
   for x in els
@@ -402,7 +402,7 @@ end
 Return the array of all conjugacy classes of elements in G. It is guaranteed that the class of the identity is in the first position.
 """
 function conjugacy_classes(G::GAPGroup)
-   L=GAP.gap_to_julia(GAP.Globals.ConjugacyClasses(G.X))
+   L=GAP.gap_to_julia(GAP.Globals.ConjugacyClasses(G.X); recursive = false)
    return GroupConjClass{typeof(G), elem_type(G)}[ _conjugacy_class(G,group_element(G,GAP.Globals.Representative(cc)),cc) for cc in L]
 end
 
@@ -455,7 +455,7 @@ end
 Return the array of all conjugacy classes of subgroups of G.
 """
 function conjugacy_classes_subgroups(G::GAPGroup)
-   L=GAP.gap_to_julia(GAP.Globals.ConjugacyClassesSubgroups(G.X))
+   L=GAP.gap_to_julia(GAP.Globals.ConjugacyClassesSubgroups(G.X); recursive = false)
    return GroupConjClass{typeof(G), typeof(G)}[ _conjugacy_class(G,typeof(G)(GAP.Globals.Representative(cc)),cc) for cc in L]
 end
 
@@ -464,7 +464,7 @@ end
 Return the array of all conjugacy classes of maximal subgroups of G.
 """
 function conjugacy_classes_maximal_subgroups(G::GAPGroup)
-  L = GAP.gap_to_julia(GAP.Globals.ConjugacyClassesMaximalSubgroups(G.X))
+  L = GAP.gap_to_julia(GAP.Globals.ConjugacyClassesMaximalSubgroups(G.X); recursive = false)
    return GroupConjClass{typeof(G), typeof(G)}[ _conjugacy_class(G,typeof(G)(GAP.Globals.Representative(cc)),cc) for cc in L]
 end
 
@@ -667,7 +667,7 @@ function ispgroup(G::GAPGroup)
 end
 
 function relators(G::FPGroup)
-   L=GAP.gap_to_julia(GAP.Globals.RelatorsOfFpGroup(G.X))
+   L=GAP.gap_to_julia(GAP.Globals.RelatorsOfFpGroup(G.X); recursive = false)
    F=free_group(G)
    return [group_element(F,x) for x in L]
 end
