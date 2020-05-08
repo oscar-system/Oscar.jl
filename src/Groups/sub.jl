@@ -287,7 +287,7 @@ end
 Return the list of normal subgroups of `G`, together with their embeddings into `G`.
 """
 function normal_subgroups(G::GAPGroup)
-  return _as_subgroups(GAP.Globals.NormalSubgroups(G.X))
+  return _as_subgroups(GAP.Globals.NormalSubgroups(G.X), G)
 end
 
 """
@@ -295,7 +295,7 @@ end
 Return the list of subgroups of `G`, together with their embeddings into `G`.
 """
 function subgroups(G::GAPGroup)
-  return _as_subgroups(GAP.Globals.AllSubgroups(G.X))
+  return _as_subgroups(GAP.Globals.AllSubgroups(G.X), G)
 end
 
 """
