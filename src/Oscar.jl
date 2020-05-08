@@ -59,6 +59,14 @@ function __init__()
     println("Type: '?Oscar' for more information")
     println("(c) 2019-2020 by The Oscar Development Team")
   end
+
+  append!(_gap_group_types,
+    [
+        (GAP.Globals.IsPermGroup, PermGroup),
+        (GAP.Globals.IsPcGroup, PcGroup),
+        (GAP.Globals.IsMatrixGroup, MatrixGroup),
+        (GAP.Globals.IsFpGroup, FPGroup),
+    ])
 end
 
 if VERSION >= v"1.4"
@@ -109,6 +117,12 @@ function build()
 end
 
 include("OscarTypes.jl")
+
+include("Groups/types.jl")
+include("Groups/group_constructors.jl")
+include("Groups/sub.jl")
+include("Groups/cosets.jl")
+include("Groups/GAPGroups.jl")
 
 include("Rings/integer.jl")
 include("Rings/rational.jl")
