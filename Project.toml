@@ -16,7 +16,7 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
 AbstractAlgebra = "^0.9.1"
-GAP = "^0.3"
+GAP = "0.3, 0.4"
 Hecke = "^0.8.0"
 Nemo = "^0.17.2"
 Polymake = "^0.4"
