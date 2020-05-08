@@ -186,16 +186,20 @@ end
 #
 ################################################################################
 
-function _as_subgroup(H::GapObj, G::T, ::Type{S}) where { T, S }
-  function img(x::S)
-    return group_element(G, x.X)
-  end
+# TODO: swap order of arguments for _as_subgroup
+
+function _as_subgroup_bare(H::GapObj, G::T) where T
   if T==PermGroup
     H1 = T(H, G.deg)
   else
-     H1 = T(H)
+    H1 = T(H)
   end
-  return H1, hom(H1, G, img)
+  return H1
+end
+
+function _as_subgroup(H::GapObj, G::T, ::Type{S}) where { T, S }
+  H1 = _as_subgroup_bare(H, G)
+  return H1, hom(H1, G, x::S -> group_element(G, x.X))
 end
 
 function _as_subgroup(H::GapObj, G::T) where T <: GAPGroup
@@ -270,7 +274,11 @@ function _as_subgroups(subs::GapObj, G::T, ::Type{S}) where { T, S }
 end
 
 function _as_subgroups(subs::GapObj, G::T) where T <: GAPGroup
-  return _as_subgroups(subs, G, elem_type(G))
+  res = Vector{T}(undef, length(subs))
+  for i = 1:length(res)
+    res[i] = _as_subgroup_bare(subs[i], G)
+  end
+  return res
 end
 
 
