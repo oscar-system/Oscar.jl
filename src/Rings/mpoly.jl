@@ -64,6 +64,7 @@ end
 
 function math_html(io::IO, R::MPolyElem)
   f = "$R"
+  f = replace(f, r"_\$([0-9]*)" => s"t_{\1}")
   f = replace(f, "*" => "")
   f = replace(f, r"\^([0-9]*)" => s"^{\1}")
   print(io, f)
