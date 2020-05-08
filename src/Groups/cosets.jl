@@ -1,5 +1,6 @@
 export acting_domain,
        double_coset,
+       double_cosets,
        elements,
        isbicoset,
        left_acting_group,
@@ -193,7 +194,9 @@ end
     double_coset(H::Group, x::GAPGroupElem, K::Group)
 returns the double coset `HxK`.
 """
-function double_coset(G::GAPGroup, g::GAPGroupElem, H::GAPGroup)
+function double_coset(G::T, g::GAPGroupElem{T}, H::T) where T<: GAPGroup
+   # TODO: enforce that G, H have same type
+   # TODO: enforce that G, H have common overgroup
    if !GAP.Globals.IsSubset(parent(g).X,G.X)
       throw(ArgumentError("G is not a subgroup of parent(g)"))
    end
@@ -201,6 +204,22 @@ function double_coset(G::GAPGroup, g::GAPGroupElem, H::GAPGroup)
       throw(ArgumentError("H is not a subgroup of parent(g)"))
    end
    return GroupDoubleCoset(parent(g),G,H,g,GAP.Globals.DoubleCoset(G.X,g.X,H.X))
+end
+
+# TODO: document this
+# TODO: also allow access to DoubleCosetsNC
+function double_cosets(G::T, U::T, V::T) where T<: GAPGroup
+   # TODO: enforce that G is overgroup of U, V
+   dcs = GAP.Globals.DoubleCosets(G.X,U.X,V.X)
+   # FIXME: use proper type
+   res = Vector{GroupDoubleCoset}(undef, length(dcs))
+   for i = 1:length(res)
+     dc = dcs[i]
+     g = group_element(G, GAP.Globals.Representative(dc))
+     res[i] = GroupDoubleCoset(G,U,V,g,dc)
+   end
+   return res
+   #return [GroupDoubleCoset(G,U,V,group_element(G.X,GAP.Globals.Representative(dc)),dc) for dc in dcs]
 end
 
 function elements(C::GroupDoubleCoset)
