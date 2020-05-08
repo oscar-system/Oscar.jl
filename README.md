@@ -150,11 +150,8 @@ Forschungsgemeinschaft DFG within the
 [docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
 [docs-stable-url]: https://oscar-system.github.io/Oscar.jl/stable/
 
-[travis-img]: https://travis-ci.com/oscar-system/Oscar.jl.svg?branch=master
-[travis-url]: https://travis-ci.com/oscar-system/Oscar.jl
-
-[appveyor-img]: https://ci.appveyor.com/api/projects/status/github/oscar-system/Oscar.jl?svg=true
-[appveyor-url]: https://ci.appveyor.com/project/oscar-system/Oscar-jl
+[travis-img]: https://travis-ci.org/oscar-system/Oscar.jl.svg?branch=master
+[travis-url]: https://travis-ci.org/oscar-system/Oscar.jl
 
 [codecov-img]: https://codecov.io/gh/oscar-system/Oscar.jl/branch/master/graph/badge.svg
 [codecov-url]: https://codecov.io/gh/oscar-system/Oscar.jl
