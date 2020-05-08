@@ -44,12 +44,7 @@ _gap_filter(::Type{MatrixGroup}) = GAP.Globals.IsMatrixGroup
 #_gap_filter(::Type{MatrixGroup}) = GAP.Globals.IsMatrixGroup
 
 
-function symmetric_group(n::Int64)
-  if n < 1
-    throw(ArgumentError("n must be a positive integer"))
-  end
-  return PermGroup(GAP.Globals.SymmetricGroup(n), n)
-end
+symmetric_group(n::Int64) = symmetric_group(PermGroup, n)
 
 function symmetric_group(::Type{T}, n::Int) where T <: GAPGroup
   if n < 1
@@ -62,12 +57,7 @@ function issymmetric_group(G::GAPGroup)
   return GAP.Globals.IsSymmetricGroup(G.X)
 end
 
-function alternating_group(n::Int64)
-  if n < 1
-    throw(ArgumentError("n must be a positive integer"))
-  end
-  return PermGroup(GAP.Globals.AlternatingGroup(n), n)
-end
+alternating_group(n::Int64) = alternating_group(PermGroup, n)
 
 function alternating_group(::Type{T}, n::Int) where T <: GAPGroup
   if n < 1
@@ -96,9 +86,7 @@ function transitive_group(n::Int, m::Int)
   return PermGroup(GAP.Globals.TransitiveGroup(n, m))
 end
 
-function cyclic_group(n::Int)
-  return PcGroup(GAP.Globals.CyclicGroup(n))
-end
+cyclic_group(n::Int) = cyclic_group(PcGroup, n)
 
 function cyclic_group(::Type{T}, n::Int) where T <: GAPGroup
   return T(GAP.Globals.CyclicGroup(_gap_filter(T), n))
@@ -206,10 +194,7 @@ end
     dihedral_group(::Type{T}, n::Int)
 Return the dihedral group of order `n` of type `T`, where `T` is in {``PcGroup``,``PermGroup``,``FPGroup``}. In the first case, the type is set as ``PcGroup``.
 """
-function dihedral_group(n::Int)
-  @assert iseven(n)
-  return PcGroup(GAP.Globals.DihedralGroup(n))
-end
+dihedral_group(n::Int) = dihedral_group(PcGroup, n)
 
 function dihedral_group(::Type{T}, n::Int) where T <: GAPGroup
   @assert iseven(n)
@@ -221,10 +206,7 @@ end
     quaternion_group(::Type{T}, n::Int)
 Return the quaternion group of order `n` of type `T`, where `T` is in {``PcGroup``,``PermGroup``,``FPGroup``,``MatrixGroup``}. In the first case, the type is set as ``PcGroup``.
 """
-function quaternion_group(n::Int)
-  @assert iszero(mod(n, 4))
-  return PcGroup(GAP.Globals.QuaternionGroup(n))
-end
+quaternion_group(n::Int) = quaternion_group(PcGroup, n)
 
 function quaternion_group(::Type{T}, n::Int) where T <: GAPGroup 
    @assert iszero(mod(n, 4))
@@ -247,9 +229,7 @@ end
     GL = general_linear_group
 return the general linear group of dimension `n` over the field GF(`q`). It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
 """
-function general_linear_group(n::Int, q::Int)
-  return MatrixGroup(GAP.Globals.GL(n, q))
-end
+general_linear_group(n::Int, q::Int) = general_linear_group(MatrixGroup, n, q)
 
 function general_linear_group(::Type{T}, n::Int, q::Int) where T <: GAPGroup
   return T(GAP.Globals.GL(_gap_filter(T),n, q))
@@ -261,9 +241,7 @@ end
     SL = special_linear_group
 return the special linear group of dimension `n` over the field GF(`q`). It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
 """
-function special_linear_group(n::Int, q::Int)
-  return MatrixGroup(GAP.Globals.SL(n, q))
-end
+special_linear_group(n::Int, q::Int) = special_linear_group(MatrixGroup, n, q)
 
 function special_linear_group(::Type{T}, n::Int, q::Int) where T <: GAPGroup
   return T(GAP.Globals.SL(_gap_filter(T), n, q))
@@ -275,9 +253,7 @@ end
     Sp = symplectic_group
 return the special linear group of dimension `n` over the field GF(`q`), for `n` even. It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
 """
-function symplectic_group(n::Int, q::Int)
-  return MatrixGroup(GAP.Globals.Sp(n, q))
-end
+symplectic_group(n::Int, q::Int) = symplectic_group(MatrixGroup, n, q)
 
 function symplectic_group(::Type{T}, n::Int, q::Int) where T <: GAPGroup
   return T(GAP.Globals.Sp(_gap_filter(T), n, q))
@@ -289,9 +265,7 @@ end
     GU = unitary_group
 return the unitary group of dimension `n` over the field GF(`q^2`). It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
 """
-function unitary_group(n::Int, q::Int)
-  return MatrixGroup(GAP.Globals.GU(n, q))
-end
+unitary_group(n::Int, q::Int) = unitary_group(MatrixGroup, n, q)
 
 function unitary_group(::Type{T}, n::Int, q::Int) where T <: GAPGroup
   return T(GAP.Globals.GU(_gap_filter(T), n, q))
@@ -303,9 +277,7 @@ end
     SU = special_unitary_group
 return the special unitary group of dimension `n` over the field GF(`q^2`). It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
 """
-function special_unitary_group(n::Int, q::Int)
-  return MatrixGroup(GAP.Globals.SU(n, q))
-end
+special_unitary_group(n::Int, q::Int) = special_unitary_group(MatrixGroup, n, q)
 
 function special_unitary_group(::Type{T}, n::Int, q::Int) where T <: GAPGroup
   return T(GAP.Globals.SU(_gap_filter(T), n, q))
@@ -320,19 +292,18 @@ end
     GO = orthogonal_group
 return the orthogonal group of dimension `n` over the field GF(`q`) of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0` for `n` odd. If `n` is odd, `e` can be omitted. It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
 """
-function orthogonal_group(n::Int, q::Int)
-  return MatrixGroup(GAP.Globals.GO(n, q))
-end
+orthogonal_group(n::Int, q::Int) = orthogonal_group(MatrixGroup, 0, n, q)
 
-function orthogonal_group(::Type{T}, n::Int, q::Int) where T <: GAPGroup
-  return T(GAP.Globals.GO(_gap_filter(T), n, q))
-end
+orthogonal_group(::Type{T}, n::Int, q::Int) where T <: GAPGroup = orthogonal_group(T, 0, n, q)
 
-function orthogonal_group(e::Int, n::Int, q::Int)
-  return MatrixGroup(GAP.Globals.GO(e, n, q))
-end
+orthogonal_group(e::Int, n::Int, q::Int) = orthogonal_group(MatrixGroup, e, n, q)
 
 function orthogonal_group(::Type{T}, e::Int, n::Int, q::Int) where T <: GAPGroup
+  if isodd(n)
+     @assert e==0 "Error, sign <e> must be 0 in odd dimension"
+  else
+     @assert e in (-1,+1) "Error, sign <e> must be -1, +1 in even dimension"
+  end
   return T(GAP.Globals.GO(_gap_filter(T), e, n, q))
 end
 
@@ -344,19 +315,18 @@ end
     SO = special_orthogonal_group
 return the special orthogonal group of dimension `n` over the field GF(`q`) of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0` for `n` odd. If `n` is odd, `e` can be omitted. It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
 """
-function special_orthogonal_group(n::Int, q::Int)
-  return MatrixGroup(GAP.Globals.SO(n, q))
-end
+special_orthogonal_group(n::Int, q::Int) = special_orthogonal_group(MatrixGroup, 0, n, q)
 
-function special_orthogonal_group(::Type{T}, n::Int, q::Int) where T <: GAPGroup
-  return T(GAP.Globals.SO(_gap_filter(T), n, q))
-end
+special_orthogonal_group(::Type{T}, n::Int, q::Int) where T <: GAPGroup = special_orthogonal_group(T, 0, n, q)
 
-function special_orthogonal_group(e::Int, n::Int, q::Int)
-  return MatrixGroup(GAP.Globals.SO(e, n, q))
-end
+special_orthogonal_group(e::Int, n::Int, q::Int) = special_orthogonal_group(MatrixGroup, e, n, q)
 
 function special_orthogonal_group(::Type{T}, e::Int, n::Int, q::Int) where T <: GAPGroup
+  if isodd(n)
+     @assert e==0 "Error, sign <e> must be 0 in odd dimension"
+  else
+     @assert e in (-1,+1) "Error, sign <e> must be -1, +1 in even dimension"
+  end
   return T(GAP.Globals.SO(_gap_filter(T), e, n, q))
 end
 
@@ -367,19 +337,18 @@ end
     omega_group(::Type{T}, e::Int, n::Int, q::Int)
 return the Omega group of dimension `n` over the field GF(`q`) of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0` for `n` odd. If `n` is odd, `e` can be omitted. It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
 """
-function omega_group(n::Int, q::Int)
-  return MatrixGroup(GAP.Globals.Omega(n, q))
-end
+omega_group(n::Int, q::Int) = omega_group(MatrixGroup, 0, n, q)
 
-function omega_group(::Type{T}, n::Int, q::Int) where T <: GAPGroup
-  return T(GAP.Globals.Omega(_gap_filter(T), n, q))
-end
+omega_group(::Type{T}, n::Int, q::Int) where T <: GAPGroup = omega_group(T, 0, n, q)
 
-function omega_group(e::Int, n::Int, q::Int)
-  return MatrixGroup(GAP.Globals.Omega(e, n, q))
-end
+omega_group(e::Int, n::Int, q::Int) = omega_group(MatrixGroup, e, n, q)
 
 function omega_group(::Type{T}, e::Int, n::Int, q::Int) where T <: GAPGroup
+  if isodd(n)
+     @assert e==0 "Error, sign <e> must be 0 in odd dimension"
+  else
+     @assert e in (-1,+1) "Error, sign <e> must be -1, +1 in even dimension"
+  end
   return T(GAP.Globals.Omega(_gap_filter(T), e, n, q))
 end
 
