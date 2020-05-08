@@ -44,7 +44,7 @@ end
 
 function Base.show(io::IO, a::QabElem)
   if get(io, :compact, false) == true
-    print(io, a.data)
+    math_html(io, a.data)
   else
     print(io, a.data, " in Q(z_$(a.c))")
   end
@@ -58,7 +58,7 @@ end
 
 function Hecke.math_html(io::IO, a::QabElem)
   if get(io, :compact, false) == true
-    print(io, a.data)
+    math_html(io, a.data)
   else
     print(io, a.data, " \\in Q(z_{$(a.c)})")
   end
