@@ -8,7 +8,7 @@ Written in Julia, it combines the well established systems
  * Singular
  * GAP
  * Polymake
- * Hecke, Nemo and AbstractAlgebra
+ * ANTIC (comprising Hecke, Nemo and AbstractAlgebra)
 into a comprehensive tool for computational algebra.
 
   For more information please visit
@@ -51,7 +51,7 @@ function __init__()
     println("|     |  |     |  |     |  |     |  |    |   ")
     println(" -----    -----    -----   -     -  -     -  ")
     println()
-    println("...combining (and extending) GAP, Hecke, Nemo, Polymake and Singular")
+    println("...combining (and extending) ANTIC, GAP, Polymake and Singular")
     print("Version")
     printstyled(" $VERSION_NUMBER ", color = :green)
     print("... \n ... which comes with absolutely no warranty whatsoever")
@@ -134,6 +134,19 @@ include("Polymake/Ineq.jl")
 include("Polymake/NmbThy.jl")
 const global OSCAR = Oscar
 const global oscar = Oscar
+
+@doc Markdown.doc"""
+ANTIC is the project name for the number theoretic cornerstone of OSCAR, see
+  ?Nemo
+  ?Hecke
+  ?AbstractAlgebra
+  for more information
+"""
+module ANTIC
+using Markdown
+end
+export ANTIC
+
 export OSCAR, oscar
 
 end # module
