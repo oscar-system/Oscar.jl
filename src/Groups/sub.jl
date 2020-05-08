@@ -265,7 +265,7 @@ end
 
 # convert a list of subgroups
 function _as_subgroups(subs::GapObj, G::T, ::Type{S}) where { T, S }
-  nsubs = GAP.gap_to_julia(subs; recursive = false)
+  nsubs = GAP.gap_to_julia(subs)
   res = Vector{Tuple{T, GAPGroupHomomorphism{T, T}}}(undef, length(nsubs))
   for i = 1:length(res)
     res[i] = _as_subgroup(nsubs[i], G, S)

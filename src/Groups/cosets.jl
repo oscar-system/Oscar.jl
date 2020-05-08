@@ -223,7 +223,7 @@ function double_cosets(G::T, U::T, V::T) where T<: GAPGroup
 end
 
 function elements(C::GroupDoubleCoset)
-   L=GAP.gap_to_julia(GAP.Globals.AsList(C.coset); recursive = false)
+   L=GAP.gap_to_julia(GAP.Globals.AsList(C.coset))
    return elem_type(C.X)[group_element(C.X,x) for x in L]
 end
 
