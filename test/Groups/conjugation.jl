@@ -61,7 +61,7 @@
      @test CC[i] == conjugacy_class(G,representative(CC[i]))
      @test order(CC[i]) == index(G, normalizer(G,representative(CC[i]))[1])
   end
-  H=rand(subgroups(G))[1]
+  H=rand(subgroups(G))
   @test sum([order(c) for c in CC]) == length(subgroups(G))
   @test sum([H in elements(c) for c in CC]) == 1         # H belongs to a unique conjugacy class
   @testset for i in 1:length(CC)

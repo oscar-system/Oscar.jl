@@ -31,20 +31,20 @@
    A = alternating_group(4)
    L = subgroups(G)
    @test length(L)==30
-   @test L[1] isa Tuple{PermGroup,Oscar.GAPGroupHomomorphism{PermGroup,PermGroup}}
-   L1 = [x for x in L if isnormal(G,x[1])]
-   K = [H[1] for H in normal_subgroups(G)]
+   @test L[1] isa PermGroup
+   L1 = [x for x in L if isnormal(G,x)]
+   K = normal_subgroups(G)
    @test length(K)==4
    for H in L1
-      @test H[1] in K
+      @test H in K
    end
    @test length(maximal_subgroups(G))==8
-   @test (A,embedding(G,A)) in maximal_subgroups(G)
-   @test maximal_normal_subgroups(G)==[(A,embedding(G,A))]
+   @test A in maximal_subgroups(G)
+   @test maximal_normal_subgroups(G)==[A]
    H = sub(G,[G([3,4,1,2]), G([2,1,4,3])])
-   @test minimal_normal_subgroups(G)==[H]
+   @test minimal_normal_subgroups(G)==[H[1]]
    @test length(characteristic_subgroups(G))==4
-   @test H in characteristic_subgroups(G)
+   @test H[1] in characteristic_subgroups(G)
    @test ischaracteristic_subgroup(G,H[1])
 
    H1,h1 = sub(G, gens(symmetric_group(3)))
@@ -60,10 +60,10 @@
 
    @test derived_subgroup(G)[1] == alternating_group(4)
    L = derived_series(G)
-   @test L[1][1] == G
-   @test L[2][1] == alternating_group(4)
-   @test L[3][1] == sub(G, [cperm([1,2],[3,4]), cperm([1,3],[2,4])])[1]
-   @test L[4][1] == sub(G, [one(G)])[1]
+   @test L[1] == G
+   @test L[2] == alternating_group(4)
+   @test L[3] == sub(G, [cperm([1,2],[3,4]), cperm([1,3],[2,4])])[1]
+   @test L[4] == sub(G, [one(G)])[1]
 end
 
 @testset "Centralizers and Normalizers in Sym(n)" begin
@@ -249,12 +249,12 @@ end
    @test_throws ArgumentError P=hall_subgroup(symmetric_group(5),[2,3])
 
    L = sylow_system(G)
-   Lo = [order(l[1]) for l in L]
+   Lo = [order(l) for l in L]
    @test length(Lo)==length(factor(order(G)))
    @test prod(Lo) == order(G)
    @test [isprime(ispower(l)[2]) for l in Lo] == [1 for i in 1:length(L)]
    L = complement_system(G)
-   Lo = [index(G,l[1]) for l in L]
+   Lo = [index(G,l) for l in L]
    @test length(Lo)==length(factor(order(G)))
    @test prod(Lo) == order(G)
    @test [isprime(ispower(l)[2]) for l in Lo] == [1 for i in 1:length(L)]
@@ -268,7 +268,7 @@ end
    @test order(fitting_subgroup(G)[1])==8
    @test fitting_subgroup(S)==sub(S,[S([3,4,1,2]), S([4,3,2,1])])
    @test frattini_subgroup(S)==sub(S,[one(S)])
-   @test frattini_subgroup(G)[1]==intersection([H[1] for H in maximal_subgroups(G)])[1]
+   @test frattini_subgroup(G)[1]==intersection(maximal_subgroups(G))[1]
    @test frattini_subgroup(G)==centre(G)
    @test ischaracteristic_subgroup(G,centre(G)[1])
    @test socle(G)==frattini_subgroup(G)
