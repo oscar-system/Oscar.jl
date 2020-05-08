@@ -29,6 +29,7 @@ import Hecke:
     isisomorphic,
     isnormal,
     issimple,
+    issubgroup,
     issurjective,
     kernel,
     mul,

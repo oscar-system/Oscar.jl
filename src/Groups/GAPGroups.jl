@@ -2,7 +2,7 @@
 
 export GroupConjClass
 
-export order, perm, cperm, isfinite, gens, ngens, comm, comm!, inv!, rand_pseudo, one!, div_right,
+export order, cperm, isfinite, gens, ngens, comm, comm!, inv!, rand_pseudo, one!, div_right,
 div_left, div_right!, div_left!, deg, mul, mul!, degree, elements, right_coset, coset_decomposition,
 right_cosets , right_transversal, conjugacy_class, conjugacy_classes, listperm, number_conjugacy_classes, isconjugate, conjugacy_classes_subgroups, conjugacy_classes_maximal_subgroups, normalizer, normaliser, core, pcore, fitting_subgroup, frattini_subgroup, radical_subgroup, socle, sylow_subgroup, hall_subgroup, sylow_system, complement_system, hall_system, relators, isperfect, issimple, isalmostsimple, ispgroup
 
@@ -204,9 +204,10 @@ Base.length(x::GAPGroup)::Int = order(x)
 Return the permutation `x` sending `i` into `L[i]` for every `i`. `L` must contain exactly one time every integer from 1 to n for n = length(`L`).
 The parent of `x` is set as Sym(n), where n is the largest moved point of `x`.
 """
-function perm(L::AbstractVector{<:Base.Integer})
-   return PermGroupElem(symmetric_group(length(L)), GAP.Globals.PermList(GAP.julia_to_gap(L)))
-end
+# FIXME: clashes with AbstractAlgebra.perm method
+#function perm(L::AbstractVector{<:Base.Integer})
+#   return PermGroupElem(symmetric_group(length(L)), GAP.Globals.PermList(GAP.julia_to_gap(L)))
+#end
 
 """
     perm(G::PermGroup, L::AbstractVector{<:Integer})
