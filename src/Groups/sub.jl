@@ -567,7 +567,9 @@ function automorphism_group(G::GAPGroup)
   return AutomorphismGroup{typeof(G)}(AutGAP, G)
 end
 
-Base.show(io::IO, A::AutomorphismGroup{T}) where T <: GAPGroup = print(io, "Aut( "* GAP.gap_to_julia(GAP.Globals.StringView(A.G.X)) *" )")
+function Base.show(io::IO, A::AutomorphismGroup{T}) where T <: GAPGroup
+  print(io, "Aut( "* GAP.gap_to_julia(GAP.Globals.StringView(A.G.X)) *" )")
+end
 
 # TODO: why (x::AutomorphismGroupElem) does not work?
 

@@ -356,7 +356,11 @@ struct GroupConjClass{T<:GAPGroup, S<:Union{GAPGroupElem,GAPGroup}}
    CC::GapObj
 end
 
-Base.show(io::IO, x::GroupConjClass) = print(io, GAP.gap_to_julia(GAP.Globals.StringView(x.repr))*" ^ "*GAP.gap_to_julia(GAP.Globals.StringView(x.X)))
+function Base.show(io::IO, x::GroupConjClass)
+  print(io, GAP.gap_to_julia(GAP.Globals.StringView(x.repr)),
+            " ^ ",
+            GAP.gap_to_julia(GAP.Globals.StringView(x.X)))
+end
 
 function _conjugacy_class(G, g, cc::GapObj)         # function for assignment
   return GroupConjClass{typeof(G), typeof(g)}(G, g, cc)

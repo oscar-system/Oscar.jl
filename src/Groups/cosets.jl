@@ -169,7 +169,13 @@ function ==(x::GroupDoubleCoset, y::GroupDoubleCoset)
    return x.coset == y.coset
 end
 
-Base.show(io::IO, x::GroupDoubleCoset) =  print(io, GAP.gap_to_julia(GAP.Globals.StringView(x.G.X))*" * "*GAP.gap_to_julia(GAP.Globals.StringView(x.repr.X))*" * "*GAP.gap_to_julia(GAP.Globals.StringView(x.H.X)))
+function Base.show(io::IO, x::GroupDoubleCoset)
+  print(io, GAP.gap_to_julia(GAP.Globals.StringView(x.G.X)),
+            " * ",
+            GAP.gap_to_julia(GAP.Globals.StringView(x.repr.X)),
+            " * ",
+            GAP.gap_to_julia(GAP.Globals.StringView(x.H.X)))
+end
 
 """
     double_coset(H::Group, x::GAPGroupElem, K::Group)
