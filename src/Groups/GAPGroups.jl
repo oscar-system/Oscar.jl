@@ -671,3 +671,6 @@ function relators(G::FPGroup)
    F=free_group(G)
    return [group_element(F,x) for x in L]
 end
+
+#
+describe(G::GAPGroup) = String(GAP.Globals.StructureDescription(G.X))
