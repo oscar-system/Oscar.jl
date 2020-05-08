@@ -14,6 +14,7 @@ export comm,
        cperm,
        deg,
        degree,
+       describe,
        div_left,
        div_left!,
        div_right,
@@ -718,4 +719,4 @@ function relators(G::FPGroup)
 end
 
 #
-describe(G::GAPGroup) = String(GAP.Globals.StructureDescription(G.X))
+describe(G::GAPGroup) = GAP.gap_to_julia(GAP.Globals.StructureDescription(G.X))
