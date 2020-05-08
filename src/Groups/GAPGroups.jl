@@ -608,8 +608,7 @@ Return an array of Sylow ``p``-subgroups of `G`, where ``p`` runs over the prime
 """
 function sylow_system(G::GAPGroup)
    if !issolvable(G) throw(ArgumentError("The group is not solvable")) end
-   L=GAP.gap_to_julia(GAP.Globals.SylowSystem(G.X))
-   return [_as_subgroup(x,G) for x in L]
+   return _as_subgroups(GAP.Globals.SylowSystem(G.X), G)
 end
 
 """
@@ -618,8 +617,7 @@ Return an array of ``p'``-Hall subgroups of `G`, where ``p`` runs over the prime
 """
 function complement_system(G::GAPGroup)
    if !issolvable(G) throw(ArgumentError("The group is not solvable")) end
-   L=GAP.gap_to_julia(GAP.Globals.ComplementSystem(G.X))
-   return [_as_subgroup(x,G) for x in L]
+   return _as_subgroups(GAP.Globals.ComplementSystem(G.X), G)
 end
 
 """
@@ -628,10 +626,8 @@ Return an array of ``P``-Hall subgroups of `G`, where ``P`` runs over the subset
 """
 function hall_system(G::GAPGroup)
    if !issolvable(G) throw(ArgumentError("The group is not solvable")) end
-   L=GAP.gap_to_julia(GAP.Globals.HallSystem(G.X))
-   return [_as_subgroup(x,G) for x in L]
+   return _as_subgroups(GAP.Globals.HallSystem(G.X), G)
 end
-
 
 
 ################################################################################
