@@ -6,7 +6,7 @@
       x=@inferred rand(G)
       y=rand(G)
       #z=cperm(1:i)
-      z=perm(vcat([j for j in 2:i],[1]))
+      z=gap_perm(vcat([j for j in 2:i],[1]))
       if i>3
          w=cperm([1,2],[j for j=3:i])
       else
@@ -47,7 +47,7 @@
       @test x>y || x==y || x<y
       @test isequal(x,y) || isless(x,y) || isless(y,x)
       @test (isless(x,y) && x<y) || (isequal(x,y) && x==y) || (isless(y,x) && x>y)
-      @test y==perm(listperm(y))
+      @test y==gap_perm(listperm(y))
       end
    end
 end

@@ -22,6 +22,7 @@ export comm,
        elements,
        fitting_subgroup,
        frattini_subgroup,
+       gap_perm, # HACK
        gens,
        hall_subgroup,
        hall_system,
@@ -250,6 +251,11 @@ The parent of `x` is set as Sym(n), where n is the largest moved point of `x`.
 #function perm(L::AbstractVector{<:Base.Integer})
 #   return PermGroupElem(symmetric_group(length(L)), GAP.Globals.PermList(GAP.julia_to_gap(L)))
 #end
+# FIXME: use name gap_perm for now
+function gap_perm(L::AbstractVector{<:Base.Integer})
+  return PermGroupElem(symmetric_group(length(L)), GAP.Globals.PermList(GAP.julia_to_gap(L)))
+end
+
 
 """
     perm(G::PermGroup, L::AbstractVector{<:Integer})

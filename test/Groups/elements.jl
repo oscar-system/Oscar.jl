@@ -3,11 +3,11 @@
     x=cperm(1:5,6:8,9:n)
     A=vcat([i for i in 10:n],[9])
     A=vcat([2,3,4,5,1,7,8,6],A)
-    y=perm(A)
+    y=gap_perm(A)
 
     @test x==y
     @test A==listperm(y)
-    @test x==perm(listperm(x))
+    @test x==gap_perm(listperm(x))
     @test order(x) == lcm(15,n-8)
     @test x(3)==4
     @test x(8)==6
@@ -28,7 +28,7 @@ end
     @test parent(x) === H
     @test_throws ArgumentError K(x)
 
-    z = perm(vcat(2:(n-2),[1]))
+    z = gap_perm(vcat(2:(n-2),[1]))
     @test parent(z) == symmetric_group(n-2)
     z = perm(symmetric_group(n),vcat(2:(n-2),[1]))
     @test parent(z) == symmetric_group(n)
