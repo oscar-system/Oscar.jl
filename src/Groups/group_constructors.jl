@@ -389,7 +389,7 @@ end
     GL(n::Int, q::Int)
 return the general linear group of dimension `n` over the field GF(`q`). It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
 """
-GL = general_linear_group
+const GL = general_linear_group
 
 """
     special_linear_group(n::Int, q::Int)
@@ -397,7 +397,7 @@ GL = general_linear_group
     SL(n::Int, q::Int)
 return the special linear group of dimension `n` over the field GF(`q`). It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
 """
-SL = special_linear_group
+const SL = special_linear_group
 
 """
     symplectic_group(n::Int, q::Int)
@@ -405,7 +405,7 @@ SL = special_linear_group
     Sp(n::Int, q::Int)
 return the special linear group of dimension `n` over the field GF(`q`), for `n` even. It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
 """
-Sp = symplectic_group
+const Sp = symplectic_group
 
 """
     unitary_group(n::Int, q::Int)
@@ -413,7 +413,7 @@ Sp = symplectic_group
     GU(n::Int, q::Int)
 return the unitary group of dimension `n` over the field GF(`q^2`). It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
 """
-GU = unitary_group
+const GU = unitary_group
 
 """
     special_unitary_group(n::Int, q::Int)
@@ -421,7 +421,7 @@ GU = unitary_group
     SU(n::Int, q::Int)
 return the special unitary group of dimension `n` over the field GF(`q^2`). It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
 """
-SU = special_unitary_group
+const SU = special_unitary_group
 
 """
     orthogonal_group(n::Int, q::Int)
@@ -431,7 +431,7 @@ SU = special_unitary_group
     GO = orthogonal_group
 return the orthogonal group of dimension `n` over the field GF(`q`) of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0` for `n` odd. If `n` is odd, `e` can be omitted. It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
 """
-GO = orthogonal_group
+const GO = orthogonal_group
 
 """
     special_orthogonal_group(n::Int, q::Int)
@@ -441,7 +441,7 @@ GO = orthogonal_group
     SO = special_orthogonal_group
 return the special orthogonal group of dimension `n` over the field GF(`q`) of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0` for `n` odd. If `n` is odd, `e` can be omitted. It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
 """
-SO = special_orthogonal_group
+const SO = special_orthogonal_group
 
 
 ################################################################################
