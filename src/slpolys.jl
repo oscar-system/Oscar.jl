@@ -143,6 +143,14 @@ end
 
 ## evaluate
 
+function evaluate(p::SLPoly{T}, xs::Vector{T}) where {T <: RingElement}
+    if isassigned(p.f)
+        p.f[](xs)::T
+    else
+        evaluate!(T[], p, xs)
+    end
+end
+
 retrieve(xs, res, i) =
     (i & inputmark) == 0 ? res[i] : xs[i ⊻ inputmark]
 

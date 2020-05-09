@@ -209,6 +209,9 @@ end
     @test SL.evaluate!(Int[], p, [2, 3]) == -138
     @test SL.evaluate!(Int[], p, [-2, -1]) == -14
 
+    @test SL.evaluate(p, [2, 3]) == -138
+    @test SL.evaluate(p, [-2, -1]) == -14
+
     # compile!
     pf = SL.compile!(p)
     @test pf([2, 3]) == -138
@@ -216,7 +219,7 @@ end
     res = Int[]
     for xy in eachcol(rand(-99:99, 2, 100))
         v = Vector(xy) # TODO: don't require this
-        @test pf(v) == SL.evaluate!(res, p, v)
+        @test pf(v) == SL.evaluate(p, v) == SL.evaluate!(res, p, v)
     end
 
     # conversion -> MPoly
