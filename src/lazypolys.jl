@@ -32,7 +32,7 @@ end
 Base.show(io::IO, g::Gen) = print(io, g.g)
 
 
-### Plus
+### PlusPoly
 
 struct PlusPoly{T} <: RecPoly{T}
    xs::Vector{RecPoly{T}}
@@ -45,3 +45,13 @@ function Base.show(io::IO, p::PlusPoly)
    join(io, p.xs, " + ")
    print(io, ')')
 end
+
+
+### MinusPoly
+
+struct MinusPoly{T} <: RecPoly{T}
+   p::RecPoly{T}
+   q::RecPoly{T}
+end
+
+Base.show(io::IO, p::MinusPoly) = print(io, '(', p.p, " - ", p.q, ')')
