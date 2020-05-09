@@ -155,4 +155,7 @@ end
     p = SLPoly(S, Int[], UInt64[])
     @test p isa SLPoly{Int,typeof(S)} <: MPolyElem{Int}
     @test parent(p) === S
+    p = S()
+    @test p isa SLPoly{Int,typeof(S)} <: MPolyElem{Int}
+    @test parent(p) === S
 end
