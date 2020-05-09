@@ -28,3 +28,22 @@ struct SLPoly{T<:RingElement,SLPR<:SLPolyRing{T}} <: MPolyElem{T}
 end
 
 parent(p::SLPoly) = p.parent
+
+function check_parent(p::SLPoly, q::SLPoly)
+    p.parent === q.parent ||
+        throw(ArgumentError("incompatible parents"))
+    p.parent
+end
+
+function Base.copy!(p::SLPoly{T}, q::SLPoly{T}) where {T}
+    check_parent(p, q)
+    copy!(p.cs, q.cs)
+    copy!(p.lines, q.lines)
+    p
+end
+
+function Base.copy(q::SLPoly)
+    p = q.parent()
+    copy!(p, q)
+    p
+end

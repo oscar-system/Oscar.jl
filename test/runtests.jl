@@ -158,4 +158,18 @@ end
     p = S()
     @test p isa SLPoly{Int,typeof(S)} <: MPolyElem{Int}
     @test parent(p) === S
+
+    # copy
+    q = SLPoly(S, Int[], UInt64[])
+    # TODO: do smthg more interesting with q
+    push!(q.cs, 3)
+    push!(q.lines, 0)
+    copy!(p, q)
+    p2 = copy(q)
+    for p1 in (p, p2)
+        @test p1.cs == q.cs && p1.cs !== q.cs
+        @test p1.lines == q.lines && p1.lines !== q.lines
+    end
+    S2 = SLPolyRing(zz, [:z, :t])
+    @test_throws ArgumentError copy!(SLPoly(S2, Int[], UInt64[]), p)
 end
