@@ -134,4 +134,11 @@ end
     @test c1 isa LazyPoly{Int}
     @test c1.p isa Const{Int}
     @test c1.p.c === 2
+
+    @test (p+c1).p isa PlusPoly
+    @test (p-c1).p isa MinusPoly
+    @test (-p).p isa UniMinusPoly
+    @test (p*c1).p isa TimesPoly
+    @test (p^3).p isa ExpPoly
+    @test_throws ArgumentError LazyPolyRing(ZZ)(big(1)) + c1
 end
