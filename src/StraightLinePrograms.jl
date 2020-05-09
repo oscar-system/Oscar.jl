@@ -11,5 +11,6 @@ export LazyPolyRing, LazyPoly, SLPolyRing, SLPoly
 
 include("lazypolys.jl")
 include("slpolys.jl")
+include("straightline.jl")
 
 end # module
