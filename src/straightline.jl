@@ -1,4 +1,4 @@
-## constants
+## constants & predicates
 
 const opmask    = 0xff00000000000000
 const argmask   = 0x000000000fffffff
@@ -27,6 +27,9 @@ for (i, (op, unary, showchar)) in enumerate([(:uniplus      , true,  '+'),
    end
    showop[c] = showchar
 end
+
+isquasiunary(op) = (op & 0x8000000000000000) != 0
+isunary(op) = isquasiunary(op) & (op != exponentiate)
 
 
 ## raw manips

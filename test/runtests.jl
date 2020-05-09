@@ -209,7 +209,9 @@ end
         @test SL.istimes(op) == (op == SL.times)
         # ...
         @test (op & 0x8000000000000000 != 0) ==
+            SL.isquasiunary(op) ==
             (op ∈ (SL.uniplus, SL.uniminus, SL.exponentiate))
+        @test SL.isunary(op) == (op ∈ (SL.uniplus, SL.uniminus))
     end
 
     # pack & unpack
