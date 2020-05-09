@@ -130,4 +130,8 @@ end
         @test x.p isa Gen{Int}
         @test x.p.g == :x
     end
+    c1 = F(2)
+    @test c1 isa LazyPoly{Int}
+    @test c1.p isa Const{Int}
+    @test c1.p.c === 2
 end

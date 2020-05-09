@@ -169,4 +169,6 @@ gen(R::LazyPolyRing, s::Symbol) = LazyPoly(R, Gen{elem_type(R.base_ring)}(s))
 
 (R::LazyPolyRing)(s::Symbol) = gen(R, s)
 
+(R::LazyPolyRing{T})(c::T) where {T} = LazyPoly(R, Const(c))
+
 Base.show(io::IO, p::LazyPoly) = show(io, p.p)
