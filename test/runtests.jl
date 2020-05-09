@@ -118,3 +118,11 @@ end
     @test e1.p === p
     @test e1.e == 3
 end
+
+@testset "LazyPoly" begin
+    F = LazyPolyRing(zz)
+    r = Const(1) + Gen{Int}(:x)
+    p = LazyPoly(F, r)
+    @test parent(p) === F
+    @test string(p) == "(1 + x)"
+end

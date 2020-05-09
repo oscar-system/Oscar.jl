@@ -154,3 +154,15 @@ end
 
 *(x::RingElement, y::RecPoly{T}) where {T} = Const(convert(T, x)) * y
 *(x::RecPoly{T}, y::RingElement) where {T} = x * Const(convert(T, y))
+
+
+## LazyPoly
+
+struct LazyPoly{T<:RingElement,PR<:MPolyRing{T}} <: MPolyElem{T}
+   parent::PR
+   p::RecPoly{T}
+end
+
+parent(p::LazyPoly) = p.parent
+
+Base.show(io::IO, p::LazyPoly) = show(io, p.p)
