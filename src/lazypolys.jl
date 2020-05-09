@@ -7,3 +7,17 @@ struct LazyPolyRing{T<:RingElement,R<:Ring} <: MPolyRing{T}
 end
 
 base_ring(F::LazyPolyRing) = F.base_ring
+
+
+## RecPoly
+
+abstract type RecPoly{T<:RingElement} end
+
+
+### Const
+
+struct Const{T} <: RecPoly{T}
+   c::T
+end
+
+Base.show(io::IO, c::Const) = print(io, c.c)
