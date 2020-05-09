@@ -79,3 +79,13 @@ function Base.show(io::IO, p::TimesPoly)
    join(io, p.xs)
    print(io, ')')
 end
+
+
+### ExpPoly
+
+struct ExpPoly{T} <: RecPoly{T}
+   p::RecPoly{T}
+   e::Int
+end
+
+Base.show(io::IO, p::ExpPoly) = print(io, p.p, '^', p.e)

@@ -1,6 +1,6 @@
 using Test, StraightLinePrograms, AbstractAlgebra
 
-using StraightLinePrograms: Const, Gen, MinusPoly, PlusPoly, RecPoly,
+using StraightLinePrograms: Const, ExpPoly, Gen, MinusPoly, PlusPoly, RecPoly,
     TimesPoly, UniMinusPoly
 
 @testset "LazyPolyRing" begin
@@ -43,4 +43,9 @@ end
     t = TimesPoly(g, p)
     @test t isa TimesPoly{Int} <: RecPoly{Int}
     @test string(t) == "(x(1 + x))"
+
+    # ExpPoly
+    e = ExpPoly(p, 3)
+    @test e isa ExpPoly{Int} <: RecPoly{Int}
+    @test string(e) == "(1 + x)^3"
 end
