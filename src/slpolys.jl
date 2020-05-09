@@ -10,3 +10,19 @@ end
 base_ring(S::SLPolyRing) = S.base_ring
 
 symbols(S::SLPolyRing) = S.S
+
+
+## SLPoly
+
+struct SLPoly{T<:RingElement,SLPR<:SLPolyRing{T}} <: MPolyElem{T}
+    parent::SLPR
+    cs::Vector{T}          # constants
+    lines::Vector{UInt64}  # instructions
+    f::Ref{Function}       # compiled evalutation
+
+    SLPoly(parent, xs, c) =
+        new{elem_type(base_ring(parent)),typeof(parent)}(
+            parent, xs, c, Ref{Function}())
+end
+
+parent(p::SLPoly) = p.parent

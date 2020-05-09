@@ -149,3 +149,10 @@ end
     @test base_ring(S) == zz
     @test symbols(S) == [:x, :y]
 end
+
+@testset "SLPoly" begin
+    S = SLPolyRing(zz, [:x, :y])
+    p = SLPoly(S, Int[], UInt64[])
+    @test p isa SLPoly{Int,typeof(S)} <: MPolyElem{Int}
+    @test parent(p) === S
+end
