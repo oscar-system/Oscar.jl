@@ -217,4 +217,12 @@ end
     is = rand(UInt64(0):SL.argmask, 100)
     js = rand(UInt64(0):SL.argmask, 100)
     @test SL.unpack.(SL.pack.(ops, is, js)) == tuple.(ops, is, js)
+
+    for x = rand(Int64(0):Int(SL.tmpmark-1), 100)
+        if SL.isinput(x)
+            @test SL.input(x) == x
+        else
+            @test SL.input(x) ⊻ SL.inputmark == x
+        end
+    end
 end

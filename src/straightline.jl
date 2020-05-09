@@ -52,6 +52,8 @@ function input(i::Int)
    (i % UInt64) | inputmark
 end
 
+isinput(i) = inputmark & i != 0
+
 function pushconst!(p::SLPoly{T}, c::T) where T
    push!(p.cs, c)
    l = lastindex(p.cs)
