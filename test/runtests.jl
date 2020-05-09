@@ -209,6 +209,16 @@ end
     @test SL.evaluate!(Int[], p, [2, 3]) == -138
     @test SL.evaluate!(Int[], p, [-2, -1]) == -14
 
+    # compile!
+    pf = SL.compile!(p)
+    @test pf([2, 3]) == -138
+    @test pf([-2, -1]) == -14
+    res = Int[]
+    for xy in eachcol(rand(-99:99, 2, 100))
+        v = Vector(xy) # TODO: don't require this
+        @test pf(v) == SL.evaluate!(res, p, v)
+    end
+
     # conversion -> MPoly
     R, (x1, y1) = PolynomialRing(zz, ["x", "y"])
     q = convert(R, p)

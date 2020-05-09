@@ -272,3 +272,61 @@ function Base.convert(R::MPolyRing, p::SLPoly)
     res = empty(xs)
     evaluate!(res, p, xs, R)
 end
+
+
+## compile!
+
+cretrieve(i) = i & inputmark == 0 ?
+    Symbol(:res, i) => 0 :
+    Symbol(:x, i ⊻ inputmark) => i ⊻ inputmark
+
+# return compiled evaluation function f, and updates
+# p.f[] = f, which is not invalidated when p is mutated
+function compile!(p::SLPoly)
+    res = Expr[]
+    fn = :(function (xs::Vector)
+           end)
+    k = 0
+    cs = p.cs
+    for c in p.cs
+        k += 1
+        push!(res, :($(Symbol(:res, k)) = $cs[$k]))
+    end
+    mininput = 0
+    for line in p.lines
+        k += 1
+        rk = Symbol(:res, k)
+        op, i, j = unpack(line)
+        x, idx = cretrieve(i)
+        mininput = max(mininput, idx)
+        line =
+            if isexponentiate(op)
+                :($rk = $x^$(Int(j)))
+            elseif isuniplus(op)
+                :($rk = $x)
+            elseif isuniminus(op)
+                :($rk = -$x)
+            else
+                y, idx = cretrieve(j)
+                mininput = max(mininput, idx)
+                if isplus(op)
+                    :($rk = $x + $y)
+                elseif isminus(op)
+                    :($rk = $x - $y)
+                elseif istimes(op)
+                    :($rk = $x * $y)
+                elseif isdivide(op)
+                    :($rk = divexact($x, $y))
+                end
+            end
+        push!(res, line)
+    end
+    for k = 1:mininput-1
+        pushfirst!(res, :($(Symbol(:x, k)) = @inbounds xs[$k]))
+    end
+    if mininput >= 1
+        pushfirst!(res, :($(Symbol(:x, mininput)) = xs[$mininput]))
+    end
+    append!(fn.args[2].args, res)
+    p.f[] = eval(fn)
+end
