@@ -49,6 +49,45 @@ function Base.copy(q::SLPoly)
 end
 
 
+## show
+
+function Base.show(io::IO, ::MIME"text/plain", p::SLPoly{T}) where T
+    n = length(p.lines)
+    R = parent(p)
+    syms = symbols(R)
+
+    # pre-compute line representations via LazyPoly
+    L = LazyPolyRing(base_ring(R))
+    xs = map(L, syms)
+    res = empty(xs)
+    evaluate!(res, p, xs, L)
+
+    for (k, line) in enumerate(p.lines)
+        sk = string(k)
+        print(io, ' '^max(0, 3-length(sk)), '#', sk, " = ")
+        op, i, j = unpack(line)
+        x = showarg(p.cs, syms, i)
+        y = isunary(op) ? "" :
+            isquasiunary(op) ? string(j) :
+            showarg(p.cs, syms, j)
+        print(io, showop[op], ' ', x, ' ', y)
+        print(io, "\t==>\t", res[k+length(p.cs)])
+        k == n || println(io)
+    end
+end
+
+function showarg(cs, syms, i)
+    n = length(cs)
+    if i <= n
+        string(cs[i])
+    elseif i & inputmark == 0
+        "#$(i-n)"
+    else
+        string(syms[i ⊻ inputmark])
+    end
+end
+
+
 ## evaluate
 
 retrieve(xs, res, i) =
