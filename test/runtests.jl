@@ -79,4 +79,26 @@ end
     m2 = -e
     @test m2 isa UniMinusPoly
     @test m2.p === e
+
+    # *
+    t1 =  e * p
+    @test t1 isa TimesPoly{Int}
+    @test t1.xs[1] === e
+    @test t1.xs[2] === p
+    t2 = t * e
+    @test t2 isa TimesPoly{Int}
+    @test t2.xs[1] === t.xs[1]
+    @test t2.xs[2] === t.xs[2]
+    @test t2.xs[3] === e
+    t3 = e * t
+    @test t3 isa TimesPoly{Int}
+    @test t3.xs[1] === e
+    @test t3.xs[2] === t.xs[1]
+    @test t3.xs[3] === t.xs[2]
+    t4 = t * t
+    @test t4 isa TimesPoly{Int}
+    @test t4.xs[1] === t.xs[1]
+    @test t4.xs[2] === t.xs[2]
+    @test t4.xs[3] === t.xs[1]
+    @test t4.xs[4] === t.xs[2]
 end

@@ -120,3 +120,26 @@ end
 
 -(p::RecPoly{T}, q::RecPoly{T}) where {T} = MinusPoly(p, q)
 -(p::RecPoly{T}) where {T} = UniMinusPoly(p)
+
+
+#### *
+
+*(x::RecPoly{T}, y::RecPoly{T}) where {T} = TimesPoly(x, y)
+
+function *(x::TimesPoly{T}, y::RecPoly{T}) where {T}
+   p = TimesPoly(copy(x.xs))
+   push!(p.xs, y)
+   p
+end
+
+function *(x::RecPoly{T}, y::TimesPoly{T}) where {T}
+   p = TimesPoly(copy(y.xs))
+   pushfirst!(p.xs, x)
+   p
+end
+
+function *(x::TimesPoly{T}, y::TimesPoly{T}) where {T}
+   p = TimesPoly(copy(x.xs))
+   append!(p.xs, y.xs)
+   p
+end
