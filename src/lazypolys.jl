@@ -55,3 +55,12 @@ struct MinusPoly{T} <: RecPoly{T}
 end
 
 Base.show(io::IO, p::MinusPoly) = print(io, '(', p.p, " - ", p.q, ')')
+
+
+### UniMinus
+
+struct UniMinusPoly{T} <: RecPoly{T}
+   p::RecPoly{T}
+end
+
+Base.show(io::IO, p::UniMinusPoly) = print(io, "(-", p.p, ')')
