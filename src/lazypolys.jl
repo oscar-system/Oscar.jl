@@ -21,3 +21,12 @@ struct Const{T} <: RecPoly{T}
 end
 
 Base.show(io::IO, c::Const) = print(io, c.c)
+
+
+### Gen
+
+struct Gen{T} <: RecPoly{T}
+   g::Symbol
+end
+
+Base.show(io::IO, g::Gen) = print(io, g.g)

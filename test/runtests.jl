@@ -1,6 +1,6 @@
 using Test, StraightLinePrograms, AbstractAlgebra
 
-using StraightLinePrograms: Const, RecPoly
+using StraightLinePrograms: Const, Gen, RecPoly
 
 @testset "LazyPolyRing" begin
     F = LazyPolyRing(ZZ)
@@ -15,4 +15,10 @@ end
     @test c isa Const{Int}
     @test c isa RecPoly{Int}
     @test string(c) == "1"
+
+    # Gen
+    g = Gen{Int}(:x)
+    @test g isa Gen{Int}
+    @test g isa RecPoly{Int}
+    @test string(g) == "x"
 end
