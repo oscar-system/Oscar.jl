@@ -2,7 +2,8 @@ module StraightLinePrograms
 
 import Base: +, -, *, ^, parent
 
-using AbstractAlgebra: Ring, RingElement, MPolyRing, MPolyElem, elem_type
+using AbstractAlgebra: Ring, RingElement, MPolyRing, MPolyElem, elem_type,
+    Generic
 
 import AbstractAlgebra: base_ring, gen, gens, symbols
 

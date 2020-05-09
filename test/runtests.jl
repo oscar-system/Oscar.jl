@@ -218,6 +218,12 @@ end
     R2, (x2, y2) = PolynomialRing(zz, ["y", "x"])
     @test_throws ArgumentError convert(R2, p)
 
+    # conversion MPoly -> SLPoly
+    for _=1:1 # TODO: buggy, in particular as constants are not handled
+        r = rand(R, 1:4, 0:3, -9:9)
+        @test convert(R, convert(S, r)) == r
+    end
+
     # construction from LazyPoly
     L = LazyPolyRing(zz)
     x, y = L(:x), L(:y)

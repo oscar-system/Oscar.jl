@@ -218,6 +218,51 @@ pushpoly!(q, p::UniMinusPoly) = pushop!(q, uniminus, pushpoly!(q, p.p))
 pushpoly!(q, p::ExpPoly) = pushop!(q, exponentiate, pushpoly!(q, p.p), p.e)
 
 
+## conversion MPoly -> SLPoly
+
+function Base.convert(R::SLPolyRing, p::Generic.MPoly)
+    # TODO: currently handles only default ordering
+    symbols(R) == symbols(parent(p)) ||
+        throw(ArgumentError("incompatible symbols"))
+    q = R()
+    @assert lastindex(p.coeffs) < tmpmark
+    @assert isempty(q.cs)
+    copy!(q.cs, p.coeffs)
+    @assert length(q.cs) == size(p.coeffs, 1)
+    exps = UInt64[]
+    monoms = [Pair{UInt64,UInt64}[] for _ in axes(p.exps, 1)]
+    for v in reverse(axes(p.exps, 1))
+        copy!(exps, view(p.exps, v, :))
+        unique!(sort!(exps))
+        for e in exps
+            e == 0 && continue
+            k = pushop!(q, exponentiate, input(size(p.exps, 1) + 1 - v), e)
+            push!(monoms[v], e => k)
+        end
+        # TODO: handle constants
+    end
+    k = 0
+    for t in eachindex(q.cs)
+        i = t
+        j = 0
+        for v in reverse(axes(p.exps, 1))
+            e = p.exps[v, t]
+            if  e != 0
+                j = monoms[v][searchsortedfirst(monoms[v], e, by=first)][2]
+                i = pushop!(q, times, i, j)
+            end
+        end
+        if k == 0
+            k = i
+        else
+            k = pushop!(q, plus, k, i)
+        end
+    end
+    pushfinalize!(q)
+    q
+end
+
+
 ## conversion SLPoly -> MPoly
 
 function Base.convert(R::MPolyRing, p::SLPoly)
