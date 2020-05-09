@@ -125,4 +125,9 @@ end
     p = LazyPoly(F, r)
     @test parent(p) === F
     @test string(p) == "(1 + x)"
+    for x in (gen(F, :x), F(:x))
+        @test x isa LazyPoly{Int}
+        @test x.p isa Gen{Int}
+        @test x.p.g == :x
+    end
 end
