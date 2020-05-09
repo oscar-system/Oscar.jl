@@ -4,3 +4,8 @@ const argmask   = 0x000000000fffffff
 const inputmark = 0x0000000008000000
 const tmpmark   = 0x0000000004000000
 const argshift  = 28 # argmask == 2^argshift - 1
+
+
+## raw manips
+
+pack(op::UInt64, i, j) = op | ((i % UInt64) << argshift) | (j % UInt64)
