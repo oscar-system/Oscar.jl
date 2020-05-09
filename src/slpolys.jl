@@ -47,3 +47,45 @@ function Base.copy(q::SLPoly)
     copy!(p, q)
     p
 end
+
+
+## evaluate
+
+retrieve(xs, res, i) =
+    (i & inputmark) == 0 ? res[i] : xs[i ⊻ inputmark]
+
+function evaluate!(res::Vector{S}, p::SLPoly{T}, xs::Vector{S},
+                   R::Ring=parent(xs[1])) where {S,T}
+    # TODO: handle isempty(p.lines)
+    resize!(res, length(p.cs))
+    for i in eachindex(res)
+        res[i] = R(p.cs[i])
+    end
+
+    for line in p.lines
+        op, i, j = unpack(line)
+        x = retrieve(xs, res, i)
+        if isexponentiate(op)
+            r = x^Int(j) # TODO: support bigger j
+        elseif isuniplus(op) # serves as assignment (for trivial programs)
+            r = x
+        elseif isuniminus(op)
+            r = -x
+        else
+            y = retrieve(xs, res, j)
+            if isplus(op)
+                r = x + y
+            elseif isminus(op)
+                r = x - y
+            elseif istimes(op)
+                r = x * y
+            elseif isdivide(op)
+                r = divexact(x, y)
+            else
+                throw(ArgumentError("unknown operation"))
+            end
+        end
+        push!(res, r)
+    end
+    res[end]
+end

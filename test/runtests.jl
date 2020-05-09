@@ -185,17 +185,29 @@ end
     @test p.cs == [1, 3]
     @test l2 === UInt64(2)
 
-    l3 = pushop!(p, 0x8000000000000000, l1, l2)
+    l3 = pushop!(p, SL.plus, l1, l2)
     @test l3 == tmpmark | UInt64(1)
-    @test p.lines[1] == 0x8000000010000002
-    l4 = pushop!(p, 0x7000000000000000, l3, SL.input(2))
+    @test p.lines[1] == 0x0300000010000002
+    l4 = pushop!(p, SL.times, l3, SL.input(2))
     @test l4 == tmpmark | UInt64(2)
-    @test p.lines[2] == 0x7040000018000002
+    @test p.lines[2] == 0x0540000018000002
     lines = copy(p.lines)
     @test p === SL.pushfinalize!(p)
-    @test p.lines == [0x8000000010000002, 0x7000000038000002]
+    @test p.lines == [0x0300000010000002, 0x0500000038000002]
     SL.pushinit!(p)
     @test lines == p.lines
+    SL.pushfinalize!(p)
+    @test p.lines == [0x0300000010000002, 0x0500000038000002]
+    # p == (1+3)*y
+    @test SL.evaluate!(Int[], p, [1, 2]) == 8
+    @test SL.evaluate!(Int[], p, [0, 3]) == 12
+    l5 = SL.pushinit!(p)
+    l6 = SL.pushop!(p, SL.times, SL.input(1), SL.input(2)) # xy
+    l7 = SL.pushop!(p, SL.exponentiate, l5, 2) # (4y)^2
+    SL.pushop!(p, SL.minus, l6, l7) # xy - 16y^2
+    SL.pushfinalize!(p)
+    @test SL.evaluate!(Int[], p, [2, 3]) == -138
+    @test SL.evaluate!(Int[], p, [-2, -1]) == -14
 end
 
 @testset "SL internals" begin
