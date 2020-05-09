@@ -88,6 +88,46 @@ function showarg(cs, syms, i)
 end
 
 
+## mutating ops
+
+function combine!(p::SLPoly{T}, q::SLPoly{T}) where T
+    i = pushinit!(p)
+    koffset = length(p.cs)
+    len = length(p.lines)
+    append!(p.lines, q.lines)
+    append!(p.cs, q.cs)
+    j = pushinit!(p, length(q.cs), koffset, len+1:lastindex(p.lines))
+    i, j
+end
+
+function addeq!(p::SLPoly{T}, q::SLPoly{T}) where {T}
+    pushop!(p, plus, combine!(p, q)...)
+    pushfinalize!(p)
+end
+
+function subeq!(p::SLPoly{T}, q::SLPoly{T}) where {T}
+    pushop!(p, minus, combine!(p, q)...)
+    pushfinalize!(p)
+end
+
+function subeq!(p::SLPoly)
+    i = pushinit!(p)
+    pushop!(p, uniminus, i)
+    pushfinalize!(p)
+end
+
+function muleq!(p::SLPoly{T}, q::SLPoly{T}) where {T}
+    pushop!(p, times, combine!(p, q)...)
+    pushfinalize!(p)
+end
+
+function expeq!(p::SLPoly, e::Integer)
+    i = pushinit!(p)
+    pushop!(p, exponentiate, i, Int(e))
+    pushfinalize!(p)
+end
+
+
 ## evaluate
 
 retrieve(xs, res, i) =

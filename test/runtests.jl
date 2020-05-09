@@ -210,21 +210,36 @@ end
     @test SL.evaluate!(Int[], p, [-2, -1]) == -14
 
     # conversion -> MPoly
-    L, (x1, y1) = PolynomialRing(zz, ["x", "y"])
-    q = convert(L, p)
+    R, (x1, y1) = PolynomialRing(zz, ["x", "y"])
+    q = convert(R, p)
     @test q isa Generic.MPoly
-    @test parent(q) === L
+    @test parent(q) === R
     @test q == x1*y1 - 16*y1^2
-    L2, (x2, y2) = PolynomialRing(zz, ["y", "x"])
-    @test_throws ArgumentError convert(L2, p)
+    R2, (x2, y2) = PolynomialRing(zz, ["y", "x"])
+    @test_throws ArgumentError convert(R2, p)
 
     # construction from LazyPoly
-    F = LazyPolyRing(zz)
-    x, y = F(:x), F(:y)
-    q = S(F(1)) # TODO: printing
-    @test convert(L, q) == L(1)
-    @test convert(L, S(x*y^2-x)) == x1*y1^2-x1
-    @test convert(L, S(-(x+2*y)^3-4)) == -(x1+2*y1)^3-4
+    L = LazyPolyRing(zz)
+    x, y = L(:x), L(:y)
+    q = S(L(1)) # TODO: printing
+    @test convert(R, q) == R(1)
+    @test convert(R, S(x*y^2-x)) == x1*y1^2-x1
+    @test convert(R, S(-(x+2*y)^3-4)) == -(x1+2*y1)^3-4
+
+    # mutating ops
+    # currently: p == xy - 16y^2
+    # SL.addeq!(p, S(x)) # TODO: this bugs
+    @test p === SL.addeq!(p, S(x*y))
+    @test convert(R, p) == 2*x1*y1-16y1^2
+    @test p === SL.subeq!(p, S(-16y^2))
+    @test convert(R, p) == 2*x1*y1
+    @test p === SL.subeq!(p)
+    @test convert(R, p) == -2*x1*y1
+    # @test p === SL.muleq!(p, p) # TODO: this bugs
+    @test p === SL.muleq!(p, S(-2*x*y))
+    @test convert(R, p) == 4*(x1*y1)^2
+    @test p === SL.expeq!(p, 3)
+    @test convert(R, p) == 64*(x1*y1)^6
 end
 
 @testset "SL internals" begin
