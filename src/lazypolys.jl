@@ -148,3 +148,9 @@ end
 #### ^
 
 ^(x::RecPoly, e::Integer) = ExpPoly(x, Int(e))
+
+
+### adhoc binary ops
+
+*(x::RingElement, y::RecPoly{T}) where {T} = Const(convert(T, x)) * y
+*(x::RecPoly{T}, y::RingElement) where {T} = x * Const(convert(T, y))

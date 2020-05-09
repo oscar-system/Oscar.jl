@@ -102,6 +102,16 @@ end
     @test t4.xs[3] === t.xs[1]
     @test t4.xs[4] === t.xs[2]
 
+    # adhoc *
+    am1 = 3 * p
+    @test am1 isa RecPoly{Int}
+    am2 = big(3) * p
+    @test am2 isa RecPoly{Int}
+    am3 = p * 3
+    @test am3 isa RecPoly{Int}
+    am4 = p * big(3)
+    @test am4 isa RecPoly{Int}
+
     # ^
     e1 = p^3
     @test e1 isa ExpPoly
