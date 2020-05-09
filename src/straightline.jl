@@ -57,6 +57,35 @@ end
 
 isinput(i) = inputmark & i != 0
 
+# call before mutating, unless p is empty (opposite of pushfinalize!)
+function pushinit!(p::SLPoly, k=length(p.cs), koffset=0,
+                   idx=eachindex(p.lines))
+    offset = first(idx) - 1
+    for n in idx
+        op, i, j = unpack(p.lines[n])
+        if !isinput(i)
+            if i > k
+                i -= k-offset
+                i ⊻= tmpmark
+            else
+                i += koffset
+            end
+        end
+        if !isquasiunary(op)
+            if !isinput(j)
+                if j > k
+                    j -= k-offset
+                    j ⊻= tmpmark
+                else
+                    j += koffset
+                end
+            end
+        end
+        p.lines[n] = pack(op, i, j)
+    end
+    length(p.lines) | tmpmark
+end
+
 function pushconst!(p::SLPoly{T}, c::T) where T
    push!(p.cs, c)
    l = lastindex(p.cs)
