@@ -142,3 +142,10 @@ end
     @test (p^3).p isa ExpPoly
     @test_throws ArgumentError LazyPolyRing(ZZ)(big(1)) + c1
 end
+
+@testset "SLPolyRing" begin
+    S = SLPolyRing(zz, [:x, :y])
+    @test S isa SLPolyRing{Int}
+    @test base_ring(S) == zz
+    @test symbols(S) == [:x, :y]
+end

@@ -4,11 +4,12 @@ import Base: +, -, *, ^, parent
 
 using AbstractAlgebra: Ring, RingElement, MPolyRing, MPolyElem, elem_type
 
-import AbstractAlgebra: base_ring, gen
+import AbstractAlgebra: base_ring, gen, symbols
 
-export LazyPolyRing, LazyPoly
+export LazyPolyRing, LazyPoly, SLPolyRing
 
 
 include("lazypolys.jl")
+include("slpolys.jl")
 
 end # module
