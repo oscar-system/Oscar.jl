@@ -31,7 +31,17 @@ end
 
 ## raw manips
 
-pack(op::UInt64, i, j) = op | ((i % UInt64) << argshift) | (j % UInt64)
+pack(op::UInt64, i, j) =
+    op                       |
+    (i % UInt64) << argshift |
+    (j % UInt64)
+
+function unpack(line::UInt64)
+   op = opmask & line
+   j = line & argmask
+   i = (line >> argshift) & argmask
+   op, i, j
+end
 
 
 ## building SLPoly

@@ -209,4 +209,10 @@ end
         @test (op & 0x8000000000000000 != 0) ==
             (op ∈ (SL.uniplus, SL.uniminus, SL.exponentiate))
     end
+
+    # pack & unpack
+    ops = rand(UInt64(0):UInt64(0xff), 100) .<< 62
+    is = rand(UInt64(0):SL.argmask, 100)
+    js = rand(UInt64(0):SL.argmask, 100)
+    @test SL.unpack.(SL.pack.(ops, is, js)) == tuple.(ops, is, js)
 end
