@@ -208,6 +208,15 @@ end
     SL.pushfinalize!(p)
     @test SL.evaluate!(Int[], p, [2, 3]) == -138
     @test SL.evaluate!(Int[], p, [-2, -1]) == -14
+
+    # conversion -> MPoly
+    L, (x1, y1) = PolynomialRing(zz, ["x", "y"])
+    q = convert(L, p)
+    @test q isa Generic.MPoly
+    @test parent(q) === L
+    @test q == x1*y1 - 16*y1^2
+    L2, (x2, y2) = PolynomialRing(zz, ["y", "x"])
+    @test_throws ArgumentError convert(L2, p)
 end
 
 @testset "SL internals" begin

@@ -128,3 +128,14 @@ function evaluate!(res::Vector{S}, p::SLPoly{T}, xs::Vector{S},
     end
     res[end]
 end
+
+
+## conversion SLPoly -> MPoly
+
+function Base.convert(R::MPolyRing, p::SLPoly)
+    symbols(R) == symbols(parent(p)) ||
+        throw(ArgumentError("incompatible symbols"))
+    xs = gens(R)
+    res = empty(xs)
+    evaluate!(res, p, xs, R)
+end
