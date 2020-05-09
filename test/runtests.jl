@@ -240,6 +240,24 @@ end
     @test convert(R, p) == 4*(x1*y1)^2
     @test p === SL.expeq!(p, 3)
     @test convert(R, p) == 64*(x1*y1)^6
+
+    # binary/unary ops
+    p = S(x*y - 16y^2)
+    p = p + S(x*y)
+    @test p isa SLPoly{Int}
+    @test convert(R, p) == 2*x1*y1-16y1^2
+    p = p - S(-16y^2)
+    @test p isa SLPoly{Int}
+    @test convert(R, p) == 2*x1*y1
+    p = -p
+    @test p isa SLPoly{Int}
+    @test convert(R, p) == -2*x1*y1
+    p = p * S(-2*x*y)
+    @test p isa SLPoly{Int}
+    @test convert(R, p) == 4*(x1*y1)^2
+    p = p^3
+    @test p isa SLPoly{Int}
+    @test convert(R, p) == 64*(x1*y1)^6
 end
 
 @testset "SL internals" begin

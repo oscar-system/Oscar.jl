@@ -128,6 +128,19 @@ function expeq!(p::SLPoly, e::Integer)
 end
 
 
+## unary/binary ops
+
++(p::SLPoly{T}, q::SLPoly{T}) where {T} = addeq!(copy(p), q)
+
+*(p::SLPoly{T}, q::SLPoly{T}) where {T} = muleq!(copy(p), q)
+
+-(p::SLPoly{T}, q::SLPoly{T}) where {T} = subeq!(copy(p), q)
+
+-(p::SLPoly) = subeq!(copy(p))
+
+^(p::SLPoly, e::Integer) = expeq!(copy(p), e)
+
+
 ## evaluate
 
 retrieve(xs, res, i) =
