@@ -188,9 +188,9 @@ end
     l3 = pushop!(p, 0x8000000000000000, l1, l2)
     @test l3 == tmpmark | UInt64(1)
     @test p.lines[1] == 0x8000000010000002
-    l4 = pushop!(p, 0x7000000000000000, l3, l3)
+    l4 = pushop!(p, 0x7000000000000000, l3, SL.input(2))
     @test l4 == tmpmark | UInt64(2)
-    @test p.lines[2] == 0x7040000014000001
+    @test p.lines[2] == 0x7040000018000002
 end
 
 @testset "SL internals" begin

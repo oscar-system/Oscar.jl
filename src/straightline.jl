@@ -46,6 +46,12 @@ end
 
 ## building SLPoly
 
+# return #ref for i-th input
+function input(i::Int)
+   @assert i < tmpmark
+   (i % UInt64) | inputmark
+end
+
 function pushconst!(p::SLPoly{T}, c::T) where T
    push!(p.cs, c)
    l = lastindex(p.cs)
