@@ -130,6 +130,41 @@ function evaluate!(res::Vector{S}, p::SLPoly{T}, xs::Vector{S},
 end
 
 
+## conversion Lazy -> SLP
+
+function (R::SLPolyRing{T})(p::LazyPoly{T}) where {T}
+    q = R()
+    pushpoly!(q, p.p)
+    pushfinalize!(q)
+end
+
+pushpoly!(q, p::Const) = pushconst!(q, p.c)
+
+pushpoly!(q, p::Gen) = input(findfirst(==(p.g), symbols(parent(q))))
+
+function pushpoly!(q, p::Union{PlusPoly,TimesPoly})
+    # TODO: handle isempty(p.xs) ?
+    op = p isa PlusPoly ? plus : times
+    x, xs = Iterators.peel(p.xs)
+    i = pushpoly!(q, x)
+    for x in xs
+        j = pushpoly!(q, x)
+        i = pushop!(q, op, i, j)
+    end
+    i
+end
+
+function pushpoly!(q, p::MinusPoly)
+    i = pushpoly!(q, p.p)
+    j = pushpoly!(q, p.q)
+    pushop!(q, minus, i, j)
+end
+
+pushpoly!(q, p::UniMinusPoly) = pushop!(q, uniminus, pushpoly!(q, p.p))
+
+pushpoly!(q, p::ExpPoly) = pushop!(q, exponentiate, pushpoly!(q, p.p), p.e)
+
+
 ## conversion SLPoly -> MPoly
 
 function Base.convert(R::MPolyRing, p::SLPoly)

@@ -217,6 +217,14 @@ end
     @test q == x1*y1 - 16*y1^2
     L2, (x2, y2) = PolynomialRing(zz, ["y", "x"])
     @test_throws ArgumentError convert(L2, p)
+
+    # construction from LazyPoly
+    F = LazyPolyRing(zz)
+    x, y = F(:x), F(:y)
+    q = S(F(1)) # TODO: printing
+    @test convert(L, q) == L(1)
+    @test convert(L, S(x*y^2-x)) == x1*y1^2-x1
+    @test convert(L, S(-(x+2*y)^3-4)) == -(x1+2*y1)^3-4
 end
 
 @testset "SL internals" begin
