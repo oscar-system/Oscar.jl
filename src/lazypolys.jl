@@ -1,9 +1,9 @@
 ## LazyPolyRing
 
 struct LazyPolyRing{T<:RingElement,R<:Ring} <: MPolyRing{T}
-   base_ring::R
+    base_ring::R
 
-   LazyPolyRing(r::Ring) = new{elem_type(r),typeof(r)}(r)
+    LazyPolyRing(r::Ring) = new{elem_type(r),typeof(r)}(r)
 end
 
 base_ring(F::LazyPolyRing) = F.base_ring
@@ -17,7 +17,7 @@ abstract type RecPoly{T<:RingElement} end
 ### Const
 
 struct Const{T} <: RecPoly{T}
-   c::T
+    c::T
 end
 
 Base.show(io::IO, c::Const) = print(io, c.c)
@@ -26,7 +26,7 @@ Base.show(io::IO, c::Const) = print(io, c.c)
 ### Gen
 
 struct Gen{T} <: RecPoly{T}
-   g::Symbol
+    g::Symbol
 end
 
 Base.show(io::IO, g::Gen) = print(io, g.g)
@@ -35,23 +35,23 @@ Base.show(io::IO, g::Gen) = print(io, g.g)
 ### PlusPoly
 
 struct PlusPoly{T} <: RecPoly{T}
-   xs::Vector{RecPoly{T}}
+    xs::Vector{RecPoly{T}}
 end
 
 PlusPoly(xs::RecPoly{T}...) where {T} = PlusPoly(collect(RecPoly{T}, xs))
 
 function Base.show(io::IO, p::PlusPoly)
-   print(io, '(')
-   join(io, p.xs, " + ")
-   print(io, ')')
+    print(io, '(')
+    join(io, p.xs, " + ")
+    print(io, ')')
 end
 
 
 ### MinusPoly
 
 struct MinusPoly{T} <: RecPoly{T}
-   p::RecPoly{T}
-   q::RecPoly{T}
+    p::RecPoly{T}
+    q::RecPoly{T}
 end
 
 Base.show(io::IO, p::MinusPoly) = print(io, '(', p.p, " - ", p.q, ')')
@@ -60,7 +60,7 @@ Base.show(io::IO, p::MinusPoly) = print(io, '(', p.p, " - ", p.q, ')')
 ### UniMinus
 
 struct UniMinusPoly{T} <: RecPoly{T}
-   p::RecPoly{T}
+    p::RecPoly{T}
 end
 
 Base.show(io::IO, p::UniMinusPoly) = print(io, "(-", p.p, ')')
@@ -69,23 +69,23 @@ Base.show(io::IO, p::UniMinusPoly) = print(io, "(-", p.p, ')')
 ### TimesPoly
 
 struct TimesPoly{T} <: RecPoly{T}
-   xs::Vector{RecPoly{T}}
+    xs::Vector{RecPoly{T}}
 end
 
 TimesPoly(xs::RecPoly{T}...) where {T} = TimesPoly(collect(RecPoly{T}, xs))
 
 function Base.show(io::IO, p::TimesPoly)
-   print(io, '(')
-   join(io, p.xs)
-   print(io, ')')
+    print(io, '(')
+    join(io, p.xs)
+    print(io, ')')
 end
 
 
 ### ExpPoly
 
 struct ExpPoly{T} <: RecPoly{T}
-   p::RecPoly{T}
-   e::Int
+    p::RecPoly{T}
+    e::Int
 end
 
 Base.show(io::IO, p::ExpPoly) = print(io, p.p, '^', p.e)
@@ -98,21 +98,21 @@ Base.show(io::IO, p::ExpPoly) = print(io, p.p, '^', p.e)
 +(x::RecPoly{T}, y::RecPoly{T}) where {T} = PlusPoly(x, y)
 
 function +(x::PlusPoly{T}, y::RecPoly{T}) where {T}
-   p = PlusPoly(copy(x.xs))
-   push!(p.xs, y)
-   p
+    p = PlusPoly(copy(x.xs))
+    push!(p.xs, y)
+    p
 end
 
 function +(x::RecPoly{T}, y::PlusPoly{T}) where {T}
-   p = PlusPoly(copy(y.xs))
-   pushfirst!(p.xs, x)
-   p
+    p = PlusPoly(copy(y.xs))
+    pushfirst!(p.xs, x)
+    p
 end
 
 function +(x::PlusPoly{T}, y::PlusPoly{T}) where {T}
-   p = PlusPoly(copy(x.xs))
-   append!(p.xs, y.xs)
-   p
+    p = PlusPoly(copy(x.xs))
+    append!(p.xs, y.xs)
+    p
 end
 
 
@@ -127,21 +127,21 @@ end
 *(x::RecPoly{T}, y::RecPoly{T}) where {T} = TimesPoly(x, y)
 
 function *(x::TimesPoly{T}, y::RecPoly{T}) where {T}
-   p = TimesPoly(copy(x.xs))
-   push!(p.xs, y)
-   p
+    p = TimesPoly(copy(x.xs))
+    push!(p.xs, y)
+    p
 end
 
 function *(x::RecPoly{T}, y::TimesPoly{T}) where {T}
-   p = TimesPoly(copy(y.xs))
-   pushfirst!(p.xs, x)
-   p
+    p = TimesPoly(copy(y.xs))
+    pushfirst!(p.xs, x)
+    p
 end
 
 function *(x::TimesPoly{T}, y::TimesPoly{T}) where {T}
-   p = TimesPoly(copy(x.xs))
-   append!(p.xs, y.xs)
-   p
+    p = TimesPoly(copy(x.xs))
+    append!(p.xs, y.xs)
+    p
 end
 
 
@@ -159,8 +159,8 @@ end
 ## LazyPoly
 
 struct LazyPoly{T<:RingElement,PR<:MPolyRing{T}} <: MPolyElem{T}
-   parent::PR
-   p::RecPoly{T}
+    parent::PR
+    p::RecPoly{T}
 end
 
 parent(p::LazyPoly) = p.parent
@@ -172,9 +172,9 @@ gen(R::LazyPolyRing, s::Symbol) = LazyPoly(R, Gen{elem_type(R.base_ring)}(s))
 (R::LazyPolyRing{T})(c::T) where {T} = LazyPoly(R, Const(c))
 
 function check_parent(p::LazyPoly, q::LazyPoly)
-   par = parent(p)
-   par === parent(q) || throw(ArgumentError("incompatible parents"))
-   par
+    par = parent(p)
+    par === parent(q) || throw(ArgumentError("incompatible parents"))
+    par
 end
 
 Base.show(io::IO, p::LazyPoly) = show(io, p.p)
