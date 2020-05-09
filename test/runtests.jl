@@ -4,6 +4,7 @@ using StraightLinePrograms: Const, ExpPoly, Gen, MinusPoly, PlusPoly, RecPoly,
     TimesPoly, UniMinusPoly, pushconst!, pushop!,
     tmpmark
 
+const SL = StraightLinePrograms
 
 @testset "LazyPolyRing" begin
     F = LazyPolyRing(ZZ)
@@ -190,4 +191,22 @@ end
     l4 = pushop!(p, 0x7000000000000000, l3, l3)
     @test l4 == tmpmark | UInt64(2)
     @test p.lines[2] == 0x7040000014000001
+end
+
+@testset "SL internals" begin
+    @test SL.showop == Dict(SL.uniplus      => '+',
+                            SL.plus         => '+',
+                            SL.uniminus     => '-',
+                            SL.minus        => '-',
+                            SL.times        => '*',
+                            SL.divide       => '/',
+                            SL.exponentiate => '^')
+    @test length(SL.showop) == 7 # tests all keys are distinct
+    for op in keys(SL.showop)
+        @test SL.isuniplus(op) == (op == SL.uniplus)
+        @test SL.istimes(op) == (op == SL.times)
+        # ...
+        @test (op & 0x8000000000000000 != 0) ==
+            (op ∈ (SL.uniplus, SL.uniminus, SL.exponentiate))
+    end
 end
