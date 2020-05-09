@@ -191,6 +191,8 @@ end
     l4 = pushop!(p, 0x7000000000000000, l3, SL.input(2))
     @test l4 == tmpmark | UInt64(2)
     @test p.lines[2] == 0x7040000018000002
+    @test p === SL.pushfinalize!(p)
+    @test p.lines == [0x8000000010000002, 0x7000000038000002]
 end
 
 @testset "SL internals" begin

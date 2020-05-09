@@ -66,3 +66,21 @@ function pushop!(p::SLPoly, op, i, j=UInt64(0))
    @assert l < tmpmark
    l % UInt64 | tmpmark
 end
+
+# make state consistent again
+function pushfinalize!(p::SLPoly)
+   k = length(p.cs)
+   for n in eachindex(p.lines)
+      op, i, j = unpack(p.lines[n])
+      if i & tmpmark != 0
+         i ⊻= tmpmark
+         i += k
+      end
+      if j & tmpmark != 0
+         j ⊻= tmpmark
+         j += k
+      end
+      p.lines[n] = pack(op, i, j)
+   end
+   p
+end
