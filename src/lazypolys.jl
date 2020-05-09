@@ -89,3 +89,26 @@ struct ExpPoly{T} <: RecPoly{T}
 end
 
 Base.show(io::IO, p::ExpPoly) = print(io, p.p, '^', p.e)
+
+
+### binary ops
+
++(x::RecPoly{T}, y::RecPoly{T}) where {T} = PlusPoly(x, y)
+
+function +(x::PlusPoly{T}, y::RecPoly{T}) where {T}
+   p = PlusPoly(copy(x.xs))
+   push!(p.xs, y)
+   p
+end
+
+function +(x::RecPoly{T}, y::PlusPoly{T}) where {T}
+   p = PlusPoly(copy(y.xs))
+   pushfirst!(p.xs, x)
+   p
+end
+
+function +(x::PlusPoly{T}, y::PlusPoly{T}) where {T}
+   p = PlusPoly(copy(x.xs))
+   append!(p.xs, y.xs)
+   p
+end

@@ -48,4 +48,26 @@ end
     e = ExpPoly(p, 3)
     @test e isa ExpPoly{Int} <: RecPoly{Int}
     @test string(e) == "(1 + x)^3"
+
+    # +
+    p1 =  e + t
+    @test p1 isa PlusPoly{Int}
+    @test p1.xs[1] === e
+    @test p1.xs[2] === t
+    p2 = p + e
+    @test p2 isa PlusPoly{Int}
+    @test p2.xs[1] === p.xs[1]
+    @test p2.xs[2] === p.xs[2]
+    @test p2.xs[3] === e
+    p3 = e + p
+    @test p3 isa PlusPoly{Int}
+    @test p3.xs[1] === e
+    @test p3.xs[2] === p.xs[1]
+    @test p3.xs[3] === p.xs[2]
+    p4 = p + p
+    @test p4 isa PlusPoly{Int}
+    @test p4.xs[1] === p.xs[1]
+    @test p4.xs[2] === p.xs[2]
+    @test p4.xs[3] === p.xs[1]
+    @test p4.xs[4] === p.xs[2]
 end
