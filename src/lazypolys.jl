@@ -64,3 +64,18 @@ struct UniMinusPoly{T} <: RecPoly{T}
 end
 
 Base.show(io::IO, p::UniMinusPoly) = print(io, "(-", p.p, ')')
+
+
+### TimesPoly
+
+struct TimesPoly{T} <: RecPoly{T}
+   xs::Vector{RecPoly{T}}
+end
+
+TimesPoly(xs::RecPoly{T}...) where {T} = TimesPoly(collect(RecPoly{T}, xs))
+
+function Base.show(io::IO, p::TimesPoly)
+   print(io, '(')
+   join(io, p.xs)
+   print(io, ')')
+end
