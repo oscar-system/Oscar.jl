@@ -30,3 +30,18 @@ struct Gen{T} <: RecPoly{T}
 end
 
 Base.show(io::IO, g::Gen) = print(io, g.g)
+
+
+### Plus
+
+struct PlusPoly{T} <: RecPoly{T}
+   xs::Vector{RecPoly{T}}
+end
+
+PlusPoly(xs::RecPoly{T}...) where {T} = PlusPoly(collect(RecPoly{T}, xs))
+
+function Base.show(io::IO, p::PlusPoly)
+   print(io, '(')
+   join(io, p.xs, " + ")
+   print(io, ')')
+end
