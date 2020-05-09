@@ -93,6 +93,8 @@ Base.show(io::IO, p::ExpPoly) = print(io, p.p, '^', p.e)
 
 ### binary ops
 
+#### +
+
 +(x::RecPoly{T}, y::RecPoly{T}) where {T} = PlusPoly(x, y)
 
 function +(x::PlusPoly{T}, y::RecPoly{T}) where {T}
@@ -112,3 +114,9 @@ function +(x::PlusPoly{T}, y::PlusPoly{T}) where {T}
    append!(p.xs, y.xs)
    p
 end
+
+
+#### -
+
+-(p::RecPoly{T}, q::RecPoly{T}) where {T} = MinusPoly(p, q)
+-(p::RecPoly{T}) where {T} = UniMinusPoly(p)

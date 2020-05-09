@@ -70,4 +70,13 @@ end
     @test p4.xs[2] === p.xs[2]
     @test p4.xs[3] === p.xs[1]
     @test p4.xs[4] === p.xs[2]
+
+    # -
+    m1 = e - t
+    @test m1 isa MinusPoly
+    @test m1.p === e
+    @test m1.q === t
+    m2 = -e
+    @test m2 isa UniMinusPoly
+    @test m2.p === e
 end
