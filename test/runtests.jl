@@ -1,7 +1,7 @@
 using Test, StraightLinePrograms, AbstractAlgebra
 
 using StraightLinePrograms: Const, ExpPoly, Gen, MinusPoly, PlusPoly, RecPoly,
-    TimesPoly, UniMinusPoly
+    TimesPoly, UniMinusPoly, pushconst!
 
 @testset "LazyPolyRing" begin
     F = LazyPolyRing(ZZ)
@@ -172,4 +172,13 @@ end
     end
     S2 = SLPolyRing(zz, [:z, :t])
     @test_throws ArgumentError copy!(SLPoly(S2, Int[], UInt64[]), p)
+
+    # building
+    p = S()
+    l = pushconst!(p, 1)
+    @test p.cs == [1]
+    @test l === UInt64(1)
+    l = pushconst!(p, 3)
+    @test p.cs == [1, 3]
+    @test l === UInt64(2)
 end
