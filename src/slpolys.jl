@@ -47,13 +47,3 @@ function Base.copy(q::SLPoly)
     copy!(p, q)
     p
 end
-
-
-## building SLPoly
-
-function pushconst!(p::SLPoly{T}, c::T) where T
-   push!(p.cs, c)
-   l = lastindex(p.cs)
-   @assert l < tmpmark
-   l % UInt64
-end

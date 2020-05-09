@@ -1,7 +1,9 @@
 using Test, StraightLinePrograms, AbstractAlgebra
 
 using StraightLinePrograms: Const, ExpPoly, Gen, MinusPoly, PlusPoly, RecPoly,
-    TimesPoly, UniMinusPoly, pushconst!
+    TimesPoly, UniMinusPoly, pushconst!, pushop!,
+    tmpmark
+
 
 @testset "LazyPolyRing" begin
     F = LazyPolyRing(ZZ)
@@ -175,10 +177,17 @@ end
 
     # building
     p = S()
-    l = pushconst!(p, 1)
+    l1 = pushconst!(p, 1)
     @test p.cs == [1]
-    @test l === UInt64(1)
-    l = pushconst!(p, 3)
+    @test l1 === UInt64(1)
+    l2 = pushconst!(p, 3)
     @test p.cs == [1, 3]
-    @test l === UInt64(2)
+    @test l2 === UInt64(2)
+
+    l3 = pushop!(p, 0x8000000000000000, l1, l2)
+    @test l3 == tmpmark | UInt64(1)
+    @test p.lines[1] == 0x8000000010000002
+    l4 = pushop!(p, 0x7000000000000000, l3, l3)
+    @test l4 == tmpmark | UInt64(2)
+    @test p.lines[2] == 0x7040000014000001
 end
