@@ -1,6 +1,6 @@
 module StraightLinePrograms
 
-import Base: +, -, *
+import Base: +, -, *, ^
 
 using AbstractAlgebra: Ring, RingElement, MPolyRing, elem_type
 

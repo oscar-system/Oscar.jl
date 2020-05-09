@@ -101,4 +101,10 @@ end
     @test t4.xs[2] === t.xs[2]
     @test t4.xs[3] === t.xs[1]
     @test t4.xs[4] === t.xs[2]
+
+    # ^
+    e1 = p^3
+    @test e1 isa ExpPoly
+    @test e1.p === p
+    @test e1.e == 3
 end

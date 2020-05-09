@@ -143,3 +143,8 @@ function *(x::TimesPoly{T}, y::TimesPoly{T}) where {T}
    append!(p.xs, y.xs)
    p
 end
+
+
+#### ^
+
+^(x::RecPoly, e::Integer) = ExpPoly(x, Int(e))
