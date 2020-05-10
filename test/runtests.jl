@@ -230,6 +230,7 @@ end
     @test q == x1*y1 - 16*y1^2
     R2, (x2, y2) = PolynomialRing(zz, ["y", "x"])
     @test_throws ArgumentError convert(R2, p)
+    @test convert(R, S()) == R()
 
     # conversion MPoly -> SLPoly
     for _=1:1 # TODO: buggy, in particular as constants are not handled

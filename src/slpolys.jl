@@ -11,7 +11,7 @@ base_ring(S::SLPolyRing) = S.base_ring
 
 symbols(S::SLPolyRing) = S.S
 
-(PR::SLPolyRing{T})() where {T} = SLPoly(PR, T[], UInt64[])
+(PR::SLPolyRing{T})() where {T} = PR(Const(zero(base_ring(PR))))
 
 
 ## SLPoly
