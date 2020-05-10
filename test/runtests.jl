@@ -151,6 +151,17 @@ end
     @test S isa SLPolyRing{Int}
     @test base_ring(S) == zz
     @test symbols(S) == [:x, :y]
+
+    R, (x1, y1) = PolynomialRing(zz, ["x", "y"])
+
+    x = gen(S, 1)
+    @test string(x) == "x"
+    @test x isa SLPoly{Int}
+    @test convert(R, x) == x1
+    y = gen(S, 2)
+    @test string(y) == "y"
+    @test y isa SLPoly{Int}
+    @test convert(R, y) == y1
 end
 
 @testset "SLPoly" begin
