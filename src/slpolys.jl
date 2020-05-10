@@ -199,6 +199,7 @@ function evaluate!(res::Vector{S}, p::SLPoly{T}, xs::Vector{S},
     end
 
     for line in p.lines
+        local r::S
         op, i, j = unpack(line)
         x = retrieve(xs, res, i)
         if isexponentiate(op)
