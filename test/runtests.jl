@@ -160,8 +160,10 @@ end
     x0, y0 = gens(S)
     @test string(x0) == "x"
     @test string(y0) == "y"
+    @test replstr(x0) == "x"
+    @test replstr(y0) == "y"
     @test string(S(2)) == "2"
-    @test !isempty(replstr(S(2)))
+    @test replstr(S(2)) == "2"
 
     for x in (gen(S, 1), x0)
         @test string(x) == "x"

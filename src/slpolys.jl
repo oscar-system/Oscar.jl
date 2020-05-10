@@ -77,6 +77,10 @@ function Base.show(io::IO, ::MIME"text/plain", p::SLPoly{T}) where T
     n = length(p.lines)
     syms = symbols(parent(p))
     res = evaluate_lazy(p)
+    if n == 1
+        # trivial program, show only result
+        return show(io, res[end])
+    end
 
     for (k, line) in enumerate(p.lines)
         op, i, j = unpack(line)
