@@ -155,6 +155,9 @@ end
     R, (x1, y1) = PolynomialRing(zz, ["x", "y"])
 
     x0, y0 = gens(S)
+    @test string(x0) == "x"
+    @test string(y0) == "y"
+    @test string(S(2)) == "2"
 
     for x in (gen(S, 1), x0)
         @test string(x) == "x"
@@ -207,20 +210,20 @@ end
     @test l4 == tmpmark | UInt64(2)
     @test p.lines[2] == 0x0540000018000002
     lines = copy(p.lines)
-    @test p === SL.pushfinalize!(p)
-    @test p.lines == [0x0300000010000002, 0x0500000038000002]
+    @test p === SL.pushfinalize!(p, l4)
+    @test p.lines == [0x0300000010000002, 0x0500000038000002, 0x8100000040000000]
     SL.pushinit!(p)
     @test lines == p.lines
-    SL.pushfinalize!(p)
-    @test p.lines == [0x0300000010000002, 0x0500000038000002]
+    SL.pushfinalize!(p, l4)
+    @test p.lines == [0x0300000010000002, 0x0500000038000002, 0x8100000040000000]
     # p == (1+3)*y
     @test SL.evaluate!(Int[], p, [1, 2]) == 8
     @test SL.evaluate!(Int[], p, [0, 3]) == 12
     l5 = SL.pushinit!(p)
     l6 = SL.pushop!(p, SL.times, SL.input(1), SL.input(2)) # xy
     l7 = SL.pushop!(p, SL.exponentiate, l5, 2) # (4y)^2
-    SL.pushop!(p, SL.minus, l6, l7) # xy - 16y^2
-    SL.pushfinalize!(p)
+    l8 = SL.pushop!(p, SL.minus, l6, l7) # xy - 16y^2
+    SL.pushfinalize!(p, l8)
     @test string(p) == "((xy) - ((1 + 3)y)^2)"
     @test SL.evaluate!(Int[], p, [2, 3]) == -138
     @test SL.evaluate!(Int[], p, [-2, -1]) == -14

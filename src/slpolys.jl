@@ -71,7 +71,12 @@ function evaluate_lazy(p)
     res
 end
 
-Base.show(io::IO, p::SLPoly) = show(io, evaluate_lazy(p)[end])
+function Base.show(io::IO, p::SLPoly)
+    R = parent(p)
+    L = LazyPolyRing(base_ring(R))
+    gs = map(L, symbols(R))
+    show(io, retrieve(gs, evaluate_lazy(p), returnidx(p)))
+end
 
 function Base.show(io::IO, ::MIME"text/plain", p::SLPoly{T}) where T
     n = length(p.lines)
@@ -79,16 +84,19 @@ function Base.show(io::IO, ::MIME"text/plain", p::SLPoly{T}) where T
     res = evaluate_lazy(p)
 
     for (k, line) in enumerate(p.lines)
+        op, i, j = unpack(line)
+        if k == n && op == uniplus && i == k-1+length(p.cs)
+            break
+        end
+        k == 1 || println(io)
         sk = string(k)
         print(io, ' '^max(0, 3-length(sk)), '#', sk, " = ")
-        op, i, j = unpack(line)
         x = showarg(p.cs, syms, i)
         y = isunary(op) ? "" :
             isquasiunary(op) ? string(j) :
             showarg(p.cs, syms, j)
         print(io, showop[op], ' ', x, ' ', y)
         print(io, "\t==>\t", res[k+length(p.cs)])
-        k == n || println(io)
     end
 end
 
@@ -117,30 +125,30 @@ function combine!(p::SLPoly{T}, q::SLPoly{T}) where T
 end
 
 function addeq!(p::SLPoly{T}, q::SLPoly{T}) where {T}
-    pushop!(p, plus, combine!(p, q)...)
-    pushfinalize!(p)
+    i = pushop!(p, plus, combine!(p, q)...)
+    pushfinalize!(p, i)
 end
 
 function subeq!(p::SLPoly{T}, q::SLPoly{T}) where {T}
-    pushop!(p, minus, combine!(p, q)...)
-    pushfinalize!(p)
+    i = pushop!(p, minus, combine!(p, q)...)
+    pushfinalize!(p, i)
 end
 
 function subeq!(p::SLPoly)
     i = pushinit!(p)
-    pushop!(p, uniminus, i)
-    pushfinalize!(p)
+    i = pushop!(p, uniminus, i)
+    pushfinalize!(p, i)
 end
 
 function muleq!(p::SLPoly{T}, q::SLPoly{T}) where {T}
-    pushop!(p, times, combine!(p, q)...)
-    pushfinalize!(p)
+    i = pushop!(p, times, combine!(p, q)...)
+    pushfinalize!(p, i)
 end
 
 function expeq!(p::SLPoly, e::Integer)
     i = pushinit!(p)
-    pushop!(p, exponentiate, i, Int(e))
-    pushfinalize!(p)
+    i = pushop!(p, exponentiate, i, Int(e))
+    pushfinalize!(p, i)
 end
 
 
@@ -226,11 +234,7 @@ end
 function (R::SLPolyRing{T})(p::RecPoly{T}) where {T}
     q = SLPoly(R)
     i = pushpoly!(q, p)
-    if isempty(q.lines)
-        # when p is e.g. a Const or a Gen
-        pushop!(q, uniplus, i)
-    end
-    pushfinalize!(q)
+    pushfinalize!(q, i)
 end
 
 pushpoly!(q, p::Const) = pushconst!(q, p.c)
@@ -300,7 +304,7 @@ function Base.convert(R::SLPolyRing, p::Generic.MPoly)
             k = pushop!(q, plus, k, i)
         end
     end
-    pushfinalize!(q)
+    pushfinalize!(q, k)
     q
 end
 

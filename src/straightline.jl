@@ -46,6 +46,12 @@ function unpack(line::UInt64)
    op, i, j
 end
 
+function returnidx(p)
+    op, i, j = unpack(p.lines[end])
+    @assert op == uniplus
+    i
+end
+
 
 ## building SLPoly
 
@@ -83,7 +89,9 @@ function pushinit!(p::SLPoly, k=length(p.cs), koffset=0,
         end
         p.lines[n] = pack(op, i, j)
     end
-    length(p.lines) | tmpmark
+    i = returnidx(p)
+    pop!(p.lines)
+    i
 end
 
 function pushconst!(p::SLPoly{T}, c::T) where T
@@ -102,19 +110,20 @@ function pushop!(p::SLPoly, op, i, j=UInt64(0))
 end
 
 # make state consistent again
-function pushfinalize!(p::SLPoly)
-   k = length(p.cs)
-   for n in eachindex(p.lines)
-      op, i, j = unpack(p.lines[n])
-      if i & tmpmark != 0
-         i ⊻= tmpmark
-         i += k
-      end
-      if j & tmpmark != 0
-         j ⊻= tmpmark
-         j += k
-      end
-      p.lines[n] = pack(op, i, j)
-   end
-   p
+function pushfinalize!(p::SLPoly, ret)
+    k = length(p.cs)
+    pushop!(p, uniplus, ret)
+    for n in eachindex(p.lines)
+        op, i, j = unpack(p.lines[n])
+        if i & tmpmark != 0
+            i ⊻= tmpmark
+            i += k
+        end
+        if j & tmpmark != 0
+            j ⊻= tmpmark
+            j += k
+        end
+        p.lines[n] = pack(op, i, j)
+    end
+    p
 end
