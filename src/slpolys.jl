@@ -11,7 +11,7 @@ base_ring(S::SLPolyRing) = S.base_ring
 
 symbols(S::SLPolyRing) = S.S
 
-(S::SLPolyRing{T})() where {T} = S(Const(zero(base_ring(S))))
+(S::SLPolyRing{T})(c::T=zero(base_ring(S))) where {T} = S(Const(c))
 
 function gen(S::SLPolyRing{T}, i::Integer) where {T}
     s = symbols(S)[i]
