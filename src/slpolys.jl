@@ -22,10 +22,13 @@ struct SLPoly{T<:RingElement,SLPR<:SLPolyRing{T}} <: MPolyElem{T}
     lines::Vector{UInt64}  # instructions
     f::Ref{Function}       # compiled evalutation
 
-    SLPoly(parent, xs, c) =
+    SLPoly(parent, cs, lines) =
         new{elem_type(base_ring(parent)),typeof(parent)}(
-            parent, xs, c, Ref{Function}())
+            parent, cs, lines, Ref{Function}())
 end
+
+# create invalid poly
+SLPoly(parent::SLPolyRing{T}) where {T} = SLPoly(parent, T[], UInt64[])
 
 parent(p::SLPoly) = p.parent
 
@@ -43,7 +46,7 @@ function Base.copy!(p::SLPoly{T}, q::SLPoly{T}) where {T}
 end
 
 function Base.copy(q::SLPoly)
-    p = q.parent()
+    p = SLPoly(q.parent)
     copy!(p, q)
     p
 end
@@ -193,9 +196,15 @@ end
 
 ## conversion Lazy -> SLP
 
-function (R::SLPolyRing{T})(p::LazyPoly{T}) where {T}
-    q = R()
-    pushpoly!(q, p.p)
+(R::SLPolyRing{T})(p::LazyPoly{T}) where {T} = R(p.p)
+
+function (R::SLPolyRing{T})(p::RecPoly{T}) where {T}
+    q = SLPoly(R)
+    i = pushpoly!(q, p)
+    if isempty(q.lines)
+        # when p is e.g. a Const or a Gen
+        pushop!(q, uniplus, i)
+    end
     pushfinalize!(q)
 end
 
@@ -232,7 +241,7 @@ function Base.convert(R::SLPolyRing, p::Generic.MPoly)
     # TODO: currently handles only default ordering
     symbols(R) == symbols(parent(p)) ||
         throw(ArgumentError("incompatible symbols"))
-    q = R()
+    q = SLPoly(R)
     @assert lastindex(p.coeffs) < tmpmark
     @assert isempty(q.cs)
     copy!(q.cs, p.coeffs)

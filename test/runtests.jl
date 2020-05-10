@@ -158,7 +158,7 @@ end
     p = SLPoly(S, Int[], UInt64[])
     @test p isa SLPoly{Int,typeof(S)} <: MPolyElem{Int}
     @test parent(p) === S
-    p = S()
+    p = SLPoly(S)
     @test p isa SLPoly{Int,typeof(S)} <: MPolyElem{Int}
     @test parent(p) === S
 
@@ -177,7 +177,7 @@ end
     @test_throws ArgumentError copy!(SLPoly(S2, Int[], UInt64[]), p)
 
     # building
-    p = S()
+    p = SLPoly(S)
     l1 = pushconst!(p, 1)
     @test p.cs == [1]
     @test l1 === UInt64(1)
@@ -244,6 +244,11 @@ end
     @test convert(R, q) == R(1)
     @test convert(R, S(x*y^2-x)) == x1*y1^2-x1
     @test convert(R, S(-(x+2*y)^3-4)) == -(x1+2*y1)^3-4
+
+    # corner cases
+    @test_throws BoundsError convert(R, SLPoly(S)) # error can change
+    @test convert(R, S(L(1))) == R(1)
+    @test convert(R, S(L(:x))) == x1
 
     # mutating ops
     # currently: p == xy - 16y^2
