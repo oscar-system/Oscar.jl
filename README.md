@@ -3,20 +3,19 @@
 This is a buggy WIP implementation of straight-line programs (SLP).
 This is part of the [Oscar](https://oscar.computeralgebra.de/) project.
 
-Currently, SLPs have a polynomial interface (`SLPoly`), and the simplest way
-to construct them is through `LazyPoly`s.
+Currently, SLPs have a polynomial interface (`SLPoly`).
 
 ## Examples
 
 ```julia
 julia> using AbstractAlgebra, StraightLinePrograms, BenchmarkTools;
 
-julia> L = LazyPolyRing(zz); x, y = L(:x), L(:y)
-(x, y)
+julia> S = SLPolyRing(zz, [:x, :y]); x, y = gens(S)
+2-element Array{SLPoly{Int64,SLPolyRing{Int64,AbstractAlgebra.Integers{Int64}}},1}:
+ x
+ y
 
-julia> S = SLPolyRing(zz, [:x, :y]);
-
-julia> p = S(3 + 2x * y^2) # each line of the SLP is shown with current value
+julia> p = 3 + 2x * y^2 # each line of the SLP is shown with current value
   #1 = * 2 x    ==>     (2x)
   #2 = ^ y 2    ==>     y^2
   #3 = * #1 #2  ==>     (2xy^2)
@@ -37,7 +36,7 @@ julia> p.lines # each line is a UInt64 encoding an opcode and 2 arguments
 julia> evaluate(p, [2, 3])
 39
 
-julia> p2 = (p*S(x*y))^6
+julia> p2 = (p*(x*y))^6
   #1 = * 2 x    ==>     (2x)
   #2 = ^ y 2    ==>     y^2
   #3 = * #1 #2  ==>     (2xy^2)
@@ -57,11 +56,11 @@ julia> v = [3, 5]; @btime evaluate($q, $v)
 -1458502820125772303
 
 julia> @btime evaluate($p2, $v)
- 415.709 ns (6 allocations: 384 bytes)
+  270.341 ns (4 allocations: 352 bytes)
 -1458502820125772303
 
 julia> res = Int[]; @btime StraightLinePrograms.evaluate!($res, $p2, $v)
-  307.940 ns (2 allocations: 32 bytes)
+  171.013 ns (0 allocations: 0 bytes)
 -1458502820125772303
 
 julia> res # intermediate computations (first 2 elements are constants)
@@ -127,13 +126,13 @@ julia> p3 = convert(S, q) # convert back q::Mpoly to an SLPoly
  #34 = + #31 #33        ==>     ((64x^12y^18) + (576x^11y^16) + (2160x^10y^14) + (4320x^9y^12) + (4860x^8y^10) + (2916x^7y^8) + (729x^6y^6))
 
 julia> @btime evaluate($p3, $v)
-  1.452 μs (39 allocations: 1.52 KiB)
+  699.465 ns (5 allocations: 1008 bytes)
 -1458502820125772303
 
 julia> @time f3 = StraightLinePrograms.compile!(p3);
-  0.003005 seconds (1.40 k allocations: 90.930 KiB)
+  0.002830 seconds (1.40 k allocations: 90.930 KiB)
 
 julia> @btime $f3($v)
- 80.570 ns (0 allocations: 0 bytes)
+ 80.229 ns (0 allocations: 0 bytes)
 -1458502820125772303
 ```
