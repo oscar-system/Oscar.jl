@@ -154,14 +154,18 @@ end
 
     R, (x1, y1) = PolynomialRing(zz, ["x", "y"])
 
-    x = gen(S, 1)
-    @test string(x) == "x"
-    @test x isa SLPoly{Int}
-    @test convert(R, x) == x1
-    y = gen(S, 2)
-    @test string(y) == "y"
-    @test y isa SLPoly{Int}
-    @test convert(R, y) == y1
+    x0, y0 = gens(S)
+
+    for x in (gen(S, 1), x0)
+        @test string(x) == "x"
+        @test x isa SLPoly{Int}
+        @test convert(R, x) == x1
+    end
+    for y in (gen(S, 2), y0)
+        @test string(y) == "y"
+        @test y isa SLPoly{Int}
+        @test convert(R, y) == y1
+    end
 end
 
 @testset "SLPoly" begin

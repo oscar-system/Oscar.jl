@@ -18,6 +18,8 @@ function gen(S::SLPolyRing{T}, i::Integer) where {T}
     S(Gen{T}(s))
 end
 
+gens(S::SLPolyRing{T}) where {T} = [S(Gen{T}(s)) for s in symbols(S)]
+
 
 ## SLPoly
 
