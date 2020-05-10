@@ -71,12 +71,7 @@ function evaluate_lazy(p)
     res
 end
 
-function Base.show(io::IO, p::SLPoly)
-    R = parent(p)
-    L = LazyPolyRing(base_ring(R))
-    gs = map(L, symbols(R))
-    show(io, retrieve(gs, evaluate_lazy(p), returnidx(p)))
-end
+Base.show(io::IO, p::SLPoly) = show(io, evaluate_lazy(p)[end])
 
 function Base.show(io::IO, ::MIME"text/plain", p::SLPoly{T}) where T
     n = length(p.lines)

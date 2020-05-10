@@ -215,11 +215,11 @@ end
     @test p.lines[2] == 0x0540000018000002
     lines = copy(p.lines)
     @test p === SL.pushfinalize!(p, l4)
-    @test p.lines == [0x0300000010000002, 0x0500000038000002, 0x8100000040000000]
+    @test p.lines == [0x0300000010000002, 0x0500000038000002]
     SL.pushinit!(p)
     @test lines == p.lines
     SL.pushfinalize!(p, l4)
-    @test p.lines == [0x0300000010000002, 0x0500000038000002, 0x8100000040000000]
+    @test p.lines == [0x0300000010000002, 0x0500000038000002]
     # p == (1+3)*y
     @test SL.evaluate!(Int[], p, [1, 2]) == 8
     @test SL.evaluate!(Int[], p, [0, 3]) == 12

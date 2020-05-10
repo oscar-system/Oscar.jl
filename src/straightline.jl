@@ -46,12 +46,6 @@ function unpack(line::UInt64)
    op, i, j
 end
 
-function returnidx(p)
-    op, i, j = unpack(p.lines[end])
-    @assert op == uniplus
-    i
-end
-
 
 ## building SLPoly
 
@@ -67,7 +61,8 @@ isinput(i) = inputmark & i != 0
 function pushinit!(p::SLPoly, k=length(p.cs), koffset=0,
                    idx=eachindex(p.lines))
     offset = first(idx) - 1
-    for n in idx
+    local n, op, i, j
+    for outer n in idx
         op, i, j = unpack(p.lines[n])
         if !isinput(i)
             if i > k
@@ -89,9 +84,13 @@ function pushinit!(p::SLPoly, k=length(p.cs), koffset=0,
         end
         p.lines[n] = pack(op, i, j)
     end
-    i = returnidx(p)
-    pop!(p.lines)
-    i
+    @assert n == lastindex(p.lines)
+    if isuniplus(op) && (isinput(i) || (i & tmpmark) == 0) # constant
+        pop!(p.lines) # discard trivial instruction
+        i
+    else
+        n % UInt64 | tmpmark
+    end
 end
 
 function pushconst!(p::SLPoly{T}, c::T) where T
@@ -112,7 +111,11 @@ end
 # make state consistent again
 function pushfinalize!(p::SLPoly, ret)
     k = length(p.cs)
-    pushop!(p, uniplus, ret)
+    if isinput(ret) || (ret & tmpmark) == 0 ||
+            (ret ⊻ tmpmark) != lastindex(p.lines)
+        # non-trivial return (i.e. no line or not the result of the last line)
+        pushop!(p, uniplus, ret)
+    end
     for n in eachindex(p.lines)
         op, i, j = unpack(p.lines[n])
         if i & tmpmark != 0
