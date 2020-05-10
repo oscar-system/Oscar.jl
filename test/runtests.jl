@@ -206,6 +206,7 @@ end
     l7 = SL.pushop!(p, SL.exponentiate, l5, 2) # (4y)^2
     SL.pushop!(p, SL.minus, l6, l7) # xy - 16y^2
     SL.pushfinalize!(p)
+    @test string(p) == "((xy) - ((1 + 3)y)^2)"
     @test SL.evaluate!(Int[], p, [2, 3]) == -138
     @test SL.evaluate!(Int[], p, [-2, -1]) == -14
 
@@ -241,7 +242,8 @@ end
     # construction from LazyPoly
     L = LazyPolyRing(zz)
     x, y = L(:x), L(:y)
-    q = S(L(1)) # TODO: printing
+    q = S(L(1))
+    @test string(q) == "1"
     @test convert(R, q) == R(1)
     @test convert(R, S(x*y^2-x)) == x1*y1^2-x1
     @test convert(R, S(-(x+2*y)^3-4)) == -(x1+2*y1)^3-4

@@ -54,16 +54,22 @@ end
 
 ## show
 
-function Base.show(io::IO, ::MIME"text/plain", p::SLPoly{T}) where T
-    n = length(p.lines)
-    R = parent(p)
-    syms = symbols(R)
-
+function evaluate_lazy(p)
     # pre-compute line representations via LazyPoly
+    R = parent(p)
     L = LazyPolyRing(base_ring(R))
-    xs = map(L, syms)
+    xs = map(L, symbols(R))
     res = empty(xs)
     evaluate!(res, p, xs, L)
+    res
+end
+
+Base.show(io::IO, p::SLPoly) = show(io, evaluate_lazy(p)[end])
+
+function Base.show(io::IO, ::MIME"text/plain", p::SLPoly{T}) where T
+    n = length(p.lines)
+    syms = symbols(parent(p))
+    res = evaluate_lazy(p)
 
     for (k, line) in enumerate(p.lines)
         sk = string(k)
