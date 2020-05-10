@@ -6,6 +6,9 @@ using StraightLinePrograms: Const, ExpPoly, Gen, MinusPoly, PlusPoly, RecPoly,
 
 const SL = StraightLinePrograms
 
+replstr(c) = sprint((io, x) -> show(io, "text/plain", x), c)
+
+
 @testset "LazyPolyRing" begin
     F = LazyPolyRing(ZZ)
     @test F isa LazyPolyRing{elem_type(ZZ)}
@@ -158,6 +161,7 @@ end
     @test string(x0) == "x"
     @test string(y0) == "y"
     @test string(S(2)) == "2"
+    @test !isempty(replstr(S(2)))
 
     for x in (gen(S, 1), x0)
         @test string(x) == "x"

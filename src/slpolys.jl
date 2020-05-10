@@ -85,7 +85,8 @@ function Base.show(io::IO, ::MIME"text/plain", p::SLPoly{T}) where T
 
     for (k, line) in enumerate(p.lines)
         op, i, j = unpack(line)
-        if k == n && op == uniplus && i == k-1+length(p.cs)
+        if 1 < k == n && op == uniplus && i == k-1+length(p.cs)
+            # 1 < k for trivial SLPs returning a constant
             break
         end
         k == 1 || println(io)
