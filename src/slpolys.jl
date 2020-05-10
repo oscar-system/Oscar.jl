@@ -157,6 +157,18 @@ end
 ^(p::SLPoly, e::Integer) = expeq!(copy(p), e)
 
 
+## adhoc ops
+
++(p::SLPoly{T}, q::T) where {T<:RingElement} = p + parent(p)(q)
++(q::T, p::SLPoly{T}) where {T<:RingElement} = parent(p)(q) + p
+
+-(p::SLPoly{T}, q::T) where {T<:RingElement} = p - parent(p)(q)
+-(q::T, p::SLPoly{T}) where {T<:RingElement} = parent(p)(q) - p
+
+*(p::SLPoly{T}, q::T) where {T<:RingElement} = p * parent(p)(q)
+*(q::T, p::SLPoly{T}) where {T<:RingElement} = parent(p)(q) * p
+
+
 ## evaluate
 
 function evaluate(p::SLPoly{T}, xs::Vector{T}) where {T <: RingElement}

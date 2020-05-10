@@ -303,6 +303,16 @@ end
     p = p^3
     @test p isa SLPoly{Int}
     @test convert(R, p) == 64*(x1*y1)^6
+
+    # adhoc ops
+    p = S(x*y - 16y^2)
+    q = convert(R, p)
+    @test convert(R, 2p) == 2q
+    @test convert(R, p*3) == q*3
+    @test convert(R, 2+p) == 2+q
+    @test convert(R, p+2) == q+2
+    @test convert(R, 2-p) == 2-q
+    @test convert(R, p-2) == q-2
 end
 
 @testset "SL internals" begin
