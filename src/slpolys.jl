@@ -108,7 +108,7 @@ function Base.show(io::IO, ::MIME"text/plain", p::SLPoly{T}) where T
         print(io, ' '^max(0, 3-length(sk)), '#', sk, " = ")
         x = showarg(p.cs, syms, i.x)
         y = isunary(op) ? "" :
-            isquasiunary(op) ? string(j) :
+            isquasiunary(op) ? string(j.x) :
             showarg(p.cs, syms, j.x)
         print(io, showop[op], ' ', x, ' ', y)
         print(io, "\t==>\t", res[k+length(p.cs)])
