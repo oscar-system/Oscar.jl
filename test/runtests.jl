@@ -261,8 +261,8 @@ end
     @test convert(R, S(-4)) == R(-4)
 
     # conversion MPoly -> SLPoly
-    for _=1:1 # TODO: buggy, in particular as constants are not handled
-        r = rand(R, 1:4, 0:3, -9:9)
+    for _=1:100
+        r = rand(R, 1:20, 0:13, -19:19)
         @test convert(R, convert(S, r)) == r
         @test convert(R, convert(S, r; limit_exp=true)) == r
     end

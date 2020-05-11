@@ -274,12 +274,14 @@ function Base.convert(R::SLPolyRing, p::Generic.MPoly; limit_exp::Bool=false)
     q = SLPoly(R)
     @assert lastindex(p.coeffs) < tmpmark
     @assert isempty(q.cs)
-    copy!(q.cs, p.coeffs)
-    @assert length(q.cs) == size(p.coeffs, 1)
+    # have to use p.length, as p.coeffs and p.exps
+    # might contain trailing gargabe
+    resize!(q.cs, p.length)
+    copyto!(q.cs, 1, p.coeffs, 1, p.length)
     exps = UInt64[]
     monoms = [Pair{UInt64,UInt64}[] for _ in axes(p.exps, 1)]
     for v in reverse(axes(p.exps, 1))
-        copy!(exps, view(p.exps, v, :))
+        copy!(exps, view(p.exps, v, 1:p.length))
         unique!(sort!(exps))
         if first(exps) == 0
             popfirst!(exps)
@@ -329,7 +331,6 @@ function Base.convert(R::SLPolyRing, p::Generic.MPoly; limit_exp::Bool=false)
                 push!(monoms[v], e => k)
             end
         end
-        # TODO: handle constants
     end
     k = 0
     for t in eachindex(q.cs)
