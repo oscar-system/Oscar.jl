@@ -97,21 +97,34 @@ function Base.show(io::IO, ::MIME"text/plain", p::SLPoly{T}) where T
         return show(io, res[end])
     end
 
+    str(x...) = sprint(print, x...; context=io)
+    lines = Vector{String}[]
+    widths = [0, 0, 0, 0, 0]
+
     for (k, line) in enumerate(p.lines)
         op, i, j = unpack(line)
         if 1 < k == n && op == uniplus && i.x == k-1+length(p.cs)
             # 1 < k for trivial SLPs returning a constant
             break
         end
-        k == 1 || println(io)
         sk = string(k)
-        print(io, ' '^max(0, 3-length(sk)), '#', sk, " = ")
+        line = String[]
+        push!(lines, line)
+        push!(line, str('#', sk, " ="))
         x = showarg(p.cs, syms, i.x)
         y = isunary(op) ? "" :
             isquasiunary(op) ? string(j.x) :
             showarg(p.cs, syms, j.x)
-        print(io, showop[op], ' ', x, ' ', y)
-        print(io, "\t==>\t", res[k+length(p.cs)])
+        push!(line, str(showop[op]), x, y, str(res[k+length(p.cs)]))
+        widths .= max.(widths, textwidth.(line))
+    end
+    for (k, line) in enumerate(lines)
+        k == 1 || println(io)
+        print(io, ' '^(widths[1]-length(line[1])), line[1])
+        for i = 2:4
+            print(io, ' '^(1+widths[i]-textwidth(line[i])), line[i])
+        end
+        print(io, "  ==>  ", line[5])
     end
 end
 
