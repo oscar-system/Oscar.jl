@@ -299,7 +299,7 @@ function Base.convert(R::SLPolyRing, p::Generic.MPoly; limit_exp::Bool=false)
     for v in reverse(axes(p.exps, 1))
         copy!(exps, view(p.exps, v, 1:p.length))
         unique!(sort!(exps))
-        if first(exps) == 0
+        if !isempty(exps) && first(exps) == 0
             popfirst!(exps)
         end
         isempty(exps) && continue
@@ -348,7 +348,8 @@ function Base.convert(R::SLPolyRing, p::Generic.MPoly; limit_exp::Bool=false)
             end
         end
     end
-    k = 0
+
+    k = Arg(0) # TODO: don't use 0
     for t in eachindex(q.cs)
         i = Arg(t)
         j = 0
@@ -359,11 +360,15 @@ function Base.convert(R::SLPolyRing, p::Generic.MPoly; limit_exp::Bool=false)
                 i = pushop!(q, times, i, j)
             end
         end
-        if k == 0
+        if k == Arg(0)
             k = i
         else
             k = pushop!(q, plus, k, i)
         end
+    end
+    if isempty(q.cs)
+        push!(q.cs, base_ring(R)())
+        k = pushop!(q, uniplus, Arg(1))
     end
     pushfinalize!(q, k)
     q

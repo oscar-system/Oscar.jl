@@ -266,6 +266,8 @@ end
         @test convert(R, convert(S, r)) == r
         @test convert(R, convert(S, r; limit_exp=true)) == r
     end
+    r = R()
+    @test convert(R, convert(S, r)) == r
 
     # construction from LazyPoly
     L = LazyPolyRing(zz)
