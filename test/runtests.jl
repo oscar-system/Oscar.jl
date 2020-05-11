@@ -2,7 +2,7 @@ using Test, StraightLinePrograms, AbstractAlgebra
 
 using StraightLinePrograms: Const, ExpPoly, Gen, MinusPoly, PlusPoly, RecPoly,
     TimesPoly, UniMinusPoly, pushconst!, pushop!,
-    tmpmark
+    tmpmark, Line, Arg
 
 const SL = StraightLinePrograms
 
@@ -190,7 +190,7 @@ end
     q = SLPoly(S, Int[], UInt64[])
     # TODO: do smthg more interesting with q
     push!(q.cs, 3)
-    push!(q.lines, 0)
+    push!(q.lines, Line(0))
     copy!(p, q)
     p2 = copy(q)
     for p1 in (p, p2)
@@ -204,30 +204,30 @@ end
     p = SLPoly(S)
     l1 = pushconst!(p, 1)
     @test p.cs == [1]
-    @test l1 === UInt64(1)
+    @test l1 === Arg(1)
     l2 = pushconst!(p, 3)
     @test p.cs == [1, 3]
-    @test l2 === UInt64(2)
+    @test l2 === Arg(2)
 
     l3 = pushop!(p, SL.plus, l1, l2)
-    @test l3 == tmpmark | UInt64(1)
-    @test p.lines[1] == 0x0300000010000002
+    @test l3 == Arg(tmpmark | UInt64(1))
+    @test p.lines[1].x == 0x0300000010000002
     l4 = pushop!(p, SL.times, l3, SL.input(2))
-    @test l4 == tmpmark | UInt64(2)
-    @test p.lines[2] == 0x0540000018000002
+    @test l4 == Arg(tmpmark | UInt64(2))
+    @test p.lines[2].x == 0x0540000018000002
     lines = copy(p.lines)
     @test p === SL.pushfinalize!(p, l4)
-    @test p.lines == [0x0300000010000002, 0x0500000038000002]
+    @test p.lines == [Line(0x0300000010000002), Line(0x0500000038000002)]
     SL.pushinit!(p)
     @test lines == p.lines
     SL.pushfinalize!(p, l4)
-    @test p.lines == [0x0300000010000002, 0x0500000038000002]
+    @test p.lines == [Line(0x0300000010000002), Line(0x0500000038000002)]
     # p == (1+3)*y
     @test SL.evaluate!(Int[], p, [1, 2]) == 8
     @test SL.evaluate!(Int[], p, [0, 3]) == 12
     l5 = SL.pushinit!(p)
     l6 = SL.pushop!(p, SL.times, SL.input(1), SL.input(2)) # xy
-    l7 = SL.pushop!(p, SL.exponentiate, l5, 2) # (4y)^2
+    l7 = SL.pushop!(p, SL.exponentiate, l5, Arg(2)) # (4y)^2
     l8 = SL.pushop!(p, SL.minus, l6, l7) # xy - 16y^2
     SL.pushfinalize!(p, l8)
     @test string(p) == "((xy) - ((1 + 3)y)^2)"
@@ -338,23 +338,23 @@ end
         @test SL.isuniplus(op) == (op == SL.uniplus)
         @test SL.istimes(op) == (op == SL.times)
         # ...
-        @test (op & 0x8000000000000000 != 0) ==
+        @test (op.x & 0x8000000000000000 != 0) ==
             SL.isquasiunary(op) ==
             (op ∈ (SL.uniplus, SL.uniminus, SL.exponentiate))
         @test SL.isunary(op) == (op ∈ (SL.uniplus, SL.uniminus))
     end
 
     # pack & unpack
-    ops = rand(UInt64(0):UInt64(0xff), 100) .<< 62
+    ops = SL.Op.(rand(UInt64(0):UInt64(0xff), 100) .<< 62)
     is = rand(UInt64(0):SL.argmask, 100)
     js = rand(UInt64(0):SL.argmask, 100)
-    @test SL.unpack.(SL.pack.(ops, is, js)) == tuple.(ops, is, js)
+    @test SL.unpack.(SL.pack.(ops, is, js)) == tuple.(ops, Arg.(is), Arg.(js))
 
     for x = rand(Int64(0):Int(SL.tmpmark-1), 100)
-        if SL.isinput(x)
-            @test SL.input(x) == x
+        if SL.isinput(Arg(x))
+            @test SL.input(x) == Arg(x)
         else
-            @test SL.input(x) ⊻ SL.inputmark == x
+            @test SL.input(x).x ⊻ SL.inputmark == x
         end
     end
 end

@@ -1,3 +1,18 @@
+## Op, Line, Arg
+
+struct Op
+    x::UInt64
+end
+
+struct Line
+    x::UInt64
+end
+
+struct Arg
+    x::UInt64
+end
+
+
 ## SLPolyRing (SL = straight-line)
 
 struct SLPolyRing{T<:RingElement,R<:Ring} <: MPolyRing{T}
@@ -26,7 +41,7 @@ gens(S::SLPolyRing{T}) where {T} = [S(Gen{T}(s)) for s in symbols(S)]
 struct SLPoly{T<:RingElement,SLPR<:SLPolyRing{T}} <: MPolyElem{T}
     parent::SLPR
     cs::Vector{T}          # constants
-    lines::Vector{UInt64}  # instructions
+    lines::Vector{Line}  # instructions
     f::Ref{Function}       # compiled evalutation
 
     SLPoly(parent, cs, lines) =
@@ -35,7 +50,7 @@ struct SLPoly{T<:RingElement,SLPR<:SLPolyRing{T}} <: MPolyElem{T}
 end
 
 # create invalid poly
-SLPoly(parent::SLPolyRing{T}) where {T} = SLPoly(parent, T[], UInt64[])
+SLPoly(parent::SLPolyRing{T}) where {T} = SLPoly(parent, T[], Line[])
 
 parent(p::SLPoly) = p.parent
 
@@ -84,17 +99,17 @@ function Base.show(io::IO, ::MIME"text/plain", p::SLPoly{T}) where T
 
     for (k, line) in enumerate(p.lines)
         op, i, j = unpack(line)
-        if 1 < k == n && op == uniplus && i == k-1+length(p.cs)
+        if 1 < k == n && op == uniplus && i.x == k-1+length(p.cs)
             # 1 < k for trivial SLPs returning a constant
             break
         end
         k == 1 || println(io)
         sk = string(k)
         print(io, ' '^max(0, 3-length(sk)), '#', sk, " = ")
-        x = showarg(p.cs, syms, i)
+        x = showarg(p.cs, syms, i.x)
         y = isunary(op) ? "" :
             isquasiunary(op) ? string(j) :
-            showarg(p.cs, syms, j)
+            showarg(p.cs, syms, j.x)
         print(io, showop[op], ' ', x, ' ', y)
         print(io, "\t==>\t", res[k+length(p.cs)])
     end
@@ -147,7 +162,7 @@ end
 
 function expeq!(p::SLPoly, e::Integer)
     i = pushinit!(p)
-    i = pushop!(p, exponentiate, i, Int(e))
+    i = pushop!(p, exponentiate, i, Arg(UInt64(e)))
     pushfinalize!(p, i)
 end
 
@@ -188,7 +203,7 @@ function evaluate(p::SLPoly{T}, xs::Vector{T}) where {T <: RingElement}
 end
 
 retrieve(xs, res, i) =
-    (i & inputmark) == 0 ? res[i] : xs[i ⊻ inputmark]
+    (i.x & inputmark) == 0 ? res[i.x] : xs[i.x ⊻ inputmark]
 
 function evaluate!(res::Vector{S}, p::SLPoly{T}, xs::Vector{S},
                    R::Ring=parent(xs[1])) where {S,T}
@@ -203,7 +218,7 @@ function evaluate!(res::Vector{S}, p::SLPoly{T}, xs::Vector{S},
         op, i, j = unpack(line)
         x = retrieve(xs, res, i)
         if isexponentiate(op)
-            r = x^Int(j) # TODO: support bigger j
+            r = x^Int(j.x) # TODO: support bigger j
         elseif isuniplus(op) # serves as assignment (for trivial programs)
             r = x
         elseif isuniminus(op)
@@ -262,7 +277,8 @@ end
 
 pushpoly!(q, p::UniMinusPoly) = pushop!(q, uniminus, pushpoly!(q, p.p))
 
-pushpoly!(q, p::ExpPoly) = pushop!(q, exponentiate, pushpoly!(q, p.p), p.e)
+pushpoly!(q, p::ExpPoly) = pushop!(q, exponentiate,
+                                   pushpoly!(q, p.p), Arg(p.e))
 
 
 ## conversion MPoly -> SLPoly
@@ -279,7 +295,7 @@ function Base.convert(R::SLPolyRing, p::Generic.MPoly; limit_exp::Bool=false)
     resize!(q.cs, p.length)
     copyto!(q.cs, 1, p.coeffs, 1, p.length)
     exps = UInt64[]
-    monoms = [Pair{UInt64,UInt64}[] for _ in axes(p.exps, 1)]
+    monoms = [Pair{UInt64,Arg}[] for _ in axes(p.exps, 1)]
     for v in reverse(axes(p.exps, 1))
         copy!(exps, view(p.exps, v, 1:p.length))
         unique!(sort!(exps))
@@ -327,14 +343,14 @@ function Base.convert(R::SLPolyRing, p::Generic.MPoly; limit_exp::Bool=false)
         else
             for e in exps
                 e == 0 && continue
-                k = pushop!(q, exponentiate, xref, e)
+                k = pushop!(q, exponentiate, xref, Arg(e))
                 push!(monoms[v], e => k)
             end
         end
     end
     k = 0
     for t in eachindex(q.cs)
-        i = t
+        i = Arg(t)
         j = 0
         for v in reverse(axes(p.exps, 1))
             e = p.exps[v, t]
@@ -367,9 +383,9 @@ end
 
 ## compile!
 
-cretrieve(i) = i & inputmark == 0 ?
-    Symbol(:res, i) => 0 :
-    Symbol(:x, i ⊻ inputmark) => i ⊻ inputmark
+cretrieve(i) = i.x & inputmark == 0 ?
+    Symbol(:res, i.x) => 0 :
+    Symbol(:x, i.x ⊻ inputmark) => i.x ⊻ inputmark
 
 # return compiled evaluation function f, and updates
 # p.f[] = f, which is not invalidated when p is mutated
@@ -392,7 +408,7 @@ function compile!(p::SLPoly)
         mininput = max(mininput, idx)
         line =
             if isexponentiate(op)
-                :($rk = $x^$(Int(j)))
+                :($rk = $x^$(Int(j.x)))
             elseif isuniplus(op)
                 :($rk = $x)
             elseif isuniminus(op)
