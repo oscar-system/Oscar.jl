@@ -267,7 +267,7 @@ pushpoly!(q, p::ExpPoly) = pushop!(q, exponentiate, pushpoly!(q, p.p), p.e)
 
 ## conversion MPoly -> SLPoly
 
-function Base.convert(R::SLPolyRing, p::Generic.MPoly)
+function Base.convert(R::SLPolyRing, p::Generic.MPoly; limit_exp::Bool=false)
     # TODO: currently handles only default ordering
     symbols(R) == symbols(parent(p)) ||
         throw(ArgumentError("incompatible symbols"))
@@ -281,10 +281,53 @@ function Base.convert(R::SLPolyRing, p::Generic.MPoly)
     for v in reverse(axes(p.exps, 1))
         copy!(exps, view(p.exps, v, :))
         unique!(sort!(exps))
-        for e in exps
-            e == 0 && continue
-            k = pushop!(q, exponentiate, input(size(p.exps, 1) + 1 - v), e)
-            push!(monoms[v], e => k)
+        if first(exps) == 0
+            popfirst!(exps)
+        end
+        isempty(exps) && continue
+        xref = input(size(p.exps, 1) + 1 - v)
+        if limit_exp # experimental
+            # TODO: move to a general SLP optimization pass?
+            # and check in which case it's an improvement
+
+            # 1) find all exponents which will be computed, i.e. all e÷2
+            # for all e in exps, recursively
+            n = length(exps) - 1
+            while length(exps) > n
+                n = length(exps)
+                for i in eachindex(exps)
+                    exps[i] == 1 && continue
+                    e0 = exps[i] >> 1
+                    push!(exps, e0)
+                end
+                unique!(sort!(exps))
+            end
+
+            # 2) for all e from 1), compute x^2 and store the result in monoms
+            for e in exps
+                e1 = e >> 1
+                if e == 1
+                    k = xref
+                elseif monoms[v][end][1] == 2*e1
+                    @assert e == 2*e1+1
+                    k = pushop!(q, times, monoms[v][end][2], xref)
+                else
+                    m1 = searchsortedfirst(monoms[v], e1, by=first)
+                    k1 = monoms[v][m1][2]
+                    k = pushop!(q, times, k1, k1)
+                    if e1+e1 != e
+                        @assert e1+e1+1 == e
+                        k = pushop!(q, times, k, xref)
+                    end
+                end
+                push!(monoms[v], e => k)
+            end
+        else
+            for e in exps
+                e == 0 && continue
+                k = pushop!(q, exponentiate, xref, e)
+                push!(monoms[v], e => k)
+            end
         end
         # TODO: handle constants
     end
