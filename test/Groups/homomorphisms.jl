@@ -2,10 +2,7 @@
 n = 6
 @testset "Homomorphism in Sym($n)" begin
    G = symmetric_group(n)
-   x = rand(G)
-   while x != one(G)
-      x = rand(G)
-   end
+   x = G(vcat(2:n-1, [1]))
 
    g = hom(G, G, gens(G), [y^x for y in gens(G)])
    @test typeof(g) == Oscar.GAPGroupHomomorphism{PermGroup, PermGroup}
@@ -14,7 +11,7 @@ n = 6
    @test image(g)[1] == G
    @test g(one(G)) == one(G)
    @test g(x)==x
-   @test Set(elements(centralizer(G,x)[1])) == Set([y for y in G if g(y)==y])
+   @test Set([y for y in centralizer(G,x)[1]]) == Set([y for y in G if g(y)==y])
    z = rand(G)
    @test g(z) == z^x
    @test isinjective(g)

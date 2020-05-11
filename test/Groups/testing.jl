@@ -178,7 +178,7 @@ end
 @testset "Iteration" begin
   for n = 4:6
     G = symmetric_group(n)
-    L = elements(G)
+    L = [x for x in G]
     @test L isa Vector{PermGroupElem}
     @test length(L) == factorial(G.deg)
     @test length(unique(L)) == factorial(G.deg)

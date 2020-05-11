@@ -23,6 +23,8 @@
   end
   @test_throws ArgumentError symmetric_group(0)
   @test_throws ArgumentError alternating_group(-1)
+  @test isalternating_group(omega_group(3,3))
+  @test issymmetric_group(symmetric_group(PcGroup,4))
 end
 
 @testset "Special Constructors" begin
@@ -34,6 +36,9 @@ end
   @test isa(dihedral_group(6), PcGroup)
   @test isa(dihedral_group(PermGroup, 6), PermGroup)
   
+  @test isa(alternating_group(PcGroup,3), PcGroup)
+  @test isa(symmetric_group(PcGroup,3), PcGroup)
+  @test isisomorphic(symmetric_group(4), symmetric_group(PcGroup,4))[1]
   
   
   @test isquaternion_group(small_group(8, 4))
@@ -59,11 +64,23 @@ end
   @test isabelian(H)
 =#
   
+  @test mathieu_group(10) isa PermGroup
+  @test order(mathieu_group(10))==720
+
   F = free_group("x","y")
   @test F isa FPGroup
   @test !isfinite(F)
   @test !isabelian(F)
 
+  F = free_group(2)
+  @test F isa FPGroup
+  
+  F = free_group(["x","y"])
+  @test F isa FPGroup
+  
+  F = free_group(3,"y")
+  @test F isa FPGroup
+  
   Q8 = quaternion_group(8)
   @test isa(Q8, PcGroup)
   
@@ -121,4 +138,21 @@ end
     #     @test index(SO(n,q),omega_group(n,q))==2
       end
    end
+
+   @test order(omega_group(+1,4,3))==288
+   @test order(omega_group(-1,4,3))==360
+   @test order(omega_group(3,3))==12
+end
+
+@testset "Classical groups as PermGroup" begin
+   @test GL(PermGroup,2,3) isa PermGroup
+   @test order(GL(PermGroup,2,2)) == order(GL(2,2))
+   @test isisomorphic(GL(PermGroup,2,2),GL(2,2))[1]
+
+   @test order(SL(PermGroup,2,2)) == order(SL(2,2))
+   @test order(GU(PermGroup,2,2)) == order(GU(2,2))
+   @test order(SU(PermGroup,2,2)) == order(SU(2,2))
+   @test order(GO(PermGroup,+1,2,2)) == order(GO(+1,2,2))
+   @test order(SO(PermGroup,+1,2,3)) == order(SO(+1,2,3))
+   @test order(Sp(PermGroup,2,2)) == order(Sp(2,2))
 end

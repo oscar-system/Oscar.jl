@@ -41,11 +41,11 @@
    @test length(maximal_subgroups(G))==8
    @test A in maximal_subgroups(G)
    @test maximal_normal_subgroups(G)==[A]
-   H = sub(G,[G([3,4,1,2]), G([2,1,4,3])])
-   @test minimal_normal_subgroups(G)==[H[1]]
+   H = sub(G,[G([3,4,1,2]), G([2,1,4,3])])[1]
+   @test minimal_normal_subgroups(G)==[H]
    @test length(characteristic_subgroups(G))==4
-   @test H[1] in characteristic_subgroups(G)
-   @test ischaracteristic_subgroup(G,H[1])
+   @test H in characteristic_subgroups(G)
+   @test ischaracteristic_subgroup(G,H)
 
    H1,h1 = sub(G, gens(symmetric_group(3)))
    H2,h2 = sub(G, gens(alternating_group(4)))
@@ -162,10 +162,10 @@ end
       @test representative(lc) == x
       @test representative(dc) == x
       @test Set(elements(rc)) == Set([z for z in rc])          # test iterator
-      @test Set(elements(dc)) == Set([z for z in dc])
+#      @test Set(elements(dc)) == Set([z for z in dc])
       @test Set(elements(rc)) == Set([h*x for h in H])
       @test Set(elements(lc)) == Set([x*h for h in H])
-      @test Set(elements(dc)) == Set([h*x*k for h in H for k in K])
+      @test Set([h for h in dc]) == Set([h*x*k for h in H for k in K])
       @test order(rc) == 3
       @test order(dc) == 6
       r1=rand(rc)
