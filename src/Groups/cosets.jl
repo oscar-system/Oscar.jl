@@ -16,7 +16,7 @@ export acting_domain,
 # T=type of the group, S=type of the element
 """
     GroupCoset{T<: Group, S <: GAPGroupElem}
-group coset. It is displayed as `H * x` (right cosets) or `x * H` (left cosets), where `H` is a subgroup of a group `G` and `x` is an element of `G`. Two cosets are equal if, and only if, they are both left (resp. right) and they contain the same elements.
+Group coset. It is displayed as `H * x` (right cosets) or `x * H` (left cosets), where `H` is a subgroup of a group `G` and `x` is an element of `G`. Two cosets are equal if, and only if, they are both left (resp. right) and they contain the same elements.
 """
 mutable struct GroupCoset{T<: GAPGroup, S <: GAPGroupElem} 
    X::T                    # big group containing the subgroup and the element
@@ -36,7 +36,7 @@ end
 
 """
     right_coset(H::Group, g::GAPGroupElem)
-return the coset `Hg`.
+Return the coset `Hg`.
 """
 function right_coset(H::GAPGroup, g::GAPGroupElem)
    @assert elem_type(H) == typeof(g)
@@ -48,7 +48,7 @@ end
 
 """
     right_coset(H::Group, g::GAPGroupElem)
-return the coset `gH`.
+Return the coset `gH`.
 """
 function left_coset(H::GAPGroup, g::GAPGroupElem)
    @assert elem_type(H) == typeof(g)
@@ -71,13 +71,13 @@ end
 
 """
     acting_domain(C::GroupCoset)
-if `C` = `Hx` or `xH`, returns `H`.
+If `C` = `Hx` or `xH`, return `H`.
 """
 acting_domain(C::GroupCoset) = C.H
 
 """
     representative(C::GroupCoset)
-if `C` = `Hx` or `xH`, returns `x`.
+If `C` = `Hx` or `xH`, return `x`.
 """
 representative(C::GroupCoset) = C.repr
 
@@ -92,13 +92,13 @@ end
 
 """
     isbicoset(C::GroupCoset)
-returns whether `C` is simultaneously a right coset and a left coset for the same subgroup `H`.
+Return whether `C` is simultaneously a right coset and a left coset for the same subgroup `H`.
 """
 isbicoset(C::GroupCoset) = GAP.Globals.IsBiCoset(C.coset)
 
 """
     right_cosets(G::Group, H::Group)
-returns the array of the right cosets of `H` in `G`.
+Return the array of the right cosets of `H` in `G`.
 """
 function right_cosets(G::GAPGroup, H::GAPGroup)
   L = GAP.Globals.RightCosets(G.X, H.X)
@@ -111,7 +111,7 @@ end
 
 """
     left_cosets(G::Group, H::Group)
-returns the array of the left cosets of `H` in `G`.
+Return the array of the left cosets of `H` in `G`.
 """
 function left_cosets(G::GAPGroup, H::GAPGroup)
   #L1 = GAP.Globals.RightCosets(G.X, H.X)
@@ -127,7 +127,7 @@ end
 
 """
     right_transversal(G::T, H::T) where T<: Group
-returns an array containing a complete set of representatives for right cosets for `H`.
+Return a vector containing a complete set of representatives for right cosets for `H`.
 """
 function right_transversal(G::T, H::T) where T<: GAPGroup
    L = GAP.Globals.RightTransversal(G.X,H.X)
@@ -140,7 +140,7 @@ end
 
 """
     left_transversal(G::T, H::T) where T<: Group
-returns an array containing a complete set of representatives for left cosets for `H`.
+Return a vector containing a complete set of representatives for left cosets for `H`.
 """
 function left_transversal(G::T, H::T) where T<: GAPGroup
    return [x^-1 for x in right_transversal(G,H)]
@@ -167,7 +167,7 @@ end
 
 """
     GroupDoubleCoset{T<: Group, S <: GAPGroupElem}
-group double coset. It is displayed as `H * x * K`, where `H` and `K` are subgroups of a group `G` and `x` is an element of `G`. Two double cosets are equal if, and only if, they contain the same elements.
+Group double coset. It is displayed as `H * x * K`, where `H` and `K` are subgroups of a group `G` and `x` is an element of `G`. Two double cosets are equal if, and only if, they contain the same elements.
 """
 # T=type of the group, S=type of the element
 mutable struct GroupDoubleCoset{T <: GAPGroup, S <: GAPGroupElem}
@@ -222,14 +222,26 @@ function double_cosets(G::T, U::T, V::T) where T<: GAPGroup
    #return [GroupDoubleCoset(G,U,V,group_element(G.X,GAP.Globals.Representative(dc)),dc) for dc in dcs]
 end
 
+"""
+    elements(C::GroupDoubleCoset)
+Return the array of all elements of the double coset `C`.
+"""
 function elements(C::GroupDoubleCoset)
    L=GAP.gap_to_julia(GAP.Globals.AsList(C.coset))
    return elem_type(C.X)[group_element(C.X,x) for x in L]
 end
 
+"""
+    order(C::Union{GroupCoset,GroupDoubleCoset})
+Return the cardinality of the (double) coset `C`.
+"""
 order(C::Union{GroupCoset,GroupDoubleCoset}) = GAP.Globals.Size(C.coset)
 Base.length(C::Union{GroupCoset,GroupDoubleCoset}) = GAP.Globals.Size(C.coset)
 
+"""
+    rand(C::Union{GroupCoset,GroupDoubleCoset})
+Return a random element of the (double) coset `C`.
+"""
 Base.rand(C::Union{GroupCoset,GroupDoubleCoset}) = group_element(C.X, GAP.Globals.Random(C.coset))
 
 """

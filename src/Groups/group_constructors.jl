@@ -43,7 +43,11 @@ _gap_filter(::Type{MatrixGroup}) = GAP.Globals.IsMatrixGroup
 # is another extra argument then to specify the base field
 #_gap_filter(::Type{MatrixGroup}) = GAP.Globals.IsMatrixGroup
 
-
+"""
+    symmetric_group(n::Int64)
+    symmetric_group(::Type{T}, n::Int)
+Return the full symmetric group over a set of `n` elements. The group is returned of type `T` for `T` in {`PermGroup`, `PcGroup`}. If `T` is not specified, then `T` is set as `PermGroup`.
+"""
 symmetric_group(n::Int64) = symmetric_group(PermGroup, n)
 
 function symmetric_group(::Type{T}, n::Int) where T <: GAPGroup
@@ -57,6 +61,11 @@ function issymmetric_group(G::GAPGroup)
   return GAP.Globals.IsSymmetricGroup(G.X)
 end
 
+"""
+    alternating_group(n::Int64)
+    alternating_group(::Type{T}, n::Int)
+Return the full alternating group over a set of `n` elements. The group is returned of type `T` for `T` in {`PermGroup`, `PcGroup`}. If `T` is not specified, then `T` is set as `PermGroup`.
+"""
 alternating_group(n::Int64) = alternating_group(PermGroup, n)
 
 function alternating_group(::Type{T}, n::Int) where T <: GAPGroup

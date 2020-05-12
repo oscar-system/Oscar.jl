@@ -23,7 +23,9 @@ end
 order(f::GAPGroupHomomorphism) = GAP.Globals.Order(f.map)
 
 function Base.:^(f::GAPGroupHomomorphism{S,T}, n::Int64) where S where T
-   if n==1  return f  end
+   if n==1
+     return f
+   end
    if n<0
       if !isinvertible(f)
          throw(ArgumentError("function not invertible"))
@@ -92,6 +94,11 @@ end
 
 (f::GAPGroupHomomorphism)(x::GAPGroupElem) = image(f, x)
 
+"""
+    image(f::GAPGroupHomomorphism, x::GAPGroupElem)
+    (f::GAPGroupHomomorphism)(x::GAPGroupElem)
+Return `f`(`x`).
+"""
 function image(f::GAPGroupHomomorphism, x::GAPGroupElem)
   return group_element(codomain(f), GAP.Globals.Image(f.map,x.X))
 end
@@ -140,21 +147,37 @@ end
 #
 ################################################################################
 
+"""
+    kernel(f::GAPGroupHomomorphism)
+Return the kernel of `f`, together with its embedding into `domain`(`f`).
+"""
 function kernel(f::GAPGroupHomomorphism)
   K = GAP.Globals.Kernel(f.map)
   return _as_subgroup(domain(f), K)
 end
 
+"""
+    image(f::GAPGroupHomomorphism)
+Return the image of `f` as subgroup of `codomain`(`f`), together with the embedding homomorphism.
+"""
 function image(f::GAPGroupHomomorphism)
   K = GAP.Globals.Image(f.map)
   return _as_subgroup(codomain(f), K)
 end
 
+"""
+    image(f::GAPGroupHomomorphism{S, T}, H::S) where S <: GAPGroup where T <: GAPGroup
+Return `f`(`H`), together with the embedding homomorphism into `codomain`(`f`).
+"""
 function image(f::GAPGroupHomomorphism{S, T}, H::S) where S <: GAPGroup where T <: GAPGroup
   H1 = GAP.Globals.Image(f.map, H.X)
   return _as_subgroup(codomain(f), H1)
 end
 
+"""
+    cokernel(f::GAPGroupHomomorphism)
+Return the cokernel of `f`.
+"""
 function cokernel(f::GAPGroupHomomorphism)
   K, mK = image(f)
   return quo(codomain(f), K)
@@ -173,7 +196,8 @@ function haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem)
 end
 
 """
-TODO: document this
+    preimage(f::GAPGroupHomomorphism{S, T}, H::T) where S <: GAPGroup where T <: GAPGroup
+If `H` is a subgroup of the codomain of `f`, return the subgroup `f^-1(H)`, together with its embedding homomorphism into the domain of `f`.
 """
 function preimage(f::GAPGroupHomomorphism{S, T}, H::T) where S <: GAPGroup where T <: GAPGroup
   H1 = GAP.Globals.PreImage(f.map, H.X)

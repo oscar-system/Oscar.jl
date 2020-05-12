@@ -151,12 +151,14 @@ struct PcGroup <: GAPGroup
 end
 
 """
-TODO: document this
+    PcGroupElem
+Element of a polycyclic group.
 """
 const PcGroupElem = GAPGroupElem{PcGroup}
 
 """
-TODO: document this
+    FPGroup
+Finitely presented group. It can be defined via the function ``free_group``.
 """
 struct FPGroup <: GAPGroup
   X::GapObj
@@ -174,7 +176,8 @@ TODO: document this
 const FPGroupElem = GAPGroupElem{FPGroup}
 
 """
-TODO: document this
+    AutomorphismGroup{T} <: GAPGroup
+Group of automorphisms over a group of type `T`. It can be defined via the function ``automorphism_group``.
 """
 struct AutomorphismGroup{T} <: GAPGroup
   X::GapObj
@@ -187,7 +190,8 @@ struct AutomorphismGroup{T} <: GAPGroup
 end
 
 """
-TODO: document this
+    AutomorphismGroupElem
+Element of a group of automorphisms.
 """
 const AutomorphismGroupElem = GAPGroupElem{AutomorphismGroup}
 
