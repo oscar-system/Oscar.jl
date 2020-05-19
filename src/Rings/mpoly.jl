@@ -436,7 +436,7 @@ end
 
 function groebner_basis(I::MPolyIdeal, ord::Symbol)
   R = singular_ring(base_ring(I), ord)
-  i = Singular.Ideal(R, [convert(R, x) for x = gens(I)])
+  i = Singular.std(Singular.Ideal(R, [convert(R, x) for x = gens(I)]))
   return collect(BiPolyArray(base_ring(I), i))
 end
 
