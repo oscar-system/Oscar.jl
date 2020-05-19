@@ -4,6 +4,7 @@ using Oscar
 Oscar.example("QabAndPChars.jl")
 using Main.QabModule
 import Main.QabModule: my_product, QabElem, PCharSaturateAll, LatticeEqual
+import lib4ti2_jll
 
 using DelimitedFiles
 
@@ -142,8 +143,9 @@ function markov4ti2(L::fmpz_mat)
 
 	#now we have the file julia4ti2.lat in the current working directory
 	#can run 4ti2 with this input file to get a markov basis
-        bindir="/tmp/bin"
-	run(`$bindir/markov -q $name`)
+        lib4ti2_jll.exe4ti2gmp() do x
+          run(ignorestatus(`$x markov -q $name`))
+        end
 	#this creates the file julia4ti2.mar with the markov basis
 
 	#now we have to get the matrix from julia4ti2.mat in julia
