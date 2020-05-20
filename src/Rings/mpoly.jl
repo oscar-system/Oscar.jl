@@ -798,16 +798,25 @@ function factor(f::MPolyElem)
   return Nemo.Fac(convert(R, fS.unit), Dict(convert(R, k) =>v for (k,v) = fS.fac))
 end
 
+#TODO: add to singular_ring as this is potentially one
 mutable struct MPolyQuo{S} <: AbstractAlgebra.Ring
   R::MPolyRing
   I::MPolyIdeal{S}
+  AbstractAlgebra.@declare_other
+
   function MPolyQuo(R, I) where S
     @assert base_ring(I) == R
-    return new{elem_type(R)}(R, I)
+    r = new{elem_type(R)}()
+    r.R = R
+    r.I = I
+    return r
   end
 end
 
 function show(io::IO, Q::MPolyQuo)
+  Hecke.@show_name(io, Q)
+  Hecke.@show_special(io, Q)
+  io = IOContext(io, :compact => true)
   print(io, "Quotient of $(Q.R) by $(Q.I)")
 end
 

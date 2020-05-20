@@ -2,37 +2,50 @@
 export presentation, decoration
 
 abstract type ModuleFP_dec{T} end
+
+const Ring_dec{T} = Union{MPolyRing_dec{T}, MPolyQuo{Oscar.MPolyElem_dec{T}}}
+const RingElem_dec{T} = Union{MPolyElem_dec{T}, MPolyQuoElem{Oscar.MPolyElem_dec{T}}}
+
 mutable struct FreeModule_dec{T} <: ModuleFP_dec{T}
   d::Array{GrpAbFinGenElem, 1}
-  R::MPolyRing_dec{T}
+  R::Ring_dec{T}
   S::Array{Symbol, 1}
   AbstractAlgebra.@declare_other
-  function FreeModule_dec(a,b,c)
-    r = new{typeof(b.R)}()
+
+  function FreeModule_dec(a,b::MPolyRing_dec,c)
+    r = new{elem_type(base_ring(b))}()
     r.d = a
     r.R = b
     r.S = c
     return r
   end
+  function FreeModule_dec(a,b::MPolyQuo,c)
+    r = new{elem_type(base_ring(b.R))}()
+    r.d = a
+    r.R = b
+    r.S = c
+    return r
+  end
+
 end
 
-function FreeModule(R::MPolyRing_dec, n::Int, name::String = "e"; cached::Bool = false)
-  return FreeModule_dec([R.D[0] for i=1:n], R, [Symbol("$name[$i]") for i=1:n])
+function FreeModule(R::Ring_dec{T}, n::Int, name::String = "e"; cached::Bool = false) where T
+  return FreeModule_dec([decoration(R)[0] for i=1:n], R, [Symbol("$name[$i]") for i=1:n])
 end
-free_module(R::MPolyRing_dec, n::Int, name::String = "e"; cached::Bool = false) = FreeModule(R, n, name, cached = cached)
+free_module(R::Ring_dec, n::Int, name::String = "e"; cached::Bool = false) = FreeModule(R, n, name, cached = cached)
 
-function FreeModule(R::MPolyRing_dec, d::Array{GrpAbFinGenElem, 1}, name::String = "e"; cached::Bool = false)
+function FreeModule(R::Ring_dec, d::Array{GrpAbFinGenElem, 1}, name::String = "e"; cached::Bool = false)
   return FreeModule_dec(d, R, [Symbol("$name[$i]") for i=1:length(d)])
 end
-free_module(R::MPolyRing_dec, d::Array{GrpAbFinGenElem, 1}, name::String = "e"; cached::Bool = false) = FreeModule(R, d, name, cached = cached)
+free_module(R::Ring_dec, d::Array{GrpAbFinGenElem, 1}, name::String = "e"; cached::Bool = false) = FreeModule(R, d, name, cached = cached)
 
 #=XXX this cannot be as it is inherently ambigous
   - FreeModule(R, n)
   - direct sum of rings, ie. a ring
   - set of n-th powers of R
-thus the "categroy" needs to be set explicitly
+thus the "category" needs to be set explicitly
 
-^(R::MPolyRing_dec, n::Int) = FreeModule(R, n)
+^(R::Ring_dec, n::Int) = FreeModule(R, n)
 =#
 
 function AbstractAlgebra.extra_name(F::FreeModule_dec)
@@ -106,6 +119,7 @@ end
 dim(F::FreeModule_dec)  = length(F.d)
 ngens(F::FreeModule_dec) = dim(F)
 
+#TODO: "fix" to allow QuoElem s as well...
 struct FreeModuleElem_dec{T}
   r::SRow{MPolyElem_dec{T}}
   parent::FreeModule_dec

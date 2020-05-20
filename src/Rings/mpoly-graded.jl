@@ -238,6 +238,9 @@ function degree(a::MPolyQuoElem{<:MPolyElem_dec})
   return degree(a.f)
 end
 
+isfiltrated(q::MPolyQuo) = isfiltrated(q.R)
+isgraded(q::MPolyQuo) = isgraded(q.R)
+
 function homogenous_component(a::MPolyQuoElem{<:MPolyElem_dec}, d::GrpAbFinGenElem)
   simplify!(a)
   return homogenous_component(a.f, d)
@@ -247,6 +250,8 @@ function homogenous_components(a::MPolyQuoElem{<:MPolyElem_dec})
   simplify!(a)
   return homogenous_components(a.f)
 end
+
+decoration(q::MPolyQuo{<:MPolyElem_dec}) = decoration(q.R)
 
 base_ring(W::MPolyRing_dec) = base_ring(W.R)
 Nemo.ngens(W::MPolyRing_dec) = Nemo.ngens(W.R)

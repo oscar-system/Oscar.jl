@@ -136,8 +136,6 @@ function test_module(x, new::Bool = true)
      try
        include(test_file)
      catch e
-       @show e
-       @show test_file
        if isa(e, LoadError)
          println("You need to do \"using Test\"")
        else
