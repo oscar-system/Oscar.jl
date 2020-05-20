@@ -33,7 +33,7 @@ import Singular
 import Polymake
 import GAP
 import Pkg
-using Markdown
+using Markdown, Test
 # to allow access to the cornerstones! Otherwise, not even import or using from the
 # user level will work as none of them will have been "added" by the user.
 # possibly all should add a doc string to the module?
@@ -117,6 +117,36 @@ end
 function build()
   system("Build.jl")
 end
+
+
+function test_module(x, new::Bool = true)
+   julia_exe = Base.julia_cmd()
+   if x == "all"
+     test_file = joinpath(pkgdir, "test/runtests.jl")
+   else
+     test_file = joinpath(pkgdir, "test/$x.jl")
+   end
+
+   if new
+     cmd = "using Test; using Oscar; Hecke.assertions(true); include(\"$test_file\");"
+     @info("spawning ", `$julia_exe -e \"$cmd\"`)
+     run(`$julia_exe -e $cmd`)
+   else
+     @info("Running tests for $x in same session")
+     try
+       include(test_file)
+     catch e
+       @show e
+       @show test_file
+       if isa(e, LoadError)
+         println("You need to do \"using Test\"")
+       else
+         rethrow(e)
+       end
+     end
+   end
+end
+
 
 include("OscarTypes.jl")
 
