@@ -96,6 +96,8 @@ else
   end
 end
 
+const IJuliaMime = Union{MIME"text/latex", MIME"text/html"}
+
 const pkgdir = joinpath(dirname(pathof(Oscar)), "..")
 
 

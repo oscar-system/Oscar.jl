@@ -2,6 +2,7 @@ module QabModule
 
 using Oscar
 import Hecke: math_html
+import Oscar: IJuliaMime
 export QabField, isconductor, root_of_unity, PChar, isroot_of_unity
 
 ###############################################################################
@@ -26,7 +27,7 @@ function Base.show(io::IO, a::QabField)
   print(io, "Abelian closure of Q")
 end
 
-function Base.show(io::IO, ::MIME"text/html", a::QabField)
+function Base.show(io::IO, ::IJuliaMime, a::QabField)
   io = IOContext(io, :compact => true)
   print(io, "\$")
   math_html(io, a)
@@ -50,7 +51,7 @@ function Base.show(io::IO, a::QabElem)
   end
 end
 
-function Base.show(io::IO, ::MIME"text/html", a::QabElem)
+function Base.show(io::IO, ::IJuliaMime, a::QabElem)
   print(io, "\$")
   math_html(io, a)
   print(io, "\$")
