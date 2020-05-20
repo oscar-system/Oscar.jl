@@ -1322,12 +1322,12 @@ end
 #################################################
 #
 #################################################
-function homogenous_component(F::T, d::GrpAbFinGenElem) where {T <: Union{FreeModule_dec, SubQuo_dec}}
+function homogenous_component(F::T, d::GrpAbFinGenElem) where {T <: Union{FreeModule_dec, SubQuo_dec, MPolyIdeal{<:MPolyElem_dec}}}
 
   #TODO: lazy: ie. no enumeration of points
   #      aparently it is possible to get the number of points faster than the points
   W = base_ring(F)
-  D = decoration(F)
+  D = decoration(W)
   #have gens for W that can be combined
   #              F that can only be used
   #F ni f = sum c_i,j F[i]*w[j]
@@ -1360,6 +1360,9 @@ function homogenous_component(F::T, d::GrpAbFinGenElem) where {T <: Union{FreeMo
 
   function im(f)
     sum(f[i]*B[i] for i=1:dim(X))
+  end
+  if isa(F, MPolyIdeal)
+    return X, Hecke.MapFromFunc(im, X, base_ring(F))
   end
   function pr(g::S) where {S <: Union{FreeModuleElem_dec, SubQuoElem_dec}}
     #TODO: add X() and some sane setting of coeffs in FreeElems

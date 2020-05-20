@@ -1,20 +1,20 @@
 export weight, decorate, ishomogenous, homogenous_components, filtrate, grade, 
        homogenous_component
 
-mutable struct MPolyRing_dec{T} <: AbstractAlgebra.Ring
-  R::T
+mutable struct MPolyRing_dec{T} <: AbstractAlgebra.MPolyRing{T}
+  R::MPolyRing{T}
   D::GrpAbFinGen
   d::Array{GrpAbFinGenElem}
   lt
   Hecke.@declare_other
-  function MPolyRing_dec(R::T, d::Array{GrpAbFinGenElem, 1}) where {T}
-    r = new{T}()
+  function MPolyRing_dec(R :: MPolyRing{S}, d::Array{GrpAbFinGenElem, 1}) where {S}
+    r = new{S}()
     r.R = R
     r.D = parent(d[1])
     r.d = d
     return r
   end
-  function MPolyRing_dec(R::T, d::Array{GrpAbFinGenElem, 1}, lt) where {T}
+  function MPolyRing_dec(R::MPolyRing{T}, d::Array{GrpAbFinGenElem, 1}, lt) where {T}
     r = new{T}()
     r.R = R
     r.D = parent(d[1])
@@ -79,10 +79,10 @@ function grade(R::MPolyRing, v::Array{GrpAbFinGenElem, 1})
   return MPolyRing_dec(R, v)
 end
 
-struct MPolyElem_dec{T} <: AbstractAlgebra.RingElem
-  f::T
-  parent::AbstractAlgebra.Ring
-  function MPolyElem_dec(f::T, p) where {T}
+struct MPolyElem_dec{T} <: MPolyElem{T}
+  f::MPolyElem{T}
+  parent::MPolyRing_dec{T}
+  function MPolyElem_dec(f::MPolyElem{T}, p) where {T}
     r = new{T}(f, p)
 #    if isgraded(p) && length(r) > 1
 #      if !ishomogenous(r)
@@ -98,10 +98,11 @@ function show(io::IO, w::MPolyElem_dec)
   show(io, w.f)
 end
 
-elem_type(::MPolyRing_dec{T}) where {T} = MPolyElem_dec{elem_type(T)}
-elem_type(::Type{MPolyRing_dec{T}}) where {T} = MPolyElem_dec{elem_type(T)}
-parent_type(::Type{MPolyElem_dec{T}}) where {T} = MPolyRing_dec{parent_type(T)}
+elem_type(::MPolyRing_dec{T}) where {T} = MPolyElem_dec{T}
+elem_type(::Type{MPolyRing_dec{T}}) where {T} = MPolyElem_dec{T}
+parent_type(::Type{MPolyElem_dec{T}}) where {T} = MPolyRing_dec{T}
 
+(W::MPolyRing_dec)() = MPolyElem_dec(W.R(), W)
 (W::MPolyRing_dec)(i::Int) = MPolyElem_dec(W.R(i), W)
 (W::MPolyRing_dec)(i::RingElem) = MPolyElem_dec(W.R(i), W)
 (W::MPolyRing_dec)(f::MPolyElem) = MPolyElem_dec(f, W)
@@ -109,13 +110,52 @@ parent_type(::Type{MPolyElem_dec{T}}) where {T} = MPolyRing_dec{parent_type(T)}
 one(W::MPolyRing_dec) = MPolyElem_dec(one(W.R), W)
 zero(W::MPolyRing_dec) = MPolyElem_dec(zero(W.R), W)
 
-+(a::MPolyElem_dec{T}, b::MPolyElem_dec{T}) where {T} = MPolyElem_dec(a.f+b.f, a.parent)
-*(a::MPolyElem_dec{T}, b::MPolyElem_dec{T}) where {T} = MPolyElem_dec(a.f*b.f, a.parent)
-==(a::MPolyElem_dec{T}, b::MPolyElem_dec{T}) where {T} = a.f == b.f
-^(a::MPolyElem_dec{T}, i::Int)  where {T} = MPolyElem_dec(a.f^i, a.parent)
++(a::MPolyElem_dec, b::MPolyElem_dec)   = MPolyElem_dec(a.f+b.f, a.parent)
+-(a::MPolyElem_dec, b::MPolyElem_dec)   = MPolyElem_dec(a.f-b.f, a.parent)
+-(a::MPolyElem_dec)   = MPolyElem_dec(-a.f, a.parent)
+*(a::MPolyElem_dec, b::MPolyElem_dec)   = MPolyElem_dec(a.f*b.f, a.parent)
+==(a::MPolyElem_dec, b::MPolyElem_dec)   = a.f == b.f
+^(a::MPolyElem_dec, i::Int)    = MPolyElem_dec(a.f^i, a.parent)
+
+function Oscar.mul!(a::MPolyElem_dec, b::MPolyElem_dec, c::MPolyElem_dec)
+  return b*c
+end
+
+function Oscar.addeq!(a::MPolyElem_dec, b::MPolyElem_dec)
+  return a+b
+end
 
 parent(a::MPolyElem_dec) = a.parent
 length(a::MPolyElem_dec) = length(a.f)
+
+function singular_ring(R::MPolyRing_dec; keep_ordering::Bool = false)
+  return singular_ring(R.R, keep_ordering = keep_ordering)
+end
+
+MPolyCoeffs(f::MPolyElem_dec) = MPolyCoeffs(f.f)
+MPolyExponentVectors(f::MPolyElem_dec) = MPolyExponentVectors(f.f)
+function push_term!(M::MPolyBuildCtx{<:MPolyElem_dec{S}}, c::S, expv::Vector{Int}) where S <: RingElement  
+  if iszero(c)
+    return M
+  end
+  len = length(M.poly.f) + 1
+  set_exponent_vector!(M.poly.f, len, expv)
+  setcoeff!(M.poly.f, len, c)
+  return M
+end
+
+function finish(M::MPolyBuildCtx{<:MPolyElem_dec})
+  f = sort_terms!(M.poly.f)
+  f = combine_like_terms!(M.poly.f)
+  return parent(M.poly)(f)
+end
+
+function ideal(g::Array{T, 1}) where {T <: MPolyElem_dec}
+  if isgraded(parent(g[1]))
+    @assert all(ishomogenous, g)
+  end
+  return MPolyIdeal(g)
+end
 
 function degree(a::MPolyElem_dec)
   W = parent(a)
@@ -191,6 +231,21 @@ function homogenous_component(a::MPolyElem_dec, g::GrpAbFinGenElem)
     end
   end
   return parent(a)(r)
+end
+
+function degree(a::MPolyQuoElem{<:MPolyElem_dec})
+  simplify!(a)
+  return degree(a.f)
+end
+
+function homogenous_component(a::MPolyQuoElem{<:MPolyElem_dec}, d::GrpAbFinGenElem)
+  simplify!(a)
+  return homogenous_component(a.f, d)
+end
+
+function homogenous_components(a::MPolyQuoElem{<:MPolyElem_dec})
+  simplify!(a)
+  return homogenous_components(a.f)
 end
 
 base_ring(W::MPolyRing_dec) = base_ring(W.R)

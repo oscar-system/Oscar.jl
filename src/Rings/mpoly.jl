@@ -48,7 +48,7 @@ function Base.getindex(R::MPolyRing, i::Int)
   return gen(R, i)
 end
 
-function Base.show(io::IO, mime::MIME"text/html", R::MPolyRing)
+function Base.show(io::IO, mime::IJuliaMime, R::MPolyRing)
   io = IOContext(io, :compact => true)
   print(io, "\$")
   math_html(io, R)
@@ -70,7 +70,7 @@ function math_html(io::IO, R::MPolyElem)
   print(io, f)
 end
 
-function Base.show(io::IO, ::MIME"text/html", R::MPolyElem)
+function Base.show(io::IO, ::IJuliaMime, R::MPolyElem)
   print(io, "\$")
   math_html(io, R)
   print(io, "\$")
@@ -87,24 +87,24 @@ end
 #type for orderings, use this...
 #in general: all algos here needs revision: do they benefit from gb or not?
 
-mutable struct BiPolyArray
-  O::Array{MPolyElem, 1} 
+mutable struct BiPolyArray{S} 
+  O::Array{S, 1} 
   S::Singular.sideal
   Ox #Oscar Poly Ring
   Sx # Singular Poly Ring, poss. with different ordering
   function BiPolyArray(a::Array{T, 1}; keep_ordering::Bool = true) where {T <: MPolyElem}
-    r = new()
+    r = new{T}()
     r.O = a
     r.Ox = parent(a[1])
     r.Sx = singular_ring(r.Ox, keep_ordering = keep_ordering)
     return r
   end
-  function BiPolyArray(Ox, b::Singular.sideal)
-    r =new()
+  function BiPolyArray(Ox::T, b::Singular.sideal) where {T <: MPolyRing}
+    r = new{elem_type(T)}()
     r.S = b
-    r.O = Array{MPolyElem}(undef, Singular.ngens(b))
+    r.O = Array{elem_type(T)}(undef, Singular.ngens(b))
     r.Ox = Ox
-    r.Sx = base_ring(r.S)
+    r.Sx = base_ring(b)
     return r
   end
 end
@@ -164,10 +164,13 @@ function (S::Singular.Rationals)(a::fmpq)
   return S(b)
 end
 (F::Singular.N_ZpField)(a::Nemo.gfp_elem) = F(lift(a))
+(F::Singular.N_ZpField)(a::Nemo.nmod) = F(lift(a))
 (F::Nemo.GaloisField)(a::Singular.n_Zp) = F(Int(a))
+(F::Nemo.NmodRing)(a::Singular.n_Zp) = F(Int(a))
 
 singular_ring(::Nemo.FlintRationalField) = Singular.Rationals()
 singular_ring(F::Nemo.GaloisField) = Singular.Fp(Int(characteristic(F)))
+singular_ring(F::Nemo.NmodRing) = Singular.Fp(Int(characteristic(F)))
 
 function singular_ring(Rx::Nemo.FmpqMPolyRing; keep_ordering::Bool = true)
   if keep_ordering
@@ -182,6 +185,20 @@ function singular_ring(Rx::Nemo.FmpqMPolyRing; keep_ordering::Bool = true)
   end          
 end
 
+function singular_ring(Rx::Nemo.NmodMPolyRing; keep_ordering::Bool = true)
+  if keep_ordering
+    return Singular.PolynomialRing(singular_ring(base_ring(Rx)), 
+              [string(x) for x = Nemo.symbols(Rx)],
+              ordering = ordering(Rx),
+              cached = false)[1]
+  else
+    return Singular.PolynomialRing(singular_ring(base_ring(Rx)), 
+              [string(x) for x = Nemo.symbols(Rx)],
+              cached = false)[1]
+  end          
+end
+
+
 function singular_ring(Rx::Generic.MPolyRing{T}; keep_ordering::Bool = true) where {T <: RingElem}
   if keep_ordering
     return Singular.PolynomialRing(singular_ring(base_ring(Rx)), 
@@ -193,6 +210,13 @@ function singular_ring(Rx::Generic.MPolyRing{T}; keep_ordering::Bool = true) whe
               [string(x) for x = Nemo.symbols(Rx)],
               cached = false)[1]
   end          
+end
+
+function singular_ring(Rx::Nemo.NmodMPolyRing, ord::Symbol)
+  return Singular.PolynomialRing(singular_ring(base_ring(Rx)), 
+              [string(x) for x = Nemo.symbols(Rx)],
+              ordering = ord,
+              cached = false)[1]
 end
 
 function singular_ring(Rx::Nemo.FmpqMPolyRing, ord::Symbol)
@@ -209,19 +233,19 @@ function singular_ring(Rx::Generic.MPolyRing{T}, ord::Symbol) where {T <: RingEl
               cached = false)[1]
 end
 
-mutable struct MPolyIdeal <: Ideal{MPolyElem}
-  gens::BiPolyArray
-  gb::BiPolyArray
+mutable struct MPolyIdeal{S} <: Ideal{S}
+  gens::BiPolyArray{S}
+  gb::BiPolyArray{S}
   dim::Int
 
   function MPolyIdeal(g::Array{T, 1}) where {T <: MPolyElem}
-    r = new()
+    r = new{T}()
     r.dim = -1 #not known
     r.gens = BiPolyArray(g, keep_ordering = false)
     return r
   end
-  function MPolyIdeal(Ox::MPolyRing, s::Singular.sideal)
-    r = new()
+  function MPolyIdeal(Ox::T, s::Singular.sideal) where {T <: MPolyRing}
+    r = new{elem_type(T)}()
     r.dim = -1 #not known
     r.gens = BiPolyArray(Ox, s)
     if s.isGB
@@ -246,7 +270,7 @@ function Base.show(io::IO, I::MPolyIdeal)
   print(io, "")
 end
 
-function Base.show(io::IO, ::MIME"text/html", I::MPolyIdeal)
+function Base.show(io::IO, ::IJuliaMime, I::MPolyIdeal)
   print(io, "\$")
   math_html(io, I)
   print(io, "\$")
@@ -271,6 +295,8 @@ end
 
 
 function ideal(g::Array{T, 1}) where {T <: MPolyElem}
+  @assert length(g) > 0
+  @assert all(x->parent(x) == parent(g[1]), g)
   return MPolyIdeal(g)
 end
 
@@ -771,4 +797,86 @@ function factor(f::MPolyElem)
   R = parent(f)
   return Nemo.Fac(convert(R, fS.unit), Dict(convert(R, k) =>v for (k,v) = fS.fac))
 end
+
+mutable struct MPolyQuo{S} <: AbstractAlgebra.Ring
+  R::MPolyRing
+  I::MPolyIdeal{S}
+  function MPolyQuo(R, I) where S
+    @assert base_ring(I) == R
+    return new{elem_type(R)}(R, I)
+  end
+end
+
+function show(io::IO, Q::MPolyQuo)
+  print(io, "Quotient of $(Q.R) by $(Q.I)")
+end
+
+#TODO: think: do we want/ need to keep f on the Singular side to avoid conversions?
+mutable struct MPolyQuoElem{S} <: RingElem
+  f::S
+  P::MPolyQuo{S}
+end
+
+function show(io::IO, A::MPolyQuoElem)
+  print(io, A.f)
+end
+
+parent_type(::MPolyQuoElem{S}) where S = MPolyQuo{S}
+parent_type(::Type{MPolyQuoElem{S}}) where S = MPolyQuo{S}
+elem_type(::MPolyQuo{S})  where S= MPolyQuoElem{S}
+elem_type(::Type{MPolyQuo{S}})  where S= MPolyQuoElem{S}
+
+parent(a::MPolyQuoElem) = a.P
+
++(a::MPolyQuoElem, b::MPolyQuoElem) = MPolyQuoElem(a.f+b.f, a.P)
+-(a::MPolyQuoElem, b::MPolyQuoElem) = MPolyQuoElem(a.f-b.f, a.P)
+-(a::MPolyQuoElem) = MPolyQuoElem(-a.f, a.P)
+*(a::MPolyQuoElem, b::MPolyQuoElem) = MPolyQuoElem(a.f*b.f, a.P)
+^(a::MPolyQuoElem, b::Integer) = MPolyQuoElem(a.f^b, a.P)
+
+function Oscar.mul!(a::MPolyQuoElem, b::MPolyQuoElem, c::MPolyQuoElem)
+  a.f = b.f*c.f
+  return a
+end
+
+function Oscar.addeq!(a::MPolyQuoElem, b::MPolyQuoElem)
+  a.f += b.f
+  return a
+end
+
+function simplify!(a::MPolyQuoElem)
+  R = parent(a)
+  I = R.I
+  groebner_assure(I)
+  Sx = base_ring(I.gb.S)
+  f = a.f
+  a.f = convert(I.gens.Ox, reduce(convert(Sx, f), I.gb.S))
+  return a
+end
+
+function ==(a::MPolyQuoElem, b::MPolyQuoElem)
+  simplify!(a)
+  simplify!(b)
+  return a.f == b.f
+end
+
+function quo(R::MPolyRing, I::MPolyIdeal) 
+  q = MPolyQuo(R, I)
+  function im(a::MPolyElem)
+    return MPolyQuoElem(a, q)
+  end
+  function pr(a::MPolyQuoElem)
+    return a.f
+  end
+  return q, MapFromFunc(im, pr, R, q)
+end
+
+lift(a::MPolyQuoElem) = a.f
+
+(Q::MPolyQuo)() = MPolyQuoElem(Q.R(), Q)
+(Q::MPolyQuo)(a::MPolyQuoElem) = a
+(Q::MPolyQuo)(a) = MPolyQuoElem(Q.R(a), Q)
+
+zero(Q::MPolyQuo) = Q(0)
+
 #end #MPolyModule
