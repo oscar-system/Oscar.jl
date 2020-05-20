@@ -10,6 +10,7 @@ import AbstractAlgebra: base_ring, gen, gens, symbols, evaluate
 export LazyPolyRing, LazyPoly, SLPolyRing, SLPoly
 
 
+include("recpolys.jl")
 include("lazypolys.jl")
 include("slpolys.jl")
 include("straightline.jl")
