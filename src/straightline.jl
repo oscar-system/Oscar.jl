@@ -244,3 +244,64 @@ function execute!(res::Vector{S}, p::SLProgram{T}, xs::Vector{S},
     end
     res[end]
 end
+
+
+## compile!
+
+cretrieve(i) =
+    isinput(i) ? Symbol(:x, inputidx(i)) => inputidx(i) :
+    isconstant(i) ? Symbol(:c, constantidx(i)) => 0 :
+    Symbol(:res, i.x) => 0
+
+# TODO: handle the "conv" argument like in execute!
+# (works without, but there can be type-instability)
+
+# return compiled execution function f, and updates
+# p.f[] = f, which is not invalidated when p is mutated
+function compile!(p::SLProgram)
+    res = Expr[]
+    fn = :(function (xs::Vector)
+           end)
+    k = 0
+    cs = constants(p)
+    for k in eachindex(cs)
+        push!(res, :($(Symbol(:c, k)) = @inbounds $cs[$k]))
+    end
+    mininput = 0
+    for line in lines(p)
+        k += 1
+        rk = Symbol(:res, k)
+        op, i, j = unpack(line)
+        x, idx = cretrieve(i)
+        mininput = max(mininput, idx)
+        line =
+            if isexponentiate(op)
+                :($rk = $x^$(Int(j.x)))
+            elseif isuniplus(op)
+                :($rk = $x)
+            elseif isuniminus(op)
+                :($rk = -$x)
+            else
+                y, idx = cretrieve(j)
+                mininput = max(mininput, idx)
+                if isplus(op)
+                    :($rk = $x + $y)
+                elseif isminus(op)
+                    :($rk = $x - $y)
+                elseif istimes(op)
+                    :($rk = $x * $y)
+                elseif isdivide(op)
+                    :($rk = divexact($x, $y))
+                end
+            end
+        push!(res, line)
+    end
+    for k = 1:mininput-1
+        pushfirst!(res, :($(Symbol(:x, k)) = @inbounds xs[$k]))
+    end
+    if mininput >= 1
+        pushfirst!(res, :($(Symbol(:x, mininput)) = xs[$mininput]))
+    end
+    append!(fn.args[2].args, res)
+    p.f[] = eval(fn)
+end
