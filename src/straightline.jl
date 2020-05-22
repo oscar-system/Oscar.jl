@@ -167,3 +167,51 @@ function combine!(op::Op, p::SLProgram, e::Integer)
     i = pushop!(p, op, i, Arg(UInt64(e)))
     pushfinalize!(p, i)
 end
+
+
+## execute!
+
+
+retrieve(cs, xs, res, i) =
+    isconstant(i) ? cs[constantidx(i)] :
+    isinput(i) ? xs[inputidx(i)] :
+    res[i.x]
+
+function execute!(res::Vector{S}, p::SLProgram{T}, xs::Vector{S},
+                  conv::F=nothing) where {S,T,F}
+    # TODO: handle isempty(lines(p))
+    empty!(res)
+
+    cs = constants(p)
+    for line in lines(p)
+        local r::S
+        op, i, j = unpack(line)
+        x = retrieve(cs, xs, res, i)
+        if isexponentiate(op)
+            r = x^Int(j.x) # TODO: support bigger j
+        elseif isuniplus(op) # serves as assignment (for trivial programs)
+            if isa(x, S)
+                r = x
+            else
+                r = conv(x)
+            end
+        elseif isuniminus(op)
+            r = -x
+        else
+            y = retrieve(cs, xs, res, j)
+            if isplus(op)
+                r = x + y
+            elseif isminus(op)
+                r = x - y
+            elseif istimes(op)
+                r = x * y
+            elseif isdivide(op)
+                r = divexact(x, y)
+            else
+                throw(ArgumentError("unknown operation"))
+            end
+        end
+        push!(res, r)
+    end
+    res[end]
+end

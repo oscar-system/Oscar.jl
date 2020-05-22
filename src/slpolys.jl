@@ -195,47 +195,9 @@ function evaluate(p::SLPoly{T}, xs::Vector{T}) where {T <: RingElement}
     end
 end
 
-retrieve(cs, xs, res, i) =
-    isconstant(i) ? cs[constantidx(i)] :
-    isinput(i) ? xs[inputidx(i)] :
-    res[i.x]
-
 function evaluate!(res::Vector{S}, p::SLPoly{T}, xs::Vector{S},
                    R::Ring=parent(xs[1])) where {S,T}
-    # TODO: handle isempty(lines(p))
-    empty!(res)
-
-    for line in lines(p)
-        local r::S
-        op, i, j = unpack(line)
-        x = retrieve(constants(p), xs, res, i)
-        if isexponentiate(op)
-            r = x^Int(j.x) # TODO: support bigger j
-        elseif isuniplus(op) # serves as assignment (for trivial programs)
-            if isa(x, S)
-                r = x
-            else
-                r = R(x)
-            end
-        elseif isuniminus(op)
-            r = -x
-        else
-            y = retrieve(constants(p), xs, res, j)
-            if isplus(op)
-                r = x + y
-            elseif isminus(op)
-                r = x - y
-            elseif istimes(op)
-                r = x * y
-            elseif isdivide(op)
-                r = divexact(x, y)
-            else
-                throw(ArgumentError("unknown operation"))
-            end
-        end
-        push!(res, r)
-    end
-    res[end]
+    execute!(res, p.slprogram, xs, R)
 end
 
 
