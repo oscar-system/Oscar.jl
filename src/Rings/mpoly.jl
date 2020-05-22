@@ -12,7 +12,18 @@ import Singular
 import Hecke
 import Hecke: MapHeader, math_html
 
-export PolynomialRing, total_degree, degree, MPolyElem, ordering, ideal, groebner_basis
+export PolynomialRing, total_degree, degree, MPolyElem, ordering, ideal, groebner_basis, eliminate,
+       syzygy_generators
+
+##############################################################################
+#
+# could/ should be in AbstractAlgebra
+#
+# some sugar to make creation of strange rings easier
+# possibly lacks the passing of the ordering...
+##############################################################################
+
+#TODO: reduce = divrem in Nemo. Should be faster - if we have the correct basis
 
 #allows
 # PolynomialRing(QQ, :a=>1:3, "b"=>1:3, "c=>1:5:10)
@@ -48,6 +59,10 @@ function Base.getindex(R::MPolyRing, i::Int)
   return gen(R, i)
 end
 
+######################################################################
+# pretty printing for iJulia notebooks..
+#
+
 function Base.show(io::IO, mime::IJuliaMime, R::MPolyRing)
   io = IOContext(io, :compact => true)
   print(io, "\$")
@@ -76,6 +91,15 @@ function Base.show(io::IO, ::IJuliaMime, R::MPolyElem)
   print(io, "\$")
 end
 
+
+##############################################################################
+#
+# workhorse: BiPolyArray
+# ideals are (mostly) generated on the Nemo side, but structural computations
+# are in Singular. To avoid permanent conversion, the list of generators = sideal
+# is captured in BiPolyArray: for Ocsar this is Array{MPoly, 1}
+#                                 Singular      sideal
+#
 #TODO/ to think
 #  default in Nemo is     :lex
 #             Singular is :degrevlex -> better for std
@@ -138,6 +162,19 @@ function Base.iterate(A::BiPolyArray, s::Int = 1)
   return A[Val(:O), s], s+1
 end
 
+##############################################################################
+#
+# Conversion to and from Singular: in particular, some Rings are
+# special as they exist natively in Singular and thus should be used
+#
+##############################################################################
+#
+# Needs convert(Target(Ring), elem)
+# Ring(s.th.)
+#
+# singular_ring(Nemo-Ring) tries to create the appropriate Ring
+#
+
 function Base.convert(Ox::MPolyRing, f::MPolyElem) 
   O = base_ring(Ox)
   g = MPolyBuildCtx(Ox)
@@ -172,6 +209,8 @@ singular_ring(::Nemo.FlintRationalField) = Singular.Rationals()
 singular_ring(F::Nemo.GaloisField) = Singular.Fp(Int(characteristic(F)))
 singular_ring(F::Nemo.NmodRing) = Singular.Fp(Int(characteristic(F)))
 
+#TODO: maybe half of this is superflous (and automatic) so delete?
+
 function singular_ring(Rx::Nemo.FmpqMPolyRing; keep_ordering::Bool = true)
   if keep_ordering
     return Singular.PolynomialRing(singular_ring(base_ring(Rx)), 
@@ -197,7 +236,6 @@ function singular_ring(Rx::Nemo.NmodMPolyRing; keep_ordering::Bool = true)
               cached = false)[1]
   end          
 end
-
 
 function singular_ring(Rx::Generic.MPolyRing{T}; keep_ordering::Bool = true) where {T <: RingElem}
   if keep_ordering
@@ -232,6 +270,21 @@ function singular_ring(Rx::Generic.MPolyRing{T}, ord::Symbol) where {T <: RingEl
               ordering = ord,
               cached = false)[1]
 end
+
+#catch all for generic nemo rings
+function Oscar.singular_ring(F::AbstractAlgebra.Ring)
+  return Singular.CoefficientRing(F)
+end
+
+function (b::AbstractAlgebra.Ring)(a::Singular.n_unknown)
+  Singular.libSingular.julia(Singular.libSingular.cast_number_to_void(a.ptr))
+end
+
+##############################################################################
+#
+# Multivariate ideals - also used for the decorated stuff
+#
+##############################################################################
 
 mutable struct MPolyIdeal{S} <: Ideal{S}
   gens::BiPolyArray{S}
@@ -365,11 +418,61 @@ function gens(I::MPolyIdeal)
   return [I.gens[Val(:O), i] for i=1:ngens(I)]
 end
 
+gen(I::MPolyIdeal, i::Int) = I.gens[Val(:O), o]
+
+function saturation(I::MPolyIdeal, J::MPolyIdeal)
+  singular_assure(I)
+  singular_assure(J)
+  return MPolyIdeal(I.gens.Ox, Singular.saturation(I.gens.S, J.gens.S))
+end
+
+#TODO: is this a good idea? Conflicting meaning?
+#      add saturation at variables?
+(::Colon)(I::MPolyIdeal, J::MPolyIdeal) = saturation(I, J)
+
 function groebner_assure(I::MPolyIdeal)
   if !isdefined(I, :gb)
     singular_assure(I)
     I.gb = BiPolyArray(I.gens.Ox, Singular.std(I.gens.S))
   end
+end
+
+function syzygy_module(a::Array{MPolyElem, 1})
+  #only graded modules exist
+  error("not implemented yet")
+end
+
+
+function convert(F::Generic.FreeModule, s::Singular.svector)
+  pv = Tuple{Int, elem_type(base_ring(F))}[]
+  pos = Int[]
+  values = []
+  Rx = base_ring(F)
+  R = base_ring(Rx)
+  for (i, e, c) = s
+    f = Base.findfirst(x->x==i, pos)
+    if f === nothing
+      push!(values, MPolyBuildCtx(Rx))
+      f = length(values)
+      push!(pos, i)
+    end
+    push_term!(values[f], R(c), e)
+  end
+  pv = Tuple{Int, elem_type(Rx)}[(pos[i], finish(values[i])) for i=1:length(pos)]
+  e = zero(F)
+  for (k,v) = pv
+    e += v*gen(F, k)
+  end
+  return e
+end
+
+function syzygy_generators(a::Array{<:MPolyElem, 1})
+  I = ideal(a)
+  singular_assure(I)
+  s = Singular.syz(I.gens.S)
+  F = free_module(parent(a[1]), length(a))
+  @assert rank(s) == length(a)
+  return [convert(F, s[i]) for i=1:Singular.ngens(s)]
 end
 
 function dim(I::MPolyIdeal)
@@ -391,6 +494,54 @@ function base_ring(I::MPolyIdeal)
   return I.gens.Ox
 end
 
+function groebner_basis(I::MPolyIdeal)
+  groebner_assure(I)
+  return collect(I.gb)
+end
+
+function groebner_basis(I::MPolyIdeal, ord::Symbol)
+  R = singular_ring(base_ring(I), ord)
+  i = Singular.std(Singular.Ideal(R, [convert(R, x) for x = gens(I)]))
+  return collect(BiPolyArray(base_ring(I), i))
+end
+
+#TODO: find a more descriptive, meaningful name
+function _kbase(Q::MPolyQuo)
+  I = Q.I
+  groebner_assure(I)
+  s = Singular.kbase(I.gb.S)
+  if iszero(s)
+    error("ideal was no zero-dimensional")
+  end
+  return [convert(Q.R, x) for x = gens(s)]
+end
+
+#TODO: the reverse map...
+# problem: the "canonical" reps are not the monomials.
+function vector_space(K::AbstractAlgebra.Field, Q::MPolyQuo)
+  R = Q.R
+  @assert K == base_ring(R)
+  l = _kbase(Q)
+  V = free_module(K, length(l))
+  function im(a::Generic.FreeModuleElem)
+    @assert parent(a) == V
+    b = R(0)
+    for i=1:length(l)
+      c = a[i]
+      if !iszero(c)
+        b += c*l[i]
+      end
+    end
+    return Q(b)
+  end
+  return MapFromFunc(im, V, Q)
+end
+
+##########################
+#
+# basic maps
+#
+##########################
 function im_func(f::MPolyElem, S::MPolyRing, i::Array{Int, 1})
   O = base_ring(S)
   g = MPolyBuildCtx(S)
@@ -449,22 +600,34 @@ function Hecke.hom(R::MPolyRing, S::MPolyRing, i::Array{Int, 1})
   return MPolyHom_vars{typeof(R), typeof(S)}(R, S, i)
 end
 
+###################################################
+
+@doc Markdown.doc"""
+    eliminate(I::MPolyIdeal, polys::Array{MPolyElem, 1})
+> Given a list of polynomials which are variables, construct the ideal
+> corresponding geometrically to the projection of the variety given by the
+> ideal $I$ where those variables have been eliminated.
+"""
 function eliminate(I::MPolyIdeal, l::Array{<:MPolyElem, 1})
-  #wrong!!! ideal intersection is not eliminate!!! 
-  J = ideal(base_ring(I), [x for x in gens(base_ring(I)) if !(x in l)])
-  return intersect(I, J)
+  singular_assure(I)
+  B = BiPolyArray(l)
+  S = base_ring(I.gens.S)
+  s = Singular.eliminate(I.gens.S, [convert(S, x) for x = l]...)
+  return MPolyIdeal(base_ring(I), s)
 end
 
-function groebner_basis(I::MPolyIdeal)
-  groebner_assure(I)
-  return collect(I.gb)
+@doc Markdown.doc"""
+    eliminate(I::MPolyIdeal, polys::AbstractArray{Int, 1})
+> Given a list of indices, construct the ideal
+> corresponding geometrically to the projection of the variety given by the
+> ideal $I$ where those variables in the list have been eliminated.
+"""
+function eliminate(I::MPolyIdeal, l::AbstractArray{Int, 1})
+  R = base_ring(I)
+  return eliminate(I, [gen(R, i) for i=l])
 end
 
-function groebner_basis(I::MPolyIdeal, ord::Symbol)
-  R = singular_ring(base_ring(I), ord)
-  i = Singular.std(Singular.Ideal(R, [convert(R, x) for x = gens(I)]))
-  return collect(BiPolyArray(base_ring(I), i))
-end
+###################################################
 
 # Some isless functions for orderings:
 # _isless_:ord(f, k, l) returns true if the k-th term is lower than the l-th
@@ -791,6 +954,10 @@ function leading_ideal(I::MPolyIdeal, ord::Symbol)
 end
 
 
+##############################################################################
+#
+##############################################################################
+
 function factor(f::MPolyElem)
   I = ideal(parent(f), [f])
   fS = Singular.factor(I.gens[Val(:S), 1])
@@ -798,7 +965,12 @@ function factor(f::MPolyElem)
   return Nemo.Fac(convert(R, fS.unit), Dict(convert(R, k) =>v for (k,v) = fS.fac))
 end
 
-#TODO: add to singular_ring as this is potentially one
+##############################################################################
+#
+# quotient rings
+#
+##############################################################################
+#TODO: add to singular_ring natively as this is potentially one
 mutable struct MPolyQuo{S} <: AbstractAlgebra.Ring
   R::MPolyRing
   I::MPolyIdeal{S}
@@ -820,7 +992,13 @@ function show(io::IO, Q::MPolyQuo)
   print(io, "Quotient of $(Q.R) by $(Q.I)")
 end
 
+gens(Q::MPolyQuo) = [Q(x) for x = gens(Q.R)]
+ngens(Q::MPolyQuo) = ngens(Q.R)
+gen(Q::MPolyQuo, i::Int) = Q(gen(Q.R, i))
+Base.getindex(Q::MPolyQuo, i::Int) = Q(Q.R[i])
+
 #TODO: think: do we want/ need to keep f on the Singular side to avoid conversions?
+#      or use Bill's divrem to speed things up?
 mutable struct MPolyQuoElem{S} <: RingElem
   f::S
   P::MPolyQuo{S}
