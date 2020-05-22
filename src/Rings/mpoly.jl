@@ -505,38 +505,6 @@ function groebner_basis(I::MPolyIdeal, ord::Symbol)
   return collect(BiPolyArray(base_ring(I), i))
 end
 
-#TODO: find a more descriptive, meaningful name
-function _kbase(Q::MPolyQuo)
-  I = Q.I
-  groebner_assure(I)
-  s = Singular.kbase(I.gb.S)
-  if iszero(s)
-    error("ideal was no zero-dimensional")
-  end
-  return [convert(Q.R, x) for x = gens(s)]
-end
-
-#TODO: the reverse map...
-# problem: the "canonical" reps are not the monomials.
-function vector_space(K::AbstractAlgebra.Field, Q::MPolyQuo)
-  R = Q.R
-  @assert K == base_ring(R)
-  l = _kbase(Q)
-  V = free_module(K, length(l))
-  function im(a::Generic.FreeModuleElem)
-    @assert parent(a) == V
-    b = R(0)
-    for i=1:length(l)
-      c = a[i]
-      if !iszero(c)
-        b += c*l[i]
-      end
-    end
-    return Q(b)
-  end
-  return MapFromFunc(im, V, Q)
-end
-
 ##########################
 #
 # basic maps
@@ -1065,5 +1033,37 @@ lift(a::MPolyQuoElem) = a.f
 (Q::MPolyQuo)(a) = MPolyQuoElem(Q.R(a), Q)
 
 zero(Q::MPolyQuo) = Q(0)
+
+#TODO: find a more descriptive, meaningful name
+function _kbase(Q::MPolyQuo)
+  I = Q.I
+  groebner_assure(I)
+  s = Singular.kbase(I.gb.S)
+  if iszero(s)
+    error("ideal was no zero-dimensional")
+  end
+  return [convert(Q.R, x) for x = gens(s)]
+end
+
+#TODO: the reverse map...
+# problem: the "canonical" reps are not the monomials.
+function vector_space(K::AbstractAlgebra.Field, Q::MPolyQuo)
+  R = Q.R
+  @assert K == base_ring(R)
+  l = _kbase(Q)
+  V = free_module(K, length(l))
+  function im(a::Generic.FreeModuleElem)
+    @assert parent(a) == V
+    b = R(0)
+    for i=1:length(l)
+      c = a[i]
+      if !iszero(c)
+        b += c*l[i]
+      end
+    end
+    return Q(b)
+  end
+  return MapFromFunc(im, V, Q)
+end
 
 #end #MPolyModule
