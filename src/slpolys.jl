@@ -1,18 +1,3 @@
-## Op, Line, Arg
-
-struct Op
-    x::UInt64
-end
-
-struct Line
-    x::UInt64
-end
-
-struct Arg
-    x::UInt64
-end
-
-
 ## SLPolyRing (SL = straight-line)
 
 struct SLPolyRing{T<:RingElement,R<:Ring} <: MPolyRing{T}
@@ -40,14 +25,16 @@ gens(S::SLPolyRing{T}) where {T} = [S(Gen{T}(s)) for s in symbols(S)]
 
 struct SLPoly{T<:RingElement,SLPR<:SLPolyRing{T}} <: MPolyElem{T}
     parent::SLPR
-    cs::Vector{T}          # constants
-    lines::Vector{Line}  # instructions
-    f::Ref{Function}       # compiled evalutation
+    slprogram::SLProgram{T}
 
     SLPoly(parent, cs, lines) =
         new{elem_type(base_ring(parent)),typeof(parent)}(
-            parent, cs, lines, Ref{Function}())
+            parent, SLProgram(cs, lines))
 end
+
+constants(p::SLPoly) = constants(p.slprogram)
+lines(p::SLPoly) = lines(p.slprogram)
+
 
 # create invalid poly
 SLPoly(parent::SLPolyRing{T}) where {T} = SLPoly(parent, T[], Line[])
@@ -62,8 +49,8 @@ end
 
 function Base.copy!(p::SLPoly{T}, q::SLPoly{T}) where {T}
     check_parent(p, q)
-    copy!(p.cs, q.cs)
-    copy!(p.lines, q.lines)
+    copy!(constants(p), constants(q))
+    copy!(lines(p), lines(q))
     p
 end
 
@@ -89,7 +76,7 @@ end
 Base.show(io::IO, p::SLPoly) = show(io, evaluate_lazy(p)[end])
 
 function Base.show(io::IO, ::MIME"text/plain", p::SLPoly{T}) where T
-    n = length(p.lines)
+    n = length(lines(p))
     syms = symbols(parent(p))
     res = evaluate_lazy(p)
     if n == 1
@@ -98,27 +85,27 @@ function Base.show(io::IO, ::MIME"text/plain", p::SLPoly{T}) where T
     end
 
     str(x...) = sprint(print, x...; context=io)
-    lines = Vector{String}[]
+    strlines = Vector{String}[]
     widths = [0, 0, 0, 0, 0]
 
-    for (k, line) in enumerate(p.lines)
+    for (k, line) in enumerate(lines(p))
         op, i, j = unpack(line)
-        if 1 < k == n && op == uniplus && i.x == k-1+length(p.cs)
+        if 1 < k == n && op == uniplus && i.x == k-1+length(constants(p))
             # 1 < k for trivial SLPs returning a constant
             break
         end
         sk = string(k)
         line = String[]
-        push!(lines, line)
+        push!(strlines, line)
         push!(line, str('#', sk, " ="))
-        x = showarg(p.cs, syms, i)
+        x = showarg(constants(p), syms, i)
         y = isunary(op) ? "" :
             isquasiunary(op) ? string(j.x) :
-            showarg(p.cs, syms, j)
+            showarg(constants(p), syms, j)
         push!(line, str(showop[op]), x, y, str(res[k]))
         widths .= max.(widths, textwidth.(line))
     end
-    for (k, line) in enumerate(lines)
+    for (k, line) in enumerate(strlines)
         k == 1 || println(io)
         print(io, ' '^(widths[1]-length(line[1])), line[1])
         for i = 2:4
@@ -197,8 +184,8 @@ end
 ## evaluate
 
 function evaluate(p::SLPoly{T}, xs::Vector{T}) where {T <: RingElement}
-    if isassigned(p.f)
-        p.f[](xs)::T
+    if isassigned(p.slprogram.f)
+        p.slprogram.f[](xs)::T
     else
         evaluate!(T[], p, xs)
     end
@@ -211,13 +198,13 @@ retrieve(cs, xs, res, i) =
 
 function evaluate!(res::Vector{S}, p::SLPoly{T}, xs::Vector{S},
                    R::Ring=parent(xs[1])) where {S,T}
-    # TODO: handle isempty(p.lines)
+    # TODO: handle isempty(lines(p))
     empty!(res)
 
-    for line in p.lines
+    for line in lines(p)
         local r::S
         op, i, j = unpack(line)
-        x = retrieve(p.cs, xs, res, i)
+        x = retrieve(constants(p), xs, res, i)
         if isexponentiate(op)
             r = x^Int(j.x) # TODO: support bigger j
         elseif isuniplus(op) # serves as assignment (for trivial programs)
@@ -229,7 +216,7 @@ function evaluate!(res::Vector{S}, p::SLPoly{T}, xs::Vector{S},
         elseif isuniminus(op)
             r = -x
         else
-            y = retrieve(p.cs, xs, res, j)
+            y = retrieve(constants(p), xs, res, j)
             if isplus(op)
                 r = x + y
             elseif isminus(op)
@@ -294,11 +281,12 @@ function Base.convert(R::SLPolyRing, p::Generic.MPoly; limit_exp::Bool=false)
         throw(ArgumentError("incompatible symbols"))
     q = SLPoly(R)
     @assert lastindex(p.coeffs) < cstmark
-    @assert isempty(q.cs)
+    qcs = constants(q)
+    @assert isempty(qcs)
     # have to use p.length, as p.coeffs and p.exps
     # might contain trailing gargabe
-    resize!(q.cs, p.length)
-    copyto!(q.cs, 1, p.coeffs, 1, p.length)
+    resize!(qcs, p.length)
+    copyto!(qcs, 1, p.coeffs, 1, p.length)
     exps = UInt64[]
     monoms = [Pair{UInt64,Arg}[] for _ in axes(p.exps, 1)]
     for v in reverse(axes(p.exps, 1))
@@ -355,7 +343,7 @@ function Base.convert(R::SLPolyRing, p::Generic.MPoly; limit_exp::Bool=false)
     end
 
     k = Arg(0) # TODO: don't use 0
-    for t in eachindex(q.cs)
+    for t in eachindex(qcs)
         i = asconstant(t)
         j = 0
         for v in reverse(axes(p.exps, 1))
@@ -371,8 +359,8 @@ function Base.convert(R::SLPolyRing, p::Generic.MPoly; limit_exp::Bool=false)
             k = pushop!(q, plus, k, i)
         end
     end
-    if isempty(q.cs)
-        push!(q.cs, base_ring(R)())
+    if isempty(qcs)
+        push!(qcs, base_ring(R)())
         k = pushop!(q, uniplus, asconstant(1))
     end
     pushfinalize!(q, k)
@@ -405,12 +393,12 @@ function compile!(p::SLPoly)
     fn = :(function (xs::Vector)
            end)
     k = 0
-    cs = p.cs
+    cs = constants(p)
     for k in eachindex(cs)
         push!(res, :($(Symbol(:c, k)) = @inbounds $cs[$k]))
     end
     mininput = 0
-    for line in p.lines
+    for line in lines(p)
         k += 1
         rk = Symbol(:res, k)
         op, i, j = unpack(line)
@@ -445,5 +433,5 @@ function compile!(p::SLPoly)
         pushfirst!(res, :($(Symbol(:x, mininput)) = xs[$mininput]))
     end
     append!(fn.args[2].args, res)
-    p.f[] = eval(fn)
+    p.slprogram.f[] = eval(fn)
 end

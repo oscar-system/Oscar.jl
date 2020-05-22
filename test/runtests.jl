@@ -2,7 +2,7 @@ using Test, StraightLinePrograms, AbstractAlgebra
 
 using StraightLinePrograms: Const, ExpPoly, Gen, MinusPoly, PlusPoly, RecPoly,
     TimesPoly, UniMinusPoly, pushconst!, pushop!,
-    Line, Arg
+    Line, Arg, constants, lines
 
 const SL = StraightLinePrograms
 
@@ -179,7 +179,7 @@ end
 
 @testset "SLPoly" begin
     S = SLPolyRing(zz, [:x, :y])
-    p = SLPoly(S, Int[], UInt64[])
+    p = SLPoly(S, Int[], Line[])
     @test p isa SLPoly{Int,typeof(S)} <: MPolyElem{Int}
     @test parent(p) === S
     p = SLPoly(S)
@@ -187,44 +187,45 @@ end
     @test parent(p) === S
 
     # copy
-    q = SLPoly(S, Int[], UInt64[])
+    q = SLPoly(S, Int[], Line[])
     # TODO: do smthg more interesting with q
-    push!(q.cs, 3)
-    push!(q.lines, Line(0))
+    push!(constants(q), 3)
+    push!(lines(q), Line(0))
     copy!(p, q)
     p2 = copy(q)
     for p1 in (p, p2)
-        @test p1.cs == q.cs && p1.cs !== q.cs
-        @test p1.lines == q.lines && p1.lines !== q.lines
+        @test constants(p1) == constants(q) && constants(p1) !== constants(q)
+        @test lines(p1) == lines(q) && lines(p1) !== lines(q)
     end
     S2 = SLPolyRing(zz, [:z, :t])
-    @test_throws ArgumentError copy!(SLPoly(S2, Int[], UInt64[]), p)
+    @test_throws ArgumentError copy!(SLPoly(S2, Int[], Line[]), p)
 
     # building
     p = SLPoly(S)
+    plines = lines(p)
     l1 = pushconst!(p, 1)
-    @test p.cs == [1]
+    @test constants(p) == [1]
     @test l1 === SL.asconstant(1)
 
     # currently not supported anymore
     # l2 = pushconst!(p, 3)
-    # @test p.cs == [1, 3]
+    # @test constants(p) == [1, 3]
     # @test l2 === SL.asconstant(2)
 
     l3 = pushop!(p, SL.plus, l1, SL.input(1))
     @test l3 == Arg(UInt64(1))
-    @test p.lines[1].x == 0x0340000018000001
+    @test plines[1].x == 0x0340000018000001
     l4 = pushop!(p, SL.times, l3, SL.input(2))
     @test l4 == Arg(UInt64(2))
-    @test p.lines[2].x ==0x0500000018000002
-    lines = copy(p.lines)
+    @test plines[2].x ==0x0500000018000002
+    pl = copy(plines)
     @test p === SL.pushfinalize!(p, l4)
 
-    @test p.lines == [Line(0x0340000018000001), Line(0x0500000018000002)]
+    @test plines == [Line(0x0340000018000001), Line(0x0500000018000002)]
     SL.pushinit!(p)
-    @test lines == p.lines
+    @test pl == plines
     SL.pushfinalize!(p, l4)
-    @test p.lines == [Line(0x0340000018000001), Line(0x0500000018000002)]
+    @test plines == [Line(0x0340000018000001), Line(0x0500000018000002)]
     # p == (1+x)*y
     @test SL.evaluate!(Int[], p, [1, 2]) == 4
     @test SL.evaluate!(Int[], p, [0, 3]) == 3
