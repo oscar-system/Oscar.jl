@@ -128,31 +128,35 @@ end
 
 ## mutating ops
 
-function addeq!(p::SLPoly{T}, q::SLPoly{T}) where {T}
-    i = pushop!(p, plus, combine!(p, q)...)
-    pushfinalize!(p, i)
+pushinit!(p::SLPoly) = pushinit!(p.slprogram)
+
+function pushfinalize!(p::SLPoly, i)
+    pushfinalize!(p.slprogram, i)
+    p
 end
 
-function subeq!(p::SLPoly{T}, q::SLPoly{T}) where {T}
-    i = pushop!(p, minus, combine!(p, q)...)
-    pushfinalize!(p, i)
+pushop!(p::SLPoly, op::Op, i::Arg, j::Arg=Arg(0)) =
+    pushop!(p.slprogram, op, i, j)
+
+function combine!(op::Op, p::SLPoly, q::SLPoly)
+    combine!(op, p.slprogram, q.slprogram)
+    p
 end
+
+addeq!(p::SLPoly{T}, q::SLPoly{T}) where {T} = combine!(plus, p, q)
+
+subeq!(p::SLPoly{T}, q::SLPoly{T}) where {T} = combine!(minus, p, q)
 
 function subeq!(p::SLPoly)
-    i = pushinit!(p)
-    i = pushop!(p, uniminus, i)
-    pushfinalize!(p, i)
+    combine!(uniminus, p.slprogram)
+    p
 end
 
-function muleq!(p::SLPoly{T}, q::SLPoly{T}) where {T}
-    i = pushop!(p, times, combine!(p, q)...)
-    pushfinalize!(p, i)
-end
+muleq!(p::SLPoly{T}, q::SLPoly{T}) where {T} = combine!(times, p, q)
 
 function expeq!(p::SLPoly, e::Integer)
-    i = pushinit!(p)
-    i = pushop!(p, exponentiate, i, Arg(UInt64(e)))
-    pushfinalize!(p, i)
+    combine!(exponentiate, p.slprogram, e)
+    p
 end
 
 
@@ -245,7 +249,7 @@ function (R::SLPolyRing{T})(p::RecPoly{T}) where {T}
     pushfinalize!(q, i)
 end
 
-pushpoly!(q, p::Const) = pushconst!(q, p.c)
+pushpoly!(q, p::Const) = pushconst!(q.slprogram, p.c)
 
 pushpoly!(q, p::Gen) = input(findfirst(==(p.g), symbols(parent(q))))
 

@@ -203,7 +203,7 @@ end
     # building
     p = SLPoly(S)
     plines = lines(p)
-    l1 = pushconst!(p, 1)
+    l1 = pushconst!(p.slprogram, 1)
     @test constants(p) == [1]
     @test l1 === SL.asconstant(1)
 

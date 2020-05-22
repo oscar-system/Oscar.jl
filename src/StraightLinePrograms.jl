@@ -7,13 +7,14 @@ using AbstractAlgebra: Ring, RingElement, MPolyRing, MPolyElem, elem_type,
 
 import AbstractAlgebra: base_ring, gen, gens, symbols, evaluate
 
-export LazyPolyRing, LazyPoly, SLPolyRing, SLPoly
+export LazyPolyRing, LazyPoly, SLPolyRing, SLPoly, SLProgram
 
 
 include("recpolys.jl")
-include("lazypolys.jl")
 include("slprograms.jl")
-include("slpolys.jl")
 include("straightline.jl")
+include("lazypolys.jl")
+include("slpolys.jl")
+
 
 end # module

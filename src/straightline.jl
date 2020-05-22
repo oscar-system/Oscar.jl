@@ -67,7 +67,7 @@ function Base.show(io::IO, x::Arg)
 end
 
 
-## building SLPoly
+## building SLProgram
 
 # return #ref for i-th input
 function input(i::Integer)
@@ -86,7 +86,7 @@ asconstant(i::Integer) = Arg(UInt64(i) | cstmark)
 
 # call before mutating, unless p is empty (opposite of pushfinalize!)
 
-function pushinit!(p::SLPoly)
+function pushinit!(p::SLProgram)
     plines = lines(p)
     op, i, j = unpack(plines[end])
     if isuniplus(op) && (isinput(i) || isconstant(i))
@@ -97,7 +97,32 @@ function pushinit!(p::SLPoly)
     end
 end
 
-function combine!(p::SLPoly{T}, q::SLPoly{T}) where T
+function pushconst!(p::SLProgram{T}, c::T) where T
+    push!(constants(p), c)
+    l = lastindex(constants(p))
+    @assert l < cstmark
+    asconstant(l)
+end
+
+function pushop!(p::SLProgram, op::Op, i::Arg, j::Arg=Arg(0))
+    @assert i.x <= argmask && j.x <= argmask
+    push!(lines(p), Line(op, i, j))
+    l = lastindex(lines(p))
+    @assert l < cstmark
+    Arg(l % UInt64)
+end
+
+# make state consistent again
+function pushfinalize!(p::SLProgram, ret::Arg)
+    k = length(constants(p))
+    if isinput(ret) || isconstant(ret) || ret.x != lastindex(lines(p))
+        # non-trivial return (i.e. no line or not the result of the last line)
+        pushop!(p, uniplus, ret)
+    end
+    p
+end
+
+function _combine!(p::SLProgram{T}, q::SLProgram{T}) where T
     i1 = pushinit!(p)
     koffset = length(constants(p))
     len = length(lines(p))
@@ -126,27 +151,19 @@ function combine!(p::SLPoly{T}, q::SLPoly{T}) where T
     i1, i2
 end
 
-function pushconst!(p::SLPoly{T}, c::T) where T
-    push!(constants(p), c)
-    l = lastindex(constants(p))
-    @assert l < cstmark
-    asconstant(l)
+function combine!(op::Op, p::SLProgram{T}, q::SLProgram{T}) where {T}
+    i = pushop!(p, op, _combine!(p, q)...)
+    pushfinalize!(p, i)
 end
 
-function pushop!(p::SLPoly, op::Op, i::Arg, j::Arg=Arg(0))
-    @assert i.x <= argmask && j.x <= argmask
-    push!(lines(p), Line(op, i, j))
-    l = lastindex(lines(p))
-    @assert l < cstmark
-    Arg(l % UInt64)
+function combine!(op::Op, p::SLProgram)
+    i = pushinit!(p)
+    i = pushop!(p, op, i)
+    pushfinalize!(p, i)
 end
 
-# make state consistent again
-function pushfinalize!(p::SLPoly, ret::Arg)
-    k = length(constants(p))
-    if isinput(ret) || isconstant(ret) || ret.x != lastindex(lines(p))
-        # non-trivial return (i.e. no line or not the result of the last line)
-        pushop!(p, uniplus, ret)
-    end
-    p
+function combine!(op::Op, p::SLProgram, e::Integer)
+    i = pushinit!(p)
+    i = pushop!(p, op, i, Arg(UInt64(e)))
+    pushfinalize!(p, i)
 end
