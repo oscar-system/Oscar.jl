@@ -187,7 +187,7 @@ end
 
 ## evaluate
 
-evaluate(p::SLPoly{T}, xs::Vector{T}) where {T <: RingElement} =
+evaluate(p::SLPoly{T}, xs::Vector{S}) where {T<:RingElement,S<:RingElement} =
     execute(p.slprogram, xs, parent(xs[1]))
 
 function evaluate!(res::Vector{S}, p::SLPoly{T}, xs::Vector{S},
@@ -335,9 +335,7 @@ end
 function Base.convert(R::MPolyRing, p::SLPoly)
     symbols(R) == symbols(parent(p)) ||
         throw(ArgumentError("incompatible symbols"))
-    xs = gens(R)
-    res = empty(xs)
-    evaluate!(res, p, xs, R)
+    evaluate(p, gens(R))
 end
 
 

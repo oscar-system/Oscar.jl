@@ -203,7 +203,7 @@ end
 function execute(p::SLProgram{T}, xs::Vector{S},
                  conv::F=nothing) where {T,S,F}
     if isassigned(p.f)
-        p.f[](xs)::T
+        p.f[](xs)::S
     else
         execute!(S[], p, xs, conv)
     end
