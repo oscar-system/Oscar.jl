@@ -251,6 +251,11 @@ function homogenous_components(a::MPolyQuoElem{<:MPolyElem_dec})
   return homogenous_components(a.f)
 end
 
+function ishomogenous(a::MPolyQuoElem{<:MPolyElem_dec})
+  simplify!(a)
+  return ishomogenous(a.f)
+end
+
 decoration(q::MPolyQuo{<:MPolyElem_dec}) = decoration(q.R)
 
 base_ring(W::MPolyRing_dec) = base_ring(W.R)

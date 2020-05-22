@@ -3,33 +3,32 @@ export presentation, decoration
 
 abstract type ModuleFP_dec{T} end
 
-const Ring_dec{T} = Union{MPolyRing_dec{T}, MPolyQuo{Oscar.MPolyElem_dec{T}}}
-const RingElem_dec{T} = Union{MPolyElem_dec{T}, MPolyQuoElem{Oscar.MPolyElem_dec{T}}}
+const Ring_dec = Union{MPolyRing_dec, MPolyQuo{<:Oscar.MPolyElem_dec}}
+const RingElem_dec = Union{MPolyElem_dec, MPolyQuoElem{<:Oscar.MPolyElem_dec}}
+#TODO: "fix" to allow QuoElem s as well...
+# this requires
+#  re-typeing of FreeModule
+#  typing of BiModArray
+# ... and all the rest.
+# parametrization has to be by elem_type(coeff_ring) and not, like currently, the bottom coeff ring
+# Also: qring is a Singular native. So it needs to be added to the ring creation
 
 mutable struct FreeModule_dec{T} <: ModuleFP_dec{T}
   d::Array{GrpAbFinGenElem, 1}
-  R::Ring_dec{T}
+  R::Ring_dec
   S::Array{Symbol, 1}
   AbstractAlgebra.@declare_other
 
-  function FreeModule_dec(a,b::MPolyRing_dec,c)
-    r = new{elem_type(base_ring(b))}()
+  function FreeModule_dec(a,b::Ring_dec,c)
+    r = new{elem_type(b)}()
     r.d = a
     r.R = b
     r.S = c
     return r
   end
-  function FreeModule_dec(a,b::MPolyQuo,c)
-    r = new{elem_type(base_ring(b.R))}()
-    r.d = a
-    r.R = b
-    r.S = c
-    return r
-  end
-
 end
 
-function FreeModule(R::Ring_dec{T}, n::Int, name::String = "e"; cached::Bool = false) where T
+function FreeModule(R::Ring_dec, n::Int, name::String = "e"; cached::Bool = false) 
   return FreeModule_dec([decoration(R)[0] for i=1:n], R, [Symbol("$name[$i]") for i=1:n])
 end
 free_module(R::Ring_dec, n::Int, name::String = "e"; cached::Bool = false) = FreeModule(R, n, name, cached = cached)
@@ -119,10 +118,9 @@ end
 dim(F::FreeModule_dec)  = length(F.d)
 ngens(F::FreeModule_dec) = dim(F)
 
-#TODO: "fix" to allow QuoElem s as well...
 struct FreeModuleElem_dec{T}
-  r::SRow{MPolyElem_dec{T}}
-  parent::FreeModule_dec
+  r::SRow{T}
+  parent::FreeModule_dec{T}
 end
 
 elem_type(::Type{FreeModule_dec{T}}) where {T} = FreeModuleElem_dec{elem_type(T)}
