@@ -187,16 +187,12 @@ end
 
 ## evaluate
 
-function evaluate(p::SLPoly{T}, xs::Vector{T}) where {T <: RingElement}
-    if isassigned(p.slprogram.f)
-        p.slprogram.f[](xs)::T
-    else
-        evaluate!(T[], p, xs)
-    end
-end
+evaluate(p::SLPoly{T}, xs::Vector{T}) where {T <: RingElement} =
+    execute(p.slprogram, xs, parent(xs[1]))
 
 function evaluate!(res::Vector{S}, p::SLPoly{T}, xs::Vector{S},
-                   R::Ring=parent(xs[1])) where {S,T}
+                   R::Ring=parent(xs[1])
+                   ) where {S,T}
     execute!(res, p.slprogram, xs, R)
 end
 
