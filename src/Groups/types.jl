@@ -128,6 +128,8 @@ Groups of matrices. Every group of this type is the subgroup of GL(n,q) for some
 - `GL(n::Int, q::Int)`: the general linear group GL(n,q)
 - `SL(n::Int)`: the special linear group SL(n,q)
 - groups of isometries
+
+If `G` is a matrix group and `x` is an AbstractAlgebra matrix, then `G`(`x`) returns the corresponding element in the matrix group `G`.
 """
 struct MatrixGroup <: GAPGroup
   X::GapObj

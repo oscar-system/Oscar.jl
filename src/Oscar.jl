@@ -174,6 +174,7 @@ include("Groups/libraries/libraries.jl")
 include("Groups/GAPGroups.jl")
 include("Groups/directproducts.jl")
 
+
 include("Rings/integer.jl")
 include("Rings/rational.jl")
 include("Rings/Hecke.jl")
@@ -186,6 +187,7 @@ include("Polymake/NmbThy.jl")
 if is_dev
   include("../examples/ModStdNF.jl")
   include("../examples/PrimDec.jl")
+  include("Groups/julia_GAP.jl")
 end
 
 const global OSCAR = Oscar
