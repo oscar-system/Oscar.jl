@@ -47,6 +47,26 @@ function unpack(line::Line)
 end
 
 
+## show
+
+function Base.show(io::IO, l::Line)
+    op, i, j = unpack(l)
+    print(io, op, " :  ", i, " , ", j)
+end
+
+Base.show(io::IO, op::Op) = print(io, showop[op])
+
+function Base.show(io::IO, x::Arg)
+    if isinput(x)
+        print(io, '$', inputidx(x))
+    elseif isconstant(x)
+        print(io, '+', constantidx(x))
+    else
+        print(io, ' ', x.x)
+    end
+end
+
+
 ## building SLPoly
 
 # return #ref for i-th input
