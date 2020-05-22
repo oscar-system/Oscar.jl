@@ -3,7 +3,7 @@
 const opmask    = 0xff00000000000000
 const argmask   = 0x000000000fffffff
 const inputmark = 0x0000000008000000
-const tmpmark   = 0x0000000004000000
+const cstmark   = 0x0000000004000000
 const argshift  = 28 # argmask == 2^argshift - 1
 
 
@@ -50,88 +50,82 @@ end
 ## building SLPoly
 
 # return #ref for i-th input
-function input(i::Int)
-    @assert i < tmpmark
+function input(i::Integer)
+    i = Int(i)
+    @assert i < cstmark
     Arg((i % UInt64) | inputmark)
 end
 
 isinput(i::Arg) = inputmark & i.x != 0
+inputidx(i::Arg) = i.x ⊻ inputmark
+
+isconstant(i::Arg) = cstmark & i.x != 0
+constantidx(i::Arg) = i.x ⊻ cstmark
+
+asconstant(i::Integer) = Arg(UInt64(i) | cstmark)
 
 # call before mutating, unless p is empty (opposite of pushfinalize!)
-function pushinit!(p::SLPoly, k=length(p.cs), koffset=0,
-                   idx=eachindex(p.lines))
-    offset = first(idx) - 1
-    local n, op, i, j
-    for outer n in idx
-        op, i, j = unpack(p.lines[n])
-        if !isinput(i)
-            i0 = i.x
-            if i0 > k
-                i0 -= k-offset
-                i0 ⊻= tmpmark
-            else
-                i0 += koffset
-            end
-            i = Arg(i0)
-        end
-        if !isquasiunary(op)
-            if !isinput(j)
-                j0 = j.x
-                if j0 > k
-                    j0 -= k-offset
-                    j0 ⊻= tmpmark
-                else
-                    j0 += koffset
-                end
-                j = Arg(j0)
-            end
-        end
-        p.lines[n] = Line(op, i, j)
-    end
-    @assert n == lastindex(p.lines)
-    if isuniplus(op) && (isinput(i) || (i.x & tmpmark) == 0) # constant
+
+function pushinit!(p::SLPoly)
+    op, i, j = unpack(p.lines[end])
+    if isuniplus(op) && (isinput(i) || isconstant(i))
         pop!(p.lines) # discard trivial instruction
         i
     else
-        Arg(n % UInt64 | tmpmark)
+        Arg(lastindex(p.lines) % UInt64)
     end
+end
+
+function combine!(p::SLPoly{T}, q::SLPoly{T}) where T
+    i1 = pushinit!(p)
+    koffset = length(p.cs)
+    len = length(p.lines)
+    append!(p.lines, q.lines)
+    append!(p.cs, q.cs)
+
+    @assert length(p.cs) < cstmark # TODO: should not be @assert
+    for n = len+1:lastindex(p.lines)
+        op, i, j = unpack(p.lines[n])
+        if isconstant(i)
+            i = Arg(i.x + koffset)
+        elseif isinput(i)
+        else
+            i = Arg(i.x + len)
+        end
+        if isconstant(j)
+            j = Arg(j.x + koffset)
+        elseif isinput(j)
+        elseif !isquasiunary(op)
+            j = Arg(j.x + len)
+        end
+        p.lines[n] = Line(op, i, j)
+        # TODO: write conditionally only when modifications
+    end
+    i2 = pushinit!(p)
+    i1, i2
 end
 
 function pushconst!(p::SLPoly{T}, c::T) where T
     push!(p.cs, c)
     l = lastindex(p.cs)
-    @assert l < tmpmark
-    Arg(l % UInt64)
+    @assert l < cstmark
+    asconstant(l)
 end
 
 function pushop!(p::SLPoly, op::Op, i::Arg, j::Arg=Arg(0))
     @assert i.x <= argmask && j.x <= argmask
     push!(p.lines, Line(op, i, j))
     l = lastindex(p.lines)
-    @assert l < tmpmark
-    Arg(l % UInt64 | tmpmark)
+    @assert l < cstmark
+    Arg(l % UInt64)
 end
 
 # make state consistent again
 function pushfinalize!(p::SLPoly, ret::Arg)
     k = length(p.cs)
-    if isinput(ret) || (ret.x & tmpmark) == 0 ||
-            (ret.x ⊻ tmpmark) != lastindex(p.lines)
+    if isinput(ret) || isconstant(ret) || ret.x != lastindex(p.lines)
         # non-trivial return (i.e. no line or not the result of the last line)
         pushop!(p, uniplus, ret)
-    end
-    for n in eachindex(p.lines)
-        op, i, j = unpack(p.lines[n])
-        i, j = i.x, j.x
-        if i & tmpmark != 0
-            i ⊻= tmpmark
-            i += k
-        end
-        if j & tmpmark != 0
-            j ⊻= tmpmark
-            j += k
-        end
-        p.lines[n] = pack(op, i, j)
     end
     p
 end

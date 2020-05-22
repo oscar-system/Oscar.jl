@@ -111,11 +111,11 @@ function Base.show(io::IO, ::MIME"text/plain", p::SLPoly{T}) where T
         line = String[]
         push!(lines, line)
         push!(line, str('#', sk, " ="))
-        x = showarg(p.cs, syms, i.x)
+        x = showarg(p.cs, syms, i)
         y = isunary(op) ? "" :
             isquasiunary(op) ? string(j.x) :
-            showarg(p.cs, syms, j.x)
-        push!(line, str(showop[op]), x, y, str(res[k+length(p.cs)]))
+            showarg(p.cs, syms, j)
+        push!(line, str(showop[op]), x, y, str(res[k]))
         widths .= max.(widths, textwidth.(line))
     end
     for (k, line) in enumerate(lines)
@@ -129,28 +129,17 @@ function Base.show(io::IO, ::MIME"text/plain", p::SLPoly{T}) where T
 end
 
 function showarg(cs, syms, i)
-    n = length(cs)
-    if i <= n
-        string(cs[i])
-    elseif i & inputmark == 0
-        "#$(i-n)"
+    if isconstant(i)
+        string(cs[constantidx(i)])
+    elseif isinput(i)
+        string(syms[inputidx(i)])
     else
-        string(syms[i ⊻ inputmark])
+        "#$(i.x)"
     end
 end
 
 
 ## mutating ops
-
-function combine!(p::SLPoly{T}, q::SLPoly{T}) where T
-    i = pushinit!(p)
-    koffset = length(p.cs)
-    len = length(p.lines)
-    append!(p.lines, q.lines)
-    append!(p.cs, q.cs)
-    j = pushinit!(p, length(q.cs), koffset, len+1:lastindex(p.lines))
-    i, j
-end
 
 function addeq!(p::SLPoly{T}, q::SLPoly{T}) where {T}
     i = pushop!(p, plus, combine!(p, q)...)
@@ -215,29 +204,32 @@ function evaluate(p::SLPoly{T}, xs::Vector{T}) where {T <: RingElement}
     end
 end
 
-retrieve(xs, res, i) =
-    (i.x & inputmark) == 0 ? res[i.x] : xs[i.x ⊻ inputmark]
+retrieve(cs, xs, res, i) =
+    isconstant(i) ? cs[constantidx(i)] :
+    isinput(i) ? xs[inputidx(i)] :
+    res[i.x]
 
 function evaluate!(res::Vector{S}, p::SLPoly{T}, xs::Vector{S},
                    R::Ring=parent(xs[1])) where {S,T}
     # TODO: handle isempty(p.lines)
-    resize!(res, length(p.cs))
-    for i in eachindex(res)
-        res[i] = R(p.cs[i])
-    end
+    empty!(res)
 
     for line in p.lines
         local r::S
         op, i, j = unpack(line)
-        x = retrieve(xs, res, i)
+        x = retrieve(p.cs, xs, res, i)
         if isexponentiate(op)
             r = x^Int(j.x) # TODO: support bigger j
         elseif isuniplus(op) # serves as assignment (for trivial programs)
-            r = x
+            if isa(x, S)
+                r = x
+            else
+                r = R(x)
+            end
         elseif isuniminus(op)
             r = -x
         else
-            y = retrieve(xs, res, j)
+            y = retrieve(p.cs, xs, res, j)
             if isplus(op)
                 r = x + y
             elseif isminus(op)
@@ -301,7 +293,7 @@ function Base.convert(R::SLPolyRing, p::Generic.MPoly; limit_exp::Bool=false)
     symbols(R) == symbols(parent(p)) ||
         throw(ArgumentError("incompatible symbols"))
     q = SLPoly(R)
-    @assert lastindex(p.coeffs) < tmpmark
+    @assert lastindex(p.coeffs) < cstmark
     @assert isempty(q.cs)
     # have to use p.length, as p.coeffs and p.exps
     # might contain trailing gargabe
@@ -364,7 +356,7 @@ function Base.convert(R::SLPolyRing, p::Generic.MPoly; limit_exp::Bool=false)
 
     k = Arg(0) # TODO: don't use 0
     for t in eachindex(q.cs)
-        i = Arg(t)
+        i = asconstant(t)
         j = 0
         for v in reverse(axes(p.exps, 1))
             e = p.exps[v, t]
@@ -381,7 +373,7 @@ function Base.convert(R::SLPolyRing, p::Generic.MPoly; limit_exp::Bool=false)
     end
     if isempty(q.cs)
         push!(q.cs, base_ring(R)())
-        k = pushop!(q, uniplus, Arg(1))
+        k = pushop!(q, uniplus, asconstant(1))
     end
     pushfinalize!(q, k)
     q
@@ -401,9 +393,10 @@ end
 
 ## compile!
 
-cretrieve(i) = i.x & inputmark == 0 ?
-    Symbol(:res, i.x) => 0 :
-    Symbol(:x, i.x ⊻ inputmark) => i.x ⊻ inputmark
+cretrieve(i) =
+    isinput(i) ? Symbol(:x, inputidx(i)) => inputidx(i) :
+    isconstant(i) ? Symbol(:c, constantidx(i)) => 0 :
+    Symbol(:res, i.x) => 0
 
 # return compiled evaluation function f, and updates
 # p.f[] = f, which is not invalidated when p is mutated
@@ -413,9 +406,8 @@ function compile!(p::SLPoly)
            end)
     k = 0
     cs = p.cs
-    for c in p.cs
-        k += 1
-        push!(res, :($(Symbol(:res, k)) = $cs[$k]))
+    for k in eachindex(cs)
+        push!(res, :($(Symbol(:c, k)) = @inbounds $cs[$k]))
     end
     mininput = 0
     for line in p.lines

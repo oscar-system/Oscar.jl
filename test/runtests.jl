@@ -2,7 +2,7 @@ using Test, StraightLinePrograms, AbstractAlgebra
 
 using StraightLinePrograms: Const, ExpPoly, Gen, MinusPoly, PlusPoly, RecPoly,
     TimesPoly, UniMinusPoly, pushconst!, pushop!,
-    tmpmark, Line, Arg
+    Line, Arg
 
 const SL = StraightLinePrograms
 
@@ -204,43 +204,46 @@ end
     p = SLPoly(S)
     l1 = pushconst!(p, 1)
     @test p.cs == [1]
-    @test l1 === Arg(1)
-    l2 = pushconst!(p, 3)
-    @test p.cs == [1, 3]
-    @test l2 === Arg(2)
+    @test l1 === SL.asconstant(1)
 
-    l3 = pushop!(p, SL.plus, l1, l2)
-    @test l3 == Arg(tmpmark | UInt64(1))
-    @test p.lines[1].x == 0x0300000010000002
+    # currently not supported anymore
+    # l2 = pushconst!(p, 3)
+    # @test p.cs == [1, 3]
+    # @test l2 === SL.asconstant(2)
+
+    l3 = pushop!(p, SL.plus, l1, SL.input(1))
+    @test l3 == Arg(UInt64(1))
+    @test p.lines[1].x == 0x0340000018000001
     l4 = pushop!(p, SL.times, l3, SL.input(2))
-    @test l4 == Arg(tmpmark | UInt64(2))
-    @test p.lines[2].x == 0x0540000018000002
+    @test l4 == Arg(UInt64(2))
+    @test p.lines[2].x ==0x0500000018000002
     lines = copy(p.lines)
     @test p === SL.pushfinalize!(p, l4)
-    @test p.lines == [Line(0x0300000010000002), Line(0x0500000038000002)]
+
+    @test p.lines == [Line(0x0340000018000001), Line(0x0500000018000002)]
     SL.pushinit!(p)
     @test lines == p.lines
     SL.pushfinalize!(p, l4)
-    @test p.lines == [Line(0x0300000010000002), Line(0x0500000038000002)]
-    # p == (1+3)*y
-    @test SL.evaluate!(Int[], p, [1, 2]) == 8
-    @test SL.evaluate!(Int[], p, [0, 3]) == 12
+    @test p.lines == [Line(0x0340000018000001), Line(0x0500000018000002)]
+    # p == (1+x)*y
+    @test SL.evaluate!(Int[], p, [1, 2]) == 4
+    @test SL.evaluate!(Int[], p, [0, 3]) == 3
     l5 = SL.pushinit!(p)
     l6 = SL.pushop!(p, SL.times, SL.input(1), SL.input(2)) # xy
-    l7 = SL.pushop!(p, SL.exponentiate, l5, Arg(2)) # (4y)^2
-    l8 = SL.pushop!(p, SL.minus, l6, l7) # xy - 16y^2
+    l7 = SL.pushop!(p, SL.exponentiate, l5, Arg(2)) # ((1+x)y)^2
+    l8 = SL.pushop!(p, SL.minus, l6, l7) # xy - ((1+x)y)^2
     SL.pushfinalize!(p, l8)
-    @test string(p) == "((xy) - ((1 + 3)y)^2)"
-    @test SL.evaluate!(Int[], p, [2, 3]) == -138
-    @test SL.evaluate!(Int[], p, [-2, -1]) == -14
+    @test string(p) == "((xy) - ((1 + x)y)^2)"
+    @test SL.evaluate!(Int[], p, [2, 3]) == -75
+    @test SL.evaluate!(Int[], p, [-2, -1]) == 1
 
-    @test SL.evaluate(p, [2, 3]) == -138
-    @test SL.evaluate(p, [-2, -1]) == -14
+    @test SL.evaluate(p, [2, 3]) == -75
+    @test SL.evaluate(p, [-2, -1]) == 1
 
     # compile!
     pf = SL.compile!(p)
-    @test pf([2, 3]) == -138
-    @test pf([-2, -1]) == -14
+    @test pf([2, 3]) == -75
+    @test pf([-2, -1]) == 1
     res = Int[]
     for xy in eachcol(rand(-99:99, 2, 100))
         v = Vector(xy) # TODO: don't require this
@@ -252,7 +255,7 @@ end
     q = convert(R, p)
     @test q isa Generic.MPoly
     @test parent(q) === R
-    @test q == x1*y1 - 16*y1^2
+    @test q == -x1^2*y1^2-2*x1*y1^2+x1*y1-y1^2
     R2, (x2, y2) = PolynomialRing(zz, ["y", "x"])
     @test_throws ArgumentError convert(R2, p)
 
@@ -284,7 +287,7 @@ end
     @test convert(R, S(L(:x))) == x1
 
     # mutating ops
-    # currently: p == xy - 16y^2
+    p = S(x*y-16*y^2)
     # SL.addeq!(p, S(x)) # TODO: this bugs
     @test p === SL.addeq!(p, S(x*y))
     @test convert(R, p) == 2*x1*y1-16y1^2
@@ -352,7 +355,7 @@ end
     js = rand(UInt64(0):SL.argmask, 100)
     @test SL.unpack.(SL.pack.(ops, is, js)) == tuple.(ops, Arg.(is), Arg.(js))
 
-    for x = rand(Int64(0):Int(SL.tmpmark-1), 100)
+    for x = rand(Int64(0):Int(SL.cstmark-1), 100)
         if SL.isinput(Arg(x))
             @test SL.input(x) == Arg(x)
         else
