@@ -116,14 +116,34 @@ end
     @test t4.xs[4] === t.xs[2]
 
     # adhoc *
-    am1 = 3 * p
-    @test am1 isa Lazy
-    am2 = big(3) * p
-    @test am2 isa Lazy
-    am3 = p * 3
-    @test am3 isa Lazy
-    am4 = p * big(3)
-    @test am4 isa Lazy
+    at1 = 3 * p
+    @test at1 isa Times
+    at2 = big(3) * p
+    @test at2 isa Times
+    at3 = p * 3
+    @test at3 isa Times
+    at4 = p * big(3)
+    @test at4 isa Times
+
+    # adhoc +
+    ap1 = 3 + p
+    @test ap1 isa Plus
+    ap2 = big(3) + p
+    @test ap2 isa Plus
+    ap3 = p + 3
+    @test ap3 isa Plus
+    ap4 = p + big(3)
+    @test ap4 isa Plus
+
+    # adhoc -
+    am1 = 3 - p
+    @test am1 isa Minus
+    am2 = big(3) - p
+    @test am2 isa Minus
+    am3 = p - 3
+    @test am3 isa Minus
+    am4 = p - big(3)
+    @test am4 isa Minus
 
     # ^
     e1 = p^3

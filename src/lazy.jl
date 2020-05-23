@@ -179,3 +179,9 @@ end
 
 *(x, y::Lazy) = Const(x) * y
 *(x::Lazy, y) = x * Const(y)
+
++(x, y::Lazy) = Const(x) + y
++(x::Lazy, y) = x + Const(y)
+
+-(x, y::Lazy) = Const(x) - y
+-(x::Lazy, y) = x - Const(y)
