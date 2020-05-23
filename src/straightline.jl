@@ -226,6 +226,25 @@ function combine!(op::Op, p::SLProgram, e::Integer)
 end
 
 
+## mutating ops
+
+addeq!(p::SLProgram{T}, q::SLProgram{T}) where {T} = combine!(plus, p, q)
+
+subeq!(p::SLProgram{T}, q::SLProgram{T}) where {T} = combine!(minus, p, q)
+
+function subeq!(p::SLProgram)
+    combine!(uniminus, p)
+    p
+end
+
+muleq!(p::SLProgram{T}, q::SLProgram{T}) where {T} = combine!(times, p, q)
+
+function expeq!(p::SLProgram, e::Integer)
+    combine!(exponentiate, p, e)
+    p
+end
+
+
 ## execute
 
 function execute(p::SLProgram{T}, xs::Vector{S},

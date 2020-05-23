@@ -381,4 +381,18 @@ end
     @test execute(p, [10, 20]) == 3
     p = SLProgram(Const('c'))
     @test execute(p, ["10", 20]) == 'c'
+
+    p = SLProgram{Int}(1)
+    q = SLProgram(Const(6))
+    r = SLProgram{Int}(2)
+    @test p === SL.addeq!(p, q)
+    @test execute(p, [3]) == 9
+    @test p === SL.subeq!(p, r)
+    @test execute(p, [3, 2]) == 7
+    @test p === SL.subeq!(p)
+    @test execute(p, [3, 2]) == -7
+    @test p === SL.muleq!(p, r)
+    @test execute(p, [3, 2]) == -14
+    @test p === SL.expeq!(p, 3)
+    @test execute(p, [3, 2]) == -2744
 end
