@@ -285,13 +285,20 @@ pushlazy!(p, l::Exp, gs) =
 
 ## evaluate
 
-function evaluate(p::SLProgram{T}, xs::Vector{S},
-                  conv::F=nothing) where {T,S,F}
+function evaluate(p::SLProgram{T}, xs::Vector{S}, conv::F=nothing
+                  ) where {T,S,F}
     if isassigned(p.f)
         p.f[](xs)::S
     else
         evaluate!(S[], p, xs, conv)
     end
+end
+
+function evaluates(p::SLProgram{T}, xs::Vector{S}, conv::F=nothing
+                   ) where {T,S,F}
+    res = S[]
+    evaluate!(res, p, xs, conv)
+    res
 end
 
 retrieve(cs, xs, res, i) =

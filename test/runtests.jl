@@ -405,6 +405,7 @@ end
     @test evaluate(p, [3, 2]) == -14
     @test p === SL.expeq!(p, 3)
     @test evaluate(p, [3, 2]) == -2744
+    @test SL.evaluates(p, [3, 2]) == [9, 7, -7, -14, -2744]
 
     # conversion Lazy -> SLProgram
     x, y = Gen(:x), Gen(:y)
