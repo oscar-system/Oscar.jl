@@ -112,6 +112,11 @@ lines(p::SLProgram) = p.lines
 ## show
 
 function Base.show(io::IO, ::MIME"text/plain", p::SLProgram)
+    println("SLProgram with constants:")
+    for (i, c) in enumerate(constants(p))
+        println(io, i, " | ", c)
+    end
+    println("and with lines:")
     for (i, l) in enumerate(lines(p))
         i == 1 || println(io)
         print(io, i, " | ", l)
