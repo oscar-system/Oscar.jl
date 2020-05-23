@@ -99,6 +99,16 @@ constants(p::SLProgram) = p.cs
 lines(p::SLProgram) = p.lines
 
 
+## show
+
+function Base.show(io::IO, ::MIME"text/plain", p::SLProgram)
+    for (i, l) in enumerate(lines(p))
+        i == 1 || println(io)
+        print(io, i, " | ", l)
+    end
+end
+
+
 ## building SLProgram
 
 # return #ref for i-th input
