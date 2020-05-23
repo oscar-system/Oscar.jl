@@ -2,7 +2,7 @@ using Test, StraightLinePrograms, AbstractAlgebra
 
 using StraightLinePrograms: Const, Exp, Gen, Minus, Plus, Lazy,
     Times, UniMinus, pushconst!, pushop!,
-    Line, Arg, constants, lines
+    Line, Arg, constants, lines, execute
 
 const SL = StraightLinePrograms
 
@@ -371,4 +371,9 @@ end
     @test isempty(p.cs)
     @test isempty(p.lines)
     @test !isassigned(p.f)
+
+    p = SLProgram{Int}(1)
+    @test execute(p, [10, 20]) == 10
+    p = SLProgram{Int}(3)
+    @test execute(p, [10, "20", 'c']) == 'c'
 end

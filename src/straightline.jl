@@ -94,6 +94,11 @@ SLProgram(cs, lines) = SLProgram(cs, lines, Ref{Function}())
 
 SLProgram{T}() where {T} = SLProgram(T[], Line[])
 
+# return an input
+function SLProgram{T}(i::Integer) where {T}
+    p = SLProgram{T}()
+    pushfinalize!(p, pushop!(p, uniplus, input(i)))
+end
 
 constants(p::SLProgram) = p.cs
 lines(p::SLProgram) = p.lines
