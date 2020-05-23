@@ -108,6 +108,14 @@ end
 constants(p::SLProgram) = p.cs
 lines(p::SLProgram) = p.lines
 
+# return the (max) number of inputs
+ninputs(p::SLProgram) =
+    mapreduce(max, lines(p)) do line
+        op, i, j = unpack(line)
+        max(isinput(i) ? inputidx(i) : 0,
+            isinput(j) ? inputidx(j) : 0) % Int
+    end
+
 
 ## show
 

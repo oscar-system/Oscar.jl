@@ -384,17 +384,21 @@ end
 
     p = SLProgram{Int}(1)
     @test evaluate(p, [10, 20]) == 10
+    @test SL.ninputs(p) == 1
     p = SLProgram{Int}(3)
     @test evaluate(p, [10, "20", 'c']) == 'c'
+    @test SL.ninputs(p) == 3
 
     p = SLProgram(Const(3))
     @test evaluate(p, [10, 20]) == 3
     p = SLProgram(Const('c'))
     @test evaluate(p, ["10", 20]) == 'c'
+    @test SL.ninputs(p) == 0
 
     p = SLProgram{Int}(1)
     q = SLProgram(Const(6))
     r = SLProgram{Int}(2)
+
     @test p === SL.addeq!(p, q)
     @test evaluate(p, [3]) == 9
     @test p === SL.subeq!(p, r)
@@ -406,6 +410,8 @@ end
     @test p === SL.expeq!(p, 3)
     @test evaluate(p, [3, 2]) == -2744
     @test SL.evaluates(p, [3, 2]) == [9, 7, -7, -14, -2744]
+
+    @test SL.ninputs(p) == 2
 
     # conversion Lazy -> SLProgram
     x, y = Gen(:x), Gen(:y)
