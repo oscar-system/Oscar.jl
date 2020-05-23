@@ -201,7 +201,7 @@ end
 
 (R::SLPolyRing{T})(p::LazyPoly{T}) where {T} = R(p.p)
 
-function (R::SLPolyRing{T})(p::RecPoly{T}) where {T}
+function (R::SLPolyRing{T})(p::Lazy{T}) where {T}
     q = SLPoly(R)
     i = pushpoly!(q, p)
     pushfinalize!(q, i)
@@ -211,9 +211,9 @@ pushpoly!(q, p::Const) = pushconst!(q.slprogram, p.c)
 
 pushpoly!(q, p::Gen) = input(findfirst(==(p.g), symbols(parent(q))))
 
-function pushpoly!(q, p::Union{PlusPoly,TimesPoly})
+function pushpoly!(q, p::Union{Plus,Times})
     # TODO: handle isempty(p.xs) ?
-    op = p isa PlusPoly ? plus : times
+    op = p isa Plus ? plus : times
     x, xs = Iterators.peel(p.xs)
     i = pushpoly!(q, x)
     for x in xs
@@ -223,16 +223,16 @@ function pushpoly!(q, p::Union{PlusPoly,TimesPoly})
     i
 end
 
-function pushpoly!(q, p::MinusPoly)
+function pushpoly!(q, p::Minus)
     i = pushpoly!(q, p.p)
     j = pushpoly!(q, p.q)
     pushop!(q, minus, i, j)
 end
 
-pushpoly!(q, p::UniMinusPoly) = pushop!(q, uniminus, pushpoly!(q, p.p))
+pushpoly!(q, p::UniMinus) = pushop!(q, uniminus, pushpoly!(q, p.p))
 
-pushpoly!(q, p::ExpPoly) = pushop!(q, exponentiate,
-                                   pushpoly!(q, p.p), Arg(p.e))
+pushpoly!(q, p::Exp) = pushop!(q, exponentiate,
+                               pushpoly!(q, p.p), Arg(p.e))
 
 
 ## conversion MPoly -> SLPoly

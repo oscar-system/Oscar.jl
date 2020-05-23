@@ -13,7 +13,7 @@ base_ring(F::LazyPolyRing) = F.base_ring
 
 struct LazyPoly{T<:RingElement,PR<:MPolyRing{T}} <: MPolyElem{T}
     parent::PR
-    p::RecPoly{T}
+    p::Lazy{T}
 end
 
 parent(p::LazyPoly) = p.parent
