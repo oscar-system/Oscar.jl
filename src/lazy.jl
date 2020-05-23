@@ -1,11 +1,11 @@
 ## Lazy
 
-abstract type Lazy{T} end
+abstract type Lazy end
 
 
 ### Const
 
-struct Const{T} <: Lazy{T}
+struct Const{T} <: Lazy
     c::T
 end
 
@@ -14,7 +14,7 @@ Base.show(io::IO, c::Const) = print(io, c.c)
 
 ### Gen
 
-struct Gen{T} <: Lazy{T}
+struct Gen <: Lazy
     g::Symbol
 end
 
@@ -23,11 +23,11 @@ Base.show(io::IO, g::Gen) = print(io, g.g)
 
 ### Plus
 
-struct Plus{T} <: Lazy{T}
-    xs::Vector{Lazy{T}}
+struct Plus <: Lazy
+    xs::Vector{Lazy}
 end
 
-Plus(xs::Lazy{T}...) where {T} = Plus(collect(Lazy{T}, xs))
+Plus(xs::Lazy...) = Plus(collect(Lazy, xs))
 
 function Base.show(io::IO, p::Plus)
     print(io, '(')
@@ -38,9 +38,9 @@ end
 
 ### Minus
 
-struct Minus{T} <: Lazy{T}
-    p::Lazy{T}
-    q::Lazy{T}
+struct Minus <: Lazy
+    p::Lazy
+    q::Lazy
 end
 
 Base.show(io::IO, p::Minus) = print(io, '(', p.p, " - ", p.q, ')')
@@ -48,8 +48,8 @@ Base.show(io::IO, p::Minus) = print(io, '(', p.p, " - ", p.q, ')')
 
 ### UniMinus
 
-struct UniMinus{T} <: Lazy{T}
-    p::Lazy{T}
+struct UniMinus <: Lazy
+    p::Lazy
 end
 
 Base.show(io::IO, p::UniMinus) = print(io, "(-", p.p, ')')
@@ -57,11 +57,11 @@ Base.show(io::IO, p::UniMinus) = print(io, "(-", p.p, ')')
 
 ### Times
 
-struct Times{T} <: Lazy{T}
-    xs::Vector{Lazy{T}}
+struct Times <: Lazy
+    xs::Vector{Lazy}
 end
 
-Times(xs::Lazy{T}...) where {T} = Times(collect(Lazy{T}, xs))
+Times(xs::Lazy...) = Times(collect(Lazy, xs))
 
 function Base.show(io::IO, p::Times)
     print(io, '(')
@@ -72,8 +72,8 @@ end
 
 ### Exp
 
-struct Exp{T} <: Lazy{T}
-    p::Lazy{T}
+struct Exp <: Lazy
+    p::Lazy
     e::Int
 end
 
@@ -84,21 +84,21 @@ Base.show(io::IO, p::Exp) = print(io, p.p, '^', p.e)
 
 #### +
 
-+(x::Lazy{T}, y::Lazy{T}) where {T} = Plus(x, y)
++(x::Lazy, y::Lazy) = Plus(x, y)
 
-function +(x::Plus{T}, y::Lazy{T}) where {T}
+function +(x::Plus, y::Lazy)
     p = Plus(copy(x.xs))
     push!(p.xs, y)
     p
 end
 
-function +(x::Lazy{T}, y::Plus{T}) where {T}
+function +(x::Lazy, y::Plus)
     p = Plus(copy(y.xs))
     pushfirst!(p.xs, x)
     p
 end
 
-function +(x::Plus{T}, y::Plus{T}) where {T}
+function +(x::Plus, y::Plus)
     p = Plus(copy(x.xs))
     append!(p.xs, y.xs)
     p
@@ -107,27 +107,27 @@ end
 
 #### -
 
--(p::Lazy{T}, q::Lazy{T}) where {T} = Minus(p, q)
--(p::Lazy{T}) where {T} = UniMinus(p)
+-(p::Lazy, q::Lazy) = Minus(p, q)
+-(p::Lazy) = UniMinus(p)
 
 
 #### *
 
-*(x::Lazy{T}, y::Lazy{T}) where {T} = Times(x, y)
+*(x::Lazy, y::Lazy) = Times(x, y)
 
-function *(x::Times{T}, y::Lazy{T}) where {T}
+function *(x::Times, y::Lazy)
     p = Times(copy(x.xs))
     push!(p.xs, y)
     p
 end
 
-function *(x::Lazy{T}, y::Times{T}) where {T}
+function *(x::Lazy, y::Times)
     p = Times(copy(y.xs))
     pushfirst!(p.xs, x)
     p
 end
 
-function *(x::Times{T}, y::Times{T}) where {T}
+function *(x::Times, y::Times)
     p = Times(copy(x.xs))
     append!(p.xs, y.xs)
     p
@@ -141,5 +141,5 @@ end
 
 ### adhoc binary ops
 
-*(x, y::Lazy{T}) where {T} = Const(convert(T, x)) * y
-*(x::Lazy{T}, y) where {T} = x * Const(convert(T, y))
+*(x, y::Lazy) = Const(x) * y
+*(x::Lazy, y) = x * Const(y)

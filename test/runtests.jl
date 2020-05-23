@@ -20,58 +20,58 @@ end
     # Const
     c = Const(1)
     @test c isa Const{Int}
-    @test c isa Lazy{Int}
+    @test c isa Lazy
     @test string(c) == "1"
 
     # Gen
-    g = Gen{Int}(:x)
-    @test g isa Gen{Int}
-    @test g isa Lazy{Int}
+    g = Gen(:x)
+    @test g isa Gen
+    @test g isa Lazy
     @test string(g) == "x"
 
     # Plus
     p = Plus(c, g)
-    @test p isa Plus{Int} <: Lazy{Int}
+    @test p isa Plus <: Lazy
     @test p.xs[1] == c && p.xs[2] == g
     @test string(p) == "(1 + x)"
 
     # Minus
     m = Minus(p, g)
-    @test m isa Minus{Int} <: Lazy{Int}
+    @test m isa Minus <: Lazy
     @test string(m) == "((1 + x) - x)"
 
     # UniMinus
     u = UniMinus(p)
-    @test u isa UniMinus{Int} <: Lazy{Int}
+    @test u isa UniMinus <: Lazy
     @test string(u) == "(-(1 + x))"
 
     # Times
     t = Times(g, p)
-    @test t isa Times{Int} <: Lazy{Int}
+    @test t isa Times <: Lazy
     @test string(t) == "(x(1 + x))"
 
     # Exp
     e = Exp(p, 3)
-    @test e isa Exp{Int} <: Lazy{Int}
+    @test e isa Exp <: Lazy
     @test string(e) == "(1 + x)^3"
 
     # +
     p1 =  e + t
-    @test p1 isa Plus{Int}
+    @test p1 isa Plus
     @test p1.xs[1] === e
     @test p1.xs[2] === t
     p2 = p + e
-    @test p2 isa Plus{Int}
+    @test p2 isa Plus
     @test p2.xs[1] === p.xs[1]
     @test p2.xs[2] === p.xs[2]
     @test p2.xs[3] === e
     p3 = e + p
-    @test p3 isa Plus{Int}
+    @test p3 isa Plus
     @test p3.xs[1] === e
     @test p3.xs[2] === p.xs[1]
     @test p3.xs[3] === p.xs[2]
     p4 = p + p
-    @test p4 isa Plus{Int}
+    @test p4 isa Plus
     @test p4.xs[1] === p.xs[1]
     @test p4.xs[2] === p.xs[2]
     @test p4.xs[3] === p.xs[1]
@@ -88,21 +88,21 @@ end
 
     # *
     t1 =  e * p
-    @test t1 isa Times{Int}
+    @test t1 isa Times
     @test t1.xs[1] === e
     @test t1.xs[2] === p
     t2 = t * e
-    @test t2 isa Times{Int}
+    @test t2 isa Times
     @test t2.xs[1] === t.xs[1]
     @test t2.xs[2] === t.xs[2]
     @test t2.xs[3] === e
     t3 = e * t
-    @test t3 isa Times{Int}
+    @test t3 isa Times
     @test t3.xs[1] === e
     @test t3.xs[2] === t.xs[1]
     @test t3.xs[3] === t.xs[2]
     t4 = t * t
-    @test t4 isa Times{Int}
+    @test t4 isa Times
     @test t4.xs[1] === t.xs[1]
     @test t4.xs[2] === t.xs[2]
     @test t4.xs[3] === t.xs[1]
@@ -110,13 +110,13 @@ end
 
     # adhoc *
     am1 = 3 * p
-    @test am1 isa Lazy{Int}
+    @test am1 isa Lazy
     am2 = big(3) * p
-    @test am2 isa Lazy{Int}
+    @test am2 isa Lazy
     am3 = p * 3
-    @test am3 isa Lazy{Int}
+    @test am3 isa Lazy
     am4 = p * big(3)
-    @test am4 isa Lazy{Int}
+    @test am4 isa Lazy
 
     # ^
     e1 = p^3
@@ -127,13 +127,13 @@ end
 
 @testset "LazyPoly" begin
     F = LazyPolyRing(zz)
-    r = Const(1) + Gen{Int}(:x)
+    r = Const(1) + Gen(:x)
     p = LazyPoly(F, r)
     @test parent(p) === F
     @test string(p) == "(1 + x)"
     for x in (gen(F, :x), F(:x))
         @test x isa LazyPoly{Int}
-        @test x.p isa Gen{Int}
+        @test x.p isa Gen
         @test x.p.g == :x
     end
     c1 = F(2)

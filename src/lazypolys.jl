@@ -13,12 +13,12 @@ base_ring(F::LazyPolyRing) = F.base_ring
 
 struct LazyPoly{T<:RingElement,PR<:MPolyRing{T}} <: MPolyElem{T}
     parent::PR
-    p::Lazy{T}
+    p::Lazy
 end
 
 parent(p::LazyPoly) = p.parent
 
-gen(R::LazyPolyRing, s::Symbol) = LazyPoly(R, Gen{elem_type(R.base_ring)}(s))
+gen(R::LazyPolyRing, s::Symbol) = LazyPoly(R, Gen(s))
 
 (R::LazyPolyRing)(s::Symbol) = gen(R, s)
 

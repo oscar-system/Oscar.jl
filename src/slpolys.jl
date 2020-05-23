@@ -15,10 +15,10 @@ symbols(S::SLPolyRing) = S.S
 
 function gen(S::SLPolyRing{T}, i::Integer) where {T}
     s = symbols(S)[i]
-    S(Gen{T}(s))
+    S(Gen(s))
 end
 
-gens(S::SLPolyRing{T}) where {T} = [S(Gen{T}(s)) for s in symbols(S)]
+gens(S::SLPolyRing{T}) where {T} = [S(Gen(s)) for s in symbols(S)]
 
 
 ## SLPoly
@@ -201,7 +201,7 @@ end
 
 (R::SLPolyRing{T})(p::LazyPoly{T}) where {T} = R(p.p)
 
-function (R::SLPolyRing{T})(p::Lazy{T}) where {T}
+function (R::SLPolyRing{T})(p::Lazy) where {T}
     q = SLPoly(R)
     i = pushpoly!(q, p)
     pushfinalize!(q, i)
