@@ -1,6 +1,7 @@
 ## Lazy
 
 abstract type Lazy end
+gens(l::Lazy) = sort!(unique!(pushgens!(Symbol[], l)::Vector{Symbol}))
 
 
 ### Const
@@ -11,6 +12,8 @@ end
 
 Base.show(io::IO, c::Const) = print(io, c.c)
 
+pushgens!(gs, c::Const) = gs
+
 
 ### Gen
 
@@ -19,6 +22,13 @@ struct Gen <: Lazy
 end
 
 Base.show(io::IO, g::Gen) = print(io, g.g)
+
+pushgens!(gs, g::Gen) =
+    if findfirst(==(g.g), gs) === nothing
+        push!(gs, g.g)
+    else
+        gs
+    end
 
 
 ### Plus
@@ -35,6 +45,8 @@ function Base.show(io::IO, p::Plus)
     print(io, ')')
 end
 
+pushgens!(gs, p::Plus) = foldl(pushgens!, p.xs, init=gs)
+
 
 ### Minus
 
@@ -45,6 +57,8 @@ end
 
 Base.show(io::IO, p::Minus) = print(io, '(', p.p, " - ", p.q, ')')
 
+pushgens!(gs, l::Minus) = pushgens!(pushgens!(gs, l.p), l.q)
+
 
 ### UniMinus
 
@@ -54,6 +68,7 @@ end
 
 Base.show(io::IO, p::UniMinus) = print(io, "(-", p.p, ')')
 
+pushgens!(gs, l::UniMinus) = pushgens!(gs, l.p)
 
 ### Times
 
@@ -69,6 +84,8 @@ function Base.show(io::IO, p::Times)
     print(io, ')')
 end
 
+pushgens!(gs, p::Times) = foldl(pushgens!, p.xs, init=gs)
+
 
 ### Exp
 
@@ -79,6 +96,7 @@ end
 
 Base.show(io::IO, p::Exp) = print(io, p.p, '^', p.e)
 
+pushgens!(gs, l::Exp) = pushgens!(gs, l.p)
 
 ### binary ops
 

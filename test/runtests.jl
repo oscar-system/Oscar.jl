@@ -22,38 +22,45 @@ end
     @test c isa Const{Int}
     @test c isa Lazy
     @test string(c) == "1"
+    @test isempty(SL.gens(c))
 
     # Gen
     g = Gen(:x)
     @test g isa Gen
     @test g isa Lazy
     @test string(g) == "x"
+    @test SL.gens(g) == [:x]
 
     # Plus
     p = Plus(c, g)
     @test p isa Plus <: Lazy
     @test p.xs[1] == c && p.xs[2] == g
     @test string(p) == "(1 + x)"
+    @test SL.gens(p) == [:x]
 
     # Minus
     m = Minus(p, g)
     @test m isa Minus <: Lazy
     @test string(m) == "((1 + x) - x)"
+    @test SL.gens(m) == [:x]
 
     # UniMinus
     u = UniMinus(p)
     @test u isa UniMinus <: Lazy
     @test string(u) == "(-(1 + x))"
+    @test SL.gens(u) == [:x]
 
     # Times
     t = Times(g, p)
     @test t isa Times <: Lazy
     @test string(t) == "(x(1 + x))"
+    @test SL.gens(t) == [:x]
 
     # Exp
     e = Exp(p, 3)
     @test e isa Exp <: Lazy
     @test string(e) == "(1 + x)^3"
+    @test SL.gens(e) == [:x]
 
     # +
     p1 =  e + t
@@ -123,6 +130,9 @@ end
     @test e1 isa Exp
     @test e1.p === p
     @test e1.e == 3
+
+    h = Gen(:y)
+    @test gens(e1+t4*h) == [:x, :y]
 end
 
 @testset "LazyPoly" begin
