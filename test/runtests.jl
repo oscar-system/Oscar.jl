@@ -376,4 +376,9 @@ end
     @test execute(p, [10, 20]) == 10
     p = SLProgram{Int}(3)
     @test execute(p, [10, "20", 'c']) == 'c'
+
+    p = SLProgram(Const(3))
+    @test execute(p, [10, 20]) == 3
+    p = SLProgram(Const('c'))
+    @test execute(p, ["10", 20]) == 'c'
 end

@@ -100,6 +100,11 @@ function SLProgram{T}(i::Integer) where {T}
     pushfinalize!(p, pushop!(p, uniplus, input(i)))
 end
 
+function SLProgram(c::Const{T}) where {T}
+    p = SLProgram{T}()
+    pushfinalize!(p, pushop!(p, uniplus, pushconst!(p, c.c)))
+end
+
 constants(p::SLProgram) = p.cs
 lines(p::SLProgram) = p.lines
 
