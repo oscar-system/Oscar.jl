@@ -92,6 +92,9 @@ end
 
 SLProgram(cs, lines) = SLProgram(cs, lines, Ref{Function}())
 
+SLProgram{T}() where {T} = SLProgram(T[], Line[])
+
+
 constants(p::SLProgram) = p.cs
 lines(p::SLProgram) = p.lines
 

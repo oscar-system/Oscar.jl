@@ -364,3 +364,11 @@ end
         end
     end
 end
+
+@testset "SLProgram" begin
+    p = SLProgram{Int}()
+    @test p isa SLProgram{Int}
+    @test isempty(p.cs)
+    @test isempty(p.lines)
+    @test !isassigned(p.f)
+end
