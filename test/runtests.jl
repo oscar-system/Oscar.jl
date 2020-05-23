@@ -2,7 +2,7 @@ using Test, StraightLinePrograms, AbstractAlgebra
 
 using StraightLinePrograms: Const, Exp, Gen, Minus, Plus, Lazy,
     Times, UniMinus, pushconst!, pushop!,
-    Line, Arg, constants, lines, execute
+    Line, Arg, constants, lines, evaluate
 
 const SL = StraightLinePrograms
 
@@ -383,33 +383,33 @@ end
     @test !isassigned(p.f)
 
     p = SLProgram{Int}(1)
-    @test execute(p, [10, 20]) == 10
+    @test evaluate(p, [10, 20]) == 10
     p = SLProgram{Int}(3)
-    @test execute(p, [10, "20", 'c']) == 'c'
+    @test evaluate(p, [10, "20", 'c']) == 'c'
 
     p = SLProgram(Const(3))
-    @test execute(p, [10, 20]) == 3
+    @test evaluate(p, [10, 20]) == 3
     p = SLProgram(Const('c'))
-    @test execute(p, ["10", 20]) == 'c'
+    @test evaluate(p, ["10", 20]) == 'c'
 
     p = SLProgram{Int}(1)
     q = SLProgram(Const(6))
     r = SLProgram{Int}(2)
     @test p === SL.addeq!(p, q)
-    @test execute(p, [3]) == 9
+    @test evaluate(p, [3]) == 9
     @test p === SL.subeq!(p, r)
-    @test execute(p, [3, 2]) == 7
+    @test evaluate(p, [3, 2]) == 7
     @test p === SL.subeq!(p)
-    @test execute(p, [3, 2]) == -7
+    @test evaluate(p, [3, 2]) == -7
     @test p === SL.muleq!(p, r)
-    @test execute(p, [3, 2]) == -14
+    @test evaluate(p, [3, 2]) == -14
     @test p === SL.expeq!(p, 3)
-    @test execute(p, [3, 2]) == -2744
+    @test evaluate(p, [3, 2]) == -2744
 
     # conversion Lazy -> SLProgram
     x, y = Gen(:x), Gen(:y)
     @test SLProgram(x^2+y) isa SLProgram{Union{}}
     p = SL.muleq!(SLProgram(Const(2)), SLProgram{Int}(x^2+y))
     @test p isa SLProgram{Int}
-    @test execute(p, [2, 3]) == 14
+    @test evaluate(p, [2, 3]) == 14
 end

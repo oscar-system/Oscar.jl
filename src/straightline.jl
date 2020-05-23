@@ -283,14 +283,14 @@ pushlazy!(p, l::Exp, gs) =
     pushop!(p, exponentiate, pushlazy!(p, l.p, gs), Arg(l.e))
 
 
-## execute
+## evaluate
 
-function execute(p::SLProgram{T}, xs::Vector{S},
-                 conv::F=nothing) where {T,S,F}
+function evaluate(p::SLProgram{T}, xs::Vector{S},
+                  conv::F=nothing) where {T,S,F}
     if isassigned(p.f)
         p.f[](xs)::S
     else
-        execute!(S[], p, xs, conv)
+        evaluate!(S[], p, xs, conv)
     end
 end
 
@@ -299,8 +299,8 @@ retrieve(cs, xs, res, i) =
     isinput(i) ? xs[inputidx(i)] :
     res[i.x]
 
-function execute!(res::Vector{S}, p::SLProgram{T}, xs::Vector{S},
-                  conv::F=nothing) where {S,T,F}
+function evaluate!(res::Vector{S}, p::SLProgram{T}, xs::Vector{S},
+                   conv::F=nothing) where {S,T,F}
     # TODO: handle isempty(lines(p))
     empty!(res)
 
@@ -346,7 +346,7 @@ cretrieve(i) =
     isconstant(i) ? Symbol(:c, constantidx(i)) => 0 :
     Symbol(:res, i.x) => 0
 
-# TODO: handle the "conv" argument like in execute!
+# TODO: handle the "conv" argument like in evaluate!
 # (works without, but there can be type-instability)
 
 # return compiled execution function f, and updates
