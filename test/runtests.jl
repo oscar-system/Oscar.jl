@@ -189,7 +189,7 @@ end
 
 @testset "SLPoly" begin
     S = SLPolyRing(zz, [:x, :y])
-    p = SLPoly(S, Int[], Line[])
+    p = SLPoly(S, SLProgram{Int}())
     @test p isa SLPoly{Int,typeof(S)} <: MPolyElem{Int}
     @test parent(p) === S
     p = SLPoly(S)
@@ -197,7 +197,7 @@ end
     @test parent(p) === S
 
     # copy
-    q = SLPoly(S, Int[], Line[])
+    q = SLPoly(S)
     # TODO: do smthg more interesting with q
     push!(constants(q), 3)
     push!(lines(q), Line(0))
@@ -208,7 +208,7 @@ end
         @test lines(p1) == lines(q) && lines(p1) !== lines(q)
     end
     S2 = SLPolyRing(zz, [:z, :t])
-    @test_throws ArgumentError copy!(SLPoly(S2, Int[], Line[]), p)
+    @test_throws ArgumentError copy!(SLPoly(S2, SLProgram{Int}()), p)
 
     # building
     p = SLPoly(S)
@@ -405,4 +405,11 @@ end
     @test execute(p, [3, 2]) == -14
     @test p === SL.expeq!(p, 3)
     @test execute(p, [3, 2]) == -2744
+
+    # conversion Lazy -> SLProgram
+    x, y = Gen(:x), Gen(:y)
+    @test SLProgram(x^2+y) isa SLProgram{Union{}}
+    p = SL.muleq!(SLProgram(Const(2)), SLProgram{Int}(x^2+y))
+    @test p isa SLProgram{Int}
+    @test execute(p, [2, 3]) == 14
 end

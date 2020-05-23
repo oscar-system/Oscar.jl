@@ -245,6 +245,44 @@ function expeq!(p::SLProgram, e::Integer)
 end
 
 
+## conversion Lazy -> SLProgram
+
+SLProgram(l::Lazy) = SLProgram{constantstype(l)}(l)
+
+function SLProgram{T}(l::Lazy, gs=gens(l)) where T
+    p = SLProgram{T}()
+    i = pushlazy!(p, l, gs)
+    pushfinalize!(p, i)
+end
+
+pushlazy!(p::SLProgram, l::Const, gs) = pushconst!(p, l.c)
+
+pushlazy!(p::SLProgram, l::Gen, gs) = input(findfirst(==(l.g), gs))
+
+function pushlazy!(p, l::Union{Plus,Times}, gs)
+    # TODO: handle isempty(p.xs) ?
+    op = l isa Plus ? plus : times
+    x, xs = Iterators.peel(l.xs)
+    i = pushlazy!(p, x, gs)
+    for x in xs
+        j = pushlazy!(p, x, gs)
+        i = pushop!(p, op, i, j)
+    end
+    i
+end
+
+function pushlazy!(p, l::Minus, gs)
+    i = pushlazy!(p, l.p, gs)
+    j = pushlazy!(p, l.q, gs)
+    pushop!(p, minus, i, j)
+end
+
+pushlazy!(p, l::UniMinus, gs) = pushop!(p, uniminus, pushlazy!(p, l.p, gs))
+
+pushlazy!(p, l::Exp, gs) =
+    pushop!(p, exponentiate, pushlazy!(p, l.p, gs), Arg(l.e))
+
+
 ## execute
 
 function execute(p::SLProgram{T}, xs::Vector{S},

@@ -27,9 +27,8 @@ struct SLPoly{T<:RingElement,SLPR<:SLPolyRing{T}} <: MPolyElem{T}
     parent::SLPR
     slprogram::SLProgram{T}
 
-    SLPoly(parent, cs, lines) =
-        new{elem_type(base_ring(parent)),typeof(parent)}(
-            parent, SLProgram(cs, lines))
+    SLPoly(parent, slp::SLProgram) =
+        new{elem_type(base_ring(parent)),typeof(parent)}(parent, slp)
 end
 
 constants(p::SLPoly) = constants(p.slprogram)
@@ -37,7 +36,7 @@ lines(p::SLPoly) = lines(p.slprogram)
 
 
 # create invalid poly
-SLPoly(parent::SLPolyRing{T}) where {T} = SLPoly(parent, T[], Line[])
+SLPoly(parent::SLPolyRing{T}) where {T} = SLPoly(parent, SLProgram{T}())
 
 parent(p::SLPoly) = p.parent
 
@@ -202,37 +201,9 @@ end
 (R::SLPolyRing{T})(p::LazyPoly{T}) where {T} = R(p.p)
 
 function (R::SLPolyRing{T})(p::Lazy) where {T}
-    q = SLPoly(R)
-    i = pushpoly!(q, p)
-    pushfinalize!(q, i)
+    pr = SLProgram{T}(p, symbols(R))
+    SLPoly(R, pr)
 end
-
-pushpoly!(q, p::Const) = pushconst!(q.slprogram, p.c)
-
-pushpoly!(q, p::Gen) = input(findfirst(==(p.g), symbols(parent(q))))
-
-function pushpoly!(q, p::Union{Plus,Times})
-    # TODO: handle isempty(p.xs) ?
-    op = p isa Plus ? plus : times
-    x, xs = Iterators.peel(p.xs)
-    i = pushpoly!(q, x)
-    for x in xs
-        j = pushpoly!(q, x)
-        i = pushop!(q, op, i, j)
-    end
-    i
-end
-
-function pushpoly!(q, p::Minus)
-    i = pushpoly!(q, p.p)
-    j = pushpoly!(q, p.q)
-    pushop!(q, minus, i, j)
-end
-
-pushpoly!(q, p::UniMinus) = pushop!(q, uniminus, pushpoly!(q, p.p))
-
-pushpoly!(q, p::Exp) = pushop!(q, exponentiate,
-                               pushpoly!(q, p.p), Arg(p.e))
 
 
 ## conversion MPoly -> SLPoly
