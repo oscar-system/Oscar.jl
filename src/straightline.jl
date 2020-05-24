@@ -187,7 +187,7 @@ function pushfinalize!(p::SLProgram, ret::Arg)
     p
 end
 
-function _combine!(p::SLProgram{T}, q::SLProgram{T}) where T
+function _combine!(p::SLProgram, q::SLProgram)
     i1 = pushinit!(p)
     koffset = length(constants(p))
     len = length(lines(p))
@@ -216,7 +216,7 @@ function _combine!(p::SLProgram{T}, q::SLProgram{T}) where T
     i1, i2
 end
 
-function combine!(op::Op, p::SLProgram{T}, q::SLProgram{T}) where {T}
+function combine!(op::Op, p::SLProgram, q::SLProgram)
     i = pushop!(p, op, _combine!(p, q)...)
     pushfinalize!(p, i)
 end
@@ -236,16 +236,16 @@ end
 
 ## mutating ops
 
-addeq!(p::SLProgram{T}, q::SLProgram{T}) where {T} = combine!(plus, p, q)
+addeq!(p::SLProgram, q::SLProgram) = combine!(plus, p, q)
 
-subeq!(p::SLProgram{T}, q::SLProgram{T}) where {T} = combine!(minus, p, q)
+subeq!(p::SLProgram, q::SLProgram) = combine!(minus, p, q)
 
 function subeq!(p::SLProgram)
     combine!(uniminus, p)
     p
 end
 
-muleq!(p::SLProgram{T}, q::SLProgram{T}) where {T} = combine!(times, p, q)
+muleq!(p::SLProgram, q::SLProgram) = combine!(times, p, q)
 
 function expeq!(p::SLProgram, e::Integer)
     combine!(exponentiate, p, e)

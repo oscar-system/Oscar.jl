@@ -433,6 +433,16 @@ end
 
     @test SL.ninputs(p) == 2
 
+    p = SLProgram{UInt8}(1)
+    q = SLProgram(Const(2))
+    SL.addeq!(p, q)
+    @test p.cs[1] === 0x2
+    SL.muleq!(p, SLProgram(Const(3.0)))
+    @test p.cs[2] === 0x3
+    SL.subeq!(p, SLProgram(Const(big(4))))
+    @test p.cs[3] === 0x4
+    @test_throws InexactError SL.addeq!(p, SLProgram(Const(1.2)))
+
     # conversion Lazy -> SLProgram
     x, y = Gen(:x), Gen(:y)
     @test SLProgram(x^2+y) isa SLProgram{Union{}}
