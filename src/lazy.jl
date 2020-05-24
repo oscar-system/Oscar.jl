@@ -4,6 +4,7 @@ abstract type Lazy end
 
 gens(l::Lazy) = sort!(unique!(pushgens!(Symbol[], l)::Vector{Symbol}))
 
+Base.:(==)(k::Lazy, l::Lazy) = false
 
 ### Const
 
@@ -15,6 +16,8 @@ Base.show(io::IO, c::Const) = print(io, c.c)
 
 pushgens!(gs, c::Const) = gs
 constantstype(l::Const{T}) where {T} = T
+
+Base.:(==)(k::Const, l::Const) = k.c == l.c
 
 
 ### Gen
@@ -33,6 +36,8 @@ pushgens!(gs, g::Gen) =
     end
 
 constantstype(l::Gen) = Union{}
+
+Base.:(==)(k::Gen, l::Gen) = k.g == l.g
 
 
 ### Plus
@@ -54,6 +59,8 @@ pushgens!(gs, p::Plus) = foldl(pushgens!, p.xs, init=gs)
 constantstype(p::Plus) =
     mapreduce(constantstype, typejoin, p.xs, init=Union{})
 
+Base.:(==)(k::Plus, l::Plus) = k.xs == l.xs
+
 
 ### Minus
 
@@ -68,6 +75,8 @@ pushgens!(gs, l::Minus) = pushgens!(pushgens!(gs, l.p), l.q)
 
 constantstype(m::Minus) = typejoin(constantstype(m.p), constantstype(m.q))
 
+Base.:(==)(k::Minus, l::Minus) = k.p == l.p && k.q == l.q
+
 
 ### UniMinus
 
@@ -80,6 +89,8 @@ Base.show(io::IO, p::UniMinus) = print(io, "(-", p.p, ')')
 pushgens!(gs, l::UniMinus) = pushgens!(gs, l.p)
 
 constantstype(p::UniMinus) = constantstype(p.p)
+
+Base.:(==)(k::UniMinus, l::UniMinus) = k.p == l.p
 
 
 ### Times
@@ -101,6 +112,8 @@ pushgens!(gs, p::Times) = foldl(pushgens!, p.xs, init=gs)
 constantstype(p::Times) =
     mapreduce(constantstype, typejoin, p.xs, init=Union{})
 
+Base.:(==)(k::Times, l::Times) = k.xs == l.xs
+
 
 ### Exp
 
@@ -114,6 +127,8 @@ Base.show(io::IO, p::Exp) = print(io, p.p, '^', p.e)
 pushgens!(gs, l::Exp) = pushgens!(gs, l.p)
 
 constantstype(p::Exp) = constantstype(p.p)
+
+Base.:(==)(k::Exp, l::Exp) = k.p == l.p && k.e == l.e
 
 
 ### binary ops

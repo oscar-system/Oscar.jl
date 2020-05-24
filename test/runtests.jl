@@ -17,12 +17,16 @@ replstr(c) = sprint((io, x) -> show(io, "text/plain", x), c)
 end
 
 @testset "Lazy" begin
+    x, y, z = Gen.([:x, :y, :z])
+
     # Const
     c = Const(1)
     @test c isa Const{Int}
     @test c isa Lazy
     @test string(c) == "1"
     @test isempty(SL.gens(c))
+    @test c == Const(1) == Const(0x1)
+    @test c != Const(2)
 
     # Gen
     g = Gen(:x)
@@ -30,6 +34,8 @@ end
     @test g isa Lazy
     @test string(g) == "x"
     @test SL.gens(g) == [:x]
+    @test g == x
+    @test g != y
 
     # Plus
     p = Plus(c, g)
@@ -37,122 +43,152 @@ end
     @test p.xs[1] == c && p.xs[2] == g
     @test string(p) == "(1 + x)"
     @test SL.gens(p) == [:x]
+    @test p == 1+x == 0x1+x
+    @test p != 2+x && p != 1+y
 
     # Minus
     m = Minus(p, g)
     @test m isa Minus <: Lazy
     @test string(m) == "((1 + x) - x)"
     @test SL.gens(m) == [:x]
+    @test m == (1+x)-x
+    @test m != (1+x)+x && m != x-x && m != (1+x)-y
 
     # UniMinus
     u = UniMinus(p)
     @test u isa UniMinus <: Lazy
     @test string(u) == "(-(1 + x))"
     @test SL.gens(u) == [:x]
+    @test u == -(1+x)
+    @test u != (1+x) && u != -(1+y)
 
     # Times
     t = Times(g, p)
     @test t isa Times <: Lazy
     @test string(t) == "(x(1 + x))"
     @test SL.gens(t) == [:x]
+    @test t == x*(1+x)
+    @test t != (1+x)*x && t != y*(1+x) && t != x*(1+y)
 
     # Exp
     e = Exp(p, 3)
     @test e isa Exp <: Lazy
     @test string(e) == "(1 + x)^3"
     @test SL.gens(e) == [:x]
+    @test e == (1+x)^3
+    @test e != (1+x)^4 && e != (1+y)^3
 
     # +
     p1 =  e + t
     @test p1 isa Plus
     @test p1.xs[1] === e
     @test p1.xs[2] === t
+    @test p1 == e+t
     p2 = p + e
     @test p2 isa Plus
     @test p2.xs[1] === p.xs[1]
     @test p2.xs[2] === p.xs[2]
     @test p2.xs[3] === e
+    @test p2 == p+e
     p3 = e + p
     @test p3 isa Plus
     @test p3.xs[1] === e
     @test p3.xs[2] === p.xs[1]
     @test p3.xs[3] === p.xs[2]
+    @test p3 == e+p
     p4 = p + p
     @test p4 isa Plus
     @test p4.xs[1] === p.xs[1]
     @test p4.xs[2] === p.xs[2]
     @test p4.xs[3] === p.xs[1]
     @test p4.xs[4] === p.xs[2]
+    @test p4 == p+p
 
     # -
     m1 = e - t
     @test m1 isa Minus
     @test m1.p === e
     @test m1.q === t
+    @test m1 == e-t
     m2 = -e
     @test m2 isa UniMinus
     @test m2.p === e
+    @test m2 == -e
 
     # *
     t1 =  e * p
     @test t1 isa Times
     @test t1.xs[1] === e
     @test t1.xs[2] === p
+    @test t1 == e*p
     t2 = t * e
     @test t2 isa Times
     @test t2.xs[1] === t.xs[1]
     @test t2.xs[2] === t.xs[2]
     @test t2.xs[3] === e
+    @test t2 == t*e
     t3 = e * t
     @test t3 isa Times
     @test t3.xs[1] === e
     @test t3.xs[2] === t.xs[1]
     @test t3.xs[3] === t.xs[2]
+    @test t3 == e*t
     t4 = t * t
     @test t4 isa Times
     @test t4.xs[1] === t.xs[1]
     @test t4.xs[2] === t.xs[2]
     @test t4.xs[3] === t.xs[1]
     @test t4.xs[4] === t.xs[2]
+    @test t4 == t*t
 
     # adhoc *
     at1 = 3 * p
     @test at1 isa Times
     at2 = big(3) * p
     @test at2 isa Times
+    @test at1 == at2
     at3 = p * 3
     @test at3 isa Times
     at4 = p * big(3)
     @test at4 isa Times
+    @test at3 == at4
 
     # adhoc +
     ap1 = 3 + p
     @test ap1 isa Plus
     ap2 = big(3) + p
     @test ap2 isa Plus
+    @test ap1 == ap2
     ap3 = p + 3
     @test ap3 isa Plus
     ap4 = p + big(3)
     @test ap4 isa Plus
+    @test ap3 == ap4
 
     # adhoc -
     am1 = 3 - p
     @test am1 isa Minus
     am2 = big(3) - p
     @test am2 isa Minus
+    @test am1 == am2
     am3 = p - 3
     @test am3 isa Minus
     am4 = p - big(3)
     @test am4 isa Minus
+    @test am3 == am4
 
     # ^
     e1 = p^3
     @test e1 isa Exp
     @test e1.p === p
     @test e1.e == 3
+    @test e1 == p^3
 
     h = Gen(:y)
-    @test gens(e1+t4*h) == [:x, :y]
+    q = e1+t4*h
+    @test gens(q) == [:x, :y]
+    @test h == y
+    @test q == e1+t4*h == ((1 + x)^3 + (x*(1 + x)*x*(1 + x)*y))
 end
 
 @testset "LazyPoly" begin
