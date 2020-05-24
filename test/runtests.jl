@@ -402,6 +402,7 @@ end
     @test isempty(p.lines)
     @test !isassigned(p.f)
 
+    # evaluate
     p = SLProgram{Int}(1)
     @test evaluate(p, [10, 20]) == 10
     @test SL.ninputs(p) == 1
@@ -419,6 +420,7 @@ end
     q = SLProgram(Const(6))
     r = SLProgram{Int}(2)
 
+    # mutating ops
     @test p === SL.addeq!(p, q)
     @test evaluate(p, [3]) == 9
     @test p === SL.subeq!(p, r)
@@ -457,6 +459,20 @@ end
     @test p3.cs == p.cs
     @test p3.lines == p.lines
     @test_throws InexactError SL.addeq!(p3, SLProgram(Const(1.2)))
+
+    # unary/binary ops
+    p = SLProgram{BigInt}(1)
+    q = SLProgram(Const(2))
+    r = p+q
+    @test SL.constantstype(r) === Signed
+    r = r*SLProgram(Const(0x3))
+    @test SL.constantstype(r) === Integer
+    r = r-SLProgram(Const(1.2))
+    @test SL.constantstype(r) === Real
+    r = -r
+    @test SL.constantstype(r) === Real
+    r = r^3
+    @test SL.constantstype(r) === Real
 
     # conversion Lazy -> SLProgram
     x, y = Gen(:x), Gen(:y)

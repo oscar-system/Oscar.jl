@@ -119,6 +119,8 @@ Base.:(==)(p::SLProgram, q::SLProgram) = p.cs == q.cs && p.lines == q.lines
 constants(p::SLProgram) = p.cs
 lines(p::SLProgram) = p.lines
 
+constantstype(p::SLProgram{T}) where {T} = T
+
 # return the (max) number of inputs
 ninputs(p::SLProgram) =
     mapreduce(max, lines(p)) do line
@@ -262,6 +264,22 @@ function expeq!(p::SLProgram, e::Integer)
     combine!(exponentiate, p, e)
     p
 end
+
+
+## unary/binary ops
+
+copy_jointype(p::SLProgram, q::SLProgram) =
+    copy_oftype(p, typejoin(constantstype(p), constantstype(q)))
+
++(p::SLProgram, q::SLProgram) = addeq!(copy_jointype(p, q), q)
+
+*(p::SLProgram, q::SLProgram) = muleq!(copy_jointype(p, q), q)
+
+-(p::SLProgram, q::SLProgram) = subeq!(copy_jointype(p, q), q)
+
+-(p::SLProgram) = subeq!(copy(p))
+
+^(p::SLProgram, e::Integer) = expeq!(copy(p), e)
 
 
 ## conversion Lazy -> SLProgram
