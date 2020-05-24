@@ -442,6 +442,21 @@ end
     SL.subeq!(p, SLProgram(Const(big(4))))
     @test p.cs[3] === 0x4
     @test_throws InexactError SL.addeq!(p, SLProgram(Const(1.2)))
+    @assert length(p.cs) == 4 # p.cs was resized before append! failed
+    pop!(p.cs) # set back consistent state
+
+    p2 = SL.copy_oftype(p, Float64)
+    @test p2 == p
+    @test p2.cs == p.cs
+    @test p2.lines == p.lines
+    SL.addeq!(p2, SLProgram(Const(1.2)))
+    @test p2.cs[4] == 1.2
+
+    p3 = copy(p)
+    @test p3 == p
+    @test p3.cs == p.cs
+    @test p3.lines == p.lines
+    @test_throws InexactError SL.addeq!(p3, SLProgram(Const(1.2)))
 
     # conversion Lazy -> SLProgram
     x, y = Gen(:x), Gen(:y)
