@@ -143,18 +143,20 @@ slpcst(c) = SLProgram(Const(c))
 
 ## show
 
-# old basic version
-function showsimple(io::IO, ::MIME"text/plain", p::SLProgram)
+# old basic version, useful when normal show is broken
+function showsimple(io::IO, p::SLProgram)
     println("SLProgram with constants:")
     for (i, c) in enumerate(constants(p))
         println(io, i, " | ", c)
     end
     println("and with lines:")
     for (i, l) in enumerate(lines(p))
-        i == 1 || println(io)
-        print(io, i, " | ", l)
+        println(io, i, " | ", l)
     end
+    println("return: ", p.ret)
 end
+
+showsimple(p::SLProgram) = showsimple(stdout, p)
 
 slpsyms(n::Integer) =
     n <= 3 ?
