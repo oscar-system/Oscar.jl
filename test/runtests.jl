@@ -443,7 +443,7 @@ end
     @test evaluate(p, [10, 20]) == 10
     @test SL.ninputs(p) == 1
     @test SL.aslazy(p) == Gen(:x)
-    p = SLProgram{Int}(3)
+    p = SLProgram(3)
     @test evaluate(p, [10, "20", 'c']) == 'c'
     @test SL.ninputs(p) == 3
     @test SL.aslazy(p) == Gen(:z)
@@ -458,7 +458,7 @@ end
 
     p = SLProgram{Int}(1)
     q = SLProgram(Const(6))
-    r = SLProgram{Int}(2)
+    r = SLProgram(2)
     x, y, z = Gen.([:x, :y, :z])
 
     # mutating ops
@@ -523,15 +523,24 @@ end
 
     # unary/binary ops
     p = SLProgram{BigInt}(1)
+    p2 = SLProgram(1)
     q = SLProgram(Const(2))
 
     r = p+q
     @test SL.aslazy(r) == x+2
     @test SL.constantstype(r) === Signed
 
+    r2 = p2+q
+    @test SL.aslazy(r) == x+2
+    @test SL.constantstype(r2) === Int
+
     r = r*SLProgram(Const(0x3))
     @test SL.aslazy(r) == (x+2)*3
     @test SL.constantstype(r) === Integer
+
+    r2 = r2*SLProgram(Const(0x3))
+    @test SL.aslazy(r2) == (x+2)*3
+    @test SL.constantstype(r2) === Integer
 
     r = r-SLProgram(Const(1.2))
     @test SL.aslazy(r) == (x+2)*3-1.2

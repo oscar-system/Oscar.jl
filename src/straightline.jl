@@ -100,6 +100,8 @@ function SLProgram{T}(i::Integer) where {T}
     pushfinalize!(p, pushop!(p, uniplus, input(i)))
 end
 
+SLProgram(i::Integer) = SLProgram{Union{}}(i)
+
 function SLProgram(c::Const{T}) where {T}
     p = SLProgram{T}()
     pushfinalize!(p, pushop!(p, uniplus, pushconst!(p, c.c)))
