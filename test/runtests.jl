@@ -438,50 +438,74 @@ end
     @test isempty(p.lines)
     @test !isassigned(p.f)
 
-    # evaluate
+    # construction/evaluate/ninputs/aslazy
     p = SLProgram{Int}(1)
     @test evaluate(p, [10, 20]) == 10
     @test SL.ninputs(p) == 1
+    @test SL.aslazy(p) == Gen(:x)
     p = SLProgram{Int}(3)
     @test evaluate(p, [10, "20", 'c']) == 'c'
     @test SL.ninputs(p) == 3
+    @test SL.aslazy(p) == Gen(:z)
 
     p = SLProgram(Const(3))
     @test evaluate(p, [10, 20]) == 3
+    @test SL.aslazy(p) == Const(3)
     p = SLProgram(Const('c'))
     @test evaluate(p, ["10", 20]) == 'c'
     @test SL.ninputs(p) == 0
+    @test SL.aslazy(p) == Const('c')
 
     p = SLProgram{Int}(1)
     q = SLProgram(Const(6))
     r = SLProgram{Int}(2)
+    x, y, z = Gen.([:x, :y, :z])
 
     # mutating ops
     @test p === SL.addeq!(p, q)
     @test evaluate(p, [3]) == 9
+    @test SL.aslazy(p) == x+6
+
     @test p === SL.subeq!(p, r)
     @test evaluate(p, [3, 2]) == 7
+    @test SL.aslazy(p) == x+6-y
+
     @test p === SL.subeq!(p)
     @test evaluate(p, [3, 2]) == -7
+    @test SL.aslazy(p) == -(x+6-y)
+
     @test p === SL.muleq!(p, r)
     @test evaluate(p, [3, 2]) == -14
+    @test SL.aslazy(p) == -(x+6-y)*y
+
     @test p === SL.expeq!(p, 3)
     @test evaluate(p, [3, 2]) == -2744
     @test SL.evaluates(p, [3, 2]) == [9, 7, -7, -14, -2744]
+    @test SL.aslazy(p) == (-(x+6-y)*y)^3
 
     @test SL.ninputs(p) == 2
 
     p = SLProgram{UInt8}(1)
     q = SLProgram(Const(2))
+
     SL.addeq!(p, q)
     @test p.cs[1] === 0x2
+    @test SL.aslazy(p) == x+2
+
     SL.muleq!(p, SLProgram(Const(3.0)))
     @test p.cs[2] === 0x3
+    @test SL.aslazy(p) == (x+2)*3.0
+
     SL.subeq!(p, SLProgram(Const(big(4))))
     @test p.cs[3] === 0x4
+    @test SL.aslazy(p) == (x+2)*3.0-big(4)
+
     @test_throws InexactError SL.addeq!(p, SLProgram(Const(1.2)))
     @assert length(p.cs) == 4 # p.cs was resized before append! failed
     pop!(p.cs) # set back consistent state
+    @assert length(p.lines) == 4 # p.lines was resized before append! failed
+    pop!(p.lines) # set back consistent state
+    @test SL.aslazy(p) == (x+2)*3.0-big(4)
 
     p2 = SL.copy_oftype(p, Float64)
     @test p2 == p
@@ -489,6 +513,7 @@ end
     @test p2.lines == p.lines
     SL.addeq!(p2, SLProgram(Const(1.2)))
     @test p2.cs[4] == 1.2
+    @test SL.aslazy(p2) == ((((x + 2.0)*3.0) - 4.0) + 1.2)
 
     p3 = copy(p)
     @test p3 == p
@@ -499,21 +524,31 @@ end
     # unary/binary ops
     p = SLProgram{BigInt}(1)
     q = SLProgram(Const(2))
+
     r = p+q
+    @test SL.aslazy(r) == x+2
     @test SL.constantstype(r) === Signed
+
     r = r*SLProgram(Const(0x3))
+    @test SL.aslazy(r) == (x+2)*3
     @test SL.constantstype(r) === Integer
+
     r = r-SLProgram(Const(1.2))
+    @test SL.aslazy(r) == (x+2)*3-1.2
     @test SL.constantstype(r) === Real
+
     r = -r
+    @test SL.aslazy(r) == -((x+2)*3-1.2)
     @test SL.constantstype(r) === Real
+
     r = r^3
+    @test SL.aslazy(r) == (-((x+2)*3-1.2))^3
     @test SL.constantstype(r) === Real
 
     # conversion Lazy -> SLProgram
-    x, y = Gen(:x), Gen(:y)
     @test SLProgram(x^2+y) isa SLProgram{Union{}}
     p = SL.muleq!(SLProgram(Const(2)), SLProgram{Int}(x^2+y))
     @test p isa SLProgram{Int}
     @test evaluate(p, [2, 3]) == 14
+    @test SL.aslazy(p) == 2*(x^2 + y)
 end

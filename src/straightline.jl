@@ -320,6 +320,20 @@ pushlazy!(p, l::Exp, gs) =
     pushop!(p, exponentiate, pushlazy!(p, l.p, gs), Arg(l.e))
 
 
+## conversion SLProgram -> Lazy
+
+# strictly convenience function
+function aslazy(p::SLProgram, gs=nothing)
+    if gs === nothing
+        n = ninputs(p)
+        gs = n <= 3 ?
+            Lazy[Gen(:x), Gen(:y), Gen(:z)][1:n] :
+            Lazy[Gen(Symbol(:x, i)) for i = 1:n] # TODO: untested
+    end
+    evaluate(p, gs, Const)
+end
+
+
 ## evaluate
 
 function evaluate(p::SLProgram{T}, xs::Vector{S}, conv::F=nothing
