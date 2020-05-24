@@ -9,6 +9,7 @@ using AbstractAlgebra: Ring, RingElement, MPolyRing, MPolyElem, elem_type,
 import AbstractAlgebra: base_ring, gen, gens, symbols, evaluate
 
 export LazyPolyRing, LazyPoly, SLPolyRing, SLPoly, SLProgram
+export slpcst, slpgen, slpgens
 
 
 include("lazy.jl")

@@ -131,6 +131,10 @@ ninputs(p::SLProgram) =
             isinput(j) ? inputidx(j) : 0) % Int
     end
 
+slpgen(n::Integer) = SLProgram(n)
+slpgens(n::Integer) = [SLProgram(i) for i=1:n]
+slpcst(c) = SLProgram(Const(c))
+
 
 ## show
 
@@ -147,19 +151,19 @@ function showsimple(io::IO, ::MIME"text/plain", p::SLProgram)
     end
 end
 
-slpgens(n::Integer) =
+slpsyms(n::Integer) =
     n <= 3 ?
         (:x, :y, :z)[1:n] :
         (Symbol(:x, i) for i = 1:n)
 
 function Base.show(io::IO, p::SLProgram)
-    gs = get(io, :SLPgens, slpgens(ninputs(p)))
+    gs = get(io, :SLPsymbols, slpsyms(ninputs(p)))
     show(io, evaluate(p, lazygens(gs), Const))
 end
 
 function Base.show(io::IO, ::MIME"text/plain", p::SLProgram{T}) where T
     n = length(lines(p))
-    gs = get(io, :SLPgens, slpgens(ninputs(p)))
+    gs = get(io, :SLPsymbols, slpsyms(ninputs(p)))
     syms = lazygens(gs)
     res = evaluates(p, syms, Const)
     if n == 1
@@ -387,7 +391,7 @@ pushlazy!(p, l::Exp, gs) =
 ## conversion SLProgram -> Lazy
 
 lazygens(gs) = Lazy[Gen(s) for s in gs]
-lazygens(n::Integer) = lazygens(slpgens(n))
+lazygens(n::Integer) = lazygens(slpsyms(n))
 
 # strictly convenience function
 aslazy(p::SLProgram, gs=lazygens(ninputs(p))) = evaluate(p, gs, Const)
