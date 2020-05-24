@@ -62,66 +62,14 @@ end
 
 ## show
 
-function evaluate_lazy(p)
-    # pre-compute line representations via LazyPoly
-    R = parent(p)
-    L = LazyPolyRing(base_ring(R))
-    xs = map(L, symbols(R))
-    res = empty(xs)
-    evaluate!(res, p, xs, L)
-    res
+function Base.show(io::IO, p::SLPoly)
+    io = IOContext(io, :SLPgens => symbols(parent(p)))
+    show(io, p.slprogram)
 end
 
-Base.show(io::IO, p::SLPoly) = show(io, evaluate_lazy(p)[end])
-
-function Base.show(io::IO, ::MIME"text/plain", p::SLPoly{T}) where T
-    n = length(lines(p))
-    syms = symbols(parent(p))
-    res = evaluate_lazy(p)
-    if n == 1
-        # trivial program, show only result
-        return show(io, res[end])
-    end
-
-    str(x...) = sprint(print, x...; context=io)
-    strlines = Vector{String}[]
-    widths = [0, 0, 0, 0, 0]
-
-    for (k, line) in enumerate(lines(p))
-        op, i, j = unpack(line)
-        if 1 < k == n && op == uniplus && i.x == k-1+length(constants(p))
-            # 1 < k for trivial SLPs returning a constant
-            break
-        end
-        sk = string(k)
-        line = String[]
-        push!(strlines, line)
-        push!(line, str('#', sk, " ="))
-        x = showarg(constants(p), syms, i)
-        y = isunary(op) ? "" :
-            isquasiunary(op) ? string(j.x) :
-            showarg(constants(p), syms, j)
-        push!(line, str(showop[op]), x, y, str(res[k]))
-        widths .= max.(widths, textwidth.(line))
-    end
-    for (k, line) in enumerate(strlines)
-        k == 1 || println(io)
-        print(io, ' '^(widths[1]-length(line[1])), line[1])
-        for i = 2:4
-            print(io, ' '^(1+widths[i]-textwidth(line[i])), line[i])
-        end
-        print(io, "  ==>  ", line[5])
-    end
-end
-
-function showarg(cs, syms, i)
-    if isconstant(i)
-        string(cs[constantidx(i)])
-    elseif isinput(i)
-        string(syms[inputidx(i)])
-    else
-        "#$(i.x)"
-    end
+function Base.show(io::IO, m::MIME"text/plain", p::SLPoly)
+    io = IOContext(io, :SLPgens => symbols(parent(p)))
+    show(io, m, p.slprogram)
 end
 
 

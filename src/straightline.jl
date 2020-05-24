@@ -198,6 +198,16 @@ function Base.show(io::IO, ::MIME"text/plain", p::SLProgram{T}) where T
     end
 end
 
+function showarg(cs, syms, i)
+    if isconstant(i)
+        string(cs[constantidx(i)])
+    elseif isinput(i)
+        string(syms[inputidx(i)])
+    else
+        "#$(i.x)"
+    end
+end
+
 
 ## building SLProgram
 
