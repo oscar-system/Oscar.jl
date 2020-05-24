@@ -134,7 +134,8 @@ ninputs(p::SLProgram) =
 
 ## show
 
-function Base.show(io::IO, ::MIME"text/plain", p::SLProgram)
+# old basic version
+function showsimple(io::IO, ::MIME"text/plain", p::SLProgram)
     println("SLProgram with constants:")
     for (i, c) in enumerate(constants(p))
         println(io, i, " | ", c)
@@ -143,6 +144,49 @@ function Base.show(io::IO, ::MIME"text/plain", p::SLProgram)
     for (i, l) in enumerate(lines(p))
         i == 1 || println(io)
         print(io, i, " | ", l)
+    end
+end
+
+Base.show(io::IO, p::SLProgram) =
+    show(io, evaluate(p, lazygens(ninputs(p)), Const))
+
+function Base.show(io::IO, ::MIME"text/plain", p::SLProgram{T}) where T
+    n = length(lines(p))
+    syms = lazygens(ninputs(p))
+    res = evaluates(p, syms, Const)
+    if n == 1
+        # trivial program, show only result
+        return show(io, res[end])
+    end
+
+    str(x...) = sprint(print, x...; context=io)
+    strlines = Vector{String}[]
+    widths = [0, 0, 0, 0, 0]
+
+    for (k, line) in enumerate(lines(p))
+        op, i, j = unpack(line)
+        if 1 < k == n && op == uniplus && i.x == k-1+length(constants(p))
+            # 1 < k for trivial SLPs returning a constant
+            break
+        end
+        sk = string(k)
+        line = String[]
+        push!(strlines, line)
+        push!(line, str('#', sk, " ="))
+        x = showarg(constants(p), syms, i)
+        y = isunary(op) ? "" :
+            isquasiunary(op) ? string(j.x) :
+            showarg(constants(p), syms, j)
+        push!(line, str(showop[op]), x, y, str(res[k]))
+        widths .= max.(widths, textwidth.(line))
+    end
+    for (k, line) in enumerate(strlines)
+        k == 1 || println(io)
+        print(io, ' '^(widths[1]-length(line[1])), line[1])
+        for i = 2:4
+            print(io, ' '^(1+widths[i]-textwidth(line[i])), line[i])
+        end
+        print(io, "  ==>  ", line[5])
     end
 end
 
@@ -324,16 +368,14 @@ pushlazy!(p, l::Exp, gs) =
 
 ## conversion SLProgram -> Lazy
 
-# strictly convenience function
-function aslazy(p::SLProgram, gs=nothing)
-    if gs === nothing
-        n = ninputs(p)
-        gs = n <= 3 ?
-            Lazy[Gen(:x), Gen(:y), Gen(:z)][1:n] :
-            Lazy[Gen(Symbol(:x, i)) for i = 1:n] # TODO: untested
-    end
-    evaluate(p, gs, Const)
+function lazygens(n::Integer)
+    n <= 3 ?
+        Lazy[Gen(:x), Gen(:y), Gen(:z)][1:n] :
+        Lazy[Gen(Symbol(:x, i)) for i = 1:n] # TODO: untested
 end
+
+# strictly convenience function
+aslazy(p::SLProgram, gs=lazygens(ninputs(p))) = evaluate(p, gs, Const)
 
 
 ## evaluate
