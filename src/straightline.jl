@@ -88,11 +88,12 @@ end
 mutable struct SLProgram{T}
     cs::Vector{T}       # constants
     lines::Vector{Line} # instructions
+    ptr::Int            # where to store next result for any new line
     ret::Arg            # result index to return (0 for all)
     f::Ref{Function}    # compiled execution
 end
 
-SLProgram{T}() where {T} = SLProgram(T[], Line[], Arg(0), Ref{Function}())
+SLProgram{T}() where {T} = SLProgram(T[], Line[], 1, Arg(0), Ref{Function}())
 
 # return an input
 function SLProgram{T}(i::Integer) where {T}
@@ -110,6 +111,7 @@ end
 function Base.copy!(q::SLProgram, p::SLProgram)
     copy!(q.cs, p.cs)
     copy!(q.lines, p.lines)
+    q.ptr = p.ptr
     q.ret = p.ret
     q
 end
@@ -260,9 +262,14 @@ end
 function pushop!(p::SLProgram, op::Op, i::Arg, j::Arg=Arg(0))
     @assert i.x <= argmask && j.x <= argmask
     push!(lines(p), Line(op, i, j))
-    l = lastindex(lines(p))
-    @assert l < cstmark
-    Arg(l % UInt64)
+    if isassign(op) && j != Arg(0)
+        ptr = Int(j.x)
+    else
+        ptr = p.ptr
+        p.ptr += 1
+        @assert p.ptr < cstmark
+    end
+    Arg(ptr % UInt64)
 end
 
 function pushfinalize!(p::SLProgram, ret::Arg)
@@ -302,6 +309,7 @@ function _combine!(p::SLProgram, q::SLProgram)
     else
         i2 = Arg(i2.x + len)
     end
+    p.ptr += q.ptr - 1
     i1, i2
 end
 
