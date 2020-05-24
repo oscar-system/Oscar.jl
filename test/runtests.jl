@@ -503,8 +503,7 @@ end
     @test_throws InexactError SL.addeq!(p, SLProgram(Const(1.2)))
     @assert length(p.cs) == 4 # p.cs was resized before append! failed
     pop!(p.cs) # set back consistent state
-    @assert length(p.lines) == 4 # p.lines was resized before append! failed
-    pop!(p.lines) # set back consistent state
+    @assert length(p.lines) == 3 # p.lines was *not* resized before append! failed
     @test SL.aslazy(p) == (x+2)*3.0-big(4)
 
     p2 = SL.copy_oftype(p, Float64)

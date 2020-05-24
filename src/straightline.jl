@@ -30,7 +30,8 @@ for (i, (op, unary, showchar)) in enumerate([(:assign       , true,  "->"),
                                              (:minus        , false, "-"),
                                              (:times        , false, "*"),
                                              (:divide       , false, "/"),
-                                             (:exponentiate , true,  "^")])
+                                             (:exponentiate , true,  "^"),
+                                             ])
     isop = Symbol(:is, op)
     c = UInt64(i) << (2*argshift)
     if unary
@@ -84,32 +85,32 @@ end
 
 ## SLProgram
 
-struct SLProgram{T}
+mutable struct SLProgram{T}
     cs::Vector{T}       # constants
     lines::Vector{Line} # instructions
+    ret::Arg            # result index to return (0 for all)
     f::Ref{Function}    # compiled execution
 end
 
-SLProgram(cs, lines) = SLProgram(cs, lines, Ref{Function}())
-
-SLProgram{T}() where {T} = SLProgram(T[], Line[])
+SLProgram{T}() where {T} = SLProgram(T[], Line[], Arg(0), Ref{Function}())
 
 # return an input
 function SLProgram{T}(i::Integer) where {T}
     p = SLProgram{T}()
-    pushfinalize!(p, pushop!(p, assign, input(i)))
+    pushfinalize!(p, input(i))
 end
 
 SLProgram(i::Integer) = SLProgram{Union{}}(i)
 
 function SLProgram(c::Const{T}) where {T}
     p = SLProgram{T}()
-    pushfinalize!(p, pushop!(p, assign, pushconst!(p, c.c)))
+    pushfinalize!(p, pushconst!(p, c.c))
 end
 
 function Base.copy!(q::SLProgram, p::SLProgram)
     copy!(q.cs, p.cs)
     copy!(q.lines, p.lines)
+    q.ret = p.ret
     q
 end
 
@@ -117,7 +118,7 @@ copy_oftype(p::SLProgram, ::Type{T}) where {T} = copy!(SLProgram{T}(), p)
 
 Base.copy(p::SLProgram{T}) where {T} = copy_oftype(p, T)
 
-Base.:(==)(p::SLProgram, q::SLProgram) = p.cs == q.cs && p.lines == q.lines
+Base.:(==)(p::SLProgram, q::SLProgram) = p.cs == q.cs && p.lines == q.lines && p.ret == q.ret
 
 constants(p::SLProgram) = p.cs
 lines(p::SLProgram) = p.lines
@@ -125,12 +126,15 @@ lines(p::SLProgram) = p.lines
 constantstype(p::SLProgram{T}) where {T} = T
 
 # return the (max) number of inputs
-ninputs(p::SLProgram) =
-    mapreduce(max, lines(p)) do line
+function ninputs(p::SLProgram)
+    m0 = isinput(p.ret) ? inputidx(p.ret) % Int : 0
+    m1 = mapreduce(max, lines(p); init=0) do line
         op, i, j = unpack(line)
         max(isinput(i) ? inputidx(i) : 0,
             isinput(j) ? inputidx(j) : 0) % Int
     end
+    max(m0, m1)
+end
 
 slpgen(n::Integer) = SLProgram(n)
 slpgens(n::Integer) = [SLProgram(i) for i=1:n]
@@ -164,12 +168,15 @@ end
 
 function Base.show(io::IO, ::MIME"text/plain", p::SLProgram{T}) where T
     n = length(lines(p))
+    if p.ret == Arg(0)
+        return print(io, "invalid SLProgram{$T}()")
+    end
     gs = get(io, :SLPsymbols, slpsyms(ninputs(p)))
     syms = lazygens(gs)
     res = evaluates(p, syms, Const)
-    if n == 1
+    if n == 0
         # trivial program, show only result
-        return show(io, res[end])
+        return show(io, retrieve(p.cs, syms, res, p.ret))
     end
 
     str(x...) = sprint(print, x...; context=io)
@@ -178,6 +185,9 @@ function Base.show(io::IO, ::MIME"text/plain", p::SLProgram{T}) where T
 
     for (k, line) in enumerate(lines(p))
         op, i, j = unpack(line)
+        # TODO: the following bloc should probably be removed (constants are
+        # no more stored in the result array, and we don't want to hide an
+        # explicit assign)
         if 1 < k == n && op == assign && i.x == k-1+length(constants(p))
             # 1 < k for trivial SLPs returning a constant
             break
@@ -201,6 +211,8 @@ function Base.show(io::IO, ::MIME"text/plain", p::SLProgram{T}) where T
         end
         print(io, "  ==>  ", line[5])
     end
+    print(io, "\nreturn: ", showarg(constants(p), syms, p.ret))
+    # TODO: ^--- remove when unnecessary?
 end
 
 function showarg(cs, syms, i)
@@ -233,16 +245,8 @@ asconstant(i::Integer) = Arg(UInt64(i) | cstmark)
 
 # call before mutating, unless p is empty (opposite of pushfinalize!)
 
-function pushinit!(p::SLProgram)
-    plines = lines(p)
-    op, i, j = unpack(plines[end])
-    if isassign(op) && (isinput(i) || isconstant(i))
-        pop!(plines) # discard trivial instruction
-        i
-    else
-        Arg(lastindex(plines) % UInt64)
-    end
-end
+# TODO: pushinit! & pushfinalize! not really nececessary anymore?
+pushinit!(p::SLProgram) = p.ret
 
 function pushconst!(p::SLProgram{T}, c::T) where T
     push!(constants(p), c)
@@ -259,18 +263,14 @@ function pushop!(p::SLProgram, op::Op, i::Arg, j::Arg=Arg(0))
     Arg(l % UInt64)
 end
 
-# make state consistent again
 function pushfinalize!(p::SLProgram, ret::Arg)
-    k = length(constants(p))
-    if isinput(ret) || isconstant(ret) || ret.x != lastindex(lines(p))
-        # non-trivial return (i.e. no line or not the result of the last line)
-        pushop!(p, assign, ret)
-    end
+    p.ret = ret
     p
 end
 
 function _combine!(p::SLProgram, q::SLProgram)
     i1 = pushinit!(p)
+    i2 = pushinit!(q)
     koffset = length(constants(p))
     len = length(lines(p))
     append!(lines(p), lines(q))
@@ -294,7 +294,12 @@ function _combine!(p::SLProgram, q::SLProgram)
         lines(p)[n] = Line(op, i, j)
         # TODO: write conditionally only when modifications
     end
-    i2 = pushinit!(p)
+    if isconstant(i2)
+        i2 = Arg(i2.x + koffset)
+    elseif isinput(i2)
+    else
+        i2 = Arg(i2.x + len)
+    end
     i1, i2
 end
 
@@ -457,7 +462,8 @@ function evaluate!(res::Vector{S}, p::SLProgram{T}, xs::Vector{S},
         end
         push!(res, r)
     end
-    res[end]
+    x = retrieve(cs, xs, res, p.ret)
+    isa(x, S) ? x : conv(x)
 end
 
 
