@@ -107,12 +107,13 @@ function SLProgram(c::Const{T}) where {T}
     pushfinalize!(p, pushop!(p, assign, pushconst!(p, c.c)))
 end
 
-function copy_oftype(p::SLProgram, ::Type{T}) where T
-    q = SLProgram{T}()
+function Base.copy!(q::SLProgram, p::SLProgram)
     copy!(q.cs, p.cs)
     copy!(q.lines, p.lines)
     q
 end
+
+copy_oftype(p::SLProgram, ::Type{T}) where {T} = copy!(SLProgram{T}(), p)
 
 Base.copy(p::SLProgram{T}) where {T} = copy_oftype(p, T)
 

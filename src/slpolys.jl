@@ -48,8 +48,7 @@ end
 
 function Base.copy!(p::SLPoly{T}, q::SLPoly{T}) where {T}
     check_parent(p, q)
-    copy!(constants(p), constants(q))
-    copy!(lines(p), lines(q))
+    copy!(p.slprogram, q.slprogram)
     p
 end
 
