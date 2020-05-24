@@ -398,22 +398,22 @@ end
 end
 
 @testset "SL internals" begin
-    @test SL.showop == Dict(SL.uniplus      => '+',
-                            SL.plus         => '+',
-                            SL.uniminus     => '-',
-                            SL.minus        => '-',
-                            SL.times        => '*',
-                            SL.divide       => '/',
-                            SL.exponentiate => '^')
+    @test SL.showop == Dict(SL.assign       => "->",
+                            SL.plus         => "+",
+                            SL.uniminus     => "-",
+                            SL.minus        => "-",
+                            SL.times        => "*",
+                            SL.divide       => "/",
+                            SL.exponentiate => "^")
     @test length(SL.showop) == 7 # tests all keys are distinct
     for op in keys(SL.showop)
-        @test SL.isuniplus(op) == (op == SL.uniplus)
+        @test SL.isassign(op) == (op == SL.assign)
         @test SL.istimes(op) == (op == SL.times)
         # ...
         @test (op.x & 0x8000000000000000 != 0) ==
             SL.isquasiunary(op) ==
-            (op ∈ (SL.uniplus, SL.uniminus, SL.exponentiate))
-        @test SL.isunary(op) == (op ∈ (SL.uniplus, SL.uniminus))
+            (op ∈ (SL.assign, SL.uniminus, SL.exponentiate))
+        @test SL.isunary(op) == (op ∈ (SL.assign, SL.uniminus))
     end
 
     # pack & unpack

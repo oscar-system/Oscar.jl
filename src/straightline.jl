@@ -22,15 +22,15 @@ const cstmark   = 0x0000000004000000
 const argshift  = 28 # argmask == 2^argshift - 1
 
 
-const showop = Dict{Op,Char}()
+const showop = Dict{Op,String}()
 
-for (i, (op, unary, showchar)) in enumerate([(:uniplus      , true,  '+'),
-                                             (:uniminus     , true,  '-'),
-                                             (:plus         , false, '+'),
-                                             (:minus        , false, '-'),
-                                             (:times        , false, '*'),
-                                             (:divide       , false, '/'),
-                                             (:exponentiate , true,  '^')])
+for (i, (op, unary, showchar)) in enumerate([(:assign       , true,  "->"),
+                                             (:uniminus     , true,  "-"),
+                                             (:plus         , false, "+"),
+                                             (:minus        , false, "-"),
+                                             (:times        , false, "*"),
+                                             (:divide       , false, "/"),
+                                             (:exponentiate , true,  "^")])
     isop = Symbol(:is, op)
     c = UInt64(i) << (2*argshift)
     if unary
@@ -97,14 +97,14 @@ SLProgram{T}() where {T} = SLProgram(T[], Line[])
 # return an input
 function SLProgram{T}(i::Integer) where {T}
     p = SLProgram{T}()
-    pushfinalize!(p, pushop!(p, uniplus, input(i)))
+    pushfinalize!(p, pushop!(p, assign, input(i)))
 end
 
 SLProgram(i::Integer) = SLProgram{Union{}}(i)
 
 function SLProgram(c::Const{T}) where {T}
     p = SLProgram{T}()
-    pushfinalize!(p, pushop!(p, uniplus, pushconst!(p, c.c)))
+    pushfinalize!(p, pushop!(p, assign, pushconst!(p, c.c)))
 end
 
 function copy_oftype(p::SLProgram, ::Type{T}) where T
@@ -177,7 +177,7 @@ function Base.show(io::IO, ::MIME"text/plain", p::SLProgram{T}) where T
 
     for (k, line) in enumerate(lines(p))
         op, i, j = unpack(line)
-        if 1 < k == n && op == uniplus && i.x == k-1+length(constants(p))
+        if 1 < k == n && op == assign && i.x == k-1+length(constants(p))
             # 1 < k for trivial SLPs returning a constant
             break
         end
@@ -235,7 +235,7 @@ asconstant(i::Integer) = Arg(UInt64(i) | cstmark)
 function pushinit!(p::SLProgram)
     plines = lines(p)
     op, i, j = unpack(plines[end])
-    if isuniplus(op) && (isinput(i) || isconstant(i))
+    if isassign(op) && (isinput(i) || isconstant(i))
         pop!(plines) # discard trivial instruction
         i
     else
@@ -263,7 +263,7 @@ function pushfinalize!(p::SLProgram, ret::Arg)
     k = length(constants(p))
     if isinput(ret) || isconstant(ret) || ret.x != lastindex(lines(p))
         # non-trivial return (i.e. no line or not the result of the last line)
-        pushop!(p, uniplus, ret)
+        pushop!(p, assign, ret)
     end
     p
 end
@@ -432,7 +432,7 @@ function evaluate!(res::Vector{S}, p::SLProgram{T}, xs::Vector{S},
         x = retrieve(cs, xs, res, i)
         if isexponentiate(op)
             r = x^Int(j.x) # TODO: support bigger j
-        elseif isuniplus(op) # serves as assignment (for trivial programs)
+        elseif isassign(op) # serves as assignment (for trivial programs)
             if isa(x, S)
                 r = x
             else
@@ -491,7 +491,7 @@ function compile!(p::SLProgram)
         line =
             if isexponentiate(op)
                 :($rk = $x^$(Int(j.x)))
-            elseif isuniplus(op)
+            elseif isassign(op)
                 :($rk = $x)
             elseif isuniminus(op)
                 :($rk = -$x)
