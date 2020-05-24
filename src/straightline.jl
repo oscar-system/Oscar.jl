@@ -147,12 +147,20 @@ function showsimple(io::IO, ::MIME"text/plain", p::SLProgram)
     end
 end
 
-Base.show(io::IO, p::SLProgram) =
-    show(io, evaluate(p, lazygens(ninputs(p)), Const))
+slpgens(n::Integer) =
+    n <= 3 ?
+        (:x, :y, :z)[1:n] :
+        (Symbol(:x, i) for i = 1:n)
+
+function Base.show(io::IO, p::SLProgram)
+    gs = get(io, :SLPgens, slpgens(ninputs(p)))
+    show(io, evaluate(p, lazygens(gs), Const))
+end
 
 function Base.show(io::IO, ::MIME"text/plain", p::SLProgram{T}) where T
     n = length(lines(p))
-    syms = lazygens(ninputs(p))
+    gs = get(io, :SLPgens, slpgens(ninputs(p)))
+    syms = lazygens(gs)
     res = evaluates(p, syms, Const)
     if n == 1
         # trivial program, show only result
@@ -368,11 +376,8 @@ pushlazy!(p, l::Exp, gs) =
 
 ## conversion SLProgram -> Lazy
 
-function lazygens(n::Integer)
-    n <= 3 ?
-        Lazy[Gen(:x), Gen(:y), Gen(:z)][1:n] :
-        Lazy[Gen(Symbol(:x, i)) for i = 1:n] # TODO: untested
-end
+lazygens(gs) = Lazy[Gen(s) for s in gs]
+lazygens(n::Integer) = lazygens(slpgens(n))
 
 # strictly convenience function
 aslazy(p::SLProgram, gs=lazygens(ninputs(p))) = evaluate(p, gs, Const)
