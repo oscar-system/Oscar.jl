@@ -214,7 +214,7 @@ function Base.show(io::IO, ::MIME"text/plain", p::SLProgram{T}) where T
             elseif i.x == 1
                 push!(line, " #1")
             else
-                push!(line, " #1..#$(j.x)")
+                push!(line, " #1..#$(i.x)")
             end
             continue
         end
