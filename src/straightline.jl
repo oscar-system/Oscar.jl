@@ -185,22 +185,12 @@ function Base.show(io::IO, ::MIME"text/plain", p::SLProgram{T}) where T
     strlines = Vector{String}[]
     widths = [0, 0, 0, 0, 0]
 
-    ptr = 1
-    function dest(op, i, j) # side-effects, must be called only once per line
-        if isassign(op) && j.x != 0
-            j.x
-        else
-            ptr += 1
-            ptr - 1
-        end
-    end
-
-    ptmp = copy(p)
-    empty!(ptmp.lines)
+    ptmp = SLProgram{T}()
+    copy!(ptmp.cs, p.cs)
 
     for line in lines(p)
         op, i, j = unpack(line)
-        k = dest(op, i, j)
+        k = updatelen!(ptmp, op, j)
         push!(ptmp.lines, line)
         pushfinalize!(ptmp, Arg(k))
         # TODO: add a way to evaluate step by step instead of re-evaluating
@@ -290,15 +280,20 @@ function pushconst!(p::SLProgram{T}, c::T) where T
     asconstant(l)
 end
 
-function pushop!(p::SLProgram, op::Op, i::Arg, j::Arg=Arg(0))
-    @assert i.x <= argmask && j.x <= argmask
-    push!(lines(p), Line(op, i, j))
+function updatelen!(p, op, j)
     if isassign(op) && j != Arg(0)
         ptr = Int(j.x)
     else
         ptr = p.len += 1
         @assert ptr < cstmark
     end
+    ptr
+end
+
+function pushop!(p::SLProgram, op::Op, i::Arg, j::Arg=Arg(0))
+    @assert i.x <= argmask && j.x <= argmask
+    push!(lines(p), Line(op, i, j))
+    ptr = updatelen!(p, op, j)
     Arg(ptr % UInt64)
 end
 
@@ -507,8 +502,9 @@ function evaluate!(res::Vector{S}, p::SLProgram{T}, xs::Vector{S},
         end
         push!(res, r)
     end
+
+    @assert length(res) == p.len
     if hasmultireturn(p)
-        resize!(res, p.len)
         res
     else
         x = retrieve(cs, xs, res, p.ret)
