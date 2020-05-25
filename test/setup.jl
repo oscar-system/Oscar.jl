@@ -4,7 +4,7 @@ using StraightLinePrograms: Const, Exp, Gen, Minus, Plus, Lazy,
     Times, UniMinus, pushconst!, pushop!,
     Line, Arg, constants, lines, evaluate
 
-using StraightLinePrograms: pushline!
+using StraightLinePrograms: pushline!, GAPStraightLine
 
 const SL = StraightLinePrograms
 
