@@ -98,6 +98,49 @@ function pushline!(lines::Vector{GAPStraightLine}, line::Vector)
 end
 
 
+## evaluate
+
+evaluate(p::GAPSLProgram, xs::Vector) = evaluate!(empty(xs), p, xs)
+# TODO: use compiled version if present?
+
+expterm(x, i) = i == 1 ? x : x^i
+prodlist(res, x) = prod(expterm(res[x[2*i-1]], x[2*i]) for i=1:(length(x)>>1))
+
+function evaluate!(res::Vector{S}, p::GAPSLProgram, xs::Vector{S}) where {S}
+    empty!(res)
+
+    for i = 1:p.ngens
+        push!(res, xs[i])
+    end
+
+    local k
+    for line in p.lines
+        if issimpleline(line)
+            push!(res, prodlist(res, line))
+            k = lastindex(res)
+        elseif isassignline(line)
+            # TODO: might need a resize!
+            res[line[2]] = prodlist(res, line[1])
+            k = line[2]
+        else
+            k = lastindex(res) + 1
+            for l in line
+                push!(res, prodlist(res, l))
+            end
+            if k > 1
+                for i in 1:length(line)
+                    res[i] = res[k]
+                    k += 1
+                end
+            end
+            resize!(res, length(line))
+            return res
+        end
+    end
+    return res[k]
+end
+
+
 ## compile!
 
 # compile to an SLProgram
