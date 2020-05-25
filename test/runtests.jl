@@ -349,7 +349,7 @@ end
     @test convert(R, S(-(x+2*y)^3-4)) == -(x1+2*y1)^3-4
 
     # corner cases
-    @test_throws BoundsError convert(R, SLPoly(S)) # error can change
+    @test_throws ArgumentError convert(R, SLPoly(S)) # error can change
     @test convert(R, S(L(1))) == R(1)
     @test convert(R, S(L(:x))) == x1
 
@@ -579,4 +579,19 @@ end
     @test p isa SLProgram{Int}
     @test evaluate(p, [2, 3]) == 14
     @test SL.aslazy(p) == 2*(x^2 + y)
+
+    # multiple return
+    p = SLProgram{Int}()
+    inputs = Lazy[x, y, z]
+
+    @test evaluate(p, inputs) == []
+    k1 = SL.pushop!(p, SL.plus, SL.input(1), SL.input(2))
+    @test evaluate(p, inputs) == [x+y]
+    k2 = SL.pushconst!(p, 3)
+    k3 = SL.pushop!(p, SL.times, k1, k2)
+    @test evaluate(p, inputs) == [x+y, (x+y)*3]
+    SL.pushop!(p, SL.assign, k3, k1)
+    @test evaluate(p, inputs) == [(x+y)*3, (x+y)*3]
+    SL.pushfinalize!(p, k3)
+    @test evaluate(p, inputs) == (x+y)*3
 end

@@ -38,6 +38,13 @@ lines(p::SLPoly) = lines(p.slprogram)
 # create invalid poly
 SLPoly(parent::SLPolyRing{T}) where {T} = SLPoly(parent, SLProgram{T}())
 
+isvalid(p::SLPoly) = !hasmultireturn(p.slprogram)
+
+function assert_valid(p::SLPoly)
+    isvalid(p) || throw(ArgumentError("SLPoly is in an invalid state"))
+    p
+end
+
 parent(p::SLPoly) = p.parent
 
 function check_parent(p::SLPoly, q::SLPoly)
@@ -252,6 +259,7 @@ end
 function Base.convert(R::MPolyRing, p::SLPoly)
     symbols(R) == symbols(parent(p)) ||
         throw(ArgumentError("incompatible symbols"))
+    assert_valid(p)
     evaluate(p, gens(R))
 end
 

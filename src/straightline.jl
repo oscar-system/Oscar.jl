@@ -173,13 +173,10 @@ end
 
 function Base.show(io::IO, ::MIME"text/plain", p::SLProgram{T}) where T
     n = length(lines(p))
-    if p.ret == Arg(0)
-        return print(io, "invalid SLProgram{$T}()")
-    end
     gs = get(io, :SLPsymbols, slpsyms(ninputs(p)))
     syms = lazygens(gs)
     reslazy = Lazy[]
-    if n == 0
+    if n == 0 && !hasmultireturn(p)
         # trivial program, show only result
         return show(io, retrieve(p.cs, syms, reslazy, p.ret))
     end
@@ -236,8 +233,19 @@ function Base.show(io::IO, ::MIME"text/plain", p::SLProgram{T}) where T
         end
         print(io, "  ==>  ", line[5])
     end
-    print(io, "\nreturn: ", showarg(constants(p), syms, p.ret))
+
+    print(io, "\nreturn: ")
     # TODO: ^--- remove when unnecessary?
+    if hasmultireturn(p)
+        print(io, '[')
+        join(io,
+             (showarg(constants(p), syms, Arg(i)) for i in 1:p.len),
+             ", ")
+        print(io, ']')
+    else
+        print(io, showarg(constants(p), syms, p.ret))
+    end
+
 end
 
 function showarg(cs, syms, i)
@@ -260,13 +268,15 @@ function input(i::Integer)
     Arg((i % UInt64) | inputmark)
 end
 
-isinput(i::Arg) = inputmark & i.x != 0
+isinput(i::Arg) = inputmark & i.x === inputmark
 inputidx(i::Arg) = i.x ⊻ inputmark
 
-isconstant(i::Arg) = cstmark & i.x != 0
+isconstant(i::Arg) = cstmark & i.x === cstmark
 constantidx(i::Arg) = i.x ⊻ cstmark
 
 asconstant(i::Integer) = Arg(UInt64(i) | cstmark)
+
+hasmultireturn(p::SLProgram) = p.ret.x == 0
 
 # call before mutating, unless p is empty (opposite of pushfinalize!)
 
@@ -497,8 +507,13 @@ function evaluate!(res::Vector{S}, p::SLProgram{T}, xs::Vector{S},
         end
         push!(res, r)
     end
-    x = retrieve(cs, xs, res, p.ret)
-    isa(x, S) ? x : conv(x)
+    if hasmultireturn(p)
+        resize!(res, p.len)
+        res
+    else
+        x = retrieve(cs, xs, res, p.ret)
+        isa(x, S) ? x : conv(x)
+    end
 end
 
 
