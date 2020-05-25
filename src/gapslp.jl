@@ -110,7 +110,9 @@ function compile!(gp::GAPSLProgram)
         pushop!(p, assign, input(i))
     end
 
+    multi = false
     for line in gp.lines
+        @assert !multi
         if issimpleline(line)
             ptr = p.len + 1
             k = write_list!(p, line)
@@ -126,10 +128,20 @@ function compile!(gp::GAPSLProgram)
             res = pushop!(p, assign, k, Arg(dst))
             pushop!(p, keep, Arg(ptr))
         else
-            throw(ArgumentError("not implemented"))
+            reslist = Arg[]
+            for l in line
+                k = write_list!(p, l)
+                push!(reslist, k)
+            end
+            for (i, r) in enumerate(reslist)
+                @assert i != r.x # can happen? if so, don't assign
+                pushop!(p, assign, r, Arg(i))
+            end
+            pushop!(p, keep, Arg(length(reslist)))
+            multi = true
         end
     end
-    pushfinalize!(p, res)
+    multi || pushfinalize!(p, res)
     gp.slp[] = p
 end
 
