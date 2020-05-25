@@ -119,6 +119,12 @@ function compile!(gp::GAPSLProgram)
                 pushop!(p, assign, k, res)
             end
             pushop!(p, keep, res)
+        elseif isassignline(line)
+            list, dst = line
+            ptr = p.len
+            k = write_list!(p, list)
+            res = pushop!(p, assign, k, Arg(dst))
+            pushop!(p, keep, Arg(ptr))
         else
             throw(ArgumentError("not implemented"))
         end
