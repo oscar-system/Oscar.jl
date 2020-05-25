@@ -435,18 +435,22 @@ aslazy(p::SLProgram, gs=lazygens(ninputs(p))) = evaluate(p, gs, Const)
 
 ## evaluate
 
+getres(p::SLProgram, xs) = Vector{eltype(xs)}(undef, length(p.lines))
+# length(p.lines) might be an overestimate in some cases, but
+# this generally limits the number of allocations
+
 function evaluate(p::SLProgram{T}, xs::Vector{S}, conv::F=nothing
                   ) where {T,S,F}
     if isassigned(p.f)
         p.f[](xs)::S
     else
-        evaluate!(S[], p, xs, conv)
+        evaluate!(getres(p, xs), p, xs, conv)
     end
 end
 
 function evaluates(p::SLProgram{T}, xs::Vector{S}, conv::F=nothing
                    ) where {T,S,F}
-    res = S[]
+    res = getres(p, xs)
     evaluate!(res, p, xs, conv)
     res
 end
