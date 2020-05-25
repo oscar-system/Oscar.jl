@@ -38,16 +38,29 @@
              [[3, 2], 2],
              [1, 2, 2, 1] ] )
     @test r.ngens == 1
+
+    @test_throws ArgumentError GAPSLProgram(
+        Any[ [[1, 2], 3],
+             [[3, 2], 2],
+             [1, 2, 4, 1] ], 2)
+
+    @test_throws ArgumentError GAPSLProgram(
+        Any[ [[1, 2], 3],
+             [[3, 2], 2],
+             [[1, 2, 4, 1]] ], 2 )
+
     r = GAPSLProgram(
         Any[ [[1, 2], 3],
              [[1, 2, 4, 2], 2],
              [1, 2, 2, 1] ])
     @test r.ngens == 4
+
     r = GAPSLProgram(
         Any[ [[2, 2], 3],
              [[3, 2], 2],
              [1, 2, 2, 1] ])
     @test r.ngens == 2
+
     r = GAPSLProgram(
         Any[ [[2, 3], 3],
              [[3, 2], 2],

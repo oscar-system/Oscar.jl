@@ -14,12 +14,11 @@ function GAPSLProgram(lines::Vector, ngens::Integer=-1)
     ls = GAPStraightLine[]
     n = length(lines)
     ng = 0
-    if ngens < 0
-        have = BitSet()
-    end
+
+    have = ngens < 0 ? BitSet() : BitSet(1:ngens)
 
     function maxnohave(word)
-        ng = 0
+        local ng = 0
         skip = true
         for i in word
             skip = !skip
@@ -31,22 +30,30 @@ function GAPSLProgram(lines::Vector, ngens::Integer=-1)
         ng
     end
 
+    undef_slot() = throw(ArgumentError("invalid use of undef memory"))
+
     for (i, line) in enumerate(lines)
         pushline!(ls, line)
-        ngens < 0 || continue
         l = ls[end]
-        if i < n && l isa Vector{Int}
+        if ngens < 0 && i < n && l isa Vector{Int}
             throw(ArgumentError("ngens must be specified"))
         end
         if l isa Tuple
             ng = max(ng, maxnohave(l[1]))
-            union!(have, 1:ng)
+            if ngens < 0
+                union!(have, 1:ng)
+            elseif ng > 0
+                undef_slot()
+            end
             push!(have, l[2])
         elseif l isa Vector{Int}
             ng = max(ng, maxnohave(l))
+            ngens >= 0 && ng > 0 && undef_slot()
+            push!(have, maximum(have)+1)
         else # ReturnList
             for li in l
                 ng = max(ng, maxnohave(li))
+                ngens >= 0 && ng > 0 && undef_slot()
             end
         end
     end
