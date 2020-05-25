@@ -98,6 +98,42 @@ function pushline!(lines::Vector{GAPStraightLine}, line::Vector)
 end
 
 
+## show
+
+expshow(x, i) = i == 1 ? "r[$x]" : "r[$x]^$i"
+prodshow(io, x) = join(io, (expshow(x[2*i-1], x[2*i]) for i=1:(length(x)>>1)), '*')
+
+function Base.show(io::IO, p::GAPSLProgram)
+    k = p.ngens
+    println(io, "# input:")
+    print(io, "r = [ ")
+    join(io, ("g$i" for i in 1:k), ", ")
+    println(io, " ]")
+    print("# program:")
+
+    for line in p.lines
+        if issimpleline(line)
+            k += 1
+            print(io, "\nr[$k] = ")
+            prodshow(io, line)
+        elseif isassignline(line)
+            l, dst = line
+            # TODO: when l > k
+            print(io, "\nr[$k] = ")
+            prodshow(io, line)
+        else
+            print("\n# return values:\n[ ")
+            for (i, l) in enumerate(line)
+                i == 1 || print(io, ", ")
+                prodshow(io, l)
+            end
+            return print(io, " ]")
+        end
+    end
+    print("\n# return value:\nr[$k]")
+end
+
+
 ## evaluate
 
 evaluate(p::GAPSLProgram, xs::Vector) = evaluate!(empty(xs), p, xs)
