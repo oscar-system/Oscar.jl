@@ -1,6 +1,8 @@
+const ReturnList = Vector{Vector{Int}}
+
 const GAPStraightLine = Union{Vector{Int},            # e.g. [1, 2, 2, -1]
                               Tuple{Vector{Int},Int}, # e.g. ([1, 2], 2)
-                              Vector{Vector{Int}}}    # return list
+                              ReturnList}             # return list
 
 struct GAPSLProgram
     lines::Vector{GAPStraightLine}
@@ -16,13 +18,18 @@ invalid_list_error(line) = throw(ArgumentError("invalid line or list: $line"))
 
 check_element(list) = iseven(length(list)) || invalid_list_error(list)
 
+check_last(p) = isempty(p.lines) || !isa(p.lines[end], ReturnList) ||
+    throw(ArgumentError("return list only allowed in last position"))
+
 function pushline!(p::GAPSLProgram, line::Vector{Int})
+    check_last(p)
     check_element(line)
     push!(p.lines, line)
     p
 end
 
 function pushline!(p::GAPSLProgram, line::Vector{Vector{Int}})
+    check_last(p)
     for l in line
         check_element(l)
     end
@@ -31,6 +38,7 @@ function pushline!(p::GAPSLProgram, line::Vector{Vector{Int}})
 end
 
 function pushline!(p::GAPSLProgram, line::Tuple{Vector{Int},Int})
+    check_last(p)
     check_element(line[1])
     push!(p.lines, line)
     p
