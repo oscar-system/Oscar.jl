@@ -404,16 +404,17 @@ end
                             SL.minus        => "-",
                             SL.times        => "*",
                             SL.divide       => "/",
-                            SL.exponentiate => "^")
-    @test length(SL.showop) == 7 # tests all keys are distinct
+                            SL.exponentiate => "^",
+                            SL.keep         => "keep")
+    @test length(SL.showop) == 8 # tests all keys are distinct
     for op in keys(SL.showop)
         @test SL.isassign(op) == (op == SL.assign)
         @test SL.istimes(op) == (op == SL.times)
         # ...
         @test (op.x & 0x8000000000000000 != 0) ==
             SL.isquasiunary(op) ==
-            (op ∈ (SL.uniminus, SL.exponentiate))
-        @test SL.isunary(op) == (op ∈ (SL.uniminus,))
+            (op ∈ (SL.uniminus, SL.exponentiate, SL.keep))
+        @test SL.isunary(op) == (op ∈ (SL.uniminus, SL.keep))
     end
 
     # pack & unpack
@@ -594,4 +595,17 @@ end
     @test evaluate(p, inputs) == [(x+y)*3, (x+y)*3]
     SL.pushfinalize!(p, k3)
     @test evaluate(p, inputs) == (x+y)*3
+    SL.setmultireturn!(p)
+    @test evaluate(p, inputs) == [(x+y)*3, (x+y)*3]
+
+    # keep
+    @test_throws ArgumentError SL.pushop!(p, SL.keep, Arg(3))
+    # test we are still in valid state:
+    @test evaluate(p, inputs) == [(x+y)*3, (x+y)*3]
+    SL.pushop!(p, SL.keep, Arg(2))
+    @test evaluate(p, inputs) == [(x+y)*3, (x+y)*3]
+    SL.pushop!(p, SL.keep, Arg(1))
+    @test evaluate(p, inputs) == [(x+y)*3]
+    SL.pushop!(p, SL.keep, Arg(0))
+    @test evaluate(p, inputs) == []
 end

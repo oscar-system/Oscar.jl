@@ -31,6 +31,7 @@ for (i, (op, unary, showchar)) in enumerate([(:assign       , false, "->"),
                                              (:times        , false, "*"),
                                              (:divide       , false, "/"),
                                              (:exponentiate , true,  "^"),
+                                             (:keep         , true,  "keep"),
                                              ])
     isop = Symbol(:is, op)
     c = UInt64(i) << (2*argshift)
@@ -190,7 +191,7 @@ function Base.show(io::IO, ::MIME"text/plain", p::SLProgram{T}) where T
 
     for line in lines(p)
         op, i, j = unpack(line)
-        k = updatelen!(ptmp, op, j)
+        k = updatelen!(ptmp, op, i, j)
         push!(ptmp.lines, line)
         pushfinalize!(ptmp, Arg(k))
         # TODO: add a way to evaluate step by step instead of re-evaluating
@@ -205,6 +206,17 @@ function Base.show(io::IO, ::MIME"text/plain", p::SLProgram{T}) where T
         end
         line = String[]
         push!(strlines, line)
+        if iskeep(op)
+            push!(line, "keep:")
+            if i.x == 0
+                push!(line, " nothing")
+            elseif i.x == 1
+                push!(line, " #1")
+            else
+                push!(line, " #1..#$(j.x)")
+            end
+            continue
+        end
         push!(line, str('#', string(k), " ="))
         x = showarg(constants(p), syms, i)
         y = isunary(op) || isassign(op) ? "" :
@@ -217,6 +229,10 @@ function Base.show(io::IO, ::MIME"text/plain", p::SLProgram{T}) where T
     end
     for (k, line) in enumerate(strlines)
         k == 1 || println(io)
+        if line[1] == "keep:"
+            join(io, line)
+            continue
+        end
         print(io, ' '^(widths[1]-length(line[1])), line[1])
         for i = 2:4
             print(io, ' '^(1+widths[i]-textwidth(line[i])), line[i])
@@ -251,6 +267,8 @@ end
 
 ## building SLProgram
 
+isregister(i::Arg) = (inputmark | cstmark) & i.x == 0
+
 # return #ref for i-th input
 function input(i::Integer)
     i = Int(i)
@@ -267,6 +285,7 @@ constantidx(i::Arg) = i.x ⊻ cstmark
 asconstant(i::Integer) = Arg(UInt64(i) | cstmark)
 
 hasmultireturn(p::SLProgram) = p.ret.x == 0
+setmultireturn!(p::SLProgram) = (p.ret = Arg(0); p)
 
 # call before mutating, unless p is empty (opposite of pushfinalize!)
 
@@ -280,9 +299,13 @@ function pushconst!(p::SLProgram{T}, c::T) where T
     asconstant(l)
 end
 
-function updatelen!(p, op, j)
+function updatelen!(p, op, i, j)
     if isassign(op) && j != Arg(0)
         ptr = Int(j.x)
+    elseif iskeep(op)
+        ptr = Int(i.x)
+        ptr <= p.len || throw(ArgumentError("cannot `keep` so many items"))
+        p.len = ptr
     else
         ptr = p.len += 1
         @assert ptr < cstmark
@@ -292,8 +315,8 @@ end
 
 function pushop!(p::SLProgram, op::Op, i::Arg, j::Arg=Arg(0))
     @assert i.x <= argmask && j.x <= argmask
+    ptr = updatelen!(p, op, i, j)
     push!(lines(p), Line(op, i, j))
-    ptr = updatelen!(p, op, j)
     Arg(ptr % UInt64)
 end
 
@@ -474,6 +497,11 @@ function evaluate!(res::Vector{S}, p::SLProgram{T}, xs::Vector{S},
     for line in lines(p)
         local r::S
         op, i, j = unpack(line)
+        if iskeep(op)
+            @assert isregister(i)
+            resize!(res, i.x)
+            continue
+        end
         x = retrieve(cs, xs, res, i)
         if isexponentiate(op)
             r = x^Int(j.x) # TODO: support bigger j
