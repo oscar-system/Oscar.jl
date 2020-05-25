@@ -24,7 +24,7 @@ const argshift  = 28 # argmask == 2^argshift - 1
 
 const showop = Dict{Op,String}()
 
-for (i, (op, unary, showchar)) in enumerate([(:assign       , true,  "->"),
+for (i, (op, unary, showchar)) in enumerate([(:assign       , false, "->"),
                                              (:uniminus     , true,  "-"),
                                              (:plus         , false, "+"),
                                              (:minus        , false, "-"),
@@ -177,18 +177,37 @@ function Base.show(io::IO, ::MIME"text/plain", p::SLProgram{T}) where T
     end
     gs = get(io, :SLPsymbols, slpsyms(ninputs(p)))
     syms = lazygens(gs)
-    res = evaluates(p, syms, Const)
+    reslazy = Lazy[]
     if n == 0
         # trivial program, show only result
-        return show(io, retrieve(p.cs, syms, res, p.ret))
+        return show(io, retrieve(p.cs, syms, reslazy, p.ret))
     end
 
     str(x...) = sprint(print, x...; context=io)
     strlines = Vector{String}[]
     widths = [0, 0, 0, 0, 0]
 
-    for (k, line) in enumerate(lines(p))
+    ptr = 1
+    function dest(op, i, j) # side-effects, must be called only once per line
+        if isassign(op) && j.x != 0
+            j.x
+        else
+            ptr += 1
+            ptr - 1
+        end
+    end
+
+    ptmp = copy(p)
+    empty!(ptmp.lines)
+
+    for line in lines(p)
         op, i, j = unpack(line)
+        k = dest(op, i, j)
+        push!(ptmp.lines, line)
+        pushfinalize!(ptmp, Arg(k))
+        # TODO: add a way to evaluate step by step instead of re-evaluating
+        # from the beginning each time
+        plazy = evaluate!(reslazy, ptmp, syms, Const)
         # TODO: the following bloc should probably be removed (constants are
         # no more stored in the result array, and we don't want to hide an
         # explicit assign)
@@ -196,15 +215,16 @@ function Base.show(io::IO, ::MIME"text/plain", p::SLProgram{T}) where T
             # 1 < k for trivial SLPs returning a constant
             break
         end
-        sk = string(k)
         line = String[]
         push!(strlines, line)
-        push!(line, str('#', sk, " ="))
+        push!(line, str('#', string(k), " ="))
         x = showarg(constants(p), syms, i)
-        y = isunary(op) ? "" :
+        y = isunary(op) || isassign(op) ? "" :
             isquasiunary(op) ? string(j.x) :
             showarg(constants(p), syms, j)
-        push!(line, str(showop[op]), x, y, str(res[k]))
+
+        strop = isassign(op) ? "" : showop[op]
+        push!(line, str(strop), x, y, str(plazy))
         widths .= max.(widths, textwidth.(line))
     end
     for (k, line) in enumerate(strlines)
@@ -448,11 +468,12 @@ function evaluate!(res::Vector{S}, p::SLProgram{T}, xs::Vector{S},
         x = retrieve(cs, xs, res, i)
         if isexponentiate(op)
             r = x^Int(j.x) # TODO: support bigger j
-        elseif isassign(op) # serves as assignment (for trivial programs)
-            if isa(x, S)
-                r = x
-            else
-                r = conv(x)
+        elseif isassign(op)
+            r = x
+            dst = j.x % Int
+            if dst != 0
+                res[dst] = x
+                continue
             end
         elseif isuniminus(op)
             r = -x

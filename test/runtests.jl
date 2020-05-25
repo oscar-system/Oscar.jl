@@ -412,8 +412,8 @@ end
         # ...
         @test (op.x & 0x8000000000000000 != 0) ==
             SL.isquasiunary(op) ==
-            (op ∈ (SL.assign, SL.uniminus, SL.exponentiate))
-        @test SL.isunary(op) == (op ∈ (SL.assign, SL.uniminus))
+            (op ∈ (SL.uniminus, SL.exponentiate))
+        @test SL.isunary(op) == (op ∈ (SL.uniminus,))
     end
 
     # pack & unpack
@@ -432,6 +432,8 @@ end
 end
 
 @testset "SLProgram" begin
+    x, y, z = Gen.([:x, :y, :z])
+
     p = SLProgram{Int}()
     @test p isa SLProgram{Int}
     @test isempty(p.cs)
@@ -456,12 +458,30 @@ end
     @test SL.ninputs(p) == 0
     @test SL.aslazy(p) == Const('c')
 
+    # assign
+    p = SLProgram{Int}()
+    k = SL.pushop!(p, SL.plus, SL.input(1), SL.input(2))
+    k = SL.pushop!(p, SL.times, k, SL.input(2))
+    @assert length(p.lines) == 2
+    k = SL.pushop!(p, SL.assign, k, Arg(1))
+    @test k == Arg(1)
+    SL.pushfinalize!(p, k)
+    @test evaluate(p, Lazy[x, y]) == (x+y)*y
+    k = SL.pushop!(p, SL.exponentiate, k, Arg(2))
+    @test evaluate(p, Lazy[x, y]) == (x+y)*y
+    SL.pushfinalize!(p, k)
+    @test evaluate(p, Lazy[x, y]) == ((x+y)*y)^2
+    SL.pushfinalize!(p, Arg(2))
+    @test evaluate(p, Lazy[x, y]) == ((x+y)*y)
+    k = SL.pushop!(p, SL.assign, k, Arg(2))
+    @test k == Arg(2)
+    @test evaluate(p, Lazy[x, y]) == ((x+y)*y)^2
+
+    # mutating ops
     p = SLProgram{Int}(1)
     q = SLProgram(Const(6))
     r = SLProgram(2)
-    x, y, z = Gen.([:x, :y, :z])
 
-    # mutating ops
     @test p === SL.addeq!(p, q)
     @test evaluate(p, [3]) == 9
     @test SL.aslazy(p) == x+6
