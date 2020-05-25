@@ -10,12 +10,13 @@ import AbstractAlgebra: base_ring, gen, gens, symbols, evaluate
 
 export LazyPolyRing, LazyPoly, SLPolyRing, SLPoly, SLProgram
 export slpcst, slpgen, slpgens
-
+export GAPSLProgram
 
 include("lazy.jl")
 include("straightline.jl")
 include("lazypolys.jl")
 include("slpolys.jl")
+include("gapslp.jl")
 
 
 end # module
