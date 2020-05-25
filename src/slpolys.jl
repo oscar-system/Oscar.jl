@@ -240,8 +240,7 @@ function Base.convert(R::SLPolyRing, p::Generic.MPoly; limit_exp::Bool=false)
         end
     end
     if isempty(qcs)
-        push!(qcs, base_ring(R)())
-        k = pushop!(q, assign, asconstant(1))
+        k = pushconst!(q.slprogram, base_ring(R)())
     end
     pushfinalize!(q, k)
     q
