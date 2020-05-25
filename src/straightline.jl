@@ -96,6 +96,7 @@ mutable struct SLProgram{T}
 end
 
 SLProgram{T}() where {T} = SLProgram(T[], Line[], 0, Arg(0), Ref{Function}())
+SLProgram() = SLProgram{Union{}}()
 
 # return an input
 function SLProgram{T}(i::Integer) where {T}

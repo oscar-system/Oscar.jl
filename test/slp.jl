@@ -424,6 +424,12 @@ end
 @testset "SLProgram" begin
     x, y, z = Gen.([:x, :y, :z])
 
+    p = SLProgram()
+    @test p isa SLProgram{Union{}}
+    @test isempty(p.cs)
+    @test isempty(p.lines)
+    @test !isassigned(p.f)
+
     p = SLProgram{Int}()
     @test p isa SLProgram{Int}
     @test isempty(p.cs)
