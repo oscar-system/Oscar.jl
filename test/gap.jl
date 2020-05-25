@@ -69,22 +69,24 @@
 end
 
 @testset "GAPSLProgram compile!" begin
-    x, y, z = slpgens(3)
+    for xy = (slpgens(3), Lazy[Gen(:x), Gen(:y)])
+        x, y = xy
 
-    g = GAPSLProgram([ [2,3], [ 1, 2, 3, 1] ], 2 )
-    slp = SL.compile!(g)
-    @test g.slp[] === slp
-    @test evaluate(slp, [x, y]) == x^2*y^3
+        g = GAPSLProgram([ [2,3], [ 1, 2, 3, 1] ], 2 )
+        slp = SL.compile!(g)
+        @test g.slp[] === slp
+        @test evaluate(slp, xy) == x^2*y^3
 
-    g = GAPSLProgram([ [2,3], [ 3, 1, 1, 4] ], 2 )
-    slp = SL.compile!(g)
-    @test evaluate(slp, [x, y]) == y^3*x^4
+        g = GAPSLProgram([ [2,3], [ 3, 1, 1, 4] ], 2 )
+        slp = SL.compile!(g)
+        @test evaluate(slp, xy) == y^3*x^4
 
-    g = GAPSLProgram([ [2,3], [ [3, 1, 1, 4], [ 1, 2, 3, 1]] ], 2 )
-    slp = SL.compile!(g)
-    @test evaluate(slp, [x, y]) == [y^3*x^4, x^2*y^3]
+        g = GAPSLProgram([ [2,3], [ [3, 1, 1, 4], [ 1, 2, 3, 1]] ], 2 )
+        slp = SL.compile!(g)
+        @test evaluate(slp, xy) == [y^3*x^4, x^2*y^3]
 
-    g = GAPSLProgram(Any[ [ [1,1,2,2], 2 ], [2,3,1,1] ] )
-    slp = SL.compile!(g)
-    @test evaluate(slp, [x, y]) == (x*y^2)^3*x
+        g = GAPSLProgram(Any[ [ [1,1,2,2], 2 ], [2,3,1,1] ] )
+        slp = SL.compile!(g)
+        @test evaluate(slp, xy) == (x*y^2)^3*x
+    end
 end
