@@ -4,6 +4,10 @@ const GAPStraightLine = Union{Vector{Int},            # e.g. [1, 2, 2, -1]
                               Tuple{Vector{Int},Int}, # e.g. ([1, 2], 2)
                               ReturnList}             # return list
 
+issimpleline(line) = line isa Vector{Int}
+isassignline(line) = line isa Tuple
+isreturnline(line) = line isa ReturnList
+
 struct GAPSLProgram
     lines::Vector{GAPStraightLine}
     ngens::Int
@@ -15,7 +19,7 @@ function GAPSLProgram(lines::Vector, ngens::Integer=-1)
     n = length(lines)
     ng = 0
 
-    have = ngens < 0 ? BitSet() : BitSet(1:ngens)
+    have = ngens < 0 ? BitSet(0) : BitSet(0:ngens)
 
     function maxnohave(word)
         local ng = 0
@@ -91,4 +95,51 @@ function pushline!(lines::Vector{GAPStraightLine}, line::Vector)
     length(line) == 2 && line[1] isa Vector{Int} && line[2] isa Int ||
         invalid_list_error(line)
     pushline!(lines, (line[1], line[2]))
+end
+
+
+## compile!
+
+# compile to an SLProgram
+
+function compile!(gp::GAPSLProgram)
+    p = SLProgram()
+    local res::Arg
+
+    for i = 1:gp.ngens
+        pushop!(p, assign, input(i))
+    end
+
+    for line in gp.lines
+        if issimpleline(line)
+            ptr = p.len + 1
+            k = write_list!(p, line)
+            res = Arg(ptr)
+            if res != k
+                pushop!(p, assign, k, res)
+            end
+            pushop!(p, keep, res)
+        else
+            throw(ArgumentError("not implemented"))
+        end
+    end
+    pushfinalize!(p, res)
+    gp.slp[] = p
+end
+
+function write_list!(p::SLProgram, list::Vector{Int})
+    @assert !isempty(list) # TODO: handle empty lists
+    n = length(list) >> 1
+    local k
+    for i = 1:n
+        x = Arg(list[2*i-1])
+        e = Arg(list[2*i])
+        if e.x == 1
+            l = x
+        else
+            l = pushop!(p, exponentiate, x, e)
+        end
+        k = i == 1 ? l : pushop!(p, times, k, l)
+    end
+    k
 end
