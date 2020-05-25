@@ -20,10 +20,10 @@ function GAPSLProgram(lines::Vector, ngens::Integer=-1)
 
     function maxnohave(word)
         ng = 0
-        skip = false
+        skip = true
         for i in word
-            skip && continue
             skip = !skip
+            skip && continue
             if !(i in have)
                 ng = max(ng, i)
             end

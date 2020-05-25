@@ -40,7 +40,7 @@
     @test r.ngens == 1
     r = GAPSLProgram(
         Any[ [[1, 2], 3],
-             [[4, 2], 2],
+             [[1, 2, 4, 2], 2],
              [1, 2, 2, 1] ])
     @test r.ngens == 4
     r = GAPSLProgram(
