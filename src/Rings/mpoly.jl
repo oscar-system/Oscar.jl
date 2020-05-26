@@ -12,8 +12,8 @@ import Singular
 import Hecke
 import Hecke: MapHeader, math_html
 
-export PolynomialRing, total_degree, degree, MPolyElem, ordering, ideal, groebner_basis, eliminate,
-       syzygy_generators
+export PolynomialRing, total_degree, degree, MPolyElem, ordering, ideal,
+       groebner_basis, eliminate, syzygy_generators, coordinates
 
 ##############################################################################
 #
@@ -161,6 +161,8 @@ function Base.iterate(A::BiPolyArray, s::Int = 1)
   end
   return A[Val(:O), s], s+1
 end
+
+Base.eltype(::BiPolyArray{S}) where S = S 
 
 ##############################################################################
 #
@@ -566,6 +568,38 @@ end
 
 function Hecke.hom(R::MPolyRing, S::MPolyRing, i::Array{Int, 1})
   return MPolyHom_vars{typeof(R), typeof(S)}(R, S, i)
+end
+
+function _lift(S::Singular.sideal, T::Singular.sideal)
+  R = base_ring(S)
+  @assert base_ring(T) == R
+  c, r = Singular.libSingular.id_Lift(S.ptr, T.ptr, R.ptr)
+  M = Singular.Module(R, c)
+
+  if Singular.ngens(M) == 0 || iszero(M[1])
+    error("elem not in module")
+  end
+  return M
+end
+
+#TODO: return a matrix??
+@doc Markdown.doc"""
+    coordinates(a::Array{<:MPolyElem, 1}, b::Array{<:MPolyElem, 1})
+
+Tries to write the entries of `b` as linear combinations of `a`.    
+"""
+function coordinates(a::Array{<:MPolyElem, 1}, b::Array{<:MPolyElem, 1})
+  ia = ideal(a)
+  ib = ideal(b)
+  singular_assure(ia)
+  singular_assure(ib)
+  c = _lift(ia.gens.S, ib.gens.S)
+  F = free_module(parent(a[1]), length(a))
+  return [convert(F, c[x]) for x = 1:Singular.ngens(c)]
+end
+
+function coordinates(a::Array{<:MPolyElem, 1}, b::MPolyElem)
+  return coordinates(a, [b])[1]
 end
 
 ###################################################
