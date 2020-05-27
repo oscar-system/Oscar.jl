@@ -365,10 +365,15 @@ function ideal(Rx::MPolyRing, g::Array{<:Any, 1})
 end
 
 function singular_assure(I::MPolyIdeal)
-  if !isdefined(I.gens, :S)
-    I.gens.S = Singular.Ideal(I.gens.Sx, [convert(I.gens.Sx, x) for x = I.gens.O])
+  singular_assure(I.gens)
+end
+
+function singular_assure(I::BiPolyArray)
+  if !isdefined(I, :S)
+    I.S = Singular.Ideal(I.Sx, [convert(I.Sx, x) for x = I.O])
   end
 end
+
 
 function oscar_assure(I::MPolyIdeal)
   if !isdefined(I.gens, :O)
@@ -420,7 +425,7 @@ function gens(I::MPolyIdeal)
   return [I.gens[Val(:O), i] for i=1:ngens(I)]
 end
 
-gen(I::MPolyIdeal, i::Int) = I.gens[Val(:O), o]
+gen(I::MPolyIdeal, i::Int) = I.gens[Val(:O), i]
 
 function saturation(I::MPolyIdeal, J::MPolyIdeal)
   singular_assure(I)
@@ -437,6 +442,18 @@ function groebner_assure(I::MPolyIdeal)
     singular_assure(I)
     I.gb = BiPolyArray(I.gens.Ox, Singular.std(I.gens.S))
   end
+end
+
+function groebner_basis(B::BiPolyArray; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
+  if ord != :degrevlex
+    R = singular_ring(B.Ox, ord)
+    i = Singular.std(Singular.Ideal(R, [convert(R, x) for x = B]), complete_reduction = complete_reduction)
+    return BiPolyArray(B.Ox, i)
+  end
+  if !isdefined(B, :S)
+    B.S = Singular.Ideal(B.Sx, [convert(B.Sx, x) for x = B.O])
+  end
+  return BiPolyArray(B.Ox, Singular.std(B.S, complete_reduction = complete_reduction))
 end
 
 function syzygy_module(a::Array{MPolyElem, 1})
@@ -1037,7 +1054,9 @@ function simplify!(a::MPolyQuoElem)
   R = parent(a)
   I = R.I
   groebner_assure(I)
+  singular_assure(I.gb)
   Sx = base_ring(I.gb.S)
+  I.gb.S.isGB = true
   f = a.f
   a.f = convert(I.gens.Ox, reduce(convert(Sx, f), I.gb.S))
   return a
