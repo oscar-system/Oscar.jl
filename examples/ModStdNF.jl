@@ -25,6 +25,7 @@ function Oscar.groebner_assure(I::MPolyIdeal{Generic.MPoly{nf_elem}}, ord::Symbo
   end
   ps = Hecke.PrimesSet(Hecke.p_start, -1)
   ps = Hecke.PrimesSet(2^28+2^20, -1)
+  ps = Hecke.PrimesSet(825889-10, -1)
 
   p = iterate(ps)[1]
   Kt = base_ring(I)
@@ -72,6 +73,7 @@ function Oscar.groebner_assure(I::MPolyIdeal{Generic.MPoly{nf_elem}}, ord::Symbo
       for i = length(gd)+1:length(gc)
         push!(gd, Kt(0))
       end
+      @show gd
     else
       new_idx = [any(x -> any(x->!iszero(x), Hecke.modular_proj(x, me)), coefficients(gd[i] - IP[i])) for i=1:length(gc)]
       @vprint :MPolyGcd 1 "new information in $new_idx\n"
@@ -93,6 +95,7 @@ function Oscar.groebner_assure(I::MPolyIdeal{Generic.MPoly{nf_elem}}, ord::Symbo
           end
         end
         stable = max_stable
+        @show gd
       else
         d *= fmpz(p)
         stable -= 1
@@ -274,5 +277,32 @@ function example_9()
 
   return ideal([f1, f2, f3, f4, f5, f6, f7, f8])
 end
+
+end
+
+module Decker
+
+using Oscar
+
+function example_dim(k, n::Int, d::Int, nc::Int, range)
+  kt, t = PolynomialRing(k, 2*n+1)
+
+  id = typeof(t[1])[]
+  for i=1:d
+    z = kt(0)
+    for j=1:nc
+      m = kt(1)
+      for k=1:d
+        m *= rand(t)
+      end
+      z += rand(k, range)*m
+    end
+    push!(id, z)
+  end
+
+  # the benchmark is for the dimension of the ideal
+  return ideal(id)
+end
+
 
 end
