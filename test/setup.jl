@@ -5,6 +5,7 @@ using StraightLinePrograms: Const, Exp, Gen, Minus, Plus, Lazy,
     Line, Arg, constants, lines, evaluate, evaluate!
 
 using StraightLinePrograms: pushline!, GAPStraightLine
+using StraightLinePrograms: AtlasSLProgram, AtlasLine
 
 const SL = StraightLinePrograms
 
