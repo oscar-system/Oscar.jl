@@ -111,3 +111,9 @@ check_line_length(codeline, n) =
 
 error_invalid_line(codeline) =
     throw(ArgumentError("""invalid line: $(join(codeline, " "))"""))
+
+
+## show
+
+Base.show(io::IO, p::AtlasSLProgram) = print(io, p.code)
+
