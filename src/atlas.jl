@@ -84,7 +84,7 @@ function AtlasSLProgram(code::String)
             if cmd == :cjr
                 check_line_length(codeline, 2)
                 args = getidx!.(codeline[2:end], (false, false))
-                AtlasLine(cmd, args[1], args[1], args[2])
+                AtlasLine(:cj, args[1], args[1], args[2])
             elseif cmd in [:cj, :com, :mu, :pwr]
                 check_line_length(codeline, 3)
                 args = getidx!.(codeline[2:end], (false, false, true))

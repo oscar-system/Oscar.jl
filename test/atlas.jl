@@ -57,7 +57,7 @@
          """)
     @test q1.ngens == 2
     @test q1.outputs == [6, 7, 8]
-    @test q1.lines == [AtlasLine(:cjr, 1, 1, 2),
+    @test q1.lines == [AtlasLine(:cj, 1, 1, 2),
                        AtlasLine(:cj, 3, 1, 2),
                        AtlasLine(:com, 4, 2, 3),
                        AtlasLine(:mu, 5, 3, 4),
