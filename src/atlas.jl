@@ -169,3 +169,34 @@ function evaluate!(res::Vector{S}, p::AtlasSLProgram, xs::Vector{S}) where S
     end
     resize!(res, r)
 end
+
+
+## compilation to GAPSLProgram
+
+function compile(::Type{GAPSLProgram}, p::AtlasSLProgram)
+    lines = []
+    for l in p.lines
+        cmd, dst, i, j = l.cmd, l.dst, l.i, l.j
+        k =
+            if cmd == :cj
+                [j, -1, i, 1, j, 1]
+            elseif cmd == :com
+                [i, -1, j, -1, i, 1, j, 1]
+            elseif cmd == :iv
+                @assert j == ATLAS_VOID_SLOT
+                [i, -1]
+            elseif cmd == :mu
+                [i, 1, j, 1]
+            elseif cmd == :pwr
+                [j, i]
+            elseif cmd == :cp
+                @assert j == ATLAS_VOID_SLOT
+                [i, 1]
+            else
+                @assert false "unexpected command"
+            end
+        push!(lines, [k, dst])
+    end
+    push!(lines, [[r, 1] for r in p.outputs])
+    GAPSLProgram(lines, p.ngens)
+end

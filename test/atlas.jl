@@ -76,23 +76,37 @@ end
     p = AtlasSLProgram("cjr 2 1 \noup 1 2")
     @test evaluate(p, ab) == [a^-1 * b * a]
     @test res === evaluate!(res, p, ab) == [a^-1 * b * a]
+    g = SL.compile(GAPSLProgram, p)
+    @test evaluate(g, ab) == [a^-1 * b * a]
 
     p = AtlasSLProgram("cj 1 2 3\noup 2 1 3")
     @test evaluate(p, ab) == [a, b^-1 * a * b]
     @test res === evaluate!(res, p, ab) == [a, b^-1 * a * b]
+    g = SL.compile(GAPSLProgram, p)
+    @test evaluate(g, ab) == [a, b^-1 * a * b]
 
     p = AtlasSLProgram("com 1 2 3 \noup 1 3")
     @test evaluate(p, ab) == [a^-1 * b^-1 * a * b]
+    g = SL.compile(GAPSLProgram, p)
+    @test evaluate(g, ab) == [a^-1 * b^-1 * a * b]
 
     p = AtlasSLProgram("iv 1 2")
     @test evaluate(p, ab) == [a, a^-1]
+    g = SL.compile(GAPSLProgram, p)
+    @test evaluate(g, ab) == [a, a^-1]
 
     p = AtlasSLProgram("mu 1 2 1")
     @test evaluate(p, ab) == [a * b, b]
+    g = SL.compile(GAPSLProgram, p)
+    @test evaluate(g, ab) == [a * b, b]
 
     p = AtlasSLProgram("inp 1 \n pwr 4 1 2")
     @test evaluate(p, ab) == [a, a^4]
+    g = SL.compile(GAPSLProgram, p)
+    @test evaluate(g, ab) == [a, a^4]
 
     p = AtlasSLProgram("cp 1 3 \n cp 2 4 \n oup 4")
     @test evaluate(p, ab) == [a, b, a, b]
+    g = SL.compile(GAPSLProgram, p)
+    @test evaluate(g, ab) == [a, b, a, b]
 end
