@@ -345,6 +345,11 @@ end
 function updatelen!(p, op, i, j)
     if isassign(op) && j != Arg(0)
         ptr = Int(j.x)
+        if ptr == p.len + 1
+            p.len += 1
+        end
+        1 <= ptr <= p.len ||
+            throw(ArgumentError("invalid `assign` destination"))
     elseif iskeep(op)
         ptr = Int(i.x)
         ptr <= p.len || throw(ArgumentError("cannot `keep` so many items"))
@@ -549,12 +554,12 @@ function evaluate!(res::Vector{S}, p::SLProgram{T}, xs::Vector{S},
         if isexponentiate(op)
             r = x^getint(j) # TODO: support bigger j
         elseif isassign(op)
-            r = x
             dst = j.x % Int
-            if dst != 0
+            if dst != 0 && dst != lastindex(res) + 1
                 res[dst] = x
                 continue
             end
+            r = x
         elseif isuniminus(op)
             r = -x
         else

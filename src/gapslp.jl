@@ -155,9 +155,13 @@ function evaluate!(res::Vector{S}, p::GAPSLProgram, xs::Vector{S}) where {S}
             push!(res, prodlist(res, line))
             k = lastindex(res)
         elseif isassignline(line)
-            # TODO: might need a resize!
-            res[line[2]] = prodlist(res, line[1])
             k = line[2]
+            r = prodlist(res, line[1])
+            if k == lastindex(res) + 1
+                push!(res, r)
+            else
+                res[k] = r
+            end
         else
             k = lastindex(res) + 1
             for l in line
@@ -193,19 +197,21 @@ function compile!(gp::GAPSLProgram)
     for line in gp.lines
         @assert !multi
         if issimpleline(line)
-            ptr = p.len + 1
+            res = Arg(p.len + 1)
             k = write_list!(p, line)
-            res = Arg(ptr)
             if res != k
                 pushop!(p, assign, k, res)
             end
             pushop!(p, keep, res)
         elseif isassignline(line)
             list, dst = line
-            ptr = p.len
+            res = Arg(dst)
+            ptr = Arg(max(p.len, dst))
             k = write_list!(p, list)
-            res = pushop!(p, assign, k, Arg(dst))
-            pushop!(p, keep, Arg(ptr))
+            if res != k
+                pushop!(p, assign, k, res)
+            end
+            pushop!(p, keep, ptr)
         else
             reslist = Arg[]
             for l in line
