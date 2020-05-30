@@ -1,3 +1,16 @@
+## constants
+
+const opmask      = 0xff00000000000000
+const argmask     = 0x000000000fffffff
+const inputmark   = 0x0000000008000000
+const cstmark     = 0x0000000004000000
+const payloadmask = 0x0000000003ffffff
+const negbit      = 0x0000000002000000
+const argshift    = 28 # argmask == 2^argshift - 1
+
+@assert payloadmask == argmask ⊻ inputmark ⊻ cstmark
+
+
 ## Op, Line, Arg
 
 struct Op
@@ -10,17 +23,19 @@ end
 
 struct Arg
     x::UInt64
+
+    function Arg(x::UInt64)
+        iszero(x & ~argmask ) ||
+            throw(ArgumentError("argument too big"))
+        new(x)
+    end
 end
 
+Arg(x::Int) = x >= 0 ? Arg(x % UInt64) :
+    throw(ArgumentError("invalid negative argument (use intarg)"))
 
-## constants & predicates
 
-const opmask    = 0xff00000000000000
-const argmask   = 0x000000000fffffff
-const inputmark = 0x0000000008000000
-const cstmark   = 0x0000000004000000
-const argshift  = 28 # argmask == 2^argshift - 1
-
+## predicates
 
 const showop = Dict{Op,String}()
 
@@ -288,6 +303,33 @@ asconstant(i::Integer) = Arg(UInt64(i) | cstmark)
 hasmultireturn(p::SLProgram) = p.ret.x == 0
 setmultireturn!(p::SLProgram) = (p.ret = Arg(0); p)
 
+# make an Arg out of x, considered as "computational" integer (e.g. not an index)
+# call to create an integer exponent
+function intarg(x::Integer)
+    y = Int(x) % UInt64
+    if x > 0
+        y > (payloadmask ⊻ negbit) &&
+            throw(ArgumentError("positive integer argument too big"))
+        Arg(y)
+    else
+        y | (payloadmask >> 1) == typemax(UInt64) || # >> 1 for signbit
+            throw(ArgumentError("negative integer argument too small"))
+        Arg(y & payloadmask)
+    end
+end
+
+# retrieve a "computational" integer from an Arg
+function getint(x::Arg)
+    y = x.x
+    iszero(y & ~payloadmask) ||
+        throw(ArgumentError("Arg does not contain an Int"))
+    if iszero(y & negbit)
+        y % Int
+    else
+        (y | ~payloadmask) % Int
+    end
+end
+
 # call before mutating, unless p is empty (opposite of pushfinalize!)
 
 # TODO: pushinit! & pushfinalize! not really nececessary anymore?
@@ -375,7 +417,7 @@ end
 
 function combine!(op::Op, p::SLProgram, e::Integer)
     i = pushinit!(p)
-    i = pushop!(p, op, i, Arg(UInt64(e)))
+    i = pushop!(p, op, i, intarg(e))
     pushfinalize!(p, i)
 end
 
@@ -450,7 +492,7 @@ end
 pushlazy!(p, l::UniMinus, gs) = pushop!(p, uniminus, pushlazy!(p, l.p, gs))
 
 pushlazy!(p, l::Exp, gs) =
-    pushop!(p, exponentiate, pushlazy!(p, l.p, gs), Arg(l.e))
+    pushop!(p, exponentiate, pushlazy!(p, l.p, gs), intarg(l.e))
 
 
 ## conversion SLProgram -> Lazy
@@ -505,7 +547,7 @@ function evaluate!(res::Vector{S}, p::SLProgram{T}, xs::Vector{S},
         end
         x = retrieve(cs, xs, res, i)
         if isexponentiate(op)
-            r = x^Int(j.x) # TODO: support bigger j
+            r = x^getint(j) # TODO: support bigger j
         elseif isassign(op)
             r = x
             dst = j.x % Int
@@ -572,7 +614,7 @@ function compile!(p::SLProgram)
         mininput = max(mininput, idx)
         line =
             if isexponentiate(op)
-                :($rk = $x^$(Int(j.x)))
+                :($rk = $x^$(getint(j)))
             elseif isassign(op)
                 :($rk = $x)
             elseif isuniminus(op)

@@ -421,6 +421,22 @@ end
     end
 end
 
+@testset "Arg" begin
+    @test_throws ArgumentError Arg(-1)
+    @test_throws ArgumentError Arg(typemax(Int))
+    @test_throws ArgumentError Arg(1 + SL.argmask % Int)
+    a = Arg(SL.argmask)
+    @test a.x == SL.argmask
+
+    @test_throws ArgumentError SL.intarg(SL.payloadmask % Int)
+    x = (SL.payloadmask ⊻ SL.negbit) % Int
+    @test SL.getint(SL.intarg(x)) == x
+    @test_throws ArgumentError SL.intarg(x+1)
+    @test SL.getint(SL.intarg(-x)) == -x
+    @test SL.getint(SL.intarg(-x-1)) == -x-1
+    @test_throws ArgumentError SL.intarg(-x-2)
+end
+
 @testset "SLProgram" begin
     x, y, z = Gen.([:x, :y, :z])
 
@@ -453,6 +469,18 @@ end
     @test evaluate(p, ["10", 20]) == 'c'
     @test SL.ninputs(p) == 0
     @test SL.aslazy(p) == Const('c')
+
+    # exponent
+    p = SLProgram(x*y^Int(-2))
+    @test SL.aslazy(p) == x*y^Int(-2)
+    e = (SL.payloadmask ⊻ SL.negbit) % Int
+    @test x^e == SL.aslazy(SLProgram(x^e))
+    @test_throws ArgumentError SLProgram(x^(e+1))
+    e = -e-1
+    @test x^e == SL.aslazy(SLProgram(x^e))
+    @test_throws ArgumentError SLProgram(x^(e-1))
+    p = SLProgram(x^2*y^(Int(-3)))
+    @test evaluate(p, [sqrt(2), 4^(-1/3)]) === 8.0
 
     # assign
     p = SLProgram{Int}()
