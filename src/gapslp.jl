@@ -143,11 +143,7 @@ expterm(x, i) = i == 1 ? x : x^i
 prodlist(res, x) = prod(expterm(res[x[2*i-1]], x[2*i]) for i=1:(length(x)>>1))
 
 function evaluate!(res::Vector{S}, p::GAPSLProgram, xs::Vector{S}) where {S}
-    empty!(res)
-
-    for i = 1:p.ngens
-        push!(res, xs[i])
-    end
+    append!(empty!(res), view(xs, 1:p.ngens))
 
     local k
     for line in p.lines

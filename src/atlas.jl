@@ -5,7 +5,9 @@ struct AtlasLine
     j::Int
 end
 
-AtlasLine(cmd, dst, i) = AtlasLine(cmd, dst, i, 0)
+const ATLAS_VOID_SLOT = 0
+
+AtlasLine(cmd, dst, i) = AtlasLine(cmd, dst, i, ATLAS_VOID_SLOT)
 
 struct AtlasSLProgram
     code::String # source code
@@ -122,3 +124,48 @@ error_invalid_line(codeline) =
 
 Base.show(io::IO, p::AtlasSLProgram) = print(io, p.code)
 
+
+## evaluate
+
+evaluate(p::AtlasSLProgram, xs::Vector) = evaluate!(empty(xs), p, xs)
+
+function evaluate!(res::Vector{S}, p::AtlasSLProgram, xs::Vector{S}) where S
+    append!(empty!(res), view(xs, 1:p.ngens))
+
+    for l in p.lines
+        cmd, dst, i, j = l.cmd, l.dst, l.i, l.j
+        a, b = get(res, i, nothing), get(res, j, nothing)
+
+        k =
+            if cmd == :cj
+                b^-1 * a * b
+            elseif cmd == :com
+                a^-1 * b^-1 * a * b
+            elseif cmd == :iv
+                @assert j == ATLAS_VOID_SLOT
+                a^-1
+            elseif cmd == :mu
+                a * b
+            elseif cmd == :pwr
+                b^i
+            elseif cmd == :cp
+                @assert j == ATLAS_VOID_SLOT
+                a
+            else
+                @assert false "unexpected command"
+            end
+
+        n = lastindex(res)
+        if dst == n + 1
+            push!(res, k)
+        else
+            res[dst] = k
+        end
+    end
+
+    r = 0
+    for i in p.outputs
+        res[r += 1] = res[i]
+    end
+    resize!(res, r)
+end
