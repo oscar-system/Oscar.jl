@@ -130,6 +130,7 @@ constantstype(p::Exp) = constantstype(p.p)
 
 Base.:(==)(k::Exp, l::Exp) = k.p == l.p && k.e == l.e
 
+Base.literal_pow(::typeof(^), p::Lazy, ::Val{e}) where {e} = Exp(p, e)
 
 ### binary ops
 
