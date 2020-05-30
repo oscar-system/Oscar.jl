@@ -236,11 +236,11 @@ function write_list!(p::SLProgram, list::Vector{Int})
     local k
     for i = 1:n
         x = Arg(list[2*i-1])
-        e = Arg(list[2*i])
-        if e.x == 1
+        e = list[2*i]
+        if e == 1
             l = x
         else
-            l = pushop!(p, exponentiate, x, e)
+            l = pushop!(p, exponentiate, x, intarg(e))
         end
         k = i == 1 ? l : pushop!(p, times, k, l)
     end

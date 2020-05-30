@@ -99,6 +99,13 @@ end
         slp = SL.compile!(g)
         @test evaluate(slp, xy) == (x*y^2)^3*x
 
+        g = GAPSLProgram(Any[ [ [1,-1,2,-2], 2 ], [2,-3,1,1] ] )
+        t = (x^-Int(1)*y^-Int(2))^-Int(3)*x
+        @test evaluate(g, xy) == t
+        @test evaluate!(res, g, xy) == t
+        slp = SL.compile!(g)
+        @test evaluate(slp, xy) == t
+
         # assignments
         g = GAPSLProgram(Any[ [[2, 3], 3] ])
         @test evaluate(g, xy) == y^3
