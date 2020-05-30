@@ -119,8 +119,8 @@ function Base.show(io::IO, p::GAPSLProgram)
         elseif isassignline(line)
             l, dst = line
             # TODO: when l > k
-            print(io, "\nr[$k] = ")
-            prodshow(io, line)
+            print(io, "\nr[$dst] = ")
+            prodshow(io, l)
         else
             print("\n# return values:\n[ ")
             for (i, l) in enumerate(line)
