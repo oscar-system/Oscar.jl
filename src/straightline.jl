@@ -212,7 +212,7 @@ function Base.show(io::IO, ::MIME"text/plain", p::SLProgram{T}) where T
     n = length(lines(p))
     gs = get(io, :SLPsymbols, slpsyms(ninputs(p)))
     syms = lazygens(gs)
-    reslazy = Lazy[]
+    reslazy = Any[]
     if n == 0 && !hasmultireturn(p)
         # trivial program, show only result
         return show(io, retrieve(integers(p), constants(p), syms, reslazy, p.ret))
@@ -550,7 +550,7 @@ pushlazy!(p, l::Exp, gs) =
 
 ## conversion SLProgram -> Lazy
 
-lazygens(gs) = Lazy[Gen(s) for s in gs]
+lazygens(gs) = Any[Gen(s) for s in gs]
 lazygens(n::Integer) = lazygens(slpsyms(n))
 
 # strictly convenience function
