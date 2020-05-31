@@ -1,70 +1,70 @@
 @testset "GAPSLProgram construction" begin
-    lines = GAPStraightLine[]
+    slines = GAPStraightLine[]
 
-    pushline!(lines, [1, 2])
-    @test lines[1] == [1, 2]
-    @test_throws ArgumentError pushline!(lines, [1, 2, 3])
+    pushline!(slines, [1, 2])
+    @test slines[1] == [1, 2]
+    @test_throws ArgumentError pushline!(slines, [1, 2, 3])
 
-    pushline!(lines, ([2, 3], 1))
-    @test lines[2] == ([2, 3], 1)
-    @test_throws MethodError pushline!(lines, ([2, 3], 2, 3))
+    pushline!(slines, ([2, 3], 1))
+    @test slines[2] == ([2, 3], 1)
+    @test_throws MethodError pushline!(slines, ([2, 3], 2, 3))
 
-    pushline!(lines, [[4, 3], 2])
-    @test lines[3] == ([4, 3], 2)
-    @test_throws ArgumentError pushline!(lines, [[2, 3], 2, 3])
-    @test_throws ArgumentError pushline!(lines, [[2, 3, 4], 2, 3])
+    pushline!(slines, [[4, 3], 2])
+    @test slines[3] == ([4, 3], 2)
+    @test_throws ArgumentError pushline!(slines, [[2, 3], 2, 3])
+    @test_throws ArgumentError pushline!(slines, [[2, 3, 4], 2, 3])
 
-    pushline!(lines, [[4, 3], [1, 2, 3, 4]])
-    @test lines[4] == [[4, 3], [1, 2, 3, 4]]
-    @test_throws ArgumentError pushline!(lines, [[2, 3], [2, 3, 4]])
+    pushline!(slines, [[4, 3], [1, 2, 3, 4]])
+    @test slines[4] == [[4, 3], [1, 2, 3, 4]]
+    @test_throws ArgumentError pushline!(slines, [[2, 3], [2, 3, 4]])
 
     # return list not at the end
-    @test_throws ArgumentError pushline!(lines, [1, 2])
-    @test_throws ArgumentError pushline!(lines, ([2, 3], 1))
-    @test_throws ArgumentError pushline!(lines, [[4, 3], 2])
-    @test_throws ArgumentError pushline!(lines, [[4, 3], [1, 2, 3, 4]])
+    @test_throws ArgumentError pushline!(slines, [1, 2])
+    @test_throws ArgumentError pushline!(slines, ([2, 3], 1))
+    @test_throws ArgumentError pushline!(slines, [[4, 3], 2])
+    @test_throws ArgumentError pushline!(slines, [[4, 3], [1, 2, 3, 4]])
 
-    @test_throws ArgumentError GAPSLProgram(lines)
-    p = GAPSLProgram(lines, 9)
-    @test p.lines == lines
+    @test_throws ArgumentError GAPSLProgram(slines)
+    p = GAPSLProgram(slines, 9)
+    @test p.lines == slines
     q = GAPSLProgram([[1, 2],
                       ([2, 3], 1),
                       [[4, 3], 2],
                       [[4, 3], [1, 2, 3, 4]]], 9)
-    @test q.lines == lines
+    @test q.lines == slines
 
     r = GAPSLProgram(
-        Any[ [[1, 2], 3],
-             [[3, 2], 2],
-             [1, 2, 2, 1] ] )
+        [ [[1, 2], 3],
+          [[3, 2], 2],
+          [1, 2, 2, 1] ] )
     @test r.ngens == 1
 
     @test_throws ArgumentError GAPSLProgram(
-        Any[ [[1, 2], 3],
-             [[3, 2], 2],
-             [1, 2, 4, 1] ], 2)
+        [ [[1, 2], 3],
+          [[3, 2], 2],
+          [1, 2, 4, 1] ], 2)
 
     @test_throws ArgumentError GAPSLProgram(
-        Any[ [[1, 2], 3],
-             [[3, 2], 2],
-             [[1, 2, 4, 1]] ], 2 )
+        [ [[1, 2], 3],
+          [[3, 2], 2],
+          [[1, 2, 4, 1]] ], 2 )
 
     r = GAPSLProgram(
-        Any[ [[1, 2], 3],
-             [[1, 2, 4, 2], 2],
-             [1, 2, 2, 1] ])
+        [ [[1, 2], 3],
+          [[1, 2, 4, 2], 2],
+          [1, 2, 2, 1] ])
     @test r.ngens == 4
 
     r = GAPSLProgram(
-        Any[ [[2, 2], 3],
-             [[3, 2], 2],
-             [1, 2, 2, 1] ])
+        [ [[2, 2], 3],
+          [[3, 2], 2],
+          [1, 2, 2, 1] ])
     @test r.ngens == 2
 
     r = GAPSLProgram(
-        Any[ [[2, 3], 3],
-             [[3, 2], 2],
-             [[1, 2, 2, 1], [4, 1]] ])
+        [ [[2, 3], 3],
+          [[3, 2], 2],
+          [[1, 2, 2, 1], [4, 1]] ])
     @test r.ngens == 4
 end
 
@@ -77,6 +77,13 @@ end
     @test d.ngens == 2
 
     d = GAPSLDecision([
+        [ [ 1, 1, 2, 1 ], 3 ],
+        ["Order", 1, 2],
+        ["Order", 2, 3],
+        ["Order", 3, 5] ])
+    @test d.ngens == 2
+
+    d = GAPSLDecision([
         [ 1, 1, 2, 1 ],
         (1, 2), # "Order" line
         (2, 3),
@@ -85,7 +92,9 @@ end
 
     # ngens must be specified
     @test_throws ArgumentError GAPSLDecision([ [1, 1], (1, 1) ])
-    @test_throws ArgumentError GAPSLDecision(Any[ [[1, 1], 2], [[1, 1]] ])
+    @test_throws ArgumentError GAPSLDecision([ [1, 1], ["Order", 1, 1] ])
+    # can't have return line
+    @test_throws ArgumentError GAPSLDecision([ [[1, 1], 2], [[1, 1]] ])
 end
 
 @testset "GAPSLProgram evaluate / compile!" begin
@@ -113,13 +122,13 @@ end
         slp = SL.compile!(g)
         @test evaluate(slp, xy) == [y^3*x^4, x^2*y^3]
 
-        g = GAPSLProgram(Any[ [ [1,1,2,2], 2 ], [2,3,1,1] ] )
+        g = GAPSLProgram([ [ [1,1,2,2], 2 ], [2,3,1,1] ] )
         @test evaluate(g, xy) == (x*y^2)^3*x
         @test evaluate!(res, g, xy) == (x*y^2)^3*x
         slp = SL.compile!(g)
         @test evaluate(slp, xy) == (x*y^2)^3*x
 
-        g = GAPSLProgram(Any[ [ [1,-1,2,-2], 2 ], [2,-3,1,1] ] )
+        g = GAPSLProgram([ [ [1,-1,2,-2], 2 ], [2,-3,1,1] ] )
         t = (x^-Int(1)*y^-Int(2))^-Int(3)*x
         @test evaluate(g, xy) == t
         @test evaluate!(res, g, xy) == t
@@ -127,12 +136,12 @@ end
         @test evaluate(slp, xy) == t
 
         # assignments
-        g = GAPSLProgram(Any[ [[2, 3], 3] ])
+        g = GAPSLProgram([ [[2, 3], 3] ])
         @test evaluate(g, xy) == y^3
         slp = SL.compile!(g)
         @test evaluate(slp, xy) == y^3
 
-        g = GAPSLProgram(Any[ [[2, 3], 3], [[1, 2, 3, 2], 2] ])
+        g = GAPSLProgram([ [[2, 3], 3], [[1, 2, 3, 2], 2] ])
         @test evaluate(g, xy) == x^2*(y^3)^2
         slp = SL.compile!(g)
         @test evaluate(slp, xy) == x^2*(y^3)^2

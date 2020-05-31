@@ -114,10 +114,28 @@ function pushline!(lines::Vector{GAPStraightLine}, line::Tuple{Int,Int})
     push!(lines, line)
 end
 
-function pushline!(lines::Vector{GAPStraightLine}, line::Vector)
-    length(line) == 2 && line[1] isa Vector{Int} && line[2] isa Int ||
-        invalid_list_error(line)
-    pushline!(lines, (line[1], line[2]))
+# catch-all function to parse input in GAP style
+function pushline!(lines::Vector{GAPStraightLine}, line::AbstractVector)
+    newline =
+        if length(line) == 2 &&
+                line[1] isa AbstractVector && line[2] isa Integer
+            all(isinteger, line[1]) || invalid_list_error(line)
+            (Vector{Int}(line[1]), Int(line[2])) # assign line
+        elseif length(line) == 3 && line[1] == "Order"
+            isinteger(line[2]) && isinteger(line[3]) ||
+                invalid_list_error(line)
+            (Int(line[2]), Int(line[3]))
+        elseif isempty(line) || line[1] isa AbstractVector # return line
+            all(v -> v isa AbstractVector && all(isinteger, v), line) ||
+                invalid_list_error(line)
+            Vector{Int}[Vector{Int}(l) for l in line]
+        elseif line isa AbstractVector # simple line
+            all(isinteger, line) || invalid_list_error(line)
+            Vector{Int}(line)
+        else
+            invalid_list_error(line)
+        end
+    pushline!(lines, newline)
 end
 
 
