@@ -546,7 +546,7 @@ lazygens(gs) = Any[Gen(s) for s in gs]
 lazygens(n::Integer) = lazygens(slpsyms(n))
 
 # strictly convenience function
-aslazy(p::SLProgram, gs=lazygens(ninputs(p))) = evaluate(p, gs, Const)
+aslazy(p::SLProgram, gs=lazygens(ninputs(p))) = evaluate(p, gs, Lazy)
 
 
 ## evaluate
@@ -555,7 +555,7 @@ getres(p::SLProgram, xs) = Vector{eltype(xs)}(undef, length(p.lines))
 # length(p.lines) might be an overestimate in some cases, but
 # this generally limits the number of allocations
 
-function evaluate(p::SLProgram{T}, xs::Vector{S}, conv::F=nothing
+function evaluate(p::SLProgram{T}, xs::Vector{S}, conv::F=identity
                   ) where {T,S,F}
     if isassigned(p.f)
         p.f[](xs)::S
@@ -564,7 +564,7 @@ function evaluate(p::SLProgram{T}, xs::Vector{S}, conv::F=nothing
     end
 end
 
-function evaluates(p::SLProgram{T}, xs::Vector{S}, conv::F=nothing
+function evaluates(p::SLProgram{T}, xs::Vector{S}, conv::F=identity
                    ) where {T,S,F}
     res = getres(p, xs)
     evaluate!(res, p, xs, conv)
@@ -578,7 +578,7 @@ retrieve(ints, cs, xs, res, i) =
     res[i.x]
 
 function evaluate!(res::Vector{S}, p::SLProgram{T}, xs::Vector{S},
-                   conv::F=nothing) where {S,T,F}
+                   conv::F=identity) where {S,T,F}
     # TODO: handle isempty(lines(p))
     empty!(res)
 
@@ -626,8 +626,7 @@ function evaluate!(res::Vector{S}, p::SLProgram{T}, xs::Vector{S},
     if hasmultireturn(p)
         res
     else
-        x = retrieve(ints, cs, xs, res, p.ret)
-        isa(x, S) ? x : conv(x)
+        conv(retrieve(ints, cs, xs, res, p.ret))
     end
 end
 

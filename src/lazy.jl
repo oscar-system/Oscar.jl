@@ -6,6 +6,10 @@ gens(l::Lazy) = sort!(unique!(pushgens!(Symbol[], l)::Vector{Symbol}))
 
 Base.:(==)(k::Lazy, l::Lazy) = false
 
+Lazy(x::Lazy) = x
+Lazy(x) = Const(x)
+
+
 ### Const
 
 struct Const{T} <: Lazy
