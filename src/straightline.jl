@@ -230,6 +230,10 @@ function Base.show(io::IO, ::MIME"text/plain", p::SLProgram{T}) where T
     cs = constants(p)
     ints = integers(p)
 
+    showarg(x) = string(retrieve(ints, cs, syms,
+                                 ['#'*string(i) for i in eachindex(lines(p))],
+                                 x))
+
     for line in lines(p)
         op, i, j = unpack(line)
         k = updatelen!(ptmp, op, i, j)
@@ -259,10 +263,10 @@ function Base.show(io::IO, ::MIME"text/plain", p::SLProgram{T}) where T
             continue
         end
         push!(line, str('#', string(k), " ="))
-        x = showarg(ints, cs, syms, i)
+        x = showarg(i)
         y = isunary(op) || isassign(op) ? "" :
             isquasiunary(op) ? string(j.x) :
-            showarg(ints, cs, syms, j)
+            showarg(j)
 
         strop = isassign(op) ? "" : showop[op]
         push!(line, str(strop), x, y, str(plazy))
@@ -286,25 +290,13 @@ function Base.show(io::IO, ::MIME"text/plain", p::SLProgram{T}) where T
     if hasmultireturn(p)
         print(io, '[')
         join(io,
-             (showarg(ints, cs, syms, Arg(i)) for i in 1:p.len),
+             (showarg(Arg(i)) for i in 1:p.len),
              ", ")
         print(io, ']')
     else
-        print(io, showarg(ints, cs, syms, p.ret))
+        print(io, showarg(p.ret))
     end
 
-end
-
-function showarg(ints, cs, syms, i)
-    if isint(i)
-        string(ints[intidx(i)].x % Int)
-    elseif isconstant(i)
-        string(cs[constantidx(i)])
-    elseif isinput(i)
-        string(syms[inputidx(i)])
-    else
-        "#$(i.x)"
-    end
 end
 
 
