@@ -4,6 +4,8 @@ const opmask      = 0xff00000000000000
 const argmask     = 0x000000000fffffff
 const inputmark   = 0x0000000008000000
 const cstmark     = 0x0000000004000000
+const intmark     = inputmark | cstmark
+const typemark    = intmark
 const payloadmask = 0x0000000003ffffff
 const negbit      = 0x0000000002000000
 const argshift    = 28 # argmask == 2^argshift - 1
@@ -89,7 +91,9 @@ end
 Base.show(io::IO, op::Op) = print(io, showop[op])
 
 function Base.show(io::IO, x::Arg)
-    if isinput(x)
+    if isint(x)
+        print(io, 'i', intidx(x))
+    elseif isinput(x)
         print(io, '$', inputidx(x))
     elseif isconstant(x)
         print(io, '+', constantidx(x))
@@ -104,13 +108,14 @@ end
 mutable struct SLProgram{T}
     cs::Vector{T}       # constants
     lines::Vector{Line} # instructions
+    int::Int            # number of stored Int at the beginning of lines
     len::Int            # length of result vector
                         # (where to store next result for any new line, minus 1)
     ret::Arg            # result index to return (0 for all)
     f::Ref{Function}    # compiled execution
 end
 
-SLProgram{T}() where {T} = SLProgram(T[], Line[], 0, Arg(0), Ref{Function}())
+SLProgram{T}() where {T} = SLProgram(T[], Line[], 0, 0, Arg(0), Ref{Function}())
 SLProgram() = SLProgram{Union{}}()
 
 # return an input
@@ -129,6 +134,7 @@ end
 function Base.copy!(q::SLProgram, p::SLProgram)
     copy!(q.cs, p.cs)
     copy!(q.lines, p.lines)
+    q.int = p.int
     q.len = p.len
     q.ret = p.ret
     q
@@ -138,10 +144,13 @@ copy_oftype(p::SLProgram, ::Type{T}) where {T} = copy!(SLProgram{T}(), p)
 
 Base.copy(p::SLProgram{T}) where {T} = copy_oftype(p, T)
 
-Base.:(==)(p::SLProgram, q::SLProgram) = p.cs == q.cs && p.lines == q.lines && p.ret == q.ret
+Base.:(==)(p::SLProgram, q::SLProgram) =
+    p.cs == q.cs && p.lines == q.lines && p.int == q.int && p.ret == q.ret
 
 constants(p::SLProgram) = p.cs
-lines(p::SLProgram) = p.lines
+_integers(p::SLProgram) = @view p.lines[1:p.int]
+integers(p::SLProgram) = @view p.lines[p.int:-1:1]
+lines(p::SLProgram) = @view p.lines[1+p.int : end]
 
 constantstype(p::SLProgram{T}) where {T} = T
 
@@ -165,13 +174,24 @@ slpcst(c) = SLProgram(Const(c))
 
 # old basic version, useful when normal show is broken
 function showsimple(io::IO, p::SLProgram)
-    println("SLProgram with constants:")
-    for (i, c) in enumerate(constants(p))
-        println(io, i, " | ", c)
+    println("SLProgram:")
+    if !isempty(constants(p))
+        println("with constants:")
+        for (i, c) in enumerate(constants(p))
+            println(io, i, " | ", c)
+        end
     end
-    println("and with lines:")
-    for (i, l) in enumerate(lines(p))
-        println(io, i, " | ", l)
+    if !isempty(integers(p))
+        println("with integers:")
+        for (i, c) in enumerate(integers(p))
+            println(io, i, " | ", c.x % Int)
+        end
+    end
+    if !isempty(lines(p))
+        println("with lines:")
+        for (i, c) in enumerate(lines(p))
+            println(io, i, " | ", c)
+        end
     end
     println("return: ", p.ret)
 end
@@ -195,7 +215,7 @@ function Base.show(io::IO, ::MIME"text/plain", p::SLProgram{T}) where T
     reslazy = Lazy[]
     if n == 0 && !hasmultireturn(p)
         # trivial program, show only result
-        return show(io, retrieve(p.cs, syms, reslazy, p.ret))
+        return show(io, retrieve(integers(p), constants(p), syms, reslazy, p.ret))
     end
 
     str(x...) = sprint(print, x...; context=io)
@@ -204,6 +224,11 @@ function Base.show(io::IO, ::MIME"text/plain", p::SLProgram{T}) where T
 
     ptmp = SLProgram{T}()
     copy!(ptmp.cs, p.cs)
+    copy!(ptmp.lines, _integers(p))
+    ptmp.int = p.int
+
+    cs = constants(p)
+    ints = integers(p)
 
     for line in lines(p)
         op, i, j = unpack(line)
@@ -234,10 +259,10 @@ function Base.show(io::IO, ::MIME"text/plain", p::SLProgram{T}) where T
             continue
         end
         push!(line, str('#', string(k), " ="))
-        x = showarg(constants(p), syms, i)
+        x = showarg(ints, cs, syms, i)
         y = isunary(op) || isassign(op) ? "" :
             isquasiunary(op) ? string(j.x) :
-            showarg(constants(p), syms, j)
+            showarg(ints, cs, syms, j)
 
         strop = isassign(op) ? "" : showop[op]
         push!(line, str(strop), x, y, str(plazy))
@@ -261,17 +286,19 @@ function Base.show(io::IO, ::MIME"text/plain", p::SLProgram{T}) where T
     if hasmultireturn(p)
         print(io, '[')
         join(io,
-             (showarg(constants(p), syms, Arg(i)) for i in 1:p.len),
+             (showarg(ints, cs, syms, Arg(i)) for i in 1:p.len),
              ", ")
         print(io, ']')
     else
-        print(io, showarg(constants(p), syms, p.ret))
+        print(io, showarg(ints, cs, syms, p.ret))
     end
 
 end
 
-function showarg(cs, syms, i)
-    if isconstant(i)
+function showarg(ints, cs, syms, i)
+    if isint(i)
+        string(ints[intidx(i)].x % Int)
+    elseif isconstant(i)
         string(cs[constantidx(i)])
     elseif isinput(i)
         string(syms[inputidx(i)])
@@ -283,7 +310,7 @@ end
 
 ## building SLProgram
 
-isregister(i::Arg) = (inputmark | cstmark) & i.x == 0
+isregister(i::Arg) = typemark & i.x == 0
 
 # return #ref for i-th input
 function input(i::Integer)
@@ -292,13 +319,17 @@ function input(i::Integer)
     Arg((i % UInt64) | inputmark)
 end
 
-isinput(i::Arg) = inputmark & i.x === inputmark
+isinput(i::Arg) = typemark & i.x === inputmark
 inputidx(i::Arg) = i.x ⊻ inputmark
 
-isconstant(i::Arg) = cstmark & i.x === cstmark
+isconstant(i::Arg) = typemark & i.x === cstmark
 constantidx(i::Arg) = i.x ⊻ cstmark
 
 asconstant(i::Integer) = Arg(UInt64(i) | cstmark)
+
+isint(i::Arg) = typemark & i.x === intmark
+asint(i::Int) = Arg(i % UInt64 | intmark)
+intidx(i::Arg) = i.x ⊻ intmark
 
 hasmultireturn(p::SLProgram) = p.ret.x == 0
 setmultireturn!(p::SLProgram) = (p.ret = Arg(0); p)
@@ -342,6 +373,13 @@ function pushconst!(p::SLProgram{T}, c::T) where T
     asconstant(l)
 end
 
+function pushint!(p::SLProgram, i::Integer)
+    pushfirst!(p.lines, Line(Int(i) % UInt64))
+    p.int += 1
+    @assert p.int < cstmark
+    asint(p.int)
+end
+
 function updatelen!(p, op, i, j)
     if isassign(op) && j != Arg(0)
         ptr = Int(j.x)
@@ -364,7 +402,7 @@ end
 function pushop!(p::SLProgram, op::Op, i::Arg, j::Arg=Arg(0))
     @assert i.x <= argmask && j.x <= argmask
     ptr = updatelen!(p, op, i, j)
-    push!(lines(p), Line(op, i, j))
+    push!(p.lines, Line(op, i, j))
     Arg(ptr % UInt64)
 end
 
@@ -377,22 +415,30 @@ function _combine!(p::SLProgram, q::SLProgram)
     i1 = pushinit!(p)
     i2 = pushinit!(q)
     koffset = length(constants(p))
+    ioffset = p.int
+    p.int += q.int
     len = length(lines(p))
-    append!(lines(p), lines(q))
+    prepend!(p.lines, _integers(q))
+    append!(p.lines, lines(q))
     append!(constants(p), constants(q))
 
     @assert length(constants(p)) < cstmark # TODO: should not be @assert
+
     for n = len+1:lastindex(lines(p))
         op, i, j = unpack(lines(p)[n])
         if isconstant(i)
             i = Arg(i.x + koffset)
         elseif isinput(i)
+        elseif isint(i)
+            i = Arg(i.x + ioffset)
         else
             i = Arg(i.x + len)
         end
         if isconstant(j)
             j = Arg(j.x + koffset)
         elseif isinput(j)
+        elseif isint(j)
+            j = Arg(j.x + ioffset)
         elseif !isquasiunary(op)
             j = Arg(j.x + len)
         end
@@ -402,6 +448,8 @@ function _combine!(p::SLProgram, q::SLProgram)
     if isconstant(i2)
         i2 = Arg(i2.x + koffset)
     elseif isinput(i2)
+    elseif isint(i2)
+        i2 = Arg(i2.x + ioffset)
     else
         i2 = Arg(i2.x + len)
     end
@@ -531,9 +579,10 @@ function evaluates(p::SLProgram{T}, xs::Vector{S}, conv::F=nothing
     res
 end
 
-retrieve(cs, xs, res, i) =
+retrieve(ints, cs, xs, res, i) =
+    isint(i)      ? ints[intidx(i)].x % Int :
     isconstant(i) ? cs[constantidx(i)] :
-    isinput(i) ? xs[inputidx(i)] :
+    isinput(i)    ? xs[inputidx(i)] :
     res[i.x]
 
 function evaluate!(res::Vector{S}, p::SLProgram{T}, xs::Vector{S},
@@ -542,6 +591,8 @@ function evaluate!(res::Vector{S}, p::SLProgram{T}, xs::Vector{S},
     empty!(res)
 
     cs = constants(p)
+    ints = integers(p)
+
     for line in lines(p)
         local r::S
         op, i, j = unpack(line)
@@ -550,7 +601,7 @@ function evaluate!(res::Vector{S}, p::SLProgram{T}, xs::Vector{S},
             resize!(res, i.x)
             continue
         end
-        x = retrieve(cs, xs, res, i)
+        x = retrieve(ints, cs, xs, res, i)
         if isexponentiate(op)
             r = x^getint(j) # TODO: support bigger j
         elseif isassign(op)
@@ -563,7 +614,7 @@ function evaluate!(res::Vector{S}, p::SLProgram{T}, xs::Vector{S},
         elseif isuniminus(op)
             r = -x
         else
-            y = retrieve(cs, xs, res, j)
+            y = retrieve(ints, cs, xs, res, j)
             if isplus(op)
                 r = x + y
             elseif isminus(op)
@@ -583,7 +634,7 @@ function evaluate!(res::Vector{S}, p::SLProgram{T}, xs::Vector{S},
     if hasmultireturn(p)
         res
     else
-        x = retrieve(cs, xs, res, p.ret)
+        x = retrieve(ints, cs, xs, res, p.ret)
         isa(x, S) ? x : conv(x)
     end
 end

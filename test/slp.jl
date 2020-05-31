@@ -245,7 +245,7 @@ end
     q = SLPoly(S)
     # TODO: do smthg more interesting with q
     push!(constants(q), 3)
-    push!(lines(q), Line(0))
+    push!(q.slprogram.lines, Line(0))
     copy!(p, q)
     p2 = copy(q)
     for p1 in (p, p2)
@@ -257,7 +257,6 @@ end
 
     # building
     p = SLPoly(S)
-    plines = lines(p)
     l1 = pushconst!(p.slprogram, 1)
     @test constants(p) == [1]
     @test l1 === SL.asconstant(1)
@@ -269,18 +268,18 @@ end
 
     l3 = pushop!(p, SL.plus, l1, SL.input(1))
     @test l3 == Arg(UInt64(1))
-    @test plines[1].x == 0x0340000018000001
+    @test lines(p)[1].x == 0x0340000018000001
     l4 = pushop!(p, SL.times, l3, SL.input(2))
     @test l4 == Arg(UInt64(2))
-    @test plines[2].x ==0x0500000018000002
-    pl = copy(plines)
+    @test lines(p)[2].x ==0x0500000018000002
+    pl = copy(lines(p))
     @test p === SL.pushfinalize!(p, l4)
 
-    @test plines == [Line(0x0340000018000001), Line(0x0500000018000002)]
+    @test lines(p) == [Line(0x0340000018000001), Line(0x0500000018000002)]
     SL.pushinit!(p)
-    @test pl == plines
+    @test pl == lines(p)
     SL.pushfinalize!(p, l4)
-    @test plines == [Line(0x0340000018000001), Line(0x0500000018000002)]
+    @test lines(p) == [Line(0x0340000018000001), Line(0x0500000018000002)]
     # p == (1+x)*y
     @test SL.evaluate!(Int[], p, [1, 2]) == 4
     @test SL.evaluate!(Int[], p, [0, 3]) == 3
@@ -606,7 +605,7 @@ end
 
     # multiple return
     p = SLProgram{Int}()
-    inputs = Lazy[x, y, z]
+    inputs = Any[x, y, z]
 
     @test evaluate(p, inputs) == []
     k1 = SL.pushop!(p, SL.plus, SL.input(1), SL.input(2))
@@ -631,4 +630,25 @@ end
     @test evaluate(p, inputs) == [(x+y)*3]
     SL.pushop!(p, SL.keep, Arg(0))
     @test evaluate(p, inputs) == []
+
+    # integers
+    p = SLProgram()
+    i = SL.pushint!(p, 123)
+    j = SL.pushint!(p, -4)
+
+    k = SL.pushop!(p, SL.plus, i, j)
+    SL.pushfinalize!(p, k)
+    @test evaluate(p, inputs) == 119
+
+    k = SL.pushop!(p, SL.times, k, SL.input(1))
+    SL.pushfinalize!(p, k)
+    @test evaluate(p, inputs) == 119 * x
+
+    l = SL.pushint!(p, -2)
+    SL.pushfinalize!(p, l)
+    @test evaluate(p, inputs) == -2
+
+    m = SL.pushop!(p, SL.minus, k, l)
+    SL.pushfinalize!(p, m)
+    @test evaluate(p, inputs) == 119 * x - (-2)
 end
