@@ -2,19 +2,29 @@ const ReturnList = Vector{Vector{Int}}
 
 const GAPStraightLine = Union{Vector{Int},            # e.g. [1, 2, 2, -1]
                               Tuple{Vector{Int},Int}, # e.g. ([1, 2], 2)
+                              Tuple{Int,Int},         # (i, n) for ["Order", i, n]
                               ReturnList}             # return list
 
 issimpleline(line) = line isa Vector{Int}
-isassignline(line) = line isa Tuple
+isassignline(line) = line isa Tuple{Vector{Int},Int}
 isreturnline(line) = line isa ReturnList
+isorderline(line)  = line isa Tuple{Int,Int}
 
-struct GAPSLProgram
+abstract type AbstractGAPSL end
+
+struct GAPSLProgram <: AbstractGAPSL
     lines::Vector{GAPStraightLine}
     ngens::Int
     slp::Ref{SLProgram}
 end
 
-function GAPSLProgram(lines::Vector, ngens::Integer=-1)
+struct GAPSLDecision <: AbstractGAPSL
+    lines::Vector{GAPStraightLine}
+    ngens::Int
+    slp::Ref{SLProgram}
+end
+
+function (::Type{SLP})(lines::Vector, ngens::Integer=-1) where {SLP<:AbstractGAPSL}
     ls = GAPStraightLine[]
     n = length(lines)
     ng = 0
@@ -39,10 +49,10 @@ function GAPSLProgram(lines::Vector, ngens::Integer=-1)
     for (i, line) in enumerate(lines)
         pushline!(ls, line)
         l = ls[end]
-        if ngens < 0 && i < n && l isa Vector{Int}
+        if ngens < 0 && issimpleline(l) && (i < n || SLP === GAPSLDecision)
             throw(ArgumentError("ngens must be specified"))
         end
-        if l isa Tuple
+        if isassignline(l)
             ng = max(ng, maxnohave(l[1]))
             if ngens < 0
                 union!(have, 1:ng)
@@ -50,18 +60,26 @@ function GAPSLProgram(lines::Vector, ngens::Integer=-1)
                 undef_slot()
             end
             push!(have, l[2])
-        elseif l isa Vector{Int}
+        elseif issimpleline(l)
             ng = max(ng, maxnohave(l))
             ngens >= 0 && ng > 0 && undef_slot()
             push!(have, maximum(have)+1)
-        else # ReturnList
+        elseif isorderline(l)
+            SLP <: GAPSLDecision ||
+                throw(ArgumentError("\"Order\" line only allowed in GAPSLDecision"))
+            # GAP doesn't seem to take an "Order" line into account for determining
+            # the number of generators
+        else
+            @assert isreturnline(l) "unknown line"
+            SLP <: GAPSLProgram ||
+                throw(ArgumentError("return list only allowed in GAPSLProgram"))
             for li in l
                 ng = max(ng, maxnohave(li))
                 ngens >= 0 && ng > 0 && undef_slot()
             end
         end
     end
-    GAPSLProgram(ls, ngens < 0 ? ng : ngens, Ref{SLProgram}())
+    SLP(ls, ngens < 0 ? ng : ngens, Ref{SLProgram}())
 end
 
 invalid_list_error(line) = throw(ArgumentError("invalid line or list: $line"))
@@ -91,6 +109,11 @@ function pushline!(lines::Vector{GAPStraightLine}, line::Tuple{Vector{Int},Int})
     push!(lines, line)
 end
 
+function pushline!(lines::Vector{GAPStraightLine}, line::Tuple{Int,Int})
+    check_last(lines) # redundant
+    push!(lines, line)
+end
+
 function pushline!(lines::Vector{GAPStraightLine}, line::Vector)
     length(line) == 2 && line[1] isa Vector{Int} && line[2] isa Int ||
         invalid_list_error(line)
@@ -103,7 +126,7 @@ end
 expshow(x, i) = i == 1 ? "r[$x]" : "r[$x]^$i"
 prodshow(io, x) = join(io, (expshow(x[2*i-1], x[2*i]) for i=1:(length(x)>>1)), '*')
 
-function Base.show(io::IO, p::GAPSLProgram)
+function Base.show(io::IO, p::AbstractGAPSL)
     k = p.ngens
     println(io, "# input:")
     print(io, "r = [ ")
@@ -121,16 +144,25 @@ function Base.show(io::IO, p::GAPSLProgram)
             # TODO: when l > k
             print(io, "\nr[$dst] = ")
             prodshow(io, l)
-        else
+        elseif isorderline(line)
+            x, e = line
+            print(io, "\norder( r[$x] ) == $e || return false")
+        elseif isreturnline(line)
             print("\n# return values:\n[ ")
             for (i, l) in enumerate(line)
                 i == 1 || print(io, ", ")
                 prodshow(io, l)
             end
             return print(io, " ]")
+        else
+            @assert false "unknown line"
         end
     end
-    print("\n# return value:\nr[$k]")
+    if p isa GAPSLProgram
+        print("\n# return value:\nr[$k]")
+    else
+        print("\n# return value:\ntrue")
+    end
 end
 
 

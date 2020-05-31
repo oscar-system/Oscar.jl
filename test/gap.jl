@@ -68,6 +68,26 @@
     @test r.ngens == 4
 end
 
+@testset "GAPSLDecision construction" begin
+    d = GAPSLDecision([
+        [ [ 1, 1, 2, 1 ], 3 ],
+        (1, 2), # "Order" line
+        (2, 3),
+        (3, 5) ])
+    @test d.ngens == 2
+
+    d = GAPSLDecision([
+        [ 1, 1, 2, 1 ],
+        (1, 2), # "Order" line
+        (2, 3),
+        (3, 5) ], 2)
+    @test d.ngens == 2
+
+    # ngens must be specified
+    @test_throws ArgumentError GAPSLDecision([ [1, 1], (1, 1) ])
+    @test_throws ArgumentError GAPSLDecision(Any[ [[1, 1], 2], [[1, 1]] ])
+end
+
 @testset "GAPSLProgram evaluate / compile!" begin
     for xy = (slpgens(3), Lazy[Gen(:x), Gen(:y)])
         x, y = xy
