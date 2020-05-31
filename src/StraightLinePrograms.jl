@@ -6,7 +6,7 @@ import Base: +, -, *, ^, parent
 using AbstractAlgebra: Ring, RingElement, MPolyRing, MPolyElem, elem_type,
     Generic
 
-import AbstractAlgebra: base_ring, gen, gens, symbols, evaluate
+import AbstractAlgebra: base_ring, gen, gens, symbols, evaluate, order
 
 export LazyPolyRing, LazyPoly, SLPolyRing, SLPoly, SLProgram
 export slpcst, slpgen, slpgens

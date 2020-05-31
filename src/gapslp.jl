@@ -186,13 +186,13 @@ end
 
 ## evaluate
 
-evaluate(p::GAPSLProgram, xs::Vector) = evaluate!(empty(xs), p, xs)
+evaluate(p::AbstractGAPSL, xs::Vector) = evaluate!(empty(xs), p, xs)
 # TODO: use compiled version if present?
 
 expterm(x, i) = i == 1 ? x : x^i
 prodlist(res, x) = prod(expterm(res[x[2*i-1]], x[2*i]) for i=1:(length(x)>>1))
 
-function evaluate!(res::Vector{S}, p::GAPSLProgram, xs::Vector{S}) where {S}
+function evaluate!(res::Vector{S}, p::AbstractGAPSL, xs::Vector{S}) where {S}
     append!(empty!(res), view(xs, 1:p.ngens))
 
     local k
@@ -208,6 +208,9 @@ function evaluate!(res::Vector{S}, p::GAPSLProgram, xs::Vector{S}) where {S}
             else
                 res[k] = r
             end
+        elseif isorderline(line)
+            x = res[line[1]]
+            order(x) == line[2] || return false
         else
             k = lastindex(res) + 1
             for l in line
@@ -223,7 +226,11 @@ function evaluate!(res::Vector{S}, p::GAPSLProgram, xs::Vector{S}) where {S}
             return res
         end
     end
-    return res[k]
+    if p isa GAPSLProgram
+        res[k]
+    else
+        true
+    end
 end
 
 

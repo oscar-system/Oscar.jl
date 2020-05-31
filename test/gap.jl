@@ -147,3 +147,22 @@ end
         @test evaluate(slp, xy) == x^2*(y^3)^2
     end
 end
+
+@testset "GAPSLDecision evaluate / compile!" begin
+    p = perm"(1, 2)(3, 4)"
+    q = Perm([1, 4, 2, 3])
+    pq = [p, q]
+
+    for (i, j, k, r) in [(2, 3, 5, false),
+                         (2, 3, 3, true),
+                         (2, 2, 3, false),
+                         (1, 3, 3, false)]
+        d = GAPSLDecision([
+            [ [ 1, 1, 2, 1 ], 3 ],
+            ["Order", 1, i],
+            ["Order", 2, j],
+            ["Order", 3, k] ])
+
+        @test evaluate(d, pq) == r
+    end
+end
