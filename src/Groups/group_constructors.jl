@@ -22,14 +22,11 @@ export
     omega_group,
     orthogonal_group,
     quaternion_group,
-    small_group,
-    small_groups_id,
     special_linear_group,
     special_orthogonal_group,
     special_unitary_group,
     symmetric_group,
     symplectic_group,
-    transitive_group,
     unitary_group,
     GL, GO, GU, SL, SO, Sp, SU
 
@@ -77,22 +74,6 @@ end
 
 function isalternating_group(G::GAPGroup)
   return GAP.Globals.IsAlternatingGroup(G.X)
-end
-
-function small_group(n::Int, m::Int)
-  G = GAP.Globals.SmallGroup(n, m)
-  T = _get_type(G)
-  return T(G)
-end
-
-function small_groups_id(G::GAPGroup)
-  r = GAP.Globals.IdGroup(G.X)
-  res = GAP.gap_to_julia(GAP.gap_to_julia(r))
-  return (res[1], res[2])
-end
-
-function transitive_group(n::Int, m::Int)
-  return PermGroup(GAP.Globals.TransitiveGroup(n, m))
 end
 
 cyclic_group(n::Int) = cyclic_group(PcGroup, n)
