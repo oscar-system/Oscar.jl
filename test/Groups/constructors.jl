@@ -42,7 +42,7 @@ end
   
   
   @test isquaternion_group(small_group(8, 4))
-  @test small_groups_id(small_group(8, 4)) == (8, 4)
+  @test small_group_identification(small_group(8, 4)) == (8, 4)
   @test isa(small_group(8, 4), PcGroup)
   @test isa(small_group(60, 5), PermGroup)
   

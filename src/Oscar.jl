@@ -169,6 +169,7 @@ include("Groups/types.jl")
 include("Groups/group_constructors.jl")
 include("Groups/sub.jl")
 include("Groups/cosets.jl")
+include("Groups/libraries/libraries.jl")
 include("Groups/GAPGroups.jl")
 
 include("Rings/integer.jl")
