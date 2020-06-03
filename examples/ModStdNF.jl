@@ -15,17 +15,63 @@ function (b::AnticNumberField)(a::Singular.n_unknown{nf_elem})
   Singular.libSingular.julia(Singular.libSingular.cast_number_to_void(a.ptr))
 end
 
+function stdhilb(I::Singular.sideal, h::Array{Int32, 1}; complete_reduction::Bool=false)
+  R = base_ring(I)
+#  @show "stdhilb", I
+  @time ptr = Singular.libSingular.id_StdHilb(I.ptr, R.ptr, h, complete_reduction)
+  Singular.libSingular.idSkipZeroes(ptr)
+  z = Singular.Ideal(R, ptr)
+  z.isGB = true
+  return z
+end
+
+function sing_hilb(I::Singular.sideal)
+  a = Array{Int32, 1}()
+  @assert I.isGB
+  Singular.libSingular.scHilb(I.ptr, base_ring(I).ptr, a)
+  return a
+end
+
+mutable struct HilbertData
+  data::Array{Int32, 1}
+  I::MPolyIdeal
+  function HilbertData(I::MPolyIdeal)
+    @time Oscar.groebner_assure(I)
+    @time h = sing_hilb(I.gb.S)
+    return new(h, I)
+  end
+  function HilbertData(B::BiPolyArray)
+    return HilbertData(Oscar.MPolyIdeal(B))
+  end
+end
+
+function Base.show(io::IO, h::HilbertData)
+  print(io, "Hilbert Series for $(h.I), data: $(h.data)")
+end
+
+function Oscar.groebner_basis(B::BiPolyArray{nmod_mpoly}, h::HilbertData; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
+  if ord != :degrevlex
+    R = Oscar.singular_ring(B.Ox, ord)
+    i = stdhilb(Singular.Ideal(R, [convert(R, x) for x = B]), h.data, complete_reduction = complete_reduction)
+    return BiPolyArray(B.Ox, i)
+  end
+  if !isdefined(B, :S)
+    B.S = Singular.Ideal(B.Sx, [convert(B.Sx, x) for x = B.O])
+  end 
+  return BiPolyArray(B.Ox, stdhilb(B.S, h.data, complete_reduction = complete_reduction))
+end
+
 #TODO (to dream)
 #  the groeber bases in Singular in parallel
 #  the rat-reco for different polys in parallel
 #  crt in parallel
-function Oscar.groebner_assure(I::MPolyIdeal{Generic.MPoly{nf_elem}}, ord::Symbol = :degrevlex)
+#  use walk, tracing, ...
+function Oscar.groebner_assure(I::MPolyIdeal{Generic.MPoly{nf_elem}}, ord::Symbol = :degrevlex; use_hilbert::Bool = false)
   if isdefined(I, :gb) && ord == :degrevlex
     return I.gb
   end
   ps = Hecke.PrimesSet(Hecke.p_start, -1)
   ps = Hecke.PrimesSet(2^28+2^20, -1)
-  ps = Hecke.PrimesSet(825889-10, -1)
 
   p = iterate(ps)[1]
   Kt = base_ring(I)
@@ -41,6 +87,8 @@ function Oscar.groebner_assure(I::MPolyIdeal{Generic.MPoly{nf_elem}}, ord::Symbo
 
   fl = true
   d = fmpz(1)
+  very_first = true
+  local H::HilbertData
   while true
     p = iterate(ps, p)[1]
     @vprint :MPolyGcd 2 "Main loop: using $p\n"
@@ -54,7 +102,16 @@ function Oscar.groebner_assure(I::MPolyIdeal{Generic.MPoly{nf_elem}}, ord::Symbo
     @vtime :MPolyGcd 3 Ip = Hecke.modular_proj(me, I.gens)
     Jp = typeof(Ip[1])[]
     @vtime :MPolyGcd 2 for fp = Ip
-      push!(Jp, groebner_basis(fp, ord = ord, complete_reduction = true))
+      @show typeof(fp)
+      if use_hilbert
+        if very_first
+          @show H = HilbertData(fp)
+          very_first = false
+        end
+        push!(Jp, groebner_basis(fp, H, ord = ord, complete_reduction = true))
+      else
+        push!(Jp, groebner_basis(fp, ord = ord, complete_reduction = true))
+      end
     end
     @vtime :MPolyGcd 2 IP = Hecke.modular_lift(me, Jp)
     if d == 1
@@ -73,7 +130,7 @@ function Oscar.groebner_assure(I::MPolyIdeal{Generic.MPoly{nf_elem}}, ord::Symbo
       for i = length(gd)+1:length(gc)
         push!(gd, Kt(0))
       end
-      @show gd
+#      @show gd
     else
       new_idx = [any(x -> any(x->!iszero(x), Hecke.modular_proj(x, me)), coefficients(gd[i] - IP[i])) for i=1:length(gc)]
       @vprint :MPolyGcd 1 "new information in $new_idx\n"
@@ -95,7 +152,7 @@ function Oscar.groebner_assure(I::MPolyIdeal{Generic.MPoly{nf_elem}}, ord::Symbo
           end
         end
         stable = max_stable
-        @show gd
+#        @show gd
       else
         d *= fmpz(p)
         stable -= 1
@@ -278,7 +335,7 @@ function example_9()
   return ideal([f1, f2, f3, f4, f5, f6, f7, f8])
 end
 
-end
+end #DerejeGB
 
 module Decker
 
@@ -304,5 +361,21 @@ function example_dim(k, n::Int, d::Int, nc::Int, range)
   return ideal(id)
 end
 
+end #Decker
 
+
+module Fieker
+using Oscar
+
+function example_bad_lex()
+  k, i = quadratic_field(-1)
+  kx, (x1, x2, x3, x4, x5, x6, x7) = PolynomialRing(k, 7)
+  i = ideal(
+      [(5*i + 7)*x1^2*x5 + (4*i + 9)*x1*x2*x4 + (10*i + 2)*x2*x3*x6 + (10*i + 9)*x2*x4*x6,
+       (6*i + 8)*x1*x2*x3 + (7*i + 3)*x2^2*x5 + (i + 3)*x2*x4*x6 + (3*i + 10)*x2*x6^2,
+       (i + 7)*x1*x4*x7 + (8*i + 10)*x2*x6*x7 + (6*i + 4)*x3*x4*x6 + (8*i + 7)*x3*x6^2])
+
+  return i
 end
+
+end #Fieker
