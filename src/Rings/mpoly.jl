@@ -212,6 +212,13 @@ singular_ring(F::Nemo.GaloisField) = Singular.Fp(Int(characteristic(F)))
 singular_ring(F::Nemo.NmodRing) = Singular.Fp(Int(characteristic(F)))
 
 #TODO: maybe half of this is superflous (and automatic) so delete?
+#=
+function singular_ring(Rx::MPolyQuo; keep_ordering::Bool = true)
+  Sx = singular_ring(Rx.R, keep_ordering = keep_ordering)
+  groebner_assure(Rx.I)
+  error("missing")
+end
+=#
 
 function singular_ring(Rx::Nemo.FmpqMPolyRing; keep_ordering::Bool = true)
   if keep_ordering
@@ -306,6 +313,12 @@ mutable struct MPolyIdeal{S} <: Ideal{S}
     if s.isGB
       r.gb = gens
     end
+    return r
+  end
+  function MPolyIdeal(B::BiPolyArray{T}) where T
+    r = new{T}()
+    r.dim = -1
+    r.gens = B
     return r
   end
 end
@@ -440,6 +453,7 @@ end
 function groebner_assure(I::MPolyIdeal)
   if !isdefined(I, :gb)
     singular_assure(I)
+#    @show "std on", I.gens.S
     I.gb = BiPolyArray(I.gens.Ox, Singular.std(I.gens.S))
   end
 end
@@ -447,12 +461,15 @@ end
 function groebner_basis(B::BiPolyArray; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
   if ord != :degrevlex
     R = singular_ring(B.Ox, ord)
-    i = Singular.std(Singular.Ideal(R, [convert(R, x) for x = B]), complete_reduction = complete_reduction)
+    i = Singular.Ideal(R, [convert(R, x) for x = B])
+#    @show "std on", i, B
+    i = Singular.std(i, complete_reduction = complete_reduction)
     return BiPolyArray(B.Ox, i)
   end
   if !isdefined(B, :S)
     B.S = Singular.Ideal(B.Sx, [convert(B.Sx, x) for x = B.O])
   end
+#  @show "dtd", B.S
   return BiPolyArray(B.Ox, Singular.std(B.S, complete_reduction = complete_reduction))
 end
 

@@ -127,6 +127,8 @@ end
 
 parent(a::MPolyElem_dec) = a.parent
 length(a::MPolyElem_dec) = length(a.f)
+monomial(a::MPolyElem_dec, i::Int) = parent(a)(monomial(a.f, i))
+coeff(a::MPolyElem_dec, i::Int) = coeff(a.f, i)
 
 function singular_ring(R::MPolyRing_dec; keep_ordering::Bool = false)
   return singular_ring(R.R, keep_ordering = keep_ordering)
@@ -291,33 +293,102 @@ function homogenous_component(W::MPolyRing_dec, d::GrpAbFinGenElem)
   C = identity_matrix(FlintZZ, ngens(W))
   A = vcat([x.coeff for x = W.d])
   k = solve_mixed(A', d.coeff', C)
-  B = []
+  B = elem_type(W)[]
   for ee = 1:nrows(k)
     e = k[ee, :]
     a = MPolyBuildCtx(W.R)
     push_term!(a, R(1), [Int(x) for x = e])
     push!(B, W(finish(a)))
   end
-  M = FreeModule(R, length(B), cached = false)
-  g = function(y::MPolyElem_dec)
-    x = elem_type(R)[R(0) for i=1:length(B)]
-    for (c, m) = Base.Iterators.zip(MPolyCoeffs(y.f), Generic.MPolyMonomials(y.f))
-      mm = W(m)
-      p = Base.findfirst(i -> B[i] == mm, 1:length(B))
-      if p === nothing
-        error("element not in this component")
-      end
-      x[p] = c
-    end
-    return M(x)
-  end
-  h = MapFromFunc(x -> sum(x[i] * B[i] for i=1:length(B)), g, M, W)
+  M, h = vector_space(R, B)
   Hecke.set_special(M, :show => show_homo_comp, :data => (W, d))
   add_relshp(M, W, x -> sum(x[i] * B[i] for i=1:length(B)))
 #  add_relshp(W, M, g)
   return M, h
 end
 
+base_ring(W::MPolyQuo) = W.R
+modulus(W::MPolyQuo) = W.I
+
+function hash(w::MPolyQuoElem, u::UInt)
+  simplify!(w)
+  return hash(w.f, u)
+end
+
+function homogenous_component(W::MPolyQuo{<:MPolyElem_dec}, d::GrpAbFinGenElem)
+  #TODO: lazy: ie. no enumeration of points
+  #      aparently it is possible to get the number of points faster than the points
+  D = parent(d)
+  @assert D == decoration(W)
+  R = base_ring(W)
+  I = modulus(W)
+
+  H, mH = homogenous_component(R, d)
+  B = Set{elem_type(W)}()
+  for h = basis(H)
+    b = W(mH(h))
+    if !iszero(b)
+      push!(B, b)
+    end
+  end
+  B = [x for x = B]
+
+  M, h = vector_space(R, B)
+  Hecke.set_special(M, :show => show_homo_comp, :data => (W, d))
+  return M, h
+end
+
+function vector_space(K::AbstractAlgebra.Field, e::Array{T, 1}) where {T <:MPolyElem}
+  R = parent(e[1])
+  @assert base_ring(R) == K
+  mon = Dict{typeof(e[1]), Int}()
+  mon_idx = Array{typeof(e[1]), 1}()
+  M = sparse_matrix(K)
+  last_pos = 1
+  for i = e
+    pos = Array{Int, 1}()
+    val = Array{elem_type(K), 1}()
+    for (c, m) = Base.Iterators.zip(coefficients(i), monomials(i))
+      if haskey(mon, m)
+        push!(pos, mon[m])
+        push!(val, c)
+      else
+        push!(mon_idx, m)
+        mon[m] = last_pos
+        push!(pos, last_pos)
+        push!(val, c)
+        last_pos += 1
+      end
+    end
+    push!(M, sparse_row(K, pos, val))
+  end
+  Hecke.echelon!(M, complete = true)
+
+  b = Array{typeof(e[1]), 1}()
+  for i=1:nrows(M)
+    s = zero(e[1])
+    for (k,v) = M[i]
+      s += v*mon_idx[k]
+    end
+    push!(b, s)
+  end
+
+  F = FreeModule(K, length(b), cached = false)
+  function g(x::T)
+    @assert parent(x) == R
+    v = zero(F)
+    for (c, m) = Base.Iterators.zip(coefficients(x), monomials(x))
+      if !haskey(mon, m)
+        error("not in image")
+      end
+      v += c*gen(F, mon[m])
+    end
+    return v
+  end
+  h = MapFromFunc(x -> sum(x[i] * b[i] for i=1:length(b)), g, F, R)
+
+  return F, h
+end
 
 ###########################################
 # needs re-thought
