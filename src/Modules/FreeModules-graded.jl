@@ -123,9 +123,9 @@ struct FreeModuleElem_dec{T}
   parent::FreeModule_dec{T}
 end
 
-elem_type(::Type{FreeModule_dec{T}}) where {T} = FreeModuleElem_dec{elem_type(T)}
-parent_type(::Type{FreeModuleElem_dec{T}}) where {T} = FreeModule_dec{parent_type(T)}
-elem_type(::FreeModule_dec{T}) where {T} = FreeModuleElem_dec{elem_type(T)}
+elem_type(::Type{FreeModule_dec{T}}) where {T} = FreeModuleElem_dec{T}
+parent_type(::Type{FreeModuleElem_dec{T}}) where {T} = FreeModule_dec{T}
+elem_type(::FreeModule_dec{T}) where {T} = FreeModuleElem_dec{T}
 
 function show(io::IO, e::FreeModuleElem_dec)
   if length(e.r) == 0
@@ -292,7 +292,7 @@ mutable struct BiModArray{T}
   end
 
   function BiModArray(F::FreeModule_dec{S}, s::Singular.smodule) where {S}
-    r = new{elem_type(S)}()
+    r = new{S}()
     r.F = F
     if Singular.ngens(s) == 0
       r.SF = Singular.FreeModule(base_ring(s), 0)
@@ -300,7 +300,7 @@ mutable struct BiModArray{T}
       r.SF = parent(s[1])
     end
     r.S = s
-    r.O = Array{FreeModuleElem_dec{elem_type(S)}, 1}(undef, Singular.ngens(s))
+    r.O = Array{FreeModuleElem_dec{S}, 1}(undef, Singular.ngens(s))
     return r
   end
 end
@@ -503,7 +503,7 @@ mutable struct SubQuo_dec{T} <: ModuleFP_dec{T}
     return r
   end
   function SubQuo_dec(S::SubQuo_dec, O::Array{<:FreeModuleElem_dec{L}, 1}) where {L}
-    r = new{parent_type(L)}()
+    r = new{L}()
     r.F = S.F
     r.sub = S.sub
     r.quo = BiModArray(O, S.F, S.sub.SF)
@@ -557,10 +557,10 @@ struct SubQuoElem_dec{T}
  parent::SubQuo_dec
 end
 
-elem_type(::SubQuo_dec{T}) where {T} = SubQuoElem_dec{elem_type(T)}
-parent_type(::SubQuoElem_dec{T}) where {T} = SubQuo_dec{parent_type(T)}
-elem_type(::Type{SubQuo_dec{T}}) where {T} = SubQuoElem_dec{elem_type(T)}
-parent_type(::Type{SubQuoElem_dec{T}}) where {T} = SubQuo_dec{parent_type(T)}
+elem_type(::SubQuo_dec{T}) where {T} = SubQuoElem_dec{T}
+parent_type(::SubQuoElem_dec{T}) where {T} = SubQuo_dec{T}
+elem_type(::Type{SubQuo_dec{T}}) where {T} = SubQuoElem_dec{T}
+parent_type(::Type{SubQuoElem_dec{T}}) where {T} = SubQuo_dec{T}
 
 function sum_gb_assure(SQ::SubQuo_dec)
   singular_assure(SQ.sum)
@@ -1356,7 +1356,7 @@ function homogenous_component(F::T, d::GrpAbFinGenElem) where {T <: Union{FreeMo
     end
   end
 
-  B = []
+  B = elem_type(W)[]
   for (g, mMd) = all
     for x = gens(domain(mMd))
       y = mMd(x) * g
@@ -1366,16 +1366,21 @@ function homogenous_component(F::T, d::GrpAbFinGenElem) where {T <: Union{FreeMo
     end
   end
 
-  deg = length(B)
-  X = FreeModule(base_ring(W), deg)
-  Hecke.set_special(X, :show => show_homo_comp, :data => (F, d))
+#TODO: vector_space(QQ, module elems)
+  if isa(F, MPolyIdeal)
+    X, h = vector_space(base_ring(base_ring(F)), B)
+    Hecke.set_special(X, :show => show_homo_comp, :data => (F, d))
+    return X, h
+  end
 
   function im(f)
     sum(f[i]*B[i] for i=1:dim(X))
   end
-  if isa(F, MPolyIdeal)
-    return X, Hecke.MapFromFunc(im, X, base_ring(F))
-  end
+
+  deg = length(B)
+  X = FreeModule(base_ring(W), deg)
+  Hecke.set_special(X, :show => show_homo_comp, :data => (F, d))
+
   function pr(g::S) where {S <: Union{FreeModuleElem_dec, SubQuoElem_dec}}
     #TODO: add X() and some sane setting of coeffs in FreeElems
     @assert elem_type(F) == typeof(g)
