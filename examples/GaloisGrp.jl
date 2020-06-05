@@ -140,7 +140,7 @@ function all_blocks(G::PermGroup)
   # TODO: this returns an array of arrays;
   # TODO: AllBlocks assumes that we act on MovedPoints(G), which
   # may NOT be what we want...
-  return GAP.gap_to_julia(GAP.Globals.AllBlocks(G.X))
+  return GAP.gap_to_julia(Vector{Vector{Int}}, GAP.Globals.AllBlocks(G.X))
 end
 
 # TODO: update stabilizer to use GSet
@@ -149,14 +149,24 @@ function stabilizer(G::Oscar.GAPGroup, seed, act)
     return Oscar._as_subgroup(GAP.Globals.Stabilizer(G.X, GAP.julia_to_gap(seed), act), G)
 end
 
+# TODO: add type BlockSystem
+
 # TODO: perhaps get rid of set_stabilizer again, once we have proper Gsets
-function set_stabilizer(G::Oscar.GAPGroup, seed, act)
-    return stabilizer(G, seed, GAP.Globals.OnSets)
+function set_stabilizer(G::Oscar.GAPGroup, seed::Vector{Int}, act)
+    return stabilizer(G, GAP.julia_to_gap(seed), GAP.Globals.OnSets)
 end
 
 # TODO: add lots of more orbit related stuff
 
-# given a perm group and a block (TODO: currently just a V)
+# given a perm group G and a block B, compute a homomorphism into Sym(B^G)
+function action_on_blocks(G::PermGroup, B::Vector{Int})
+  orb = GAP.Globals.Orbit(G.X, GAP.julia_to_gap(seed), GAP.Globals.OnSets)
+  act = GAP.Globals.ActionHomomorphism(G.X, orb, GAP.Globals.OnSets)
+  H = GAP.Globals.Image(act)
+  T = Oscar._get_type(H)
+  H = T(H)
+  return Oscar._hom_from_gap_map(G, H, act)
+end
 
 istransitive(G::PermGroup) = GAP.Globals.IsTransitive(G.X, GAP.julia_to_gap(1:degree(G)))
 isprimitive(G::PermGroup) = GAP.Globals.IsPrimitive(G.X, GAP.julia_to_gap(1:degree(G)))
