@@ -152,7 +152,7 @@ end
 # TODO: add type BlockSystem
 
 # TODO: perhaps get rid of set_stabilizer again, once we have proper Gsets
-function set_stabilizer(G::Oscar.GAPGroup, seed::Vector{Int}, act)
+function set_stabilizer(G::Oscar.GAPGroup, seed::Vector{Int})
     return stabilizer(G, GAP.julia_to_gap(seed), GAP.Globals.OnSets)
 end
 
