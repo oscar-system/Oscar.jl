@@ -123,6 +123,52 @@ end
 # invariants via BlockSys
 # BlockSys from subfields
 
+#TODO:
+#- ansehen der ZykelTypen um Sn/An zu erkennen
+#- Kranz-Produkte fuer die BlockSysteme (und deren Schnitt)
+#- BlockSysteme fuer die Gruppen
+#- Bessere Abstraktion um mehr Grundkoerper/ Ringe zu erlauben
+#- Bessere Teilkpoerper: ich brauche "nur" maximale
+#- sanity-checks
+#- "datenbank" fuer Beispiele
+
+# TODO: add a GSet Julia type which does something similar Magma's,
+# or also to GAP's ExternalSet (but don't us ExternalSet, to avoid the overhead)
+
+
+function all_blocks(G::PermGroup)
+  # TODO: this returns an array of arrays;
+  # TODO: AllBlocks assumes that we act on MovedPoints(G), which
+  # may NOT be what we want...
+  return GAP.gap_to_julia(GAP.Globals.AllBlocks(G.X))
+end
+
+# TODO: update stabilizer to use GSet
+# TODO: allow specifying actions other than the default
+function stabilizer(G::Oscar.GAPGroup, seed, act)
+    return Oscar._as_subgroup(GAP.Globals.Stabilizer(G.X, GAP.julia_to_gap(seed), act), G)
+end
+
+# TODO: perhaps get rid of set_stabilizer again, once we have proper Gsets
+function set_stabilizer(G::Oscar.GAPGroup, seed, act)
+    return stabilizer(G, seed, GAP.Globals.OnSets)
+end
+
+# TODO: add lots of more orbit related stuff
+
+# given a perm group and a block (TODO: currently just a V)
+
+istransitive(G::PermGroup) = GAP.Globals.IsTransitive(G.X, GAP.julia_to_gap(1:degree(G)))
+isprimitive(G::PermGroup) = GAP.Globals.IsPrimitive(G.X, GAP.julia_to_gap(1:degree(G)))
+
+Base.sign(g::PermGroupElem) = GAP.Globals.Sign(g.X)
+
+Base.sign(G::PermGroup) = GAP.Globals.SignPermGroup(G.X)
+#Base.sign(G::PermGroup) = all(x -> sign(x) == 1, G)
+
+Base.isodd(G::PermGroup) = sign(G) == -1
+Base.iseven(n::PermGroup) = !isodd(n)
+
 function galois_group(f::fmpz_poly, p::Int = 31)
   GC = GaloisCtx(f, p)
   G = symmetric_group(degree(f))
