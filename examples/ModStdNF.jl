@@ -199,6 +199,25 @@ function Hecke.modular_lift(me::Hecke.modular_env, f::Array{BiPolyArray{nmod_mpo
   return g
 end
 
+function homogenize(f::MPolyElem, S::MPolyRing)
+  d = total_degree(f)
+  g = MPolyBuildCtx(S)
+  for (c, e) = Base.Iterators.zip(Generic.MPolyCoeffs(f), Generic.MPolyExponentVectors(f))
+    push_term!(g, c, push!(e, d-sum(e)))
+  end
+  return finish(g)
+end
+
+function homogenize(i::MPolyIdeal)
+  R = base_ring(i)
+  S, _ = PolynomialRing(base_ring(R), push!([string(x) for x = symbols(R)], "H"))
+  return homogenize(i, S)
+end
+
+function homogenize(i::MPolyIdeal, S::MPolyRing)
+  return ideal([homogenize(x, S) for x = gens(i)])
+end
+
 #Hecke.induce_crt and such from MPolyGcd...
 
 end
@@ -359,6 +378,12 @@ function example_dim(k, n::Int, d::Int, nc::Int, range)
 
   # the benchmark is for the dimension of the ideal
   return ideal(id)
+end
+
+function book_page_80(k)
+  Qx, (x, y, z) = PolynomialRing(k, ["x", "y", "z"])
+  i = ideal([3x^3*y+x^3+x*y^3+y^2*z^2,2x^3*z-x*y-x*z^3-y^4-z^2,2x^2*y*z-2x*y^2+x*z^2-y^4])
+  return i
 end
 
 end #Decker
