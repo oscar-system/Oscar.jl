@@ -9,14 +9,22 @@ const ATLAS_VOID_SLOT = 0
 
 AtlasLine(cmd, dst, i) = AtlasLine(cmd, dst, i, ATLAS_VOID_SLOT)
 
-struct AtlasSLProgram
+abstract type AbstractAtlasSL end
+
+struct AtlasSLProgram <: AbstractAtlasSL
     code::String # source code
     ngens::Int
     outputs::Vector{Int}
     lines::Vector{AtlasLine}
 end
 
-function AtlasSLProgram(code::String)
+struct AtlasSLDecision <: AbstractAtlasSL
+    code::String # source code
+    ngens::Int
+    lines::Vector{AtlasLine}
+end
+
+function (::Type{SLP})(code::String) where SLP <: AbstractAtlasSL
     codelines = split(code, "\n", keepempty=false)
     labels = String[]
     outputs = Int[]
@@ -67,6 +75,8 @@ function AtlasSLProgram(code::String)
         end
 
         if cmd == :oup
+            SLP <: AtlasSLProgram ||
+                throw(ArgumentError("\"oup\" line only allowed in AtlasSLProgram"))
             n = tryparse(Int, codeline[2])
             n === nothing && error_invalid_line(codeline)
             if length(codeline) == 2
@@ -100,16 +110,27 @@ function AtlasSLProgram(code::String)
                 arg = getidx!(codeline[3])
                 dst = getidx!(codeline[4], true)
                 AtlasLine(cmd, dst, parse(Int, codeline[2]), arg)
+            elseif cmd == :chor
+                SLP <: AtlasSLDecision ||
+                    throw(AtlasSLDecision("\"chor\" line only allowed in AtlasSLDecision"))
+                check_line_length(codeline, 2)
+                arg = getidx!(codeline[2])
+                n   = parse(Int, (codeline[3]))
+                AtlasLine(cmd, ATLAS_VOID_SLOT, arg, n)
             else
                 error_invalid_line(codeline)
             end
         push!(lines, line)
     end
 
-    if isempty(outputs)
-        push!(outputs, getidx!("1"), getidx!("2"))
+    if SLP <: AtlasSLProgram
+        if isempty(outputs)
+            push!(outputs, getidx!("1"), getidx!("2"))
+        end
+        AtlasSLProgram(code, ngens, outputs, lines)
+    else
+        AtlasSLDecision(code, ngens, lines)
     end
-    AtlasSLProgram(code, ngens, outputs, lines)
 end
 
 check_line_length(codeline, n) =
@@ -122,14 +143,14 @@ error_invalid_line(codeline) =
 
 ## show
 
-Base.show(io::IO, p::AtlasSLProgram) = print(io, p.code)
+Base.show(io::IO, p::AbstractAtlasSL) = print(io, p.code)
 
 
 ## evaluate
 
-evaluate(p::AtlasSLProgram, xs::Vector) = evaluate!(empty(xs), p, xs)
+evaluate(p::AbstractAtlasSL, xs::Vector) = evaluate!(empty(xs), p, xs)
 
-function evaluate!(res::Vector{S}, p::AtlasSLProgram, xs::Vector{S}) where S
+function evaluate!(res::Vector{S}, p::AbstractAtlasSL, xs::Vector{S}) where S
     append!(empty!(res), view(xs, 1:p.ngens))
 
     for l in p.lines
@@ -151,6 +172,13 @@ function evaluate!(res::Vector{S}, p::AtlasSLProgram, xs::Vector{S}) where S
             elseif cmd == :cp
                 @assert j == ATLAS_VOID_SLOT
                 a
+            elseif cmd == :chor
+                @assert dst == ATLAS_VOID_SLOT
+                if order(a) == j
+                    continue
+                else
+                    return false
+                end
             else
                 @assert false "unexpected command"
             end
@@ -163,17 +191,24 @@ function evaluate!(res::Vector{S}, p::AtlasSLProgram, xs::Vector{S}) where S
         end
     end
 
-    r = 0
-    for i in p.outputs
-        res[r += 1] = res[i]
+    if p isa AtlasSLProgram
+        r = 0
+        for i in p.outputs
+            res[r += 1] = res[i]
+        end
+        resize!(res, r)
+    else
+        true
     end
-    resize!(res, r)
 end
 
 
 ## compilation to GAPSLProgram
 
-function compile(::Type{GAPSLProgram}, p::AtlasSLProgram)
+function compile(::Type{SLP}, p::AbstractAtlasSL) where SLP<:AbstractGAPSL
+    SLP === AbstractGAPSL ||
+        (SLP === GAPSLProgram) == (p isa AtlasSLProgram) ||
+        throw(ArgumentError("cannot compile an $(typeof(p)) into $SLP"))
     lines = []
     for l in p.lines
         cmd, dst, i, j = l.cmd, l.dst, l.i, l.j
@@ -192,11 +227,19 @@ function compile(::Type{GAPSLProgram}, p::AtlasSLProgram)
             elseif cmd == :cp
                 @assert j == ATLAS_VOID_SLOT
                 [i, 1]
+            elseif cmd == :chor
+                @assert dst == ATLAS_VOID_SLOT
+                push!(lines, (i, j))
+                continue
             else
                 @assert false "unexpected command"
             end
         push!(lines, [k, dst])
     end
-    push!(lines, [[r, 1] for r in p.outputs])
-    GAPSLProgram(lines, p.ngens)
+    if p isa AtlasSLProgram
+        push!(lines, [[r, 1] for r in p.outputs])
+        GAPSLProgram(lines, p.ngens)
+    else
+        GAPSLDecision(lines, p.ngens)
+    end
 end

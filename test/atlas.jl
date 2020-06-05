@@ -66,6 +66,15 @@
                        AtlasLine(:cp, 8, 7)
                        ]
     @test_throws ArgumentError AtlasSLProgram("unknown 1 2")
+    @test_throws ArgumentError AtlasSLProgram("chor 1 2")
+
+    d1 = AtlasSLDecision("inp 2\nchor 1 2\nchor 2 3\nmu 1 2 3\nchor 3 5")
+    @test d1.lines ==  [AtlasLine(:chor, 0, 1, 2),
+                        AtlasLine(:chor, 0, 2, 3),
+                        AtlasLine(:mu, 3, 1, 2),
+                        AtlasLine(:chor, 0, 3, 5)]
+    @test d1.ngens == 2
+    @test_throws ArgumentError AtlasSLDecision("chor 1 2\noup 1")
 end
 
 @testset "AtlasSLProgram evaluate" begin
@@ -109,4 +118,49 @@ end
     @test evaluate(p, ab) == [a, b, a, b]
     g = SL.compile(GAPSLProgram, p)
     @test evaluate(g, ab) == [a, b, a, b]
+
+    @test_throws ArgumentError SL.compile(GAPSLDecision, p)
+end
+
+@testset "AtlasSLDecision evaluate /compile" begin
+    p = perm"(1, 2)(3, 4)"
+    q = Perm([1, 4, 2, 3])
+    pq = [p, q]
+
+    # same test as in tests for GAPSLDecision
+    for (i, j, k, r) in [(2, 3, 5, false),
+                         (2, 3, 3, true),
+                         (2, 2, 3, false),
+                         (1, 3, 3, false)]
+        d = AtlasSLDecision(
+            """
+            mu 1 2 3
+            chor 1 $i
+            chor 2 $j
+            chor 3 $k
+            """)
+
+        @test evaluate(d, pq) == r
+        @test_throws ArgumentError SL.compile(GAPSLProgram, d)
+    end
+
+    for (p, q, r) in eachcol(rand(parent(p), 3, 50))
+        pqr = [p, q, r]
+        for (i, j, k) in eachcol(rand(1:6, 3, 10))
+            ad = AtlasSLDecision(
+                 """
+                 inp 3
+                 chor 1 $i
+                 chor 2 $j
+                 chor 3 $k
+                 """)
+            gd = GAPSLDecision([
+                ["Order", 1, i],
+                ["Order", 2, j],
+                ["Order", 3, k]],
+                               3)
+            @test evaluate(ad, pqr) == evaluate(gd, pqr)
+            @test SL.compile(GAPSLDecision, ad).lines == gd.lines
+        end
+    end
 end
