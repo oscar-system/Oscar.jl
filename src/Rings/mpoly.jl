@@ -212,13 +212,6 @@ singular_ring(F::Nemo.GaloisField) = Singular.Fp(Int(characteristic(F)))
 singular_ring(F::Nemo.NmodRing) = Singular.Fp(Int(characteristic(F)))
 
 #TODO: maybe half of this is superflous (and automatic) so delete?
-function singular_ring(Rx::MPolyQuo; keep_ordering::Bool = true)
-  Sx = singular_ring(Rx.R, keep_ordering = keep_ordering)
-  groebner_assure(Rx.I)
-  Q = Sx(Singular.libSingular.rQuotientRing(Rx.I.gb.S.ptr, Sx.ptr))
-  return Q
-end
-
 function singular_ring(Rx::Nemo.FmpqMPolyRing; keep_ordering::Bool = true)
   if keep_ordering
     return Singular.PolynomialRing(singular_ring(base_ring(Rx)), 
@@ -1041,6 +1034,13 @@ end
 
 function show(io::IO, A::MPolyQuoElem)
   print(io, A.f)
+end
+
+function singular_ring(Rx::MPolyQuo; keep_ordering::Bool = true)
+  Sx = singular_ring(Rx.R, keep_ordering = keep_ordering)
+  groebner_assure(Rx.I)
+  Q = Sx(Singular.libSingular.rQuotientRing(Rx.I.gb.S.ptr, Sx.ptr))
+  return Q
 end
 
 parent_type(::MPolyQuoElem{S}) where S = MPolyQuo{S}
