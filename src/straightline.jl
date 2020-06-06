@@ -49,6 +49,7 @@ for (i, (op, unary, showchar)) in enumerate([(:assign       , false, "->"),
                                              (:divide       , false, "/"),
                                              (:exponentiate , true,  "^"),
                                              (:keep         , true,  "keep"),
+                                             (:decision , false, "&")
                                              ])
     isop = Symbol(:is, op)
     c = UInt64(i) << (2*argshift)
@@ -384,6 +385,8 @@ function updatelen!(p, op, i, j)
         ptr = Int(i.x)
         ptr <= p.len || throw(ArgumentError("cannot `keep` so many items"))
         p.len = ptr
+    elseif isdecision(op)
+        ptr = 0
     else
         ptr = p.len += 1
         @assert ptr < cstmark
@@ -585,6 +588,8 @@ function evaluate!(res::Vector{S}, p::SLProgram{T}, xs::Vector{S},
     cs = constants(p)
     ints = integers(p)
 
+    local decide::Union{S,Bool}
+
     for line in lines(p)
         local r::S
         op, i, j = unpack(line)
@@ -615,6 +620,15 @@ function evaluate!(res::Vector{S}, p::SLProgram{T}, xs::Vector{S},
                 r = x * y
             elseif isdivide(op)
                 r = divexact(x, y)
+            elseif isdecision(op)
+                t = test(x, y)
+                t === false && return false
+                if @isdefined(decide)
+                    decide &= t
+                else
+                    decide = t
+                end
+                continue
             else
                 throw(ArgumentError("unknown operation"))
             end
@@ -623,12 +637,16 @@ function evaluate!(res::Vector{S}, p::SLProgram{T}, xs::Vector{S},
     end
 
     @assert length(res) == p.len
-    if hasmultireturn(p)
+    if @isdefined(decide)
+        decide
+    elseif hasmultireturn(p)
         res
     else
         conv(retrieve(ints, cs, xs, res, p.ret))
     end
 end
+
+test(x, o) = order(x) == o
 
 
 ## compile!

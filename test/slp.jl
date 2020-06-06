@@ -393,8 +393,9 @@ end
                             SL.times        => "*",
                             SL.divide       => "/",
                             SL.exponentiate => "^",
-                            SL.keep         => "keep")
-    @test length(SL.showop) == 8 # tests all keys are distinct
+                            SL.keep         => "keep",
+                            SL.decision     => "&")
+    @test length(SL.showop) == 9 # tests all keys are distinct
     for op in keys(SL.showop)
         @test SL.isassign(op) == (op == SL.assign)
         @test SL.istimes(op) == (op == SL.times)
@@ -651,4 +652,18 @@ end
     m = SL.pushop!(p, SL.minus, k, l)
     SL.pushfinalize!(p, m)
     @test evaluate(p, inputs) == 119 * x - (-2)
+end
+
+@testset "SL Decision" begin
+    p = SLProgram()
+    pushop!(p, SL.decision, SL.input(1), SL.pushint!(p, 3))
+    c = pushop!(p, SL.times, SL.input(1), SL.input(2))
+    pushop!(p, SL.decision, c, SL.pushint!(p, 2))
+    SL.pushfinalize!(p, Arg(0)) # TODO: decide what to do with pushfinalize!
+
+    S = SymmetricGroup(4)
+    for (x, y) in eachcol(rand(S, 2, 200))
+        res = order(x) == 3 && order(x*y) == 2
+        @test evaluate(p, [x, y]) == res
+    end
 end
