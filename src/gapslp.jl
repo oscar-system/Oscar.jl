@@ -158,9 +158,8 @@ function Base.show(io::IO, p::AbstractGAPSL)
             print(io, "\nr[$k] = ")
             prodshow(io, line)
         elseif isassignline(line)
-            l, dst = line
-            # TODO: when l > k
-            print(io, "\nr[$dst] = ")
+            l, k = line
+            print(io, "\nr[$k] = ")
             prodshow(io, l)
         elseif isorderline(line)
             x, e = line
