@@ -239,9 +239,7 @@ function Base.show(io::IO, ::MIME"text/plain", p::SLProgram{T}) where T
         k = updatelen!(ptmp, op, i, j)
         push!(ptmp.lines, line)
         pushfinalize!(ptmp, Arg(k))
-        # TODO: add a way to evaluate step by step instead of re-evaluating
-        # from the beginning each time
-        plazy = evaluate!(reslazy, ptmp, syms, Const)
+
         line = String[]
         push!(strlines, line)
         if iskeep(op)
@@ -255,11 +253,22 @@ function Base.show(io::IO, ::MIME"text/plain", p::SLProgram{T}) where T
             end
             continue
         end
-        push!(line, str('#', string(k), " ="))
+
         x = showarg(i)
         y = isunary(op) || isassign(op) ? "" :
             isquasiunary(op) ? string(j.x) :
             showarg(j)
+
+        if isdecision(op)
+            push!(line, "test:")
+            push!(line, " order($x) == $y || return false")
+            continue
+        end
+
+        push!(line, str('#', string(k), " ="))
+        # TODO: add a way to evaluate step by step instead of re-evaluating
+        # from the beginning each time
+        plazy = evaluate!(reslazy, ptmp, syms, Const)
 
         strop = isassign(op) ? "" : showop[op]
         push!(line, str(strop), x, y, str(plazy))
@@ -267,7 +276,7 @@ function Base.show(io::IO, ::MIME"text/plain", p::SLProgram{T}) where T
     end
     for (k, line) in enumerate(strlines)
         k == 1 || println(io)
-        if line[1] == "keep:"
+        if line[1] ∈ ["keep:", "test:"]
             join(io, line)
             continue
         end
@@ -286,6 +295,8 @@ function Base.show(io::IO, ::MIME"text/plain", p::SLProgram{T}) where T
              (showarg(Arg(i)) for i in 1:p.len),
              ", ")
         print(io, ']')
+    elseif hasdecision(p)
+        print(io, true)
     else
         print(io, showarg(p.ret))
     end
