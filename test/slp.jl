@@ -604,6 +604,14 @@ end
     @test evaluate(p, [2, 3]) == 14
     @test SL.aslazy(p) == 2*(x^2 + y)
 
+    l = SL.test(x^2 * y, 2) & SL.test(y^2 * x, 3)
+    p = SLProgram(l)
+    P = SymmetricGroup(4)
+    p1, p2 = P("(1,4,3)"), P("(1, 3)")
+    @test evaluate(p, [p1, p2])
+    @test !evaluate(p, [p2, p1])
+    @test SL.aslazy(p) == l
+
     # multiple return
     p = SLProgram{Int}()
     inputs = Any[x, y, z]

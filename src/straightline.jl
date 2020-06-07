@@ -549,6 +549,15 @@ pushlazy!(p, l::UniMinus, gs) = pushop!(p, uniminus, pushlazy!(p, l.p, gs))
 pushlazy!(p, l::Exp, gs) =
     pushop!(p, exponentiate, pushlazy!(p, l.p, gs), intarg(l.e))
 
+function pushlazy!(p, l::Decision, gs)
+    local k
+    for (x, i) in l.ps
+        d = pushlazy!(p, x, gs)
+        k = pushop!(p, decision, d, pushint!(p, i))
+    end
+    k
+end
+
 
 ## conversion SLProgram -> Lazy
 

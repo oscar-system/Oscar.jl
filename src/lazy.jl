@@ -148,6 +148,12 @@ test(p::Lazy, n) = Decision(Tuple{Lazy,Int}[(p, n)])
 Base.show(io::IO, d::Decision) =
     join(io, ("test($p, $n)" for (p, n) in d.ps), " & ")
 
+constantstype(l::Decision) =
+    mapreduce(constantstype∘first, typejoin, l.ps, init=Union{})
+
+pushgens!(gs, l::Decision) =
+    foldl((gs, d) -> pushgens!(gs, first(d)), l.ps, init=gs)
+
 function Base.:(&)(p::Decision, q::Decision)
     d = Decision(copy(p.ps))
     append!(d.ps, q.ps)
