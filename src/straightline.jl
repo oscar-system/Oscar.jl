@@ -243,13 +243,6 @@ function Base.show(io::IO, ::MIME"text/plain", p::SLProgram{T}) where T
         # TODO: add a way to evaluate step by step instead of re-evaluating
         # from the beginning each time
         plazy = evaluate!(reslazy, ptmp, syms, Const)
-        # TODO: the following bloc should probably be removed (constants are
-        # no more stored in the result array, and we don't want to hide an
-        # explicit assign)
-        if 1 < k == n && op == assign && i.x == k-1+length(constants(p))
-            # 1 < k for trivial SLPs returning a constant
-            break
-        end
         line = String[]
         push!(strlines, line)
         if iskeep(op)
