@@ -157,12 +157,22 @@ end
                          (2, 3, 3, true),
                          (2, 2, 3, false),
                          (1, 3, 3, false)]
-        d = GAPSLDecision([
+        gd = GAPSLDecision([
             [ [ 1, 1, 2, 1 ], 3 ],
             ["Order", 1, i],
             ["Order", 2, j],
             ["Order", 3, k] ])
 
-        @test evaluate(d, pq) == r
+        @test evaluate(gd, pq) == r
+
+        gdc = SL.compile!(gd)
+        @test evaluate(gdc, pq) == r
+
+        sld = SLProgram()
+        m = SL.pushop!(sld, SL.times, SL.input(1), SL.input(2))
+        SL.pushop!(sld, SL.decision, SL.input(1), SL.pushint!(sld, i))
+        SL.pushop!(sld, SL.decision, SL.input(2), SL.pushint!(sld, j))
+        SL.pushop!(sld, SL.decision, m, SL.pushint!(sld, k))
+        @test evaluate(sld, pq) == r
     end
 end

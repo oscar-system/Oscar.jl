@@ -238,7 +238,7 @@ end
 
 # compile to an SLProgram
 
-function compile!(gp::GAPSLProgram)
+function compile!(gp::AbstractGAPSL)
     p = SLProgram()
     local res::Arg
 
@@ -265,6 +265,10 @@ function compile!(gp::GAPSLProgram)
                 pushop!(p, assign, k, res)
             end
             pushop!(p, keep, ptr)
+        elseif isorderline(line)
+            x = Arg(line[1])
+            ord = pushint!(p, line[2])
+            pushop!(p, decision, x, ord)
         else
             reslist = Arg[]
             for l in line
@@ -279,7 +283,7 @@ function compile!(gp::GAPSLProgram)
             multi = true
         end
     end
-    multi || pushfinalize!(p, res)
+    multi || gp isa GAPSLDecision || pushfinalize!(p, res)
     gp.slp[] = p
 end
 
