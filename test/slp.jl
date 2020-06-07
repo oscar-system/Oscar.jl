@@ -661,7 +661,7 @@ end
     pushop!(p, SL.decision, SL.input(1), SL.pushint!(p, 3))
     c = pushop!(p, SL.times, SL.input(1), SL.input(2))
     pushop!(p, SL.decision, c, SL.pushint!(p, 2))
-    SL.pushfinalize!(p, Arg(0)) # TODO: decide what to do with pushfinalize!
+    SL.setdecision!(p)
 
     @test evaluate(p, Any[x, y]) == SL.test(x, 3) & SL.test(x*y, 2)
 

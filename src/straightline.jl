@@ -320,6 +320,10 @@ intidx(i::Arg) = i.x ⊻ intmark
 hasmultireturn(p::SLProgram) = p.ret.x == 0
 setmultireturn!(p::SLProgram) = (p.ret = Arg(0); p)
 
+hasdecision(p::SLProgram) = p.ret.x == argmask
+setdecision!(p::SLProgram) = (p.ret = Arg(argmask); p)
+
+
 # make an Arg out of x, considered as "computational" integer (e.g. not an index)
 # call to create an integer exponent
 function intarg(x::Integer)
@@ -379,7 +383,7 @@ function updatelen!(p, op, i, j)
         ptr <= p.len || throw(ArgumentError("cannot `keep` so many items"))
         p.len = ptr
     elseif isdecision(op)
-        ptr = 0
+        ptr = argmask # cf. hasdecision
     else
         ptr = p.len += 1
         @assert ptr < cstmark
@@ -630,7 +634,7 @@ function evaluate!(res::Vector{S}, p::SLProgram{T}, xs::Vector{S},
     end
 
     @assert length(res) == p.len
-    if @isdefined(decide)
+    if hasdecision(p)
         decide
     elseif hasmultireturn(p)
         res

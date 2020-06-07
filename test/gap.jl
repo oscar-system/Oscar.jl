@@ -172,7 +172,8 @@ end
         m = SL.pushop!(sld, SL.times, SL.input(1), SL.input(2))
         SL.pushop!(sld, SL.decision, SL.input(1), SL.pushint!(sld, i))
         SL.pushop!(sld, SL.decision, SL.input(2), SL.pushint!(sld, j))
-        SL.pushop!(sld, SL.decision, m, SL.pushint!(sld, k))
+        dec = SL.pushop!(sld, SL.decision, m, SL.pushint!(sld, k))
+        SL.pushfinalize!(sld, dec)
         @test evaluate(sld, pq) == r
     end
 end

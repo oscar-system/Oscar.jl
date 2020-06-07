@@ -283,7 +283,11 @@ function compile!(gp::AbstractGAPSL)
             multi = true
         end
     end
-    multi || gp isa GAPSLDecision || pushfinalize!(p, res)
+    if gp isa GAPSLDecision
+        setdecision!(p)
+    elseif !multi
+        pushfinalize!(p, res)
+    end
     gp.slp[] = p
 end
 
