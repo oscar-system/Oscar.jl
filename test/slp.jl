@@ -422,7 +422,7 @@ end
 end
 
 @testset "Arg" begin
-    @test_throws ArgumentError Arg(-1)
+    @test_throws InexactError Arg(-1)
     @test_throws ArgumentError Arg(typemax(Int))
     @test_throws ArgumentError Arg(1 + SL.argmask % Int)
     a = Arg(SL.argmask)

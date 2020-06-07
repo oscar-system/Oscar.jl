@@ -33,8 +33,7 @@ struct Arg
     end
 end
 
-Arg(x::Int) = x >= 0 ? Arg(x % UInt64) :
-    throw(ArgumentError("invalid negative argument (use intarg)"))
+Arg(x::Integer) = Arg(UInt64(x))
 
 
 ## predicates
