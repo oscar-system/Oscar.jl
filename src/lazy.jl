@@ -136,6 +136,27 @@ Base.:(==)(k::Exp, l::Exp) = k.p == l.p && k.e == l.e
 
 Base.literal_pow(::typeof(^), p::Lazy, ::Val{e}) where {e} = Exp(p, e)
 
+
+### Decision
+
+struct Decision <: Lazy
+    ps::Vector{Tuple{Lazy,Int}}
+end
+
+test(p::Lazy, n) = Decision(Tuple{Lazy,Int}[(p, n)])
+
+Base.show(io::IO, d::Decision) =
+    join(io, ("test($p, $n)" for (p, n) in d.ps), " & ")
+
+function Base.:(&)(p::Decision, q::Decision)
+    d = Decision(copy(p.ps))
+    append!(d.ps, q.ps)
+    d
+end
+
+Base.:(==)(p::Decision, q::Decision) = p.ps == q.ps
+
+
 ### binary ops
 
 #### +
