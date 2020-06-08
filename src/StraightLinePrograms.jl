@@ -9,8 +9,14 @@ using AbstractAlgebra: Ring, RingElement, MPolyRing, MPolyElem, elem_type,
 import AbstractAlgebra: base_ring, gen, gens, symbols, evaluate, order
 
 export LazyPolyRing, LazyPoly, SLPolyRing, SLPoly, SLProgram
-export slpcst, slpgen, slpgens
-export GAPSLProgram, GAPSLDecision, AtlasSLProgram, AtlasSLDecision
+export AbstractSLProgram, GAPSLProgram, GAPSLDecision, AtlasSLProgram, AtlasSLDecision
+export slpcst, slpgen, slpgens, compile
+
+abstract type AbstractSLProgram end
+
+(::Type{SLP})(p::AbstractSLProgram) where {SLP<:AbstractSLProgram} =
+    compile(SLP, p)
+
 
 include("straightline.jl")
 include("lazy.jl")

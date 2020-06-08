@@ -107,7 +107,7 @@ end
 
 ## SLProgram
 
-mutable struct SLProgram{T}
+mutable struct SLProgram{T} <: AbstractSLProgram
     cs::Vector{T}       # constants
     lines::Vector{Line} # instructions
     int::Int            # number of stored Int at the beginning of lines

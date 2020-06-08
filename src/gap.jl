@@ -10,7 +10,7 @@ isassignline(line) = line isa Tuple{Vector{Int},Int}
 isreturnline(line) = line isa ReturnList
 isorderline(line)  = line isa Tuple{Int,Int}
 
-abstract type AbstractGAPSL end
+abstract type AbstractGAPSL <: AbstractSLProgram end
 
 struct GAPSLProgram <: AbstractGAPSL
     lines::Vector{GAPStraightLine}

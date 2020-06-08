@@ -1,12 +1,13 @@
 ## Lazy
 
-abstract type Lazy end
+abstract type Lazy <: AbstractSLProgram end
 
 gens(l::Lazy) = sort!(unique!(pushgens!(Symbol[], l)::Vector{Symbol}))
 
 Base.:(==)(k::Lazy, l::Lazy) = false
 
 Lazy(x::Lazy) = x
+Lazy(x::AbstractSLProgram) = compile(Lazy, x)
 Lazy(x) = Const(x)
 
 evaluate(l::Lazy, xs) = evaluate(gens(l), l, xs)
@@ -16,7 +17,14 @@ evaluate(l::Lazy, xs) = evaluate(gens(l), l, xs)
 
 struct Const{T} <: Lazy
     c::T
+
+    # TODO: this is a hack, delete ASAP
+    Const{T}(x::AbstractSLProgram) where {T} = new{T}(x)
+    Const(x) = new{typeof(x)}(x)
 end
+
+Const(x::AbstractSLProgram) = Const{typeof(x)}(x)
+
 
 Base.show(io::IO, c::Const) = print(io, c.c)
 
@@ -263,8 +271,6 @@ end
 
 
 ## compile to SLProgram
-
-SLProgram(l::Lazy) = compile(SLProgram, l)
 
 compile(::Type{SLProgram}, l::Lazy) = compile(SLProgram{constantstype(l)}, l)
 

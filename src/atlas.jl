@@ -9,7 +9,7 @@ const ATLAS_VOID_SLOT = 0
 
 AtlasLine(cmd, dst, i) = AtlasLine(cmd, dst, i, ATLAS_VOID_SLOT)
 
-abstract type AbstractAtlasSL end
+abstract type AbstractAtlasSL <: AbstractSLProgram end
 
 struct AtlasSLProgram <: AbstractAtlasSL
     code::String # source code

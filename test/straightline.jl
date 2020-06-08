@@ -622,7 +622,7 @@ end
 
     # conversion Lazy -> SLProgram
     @test SLProgram(x^2+y) isa SLProgram{Union{}}
-    p = SL.muleq!(SLProgram(Const(2)), SL.compile(SLProgram{Int}, x^2+y))
+    p = SL.muleq!(SLProgram(Const(2)), SLProgram{Int}(x^2+y))
     @test p isa SLProgram{Int}
     @test evaluate(p, [2, 3]) == 14
     @test SL.aslazy(p) == 2*(x^2 + y)
