@@ -300,7 +300,7 @@ function homogenous_component(W::MPolyRing_dec, d::GrpAbFinGenElem)
     push_term!(a, R(1), [Int(x) for x = e])
     push!(B, W(finish(a)))
   end
-  M, h = vector_space(R, B)
+  M, h = vector_space(R, B, target = W)
   Hecke.set_special(M, :show => show_homo_comp, :data => (W, d))
   add_relshp(M, W, x -> sum(x[i] * B[i] for i=1:length(B)))
 #  add_relshp(W, M, g)
@@ -333,16 +333,22 @@ function homogenous_component(W::MPolyQuo{<:MPolyElem_dec}, d::GrpAbFinGenElem)
   end
   B = [x for x = B]
 
-  M, h = vector_space(R, B)
+  M, h = vector_space(R, B, target = W)
   Hecke.set_special(M, :show => show_homo_comp, :data => (W, d))
   return M, h
 end
 
-function vector_space(K::AbstractAlgebra.Field, e::Array{T, 1}) where {T <:MPolyElem}
-  R = parent(e[1])
+function vector_space(K::AbstractAlgebra.Field, e::Array{T, 1}; target = nothing) where {T <:MPolyElem}
+  local R
+  if length(e) == 0
+    R = target
+    @assert R !== nothing
+  else
+    R = parent(e[1])
+  end
   @assert base_ring(R) == K
-  mon = Dict{typeof(e[1]), Int}()
-  mon_idx = Array{typeof(e[1]), 1}()
+  mon = Dict{elem_type(R), Int}()
+  mon_idx = Array{elem_type(R), 1}()
   M = sparse_matrix(K)
   last_pos = 1
   for i = e
@@ -364,7 +370,7 @@ function vector_space(K::AbstractAlgebra.Field, e::Array{T, 1}) where {T <:MPoly
   end
   Hecke.echelon!(M, complete = true)
 
-  b = Array{typeof(e[1]), 1}()
+  b = Array{elem_type(R), 1}()
   for i=1:nrows(M)
     s = zero(e[1])
     for (k,v) = M[i]

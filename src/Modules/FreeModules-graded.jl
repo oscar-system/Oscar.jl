@@ -548,7 +548,7 @@ function show(io::IO, SQ::SubQuo_dec)
 end
 
 @doc Markdown.doc"""
-  A subquotien is (internally) given wia two submodules A and B of the same 
+  A subquotient is (internally) given wia two submodules A and B of the same 
   FreeModule F. It represents $(A+B)/B$, so elements are given as elements
   in $A+B$
 """
@@ -1356,7 +1356,7 @@ function homogenous_component(F::T, d::GrpAbFinGenElem) where {T <: Union{FreeMo
     end
   end
 
-  B = elem_type(W)[]
+  B = elem_type(F)[]
   for (g, mMd) = all
     for x = gens(domain(mMd))
       y = mMd(x) * g
