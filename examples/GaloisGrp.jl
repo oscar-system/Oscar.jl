@@ -2,8 +2,7 @@ module GaloisGrp
 
 using Oscar
 import Base: ^, +, -, *
-import Hecke
-import AbstractAlgebra
+import Oscar: Hecke, AbstractAlgebra
 using StraightLinePrograms
 
 struct BoundRing  <: AbstractAlgebra.Ring 

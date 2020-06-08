@@ -2,7 +2,7 @@ module ModStdNF
 
 using Oscar
 import Hecke
-import Oscar: MPolyIdeal, BiPolyArray
+import Oscar: MPolyIdeal, BiPolyArray, Hecke, AbstractAlgebra
 import Hecke: modular_lift, modular_proj, modular_env
 import Hecke.MPolyGcd: RecoCtx, rational_reconstruct
 
@@ -364,7 +364,7 @@ function example_dim(k, n::Int, d::Int, nc::Int, range)
   kt, t = PolynomialRing(k, 2*n+1)
 
   id = typeof(t[1])[]
-  for i=1:d
+  for i=1:n
     z = kt(0)
     for j=1:nc
       m = kt(1)
