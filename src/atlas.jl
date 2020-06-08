@@ -205,6 +205,11 @@ end
 
 ## compilation to GAPSLProgram
 
+compile(::Type{SLProgram}, p::AbstractAtlasSL) =
+    compile(SLProgram, compile(AbstractGAPSL, p))
+
+compile(p::AbstractAtlasSL) = compile(SLProgram, p)
+
 function compile(::Type{SLP}, p::AbstractAtlasSL) where SLP<:AbstractGAPSL
     SLP === AbstractGAPSL ||
         (SLP === GAPSLProgram) == (p isa AtlasSLProgram) ||

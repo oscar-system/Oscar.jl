@@ -106,7 +106,15 @@ end
 
         @test evaluate(g, xy) == x^2*y^3
         @test evaluate!(res, g, xy) == x^2*y^3
+        slp0 = SL.compile(g)
+        @test slp0 isa SLProgram
+        @test evaluate(slp0, xy) == x^2*y^3
+        slp = SL.compile(SLProgram, g)
+        @test slp isa SLProgram
+        @test slp == slp0
+        @test evaluate(slp, xy) == x^2*y^3
         slp = SL.compile!(g)
+        @test slp == slp0
         @test g.slp[] === slp
         @test evaluate(slp, xy) == x^2*y^3
 

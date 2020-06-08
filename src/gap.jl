@@ -233,11 +233,15 @@ function evaluate!(res::Vector{S}, p::AbstractGAPSL, xs::Vector{S}) where {S}
 end
 
 
-## compile!
+## compile
 
 # compile to an SLProgram
 
-function compile!(gp::AbstractGAPSL)
+compile!(gp::AbstractGAPSL) = gp.slp[] = compile(gp)
+
+compile(gp::AbstractGAPSL) = compile(SLProgram, gp)
+
+function compile(::Type{SLProgram}, gp::AbstractGAPSL)
     p = SLProgram()
     local res::Arg
 
@@ -287,7 +291,7 @@ function compile!(gp::AbstractGAPSL)
     elseif !multi
         pushfinalize!(p, res)
     end
-    gp.slp[] = p
+    p
 end
 
 function write_list!(p::SLProgram, list::Vector{Int})

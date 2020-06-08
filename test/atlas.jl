@@ -86,7 +86,14 @@ end
     @test evaluate(p, ab) == [a^-1 * b * a]
     @test res === evaluate!(res, p, ab) == [a^-1 * b * a]
     g = SL.compile(GAPSLProgram, p)
+    @test g isa GAPSLProgram
     @test evaluate(g, ab) == [a^-1 * b * a]
+    sl = SL.compile(SLProgram, p)
+    @test sl isa SLProgram
+    @test evaluate(sl, ab) == [a^-1 * b * a]
+    sl = SL.compile(p)
+    @test sl isa SLProgram
+    @test evaluate(sl, ab) == [a^-1 * b * a]
 
     p = AtlasSLProgram("cj 1 2 3\noup 2 1 3")
     @test evaluate(p, ab) == [a, b^-1 * a * b]
