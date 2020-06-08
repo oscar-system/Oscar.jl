@@ -5,6 +5,13 @@ import Base: ^, +, -, *
 import Oscar: Hecke, AbstractAlgebra
 using StraightLinePrograms
 
+export galois_group, isprimitive, istransitive, transitive_group_identification
+
+Hecke.add_verbose_scope(:GaloisGroup)
+Hecke.add_verbose_scope(:GaloisInvariant)
+Hecke.add_assert_scope(:GaloisInvariant)
+
+
 struct BoundRing  <: AbstractAlgebra.Ring 
   mul
   add
@@ -72,6 +79,10 @@ mutable struct GaloisCtx
   end
 end
 
+function Base.show(io::IO, GC::GaloisCtx)
+  println(io, "Galois Context for $(GC.f) and prime $(GC.C.p)\n")
+end
+
 function Hecke.roots(G::GaloisCtx, pr::Int)
   a = Hecke.roots(G.C, pr)
   return Hecke.expand(a, all = true, flat = false, degs = Hecke.degrees(G.C.H))
@@ -117,6 +128,14 @@ end
 function maximal_subgroup_reps(G::PermGroup)
   return Oscar._as_subgroups(GAP.Globals.MaximalSubgroupClassReps(G.X), G)
 end
+
+function transitive_group_identification(G::PermGroup)
+  if degree(G) > 20
+    return -1
+  end
+  return GAP.Globals.TransitiveIdentification(G.X)
+end
+
 #TODO:
 # with Max, sit down and discus right/left action, transversals and conjugation
 # invariants via BlockSys
@@ -164,7 +183,7 @@ end
 
 # given a perm group G and a block B, compute a homomorphism into Sym(B^G)
 function action_on_blocks(G::PermGroup, B::Vector{Int})
-  orb = GAP.Globals.Orbit(G.X, GAP.julia_to_gap(seed), GAP.Globals.OnSets)
+  orb = GAP.Globals.Orbit(G.X, GAP.julia_to_gap(B), GAP.Globals.OnSets)
   act = GAP.Globals.ActionHomomorphism(G.X, orb, GAP.Globals.OnSets)
   H = GAP.Globals.Image(act)
   T = Oscar._get_type(H)
@@ -183,83 +202,6 @@ Base.sign(G::PermGroup) = GAP.Globals.SignPermGroup(G.X)
 Base.isodd(G::PermGroup) = sign(G) == -1
 Base.iseven(n::PermGroup) = !isodd(n)
 
-function galois_group(f::fmpz_poly, p::Int = 31)
-  GC = GaloisCtx(f, p)
-  G = symmetric_group(degree(f))
-  Zxx, x = PolynomialRing(ZZ, :x=>1:degree(f))
-  m = prod(gen(Zxx, i)^i for i = 1:degree(f)-1)
-
-  Zx, x = PolynomialRing(ZZ)
-
-  nG = length(G)
-
-  while true
-    @show S = maximal_subgroup_reps(G)
-    for s = S
-      @show s
-      @show I = sum(orbit(s, m))
-      @assert all(I^x == I for x = s)
-      @assert !any(I^x == I for x = right_transversal(G, s) if !isone(x))
-      B = bound(GC, I)
-      @show value(B)
-      c = roots(GC, clog(2*value(B), p)+5)
-      local fd
-      cnt = 0
-      while true
-        cs = Set{typeof(c[1])}()
-        fd = []
-        for t = right_transversal(G, s)
-          e = evaluate(I^t, c)
-          if e in cs
-            @show "darn, need tschirni", e, cs
-            local ts
-            while true
-              @show ts = rand(Zx, 2:degree(f), -2:2)
-              if degree(ts) > 1
-                break
-              end
-            end
-            cnt += 1
-            if cnt > 5
-              error("bad")
-            end
-            B = bound(GC, I, ts)
-            @show value(B)
-            c = roots(GC, clog(2*value(B), p)+5)
-            c = map(ts, c)
-            break
-          end
-          push!(cs, e)
-          if e.length<2
-            l = coeff(e, 0)
-            lz = lift(l)
-            l = Hecke.mod_sym(lz, fmpz(p)^precision(l))
-            if abs(l) < value(B)
-              println(t, " => ", l)
-              push!(fd, t)
-            end
-          end
-        end
-        @show length(cs), index(G, s)
-        if length(cs) == index(G, s)
-          break
-        end
-      end
-      @show "descent via", fd, s
-      if length(fd)>0
-        G = intersection([s^inv(x) for x = fd]...)[1]
-        break
-      end
-    end
-    if length(G) == nG
-      return G
-    else
-      nG = length(G)
-    end
-  end
-  return G, GC
-end
-
 function elementary_symmetric(g::Array{<:Any, 1}, i::Int)
   return sum(prod(g[i] for i = s) for s = Hecke.subsets(Set(1:length(g)), i))
 end
@@ -275,7 +217,7 @@ function isprobably_invariant(g, p)
 end
 
 function invariant(G, H)
-  @show "invar", G, H
+  @vprint :GaloisInvariant 2 "Searching $G-relative $H-invariant\n"
 
   S = slpoly_ring(ZZ, degree(G))
   g = gens(S)
@@ -289,9 +231,10 @@ function invariant(G, H)
   bG = all_blocks(G)
   bH = all_blocks(H)
 
-  @show d = setdiff(bH, bG)
+  d = setdiff(bH, bG)
+  @vprint :GaloisInvariant 2 "Have block systems, they differ at $d\n"
   if length(d) > 0
-    @show "F-invar"
+    @vprint :GaloisInvariant 3  "using F-invar\n"
     return prod(sum(g[b]) for b = block_system(H, d[1]))
   else
     for BB = bG
@@ -304,45 +247,63 @@ function invariant(G, H)
       I = D
       if all(p->isprobably_invariant(I, p), gens(H)) &&
          any(p->!isprobably_invariant(I, p), gens(G))
-        @show "D-invar"
+        @vprint :GaloisInvariant 3 "using D-invar for $BB\n"
         return I
       end
       I = elementary_symmetric(d, 1)
       if all(p->isprobably_invariant(I, p), gens(H)) &&
          any(p->!isprobably_invariant(I, p), gens(G))
-        @show "s1-invar"
+        @vprint :GaloisInvariant 3 "using s1-invar for $BB\n"
         return I
       end
       I = elementary_symmetric(d, m)
       if all(p->isprobably_invariant(I, p), gens(H)) &&
          any(p->!isprobably_invariant(I, p), gens(G))
-        @show "sm-invar"
+        @vprint :GaloisInvariant 3 "using sm-invar for $BB\n"
         return I
       end
       I = elementary_symmetric(d, 2)
       if all(p->isprobably_invariant(I, p), gens(H)) &&
          any(p->!isprobably_invariant(I, p), gens(G))
-        @show "s2-invar"
+        @vprint :GaloisInvariant 3 "using s2-invar for $BB\n"
         return I
       end
       I = D*elementary_symmetric(d, m)
       if all(p->isprobably_invariant(I, p), gens(H)) &&
          any(p->!isprobably_invariant(I, p), gens(G))
-        @show "D sm-invar"
+        @vprint :GaloisInvariant 3 "using D sm-invar for $BB\n"
         return I
       end
     end
 
-    for B = bG
+    for BB = bG
+      h = action_on_blocks(G, BB)
     end
   end
 
+  @vprint :GaloisInvariant 3 "no special invar found, resorting to generic\n"
   R, _ = PolynomialRing(ZZ, degree(G))
   m = prod(gen(R, i)^i for i=1:degree(G)-1)
   I = sum(orbit(H, m))
   return I
 end
 
+#TODO
+# - split: find primes and abort on Sn/An
+# - sqrt discrimiant to check even/odd
+# - subfield lattice directly
+# - subfield to block outsource (also for lattice)
+# - more invars
+# - re-arrange to make cheap this first, expensive later
+# - short coests - when available
+# - proof, live and later
+# - "isInt", ie. the test for being in Z: outsource...
+# - tschirnhausen transformation: slowly increasing degree and coeffs.
+# - for larger degrees: improve starting group by doing Galois groups of subfields
+# - make the descent a seperate function
+# - for reducibles...: write for irr. poly and for red. poly
+# - more base rings
+# - applications: subfields of splitting field, towers, solvability by radicals
 function galois_group(K::AnticNumberField)
   d_min = div(degree(K), 4)
   d_max = typemax(Int)
@@ -370,13 +331,15 @@ function galois_group(K::AnticNumberField)
 
   p = p_best
 
-  @show "using $p_best with degree $d_max"
-  @show "cycle types ", ct
+  @vprint :GaloisGroup 1 "using $p_best with degree $d_max\n"
+  @vprint :GaloisGroup 2 "and cycle types $ct\n"
 
   GC = GaloisCtx(Hecke.Globals.Zx(K.pol), p_best)
   c = roots(GC, 5)
 
-  S = subfields(K)
+  @vprint :GaloisGroup 1 "computing subfields ...\n"
+  @vtime :GaloisGroup 2 S = subfields(K)
+
   bs = Array{Array{Int, 1}, 1}[]
   for (s, ms) = S
     if degree(s) == degree(K) || degree(s) == 1
@@ -411,7 +374,7 @@ function galois_group(K::AnticNumberField)
     push!(bs, v)
   end
 
-  @show "Group needs to have block systems: ", bs
+  @vprint :GaloisGroup 2 "group will have (all) block systems: $([x[1] for x = bs])\n"
 
   #selecting maximals only...
   if length(bs) > 1
@@ -419,10 +382,12 @@ function galois_group(K::AnticNumberField)
                   (x,y) -> issubset(x[1], y[1]) - issubset(y[1], x[1]))
     bs = minimal_elements(L)              
   end
+  @vprint :GaloisGroup 1 "group will have (maximal) block systems: $([x[1] for x = bs])\n"
 
   d = map(frobenius, c)
   si = [findfirst(y->y==x, c) for x = d]
-  @show "Group needs ", si
+
+  @vprint :GaloisGroup 1 "found Frobenius element: $si\n"
 
   G = symmetric_group(degree(K))
   S = G
@@ -432,32 +397,38 @@ function galois_group(K::AnticNumberField)
     G = intersection(G, W^s)[1]
   end
 
-  @show "starting with ", G
+  @vprint :GaloisGroup 2 "Have starting group with id $(transitive_group_identification(G))\n"
   nG = length(G)
   while true
     S = maximal_subgroup_reps(G)
+    @vprint :GaloisGroup 2 "found $(length(S)) many maximal subgroups\n"
+
     for s = S
       istransitive(s) || continue
-      @show GAP.Globals.TransitiveIdentification(G.X),
-            GAP.Globals.TransitiveIdentification(s.X)
+
+      @vprint :GaloisGroup 2 "testing descent $(transitive_group_identification(G)) -> $(transitive_group_identification(s))\n"
 
       I = invariant(G, s)
 
+      @hassert :GaloisInvariant 1 all(x->isprobably_invariant(I, x), gens(s))
+      @hassert :GaloisInvariant 1 any(x->!isprobably_invariant(I, x), gens(G))
+
       B = bound(GC, I)
-      @show value(B)
+      @vprint :GaloisGroup 2 "root bound: $(value(B))\n"
+
       c = roots(GC, clog(2*value(B), p)+5)
       local fd
       cnt = 0
       while true
         cs = Set{typeof(c[1])}()
         fd = []
-        for t = right_transversal(G, s)
+        for t = left_transversal(G, s)
           e = evaluate(I, [c[inv(t)(i)] for i=1:degree(K)])
           if e in cs
-            @show "darn, need tschirni", e, cs
+            @vprint :GaloisGroup 2 " evaluation found duplicate, transforming...\n"
             local ts
             while true
-              @show ts = rand(Hecke.Globals.Zx, 2:degree(K), -2:2)
+              ts = rand(Hecke.Globals.Zx, 2:degree(K), -4:4)
               if degree(ts) > 1
                 break
               end
@@ -467,7 +438,7 @@ function galois_group(K::AnticNumberField)
               error("bad")
             end
             B = bound(GC, I, ts)
-            @show value(B)
+            @vprint :GaloisGroup 2 "using transformation by $ts, and new bound of $(value(B))\n"
             c = roots(GC, clog(2*value(B), p)+5)
             c = map(ts, c)
             break
@@ -478,31 +449,37 @@ function galois_group(K::AnticNumberField)
             lz = lift(l)
             l = Hecke.mod_sym(lz, fmpz(p)^precision(l))
             if abs(l) < value(B)
-              println(t, " => ", l)
+              @vprint :GaloisGroup 2 "found descent at $t and value $l\n"
               push!(fd, t)
             end
           end
         end
-        @show length(cs), index(G, s)
         if length(cs) == index(G, s)
           break
         end
       end
-      @show "descent via", fd, s
+      if length(fd) > 0
+        @vprint :GaloisGroup 2 "descending via $fd\n"
+      else
+        @vprint :GaloisGroup 2 "no descent\n"
+      end
       if length(fd)>0
         G = intersection([s^inv(x) for x = fd]...)[1]
+        if length(G) == degree(K)
+          return G, GC
+        end
         break
       end
     end
     if length(G) == nG
-      return G
+      return G, GC
     else
       nG = length(G)
     end
   end
-  return bs, si, G
 end
 
+#TODO: do this properly, with indexed types and such
 mutable struct POSet
   elem::Array{Any, 1}
   cmp::Function
@@ -563,3 +540,5 @@ function minimal_elements(L::POSet)
 end
 
 end
+
+using .GaloisGrp
