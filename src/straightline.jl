@@ -420,8 +420,8 @@ function _combine!(p::SLProgram, q::SLProgram)
     i2 = pushinit!(q)
     koffset = length(constants(p))
     ioffset = p.int
-    p.int += q.int
     len = length(lines(p))
+    p.int += q.int # must be *after* computing len
     prepend!(p.lines, _integers(q))
     append!(p.lines, lines(q))
     append!(constants(p), constants(q))

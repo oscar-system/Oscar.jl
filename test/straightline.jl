@@ -683,6 +683,21 @@ end
     m = SL.pushop!(p, SL.minus, k, l)
     SL.pushfinalize!(p, m)
     @test evaluate(p, inputs) == 119 * x - (-2)
+
+    @testset "bug with ints" begin
+        u = SLProgram()
+        i = SL.pushint!(u, 1)
+        j = SL.pushint!(u, 2)
+        k = SL.pushop!(u, SL.plus, i, j)
+        SL.pushfinalize!(u, k)
+        v = SLProgram()
+        i = SL.pushint!(v, 3)
+        j = SL.pushint!(v, 4)
+        k = SL.pushop!(v, SL.plus, i, j)
+        SL.pushfinalize!(v, k)
+        w = u + v
+        @test evaluate(w, []) == 10
+    end
 end
 
 @testset "SL Decision" begin
