@@ -12,8 +12,8 @@ export LazyPolyRing, LazyPoly, SLPolyRing, SLPoly, SLProgram
 export slpcst, slpgen, slpgens
 export GAPSLProgram, GAPSLDecision, AtlasSLProgram, AtlasSLDecision
 
-include("lazy.jl")
 include("straightline.jl")
+include("lazy.jl")
 include("lazypolys.jl")
 include("slpolys.jl")
 include("gap.jl")

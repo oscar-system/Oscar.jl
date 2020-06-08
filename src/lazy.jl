@@ -260,3 +260,52 @@ end
 
 -(x, y::Lazy) = Const(x) - y
 -(x::Lazy, y) = x - Const(y)
+
+
+## compile to SLProgram
+
+SLProgram(l::Lazy) = compile(SLProgram, l)
+
+compile(::Type{SLProgram}, l::Lazy) = compile(SLProgram{constantstype(l)}, l)
+
+function compile(::Type{SLProgram{T}}, l::Lazy, gs=gens(l)) where T
+    p = SLProgram{T}()
+    i = pushlazy!(p, l, gs)
+    pushfinalize!(p, i)
+end
+
+pushlazy!(p::SLProgram, l::Const, gs) = pushconst!(p, l.c)
+
+pushlazy!(p::SLProgram, l::Gen, gs) = input(findfirst(==(l.g), gs))
+
+function pushlazy!(p, l::Union{Plus,Times}, gs)
+    # TODO: handle isempty(p.xs) ?
+    op = l isa Plus ? plus : times
+    x, xs = Iterators.peel(l.xs)
+    i = pushlazy!(p, x, gs)
+    for x in xs
+        j = pushlazy!(p, x, gs)
+        i = pushop!(p, op, i, j)
+    end
+    i
+end
+
+function pushlazy!(p, l::Minus, gs)
+    i = pushlazy!(p, l.p, gs)
+    j = pushlazy!(p, l.q, gs)
+    pushop!(p, minus, i, j)
+end
+
+pushlazy!(p, l::UniMinus, gs) = pushop!(p, uniminus, pushlazy!(p, l.p, gs))
+
+pushlazy!(p, l::Exp, gs) =
+    pushop!(p, exponentiate, pushlazy!(p, l.p, gs), intarg(l.e))
+
+function pushlazy!(p, l::Decision, gs)
+    local k
+    for (x, i) in l.ps
+        d = pushlazy!(p, x, gs)
+        k = pushop!(p, decision, d, pushint!(p, i))
+    end
+    k
+end

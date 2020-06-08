@@ -155,7 +155,7 @@ end
 (R::SLPolyRing{T})(p::LazyPoly{T}) where {T} = R(p.p)
 
 function (R::SLPolyRing{T})(p::Lazy) where {T}
-    pr = SLProgram{T}(p, symbols(R))
+    pr = compile(SLProgram{T}, p, symbols(R))
     SLPoly(R, pr)
 end
 

@@ -128,11 +128,6 @@ end
 
 SLProgram(i::Integer) = SLProgram{Union{}}(i)
 
-function SLProgram(c::Const{T}) where {T}
-    p = SLProgram{T}()
-    pushfinalize!(p, pushconst!(p, c.c))
-end
-
 function Base.copy!(q::SLProgram, p::SLProgram)
     copy!(q.cs, p.cs)
     copy!(q.lines, p.lines)
@@ -535,53 +530,6 @@ function test!(p::SLProgram, x::Integer)
 end
 
 test(p::SLProgram, x::Integer) = test!(copy(p), x)
-
-
-## conversion Lazy -> SLProgram
-
-SLProgram(l::Lazy) = SLProgram{constantstype(l)}(l)
-
-function SLProgram{T}(l::Lazy, gs=gens(l)) where T
-    p = SLProgram{T}()
-    i = pushlazy!(p, l, gs)
-    pushfinalize!(p, i)
-end
-
-pushlazy!(p::SLProgram, l::Const, gs) = pushconst!(p, l.c)
-
-pushlazy!(p::SLProgram, l::Gen, gs) = input(findfirst(==(l.g), gs))
-
-function pushlazy!(p, l::Union{Plus,Times}, gs)
-    # TODO: handle isempty(p.xs) ?
-    op = l isa Plus ? plus : times
-    x, xs = Iterators.peel(l.xs)
-    i = pushlazy!(p, x, gs)
-    for x in xs
-        j = pushlazy!(p, x, gs)
-        i = pushop!(p, op, i, j)
-    end
-    i
-end
-
-function pushlazy!(p, l::Minus, gs)
-    i = pushlazy!(p, l.p, gs)
-    j = pushlazy!(p, l.q, gs)
-    pushop!(p, minus, i, j)
-end
-
-pushlazy!(p, l::UniMinus, gs) = pushop!(p, uniminus, pushlazy!(p, l.p, gs))
-
-pushlazy!(p, l::Exp, gs) =
-    pushop!(p, exponentiate, pushlazy!(p, l.p, gs), intarg(l.e))
-
-function pushlazy!(p, l::Decision, gs)
-    local k
-    for (x, i) in l.ps
-        d = pushlazy!(p, x, gs)
-        k = pushop!(p, decision, d, pushint!(p, i))
-    end
-    k
-end
 
 
 ## conversion SLProgram -> Lazy
