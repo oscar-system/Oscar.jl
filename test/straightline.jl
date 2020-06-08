@@ -712,6 +712,7 @@ end
     l = SL.test(x, 3) & SL.test(x*y, 2)
     @test evaluate(p, Any[x, y]) == l
     @test evaluate(l, Any[x, y]) == l
+    @test evaluate(l, SL.slpgens(2)) == p
 
     S = SymmetricGroup(4)
     for (x, y) in eachcol(rand(S, 2, 200))

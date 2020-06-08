@@ -421,6 +421,11 @@ function _combine!(p::SLProgram, q::SLProgram)
     koffset = length(constants(p))
     ioffset = p.int
     len = length(lines(p))
+    loffset = len - count(lines(p)) do line
+        op, i, j = unpack(line)
+        isdecision(op)
+        # TODO: probably needs also to account for "keep" lines
+    end
     p.int += q.int # must be *after* computing len
     prepend!(p.lines, _integers(q))
     append!(p.lines, lines(q))
@@ -436,7 +441,7 @@ function _combine!(p::SLProgram, q::SLProgram)
         elseif isint(i)
             i = Arg(i.x + ioffset)
         else
-            i = Arg(i.x + len)
+            i = Arg(i.x + loffset)
         end
         if isconstant(j)
             j = Arg(j.x + koffset)
@@ -444,18 +449,18 @@ function _combine!(p::SLProgram, q::SLProgram)
         elseif isint(j)
             j = Arg(j.x + ioffset)
         elseif !isquasiunary(op)
-            j = Arg(j.x + len)
+            j = Arg(j.x + loffset)
         end
         lines(p)[n] = Line(op, i, j)
         # TODO: write conditionally only when modifications
     end
     if isconstant(i2)
         i2 = Arg(i2.x + koffset)
-    elseif isinput(i2)
+    elseif isinput(i2) || hasdecision(q)
     elseif isint(i2)
         i2 = Arg(i2.x + ioffset)
     else
-        i2 = Arg(i2.x + len)
+        i2 = Arg(i2.x + loffset)
     end
     p.len += q.len
     i1, i2
@@ -497,6 +502,13 @@ function expeq!(p::SLProgram, e::Integer)
     p
 end
 
+function testeq!(p::SLProgram, q::SLProgram)
+    hasdecision(p) && hasdecision(q) || throw(ArgumentError(
+        "cannot &-combine two programs which are not decisions"))
+    _combine!(p, q)
+    setdecision!(p)
+end
+
 
 ## unary/binary ops
 
@@ -512,6 +524,17 @@ copy_jointype(p::SLProgram, q::SLProgram) =
 -(p::SLProgram) = subeq!(copy(p))
 
 ^(p::SLProgram, e::Integer) = expeq!(copy(p), e)
+
+Base.:&(p::SLProgram, q::SLProgram) = testeq!(copy_jointype(p, q), q)
+
+function test!(p::SLProgram, x::Integer)
+    hasdecision(p) && throw(ArgumentError("SLProgram is already a decision"))
+    i = pushinit!(p)
+    j = pushint!(p, x)
+    pushfinalize!(p, pushop!(p, decision, i, j))
+end
+
+test(p::SLProgram, x::Integer) = test!(copy(p), x)
 
 
 ## conversion Lazy -> SLProgram
