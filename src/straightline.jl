@@ -12,6 +12,8 @@ const argshift    = 28 # argmask == 2^argshift - 1
 
 @assert payloadmask == argmask ⊻ inputmark ⊻ cstmark
 
+const dectrue = argmask
+
 
 ## Op, Line, Arg
 
@@ -193,7 +195,7 @@ function showsimple(io::IO, p::SLProgram)
             println(io, i, " | ", c)
         end
     end
-    println("return: ", p.ret)
+    println("return: ", p.ret == Arg(dectrue) ? "true" : p.ret)
 end
 
 showsimple(p::SLProgram) = showsimple(stdout, p)
