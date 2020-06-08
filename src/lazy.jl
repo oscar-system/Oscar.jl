@@ -9,6 +9,8 @@ Base.:(==)(k::Lazy, l::Lazy) = false
 Lazy(x::Lazy) = x
 Lazy(x) = Const(x)
 
+evaluate(l::Lazy, xs) = evaluate(gens(l), l, xs)
+
 
 ### Const
 
@@ -22,6 +24,8 @@ pushgens!(gs, c::Const) = gs
 constantstype(l::Const{T}) where {T} = T
 
 Base.:(==)(k::Const, l::Const) = k.c == l.c
+
+evaluate(gs, c::Const, xs) = c.c
 
 
 ### Gen
@@ -42,6 +46,8 @@ pushgens!(gs, g::Gen) =
 constantstype(l::Gen) = Union{}
 
 Base.:(==)(k::Gen, l::Gen) = k.g == l.g
+
+evaluate(gs, g::Gen, xs) = xs[findfirst(==(g.g), gs)]
 
 
 ### Plus
@@ -65,6 +71,8 @@ constantstype(p::Plus) =
 
 Base.:(==)(k::Plus, l::Plus) = k.xs == l.xs
 
+evaluate(gs, p::Plus, xs) = mapreduce(q -> evaluate(gs, q, xs), +, p.xs)
+
 
 ### Minus
 
@@ -81,6 +89,8 @@ constantstype(m::Minus) = typejoin(constantstype(m.p), constantstype(m.q))
 
 Base.:(==)(k::Minus, l::Minus) = k.p == l.p && k.q == l.q
 
+evaluate(gs, p::Minus, xs) = evaluate(gs, p.p, xs) - evaluate(gs, p.q, xs)
+
 
 ### UniMinus
 
@@ -95,6 +105,8 @@ pushgens!(gs, l::UniMinus) = pushgens!(gs, l.p)
 constantstype(p::UniMinus) = constantstype(p.p)
 
 Base.:(==)(k::UniMinus, l::UniMinus) = k.p == l.p
+
+evaluate(gs, p::UniMinus, xs) = -evaluate(gs, p.p, xs)
 
 
 ### Times
@@ -118,6 +130,8 @@ constantstype(p::Times) =
 
 Base.:(==)(k::Times, l::Times) = k.xs == l.xs
 
+evaluate(gs, p::Times, xs) = mapreduce(q -> evaluate(gs, q, xs), *, p.xs)
+
 
 ### Exp
 
@@ -135,6 +149,8 @@ constantstype(p::Exp) = constantstype(p.p)
 Base.:(==)(k::Exp, l::Exp) = k.p == l.p && k.e == l.e
 
 Base.literal_pow(::typeof(^), p::Lazy, ::Val{e}) where {e} = Exp(p, e)
+
+evaluate(gs, p::Exp, xs) = evaluate(gs, p.p, xs)^p.e
 
 
 ### Decision
@@ -161,6 +177,18 @@ function Base.:(&)(p::Decision, q::Decision)
 end
 
 Base.:(==)(p::Decision, q::Decision) = p.ps == q.ps
+
+function evaluate(gs, p::Decision, xs)
+    (d, i), rest = Iterators.peel(p.ps) # p.ps should never be empty
+    res = test(evaluate(gs, d, xs), i)
+    res === false && return false
+    for (d, i) in rest
+        r = test(evaluate(gs, d, xs), i)
+        r === false && return false
+        res &= r
+    end
+    res
+end
 
 
 ### binary ops

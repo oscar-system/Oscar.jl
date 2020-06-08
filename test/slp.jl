@@ -7,6 +7,7 @@ end
 
 @testset "Lazy" begin
     x, y, z = Gen.([:x, :y, :z])
+    xyz = Any[x, y, z]
 
     # Const
     c = Const(1)
@@ -16,6 +17,8 @@ end
     @test isempty(SL.gens(c))
     @test c == Const(1) == Const(0x1)
     @test c != Const(2)
+    @test evaluate(c, rand(3)) == 1
+    @test evaluate(c, xyz) == 1
 
     # Gen
     g = Gen(:x)
@@ -25,6 +28,9 @@ end
     @test SL.gens(g) == [:x]
     @test g == x
     @test g != y
+    @test evaluate(g, [2, 3, 4]) == 2
+    @test evaluate(g, xyz) == x
+    @test evaluate(g, [Gen(:a), Gen(:b), Gen(:x)]) == Gen(:a)
 
     # Plus
     p = Plus(c, g)
@@ -34,6 +40,8 @@ end
     @test SL.gens(p) == [:x]
     @test p == 1+x == 0x1+x
     @test p != 2+x && p != 1+y
+    @test evaluate(p, [2]) == 3
+    @test evaluate(p, xyz) == 1 + x
 
     # Minus
     m = Minus(p, g)
@@ -42,6 +50,8 @@ end
     @test SL.gens(m) == [:x]
     @test m == (1+x)-x
     @test m != (1+x)+x && m != x-x && m != (1+x)-y
+    @test evaluate(m, [2]) == 1
+    @test evaluate(m, xyz) == (1+x)-x
 
     # UniMinus
     u = UniMinus(p)
@@ -50,6 +60,8 @@ end
     @test SL.gens(u) == [:x]
     @test u == -(1+x)
     @test u != (1+x) && u != -(1+y)
+    @test evaluate(u, [2]) == -3
+    @test evaluate(u, xyz) == -(1 + x)
 
     # Times
     t = Times(g, p)
@@ -58,6 +70,8 @@ end
     @test SL.gens(t) == [:x]
     @test t == x*(1+x)
     @test t != (1+x)*x && t != y*(1+x) && t != x*(1+y)
+    @test evaluate(t, [2]) == 6
+    @test evaluate(t, xyz) == x*(1+x)
 
     # Exp
     e = Exp(p, 3)
@@ -66,6 +80,8 @@ end
     @test SL.gens(e) == [:x]
     @test e == (1+x)^3
     @test e != (1+x)^4 && e != (1+y)^3
+    @test evaluate(e, [2]) == 27
+    @test evaluate(e, xyz) == (1+x)^3
 
     # +
     p1 =  e + t
@@ -73,18 +89,23 @@ end
     @test p1.xs[1] === e
     @test p1.xs[2] === t
     @test p1 == e+t
+    @test evaluate(p1, xyz) == (1+x)^3 + x*(1+x)
+
     p2 = p + e
     @test p2 isa Plus
     @test p2.xs[1] === p.xs[1]
     @test p2.xs[2] === p.xs[2]
     @test p2.xs[3] === e
     @test p2 == p+e
+    @test evaluate(p2, xyz) == (1 + x + (1 + x)^3)
+
     p3 = e + p
     @test p3 isa Plus
     @test p3.xs[1] === e
     @test p3.xs[2] === p.xs[1]
     @test p3.xs[3] === p.xs[2]
     @test p3 == e+p
+
     p4 = p + p
     @test p4 isa Plus
     @test p4.xs[1] === p.xs[1]
@@ -178,6 +199,8 @@ end
     @test gens(q) == [:x, :y]
     @test h == y
     @test q == e1+t4*h == ((1 + x)^3 + (x*(1 + x)*x*(1 + x)*y))
+    @test evaluate(q, [2, 3]) == 135
+    @test evaluate(q, xyz) == ((1 + x)^3 + (x*(1 + x)*x*(1 + x)*y))
 end
 
 @testset "LazyPoly" begin
@@ -671,11 +694,14 @@ end
     pushop!(p, SL.decision, c, SL.pushint!(p, 2))
     SL.setdecision!(p)
 
-    @test evaluate(p, Any[x, y]) == SL.test(x, 3) & SL.test(x*y, 2)
+    l = SL.test(x, 3) & SL.test(x*y, 2)
+    @test evaluate(p, Any[x, y]) == l
+    @test evaluate(l, Any[x, y]) == l
 
     S = SymmetricGroup(4)
     for (x, y) in eachcol(rand(S, 2, 200))
         res = order(x) == 3 && order(x*y) == 2
         @test evaluate(p, [x, y]) == res
+        @test evaluate(l, [x, y]) == res
     end
 end
