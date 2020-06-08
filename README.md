@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/rfourquet/StraightLinePrograms.jl.svg?branch=master)](https://travis-ci.org/rfourquet/StraightLinePrograms.jl)
+
 # StraightLinePrograms
 
 This is a buggy WIP implementation of straight-line programs (SLP).
