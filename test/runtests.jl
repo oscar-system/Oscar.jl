@@ -1,4 +1,4 @@
 include("setup.jl")
-include("slp.jl")
+include("straightline.jl")
 include("gap.jl")
 include("atlas.jl")
