@@ -10,9 +10,13 @@ end
 Free(x::Lazy) = Free(x, collect(Symbol, slpsyms(maxinput(x))))
 
 function freegens(n::Integer, syms=slpsyms(n))
-    syms = collect(syms)
+    if !isa(syms, Vector{Symbol})
+        syms = collect(Symbol, syms)
+    end
     Any[Free(Input(i), syms) for i=1:n]
 end
+
+freegens(syms::AbstractVector{Symbol}) = freegens(length(syms), syms)
 
 ngens(f::Free) = length(f.gens)
 

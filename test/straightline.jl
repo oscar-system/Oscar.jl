@@ -424,6 +424,9 @@ end
     p = 9 + 3*x*y^2 + ((y+z+3-x-3)*2)^-2 * 100
     @test evaluate(p, xs) == 64
     @test evaluate(p, xyz) == p
+
+    a, b = SL.freegens([:a, :bc])
+    @test string(a) == "a" && string(b) == "bc"
 end
 
 @testset "SL internals" begin
