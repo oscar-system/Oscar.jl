@@ -41,6 +41,17 @@ end
 # TODO: must they also have the same gens?
 Base.:(==)(x::Free, y::Free) = x.x == y.x
 
+compile(::Type{SLProgram}, f::Free) =
+    compile(SLProgram{constantstype(f.x)}, f)
+
+function compile(::Type{SLProgram{T}}, f::Free) where T
+    p = SLProgram{T}()
+    i = pushlazy!(p, f.x, gens(f))
+    pushfinalize!(p, i)
+end
+
+compile(f::Free) = compile(SLProgram, f)
+
 
 ### unary/binary ops
 
@@ -121,6 +132,8 @@ evaluate(gs, i::Input, xs) = xs[i.n]
 maxinput(i::Input) = i.n
 
 Base.:(==)(i::Input, j::Input) = i.n == j.n
+
+constantstype(::Input) = Union{}
 
 
 ### Gen
@@ -386,6 +399,8 @@ function compile(::Type{SLProgram{T}}, l::Lazy, gs=gens(l)) where T
 end
 
 pushlazy!(p::SLProgram, l::Const, gs) = pushconst!(p, l.c)
+
+pushlazy!(p::SLProgram, l::Input, gs) = input(l.n)
 
 pushlazy!(p::SLProgram, l::Gen, gs) = input(findfirst(==(l.g), gs))
 

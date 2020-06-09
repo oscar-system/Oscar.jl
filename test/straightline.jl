@@ -427,6 +427,19 @@ end
 
     a, b = SL.freegens([:a, :bc])
     @test string(a) == "a" && string(b) == "bc"
+
+    q1 = SL.compile(SLProgram, p)
+    @test evaluate(q1, xs) == 64
+    q2 = SL.compile(p)
+    @test q2 == q1
+    @test evaluate(q2, xs) == 64
+    q3 = SLProgram(p)
+    @test q3 == q1
+    @test evaluate(q3, xs) == 64
+
+    @test SLProgram(x) == slpgen(1)
+    @test SLProgram(y) == slpgen(2)
+    @test SLProgram(z) == slpgen(3)
 end
 
 @testset "SL internals" begin
