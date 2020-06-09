@@ -752,6 +752,7 @@ end
 
 @testset "SL Decision" begin
     x, y = SL.lazygens(2)
+    a, b = ab = SL.freegens(2)
 
     p = SLProgram()
     pushop!(p, SL.decision, SL.input(1), SL.pushint!(p, 3))
@@ -760,9 +761,12 @@ end
     SL.setdecision!(p)
 
     l = SL.test(x, 3) & SL.test(x*y, 2)
+    f = SL.test(a, 3) & SL.test(a*b, 2)
     @test evaluate(p, Any[x, y]) == l
     @test evaluate(l, Any[x, y]) == l
     @test evaluate(l, SL.slpgens(2)) == p
+    @test evaluate(p, ab) == f
+    @test evaluate(f, slpgens(2)) == p
 
     S = SymmetricGroup(4)
     for (x, y) in eachcol(rand(S, 2, 200))

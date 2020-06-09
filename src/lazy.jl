@@ -59,10 +59,14 @@ compile(f::Free) = compile(SLProgram, f)
 -(x::Free, y::Free) = Free(x.x - y.x, gens(x, y))
 *(x::Free, y::Free) = Free(x.x * y.x, gens(x, y))
 
+Base.:(&)(x::Free, y::Free) = Free(x.x & y.x, gens(x, y))
+
 -(x::Free) = Free(-x.x, gens(x))
 ^(x::Free, e::Integer) = Free(x.x^e, gens(x))
 
 Base.literal_pow(::typeof(^), p::Free, ::Val{e}) where {e} = p^e
+
+test(x::Free, n) = Free(test(x.x, n), gens(x))
 
 
 #### adhoc
@@ -282,7 +286,9 @@ end
 test(p::Lazy, n) = Decision(Tuple{Lazy,Int}[(p, n)])
 
 Base.show(io::IO, d::Decision) =
-    join(io, ("test($p, $n)" for (p, n) in d.ps), " & ")
+    join(io, (sprint(print, "test(", p, ", ", n, ")", context=io)
+              for (p, n) in d.ps),
+         " & ")
 
 constantstype(l::Decision) =
     mapreduce(constantstype∘first, typejoin, l.ps, init=Union{})
