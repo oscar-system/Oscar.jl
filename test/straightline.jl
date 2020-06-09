@@ -411,6 +411,8 @@ end
 @testset "Free" begin
     x, y, z = xyz = SL.freegens(3)
 
+    @test xyz == gens(SL.Free, 3)
+
     xs = Float64[2, 3, 4]
 
     @test evaluate(x, xs) == 2
@@ -437,9 +439,10 @@ end
     @test q3 == q1
     @test evaluate(q3, xs) == 64
 
-    @test SLProgram(x) == slpgen(1)
-    @test SLProgram(y) == slpgen(2)
-    @test SLProgram(z) == slpgen(3)
+    x1, x2, x3 = gens(SLProgram, 3)
+    @test SLProgram(x) == slpgen(1) == x1
+    @test SLProgram(y) == slpgen(2) == x2
+    @test SLProgram(z) == slpgen(3) == x3
 end
 
 @testset "SL internals" begin
@@ -752,7 +755,7 @@ end
 
 @testset "SL Decision" begin
     x, y = SL.lazygens(2)
-    a, b = ab = SL.freegens(2)
+    a, b = ab = gens(SL.Free, 2)
 
     p = SLProgram()
     pushop!(p, SL.decision, SL.input(1), SL.pushint!(p, 3))
@@ -764,7 +767,7 @@ end
     f = SL.test(a, 3) & SL.test(a*b, 2)
     @test evaluate(p, Any[x, y]) == l
     @test evaluate(l, Any[x, y]) == l
-    @test evaluate(l, SL.slpgens(2)) == p
+    @test evaluate(l, gens(SLProgram, 2)) == p
     @test evaluate(p, ab) == f
     @test evaluate(f, slpgens(2)) == p
 

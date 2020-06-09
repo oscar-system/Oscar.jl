@@ -164,6 +164,10 @@ end
 
 slpgen(n::Integer) = SLProgram(n)
 slpgens(n::Integer) = [SLProgram(i) for i=1:n]
+
+gens(::Type{SLProgram}, n::Integer) = slpgens(n)
+gens(::Type{SLProgram{T}}, n::Integer) where {T} = [SLProgram{T}(i) for i=1:n]
+
 slpcst(c) = SLProgram(Const(c))
 
 

@@ -18,6 +18,8 @@ end
 
 freegens(syms::AbstractVector{Symbol}) = freegens(length(syms), syms)
 
+gens(::Type{Free}, n::Integer) = freegens(n)
+
 ngens(f::Free) = length(f.gens)
 
 gens(f::Free) = f.gens
