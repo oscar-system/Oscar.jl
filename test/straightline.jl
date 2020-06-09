@@ -408,6 +408,24 @@ end
     @test convert(R, p-2) == q-2
 end
 
+@testset "Free" begin
+    x, y, z = xyz = SL.freegens(3)
+
+    xs = Float64[2, 3, 4]
+
+    @test evaluate(x, xs) == 2
+    @test evaluate(y, xs) == 3
+    @test evaluate(z, xs) == 4
+
+    @test evaluate(x, xyz) == x
+    @test evaluate(y, xyz) == y
+    @test evaluate(z, xyz) == z
+
+    p = 9 + 3*x*y^2 + ((y+z+3-x-3)*2)^-2 * 100
+    @test evaluate(p, xs) == 64
+    @test evaluate(p, xyz) == p
+end
+
 @testset "SL internals" begin
     @test SL.showop == Dict(SL.assign       => "->",
                             SL.plus         => "+",

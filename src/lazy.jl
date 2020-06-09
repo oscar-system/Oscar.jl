@@ -1,6 +1,68 @@
-## Lazy
+## Free
 
-abstract type Lazy <: AbstractSLProgram end
+abstract type Lazy end
+
+struct Free <: AbstractSLProgram
+    x::Lazy # must not contain Gen
+    gens::Vector{Symbol}
+end
+
+Free(x::Lazy) = Free(x, collect(Symbol, slpsyms(maxinput(x))))
+
+function freegens(n::Integer, syms=slpsyms(n))
+    syms = collect(syms)
+    Any[Free(Input(i), syms) for i=1:n]
+end
+
+ngens(f::Free) = length(f.gens)
+
+gens(f::Free) = f.gens
+
+Base.show(io::IO, f::Free) =
+    show(IOContext(io, :slp_free_gens => gens(f)), f.x)
+
+evaluate(f::Free, xs) = evaluate(gens(f), f.x, xs)
+
+# check compatibility and return the biggest of the two gens arrays
+function gens(x::Free, y::Free)
+    if length(gens(y)) < length(gens(x))
+        x, y = y, x
+    end
+    gx, gy = gens(x), gens(y)
+    gx == view(gy, eachindex(gx)) || throw(ArgumentError(
+        "incompatible symbols"))
+    gy
+end
+
+# TODO: must they also have the same gens?
+Base.:(==)(x::Free, y::Free) = x.x == y.x
+
+
+### unary/binary ops
+
++(x::Free, y::Free) = Free(x.x + y.x, gens(x, y))
+-(x::Free, y::Free) = Free(x.x - y.x, gens(x, y))
+*(x::Free, y::Free) = Free(x.x * y.x, gens(x, y))
+
+-(x::Free) = Free(-x.x, gens(x))
+^(x::Free, e::Integer) = Free(x.x^e, gens(x))
+
+Base.literal_pow(::typeof(^), p::Free, ::Val{e}) where {e} = p^e
+
+
+#### adhoc
+
++(x::Free, y) = Free(x.x + y, gens(x))
++(x, y::Free) = Free(x + y.x, gens(y))
+
+-(x::Free, y) = Free(x.x - y, gens(x))
+-(x, y::Free) = Free(x - y.x, gens(y))
+
+*(x::Free, y) = Free(x.x * y, gens(x))
+*(x, y::Free) = Free(x * y.x, gens(y))
+
+
+## Lazy
 
 gens(l::Lazy) = sort!(unique!(pushgens!(Symbol[], l)::Vector{Symbol}))
 
@@ -11,6 +73,7 @@ Lazy(x::AbstractSLProgram) = compile(Lazy, x)
 Lazy(x) = Const(x)
 
 evaluate(l::Lazy, xs) = evaluate(gens(l), l, xs)
+# TODO: remove the 3-arg evaluate methods?
 
 
 ### Const
@@ -35,6 +98,26 @@ Base.:(==)(k::Const, l::Const) = k.c == l.c
 
 evaluate(gs, c::Const, xs) = c.c
 
+maxinput(c::Const) = 0
+
+
+### Input
+
+struct Input <: Lazy
+    n::Int
+end
+
+function Base.show(io::IO, i::Input)
+    syms = io[:slp_free_gens]
+    print(io, syms[i.n])
+end
+
+evaluate(gs, i::Input, xs) = xs[i.n]
+
+maxinput(i::Input) = i.n
+
+Base.:(==)(i::Input, j::Input) = i.n == j.n
+
 
 ### Gen
 
@@ -56,6 +139,8 @@ constantstype(l::Gen) = Union{}
 Base.:(==)(k::Gen, l::Gen) = k.g == l.g
 
 evaluate(gs, g::Gen, xs) = xs[findfirst(==(g.g), gs)]
+
+maxinput(g::Gen) = throw(ArgumentError("logic error: Gen not allowed in Free"))
 
 
 ### Plus
@@ -81,6 +166,8 @@ Base.:(==)(k::Plus, l::Plus) = k.xs == l.xs
 
 evaluate(gs, p::Plus, xs) = mapreduce(q -> evaluate(gs, q, xs), +, p.xs)
 
+maxinput(p::Plus) = mapreduce(maxinput, max, p.xs)
+
 
 ### Minus
 
@@ -99,6 +186,8 @@ Base.:(==)(k::Minus, l::Minus) = k.p == l.p && k.q == l.q
 
 evaluate(gs, p::Minus, xs) = evaluate(gs, p.p, xs) - evaluate(gs, p.q, xs)
 
+maxinput(m::Minus) = max(maxinput(m.p), maxinput(m.q))
+
 
 ### UniMinus
 
@@ -115,6 +204,8 @@ constantstype(p::UniMinus) = constantstype(p.p)
 Base.:(==)(k::UniMinus, l::UniMinus) = k.p == l.p
 
 evaluate(gs, p::UniMinus, xs) = -evaluate(gs, p.p, xs)
+
+maxinput(p::UniMinus) = maxinput(p.p)
 
 
 ### Times
@@ -140,6 +231,8 @@ Base.:(==)(k::Times, l::Times) = k.xs == l.xs
 
 evaluate(gs, p::Times, xs) = mapreduce(q -> evaluate(gs, q, xs), *, p.xs)
 
+maxinput(p::Times) = mapreduce(maxinput, max, p.xs)
+
 
 ### Exp
 
@@ -159,6 +252,8 @@ Base.:(==)(k::Exp, l::Exp) = k.p == l.p && k.e == l.e
 Base.literal_pow(::typeof(^), p::Lazy, ::Val{e}) where {e} = Exp(p, e)
 
 evaluate(gs, p::Exp, xs) = evaluate(gs, p.p, xs)^p.e
+
+maxinput(e::Exp) = maxinput(e.p)
 
 
 ### Decision
@@ -197,6 +292,8 @@ function evaluate(gs, p::Decision, xs)
     end
     res
 end
+
+maxinput(p::Decision) = mapreduce(x -> maxinput(x[1]), max, p.ps)
 
 
 ### binary ops
@@ -271,6 +368,10 @@ end
 
 
 ## compile to SLProgram
+
+# TODO: this is legacy, only for tests
+SLProgram(l::Lazy) = compile(SLProgram, l)
+SLProgram{T}(l::Lazy) where {T} = compile(SLProgram{T}, l)
 
 compile(::Type{SLProgram}, l::Lazy) = compile(SLProgram{constantstype(l)}, l)
 
