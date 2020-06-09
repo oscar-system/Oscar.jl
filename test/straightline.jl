@@ -496,6 +496,7 @@ end
 
 @testset "SLProgram" begin
     x, y, z = Gen.([:x, :y, :z])
+    xyz = Any[x, y, z]
 
     p = SLProgram()
     @test p isa SLProgram{Union{}}
@@ -653,6 +654,21 @@ end
     r = r^3
     @test SL.aslazy(r) == (-((x+2)*3-1.2))^3
     @test SL.constantstype(r) === Real
+
+    @testset "adhoc" begin
+        r = p+q
+        @test typeof(r) == SLProgram{Signed}
+        @assert evaluate(r, xyz) == x+2
+
+        @test evaluate(2+r, xyz) == 2+(x+2)
+        @test evaluate(r+big(4), xyz) == (x+2) + big(4)
+
+        @test evaluate(2*r, xyz) == 2*(x+2)
+        @test evaluate(r*1.3, xyz) == (x+2) * 1.3
+
+        @test evaluate(2 - r, xyz) == 2 - (x+2)
+        @test evaluate(r - 0x12, xyz) == (x+2) - 0x12
+    end
 
     # conversion Lazy -> SLProgram
     @test SLProgram(x^2+y) isa SLProgram{Union{}}

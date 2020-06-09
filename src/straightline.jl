@@ -479,6 +479,23 @@ function combine!(op::Op, p::SLProgram, e::Integer)
 end
 
 
+### adhoc
+
+function combine(op::Op, p::SLProgram, q)
+    r = copy_oftype(p, typejoin(constantstype(p), typeof(q)))
+    i = pushinit!(r)
+    j = pushop!(r, op, i, pushconst!(r, q))
+    pushfinalize!(r, j)
+end
+
+function combine(op::Op, p, q::SLProgram)
+    r = copy_oftype(q, typejoin(constantstype(q), typeof(p)))
+    i = pushinit!(r)
+    j = pushop!(r, op, pushconst!(r, p), i)
+    pushfinalize!(r, j)
+end
+
+
 ## mutating ops
 
 addeq!(p::SLProgram, q::SLProgram) = combine!(plus, p, q)
@@ -530,6 +547,16 @@ function test!(p::SLProgram, x::Integer)
 end
 
 test(p::SLProgram, x::Integer) = test!(copy(p), x)
+
+
+### adhoc
+
++(p::SLProgram, q) = combine(plus, p, q)
++(p, q::SLProgram) = combine(plus, p, q)
+*(p::SLProgram, q) = combine(times, p, q)
+*(p, q::SLProgram) = combine(times, p, q)
+-(p::SLProgram, q) = combine(minus, p, q)
+-(p, q::SLProgram) = combine(minus, p, q)
 
 
 ## conversion SLProgram -> Lazy
