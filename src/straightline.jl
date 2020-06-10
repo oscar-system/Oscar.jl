@@ -257,6 +257,7 @@ function Base.show(io::IO, ::MIME"text/plain", p::SLProgram{T}) where T
 
         x = showarg(i)
         y = isunary(op) || isassign(op) ? "" :
+            isexponentiate(op) ? string(getint(j)) :
             isquasiunary(op) ? string(j.x) :
             showarg(j)
 
