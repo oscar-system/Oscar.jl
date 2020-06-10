@@ -61,9 +61,13 @@ function slpoly_ring(R::AbstractAlgebra.Ring, n::Int)
   return SLPolyRing(R, [ Symbol("x_$i") for i=1:n])
 end
 
+Base.one(R::StraightLinePrograms.SLPolyRing) = R(one(base_ring(R)))
+(R::StraightLinePrograms.SLPolyRing)(a::StraightLinePrograms.SLPoly) = a
+Oscar.ngens(S::SLPolyRing) = length(gens(S))
+
 function root_bound(f::fmpz_poly)
-  a = coeff(f, 0)
-  return max(fmpz(1), maximum([ceil(fmpz, abs(coeff(f, i)//a)) for i=1:degree(f)]))
+  a = coeff(f, degree(f))
+  return max(fmpz(1), maximum([ceil(fmpz, abs(coeff(f, i)//a)) for i=0:degree(f)]))
 end
 
 mutable struct GaloisCtx
@@ -206,17 +210,57 @@ function elementary_symmetric(g::Array{<:Any, 1}, i::Int)
   return sum(prod(g[i] for i = s) for s = Hecke.subsets(Set(1:length(g)), i))
 end
 
-Oscar.ngens(S::SLPolyRing) = length(gens(S))
+function ^(f::StraightLinePrograms.SLPoly, p::Oscar.GAPGroupElem{PermGroup})
+  g = gens(parent(f))
+  h = typeof(f)[]
+  for i=1:ngens(parent(f))
+    push!(h, g[p(i)])
+  end
+  return evaluate(f, h)
+end
 
 function isprobably_invariant(g, p)
   R = parent(g)
   k = GF(next_prime(2^20))
   n = ngens(R)
   lp = [rand(k) for i=1:n]
-  return evaluate(g, lp) == evaluate(g, [lp[p(i)] for i=1:n])
+  return evaluate(g, lp) == evaluate(g^p, lp)
 end
 
-function invariant(G, H)
+function short_right_transversal(G::PermGroup, H::PermGroup, s)
+  C = GAP.Globals.ConjugacyClasses(H.X)
+  cs = GAP.Globals.CycleStructurePerm(s.X)
+  can = []
+  for i=1:length(C)
+    c = C[i]
+    r = GAP.Globals.Representative(c)
+    if cs == GAP.Globals.CycleStructurePerm(r)
+      push!(can, r)
+    end
+  end
+
+  R = []
+  for c = can
+    d = GAP.Globals.RepresentativeAction(G.X, c, s.X)
+    if d != GAP.Globals.fail
+      push!(R, Oscar.group_element(G, d))
+      @assert Oscar.group_element(G, c)^R[end] == s
+    end
+  end
+
+  S = []
+  C = centralizer(G, s)[1]
+  for r = R
+    CH = centralizer(H^r, s)[1]
+    for t = right_transversal(C, CH)
+      push!(S, r*t)
+    end
+  end
+
+  return S
+end
+
+function invariant(G::PermGroup, H::PermGroup)
   @vprint :GaloisInvariant 2 "Searching $G-relative $H-invariant\n"
 
   S = slpoly_ring(ZZ, degree(G))
@@ -224,6 +268,7 @@ function invariant(G, H)
 
   if isprimitive(G) && isprimitive(H)
     if isodd(G) && iseven(H)
+      @vprint :GaloisInvariant 3 "using sqrt_disc\n"
       return sqrt_disc(g)
     end
   end
@@ -278,14 +323,40 @@ function invariant(G, H)
 
     for BB = bG
       h = action_on_blocks(G, BB)
+      B = block_system(G, BB)
+      hG = image(h)[1]
+      hH = image(h, H)[1]
+      if length(hH) < length(hG)
+        y = [sum(g[b]) for b = B]
+        J = invariant(hG, hH)
+        E = evaluate(J, y)
+        @vprint :GaloisInvariant 3 "using E-invar for $BB (4.1.2)\n"
+        return E
+      end
+
+      sG = set_stabilizer(G, BB)[1]
+      sH = set_stabilizer(H, BB)[1]
+      if length(sH) < length(sH)
+        J = invar(sG, sH)
+        C = left_transversal(H, sH)
+        gg = g[BB]
+        F = sum(evaluate(J, [gg[t(i)] for i = BB]) for t = C)
+        @vprint :GaloisInvariant 3 "using F-invar for $BB (4.1.4)\n"
+        return F
+      end
     end
   end
 
   @vprint :GaloisInvariant 3 "no special invar found, resorting to generic\n"
+
+  m = prod(gen(S, i)^i for i=1:degree(G)-1)
+  return sum(m^s for s = H)
+
+
   R, _ = PolynomialRing(ZZ, degree(G))
   m = prod(gen(R, i)^i for i=1:degree(G)-1)
   I = sum(orbit(H, m))
-  return I
+  return evaluate(I, g)
 end
 
 #TODO
@@ -305,7 +376,7 @@ end
 # - more base rings
 # - applications: subfields of splitting field, towers, solvability by radicals
 function galois_group(K::AnticNumberField)
-  d_min = div(degree(K), 4)
+  d_min = 2
   d_max = typemax(Int)
   p_best = 1
   cnt = 5
@@ -317,7 +388,7 @@ function galois_group(K::AnticNumberField)
     end
     push!(ct, sort(map(degree, collect(keys(lf.fac)))))
     d = lcm([degree(x) for x = keys(lf.fac)])
-    if d < d_max && d > d_min
+    if d < d_max && d >= d_min
       d_max = d
       p_best = p
       cnt = 5
@@ -398,6 +469,14 @@ function galois_group(K::AnticNumberField)
   end
 
   @vprint :GaloisGroup 2 "Have starting group with id $(transitive_group_identification(G))\n"
+  si = G(si)
+
+  if issquare(discriminant(K))
+    isev = true
+  else
+    isev = false
+  end
+
   nG = length(G)
   while true
     S = maximal_subgroup_reps(G)
@@ -405,8 +484,9 @@ function galois_group(K::AnticNumberField)
 
     for s = S
       istransitive(s) || continue
+      isev != iseven(s) && continue 
 
-      @vprint :GaloisGroup 2 "testing descent $(transitive_group_identification(G)) -> $(transitive_group_identification(s))\n"
+      @vprint :GaloisGroup 2 "testing descent $(transitive_group_identification(G)) -> $(transitive_group_identification(s)) of index $(index(G, s))\n"
 
       I = invariant(G, s)
 
@@ -422,8 +502,32 @@ function galois_group(K::AnticNumberField)
       while true
         cs = Set{typeof(c[1])}()
         fd = []
-        for t = left_transversal(G, s)
-          e = evaluate(I, [c[inv(t)(i)] for i=1:degree(K)])
+
+        local lt
+        if index(G, s) < 100
+          lt = right_transversal(G, s)
+        elseif isnormal(G, s)
+          lt = [one(G)] # I don't know how to get the identity
+        else
+          lt = short_right_transversal(G, s, si)
+          if index(G, s) < 1000 && get_assert_level(:GaloisInvariant) > 2
+            tt = [x for x = right_transversal(G, s) if si in s^x]
+          #  if Set(right_coset(s, x) for x = tt) != Set(right_coset(s, x) for x = lt)
+          #    return G, s, si
+          #  end
+          end
+          @hassert :GaloisInvariant 2 all(x->si in s^x, lt)
+        end
+        while length(lt) < 10 && length(lt) < index(G, s)
+          r = rand(G)
+          if all(x->right_coset(s, r) != right_coset(s, x), lt)
+            push!(lt, r)
+          end
+        end
+
+
+        for t = lt
+          e = evaluate(I^t, c)
           if e in cs
             @vprint :GaloisGroup 2 " evaluation found duplicate, transforming...\n"
             local ts
@@ -435,6 +539,8 @@ function galois_group(K::AnticNumberField)
             end
             cnt += 1
             if cnt > 5
+#              @show I
+#              return GC, I, G, s
               error("bad")
             end
             B = bound(GC, I, ts)
@@ -451,10 +557,14 @@ function galois_group(K::AnticNumberField)
             if abs(l) < value(B)
               @vprint :GaloisGroup 2 "found descent at $t and value $l\n"
               push!(fd, t)
+            else
+              @vprint :GaloisGroup 3 "no int: wrong size $l, $(value(B))\n"
             end
+          else
+            @vprint :GaloisGroup 3 "no int: wrong degree\n"
           end
         end
-        if length(cs) == index(G, s)
+        if length(cs) == length(lt)
           break
         end
       end
@@ -464,7 +574,9 @@ function galois_group(K::AnticNumberField)
         @vprint :GaloisGroup 2 "no descent\n"
       end
       if length(fd)>0
-        G = intersection([s^inv(x) for x = fd]...)[1]
+        G = intersection([s^x for x = fd]...)[1]
+        @assert length(G) == length(s)
+        @assert length(G) < nG
         if length(G) == degree(K)
           return G, GC
         end
