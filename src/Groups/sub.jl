@@ -151,7 +151,7 @@ function image(f::GAPGroupHomomorphism)
 end
 
 function image(f::GAPGroupHomomorphism{S, T}, H::S) where S <: GAPGroup where T <: GAPGroup
-  H1 = GAP.Globals.Image(H.X)
+  H1 = GAP.Globals.Image(f.map, H.X)
   return _as_subgroup(H1, codomain(f))
 end
 
