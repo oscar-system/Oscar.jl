@@ -130,6 +130,12 @@ end
     @test evaluate(g, ab) == [a, b, a, b]
 
     @test_throws ArgumentError SL.compile(GAPSLDecision, p)
+
+    # bug with overwriting results
+    p = AtlasSLProgram("oup 2 2 1")
+    @test evaluate(p, ab) == [b, a]
+    g = SL.compile(GAPSLProgram, p)
+    @test evaluate(g, ab) == [b, a]
 end
 
 @testset "AtlasSLDecision evaluate /compile" begin
