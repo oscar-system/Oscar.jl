@@ -541,6 +541,8 @@ copy_jointype(p::SLProgram, q::SLProgram) =
 
 ^(p::SLProgram, e::Integer) = expeq!(copy(p), e)
 
+Base.literal_pow(::typeof(^), p::SLProgram, ::Val{e}) where {e} = p^e
+
 Base.:&(p::SLProgram, q::SLProgram) = testeq!(copy_jointype(p, q), q)
 
 function test!(p::SLProgram, x::Integer)

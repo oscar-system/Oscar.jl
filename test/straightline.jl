@@ -532,7 +532,7 @@ end
     @test SL.aslazy(p) == Const('c')
 
     # exponent
-    p = SLProgram(x*y^Int(-2))
+    p = SLProgram(x*y^-2)
     @test SL.aslazy(p) == x*y^Int(-2)
     e = (SL.payloadmask ⊻ SL.negbit) % Int
     @test x^e == SL.aslazy(SLProgram(x^e))
@@ -542,6 +542,7 @@ end
     @test_throws ArgumentError SLProgram(x^(e-1))
     p = SLProgram(x^2*y^(Int(-3)))
     @test evaluate(p, [sqrt(2), 4^(-1/3)]) === 8.0
+    @test evaluate(p^-1, [sqrt(2), 4^(-1/3)]) == 0.125
 
     # assign
     p = SLProgram{Int}()
