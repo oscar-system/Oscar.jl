@@ -13,7 +13,7 @@ function freegens(n::Integer, syms=slpsyms(n))
     if !isa(syms, Vector{Symbol})
         syms = collect(Symbol, syms)
     end
-    Any[Free(Input(i), syms) for i=1:n]
+    Free[Free(Input(i), syms) for i=1:n]
 end
 
 freegens(syms::AbstractVector{Symbol}) = freegens(length(syms), syms)
