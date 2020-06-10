@@ -12,7 +12,8 @@ AtlasLine(cmd, dst, i) = AtlasLine(cmd, dst, i, ATLAS_VOID_SLOT)
 abstract type AbstractAtlasSL <: AbstractSLProgram end
 
 struct AtlasSLProgram <: AbstractAtlasSL
-    code::String # source code
+    code::String         # source code
+    echo::Vector{String} # echo lines
     ngens::Int
     outputs::Vector{Int}
     lines::Vector{AtlasLine}
@@ -20,6 +21,7 @@ end
 
 struct AtlasSLDecision <: AbstractAtlasSL
     code::String # source code
+    echo::Vector{String} # echo lines
     ngens::Int
     lines::Vector{AtlasLine}
 end
@@ -29,6 +31,7 @@ function (::Type{SLP})(code::String) where SLP <: AbstractAtlasSL
     labels = String[]
     outputs = Int[]
     lines = AtlasLine[]
+    echo = String[]
 
     ngens::Int = 0
 
@@ -53,9 +56,14 @@ function (::Type{SLP})(code::String) where SLP <: AbstractAtlasSL
     end
 
     for codeline in codelines
-        codeline = split(codeline, '#', limit=2)[1] # remove comments
-        codeline = split(codeline, keepempty=false)
+        codeline0 = split(codeline, '#', limit=2)[1] # remove comments
+        codeline = split(codeline0, keepempty=false)
         isempty(codeline) && continue
+        if codeline[1] == "echo"
+            push!(echo, strip(split(codeline0, "echo", limit=2)[2]))
+            continue
+        end
+
         length(codeline) < 2 && error_invalid_line(codeline)
         cmd = Symbol(codeline[1])
 
@@ -127,9 +135,9 @@ function (::Type{SLP})(code::String) where SLP <: AbstractAtlasSL
         if isempty(outputs)
             push!(outputs, getidx!("1"), getidx!("2"))
         end
-        AtlasSLProgram(code, ngens, outputs, lines)
+        AtlasSLProgram(code, echo, ngens, outputs, lines)
     else
-        AtlasSLDecision(code, ngens, lines)
+        AtlasSLDecision(code, echo, ngens, lines)
     end
 end
 

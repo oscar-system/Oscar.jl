@@ -1,10 +1,12 @@
 @testset "AtlasSLProgram" begin
-    for s0 in ["", "\n# comment\n \n # comment  \n\n # comment"]
+    for s0 in ["", "\n# comment\n \n # comment  \n\n # comment",
+               """ # \n  echo  "1 2  4" \necho a echo becho""" ]
         p0 = AtlasSLProgram(s0)
         @test p0.code == s0
         @test p0.ngens == 2
         @test isempty(p0.lines)
         @test p0.outputs == 1:2
+        @test endswith(p0.code, "echo") == !isempty(p0.echo)
     end
 
     s1 = " inp 3 3 1  2 \n oup 2 2  2"
@@ -68,12 +70,13 @@
     @test_throws ArgumentError AtlasSLProgram("unknown 1 2")
     @test_throws ArgumentError AtlasSLProgram("chor 1 2")
 
-    d1 = AtlasSLDecision("inp 2\nchor 1 2\nchor 2 3\nmu 1 2 3\nchor 3 5")
+    d1 = AtlasSLDecision("echo something\ninp 2\nchor 1 2\nchor 2 3\nmu 1 2 3\nchor 3 5")
     @test d1.lines ==  [AtlasLine(:chor, 0, 1, 2),
                         AtlasLine(:chor, 0, 2, 3),
                         AtlasLine(:mu, 3, 1, 2),
                         AtlasLine(:chor, 0, 3, 5)]
     @test d1.ngens == 2
+    @test d1.echo == ["something"]
     @test_throws ArgumentError AtlasSLDecision("chor 1 2\noup 1")
 end
 
