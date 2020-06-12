@@ -26,6 +26,15 @@ n = 6
    @test g^(1-og) == g
 
    @test !isisomorphic(symmetric_group(4), symmetric_group(3))[1]
+
+   A = alternating_group(n)
+   x = cperm(G,[1,2,3])
+   f = hom(G,G,y -> y^x)
+   @test typeof(restrict_homomorphism(f,A)) == Oscar.GAPGroupHomomorphism{PermGroup,PermGroup}
+   fa = restrict_homomorphism(f,A)
+   @test domain(fa)==A
+   @test codomain(fa)==G
+   @test fa(A[1])==f(A[1])
 end
 
 @testset "Operations on homomorphism in Sym($n)" begin
@@ -249,6 +258,19 @@ end
    @test phi(AA[2])==AA[2]
    @test order(quo(A,AA)[1])==2
    @test isinvariant(f,alt)
+
+   H = alternating_group(4)
+   x = cperm(G,[1,2,3])
+   f = A(hom(G,G,y->y^x))
+   fa = restrict_automorphism(f,H)
+   @test parent(fa)==automorphism_group(H)
+   @testset for g in gens(H)
+      @test fa(g)==H(f(g))
+   end
+
+   S = symmetric_group(3)
+   g = hom(G,S,[cperm([1,2,3,4]), cperm([1,2])], [cperm([1,3]), cperm([1,2])])
+   @test induced_automorphism(g,f)==automorphism_group(S)(inner_automorphism(cperm(S,[1,2,3])))
 end
 
 @testset "Other automorphisms groups" begin
