@@ -210,6 +210,30 @@ function elementary_symmetric(g::Array{<:Any, 1}, i::Int)
   return sum(prod(g[i] for i = s) for s = Hecke.subsets(Set(1:length(g)), i))
 end
 
+function power_sum(g::Array{<:Any, 1}, i::Int)
+  return sum(a^i for a = g)
+end
+
+function Oscar.discriminant(g::Array{<:Any, 1})
+  return sqrt_disc(g)^2
+end
+
+function to_elementary_symmetric(f)
+  S = parent(f)
+  n = ngens(S)
+  if n == 1 || isconstant(f)
+    return f
+  end
+  T = PolynomialRing(base_ring(S), n-1)[1]
+  g1 = to_elementary_symmetric(evaluate(f, vcat(gens(T), [T(0)])))
+  es = [elementary_symmetric(gens(S), i) for i=1:n-1]
+  f = f - evaluate(g1, es)
+  h = divexact(f, elementary_symmetric(gens(S), n))
+  g2 = to_elementary_symmetric(h)
+  g1 = evaluate(g1, gens(S)[1:n-1])
+  return g1 + gen(S, n)*g2
+end
+
 function ^(f::StraightLinePrograms.SLPoly, p::Oscar.GAPGroupElem{PermGroup})
   g = gens(parent(f))
   h = typeof(f)[]
