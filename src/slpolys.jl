@@ -20,6 +20,8 @@ end
 
 gens(S::SLPolyRing{T}) where {T} = [S(Gen(s)) for s in symbols(S)]
 
+ngens(S::SLPolyRing{T}) where {T} = length(symbols(S))
+
 
 ## SLPoly
 

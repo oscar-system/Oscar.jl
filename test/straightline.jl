@@ -236,6 +236,7 @@ end
     R, (x1, y1) = PolynomialRing(zz, ["x", "y"])
 
     x0, y0 = gens(S)
+    @test ngens(S) == 2
     @test string(x0) == "x"
     @test string(y0) == "y"
     @test replstr(x0) == "x"
