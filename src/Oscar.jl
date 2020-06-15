@@ -15,7 +15,7 @@ into a comprehensive tool for computational algebra.
 
   `https://oscar.computeralgebra.de`
 
-Oscar is licensed under the GLP 3 (see LICENSE.md).
+Oscar is licensed under the GPL v3+ (see LICENSE.md).
 """
 module Oscar
 
