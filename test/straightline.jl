@@ -385,12 +385,17 @@ end
     @test convert(R, S(L(:x))) == x1
 
     # mutating ops
+    X, Y = gens(S)
     p = S(x*y-16*y^2)
     # SL.addeq!(p, S(x)) # TODO: this bugs
     @test p === SL.addeq!(p, S(x*y))
     @test convert(R, p) == 2*x1*y1-16y1^2
+    @test p == X*Y-16Y^2+X*Y
+
     @test p === SL.subeq!(p, S(-16y^2))
     @test convert(R, p) == 2*x1*y1
+    @test p == X*Y-16Y^2+X*Y- (-16*Y^2)
+
     @test p === SL.subeq!(p)
     @test convert(R, p) == -2*x1*y1
     # @test p === SL.muleq!(p, p) # TODO: this bugs

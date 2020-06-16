@@ -167,6 +167,16 @@ end
 *(q::T, p::SLPoly{T}) where {T<:RingElement} = parent(p)(q) * p
 
 
+## comparison
+
+# TODO: two SLPolys migth be considered equal if they "canonical" form
+# would be equal (e.g. their conversions to MPoly)
+function Base.:(==)(p::SLPoly{T}, q::SLPoly{T}) where {T}
+    check_parent(p, q)
+    p.slprogram == q.slprogram
+end
+
+
 ## evaluate
 
 evaluate(p::SLPoly{T}, xs::Vector{S}) where {T<:RingElement,S<:RingElement} =
