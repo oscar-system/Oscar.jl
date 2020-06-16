@@ -27,6 +27,12 @@ gens(S::SLPolyRing) = [S(Gen(s)) for s in symbols(S)]
 ngens(S::SLPolyRing) = length(symbols(S))
 nvars(S::SLPolyRing) = ngens(S)
 
+function PolynomialRing(R::Ring, s)
+    S = SLPolyRing(R, s)
+    S, gens(S)
+end
+
+
 # TODO: merge this with method in AbstractAlgebra
 function Base.show(io::IO, p::SLPolyRing)
     max_vars = 5

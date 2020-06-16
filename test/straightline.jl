@@ -239,6 +239,17 @@ end
         @test base_ring(S2) == zz
         @test symbols(S2) == [:x, :y]
     end
+    for Sxy in (SL.PolynomialRing(zz, ["x", "y"]),
+                SL.PolynomialRing(zz, ['x', 'y']))
+        S3, (x, y) = Sxy
+        @test S3 isa SLPolyRing{Int}
+        @test base_ring(S3) == zz
+        @test symbols(S3) == [:x, :y]
+        @test string(x) == "x"
+        @test string(y) == "y"
+        @test parent(x) == S3
+        @test parent(y) == S3
+    end
 
     R, (x1, y1) = PolynomialRing(zz, ["x", "y"])
 
