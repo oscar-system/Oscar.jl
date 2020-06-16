@@ -471,6 +471,12 @@ end
     @test evaluate!(Int[], p, [2, 3], x -> x) == 28
     @test evaluate(p, [2, 3], x -> -x) == -10
     @test evaluate!(Int[], p, [2, 3], x -> -x) == -10
+
+    # trivial rings
+    S = SLPolyRing(zz, Symbol[])
+    gs = gens(S)
+    @test evaluate(S(1), gs) == S(1)
+    @test evaluate!(empty(gs), S(1), gs) == S(1)
 end
 
 @testset "Free" begin

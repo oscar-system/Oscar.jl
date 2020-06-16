@@ -200,12 +200,12 @@ end
 
 evaluate(p::SLPoly{T}, xs::Vector{S}, conv::F=identity
          ) where {T<:RingElement,S<:RingElement,F} =
-             parent(xs[1])(evaluate(p.slprogram, xs, conv))
+             evaluate(p.slprogram, xs, conv)
 
 function evaluate!(res::Vector{S}, p::SLPoly{T}, xs::Vector{S},
                    conv::F=identity
                    ) where {S,T,F}
-    parent(xs[1])(evaluate!(res, p.slprogram, xs, conv))
+    evaluate!(res, p.slprogram, xs, conv)
 end
 
 
