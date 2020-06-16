@@ -818,6 +818,17 @@ end
         w = u + v
         @test evaluate(w, []) == 10
     end
+
+    # 3-args evaluate
+    x, y = slpgens(2)
+    p = 3*x*y^3
+    s = evaluate(p, ["a", "b"], string)
+    @test s == "3abbb"
+    s = evaluate!(String[], p, ["a", "b"], string)
+    @test s == "3abbb"
+
+    p = [1, 3, 2]*x + (1, 2)
+    @test evaluate(p, [2], length) == 8
 end
 
 @testset "SL Decision" begin

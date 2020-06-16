@@ -618,9 +618,9 @@ function evaluates(p::SLProgram{T}, xs::Vector{S}, conv::F=identity
     res
 end
 
-retrieve(ints, cs, xs, res, i) =
+retrieve(ints, cs, xs, res, i, conv::F=identity) where {F} =
     isint(i)      ? ints[intidx(i)].x % Int :
-    isconstant(i) ? cs[constantidx(i)] :
+    isconstant(i) ? conv(cs[constantidx(i)]) :
     isinput(i)    ? xs[inputidx(i)] :
     res[i.x]
 
@@ -642,7 +642,7 @@ function evaluate!(res::Vector{S}, p::SLProgram{T}, xs::Vector{S},
             resize!(res, i.x)
             continue
         end
-        x = retrieve(ints, cs, xs, res, i)
+        x = retrieve(ints, cs, xs, res, i, conv)
         if isexponentiate(op)
             r = x^getint(j) # TODO: support bigger j
         elseif isassign(op)
@@ -655,7 +655,7 @@ function evaluate!(res::Vector{S}, p::SLProgram{T}, xs::Vector{S},
         elseif isuniminus(op)
             r = -x
         else
-            y = retrieve(ints, cs, xs, res, j)
+            y = retrieve(ints, cs, xs, res, j, conv)
             if isplus(op)
                 r = x + y
             elseif isminus(op)
@@ -686,7 +686,7 @@ function evaluate!(res::Vector{S}, p::SLProgram{T}, xs::Vector{S},
     elseif hasmultireturn(p)
         res
     else
-        retrieve(ints, cs, xs, res, p.ret)
+        retrieve(ints, cs, xs, res, p.ret, conv)
     end
 end
 
