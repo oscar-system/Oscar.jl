@@ -233,6 +233,11 @@ end
     @test base_ring(S) == zz
     @test symbols(S) == [:x, :y]
 
+    S2 = SLPolyRing(zz, ["x", "y"])
+    @test S2 isa SLPolyRing{Int}
+    @test base_ring(S2) == zz
+    @test symbols(S2) == [:x, :y]
+
     R, (x1, y1) = PolynomialRing(zz, ["x", "y"])
 
     x0, y0 = gens(S)
