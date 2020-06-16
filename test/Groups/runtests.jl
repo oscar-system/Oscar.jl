@@ -10,3 +10,5 @@ include("subgroups_and_cosets.jl")
 include("conjugation.jl")
 include("homomorphisms.jl")
 include("libraries.jl")
+include("directproducts.jl")
+

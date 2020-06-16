@@ -51,6 +51,8 @@ import GAP.GapObj
 
 export
     AutomorphismGroup,
+    DirectProductOfGroups,
+    DirectProductOfElem,
     elem_type,
     FPGroup,
     FPGroupElem,
@@ -197,6 +199,23 @@ struct AutomorphismGroup{T} <: GAPGroup
     return z
   end
 end
+
+"""
+    DirectProductOfGroups{S,T}
+Direct product of two groups of type `S` and `T` respectively, or subgroup of a direct product of groups.
+"""
+struct DirectProductOfGroups{S<:GAPGroup, T<:GAPGroup} <: GAPGroup
+  X::GapObj
+  G1::S
+  G2::T
+  IsFull::Bool     # true if it is G1xG2; false if it is a proper subgroup of G1xG2
+
+  function DirectProductOfGroups(G::GapObj, G1::S, G2::T, isf::Bool) where S where T
+    z = new{S,T}(G,G1,G2,isf)
+    return z
+  end
+end
+
 
 """
 TODO: document this

@@ -172,6 +172,7 @@ include("Groups/homomorphisms.jl")
 include("Groups/cosets.jl")
 include("Groups/libraries/libraries.jl")
 include("Groups/GAPGroups.jl")
+include("Groups/directproducts.jl")
 
 include("Rings/integer.jl")
 include("Rings/rational.jl")
