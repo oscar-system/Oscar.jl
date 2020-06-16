@@ -593,7 +593,7 @@ lazygens(gs) = Any[Gen(s) for s in gs]
 lazygens(n::Integer) = lazygens(slpsyms(n))
 
 # strictly convenience function
-aslazy(p::SLProgram, gs=lazygens(ninputs(p))) = evaluate(p, gs, Lazy)
+aslazy(p::SLProgram, gs=lazygens(ninputs(p))) = Lazy(evaluate(p, gs))
 
 
 ## evaluate
@@ -686,7 +686,7 @@ function evaluate!(res::Vector{S}, p::SLProgram{T}, xs::Vector{S},
     elseif hasmultireturn(p)
         res
     else
-        conv(retrieve(ints, cs, xs, res, p.ret))
+        retrieve(ints, cs, xs, res, p.ret)
     end
 end
 
