@@ -1,3 +1,5 @@
+import Base.intersect
+
 export
     automorphism_group,
     centralizer,
@@ -16,7 +18,6 @@ export
     index,
     inner_automorphism,
     inner_automorphisms_group,
-    intersection,
     isbijective,
     ischaracteristic_subgroup,
     isinjective,
@@ -562,6 +563,7 @@ function direct_product(G::GAPGroup, H::GAPGroup, task::Symbol = :sum)
   end
 end
 
+
 ################################################################################
 #
 #  Intersection
@@ -569,11 +571,11 @@ end
 ################################################################################
 
 """
-    intersection(V::T...) where T <: Group
-    intersection(V::AbstractVector{T}) where T <: Group
+    intersect(V::T...) where T <: Group
+    intersect(V::AbstractVector{T}) where T <: Group
 If `V` = [`G_1`, ... , `G_n`], return the group intersection `K` of the groups `G_1`, ..., `G_n`, together with the embeddings `K` -> `G_i`.
 """
-function intersection(V::T...) where T<:GAPGroup
+function intersect(V::T...) where T<:GAPGroup
    L = GAP.julia_to_gap([G.X for G in V])
    K = GAP.Globals.Intersection(L)
    Embds = [_as_subgroup(G, K)[2] for G in V]
@@ -582,7 +584,7 @@ function intersection(V::T...) where T<:GAPGroup
    return Arr
 end
 
-function intersection(V::AbstractVector{T}) where T<:GAPGroup
+function intersect(V::AbstractVector{T}) where T<:GAPGroup
    L = GAP.julia_to_gap([G.X for G in V])
    K = GAP.Globals.Intersection(L)
    Embds = [_as_subgroup(G, K)[2] for G in V]

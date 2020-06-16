@@ -49,7 +49,7 @@
 
    H1,h1 = sub(G, gens(symmetric_group(3)))
    H2,h2 = sub(G, gens(alternating_group(4)))
-   K,f1,f2 = intersection(H1,H2)
+   K,f1,f2 = intersect(H1,H2)
    @test domain(f1)==K
    @test domain(f2)==K
    @test codomain(f1)==H1
@@ -268,7 +268,7 @@ end
    @test order(fitting_subgroup(G)[1])==8
    @test fitting_subgroup(S)==sub(S,[S([3,4,1,2]), S([4,3,2,1])])
    @test frattini_subgroup(S)==sub(S,[one(S)])
-   @test frattini_subgroup(G)[1]==intersection(maximal_subgroups(G))[1]
+   @test frattini_subgroup(G)[1]==intersect(maximal_subgroups(G))[1]
    @test frattini_subgroup(G)==centre(G)
    @test ischaracteristic_subgroup(G,centre(G)[1])
    @test socle(G)==frattini_subgroup(G)
