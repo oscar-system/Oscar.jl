@@ -8,8 +8,10 @@ export
     directproduct,
     embedding,
     factorofdirectproduct,
+    homomorphism_of_semidirect_product,
     isfull_direct_product,
     projection,
+    semidirectproduct,
     sub,
     write_as_full
 
@@ -159,3 +161,106 @@ function isfull_direct_product(G::DirectProductOfGroups)
 end
 
 Base.:^(H::DirectProductOfGroups, y::GAPGroupElem) = sub([h^y for h in gens(H)])[1]
+
+
+################################################################################
+#
+#  Semidirect products
+#  
+################################################################################
+
+"""
+    semidirectproduct(G::S, f::GAPGroupHomomorphism, H::T)
+Return the semidirect product of `G` and `H`, of type ``SemidirectProductOfGroups{S,T}``, where `f` is a homomorphism from `G` to `Aut`(`H`).
+"""
+function semidirectproduct(G::S, f::GAPGroupHomomorphism{S,AutomorphismGroup{T}}, N::T) where S <: GAPGroup where T <: GAPGroup
+   return SemidirectProductOfGroups(GAP.Globals.SemidirectProduct(G.X,f.map,N.X),G,N,f,true)
+end
+
+"""
+    embedding(G::SemidirectProductOfGroups{S,T}, n::Integer)
+Return the embedding of the `n`-th component of `G` into `G`, for `n` = 1,2.
+"""
+function embedding(G::SemidirectProductOfGroups{S,T}, n::Base.Integer) where S where T
+   if n==1
+      f=GAP.Globals.Embedding(G.X,1)
+      typeG=S
+      gr=G.G1
+   elseif n==2
+      f=GAP.Globals.Embedding(G.X,2)
+      typeG=T
+      gr=G.G2
+   else
+      throw(ArgumentError("n must be 1 or 2"))
+   end
+   return GAPGroupHomomorphism{typeG,SemidirectProductOfGroups{S,T}}(gr,G,f)
+end
+
+
+
+"""
+    projection(G::SemidirectProductOfGroups{S,T}, n::Integer)
+Return the projection of `G` into the `n`-th component of `G`, for `n` = 1,2.
+"""
+function projection(G::SemidirectProductOfGroups{S,T}) where S where T
+ #=  if !isfull_direct_product(G)
+      throw(ArgumentError("Projection is not a group homomorphism"))
+   else
+      G=write_as_full(G)
+   end
+=#
+   f=GAP.Globals.Projection(G.X)
+   typeG=S
+   gr=G.G1
+   return GAPGroupHomomorphism{SemidirectProductOfGroups{S,T},typeG}(G,gr,f)
+end
+
+
+# start part on subgroups
+function _as_subgroup_bare(G::SemidirectProductOfGroups{S,T}, H::GapObj) where { S , T }
+  return SemidirectProductOfGroups(H, G.G1, G.G2, G.f, false)
+end
+
+function _as_subgroup(G::SemidirectProductOfGroups{S,T}, H::GapObj, ::Type{U}) where { T, S, U }
+  H1 = _as_subgroup_bare(G, H)
+  return H1, hom(H1, G, x::U -> group_element(G, x.X))
+end
+
+function _as_subgroup(G::SemidirectProductOfGroups{S,T}, H::GapObj) where S <: GAPGroup where T <: GAPGroup
+  return _as_subgroup(G, H, GAPGroupElem{SemidirectProductOfGroups{S,T}})
+end
+
+function sub(G::SemidirectProductOfGroups{S,T}, elms::Vector{GAPGroupElem{SemidirectProductOfGroups{S,T}}}) where { S, T }
+  elems_in_GAP = GAP.julia_to_gap(GapObj[x.X for x in elms])
+  H = GAP.Globals.Group(elems_in_GAP)
+  #H is the group. I need to return the inclusion map too
+  return _as_subgroup(G, H)
+end
+
+function sub(L::GAPGroupElem{SemidirectProductOfGroups{S,T}}...) where { S, T }
+   if length(L)==0 throw(ArgumentError("Empty list")) end
+   l=collect(L)
+   @assert all(x -> parent(x) == parent(l[1]), l)
+   return sub(parent(l[1]),l)
+end
+
+function sub(L::Vector{GAPGroupElem{SemidirectProductOfGroups{S,T}}}) where { S, T }
+   if length(L)==0 throw(ArgumentError("Empty list")) end
+   l=collect(L)
+   @assert all(x -> parent(x) == parent(l[1]), l)
+   return sub(parent(l[1]),l)
+end
+
+function Base.show(io::IO, x::SemidirectProductOfGroups)
+   if x.IsFull
+      print(io, "SemidirectProduct( ", GAP.gap_to_julia(GAP.Globals.StringView(x.G1.X)), " , ", GAP.gap_to_julia(GAP.Globals.StringView(x.G2.X))," )")
+   else
+      print(io, GAP.gap_to_julia(GAP.Globals.StringView(x.X)))
+   end
+end
+
+"""
+    homomorphism_of_semidirect_product(G::SemidirectProductOfGroups{S,T})
+If `G` is semidirect product of `C` and `N`, where `C` acts on `N`, then return the homomorphism `f` from `C` to `Aut`(`N`).
+"""
+homomorphism_of_semidirect_product(G::SemidirectProductOfGroups{S,T}) where {S,T} = G.f
