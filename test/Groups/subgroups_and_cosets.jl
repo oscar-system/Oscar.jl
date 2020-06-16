@@ -203,7 +203,20 @@ end
    lc1 = left_coset(H, r*H[1])
    @test representative(lc1) != representative(lc)
    @test lc1 == lc
-
+   K = sub(G, gens(symmetric_group(3)) )[1]
+   x = G([2,3,4,5,1])
+   dc = double_coset(H,x,K)
+   dc1 = double_coset(H, H[1]*x, K)
+   @test representative(dc) != representative(dc1)
+   @test dc == dc1
+   L = double_cosets(G,H,K)
+   @test length(L)==3
+   @test left_acting_group(L[1])==H
+   @test Set([G([4,5,1,2,3]), G([3,4,5,1,2]), G([2,3,4,5,1])])==Set(intersect(dc, sub(G,[x])[1]) )
+   lc = left_coset(H,one(G))
+   @test Set(intersect(lc,H))==Set(elements(H))
+   lc = left_coset(H,x)
+   @test intersect(lc,H)==[]
 end
 
 @testset "Predicates for groups" begin

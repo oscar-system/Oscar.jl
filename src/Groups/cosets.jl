@@ -20,21 +20,21 @@ export
 Group coset. It is displayed as `H * x` (right cosets) or `x * H` (left cosets), where `H` is a subgroup of a group `G` and `x` is an element of `G`. Two cosets are equal if, and only if, they are both left (resp. right) and they contain the same elements.
 """
 mutable struct GroupCoset{T<: GAPGroup, S <: GAPGroupElem} 
-   X::T                    # big group containing the subgroup and the element
+   G::T                    # big group containing the subgroup and the element
    H::T                    # subgroup
    repr::S                 # element
    side::Symbol            # says if the coset is left or right
-   coset::GapObj           # GapObj(H*repr)
+   X::GapObj               # GapObj(H*repr)
 end
 
 Base.hash(x::GroupCoset) = 0 # FIXME
 
-function _group_coset(X::GAPGroup, H::GAPGroup, repr::GAPGroupElem, side::Symbol, coset::GapObj)
-  return GroupCoset{typeof(X), typeof(repr)}(X, H, repr, side, coset)
+function _group_coset(G::GAPGroup, H::GAPGroup, repr::GAPGroupElem, side::Symbol, X::GapObj)
+  return GroupCoset{typeof(G), typeof(repr)}(G, H, repr, side, X)
 end
 
 function ==(x::GroupCoset, y::GroupCoset)
-   return x.coset == y.coset && x.side == y.side
+   return x.X == y.X && x.side == y.side
 end
 
 """
@@ -85,10 +85,10 @@ If `C` = `Hx` or `xH`, return `x`.
 representative(C::GroupCoset) = C.repr
 
 function elements(C::GroupCoset)
-  L = GAP.Globals.AsList(C.coset)
-  l = Vector{elem_type(C.X)}(undef, length(L))
+  L = GAP.Globals.AsList(C.X)
+  l = Vector{elem_type(C.G)}(undef, length(L))
   for i = 1:length(l)
-    l[i] = group_element(C.X, L[i])
+    l[i] = group_element(C.G, L[i])
   end
   return l
 end
@@ -97,7 +97,7 @@ end
     isbicoset(C::GroupCoset)
 Return whether `C` is simultaneously a right coset and a left coset for the same subgroup `H`.
 """
-isbicoset(C::GroupCoset) = GAP.Globals.IsBiCoset(C.coset)
+isbicoset(C::GroupCoset) = GAP.Globals.IsBiCoset(C.X)
 
 """
     right_cosets(G::Group, H::Group)
@@ -123,7 +123,7 @@ function left_cosets(G::GAPGroup, H::GAPGroup)
   L = [left_coset(H,t) for t in T]
   l = Vector{GroupCoset{typeof(G), elem_type(G)}}(undef, length(L))
   for i = 1:length(l)
-    l[i] = _group_coset(G, H, group_element(G, T[i].X), :left, L[i].coset)
+    l[i] = _group_coset(G, H, group_element(G, T[i].X), :left, L[i].X)
   end
   return l
 end
@@ -150,12 +150,12 @@ function left_transversal(G::T, H::T) where T<: GAPGroup
 end
 
 function Base.iterate(G::GroupCoset)
-  L=GAP.Globals.Iterator(G.coset)
+  L=GAP.Globals.Iterator(G.X)
   if GAP.Globals.IsDoneIterator(L)
     return nothing
   end
   i = GAP.Globals.NextIterator(L)
-  return group_element(G.X, i), L
+  return group_element(G.G, i), L
 end
 
 function Base.iterate(G::GroupCoset, state)
@@ -163,7 +163,7 @@ function Base.iterate(G::GroupCoset, state)
     return nothing
   end
   i = GAP.Globals.NextIterator(state)
-  return group_element(G.X, i), state
+  return group_element(G.G, i), state
 end
 
 
@@ -174,25 +174,25 @@ Group double coset. It is displayed as `H * x * K`, where `H` and `K` are subgro
 """
 # T=type of the group, S=type of the element
 mutable struct GroupDoubleCoset{T <: GAPGroup, S <: GAPGroupElem}
-   X::T
    G::T
    H::T
+   K::T
    repr::S
-   coset::GapObj
+   X::GapObj
 end
 
 Base.hash(x::GroupDoubleCoset) = 0 # FIXME
 
 function ==(x::GroupDoubleCoset, y::GroupDoubleCoset)
-   return x.coset == y.coset
+   return x.X == y.X
 end
 
 function Base.show(io::IO, x::GroupDoubleCoset)
-  print(io, GAP.gap_to_julia(GAP.Globals.StringView(x.G.X)),
+  print(io, GAP.gap_to_julia(GAP.Globals.StringView(x.H.X)),
             " * ",
             GAP.gap_to_julia(GAP.Globals.StringView(x.repr.X)),
             " * ",
-            GAP.gap_to_julia(GAP.Globals.StringView(x.H.X)))
+            GAP.gap_to_julia(GAP.Globals.StringView(x.K.X)))
 end
 
 """
@@ -211,20 +211,26 @@ function double_coset(G::T, g::GAPGroupElem{T}, H::T) where T<: GAPGroup
    return GroupDoubleCoset(parent(g),G,H,g,GAP.Globals.DoubleCoset(G.X,g.X,H.X))
 end
 
-# TODO: document this
-# TODO: also allow access to DoubleCosetsNC
-function double_cosets(G::T, U::T, V::T) where T<: GAPGroup
-   # TODO: enforce that G is overgroup of U, V
-   dcs = GAP.Globals.DoubleCosets(G.X,U.X,V.X)
-   # FIXME: use proper type
-   res = Vector{GroupDoubleCoset}(undef, length(dcs))
+"""
+    double_cosets(G::T, H::T, K::T; NC=false) where T<: GAPGroup
+Return the array of all the double cosets `HxK` for `x` in `G`. If `NC` = `true`, do not check whether `H` and `K` are subgroups of `G`.
+"""
+function double_cosets(G::T, H::T, K::T; NC=false) where T<: GAPGroup
+   if NC
+      dcs = GAP.Globals.DoubleCosetsNC(G.X,H.X,K.X)
+   else
+      @assert issubgroup(G,H)[1] "H is not a subgroup of G"
+      @assert issubgroup(G,K)[1] "K is not a subgroup of G"
+      dcs = GAP.Globals.DoubleCosets(G.X,H.X,K.X)
+   end
+   res = Vector{GroupDoubleCoset{T,GAPGroupElem{T}}}(undef, length(dcs))
    for i = 1:length(res)
      dc = dcs[i]
      g = group_element(G, GAP.Globals.Representative(dc))
-     res[i] = GroupDoubleCoset(G,U,V,g,dc)
+     res[i] = GroupDoubleCoset(G,H,K,g,dc)
    end
    return res
-   #return [GroupDoubleCoset(G,U,V,group_element(G.X,GAP.Globals.Representative(dc)),dc) for dc in dcs]
+   #return [GroupDoubleCoset(G,H,K,group_element(G.X,GAP.Globals.Representative(dc)),dc) for dc in dcs]
 end
 
 """
@@ -232,22 +238,26 @@ end
 Return the array of all elements of the double coset `C`.
 """
 function elements(C::GroupDoubleCoset)
-   L=GAP.gap_to_julia(GAP.Globals.AsList(C.coset))
-   return elem_type(C.X)[group_element(C.X,x) for x in L]
+  L = GAP.Globals.AsList(C.X)
+  l = Vector{elem_type(C.G)}(undef, length(L))
+  for i = 1:length(l)
+    l[i] = group_element(C.G, L[i])
+  end
+  return l
 end
 
 """
     order(C::Union{GroupCoset,GroupDoubleCoset})
 Return the cardinality of the (double) coset `C`.
 """
-order(C::Union{GroupCoset,GroupDoubleCoset}) = GAP.Globals.Size(C.coset)
-Base.length(C::Union{GroupCoset,GroupDoubleCoset}) = GAP.Globals.Size(C.coset)
+order(C::Union{GroupCoset,GroupDoubleCoset}) = GAP.Globals.Size(C.X)
+Base.length(C::Union{GroupCoset,GroupDoubleCoset}) = GAP.Globals.Size(C.X)
 
 """
     rand(C::Union{GroupCoset,GroupDoubleCoset})
 Return a random element of the (double) coset `C`.
 """
-Base.rand(C::Union{GroupCoset,GroupDoubleCoset}) = group_element(C.X, GAP.Globals.Random(C.coset))
+Base.rand(C::Union{GroupCoset,GroupDoubleCoset}) = group_element(C.G, GAP.Globals.Random(C.X))
 
 """
     representative(C::GroupDoubleCoset)
@@ -259,21 +269,21 @@ representative(C::GroupDoubleCoset) = C.repr
     left_acting_group(C::GroupDoubleCoset)
 if `C` = `HxK`, returns `H`
 """
-left_acting_group(C::GroupDoubleCoset) = C.G
+left_acting_group(C::GroupDoubleCoset) = C.H
 
 """
     left_acting_group(C::GroupDoubleCoset)
 if `C` = `HxK`, returns `K`
 """
-right_acting_group(C::GroupDoubleCoset) = C.H
+right_acting_group(C::GroupDoubleCoset) = C.K
 
 function Base.iterate(G::GroupDoubleCoset)
-  L=GAP.Globals.Iterator(G.coset)
+  L=GAP.Globals.Iterator(G.X)
   if GAP.Globals.IsDoneIterator(L)
     return nothing
   end
   i = GAP.Globals.NextIterator(L)
-  return group_element(G.X, i), L
+  return group_element(G.G, i), L
 end
 
 function Base.iterate(G::GroupDoubleCoset, state)
@@ -281,5 +291,25 @@ function Base.iterate(G::GroupDoubleCoset, state)
     return nothing
   end
   i = GAP.Globals.NextIterator(state)
-  return group_element(G.X, i), state
+  return group_element(G.G, i), state
+end
+
+"""
+    intersect(V::AbstractVector{Union{T, GroupCoset, GroupDoubleCoset}}) where T <: GAPGroup
+Return an array containing all elements belonging to all groups and cosets in the vector `V`.
+"""
+function intersect(V::AbstractVector{Union{T, GroupCoset, GroupDoubleCoset}}) where T <: GAPGroup
+   if typeof(V[1]) <: GAPGroup
+      G = V[1]
+   else
+      G = V[1].G
+   end
+   l = GAP.julia_to_gap([v.X for v in V])
+   ints = GAP.Globals.Intersection(l)
+   L = Vector{typeof(G)}(undef, length(ints))
+   for i in 1:length(ints)
+      L[i] = group_element(G,ints[i])
+   end
+
+   return L
 end
