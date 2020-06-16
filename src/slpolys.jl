@@ -176,14 +176,14 @@ end
 
 ## adhoc ops
 
-+(p::SLPoly{T}, q::T) where {T<:RingElement} = p + parent(p)(q)
-+(q::T, p::SLPoly{T}) where {T<:RingElement} = parent(p)(q) + p
++(p::SLPoly{T}, q::T) where {T<:RingElem} = p + parent(p)(q)
++(q::T, p::SLPoly{T}) where {T<:RingElem} = parent(p)(q) + p
 
--(p::SLPoly{T}, q::T) where {T<:RingElement} = p - parent(p)(q)
--(q::T, p::SLPoly{T}) where {T<:RingElement} = parent(p)(q) - p
+-(p::SLPoly{T}, q::T) where {T<:RingElem} = p - parent(p)(q)
+-(q::T, p::SLPoly{T}) where {T<:RingElem} = parent(p)(q) - p
 
-*(p::SLPoly{T}, q::T) where {T<:RingElement} = p * parent(p)(q)
-*(q::T, p::SLPoly{T}) where {T<:RingElement} = parent(p)(q) * p
+*(p::SLPoly{T}, q::T) where {T<:RingElem} = p * parent(p)(q)
+*(q::T, p::SLPoly{T}) where {T<:RingElem} = parent(p)(q) * p
 
 
 ## comparison

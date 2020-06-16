@@ -449,6 +449,17 @@ end
     @test convert(R, p+2) == q+2
     @test convert(R, 2-p) == 2-q
     @test convert(R, p-2) == q-2
+
+    R = ResidueRing(ZZ, 3)
+    a = R(2)
+    S = SLPolyRing(R, [:x, :y])
+    x, y = gens(S)
+    @test parent(a*x) == S
+    @test parent(x*a) == S
+    @test parent(a+x) == S
+    @test parent(x+a) == S
+    @test parent(a-x) == S
+    @test parent(x-a) == S
 end
 
 @testset "Free" begin
