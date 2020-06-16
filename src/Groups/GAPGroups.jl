@@ -74,9 +74,6 @@ function elements(G::T) where T <: GAPGroup
   return elems
 end
 
-# to be fixed later
-Base.hash(x::GAPGroupElem) = 0
-
 function parent(x::GAPGroupElem)
   return x.parent
 end
@@ -403,6 +400,8 @@ struct GroupConjClass{T<:GAPGroup, S<:Union{GAPGroupElem,GAPGroup}}
    repr::S
    CC::GapObj
 end
+
+Base.hash(x::GroupConjClass) = 0 # FIXME
 
 function Base.show(io::IO, x::GroupConjClass)
   print(io, GAP.gap_to_julia(GAP.Globals.StringView(x.repr)),

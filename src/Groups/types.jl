@@ -70,6 +70,10 @@ struct GAPGroupElem{T<:GAPGroup} <: AbstractAlgebra.GroupElem
    X::GapObj
 end
 
+Base.hash(x::GAPGroup) = 0 # FIXME
+Base.hash(x::GAPGroupElem) = 0 # FIXME
+
+
 """
     PermGroup
 Groups of permutations. Every group of this type is the subgroup of Sym(n) for some n.

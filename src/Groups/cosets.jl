@@ -26,6 +26,8 @@ mutable struct GroupCoset{T<: GAPGroup, S <: GAPGroupElem}
    coset::GapObj           # GapObj(H*repr)
 end
 
+Base.hash(x::GroupCoset) = 0 # FIXME
+
 function _group_coset(X::GAPGroup, H::GAPGroup, repr::GAPGroupElem, side::Symbol, coset::GapObj)
   return GroupCoset{typeof(X), typeof(repr)}(X, H, repr, side, coset)
 end
@@ -177,6 +179,8 @@ mutable struct GroupDoubleCoset{T <: GAPGroup, S <: GAPGroupElem}
    repr::S
    coset::GapObj
 end
+
+Base.hash(x::GroupDoubleCoset) = 0 # FIXME
 
 function ==(x::GroupDoubleCoset, y::GroupDoubleCoset)
    return x.coset == y.coset
