@@ -142,17 +142,17 @@ end
 
 function kernel(f::GAPGroupHomomorphism)
   K = GAP.Globals.Kernel(f.map)
-  return _as_subgroup(K, domain(f))
+  return _as_subgroup(domain(f), K)
 end
 
 function image(f::GAPGroupHomomorphism)
   K = GAP.Globals.Image(f.map)
-  return _as_subgroup(K, codomain(f))
+  return _as_subgroup(codomain(f), K)
 end
 
 function image(f::GAPGroupHomomorphism{S, T}, H::S) where S <: GAPGroup where T <: GAPGroup
   H1 = GAP.Globals.Image(f.map, H.X)
-  return _as_subgroup(H1, codomain(f))
+  return _as_subgroup(codomain(f), H1)
 end
 
 function cokernel(f::GAPGroupHomomorphism)
@@ -177,7 +177,7 @@ TODO: document this
 """
 function preimage(f::GAPGroupHomomorphism{S, T}, H::T) where S <: GAPGroup where T <: GAPGroup
   H1 = GAP.Globals.PreImage(f.map, H.X)
-  return _as_subgroup(H1, domain(f))
+  return _as_subgroup(domain(f), H1)
 end
 
 ################################################################################
@@ -186,9 +186,7 @@ end
 #
 ################################################################################
 
-# TODO: swap order of arguments for _as_subgroup
-
-function _as_subgroup_bare(H::GapObj, G::T) where T
+function _as_subgroup_bare(G::T, H::GapObj) where T
   if T==PermGroup
     H1 = T(H, G.deg)
   else
@@ -197,13 +195,13 @@ function _as_subgroup_bare(H::GapObj, G::T) where T
   return H1
 end
 
-function _as_subgroup(H::GapObj, G::T, ::Type{S}) where { T, S }
-  H1 = _as_subgroup_bare(H, G)
+function _as_subgroup(G::T, H::GapObj, ::Type{S}) where { T, S }
+  H1 = _as_subgroup_bare(G, H)
   return H1, hom(H1, G, x::S -> group_element(G, x.X))
 end
 
-function _as_subgroup(H::GapObj, G::T) where T <: GAPGroup
-  return _as_subgroup(H, G, elem_type(G))
+function _as_subgroup(G::T, H::GapObj) where T <: GAPGroup
+  return _as_subgroup(G, H, elem_type(G))
 end
 
 function sub(G::T, elements::Vector{S}) where T <: GAPGroup where S <: GAPGroupElem
@@ -211,7 +209,7 @@ function sub(G::T, elements::Vector{S}) where T <: GAPGroup where S <: GAPGroupE
   elems_in_GAP = GAP.julia_to_gap(GapObj[x.X for x in elements])
   H = GAP.Globals.Group(elems_in_GAP)
   #H is the group. I need to return the inclusion map too
-  return _as_subgroup(H, G)
+  return _as_subgroup(G, H)
 end
 
 function sub(L::GAPGroupElem...)
@@ -229,7 +227,7 @@ function issubgroup(G::T, H::T) where T <: GAPGroup
    if false in [h in G for h in gens(H)]
       return (false, Nothing)
    else
-      return (true, _as_subgroup(H.X,G)[2])
+      return (true, _as_subgroup(G, H.X)[2])
    end
 end
 
@@ -263,20 +261,11 @@ end
 #
 ###############################################################################
 
-# convert a list of subgroups
-function _as_subgroups(subs::GapObj, G::T, ::Type{S}) where { T, S }
-  nsubs = GAP.gap_to_julia(subs)
-  res = Vector{Tuple{T, GAPGroupHomomorphism{T, T}}}(undef, length(nsubs))
-  for i = 1:length(res)
-    res[i] = _as_subgroup(nsubs[i], G, S)
-  end
-  return res
-end
-
-function _as_subgroups(subs::GapObj, G::T) where T <: GAPGroup
+# convert a GAP list of subgroups into a vector of Julia groups objects
+function _as_subgroups(G::T, subs::GapObj) where T <: GAPGroup
   res = Vector{T}(undef, length(subs))
   for i = 1:length(res)
-    res[i] = _as_subgroup_bare(subs[i], G)
+    res[i] = _as_subgroup_bare(G, subs[i])
   end
   return res
 end
@@ -287,7 +276,7 @@ end
 Return the list of normal subgroups of `G`, together with their embeddings into `G`.
 """
 function normal_subgroups(G::GAPGroup)
-  return _as_subgroups(GAP.Globals.NormalSubgroups(G.X), G)
+  return _as_subgroups(G, GAP.Globals.NormalSubgroups(G.X))
 end
 
 """
@@ -295,7 +284,7 @@ end
 Return the list of subgroups of `G`, together with their embeddings into `G`.
 """
 function subgroups(G::GAPGroup)
-  return _as_subgroups(GAP.Globals.AllSubgroups(G.X), G)
+  return _as_subgroups(G, GAP.Globals.AllSubgroups(G.X))
 end
 
 """
@@ -303,7 +292,7 @@ end
 Return the list of maximal subgroups of `G`, together with their embeddings into `G`.
 """
 function maximal_subgroups(G::GAPGroup)
-  return _as_subgroups(GAP.Globals.MaximalSubgroups(G.X), G)
+  return _as_subgroups(G, GAP.Globals.MaximalSubgroups(G.X))
 end
 
 """
@@ -311,7 +300,7 @@ end
 Return the list of maximal normal subgroups of `G`, together with their embeddings into `G`.
 """
 function maximal_normal_subgroups(G::GAPGroup)
-  return _as_subgroups(GAP.Globals.MaximalNormalSubgroups(G.X), G)
+  return _as_subgroups(G, GAP.Globals.MaximalNormalSubgroups(G.X))
 end
 
 """
@@ -319,7 +308,7 @@ end
 Return the list of minimal normal subgroups of `G`, together with their embeddings into `G`.
 """
 function minimal_normal_subgroups(G::GAPGroup)
-  return _as_subgroups(GAP.Globals.MinimalNormalSubgroups(G.X), G)
+  return _as_subgroups(G, GAP.Globals.MinimalNormalSubgroups(G.X))
 end
 
 """
@@ -327,7 +316,7 @@ end
 Return the list of characteristic subgroups of `G`, i.e. the subgroups that are invariant under all automorphisms of `G`, together with their embeddings into `G`.
 """
 function characteristic_subgroups(G::GAPGroup)
-  return _as_subgroups(GAP.Globals.CharacteristicSubgroups(G.X), G)
+  return _as_subgroups(G, GAP.Globals.CharacteristicSubgroups(G.X))
 end
 
 """
@@ -344,7 +333,7 @@ Return the centre of `G`, i.e. the subgroup of all `x` in `G` such that `xy`=`yx
 """
 function centre(G::GAPGroup)
   Z = GAP.Globals.Center(G.X)
-  return _as_subgroup(Z, G)
+  return _as_subgroup(G, Z)
 end
 
 """
@@ -353,7 +342,7 @@ Return the centralizer of `H` in `G`, i.e. the subgroup of all `g` in `G` such t
 """
 function centralizer(G::T, H::T) where T <: GAPGroup
   C = GAP.Globals.Centralizer(G.X, H.X)
-  return _as_subgroup(C, G)
+  return _as_subgroup(G, C)
 end
 
 """
@@ -362,7 +351,7 @@ Return the centralizer of `x` in `G`, i.e. the subgroup of all `g` in `G` such t
 """
 function centralizer(G::GAPGroup, x::GAPGroupElem)
   C = GAP.Globals.Centralizer(G.X, x.X)
-  return _as_subgroup(C, G)
+  return _as_subgroup(G, C)
 end
 
 centraliser = centralizer
@@ -448,11 +437,11 @@ end
 
 function derived_subgroup(G::GAPGroup)
   H = GAP.Globals.DerivedSubgroup(G.X)
-  return _as_subgroup(H, G)
+  return _as_subgroup(G, H)
 end
 
 function derived_series(G::GAPGroup)
-  return _as_subgroups(GAP.Globals.DerivedSeries(G.X), G)
+  return _as_subgroups(G, GAP.Globals.DerivedSeries(G.X))
 end
 
 ################################################################################
@@ -528,8 +517,8 @@ If `V` = [`G_1`, ... , `G_n`], return the group intersection `K` of the groups `
 function intersection(V::T...) where T<:GAPGroup
    L = GAP.julia_to_gap([G.X for G in V])
    K = GAP.Globals.Intersection(L)
-   Embds = [_as_subgroup(K,G)[2] for G in V]
-   K = _as_subgroup(K,V[1])[1]
+   Embds = [_as_subgroup(G, K)[2] for G in V]
+   K = _as_subgroup(V[1], K)[1]
    Arr = Tuple(vcat([K],Embds))
    return Arr
 end
@@ -537,8 +526,8 @@ end
 function intersection(V::AbstractVector{T}) where T<:GAPGroup
    L = GAP.julia_to_gap([G.X for G in V])
    K = GAP.Globals.Intersection(L)
-   Embds = [_as_subgroup(K,G)[2] for G in V]
-   K = _as_subgroup(K,V[1])[1]
+   Embds = [_as_subgroup(G, K)[2] for G in V]
+   K = _as_subgroup(V[1], K)[1]
    Arr = Tuple(vcat([K],Embds))
    return Arr
 end
@@ -639,7 +628,7 @@ Return the subgroup of `A` of the inner automorphisms.
 """
 function inner_automorphisms_group(A::AutomorphismGroup{T}) where T <: GAPGroup
    AutGAP = GAP.Globals.InnerAutomorphismsAutomorphismGroup(A.X)
-   return _as_subgroup(AutGAP, A)
+   return _as_subgroup(A, AutGAP)
 end
 
 function isinvariant(f::GAPGroupElem{AutomorphismGroup{T}}, H::T) where T<:GAPGroup
@@ -668,7 +657,7 @@ function restrict_homomorphism(f::GAPGroupElem{AutomorphismGroup{T}}, H::T) wher
 end
 
 ## the next function needs a redefinition if G is an AutomorphismGroup
-function _as_subgroup(H::GapObj, G::AutomorphismGroup{T}, ::Type{S}) where { T, S }
+function _as_subgroup(G::AutomorphismGroup{T}, H::GapObj, ::Type{S}) where { T, S }
   function img(x::S)
     return group_element(G, x.X)
   end

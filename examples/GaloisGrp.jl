@@ -130,7 +130,7 @@ function orbit(G::Oscar.PermGroup, f::MPolyElem)
 end
 
 function maximal_subgroup_reps(G::PermGroup)
-  return Oscar._as_subgroups(GAP.Globals.MaximalSubgroupClassReps(G.X), G)
+  return Oscar._as_subgroups(G, GAP.Globals.MaximalSubgroupClassReps(G.X))
 end
 
 function transitive_group_identification(G::PermGroup)
@@ -168,7 +168,7 @@ end
 # TODO: update stabilizer to use GSet
 # TODO: allow specifying actions other than the default
 function stabilizer(G::Oscar.GAPGroup, seed, act)
-    return Oscar._as_subgroup(GAP.Globals.Stabilizer(G.X, GAP.julia_to_gap(seed), act), G)
+    return Oscar._as_subgroup(G, GAP.Globals.Stabilizer(G.X, GAP.julia_to_gap(seed), act))
 end
 
 # TODO: add type BlockSystem
