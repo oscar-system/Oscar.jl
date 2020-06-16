@@ -273,6 +273,10 @@ end
         @test y isa SLPoly{Int}
         @test convert(R, y) == y1
     end
+
+    for t = (2, big(2), 0x2)
+        @test S(t) isa SLPoly{Int,typeof(S)}
+    end
 end
 
 @testset "SLPoly" begin

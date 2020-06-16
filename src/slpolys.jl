@@ -15,7 +15,11 @@ base_ring(S::SLPolyRing) = S.base_ring
 
 symbols(S::SLPolyRing) = S.S
 
-(S::SLPolyRing{T})(c::T=zero(base_ring(S))) where {T} = S(Const(c))
+# have to constrain T <: RingElement so that this is more specific than the second
+# method taking c::RingElement
+(S::SLPolyRing{T})(c::T=zero(base_ring(S))) where {T<:RingElement} = S(Const(c))
+
+(S::SLPolyRing{T})(c::RingElement) where {T<:RingElement} = S(Const(base_ring(S)(c)))
 
 function gen(S::SLPolyRing{T}, i::Integer) where {T}
     s = symbols(S)[i]
@@ -207,6 +211,9 @@ end
 ## conversion Lazy -> SLP
 
 (R::SLPolyRing{T})(p::LazyPoly{T}) where {T} = R(p.p)
+
+# TODO: remove this method (this is an ambiguity fix)
+(R::SLPolyRing{T})(p::LazyPoly{T}) where {T<:RingElement} = R(p.p)
 
 function (R::SLPolyRing{T})(p::Lazy) where {T}
     pr = compile(SLProgram{T}, p, symbols(R))
