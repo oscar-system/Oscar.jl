@@ -490,7 +490,7 @@ end
     ops = SL.Op.(rand(UInt64(0):UInt64(0xff), 100) .<< 62)
     is = rand(UInt64(0):SL.argmask, 100)
     js = rand(UInt64(0):SL.argmask, 100)
-    @test SL.unpack.(SL.pack.(ops, is, js)) == tuple.(ops, Arg.(is), Arg.(js))
+    @test SL.unpack.(SL.pack.(ops, Arg.(is), Arg.(js))) == tuple.(ops, Arg.(is), Arg.(js))
 
     for x = rand(Int64(0):Int(SL.cstmark-1), 100)
         if SL.isinput(Arg(x))
@@ -582,6 +582,15 @@ end
     k = SL.pushop!(p, SL.assign, k, Arg(2))
     @test k == Arg(2)
     @test evaluate(p, Lazy[x, y]) == ((x+y)*y)^2
+
+    # permute_inputs!
+    x1, x2, x3 = slpgens(3)
+    p = x1*x2^2+x3^3
+    for perm = ([3, 1, 2], Perm([3, 1, 2]))
+        q = copy(p)
+        SL.permute_inputs!(q, perm)
+        @test q == x3*x1^2+x2^3
+    end
 
     # mutating ops
     p = SLProgram{Int}(1)

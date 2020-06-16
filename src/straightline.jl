@@ -72,7 +72,7 @@ isunary(op) = isquasiunary(op) & (op != exponentiate)
 
 Line(op::Op, i::Arg, j::Arg) = Line(op.x | i.x << argshift | j.x)
 
-pack(op::Op, i, j) = Line(op, Arg(i), Arg(j))
+pack(op::Op, i::Arg, j::Arg) = Line(op, i, j)
 
 function unpack(line::Line)
     line = line.x
@@ -148,6 +148,7 @@ constants(p::SLProgram) = p.cs
 _integers(p::SLProgram) = @view p.lines[1:p.int]
 integers(p::SLProgram) = @view p.lines[p.int:-1:1]
 lines(p::SLProgram) = @view p.lines[1+p.int : end]
+linesindices(p::SLProgram) = 1+p.int:lastindex(p.lines)
 
 constantstype(p::SLProgram{T}) where {T} = T
 
@@ -481,6 +482,25 @@ function combine!(op::Op, p::SLProgram, e::Integer)
     i = pushinit!(p)
     i = pushop!(p, op, i, intarg(e))
     pushfinalize!(p, i)
+end
+
+function permute_inputs!(p::SLProgram, perm)
+    for l in linesindices(p)
+        op, i, j = unpack(p.lines[l])
+        changed = false
+        if isinput(i)
+            i = input(perm[inputidx(i)])
+            changed = true
+        end
+        if isinput(j)
+            j = input(perm[inputidx(j)])
+            changed = true
+        end
+        if changed
+            p.lines[l] = pack(op, i, j)
+        end
+    end
+    p
 end
 
 
