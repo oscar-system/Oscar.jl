@@ -404,6 +404,17 @@ end
     @test p === SL.expeq!(p, 3)
     @test convert(R, p) == 64*(x1*y1)^6
 
+    # permutegens! and ^
+    _, (X1, X2, X3) = SL.PolynomialRing(zz, [:x1, :x2, :x3])
+    p = X1*X2^2+X3^3
+    p0 = copy(p)
+    perm = [3, 1, 2]
+    q = SL.permutegens!(p, perm)
+    @test q === p
+    @test q == X3*X1^2+X2^3
+    @test q == p0^Perm(perm)
+    @test p0 == X1*X2^2+X3^3 # not mutated
+
     # binary/unary ops
     p = S(x*y - 16y^2)
     p = p + S(x*y)

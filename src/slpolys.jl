@@ -141,6 +141,11 @@ function expeq!(p::SLPoly, e::Integer)
     p
 end
 
+function permutegens!(p::SLPoly, perm)
+    permute_inputs!(p.slprogram, perm)
+    p
+end
+
 
 ## unary/binary ops
 
@@ -153,6 +158,8 @@ end
 -(p::SLPoly) = subeq!(copy(p))
 
 ^(p::SLPoly, e::Integer) = expeq!(copy(p), e)
+
+^(p::SLPoly, perm::AbstractAlgebra.AbstractPerm) = permutegens!(copy(p), perm)
 
 
 ## adhoc ops
