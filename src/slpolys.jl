@@ -99,6 +99,14 @@ function Base.copy(q::SLPoly)
     p
 end
 
+"""
+    nsteps(p::SLPoly)
+
+Return the number of steps ("lines") involved in the underlying
+straight-line program.
+"""
+nsteps(p::SLPoly) = nsteps(p.slprogram)
+
 
 ## show
 

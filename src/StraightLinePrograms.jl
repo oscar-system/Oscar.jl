@@ -9,7 +9,7 @@ import AbstractAlgebra: base_ring, gen, gens, ngens, nvars, symbols, evaluate, o
 
 export LazyPolyRing, LazyPoly, SLPolyRing, SLPoly, SLProgram
 export AbstractSLProgram, GAPSLProgram, GAPSLDecision, AtlasSLProgram, AtlasSLDecision, Free
-export slpcst, slpgen, slpgens, compile, gens, evaluate
+export slpcst, slpgen, slpgens, compile, gens, evaluate, nsteps
 
 abstract type AbstractSLProgram end
 

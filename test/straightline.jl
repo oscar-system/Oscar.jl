@@ -338,6 +338,9 @@ end
     @test SL.evaluate(p, [2, 3]) == -75
     @test SL.evaluate(p, [-2, -1]) == 1
 
+    # nsteps
+    @test nsteps(p) == 5
+
     # compile!
     pf = SL.compile!(p)
     @test pf([2, 3]) == -75
@@ -599,6 +602,9 @@ end
     @test k == Arg(2)
     @test evaluate(p, Lazy[x, y]) == ((x+y)*y)^2
 
+    # nsteps
+    @test nsteps(p) == 5
+
     # permute_inputs!
     x1, x2, x3 = slpgens(3)
     p = x1*x2^2+x3^3
@@ -607,6 +613,17 @@ end
         SL.permute_inputs!(q, perm)
         @test q == x3*x1^2+x2^3
     end
+
+    # nsteps again
+    @test nsteps(p) == 4
+    @test nsteps(x1) == nsteps(x3) == 0
+
+    p = SLProgram()
+    i = SL.pushint!(p, 2)
+    j = SL.pushint!(p, 4)
+    k = SL.pushop!(p, SL.plus, i, j)
+    SL.pushfinalize!(p, k)
+    @test nsteps(p) == 1
 
     # mutating ops
     p = SLProgram{Int}(1)

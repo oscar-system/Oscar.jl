@@ -149,6 +149,7 @@ _integers(p::SLProgram) = @view p.lines[1:p.int]
 integers(p::SLProgram) = @view p.lines[p.int:-1:1]
 lines(p::SLProgram) = @view p.lines[1+p.int : end]
 linesindices(p::SLProgram) = 1+p.int:lastindex(p.lines)
+nsteps(p::SLProgram) = length(p.lines) - p.int
 
 constantstype(p::SLProgram{T}) where {T} = T
 
