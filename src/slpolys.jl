@@ -107,11 +107,6 @@ function Base.show(io::IO, p::SLPoly)
     show(io, p.slprogram)
 end
 
-function Base.show(io::IO, m::MIME"text/plain", p::SLPoly)
-    io = IOContext(io, :SLPsymbols => symbols(parent(p)))
-    show(io, m, p.slprogram)
-end
-
 
 ## mutating ops
 
