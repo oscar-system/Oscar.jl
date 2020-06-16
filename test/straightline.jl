@@ -460,6 +460,17 @@ end
     @test parent(x+a) == S
     @test parent(a-x) == S
     @test parent(x-a) == S
+
+    # 3-args evaluate
+    S = SLPolyRing(zz, [:x, :y])
+    x, y = gens(S)
+    p = 2*x^3+y^2+3
+    @test evaluate(p, [2, 3]) == 28
+    @test evaluate!(Int[], p, [2, 3]) == 28
+    @test evaluate(p, [2, 3], identity) == 28
+    @test evaluate!(Int[], p, [2, 3], x -> x) == 28
+    @test evaluate(p, [2, 3], x -> -x) == -10
+    @test evaluate!(Int[], p, [2, 3], x -> -x) == -10
 end
 
 @testset "Free" begin
