@@ -61,7 +61,8 @@ export
     PcGroup,
     PcGroupElem,
     PermGroup,
-    PermGroupElem
+    PermGroupElem,
+    SemidirectProductOfGroups
 
 """
 TODO: document this
@@ -257,4 +258,22 @@ struct GAPGroupHomomorphism{S<: GAPGroup, T<: GAPGroup}
    domain::S
    codomain::T
    map::GapObj
+end
+
+
+"""
+    SemidirectProductOfGroups{S,T}
+Semidirect product of two groups of type `S` and `T` respectively, or subgroup of a semidirect product of groups.
+"""
+struct SemidirectProductOfGroups{S<:GAPGroup, T<:GAPGroup} <: GAPGroup 
+  X::GapObj
+  G1::S
+  G2::T
+  f::GAPGroupHomomorphism{S,AutomorphismGroup{T}}
+  IsFull::Bool     # true if it is G1xG2; false if it is a proper subgroup of G1xG2
+
+  function SemidirectProductOfGroups(G::GapObj, G1::S, G2::T, f, isf::Bool) where S where T
+    z = new{S,T}(G,G1,G2,f,isf)
+    return z
+  end
 end
