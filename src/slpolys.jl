@@ -7,7 +7,9 @@ struct SLPolyRing{T<:RingElement,R<:Ring} <: MPolyRing{T}
     SLPolyRing(r::Ring, s::Vector{Symbol}) = new{elem_type(r),typeof(r)}(r, s)
 end
 
-SLPolyRing(r::Ring, s::Vector{<:AbstractString}) = SLPolyRing(r, Symbol.(s))
+SLPolyRing(r::Ring, s::Union{AbstractVector{<:AbstractString},
+                             AbstractVector{<:AbstractChar}}) =
+                                 SLPolyRing(r, Symbol.(s))
 
 base_ring(S::SLPolyRing) = S.base_ring
 
