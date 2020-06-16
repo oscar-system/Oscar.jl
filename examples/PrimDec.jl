@@ -44,7 +44,7 @@ function primary_decomposition(I::Oscar.MPolyIdeal; usefglm::Bool = false)
     phi = Singular.AlgebraHomomorphism(S, R, gens(R))
     PDres = Array{Oscar.MPolyIdeal, 1}(undef, 0)
     
-    for i in 1:k
+    for i in 1:length(PDint)
       push!(PDres, Oscar.MPolyIdeal(B, phi(PDint[i])))
     end
 
