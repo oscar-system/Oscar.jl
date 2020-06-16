@@ -23,6 +23,25 @@ gens(S::SLPolyRing) = [S(Gen(s)) for s in symbols(S)]
 ngens(S::SLPolyRing) = length(symbols(S))
 nvars(S::SLPolyRing) = ngens(S)
 
+# TODO: merge this with method in AbstractAlgebra
+function Base.show(io::IO, p::SLPolyRing)
+    max_vars = 5
+    n = nvars(p)
+    print(io, "SLP Multivariate Polynomial Ring in ")
+    if n > max_vars
+        print(io, n)
+        print(io, " variables ")
+    end
+    for i = 1:min(n - 1, max_vars - 1)
+        print(io, string(p.S[i]), ", ")
+    end
+    if n > max_vars
+        print(io, "..., ")
+    end
+    print(io, string(p.S[n]))
+    print(io, " over ")
+    print(IOContext(io, :compact => true), base_ring(p))
+end
 
 
 
