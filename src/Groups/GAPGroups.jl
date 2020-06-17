@@ -37,6 +37,7 @@ export
     listperm,
     mul,
     mul!,
+    nilpotency_class,
     ngens,
     normaliser,
     normalizer,
@@ -722,6 +723,11 @@ function relators(G::FPGroup)
    L=GAP.gap_to_julia(GAP.Globals.RelatorsOfFpGroup(G.X))
    F=free_group(G)
    return [group_element(F,x) for x in L]
+end
+
+function nilpotency_class(G::GAPGroup)
+   @assert isnilpotent(G) "The group is not nilpotent."
+   return GAP.Globals.NilpotencyClassOfGroup(G.X)
 end
 
 #
