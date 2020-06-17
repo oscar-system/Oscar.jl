@@ -342,7 +342,7 @@ setdecision!(p::SLProgram) = (p.ret = Arg(argmask); p)
 # call to create an integer exponent
 function intarg(x::Integer)
     y = Int(x) % UInt64
-    if x > 0
+    if x >= 0
         y > (payloadmask ⊻ negbit) &&
             throw(ArgumentError("positive integer argument too big"))
         Arg(y)

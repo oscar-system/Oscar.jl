@@ -626,6 +626,9 @@ end
     p = SLProgram(x^2*y^(Int(-3)))
     @test evaluate(p, [sqrt(2), 4^(-1/3)]) === 8.0
     @test evaluate(p^-1, [sqrt(2), 4^(-1/3)]) == 0.125
+    p = SLProgram(x^0)
+    @test evaluate(p, [2]) == 1
+    @test evaluate(p, xyz) == x^0
 
     # assign
     p = SLProgram{Int}()
