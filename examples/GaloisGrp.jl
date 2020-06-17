@@ -1,3 +1,7 @@
+Hecke.add_verbose_scope(:GaloisGroup)
+Hecke.add_verbose_scope(:GaloisInvariant)
+Hecke.add_assert_scope(:GaloisInvariant)
+
 module GaloisGrp
 
 using Oscar
@@ -6,10 +10,6 @@ import Oscar: Hecke, AbstractAlgebra
 using StraightLinePrograms
 
 export galois_group, isprimitive, istransitive, transitive_group_identification
-
-Hecke.add_verbose_scope(:GaloisGroup)
-Hecke.add_verbose_scope(:GaloisInvariant)
-Hecke.add_assert_scope(:GaloisInvariant)
 
 
 struct BoundRing  <: AbstractAlgebra.Ring 
@@ -53,7 +53,7 @@ Oscar.parent_type(::BoundRingElem) = BoundRing
 Oscar.elem_type(::BoundRing) = BoundRingElem
 
 #my 1st invariant!!!
-function sqrt_disc(a::Array{<:AbstractAlgebra.RingElem, 1})
+function sqrt_disc(a::Array{<:Any, 1})
   return prod([a[i] - a[j] for i = 1:length(a)-1 for j = i+1:length(a)])
 end
 
@@ -68,6 +68,37 @@ Oscar.ngens(S::SLPolyRing) = length(gens(S))
 function root_bound(f::fmpz_poly)
   a = coeff(f, degree(f))
   return max(fmpz(1), maximum([ceil(fmpz, abs(coeff(f, i)//a)) for i=0:degree(f)]))
+end
+
+#TODO: check where this should be done properly
+function (f::RelSeriesElem)(a::RingElem)
+  y = a
+  v = valuation(f)
+  p = precision(f)
+  z = zero(y)
+  for i = Int(p):-1:Int(v)
+      z *= y
+      c = coeff(f, i)
+      if !iszero(c)
+          z += c
+      end
+  end
+  z *= y^Int(v)
+  return z
+end
+#roots are sums of m distinct roots of f
+function msum_poly(f::PolyElem, m::Int)
+  N = binomial(degree(f), m)
+  p = Hecke.polynomial_to_power_sums(f, N)
+  p = vcat([degree(f)*one(base_ring(f))], p)
+  S, a = PowerSeriesRing(base_ring(f), N+1, "a")
+  Hfs = S([p[i]//factorial(fmpz(i-1)) for i=1:length(p)], N+1, N+1, 0)
+  H = [S(1), Hfs]
+  for i=2:m
+    push!(H, 1//i*sum((-1)^(h+1)*Hfs(h*a)*H[i-h+1] for h=1:i))
+  end
+  p = [coeff(H[end], i)*factorial(fmpz(i)) for i=0:N]
+  return Hecke.power_sums_to_polynomial(p[2:end])
 end
 
 mutable struct GaloisCtx
@@ -198,10 +229,7 @@ end
 istransitive(G::PermGroup) = GAP.Globals.IsTransitive(G.X, GAP.julia_to_gap(1:degree(G)))
 isprimitive(G::PermGroup) = GAP.Globals.IsPrimitive(G.X, GAP.julia_to_gap(1:degree(G)))
 
-Base.sign(g::PermGroupElem) = GAP.Globals.Sign(g.X)
-
 Base.sign(G::PermGroup) = GAP.Globals.SignPermGroup(G.X)
-#Base.sign(G::PermGroup) = all(x -> sign(x) == 1, G)
 
 Base.isodd(G::PermGroup) = sign(G) == -1
 Base.iseven(n::PermGroup) = !isodd(n)
@@ -215,7 +243,7 @@ function power_sum(g::Array{<:Any, 1}, i::Int)
 end
 
 function Oscar.discriminant(g::Array{<:Any, 1})
-  return sqrt_disc(g)^2
+  return prod(a-b for a = g for b = g if a!=b)
 end
 
 function to_elementary_symmetric(f)
@@ -489,7 +517,12 @@ function galois_group(K::AnticNumberField)
   for b = bs
     W = wreath_product(symmetric_group(length(b[1])), symmetric_group(length(b)))
     s = S(vcat(b...))
-    G = intersection(G, W^s)[1]
+    G = intersect(G, W^s)[1]
+  end
+  if length(bs) == 0 #primitive case
+    g = msum_poly(k.pol, 2)
+    fg  = factor(g)
+    #find orbits and stabilizers
   end
 
   @vprint :GaloisGroup 2 "Have starting group with id $(transitive_group_identification(G))\n"
@@ -678,3 +711,5 @@ end
 end
 
 using .GaloisGrp
+export galois_group, isprimitive, istransitive, transitive_group_identification,
+       GaloisGrp
