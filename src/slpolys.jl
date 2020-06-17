@@ -36,6 +36,8 @@ function PolynomialRing(R::Ring, s)
     S, gens(S)
 end
 
+Base.one(S::SLPolyRing) = S(one(base_ring(S)))
+Base.zero(S::SLPolyRing) = S()
 
 # TODO: merge this with method in AbstractAlgebra
 function Base.show(io::IO, p::SLPolyRing)

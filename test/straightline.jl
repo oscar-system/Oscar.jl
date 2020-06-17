@@ -251,6 +251,13 @@ end
         @test parent(y) == S3
     end
 
+    s1 = one(S)
+    @test s1 == 1
+    @test s1 isa SLPoly{Int}
+    s0 = zero(S)
+    @test s0 == 0
+    @test s0 isa SLPoly{Int}
+
     R, (x1, y1) = PolynomialRing(zz, ["x", "y"])
 
     x0, y0 = gens(S)
