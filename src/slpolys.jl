@@ -93,6 +93,11 @@ function check_parent(p::SLPoly, q::SLPoly)
     p.parent
 end
 
+function (S::SLPolyRing{T})(p::SLPoly{T}) where T <: RingElement
+    parent(p) != S && throw(ArgumentError("unable to coerce polynomial"))
+    p
+end
+
 Base.zero(p::SLPoly) = zero(parent(p))
 Base.one(p::SLPoly) = one(parent(p))
 

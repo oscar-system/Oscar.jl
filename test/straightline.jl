@@ -295,6 +295,8 @@ end
     @test p isa SLPoly{Int,typeof(S)} <: MPolyElem{Int}
     @test parent(p) === S
 
+    @test S(p) === p
+
     @test zero(p) == zero(S)
     @test zero(p) isa SLPoly{Int}
     @test one(p) == one(S)
@@ -313,6 +315,7 @@ end
     end
     S2 = SLPolyRing(zz, [:z, :t])
     @test_throws ArgumentError copy!(SLPoly(S2, SLProgram{Int}()), p)
+    @test_throws ArgumentError S2(p) # wrong parent
 
     # building
     p = SLPoly(S)
