@@ -164,7 +164,8 @@ function expeq!(p::SLPoly, e::Integer)
 end
 
 function permutegens!(p::SLPoly, perm)
-    permute_inputs!(p.slprogram, perm)
+    permute_inputs!(p.slprogram, perm,
+                    perm isa Union{AbstractArray,AbstractAlgebra.AbstractPerm})
     p
 end
 
@@ -181,7 +182,9 @@ end
 
 ^(p::SLPoly, e::Integer) = expeq!(copy(p), e)
 
-^(p::SLPoly, perm::AbstractAlgebra.AbstractPerm) = permutegens!(copy(p), perm)
+# should be AbstractPerm instead of GroupElem, but we need to support GAP's
+# permutations as provided in Oscar
+^(p::SLPoly, perm::AbstractAlgebra.GroupElem) = permutegens!(copy(p), perm)
 
 
 ## adhoc ops

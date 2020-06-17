@@ -485,16 +485,18 @@ function combine!(op::Op, p::SLProgram, e::Integer)
     pushfinalize!(p, i)
 end
 
-function permute_inputs!(p::SLProgram, perm)
+applyperm(perm, i, usegetindex) = usegetindex ? perm[i] : perm(i)
+
+function permute_inputs!(p::SLProgram, perm, usegetindex=true)
     for l in linesindices(p)
         op, i, j = unpack(p.lines[l])
         changed = false
         if isinput(i)
-            i = input(perm[inputidx(i)])
+            i = input(applyperm(perm, inputidx(i) % Int, usegetindex))
             changed = true
         end
         if isinput(j)
-            j = input(perm[inputidx(j)])
+            j = input(applyperm(perm, inputidx(j) % Int, usegetindex))
             changed = true
         end
         if changed
