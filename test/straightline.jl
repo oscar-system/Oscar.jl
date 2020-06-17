@@ -66,7 +66,7 @@ end
     # Times
     t = Times(g, p)
     @test t isa Times <: Lazy
-    @test string(t) == "(x(1 + x))"
+    @test string(t) == "(x*(1 + x))"
     @test SL.gens(t) == [:x]
     @test t == x*(1+x)
     @test t != (1+x)*x && t != y*(1+x) && t != x*(1+y)
@@ -350,7 +350,7 @@ end
     l7 = SL.pushop!(p, SL.exponentiate, l5, Arg(2)) # ((1+x)y)^2
     l8 = SL.pushop!(p, SL.minus, l6, l7) # xy - ((1+x)y)^2
     SL.pushfinalize!(p, l8)
-    @test string(p) == "((xy) - ((1 + x)y)^2)"
+    @test string(p) == "((x*y) - ((1 + x)*y)^2)"
     @test SL.evaluate!(Int[], p, [2, 3]) == -75
     @test SL.evaluate!(Int[], p, [-2, -1]) == 1
 

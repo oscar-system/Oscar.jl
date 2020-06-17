@@ -241,7 +241,7 @@ Times(xs::Lazy...) = Times(collect(Lazy, xs))
 
 function Base.show(io::IO, p::Times)
     print(io, '(')
-    join(io, p.xs)
+    join(io, p.xs, '*')
     print(io, ')')
 end
 
