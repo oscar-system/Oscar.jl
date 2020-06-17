@@ -33,7 +33,7 @@ import Singular
 import Polymake
 import GAP
 import Pkg
-using Markdown, Test
+using Markdown, Test, Requires
 # to allow access to the cornerstones! Otherwise, not even import or using from the
 # user level will work as none of them will have been "added" by the user.
 # possibly all should add a doc string to the module?
@@ -69,14 +69,20 @@ function __init__()
     ])
 end
 
+is_dev = false
+
 if VERSION >= v"1.4"
   deps = Pkg.dependencies()
   if Base.haskey(deps, Base.UUID("f1435218-dba5-11e9-1e4d-f1a5fab5fc13"))
     ver = Pkg.dependencies()[Base.UUID("f1435218-dba5-11e9-1e4d-f1a5fab5fc13")]
     if occursin("/dev/", ver.source)
       global VERSION_NUMBER = VersionNumber("$(ver.version)-dev")
+      global is_dev = true
     else
       global VERSION_NUMBER = VersionNumber("$(ver.version)")
+      if ver.git_revision !== nothing && occursin("master", ver.git_revision)
+        is_dev = true
+      end
     end
   else
     global VERSION_NUMBER = "not installed"
@@ -88,6 +94,7 @@ else
     dir = dirname(@__DIR__)
     if occursin("/dev/", dir)
       global VERSION_NUMBER = VersionNumber("$(ver)-dev")
+      is_dev = true
     else
       global VERSION_NUMBER = VersionNumber("$(ver)")
     end
@@ -162,6 +169,15 @@ include("Rings/mpoly-graded.jl")
 include("Modules/FreeModules-graded.jl")
 include("Polymake/Ineq.jl")
 include("Polymake/NmbThy.jl")
+
+if is_dev
+  include("../examples/ModStdNF.jl")
+  @require StraightLinePrograms="42eed0b5-a112-4d56-a5b1-e566078f5bf3" begin
+    include("../examples/GaloisGrp.jl")
+  end  
+  include("../examples/PrimDec.jl")
+end
+
 const global OSCAR = Oscar
 const global oscar = Oscar
 
