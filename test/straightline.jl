@@ -489,6 +489,15 @@ end
     gs = gens(S)
     @test evaluate(S(1), gs) == S(1)
     @test evaluate!(empty(gs), S(1), gs) == S(1)
+
+    # evaluate MPoly at SLPolyRing generators
+    R, (x, y) = PolynomialRing(zz, ["x", "y"])
+    S = SLPolyRing(zz, [:x, :y])
+    X, Y = gens(S)
+    p = evaluate(x+y, [X, Y])
+    # this is bad to hardcode exactly how evaluation of `x+y` happens,
+    # we just want to test that this works and looks correct
+    @test p ==  0 + 1*(1*X^1*Y^0) + 1*(1*X^0*Y^1)
 end
 
 @testset "Free" begin
