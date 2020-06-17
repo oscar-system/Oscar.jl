@@ -49,12 +49,18 @@ import Base: ==, parent, show
 
 import GAP.GapObj
 
-export PermGroup, PermGroupElem
-export MatrixGroup, MatrixGroupElem
-export PcGroup, PcGroupElem
-export FPGroup, FPGroupElem
-export AutomorphismGroup, AutomorphismGroupElem
-export elem_type
+export
+    AutomorphismGroup,
+    AutomorphismGroupElem,
+    elem_type,
+    FPGroup,
+    FPGroupElem,
+    MatrixGroup,
+    MatrixGroupElem,
+    PcGroup,
+    PcGroupElem,
+    PermGroup,
+    PermGroupElem
 
 """
 TODO: document this

@@ -1,17 +1,18 @@
-export acting_domain,
-       double_coset,
-       double_cosets,
-       elements,
-       isbicoset,
-       left_acting_group,
-       left_coset,
-       left_cosets,
-       left_transversal,
-       representative,
-       right_acting_group,
-       right_coset,
-       right_cosets,
-       right_transversal
+export
+    acting_domain,
+    double_coset,
+    double_cosets,
+    elements,
+    isbicoset,
+    left_acting_group,
+    left_coset,
+    left_cosets,
+    left_transversal,
+    representative,
+    right_acting_group,
+    right_coset,
+    right_cosets,
+    right_transversal
 
 # T=type of the group, S=type of the element
 """
