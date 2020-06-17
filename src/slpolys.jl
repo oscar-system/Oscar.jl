@@ -93,6 +93,9 @@ function check_parent(p::SLPoly, q::SLPoly)
     p.parent
 end
 
+Base.zero(p::SLPoly) = zero(parent(p))
+Base.one(p::SLPoly) = one(parent(p))
+
 function Base.copy!(p::SLPoly{T}, q::SLPoly{T}) where {T}
     check_parent(p, q)
     copy!(p.slprogram, q.slprogram)

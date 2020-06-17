@@ -295,6 +295,11 @@ end
     @test p isa SLPoly{Int,typeof(S)} <: MPolyElem{Int}
     @test parent(p) === S
 
+    @test zero(p) == zero(S)
+    @test zero(p) isa SLPoly{Int}
+    @test one(p) == one(S)
+    @test one(p) isa SLPoly{Int}
+
     # copy
     q = SLPoly(S)
     # TODO: do smthg more interesting with q
