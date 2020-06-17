@@ -129,6 +129,7 @@ function codomain(f::GAPGroupHomomorphism)
 end
 
 (f::GAPGroupHomomorphism)(x::GAPGroupElem) = image(f, x)
+Base.:^(x::GAPGroupElem,f::GAPGroupHomomorphism) = image(f,x)
 
 """
     image(f::GAPGroupHomomorphism, x::GAPGroupElem)
@@ -642,6 +643,7 @@ function hom(x::GAPGroupElem{AutomorphismGroup{T}}) where T
 end
 
 (f::GAPGroupElem{AutomorphismGroup{T}})(x::GAPGroupElem{T}) where T <: GAPGroup = apply_automorphism(f, x)
+Base.:^(x::GAPGroupElem{T},f::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup = apply_automorphism(f, x)
 
 function (A::AutomorphismGroup{T})(f::GAPGroupHomomorphism{T,T}) where T <: GAPGroup
    @assert domain(f)==A.G && codomain(f)==A.G "f not in A"
