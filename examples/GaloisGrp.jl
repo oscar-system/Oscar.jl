@@ -520,8 +520,23 @@ function galois_group(K::AnticNumberField)
     G = intersect(G, W^s)[1]
   end
   if length(bs) == 0 #primitive case
-    g = msum_poly(k.pol, 2)
-    fg  = factor(g)
+    @show g = msum_poly(K.pol, 2)
+    @show fg  = factor(g)
+    O = []
+    m = Dict{fq_nmod, Tuple{Int, Int}}()
+    k, mk = ResidueField(parent(c[1]))
+    cc = map(mk, c)
+    for i=1:length(c)-1
+      for j=i+1:length(c)
+        m[cc[i]+cc[j]] = (i,j)
+      end
+    end
+    for f = keys(fg.fac)
+      r = roots(f, k)
+      push!(O, [m[x] for x = r])
+    end
+    @show O
+
     #find orbits and stabilizers
   end
 
@@ -631,7 +646,7 @@ function galois_group(K::AnticNumberField)
         @vprint :GaloisGroup 2 "no descent\n"
       end
       if length(fd)>0
-        G = intersection([s^x for x = fd]...)[1]
+        G = intersect([s^x for x = fd]...)[1]
         @assert length(G) == length(s)
         @assert length(G) < nG
         if length(G) == degree(K)
