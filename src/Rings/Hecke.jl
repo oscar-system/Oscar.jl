@@ -1,4 +1,4 @@
-exclude = [:Nemo, :AbstractAlgebra, :Rational, :change_uniformizer, :genus_symbol,
+exclude = [:Nemo, :AbstractAlgebra, :Rational, :change_uniformizer, :genus_symbol, :data,
     :isdefintie, :narrow_class_group]
 
 for i in names(Hecke)
