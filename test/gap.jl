@@ -128,7 +128,9 @@ end
         @test evaluate(g, xy) == [y^3*x^4, x^2*y^3]
         @test evaluate!(res, g, xy) == [y^3*x^4, x^2*y^3]
         slp = SL.compile!(g)
-        @test evaluate(slp, xy) == [y^3*x^4, x^2*y^3]
+        # convert to Vector{Any} as otherwise we don't get a vector
+        # but an SLP returning a list
+        @test evaluate(slp, convert(Vector{Any}, xy)) == [y^3*x^4, x^2*y^3]
 
         g = GAPSLProgram([ [ [1,1,2,2], 2 ], [2,3,1,1] ] )
         @test evaluate(g, xy) == (x*y^2)^3*x

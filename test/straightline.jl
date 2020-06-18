@@ -827,6 +827,15 @@ end
     SL.setmultireturn!(p)
     @test evaluate(p, inputs) == [(x+y)*3, (x+y)*3]
 
+    # multiple return & list
+    X, Y = slpgens(2)
+    pl = SL.list([X*Y, X+1-Y])
+    @test evaluate(pl, inputs) == [(x*y), (x+1-y)]
+    pl = SL.list([X, Y, X+Y]) # first elements don't add a "step"/"line"
+    @test evaluate(pl, inputs) == [x, y, x+y]
+
+    @test evaluate(X^2*Y+Y^2, [X, Y]) == X^2*Y+Y^2
+
     # keep
     @test_throws ArgumentError SL.pushop!(p, SL.keep, Arg(3))
     # test we are still in valid state:

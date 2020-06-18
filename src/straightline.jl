@@ -311,6 +311,7 @@ end
 ## building SLProgram
 
 isregister(i::Arg) = typemark & i.x == 0
+registeridx(i::Arg) = i.x
 
 # return #ref for i-th input
 function input(i::Integer)
@@ -578,6 +579,35 @@ end
 
 test(p::SLProgram, x::Integer) = test!(copy(p), x)
 
+function list(::Type{SL}, ps) where {SL<:SLProgram}
+    idx = Arg[]
+    q = SL === SLProgram ? SLProgram{Any}() : SL()
+    # TODO: ^^^--- use typejoin or smthg instead of Any
+    for (n, p) in enumerate(ps)
+        _, i = _combine!(q, p)
+        if !isregister(i)
+            # we write explicitly in res-vector, so that the indices increase
+            # strictly and it's always safe in the final loop to copy from
+            # this `i` into final destination
+            i = pushop!(q, assign, i)
+            @assert isregister(i)
+        end
+        push!(idx, i)
+        @assert nsteps(q) >= registeridx(i)
+    end
+    for (n, i) in enumerate(idx)
+        if registeridx(i) > n
+            pushop!(q, assign, i, Arg(n))
+        else
+            @assert registeridx(i) == n
+        end
+    end
+    if nsteps(q) > length(idx)
+        pushop!(q, keep, Arg(length(idx)))
+    end
+    q
+end
+
 
 ### adhoc
 
@@ -686,13 +716,17 @@ function evaluate!(res::Vector{S}, p::SLProgram{T}, xs::Vector{S},
     if hasdecision(p)
         decide
     elseif hasmultireturn(p)
-        res
+        list(res)
     else
         retrieve(ints, cs, xs, res, p.ret, conv)
     end
 end
 
 test(x, o) = order(x) == o
+
+list(res) = list(eltype(res), res)
+
+list(::Type{T}, res) where {T} = res
 
 
 ## compile!
