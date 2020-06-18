@@ -6,11 +6,16 @@ module GaloisGrp
 
 using Oscar
 import Base: ^, +, -, *
-import Oscar: Hecke, AbstractAlgebra
+import Oscar: Hecke, AbstractAlgebra, GAP
 using StraightLinePrograms
 
 export galois_group, isprimitive, istransitive, transitive_group_identification
 
+
+function __init__()
+  GAP.Packages.install("ferret")
+  GAP.Packages.load("ferret")
+end
 
 struct BoundRing  <: AbstractAlgebra.Ring 
   mul
@@ -427,7 +432,7 @@ end
 # - for reducibles...: write for irr. poly and for red. poly
 # - more base rings
 # - applications: subfields of splitting field, towers, solvability by radicals
-function galois_group(K::AnticNumberField)
+function galois_group(K::AnticNumberField, extra::Int = 5)
   d_min = 2
   d_max = typemax(Int)
   p_best = 1
@@ -519,25 +524,51 @@ function galois_group(K::AnticNumberField)
     s = S(vcat(b...))
     G = intersect(G, W^s)[1]
   end
+
   if length(bs) == 0 #primitive case
-    @show g = msum_poly(K.pol, 2)
-    @show fg  = factor(g)
-    O = []
-    m = Dict{fq_nmod, Tuple{Int, Int}}()
+    @vprint :GaloisGroup 1 "group is primitive (no subfields), trying operations on pairs\n"
     k, mk = ResidueField(parent(c[1]))
-    cc = map(mk, c)
-    for i=1:length(c)-1
-      for j=i+1:length(c)
-        m[cc[i]+cc[j]] = (i,j)
+    m = Dict{fq_nmod, Tuple{Int, Int}}()
+    local ts = gen(Hecke.Globals.Zx)
+    while true
+      cc = map(mk, c)
+      for i=1:length(c)-1
+        for j=i+1:length(c)
+          m[cc[i]+cc[j]] = (i,j)
+        end
+      end
+      if length(keys(m)) < binomial(degree(K), 2)
+        @vprint :GaloisGroup 2 " m-sum: found duplicate, transforming...\n"
+        while true
+          ts = rand(Hecke.Globals.Zx, 2:degree(K), -4:4)
+          if degree(ts) > 1
+            break
+          end
+        end
+        c = map(ts, roots(GC, 5))
+      else
+        break
       end
     end
+
+    @vprint :GaloisGroup 1 "have everything, now getting the 2-sum poly\n"
+    if gen(Hecke.Globals.Zx) == ts
+      @vtime :GaloisGroup 2 g = msum_poly(K.pol, 2)
+    else
+      @vtime :GaloisGroup 2 g = msum_poly(minpoly(ts(gen(K))), 2)
+    end
+    @vprint :GaloisGroup 1 "... factoring...\n"
+    @vtime :GaloisGroup 2 fg  = factor(g)
+    @assert all(isone, values(fg.fac))
+
+    O = []
     for f = keys(fg.fac)
       r = roots(f, k)
       push!(O, [m[x] for x = r])
     end
-    @show O
-
-    #find orbits and stabilizers
+    @vprint :GaloisGroup 2 "partitions: $O\n"
+    G = Oscar._as_subgroup(G, GAP.Globals.Solve(GAP.julia_to_gap(vcat(GAP.Globals.ConInGroup(G.X), [GAP.Globals.ConStabilize(GAP.julia_to_gap(sort(o), Val(true)), GAP.Globals.OnSetsSets) for o in O]))))[1]
+    #@show G = intersect([stabilizer(G, GAP.julia_to_gap(sort(o), Val(true)), GAP.Globals.OnSetsSets)[1] for o=O]...)[1]
   end
 
   @vprint :GaloisGroup 2 "Have starting group with id $(transitive_group_identification(G))\n"
@@ -568,7 +599,7 @@ function galois_group(K::AnticNumberField)
       B = bound(GC, I)
       @vprint :GaloisGroup 2 "root bound: $(value(B))\n"
 
-      c = roots(GC, clog(2*value(B), p)+5)
+      c = roots(GC, clog(2*value(B), p)+extra)
       local fd
       cnt = 0
       while true
@@ -582,21 +613,21 @@ function galois_group(K::AnticNumberField)
           lt = [one(G)] # I don't know how to get the identity
         else
           lt = short_right_transversal(G, s, si)
-          if index(G, s) < 1000 && get_assert_level(:GaloisInvariant) > 2
-            tt = [x for x = right_transversal(G, s) if si in s^x]
+          #if index(G, s) < 1000 && get_assert_level(:GaloisInvariant) > 2
+          #  tt = [x for x = right_transversal(G, s) if si in s^x]
           #  if Set(right_coset(s, x) for x = tt) != Set(right_coset(s, x) for x = lt)
           #    return G, s, si
           #  end
-          end
+          #end
           @hassert :GaloisInvariant 2 all(x->si in s^x, lt)
         end
-        while length(lt) < 10 && length(lt) < index(G, s)
+        #x^7-2 triggers wrong descent, occaisonly, if lt is only 10 elems long
+        while length(lt) < 20 && length(lt) < index(G, s)
           r = rand(G)
           if all(x->right_coset(s, r) != right_coset(s, x), lt)
             push!(lt, r)
           end
         end
-
 
         for t = lt
           e = evaluate(I^t, c)
@@ -617,7 +648,7 @@ function galois_group(K::AnticNumberField)
             end
             B = bound(GC, I, ts)
             @vprint :GaloisGroup 2 "using transformation by $ts, and new bound of $(value(B))\n"
-            c = roots(GC, clog(2*value(B), p)+5)
+            c = roots(GC, clog(2*value(B), p)+extra)
             c = map(ts, c)
             break
           end
@@ -647,8 +678,9 @@ function galois_group(K::AnticNumberField)
       end
       if length(fd)>0
         G = intersect([s^x for x = fd]...)[1]
-        @assert length(G) == length(s)
+        @assert length(fd) > 1 || length(G) == length(s)
         @assert length(G) < nG
+        @vprint :GaloisGroup 2 "descending to $(transitive_group_identification(G))\n"
         if length(G) == degree(K)
           return G, GC
         end
