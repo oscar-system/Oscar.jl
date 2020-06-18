@@ -67,6 +67,12 @@ function __init__()
         (GAP.Globals.IsMatrixGroup, MatrixGroup),
         (GAP.Globals.IsFpGroup, FPGroup),
     ])
+  global is_dev  
+  if is_dev
+    @require StraightLinePrograms="42eed0b5-a112-4d56-a5b1-e566078f5bf3" begin
+      include("../examples/GaloisGrp.jl")
+    end  
+  end
 end
 
 is_dev = false
@@ -172,9 +178,6 @@ include("Polymake/NmbThy.jl")
 
 if is_dev
   include("../examples/ModStdNF.jl")
-  @require StraightLinePrograms="42eed0b5-a112-4d56-a5b1-e566078f5bf3" begin
-    include("../examples/GaloisGrp.jl")
-  end  
   include("../examples/PrimDec.jl")
 end
 
