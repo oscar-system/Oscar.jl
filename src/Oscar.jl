@@ -118,6 +118,10 @@ function example(s::String)
   Base.include(Main, joinpath(dirname(pathof(Oscar)), "..", "examples", s))
 end
 
+function data(s::String)
+  Base.include(Main, joinpath(dirname(pathof(Oscar)), "..", "data", s))
+end
+
 function revise(s::String)
   s = joinpath(dirname(pathof(Oscar)), "..", "examples", s)
   Main.Revise.track(Main, s)
