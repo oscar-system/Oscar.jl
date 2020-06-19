@@ -30,14 +30,17 @@ Base.show(io::IO, f::Free) =
 evaluate(f::Free, xs) = evaluate(gens(f), f.x, xs)
 
 # check compatibility and return the biggest of the two gens arrays
-function gens(x::Free, y::Free)
-    if length(gens(y)) < length(gens(x))
-        x, y = y, x
+function gens(x::Free, xs::Free...)
+    gx = gens(x)
+    for y in xs
+        gy = gens(y)
+        if length(gy) > length(gx)
+            gx, gy = gy, gx
+        end
+        gy == view(gx, eachindex(gy)) || throw(ArgumentError(
+            "incompatible symbols"))
     end
-    gx, gy = gens(x), gens(y)
-    gx == view(gy, eachindex(gx)) || throw(ArgumentError(
-        "incompatible symbols"))
-    gy
+    gx
 end
 
 # TODO: must they also have the same gens?
@@ -69,6 +72,9 @@ Base.:(&)(x::Free, y::Free) = Free(x.x & y.x, gens(x, y))
 Base.literal_pow(::typeof(^), p::Free, ::Val{e}) where {e} = p^e
 
 test(x::Free, n) = Free(test(x.x, n), gens(x))
+
+# TODO: don't splat
+list(::Type{Free}, xs) = Free(List(Lazy[x.x for x in xs]), gens(xs...))
 
 
 #### adhoc
@@ -319,6 +325,31 @@ function evaluate(gs, p::Decision, xs)
 end
 
 maxinput(p::Decision) = mapreduce(x -> maxinput(x[1]), max, p.ps)
+
+
+### List
+
+struct List <: Lazy
+    xs::Vector{Lazy}
+end
+
+function Base.show(io::IO, l::List)
+    print(io, "list([")
+    join(io, l.xs, ", ")
+    print(io, "])")
+end
+
+constantstype(l::List) =
+    mapreduce(constantstype, typejoin, l.xs, init=Union{})
+
+pushgens!(gs, l::List) = foldl(pushgens!, l.xs, init=gs)
+
+Base.:(==)(p::List, q::List) = p.xs == q.xs
+
+evaluate(gs, l::List, xs) =
+    list(eltype(xs)[evaluate(gs, p, xs) for p in l.xs])
+
+maxinput(l::List) = mapreduce(maxinput, max, l.xs)
 
 
 ### binary ops
