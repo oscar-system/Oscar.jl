@@ -1,6 +1,5 @@
 @testset "Polynomial Orderings" begin
 
-	
 	Qx, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
 	t = gen(Hecke.Globals.Qx)
 	k1 , l= number_field(t^5+t^2+2)
@@ -55,7 +54,6 @@
 	end
 
 
-
 	IdealsQx = rmIdeals(:Q)
 	PolyQx = collect(gens(IdealsQx[2]))
 	Poly = collect(gens(IdealsQx[1]))
@@ -66,16 +64,8 @@
 	IdealsGFx = rmIdeals(:GF)
 	PolyGFx = collect(gens(IdealsGFx[2]))
 
-	
-	
 	RFx,(x,y,z)= PolynomialRing(QQ,:x => 1:3)
-
-
 	f=x^2*y+x*y^2+x*y+y^4
-
-
-
-
 
 	@test Oscar._isless_lex(f,2,1)
 	@test !Oscar._isless_lex(f,1,2)
@@ -158,7 +148,6 @@ end
 
 @testset "Ideals" begin
 
-
 	Qx, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
 	t = gen(Hecke.Globals.Qx)
 	k1 , l= number_field(t^5+t^2+2)
@@ -166,8 +155,6 @@ end
 	k2 = Nemo.GF(23)
 	GFx = PolynomialRing(k2, ["x", "y", "z"])
 	RNmodx=PolynomialRing(Nemo.ResidueRing(ZZ,17), :x => 1:2)[1]
-
-
 
 	function rmIdeals(field :: Symbol)
 		Ideals=[]
@@ -214,8 +201,6 @@ end
 		return Ideals
 	end
 
-
-
 	IdealsQx = rmIdeals(:Q)
 	PolyQx = collect(gens(IdealsQx[2]))
 	Poly = collect(gens(IdealsQx[1]))
@@ -225,7 +210,6 @@ end
 
 	IdealsGFx = rmIdeals(:GF)
 	PolyGFx = collect(gens(IdealsGFx[2]))
-
 
 	@test issubset(intersect(IdealsQx[3],IdealsQx[4] + IdealsQx[3]),(IdealsQx[1]+IdealsQx[2])*IdealsQx[3])
 	@test IdealsQx[5]^2 == IdealsQx[5] * IdealsQx[5]
@@ -245,16 +229,12 @@ end
 	@test ngens(IdealsGFx[1]) == length(gens(IdealsGFx[1]))
 	@test in(PolyGFx[1], IdealsGFx[2] : IdealsGFx[3])
 
-
 	RFx,(x,y,z)= PolynomialRing(QQ,:x => 1:3)
 	S, (a,b,c)=Singular.PolynomialRing(QQ, ["x$i" for i in 1:3])
-
-
 
 	Oscar.getindex(IdealsQx[1].gens, Val(:S), 3)
 	Oscar.iterate(IdealsQx[1].gens,8)
 	Oscar.iterate(IdealsQx[1].gens,1)
-
 
 	Singular.Fp(7)(Nemo.ResidueRing(ZZ,13)(3))
 	Nemo.ResidueRing(ZZ,4)(Singular.Fp(7)(3))
@@ -266,7 +246,6 @@ end
 	Oscar.singular_ring(RFx)
 	Oscar.singular_ring(RFx, keep_ordering = false)
 
-
 	A=[]
 	Oscar.push!(A, PolyQx[1])
 	ideal(PolyNFx)
@@ -275,8 +254,6 @@ end
 	@test gen(IdealsQx[1],1)==Poly[1]
 
 	Oscar.oscar_assure(Oscar.MPolyIdeal(IdealsQx[1].gens.Ox, IdealsQx[1].gens.S))
-
-
 
 	Oscar.groebner_basis(IdealsQx[1].gens)
 	Oscar.groebner_basis(Oscar.BiPolyArray([x]))
@@ -287,7 +264,6 @@ end
 	v=Singular.vector(S,convert(S,PolyQx[1]), convert(S,PolyQx[1]), convert(S, PolyQx[1]))
 	Oscar.convert(Generic.FreeModule(S,3),v)
 	Oscar.syzygy_generators([x  for x=PolyQx])
-
 
 	Oscar.im_func(PolyQx[1], RFx, [2,3,1])
 	T=Oscar.MPolyHom_vars{FmpqMPolyRing, FmpqMPolyRing}(RFx, RFx, [1,2,3])
@@ -300,15 +276,9 @@ end
 	##Oscar.eliminate(IdealsQx[1], [x,y])
 	Oscar.eliminate(IdealsQx[1], [1,2,3])
 
-
-
 	base_ring(IdealsQx[2])
 	Oscar.groebner_basis(IdealsQx[2])
 	Oscar.groebner_basis(IdealsQx[2], :lex)
-
-
-	
-
 
 	Q=Oscar.MPolyQuo(Qx,IdealsQx[1])
 	gens(Q)
@@ -320,8 +290,6 @@ end
 	h=Oscar.MPolyQuoElem{fmpq_mpoly}(gens(IdealsQx[3])[1],Q)
 
 	@test f*g-h*g == (f+ (-h))*g
-
-
 
 	Oscar.mul!(g,h,f)
 	Oscar.addeq!(f,g)
@@ -335,40 +303,4 @@ end
 	zero(Q)
 	Oscar._kbase(Q)
 	Oscar.vector_space(QQ,Q)
-
-
-
-
-
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
