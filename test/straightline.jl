@@ -920,3 +920,23 @@ end
         @test evaluate(l, [x, y]) == res
     end
 end
+
+@testset "SL lists" begin
+    x, y = SL.freegens(2)
+    X, Y = slpgens(2)
+
+    q = SL.list([x*y^2, x+1-y])
+    @test evaluate(q, [x, y]) == q
+    @test evaluate(q, Any[x, y]) == [x*y^2, x+1-y]
+    @test evaluate(q, [2, 3]) == [18, 0]
+    @test evaluate(evaluate(q, SLProgram[X, Y]), [x, y]) == q
+
+    @test evaluate(SL.list([q, q]), [x, y]) == SL.list([q, q])
+    # TODO: list of list of SLProgram hits an assertion error, so
+    # handle this case more gracefully
+
+    # test 3+ elements
+    r = SL.list([x, y+1, x+y, y-x])
+    @test evaluate(r, [2, 3]) == [2, 4, 5, 1]
+    @test evaluate(r, [x, y]) == r
+end
