@@ -382,7 +382,7 @@ end
 
 function oscar_assure(I::MPolyIdeal)
   if !isdefined(I.gens, :O)
-    I.gens.S = Singular.Ideal(I.gens.Sx, [convert(I.gens.Sx, x) for x = I.gens.O])
+    I.gens.O = [convert(I.gens.Ox, x) for x =  gens(I.gens.S)]
   end
 end
 
@@ -584,7 +584,7 @@ mutable struct MPolyHom_vars{T1, T2}  <: Map{T1, T2, Hecke.HeckeMap, MPolyHom_va
       for h = symbols(R)
         push!(i, findfirst(x -> x == h, symbols(S)))
       end
-      return MPolyHom_vars(R, S, i)
+      return MPolyHom_vars{T1, T2}(R, S, i)
     end
     error("type not supported")
   end
