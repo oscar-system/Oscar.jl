@@ -25,6 +25,9 @@ export
     isinvariant,
     isinvertible,
     isisomorphic,
+    isnilpotent,
+    issolvable,
+    issupersolvable,
     issurjective,
     kernel,
     maximal_normal_subgroups,
@@ -437,6 +440,10 @@ end
 
 function isnilpotent(G::GAPGroup)
   return GAP.Globals.IsNilpotent(G.X)
+end
+
+function issupersolvable(G::GAPGroup)
+   return GAP.Globals.IsSupersolvableGroup(G.X)
 end
 
 ################################################################################
