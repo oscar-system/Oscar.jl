@@ -87,6 +87,8 @@ function compose(p::Free, q::Free; flatten=true)
     end
 end
 
+Base.getindex(p::Free, i::Free) = Free(Getindex(p.x, i.x), gens(p, i))
+
 
 #### adhoc
 
@@ -387,6 +389,26 @@ Base.:(==)(k::Compose, l::Compose) = k.p == l.p && k.q == l.q
 evaluate(gs, p::Compose, xs) = evaluate(gs, p.p, evaluate(gs, p.q, xs))
 
 maxinput(m::Compose) = maxinput(m.q)
+
+
+### Getindex
+
+struct Getindex <: Lazy
+    p::Lazy
+    i::Lazy
+end
+
+Base.show(io::IO, g::Getindex) = print(io, g.p, '[', g.i, ']')
+
+pushgens!(gs, l::Getindex) = pushgens!(pushgens!(gs, l.p), l.i)
+
+constantstype(m::Getindex) = typejoin(constantstype(m.p), constantstype(m.i))
+
+Base.:(==)(k::Getindex, l::Getindex) = k.p == l.p && k.i == l.i
+
+evaluate(gs, p::Getindex, xs) = evaluate(gs, p.p, xs)[evaluate(gs, p.i, xs)]
+
+maxinput(m::Getindex) = max(maxinput(m.p), maxinput(m.i))
 
 
 ### binary ops

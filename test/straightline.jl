@@ -968,3 +968,12 @@ end
     @test p isa SLProgram{Real}
     @test evaluate(p, [x]) == 2*(3*x)+1
 end
+
+@testset "SL getindex" begin
+    x, y = SL.freegens(2)
+    X, Y = slpgens(2)
+
+    p = y[x+1]
+    @test p.x isa SL.Getindex
+    @test evaluate(p, Any[2, [4, 5, 6]]) == 6
+end
