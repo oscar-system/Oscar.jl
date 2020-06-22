@@ -76,7 +76,16 @@ test(x::Free, n) = Free(test(x.x, n), gens(x))
 # TODO: don't splat
 list(::Type{Free}, xs) = Free(List(Lazy[x.x for x in xs]), gens(xs...))
 
-compose(p::Free, q::Free) = Free(Compose(p.x, q.x), gens(q))
+function compose(p::Free, q::Free; flatten=true)
+    if flatten
+        q.x isa List || throw(ArgumentError(
+            "first argument must return a list"))
+        gs = gens(q)
+        evaluate(p, [Free(qi, gs) for qi in q.x.xs])::Free
+    else
+        Free(Compose(p.x, q.x), gens(q))
+    end
+end
 
 
 #### adhoc

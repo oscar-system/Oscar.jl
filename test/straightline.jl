@@ -946,21 +946,23 @@ end
     X, Y = slpgens(2)
 
     q = SL.compose(x - y, SL.list([y, x]))
-    p = SL.compose(X - Y, SL.list([Y, X]))
+    p = SL.compose(x - y, SL.list([y, x]), flatten=false)
+    r = SL.compose(X - Y, SL.list([Y, X]))
 
-    for r = (q, p)
-        @test evaluate(r, [2, 3]) == 1
-        @test evaluate(r, [3.0, 1.0]) == -2
+    for s = (q, p, r)
+        @test evaluate(s, [2, 3]) == 1
+        @test evaluate(s, [3.0, 1.0]) == -2
     end
-    # @test evaluate(p, [x, y]) == applycompose(q)
+    @test evaluate(r, [x, y]) == q
 
     q = SL.compose(SL.list([x+y, x-y]), SL.list([y-x, y+x]))
-    p = SL.compose(SL.list([X+Y, X-Y]), SL.list([Y-X, Y+X]))
+    r = SL.compose(SL.list([X+Y, X-Y]), SL.list([Y-X, Y+X]))
 
-    for r = (q, p)
-        @test evaluate(r, [2, 3]) == [6, -4]
-        @test evaluate(r, [3.0, 1.0]) == [2, -6]
+    for s = (q, r)
+        @test evaluate(s, [2, 3]) == [6, -4]
+        @test evaluate(s, [3.0, 1.0]) == [2, -6]
     end
+    @test evaluate(r, [x, y]) == q
 
     p = SL.compose(2.0*X+1.0, SL.list([3*X]))
     @test p isa SLProgram{Real}
