@@ -630,13 +630,11 @@ function Base.show(io::IO, A::AutomorphismGroup{T}) where T <: GAPGroup
   print(io, "Aut( "* GAP.gap_to_julia(GAP.Globals.StringView(A.G.X)) *" )")
 end
 
-# TODO: why (x::AutomorphismGroupElem) does not work?
-
 """
     hom(f::GAPGroupElem{AutomorphismGroup{T}}) where T
 Return the element f of type ``GAPGroupHomomorphism{T,T}``.
 """
-function hom(x::GAPGroupElem{AutomorphismGroup{T}}) where T
+function hom(x::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup
   A = parent(x)
   G = A.G
   return _hom_from_gap_map(G, G, x.X)
@@ -673,7 +671,7 @@ end
 
 """
     isinner_automorphism(f::GAPGroupHomomorphism)
-    isinner_automorphism(g::AutomorphismGroupElem)
+    isinner_automorphism(f::GAPGroupElem{AutomorphismGroup{T}})
 Return whether `f` is an inner automorphism.
 """
 function isinner_automorphism(f::GAPGroupHomomorphism)

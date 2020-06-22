@@ -51,7 +51,6 @@ import GAP.GapObj
 
 export
     AutomorphismGroup,
-    AutomorphismGroupElem,
     elem_type,
     FPGroup,
     FPGroupElem,
@@ -198,13 +197,6 @@ struct AutomorphismGroup{T} <: GAPGroup
     return z
   end
 end
-
-"""
-    AutomorphismGroupElem
-Element of a group of automorphisms.
-"""
-const AutomorphismGroupElem = GAPGroupElem{AutomorphismGroup}
-
 
 """
 TODO: document this
