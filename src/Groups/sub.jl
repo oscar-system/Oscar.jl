@@ -56,6 +56,7 @@ end
 Base.:*(f::GAPGroupHomomorphism{S, T}, g::GAPGroupHomomorphism{T, U}) where S where T where U = compose(g, f)
 
 function Base.inv(f::GAPGroupHomomorphism{S,T}) where S where T
+   @assert GAP.Globals.IsBijective(f.map) "f is not bijective"
    return GAPGroupHomomorphism{T,S}(codomain(f), domain(f), GAP.Globals.InverseGeneralMapping(f.map))
 end
 
@@ -64,22 +65,10 @@ order(f::GAPGroupHomomorphism) = GAP.Globals.Order(f.map)
 function Base.:^(f::GAPGroupHomomorphism{S,T}, n::Int64) where S where T
    if n==1
      return f
-   end
-   if n<0
-      if !isinvertible(f)
-         throw(ArgumentError("function not invertible"))
-      else
-         g = GAP.Globals.Inverse(f.map)
-         n = -n
-      end
    else
-      g = f.map
+      @assert domain(f) == codomain(f) "Domain and codomain do not coincide"
+      return GAPGroupHomomorphism{S,S}(domain(f),codomain(f),(f.map)^n)
    end
-   if  n==1                             # only in this case it is allowed domain(f) != codomain(f)
-      return GAPGroupHomomorphism{T,S}(domain(f),codomain(f),g)
-   end
-   @assert domain(f) == codomain(f)
-   return GAPGroupHomomorphism{S,S}(domain(f),codomain(f),g^n)
 end
 
 function compose(g::GAPGroupHomomorphism{T, U}, f::GAPGroupHomomorphism{S, T}) where S where T where U
