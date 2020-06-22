@@ -988,4 +988,10 @@ end
     for r = (p, q)
         @test evaluate(p, Any[2, [4, 5, 6]]) == 6
     end
+
+    # adhoc
+    p = y[2] + x[big(1)]
+    @test evaluate(p, [[1, 2, 3], [10, 11, 12]]) == 12
+    p = y[x[3]]
+    @test evaluate(p, Any[[1, 2, 4], 1:4]) == 4
 end

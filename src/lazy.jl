@@ -103,6 +103,9 @@ Base.getindex(p::Free, i::Free) = Free(Getindex(p.x, i.x), gens(p, i))
 *(x::Free, y) = Free(x.x * y, gens(x))
 *(x, y::Free) = Free(x * y.x, gens(y))
 
+Base.getindex(x::Free, y) = Free(x.x[y], gens(x))
+Base.getindex(x, y::Free) = Free(x[y.x], gens(y))
+
 
 ## Lazy
 
@@ -486,6 +489,9 @@ Base.getindex(x::Lazy, i::Lazy) = Getindex(x, i)
 
 -(x, y::Lazy) = Const(x) - y
 -(x::Lazy, y) = x - Const(y)
+
+Base.getindex(x, i::Lazy) = Getindex(Const(x), i)
+Base.getindex(x::Lazy, i) = Getindex(x, Const(i))
 
 
 ## compile to SLProgram
