@@ -518,6 +518,12 @@ end
     @test evaluate(y, xyz) == y
     @test evaluate(z, xyz) == z
 
+    # constant
+    p = Free(1)
+    @test evaluate(p, rand(Int, rand(0:20))) === 1
+    p = Free([1, 2, 4])
+    @test evaluate(p, rand(Int, rand(0:20))) == [1, 2, 4]
+
     p = 9 + 3*x*y^2 + ((y+z+3-x-3)*2)^-2 * 100
     @test evaluate(p, xs) == 64
     @test evaluate(p, xyz) == p

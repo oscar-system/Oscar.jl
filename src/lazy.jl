@@ -9,6 +9,8 @@ end
 
 Free(x::Lazy) = Free(x, collect(Symbol, slpsyms(maxinput(x))))
 
+Free(x) = Free(Const(x), Symbol[])
+
 function freegens(n::Integer, syms=slpsyms(n))
     if !isa(syms, Vector{Symbol})
         syms = collect(Symbol, syms)
