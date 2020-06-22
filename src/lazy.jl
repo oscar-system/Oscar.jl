@@ -76,6 +76,8 @@ test(x::Free, n) = Free(test(x.x, n), gens(x))
 # TODO: don't splat
 list(::Type{Free}, xs) = Free(List(Lazy[x.x for x in xs]), gens(xs...))
 
+compose(p::Free, q::Free) = Free(Compose(p.x, q.x), gens(q))
+
 
 #### adhoc
 
@@ -350,6 +352,32 @@ evaluate(gs, l::List, xs) =
     list(eltype(xs)[evaluate(gs, p, xs) for p in l.xs])
 
 maxinput(l::List) = mapreduce(maxinput, max, l.xs)
+
+
+### Compose
+
+struct Compose <: Lazy
+    p::Lazy
+    q::Lazy # q must return a list!
+
+    function Compose(p::Lazy, q::Lazy)
+        q isa List || throw(ArgumentError(
+            "second argument of Compose must return a list"))
+        new(p, q)
+    end
+end
+
+Base.show(io::IO, c::Compose) = print(io, c.p, " ∘ ", c.q)
+
+constantstype(c::Compose) = typejoin(constantstype(c.p, constantstype(c.q)))
+
+pushgens!(gs, c::Compose) = pushgens!(gs, c.q)
+
+Base.:(==)(k::Compose, l::Compose) = k.p == l.p && k.q == l.q
+
+evaluate(gs, p::Compose, xs) = evaluate(gs, p.p, evaluate(gs, p.q, xs))
+
+maxinput(m::Compose) = maxinput(m.q)
 
 
 ### binary ops

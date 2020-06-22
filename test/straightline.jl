@@ -940,3 +940,17 @@ end
     @test evaluate(r, [2, 3]) == [2, 4, 5, 1]
     @test evaluate(r, [x, y]) == r
 end
+
+@testset "SL compose" begin
+    x, y = SL.freegens(2)
+    X, Y = slpgens(2)
+
+    q = SL.compose(x - y, SL.list([y, x]))
+
+    @test evaluate(q, [2, 3]) == 1
+    @test evaluate(q, [3.0, 1.0]) == -2
+
+    q = SL.compose(SL.list([x+y, x-y]), SL.list([y-x, y+x]))
+    @test evaluate(q, [2, 3]) == [6, -4]
+    @test evaluate(q, [3.0, 1.0]) == [2, -6]
+end
