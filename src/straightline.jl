@@ -312,6 +312,7 @@ end
 
 isregister(i::Arg) = typemark & i.x == 0
 registeridx(i::Arg) = i.x
+asregister(i::Integer) = Arg(UInt64(i)) # TODO: sanitize input
 
 # return #ref for i-th input
 function input(i::Integer)
@@ -418,7 +419,7 @@ function pushfinalize!(p::SLProgram, ret::Arg)
     p
 end
 
-function _combine!(p::SLProgram, q::SLProgram)
+function _combine!(p::SLProgram, q::SLProgram; makeinput=identity)
     i1 = pushinit!(p)
     i2 = pushinit!(q)
     koffset = length(constants(p))
@@ -441,6 +442,7 @@ function _combine!(p::SLProgram, q::SLProgram)
         if isconstant(i)
             i = Arg(i.x + koffset)
         elseif isinput(i)
+            i = makeinput(i)
         elseif isint(i)
             i = Arg(i.x + ioffset)
         else
@@ -449,17 +451,24 @@ function _combine!(p::SLProgram, q::SLProgram)
         if isconstant(j)
             j = Arg(j.x + koffset)
         elseif isinput(j)
+            j = makeinput(j)
         elseif isint(j)
             j = Arg(j.x + ioffset)
         elseif !isquasiunary(op)
-            j = Arg(j.x + loffset)
+            # TODO: normalize assign so that j.x is never 0
+            if !(isassign(op) && j.x == 0)
+                j = Arg(j.x + loffset)
+            end
         end
         lines(p)[n] = Line(op, i, j)
         # TODO: write conditionally only when modifications
     end
     if isconstant(i2)
         i2 = Arg(i2.x + koffset)
-    elseif isinput(i2) || hasdecision(q)
+    elseif isinput(i2)
+        i2 = makeinput(i2)
+    elseif hasdecision(q)
+    elseif hasmultireturn(q)
     elseif isint(i2)
         i2 = Arg(i2.x + ioffset)
     else
@@ -607,6 +616,29 @@ function list(::Type{SL}, ps) where {SL<:SLProgram}
     end
     q
 end
+
+function composewith!(q::SLProgram, p::SLProgram)
+    hasmultireturn(q) || throw(ArgumentError(
+        "second argument of `compose` must return a list"))
+    ninp = q.len # max ninputs that p can use
+    _, j = _combine!(q, p, makeinput = function (i::Arg)
+                  idx = inputidx(i)
+                  idx <= ninp || throw(ArgumentError(
+                      "inner compose argument does not provide enough input"))
+                  asregister(idx)
+              end)
+    if j.x == 0 && p.len != 0 # multireturn
+        newlen = q.len - ninp
+        for i = 1:newlen
+            pushop!(q, assign, asregister(i+ninp), asregister(i))
+        end
+        pushop!(q, keep, asregister(newlen))
+    end
+    pushfinalize!(q, j)
+end
+
+
+compose(p::SLProgram, q::SLProgram) = composewith!(copy_jointype(q, p), p)
 
 
 ### adhoc
