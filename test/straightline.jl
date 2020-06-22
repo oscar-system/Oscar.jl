@@ -549,8 +549,9 @@ end
                             SL.divide       => "/",
                             SL.exponentiate => "^",
                             SL.keep         => "keep",
-                            SL.decision     => "&")
-    @test length(SL.showop) == 9 # tests all keys are distinct
+                            SL.decision     => "&",
+                            SL.getindex_    => "[]")
+    @test length(SL.showop) == 10 # tests all keys are distinct
     for op in keys(SL.showop)
         @test SL.isassign(op) == (op == SL.assign)
         @test SL.istimes(op) == (op == SL.times)
@@ -975,5 +976,10 @@ end
 
     p = y[x+1]
     @test p.x isa SL.Getindex
-    @test evaluate(p, Any[2, [4, 5, 6]]) == 6
+    q = Y[X+1]
+    @test q isa SLProgram{Int}
+
+    for r = (p, q)
+        @test evaluate(p, Any[2, [4, 5, 6]]) == 6
+    end
 end

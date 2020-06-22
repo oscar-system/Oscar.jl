@@ -50,7 +50,8 @@ for (i, (op, unary, showchar)) in enumerate([(:assign       , false, "->"),
                                              (:divide       , false, "/"),
                                              (:exponentiate , true,  "^"),
                                              (:keep         , true,  "keep"),
-                                             (:decision , false, "&")
+                                             (:decision     , false, "&"),
+                                             (:getindex_    , false, "[]"),
                                              ])
     isop = Symbol(:is, op)
     c = UInt64(i) << (2*argshift)
@@ -640,6 +641,9 @@ end
 
 compose(p::SLProgram, q::SLProgram) = composewith!(copy_jointype(q, p), p)
 
+getindex!(p::SLProgram, q::SLProgram) = combine!(getindex_, p, q)
+Base.getindex(p::SLProgram, q::SLProgram) = getindex!(copy_jointype(p, q), q)
+
 
 ### adhoc
 
@@ -728,6 +732,8 @@ function evaluate!(res::Vector{S}, p::SLProgram{T}, xs::Vector{S},
                 r = x * y
             elseif isdivide(op)
                 r = divexact(x, y)
+            elseif isgetindex_(op)
+                r = x[y]
             elseif isdecision(op)
                 t = test(x, y)
                 t === false && return false

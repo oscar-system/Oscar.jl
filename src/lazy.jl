@@ -469,6 +469,10 @@ end
 
 ^(x::Lazy, e::Integer) = Exp(x, Int(e))
 
+#### getindex
+
+Base.getindex(x::Lazy, i::Lazy) = Getindex(x, i)
+
 
 ### adhoc binary ops
 
