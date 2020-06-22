@@ -89,7 +89,8 @@ function compose(p::Free, q::Free; flatten=true)
     end
 end
 
-Base.getindex(p::Free, i::Free) = Free(Getindex(p.x, i.x), gens(p, i))
+Base.getindex(p::Free, is::Free...) =
+    Free(Getindex(p.x, Lazy[i.x for i in is]), gens(p, is...))
 
 
 #### adhoc
@@ -103,7 +104,7 @@ Base.getindex(p::Free, i::Free) = Free(Getindex(p.x, i.x), gens(p, i))
 *(x::Free, y) = Free(x.x * y, gens(x))
 *(x, y::Free) = Free(x * y.x, gens(y))
 
-Base.getindex(x::Free, y) = Free(x.x[y], gens(x))
+Base.getindex(x::Free, is...) = getindex(x, map(f -> f isa Free ? f : Free(f), is)...)
 Base.getindex(x, y::Free) = Free(x[y.x], gens(y))
 
 
@@ -400,20 +401,24 @@ maxinput(m::Compose) = maxinput(m.q)
 
 struct Getindex <: Lazy
     p::Lazy
-    i::Lazy
+    is::Vector{Lazy}
 end
 
-Base.show(io::IO, g::Getindex) = print(io, g.p, '[', g.i, ']')
+function Base.show(io::IO, g::Getindex)
+    print(io, g.p, '[')
+    join(io, g.is, ", ")
+    print(io, ']')
+end
 
-pushgens!(gs, l::Getindex) = pushgens!(pushgens!(gs, l.p), l.i)
+pushgens!(gs, l::Getindex) = foldl(pushgens!, l.is, init=pushgens!(gs, l.p))
 
-constantstype(m::Getindex) = typejoin(constantstype(m.p), constantstype(m.i))
+constantstype(m::Getindex) = mapreduce(constantstype, typejoin, m.is, init=constantstype(m.p))
 
-Base.:(==)(k::Getindex, l::Getindex) = k.p == l.p && k.i == l.i
+Base.:(==)(k::Getindex, l::Getindex) = k.p == l.p && k.is == l.is
 
-evaluate(gs, p::Getindex, xs) = evaluate(gs, p.p, xs)[evaluate(gs, p.i, xs)]
+evaluate(gs, p::Getindex, xs) = evaluate(gs, p.p, xs)[(evaluate(gs, i, xs) for i in p.is)...]
 
-maxinput(m::Getindex) = max(maxinput(m.p), maxinput(m.i))
+maxinput(m::Getindex) = mapreduce(maxinput, max, m.is, init=maxinput(m.p))
 
 
 ### binary ops
@@ -476,7 +481,7 @@ end
 
 #### getindex
 
-Base.getindex(x::Lazy, i::Lazy) = Getindex(x, i)
+Base.getindex(x::Lazy, i::Lazy...) = Getindex(x, collect(i))
 
 
 ### adhoc binary ops
@@ -490,8 +495,8 @@ Base.getindex(x::Lazy, i::Lazy) = Getindex(x, i)
 -(x, y::Lazy) = Const(x) - y
 -(x::Lazy, y) = x - Const(y)
 
-Base.getindex(x, i::Lazy) = Getindex(Const(x), i)
-Base.getindex(x::Lazy, i) = Getindex(x, Const(i))
+Base.getindex(x, i::Lazy) = Getindex(Const(x), [i])
+Base.getindex(x::Lazy, is...) = Getindex(x, Lazy[i isa Lazy ? i : Const(i) for i in is])
 
 
 ## compile to SLProgram
@@ -547,7 +552,9 @@ function pushlazy!(p, l::Decision, gs)
 end
 
 function pushlazy!(p, g::Getindex, gs)
+    length(g.is) == 1 ||
+        throw(ArgumentError("getindex with multiple indices not supported"))
     i = pushlazy!(p, g.p, gs)
-    j = pushlazy!(p, g.i, gs)
+    j = pushlazy!(p, g.is[1], gs)
     pushop!(p, getindex_, i, j)
 end

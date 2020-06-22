@@ -997,4 +997,8 @@ end
     @test evaluate(p, [[1, 2, 3], [10, 11, 12]]) == 12
     p = y[x[3]]
     @test evaluate(p, Any[[1, 2, 4], 1:4]) == 4
+
+    # multi-indices
+    p = y[x, 2, 1]
+    @test evaluate(p, [3, reshape(1:27, 3, 3, 3)]) == 6
 end
