@@ -1002,8 +1002,13 @@ end
     p = y[x, 2, 1]
     @test evaluate(p, [3, reshape(1:27, 3, 3, 3)]) == 6
 
-    # array-indexing
+    # integer & integer-array indexing
     p = list([x, y, y-x, y+x])
+
+    @test p[1] == x
+    @test p[0x2] == y
+    @test p[big(4)] == y+x
+
     @test p[[1, 3]] == list([x, y-x])
     @test p[Any[1, 3]] == list([x, y-x])
     @test p[[4]] == list([y+x])

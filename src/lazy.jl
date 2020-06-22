@@ -109,6 +109,15 @@ Base.getindex(x::Free, is...) =
 Base.getindex(x, y::Free) = Free(x[y.x], gens(y))
 
 # special case for integer literals
+
+function Base.getindex(x::Free, i::Integer)
+    if x.x isa List
+        Free(x.x.xs[i], gens(x))
+    else
+        getindex(x, Free(i))
+    end
+end
+
 function Base.getindex(x::Free, is::AbstractVector)
     T = eltype(is)
     if x.x isa List && (T <: Integer ||
