@@ -982,7 +982,10 @@ end
 
     p = y[x+1]
     @test p.x isa SL.Getindex
+    c = compile(SLProgram, p)
+    @test c isa SLProgram{Int}
     q = Y[X+1]
+    @test q == c
     @test q isa SLProgram{Int}
 
     for r = (p, q)

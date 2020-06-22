@@ -545,3 +545,9 @@ function pushlazy!(p, l::Decision, gs)
     end
     k
 end
+
+function pushlazy!(p, g::Getindex, gs)
+    i = pushlazy!(p, g.p, gs)
+    j = pushlazy!(p, g.i, gs)
+    pushop!(p, getindex_, i, j)
+end
