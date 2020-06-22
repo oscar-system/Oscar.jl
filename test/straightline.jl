@@ -1001,4 +1001,16 @@ end
     # multi-indices
     p = y[x, 2, 1]
     @test evaluate(p, [3, reshape(1:27, 3, 3, 3)]) == 6
+
+    # array-indexing
+    p = list([x, y, y-x, y+x])
+    @test p[[1, 3]] == list([x, y-x])
+    @test p[Any[1, 3]] == list([x, y-x])
+    @test p[[4]] == list([y+x])
+    @test p[Number[4]] == list([y+x])
+
+    p = Free(Vector{Char})[['a']]
+    e = evaluate(p, [])
+    @test e isa Vector{Vector{Char}}
+    @test e == [['a']]
 end

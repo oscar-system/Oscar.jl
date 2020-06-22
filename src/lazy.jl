@@ -104,8 +104,21 @@ Base.getindex(p::Free, is::Free...) =
 *(x::Free, y) = Free(x.x * y, gens(x))
 *(x, y::Free) = Free(x * y.x, gens(y))
 
-Base.getindex(x::Free, is...) = getindex(x, map(f -> f isa Free ? f : Free(f), is)...)
+Base.getindex(x::Free, is...) =
+    getindex(x, map(f -> f isa Free ? f : Free(f), is)...)
 Base.getindex(x, y::Free) = Free(x[y.x], gens(y))
+
+# special case for integer literals
+function Base.getindex(x::Free, is::AbstractVector)
+    T = eltype(is)
+    if x.x isa List && (T <: Integer ||
+                        typeintersect(T, Integer) !== Union{} &&
+                        all(x -> isa(x, Integer), is))
+        Free(List(x.x.xs[is]), gens(x))
+    else
+        getindex(x, Free(is))
+    end
+end
 
 
 ## Lazy
