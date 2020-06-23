@@ -137,9 +137,7 @@ end
 
 
 function _maxgroup(x::T, y::T) where T <: GAPGroup
-   if x == y
-     return x
-   elseif GAP.Globals.IsSubset(x.X, y.X)
+   if GAP.Globals.IsSubset(x.X, y.X)
      return x
    elseif GAP.Globals.IsSubset(y.X, x.X)
      return y
@@ -185,8 +183,8 @@ Return the one element of the parent of x.
 Base.one(x::GAPGroupElem) = one(parent(x))
 one!(x::GAPGroupElem) = one(parent(x))
 
-Base.show(io::IO, x::GAPGroupElem) =  print(io, GAP.gap_to_julia(GAP.Globals.StringView(x.X)))
-Base.show(io::IO, x::GAPGroup) = print(io, GAP.gap_to_julia(GAP.Globals.StringView(x.X)))
+Base.show(io::IO, x::GAPGroupElem) =  print(io, GAP.gap_to_julia(GAP.Globals.StringViewObj(x.X)))
+Base.show(io::IO, x::GAPGroup) = print(io, GAP.gap_to_julia(GAP.Globals.StringViewObj(x.X)))
 
 Base.isone(x::GAPGroupElem) = x == one(parent(x))
 
@@ -406,9 +404,9 @@ end
 Base.hash(x::GroupConjClass) = 0 # FIXME
 
 function Base.show(io::IO, x::GroupConjClass)
-  print(io, GAP.gap_to_julia(GAP.Globals.StringView(x.repr)),
+  print(io, GAP.gap_to_julia(GAP.Globals.StringViewObj(x.repr)),
             " ^ ",
-            GAP.gap_to_julia(GAP.Globals.StringView(x.X)))
+            GAP.gap_to_julia(GAP.Globals.StringViewObj(x.X)))
 end
 
 function _conjugacy_class(G, g, cc::GapObj)         # function for assignment
@@ -473,8 +471,9 @@ false, nothing
 ```
 """
 function isconjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
-   if GAP.Globals.IsConjugate(G.X, x.X, y.X)
-      return true, group_element(G,GAP.Globals.RepresentativeAction(G.X, x.X, y.X))
+   conj = GAP.Globals.RepresentativeAction(G.X, x.X, y.X)
+   if conj != GAP.Globals.fail
+      return true, group_element(G, conj)
    else
       return false, nothing
    end
@@ -535,8 +534,9 @@ false, nothing
 ```
 """
 function isconjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup)
-   if GAP.Globals.IsConjugate(G.X, H.X, K.X)
-      return true, group_element(G,GAP.Globals.RepresentativeAction(G.X, H.X, K.X))
+   conj = GAP.Globals.RepresentativeAction(G.X, H.X, K.X)
+   if conj != GAP.Globals.fail
+      return true, group_element(G, conj)
    else
       return false, nothing
    end
@@ -713,10 +713,12 @@ Return (``true``,``p``) if |`G`| is a non-trivial ``p``-power, (``false``,nothin
 """
 function ispgroup(G::GAPGroup)
    if GAP.Globals.IsPGroup(G.X)
-      return true, GAP.Globals.PrimePGroup(G.X)
-   else
-      return false, nothing
+      p = GAP.Globals.PrimePGroup(G.X)
+      if p != GAP.Globals.fail
+         return true, p
+      end
    end
+   return false, nothing
 end
 
 function relators(G::FPGroup)
