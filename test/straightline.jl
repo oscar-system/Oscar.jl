@@ -998,6 +998,15 @@ end
     p = y[x[3]]
     @test evaluate(p, Any[[1, 2, 4], 1:4]) == 4
 
+    p = SL.slpcst([10, 20, 30])[2]
+    @test evaluate(p, []) == 20
+    p = SL.list([X, Y, SL.slpcst(30)])
+    @test p isa SLProgram
+    @test p[2] isa SLProgram
+    @test p[3] isa SLProgram
+    @test evaluate(p[2], [10, 20]) == 20
+    @test evaluate(p[0x3], [10, 20]) == 30
+
     # multi-indices
     p = y[x, 2, 1]
     @test evaluate(p, [3, reshape(1:27, 3, 3, 3)]) == 6

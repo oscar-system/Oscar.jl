@@ -654,6 +654,17 @@ Base.getindex(p::SLProgram, q::SLProgram) = getindex!(copy_jointype(p, q), q)
 -(p::SLProgram, q) = combine(minus, p, q)
 -(p, q::SLProgram) = combine(minus, p, q)
 
+function getindex!(p::SLProgram, i::Integer)
+    if hasmultireturn(p)
+        pushfinalize!(p, asregister(i))
+    else
+        a = pushinit!(p)
+        k = pushop!(p, getindex_, a, pushint!(p, i))
+        pushfinalize!(p, k)
+    end
+end
+
+Base.getindex(p::SLProgram, i::Integer) = getindex!(copy(p), i)
 
 ## conversion SLProgram -> Lazy
 
