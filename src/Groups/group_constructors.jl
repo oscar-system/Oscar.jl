@@ -56,6 +56,8 @@ end
 
 function issymmetric_group(G::GAPGroup)
   return GAP.Globals.IsSymmetricGroup(G.X)
+#T perhaps rather GAP.Globals.IsNaturalSymmetricGroup(G.X),
+#T or even something else?
 end
 
 """
@@ -74,6 +76,8 @@ end
 
 function isalternating_group(G::GAPGroup)
   return GAP.Globals.IsAlternatingGroup(G.X)
+#T perhaps rather GAP.Globals.IsNaturalAlternatingGroup(G.X),
+#T or even something else?
 end
 
 cyclic_group(n::Int) = cyclic_group(PcGroup, n)
