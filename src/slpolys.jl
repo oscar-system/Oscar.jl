@@ -11,6 +11,8 @@ SLPolyRing(r::Ring, s::Union{AbstractVector{<:AbstractString},
                              AbstractVector{<:AbstractChar}}) =
                                  SLPolyRing(r, Symbol.(s))
 
+SLPolyRing(r::Ring, n::Integer) = SLPolyRing(r, [Symbol("x$i") for i=1:n])
+
 base_ring(S::SLPolyRing) = S.base_ring
 
 symbols(S::SLPolyRing) = S.S

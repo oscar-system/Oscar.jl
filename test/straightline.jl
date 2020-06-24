@@ -251,6 +251,20 @@ end
         @test parent(y) == S3
     end
 
+    S4 = SLPolyRing(zz, 3)
+    @test S4 isa SLPolyRing{Int}
+    @test ngens(S4) == 3
+    X = gens(S4)
+    @test length(X) == 3
+    @test string.(X) == ["x1", "x2", "x3"]
+
+    S4, X = SL.PolynomialRing(zz, 0x2)
+    @test S4 isa SLPolyRing{Int}
+    @test ngens(S4) == 2
+    X = gens(S4)
+    @test length(X) == 2
+    @test string.(X) == ["x1", "x2"]
+
     s1 = one(S)
     @test s1 == 1
     @test s1 isa SLPoly{Int}
