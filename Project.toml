@@ -1,6 +1,12 @@
 name = "Oscar"
 uuid = "f1435218-dba5-11e9-1e4d-f1a5fab5fc13"
-authors = ["William Hart <goodwillhart@googlemail.com>"]
+authors = [
+  "Claus Fieker <fieker@mathematik.uni-kl.de>",
+  "Giovanni De Franceschi <franceschi@mathematik.uni-kl.de>",
+  "Johannes Schmitt <schmitt@mathematik.uni-kl.de>",
+  "Max Horn <horn@mathematik.uni-kl.de>",
+  "William Hart <goodwillhart@googlemail.com>",
+  ]
 version = "0.3.0"
 
 [deps]
