@@ -13,6 +13,11 @@ SLPolyRing(r::Ring, s::Union{AbstractVector{<:AbstractString},
 
 SLPolyRing(r::Ring, n::Integer) = SLPolyRing(r, [Symbol("x$i") for i=1:n])
 
+# cf. mpoly.jl in Oscar
+SLPolyRing(r::Ring, v::Pair{<:Union{String,Symbol},
+                            <:AbstractVector{<:Integer}}...) =
+    SLPolyRing(r, [Symbol(s, n) for (s, ns) in v for n in ns])
+
 base_ring(S::SLPolyRing) = S.base_ring
 
 symbols(S::SLPolyRing) = S.S
@@ -36,6 +41,26 @@ nvars(S::SLPolyRing) = ngens(S)
 function PolynomialRing(R::Ring, s)
     S = SLPolyRing(R, s)
     S, gens(S)
+end
+
+function PolynomialRing(R::Ring, v::Pair{<:Union{String,Symbol},
+                                         <:AbstractVector{<:Integer}}...)
+    S = SLPolyRing(R, v...)
+
+    # TODO: enable on Julia 1.5 (required for init keyword)
+    # rs = Iterators.accumulate(v; init=0:0) do x, a
+    #     last(x)+1:last(x)+length(a[2])
+    # end
+    rs = []
+    prev = 0
+    for a in v
+        newprev = prev+length(a[2])
+        push!(rs, prev+1:newprev)
+        prev = newprev
+    end
+
+    gs = gens(S)
+    S, (gs[r] for r in rs)...
 end
 
 Base.one(S::SLPolyRing) = S(one(base_ring(S)))

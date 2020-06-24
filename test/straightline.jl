@@ -265,6 +265,18 @@ end
     @test length(X) == 2
     @test string.(X) == ["x1", "x2"]
 
+    S5 = SLPolyRing(zz, :x => 1:3, :y => [2, 4])
+    @test S5 isa SLPolyRing{Int}
+    XS = gens(S5)
+    @test string.(XS) == ["x1", "x2", "x3", "y2", "y4"]
+
+    S5, X, Y = SL.PolynomialRing(zz, :x => 1:3, "y" => [2, 4])
+    @test S5 isa SLPolyRing{Int}
+    XS = gens(S5)
+    @test string.(XS) == ["x1", "x2", "x3", "y2", "y4"]
+    @test X == XS[1:3]
+    @test Y == XS[4:5]
+
     s1 = one(S)
     @test s1 == 1
     @test s1 isa SLPoly{Int}
