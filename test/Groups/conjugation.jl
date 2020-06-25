@@ -4,16 +4,16 @@
   
   cc = conjugacy_class(G, G[1])
   cc1 = conjugacy_class(G, G[1]^G[2])
-  @test order(cc) == order(cc1)
+  @test length(cc) == length(cc1)
   @test cc == cc1
   
   ccid = conjugacy_class(G,one(G))
-  @test order(ccid)==1
+  @test length(ccid)==1
   @test elements(ccid) == [one(G)]
   
   x = perm(G,vcat(2:n,[1]))
   cc = conjugacy_class(G,x)
-  @test order(cc) == factorial(n-1)
+  @test length(cc) == factorial(n-1)
   @test x == representative(cc)
   y = rand(cc)
   @test order(y) == order(x)
@@ -30,7 +30,7 @@
   x = perm(G,[3,4,1,2])
   cc = conjugacy_class(G,x)
 
-  @test order(cc) == 3
+  @test length(cc) == 3
   @test Set(elements(cc)) == Set([x^y for y in G])
   y = rand(cc)
   @test y in elements(cc)
@@ -39,7 +39,7 @@
   C = conjugacy_classes(G)
   @test length(C) == 5
   @test cc in C
-  @test sum([order(c) for c in C]) == order(G)
+  @test sum([length(c) for c in C]) == order(G)
   @test sum([x in elements(c) for c in C]) == 1          # x belongs to a unique conjugacy class
   @test sum([y in elements(c) for c in C]) == 1          # x belongs to a unique conjugacy class
   z = rand(G)
@@ -59,10 +59,10 @@
   @test length(CC)==11
   @testset for i in 1:length(CC)
      @test CC[i] == conjugacy_class(G,representative(CC[i]))
-     @test order(CC[i]) == index(G, normalizer(G,representative(CC[i]))[1])
+     @test length(CC[i]) == index(G, normalizer(G,representative(CC[i]))[1])
   end
   H=rand(subgroups(G))
-  @test sum([order(c) for c in CC]) == length(subgroups(G))
+  @test sum([length(c) for c in CC]) == length(subgroups(G))
   @test sum([H in elements(c) for c in CC]) == 1         # H belongs to a unique conjugacy class
   @testset for i in 1:length(CC)
      c = CC[i]
@@ -87,7 +87,7 @@ end
 function TestConjCentr(G,x)
    Cx = centralizer(G,x)[1]
    cc = conjugacy_class(G,x)
-   @test index(G,Cx)==order(cc)
+   @test index(G,Cx)==length(cc)
    T=right_transversal(G,Cx)
    @testset for y in elements(cc)
        @test sum([y==x^t for t in T])==1
@@ -95,7 +95,7 @@ function TestConjCentr(G,x)
    
    cs = conjugacy_class(G,Cx)
    Nx = normalizer(G,Cx)[1]
-   @test index(G,Nx)==order(cs)
+   @test index(G,Nx)==length(cs)
    T=right_transversal(G,Nx)
    # Set([Cx^t for t in T]) == Set(elements(cs)) does not work
    @testset for H in elements(cs)
