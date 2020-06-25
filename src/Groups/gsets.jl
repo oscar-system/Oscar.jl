@@ -11,6 +11,41 @@ export
     transitivity
 
 
+# G-sets are "sets" (in a very general sense, these do not need to be objects of type `Set`)
+# with an action by a group G::T.
+# Alternatively one can define G-sets as a union of G-orbits.
+# Potential examples include:
+# - orbits of integers under a permutation
+# - conjugacy classes of group elements
+# - conjugacy classes of subgroups
+# - block system
+abstract type GSet{T} end
+
+# TODO: add lots of concrete subtypes constructors, e.g. for
+# - regular action of a group on itself
+# - action of a perm group on its moved points
+# - ...
+
+
+Base.length(C::GSet) = error("not implemented")
+representative(C::GSet) = error("not implemented")
+elements(C::GSet) = error("not implemented")
+acting_domain(C::GSet) = error("not implemented")
+# TODO:
+# - Base.iterate
+
+
+blocks(G::GSet) = error("not implemented")
+maximal_blocks(G::GSet) = error("not implemented")
+representatives_minimal_blocks(G::GSet) = error("not implemented")
+allblocks(G::GSet) = error("not implemented")
+
+istransitive(G::GSet) = error("not implemented")
+isprimitive(G::GSet) = error("not implemented")
+isregular(G::GSet) = error("not implemented")
+issemiregular(G::GSet) = error("not implemented")
+
+
 """
     blocks(G::PermGroup, L::AbstractVector{Int})
 Return a block system for the action of `G` over `L`, i.e. a minimal non-trivial partition of `L` preserved by the action of `G`. Here, `L` must be a subvector of [1..deg(`G`)] and it is considered only the action of `H` on `L`, where `H` is the subgroup of `G` that moves only points in `L`. If this action is not transitive, then an ERROR is returned. If `L` is not specified, then `L` is taken as the set of moved points by `G`.
