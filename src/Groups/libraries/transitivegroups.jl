@@ -1,12 +1,8 @@
 export
     all_transitive_groups,
-    istransitive,
-    isregular,
-    issemiregular,
     number_transitive_groups,
     transitive_group,
-    transitive_identification,
-    transitivity
+    transitive_identification
     
 
 """
@@ -29,35 +25,6 @@ end
 Return (`deg`, `m`), where `G` = transitive_group(`deg`,`m`).
 """
 transitive_identification(G::PermGroup) = GAP.Globals.TransitiveIdentification(G.X)
-
-"""
-    transitivity(G::PermGroup, L::AbstractVector{Int})
-Return the maximum `k` such that the action of `G` over `L` is `k`-transitive. The output is ``0`` if `G` is not transitive. If `L` is not specified, then `L` is taken as [1,...,deg(`G`)].
-"""
-transitivity(G::PermGroup, L::AbstractVector{Int}) = GAP.Globals.Transitivity(G.X, GAP.julia_to_gap(L))
-transitivity(G::PermGroup) = GAP.Globals.Transitivity(G.X, GAP.julia_to_gap(1:G.deg))
-
-"""
-    istransitive(G::PermGroup, L::AbstractVector{Int})
-Return whether the action of the group `G` on `L` is transitive. If `L` is not specified, then `L` is taken as [1,...,deg(`G`)].
-"""
-istransitive(G::PermGroup, L::AbstractVector{Int}) = GAP.Globals.IsTransitive(G.X, GAP.julia_to_gap(L))
-istransitive(G::PermGroup) = GAP.Globals.IsTransitive(G.X, GAP.julia_to_gap(1:G.deg))
-
-"""
-    isregular(G::PermGroup, L::AbstractVector{Int})
-Return whether the action of the group `G` on `L` is regular (i.e. transitive and semiregular). If `L` is not specified, then `L` is taken as [1,...,deg(`G`)].
-"""
-isregular(G::PermGroup, L::AbstractVector{Int}) = GAP.Globals.IsRegular(G.X, GAP.julia_to_gap(L))
-isregular(G::PermGroup) = GAP.Globals.IsRegular(G.X, GAP.julia_to_gap(1:G.deg))
-
-"""
-    issemiregular(G::PermGroup, L::AbstractVector{Int})
-Return whether the action of the group `G` on `L` is semiregular (i.e. the stabilizer of each point is the identity). If `L` is not specified, then `L` is taken as [1,...,deg(`G`)].
-"""
-issemiregular(G::PermGroup, L::AbstractVector{Int}) = GAP.Globals.IsSemiRegular(G.X, GAP.julia_to_gap(L))
-issemiregular(G::PermGroup) = GAP.Globals.IsSemiRegular(G.X, GAP.julia_to_gap(1:G.deg))
-
 
 """
     all_transitive_groups(L...)

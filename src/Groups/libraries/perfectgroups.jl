@@ -4,7 +4,6 @@ export
     perfect_identification
     
 
-
 ###################################################################
 # Perfect groups
 ###################################################################
@@ -40,6 +39,3 @@ perfect_identification(G::GAPGroup) = GAP.gap_to_julia(GAP.Globals.PerfectIdenti
 Return the number of perfect groups of order `n`.
 """
 number_perfect_groups(n::Int) = GAP.Globals.NumberPerfectGroups(n)
-
-
-
