@@ -415,7 +415,7 @@ end
 
 ==(a::GroupConjClass{T, S}, b::GroupConjClass{T, S}) where S where T = a.CC == b.CC 
 
-order(C::GroupConjClass) = GAP.Globals.Size(C.CC)
+Base.length(C::GroupConjClass) = GAP.Globals.Size(C.CC)
 
 representative(C::GroupConjClass) = C.repr
 
