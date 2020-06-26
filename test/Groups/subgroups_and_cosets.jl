@@ -135,6 +135,7 @@ end
    @test index(G, H) == 4
   
    C = right_coset(H, G[1])
+   @test isright(C)
    @test order(C) == length(elements(C))
   
    @test length(right_transversal(G, H)) == index(G, H)
@@ -154,6 +155,9 @@ end
       rc = right_coset(H,x)
       lc = left_coset(H,x)
       dc = double_coset(H,x,K)
+      @test rc==H*x
+      @test lc==x*H
+      @test dc==H*x*K
       @test acting_domain(rc) == H
       @test acting_domain(lc) == H
       @test left_acting_group(dc) == H
@@ -176,6 +180,15 @@ end
       @test issubset(rc,dc)
       @test issubset(left_coset(K,x),dc)
       @test !isbicoset(rc)
+
+      @test rc == H*x
+      @test lc == x*H
+      @test dc == H*x*K
+      @test rc*y == H*(x*y)
+      @test lc*y == (x*y)*H^y
+      @test y*rc == H^(y^-1)*(y*x)
+      @test y*lc == (y*x)*H
+      @test rc*lc == double_coset(H,x^2,H)
    end
 
    H = sub(G, [cperm(G,[1,2,3]), cperm(G,[2,3,4])])[1]
