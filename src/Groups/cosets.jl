@@ -4,6 +4,8 @@ export
     double_cosets,
     elements,
     isbicoset,
+    isleft,
+    isright,
     left_acting_group,
     left_coset,
     left_cosets,
@@ -17,9 +19,9 @@ export
 # T=type of the group, S=type of the element
 """
     GroupCoset{T<: Group, S <: GAPGroupElem}
-Group coset. It is displayed as `H * x` (right cosets) or `x * H` (left cosets), where `H` is a subgroup of a group `G` and `x` is an element of `G`. Two cosets are equal if, and only if, they are both left (resp. right) and they contain the same elements.
+Type of group cosets. It is displayed as `H * x` (right cosets) or `x * H` (left cosets), where `H` is a subgroup of a group `G` and `x` is an element of `G`. Two cosets are equal if, and only if, they are both left (resp. right) and they contain the same elements.
 """
-mutable struct GroupCoset{T<: GAPGroup, S <: GAPGroupElem} 
+struct GroupCoset{T<: GAPGroup, S <: GAPGroupElem} 
    G::T                    # big group containing the subgroup and the element
    H::T                    # subgroup
    repr::S                 # element
@@ -37,8 +39,10 @@ function ==(x::GroupCoset, y::GroupCoset)
    return x.X == y.X && x.side == y.side
 end
 
+
 """
     right_coset(H::Group, g::GAPGroupElem)
+    *(H::Group, g::GAPGroupElem)
 Return the coset `Hg`.
 """
 function right_coset(H::GAPGroup, g::GAPGroupElem)
@@ -50,8 +54,11 @@ function right_coset(H::GAPGroup, g::GAPGroupElem)
 end
 
 """
-    right_coset(H::Group, g::GAPGroupElem)
+    left_coset(H::Group, g::GAPGroupElem)
+    *(g::GAPGroupElem, H::Group)
 Return the coset `gH`.
+!!! note
+    Since GAP supports right cosets only, the underlying GAP object of `left_coset(H,g)` is the right coset `H^(g^-1) * g`.
 """
 function left_coset(H::GAPGroup, g::GAPGroupElem)
    @assert elem_type(H) == typeof(g)
@@ -65,11 +72,51 @@ function show(io::IO, x::GroupCoset)
    a = GAP.gap_to_julia(GAP.Globals.StringViewObj(x.H.X))
    b = GAP.gap_to_julia(GAP.Globals.StringViewObj(x.repr.X))
    if x.side == :right
-      print(io, a, " * ", b)
+      print(io, "Right coset   ", a, " * ", b)
    else
-      print(io, b, " * ", a)
+      print(io, "Left coset   ", b, " * ", a)
    end
    return nothing
+end
+
+"""
+    isleft(c::GroupCoset)
+Return whether the coset `c` is a left coset of its acting domain.
+"""
+isleft(c::GroupCoset) = c.side == :left
+
+"""
+    isright(c::GroupCoset)
+Return whether the coset `c` is a right coset of its acting domain.
+"""
+isright(c::GroupCoset) = c.side == :right
+
+Base.:*(H::GAPGroup, g::GAPGroupElem) = right_coset(H,g)
+Base.:*(g::GAPGroupElem, H::GAPGroup) = left_coset(H,g)
+
+function Base.:*(c::GroupCoset, y::GAPGroupElem)
+   @assert y in c.G "element not in the group"
+   if c.side == :right
+      return right_coset(c.H, c.repr*y)
+   else
+      return left_coset(c.H^y, c.repr*y)
+   end
+end
+
+function Base.:*(y::GAPGroupElem, c::GroupCoset)
+   @assert y in c.G "element not in the group"
+   if c.side == :left
+      return left_coset(c.H, y*c.repr)
+   else
+      return right_coset(c.H^(y^-1), y*c.repr)
+   end
+end
+
+function Base.:*(c::GroupCoset, d::GroupCoset)
+   if c.side != :right || d.side != :left
+      throw(ArgumentError("Wrong input"))
+   end
+   return double_coset(c.H, c.repr*d.repr, d.H)
 end
 
 """
@@ -173,7 +220,7 @@ end
 Group double coset. It is displayed as `H * x * K`, where `H` and `K` are subgroups of a group `G` and `x` is an element of `G`. Two double cosets are equal if, and only if, they contain the same elements.
 """
 # T=type of the group, S=type of the element
-mutable struct GroupDoubleCoset{T <: GAPGroup, S <: GAPGroupElem}
+struct GroupDoubleCoset{T <: GAPGroup, S <: GAPGroupElem}
    G::T
    H::T
    K::T
@@ -195,8 +242,10 @@ function Base.show(io::IO, x::GroupDoubleCoset)
             GAP.gap_to_julia(GAP.Globals.StringViewObj(x.K.X)))
 end
 
+
 """
     double_coset(H::Group, x::GAPGroupElem, K::Group)
+    *(H::Group, x::GAPGroupElem, K::Group)
 returns the double coset `HxK`.
 """
 function double_coset(G::T, g::GAPGroupElem{T}, H::T) where T<: GAPGroup
@@ -210,6 +259,8 @@ function double_coset(G::T, g::GAPGroupElem{T}, H::T) where T<: GAPGroup
    end
    return GroupDoubleCoset(parent(g),G,H,g,GAP.Globals.DoubleCoset(G.X,g.X,H.X))
 end
+
+Base.:*(H::GAPGroup, g::GAPGroupElem, K::GAPGroup) = double_coset(H,g,K)
 
 """
     double_cosets(G::T, H::T, K::T; NC=false) where T<: GAPGroup
