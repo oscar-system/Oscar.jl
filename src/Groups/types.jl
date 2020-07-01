@@ -62,7 +62,8 @@ export
     PcGroupElem,
     PermGroup,
     PermGroupElem,
-    SemidirectProductOfGroups
+    SemidirectProductOfGroups,
+    WreathProduct
 
 """
 TODO: document this
@@ -218,6 +219,62 @@ struct DirectProductOfGroups{S<:GAPGroup, T<:GAPGroup} <: GAPGroup
 end
 
 
+################################################################################
+#
+#  Group Homomorphism
+#
+################################################################################
+
+struct GAPGroupHomomorphism{S<: GAPGroup, T<: GAPGroup}
+   domain::S
+   codomain::T
+   map::GapObj
+end
+
+
+################################################################################
+#
+#  Composite Groups
+#
+################################################################################
+
+
+"""
+    SemidirectProductOfGroups{S,T}
+Semidirect product of two groups of type `S` and `T` respectively, or subgroup of a semidirect product of groups.
+"""
+struct SemidirectProductOfGroups{S<:GAPGroup, T<:GAPGroup} <: GAPGroup 
+  X::GapObj
+  G1::S
+  G2::T
+  f::GAPGroupHomomorphism{S,AutomorphismGroup{T}}
+  Xfull::GapObj         # full semidirect product: X is a subgroup of Xfull. 
+  isfull::Bool     # true if X==Xfull
+
+  function SemidirectProductOfGroups(G::GapObj, G1::S, G2::T, f, Xf::GapObj, isf::Bool) where S where T
+    z = new{S,T}(G,G1,G2,f,Xf,isf)
+    return z
+  end
+end
+
+"""
+    WreathProduct
+Wreath product of a group `G` and a group of permutations `H`.
+"""
+struct WreathProduct <: GAPGroup
+  X::GapObj
+  G::GAPGroup
+  H::PermGroup
+  Xfull::GapObj            # if H does not move all the points, this is the wreath product of (G, Sym(deg(H))
+  isfull::Bool             # true if Xfull == X
+
+  function WreathProduct(X::GapObj, G::GAPGroup, H::PermGroup, Xf::GapObj, isf::Bool)
+     z = new(X,G,H,Xf,isf)
+     return z
+  end
+end
+
+
 """
 TODO: document this
 
@@ -248,32 +305,4 @@ function _get_type(G::GapObj)
   error("Not a known type of group")
 end
 
-################################################################################
-#
-#  Group Homomorphism
-#
-################################################################################
 
-struct GAPGroupHomomorphism{S<: GAPGroup, T<: GAPGroup}
-   domain::S
-   codomain::T
-   map::GapObj
-end
-
-
-"""
-    SemidirectProductOfGroups{S,T}
-Semidirect product of two groups of type `S` and `T` respectively, or subgroup of a semidirect product of groups.
-"""
-struct SemidirectProductOfGroups{S<:GAPGroup, T<:GAPGroup} <: GAPGroup 
-  X::GapObj
-  G1::S
-  G2::T
-  f::GAPGroupHomomorphism{S,AutomorphismGroup{T}}
-  IsFull::Bool     # true if it is G1xG2; false if it is a proper subgroup of G1xG2
-
-  function SemidirectProductOfGroups(G::GapObj, G1::S, G2::T, f, isf::Bool) where S where T
-    z = new{S,T}(G,G1,G2,f,isf)
-    return z
-  end
-end
