@@ -18,8 +18,7 @@ export
     normal_subgroups,
     order,
     quo,
-    sub,
-    wreath_product
+    sub
 
 ################################################################################
 #
@@ -357,20 +356,6 @@ function intersect(V::AbstractVector{T}) where T<:GAPGroup
    K = _as_subgroup(V[1], K)[1]
    Arr = Tuple(vcat([K],Embds))
    return Arr
-end
-
-
-################################################################################
-#
-#  Wreath Product
-#
-################################################################################
-
-#To be done properly
-function wreath_product(G::GAPGroup, H::PermGroup)
-  wGH = GAP.Globals.WreathProduct(G.X, H.X)
-  T = _get_type(wGH)
-  return T(wGH)
 end
 
 

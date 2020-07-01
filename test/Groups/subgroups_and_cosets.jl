@@ -89,8 +89,8 @@ end
    end
    @test x in Cx
    @test one(G) in Cx
-   @test isisomorphic(Cx, direct_product(symmetric_group(2),symmetric_group(4))[1])[1]
-   @test isisomorphic(Cy, direct_product(sub(G,[y])[1], symmetric_group(2))[1])[1]
+   @test isisomorphic(Cx, direct_product(symmetric_group(2),symmetric_group(4)))[1]
+   @test isisomorphic(Cy, direct_product(sub(G,[y])[1], symmetric_group(2)))[1]
 
    Nx = normalizer(G,Cx)[1]
    Ny = normalizer(G,Cy)[1]

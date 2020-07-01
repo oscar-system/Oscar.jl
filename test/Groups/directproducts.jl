@@ -1,7 +1,7 @@
 @testset "Directproducts" begin
    S = symmetric_group(4)
    C = abelian_group(PcGroup, [2,2])
-   G = directproduct(S,C)
+   G = direct_product(S,C)
 
    @test G isa DirectProductOfGroups
    @test order(G)==order(S)*order(C)
@@ -40,9 +40,65 @@
    P1=sylow_subgroup(S,2)[1]
    P2=sylow_subgroup(C,2)[1]
    P=sylow_subgroup(G,2)[1]
-   PP=directproduct(P1,P2)
+   PP=direct_product(P1,P2)
    @test order(P)==order(P1)*order(P2)
    @test isconjugate(G,P,PP)[1]
    x = isconjugate(G,P,PP)[2]
    @test P^x==PP
+end
+
+@testset "Semidirectproducts" begin
+   Q=quaternion_group(8)
+   C=cyclic_group(2)
+   A=automorphism_group(Q)
+   au=A(hom(Q,Q,[Q[1],Q[2]],[Q[1]^3,Q[2]^3]))
+   f = hom(C,A,[C[1]],[au])
+
+   G = semidirect_product(C,f,Q)
+   @test G isa SemidirectProductOfGroups{PcGroup,PcGroup}
+   @test order(G)==16
+   @test isfull_semidirect_product(G)
+   x = G(C[1],Q[1]*Q[2])
+   @test parent(x)==G
+   H = sub(G,[x])[1]
+   @test issubgroup(G,H)[1]
+   @test index(G,H)==4
+   @test !isfull_semidirect_product(H)
+   @test projection(G)(x)==projection(H)(x)
+   @test H==centre(G)[1]
+   y=G(one(C),Q[1])
+   K = sub(G,[y])[1]
+   @test y == embedding(G,2)(Q[1])
+   @test_throws ArgumentError embedding(G,3)(Q[1])
+   @test codomain(projection(K))==C
+   @test order(image(projection(K))[1])==1
+   @test embedding(G,1)*projection(G)==id_hom(C)
+   @test image(embedding(G,2))[1]==kernel(projection(G))[1]
+end
+
+
+@testset "Wreathproducts" begin
+   C = cyclic_group(2)
+   H = sub(cperm([1,2,4]))[1]
+   W = wreath_product(C,H)
+
+   @test typeof(W)==WreathProduct
+   @test order(W)==2^4*3
+   @test !isabelian(W)
+   @test typeof(rand(W))==Oscar.GAPGroupElem{WreathProduct}
+   f1 = C[1]
+   x = W(f1,one(C),f1,one(C),cperm([1,4,2]))
+   @test embedding(W,1)(f1)==W(f1,one(C),one(C),one(C),one(H))
+   @test embedding(W,4)(f1)==W(one(C),one(C),one(C),f1,one(H))
+   @test_throws ArgumentError embedding(W,7)(f1) in W
+   @test embedding(W,5)(cperm([1,4,2]))==W(one(C),one(C),one(C),one(C),cperm([1,4,2]))
+   @test projection(W)(x)==cperm([1,4,2])
+   @test codomain(projection(W))==H
+   @test domain(embedding(W,2))==C
+   K = sub(W,[x])[1]
+   @test typeof(K)==WreathProduct
+   @test order(K)==6
+   @test iscyclic(K)
+   @test index(W,K)==8
+   @test_throws ArgumentError embedding(K,1)(f1) in K
 end

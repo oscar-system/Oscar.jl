@@ -140,30 +140,30 @@ end
 @testset "Direct product" begin
    C2 = cyclic_group(2)
    C4 = cyclic_group(4)
-   G = direct_product(C2,C4)[1]
+   G = direct_product(C2,C4)
    TestDirectProds(C2,C4)
    @test order(G)==8
    @test isabelian(G)
    @test !iscyclic(G)
-   @test typeof(G)==PcGroup
+   @test typeof(G)==DirectProductOfGroups{PcGroup,PcGroup}
    @test Set([order(x) for x in G])==Set([1,2,4])
 
    C3 = cyclic_group(3)
    C7 = cyclic_group(7)
-   G = direct_product(C3,C7)[1]
+   G = direct_product(C3,C7)
    TestDirectProds(C3,C7)
    @test order(G)==21
    @test isabelian(G)
    @test iscyclic(G)
-   @test typeof(G)==PcGroup
+   @test typeof(G)==DirectProductOfGroups{PcGroup,PcGroup}
    @test Set([order(x) for x in G])==Set([1,3,7,21])
 
    S4 = symmetric_group(4)
    A5 = alternating_group(5)
-   G = direct_product(S4,A5)[1]
+   G = direct_product(S4,A5)
    TestDirectProds(S4,A5)
    @test order(G)==1440
-   @test typeof(G)==PermGroup
+   @test typeof(G)==DirectProductOfGroups{PermGroup,PermGroup}
 end
 
 TestKernels = function(G,H,f)
@@ -275,7 +275,7 @@ end
 
 @testset "Other automorphisms groups" begin
    C = cyclic_group(3)
-   G = direct_product(C,C)[1]
+   G = direct_product(C,C)
    A = automorphism_group(G)
 
    @test isisomorphic(A,GL(2,3))[1]
