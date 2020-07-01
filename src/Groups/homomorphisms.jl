@@ -60,12 +60,26 @@ function compose(g::GAPGroupHomomorphism{T, U}, f::GAPGroupHomomorphism{S, T}) w
   return GAPGroupHomomorphism{S, U}(dom, cod, mp)
 end
 
+(g::GAPGroupHomomorphism{T, U})(f::GAPGroupHomomorphism{S, T}) where {S,T,U} = compose(g,f)
+
+"""
+    id_hom(G::GAPGroup)
+Return the identity homomorphism on the group `G`.
+"""
 function id_hom(G::GAPGroup)
   return hom(G, G, x -> x)
 end
 
+"""
+    trivial_morphism(G::GAPGroup, H::GAPGroup)
+Return the homomorphism from `G` to `H` sending every element of `G` into the identity of `H`. If `H` is not specified, it is taken equal to `G`.
+"""
 function trivial_morphism(G::GAPGroup, H::GAPGroup)
   return hom(G, H, x -> one(H))
+end
+
+function trivial_morphism(G::GAPGroup)
+  return hom(G, G, x -> one(G))
 end
 
 function _hom_from_gap_map(G::GAPGroup, H::GAPGroup, mp::GapObj)
@@ -155,7 +169,7 @@ function isinvertible(f::GAPGroupHomomorphism)
 end
 
 """
-    isnijective(f::GAPGroupHomomorphism)
+    isbijective(f::GAPGroupHomomorphism)
 Return whether `f` is bijective.
 """
 function isbijective(f::GAPGroupHomomorphism)
@@ -355,6 +369,10 @@ function inner_automorphisms_group(A::AutomorphismGroup{T}) where T <: GAPGroup
    return _as_subgroup(A, AutGAP)
 end
 
+"""
+    isinvariant(f::GAPGroupElem{AutomorphismGroup{T}}, H::T)
+Return whether `f`(`H`) == `H`.
+"""
 function isinvariant(f::GAPGroupElem{AutomorphismGroup{T}}, H::T) where T<:GAPGroup
   @assert GAP.Globals.IsSubset(parent(f).G.X, H.X) "Not a subgroup of the domain"
   return GAP.Globals.Image(f.X, H.X) == H.X
@@ -375,7 +393,7 @@ end
 induced_automorphism(f::GAPGroupHomomorphism, mH::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup = induced_automorphism(f,hom(mH))
 
 """
-    restrict_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, H::T) where T <: Group
+    restrict_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, H::T)
 If `H` is invariant under `f`, returns the restriction of `f` to `H` as automorphism of `H`; otherwise it returns ERROR.
 """
 function restrict_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, H::T, A=automorphism_group(H)) where T <: GAPGroup

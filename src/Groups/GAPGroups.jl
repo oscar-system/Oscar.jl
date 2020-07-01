@@ -172,13 +172,13 @@ end
 
 """
     one(G::Group) -> x::GAPGroupElem{typeof(G)}
-Return the one element of the group G.
+Return the identity of the group `G`.
 """
 Base.one(x::GAPGroup) = group_element(x, GAP.Globals.Identity(x.X))
 
 """
     one(x::GAPGroupElement{T}) -> x::GAPGroupElem{T}
-Return the one element of the parent of x.
+Return the identity of the parent group of x.
 """
 Base.one(x::GAPGroupElem) = one(parent(x))
 one!(x::GAPGroupElem) = one(parent(x))
@@ -239,16 +239,20 @@ end
 # need this function just for the iterator
 Base.length(x::GAPGroup)::Int = order(x)
 
-"""
-    perm(L::AbstractVector{<:Integer})
-Return the permutation `x` sending `i` into `L[i]` for every `i`. `L` must contain exactly one time every integer from 1 to n for n = length(`L`).
-The parent of `x` is set as Sym(n), where n is the largest moved point of `x`.
-"""
 # FIXME: clashes with AbstractAlgebra.perm method
 #function perm(L::AbstractVector{<:Base.Integer})
 #   return PermGroupElem(symmetric_group(length(L)), GAP.Globals.PermList(GAP.julia_to_gap(L)))
 #end
 # FIXME: use name gap_perm for now
+"""
+    gap_perm(L::AbstractVector{<:Integer})
+Return the permutation `x` which maps every `i` from `1` to `length(L)` to `L[i]`. `L` must contain every integer from 1 to `length(L)` exactly, otherwise an exception is thrown.
+The parent of `x` is set as Sym(`n`).
+```jldoctest
+julia> gap_perm([2,4,6,1,3,5])
+(1,2,4)(3,6,5)
+```
+"""
 function gap_perm(L::AbstractVector{<:Base.Integer})
   return PermGroupElem(symmetric_group(length(L)), GAP.Globals.PermList(GAP.julia_to_gap(L)))
 end
@@ -257,8 +261,12 @@ end
 """
     perm(G::PermGroup, L::AbstractVector{<:Integer})
     (G::PermGroup)(L::AbstractVector{<:Integer})
-Return the permutation `x` sending `i` into `L[i]` for every `i`. `L` must contain exactly one time every integer from 1 to n for n = length(`L`).
-The parent of `x` is `G`. If `x` is not in `G`, return ERROR.
+Return the permutation `x` which maps every `i` from `1` to `length(L)` to `L[i]`. `L` must contain every integer from 1 to `length(L)` exactly, otherwise an exception is thrown.
+The parent of `x` is `G`. If `x` is not contained in `G`, an ERROR is returned. For `gap_perm`, the parent group of `x` is set as Sym(`n`), where `n` is the largest moved point of `x`. Example:
+```jldoctest
+julia> perm(symmetric_group(6),[2,4,6,1,3,5])
+(1,2,4)(3,6,5)
+```
 """
 function perm(g::PermGroup, L::AbstractVector{<:Base.Integer})
    x = GAP.Globals.PermList(GAP.julia_to_gap(L))
@@ -280,11 +288,19 @@ end
 # takes as input a list of arrays (not necessarly disjoint)
 """
     cperm(L::AbstractVector{<:Integer}...)
+    cperm(G::PermGroup, L::AbstractVector{<:Integer}...)
 For given lists of positive integers `[a_1, a_2, ..., a_n],[b_1, b_2, ... , b_m], ...` return the
 permutation `x = (a_1,a_2,...,a_n)(b_1,b_2,...,b_m)...`. The array `[n,n+1,...,n+k]` can be replaced by `n:n+k`.
   
-If a list is empty or contains duplicates or holes, it fails.
-The parent of `x` is set as Sym(n), where n is the largest moved point of `x`.
+If a list is empty or contains duplicates, it fails.
+The parent of `x` is `G`. If `x` is not contained in `G`, an ERROR is returned. If `G` is not specified, then the parent of `x` is set as Sym(`n`), where `n` is the largest moved point of `x`. Example:
+```jldoctest;
+julia> cperm([1,2,3],4:7)
+(1,2,3)(4,5,6,7)
+
+julia> cperm([1,2],[2,3])
+(1,3,2)
+```
 """
 function cperm(L::AbstractVector{<:Base.Integer}...)
    if length(L)==0
@@ -297,15 +313,6 @@ end
 # cperm stays for "cycle permutation", but we can change name if we want
 # takes as input a list of arrays (not necessarly disjoint)
 # WARNING: we allow e.g. PermList([2,3,1,4,5,6]) in Sym(3)
-
-"""
-    cperm(G::PermGroup, L::Union{Array{Int64,1},UnitRange{Int64}}...)
-For given lists of positive integers `[a_1, a_2, ..., a_n],[b_1, b_2, ... , b_m], ...` return the
-permutation `(a_1,a_2,...,a_n)(b_1,b_2,...,b_m)...`. The array `[n,n+1,...,n+k]` can be replaced by `n:n+k`.
-  
-If a list is empty or contains duplicates or holes, it fails.
-The parent of `x` is G. If `x` is not in G, it return ERROR.
-"""
 function cperm(g::PermGroup,L::AbstractVector{<:Base.Integer}...)
    if length(L)==0
       return one(g)
@@ -319,7 +326,7 @@ end
 
 """
     listperm(x::PermGroupElem)
-Return the list L defined by L = [ `x`(i) for i in 1:n ], where Sym(n) = parent(`x`).
+Return the list L defined by L = [ `x`(i) for i in 1:n ], where `n` is the degree of `parent(x)`.
 """
 function listperm(x::PermGroupElem)
    return [x(i) for i in 1:x.parent.deg]
@@ -327,7 +334,7 @@ end
 
 """
     gens(G::Group)
-Return an array of generators of the group `G`.
+Return an array of generators of the group `G`. To access the array, it can be used the shorter notation `G[i]` instead of `gens(G)[i]`.
 """
 function gens(G::GAPGroup)
    L = GAP.Globals.GeneratorsOfGroup(G.X)
@@ -339,9 +346,8 @@ function gens(G::GAPGroup)
 end
 
 """
-
     gens(G::Group, i::Integer)
-Return the `i`-th element of the array gens(`G`). If `i` is greater than the length of gens(`G`), an ERROR is returned.
+Return the `i`-th element of the array gens(`G`). It is equivalent to `G[i]` and `gens(G)[i]`. If `i` is greater than the length of gens(`G`), an ERROR is returned.
 """
 function gens(G::GAPGroup, i::Int)
    L = GAP.Globals.GeneratorsOfGroup(G.X)

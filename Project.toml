@@ -11,6 +11,7 @@ version = "0.4.0"
 
 [deps]
 AbstractAlgebra = "c3fe647b-3220-5bb0-a1ea-a7954cac585d"
+DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
 GAP = "c863536a-3901-11e9-33e7-d5cd0df7b904"
 Hecke = "3e1990a7-5d81-5526-99ce-9ba3ff248f21"
 Markdown = "d6f4376e-aef5-505a-96c1-9c027394607a"
