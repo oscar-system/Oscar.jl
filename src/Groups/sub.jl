@@ -291,46 +291,6 @@ end
 
 ################################################################################
 #
-#  Direct Product
-# 
-################################################################################
-
-function direct_product(G::GAPGroup, H::GAPGroup, task::Symbol = :sum)
-  @assert task in [:prod, :sum, :both, :none]
-
-  GH_GAP = GAP.Globals.DirectProduct(G.X, H.X)
-  T = _get_type(GH_GAP)
-  GH = T(GH_GAP)
-  if task == :sum
-    mp1 = GAP.Globals.Embedding(GH_GAP, 1)
-    mp2 = GAP.Globals.Embedding(GH_GAP, 2)
-    map1 = _hom_from_gap_map(G, GH, mp1)    
-    map2 = _hom_from_gap_map(H, GH, mp2) 
-    return GH, map1, map2   
-  elseif task == :prod
-    mp11 = GAP.Globals.Projection(GH_GAP, 1)
-    mp21 = GAP.Globals.Projection(GH_GAP, 2)
-    map11 = _hom_from_gap_map(GH, G, mp11)    
-    map21 = _hom_from_gap_map(GH, H, mp21) 
-    return GH, map11, map21   
-  elseif task == :both
-    mp1 = GAP.Globals.Embedding(GH_GAP, 1)
-    mp2 = GAP.Globals.Embedding(GH_GAP, 2)
-    map1 = _hom_from_gap_map(G, GH, mp1)    
-    map2 = _hom_from_gap_map(H, GH, mp2) 
-    mp11 = GAP.Globals.Projection(GH_GAP, 1)
-    mp21 = GAP.Globals.Projection(GH_GAP, 2)
-    map11 = _hom_from_gap_map(GH, G, mp11)    
-    map21 = _hom_from_gap_map(GH, H, mp21) 
-    return GH, map1, map2, map11, map21
-  else
-    return GH
-  end
-end
-
-
-################################################################################
-#
 #  Intersection
 #
 ################################################################################
