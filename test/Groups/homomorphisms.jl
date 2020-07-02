@@ -134,7 +134,11 @@ end
 end
 
 TestDirectProds=function(G1,G2)
-   G,f1,f2,p1,p2 = direct_product(G1,G2, :both)
+   G = direct_product(G1,G2)
+   f1 = embedding(G,1)
+   f2 = embedding(G,2)
+   p1 = projection(G,1)
+   p2 = projection(G,2)
 
    @test isinjective(f1)
    @test isinjective(f2)

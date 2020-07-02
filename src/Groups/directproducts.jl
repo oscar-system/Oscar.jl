@@ -24,7 +24,8 @@ export
 Return the direct product of `G` and `H`, of type ``DirectProductOfGroups{S,T}``.
 """
 function direct_product(G::S, H::T) where S<:GAPGroup where T<:GAPGroup
-   return DirectProductOfGroups(GAP.Globals.DirectProduct(G.X,H.X), G,H,true)
+   X = GAP.Globals.DirectProduct(G.X,H.X)
+   return DirectProductOfGroups(X,G,H,X,true)
 end
 
 function factorofdirectproduct(G::DirectProductOfGroups, n::Base.Integer)
@@ -40,10 +41,8 @@ end
 Return the embedding of the `n`-th component of `G` into `G`, for `n` = 1,2.
 """
 function embedding(G::DirectProductOfGroups{S,T}, n::Base.Integer) where S where T
-   if !isfull_direct_product(G)
-      throw(ArgumentError("Embedding is not a group homomorphism"))
-   else
-      G=write_as_full(G)
+   if !G.isfull
+      throw(ArgumentError("Embedding is not defined for proper subgroups of direct products"))
    end
    if n==1
       f=GAP.Globals.Embedding(G.X,1)
@@ -63,24 +62,18 @@ end
     projection(G::DirectProductOfGroups{S,T}, n::Integer)
 Return the projection of `G` into the `n`-th component of `G`, for `n` = 1,2.
 """
-function projection(G::DirectProductOfGroups{S,T}, n::Base.Integer) where S where T
-   if !isfull_direct_product(G)
-      throw(ArgumentError("Projection is not a group homomorphism"))
+function projection(G::DirectProductOfGroups{S,T}, n::Base.Integer) where {S,T}
+  # @assert W.isfull "Projection not defined for proper subgroups of wreath products"
+   f=GAP.Globals.Projection(G.Xfull,n)
+   if n==1 H=G.G1 else H=G.G2 end
+   if !G.isfull
+      Gf = DirectProductOfGroups(G.Xfull,G.G1,G.G2,G.Xfull,true)
+      g = embedding(Gf,G)
+      p = g*GAPGroupHomomorphism{typeof(Gf),typeof(H)}(Gf,H,f)
    else
-      G=write_as_full(G)
+      p = GAPGroupHomomorphism{typeof(G),typeof(H)}(G,H,f)
    end
-   if n==1
-      f=GAP.Globals.Projection(G.X,1)
-      typeG=S
-      gr=G.G1
-   elseif n==2
-      f=GAP.Globals.Projection(G.X,2)
-      typeG=T
-      gr=G.G2
-   else
-      throw(ArgumentError("n must be 1 or 2"))
-   end
-   return GAPGroupHomomorphism{DirectProductOfGroups{S,T},typeG}(G,gr,f)
+   return hom(G,H,x->p(x))
 end
 
 function (G::DirectProductOfGroups{S,T})(x::GAPGroupElem{S}, y::GAPGroupElem{T}) where S where T
@@ -89,7 +82,8 @@ end
 
 # start part on subgroups
 function _as_subgroup_bare(G::DirectProductOfGroups{S,T}, H::GapObj) where { S , T }
-  return DirectProductOfGroups(H, G.G1, G.G2, false)
+  t = H==G.X
+  return DirectProductOfGroups(H, G.G1, G.G2, G.X, t)
 end
 
 function _as_subgroup(G::DirectProductOfGroups{S,T}, H::GapObj, ::Type{U}) where { T, S, U }
@@ -123,16 +117,20 @@ function sub(L::Vector{GAPGroupElem{DirectProductOfGroups{S,T}}}) where { S, T }
 end
 
 function Base.show(io::IO, x::DirectProductOfGroups)
-   if x.IsFull
+   if x.isfull
       print(io, "DirectProduct( ", GAP.gap_to_julia(GAP.Globals.StringView(x.G1.X)), " , ", GAP.gap_to_julia(GAP.Globals.StringView(x.G2.X))," )")
    else
-      print(io, GAP.gap_to_julia(GAP.Globals.StringView(x.X)))
+      print(io, GAP.gap_to_julia(GAP.Globals.StringViewObj(x.X)))
    end
 end
 
 # if a subgroup of a direct product of groups is also a direct product of groups
+"""
+    write_as_full(G::DirectProductOfGroups)
+If `G` is a subgroup of the direct products `G1 x G2`, return `H1 x H2` with `H1` (resp. `H2`) subgroup of `G1` (resp. `G2`) such that `G` = `H1 x H2`. If such `H1`, `H2` do not exist, an ERROR is returned.
+"""
 function write_as_full(G::DirectProductOfGroups)
-   if G.IsFull
+   if G.isfull
       return G
    else
       K = direct_product(G.G1,G.G2)
@@ -147,21 +145,11 @@ function write_as_full(G::DirectProductOfGroups)
    end
 end
 
-function isfull_direct_product(G::DirectProductOfGroups)
-   if G.IsFull
-      return true
-   else
-      K = direct_product(G.G1,G.G2)
-      K1 = image(projection(K,1),G)[1]
-      K2 = image(projection(K,2),G)[1]
-      H = direct_product(K1,K2)
-      if index(H,G)==1
-         return true
-      else
-         false
-      end
-   end
-end
+"""
+    isfull_direct_product(G::DirectProductOfGroups)
+If `G` is a subgroup of the direct products `G1 x G2`, return whether `G` can be written as `H1 x H2` with `H1` (resp. `H2`) subgroup of `G1` (resp. `G2`).
+"""
+isfull_direct_product(G::DirectProductOfGroups) = G.isfull
 
 Base.:^(H::DirectProductOfGroups, y::GAPGroupElem) = sub([h^y for h in gens(H)])[1]
 

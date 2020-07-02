@@ -188,6 +188,18 @@ TODO: document this
 """
 const FPGroupElem = GAPGroupElem{FPGroup}
 
+################################################################################
+#
+#  Group Homomorphism
+#
+################################################################################
+
+struct GAPGroupHomomorphism{S<: GAPGroup, T<: GAPGroup}
+   domain::S
+   codomain::T
+   map::GapObj
+end
+
 """
     AutomorphismGroup{T} <: GAPGroup
 Group of automorphisms over a group of type `T`. It can be defined via the function ``automorphism_group``.
@@ -202,6 +214,13 @@ struct AutomorphismGroup{T} <: GAPGroup
   end
 end
 
+################################################################################
+#
+#  Composite Groups
+#
+################################################################################
+
+
 """
     DirectProductOfGroups{S,T}
 Direct product of two groups of type `S` and `T` respectively, or subgroup of a direct product of groups.
@@ -210,33 +229,14 @@ struct DirectProductOfGroups{S<:GAPGroup, T<:GAPGroup} <: GAPGroup
   X::GapObj
   G1::S
   G2::T
-  IsFull::Bool     # true if it is G1xG2; false if it is a proper subgroup of G1xG2
+  Xfull::GapObj      # G1xG2
+  isfull::Bool     # true if it is G1xG2; false if it is a proper subgroup of G1xG2
 
-  function DirectProductOfGroups(G::GapObj, G1::S, G2::T, isf::Bool) where S where T
-    z = new{S,T}(G,G1,G2,isf)
+  function DirectProductOfGroups(G::GapObj, G1::S, G2::T, Xf::GapObj, isf::Bool) where S where T
+    z = new{S,T}(G,G1,G2,Xf,isf)
     return z
   end
 end
-
-
-################################################################################
-#
-#  Group Homomorphism
-#
-################################################################################
-
-struct GAPGroupHomomorphism{S<: GAPGroup, T<: GAPGroup}
-   domain::S
-   codomain::T
-   map::GapObj
-end
-
-
-################################################################################
-#
-#  Composite Groups
-#
-################################################################################
 
 
 """
