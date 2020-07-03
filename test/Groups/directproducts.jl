@@ -45,6 +45,17 @@
    @test isconjugate(G,P,PP)[1]
    x = isconjugate(G,P,PP)[2]
    @test P^x==PP
+
+   @test_throws ArgumentError as_perm_group(G)
+   G = direct_product(S,S)
+   @test G isa DirectProductOfGroups
+   @test as_perm_group(G) isa PermGroup
+   G = direct_product(C,C)
+   @test as_polycyclic_group(G) isa PcGroup
+   S=SL(2,3)
+   G = as_matrix_group(direct_product(S,S))
+   @test G isa MatrixGroup
+   @test dim(G)==4
 end
 
 @testset "Semidirectproducts" begin

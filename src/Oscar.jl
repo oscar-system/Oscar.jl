@@ -177,6 +177,7 @@ include("Rings/mpoly-graded.jl")
 include("Modules/FreeModules-graded.jl")
 include("Polymake/Ineq.jl")
 include("Polymake/NmbThy.jl")
+include("Groups/julia_GAP.jl")
 
 include("../StraightLinePrograms/src/StraightLinePrograms.jl")
 
