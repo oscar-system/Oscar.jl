@@ -5,6 +5,9 @@
 ################################################################################
 
 export
+    as_matrix_group,
+    as_perm_group,
+    as_polycyclic_group,
     direct_product,
     embedding,
     factorofdirectproduct,
@@ -34,6 +37,43 @@ function factorofdirectproduct(G::DirectProductOfGroups, n::Base.Integer)
    else throw(ArgumentError("n must be 1 or 2"))
    end
    return gr
+end
+
+"""
+    as_perm_group(G::DirectProductOfGroups)
+If `G` is direct product of two permutations groups, return `G` as permutation group.
+"""
+function as_perm_group(G::DirectProductOfGroups{S,T}) where { S, T }
+   if S==PermGroup && T==PermGroup
+      return PermGroup(G.X, GAP.Globals.Maximum(GAP.Globals.MovedPoints(G.X)))
+   else
+      throw(ArgumentError("The group is not a permutation group"))
+   end
+end
+
+"""
+    as_polycyclic_group(G::DirectProductOfGroups)
+If `G` is direct product of two polycyclic groups, return `G` as polycyclic group.
+"""
+function as_polycyclic_group(G::DirectProductOfGroups{S,T}) where { S, T }
+   if S==PcGroup && T==PcGroup
+      return PcGroup(G.X)
+   else
+      throw(ArgumentError("The group is not a polycyclic group"))
+   end
+end
+
+"""
+    as_matrix_group(G::DirectProductOfGroups)
+If `G` is direct product of two matrix groups over the ring `R` of dimension `n` and `m` respectively, return `G` as matrix group over the ring `R` of dimension `n+m`.
+"""
+function as_matrix_group(G::DirectProductOfGroups{S,T}) where { S, T }
+#   if S==MatrixGroup && T==MatrixGroup && GAP.Globals.FieldOfMatrixGroup(G.G1.X)==GAP.Globals.FieldOfMatrixGroup(G.G2.X)
+   if S==MatrixGroup && T==MatrixGroup && base_ring(G.G1)==base_ring(G.G2)
+      return MatrixGroup(G.X)
+   else
+      throw(ArgumentError("The group is not a matrix group"))
+   end
 end
 
 """
@@ -122,6 +162,10 @@ function Base.show(io::IO, x::DirectProductOfGroups)
    else
       print(io, GAP.gap_to_julia(GAP.Globals.StringViewObj(x.X)))
    end
+end
+
+function Base.show(io::IO, x::GAPGroupElem{DirectProductOfGroups{S,T}}) where { S, T }
+   print(io, "DirectProductElement( ", GAP.gap_to_julia(GAP.Globals.StringViewObj(projection(parent(x),1)(x).X)), " , ", GAP.gap_to_julia(GAP.Globals.StringViewObj(projection(parent(x),2)(x).X)), " )")
 end
 
 # if a subgroup of a direct product of groups is also a direct product of groups
