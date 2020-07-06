@@ -38,7 +38,7 @@ julia> using Oscar
  -----    -----    -----   -     -  -     -  
 
 ...combining (and extending) GAP, Hecke, Nemo, Polymake and Singular
-Version 0.3.0 ... 
+Version 0.4.0 ... 
  ... which comes with absolutely no warranty whatsoever
 Type: '?Oscar' for more information
 (c) 2019-2020 by The Oscar Development Team
