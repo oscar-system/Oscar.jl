@@ -8,6 +8,7 @@ export
     as_matrix_group,
     as_perm_group,
     as_polycyclic_group,
+    cartesian_power,
     direct_product,
     embedding,
     factorofdirectproduct,
@@ -29,6 +30,36 @@ Return the direct product of `G` and `H`, of type ``DirectProductOfGroups{S,T}``
 function direct_product(G::S, H::T) where S<:GAPGroup where T<:GAPGroup
    X = GAP.Globals.DirectProduct(G.X,H.X)
    return DirectProductOfGroups(X,G,H,X,true)
+end
+
+"""
+    direct_product(L::T...)
+    direct_product(L::AbstractVector{T})
+If `L` is a vector of groups of type `T`, returns the direct product of the groups in `L`, of type `T`.
+"""
+function direct_product(L::AbstractVector{T}) where T <: GAPGroup
+   Lgap = GAP.julia_to_gap([G.X for G in L])
+   X = GAP.Globals.DirectProduct(Lgap)
+   if T==PermGroup
+      n = GAP.Globals.NrMovedPoints(X)
+      return PermGroup(X,n)
+   else
+      return T(X)
+   end
+end
+
+function direct_product(L::T...) where T <:GAPGroup
+   return direct_product([x for x in L])
+end
+
+
+"""
+    cartesian_power(G::T, n::Int)
+Return the direct product of `n` copies of `G`, of type `T`.
+"""
+function cartesian_power(G::T, n::Base.Integer) where T <: GAPGroup
+   L = [G for i in 1:n]
+   return direct_product(L)
 end
 
 function factorofdirectproduct(G::DirectProductOfGroups, n::Base.Integer)
