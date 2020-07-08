@@ -7,7 +7,7 @@ module GaloisGrp
 using Oscar
 import Base: ^, +, -, *
 import Oscar: Hecke, AbstractAlgebra, GAP
-using StraightLinePrograms
+using Oscar.StraightLinePrograms
 
 export galois_group, isprimitive, istransitive, transitive_group_identification
 

@@ -182,6 +182,8 @@ include("Modules/FreeModules-graded.jl")
 include("Polymake/Ineq.jl")
 include("Polymake/NmbThy.jl")
 
+include("../StraightLinePrograms/src/StraightLinePrograms.jl")
+
 if is_dev
   include("../examples/ModStdNF.jl")
   include("../examples/PrimDec.jl")
