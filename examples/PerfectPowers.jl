@@ -3,7 +3,31 @@ module PerfectPowers
 using Oscar
 import Oscar: Nemo, Hecke
 
-function root_exact(a::fmpz, p::Val{2})
+function root_exact(a::fmpz, n::Int)
+  @assert n>0
+  n == 1 && return a
+  k, a = remove(a, fmpz(2))
+  if k % n != 0
+    return fmpz(1)
+  end
+  kn = div(k,n) #since we change n
+  isone(a) && return fmpz(2)^kn
+
+  while !isone(a) && iseven(n)
+    a = _root_exact(a, Val(2))
+    n = div(n, 2)
+  end
+  (isone(a) ||isone(n)) && return a
+  a = _root_exact(a, n)
+  isone(a) && return a
+  return a*fmpz(2)^kn
+end
+
+#TODO
+#  write the _root_exat in mpn
+#  prealloc temp
+#  understand why the top bit is wrong for 7^10 = 16807 and p = 2
+function _root_exact(a::fmpz, p::Val{2})
   #return the p-th root, or garbage of the correct size...
 
   @assert isodd(a)
@@ -20,10 +44,14 @@ function root_exact(a::fmpz, p::Val{2})
 
   b = d
   for i=1:7
-    d = d*(1+div(1-b*d*d, 2))
+    _d = d
+    d = d*(1+(div((1-b*d*d), 2)))
   end
-  if s < 64
+  if s < 63
+    d = (d<<1)>>1  # top bit is wrong for d = 16807^2
     d *= dd
+    nbits(d) <= s && return fmpz(d)
+    d = -d #we could have found the negative one by accident...
     nbits(d) <= s && return fmpz(d)
     return fmpz(1)
   end
@@ -54,6 +82,11 @@ function root_exact(a::fmpz, p::Val{2})
 
   Nemo.mul!(D, D, a)
   Hecke.mod!(D, D, M)
+  if nbits(D) < s
+    return fmpz(D)
+  end
+  Nemo.mul!(D, D, -1) # in case the iteration found the negative root
+  Nemo.add!(D, D, M)
   if nbits(D) > s
     return fmpz(1)
   end
@@ -93,12 +126,12 @@ function powmod_2exp(a::fmpz, p::Int, i::Int) #too slow - much worde than
   return b
 end
 
-function root_exact(a::fmpz, p::Int, extra_s::Int = 5, extra_w::Int = 1)
+function _root_exact(a::fmpz, p::Int, extra_s::Int = 5, extra_w::Int = 1)
   #return the p-th root, or garbage of the correct size...
 
   @assert isodd(a)
 
-  p==2 && return root_exact(a, Val(2))
+  p==2 && return _root_exact(a, Val(2))
 
   if iseven(p)
     @show "slow", p
@@ -228,7 +261,7 @@ function ispower_bernstein(a::fmpz)
     end
     no_p += 1
     pp = p
-    d = root_exact(a, p, 10, 2)
+    d = _root_exact(a, p, 10, 2)
     if !isone(d)
       if powmod(d, p, fmpz(p_test)) == a_test && d^p == a
         f *= p
