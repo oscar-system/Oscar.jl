@@ -1,6 +1,6 @@
-Hecke.add_verbose_scope(:GaloisGroup)
-Hecke.add_verbose_scope(:GaloisInvariant)
-Hecke.add_assert_scope(:GaloisInvariant)
+Oscar.Hecke.add_verbose_scope(:GaloisGroup)
+Oscar.Hecke.add_verbose_scope(:GaloisInvariant)
+Oscar.Hecke.add_assert_scope(:GaloisInvariant)
 
 module GaloisGrp
 
@@ -416,6 +416,80 @@ function invariant(G::PermGroup, H::PermGroup)
   return evaluate(I, g)
 end
 
+struct GroupFilter
+  f::Array{Function, 1}
+  GroupFilter() = new([x->true])
+end
+
+function (F::GroupFilter)(G::PermGroup)
+  return all(x->x(G), F.f)
+end
+
+function Base.push!(G::GroupFilter, F::Function)
+  push!(G.f, F)
+end
+
+mutable struct DescentEnv
+  G::PermGroup
+  s::Array{PermGroup, 1}
+  I::Dict{Int, SLPoly}
+  T::Dict{Int, Array{fmpz_poly, 1}}
+  l::Array{Int, 1}
+  #the coset reps need to be cached as well
+  #a "work limit" on the "invariant" function
+  #a more select choice of group....
+
+  function DescentEnv(G::PermGroup, f::GroupFilter = GroupFilter())
+    s = maximal_subgroup_reps(G)
+    r = new()
+    r.G = G
+    r.s = filter(f, s)
+    r.I = Dict{Int, SLPoly}()
+    r.T = Dict{Int, Array{fmpz_poly, 1}}()
+    r.l = zeros(Int, length(r.s))
+    return r
+  end
+end
+
+function Base.iterate(D::DescentEnv, i::Int=1)
+  #r.l[i] == 1: done,  0:: nothing
+  all(isone, D.l) && return nothing
+
+  while i<=length(D.s) && D.l[i] == 1
+    i += 1
+  end
+
+  local I, TS
+  if haskey(D.I, i)
+    I = D.I[i]
+  else
+    I = D.I[i] = invariant(D.G, D.s[i])
+  end
+
+  if haskey(D.T, i)
+    T = D.T[i]
+    ts = rand(Hecke.Globals.Zx, 2:degree(D.G), -4:4)
+    while degree(ts) < 2 || ts in T
+      ts = rand(Hecke.Globals.Zx, 2:degree(D.G), -4:4)
+    end
+    push!(D.T[i], ts)
+    TS = ts
+  else
+    D.T[i] = [gen(Hecke.Globals.Zx)]
+    TS = D.T[i][1]
+  end
+
+  return (D.s[i], I, TS), i
+end
+
+function Base.push!(D::DescentEnv, i::Int)
+  D.l[i] = 0
+end
+
+function Base.pop!(D::DescentEnv, i::Int)
+  D.l[i] = 1
+end
+
 #TODO
 # - split: find primes and abort on Sn/An
 # - sqrt discrimiant to check even/odd
@@ -459,7 +533,7 @@ function galois_group(K::AnticNumberField, extra::Int = 5)
 
   p = p_best
 
-  @vprint :GaloisGroup 1 "using $p_best with degree $d_max\n"
+  @vprint :GaloisGroup 1 "using prime $p_best with degree $d_max\n"
   @vprint :GaloisGroup 2 "and cycle types $ct\n"
 
   GC = GaloisCtx(Hecke.Globals.Zx(K.pol), p_best)
@@ -502,6 +576,9 @@ function galois_group(K::AnticNumberField, extra::Int = 5)
     push!(bs, v)
   end
 
+  F = GroupFilter()
+  push!(F, istransitive)
+
   @vprint :GaloisGroup 2 "group will have (all) block systems: $([x[1] for x = bs])\n"
 
   #selecting maximals only...
@@ -526,6 +603,7 @@ function galois_group(K::AnticNumberField, extra::Int = 5)
   end
 
   if length(bs) == 0 #primitive case
+    push!(F, isprimitive)
     @vprint :GaloisGroup 1 "group is primitive (no subfields), trying operations on pairs\n"
     k, mk = ResidueField(parent(c[1]))
     m = Dict{fq_nmod, Tuple{Int, Int}}()
@@ -574,125 +652,109 @@ function galois_group(K::AnticNumberField, extra::Int = 5)
   @vprint :GaloisGroup 2 "Have starting group with id $(transitive_group_identification(G))\n"
   si = G(si)
 
+
   if issquare(discriminant(K))
+    push!(F, iseven)
     isev = true
   else
+    push!(F, isodd)
     isev = false
   end
 
   nG = length(G)
   while true
-    S = maximal_subgroup_reps(G)
-    @vprint :GaloisGroup 2 "found $(length(S)) many maximal subgroups\n"
+    D = DescentEnv(G, F)
+    @vprint :GaloisGroup 2 "found $(length(D.s)) many maximal subgroups\n"
 
-    for s = S
-      istransitive(s) || continue
-      isev != iseven(s) && continue 
+    while true
+      d = iterate(D)
+      if d === nothing
+        break
+      end
+      s, I, ts = d[1]
 
       @vprint :GaloisGroup 2 "testing descent $(transitive_group_identification(G)) -> $(transitive_group_identification(s)) of index $(index(G, s))\n"
-
-      I = invariant(G, s)
 
       @hassert :GaloisInvariant 1 all(x->isprobably_invariant(I, x), gens(s))
       @hassert :GaloisInvariant 1 any(x->!isprobably_invariant(I, x), gens(G))
 
-      B = bound(GC, I)
+      B = bound(GC, I, ts)
       @vprint :GaloisGroup 2 "root bound: $(value(B))\n"
 
       c = roots(GC, clog(2*value(B), p)+extra)
+      c = map(ts, c)
+
       local fd
       cnt = 0
-      while true
-        cs = Set{typeof(c[1])}()
-        fd = []
+     
+      cs = Set{typeof(c[1])}()
+      fd = []
 
-        local lt
-        if index(G, s) < 100
-          lt = right_transversal(G, s)
-        elseif isnormal(G, s)
-          lt = [one(G)] # I don't know how to get the identity
-        else
-          lt = short_right_transversal(G, s, si)
-          #if index(G, s) < 1000 && get_assert_level(:GaloisInvariant) > 2
-          #  tt = [x for x = right_transversal(G, s) if si in s^x]
-          #  if Set(right_coset(s, x) for x = tt) != Set(right_coset(s, x) for x = lt)
-          #    return G, s, si
-          #  end
-          #end
-          @hassert :GaloisInvariant 2 all(x->si in s^x, lt)
+      local lt
+      if index(G, s) < 100
+        lt = right_transversal(G, s)
+      elseif isnormal(G, s)
+        lt = [one(G)] # I don't know how to get the identity
+      else
+        lt = short_right_transversal(G, s, si)
+        @hassert :GaloisInvariant 2 all(x->si in s^x, lt)
+      end
+      #x^7-2 triggers wrong descent, occaisonly, if lt is only 10 elems long
+      while length(lt) < 20 && length(lt) < index(G, s)
+        r = rand(G)
+        if all(x->right_coset(s, r) != right_coset(s, x), lt)
+          push!(lt, r)
         end
-        #x^7-2 triggers wrong descent, occaisonly, if lt is only 10 elems long
-        while length(lt) < 20 && length(lt) < index(G, s)
-          r = rand(G)
-          if all(x->right_coset(s, r) != right_coset(s, x), lt)
-            push!(lt, r)
-          end
+      end
+
+      for t = lt
+        e = evaluate(I^t, c)
+        if e in cs
+          @vprint :GaloisGroup 2 " evaluation found duplicate, transforming...\n"
+          push!(D, d[2])
+          break
         end
 
-        for t = lt
-          e = evaluate(I^t, c)
-          if e in cs
-            @vprint :GaloisGroup 2 " evaluation found duplicate, transforming...\n"
-            local ts
-            while true
-              ts = rand(Hecke.Globals.Zx, 2:degree(K), -4:4)
-              if degree(ts) > 1
-                break
-              end
-            end
-            cnt += 1
-            if cnt > 5
-#              @show I
-#              return GC, I, G, s
-              error("bad")
-            end
-            B = bound(GC, I, ts)
-            @vprint :GaloisGroup 2 "using transformation by $ts, and new bound of $(value(B))\n"
-            c = roots(GC, clog(2*value(B), p)+extra)
-            c = map(ts, c)
-            break
-          end
-          push!(cs, e)
-          if e.length<2
-            l = coeff(e, 0)
-            lz = lift(l)
-            l = Hecke.mod_sym(lz, fmpz(p)^precision(l))
-            if abs(l) < value(B)
-              @vprint :GaloisGroup 2 "found descent at $t and value $l\n"
-              push!(fd, t)
-            else
-              @vprint :GaloisGroup 3 "no int: wrong size $l, $(value(B))\n"
-            end
+        push!(cs, e)
+        if e.length<2
+          l = coeff(e, 0)
+          lz = lift(l)
+          l = Hecke.mod_sym(lz, fmpz(p)^precision(l))
+          if abs(l) < value(B)
+            @vprint :GaloisGroup 2 "found descent at $t and value $l\n"
+            push!(fd, t)
           else
-            @vprint :GaloisGroup 3 "no int: wrong degree\n"
+            @vprint :GaloisGroup 3 "no int: wrong size $l, $(value(B))\n"
           end
+        else
+          @vprint :GaloisGroup 3 "no int: wrong degree\n"
         end
-        if length(cs) == length(lt)
+      end
+      if length(cs) == length(lt)
+        pop!(D, d[2])
+        if length(fd) > 0
+          @vprint :GaloisGroup 2 "descending via $fd\n"
+        else
+          @vprint :GaloisGroup 2 "no descent\n"
+        end
+        if length(fd)>0
+          G = intersect([s^x for x = fd]...)[1]
+          @assert length(fd) > 1 || length(G) == length(s)
+          @assert length(G) < nG
+          @vprint :GaloisGroup 2 "descending to $(transitive_group_identification(G))\n"
+          if length(G) == degree(K)
+            return G, GC
+          end
           break
         end
       end
-      if length(fd) > 0
-        @vprint :GaloisGroup 2 "descending via $fd\n"
-      else
-        @vprint :GaloisGroup 2 "no descent\n"
-      end
-      if length(fd)>0
-        G = intersect([s^x for x = fd]...)[1]
-        @assert length(fd) > 1 || length(G) == length(s)
-        @assert length(G) < nG
-        @vprint :GaloisGroup 2 "descending to $(transitive_group_identification(G))\n"
-        if length(G) == degree(K)
-          return G, GC
-        end
-        break
-      end
     end
-    if length(G) == nG
+    if nG == length(G)
       return G, GC
-    else
-      nG = length(G)
     end
+    nG = length(G)
   end
+  return G, GC
 end
 
 #TODO: do this properly, with indexed types and such
@@ -758,5 +820,5 @@ end
 end
 
 using .GaloisGrp
-export galois_group, isprimitive, istransitive, transitive_group_identification,
+#export galois_group, isprimitive, istransitive, transitive_group_identification,
        GaloisGrp

@@ -163,7 +163,7 @@ function _root_exact(a::fmpz, p::Int, extra_s::Int = 5, extra_w::Int = 1)
     d = d % 2^min(pr, 63)
     iseven(d) && return fmpz(1)
     nbits(d) <= s && return fmpz(d)
-    return fmpz(d)
+    return fmpz(1)
   end
 
 #  B = powmod_2exp(a, p-1, 64*w+1)
@@ -265,7 +265,7 @@ function ispower_bernstein(a::fmpz)
     if !isone(d)
       if powmod(d, p, fmpz(p_test)) == a_test && d^p == a
         f *= p
-        cl = min(cl, flog(d, 7))
+        @show cl = min(cl, flog(d, 7))
         a = d
         a_test = a % p_test
       else
@@ -292,22 +292,20 @@ function ispower_bernstein(a::fmpz)
   @show no_p, no_s
 #  @assert c[1] == a
   
-  @show length(c), length(Set(c))
   c = collect(Set(c))
   @time c = [gcd(a, x) for x = c] #a should be a proper divisor of c[1]
   c = [x for x = c if !isone(x)]
   #not sure still neccessary
-  @time c = Hecke.coprime_base(c) #bernstein seems to be broken
+  @time c = Hecke.coprime_base(c) 
   @show length(c), length(Set(c))
   k = [valuation(a, p) for p = c]
   @show no_p
   return gcd(k)*f
 end
 
-export ispower_exact
+export ispower_exact, root_exact
 
 end
 
 using .PerfectPowers
 
-export ispower_exact
