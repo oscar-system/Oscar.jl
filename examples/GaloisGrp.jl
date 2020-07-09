@@ -1,6 +1,3 @@
-Oscar.Hecke.add_verbose_scope(:GaloisGroup)
-Oscar.Hecke.add_verbose_scope(:GaloisInvariant)
-Oscar.Hecke.add_assert_scope(:GaloisInvariant)
 
 module GaloisGrp
 
@@ -9,12 +6,16 @@ import Base: ^, +, -, *
 import Oscar: Hecke, AbstractAlgebra, GAP
 using Oscar.StraightLinePrograms
 
-export galois_group, isprimitive, istransitive, transitive_group_identification
+export galois_group, transitive_group_identification, slpoly_ring
 
 
 function __init__()
   GAP.Packages.install("ferret")
   GAP.Packages.load("ferret")
+
+  Hecke.add_verbose_scope(:GaloisGroup)
+  Hecke.add_verbose_scope(:GaloisInvariant)
+  Hecke.add_assert_scope(:GaloisInvariant)
 end
 
 struct BoundRing  <: AbstractAlgebra.Ring 
@@ -66,9 +67,10 @@ function slpoly_ring(R::AbstractAlgebra.Ring, n::Int)
   return SLPolyRing(R, [ Symbol("x_$i") for i=1:n])
 end
 
-Base.one(R::StraightLinePrograms.SLPolyRing) = R(one(base_ring(R)))
-(R::StraightLinePrograms.SLPolyRing)(a::StraightLinePrograms.SLPoly) = a
-Oscar.ngens(S::SLPolyRing) = length(gens(S))
+function (R::StraightLinePrograms.SLPolyRing)(a::StraightLinePrograms.SLPoly)
+  parent(a) == R && return a
+  error("wrong parent")
+end
 
 function root_bound(f::fmpz_poly)
   a = coeff(f, degree(f))
@@ -170,7 +172,7 @@ function maximal_subgroup_reps(G::PermGroup)
 end
 
 function transitive_group_identification(G::PermGroup)
-  if degree(G) > 20
+  if degree(G) > 31
     return -1
   end
   return GAP.Globals.TransitiveIdentification(G.X)
@@ -231,9 +233,6 @@ function action_on_blocks(G::PermGroup, B::Vector{Int})
   return Oscar._hom_from_gap_map(G, H, act)
 end
 
-istransitive(G::PermGroup) = GAP.Globals.IsTransitive(G.X, GAP.julia_to_gap(1:degree(G)))
-isprimitive(G::PermGroup) = GAP.Globals.IsPrimitive(G.X, GAP.julia_to_gap(1:degree(G)))
-
 Base.sign(G::PermGroup) = GAP.Globals.SignPermGroup(G.X)
 
 Base.isodd(G::PermGroup) = sign(G) == -1
@@ -247,7 +246,7 @@ function power_sum(g::Array{<:Any, 1}, i::Int)
   return sum(a^i for a = g)
 end
 
-function Oscar.discriminant(g::Array{<:Any, 1})
+function Oscar.discriminant(g::Array{<:RingElem, 1})
   return prod(a-b for a = g for b = g if a!=b)
 end
 
@@ -820,5 +819,4 @@ end
 end
 
 using .GaloisGrp
-#export galois_group, isprimitive, istransitive, transitive_group_identification,
-       GaloisGrp
+export galois_group, transitive_group_identification, slpoly_ring
