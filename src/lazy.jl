@@ -92,6 +92,8 @@ end
 Base.getindex(p::Free, is::Free...) =
     Free(Getindex(p.x, Lazy[i.x for i in is]), gens(p, is...))
 
+call(f, xs...) = Free(Call(f, [Lazy(x) for x in xs]))
+
 
 #### adhoc
 
@@ -139,6 +141,7 @@ Base.:(==)(k::Lazy, l::Lazy) = false
 Lazy(x::Lazy) = x
 Lazy(x::AbstractSLProgram) = compile(Lazy, x)
 Lazy(x) = Const(x)
+Lazy(x::Free) = x.x
 
 evaluate(l::Lazy, xs) = evaluate(gens(l), l, xs)
 # TODO: remove the 3-arg evaluate methods?
@@ -441,6 +444,31 @@ Base.:(==)(k::Getindex, l::Getindex) = k.p == l.p && k.is == l.is
 evaluate(gs, p::Getindex, xs) = evaluate(gs, p.p, xs)[(evaluate(gs, i, xs) for i in p.is)...]
 
 maxinput(m::Getindex) = mapreduce(maxinput, max, m.is, init=maxinput(m.p))
+
+
+### Call
+
+struct Call <: Lazy
+    f::Any # callable
+    args::Vector{Lazy}
+end
+
+
+function Base.show(io::IO, f::Call)
+    print(io, f.f, '(')
+    join(io, f.args, ", ")
+    print(io, ')')
+end
+
+pushgens!(gs, f::Call) = foldl(pushgens!, f.args, init=Symbol[])
+
+constantstype(f::Call) = mapreduce(constantstype, typejoin, f.args, init=Union{})
+
+Base.:(==)(f::Call, g::Call) = f.f == g.f && f.args == g.args
+
+evaluate(gs, f::Call, xs) = f.f(map(t -> evaluate(gs, t, xs), f.args)...)
+
+maxinput(f::Call) = mapreduce(maxinput, max, f.args)
 
 
 ### binary ops

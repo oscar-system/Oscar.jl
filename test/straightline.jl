@@ -83,6 +83,15 @@ end
     @test evaluate(e, [2]) == 27
     @test evaluate(e, xyz) == (1+x)^3
 
+    # Call
+    c = Call((x, y) -> 2x+3y, [x-y, y])
+    @test c isa Call <: Lazy
+    @test SL.gens(c) == [:x, :y]
+    @test c == Call(c.f, [x-y, y])
+    @test c != Call((x, y) -> 2x+3y, [x-y, y]) # not same function
+    @test c != Call(c.f, [x-y, 2y])
+    @test evaluate(c, [2, 3]) == 7
+
     # +
     p1 =  e + t
     @test p1 isa Plus
@@ -570,6 +579,19 @@ end
     @test SLProgram(x) == slpgen(1) == x1
     @test SLProgram(y) == slpgen(2) == x2
     @test SLProgram(z) == slpgen(3) == x3
+
+    # call
+    fun2 = (x, y) -> 2x+3y
+    c = call(fun2, x-y, y)
+    @test c isa Free
+    @test gens(c) == [:x, :y]
+    @test c == call(fun2, x-y, y)
+    @test c != call(fun2, x-y, 2y)
+    @test evaluate(c, [2, 3]) == 7
+
+    c = call(fun2, 1, 3)
+    @test isempty(gens(c))
+    @test evaluate(c, []) == 11
 end
 
 @testset "SL internals" begin
