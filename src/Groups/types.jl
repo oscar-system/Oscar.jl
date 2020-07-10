@@ -222,18 +222,19 @@ end
 
 
 """
-    DirectProductOfGroups{S,T}
-Direct product of two groups of type `S` and `T` respectively, or subgroup of a direct product of groups.
+    DirectProductOfGroups
+Direct product of two or more of type `S` and `T` respectively, or subgroup of a direct product of groups.
 """
-struct DirectProductOfGroups{S<:GAPGroup, T<:GAPGroup} <: GAPGroup
+struct DirectProductOfGroups <: GAPGroup
   X::GapObj
-  G1::S
-  G2::T
-  Xfull::GapObj      # G1xG2
-  isfull::Bool     # true if it is G1xG2; false if it is a proper subgroup of G1xG2
+  L::Vector{<:GAPGroup}   # list of groups
+  n::Int64           # length(L)
+  Xfull::GapObj      # direct product of the GAP groups of L
+  isfull::Bool     # true if G is direct product of the groups of L, false if it is a proper subgroup
 
-  function DirectProductOfGroups(G::GapObj, G1::S, G2::T, Xf::GapObj, isf::Bool) where S where T
-    z = new{S,T}(G,G1,G2,Xf,isf)
+
+  function DirectProductOfGroups(G::GapObj, L::Vector{<:GAPGroup}, n::Int64, Xf::GapObj, isf::Bool)
+    z = new(G,L,n,Xf,isf)
     return z
   end
 end
