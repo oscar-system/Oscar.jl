@@ -29,7 +29,7 @@ gens(f::Free) = f.gens
 Base.show(io::IO, f::Free) =
     show(IOContext(io, :slp_free_gens => gens(f)), f.x)
 
-evaluate(f::Free, xs) = evaluate(gens(f), f.x, xs)
+evaluate(f::Free, xs) = evaluate(gens(f), f.x, xs, IdDict{Lazy,Any}())
 
 # check compatibility and return the biggest of the two gens arrays
 function gens(x::Free, xs::Free...)
@@ -143,9 +143,16 @@ Lazy(x::AbstractSLProgram) = compile(Lazy, x)
 Lazy(x) = Const(x)
 Lazy(x::Free) = x.x
 
-evaluate(l::Lazy, xs) = evaluate(gens(l), l, xs)
+evaluate(l::Lazy, xs) = evaluate(gens(l), l, xs, IdDict{Lazy,Any}())
 # TODO: remove the 3-arg evaluate methods?
 
+const sentinel = 0x54f765833cf932f72a3dd18e0dc1d839
+
+function evaluate(gs, l::Lazy, xs, dict)
+    r = get(dict, l, sentinel)
+    r !== sentinel && return r
+    dict[l] = _evaluate(gs, l, xs, dict)
+end
 
 ### Const
 
@@ -167,7 +174,7 @@ constantstype(l::Const{T}) where {T} = T
 
 Base.:(==)(k::Const, l::Const) = k.c == l.c
 
-evaluate(gs, c::Const, xs) = c.c
+evaluate(gs, c::Const, xs, dict) = c.c
 
 maxinput(c::Const) = 0
 
@@ -183,7 +190,7 @@ function Base.show(io::IO, i::Input)
     print(io, syms[i.n])
 end
 
-evaluate(gs, i::Input, xs) = xs[i.n]
+evaluate(gs, i::Input, xs, dict) = xs[i.n]
 
 maxinput(i::Input) = i.n
 
@@ -211,7 +218,8 @@ constantstype(l::Gen) = Union{}
 
 Base.:(==)(k::Gen, l::Gen) = k.g == l.g
 
-evaluate(gs, g::Gen, xs) = xs[findfirst(==(g.g), gs)]
+# TODO: test if dict should be used (performance only)
+evaluate(gs, g::Gen, xs, dict) = xs[findfirst(==(g.g), gs)]
 
 maxinput(g::Gen) = throw(ArgumentError("logic error: Gen not allowed in Free"))
 
@@ -237,7 +245,8 @@ constantstype(p::Plus) =
 
 Base.:(==)(k::Plus, l::Plus) = k.xs == l.xs
 
-evaluate(gs, p::Plus, xs) = mapreduce(q -> evaluate(gs, q, xs), +, p.xs)
+_evaluate(gs, p::Plus, xs, dict) =
+    mapreduce(q -> evaluate(gs, q, xs, dict), +, p.xs)
 
 maxinput(p::Plus) = mapreduce(maxinput, max, p.xs)
 
@@ -257,7 +266,8 @@ constantstype(m::Minus) = typejoin(constantstype(m.p), constantstype(m.q))
 
 Base.:(==)(k::Minus, l::Minus) = k.p == l.p && k.q == l.q
 
-evaluate(gs, p::Minus, xs) = evaluate(gs, p.p, xs) - evaluate(gs, p.q, xs)
+_evaluate(gs, p::Minus, xs, dict) =
+    evaluate(gs, p.p, xs, dict) - evaluate(gs, p.q, xs, dict)
 
 maxinput(m::Minus) = max(maxinput(m.p), maxinput(m.q))
 
@@ -276,7 +286,7 @@ constantstype(p::UniMinus) = constantstype(p.p)
 
 Base.:(==)(k::UniMinus, l::UniMinus) = k.p == l.p
 
-evaluate(gs, p::UniMinus, xs) = -evaluate(gs, p.p, xs)
+_evaluate(gs, p::UniMinus, xs, dict) = -evaluate(gs, p.p, xs, dict)
 
 maxinput(p::UniMinus) = maxinput(p.p)
 
@@ -302,7 +312,8 @@ constantstype(p::Times) =
 
 Base.:(==)(k::Times, l::Times) = k.xs == l.xs
 
-evaluate(gs, p::Times, xs) = mapreduce(q -> evaluate(gs, q, xs), *, p.xs)
+_evaluate(gs, p::Times, xs, dict) =
+    mapreduce(q -> evaluate(gs, q, xs, dict), *, p.xs)
 
 maxinput(p::Times) = mapreduce(maxinput, max, p.xs)
 
@@ -324,7 +335,7 @@ Base.:(==)(k::Exp, l::Exp) = k.p == l.p && k.e == l.e
 
 Base.literal_pow(::typeof(^), p::Lazy, ::Val{e}) where {e} = Exp(p, e)
 
-evaluate(gs, p::Exp, xs) = evaluate(gs, p.p, xs)^p.e
+_evaluate(gs, p::Exp, xs, dict) = evaluate(gs, p.p, xs, dict)^p.e
 
 maxinput(e::Exp) = maxinput(e.p)
 
@@ -356,12 +367,12 @@ end
 
 Base.:(==)(p::Decision, q::Decision) = p.ps == q.ps
 
-function evaluate(gs, p::Decision, xs)
+function _evaluate(gs, p::Decision, xs, dict)
     (d, i), rest = Iterators.peel(p.ps) # p.ps should never be empty
-    res = test(evaluate(gs, d, xs), i)
+    res = test(evaluate(gs, d, xs, dict), i)
     res === false && return false
     for (d, i) in rest
-        r = test(evaluate(gs, d, xs), i)
+        r = test(evaluate(gs, d, xs, dict), i)
         r === false && return false
         res &= r
     end
@@ -390,8 +401,8 @@ pushgens!(gs, l::List) = foldl(pushgens!, l.xs, init=gs)
 
 Base.:(==)(p::List, q::List) = p.xs == q.xs
 
-evaluate(gs, l::List, xs) =
-    list(eltype(xs)[evaluate(gs, p, xs) for p in l.xs])
+_evaluate(gs, l::List, xs, dict) =
+    list(eltype(xs)[evaluate(gs, p, xs, dict) for p in l.xs])
 
 maxinput(l::List) = mapreduce(maxinput, max, l.xs)
 
@@ -417,7 +428,8 @@ pushgens!(gs, c::Compose) = pushgens!(gs, c.q)
 
 Base.:(==)(k::Compose, l::Compose) = k.p == l.p && k.q == l.q
 
-evaluate(gs, p::Compose, xs) = evaluate(gs, p.p, evaluate(gs, p.q, xs))
+_evaluate(gs, p::Compose, xs, dict) =
+    evaluate(gs, p.p, evaluate(gs, p.q, xs, dict), dict)
 
 maxinput(m::Compose) = maxinput(m.q)
 
@@ -441,7 +453,8 @@ constantstype(m::Getindex) = mapreduce(constantstype, typejoin, m.is, init=const
 
 Base.:(==)(k::Getindex, l::Getindex) = k.p == l.p && k.is == l.is
 
-evaluate(gs, p::Getindex, xs) = evaluate(gs, p.p, xs)[(evaluate(gs, i, xs) for i in p.is)...]
+_evaluate(gs, p::Getindex, xs, dict) =
+    evaluate(gs, p.p, xs, dict)[(evaluate(gs, i, xs, dict) for i in p.is)...]
 
 maxinput(m::Getindex) = mapreduce(maxinput, max, m.is, init=maxinput(m.p))
 
@@ -466,7 +479,8 @@ constantstype(f::Call) = mapreduce(constantstype, typejoin, f.args, init=Union{}
 
 Base.:(==)(f::Call, g::Call) = f.f == g.f && f.args == g.args
 
-evaluate(gs, f::Call, xs) = f.f(map(t -> evaluate(gs, t, xs), f.args)...)
+_evaluate(gs, f::Call, xs, dict) =
+    f.f(map(t -> evaluate(gs, t, xs, dict), f.args)...)
 
 maxinput(f::Call) = mapreduce(maxinput, max, f.args)
 

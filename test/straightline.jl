@@ -592,6 +592,14 @@ end
     c = call(fun2, 1, 3)
     @test isempty(gens(c))
     @test evaluate(c, []) == 11
+
+    # evaluate: caching of results
+    counter = 0
+    c = call(_ -> (counter += 1; 0), x)
+    p = c+c*c
+    evaluate(p, [1])
+    @test counter == 1
+    # TODO: should add tests for every Lazy subtypes
 end
 
 @testset "SL internals" begin
