@@ -122,7 +122,7 @@ mutable struct GaloisCtx
 end
 
 function Base.show(io::IO, GC::GaloisCtx)
-  println(io, "Galois Context for $(GC.f) and prime $(GC.C.p)\n")
+  print(io, "Galois Context for $(GC.f) and prime $(GC.C.p)")
 end
 
 function Hecke.roots(G::GaloisCtx, pr::Int)
