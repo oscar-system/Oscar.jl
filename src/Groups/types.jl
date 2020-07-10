@@ -223,7 +223,7 @@ end
 
 """
     DirectProductOfGroups
-Direct product of two or more of type `S` and `T` respectively, or subgroup of a direct product of groups.
+Either direct product of two or more groups of any type, or subgroup of a direct product of groups.
 """
 struct DirectProductOfGroups <: GAPGroup
   X::GapObj

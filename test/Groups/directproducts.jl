@@ -6,7 +6,7 @@
    @test G isa DirectProductOfGroups
    @test order(G)==order(S)*order(C)
    @test exponent(G)==lcm(exponent(S),exponent(C))
-   @test typeof(rand(G))==Oscar.GAPGroupElem{DirectProductOfGroups{PermGroup,PcGroup}}
+   @test typeof(rand(G))==Oscar.GAPGroupElem{DirectProductOfGroups}
    @test factorofdirectproduct(G,1)==S
    @test factorofdirectproduct(G,2)==C
 
