@@ -5,19 +5,7 @@ using Oscar
 import Oscar: Hecke, Nemo, AbstractAlgebra
 import Base:^
 
-function myevaluate(f::fmpq_mpoly, h::Array{fmpq_mpoly, 1})
-  s = zero(parent(f))
-  for i=1:length(f)
-    c = coeff(f, i)
-    p = c*one(parent(f))
-    v = exponent_vector(f, i)
-    for j=1:length(h)
-      p *= h[j]^v[j]
-    end
-    s += p
-  end
-  return s
-end
+export ContinuedFraction, continued_fraction, convergents, reynolds
 
 function ^(f::fmpq_mpoly, m::fmpq_mat)
   @assert nrows(m) == ncols(m) == ngens(parent(f))
@@ -27,15 +15,6 @@ function ^(f::fmpq_mpoly, m::fmpq_mat)
     push!(h, sum(m[i,j]*g[j] for j=1:length(g)))
   end
   z = evaluate(f, h)
-  return z
-
-  m = inv(m)
-  h = typeof(f)[]
-  for i=1:length(g)
-    push!(h, sum(m[i,j]*g[j] for j=1:length(g)))
-  end
-
-  @assert evaluate(z, h) == f
   return z
 end
 
@@ -69,7 +48,6 @@ function is_approx_integral(f::fmpq_mat, o::fmpz)
   end
   return true, g
 end
-
 
 struct ContinuedFraction
   cf::Array{fmpz, 1}
@@ -172,6 +150,8 @@ function bound_precision!(f::fmpq_mpoly, B::fmpz)
   end
 end
 
+#z, zi = make_integral...
+#then [x*x*zi for x = M] is an integral rep
 function make_integral(M::Array{fmpq_mat, 1})
   I = identity_matrix(ZZ, nrows(M[1]))
   d = [lcm(collect(map(denominator, m))) for m = M]
@@ -318,3 +298,7 @@ end
 
 
 end #module
+
+using .Reynolds
+
+
