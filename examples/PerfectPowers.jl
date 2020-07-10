@@ -49,6 +49,8 @@ function _root_exact(a::fmpz, p::Val{2})
   end
   if s < 63
     d = (d<<1)>>1  # top bit is wrong for d = 16807^2
+    #there are 2 roots in this case ? and -? so we need to try both
+    #since we do >> 1 (or div(, 2)) we loose the high bit.
     d *= dd
     nbits(d) <= s && return fmpz(d)
     d = -d #we could have found the negative one by accident...
@@ -59,8 +61,8 @@ function _root_exact(a::fmpz, p::Val{2})
   B = mod(a, fmpz(2)^(s+3))
   D = fmpz(d)
 
-  M = fmpz(2)^(64)
-  i = 64 
+  M = fmpz(2)^(63)
+  i = 63 
   one = fmpz(1)
   #TODO; better chain of exponents, use mpn? more inline?
   #TODO: better mod 2^n, use mullow?
