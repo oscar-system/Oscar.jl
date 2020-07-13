@@ -1,4 +1,4 @@
-@testset "Directproducts" begin
+@testset "Direct products" begin
    S = symmetric_group(4)
    C = abelian_group(PcGroup, [2,2])
    G = direct_product(S,C)
@@ -58,7 +58,7 @@
    @test dim(G)==4
 end
 
-@testset "Semidirectproducts" begin
+@testset "Semidirect products" begin
    Q=quaternion_group(8)
    C=cyclic_group(2)
    A=automorphism_group(Q)
@@ -88,7 +88,7 @@ end
 end
 
 
-@testset "Wreathproducts" begin
+@testset "Wreath products" begin
    C = cyclic_group(2)
    H = sub(cperm([1,2,4]))[1]
    W = wreath_product(C,H)
