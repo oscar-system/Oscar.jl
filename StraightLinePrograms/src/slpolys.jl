@@ -256,7 +256,7 @@ end
 # TODO: remove this method (this is an ambiguity fix)
 (R::SLPolyRing{T})(p::LazyPoly{T}) where {T<:RingElement} = R(p.p)
 
-function (R::SLPolyRing{T})(p::Lazy) where {T}
+function (R::SLPolyRing{T})(p::LazyRec) where {T}
     pr = compile(SLProgram{T}, p, symbols(R))
     SLPoly(R, pr)
 end

@@ -1,7 +1,7 @@
 using Test, StraightLinePrograms, AbstractAlgebra
 
-using StraightLinePrograms: Const, Exp, Gen, Minus, Plus, Lazy,
-    Times, UniMinus, pushconst!, pushop!,
+using StraightLinePrograms: Const, Exp, Gen, Minus, Plus, LazyRec,
+    Times, UniMinus, Call, pushconst!, pushop!,
     Line, Arg, constants, lines, evaluate, evaluate!
 
 using StraightLinePrograms: pushline!, GAPStraightLine

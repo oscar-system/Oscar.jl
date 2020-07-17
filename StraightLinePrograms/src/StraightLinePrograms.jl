@@ -8,8 +8,8 @@ using AbstractAlgebra: AbstractAlgebra, Ring, RingElement, RingElem, MPolyRing, 
 import AbstractAlgebra: base_ring, gen, gens, ngens, nvars, symbols, evaluate, order, addeq!
 
 export LazyPolyRing, LazyPoly, SLPolyRing, SLPoly, SLProgram
-export AbstractSLProgram, GAPSLProgram, GAPSLDecision, AtlasSLProgram, AtlasSLDecision, Free
-export slpcst, slpgen, slpgens, compile, gens, evaluate, nsteps, compose, list
+export AbstractSLProgram, GAPSLProgram, GAPSLDecision, AtlasSLProgram, AtlasSLDecision, Lazy
+export slpcst, slpgen, slpgens, compile, gens, evaluate, nsteps, compose, list, call
 
 abstract type AbstractSLProgram end
 

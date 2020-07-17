@@ -98,7 +98,7 @@ end
 end
 
 @testset "GAPSLProgram evaluate / compile!" begin
-    for xy = (slpgens(3), Lazy[Gen(:x), Gen(:y)])
+    for xy = (slpgens(3), LazyRec[Gen(:x), Gen(:y)])
         x, y = xy
         res = empty(xy)
 
