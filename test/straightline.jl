@@ -538,10 +538,10 @@ end
     @test p ==  0 + 1*(1*X^1*Y^0) + 1*(1*X^0*Y^1)
 end
 
-@testset "Free" begin
-    x, y, z = xyz = SL.freegens(3)
+@testset "Lazy" begin
+    x, y, z = xyz = SL.lazygens(3)
 
-    @test xyz == gens(SL.Free, 3)
+    @test xyz == gens(SL.Lazy, 3)
 
     xs = Float64[2, 3, 4]
 
@@ -554,16 +554,16 @@ end
     @test evaluate(z, xyz) == z
 
     # constant
-    p = Free(1)
+    p = Lazy(1)
     @test evaluate(p, rand(Int, rand(0:20))) === 1
-    p = Free([1, 2, 4])
+    p = Lazy([1, 2, 4])
     @test evaluate(p, rand(Int, rand(0:20))) == [1, 2, 4]
 
     p = 9 + 3*x*y^2 + ((y+z+3-x-3)*2)^-2 * 100
     @test evaluate(p, xs) == 64
     @test evaluate(p, xyz) == p
 
-    a, b = SL.freegens([:a, :bc])
+    a, b = SL.lazygens([:a, :bc])
     @test string(a) == "a" && string(b) == "bc"
 
     q1 = SL.compile(SLProgram, p)
@@ -583,7 +583,7 @@ end
     # call
     fun2 = (x, y) -> 2x+3y
     c = call(fun2, x-y, y)
-    @test c isa Free
+    @test c isa Lazy
     @test gens(c) == [:x, :y]
     @test c == call(fun2, x-y, y)
     @test c != call(fun2, x-y, 2y)
@@ -960,7 +960,7 @@ end
 
 @testset "SL Decision" begin
     x, y = SL.lazyrecgens(2)
-    a, b = ab = gens(SL.Free, 2)
+    a, b = ab = gens(SL.Lazy, 2)
 
     p = SLProgram()
     pushop!(p, SL.decision, SL.input(1), SL.pushint!(p, 3))
@@ -985,7 +985,7 @@ end
 end
 
 @testset "SL lists" begin
-    x, y = SL.freegens(2)
+    x, y = SL.lazygens(2)
     X, Y = slpgens(2)
 
     q = SL.list([x*y^2, x+1-y])
@@ -1005,7 +1005,7 @@ end
 end
 
 @testset "SL compose" begin
-    x, y = SL.freegens(2)
+    x, y = SL.lazygens(2)
     X, Y = slpgens(2)
 
     q = SL.compose(x - y, SL.list([y, x]))
@@ -1033,7 +1033,7 @@ end
 end
 
 @testset "SL getindex" begin
-    x, y = SL.freegens(2)
+    x, y = SL.lazygens(2)
     X, Y = slpgens(2)
 
     p = y[x+1]
@@ -1079,7 +1079,7 @@ end
     @test p[[4]] == list([y+x])
     @test p[Number[4]] == list([y+x])
 
-    p = Free(Vector{Char})[['a']]
+    p = Lazy(Vector{Char})[['a']]
     e = evaluate(p, [])
     @test e isa Vector{Vector{Char}}
     @test e == [['a']]

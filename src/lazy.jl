@@ -1,38 +1,38 @@
-## Free
+## Lazy
 
 abstract type LazyRec end
 
-struct Free <: AbstractSLProgram
+struct Lazy <: AbstractSLProgram
     x::LazyRec # must not contain Gen
     gens::Vector{Symbol}
 end
 
-Free(x::LazyRec) = Free(x, collect(Symbol, slpsyms(maxinput(x))))
+Lazy(x::LazyRec) = Lazy(x, collect(Symbol, slpsyms(maxinput(x))))
 
-Free(x) = Free(Const(x), Symbol[])
+Lazy(x) = Lazy(Const(x), Symbol[])
 
-function freegens(n::Integer, syms=slpsyms(n))
+function lazygens(n::Integer, syms=slpsyms(n))
     if !isa(syms, Vector{Symbol})
         syms = collect(Symbol, syms)
     end
-    Free[Free(Input(i), syms) for i=1:n]
+    Lazy[Lazy(Input(i), syms) for i=1:n]
 end
 
-freegens(syms::AbstractVector{Symbol}) = freegens(length(syms), syms)
+lazygens(syms::AbstractVector{Symbol}) = lazygens(length(syms), syms)
 
-gens(::Type{Free}, n::Integer) = freegens(n)
+gens(::Type{Lazy}, n::Integer) = lazygens(n)
 
-ngens(f::Free) = length(f.gens)
+ngens(f::Lazy) = length(f.gens)
 
-gens(f::Free) = f.gens
+gens(f::Lazy) = f.gens
 
-Base.show(io::IO, f::Free) =
-    show(IOContext(io, :slp_free_gens => gens(f)), f.x)
+Base.show(io::IO, f::Lazy) =
+    show(IOContext(io, :slp_lazy_gens => gens(f)), f.x)
 
-evaluate(f::Free, xs) = evaluate(gens(f), f.x, xs, IdDict{LazyRec,Any}())
+evaluate(f::Lazy, xs) = evaluate(gens(f), f.x, xs, IdDict{LazyRec,Any}())
 
 # check compatibility and return the biggest of the two gens arrays
-function gens(x::Free, xs::Free...)
+function gens(x::Lazy, xs::Lazy...)
     gx = gens(x)
     for y in xs
         gy = gens(y)
@@ -46,88 +46,88 @@ function gens(x::Free, xs::Free...)
 end
 
 # TODO: must they also have the same gens?
-Base.:(==)(x::Free, y::Free) = x.x == y.x
+Base.:(==)(x::Lazy, y::Lazy) = x.x == y.x
 
-compile(::Type{SLProgram}, f::Free) =
+compile(::Type{SLProgram}, f::Lazy) =
     compile(SLProgram{constantstype(f.x)}, f)
 
-function compile(::Type{SLProgram{T}}, f::Free) where T
+function compile(::Type{SLProgram{T}}, f::Lazy) where T
     p = SLProgram{T}()
     i = pushlazy!(p, f.x, gens(f))
     pushfinalize!(p, i)
 end
 
-compile(f::Free) = compile(SLProgram, f)
+compile(f::Lazy) = compile(SLProgram, f)
 
 
 ### unary/binary ops
 
-+(x::Free, y::Free) = Free(x.x + y.x, gens(x, y))
--(x::Free, y::Free) = Free(x.x - y.x, gens(x, y))
-*(x::Free, y::Free) = Free(x.x * y.x, gens(x, y))
++(x::Lazy, y::Lazy) = Lazy(x.x + y.x, gens(x, y))
+-(x::Lazy, y::Lazy) = Lazy(x.x - y.x, gens(x, y))
+*(x::Lazy, y::Lazy) = Lazy(x.x * y.x, gens(x, y))
 
-Base.:(&)(x::Free, y::Free) = Free(x.x & y.x, gens(x, y))
+Base.:(&)(x::Lazy, y::Lazy) = Lazy(x.x & y.x, gens(x, y))
 
--(x::Free) = Free(-x.x, gens(x))
-^(x::Free, e::Integer) = Free(x.x^e, gens(x))
+-(x::Lazy) = Lazy(-x.x, gens(x))
+^(x::Lazy, e::Integer) = Lazy(x.x^e, gens(x))
 
-Base.literal_pow(::typeof(^), p::Free, ::Val{e}) where {e} = p^e
+Base.literal_pow(::typeof(^), p::Lazy, ::Val{e}) where {e} = p^e
 
-test(x::Free, n) = Free(test(x.x, n), gens(x))
+test(x::Lazy, n) = Lazy(test(x.x, n), gens(x))
 
 # TODO: don't splat
-list(::Type{Free}, xs) = Free(List(LazyRec[x.x for x in xs]), gens(xs...))
+list(::Type{Lazy}, xs) = Lazy(List(LazyRec[x.x for x in xs]), gens(xs...))
 
-function compose(p::Free, q::Free; flatten=true)
+function compose(p::Lazy, q::Lazy; flatten=true)
     if flatten
         q.x isa List || throw(ArgumentError(
             "first argument must return a list"))
         gs = gens(q)
-        evaluate(p, [Free(qi, gs) for qi in q.x.xs])::Free
+        evaluate(p, [Lazy(qi, gs) for qi in q.x.xs])::Lazy
     else
-        Free(Compose(p.x, q.x), gens(q))
+        Lazy(Compose(p.x, q.x), gens(q))
     end
 end
 
-Base.getindex(p::Free, is::Free...) =
-    Free(Getindex(p.x, LazyRec[i.x for i in is]), gens(p, is...))
+Base.getindex(p::Lazy, is::Lazy...) =
+    Lazy(Getindex(p.x, LazyRec[i.x for i in is]), gens(p, is...))
 
-call(f, xs...) = Free(Call(f, [LazyRec(x) for x in xs]))
+call(f, xs...) = Lazy(Call(f, [LazyRec(x) for x in xs]))
 
 
 #### adhoc
 
-+(x::Free, y) = Free(x.x + y, gens(x))
-+(x, y::Free) = Free(x + y.x, gens(y))
++(x::Lazy, y) = Lazy(x.x + y, gens(x))
++(x, y::Lazy) = Lazy(x + y.x, gens(y))
 
--(x::Free, y) = Free(x.x - y, gens(x))
--(x, y::Free) = Free(x - y.x, gens(y))
+-(x::Lazy, y) = Lazy(x.x - y, gens(x))
+-(x, y::Lazy) = Lazy(x - y.x, gens(y))
 
-*(x::Free, y) = Free(x.x * y, gens(x))
-*(x, y::Free) = Free(x * y.x, gens(y))
+*(x::Lazy, y) = Lazy(x.x * y, gens(x))
+*(x, y::Lazy) = Lazy(x * y.x, gens(y))
 
-Base.getindex(x::Free, is...) =
-    getindex(x, map(f -> f isa Free ? f : Free(f), is)...)
-Base.getindex(x, y::Free) = Free(x[y.x], gens(y))
+Base.getindex(x::Lazy, is...) =
+    getindex(x, map(f -> f isa Lazy ? f : Lazy(f), is)...)
+Base.getindex(x, y::Lazy) = Lazy(x[y.x], gens(y))
 
 # special case for integer literals
 
-function Base.getindex(x::Free, i::Integer)
+function Base.getindex(x::Lazy, i::Integer)
     if x.x isa List
-        Free(x.x.xs[i], gens(x))
+        Lazy(x.x.xs[i], gens(x))
     else
-        getindex(x, Free(i))
+        getindex(x, Lazy(i))
     end
 end
 
-function Base.getindex(x::Free, is::AbstractVector)
+function Base.getindex(x::Lazy, is::AbstractVector)
     T = eltype(is)
     if x.x isa List && (T <: Integer ||
                         typeintersect(T, Integer) !== Union{} &&
                         all(x -> isa(x, Integer), is))
-        Free(List(x.x.xs[is]), gens(x))
+        Lazy(List(x.x.xs[is]), gens(x))
     else
-        getindex(x, Free(is))
+        getindex(x, Lazy(is))
     end
 end
 
@@ -141,7 +141,7 @@ Base.:(==)(k::LazyRec, l::LazyRec) = false
 LazyRec(x::LazyRec) = x
 LazyRec(x::AbstractSLProgram) = compile(LazyRec, x)
 LazyRec(x) = Const(x)
-LazyRec(x::Free) = x.x
+LazyRec(x::Lazy) = x.x
 
 evaluate(l::LazyRec, xs) = evaluate(gens(l), l, xs, IdDict{LazyRec,Any}())
 # TODO: remove the 3-arg evaluate methods?
@@ -186,7 +186,7 @@ struct Input <: LazyRec
 end
 
 function Base.show(io::IO, i::Input)
-    syms = io[:slp_free_gens]
+    syms = io[:slp_lazy_gens]
     print(io, syms[i.n])
 end
 
@@ -221,7 +221,7 @@ Base.:(==)(k::Gen, l::Gen) = k.g == l.g
 # TODO: test if dict should be used (performance only)
 evaluate(gs, g::Gen, xs, dict) = xs[findfirst(==(g.g), gs)]
 
-maxinput(g::Gen) = throw(ArgumentError("logic error: Gen not allowed in Free"))
+maxinput(g::Gen) = throw(ArgumentError("logic error: Gen not allowed in Lazy"))
 
 
 ### Plus
