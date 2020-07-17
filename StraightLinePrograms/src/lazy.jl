@@ -1,38 +1,38 @@
-## Free
+## Lazy
 
-abstract type Lazy end
+abstract type LazyRec end
 
-struct Free <: AbstractSLProgram
-    x::Lazy # must not contain Gen
+struct Lazy <: AbstractSLProgram
+    x::LazyRec # must not contain Gen
     gens::Vector{Symbol}
 end
 
-Free(x::Lazy) = Free(x, collect(Symbol, slpsyms(maxinput(x))))
+Lazy(x::LazyRec) = Lazy(x, collect(Symbol, slpsyms(maxinput(x))))
 
-Free(x) = Free(Const(x), Symbol[])
+Lazy(x) = Lazy(Const(x), Symbol[])
 
-function freegens(n::Integer, syms=slpsyms(n))
+function lazygens(n::Integer, syms=slpsyms(n))
     if !isa(syms, Vector{Symbol})
         syms = collect(Symbol, syms)
     end
-    Free[Free(Input(i), syms) for i=1:n]
+    Lazy[Lazy(Input(i), syms) for i=1:n]
 end
 
-freegens(syms::AbstractVector{Symbol}) = freegens(length(syms), syms)
+lazygens(syms::AbstractVector{Symbol}) = lazygens(length(syms), syms)
 
-gens(::Type{Free}, n::Integer) = freegens(n)
+gens(::Type{Lazy}, n::Integer) = lazygens(n)
 
-ngens(f::Free) = length(f.gens)
+ngens(f::Lazy) = length(f.gens)
 
-gens(f::Free) = f.gens
+gens(f::Lazy) = f.gens
 
-Base.show(io::IO, f::Free) =
-    show(IOContext(io, :slp_free_gens => gens(f)), f.x)
+Base.show(io::IO, f::Lazy) =
+    show(IOContext(io, :slp_lazy_gens => gens(f)), f.x)
 
-evaluate(f::Free, xs) = evaluate(gens(f), f.x, xs)
+evaluate(f::Lazy, xs) = evaluate(gens(f), f.x, xs, IdDict{LazyRec,Any}())
 
 # check compatibility and return the biggest of the two gens arrays
-function gens(x::Free, xs::Free...)
+function gens(x::Lazy, xs::Lazy...)
     gx = gens(x)
     for y in xs
         gy = gens(y)
@@ -46,107 +46,117 @@ function gens(x::Free, xs::Free...)
 end
 
 # TODO: must they also have the same gens?
-Base.:(==)(x::Free, y::Free) = x.x == y.x
+Base.:(==)(x::Lazy, y::Lazy) = x.x == y.x
 
-compile(::Type{SLProgram}, f::Free) =
+compile(::Type{SLProgram}, f::Lazy) =
     compile(SLProgram{constantstype(f.x)}, f)
 
-function compile(::Type{SLProgram{T}}, f::Free) where T
+function compile(::Type{SLProgram{T}}, f::Lazy) where T
     p = SLProgram{T}()
     i = pushlazy!(p, f.x, gens(f))
     pushfinalize!(p, i)
 end
 
-compile(f::Free) = compile(SLProgram, f)
+compile(f::Lazy) = compile(SLProgram, f)
 
 
 ### unary/binary ops
 
-+(x::Free, y::Free) = Free(x.x + y.x, gens(x, y))
--(x::Free, y::Free) = Free(x.x - y.x, gens(x, y))
-*(x::Free, y::Free) = Free(x.x * y.x, gens(x, y))
++(x::Lazy, y::Lazy) = Lazy(x.x + y.x, gens(x, y))
+-(x::Lazy, y::Lazy) = Lazy(x.x - y.x, gens(x, y))
+*(x::Lazy, y::Lazy) = Lazy(x.x * y.x, gens(x, y))
 
-Base.:(&)(x::Free, y::Free) = Free(x.x & y.x, gens(x, y))
+Base.:(&)(x::Lazy, y::Lazy) = Lazy(x.x & y.x, gens(x, y))
 
--(x::Free) = Free(-x.x, gens(x))
-^(x::Free, e::Integer) = Free(x.x^e, gens(x))
+-(x::Lazy) = Lazy(-x.x, gens(x))
+^(x::Lazy, e::Integer) = Lazy(x.x^e, gens(x))
 
-Base.literal_pow(::typeof(^), p::Free, ::Val{e}) where {e} = p^e
+Base.literal_pow(::typeof(^), p::Lazy, ::Val{e}) where {e} = p^e
 
-test(x::Free, n) = Free(test(x.x, n), gens(x))
+test(x::Lazy, n) = Lazy(test(x.x, n), gens(x))
 
 # TODO: don't splat
-list(::Type{Free}, xs) = Free(List(Lazy[x.x for x in xs]), gens(xs...))
+list(::Type{Lazy}, xs) = Lazy(List(LazyRec[x.x for x in xs]), gens(xs...))
 
-function compose(p::Free, q::Free; flatten=true)
+function compose(p::Lazy, q::Lazy; flatten=true)
     if flatten
         q.x isa List || throw(ArgumentError(
             "first argument must return a list"))
         gs = gens(q)
-        evaluate(p, [Free(qi, gs) for qi in q.x.xs])::Free
+        evaluate(p, [Lazy(qi, gs) for qi in q.x.xs])::Lazy
     else
-        Free(Compose(p.x, q.x), gens(q))
+        Lazy(Compose(p.x, q.x), gens(q))
     end
 end
 
-Base.getindex(p::Free, is::Free...) =
-    Free(Getindex(p.x, Lazy[i.x for i in is]), gens(p, is...))
+Base.getindex(p::Lazy, is::Lazy...) =
+    Lazy(Getindex(p.x, LazyRec[i.x for i in is]), gens(p, is...))
+
+call(f, xs...) = Lazy(Call(f, [LazyRec(x) for x in xs]))
 
 
 #### adhoc
 
-+(x::Free, y) = Free(x.x + y, gens(x))
-+(x, y::Free) = Free(x + y.x, gens(y))
++(x::Lazy, y) = Lazy(x.x + y, gens(x))
++(x, y::Lazy) = Lazy(x + y.x, gens(y))
 
--(x::Free, y) = Free(x.x - y, gens(x))
--(x, y::Free) = Free(x - y.x, gens(y))
+-(x::Lazy, y) = Lazy(x.x - y, gens(x))
+-(x, y::Lazy) = Lazy(x - y.x, gens(y))
 
-*(x::Free, y) = Free(x.x * y, gens(x))
-*(x, y::Free) = Free(x * y.x, gens(y))
+*(x::Lazy, y) = Lazy(x.x * y, gens(x))
+*(x, y::Lazy) = Lazy(x * y.x, gens(y))
 
-Base.getindex(x::Free, is...) =
-    getindex(x, map(f -> f isa Free ? f : Free(f), is)...)
-Base.getindex(x, y::Free) = Free(x[y.x], gens(y))
+Base.getindex(x::Lazy, is...) =
+    getindex(x, map(f -> f isa Lazy ? f : Lazy(f), is)...)
+Base.getindex(x, y::Lazy) = Lazy(x[y.x], gens(y))
 
 # special case for integer literals
 
-function Base.getindex(x::Free, i::Integer)
+function Base.getindex(x::Lazy, i::Integer)
     if x.x isa List
-        Free(x.x.xs[i], gens(x))
+        Lazy(x.x.xs[i], gens(x))
     else
-        getindex(x, Free(i))
+        getindex(x, Lazy(i))
     end
 end
 
-function Base.getindex(x::Free, is::AbstractVector)
+function Base.getindex(x::Lazy, is::AbstractVector)
     T = eltype(is)
     if x.x isa List && (T <: Integer ||
                         typeintersect(T, Integer) !== Union{} &&
                         all(x -> isa(x, Integer), is))
-        Free(List(x.x.xs[is]), gens(x))
+        Lazy(List(x.x.xs[is]), gens(x))
     else
-        getindex(x, Free(is))
+        getindex(x, Lazy(is))
     end
 end
 
 
-## Lazy
+## LazyRec
 
-gens(l::Lazy) = sort!(unique!(pushgens!(Symbol[], l)::Vector{Symbol}))
+gens(l::LazyRec) = sort!(unique!(pushgens!(Symbol[], l)::Vector{Symbol}))
 
-Base.:(==)(k::Lazy, l::Lazy) = false
+Base.:(==)(k::LazyRec, l::LazyRec) = false
 
-Lazy(x::Lazy) = x
-Lazy(x::AbstractSLProgram) = compile(Lazy, x)
-Lazy(x) = Const(x)
+LazyRec(x::LazyRec) = x
+LazyRec(x::AbstractSLProgram) = compile(LazyRec, x)
+LazyRec(x) = Const(x)
+LazyRec(x::Lazy) = x.x
 
-evaluate(l::Lazy, xs) = evaluate(gens(l), l, xs)
+evaluate(l::LazyRec, xs) = evaluate(gens(l), l, xs, IdDict{LazyRec,Any}())
 # TODO: remove the 3-arg evaluate methods?
 
+const sentinel = 0x54f765833cf932f72a3dd18e0dc1d839
+
+function evaluate(gs, l::LazyRec, xs, dict)
+    r = get(dict, l, sentinel)
+    r !== sentinel && return r
+    dict[l] = _evaluate(gs, l, xs, dict)
+end
 
 ### Const
 
-struct Const{T} <: Lazy
+struct Const{T} <: LazyRec
     c::T
 
     # TODO: this is a hack, delete ASAP
@@ -164,23 +174,23 @@ constantstype(l::Const{T}) where {T} = T
 
 Base.:(==)(k::Const, l::Const) = k.c == l.c
 
-evaluate(gs, c::Const, xs) = c.c
+evaluate(gs, c::Const, xs, dict) = c.c
 
 maxinput(c::Const) = 0
 
 
 ### Input
 
-struct Input <: Lazy
+struct Input <: LazyRec
     n::Int
 end
 
 function Base.show(io::IO, i::Input)
-    syms = io[:slp_free_gens]
+    syms = io[:slp_lazy_gens]
     print(io, syms[i.n])
 end
 
-evaluate(gs, i::Input, xs) = xs[i.n]
+evaluate(gs, i::Input, xs, dict) = xs[i.n]
 
 maxinput(i::Input) = i.n
 
@@ -191,7 +201,7 @@ constantstype(::Input) = Union{}
 
 ### Gen
 
-struct Gen <: Lazy
+struct Gen <: LazyRec
     g::Symbol
 end
 
@@ -208,18 +218,19 @@ constantstype(l::Gen) = Union{}
 
 Base.:(==)(k::Gen, l::Gen) = k.g == l.g
 
-evaluate(gs, g::Gen, xs) = xs[findfirst(==(g.g), gs)]
+# TODO: test if dict should be used (performance only)
+evaluate(gs, g::Gen, xs, dict) = xs[findfirst(==(g.g), gs)]
 
-maxinput(g::Gen) = throw(ArgumentError("logic error: Gen not allowed in Free"))
+maxinput(g::Gen) = throw(ArgumentError("logic error: Gen not allowed in Lazy"))
 
 
 ### Plus
 
-struct Plus <: Lazy
-    xs::Vector{Lazy}
+struct Plus <: LazyRec
+    xs::Vector{LazyRec}
 end
 
-Plus(xs::Lazy...) = Plus(collect(Lazy, xs))
+Plus(xs::LazyRec...) = Plus(collect(LazyRec, xs))
 
 function Base.show(io::IO, p::Plus)
     print(io, '(')
@@ -234,16 +245,17 @@ constantstype(p::Plus) =
 
 Base.:(==)(k::Plus, l::Plus) = k.xs == l.xs
 
-evaluate(gs, p::Plus, xs) = mapreduce(q -> evaluate(gs, q, xs), +, p.xs)
+_evaluate(gs, p::Plus, xs, dict) =
+    mapreduce(q -> evaluate(gs, q, xs, dict), +, p.xs)
 
 maxinput(p::Plus) = mapreduce(maxinput, max, p.xs)
 
 
 ### Minus
 
-struct Minus <: Lazy
-    p::Lazy
-    q::Lazy
+struct Minus <: LazyRec
+    p::LazyRec
+    q::LazyRec
 end
 
 Base.show(io::IO, p::Minus) = print(io, '(', p.p, " - ", p.q, ')')
@@ -254,15 +266,16 @@ constantstype(m::Minus) = typejoin(constantstype(m.p), constantstype(m.q))
 
 Base.:(==)(k::Minus, l::Minus) = k.p == l.p && k.q == l.q
 
-evaluate(gs, p::Minus, xs) = evaluate(gs, p.p, xs) - evaluate(gs, p.q, xs)
+_evaluate(gs, p::Minus, xs, dict) =
+    evaluate(gs, p.p, xs, dict) - evaluate(gs, p.q, xs, dict)
 
 maxinput(m::Minus) = max(maxinput(m.p), maxinput(m.q))
 
 
 ### UniMinus
 
-struct UniMinus <: Lazy
-    p::Lazy
+struct UniMinus <: LazyRec
+    p::LazyRec
 end
 
 Base.show(io::IO, p::UniMinus) = print(io, "(-", p.p, ')')
@@ -273,18 +286,18 @@ constantstype(p::UniMinus) = constantstype(p.p)
 
 Base.:(==)(k::UniMinus, l::UniMinus) = k.p == l.p
 
-evaluate(gs, p::UniMinus, xs) = -evaluate(gs, p.p, xs)
+_evaluate(gs, p::UniMinus, xs, dict) = -evaluate(gs, p.p, xs, dict)
 
 maxinput(p::UniMinus) = maxinput(p.p)
 
 
 ### Times
 
-struct Times <: Lazy
-    xs::Vector{Lazy}
+struct Times <: LazyRec
+    xs::Vector{LazyRec}
 end
 
-Times(xs::Lazy...) = Times(collect(Lazy, xs))
+Times(xs::LazyRec...) = Times(collect(LazyRec, xs))
 
 function Base.show(io::IO, p::Times)
     print(io, '(')
@@ -299,15 +312,16 @@ constantstype(p::Times) =
 
 Base.:(==)(k::Times, l::Times) = k.xs == l.xs
 
-evaluate(gs, p::Times, xs) = mapreduce(q -> evaluate(gs, q, xs), *, p.xs)
+_evaluate(gs, p::Times, xs, dict) =
+    mapreduce(q -> evaluate(gs, q, xs, dict), *, p.xs)
 
 maxinput(p::Times) = mapreduce(maxinput, max, p.xs)
 
 
 ### Exp
 
-struct Exp <: Lazy
-    p::Lazy
+struct Exp <: LazyRec
+    p::LazyRec
     e::Int
 end
 
@@ -319,20 +333,20 @@ constantstype(p::Exp) = constantstype(p.p)
 
 Base.:(==)(k::Exp, l::Exp) = k.p == l.p && k.e == l.e
 
-Base.literal_pow(::typeof(^), p::Lazy, ::Val{e}) where {e} = Exp(p, e)
+Base.literal_pow(::typeof(^), p::LazyRec, ::Val{e}) where {e} = Exp(p, e)
 
-evaluate(gs, p::Exp, xs) = evaluate(gs, p.p, xs)^p.e
+_evaluate(gs, p::Exp, xs, dict) = evaluate(gs, p.p, xs, dict)^p.e
 
 maxinput(e::Exp) = maxinput(e.p)
 
 
 ### Decision
 
-struct Decision <: Lazy
-    ps::Vector{Tuple{Lazy,Int}}
+struct Decision <: LazyRec
+    ps::Vector{Tuple{LazyRec,Int}}
 end
 
-test(p::Lazy, n) = Decision(Tuple{Lazy,Int}[(p, n)])
+test(p::LazyRec, n) = Decision(Tuple{LazyRec,Int}[(p, n)])
 
 Base.show(io::IO, d::Decision) =
     join(io, (sprint(print, "test(", p, ", ", n, ")", context=io)
@@ -353,12 +367,12 @@ end
 
 Base.:(==)(p::Decision, q::Decision) = p.ps == q.ps
 
-function evaluate(gs, p::Decision, xs)
+function _evaluate(gs, p::Decision, xs, dict)
     (d, i), rest = Iterators.peel(p.ps) # p.ps should never be empty
-    res = test(evaluate(gs, d, xs), i)
+    res = test(evaluate(gs, d, xs, dict), i)
     res === false && return false
     for (d, i) in rest
-        r = test(evaluate(gs, d, xs), i)
+        r = test(evaluate(gs, d, xs, dict), i)
         r === false && return false
         res &= r
     end
@@ -370,8 +384,8 @@ maxinput(p::Decision) = mapreduce(x -> maxinput(x[1]), max, p.ps)
 
 ### List
 
-struct List <: Lazy
-    xs::Vector{Lazy}
+struct List <: LazyRec
+    xs::Vector{LazyRec}
 end
 
 function Base.show(io::IO, l::List)
@@ -387,19 +401,19 @@ pushgens!(gs, l::List) = foldl(pushgens!, l.xs, init=gs)
 
 Base.:(==)(p::List, q::List) = p.xs == q.xs
 
-evaluate(gs, l::List, xs) =
-    list(eltype(xs)[evaluate(gs, p, xs) for p in l.xs])
+_evaluate(gs, l::List, xs, dict) =
+    list(eltype(xs)[evaluate(gs, p, xs, dict) for p in l.xs])
 
 maxinput(l::List) = mapreduce(maxinput, max, l.xs)
 
 
 ### Compose
 
-struct Compose <: Lazy
-    p::Lazy
-    q::Lazy # q must return a list!
+struct Compose <: LazyRec
+    p::LazyRec
+    q::LazyRec # q must return a list!
 
-    function Compose(p::Lazy, q::Lazy)
+    function Compose(p::LazyRec, q::LazyRec)
         q isa List || throw(ArgumentError(
             "second argument of Compose must return a list"))
         new(p, q)
@@ -414,16 +428,17 @@ pushgens!(gs, c::Compose) = pushgens!(gs, c.q)
 
 Base.:(==)(k::Compose, l::Compose) = k.p == l.p && k.q == l.q
 
-evaluate(gs, p::Compose, xs) = evaluate(gs, p.p, evaluate(gs, p.q, xs))
+_evaluate(gs, p::Compose, xs, dict) =
+    evaluate(gs, p.p, evaluate(gs, p.q, xs, dict), dict)
 
 maxinput(m::Compose) = maxinput(m.q)
 
 
 ### Getindex
 
-struct Getindex <: Lazy
-    p::Lazy
-    is::Vector{Lazy}
+struct Getindex <: LazyRec
+    p::LazyRec
+    is::Vector{LazyRec}
 end
 
 function Base.show(io::IO, g::Getindex)
@@ -438,24 +453,51 @@ constantstype(m::Getindex) = mapreduce(constantstype, typejoin, m.is, init=const
 
 Base.:(==)(k::Getindex, l::Getindex) = k.p == l.p && k.is == l.is
 
-evaluate(gs, p::Getindex, xs) = evaluate(gs, p.p, xs)[(evaluate(gs, i, xs) for i in p.is)...]
+_evaluate(gs, p::Getindex, xs, dict) =
+    evaluate(gs, p.p, xs, dict)[(evaluate(gs, i, xs, dict) for i in p.is)...]
 
 maxinput(m::Getindex) = mapreduce(maxinput, max, m.is, init=maxinput(m.p))
+
+
+### Call
+
+struct Call <: LazyRec
+    f::Any # callable
+    args::Vector{LazyRec}
+end
+
+
+function Base.show(io::IO, f::Call)
+    print(io, f.f, '(')
+    join(io, f.args, ", ")
+    print(io, ')')
+end
+
+pushgens!(gs, f::Call) = foldl(pushgens!, f.args, init=Symbol[])
+
+constantstype(f::Call) = mapreduce(constantstype, typejoin, f.args, init=Union{})
+
+Base.:(==)(f::Call, g::Call) = f.f == g.f && f.args == g.args
+
+_evaluate(gs, f::Call, xs, dict) =
+    f.f(map(t -> evaluate(gs, t, xs, dict), f.args)...)
+
+maxinput(f::Call) = mapreduce(maxinput, max, f.args)
 
 
 ### binary ops
 
 #### +
 
-+(x::Lazy, y::Lazy) = Plus(x, y)
++(x::LazyRec, y::LazyRec) = Plus(x, y)
 
-function +(x::Plus, y::Lazy)
+function +(x::Plus, y::LazyRec)
     p = Plus(copy(x.xs))
     push!(p.xs, y)
     p
 end
 
-function +(x::Lazy, y::Plus)
+function +(x::LazyRec, y::Plus)
     p = Plus(copy(y.xs))
     pushfirst!(p.xs, x)
     p
@@ -470,21 +512,21 @@ end
 
 #### -
 
--(p::Lazy, q::Lazy) = Minus(p, q)
--(p::Lazy) = UniMinus(p)
+-(p::LazyRec, q::LazyRec) = Minus(p, q)
+-(p::LazyRec) = UniMinus(p)
 
 
 #### *
 
-*(x::Lazy, y::Lazy) = Times(x, y)
+*(x::LazyRec, y::LazyRec) = Times(x, y)
 
-function *(x::Times, y::Lazy)
+function *(x::Times, y::LazyRec)
     p = Times(copy(x.xs))
     push!(p.xs, y)
     p
 end
 
-function *(x::Lazy, y::Times)
+function *(x::LazyRec, y::Times)
     p = Times(copy(y.xs))
     pushfirst!(p.xs, x)
     p
@@ -499,37 +541,37 @@ end
 
 #### ^
 
-^(x::Lazy, e::Integer) = Exp(x, Int(e))
+^(x::LazyRec, e::Integer) = Exp(x, Int(e))
 
 #### getindex
 
-Base.getindex(x::Lazy, i::Lazy...) = Getindex(x, collect(i))
+Base.getindex(x::LazyRec, i::LazyRec...) = Getindex(x, collect(i))
 
 
 ### adhoc binary ops
 
-*(x, y::Lazy) = Const(x) * y
-*(x::Lazy, y) = x * Const(y)
+*(x, y::LazyRec) = Const(x) * y
+*(x::LazyRec, y) = x * Const(y)
 
-+(x, y::Lazy) = Const(x) + y
-+(x::Lazy, y) = x + Const(y)
++(x, y::LazyRec) = Const(x) + y
++(x::LazyRec, y) = x + Const(y)
 
--(x, y::Lazy) = Const(x) - y
--(x::Lazy, y) = x - Const(y)
+-(x, y::LazyRec) = Const(x) - y
+-(x::LazyRec, y) = x - Const(y)
 
-Base.getindex(x, i::Lazy) = Getindex(Const(x), [i])
-Base.getindex(x::Lazy, is...) = Getindex(x, Lazy[i isa Lazy ? i : Const(i) for i in is])
+Base.getindex(x, i::LazyRec) = Getindex(Const(x), [i])
+Base.getindex(x::LazyRec, is...) = Getindex(x, LazyRec[i isa LazyRec ? i : Const(i) for i in is])
 
 
 ## compile to SLProgram
 
 # TODO: this is legacy, only for tests
-SLProgram(l::Lazy) = compile(SLProgram, l)
-SLProgram{T}(l::Lazy) where {T} = compile(SLProgram{T}, l)
+SLProgram(l::LazyRec) = compile(SLProgram, l)
+SLProgram{T}(l::LazyRec) where {T} = compile(SLProgram{T}, l)
 
-compile(::Type{SLProgram}, l::Lazy) = compile(SLProgram{constantstype(l)}, l)
+compile(::Type{SLProgram}, l::LazyRec) = compile(SLProgram{constantstype(l)}, l)
 
-function compile(::Type{SLProgram{T}}, l::Lazy, gs=gens(l)) where T
+function compile(::Type{SLProgram{T}}, l::LazyRec, gs=gens(l)) where T
     p = SLProgram{T}()
     i = pushlazy!(p, l, gs)
     pushfinalize!(p, i)
