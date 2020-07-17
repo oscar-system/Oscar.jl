@@ -31,3 +31,16 @@
   @test Oscar.leading_term(f, :lex) == x*y
 
 end
+
+@testset "Polynomial homs" begin
+  R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+  I1 = x^2 + y^2
+  I2 = x^2 * y^2
+  I3 = x^3*y - x*y^3
+  S, (a,b,c) = PolynomialRing(QQ, ["a", "b", "c"])
+  h = hom(S, R, [I1, I2, I3])
+  @test kernel(h) == ideal(S, [a^2*b - 4*b^2 - c^2])
+  @test h(gen(S, 1)) == I1
+  @test image(h, ideal(S, [a,b])) == ideal(R, [I1, I2])
+  @test preimage(h, ideal(R, [I2, I3])) == ideal(S, [b, c])
+end

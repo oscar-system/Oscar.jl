@@ -557,6 +557,7 @@ end
 
 
 abstract type OscarMap <: SetMap end
+
 mutable struct MPolyHom_vars{T1, T2}  <: Map{T1, T2, Hecke.HeckeMap, MPolyHom_vars}
   header::Hecke.MapHeader
   Hecke.@declare_other
@@ -626,6 +627,71 @@ end
 
 function coordinates(a::Array{<:MPolyElem, 1}, b::MPolyElem)
   return coordinates(a, [b])[1]
+end
+
+############################################
+mutable struct MPolyHom_alg{T1, T2}  <: Map{T1, T2, Hecke.HeckeMap, MPolyHom_vars}
+  header::Hecke.MapHeader
+  Hecke.@declare_other
+  i::Array{<:MPolyElem, 1}
+  f::Singular.SAlgHom
+
+  function MPolyHom_alg{T1, T2}(R::T1, S::T2, i::Array{<:MPolyElem, 1}) where {T1 <: MPolyRing, T2 <: MPolyRing}
+    r = new()
+    r.header = MapHeader{T1, T2}(R, S, x -> im_func(r, x), y-> pr_func(r, y))
+    r.i = i
+    I = ideal(i)
+    singular_assure(I)
+    r.f = Singular.AlgebraHomomorphism(singular_ring(R, keep_ordering = false), I.gens.Sx, gens(I.gens.S))
+    return r
+  end
+
+  function im_func(r, a::MPolyElem)
+    A = convert(singular_ring(r.header.domain, keep_ordering = false), a)
+    B = Singular.map_poly(r.f, A)
+    return convert(r.header.codomain, B)
+  end
+
+  function im_func(r, a::MPolyIdeal)
+    singular_assure(a)
+    B = Singular.map_ideal(r.f, a.gens.S)
+    return MPolyIdeal(r.header.codomain, B)
+  end
+
+#  function pr_func(r, b::MPolyElem) #TODO: does not work: the ideal preimage is always there
+#    ib = ideal(codomain(r), [b])
+#    singular_assure(ib)
+#    A = Singular.preimage(r.f, ib.gens.S)
+#    return convert(r.header.domain, gens(A)[1])
+#  end
+
+  function pr_func(r, b::MPolyIdeal)
+    singular_assure(b)
+    A = Singular.preimage(r.f, b.gens.S)
+    return MPolyIdeal(domain(r), A)
+  end
+end
+
+(f::MPolyHom_alg)(g::MPolyElem) = image(f, g)
+
+function Hecke.hom(R::MPolyRing, S::MPolyRing, i::Array{<:MPolyElem, 1})
+  return MPolyHom_alg{typeof(R), typeof(S)}(R, S, i)
+end
+
+function kernel(h::MPolyHom_alg)
+  return MPolyIdeal(domain(h), Singular.kernel(h.f))
+end
+
+function image(h::MPolyHom_alg)
+  return ideal(h.i)
+end
+
+function image(h::MPolyHom_alg, I::MPolyIdeal)
+  return h.header.image(I)
+end
+
+function preimage(h::MPolyHom_alg, I::MPolyIdeal)
+  return h.header.preimage(I)
 end
 
 ###################################################
