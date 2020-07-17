@@ -81,7 +81,7 @@
 end
 
 @testset "AtlasSLProgram evaluate" begin
-    ab = Lazy[Gen(:a), Gen(:b)]
+    ab = LazyRec[Gen(:a), Gen(:b)]
     a, b = ab
     res = empty(ab)
 

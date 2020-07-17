@@ -209,13 +209,13 @@ slpsyms(n::Integer) =
 
 function Base.show(io::IO, p::SLProgram)
     gs = get(io, :SLPsymbols, slpsyms(ninputs(p)))
-    show(io, evaluate(p, lazygens(gs), Const))
+    show(io, evaluate(p, lazyrecgens(gs), Const))
 end
 
 function Base.show(io::IO, ::MIME"text/plain", p::SLProgram{T}) where T
     n = length(lines(p))
     gs = get(io, :SLPsymbols, slpsyms(ninputs(p)))
-    syms = lazygens(gs)
+    syms = lazyrecgens(gs)
     reslazy = Any[]
     if n == 0 && !hasmultireturn(p)
         # trivial program, show only result
@@ -666,13 +666,13 @@ end
 
 Base.getindex(p::SLProgram, i::Integer) = getindex!(copy(p), i)
 
-## conversion SLProgram -> Lazy
+## conversion SLProgram -> LazyRec
 
-lazygens(gs) = Any[Gen(s) for s in gs]
-lazygens(n::Integer) = lazygens(slpsyms(n))
+lazyrecgens(gs) = Any[Gen(s) for s in gs]
+lazyrecgens(n::Integer) = lazyrecgens(slpsyms(n))
 
 # strictly convenience function
-aslazy(p::SLProgram, gs=lazygens(ninputs(p))) = Lazy(evaluate(p, gs))
+aslazyrec(p::SLProgram, gs=lazyrecgens(ninputs(p))) = LazyRec(evaluate(p, gs))
 
 
 ## evaluate

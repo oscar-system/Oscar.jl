@@ -5,14 +5,14 @@
     @test base_ring(F) == ZZ
 end
 
-@testset "Lazy" begin
+@testset "LazyRec" begin
     x, y, z = Gen.([:x, :y, :z])
     xyz = Any[x, y, z]
 
     # Const
     c = Const(1)
     @test c isa Const{Int}
-    @test c isa Lazy
+    @test c isa LazyRec
     @test string(c) == "1"
     @test isempty(SL.gens(c))
     @test c == Const(1) == Const(0x1)
@@ -23,7 +23,7 @@ end
     # Gen
     g = Gen(:x)
     @test g isa Gen
-    @test g isa Lazy
+    @test g isa LazyRec
     @test string(g) == "x"
     @test SL.gens(g) == [:x]
     @test g == x
@@ -34,7 +34,7 @@ end
 
     # Plus
     p = Plus(c, g)
-    @test p isa Plus <: Lazy
+    @test p isa Plus <: LazyRec
     @test p.xs[1] == c && p.xs[2] == g
     @test string(p) == "(1 + x)"
     @test SL.gens(p) == [:x]
@@ -45,7 +45,7 @@ end
 
     # Minus
     m = Minus(p, g)
-    @test m isa Minus <: Lazy
+    @test m isa Minus <: LazyRec
     @test string(m) == "((1 + x) - x)"
     @test SL.gens(m) == [:x]
     @test m == (1+x)-x
@@ -55,7 +55,7 @@ end
 
     # UniMinus
     u = UniMinus(p)
-    @test u isa UniMinus <: Lazy
+    @test u isa UniMinus <: LazyRec
     @test string(u) == "(-(1 + x))"
     @test SL.gens(u) == [:x]
     @test u == -(1+x)
@@ -65,7 +65,7 @@ end
 
     # Times
     t = Times(g, p)
-    @test t isa Times <: Lazy
+    @test t isa Times <: LazyRec
     @test string(t) == "(x*(1 + x))"
     @test SL.gens(t) == [:x]
     @test t == x*(1+x)
@@ -75,7 +75,7 @@ end
 
     # Exp
     e = Exp(p, 3)
-    @test e isa Exp <: Lazy
+    @test e isa Exp <: LazyRec
     @test string(e) == "(1 + x)^3"
     @test SL.gens(e) == [:x]
     @test e == (1+x)^3
@@ -85,7 +85,7 @@ end
 
     # Call
     c = Call((x, y) -> 2x+3y, [x-y, y])
-    @test c isa Call <: Lazy
+    @test c isa Call <: LazyRec
     @test SL.gens(c) == [:x, :y]
     @test c == Call(c.f, [x-y, y])
     @test c != Call((x, y) -> 2x+3y, [x-y, y]) # not same function
@@ -599,7 +599,7 @@ end
     p = c+c*c
     evaluate(p, [1])
     @test counter == 1
-    # TODO: should add tests for every Lazy subtypes
+    # TODO: should add tests for every LazyRec subtypes
 end
 
 @testset "SL internals" begin
@@ -675,28 +675,28 @@ end
     p = SLProgram{Int}(1)
     @test evaluate(p, [10, 20]) == 10
     @test SL.ninputs(p) == 1
-    @test SL.aslazy(p) == Gen(:x)
+    @test SL.aslazyrec(p) == Gen(:x)
     p = SLProgram(3)
     @test evaluate(p, [10, "20", 'c']) == 'c'
     @test SL.ninputs(p) == 3
-    @test SL.aslazy(p) == Gen(:z)
+    @test SL.aslazyrec(p) == Gen(:z)
 
     p = SLProgram(Const(3))
     @test evaluate(p, [10, 20]) == 3
-    @test SL.aslazy(p) == Const(3)
+    @test SL.aslazyrec(p) == Const(3)
     p = SLProgram(Const('c'))
     @test evaluate(p, ["10", 20]) == 'c'
     @test SL.ninputs(p) == 0
-    @test SL.aslazy(p) == Const('c')
+    @test SL.aslazyrec(p) == Const('c')
 
     # exponent
     p = SLProgram(x*y^-2)
-    @test SL.aslazy(p) == x*y^Int(-2)
+    @test SL.aslazyrec(p) == x*y^Int(-2)
     e = (SL.payloadmask ⊻ SL.negbit) % Int
-    @test x^e == SL.aslazy(SLProgram(x^e))
+    @test x^e == SL.aslazyrec(SLProgram(x^e))
     @test_throws ArgumentError SLProgram(x^(e+1))
     e = -e-1
-    @test x^e == SL.aslazy(SLProgram(x^e))
+    @test x^e == SL.aslazyrec(SLProgram(x^e))
     @test_throws ArgumentError SLProgram(x^(e-1))
     p = SLProgram(x^2*y^(Int(-3)))
     @test evaluate(p, [sqrt(2), 4^(-1/3)]) === 8.0
@@ -713,16 +713,16 @@ end
     k = SL.pushop!(p, SL.assign, k, Arg(1))
     @test k == Arg(1)
     SL.pushfinalize!(p, k)
-    @test evaluate(p, Lazy[x, y]) == (x+y)*y
+    @test evaluate(p, LazyRec[x, y]) == (x+y)*y
     k = SL.pushop!(p, SL.exponentiate, k, Arg(2))
-    @test evaluate(p, Lazy[x, y]) == (x+y)*y
+    @test evaluate(p, LazyRec[x, y]) == (x+y)*y
     SL.pushfinalize!(p, k)
-    @test evaluate(p, Lazy[x, y]) == ((x+y)*y)^2
+    @test evaluate(p, LazyRec[x, y]) == ((x+y)*y)^2
     SL.pushfinalize!(p, Arg(2))
-    @test evaluate(p, Lazy[x, y]) == ((x+y)*y)
+    @test evaluate(p, LazyRec[x, y]) == ((x+y)*y)
     k = SL.pushop!(p, SL.assign, k, Arg(2))
     @test k == Arg(2)
-    @test evaluate(p, Lazy[x, y]) == ((x+y)*y)^2
+    @test evaluate(p, LazyRec[x, y]) == ((x+y)*y)^2
 
     # nsteps
     @test nsteps(p) == 5
@@ -754,24 +754,24 @@ end
 
     @test p === SL.addeq!(p, q)
     @test evaluate(p, [3]) == 9
-    @test SL.aslazy(p) == x+6
+    @test SL.aslazyrec(p) == x+6
 
     @test p === SL.subeq!(p, r)
     @test evaluate(p, [3, 2]) == 7
-    @test SL.aslazy(p) == x+6-y
+    @test SL.aslazyrec(p) == x+6-y
 
     @test p === SL.subeq!(p)
     @test evaluate(p, [3, 2]) == -7
-    @test SL.aslazy(p) == -(x+6-y)
+    @test SL.aslazyrec(p) == -(x+6-y)
 
     @test p === SL.muleq!(p, r)
     @test evaluate(p, [3, 2]) == -14
-    @test SL.aslazy(p) == -(x+6-y)*y
+    @test SL.aslazyrec(p) == -(x+6-y)*y
 
     @test p === SL.expeq!(p, 3)
     @test evaluate(p, [3, 2]) == -2744
     @test SL.evaluates(p, [3, 2]) == [9, 7, -7, -14, -2744]
-    @test SL.aslazy(p) == (-(x+6-y)*y)^3
+    @test SL.aslazyrec(p) == (-(x+6-y)*y)^3
 
     @test SL.ninputs(p) == 2
 
@@ -780,21 +780,21 @@ end
 
     SL.addeq!(p, q)
     @test p.cs[1] === 0x2
-    @test SL.aslazy(p) == x+2
+    @test SL.aslazyrec(p) == x+2
 
     SL.muleq!(p, SLProgram(Const(3.0)))
     @test p.cs[2] === 0x3
-    @test SL.aslazy(p) == (x+2)*3.0
+    @test SL.aslazyrec(p) == (x+2)*3.0
 
     SL.subeq!(p, SLProgram(Const(big(4))))
     @test p.cs[3] === 0x4
-    @test SL.aslazy(p) == (x+2)*3.0-big(4)
+    @test SL.aslazyrec(p) == (x+2)*3.0-big(4)
 
     @test_throws InexactError SL.addeq!(p, SLProgram(Const(1.2)))
     @assert length(p.cs) == 4 # p.cs was resized before append! failed
     pop!(p.cs) # set back consistent state
     @assert length(p.lines) == 3 # p.lines was *not* resized before append! failed
-    @test SL.aslazy(p) == (x+2)*3.0-big(4)
+    @test SL.aslazyrec(p) == (x+2)*3.0-big(4)
 
     p2 = SL.copy_oftype(p, Float64)
     @test p2 == p
@@ -802,7 +802,7 @@ end
     @test p2.lines == p.lines
     SL.addeq!(p2, SLProgram(Const(1.2)))
     @test p2.cs[4] == 1.2
-    @test SL.aslazy(p2) == ((((x + 2.0)*3.0) - 4.0) + 1.2)
+    @test SL.aslazyrec(p2) == ((((x + 2.0)*3.0) - 4.0) + 1.2)
 
     p3 = copy(p)
     @test p3 == p
@@ -816,31 +816,31 @@ end
     q = SLProgram(Const(2))
 
     r = p+q
-    @test SL.aslazy(r) == x+2
+    @test SL.aslazyrec(r) == x+2
     @test SL.constantstype(r) === Signed
 
     r2 = p2+q
-    @test SL.aslazy(r) == x+2
+    @test SL.aslazyrec(r) == x+2
     @test SL.constantstype(r2) === Int
 
     r = r*SLProgram(Const(0x3))
-    @test SL.aslazy(r) == (x+2)*3
+    @test SL.aslazyrec(r) == (x+2)*3
     @test SL.constantstype(r) === Integer
 
     r2 = r2*SLProgram(Const(0x3))
-    @test SL.aslazy(r2) == (x+2)*3
+    @test SL.aslazyrec(r2) == (x+2)*3
     @test SL.constantstype(r2) === Integer
 
     r = r-SLProgram(Const(1.2))
-    @test SL.aslazy(r) == (x+2)*3-1.2
+    @test SL.aslazyrec(r) == (x+2)*3-1.2
     @test SL.constantstype(r) === Real
 
     r = -r
-    @test SL.aslazy(r) == -((x+2)*3-1.2)
+    @test SL.aslazyrec(r) == -((x+2)*3-1.2)
     @test SL.constantstype(r) === Real
 
     r = r^3
-    @test SL.aslazy(r) == (-((x+2)*3-1.2))^3
+    @test SL.aslazyrec(r) == (-((x+2)*3-1.2))^3
     @test SL.constantstype(r) === Real
 
     @testset "adhoc" begin
@@ -858,12 +858,12 @@ end
         @test evaluate(r - 0x12, xyz) == (x+2) - 0x12
     end
 
-    # conversion Lazy -> SLProgram
+    # conversion LazyRec -> SLProgram
     @test SLProgram(x^2+y) isa SLProgram{Union{}}
     p = SL.muleq!(SLProgram(Const(2)), SLProgram{Int}(x^2+y))
     @test p isa SLProgram{Int}
     @test evaluate(p, [2, 3]) == 14
-    @test SL.aslazy(p) == 2*(x^2 + y)
+    @test SL.aslazyrec(p) == 2*(x^2 + y)
 
     l = SL.test(x^2 * y, 2) & SL.test(y^2 * x, 3)
     p = SLProgram(l)
@@ -871,7 +871,7 @@ end
     p1, p2 = P("(1,4,3)"), P("(1, 3)")
     @test evaluate(p, [p1, p2])
     @test !evaluate(p, [p2, p1])
-    @test SL.aslazy(p) == l
+    @test SL.aslazyrec(p) == l
 
     # multiple return
     p = SLProgram{Int}()
@@ -959,7 +959,7 @@ end
 end
 
 @testset "SL Decision" begin
-    x, y = SL.lazygens(2)
+    x, y = SL.lazyrecgens(2)
     a, b = ab = gens(SL.Free, 2)
 
     p = SLProgram()

@@ -1,13 +1,13 @@
 ## Free
 
-abstract type Lazy end
+abstract type LazyRec end
 
 struct Free <: AbstractSLProgram
-    x::Lazy # must not contain Gen
+    x::LazyRec # must not contain Gen
     gens::Vector{Symbol}
 end
 
-Free(x::Lazy) = Free(x, collect(Symbol, slpsyms(maxinput(x))))
+Free(x::LazyRec) = Free(x, collect(Symbol, slpsyms(maxinput(x))))
 
 Free(x) = Free(Const(x), Symbol[])
 
@@ -29,7 +29,7 @@ gens(f::Free) = f.gens
 Base.show(io::IO, f::Free) =
     show(IOContext(io, :slp_free_gens => gens(f)), f.x)
 
-evaluate(f::Free, xs) = evaluate(gens(f), f.x, xs, IdDict{Lazy,Any}())
+evaluate(f::Free, xs) = evaluate(gens(f), f.x, xs, IdDict{LazyRec,Any}())
 
 # check compatibility and return the biggest of the two gens arrays
 function gens(x::Free, xs::Free...)
@@ -76,7 +76,7 @@ Base.literal_pow(::typeof(^), p::Free, ::Val{e}) where {e} = p^e
 test(x::Free, n) = Free(test(x.x, n), gens(x))
 
 # TODO: don't splat
-list(::Type{Free}, xs) = Free(List(Lazy[x.x for x in xs]), gens(xs...))
+list(::Type{Free}, xs) = Free(List(LazyRec[x.x for x in xs]), gens(xs...))
 
 function compose(p::Free, q::Free; flatten=true)
     if flatten
@@ -90,9 +90,9 @@ function compose(p::Free, q::Free; flatten=true)
 end
 
 Base.getindex(p::Free, is::Free...) =
-    Free(Getindex(p.x, Lazy[i.x for i in is]), gens(p, is...))
+    Free(Getindex(p.x, LazyRec[i.x for i in is]), gens(p, is...))
 
-call(f, xs...) = Free(Call(f, [Lazy(x) for x in xs]))
+call(f, xs...) = Free(Call(f, [LazyRec(x) for x in xs]))
 
 
 #### adhoc
@@ -132,23 +132,23 @@ function Base.getindex(x::Free, is::AbstractVector)
 end
 
 
-## Lazy
+## LazyRec
 
-gens(l::Lazy) = sort!(unique!(pushgens!(Symbol[], l)::Vector{Symbol}))
+gens(l::LazyRec) = sort!(unique!(pushgens!(Symbol[], l)::Vector{Symbol}))
 
-Base.:(==)(k::Lazy, l::Lazy) = false
+Base.:(==)(k::LazyRec, l::LazyRec) = false
 
-Lazy(x::Lazy) = x
-Lazy(x::AbstractSLProgram) = compile(Lazy, x)
-Lazy(x) = Const(x)
-Lazy(x::Free) = x.x
+LazyRec(x::LazyRec) = x
+LazyRec(x::AbstractSLProgram) = compile(LazyRec, x)
+LazyRec(x) = Const(x)
+LazyRec(x::Free) = x.x
 
-evaluate(l::Lazy, xs) = evaluate(gens(l), l, xs, IdDict{Lazy,Any}())
+evaluate(l::LazyRec, xs) = evaluate(gens(l), l, xs, IdDict{LazyRec,Any}())
 # TODO: remove the 3-arg evaluate methods?
 
 const sentinel = 0x54f765833cf932f72a3dd18e0dc1d839
 
-function evaluate(gs, l::Lazy, xs, dict)
+function evaluate(gs, l::LazyRec, xs, dict)
     r = get(dict, l, sentinel)
     r !== sentinel && return r
     dict[l] = _evaluate(gs, l, xs, dict)
@@ -156,7 +156,7 @@ end
 
 ### Const
 
-struct Const{T} <: Lazy
+struct Const{T} <: LazyRec
     c::T
 
     # TODO: this is a hack, delete ASAP
@@ -181,7 +181,7 @@ maxinput(c::Const) = 0
 
 ### Input
 
-struct Input <: Lazy
+struct Input <: LazyRec
     n::Int
 end
 
@@ -201,7 +201,7 @@ constantstype(::Input) = Union{}
 
 ### Gen
 
-struct Gen <: Lazy
+struct Gen <: LazyRec
     g::Symbol
 end
 
@@ -226,11 +226,11 @@ maxinput(g::Gen) = throw(ArgumentError("logic error: Gen not allowed in Free"))
 
 ### Plus
 
-struct Plus <: Lazy
-    xs::Vector{Lazy}
+struct Plus <: LazyRec
+    xs::Vector{LazyRec}
 end
 
-Plus(xs::Lazy...) = Plus(collect(Lazy, xs))
+Plus(xs::LazyRec...) = Plus(collect(LazyRec, xs))
 
 function Base.show(io::IO, p::Plus)
     print(io, '(')
@@ -253,9 +253,9 @@ maxinput(p::Plus) = mapreduce(maxinput, max, p.xs)
 
 ### Minus
 
-struct Minus <: Lazy
-    p::Lazy
-    q::Lazy
+struct Minus <: LazyRec
+    p::LazyRec
+    q::LazyRec
 end
 
 Base.show(io::IO, p::Minus) = print(io, '(', p.p, " - ", p.q, ')')
@@ -274,8 +274,8 @@ maxinput(m::Minus) = max(maxinput(m.p), maxinput(m.q))
 
 ### UniMinus
 
-struct UniMinus <: Lazy
-    p::Lazy
+struct UniMinus <: LazyRec
+    p::LazyRec
 end
 
 Base.show(io::IO, p::UniMinus) = print(io, "(-", p.p, ')')
@@ -293,11 +293,11 @@ maxinput(p::UniMinus) = maxinput(p.p)
 
 ### Times
 
-struct Times <: Lazy
-    xs::Vector{Lazy}
+struct Times <: LazyRec
+    xs::Vector{LazyRec}
 end
 
-Times(xs::Lazy...) = Times(collect(Lazy, xs))
+Times(xs::LazyRec...) = Times(collect(LazyRec, xs))
 
 function Base.show(io::IO, p::Times)
     print(io, '(')
@@ -320,8 +320,8 @@ maxinput(p::Times) = mapreduce(maxinput, max, p.xs)
 
 ### Exp
 
-struct Exp <: Lazy
-    p::Lazy
+struct Exp <: LazyRec
+    p::LazyRec
     e::Int
 end
 
@@ -333,7 +333,7 @@ constantstype(p::Exp) = constantstype(p.p)
 
 Base.:(==)(k::Exp, l::Exp) = k.p == l.p && k.e == l.e
 
-Base.literal_pow(::typeof(^), p::Lazy, ::Val{e}) where {e} = Exp(p, e)
+Base.literal_pow(::typeof(^), p::LazyRec, ::Val{e}) where {e} = Exp(p, e)
 
 _evaluate(gs, p::Exp, xs, dict) = evaluate(gs, p.p, xs, dict)^p.e
 
@@ -342,11 +342,11 @@ maxinput(e::Exp) = maxinput(e.p)
 
 ### Decision
 
-struct Decision <: Lazy
-    ps::Vector{Tuple{Lazy,Int}}
+struct Decision <: LazyRec
+    ps::Vector{Tuple{LazyRec,Int}}
 end
 
-test(p::Lazy, n) = Decision(Tuple{Lazy,Int}[(p, n)])
+test(p::LazyRec, n) = Decision(Tuple{LazyRec,Int}[(p, n)])
 
 Base.show(io::IO, d::Decision) =
     join(io, (sprint(print, "test(", p, ", ", n, ")", context=io)
@@ -384,8 +384,8 @@ maxinput(p::Decision) = mapreduce(x -> maxinput(x[1]), max, p.ps)
 
 ### List
 
-struct List <: Lazy
-    xs::Vector{Lazy}
+struct List <: LazyRec
+    xs::Vector{LazyRec}
 end
 
 function Base.show(io::IO, l::List)
@@ -409,11 +409,11 @@ maxinput(l::List) = mapreduce(maxinput, max, l.xs)
 
 ### Compose
 
-struct Compose <: Lazy
-    p::Lazy
-    q::Lazy # q must return a list!
+struct Compose <: LazyRec
+    p::LazyRec
+    q::LazyRec # q must return a list!
 
-    function Compose(p::Lazy, q::Lazy)
+    function Compose(p::LazyRec, q::LazyRec)
         q isa List || throw(ArgumentError(
             "second argument of Compose must return a list"))
         new(p, q)
@@ -436,9 +436,9 @@ maxinput(m::Compose) = maxinput(m.q)
 
 ### Getindex
 
-struct Getindex <: Lazy
-    p::Lazy
-    is::Vector{Lazy}
+struct Getindex <: LazyRec
+    p::LazyRec
+    is::Vector{LazyRec}
 end
 
 function Base.show(io::IO, g::Getindex)
@@ -461,9 +461,9 @@ maxinput(m::Getindex) = mapreduce(maxinput, max, m.is, init=maxinput(m.p))
 
 ### Call
 
-struct Call <: Lazy
+struct Call <: LazyRec
     f::Any # callable
-    args::Vector{Lazy}
+    args::Vector{LazyRec}
 end
 
 
@@ -489,15 +489,15 @@ maxinput(f::Call) = mapreduce(maxinput, max, f.args)
 
 #### +
 
-+(x::Lazy, y::Lazy) = Plus(x, y)
++(x::LazyRec, y::LazyRec) = Plus(x, y)
 
-function +(x::Plus, y::Lazy)
+function +(x::Plus, y::LazyRec)
     p = Plus(copy(x.xs))
     push!(p.xs, y)
     p
 end
 
-function +(x::Lazy, y::Plus)
+function +(x::LazyRec, y::Plus)
     p = Plus(copy(y.xs))
     pushfirst!(p.xs, x)
     p
@@ -512,21 +512,21 @@ end
 
 #### -
 
--(p::Lazy, q::Lazy) = Minus(p, q)
--(p::Lazy) = UniMinus(p)
+-(p::LazyRec, q::LazyRec) = Minus(p, q)
+-(p::LazyRec) = UniMinus(p)
 
 
 #### *
 
-*(x::Lazy, y::Lazy) = Times(x, y)
+*(x::LazyRec, y::LazyRec) = Times(x, y)
 
-function *(x::Times, y::Lazy)
+function *(x::Times, y::LazyRec)
     p = Times(copy(x.xs))
     push!(p.xs, y)
     p
 end
 
-function *(x::Lazy, y::Times)
+function *(x::LazyRec, y::Times)
     p = Times(copy(y.xs))
     pushfirst!(p.xs, x)
     p
@@ -541,37 +541,37 @@ end
 
 #### ^
 
-^(x::Lazy, e::Integer) = Exp(x, Int(e))
+^(x::LazyRec, e::Integer) = Exp(x, Int(e))
 
 #### getindex
 
-Base.getindex(x::Lazy, i::Lazy...) = Getindex(x, collect(i))
+Base.getindex(x::LazyRec, i::LazyRec...) = Getindex(x, collect(i))
 
 
 ### adhoc binary ops
 
-*(x, y::Lazy) = Const(x) * y
-*(x::Lazy, y) = x * Const(y)
+*(x, y::LazyRec) = Const(x) * y
+*(x::LazyRec, y) = x * Const(y)
 
-+(x, y::Lazy) = Const(x) + y
-+(x::Lazy, y) = x + Const(y)
++(x, y::LazyRec) = Const(x) + y
++(x::LazyRec, y) = x + Const(y)
 
--(x, y::Lazy) = Const(x) - y
--(x::Lazy, y) = x - Const(y)
+-(x, y::LazyRec) = Const(x) - y
+-(x::LazyRec, y) = x - Const(y)
 
-Base.getindex(x, i::Lazy) = Getindex(Const(x), [i])
-Base.getindex(x::Lazy, is...) = Getindex(x, Lazy[i isa Lazy ? i : Const(i) for i in is])
+Base.getindex(x, i::LazyRec) = Getindex(Const(x), [i])
+Base.getindex(x::LazyRec, is...) = Getindex(x, LazyRec[i isa LazyRec ? i : Const(i) for i in is])
 
 
 ## compile to SLProgram
 
 # TODO: this is legacy, only for tests
-SLProgram(l::Lazy) = compile(SLProgram, l)
-SLProgram{T}(l::Lazy) where {T} = compile(SLProgram{T}, l)
+SLProgram(l::LazyRec) = compile(SLProgram, l)
+SLProgram{T}(l::LazyRec) where {T} = compile(SLProgram{T}, l)
 
-compile(::Type{SLProgram}, l::Lazy) = compile(SLProgram{constantstype(l)}, l)
+compile(::Type{SLProgram}, l::LazyRec) = compile(SLProgram{constantstype(l)}, l)
 
-function compile(::Type{SLProgram{T}}, l::Lazy, gs=gens(l)) where T
+function compile(::Type{SLProgram{T}}, l::LazyRec, gs=gens(l)) where T
     p = SLProgram{T}()
     i = pushlazy!(p, l, gs)
     pushfinalize!(p, i)
