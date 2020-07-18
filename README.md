@@ -14,7 +14,7 @@ Polymake, Antic and Singular.
 OSCAR requires Julia 1.3 or newer. In principle it can be installed and used
 like any other Julia package; doing so will take a couple of minutes:
 
-```
+```julia
 julia> using Pkg
 julia> Pkg.add("Oscar")
 julia> using Oscar
@@ -26,7 +26,7 @@ instructions](https://oscar.computeralgebra.de/install/) on our website.
 
 ## Examples of usage
 
-```
+```julia
 julia> using Oscar
 ...
  -----    -----    -----      -      -----   
@@ -121,7 +121,7 @@ H_[0] of dim 2 to H defined by a julia-function with inverse
 
 Of course, the cornerstones are also available directly:
 
-```
+```julia
 julia> C = Polymake.polytope.cube(3);
 
 julia> C.F_VECTOR
