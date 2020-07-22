@@ -13,47 +13,6 @@ but character tables and groups still have some counterpart in GAP.
 In a third step, we replace the character table objects by native Julia
 objects.
 
-
-Some open questions:
-
-- Would it be advisable to introduce a `ClassFunctionSpace` object?
-  Magma does this, and one benefit would be that this would be a natural
-  object for constructing class functions, via `S(values)`, say.
-  On the other hand, one can also use the character table object itself
-  for this purpose.
-
-- What is the recommended output for a function `character_field`?
-  In general, we get an abelian number field, and one possibility would be
-  to return an embedding into the enveloping cyclotomic field;
-  or would an embedding into `QabField` be more natural?
-  An embedding into the minimal splitting field might be too large
-  for being considered.
-  (And here the question about caching arises, one wants to reuse
-  field objects which have already been created.)
-
-- What is the recommended way to convert those `QabElem` or `nf_elem` values
-  that lie in the base field to integers (or rationals)?
-  For example, it makes sense that `degree(chi)` returns an integer
-  (and not a `Qab_elem`) if `chi` is a (virtual) character.
-
-- What is the recommended way to implement caching in Julia?
-  The most critical point is that a character table of a group
-  relies on a fixed ordering of conjugacy classes.
-  (O.k., this is important enough such that we should provide a field
-  in the table struct hat holds the array of conjugacy classes.)
-
-  The next instance is the connection from the group to its character table.
-  If one wants something like `trivial_character(G)` then the group must
-  know how to fetch the same character table object in each call;
-  perhaps we do not want to support such functions at all.
-
-  Other information is optional, it concerns for example the question
-  whether a given class function is a (virtual) character;
-  sometimes this is known on construction (the sum of two characters is
-  a character, inducing a character from a subgroup yields a character),
-  but often this is not known a priori (difference of two characters).
-
-
 And here are a few examples how the current code is intended.
 
 # Examples
@@ -81,6 +40,8 @@ chi + chi
 chi * chi
 - chi
 chi - chi
+2 * chi
+chi ^ 2
 one(chi)
 zero(chi)
 degree(chi)
@@ -133,6 +94,8 @@ include("QabAndPChars.jl")
 
 import Base: getindex, length, mod, one, print, show, zero
 
+import AbstractAlgebra: nrows, ncols
+
 import Nemo: degree
 
 # Load GAP's character table library (if it is installed)
@@ -174,29 +137,43 @@ end
 ##  character tables
 ##
 abstract type GroupCharacterTable end
-#abstract type GroupCharacterTableOrdinary <: GroupCharacterTable end
-#abstract type GroupCharacterTableBrauer <: GroupCharacterTable end
 
-struct GAPGroupCharacterTable <: GroupCharacterTable
+mutable struct GAPGroupCharacterTable <: GroupCharacterTable
+    GAPGroup::Oscar.GAPGroup    # the underlying group, if any
     GAPTable::GAP.GapObj  # the character table object
     characteristic::Int
-end
+    AbstractAlgebra.@declare_other
 
-struct GAPGroupCharacterTableWithGroup <: GroupCharacterTable
-    GAPGroup::Oscar.GAPGroup    # the underlying group
-    GAPTable::GAP.GapObj  # the character table object
-    characteristic::Int
-end
+    function GAPGroupCharacterTable(G::Oscar.GAPGroup, tab::GAP.GapObj, char::Int)
+      ct = new()
+      ct.GAPGroup = G
+      ct.GAPTable = tab
+      ct.characteristic = char
+      return ct
+    end
 
-const GAPGroupCharacterTableWithOrWithoutGroup= Union{GAPGroupCharacterTable,GAPGroupCharacterTableWithGroup}
+    function GAPGroupCharacterTable(tab::GAP.GapObj, char::Int)
+      ct = new()
+      #ct.GAPGroup is left undefined
+      ct.GAPTable = tab
+      ct.characteristic = char
+      return ct
+    end
+end
 
 function character_table(G::Oscar.GAPGroup, p::Int = 0)
-    tbl = GAP.Globals.CharacterTable(G.X)
+    tbl = AbstractAlgebra.get_special(G, :character_table)
+    if tbl == nothing
+      tbl = GAP.Globals.CharacterTable(G.X)
+      AbstractAlgebra.set_special(G, :character_table => tbl)
+    end
+
     if p != 0
       isprime(p) || error("p must be 0 or a prime integer")
       tbl = mod(tbl, p)
     end
-    return GAPGroupCharacterTableWithGroup(G, tbl, p)
+
+    return GAPGroupCharacterTable(G, tbl, p)
 end
 
 function character_table(id::String, p::Int = 0)
@@ -217,11 +194,11 @@ function character_table(id::String, p::Int = 0)
     end
 end
 
-function Base.show(io::IO, tbl::GAPGroupCharacterTableWithOrWithoutGroup)
+function Base.show(io::IO, tbl::GAPGroupCharacterTable)
     print(io, GAP.CSTR_STRING(GAP.Globals.StringDisplayObj(tbl.GAPTable)))
 end
 
-function Base.print(io::IO, tbl::GAPGroupCharacterTableWithOrWithoutGroup)
+function Base.print(io::IO, tbl::GAPGroupCharacterTable)
     gaptbl = tbl.GAPTable
     if GAP.Globals.HasUnderlyingGroup(gaptbl)
       id = string(GAP.Globals.UnderlyingGroup(gaptbl))
@@ -231,13 +208,15 @@ function Base.print(io::IO, tbl::GAPGroupCharacterTableWithOrWithoutGroup)
     print(io, "character_table($id)")
 end
 
-Base.length(tbl::GAPGroupCharacterTableWithOrWithoutGroup) = return length(GAP.Globals.Irr(tbl.GAPTable))
+Base.length(tbl::GAPGroupCharacterTable) = return length(GAP.Globals.Irr(tbl.GAPTable))
+AbstractAlgebra.nrows(tbl::GAPGroupCharacterTable) = return length(GAP.Globals.Irr(tbl.GAPTable))
+AbstractAlgebra.ncols(tbl::GAPGroupCharacterTable) = return length(GAP.Globals.Irr(tbl.GAPTable))
 
-function Base.getindex(tbl::GAPGroupCharacterTableWithOrWithoutGroup, i::Int)
+function Base.getindex(tbl::GAPGroupCharacterTable, i::Int)
     return group_class_function(tbl, GAP.Globals.Irr(tbl.GAPTable)[i])
 end
 
-function Base.getindex(tbl::GAPGroupCharacterTableWithOrWithoutGroup, i::Int, j::Int)
+function Base.getindex(tbl::GAPGroupCharacterTable, i::Int, j::Int)
     val = GAP.Globals.Irr(tbl.GAPTable)[i, j]
     return QabModule.QabElem(val)
 end
@@ -245,18 +224,29 @@ end
 function Base.mod(tbl::GAPGroupCharacterTable, p::Int)
     isprime(p) || error("p must be a prime integer")
     tbl.characteristic == 0 || error("tbl mod p only for ordinary table tbl")
-    return GAPGroupCharacterTable(mod(tbl.GAPTable, p), p)
+
+    modtbls = AbstractAlgebra.get_special(tbl, :brauer_tables)
+    if modtbls == nothing
+      modtbls = Dict{Int,Any}()
+      AbstractAlgebra.set_special(tbl, :brauer_tables => modtbls)
+    end
+    if ! haskey(modtbls, p)
+      modtblgap = mod(tbl.GAPTable, p)
+      if modtblgap == GAP.Globals.fail
+        modtbls[p] = nothing
+      elseif isdefined(tbl, :GAPGroup)
+        modtbls[p] = GAPGroupCharacterTable(tbl.GAPGroup, modtblgap, p)
+      else
+        modtbls[p] = GAPGroupCharacterTable(modtblgap, p)
+      end
+    end
+
+    return modtbls[p]
 end
 
-function Base.mod(tbl::GAPGroupCharacterTableWithGroup, p::Int)
-    isprime(p) || error("p must be a prime integer")
-    tbl.characteristic == 0 || error("tbl mod p only for ordinary table tbl")
-    return GAPGroupCharacterTableWithGroup(tbl.GAPGroup, mod(tbl.GAPTable, p), p)
-end
-
-function decomposition_matrix(tbl::GAPGroupCharacterTableWithOrWithoutGroup)
+function decomposition_matrix(tbl::GAPGroupCharacterTable)
     isprime(tbl.characteristic) || error("characteristic of tbl must be a prime integer")
-    return GAP.gap_to_julia(Matrix{Int}, GAP.Globals.DecompositionMatrix(tbl.GAPTable))
+    return Matrix{Int}(GAP.Globals.DecompositionMatrix(tbl.GAPTable))
 end
 
 
@@ -267,7 +257,7 @@ end
 abstract type GroupClassFunction end
 
 struct GAPGroupClassFunction <: GroupClassFunction
-    table::GAPGroupCharacterTableWithOrWithoutGroup
+    table::GAPGroupCharacterTable
     values::GAP.GapObj
 end
 
@@ -280,19 +270,19 @@ function values(chi::GAPGroupClassFunction)
     return [QabModule.QabElem(x) for x in gapvalues]
 end
 
-function group_class_function(tbl::GAPGroupCharacterTableWithOrWithoutGroup, values::GAP.GapObj)
+function group_class_function(tbl::GAPGroupCharacterTable, values::GAP.GapObj)
     GAP.Globals.IsClassFunction(values) || error("values must be a class function")
     return GAPGroupClassFunction(tbl, values)
 end
 
-function group_class_function(tbl::GAPGroupCharacterTableWithOrWithoutGroup, values::Vector{QabModule.QabElem})
+function group_class_function(tbl::GAPGroupCharacterTable, values::Vector{QabModule.QabElem})
     return GAPGroupClassFunction(tbl, GAP.Globals.ClassFunction(tbl.GAPTable, GAP.julia_to_gap([gap_cyclotomic(x) for x in values])))
 end
 
 #function group_class_function(G::Oscar.GAPGroup, values::Vector{QabModule.QabElem})
 #end
 
-function trivial_character(tbl::GAPGroupCharacterTableWithOrWithoutGroup)
+function trivial_character(tbl::GAPGroupCharacterTable)
     val = QabModule.QabElem(1)
     return group_class_function(tbl, [val for i in 1:length(tbl)])
 end
@@ -345,6 +335,14 @@ function scalar_product(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
     return Nemo.fmpz(GAP.gap_to_julia(GAP.Globals.ScalarProduct(chi.values, psi.values)))
 end
 
-#TODO: chi(g), 2*chi, chi^3, ...
+#TODO: chi(g), ...
 
+function Base.:*(n::T, chi::GAPGroupClassFunction) where T <: Integer
+    return GAPGroupClassFunction(chi.table, n * chi.values)
 end
+
+function Base.:^(chi::GAPGroupClassFunction, n::Int)
+    return GAPGroupClassFunction(chi.table, chi.values ^ n)
+end
+
+end  # module

@@ -89,9 +89,10 @@ Groups of permutations. Every group of this type is the subgroup of Sym(n) for s
 - subgroups of Sym(n)
 - `dihedral_group(PermGroup, n::Int)`: the dihedral group D(n) as group of permutations. Same holds replacing `dihedral_group` by `quaternion_group`
 """
-struct PermGroup <: GAPGroup
+mutable struct PermGroup <: GAPGroup
    X::GapObj
    deg::Int64       # G < Sym(deg)
+   AbstractAlgebra.@declare_other
    
    function PermGroup(G::GapObj)
      @assert GAP.Globals.IsPermGroup(G)
@@ -126,8 +127,10 @@ Groups of matrices. Every group of this type is the subgroup of GL(n,q) for some
 - `SL(n::Int)`: the special linear group SL(n,q)
 - groups of isometries
 """
-struct MatrixGroup <: GAPGroup
+mutable struct MatrixGroup <: GAPGroup
   X::GapObj
+  AbstractAlgebra.@declare_other
+
   function MatrixGroup(G::GapObj)
     @assert GAP.Globals.IsMatrixGroup(G)
     z = new(G)
@@ -150,8 +153,10 @@ Polycyclic group
 - `cyclic_group(n::Int)`: cyclic group of order `n`
 - `abelian_group(v::Vector{Int})`: direct product of cyclic groups of order v[1],v[2],...,v[length(v)]
 """
-struct PcGroup <: GAPGroup
+mutable struct PcGroup <: GAPGroup
   X::GapObj
+  AbstractAlgebra.@declare_other
+
   function PcGroup(G::GapObj)
     @assert GAP.Globals.IsPcGroup(G)
     z = new(G)
@@ -169,8 +174,9 @@ const PcGroupElem = GAPGroupElem{PcGroup}
     FPGroup
 Finitely presented group. It can be defined via the function ``free_group``.
 """
-struct FPGroup <: GAPGroup
+mutable struct FPGroup <: GAPGroup
   X::GapObj
+  AbstractAlgebra.@declare_other
   
   function FPGroup(G::GapObj)
     @assert GAP.Globals.IsFpGroup(G)
@@ -188,9 +194,11 @@ const FPGroupElem = GAPGroupElem{FPGroup}
     AutomorphismGroup{T} <: GAPGroup
 Group of automorphisms over a group of type `T`. It can be defined via the function ``automorphism_group``.
 """
-struct AutomorphismGroup{T} <: GAPGroup
+mutable struct AutomorphismGroup{T} <: GAPGroup
   X::GapObj
   G::T
+  AbstractAlgebra.@declare_other
+
   function AutomorphismGroup{T}(G::GapObj, H::T) where T
     @assert GAP.Globals.IsGroupOfAutomorphisms(G)
     z = new{T}(G, H)
