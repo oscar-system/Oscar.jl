@@ -187,7 +187,7 @@ function Base.convert(Ox::MPolyRing, f::MPolyElem)
 end
 
 function Base.convert(::Type{fmpz}, a::Singular.n_Z)
-  return fmpz(BigInt(a))
+  return fmpz(convert(BigInt, a))
 end
 
 function Base.convert(::Type{fmpq}, a::Singular.n_Q)
@@ -382,8 +382,17 @@ end
 
 function oscar_assure(I::MPolyIdeal)
   if !isdefined(I.gens, :O)
-    I.gens.S = Singular.Ideal(I.gens.Sx, [convert(I.gens.Sx, x) for x = I.gens.O])
+    I.gens.O = [convert(I.gens.Ox, x) for x = gens(I.gens.S)]
   end
+end
+
+function Base.copy(f::MPolyElem)
+    Ox = parent(f)
+    g = MPolyBuildCtx(Ox)
+    for (c,e) = Base.Iterators.zip(MPolyCoeffs(f), MPolyExponentVectors(f))
+        push_term!(g, c, e)
+    end
+    return finish(g)
 end
 
 function Base.:*(I::MPolyIdeal, J::MPolyIdeal)
@@ -584,7 +593,7 @@ mutable struct MPolyHom_vars{T1, T2}  <: Map{T1, T2, Hecke.HeckeMap, MPolyHom_va
       for h = symbols(R)
         push!(i, findfirst(x -> x == h, symbols(S)))
       end
-      return MPolyHom_vars(R, S, i)
+      return MPolyHom_vars{T1, T2}(R, S, i)
     end
     error("type not supported")
   end
@@ -1054,7 +1063,7 @@ parent(a::MPolyQuoElem) = a.P
 -(a::MPolyQuoElem, b::MPolyQuoElem) = MPolyQuoElem(a.f-b.f, a.P)
 -(a::MPolyQuoElem) = MPolyQuoElem(-a.f, a.P)
 *(a::MPolyQuoElem, b::MPolyQuoElem) = MPolyQuoElem(a.f*b.f, a.P)
-^(a::MPolyQuoElem, b::Integer) = MPolyQuoElem(a.f^b, a.P)
+^(a::MPolyQuoElem, b::Integer) = MPolyQuoElem(Base.power_by_squaring(a.f, b), a.P)
 
 function Oscar.mul!(a::MPolyQuoElem, b::MPolyQuoElem, c::MPolyQuoElem)
   a.f = b.f*c.f
