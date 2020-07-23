@@ -9,6 +9,8 @@
    @test typeof(rand(G))==Oscar.GAPGroupElem{DirectProductOfGroups}
    @test factorofdirectproduct(G,1)==S
    @test factorofdirectproduct(G,2)==C
+   @test number_of_factors(G)==2
+   @test isfull_direct_product(G)
 
    x = rand(G)
    @test x in G
@@ -56,6 +58,27 @@
    G = as_matrix_group(direct_product(S,S))
    @test G isa MatrixGroup
    @test dim(G)==4
+
+   @testset "Cartesian Power" begin
+      C = cyclic_group(3)
+      G = cartesian_power(C,5)
+      @test G isa DirectProductOfGroups
+      @test order(G)==243
+      @test number_of_factors(G)==5
+      @test isabelian(G)
+      @test factorofdirectproduct(G,5)==C
+      @test isisomorphic(G,abelian_group(PcGroup,[3,3,3,3,3]))[1]
+      x1 = G(C[1],one(C),one(C),one(C),one(C))
+      x2 = G(one(C),C[1],one(C),one(C),one(C))
+      x3 = G(one(C),one(C),C[1],one(C),one(C))
+      H = sub(G,[x1,x2,x3])[1]
+      K = sub(G,[x1*x2*x3])[1]
+      @test !isfull_direct_product(H)
+      @test !isfull_direct_product(K)
+      Hf = write_as_full(H)
+      @test isfull_direct_product(Hf)
+      @test_throws ArgumentError write_as_full(K)
+   end
 end
 
 @testset "Semidirectproducts" begin
@@ -67,6 +90,7 @@ end
 
    G = semidirect_product(C,f,Q)
    @test G isa SemidirectProductOfGroups{PcGroup,PcGroup}
+   @test homomorphism_of_semidirect_product(G)==f
    @test order(G)==16
    @test isfull_semidirect_product(G)
    x = G(C[1],Q[1]*Q[2])

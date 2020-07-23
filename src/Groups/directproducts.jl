@@ -27,7 +27,7 @@ export
 """
     direct_product(L::AbstractVector{<:GAPGroup})
     direct_product(L::GAPGroup...)
-Return the direct product of the groups in `L`.
+Return the direct product of the groups in the vector `L`.
 """
 function direct_product(L::AbstractVector{<:GAPGroup})
    X = GAP.Globals.DirectProduct(GAP.julia_to_gap([G.X for G in L]))
@@ -217,10 +217,10 @@ function write_as_full(G::DirectProductOfGroups)
    if G.isfull
       return G
    else
-      K = direct_product(G.L)
-      LK = [image(projection(K,j),G)[1] for j in 1:G.n]
+      LK = [image(projection(G,j))[1] for j in 1:G.n]
       H = direct_product(LK)
-      if index(H,G)==1
+# index(H,G)==1 does not work because it does not recognize G as a subgroup of H
+      if order(H)==order(G)
          return H
       else
          throw(ArgumentError("G is not a direct product of groups"))
