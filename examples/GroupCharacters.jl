@@ -23,15 +23,18 @@ using Oscar
 
 # an ordinary character table from the GAP library
 t = Main.GroupCharacters.character_table("A5");
-print(t)   # short form
-show(t)    # call GAP's 'Display'
+print(t)                           # show a short form
+show(t)                            # call `labelled_matrix_formatted`
+GAP.Globals.Display( t.GAPTable )  # compare with GAP's Display
+show(stdout, MIME("text/html"), t) # produce LaTeX output
 
 chi = t[2]  # a character
 t[2,4]  # a character value
 chi[4]  # a character value
 
-length(t) # number of conjugacy classes
-Main.GroupCharacters.trivial_character(t)
+nrows(t) # number of conjugacy classes
+triv = Main.GroupCharacters.trivial_character(t)
+triv in t
 
 values(chi)
 chi == t[1]
@@ -46,6 +49,7 @@ one(chi)
 zero(chi)
 degree(chi)
 length(chi)
+-1 in chi
 
 Main.GroupCharacters.scalar_product(t[1], t[1])
 Main.GroupCharacters.scalar_product(t[1], t[2])
@@ -58,7 +62,7 @@ show(tmod2)
 tmod2[2]  # a character
 tmod2[2,3]  # a character value
 
-length(tmod2) # number of conjugacy classes
+ncols(tmod2) # number of conjugacy classes
 Main.GroupCharacters.trivial_character(tmod2)
 
 Main.GroupCharacters.decomposition_matrix(tmod2)
@@ -201,7 +205,7 @@ end
 # turn integer values to strings, but replace `0` by `"."`,
 # print irrationalities via the `Hecke.math_html` method for `nf_elem`
 function matrix_of_strings(tbl::GAPGroupCharacterTable)
-  n = length(tbl)
+  n = nrows(tbl)
   m = Array{String}(undef, n, n)
   buf = Base.IOBuffer()
   for i in 1:n
@@ -304,9 +308,8 @@ function Base.print(io::IO, tbl::GAPGroupCharacterTable)
     print(io, "character_table($id)")
 end
 
-Base.length(tbl::GAPGroupCharacterTable) = return length(GAP.Globals.Irr(tbl.GAPTable))
-AbstractAlgebra.nrows(tbl::GAPGroupCharacterTable) = return length(GAP.Globals.Irr(tbl.GAPTable))
-AbstractAlgebra.ncols(tbl::GAPGroupCharacterTable) = return length(GAP.Globals.Irr(tbl.GAPTable))
+AbstractAlgebra.nrows(tbl::GAPGroupCharacterTable) = length(GAP.Globals.Irr(tbl.GAPTable))
+AbstractAlgebra.ncols(tbl::GAPGroupCharacterTable) = length(GAP.Globals.Irr(tbl.GAPTable))
 
 function Base.getindex(tbl::GAPGroupCharacterTable, i::Int)
     return group_class_function(tbl, GAP.Globals.Irr(tbl.GAPTable)[i])
@@ -316,6 +319,8 @@ function Base.getindex(tbl::GAPGroupCharacterTable, i::Int, j::Int)
     val = GAP.Globals.Irr(tbl.GAPTable)[i, j]
     return QabModule.QabElem(val)
 end
+
+Base.iterate(tbl::GAPGroupCharacterTable, state = 1) = state > nrows(tbl) ? nothing : (tbl[state], state+1)
 
 function Base.mod(tbl::GAPGroupCharacterTable, p::Int)
     isprime(p) || error("p must be a prime integer")
@@ -380,13 +385,15 @@ end
 
 function trivial_character(tbl::GAPGroupCharacterTable)
     val = QabModule.QabElem(1)
-    return group_class_function(tbl, [val for i in 1:length(tbl)])
+    return group_class_function(tbl, [val for i in 1:ncols(tbl)])
 end
 
 #function trivial_character(G::Oscar.GAPGroup)
 #end
 
-Base.length(chi::GAPGroupClassFunction) = return length(chi.values)
+Base.length(chi::GAPGroupClassFunction) = length(chi.values)
+
+Base.iterate(chi::GAPGroupClassFunction, state = 1) = state > length(chi.values) ? nothing : (chi[state], state+1)
 
 function Nemo.degree(chi::GAPGroupClassFunction)
     val = values(chi)[1]
@@ -427,7 +434,7 @@ end
 Base.one(chi::GAPGroupClassFunction) = trivial_character(chi.table)
 
 function scalar_product(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
-    chi.table === psi.table || error("the two class functions belong to different character tables")
+    chi.table === psi.table || error("character tables must be identical")
     return Nemo.fmpz(GAP.gap_to_julia(GAP.Globals.ScalarProduct(chi.values, psi.values)))
 end
 
