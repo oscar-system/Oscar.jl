@@ -92,6 +92,9 @@ using Oscar
 #import QabModule: QabElem
 include("QabAndPChars.jl")
 
+# functionality for displaying character tables
+include("MatrixDisplay.jl")
+
 import Base: getindex, length, mod, one, print, show, zero
 
 import AbstractAlgebra: nrows, ncols
@@ -194,10 +197,103 @@ function character_table(id::String, p::Int = 0)
     end
 end
 
-function Base.show(io::IO, tbl::GAPGroupCharacterTable)
-    print(io, GAP.CSTR_STRING(GAP.Globals.StringDisplayObj(tbl.GAPTable)))
+# utility:
+# turn integer values to strings, but replace `0` by `"."`,
+# print irrationalities via the `Hecke.math_html` method for `nf_elem`
+function matrix_of_strings(tbl::GAPGroupCharacterTable)
+  n = length(tbl)
+  m = Array{String}(undef, n, n)
+  buf = Base.IOBuffer()
+  for i in 1:n
+    for j in 1:n
+      val = tbl[i,j].data
+      if iszero(val)
+        m[i, j] = "."
+      else
+        # irrationalities involving `\zeta`
+        m[i,j] = sprint(Hecke.math_html, val)
+      end
+    end
+  end
+  return m
 end
 
+# Produce LaTeX output if `"text/html"` is prescribed,
+# via the `:TeX` attribute of the io context.
+function Base.show(io::IO, ::MIME"text/html", tbl::GAPGroupCharacterTable)
+  print(io, "\$")
+  show(IOContext(io, :TeX => true), tbl)
+  print(io, "\$")
+end
+
+# Produce a screen format without LaTeX markup but with unicode characters
+# and sub-/superscripts if LaTeX output is not requested..
+function Base.show(io::IO, tbl::GAPGroupCharacterTable)
+    n = nrows(tbl)
+    size = GAP.gap_to_julia(GAP.Globals.Size(tbl.GAPTable))
+    primes = [x[1] for x in collect(factor(size))]
+    sort!(primes)
+
+    # Compute the factored centralizer orders.
+    cents = GAP.gap_to_julia(GAP.Globals.SizesCentralizers(tbl.GAPTable))
+    fcents = [collect(factor(x)) for x in cents]
+    d = Dict([p => fill(".", n) for p in primes]...)
+    for i in 1:n
+      for pair in fcents[i]
+        d[pair[1]][i] = string(pair[2])
+      end
+    end
+    cents_strings = [d[p] for p in primes]
+
+    # Compute display format for power maps.
+    names = Vector{String}(GAP.Globals.ClassNames(tbl.GAPTable))
+    pmaps = Vector{Any}(GAP.Globals.ComputedPowerMaps(tbl.GAPTable))
+    power_maps_primes = []
+    power_maps_strings = []
+    for i in 1:length(pmaps)
+      map = pmaps[i]
+      if map != nothing
+        push!(power_maps_primes, string(i)*"P")
+        push!(power_maps_strings, names[map])
+      end
+    end
+
+    empty = ["" for i in 1:n]
+
+    # Create the IO context.
+    ioc = IOContext(io,
+      # header (an array of strings):
+      # name of the table and separating empty line
+      :header => [String(GAP.Globals.Identifier(tbl.GAPTable)),
+                  ""],
+      # column labels:
+      # centralizer orders (factored),
+      # separating empty line,
+      # class names,
+      # separating empty line,
+      # p-th power maps for known p-th power maps,
+      # separating empty line,
+      :labels_col => permutedims(hcat(
+        cents_strings..., empty, names, power_maps_strings..., empty)),
+
+      # row labels:
+      # character names (a column vector is sufficient)
+      :labels_row => ["\\chi_{" * string(i) * "}" for i in 1:n],
+
+      # corner (a column vector is sufficient):
+      # primes in the centralizer rows,
+      # separating empty line,
+      # separating empty line,
+      # primes in the power map rows,
+      # separating empty line,
+      :corner => vcat( string.(primes), [ "", "" ], power_maps_primes, [ "" ] ),
+    )
+
+    # print the table
+    labelled_matrix_formatted(ioc, matrix_of_strings(tbl))
+end
+
+# print: abbreviated form
 function Base.print(io::IO, tbl::GAPGroupCharacterTable)
     gaptbl = tbl.GAPTable
     if GAP.Globals.HasUnderlyingGroup(gaptbl)
