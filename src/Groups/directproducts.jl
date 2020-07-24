@@ -244,18 +244,18 @@ Base.:^(H::DirectProductOfGroups, y::GAPGroupElem) = sub([h^y for h in gens(H)])
 ################################################################################
 
 """
-    semidirect_product(G::S, f::GAPGroupHomomorphism, H::T)
-Return the semidirect product of `G` and `H`, of type ``SemidirectProductOfGroups{S,T}``, where `f` is a homomorphism from `G` to `Aut`(`H`).
+    semidirect_product(N::S, f::GAPGroupHomomorphism, H::T)
+Return the semidirect product of `N` and `H`, of type ``SemidirectProductOfGroups{S,T}``, where `f` is a homomorphism from `H` to `Aut`(`N`).
 """
-function semidirect_product(G::S, f::GAPGroupHomomorphism{S,AutomorphismGroup{T}}, N::T) where S <: GAPGroup where T <: GAPGroup
-   sdp=GAP.Globals.SemidirectProduct(G.X,f.map,N.X)
-   return SemidirectProductOfGroups(sdp,G,N,f,sdp,true)
+function semidirect_product(N::S, f::GAPGroupHomomorphism{T,AutomorphismGroup{S}}, H::T) where S <: GAPGroup where T <: GAPGroup
+   sdp=GAP.Globals.SemidirectProduct(H.X,f.map,N.X)
+   return SemidirectProductOfGroups(sdp,N,H,f,sdp,true)
 end
 
 # return the element (a,b) in G
 function (G::SemidirectProductOfGroups{S,T})(a::GAPGroupElem{S},b::GAPGroupElem{T}) where {S,T}
 # simply put parent(L[d+1])==W.H does not work. Example: if I want to write explicitly a permutation in H proper subgroup of Sym(n).
-   Gfull = SemidirectProductOfGroups(G.Xfull,G.G1,G.G2,G.f,G.Xfull,true)
+   Gfull = SemidirectProductOfGroups(G.Xfull,G.N,G.H,G.f,G.Xfull,true)
    g = embedding(Gfull,1)(a) * embedding(Gfull,2)(b)
    if !G.isfull
       @assert g in G "Element not in the group"
@@ -276,13 +276,13 @@ Return the embedding of the `n`-th component of `G` into `G`, for `n` = 1,2. It 
 function embedding(G::SemidirectProductOfGroups{S,T}, n::Base.Integer) where S where T
    @assert G.isfull "Embedding not defined for proper subgroups of semidirect products"
    if n==1
-      f=GAP.Globals.Embedding(G.X,1)
-      typeG=S
-      gr=G.G1
-   elseif n==2
       f=GAP.Globals.Embedding(G.X,2)
+      typeG=S
+      gr=G.N
+   elseif n==2
+      f=GAP.Globals.Embedding(G.X,1)
       typeG=T
-      gr=G.G2
+      gr=G.H
    else
       throw(ArgumentError("n must be 1 or 2"))
    end
@@ -298,18 +298,18 @@ Return the projection of `G` into the second component of `G`.
 function projection(G::SemidirectProductOfGroups{S,T}) where S where T
    f=GAP.Globals.Projection(G.Xfull)
    if !G.isfull
-      Gf = SemidirectProductOfGroups(G.Xfull,G.G1,G.G2,G.f,G.Xfull,true)
+      Gf = SemidirectProductOfGroups(G.Xfull,G.N,G.H,G.f,G.Xfull,true)
       g = embedding(Gf,G)
-      return g*GAPGroupHomomorphism{SemidirectProductOfGroups{S,T},S}(Gf,G.G1,f)
+      return g*GAPGroupHomomorphism{SemidirectProductOfGroups{S,T},T}(Gf,G.H,f)
    else
-      return GAPGroupHomomorphism{SemidirectProductOfGroups{S,T},S}(G,G.G1,f)
+      return GAPGroupHomomorphism{SemidirectProductOfGroups{S,T},T}(G,G.H,f)
    end
 end
 
 
 # start part on subgroups
 function _as_subgroup_bare(G::SemidirectProductOfGroups{S,T}, H::GapObj) where { S , T }
-  return SemidirectProductOfGroups(H, G.G1, G.G2, G.f, G.X, false)
+  return SemidirectProductOfGroups(H, G.N, G.H, G.f, G.X, false)
 end
 
 function _as_subgroup(G::SemidirectProductOfGroups{S,T}, H::GapObj, ::Type{U}) where { T, S, U }
@@ -344,7 +344,7 @@ end
 
 function Base.show(io::IO, x::SemidirectProductOfGroups)
    if x.isfull
-      print(io, "SemidirectProduct( ", GAP.gap_to_julia(GAP.Globals.StringViewObj(x.G1.X)), " , ", GAP.gap_to_julia(GAP.Globals.StringView(x.G2.X))," )")
+      print(io, "SemidirectProduct( ", GAP.gap_to_julia(GAP.Globals.StringViewObj(x.N.X)), " , ", GAP.gap_to_julia(GAP.Globals.StringView(x.H.X))," )")
    else
       print(io, GAP.gap_to_julia(GAP.Globals.StringViewObj(x.X)))
    end

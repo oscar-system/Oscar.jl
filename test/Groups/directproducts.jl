@@ -88,12 +88,12 @@ end
    au=A(hom(Q,Q,[Q[1],Q[2]],[Q[1]^3,Q[2]^3]))
    f = hom(C,A,[C[1]],[au])
 
-   G = semidirect_product(C,f,Q)
+   G = semidirect_product(Q,f,C)
    @test G isa SemidirectProductOfGroups{PcGroup,PcGroup}
    @test homomorphism_of_semidirect_product(G)==f
    @test order(G)==16
    @test isfull_semidirect_product(G)
-   x = G(C[1],Q[1]*Q[2])
+   x = G(Q[1]*Q[2],C[1])
    @test parent(x)==G
    H = sub(G,[x])[1]
    @test issubgroup(G,H)[1]
@@ -101,14 +101,14 @@ end
    @test !isfull_semidirect_product(H)
    @test projection(G)(x)==projection(H)(x)
    @test H==centre(G)[1]
-   y=G(one(C),Q[1])
+   y=G(Q[1],one(C))
    K = sub(G,[y])[1]
-   @test y == embedding(G,2)(Q[1])
+   @test y == embedding(G,1)(Q[1])
    @test_throws ArgumentError embedding(G,3)(Q[1])
    @test codomain(projection(K))==C
    @test order(image(projection(K))[1])==1
-   @test embedding(G,1)*projection(G)==id_hom(C)
-   @test image(embedding(G,2))[1]==kernel(projection(G))[1]
+   @test embedding(G,2)*projection(G)==id_hom(C)
+   @test image(embedding(G,1))[1]==kernel(projection(G))[1]
 end
 
 

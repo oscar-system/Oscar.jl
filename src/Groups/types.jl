@@ -246,14 +246,14 @@ Semidirect product of two groups of type `S` and `T` respectively, or subgroup o
 """
 struct SemidirectProductOfGroups{S<:GAPGroup, T<:GAPGroup} <: GAPGroup 
   X::GapObj
-  G1::S
-  G2::T
-  f::GAPGroupHomomorphism{S,AutomorphismGroup{T}}
+  N::S              # normal subgroup
+  H::T              # group acting on N
+  f::GAPGroupHomomorphism{T,AutomorphismGroup{S}}
   Xfull::GapObj         # full semidirect product: X is a subgroup of Xfull. 
   isfull::Bool     # true if X==Xfull
 
-  function SemidirectProductOfGroups(G::GapObj, G1::S, G2::T, f, Xf::GapObj, isf::Bool) where S where T
-    z = new{S,T}(G,G1,G2,f,Xf,isf)
+  function SemidirectProductOfGroups(G::GapObj, N::S, H::T, f, Xf::GapObj, isf::Bool) where S where T
+    z = new{S,T}(G,N,H,f,Xf,isf)
     return z
   end
 end
