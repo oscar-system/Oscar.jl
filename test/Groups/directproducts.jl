@@ -7,8 +7,8 @@
    @test order(G)==order(S)*order(C)
    @test exponent(G)==lcm(exponent(S),exponent(C))
    @test typeof(rand(G))==Oscar.GAPGroupElem{DirectProductOfGroups}
-   @test factorofdirectproduct(G,1)==S
-   @test factorofdirectproduct(G,2)==C
+   @test factor_of_direct_product(G,1)==S
+   @test factor_of_direct_product(G,2)==C
    @test number_of_factors(G)==2
    @test isfull_direct_product(G)
 
@@ -57,7 +57,7 @@
    S=SL(2,3)
    G = as_matrix_group(direct_product(S,S))
    @test G isa MatrixGroup
-   @test dim(G)==4
+#   @test dim(G)==4     # TODO not yet defined
 
    @testset "Cartesian Power" begin
       C = cyclic_group(3)
@@ -66,7 +66,7 @@
       @test order(G)==243
       @test number_of_factors(G)==5
       @test isabelian(G)
-      @test factorofdirectproduct(G,5)==C
+      @test factor_of_direct_product(G,5)==C
       @test isisomorphic(G,abelian_group(PcGroup,[3,3,3,3,3]))[1]
       x1 = G(C[1],one(C),one(C),one(C),one(C))
       x2 = G(one(C),C[1],one(C),one(C),one(C))
@@ -117,10 +117,10 @@ end
    H = sub(cperm([1,2,4]))[1]
    W = wreath_product(C,H)
 
-   @test typeof(W)==WreathProduct
+   @test typeof(W)==WreathProductGroup
    @test order(W)==2^4*3
    @test !isabelian(W)
-   @test typeof(rand(W))==Oscar.GAPGroupElem{WreathProduct}
+   @test typeof(rand(W))==GAPGroupElem{WreathProductGroup}
    f1 = C[1]
    x = W(f1,one(C),f1,one(C),cperm([1,4,2]))
    @test embedding(W,1)(f1)==W(f1,one(C),one(C),one(C),one(H))
@@ -131,7 +131,7 @@ end
    @test codomain(projection(W))==H
    @test domain(embedding(W,2))==C
    K = sub(W,[x])[1]
-   @test typeof(K)==WreathProduct
+   @test typeof(K)==WreathProductGroup
    @test order(K)==6
    @test iscyclic(K)
    @test index(W,K)==8

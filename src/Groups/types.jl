@@ -56,6 +56,7 @@ export
     elem_type,
     FPGroup,
     FPGroupElem,
+    GAPGroupElem,
     MatrixGroup,
     MatrixGroupElem,
     PcGroup,
@@ -63,7 +64,7 @@ export
     PermGroup,
     PermGroupElem,
     SemidirectProductOfGroups,
-    WreathProduct
+    WreathProductGroup
 
 """
 TODO: document this
@@ -228,13 +229,12 @@ Either direct product of two or more groups of any type, or subgroup of a direct
 struct DirectProductOfGroups <: GAPGroup
   X::GapObj
   L::Vector{<:GAPGroup}   # list of groups
-  n::Int64           # length(L)
   Xfull::GapObj      # direct product of the GAP groups of L
   isfull::Bool     # true if G is direct product of the groups of L, false if it is a proper subgroup
 
 
-  function DirectProductOfGroups(G::GapObj, L::Vector{<:GAPGroup}, n::Int64, Xf::GapObj, isf::Bool)
-    z = new(G,L,n,Xf,isf)
+  function DirectProductOfGroups(G::GapObj, L::Vector{<:GAPGroup}, Xf::GapObj, isf::Bool)
+    z = new(G,L,Xf,isf)
     return z
   end
 end
@@ -248,7 +248,7 @@ struct SemidirectProductOfGroups{S<:GAPGroup, T<:GAPGroup} <: GAPGroup
   X::GapObj
   N::S              # normal subgroup
   H::T              # group acting on N
-  f::GAPGroupHomomorphism{T,AutomorphismGroup{S}}
+  f::GAPGroupHomomorphism{T,AutomorphismGroup{S}}        # action of H on N
   Xfull::GapObj         # full semidirect product: X is a subgroup of Xfull. 
   isfull::Bool     # true if X==Xfull
 
@@ -259,17 +259,17 @@ struct SemidirectProductOfGroups{S<:GAPGroup, T<:GAPGroup} <: GAPGroup
 end
 
 """
-    WreathProduct
+    WreathProductGroup
 Wreath product of a group `G` and a group of permutations `H`.
 """
-struct WreathProduct <: GAPGroup
+struct WreathProductGroup <: GAPGroup
   X::GapObj
   G::GAPGroup
   H::PermGroup
   Xfull::GapObj            # if H does not move all the points, this is the wreath product of (G, Sym(deg(H))
   isfull::Bool             # true if Xfull == X
 
-  function WreathProduct(X::GapObj, G::GAPGroup, H::PermGroup, Xf::GapObj, isf::Bool)
+  function WreathProductGroup(X::GapObj, G::GAPGroup, H::PermGroup, Xf::GapObj, isf::Bool)
      z = new(X,G,H,Xf,isf)
      return z
   end
