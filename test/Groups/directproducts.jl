@@ -3,10 +3,10 @@
    C = abelian_group(PcGroup, [2,2])
    G = direct_product(S,C)
 
-   @test G isa DirectProductOfGroups
+   @test G isa DirectProductGroup
    @test order(G)==order(S)*order(C)
    @test exponent(G)==lcm(exponent(S),exponent(C))
-   @test typeof(rand(G))==Oscar.GAPGroupElem{DirectProductOfGroups}
+   @test typeof(rand(G))==GAPGroupElem{DirectProductGroup}
    @test factor_of_direct_product(G,1)==S
    @test factor_of_direct_product(G,2)==C
    @test number_of_factors(G)==2
@@ -50,7 +50,7 @@
 
    @test_throws ArgumentError as_perm_group(G)
    G = direct_product(S,S)
-   @test G isa DirectProductOfGroups
+   @test G isa DirectProductGroup
    @test as_perm_group(G) isa PermGroup
    G = direct_product(C,C)
    @test as_polycyclic_group(G) isa PcGroup
@@ -62,7 +62,7 @@
    @testset "Cartesian Power" begin
       C = cyclic_group(3)
       G = cartesian_power(C,5)
-      @test G isa DirectProductOfGroups
+      @test G isa DirectProductGroup
       @test order(G)==243
       @test number_of_factors(G)==5
       @test isabelian(G)
@@ -89,7 +89,7 @@ end
    f = hom(C,A,[C[1]],[au])
 
    G = semidirect_product(Q,f,C)
-   @test G isa SemidirectProductOfGroups{PcGroup,PcGroup}
+   @test G isa SemidirectProductGroup{PcGroup,PcGroup}
    @test homomorphism_of_semidirect_product(G)==f
    @test order(G)==16
    @test isfull_semidirect_product(G)

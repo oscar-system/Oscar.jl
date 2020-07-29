@@ -51,7 +51,7 @@ import GAP.GapObj
 
 export
     AutomorphismGroup,
-    DirectProductOfGroups,
+    DirectProductGroup,
     DirectProductOfElem,
     elem_type,
     FPGroup,
@@ -63,7 +63,7 @@ export
     PcGroupElem,
     PermGroup,
     PermGroupElem,
-    SemidirectProductOfGroups,
+    SemidirectProductGroup,
     WreathProductGroup
 
 """
@@ -223,17 +223,17 @@ end
 
 
 """
-    DirectProductOfGroups
+    DirectProductGroup
 Either direct product of two or more groups of any type, or subgroup of a direct product of groups.
 """
-struct DirectProductOfGroups <: GAPGroup
+struct DirectProductGroup <: GAPGroup
   X::GapObj
   L::Vector{<:GAPGroup}   # list of groups
   Xfull::GapObj      # direct product of the GAP groups of L
   isfull::Bool     # true if G is direct product of the groups of L, false if it is a proper subgroup
 
 
-  function DirectProductOfGroups(G::GapObj, L::Vector{<:GAPGroup}, Xf::GapObj, isf::Bool)
+  function DirectProductGroup(G::GapObj, L::Vector{<:GAPGroup}, Xf::GapObj, isf::Bool)
     z = new(G,L,Xf,isf)
     return z
   end
@@ -241,10 +241,10 @@ end
 
 
 """
-    SemidirectProductOfGroups{S,T}
+    SemidirectProductGroup{S,T}
 Semidirect product of two groups of type `S` and `T` respectively, or subgroup of a semidirect product of groups.
 """
-struct SemidirectProductOfGroups{S<:GAPGroup, T<:GAPGroup} <: GAPGroup 
+struct SemidirectProductGroup{S<:GAPGroup, T<:GAPGroup} <: GAPGroup 
   X::GapObj
   N::S              # normal subgroup
   H::T              # group acting on N
@@ -252,7 +252,7 @@ struct SemidirectProductOfGroups{S<:GAPGroup, T<:GAPGroup} <: GAPGroup
   Xfull::GapObj         # full semidirect product: X is a subgroup of Xfull. 
   isfull::Bool     # true if X==Xfull
 
-  function SemidirectProductOfGroups(G::GapObj, N::S, H::T, f, Xf::GapObj, isf::Bool) where S where T
+  function SemidirectProductGroup(G::GapObj, N::S, H::T, f, Xf::GapObj, isf::Bool) where S where T
     z = new{S,T}(G,N,H,f,Xf,isf)
     return z
   end

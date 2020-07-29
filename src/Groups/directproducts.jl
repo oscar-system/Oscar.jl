@@ -31,7 +31,7 @@ Return the direct product of the groups in the collection `L`.
 """
 function direct_product(L::AbstractVector{<:GAPGroup})
    X = GAP.Globals.DirectProduct(GAP.julia_to_gap([G.X for G in L]))
-   return DirectProductOfGroups(X,L,X,true)
+   return DirectProductGroup(X,L,X,true)
 end
 
 function direct_product(L::GAPGroup...)
@@ -39,10 +39,10 @@ function direct_product(L::GAPGroup...)
 end
 
 """
-    number_of_factors(G::DirectProductOfGroups)
+    number_of_factors(G::DirectProductGroup)
 Return the number of factors of `G`.
 """
-number_of_factors(G::DirectProductOfGroups) = length(G.L)
+number_of_factors(G::DirectProductGroup) = length(G.L)
 
 """
     cartesian_power(G::T, n::Int)
@@ -54,20 +54,20 @@ function cartesian_power(G::T, n::Base.Integer) where T <: GAPGroup
 end
 
 """
-    factor_of_direct_product(G::DirectProductOfGroups, j::Int)
+    factor_of_direct_product(G::DirectProductGroup, j::Int)
 Return the `j`-th factor of `G`.
 """
-function factor_of_direct_product(G::DirectProductOfGroups, j::Base.Integer)
+function factor_of_direct_product(G::DirectProductGroup, j::Base.Integer)
    if j in 1:length(G.L) return G.L[j]
    else throw(ArgumentError("index not valid"))
    end
 end
 
 """
-    as_perm_group(G::DirectProductOfGroups)
+    as_perm_group(G::DirectProductGroup)
 If `G` is direct product of permutations groups, return `G` as permutation group.
 """
-function as_perm_group(G::DirectProductOfGroups)
+function as_perm_group(G::DirectProductGroup)
    if [typeof(H)==PermGroup for H in G.L]==[true for i in 1:length(G.L)]
       return PermGroup(G.X, GAP.Globals.Maximum(GAP.Globals.MovedPoints(G.X)))
    else
@@ -76,10 +76,10 @@ function as_perm_group(G::DirectProductOfGroups)
 end
 
 """
-    as_polycyclic_group(G::DirectProductOfGroups)
+    as_polycyclic_group(G::DirectProductGroup)
 If `G` is direct product of polycyclic groups, return `G` as polycyclic group.
 """
-function as_polycyclic_group(G::DirectProductOfGroups)
+function as_polycyclic_group(G::DirectProductGroup)
    if [typeof(H)==PcGroup for H in G.L]==[true for i in 1:length(G.L)]
       return PcGroup(G.X)
    else
@@ -88,11 +88,11 @@ function as_polycyclic_group(G::DirectProductOfGroups)
 end
 
 """
-    as_matrix_group(G::DirectProductOfGroups)
+    as_matrix_group(G::DirectProductGroup)
 If `G` is direct product of matrix groups over the ring `R` of dimension `n_1`, ... , `n_k` respectively, return `G` as matrix group over the ring `R` of dimension `n_1 + ... + n_k`.
 """
-function as_matrix_group(G::DirectProductOfGroups)
-#   if S==MatrixGroup && T==MatrixGroup && GAP.Globals.FieldOfMatrixGroup(G.G1.X)==GAP.Globals.FieldOfMatrixGroup(G.G2.X)
+function as_matrix_group(G::DirectProductGroup)
+# TODO write in a more compact form once defined the function base_ring over GL
    if [typeof(H)==MatrixGroup for H in G.L]==[true for i in 1:length(G.L)] && length(Set([GAP.Globals.FieldOfMatrixGroup(H.X) for H in G.L]))==1
       return MatrixGroup(G.X)
    else
@@ -101,39 +101,23 @@ function as_matrix_group(G::DirectProductOfGroups)
 end
 
 """
-    embedding(G::DirectProductOfGroups, j::Integer)
+    embedding(G::DirectProductGroup, j::Integer)
 Return the embedding of the `j`-th component of `G` into `G`, for `j` = 1,...,#factors of `G`.
 """
-function embedding(G::DirectProductOfGroups, j::Base.Integer)
+function embedding(G::DirectProductGroup, j::Base.Integer)
    j in 1:length(G.L) || throw(ArgumentError("index not valid"))
    G.isfull || throw(ArgumentError("Embedding is not defined for proper subgroups of direct products"))
    f=GAP.Globals.Embedding(G.X,j)
    gr=G.L[j]
    typeG=typeof(gr)
-   return GAPGroupHomomorphism{typeG,DirectProductOfGroups}(gr,G,f)
+   return GAPGroupHomomorphism{typeG,DirectProductGroup}(gr,G,f)
 end
 
 """
-    projection(G::DirectProductOfGroups, j::Integer)
+    projection(G::DirectProductGroup, j::Integer)
 Return the projection of `G` into the `j`-th component of `G`, for `j` = 1,...,#factors of `G`.
 """
-#=
-function projection(G::DirectProductOfGroups, j::Base.Integer)
-   f=GAP.Globals.Projection(G.Xfull,j)
-   j in 1:length(G.L) || throw(ArgumentError("index not valid"))
-   H = G.L[j]
-   f = GAP.Globals.GroupHomomorphismByFunction(G.X,H.X,
-   if !G.isfull
-      Gf = DirectProductOfGroups(G.Xfull,G.L,G.Xfull,true)
-      g = embedding(Gf,G)
-      p = g*GAPGroupHomomorphism{DirectProductOfGroups,typeof(H)}(Gf,H,f)
-   else
-      p = GAPGroupHomomorphism{DirectProductOfGroups,typeof(H)}(G,H,f)
-   end
-   return hom(G,H,x->p(x))
-end
-=#
-function projection(G::DirectProductOfGroups, j::Base.Integer)
+function projection(G::DirectProductGroup, j::Base.Integer)
    f=GAP.Globals.Projection(G.Xfull,j)
    j in 1:length(G.L) || throw(ArgumentError("index not valid"))
    H = G.L[j]
@@ -142,16 +126,16 @@ function projection(G::DirectProductOfGroups, j::Base.Integer)
 end
 
 
-function (G::DirectProductOfGroups)(V::Vector{GAPGroupElem})
-   Gfull=DirectProductOfGroups(G.Xfull,G.L,G.Xfull,true)
+function (G::DirectProductGroup)(V::Vector{GAPGroupElem})
+   Gfull=DirectProductGroup(G.Xfull,G.L,G.Xfull,true)
    @assert length(V)==length(G.L) "Vector of wrong length"
    x = prod([embedding(Gfull,j)(V[j]) for j in 1:length(V)])
    @assert x in G "Element not in the group"
    return group_element(G,x.X)
 end
 
-function (G::DirectProductOfGroups)(V::GAPGroupElem...)
-   Gfull=DirectProductOfGroups(G.Xfull,G.L,G.Xfull,true)
+function (G::DirectProductGroup)(V::GAPGroupElem...)
+   Gfull=DirectProductGroup(G.Xfull,G.L,G.Xfull,true)
    @assert length(V)==length(G.L) "Vector of wrong length"
    x = prod([embedding(Gfull,j)(V[j]) for j in 1:length(V)])
    @assert x in G "Element not in the group"
@@ -159,42 +143,42 @@ function (G::DirectProductOfGroups)(V::GAPGroupElem...)
 end
 
 # start part on subgroups
-function _as_subgroup_bare(G::DirectProductOfGroups, H::GapObj)
+function _as_subgroup_bare(G::DirectProductGroup, H::GapObj)
   t = H==G.X
-  return DirectProductOfGroups(H, G.L, G.X, t)
+  return DirectProductGroup(H, G.L, G.X, t)
 end
 
-function _as_subgroup(G::DirectProductOfGroups, H::GapObj, ::Type{U}) where U
+function _as_subgroup(G::DirectProductGroup, H::GapObj, ::Type{U}) where U
   H1 = _as_subgroup_bare(G, H)
   return H1, hom(H1, G, x::U -> group_element(G, x.X))
 end
 
-function _as_subgroup(G::DirectProductOfGroups, H::GapObj)
-  return _as_subgroup(G, H, GAPGroupElem{DirectProductOfGroups})
+function _as_subgroup(G::DirectProductGroup, H::GapObj)
+  return _as_subgroup(G, H, GAPGroupElem{DirectProductGroup})
 end
 
-function sub(G::DirectProductOfGroups, elms::Vector{GAPGroupElem{DirectProductOfGroups}})
+function sub(G::DirectProductGroup, elms::Vector{GAPGroupElem{DirectProductGroup}})
   elems_in_GAP = GAP.julia_to_gap(GapObj[x.X for x in elms])
   H = GAP.Globals.Group(elems_in_GAP)
   #H is the group. I need to return the inclusion map too
   return _as_subgroup(G, H)
 end
 
-function sub(L::GAPGroupElem{DirectProductOfGroups}...)
+function sub(L::GAPGroupElem{DirectProductGroup}...)
    length(L)>0 || throw(ArgumentError("Empty list"))
    l=collect(L)
    @assert all(x -> parent(x) == parent(l[1]), l)
    return sub(parent(l[1]),l)
 end
 
-function sub(L::Vector{GAPGroupElem{DirectProductOfGroups}})
+function sub(L::Vector{GAPGroupElem{DirectProductGroup}})
    length(L)>0 || throw(ArgumentError("Empty list"))
    l=collect(L)
    @assert all(x -> parent(x) == parent(l[1]), l)
    return sub(parent(l[1]),l)
 end
 
-function Base.show(io::IO, G::DirectProductOfGroups)
+function Base.show(io::IO, G::DirectProductGroup)
    if G.isfull
       print(io, "DirectProduct of ")
       display(G.L)
@@ -203,18 +187,12 @@ function Base.show(io::IO, G::DirectProductOfGroups)
    end
 end
 
-#=
-function Base.show(io::IO, x::GAPGroupElem{DirectProductOfGroups{S,T}}) where { S, T }
-   print(io, "DirectProductElement( ", GAP.gap_to_julia(GAP.Globals.StringViewObj(projection(parent(x),1)(x).X)), " , ", GAP.gap_to_julia(GAP.Globals.StringViewObj(projection(parent(x),2)(x).X)), " )")
-end
-=#
-
 # if a subgroup of a direct product of groups is also a direct product of groups
 """
-    write_as_full(G::DirectProductOfGroups)
+    write_as_full(G::DirectProductGroup)
 If `G` is a subgroup of the direct product `G_1 x ... x G_n` such that `G = H_1 x ... x H_n` for `H_i` subgroup of `G_i`, return `G` as full direct product of the `H_i`. If such `H_i` do not exist, an ERROR is returned.
 """
-function write_as_full(G::DirectProductOfGroups)
+function write_as_full(G::DirectProductGroup)
    if G.isfull
       return G
    else
@@ -227,12 +205,12 @@ function write_as_full(G::DirectProductOfGroups)
 end
 
 """
-    isfull_direct_product(G::DirectProductOfGroups)
+    isfull_direct_product(G::DirectProductGroup)
 Return whether `G` is direct product of its factors (`false` if it is a proper subgroup).
 """
-isfull_direct_product(G::DirectProductOfGroups) = G.isfull
+isfull_direct_product(G::DirectProductGroup) = G.isfull
 
-Base.:^(H::DirectProductOfGroups, y::GAPGroupElem) = sub([h^y for h in gens(H)])[1]
+Base.:^(H::DirectProductGroup, y::GAPGroupElem) = sub([h^y for h in gens(H)])[1]
 
 
 ################################################################################
@@ -243,17 +221,17 @@ Base.:^(H::DirectProductOfGroups, y::GAPGroupElem) = sub([h^y for h in gens(H)])
 
 """
     semidirect_product(N::S, f::GAPGroupHomomorphism, H::T)
-Return the semidirect product of `N` and `H`, of type ``SemidirectProductOfGroups{S,T}``, where `f` is a homomorphism from `H` to `Aut`(`N`).
+Return the semidirect product of `N` and `H`, of type ``SemidirectProductGroup{S,T}``, where `f` is a homomorphism from `H` to `Aut`(`N`).
 """
 function semidirect_product(N::S, f::GAPGroupHomomorphism{T,AutomorphismGroup{S}}, H::T) where S <: GAPGroup where T <: GAPGroup
    sdp=GAP.Globals.SemidirectProduct(H.X,f.map,N.X)
-   return SemidirectProductOfGroups(sdp,N,H,f,sdp,true)
+   return SemidirectProductGroup(sdp,N,H,f,sdp,true)
 end
 
 # return the element (a,b) in G
-function (G::SemidirectProductOfGroups{S,T})(a::GAPGroupElem{S},b::GAPGroupElem{T}) where {S,T}
+function (G::SemidirectProductGroup{S,T})(a::GAPGroupElem{S},b::GAPGroupElem{T}) where {S,T}
 # simply put parent(L[d+1])==W.H does not work. Example: if I want to write explicitly a permutation in H proper subgroup of Sym(n).
-   Gfull = SemidirectProductOfGroups(G.Xfull,G.N,G.H,G.f,G.Xfull,true)
+   Gfull = SemidirectProductGroup(G.Xfull,G.N,G.H,G.f,G.Xfull,true)
    g = embedding(Gfull,1)(a) * embedding(Gfull,2)(b)
    if !G.isfull
       @assert g in G "Element not in the group"
@@ -262,16 +240,16 @@ function (G::SemidirectProductOfGroups{S,T})(a::GAPGroupElem{S},b::GAPGroupElem{
 end
 
 """
-    isfull_semidirect_product(G::SemidirectProductOfGroups)
+    isfull_semidirect_product(G::SemidirectProductGroup)
 Return whether `G` is a semidirect product of two groups, instead of a proper subgroup.
 """
-isfull_semidirect_product(G::SemidirectProductOfGroups) = G.isfull
+isfull_semidirect_product(G::SemidirectProductGroup) = G.isfull
 
 """
-    embedding(G::SemidirectProductOfGroups{S,T}, n::Integer)
+    embedding(G::SemidirectProductGroup{S,T}, n::Integer)
 Return the embedding of the `n`-th component of `G` into `G`, for `n` = 1,2. It is not defined for proper subgroups of semidirect products.
 """
-function embedding(G::SemidirectProductOfGroups{S,T}, n::Base.Integer) where S where T
+function embedding(G::SemidirectProductGroup{S,T}, n::Base.Integer) where S where T
    @assert G.isfull "Embedding not defined for proper subgroups of semidirect products"
    if n==1
       f=GAP.Globals.Embedding(G.X,2)
@@ -284,63 +262,63 @@ function embedding(G::SemidirectProductOfGroups{S,T}, n::Base.Integer) where S w
    else
       throw(ArgumentError("n must be 1 or 2"))
    end
-   return GAPGroupHomomorphism{typeG,SemidirectProductOfGroups{S,T}}(gr,G,f)
+   return GAPGroupHomomorphism{typeG,SemidirectProductGroup{S,T}}(gr,G,f)
 end
 
 
 
 """
-    projection(G::SemidirectProductOfGroups{S,T}, n::Integer)
+    projection(G::SemidirectProductGroup{S,T}, n::Integer)
 Return the projection of `G` into the second component of `G`.
 """
-function projection(G::SemidirectProductOfGroups{S,T}) where S where T
+function projection(G::SemidirectProductGroup{S,T}) where S where T
    f=GAP.Globals.Projection(G.Xfull)
    if !G.isfull
-      Gf = SemidirectProductOfGroups(G.Xfull,G.N,G.H,G.f,G.Xfull,true)
+      Gf = SemidirectProductGroup(G.Xfull,G.N,G.H,G.f,G.Xfull,true)
       g = embedding(Gf,G)
-      return g*GAPGroupHomomorphism{SemidirectProductOfGroups{S,T},T}(Gf,G.H,f)
+      return g*GAPGroupHomomorphism{SemidirectProductGroup{S,T},T}(Gf,G.H,f)
    else
-      return GAPGroupHomomorphism{SemidirectProductOfGroups{S,T},T}(G,G.H,f)
+      return GAPGroupHomomorphism{SemidirectProductGroup{S,T},T}(G,G.H,f)
    end
 end
 
 
 # start part on subgroups
-function _as_subgroup_bare(G::SemidirectProductOfGroups{S,T}, H::GapObj) where { S , T }
-  return SemidirectProductOfGroups(H, G.N, G.H, G.f, G.X, false)
+function _as_subgroup_bare(G::SemidirectProductGroup{S,T}, H::GapObj) where { S , T }
+  return SemidirectProductGroup(H, G.N, G.H, G.f, G.X, false)
 end
 
-function _as_subgroup(G::SemidirectProductOfGroups{S,T}, H::GapObj, ::Type{U}) where { T, S, U }
+function _as_subgroup(G::SemidirectProductGroup{S,T}, H::GapObj, ::Type{U}) where { T, S, U }
   H1 = _as_subgroup_bare(G, H)
   return H1, hom(H1, G, x::U -> group_element(G, x.X))
 end
 
-function _as_subgroup(G::SemidirectProductOfGroups{S,T}, H::GapObj) where S <: GAPGroup where T <: GAPGroup
-  return _as_subgroup(G, H, GAPGroupElem{SemidirectProductOfGroups{S,T}})
+function _as_subgroup(G::SemidirectProductGroup{S,T}, H::GapObj) where S <: GAPGroup where T <: GAPGroup
+  return _as_subgroup(G, H, GAPGroupElem{SemidirectProductGroup{S,T}})
 end
 
-function sub(G::SemidirectProductOfGroups{S,T}, elms::Vector{GAPGroupElem{SemidirectProductOfGroups{S,T}}}) where { S, T }
+function sub(G::SemidirectProductGroup{S,T}, elms::Vector{GAPGroupElem{SemidirectProductGroup{S,T}}}) where { S, T }
   elems_in_GAP = GAP.julia_to_gap(GapObj[x.X for x in elms])
   H = GAP.Globals.Group(elems_in_GAP)
   #H is the group. I need to return the inclusion map too
   return _as_subgroup(G, H)
 end
 
-function sub(L::GAPGroupElem{SemidirectProductOfGroups{S,T}}...) where { S, T }
+function sub(L::GAPGroupElem{SemidirectProductGroup{S,T}}...) where { S, T }
    length(L)>0 || throw(ArgumentError("Empty list"))
    l=collect(L)
    @assert all(x -> parent(x) == parent(l[1]), l)
    return sub(parent(l[1]),l)
 end
 
-function sub(L::Vector{GAPGroupElem{SemidirectProductOfGroups{S,T}}}) where { S, T }
+function sub(L::Vector{GAPGroupElem{SemidirectProductGroup{S,T}}}) where { S, T }
    length(L)>0 || throw(ArgumentError("Empty list"))
    l=collect(L)
    @assert all(x -> parent(x) == parent(l[1]), l)
    return sub(parent(l[1]),l)
 end
 
-function Base.show(io::IO, x::SemidirectProductOfGroups)
+function Base.show(io::IO, x::SemidirectProductGroup)
    if x.isfull
       print(io, "SemidirectProduct( ", GAP.gap_to_julia(GAP.Globals.StringViewObj(x.N.X)), " , ", GAP.gap_to_julia(GAP.Globals.StringView(x.H.X))," )")
    else
@@ -349,10 +327,10 @@ function Base.show(io::IO, x::SemidirectProductOfGroups)
 end
 
 """
-    homomorphism_of_semidirect_product(G::SemidirectProductOfGroups{S,T})
+    homomorphism_of_semidirect_product(G::SemidirectProductGroup{S,T})
 If `G` is semidirect product of `C` and `N`, where `C` acts on `N`, then return the homomorphism `f` from `C` to `Aut`(`N`).
 """
-homomorphism_of_semidirect_product(G::SemidirectProductOfGroups{S,T}) where {S,T} = G.f
+homomorphism_of_semidirect_product(G::SemidirectProductGroup{S,T}) where {S,T} = G.f
 
 
 
