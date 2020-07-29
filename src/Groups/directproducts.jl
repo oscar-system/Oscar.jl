@@ -126,20 +126,16 @@ function projection(G::DirectProductGroup, j::Base.Integer)
 end
 
 
-function (G::DirectProductGroup)(V::Vector{GAPGroupElem})
-   Gfull=DirectProductGroup(G.Xfull,G.L,G.Xfull,true)
-   @assert length(V)==length(G.L) "Vector of wrong length"
-   x = prod([embedding(Gfull,j)(V[j]) for j in 1:length(V)])
-   @assert x in G "Element not in the group"
-   return group_element(G,x.X)
+function (G::DirectProductGroup)(V::AbstractVector{<:GAPGroupElem})
+   length(V)==length(G.L) || throw(ArgumentError("Wrong number of entries"))
+   arr = [GAP.Globals.Image(GAP.Globals.Embedding(G.Xfull,i),V[i].X) for i in 1:length(V)]
+   xgap = prod(arr)
+   xgap in G.X || throw(ArgumentError("Element not in the group"))
+   return group_element(G,xgap)
 end
 
 function (G::DirectProductGroup)(V::GAPGroupElem...)
-   Gfull=DirectProductGroup(G.Xfull,G.L,G.Xfull,true)
-   @assert length(V)==length(G.L) "Vector of wrong length"
-   x = prod([embedding(Gfull,j)(V[j]) for j in 1:length(V)])
-   @assert x in G "Element not in the group"
-   return group_element(G,x.X)
+   return G([x for x in V])
 end
 
 # start part on subgroups
@@ -231,12 +227,9 @@ end
 # return the element (a,b) in G
 function (G::SemidirectProductGroup{S,T})(a::GAPGroupElem{S},b::GAPGroupElem{T}) where {S,T}
 # simply put parent(L[d+1])==W.H does not work. Example: if I want to write explicitly a permutation in H proper subgroup of Sym(n).
-   Gfull = SemidirectProductGroup(G.Xfull,G.N,G.H,G.f,G.Xfull,true)
-   g = embedding(Gfull,1)(a) * embedding(Gfull,2)(b)
-   if !G.isfull
-      @assert g in G "Element not in the group"
-   end
-   return g
+   xgap = GAP.Globals.Image(GAP.Globals.Embedding(G.Xfull,1),b.X)*GAP.Globals.Image(GAP.Globals.Embedding(G.Xfull,2),a.X)
+   xgap in G.X || throw(ArgumentError("Element not in the group"))
+   return group_element(G,xgap)
 end
 
 """
@@ -265,23 +258,16 @@ function embedding(G::SemidirectProductGroup{S,T}, n::Base.Integer) where S wher
    return GAPGroupHomomorphism{typeG,SemidirectProductGroup{S,T}}(gr,G,f)
 end
 
-
-
 """
     projection(G::SemidirectProductGroup{S,T}, n::Integer)
 Return the projection of `G` into the second component of `G`.
 """
 function projection(G::SemidirectProductGroup{S,T}) where S where T
    f=GAP.Globals.Projection(G.Xfull)
-   if !G.isfull
-      Gf = SemidirectProductGroup(G.Xfull,G.N,G.H,G.f,G.Xfull,true)
-      g = embedding(Gf,G)
-      return g*GAPGroupHomomorphism{SemidirectProductGroup{S,T},T}(Gf,G.H,f)
-   else
-      return GAPGroupHomomorphism{SemidirectProductGroup{S,T},T}(G,G.H,f)
-   end
+   H = G.H
+   p = GAP.Globals.GroupHomomorphismByFunction(G.X,H.X,y->GAP.Globals.Image(f,y))
+   return _hom_from_gap_map(G,H,p)
 end
-
 
 # start part on subgroups
 function _as_subgroup_bare(G::SemidirectProductGroup{S,T}, H::GapObj) where { S , T }
@@ -364,16 +350,14 @@ end
 # return the element (L[1],L[2],...) in W
 function (W::WreathProductGroup)(L::Union{GAPGroupElem{T},GAPGroupElem{PermGroup}}...) where T <: GAPGroup
    d = W.H.deg
-   @assert length(L)==d+1 "Wrong number of arguments"
+   length(L)==d+1 || throw(ArgumentError("Wrong number of arguments"))
    for i in 1:d @assert L[i] in W.G "Wrong input" end
-   @assert L[d+1] in W.H "Wrong input"
+   L[d+1] in W.H || throw(ArgumentError("Wrong input"))
 # simply put parent(L[d+1])==W.H does not work. Example: if I want to write explicitly a permutation in H proper subgroup of Sym(n).
-   Wfull = WreathProductGroup(W.Xfull,W.G,W.H,W.Xfull,true)
-   g = prod([embedding(Wfull,i)(L[i]) for i in 1:d+1])
-   if !W.isfull
-      @assert g in W "Element not in the group"
-   end
-   return g
+   arr = [GAP.Globals.Image(GAP.Globals.Embedding(W.Xfull,i),L[i].X) for i in 1:length(L)]
+   xgap = prod(arr)
+   xgap in W.X || throw(ArgumentError("Element not in the group"))
+   return group_element(W,xgap)
 end
 
 """
@@ -389,16 +373,10 @@ Return the projection of `wreath_product(G,H)` into the permutation group `H`.
 function projection(W::WreathProductGroup)
   # @assert W.isfull "Projection not defined for proper subgroups of wreath products"
    f=GAP.Globals.Projection(W.Xfull)
-   if !W.isfull
-      Wf = WreathProductGroup(W.Xfull,W.G,W.H,W.Xfull,true)
-      g = embedding(Wf,W)
-      p = g*GAPGroupHomomorphism{WreathProductGroup,PermGroup}(Wf,W.H,f)
-   else
-      p = GAPGroupHomomorphism{WreathProductGroup,PermGroup}(W,W.H,f)
-   end
-   return hom(W,W.H,x->p(x))
+   H = W.H
+   p = GAP.Globals.GroupHomomorphismByFunction(W.X,H.X,y->GAP.Globals.Image(f,y))
+   return _hom_from_gap_map(W,H,p)
 end
-
 
 """
     embedding(G::WreathProductGroup, n::Integer)

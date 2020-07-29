@@ -28,7 +28,10 @@
    @test isisomorphic(quo(G,C1)[1],S1)[1]
 
    x = G(cperm([1,2]),C[1])
+   @test x==G([cperm([1,2]),C[1]])
    H = sub(G,[x])[1]
+   @test x==H(cperm([1,2]),C[1])
+   @test_throws ArgumentError H(cperm([2,3]),C[1])
    @test order(H)==2
    @test index(G,H) isa Integer
    @test_throws ArgumentError write_as_full(H)
@@ -96,6 +99,8 @@ end
    x = G(Q[1]*Q[2],C[1])
    @test parent(x)==G
    H = sub(G,[x])[1]
+   @test H(Q[1]*Q[2],C[1])==x
+   @test_throws ArgumentError H(Q[1],C[1])
    @test issubgroup(G,H)[1]
    @test index(G,H)==4
    @test !isfull_semidirect_product(H)
