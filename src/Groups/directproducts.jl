@@ -338,18 +338,24 @@ If `W` is a wreath product of `G` and `H`, {`g_1`, ..., `g_n`} are elements of `
 function wreath_product(G::T, H::PermGroup) where T<: GAPGroup
    if Set(GAP.gap_to_julia(GAP.Globals.MovedPoints(H.X)))==Set(1:H.deg)
       Wgap=GAP.Globals.WreathProduct(G.X,H.X)
-      return WreathProductGroup(Wgap,G,H,Wgap,true)
+      return WreathProductGroup(Wgap,G,H,id_hom(H),Wgap,true)
    else
       S=symmetric_group(H.deg)
       Wgap=GAP.Globals.WreathProduct(G.X,S.X)
       W1=GAP.Globals.PreImage(GAP.Globals.Projection(Wgap),H.X)
-      return WreathProductGroup(W1,G,H,Wgap,true)
+   # not id_hom(H) because I need NrMovedPoints(Image(a))==degree(H), see function embedding
+      return WreathProductGroup(W1,G,H,id_hom(symmetric_group(H.deg)),Wgap,true)
    end
+end
+
+function wreath_product(G::T, H::S, a::GAPGroupHomomorphism{S,PermGroup}) where S<:GAPGroup where T<:GAPGroup
+   Wgap=GAP.Globals.WreathProduct(G.X,H.X,a.map)
+   return WreathProductGroup(Wgap,G,H,a,Wgap,true)
 end
 
 # return the element (L[1],L[2],...) in W
 function (W::WreathProductGroup)(L::Union{GAPGroupElem{T},GAPGroupElem{PermGroup}}...) where T <: GAPGroup
-   d = W.H.deg
+   d = GAP.Globals.NrMovedPoints(GAP.Globals.Image(W.a.map))
    length(L)==d+1 || throw(ArgumentError("Wrong number of arguments"))
    for i in 1:d @assert L[i] in W.G "Wrong input" end
    L[d+1] in W.H || throw(ArgumentError("Wrong input"))
@@ -384,9 +390,9 @@ Return the embedding of the `n`-th component of `G` into `G`.
 """
 function embedding(W::WreathProductGroup, n::Base.Integer)
    W.isfull || throw(ArgumentError("Embedding not defined for proper subgroups of wreath products"))
-   n <= W.H.deg+1 || throw(ArgumentError("n is too big"))
+   n <= GAP.Globals.NrMovedPoints(GAP.Globals.Image(W.a.map))+1 || throw(ArgumentError("n is too big"))
    f = GAP.Globals.Embedding(W.Xfull,n)
-   if n== W.H.deg+1 C=W.H
+   if n== GAP.Globals.NrMovedPoints(GAP.Globals.Image(W.a.map))+1 C=W.H
    else C=W.G
    end
    return GAPGroupHomomorphism{typeof(C),WreathProductGroup}(C,W,f)
@@ -401,7 +407,7 @@ function _as_subgroup_bare(W::WreathProductGroup, X::GapObj)
    if X==W.X
       return W
    else
-      return WreathProductGroup(X, W.G, W.H, W.Xfull, false)
+      return WreathProductGroup(X, W.G, W.H, W.a, W.Xfull, false)
    end
 end
 

@@ -141,4 +141,14 @@ end
    @test iscyclic(K)
    @test index(W,K)==8
    @test_throws ArgumentError embedding(K,1)(f1) in K
+
+   C = cyclic_group(3)
+   a = hom(C,H,[C[1]],[cperm([1,2,4])])
+   W = wreath_product(C,C,a)
+   @test W isa WreathProductGroup
+   @test order(W)==81
+   @test embedding(W,1)(C[1]) in W
+   @test W(C[1],one(C),one(C),C[1]) isa GAPGroupElem{WreathProductGroup}
+   @test image(projection(W))[1]==C
+   @test_throws ArgumentError embedding(W,5)(C[1])
 end

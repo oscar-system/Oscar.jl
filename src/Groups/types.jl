@@ -265,12 +265,13 @@ Wreath product of a group `G` and a group of permutations `H`.
 struct WreathProductGroup <: GAPGroup
   X::GapObj
   G::GAPGroup
-  H::PermGroup
+  H::GAPGroup
+  a::GAPGroupHomomorphism   # morphism from H to the permutation group
   Xfull::GapObj            # if H does not move all the points, this is the wreath product of (G, Sym(deg(H))
   isfull::Bool             # true if Xfull == X
 
-  function WreathProductGroup(X::GapObj, G::GAPGroup, H::PermGroup, Xf::GapObj, isf::Bool)
-     z = new(X,G,H,Xf,isf)
+  function WreathProductGroup(X::GapObj, G::GAPGroup, H::GAPGroup, a::GAPGroupHomomorphism, Xf::GapObj, isf::Bool)
+     z = new(X,G,H,a,Xf,isf)
      return z
   end
 end
