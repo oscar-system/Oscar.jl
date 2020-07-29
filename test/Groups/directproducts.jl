@@ -62,6 +62,21 @@
    @test G isa MatrixGroup
 #   @test dim(G)==4     # TODO not yet defined
 
+   @testset "Inner direct products" begin
+      C2 = cyclic_group(2)
+      C3 = cyclic_group(3)
+      G = inner_direct_product(C2,C2,C3,C3)
+      @test G isa PcGroup
+      @test isisomorphic(G,direct_product(C2,C2,C3,C3))[1]
+      A = alternating_group(3)
+      G = inner_direct_product(A,A)
+      @test G isa PermGroup
+      @test degree(G)==6
+      @test G==inner_direct_product([A,A])
+   end
+      
+
+
    @testset "Cartesian Power" begin
       C = cyclic_group(3)
       G = cartesian_power(C,5)

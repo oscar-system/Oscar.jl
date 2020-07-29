@@ -13,6 +13,7 @@ export
     embedding,
     factor_of_direct_product,
     homomorphism_of_semidirect_product,
+    inner_direct_product,
     isfull_direct_product,
     isfull_semidirect_product,
     isfull_wreath_product,
@@ -36,6 +37,39 @@ end
 
 function direct_product(L::GAPGroup...)
    return direct_product([x for x in L])
+end
+
+"""
+    inner_direct_product(L::AbstractVector{T}; morphisms)
+    inner_direct_product(L::T...)
+Return a direct product of groups of the same type `T` as a group of type `T`. It works for `T` of the following types:
+- `PermGroup`, `PcGroup`, `MatrixGroup`, `FPGroup`.
+
+NOTE: if `T` = `MatrixGroup`, the groups of the vector `L` need to have the same base ring.
+
+The parameter `morphisms` is `false` by default. If it is set `true`, then the output is a triple (`G`, `emb`, `proj`), where `emb` and `proj` are the vectors of the embeddings (resp. projections) of the direct product `G`.
+"""
+function inner_direct_product(L::AbstractVector{T}; morphisms=false) where T<:Union{PcGroup,PermGroup,FPGroup,MatrixGroup}
+   P = GAP.Globals.DirectProduct(GAP.julia_to_gap([G.X for G in L]))
+   if T==MatrixGroup     # check that the matrix groups have the same base ring
+      length(Set([GAP.Globals.FieldOfMatrixGroup(H.X) for H in G.L]))==1 || throw(ArgumentError("The result is not a matrix group"))
+   end
+   if T==PermGroup
+      DP = T(P,GAP.Globals.NrMovedPoints(P))
+   else
+      DP = T(P)
+   end
+   if morphisms
+      emb = [_hom_from_gap_map(L[i],DP,GAP.Globals.Embedding(P,i)) for i in 1:length(L)]
+      proj = [_hom_from_gap_map(DP,L[i],GAP.Globals.Projection(P,i)) for i in 1:length(L)]
+      return DP, emb, proj
+   else
+      return DP
+   end
+end
+
+function inner_direct_product(L::T...) where T<:Union{PcGroup,PermGroup,FPGroup,MatrixGroup}
+   return inner_direct_product([x for x in L])
 end
 
 """
