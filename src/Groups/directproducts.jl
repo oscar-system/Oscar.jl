@@ -361,8 +361,11 @@ homomorphism_of_semidirect_product(G::SemidirectProductGroup{S,T}) where {S,T} =
 ################################################################################
 
 """
+    wreath_product(G::T, H::S, a::GAPGroupHomomorphism{S,PermGroup})
     wreath_product(G::T, H::PermGroup) where T<: Group
-Return the wreath product of the group `G` and the permutation group `H`. The number of copies of `G` corresponds to the degree of `H` as permutation group (NOT to the number of moved points).
+Return the wreath product of the group `G` and the group `H`, where `H` acts on `n` copies of `G` through the homomorphism `a` from `H` to a permutation group, and `n` is the number of moved points of `Image(a)`.
+
+If `a` is not specified, then `H` must be a group of permutations. In this case, `n` is not the number of moved points, but the degree of `H`.
 
 If `W` is a wreath product of `G` and `H`, {`g_1`, ..., `g_n`} are elements of `G` and `h` in `H`, the element `(g_1, ..., h)` of `W` can be obtained by typing
 ```
