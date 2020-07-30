@@ -68,8 +68,8 @@ function inner_direct_product(L::AbstractVector{T}; morphisms=false) where T<:Un
    end
 end
 
-function inner_direct_product(L::T...) where T<:Union{PcGroup,PermGroup,FPGroup,MatrixGroup}
-   return inner_direct_product([x for x in L])
+function inner_direct_product(L::T... ; morphisms=false) where T<:Union{PcGroup,PermGroup,FPGroup,MatrixGroup}
+   return inner_direct_product([x for x in L]; morphisms=morphisms)
 end
 
 """

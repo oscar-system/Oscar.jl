@@ -69,10 +69,24 @@
       @test G isa PcGroup
       @test isisomorphic(G,direct_product(C2,C2,C3,C3))[1]
       A = alternating_group(3)
-      G = inner_direct_product(A,A)
+      G = inner_direct_product(A,A,A)
       @test G isa PermGroup
-      @test degree(G)==6
-      @test G==inner_direct_product([A,A])
+      G1 = G
+      @test degree(G)==9
+      L = [A,A,A]
+      @test G==inner_direct_product(L)
+
+      G,Le,Lp = inner_direct_product(A,A,A; morphisms=true)
+      @test G==G1
+      @test isinjective(Le[1])
+      @test issurjective(Lp[1])
+      @testset for i in 1:3
+         @test domain(Le[i])==L[i]
+         @test codomain(Le[i])==G
+         @test domain(Lp[i])==G
+         @test codomain(Lp[i])==L[i]
+         @test Le[i]*Lp[i]==id_hom(L[i])
+      end         
    end
       
 

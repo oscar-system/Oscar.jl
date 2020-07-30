@@ -231,12 +231,6 @@ struct DirectProductGroup <: GAPGroup
   L::Vector{<:GAPGroup}   # list of groups
   Xfull::GapObj      # direct product of the GAP groups of L
   isfull::Bool     # true if G is direct product of the groups of L, false if it is a proper subgroup
-
-
-  function DirectProductGroup(G::GapObj, L::Vector{<:GAPGroup}, Xf::GapObj, isf::Bool)
-    z = new(G,L,Xf,isf)
-    return z
-  end
 end
 
 
@@ -251,11 +245,6 @@ struct SemidirectProductGroup{S<:GAPGroup, T<:GAPGroup} <: GAPGroup
   f::GAPGroupHomomorphism{T,AutomorphismGroup{S}}        # action of H on N
   Xfull::GapObj         # full semidirect product: X is a subgroup of Xfull. 
   isfull::Bool     # true if X==Xfull
-
-  function SemidirectProductGroup(G::GapObj, N::S, H::T, f, Xf::GapObj, isf::Bool) where S where T
-    z = new{S,T}(G,N,H,f,Xf,isf)
-    return z
-  end
 end
 
 """
@@ -269,11 +258,6 @@ struct WreathProductGroup <: GAPGroup
   a::GAPGroupHomomorphism   # morphism from H to the permutation group
   Xfull::GapObj            # if H does not move all the points, this is the wreath product of (G, Sym(deg(H))
   isfull::Bool             # true if Xfull == X
-
-  function WreathProductGroup(X::GapObj, G::GAPGroup, H::GAPGroup, a::GAPGroupHomomorphism, Xf::GapObj, isf::Bool)
-     z = new(X,G,H,a,Xf,isf)
-     return z
-  end
 end
 
 
