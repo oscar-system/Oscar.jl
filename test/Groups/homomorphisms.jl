@@ -104,6 +104,33 @@ end
       end
    end
 
+   @testset "Change type" begin
+       S = symmetric_group(4)
+       (S1,f)=isomorphic_perm_group(S)
+       @test S1==S
+       (G,f)=isomorphic_pc_group(S)
+       @test G isa PcGroup
+       @test domain(f)==S
+       @test codomain(f)==G
+       @test isinjective(f)
+       @test issurjective(f)
+
+       (S,g)=isomorphic_pc_group(G)
+       @test S isa PcGroup
+       @test domain(g)==G
+       @test codomain(g)==S
+       @test isinjective(g)
+       @test issurjective(g)
+
+       (F,g)=isomorphic_fp_group(G)
+       @test F isa FPGroup
+       @test domain(g)==G
+       @test codomain(g)==F
+       @test isinjective(g)
+       @test issurjective(g)
+
+       @test_throws ArgumentError isomorphic_pc_group(symmetric_group(5))   
+   end   
 end
 
 TestDirectProds=function(G1,G2)

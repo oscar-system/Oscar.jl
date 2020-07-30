@@ -16,6 +16,9 @@ export
     isinvariant,
     isinvertible,
     isisomorphic,
+    isomorphic_fp_group,
+    isomorphic_pc_group,
+    isomorphic_perm_group,
     issurjective,
     kernel,
     order,
@@ -283,6 +286,50 @@ function isisomorphic(G::GAPGroup, H::GAPGroup)
   else
     return true, _hom_from_gap_map(G, H, mp)
   end
+end
+
+"""
+    isomorphic_perm_group(G::GAPGroup)
+Return a group of permutation `H` and an isomorphism `f` from `G` to `H`.
+"""
+function isomorphic_perm_group(G::GAPGroup)
+   f = GAP.Globals.IsomorphismPermGroup(G.X)
+   if f==GAP.Globals.fail
+      throw(ArgumentError("Could not convert group into a permutation group"))
+   else
+      H = GAP.Globals.Image(f)
+      n = GAP.Globals.NrMovedPoints(H)
+      H = PermGroup(H,n)
+      return H, _hom_from_gap_map(G,H,f)
+   end
+end
+
+"""
+    isomorphic_pc_group(G::GAPGroup)
+Return a polycyclic group `H` and an isomorphism `f` from `G` to `H`.
+"""
+function isomorphic_pc_group(G::GAPGroup)
+   f = GAP.Globals.IsomorphismPcGroup(G.X)
+   if f==GAP.Globals.fail
+      throw(ArgumentError("Could not convert group into a polycyclic group"))
+   else
+      H = PcGroup(GAP.Globals.Image(f))
+      return H, _hom_from_gap_map(G,H,f)
+   end
+end
+
+"""
+    isomorphic_fp_group(G::GAPGroup)
+Return a finitely presented group `H` and an isomorphism `f` from `G` to `H`.
+"""
+function isomorphic_fp_group(G::GAPGroup)
+   f = GAP.Globals.IsomorphismFpGroup(G.X)
+   if f==GAP.Globals.fail
+      throw(ArgumentError("Could not convert group into a finitely presented group"))
+   else
+      H = FPGroup(GAP.Globals.Image(f))
+      return H, _hom_from_gap_map(G,H,f)
+   end
 end
 
 
