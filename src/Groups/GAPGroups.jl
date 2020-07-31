@@ -727,15 +727,6 @@ function ispgroup(G::GAPGroup)
    return false, nothing
 end
 
-#=
-function relators(G::FPGroup)
-   L=GAP.Globals.RelatorsOfFpGroup(G.X)
-   L=[L[i] for i in 1:length(L)]
-   F=free_group(G)
-   return [group_element(F,x) for x in L]
-end
-=#
-
 function relators(G::FPGroup)
    L=GAP.Globals.RelatorsOfFpGroup(G.X)
    F=free_group(G)
