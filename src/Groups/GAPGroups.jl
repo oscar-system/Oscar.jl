@@ -728,7 +728,8 @@ function ispgroup(G::GAPGroup)
 end
 
 function relators(G::FPGroup)
-   L=GAP.gap_to_julia(GAP.Globals.RelatorsOfFpGroup(G.X))
+   L=GAP.Globals.RelatorsOfFpGroup(G.X)
+   L=[L[i] for i in 1:length(L)]
    F=free_group(G)
    return [group_element(F,x) for x in L]
 end
