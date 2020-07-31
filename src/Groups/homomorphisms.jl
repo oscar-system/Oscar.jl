@@ -16,6 +16,9 @@ export
     isinvariant,
     isinvertible,
     isisomorphic,
+    isomorphic_fp_group,
+    isomorphic_pc_group,
+    isomorphic_perm_group,
     issurjective,
     kernel,
     order,
@@ -283,6 +286,45 @@ function isisomorphic(G::GAPGroup, H::GAPGroup)
   else
     return true, _hom_from_gap_map(G, H, mp)
   end
+end
+
+"""
+    isomorphic_perm_group(G::GAPGroup)
+Return a permutation group `H` and an isomorphism `f` from `G` to `H`.
+
+If `G` is infinite, then no such isomorphism exists and an exception is thrown.
+"""
+function isomorphic_perm_group(G::GAPGroup)
+   f = GAP.Globals.IsomorphismPermGroup(G.X)
+   f!=GAP.Globals.fail || throw(ArgumentError("Could not convert group into a permutation group"))
+   H = GAP.Globals.Image(f)
+   n = GAP.Globals.NrMovedPoints(H)
+   H = PermGroup(H,n)
+   return H, _hom_from_gap_map(G,H,f)
+end
+
+"""
+    isomorphic_pc_group(G::GAPGroup)
+Return a group `H` of type `PcGroup` and an isomorphism `f` from `G` to `H`.
+
+If `G` is infinite or not solvable, then no such isomorphism exists and an exception is thrown.
+"""
+function isomorphic_pc_group(G::GAPGroup)
+   f = GAP.Globals.IsomorphismPcGroup(G.X)
+   f!=GAP.Globals.fail || throw(ArgumentError("Could not convert group into a group of type PcGroup"))
+   H = PcGroup(GAP.Globals.Image(f))
+   return H, _hom_from_gap_map(G,H,f)
+end
+
+"""
+    isomorphic_fp_group(G::GAPGroup)
+Return a group `H` of type `FPGroup` and an isomorphism `f` from `G` to `H`.
+"""
+function isomorphic_fp_group(G::GAPGroup)
+   f = GAP.Globals.IsomorphismFpGroup(G.X)
+   f!=GAP.Globals.fail || throw(ArgumentError("Could not convert group into a group of type FPGroup"))
+   H = FPGroup(GAP.Globals.Image(f))
+   return H, _hom_from_gap_map(G,H,f)
 end
 
 
