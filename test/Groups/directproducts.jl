@@ -86,7 +86,12 @@
          @test domain(Lp[i])==G
          @test codomain(Lp[i])==L[i]
          @test Le[i]*Lp[i]==id_hom(L[i])
-      end         
+      end
+
+      G1,Le1,Lp1 = inner_cartesian_power(A,3; morphisms=true)         
+      @test G1==G
+      @test Le1==Le
+      @test Lp1==Lp
    end
       
 

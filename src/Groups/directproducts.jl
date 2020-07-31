@@ -13,6 +13,7 @@ export
     embedding,
     factor_of_direct_product,
     homomorphism_of_semidirect_product,
+    inner_cartesian_power,
     inner_direct_product,
     isfull_direct_product,
     isfull_semidirect_product,
@@ -80,11 +81,22 @@ number_of_factors(G::DirectProductGroup) = length(G.L)
 
 """
     cartesian_power(G::T, n::Int)
-Return the direct product of `n` copies of `G`, of type `T`.
+Return the direct product of `n` copies of `G`.
 """
-function cartesian_power(G::T, n::Base.Integer) where T <: GAPGroup
+function cartesian_power(G::GAPGroup, n::Base.Integer)
    L = [G for i in 1:n]
    return direct_product(L)
+end
+
+"""
+    inner_cartesian_power(G::T, n::Int; morphisms)
+Return the direct product of `n` copies of `G` as group of type `T`.
+
+The parameter `morphisms` is `false` by default. If it is set `true`, then the output is a triple (`G`, `emb`, `proj`), where `emb` and `proj` are the vectors of the embeddings (resp. projections) of the direct product `G`.
+"""
+function inner_cartesian_power(G::T, n::Base.Integer; morphisms=false) where T <: GAPGroup
+   L = [G for i in 1:n]
+   return inner_direct_product(L; morphisms=morphisms)
 end
 
 """
@@ -365,7 +377,7 @@ homomorphism_of_semidirect_product(G::SemidirectProductGroup{S,T}) where {S,T} =
     wreath_product(G::T, H::PermGroup) where T<: Group
 Return the wreath product of the group `G` and the group `H`, where `H` acts on `n` copies of `G` through the homomorphism `a` from `H` to a permutation group, and `n` is the number of moved points of `Image(a)`.
 
-If `a` is not specified, then `H` must be a group of permutations. In this case, `n` is not the number of moved points, but the degree of `H`.
+If `a` is not specified, then `H` must be a group of permutations. In this case, `n` is NOT the number of moved points, but the degree of `H`.
 
 If `W` is a wreath product of `G` and `H`, {`g_1`, ..., `g_n`} are elements of `G` and `h` in `H`, the element `(g_1, ..., h)` of `W` can be obtained by typing
 ```
