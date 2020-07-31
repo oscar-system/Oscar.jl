@@ -383,10 +383,6 @@ function (x::PermGroupElem)(n::Int)
    return GAP.Globals.OnPoints(n,x.X)
 end
 
-function conjugate_subgroup(G::T, x::GAPGroupElem) where T<:GAPGroup
-  return T(GAP.Globals.ConjugateSubgroup(G.X,x.X))
-end
-
 ################################################################################
 #
 #   Conjugacy Classes
@@ -527,6 +523,10 @@ function conjugacy_classes_maximal_subgroups(G::GAPGroup)
 end
 
 Base.:^(H::GAPGroup, y::GAPGroupElem) = typeof(H)(H.X ^ y.X)
+
+function conjugate_subgroup(G::T, x::GAPGroupElem) where T<:GAPGroup
+  return T(GAP.Globals.ConjugateSubgroup(G.X,x.X))
+end
 
 """
     isconjugate(G::Group, H::Group, K::Group)

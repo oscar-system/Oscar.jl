@@ -14,6 +14,16 @@
     @test x(8)==6
     @test x(n)==9
   end
+
+  G=symmetric_group(6)
+  x=gap_perm([2,3,4,5,6,1])
+  @test x==perm(G,[2,3,4,5,6,1])
+  @test x==cperm(G,1:6)
+  @test x==cperm(G,[1,2,3,4,5,6])
+  @test one(G)==gap_perm(1:6)
+  @test_throws ArgumentError G(gap_perm([2,3,4,5,6,7,1]))
+  @test_throws ArgumentError perm(G,[2,3,4,5,6,7,1])
+  @test one(G)==cperm(G,Int64[])
 end
  
 @testset "Change of parent" begin

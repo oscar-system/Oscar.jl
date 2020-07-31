@@ -125,6 +125,18 @@ end
       z=rand(noty)
       @test 1 in [z*k != k*z for k in gens(Cy)]
    end
+
+   Q=quaternion_group(16)
+   H=sub(Q,[Q[1]])[1]
+   C=core(Q,H)[1]
+   @test isnormal(Q,C)
+   @test order(C)==2
+   S=symmetric_group(4)
+   P2=pcore(S,2)[1]
+   @test order(P2)==4
+   @test isnormal(S,P2)
+   P3=pcore(S,3)[1]
+   @test order(P3)==1
 end
 
 @testset "Cosets" begin
