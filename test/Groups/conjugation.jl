@@ -88,7 +88,8 @@
   H = sub(G,[x])[1]
   z = rand(G)
   K = H^z
-  @test Set(K) == Set([y^z for y in H])
+  @test Set([G(y) for y in K]) == Set([G(y^z) for y in H])
+#  @test Set(K) == Set([y^z for y in H])  may not work because the parent of the elements are different
 
 end
 

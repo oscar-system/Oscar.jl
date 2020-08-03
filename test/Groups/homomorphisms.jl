@@ -176,7 +176,7 @@ end
    @test order(G)==8
    @test isabelian(G)
    @test !iscyclic(G)
-   @test typeof(G)==DirectProductOfGroups
+   @test typeof(G)==DirectProductGroup
    @test Set([order(x) for x in G])==Set([1,2,4])
 
    C3 = cyclic_group(3)
@@ -186,7 +186,7 @@ end
    @test order(G)==21
    @test isabelian(G)
    @test iscyclic(G)
-   @test typeof(G)==DirectProductOfGroups
+   @test typeof(G)==DirectProductGroup
    @test Set([order(x) for x in G])==Set([1,3,7,21])
 
    S4 = symmetric_group(4)
@@ -194,7 +194,7 @@ end
    G = direct_product(S4,A5)
    TestDirectProds(S4,A5)
    @test order(G)==1440
-   @test typeof(G)==DirectProductOfGroups
+   @test typeof(G)==DirectProductGroup
 end
 
 TestKernels = function(G,H,f)
