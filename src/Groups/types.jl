@@ -263,7 +263,7 @@ end
 
 """
     WreathProductGroup
-Wreath product of a group `G` and a group of permutations `H`.
+Wreath product of a group `G` and a group of permutations `H`, or a generic group `H` together with the homomorphism `a` from `H` to a permutation group.
 """
 struct WreathProductGroup <: GAPGroup
   X::GapObj

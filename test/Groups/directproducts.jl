@@ -9,6 +9,7 @@
    @test typeof(rand(G))==GAPGroupElem{DirectProductGroup}
    @test factor_of_direct_product(G,1)==S
    @test factor_of_direct_product(G,2)==C
+   @test_throws ArgumentError factor_of_direct_product(G,3)
    @test number_of_factors(G)==2
    @test isfull_direct_product(G)
 
@@ -30,11 +31,13 @@
    x = G(cperm([1,2]),C[1])
    @test x==G([cperm([1,2]),C[1]])
    H = sub(G,[x])[1]
+   @test H==sub(x,x)[1]
    @test x==H(cperm([1,2]),C[1])
    @test_throws ArgumentError H(cperm([2,3]),C[1])
    @test order(H)==2
    @test index(G,H) isa Integer
    @test_throws ArgumentError write_as_full(H)
+   @test G==write_as_full(G)
    @test intersect(G,H)[1]==H
    x = G(cperm([1,2,3]),C[1])
    H = sub(G,[x])[1]
@@ -52,6 +55,8 @@
    @test P^x==PP
 
    @test_throws ArgumentError as_perm_group(G)
+   @test_throws ArgumentError as_polycyclic_group(G)
+   @test_throws ArgumentError as_matrix_group(G)
    G = direct_product(S,S)
    @test G isa DirectProductGroup
    @test as_perm_group(G) isa PermGroup
@@ -87,6 +92,8 @@
          @test codomain(Lp[i])==L[i]
          @test Le[i]*Lp[i]==id_hom(L[i])
       end
+
+      @test_throws ArgumentError inner_direct_product(GL(2,2),GL(2,3))
 
       G1,Le1,Lp1 = inner_cartesian_power(A,3; morphisms=true)         
       @test G1==G
@@ -127,6 +134,8 @@ end
 
    G = semidirect_product(Q,f,C)
    @test G isa SemidirectProductGroup{PcGroup,PcGroup}
+   @test factor_of_semidirect_product(G,1)==Q
+   @test isisomorphic(factor_of_semidirect_product(G,2),C)[1]
    @test homomorphism_of_semidirect_product(G)==f
    @test order(G)==16
    @test isfull_semidirect_product(G)
@@ -142,6 +151,8 @@ end
    @test H==centre(G)[1]
    y=G(Q[1],one(C))
    K = sub(G,[y])[1]
+   @test K==sub([y])[1]
+   @test K==sub(y)[1]
    @test y == embedding(G,1)(Q[1])
    @test_throws ArgumentError embedding(G,3)(Q[1])
    @test codomain(projection(K))==C
@@ -153,6 +164,13 @@ end
 
 @testset "Wreathproducts" begin
    C = cyclic_group(2)
+   H = symmetric_group(3)
+   W = wreath_product(C,H)
+   @test W isa WreathProductGroup
+   @test order(W)==48
+   @test isfull_wreath_product(W)
+   @test W==sub(W,gens(W))[1]
+
    H = sub(cperm([1,2,4]))[1]
    W = wreath_product(C,H)
 
@@ -170,6 +188,8 @@ end
    @test codomain(projection(W))==H
    @test domain(embedding(W,2))==C
    K = sub(W,[x])[1]
+   @test K==sub([x])[1]
+   @test K==sub(x)[1]
    @test typeof(K)==WreathProductGroup
    @test order(K)==6
    @test iscyclic(K)
@@ -181,6 +201,9 @@ end
    W = wreath_product(C,C,a)
    @test W isa WreathProductGroup
    @test order(W)==81
+   @test isisomorphic(factor_of_wreath_product(W,1),C)[1]
+   @test isisomorphic(factor_of_wreath_product(W,2),C)[1]
+   @test homomorphism_of_wreath_product(W)==a
    @test embedding(W,1)(C[1]) in W
    @test W(C[1],one(C),one(C),C[1]) isa GAPGroupElem{WreathProductGroup}
    @test image(projection(W))[1]==C

@@ -12,7 +12,10 @@ export
     direct_product,
     embedding,
     factor_of_direct_product,
+    factor_of_semidirect_product,
+    factor_of_wreath_product,
     homomorphism_of_semidirect_product,
+    homomorphism_of_wreath_product,
     inner_cartesian_power,
     inner_direct_product,
     isfull_direct_product,
@@ -53,7 +56,7 @@ The parameter `morphisms` is `false` by default. If it is set `true`, then the o
 function inner_direct_product(L::AbstractVector{T}; morphisms=false) where T<:Union{PcGroup,PermGroup,FPGroup,MatrixGroup}
    P = GAP.Globals.DirectProduct(GAP.julia_to_gap([G.X for G in L]))
    if T==MatrixGroup     # check that the matrix groups have the same base ring
-      length(Set([GAP.Globals.FieldOfMatrixGroup(H.X) for H in G.L]))==1 || throw(ArgumentError("The result is not a matrix group"))
+      length(Set([GAP.Globals.FieldOfMatrixGroup(H.X) for H in L]))==1 || throw(ArgumentError("The result is not a matrix group"))
    end
    if T==PermGroup
       DP = T(P,GAP.Globals.NrMovedPoints(P))
@@ -279,6 +282,17 @@ function (G::SemidirectProductGroup{S,T})(a::GAPGroupElem{S},b::GAPGroupElem{T})
 end
 
 """
+    factor_of_semidirect_product(G::SemidirectProductGroup, j::Int)
+Return the `j`-th factor of `G`, for `j`=1,2.
+"""
+function factor_of_semidirect_product(G::SemidirectProductGroup, j::Base.Integer)
+   if j==1 return G.N
+   elseif j==2 return G.H
+   else throw(ArgumentError("index not valid"))
+   end
+end
+
+"""
     isfull_semidirect_product(G::SemidirectProductGroup)
 Return whether `G` is a semidirect product of two groups, instead of a proper subgroup.
 """
@@ -416,6 +430,17 @@ function (W::WreathProductGroup)(L::Union{GAPGroupElem{T},GAPGroupElem{PermGroup
 end
 
 """
+    factor_of_wreath_product(G::WreathProductGroup, j::Int)
+If `W` is the wreath product of `G` and `H`, return `G` (if `j`=1) or `H` (if `j`=2).
+"""
+function factor_of_wreath_product(W::WreathProductGroup, j::Base.Integer)
+   if j==1 return W.G
+   elseif j==2 return W.H
+   else throw(ArgumentError("index not valid"))
+   end
+end
+
+"""
     isfull_wreath_product(G::WreathProductGroup)
 Return whether `G` is a wreath product of two groups, instead of a proper subgroup.
 """
@@ -489,4 +514,10 @@ function sub(L::Vector{GAPGroupElem{WreathProductGroup}})
    @assert all(x -> parent(x) == parent(l[1]), l)
    return sub(parent(l[1]),l)
 end
+
+"""
+    homomorphism_of_wreath_product(G::WreathProductGroup)
+If `W` is the wreath product of `G` and `H`, then return the homomorphism `f` from `H` to `Sym(n)`, where `n` is the number of copies of `G`.
+"""
+homomorphism_of_wreath_product(G::WreathProductGroup) = G.a
 
