@@ -150,6 +150,8 @@ end
    @test projection(G)(x)==projection(H)(x)
    @test H==centre(G)[1]
    y=G(Q[1],one(C))
+   K = sub(G,gens(G))[1]
+   @test isfull_semidirect_product(K)
    K = sub(G,[y])[1]
    @test K==sub([y])[1]
    @test K==sub(y)[1]
@@ -187,6 +189,8 @@ end
    @test projection(W)(x)==cperm([1,4,2])
    @test codomain(projection(W))==H
    @test domain(embedding(W,2))==C
+   K = sub(W,gens(W))[1]
+   @test isfull_wreath_product(K)
    K = sub(W,[x])[1]
    @test K==sub([x])[1]
    @test K==sub(x)[1]
