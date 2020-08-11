@@ -331,7 +331,8 @@ end
 
 # start part on subgroups
 function _as_subgroup_bare(G::SemidirectProductGroup{S,T}, H::GapObj) where { S , T }
-  return SemidirectProductGroup(H, G.N, G.H, G.f, G.X, false)
+  t = G.X==H
+  return SemidirectProductGroup(H, G.N, G.H, G.f, G.X, t)
 end
 
 function _as_subgroup(G::SemidirectProductGroup{S,T}, H::GapObj, ::Type{U}) where { T, S, U }
@@ -478,11 +479,8 @@ Base.show(io::IO, x::WreathProductGroup) = print(io, GAP.gap_to_julia(GAP.Global
 # start part on subgroups
 #TODO : to be fixed
 function _as_subgroup_bare(W::WreathProductGroup, X::GapObj)
-   if X==W.X
-      return W
-   else
-      return WreathProductGroup(X, W.G, W.H, W.a, W.Xfull, false)
-   end
+   t = X==W.X
+  return WreathProductGroup(X, W.G, W.H, W.a, W.Xfull, t)
 end
 
 function _as_subgroup(W::WreathProductGroup, H::GapObj, ::Type{U}) where U
