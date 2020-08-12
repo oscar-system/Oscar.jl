@@ -245,7 +245,7 @@ by the normal closure of the image.
 function cokernel(f::GAPGroupHomomorphism)
   K, mK = image(f)
   C = codomain(f)
-  return quo(C, normal_closure(C, K))
+  return quo(C, normal_closure(C, K)[1])
 end
 
 """
