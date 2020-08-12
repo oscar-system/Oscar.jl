@@ -35,6 +35,7 @@ import Hecke:
     mul,
     mul!,
     ngens,
+    normal_closure,
     one!,
     order,
     perm,
