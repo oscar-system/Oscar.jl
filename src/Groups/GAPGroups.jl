@@ -39,6 +39,7 @@ export
     mul!,
     nilpotency_class,
     ngens,
+    normal_closure,
     normaliser,
     normalizer,
     number_conjugacy_classes,
@@ -137,7 +138,13 @@ end
 
 
 function _maxgroup(x::T, y::T) where T <: GAPGroup
-   if GAP.Globals.IsSubset(x.X, y.X)
+   # A typical situation should be that the two groups are identical,
+   # but GAP's `IsSubset` check is not as cheap as one wants;
+   # there is an `IsSubset` method that checks for identity,
+   # but it is not always the first choice.
+   if GAP.Globals.IsIdenticalObj(x.X, y.X)
+     return x
+   elseif GAP.Globals.IsSubset(x.X, y.X)
      return x
    elseif GAP.Globals.IsSubset(y.X, x.X)
      return y
@@ -406,9 +413,9 @@ end
 Base.hash(x::GroupConjClass) = 0 # FIXME
 
 function Base.show(io::IO, x::GroupConjClass)
-  print(io, GAP.gap_to_julia(GAP.Globals.StringViewObj(x.repr)),
+  print(io, GAP.gap_to_julia(GAP.Globals.StringViewObj(x.repr.X)),
             " ^ ",
-            GAP.gap_to_julia(GAP.Globals.StringViewObj(x.X)))
+            GAP.gap_to_julia(GAP.Globals.StringViewObj(x.X.X)))
 end
 
 function _conjugacy_class(G, g, cc::GapObj)         # function for assignment
@@ -575,19 +582,35 @@ normaliser = normalizer
 
 """
     core(G::Group, H::Group)
-Return `C,f`, where `C` is the normal core of `H` in `G`, and `f` is the embedding morphism of `C` into `G`.
+Return `C,f`, where `C` is the normal core of `H` in `G`,
+that is, the largest normal subgroup of `G` that is contained in `H`,
+and `f` is the embedding morphism of `C` into `G`.
 """
 core(G::T, H::T) where T<:GAPGroup = _as_subgroup(G, GAP.Globals.Core(G.X,H.X))
 
-# normal_closure(G::T, H::T) where T<:GAPGroup = T(GAP.Globals.NormalClosure(G.X,H.X))
-# we don't know how G,H embeds into N_C(G,H) 
+"""
+    normal_closure(G::Group, H::Group)
+
+Return `N, f`, where `N` is the normal closure of `H` in `G`,
+that is, the smallest normal subgroup of `G` that contains `H`,
+and `f` is the embedding morphism of `N` into `G`.
+
+Note that `H` must be a subgroup of `G`.
+"""
+normal_closure(G::T, H::T) where T<:GAPGroup = _as_subgroup(G, GAP.Globals.NormalClosure(G.X,H.X))
+
+# Note:
+# GAP admits `NormalClosure` also when `H` is not a subgroup of `G`,
+# and in this case the result is not contained in `G`.
+# (We should test whether `H` is a subgroup of `G`,
+# but then the user should have the possibility to omit this check.)
 
 """
     pcore(G::Group, p::Int64)
 Return `C,f`, where `C` is the `p`-core (i.e. the largest normal `p`-subgroup) of `G` and `f` is the embedding morphism of `C` into `G`.
 """
 function pcore(G::GAPGroup, p::Int64)
-   if !GAP.Globals.IsPrime(p)
+   if !GAP.Globals.IsPrimeInt(p)
       throw(ArgumentError("p is not a prime"))
    end
    return _as_subgroup(G, GAP.Globals.PCore(G.X,p))

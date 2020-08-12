@@ -59,9 +59,9 @@ Oscar supports the following operations and functions on group elements.
 * `*` = multiplication between two elements in a group.
 * `inv(x)` = ``x^{-1}`` the inverse of `x`.
 * `x/y` = the element ``xy^{-1}``.
-* `x^n` = the ``n``-th power of `x`. If ``n = 0``, the identity of the group is returned; if ``n < 0 ``, the ``n``-th power of the inverse of `x` is returned.
+* `x^n` = the ``n``-th power of `x`. If ``n = 0``, the identity of the group is returned; if ``n < 0 ``, the ``-n``-th power of the inverse of `x` is returned.
 * `isone(x)`: returns whether `x` is the identity of the group.
-* `conj(x,y)` = `x^y` = the conjugate of `x` by `y`, i.e. the element ``x^{-1}yx``.
+* `conj(x,y)` = `x^y` = the conjugate of `x` by `y`, i.e. the element ``y^{-1}xy``.
 * `comm(x,y)` = the commutator of `x` and `y`, i.e. the element ``x^{-1}y^{-1}xy``.
 
 !!! note

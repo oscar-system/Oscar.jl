@@ -239,11 +239,13 @@ end
 
 """
     cokernel(f::GAPGroupHomomorphism)
-Return the cokernel of `f`.
+Return the cokernel of `f`, that is, the quotient of the codomain of `f`
+by the normal closure of the image.
 """
 function cokernel(f::GAPGroupHomomorphism)
   K, mK = image(f)
-  return quo(codomain(f), K)
+  C = codomain(f)
+  return quo(C, normal_closure(C, K))
 end
 
 """
