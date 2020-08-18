@@ -142,7 +142,7 @@ function _maxgroup(x::T, y::T) where T <: GAPGroup
    # but GAP's `IsSubset` check is not as cheap as one wants;
    # there is an `IsSubset` method that checks for identity,
    # but it is not always the first choice.
-   if GAP.Globals.IsIdenticalObj(x.X, y.X)
+   if x.X === y.X
      return x
    elseif GAP.Globals.IsSubset(x.X, y.X)
      return x
@@ -612,7 +612,7 @@ normal_closure(G::T, H::T) where T<:GAPGroup = _as_subgroup(G, GAP.Globals.Norma
 Return `C,f`, where `C` is the `p`-core (i.e. the largest normal `p`-subgroup) of `G` and `f` is the embedding morphism of `C` into `G`.
 """
 function pcore(G::GAPGroup, p::Int64)
-   if !GAP.Globals.IsPrimeInt(p)
+   if !isprime(p)
       throw(ArgumentError("p is not a prime"))
    end
    return _as_subgroup(G, GAP.Globals.PCore(G.X,p))
@@ -665,7 +665,7 @@ socle(G::GAPGroup) = _as_subgroup(G, GAP.Globals.Socle(G.X))
 Return a Sylow `p`-subgroup of `G`.
 """
 function sylow_subgroup(G::GAPGroup, p::Int64)
-   if !GAP.Globals.IsPrime(p)
+   if !isprime(p)
       throw(ArgumentError("p is not a prime"))
    end
    return _as_subgroup(G,GAP.Globals.SylowSubgroup(G.X,p))
@@ -678,7 +678,7 @@ Return a Hall `P`-subgroup of `G`. It works only if `G` is solvable.
 function hall_subgroup(G::GAPGroup, P::AbstractVector{<:Base.Integer})
    P = unique(P)
    for p in P
-      if !GAP.Globals.IsPrime(p)
+      if !isprime(p)
          throw(ArgumentError("The integers must be prime"))
       end
    end
