@@ -18,7 +18,7 @@
 
       @test x isa PermGroupElem
       @test ox isa Int64
-#      @test inv(x) in G                        this takes a lot of time
+      @test inv(x) in G
       @test mul(x,y) == x*y
       @test mul!(x,x,y) == x*y
       @test inv(x)==x^-1
