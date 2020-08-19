@@ -239,6 +239,8 @@ end
 # need this function just for the iterator
 Base.length(x::GAPGroup)::Int = order(x)
 
+Base.in(g::GAPGroupElem, G::GAPGroup) = GAP.Globals.in(g.X, G.X)
+
 # FIXME: clashes with AbstractAlgebra.perm method
 #function perm(L::AbstractVector{<:Base.Integer})
 #   return PermGroupElem(symmetric_group(length(L)), GAP.Globals.PermList(GAP.julia_to_gap(L)))
