@@ -1,5 +1,7 @@
 # further possible functions: similar, literal_pow, parent_type
 
+import Base.:^
+
 export GroupConjClass
 
 export
@@ -382,6 +384,8 @@ end
 function (x::PermGroupElem)(n::Int)
    return GAP.Globals.OnPoints(n,x.X)
 end
+
+^(n::Int, x::PermGroupElem) = GAP.Globals.OnPoints(n,x.X)
 
 ################################################################################
 #
