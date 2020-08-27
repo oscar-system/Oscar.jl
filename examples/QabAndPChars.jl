@@ -3,7 +3,7 @@ module QabModule
 using Oscar
 import Hecke: math_html
 import Oscar: IJuliaMime
-export QabField, isconductor, root_of_unity, PChar, isroot_of_unity
+export QabField, QabAutomorphism, isconductor, root_of_unity, PChar, isroot_of_unity
 
 ###############################################################################
 #
@@ -304,6 +304,61 @@ function allrootNew(a::QabElem, n::Int)
 		error("no root found")
 	end
 	return A
+end
+
+
+###############################################################################
+#
+#   Galois automorphisms of Qab
+#
+#   The Galois automorphisms of the $n$-th cyclotomic field are the maps
+#   defined by $\zeta_n \mapsto \zeta_n^k$, for $1 \leq k < n$,
+#   with $\gcd(n, k) = 1$.
+#   Thus we can define automorphisms $\sigma_k$ of Qab as follows.
+#   For each prime power $q$, $\zeta_q$ is mapped to $\zeta_q^k$ if
+#   $k$ and $q$ are coprime, and to $\zeta_q$ otherwise.
+#
+#   The action of such a map $\sigma_k$ on the $n$-th cyclotomic field can be
+#   described by $\sigma_l$, with $l$ coprime to $n$:
+#   Write $n = n_0 n_1$ where $\gcd(n_0, n_1) = 1$ and $n_1$ is maximal
+#   with $\gcd(k, n_1) = 1$, and choose $a, b$ with $1 = a n_0 + b n_1$.
+#   Then $l = k a n_0 + b n_1$ is coprime to $n$ and has the properties
+#   $l \equiv 1 \pmod{n_0}$ and $l \equiv k \pmod{n_1}$.
+#
+###############################################################################
+
+mutable struct QabAutomorphism
+    exp::Int
+end
+
+function ^(val::QabElem, sigma::QabAutomorphism)
+    k = sigma.exp
+    n = val.c
+    g = gcd(k, n)
+    if g != 1
+      # Replace `k` by an equivalent one that is coprime to `n`.
+      n0 = 1
+      n1 = n
+      for (p, exp) in collect(Oscar.factor(g))
+        while mod(n1, p) == 0
+          n0 = n0*p
+          n1 = div(n1, p )
+        end
+      end
+      (gg, a, b) = gcdx(n0, n1)
+      @assert gg == 1 "n0 and n1 should be coprime"
+      k = k*a*n0 + b*n1
+    end
+    data = val.data  # nf_elem
+    coeffs = Nemo.coeffs(data)
+    res = zeros(eltype(coeffs), n)
+    res[1] = coeffs[1]
+    for i in 2:length(coeffs)
+      res[mod((i-1)*k, n)+1] = coeffs[i]
+    end
+    F = parent(data) # cycl. field
+    R = parent(F.pol)
+    return QabElem(F(R(res)), n)
 end
 
 
