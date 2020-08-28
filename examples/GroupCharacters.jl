@@ -30,8 +30,16 @@ show(t)                            # call `labelled_matrix_formatted`
 GAP.Globals.Display( t.GAPTable )  # compare with GAP's Display
 show(stdout, MIME("text/html"), t) # produce LaTeX output
 
-# show a legend of irrationalities instead of self-explanatory values
+# show a legend of irrationalities instead of self-explanatory values,
+# in the screen format ...
 show(IOContext(stdout, :with_legend => true), t)
+
+# ... and in LaTeX format
+show(IOContext(stdout, :with_legend => true), MIME("text/html"), t)
+
+# show the screen format for a table with real and non-real irrationalities
+show(IOContext(stdout, :with_legend => true),
+  Main.GroupCharacters.character_table("L2(11)"))
 
 # show some separating lines, in the screen format ...
 show(IOContext(stdout, :column_separators => [0,5],
@@ -172,6 +180,8 @@ function gap_cyclotomic(elm::QabModule.QabElem)
     return GAP.Globals.CycList(GAP.julia_to_gap(coeffs))
 end
 
+complex_conjugate(elm::QabModule.QabElem) = elm^QabModule.QabAutomorphism(-1)
+
 
 #############################################################################
 ##
@@ -218,21 +228,18 @@ function character_table(G::Oscar.GAPGroup, p::Int = 0)
 end
 
 function character_table(id::String, p::Int = 0)
-    if GAP.Globals.IsBoundGlobal(GAP.julia_to_gap("CTblLib"))
-      tbl = GAP.Globals.CharacterTable(GAP.julia_to_gap(id))
+    hasproperty(GAP.Globals, :CTblLib) || error("no character table library available")
+    tbl = GAP.Globals.CharacterTable(GAP.julia_to_gap(id))
+    if tbl == GAP.Globals.fail
+      return nothing
+    elseif p != 0
+      isprime(p) || error("p must be 0 or a prime integer")
+      tbl = GAP.Globals.mod(tbl, GAP.julia_to_gap(p))
       if tbl == GAP.Globals.fail
         return nothing
-      elseif p != 0
-        isprime(p) || error("p must be 0 or a prime integer")
-        tbl = GAP.Globals.mod(tbl, GAP.julia_to_gap(p))
-        if tbl == GAP.Globals.fail
-          return nothing
-        end
       end
-      return GAPGroupCharacterTable(tbl, p)
-    else
-      error("no character table library available")
     end
+    return GAPGroupCharacterTable(tbl, p)
 end
 
 
@@ -299,6 +306,10 @@ function matrix_of_strings(tbl::GAPGroupCharacterTable; alphabet::String = "")
           else
             name, state = iterate(iter, state)
             push!(legend, val => name)
+            valbar = complex_conjugate(val)
+            if valbar != val
+              push!(legend, valbar => "\\overline{"*name*"}")
+            end
             m[i,j] = name
           end
         end
@@ -487,16 +498,19 @@ function group_class_function(tbl::GAPGroupCharacterTable, values::Vector{QabMod
     return GAPGroupClassFunction(tbl, GAP.Globals.ClassFunction(tbl.GAPTable, GAP.julia_to_gap([gap_cyclotomic(x) for x in values])))
 end
 
-#function group_class_function(G::Oscar.GAPGroup, values::Vector{QabModule.QabElem})
-#end
+function group_class_function(G::Oscar.GAPGroup, values::Vector{QabModule.QabElem})
+    return group_class_function(character_table(G), values)
+end
 
 function trivial_character(tbl::GAPGroupCharacterTable)
     val = QabModule.QabElem(1)
     return group_class_function(tbl, [val for i in 1:ncols(tbl)])
 end
 
-#function trivial_character(G::Oscar.GAPGroup)
-#end
+function trivial_character(G::Oscar.GAPGroup)
+    val = QabModule.QabElem(1)
+    return group_class_function(G, [val for i in 1:GAP.Globals.NrConjugacyClasses(G.X)])
+end
 
 Base.length(chi::GAPGroupClassFunction) = length(chi.values)
 
@@ -556,3 +570,5 @@ function Base.:^(chi::GAPGroupClassFunction, n::Int)
 end
 
 end  # module
+
+using .GroupCharacters
