@@ -22,7 +22,7 @@ jobs:
 # # Uncomment the following lines to allow failures on nightly julia
 # # (tests will run but not make your overall status red)
   allow_failures:
-    - julia: 
+    julia: 
       - 1.3
       - nightly
       #1.3 can fail due to gap
