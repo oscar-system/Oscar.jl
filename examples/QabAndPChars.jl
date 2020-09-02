@@ -84,8 +84,111 @@ function coerce_up(K::AnticNumberField, n::Int, a::QabElem)
   return QabElem(evaluate(R(a.data), gen(K)^d), n)
 end
 
+"""
+    coerce_down(K::AnticNumberField, n::Int, a::QabElem)
+
+Return the element of `K` (which is assumed to be the `n`-th cyclotomic field)
+that corresponds to `a` if `a` is in the `n`-th cyclotomic field,
+and `nothing` otherwise.
+
+# Examples
+```
+julia> F = QabField();  N = 45;  z = root_of_unity(F, N);
+
+julia> n =  1; K, zz = CyclotomicField(n);  coerce_down(K, n, z^45) == zz
+true
+
+julia> n =  3; K, zz = CyclotomicField(n);  coerce_down(K, n, z^15) == zz
+true
+
+julia> n =  5; K, zz = CyclotomicField(n);  coerce_down(K, n, z^9) == zz
+true
+
+julia> n =  9; K, zz = CyclotomicField(n);  coerce_down(K, n, z^5) == zz
+true
+
+julia> n = 15; K, zz = CyclotomicField(n);  coerce_down(K, n, z^3) == zz
+true
+
+julia> n = 45; K, zz = CyclotomicField(n);  coerce_down(K, n, z) == zz
+true
+
+julia> n =  9; K, zz = CyclotomicField(n);  coerce_down(K, n, z)
+
+```
+"""
 function coerce_down(K::AnticNumberField, n::Int, a::QabElem)
-  error("missing")
+  N = a.c
+  N % n == 0 || return
+  d = div(N, n)
+
+  # Switch to an algebraic integer, because `solve` for `fmpz_mat`
+  # can handle non-square matrices but `solve` for `fmpq_mat` cannot.)
+  aa = a.data
+  den = denominator(aa)
+
+  # Work with the coefficient vector of `a`.
+  cf = coeffs(den * aa)  #  Array{fmpq,1}
+  phi_N = length(cf)
+
+  # Write d = d1 * d2, where d2 is the product of all those primes
+  # that divide N but not n.  (In particular, d2 is squareree.)
+  d2 = 1
+  phi_d2 = 1
+  for (p,e) in collect(factor(N))
+    if mod(n, p) != 0
+      d2 = d2 * p
+      phi_d2 = phi_d2 * (p-1)
+    end
+  end
+  d1 = Int(div(d, d2))
+  phi_n = Int(div(div(phi_N, phi_d2), d1))
+
+  if d1 > 1
+    # Switch to the `n*d2`-th (`= N/d1`-th) cyclotomic field.
+    # (If `a` lies in the `n`-th cyclotomic field then
+    # the exponents of nonzero coefficients are divisible by `d1`.)
+    cf_nd2 = zeros(fmpz, Int(div(phi_N, d1)))
+    for i in 1:phi_N
+      if ! iszero(cf[i])
+        if (i-1) % d1 != 0
+          return
+        end
+        cf_nd2[div(i-1, d1)+1] = numerator(cf[i])
+      end
+    end
+    cf = cf_nd2
+    phi_N = div(phi_N, d1)
+  end
+
+  if d2 > 1
+    # Compute the coefficient vector w.r.t. the `n`-th cycl. field,
+    # by solving a \phi(N/d1) times \phi(n) linear equation system.
+    # The columns of the matrix are the coefficient vectors of
+    # `X^(d*i) mod Phi_N`, for 0 \leq i < \phi(n)
+#TODO: We can take `X^(d2*i) mod Phi_{N/d1} instead, if the polynomial is cheap.
+    Phi_N = parent(aa).pol
+    X = gen(parent(Phi_N))
+    M = matrix(ZZ, zeros(fmpz, phi_N, phi_n))
+    M[1,1] = ZZ(1)
+    pow = X^0
+    Xd = X^d
+    for i in 2:phi_n
+      pow = mod(pow * Xd, Phi_N)
+      for j in 1:phi_N
+        M[j,i] = numerator(coeff(pow, d1*(j-1)))
+      end
+    end
+
+    try
+      cf = Hecke.solve(M, matrix(ZZ, 1, length(cf), cf)')
+    catch e
+      # The element `a` does not lie in the `n`-th cyclotomic field.
+      return
+    end
+  end
+
+  return K(Vector{fmpq}(vcat(cf...))) // den
 end
 
 function make_compatible(a::QabElem, b::QabElem)
