@@ -22,7 +22,10 @@ jobs:
 # # Uncomment the following lines to allow failures on nightly julia
 # # (tests will run but not make your overall status red)
   allow_failures:
-    - julia: nightly
+    - julia: 
+      - nightly
+      - 1.3
+      #1.3 can fail due to gap
   include:
     # also test with latest macOS image and latest Julia
     - julia: 1.4
