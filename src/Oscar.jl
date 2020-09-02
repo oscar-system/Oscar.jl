@@ -112,6 +112,18 @@ function example(s::String)
   Base.include(Main, joinpath(dirname(pathof(Oscar)), "..", "examples", s))
 end
 
+# This can be used in
+#
+# module A
+#   using Oscar
+#   Oscar.@example("example.jl")
+# end
+#
+# __module__ expands to the module of the call site of the macro.
+macro example(s)
+  :($(esc(__module__)).include(joinpath(dirname(pathof(Oscar)), "..", "examples", $(esc(s)))))
+end
+
 function data(s::String)
   Base.include(Main, joinpath(dirname(pathof(Oscar)), "..", "data", s))
 end
