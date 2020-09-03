@@ -187,6 +187,9 @@ include("Rings/Hecke.jl")
 include("Rings/mpoly.jl")
 include("Rings/mpoly-graded.jl")
 include("Modules/FreeModules-graded.jl")
+
+include("Geometry/basics.jl")
+
 include("Polymake/Ineq.jl")
 include("Polymake/NmbThy.jl")
 
@@ -197,6 +200,7 @@ if is_dev
   include("../examples/PrimDec.jl")
   include("../examples/GaloisGrp.jl")
 end
+
 
 const global OSCAR = Oscar
 const global oscar = Oscar
