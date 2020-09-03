@@ -1,5 +1,5 @@
-export weight, decorate, ishomogenous, homogenous_components, filtrate, grade, 
-       homogenous_component
+export weight, decorate, ishomogenous, homogenous_components, filtrate,
+grade, homogenous_component, jacobi_matrix, jacobi_ideal
 
 mutable struct MPolyRing_dec{T} <: AbstractAlgebra.MPolyRing{T}
   R::MPolyRing{T}
@@ -98,6 +98,9 @@ function show(io::IO, w::MPolyElem_dec)
   show(io, w.f)
 end
 
+Nemo.symbols(R::MPolyRing_dec) = symbols(R.R)
+Nemo.nvars(R::MPolyRing_dec) = nvars(R.R)
+
 elem_type(::MPolyRing_dec{T}) where {T} = MPolyElem_dec{T}
 elem_type(::Type{MPolyRing_dec{T}}) where {T} = MPolyElem_dec{T}
 parent_type(::Type{MPolyElem_dec{T}}) where {T} = MPolyRing_dec{T}
@@ -157,6 +160,25 @@ function ideal(g::Array{T, 1}) where {T <: MPolyElem_dec}
     @assert all(ishomogenous, g)
   end
   return MPolyIdeal(g)
+end
+
+function jacobi_matrix(f::MPolyElem_dec)
+  R = parent(f)
+  n = nvars(R)
+  return matrix(R, n, 1, [derivative(f, i) for i=1:n])
+end
+
+function jacobi_ideal(f::MPolyElem_dec)
+  R = parent(f)
+  n = nvars(R)
+  return ideal(R, [derivative(f, i) for i=1:n])
+end
+
+function jacobi_matrix(g::Array{<:MPolyElem_dec, 1})
+  R = parent(g[1])
+  n = nvars(R)
+  @assert all(x->parent(x) == R, g)
+  return matrix(R, n, length(g), [derivative(x, i) for i=1:n for x = g])
 end
 
 function degree(a::MPolyElem_dec)
