@@ -420,6 +420,10 @@ end
 
 hom(F::FreeModule_dec{T}, G, a) where {T} = FreeModuleHom_dec(F, G, a)
 
+function identity_map(M::ModuleFP_dec)
+  return hom(M, M, gens(M))
+end
+
 function ishomogenous(h::T) where {T <: Map_dec}
   first = true
   local d::GrpAbFinGenElem
@@ -1071,7 +1075,31 @@ function free_resolution(S::SubQuo_dec, limit::Int = -1)
     g = hom(F, codomain(mk), collect(k.sub)[nz])
     insert!(mp, 1, g)
   end
-  return Hecke.ChainComplex(ModuleFP_dec, mp, check = false)
+  return Hecke.ChainComplex(ModuleFP_dec, mp, check = false, direction = :right)
+end
+
+function Hecke.ring(I::MPolyIdeal)
+  return parent(gen(I, 1))
+end
+
+function free_resolution(I::MPolyIdeal)
+  F = free_resolution(ring(I), 1)
+  S = sub(F, [x * gen(F, 1) for x = gens(I)])
+  n = Hecke.find_name(I)
+  if n !== nothing
+    AbstractAlgebra.set_name!(S, n)
+  end
+  return free_resolution(S)
+end
+
+function free_resolution(Q::MPolyQuo)
+  F = free_module(Q.R, 1)
+  q = quo(F, [x * gen(F, 1) for x = gens(Q.I)])
+  n = Hecke.find_name(Q)
+  if n !== nothing
+    AbstractAlgebra.set_name!(q, String(n))
+  end
+  return free_resolution(q)
 end
 
 function iszero(f::Map_dec)
