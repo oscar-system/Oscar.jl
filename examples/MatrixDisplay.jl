@@ -17,12 +17,17 @@
 #T TODO:
 #T - Support left/centered/right alignment of columns and of the whole table.
 #T - Concerning irrational values in character tables:
-#T   in `matrix_of_strings`, identify also complex conjugates (mark with
-#T   overline) and unique Galois conjugates (mark with superscript *);
+#T   in `matrix_of_strings`,
+#T   identify also unique Galois conjugates (mark with superscript *);
 #T   show both values in the footer.
 #T   (For elements in quadratic fields, show also an expression in terms of
 #T   square roots.)
 
+
+# `lpad` is wrong for example for strings containing overlined characters,
+# such as "A̅".
+# (This had been observed already by Jean Michel.)
+mylpad(s::String,n::Int) = " "^(n-textwidth(s))*s
 
 # for conversions from \LaTeX format to unicode format,
 # deals with subscripts and superscripts in braces `{}`,
@@ -37,6 +42,7 @@ function replace_TeX(str::String)
   str = replace(str, "\\zeta" => "ζ")
   str = replace(str, r"\^\{[-0123456789]*\}" => (s -> map(x->sup[x], s[3:end-1])))
   str = replace(str, r"_\{[-0123456789]*\}" => (s -> map(x->sub[x], s[3:end-1])))
+  str = replace(str, r"\\overline\{(?<nam>[A-Z]*)\}" => s"\g<nam>\u0305")
   return str
 end
 
@@ -261,9 +267,9 @@ function labelled_matrix_formatted(io::IO, mat::Matrix{String})
               println(io, "\\hline")
             end
           else
-            println(io, join(map(lpad, leftpart[i,:], widths_leftpart), " "),
+            println(io, join(map(mylpad, leftpart[i,:], widths_leftpart), " "),
                         cprefix,
-                        join(join.(collect(zip(map(lpad, rightpart[i,:][crange], widths_rightpart[crange]), cpattern)))))
+                        join(join.(collect(zip(map(mylpad, rightpart[i,:][crange], widths_rightpart[crange]), cpattern)))))
             if i in row_separators
               println(io, hline)
             end
