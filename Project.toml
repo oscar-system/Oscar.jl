@@ -1,12 +1,6 @@
 name = "Oscar"
 uuid = "f1435218-dba5-11e9-1e4d-f1a5fab5fc13"
-authors = [
-  "Claus Fieker <fieker@mathematik.uni-kl.de>",
-  "Giovanni De Franceschi <franceschi@mathematik.uni-kl.de>",
-  "Johannes Schmitt <schmitt@mathematik.uni-kl.de>",
-  "Max Horn <horn@mathematik.uni-kl.de>",
-  "William Hart <goodwillhart@googlemail.com>",
-  ]
+authors = ["Claus Fieker <fieker@mathematik.uni-kl.de>", "Giovanni De Franceschi <franceschi@mathematik.uni-kl.de>", "Johannes Schmitt <schmitt@mathematik.uni-kl.de>", "Max Horn <horn@mathematik.uni-kl.de>", "William Hart <goodwillhart@googlemail.com>"]
 version = "0.4.0"
 
 [deps]
@@ -30,5 +24,5 @@ Hecke = "^0.8.0"
 Nemo = "^0.18.0"
 Polymake = "^0.4, ^0.5"
 Requires = "1.0"
-Singular = "^0.3"
+Singular = "^0.3, 0.4"
 julia = "1.3"
