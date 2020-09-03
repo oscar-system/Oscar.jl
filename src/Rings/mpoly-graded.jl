@@ -45,7 +45,7 @@ end
 
 function decorate(R::MPolyRing)
   A = abelian_group([0])
-  return MPolyRing_dec(R, [0*A[1] for i = v], (x,y) -> x[1] < y[1])
+  return MPolyRing_dec(R, [1*A[1] for i = 1: ngens(R)], (x,y) -> x[1] < y[1])
 end
 
 grade(R::MPolyRing) = decorate(R)
@@ -355,7 +355,7 @@ function homogenous_component(W::MPolyQuo{<:MPolyElem_dec}, d::GrpAbFinGenElem)
   end
   B = [x for x = B]
 
-  M, h = vector_space(R, B, target = W)
+  M, h = vector_space(base_ring(R), B, target = W)
   Hecke.set_special(M, :show => show_homo_comp, :data => (W, d))
   return M, h
 end
