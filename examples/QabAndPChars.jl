@@ -364,6 +364,163 @@ end
 
 ###############################################################################
 #
+#   Elements in quadratic subfields of cyclotomic fields
+#
+#
+###############################################################################
+
+function generators_galois_group_cyclotomic_field(n::Int)
+    res = GAP.Globals.GeneratorsPrimeResidues(GAP.julia_to_gap(n))
+    return [QabAutomorphism(k)
+            for k in Vector{Int}(GAP.Globals.Flat(res.generators))]
+end
+
+"""
+    square_root_in_cyclotomic_field(F::QabField, n::Int, N::Int)
+
+Return an element `a` in the field `F` that is represented w.r.t. the `N`-th
+cyclotomic field and has the property `a^2 == n`.
+
+If the `N`-th cyclotomic field does not contain such an element
+then `nothing` is returned.
+
+If `n` is positive then `a` is the positive square root of `n`,
+otherwise `a` is a positive multiple of the imaginary unit.
+(Here we assume that the underlying primitive `N`-th root of unity
+is identified with the complex number `exp(2*Pi*i/N)`,
+where `i` is the imaginary unit.)
+"""
+function square_root_in_cyclotomic_field(F::QabField, n::Int, N::Int)
+    z = root_of_unity(F, N)
+    cf = 1
+    sqf = 1
+    for (p,e) in collect(factor(n))
+      cf = cf * p^div(e, 2)
+      if e % 2 != 0
+        sqf = sqf * p
+      end
+    end
+    nn = Int(sqf)  # nn is positive and squarefree
+    @assert N % nn == 0
+
+    n4 = nn % 4
+    if n4 == 1
+      if n < 0
+        if N % 4 != 0
+          return
+        end
+        N4 = div(N, 4)
+        z4 = z^N4
+        cf = cf * z4
+      end
+    elseif n4 == 2
+      if N % 8 != 0
+        return
+      end
+      N8 = div(N, 8)
+      z8 = z^N8
+      cf = cf * (z8 - z8^3)
+      if n < 0
+        cf = cf * z8^2
+      end
+    elseif n4 == 3
+      if n > 0
+        if N % 4 != 0
+          return
+        end
+        N4 = div(N, 4)
+        z4 = z^N4
+        cf = cf * (-z4)
+      end
+    end
+
+    # Compute the coefficients of the Atlas irrationality 2*b_nn+1,
+    # w.r.t. the N-th cyclotomic field.
+    # (The underlying formula is due to a theorem of Gauss.)
+    cfs = zeros(fmpz, N)
+    cfs[1] = 1
+    q = div(N, nn)
+    for k in 1:div(nn,2)
+      pos = q * mod(k^2, nn) + 1
+      cfs[pos] = cfs[pos] + 2
+    end
+
+    # Create the corresponding number field element.
+    FF = parent(z.data)
+    pol = FF.pol
+    R = parent(pol)
+    elm = mod(R(cfs), pol)
+
+    return cf * Main.QabModule.QabElem(FF(elm), N)
+end
+
+"""
+    quadratic_irrationality_info(a::QabModule.QabElem)
+
+Return `(x, y, n)`, where `x`, `y` are of type `fmpq` and `n` is
+a squarefree integer, such that `a == x + y sqrt(n)` holds.
+
+(We assume that the underlying primitive `N`-th root of unity that
+is used to define `a` is identified with the complex number `exp(2*Pi*i/N)`,
+where `i` is the imaginary unit.)
+"""
+function quadratic_irrationality_info(a::QabModule.QabElem)
+    n = a.c
+
+    # Compute the Galois group generators of the `n`-th cyclotomic field.
+    galgens = generators_galois_group_cyclotomic_field(n)
+
+    # Start computing the orbit of `a` under the Galois group:
+    # If the orbit length is larger than 2 then `a` is not in a
+    # quadratic field, and we return nothing.
+    cand = nothing
+    for sigma in galgens
+      img = a^sigma
+      if img != a
+        if isnothing(cand)
+          cand = img
+        elseif cand != img
+          return
+        end
+      end
+    end
+    for sigma in galgens
+      img = cand^sigma
+      if img != a && img != cand
+        return
+      end
+    end
+
+    # We have a = x + y \sqrt{m} and cand = x - y \sqrt{m}.
+    x = coeff(a.data + cand.data, 0) // 2
+    root_multiple = a.data - x
+    ysquarem = coeff(root_multiple^2, 0)  # fmpq
+    num = numerator(ysquarem)
+    den = denominator(ysquarem)
+    den_y = sqrt(den)
+    m = sign(num)
+    for (p, e) in collect(factor(num))
+      if e % 2 == 1
+        m = m * p
+      end
+    end
+    y = sqrt(ysquarem // m)
+
+    # It remains to compute the sign of y.
+    # (This relies on the choice of the primitive n-th root of unity
+    # as the complex number exp(2*pi*i/n).)
+    y_std_m = y * square_root_in_cyclotomic_field(parent(a), Int(m), n).data
+    if y_std_m != root_multiple
+      @assert y_std_m == - root_multiple
+      y = -y
+    end
+
+    return (x, y, m)
+end
+
+
+###############################################################################
+#
 #   Partial character functions
 #
 ###############################################################################
