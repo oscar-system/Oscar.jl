@@ -5,6 +5,7 @@
 ################################################################################
 
 export
+    acting_subgroup,
     as_matrix_group,
     as_perm_group,
     as_polycyclic_group,
@@ -12,8 +13,6 @@ export
     direct_product,
     embedding,
     factor_of_direct_product,
-    factor_of_semidirect_product,
-    factor_of_wreath_product,
     homomorphism_of_semidirect_product,
     homomorphism_of_wreath_product,
     inner_cartesian_power,
@@ -21,6 +20,7 @@ export
     isfull_direct_product,
     isfull_semidirect_product,
     isfull_wreath_product,
+    normal_subgroup,
     number_of_factors,
     projection,
     semidirect_product,
@@ -189,8 +189,8 @@ end
 
 # start part on subgroups
 function _as_subgroup_bare(G::DirectProductGroup, H::GapObj)
-  t = H==G.X
-  return DirectProductGroup(H, G.L, G.X, t)
+#  t = H==G.X
+  return DirectProductGroup(H, G.L, G.X, false)
 end
 
 function _as_subgroup(G::DirectProductGroup, H::GapObj, ::Type{U}) where U
@@ -282,15 +282,22 @@ function (G::SemidirectProductGroup{S,T})(a::GAPGroupElem{S},b::GAPGroupElem{T})
 end
 
 """
-    factor_of_semidirect_product(G::SemidirectProductGroup, j::Int)
-Return the `j`-th factor of `G`, for `j`=1,2.
+    normal_subgroup(G::SemidirectProductGroup)
+Return `N`, where `G` is the semidirect product of the normal subgroup `N` and `H`.
 """
-function factor_of_semidirect_product(G::SemidirectProductGroup, j::Base.Integer)
-   if j==1 return G.N
-   elseif j==2 return G.H
-   else throw(ArgumentError("index not valid"))
-   end
-end
+normal_subgroup(G::SemidirectProductGroup) = G.N
+
+"""
+    acting_subgroup(G::SemidirectProductGroup)
+Return `H`, where `G` is the semidirect product of the normal subgroup `N` and `H`.
+"""
+acting_subgroup(G::SemidirectProductGroup) = G.H
+
+"""
+    homomorphism_of_semidirect_product(G::SemidirectProductGroup)
+Return `f,` where `G` is the semidirect product of the normal subgroup `N` and the group `H` acting on `N` via the homomorphism `h`.
+"""
+homomorphism_of_semidirect_product(G::SemidirectProductGroup{S,T}) where {S,T} = G.f
 
 """
     isfull_semidirect_product(G::SemidirectProductGroup)
@@ -331,8 +338,8 @@ end
 
 # start part on subgroups
 function _as_subgroup_bare(G::SemidirectProductGroup{S,T}, H::GapObj) where { S , T }
-  t = G.X==H
-  return SemidirectProductGroup(H, G.N, G.H, G.f, G.X, t)
+#  t = G.X==H
+  return SemidirectProductGroup(H, G.N, G.H, G.f, G.X, false)
 end
 
 function _as_subgroup(G::SemidirectProductGroup{S,T}, H::GapObj, ::Type{U}) where { T, S, U }
@@ -372,14 +379,6 @@ function Base.show(io::IO, x::SemidirectProductGroup)
       print(io, GAP.gap_to_julia(GAP.Globals.StringViewObj(x.X)))
    end
 end
-
-"""
-    homomorphism_of_semidirect_product(G::SemidirectProductGroup{S,T})
-If `G` is semidirect product of `C` and `N`, where `C` acts on `N`, then return the homomorphism `f` from `C` to `Aut`(`N`).
-"""
-homomorphism_of_semidirect_product(G::SemidirectProductGroup{S,T}) where {S,T} = G.f
-
-
 
 ################################################################################
 #
@@ -430,16 +429,24 @@ function (W::WreathProductGroup)(L::Union{GAPGroupElem{T},GAPGroupElem{PermGroup
    return group_element(W,xgap)
 end
 
+
 """
-    factor_of_wreath_product(G::WreathProductGroup, j::Int)
-If `W` is the wreath product of `G` and `H`, return `G` (if `j`=1) or `H` (if `j`=2).
+    normal_subgroup(W::WreathProductGroup)
+Return `G`, where `W` is the wreath product of `G` and `H`.
 """
-function factor_of_wreath_product(W::WreathProductGroup, j::Base.Integer)
-   if j==1 return W.G
-   elseif j==2 return W.H
-   else throw(ArgumentError("index not valid"))
-   end
-end
+normal_subgroup(W::WreathProductGroup) = W.G
+
+"""
+    acting_subgroup(W::WreathProductGroup)
+Return `H`, where `W` is the wreath product of `G` and `H`.
+"""
+acting_subgroup(W::WreathProductGroup) = W.H
+
+"""
+    homomorphism_of_wreath_product(G::WreathProductGroup)
+If `W` is the wreath product of `G` and `H`, then return the homomorphism `f` from `H` to `Sym(n)`, where `n` is the number of copies of `G`.
+"""
+homomorphism_of_wreath_product(G::WreathProductGroup) = G.a
 
 """
     isfull_wreath_product(G::WreathProductGroup)
@@ -479,8 +486,8 @@ Base.show(io::IO, x::WreathProductGroup) = print(io, GAP.gap_to_julia(GAP.Global
 # start part on subgroups
 #TODO : to be fixed
 function _as_subgroup_bare(W::WreathProductGroup, X::GapObj)
-   t = X==W.X
-  return WreathProductGroup(X, W.G, W.H, W.a, W.Xfull, t)
+#   t = X==W.X
+  return WreathProductGroup(X, W.G, W.H, W.a, W.Xfull, false)
 end
 
 function _as_subgroup(W::WreathProductGroup, H::GapObj, ::Type{U}) where U
@@ -513,9 +520,4 @@ function sub(L::Vector{GAPGroupElem{WreathProductGroup}})
    return sub(parent(l[1]),l)
 end
 
-"""
-    homomorphism_of_wreath_product(G::WreathProductGroup)
-If `W` is the wreath product of `G` and `H`, then return the homomorphism `f` from `H` to `Sym(n)`, where `n` is the number of copies of `G`.
-"""
-homomorphism_of_wreath_product(G::WreathProductGroup) = G.a
 
