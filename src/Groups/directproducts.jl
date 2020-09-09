@@ -56,7 +56,7 @@ The parameter `morphisms` is `false` by default. If it is set `true`, then the o
 function inner_direct_product(L::AbstractVector{T}; morphisms=false) where T<:Union{PcGroup,PermGroup,FPGroup,MatrixGroup}
    P = GAP.Globals.DirectProduct(GAP.julia_to_gap([G.X for G in L]))
    if T==MatrixGroup     # check that the matrix groups have the same base ring
-      length(Set([GAP.Globals.FieldOfMatrixGroup(H.X) for H in L]))==1 || throw(ArgumentError("The result is not a matrix group"))
+      length(Set{GapObj}(GAP.Globals.FieldOfMatrixGroup(H.X) for H in L))==1 || throw(ArgumentError("The result is not a matrix group"))
    end
    if T==PermGroup
       DP = T(P,GAP.Globals.NrMovedPoints(P))
@@ -142,7 +142,7 @@ If `G` is direct product of matrix groups over the ring `R` of dimension `n_1`, 
 """
 function as_matrix_group(G::DirectProductGroup)
 # TODO write in a more compact form once defined the function base_ring over GL
-   if [typeof(H)==MatrixGroup for H in G.L]==[true for i in 1:length(G.L)] && length(Set([GAP.Globals.FieldOfMatrixGroup(H.X) for H in G.L]))==1
+   if [typeof(H)==MatrixGroup for H in G.L]==[true for i in 1:length(G.L)] && length(Set{GapObj}(GAP.Globals.FieldOfMatrixGroup(H.X) for H in G.L))==1
       return MatrixGroup(G.X)
    else
       throw(ArgumentError("The group is not a matrix group"))
@@ -297,7 +297,7 @@ acting_subgroup(G::SemidirectProductGroup) = G.H
     homomorphism_of_semidirect_product(G::SemidirectProductGroup)
 Return `f,` where `G` is the semidirect product of the normal subgroup `N` and the group `H` acting on `N` via the homomorphism `h`.
 """
-homomorphism_of_semidirect_product(G::SemidirectProductGroup{S,T}) where {S,T} = G.f
+homomorphism_of_semidirect_product(G::SemidirectProductGroup) = G.f
 
 """
     isfull_semidirect_product(G::SemidirectProductGroup)
@@ -306,7 +306,7 @@ Return whether `G` is a semidirect product of two groups, instead of a proper su
 isfull_semidirect_product(G::SemidirectProductGroup) = G.isfull
 
 """
-    embedding(G::SemidirectProductGroup{S,T}, n::Integer)
+    embedding(G::SemidirectProductGroup, n::Integer)
 Return the embedding of the `n`-th component of `G` into `G`, for `n` = 1,2. It is not defined for proper subgroups of semidirect products.
 """
 function embedding(G::SemidirectProductGroup{S,T}, n::Base.Integer) where S where T
@@ -326,10 +326,10 @@ function embedding(G::SemidirectProductGroup{S,T}, n::Base.Integer) where S wher
 end
 
 """
-    projection(G::SemidirectProductGroup{S,T}, n::Integer)
+    projection(G::SemidirectProductGroup, n::Integer)
 Return the projection of `G` into the second component of `G`.
 """
-function projection(G::SemidirectProductGroup{S,T}) where S where T
+function projection(G::SemidirectProductGroup)
    f=GAP.Globals.Projection(G.Xfull)
    H = G.H
    p = GAP.Globals.GroupHomomorphismByFunction(G.X,H.X,y->GAP.Globals.Image(f,y))
@@ -399,7 +399,7 @@ If `W` is a wreath product of `G` and `H`, {`g_1`, ..., `g_n`} are elements of `
 ```
 """
 function wreath_product(G::T, H::PermGroup) where T<: GAPGroup
-   if Set(GAP.gap_to_julia(GAP.Globals.MovedPoints(H.X)))==Set(1:H.deg)
+   if Set{Int}(GAP.gap_to_julia(GAP.Globals.MovedPoints(H.X)))==Set(1:H.deg)
       Wgap=GAP.Globals.WreathProduct(G.X,H.X)
       return WreathProductGroup(Wgap,G,H,id_hom(H),Wgap,true)
    else
