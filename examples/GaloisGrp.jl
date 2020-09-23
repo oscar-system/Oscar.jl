@@ -596,7 +596,7 @@ function galois_group(K::AnticNumberField, extra::Int = 5)
   G = symmetric_group(degree(K))
   S = G
   for b = bs
-    W = wreath_product(symmetric_group(length(b[1])), symmetric_group(length(b)))
+    W = isomorphic_perm_group(wreath_product(symmetric_group(length(b[1])), symmetric_group(length(b))))[1]
     s = S(vcat(b...))
     G = intersect(G, W^s)[1]
   end
