@@ -32,6 +32,7 @@ import Hecke:
     issubgroup,
     issurjective,
     kernel,
+    Map,
     mul,
     mul!,
     ngens,
@@ -42,6 +43,7 @@ import Hecke:
     preimage,
     quo,
     representative,
+    SetMap,
     small_group,
     sub,
     subgroups
@@ -58,6 +60,7 @@ export
     FPGroup,
     FPGroupElem,
     GAPGroupElem,
+    GAPGroupHomomorphism,
     MatrixGroup,
     MatrixGroupElem,
     PcGroup,
@@ -202,7 +205,9 @@ const FPGroupElem = GAPGroupElem{FPGroup}
 #
 ################################################################################
 
-struct GAPGroupHomomorphism{S<: GAPGroup, T<: GAPGroup}
+abstract type GAPMap <: SetMap end
+
+struct GAPGroupHomomorphism{S<: GAPGroup, T<: GAPGroup} <: Map{S,T,GAPMap,GAPGroupHomomorphism{S,T}}
    domain::S
    codomain::T
    map::GapObj
