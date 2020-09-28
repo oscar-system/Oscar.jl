@@ -1100,12 +1100,14 @@ end
 #
 ##############################################################################
 
+#=
 function factor(f::MPolyElem)
   I = ideal(parent(f), [f])
   fS = Singular.factor(I.gens[Val(:S), 1])
   R = parent(f)
   return Nemo.Fac(convert(R, fS.unit), Dict(convert(R, k) =>v for (k,v) = fS.fac))
 end
+=#
 
 ##############################################################################
 #
