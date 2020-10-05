@@ -13,7 +13,8 @@ import Hecke
 import Hecke: MapHeader, math_html
 
 export PolynomialRing, total_degree, degree, MPolyElem, ordering, ideal,
-       groebner_basis, eliminate, syzygy_generators, coordinates
+       groebner_basis, eliminate, syzygy_generators, coordinates, 
+       jacobi_matrix, jacobi_ideal
 
 ##############################################################################
 #
@@ -540,6 +541,38 @@ function groebner_basis(I::MPolyIdeal, ord::Symbol)
   R = singular_ring(base_ring(I), ord)
   i = Singular.std(Singular.Ideal(R, [convert(R, x) for x = gens(I)]))
   return collect(BiPolyArray(base_ring(I), i))
+end
+
+@doc Markdown.doc"""
+   jacobi_matrix(f::MPolyElem)
+> Given a polynomial $f$ this function returns the Jacobian matrix of $f$.
+"""
+function jacobi_matrix(f::MPolyElem)
+  R = parent(f)
+  n = nvars(R)
+  return matrix(R, n, 1, [derivative(f, i) for i=1:n])
+end
+
+@doc Markdown.doc"""
+   jacobi_ideal(f::MPolyElem)
+> Given a polynomial $f$ this function returns the Jacobian ideal of $f$.
+"""
+function jacobi_ideal(f::MPolyElem)
+  R = parent(f)
+  n = nvars(R)
+  return ideal(R, [derivative(f, i) for i=1:n])
+end
+
+@doc Markdown.doc"""
+   jacobi_matrix(g::Array{<:MPolyElem, 1})
+> Given an array $g$ of polynomials over the same base ring,
+> this function returns the Jacobian matrix of $g$.
+"""
+function jacobi_matrix(g::Array{<:MPolyElem, 1})
+  R = parent(g[1])
+  n = nvars(R)
+  @assert all(x->parent(x) == R, g)
+  return matrix(R, n, length(g), [derivative(x, i) for i=1:n for x = g])
 end
 
 ##########################
