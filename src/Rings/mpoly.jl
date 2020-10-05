@@ -545,7 +545,7 @@ end
 
 @doc Markdown.doc"""
    jacobi_matrix(f::MPolyElem)
-> Given a polynomial $f$ this function returns the Jacobian matrix of $f$.
+> Given a polynomial $f$ this function returns the Jacobian matrix ``J_f=(\partial_{x_1}f,...,\partial_{x_n}f)^T`` of $f$.
 """
 function jacobi_matrix(f::MPolyElem)
   R = parent(f)
@@ -565,8 +565,8 @@ end
 
 @doc Markdown.doc"""
    jacobi_matrix(g::Array{<:MPolyElem, 1})
-> Given an array $g$ of polynomials over the same base ring,
-> this function returns the Jacobian matrix of $g$.
+> Given an array ``g=[f_1,...,f_m]`` of polynomials over the same base ring,
+> this function returns the Jacobian matrix ``J=(\partial_{x_i}f_j)_{i,j}`` of ``g``.
 """
 function jacobi_matrix(g::Array{<:MPolyElem, 1})
   R = parent(g[1])
