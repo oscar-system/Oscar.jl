@@ -54,3 +54,11 @@ end
   @test jacobi_matrix(f) == matrix(R, 2, 1, [2*x, 2*y])
   @test jacobi_matrix(I) == matrix(R, 2, 2, [2*x, 4*x^3*y-y^3, 2*y, x^4-3*x*y^2])
 end
+
+@testset "Groebner" begin
+  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+  I = ideal([2*x+3*y+4*z-5,3*x+4*y+5*z-2])
+  @test groebner_basis(I,:degrevlex) == [y+2*z-11, 3*x+4*y+5*z-2]
+  @test groebner_basis(I,:degrevlex, complete_reduction = true) == [y+2*z-11, x-z+14]
+  
+end
