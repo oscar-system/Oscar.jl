@@ -87,6 +87,12 @@ function get_gens(G::GroupMatrix{T}) where T
    end
 end
 
+function get_gap_matrix(x::GroupMatrixElem{T}) where T
+   if !isdefined(x,:X)
+      x.X = MatOscarToGap(x.elm, x.parent.ring)
+   end
+end
+
 Base.IteratorSize(::Type{<:GroupMatrix}) = Base.SizeUnknown()
 
 function Base.iterate(G::GroupMatrix{T}) where T
@@ -194,7 +200,23 @@ end
 
 ########################################################################
 #
-# Methods
+# Existing functions on elements
+#
+########################################################################
+
+det(x::GroupMatrixElem{T}) where T = det(x.elm)
+
+trace(x::GroupMatrixElem{T}) where T = trace(x.elm)
+tr(x::GroupMatrixElem{T}) where T = tr(x.elm)
+
+function order(x::GroupMatrixElem{T}) where T
+   get_gap_matrix(x)
+   return GAP.Globals.Order(x.X)
+end
+
+########################################################################
+#
+# Methods on groups
 #
 ########################################################################
 
@@ -212,6 +234,15 @@ function gens(G::GroupMatrix{T}) where T
    get_gens(G)
    V = [GroupMatrixElem{T}(G,g) for g in G.gens]
    return V
+end
+
+gens(G::GroupMatrix{T}, i::Int) where T = gens(G)[i]
+
+Base.getindex(G::GroupMatrix{T}, i::Int) where T = gens(G, i)
+
+function ngens(G::GroupMatrix{T}) where T
+   get_gens(G)
+   return length(G.gens)
 end
 
 function order(G::GroupMatrix)
