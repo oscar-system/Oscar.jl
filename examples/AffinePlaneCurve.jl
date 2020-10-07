@@ -40,7 +40,7 @@ end
 mutable struct Point{S}
   coord::Array{S, 1}
   ambient_dim::Int64
-  function Point(coordinates::Array{S,1}) where {S <: FieldElem}
+  function Point(coordinates::Array{S, 1}) where {S <: FieldElem}
     r = new{S}()
     r.coord = coordinates
     r.ambient_dim = length(coordinates)
@@ -53,7 +53,8 @@ function Base.show(io::IO, P::Point)
 end
 
 ################################################################################
-# Compute the degree of the equation of the curve if not already known, and show it.
+# Compute the degree of the equation of the curve if not already known, 
+# and show it.
 
 @doc Markdown.doc"""
 degree(C::AffinePlaneCurve)
@@ -80,10 +81,12 @@ function Oscar.jacobi_ideal(C::AffinePlaneCurve)
 end
 
 ################################################################################
-# To check if a point is smooth: return true if the point is a smooth point on the curve C, and false  if it is singular, and an error if it is not on the curve.
+# To check if a point is smooth: return true if the point is a smooth point on 
+# the curve C, and false  if it is singular, and an error if it is not on the 
+# curve.
 
 @doc Markdown.doc"""
-issmooth_point(C::AffinePlaneCurve{S}, P::Point{S}) where S<: FieldElem
+issmooth_point(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
 > Given an affine plane curve C and a point P, returns an error if the point is not in the zero locus of the defining equation, false if it is a singular point of C, and true if it is a smooth point of the curve.
 """
 function issmooth_point(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
@@ -94,8 +97,8 @@ function issmooth_point(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldEle
   else
      J = jacobi_ideal(C)
      L = gens(J)
-     a = evaluate(L[1],P.coord)
-     b = evaluate(L[2],P.coord)
+     a = evaluate(L[1], P.coord)
+     b = evaluate(L[2], P.coord)
      if a == 0 && b == 0 
         return false
      else
@@ -105,10 +108,11 @@ function issmooth_point(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldEle
 end
 
 ################################################################################
-# If P is a smooth point of an affine plane curve C, compute the tangent of C at the point P.
+# If P is a smooth point of an affine plane curve C, compute the tangent of C 
+# at the point P.
 
 @doc Markdown.doc"""
-tangent(C::AffinePlaneCurve{S}, P::Point{S}) where S<: FieldElem
+tangent(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
 > Given an affine plane curve C and a point P, if P is a smooth point of C, returns the affine plane curve defined as the tangent of C at P.
 """
 function tangent(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
@@ -119,13 +123,13 @@ function tangent(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
   else
      J = jacobi_ideal(C)
      L = gens(J)
-     a = evaluate(L[1],P.coord)
-     b = evaluate(L[2],P.coord)
+     a = evaluate(L[1], P.coord)
+     b = evaluate(L[2], P.coord)
      if a == 0 && b == 0
         error("This is a singular point of the curve")
      else
         V = gens(parent(C.eq))
-        T = a*( V[1] - P.coord[1] ) + b*( V[2] - P.coord[2] )
+        T = a*(V[1] - P.coord[1]) + b*(V[2] - P.coord[2])
         return AffinePlaneCurve(T)
      end
   end
@@ -135,7 +139,7 @@ end
 # Union of two affine plane curves (with multiplicity)
 
 @doc Markdown.doc"""
-union(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S<: FieldElem
+union(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S <: FieldElem
 > Given two affine plane curves C and D, returns the union of the two curves (with multiplicity).
 """
 function Base.union(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S <: FieldElem
