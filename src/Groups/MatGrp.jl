@@ -1,5 +1,5 @@
 import AbstractAlgebra: MatElem, Ring
-import Hecke: base_ring, fq_nmod, FqNmodFiniteField
+import Hecke: base_ring, det, fq_nmod, FqNmodFiniteField, tr, trace
 import GAP: FFE
 
 export
@@ -65,11 +65,12 @@ function Base.show(io::IO, x::GroupMatrixElem)          #TODO: is this correct?
    display(x.elm)
 end
 
+# add field :X
 function get_gap_group(G::GroupMatrix{T}) where T
    if !isdefined(G,:X)
       if isdefined(G,:descr)
          if G.descr==:GL G.X = GAP.Globals.GL(G.deg,Int(order(G.ring)))
-         elseif G.descr==:SL G.X = GAP.Globals.SL(G.deg,order(G.ring))
+         elseif G.descr==:SL G.X = GAP.Globals.SL(G.deg,Int(order(G.ring)))
          end
       elseif isdefined(G,:gens)
          V = GAP.julia_to_gap([MatOscarToGap(g,g.ring) for g in G.gens])
@@ -78,6 +79,7 @@ function get_gap_group(G::GroupMatrix{T}) where T
    end
 end
 
+# add field :gens
 function get_gens(G::GroupMatrix{T}) where T
    if !isdefined(G,:gens)
       get_gap_group(G)
@@ -87,6 +89,7 @@ function get_gens(G::GroupMatrix{T}) where T
    end
 end
 
+# add field :X
 function get_gap_matrix(x::GroupMatrixElem{T}) where T
    if !isdefined(x,:X)
       x.X = MatOscarToGap(x.elm, x.parent.ring)
@@ -116,6 +119,42 @@ end
 # need this function just for the iterator
 Base.length(x::GroupMatrix)::Int = order(x)
 
+########################################################################
+#
+# Membership
+#
+########################################################################
+
+# this saves the value of x.X
+# x_gap = x.X if this is already known, x_gap = 0 otherwise
+function lies_in(x::MatElem, G::GroupMatrix, x_gap)
+   if x==identity_matrix(G.ring,G.deg) return true, Nothing end
+   if isdefined(G,:gens)
+      if x in G.gens return true, Nothing end
+   else
+      get_gap_group(G)
+      if x_gap==0 x_gap = MatOscarToGap(x,base_ring(x)) end
+     # x_gap !=0 || x_gap = MatOscarToGap(x,base_ring(x))
+      return GAP.Globals.in(x_gap,G.X), x_gap
+   end
+end
+
+Base.in(x::MatElem, G::GroupMatrix) = lies_in(x,G,0)[1]
+
+function Base.in(x::GroupMatrixElem, G::GroupMatrix)
+   if isdefined(x,:X) return lies_in(x.elm,G,x.X)[1]
+   else return lies_in(x.elm,G,0)[1]
+   end
+end
+
+# embedding an element of type MatElem into a group G
+function (G::GroupMatrix{T})(x::MatElem) where T
+   vero, x_gap = lies_in(x,G,0)
+   vero || throw(ArgumentError("Element not in the group"))
+   if x_gap==Nothing return GroupMatrixElem{T}(G,x)
+   else return GroupMatrixElem{T}(G,x,x_gap)
+   end
+end
 
 ########################################################################
 #
