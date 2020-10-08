@@ -6,6 +6,20 @@ export
     GroupMatrix,
     GroupMatrixElem
 
+# sends the Oscar field into the GAP field
+mutable struct GenCatRingIso <: Map{S,T,SetMap,GenCatRingIso}
+   domain::S
+   codomain::T
+   f
+end
+
+# sends the Oscar matrix into the GAP matrix
+mutable struct GenRingIso{S<:Ring, T<:GapObj} <: Map{S,T,SetMap,GenRingIso{S,T}}
+   domain::S
+   codomain::T
+   f
+end
+
 mutable struct GroupMatrix{T<:Ring}
    X::GapObj
    gens::Vector{MatElem}                      # TODO: hard to put MatElem{T}; often, T does not coincide with typeof(ring)
