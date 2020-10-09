@@ -62,8 +62,6 @@ export
     FPGroupElem,
     GAPGroupElem,
     GAPGroupHomomorphism,
-    MatrixGroup,
-    MatrixGroupElem,
     PcGroup,
     PcGroupElem,
     PermGroup,
@@ -128,36 +126,6 @@ Element of a group of permutation. It is displayed as product of disjoint cycles
 - for `x` in Sym(n) and `i` in {1,...,n}, `i^x` and `x(i)` return the image of `i` under the action of `x`.
 """
 const PermGroupElem = GAPGroupElem{PermGroup}
-
-"""
-    MatrixGroup
-
-Groups of matrices. Every group of this type is the subgroup of GL(n,q) for some integer `n` and prime power `q`
-
-# Examples
-- `GL(n::Int, q::Int)`: the general linear group GL(n,q)
-- `SL(n::Int)`: the special linear group SL(n,q)
-- groups of isometries
-"""
-mutable struct MatrixGroup <: GAPGroup
-  X::GapObj
-  AbstractAlgebra.@declare_other
-
-  function MatrixGroup(G::GapObj)
-    @assert GAP.Globals.IsMatrixGroup(G)
-    z = new(G)
-    return z
-  end
-end
-
-"""
-    MatrixGroupElem
-
-Element of a matrix group.
-"""
-const MatrixGroupElem = GAPGroupElem{MatrixGroup}
-
-#display(x::MatrixGroupElem) = GAP.Globals.Display(x.X)
 
 """
     PcGroup

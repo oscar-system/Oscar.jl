@@ -49,17 +49,12 @@ end
     inner_direct_product(L::T...)
 
 Return a direct product of groups of the same type `T` as a group of type `T`. It works for `T` of the following types:
-- `PermGroup`, `PcGroup`, `MatrixGroup`, `FPGroup`.
-
-NOTE: if `T` = `MatrixGroup`, the groups of the vector `L` need to have the same base ring.
+- `PermGroup`, `PcGroup`, `FPGroup`.
 
 The parameter `morphisms` is `false` by default. If it is set `true`, then the output is a triple (`G`, `emb`, `proj`), where `emb` and `proj` are the vectors of the embeddings (resp. projections) of the direct product `G`.
 """
-function inner_direct_product(L::AbstractVector{T}; morphisms=false) where T<:Union{PcGroup,PermGroup,FPGroup,MatrixGroup}
+function inner_direct_product(L::AbstractVector{T}; morphisms=false) where T<:Union{PcGroup,PermGroup,FPGroup}
    P = GAP.Globals.DirectProduct(GAP.julia_to_gap([G.X for G in L]))
-   if T==MatrixGroup     # check that the matrix groups have the same base ring
-      length(Set{GapObj}(GAP.Globals.FieldOfMatrixGroup(H.X) for H in L))==1 || throw(ArgumentError("The result is not a matrix group"))
-   end
    if T==PermGroup
       DP = T(P,GAP.Globals.NrMovedPoints(P))
    else
@@ -74,7 +69,7 @@ function inner_direct_product(L::AbstractVector{T}; morphisms=false) where T<:Un
    end
 end
 
-function inner_direct_product(L::T... ; morphisms=false) where T<:Union{PcGroup,PermGroup,FPGroup,MatrixGroup}
+function inner_direct_product(L::T... ; morphisms=false) where T<:Union{PcGroup,PermGroup,FPGroup}
    return inner_direct_product([x for x in L]; morphisms=morphisms)
 end
 
@@ -141,20 +136,6 @@ function as_polycyclic_group(G::DirectProductGroup)
       return PcGroup(G.X)
    else
       throw(ArgumentError("The group is not a polycyclic group"))
-   end
-end
-
-"""
-    as_matrix_group(G::DirectProductGroup)
-
-If `G` is direct product of matrix groups over the ring `R` of dimension `n_1`, ... , `n_k` respectively, return `G` as matrix group over the ring `R` of dimension `n_1 + ... + n_k`.
-"""
-function as_matrix_group(G::DirectProductGroup)
-# TODO write in a more compact form once defined the function base_ring over GL
-   if [typeof(H)==MatrixGroup for H in G.L]==[true for i in 1:length(G.L)] && length(Set{GapObj}(GAP.Globals.FieldOfMatrixGroup(H.X) for H in G.L))==1
-      return MatrixGroup(G.X)
-   else
-      throw(ArgumentError("The group is not a matrix group"))
    end
 end
 
