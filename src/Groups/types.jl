@@ -62,8 +62,6 @@ export
     FPGroupElem,
     GAPGroupElem,
     GAPGroupHomomorphism,
-    MatrixGroup,
-    MatrixGroupElem,
     PcGroup,
     PcGroupElem,
     PermGroup,

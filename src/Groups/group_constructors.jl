@@ -34,11 +34,9 @@ export
 _gap_filter(::Type{PermGroup}) = GAP.Globals.IsPermGroup
 _gap_filter(::Type{PcGroup}) = GAP.Globals.IsPcGroup
 _gap_filter(::Type{FPGroup}) = GAP.Globals.IsFpGroup
-_gap_filter(::Type{MatrixGroup}) = GAP.Globals.IsMatrixGroup
 
 # TODO: matrix group handling usually is more complex: there usually
 # is another extra argument then to specify the base field
-#_gap_filter(::Type{MatrixGroup}) = GAP.Globals.IsMatrixGroup
 
 """
     symmetric_group(n::Int64)
@@ -210,7 +208,7 @@ end
     quaternion_group(n::Int)
     quaternion_group(::Type{T}, n::Int)
 
-Return the quaternion group of order `n` of type `T`, where `T` is in {`PcGroup`,`PermGroup`,`FPGroup`,`MatrixGroup`}. In the first case, the type is set as `PcGroup`.
+Return the quaternion group of order `n` of type `T`, where `T` is in {`PcGroup`,`PermGroup`,`FPGroup`}. In the first case, the type is set as `PcGroup`.
 """
 quaternion_group(n::Int) = quaternion_group(PcGroup, n)
 
@@ -222,6 +220,13 @@ end
 function isquaternion_group(G::GAPGroup)
   return GAP.Globals.IsQuaternionGroup(G.X)
 end
+
+
+
+
+####  This part is no longer active
+
+#=
 
 ################################################################################
 #
@@ -439,3 +444,5 @@ const SO = special_orthogonal_group
 # end isometry groups
 #
 ################################################################################
+
+=#
