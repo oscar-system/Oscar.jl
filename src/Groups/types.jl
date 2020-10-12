@@ -62,6 +62,7 @@ export
     FPGroupElem,
     GAPGroupElem,
     GAPGroupHomomorphism,
+    parent_type,
     PcGroup,
     PcGroupElem,
     PermGroup,
@@ -75,10 +76,11 @@ TODO: document this
 abstract type GAPGroup <: AbstractAlgebra.Group end
 #abstract type GroupElem <: AbstractAlgebra.GroupElem
 
+abstract type OscarGroupElem{T<:GAPGroup} <: AbstractAlgebra.GroupElem end
 """
 TODO: document this
 """
-struct GAPGroupElem{T<:GAPGroup} <: AbstractAlgebra.GroupElem
+struct GAPGroupElem{T<:GAPGroup} <: OscarGroupElem{T}
    parent::T
    X::GapObj
 end
@@ -264,7 +266,8 @@ In the future, a more elaborate setup for group element types
 might also be needed.
 """
 
-elem_type(::T) where T <: GAPGroup = GAPGroupElem{T}
+elem_type(::Type{T}) where T <: GAPGroup = GAPGroupElem{T}
+parent_type(::Type{<:OscarGroupElem{T}}) where T <: GAPGroup = T
 
 
 #
