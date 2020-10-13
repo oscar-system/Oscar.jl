@@ -40,6 +40,7 @@ import Hecke:
     normal_closure,
     one!,
     order,
+    parent_type,
     perm,
     preimage,
     quo,
@@ -57,12 +58,10 @@ export
     AutomorphismGroup,
     DirectProductGroup,
     DirectProductOfElem,
-    elem_type,
     FPGroup,
     FPGroupElem,
     GAPGroupElem,
     GAPGroupHomomorphism,
-    parent_type,
     PcGroup,
     PcGroupElem,
     PermGroup,
@@ -76,7 +75,7 @@ TODO: document this
 abstract type GAPGroup <: AbstractAlgebra.Group end
 abstract type GAPGroupElem{T<:GAPGroup} <: AbstractAlgebra.GroupElem end
 
-abstract type OscarGroupElem{T<:GAPGroup} <: AbstractAlgebra.GroupElem end
+abstract type GAPGroupElem{T<:GAPGroup} <: AbstractAlgebra.GroupElem end
 """
     BasicGAPGroupElem{T<:GAPGroup}
 The type `BasicGAPGroupElem` gathers all types of group elements described only by an underlying GAP object.
@@ -297,7 +296,17 @@ In the future, a more elaborate setup for group element types
 might also be needed.
 """
 
+<<<<<<< HEAD
 elem_type(::Type{T}) where T <: GAPGroup = BasicGAPGroupElem{T}
+=======
+function elem_type(::Type{T}) where T <: GAPGroup
+   if T<:MatrixGroup return MatrixGroupElem{ring_elem_type(T),mat_elem_type(T)}
+   else return BasicGAPGroupElem{T}
+   end
+end
+
+parent_type(::Type{<:GAPGroupElem{T}}) where T <: GAPGroup = T
+>>>>>>> New type redefinition
 
 
 #
