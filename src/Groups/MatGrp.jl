@@ -22,7 +22,7 @@ end
 
 mutable struct MatrixGroup{RE<:RingElem, T<:MatElem{RE}} <: GAPGroup
    X::GapObj
-   gens::Vector{T}
+   gens::Vector{<:T}
    ring::Ring
    deg::Int
    descr::Symbol                       # e.g. GL
@@ -36,9 +36,18 @@ mutable struct MatrixGroup{RE<:RingElem, T<:MatElem{RE}} <: GAPGroup
       r.ring = F
       return r
    end
+
+   function MatrixGroup(m::Int64, F::S, G_gap::GapObj) where S<:Ring
+      K = elem_type(S)
+      r = new{K, MatElem{K}}()
+      r.deg = m
+      r.ring = F
+      r.X = G_gap
+      return r
+   end
 end
 
-mutable struct MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: OscarGroupElem{MatrixGroup}
+mutable struct MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: GAPGroupElem{MatrixGroup}
    parent::MatrixGroup{RE, T}
    elm::T
    X::GapObj
@@ -57,9 +66,17 @@ mutable struct MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: OscarGroupElem{M
       z.X = x_gap
       return z
    end
+
+   function MatrixGroupElem(G::MatrixGroup{RE,MatElem{RE}}, x_gap::GapObj) where RE <: RingElem
+      z = new{RE, MatElem{RE}}()
+      z.parent = G
+      z.X = x_gap
+      return z
+   end
 end
 
-
+ring_elem_type(::Type{MatrixGroup{S,T}}) where {S,T} = S
+mat_elem_type(::Type{MatrixGroup{S,T}}) where {S,T} = T
 
 ########################################################################
 #
@@ -76,9 +93,28 @@ function Base.show(io::IO, x::MatrixGroup)
 end
 
 function Base.show(io::IO, x::MatrixGroupElem)          #TODO: is this correct?
-#   show(io)
-   display(x.elm)
+   if isdefined(x, :elm)
+      display(x.elm)
+   else
+      print(io, GAP.gap_to_julia(GAP.Globals.StringViewObj(x.X)))
+   end
 end
+
+#=
+function Base.show(io::IO, x::GroupConjClass{T, S}) where T<: MatrixGroup where S
+  if isdefined(x.repr,:elm)
+     display(x.repr.elm)
+  else
+     print(io, GAP.gap_to_julia(GAP.Globals.StringViewObj(x.repr.X)))
+  end
+  print(" ^ ")
+  if isdefined(x.X, :descr)
+      print(io, string(x.X.descr), "(",x.X.deg,",",order(x.X.ring),")")
+  else
+      print(io, "Matrix group of degree ", x.X.deg, " over ", x.X.ring)
+  end
+end
+=#
 
 function Base.getproperty(G::MatrixGroup, sym::Symbol)
    if sym === :X
@@ -88,7 +124,7 @@ function Base.getproperty(G::MatrixGroup, sym::Symbol)
          elseif G.descr==:SL setfield!(G,:X,GAP.Globals.SL(G.deg,Int(order(G.ring))))
          end
       elseif isdefined(G,:gens)
-         V = GAP.julia_to_gap([MatOscarToGap(g,g.ring) for g in G.gens])
+         V = GAP.julia_to_gap([MatOscarToGap(g,base_ring(g)) for g in G.gens])
          setfield!(G,:X,GAP.Globals.Group(V))
       end
    elseif sym === :gens
@@ -136,6 +172,8 @@ end
 function Base.getproperty(x::MatrixGroupElem, sym::Symbol)
    if sym === :X && !isdefined(x,:X)
       setfield!(x, :X, MatOscarToGap(x.elm, x.parent.ring))
+   elseif sym == :elm && !isdefined(x, :elm)
+      setfield!(x, :elm, MatGapToOscar(x.X, GAP.Globals.DefaultFieldOfMatrix(x.X), x.parent.ring))
    end
    return getfield(x,sym)
 end
@@ -158,9 +196,6 @@ function Base.iterate(G::MatrixGroup, state)
   i = GAP.Globals.NextIterator(state)
   return MatrixGroupElem(G, MatGapToOscar(i,GAP.Globals.DefaultFieldOfMatrix(i),G.ring),i), state
 end
-
-# need this function just for the iterator
-Base.length(x::MatrixGroup)::Int = order(x)
 
 ########################################################################
 #
@@ -288,18 +323,24 @@ end
 
 # TODO: we are not currently keeping track of the parent
 function ==(x::MatrixGroupElem{S,T},y::MatrixGroupElem{S,T}) where {S,T}
-   return x.elm==y.elm
+   if isdefined(x,:X) && isdefined(y,:X) return x.X==y.X
+   else return x.elm==y.elm
+   end
 end
 
 # TODO: we wish to multiply / conjugate also matrices with different parents ?
-
-function Base.:*(x::MatrixGroupElem,y::MatrixGroupElem)
+function _prod(x::MatrixGroupElem,y::MatrixGroupElem)
    if x.parent==y.parent
-      return MatrixGroupElem(x.parent, x.elm*y.elm)
+      if isdefined(x,:X) && isdefined(y,:X) && !(isdefined(x,:elm) && isdefined(y,:elm))
+         return MatrixGroupElem(x.parent, x.X*y.X)
+      else
+         return MatrixGroupElem(x.parent, x.elm*y.elm)
+      end
    else
       throw(ArgumentError("Matrices not in the same group"))
    end
 end
+# Base.:* is defined in src/Groups/GAPGroups.jl
 
 Base.:^(x::MatrixGroupElem, n::Int) = MatrixGroupElem(x.parent, x.elm^n)
 
@@ -307,15 +348,18 @@ Base.isone(x::MatrixGroupElem) = isone(x.elm)
 
 Base.inv(x::MatrixGroupElem) = MatrixGroupElem(x.parent, inv(x.elm))
 
-function Base.conj(x::MatrixGroupElem, y::MatrixGroupElem)
+# TODO: we wish to multiply / conjugate also matrices with different parents ?
+function Base.:^(x::MatrixGroupElem, y::MatrixGroupElem)
    if x.parent==y.parent
-      return MatrixGroupElem(x.parent,inv(y.elm)*x.elm*y.elm)
+      if isdefined(x,:X) && isdefined(y,:X) && !(isdefined(x,:elm) && isdefined(y,:elm))
+         return MatrixGroupElem(x.parent, inv(y.X)*x.X*y.X)
+      else
+         return MatrixGroupElem(x.parent,inv(y.elm)*x.elm*y.elm)
+      end
    else
       throw(ArgumentError("Matrices not in the same group"))
    end
 end
-
-Base.:^(x::MatrixGroupElem, y::MatrixGroupElem) = conj(x,y)
 
 comm(x::MatrixGroupElem, y::MatrixGroupElem) = inv(x)*conj(x,y)
 

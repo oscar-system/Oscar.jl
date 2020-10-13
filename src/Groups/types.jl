@@ -40,6 +40,7 @@ import Hecke:
     normal_closure,
     one!,
     order,
+    parent_type,
     perm,
     preimage,
     quo,
@@ -57,12 +58,10 @@ export
     AutomorphismGroup,
     DirectProductGroup,
     DirectProductOfElem,
-    elem_type,
     FPGroup,
     FPGroupElem,
     GAPGroupElem,
     GAPGroupHomomorphism,
-    parent_type,
     PcGroup,
     PcGroupElem,
     PermGroup,
@@ -76,11 +75,11 @@ TODO: document this
 abstract type GAPGroup <: AbstractAlgebra.Group end
 #abstract type GroupElem <: AbstractAlgebra.GroupElem
 
-abstract type OscarGroupElem{T<:GAPGroup} <: AbstractAlgebra.GroupElem end
+abstract type GAPGroupElem{T<:GAPGroup} <: AbstractAlgebra.GroupElem end
 """
 TODO: document this
 """
-struct GAPGroupElem{T<:GAPGroup} <: OscarGroupElem{T}
+struct BasicGAPGroupElem{T<:GAPGroup} <: GAPGroupElem{T}
    parent::T
    X::GapObj
 end
@@ -127,7 +126,7 @@ Element of a group of permutation. It is displayed as product of disjoint cycles
 - for `x`,`y` in Sym(n), the product `xy` is read from left to right;
 - for `x` in Sym(n) and `i` in {1,...,n}, `i^x` and `x(i)` return the image of `i` under the action of `x`.
 """
-const PermGroupElem = GAPGroupElem{PermGroup}
+const PermGroupElem = BasicGAPGroupElem{PermGroup}
 
 """
     PcGroup
@@ -153,7 +152,7 @@ end
 
 Element of a polycyclic group.
 """
-const PcGroupElem = GAPGroupElem{PcGroup}
+const PcGroupElem = BasicGAPGroupElem{PcGroup}
 
 """
     FPGroup
@@ -174,7 +173,7 @@ end
 """
 TODO: document this
 """
-const FPGroupElem = GAPGroupElem{FPGroup}
+const FPGroupElem = BasicGAPGroupElem{FPGroup}
 
 ################################################################################
 #
@@ -266,8 +265,13 @@ In the future, a more elaborate setup for group element types
 might also be needed.
 """
 
-elem_type(::Type{T}) where T <: GAPGroup = GAPGroupElem{T}
-parent_type(::Type{<:OscarGroupElem{T}}) where T <: GAPGroup = T
+function elem_type(::Type{T}) where T <: GAPGroup
+   if T<:MatrixGroup return MatrixGroupElem{ring_elem_type(T),mat_elem_type(T)}
+   else return BasicGAPGroupElem{T}
+   end
+end
+
+parent_type(::Type{<:GAPGroupElem{T}}) where T <: GAPGroup = T
 
 
 #
