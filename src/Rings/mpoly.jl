@@ -304,7 +304,7 @@ mutable struct MPolyIdeal{S} <: Ideal{S}
     r.dim = -1 #not known
     r.gens = BiPolyArray(Ox, s)
     if s.isGB
-      r.gb = gens
+      r.gb = r.gens
     end
     return r
   end
