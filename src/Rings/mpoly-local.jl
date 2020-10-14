@@ -9,7 +9,7 @@ function _sort_helper(p::MPolyElem)
   return var_index(lt(p))
 end
 
-mutable struct MPolyRing_loc{T} <: AbstractAlgebra.Ring 
+mutable struct MPolyRing_loc{T} <: AbstractAlgebra.Ring
   base_ring::MPolyRing{T}
   max_ideal::Oscar.MPolyIdeal
   nvars::Int64
@@ -39,7 +39,7 @@ struct MPolyElem_loc{T} <: AbstractAlgebra.RingElem where {T}
   function MPolyElem_loc(f::AbstractAlgebra.Generic.Frac, m::Oscar.MPolyIdeal)
     R = parent(numerator(f))
     B = base_ring(R)
-    (R != base_ring(m)) && error("Parent rings do not match!") 
+    (R != base_ring(m)) && error("Parent rings do not match!")
     pt = lc.([gen(R, i)-m.gens.Ox[i] for i in 1:nvars(R)]) # This should be easier, somehow ...
     (evaluate(denominator(f), pt) == base_ring(R)(0)) && error("Element does not belong to the localization.")i
     r = new{elem_type(B)}(f, Localization(R, m))
@@ -101,18 +101,18 @@ end
 ###############################################################################
 
 function singular_ring_loc(R::MPolyRing_loc{T}; ord::Symbol = :negdegrevlex) where T
-  return Singular.PolynomialRing(Oscar.singular_ring(base_ring(R.base_ring)), 
+  return Singular.PolynomialRing(Oscar.singular_ring(base_ring(R.base_ring)),
               [string(x) for x = Nemo.symbols(R)],
               ordering = ord,
               cached = false)[1]
 end
 
-mutable struct BiPolyArray_loc{S} 
-  O::Array{S, 1} 
+mutable struct BiPolyArray_loc{S}
+  O::Array{S, 1}
   S::Singular.sideal
   Ox
   Sx
-  
+
   function BiPolyArray_loc(Ox::T, b::Singular.sideal) where {T <: MPolyRing_loc}
     r = new{elem_type(T)}()
     r.S = b
@@ -309,7 +309,7 @@ function groebner_assure(I::MPolyIdeal_loc)
   if !isdefined(I, :gb)
     if !isdefined(I.gens, :S)
       singular_assure(I)
-    end 
+    end
     R = I.gens.Sx
     i = Singular.std(I.gens.S)
     I.gb = BiPolyArray_loc(I.gens.Ox, i)
