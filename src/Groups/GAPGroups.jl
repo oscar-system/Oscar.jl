@@ -63,12 +63,7 @@ export
 # the custom group types and isos they define should be added to the arrays
 # _gap_group_types resp. _iso_function
 
-
-function group_element(G::T, x::GapObj) where T <: GAPGroup
-  if T<:MatrixGroup return MatrixGroupElem(G,x)
-  else return BasicGAPGroupElem{T}(G, x)
-  end
-end
+group_element(G::T, x::GapObj) where T <: GAPGroup = BasicGAPGroupElem{T}(G,x)
 
 function elements(G::T) where T <: GAPGroup
   els = GAP.gap_to_julia(Vector{GapObj},GAP.Globals.Elements(G.X))
