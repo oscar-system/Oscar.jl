@@ -100,6 +100,8 @@ function Base.show(io::IO, x::MatrixGroupElem)          #TODO: is this correct?
    end
 end
 
+group_element(G::MatrixGroup, x::GapObj) = MatrixGroupElem(G,x)
+
 #=
 function Base.show(io::IO, x::GroupConjClass{T, S}) where T<: MatrixGroup where S
   if isdefined(x.repr,:elm)
@@ -443,3 +445,72 @@ const GL = general_linear_group
 const SL = special_linear_group
 
 
+########################################################################
+#
+# Subgroup
+#
+########################################################################
+
+function _as_subgroup(G::T, H::GapObj) where T <: MatrixGroup
+  return MatrixGroup(G.deg,G.ring,H)
+end
+
+# convert a GAP list of subgroups into a vector of Julia groups objects
+function _as_subgroups(G::T, subs::GapObj) where T <: MatrixGroup
+  res = Vector{T}(undef, length(subs))
+  for i = 1:length(res)
+    res[i] = _as_subgroup(G, subs[i])
+  end
+  return res
+end
+
+function intersect(V::T...) where T<:MatrixGroup
+   L = GAP.julia_to_gap([G.X for G in V])
+   K = GAP.Globals.Intersection(L)
+   return _as_subgroup(V[1], K)
+end
+
+function intersect(V::AbstractVector{T}) where T<:GAPGroup
+   L = GAP.julia_to_gap([G.X for G in V])
+   K = GAP.Globals.Intersection(L)
+   return _as_subgroup(V[1], K)
+end
+
+
+########################################################################
+#
+# Conjugation
+#
+########################################################################
+
+function Base.show(io::IO, x::GroupConjClass{T,S}) where T <: MatrixGroup where S <: MatrixGroupElem
+  show(x.repr)
+  print(" ^ ")
+  show(x.X)
+end
+
+function Base.show(io::IO, x::GroupConjClass{T,S}) where T <: MatrixGroup where S <: MatrixGroup
+  show(x.repr)
+  print(" ^ ")
+  show(x.X)
+end
+
+function Base.:^(H::MatrixGroup, y::MatrixGroupElem)
+   if isdefined(H,:gens)
+      K = MatrixGroup(H.deg, H.ring)
+      K.gens = [inv(y.elm)*x*y.elm for x in H.gens]
+      return K
+   else
+      return MatrixGroup(H.deg,H.ring,H.X^y.X)
+   end
+end
+
+function conjugacy_classes_subgroups(G::MatrixGroup)
+   L=GAP.gap_to_julia(Vector{GapObj},GAP.Globals.ConjugacyClassesSubgroups(G.X))
+   return GroupConjClass{typeof(G), typeof(G)}[ _conjugacy_class(G,MatrixGroup(G.deg,G.ring,GAP.Globals.Representative(cc)),cc) for cc in L]
+end
+
+function conjugacy_classes_maximal_subgroups(G::MatrixGroup)
+  L = GAP.gap_to_julia(Vector{GapObj},GAP.Globals.ConjugacyClassesMaximalSubgroups(G.X))
+   return GroupConjClass{typeof(G), typeof(G)}[ _conjugacy_class(G,MatrixGroup(G.deg,G.ring,GAP.Globals.Representative(cc)),cc) for cc in L]
+end
