@@ -1,6 +1,6 @@
 # further possible functions: similar, literal_pow, parent_type
 
-import Base.:^
+import Base.:^, Base.Vector
 
 export GroupConjClass
 
@@ -342,6 +342,14 @@ Return the list L defined by L = [ `x`(i) for i in 1:n ], where `n` is the degre
 function listperm(x::PermGroupElem)
    return [x(i) for i in 1:x.parent.deg]
 end
+#TODO: Perhaps omit `listperm` and use just `Vector`?
+
+"""
+    Vector{T}(x::PermGroupElem, n::Int = x.parent.deg) where {T}
+
+Return the list of length `n` that contains `x(i)` at position `i`.
+"""
+Base.Vector{T}(x::PermGroupElem, n::Int = x.parent.deg) where {T} = T[x(i) for i in 1:n]
 
 """
     gens(G::Group)

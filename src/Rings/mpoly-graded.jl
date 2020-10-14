@@ -289,6 +289,8 @@ Nemo.gens(W::MPolyRing_dec) = map(W, gens(W.R))
 Nemo.gen(W::MPolyRing_dec, i::Int) = W(gen(W.R, i))
 Base.getindex(W::MPolyRing_dec, i::Int) = W(W.R[i])
 
+base_ring(f::MPolyElem_dec) = base_ring(f.f)
+
 *(r::fmpq, w::MPolyElem_dec) = parent(w)(r*w.f)
 
 function show_homo_comp(io::IO, M)
