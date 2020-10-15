@@ -4,13 +4,14 @@ mutable struct GenRingIso <: Map{FqNmodFiniteField,GapObj,SetMap,GenRingIso}
    domain::FqNmodFiniteField
    codomain::GapObj
    f
-   finv
+   f_inv
 
-   function GenRingIso(F::FqNmodFiniteField, Fg::GapObj, g)
+   function GenRingIso(F::FqNmodFiniteField, Fg::GapObj, g, ginv)
       z = new()
       z.domain = F
       z.codomain = Fg
       z.f = g
+      z.f_inv = ginv
       return z
    end
 end
@@ -22,9 +23,15 @@ function elem_f(x::fq_nmod; B=0,d=0)
    return x_gap
 end
 
+function elem_g(x::FFE; B=0, z=0, d=0)
+   L = GAP.gap_to_julia(GAP.Globals.List(GAP.Globals.Coefficients(B,x), y-> GAP.Globals.IntFFE(y)))
+   return sum([L[i]*z^(i-1) for i in 1:d])
+end
+
 function gen_ring_iso(F::FqNmodFiniteField)
    p = Int64(characteristic(F))
    d = Int64(degree(F))
+   z = gen(F)
 
    if d==1
       f(x::fq_nmod) = x-> Int(coeff(x,0))*GAP.Globals.One(GAP.Globals.GF(p))
@@ -36,12 +43,14 @@ function gen_ring_iso(F::FqNmodFiniteField)
    L_gap = GAP.julia_to_gap([i*y for y in L])
    f_gap = GAP.Globals.UnivariatePolynomial(GAP.Globals.GF(p),L_gap)
    F_gap = GAP.Globals.GF(GAP.Globals.GF(p),f_gap)
-   Basis_F = GAP.gap_to_julia(GAP.Globals.BasisVectors(GAP.Globals.Basis(F_gap)))
-   homom(x::fq_nmod) = elem_f(x;B=Basis_F,d=d)
-   return GenRingIso(F, F_gap, homom)
+   Basis_F = GAP.Globals.Basis(F_gap)
+   homom(x::fq_nmod) = elem_f(x;B=GAP.gap_to_julia(GAP.Globals.BasisVectors(Basis_F)),d=d)
+   homominv(x::FFE) = elem_g(x; B=Basis_F, z=z, d=d)
+   return GenRingIso(F, F_gap, homom, homominv)
 end
 
 (g::GenRingIso)(x::fq_nmod) = g.f(x)
+(g::GenRingIso)(x::FFE) = g.f_inv(x)
+
 Base.show(io::IO, f::GenRingIso) = print(io, "Ring isomorphism between ", F, " and the corresponding GAP")
 
-function FieldElemGapToOscar(x::GapObj)
