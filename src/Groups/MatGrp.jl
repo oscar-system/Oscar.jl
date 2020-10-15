@@ -470,7 +470,7 @@ function intersect(V::T...) where T<:MatrixGroup
    return _as_subgroup(V[1], K)
 end
 
-function intersect(V::AbstractVector{T}) where T<:GAPGroup
+function intersect(V::AbstractVector{T}) where T<:MatrixGroup
    L = GAP.julia_to_gap([G.X for G in V])
    K = GAP.Globals.Intersection(L)
    return _as_subgroup(V[1], K)
@@ -513,4 +513,17 @@ end
 function conjugacy_classes_maximal_subgroups(G::MatrixGroup)
   L = GAP.gap_to_julia(Vector{GapObj},GAP.Globals.ConjugacyClassesMaximalSubgroups(G.X))
    return GroupConjClass{typeof(G), typeof(G)}[ _conjugacy_class(G,MatrixGroup(G.deg,G.ring,GAP.Globals.Representative(cc)),cc) for cc in L]
+end
+
+function Base.rand(C::GroupConjClass{S,T}) where S<:MatrixGroup where T<:MatrixGroup
+   return MatrixGroup(C.X.deg,C.X.ring,GAP.Globals.Random(C.CC))
+end
+
+function elements(C::GroupConjClass{S, T}) where S where T<:GAPGroup
+   L=GAP.Globals.AsList(C.CC)
+   l = Vector{T}(undef, length(L))
+   for i in 1:length(l)
+      l[i] = _as_subgroup(C.X, L[i])
+   end
+   return l
 end
