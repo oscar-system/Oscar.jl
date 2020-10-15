@@ -1,12 +1,6 @@
 name = "Oscar"
 uuid = "f1435218-dba5-11e9-1e4d-f1a5fab5fc13"
-authors = [
-  "Claus Fieker <fieker@mathematik.uni-kl.de>",
-  "Giovanni De Franceschi <franceschi@mathematik.uni-kl.de>",
-  "Johannes Schmitt <schmitt@mathematik.uni-kl.de>",
-  "Max Horn <horn@mathematik.uni-kl.de>",
-  "William Hart <goodwillhart@googlemail.com>",
-  ]
+authors = ["Claus Fieker <fieker@mathematik.uni-kl.de>", "Giovanni De Franceschi <franceschi@mathematik.uni-kl.de>", "Johannes Schmitt <schmitt@mathematik.uni-kl.de>", "Max Horn <horn@mathematik.uni-kl.de>", "William Hart <goodwillhart@googlemail.com>"]
 version = "0.5.0"
 
 [deps]
@@ -23,7 +17,7 @@ Singular = "bcd08a7b-43d2-5ff7-b6d4-c458787f915c"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
-AbstractAlgebra = "^0.9.1, 0.10"
+AbstractAlgebra = "^0.9.1, 0.10, 0.11"
 DocStringExtensions = "0.8"
 GAP = "0.4"
 Hecke = "^0.8.0"
