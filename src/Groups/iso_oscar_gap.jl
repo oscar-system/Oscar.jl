@@ -34,8 +34,9 @@ function gen_ring_iso(F::FqNmodFiniteField)
    z = gen(F)
 
    if d==1
-      f(x::fq_nmod) = x-> Int(coeff(x,0))*GAP.Globals.One(GAP.Globals.GF(p))
-      return GenRingIso(F, GAP.Globals.GF(p), f)
+      f(x::fq_nmod) = x -> Int(coeff(x,0))*GAP.Globals.One(GAP.Globals.GF(p))
+      finv(x::FFE) = x -> F(GAP.Globals.IntFFE(x))
+      return GenRingIso(F, GAP.Globals.GF(p), f, finv)
    end
    L = [Int64(lift(coeff(defining_polynomial(F),i))) for i in 0:d-1]
    L = vcat(L,[1])
