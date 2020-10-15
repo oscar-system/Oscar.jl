@@ -1,3 +1,5 @@
+import AbstractAlgebra: MatElem
+import Hecke: FqNmodFiniteField, FqNmodMatSpace
 
 # isomorphism from the Oscar field to the GAP field
 mutable struct GenRingIso <: Map{FqNmodFiniteField,GapObj,SetMap,GenRingIso}
@@ -16,6 +18,21 @@ mutable struct GenRingIso <: Map{FqNmodFiniteField,GapObj,SetMap,GenRingIso}
    end
 end
 
+# turns the Oscar matrix into the GAP matrix and viceversa
+mutable struct GenMatIso <: Map{FqNmodMatSpace,GapObj,SetMap,GenMatIso}
+   domain::FqNmodMatSpace
+   codomain::GapObj
+   fr::GenRingIso
+   f
+   f_inv
+end
+
+
+################################################################################
+#
+#  Ring isomorphism
+#
+################################################################################
 
 function elem_f(x::fq_nmod; B=0,d=0)
    COEF = [Int64(coeff(x,i)) for i in 0:d-1]
@@ -54,4 +71,42 @@ end
 (g::GenRingIso)(x::FFE) = g.f_inv(x)
 
 Base.show(io::IO, f::GenRingIso) = print(io, "Ring isomorphism between ", F, " and the corresponding GAP")
+
+
+
+################################################################################
+#
+#  Matrix space isomorphism
+#
+################################################################################
+
+function mat_oscar_gap(x::fq_nmod_mat; n=0, r=0)
+   S = Vector{GapObj}(undef, n)
+   for i in 1:n
+      S[i] = GAP.julia_to_gap([r(x[i,j]) for j in 1:n])
+   end
+
+   return GAP.julia_to_gap(S)
+end
+
+function mat_gap_oscar(x::GapObj; n=0, r=0)
+   Arr = [GAP.gap_to_julia(x[i]) for i in 1:n]
+   L = [r(Arr[i][j]) for i in 1:n for j in 1:n]
+
+   return matrix(r.domain, n, n, L)
+end
+
+
+function gen_mat_iso(deg::Int, F::FqNmodFiniteField)
+   riso = gen_ring_iso(F)                                      # "riso" = Ring ISOmorphism
+   
+   homom(x::fq_nmod_mat) = mat_oscar_gap(x; n=deg, r=riso)
+   homominv(x::GapObj) = mat_gap_oscar(x; n=deg, r=riso)
+   return GenMatIso(MatrixSpace(F,deg,deg),GAP.Globals.MatrixAlgebra(riso.codomain, deg), riso, homom, homominv)
+end
+
+(g::GenMatIso)(x::fq_nmod_mat) = g.f(x)
+(g::GenMatIso)(x::GapObj) = g.f_inv(x)
+
+Base.show(io::IO, f::GenMatIso) = print(io, "Matrix algebra homomorphism from Oscar algebra to GAP algebra")
 

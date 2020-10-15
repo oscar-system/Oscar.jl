@@ -6,19 +6,7 @@ export
     MatrixGroup,
     MatrixGroupElem
 
-# isomorphism from the Oscar field to the GAP field
-mutable struct GenRingIso{S<:Ring,T<:GapObj} <: Map{S,T,SetMap,GenRingIso}
-   domain::S
-   codomain::T
-   f
-end
 
-# sends the Oscar matrix into the GAP matrix
-mutable struct GenMatIso{S<:MatSpace, T<:GapObj} <: Map{S,T,SetMap,GenMatIso{S,T}}
-   domain::S
-   codomain::T
-   f
-end
 
 mutable struct MatrixGroup{RE<:RingElem, T<:MatElem{RE}} <: GAPGroup
    X::GapObj
@@ -26,8 +14,8 @@ mutable struct MatrixGroup{RE<:RingElem, T<:MatElem{RE}} <: GAPGroup
    ring::Ring
    deg::Int
    descr::Symbol                       # e.g. GL
-   ring_iso::Map{RE,GapObj,SetMap}
-   mat_iso::Map{T,GapObj,SetMap}
+   ring_iso::GenRingIso
+   mat_iso::GenMatIso
 
    function MatrixGroup(m::Int64, F::S) where S<:Ring
       K = elem_type(S)
@@ -102,73 +90,40 @@ end
 
 group_element(G::MatrixGroup, x::GapObj) = MatrixGroupElem(G,x)
 
-#=
-function Base.show(io::IO, x::GroupConjClass{T, S}) where T<: MatrixGroup where S
-  if isdefined(x.repr,:elm)
-     display(x.repr.elm)
-  else
-     print(io, GAP.gap_to_julia(GAP.Globals.StringViewObj(x.repr.X)))
-  end
-  print(" ^ ")
-  if isdefined(x.X, :descr)
-      print(io, string(x.X.descr), "(",x.X.deg,",",order(x.X.ring),")")
-  else
-      print(io, "Matrix group of degree ", x.X.deg, " over ", x.X.ring)
-  end
-end
-=#
-
 function Base.getproperty(G::MatrixGroup, sym::Symbol)
    if sym === :X
       if isdefined(G,:X) return getfield(G,:X) end
       if isdefined(G,:descr)
-         if G.descr==:GL setfield!(G,:X,GAP.Globals.GL(G.deg,Int(order(G.ring))))
-         elseif G.descr==:SL setfield!(G,:X,GAP.Globals.SL(G.deg,Int(order(G.ring))))
+         fm = gen_mat_iso(G.deg, G.ring)
+         setfield!(G,:ring_iso,fm.fr)
+         setfield!(G,:mat_iso,fm)
+         if G.descr==:GL setfield!(G,:X,GAP.Globals.GL(G.deg,fm.fr.codomain))
+         elseif G.descr==:SL setfield!(G,:X,GAP.Globals.SL(G.deg,fm.fr.codomain))
          end
       elseif isdefined(G,:gens)
-         V = GAP.julia_to_gap([MatOscarToGap(g,base_ring(g)) for g in G.gens])
+         fm = gen_mat_iso(G.deg, G.ring)
+         setfield!(G,:ring_iso,fm.fr)
+         setfield!(G,:mat_iso,fm)
+         V = GAP.julia_to_gap([fm(g) for g in G.gens])
          setfield!(G,:X,GAP.Globals.Group(V))
       end
    elseif sym === :gens
       if isdefined(G, :gens) return getfield(G, :gens) end
       if !isdefined(G, :X)
-         if G.descr==:GL setfield!(G,:X,GAP.Globals.GL(G.deg,Int(order(G.ring))))
-         elseif G.descr==:SL setfield!(G,:X,GAP.Globals.SL(G.deg,Int(order(G.ring))))
+         fm = gen_mat_iso(G.deg, G.ring)
+         setfield!(G,:ring_iso,fm.fr)
+         setfield!(G,:mat_iso,fm)
+         if G.descr==:GL setfield!(G,:X,GAP.Globals.GL(G.deg,fm.fr.codomain))
+         elseif G.descr==:SL setfield!(G,:X,GAP.Globals.SL(G.deg,fm.fr.codomain))
          end
       end
       F_gap = GAP.Globals.FieldOfMatrixGroup(getfield(G,:X))
       L = GAP.Globals.GeneratorsOfGroup(getfield(G,:X))
-      setfield!(G,:gens,[MatGapToOscar(L[i],F_gap,G.ring) for i in 1:length(L)])
+      setfield!(G,:gens,[G.mat_iso(L[i]) for i in 1:length(L)])
    else
       return getfield(G, sym)
    end
 end
-
-#=
-# add field :X
-function get_gap_group(G::MatrixGroup)
-   if !isdefined(G,:X)
-      if isdefined(G,:descr)
-         if G.descr==:GL G.X = GAP.Globals.GL(G.deg,Int(order(G.ring)))
-         elseif G.descr==:SL G.X = GAP.Globals.SL(G.deg,Int(order(G.ring)))
-         end
-      elseif isdefined(G,:gens)
-         V = GAP.julia_to_gap([MatOscarToGap(g,g.ring) for g in G.gens])
-         G.X = GAP.Globals.Group(V)
-      end
-   end
-end
-
-# add field :gens
-function get_gens(G::MatrixGroup)
-   if !isdefined(G,:gens)
-      get_gap_group(G)
-      F_gap = GAP.Globals.FieldOfMatrixGroup(G.X)
-      L = GAP.Globals.GeneratorsOfGroup(G.X)
-      G.gens = [MatGapToOscar(L[i],F_gap,G.ring) for i in 1:length(L)]
-   end
-end
-=#
 
 # add field :X
 function Base.getproperty(x::MatrixGroupElem, sym::Symbol)
