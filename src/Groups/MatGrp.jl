@@ -91,46 +91,67 @@ end
 group_element(G::MatrixGroup, x::GapObj) = MatrixGroupElem(G,x)
 
 function Base.getproperty(G::MatrixGroup, sym::Symbol)
-   if sym === :X
+
+   if sym === :mat_iso || sym === :ring_iso
+      if isdefined(G,sym) return getfield(G,sym) end
+      fm = gen_mat_iso(G.deg, G.ring)
+      setfield!(G,:ring_iso,fm.fr)
+      setfield!(G,:mat_iso,fm)
+
+   elseif sym === :X
       if isdefined(G,:X) return getfield(G,:X) end
       if isdefined(G,:descr)
-         fm = gen_mat_iso(G.deg, G.ring)
-         setfield!(G,:ring_iso,fm.fr)
-         setfield!(G,:mat_iso,fm)
-         if G.descr==:GL setfield!(G,:X,GAP.Globals.GL(G.deg,fm.fr.codomain))
-         elseif G.descr==:SL setfield!(G,:X,GAP.Globals.SL(G.deg,fm.fr.codomain))
+         if !isdefined(G,:ring_iso)
+            fm = gen_mat_iso(G.deg, G.ring)
+            setfield!(G,:ring_iso,fm.fr)
+            setfield!(G,:mat_iso,fm)
+         end
+         if G.descr==:GL setfield!(G,:X,GAP.Globals.GL(G.deg,G.ring_iso.codomain))
+         elseif G.descr==:SL setfield!(G,:X,GAP.Globals.SL(G.deg,G.ring_iso.codomain))
          end
       elseif isdefined(G,:gens)
-         fm = gen_mat_iso(G.deg, G.ring)
-         setfield!(G,:ring_iso,fm.fr)
-         setfield!(G,:mat_iso,fm)
-         V = GAP.julia_to_gap([fm(g) for g in G.gens])
+         if !isdefined(G,:ring_iso)
+            fm = gen_mat_iso(G.deg, G.ring)
+            setfield!(G,:ring_iso,fm.fr)
+            setfield!(G,:mat_iso,fm)
+         end
+         V = GAP.julia_to_gap([G.mat_iso(g) for g in G.gens])
          setfield!(G,:X,GAP.Globals.Group(V))
       end
+
    elseif sym === :gens
       if isdefined(G, :gens) return getfield(G, :gens) end
       if !isdefined(G, :X)
-         fm = gen_mat_iso(G.deg, G.ring)
-         setfield!(G,:ring_iso,fm.fr)
-         setfield!(G,:mat_iso,fm)
-         if G.descr==:GL setfield!(G,:X,GAP.Globals.GL(G.deg,fm.fr.codomain))
-         elseif G.descr==:SL setfield!(G,:X,GAP.Globals.SL(G.deg,fm.fr.codomain))
+         if !isdefined(G,:ring_iso)
+            fm = gen_mat_iso(G.deg, G.ring)
+            setfield!(G,:ring_iso,fm.fr)
+            setfield!(G,:mat_iso,fm)
+         end
+         if G.descr==:GL setfield!(G,:X,GAP.Globals.GL(G.deg,G.ring_iso.codomain))
+         elseif G.descr==:SL setfield!(G,:X,GAP.Globals.SL(G.deg,G.ring_iso.codomain))
          end
       end
-      F_gap = GAP.Globals.FieldOfMatrixGroup(getfield(G,:X))
       L = GAP.Globals.GeneratorsOfGroup(getfield(G,:X))
       setfield!(G,:gens,[G.mat_iso(L[i]) for i in 1:length(L)])
+
    else
       return getfield(G, sym)
+
    end
+
 end
 
 # add field :X
 function Base.getproperty(x::MatrixGroupElem, sym::Symbol)
    if sym === :X && !isdefined(x,:X)
-      setfield!(x, :X, MatOscarToGap(x.elm, x.parent.ring))
-   elseif sym == :elm && !isdefined(x, :elm)
-      setfield!(x, :elm, MatGapToOscar(x.X, GAP.Globals.DefaultFieldOfMatrix(x.X), x.parent.ring))
+      if !isdefined(x.parent,:ring_iso)
+         fm = gen_mat_iso(x.parent.deg, x.parent.ring)
+         setfield!(x.parent,:ring_iso,fm.fr)
+         setfield!(x.parent,:mat_iso,fm)
+      end
+      setfield!(x, :X, x.parent.mat_iso(x.elm))
+   elseif sym == :elm && !isdefined(x, :elm)                        # assuming that x.X, hence x.parent.ring_iso, are defined
+      setfield!(x, :elm, x.mat_iso(x.X))
    end
    return getfield(x,sym)
 end
@@ -143,7 +164,7 @@ function Base.iterate(G::MatrixGroup)
     return nothing
   end
   i = GAP.Globals.NextIterator(L)
-  return MatrixGroupElem(G, MatGapToOscar(i,GAP.Globals.DefaultFieldOfMatrix(i),G.ring),i), L
+  return MatrixGroupElem(G, G.mat_iso(i),i), L
 end
 
 function Base.iterate(G::MatrixGroup, state)
@@ -151,7 +172,7 @@ function Base.iterate(G::MatrixGroup, state)
     return nothing
   end
   i = GAP.Globals.NextIterator(state)
-  return MatrixGroupElem(G, MatGapToOscar(i,GAP.Globals.DefaultFieldOfMatrix(i),G.ring),i), state
+  return MatrixGroupElem(G, G.mat_iso(i),i), state
 end
 
 ########################################################################
@@ -168,8 +189,8 @@ function lies_in(x::MatElem, G::MatrixGroup, x_gap)
    if isdefined(G,:gens) && x in G.gens
       return true, Nothing
    else
-      if x_gap==0 x_gap = MatOscarToGap(x,base_ring(x)) end
-     # x_gap !=0 || x_gap = MatOscarToGap(x,base_ring(x))
+      if x_gap==0 x_gap = G.mat_iso(x) end
+     # x_gap !=0 || x_gap = G.mat_iso(x)
       return GAP.Globals.in(x_gap,G.X), x_gap
    end
 end
@@ -191,86 +212,6 @@ function (G::MatrixGroup)(x::MatElem)
    end
 end
 
-########################################################################
-#
-# conversions
-#
-########################################################################
-#TODO: support other field types
-
-function FieldGapToOscar(F::GapObj)
-   p = GAP.Globals.Characteristic(F)
-   q = GAP.Globals.Size(F)
-   d = Base.Integer(log(p,q))
-
-   return GF(p,d)
-end
-
-function FieldOscarToGap(F::FqNmodFiniteField)
-   p = Int64(characteristic(F))
-   d = Int64(degree(F))
-
-   return GAP.Globals.GF(p,d)
-end
-
-function FieldElemGapToOscar(x::FFE, Fgap::GapObj, F::FqNmodFiniteField)
-   q = GAP.Globals.Size(Fgap)
-   z = gen(F)
-   if GAP.Globals.IsZero(x)
-      return 0*z
-   else
-      d = Integer(GAP.Globals.LogFFE(x, GAP.Globals.Z(q)))
-      return z^d
-   end
-end
-
-function FieldElemGapToOscar(x::FFE, F::GapObj)
-   q = GAP.Globals.Size(F)
-   K,z = FieldGapToOscar(F)
-   if GAP.Globals.IsZero(x)
-      return 0*z
-   else
-      d = Integer(GAP.Globals.LogFFE(x, GAP.Globals.Z(q)))
-      return z^d
-   end
-end
-
-function FieldElemOscarToGap(x::fq_nmod, F::FqNmodFiniteField)
-   q = Int64(order(F))
-   d = degree(F)
-   z = gen(F)
-   v = [Int64(coeff(x,i)) for i in 0:d]
-   y = sum([GAP.Globals.Z(q)^i*v[i+1] for i in 0:d])
-   
-   return y
-end
-
-function MatGapToOscar(x::GapObj, Fgap::GapObj, F::FqNmodFiniteField)
-   n = GAP.Globals.Size(x)
-   Arr = [GAP.gap_to_julia(x[i]) for i in 1:n]
-   L = [FieldElemGapToOscar(Arr[i][j],Fgap,F) for i in 1:n for j in 1:n]
-
-   return matrix(F,n,n,L)
-end
-
-function MatGapToOscar(x::GapObj, F::GapObj)
-   n = GAP.Globals.Size(x)
-   Arr = [GAP.gap_to_julia(x[i]) for i in 1:n]
-   L = [FieldElemGapToOscar(Arr[i][j],F) for i in 1:n for j in 1:n]
-
-   return matrix(FieldGapToOscar(F)[1],n,n,L)
-end
-
-function MatOscarToGap(x::MatElem, F::FqNmodFiniteField)
-   r = nrows(x)
-   c = ncols(x)
-   S = Vector{GapObj}(undef,r)
-   for i in 1:r
-      S[i] = GAP.julia_to_gap([FieldElemOscarToGap(x[i,j],F) for j in 1:c])
-   end
-
-   return GAP.julia_to_gap(S)
-end
 
 ########################################################################
 #
@@ -344,7 +285,7 @@ Base.one(G::MatrixGroup) = MatrixGroupElem(G, identity_matrix(G.ring, G.deg))
 
 function Base.rand(G::MatrixGroup)
    x_gap = GAP.Globals.Random(G.X)
-   x_oscar = MatGapToOscar(x_gap,GAP.Globals.FieldOfMatrixGroup(G.X),G.ring)
+   x_oscar = G.mat_iso(x_gap)
    x = MatrixGroupElem(G,x_oscar,x_gap)
    return x
 end
@@ -482,3 +423,92 @@ function elements(C::GroupConjClass{S, T}) where S where T<:GAPGroup
    end
    return l
 end
+
+
+
+
+
+#=
+
+########################################################################
+#
+# conversions     (this should be no longer necessary, and it's also wrong)
+#
+########################################################################
+#TODO: support other field types
+
+function FieldGapToOscar(F::GapObj)
+   p = GAP.Globals.Characteristic(F)
+   q = GAP.Globals.Size(F)
+   d = Base.Integer(log(p,q))
+
+   return GF(p,d)
+end
+
+function FieldOscarToGap(F::FqNmodFiniteField)
+   p = Int64(characteristic(F))
+   d = Int64(degree(F))
+
+   return GAP.Globals.GF(p,d)
+end
+
+function FieldElemGapToOscar(x::FFE, Fgap::GapObj, F::FqNmodFiniteField)
+   q = GAP.Globals.Size(Fgap)
+   z = gen(F)
+   if GAP.Globals.IsZero(x)
+      return 0*z
+   else
+      d = Integer(GAP.Globals.LogFFE(x, GAP.Globals.Z(q)))
+      return z^d
+   end
+end
+
+function FieldElemGapToOscar(x::FFE, F::GapObj)
+   q = GAP.Globals.Size(F)
+   K,z = FieldGapToOscar(F)
+   if GAP.Globals.IsZero(x)
+      return 0*z
+   else
+      d = Integer(GAP.Globals.LogFFE(x, GAP.Globals.Z(q)))
+      return z^d
+   end
+end
+
+function FieldElemOscarToGap(x::fq_nmod, F::FqNmodFiniteField)
+   q = Int64(order(F))
+   d = degree(F)
+   z = gen(F)
+   v = [Int64(coeff(x,i)) for i in 0:d]
+   y = sum([GAP.Globals.Z(q)^i*v[i+1] for i in 0:d])
+   
+   return y
+end
+
+function MatGapToOscar(x::GapObj, Fgap::GapObj, F::FqNmodFiniteField)
+   n = GAP.Globals.Size(x)
+   Arr = [GAP.gap_to_julia(x[i]) for i in 1:n]
+   L = [FieldElemGapToOscar(Arr[i][j],Fgap,F) for i in 1:n for j in 1:n]
+
+   return matrix(F,n,n,L)
+end
+
+function MatGapToOscar(x::GapObj, F::GapObj)
+   n = GAP.Globals.Size(x)
+   Arr = [GAP.gap_to_julia(x[i]) for i in 1:n]
+   L = [FieldElemGapToOscar(Arr[i][j],F) for i in 1:n for j in 1:n]
+
+   return matrix(FieldGapToOscar(F)[1],n,n,L)
+end
+
+function MatOscarToGap(x::MatElem, F::FqNmodFiniteField)
+   r = nrows(x)
+   c = ncols(x)
+   S = Vector{GapObj}(undef,r)
+   for i in 1:r
+      S[i] = GAP.julia_to_gap([FieldElemOscarToGap(x[i,j],F) for j in 1:c])
+   end
+
+   return GAP.julia_to_gap(S)
+end
+
+=#
