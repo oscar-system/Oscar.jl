@@ -1,25 +1,17 @@
 import AbstractAlgebra: MatElem
-import Hecke: FqNmodFiniteField, FqNmodMatSpace
+import Hecke: FqNmodFiniteField, FqNmodMatSpace, fq_nmod, fq_nmod_mat
+import GAP: FFE
 
 # isomorphism from the Oscar field to the GAP field
-mutable struct GenRingIso <: Map{FqNmodFiniteField,GapObj,SetMap,GenRingIso}
+struct GenRingIso <: Map{FqNmodFiniteField,GapObj,SetMap,GenRingIso}
    domain::FqNmodFiniteField
    codomain::GapObj
    f
    f_inv
-
-   function GenRingIso(F::FqNmodFiniteField, Fg::GapObj, g, ginv)
-      z = new()
-      z.domain = F
-      z.codomain = Fg
-      z.f = g
-      z.f_inv = ginv
-      return z
-   end
 end
 
 # turns the Oscar matrix into the GAP matrix and viceversa
-mutable struct GenMatIso <: Map{FqNmodMatSpace,GapObj,SetMap,GenMatIso}
+struct GenMatIso <: Map{FqNmodMatSpace,GapObj,SetMap,GenMatIso}
    domain::FqNmodMatSpace
    codomain::GapObj
    fr::GenRingIso
@@ -41,7 +33,7 @@ function elem_f(x::fq_nmod; B=0,d=0)
 end
 
 function elem_g(x::FFE; B=0, z=0, d=0)
-   L = GAP.gap_to_julia(GAP.Globals.List(GAP.Globals.Coefficients(B,x), y-> GAP.Globals.IntFFE(y)))
+   L = GAP.gap_to_julia(GAP.Globals.List(GAP.Globals.Coefficients(B,x),GAP.Globals.IntFFE ))
    return sum([L[i]*z^(i-1) for i in 1:d])
 end
 
@@ -51,8 +43,8 @@ function gen_ring_iso(F::FqNmodFiniteField)
    z = gen(F)
 
    if d==1
-      f(x::fq_nmod) = x -> Int(coeff(x,0))*GAP.Globals.One(GAP.Globals.GF(p))
-      finv(x::FFE) = x -> F(GAP.Globals.IntFFE(x))
+      f(x::fq_nmod) = Int(coeff(x,0))*GAP.Globals.One(GAP.Globals.GF(p))
+      finv(x::FFE) = F(GAP.Globals.IntFFE(x))
       return GenRingIso(F, GAP.Globals.GF(p), f, finv)
    end
    L = [Int64(lift(coeff(defining_polynomial(F),i))) for i in 0:d-1]
@@ -70,7 +62,7 @@ end
 (g::GenRingIso)(x::fq_nmod) = g.f(x)
 (g::GenRingIso)(x::FFE) = g.f_inv(x)
 
-Base.show(io::IO, f::GenRingIso) = print(io, "Ring isomorphism between ", F, " and the corresponding GAP")
+Base.show(io::IO, f::GenRingIso) = print(io, "Ring isomorphism between ", f.domain, " and the corresponding GAP")
 
 
 
@@ -99,7 +91,6 @@ end
 
 function gen_mat_iso(deg::Int, F::FqNmodFiniteField)
    riso = gen_ring_iso(F)                                      # "riso" = Ring ISOmorphism
-   
    homom(x::fq_nmod_mat) = mat_oscar_gap(x; n=deg, r=riso)
    homominv(x::GapObj) = mat_gap_oscar(x; n=deg, r=riso)
    return GenMatIso(MatrixSpace(F,deg,deg),GAP.Globals.MatrixAlgebra(riso.codomain, deg), riso, homom, homominv)
