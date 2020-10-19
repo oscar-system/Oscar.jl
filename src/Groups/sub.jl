@@ -30,6 +30,8 @@ export
 function _as_subgroup_bare(G::T, H::GapObj) where T
   if T==PermGroup
     H1 = T(H, G.deg)
+  elseif T<:MatrixGroup
+    H1 = MatrixGroup(G.deg,G.ring,H)
   else
     H1 = T(H)
   end
@@ -47,11 +49,6 @@ end
 
 function sub(G::T, elements::Vector{S}) where T <: GAPGroup where S <: GAPGroupElem
   @assert elem_type(G) == S
-  if T<:MatrixGroup
-     H = MatrixGroup(G.deg, G.ring)
-     H.gens = [x.elm for x in elements]
-     return H
-  end
   elems_in_GAP = GAP.julia_to_gap(GapObj[x.X for x in elements])
   H = GAP.Globals.Group(elems_in_GAP)
   #H is the group. I need to return the inclusion map too

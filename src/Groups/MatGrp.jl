@@ -188,7 +188,7 @@ function Base.getproperty(x::MatrixGroupElem, sym::Symbol)
       end
       setfield!(x, :X, x.parent.mat_iso(x.elm))
    elseif sym == :elm && !isdefined(x, :elm)                        # assuming that x.X, hence x.parent.ring_iso, are defined
-      setfield!(x, :elm, x.mat_iso(x.X))
+      setfield!(x, :elm, x.parent.mat_iso(x.X))
    end
    return getfield(x,sym)
 end
@@ -497,19 +497,7 @@ const SU = special_unitary_group
 #
 ########################################################################
 
-function _as_subgroup(G::T, H::GapObj) where T <: MatrixGroup
-  return MatrixGroup(G.deg,G.ring,H)
-end
-
-# convert a GAP list of subgroups into a vector of Julia groups objects
-function _as_subgroups(G::T, subs::GapObj) where T <: MatrixGroup
-  res = Vector{T}(undef, length(subs))
-  for i = 1:length(res)
-    res[i] = _as_subgroup(G, subs[i])
-  end
-  return res
-end
-
+#=
 function intersect(V::T...) where T<:MatrixGroup
    L = GAP.julia_to_gap([G.X for G in V])
    K = GAP.Globals.Intersection(L)
@@ -521,7 +509,7 @@ function intersect(V::AbstractVector{T}) where T<:MatrixGroup
    K = GAP.Globals.Intersection(L)
    return _as_subgroup(V[1], K)
 end
-
+=#
 
 ########################################################################
 #
