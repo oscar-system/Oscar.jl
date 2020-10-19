@@ -3,8 +3,17 @@ import Hecke: base_ring, det, fq_nmod, FqNmodFiniteField, tr, trace
 import GAP: FFE
 
 export
+    general_linear_group,
     MatrixGroup,
-    MatrixGroupElem
+    MatrixGroupElem,
+    omega_group,
+    orthogonal_group,
+    special_linear_group,
+    special_orthogonal_group,
+    special_unitary_group,
+    symplectic_group,
+    unitary_group,
+    GL, GO, GU, SL, SO, Sp, SU
 
 
 
@@ -74,7 +83,11 @@ mat_elem_type(::Type{MatrixGroup{S,T}}) where {S,T} = T
 
 function Base.show(io::IO, x::MatrixGroup)
    if isdefined(x, :descr)
-      print(io, string(x.descr), "(",x.deg,",",order(x.ring),")")
+      if x.descr==:GU || x.descr==:SU
+         print(io, string(x.descr), "(",x.deg,",",characteristic(x.ring)^(div(degree(x.ring),2)),")")
+      else
+         print(io, string(x.descr), "(",x.deg,",",order(x.ring),")")
+      end
    else
       print(io, "Matrix group of degree ", x.deg, " over ", x.ring)
    end
@@ -108,6 +121,18 @@ function Base.getproperty(G::MatrixGroup, sym::Symbol)
          end
          if G.descr==:GL setfield!(G,:X,GAP.Globals.GL(G.deg,G.ring_iso.codomain))
          elseif G.descr==:SL setfield!(G,:X,GAP.Globals.SL(G.deg,G.ring_iso.codomain))
+         elseif G.descr==:Sp setfield!(G,:X,GAP.Globals.Sp(G.deg,G.ring_iso.codomain))
+         elseif G.descr==Symbol("GO+") setfield!(G,:X,GAP.Globals.GO(1,G.deg,G.ring_iso.codomain))
+         elseif G.descr==Symbol("SO+") setfield!(G,:X,GAP.Globals.SO(1,G.deg,G.ring_iso.codomain))
+         elseif G.descr==Symbol("Omega+") setfield!(G,:X,GAP.Globals.Omega(1,G.deg,Int(order(G.ring))))
+         elseif G.descr==Symbol("GO-") setfield!(G,:X,GAP.Globals.GO(-1,G.deg,G.ring_iso.codomain))
+         elseif G.descr==Symbol("SO-") setfield!(G,:X,GAP.Globals.SO(-1,G.deg,G.ring_iso.codomain))
+         elseif G.descr==Symbol("Omega-") setfield!(G,:X,GAP.Globals.Omega(-1,G.deg,Int(order(G.ring))))
+         elseif G.descr==:GO setfield!(G,:X,GAP.Globals.GO(0,G.deg,G.ring_iso.codomain))
+         elseif G.descr==:SO setfield!(G,:X,GAP.Globals.SO(0,G.deg,G.ring_iso.codomain))
+         elseif G.descr==:Omega setfield!(G,:X,GAP.Globals.Omega(0,G.deg,Int(order(G.ring))))
+         elseif G.descr==:GU setfield!(G,:X,GAP.Globals.GU(G.deg,Int(characteristic(G.ring)^(div(degree(G.ring),2) ) )))
+         elseif G.descr==:SU setfield!(G,:X,GAP.Globals.SU(G.deg,Int(characteristic(G.ring)^(div(degree(G.ring),2) ) )))
          end
       elseif isdefined(G,:gens)
          if !isdefined(G,:ring_iso)
@@ -129,6 +154,18 @@ function Base.getproperty(G::MatrixGroup, sym::Symbol)
          end
          if G.descr==:GL setfield!(G,:X,GAP.Globals.GL(G.deg,G.ring_iso.codomain))
          elseif G.descr==:SL setfield!(G,:X,GAP.Globals.SL(G.deg,G.ring_iso.codomain))
+         elseif G.descr==:Sp setfield!(G,:X,GAP.Globals.Sp(G.deg,G.ring_iso.codomain))
+         elseif G.descr==Symbol("GO+") setfield!(G,:X,GAP.Globals.GO(1,G.deg,G.ring_iso.codomain))
+         elseif G.descr==Symbol("SO+") setfield!(G,:X,GAP.Globals.SO(1,G.deg,G.ring_iso.codomain))
+         elseif G.descr==Symbol("Omega+") setfield!(G,:X,GAP.Globals.Omega(1,G.deg,Int(order(G.ring))))
+         elseif G.descr==Symbol("GO-") setfield!(G,:X,GAP.Globals.GO(-1,G.deg,G.ring_iso.codomain))
+         elseif G.descr==Symbol("SO-") setfield!(G,:X,GAP.Globals.SO(-1,G.deg,G.ring_iso.codomain))
+         elseif G.descr==Symbol("Omega-") setfield!(G,:X,GAP.Globals.Omega(-1,G.deg,Int(order(G.ring))))
+         elseif G.descr==:GO setfield!(G,:X,GAP.Globals.GO(0,G.deg,G.ring_iso.codomain))
+         elseif G.descr==:SO setfield!(G,:X,GAP.Globals.SO(0,G.deg,G.ring_iso.codomain))
+         elseif G.descr==:Omega setfield!(G,:X,GAP.Globals.Omega(0,G.deg,Int(order(G.ring))))
+         elseif G.descr==:GU setfield!(G,:X,GAP.Globals.GU(G.deg,Int(characteristic(G.ring)^(div(degree(G.ring),2) ) )))
+         elseif G.descr==:SU setfield!(G,:X,GAP.Globals.SU(G.deg,Int(characteristic(G.ring)^(div(degree(G.ring),2) ) )))
          end
       end
       L = GAP.Globals.GeneratorsOfGroup(getfield(G,:X))
@@ -337,8 +374,121 @@ function special_linear_group(n::Int, q::Int)
    return special_linear_group(n, GF(b,a)[1])
 end
 
+function symplectic_group(n::Int, F::Ring)
+   iseven(n) || throw(ArgumentError("The dimension must be even"))
+   G = MatrixGroup(n,F)
+   G.descr = :Sp
+   return G
+end
+
+function symplectic_group(n::Int, q::Int)
+   (a,b) = ispower(q)
+   if !isprime(b) throw(ArgumentError("The field size must be a prime power")) end
+   return symplectic_group(n, GF(b,a)[1])
+end
+
+function orthogonal_group(e::Int, n::Int, F::Ring)
+   if e==1
+      iseven(n) || throw(ArgumentError("The dimension must be even"))
+      G = MatrixGroup(n,F)
+      G.descr = Symbol("GO+")
+   elseif e==-1
+      iseven(n) || throw(ArgumentError("The dimension must be even"))
+      G = MatrixGroup(n,F)
+      G.descr = Symbol("GO-")
+   elseif e==0
+      isodd(n) || throw(ArgumentError("The dimension must be odd"))
+      G = MatrixGroup(n,F)
+      G.descr = :GO
+   else
+      throw(ArgumentError("Invalid description of orthogonal group"))
+   end
+   return G
+end
+
+function orthogonal_group(e::Int, n::Int, q::Int)
+   (a,b) = ispower(q)
+   if !isprime(b) throw(ArgumentError("The field size must be a prime power")) end
+   return orthogonal_group(e, n, GF(b,a)[1])
+end
+
+orthogonal_group(n::Int, F::Ring) = orthogonal_group(0,n,F)
+orthogonal_group(n::Int, q::Int) = orthogonal_group(0,n,q)
+
+function special_orthogonal_group(e::Int, n::Int, F::Ring)
+   if e==1
+      iseven(n) || throw(ArgumentError("The dimension must be even"))
+      G = MatrixGroup(n,F)
+      G.descr = Symbol("SO+")
+   elseif e==-1
+      iseven(n) || throw(ArgumentError("The dimension must be even"))
+      G = MatrixGroup(n,F)
+      G.descr = Symbol("SO-")
+   elseif e==0
+      isodd(n) || throw(ArgumentError("The dimension must be odd"))
+      G = MatrixGroup(n,F)
+      G.descr = :SO
+   else
+      throw(ArgumentError("Invalid description of orthogonal group"))
+   end
+   return G
+end
+
+function special_orthogonal_group(e::Int, n::Int, q::Int)
+   (a,b) = ispower(q)
+   if !isprime(b) throw(ArgumentError("The field size must be a prime power")) end
+   return special_orthogonal_group(e, n, GF(b,a)[1])
+end
+
+special_orthogonal_group(n::Int, F::Ring) = special_orthogonal_group(0,n,F)
+special_orthogonal_group(n::Int, q::Int) = special_orthogonal_group(0,n,q)
+
+function omega_group(e::Int, n::Int, q::Int)
+   (a,b) = ispower(q)
+   if !isprime(b) throw(ArgumentError("The field size must be a prime power")) end
+   if e==1
+      iseven(n) || throw(ArgumentError("The dimension must be even"))
+      G = MatrixGroup(n,GF(b,a)[1])
+      G.descr = Symbol("Omega+")
+   elseif e==-1
+      iseven(n) || throw(ArgumentError("The dimension must be even"))
+      G = MatrixGroup(n,GF(b,a)[1])
+      G.descr = Symbol("Omega-")
+   elseif e==0
+      isodd(n) || throw(ArgumentError("The dimension must be odd"))
+      G = MatrixGroup(n,GF(b,a)[1])
+      G.descr = :Omega
+   else
+      throw(ArgumentError("Invalid description of orthogonal group"))
+   end
+   return G
+end
+
+omega_group(n::Int, q::Int) = omega_group(0,n,q)
+
+function unitary_group(n::Int, q::Int)
+   (a,b) = ispower(q)
+   if !isprime(b) throw(ArgumentError("The field size must be a prime power")) end
+   G = MatrixGroup(n,GF(b,2*a)[1])
+   G.descr = :GU
+   return G
+end
+
+function special_unitary_group(n::Int, q::Int)
+   (a,b) = ispower(q)
+   if !isprime(b) throw(ArgumentError("The field size must be a prime power")) end
+   G = MatrixGroup(n,GF(b,2*a)[1])
+   G.descr = :SU
+   return G
+end
+
 const GL = general_linear_group
 const SL = special_linear_group
+const Sp = symplectic_group
+const GO = orthogonal_group
+const SO = special_orthogonal_group
+const GU = unitary_group
+const SU = special_unitary_group
 
 
 ########################################################################
@@ -415,7 +565,7 @@ function Base.rand(C::GroupConjClass{S,T}) where S<:MatrixGroup where T<:MatrixG
    return MatrixGroup(C.X.deg,C.X.ring,GAP.Globals.Random(C.CC))
 end
 
-function elements(C::GroupConjClass{S, T}) where S where T<:GAPGroup
+function elements(C::GroupConjClass{S, T}) where S where T<:MatrixGroup
    L=GAP.Globals.AsList(C.CC)
    l = Vector{T}(undef, length(L))
    for i in 1:length(l)
