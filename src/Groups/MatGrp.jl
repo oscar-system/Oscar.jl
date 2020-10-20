@@ -4,6 +4,7 @@ import GAP: FFE
 
 export
     general_linear_group,
+    matrix_group,
     MatrixGroup,
     MatrixGroupElem,
     omega_group,
@@ -40,6 +41,15 @@ mutable struct MatrixGroup{RE<:RingElem, T<:MatElem{RE}} <: GAPGroup
       r.deg = m
       r.ring = F
       r.X = G_gap
+      return r
+   end
+
+   function MatrixGroup(m::Int64, F::S, L::Vector) where S<:Ring
+      K = elem_type(S)
+      r = new{K, MatElem{K}}()
+      r.deg = m
+      r.ring = F
+      r.gens = L
       return r
    end
 end
@@ -219,36 +229,69 @@ end
 ########################################################################
 
 # this saves the value of x.X
-# x_gap = x.X if this is already known, x_gap = 0 otherwise
+# x_gap = x.X if this is already known, x_gap = Nothing otherwise
 function lies_in(x::MatElem, G::MatrixGroup, x_gap)
-   if base_ring(x)!=G.ring || nrows(x)!=G.deg return false, Nothing end
-   if isone(x) return true, Nothing end
+   if base_ring(x)!=G.ring || nrows(x)!=G.deg return false, x_gap end
+   if isone(x) return true, x_gap end
    if isdefined(G,:gens) && x in G.gens
-      return true, Nothing
+      return true, x_gap
    else
-      if x_gap==0 x_gap = G.mat_iso(x) end
-     # x_gap !=0 || x_gap = G.mat_iso(x)
-      return GAP.Globals.in(x_gap,G.X), x_gap
+      if G.descr==:GL
+         if det(x)!=0
+            return true, x_gap
+         else
+            return false, x_gap
+         end
+      elseif G.descr==:SL
+         if det(x)==1
+            return true, x_gap
+         else
+            return false, x_gap
+         end
+      else
+         if x_gap==Nothing x_gap = G.mat_iso(x) end
+        # x_gap !=Nothing || x_gap = G.mat_iso(x)
+         return GAP.Globals.in(x_gap,G.X), x_gap
+      end
    end
 end
 
-Base.in(x::MatElem, G::MatrixGroup) = lies_in(x,G,0)[1]
+Base.in(x::MatElem, G::MatrixGroup) = lies_in(x,G,Nothing)[1]
 
 function Base.in(x::MatrixGroupElem, G::MatrixGroup)
    if isdefined(x,:X) return lies_in(x.elm,G,x.X)[1]
-   else return lies_in(x.elm,G,0)[1]
+   else return lies_in(x.elm,G,Nothing)[1]
    end
 end
 
 # embedding an element of type MatElem into a group G
 function (G::MatrixGroup)(x::MatElem)
-   vero, x_gap = lies_in(x,G,0)
+   vero, x_gap = lies_in(x,G,Nothing)
    vero || throw(ArgumentError("Element not in the group"))
    if x_gap==Nothing return MatrixGroupElem(G,x)
    else return MatrixGroupElem(G,x,x_gap)
    end
 end
 
+# embedding an element of type MatrixGroupElem into a group G
+function (G::MatrixGroup)(x::MatrixGroupElem)
+   if isdefined(x,:X)
+      if isdefined(x,:elm)
+         vero = lies_in(x.elm,G,x.X)[1]
+         vero || throw(ArgumentError("Element not in the group"))
+         return MatrixGroupElem(G,x.elm,x.X)
+      else
+         GAP.Globals.in(x.X, G.X) || throw(ArgumentError("Element not in the group"))
+         return MatrixGroupElem(G,x.X)
+      end
+   else
+      vero, x_gap = lies_in(x.elm,G,Nothing)
+      vero || throw(ArgumentError("Element not in the group"))
+      if x_gap==Nothing return MatrixGroupElem(G,x)
+      else return MatrixGroupElem(G,x.elm,x_gap)
+      end
+   end
+end
 
 ########################################################################
 #
@@ -317,6 +360,7 @@ order(x::MatrixGroupElem) = GAP.Globals.Order(x.X)
 ########################################################################
 
 base_ring(G::MatrixGroup) = G.ring
+degree(G::MatrixGroup) = G.deg
 
 Base.one(G::MatrixGroup) = MatrixGroupElem(G, identity_matrix(G.ring, G.deg))
 
@@ -350,6 +394,12 @@ end
 #
 ########################################################################
 
+"""
+    general_linear_group(n::Int, q::Int)
+    general_linear_group(n::Int, F::FqNmodFiniteField)
+    GL = general_linear_group
+Return the general linear group of dimension `n` either over the field `F` or the field `GF(q)`.
+"""
 function general_linear_group(n::Int, F::Ring)
    G = MatrixGroup(n,F)
    G.descr = :GL
@@ -362,6 +412,12 @@ function general_linear_group(n::Int, q::Int)
    return general_linear_group(n, GF(b,a)[1])
 end
 
+"""
+    special_linear_group(n::Int, q::Int)
+    special_linear_group(n::Int, F::FqNmodFiniteField)
+    SL = special_linear_group
+Return the special linear group of dimension `n` either over the field `F` or the field `GF(q)`.
+"""
 function special_linear_group(n::Int, F::Ring)
    G = MatrixGroup(n,F)
    G.descr = :SL
@@ -374,6 +430,12 @@ function special_linear_group(n::Int, q::Int)
    return special_linear_group(n, GF(b,a)[1])
 end
 
+"""
+    symplectic_group(n::Int, q::Int)
+    symplectic_group(n::Int, F::FqNmodFiniteField)
+    Sp = symplectic_group
+Return the symplectic group of dimension `n` either over the field `F` or the field `GF(q)`. The dimension `n` must be even.
+"""
 function symplectic_group(n::Int, F::Ring)
    iseven(n) || throw(ArgumentError("The dimension must be even"))
    G = MatrixGroup(n,F)
@@ -387,6 +449,12 @@ function symplectic_group(n::Int, q::Int)
    return symplectic_group(n, GF(b,a)[1])
 end
 
+"""
+    orthogonal_group(e::Int, n::Int, F::Ring)
+    orthogonal_group(e::Int, n::Int, q::Int)
+    GO = orthogonal_group
+Return the orthogonal group of dimension `n` either over the field `F` or the field `GF(q)` of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0` for `n` odd. If `n` is odd, `e` can be omitted.
+"""
 function orthogonal_group(e::Int, n::Int, F::Ring)
    if e==1
       iseven(n) || throw(ArgumentError("The dimension must be even"))
@@ -415,6 +483,12 @@ end
 orthogonal_group(n::Int, F::Ring) = orthogonal_group(0,n,F)
 orthogonal_group(n::Int, q::Int) = orthogonal_group(0,n,q)
 
+"""
+    special_orthogonal_group(e::Int, n::Int, F::Ring)
+    special_orthogonal_group(e::Int, n::Int, q::Int)
+    SO = special_orthogonal_group
+Return the special orthogonal group of dimension `n` either over the field `F` or the field `GF(q)` of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0` for `n` odd. If `n` is odd, `e` can be omitted.
+"""
 function special_orthogonal_group(e::Int, n::Int, F::Ring)
    if e==1
       iseven(n) || throw(ArgumentError("The dimension must be even"))
@@ -443,6 +517,10 @@ end
 special_orthogonal_group(n::Int, F::Ring) = special_orthogonal_group(0,n,F)
 special_orthogonal_group(n::Int, q::Int) = special_orthogonal_group(0,n,q)
 
+"""
+    omega_group(e::Int, n::Int, q::Int)
+Return the Omega group of dimension `n` over the field `GF(q)` of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0` for `n` odd. If `n` is odd, `e` can be omitted.
+"""
 function omega_group(e::Int, n::Int, q::Int)
    (a,b) = ispower(q)
    if !isprime(b) throw(ArgumentError("The field size must be a prime power")) end
@@ -466,6 +544,11 @@ end
 
 omega_group(n::Int, q::Int) = omega_group(0,n,q)
 
+"""
+    unitary_group(n::Int, q::Int)
+    GU = unitary_group
+Return the unitary group of dimension `n` over the field `GF(q^2)`.
+"""
 function unitary_group(n::Int, q::Int)
    (a,b) = ispower(q)
    if !isprime(b) throw(ArgumentError("The field size must be a prime power")) end
@@ -474,6 +557,11 @@ function unitary_group(n::Int, q::Int)
    return G
 end
 
+"""
+    special_unitary_group(n::Int, q::Int)
+    SU = special_unitary_group
+Return the special unitary group of dimension `n` over the field `GF(q^2)`.
+"""
 function special_unitary_group(n::Int, q::Int)
    (a,b) = ispower(q)
    if !isprime(b) throw(ArgumentError("The field size must be a prime power")) end
@@ -490,6 +578,24 @@ const SO = special_orthogonal_group
 const GU = unitary_group
 const SU = special_unitary_group
 
+"""
+    matrix_group(V::T...) where T<:MatrixGroup
+    matrix_group(V::AbstractVector{T}) where T<:MatrixGroup
+Return the matrix group generated by elements in the vector `V`.
+"""
+function matrix_group(V::AbstractVector{T}) where T<:MatElem
+   F = base_ring(V[1])
+   n = nrows(V[1])
+   for i in 2:length(V)
+      @assert base_ring(V[i])==F "The elements must have the same base ring"
+      @assert nrows(V[1])==n "The elements must have the same dimension"
+   end
+   return MatrixGroup(n,F,V)
+end
+
+matrix_group(V::T...) where T<:MatElem = matrix_group(V)
+matrix_group(V::AbstractVector{T}) where T<:MatrixGroupElem = matrix_group([x.elm for x in V])
+matrix_group(V::T...) where T<:MatrixGroupElem = matrix_group([x.elm for x in V])
 
 ########################################################################
 #
