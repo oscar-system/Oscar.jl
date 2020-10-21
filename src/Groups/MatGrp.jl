@@ -17,7 +17,12 @@ export
     GL, GO, GU, SL, SO, Sp, SU
 
 
+"""
+    MatrixGroup{RE<:RingElem, T<:MatElem{RE}} <: GAPGroup
+Type of groups `G` of `n x n` matrices over the ring `R`, where `n = degree(G)` and `R = base_ring(G)`.
 
+At the moment, only rings of type `FqNmodFiniteField` are supported.
+"""
 mutable struct MatrixGroup{RE<:RingElem, T<:MatElem{RE}} <: GAPGroup
    X::GapObj
    gens::Vector{<:T}
@@ -54,6 +59,15 @@ mutable struct MatrixGroup{RE<:RingElem, T<:MatElem{RE}} <: GAPGroup
    end
 end
 
+#=
+abstract type AbstractMatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: GAPGroupElem{MatrixGroup} end
+
+=#
+
+"""
+    MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: GAPGroupElem{MatrixGroup}
+Elements of a group of type `MatrixGroup{RE<:RingElem, T<:MatElem{RE}}`
+"""
 mutable struct MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: GAPGroupElem{MatrixGroup}
    parent::MatrixGroup{RE, T}
    elm::T
@@ -287,7 +301,7 @@ function (G::MatrixGroup)(x::MatrixGroupElem)
    else
       vero, x_gap = lies_in(x.elm,G,Nothing)
       vero || throw(ArgumentError("Element not in the group"))
-      if x_gap==Nothing return MatrixGroupElem(G,x)
+      if x_gap==Nothing return MatrixGroupElem(G,x.elm)
       else return MatrixGroupElem(G,x.elm,x_gap)
       end
    end
@@ -341,13 +355,27 @@ end
 
 comm(x::MatrixGroupElem, y::MatrixGroupElem) = inv(x)*conj(x,y)
 
+"""
+    det(x::MatrixGroupElem)
+Return the determinant of `x`.
+"""
 det(x::MatrixGroupElem) = det(x.elm)
+
+"""
+    base_ring(x::MatrixGroupElem)
+Return the base ring of `x`.
+"""
 base_ring(x::MatrixGroupElem) = x.parent.ring
 
 parent(x::MatrixGroupElem) = x.parent
 
 Base.getindex(x::MatrixGroupElem, i::Int, j::Int) = x.elm[i,j]
 
+"""
+    trace(x::MatrixGroupElem)
+    tr(x::MatrixGroupElem)
+Return the trace of `x`.
+"""
 trace(x::MatrixGroupElem) = trace(x.elm)
 tr(x::MatrixGroupElem) = tr(x.elm)
 
@@ -359,7 +387,16 @@ order(x::MatrixGroupElem) = GAP.Globals.Order(x.X)
 #
 ########################################################################
 
+"""
+    base_ring(G::MatrixGroup)
+Return the base ring of the matrix group `G`.
+"""
 base_ring(G::MatrixGroup) = G.ring
+
+"""
+    degree(G::MatrixGroup)
+Return the degree of the matrix group `G`, i.e. the number of rows of its matrices.
+"""
 degree(G::MatrixGroup) = G.deg
 
 Base.one(G::MatrixGroup) = MatrixGroupElem(G, identity_matrix(G.ring, G.deg))
