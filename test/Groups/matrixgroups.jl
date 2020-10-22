@@ -1,3 +1,5 @@
+
+#FIXME : this may change in future. It can be easily skipped.
 @testset "Fields assignment" begin
    T,t=PolynomialRing(FiniteField(3),"t")
    F,z=FiniteField(t^2+1,"z")
@@ -16,9 +18,6 @@
    @test ngens(G)==2
    @test isdefined(G,:gens)
 
-   x = G[1]
-   @test !isdefined(x,:X)
-
    x = matrix(F,2,2,[1,0,0,1])
    x = G(x)
    @test !isdefined(x,:X)
@@ -30,6 +29,16 @@
    @test !isdefined(x,:X)
    @test order(x)==8
    @test isdefined(x,:X)
+
+end
+
+@testset "Iterator" begin
+   G = SL(2,3)
+   N = 0
+   for x in G
+      N+=order(x)
+   end
+   @test N==99
 end
 
 @testset "Membership" begin
@@ -47,6 +56,7 @@ end
    x = G(x)
    @test parent(x)==G
    @test x==G(x)
+   @test_throws ArgumentError G([1,1,0,0])
 
    x = matrix(F,2,2,[1,z,0,1])
    @test x in S
@@ -55,11 +65,36 @@ end
    @test x in G
    @test parent(G(x))==G
    @test parent(S(x))==S
+
    x = (O[1]*O[2]).elm
    @test x in G
    @test x in O
    @test parent(O(x))==O
    x = G(x)
    @test parent(O(x))==O
+   @test_throws ArgumentError O([z,0,0,1])
 
+end
+
+@testset "Methods on elements" begin
+   T,t=PolynomialRing(FiniteField(3),"t")
+   F,z=FiniteField(t^2+1,"z")
+
+   G = GL(2,F)
+   x = G([1,z,0,1])
+   y = G([z+2,0,0,1])
+   @test x*y==G([z+2,z,0,1])
+   @test x^-1==G([1,2*z,0,1])
+   @test y^x==G([z+2,z+2,0,1])
+   @test comm(y,x)==G([1,1,0,1])
+   @test isone(G([1,0,0,1]))
+   @test !isone(x)
+   @test det(x)==1
+   @test det(y)==z+2
+   @test trace(x)==2
+   @test tr(y)==z
+   @test order(x)==3
+   @test order(y)==8
+   @test base_ring(x)==F
+   @test nrows(y)==2
 end
