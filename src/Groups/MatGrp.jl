@@ -1,5 +1,5 @@
 import AbstractAlgebra: MatElem, MatSpace, parent_type, Ring, RingElem
-import Hecke: base_ring, det, fq_nmod, FqNmodFiniteField, tr, trace
+import Hecke: base_ring, det, fq_nmod, FqNmodFiniteField, nrows, tr, trace
 import GAP: FFE
 
 export
@@ -193,7 +193,6 @@ function Base.getproperty(G::MatrixGroup, sym::Symbol)
       end
       L = GAP.Globals.GeneratorsOfGroup(getfield(G,:X))
       setfield!(G,:gens,[MatrixGroupElem(G,G.mat_iso(L[i]),L[i]) for i in 1:length(L)])
-      setfield!(G,:gens,[G.mat_iso(L[i]) for i in 1:length(L)])
 
    else
       return getfield(G, sym)
@@ -310,6 +309,12 @@ function (G::MatrixGroup)(x::MatrixGroupElem)
    end
 end
 
+# embedding a nxn array into a group G
+function (G::MatrixGroup)(L::AbstractVector)
+   x = matrix(G.ring, G.deg, G.deg, L)
+   return G(x)
+end
+
 ########################################################################
 #
 # Methods on elements
@@ -336,6 +341,9 @@ function _prod(x::MatrixGroupElem,y::MatrixGroupElem)
    end
 end
 # Base.:* is defined in src/Groups/GAPGroups.jl
+
+Base.:*(x::MatrixGroupElem, y::fq_nmod_mat) = x.elm*y
+Base.:*(x::fq_nmod_mat, y::MatrixGroupElem) = x*y.elm
 
 Base.:^(x::MatrixGroupElem, n::Int) = MatrixGroupElem(x.parent, x.elm^n)
 
@@ -373,6 +381,12 @@ base_ring(x::MatrixGroupElem) = x.parent.ring
 parent(x::MatrixGroupElem) = x.parent
 
 Base.getindex(x::MatrixGroupElem, i::Int, j::Int) = x.elm[i,j]
+
+"""
+    nrows(x::MatrixGroupElem)
+Return the number of rows of the given matrix.
+"""
+nrows(x::MatrixGroupElem) = x.parent.deg
 
 """
     trace(x::MatrixGroupElem)
