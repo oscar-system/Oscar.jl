@@ -625,6 +625,9 @@ const SO = special_orthogonal_group
 const GU = unitary_group
 const SU = special_unitary_group
 
+
+#TODO parent of generators needs to be defined before creating the group
+#=
 """
     matrix_group(V::T...) where T<:MatrixGroup
     matrix_group(V::AbstractVector{T}) where T<:MatrixGroup
@@ -643,7 +646,7 @@ end
 matrix_group(V::T...) where T<:MatElem = matrix_group(V)
 matrix_group(V::AbstractVector{T}) where T<:MatrixGroupElem = matrix_group([x.elm for x in V])
 matrix_group(V::T...) where T<:MatrixGroupElem = matrix_group([x.elm for x in V])
-
+=#
 ########################################################################
 #
 # Subgroup
