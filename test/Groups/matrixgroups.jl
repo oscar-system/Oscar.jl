@@ -98,3 +98,26 @@ end
    @test base_ring(x)==F
    @test nrows(y)==2
 end
+
+@testset "Subgroups" begin
+   T,t=PolynomialRing(FiniteField(3),"t")
+   F,z=FiniteField(t^2+1,"z")
+
+   G = GL(2,F)
+   s1 = G([2,1,2,0])
+   s2 = G([z+1,0,0,z+2])
+   S,f = sub(G,[s1,s2])
+   @test gens(S)==[s1,s2]
+   @test base_ring(S)==F
+   @test index(G,S)==8
+   @test S==SL(2,F)
+   @test parent(f(S[1]))==G
+   @test f(S[1])==G(S[1])
+   @test f(S[2])==G(S[2])
+   O = GO(1,2,F)
+   H = intersect(S,O)[1]
+   @test H==SO(1,2,F)
+   @test isnormal(O,H)
+#   @test index(GO(0,3,3), omega_group(0,3,3))==4
+#   @test index(GO(-1,4,2), omega_group(-1,4,2))==2
+end
