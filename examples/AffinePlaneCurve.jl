@@ -614,13 +614,9 @@ end
 ################################################################################
 # hash functions
 
-function Oscar.hash(C::AffinePlaneCurve, h::UInt)
+function Base.hash(C::AffinePlaneCurve, h::UInt)
   F = 1//lc(C.eq)*C.eq
   return hash(F, h)
-end
-
-function Oscar.hash(C::AffinePlaneCurve)
-  return hash(C, zero(UInt))
 end
 
 ################################################################################
