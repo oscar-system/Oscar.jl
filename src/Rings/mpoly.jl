@@ -545,8 +545,9 @@ function groebner_basis(I::MPolyIdeal, ord::Symbol; complete_reduction::Bool=fal
 end
 
 @doc Markdown.doc"""
-   jacobi_matrix(f::MPolyElem)
-> Given a polynomial $f$ this function returns the Jacobian matrix ``J_f=(\partial_{x_1}f,...,\partial_{x_n}f)^T`` of $f$.
+    jacobi_matrix(f::MPolyElem)
+
+Given a polynomial $f$ this function returns the Jacobian matrix ``J_f=(\partial_{x_1}f,...,\partial_{x_n}f)^T`` of $f$.
 """
 function jacobi_matrix(f::MPolyElem)
   R = parent(f)
@@ -555,8 +556,9 @@ function jacobi_matrix(f::MPolyElem)
 end
 
 @doc Markdown.doc"""
-   jacobi_ideal(f::MPolyElem)
-> Given a polynomial $f$ this function returns the Jacobian ideal of $f$.
+    jacobi_ideal(f::MPolyElem)
+
+Given a polynomial $f$ this function returns the Jacobian ideal of $f$.
 """
 function jacobi_ideal(f::MPolyElem)
   R = parent(f)
@@ -565,9 +567,10 @@ function jacobi_ideal(f::MPolyElem)
 end
 
 @doc Markdown.doc"""
-   jacobi_matrix(g::Array{<:MPolyElem, 1})
-> Given an array ``g=[f_1,...,f_m]`` of polynomials over the same base ring,
-> this function returns the Jacobian matrix ``J=(\partial_{x_i}f_j)_{i,j}`` of ``g``.
+    jacobi_matrix(g::Array{<:MPolyElem, 1})
+
+Given an array ``g=[f_1,...,f_m]`` of polynomials over the same base ring,
+this function returns the Jacobian matrix ``J=(\partial_{x_i}f_j)_{i,j}`` of ``g``.
 """
 function jacobi_matrix(g::Array{<:MPolyElem, 1})
   R = parent(g[1])
@@ -741,9 +744,10 @@ end
 
 @doc Markdown.doc"""
     eliminate(I::MPolyIdeal, polys::Array{MPolyElem, 1})
-> Given a list of polynomials which are variables, construct the ideal
-> corresponding geometrically to the projection of the variety given by the
-> ideal $I$ where those variables have been eliminated.
+
+Given a list of polynomials which are variables, construct the ideal
+corresponding geometrically to the projection of the variety given by the
+ideal $I$ where those variables have been eliminated.
 """
 function eliminate(I::MPolyIdeal, l::Array{<:MPolyElem, 1})
   singular_assure(I)
@@ -755,9 +759,10 @@ end
 
 @doc Markdown.doc"""
     eliminate(I::MPolyIdeal, polys::AbstractArray{Int, 1})
-> Given a list of indices, construct the ideal
-> corresponding geometrically to the projection of the variety given by the
-> ideal $I$ where those variables in the list have been eliminated.
+
+Given a list of indices, construct the ideal
+corresponding geometrically to the projection of the variety given by the
+ideal $I$ where those variables in the list have been eliminated.
 """
 function eliminate(I::MPolyIdeal, l::AbstractArray{Int, 1})
   R = base_ring(I)

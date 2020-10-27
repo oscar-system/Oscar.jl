@@ -69,8 +69,9 @@ end
 # and show it.
 
 @doc Markdown.doc"""
-degree(C::AffinePlaneCurve)
-> Given an affine plane curve C, returns the degree of the defining polynomial.
+    degree(C::AffinePlaneCurve)
+
+Given an affine plane curve C, returns the degree of the defining polynomial.
 """
 function Oscar.degree(C::AffinePlaneCurve)
   if C.degree >= 0
@@ -85,8 +86,9 @@ end
 # Compute the Jacobian Ideal of C
 
 @doc Markdown.doc"""
-jacobi_ideal(C::AffinePlaneCurve)
-> Given an affine plane curve C, returns the Jacobian ideal of the defining polynomial.
+    jacobi_ideal(C::AffinePlaneCurve)
+
+Given an affine plane curve C, returns the Jacobian ideal of the defining polynomial.
 """
 function Oscar.jacobi_ideal(C::AffinePlaneCurve)
  return jacobi_ideal(C.eq)
@@ -98,8 +100,9 @@ end
 # curve.
 
 @doc Markdown.doc"""
-issmooth_point(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
-> Given an affine plane curve C and a point P, returns an error if the point is not in the zero locus of the defining equation, false if it is a singular point of C, and true if it is a smooth point of the curve.
+    issmooth_point(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
+
+Given an affine plane curve C and a point P, returns an error if the point is not in the zero locus of the defining equation, false if it is a singular point of C, and true if it is a smooth point of the curve.
 """
 function issmooth_point(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
   if P.ambient_dim != 2
@@ -124,8 +127,9 @@ end
 # at the point P.
 
 @doc Markdown.doc"""
-tangent(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
-> Given an affine plane curve C and a point P, if P is a smooth point of C, returns the affine plane curve defined as the tangent of C at P.
+    tangent(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
+
+Given an affine plane curve C and a point P, if P is a smooth point of C, returns the affine plane curve defined as the tangent of C at P.
 """
 function tangent(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
   if P.ambient_dim != 2
@@ -151,8 +155,9 @@ end
 # Union of two affine plane curves (with multiplicity)
 
 @doc Markdown.doc"""
-union(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S <: FieldElem
-> Given two affine plane curves C and D, returns the union of the two curves (with multiplicity).
+    union(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S <: FieldElem
+
+Given two affine plane curves C and D, returns the union of the two curves (with multiplicity).
 """
 function Base.union(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S <: FieldElem
   F = C.eq*D.eq
@@ -163,8 +168,9 @@ end
 # Components of the curve
 
 @doc Markdown.doc"""
-curve_components(C::AffinePlaneCurve)
-> Given an affine plane curve C, returns a dictionary containing its irreducible components (as affine plane curves) and their multiplicity.
+    curve_components(C::AffinePlaneCurve)
+
+Given an affine plane curve C, returns a dictionary containing its irreducible components (as affine plane curves) and their multiplicity.
 """
 function curve_components(C::AffinePlaneCurve)
   if C.components != Dict()
@@ -181,8 +187,9 @@ end
 # TODO: change for a direct irreducibility check when available.
 
 @doc Markdown.doc"""
-isirreducible(C::AffinePlaneCurve)
-> Given an affine plane curve C, returns true if the curve is irreducible, and false otherwise.
+    isirreducible(C::AffinePlaneCurve)
+
+Given an affine plane curve C, returns true if the curve is irreducible, and false otherwise.
 """
 function Oscar.isirreducible(C::AffinePlaneCurve)
   if C.components == Dict()
@@ -202,8 +209,9 @@ end
 # Check reducedness by computing a factorization
 
 @doc Markdown.doc"""
-isreduced(C::AffinePlaneCurve)
-> Given an affine plane curve C, returns true if the curve is reduced, and false otherwise.
+    isreduced(C::AffinePlaneCurve)
+
+Given an affine plane curve C, returns true if the curve is reduced, and false otherwise.
 """
 function Oscar.isreduced(C::AffinePlaneCurve)
   if C.components == Dict()
@@ -221,8 +229,9 @@ end
 # gives the common components of two affine plane curves
 
 @doc Markdown.doc"""
-common_components(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S <: FieldElem(C::AffinePlaneCurve)
-> Given two affine plane curves C and D, returns the affine plane curve consisting of the common components, or an error if they do not have a common component.
+    common_components(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S <: FieldElem(C::AffinePlaneCurve)
+
+Given two affine plane curves C and D, returns the affine plane curve consisting of the common components, or an error if they do not have a common component.
 """
 function common_components(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S <: FieldElem
   G = gcd(C.eq, D.eq)
@@ -240,8 +249,9 @@ end
 # of intersection points. Some might be contained in the common component too.
 
 @doc Markdown.doc"""
-curve_intersect(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S <: FieldElem
-> Given two affine plane curves C and D defined by F and G, returns a list whose first element is the affine plane curve defined by the gcd of F and G, the second element is the list of the remaining intersection points when the common components are removed from C and D.
+    curve_intersect(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S <: FieldElem
+
+Given two affine plane curves C and D defined by F and G, returns a list whose first element is the affine plane curve defined by the gcd of F and G, the second element is the list of the remaining intersection points when the common components are removed from C and D.
 """
 function curve_intersect(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S <: FieldElem
   G = gcd(C.eq, D.eq)
@@ -312,8 +322,9 @@ end
 # Might change depending on the futur changes on VarietyModule.
 
 @doc Markdown.doc"""
-intersect( C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S <: FieldElem
-> Given two affine plane curves C and D, returns the variety defined by the intersection of the two curves
+    intersect( C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S <: FieldElem
+
+Given two affine plane curves C and D, returns the variety defined by the intersection of the two curves
 """
 function Oscar.intersect(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S <: FieldElem
   I = ideal(parent(C.eq), [C.eq, D.eq])
@@ -327,8 +338,9 @@ end
 # curve. The points might also be contained in the components.
 
 @doc Markdown.doc"""
-curve_singular_locus( C::AffinePlaneCurve)
-> Given an affine plane curve C, returns a list whose first element is the affine plane curve consisting of the singular components of C (if any), and the second element is the list of the isolated singular points (which may be contained in the singular component). The singular component might not contain any point over the considered field.
+    curve_singular_locus( C::AffinePlaneCurve)
+
+Given an affine plane curve C, returns a list whose first element is the affine plane curve consisting of the singular components of C (if any), and the second element is the list of the isolated singular points (which may be contained in the singular component). The singular component might not contain any point over the considered field.
 """
 function curve_singular_locus(C::AffinePlaneCurve)
   F = C.eq

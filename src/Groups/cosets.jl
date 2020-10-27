@@ -21,6 +21,7 @@ export
 # T=type of the group, S=type of the element
 """
     GroupCoset{T<: Group, S <: GAPGroupElem}
+
 Type of group cosets. It is displayed as `H * x` (right cosets) or `x * H` (left cosets), where `H` is a subgroup of a group `G` and `x` is an element of `G`. Two cosets are equal if, and only if, they are both left (resp. right) and they contain the same elements.
 """
 struct GroupCoset{T<: GAPGroup, S <: GAPGroupElem} 
@@ -45,6 +46,7 @@ end
 """
     right_coset(H::Group, g::GAPGroupElem)
     *(H::Group, g::GAPGroupElem)
+
 Return the coset `Hg`.
 """
 function right_coset(H::GAPGroup, g::GAPGroupElem)
@@ -58,6 +60,7 @@ end
 """
     left_coset(H::Group, g::GAPGroupElem)
     *(g::GAPGroupElem, H::Group)
+
 Return the coset `gH`.
 !!! note
     Since GAP supports right cosets only, the underlying GAP object of `left_coset(H,g)` is the right coset `H^(g^-1) * g`.
@@ -83,12 +86,14 @@ end
 
 """
     isleft(c::GroupCoset)
+
 Return whether the coset `c` is a left coset of its acting domain.
 """
 isleft(c::GroupCoset) = c.side == :left
 
 """
     isright(c::GroupCoset)
+
 Return whether the coset `c` is a right coset of its acting domain.
 """
 isright(c::GroupCoset) = c.side == :right
@@ -123,12 +128,14 @@ end
 
 """
     acting_domain(C::GroupCoset)
+
 If `C` = `Hx` or `xH`, return `H`.
 """
 acting_domain(C::GroupCoset) = C.H
 
 """
     representative(C::GroupCoset)
+
 If `C` = `Hx` or `xH`, return `x`.
 """
 representative(C::GroupCoset) = C.repr
@@ -144,12 +151,14 @@ end
 
 """
     isbicoset(C::GroupCoset)
+
 Return whether `C` is simultaneously a right coset and a left coset for the same subgroup `H`.
 """
 isbicoset(C::GroupCoset) = GAP.Globals.IsBiCoset(C.X)
 
 """
     right_cosets(G::Group, H::Group)
+
 Return the array of the right cosets of `H` in `G`.
 """
 function right_cosets(G::GAPGroup, H::GAPGroup)
@@ -163,6 +172,7 @@ end
 
 """
     left_cosets(G::Group, H::Group)
+
 Return the array of the left cosets of `H` in `G`.
 """
 function left_cosets(G::GAPGroup, H::GAPGroup)
@@ -179,6 +189,7 @@ end
 
 """
     right_transversal(G::T, H::T) where T<: Group
+
 Return a vector containing a complete set of representatives for right cosets for `H`.
 """
 function right_transversal(G::T, H::T) where T<: GAPGroup
@@ -192,6 +203,7 @@ end
 
 """
     left_transversal(G::T, H::T) where T<: Group
+
 Return a vector containing a complete set of representatives for left cosets for `H`.
 """
 function left_transversal(G::T, H::T) where T<: GAPGroup
@@ -219,6 +231,7 @@ end
 
 """
     GroupDoubleCoset{T<: Group, S <: GAPGroupElem}
+
 Group double coset. It is displayed as `H * x * K`, where `H` and `K` are subgroups of a group `G` and `x` is an element of `G`. Two double cosets are equal if, and only if, they contain the same elements.
 """
 # T=type of the group, S=type of the element
@@ -248,6 +261,7 @@ end
 """
     double_coset(H::Group, x::GAPGroupElem, K::Group)
     *(H::Group, x::GAPGroupElem, K::Group)
+
 returns the double coset `HxK`.
 """
 function double_coset(G::T, g::GAPGroupElem{T}, H::T) where T<: GAPGroup
@@ -266,6 +280,7 @@ Base.:*(H::GAPGroup, g::GAPGroupElem, K::GAPGroup) = double_coset(H,g,K)
 
 """
     double_cosets(G::T, H::T, K::T; NC=false) where T<: GAPGroup
+
 Return the array of all the double cosets `HxK` for `x` in `G`. If `NC` = `true`, do not check whether `H` and `K` are subgroups of `G`.
 """
 function double_cosets(G::T, H::T, K::T; NC=false) where T<: GAPGroup
@@ -288,6 +303,7 @@ end
 
 """
     elements(C::GroupDoubleCoset)
+
 Return the array of all elements of the double coset `C`.
 """
 function elements(C::GroupDoubleCoset)
@@ -301,6 +317,7 @@ end
 
 """
     order(C::Union{GroupCoset,GroupDoubleCoset})
+
 Return the cardinality of the (double) coset `C`.
 """
 order(C::Union{GroupCoset,GroupDoubleCoset}) = GAP.Globals.Size(C.X)
@@ -308,24 +325,28 @@ Base.length(C::Union{GroupCoset,GroupDoubleCoset}) = GAP.Globals.Size(C.X)
 
 """
     rand(C::Union{GroupCoset,GroupDoubleCoset})
+
 Return a random element of the (double) coset `C`.
 """
 Base.rand(C::Union{GroupCoset,GroupDoubleCoset}) = group_element(C.G, GAP.Globals.Random(C.X))
 
 """
     representative(C::GroupDoubleCoset)
+
 if `C` = `HxK`, returns `x`.
 """
 representative(C::GroupDoubleCoset) = C.repr
 
 """
     left_acting_group(C::GroupDoubleCoset)
+
 if `C` = `HxK`, returns `H`
 """
 left_acting_group(C::GroupDoubleCoset) = C.H
 
 """
     left_acting_group(C::GroupDoubleCoset)
+
 if `C` = `HxK`, returns `K`
 """
 right_acting_group(C::GroupDoubleCoset) = C.K
@@ -349,6 +370,7 @@ end
 
 """
     intersect(V::AbstractVector{Union{T, GroupCoset, GroupDoubleCoset}}) where T <: GAPGroup
+
 Return an array containing all elements belonging to all groups and cosets in the vector `V`.
 """
 function intersect(V::AbstractVector{Union{T, GroupCoset, GroupDoubleCoset}}) where T <: GAPGroup

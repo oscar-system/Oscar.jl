@@ -67,6 +67,7 @@ end
 
 """
     id_hom(G::GAPGroup)
+
 Return the identity homomorphism on the group `G`.
 """
 function id_hom(G::GAPGroup)
@@ -75,6 +76,7 @@ end
 
 """
     trivial_morphism(G::GAPGroup, H::GAPGroup)
+
 Return the homomorphism from `G` to `H` sending every element of `G` into the identity of `H`. If `H` is not specified, it is taken equal to `G`.
 """
 function trivial_morphism(G::GAPGroup, H::GAPGroup)
@@ -91,6 +93,7 @@ end
 
 """
     hom(G::GAPGroup, H::GAPGroup, f::Function)
+
 Return the group homomorphism defined by the function ``f``.
 """
 function hom(G::GAPGroup, H::GAPGroup, img::Function)
@@ -109,6 +112,7 @@ end
 
 """
     hom(G::GAPGroup, H::GAPGroup, gensG::Vector, imgs::Vector)
+
 Return the group homomorphism defined by `gensG`[`i`] -> `imgs`[`i`] for every `i`. In order to work, the elements of `gensG` must generate `G`.
 """
 function hom(G::GAPGroup, H::GAPGroup, gensG::Vector, imgs::Vector)
@@ -121,6 +125,7 @@ end
 
 """
     domain(f::GAPGroupHomomorphism)
+
 Return the domain of `f`.
 """
 function domain(f::GAPGroupHomomorphism)
@@ -129,6 +134,7 @@ end
 
 """
     codomain(f::GAPGroupHomomorphism)
+
 Return the codomain of `f`.
 """
 function codomain(f::GAPGroupHomomorphism)
@@ -141,6 +147,7 @@ Base.:^(x::GAPGroupElem,f::GAPGroupHomomorphism) = image(f,x)
 """
     image(f::GAPGroupHomomorphism, x::GAPGroupElem)
     (f::GAPGroupHomomorphism)(x::GAPGroupElem)
+
 Return `f`(`x`).
 """
 function image(f::GAPGroupHomomorphism, x::GAPGroupElem)
@@ -149,6 +156,7 @@ end
 
 """
     issurjective(f::GAPGroupHomomorphism)
+
 Return whether `f` is surjective.
 """
 function issurjective(f::GAPGroupHomomorphism)
@@ -157,6 +165,7 @@ end
 
 """
     isinjective(f::GAPGroupHomomorphism)
+
 Return whether `f` is injective.
 """
 function isinjective(f::GAPGroupHomomorphism)
@@ -165,6 +174,7 @@ end
 
 """
     isinvertible(f::GAPGroupHomomorphism)
+
 Return whether `f` is invertible.
 """
 function isinvertible(f::GAPGroupHomomorphism)
@@ -173,6 +183,7 @@ end
 
 """
     isbijective(f::GAPGroupHomomorphism)
+
 Return whether `f` is bijective.
 """
 function isbijective(f::GAPGroupHomomorphism)
@@ -183,6 +194,7 @@ end
 """
     isinvariant(f::GAPGroupHomomorphism, H::Group)
     isinvariant(f::GAPGroupElem{AutomorphismGroup{T}}, H::T)
+
 Return whether `f`(`H`) == `H`.
 """
 function isinvariant(f::GAPGroupHomomorphism, H::GAPGroup)
@@ -194,6 +206,7 @@ end
 """
     restrict_homomorphism(f::GAPGroupHomomorphism, H::Group)
     restrict_homomorphism(f::GAPGroupElem{AutomorphismGroup{T}}, H::T) where T <: Group
+
 Return the restriction of `f` to `H`; otherwise it return ERROR.
 """
 function restrict_homomorphism(f::GAPGroupHomomorphism, H::GAPGroup)
@@ -209,6 +222,7 @@ end
 
 """
     kernel(f::GAPGroupHomomorphism)
+
 Return the kernel of `f`, together with its embedding into `domain`(`f`).
 """
 function kernel(f::GAPGroupHomomorphism)
@@ -218,6 +232,7 @@ end
 
 """
     image(f::GAPGroupHomomorphism)
+
 Return the image of `f` as subgroup of `codomain`(`f`), together with the embedding homomorphism.
 """
 function image(f::GAPGroupHomomorphism)
@@ -228,6 +243,7 @@ end
 """
     image(f::GAPGroupHomomorphism{S, T}, H::S) where S <: GAPGroup where T <: GAPGroup
     (f::GAPGroupHomomorphism{S, T})(H::S)
+
 Return `f`(`H`), together with the embedding homomorphism into `codomain`(`f`).
 """
 function image(f::GAPGroupHomomorphism{S, T}, H::S) where S <: GAPGroup where T <: GAPGroup
@@ -239,6 +255,7 @@ end
 
 """
     cokernel(f::GAPGroupHomomorphism)
+
 Return the cokernel of `f`, that is, the quotient of the codomain of `f`
 by the normal closure of the image.
 """
@@ -250,6 +267,7 @@ end
 
 """
     haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem)
+
 Return (`true`,`y`) if there exists `y` such that `f`(`y`) = `x`; otherwise, return (`false`,`1`).
 """
 function haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem)
@@ -263,6 +281,7 @@ end
 
 """
     preimage(f::GAPGroupHomomorphism{S, T}, H::T) where S <: GAPGroup where T <: GAPGroup
+
 If `H` is a subgroup of the codomain of `f`, return the subgroup `f^-1(H)`, together with its embedding homomorphism into the domain of `f`.
 """
 function preimage(f::GAPGroupHomomorphism{S, T}, H::T) where S <: GAPGroup where T <: GAPGroup
@@ -279,6 +298,7 @@ end
 
 """
     isisomorphic(G::Group, H::Group)
+
 Return (`true`,`f`) if `G` and `H` are isomorphic groups, where `f` is a group isomorphism. Otherwise, return (`false`,`f`), where `f` is the trivial homomorphism.
 """
 function isisomorphic(G::GAPGroup, H::GAPGroup)
@@ -292,6 +312,7 @@ end
 
 """
     isomorphic_perm_group(G::GAPGroup)
+
 Return a permutation group `H` and an isomorphism `f` from `G` to `H`.
 
 If `G` is infinite, then no such isomorphism exists and an exception is thrown.
@@ -307,6 +328,7 @@ end
 
 """
     isomorphic_pc_group(G::GAPGroup)
+
 Return a group `H` of type `PcGroup` and an isomorphism `f` from `G` to `H`.
 
 If `G` is infinite or not solvable, then no such isomorphism exists and an exception is thrown.
@@ -320,6 +342,7 @@ end
 
 """
     isomorphic_fp_group(G::GAPGroup)
+
 Return a group `H` of type `FPGroup` and an isomorphism `f` from `G` to `H`.
 """
 function isomorphic_fp_group(G::GAPGroup)
@@ -338,6 +361,7 @@ end
 
 """
     automorphism_group(G::Group) -> A::AutomorphismGroup{T}
+
 Return the full automorphism group of `G`. If `f` is an object of type ``GAPGroupHomomorphism`` and it is bijective from `G` to itself, then `A(f)` return the embedding of `f` in `A`. 
 
 Elements of `A` can be multiplied with other elements of `A` or by elements of type ``GAPGroupHomomorphism``; in this last case, the result has type ``GAPGroupHomomorphism``.
@@ -353,6 +377,7 @@ end
 
 """
     hom(f::GAPGroupElem{AutomorphismGroup{T}}) where T
+
 Return the element f of type ``GAPGroupHomomorphism{T,T}``.
 """
 function hom(x::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup
@@ -384,6 +409,7 @@ Base.:*(f::GAPGroupHomomorphism, g::GAPGroupElem{AutomorphismGroup{T}}) where T 
 
 """
     inner_automorphism(g::GAPGroupElem)
+
 Return the inner automorphism in `automorphism_group(parent(g))` defined by `x` -> `x^g`.
 """
 function inner_automorphism(g::GAPGroupElem)
@@ -393,6 +419,7 @@ end
 """
     isinner_automorphism(f::GAPGroupHomomorphism)
     isinner_automorphism(f::GAPGroupElem{AutomorphismGroup{T}})
+
 Return whether `f` is an inner automorphism.
 """
 function isinner_automorphism(f::GAPGroupHomomorphism)
@@ -406,6 +433,7 @@ end
 
 """
     inner_automorphisms_group(A::AutomorphismGroup{T})
+
 Return the subgroup of `A` of the inner automorphisms.
 """
 function inner_automorphisms_group(A::AutomorphismGroup{T}) where T <: GAPGroup
@@ -415,6 +443,7 @@ end
 
 """
     isinvariant(f::GAPGroupElem{AutomorphismGroup{T}}, H::T)
+
 Return whether `f`(`H`) == `H`.
 """
 function isinvariant(f::GAPGroupElem{AutomorphismGroup{T}}, H::T) where T<:GAPGroup
@@ -425,6 +454,7 @@ end
 """
     induced_automorphism(f::GAPGroupHomomorphism, g::GAPGroupHomomorphism)
     induced_automorphism(f::GAPGroupHomomorphism, g::GAPGroupElem{AutomorphismGroup{T}})
+
 Return the automorphism `h` of the image of `f` such that `h`(`f`) == `f`(`g`), where `g` is an automorphism of a group `G` and `f` is a group homomorphism defined over `G` such that the kernel of `f` is invariant under `g`
 """
 function induced_automorphism(f::GAPGroupHomomorphism, mH::GAPGroupHomomorphism)
@@ -438,6 +468,7 @@ induced_automorphism(f::GAPGroupHomomorphism, mH::GAPGroupElem{AutomorphismGroup
 
 """
     restrict_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, H::T)
+
 If `H` is invariant under `f`, returns the restriction of `f` to `H` as automorphism of `H`; otherwise it returns ERROR.
 """
 function restrict_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, H::T, A=automorphism_group(H)) where T <: GAPGroup
