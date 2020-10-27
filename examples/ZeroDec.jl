@@ -12,9 +12,9 @@
 
 #Implementation of Algorithm 4.2.7
 @doc Markdown.doc""" zerodecomp(I::Singular.sideal, outputReduced::Bool = false)
-> Computes the primary decomposition of a zero-dimensional Ideal $I$ over a basefield of characteristig 0 that has a global ordering,
-> via GTZ. Returns the primary decomposition with associated primes in a list. If $outputReduced$ is set to true, calculates a reduced Gröbner
-> before returning the primary decomposition.
+Computes the primary decomposition of a zero-dimensional Ideal $I$ over a basefield of characteristig 0 that has a global ordering,
+via GTZ. Returns the primary decomposition with associated primes in a list. If $outputReduced$ is set to true, calculates a reduced Gröbner
+before returning the primary decomposition.
 """
 #REQUIRES:  INPUT sideal I, Optional: Whether the output should be put in completely reduced Gröbner bases. Default is to not reduce.
 #           I is zero-dimensional (Krull dimension)  
