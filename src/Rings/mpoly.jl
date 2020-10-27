@@ -545,7 +545,7 @@ function groebner_basis(I::MPolyIdeal, ord::Symbol; complete_reduction::Bool=fal
 end
 
 @doc Markdown.doc"""
-   jacobi_matrix(f::MPolyElem)
+    jacobi_matrix(f::MPolyElem)
 > Given a polynomial $f$ this function returns the Jacobian matrix ``J_f=(\partial_{x_1}f,...,\partial_{x_n}f)^T`` of $f$.
 """
 function jacobi_matrix(f::MPolyElem)
@@ -555,7 +555,7 @@ function jacobi_matrix(f::MPolyElem)
 end
 
 @doc Markdown.doc"""
-   jacobi_ideal(f::MPolyElem)
+    jacobi_ideal(f::MPolyElem)
 > Given a polynomial $f$ this function returns the Jacobian ideal of $f$.
 """
 function jacobi_ideal(f::MPolyElem)
@@ -565,7 +565,7 @@ function jacobi_ideal(f::MPolyElem)
 end
 
 @doc Markdown.doc"""
-   jacobi_matrix(g::Array{<:MPolyElem, 1})
+    jacobi_matrix(g::Array{<:MPolyElem, 1})
 > Given an array ``g=[f_1,...,f_m]`` of polynomials over the same base ring,
 > this function returns the Jacobian matrix ``J=(\partial_{x_i}f_j)_{i,j}`` of ``g``.
 """
