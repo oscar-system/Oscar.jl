@@ -27,41 +27,29 @@ Type of groups `G` of `n x n` matrices over the ring `R`, where `n = degree(G)` 
 At the moment, only rings of type `FqNmodFiniteField` are supported.
 """
 mutable struct MatrixGroup{RE<:RingElem, T<:MatElem{RE}} <: GAPGroup
+   deg::Int
+   ring::Ring
    X::GapObj
    gens::Vector{<:AbstractMatrixGroupElem}
-   ring::Ring
-   deg::Int
    descr::Symbol                       # e.g. GL
    ring_iso::GenRingIso
    mat_iso::GenMatIso
 
-   function MatrixGroup(m::Int64, F::S) where S<:Ring
-      K = elem_type(S)
-      r = new{K, MatElem{K}}()
-      r.deg = m
-      r.ring = F
-      return r
-   end
+   MatrixGroup(m::Int, F::Ring) = new{elem_type(F), MatElem{elem_type(F)}}(m,F)
 
-   function MatrixGroup(m::Int64, F::S, G_gap::GapObj) where S<:Ring
-      K = elem_type(S)
-      r = new{K, MatElem{K}}()
-      r.deg = m
-      r.ring = F
-      r.X = G_gap
-      return r
-   end
-
-   function MatrixGroup(m::Int64, F::S, L::Vector) where S<:Ring
-      K = elem_type(S)
-      r = new{K, MatElem{K}}()
-      r.deg = m
-      r.ring = F
-      r.gens = L
-      return r
-   end
 end
 
+function MatrixGroup(m::Int, F::S, G_gap::GapObj) where S<:Ring
+   r = MatrixGroup(m,F)
+   r.X = G_gap
+   return r
+end
+
+function MatrixGroup(m::Int, F::S, L::Vector) where S<:Ring
+   r = MatrixGroup(m,F)
+   r.gens = L
+   return r
+end
 
 """
     MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: GAPGroupElem{MatrixGroup}
@@ -72,20 +60,7 @@ mutable struct MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: AbstractMatrixGr
    elm::T
    X::GapObj
 
-   function MatrixGroupElem(G::MatrixGroup{RE,MatElem{RE}}, x::MatElem{RE}) where RE <: RingElem
-      z = new{RE, MatElem{RE}}()
-      z.parent = G
-      z.elm = x
-      return z
-   end
-
-   function MatrixGroupElem(G::MatrixGroup{RE,MatElem{RE}}, x::MatElem{RE}, x_gap::GapObj) where RE <: RingElem
-      z = new{RE, MatElem{RE}}()
-      z.parent = G
-      z.elm = x
-      z.X = x_gap
-      return z
-   end
+   MatrixGroupElem(G::MatrixGroup{RE,MatElem{RE}}, x::MatElem{RE}) where RE <: RingElem = new{RE, MatElem{RE}}(G,x)
 
    function MatrixGroupElem(G::MatrixGroup{RE,MatElem{RE}}, x_gap::GapObj) where RE <: RingElem
       z = new{RE, MatElem{RE}}()
@@ -93,7 +68,15 @@ mutable struct MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: AbstractMatrixGr
       z.X = x_gap
       return z
    end
+
 end
+
+function MatrixGroupElem(G::MatrixGroup{RE,MatElem{RE}}, x::MatElem{RE}, x_gap::GapObj) where RE <: RingElem
+   z = MatrixGroupElem(G,x)
+   z.X = x_gap
+   return z
+end
+
 
 ring_elem_type(::Type{MatrixGroup{S,T}}) where {S,T} = S
 mat_elem_type(::Type{MatrixGroup{S,T}}) where {S,T} = T
@@ -118,7 +101,8 @@ end
 
 function Base.show(io::IO, x::MatrixGroupElem)          #TODO: is this correct?
    if isdefined(x, :elm)
-      display(x.elm)
+      show(io, "text/plain", x.elm)
+#      print(io, x.elm)
    else
       print(io, GAP.gap_to_julia(GAP.Globals.StringViewObj(x.X)))
    end
@@ -126,45 +110,49 @@ end
 
 group_element(G::MatrixGroup, x::GapObj) = MatrixGroupElem(G,x)
 
+function assign_from_description(G::MatrixGroup)
+   if G.descr==:GL G.X=GAP.Globals.GL(G.deg,G.ring_iso.codomain)
+   elseif G.descr==:SL G.X=GAP.Globals.SL(G.deg,G.ring_iso.codomain)
+   elseif G.descr==:Sp G.X=GAP.Globals.Sp(G.deg,G.ring_iso.codomain)
+   elseif G.descr==Symbol("GO+") G.X=GAP.Globals.GO(1,G.deg,G.ring_iso.codomain)
+   elseif G.descr==Symbol("SO+") G.X=GAP.Globals.SO(1,G.deg,G.ring_iso.codomain)
+   elseif G.descr==Symbol("Omega+") G.X=GAP.Globals.Omega(1,G.deg,Int(order(G.ring)))
+   elseif G.descr==Symbol("GO-") G.X=GAP.Globals.GO(-1,G.deg,G.ring_iso.codomain)
+   elseif G.descr==Symbol("SO-") G.X=GAP.Globals.SO(-1,G.deg,G.ring_iso.codomain)
+   elseif G.descr==Symbol("Omega-") G.X,=GAP.Globals.Omega(-1,G.deg,Int(order(G.ring)))
+   elseif G.descr==:GO G.X=GAP.Globals.GO(0,G.deg,G.ring_iso.codomain)
+   elseif G.descr==:SO G.X=GAP.Globals.SO(0,G.deg,G.ring_iso.codomain)
+   elseif G.descr==:Omega G.X=GAP.Globals.Omega(0,G.deg,Int(order(G.ring)))
+   elseif G.descr==:GU G.X=GAP.Globals.GU(G.deg,Int(characteristic(G.ring)^(div(degree(G.ring),2) ) ))
+   elseif G.descr==:SU G.X=GAP.Globals.SU(G.deg,Int(characteristic(G.ring)^(div(degree(G.ring),2) ) ))
+   end
+end
+
 function Base.getproperty(G::MatrixGroup, sym::Symbol)
 
    if sym === :mat_iso || sym === :ring_iso
       if isdefined(G,sym) return getfield(G,sym) end
       fm = gen_mat_iso(G.deg, G.ring)
-      setfield!(G,:ring_iso,fm.fr)
-      setfield!(G,:mat_iso,fm)
+      G.ring_iso=fm.fr
+      G.mat_iso=fm
 
    elseif sym === :X
       if isdefined(G,:X) return getfield(G,:X) end
       if isdefined(G,:descr)
          if !isdefined(G,:ring_iso)
             fm = gen_mat_iso(G.deg, G.ring)
-            setfield!(G,:ring_iso,fm.fr)
-            setfield!(G,:mat_iso,fm)
+            G.ring_iso=fm.fr
+            G.mat_iso=fm
          end
-         if G.descr==:GL setfield!(G,:X,GAP.Globals.GL(G.deg,G.ring_iso.codomain))
-         elseif G.descr==:SL setfield!(G,:X,GAP.Globals.SL(G.deg,G.ring_iso.codomain))
-         elseif G.descr==:Sp setfield!(G,:X,GAP.Globals.Sp(G.deg,G.ring_iso.codomain))
-         elseif G.descr==Symbol("GO+") setfield!(G,:X,GAP.Globals.GO(1,G.deg,G.ring_iso.codomain))
-         elseif G.descr==Symbol("SO+") setfield!(G,:X,GAP.Globals.SO(1,G.deg,G.ring_iso.codomain))
-         elseif G.descr==Symbol("Omega+") setfield!(G,:X,GAP.Globals.Omega(1,G.deg,Int(order(G.ring))))
-         elseif G.descr==Symbol("GO-") setfield!(G,:X,GAP.Globals.GO(-1,G.deg,G.ring_iso.codomain))
-         elseif G.descr==Symbol("SO-") setfield!(G,:X,GAP.Globals.SO(-1,G.deg,G.ring_iso.codomain))
-         elseif G.descr==Symbol("Omega-") setfield!(G,:X,GAP.Globals.Omega(-1,G.deg,Int(order(G.ring))))
-         elseif G.descr==:GO setfield!(G,:X,GAP.Globals.GO(0,G.deg,G.ring_iso.codomain))
-         elseif G.descr==:SO setfield!(G,:X,GAP.Globals.SO(0,G.deg,G.ring_iso.codomain))
-         elseif G.descr==:Omega setfield!(G,:X,GAP.Globals.Omega(0,G.deg,Int(order(G.ring))))
-         elseif G.descr==:GU setfield!(G,:X,GAP.Globals.GU(G.deg,Int(characteristic(G.ring)^(div(degree(G.ring),2) ) )))
-         elseif G.descr==:SU setfield!(G,:X,GAP.Globals.SU(G.deg,Int(characteristic(G.ring)^(div(degree(G.ring),2) ) )))
-         end
+         assign_from_description(G)
       elseif isdefined(G,:gens)
          if !isdefined(G,:ring_iso)
             fm = gen_mat_iso(G.deg, G.ring)
-            setfield!(G,:ring_iso,fm.fr)
-            setfield!(G,:mat_iso,fm)
+            G.ring_iso=fm.fr
+            G.mat_iso=fm
          end
          V = GAP.julia_to_gap([g.X for g in G.gens])
-         setfield!(G,:X,GAP.Globals.Group(V))
+         G.X=GAP.Globals.Group(V)
       end
 
    elseif sym === :gens
@@ -172,27 +160,13 @@ function Base.getproperty(G::MatrixGroup, sym::Symbol)
       if !isdefined(G, :X)
          if !isdefined(G,:ring_iso)
             fm = gen_mat_iso(G.deg, G.ring)
-            setfield!(G,:ring_iso,fm.fr)
-            setfield!(G,:mat_iso,fm)
+            G.ring_iso=fm.fr
+            G.mat_iso=fm
          end
-         if G.descr==:GL setfield!(G,:X,GAP.Globals.GL(G.deg,G.ring_iso.codomain))
-         elseif G.descr==:SL setfield!(G,:X,GAP.Globals.SL(G.deg,G.ring_iso.codomain))
-         elseif G.descr==:Sp setfield!(G,:X,GAP.Globals.Sp(G.deg,G.ring_iso.codomain))
-         elseif G.descr==Symbol("GO+") setfield!(G,:X,GAP.Globals.GO(1,G.deg,G.ring_iso.codomain))
-         elseif G.descr==Symbol("SO+") setfield!(G,:X,GAP.Globals.SO(1,G.deg,G.ring_iso.codomain))
-         elseif G.descr==Symbol("Omega+") setfield!(G,:X,GAP.Globals.Omega(1,G.deg,Int(order(G.ring))))
-         elseif G.descr==Symbol("GO-") setfield!(G,:X,GAP.Globals.GO(-1,G.deg,G.ring_iso.codomain))
-         elseif G.descr==Symbol("SO-") setfield!(G,:X,GAP.Globals.SO(-1,G.deg,G.ring_iso.codomain))
-         elseif G.descr==Symbol("Omega-") setfield!(G,:X,GAP.Globals.Omega(-1,G.deg,Int(order(G.ring))))
-         elseif G.descr==:GO setfield!(G,:X,GAP.Globals.GO(0,G.deg,G.ring_iso.codomain))
-         elseif G.descr==:SO setfield!(G,:X,GAP.Globals.SO(0,G.deg,G.ring_iso.codomain))
-         elseif G.descr==:Omega setfield!(G,:X,GAP.Globals.Omega(0,G.deg,Int(order(G.ring))))
-         elseif G.descr==:GU setfield!(G,:X,GAP.Globals.GU(G.deg,Int(characteristic(G.ring)^(div(degree(G.ring),2) ) )))
-         elseif G.descr==:SU setfield!(G,:X,GAP.Globals.SU(G.deg,Int(characteristic(G.ring)^(div(degree(G.ring),2) ) )))
-         end
+         assign_from_description(G)
       end
       L = GAP.Globals.GeneratorsOfGroup(getfield(G,:X))
-      setfield!(G,:gens,[MatrixGroupElem(G,G.mat_iso(L[i]),L[i]) for i in 1:length(L)])
+      G.gens=[MatrixGroupElem(G,G.mat_iso(L[i]),L[i]) for i in 1:length(L)]
 
    else
       return getfield(G, sym)
@@ -200,6 +174,7 @@ function Base.getproperty(G::MatrixGroup, sym::Symbol)
    end
 
 end
+
 
 # add field :X
 function Base.getproperty(x::MatrixGroupElem, sym::Symbol)
@@ -242,7 +217,7 @@ end
 ########################################################################
 
 # this saves the value of x.X
-# x_gap = x.X if this is already known, x_gap = Nothing otherwise
+# x_gap = x.X if this is already known, x_gap = nothing otherwise
 function lies_in(x::MatElem, G::MatrixGroup, x_gap)
    if base_ring(x)!=G.ring || nrows(x)!=G.deg return false, x_gap end
    if isone(x) return true, x_gap end
@@ -253,38 +228,38 @@ function lies_in(x::MatElem, G::MatrixGroup, x_gap)
          end
       end
    end
-   if G.descr==:GL
+   if isdefined(G,:descr) && G.descr==:GL
       if det(x)!=0
          return true, x_gap
       else
          return false, x_gap
       end
-   elseif G.descr==:SL
+   elseif isdefined(G,:descr) && G.descr==:SL
       if det(x)==1
          return true, x_gap
       else
          return false, x_gap
       end
    else
-      if x_gap==Nothing x_gap = G.mat_iso(x) end
-     # x_gap !=Nothing || x_gap = G.mat_iso(x)
+      if x_gap==nothing x_gap = G.mat_iso(x) end
+     # x_gap !=nothing || x_gap = G.mat_iso(x)
       return GAP.Globals.in(x_gap,G.X), x_gap
    end
 end
 
-Base.in(x::MatElem, G::MatrixGroup) = lies_in(x,G,Nothing)[1]
+Base.in(x::MatElem, G::MatrixGroup) = lies_in(x,G,nothing)[1]
 
 function Base.in(x::MatrixGroupElem, G::MatrixGroup)
    if isdefined(x,:X) return lies_in(x.elm,G,x.X)[1]
-   else return lies_in(x.elm,G,Nothing)[1]
+   else return lies_in(x.elm,G,nothing)[1]
    end
 end
 
 # embedding an element of type MatElem into a group G
 function (G::MatrixGroup)(x::MatElem)
-   vero, x_gap = lies_in(x,G,Nothing)
+   vero, x_gap = lies_in(x,G,nothing)
    vero || throw(ArgumentError("Element not in the group"))
-   if x_gap==Nothing return MatrixGroupElem(G,x)
+   if x_gap==nothing return MatrixGroupElem(G,x)
    else return MatrixGroupElem(G,x,x_gap)
    end
 end
@@ -301,9 +276,9 @@ function (G::MatrixGroup)(x::MatrixGroupElem)
          return MatrixGroupElem(G,x.X)
       end
    else
-      vero, x_gap = lies_in(x.elm,G,Nothing)
+      vero, x_gap = lies_in(x.elm,G,nothing)
       vero || throw(ArgumentError("Element not in the group"))
-      if x_gap==Nothing return MatrixGroupElem(G,x.elm)
+      if x_gap==nothing return MatrixGroupElem(G,x.elm)
       else return MatrixGroupElem(G,x.elm,x_gap)
       end
    end
@@ -421,8 +396,7 @@ Base.one(G::MatrixGroup) = MatrixGroupElem(G, identity_matrix(G.ring, G.deg))
 function Base.rand(G::MatrixGroup)
    x_gap = GAP.Globals.Random(G.X)
    x_oscar = G.mat_iso(x_gap)
-   x = MatrixGroupElem(G,x_oscar,x_gap)
-   return x
+   return MatrixGroupElem(G,x_oscar,x_gap)
 end
 
 gens(G::MatrixGroup) = G.gens
@@ -674,15 +648,15 @@ end
 ########################################################################
 
 function Base.show(io::IO, x::GroupConjClass{T,S}) where T <: MatrixGroup where S <: MatrixGroupElem
-  show(x.repr)
+  show(io, x.repr)
   print(" ^ ")
-  show(x.X)
+  show(io, x.X)
 end
 
 function Base.show(io::IO, x::GroupConjClass{T,S}) where T <: MatrixGroup where S <: MatrixGroup
-  show(x.repr)
+  show(io, x.repr)
   print(" ^ ")
-  show(x.X)
+  show(io, x.X)
 end
 
 function Base.:^(H::MatrixGroup, y::MatrixGroupElem)
@@ -701,7 +675,7 @@ function conjugacy_classes_subgroups(G::MatrixGroup)
 end
 
 function conjugacy_classes_maximal_subgroups(G::MatrixGroup)
-  L = GAP.gap_to_julia(Vector{GapObj},GAP.Globals.ConjugacyClassesMaximalSubgroups(G.X))
+   L = GAP.gap_to_julia(Vector{GapObj},GAP.Globals.ConjugacyClassesMaximalSubgroups(G.X))
    return GroupConjClass{typeof(G), typeof(G)}[ _conjugacy_class(G,MatrixGroup(G.deg,G.ring,GAP.Globals.Representative(cc)),cc) for cc in L]
 end
 
