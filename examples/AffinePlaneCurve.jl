@@ -6,11 +6,11 @@ using .VarietyModule
 
 import Base.:(==)
 
-export AffinePlaneCurve, degree, jacobi_ideal, tangent, issmooth_point, union,
+export AffinePlaneCurve, degree, jacobi_ideal, tangent, issmooth, union,
        Point, curve_components, isirreducible, isreduced, common_component,
        curve_intersect, intersect, curve_singular_locus, ideal_point,
        multiplicity, singular_locus, intersection_multiplicity,
-       aretransverse, tangent_lines, issmooth_curve, reduced_curve
+       aretransverse, tangent_lines, issmooth_curve, reduction, hash
 
 ################################################################################
 #
@@ -35,7 +35,7 @@ mutable struct AffinePlaneCurve{S}
     else
        r.degree = -1                      # -1 when it is not computed yet
        r.dimension = 1                    # since C is a plane curve, the dimension is always 1
-       r.components = Dict{AffinePlaneCurve{fmpq}, Int64}()
+       r.components = Dict{AffinePlaneCurve{S}, Int64}()
        return r
     end
   end
@@ -103,10 +103,10 @@ end
 # curve.
 
 @doc Markdown.doc"""
-issmooth_point(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
+issmooth(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
 > Returns an error if P is not a point of C, false if P is a singular point of C, and true if P is a smooth point of C.
 """
-function issmooth_point(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
+function Oscar.issmooth(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
   if P.ambient_dim != 2
      error("The point needs to be in a two dimensional space")
   elseif evaluate(C.eq, P.coord) != 0
@@ -363,7 +363,7 @@ function curve_singular_locus(C::AffinePlaneCurve)
            CY = AffinePlaneCurve(FY)
            L = curve_intersect(C, CY)
            M = L[1]
-           rCC = reduced_curve(M[1])
+           rCC = reduction(M[1])
            push!(CC, AffinePlaneCurve(rCC.eq*M[1].eq))
            return [CC, L[2]]
         end
@@ -376,7 +376,7 @@ function curve_singular_locus(C::AffinePlaneCurve)
            CX = AffinePlaneCurve(FX)
            L = curve_intersect(C, CX)
            M = L[1]
-           rCC = reduced_curve(M[1])
+           rCC = reduction(M[1])
            push!(CC, AffinePlaneCurve(rCC.eq*M[1].eq))
            return [CC, L[2]]
         end
@@ -398,7 +398,7 @@ function curve_singular_locus(C::AffinePlaneCurve)
            M = curve_intersect(C, S[1][1])
            MM = M[1]
            PP = [Pts; M[2]]
-           rCC = reduced_curve(MM[1])
+           rCC = reduction(MM[1])
            push!(CC, AffinePlaneCurve(rCC.eq*MM[1].eq))
            return [CC, PP]
         end
@@ -411,10 +411,10 @@ end
 # TODO: change for a direct squarefree computation when available.
 
 @doc Markdown.doc"""
-reduced_curve(C::AffinePlaneCurve)
+reduction(C::AffinePlaneCurve)
 > Returns the affine plane curve defined by the squarefree part of the equation of C.
 """
-function reduced_curve(C::AffinePlaneCurve)
+function reduction(C::AffinePlaneCurve)
   if C.components == Dict()
      f = factor(C.eq)
      C.components = Dict(AffinePlaneCurve(x) => f.fac[x] for x in keys(f.fac))
@@ -504,7 +504,7 @@ function tangent_lines(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
   M = sort(L, by=_sort_helper_multiplicity)
   Gm = HC[M[1]]
   Z = factor(Gm)
-  D = Dict{AffinePlaneCurve{fmpq}, Int64}()
+  D = Dict{AffinePlaneCurve{S}, Int64}()
   X = V[1] - P.coord[1]
   Y = V[2] - P.coord[2]
   for p in keys(Z.fac)
@@ -580,7 +580,7 @@ function aretransverse(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}, P::Point{
   if P.ambient_dim != 2
      error("The point needs to be in a two dimensional space")
   end
-  if issmooth_point(C, P) == false || issmooth_point(D, P) == false
+  if issmooth(C, P) == false || issmooth(D, P) == false
      return false
   else
      if intersection_multiplicity(C, D, P) == 1
@@ -609,6 +609,18 @@ function issmooth_curve(C::AffinePlaneCurve)
   else
      error("The curve is not reduced.")
   end
+end
+
+################################################################################
+# hash functions
+
+function Oscar.hash(C::AffinePlaneCurve, h::UInt)
+  F = 1//lc(C.eq)*C.eq
+  return hash(F, h)
+end
+
+function Oscar.hash(C::AffinePlaneCurve)
+  return hash(C, zero(UInt))
 end
 
 ################################################################################
