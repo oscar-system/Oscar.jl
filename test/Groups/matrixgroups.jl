@@ -121,3 +121,22 @@ end
 #   @test index(GO(0,3,3), omega_group(0,3,3))==4
 #   @test index(GO(-1,4,2), omega_group(-1,4,2))==2
 end
+
+@testset "Cosets and conjugacy classes" begin
+   T,t=PolynomialRing(FiniteField(3),"t")
+   F,z=FiniteField(t^2+1,"z")
+
+   G = GL(2,F)
+   H = GO(-1,2,F)
+   x = G[1]
+   lc = x*H
+   @test order(lc)==order(H)
+   @test representative(lc)==x
+   @test acting_domain(lc)==H
+   @test x in lc
+   C = centralizer(G,x)[1]
+   @test order(C)==64
+   cc = conjugacy_class(G,x)
+   @test x^G[2] in elements(cc)
+   @test length(cc)==index(G,C)
+end
