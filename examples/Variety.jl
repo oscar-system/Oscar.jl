@@ -15,7 +15,7 @@ mutable struct Variety
 end
 
 function Base.show(io::IO, V::Variety)
-  println(io, "Variety defined by ", V.I)
+  println(io, "Variety defined by the ", V.I)
 end
 
 
