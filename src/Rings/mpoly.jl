@@ -546,6 +546,7 @@ end
 
 @doc Markdown.doc"""
     jacobi_matrix(f::MPolyElem)
+
 > Given a polynomial $f$ this function returns the Jacobian matrix ``J_f=(\partial_{x_1}f,...,\partial_{x_n}f)^T`` of $f$.
 """
 function jacobi_matrix(f::MPolyElem)
@@ -556,6 +557,7 @@ end
 
 @doc Markdown.doc"""
     jacobi_ideal(f::MPolyElem)
+
 > Given a polynomial $f$ this function returns the Jacobian ideal of $f$.
 """
 function jacobi_ideal(f::MPolyElem)
@@ -566,6 +568,7 @@ end
 
 @doc Markdown.doc"""
     jacobi_matrix(g::Array{<:MPolyElem, 1})
+
 > Given an array ``g=[f_1,...,f_m]`` of polynomials over the same base ring,
 > this function returns the Jacobian matrix ``J=(\partial_{x_i}f_j)_{i,j}`` of ``g``.
 """
@@ -741,6 +744,7 @@ end
 
 @doc Markdown.doc"""
     eliminate(I::MPolyIdeal, polys::Array{MPolyElem, 1})
+
 > Given a list of polynomials which are variables, construct the ideal
 > corresponding geometrically to the projection of the variety given by the
 > ideal $I$ where those variables have been eliminated.
@@ -755,6 +759,7 @@ end
 
 @doc Markdown.doc"""
     eliminate(I::MPolyIdeal, polys::AbstractArray{Int, 1})
+
 > Given a list of indices, construct the ideal
 > corresponding geometrically to the projection of the variety given by the
 > ideal $I$ where those variables in the list have been eliminated.

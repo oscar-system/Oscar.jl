@@ -32,6 +32,7 @@ export
 """
     direct_product(L::AbstractVector{<:GAPGroup})
     direct_product(L::GAPGroup...)
+
 Return the direct product of the groups in the collection `L`.
 """
 function direct_product(L::AbstractVector{<:GAPGroup})
@@ -46,6 +47,7 @@ end
 """
     inner_direct_product(L::AbstractVector{T}; morphisms)
     inner_direct_product(L::T...)
+
 Return a direct product of groups of the same type `T` as a group of type `T`. It works for `T` of the following types:
 - `PermGroup`, `PcGroup`, `MatrixGroup`, `FPGroup`.
 
@@ -78,12 +80,14 @@ end
 
 """
     number_of_factors(G::DirectProductGroup)
+
 Return the number of factors of `G`.
 """
 number_of_factors(G::DirectProductGroup) = length(G.L)
 
 """
     cartesian_power(G::T, n::Int)
+
 Return the direct product of `n` copies of `G`.
 """
 function cartesian_power(G::GAPGroup, n::Base.Integer)
@@ -93,6 +97,7 @@ end
 
 """
     inner_cartesian_power(G::T, n::Int; morphisms)
+
 Return the direct product of `n` copies of `G` as group of type `T`.
 
 The parameter `morphisms` is `false` by default. If it is set `true`, then the output is a triple (`G`, `emb`, `proj`), where `emb` and `proj` are the vectors of the embeddings (resp. projections) of the direct product `G`.
@@ -104,6 +109,7 @@ end
 
 """
     factor_of_direct_product(G::DirectProductGroup, j::Int)
+
 Return the `j`-th factor of `G`.
 """
 function factor_of_direct_product(G::DirectProductGroup, j::Base.Integer)
@@ -114,6 +120,7 @@ end
 
 """
     as_perm_group(G::DirectProductGroup)
+
 If `G` is direct product of permutations groups, return `G` as permutation group.
 """
 function as_perm_group(G::DirectProductGroup)
@@ -126,6 +133,7 @@ end
 
 """
     as_polycyclic_group(G::DirectProductGroup)
+
 If `G` is direct product of polycyclic groups, return `G` as polycyclic group.
 """
 function as_polycyclic_group(G::DirectProductGroup)
@@ -138,6 +146,7 @@ end
 
 """
     as_matrix_group(G::DirectProductGroup)
+
 If `G` is direct product of matrix groups over the ring `R` of dimension `n_1`, ... , `n_k` respectively, return `G` as matrix group over the ring `R` of dimension `n_1 + ... + n_k`.
 """
 function as_matrix_group(G::DirectProductGroup)
@@ -151,6 +160,7 @@ end
 
 """
     embedding(G::DirectProductGroup, j::Integer)
+
 Return the embedding of the `j`-th component of `G` into `G`, for `j` = 1,...,#factors of `G`.
 """
 function embedding(G::DirectProductGroup, j::Base.Integer)
@@ -164,6 +174,7 @@ end
 
 """
     projection(G::DirectProductGroup, j::Integer)
+
 Return the projection of `G` into the `j`-th component of `G`, for `j` = 1,...,#factors of `G`.
 """
 function projection(G::DirectProductGroup, j::Base.Integer)
@@ -235,6 +246,7 @@ end
 # if a subgroup of a direct product of groups is also a direct product of groups
 """
     write_as_full(G::DirectProductGroup)
+
 If `G` is a subgroup of the direct product `G_1 x ... x G_n` such that `G = H_1 x ... x H_n` for `H_i` subgroup of `G_i`, return `G` as full direct product of the `H_i`. If such `H_i` do not exist, an ERROR is returned.
 """
 function write_as_full(G::DirectProductGroup)
@@ -251,6 +263,7 @@ end
 
 """
     isfull_direct_product(G::DirectProductGroup)
+
 Return whether `G` is direct product of its factors (`false` if it is a proper subgroup).
 """
 isfull_direct_product(G::DirectProductGroup) = G.isfull
@@ -266,6 +279,7 @@ Base.:^(H::DirectProductGroup, y::GAPGroupElem) = sub([h^y for h in gens(H)])[1]
 
 """
     semidirect_product(N::S, f::GAPGroupHomomorphism, H::T)
+
 Return the semidirect product of `N` and `H`, of type ``SemidirectProductGroup{S,T}``, where `f` is a homomorphism from `H` to `Aut`(`N`).
 """
 function semidirect_product(N::S, f::GAPGroupHomomorphism{T,AutomorphismGroup{S}}, H::T) where S <: GAPGroup where T <: GAPGroup
@@ -283,30 +297,35 @@ end
 
 """
     normal_subgroup(G::SemidirectProductGroup)
+
 Return `N`, where `G` is the semidirect product of the normal subgroup `N` and `H`.
 """
 normal_subgroup(G::SemidirectProductGroup) = G.N
 
 """
     acting_subgroup(G::SemidirectProductGroup)
+
 Return `H`, where `G` is the semidirect product of the normal subgroup `N` and `H`.
 """
 acting_subgroup(G::SemidirectProductGroup) = G.H
 
 """
     homomorphism_of_semidirect_product(G::SemidirectProductGroup)
+
 Return `f,` where `G` is the semidirect product of the normal subgroup `N` and the group `H` acting on `N` via the homomorphism `h`.
 """
 homomorphism_of_semidirect_product(G::SemidirectProductGroup) = G.f
 
 """
     isfull_semidirect_product(G::SemidirectProductGroup)
+
 Return whether `G` is a semidirect product of two groups, instead of a proper subgroup.
 """
 isfull_semidirect_product(G::SemidirectProductGroup) = G.isfull
 
 """
     embedding(G::SemidirectProductGroup, n::Integer)
+
 Return the embedding of the `n`-th component of `G` into `G`, for `n` = 1,2. It is not defined for proper subgroups of semidirect products.
 """
 function embedding(G::SemidirectProductGroup{S,T}, n::Base.Integer) where S where T
@@ -327,6 +346,7 @@ end
 
 """
     projection(G::SemidirectProductGroup, n::Integer)
+
 Return the projection of `G` into the second component of `G`.
 """
 function projection(G::SemidirectProductGroup)
@@ -389,6 +409,7 @@ end
 """
     wreath_product(G::T, H::S, a::GAPGroupHomomorphism{S,PermGroup})
     wreath_product(G::T, H::PermGroup) where T<: Group
+
 Return the wreath product of the group `G` and the group `H`, where `H` acts on `n` copies of `G` through the homomorphism `a` from `H` to a permutation group, and `n` is the number of moved points of `Image(a)`.
 
 If `a` is not specified, then `H` must be a group of permutations. In this case, `n` is NOT the number of moved points, but the degree of `H`.
@@ -432,30 +453,35 @@ end
 
 """
     normal_subgroup(W::WreathProductGroup)
+
 Return `G`, where `W` is the wreath product of `G` and `H`.
 """
 normal_subgroup(W::WreathProductGroup) = W.G
 
 """
     acting_subgroup(W::WreathProductGroup)
+
 Return `H`, where `W` is the wreath product of `G` and `H`.
 """
 acting_subgroup(W::WreathProductGroup) = W.H
 
 """
     homomorphism_of_wreath_product(G::WreathProductGroup)
+
 If `W` is the wreath product of `G` and `H`, then return the homomorphism `f` from `H` to `Sym(n)`, where `n` is the number of copies of `G`.
 """
 homomorphism_of_wreath_product(G::WreathProductGroup) = G.a
 
 """
     isfull_wreath_product(G::WreathProductGroup)
+
 Return whether `G` is a wreath product of two groups, instead of a proper subgroup.
 """
 isfull_wreath_product(G::WreathProductGroup) = G.isfull
 
 """
     projection(G::WreathProductGroup)
+
 Return the projection of `wreath_product(G,H)` into the permutation group `H`.
 """
 function projection(W::WreathProductGroup)
@@ -468,6 +494,7 @@ end
 
 """
     embedding(G::WreathProductGroup, n::Integer)
+
 Return the embedding of the `n`-th component of `G` into `G`.
 """
 function embedding(W::WreathProductGroup, n::Base.Integer)

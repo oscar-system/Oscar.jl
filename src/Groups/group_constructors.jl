@@ -43,6 +43,7 @@ _gap_filter(::Type{MatrixGroup}) = GAP.Globals.IsMatrixGroup
 """
     symmetric_group(n::Int64)
     symmetric_group(::Type{T}, n::Int)
+
 Return the full symmetric group over a set of `n` elements. The group is returned of type `T` for `T` in {`PermGroup`, `PcGroup`}. If `T` is not specified, then `T` is set as `PermGroup`.
 """
 symmetric_group(n::Int64) = symmetric_group(PermGroup, n)
@@ -63,6 +64,7 @@ end
 """
     alternating_group(n::Int64)
     alternating_group(::Type{T}, n::Int)
+
 Return the full alternating group over a set of `n` elements. The group is returned of type `T` for `T` in {`PermGroup`, `PcGroup`}. If `T` is not specified, then `T` is set as `PermGroup`.
 """
 alternating_group(n::Int64) = alternating_group(PermGroup, n)
@@ -84,6 +86,7 @@ cyclic_group(n::Int) = cyclic_group(PcGroup, n)
 
 """
     cyclic_group(::Type{T}, n::Int)
+
 Return the cyclic group of order `n` and type `T`. If the type is not specified, the group is returned of type `PcGroup`.
 """
 function cyclic_group(::Type{T}, n::Int) where T <: GAPGroup
@@ -107,6 +110,7 @@ end
 
 """
     abelian_group(::Type{T}, v::Vector{Int}) where T <: Group -> PcGroup
+
 Return the direct product of cyclic groups of order v[1] x v[2] x ... x v[n], as group of type `T`. Here, `T` must be of type `PermGroup`, `FPGroup` or `PcGroup`.
 """
 function abelian_group(::Type{T}, v::Vector{Int}) where T <: GAPGroup
@@ -116,6 +120,7 @@ end
 
 """
     isabelian(G::Group)
+
 Return whether `G` is abelian.
 """
 function isabelian(G::GAPGroup)
@@ -136,6 +141,7 @@ end
 
 """
     free_group
+
 There are four ways to define a free group.
 - `free_group(n::Int) -> FPGroup`; return the free group of rank `n`, with generators printed as `"f1"`,`"f2"`,`"f3"`, etc.
 - `free_group(L::String...) -> FPGroup`; return the free group with length(`L`) generators, printed as `L[1]`, `L[2]`, `L[3]`, etc.
@@ -190,6 +196,7 @@ end
 """
     dihedral_group(n::Int)
     dihedral_group(::Type{T}, n::Int)
+
 Return the dihedral group of order `n` of type `T`, where `T` is in {`PcGroup`,`PermGroup`,`FPGroup`}. In the first case, the type is set as `PcGroup`.
 """
 dihedral_group(n::Int) = dihedral_group(PcGroup, n)
@@ -202,6 +209,7 @@ end
 """
     quaternion_group(n::Int)
     quaternion_group(::Type{T}, n::Int)
+
 Return the quaternion group of order `n` of type `T`, where `T` is in {`PcGroup`,`PermGroup`,`FPGroup`,`MatrixGroup`}. In the first case, the type is set as `PcGroup`.
 """
 quaternion_group(n::Int) = quaternion_group(PcGroup, n)
@@ -225,6 +233,7 @@ end
     general_linear_group(n::Int, q::Int)
     general_linear_group(T::Type, n::Int, q::Int)
     GL = general_linear_group
+
 return the general linear group of dimension `n` over the field GF(`q`). It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
 """
 general_linear_group(n::Int, q::Int) = general_linear_group(MatrixGroup, n, q)
@@ -237,6 +246,7 @@ end
     special_linear_group(n::Int, q::Int)
     special_linear_group(T::Type, n::Int, q::Int)
     SL = special_linear_group
+
 return the special linear group of dimension `n` over the field GF(`q`). It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
 """
 special_linear_group(n::Int, q::Int) = special_linear_group(MatrixGroup, n, q)
@@ -249,6 +259,7 @@ end
     symplectic_group(n::Int, q::Int)
     symplectic_group(T::Type, n::Int, q::Int)
     Sp = symplectic_group
+
 return the special linear group of dimension `n` over the field GF(`q`), for `n` even. It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
 """
 symplectic_group(n::Int, q::Int) = symplectic_group(MatrixGroup, n, q)
@@ -261,6 +272,7 @@ end
     unitary_group(n::Int, q::Int)
     unitary_group(T::Type, n::Int, q::Int)
     GU = unitary_group
+
 return the unitary group of dimension `n` over the field GF(`q^2`). It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
 """
 unitary_group(n::Int, q::Int) = unitary_group(MatrixGroup, n, q)
@@ -273,6 +285,7 @@ end
     special_unitary_group(n::Int, q::Int)
     special_unitary_group(T::Type, n::Int, q::Int)
     SU = special_unitary_group
+
 return the special unitary group of dimension `n` over the field GF(`q^2`). It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
 """
 special_unitary_group(n::Int, q::Int) = special_unitary_group(MatrixGroup, n, q)
@@ -288,6 +301,7 @@ end
     orthogonal_group(e::Int, n::Int, q::Int)
     orthogonal_group(::Type{T}, e::Int, n::Int, q::Int)
     GO = orthogonal_group
+
 return the orthogonal group of dimension `n` over the field GF(`q`) of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0` for `n` odd. If `n` is odd, `e` can be omitted. It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
 """
 orthogonal_group(n::Int, q::Int) = orthogonal_group(MatrixGroup, 0, n, q)
@@ -311,6 +325,7 @@ end
     special_orthogonal_group(e::Int, n::Int, q::Int)
     special_orthogonal_group(::Type{T}, e::Int, n::Int, q::Int)
     SO = special_orthogonal_group
+
 return the special orthogonal group of dimension `n` over the field GF(`q`) of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0` for `n` odd. If `n` is odd, `e` can be omitted. It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
 """
 special_orthogonal_group(n::Int, q::Int) = special_orthogonal_group(MatrixGroup, 0, n, q)
@@ -333,6 +348,7 @@ end
     omega_group(T::Type, n::Int, q::Int)
     omega_group(e::Int, n::Int, q::Int)
     omega_group(::Type{T}, e::Int, n::Int, q::Int)
+
 return the Omega group of dimension `n` over the field GF(`q`) of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0` for `n` odd. If `n` is odd, `e` can be omitted. It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
 """
 omega_group(n::Int, q::Int) = omega_group(MatrixGroup, 0, n, q)
@@ -354,6 +370,7 @@ end
     general_linear_group(n::Int, q::Int)
     general_linear_group(T::Type, n::Int, q::Int)
     GL(n::Int, q::Int)
+
 return the general linear group of dimension `n` over the field GF(`q`). It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
 """
 const GL = general_linear_group
@@ -362,6 +379,7 @@ const GL = general_linear_group
     special_linear_group(n::Int, q::Int)
     special_linear_group(T::Type, n::Int, q::Int)
     SL(n::Int, q::Int)
+
 return the special linear group of dimension `n` over the field GF(`q`). It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
 """
 const SL = special_linear_group
@@ -370,6 +388,7 @@ const SL = special_linear_group
     symplectic_group(n::Int, q::Int)
     symplectic_group(T::Type, n::Int, q::Int)
     Sp(n::Int, q::Int)
+
 return the special linear group of dimension `n` over the field GF(`q`), for `n` even. It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
 """
 const Sp = symplectic_group
@@ -378,6 +397,7 @@ const Sp = symplectic_group
     unitary_group(n::Int, q::Int)
     unitary_group(T::Type, n::Int, q::Int)
     GU(n::Int, q::Int)
+
 return the unitary group of dimension `n` over the field GF(`q^2`). It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
 """
 const GU = unitary_group
@@ -386,6 +406,7 @@ const GU = unitary_group
     special_unitary_group(n::Int, q::Int)
     special_unitary_group(T::Type, n::Int, q::Int)
     SU(n::Int, q::Int)
+
 return the special unitary group of dimension `n` over the field GF(`q^2`). It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
 """
 const SU = special_unitary_group
@@ -396,6 +417,7 @@ const SU = special_unitary_group
     orthogonal_group(e::Int, n::Int, q::Int)
     orthogonal_group(::Type{T}, e::Int, n::Int, q::Int)
     GO = orthogonal_group
+
 return the orthogonal group of dimension `n` over the field GF(`q`) of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0` for `n` odd. If `n` is odd, `e` can be omitted. It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
 """
 const GO = orthogonal_group
@@ -406,6 +428,7 @@ const GO = orthogonal_group
     special_orthogonal_group(e::Int, n::Int, q::Int)
     special_orthogonal_group(::Type{T}, e::Int, n::Int, q::Int)
     SO = special_orthogonal_group
+
 return the special orthogonal group of dimension `n` over the field GF(`q`) of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0` for `n` odd. If `n` is odd, `e` can be omitted. It is returned of type `T` for `T` = `MatrixGroup` or `PermGroup`.
 """
 const SO = special_orthogonal_group

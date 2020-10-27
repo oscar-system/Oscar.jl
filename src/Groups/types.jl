@@ -90,6 +90,7 @@ Base.hash(x::GAPGroupElem) = 0 # FIXME
 
 """
     PermGroup
+
 Groups of permutations. Every group of this type is the subgroup of Sym(n) for some n.
 
 # Examples
@@ -129,6 +130,7 @@ const PermGroupElem = GAPGroupElem{PermGroup}
 
 """
     MatrixGroup
+
 Groups of matrices. Every group of this type is the subgroup of GL(n,q) for some integer `n` and prime power `q`
 
 # Examples
@@ -149,6 +151,7 @@ end
 
 """
     MatrixGroupElem
+
 Element of a matrix group.
 """
 const MatrixGroupElem = GAPGroupElem{MatrixGroup}
@@ -157,6 +160,7 @@ const MatrixGroupElem = GAPGroupElem{MatrixGroup}
 
 """
     PcGroup
+
 Polycyclic group
 # Examples:
 - `cyclic_group(n::Int)`: cyclic group of order `n`
@@ -175,12 +179,14 @@ end
 
 """
     PcGroupElem
+
 Element of a polycyclic group.
 """
 const PcGroupElem = GAPGroupElem{PcGroup}
 
 """
     FPGroup
+
 Finitely presented group. It can be defined via the function ``free_group``.
 """
 mutable struct FPGroup <: GAPGroup
@@ -215,6 +221,7 @@ end
 
 """
     AutomorphismGroup{T} <: GAPGroup
+
 Group of automorphisms over a group of type `T`. It can be defined via the function ``automorphism_group``.
 """
 mutable struct AutomorphismGroup{T} <: GAPGroup
@@ -238,6 +245,7 @@ end
 
 """
     DirectProductGroup
+
 Either direct product of two or more groups of any type, or subgroup of a direct product of groups.
 """
 struct DirectProductGroup <: GAPGroup
@@ -250,6 +258,7 @@ end
 
 """
     SemidirectProductGroup{S,T}
+
 Semidirect product of two groups of type `S` and `T` respectively, or subgroup of a semidirect product of groups.
 """
 struct SemidirectProductGroup{S<:GAPGroup, T<:GAPGroup} <: GAPGroup 
@@ -263,6 +272,7 @@ end
 
 """
     WreathProductGroup
+
 Wreath product of a group `G` and a group of permutations `H`, or a generic group `H` together with the homomorphism `a` from `H` to a permutation group.
 """
 struct WreathProductGroup <: GAPGroup

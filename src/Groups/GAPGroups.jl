@@ -97,6 +97,7 @@ end
 
 """
     degree(G::PermGroup)
+
 Return the degree as permutation group, that is the integer `n` such that `G < Sym(n)`.
 
 !!! warning "Note"
@@ -116,12 +117,14 @@ end
 
 """
     exponent(G::Group)
+
 Return the exponent of `G`, i.e. the smallest positive integer `e` such that `g`^`e`=1 for every `g` in `G`.
 """
 Base.exponent(x::GAPGroup) = GAP.Globals.Exponent(x.X)
 
 """
     rand(G::Group)
+
 Return a random element of the group `G`.
 """
 function Base.rand(x::GAPGroup)
@@ -131,6 +134,7 @@ end
 
 """
     rand_pseudo(G::Group)
+
 Return a random element of the group `G`. It works faster than `rand`, but the elements are not necessarily equally distributed.
 """
 function rand_pseudo(G::GAPGroup)
@@ -181,12 +185,14 @@ end
 
 """
     one(G::Group) -> x::GAPGroupElem{typeof(G)}
+
 Return the identity of the group `G`.
 """
 Base.one(x::GAPGroup) = group_element(x, GAP.Globals.Identity(x.X))
 
 """
     one(x::GAPGroupElement{T}) -> x::GAPGroupElem{T}
+
 Return the identity of the parent group of x.
 """
 Base.one(x::GAPGroupElem) = one(parent(x))
@@ -220,6 +226,7 @@ Base.conj!(out::GAPGroupElem, x::GAPGroupElem, y::GAPGroupElem) = x^y
 
 """
     comm(x::GAPGroupElem, y::GAPGroupElem)
+
 Return `[x,y]` = `x^-1*y^-1*x*y`.
 """
 comm(x::GAPGroupElem, y::GAPGroupElem) = x^-1*x^y
@@ -257,6 +264,7 @@ Base.in(g::GAPGroupElem, G::GAPGroup) = GAP.Globals.in(g.X, G.X)
 # FIXME: use name gap_perm for now
 """
     gap_perm(L::AbstractVector{<:Integer})
+
 Return the permutation `x` which maps every `i` from `1` to `length(L)` to `L[i]`. `L` must contain every integer from 1 to `length(L)` exactly, otherwise an exception is thrown.
 The parent of `x` is set as Sym(`n`).
 ```jldoctest
@@ -272,6 +280,7 @@ end
 """
     perm(G::PermGroup, L::AbstractVector{<:Integer})
     (G::PermGroup)(L::AbstractVector{<:Integer})
+
 Return the permutation `x` which maps every `i` from `1` to `length(L)` to `L[i]`. `L` must contain every integer from 1 to `length(L)` exactly, otherwise an exception is thrown.
 The parent of `x` is `G`. If `x` is not contained in `G`, an ERROR is returned. For `gap_perm`, the parent group of `x` is set as Sym(`n`), where `n` is the largest moved point of `x`. Example:
 ```jldoctest
@@ -300,6 +309,7 @@ end
 """
     cperm(L::AbstractVector{<:Integer}...)
     cperm(G::PermGroup, L::AbstractVector{<:Integer}...)
+
 For given lists of positive integers `[a_1, a_2, ..., a_n],[b_1, b_2, ... , b_m], ...` return the
 permutation `x = (a_1,a_2,...,a_n)(b_1,b_2,...,b_m)...`. The array `[n,n+1,...,n+k]` can be replaced by `n:n+k`.
   
@@ -337,6 +347,7 @@ end
 
 """
     listperm(x::PermGroupElem)
+
 Return the list L defined by L = [ `x`(i) for i in 1:n ], where `n` is the degree of `parent(x)`.
 """
 function listperm(x::PermGroupElem)
@@ -353,6 +364,7 @@ Base.Vector{T}(x::PermGroupElem, n::Int = x.parent.deg) where {T} = T[x(i) for i
 
 """
     gens(G::Group)
+
 Return an array of generators of the group `G`. To access the array, it can be used the shorter notation `G[i]` instead of `gens(G)[i]`.
 """
 function gens(G::GAPGroup)
@@ -366,6 +378,7 @@ end
 
 """
     gens(G::Group, i::Integer)
+
 Return the `i`-th element of the array gens(`G`). It is equivalent to `G[i]` and `gens(G)[i]`. If `i` is greater than the length of gens(`G`), an ERROR is returned.
 """
 function gens(G::GAPGroup, i::Int)
@@ -376,6 +389,7 @@ end
 
 """
     ngens(G::Group) -> Int
+
 Return the length of the array gens(G).
 
 !!! warning "WARNING:" 
@@ -412,6 +426,7 @@ end
 
 """
     GroupConjClass
+
 It could be either the conjugacy class of an element or of a subgroup in a group G. It is displayed as
 ```
      cc = x ^ G
@@ -448,6 +463,7 @@ number_conjugacy_classes(G::GAPGroup) = GAP.Globals.NrConjugacyClasses(G.X)
 
 """
     conjugacy_class(G::Group, g::GAPGroupElem) -> GroupConjClass
+
 Return the conjugacy class `cc` of `g` in `G`, where `g` = `representative`(`cc`).
 """
 function conjugacy_class(G::GAPGroup, g::GAPGroupElem)
@@ -460,6 +476,7 @@ end
 
 """
     elements(C::GroupConjClass)
+
 Return the array of the elements in C.
 """
 function elements(C::GroupConjClass{S, T}) where S where T<:GAPGroupElem
@@ -473,6 +490,7 @@ end
 
 """
     conjugacy_classes(G::Group)
+
 Return the array of all conjugacy classes of elements in G. It is guaranteed that the class of the identity is in the first position.
 """
 function conjugacy_classes(G::GAPGroup)
@@ -484,6 +502,7 @@ Base.:^(x::GAPGroupElem, y::GAPGroupElem) = group_element(_maxgroup(parent(x), p
 
 """
     isconjugate(G::Group, x::GAPGroupElem, y::GAPGroupElem)
+
 If `x`,`y` are conjugate in `G`, return 
 ```
 true, z
@@ -506,6 +525,7 @@ end
 # START subgroups conjugation
 """
     conjugacy_class(G::T, H::T) where T<:Group -> GroupConjClass
+
 Return the subgroup conjugacy class `cc` of `H` in `G`, where `H` = `representative`(`cc`).
 """
 function conjugacy_class(G::T, g::T) where T<:GAPGroup
@@ -527,6 +547,7 @@ end
 
 """
     conjugacy_classes_subgroups(G::Group)
+
 Return the array of all conjugacy classes of subgroups of G.
 """
 function conjugacy_classes_subgroups(G::GAPGroup)
@@ -536,6 +557,7 @@ end
 
 """
     conjugacy_classes_maximal_subgroups(G::Group)
+
 Return the array of all conjugacy classes of maximal subgroups of G.
 """
 function conjugacy_classes_maximal_subgroups(G::GAPGroup)
@@ -551,6 +573,7 @@ end
 
 """
     isconjugate(G::Group, H::Group, K::Group)
+
 If `H`,`K` are conjugate subgroups in `G`, return 
 ```
 true, z
@@ -581,6 +604,7 @@ end
 """
     normalizer(G::Group, H::Group)
     normaliser(G::Group, H::Group)
+
 Return `N,f`, where `N` is the normalizer of `H` in `G` and `f` is the embedding morphism of `N` into `G`.
 """
 normalizer(G::T, H::T) where T<:GAPGroup = _as_subgroup(G, GAP.Globals.Normalizer(G.X,H.X))
@@ -588,6 +612,7 @@ normalizer(G::T, H::T) where T<:GAPGroup = _as_subgroup(G, GAP.Globals.Normalize
 """
     normalizer(G::Group, x::GAPGroupElem)
     normaliser(G::Group, x::GAPGroupElem)
+
 Return `N,f`, where `N` is the normalizer of <`x`> in `G` and `f` is the embedding morphism of `N` into `G`.
 """
 normalizer(G::GAPGroup, x::GAPGroupElem) = _as_subgroup(G, GAP.Globals.Normalizer(G.X,x.X))
@@ -596,6 +621,7 @@ normaliser = normalizer
 
 """
     core(G::Group, H::Group)
+
 Return `C,f`, where `C` is the normal core of `H` in `G`,
 that is, the largest normal subgroup of `G` that is contained in `H`,
 and `f` is the embedding morphism of `C` into `G`.
@@ -621,6 +647,7 @@ normal_closure(G::T, H::T) where T<:GAPGroup = _as_subgroup(G, GAP.Globals.Norma
 
 """
     pcore(G::Group, p::Int64)
+
 Return `C,f`, where `C` is the `p`-core (i.e. the largest normal `p`-subgroup) of `G` and `f` is the embedding morphism of `C` into `G`.
 """
 function pcore(G::GAPGroup, p::Int64)
@@ -643,24 +670,28 @@ end
 
 """
     fitting_subgroup(G::GAPGroup)
+
 Return the Fitting subgroup of `G`, the largest nilpotent normal subgroup of `G`.
 """
 fitting_subgroup(G::GAPGroup) = _as_subgroup(G, GAP.Globals.FittingSubgroup(G.X))
 
 """
     frattini_subgroup(G::GAPGroup)
+
 Return the Frattini subgroup of `G`, the intersection of all maximal subgroups of `G`.
 """
 frattini_subgroup(G::GAPGroup) = _as_subgroup(G, GAP.Globals.FrattiniSubgroup(G.X))
 
 """
     radical_subgroup(G::GAPGroup)
+
 Return the radical subgroup of `G`, the largest solvable normal subgroup of `G`.
 """
 radical_subgroup(G::GAPGroup) = _as_subgroup(G, GAP.Globals.RadicalGroup(G.X))
 
 """
     socle(G::GAPGroup)
+
 Return the socle of `G`, the subgroup generated by all minimal normal subgroups of `G`.
 """
 socle(G::GAPGroup) = _as_subgroup(G, GAP.Globals.Socle(G.X))
@@ -674,6 +705,7 @@ socle(G::GAPGroup) = _as_subgroup(G, GAP.Globals.Socle(G.X))
 
 """
     sylow_subgroup(G::Group, p::Int64)
+
 Return a Sylow `p`-subgroup of `G`.
 """
 function sylow_subgroup(G::GAPGroup, p::Int64)
@@ -685,6 +717,7 @@ end
 
 """
     hall_subgroup(G::Group, P::Array{Int64})
+
 Return a Hall `P`-subgroup of `G`. It works only if `G` is solvable.
 """
 function hall_subgroup(G::GAPGroup, P::AbstractVector{<:Base.Integer})
@@ -700,6 +733,7 @@ end
 
 """
     sylow_system(G::Group)
+
 Return an array of Sylow ``p``-subgroups of `G`, where ``p`` runs over the prime factors of |`G`|, such that every two such subgroups commute each other (as subgroups). It works only if `G` is solvable.
 """
 function sylow_system(G::GAPGroup)
@@ -709,6 +743,7 @@ end
 
 """
     complement_system(G::Group)
+
 Return an array of ``p'``-Hall subgroups of `G`, where ``p`` runs over the prime factors of |`G`|. It works only if `G` is solvable.
 """
 function complement_system(G::GAPGroup)
@@ -718,6 +753,7 @@ end
 
 """
     hall_system(G::Group)
+
 Return an array of ``P``-Hall subgroups of `G`, where ``P`` runs over the subsets of prime factors of |`G`|. It works only if `G` is solvable.
 """
 function hall_system(G::GAPGroup)
@@ -734,24 +770,28 @@ end
 
 """
     isperfect(G)
+
 Return whether `G` is a perfect group, i.e., equal to its derived subgroup.
 """
 isperfect(G::GAPGroup) = GAP.Globals.IsPerfectGroup(G.X)
 
 """
     issimple(G)
+
 Return whether `G` is a simple group, i.e., it has not non-trivial normal subgroups.
 """
 issimple(G::GAPGroup) = GAP.Globals.IsSimpleGroup(G.X)
 
 """
     isalmostsimple(G)
+
 Return whether `G` is an almost simple group, i.e., if `S` < `G` < `Aut(S)` for some non-abelian simple group `S`.
 """
 isalmostsimple(G::GAPGroup) = GAP.Globals.IsAlmostSimpleGroup(G.X)
 
 """
     ispgroup(G)
+
 Return (``true``,``p``) if |`G`| is a non-trivial ``p``-power, (``false``,nothing) otherwise.
 """
 function ispgroup(G::GAPGroup)
