@@ -30,6 +30,29 @@
    @test order(x)==8
    @test isdefined(x,:X)
 
+   x = G([2,1,2,0])
+   y = G([z+1,0,0,z+2])
+   @test parent(x)==G
+   H,f = sub(G,[x,y])
+   @test isdefined(H,:gens)
+   @test gens(H)==[x,y]
+   @test H==SL(2,F)
+   @test parent(x)==G
+   @test parent(H[1])==H
+   @test isdefined(H,:descr)
+   @test H.descr==:SL
+   @test parent(f(H[1]))==G
+
+   K = matrix_group(x,x^2,y)
+   @test isdefined(K, :gens)
+   @test K.gens==[x,x^2,y]
+   @test parent(x)==G
+   @test x==K[1]                           #TODO changes in future if we decide to keep track of the parent
+   @test parent(K[1])==K
+   @test H==K
+   @test isdefined(K,:descr)
+   @test H.gens != K.gens
+   
 end
 
 @testset "Iterator" begin
@@ -140,3 +163,4 @@ end
    @test x^G[2] in elements(cc)
    @test length(cc)==index(G,C)
 end
+
