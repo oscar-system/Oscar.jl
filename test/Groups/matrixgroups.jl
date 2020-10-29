@@ -39,8 +39,6 @@
    @test H==SL(2,F)
    @test parent(x)==G
    @test parent(H[1])==H
-   @test isdefined(H,:descr)
-   @test H.descr==:SL
    @test parent(f(H[1]))==G
 
    K = matrix_group(x,x^2,y)
@@ -50,10 +48,112 @@
    @test x==K[1]                           #TODO changes in future if we decide to keep track of the parent
    @test parent(K[1])==K
    @test H==K
-   @test isdefined(K,:descr)
    @test H.gens != K.gens
+   @test K==matrix_group([x,x^2,y])
+   @test K==matrix_group(x.elm, (x^2).elm, y.elm)
+   @test K==matrix_group([x.elm, (x^2).elm, y.elm])
    
 end
+
+
+@testset "Constructors" begin
+   @testset for n in 4:5
+      @testset for F in [GF(2,2)[1], GF(3,1)[1]]
+         q = Int(order(F))
+         G = GL(n,F)
+         S = SL(n,F)
+         @test G==GL(n,q)
+         @test G==general_linear_group(n,F)
+         @test G==general_linear_group(n,q)
+         @test S==SL(n,q)
+         @test S==special_linear_group(n,F)
+         @test S==special_linear_group(n,q)
+         @test order(S)==prod(BigInt[q^n-q^i for i in 0:(n-1)])÷(q-1)
+         @test index(G,S)==q-1
+      end
+   end
+
+   @testset for n in 1:3
+      @testset for q in [2,3,4]
+         @test unitary_group(n,q)==GU(n,q)
+         @test special_unitary_group(n,q)==SU(n,q)
+         @test index(GU(n,q),SU(n,q))==q+1
+      end
+   end
+
+   @testset for n in [4,6]
+      @testset for F in [GF(2,2)[1], GF(3,1)[1]]
+         q = Int(order(F))
+         G = Sp(n,F)
+         @test G==Sp(n,q)
+         @test G==symplectic_group(n,F)
+         @test G==symplectic_group(n,q)
+      end
+   end
+
+   @testset for F in [GF(3,1)[1], GF(2,2)[1], GF(5,1)[1]]
+      q = Int(order(F))
+      @testset for n in [4,6]
+         @testset for e in [+1,-1]
+            G = GO(e,n,F)
+            S = SO(e,n,F)
+            @test G==GO(e,n,q)
+            @test G==orthogonal_group(e,n,F)
+            @test G==orthogonal_group(e,n,q)
+            @test S==SO(e,n,q)
+            @test S==special_orthogonal_group(e,n,F)
+            @test S==special_orthogonal_group(e,n,q)
+            if isodd(q)
+               @test index(G,S)==2
+               @test order(S)==2*order(omega_group(e,n,q))
+            else
+               @test order(G)==2*order(omega_group(e,n,q))
+            end
+         end
+      end
+      @testset for n in [3,5]
+         if isodd(q)
+            G = GO(n,F)
+            S = SO(n,F)
+            @test G==GO(n,q)
+            @test G==orthogonal_group(n,F)
+            @test G==orthogonal_group(n,q)
+            @test S==SO(n,q)
+            @test S==special_orthogonal_group(n,F)
+            @test S==special_orthogonal_group(n,q)
+            @test index(G,S)==2
+            @test order(S)==2*order(omega_group(n,q))
+         end
+      end
+   end
+
+   @test order(omega_group(+1,4,3))==288
+   @test order(omega_group(-1,4,3))==360
+   @test order(omega_group(3,3))==12
+end
+
+
+@testset "Classical groups as PermGroup" begin
+   @test GL(PermGroup,2,3) isa PermGroup
+   @test order(GL(PermGroup,2,3)) == order(GL(2,3))
+   @test isisomorphic(GL(PermGroup,2,3),GL(2,3))[1]
+
+   @test order(SL(PermGroup,2,2)) == order(SL(2,2))
+   @test order(GU(PermGroup,2,2)) == order(GU(2,2))
+   @test order(SU(PermGroup,2,2)) == order(SU(2,2))
+   @test order(GO(PermGroup,+1,2,2)) == order(GO(+1,2,2))
+   @test order(SO(PermGroup,+1,2,3)) == order(SO(+1,2,3))
+   @test order(Sp(PermGroup,2,2)) == order(Sp(2,2))
+   @test SL(MatrixGroup,2,3) == SL(2,3)
+   @test GL(MatrixGroup,2,3) == GL(2,3)
+   @test Sp(MatrixGroup,2,3) == Sp(2,3)
+   @test GO(MatrixGroup,3,3) == GO(3,3)
+   @test GO(MatrixGroup,-1,2,3) == GO(-1,2,3)
+   @test SO(MatrixGroup,-1,2,3) == SO(-1,2,3)
+   @test GU(MatrixGroup,2,3) == GU(2,3)
+   @test SU(MatrixGroup,2,3) == SU(2,3)
+end
+
 
 @testset "Iterator" begin
    G = SL(2,3)
@@ -161,6 +261,12 @@ end
    @test order(C)==64
    cc = conjugacy_class(G,x)
    @test x^G[2] in elements(cc)
+   @test representative(cc)==x
    @test length(cc)==index(G,C)
+
+   G = GL(2,3)
+   @test length(conjugacy_classes(G))==8
+   @test length(conjugacy_classes_subgroups(G))==16
+   @test length(conjugacy_classes_maximal_subgroups(G))==3
 end
 

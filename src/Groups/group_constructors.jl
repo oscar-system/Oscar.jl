@@ -37,6 +37,7 @@ _gap_filter(::Type{FPGroup}) = GAP.Globals.IsFpGroup
 
 # TODO: matrix group handling usually is more complex: there usually
 # is another extra argument then to specify the base field
+# _gap_filter(::Type{MatrixGroup}) is on the file MatGrp.jl
 
 """
     symmetric_group(n::Int64)

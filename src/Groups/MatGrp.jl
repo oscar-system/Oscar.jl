@@ -1,4 +1,4 @@
-import AbstractAlgebra: MatElem, MatSpace, parent_type, Ring, RingElem
+import AbstractAlgebra: MatElem, matrix, MatSpace, parent_type, Ring, RingElem
 import Hecke: base_ring, det, fq_nmod, FqNmodFiniteField, nrows, tr, trace
 import GAP: FFE
 
@@ -53,6 +53,7 @@ end
 
 """
     MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: GAPGroupElem{MatrixGroup}
+
 Elements of a group of type `MatrixGroup{RE<:RingElem, T<:MatElem{RE}}`
 """
 mutable struct MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: AbstractMatrixGroupElem
@@ -80,6 +81,7 @@ end
 
 ring_elem_type(::Type{MatrixGroup{S,T}}) where {S,T} = S
 mat_elem_type(::Type{MatrixGroup{S,T}}) where {S,T} = T
+_gap_filter(::Type{<:MatrixGroup}) = GAP.Globals.IsMatrixGroup
 
 ########################################################################
 #
@@ -119,7 +121,7 @@ function assign_from_description(G::MatrixGroup)
    elseif G.descr==Symbol("Omega+") G.X=GAP.Globals.Omega(1,G.deg,Int(order(G.ring)))
    elseif G.descr==Symbol("GO-") G.X=GAP.Globals.GO(-1,G.deg,G.ring_iso.codomain)
    elseif G.descr==Symbol("SO-") G.X=GAP.Globals.SO(-1,G.deg,G.ring_iso.codomain)
-   elseif G.descr==Symbol("Omega-") G.X,=GAP.Globals.Omega(-1,G.deg,Int(order(G.ring)))
+   elseif G.descr==Symbol("Omega-") G.X=GAP.Globals.Omega(-1,G.deg,Int(order(G.ring)))
    elseif G.descr==:GO G.X=GAP.Globals.GO(0,G.deg,G.ring_iso.codomain)
    elseif G.descr==:SO G.X=GAP.Globals.SO(0,G.deg,G.ring_iso.codomain)
    elseif G.descr==:Omega G.X=GAP.Globals.Omega(0,G.deg,Int(order(G.ring)))
@@ -224,20 +226,9 @@ function ==(G::MatrixGroup,H::MatrixGroup)
       return G.descr == H.descr
    end
    if isdefined(G, :gens) && isdefined(H, :gens)
-      if G.gens==H.gens return true end       #TODO this works only if the == between elements does not keep track of the parent
+      if G.gens==H.gens return true  end       #TODO this works only if the == between elements does not keep track of the parent
    end
-   if G.X == H.X
-      if isdefined(G, :descr) && !isdefined(H, :descr) H.descr = G.descr
-      elseif isdefined(H, :descr) && !isdefined(G, :descr) G.descr = H.descr
-      end
-
-      if isdefined(G, :gens) && !isdefined(H, :gens) H.gens = G.gens
-      elseif isdefined(H, :gens) && !isdefined(G, :gens) G.gens = H.gens
-      end
-      return true
-   else
-      return false
-   end
+   return G.X==H.X
 end
 
 
@@ -368,22 +359,32 @@ comm(x::MatrixGroupElem, y::MatrixGroupElem) = inv(x)*conj(x,y)
 
 """
     det(x::MatrixGroupElem)
+    
 Return the determinant of `x`.
 """
 det(x::MatrixGroupElem) = det(x.elm)
 
 """
     base_ring(x::MatrixGroupElem)
+
 Return the base ring of `x`.
 """
 base_ring(x::MatrixGroupElem) = x.parent.ring
 
 parent(x::MatrixGroupElem) = x.parent
 
+"""
+    matrix(x::MatrixGroupElem)
+
+Return the underlying `AbstractAlgebra` matrix of `x`.
+"""
+matrix(x::MatrixGroupElem) = x.elm
+
 Base.getindex(x::MatrixGroupElem, i::Int, j::Int) = x.elm[i,j]
 
 """
     nrows(x::MatrixGroupElem)
+
 Return the number of rows of the given matrix.
 """
 nrows(x::MatrixGroupElem) = x.parent.deg
@@ -391,12 +392,21 @@ nrows(x::MatrixGroupElem) = x.parent.deg
 """
     trace(x::MatrixGroupElem)
     tr(x::MatrixGroupElem)
+
 Return the trace of `x`.
 """
 trace(x::MatrixGroupElem) = trace(x.elm)
 tr(x::MatrixGroupElem) = tr(x.elm)
 
 order(x::MatrixGroupElem) = GAP.Globals.Order(x.X)
+
+#FIXME for the following functions, the output may not belong to the parent group of x
+#=
+frobenius(x::MatrixGroupElem, n::Int) = MatrixGroupElem(x.parent, matrix(x.parent.ring, x.parent.deg, x.parent.deg, [frobenius(y,n) for y in x.elm]))
+frobenius(x::MatrixGroupElem) = frobenius(x,1)
+
+transpose(x::MatrixGroupElem) = MatrixGroupElem(x.parent, transpose(x.elm))
+=#
 
 ########################################################################
 #
@@ -406,12 +416,14 @@ order(x::MatrixGroupElem) = GAP.Globals.Order(x.X)
 
 """
     base_ring(G::MatrixGroup)
+
 Return the base ring of the matrix group `G`.
 """
 base_ring(G::MatrixGroup) = G.ring
 
 """
     degree(G::MatrixGroup)
+
 Return the degree of the matrix group `G`, i.e. the number of rows of its matrices.
 """
 degree(G::MatrixGroup) = G.deg
@@ -444,6 +456,7 @@ order(G::MatrixGroup) = GAP.Globals.Order(G.X)
     general_linear_group(n::Int, q::Int)
     general_linear_group(n::Int, F::FqNmodFiniteField)
     GL = general_linear_group
+
 Return the general linear group of dimension `n` either over the field `F` or the field `GF(q)`.
 """
 function general_linear_group(n::Int, F::Ring)
@@ -458,10 +471,25 @@ function general_linear_group(n::Int, q::Int)
    return general_linear_group(n, GF(b,a)[1])
 end
 
+function general_linear_group(::Type{T}, n::Int, q::Int) where T <: GAPGroup
+   if T<:PermGroup   return T(GAP.Globals.GL(_gap_filter(T), n, q))
+   elseif T<:MatrixGroup   return general_linear_group(n,q)
+   else throw(ArgumentError("Type not supported"))
+   end
+end
+
+function general_linear_group(::Type{T}, n::Int, F::Ring) where T <: GAPGroup
+   if T<:PermGroup   return T(GAP.Globals.GL(_gap_filter(T), n, Int(order(F))))
+   elseif T<:MatrixGroup   return general_linear_group(n,F)
+   else throw(ArgumentError("Type not supported"))
+   end
+end
+
 """
     special_linear_group(n::Int, q::Int)
     special_linear_group(n::Int, F::FqNmodFiniteField)
     SL = special_linear_group
+
 Return the special linear group of dimension `n` either over the field `F` or the field `GF(q)`.
 """
 function special_linear_group(n::Int, F::Ring)
@@ -476,10 +504,26 @@ function special_linear_group(n::Int, q::Int)
    return special_linear_group(n, GF(b,a)[1])
 end
 
+function special_linear_group(::Type{T}, n::Int, q::Int) where T <: GAPGroup
+   if T<:PermGroup   return T(GAP.Globals.SL(_gap_filter(T), n, q))
+   elseif T<:MatrixGroup   return special_linear_group(n,q)
+   else throw(ArgumentError("Type not supported"))
+   end
+end
+
+function special_linear_group(::Type{T}, n::Int, F::Ring) where T <: GAPGroup
+   if T<:PermGroup   return T(GAP.Globals.SL(_gap_filter(T), n, Int(order(F))))
+   elseif T<:MatrixGroup   return special_linear_group(n,F)
+   else throw(ArgumentError("Type not supported"))
+   end
+end
+
+
 """
     symplectic_group(n::Int, q::Int)
     symplectic_group(n::Int, F::FqNmodFiniteField)
     Sp = symplectic_group
+
 Return the symplectic group of dimension `n` either over the field `F` or the field `GF(q)`. The dimension `n` must be even.
 """
 function symplectic_group(n::Int, F::Ring)
@@ -495,10 +539,25 @@ function symplectic_group(n::Int, q::Int)
    return symplectic_group(n, GF(b,a)[1])
 end
 
+function symplectic_group(::Type{T}, n::Int, q::Int) where T <: GAPGroup
+   if T<:PermGroup   return T(GAP.Globals.Sp(_gap_filter(T), n, q))
+   elseif T<:MatrixGroup   return symplectic_group(n,q)
+   else throw(ArgumentError("Type not supported"))
+   end
+end
+
+function symplectic_group(::Type{T}, n::Int, F::Ring) where T <: GAPGroup
+   if T<:PermGroup   return T(GAP.Globals.Sp(_gap_filter(T), n, Int(order(F))))
+   elseif T<:MatrixGroup   return symplectic_group(n,F)
+   else throw(ArgumentError("Type not supported"))
+   end
+end
+
 """
     orthogonal_group(e::Int, n::Int, F::Ring)
     orthogonal_group(e::Int, n::Int, q::Int)
     GO = orthogonal_group
+
 Return the orthogonal group of dimension `n` either over the field `F` or the field `GF(q)` of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0` for `n` odd. If `n` is odd, `e` can be omitted.
 """
 function orthogonal_group(e::Int, n::Int, F::Ring)
@@ -529,10 +588,28 @@ end
 orthogonal_group(n::Int, F::Ring) = orthogonal_group(0,n,F)
 orthogonal_group(n::Int, q::Int) = orthogonal_group(0,n,q)
 
+function orthogonal_group(::Type{T}, e::Int, n::Int, q::Int) where T <: GAPGroup
+   if T<:PermGroup   return T(GAP.Globals.GO(_gap_filter(T), e, n, q))
+   elseif T<:MatrixGroup   return orthogonal_group(e,n,q)
+   else throw(ArgumentError("Type not supported"))
+   end
+end
+
+function orthogonal_group(::Type{T}, e::Int, n::Int, F::Ring) where T <: GAPGroup
+   if T<:PermGroup   return T(GAP.Globals.GO(_gap_filter(T), e, n, Int(order(F))))
+   elseif T<:MatrixGroup   return orthogonal_group(e,n,F)
+   else throw(ArgumentError("Type not supported"))
+   end
+end
+
+orthogonal_group(::Type{T}, n::Int, F::Ring) where T<:GAPGroup = orthogonal_group(T,0,n,F)
+orthogonal_group(::Type{T}, n::Int, q::Int) where T<:GAPGroup = orthogonal_group(T,0,n,q)
+
 """
     special_orthogonal_group(e::Int, n::Int, F::Ring)
     special_orthogonal_group(e::Int, n::Int, q::Int)
     SO = special_orthogonal_group
+
 Return the special orthogonal group of dimension `n` either over the field `F` or the field `GF(q)` of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0` for `n` odd. If `n` is odd, `e` can be omitted.
 """
 function special_orthogonal_group(e::Int, n::Int, F::Ring)
@@ -563,8 +640,26 @@ end
 special_orthogonal_group(n::Int, F::Ring) = special_orthogonal_group(0,n,F)
 special_orthogonal_group(n::Int, q::Int) = special_orthogonal_group(0,n,q)
 
+function special_orthogonal_group(::Type{T}, e::Int, n::Int, q::Int) where T <: GAPGroup
+   if T<:PermGroup   return T(GAP.Globals.SO(_gap_filter(T), e, n, q))
+   elseif T<:MatrixGroup   return special_orthogonal_group(e,n,q)
+   else throw(ArgumentError("Type not supported"))
+   end
+end
+
+function special_orthogonal_group(::Type{T}, e::Int, n::Int, F::Ring) where T <: GAPGroup
+   if T<:PermGroup   return T(GAP.Globals.SO(_gap_filter(T), e, n, Int(order(F))))
+   elseif T<:MatrixGroup   return special_orthogonal_group(e,n,F)
+   else throw(ArgumentError("Type not supported"))
+   end
+end
+
+special_orthogonal_group(::Type{T}, n::Int, F::Ring) where T<:GAPGroup = special_orthogonal_group(T,0,n,F)
+special_orthogonal_group(::Type{T}, n::Int, q::Int) where T<:GAPGroup = special_orthogonal_group(T,0,n,q)
+
 """
     omega_group(e::Int, n::Int, q::Int)
+
 Return the Omega group of dimension `n` over the field `GF(q)` of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0` for `n` odd. If `n` is odd, `e` can be omitted.
 """
 function omega_group(e::Int, n::Int, q::Int)
@@ -593,6 +688,7 @@ omega_group(n::Int, q::Int) = omega_group(0,n,q)
 """
     unitary_group(n::Int, q::Int)
     GU = unitary_group
+
 Return the unitary group of dimension `n` over the field `GF(q^2)`.
 """
 function unitary_group(n::Int, q::Int)
@@ -603,9 +699,17 @@ function unitary_group(n::Int, q::Int)
    return G
 end
 
+function unitary_group(::Type{T}, n::Int, q::Int) where T <: GAPGroup
+   if T<:PermGroup   return T(GAP.Globals.GU(_gap_filter(T), n, q))
+   elseif T<:MatrixGroup   return unitary_group(n,q)
+   else throw(ArgumentError("Type not supported"))
+   end
+end
+
 """
     special_unitary_group(n::Int, q::Int)
     SU = special_unitary_group
+
 Return the special unitary group of dimension `n` over the field `GF(q^2)`.
 """
 function special_unitary_group(n::Int, q::Int)
@@ -614,6 +718,13 @@ function special_unitary_group(n::Int, q::Int)
    G = MatrixGroup(n,GF(b,2*a)[1])
    G.descr = :SU
    return G
+end
+
+function special_unitary_group(::Type{T}, n::Int, q::Int) where T <: GAPGroup
+   if T<:PermGroup   return T(GAP.Globals.SU(_gap_filter(T), n, q))
+   elseif T<:MatrixGroup   return special_unitary_group(n,q)
+   else throw(ArgumentError("Type not supported"))
+   end
 end
 
 const GL = general_linear_group
@@ -628,9 +739,10 @@ const SU = special_unitary_group
 """
     matrix_group(V::T...) where T<:MatrixGroup
     matrix_group(V::AbstractVector{T}) where T<:MatrixGroup
+
 Return the matrix group generated by elements in the vector `V`.
 """
-function matrix_group(V::AbstractVector{T}) where T<:MatElem
+function matrix_group(V::AbstractVector{T}) where T<:Union{MatElem,MatrixGroupElem}
    F = base_ring(V[1])
    n = nrows(V[1])
    G = GL(n,F)
@@ -638,14 +750,18 @@ function matrix_group(V::AbstractVector{T}) where T<:MatElem
    for i in 1:length(V)
       @assert base_ring(V[i])==F "The elements must have the same base ring"
       @assert nrows(V[1])==n "The elements must have the same dimension"
-      L[i] = MatrixGroupElem(G,V[i])
+      if T<:MatElem
+         L[i] = MatrixGroupElem(G,V[i])
+      else
+         L[i] = MatrixGroupElem(G,V[i].elm)
+      end
    end
    H = MatrixGroup(n,F,L)
    for i in 1:length(V)   H.gens[i].parent = H   end
    return H
 end
 
-
+#=
 function matrix_group(V::AbstractVector{T}) where T<:MatrixGroupElem
    F = base_ring(V[1])
    n = nrows(V[1])
@@ -660,9 +776,10 @@ function matrix_group(V::AbstractVector{T}) where T<:MatrixGroupElem
    for i in 1:length(V)   H.gens[i].parent = H   end
    return H
 end
+=#
 
-matrix_group(V::T...) where T<:MatElem = matrix_group(collect(V))
-matrix_group(V::T...) where T<:MatrixGroupElem = matrix_group(collect(V))
+matrix_group(V::T...) where T<:Union{MatElem,MatrixGroupElem} = matrix_group(collect(V))
+#matrix_group(V::T...) where T<:MatrixGroupElem = matrix_group(collect(V))
 
 
 
