@@ -82,7 +82,7 @@ function Oscar.degree(C::AffinePlaneCurve)
      return C.degree
   else
      C.degree = total_degree(C.eq)
-     return(C.degree)
+     return C.degree
   end
 end
 
@@ -172,11 +172,11 @@ curve_components(C::AffinePlaneCurve)
 > Returns a dictionary containing the irreducible components of C and their multiplicity.
 """
 function curve_components(C::AffinePlaneCurve)
-  if C.components != Dict()
-     return C.components
-  else
+  if isempty(C.components)
      D = factor(C.eq)
      C.components = Dict(AffinePlaneCurve(x) => D.fac[x] for x in keys(D.fac))
+     return C.components
+  else
      return C.components
   end
 end
@@ -190,7 +190,7 @@ isirreducible(C::AffinePlaneCurve)
 > Returns true if C is irreducible, and false otherwise.
 """
 function Oscar.isirreducible(C::AffinePlaneCurve)
-  if C.components == Dict()
+  if isempty(C.components)
      D = factor(C.eq)
      C.components = Dict(AffinePlaneCurve(x) => D.fac[x] for x in keys(D.fac))
   end
@@ -212,7 +212,7 @@ isreduced(C::AffinePlaneCurve)
 > Returns true if C is reduced, and false otherwise.
 """
 function Oscar.isreduced(C::AffinePlaneCurve)
-  if C.components == Dict()
+  if isempty(C.components)
      D = factor(C.eq)
      C.components = Dict(AffinePlaneCurve(x) => D.fac[x] for x in keys(D.fac))
   end
@@ -233,7 +233,7 @@ common_component(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S <: Fiel
 function common_component(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S <: FieldElem
   G = gcd(C.eq, D.eq)
   if G == 1
-     return(Array{AffinePlaneCurve, 1}())
+     return Array{AffinePlaneCurve, 1}()
   else
      return AffinePlaneCurve(G)
   end
@@ -315,7 +315,7 @@ end
 
 ################################################################################
 # Intersection in the sense of varieties.
-# Might change depending on the futur changes on VarietyModule.
+# Might change depending on future changes on VarietyModule.
 
 @doc Markdown.doc"""
 intersect( C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S <: FieldElem
@@ -415,17 +415,14 @@ reduction(C::AffinePlaneCurve)
 > Returns the affine plane curve defined by the squarefree part of the equation of C.
 """
 function reduction(C::AffinePlaneCurve)
-  if C.components == Dict()
+  if isempty(C.components)
      f = factor(C.eq)
      C.components = Dict(AffinePlaneCurve(x) => f.fac[x] for x in keys(f.fac))
   end
-  F = 1
-  for D in keys(C.components)
-     F = F*D.eq
-  end
+  F = prod(D -> D.eq, keys(C.components))
   rC = AffinePlaneCurve(F)
   rC.components = Dict(AffinePlaneCurve(D.eq) => 1 for D in keys(C.components))
-  return(rC)
+  return rC
 end
 
 
@@ -450,7 +447,7 @@ function curve_map_point_origin(C::AffinePlaneCurve, P::Point)
   R = parent(C.eq)
   V = gens(R)
   G = evaluate(F, [V[1] + P.coord[1], V[2] + P.coord[2]])
-  return(AffinePlaneCurve(G))
+  return AffinePlaneCurve(G)
 end
 
 ################################################################################
@@ -479,7 +476,7 @@ function multiplicity(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
   HC = homogenous_components(A(G))
   L = collect(keys(HC))
   M = sort(L, by=_sort_helper_multiplicity)
-  return(M[1].coeff[1, 1])
+  return M[1].coeff[1, 1]
 end
 
 ################################################################################
@@ -512,7 +509,7 @@ function tangent_lines(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
         push!(D, AffinePlaneCurve(evaluate(p.f, [X, Y])) => Z.fac[p])
      end
   end
-  return(D)
+  return D
 end
 
 ################################################################################
@@ -522,21 +519,12 @@ end
 function ==(C::AffinePlaneCurve, D::AffinePlaneCurve)
   F = C.eq
   G = D.eq
-  d = div(F, G)
-  if isconstant(d) == false
-     return false
-  else
-     if F - d*G == 0
-        return true
-     else
-        return false
-     end
-  end
+  return degree(C) == degree(D) && F*(lc(G)//lc(F)) == G
 end
 
 ################################################################################
 # Singular locus in the sense of varieties.
-# Might change depending on the futur changes on VarietyModule.
+# Might change depending on future changes on VarietyModule.
 
 @doc Markdown.doc"""
 singular_locus(C::AffinePlaneCurve)
@@ -566,7 +554,7 @@ function intersection_multiplicity(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S
   r = Localization(R, m)
   I = ideal(r, [C.eq, D.eq])
   groebner_basis(I)
-  return(Singular.vdim(I.gb.S))
+  return Singular.vdim(I.gb.S)
 end
 
 ################################################################################
@@ -577,18 +565,7 @@ aretransverse(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}, P::Point{S}) where
 > Returns true if C and D intersect transversally at P and false otherwise.
 """
 function aretransverse(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}, P::Point{S}) where S<:FieldElem
-  if P.ambient_dim != 2
-     error("The point needs to be in a two dimensional space")
-  end
-  if issmooth(C, P) == false || issmooth(D, P) == false
-     return false
-  else
-     if intersection_multiplicity(C, D, P) == 1
-        return true
-     else
-        return false
-     end
-  end
+  return issmooth(C, P) && issmooth(D, P) && intersection_multiplicity(C, D, P) == 1
 end
 
 ################################################################################
