@@ -34,8 +34,7 @@ The following ones are commonly used.
 ##  on `GAP.GapObj` objects to the corresponding GAP action,
 ##  and to implement the action on native Julia objects case by case.
 
-import Base.:^
-import Base.:*
+import Base: ^, *
 
 export on_tuples, on_sets, on_indeterminates, permuted
 

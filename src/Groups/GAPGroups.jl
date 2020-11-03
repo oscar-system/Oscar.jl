@@ -1,6 +1,6 @@
 # further possible functions: similar, literal_pow, parent_type
 
-import Base.:^, Base.Vector
+import Base: ^, Base.Vector
 
 export GroupConjClass
 
