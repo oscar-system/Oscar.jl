@@ -2,7 +2,7 @@
 
 | **Documentation**                                                 | **Build Status**                                                                                |
 |:-----------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------:|
-| [![][docs-stable-img]][docs-stable-url] [![][docs-dev-img]][docs-dev-url] | [![][travis-img]][travis-url] [![][codecov-img]][codecov-url] |
+| [![][docs-stable-img]][docs-stable-url] [![][docs-dev-img]][docs-dev-url] | [![][ga-img]][ga-url] [![][codecov-img]][codecov-url] |
 
 
 Welcome to the OSCAR project, a visionary new computer algebra system
@@ -150,8 +150,8 @@ Forschungsgemeinschaft DFG within the
 [docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
 [docs-stable-url]: https://oscar-system.github.io/Oscar.jl/stable/
 
-[travis-img]: https://travis-ci.com/oscar-system/Oscar.jl.svg?branch=master
-[travis-url]: https://travis-ci.com/oscar-system/Oscar.jl
+[ga-image]: https://github.com/oscar-system/Oscar.jl/workflows/Run%20tests/badge.svg
+[ga-url]: https://github.com/oscar-system/Oscar.jl/actions?query=workflow%3A%22Run+tests%22
 
 [codecov-img]: https://codecov.io/gh/oscar-system/Oscar.jl/branch/master/graph/badge.svg
 [codecov-url]: https://codecov.io/gh/oscar-system/Oscar.jl
