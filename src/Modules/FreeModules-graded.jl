@@ -535,7 +535,7 @@ mutable struct SubQuo_dec{T} <: ModuleFP_dec{T}
     if t.isGB
       r.std_quo = r.quo
     end
-    r.sum = BiModArray(collect(r.sub), collect(r.quo))
+    r.sum = BiModArray(vcat(collect(r.sub), collect(r.quo)))
     return r
   end
 end
@@ -651,12 +651,11 @@ end
 
 function quo(F::SubQuo_dec, O::Array{<:FreeModuleElem_dec, 1})
   all(ishomogenous, O) || error("generators have to be homogenous")
+  @assert parent(O[1]) == F.F
   if isdefined(F, :quo)
-    t = BiModArray(F, O)
-    t[Val{:S}, 1]
-    F.quo[Val{:S}, 1]
-    F.sub[Val{:S}, 1]
-    s = t.S + F.quo.S
+    F.sub[Val(:S), 1]
+    [F.quo[Val(:O), i] for i = 1:length(F.quo.O)]
+    s = Singular.smodule{elem_type(base_ring(F.quo.SF))}(base_ring(F.quo.SF), [convert(F.quo.SF, x) for x = [O; F.quo.O]]...)
     return SubQuo_dec(F.F, F.sub.S, s)
   end
   return SubQuo_dec(F, O)
@@ -682,6 +681,7 @@ function syzygie_module(F::BiModArray; sub = 0)
   if sub !== 0
     G = sub
   else
+  	[F[Val(:O), i] for i = 1:length(F.O)]
     z = decoration(base_ring(F.F))[0]
     G = FreeModule(base_ring(F.F), [iszero(x) ? z : degree(x) for x = F.O])
   end
@@ -841,10 +841,17 @@ function coordinates(a::FreeModuleElem_dec, SQ::SubQuo_dec)
   if iszero(a)
     return sparse_row(base_ring(parent(a)))
   end
-  singular_assure(SQ.sum)
+  [SQ.sub[Val(:O), i] for i = 1:length(SQ.sub.O)]
+  if isdefined(SQ, :quo)
+    [SQ.quo[Val(:O), i] for i = 1:length(SQ.quo.O)]
+    generators = vcat(SQ.sub.O, SQ.quo.O)
+  else
+    generators = SQ.sub.O
+  end
+  S = Singular.smodule{elem_type(base_ring(SQ.sub.SF))}(base_ring(SQ.sub.SF), [convert(SQ.sub.SF, x) for x = generators]...)
   b = BiModArray([a], SQ.sum.SF)
   singular_assure(b)
-  s, r = Singular.lift(SQ.sum.S, b.S)
+  s, r = Singular.lift(S, b.S)
   if Singular.ngens(s) == 0 || iszero(s[1])
     error("elem not in module")
   end
@@ -855,20 +862,21 @@ function coordinates(a::FreeModuleElem_dec, SQ::SubQuo_dec)
   R = base_ring(Rx)
   for (i, e, c) = s[1]
     if i > ngens(SQ)
-      break
-    end
-    if i in p
-      f = findfirst(x->x==i, p)
     else
-      push!(p, i)
-      push!(v, MPolyBuildCtx(Rx))
-      f = length(v)
+      if i in p
+        f = findfirst(x->x==i, p)
+      else
+        push!(p, i)
+        push!(v, MPolyBuildCtx(Rx))
+        f = length(v)
+      end
+      push_term!(v[f], R(c), e)
     end
-    push_term!(v[f], R(c), e)
   end
   pv = Tuple{Int, elem_type(Sx)}[(p[i], Sx(finish(v[i]))) for i=1:length(p)]
   return sparse_row(Sx, pv)
 end
+
 
 hom(D::SubQuo_dec, C::ModuleFP_dec, A::Array{<:Any, 1}) = SubQuoHom_dec(D, C, A)
 
@@ -1083,11 +1091,11 @@ function Hecke.ring(I::MPolyIdeal)
 end
 
 function free_resolution(I::MPolyIdeal)
-  F = free_resolution(ring(I), 1)
+  F = free_module(Hecke.ring(I), 1)
   S = sub(F, [x * gen(F, 1) for x = gens(I)])
   n = Hecke.find_name(I)
   if n !== nothing
-    AbstractAlgebra.set_name!(S, n)
+    AbstractAlgebra.set_name!(S, string(n))
   end
   return free_resolution(S)
 end
