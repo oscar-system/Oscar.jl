@@ -1,0 +1,41 @@
+name: Run tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        julia-version: ['1.3', '1.4', '1.5', 'nightly']
+        julia-arch: [x64]
+        os: [ubuntu-latest, macOS-latest]
+    
+    steps:
+      - uses: actions/checkout@v1.0.0
+      - name: "Set up Julia"
+        uses: julia-actions/setup-julia@v1
+        with:
+          version: ${{ matrix.julia-version }}
+          arch: ${{ matrix.julia-arch }}
+      - name: Cache artifacts
+        uses: actions/cache@v1
+        env:
+          cache-name: cache-artifacts
+        with:
+          path: ~/.julia/artifacts 
+          key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-test-${{ env.cache-name }}-
+            ${{ runner.os }}-test-
+            ${{ runner.os }}-
+      - name: "Build package"
+        uses: julia-actions/julia-buildpkg@master
+        continue-on-error: ${{ matrix.version == 'nightly' }}
+      - name: "Run tests"
+        uses: julia-actions/julia-runtest@master
+        continue-on-error: ${{ matrix.version == 'nightly' }}
+    
+    # don't run ci twice on own PRs
+    if: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}

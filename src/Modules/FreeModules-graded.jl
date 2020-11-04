@@ -1336,6 +1336,7 @@ rels(F::SubQuo_dec) = isdefined(F, :quo) ? collect(F.quo) : elem_type(F.F)[]
 
 @doc Markdown.doc"""
     tensor_product(G::ModuleFP_dec...; task::Symbol = :map) -> SubQuo_dec, Map
+
 Given modules $G_i$ compute the tensor product $G_1\otimes \cdots \otimes G_n$.
 If `task` is set to ":map", a map $\phi$ is returned that
 maps tuples in $G_1 \times \cdots \times G_n$ to pure tensors
