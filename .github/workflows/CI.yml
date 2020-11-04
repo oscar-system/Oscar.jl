@@ -5,6 +5,7 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.julia-version == 'nightly' }}
     strategy:
       fail-fast: false
       matrix:
@@ -32,10 +33,8 @@ jobs:
             ${{ runner.os }}-
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@master
-        continue-on-error: ${{ matrix.version == 'nightly' }}
       - name: "Run tests"
         uses: julia-actions/julia-runtest@master
-        continue-on-error: ${{ matrix.version == 'nightly' }}
     
     # don't run ci twice on own PRs
     if: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
