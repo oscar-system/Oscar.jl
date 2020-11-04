@@ -6,7 +6,6 @@
 
 export
     acting_subgroup,
-    as_matrix_group,
     as_perm_group,
     as_polycyclic_group,
     cartesian_power,
@@ -194,21 +193,21 @@ function _as_subgroup(G::DirectProductGroup, H::GapObj)
   return _as_subgroup(G, H, GAPGroupElem{DirectProductGroup})
 end
 
-function sub(G::DirectProductGroup, elms::Vector{GAPGroupElem{DirectProductGroup}})
+function sub(G::DirectProductGroup, elms::Vector{<:GAPGroupElem{DirectProductGroup}})
   elems_in_GAP = GAP.julia_to_gap(GapObj[x.X for x in elms])
   H = GAP.Globals.Group(elems_in_GAP)
   #H is the group. I need to return the inclusion map too
   return _as_subgroup(G, H)
 end
 
-function sub(L::GAPGroupElem{DirectProductGroup}...)
+function sub(L::T...) where T <: GAPGroupElem{DirectProductGroup}
    length(L)>0 || throw(ArgumentError("Empty list"))
    l=collect(L)
    @assert all(x -> parent(x) == parent(l[1]), l)
    return sub(parent(l[1]),l)
 end
 
-function sub(L::Vector{GAPGroupElem{DirectProductGroup}})
+function sub(L::Vector{<:GAPGroupElem{DirectProductGroup}})
    length(L)>0 || throw(ArgumentError("Empty list"))
    l=collect(L)
    @assert all(x -> parent(x) == parent(l[1]), l)
@@ -352,21 +351,21 @@ function _as_subgroup(G::SemidirectProductGroup{S,T}, H::GapObj) where S <: GAPG
   return _as_subgroup(G, H, GAPGroupElem{SemidirectProductGroup{S,T}})
 end
 
-function sub(G::SemidirectProductGroup{S,T}, elms::Vector{GAPGroupElem{SemidirectProductGroup{S,T}}}) where { S, T }
+function sub(G::SemidirectProductGroup{S,T}, elms::Vector{<:GAPGroupElem{SemidirectProductGroup{S,T}}}) where { S, T }
   elems_in_GAP = GAP.julia_to_gap(GapObj[x.X for x in elms])
   H = GAP.Globals.Group(elems_in_GAP)
   #H is the group. I need to return the inclusion map too
   return _as_subgroup(G, H)
 end
 
-function sub(L::GAPGroupElem{SemidirectProductGroup{S,T}}...) where { S, T }
+function sub(L::U...) where U <: GAPGroupElem{SemidirectProductGroup{S,T}} where { S, T }
    length(L)>0 || throw(ArgumentError("Empty list"))
    l=collect(L)
    @assert all(x -> parent(x) == parent(l[1]), l)
    return sub(parent(l[1]),l)
 end
 
-function sub(L::Vector{GAPGroupElem{SemidirectProductGroup{S,T}}}) where { S, T }
+function sub(L::Vector{<:GAPGroupElem{SemidirectProductGroup{S,T}}}) where { S, T }
    length(L)>0 || throw(ArgumentError("Empty list"))
    l=collect(L)
    @assert all(x -> parent(x) == parent(l[1]), l)
@@ -507,21 +506,21 @@ function _as_subgroup(W::WreathProductGroup, H::GapObj)
   return _as_subgroup(W, H, GAPGroupElem{WreathProductGroup})
 end
 
-function sub(W::WreathProductGroup, elms::Vector{GAPGroupElem{WreathProductGroup}})
+function sub(W::WreathProductGroup, elms::Vector{<:GAPGroupElem{WreathProductGroup}})
   elems_in_GAP = GAP.julia_to_gap(GapObj[x.X for x in elms])
   H = GAP.Globals.Group(elems_in_GAP)
   #H is the group. I need to return the inclusion map too
   return _as_subgroup(W, H)
 end
 
-function sub(L::GAPGroupElem{WreathProductGroup}...)
+function sub(L::T...) where T <: GAPGroupElem{WreathProductGroup}
    length(L)>0 || throw(ArgumentError("Empty list"))
    l=collect(L)
    @assert all(x -> parent(x) == parent(l[1]), l)
    return sub(parent(l[1]),l)
 end
 
-function sub(L::Vector{GAPGroupElem{WreathProductGroup}})
+function sub(L::Vector{<:GAPGroupElem{WreathProductGroup}})
    length(L)>0 || throw(ArgumentError("Empty list"))
    l=collect(L)
    @assert all(x -> parent(x) == parent(l[1]), l)
