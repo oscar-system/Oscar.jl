@@ -10,8 +10,7 @@ export galois_group, transitive_group_identification, slpoly_ring
 
 
 function __init__()
-  GAP.Packages.install("ferret")
-  GAP.Packages.load("ferret")
+  GAP.Packages.load("ferret", install = true)
 
   Hecke.add_verbose_scope(:GaloisGroup)
   Hecke.add_verbose_scope(:GaloisInvariant)
