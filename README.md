@@ -150,7 +150,7 @@ Forschungsgemeinschaft DFG within the
 [docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
 [docs-stable-url]: https://oscar-system.github.io/Oscar.jl/stable/
 
-[ga-image]: https://github.com/oscar-system/Oscar.jl/workflows/Run%20tests/badge.svg
+[ga-img]: https://github.com/oscar-system/Oscar.jl/workflows/Run%20tests/badge.svg
 [ga-url]: https://github.com/oscar-system/Oscar.jl/actions?query=workflow%3A%22Run+tests%22
 
 [codecov-img]: https://codecov.io/gh/oscar-system/Oscar.jl/branch/master/graph/badge.svg
