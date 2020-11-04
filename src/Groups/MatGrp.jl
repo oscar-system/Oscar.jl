@@ -848,18 +848,6 @@ function Base.rand(C::GroupConjClass{S,T}) where S<:MatrixGroup where T<:MatrixG
    return MatrixGroup(C.X.deg,C.X.ring,GAP.Globals.Random(C.CC))
 end
 
-function elements(C::GroupConjClass{S, T}) where S where T<:MatrixGroup
-   L=GAP.Globals.AsList(C.CC)
-   l = Vector{T}(undef, length(L))
-   for i in 1:length(l)
-      l[i] = _as_subgroup(C.X, L[i])
-   end
-   return l
-end
-
-
-
-
 
 #=
 

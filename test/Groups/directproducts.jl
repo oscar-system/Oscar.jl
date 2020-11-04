@@ -6,7 +6,7 @@
    @test G isa DirectProductGroup
    @test order(G)==order(S)*order(C)
    @test exponent(G)==lcm(exponent(S),exponent(C))
-   @test typeof(rand(G))==GAPGroupElem{DirectProductGroup}
+   @test typeof(rand(G))<:GAPGroupElem{DirectProductGroup}
    @test factor_of_direct_product(G,1)==S
    @test factor_of_direct_product(G,2)==C
    @test_throws ArgumentError factor_of_direct_product(G,3)
@@ -56,16 +56,11 @@
 
    @test_throws ArgumentError as_perm_group(G)
    @test_throws ArgumentError as_polycyclic_group(G)
-   @test_throws ArgumentError as_matrix_group(G)
    G = direct_product(S,S)
    @test G isa DirectProductGroup
    @test as_perm_group(G) isa PermGroup
    G = direct_product(C,C)
    @test as_polycyclic_group(G) isa PcGroup
-   S=SL(2,3)
-   G = as_matrix_group(direct_product(S,S))
-   @test G isa MatrixGroup
-#   @test dim(G)==4     # TODO not yet defined
 
    @testset "Inner direct products" begin
       C2 = cyclic_group(2)
@@ -92,8 +87,6 @@
          @test codomain(Lp[i])==L[i]
          @test Le[i]*Lp[i]==id_hom(L[i])
       end
-
-      @test_throws ArgumentError inner_direct_product(GL(2,2),GL(2,3))
 
       G1,Le1,Lp1 = inner_cartesian_power(A,3; morphisms=true)         
       @test G1==G
@@ -179,7 +172,7 @@ end
    @test typeof(W)==WreathProductGroup
    @test order(W)==2^4*3
    @test !isabelian(W)
-   @test typeof(rand(W))==GAPGroupElem{WreathProductGroup}
+   @test typeof(rand(W))<:GAPGroupElem{WreathProductGroup}
    f1 = C[1]
    x = W(f1,one(C),f1,one(C),cperm([1,4,2]))
    @test embedding(W,1)(f1)==W(f1,one(C),one(C),one(C),one(H))
