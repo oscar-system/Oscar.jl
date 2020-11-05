@@ -6,7 +6,7 @@
    @test G isa DirectProductGroup
    @test order(G)==order(S)*order(C)
    @test exponent(G)==lcm(exponent(S),exponent(C))
-   @test typeof(rand(G))<:GAPGroupElem{DirectProductGroup}
+   @test rand(G) isa GAPGroupElem{DirectProductGroup}
    @test factor_of_direct_product(G,1)==S
    @test factor_of_direct_product(G,2)==C
    @test_throws ArgumentError factor_of_direct_product(G,3)
@@ -172,7 +172,7 @@ end
    @test typeof(W)==WreathProductGroup
    @test order(W)==2^4*3
    @test !isabelian(W)
-   @test typeof(rand(W))<:GAPGroupElem{WreathProductGroup}
+   @test rand(W) isa GAPGroupElem{WreathProductGroup}
    f1 = C[1]
    x = W(f1,one(C),f1,one(C),cperm([1,4,2]))
    @test embedding(W,1)(f1)==W(f1,one(C),one(C),one(C),one(H))

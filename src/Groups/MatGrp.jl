@@ -34,6 +34,7 @@ mutable struct MatrixGroup{RE<:RingElem, T<:MatElem{RE}} <: GAPGroup
    descr::Symbol                       # e.g. GL
    ring_iso::GenRingIso
    mat_iso::GenMatIso
+   AbstractAlgebra.@declare_other
 
    MatrixGroup(m::Int, F::Ring) = new{elem_type(F), MatElem{elem_type(F)}}(m,F)
 
@@ -90,6 +91,9 @@ _gap_filter(::Type{<:MatrixGroup}) = GAP.Globals.IsMatrixGroup
 ########################################################################
 
 function Base.show(io::IO, x::MatrixGroup)
+   AbstractAlgebra.@show_name(io, x)
+   AbstractAlgebra.@show_special(io,x)
+
    if isdefined(x, :descr)
       if x.descr==:GU || x.descr==:SU
          print(io, string(x.descr), "(",x.deg,",",characteristic(x.ring)^(div(degree(x.ring),2)),")")
@@ -97,7 +101,8 @@ function Base.show(io::IO, x::MatrixGroup)
          print(io, string(x.descr), "(",x.deg,",",order(x.ring),")")
       end
    else
-      print(io, "Matrix group of degree ", x.deg, " over ", x.ring)
+      print(io, "Matrix group of degree ", x.deg, " over ")
+      show(IOContext(io, :compact => true), x.ring)
    end
 end
 

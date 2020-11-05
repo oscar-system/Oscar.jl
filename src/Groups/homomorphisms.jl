@@ -28,9 +28,9 @@ export
 
 function Base.show(io::IO, x::GAPGroupHomomorphism)
   print(io, "Group homomorphism from \n")
-  println(io, domain(x))
-  print(io, "to\n")
-  println(io, codomain(x))
+  show(IOContext(io, :compact => true), domain(x))
+  print(io, "\nto\n")
+  show(IOContext(io, :compact => true), codomain(x))
 end
 
 function ==(f::GAPGroupHomomorphism{S,T}, g::GAPGroupHomomorphism{S,T}) where S where T
