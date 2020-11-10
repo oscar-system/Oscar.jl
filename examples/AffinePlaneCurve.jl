@@ -14,7 +14,7 @@ export AffinePlaneCurve, degree, jacobi_ideal, tangent, issmooth, union,
 
 ################################################################################
 #
-# We follow the lecture notes by Andreas Gathmann: 
+# We follow the lecture notes by Andreas Gathmann:
 # https://www.mathematik.uni-kl.de/~gathmann/en/curves.php
 #
 ################################################################################
@@ -28,7 +28,7 @@ mutable struct AffinePlaneCurve{S}
   function AffinePlaneCurve(eq::Oscar.MPolyElem{S}) where {S <: FieldElem}
     r = new{S}()
     r.eq = eq
-    if nvars(parent(r.eq)) != 2           
+    if nvars(parent(r.eq)) != 2
        error("The defining equation must belong to a ring with two variables")
     elseif isconstant(r.eq) == true
        error("The defining equation must be non constant")
@@ -70,7 +70,7 @@ function Base.show(io::IO, P::Point)
 end
 
 ################################################################################
-# Compute the degree of the equation of the curve if not already known, 
+# Compute the degree of the equation of the curve if not already known,
 # and show it.
 
 @doc Markdown.doc"""
@@ -100,8 +100,8 @@ function Oscar.jacobi_ideal(C::AffinePlaneCurve)
 end
 
 ################################################################################
-# To check if a point is smooth: return true if the point is a smooth point on 
-# the curve C, and false  if it is singular, and an error if it is not on the 
+# To check if a point is smooth: return true if the point is a smooth point on
+# the curve C, and false  if it is singular, and an error if it is not on the
 # curve.
 
 @doc Markdown.doc"""
@@ -119,7 +119,7 @@ function Oscar.issmooth(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldEle
      L = gens(J)
      a = evaluate(L[1], P.coord)
      b = evaluate(L[2], P.coord)
-     if a == 0 && b == 0 
+     if a == 0 && b == 0
         return false
      else
         return true
@@ -128,7 +128,7 @@ function Oscar.issmooth(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldEle
 end
 
 ################################################################################
-# If P is a smooth point of an affine plane curve C, compute the tangent of C 
+# If P is a smooth point of an affine plane curve C, compute the tangent of C
 # at the point P.
 
 @doc Markdown.doc"""
@@ -181,10 +181,8 @@ function curve_components(C::AffinePlaneCurve)
   if isempty(C.components)
      D = factor(C.eq)
      C.components = Dict(AffinePlaneCurve(x) => D.fac[x] for x in keys(D.fac))
-     return C.components
-  else
-     return C.components
   end
+  return C.components
 end
 
 ################################################################################
@@ -203,10 +201,8 @@ function Oscar.isirreducible(C::AffinePlaneCurve)
   end
   if length(C.components) != 1
      return false
-  elseif collect(values(C.components)) != [1]
-     return false
   else
-     return true
+     return all(x -> x == 1, values(C.components))
   end
 end
 
@@ -224,11 +220,7 @@ function Oscar.isreduced(C::AffinePlaneCurve)
      D = factor(C.eq)
      C.components = Dict(AffinePlaneCurve(x) => D.fac[x] for x in keys(D.fac))
   end
-  if [C.components[x] for x in keys(C.components)] == [1 for x in keys(C.components)]
-     return true
-  else
-     return false
-  end
+  return all(x -> x == 1, values(C.components))
 end
 
 ################################################################################
@@ -241,7 +233,7 @@ Given two affine plane curves C and D, returns the affine plane curve consisting
 """
 function common_component(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S <: FieldElem
   G = gcd(C.eq, D.eq)
-  if G == 1
+  if isone(G)
      return Array{AffinePlaneCurve, 1}()
   else
      return AffinePlaneCurve(G)
@@ -262,7 +254,7 @@ Given two affine plane curves C and D defined by F and G, returns a list whose f
 function curve_intersect(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S <: FieldElem
   G = gcd(C.eq, D.eq)
   R = parent(C.eq)
-  if G != 1
+  if isone(G) == false
      # We divide by the gcd to get curves without common components.
      F = div(C.eq, G)
      H = div(D.eq, G)
@@ -277,7 +269,6 @@ function curve_intersect(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S
   # the second variable appears).
   Z = factor(gens(B)[1])
   Y = []
-  #L = []
   L = Array{S, 1}[]
   # For the linear factors of g, we add the constant coefficient to the list Y.
   # The constant coefficient is stored as a mpoly to be used later in evaluate.
@@ -287,7 +278,7 @@ function curve_intersect(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S
         push!(Y, -f + gens(R)[2])
      end
   end
-  if Y != []
+  if isempty(Y) == false
      # For each y, we compute the possible values of x by replacing the second
      # variable by the value y, and factorizing the resulting polynomial.
      for y in Y
@@ -307,15 +298,15 @@ function curve_intersect(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S
   # L contains the intersection points as arrays (or can be empty).
   Pts = Array{Point, 1}()
   CC = Array{AffinePlaneCurve, 1}()
-  if L != []
+  if isempty(L) == false
      for p in L
         push!(Pts, Point(p))
      end
   end
-  if G != 1
+  if isone(G) == false
      push!(CC, AffinePlaneCurve(G))
   end
-  if L == [] && G == 1
+  if isempty(L) && isone(G)
      println("The curves do not intersect")
      return [CC, Pts]
   else
@@ -404,7 +395,7 @@ function curve_singular_locus(C::AffinePlaneCurve)
               push!(Pts, p)
            end
         end
-        if S[1] == []
+        if isempty(S[1])
            return [CC, Pts]
         else
            M = curve_intersect(C, S[1][1])
@@ -585,23 +576,19 @@ end
 
 @doc Markdown.doc"""
 issmooth_curve(C::AffinePlaneCurve)
-> Given a reduced affine plane curve C, returns true if C has no singular point, and false otherwise.
+> Returns true if C has no singular point, and false otherwise.
 """
 function issmooth_curve(C::AffinePlaneCurve)
   S = curve_singular_locus(C)
-  if S[1] == []
-     if S[2] == []
-        return true
-     else
-        return false
-     end
+  if isempty(S[1])
+     return isempty(S[2])
   else
      error("The curve is not reduced.")
   end
 end
 
 ################################################################################
-# hash functions
+# hash function
 
 function Base.hash(C::AffinePlaneCurve, h::UInt)
   F = 1//lc(C.eq)*C.eq
