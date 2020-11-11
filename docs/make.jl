@@ -64,6 +64,7 @@ makedocs(
          format   = Documenter.HTML(),
 #         format   = Markdown(),
          sitename = "Oscar.jl",
+         push_preview = true,
          modules = [Oscar, AbstractAlgebra],
          clean = true,
          doctest = false,
