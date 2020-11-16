@@ -166,8 +166,28 @@ function factorisations(a::NfAbsOrdElem{AnticNumberField,nf_elem})
     return []
   end
   irr = irreducibles(S)
-  A = matrix([fmpz[valuation(x, y) for y = S] for x = irr])
   b = matrix([fmpz[valuation(a, y) for y = S]])
+  A = matrix([fmpz[valuation(x, y) for y = S] for x = irr])
+  #solving Ax = b for x >=0  and A >=0 implies that colums of A with
+  #entries > those in b can never be part of a solution
+  #thus we prune them
+  #of course, this could/ should be done in solve_non_negative...
+  #hence in polymake
+  i = 1
+  while i<= ncols(A)
+    if any(j->A[j, i] > b[j], 1:nrows(A))
+      deleteat!(irr, i)
+      if i==1
+        A = A[:, 2:ncols(A)]
+      elseif i == ncols(A)
+        A = A[:, 1:ncols(A)-1]
+      else
+        A = hcat(A[:, 1:i-1], A[:, i+1:ncols(A)])
+      end
+    else
+      i += 1
+    end
+  end
   sol = solve_non_negative(A, b)
   res = Fac{NfAbsOrdElem{AnticNumberField,nf_elem}}[]
   for j=1:nrows(sol)
