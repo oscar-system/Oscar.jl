@@ -8,3 +8,9 @@ include("Rings/mpoly-graded-test.jl")
 include("Rings/mpoly-local-test.jl")
 include("Polymake/nmbthy-test.jl")
 include("Groups/runtests.jl")
+
+if Oscar.is_dev
+  include("Examples/galois-test.jl")
+  include("Examples/ModStdQt-test.jl")
+  include("Examples/ModStdNF-test.jl")
+end
