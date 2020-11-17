@@ -102,7 +102,6 @@ function Oscar.groebner_assure(I::MPolyIdeal{Generic.MPoly{nf_elem}}, ord::Symbo
     @vtime :MPolyGcd 3 Ip = Hecke.modular_proj(me, I.gens)
     Jp = typeof(Ip[1])[]
     @vtime :MPolyGcd 2 for fp = Ip
-      @show typeof(fp)
       if use_hilbert
         if very_first
           @show H = HilbertData(fp)
