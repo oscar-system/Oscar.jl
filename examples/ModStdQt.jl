@@ -1,4 +1,4 @@
-module MPolyInterpolate
+module ModStdQt
 
 using Oscar
 import Oscar.Nemo
@@ -17,8 +17,8 @@ function Oscar.evaluate(f::FracElem{<:MPolyElem}, v::Vector; ErrorTolerant::Bool
   return n//d
 end
 
-Oscar.normalise(f::fmpq_poly, ::Int64) = error("no normlise") #length(f)
-Oscar.set_length!(f::fmpq_poly, ::Int64) = error("no sert_length") #f
+Oscar.normalise(f::fmpq_poly, ::Int64) = error("no normalise") #length(f)
+#Oscar.set_length!(f::fmpq_poly, ::Int64) = error("no set_length") #f
 
 function points(p::Vector{T}, j::Int, z::Vector{T}, s::Vector{T}) where {T}
 
@@ -123,7 +123,7 @@ mutable struct MPolyInterpolateCtx{T}
 end
 
 function set_status!(M::MPolyInterpolateCtx, s::Symbol)
-  @show s
+  @vprint :MPolyGcd 2 "setting status to $s\n"
   M.status = s
 end
 
@@ -155,7 +155,7 @@ function Oscar.interpolate(val::Array{Array{T, 1}, 1}, M::MPolyInterpolateCtx) w
         return false, zero(M.R)
       end
       if isconstant(bm[2])
-        continue
+        continue #why? but is neccessary
       end
 
       r = roots(bm[2])
@@ -211,7 +211,15 @@ function Base.setindex!(v::Vals{T}, c::T, i::Int, j::Int) where {T}
   v.v[i][j] = c
 end
 
-function Groebner_basis(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Frac{<:MPolyElem{T}}}}) where {T <: RingElem}
+function Oscar.groebner_basis(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Frac{fmpq_mpoly}}}; ord::Symbol = :degrevlex, complete_reduction::Bool = true)
+  Oscar.groebner_assure(I, ord, complete_reduction = complete_reduction)
+end
+
+function Oscar.groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Frac{fmpq_mpoly}}}, ord::Symbol = :degrevlex; complete_reduction::Bool = true)
+  T = fmpq
+  if ord == :degrevlex && isdefined(I, :gb)
+    return I.gb
+  end
   S = base_ring(I)
   R = base_ring(S)
   n = ngens(base_ring(R))
@@ -224,8 +232,10 @@ function Groebner_basis(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Frac{<:MPo
   local lst
   while true
     if do_z
+      @vprint :MPolyGcd 1 "adding z-evaluation $(length(P.pt_z)+1)\n"
       push!(P, length(P.pt_z)+1)
     else
+      @vprint :MPolyGcd 1 "increasing power-of-prime to $(P.j+1)\n"
       P.j += 1
     end
 
@@ -245,22 +255,23 @@ function Groebner_basis(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Frac{<:MPo
         pt = T[Q(P.pt_p[i])^P.j * Q(P.pt_z[idx]) + Q(P.pt_s[i]) for i=1:n]
 #        println("P: j = ", P.j, ", z = ", P.pt_z[idx])
       end
+      @vprint :MPolyGcd 2 "using evaluation point $pt\n"
       idx += 1
-      for g = gens(I)
+      @vtime :MPolyGcd 2 for g = gens(I)
         G = MPolyBuildCtx(Qy)
-        for (c, e) = Base.Iterators.zip(Generic.MPolyCoeffs(g), Generic.MPolyExponentVectors(g))
+        for (c, e) = zip(Generic.MPolyCoeffs(g), Generic.MPolyExponentVectors(g))
           push_term!(G, evaluate(c, pt, ErrorTolerant = true), e)
         end
         push!(gens_J, finish(G))
       end
       J = ideal(Qy, gens_J)
-      gJ = groebner_basis(J, :degrevlex, complete_reduction = true)
+      @vtime :MPolyGcd 2 gJ = groebner_basis(J, ord = ord, complete_reduction = true)
       if frst
         lst = []
         for _g = gJ
           g = inv(lead(_g))*_g
           f = []
-          for (c, e) = Base.Iterators.zip(Generic.MPolyCoeffs(g), Generic.MPolyExponentVectors(g))
+          for (c, e) = zip(Generic.MPolyCoeffs(g), Generic.MPolyExponentVectors(g))
             push!(f, (e, Vals(Array{T, 1}[[c]])))
           end
           push!(lst, f)
@@ -271,7 +282,7 @@ function Groebner_basis(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Frac{<:MPo
           g = gJ[ig]
           g *= inv(lead(g))
           jg = 1
-          for (c, e) = Base.Iterators.zip(Generic.MPolyCoeffs(g), Generic.MPolyExponentVectors(g))
+          for (c, e) = zip(Generic.MPolyCoeffs(g), Generic.MPolyExponentVectors(g))
             @assert lst[ig][jg][1] == e #TODO: sort and match
             if do_z
               lst[ig][jg][2][idx-1, length(P.pt_z)] = c
@@ -284,10 +295,11 @@ function Groebner_basis(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Frac{<:MPo
       end
     end
     
-    res = []
+    res = elem_type(S)[]
+    @vprint :MPolyGcd 1 "starting interpolation...\n"
     M = MPolyInterpolateCtx(R, P)
     local fl = true
-    for F = lst
+    @vtime :MPolyGcd 2 for F = lst
       f = MPolyBuildCtx(S)
       for C = F
         fl, c = interpolate(C[2].v, M)
@@ -300,10 +312,19 @@ function Groebner_basis(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Frac{<:MPo
       fl || break
       push!(res, finish(f))
     end
-    fl && return res
+    if fl
+      @vprint :MPolyGcd 1 "success\n"
+      if ord == :degrevlex
+        I.gb = Oscar.BiPolyArray(res)
+      end
+      return res
+    end
+
+    @vprint :MPolyGcd 1 "failed, more points\n"
 
     do_z = !do_z
-    if length(P.pt_z) > 5 || P.j > 5
+    if length(P.pt_z) > 15 || P.j > 15
+      error("did not finish")
       break
     end
   end
@@ -469,12 +490,14 @@ end
 
  Qt, t = PolynomialRing(QQ, :t=>1:2)
  Qtx, x = PolynomialRing(FractionField(Qt), :x => 1:3)
+
  f1 = x[1]^2*x[2]^3*x[3] + 2*t[1]*x[1]*x[2]*x[3]^2 + 7*x[2]^3
  f2 = x[1]^2*x[2]^4*x[3] + (t[1]-7*t[2])*x[1]^2*x[2]*x[3]^2 - x[1]*x[2]^2*x[3]^2+2*x[1]^2*x[2]*x[3] - 12*x[1] + t[2]*x[2]
  f3 = (t[1]^2+t[2]-2)*x[2]^5*x[3] + (t[1]+5*t[2])*x[1]^2*x[2]^2*x[3] - t[2]*x[1]*x[2]^3*x[3] - t[2]*x[1]*x[2]^3*x[3] - x[1]*x[2]^3+x[2]^4+2*t[1]^2*x[2]^2*x[3]
  f4 = t[1]*x[2]^2*x[2]^2*x[3] - x[1]*x[2]^3 *x[3] + (-t[1]+4)*x[2]^3*x[3]^2 + 3*t[1]*x[1]*x[2]*x[3]^3 + 4*x[3]^2 - t[2]*x[1]
 
- z = MPolyInterpolate.Groebner_basis(ideal(Qtx, [f1, f2, f3, f4]))
+ z = groebner_basis(ideal(Qtx, [f1, f2, f3, f4]))
+ z = groebner_basis(ideal(Qtx, [f1, f2, f3, f4]), ord = :lex)
 
 
 =#

@@ -200,6 +200,8 @@ include("../StraightLinePrograms/src/StraightLinePrograms.jl")
 
 if is_dev
   include("../examples/ModStdNF.jl")
+  include("../examples/ModStdQ.jl")
+  include("../examples/ModStdQt.jl")
   include("../examples/PrimDec.jl")
   include("../examples/GaloisGrp.jl")
 end

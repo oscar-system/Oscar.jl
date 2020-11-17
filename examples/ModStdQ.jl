@@ -51,8 +51,8 @@ function Oscar.groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevl
 #    nbits(d) > 1700 && error("too long")
     R = ResidueRing(ZZ, Int(p))
     Rt, t = PolynomialRing(R, [string(s) for s = symbols(Qt)], cached = false)
-    @vtime :MPolyGcd 3 Ip = Oscar.BiPolyArray([Rt(x) for x = gens(I)])
-    Jp = map(x->lift(Zt, x), (groebner_basis(Ip, ord = ord, complete_reduction = true)))
+    @vtime :MPolyGcd 3 Ip = Oscar.BiPolyArray([Rt(x) for x = gens(I)], keep_ordering = false)
+    Jp = map(x->lift(Zt, x), (Oscar.groebner_basis(Ip, ord = ord, complete_reduction = true)))
     if d == 1
       d = fmpz(p)
       gc = Jp
@@ -66,8 +66,8 @@ function Oscar.groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevl
       for i = length(gd)+1:length(gc)
         push!(gd, Qt(0))
       end
-      @show gd
     else
+      @assert length(Jp) == length(gc)
       new_idx = [any(x -> !iszero(R(x)), coefficients(map_coeffs(QQ, Jp[i], parent = Qt) - gd[i])) for i=1:length(gc)]
       @vprint :MPolyGcd 1 "new information in $new_idx\n"
       fl = !any(new_idx)
@@ -102,10 +102,6 @@ function Oscar.groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevl
   end
 end
 
-function Oscar.groebner_basis(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol)
-  return Oscar.groebner_assure(I, ord)
-end
-
 function Oscar.lift(R::Nemo.Ring, f::nmod_mpoly)
   g = MPolyBuildCtx(R)
   for (c, v) in zip(coeffs(f), exponent_vectors(f))
@@ -136,8 +132,9 @@ function Hecke.induce_crt(f::fmpz_mpoly, d::fmpz, g::fmpz_mpoly, p::fmpz, b::Boo
   return finish(mu), d*p
 end
 
-function Oscar.groebner_basis(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol; complete_reduction::Bool = false)
-  return Oscar.groebner_assure(I, ord)
+function Oscar.groebner_basis(I::MPolyIdeal{fmpq_mpoly}; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
+  H = Oscar.groebner_assure(I, ord)
+  return H
 end
 
 

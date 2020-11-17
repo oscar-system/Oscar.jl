@@ -168,7 +168,7 @@ function Oscar.groebner_assure(I::MPolyIdeal{Generic.MPoly{nf_elem}}, ord::Symbo
   end
 end
 
-function Oscar.groebner_basis(I::MPolyIdeal{Generic.MPoly{nf_elem}}, ord::Symbol)
+function Oscar.groebner_basis(I::MPolyIdeal{Generic.MPoly{nf_elem}}; ord::Symbol = :degrevlex, complete_reduction::Bool = true)
   return Oscar.groebner_assure(I, ord)
 end
 
