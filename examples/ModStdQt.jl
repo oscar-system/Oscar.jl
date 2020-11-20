@@ -4,6 +4,10 @@ using Oscar
 import Oscar.Nemo
 import Oscar.Hecke
 
+function __init__()
+  Hecke.add_verbose_scope(:ModStdQt)
+end
+
 function Oscar.evaluate(f::FracElem{<:MPolyElem}, v::Vector; ErrorTolerant::Bool = false)
   n = evaluate(numerator(f), v)
   d = evaluate(denominator(f), v)
@@ -81,7 +85,7 @@ mutable struct MPolyPt{T}
         break
       end
     end
-    return new{Int}(Int[], p, Int[rand(-100:100) for i=1:n], 0)
+    return new{Int}(Int[], p, Int[rand(-10000:10000) for i=1:n], 0)
   end
   function MPolyPt(lp::Vector{Int}, z::AbstractVector, s::Vector{Int}, j::Int)
     r = new{Int}()
@@ -123,33 +127,57 @@ mutable struct MPolyInterpolateCtx{T}
 end
 
 function set_status!(M::MPolyInterpolateCtx, s::Symbol)
-  @vprint :MPolyGcd 2 "setting status to $s\n"
+  @vprint :ModStdQt 2 "setting status to $s\n"
+  @show s
   M.status = s
 end
 
-#Ben-Or Tiwari...
-function Oscar.interpolate(val::Array{Array{T, 1}, 1}, M::MPolyInterpolateCtx) where {T}
-
-#  nd = Array{Tuple{Bool, fmpq_poly, fmpq_poly}, 1}()
-  nd = []
-  for x = val
-    f = interpolate(x, M.I)
-    mu = rational_reconstruction(f, M.I, ErrorTolerant = true)
-    if !mu[1]
-      set_status!(M, :univariate_failed)
-      return false, zero(M.R) # more z
-    end
-    t = inv(trail(mu[3]))
-    push!(nd, (true, mu[2]*t, mu[3]*t))
+mutable struct Vals{T}
+  v::Array{Array{T, 1}, 1}
+  nd::Array{Tuple{<:PolyElem{T}, <:PolyElem{T}}, 1}
+  G::Generic.Frac{<:MPolyElem{T}}
+  function Vals(v::Array{Array{S, 1}, 1}) where {S}
+    r = new{S}()
+    r.v = v
+    return r
   end
-  Qx = parent(nd[1][2])
-  @assert parent(nd[1][3]) == Qx
+end
+
+#Ben-Or Tiwari...
+function Oscar.interpolate(Val::Vals{T}, M::MPolyInterpolateCtx) where {T}
+
+  if isdefined(Val, :G)
+    set_status!(M, :OK)
+    return true, Val.G
+  end
+
+  if !isdefined(Val, :nd) || length(Val.nd) < length(Val.v)
+    nd = []
+    val = Val.v
+    i = 1
+    for x = val
+      f = interpolate(x, M.I)
+      i += 1
+      mu = rational_reconstruction(f, M.I, ErrorTolerant = true)
+      if !mu[1]
+        set_status!(M, :univariate_failed)
+        return false, zero(M.R) # more z
+      end
+      t = inv(trail(mu[3]))
+      push!(nd, (mu[2]*t, mu[3]*t))
+    end
+    Val.nd = nd
+  else
+    nd = Val.nd
+  end
+  Qx = parent(nd[1][1])
+  @assert parent(nd[1][2]) == Qx
 
   R = [M.R(), M.R()]
   for ii = 1:2
     cor = elem_type(Qx)[zero(Qx) for i=1:length(nd)]
-    for i=maximum(degree(x[ii+1]) for x = nd):-1:0
-      bm = berlekamp_massey([coeff(nd[x][ii+1]-cor[x], i) for x = 1:length(nd)])
+    for i=maximum(degree(x[ii]) for x = nd):-1:0
+      bm = berlekamp_massey([coeff(nd[x][ii]-cor[x], i) for x = 1:length(nd)], ErrorTolerant = true)
       if !bm[1]
         set_status!(M, :BM_failed)
         return false, zero(M.R)
@@ -169,7 +197,7 @@ function Oscar.interpolate(val::Array{Array{T, 1}, 1}, M::MPolyInterpolateCtx) w
       end
 
       V = Vandermonde(r)
-      s = solve_left(V, matrix(QQ, 1, length(r), [coeff(nd[x][ii+1]-cor[x], i) for x=1:length(r)]))
+      s = solve_left(V, matrix(QQ, 1, length(r), [coeff(nd[x][ii]-cor[x], i) for x=1:length(r)]))
       G = MPolyBuildCtx(M.R)
       for i=1:length(r)
         push_term!(G, s[1,i], [valuation(r[i], p) for p = M.pt.pt_p])
@@ -177,7 +205,7 @@ function Oscar.interpolate(val::Array{Array{T, 1}, 1}, M::MPolyInterpolateCtx) w
       g = finish(G)
       R[ii] += g
       for j=0:length(nd)-1
-        t = evaluate(g, [M.pt.pt_p[l]^j*gen(Qx) + M.pt.pt_s[l] for l=1:length(M.pt.pt_p)])
+        t = evaluate(g, [T(M.pt.pt_p[l])^j*gen(Qx) + M.pt.pt_s[l] for l=1:length(M.pt.pt_p)])
   #      @show t, lead(t), lead(nd[j+1][2] - cor[j+1])
         cor[j+1] += t
       end
@@ -189,12 +217,11 @@ function Oscar.interpolate(val::Array{Array{T, 1}, 1}, M::MPolyInterpolateCtx) w
     return false, zero(M.R)
   end
   set_status!(M, :OK)
-  return true, R[1]//R[2]
+  Val.G = R[1]//R[2]
+
+  return true, Val.G
 end
 
-struct Vals{T}
-  v::Array{Array{T, 1}, 1}
-end
 
 function Base.setindex!(v::Vals{T}, c::T, i::Int, j::Int) where {T}
   if i > length(v.v)
@@ -231,11 +258,11 @@ function Oscar.groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Fra
   do_z = true
   local lst
   while true
-    if do_z
-      @vprint :MPolyGcd 1 "adding z-evaluation $(length(P.pt_z)+1)\n"
+    if do_z 
+      @vprint :ModStdQt 1 "adding z-evaluation $(length(P.pt_z)+1)\n"
       push!(P, length(P.pt_z)+1)
     else
-      @vprint :MPolyGcd 1 "increasing power-of-prime to $(P.j+1)\n"
+      @vprint :ModStdQt 1 "increasing power-of-prime to $(P.j+1)\n"
       P.j += 1
     end
 
@@ -255,9 +282,9 @@ function Oscar.groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Fra
         pt = T[Q(P.pt_p[i])^P.j * Q(P.pt_z[idx]) + Q(P.pt_s[i]) for i=1:n]
 #        println("P: j = ", P.j, ", z = ", P.pt_z[idx])
       end
-      @vprint :MPolyGcd 2 "using evaluation point $pt\n"
       idx += 1
-      @vtime :MPolyGcd 2 for g = gens(I)
+      @vprint :ModStdQt 2 "using evaluation point $pt\n"
+      @vtime :ModStdQt 2 for g = gens(I)
         G = MPolyBuildCtx(Qy)
         for (c, e) = zip(Generic.MPolyCoeffs(g), Generic.MPolyExponentVectors(g))
           push_term!(G, evaluate(c, pt, ErrorTolerant = true), e)
@@ -265,7 +292,7 @@ function Oscar.groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Fra
         push!(gens_J, finish(G))
       end
       J = ideal(Qy, gens_J)
-      @vtime :MPolyGcd 2 gJ = groebner_basis(J, ord = ord, complete_reduction = true)
+      @vtime :ModStdQt 2 gJ = groebner_basis(J, ord = ord, complete_reduction = true)
       if frst
         lst = []
         for _g = gJ
@@ -283,7 +310,22 @@ function Oscar.groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Fra
           g *= inv(lead(g))
           jg = 1
           for (c, e) = zip(Generic.MPolyCoeffs(g), Generic.MPolyExponentVectors(g))
-            @assert lst[ig][jg][1] == e #TODO: sort and match
+            if lst[ig][jg][1] != e #TODO: sort and match
+              @assert lst[ig][jg][1] == e
+              @show ig, jg
+              for y = 1:length(lst)
+                @show y, [x[1] for x = lst[y]]
+              end
+              @show gJ[ig]
+              @show gJ
+              if do_z
+                lst[ig][jg][2][idx-1, length(P.pt_z)] = T(0)
+              else
+                lst[ig][jg][2][P.j+1, idx-1] = T(0)
+              end
+              jg += 1
+              @assert lst[ig][jg][1] == e
+            end
             if do_z
               lst[ig][jg][2][idx-1, length(P.pt_z)] = c
             else
@@ -296,13 +338,13 @@ function Oscar.groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Fra
     end
     
     res = elem_type(S)[]
-    @vprint :MPolyGcd 1 "starting interpolation...\n"
+    @vprint :ModStdQt 1 "starting interpolation...\n"
     M = MPolyInterpolateCtx(R, P)
     local fl = true
-    @vtime :MPolyGcd 2 for F = lst
+    @vtime :ModStdQt 2 for F = lst
       f = MPolyBuildCtx(S)
       for C = F
-        fl, c = interpolate(C[2].v, M)
+        fl, c = interpolate(C[2], M)
         if fl
           push_term!(f, c, C[1])
         else
@@ -313,20 +355,33 @@ function Oscar.groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Fra
       push!(res, finish(f))
     end
     if fl
-      @vprint :MPolyGcd 1 "success\n"
+      @vprint :ModStdQt 1 "success\n"
       if ord == :degrevlex
         I.gb = Oscar.BiPolyArray(res)
       end
       return res
     end
 
-    @vprint :MPolyGcd 1 "failed, more points\n"
+    @vprint :ModStdQt 1 "failed, more points\n"
+    
+    if M.status == :univariate_failed
+      @show "needs more z"
+      do_z = true
+      continue
+    end
+
+    if M.status == :BM_failed && P.j > 10 
+      @show "needs more j"
+      do_z = !true
+      continue
+    end
+
 
     do_z = !do_z
-    if length(P.pt_z) > 15 || P.j > 15
-      error("did not finish")
-      break
-    end
+#    if length(P.pt_z) > 15 || P.j > 15
+#      error("did not finish")
+#      break
+#    end
   end
   return lst, P
 end
