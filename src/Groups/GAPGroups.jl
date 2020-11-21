@@ -15,7 +15,6 @@ export
     core,
     coset_decomposition,
     cperm,
-    deg,
     degree,
     describe,
     div_left,

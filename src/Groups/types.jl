@@ -280,7 +280,7 @@ struct WreathProductGroup <: GAPGroup
   G::GAPGroup
   H::GAPGroup
   a::GAPGroupHomomorphism   # morphism from H to the permutation group
-  Xfull::GapObj            # if H does not move all the points, this is the wreath product of (G, Sym(deg(H))
+  Xfull::GapObj            # if H does not move all the points, this is the wreath product of (G, Sym(degree(H))
   isfull::Bool             # true if Xfull == X
 end
 

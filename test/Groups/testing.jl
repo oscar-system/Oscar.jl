@@ -180,15 +180,15 @@ end
     G = symmetric_group(n)
     L = [x for x in G]
     @test L isa Vector{PermGroupElem}
-    @test length(L) == factorial(G.deg)
-    @test length(unique(L)) == factorial(G.deg)
+    @test length(L) == factorial(degree(G))
+    @test length(unique(L)) == factorial(degree(G))
     @test rand(G) isa PermGroupElem
     @test rand(G) in G
     A = PermGroupElem[]
     for x in G
       push!(A, x)
     end
-    @test length(A) == factorial(G.deg)
+    @test length(A) == factorial(degree(G))
     s = 0         # check if the number of (n-1)-cycles is correct
     for x in G 
       if order(x) == (n-1)

@@ -51,7 +51,7 @@ issemiregular(G::GSet) = error("not implemented")
 
 Return a block system for the action of `G` over `L`, i.e. a minimal
 non-trivial partition of `L` preserved by the action of `G`. Here, `L`
-must be a subvector of [1..deg(`G`)] and it is considered only the
+must be a subvector of [1..degree(`G`)] and it is considered only the
 action of `H` on `L`, where `H` is the subgroup of `G` that moves only
 points in `L`. If this action is not transitive, then an ERROR is
 returned. If `L` is not specified, then `L` is taken as the set of moved
@@ -70,7 +70,7 @@ blocks(G::PermGroup) = blocks(G,[i for i in GAP.gap_to_julia(GAP.Globals.MovedPo
 
 Return a maximal block system for the action of `G` over `L`, i.e. a
 maximal non-trivial partition of `L` preserved by the action of `G`.
-Here, `L` must be a subvector of [1..deg(`G`)] and it is considered only
+Here, `L` must be a subvector of [1..degree(`G`)] and it is considered only
 the action of `H` on `L`, where `H` is the subgroup of `G` that moves
 only points in `L`. If this action is not transitive, then an ERROR is
 returned. If `L` is not specified, then `L` is taken as the set of moved
@@ -89,7 +89,7 @@ maximal_blocks(G::PermGroup) = maximal_blocks(G,[i for i in GAP.gap_to_julia(GAP
 
 Return a list of block representatives for all minimal non-trivial block
 systems for the action of `G` over `L`. Here, `L` must be a subvector of
-[1..deg(`G`)] and it is considered only the action of `H` on `L`, where
+[1..degree(`G`)] and it is considered only the action of `H` on `L`, where
 `H` is the subgroup of `G` that moves only points in `L`. If this action
 is not transitive, then an ERROR is returned. If `L` is not specified,
 then `L` is taken as the set of moved points by `G`.
@@ -118,7 +118,7 @@ end
 
 Return the maximum `k` such that the action of `G` over `L` is
 `k`-transitive. The output is ``0`` if `G` is not transitive. If `L` is
-not specified, then `L` is taken as [1,...,deg(`G`)].
+not specified, then `L` is taken as [1,...,degree(`G`)].
 """
 transitivity(G::PermGroup, L::AbstractVector{Int}) = GAP.Globals.Transitivity(G.X, GAP.julia_to_gap(L))
 transitivity(G::PermGroup) = GAP.Globals.Transitivity(G.X, GAP.julia_to_gap(1:G.deg))
@@ -127,7 +127,7 @@ transitivity(G::PermGroup) = GAP.Globals.Transitivity(G.X, GAP.julia_to_gap(1:G.
     istransitive(G::PermGroup, L::AbstractVector{Int})
 
 Return whether the action of the group `G` on `L` is transitive. If `L`
-is not specified, then `L` is taken as [1,...,deg(`G`)].
+is not specified, then `L` is taken as [1,...,degree(`G`)].
 """
 istransitive(G::PermGroup, L::AbstractVector{Int}) = GAP.Globals.IsTransitive(G.X, GAP.julia_to_gap(L))
 istransitive(G::PermGroup) = GAP.Globals.IsTransitive(G.X, GAP.julia_to_gap(1:G.deg))
@@ -136,7 +136,7 @@ istransitive(G::PermGroup) = GAP.Globals.IsTransitive(G.X, GAP.julia_to_gap(1:G.
     isprimitive(G::PermGroup, L::AbstractVector{Int})
 
 Return whether the action of the group `G` on `L` is primitive. If `L`
-is not specified, then `L` is taken as [1,...,deg(`G`)].
+is not specified, then `L` is taken as [1,...,degree(`G`)].
 """
 isprimitive(G::PermGroup, L::AbstractVector{Int}) = GAP.Globals.IsPrimitive(G.X, GAP.julia_to_gap(L))
 isprimitive(G::PermGroup) = GAP.Globals.IsPrimitive(G.X, GAP.julia_to_gap(1:G.deg))
@@ -146,7 +146,7 @@ isprimitive(G::PermGroup) = GAP.Globals.IsPrimitive(G.X, GAP.julia_to_gap(1:G.de
 
 Return whether the action of the group `G` on `L` is regular (i.e.
 transitive and semiregular). If `L` is not specified, then `L` is taken
-as [1,...,deg(`G`)].
+as [1,...,degree(`G`)].
 """
 isregular(G::PermGroup, L::AbstractVector{Int}) = GAP.Globals.IsRegular(G.X, GAP.julia_to_gap(L))
 isregular(G::PermGroup) = GAP.Globals.IsRegular(G.X, GAP.julia_to_gap(1:G.deg))
@@ -156,7 +156,7 @@ isregular(G::PermGroup) = GAP.Globals.IsRegular(G.X, GAP.julia_to_gap(1:G.deg))
 
 Return whether the action of the group `G` on `L` is semiregular (i.e.
 the stabilizer of each point is the identity). If `L` is not specified,
-then `L` is taken as [1,...,deg(`G`)].
+then `L` is taken as [1,...,degree(`G`)].
 """
 issemiregular(G::PermGroup, L::AbstractVector{Int}) = GAP.Globals.IsSemiRegular(G.X, GAP.julia_to_gap(L))
 issemiregular(G::PermGroup) = GAP.Globals.IsSemiRegular(G.X, GAP.julia_to_gap(1:G.deg))
