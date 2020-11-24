@@ -84,8 +84,8 @@ struct GAPGroupElem{T<:GAPGroup} <: AbstractAlgebra.GroupElem
    X::GapObj
 end
 
-Base.hash(x::GAPGroup) = 0 # FIXME
-Base.hash(x::GAPGroupElem) = 0 # FIXME
+Base.hash(x::GAPGroup, h::UInt) = h # FIXME
+Base.hash(x::GAPGroupElem, h::UInt) = h # FIXME
 
 
 """

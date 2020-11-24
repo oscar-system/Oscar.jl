@@ -438,7 +438,7 @@ struct GroupConjClass{T<:GAPGroup, S<:Union{GAPGroupElem,GAPGroup}}
    CC::GapObj
 end
 
-Base.hash(x::GroupConjClass) = 0 # FIXME
+Base.hash(x::GroupConjClass, h::UInt) = h # FIXME
 
 function Base.show(io::IO, x::GroupConjClass)
   print(io, GAP.gap_to_julia(GAP.Globals.StringViewObj(x.repr.X)),
