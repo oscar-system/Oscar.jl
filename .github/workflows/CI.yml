@@ -39,9 +39,23 @@ jobs:
       - uses: codecov/codecov-action@v1
         with:
           file: lcov.info
-      #- uses: julia-actions/julia-uploadcoveralls@v1
-      #  env:
-      #    COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
+      - name: Coveralls Parallel
+        uses: coverallsapp/github-action@master
+        with:
+          path-to-lcov: lcov.info
+          github-token: ${{ secrets.github_token }}
+          flag-name: ${{ matrix.name }}
+          parallel: true
 
     # don't run ci twice on own PRs
     if: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
+
+  finish:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Coveralls Finished
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        parallel-finished: true
