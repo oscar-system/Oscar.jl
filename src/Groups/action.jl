@@ -218,16 +218,16 @@ end
 
 """
     on_indeterminates(f::GAP.GapObj, p::PermGroupElem)
-    on_indeterminates(f::Nemo.MPolyElem{T}, p::PermGroupElem) where T
+    on_indeterminates(f::Nemo.MPolyElem, p::PermGroupElem)
 
-Returns the image of `f` under `p`, w.r.t. permuting the indeterminates
+Return the image of `f` under `p`, w.r.t. permuting the indeterminates
 with `p`.
 
-For `Nemo.MPolyElem{T}` objects, one can also call `^` instead of
+For `Nemo.MPolyElem` objects, one can also call `^` instead of
 `on_indeterminates`.
 
 # Examples
-```
+```jldoctest
 julia> g = symmetric_group(3);  p = g[1]
 (1,2,3)
 
@@ -251,9 +251,19 @@ GAP: x_1*x_3+x_2*x_3
 """
 on_indeterminates(f::GAP.GapObj, p::PermGroupElem) = GAP.Globals.OnIndeterminates(f, p.X)
 
-function on_indeterminates(f::Nemo.MPolyElem{T}, p::PermGroupElem) where T
-    pnt = gens(parent(f))
-    return evaluate(f, pnt[[i^p for i in 1:length(pnt)]])
+function on_indeterminates(f::Nemo.MPolyElem, s::PermGroupElem)
+  G = parent(s)
+  @assert ngens(parent(f)) == degree(G)
+
+  g = Generic.MPolyBuildCtx(parent(f))
+  for (c, e) = Base.Iterators.zip(Generic.MPolyCoeffs(f), Generic.MPolyExponentVectors(f))
+    s_e = zeros(Int, degree(G))
+    for i=1:degree(G)
+      s_e[s(i)] = e[i]
+    end
+    push_term!(g, c, s_e)
+  end
+  return finish(g)
 end
 
-^(f::Nemo.MPolyElem{T}, p::PermGroupElem) where T = on_indeterminates(f, p)
+^(f::Nemo.MPolyElem, p::PermGroupElem) = on_indeterminates(f, p)
