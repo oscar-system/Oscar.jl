@@ -139,21 +139,6 @@ function bound(G::GaloisCtx, f, ts::fmpz_poly)
   return Oscar.evaluate(f, [B for i=1:degree(G.f)])
 end
 
-function ^(f::MPolyElem, s::Oscar.GAPGroupElem{PermGroup})
-  G = parent(s)
-  @assert ngens(parent(f)) == degree(G)
-
-  g = Generic.MPolyBuildCtx(parent(f))
-  for (c, e) = Base.Iterators.zip(Generic.MPolyCoeffs(f), Generic.MPolyExponentVectors(f))
-    s_e = zeros(Int, degree(G))
-    for i=1:degree(G)
-      s_e[s(i)] = e[i]
-    end
-    push_term!(g, c, s_e)
-  end
-  return finish(g)
-end
-
 function orbit(G::Oscar.PermGroup, f::MPolyElem)
   s = Set([f])
   while true
