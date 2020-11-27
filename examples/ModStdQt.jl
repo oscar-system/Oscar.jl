@@ -386,64 +386,6 @@ function Oscar.groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Fra
   return lst, P
 end
 
-###############################################################
-#
-# disc_log for finite fields
-# TODO
-# extend to non-prime
-# use the Conway property if applicable
-# store the dlog data on the field to re-use
-# do more intelligent (sub-exponential) algorithms
-# (maybe not all, but at least some?)
-# see Hecke/src/Misc/UnitsModM: fro BS-GS, cache the BS Array
-# sort the types...
-###############################################################
-#TODO: consolidate with Hecke: isprimitive_root?
-function Oscar.isprimitive(a::Nemo.gfp_elem, f::Fac{fmpz} = factor(length(parent(a))-1))
-  n = length(parent(a))-1
-  for p = keys(f.fac)
-    if a^divexact(n, p) == 1
-      return false
-    end
-  end
-  return true
-end
-
-function generator(K::Nemo.GaloisField, f::Fac{fmpz} = factor(length(K)-1))
-  a = rand(K)
-  while !isprimitive(a, f)
-    a = rand(K)
-  end
-  return a
-end
-
-function disc_log(a::Nemo.gfp_elem, b::Nemo.gfp_elem)
-  return disc_log_bs_gs(a, b, fmpz(length(parent(a))-1))
-end
-
-mutable struct DiscLogCtx
-  K::Nemo.GaloisField
-  f::Fac{fmpz}
-  g::Nemo.gfp_elem
-  function DiscLogCtx(g::Nemo.gfp_elem, f::Fac{fmpz} = factor(length(parent(g))-1))
-    r = new()
-    r.K = parent(g)
-    r.g = g
-    r.f = f
-    return r
-  end
-end
-
-function disc_log(A::DiscLogCtx, a::Nemo.gfp_elem)
-  res = Array{Tuple{fmpz, fmpz}, 1}()
-#  return Hecke.disc_log_bs_gs(A.g, a, size(parent(a))-1)
-  Pm1 = size(parent(a))-1
-  for (p, k) = A.f.fac
-    r = divexact(Pm1, p^k)
-    push!(res, (p^k, Hecke.disc_log_ph(A.g^r, a^r, fmpz(p), k)))
-  end
-  return crt([x[2] for x = res], [x[1] for x= res])
-end
 #####################################################################
 function ben_or(lp::Array{Int, 1}, a::Array{fmpz, 1}, P::fmpz)
   #tries to write a as a product of powers of lp

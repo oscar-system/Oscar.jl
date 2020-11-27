@@ -193,6 +193,7 @@ include("Rings/Hecke.jl")
 include("Rings/mpoly.jl")
 include("Rings/mpoly-graded.jl")
 include("Rings/mpoly-local.jl")
+include("Rings/FinField.jl")
 
 include("Modules/FreeModules-graded.jl")
 
