@@ -172,6 +172,10 @@ end
 include("OscarTypes.jl")
 
 include("Groups/types.jl")
+
+include("GAP/gap_to_oscar.jl")
+include("GAP/oscar_to_gap.jl")
+
 include("Groups/group_constructors.jl")
 include("Groups/sub.jl")
 include("Groups/homomorphisms.jl")
