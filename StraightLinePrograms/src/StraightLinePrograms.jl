@@ -19,8 +19,6 @@ abstract type AbstractSLProgram end
 
 include("straightline.jl")
 include("lazy.jl")
-include("lazypolys.jl")
-include("slpolys.jl")
 include("gap.jl")
 include("atlas.jl")
 

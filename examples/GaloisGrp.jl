@@ -4,7 +4,7 @@ module GaloisGrp
 using Oscar
 import Base: ^, +, -, *
 import Oscar: Hecke, AbstractAlgebra, GAP
-using Oscar.StraightLinePrograms
+using Oscar: SLPolyRing, SLPoly
 
 export galois_group, transitive_group_identification, slpoly_ring
 
@@ -18,7 +18,7 @@ function __init__()
   Hecke.add_assert_scope(:GaloisInvariant)
 end
 
-struct BoundRing  <: AbstractAlgebra.Ring 
+struct BoundRing  <: AbstractAlgebra.Ring
   mul
   add
   pow
@@ -67,7 +67,7 @@ function slpoly_ring(R::AbstractAlgebra.Ring, n::Int)
   return SLPolyRing(R, [ Symbol("x_$i") for i=1:n])
 end
 
-function (R::StraightLinePrograms.SLPolyRing)(a::StraightLinePrograms.SLPoly)
+function (R::SLPolyRing)(a::SLPoly)
   parent(a) == R && return a
   error("wrong parent")
 end
@@ -251,7 +251,7 @@ function to_elementary_symmetric(f)
   return g1 + gen(S, n)*g2
 end
 
-function ^(f::StraightLinePrograms.SLPoly, p::Oscar.GAPGroupElem{PermGroup})
+function ^(f::SLPoly, p::Oscar.GAPGroupElem{PermGroup})
   g = gens(parent(f))
   h = typeof(f)[]
   for i=1:ngens(parent(f))
@@ -507,7 +507,7 @@ function galois_group(K::AnticNumberField, extra::Int = 5)
       d_max = d
       p_best = p
       cnt = 5
-    else 
+    else
       cnt -= 1
     end
     if cnt < 1
@@ -567,9 +567,9 @@ function galois_group(K::AnticNumberField, extra::Int = 5)
 
   #selecting maximals only...
   if length(bs) > 1
-    L = POSet(bs, (x,y) -> issubset(x[1], y[1]) || issubset(y[1], x[1]), 
+    L = POSet(bs, (x,y) -> issubset(x[1], y[1]) || issubset(y[1], x[1]),
                   (x,y) -> issubset(x[1], y[1]) - issubset(y[1], x[1]))
-    bs = minimal_elements(L)              
+    bs = minimal_elements(L)
   end
   @vprint :GaloisGroup 1 "group will have (maximal) block systems: $([x[1] for x = bs])\n"
 
@@ -670,7 +670,7 @@ function galois_group(K::AnticNumberField, extra::Int = 5)
 
       local fd
       cnt = 0
-     
+
       cs = Set{typeof(c[1])}()
       fd = []
 
