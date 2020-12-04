@@ -4,6 +4,10 @@
 
 import GAP: julia_to_gap
 
+## WORKAROUND: the following method is also defined in GAP.jl, but apparently
+## we need to redefine it here, otherwise it doesn't work
+GAP.julia_to_gap(obj::Any; recursive::Bool) = GAP.julia_to_gap(obj)
+
 ## `fmpz` to GAP integer
 GAP.julia_to_gap(obj::fmpz) = GAP.julia_to_gap(BigInt(obj))
 
