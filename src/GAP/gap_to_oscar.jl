@@ -6,16 +6,18 @@ import GAP: gap_to_julia
 import Nemo: FlintIntegerRing, FlintRationalField, MatrixSpace, fmpz, fmpq, fmpz_mat, fmpq_mat
 
 ## GAP integer to `fmpz`
-GAP.gap_to_julia(::Type{fmpz}, obj::Union{GAP.GapObj, Int64}) = fmpz(BigInt(obj))
+GAP.gap_to_julia(::Type{fmpz}, obj::GAP.GapObj) = fmpz(BigInt(obj))
+GAP.gap_to_julia(::Type{fmpz}, obj::Int64) = fmpz(obj)
 
 fmpz(obj::GAP.GapObj) = gap_to_julia(fmpz, obj)
 
 (::FlintIntegerRing)(obj::GAP.GapObj) = gap_to_julia(fmpz, obj)
 
 ## large GAP rational or integer to `fmpq`
-function GAP.gap_to_julia(::Type{fmpq}, obj::Union{GAP.GapObj, Int64})
+GAP.gap_to_julia(::Type{fmpq}, obj::Int64) = fmpq(obj)
+function GAP.gap_to_julia(::Type{fmpq}, obj::GAP.GapObj)
     GAP.Globals.IsRat(obj) || throw(GAP.ConversionError(obj, fmpq))
-    return fmpq(BigInt(GAP.Globals.NumeratorRat(obj)), BigInt(GAP.Globals.DenominatorRat(obj)))
+    return fmpq(fmpz(GAP.Globals.NumeratorRat(obj)), fmpz(GAP.Globals.DenominatorRat(obj)))
 end
 
 fmpq(obj::GAP.GapObj) = gap_to_julia(fmpq, obj)
@@ -34,8 +36,7 @@ fmpz_mat(obj::GAP.GAP.GapObj) = gap_to_julia(fmpz_mat, obj)
 function GAP.gap_to_julia(::Type{fmpq_mat}, obj::GAP.GapObj)
     m = GAP.gap_to_julia(Matrix{fmpq}, obj)
 #   return fmpq_mat(size(m, 1), size(m, 2), m) # corrupted object!
-    S = MatrixSpace(FlintRationalField(), size(m, 1), size(m, 2))
-    return S(m)
+    return matrix(FlintQQ, m)
 end
 
 fmpq_mat(obj::GAP.GAP.GapObj) = gap_to_julia(fmpq_mat, obj)
