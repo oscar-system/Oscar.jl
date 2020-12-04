@@ -771,6 +771,9 @@ function evaluate!(res::Vector{S}, p::SLProgram{T}, xs::Vector{S},
     end
 end
 
+function order end
+# to be specialized by users
+
 test(x, o) = order(x) == o
 
 list(res) = list(eltype(res), res)
