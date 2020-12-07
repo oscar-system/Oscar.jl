@@ -1,7 +1,7 @@
 
 module GaloisGrp
 
-using Oscar
+using Oscar, Markdown
 import Base: ^, +, -, *
 import Oscar: Hecke, AbstractAlgebra, GAP
 using Oscar: SLPolyRing, SLPoly
@@ -21,11 +21,16 @@ struct BoundRing  <: AbstractAlgebra.Ring
   mul
   add
   pow
+  name::String
 end
 
 struct BoundRingElem <: AbstractAlgebra.RingElem
   val::fmpz
   p::BoundRing
+end
+
+function Base.show(io::IO, b::BoundRingElem)
+  print(io, "x <= $(b.val)")
 end
 
 +(a::BoundRingElem, b::BoundRingElem) = BoundRingElem(a.p.add(a.val, b.val), a.p)
@@ -44,11 +49,11 @@ Oscar.one(R::BoundRing) = R(1)
 Oscar.zero(R::BoundRing) = R(1)
 
 function max_ring()
-  return BoundRing( (x,y) -> x+y, (x,y) -> max(x, y), (x,y) -> y*x)
+  return BoundRing( (x,y) -> x+y, (x,y) -> max(x, y), (x,y) -> y*x, "max-ring")
 end
 
 function add_ring()
-  return BoundRing( (x,y) -> x*y, (x,y) -> x+y, (x,y) -> x^y)
+  return BoundRing( (x,y) -> x*y, (x,y) -> x+y, (x,y) -> x^y, "add-ring")
 end
 
 Oscar.mul!(a::BoundRingElem, b::BoundRingElem, c::BoundRingElem) = b*c
@@ -66,11 +71,20 @@ function slpoly_ring(R::AbstractAlgebra.Ring, n::Int)
   return SLPolyRing(R, [ Symbol("x_$i") for i=1:n])
 end
 
+function slpoly_ring(R::AbstractAlgebra.Ring, p::Pair{Symbol, UnitRange{Int}}...)
+  return SLPolyRing(R, p...)
+end
+
 function (R::SLPolyRing)(a::SLPoly)
   parent(a) == R && return a
   error("wrong parent")
 end
 
+@doc Markdown.doc"""
+    root_bound(f::fmpz_poly) -> fmpz
+
+An upper bound for the absolute value of the complex roots of the input.    
+"""
 function root_bound(f::fmpz_poly)
   a = coeff(f, degree(f))
   return max(fmpz(1), maximum([ceil(fmpz, abs(coeff(f, i)//a)) for i=0:degree(f)]))
@@ -93,6 +107,12 @@ function (f::RelSeriesElem)(a::RingElem)
   return z
 end
 #roots are sums of m distinct roots of f
+@doc Markdown.doc"""
+    msum_poly(f::PolyElem, m::Int)
+
+Compute the polynomial with roots sums of `m` roots of `f` using
+resultants.
+"""
 function msum_poly(f::PolyElem, m::Int)
   N = binomial(degree(f), m)
   p = Hecke.polynomial_to_power_sums(f, N)
@@ -222,14 +242,32 @@ Base.sign(G::PermGroup) = GAP.Globals.SignPermGroup(G.X)
 Base.isodd(G::PermGroup) = sign(G) == -1
 Base.iseven(n::PermGroup) = !isodd(n)
 
+@doc Markdown.doc"""
+    elementary_symmetric(g::Vector, i::Int) -> 
+
+Evaluates the `i`-th elementary symmetric polynomial at the values in `g`.    
+The `i`-th elementary symmetric polynomial is the sum over all
+products of `i` distinct variables.
+"""
 function elementary_symmetric(g::Array{<:Any, 1}, i::Int)
   return sum(prod(g[i] for i = s) for s = Hecke.subsets(Set(1:length(g)), i))
 end
 
+@doc Markdown.doc"""
+    power_sums(g::Vector, i::Int) ->
+
+Evaluates the `i`-th power sums at the values in `g`, ie. the sum
+of the `i`-th power of the values.
+"""
 function power_sum(g::Array{<:Any, 1}, i::Int)
   return sum(a^i for a = g)
 end
 
+@doc Markdown.doc"""
+    discriminant(g::Vector)
+
+Compute the product of all differences of distinct elements in the array.    
+"""
 function Oscar.discriminant(g::Array{<:RingElem, 1})
   return prod(a-b for a = g for b = g if a!=b)
 end
@@ -267,6 +305,12 @@ function isprobably_invariant(g, p)
   return evaluate(g, lp) == evaluate(g^p, lp)
 end
 
+@doc Markdown.doc"""
+    short_right_transversal(G::PermGroup, H::PermGroup, s) ->
+
+Determines representatives for all right-cosets of `G` modulo `U`
+containing the element `s`.
+"""
 function short_right_transversal(G::PermGroup, H::PermGroup, s)
   C = GAP.Globals.ConjugacyClasses(H.X)
   cs = GAP.Globals.CycleStructurePerm(s.X)
@@ -759,7 +803,7 @@ struct POSetElem
   e::Int
   p::POSet
   function POSetElem(L::POSet, i::Int)
-    return new(i, p)
+    return new(i, L)
   end
   function POSetElem(L::POSet, e::Any)
     return new(findfirst(x->L>can_cmp(e, L.elem[i]) && L.cmp(e, L.elem[i]) == 0, 1:length(L.elem)), L)
@@ -799,6 +843,63 @@ function minimal_elements(L::POSet)
   end
   return [x for (x,v) = d if length(v) == 0]
 end
+
+
+function Base.getindex(S::Hecke.SubSetSizeItr, i::Int)
+  return Hecke.int_to_elt(S, i)
+end
+
+struct BlockSystems
+  n::Int
+  l::Int
+  cur::Array{Array{Int, 1}, 1}
+  function BlockSystems(n::Int, l::Int)
+    @assert n % l == 0
+    return new(n, l, [collect((i-1)*l+1:i*l) for i=1:divexact(n, l)])
+  end
+end
+
+
+function Base.iterate(B::BlockSystems, st::Array{Array{Int, 1}} = B.cur)
+  i = length(B.cur)-1
+  while true
+    j = B.l
+    while true
+      if st[i][j] < B.n
+        st[i][j] += 1
+        free = Set(1:B.n)
+        for l=1:i-1
+          setdiff!(free, st[l])
+        end
+        if !(st[i][j] in free) 
+          continue
+        end
+        setdiff!(free, st[i][1:j])
+        while j < B.l
+          j += 1
+          st[i][j] = minimum(free)
+          pop!(free, st[i][j])
+        end
+        i += 1
+        while i <= length(st)
+          for j=1:B.l
+            st[i][j] = minimum(free)
+            pop!(free, st[i][j])
+          end
+          i += 1
+        end
+        return deepcopy(st), st
+      end
+      j -= 1
+      if j == 1
+        i -= 1
+        i == 0 && return nothing
+        break
+      end
+    end
+  end
+end
+Base.IteratorSize(::BlockSystems) = Base.SizeUnknown()
 
 end
 
