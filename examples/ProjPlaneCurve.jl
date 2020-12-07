@@ -11,16 +11,14 @@ export dehomogenization, homogenization, issmooth, tangent,
 # ring
 
 @doc Markdown.doc"""
-    dehomogenization([r::MPolyRing], F::Oscar.MPolyElem_dec, i::Int64)
+    dehomogenization([r::MPolyRing], F::Oscar.MPolyElem_dec, i::Int)
 
 Return the polynomial obtained by dehomogenization of `F` with respect to the `i`th variable of `parent(F)`. The new polynomial is in `r` if specified, or in a new ring with one variable less otherwise.
 """
-function dehomogenization(r::MPolyRing{S}, F::Oscar.MPolyElem_dec{S}, i::Int64) where S <: FieldElem
+function dehomogenization(r::MPolyRing{S}, F::Oscar.MPolyElem_dec{S}, i::Int) where S <: FieldElem
   @assert ishomogenous(F)
   R = parent(F)
-  if nvars(R) -1 != nvars(r)
-     error("Incompatible number of variables")
-  end
+  nvars(R) -1 == nvars(r) || error("Incompatible number of variables")
   V = gens(r)
   insert!(V, i, r(1))
   phi = hom(R.R, r, V)
@@ -30,7 +28,7 @@ end
 ################################################################################
 # dehomogenization without specifying the ring with repect to the specified variable
 
-function dehomogenization(F::Oscar.MPolyElem_dec, i::Int64)
+function dehomogenization(F::Oscar.MPolyElem_dec, i::Int)
   R = parent(F)
   A = String.(symbols(R))
   r = PolynomialRing(R.R.base_ring, deleteat!(A, i))
@@ -40,7 +38,7 @@ end
 ################################################################################
 # non decorated version
 
-function dehomogenization(F::Oscar.MPolyElem, i::Int64)
+function dehomogenization(F::Oscar.MPolyElem, i::Int)
   R = parent(F)
   A = grade(R)
   dehomogenization(A(F), i)
@@ -49,7 +47,7 @@ end
 ################################################################################
 # non decorated version
 
-function dehomogenization(r::MPolyRing{S}, F::Oscar.MPolyElem{S}, i::Int64) where S <: FieldElem
+function dehomogenization(r::MPolyRing{S}, F::Oscar.MPolyElem{S}, i::Int) where S <: FieldElem
   R = parent(F)
   A = grade(R)
   dehomogenization(r, A(F), i)
@@ -59,11 +57,11 @@ end
 # homogenization
 
  @doc Markdown.doc"""
-     homogenization(R::MPolyRing{S}, F::MPolyElem{S}, i::Int64) where S <: FieldElem
+     homogenization(R::MPolyRing{S}, F::MPolyElem{S}, i::Int) where S <: FieldElem
 
 Return the homogenization of `F` in `R` of a polynomial using the `i`th variable of `R`.
  """
- function homogenization(R::MPolyRing{S}, F::MPolyElem{S}, i::Int64) where S <: FieldElem
+ function homogenization(R::MPolyRing{S}, F::MPolyElem{S}, i::Int) where S <: FieldElem
    r = parent(F)
    V = gens(R)
    W = [V[j]//V[i] for j=1:nvars(R)]
@@ -148,23 +146,21 @@ end
 Return the projective plane curve consisting of the common component of `C` and `D`, or an empty vector if they do not have a common component.
 """
 function common_components(C::ProjPlaneCurve{S}, D::ProjPlaneCurve{S}) where S <: FieldElem
-  G = gcd(C.eq.f, D.eq.f)
+  G = gcd(C.eq, D.eq)
   if isone(G)
      return Vector{ProjPlaneCurve}()
   else
-     return Vector([ProjPlaneCurve(G)])
+     return [ProjPlaneCurve(G)]
   end
 end
 
 
-###!#############################################################################
+################################################################################
 # convert array of lenght 2 to ProjSpcElem with 1 for last coordinate.
 # Helping function
 
 function Array_to_ProjSpcElem(PP::Oscar.Geometry.ProjSpc{S}, p::Array{S, 1}) where S <: FieldElem
-  if dim(PP) != length(p)
-     error("Not the right size")
-  end
+  dim(PP) == length(p) || error("Not the right size")
   m = push!(p, 1)
   return Oscar.Geometry.ProjSpcElem(PP, m)
 end
@@ -181,13 +177,13 @@ end
 Return a list whose first element is the projective plane curve defined by the gcd of `C.eq` and `D.eq`, the second element is the list of the remaining intersection points when the common components are removed from `C` and `D` (the points are in `PP` if specified, or in a new projective space otherwise).
 """
 function curve_intersect(PP::Oscar.Geometry.ProjSpc{S}, C::ProjPlaneCurve{S}, D::ProjPlaneCurve{S}) where S <: FieldElem
-  G = gcd(C.eq.f, D.eq.f)
+  G = gcd(C.eq, D.eq)
   R = parent(C.eq)
   CC = []
   if !isone(G)
      # We divide by the gcd to get curves without common components.
-     F = R(div(C.eq.f, G))
-     H = R(div(D.eq.f, G))
+     F = div(C.eq, G)
+     H = div(D.eq, G)
      push!(CC, ProjPlaneCurve(G))
   else
      F = C.eq
@@ -345,11 +341,11 @@ function multiplicity(C::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) wh
      Ca = AffinePlaneCurve(Fa)
      Q = Point([P.v[1]//P.v[3], P.v[2]//P.v[3]])
   elseif P.v[2] != 0
-     Fa = dehomogenization(C, 2)
+     Fa = dehomogenization(C.eq, 2)
      Ca = AffinePlaneCurve(Fa)
      Q = Point([P.v[1]//P.v[2], P.v[3]//P.v[2]])
   else
-     Fa = dehomogenization(C, 1)
+     Fa = dehomogenization(C.eq, 1)
      Ca = AffinePlaneCurve(Fa)
      Q = Point([P.v[2]//P.v[1], P.v[3]//P.v[1]])
   end
@@ -359,7 +355,7 @@ end
 ################################################################################
 # homogeneization for lines
 
-function help_homogene_line(R::MPolyRing, r::MPolyRing, F::MPolyElem, i::Int64)
+function help_homogene_line(R::MPolyRing, r::MPolyRing, F::MPolyElem, i::Int)
   total_degree(F) == 1 || error("This is not a degree one polynomial")
   V = gens(R)
   W = gens(r)
@@ -399,7 +395,7 @@ Returns the tangent lines at `P` to `C` with their multiplicity.
       i = 1
    end
    L = tangent_lines(Ca, Q)
-   D = Dict{ProjPlaneCurve{S}, Int64}()
+   D = Dict{ProjPlaneCurve{S}, Int}()
    if isempty(L) == false
       r = parent(Ca.eq)
       D = Dict(ProjPlaneCurve(help_homogene_line(R, r, x.eq, i)) => L[x] for x in keys(L))
@@ -409,7 +405,15 @@ Returns the tangent lines at `P` to `C` with their multiplicity.
  end
 
 ################################################################################
-#
+# helping function for intersection_multiplicity
+
+function _dehom_curves_r(r::MPolyRing, C::ProjPlaneCurve, D::ProjPlaneCurve, i::Int)
+  F = dehomogenization(r, C.eq, i)
+  G = dehomogenization(r, D.eq, i)
+  return [AffinePlaneCurve(F), AffinePlaneCurve(G)]
+end
+
+################################################################################
 
 @doc Markdown.doc"""
      intersection_multiplicity(C::ProjPlaneCurve{S}, D::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
@@ -418,26 +422,19 @@ Returns the intersection multiplicity of `C` and `D` at `P`.
 """
 function intersection_multiplicity(C::ProjPlaneCurve{S}, D::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
    dim(P.parent) == 2 || error("The point needs to be in a projective two dimensional space")
+   R = parent(C.eq)
+   r, (X, Y) = PolynomialRing(R.R.base_ring, ["X", "Y"])
    if P.v[3] != 0
-      Fa = dehomogenization(C.eq, 3)
-      Ha = dehomogenization(D.eq, 3)
-      Ca = AffinePlaneCurve(Fa)
-      Da = AffinePlaneCurve(Ha)
+      V = _dehom_curves_r(r, C, D, 3)
       Q = Point([P.v[1]//P.v[3], P.v[2]//P.v[3]])
    elseif P.v[2] != 0
-      Fa = dehomogenization(C.eq, 2)
-      Ha = dehomogenization(D.eq, 2)
-      Ca = AffinePlaneCurve(Fa)
-      Da = AffinePlaneCurve(Ha)
+      V = _dehom_curves_r(r, C, D, 2)
       Q = Point([P.v[1]//P.v[2], P.v[3]//P.v[2]])
    else
-      Fa = dehomogenization(C.eq, 1)
-      Ha = dehomogenization(D.eq, 1)
-      Ca = AffinePlaneCurve(Fa)
-      Da = AffinePlaneCurve(Ha)
+      V = _dehom_curves_r(r, C, D, 1)
       Q = Point([P.v[2]//P.v[1], P.v[3]//P.v[1]])
    end
-   return intersection_multiplicity(Ca, Da, Q)
+   return intersection_multiplicity(V[1], V[2], Q)
 end
 
 ################################################################################

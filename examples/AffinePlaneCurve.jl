@@ -66,7 +66,7 @@ function common_components(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where
   if isone(G)
      return Vector{AffinePlaneCurve}()
   else
-     return Vector([AffinePlaneCurve(G)])
+     return [AffinePlaneCurve(G)]
   end
 end
 
@@ -273,7 +273,7 @@ function tangent_lines(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
   M = sort(L, by=_sort_helper_multiplicity)
   Gm = HC[M[1]]
   Z = factor(Gm.f)
-  D = Dict{AffinePlaneCurve{S}, Int64}()
+  D = Dict{AffinePlaneCurve{S}, Int}()
   X = V[1] - P.coord[1]
   Y = V[2] - P.coord[2]
   for p in keys(Z.fac)

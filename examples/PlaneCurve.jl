@@ -2,13 +2,43 @@ module PlaneCurveModule
 using Oscar, Markdown
 import Base.:(==)
 
-export Point, ideal_point, AffinePlaneCurve, ProjPlaneCurve, hash, degree,
-       jacobi_ideal, curve_components, isirreducible, isreduced, reduction,
-       union
+export factor, gcd, div, Point, ideal_point, AffinePlaneCurve, ProjPlaneCurve,
+       hash, degree, jacobi_ideal, curve_components, isirreducible, isreduced,
+       reduction, union
 
 ################################################################################
 
 abstract type PlaneCurve end
+
+################################################################################
+# TODO: Move these three functions to the file mpoly-graded.jl
+################################################################################
+
+function Oscar.factor(x::Oscar.MPolyElem_dec)
+  R = parent(x)
+  D = Dict{elem_type(R), Int64}()
+  F = factor(x.f)
+  n=length(F.fac)
+  #if n == 1
+  #  return Fac(R(F.unit), D)
+  #else
+    for i in keys(F.fac)
+     push!(D, R(i) => Int64(F[i]))
+    end
+  return Fac(R(F.unit), D)
+  #end
+end
+
+
+function Oscar.gcd(x::Oscar.MPolyElem_dec, y::Oscar.MPolyElem_dec)
+  R = parent(x)
+  return R(gcd(x.f, y.f))
+end
+
+function Oscar.div(x::Oscar.MPolyElem_dec, y::Oscar.MPolyElem_dec)
+  R = parent(x)
+  return R(div(x.f, y.f))
+end
 
 ################################################################################
 # Point (not specific to curves).
@@ -17,9 +47,9 @@ abstract type PlaneCurve end
 # The point is described by its coordinates.
 # ambient_dim gives the dimension of the space to which belongs the point.
 
-mutable struct Point{S}
-  coord::Array{S, 1}
-  ambient_dim::Int64
+mutable struct Point{S <: FieldElem}
+  coord::Vector{S}
+  ambient_dim::Int
   function Point(coordinates::Array{S, 1}) where {S <: FieldElem}
     r = new{S}()
     r.coord = coordinates
@@ -50,20 +80,17 @@ end
 ################################################################################
 
 mutable struct AffinePlaneCurve{S <: FieldElem} <: PlaneCurve
-  eq::Oscar.MPolyElem{S}                  # Equation of the curve (polynomial in two variables)
-  degree::Int64                           # degree of the equation of the curve
-  dimension::Int64                        # dimension of the curve (as a variety)
-  components::Dict
+  eq::Oscar.MPolyElem{S}                # Equation of the curve (polynomial in two variables)
+  degree::Int                           # degree of the equation of the curve
+  dimension::Int                        # dimension of the curve (as a variety)
+  components::Dict{AffinePlaneCurve{S}, Int}
   function AffinePlaneCurve(eq::Oscar.MPolyElem{S}) where {S <: FieldElem}
-    if nvars(parent(eq)) != 2
-       error("The defining equation must belong to a ring with two variables")
-    elseif isconstant(eq)
-       error("The defining equation must be non constant")
-    end
+    nvars(parent(eq)) == 2 || error("The defining equation must belong to a ring with two variables")
+    !isconstant(eq) || error("The defining equation must be non constant")
     new{S}(eq,
            -1,                   # -1 when it is not computed yet
             1,                   # since C is a plane curve, the dimension is always 1
-            Dict{AffinePlaneCurve{S}, Int64}())
+            Dict{AffinePlaneCurve{S}, Int}())
   end
 end
 function Base.show(io::IO, C::AffinePlaneCurve)
@@ -77,22 +104,18 @@ end
 ################################################################################
 
 mutable struct ProjPlaneCurve{S <: FieldElem} <: PlaneCurve
-  eq::Oscar.MPolyElem_dec{S}              # Equation of the curve (polynomial in three variables)
-  degree::Int64                           # degree of the equation of the curve
-  dimension::Int64                        # dimension of the curve (as a variety)
-  components::Dict{ProjPlaneCurve{S}, Int64}
+  eq::Oscar.MPolyElem_dec{S}            # Equation of the curve (polynomial in three variables)
+  degree::Int                           # degree of the equation of the curve
+  dimension::Int                        # dimension of the curve (as a variety)
+  components::Dict{ProjPlaneCurve{S}, Int}
   function ProjPlaneCurve(eq::Oscar.MPolyElem_dec{S}) where {S <: FieldElem}
-    if nvars(parent(eq)) != 3
-       error("The defining equation must belong to a ring with three variables")
-    elseif isconstant(eq)
-       error("The defining equation must be non constant")
-    elseif !ishomogenous(eq)
-       error("The defining equation is not homogeneous")
-    end
+    nvars(parent(eq)) == 3 || error("The defining equation must belong to a ring with three variables")
+    !isconstant(eq) || error("The defining equation must be non constant")
+    ishomogenous(eq) || error("The defining equation is not homogeneous")
     new{S}(eq,
            -1,                   # -1 when it is not computed yet
             1,                   # since C is a plane curve, the dimension is always 1
-            Dict{ProjPlaneCurve{S}, Int64}())
+            Dict{ProjPlaneCurve{S}, Int}())
   end
   function ProjPlaneCurve(eq::Oscar.MPolyElem{S}) where {S <: FieldElem}
      R = grade(parent(eq))
@@ -109,7 +132,15 @@ function Base.show(io::IO, C::ProjPlaneCurve)
 end
 
 ################################################################################
+################################################################################
 # Plane Curves related functions.
+################################################################################
+
+defining_equation(C::AffinePlaneCurve) = C.eq
+defining_equation(C::ProjPlaneCurve) = C.eq.f
+
+
+
 ################################################################################
 # hash function
 
@@ -138,12 +169,10 @@ end
 Return the degree of the defining polynomial of `C`.
 """
 function Oscar.degree(C::PlaneCurve)
-  if C.degree < 0 && typeof(C) == AffinePlaneCurve{typeof(lc(C.eq))}
-    C.degree = total_degree(C.eq)
-  elseif C.degree < 0 && typeof(C) == ProjPlaneCurve{typeof(lc(C.eq))}
-    C.degree = total_degree(C.eq.f)
+  if C.degree < 0
+    C.degree = total_degree(defining_equation(C))
   end
-  return(C.degree)
+  return C.degree
 end
 
 ################################################################################
@@ -160,13 +189,31 @@ end
 ################################################################################
 # helping function: computes the irreducible components of the curve
 
-function compo(C::PlaneCurve)
-  if typeof(C) == AffinePlaneCurve{typeof(lc(C.eq))}
-    D = factor(C.eq)
-    C.components = Dict(AffinePlaneCurve(x) => D.fac[x] for x in keys(D.fac))
-  elseif typeof(C) == ProjPlaneCurve{typeof(lc(C.eq))}
-    D = factor(C.eq.f)
-    C.components = Dict(ProjPlaneCurve(x) => D.fac[x] for x in keys(D.fac))
+function compo(C::AffinePlaneCurve)
+  D = factor(C.eq)
+  C.components = Dict(AffinePlaneCurve(x) => D.fac[x] for x in keys(D.fac))
+end
+
+function compo(C::ProjPlaneCurve)
+  D = factor(C.eq)
+  C.components = Dict(ProjPlaneCurve(x) => D.fac[x] for x in keys(D.fac))
+end
+
+# function compo(C::PlaneCurve)
+#    D = factor(C.eq)
+#    if typeof(C) == AffinePlaneCurve{typeof(lc(C.eq))}
+#       C.components = Dict(AffinePlaneCurve(x) => D.fac[x] for x in keys(D.fac))
+#    elseif typeof(C) == ProjPlaneCurve{typeof(lc(C.eq))}
+#       C.components = Dict(ProjPlaneCurve(x) => D.fac[x] for x in keys(D.fac))
+#    end
+# end
+
+################################################################################
+# Helping function
+
+function _assure_has_components(C::PlaneCurve)
+  if isempty(C.components)
+     compo(C)
   end
 end
 
@@ -179,9 +226,7 @@ end
 Return a dictionary containing the irreducible components of `C` and their multiplicity.
 """
 function curve_components(C::PlaneCurve)
-  if isempty(C.components)
-    compo(C)
-  end
+  _assure_has_components(C)
   return C.components
 end
 
@@ -195,14 +240,8 @@ end
 Return `true` if `C` is irreducible, and `false` otherwise.
 """
 function Oscar.isirreducible(C::PlaneCurve)
-  if isempty(C.components)
-     compo(C)
-  end
-  if length(C.components) != 1
-     return false
-  else
-     return all(isone, values(C.components))
-  end
+  _assure_has_components(C)
+   return length(C.components) == 1 && all(isone, values(C.components))
 end
 
 ################################################################################
@@ -215,9 +254,7 @@ end
 Return `true` if `C` is reduced, and `false` otherwise.
 """
 function Oscar.isreduced(C::PlaneCurve)
-  if isempty(C.components)
-    compo(C)
-  end
+  _assure_has_components(C)
   return all(isone, values(C.components))
 end
 
@@ -230,18 +267,19 @@ end
 
 Return the plane curve defined by the squarefree part of the equation of `C`.
 """
-function reduction(C::PlaneCurve)
-  if isempty(C.components)
-     compo(C)
-  end
+function reduction(C::AffinePlaneCurve)
+  _assure_has_components(C)
   F = prod(D -> D.eq, keys(C.components))
-  if typeof(C) == AffinePlaneCurve{typeof(lc(C.eq))}
-    rC = AffinePlaneCurve(F)
-    rC.components = Dict(AffinePlaneCurve(D.eq) => 1 for D in keys(C.components))
-  elseif typeof(C) == ProjPlaneCurve{typeof(lc(C.eq))}
-    rC = ProjPlaneCurve(F)
-    rC.components = Dict(ProjPlaneCurve(D.eq) => 1 for D in keys(C.components))
-  end
+  rC = AffinePlaneCurve(F)
+  rC.components = Dict(AffinePlaneCurve(D.eq) => 1 for D in keys(C.components))
+  return rC
+end
+
+function reduction(C::ProjPlaneCurve)
+  _assure_has_components(C)
+  F = prod(D -> D.eq, keys(C.components))
+  rC = ProjPlaneCurve(F)
+  rC.components = Dict(ProjPlaneCurve(D.eq) => 1 for D in keys(C.components))
   return rC
 end
 
@@ -253,14 +291,11 @@ end
 
 Return the union of `C` and `D` (with multiplicity).
 """
-function Base.union(C::PlaneCurve, D::PlaneCurve)
-  typeof(C) == typeof(D) || error("The curves do not have the same type.")
-  F = C.eq*D.eq
-  if typeof(C) == ProjPlaneCurve{typeof(lc(C.eq))}
-     return ProjPlaneCurve(F)
-  elseif typeof(C) == AffinePlaneCurve{typeof(lc(C.eq))}
-     return AffinePlaneCurve(F)
-  end
+function Base.union(C::T, D::T)  where T <: AffinePlaneCurve
+     return AffinePlaneCurve(C.eq*D.eq)
+end
+function Base.union(C::T, D::T)  where T <: ProjPlaneCurve
+     return ProjPlaneCurve(C.eq*D.eq)
 end
 
 ################################################################################
