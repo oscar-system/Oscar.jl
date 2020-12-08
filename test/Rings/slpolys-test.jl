@@ -139,6 +139,9 @@ end
     @test one(p) == one(S)
     @test one(p) isa SLPoly{Int}
 
+    @test !isone(p)
+    @test !iszero(p)
+
     # copy
     q = SLPoly(S)
     # TODO: do smthg more interesting with q

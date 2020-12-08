@@ -133,6 +133,11 @@ end
 Base.zero(p::SLPoly) = zero(parent(p))
 Base.one(p::SLPoly) = one(parent(p))
 
+# we don't know easily, in general, whether an SLPoly is zero or one, so assume it isn't
+# TODO: handle correctly simple cases (e.g. empty underlying sl-program)
+Base.iszero(p::SLPoly) = false
+Base.isone(p::SLPoly) = false
+
 function Base.copy!(p::SLPoly{T}, q::SLPoly{T}) where {T}
     check_parent(p, q)
     copy!(p.slprogram, q.slprogram)
