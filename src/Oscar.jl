@@ -201,6 +201,8 @@ include("Polymake/Ineq.jl")
 include("Polymake/NmbThy.jl")
 
 include("../StraightLinePrograms/src/StraightLinePrograms.jl")
+include("Rings/lazypolys.jl")
+include("Rings/slpolys.jl")
 
 if is_dev
   include("../examples/ModStdNF.jl")

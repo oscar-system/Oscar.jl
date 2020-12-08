@@ -11,11 +11,11 @@ SLPolyRing(r::Ring, s::Union{AbstractVector{<:AbstractString},
                              AbstractVector{<:AbstractChar}}) =
                                  SLPolyRing(r, Symbol.(s))
 
-SLPolyRing(r::Ring, n::Integer) = SLPolyRing(r, [Symbol("x$i") for i=1:n])
+SLPolyRing(r::Ring, n::Base.Integer) = SLPolyRing(r, [Symbol("x$i") for i=1:n])
 
 # cf. mpoly.jl in Oscar
 SLPolyRing(r::Ring, v::Pair{<:Union{String,Symbol},
-                            <:AbstractVector{<:Integer}}...) =
+                            <:AbstractVector{<:Base.Integer}}...) =
     SLPolyRing(r, [Symbol(s, n) for (s, ns) in v for n in ns])
 
 base_ring(S::SLPolyRing) = S.base_ring
@@ -24,27 +24,28 @@ symbols(S::SLPolyRing) = S.S
 
 # have to constrain T <: RingElement so that this is more specific than the second
 # method taking c::RingElement
-(S::SLPolyRing{T})(c::T=zero(base_ring(S))) where {T<:RingElement} = S(Const(c))
+(S::SLPolyRing{T})(c::T=zero(base_ring(S))) where {T<:RingElement} = S(SLP.Const(c))
 
-(S::SLPolyRing{T})(c::RingElement) where {T<:RingElement} = S(Const(base_ring(S)(c)))
+(S::SLPolyRing{T})(c::RingElement) where {T<:RingElement} = S(SLP.Const(base_ring(S)(c)))
 
-function gen(S::SLPolyRing{T}, i::Integer) where {T}
+function gen(S::SLPolyRing{T}, i::Base.Integer) where {T}
     s = symbols(S)[i]
-    S(Gen(s))
+    S(SLP.Gen(s))
 end
 
-gens(S::SLPolyRing) = [S(Gen(s)) for s in symbols(S)]
+gens(S::SLPolyRing) = [S(SLP.Gen(s)) for s in symbols(S)]
 
 ngens(S::SLPolyRing) = length(symbols(S))
 nvars(S::SLPolyRing) = ngens(S)
 
-function PolynomialRing(R::Ring, s)
+# TODO: how to name this function? namespace it?
+function SLPolynomialRing(R::Ring, s)
     S = SLPolyRing(R, s)
     S, gens(S)
 end
 
-function PolynomialRing(R::Ring, v::Pair{<:Union{String,Symbol},
-                                         <:AbstractVector{<:Integer}}...)
+function SLPolynomialRing(R::Ring, v::Pair{<:Union{String,Symbol},
+                                         <:AbstractVector{<:Base.Integer}}...)
     S = SLPolyRing(R, v...)
 
     # TODO: enable on Julia 1.5 (required for init keyword)
@@ -98,14 +99,14 @@ struct SLPoly{T<:RingElement,SLPR<:SLPolyRing{T}} <: MPolyElem{T}
         new{elem_type(base_ring(parent)),typeof(parent)}(parent, slp)
 end
 
-constants(p::SLPoly) = constants(p.slprogram)
-lines(p::SLPoly) = lines(p.slprogram)
+SLP.constants(p::SLPoly) = SLP.constants(p.slprogram)
+SLP.lines(p::SLPoly) = SLP.lines(p.slprogram)
 
 
 # create invalid poly
 SLPoly(parent::SLPolyRing{T}) where {T} = SLPoly(parent, SLProgram{T}())
 
-isvalid(p::SLPoly) = !hasmultireturn(p.slprogram)
+isvalid(p::SLPoly) = !SLP.hasmultireturn(p.slprogram)
 
 function assert_valid(p::SLPoly)
     isvalid(p) || throw(ArgumentError("SLPoly is in an invalid state"))
@@ -146,7 +147,7 @@ end
 Return the number of steps ("lines") involved in the underlying
 straight-line program.
 """
-nsteps(p::SLPoly) = nsteps(p.slprogram)
+SLP.nsteps(p::SLPoly) = SLP.nsteps(p.slprogram)
 
 
 ## show
@@ -159,40 +160,40 @@ end
 
 ## mutating ops
 
-pushinit!(p::SLPoly) = pushinit!(p.slprogram)
+SLP.pushinit!(p::SLPoly) = SLP.pushinit!(p.slprogram)
 
-function pushfinalize!(p::SLPoly, i)
-    pushfinalize!(p.slprogram, i)
+function SLP.pushfinalize!(p::SLPoly, i)
+    SLP.pushfinalize!(p.slprogram, i)
     p
 end
 
-pushop!(p::SLPoly, op::Op, i::Arg, j::Arg=Arg(0)) =
-    pushop!(p.slprogram, op, i, j)
+SLP.pushop!(p::SLPoly, op::SLP.Op, i::SLP.Arg, j::SLP.Arg=SLP.Arg(0)) =
+    SLP.pushop!(p.slprogram, op, i, j)
 
-function combine!(op::Op, p::SLPoly, q::SLPoly)
-    combine!(op, p.slprogram, q.slprogram)
+function SLP.combine!(op::SLP.Op, p::SLPoly, q::SLPoly)
+    SLP.combine!(op, p.slprogram, q.slprogram)
     p
 end
 
-addeq!(p::SLPoly{T}, q::SLPoly{T}) where {T} = combine!(plus, p, q)
+addeq!(p::SLPoly{T}, q::SLPoly{T}) where {T} = SLP.combine!(SLP.plus, p, q)
 
-subeq!(p::SLPoly{T}, q::SLPoly{T}) where {T} = combine!(minus, p, q)
+SLP.subeq!(p::SLPoly{T}, q::SLPoly{T}) where {T} = SLP.combine!(SLP.minus, p, q)
 
-function subeq!(p::SLPoly)
-    combine!(uniminus, p.slprogram)
+function SLP.subeq!(p::SLPoly)
+    SLP.combine!(SLP.uniminus, p.slprogram)
     p
 end
 
-muleq!(p::SLPoly{T}, q::SLPoly{T}) where {T} = combine!(times, p, q)
+SLP.muleq!(p::SLPoly{T}, q::SLPoly{T}) where {T} = SLP.combine!(SLP.times, p, q)
 
-function expeq!(p::SLPoly, e::Integer)
-    combine!(exponentiate, p.slprogram, e)
+function SLP.expeq!(p::SLPoly, e::Base.Integer)
+    SLP.combine!(SLP.exponentiate, p.slprogram, e)
     p
 end
 
 function permutegens!(p::SLPoly, perm)
-    permute_inputs!(p.slprogram, perm,
-                    perm isa Union{AbstractArray,AbstractAlgebra.AbstractPerm})
+    SLP.permute_inputs!(p.slprogram, perm,
+                        perm isa Union{AbstractArray,AbstractAlgebra.AbstractPerm})
     p
 end
 
@@ -201,13 +202,13 @@ end
 
 +(p::SLPoly{T}, q::SLPoly{T}) where {T} = addeq!(copy(p), q)
 
-*(p::SLPoly{T}, q::SLPoly{T}) where {T} = muleq!(copy(p), q)
+*(p::SLPoly{T}, q::SLPoly{T}) where {T} = SLP.muleq!(copy(p), q)
 
--(p::SLPoly{T}, q::SLPoly{T}) where {T} = subeq!(copy(p), q)
+-(p::SLPoly{T}, q::SLPoly{T}) where {T} = SLP.subeq!(copy(p), q)
 
--(p::SLPoly) = subeq!(copy(p))
+-(p::SLPoly) = SLP.subeq!(copy(p))
 
-^(p::SLPoly, e::Integer) = expeq!(copy(p), e)
+^(p::SLPoly, e::Base.Integer) = SLP.expeq!(copy(p), e)
 
 # should be AbstractPerm instead of GroupElem, but we need to support GAP's
 # permutations as provided in Oscar
@@ -240,12 +241,12 @@ end
 
 evaluate(p::SLPoly{T}, xs::Vector{S}, conv::F=identity
          ) where {T<:RingElement,S<:RingElement,F} =
-             evaluate(p.slprogram, xs, conv)
+             SLP.evaluate(p.slprogram, xs, conv)
 
-function evaluate!(res::Vector{S}, p::SLPoly{T}, xs::Vector{S},
-                   conv::F=identity
-                   ) where {S,T,F}
-    evaluate!(res, p.slprogram, xs, conv)
+function SLP.evaluate!(res::Vector{S}, p::SLPoly{T}, xs::Vector{S},
+                       conv::F=identity
+                       ) where {S,T,F}
+    SLP.evaluate!(res, p.slprogram, xs, conv)
 end
 
 
@@ -256,8 +257,8 @@ end
 # TODO: remove this method (this is an ambiguity fix)
 (R::SLPolyRing{T})(p::LazyPoly{T}) where {T<:RingElement} = R(p.p)
 
-function (R::SLPolyRing{T})(p::LazyRec) where {T}
-    pr = compile(SLProgram{T}, p, symbols(R))
+function (R::SLPolyRing{T})(p::SLP.LazyRec) where {T}
+    pr = SLP.compile(SLProgram{T}, p, symbols(R))
     SLPoly(R, pr)
 end
 
@@ -269,15 +270,15 @@ function Base.convert(R::SLPolyRing, p::Generic.MPoly; limit_exp::Bool=false)
     symbols(R) == symbols(parent(p)) ||
         throw(ArgumentError("incompatible symbols"))
     q = SLPoly(R)
-    @assert lastindex(p.coeffs) < cstmark
-    qcs = constants(q)
+    @assert lastindex(p.coeffs) < SLP.cstmark
+    qcs = SLP.constants(q)
     @assert isempty(qcs)
     # have to use p.length, as p.coeffs and p.exps
     # might contain trailing gargabe
     resize!(qcs, p.length)
     copyto!(qcs, 1, p.coeffs, 1, p.length)
     exps = UInt64[]
-    monoms = [Pair{UInt64,Arg}[] for _ in axes(p.exps, 1)]
+    monoms = [Pair{UInt64,SLP.Arg}[] for _ in axes(p.exps, 1)]
     for v in reverse(axes(p.exps, 1))
         copy!(exps, view(p.exps, v, 1:p.length))
         unique!(sort!(exps))
@@ -285,7 +286,7 @@ function Base.convert(R::SLPolyRing, p::Generic.MPoly; limit_exp::Bool=false)
             popfirst!(exps)
         end
         isempty(exps) && continue
-        xref = input(size(p.exps, 1) + 1 - v)
+        xref = SLP.input(size(p.exps, 1) + 1 - v)
         if limit_exp # experimental
             # TODO: move to a general SLP optimization pass?
             # and check in which case it's an improvement
@@ -310,14 +311,14 @@ function Base.convert(R::SLPolyRing, p::Generic.MPoly; limit_exp::Bool=false)
                     k = xref
                 elseif monoms[v][end][1] == 2*e1
                     @assert e == 2*e1+1
-                    k = pushop!(q, times, monoms[v][end][2], xref)
+                    k = SLP.pushop!(q, SLP.times, monoms[v][end][2], xref)
                 else
                     m1 = searchsortedfirst(monoms[v], e1, by=first)
                     k1 = monoms[v][m1][2]
-                    k = pushop!(q, times, k1, k1)
+                    k = SLP.pushop!(q, SLP.times, k1, k1)
                     if e1+e1 != e
                         @assert e1+e1+1 == e
-                        k = pushop!(q, times, k, xref)
+                        k = SLP.pushop!(q, SLP.times, k, xref)
                     end
                 end
                 push!(monoms[v], e => k)
@@ -325,33 +326,33 @@ function Base.convert(R::SLPolyRing, p::Generic.MPoly; limit_exp::Bool=false)
         else
             for e in exps
                 e == 0 && continue
-                k = pushop!(q, exponentiate, xref, Arg(e))
+                k = SLP.pushop!(q, SLP.exponentiate, xref, SLP.Arg(e))
                 push!(monoms[v], e => k)
             end
         end
     end
 
-    k = Arg(0) # TODO: don't use 0
+    k = SLP.Arg(0) # TODO: don't use 0
     for t in eachindex(qcs)
-        i = asconstant(t)
+        i = SLP.asconstant(t)
         j = 0
         for v in reverse(axes(p.exps, 1))
             e = p.exps[v, t]
             if  e != 0
                 j = monoms[v][searchsortedfirst(monoms[v], e, by=first)][2]
-                i = pushop!(q, times, i, j)
+                i = SLP.pushop!(q, SLP.times, i, j)
             end
         end
-        if k == Arg(0)
+        if k == SLP.Arg(0)
             k = i
         else
-            k = pushop!(q, plus, k, i)
+            k = SLP.pushop!(q, SLP.plus, k, i)
         end
     end
     if isempty(qcs)
-        k = pushconst!(q.slprogram, base_ring(R)())
+        k = SLP.pushconst!(q.slprogram, base_ring(R)())
     end
-    pushfinalize!(q, k)
+    SLP.pushfinalize!(q, k)
     q
 end
 
@@ -368,4 +369,4 @@ end
 
 ## compile!
 
-compile!(p::SLPoly) = compile!(p.slprogram)
+SLP.compile!(p::SLPoly) = SLP.compile!(p.slprogram)

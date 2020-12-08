@@ -1,3 +1,12 @@
+using .StraightLinePrograms: SLProgram
+const SLP = StraightLinePrograms
+
+using AbstractAlgebra: AbstractAlgebra, Ring, RingElement, RingElem, MPolyRing, MPolyElem, elem_type, Generic
+
+import AbstractAlgebra: base_ring, gen, gens, ngens, nvars, symbols, evaluate, addeq!
+
+export LazyPolyRing, LazyPoly, SLPolyRing, SLPoly
+
 ## LazyPolyRing
 
 struct LazyPolyRing{T<:RingElement,R<:Ring} <: MPolyRing{T}
@@ -13,16 +22,16 @@ base_ring(F::LazyPolyRing) = F.base_ring
 
 struct LazyPoly{T<:RingElement,PR<:MPolyRing{T}} <: MPolyElem{T}
     parent::PR
-    p::LazyRec
+    p::SLP.LazyRec
 end
 
 parent(p::LazyPoly) = p.parent
 
-gen(R::LazyPolyRing, s::Symbol) = LazyPoly(R, Gen(s))
+gen(R::LazyPolyRing, s::Symbol) = LazyPoly(R, SLP.Gen(s))
 
 (R::LazyPolyRing)(s::Symbol) = gen(R, s)
 
-(R::LazyPolyRing{T})(c::T) where {T} = LazyPoly(R, Const(c))
+(R::LazyPolyRing{T})(c::T) where {T} = LazyPoly(R, SLP.Const(c))
 
 function check_parent(p::LazyPoly, q::LazyPoly)
     par = parent(p)
@@ -39,4 +48,4 @@ Base.show(io::IO, p::LazyPoly) = show(io, p.p)
 -(p::LazyPoly, q::LazyPoly) = LazyPoly(check_parent(p, q), p.p - q.p)
 -(p::LazyPoly) = LazyPoly(parent(p), -p.p)
 *(p::LazyPoly, q::LazyPoly) = LazyPoly(check_parent(p, q), p.p * q.p)
-^(p::LazyPoly, e::Integer) = LazyPoly(parent(p), p.p^e)
+^(p::LazyPoly, e::Base.Integer) = LazyPoly(parent(p), p.p^e)
