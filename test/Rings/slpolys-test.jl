@@ -99,11 +99,10 @@ end
     @test nvars(S) == 2
     @test string(x0) == "x"
     @test string(y0) == "y"
-    # TODO: make replstr pass, fail to AA upgrade
-#    @test replstr(x0) == "x"
-#    @test replstr(y0) == "y"
+    @test replstr(x0) == "x"
+    @test replstr(y0) == "y"
     @test string(S(2)) == "2"
-#    @test replstr(S(2)) == "2"
+    @test replstr(S(2)) == "2"
 
     for x in (gen(S, 1), x0)
         @test string(x) == "x"

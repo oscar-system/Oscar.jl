@@ -152,10 +152,12 @@ SLP.nsteps(p::SLPoly) = SLP.nsteps(p.slprogram)
 
 ## show
 
-function Base.show(io::IO, p::SLPoly)
+function Base.show(io::IO, ::MIME"text/plain", p::SLPoly)
     io = IOContext(io, :SLPsymbols => symbols(parent(p)))
     show(io, p.slprogram)
 end
+
+Base.show(io::IO, p::SLPoly) = show(io, "text/plain", p)
 
 
 ## mutating ops
