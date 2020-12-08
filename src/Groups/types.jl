@@ -12,6 +12,7 @@ import Hecke:
     elem_type,
     elements,
     free_abelian_group,
+    gen,
     gens,
     haspreimage,
     hom,
