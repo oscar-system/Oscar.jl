@@ -56,7 +56,7 @@ end
       @test length(K) == ngens(G)
       for i in 1:length(K)
          @test K[i] == G[i]
-         @test K[i] == gens(G,i)
+         @test K[i] == gen(G,i)
       end
    end
 end

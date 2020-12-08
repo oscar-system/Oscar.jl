@@ -25,6 +25,7 @@ export
     fitting_subgroup,
     frattini_subgroup,
     gap_perm, # HACK
+    gen,
     gens,
     hall_subgroup,
     hall_system,
@@ -364,7 +365,8 @@ Base.Vector{T}(x::PermGroupElem, n::Int = x.parent.deg) where {T} = T[x(i) for i
 """
     gens(G::Group)
 
-Return an array of generators of the group `G`. To access the array, it can be used the shorter notation `G[i]` instead of `gens(G)[i]`.
+Return an array of generators of the group `G`. To get a specific generator,
+use `G[i]` or `gen(G,i)` instead of `gens(G)[i]`, as that is more efficient.
 """
 function gens(G::GAPGroup)
    L = GAP.Globals.GeneratorsOfGroup(G.X)
@@ -376,11 +378,11 @@ function gens(G::GAPGroup)
 end
 
 """
-    gens(G::Group, i::Integer)
+    gen(G::Group, i::Integer)
 
-Return the `i`-th element of the array gens(`G`). It is equivalent to `G[i]` and `gens(G)[i]`. If `i` is greater than the length of gens(`G`), an ERROR is returned.
+Return the `i`-th element of the array gens(`G`). This is equivalent to `G[i]`, and returns `gens(G)[i]` but may be more efficient than the latter. If `i` is greater than the length of gens(`G`), an ERROR is thrown.
 """
-function gens(G::GAPGroup, i::Int)
+function gen(G::GAPGroup, i::Int)
    L = GAP.Globals.GeneratorsOfGroup(G.X)
    @assert length(L) >= i "The number of generators is lower than the given index"
    return group_element(G, L[i])
@@ -397,7 +399,7 @@ Return the length of the array gens(G).
 ngens(G::GAPGroup) = length(GAP.Globals.GeneratorsOfGroup(G.X))
 
 
-Base.getindex(G::GAPGroup, i::Int) = gens(G, i)
+Base.getindex(G::GAPGroup, i::Int) = gen(G, i)
 Base.sign(x::PermGroupElem) = GAP.Globals.SignPerm(x.X)
 
 Base.isless(x::PermGroupElem, y::PermGroupElem) = x<y

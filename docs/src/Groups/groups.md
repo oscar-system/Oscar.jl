@@ -36,7 +36,7 @@ one(x::GAPGroup)
 rand(::GAPGroup)
 rand_pseudo(G::GAPGroup)
 gens(::GAPGroup)
-gens(::GAPGroup, i::Int)
+gen(::GAPGroup, i::Int)
 ```
 
 It is also possible to obtain the generators of `G` by typing
