@@ -1,94 +1,95 @@
-module ProjPlaneCurveModule
+#module ProjPlaneCurveModule
 
-using Oscar, Markdown
-
-include("AffinePlaneCurve.jl")
-using .AffinePlaneCurveModule
-
-import Base.:(==)
-
-export ProjPlaneCurve, degree, jacobi_ideal, issmooth, tangent,
-       curve_components, isirreducible, isreduced, common_component, reduction,
-       dehomogenization, curve_intersect, curve_singular_locus, issmooth_curve
+export dehomogenization, homogenization, issmooth, tangent,
+       common_components, curve_intersect, curve_singular_locus, issmooth_curve,
+       multiplicity, tangent_lines, intersection_multiplicity, aretransverse
 
 ################################################################################
-#
-# We follow the lecture notes by Andreas Gathmann:
-# https://www.mathematik.uni-kl.de/~gathmann/en/curves.php
-#
+# Homogenization and dehomogenization (not specific to curves).
 ################################################################################
-#
-
-mutable struct ProjPlaneCurve{S <: FieldElem}
-  eq::Oscar.MPolyElem_dec{S}              # Equation of the curve (polynomial in three variables)
-  degree::Int64                           # degree of the equation of the curve
-  dimension::Int64                        # dimension of the curve (as a variety)
-  components::Dict{ProjPlaneCurve{S}, Int64}
-  function ProjPlaneCurve(eq::Oscar.MPolyElem_dec{S}) where {S <: FieldElem}
-    if nvars(parent(eq)) != 3
-       error("The defining equation must belong to a ring with three variables")
-    elseif isconstant(eq)
-       error("The defining equation must be non constant")
-    elseif !ishomogenous(eq)
-       error("The defining equation is not homogeneous")
-    end
-    new{S}(eq,
-           -1,                   # -1 when it is not computed yet
-            1,                   # since C is a plane curve, the dimension is always 1
-            Dict{ProjPlaneCurve{S}, Int64}())
-  end
-  function ProjPlaneCurve(eq::Oscar.MPolyElem{S}) where {S <: FieldElem}
-     R = grade(parent(eq))
-     return ProjPlaneCurve(R(eq))
-  end
-end
-
-function Base.show(io::IO, C::ProjPlaneCurve)
-  if !get(io, :compact, false)
-     println(io, "Projective plane curve defined by ", C.eq)
-  else
-     println(io, C.eq)
-  end
-end
-
-################################################################################
-# hash function
-
-function Base.hash(C::ProjPlaneCurve, h::UInt)
-  F = 1//lc(C.eq)*C.eq
-  return hash(F, h)
-end
-
-################################################################################
-
-################################################################################
-# Compute the degree of the equation of the curve if not already known,
-# and show it.
+# dehomogenization with respect to the specified variable into the specified
+# ring
 
 @doc Markdown.doc"""
-    degree(C::ProjPlaneCurve)
+    dehomogenization([r::MPolyRing], F::Oscar.MPolyElem_dec, i::Int)
 
-Return the degree of the defining polynomial of `C`.
+Return the polynomial obtained by dehomogenization of `F` with respect to the `i`th variable of `parent(F)`. The new polynomial is in `r` if specified, or in a new ring with one variable less otherwise.
 """
-function Oscar.degree(C::ProjPlaneCurve)
-   if C.degree < 0
-      C.degree = total_degree(C.eq.f)
-   end
-   return C.degree
+function dehomogenization(r::MPolyRing{S}, F::Oscar.MPolyElem_dec{S}, i::Int) where S <: FieldElem
+  @assert ishomogenous(F)
+  R = parent(F)
+  nvars(R) -1 == nvars(r) || error("Incompatible number of variables")
+  V = gens(r)
+  insert!(V, i, r(1))
+  phi = hom(R.R, r, V)
+  return phi(F)
 end
 
 ################################################################################
-# Compute the Jacobian Ideal of C
+# dehomogenization without specifying the ring with repect to the specified variable
 
-@doc Markdown.doc"""
-    jacobi_ideal(C::ProjPlaneCurve)
-
-Return the Jacobian ideal of the defining polynomial of `C`.
-"""
-function Oscar.jacobi_ideal(C::ProjPlaneCurve)
- return jacobi_ideal(C.eq)
+function dehomogenization(F::Oscar.MPolyElem_dec, i::Int)
+  R = parent(F)
+  A = String.(symbols(R))
+  r = PolynomialRing(R.R.base_ring, deleteat!(A, i))
+  dehomogenization(r[1], F, i)
 end
 
+################################################################################
+# non decorated version
+
+function dehomogenization(F::Oscar.MPolyElem, i::Int)
+  R = parent(F)
+  A = grade(R)
+  dehomogenization(A(F), i)
+end
+
+################################################################################
+# non decorated version
+
+function dehomogenization(r::MPolyRing{S}, F::Oscar.MPolyElem{S}, i::Int) where S <: FieldElem
+  R = parent(F)
+  A = grade(R)
+  dehomogenization(r, A(F), i)
+end
+
+################################################################################
+# homogenization
+
+ @doc Markdown.doc"""
+     homogenization(R::MPolyRing{S}, F::MPolyElem{S}, i::Int) where S <: FieldElem
+
+Return the homogenization of `F` in `R` of a polynomial using the `i`th variable of `R`.
+ """
+ function homogenization(R::MPolyRing{S}, F::MPolyElem{S}, i::Int) where S <: FieldElem
+   r = parent(F)
+   V = gens(R)
+   W = [V[j]//V[i] for j=1:nvars(R)]
+   deleteat!(V, i)
+   phi = hom(r, R, V)
+   G = phi(F)
+   d = total_degree(F)
+   P = R[i]^d*evaluate(G, W)
+   return numerator(P)
+ end
+
+################################################################################
+
+@doc Markdown.doc"""
+      homogenization(F::MPolyElem, x0::String="x0")
+
+Return the homogenization of `F` in a ring with one additional variable (named `x0` if not specified).
+ """
+ function homogenization(F::MPolyElem, x0::String="x0")
+   r = parent(F)
+   A = String.(symbols(r))
+   push!(A, x0)
+   R = PolynomialRing(r.base_ring, A)
+   homogenization(R[1], F, nvars(r)+1)
+ end
+
+################################################################################
+# Functions for ProjPlaneCurves
 ################################################################################
 # To check if a point is smooth: return true if the point is a smooth point on
 # the curve C, and false  if it is singular, and an error if it is not on the
@@ -137,165 +138,29 @@ function tangent(C::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S
 end
 
 ################################################################################
-# Union of two projective plane curves (with multiplicity)
-
-@doc Markdown.doc"""
-    union(C::ProjPlaneCurve{S}, D::ProjPlaneCurve{S}) where S <: FieldElem
-
-Return the union of `C` and `D` (with multiplicity).
-"""
-function Base.union(C::ProjPlaneCurve{S}, D::ProjPlaneCurve{S}) where S <: FieldElem
-  F = C.eq*D.eq
-  return ProjPlaneCurve(F)
-end
-
-################################################################################
-# Components of the curve
-
-@doc Markdown.doc"""
-    curve_components(C::ProjPlaneCurve)
-
-Return a dictionary containing the irreducible components of `C` and their multiplicity.
-"""
-function curve_components(C::ProjPlaneCurve)
-  if isempty(C.components)
-     D = factor(C.eq)
-     C.components = Dict(ProjPlaneCurve(x) => D.fac[x] for x in keys(D.fac))
-  end
-  return C.components
-end
-
-################################################################################
-# Check irreducibility.
-# TODO: change for a direct irreducibility check when available.
-
-@doc Markdown.doc"""
-    isirreducible(C::ProjPlaneCurve)
-
-Return `true` if `C` is irreducible, and `false` otherwise.
-"""
-function Oscar.isirreducible(C::ProjPlaneCurve)
-  if isempty(C.components)
-     D = factor(C.eq)
-     C.components = Dict(ProjPlaneCurve(x) => D.fac[x] for x in keys(D.fac))
-  end
-  if length(C.components) != 1
-     return false
-  else
-     return all(isone, values(C.components))
-  end
-end
-
-################################################################################
-# Check reducedness by computing a factorization
-# TODO: change for a direct squarefree check when available.
-
-@doc Markdown.doc"""
-    isreduced(C::ProjPlaneCurve)
-
-Return `true` if `C` is reduced, and `false` otherwise.
-"""
-function Oscar.isreduced(C::ProjPlaneCurve)
-  if isempty(C.components)
-     D = factor(C.eq)
-     C.components = Dict(ProjPlaneCurve(x) => D.fac[x] for x in keys(D.fac))
-  end
-  return all(isone, values(C.components))
-end
-
-################################################################################
-# Compute squarefree equation.
-# TODO: change for a direct squarefree computation when available.
-
-@doc Markdown.doc"""
-    reduction(C::ProjPlaneCurve)
-
-Return the projective plane curve defined by the squarefree part of the equation of `C`.
-"""
-function reduction(C::ProjPlaneCurve)
-  if isempty(C.components)
-     f = factor(C.eq)
-     C.components = Dict(ProjPlaneCurve(x) => f.fac[x] for x in keys(f.fac))
-  end
-  F = prod(D -> D.eq, keys(C.components))
-  rC = ProjPlaneCurve(F)
-  rC.components = Dict(ProjPlaneCurve(D.eq) => 1 for D in keys(C.components))
-  return rC
-end
-
-################################################################################
 # gives the common components of two projective plane curves
 
 @doc Markdown.doc"""
-    common_component(C::ProjPlaneCurve{S}, D::ProjPlaneCurve{S}) where S <: FieldElem
+    common_components(C::ProjPlaneCurve{S}, D::ProjPlaneCurve{S}) where S <: FieldElem
 
 Return the projective plane curve consisting of the common component of `C` and `D`, or an empty vector if they do not have a common component.
 """
-function common_component(C::ProjPlaneCurve{S}, D::ProjPlaneCurve{S}) where S <: FieldElem
-  G = gcd(C.eq.f, D.eq.f)
+function common_components(C::ProjPlaneCurve{S}, D::ProjPlaneCurve{S}) where S <: FieldElem
+  G = gcd(C.eq, D.eq)
   if isone(G)
      return Vector{ProjPlaneCurve}()
   else
-     return ProjPlaneCurve(G)
+     return [ProjPlaneCurve(G)]
   end
 end
 
-################################################################################
-# dehomogenization with respect to the specified variable into the specified ring
-
-@doc Markdown.doc"""
-    dehomogenization([r::MPolyRing], F::Oscar.MPolyElem_dec, i::Int64)
-
-Return the polynomial obtained by dehomogenization of `F` with respect to the `i`th variable of `parent(F)`. The new polynomial is in `r` if specified, or in a new ring with one variable less otherwise.
-"""
-function dehomogenization(r::MPolyRing{S}, F::Oscar.MPolyElem_dec{S}, i::Int64) where S <: FieldElem
-  @assert ishomogenous(F)
-  R = parent(F)
-  if nvars(R) -1 != nvars(r)
-     error("Incompatible number of variables")
-  end
-  V = gens(r)
-  insert!(V, i, r(1))
-  phi = hom(R.R, r, V)
-  return phi(F)
-end
 
 ################################################################################
-# dehomogenization without specifying the ring with repect to the specified variable
-
-function dehomogenization(F::Oscar.MPolyElem_dec, i::Int64)
-  R = parent(F)
-  A = String.(symbols(R))
-  r = PolynomialRing(R.R.base_ring, deleteat!(A, i))
-  dehomogenization(r[1], F, i)
-end
-
-################################################################################
-# non decorated version
-
-function dehomogenization(F::Oscar.MPolyElem, i::Int64)
-  R = parent(F)
-  A = grade(R)
-  dehomogenization(A(F), i)
-end
-
-################################################################################
-# non decorated version
-
-function dehomogenization(r::MPolyRing{S}, F::Oscar.MPolyElem{S}, i::Int64) where S <: FieldElem
-  R = parent(F)
-  A = grade(R)
-  dehomogenization(r, A(F), i)
-end
-
-###!#############################################################################
 # convert array of lenght 2 to ProjSpcElem with 1 for last coordinate.
 # Helping function
 
 function Array_to_ProjSpcElem(PP::Oscar.Geometry.ProjSpc{S}, p::Array{S, 1}) where S <: FieldElem
-  if dim(PP) != length(p)
-     error("Not the right size")
-  end
+  dim(PP) == length(p) || error("Not the right size")
   m = push!(p, 1)
   return Oscar.Geometry.ProjSpcElem(PP, m)
 end
@@ -312,13 +177,13 @@ end
 Return a list whose first element is the projective plane curve defined by the gcd of `C.eq` and `D.eq`, the second element is the list of the remaining intersection points when the common components are removed from `C` and `D` (the points are in `PP` if specified, or in a new projective space otherwise).
 """
 function curve_intersect(PP::Oscar.Geometry.ProjSpc{S}, C::ProjPlaneCurve{S}, D::ProjPlaneCurve{S}) where S <: FieldElem
-  G = gcd(C.eq.f, D.eq.f)
+  G = gcd(C.eq, D.eq)
   R = parent(C.eq)
   CC = []
   if !isone(G)
      # We divide by the gcd to get curves without common components.
-     F = R(div(C.eq.f, G))
-     H = R(div(D.eq.f, G))
+     F = div(C.eq, G)
+     H = div(D.eq, G)
      push!(CC, ProjPlaneCurve(G))
   else
      F = C.eq
@@ -329,9 +194,9 @@ function curve_intersect(PP::Oscar.Geometry.ProjSpc{S}, C::ProjPlaneCurve{S}, D:
   Fa = dehomogenization(r, F, 3)
   Ha = dehomogenization(r, H, 3)
   if !isconstant(Fa) && !isconstant(Ha)
-     Ca = AffinePlaneCurveModule.AffinePlaneCurve(Fa)
-     Da = AffinePlaneCurveModule.AffinePlaneCurve(Ha)
-     L = AffinePlaneCurveModule.curve_intersect(Ca, Da)
+     Ca = AffinePlaneCurve(Fa)
+     Da = AffinePlaneCurve(Ha)
+     L = curve_intersect(Ca, Da)
      for p in L[2]
         push!(Pts, Array_to_ProjSpcElem(PP, p.coord))
      end
@@ -392,9 +257,7 @@ function curve_singular_locus(PP::Oscar.Geometry.ProjSpc{S}, C::ProjPlaneCurve{S
      push!(CC, ProjPlaneCurve(g))
   end
   J = jacobi_ideal(D)
-  FX = gens(J)[1]
-  FY = gens(J)[2]
-  FZ = gens(J)[3]
+  FX, FY, FZ = gens(J)
   # Computation of the singular locus of the reduction of C.
   # With the fact that the equation is now squarefree, only points can appear.
   # We compute the singular points in the chart z=1, then the ones of the form
@@ -402,7 +265,7 @@ function curve_singular_locus(PP::Oscar.Geometry.ProjSpc{S}, C::ProjPlaneCurve{S
   Fa = dehomogenization(D.eq, 3)
   if !isconstant(Fa)
      Da = AffinePlaneCurve(Fa)
-     L = AffinePlaneCurveModule.curve_singular_locus(Da)
+     L = curve_singular_locus(Da)
      if !isempty(L[2])
         for p in L[2]
            push!(Pts, Array_to_ProjSpcElem(PP, p.coord))
@@ -464,5 +327,128 @@ function issmooth_curve(C::ProjPlaneCurve)
 end
 
 ################################################################################
+# multiplicity
+
+@doc Markdown.doc"""
+     multiplicity(C::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
+
+Returns the multiplicity of `C` at `P`.
+"""
+function multiplicity(C::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
+  evaluate(C.eq, P.v) == 0 || error("The point is not on the curve.")
+  if P.v[3] != 0
+     Fa = dehomogenization(C.eq, 3)
+     Ca = AffinePlaneCurve(Fa)
+     Q = Point([P.v[1]//P.v[3], P.v[2]//P.v[3]])
+  elseif P.v[2] != 0
+     Fa = dehomogenization(C.eq, 2)
+     Ca = AffinePlaneCurve(Fa)
+     Q = Point([P.v[1]//P.v[2], P.v[3]//P.v[2]])
+  else
+     Fa = dehomogenization(C.eq, 1)
+     Ca = AffinePlaneCurve(Fa)
+     Q = Point([P.v[2]//P.v[1], P.v[3]//P.v[1]])
+  end
+  return multiplicity(Ca, Q)
 end
-using .ProjPlaneCurveModule
+
+################################################################################
+# homogeneization for lines
+
+function help_homogene_line(R::MPolyRing, r::MPolyRing, F::MPolyElem, i::Int)
+  total_degree(F) == 1 || error("This is not a degree one polynomial")
+  V = gens(R)
+  W = gens(r)
+  v = V[i]
+  deleteat!(V, i)
+  phi = hom(r, R, V)
+  G = phi(F)
+  G = G - evaluate(G, [0,0,0])*(1-v)
+  return G
+end
+
+################################################################################
+# tangent lines
+
+ @doc Markdown.doc"""
+      tangent_lines(C::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
+
+Returns the tangent lines at `P` to `C` with their multiplicity.
+ """
+ function tangent_lines(C::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
+   evaluate(C.eq, P.v) == 0 || error("The point is not on the curve.")
+   R = parent(C.eq)
+   if P.v[3] != 0
+      Fa = dehomogenization(C.eq, 3)
+      Ca = AffinePlaneCurve(Fa)
+      Q = Point([P.v[1]//P.v[3], P.v[2]//P.v[3]])
+      i = 3
+   elseif P.v[2] != 0
+      Fa = dehomogenization(C.eq, 2)
+      Ca = AffinePlaneCurve(Fa)
+      Q = Point([P.v[1]//P.v[2], P.v[3]//P.v[2]])
+      i = 2
+   else
+      Fa = dehomogenization(C.eq, 1)
+      Ca = AffinePlaneCurve(Fa)
+      Q = Point([P.v[2]//P.v[1], P.v[3]//P.v[1]])
+      i = 1
+   end
+   L = tangent_lines(Ca, Q)
+   D = Dict{ProjPlaneCurve{S}, Int}()
+   if isempty(L) == false
+      r = parent(Ca.eq)
+      D = Dict(ProjPlaneCurve(help_homogene_line(R, r, x.eq, i)) => L[x] for x in keys(L))
+      #D = Dict(help_homogene_line(R, r, x.eq, i) => L[x] for x in keys(L))
+   end
+   return D
+ end
+
+################################################################################
+# helping function for intersection_multiplicity
+
+function _dehom_curves_r(r::MPolyRing, C::ProjPlaneCurve, D::ProjPlaneCurve, i::Int)
+  F = dehomogenization(r, C.eq, i)
+  G = dehomogenization(r, D.eq, i)
+  return [AffinePlaneCurve(F), AffinePlaneCurve(G)]
+end
+
+################################################################################
+
+@doc Markdown.doc"""
+     intersection_multiplicity(C::ProjPlaneCurve{S}, D::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
+
+Returns the intersection multiplicity of `C` and `D` at `P`.
+"""
+function intersection_multiplicity(C::ProjPlaneCurve{S}, D::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
+   dim(P.parent) == 2 || error("The point needs to be in a projective two dimensional space")
+   R = parent(C.eq)
+   r, (X, Y) = PolynomialRing(R.R.base_ring, ["X", "Y"])
+   if P.v[3] != 0
+      V = _dehom_curves_r(r, C, D, 3)
+      Q = Point([P.v[1]//P.v[3], P.v[2]//P.v[3]])
+   elseif P.v[2] != 0
+      V = _dehom_curves_r(r, C, D, 2)
+      Q = Point([P.v[1]//P.v[2], P.v[3]//P.v[2]])
+   else
+      V = _dehom_curves_r(r, C, D, 1)
+      Q = Point([P.v[2]//P.v[1], P.v[3]//P.v[1]])
+   end
+   return intersection_multiplicity(V[1], V[2], Q)
+end
+
+################################################################################
+#
+
+@doc Markdown.doc"""
+     aretransverse(C::ProjPlaneCurve{S}, D::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S<:FieldElem
+
+Returns `true` if `C` and `D` intersect transversally at `P` and `false` otherwise.
+"""
+function aretransverse(C::ProjPlaneCurve{S}, D::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
+  return issmooth(C, P) && issmooth(D, P) && intersection_multiplicity(C, D, P) == 1
+end
+
+################################################################################
+#end
+#using .ProjPlaneCurveModule

@@ -1,97 +1,12 @@
-module AffinePlaneCurveModule
 
-using Oscar, Markdown
+#module AffinePlaneCurveModule
+
 include("Variety.jl")
 using .VarietyModule
 
-import Base.:(==)
-
-export AffinePlaneCurve, degree, jacobi_ideal, tangent, issmooth, union,
-       Point, curve_components, isirreducible, isreduced, common_component,
-       curve_intersect, intersect, curve_singular_locus, ideal_point,
-       multiplicity, singular_locus, intersection_multiplicity,
-       aretransverse, tangent_lines, issmooth_curve, reduction, hash
-
-################################################################################
-#
-# We follow the lecture notes by Andreas Gathmann:
-# https://www.mathematik.uni-kl.de/~gathmann/en/curves.php
-#
-################################################################################
-#
-
-mutable struct AffinePlaneCurve{S <: FieldElem}
-  eq::Oscar.MPolyElem{S}                  # Equation of the curve (polynomial in two variables)
-  degree::Int64                           # degree of the equation of the curve
-  dimension::Int64                        # dimension of the curve (as a variety)
-  components::Dict
-  function AffinePlaneCurve(eq::Oscar.MPolyElem{S}) where {S <: FieldElem}
-    if nvars(parent(eq)) != 2
-       error("The defining equation must belong to a ring with two variables")
-    elseif isconstant(eq)
-       error("The defining equation must be non constant")
-    end
-    new{S}(eq,
-           -1,                   # -1 when it is not computed yet
-            1,                   # since C is a plane curve, the dimension is always 1
-            Dict{AffinePlaneCurve{S}, Int64}())
-  end
-end
-function Base.show(io::IO, C::AffinePlaneCurve)
-  if !get(io, :compact, false)
-     println(io, "Affine plane curve defined by ", C.eq)
-  else
-     println(io, C.eq)
-  end
-end
-
-################################################################################
-# Point (first attempt).
-# The point is described by its coordinates.
-# ambient_dim gives the dimension of the space to which belongs the point.
-
-mutable struct Point{S}
-  coord::Array{S, 1}
-  ambient_dim::Int64
-  function Point(coordinates::Array{S, 1}) where {S <: FieldElem}
-    r = new{S}()
-    r.coord = coordinates
-    r.ambient_dim = length(coordinates)
-    return r
-  end
-end
-
-function Base.show(io::IO, P::Point)
-  println(io, "Point with coordinates ", P.coord)
-end
-
-################################################################################
-# Compute the degree of the equation of the curve if not already known,
-# and show it.
-
-@doc Markdown.doc"""
-    degree(C::AffinePlaneCurve)
-
-Return the degree of the defining polynomial of `C`.
-"""
-function Oscar.degree(C::AffinePlaneCurve)
-  if C.degree < 0
-     C.degree = total_degree(C.eq)
-  end
-  return C.degree
-end
-
-################################################################################
-# Compute the Jacobian Ideal of C
-
-@doc Markdown.doc"""
-    jacobi_ideal(C::AffinePlaneCurve)
-
-Return the Jacobian ideal of the defining polynomial of `C`.
-"""
-function Oscar.jacobi_ideal(C::AffinePlaneCurve)
- return jacobi_ideal(C.eq)
-end
+export issmooth, tangent, common_components, curve_intersect, intersect,
+       curve_singular_locus, multiplicity, tangent_lines, singular_locus,
+       intersection_multiplicity, aretransverse, issmooth_curve
 
 ################################################################################
 # To check if a point is smooth: return true if the point is a smooth point on
@@ -139,73 +54,6 @@ function tangent(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
 end
 
 ################################################################################
-# Union of two affine plane curves (with multiplicity)
-
-@doc Markdown.doc"""
-    union(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S <: FieldElem
-
-Return the union of `C` and `D` (with multiplicity).
-"""
-function Base.union(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S <: FieldElem
-  F = C.eq*D.eq
-  return AffinePlaneCurve(F)
-end
-
-################################################################################
-# Components of the curve
-
-@doc Markdown.doc"""
-    curve_components(C::AffinePlaneCurve)
-
-Return a dictionary containing the irreducible components of `C` and their multiplicity.
-"""
-function curve_components(C::AffinePlaneCurve)
-  if isempty(C.components)
-     D = factor(C.eq)
-     C.components = Dict(AffinePlaneCurve(x) => D.fac[x] for x in keys(D.fac))
-  end
-  return C.components
-end
-
-################################################################################
-# Check irreducibility.
-# TODO: change for a direct irreducibility check when available.
-
-@doc Markdown.doc"""
-    isirreducible(C::AffinePlaneCurve)
-
-Return `true` if `C` is irreducible, and `false` otherwise.
-"""
-function Oscar.isirreducible(C::AffinePlaneCurve)
-  if isempty(C.components)
-     D = factor(C.eq)
-     C.components = Dict(AffinePlaneCurve(x) => D.fac[x] for x in keys(D.fac))
-  end
-  if length(C.components) != 1
-     return false
-  else
-     return all(isone, values(C.components))
-  end
-end
-
-################################################################################
-# Check reducedness by computing a factorization
-# TODO: change for a direct squarefree check when available.
-
-@doc Markdown.doc"""
-    isreduced(C::AffinePlaneCurve)
-
-Return `true` if `C` is reduced, and `false` otherwise.
-"""
-function Oscar.isreduced(C::AffinePlaneCurve)
-  if isempty(C.components)
-     D = factor(C.eq)
-     C.components = Dict(AffinePlaneCurve(x) => D.fac[x] for x in keys(D.fac))
-  end
-  return all(isone, values(C.components))
-end
-
-################################################################################
 # gives the common components of two affine plane curves
 
 @doc Markdown.doc"""
@@ -213,12 +61,12 @@ end
 
 Return the affine plane curve consisting of the common component of `C` and `D`, or an empty vector if they do not have a common component.
 """
-function common_component(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S <: FieldElem
+function common_components(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S <: FieldElem
   G = gcd(C.eq, D.eq)
   if isone(G)
      return Vector{AffinePlaneCurve}()
   else
-     return AffinePlaneCurve(G)
+     return [AffinePlaneCurve(G)]
   end
 end
 
@@ -334,8 +182,7 @@ function curve_singular_locus(C::AffinePlaneCurve)
    # Computation of the singular locus of the reduction of C.
    J = jacobi_ideal(D)
    F = D.eq
-   FX = gens(J)[1]
-   FY = gens(J)[2]
+   FX, FY = gens(J)
    # The case FX = FY = 0 cannot occur in the reduced case.
    # With the fact that the equation is now squarefree, only points can appear.
    if iszero(FX) && !isconstant(FY)
@@ -363,40 +210,6 @@ function curve_singular_locus(C::AffinePlaneCurve)
       end
    end
    return [CC, Pts]
-end
-
-################################################################################
-# Compute squarefree equation.
-# TODO: change for a direct squarefree computation when available.
-
-@doc Markdown.doc"""
-    reduction(C::AffinePlaneCurve)
-
-Return the affine plane curve defined by the squarefree part of the equation of `C`.
-"""
-function reduction(C::AffinePlaneCurve)
-  if isempty(C.components)
-     f = factor(C.eq)
-     C.components = Dict(AffinePlaneCurve(x) => f.fac[x] for x in keys(f.fac))
-  end
-  F = prod(D -> D.eq, keys(C.components))
-  rC = AffinePlaneCurve(F)
-  rC.components = Dict(AffinePlaneCurve(D.eq) => 1 for D in keys(C.components))
-  return rC
-end
-
-
-################################################################################
-# Associate a maximal ideal to a point in a given ring (not specific to curves)
-
-@doc Markdown.doc"""
-    ideal_point(P::Point{S}, R::MPolyRing{S}) where S <: FieldElem
-
-Return the maximal ideal associated to the point `P` in the ring `R`.
-"""
-function ideal_point(R::MPolyRing{S}, P::Point{S}) where S <: FieldElem
-  V = gens(R)
-  return ideal(R, [V[i] - P.coord[i] for i in 1:length(V)])
 end
 
 ################################################################################
@@ -459,26 +272,16 @@ function tangent_lines(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
   L = collect(keys(HC))
   M = sort(L, by=_sort_helper_multiplicity)
   Gm = HC[M[1]]
-  Z = factor(Gm)
-  D = Dict{AffinePlaneCurve{S}, Int64}()
+  Z = factor(Gm.f)
+  D = Dict{AffinePlaneCurve{S}, Int}()
   X = V[1] - P.coord[1]
   Y = V[2] - P.coord[2]
   for p in keys(Z.fac)
-     if total_degree(p.f) == 1
-        push!(D, AffinePlaneCurve(evaluate(p.f, [X, Y])) => Z.fac[p])
+     if total_degree(p) == 1
+        push!(D, AffinePlaneCurve(evaluate(p, [X, Y])) => Z.fac[p])
      end
   end
   return D
-end
-
-################################################################################
-# check for equality of curves (the equations are equal up to multiplication by
-# a non zero constant).
-
-function ==(C::AffinePlaneCurve, D::AffinePlaneCurve)
-  F = C.eq
-  G = D.eq
-  return degree(C) == degree(D) && F*(lc(G)//lc(F)) == G
 end
 
 ################################################################################
@@ -546,14 +349,6 @@ function issmooth_curve(C::AffinePlaneCurve)
 end
 
 ################################################################################
-# hash function
 
-function Base.hash(C::AffinePlaneCurve, h::UInt)
-  F = 1//lc(C.eq)*C.eq
-  return hash(F, h)
-end
-
-################################################################################
-
-end
-using .AffinePlaneCurveModule
+#end
+#using .AffinePlaneCurveModule
