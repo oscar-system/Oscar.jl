@@ -20,6 +20,8 @@ SLPolyRing(r::Ring, v::Pair{<:Union{String,Symbol},
 
 base_ring(S::SLPolyRing) = S.base_ring
 
+elem_type(::Type{S}) where {T,S<:SLPolyRing{T}} = SLPoly{T,S}
+
 symbols(S::SLPolyRing) = S.S
 
 # have to constrain T <: RingElement so that this is more specific than the second
@@ -114,6 +116,8 @@ function assert_valid(p::SLPoly)
 end
 
 parent(p::SLPoly) = p.parent
+
+parent_type(::Type{SLPoly{T,SLPR}}) where {T,SLPR} = SLPR
 
 function check_parent(p::SLPoly, q::SLPoly)
     p.parent === q.parent ||

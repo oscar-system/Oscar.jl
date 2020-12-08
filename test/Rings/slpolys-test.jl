@@ -125,6 +125,9 @@ end
     p = SLPoly(S, SLP.SLProgram{Int}())
     @test p isa SLPoly{Int,typeof(S)} <: MPolyElem{Int}
     @test parent(p) === S
+    @test parent_type(p) == parent_type(typeof(p)) == typeof(S)
+    @test elem_type(S) == elem_type(typeof(S)) == typeof(p)
+
     p = SLPoly(S)
     @test p isa SLPoly{Int,typeof(S)} <: MPolyElem{Int}
     @test parent(p) === S
