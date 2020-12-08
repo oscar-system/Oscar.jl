@@ -443,9 +443,9 @@ end
 
 gens(G::MatrixGroup) = G.gens
 
-gens(G::MatrixGroup, i::Int) = gens(G)[i]
+gen(G::MatrixGroup, i::Int) = gens(G)[i]
 
-Base.getindex(G::MatrixGroup, i::Int) = gens(G, i)
+Base.getindex(G::MatrixGroup, i::Int) = gen(G, i)
 
 ngens(G::MatrixGroup) = length(G.gens)
 
