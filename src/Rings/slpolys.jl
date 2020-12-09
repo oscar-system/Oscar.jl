@@ -134,6 +134,13 @@ Base.zero(p::SLPoly) = zero(parent(p))
 Base.one(p::SLPoly) = one(parent(p))
 canonical_unit(p::SLPoly) = one(p) # required by AA's Rings interface
 
+# TODO: could be optimized by not creating an intermediate SLProgram
+function zero!(p::SLPoly)
+    z = zero(p)
+    copy!(p.slprogram, z.slprogram)
+    p
+end
+
 # we don't know easily, in general, whether an SLPoly is zero or one, so assume it isn't
 # TODO: handle correctly simple cases (e.g. empty underlying sl-program)
 Base.iszero(p::SLPoly) = false

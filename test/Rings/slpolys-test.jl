@@ -345,8 +345,8 @@ end
     =#
 
     @testset "SLPolyRing is a proper Ring" begin
-    S, (x1, x2) = Oscar.SLPolynomialRing(QQ, 2)
-    St, t = PolynomialRing(S, "t")
+        S, (x1, x2) = Oscar.SLPolynomialRing(QQ, 2)
+        St, t = PolynomialRing(S, "t")
 
         @testset "show" begin
             @test string(x1) == "x1"
@@ -355,5 +355,9 @@ end
             @test string(2-x2) == "2 - x2"
             @test string(2t+3) == "2*t + 3"
         end
+
+        q = x1+x2
+        @test q === zero!(q)
+        @test string(q) == "0" # can't test with iszero, which currently always return false
     end
 end
