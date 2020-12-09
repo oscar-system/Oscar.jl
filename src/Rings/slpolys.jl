@@ -230,6 +230,12 @@ end
 
 addeq!(p::SLPoly{T}, q::SLPoly{T}) where {T} = SLP.combine!(SLP.plus, p, q)
 
+function add!(r::SLPoly{T}, p::SLPoly{T}, q::SLPoly{T}) where {T}
+    copy!(r.slprogram, p.slprogram)
+    addeq!(r, q)
+    r
+end
+
 SLP.subeq!(p::SLPoly{T}, q::SLPoly{T}) where {T} = SLP.combine!(SLP.minus, p, q)
 
 function SLP.subeq!(p::SLPoly)
@@ -238,6 +244,12 @@ function SLP.subeq!(p::SLPoly)
 end
 
 SLP.muleq!(p::SLPoly{T}, q::SLPoly{T}) where {T} = SLP.combine!(SLP.times, p, q)
+
+function mul!(r::SLPoly{T}, p::SLPoly{T}, q::SLPoly{T}) where {T}
+    copy!(r.slprogram, p.slprogram)
+    SLP.muleq!(r, q)
+    r
+end
 
 function SLP.expeq!(p::SLPoly, e::Base.Integer)
     SLP.combine!(SLP.exponentiate, p.slprogram, e)

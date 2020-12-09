@@ -359,5 +359,10 @@ end
         q = x1+x2
         @test q === zero!(q)
         @test string(q) == "0" # can't test with iszero, which currently always return false
+
+        @test q === mul!(q, x1, x2)
+        @test string(q) == "x1*x2"
+        @test q === add!(q, x1, x2)
+        @test string(q) == "x1 + x2"
     end
 end
