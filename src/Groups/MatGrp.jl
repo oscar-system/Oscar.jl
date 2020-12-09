@@ -202,9 +202,7 @@ Base.IteratorSize(::Type{<:MatrixGroup}) = Base.SizeUnknown()
 
 function Base.iterate(G::MatrixGroup)
   L=GAP.Globals.Iterator(G.X)
-  if GAP.Globals.IsDoneIterator(L)
-    return nothing
-  end
+  @assert ! GAP.Globals.IsDoneIterator(L)
   i = GAP.Globals.NextIterator(L)
   return MatrixGroupElem(G, G.mat_iso(i),i), L
 end
