@@ -337,12 +337,10 @@ end
     R, (x, y) = PolynomialRing(AbstractAlgebra.zz, ["x", "y"])
     S = SLPolyRing(AbstractAlgebra.zz, [:x, :y])
     X, Y = gens(S)
-    #= TODO: make it pass, fail due to AA upgrade
     p = evaluate(x+y, [X, Y])
     # this is bad to hardcode exactly how evaluation of `x+y` happens,
     # we just want to test that this works and looks correct
-    @test p ==  0 + 1*(1*X^1*Y^0) + 1*(1*X^0*Y^1)
-    =#
+    @test p ==  0 + 1*(1*X^1) + 1*(1*Y^1)
 
     @testset "SLPolyRing is a proper Ring" begin
         S, (x1, x2) = Oscar.SLPolynomialRing(QQ, 2)
@@ -364,5 +362,8 @@ end
         @test string(q) == "x1*x2"
         @test q === add!(q, x1, x2)
         @test string(q) == "x1 + x2"
+
+        r = prod(t-y for y = gens(S))
+        @test string(r) == "t^2 + (-x2 - x1)*t + x1*x2"
     end
 end
