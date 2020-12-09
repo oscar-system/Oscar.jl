@@ -190,7 +190,7 @@ end
     l7 = SLP.pushop!(p, SLP.exponentiate, l5, SLP.Arg(2)) # ((1+x)y)^2
     l8 = SLP.pushop!(p, SLP.minus, l6, l7) # xy - ((1+x)y)^2
     SLP.pushfinalize!(p, l8)
-    @test string(p) == "((x*y) - ((1 + x)*y)^2)"
+    @test string(p) == "x*y - ((1 + x)*y)^2"
     @test SLP.evaluate!(Int[], p, [2, 3]) == -75
     @test SLP.evaluate!(Int[], p, [-2, -1]) == 1
 
@@ -343,4 +343,17 @@ end
     # we just want to test that this works and looks correct
     @test p ==  0 + 1*(1*X^1*Y^0) + 1*(1*X^0*Y^1)
     =#
+
+    @testset "SLPolyRing is a proper Ring" begin
+    S, (x1, x2) = Oscar.SLPolynomialRing(QQ, 2)
+    St, t = PolynomialRing(S, "t")
+
+        @testset "show" begin
+            @test string(x1) == "x1"
+            @test string(-x1*QQ(2, 3)*x2^3) == "-x1*2//3*x2^3"
+            @test string(x1-x2+x1) == "x1 - x2 + x1"
+            @test string(2-x2) == "2 - x2"
+            @test string(2t+3) == "2*t + 3"
+        end
+    end
 end

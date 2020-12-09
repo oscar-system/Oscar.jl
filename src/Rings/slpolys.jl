@@ -159,14 +159,48 @@ straight-line program.
 SLP.nsteps(p::SLPoly) = SLP.nsteps(p.slprogram)
 
 
-## show
+## expressify
 
-function Base.show(io::IO, ::MIME"text/plain", p::SLPoly)
-    io = IOContext(io, :SLPsymbols => symbols(parent(p)))
-    show(io, p.slprogram)
+# SLExpression mimics an algebraic object which can be evaluated by an SLPoly's
+# internal SLP, and which records the corresponding expression tree as an Expr
+# as the SLP evaluation goes on; this Expr is then given as the result of expressify
+struct SLExpression
+    ex
+    ctx
 end
 
-Base.show(io::IO, p::SLPoly) = show(io, "text/plain", p)
+for op in (:+, :-, :*, :^)
+    @eval begin
+        # currently, * and + are only binary operations for SLPoly (not n-ary)
+        Base.$op(x::SLExpression, y) =
+            SLExpression(Expr(:call, $(QuoteNode(op)), x.ex, expressify(y; context=x.ctx)),
+                         x.ctx)
+        if $op != :^
+            Base.$op(x, y::SLExpression) =
+                SLExpression(Expr(:call, $(QuoteNode(op)),
+                                  expressify(x; context=y.ctx), y.ex),
+                             y.ctx)
+            function Base.$op(x::SLExpression, y::SLExpression) # disambiguate
+                @assert x.ctx == y.ctx
+                SLExpression(Expr(:call, $(QuoteNode(op)), x.ex, y.ex), x.ctx)
+            end
+        end
+    end
+end
+
+Base.:-(x::SLExpression) = SLExpression(:(-$(x.ex)), x.ctx)
+
+function expressify(p::SLPoly; context=nothing)
+    # has to be Any, otherwise we run into conversion problems
+    # (Any or "something wide enough")
+    syms = Any[SLExpression(x, context) for x in symbols(parent(p))]
+    r = SLP.evaluate(p.slprogram, syms)
+    if r isa SLExpression
+        r.ex
+    else
+        expressify(r, context=context)
+    end
+end
 
 
 ## mutating ops

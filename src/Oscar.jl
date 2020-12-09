@@ -40,7 +40,7 @@ using Markdown, Test, Requires
 export Nemo, Hecke, Singular, Polymake, AbstractAlgebra, GAP
 
 import AbstractAlgebra: @show_name, @show_special, elem_type, force_coerce, force_op,
-                        parent_type
+                        parent_type, expressify
 
 function __init__()
   if isinteractive()
