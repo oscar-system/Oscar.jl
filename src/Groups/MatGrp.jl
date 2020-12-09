@@ -20,6 +20,8 @@ export
 
 abstract type AbstractMatrixGroupElem <: GAPGroupElem{GAPGroup} end
 
+# NOTE: always defined are deg, ring and at least one between { X, gens, descr }
+# NOTE: the fields ring_iso and mat_iso are always defined if the field X is
 """
     MatrixGroup{RE<:RingElem, T<:MatElem{RE}} <: GAPGroup
 Type of groups `G` of `n x n` matrices over the ring `R`, where `n = degree(G)` and `R = base_ring(G)`.
@@ -31,27 +33,31 @@ mutable struct MatrixGroup{RE<:RingElem, T<:MatElem{RE}} <: GAPGroup
    ring::Ring
    X::GapObj
    gens::Vector{<:AbstractMatrixGroupElem}
-   descr::Symbol                       # e.g. GL
-   ring_iso::GenRingIso
-   mat_iso::GenMatIso
+   descr::Symbol                       # e.g. GL, SL, symbols for isometry groups
+   ring_iso::GenRingIso              # isomorphism between the Oscar base_ring and the corresponding GAP ring. It's defined iff the field X is defined.
+   mat_iso::GenMatIso               # isomorphism between the Oscar matrix space and the corresponding GAP matrix space. It's defined iff the field X is defined.
    AbstractAlgebra.@declare_other
 
    MatrixGroup(m::Int, F::Ring) = new{elem_type(F), dense_matrix_type(elem_type(F))}(m,F)
 
 end
 
+# build a MatrixGroup given the underlying GAP object
 function MatrixGroup(m::Int, F::S, G_gap::GapObj) where S<:Ring
    r = MatrixGroup(m,F)
    r.X = G_gap
    return r
 end
 
+# build a MatrixGroup given a list of generators
 function MatrixGroup(m::Int, F::S, L::Vector) where S<:Ring
    r = MatrixGroup(m,F)
    r.gens = L
    return r
 end
 
+
+# NOTE: at least one of the fields :elm and :X is always defined, but not necessarly both of them.
 """
     MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: GAPGroupElem{MatrixGroup}
 
@@ -59,8 +65,8 @@ Elements of a group of type `MatrixGroup{RE<:RingElem, T<:MatElem{RE}}`
 """
 mutable struct MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: AbstractMatrixGroupElem
    parent::MatrixGroup{RE, T}
-   elm::T
-   X::GapObj
+   elm::T                         # Oscar matrix
+   X::GapObj                     # GAP matrix. If x isa MatrixGroupElem, then x.X = x.parent.mat_iso(x.elm)
 
    MatrixGroupElem(G::MatrixGroup{RE,MatElem{RE}}, x::MatElem{RE}) where RE <: RingElem = new{RE, MatElem{RE}}(G,x)
 
@@ -73,6 +79,8 @@ mutable struct MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: AbstractMatrixGr
 
 end
 
+# build a MatrixGroupElem given its underlying GAP object
+# WARNING: this does not check whether the element actually lies in the group G
 function MatrixGroupElem(G::MatrixGroup{RE,MatElem{RE}}, x::MatElem{RE}, x_gap::GapObj) where RE <: RingElem
    z = MatrixGroupElem(G,x)
    z.X = x_gap
@@ -137,14 +145,13 @@ end
 
 function Base.getproperty(G::MatrixGroup, sym::Symbol)
 
+   if isdefined(G,sym) return getfield(G,sym) end
    if sym === :mat_iso || sym === :ring_iso
-      if isdefined(G,sym) return getfield(G,sym) end
       fm = gen_mat_iso(G.deg, G.ring)
       G.ring_iso=fm.fr
       G.mat_iso=fm
 
    elseif sym === :X
-      if isdefined(G,:X) return getfield(G,:X) end
       if isdefined(G,:descr)
          if !isdefined(G,:ring_iso)
             fm = gen_mat_iso(G.deg, G.ring)
@@ -163,7 +170,6 @@ function Base.getproperty(G::MatrixGroup, sym::Symbol)
       end
 
    elseif sym === :gens
-      if isdefined(G, :gens) return getfield(G, :gens) end
       if !isdefined(G, :X)
          if !isdefined(G,:ring_iso)
             fm = gen_mat_iso(G.deg, G.ring)
@@ -183,8 +189,9 @@ function Base.getproperty(G::MatrixGroup, sym::Symbol)
 end
 
 
-# add field :X
 function Base.getproperty(x::MatrixGroupElem, sym::Symbol)
+
+   if isdefined(x,sym) return getfield(x,sym) end
    if sym === :X && !isdefined(x,:X)
       if !isdefined(x.parent,:ring_iso)
          fm = gen_mat_iso(x.parent.deg, x.parent.ring)
