@@ -36,7 +36,7 @@ mutable struct MatrixGroup{RE<:RingElem, T<:MatElem{RE}} <: GAPGroup
    mat_iso::GenMatIso
    AbstractAlgebra.@declare_other
 
-   MatrixGroup(m::Int, F::Ring) = new{elem_type(F), MatElem{elem_type(F)}}(m,F)
+   MatrixGroup(m::Int, F::Ring) = new{elem_type(F), dense_matrix_type(elem_type(F))}(m,F)
 
 end
 
