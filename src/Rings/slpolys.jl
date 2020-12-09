@@ -20,6 +20,8 @@ SLPolyRing(r::Ring, v::Pair{<:Union{String,Symbol},
 
 base_ring(S::SLPolyRing) = S.base_ring
 
+elem_type(::Type{S}) where {T,S<:SLPolyRing{T}} = SLPoly{T,S}
+
 symbols(S::SLPolyRing) = S.S
 
 # have to constrain T <: RingElement so that this is more specific than the second
@@ -115,6 +117,8 @@ end
 
 parent(p::SLPoly) = p.parent
 
+parent_type(::Type{SLPoly{T,SLPR}}) where {T,SLPR} = SLPR
+
 function check_parent(p::SLPoly, q::SLPoly)
     p.parent === q.parent ||
         throw(ArgumentError("incompatible parents"))
@@ -128,6 +132,19 @@ end
 
 Base.zero(p::SLPoly) = zero(parent(p))
 Base.one(p::SLPoly) = one(parent(p))
+canonical_unit(p::SLPoly) = one(p) # required by AA's Rings interface
+
+# TODO: could be optimized by not creating an intermediate SLProgram
+function zero!(p::SLPoly)
+    z = zero(p)
+    copy!(p.slprogram, z.slprogram)
+    p
+end
+
+# we don't know easily, in general, whether an SLPoly is zero or one, so assume it isn't
+# TODO: handle correctly simple cases (e.g. empty underlying sl-program)
+Base.iszero(p::SLPoly) = false
+Base.isone(p::SLPoly) = false
 
 function Base.copy!(p::SLPoly{T}, q::SLPoly{T}) where {T}
     check_parent(p, q)
@@ -150,11 +167,47 @@ straight-line program.
 SLP.nsteps(p::SLPoly) = SLP.nsteps(p.slprogram)
 
 
-## show
+## expressify
 
-function Base.show(io::IO, p::SLPoly)
-    io = IOContext(io, :SLPsymbols => symbols(parent(p)))
-    show(io, p.slprogram)
+# SLExpression mimics an algebraic object which can be evaluated by an SLPoly's
+# internal SLP, and which records the corresponding expression tree as an Expr
+# as the SLP evaluation goes on; this Expr is then given as the result of expressify
+struct SLExpression
+    ex
+    ctx
+end
+
+for op in (:+, :-, :*, :^)
+    @eval begin
+        # currently, * and + are only binary operations for SLPoly (not n-ary)
+        Base.$op(x::SLExpression, y) =
+            SLExpression(Expr(:call, $(QuoteNode(op)), x.ex, expressify(y; context=x.ctx)),
+                         x.ctx)
+        if $op != :^
+            Base.$op(x, y::SLExpression) =
+                SLExpression(Expr(:call, $(QuoteNode(op)),
+                                  expressify(x; context=y.ctx), y.ex),
+                             y.ctx)
+            function Base.$op(x::SLExpression, y::SLExpression) # disambiguate
+                @assert x.ctx == y.ctx
+                SLExpression(Expr(:call, $(QuoteNode(op)), x.ex, y.ex), x.ctx)
+            end
+        end
+    end
+end
+
+Base.:-(x::SLExpression) = SLExpression(:(-$(x.ex)), x.ctx)
+
+function expressify(p::SLPoly; context=nothing)
+    # has to be Any, otherwise we run into conversion problems
+    # (Any or "something wide enough")
+    syms = Any[SLExpression(x, context) for x in symbols(parent(p))]
+    r = SLP.evaluate(p.slprogram, syms)
+    if r isa SLExpression
+        r.ex
+    else
+        expressify(r, context=context)
+    end
 end
 
 
@@ -177,6 +230,12 @@ end
 
 addeq!(p::SLPoly{T}, q::SLPoly{T}) where {T} = SLP.combine!(SLP.plus, p, q)
 
+function add!(r::SLPoly{T}, p::SLPoly{T}, q::SLPoly{T}) where {T}
+    copy!(r.slprogram, p.slprogram)
+    addeq!(r, q)
+    r
+end
+
 SLP.subeq!(p::SLPoly{T}, q::SLPoly{T}) where {T} = SLP.combine!(SLP.minus, p, q)
 
 function SLP.subeq!(p::SLPoly)
@@ -185,6 +244,12 @@ function SLP.subeq!(p::SLPoly)
 end
 
 SLP.muleq!(p::SLPoly{T}, q::SLPoly{T}) where {T} = SLP.combine!(SLP.times, p, q)
+
+function mul!(r::SLPoly{T}, p::SLPoly{T}, q::SLPoly{T}) where {T}
+    copy!(r.slprogram, p.slprogram)
+    SLP.muleq!(r, q)
+    r
+end
 
 function SLP.expeq!(p::SLPoly, e::Base.Integer)
     SLP.combine!(SLP.exponentiate, p.slprogram, e)

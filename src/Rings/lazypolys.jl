@@ -1,7 +1,7 @@
 using .StraightLinePrograms: SLProgram
 const SLP = StraightLinePrograms
 
-using AbstractAlgebra: AbstractAlgebra, Ring, RingElement, RingElem, MPolyRing, MPolyElem, elem_type, Generic
+using AbstractAlgebra: AbstractAlgebra, Ring, RingElement, RingElem, MPolyRing, MPolyElem, Generic
 
 import AbstractAlgebra: base_ring, gen, gens, ngens, nvars, symbols, evaluate, addeq!
 

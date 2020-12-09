@@ -99,11 +99,10 @@ end
     @test nvars(S) == 2
     @test string(x0) == "x"
     @test string(y0) == "y"
-    # TODO: make replstr pass, fail to AA upgrade
-#    @test replstr(x0) == "x"
-#    @test replstr(y0) == "y"
+    @test replstr(x0) == "x"
+    @test replstr(y0) == "y"
     @test string(S(2)) == "2"
-#    @test replstr(S(2)) == "2"
+    @test replstr(S(2)) == "2"
 
     for x in (gen(S, 1), x0)
         @test string(x) == "x"
@@ -126,6 +125,9 @@ end
     p = SLPoly(S, SLP.SLProgram{Int}())
     @test p isa SLPoly{Int,typeof(S)} <: MPolyElem{Int}
     @test parent(p) === S
+    @test parent_type(p) == parent_type(typeof(p)) == typeof(S)
+    @test elem_type(S) == elem_type(typeof(S)) == typeof(p)
+
     p = SLPoly(S)
     @test p isa SLPoly{Int,typeof(S)} <: MPolyElem{Int}
     @test parent(p) === S
@@ -136,6 +138,9 @@ end
     @test zero(p) isa SLPoly{Int}
     @test one(p) == one(S)
     @test one(p) isa SLPoly{Int}
+
+    @test !isone(p)
+    @test !iszero(p)
 
     # copy
     q = SLPoly(S)
@@ -185,7 +190,7 @@ end
     l7 = SLP.pushop!(p, SLP.exponentiate, l5, SLP.Arg(2)) # ((1+x)y)^2
     l8 = SLP.pushop!(p, SLP.minus, l6, l7) # xy - ((1+x)y)^2
     SLP.pushfinalize!(p, l8)
-    @test string(p) == "((x*y) - ((1 + x)*y)^2)"
+    @test string(p) == "x*y - ((1 + x)*y)^2"
     @test SLP.evaluate!(Int[], p, [2, 3]) == -75
     @test SLP.evaluate!(Int[], p, [-2, -1]) == 1
 
@@ -332,10 +337,33 @@ end
     R, (x, y) = PolynomialRing(AbstractAlgebra.zz, ["x", "y"])
     S = SLPolyRing(AbstractAlgebra.zz, [:x, :y])
     X, Y = gens(S)
-    #= TODO: make it pass, fail due to AA upgrade
     p = evaluate(x+y, [X, Y])
     # this is bad to hardcode exactly how evaluation of `x+y` happens,
     # we just want to test that this works and looks correct
-    @test p ==  0 + 1*(1*X^1*Y^0) + 1*(1*X^0*Y^1)
-    =#
+    @test p ==  0 + 1*(1*X^1) + 1*(1*Y^1)
+
+    @testset "SLPolyRing is a proper Ring" begin
+        S, (x1, x2) = Oscar.SLPolynomialRing(QQ, 2)
+        St, t = PolynomialRing(S, "t")
+
+        @testset "show" begin
+            @test string(x1) == "x1"
+            @test string(-x1*QQ(2, 3)*x2^3) == "-x1*2//3*x2^3"
+            @test string(x1-x2+x1) == "x1 - x2 + x1"
+            @test string(2-x2) == "2 - x2"
+            @test string(2t+3) == "2*t + 3"
+        end
+
+        q = x1+x2
+        @test q === zero!(q)
+        @test string(q) == "0" # can't test with iszero, which currently always return false
+
+        @test q === mul!(q, x1, x2)
+        @test string(q) == "x1*x2"
+        @test q === add!(q, x1, x2)
+        @test string(q) == "x1 + x2"
+
+        r = prod(t-y for y = gens(S))
+        @test string(r) == "t^2 + (-x2 - x1)*t + x1*x2"
+    end
 end
