@@ -140,6 +140,7 @@ function assign_from_description(G::MatrixGroup)
    elseif G.descr==:Omega G.X=GAP.Globals.Omega(0,G.deg,Int(order(G.ring)))
    elseif G.descr==:GU G.X=GAP.Globals.GU(G.deg,Int(characteristic(G.ring)^(div(degree(G.ring),2) ) ))
    elseif G.descr==:SU G.X=GAP.Globals.SU(G.deg,Int(characteristic(G.ring)^(div(degree(G.ring),2) ) ))
+   else error("unsupported description")
    end
 end
 
