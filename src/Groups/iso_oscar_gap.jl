@@ -33,7 +33,7 @@ function elem_f(x::fq_nmod; B=0,d=0)
 end
 
 function elem_g(x::FFE; B=0, z=0, d=0)
-   L = GAP.gap_to_julia(GAP.Globals.List(GAP.Globals.Coefficients(B,x),GAP.Globals.IntFFE ))
+   L = Vector{Int}(GAP.Globals.List(GAP.Globals.Coefficients(B,x),GAP.Globals.IntFFE ))
    return sum([L[i]*z^(i-1) for i in 1:d])
 end
 
@@ -100,4 +100,3 @@ end
 (g::GenMatIso)(x::GapObj) = g.f_inv(x)
 
 Base.show(io::IO, f::GenMatIso) = print(io, "Matrix algebra homomorphism from Oscar algebra to GAP algebra")
-
