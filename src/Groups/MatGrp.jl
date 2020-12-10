@@ -34,8 +34,8 @@ mutable struct MatrixGroup{RE<:RingElem, T<:MatElem{RE}} <: GAPGroup
    X::GapObj
    gens::Vector{<:AbstractMatrixGroupElem}
    descr::Symbol                       # e.g. GL, SL, symbols for isometry groups
-   ring_iso::GenRingIso              # isomorphism between the Oscar base_ring and the corresponding GAP ring. It's defined iff the field X is defined.
-   mat_iso::GenMatIso               # isomorphism between the Oscar matrix space and the corresponding GAP matrix space. It's defined iff the field X is defined.
+   ring_iso::GenRingIso
+   mat_iso::GenMatIso
    AbstractAlgebra.@declare_other
 
    MatrixGroup(m::Int, F::Ring) = new{elem_type(F), dense_matrix_type(elem_type(F))}(m,F)
@@ -53,6 +53,7 @@ end
 function MatrixGroup(m::Int, F::S, L::Vector) where S<:Ring
    r = MatrixGroup(m,F)
    r.gens = L
+   for l in r.gens l.parent = r end
    return r
 end
 
@@ -68,10 +69,12 @@ mutable struct MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: AbstractMatrixGr
    elm::T                         # Oscar matrix
    X::GapObj                     # GAP matrix. If x isa MatrixGroupElem, then x.X = x.parent.mat_iso(x.elm)
 
-   MatrixGroupElem(G::MatrixGroup{RE,MatElem{RE}}, x::MatElem{RE}) where RE <: RingElem = new{RE, MatElem{RE}}(G,x)
+   #MatrixGroupElem(G::MatrixGroup{RE,MatElem{RE}}, x::MatElem{RE}) where RE <: RingElem = new{RE, MatElem{RE}}(G,x)
+   MatrixGroupElem(G::MatrixGroup, x::MatElem) = new{elem_type(G.ring),dense_matrix_type(elem_type(G.ring))}(G,x)
 
-   function MatrixGroupElem(G::MatrixGroup{RE,MatElem{RE}}, x_gap::GapObj) where RE <: RingElem
-      z = new{RE, MatElem{RE}}()
+   #function MatrixGroupElem(G::MatrixGroup{RE,MatElem{RE}}, x_gap::GapObj) where RE <: RingElem
+   function MatrixGroupElem(G::MatrixGroup, x_gap::GapObj)
+      z = new{elem_type(G.ring),dense_matrix_type(elem_type(G.ring))}()
       z.parent = G
       z.X = x_gap
       return z
@@ -81,7 +84,7 @@ end
 
 # build a MatrixGroupElem given its underlying GAP object
 # WARNING: this does not check whether the element actually lies in the group G
-function MatrixGroupElem(G::MatrixGroup{RE,MatElem{RE}}, x::MatElem{RE}, x_gap::GapObj) where RE <: RingElem
+function MatrixGroupElem(G::MatrixGroup, x::T, x_gap::GapObj)  where T <: MatElem
    z = MatrixGroupElem(G,x)
    z.X = x_gap
    return z
@@ -144,9 +147,12 @@ function assign_from_description(G::MatrixGroup)
    end
 end
 
+# return the G.sym if isdefined(G, :sym); otherwise, the field :sym is computed and set using information from other defined fields
+# NOTE: if G.X has to be set, then also the fields G.ring_iso and G.mat_iso are set
 function Base.getproperty(G::MatrixGroup, sym::Symbol)
 
    if isdefined(G,sym) return getfield(G,sym) end
+
    if sym === :mat_iso || sym === :ring_iso
       fm = gen_mat_iso(G.deg, G.ring)
       G.ring_iso=fm.fr
@@ -182,10 +188,9 @@ function Base.getproperty(G::MatrixGroup, sym::Symbol)
       L = GAP.Globals.GeneratorsOfGroup(getfield(G,:X))
       G.gens=[MatrixGroupElem(G,G.mat_iso(L[i]),L[i]) for i in 1:length(L)]
 
-   else
-      return getfield(G, sym)
-
    end
+
+   return getfield(G, sym)
 
 end
 
@@ -283,16 +288,27 @@ function Base.in(x::MatrixGroupElem, G::MatrixGroup)
 end
 
 # embedding an element of type MatElem into a group G
-function (G::MatrixGroup)(x::MatElem)
-   vero, x_gap = lies_in(x,G,nothing)
-   vero || throw(ArgumentError("Element not in the group"))
-   if x_gap==nothing return MatrixGroupElem(G,x)
-   else return MatrixGroupElem(G,x,x_gap)
+# if check=false, there are no checks on the condition `x in G`
+function (G::MatrixGroup)(x::MatElem; check=true)
+   if check
+      vero, x_gap = lies_in(x,G,nothing)
+      vero || throw(ArgumentError("Element not in the group"))
+      if x_gap==nothing return MatrixGroupElem(G,x)
+      else return MatrixGroupElem(G,x,x_gap)
+      end
+   else
+      return MatrixGroupElem(G,x)
    end
 end
 
 # embedding an element of type MatrixGroupElem into a group G
-function (G::MatrixGroup)(x::MatrixGroupElem)
+# if check=false, there are no checks on the condition `x in G`
+function (G::MatrixGroup)(x::MatrixGroupElem; check=true)
+   if !check
+      z = x
+      z.parent = G
+      return z
+   end
    if isdefined(x,:X)
       if isdefined(x,:elm)
          vero = lies_in(x.elm,G,x.X)[1]
@@ -312,9 +328,9 @@ function (G::MatrixGroup)(x::MatrixGroupElem)
 end
 
 # embedding a nxn array into a group G
-function (G::MatrixGroup)(L::AbstractVector)
+function (G::MatrixGroup)(L::AbstractVector; check=true)
    x = matrix(G.ring, G.deg, G.deg, L)
-   return G(x)
+   return G(x; check=check)
 end
 
 ########################################################################
@@ -772,25 +788,7 @@ function matrix_group(V::AbstractVector{T}) where T<:Union{MatElem,MatrixGroupEl
    return H
 end
 
-#=
-function matrix_group(V::AbstractVector{T}) where T<:MatrixGroupElem
-   F = base_ring(V[1])
-   n = nrows(V[1])
-   G = GL(n,F)
-   L = Vector{MatrixGroupElem}(undef, length(V))
-   for i in 1:length(V)
-      @assert base_ring(V[i])==F "The elements must have the same base ring"
-      @assert nrows(V[1])==n "The elements must have the same dimension"
-      L[i] = MatrixGroupElem(G,V[i].elm)
-   end
-   H = MatrixGroup(n,F,L)
-   for i in 1:length(V)   H.gens[i].parent = H   end
-   return H
-end
-=#
-
 matrix_group(V::T...) where T<:Union{MatElem,MatrixGroupElem} = matrix_group(collect(V))
-#matrix_group(V::T...) where T<:MatrixGroupElem = matrix_group(collect(V))
 
 
 
@@ -858,89 +856,3 @@ end
 function Base.rand(C::GroupConjClass{S,T}) where S<:MatrixGroup where T<:MatrixGroup
    return MatrixGroup(C.X.deg,C.X.ring,GAP.Globals.Random(C.CC))
 end
-
-
-#=
-
-########################################################################
-#
-# conversions     (this should be no longer necessary, and it's also wrong)
-#
-########################################################################
-#TODO: support other field types
-
-function FieldGapToOscar(F::GapObj)
-   p = GAP.Globals.Characteristic(F)
-   q = GAP.Globals.Size(F)
-   d = Base.Integer(log(p,q))
-
-   return GF(p,d)
-end
-
-function FieldOscarToGap(F::FqNmodFiniteField)
-   p = Int64(characteristic(F))
-   d = Int64(degree(F))
-
-   return GAP.Globals.GF(p,d)
-end
-
-function FieldElemGapToOscar(x::FFE, Fgap::GapObj, F::FqNmodFiniteField)
-   q = GAP.Globals.Size(Fgap)
-   z = gen(F)
-   if GAP.Globals.IsZero(x)
-      return 0*z
-   else
-      d = Integer(GAP.Globals.LogFFE(x, GAP.Globals.Z(q)))
-      return z^d
-   end
-end
-
-function FieldElemGapToOscar(x::FFE, F::GapObj)
-   q = GAP.Globals.Size(F)
-   K,z = FieldGapToOscar(F)
-   if GAP.Globals.IsZero(x)
-      return 0*z
-   else
-      d = Integer(GAP.Globals.LogFFE(x, GAP.Globals.Z(q)))
-      return z^d
-   end
-end
-
-function FieldElemOscarToGap(x::fq_nmod, F::FqNmodFiniteField)
-   q = Int64(order(F))
-   d = degree(F)
-   z = gen(F)
-   v = [Int64(coeff(x,i)) for i in 0:d]
-   y = sum([GAP.Globals.Z(q)^i*v[i+1] for i in 0:d])
-   
-   return y
-end
-
-function MatGapToOscar(x::GapObj, Fgap::GapObj, F::FqNmodFiniteField)
-   n = GAP.Globals.Size(x)
-   Arr = [GAP.gap_to_julia(x[i]) for i in 1:n]
-   L = [FieldElemGapToOscar(Arr[i][j],Fgap,F) for i in 1:n for j in 1:n]
-
-   return matrix(F,n,n,L)
-end
-
-function MatGapToOscar(x::GapObj, F::GapObj)
-   n = GAP.Globals.Size(x)
-   Arr = [GAP.gap_to_julia(x[i]) for i in 1:n]
-   L = [FieldElemGapToOscar(Arr[i][j],F) for i in 1:n for j in 1:n]
-
-   return matrix(FieldGapToOscar(F)[1],n,n,L)
-end
-
-function MatOscarToGap(x::MatElem, F::FqNmodFiniteField)
-   r = nrows(x)
-   c = ncols(x)
-   S = Vector{GapObj}(undef,r)
-   for i in 1:r
-      S[i] = GAP.julia_to_gap([FieldElemOscarToGap(x[i,j],F) for j in 1:c])
-   end
-
-   return GAP.julia_to_gap(S)
-end
-
-=#
