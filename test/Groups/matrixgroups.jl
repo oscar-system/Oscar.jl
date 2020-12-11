@@ -1,3 +1,55 @@
+@testset "Oscar-GAP relationship" begin
+   F = GF(29,1)[1]
+   z = F(2)
+   G = GL(3,F)
+   @test G.X isa GapObj
+   @test isdefined(G,:X)
+   @test isdefined(G, :ring_iso)
+   @test isdefined(G, :mat_iso)
+   Z = G.ring_iso(z)
+   @test G.ring_iso.domain==F
+   @test GAP.Globals.IsField(G.ring_iso.codomain)
+   @test GAP.Globals.Size(G.ring_iso.codomain)==29
+   @test GAP.Globals.IsZero(14*Z+1)
+   @test GAP.Globals.IsOne(G.ring_iso(one(F)))
+   
+   xo = matrix(F,3,3,[1,z,0,0,1,2*z+1,0,0,z+2])
+   xg = Vector{GapObj}(undef, 3)
+   for i in 1:3
+      xg[i] = GAP.julia_to_gap([G.ring_iso(xo[i,j]) for j in 1:3])
+   end
+   xg=GAP.julia_to_gap(xg)
+   @test G.mat_iso(xo)==xg
+   @test G.mat_iso(xg)==xo
+   @test G.mat_iso(GAP.Globals.One(GAP.Globals.GL(3,G.ring_iso.codomain)))==one(G).elm
+   @test GAP.Globals.Order(G.mat_iso(diagonal_matrix([z,z,one(F)])))==28
+
+   T,t = PolynomialRing(GF(3),"t")
+   F,z = FiniteField(t^2+1,"z")
+   G = GL(3,F)
+   @test G.X isa GapObj
+   @test isdefined(G,:X)
+   @test isdefined(G, :ring_iso)
+   @test isdefined(G, :mat_iso)
+   Z = G.ring_iso(z)
+   @test G.ring_iso.domain==F
+   @test GAP.Globals.IsField(G.ring_iso.codomain)
+   @test GAP.Globals.Size(G.ring_iso.codomain)==9
+   @test GAP.Globals.IsZero(Z^2+1)
+   @test GAP.Globals.IsOne(G.ring_iso(one(F)))
+   
+   xo = matrix(F,3,3,[1,z,0,0,1,2*z+1,0,0,z+2])
+   xg = Vector{GapObj}(undef, 3)
+   for i in 1:3
+      xg[i] = GAP.julia_to_gap([G.ring_iso(xo[i,j]) for j in 1:3])
+   end
+   xg=GAP.julia_to_gap(xg)
+   @test G.mat_iso(xo)==xg
+   @test G.mat_iso(xg)==xo
+   @test G.mat_iso(GAP.Globals.One(GAP.Globals.GL(3,G.ring_iso.codomain)))==one(G).elm
+   @test GAP.Globals.Order(G.mat_iso(diagonal_matrix([z,z,one(F)])))==4
+end
+
 
 #FIXME : this may change in future. It can be easily skipped.
 @testset "Fields assignment" begin
