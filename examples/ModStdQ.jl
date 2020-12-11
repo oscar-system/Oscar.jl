@@ -3,8 +3,11 @@ module ModStdQ
 using Oscar
 import Hecke
 import Oscar: MPolyIdeal, BiPolyArray, Hecke, AbstractAlgebra
-import Hecke.MPolyGcd: RecoCtx, rational_reconstruct
+import Hecke: induce_rational_reconstruction, induce_crt
 
+function __init__()
+  Hecke.add_verbose_scope(:ModStdQ)
+end
 
 function (R::AbstractAlgebra.Generic.MPolyRing{Nemo.gfp_elem})(f::fmpq_mpoly)
   g  = MPolyBuildCtx(R)
@@ -24,10 +27,14 @@ end
 #  the rat-reco for different polys in parallel
 #  crt in parallel
 #  use walk, tracing, ...
-function Oscar.groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevlex; use_hilbert::Bool = false)
+function Oscar.groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevlex; use_hilbert::Bool = false, Proof::Bool = true)
   if isdefined(I, :gb) && ord == :degrevlex
     return I.gb
   end
+  if Proof
+    return Oscar.groebner_basis_with_transform(I, ord = ord)[1]
+  end
+
   ps = Hecke.PrimesSet(Hecke.p_start, -1)
   ps = Hecke.PrimesSet(2^28+2^20, -1)
 
@@ -44,22 +51,24 @@ function Oscar.groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevl
   fl = true
   d = fmpz(1)
   very_first = true
+  gI = gens(I)
 
   while true
     p = iterate(ps, p)[1]
-    @vprint :MPolyGcd 2 "Main loop: using $p\n"
+    @vprint :ModStdQ 2 "Main loop: using $p\n"
 #    nbits(d) > 1700 && error("too long")
-    R = ResidueRing(ZZ, Int(p))
+    R = ResidueRing(ZZ, Int(p)) #gfp_mpoly missing...
     Rt, t = PolynomialRing(R, [string(s) for s = symbols(Qt)], cached = false)
-    @vtime :MPolyGcd 3 Ip = Oscar.BiPolyArray([Rt(x) for x = gens(I)], keep_ordering = false)
-    Jp = map(x->lift(Zt, x), (Oscar.groebner_basis(Ip, ord = ord, complete_reduction = true)))
+    @vtime :ModStdQ 3 Ip = Oscar.BiPolyArray([Rt(x) for x = gI], keep_ordering = false)
+    Gp = Oscar.groebner_basis(Ip, ord = ord, complete_reduction = true)
+    Jp = map(x->lift(Zt, x), Gp)
     if d == 1
       d = fmpz(p)
       gc = Jp
       fl = true
       gd = []
-      @vtime :MPolyGcd 2 for f = gc
-        fl, fQ = rational_reconstruction(f, d, false, parent = Qt)
+      @vtime :ModStdQ 2 for f = gc
+        fl, fQ = induce_rational_reconstruction(f, d, false, parent = Qt)
         fl || break
         push!(gd, fQ)
       end
@@ -69,19 +78,19 @@ function Oscar.groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevl
     else
       @assert length(Jp) == length(gc)
       new_idx = [any(x -> !iszero(R(x)), coefficients(map_coeffs(QQ, Jp[i], parent = Qt) - gd[i])) for i=1:length(gc)]
-      @vprint :MPolyGcd 1 "new information in $new_idx\n"
+      @vprint :ModStdQ 1 "new information in $new_idx\n"
       fl = !any(new_idx)
       if !fl
-        @vtime :MPolyGcd 2 for i = 1:length(gc)
+        @vtime :ModStdQ 2 for i = 1:length(gc)
           if new_idx[i]
             gc[i], _ = induce_crt(gc[i], d, Jp[i], fmpz(p), true)
           end
         end
         d *= fmpz(p)
         fl = true
-        @vtime :MPolyGcd 2 for i = 1:length(gc)
+        @vtime :ModStdQ 2 for i = 1:length(gc)
           if new_idx[i]
-            fl, gd[i] = rational_reconstruction(gc[i], d, false, parent = Qt)
+            fl, gd[i] = induce_rational_reconstruction(gc[i], d, false, parent = Qt)
             fl || break
           end
         end
@@ -98,9 +107,99 @@ function Oscar.groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevl
         end
       end
     end
-    @vprint :MPolyGcd 1 "Information now at $(nbits(d)) bits\n"
+    @vprint :ModStdQ 1 "Information now at $(nbits(d)) bits\n"
   end
 end
+
+function Oscar.groebner_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}; ord::Symbol = :degrevlex, use_hilbert::Bool = false)
+    
+  ps = Hecke.PrimesSet(Hecke.p_start, -1)
+  ps = Hecke.PrimesSet(2^28+2^20, -1)
+
+  p = iterate(ps)[1]
+  Qt = base_ring(I)
+  Q = base_ring(Qt)
+  Zt = PolynomialRing(ZZ, [string(s) for s = symbols(Qt)], cached = false)[1]
+  max_stable = 2
+  stable = max_stable
+
+  local gc::Array{fmpz_mpoly, 1}
+  local gd::Array{fmpq_mpoly, 1}
+  local length_gc::Int
+
+  fl = true
+  d = fmpz(1)
+  very_first = true
+
+  gI = gens(I)
+
+  while true
+    p = iterate(ps, p)[1]
+    @vprint :ModStdQ 2 "Main loop: using $p\n"
+#    nbits(d) > 1700 && error("too long")
+    R = ResidueRing(ZZ, Int(p))
+    Rt, t = PolynomialRing(R, [string(s) for s = symbols(Qt)], cached = false)
+    @vtime :ModStdQ 3 Ip = Oscar.BiPolyArray([Rt(x) for x = gI], keep_ordering = false)
+    Gp, Tp = Oscar.groebner_basis_with_transform(Ip, ord = ord, complete_reduction = true)
+    length_gc = length(Gp)
+    Jp = vcat(map(x->lift(Zt, x), Gp), map(x->lift(Zt, x), collect(Tp)))
+
+    if d == 1
+      d = fmpz(p)
+      gc = Jp
+      fl = true
+      gd = []
+      @vtime :ModStdQ 2 for f = gc
+        fl, fQ = Hecke.induce_rational_reconstruction(f, d, false, parent = Qt)
+        fl || break
+        push!(gd, fQ)
+      end
+      for i = length(gd)+1:length(gc)
+        push!(gd, Qt(0))
+      end
+    else
+      @assert length(Jp) == length(gc)
+      new_idx = [any(x -> !iszero(R(x)), coefficients(map_coeffs(QQ, Jp[i], parent = Qt) - gd[i])) for i=1:length(gc)]
+      @vprint :ModStdQ 1 "new information in $new_idx\n"
+      fl = !any(new_idx)
+      if !fl
+        @vtime :ModStdQ 2 for i = 1:length(gc)
+          if new_idx[i]
+            gc[i], _ = induce_crt(gc[i], d, Jp[i], fmpz(p), true)
+          end
+        end
+        d *= fmpz(p)
+        fl = true
+        @vtime :ModStdQ 2 for i = 1:length(gc)
+          if new_idx[i]
+            fl, gd[i] = Hecke.induce_rational_reconstruction(gc[i], d, false, parent = Qt)
+            fl || break
+          end
+        end
+        stable = max_stable
+#        @show gd
+      else
+        d *= fmpz(p)
+        stable -= 1
+        if stable <= 0
+          G = gd[1:length_gc]
+          T = matrix(Qt, length_gc, length(gI), gd[length_gc+1:end])
+          #at this point we SHOULD have T*gens(I) == G...
+          if T*matrix(Qt, length(gI), 1, gI) == matrix(Qt, length_gc, 1, G)
+            if ord == :degrevlex && !isdefined(I, :gb)
+              I.gb = BiPolyArray(gd[1:length_gc])
+            end
+            return G, T
+          else
+            @vprint :ModStdQ 1 "all lifts are stable, result is wrong (via trafo)"
+          end
+        end
+      end
+    end
+    @vprint :ModStdQ 1 "Information now at $(nbits(d)) bits\n"
+  end
+end
+
 
 function Oscar.lift(R::Nemo.Ring, f::nmod_mpoly)
   g = MPolyBuildCtx(R)
@@ -110,7 +209,7 @@ function Oscar.lift(R::Nemo.Ring, f::nmod_mpoly)
   return finish(g)
 end
 
-function Hecke.rational_reconstruction(f::fmpz_mpoly, d::fmpz, b::Bool; parent=1)
+function induce_rational_reconstruction(f::fmpz_mpoly, d::fmpz, b::Bool; parent=1)
   g = MPolyBuildCtx(parent)
   for (c, v) in zip(coeffs(f), exponent_vectors(f))
     fl, r, s = Hecke.rational_reconstruction(c, d)
@@ -122,7 +221,7 @@ function Hecke.rational_reconstruction(f::fmpz_mpoly, d::fmpz, b::Bool; parent=1
   return true, finish(g)
 end
 
-function Hecke.induce_crt(f::fmpz_mpoly, d::fmpz, g::fmpz_mpoly, p::fmpz, b::Bool)
+function induce_crt(f::fmpz_mpoly, d::fmpz, g::fmpz_mpoly, p::fmpz, b::Bool)
   mu = MPolyBuildCtx(parent(f))
   for i=1:length(f)
     e = exponent_vector(f, i)
