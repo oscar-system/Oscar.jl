@@ -386,6 +386,115 @@ function Oscar.groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Fra
   return lst, P
 end
 
+
+#=
+ From
+ Sparse Polynomial Interpolation and
+  Berlekamp/Massey Algorithms That Correct Outlier
+  Errors in Input Values
+
+  https://dl.acm.org/doi/10.1145/2442829.2442852
+
+=#
+
+function cleanup(Lambda::PolyElem{T}, E::Int, c::Array{T, 1}, k::Int) where {T}
+  c = copy(c)
+  t = degree(Lambda)
+  i = k+2*t
+  e = 0
+  n = length(c)
+  while i <= n-1
+    d = sum(coeff(Lambda, j)*c[i+j-t+1] for j=0:t-1)
+    if d != -c[i+1] 
+      c[i+1] = -d
+      e += 1
+    end
+    i += 1
+  end
+  i = k-1
+  while i>= 0 && e <= E
+    d = sum(coeff(Lambda, j)*c[i+j+1] for j=1:t)
+    if d+coeff(Lambda, 0)*c[i+1] != 0
+      c[i+1] = -d//coeff(Lambda, 0)
+      e += 1
+    end
+    i -= 1
+  end
+  return c, e
+end
+
+function FTBM(c::Array{Q, 1}, T::Int, E::Int) where {Q <: FieldElem}
+  R = parent(c[1])
+  Rt, t = PolynomialRing(R, cached = false)
+  L = []
+  n = length(c)
+  for i=0:div(n, 2*T)-1
+    Lambda = berlekamp_massey(c[2*T*i+1:2*T*(i+1)], parent = Rt)[2]
+    if constant_coefficient(Lambda) != 0
+      a, e = cleanup(Lambda, E, c, 2*T*i)
+      if e <= E
+        push!(L, (a, e))
+      end
+    end
+  end
+  return L
+end
+
+function MRBM(c::Array{Q, 1}, T::Int, E::Int) where {Q <: FieldElem}
+  R = parent(c[1])
+  Rt, t = PolynomialRing(R, cached = false)
+  L = Dict{elem_type(Rt), Set{Int}}()
+  n = length(c)
+  for i=0:div(n, 2*T)-1
+    Lambda = berlekamp_massey(c[2*T*i+1:2*T*(i+1)], parent = Rt)[2]
+    if constant_coefficient(Lambda) == 0 || 2*degree(Lambda)+1 >length(c)
+      continue
+    end
+    @assert parent(Lambda) == Rt
+    if haskey(L, Lambda)
+      push!(L[Lambda], i)
+    else
+      L[Lambda] = Set(i)
+    end
+  end
+  if length(L) == 0
+    return false, t
+  end
+  m = 0
+  local Lambda
+  for (k, v) = L
+    if length(v) > m
+      m = length(v)
+      Lambda = k
+    end
+  end
+  for i = L[Lambda]
+    a, e = cleanup(Lambda, E, c, 2*T*i)
+    if e <= E
+      return true, Lambda
+    end
+  end
+  return false, t
+end
+function MRBM(c::Array{Q, 1}) where {Q <: FieldElem}
+  n = length(c)
+  #we need, by paper: (2T)(2E+1) <= n
+  #assuming E < T/2 => (2T)(T+1) = 2T^2+2T <= n
+  #so T <= root(n)/2
+  T = div(root(n, 2), 2)
+  E = floor(Int, (n/2/T-1)/2)
+  local L
+  for e = 0:E
+    T = floor(Int, n/(2*e+1)/2)
+    fl, L = MRBM(c, T, e)
+    if fl
+      return fl, L
+    end
+  end
+  return false, L
+end
+
+
 #####################################################################
 function ben_or(lp::Array{Int, 1}, a::Array{fmpz, 1}, P::fmpz)
   #tries to write a as a product of powers of lp
