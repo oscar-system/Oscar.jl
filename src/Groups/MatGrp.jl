@@ -333,31 +333,35 @@ function (G::MatrixGroup)(L::AbstractVector; check=true)
    return G(x; check=check)
 end
 
+# embedding a nxn array into a group G
+function (G::MatrixGroup)(L::AbstractMatrix; check=true)
+   x = matrix(G.ring, G.deg, G.deg, L)
+   return G(x; check=check)
+end
+
 ########################################################################
 #
 # Methods on elements
 #
 ########################################################################
 
-# TODO: we are not currently keeping track of the parent
+# we are not currently keeping track of the parent; two elements coincide iff their matrices coincide
 function ==(x::MatrixGroupElem{S,T},y::MatrixGroupElem{S,T}) where {S,T}
    if isdefined(x,:X) && isdefined(y,:X) return x.X==y.X
    else return x.elm==y.elm
    end
 end
 
-# TODO: we wish to multiply / conjugate also matrices with different parents ?
+# if the parents are different, the parent of the output product is set as GL(n,q)
 function _prod(x::MatrixGroupElem,y::MatrixGroupElem)
-   if x.parent==y.parent
-      if isdefined(x,:X) && isdefined(y,:X) && !(isdefined(x,:elm) && isdefined(y,:elm))
-         return MatrixGroupElem(x.parent, x.X*y.X)
-      else
-         return MatrixGroupElem(x.parent, x.elm*y.elm)
-      end
+   G = x.parent==y.parent ? x.parent : GL(x.parent.deg, x.parent.ring)
+   if isdefined(x,:X) && isdefined(y,:X) && !(isdefined(x,:elm) && isdefined(y,:elm))
+      return MatrixGroupElem(G, x.X*y.X)
    else
-      throw(ArgumentError("Matrices not in the same group"))
+      return MatrixGroupElem(G, x.elm*y.elm)
    end
 end
+
 # Base.:* is defined in src/Groups/GAPGroups.jl
 
 Base.:*(x::MatrixGroupElem, y::fq_nmod_mat) = x.elm*y
@@ -369,16 +373,13 @@ Base.isone(x::MatrixGroupElem) = isone(x.elm)
 
 Base.inv(x::MatrixGroupElem) = MatrixGroupElem(x.parent, inv(x.elm))
 
-# TODO: we wish to multiply / conjugate also matrices with different parents ?
+# if the parents are different, the parent of the output is set as GL(n,q)
 function Base.:^(x::MatrixGroupElem, y::MatrixGroupElem)
-   if x.parent==y.parent
-      if isdefined(x,:X) && isdefined(y,:X) && !(isdefined(x,:elm) && isdefined(y,:elm))
-         return MatrixGroupElem(x.parent, inv(y.X)*x.X*y.X)
-      else
-         return MatrixGroupElem(x.parent,inv(y.elm)*x.elm*y.elm)
-      end
+   G = x.parent==y.parent ? x.parent : GL(x.parent.deg, x.parent.ring)
+   if isdefined(x,:X) && isdefined(y,:X) && !(isdefined(x,:elm) && isdefined(y,:elm))
+      return MatrixGroupElem(G, inv(y.X)*x.X*y.X)
    else
-      throw(ArgumentError("Matrices not in the same group"))
+      return MatrixGroupElem(G,inv(y.elm)*x.elm*y.elm)
    end
 end
 
