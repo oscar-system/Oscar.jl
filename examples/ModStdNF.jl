@@ -3,9 +3,8 @@ module ModStdNF
 using Oscar
 import Hecke
 import Oscar: MPolyIdeal, BiPolyArray, Hecke, AbstractAlgebra
-import Hecke: modular_lift, modular_proj, modular_env
-import Hecke.MPolyGcd: RecoCtx, rational_reconstruct
-
+import Hecke: modular_lift, modular_proj, modular_env, RecoCtx, 
+              induce_rational_reconstruction
 
 function Oscar.singular_ring(F::AnticNumberField)
   return Singular.CoefficientRing(F)
@@ -81,9 +80,8 @@ function Oscar.groebner_assure(I::MPolyIdeal{Generic.MPoly{nf_elem}}, ord::Symbo
 
   local gc::Array{Generic.MPoly{nf_elem}, 1}
   local gd::Array{Generic.MPoly{nf_elem}, 1}
-  idl = Hecke.Globals.Zx()
-  bm = zero_matrix(FlintZZ, degree(K), degree(K))
-
+  Zx = Hecke.Globals.Zx
+  R = RecoCtx(K)
 
   fl = true
   d = fmpz(1)
@@ -97,9 +95,8 @@ function Oscar.groebner_assure(I::MPolyIdeal{Generic.MPoly{nf_elem}}, ord::Symbo
     if isempty(me)
       continue
     end
-    R = ResidueRing(FlintZZ, p)
-    Rt, t = PolynomialRing(R, "t", cached = false)
-    @vtime :MPolyGcd 3 Ip = Hecke.modular_proj(me, I.gens)
+
+    @vtime :MPolyGcd 3 Ip = Hecke.modular_proj(I.gens, me)
     Jp = typeof(Ip[1])[]
     @vtime :MPolyGcd 2 for fp = Ip
       if use_hilbert
@@ -112,17 +109,15 @@ function Oscar.groebner_assure(I::MPolyIdeal{Generic.MPoly{nf_elem}}, ord::Symbo
         push!(Jp, groebner_basis(fp, ord = ord, complete_reduction = true))
       end
     end
-    @vtime :MPolyGcd 2 IP = Hecke.modular_lift(me, Jp)
+    @vtime :MPolyGcd 2 IP = Hecke.modular_lift(Jp, me)
     if d == 1
       d = fmpz(p)
       gc = IP
-      idl = lift(parent(idl), me.ce.pr[end])
-      bm = lll(Hecke.MPolyGcd.basis_matrix(fmpz(p), idl, K))
-      R = RecoCtx(bm, K)
+      push!(R, d, lift(Zx, me.ce.pr[end]))
       fl = true
       gd = []
       @vtime :MPolyGcd 2 for f = gc
-        fl, fQ = rational_reconstruct(f, R, false)
+        fl, fQ = Hecke.induce_rational_reconstruction(f, R, integral = false)
         fl || break
         push!(gd, fQ)
       end
@@ -133,7 +128,7 @@ function Oscar.groebner_assure(I::MPolyIdeal{Generic.MPoly{nf_elem}}, ord::Symbo
     else
       new_idx = [any(x -> any(x->!iszero(x), Hecke.modular_proj(x, me)), coefficients(gd[i] - IP[i])) for i=1:length(gc)]
       @vprint :MPolyGcd 1 "new information in $new_idx\n"
-      idl, _ = induce_crt(idl, d, lift(parent(idl), me.ce.pr[end]), fmpz(p))
+      push!(R, fmpz(p), lift(Zx, me.ce.pr[end]))
       fl = !any(new_idx)
       if !fl
         @vtime :MPolyGcd 2 for i = 1:length(gc)
@@ -142,11 +137,10 @@ function Oscar.groebner_assure(I::MPolyIdeal{Generic.MPoly{nf_elem}}, ord::Symbo
           end
         end
         d *= fmpz(p)
-        R = RecoCtx(Hecke.MPolyGcd.basis_matrix(d, idl, K), K)
         fl = true
         @vtime :MPolyGcd 2 for i = 1:length(gc)
           if new_idx[i]
-            fl, gd[i] = rational_reconstruct(gc[i], R, false)
+            fl, gd[i] = Hecke.induce_rational_reconstruction(gc[i], R, integral = false)
             fl || break
           end
         end
@@ -177,10 +171,10 @@ end
 # definitely: BiPolyArrays as list is what we do
 # for induced stuff and majority voting and such think of data structures
 #   that allow to match monomials effectively.
-function Hecke.modular_proj(me::Hecke.modular_env, B::BiPolyArray{Generic.MPoly{nf_elem}})
+function Hecke.modular_proj(B::BiPolyArray{Generic.MPoly{nf_elem}}, me::Hecke.modular_env)
   g = [Array{nmod_mpoly, 1}() for i = me.fld]
   for i=B
-    h = Hecke.modular_proj(me, i)
+    h = Hecke.modular_proj(i, me)
     for j = 1:length(h)
       push!(g[j], h[j])
     end
@@ -188,12 +182,12 @@ function Hecke.modular_proj(me::Hecke.modular_env, B::BiPolyArray{Generic.MPoly{
   return [BiPolyArray(x, keep_ordering = false) for x = g] 
 end
 
-function Hecke.modular_lift(me::Hecke.modular_env, f::Array{BiPolyArray{nmod_mpoly}, 1})
+function Hecke.modular_lift(f::Array{BiPolyArray{nmod_mpoly}, 1}, me::Hecke.modular_env)
   g = []
   @assert all(x -> length(x) == length(f[1]), f)
   for i=1:length(f[1])
     lp = nmod_mpoly[ f[j][Val(:O), i] for j=1:length(f)]
-    push!(g, Hecke.modular_lift(me, lp))
+    push!(g, Hecke.modular_lift(lp, me))
   end
   return g
 end
