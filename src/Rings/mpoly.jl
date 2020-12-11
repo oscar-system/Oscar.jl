@@ -187,22 +187,11 @@ function Base.convert(Ox::MPolyRing, f::MPolyElem)
   return finish(g)
 end
 
-function Base.convert(::Type{fmpz}, a::Singular.n_Z)
-  return fmpz(convert(BigInt, a))
-end
-
-function Base.convert(::Type{fmpq}, a::Singular.n_Q)
-  return fmpq(Base.Rational{BigInt}(a))
-end
-
-function (::Nemo.FlintRationalField)(a::Singular.n_Q)
-  return convert(fmpq, a)
-end
-
 function (S::Singular.Rationals)(a::fmpq)
   b = Base.Rational{BigInt}(a)
   return S(b)
 end
+
 (F::Singular.N_ZpField)(a::Nemo.gfp_elem) = F(lift(a))
 (F::Singular.N_ZpField)(a::Nemo.nmod) = F(lift(a))
 (F::Nemo.GaloisField)(a::Singular.n_Zp) = F(Int(a))
@@ -473,6 +462,29 @@ function groebner_basis(B::BiPolyArray; ord::Symbol = :degrevlex, complete_reduc
   end
 #  @show "dtd", B.S
   return BiPolyArray(B.Ox, Singular.std(B.S, complete_reduction = complete_reduction))
+end
+
+function groebner_basis_with_transform(B::BiPolyArray; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
+  if ord != :degrevlex
+    R = singular_ring(B.Ox, ord)
+    i = Singular.Ideal(R, [convert(R, x) for x = B])
+#    @show "std on", i, B
+    i, m = Singular.lift_std(i, complete_reduction = complete_reduction)
+    return BiPolyArray(B.Ox, i), map_entries(x->convert(B.Ox, x), m)
+  end
+  if !isdefined(B, :S)
+    B.S = Singular.Ideal(B.Sx, [convert(B.Sx, x) for x = B.O])
+  end
+#  @show "dtd", B.S
+
+  i, m = Singular.lift_std(B.S, complete_reduction = complete_reduction)
+  return BiPolyArray(B.Ox, i), map_entries(x->convert(B.Ox, x), m)
+end
+
+function map_entries(R, M::Singular.smatrix)
+  s = nrows(M), ncols(M)
+  S = parent(R(zero(base_ring(M))))
+  return matrix(S, s[1], s[2], elem_type(S)[R(M[i,j]) for i=1:s[1] for j=1:s[2]])
 end
 
 function syzygy_module(a::Array{MPolyElem, 1})
