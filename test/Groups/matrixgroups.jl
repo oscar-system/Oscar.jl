@@ -7,11 +7,14 @@
    @test isdefined(G, :ring_iso)
    @test isdefined(G, :mat_iso)
    Z = G.ring_iso(z)
+   @test G.ring_iso(Z)==z
    @test G.ring_iso.domain==F
    @test GAP.Globals.IsField(G.ring_iso.codomain)
    @test GAP.Globals.Size(G.ring_iso.codomain)==29
    @test GAP.Globals.IsZero(14*Z+1)
+   @test iszero(G.ring_iso(GAP.Globals.Zero(G.ring_iso.codomain)))
    @test GAP.Globals.IsOne(G.ring_iso(one(F)))
+   @test isone(G.ring_iso(GAP.Globals.One(G.ring_iso.codomain)))
    
    xo = matrix(F,3,3,[1,z,0,0,1,2*z+1,0,0,z+2])
    xg = Vector{GapObj}(undef, 3)
@@ -32,11 +35,14 @@
    @test isdefined(G, :ring_iso)
    @test isdefined(G, :mat_iso)
    Z = G.ring_iso(z)
+   @test G.ring_iso(Z)==z
    @test G.ring_iso.domain==F
    @test GAP.Globals.IsField(G.ring_iso.codomain)
    @test GAP.Globals.Size(G.ring_iso.codomain)==9
+   @test iszero(G.ring_iso(GAP.Globals.Zero(G.ring_iso.codomain)))
    @test GAP.Globals.IsZero(Z^2+1)
    @test GAP.Globals.IsOne(G.ring_iso(one(F)))
+   @test isone(G.ring_iso(GAP.Globals.One(G.ring_iso.codomain)))
    
    xo = matrix(F,3,3,[1,z,0,0,1,2*z+1,0,0,z+2])
    xg = Vector{GapObj}(undef, 3)
@@ -185,16 +191,43 @@ end
 end
 
 
+@testset "Assignments and generators" begin
+
+   G = GL(3,5)
+   S = SL(3,5)
+   x1 = G([-1,0,1,-1,0,0,0,-1,0])
+   x2 = G([2,0,0,0,3,0,0,0,1])
+   @test x1==G([4,0,1,4,0,0,0,4,0])
+   @test x1==G([4 0 1; 4 0 0; 0 4 0])
+   H = matrix_group([x1,x2])
+   @test isdefined(H,:gens)
+   @test H[1]==x1
+   @test H[2]==x2
+   @test parent(H[1])==H
+   @test parent(x1)==G
+   @test H==S
+   H1 = matrix_group([x1,x2])
+   @test H==H1
+   @test !isdefined(H1,:X)
+end
+
+
 @testset "Classical groups as PermGroup" begin
    @test GL(PermGroup,2,3) isa PermGroup
    @test order(GL(PermGroup,2,3)) == order(GL(2,3))
    @test isisomorphic(GL(PermGroup,2,3),GL(2,3))[1]
+   F2 = GF(2,1)[1]
+   F3 = GF(3,1)[1]
+   @test SL(PermGroup,2,F2) isa PermGroup
 
    @test order(SL(PermGroup,2,2)) == order(SL(2,2))
+   @test order(SL(PermGroup,2,F2)) == order(SL(2,2))
    @test order(GU(PermGroup,2,2)) == order(GU(2,2))
    @test order(SU(PermGroup,2,2)) == order(SU(2,2))
    @test order(GO(PermGroup,+1,2,2)) == order(GO(+1,2,2))
    @test order(SO(PermGroup,+1,2,3)) == order(SO(+1,2,3))
+   @test order(GO(PermGroup,+1,2,F2)) == order(GO(+1,2,2))
+   @test order(SO(PermGroup,+1,2,F3)) == order(SO(+1,2,3))
    @test order(Sp(PermGroup,2,2)) == order(Sp(2,2))
    @test SL(MatrixGroup,2,3) == SL(2,3)
    @test GL(MatrixGroup,2,3) == GL(2,3)
@@ -272,6 +305,16 @@ end
    @test order(y)==8
    @test base_ring(x)==F
    @test nrows(y)==2
+   @test x*y.elm isa fq_nmod_mat
+   @test (x*y).elm==x.elm*y
+   @test G(x*y.elm)==x*y   
+   @test matrix(x)==x.elm
+
+
+   xg = GAP.Globals.Random(G.X)
+   yg = GAP.Globals.Random(G.X)
+   pg = MatrixGroupElem(G, xg*yg)
+   @test pg==MatrixGroupElem(G,G.mat_iso(xg))*MatrixGroupElem(G,G.mat_iso(yg))
 end
 
 @testset "Subgroups" begin
