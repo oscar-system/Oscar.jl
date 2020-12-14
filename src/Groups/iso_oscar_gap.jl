@@ -41,7 +41,7 @@ end
 
 
 # computes the isomorphism between the Oscar field F and the corresponding GAP field F_gap
-# the output has type GenRingIso
+# the output has type GenRingIso (see above)
 
 function gen_ring_iso(F::FqNmodFiniteField)
    p = Int64(characteristic(F))
@@ -98,7 +98,7 @@ end
 
 
 # computes the isomorphism between the Oscar matrix space of dimension deg over F and the corresponding GAP matrix space
-# the output has type GenMatIso
+# the output has type GenMatIso (see above)
 
 function gen_mat_iso(deg::Int, F::FqNmodFiniteField)
    riso = gen_ring_iso(F)                                      # "riso" = Ring ISOmorphism

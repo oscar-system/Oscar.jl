@@ -328,16 +328,11 @@ function (G::MatrixGroup)(x::MatrixGroupElem; check=true)
 end
 
 # embedding a nxn array into a group G
-function (G::MatrixGroup)(L::AbstractVector; check=true)
+function (G::MatrixGroup)(L::AbstractVecOrMat; check=true)
    x = matrix(G.ring, G.deg, G.deg, L)
    return G(x; check=check)
 end
 
-# embedding a nxn array into a group G
-function (G::MatrixGroup)(L::AbstractMatrix; check=true)
-   x = matrix(G.ring, G.deg, G.deg, L)
-   return G(x; check=check)
-end
 
 ########################################################################
 #
