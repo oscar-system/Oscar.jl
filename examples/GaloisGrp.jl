@@ -860,12 +860,16 @@ struct BlockSystems
 end
 
 
-function Base.iterate(B::BlockSystems, st::Array{Array{Int, 1}} = B.cur)
+function Base.iterate(B::BlockSystems)
+  return B.cur, deepcopy(B.cur)
+end
+
+function Base.iterate(B::BlockSystems, st::Array{Array{Int, 1}})
   i = length(B.cur)-1
   while true
     j = B.l
     while true
-      if st[i][j] < B.n
+      if st[i][j] < B.n - B.l + j
         st[i][j] += 1
         free = Set(1:B.n)
         for l=1:i-1
@@ -877,7 +881,11 @@ function Base.iterate(B::BlockSystems, st::Array{Array{Int, 1}} = B.cur)
         setdiff!(free, st[i][1:j])
         while j < B.l
           j += 1
-          st[i][j] = minimum(free)
+          I = intersect(free, Set(st[i][j-1]:B.n))
+          if isempty(I)
+            break
+          end
+          st[i][j] = minimum(I)
           pop!(free, st[i][j])
         end
         i += 1
