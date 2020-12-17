@@ -834,6 +834,7 @@ function Base.:^(H::MatrixGroup, y::MatrixGroupElem)
    if isdefined(H,:gens)
       K = MatrixGroup(H.deg, H.ring)
       K.gens = [y^-1*x*y for x in H.gens]
+      for k in K.gens k.parent = K end
       return K
    else
       return MatrixGroup(H.deg,H.ring,H.X^y.X)
