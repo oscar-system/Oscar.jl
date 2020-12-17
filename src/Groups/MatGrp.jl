@@ -58,7 +58,7 @@ function MatrixGroup(m::Int, F::Ring, L::Vector)
 end
 
 
-# NOTE: at least one of the fields :elm and :X is always defined, but not necessarly both of them.
+# NOTE: at least one of the fields :elm and :X must always defined, but not necessarily both of them.
 """
     MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: GAPGroupElem{MatrixGroup}
 
