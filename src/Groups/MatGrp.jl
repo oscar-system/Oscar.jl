@@ -82,8 +82,9 @@ mutable struct MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: AbstractMatrixGr
 
 end
 
-# build a MatrixGroupElem given its underlying GAP object
+# build a MatrixGroupElem given both an OSCAR matrix and a corresponding GAP object.
 # WARNING: this does not check whether the element actually lies in the group G
+# nor whether the two given matrices really match.
 function MatrixGroupElem(G::MatrixGroup, x::MatElem, x_gap::GapObj)
    z = MatrixGroupElem(G,x)
    z.X = x_gap
