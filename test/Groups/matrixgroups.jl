@@ -209,6 +209,20 @@ end
    H1 = matrix_group([x1,x2])
    @test H==H1
    @test !isdefined(H1,:X)
+   H1 = matrix_group([x1.elm,x2.elm])
+   @test H==H1
+   @test !isdefined(H1,:X)
+   H1 = matrix_group(x1,x2)
+   @test H==H1
+   @test !isdefined(H1,:X)
+
+   G4 = GL(4,5)
+   x3 = G4([1,0,2,0,0,1,0,2,0,0,1,0,0,0,0,1])
+   @test_throws AssertionError matrix_group([x1,x3])
+
+   G4 = GL(3,7)
+   x3 = G4([2,0,0,0,3,0,0,0,1])
+   @test_throws AssertionError matrix_group([x1,x3])
 end
 
 
@@ -315,6 +329,15 @@ end
    yg = GAP.Globals.Random(G.X)
    pg = MatrixGroupElem(G, xg*yg)
    @test pg==MatrixGroupElem(G,G.mat_iso(xg))*MatrixGroupElem(G,G.mat_iso(yg))
+
+   O = GO(-1,2,F)
+   S = SL(2,F)
+   xo = O([2,0,2,1])
+   xs = S([1,z,0,1])
+   @test parent(xs*xo)==G
+   xo = xo^2
+   @test parent(xs*xo)==G
+   @test parent(xs*S(xo))==S
 end
 
 @testset "Subgroups" begin
@@ -354,10 +377,18 @@ end
    @test x in lc
    C = centralizer(G,x)[1]
    @test order(C)==64
+
    cc = conjugacy_class(G,x)
    @test x^G[2] in elements(cc)
    @test representative(cc)==x
+   @test parent(representative(cc))==G
    @test length(cc)==index(G,C)
+
+   cc = conjugacy_class(G,H)
+   @test H^G[2] in elements(cc)
+   @test representative(cc)==H
+   @test length(cc)==index(G,normalizer(G,H)[1])
+
 
    G = GL(2,3)
    @test length(conjugacy_classes(G))==8
