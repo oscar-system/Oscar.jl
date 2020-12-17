@@ -31,7 +31,10 @@ function _as_subgroup_bare(G::T, H::GapObj) where T
   if T==PermGroup
     H1 = T(H, G.deg)
   elseif T<:MatrixGroup
-    H1 = MatrixGroup(G.deg,G.ring,H)
+    H1 = MatrixGroup(G.deg,G.ring)
+    H1.ring_iso = G.ring_iso
+    H1.mat_iso = G.mat_iso
+    H1.X = H
   else
     H1 = T(H)
   end
