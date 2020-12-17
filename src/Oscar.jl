@@ -212,6 +212,8 @@ if is_dev
   include("../examples/ModStdQt.jl")
   include("../examples/PrimDec.jl")
   include("../examples/GaloisGrp.jl")
+
+  include("../examples/PlaneCurve.jl")
 end
 
 
