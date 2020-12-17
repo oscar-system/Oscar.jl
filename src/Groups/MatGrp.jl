@@ -84,7 +84,7 @@ end
 
 # build a MatrixGroupElem given its underlying GAP object
 # WARNING: this does not check whether the element actually lies in the group G
-function MatrixGroupElem(G::MatrixGroup, x::T, x_gap::GapObj)  where T <: MatElem
+function MatrixGroupElem(G::MatrixGroup, x::MatElem, x_gap::GapObj)
    z = MatrixGroupElem(G,x)
    z.X = x_gap
    return z
