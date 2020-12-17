@@ -50,7 +50,7 @@ function MatrixGroup(m::Int, F::S, G_gap::GapObj) where S<:Ring
 end
 
 # build a MatrixGroup given a list of generators
-function MatrixGroup(m::Int, F::S, L::Vector) where S<:Ring
+function MatrixGroup(m::Int, F::Ring, L::Vector)
    r = MatrixGroup(m,F)
    r.gens = L
    for l in r.gens l.parent = r end
