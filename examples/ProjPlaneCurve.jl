@@ -202,7 +202,7 @@ function curve_intersect(PP::Oscar.Geometry.ProjSpc{S}, C::ProjPlaneCurve{S}, D:
      end
   end
   rr, (x,) = PolynomialRing(R.R.base_ring, ["x"])
-  phi = hom(R.R, rr, [gens(rr)[1], rr(1), rr(0)])
+  phi = hom(R.R, rr, [gen(rr, 1), rr(1), rr(0)])
   phiF = phi(F)
   phiH = phi(H)
   g = gcd(phiF, phiH)
@@ -211,7 +211,7 @@ function curve_intersect(PP::Oscar.Geometry.ProjSpc{S}, C::ProjPlaneCurve{S}, D:
   for h in keys(f.fac)
      if total_degree(h) == 1
         f = h//lc(h)
-        push!(ro, -f + gens(rr)[1])
+        push!(ro, -f + gen(rr, 1))
      end
   end
   for y in ro
@@ -274,7 +274,7 @@ function curve_singular_locus(PP::Oscar.Geometry.ProjSpc{S}, C::ProjPlaneCurve{S
   end
   R = parent(C.eq)
   rr, (x) = PolynomialRing(R.R.base_ring, ["x"])
-  phi = hom(R.R, rr, [gens(rr)[1], rr(1), rr(0)])
+  phi = hom(R.R, rr, [gen(rr, 1), rr(1), rr(0)])
   pF = phi(D.eq)
   pX = phi(FX)
   pY = phi(FY)
@@ -286,7 +286,7 @@ function curve_singular_locus(PP::Oscar.Geometry.ProjSpc{S}, C::ProjPlaneCurve{S
   for h in keys(f.fac)
      if total_degree(h) == 1
         f = h//lc(h)
-        push!(ro, -f + gens(rr)[1])
+        push!(ro, -f + gen(rr, 1))
      end
   end
   for y in ro
