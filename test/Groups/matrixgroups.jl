@@ -7,6 +7,7 @@
    @test isdefined(G, :ring_iso)
    @test isdefined(G, :mat_iso)
    Z = G.ring_iso(z)
+   @test GAP.Globals.IN(Z,G.ring_iso.codomain)
    @test G.ring_iso(Z)==z
    @test G.ring_iso.domain==F
    @test GAP.Globals.IsField(G.ring_iso.codomain)
@@ -35,7 +36,9 @@
    @test isdefined(G, :ring_iso)
    @test isdefined(G, :mat_iso)
    Z = G.ring_iso(z)
+   @test GAP.Globals.IN(Z,G.ring_iso.codomain)
    @test G.ring_iso(Z)==z
+   @test G.ring_iso(G.ring_iso(F(2)))==F(2)
    @test G.ring_iso.domain==F
    @test GAP.Globals.IsField(G.ring_iso.codomain)
    @test GAP.Globals.Size(G.ring_iso.codomain)==9
@@ -110,6 +113,11 @@ end
    @test K==matrix_group([x,x^2,y])
    @test K==matrix_group(x.elm, (x^2).elm, y.elm)
    @test K==matrix_group([x.elm, (x^2).elm, y.elm])
+
+   G = GL(3,F)
+   x = G([1,z,0,0,z,0,0,0,z+1])
+   @test order(x)==8
+   @test isdefined(G,:mat_iso)
    
 end
 
@@ -211,10 +219,19 @@ end
    @test !isdefined(H1,:X)
    H1 = matrix_group([x1.elm,x2.elm])
    @test H==H1
+   @test parent(H1[1])==H1
    @test !isdefined(H1,:X)
    H1 = matrix_group(x1,x2)
    @test H==H1
+   @test parent(H1[1])==H1
    @test !isdefined(H1,:X)
+   H1 = matrix_group(x1.elm,x2.elm)
+   @test H==H1
+   @test parent(H1[1])==H1
+   @test !isdefined(H1,:X)
+   x3 = matrix(base_ring(G),3,3,[0,0,0,0,1,0,0,0,1])
+   @test_throws AssertionError matrix_group(x1.elm,x3)
+   @test parent(x1)==G
 
    G4 = GL(4,5)
    x3 = G4([1,0,2,0,0,1,0,2,0,0,1,0,0,0,0,1])
@@ -275,7 +292,10 @@ end
    @test x in G
    @test !(x in S)
    @test_throws ArgumentError S(x)
+   @test S(x; check=false)==G(x)
    x = G(x)
+   @test x==G([1,z,0,z])
+   @test x==G([1 z; 0 z])
    @test parent(x)==G
    @test x==G(x)
    @test_throws ArgumentError G([1,1,0,0])
@@ -355,10 +375,13 @@ end
    @test parent(f(S[1]))==G
    @test f(S[1])==G(S[1])
    @test f(S[2])==G(S[2])
+   @test isdefined(S,:mat_iso)
+   @test S.mat_iso==G.mat_iso
    O = GO(1,2,F)
    H = intersect(S,O)[1]
    @test H==SO(1,2,F)
    @test isnormal(O,H)
+   @test index(O,H)==2
 #   @test index(GO(0,3,3), omega_group(0,3,3))==4
 #   @test index(GO(-1,4,2), omega_group(-1,4,2))==2
 end
