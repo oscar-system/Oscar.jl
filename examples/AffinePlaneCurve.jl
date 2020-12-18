@@ -94,10 +94,10 @@ function curve_intersect(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S
   end
   I = ideal(R, [F, H])
   # We eliminate the first variable in the ideal.
-  B = eliminate(I, [gen(R, 1)])
+  B = eliminate(I, [gens(R)[1]])
   # We factorize the polynomial we obtain (which is a polynomial where only
   # the second variable appears).
-  Z = factor(gen(B, 1))
+  Z = factor(gens(B)[1])
   Y = []
   L = Array{S, 1}[]
   # For the linear factors of g, we add the constant coefficient to the list Y.
@@ -105,22 +105,22 @@ function curve_intersect(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S
   for g in keys(Z.fac)
      if total_degree(g) == 1
         f = g//lc(g)
-        push!(Y, -f + gen(R, 2))
+        push!(Y, -f + gens(R)[2])
      end
   end
   if !isempty(Y)
      # For each y, we compute the possible values of x by replacing the second
      # variable by the value y, and factorizing the resulting polynomial.
      for y in Y
-        FF = evaluate(F, [gen(R, 1), y])
-        HH = evaluate(H, [gen(R, 1), y])
+        FF = evaluate(F, [gens(R)[1], y])
+        HH = evaluate(H, [gens(R)[1], y])
         GG = gcd(FF, HH)
         ZZ = factor(GG)
         for g in keys(ZZ.fac)
            if total_degree(g) == 1
               f = g//lc(g)
               # We use lc to convert the mpoly into element of S.
-              push!(L, [lc(-f + gen(R, 1)), lc(y)])
+              push!(L, [lc(-f + gens(R)[1]), lc(y)])
            end
         end
      end
@@ -165,6 +165,7 @@ end
 Return the reduced singular locus of `C` as a list whose first element is the affine plane curve consisting of the singular components of `C` (if any), and the second element is the list of the isolated singular points (which may be contained in the singular component). The singular component might not contain any point over the considered field.
 """
 function curve_singular_locus(C::AffinePlaneCurve)
+   _assure_has_components(C)
    D = reduction(C)
    Pts = Array{Point, 1}()
    CC = Array{AffinePlaneCurve, 1}()

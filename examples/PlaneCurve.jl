@@ -63,6 +63,13 @@ function Base.show(io::IO, P::Point)
 end
 
 ################################################################################
+# check for equality of points (the coordinates are equal).
+
+function ==(P::Point, Q::Point)
+  return P.coord == Q.coord
+end
+
+################################################################################
 # Associate a maximal ideal to a point in a given ring (not specific to curves)
 
 @doc Markdown.doc"""
@@ -154,8 +161,8 @@ end
 # a non zero constant).
 
 function ==(C::PlaneCurve, D::PlaneCurve)
-  F = C.eq
-  G = D.eq
+  F = defining_equation(C)
+  G = defining_equation(D)
   return degree(C) == degree(D) && F*(lc(G)//lc(F)) == G
 end
 
@@ -199,15 +206,6 @@ function compo(C::ProjPlaneCurve)
   C.components = Dict(ProjPlaneCurve(x) => D.fac[x] for x in keys(D.fac))
 end
 
-# function compo(C::PlaneCurve)
-#    D = factor(C.eq)
-#    if typeof(C) == AffinePlaneCurve{typeof(lc(C.eq))}
-#       C.components = Dict(AffinePlaneCurve(x) => D.fac[x] for x in keys(D.fac))
-#    elseif typeof(C) == ProjPlaneCurve{typeof(lc(C.eq))}
-#       C.components = Dict(ProjPlaneCurve(x) => D.fac[x] for x in keys(D.fac))
-#    end
-# end
-
 ################################################################################
 # Helping function
 
@@ -246,7 +244,6 @@ end
 
 ################################################################################
 # Check reducedness by computing a factorization
-# TODO: change for a direct squarefree check when available.
 
 @doc Markdown.doc"""
     isreduced(C::PlaneCurve)
@@ -254,8 +251,12 @@ end
 Return `true` if `C` is reduced, and `false` otherwise.
 """
 function Oscar.isreduced(C::PlaneCurve)
-  _assure_has_components(C)
-  return all(isone, values(C.components))
+  if isempty(C.components)
+     L = factor_squarefree(defining_equation(C))
+     return all(isone, values(L.fac))
+  else 
+     return all(isone, values(C.components))
+  end
 end
 
 ################################################################################
@@ -268,11 +269,17 @@ end
 Return the plane curve defined by the squarefree part of the equation of `C`.
 """
 function reduction(C::AffinePlaneCurve)
-  _assure_has_components(C)
-  F = prod(D -> D.eq, keys(C.components))
-  rC = AffinePlaneCurve(F)
-  rC.components = Dict(AffinePlaneCurve(D.eq) => 1 for D in keys(C.components))
-  return rC
+  if isempty(C.components)
+     L = factor_squarefree(C.eq)
+     F = prod(f -> f, keys(L.fac))
+     rC = AffinePlaneCurve(F)
+     return rC
+  else
+     F = prod(D -> D.eq, keys(C.components))
+     rC = AffinePlaneCurve(F)
+     rC.components = Dict(AffinePlaneCurve(D.eq) => 1 for D in keys(C.components))
+     return rC
+  end
 end
 
 function reduction(C::ProjPlaneCurve)

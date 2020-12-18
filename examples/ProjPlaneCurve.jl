@@ -335,7 +335,6 @@ end
 Returns the multiplicity of `C` at `P`.
 """
 function multiplicity(C::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
-  evaluate(C.eq, P.v) == 0 || error("The point is not on the curve.")
   if P.v[3] != 0
      Fa = dehomogenization(C.eq, 3)
      Ca = AffinePlaneCurve(Fa)
