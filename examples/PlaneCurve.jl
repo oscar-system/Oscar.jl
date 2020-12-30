@@ -1,6 +1,6 @@
 module PlaneCurveModule
 using Oscar, Markdown
-import Base.:(==)
+import Base.==
 
 export factor, gcd, div, Point, ideal_point, AffinePlaneCurve, ProjPlaneCurve,
        hash, degree, jacobi_ideal, curve_components, isirreducible, isreduced,
