@@ -106,11 +106,11 @@ end
 
 const IJuliaMime = Union{MIME"text/latex", MIME"text/html"}
 
-const pkgdir = joinpath(dirname(pathof(Oscar)), "..")
+const oscardir = joinpath(dirname(pathof(Oscar)), "..")
 
 
 function example(s::String)
-  Base.include(Main, joinpath(dirname(pathof(Oscar)), "..", "examples", s))
+  Base.include(Main, joinpath(oscardir, "examples", s))
 end
 
 # This can be used in
@@ -122,20 +122,20 @@ end
 #
 # __module__ expands to the module of the call site of the macro.
 macro example(s)
-  :($(esc(__module__)).include(joinpath(dirname(pathof(Oscar)), "..", "examples", $(esc(s)))))
+  :($(esc(__module__)).include(joinpath(oscardir, "examples", $(esc(s)))))
 end
 
 function data(s::String)
-  Base.include(Main, joinpath(dirname(pathof(Oscar)), "..", "data", s))
+  Base.include(Main, joinpath(oscardir, "data", s))
 end
 
 function revise(s::String)
-  s = joinpath(dirname(pathof(Oscar)), "..", "examples", s)
+  s = joinpath(oscardir, "examples", s)
   Main.Revise.track(Main, s)
 end
 
 function system(s::String)
-  Base.include(Main, joinpath(dirname(pathof(Oscar)), "..", "system", s))
+  Base.include(Main, joinpath(oscardir, "system", s))
 end
 
 function build()
@@ -146,9 +146,9 @@ end
 function test_module(x, new::Bool = true)
    julia_exe = Base.julia_cmd()
    if x == "all"
-     test_file = joinpath(pkgdir, "test/runtests.jl")
+     test_file = joinpath(oscardir, "test/runtests.jl")
    else
-     test_file = joinpath(pkgdir, "test/$x.jl")
+     test_file = joinpath(oscardir, "test/$x.jl")
    end
 
    if new
