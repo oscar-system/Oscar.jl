@@ -70,43 +70,30 @@ function __init__()
     ])
 end
 
-is_dev = false
-
-if VERSION >= v"1.4"
-  deps = Pkg.dependencies()
-  if Base.haskey(deps, Base.UUID("f1435218-dba5-11e9-1e4d-f1a5fab5fc13"))
-    ver = Pkg.dependencies()[Base.UUID("f1435218-dba5-11e9-1e4d-f1a5fab5fc13")]
-    if occursin("/dev/", ver.source)
-      global VERSION_NUMBER = VersionNumber("$(ver.version)-dev")
-      global is_dev = true
-    else
-      global VERSION_NUMBER = VersionNumber("$(ver.version)")
-      if ver.git_revision !== nothing && occursin("master", ver.git_revision)
-        is_dev = true
-      end
-    end
-  else
-    global VERSION_NUMBER = "not installed"
-  end
-else
-  deps = Pkg.API.__installed(Pkg.PKGMODE_MANIFEST) #to also get installed dependencies
-  if haskey(deps, "Oscar")
-    ver = deps["Oscar"]
-    dir = dirname(@__DIR__)
-    if occursin("/dev/", dir)
-      global VERSION_NUMBER = VersionNumber("$(ver)-dev")
-      is_dev = true
-    else
-      global VERSION_NUMBER = VersionNumber("$(ver)")
-    end
-  else
-    global VERSION_NUMBER = "not installed"
-  end
+# pkgdir was added in Julia 1.4
+if VERSION < v"1.4"
+   pkgdir(m::Core.Module) = abspath(Base.pathof(Base.moduleroot(m)), "..", "..")
 end
+pkgproject(m::Core.Module) = Pkg.Operations.read_project(Pkg.Types.projectfile_path(pkgdir(m)))
+pkgversion(m::Core.Module) = pkgproject(m).version
+const VERSION_NUMBER = pkgversion(@__MODULE__)
+
+const is_dev = (function(m)
+        if VERSION >= v"1.4"
+          uuid = pkgproject(m).uuid
+          deps = Pkg.dependencies()
+          if Base.haskey(deps, uuid)
+            if deps[uuid].is_tracking_path
+              return true
+            end
+          end
+        end
+        return occursin("-dev", lowercase(VERSION_NUMBER))
+    end)(@__MODULE__)
 
 const IJuliaMime = Union{MIME"text/latex", MIME"text/html"}
 
-const oscardir = joinpath(dirname(pathof(Oscar)), "..")
+const oscardir = pkgdir(Oscar)
 
 
 function example(s::String)

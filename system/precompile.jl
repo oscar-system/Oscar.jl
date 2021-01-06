@@ -1,3 +1,3 @@
-include(joinpath(Oscar.pkgdir, "test", "runtests.jl"))
+include(joinpath(pkgdir(Oscar), "test", "runtests.jl"))
 Hecke.system("precompile.jl")
 
