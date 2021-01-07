@@ -6,8 +6,11 @@ import GAP: gap_to_julia
 import Nemo: FlintIntegerRing, FlintRationalField, MatrixSpace, fmpz, fmpq, fmpz_mat, fmpq_mat
 
 ## GAP integer to `fmpz`
-GAP.gap_to_julia(::Type{fmpz}, obj::GAP.GapObj) = fmpz(BigInt(obj))
 GAP.gap_to_julia(::Type{fmpz}, obj::Int64) = fmpz(obj)
+function GAP.gap_to_julia(::Type{fmpz}, obj::GAP.GapObj)
+    GAP.Globals.IsInt(obj) || throw(GAP.ConversionError(obj, fmpz))
+    GC.@preserve obj fmpz(GAP.ADDR_OBJ(obj), div(GAP.SIZE_OBJ(obj), sizeof(Int)))
+end
 
 fmpz(obj::GAP.GapObj) = gap_to_julia(fmpz, obj)
 

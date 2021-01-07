@@ -5,7 +5,13 @@
 import GAP: julia_to_gap
 
 ## `fmpz` to GAP integer
-GAP.julia_to_gap(obj::fmpz) = GAP.julia_to_gap(BigInt(obj))
+function GAP.julia_to_gap(obj::fmpz)
+  Nemo._fmpz_is_small(obj) && return GAP.julia_to_gap(Int(obj))
+  GC.@preserve obj begin
+    x = Nemo._as_bigint(obj)
+    return ccall(:MakeObjInt, GapObj, (Ptr{UInt64}, Cint), x.d, x.size)
+  end
+end
 
 ## `fmpq` to GAP rational
 GAP.julia_to_gap(obj::fmpq) = GAP.Globals.QUO(GAP.julia_to_gap(numerator(obj)), GAP.julia_to_gap(denominator(obj)))
