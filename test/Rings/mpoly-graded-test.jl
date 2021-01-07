@@ -97,6 +97,11 @@
         Polys[i,j] = rmPols(i,j)
         @test one(Rings_dec[i][j]) == Rings_dec[i][j](1)
         @test zero(Rings_dec[i][j])== Rings_dec[i][j](0)
+        @test iszero(zero(Rings_dec[i][j]))
+        @test !iszero(one(Rings_dec[i][j]))
+        @test isone(one(Rings_dec[i][j]))
+        @test !isone(zero(Rings_dec[i][j]))
+        @test divexact(one(Rings_dec[i][j]), one(Rings_dec[i][j])) == one(Rings_dec[i][j])
         @test (Polys[i,j][1] + Polys[i,j][2])^2 == Polys[i,j][1]^2 + 2*Polys[i,j][1]*Polys[i,j][2] + Polys[i,j][2]^2
         @test (Polys[i,j][3] - Polys[i,j][4])^2 == Polys[i,j][3]^2 + 2*(-Polys[i,j][3])*Polys[i,j][4] + Polys[i,j][4]^2
         @test Polys[i,j][2] * (Polys[i,j][3] + Polys[i,j][4]) == Oscar.addeq!(Oscar.mul!(Polys[i,j][1], Polys[i,j][2], Polys[i,j][3]), Oscar.mul!(Polys[i,j][1], Polys[i,j][2], Polys[i,j][4]))

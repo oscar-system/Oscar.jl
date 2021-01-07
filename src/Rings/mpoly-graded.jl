@@ -113,18 +113,40 @@ parent_type(::Type{MPolyElem_dec{T}}) where {T} = MPolyRing_dec{T}
 one(W::MPolyRing_dec) = MPolyElem_dec(one(W.R), W)
 zero(W::MPolyRing_dec) = MPolyElem_dec(zero(W.R), W)
 
-+(a::MPolyElem_dec, b::MPolyElem_dec)   = MPolyElem_dec(a.f+b.f, a.parent)
--(a::MPolyElem_dec, b::MPolyElem_dec)   = MPolyElem_dec(a.f-b.f, a.parent)
--(a::MPolyElem_dec)   = MPolyElem_dec(-a.f, a.parent)
-*(a::MPolyElem_dec, b::MPolyElem_dec)   = MPolyElem_dec(a.f*b.f, a.parent)
-==(a::MPolyElem_dec, b::MPolyElem_dec)   = a.f == b.f
-^(a::MPolyElem_dec, i::Int)    = MPolyElem_dec(a.f^i, a.parent)
+################################################################################
+#
+#  Binary operations
+#
+################################################################################
 
-function Oscar.mul!(a::MPolyElem_dec, b::MPolyElem_dec, c::MPolyElem_dec)
+for T in [:(+), :(-), :(*), :divexact]
+  @eval ($T)(a::MPolyElem_dec,
+             b::MPolyElem_dec) = MPolyElem_dec($T(a.f, b.f), a.parent)
+end
+
+################################################################################
+#
+#  Unitary operations
+#
+################################################################################
+
+-(a::MPolyElem_dec)   = MPolyElem_dec(-a.f, a.parent)
+
+################################################################################
+#
+#  Equality
+#
+################################################################################
+
+==(a::MPolyElem_dec, b::MPolyElem_dec) = a.f == b.f
+
+^(a::MPolyElem_dec, i::Int) = MPolyElem_dec(a.f^i, a.parent)
+
+function mul!(a::MPolyElem_dec, b::MPolyElem_dec, c::MPolyElem_dec)
   return b*c
 end
 
-function Oscar.addeq!(a::MPolyElem_dec, b::MPolyElem_dec)
+function addeq!(a::MPolyElem_dec, b::MPolyElem_dec)
   return a+b
 end
 
