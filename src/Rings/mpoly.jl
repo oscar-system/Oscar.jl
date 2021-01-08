@@ -14,7 +14,7 @@ import Hecke: MapHeader, math_html
 
 export PolynomialRing, total_degree, degree, MPolyElem, ordering, ideal,
        groebner_basis, eliminate, syzygy_generators, coordinates, 
-       jacobi_matrix, jacobi_ideal
+       jacobi_matrix, jacobi_ideal, radical
 
 ##############################################################################
 #
@@ -192,6 +192,7 @@ function (S::Singular.Rationals)(a::fmpq)
   return S(b)
 end
 
+(Ox::MPolyRing)(f::MPolyElem) = convert(Ox, f)
 (F::Singular.N_ZpField)(a::Nemo.gfp_elem) = F(lift(a))
 (F::Singular.N_ZpField)(a::Nemo.nmod) = F(lift(a))
 (F::Nemo.GaloisField)(a::Singular.n_Zp) = F(Int(a))
@@ -552,6 +553,23 @@ function jacobi_matrix(g::Array{<:MPolyElem, 1})
   n = nvars(R)
   @assert all(x->parent(x) == R, g)
   return matrix(R, n, length(g), [derivative(x, i) for i=1:n for x = g])
+end
+
+##########################################
+#
+# Singular library related functions
+#
+##########################################
+@doc Markdown.doc"""
+    radical(I::MPolyIdeal)
+
+    Given an ideal $I$ this function returns the radical ideal ``\sqrt I``..
+"""
+function radical(I::MPolyIdeal)
+  singular_assure(I)
+  R = base_ring(I)
+  J = Singular.LibPrimdec.radical(I.gens.Sx, I.gens.S)
+  return ideal(R, J)
 end
 
 ##########################
