@@ -1,5 +1,9 @@
 # This file contains code related to G-sets
 
+if isdefined(Hecke, :isregular)
+    import Hecke: isregular
+end
+
 export
     blocks,
     isprimitive,
