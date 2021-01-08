@@ -42,7 +42,7 @@ allblocks(G::GSet) = error("not implemented")
 
 istransitive(G::GSet) = error("not implemented")
 isprimitive(G::GSet) = error("not implemented")
-Hecke.isregular(G::GSet) = error("not implemented")
+isregular(G::GSet) = error("not implemented")
 issemiregular(G::GSet) = error("not implemented")
 
 
@@ -148,8 +148,8 @@ Return whether the action of the group `G` on `L` is regular (i.e.
 transitive and semiregular). If `L` is not specified, then `L` is taken
 as [1,...,degree(`G`)].
 """
-Hecke.isregular(G::PermGroup, L::AbstractVector{Int}) = GAP.Globals.IsRegular(G.X, GAP.julia_to_gap(L))
-Hecke.isregular(G::PermGroup) = GAP.Globals.IsRegular(G.X, GAP.julia_to_gap(1:G.deg))
+isregular(G::PermGroup, L::AbstractVector{Int}) = GAP.Globals.IsRegular(G.X, GAP.julia_to_gap(L))
+isregular(G::PermGroup) = GAP.Globals.IsRegular(G.X, GAP.julia_to_gap(1:G.deg))
 
 """
     issemiregular(G::PermGroup, L::AbstractVector{Int})
