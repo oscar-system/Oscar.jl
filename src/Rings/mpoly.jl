@@ -201,8 +201,7 @@ singular_ring(::Nemo.FlintRationalField) = Singular.Rationals()
 singular_ring(F::Nemo.GaloisField) = Singular.Fp(Int(characteristic(F)))
 singular_ring(F::Nemo.NmodRing) = Singular.Fp(Int(characteristic(F)))
 
-#TODO: maybe half of this is superflous (and automatic) so delete?
-function singular_ring(Rx::Nemo.FmpqMPolyRing; keep_ordering::Bool = true)
+function singular_ring(Rx::MPolyRing{T}; keep_ordering::Bool = true) where {T <: RingElem}
   if keep_ordering
     return Singular.PolynomialRing(singular_ring(base_ring(Rx)), 
               [string(x) for x = Nemo.symbols(Rx)],
@@ -215,47 +214,7 @@ function singular_ring(Rx::Nemo.FmpqMPolyRing; keep_ordering::Bool = true)
   end          
 end
 
-function singular_ring(Rx::Nemo.NmodMPolyRing; keep_ordering::Bool = true)
-  if keep_ordering
-    return Singular.PolynomialRing(singular_ring(base_ring(Rx)), 
-              [string(x) for x = Nemo.symbols(Rx)],
-              ordering = ordering(Rx),
-              cached = false)[1]
-  else
-    return Singular.PolynomialRing(singular_ring(base_ring(Rx)), 
-              [string(x) for x = Nemo.symbols(Rx)],
-              cached = false)[1]
-  end          
-end
-
-function singular_ring(Rx::Generic.MPolyRing{T}; keep_ordering::Bool = true) where {T <: RingElem}
-  if keep_ordering
-    return Singular.PolynomialRing(singular_ring(base_ring(Rx)), 
-              [string(x) for x = Nemo.symbols(Rx)],
-              ordering = ordering(Rx),
-              cached = false)[1]
-  else
-    return Singular.PolynomialRing(singular_ring(base_ring(Rx)), 
-              [string(x) for x = Nemo.symbols(Rx)],
-              cached = false)[1]
-  end          
-end
-
-function singular_ring(Rx::Nemo.NmodMPolyRing, ord::Symbol)
-  return Singular.PolynomialRing(singular_ring(base_ring(Rx)), 
-              [string(x) for x = Nemo.symbols(Rx)],
-              ordering = ord,
-              cached = false)[1]
-end
-
-function singular_ring(Rx::Nemo.FmpqMPolyRing, ord::Symbol)
-  return Singular.PolynomialRing(singular_ring(base_ring(Rx)), 
-              [string(x) for x = Nemo.symbols(Rx)],
-              ordering = ord,
-              cached = false)[1]
-end
-
-function singular_ring(Rx::Generic.MPolyRing{T}, ord::Symbol) where {T <: RingElem}
+function singular_ring(Rx::MPolyRing{T}, ord::Symbol) where {T <: RingElem}
   return Singular.PolynomialRing(singular_ring(base_ring(Rx)), 
               [string(x) for x = Nemo.symbols(Rx)],
               ordering = ord,

@@ -292,7 +292,8 @@ function Oscar.groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Fra
         push!(gens_J, finish(G))
       end
       J = ideal(Qy, gens_J)
-      @vtime :ModStdQt 2 gJ = groebner_basis(J, ord = ord, complete_reduction = true, Proof = false)
+      #@vtime :ModStdQt 2 gJ = groebner_basis(J, ord = ord, complete_reduction = true, Proof = false)
+      # Tommy: There is not groebner_basis with Proof = false. But there is groebner_assure ...
       if frst
         lst = []
         for _g = gJ
