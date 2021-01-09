@@ -12,6 +12,9 @@
     A = abelian_group([4 3 0 1;   0 0 0 3])
     GrpElems = [A([convert(fmpz,x) for x= [1,0,2,1]]), A([convert(fmpz,x) for x= [1,1,0,0]]), A([convert(fmpz,x) for x= [2,2,1,0]])]
 
+    T = grade(Qx)
+    @test sprint(show, "text/plain", T(x)//T(1)) isa String
+
     Rings_dec=[]
     v= [1,1,2]
     for R in Rings
