@@ -135,6 +135,38 @@ end
 
 ################################################################################
 #
+#  Binary ad hoc operations
+#
+################################################################################
+
+divexact(a::MPolyElem_dec, b::RingElem) = MPolyElem_dec(divexact(a.f, b), a.parent)
+
+divexact(a::MPolyElem_dec, b::Integer) = MPolyElem_dec(divexact(a.f, b), a.parent)
+
+divexact(a::MPolyElem_dec, b::Rational) = MPolyElem_dec(divexact(a.f, b), a.parent)
+
+for T in [:(-), :(+)]
+  @eval ($T)(a::MPolyElem_dec,
+             b::RingElem) = MPolyElem_dec($(T)(a.poly, b), a.parent)
+
+  @eval ($T)(a::MPolyElem_dec,
+             b::Integer) = MPolyElem_dec($(T)(a.poly, b), a.parent)
+
+  @eval ($T)(a::MPolyElem_dec,
+             b::Rational) = MPolyElem_dec($(T)(a.poly, b), a.parent)
+
+  @eval ($T)(a::RingElem,
+             b::MPolyElem_dec) = MPolyElem_dec($(T)(a, b.poly), b.parent)
+
+  @eval ($T)(a::Integer,
+             b::MPolyElem_dec) = MPolyElem_dec($(T)(a, b.poly), b.parent)
+
+  @eval ($T)(a::Rational,
+             b::MPolyElem_dec) = MPolyElem_dec($(T)(a, b.poly), b.parent)
+end
+
+################################################################################
+#
 #  Equality
 #
 ################################################################################
