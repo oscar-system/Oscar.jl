@@ -52,11 +52,16 @@ end
   I = [f, g]
   S, (a, b, c) = PolynomialRing(QQ, ["a", "b", "c"])
   J = ideal(S, [(c^2+1)*(c^3+2)^2, b-c^2])
+  r1 = c^2-b
+  r2 = b^2*c+c^3+2*c^2+2
+  L = gens(radical(J))
 
   @test jacobi_ideal(f) == ideal(R, [2*x, 2*y])
   @test jacobi_matrix(f) == matrix(R, 2, 1, [2*x, 2*y])
   @test jacobi_matrix(I) == matrix(R, 2, 2, [2*x, 4*x^3*y-y^3, 2*y, x^4-3*x*y^2])
-  @test gens(radical(J)) == [c^2-b, b^2*c+c^3+2*c^2+2]
+  @test length(L) == 2
+  @test length(findall(x->x==r1, L)) == 1
+  @test length(findall(x->x==r2, L)) == 1
 end
 
 @testset "Groebner" begin
