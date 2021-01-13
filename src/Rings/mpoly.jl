@@ -193,6 +193,7 @@ function (S::Singular.Rationals)(a::fmpq)
 end
 
 (Ox::MPolyRing)(f::MPolyElem) = convert(Ox, f)
+(Ox::AbstractAlgebra.Generic.MPolyRing{T})(f::MPolyElem) where T<:Union{RingElem, AbstractFloat, Integer, Rational} = convert(Ox, f)
 (F::Singular.N_ZpField)(a::Nemo.gfp_elem) = F(lift(a))
 (F::Singular.N_ZpField)(a::Nemo.nmod) = F(lift(a))
 (F::Nemo.GaloisField)(a::Singular.n_Zp) = F(Int(a))
