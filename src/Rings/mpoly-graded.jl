@@ -108,6 +108,7 @@ parent_type(::Type{MPolyElem_dec{T}}) where {T} = MPolyRing_dec{T}
 (W::MPolyRing_dec)() = MPolyElem_dec(W.R(), W)
 (W::MPolyRing_dec)(i::Int) = MPolyElem_dec(W.R(i), W)
 (W::MPolyRing_dec)(i::RingElem) = MPolyElem_dec(W.R(i), W)
+(W::MPolyRing_dec)(f::Singular.spoly) = MPolyElem_dec(W.R(f), W)
 (W::MPolyRing_dec)(f::MPolyElem) = MPolyElem_dec(f, W)
 (W::MPolyRing_dec)(g::MPolyElem_dec) = MPolyElem_dec(g.f, W)
 one(W::MPolyRing_dec) = MPolyElem_dec(one(W.R), W)
