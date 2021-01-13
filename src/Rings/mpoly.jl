@@ -318,6 +318,10 @@ function ideal(Rx::MPolyRing, g::Array{<:Any, 1})
   return ideal(f)
 end
 
+function ideal(Rx::MPolyRing, s::Singular.sideal)
+  return MPolyIdeal(Rx, s)
+end
+
 function singular_assure(I::MPolyIdeal)
   singular_assure(I.gens)
 end
