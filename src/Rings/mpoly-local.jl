@@ -121,7 +121,7 @@ mutable struct BiPolyArrayLoc{S}
     R = Ox.base_ring
     m = Ox.max_ideal
     phi = hom(R, R, m.gens.O)
-    r.O = Ox.(phi.([convert(R, x) for x = gens(b)]))
+    r.O = Ox.(phi.([R(x) for x = gens(b)]))
     return r
   end
   function BiPolyArrayLoc(a::Array{T, 1}; ord::Symbol = :negdegrevlex) where T <: MPolyElemLoc
@@ -168,14 +168,14 @@ end
 
 function Base.getindex(A::BiPolyArrayLoc, ::Val{:S}, i::Int)
   if !isdefined(A, :S)
-    A.S = Singular.Ideal(A.Sx, [convert(A.Sx, x) for x = A.O])
+    A.S = Singular.Ideal(A.Sx, [A.Sx(x) for x = A.O])
   end
   return A.S[i]
 end
 
 function Base.getindex(A::BiPolyArrayLoc, ::Val{:O}, i::Int)
   if !isassigned(A.O, i)
-    A.O[i] = convert(A.Ox, A.S[i])
+    A.O[i] = A.Ox(A.S[i])
   end
   return A.O[i]
 end
@@ -262,7 +262,7 @@ function singular_assure(I::BiPolyArrayLoc)
     m = I.Ox.max_ideal
     Q = I.Ox
     phi = hom(R, R, [2*gen(R, i)-m.gens.O[i] for i in 1:nvars(R)])
-    I.S = Singular.Ideal(I.Sx, [convert(I.Sx, phi(numerator(x))) for x = I.O])
+    I.S = Singular.Ideal(I.Sx, [I.Sx(phi(numerator(x))) for x = I.O])
   end
 end
 

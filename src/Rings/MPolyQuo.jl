@@ -84,7 +84,7 @@ function simplify!(a::MPolyQuoElem)
   Sx = base_ring(I.gb.S)
   I.gb.S.isGB = true
   f = a.f
-  a.f = convert(I.gens.Ox, reduce(convert(Sx, f), I.gb.S))
+  a.f = I.gens.Ox(reduce(Sx(f), I.gb.S))
   return a
 end
 
@@ -123,7 +123,7 @@ function _kbase(Q::MPolyQuo)
   if iszero(s)
     error("ideal was no zero-dimensional")
   end
-  return [convert(Q.R, x) for x = gens(s)]
+  return [Q.R(x) for x = gens(s)]
 end
 
 #TODO: the reverse map...

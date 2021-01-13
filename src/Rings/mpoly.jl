@@ -136,14 +136,14 @@ end
 
 function Base.getindex(A::BiPolyArray, ::Val{:S}, i::Int)
   if !isdefined(A, :S)
-    A.S = Singular.Ideal(A.Sx, [convert(A.Sx, x) for x = A.O])
+    A.S = Singular.Ideal(A.Sx, [A.Sx(x) for x = A.O])
   end
   return A.S[i]
 end
 
 function Base.getindex(A::BiPolyArray, ::Val{:O}, i::Int)
   if !isassigned(A.O, i)
-    A.O[i] = convert(A.Ox, A.S[i])
+    A.O[i] = A.Ox(A.S[i])
   end
   return A.O[i]
 end
@@ -178,10 +178,10 @@ Base.eltype(::BiPolyArray{S}) where S = S
 # singular_ring(Nemo-Ring) tries to create the appropriate Ring
 #
 
-function Base.convert(Ox::MPolyRing, f::MPolyElem) 
+function (Ox::MPolyRing)(f::Singular.spoly)
   O = base_ring(Ox)
   g = MPolyBuildCtx(Ox)
-  for (c, e) = Base.Iterators.zip(MPolyCoeffs(f), MPolyExponentVectors(f))
+  for (c, e) = Base.Iterators.zip(Singular.coeffs(f), Singular.exponent_vectors(f))
     push_term!(g, O(c), e)
   end
   return finish(g)
@@ -324,14 +324,14 @@ end
 
 function singular_assure(I::BiPolyArray)
   if !isdefined(I, :S)
-    I.S = Singular.Ideal(I.Sx, [convert(I.Sx, x) for x = I.O])
+    I.S = Singular.Ideal(I.Sx, [I.Sx(x) for x = I.O])
   end
 end
 
 
 function oscar_assure(I::MPolyIdeal)
   if !isdefined(I.gens, :O)
-    I.gens.O = [convert(I.gens.Ox, x) for x = gens(I.gens.S)]
+    I.gens.O = [I.gens.Ox(x) for x = gens(I.gens.S)]
   end
 end
 
@@ -411,13 +411,13 @@ end
 function groebner_basis(B::BiPolyArray; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
   if ord != :degrevlex
     R = singular_ring(B.Ox, ord)
-    i = Singular.Ideal(R, [convert(R, x) for x = B])
+    i = Singular.Ideal(R, [R(x) for x = B])
 #    @show "std on", i, B
     i = Singular.std(i, complete_reduction = complete_reduction)
     return BiPolyArray(B.Ox, i)
   end
   if !isdefined(B, :S)
-    B.S = Singular.Ideal(B.Sx, [convert(B.Sx, x) for x = B.O])
+    B.S = Singular.Ideal(B.Sx, [B.Sx(x) for x = B.O])
   end
 #  @show "dtd", B.S
   return BiPolyArray(B.Ox, Singular.std(B.S, complete_reduction = complete_reduction))
@@ -426,18 +426,18 @@ end
 function groebner_basis_with_transform(B::BiPolyArray; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
   if ord != :degrevlex
     R = singular_ring(B.Ox, ord)
-    i = Singular.Ideal(R, [convert(R, x) for x = B])
+    i = Singular.Ideal(R, [R(x) for x = B])
 #    @show "std on", i, B
     i, m = Singular.lift_std(i, complete_reduction = complete_reduction)
-    return BiPolyArray(B.Ox, i), map_entries(x->convert(B.Ox, x), m)
+    return BiPolyArray(B.Ox, i), map_entries(x->B.Ox(x), m)
   end
   if !isdefined(B, :S)
-    B.S = Singular.Ideal(B.Sx, [convert(B.Sx, x) for x = B.O])
+    B.S = Singular.Ideal(B.Sx, [B.Sx(x) for x = B.O])
   end
 #  @show "dtd", B.S
 
   i, m = Singular.lift_std(B.S, complete_reduction = complete_reduction)
-  return BiPolyArray(B.Ox, i), map_entries(x->convert(B.Ox, x), m)
+  return BiPolyArray(B.Ox, i), map_entries(x->B.Ox(x), m)
 end
 
 function map_entries(R, M::Singular.smatrix)
@@ -452,7 +452,7 @@ function syzygy_module(a::Array{MPolyElem, 1})
 end
 
 
-function convert(F::Generic.FreeModule, s::Singular.svector)
+function (F::Generic.FreeModule)(s::Singular.svector)
   pv = Tuple{Int, elem_type(base_ring(F))}[]
   pos = Int[]
   values = []
@@ -481,7 +481,7 @@ function syzygy_generators(a::Array{<:MPolyElem, 1})
   s = Singular.syz(I.gens.S)
   F = free_module(parent(a[1]), length(a))
   @assert rank(s) == length(a)
-  return [convert(F, s[i]) for i=1:Singular.ngens(s)]
+  return [F(s[i]) for i=1:Singular.ngens(s)]
 end
 
 function dim(I::MPolyIdeal)
@@ -496,7 +496,7 @@ end
 function Base.in(f::MPolyElem, I::MPolyIdeal)
   groebner_assure(I)
   Sx = base_ring(I.gb.S)
-  return Singular.iszero(reduce(convert(Sx, f), I.gb.S))
+  return Singular.iszero(reduce(Sx(f), I.gb.S))
 end
 
 function base_ring(I::MPolyIdeal)
@@ -511,7 +511,7 @@ end
 function groebner_basis(I::MPolyIdeal, ord::Symbol; complete_reduction::Bool=false)
   R = singular_ring(base_ring(I), ord)
   !Oscar.Singular.has_global_ordering(R) && error("The ordering has to be a global ordering.")
-  i = Singular.std(Singular.Ideal(R, [convert(R, x) for x = gens(I)]), complete_reduction = complete_reduction)
+  i = Singular.std(Singular.Ideal(R, [R(x) for x = gens(I)]), complete_reduction = complete_reduction)
   return collect(BiPolyArray(base_ring(I), i))
 end
 
@@ -639,7 +639,7 @@ function coordinates(a::Array{<:MPolyElem, 1}, b::Array{<:MPolyElem, 1})
   singular_assure(ib)
   c = _lift(ia.gens.S, ib.gens.S)
   F = free_module(parent(a[1]), length(a))
-  return [convert(F, c[x]) for x = 1:Singular.ngens(c)]
+  return [F(c[x]) for x = 1:Singular.ngens(c)]
 end
 
 function coordinates(a::Array{<:MPolyElem, 1}, b::MPolyElem)
@@ -664,9 +664,9 @@ mutable struct MPolyHom_alg{T1, T2}  <: Map{T1, T2, Hecke.HeckeMap, MPolyHom_var
   end
 
   function im_func(r, a::MPolyElem)
-    A = convert(singular_ring(r.header.domain, keep_ordering = false), a)
+    A = singular_ring(r.header.domain, keep_ordering = false)(a)
     B = Singular.map_poly(r.f, A)
-    return convert(r.header.codomain, B)
+    return r.header.codomain(B)
   end
 
   function im_func(r, a::MPolyIdeal)
@@ -679,7 +679,7 @@ mutable struct MPolyHom_alg{T1, T2}  <: Map{T1, T2, Hecke.HeckeMap, MPolyHom_var
 #    ib = ideal(codomain(r), [b])
 #    singular_assure(ib)
 #    A = Singular.preimage(r.f, ib.gens.S)
-#    return convert(r.header.domain, gens(A)[1])
+#    return r.header.domain(gens(A)[1])
 #  end
 
   function pr_func(r, b::MPolyIdeal)
@@ -724,7 +724,7 @@ function eliminate(I::MPolyIdeal, l::Array{<:MPolyElem, 1})
   singular_assure(I)
   B = BiPolyArray(l)
   S = base_ring(I.gens.S)
-  s = Singular.eliminate(I.gens.S, [convert(S, x) for x = l]...)
+  s = Singular.eliminate(I.gens.S, [S(x) for x = l]...)
   return MPolyIdeal(base_ring(I), s)
 end
 
@@ -1076,6 +1076,6 @@ function factor(f::MPolyElem)
   I = ideal(parent(f), [f])
   fS = Singular.factor(I.gens[Val(:S), 1])
   R = parent(f)
-  return Nemo.Fac(convert(R, fS.unit), Dict(convert(R, k) =>v for (k,v) = fS.fac))
+  return Nemo.Fac(R(fS.unit), Dict(R(k) =>v for (k,v) = fS.fac))
 end
 =#
