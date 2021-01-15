@@ -88,7 +88,7 @@ const is_dev = (function(m)
             end
           end
         end
-        return occursin("-dev", lowercase(VERSION_NUMBER))
+        return occursin("-dev", lowercase(string(VERSION_NUMBER)))
     end)(@__MODULE__)
 
 const IJuliaMime = Union{MIME"text/latex", MIME"text/html"}
