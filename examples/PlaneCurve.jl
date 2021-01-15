@@ -1,6 +1,6 @@
 module PlaneCurveModule
 using Oscar, Markdown
-import Base.==
+import Base.:(==)
 
 export factor, gcd, div, Point, ideal_point, AffinePlaneCurve, ProjPlaneCurve,
        hash, degree, jacobi_ideal, curve_components, isirreducible, isreduced,
@@ -67,6 +67,12 @@ end
 
 function ==(P::Point, Q::Point)
   return P.coord == Q.coord
+end
+
+################################################################################
+
+function Base.hash(P::Point, h::UInt)
+  return hash(P.coord, h)
 end
 
 ################################################################################
@@ -254,7 +260,7 @@ function Oscar.isreduced(C::PlaneCurve)
   if isempty(C.components)
      L = factor_squarefree(defining_equation(C))
      return all(isone, values(L.fac))
-  else 
+  else
      return all(isone, values(C.components))
   end
 end
@@ -309,6 +315,7 @@ end
 
 include("AffinePlaneCurve.jl")
 include("ProjPlaneCurve.jl")
+include("DivisorCurve.jl")
 
 ################################################################################
 end
