@@ -865,6 +865,9 @@ function Base.iterate(B::BlockSystems)
 end
 
 function Base.iterate(B::BlockSystems, st::Array{Array{Int, 1}})
+if B.l==1||B.l==B.n
+  return nothing
+else
   i = length(B.cur)-1
   while true
     j = B.l
@@ -876,6 +879,9 @@ function Base.iterate(B::BlockSystems, st::Array{Array{Int, 1}})
           setdiff!(free, st[l])
         end
         if !(st[i][j] in free) 
+          continue
+        end
+        if length(intersect(free, Set(st[i][j]+1:B.n)))<B.l-j
           continue
         end
         setdiff!(free, st[i][1:j])
@@ -906,6 +912,7 @@ function Base.iterate(B::BlockSystems, st::Array{Array{Int, 1}})
       end
     end
   end
+end
 end
 Base.IteratorSize(::BlockSystems) = Base.SizeUnknown()
 
