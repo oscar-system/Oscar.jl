@@ -1,5 +1,5 @@
 export AffineCurveDivisor, ProjCurveDivisor, iseffective, multiplicity,
-       divisor
+       divisor, curve
 
 ################################################################################
 
@@ -12,13 +12,13 @@ abstract type CurveDivisor end
 
 Given a curve `C` which is assumed to be smooth and irreducible, return the divisor on the curve `C` defined by `D`.
 """
-mutable struct AffineCurveDivisor{S <: FieldElem} <: CurveDivisor
+struct AffineCurveDivisor{S <: FieldElem} <: CurveDivisor
     C::AffinePlaneCurve{S}
     divisor::Dict{Point{S}, Int}
     degree::Int
     function AffineCurveDivisor(C::AffinePlaneCurve{S}, D::Dict{Point{S}, Int}) where S <: FieldElem
         for P in keys(D)
-            iszero(evaluate(C.eq, P.coord)) || error("The point ", P.coord, "is not on the curve.")
+            check_on_curve(C, P) || error("The point ", P.coord, " is not on the curve")
             if iszero(D[P])
                 delete!(D, P)
             end
@@ -30,7 +30,6 @@ mutable struct AffineCurveDivisor{S <: FieldElem} <: CurveDivisor
 end
 
 function AffineCurveDivisor(C::AffinePlaneCurve{S}, P::Point{S}, m::Int=1) where S <: FieldElem
-    iszero(evaluate(C.eq, P.coord)) || error("The point is not on the curve.")
     return AffineCurveDivisor(C, Dict(P => m))
 end
 
@@ -41,13 +40,13 @@ end
 
 Given a curve `C` which is assumed to be smooth and irreducible, return the divisor on the curve `C` defined by `D`.
 """
-mutable struct ProjCurveDivisor{S <: FieldElem} <: CurveDivisor
+struct ProjCurveDivisor{S <: FieldElem} <: CurveDivisor
     C::ProjPlaneCurve{S}
     divisor::Dict{Oscar.Geometry.ProjSpcElem{S}, Int}
     degree::Int
     function ProjCurveDivisor(C::ProjPlaneCurve{S}, D::Dict{Oscar.Geometry.ProjSpcElem{S}, Int}) where S <: FieldElem
         for P in keys(D)
-            iszero(evaluate(C.eq, P.v)) || error("The point ", P, "is not on the curve.")
+            check_on_curve(C, P) || error("The point ", P, " is not on the curve")
             if iszero(D[P])
                 delete!(D, P)
             end
@@ -62,7 +61,6 @@ end
 #end
 
 function ProjCurveDivisor(C::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}, m::Int=1) where S <: FieldElem
-    iszero(evaluate(C.eq, P.v)) || error("The point is not on the curve.")
     return ProjCurveDivisor(C, Dict(P => m))
 end
 
@@ -106,35 +104,28 @@ end
 ################################################################################
 ################################################################################
 
-function help_add(D::CurveDivisor, E::CurveDivisor)
-    D.C == E.C || error("The divisors are not on the same curve.")
-    F = copy(D.divisor)
-    G = copy(E.divisor)
-    ks = keys(F)
-    for P in keys(E.divisor)
-        if P in ks
-            a = F[P] + G[P]
-            F[P] = a
-            delete!(G, P)
-        end
-    end
-    for P in keys(G)
-        F[P] = G[P]
-    end
-    return F
+function curve(D::CurveDivisor)
+    return D.C
 end
 
+################################################################################
+
+function _check_same_curve(D::CurveDivisor, E::CurveDivisor)
+    return D.C == E.C
+end
+
+################################################################################
 ################################################################################
 # Sum of two divisors
 
 function Base.:+(D::AffineCurveDivisor, E::AffineCurveDivisor)
-    F = help_add(D, E)
-    return AffineCurveDivisor(D.C, F)
+    _check_same_curve(D, E) || error("The divisors are not on the same curve.")
+    return AffineCurveDivisor(D.C, mergewith(+, D.divisor, E.divisor))
 end
 
 function Base.:+(D::ProjCurveDivisor, E::ProjCurveDivisor)
-    F = help_add(D, E)
-    return ProjCurveDivisor(D.C, F)
+    _check_same_curve(D, E) || error("The divisors are not on the same curve.")
+    return ProjCurveDivisor(D.C, mergewith(+, D.divisor, E.divisor))
 end
 
 ################################################################################
@@ -146,22 +137,26 @@ end
 ################################################################################
 ################################################################################
 
-function help_int_multiplication(D::CurveDivisor, k::Int)
-    F = copy(D.divisor)
-    for P in keys(F)
-        F[P] = k*D.divisor[P]
+function Base.:*(k::Int, D::AffineCurveDivisor{S}) where S <: FieldElem
+    if k == 0
+        return AffineCurveDivisor(D.C, Dict{Point{S}, Int}())
+    elseif k == 1
+        return D
+    else
+        F = Dict((P, k*m) for (P, m) in D.divisor)
+        return AffineCurveDivisor(D.C, F)
     end
-    return F
 end
 
-function Base.:*(k::Int, D::AffineCurveDivisor)
-    F = help_int_multiplication(D, k)
-    return AffineCurveDivisor(D.C, F)
-end
-
-function Base.:*(k::Int, D::ProjCurveDivisor)
-    F = help_int_multiplication(D, k)
-    return ProjCurveDivisor(D.C, F)
+function Base.:*(k::Int, D::ProjCurveDivisor{S}) where S <: FieldElem
+    if k == 0
+        return ProjCurveDivisor(D.C, Dict{Oscar.Geometry.ProjSpcElem{S}, Int}())
+    elseif k == 1
+        return D
+    else
+        F = Dict((P, k*m) for (P, m) in D.divisor)
+        return ProjCurveDivisor(D.C, F)
+    end
 end
 
 ################################################################################
@@ -188,7 +183,7 @@ end
 @doc Markdown.doc"""
     multiplicity(C::AffinePlaneCurve, phi::AbstractAlgebra.Generic.Frac, P::Point)
 
-Return the multiplicity of `phi` on the curve `C` at the point `P`.
+Return the multiplicity of the rational function `phi` on the curve `C` at the point `P`.
 """
 function multiplicity(C::AffinePlaneCurve, phi::AbstractAlgebra.Generic.Frac, P::Point)
     f = divrem(phi.num, C.eq)
@@ -214,7 +209,7 @@ end
 @doc Markdown.doc"""
     multiplicity(C::AffinePlaneCurve{S}, F::Oscar.MPolyElem{S}, P::Point{S}) where S <: FieldElem
 
-Return the multiplicity of `F` on the curve `C` at the point `P`.
+Return the multiplicity of the polynomial `F` on the curve `C` at the point `P`.
 """
 function multiplicity(C::AffinePlaneCurve{S}, F::Oscar.MPolyElem{S}, P::Point{S}) where S <: FieldElem
     f = divrem(F, C.eq)
@@ -230,11 +225,11 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    multiplicity(C::ProjPlaneCurve{S}, F::Oscar.MPolyElem{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
+    multiplicity(C::ProjPlaneCurve{S}, F::Oscar.MPolyElem_dec{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
 
-Return the multiplicity of `F` on the curve `C` at the point `P`.
+Return the multiplicity of the polynomial `F` on the curve `C` at the point `P`.
 """
-function multiplicity(C::ProjPlaneCurve{S}, F::Oscar.MPolyElem{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
+function multiplicity(C::ProjPlaneCurve{S}, F::Oscar.MPolyElem_dec{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
     f = divrem(F.f, defining_equation(C))
     if iszero(f[2])
         return Inf
@@ -252,7 +247,7 @@ end
 @doc Markdown.doc"""
     divisor(C::AffinePlaneCurve{S}, F::Oscar.MPolyElem{S}) where S <: FieldElem
 
-Return the divisor on the curve `C` defined by `F`.
+Return the divisor defined by the polynomial `F` on the curve `C`.
 """
 function divisor(C::AffinePlaneCurve{S}, F::Oscar.MPolyElem{S}) where S <: FieldElem
     f = divrem(F, C.eq)
@@ -273,7 +268,7 @@ end
 @doc Markdown.doc"""
     divisor(C::AffinePlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac) where S <: FieldElem
 
-Return the divisor on the curve `C` defined by `phi`.
+Return the divisor defined by the rational function `phi` on the curve `C`.
 """
 function divisor(C::AffinePlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac) where S <: FieldElem
     g = divrem(phi.den, C.eq)
@@ -296,31 +291,35 @@ function divisor(C::AffinePlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac) wher
             F[P] = -intersection_multiplicity(C, CD, P)
         end
     end
-    DE = AffineCurveDivisor(C, E)
-    DF = AffineCurveDivisor(C, F)
-    return DE + DF
+    return AffineCurveDivisor(C, mergewith(+, E, F))
 end
 
 ################################################################################
 
 @doc Markdown.doc"""
-    divisor(C::ProjPlaneCurve{S}, F::Oscar.MPolyElem_dec{S}) where S <: FieldElem
+    divisor(C::ProjPlaneCurve{S}, F::Oscar.MPolyElem_dec{S}, PP::Oscar.Geometry.ProjSpc{S}) where S <: FieldElem
 
-Return the divisor on the curve `C` defined by `F`.
+Return the divisor defined by the polynomial `F` on the curve `C`. The points of the divisor are in the projective space `PP` if specified, or in a new projective space otherwise.
 """
-function divisor(C::ProjPlaneCurve{S}, F::Oscar.MPolyElem_dec{S}) where S <: FieldElem
+function divisor(PP::Oscar.Geometry.ProjSpc{S}, C::ProjPlaneCurve{S}, F::Oscar.MPolyElem_dec{S}) where S <: FieldElem
     f = divrem(F.f, defining_equation(C))
     !iszero(f[2]) || error("The polynomial is zero on the curve.")
     E = Dict{Oscar.Geometry.ProjSpcElem{S}, Int}()
     if !isconstant(f[2])
         R = parent(C.eq)
         CC = ProjPlaneCurve(R(f[2]))
-        L = curve_intersect(C, CC)
+        L = curve_intersect(PP, C, CC)
         for P in L[2]
             E[P] = intersection_multiplicity(C, CC, P)
         end
     end
     return ProjCurveDivisor(C, E)
+end
+
+function divisor(C::ProjPlaneCurve{S}, F::Oscar.MPolyElem_dec{S}) where S <: FieldElem
+    R = parent(C.eq)
+    PP = projective_space(R.R.base_ring, 2)
+    return divisor(PP[1], C, F)
 end
 
 ################################################################################

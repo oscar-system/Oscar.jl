@@ -4,7 +4,7 @@ import Base.:(==)
 
 export factor, gcd, div, Point, ideal_point, AffinePlaneCurve, ProjPlaneCurve,
        hash, degree, jacobi_ideal, curve_components, isirreducible, isreduced,
-       reduction, union
+       reduction, union, check_on_curve
 
 ################################################################################
 
@@ -170,6 +170,16 @@ function ==(C::PlaneCurve, D::PlaneCurve)
   F = defining_equation(C)
   G = defining_equation(D)
   return degree(C) == degree(D) && F*(lc(G)//lc(F)) == G
+end
+
+################################################################################
+
+function check_on_curve(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
+  return iszero(evaluate(C.eq, P.coord))
+end
+
+function check_on_curve(C::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
+  return iszero(evaluate(C.eq, P.v))
 end
 
 ################################################################################
