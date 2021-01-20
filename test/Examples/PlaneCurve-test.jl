@@ -1,3 +1,5 @@
+Oscar.example("PlaneCurve.jl")
+
 @testset "AffinePlaneCurve constructors" begin
     R, (x,y) = PolynomialRing(QQ, ["x", "y"])
     F = y^3*x^6 - y^6*x^2
@@ -252,7 +254,8 @@ end
 
 @testset "ProjCurveDivisor basic functions" begin
 	S, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
-	C = ProjPlaneCurve(y^2 + y*z + x^2)
+	T = grade(S)
+	C = ProjPlaneCurve(T(y^2 + y*z + x^2))
 	PP = projective_space(QQ, 2)
 	P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(0), QQ(1)])
 	Q = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(-1), QQ(1)])
@@ -260,8 +263,8 @@ end
 	@test ProjCurveDivisor(C, P, -3) + D == ProjCurveDivisor(C, Q, -2)
 	@test -2*D == ProjCurveDivisor(C, Dict(P => -6, Q => 4))
 	@test !iseffective(D)
-	@test iseffective(AffineCurveDivisor(C, P, 3))
-	F = x
+	@test iseffective(ProjCurveDivisor(C, P, 3))
+	F = T(x)
 	@test multiplicity(C, F, P) == 1
 	@test divisor(PP[1], C, F) == ProjCurveDivisor(C, Dict(P => 1, Q => 1))
 end

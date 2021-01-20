@@ -4,7 +4,7 @@ import Base.:(==)
 
 export factor, gcd, div, Point, ideal_point, AffinePlaneCurve, ProjPlaneCurve,
        hash, degree, jacobi_ideal, curve_components, isirreducible, isreduced,
-       reduction, union, check_on_curve
+       reduction, union, ison_curve
 
 ################################################################################
 
@@ -173,12 +173,21 @@ function ==(C::PlaneCurve, D::PlaneCurve)
 end
 
 ################################################################################
+@doc Markdown.doc"""
+    ison_curve(P::Point{S}, C::AffinePlaneCurve{S})
 
-function check_on_curve(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
+Return `true` if the point `P` is on the curve `C`, and `false` otherwise.
+"""
+function Oscar.ison_curve(P::Point{S}, C::AffinePlaneCurve{S}) where S <: FieldElem
   return iszero(evaluate(C.eq, P.coord))
 end
 
-function check_on_curve(C::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
+@doc Markdown.doc"""
+    ison_curve(P::Oscar.Geometry.ProjSpcElem{S}, C::ProjPlaneCurve{S})
+
+Return `true` if the point `P` is on the curve `C`, and `false` otherwise.
+"""
+function Oscar.ison_curve(P::Oscar.Geometry.ProjSpcElem{S}, C::ProjPlaneCurve{S}) where S <: FieldElem
   return iszero(evaluate(C.eq, P.v))
 end
 
