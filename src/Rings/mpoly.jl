@@ -29,7 +29,7 @@ export PolynomialRing, total_degree, degree, MPolyElem, ordering, ideal,
 #allows
 # PolynomialRing(QQ, :a=>1:3, "b"=>1:3, "c=>1:5:10)
 # -> QQx, [a1, a2, a3], [b1 ,b2, b3], ....
-function PolynomialRing(R::AbstractAlgebra.Ring, v::Pair{<:Union{String, Symbol}, <:Union{StepRange{Int, Int}, UnitRange{Int}}}...; cached::Bool = false)
+function PolynomialRing(R::AbstractAlgebra.Ring, v::Pair{<:Union{String, Symbol}, <:Union{StepRange{Int, Int}, UnitRange{Int}}}...; cached::Bool = false, ordering::Symbol = :lex)
   s = String[]
   g = []
   j = 1
@@ -51,7 +51,7 @@ function PolynomialRing(R::AbstractAlgebra.Ring, v::Pair{<:Union{String, Symbol}
     end
     push!(g, h)
   end
-  Rx, c = PolynomialRing(R, s, cached = cached)
+  Rx, c = PolynomialRing(R, s, cached = cached, ordering = ordering)
   return Rx, [c[x] for x = g]...
 end
 
