@@ -865,9 +865,9 @@ function Base.iterate(B::BlockSystems)
 end
 
 function Base.iterate(B::BlockSystems, st::Array{Array{Int, 1}})
-if B.l==1||B.l==B.n
-  return nothing
-else
+  if B.l==1||B.l==B.n
+    return nothing
+  end
   i = length(B.cur)-1
   while true
     j = B.l
@@ -912,7 +912,6 @@ else
       end
     end
   end
-end
 end
 Base.IteratorSize(::BlockSystems) = Base.SizeUnknown()
 
