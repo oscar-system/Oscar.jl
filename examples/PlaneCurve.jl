@@ -1,10 +1,10 @@
 module PlaneCurveModule
 using Oscar, Markdown
-import Base.:(==)
+import Base.==
 
 export factor, gcd, div, Point, ideal_point, AffinePlaneCurve, ProjPlaneCurve,
        hash, degree, jacobi_ideal, curve_components, isirreducible, isreduced,
-       reduction, union, ison_curve
+       reduction, union
 
 ################################################################################
 
@@ -174,20 +174,20 @@ end
 
 ################################################################################
 @doc Markdown.doc"""
-    ison_curve(P::Point{S}, C::AffinePlaneCurve{S})
+    in(P::Point{S}, C::AffinePlaneCurve{S})
 
 Return `true` if the point `P` is on the curve `C`, and `false` otherwise.
 """
-function Oscar.ison_curve(P::Point{S}, C::AffinePlaneCurve{S}) where S <: FieldElem
+function Base.in(P::Point{S}, C::AffinePlaneCurve{S}) where S <: FieldElem
   return iszero(evaluate(C.eq, P.coord))
 end
 
 @doc Markdown.doc"""
-    ison_curve(P::Oscar.Geometry.ProjSpcElem{S}, C::ProjPlaneCurve{S})
+    in(P::Oscar.Geometry.ProjSpcElem{S}, C::ProjPlaneCurve{S})
 
 Return `true` if the point `P` is on the curve `C`, and `false` otherwise.
 """
-function Oscar.ison_curve(P::Oscar.Geometry.ProjSpcElem{S}, C::ProjPlaneCurve{S}) where S <: FieldElem
+function Base.in(P::Oscar.Geometry.ProjSpcElem{S}, C::ProjPlaneCurve{S}) where S <: FieldElem
   return iszero(evaluate(C.eq, P.v))
 end
 

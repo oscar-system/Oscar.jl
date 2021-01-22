@@ -17,15 +17,13 @@ struct AffineCurveDivisor{S <: FieldElem} <: CurveDivisor
     divisor::Dict{Point{S}, Int}
     degree::Int
     function AffineCurveDivisor(C::AffinePlaneCurve{S}, D::Dict{Point{S}, Int}) where S <: FieldElem
-        for P in keys(D)
-            ison_curve(P, C) || error("The point ", P.coord, " is not on the curve")
-            if iszero(D[P])
+        for (P, m) in D
+            P in C || error("The point ", P.coord, " is not on the curve")
+            if m == 0
                 delete!(D, P)
             end
         end
-        new{S}(C,
-            D,
-            sum(values(D)))
+        new{S}(C, D, sum(values(D)))
     end
 end
 
@@ -45,20 +43,15 @@ struct ProjCurveDivisor{S <: FieldElem} <: CurveDivisor
     divisor::Dict{Oscar.Geometry.ProjSpcElem{S}, Int}
     degree::Int
     function ProjCurveDivisor(C::ProjPlaneCurve{S}, D::Dict{Oscar.Geometry.ProjSpcElem{S}, Int}) where S <: FieldElem
-        for P in keys(D)
-            ison_curve(P, C) || error("The point ", P, " is not on the curve")
-            if iszero(D[P])
+        for (P, m) in D
+            P in C || error("The point ", P, " is not on the curve")
+            if m == 0
                 delete!(D, P)
             end
         end
-        new{S}(C,
-            D,
-            sum(values(D)))
+        new{S}(C, D, sum(values(D)))
     end
 end
-#function Base.show(io::IO, D::ProjCurveDivisor)
-#    println(io, "On the curve ", D.C.eq, ", divisor defined by ", D.divisor)
-#end
 
 function ProjCurveDivisor(C::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}, m::Int=1) where S <: FieldElem
     return ProjCurveDivisor(C, Dict(P => m))
@@ -74,9 +67,9 @@ end
 
 function AbstractAlgebra.expressify(@nospecialize(a::AffineCurveDivisor); context = nothing)
    prod = Expr(:call, :+)
-   for (p, i) in a.divisor
-      ep = AbstractAlgebra.expressify(p.coord, context = context)
-      push!(prod.args, Expr(:call, :*, i, ep))
+   for (P, m) in a.divisor
+      ep = AbstractAlgebra.expressify(P.coord, context = context)
+      push!(prod.args, Expr(:call, :*, m, ep))
    end
    return prod
 end
@@ -87,9 +80,9 @@ end
 
 function AbstractAlgebra.expressify(@nospecialize(a::ProjCurveDivisor); context = nothing)
    prod = Expr(:call, :+)
-   for (p, i) in a.divisor
-      ep = AbstractAlgebra.expressify(p, context = context)
-      push!(prod.args, Expr(:call, :*, i, ep))
+   for (P, m) in a.divisor
+      ep = AbstractAlgebra.expressify(P, context = context)
+      push!(prod.args, Expr(:call, :*, m, ep))
    end
    return prod
 end
@@ -116,7 +109,7 @@ end
 ################################################################################
 
 function _check_same_curve(D::CurveDivisor, E::CurveDivisor)
-    return D.C == E.C
+    D.C == E.C || error("The divisors are not on the same curve")
 end
 
 ################################################################################
@@ -124,19 +117,36 @@ end
 # Sum of two divisors
 
 function Base.:+(D::AffineCurveDivisor, E::AffineCurveDivisor)
-    _check_same_curve(D, E) || error("The divisors are not on the same curve")
+    _check_same_curve(D, E)
     return AffineCurveDivisor(D.C, mergewith(+, D.divisor, E.divisor))
 end
 
 function Base.:+(D::ProjCurveDivisor, E::ProjCurveDivisor)
-    _check_same_curve(D, E) || error("The divisors are not on the same curve")
+    _check_same_curve(D, E)
     return ProjCurveDivisor(D.C, mergewith(+, D.divisor, E.divisor))
 end
 
 ################################################################################
 
-function Base.:-(D::CurveDivisor, E::CurveDivisor)
-    return D + -1*E
+function _help_minus(D::CurveDivisor, E::CurveDivisor)
+    _check_same_curve(D, E)
+    F = copy(D.divisor)
+    for (P, m) in E.divisor
+        if haskey(F, P)
+            F[P] -= m
+        else
+            F[P] = -m
+        end
+    end
+    return F
+end
+
+function Base.:-(D::AffineCurveDivisor, E::AffineCurveDivisor)
+    return AffineCurveDivisor(D.C, _help_minus(D, E))
+end
+
+function Base.:-(D::ProjCurveDivisor, E::ProjCurveDivisor)
+    return ProjCurveDivisor(D.C, _help_minus(D, E))
 end
 
 ################################################################################
@@ -182,29 +192,18 @@ end
 
 ################################################################################
 ################################################################################
+# TODO: take phi in the function field of C when fixed
 
 @doc Markdown.doc"""
-    multiplicity(C::AffinePlaneCurve, phi::AbstractAlgebra.Generic.Frac, P::Point)
+    multiplicity(C::AffinePlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T}, P::Point{S}) where {S <: FieldElem, T <: MPolyElem{S}}
 
 Return the multiplicity of the rational function `phi` on the curve `C` at the point `P`.
 """
-function multiplicity(C::AffinePlaneCurve, phi::AbstractAlgebra.Generic.Frac, P::Point)
+function multiplicity(C::AffinePlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T}, P::Point{S}) where {S <: FieldElem, T <: MPolyElem{S}}
     f = divrem(phi.num, C.eq)
     g = divrem(phi.den, C.eq)
     !iszero(g[2]) || error("This is not a rational function on `C`")
-    if iszero(f[2])
-        return Inf
-    elseif isconstant(f[2])
-        a = 0
-    else
-        a = intersection_multiplicity(C, AffinePlaneCurve(f[2]), P)
-    end
-    if isconstant(g[2])
-        b = 0
-    else
-        b = intersection_multiplicity(C, AffinePlaneCurve(g[2]), P)
-    end
-    return a-b
+    return multiplicity(C, f[2], P) - multiplicity(C, g[2], P)
 end
 
 ###############################################################################
@@ -267,34 +266,19 @@ function divisor(C::AffinePlaneCurve{S}, F::Oscar.MPolyElem{S}) where S <: Field
 end
 
 ################################################################################
+# TODO: take phi in the function field of C when fixed
 
 @doc Markdown.doc"""
-    divisor(C::AffinePlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac) where S <: FieldElem
+    divisor(C::AffinePlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T}) where {S <: FieldElem, T <: MPolyElem{S}}
 
 Return the divisor defined by the rational function `phi` on the curve `C`.
 """
-function divisor(C::AffinePlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac) where S <: FieldElem
+function divisor(C::AffinePlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T}) where {S <: FieldElem, T <: MPolyElem{S}}
     g = divrem(phi.den, C.eq)
     !iszero(g[2]) || error("This is not a rational function on the curve")
     f = divrem(phi.num, C.eq)
     !iszero(f[2]) || error("The numerator is zero on the curve")
-    E = Dict{Point{S}, Int}()
-    if !isconstant(f[2])
-        CN = AffinePlaneCurve(f[2])
-        LN = curve_intersect(C, CN)
-        for P in LN[2]
-            E[P] = intersection_multiplicity(C, CN, P)
-        end
-    end
-    F = Dict{Point{S}, Int}()
-    if !isconstant(g[2])
-        CD = AffinePlaneCurve(g[2])
-        LD = curve_intersect(C, CD)
-        for P in LD[2]
-            F[P] = -intersection_multiplicity(C, CD, P)
-        end
-    end
-    return AffineCurveDivisor(C, mergewith(+, E, F))
+    return divisor(C, f[2]) - divisor(C, g[2])
 end
 
 ################################################################################
