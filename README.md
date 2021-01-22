@@ -38,10 +38,10 @@ julia> using Oscar
  -----    -----    -----   -     -  -     -  
 
 ...combining (and extending) GAP, Hecke, Nemo, Polymake and Singular
-Version 0.4.0 ... 
+Version 0.5.1-DEV ... 
  ... which comes with absolutely no warranty whatsoever
 Type: '?Oscar' for more information
-(c) 2019-2020 by The Oscar Development Team
+(c) 2019-2021 by The Oscar Development Team
 
 
 julia> k, a = quadratic_field(-5)
