@@ -4,6 +4,7 @@ export
     isconjugate,
     issemisimple,
     isunipotent,
+    pol_elementary_divisors,
     multiplicative_jordan_decomposition
 
 
@@ -15,9 +16,21 @@ export
 #
 ########################################################################
 
+"""
+    multiplicative_jordan_decomposition(M::MatrixGroupElem)
+Return `S` and `U` such that `S` is semisimple, `U` is unipotent and  `M = SU = US`.
+
+!!! warning "WARNING:" 
+    this is *NOT*, in general, the same output returned when `M` has type `MatElem`.
+"""
 function multiplicative_jordan_decomposition(x::MatrixGroupElem)
-   a,b = multiplicative_jordan_decomposition(x.elm)
-   return MatrixGroupElem(x.parent,a), MatrixGroupElem(x.parent,b)
+   a = order(x)
+   p = characteristic(base_ring(x))
+   alpha = valuation(a,p)
+   m = div(a, p^alpha)
+   k = crt(fmpz(0),fmpz(p^alpha),fmpz(1),fmpz(m))
+#   a,b = multiplicative_jordan_decomposition(x.elm)
+   return x^k, x^(a+1-k)
 end
 
 """
@@ -25,7 +38,7 @@ end
 
 Return whether `x` is semisimple, i.e. has order coprime with the characteristic of its base ring.
 """
-issemisimple(x::MatrixGroupElem) = iscoprime(Int(order(x)), Int(characteristic(x.parent.ring)))
+issemisimple(x::MatrixGroupElem) = iscoprime(Int(order(x)::Int), Int(characteristic(x.parent.ring)))
 
 """
     isunipotent(x::MatrixGroupElem)
@@ -69,7 +82,7 @@ end
 
 """
     generalized_jordan_block(f::T, n::Int) where T<:PolyElem
-Return the Jordan block of dimension `n` relative to the elementary divisor `f`.
+Return the Jordan block of dimension `n` corresponding to the polynomial `f`.
 """
 function generalized_jordan_block(f::T, n::Int) where T<:PolyElem
    d = degree(f)
@@ -85,7 +98,7 @@ end
 # TODO is there a way to accelerate the process? pol_elementary_divisors and generalized_jordan_block repeat parts of the same code.
 """
     generalized_jordan_form(A::MatElem{T}; with_pol=false) where T
-Return (`J`,`Z`), where `J` is a diagonal join of Jordan blocks and `Z^-1*J*Z = A`.
+Return (`J`,`Z`), where `Z^-1*J*Z = A` and `J` is a diagonal join of Jordan blocks (corresponding to irreducible polynomials).
 """
 function generalized_jordan_form(A::MatElem{T}; with_pol=false) where T
    V = pol_elementary_divisors(A)

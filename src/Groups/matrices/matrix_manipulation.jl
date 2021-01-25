@@ -13,7 +13,6 @@ export
     isskewsymmetric_matrix,
     partitions,
     permutation_matrix,
-    pol_elementary_divisors,
     submatrix
 
 
