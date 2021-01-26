@@ -155,7 +155,7 @@ end
     H = ProjPlaneCurve(T(x*(x+y)*y))
     M = ProjPlaneCurve((x-y)*(x-2*z))
 	PP = projective_space(QQ, 2)
-	
+
     P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(0), QQ(1)])
     Q = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(2), QQ(-2), QQ(1)])
 	S = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(1), QQ(0)])
@@ -167,9 +167,9 @@ end
     @test curve_intersect(PP[1], F, G) == [[], []]
     @test curve_intersect(PP[1], F, H) == [[ProjPlaneCurve(T(x*(x+y)))], []]
     @test curve_intersect(PP[1], ProjPlaneCurve(T(x+y+z)), ProjPlaneCurve(T(z))) == [[], [Z]]
-	
+
 	L = curve_intersect(PP[1], F, M)
-	
+
 	@test L[1] == []
 	@test length(L[2]) == 3
 	@test length(findall(x->x==P, L[2])) == 1
@@ -187,7 +187,7 @@ end
 	F = ProjPlaneCurve(T((x^2+y^2)*(x^2 + y^2 + 2*y*z)))
     G = ProjPlaneCurve(T((x^2+y^2)*(y^3*x^6 - y^6*x^2*z)))
 	PP = projective_space(QQ, 2)
-	
+
     L = curve_intersect(PP[1], F, G)
     P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(0), QQ(1)])
     Q = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(-2), QQ(1)])
@@ -235,4 +235,36 @@ end
     @test multiplicity(G, P1) == 5
     @test multiplicity(G, P3) == 1
     @test multiplicity(G, P4) == 0
+end
+
+@testset "AffineCurveDivisor basic functions" begin
+	R, (x,y) = PolynomialRing(QQ, ["x", "y"])
+	C = AffinePlaneCurve(y^2 + y + x^2)
+	P = Point([QQ(0), QQ(0)])
+	Q = Point([QQ(0), QQ(-1)])
+	D = AffineCurveDivisor(C, Dict(P => 3, Q => -2))
+	@test AffineCurveDivisor(C, P, -3) + D == AffineCurveDivisor(C, Q, -2)
+	@test -2*D == AffineCurveDivisor(C, Dict(P => -6, Q => 4))
+	@test !iseffective(D)
+	@test iseffective(AffineCurveDivisor(C, P, 3))
+	phi = y//x
+	@test multiplicity(C, phi, P) == 1
+	@test divisor(C, phi) == AffineCurveDivisor(C, Dict(P => 1, Q => -1))
+end
+
+@testset "ProjCurveDivisor basic functions" begin
+	S, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
+	T = grade(S)
+	C = ProjPlaneCurve(T(y^2 + y*z + x^2))
+	PP = projective_space(QQ, 2)
+	P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(0), QQ(1)])
+	Q = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(-1), QQ(1)])
+	D = ProjCurveDivisor(C, Dict(P => 3, Q => -2))
+	@test ProjCurveDivisor(C, P, -3) + D == ProjCurveDivisor(C, Q, -2)
+	@test -2*D == ProjCurveDivisor(C, Dict(P => -6, Q => 4))
+	@test !iseffective(D)
+	@test iseffective(ProjCurveDivisor(C, P, 3))
+	F = T(x)
+	@test multiplicity(C, F, P) == 1
+	@test divisor(PP[1], C, F) == ProjCurveDivisor(C, Dict(P => 1, Q => 1))
 end

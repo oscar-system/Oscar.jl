@@ -70,6 +70,12 @@ function ==(P::Point, Q::Point)
 end
 
 ################################################################################
+
+function Base.hash(P::Point, h::UInt)
+  return hash(P.coord, h)
+end
+
+################################################################################
 # Associate a maximal ideal to a point in a given ring (not specific to curves)
 
 @doc Markdown.doc"""
@@ -167,6 +173,25 @@ function ==(C::PlaneCurve, D::PlaneCurve)
 end
 
 ################################################################################
+@doc Markdown.doc"""
+    in(P::Point{S}, C::AffinePlaneCurve{S})
+
+Return `true` if the point `P` is on the curve `C`, and `false` otherwise.
+"""
+function Base.in(P::Point{S}, C::AffinePlaneCurve{S}) where S <: FieldElem
+  return iszero(evaluate(C.eq, P.coord))
+end
+
+@doc Markdown.doc"""
+    in(P::Oscar.Geometry.ProjSpcElem{S}, C::ProjPlaneCurve{S})
+
+Return `true` if the point `P` is on the curve `C`, and `false` otherwise.
+"""
+function Base.in(P::Oscar.Geometry.ProjSpcElem{S}, C::ProjPlaneCurve{S}) where S <: FieldElem
+  return iszero(evaluate(C.eq, P.v))
+end
+
+################################################################################
 # Compute the degree of the equation of the curve if not already known,
 # and show it.
 
@@ -254,7 +279,7 @@ function Oscar.isreduced(C::PlaneCurve)
   if isempty(C.components)
      L = factor_squarefree(defining_equation(C))
      return all(isone, values(L.fac))
-  else 
+  else
      return all(isone, values(C.components))
   end
 end
@@ -309,6 +334,7 @@ end
 
 include("AffinePlaneCurve.jl")
 include("ProjPlaneCurve.jl")
+include("DivisorCurve.jl")
 
 ################################################################################
 end
