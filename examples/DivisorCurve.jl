@@ -118,12 +118,12 @@ end
 
 function Base.:+(D::AffineCurveDivisor, E::AffineCurveDivisor)
     _check_same_curve(D, E)
-    return AffineCurveDivisor(D.C, mergewith(+, D.divisor, E.divisor))
+    return AffineCurveDivisor(D.C, merge(+, D.divisor, E.divisor))
 end
 
 function Base.:+(D::ProjCurveDivisor, E::ProjCurveDivisor)
     _check_same_curve(D, E)
-    return ProjCurveDivisor(D.C, mergewith(+, D.divisor, E.divisor))
+    return ProjCurveDivisor(D.C, merge(+, D.divisor, E.divisor))
 end
 
 ################################################################################
