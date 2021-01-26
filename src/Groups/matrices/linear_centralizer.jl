@@ -186,7 +186,6 @@ function _centr_block_unipotent(f::PolyElem, F::Ring, V::AbstractVector{Int}; is
          c = identity_matrix(F,d)
          for j in 1:degree(F)*d
             z = identity_matrix(F,l[1]*d)
-#            for k in 1:l[1]-i z[k,i+k]=_lambda^j end
             for k in 0:l[1]-i-1 insert_block!(z,c,d*k+1 ,d*(k+i)+1) end
             z = insert_block(identity_matrix(F,n),z,pos,pos)
             c *= C           # every time, the block C^(j-1) is inserted
@@ -203,7 +202,6 @@ function _centr_block_unipotent(f::PolyElem, F::Ring, V::AbstractVector{Int}; is
       pos += L[i][1]*L[i][2]*d
       # block above diagonal
       z = identity_matrix(F,n)
-#      for j in 1:L[i][1] z[pos-L[i][1]+j-1,pos+L[i+1][1]-L[i][1]+j-1]=1 end
       for j in 1:L[i][1]*d z[pos-L[i][1]*d+j-1,pos+(L[i+1][1]-L[i][1])*d+j-1]=1 end
       push!(listgens,z)
       # block below diagonal
@@ -274,7 +272,6 @@ end
 
 # returns as matrices
 function _gens_for_SL(n::Int, F::Ring)
-#   n !=1 || return [matrix(F,1,1,[one(F)])]
    n != 1 || return []
    if order(F)==2 || order(F)==3
       h1 = identity_matrix(F,n)
@@ -304,7 +301,6 @@ function _gens_for_SL_matrix(f::PolyElem, n::Int, F::Ring; D=1)
    CP = evaluate(_centralizer(f),C)            # matrix of maximal order in the centralizer of the companion matrix
    CPi = inv(CP)
 
-   #if n==1 return [identity_matrix(F,n*D*degree(f))] end
    n != 1 || return []
    h1 = identity_matrix(F,n*degree(f)*D)
    insert_block!(h1,diagonal_join([CP for i in 1:D]),1,1)
@@ -386,61 +382,6 @@ function _centralizer_SL(x::MatElem)
 end
 
 
-
-#=    TODO  all of this does not work yet
-
-
-# return subgroup of GL(n,F) of index d
-# returns as matrices
-function _gens_for_sub_GL(n::Int, F::Ring, d::Int)
-   @assert mod(size(F)-1,d)==0 "Index must divide q-1"
-   if n==1 return [matrix(F,1,1,[primitive_element(F)^d])] end
-   if order(F)==2
-      h1 = identity_matrix(F,n)
-      h1[1,2] = 1
-      h2 = zero_matrix(F,n,n)
-      for i in 1:n-1 h2[i+1,i]=1 end
-      h2[1,n] = 1
-   else
-      h1 = identity_matrix(F,n)
-      h1[1,1] = primitive_element(F)
-      h1[2,2] = h1[1,1]^(size(F)-d-2)
-      h2 = zero_matrix(F,n,n)
-      for i in 1:n-1 h2[i+1,i]=-1 end
-      h2[1,1] = -1
-      h2[1,n] = 1
-   end
-   return h1,h2      
-end
-
-_gens_for_SL(n::Int, F::Ring) = _gens_for_sub_GL(n, F, Int(size(F))-1)
-
-# returns as matrices
-# return subgroup of GL(n,F) of index d
-# does the matrix above with F = F[x]/(f), but every entry is replaced by a diagonal join of D corresponding blocks
-# ASSUMPTION: deg(f) > 1
-function _gens_for_sub_GL_matrix(f::PolyElem, n::Int, F::Ring, d::Int; D=1)
-   q = size(F)^degree(f)
-   @assert mod(q-1,d)==0 "Index must divide q-1"
-   C = companion_matrix(f)
-   CP = evaluate(_centralizer(f),C)            # matrix of maximal order in the centralizer of the companion matrix
-
-   if n==1 return [diagonal_join([CP^d for i in 1:D])] end
-   h1 = identity_matrix(F,n*degree(f)*D)
-   insert_block!(h1,diagonal_join([CP for i in 1:D]),1,1)
-print(q-2-d)
-   CP=CP^(q-2-d)
-   insert_block!(h1,diagonal_join([CP for i in 1:D]),D*degree(f)+1,D*degree(f)+1)
-   h2 = zero_matrix(F,n*degree(f)*D,n*degree(f)*D)
-   for i in 1:(n-1)*degree(f)*D h2[i+degree(f)*D,i]=-1 end
-   for i in 1:degree(f)*D
-      h2[i,i]=-1
-      h2[i,i+(n-1)*degree(f)*D]=1
-   end
-   return h1,h2      
-end
-
-=#
 
 
 ########################################################################

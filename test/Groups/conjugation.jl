@@ -174,6 +174,7 @@ end
 @testset "Jordan structure" begin
    F = GF(3,1)[1]
    R,t = PolynomialRing(F,"t")
+   G = GL(9,F)
 
    L_big = [
         [(t-1,3), (t^2+1,1), (t^2+1,2)],
@@ -182,7 +183,6 @@ end
        ]
    for L in L_big
       x = diagonal_join([generalized_jordan_block(a...) for a in L])
-      G = GL(9,F)
    # TODO: these will work when the polynomial rings are recognized as the same
    #   @test pol_elementary_divisors(x)==L
    #   @test pol_elementary_divisors(G(x))==L
