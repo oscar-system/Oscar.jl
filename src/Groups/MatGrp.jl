@@ -171,7 +171,7 @@ end
 # NOTE: if G.X has to be set, then also the fields G.ring_iso and G.mat_iso are set
 function Base.getproperty(G::MatrixGroup, sym::Symbol)
 
-   if isdefined(G,sym) return getfield(G,sym) end
+   isdefined(G,sym) && return getfield(G,sym)
 
    if sym === :mat_iso || sym === :ring_iso
       fm = gen_mat_iso(G.deg, G.ring)
@@ -192,26 +192,11 @@ function Base.getproperty(G::MatrixGroup, sym::Symbol)
             G.ring_iso=fm.fr
             G.mat_iso=fm
          end
-         V = GAP.julia_to_gap([g.X for g in G.gens])
+         V = GAP.julia_to_gap([g.X for g in gens(G)])
          G.X=GAP.Globals.Group(V)
+      else
+         error("Cannot determine underlying GAP object")
       end
-
-   elseif sym === :order
-      if isdefined(G, :order) return getfield(G, :order) end
-      G.order = fmpz(BigInt(GAP.Globals.Size(G.X)))
-
-   elseif sym === :gens
-      if !isdefined(G, :X)
-         if !isdefined(G,:ring_iso)
-            fm = gen_mat_iso(G.deg, G.ring)
-            G.ring_iso=fm.fr
-            G.mat_iso=fm
-         end
-         assign_from_description(G)
-      end
-      L = GAP.Globals.GeneratorsOfGroup(getfield(G,:X))
-      G.gens=[MatrixGroupElem(G,G.mat_iso(L[i]),L[i]) for i in 1:length(L)]
-
    end
 
    return getfield(G, sym)
@@ -223,14 +208,9 @@ function Base.getproperty(x::MatrixGroupElem, sym::Symbol)
 
    if isdefined(x,sym) return getfield(x,sym) end
 
-   if sym === :X && !isdefined(x,:X)
-      if !isdefined(x.parent,:ring_iso)
-         fm = gen_mat_iso(x.parent.deg, x.parent.ring)
-         setfield!(x.parent,:ring_iso,fm.fr)
-         setfield!(x.parent,:mat_iso,fm)
-      end
+   if sym === :X
       setfield!(x, :X, x.parent.mat_iso(x.elm))
-   elseif sym == :elm && !isdefined(x, :elm)                        # assuming that x.X, hence x.parent.ring_iso, are defined
+   elseif sym == :elm
       setfield!(x, :elm, x.parent.mat_iso(x.X))
    end
    return getfield(x,sym)
@@ -267,7 +247,7 @@ function ==(G::MatrixGroup,H::MatrixGroup)
       return G.descr == H.descr
    end
    if isdefined(G, :gens) && isdefined(H, :gens)
-      if G.gens==H.gens return true  end
+      if gens(G)==gens(H) return true  end
    end
    return G.X==H.X
 end
@@ -279,7 +259,7 @@ function lies_in(x::MatElem, G::MatrixGroup, x_gap)
    if base_ring(x)!=G.ring || nrows(x)!=G.deg return false, x_gap end
    if isone(x) return true, x_gap end
    if isdefined(G,:gens)
-      for g in G.gens
+      for g in gens(G)
          if x==g.elm
             return true, x_gap
          end
@@ -445,7 +425,8 @@ Return the trace of `x`.
 trace(x::MatrixGroupElem) = trace(x.elm)
 tr(x::MatrixGroupElem) = tr(x.elm)
 
-order(x::MatrixGroupElem) = GAP.Globals.Order(x.X)
+order(x::MatrixGroupElem) = ZZ(GAP.Globals.Order(x.X))
+order(::Type{T}, x::MatrixGroupElem)  where T<:Number = T(GAP.Globals.Order(x.X))
 
 #FIXME for the following functions, the output may not belong to the parent group of x
 #=
@@ -483,15 +464,26 @@ function Base.rand(G::MatrixGroup)
    return MatrixGroupElem(G,x_oscar,x_gap)
 end
 
-gens(G::MatrixGroup) = G.gens
+function gens(G::MatrixGroup)
+   isdefined(G,:gens) && return G.gens
+   
+   L = GAP.Globals.GeneratorsOfGroup(G.X)
+   G.gens=[MatrixGroupElem(G,G.mat_iso(L[i]),L[i]) for i in 1:length(L)]
+   return G.gens
+end
 
 gen(G::MatrixGroup, i::Int) = gens(G)[i]
 
 Base.getindex(G::MatrixGroup, i::Int) = gen(G, i)
 
-ngens(G::MatrixGroup) = length(G.gens)
+ngens(G::MatrixGroup) = length(gens(G))
 
-order(G::MatrixGroup) = G.order
+function order(G::MatrixGroup)
+   isdefined(G, :order) && return G.order
+
+   G.order = fmpz(BigInt(GAP.Globals.Size(G.X)))
+   return G.order
+end
 
 ########################################################################
 #
@@ -845,7 +837,7 @@ function Base.:^(H::MatrixGroup, y::MatrixGroupElem)
    if isdefined(H,:gens) && !isdefined(H,:X)
       K = MatrixGroup(H.deg, H.ring)
       K.gens = [y^-1*x*y for x in H.gens]
-      for k in K.gens k.parent = K end
+      for k in gens(K) k.parent = K end
    else
       K = MatrixGroup(H.deg,H.ring)
       K.X = H.X^y.X
