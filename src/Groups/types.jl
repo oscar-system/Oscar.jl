@@ -75,12 +75,13 @@ export
 TODO: document this
 """
 abstract type GAPGroup <: AbstractAlgebra.Group end
-#abstract type GroupElem <: AbstractAlgebra.GroupElem
+abstract type GAPGroupElem{T<:GAPGroup} <: AbstractAlgebra.GroupElem end
 
 """
-TODO: document this
+    BasicGAPGroupElem{T<:GAPGroup}
+The type `BasicGAPGroupElem` gathers all types of group elements described only by an underlying GAP object.
 """
-struct GAPGroupElem{T<:GAPGroup} <: AbstractAlgebra.GroupElem
+struct BasicGAPGroupElem{T<:GAPGroup} <: GAPGroupElem{T}
    parent::T
    X::GapObj
 end
@@ -127,7 +128,7 @@ Element of a group of permutation. It is displayed as product of disjoint cycles
 - for `x`,`y` in Sym(n), the product `xy` is read from left to right;
 - for `x` in Sym(n) and `i` in {1,...,n}, `i^x` and `x(i)` return the image of `i` under the action of `x`.
 """
-const PermGroupElem = GAPGroupElem{PermGroup}
+const PermGroupElem = BasicGAPGroupElem{PermGroup}
 
 """
     MatrixGroup
@@ -155,7 +156,7 @@ end
 
 Element of a matrix group.
 """
-const MatrixGroupElem = GAPGroupElem{MatrixGroup}
+const MatrixGroupElem = BasicGAPGroupElem{MatrixGroup}
 
 #display(x::MatrixGroupElem) = GAP.Globals.Display(x.X)
 
@@ -183,7 +184,7 @@ end
 
 Element of a polycyclic group.
 """
-const PcGroupElem = GAPGroupElem{PcGroup}
+const PcGroupElem = BasicGAPGroupElem{PcGroup}
 
 """
     FPGroup
@@ -204,7 +205,7 @@ end
 """
 TODO: document this
 """
-const FPGroupElem = GAPGroupElem{FPGroup}
+const FPGroupElem = BasicGAPGroupElem{FPGroup}
 
 ################################################################################
 #
@@ -296,7 +297,7 @@ In the future, a more elaborate setup for group element types
 might also be needed.
 """
 
-elem_type(::T) where T <: GAPGroup = GAPGroupElem{T}
+elem_type(::Type{T}) where T <: GAPGroup = BasicGAPGroupElem{T}
 
 
 #

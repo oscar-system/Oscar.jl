@@ -6,7 +6,7 @@
    @test G isa DirectProductGroup
    @test order(G)==order(S)*order(C)
    @test exponent(G)==lcm(exponent(S),exponent(C))
-   @test typeof(rand(G))==GAPGroupElem{DirectProductGroup}
+   @test typeof(rand(G))==elem_type(DirectProductGroup)
    @test factor_of_direct_product(G,1)==S
    @test factor_of_direct_product(G,2)==C
    @test_throws ArgumentError factor_of_direct_product(G,3)
@@ -153,7 +153,7 @@ end
    K = sub(G,gens(G))[1]
 #   @test isfull_semidirect_product(K)
    K = sub(G,[y])[1]
-   @test K==sub([y])[1]
+   @test K==sub(y)[1]
    @test K==sub(y)[1]
    @test y == embedding(G,1)(Q[1])
    @test_throws ArgumentError embedding(G,3)(Q[1])
@@ -179,7 +179,7 @@ end
    @test typeof(W)==WreathProductGroup
    @test order(W)==2^4*3
    @test !isabelian(W)
-   @test typeof(rand(W))==GAPGroupElem{WreathProductGroup}
+   @test typeof(rand(W))==elem_type(WreathProductGroup)
    f1 = C[1]
    x = W(f1,one(C),f1,one(C),cperm([1,4,2]))
    @test embedding(W,1)(f1)==W(f1,one(C),one(C),one(C),one(H))
@@ -192,7 +192,7 @@ end
    K = sub(W,gens(W))[1]
 #   @test isfull_wreath_product(K)
    K = sub(W,[x])[1]
-   @test K==sub([x])[1]
+   @test K==sub(x)[1]
    @test K==sub(x)[1]
    @test typeof(K)==WreathProductGroup
    @test order(K)==6
@@ -209,7 +209,7 @@ end
    @test isisomorphic(acting_subgroup(W),C)[1]
    @test homomorphism_of_wreath_product(W)==a
    @test embedding(W,1)(C[1]) in W
-   @test W(C[1],one(C),one(C),C[1]) isa GAPGroupElem{WreathProductGroup}
+   @test W(C[1],one(C),one(C),C[1]) isa elem_type(WreathProductGroup)
    @test image(projection(W))[1]==C
    @test_throws ArgumentError embedding(W,5)(C[1])
 end

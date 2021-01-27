@@ -64,9 +64,7 @@ export
 # _gap_group_types resp. _iso_function
 
 
-function group_element(G::T, x::GapObj) where T <: GAPGroup
-  return GAPGroupElem{T}(G, x)
-end
+group_element(G::T, x::GapObj) where T <: GAPGroup = BasicGAPGroupElem{T}(G, x)
 
 function elements(G::T) where T <: GAPGroup
   els = GAP.gap_to_julia(Vector{GapObj},GAP.Globals.Elements(G.X))
@@ -179,7 +177,7 @@ function ==(x::PermGroupElem, y::PermGroupElem)
    return x.X == y.X && degree(parent(x))==degree(parent(y))
 end
 
-function ==(x::T, y::T) where T <: GAPGroupElem
+function ==(x::T, y::T) where T <: BasicGAPGroupElem
    return x.X == y.X
 end
 
