@@ -268,7 +268,7 @@ Return whether `G` is direct product of its factors (`false` if it is a proper s
 """
 isfull_direct_product(G::DirectProductGroup) = G.isfull
 
-Base.:^(H::DirectProductGroup, y::GAPGroupElem) = sub([h^y for h in gens(H)])[1]
+Base.:^(H::DirectProductGroup, y::GAPGroupElem) = sub([h^y for h in gens(H)]...)[1]
 
 
 ################################################################################

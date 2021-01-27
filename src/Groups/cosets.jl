@@ -291,7 +291,7 @@ function double_cosets(G::T, H::T, K::T; NC=false) where T<: GAPGroup
       @assert issubgroup(G,K)[1] "K is not a subgroup of G"
       dcs = GAP.Globals.DoubleCosets(G.X,H.X,K.X)
    end
-   res = Vector{GroupDoubleCoset{T,GAPGroupElem{T}}}(undef, length(dcs))
+   res = Vector{GroupDoubleCoset{T,elem_type(T)}}(undef, length(dcs))
    for i = 1:length(res)
      dc = dcs[i]
      g = group_element(G, GAP.Globals.Representative(dc))
