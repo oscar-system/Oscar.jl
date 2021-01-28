@@ -6,7 +6,8 @@ import Base: ^, +, -, *
 import Oscar: Hecke, AbstractAlgebra, GAP
 using Oscar: SLPolyRing, SLPoly
 
-export galois_group, transitive_group_identification, slpoly_ring
+export galois_group, transitive_group_identification, slpoly_ring, elementary_symmetric,
+       power_sum, to_elementary_symmetric
 
 
 function __init__()
@@ -21,6 +22,7 @@ struct BoundRing  <: AbstractAlgebra.Ring
   mul
   add
   pow
+  map
   name::String
 end
 
@@ -33,27 +35,68 @@ function Base.show(io::IO, b::BoundRingElem)
   print(io, "x <= $(b.val)")
 end
 
-+(a::BoundRingElem, b::BoundRingElem) = BoundRingElem(a.p.add(a.val, b.val), a.p)
--(a::BoundRingElem, b::BoundRingElem) = BoundRingElem(a.p.add(a.val, b.val), a.p)
-*(a::BoundRingElem, b::BoundRingElem) = BoundRingElem(a.p.mul(a.val, b.val), a.p)
+function check_parent(a::BoundRingElem, b::BoundRingElem)
+  parent(a) == parent(b) || error("Elements must have same parent")
+  return true
+end
+
++(a::BoundRingElem, b::BoundRingElem) = check_parent(a, b) && BoundRingElem(a.p.add(a.val, b.val), a.p)
+-(a::BoundRingElem, b::BoundRingElem) = check_parent(a, b) && BoundRingElem(a.p.add(a.val, b.val), a.p)
+*(a::BoundRingElem, b::BoundRingElem) = check_parent(a, b) && BoundRingElem(a.p.mul(a.val, b.val), a.p)
 ^(a::BoundRingElem, b::Int) = BoundRingElem(a.p.pow(a.val, b), a.p)
 -(a::BoundRingElem) = a
 
 Oscar.parent(a::BoundRingElem) = a.p
 value(a::BoundRingElem) = a.val
+Base.isless(a::BoundRingElem, b::BoundRingElem) = check_parent(a, b) && isless(value(a), value(b))
 
-(R::BoundRing)(a::fmpz) = BoundRingElem(abs(a), R)
-(R::BoundRing)(a::Integer) = BoundRingElem(abs(fmpz(a)), R)
+(R::BoundRing)(a::fmpz) = BoundRingElem(R.map(abs(a)), R)
+(R::BoundRing)(a::Integer) = BoundRingElem(fmpz(a), R)
 (R::BoundRing)(a::BoundRingElem) = a
 Oscar.one(R::BoundRing) = R(1)
-Oscar.zero(R::BoundRing) = R(1)
+Oscar.zero(R::BoundRing) = R(0)
 
 function max_ring()
-  return BoundRing( (x,y) -> x+y, (x,y) -> max(x, y), (x,y) -> y*x, "max-ring")
+  return BoundRing( (x,y) -> x+y, (x,y) -> max(x, y), (x,y) -> y*x, x->x, "max-ring")
 end
 
 function add_ring()
-  return BoundRing( (x,y) -> x*y, (x,y) -> x+y, (x,y) -> x^y, "add-ring")
+  return BoundRing( (x,y) -> x*y, (x,y) -> x+y, (x,y) -> x^y, x->x, "add-ring")
+end
+
+function cost_ring()
+  return BoundRing( (x,y) -> x+y+1, (x,y) -> x+y, (x,y) -> x+2*nbits(y), x->0, "cost-ring")
+end
+
+function degree_ring()
+  return BoundRing( (x,y) -> x+y, (x,y) -> max(x, y), (x,y) -> y*x, x->0, "degree-ring")
+end
+
+@doc Markdown.doc"""
+    cost(I::SLPoly)
+
+Counts the number of multiplcations to evaluate `I`
+"""
+function cost(I::MPolyElem)
+  n = ngens(parent(I))
+  C = cost_ring()
+  return value(evaluate(I, [C(0) for i = 1:n]))
+end
+function cost(I::MPolyElem, ts::fmpz_poly)
+  n = ngens(parent(I))
+  C = cost_ring()
+  return value(evaluate(I, [C(0) for i = 1:n]))+n*degree(ts)
+end
+
+@doc Markdown.doc"""
+    total_degree(I::SLPoly)
+
+Determines an upper bound for the total degree of `I`.
+"""
+function total_degree(I::MPolyElem)
+  n = ngens(parent(I))
+  C = degree_ring()
+  return value(evaluate(I, [C(1) for i = 1:n]))
 end
 
 Oscar.mul!(a::BoundRingElem, b::BoundRingElem, c::BoundRingElem) = b*c
@@ -63,9 +106,45 @@ Oscar.parent_type(::BoundRingElem) = BoundRing
 Oscar.elem_type(::BoundRing) = BoundRingElem
 
 #my 1st invariant!!!
+@doc Markdown.doc"""
+    sqrt_disc(a::Array{<:Any, 1})
+
+The product of differences ``a[i] - a[j]`` for all indices ``i<j``.    
+"""
 function sqrt_disc(a::Array{<:Any, 1})
   return prod([a[i] - a[j] for i = 1:length(a)-1 for j = i+1:length(a)])
 end
+
+@doc Markdown.doc"""
+    elementary_symmetric(g::Vector, i::Int) -> 
+
+Evaluates the `i`-th elementary symmetric polynomial at the values in `g`.    
+The `i`-th elementary symmetric polynomial is the sum over all
+products of `i` distinct variables.
+"""
+function elementary_symmetric(g::Array{<:Any, 1}, i::Int)
+  return sum(prod(g[i] for i = s) for s = Hecke.subsets(Set(1:length(g)), i))
+end
+
+@doc Markdown.doc"""
+    power_sums(g::Vector, i::Int) ->
+
+Evaluates the `i`-th power sums at the values in `g`, ie. the sum
+of the `i`-th power of the values.
+"""
+function power_sum(g::Array{<:Any, 1}, i::Int)
+  return sum(a^i for a = g)
+end
+
+@doc Markdown.doc"""
+    discriminant(g::Vector)
+
+Compute the product of all differences of distinct elements in the array.    
+"""
+function Oscar.discriminant(g::Array{<:RingElem, 1})
+  return prod(a-b for a = g for b = g if a!=b)
+end
+
 
 function slpoly_ring(R::AbstractAlgebra.Ring, n::Int)
   return SLPolyRing(R, [ Symbol("x_$i") for i=1:n])
@@ -106,7 +185,11 @@ function (f::RelSeriesElem)(a::RingElem)
   z *= y^Int(v)
   return z
 end
+
 #roots are sums of m distinct roots of f
+#from https://doi.org/10.2307/2153295
+#Symmetric Functions, m-Sets, and Galois Groups
+#by David Casperson and John McKay
 @doc Markdown.doc"""
     msum_poly(f::PolyElem, m::Int)
 
@@ -127,6 +210,19 @@ function msum_poly(f::PolyElem, m::Int)
   return Hecke.power_sums_to_polynomial(p[2:end])
 end
 
+@doc Markdown.doc"""
+A `GaloisCtx`, is the context object used for the computation of Galois
+groups of (univariate) polynomials. It contains
+ - the polynomial
+ - an object that can compute the roots in a fixed order up to a given 
+   precision. Currently, this is a q-adic field, that is an unramified
+   extension of the p-adic numbers.
+ - a bound on the _size_ of the roots, currently an upper bound on the
+   complex absolute value.
+
+This is constructed implicitly while computing a Galois group and returned
+together with the group.
+"""
 mutable struct GaloisCtx
   f::PolyElem
   C
@@ -144,10 +240,37 @@ function Base.show(io::IO, GC::GaloisCtx)
   print(io, "Galois Context for $(GC.f) and prime $(GC.C.p)")
 end
 
+@doc Markdown.doc"""
+    roots(G::GaloisCtx, pr::Int)
+
+The roots of the polynomial used to define the Galois-context in the fixed order
+used in the algorithm. The roots are returned up to a precision of `pr`
+p-adic digits, thus they are correct modulo ``p^pr``
+"""
 function Hecke.roots(G::GaloisCtx, pr::Int)
   a = Hecke.roots(G.C, pr)
   return Hecke.expand(a, all = true, flat = false, degs = Hecke.degrees(G.C.H))
 end
+
+@doc Markdown.doc"""
+    bound(G::GaloisCtx, f...)
+
+Given a `GaloisCtx` and some multivariate function, bound the image of `f`
+upon evaluation at the roots implicit in `G`.
+
+`f` can be
+ - a multivariate polynomial or straight-line polynomial (strictly: any object
+   allowing `evaluate`
+ - `elementary_symmetric` or `power_sum`, in which case more arguments are
+   needed: the array with the values and the index.
+   `bound(G, power_sum, A, i)` is equivalent to `bound(G, power_sum(A, i))`
+   but more efficient.
+
+In every case a univariate polynomial (over the integers) can be added, it
+will act as a Tschirnhaus-transformation, ie. the roots (bounds) implicit
+in `G` will first be transformed.
+"""
+function bound end
 
 function bound(G::GaloisCtx, f)
   return Oscar.evaluate(f, [G.B for i=1:degree(G.f)])
@@ -157,6 +280,25 @@ function bound(G::GaloisCtx, f, ts::fmpz_poly)
   B = ts(G.B)
   return Oscar.evaluate(f, [B for i=1:degree(G.f)])
 end
+
+function bound(G::GaloisCtx, ::typeof(elementary_symmetric), A::Vector, i::Int, ts::fmpz_poly = gen(Oscar.Hecke.Globals.Zx))
+  if ts != gen(Hecke.Globals.Zx)
+    A = [ts(x) for x = A]
+  end
+  B = [bound(G, x) for x = A]
+  n = length(B)
+  b = sort(B)
+  return parent(B[1])(binomial(n, i))*prod(b[max(1, n-i+1):end])
+end
+
+function bound(G::GaloisCtx, ::typeof(power_sum), A::Vector, i::Int, ts::fmpz_poly = gen(Oscar.Hecke.Globals.Zx))
+  if ts != gen(Hecke.Globals.Zx)
+    A = [ts(x) for x = A]
+  end
+  B = [bound(G, x)^i for x = A]
+  return sum(B)
+end
+
 
 function orbit(G::Oscar.PermGroup, f::MPolyElem)
   s = Set([f])
@@ -197,7 +339,7 @@ end
 #- "datenbank" fuer Beispiele
 
 # TODO: add a GSet Julia type which does something similar Magma's,
-# or also to GAP's ExternalSet (but don't us ExternalSet, to avoid the overhead)
+# or also to GAP's ExternalSet (but don't use ExternalSet, to avoid the overhead)
 
 
 function all_blocks(G::PermGroup)
@@ -243,35 +385,25 @@ Base.isodd(G::PermGroup) = sign(G) == -1
 Base.iseven(n::PermGroup) = !isodd(n)
 
 @doc Markdown.doc"""
-    elementary_symmetric(g::Vector, i::Int) -> 
+    to_elementary_symmetric(f)
 
-Evaluates the `i`-th elementary symmetric polynomial at the values in `g`.    
-The `i`-th elementary symmetric polynomial is the sum over all
-products of `i` distinct variables.
+For a multivariate symmetric polynomial `f`, (i.e. `f` is invariant under
+permutation of the variables), compute a new polynomial `g` s.th.
+`g` evaluated at the elementary symmetric polynomials recovers `f`.
+
+This is using a rather elementary algorithm.
+# Example
+We recover the Newton-Girard formulas:
+```julia-repl
+julia> R, x = PolynomialRing(QQ, 3);
+julia> d = power_sum(x, 3)
+x1^3 + x2^3 + x3^3
+julia> g = to_elementary_symmetric(d)
+x1^3 - 3*x1*x2 + 3*x3
+julia> evaluate(g, [elementary_symmetric(x, i) for i=1:3])
+x1^3 + x2^3 + x3^3
+```
 """
-function elementary_symmetric(g::Array{<:Any, 1}, i::Int)
-  return sum(prod(g[i] for i = s) for s = Hecke.subsets(Set(1:length(g)), i))
-end
-
-@doc Markdown.doc"""
-    power_sums(g::Vector, i::Int) ->
-
-Evaluates the `i`-th power sums at the values in `g`, ie. the sum
-of the `i`-th power of the values.
-"""
-function power_sum(g::Array{<:Any, 1}, i::Int)
-  return sum(a^i for a = g)
-end
-
-@doc Markdown.doc"""
-    discriminant(g::Vector)
-
-Compute the product of all differences of distinct elements in the array.    
-"""
-function Oscar.discriminant(g::Array{<:RingElem, 1})
-  return prod(a-b for a = g for b = g if a!=b)
-end
-
 function to_elementary_symmetric(f)
   S = parent(f)
   n = ngens(S)
@@ -297,6 +429,14 @@ function ^(f::SLPoly, p::Oscar.GAPGroupElem{PermGroup})
   return evaluate(f, h)
 end
 
+@doc Markdown.doc"""
+    isprobably_invariant(g, p) -> Bool
+
+For a multivariate function, mainly an `SLPoly`, test if this is
+likely to be invariant under the permutation `p`. Due to the representation
+of `SLPoly`s as trees, it is not possible to test this exactly. Instead
+`p` is evaluated at random elements in a large finite field.
+"""
 function isprobably_invariant(g, p)
   R = parent(g)
   k = GF(next_prime(2^20))
@@ -344,8 +484,17 @@ function short_right_transversal(G::PermGroup, H::PermGroup, s)
   return S
 end
 
+@doc Markdown.doc"""
+    invariant(G::PermGroup, H::PermGroup)
+
+For a permutation group `G` and a maximal subgroup `H`, find
+a (multivariate (`SLPoly`)) `f` with `G`-stabilizer `H`, i.e. 
+`f` is invariant under all permutations in `H`, but not invariant under
+any other element of `G`.
+"""
 function invariant(G::PermGroup, H::PermGroup)
-  @vprint :GaloisInvariant 2 "Searching $G-relative $H-invariant\n"
+  @vprint :GaloisInvariant 1 "Searching G-relative H-invariant\n"
+  @vprint :GaloisInvariant 2 "that is a $G-relative $H-invariant\n"
 
   S = slpoly_ring(ZZ, degree(G))
   g = gens(S)
@@ -456,6 +605,22 @@ function Base.push!(G::GroupFilter, F::Function)
   push!(G.f, F)
 end
 
+@doc Markdown.doc"""
+# `DescentEnv`
+
+Given a permutation group `G`, known to contain the Galois group of some polynomial,
+the key step in Stauduhar's method is to systematically test all maximal subgroups
+of `G`. This structure is used to organize this process. On creation, all the
+maximal subgroups are computed and possibly filtered (if the polynomial
+is irreducible, only transitive groups are needed, if the stem field if primitive,
+then so is the group...). The filtering is done via a `GroupFilter`.
+
+Furthermore we may compute (and store)
+ - a `G`-relative `H`-invariant for any subgroup (`I`)
+ - a list of Tschirnhausen transformations used (`T`)
+ - a list (`l`) marking which subgroups we have dealt with (1 is group has been
+ processed completely)
+"""
 mutable struct DescentEnv
   G::PermGroup
   s::Array{PermGroup, 1}
@@ -478,6 +643,9 @@ mutable struct DescentEnv
   end
 end
 
+#TODO: instead of iterating, use the cheapest invariant
+#      use invariant with a worklevel to limit costs in finding them
+#      use the V_4 (index 2) stuff when neccessary
 function Base.iterate(D::DescentEnv, i::Int=1)
   #r.l[i] == 1: done,  0:: nothing
   all(isone, D.l) && return nothing
@@ -521,7 +689,7 @@ end
 # - split: find primes and abort on Sn/An
 # - sqrt discrimiant to check even/odd
 # - subfield lattice directly
-# - subfield to block outsource (also for lattice)
+# - subfield to block system outsource (also for lattice)
 # - more invars
 # - re-arrange to make cheap this first, expensive later
 # - short coests - when available
@@ -706,6 +874,8 @@ function galois_group(K::AnticNumberField, extra::Int = 5)
       @hassert :GaloisInvariant 1 any(x->!isprobably_invariant(I, x), gens(G))
 
       B = bound(GC, I, ts)
+      @vprint :GaloisGroup 2 "invariant uses $(cost(I, ts)) many multiplications\n"
+      @vprint :GaloisGroup 2 "of maximal degree $(total_degree(I)*degree(ts))\n"
       @vprint :GaloisGroup 2 "root bound: $(value(B))\n"
 
       c = roots(GC, clog(2*value(B), p)+extra)
@@ -918,4 +1088,5 @@ Base.IteratorSize(::BlockSystems) = Base.SizeUnknown()
 end
 
 using .GaloisGrp
-export galois_group, transitive_group_identification, slpoly_ring
+export galois_group, transitive_group_identification, slpoly_ring, elementary_symmetric,
+       power_sum, to_elementary_symmetric
