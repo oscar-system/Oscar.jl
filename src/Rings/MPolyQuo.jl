@@ -119,6 +119,8 @@ one(Q::MPolyQuo) = Q(1)
 function _kbase(Q::MPolyQuo)
   I = Q.I
   groebner_assure(I)
+  singular_assure(I.gb)
+  I.gb.S.isGB = true
   s = Singular.kbase(I.gb.S)
   if iszero(s)
     error("ideal was no zero-dimensional")
