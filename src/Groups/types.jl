@@ -130,36 +130,6 @@ Element of a group of permutation. It is displayed as product of disjoint cycles
 const PermGroupElem = BasicGAPGroupElem{PermGroup}
 
 """
-    MatrixGroup
-
-Groups of matrices. Every group of this type is the subgroup of GL(n,q) for some integer `n` and prime power `q`
-
-# Examples
-- `GL(n::Int, q::Int)`: the general linear group GL(n,q)
-- `SL(n::Int)`: the special linear group SL(n,q)
-- groups of isometries
-"""
-mutable struct MatrixGroup <: GAPGroup
-  X::GapObj
-  AbstractAlgebra.@declare_other
-
-  function MatrixGroup(G::GapObj)
-    @assert GAP.Globals.IsMatrixGroup(G)
-    z = new(G)
-    return z
-  end
-end
-
-"""
-    MatrixGroupElem
-
-Element of a matrix group.
-"""
-const MatrixGroupElem = BasicGAPGroupElem{MatrixGroup}
-
-#display(x::MatrixGroupElem) = GAP.Globals.Display(x.X)
-
-"""
     PcGroup
 
 Polycyclic group
@@ -296,17 +266,8 @@ In the future, a more elaborate setup for group element types
 might also be needed.
 """
 
-<<<<<<< HEAD
 elem_type(::Type{T}) where T <: GAPGroup = BasicGAPGroupElem{T}
-=======
-function elem_type(::Type{T}) where T <: GAPGroup
-   if T<:MatrixGroup return MatrixGroupElem{ring_elem_type(T),mat_elem_type(T)}
-   else return BasicGAPGroupElem{T}
-   end
-end
 
-parent_type(::Type{<:GAPGroupElem{T}}) where T <: GAPGroup = T
->>>>>>> New type redefinition
 
 
 #
