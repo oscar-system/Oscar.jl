@@ -1,6 +1,6 @@
 ## SLPolyRing (SL = straight-line)
 
-struct SLPolyRing{T<:RingElement,R<:Ring} <: MPolyRing{T}
+struct SLPolyRing{T<:RingElement,R<:Ring}  <: Ring
     base_ring::R
     S::Vector{Symbol}
 
@@ -93,7 +93,7 @@ end
 
 ## SLPoly
 
-struct SLPoly{T<:RingElement,SLPR<:SLPolyRing{T}} <: MPolyElem{T}
+struct SLPoly{T<:RingElement,SLPR<:SLPolyRing{T}} <: RingElem
     parent::SLPR
     slprogram::SLProgram{T}
 
