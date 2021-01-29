@@ -493,6 +493,8 @@ function dim(I::MPolyIdeal)
     return I.dim
   end
   groebner_assure(I)
+  singular_assure(I)
+  I.gb.S.isGB = true
   I.dim = Singular.dimension(I.gb.S)
   return I.dim
 end

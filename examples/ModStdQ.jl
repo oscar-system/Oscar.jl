@@ -101,7 +101,9 @@ function Oscar.groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevl
         stable -= 1
         if stable <= 0
           if ord == :degrevlex
-            I.gb = BiPolyArray(gd)
+            I.gb = BiPolyArray(gd, keep_ordering = false)
+            singular_assure(I.gb)
+            I.gb.S.isGB = true
           end
           return gd
         end
@@ -187,7 +189,9 @@ function Oscar.groebner_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}; ord::Sym
           #at this point we SHOULD have T*gens(I) == G...
           if T*matrix(Qt, length(gI), 1, gI) == matrix(Qt, length_gc, 1, G)
             if ord == :degrevlex && !isdefined(I, :gb)
-              I.gb = BiPolyArray(gd[1:length_gc])
+              I.gb = BiPolyArray(gd[1:length_gc], keep_ordering = false)
+              singular_assure(I.gb)
+              I.gb.S.isGB = true
             end
             return G, T
           else
