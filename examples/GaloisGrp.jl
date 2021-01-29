@@ -112,6 +112,9 @@ Oscar.elem_type(::BoundRing) = BoundRingElem
 The product of differences ``a[i] - a[j]`` for all indices ``i<j``.    
 """
 function sqrt_disc(a::Array{<:Any, 1})
+  if length(a) == 1
+    return one(parent(a[1]))
+  end
   return prod([a[i] - a[j] for i = 1:length(a)-1 for j = i+1:length(a)])
 end
 
@@ -227,6 +230,7 @@ mutable struct GaloisCtx
   f::PolyElem
   C
   B::BoundRingElem
+  G::PermGroup
   function GaloisCtx(f::fmpz_poly, p::Int)
     r = new()
     r.f = f
@@ -315,6 +319,17 @@ end
 
 function maximal_subgroup_reps(G::PermGroup)
   return Oscar._as_subgroups(G, GAP.Globals.MaximalSubgroupClassReps(G.X))
+end
+
+function trivial_subgroup(G::PermGroup)
+  return Oscar._as_subgroup(G, GAP.Globals.TrivialSubgroup(G.X))[1]
+end
+
+function maximal_subgroup_chain(G::PermGroup, U::PermGroup)
+  l = GAP.Globals.AscendingChain(G.X,U.X)
+  map(GAP.Globals.MaximalSubgroupClassReps, l)
+  ll = GAP.Globals.RefinedChain(G.X,l)
+  return [Oscar._as_subgroup(G, x)[1] for x = ll]
 end
 
 function transitive_group_identification(G::PermGroup)
@@ -425,6 +440,11 @@ function ^(f::SLPoly, p::Oscar.GAPGroupElem{PermGroup})
   h = typeof(f)[]
   for i=1:ngens(parent(f))
     push!(h, g[p(i)])
+  end
+  e = evaluate(f, h)
+  if typeof(e) != typeof(f)
+    @show "bad case"
+    return f
   end
   return evaluate(f, h)
 end
@@ -692,7 +712,7 @@ end
 # - subfield to block system outsource (also for lattice)
 # - more invars
 # - re-arrange to make cheap this first, expensive later
-# - short coests - when available
+# - short cosets - when available
 # - proof, live and later
 # - "isInt", ie. the test for being in Z: outsource...
 # - tschirnhausen transformation: slowly increasing degree and coeffs.
@@ -707,6 +727,10 @@ function galois_group(K::AnticNumberField, extra::Int = 5)
   p_best = 1
   cnt = 5
   ct = Set{Array{Int, 1}}()
+  #find a q-adic splitting field of "good degree":
+  # - too small, then the Frobenius automorphisms is not comtaining lots of
+  #   information
+  # - too large, all is slow.
   for p = Hecke.PrimesSet(2^20, -1)
     lf = factor(K.pol, GF(p))
     if any(x->x>1, values(lf.fac))
@@ -737,6 +761,7 @@ function galois_group(K::AnticNumberField, extra::Int = 5)
   @vprint :GaloisGroup 1 "computing subfields ...\n"
   @vtime :GaloisGroup 2 S = subfields(K)
 
+  #compute the block system for all subfields...
   bs = Array{Array{Int, 1}, 1}[]
   for (s, ms) = S
     if degree(s) == degree(K) || degree(s) == 1
@@ -772,11 +797,11 @@ function galois_group(K::AnticNumberField, extra::Int = 5)
   end
 
   F = GroupFilter()
-  push!(F, istransitive)
+  push!(F, istransitive) #poly is defining number field, hence irreducible
 
   @vprint :GaloisGroup 2 "group will have (all) block systems: $([x[1] for x = bs])\n"
 
-  #selecting maximals only...
+  #selecting maximal block systems only...
   if length(bs) > 1
     L = POSet(bs, (x,y) -> issubset(x[1], y[1]) || issubset(y[1], x[1]),
                   (x,y) -> issubset(x[1], y[1]) - issubset(y[1], x[1]))
@@ -794,12 +819,20 @@ function galois_group(K::AnticNumberField, extra::Int = 5)
   for b = bs
     W = isomorphic_perm_group(wreath_product(symmetric_group(length(b[1])), symmetric_group(length(b))))[1]
     s = S(vcat(b...))
+    # W^s is largest group having "b" as a block system
+    # courtesy of Max...
     G = intersect(G, W^s)[1]
   end
 
-  if length(bs) == 0 #primitive case
+  if length(bs) == 0 #primitive case: no subfields, no blocks, primitive group!
     push!(F, isprimitive)
     @vprint :GaloisGroup 1 "group is primitive (no subfields), trying operations on pairs\n"
+
+    #starting group as the stabilizer of the factorisation of the 2-sum poly,
+    #the polynomial with roots r_i + r_j, i<j
+    #we need this square-free, so we compute this over the finite field
+    #actually, we only check that the roots over the finite field are distinct.
+    #if not: transform (using ts) and try again.
     k, mk = ResidueField(parent(c[1]))
     m = Dict{fq_nmod, Tuple{Int, Int}}()
     local ts = gen(Hecke.Globals.Zx)
@@ -839,6 +872,10 @@ function galois_group(K::AnticNumberField, extra::Int = 5)
       r = roots(f, k)
       push!(O, [m[x] for x = r])
     end
+    #the factors define a partitioning of pairs, the stabiliser of this
+    #partition is the largest possible group...
+    #code from Max...
+
     @vprint :GaloisGroup 2 "partitions: $O\n"
     G = Oscar._as_subgroup(G, GAP.Globals.Solve(GAP.julia_to_gap(vcat(GAP.Globals.ConInGroup(G.X), [GAP.Globals.ConStabilize(GAP.julia_to_gap(sort(o), Val(true)), GAP.Globals.OnSetsSets) for o in O]))))[1]
     #@show G = intersect([stabilizer(G, GAP.julia_to_gap(sort(o), Val(true)), GAP.Globals.OnSetsSets)[1] for o=O]...)[1]
@@ -940,6 +977,7 @@ function galois_group(K::AnticNumberField, extra::Int = 5)
           @assert length(G) < nG
           @vprint :GaloisGroup 2 "descending to $(transitive_group_identification(G))\n"
           if length(G) == degree(K)
+            GC.G = G
             return G, GC
           end
           break
@@ -947,21 +985,126 @@ function galois_group(K::AnticNumberField, extra::Int = 5)
       end
     end
     if nG == length(G)
+      GC.G = G
       return G, GC
     end
     nG = length(G)
-  end
+  end      
+  GC.G = G
   return G, GC
 end
 
-#TODO: do this properly, with indexed types and such
-mutable struct POSet
-  elem::Array{Any, 1}
-  cmp::Function
-  can_cmp::Function
+function isinteger(GC::GaloisCtx, B, e)
+  p = GC.C.p
+  if e.length<2
+    l = coeff(e, 0)
+    lz = lift(l)
+    lz = Hecke.mod_sym(lz, fmpz(p)^precision(l))
+    if abs(lz) < value(B)
+      @show lz
+      return true, lz
+    else
+      @show lz, B, e
+      error("asd")
+      return false, lz
+    end
+  else
+    error("asdasd")
+    return false, fmpz(0)
+  end
+end
 
-  function POSet(elem::Array{<:Any, 1}, can_cmp::Function, cmp::Function)
-    r = new()
+function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
+  G = GC.G
+  @show c = reverse(maximal_subgroup_chain(G, U))
+  @show map(order, c)
+  I = [invariant(c[i], c[i+1]) for i=1:length(c)-1]
+  #the I[i] is a relative primitive element - it may be absolute or not...
+  # right_transversal: U*g, thus G>U>V -> V a b where a runs (U/V), b (G/U):
+  # G = cup U b, U = cup V a, so G = V a b
+  ts = [gen(Hecke.Globals.Zx) for i = I]
+  tv  = [right_transversal(c[i], c[i+1]) for i=1:length(c)-1]
+  r = roots(GC, 5)
+  mu = ones(Int, length(I))
+  #need tschirni per invar
+  local conj
+  while true
+    rt = map(ts[1], r)
+    conj = [evaluate(I[1]^t, rt) for t = tv[1]]
+    @show length(conj), order(c[1]), order(c[2])
+    if length(Set(conj)) == order(c[1])//order(c[2])
+      break
+    end
+    while true
+      ts[1] = rand(parent(ts[1]), 2:degree(GC.f), -4:4)
+      if degree(ts[1]) > 0
+        break
+      end
+    end
+  end
+  T = tv[1]
+  a = evaluate(I[1], map(ts[1], gens(parent(I[1]))))
+  for j=2:length(I)
+    local nc, rt
+    while true
+      rt = map(ts[j], r)
+      nc = [evaluate(I[j]^t, rt) for t = tv[j]]
+      @show length(nc), order(c[j])//order(c[j+1])
+      if length(Set(nc)) == order(c[j])//order(c[j+1])
+        break
+      end
+      while true
+        @show ts[j] = rand(parent(ts[1]), 2:degree(GC.f), -4:4)
+        if degree(ts[j]) >= 1
+          break
+        end
+      end
+    end
+    @show ts
+    lT = length(T)
+    for k=2:length(tv[j])
+      append!(T, tv[j][k] .* T[1:lT])
+    end
+
+    mu[j] = 0
+
+    b = evaluate(I[j], map(ts[j], gens(parent(I[1]))))
+    while true
+      d = Set([evaluate((mu[j]*a+b)^t, r) for t = T])
+      if length(d) == length(T)
+        break
+      end
+      mu[j] += 1
+    end
+    a = mu[j]*a+b
+  end
+  @show "have primitive element via ", mu, "\n", a
+  @show B = sum(bound(GC, mu[i]*I[i], ts[i]) for i=1:length(I))
+  @show I, ts, mu
+  @show m = length(conj)
+  r = roots(GC, clog(2*value(m*B^m), GC.C.p)+extra)
+  conj = [evaluate(I[1]^t, map(ts[1], r)) for t = right_transversal(c[1], c[2])]
+  for j=2:length(I)
+    nc = [evaluate(I[j]^t, map(ts[j], r)) for t = right_transversal(c[j], c[j+1])]
+    conj = [a+b*mu[j] for a = conj for b = nc]
+  end
+
+  @show B, 2*m*B^m, value(2*m*B^m), clog(2*value(m*B^m), GC.C.p)+extra
+  @show ps = fmpq[isinteger(GC, 2*m*B^m, power_sum(conj, i))[2] for i=1:m]
+  return Hecke.power_sums_to_polynomial(ps)
+end
+
+#TODO: do this properly, with indexed types and such
+# Partially Ordered Set ...
+mutable struct POSet{T}
+  elem::Array{T, 1}
+  "for two elements that are comparable, return -1, 0, 1"
+  cmp::Function #(::T, ::T) -> -1, 0, 1
+  "take two elems and test if they are comparable, returns Bool"
+  can_cmp::Function #(::T, ::T) -> Bool
+
+  function POSet{S}(elem::Array{S, 1}, can_cmp::Function, cmp::Function) where {S}
+    r = new{S}()
     r.elem = elem
     r.cmp = cmp
     r.can_cmp = can_cmp
@@ -969,14 +1112,16 @@ mutable struct POSet
   end
 end
 
-struct POSetElem
+POSet(elem::Array{S, 1}, can_cmp::Function, cmp::Function) where {S} = POSet{S}(elem, can_cmp, cmp)
+
+struct POSetElem{T}
   e::Int
-  p::POSet
-  function POSetElem(L::POSet, i::Int)
-    return new(i, L)
+  p::POSet{T}
+  function POSetElem(L::POSet{S}, i::Int) where {S}
+    return new{S}(i, L)
   end
-  function POSetElem(L::POSet, e::Any)
-    return new(findfirst(x->L>can_cmp(e, L.elem[i]) && L.cmp(e, L.elem[i]) == 0, 1:length(L.elem)), L)
+  function POSetElem(L::POSet{S}, e::Any) where {S}
+    return new{S}(findfirst(x->L>can_cmp(e, L.elem[i]) && L.cmp(e, L.elem[i]) == 0, 1:length(L.elem)), L)
   end
 end
 
