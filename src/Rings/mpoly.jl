@@ -510,8 +510,8 @@ function Base.in(f::MPolyElem, I::MPolyIdeal)
   return Singular.iszero(reduce(Sx(f), I.gb.S))
 end
 
-function base_ring(I::MPolyIdeal)
-  return I.gens.Ox
+function base_ring(I::MPolyIdeal{S}) where {S}
+  return I.gens.Ox::parent_type(S)
 end
 
 function groebner_basis(I::MPolyIdeal)
