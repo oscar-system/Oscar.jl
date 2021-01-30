@@ -555,7 +555,7 @@ function to_elementary_symmetric(f)
   return g1 + gen(S, n)*g2
 end
 
-function ^(f::SLPoly, p::Oscar.GAPGroupElem{PermGroup})
+function ^(f::SLPoly, p::Oscar.PermGroupElem)
   g = gens(parent(f))
   h = typeof(f)[]
   for i=1:ngens(parent(f))
