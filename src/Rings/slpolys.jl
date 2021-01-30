@@ -104,6 +104,13 @@ end
 SLP.constants(p::SLPoly) = SLP.constants(p.slprogram)
 SLP.lines(p::SLPoly) = SLP.lines(p.slprogram)
 
+function Base.show(io::IO, ::MIME"text/plain", a::SLPoly)
+  print(io, AbstractAlgebra.obj_to_string(a, context = io))
+end
+
+function Base.show(io::IO, a::SLPoly)
+  print(io, AbstractAlgebra.obj_to_string(a, context = io))
+end
 
 # create invalid poly
 SLPoly(parent::SLPolyRing{T}) where {T} = SLPoly(parent, SLProgram{T}())
