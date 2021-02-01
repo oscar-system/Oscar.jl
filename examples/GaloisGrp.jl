@@ -4,10 +4,12 @@ module GaloisGrp
 using Oscar, Markdown
 import Base: ^, +, -, *
 import Oscar: Hecke, AbstractAlgebra, GAP
-using Oscar: SLPolyRing, SLPoly
+using Oscar: SLPolyRing, SLPoly, SLPolynomialRing
 
 export galois_group, transitive_group_identification, slpoly_ring, elementary_symmetric,
-       power_sum, to_elementary_symmetric
+       power_sum, to_elementary_symmetric, fixed_field, trivial_subgroup
+
+import Hecke: orbit       
 
 
 function __init__()
@@ -18,6 +20,16 @@ function __init__()
   Hecke.add_assert_scope(:GaloisInvariant)
 end
 
+"""
+A poor mans version of a (range of) tropical rings.
+
+Actually, not even a ring. Defined in terms of operations
+ - `mul` used for multiplication
+ - `add` for addition
+ - `pow` for powering with Int exponent
+ - `map` to create elements from (large) integers/ fmpz
+ - `name` is only used for printing.
+"""
 struct BoundRing  <: AbstractAlgebra.Ring
   mul
   add
@@ -28,7 +40,7 @@ end
 
 struct BoundRingElem <: AbstractAlgebra.RingElem
   val::fmpz
-  p::BoundRing
+  p::BoundRing # the parent
 end
 
 function Base.show(io::IO, b::BoundRingElem)
@@ -56,6 +68,11 @@ Base.isless(a::BoundRingElem, b::BoundRingElem) = check_parent(a, b) && isless(v
 Oscar.one(R::BoundRing) = R(1)
 Oscar.zero(R::BoundRing) = R(0)
 
+
+"""
+Intended to be used to get upper bounds under evaluation in function fields (non 
+  Archimedean valuaton, degree)
+"""
 function max_ring()
   return BoundRing( (x,y) -> x+y, (x,y) -> max(x, y), (x,y) -> y*x, x->x, "max-ring")
 end
@@ -64,10 +81,19 @@ function add_ring()
   return BoundRing( (x,y) -> x*y, (x,y) -> x+y, (x,y) -> x^y, x->x, "add-ring")
 end
 
+"""
+An slpoly evaluated at `cost_ring` elements `0` will count the number
+of multiplications involved. A measure of the cost of evaluation at more
+interesting scalars.
+"""
 function cost_ring()
   return BoundRing( (x,y) -> x+y+1, (x,y) -> x+y, (x,y) -> x+2*nbits(y), x->0, "cost-ring")
 end
 
+"""
+An slpoly evaluated at `degree_ring` elements `1` will bound the total degree
+from above.
+"""
 function degree_ring()
   return BoundRing( (x,y) -> x+y, (x,y) -> max(x, y), (x,y) -> y*x, x->0, "degree-ring")
 end
@@ -112,6 +138,9 @@ Oscar.elem_type(::BoundRing) = BoundRingElem
 The product of differences ``a[i] - a[j]`` for all indices ``i<j``.    
 """
 function sqrt_disc(a::Array{<:Any, 1})
+  if length(a) == 1
+    return one(parent(a[1]))
+  end
   return prod([a[i] - a[j] for i = 1:length(a)-1 for j = i+1:length(a)])
 end
 
@@ -147,11 +176,11 @@ end
 
 
 function slpoly_ring(R::AbstractAlgebra.Ring, n::Int)
-  return SLPolyRing(R, [ Symbol("x_$i") for i=1:n])
+  return SLPolynomialRing(R, [ Symbol("x_$i") for i=1:n])
 end
 
 function slpoly_ring(R::AbstractAlgebra.Ring, p::Pair{Symbol, UnitRange{Int}}...)
-  return SLPolyRing(R, p...)
+  return SLPolynomialRing(R, p...)
 end
 
 function (R::SLPolyRing)(a::SLPoly)
@@ -160,16 +189,22 @@ function (R::SLPolyRing)(a::SLPoly)
 end
 
 @doc Markdown.doc"""
-    root_bound(f::fmpz_poly) -> fmpz
+    roots_upper_bound(f::fmpz_poly) -> fmpz
 
-An upper bound for the absolute value of the complex roots of the input.    
+An upper upper_bound for the absolute value of the complex roots of the input.    
+Uses the Cauchy bound.
 """
-function root_bound(f::fmpz_poly)
+function Nemo.roots_upper_bound(f::fmpz_poly)
+  a = coeff(f, degree(f))
+  return max(fmpz(1), maximum([ceil(fmpz, abs(coeff(f, i)//a)) for i=0:degree(f)]))
+end
+function Nemo.roots_upper_bound(f::fmpq_poly)
   a = coeff(f, degree(f))
   return max(fmpz(1), maximum([ceil(fmpz, abs(coeff(f, i)//a)) for i=0:degree(f)]))
 end
 
 #TODO: check where this should be done properly
+# not needed for Galois stuff.
 function (f::RelSeriesElem)(a::RingElem)
   y = a
   v = valuation(f)
@@ -217,8 +252,9 @@ groups of (univariate) polynomials. It contains
  - an object that can compute the roots in a fixed order up to a given 
    precision. Currently, this is a q-adic field, that is an unramified
    extension of the p-adic numbers.
- - a bound on the _size_ of the roots, currently an upper bound on the
+ - a upper bound on the _size_ of the roots, currently an upper bound on the
    complex absolute value.
+ - at the end, the Galois group  
 
 This is constructed implicitly while computing a Galois group and returned
 together with the group.
@@ -227,11 +263,12 @@ mutable struct GaloisCtx
   f::PolyElem
   C
   B::BoundRingElem
+  G::PermGroup
   function GaloisCtx(f::fmpz_poly, p::Int)
     r = new()
     r.f = f
     r.C = Hecke.qAdicRootCtx(f, p, splitting_field = true)
-    r.B = add_ring()(root_bound(f))
+    r.B = add_ring()(roots_upper_bound(f))
     return r
   end
 end
@@ -253,9 +290,9 @@ function Hecke.roots(G::GaloisCtx, pr::Int)
 end
 
 @doc Markdown.doc"""
-    bound(G::GaloisCtx, f...)
+    upper_bound(G::GaloisCtx, f...)
 
-Given a `GaloisCtx` and some multivariate function, bound the image of `f`
+Given a `GaloisCtx` and some multivariate function, upper_bound the image of `f`
 upon evaluation at the roots implicit in `G`.
 
 `f` can be
@@ -263,44 +300,44 @@ upon evaluation at the roots implicit in `G`.
    allowing `evaluate`
  - `elementary_symmetric` or `power_sum`, in which case more arguments are
    needed: the array with the values and the index.
-   `bound(G, power_sum, A, i)` is equivalent to `bound(G, power_sum(A, i))`
+   `upper_bound(G, power_sum, A, i)` is equivalent to `bound(G, power_sum(A, i))`
    but more efficient.
 
 In every case a univariate polynomial (over the integers) can be added, it
 will act as a Tschirnhaus-transformation, ie. the roots (bounds) implicit
 in `G` will first be transformed.
 """
-function bound end
+function upper_bound end
 
-function bound(G::GaloisCtx, f)
+function upper_bound(G::GaloisCtx, f)
   return Oscar.evaluate(f, [G.B for i=1:degree(G.f)])
 end
 
-function bound(G::GaloisCtx, f, ts::fmpz_poly)
+function upper_bound(G::GaloisCtx, f, ts::fmpz_poly)
   B = ts(G.B)
   return Oscar.evaluate(f, [B for i=1:degree(G.f)])
 end
 
-function bound(G::GaloisCtx, ::typeof(elementary_symmetric), A::Vector, i::Int, ts::fmpz_poly = gen(Oscar.Hecke.Globals.Zx))
+function upper_bound(G::GaloisCtx, ::typeof(elementary_symmetric), A::Vector, i::Int, ts::fmpz_poly = gen(Oscar.Hecke.Globals.Zx))
   if ts != gen(Hecke.Globals.Zx)
     A = [ts(x) for x = A]
   end
-  B = [bound(G, x) for x = A]
+  B = [upper_bound(G, x) for x = A]
   n = length(B)
   b = sort(B)
   return parent(B[1])(binomial(n, i))*prod(b[max(1, n-i+1):end])
 end
 
-function bound(G::GaloisCtx, ::typeof(power_sum), A::Vector, i::Int, ts::fmpz_poly = gen(Oscar.Hecke.Globals.Zx))
+function upper_bound(G::GaloisCtx, ::typeof(power_sum), A::Vector, i::Int, ts::fmpz_poly = gen(Oscar.Hecke.Globals.Zx))
   if ts != gen(Hecke.Globals.Zx)
     A = [ts(x) for x = A]
   end
-  B = [bound(G, x)^i for x = A]
+  B = [upper_bound(G, x)^i for x = A]
   return sum(B)
 end
 
 
-function orbit(G::Oscar.PermGroup, f::MPolyElem)
+function Hecke.orbit(G::Oscar.PermGroup, f::MPolyElem)
   s = Set([f])
   while true
     n = Set(x^g for x = s for g = gens(G))
@@ -313,8 +350,106 @@ function orbit(G::Oscar.PermGroup, f::MPolyElem)
   return s
 end
 
+"""
+Tests if `U` is a maximal subgroup of `G`. Suboptimal algorithm...
+  Missing in GAP
+"""
+function ismaximal(G::Oscar.PermGroup, U::Oscar.PermGroup)
+  if !issubgroup(G, U)[1]
+    return false
+  end
+  if order(G)//order(U) < 100
+    t = right_transversal(G, U)[2:end] #drop the identity
+    if any(x->order(sub(G, vcat(gens(U), [x]))[1]) < order(G), t)
+      return false
+    end
+    return true
+  end
+  S = maximal_subgroups(G)
+  if any(x->x == U, S)
+    return true
+  end
+  return false
+end
+
+"""
+Tests if a conjugate of `V` by some element in `G` is a subgroup of `U`.
+  Missing from GAP
+"""
+function isconjugate_subgroup(G::Oscar.PermGroup, U::Oscar.PermGroup, V::Oscar.PermGroup)
+  if order(V) == 1
+    return true, one(U)
+  end
+  local sigma
+  while true
+    sigma = rand(V)
+    if order(sigma) > 1
+      break
+    end
+  end
+  s = short_right_transversal(G, U, sigma)
+  for t = s
+    if issubgroup(U, V^inv(t))[1]
+      return true, inv(t)
+    end
+  end
+  return false, one(U)
+end
+
+probable_orbit(G::Oscar.PermGroup, f::MPolyElem) = orbit(G, f)
+
+#one cannot compare (==) slpoly, no hash either..
+#(cannot be done, thus comparison is indirect via evaluation)
+#I assume algo can be imporved (TODO: Max?)
+function probable_orbit(G::Oscar.PermGroup, f::SLPoly)
+  n = ngens(parent(f))
+  F = GF(next_prime(2^50))
+  p = [rand(F) for i=1:n]
+  s = [f]
+  v = Set([evaluate(f, p)])
+  while true
+    nw = []
+    for g = gens(G)
+      for h = s
+        z = evaluate(h^g, p)
+        if !(z in v)
+          push!(nw, h^g)
+          push!(v, z)
+        end
+      end
+    end
+    if length(nw) == 0
+      return s
+    end
+    append!(s, nw)
+  end
+end
+
 function maximal_subgroup_reps(G::PermGroup)
   return Oscar._as_subgroups(G, GAP.Globals.MaximalSubgroupClassReps(G.X))
+end
+
+function trivial_subgroup(G::PermGroup)
+  return Oscar._as_subgroup(G, GAP.Globals.TrivialSubgroup(G.X))[1]
+end
+
+"""
+An ascending chain of minimual supergroups linking `U` and `G`.
+Not a good algorithm, but Max' version `RefinedChain` does not produce
+minimal supergroups, ie. it fails in ``C_4``.
+"""
+function maximal_subgroup_chain(G::PermGroup, U::PermGroup)
+  l = [G]
+  while order(l[end]) > order(U)
+    m = maximal_subgroups(l[end])
+    push!(l, m[findfirst(x -> issubgroup(x, U)[1], m)])
+  end
+  return reverse(l)
+
+  l = GAP.Globals.AscendingChain(G.X,U.X)
+  map(GAP.Globals.MaximalSubgroupClassReps, l)
+  ll = GAP.Globals.RefinedChain(G.X,l)
+  return [Oscar._as_subgroup(G, x)[1] for x = ll]
 end
 
 function transitive_group_identification(G::PermGroup)
@@ -325,14 +460,7 @@ function transitive_group_identification(G::PermGroup)
 end
 
 #TODO:
-# with Max, sit down and discus right/left action, transversals and conjugation
-# invariants via BlockSys
-# BlockSys from subfields
-
-#TODO:
 #- ansehen der ZykelTypen um Sn/An zu erkennen
-#- Kranz-Produkte fuer die BlockSysteme (und deren Schnitt)
-#- BlockSysteme fuer die Gruppen
 #- Bessere Abstraktion um mehr Grundkoerper/ Ringe zu erlauben
 #- Bessere Teilkpoerper: ich brauche "nur" maximale
 #- sanity-checks
@@ -340,7 +468,6 @@ end
 
 # TODO: add a GSet Julia type which does something similar Magma's,
 # or also to GAP's ExternalSet (but don't use ExternalSet, to avoid the overhead)
-
 
 function all_blocks(G::PermGroup)
   # TODO: this returns an array of arrays;
@@ -363,6 +490,18 @@ function set_stabilizer(G::Oscar.GAPGroup, seed::Vector{Int})
 end
 
 # TODO: add lots of more orbit related stuff
+
+#provided by Thomas Breuer:
+
+Hecke.orbit(G::PermGroup, i::Int) = GAP.gap_to_julia(GAP.Globals.Orbit(G.X, GAP.julia_to_gap(i)))
+orbits(G::PermGroup) = GAP.gap_to_julia(GAP.Globals.Orbits(G.X))
+
+function action_homomorphism(G::PermGroup, omega::AbstractVector{Int})
+  mp = GAP.Globals.ActionHomomorphism(G.X, GAP.julia_to_gap(omega))
+  if mp == GAP.Globals.fail throw(ArgumentError("Invalid input")) end
+  H = PermGroup(GAP.Globals.Range(mp))
+  return GAPGroupHomomorphism{typeof(G), typeof(H)}(G, H, mp)
+end
 
 function block_system(G::PermGroup, B::Vector{Int})
   orb = GAP.Globals.Orbit(G.X, GAP.julia_to_gap(B), GAP.Globals.OnSets)
@@ -426,7 +565,12 @@ function ^(f::SLPoly, p::Oscar.GAPGroupElem{PermGroup})
   for i=1:ngens(parent(f))
     push!(h, g[p(i)])
   end
-  return evaluate(f, h)
+  e = evaluate(f, h)
+  if typeof(e) != typeof(f)
+    @show "bad case"
+    return f
+  end
+  return e
 end
 
 @doc Markdown.doc"""
@@ -496,8 +640,40 @@ function invariant(G::PermGroup, H::PermGroup)
   @vprint :GaloisInvariant 1 "Searching G-relative H-invariant\n"
   @vprint :GaloisInvariant 2 "that is a $G-relative $H-invariant\n"
 
-  S = slpoly_ring(ZZ, degree(G))
-  g = gens(S)
+  S, g = slpoly_ring(ZZ, degree(G))
+
+  if istransitive(G) && !istransitive(H)
+    @vprint :GaloisInvariant 2 "top group transitive, bottom not\n"
+    return sum(probable_orbit(H, g[1]))
+  end
+
+  if !istransitive(G) 
+    @vprint :GaloisInvariant 2 "both groups are intransitive\n"
+    OG = orbits(G)
+    OH = orbits(H)
+    d = setdiff(OH, OG)
+    if length(d) > 0
+      @vprint :GaloisInvariant 2 "groups have different orbits\n"
+      return sum(probable_orbit(H, d[1][1]))
+    end
+    #OH == OG
+    for o = OH
+      h = action_homomorphism(G, Int[x for x = o])
+      hG = image(h)[1]
+      hH = image(h, H)[1]
+      if order(hG) > order(hH)
+        @vprint :GaloisInvariant 2 "differ on action on $o, recursing\n"
+        @hassert :GaloisInvariant 0 ismaximal(hG, hH)
+        I = invariant(hG, hH)
+        return evaluate(I, g[o])
+      end
+    end
+    if order(H) < 100
+      @vprint :GaloisInvariant 2 "group small enough, using orbit sum\n"
+      return sum(probable_orbit(H, prod(g[i]^i for i=1:length(g)-1)))
+    end
+    error("give up")
+  end
 
   if isprimitive(G) && isprimitive(H)
     if isodd(G) && iseven(H)
@@ -687,12 +863,10 @@ end
 
 #TODO
 # - split: find primes and abort on Sn/An
-# - sqrt discrimiant to check even/odd
 # - subfield lattice directly
 # - subfield to block system outsource (also for lattice)
 # - more invars
 # - re-arrange to make cheap this first, expensive later
-# - short coests - when available
 # - proof, live and later
 # - "isInt", ie. the test for being in Z: outsource...
 # - tschirnhausen transformation: slowly increasing degree and coeffs.
@@ -707,6 +881,10 @@ function galois_group(K::AnticNumberField, extra::Int = 5)
   p_best = 1
   cnt = 5
   ct = Set{Array{Int, 1}}()
+  #find a q-adic splitting field of "good degree":
+  # - too small, then the Frobenius automorphisms is not comtaining lots of
+  #   information
+  # - too large, all is slow.
   for p = Hecke.PrimesSet(2^20, -1)
     lf = factor(K.pol, GF(p))
     if any(x->x>1, values(lf.fac))
@@ -737,6 +915,7 @@ function galois_group(K::AnticNumberField, extra::Int = 5)
   @vprint :GaloisGroup 1 "computing subfields ...\n"
   @vtime :GaloisGroup 2 S = subfields(K)
 
+  #compute the block system for all subfields...
   bs = Array{Array{Int, 1}, 1}[]
   for (s, ms) = S
     if degree(s) == degree(K) || degree(s) == 1
@@ -772,11 +951,11 @@ function galois_group(K::AnticNumberField, extra::Int = 5)
   end
 
   F = GroupFilter()
-  push!(F, istransitive)
+  push!(F, istransitive) #poly is defining number field, hence irreducible
 
   @vprint :GaloisGroup 2 "group will have (all) block systems: $([x[1] for x = bs])\n"
 
-  #selecting maximals only...
+  #selecting maximal block systems only...
   if length(bs) > 1
     L = POSet(bs, (x,y) -> issubset(x[1], y[1]) || issubset(y[1], x[1]),
                   (x,y) -> issubset(x[1], y[1]) - issubset(y[1], x[1]))
@@ -794,12 +973,20 @@ function galois_group(K::AnticNumberField, extra::Int = 5)
   for b = bs
     W = isomorphic_perm_group(wreath_product(symmetric_group(length(b[1])), symmetric_group(length(b))))[1]
     s = S(vcat(b...))
+    # W^s is largest group having "b" as a block system
+    # courtesy of Max...
     G = intersect(G, W^s)[1]
   end
 
-  if length(bs) == 0 #primitive case
+  if length(bs) == 0 #primitive case: no subfields, no blocks, primitive group!
     push!(F, isprimitive)
     @vprint :GaloisGroup 1 "group is primitive (no subfields), trying operations on pairs\n"
+
+    #starting group as the stabilizer of the factorisation of the 2-sum poly,
+    #the polynomial with roots r_i + r_j, i<j
+    #we need this square-free, so we compute this over the finite field
+    #actually, we only check that the roots over the finite field are distinct.
+    #if not: transform (using ts) and try again.
     k, mk = ResidueField(parent(c[1]))
     m = Dict{fq_nmod, Tuple{Int, Int}}()
     local ts = gen(Hecke.Globals.Zx)
@@ -839,7 +1026,12 @@ function galois_group(K::AnticNumberField, extra::Int = 5)
       r = roots(f, k)
       push!(O, [m[x] for x = r])
     end
+    #the factors define a partitioning of pairs, the stabiliser of this
+    #partition is the largest possible group...
+    #code from Max...
+
     @vprint :GaloisGroup 2 "partitions: $O\n"
+    #TODO: wrap this properly
     G = Oscar._as_subgroup(G, GAP.Globals.Solve(GAP.julia_to_gap(vcat(GAP.Globals.ConInGroup(G.X), [GAP.Globals.ConStabilize(GAP.julia_to_gap(sort(o), Val(true)), GAP.Globals.OnSetsSets) for o in O]))))[1]
     #@show G = intersect([stabilizer(G, GAP.julia_to_gap(sort(o), Val(true)), GAP.Globals.OnSetsSets)[1] for o=O]...)[1]
   end
@@ -873,10 +1065,10 @@ function galois_group(K::AnticNumberField, extra::Int = 5)
       @hassert :GaloisInvariant 1 all(x->isprobably_invariant(I, x), gens(s))
       @hassert :GaloisInvariant 1 any(x->!isprobably_invariant(I, x), gens(G))
 
-      B = bound(GC, I, ts)
+      B = upper_bound(GC, I, ts)
       @vprint :GaloisGroup 2 "invariant uses $(cost(I, ts)) many multiplications\n"
       @vprint :GaloisGroup 2 "of maximal degree $(total_degree(I)*degree(ts))\n"
-      @vprint :GaloisGroup 2 "root bound: $(value(B))\n"
+      @vprint :GaloisGroup 2 "root upper_bound: $(value(B))\n"
 
       c = roots(GC, clog(2*value(B), p)+extra)
       c = map(ts, c)
@@ -940,6 +1132,7 @@ function galois_group(K::AnticNumberField, extra::Int = 5)
           @assert length(G) < nG
           @vprint :GaloisGroup 2 "descending to $(transitive_group_identification(G))\n"
           if length(G) == degree(K)
+            GC.G = G
             return G, GC
           end
           break
@@ -947,21 +1140,135 @@ function galois_group(K::AnticNumberField, extra::Int = 5)
       end
     end
     if nG == length(G)
+      GC.G = G
       return G, GC
     end
     nG = length(G)
-  end
+  end      
+  GC.G = G
   return G, GC
 end
 
-#TODO: do this properly, with indexed types and such
-mutable struct POSet
-  elem::Array{Any, 1}
-  cmp::Function
-  can_cmp::Function
+#TODO: use above as well.
+function isinteger(GC::GaloisCtx, B, e)
+  p = GC.C.p
+  if e.length<2
+    l = coeff(e, 0)
+    lz = lift(l)
+    lz = Hecke.mod_sym(lz, fmpz(p)^precision(l))
+    if abs(lz) < value(B)
+      return true, lz
+    else
+      error("asd")
+      return false, lz
+    end
+  else
+    error("asdasd")
+    return false, fmpz(0)
+  end
+end
 
-  function POSet(elem::Array{<:Any, 1}, can_cmp::Function, cmp::Function)
-    r = new()
+@doc Markdown.doc"""
+    fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
+
+Given the `GaloisCtx` as returned by a call to `galois_group` and a subgroup
+`U` of the Galois group, compute the field fixed by `U` as a simple
+extension.
+"""
+function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
+  G = GC.G
+  c = reverse(maximal_subgroup_chain(G, U))
+  @vprint :GaloisGroup 2 "using a subgroup cahin with orders $(map(order, c))\n"
+
+  I = [invariant(c[i], c[i+1]) for i=1:length(c)-1]
+  #the I[i] is a relative primitive element - it may be absolute or not...
+  # right_transversal: U*g, thus G>U>V -> V a b where a runs (U/V), b (G/U):
+  # G = cup U b, U = cup V a, so G = V a b
+  ts = [gen(Hecke.Globals.Zx) for i = I]
+  tv  = [right_transversal(c[i], c[i+1]) for i=1:length(c)-1]
+  r = roots(GC, 5)
+  mu = ones(Int, length(I))
+  #need tschirni per invar
+  local conj
+  while true
+    rt = map(ts[1], r)
+    conj = [evaluate(I[1]^t, rt) for t = tv[1]]
+    if length(Set(conj)) == order(c[1])//order(c[2])
+      break
+    end
+    while true
+      ts[1] = rand(parent(ts[1]), 2:degree(GC.f), -4:4)
+      if degree(ts[1]) > 0
+        break
+      end
+    end
+  end
+  T = tv[1]
+  if ts[1] == gen(Hecke.Globals.Zx)
+    a = I[1]
+  else
+    a = evaluate(I[1], map(ts[1], gens(parent(I[1]))))
+  end
+  for j=2:length(I)
+    local nc, rt
+    while true
+      rt = map(ts[j], r)
+      nc = [evaluate(I[j]^t, rt) for t = tv[j]]
+      if length(Set(nc)) == order(c[j])//order(c[j+1])
+        break
+      end
+      while true
+        ts[j] = rand(parent(ts[1]), 2:degree(GC.f), -4:4)
+        if degree(ts[j]) >= 1
+          break
+        end
+      end
+    end
+    
+    lT = length(T)
+    for k=2:length(tv[j])
+      append!(T, [tv[j][k] * t for t =  T[1:lT]])
+    end
+
+    mu[j] = 0
+
+    if ts[j] == gen(Hecke.Globals.Zx)
+      b = I[j]
+    else
+      b = evaluate(I[j], map(ts[j], gens(parent(I[1]))))
+    end
+    while true
+      d = Set([evaluate((mu[j]*a+b)^t, r) for t = T])
+      if length(d) == length(T)
+        break
+      end
+      mu[j] += 1
+    end
+    a = mu[j]*a+b
+  end
+  @vprint :GaloisGroup 2  "have primitive element via $mu \n$a\n"
+
+  B = upper_bound(GC, a)
+  m = length(T)
+
+  r = roots(GC, clog(2*value(m*B^m), GC.C.p)+extra)
+  conj = [evaluate(a^t, r) for t = T]
+
+  ps = fmpq[isinteger(GC, 2*m*B^m, power_sum(conj, i))[2] for i=1:m]
+  return number_field(Hecke.power_sums_to_polynomial(ps), check = false, cached = false)[1]
+end
+
+#TODO: do this properly, with indexed types and such
+# Partially Ordered Set ...
+mutable struct POSet{T}
+  elem::Array{T, 1}
+  "for two elements that are comparable, return -1, 0, 1"
+  cmp::Function #(::T, ::T) -> -1, 0, 1
+  "take two elems and test if they are comparable, returns Bool"
+  can_cmp::Function #(::T, ::T) -> Bool
+
+  function POSet{S}(elem::Array{S, 1}, can_cmp::Function, cmp::Function) where {S}
+    r = new{S}()
     r.elem = elem
     r.cmp = cmp
     r.can_cmp = can_cmp
@@ -969,14 +1276,16 @@ mutable struct POSet
   end
 end
 
-struct POSetElem
+POSet(elem::Array{S, 1}, can_cmp::Function, cmp::Function) where {S} = POSet{S}(elem, can_cmp, cmp)
+
+struct POSetElem{T}
   e::Int
-  p::POSet
-  function POSetElem(L::POSet, i::Int)
-    return new(i, L)
+  p::POSet{T}
+  function POSetElem(L::POSet{S}, i::Int) where {S}
+    return new{S}(i, L)
   end
-  function POSetElem(L::POSet, e::Any)
-    return new(findfirst(x->L>can_cmp(e, L.elem[i]) && L.cmp(e, L.elem[i]) == 0, 1:length(L.elem)), L)
+  function POSetElem(L::POSet{S}, e::Any) where {S}
+    return new{S}(findfirst(x->L>can_cmp(e, L.elem[i]) && L.cmp(e, L.elem[i]) == 0, 1:length(L.elem)), L)
   end
 end
 
@@ -1028,7 +1337,6 @@ struct BlockSystems
     return new(n, l, [collect((i-1)*l+1:i*l) for i=1:divexact(n, l)])
   end
 end
-
 
 function Base.iterate(B::BlockSystems)
   return B.cur, deepcopy(B.cur)
@@ -1089,4 +1397,4 @@ end
 
 using .GaloisGrp
 export galois_group, transitive_group_identification, slpoly_ring, elementary_symmetric,
-       power_sum, to_elementary_symmetric
+       power_sum, to_elementary_symmetric, fixed_field, trivial_subgroup
