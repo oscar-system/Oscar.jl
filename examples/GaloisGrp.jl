@@ -7,9 +7,9 @@ import Oscar: Hecke, AbstractAlgebra, GAP
 using Oscar: SLPolyRing, SLPoly, SLPolynomialRing
 
 export galois_group, transitive_group_identification, slpoly_ring, elementary_symmetric,
-       power_sum, to_elementary_symmetric, fixed_field, trivial_subgroup
+       power_sum, to_elementary_symmetric
 
-import Hecke: orbit       
+import Hecke: orbit, fixed_field
 
 
 function __init__()
@@ -427,10 +427,6 @@ end
 
 function maximal_subgroup_reps(G::PermGroup)
   return Oscar._as_subgroups(G, GAP.Globals.MaximalSubgroupClassReps(G.X))
-end
-
-function trivial_subgroup(G::PermGroup)
-  return Oscar._as_subgroup(G, GAP.Globals.TrivialSubgroup(G.X))[1]
 end
 
 """
@@ -1397,4 +1393,4 @@ end
 
 using .GaloisGrp
 export galois_group, transitive_group_identification, slpoly_ring, elementary_symmetric,
-       power_sum, to_elementary_symmetric, fixed_field, trivial_subgroup
+       power_sum, to_elementary_symmetric
