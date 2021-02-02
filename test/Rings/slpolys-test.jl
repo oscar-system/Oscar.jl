@@ -123,13 +123,13 @@ end
 @testset "SLPoly" begin
     S = SLPolyRing(AbstractAlgebra.zz, [:x, :y])
     p = SLPoly(S, SLP.SLProgram{Int}())
-    @test p isa SLPoly{Int,typeof(S)} <: MPolyElem{Int}
+    @test p isa SLPoly{Int,typeof(S)}
     @test parent(p) === S
     @test parent_type(p) == parent_type(typeof(p)) == typeof(S)
     @test elem_type(S) == elem_type(typeof(S)) == typeof(p)
 
     p = SLPoly(S)
-    @test p isa SLPoly{Int,typeof(S)} <: MPolyElem{Int}
+    @test p isa SLPoly{Int,typeof(S)} 
     @test parent(p) === S
 
     @test S(p) === p
