@@ -1065,6 +1065,7 @@ end
 
 include("Group.jl")
 include("POSet.jl")
+include("SeriesEval.jl")
 
 end
 
