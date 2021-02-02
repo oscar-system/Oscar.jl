@@ -328,7 +328,7 @@ end
 
 function getindex(F::BiModArray, ::Val{:S}, i::Int)
   if !isdefined(F, :S)
-    F.S = Singular.smodule{elem_type(base_ring(F.SF))}(base_ring(F.SF), [convert(F.SF, x) for x = F.O]...)
+    F.S = Singular.smodule{elem_type(base_ring(F.SF))}(base_ring(F.SF), [convert(F.SF,x) for x = F.O]...)
   end
   return F.S[i]
 end
@@ -353,7 +353,7 @@ function convert(SF::Singular.FreeMod, m::FreeModuleElem_dec)
   e = SF()
   Sx = base_ring(SF)
   for (p,v) = m.r
-    e += convert(Sx, v.f)*g[p]
+    e += Sx(v.f)*g[p]
   end
   return e
 end
@@ -855,26 +855,10 @@ function coordinates(a::FreeModuleElem_dec, SQ::SubQuo_dec)
   if Singular.ngens(s) == 0 || iszero(s[1])
     error("elem not in module")
   end
-  p = Int[]
-  v = MPolyBuildCtx[]
   Sx = base_ring(SQ)
   Rx = Sx.R
   R = base_ring(Rx)
-  for (i, e, c) = s[1]
-    if i > ngens(SQ)
-    else
-      if i in p
-        f = findfirst(x->x==i, p)
-      else
-        push!(p, i)
-        push!(v, MPolyBuildCtx(Rx))
-        f = length(v)
-      end
-      push_term!(v[f], R(c), e)
-    end
-  end
-  pv = Tuple{Int, elem_type(Sx)}[(p[i], Sx(finish(v[i]))) for i=1:length(p)]
-  return sparse_row(Sx, pv)
+  return sparse_row(Rx, s[1], 1:ngens(SQ))
 end
 
 
