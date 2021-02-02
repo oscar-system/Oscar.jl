@@ -15,7 +15,11 @@ include("Groups/runtests.jl")
 
 if Oscar.is_dev
   include("Examples/PlaneCurve-test.jl")
-  include("Examples/galois-test.jl")
-  include("Examples/ModStdQt-test.jl")
-  include("Examples/ModStdNF-test.jl")
 end
+
+include("Examples/galois-test.jl")
+include("Examples/ModStdQt-test.jl")
+include("Examples/ModStdNF-test.jl")
+
+include("Modules/FreeModules-graded-test.jl")
+include("Modules/GradedModules.jl")
