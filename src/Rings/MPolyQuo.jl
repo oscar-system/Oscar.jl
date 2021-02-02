@@ -60,10 +60,15 @@ canonical_unit(a::MPolyQuoElem) = one(parent(a))
 
 parent(a::MPolyQuoElem) = a.P
 
-+(a::MPolyQuoElem, b::MPolyQuoElem) = MPolyQuoElem(a.f+b.f, a.P)
--(a::MPolyQuoElem, b::MPolyQuoElem) = MPolyQuoElem(a.f-b.f, a.P)
+function check_parent(a::MPolyQuoElem, b::MPolyQuoElem)
+  a.P == b.P || error("wrong parents")
+  return true
+end
+
++(a::MPolyQuoElem, b::MPolyQuoElem) = check_parent(a, b) && MPolyQuoElem(a.f+b.f, a.P)
+-(a::MPolyQuoElem, b::MPolyQuoElem) = check_parent(a, b) && MPolyQuoElem(a.f-b.f, a.P)
 -(a::MPolyQuoElem) = MPolyQuoElem(-a.f, a.P)
-*(a::MPolyQuoElem, b::MPolyQuoElem) = MPolyQuoElem(a.f*b.f, a.P)
+*(a::MPolyQuoElem, b::MPolyQuoElem) = check_parent(a, b) && MPolyQuoElem(a.f*b.f, a.P)
 ^(a::MPolyQuoElem, b::Integer) = MPolyQuoElem(Base.power_by_squaring(a.f, b), a.P)
 
 function Oscar.mul!(a::MPolyQuoElem, b::MPolyQuoElem, c::MPolyQuoElem)
@@ -99,6 +104,7 @@ end
 
 
 function ==(a::MPolyQuoElem, b::MPolyQuoElem)
+  check_parent(a, b)
   simplify!(a)
   simplify!(b)
   return a.f == b.f
@@ -128,7 +134,7 @@ lift(a::MPolyQuoElem) = a.f
 zero(Q::MPolyQuo) = Q(0)
 one(Q::MPolyQuo) = Q(1)
 
-function isunit_with_inverse(a::MPolyQuoElem)
+function isinvertible_with_inverse(a::MPolyQuoElem)
   Q = parent(a)
   I = Q.I
   if isdefined(I, :gb)
@@ -145,11 +151,110 @@ function isunit_with_inverse(a::MPolyQuoElem)
   return false, a
 end
 
-isunit(a::MPolyQuoElem) = isunit_with_inverse(a)[1]
+isunit(a::MPolyQuoElem) = isinvertible_with_inverse(a)[1]
 function inv(a::MPolyQuoElem)
-  fl, b = isunit_with_inverse(a)
+  fl, b = isinvertible_with_inverse(a)
   fl || error("Element not invertible")
   return b
+end
+
+"""
+Tries to write the generators of `M` as linear combinations of generators in `SM`.
+Extremely low level, might migrate to Singular.jl and be hidd...
+"""
+function lift(M::Singular.sideal, SM::Singular.sideal)
+  R = base_ring(M)
+  ptr,rest_ptr = Singular.libSingular.id_Lift(M.ptr, SM.ptr, R.ptr)
+  return Singular.Module(R, ptr), Singular.Module(R,rest_ptr)
+end
+
+"""
+Converts a sparse-Singular vector of polynomials to an Oscar sparse row.
+"""
+function sparse_row(R::MPolyRing, M::Singular.svector{<:Singular.spoly})
+  v = Dict{Int, MPolyBuildCtx}()
+  for (i, e, c) = M
+    if !haskey(v, i)
+      v[i] = MPolyBuildCtx(R)
+    end
+    push_term!(v[i], base_ring(R)(c), e)
+  end
+  sparse_row(R, [(k,finish(v)) for (k,v) = v])
+end
+
+"""
+Converts a sparse-Singular vector of polynomials to an Oscar sparse row.
+Collect only the column indices in `U`.
+"""
+function sparse_row(R::MPolyRing, M::Singular.svector{<:Singular.spoly}, U::UnitRange)
+  v = Dict{Int, MPolyBuildCtx}()
+  for (i, e, c) = M
+    (i in U) || continue
+    if !haskey(v, i)
+      v[i] = MPolyBuildCtx(R)
+    end
+    push_term!(v[i], base_ring(R)(c), e)
+  end
+  sparse_row(R, [(k,finish(v)) for (k,v) = v])
+end
+
+"""
+Converts the sparse-Singular matrix (`Module`) row by row to an Oscar sparse-matrix.
+Only the row indeces (generators) in `V` and the column indeces in `U` are converted.
+"""
+function sparse_matrix(R::MPolyRing, M::Singular.Module, V::UnitRange, U::UnitRange)
+  S = sparse_matrix(R)
+  for g = 1:Singular.ngens(M)
+    (g in V) || continue
+    push!(S, sparse_row(R, M[g], U))
+  end
+  return S
+end
+
+"""
+Converts the sparse-Singular matrix (`Module`) row by row to an Oscar sparse-matrix.
+"""
+function sparse_matrix(R::MPolyRing, M::Singular.Module)
+  S = sparse_matrix(R)
+  for g = 1:Singular.ngens(M)
+    push!(S, sparse_row(R, M[g]))
+  end
+  return S
+end
+
+"""
+Converts the sparse-Singular matrix (`Module`) row by row to an Oscar dense-matrix.
+"""
+function matrix(R::MPolyRing, M::Singular.Module)
+  return matrix(sparse_matrix(R, M))
+end
+
+function divides(a::MPolyQuoElem, b::MPolyQuoElem)
+  check_parent(a, b)
+  simplify!(a) #not neccessary
+  simplify!(b) #not neccessary
+  iszero(b) && error("cannot divide by zero")
+
+  Q = parent(a)
+  I = Q.I
+  if isdefined(I, :gb)
+    J = I.gb.O
+  else
+    J = gens(I)
+  end
+
+  BS = BiPolyArray([a.f], keep_ordering = false)
+  singular_assure(BS)
+
+  J = vcat(J, [b.f])
+  BJ = BiPolyArray(J, keep_ordering = false)
+  singular_assure(BJ)
+
+  s, = Singular.lift(BJ.S, BS.S)
+  if Singular.ngens(s) < 1 || iszero(s[1])
+    return false, a
+  end
+  return true, Q(sparse_matrix(base_ring(Q), s, 1:1, length(J):length(J))[1, length(J)])
 end
 
 #TODO: find a more descriptive, meaningful name
