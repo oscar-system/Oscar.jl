@@ -554,10 +554,6 @@ function isroot_of_unity(a::QabElem)
   return b.data == 1 || b.data == -1
 end
 
-function Oscar.isone(a::QabElem)
-  return isone(a.data)
-end
-
 function LatticeEqual(A::fmpz_mat,B::fmpz_mat)
   @assert Nemo.ncols(A)==Nemo.ncols(B)
   A=A'

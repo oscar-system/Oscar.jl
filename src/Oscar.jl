@@ -210,12 +210,14 @@ include("../StraightLinePrograms/src/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl")
 include("Rings/slpolys.jl")
 
+include("../experimental/Experimental.jl")
+
 if is_dev
-  include("../examples/ModStdNF.jl")
-  include("../examples/ModStdQ.jl")
-  include("../examples/ModStdQt.jl")
+#  include("../examples/ModStdNF.jl")
+#  include("../examples/ModStdQ.jl")
+#  include("../examples/ModStdQt.jl")
   include("../examples/PrimDec.jl")
-  include("../examples/GaloisGrp.jl")
+#  include("../examples/GaloisGrp.jl")
 
   include("../examples/PlaneCurve.jl")
 end
