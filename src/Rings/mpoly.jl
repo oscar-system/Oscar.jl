@@ -117,10 +117,12 @@ mutable struct BiPolyArray{S}
   S::Singular.sideal
   Ox #Oscar Poly Ring
   Sx # Singular Poly Ring, poss. with different ordering
-  function BiPolyArray(a::Array{T, 1}; keep_ordering::Bool = true) where {T <: MPolyElem}
+  isGB::Bool #if the Singular side (the sideal) will be a GB
+  function BiPolyArray(a::Array{T, 1}; keep_ordering::Bool = true, isGB::Bool = false) where {T <: MPolyElem}
     r = new{T}()
     r.O = a
     r.Ox = parent(a[1])
+    r.isGB = isGB
     r.Sx = singular_ring(r.Ox, keep_ordering = keep_ordering)
     return r
   end
@@ -129,6 +131,7 @@ mutable struct BiPolyArray{S}
     r.S = b
     r.O = Array{elem_type(T)}(undef, Singular.ngens(b))
     r.Ox = Ox
+    r.isGB = b.isGB
     r.Sx = base_ring(b)
     return r
   end
@@ -329,6 +332,9 @@ end
 function singular_assure(I::BiPolyArray)
   if !isdefined(I, :S)
     I.S = Singular.Ideal(I.Sx, [I.Sx(x) for x = I.O])
+    if I.isGB
+      I.S.isGB = true
+    end
   end
 end
 
@@ -494,7 +500,6 @@ function dim(I::MPolyIdeal)
   end
   groebner_assure(I)
   singular_assure(I)
-  I.gb.S.isGB = true
   I.dim = Singular.dimension(I.gb.S)
   return I.dim
 end

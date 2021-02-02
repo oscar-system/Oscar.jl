@@ -82,11 +82,21 @@ function simplify!(a::MPolyQuoElem)
   groebner_assure(I)
   singular_assure(I.gb)
   Sx = base_ring(I.gb.S)
-  I.gb.S.isGB = true
   f = a.f
   a.f = I.gens.Ox(reduce(Sx(f), I.gb.S))
   return a
 end
+
+function simplify(a::MPolyQuoElem)
+  R = parent(a)
+  I = R.I
+  groebner_assure(I)
+  singular_assure(I.gb)
+  Sx = base_ring(I.gb.S)
+  f = a.f
+  return R(I.gens.Ox(reduce(Sx(f), I.gb.S)))
+end
+
 
 function ==(a::MPolyQuoElem, b::MPolyQuoElem)
   simplify!(a)
@@ -105,6 +115,10 @@ function quo(R::MPolyRing, I::MPolyIdeal)
   return q, MapFromFunc(im, pr, R, q)
 end
 
+function quo(R::MPolyRing, f::MPolyElem...) 
+  return quo(R, ideal(R, [f...]))
+end
+
 lift(a::MPolyQuoElem) = a.f
 
 (Q::MPolyQuo)() = MPolyQuoElem(Q.R(), Q)
@@ -112,15 +126,37 @@ lift(a::MPolyQuoElem) = a.f
 (Q::MPolyQuo)(a) = MPolyQuoElem(Q.R(a), Q)
 
 zero(Q::MPolyQuo) = Q(0)
-
 one(Q::MPolyQuo) = Q(1)
+
+function isunit_with_inverse(a::MPolyQuoElem)
+  Q = parent(a)
+  I = Q.I
+  if isdefined(I, :gb)
+    J = I.gb.O
+  else
+    J = gens(I)
+  end
+  J = vcat(J, [a.f])
+  H, T = groebner_basis_with_transform(ideal(J))
+  if 1 in H
+    @assert nrows(T) == 1
+    return true, Q(T[1, end])
+  end
+  return false, a
+end
+
+isunit(a::MPolyQuoElem) = isunit_with_inverse(a)[1]
+function inv(a::MPolyQuoElem)
+  fl, b = isunit_with_inverse(a)
+  fl || error("Element not invertible")
+  return b
+end
 
 #TODO: find a more descriptive, meaningful name
 function _kbase(Q::MPolyQuo)
   I = Q.I
   groebner_assure(I)
   singular_assure(I.gb)
-  I.gb.S.isGB = true
   s = Singular.kbase(I.gb.S)
   if iszero(s)
     error("ideal was no zero-dimensional")
@@ -146,7 +182,7 @@ function vector_space(K::AbstractAlgebra.Field, Q::MPolyQuo)
     end
     return Q(b)
   end
-  return MapFromFunc(im, V, Q)
+  return V, MapFromFunc(im, V, Q)
 end
 
 ################################################################################
