@@ -4,7 +4,7 @@ import Base.==
 
 export factor, gcd, div, Point, ideal_point, AffinePlaneCurve, ProjPlaneCurve,
        hash, degree, jacobi_ideal, curve_components, isirreducible, isreduced,
-       reduction, union
+       reduction, union, defining_equation
 
 ################################################################################
 
