@@ -5,14 +5,12 @@ Oscar.example("PlaneCurve.jl")
     F = y^3*x^6 - y^6*x^2
     C = AffinePlaneCurve(F)
 
-    @test C.eq == F
+    @test defining_equation(C) == F
     @test dim(C) == 1
 
-    degree(C)
-    @test C.degree == 9
+    @test degree(C) == 9
 
-    curve_components(C)
-    @test C.components ==  Dict{AffinePlaneCurve{fmpq}, Int64}(AffinePlaneCurve(x) => 2, AffinePlaneCurve(y) => 3, AffinePlaneCurve(x^4 - y^3) => 1)
+    @test curve_components(C) == Dict{AffinePlaneCurve{fmpq}, Int64}(AffinePlaneCurve(x) => 2, AffinePlaneCurve(y) => 3, AffinePlaneCurve(x^4 - y^3) => 1)
 
     @test C == AffinePlaneCurve(2*F)
 end
@@ -111,14 +109,12 @@ end
 	F = T(y^3*x^6 - y^6*x^2*z)
     C = ProjPlaneCurve(F)
 
-    @test C.eq == F
+    @test defining_equation(C) == F.f
     @test dim(C) == 1
 
-    degree(C)
-    @test C.degree == 9
+    @test degree(C) == 9
 
-    curve_components(C)
-    @test C.components ==  Dict{ProjPlaneCurve{fmpq}, Int64}(ProjPlaneCurve(T(x)) => 2, ProjPlaneCurve(T(y)) => 3, ProjPlaneCurve(T(x^4 - y^3*z)) => 1)
+    @test curve_components(C) == Dict{ProjPlaneCurve{fmpq}, Int64}(ProjPlaneCurve(T(x)) => 2, ProjPlaneCurve(T(y)) => 3, ProjPlaneCurve(T(x^4 - y^3*z)) => 1)
 
     @test C == ProjPlaneCurve(2*F)
 end
