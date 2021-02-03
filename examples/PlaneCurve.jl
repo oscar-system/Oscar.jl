@@ -95,14 +95,12 @@ end
 mutable struct AffinePlaneCurve{S <: FieldElem} <: PlaneCurve
   eq::Oscar.MPolyElem{S}                # Equation of the curve (polynomial in two variables)
   degree::Int                           # degree of the equation of the curve
-  dimension::Int                        # dimension of the curve (as a variety)
   components::Dict{AffinePlaneCurve{S}, Int}
   function AffinePlaneCurve(eq::Oscar.MPolyElem{S}) where {S <: FieldElem}
     nvars(parent(eq)) == 2 || error("The defining equation must belong to a ring with two variables")
     !isconstant(eq) || error("The defining equation must be non constant")
     new{S}(eq,
            -1,                   # -1 when it is not computed yet
-            1,                   # since C is a plane curve, the dimension is always 1
             Dict{AffinePlaneCurve{S}, Int}())
   end
 end
@@ -119,7 +117,6 @@ end
 mutable struct ProjPlaneCurve{S <: FieldElem} <: PlaneCurve
   eq::Oscar.MPolyElem_dec{S}            # Equation of the curve (polynomial in three variables)
   degree::Int                           # degree of the equation of the curve
-  dimension::Int                        # dimension of the curve (as a variety)
   components::Dict{ProjPlaneCurve{S}, Int}
   function ProjPlaneCurve(eq::Oscar.MPolyElem_dec{S}) where {S <: FieldElem}
     nvars(parent(eq)) == 3 || error("The defining equation must belong to a ring with three variables")
@@ -127,7 +124,6 @@ mutable struct ProjPlaneCurve{S <: FieldElem} <: PlaneCurve
     ishomogenous(eq) || error("The defining equation is not homogeneous")
     new{S}(eq,
            -1,                   # -1 when it is not computed yet
-            1,                   # since C is a plane curve, the dimension is always 1
             Dict{ProjPlaneCurve{S}, Int}())
   end
   function ProjPlaneCurve(eq::Oscar.MPolyElem{S}) where {S <: FieldElem}
@@ -152,6 +148,8 @@ end
 defining_equation(C::AffinePlaneCurve) = C.eq
 defining_equation(C::ProjPlaneCurve) = C.eq.f
 
+
+Oscar.dim(::PlaneCurve) = 1 # since C is a plane curve, the dimension is always 1
 
 
 ################################################################################
