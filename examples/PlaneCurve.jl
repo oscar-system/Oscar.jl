@@ -97,7 +97,7 @@ mutable struct AffinePlaneCurve{S <: FieldElem} <: PlaneCurve
   degree::Int                           # degree of the equation of the curve
   dimension::Int                        # dimension of the curve (as a variety)
   components::Dict{AffinePlaneCurve{S}, Int}
-  function AffinePlaneCurve(eq::Oscar.MPolyElem{S}) where {S <: FieldElem}
+  function AffinePlaneCurve{S}(eq::Oscar.MPolyElem{S}) where {S <: FieldElem}
     nvars(parent(eq)) == 2 || error("The defining equation must belong to a ring with two variables")
     !isconstant(eq) || error("The defining equation must be non constant")
     new{S}(eq,
@@ -106,6 +106,9 @@ mutable struct AffinePlaneCurve{S <: FieldElem} <: PlaneCurve
             Dict{AffinePlaneCurve{S}, Int}())
   end
 end
+
+AffinePlaneCurve(eq::Oscar.MPolyElem{S}) where {S <: FieldElem} = AffinePlaneCurve{S}(eq)
+
 function Base.show(io::IO, C::AffinePlaneCurve)
   if !get(io, :compact, false)
      println(io, "Affine plane curve defined by ", C.eq)
@@ -121,7 +124,7 @@ mutable struct ProjPlaneCurve{S <: FieldElem} <: PlaneCurve
   degree::Int                           # degree of the equation of the curve
   dimension::Int                        # dimension of the curve (as a variety)
   components::Dict{ProjPlaneCurve{S}, Int}
-  function ProjPlaneCurve(eq::Oscar.MPolyElem_dec{S}) where {S <: FieldElem}
+  function ProjPlaneCurve{S}(eq::Oscar.MPolyElem_dec{S}) where {S <: FieldElem}
     nvars(parent(eq)) == 3 || error("The defining equation must belong to a ring with three variables")
     !isconstant(eq) || error("The defining equation must be non constant")
     ishomogenous(eq) || error("The defining equation is not homogeneous")
@@ -130,10 +133,12 @@ mutable struct ProjPlaneCurve{S <: FieldElem} <: PlaneCurve
             1,                   # since C is a plane curve, the dimension is always 1
             Dict{ProjPlaneCurve{S}, Int}())
   end
-  function ProjPlaneCurve(eq::Oscar.MPolyElem{S}) where {S <: FieldElem}
-     R = grade(parent(eq))
-     return ProjPlaneCurve(R(eq))
-  end
+end
+
+ProjPlaneCurve(eq::Oscar.MPolyElem_dec{S}) where {S <: FieldElem} = ProjPlaneCurve{S}(eq)
+function ProjPlaneCurve(eq::Oscar.MPolyElem{S}) where {S <: FieldElem}
+  R = grade(parent(eq))
+  return ProjPlaneCurve{S}(R(eq))
 end
 
 function Base.show(io::IO, C::ProjPlaneCurve)
@@ -219,24 +224,13 @@ function Oscar.jacobi_ideal(C::PlaneCurve)
 end
 
 ################################################################################
-# helping function: computes the irreducible components of the curve
-
-function compo(C::AffinePlaneCurve)
-  D = factor(C.eq)
-  C.components = Dict(AffinePlaneCurve(x) => D.fac[x] for x in keys(D.fac))
-end
-
-function compo(C::ProjPlaneCurve)
-  D = factor(C.eq)
-  C.components = Dict(ProjPlaneCurve(x) => D.fac[x] for x in keys(D.fac))
-end
-
-################################################################################
 # Helping function
 
 function _assure_has_components(C::PlaneCurve)
   if isempty(C.components)
-     compo(C)
+    T = typeof(C)
+    D = factor(C.eq)
+    C.components = Dict(T(x) => D.fac[x] for x in keys(D.fac))
   end
 end
 
@@ -319,16 +313,11 @@ end
 # Union of two plane curves of the same type (with multiplicity)
 
 @doc Markdown.doc"""
-   union(C::PlaneCurve{S}, D::PlaneCurve{S}) where S <: FieldElem
+   union(C::T, D::T) where T <: PlaneCurve
 
 Return the union of `C` and `D` (with multiplicity).
 """
-function Base.union(C::T, D::T)  where T <: AffinePlaneCurve
-     return AffinePlaneCurve(C.eq*D.eq)
-end
-function Base.union(C::T, D::T)  where T <: ProjPlaneCurve
-     return ProjPlaneCurve(C.eq*D.eq)
-end
+Base.union(C::T, D::T) where T <: PlaneCurve = T(C.eq*D.eq)
 
 ################################################################################
 
