@@ -21,7 +21,7 @@ function Base.show(io::IO, P::ProjSpc)
   if all(isone, w)
     print(io, "Projective space of dim $(P.n) over $(P.R)\n")
   else
-    print(io, "Weigthed projective space of dim $(P.n) over $(P.R) and weights $(w)\n")
+    print(io, "Weighted projective space of dim $(P.n) over $(P.R) and weights $(w)\n")
   end
 end
 
