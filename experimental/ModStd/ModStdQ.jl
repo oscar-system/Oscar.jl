@@ -101,9 +101,7 @@ function Oscar.groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevl
         stable -= 1
         if stable <= 0
           if ord == :degrevlex
-            I.gb = BiPolyArray(gd, keep_ordering = false)
-            singular_assure(I.gb)
-            I.gb.S.isGB = true
+            I.gb = BiPolyArray(gd, keep_ordering = false, isGB = true)
           end
           return gd
         end

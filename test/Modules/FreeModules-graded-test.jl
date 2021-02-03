@@ -200,8 +200,8 @@
 
         FHoms = [Oscar.FreeModuleHom_dec(F, F, [Hom_FreeModElems[t] for t = 1:3]), Oscar.FreeModuleHom_dec(F, F, [Hom_FreeModElems[t] for t = 4:6])]
 
-        for task in [:none, :sum, :prod, :both]
-          direct_product(F, F; task)
+        for t in [:none, :sum, :prod, :both]
+          direct_product(F, F, task = t)
         end
 
         h = hom(F,F)
@@ -243,22 +243,22 @@
           end
         end
 
-        if !non_zero
-          w = [1,2,3]
-          for t = 1:3
-            Image[t] = gens(SubQuos[t])
-          end
+        non_zero || continue #now the types and parents in Image are wrong
+
+        w = [1,2,3]
+        for t = 1:3
+          Image[t] = gens(SubQuos[t])
         end
 
         SQHoms = [Oscar.SubQuoHom_dec(SubQuos[w[t]], SubQuos[t], Image[t]) for t = 1:3]
-        for task in [:none, :prod, :sum]
-          direct_product(SubQuos[4], SubQuos[4]; task)
+        for t in [:none, :prod, :sum]
+          direct_product(SubQuos[4], SubQuos[4], task = t)
         end
 			        
         if i == 1
           @test ngens(direct_product(tensor_product(SubQuos[1], SubQuos[2]), tensor_product(SubQuos[1], SubQuos[3]))) == ngens(tensor_product(SubQuos[1], direct_product(SubQuos[2], SubQuos[3])))
           @test ngens(direct_product(tensor_product(F, F), tensor_product(F, F))[1]) == ngens(tensor_product(F, direct_product(F, F)[1]))
-          tensor_product(SubQuos[1], SubQuos[3]; task = :map)
+          tensor_product(SubQuos[1], SubQuos[3], task = :map)
 	end
 			        
         f = SQHoms[3]

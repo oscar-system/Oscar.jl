@@ -57,7 +57,7 @@ function Oscar.groebner_basis(B::BiPolyArray{nmod_mpoly}, h::HilbertData; ord::S
   if !isdefined(B, :S)
     B.S = Singular.Ideal(B.Sx, [convert(B.Sx, x) for x = B.O])
   end 
-  return BiPolyArray(B.Ox, stdhilb(B.S, h.data, complete_reduction = complete_reduction))
+  return BiPolyArray(B.Ox, stdhilb(B.S, h.data, complete_reduction = complete_reduction), keep_ordering = false, isGB = true)
 end
 
 #TODO (to dream)
@@ -151,7 +151,7 @@ function Oscar.groebner_assure(I::MPolyIdeal{Generic.MPoly{nf_elem}}, ord::Symbo
         stable -= 1
         if stable <= 0
           if ord == :degrevlex
-            I.gb = BiPolyArray(gd)
+            I.gb = BiPolyArray(gd, keep_ordering = false, isGB = true)
           end
           return gd
         end
