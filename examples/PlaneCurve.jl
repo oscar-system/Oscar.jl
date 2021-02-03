@@ -222,17 +222,6 @@ function Oscar.jacobi_ideal(C::PlaneCurve)
 end
 
 ################################################################################
-# Helping function
-
-function _assure_has_components(C::PlaneCurve)
-  if isempty(C.components)
-    T = typeof(C)
-    D = factor(C.eq)
-    C.components = Dict(T(x) => D.fac[x] for x in keys(D.fac))
-  end
-end
-
-################################################################################
 # Components of the curve
 
 @doc Markdown.doc"""
@@ -241,7 +230,11 @@ end
 Return a dictionary containing the irreducible components of `C` and their multiplicity.
 """
 function curve_components(C::PlaneCurve)
-  _assure_has_components(C)
+  if isempty(C.components)
+    T = typeof(C)
+    D = factor(C.eq)
+    C.components = Dict(T(x) => D.fac[x] for x in keys(D.fac))
+  end
   return C.components
 end
 
@@ -255,8 +248,8 @@ end
 Return `true` if `C` is irreducible, and `false` otherwise.
 """
 function Oscar.isirreducible(C::PlaneCurve)
-  _assure_has_components(C)
-   return length(C.components) == 1 && all(isone, values(C.components))
+   comp = curve_components(C)
+   return length(comp) == 1 && all(isone, values(comp))
 end
 
 ################################################################################
@@ -300,10 +293,10 @@ function reduction(C::AffinePlaneCurve)
 end
 
 function reduction(C::ProjPlaneCurve)
-  _assure_has_components(C)
-  F = prod(D -> D.eq, keys(C.components))
+  comp = curve_components(C)
+  F = prod(D -> D.eq, keys(comp))
   rC = ProjPlaneCurve(F)
-  rC.components = Dict(ProjPlaneCurve(D.eq) => 1 for D in keys(C.components))
+  rC.components = Dict(ProjPlaneCurve(D.eq) => 1 for D in keys(comp))
   return rC
 end
 
