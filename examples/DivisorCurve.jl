@@ -16,7 +16,7 @@ struct AffineCurveDivisor{S <: FieldElem} <: CurveDivisor
     C::AffinePlaneCurve{S}
     divisor::Dict{Point{S}, Int}
     degree::Int
-    function AffineCurveDivisor(C::AffinePlaneCurve{S}, D::Dict{Point{S}, Int}) where S <: FieldElem
+    function AffineCurveDivisor{S}(C::AffinePlaneCurve{S}, D::Dict{Point{S}, Int}) where S <: FieldElem
         for (P, m) in D
             P in C || error("The point ", P.coord, " is not on the curve")
             if m == 0
@@ -27,8 +27,16 @@ struct AffineCurveDivisor{S <: FieldElem} <: CurveDivisor
     end
 end
 
+function AffineCurveDivisor(C::AffinePlaneCurve{S}) where S <: FieldElem
+    return AffineCurveDivisor{S}(C, Dict{Point{S}, Int}())
+end
+
+function AffineCurveDivisor(C::AffinePlaneCurve{S}, D::Dict{Point{S}, Int}) where S <: FieldElem
+    return AffineCurveDivisor{S}(C, D)
+end
+
 function AffineCurveDivisor(C::AffinePlaneCurve{S}, P::Point{S}, m::Int=1) where S <: FieldElem
-    return AffineCurveDivisor(C, Dict(P => m))
+    return AffineCurveDivisor{S}(C, Dict(P => m))
 end
 
 ################################################################################
@@ -42,7 +50,7 @@ struct ProjCurveDivisor{S <: FieldElem} <: CurveDivisor
     C::ProjPlaneCurve{S}
     divisor::Dict{Oscar.Geometry.ProjSpcElem{S}, Int}
     degree::Int
-    function ProjCurveDivisor(C::ProjPlaneCurve{S}, D::Dict{Oscar.Geometry.ProjSpcElem{S}, Int}) where S <: FieldElem
+    function ProjCurveDivisor{S}(C::ProjPlaneCurve{S}, D::Dict{Oscar.Geometry.ProjSpcElem{S}, Int}) where S <: FieldElem
         for (P, m) in D
             P in C || error("The point ", P, " is not on the curve")
             if m == 0
@@ -53,8 +61,16 @@ struct ProjCurveDivisor{S <: FieldElem} <: CurveDivisor
     end
 end
 
+function ProjCurveDivisor(C::ProjPlaneCurve{S}) where S <: FieldElem
+    return ProjCurveDivisor{S}(C, Dict{Oscar.Geometry.ProjSpcElem{S}, Int}())
+end
+
+function ProjCurveDivisor(C::ProjPlaneCurve{S}, D::Dict{Oscar.Geometry.ProjSpcElem{S}, Int}) where S <: FieldElem
+    return ProjCurveDivisor{S}(C, D)
+end
+
 function ProjCurveDivisor(C::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}, m::Int=1) where S <: FieldElem
-    return ProjCurveDivisor(C, Dict(P => m))
+    return ProjCurveDivisor{S}(C, Dict(P => m))
 end
 
 ################################################################################
@@ -116,14 +132,9 @@ end
 ################################################################################
 # Sum of two divisors
 
-function Base.:+(D::AffineCurveDivisor, E::AffineCurveDivisor)
+function Base.:+(D::T, E::T) where T <: CurveDivisor
     _check_same_curve(D, E)
-    return AffineCurveDivisor(D.C, merge(+, D.divisor, E.divisor))
-end
-
-function Base.:+(D::ProjCurveDivisor, E::ProjCurveDivisor)
-    _check_same_curve(D, E)
-    return ProjCurveDivisor(D.C, merge(+, D.divisor, E.divisor))
+    return T(D.C, merge(+, D.divisor, E.divisor))
 end
 
 ################################################################################
@@ -141,35 +152,17 @@ function _help_minus(D::CurveDivisor, E::CurveDivisor)
     return F
 end
 
-function Base.:-(D::AffineCurveDivisor, E::AffineCurveDivisor)
-    return AffineCurveDivisor(D.C, _help_minus(D, E))
-end
-
-function Base.:-(D::ProjCurveDivisor, E::ProjCurveDivisor)
-    return ProjCurveDivisor(D.C, _help_minus(D, E))
+function Base.:-(D::T, E::T) where T <: CurveDivisor
+    return T(D.C, _help_minus(D, E))
 end
 
 ################################################################################
 ################################################################################
 
-function Base.:*(k::Int, D::AffineCurveDivisor{S}) where S <: FieldElem
-    if k == 0
-        return AffineCurveDivisor(D.C, Dict{Point{S}, Int}())
-    elseif k == 1
-        return D
-    else
-        return AffineCurveDivisor(D.C, Dict((P, k*m) for (P, m) in D.divisor))
-    end
-end
-
-function Base.:*(k::Int, D::ProjCurveDivisor{S}) where S <: FieldElem
-    if k == 0
-        return ProjCurveDivisor(D.C, Dict{Oscar.Geometry.ProjSpcElem{S}, Int}())
-    elseif k == 1
-        return D
-    else
-        return ProjCurveDivisor(D.C, Dict((P, k*m) for (P, m) in D.divisor))
-    end
+function Base.:*(k::Int, D::T) where T <: CurveDivisor
+    k == 0 && return T(D.C)
+    k == 1 && return D
+    return T(D.C, Dict((P, k*m) for (P, m) in D.divisor))
 end
 
 ################################################################################
