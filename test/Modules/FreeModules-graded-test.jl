@@ -243,11 +243,11 @@
           end
         end
 
-        if !non_zero
-          w = [1,2,3]
-          for t = 1:3
-            Image[t] = gens(SubQuos[t])
-          end
+        non_zero || continue #now the types and parents in Image are wrong
+
+        w = [1,2,3]
+        for t = 1:3
+          Image[t] = gens(SubQuos[t])
         end
 
         SQHoms = [Oscar.SubQuoHom_dec(SubQuos[w[t]], SubQuos[t], Image[t]) for t = 1:3]
