@@ -165,13 +165,13 @@ end
 Return the reduced singular locus of `C` as a list whose first element is the affine plane curve consisting of the singular components of `C` (if any), and the second element is the list of the isolated singular points (which may be contained in the singular component). The singular component might not contain any point over the considered field.
 """
 function curve_singular_locus(C::AffinePlaneCurve)
-   _assure_has_components(C)
+   comp = curve_components(C)
    D = reduction(C)
    Pts = Array{Point, 1}()
    CC = Array{AffinePlaneCurve, 1}()
    # The components with multiplicity > 1 are singular
    f = []
-   for (h, c) in C.components
+   for (h, c) in comp
       if c != 1
          push!(f, h.eq)
       end
