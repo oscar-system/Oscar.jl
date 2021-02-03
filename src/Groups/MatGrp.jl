@@ -4,11 +4,13 @@ import GAP: FFE
 
 export
     general_linear_group,
+    mat_elem_type,
     matrix_group,
     MatrixGroup,
     MatrixGroupElem,
     omega_group,
     orthogonal_group,
+    ring_elem_type,
     special_linear_group,
     special_orthogonal_group,
     special_unitary_group,
@@ -279,17 +281,17 @@ function lies_in(x::MatElem, G::MatrixGroup, x_gap)
          return false, x_gap
       end
    else
-      if x_gap==nothing x_gap = G.mat_iso(x) end
+      if x_gap==Nothing x_gap = G.mat_iso(x) end
      # x_gap !=nothing || x_gap = G.mat_iso(x)
       return GAP.Globals.in(x_gap,G.X), x_gap
    end
 end
 
-Base.in(x::MatElem, G::MatrixGroup) = lies_in(x,G,nothing)[1]
+Base.in(x::MatElem, G::MatrixGroup) = lies_in(x,G,Nothing)[1]
 
 function Base.in(x::MatrixGroupElem, G::MatrixGroup)
    if isdefined(x,:X) return lies_in(x.elm,G,x.X)[1]
-   else return lies_in(x.elm,G,nothing)[1]
+   else return lies_in(x.elm,G,Nothing)[1]
    end
 end
 
@@ -297,9 +299,9 @@ end
 # if check=false, there are no checks on the condition `x in G`
 function (G::MatrixGroup)(x::MatElem; check=true)
    if check
-      vero, x_gap = lies_in(x,G,nothing)
+      vero, x_gap = lies_in(x,G,Nothing)
       vero || throw(ArgumentError("Element not in the group"))
-      if x_gap==nothing return MatrixGroupElem(G,x)
+      if x_gap==Nothing return MatrixGroupElem(G,x)
       else return MatrixGroupElem(G,x,x_gap)
       end
    else
@@ -325,9 +327,9 @@ function (G::MatrixGroup)(x::MatrixGroupElem; check=true)
          return MatrixGroupElem(G,x.X)
       end
    else
-      vero, x_gap = lies_in(x.elm,G,nothing)
+      vero, x_gap = lies_in(x.elm,G,Nothing)
       vero || throw(ArgumentError("Element not in the group"))
-      if x_gap==nothing return MatrixGroupElem(G,x.elm)
+      if x_gap==Nothing return MatrixGroupElem(G,x.elm)
       else return MatrixGroupElem(G,x.elm,x_gap)
       end
    end

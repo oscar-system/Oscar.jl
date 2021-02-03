@@ -24,7 +24,14 @@
 #      xg[i] = GapObj([G.ring_iso(xo[i,j]) for j in 1:3])
 #   end
 #   xg=GAP.julia_to_gap(xg)
-xg = GapObj([[G.ring_iso(xo[i,j]) for j in 1:3] for i in 1:3]; recursive=true)
+   riso=Oscar.gen_ring_iso(F)
+   @test riso isa Oscar.GenRingIso
+   xg = Oscar.mat_oscar_gap(xo,riso)
+   @test xg isa GapObj
+   @test Oscar.mat_gap_oscar(xg,riso)==xo
+   @test Oscar.mat_oscar_gap(Oscar.mat_gap_oscar(xg,riso))==xg
+
+   xg = GapObj([[G.ring_iso(xo[i,j]) for j in 1:3] for i in 1:3]; recursive=true)
    @test G.mat_iso(xo) isa GapObj
    @test G.mat_iso(xo)==xg
    @test G.mat_iso(xg)==xo
@@ -66,9 +73,9 @@ end
 @testset "Type operations" begin
    G = GL(5,5)
    x = rand(G)
-   @test Oscar.ring_elem_type(typeof(G))==typeof(one(base_ring(G)))
-   @test Oscar.mat_elem_type(typeof(G))==typeof(x.elm)
-   @test Oscar.elem_type(typeof(G))==typeof(x)
+   @test ring_elem_type(typeof(G))==typeof(one(base_ring(G)))
+   @test mat_elem_type(typeof(G))==typeof(x.elm)
+   @test elem_type(typeof(G))==typeof(x)
    @test Oscar._gap_filter(typeof(G))(G.X)
 end
 
@@ -83,6 +90,7 @@ end
    @test 2==degree(G)
    @test !isdefined(G,:X)
    @test !isdefined(G,:gens)
+   @test !isdefined(G,:mat_iso)
 
    @test order(G)==5760
    @test isdefined(G,:X)
@@ -94,6 +102,7 @@ end
    x = matrix(F,2,2,[1,0,0,1])
    x = G(x)
    @test !isdefined(x,:X)
+   @test x.X isa GapObj
    x = G[1].elm
    x = G(x)
    @test !isdefined(x,:X)
@@ -114,8 +123,13 @@ end
    @test parent(H[1])==H
    @test parent(f(H[1]))==G
 
+   K1 = matrix_group(x,y,x*y)
+   @test K1.X isa GapObj
+   @test K1.X==H.X
+
    K = matrix_group(x,x^2,y)
    @test isdefined(K, :gens)
+   @test !isdefined(K,:X)
    @test K.gens==[x,x^2,y]
    @test parent(x)==G
    @test x==K[1]                           #TODO changes in future if we decide to keep track of the parent
@@ -126,13 +140,19 @@ end
    @test K==matrix_group(x.elm, (x^2).elm, y.elm)
    @test K==matrix_group([x.elm, (x^2).elm, y.elm])
 
+
    G = GL(3,F)
    x = G([1,z,0,0,z,0,0,0,z+1])
    @test order(x)==8
    @test isdefined(G,:mat_iso)
+
+   G = GL(4,2)
+   @test G.mat_iso isa Oscar.GenMatIso
    
    G = MatrixGroup(4,F)
+   @test_throws ErrorException G.X
    setfield!(G,:descr,:GX)
+   @test isdefined(G,:descr)
    @test_throws ErrorException G.X
 end
 
@@ -300,6 +320,8 @@ end
       N+=order(x)
    end
    @test N==99
+
+   @test Set(elements(G))==Set([x for x in G])
 end
 
 @testset "Membership" begin
@@ -313,7 +335,9 @@ end
    x = matrix(F,2,2,[1,z,0,z])
    @test x in G
    @test !(x in S)
+   @test !(matrix(F,2,2,[0,0,0,1]) in G)
    @test_throws ArgumentError S(x)
+   @test G(x) isa MatrixGroupElem
    @test S(x; check=false)==G(x)
    x = G(x)
    @test x==G([1,z,0,z])
@@ -337,6 +361,12 @@ end
    x = G(x)
    @test parent(O(x))==O
    @test_throws ArgumentError O([z,0,0,1])
+
+   K = matrix_group(S[1],S[2],S[1]*S[2])
+   x = matrix(F,2,2,[2,z,0,2])
+   @test x in K
+   @test isdefined(K,:X)
+   @test isdefined(x,:X)
 
 end
 
