@@ -6,7 +6,7 @@ Oscar.example("PlaneCurve.jl")
     C = AffinePlaneCurve(F)
 
     @test C.eq == F
-    @test C.dimension == 1
+    @test dim(C) == 1
 
     degree(C)
     @test C.degree == 9
@@ -112,7 +112,7 @@ end
     C = ProjPlaneCurve(F)
 
     @test C.eq == F
-    @test C.dimension == 1
+    @test dim(C) == 1
 
     degree(C)
     @test C.degree == 9
