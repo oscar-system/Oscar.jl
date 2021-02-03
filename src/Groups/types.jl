@@ -75,7 +75,6 @@ TODO: document this
 abstract type GAPGroup <: AbstractAlgebra.Group end
 abstract type GAPGroupElem{T<:GAPGroup} <: AbstractAlgebra.GroupElem end
 
-abstract type GAPGroupElem{T<:GAPGroup} <: AbstractAlgebra.GroupElem end
 """
     BasicGAPGroupElem{T<:GAPGroup}
 The type `BasicGAPGroupElem` gathers all types of group elements described only by an underlying GAP object.

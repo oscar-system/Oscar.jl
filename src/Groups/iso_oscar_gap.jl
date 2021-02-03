@@ -49,7 +49,8 @@ function gen_ring_iso(F::FqNmodFiniteField)
    z = gen(F)
 
    if d==1
-      f(x::fq_nmod) = Int(coeff(x,0))*GAP.Globals.One(GAP.Globals.GF(p))
+      myOne = GAP.Globals.One(GAP.Globals.GF(p))
+      f(x::fq_nmod) = Int(coeff(x,0))*myOne
       finv(x::FFE) = F(GAP.Globals.IntFFE(x))
       return GenRingIso(F, GAP.Globals.GF(p), f, finv)
    end
@@ -79,21 +80,25 @@ Base.show(io::IO, f::GenRingIso) = print(io, "Ring isomorphism between ", f.doma
 ################################################################################
 
 # return the GAP matrix corresponding to the Oscar matrix x
-function mat_oscar_gap(x::fq_nmod_mat, n, r)
+# assumes x is a square matrix
+function mat_oscar_gap(x::fq_nmod_mat, riso)
+   n = nrows(x)
    S = Vector{GapObj}(undef, n)
    for i in 1:n
-      S[i] = GAP.julia_to_gap([r(x[i,j]) for j in 1:n])
+      S[i] = GAP.julia_to_gap([riso(x[i,j]) for j in 1:n])
    end
 
    return GAP.julia_to_gap(S)
 end
 
 # return the Oscar matrix corresponding to the GAP matrix x
-function mat_gap_oscar(x::GapObj, n, r)
+# assumes x is a square matrix
+function mat_gap_oscar(x::GapObj, riso)
+   n = GAP.Globals.NrRows(x)
    Arr = [GAP.gap_to_julia(x[i]) for i in 1:n]
-   L = [r(Arr[i][j]) for i in 1:n for j in 1:n]
+   L = [riso(Arr[i][j]) for i in 1:n for j in 1:n]
 
-   return matrix(r.domain, n, n, L)
+   return matrix(riso.domain, n, n, L)
 end
 
 
@@ -102,8 +107,8 @@ end
 
 function gen_mat_iso(deg::Int, F::FqNmodFiniteField)
    riso = gen_ring_iso(F)                                      # "riso" = Ring ISOmorphism
-   homom(x::fq_nmod_mat) = mat_oscar_gap(x, deg, riso)
-   homominv(x::GapObj) = mat_gap_oscar(x, deg, riso)
+   homom(x::fq_nmod_mat) = mat_oscar_gap(x, riso)
+   homominv(x::GapObj) = mat_gap_oscar(x, riso)
    return GenMatIso(MatrixSpace(F,deg,deg),GAP.Globals.MatrixAlgebra(riso.codomain, deg), riso, homom, homominv)
 end
 

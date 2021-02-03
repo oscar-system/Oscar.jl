@@ -6,6 +6,7 @@
    @test isdefined(G,:X)
    @test isdefined(G, :ring_iso)
    @test isdefined(G, :mat_iso)
+   @test G.ring_iso(z) isa FFE
    Z = G.ring_iso(z)
    @test GAP.Globals.IN(Z,G.ring_iso.codomain)
    @test G.ring_iso(Z)==z
@@ -18,11 +19,13 @@
    @test isone(G.ring_iso(GAP.Globals.One(G.ring_iso.codomain)))
    
    xo = matrix(F,3,3,[1,z,0,0,1,2*z+1,0,0,z+2])
-   xg = Vector{GapObj}(undef, 3)
-   for i in 1:3
-      xg[i] = GAP.julia_to_gap([G.ring_iso(xo[i,j]) for j in 1:3])
-   end
-   xg=GAP.julia_to_gap(xg)
+#   xg = Vector{GapObj}(undef, 3)
+#   for i in 1:3
+#      xg[i] = GapObj([G.ring_iso(xo[i,j]) for j in 1:3])
+#   end
+#   xg=GAP.julia_to_gap(xg)
+xg = GapObj([[G.ring_iso(xo[i,j]) for j in 1:3] for i in 1:3]; recursive=true)
+   @test G.mat_iso(xo) isa GapObj
    @test G.mat_iso(xo)==xg
    @test G.mat_iso(xg)==xo
    @test G.mat_iso(GAP.Globals.One(GAP.Globals.GL(3,G.ring_iso.codomain)))==one(G).elm
@@ -35,6 +38,7 @@
    @test isdefined(G,:X)
    @test isdefined(G, :ring_iso)
    @test isdefined(G, :mat_iso)
+   @test G.ring_iso(z) isa FFE
    Z = G.ring_iso(z)
    @test GAP.Globals.IN(Z,G.ring_iso.codomain)
    @test G.ring_iso(Z)==z
@@ -59,6 +63,14 @@
    @test GAP.Globals.Order(G.mat_iso(diagonal_matrix([z,z,one(F)])))==4
 end
 
+@testset "Type operations" begin
+   G = GL(5,5)
+   x = rand(G)
+   @test Oscar.ring_elem_type(typeof(G))==typeof(one(base_ring(G)))
+   @test Oscar.mat_elem_type(typeof(G))==typeof(x.elm)
+   @test Oscar.elem_type(typeof(G))==typeof(x)
+   @test Oscar._gap_filter(typeof(G))(G.X)
+end
 
 #FIXME : this may change in future. It can be easily skipped.
 @testset "Fields assignment" begin
@@ -119,6 +131,9 @@ end
    @test order(x)==8
    @test isdefined(G,:mat_iso)
    
+   G = MatrixGroup(4,F)
+   setfield!(G,:descr,:GX)
+   @test_throws ErrorException G.X
 end
 
 
@@ -196,6 +211,9 @@ end
    @test order(omega_group(+1,4,3))==288
    @test order(omega_group(-1,4,3))==360
    @test order(omega_group(3,3))==12
+
+   G = GL(4,3)
+   
 end
 
 
@@ -207,6 +225,8 @@ end
    x2 = G([2,0,0,0,3,0,0,0,1])
    @test x1==G([4,0,1,4,0,0,0,4,0])
    @test x1==G([4 0 1; 4 0 0; 0 4 0])
+   @test matrix_group(x1,x2)==MatrixGroup(3,base_ring(x1),[x1,x2])
+   @test matrix_group(x1,x2)==matrix_group([x1,x2])
    H = matrix_group([x1,x2])
    @test isdefined(H,:gens)
    @test H[1]==x1
@@ -245,6 +265,8 @@ end
 
 @testset "Classical groups as PermGroup" begin
    @test GL(PermGroup,2,3) isa PermGroup
+   @test order(G) isa fmpz
+   @test order(Int64, G) isa Int64
    @test order(GL(PermGroup,2,3)) == order(GL(2,3))
    @test isisomorphic(GL(PermGroup,2,3),GL(2,3))[1]
    F2 = GF(2,1)[1]

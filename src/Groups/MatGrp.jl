@@ -210,9 +210,9 @@ function Base.getproperty(x::MatrixGroupElem, sym::Symbol)
    if isdefined(x,sym) return getfield(x,sym) end
 
    if sym === :X
-      setfield!(x, :X, x.parent.mat_iso(x.elm))
+      x.X = x.parent.mat_iso(x.elm)
    elseif sym == :elm
-      setfield!(x, :elm, x.parent.mat_iso(x.X))
+      x.elm = x.parent.mat_iso(x.X)
    end
    return getfield(x,sym)
 end
@@ -248,7 +248,7 @@ function ==(G::MatrixGroup,H::MatrixGroup)
       return G.descr == H.descr
    end
    if isdefined(G, :gens) && isdefined(H, :gens)
-      if gens(G)==gens(H) return true  end
+      gens(G)==gens(H) && return true
    end
    return G.X==H.X
 end
