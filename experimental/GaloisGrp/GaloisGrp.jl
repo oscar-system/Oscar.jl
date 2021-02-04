@@ -428,6 +428,8 @@ end
 function ^(f::SLPoly, p::Oscar.PermGroupElem)
   #TODO: replace by makeing the permutation of the input an internal
   #      operation.
+#  Base.show_backtrace(stdout, Base.backtrace())
+
   g = gens(parent(f))
   h = typeof(f)[]
   for i=1:ngens(parent(f))
@@ -960,6 +962,7 @@ function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = 
   cnt = 5
   ct = Set{Array{Int, 1}}()
   ps = Array{Tuple{Int, Int}, 1}()
+
   #find a q-adic splitting field of "good degree":
   # - too small, then the Frobenius automorphisms is not comtaining lots of
   #   information
