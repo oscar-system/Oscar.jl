@@ -13,7 +13,8 @@ function ismaximal(G::Oscar.PermGroup, U::Oscar.PermGroup)
     end
     return true
   end
-  S = maximal_subgroups(G)
+  S = maximal_subgroup_reps(G) 
+  error("not done yet")
   if any(x->x == U, S)
     return true
   end
@@ -46,6 +47,11 @@ end
 
 function maximal_subgroup_reps(G::PermGroup)
   return Oscar._as_subgroups(G, GAP.Globals.MaximalSubgroupClassReps(G.X))
+end
+
+function low_index_subgroups(G::PermGroup, n::Int)
+  ll = GAP.Globals.LowIndexSubgroups(G.X, n)
+  return [Oscar._as_subgroup(G, x)[1] for x = ll]
 end
 
 """
@@ -134,8 +140,8 @@ Base.iseven(n::PermGroup) = !isodd(n)
 @doc Markdown.doc"""
     short_right_transversal(G::PermGroup, H::PermGroup, s) ->
 
-Determines representatives for all right-cosets of `G` modulo `U`
-containing the element `s`.
+Determines representatives `g` for all right-cosets of `G` modulo `H`
+  such that `H^g` contains the element `s`.
 """
 function short_right_transversal(G::PermGroup, H::PermGroup, s)
   C = GAP.Globals.ConjugacyClasses(H.X)
