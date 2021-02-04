@@ -391,7 +391,7 @@ end
 function Base.issubset(I::MPolyIdeal, J::MPolyIdeal)
   singular_assure(I)
   singular_assure(J)
-  return Singular.contains(I.gens.S, J.gens.S)
+  return Singular.contains(J.gens.S, I.gens.S)
 end
 
 function gens(I::MPolyIdeal)
