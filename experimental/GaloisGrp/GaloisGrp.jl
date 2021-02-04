@@ -102,12 +102,12 @@ end
 
 Counts the number of multiplcations to evaluate `I`
 """
-function cost(I::MPolyElem)
+function cost(I::SLPoly)
   n = ngens(parent(I))
   C = cost_ring()
   return value(evaluate(I, [C(0) for i = 1:n]))
 end
-function cost(I::MPolyElem, ts::fmpz_poly)
+function cost(I::SLPoly, ts::fmpz_poly)
   n = ngens(parent(I))
   C = cost_ring()
   return value(evaluate(I, [C(0) for i = 1:n]))+n*degree(ts)
@@ -118,7 +118,7 @@ end
 
 Determines an upper bound for the total degree of `I`.
 """
-function total_degree(I::MPolyElem)
+function total_degree(I::SLPoly)
   n = ngens(parent(I))
   C = degree_ring()
   return value(evaluate(I, [C(1) for i = 1:n]))
@@ -331,12 +331,16 @@ function Hecke.orbit(G::Oscar.PermGroup, f::MPolyElem)
   return s
 end
 
+function Hecke.evaluate(I::SLPoly, p, a::Vector)
+  return evaluate(I, [a[p(i)] for i=1:length(a)])
+end
+
 probable_orbit(G::Oscar.PermGroup, f::MPolyElem) = orbit(G, f)
 
 #one cannot compare (==) slpoly, no hash either..
 #(cannot be done, thus comparison is indirect via evaluation)
 #I assume algo can be imporved (TODO: Max?)
-function probable_orbit(G::Oscar.PermGroup, f::SLPoly)
+function probable_orbit(G::Oscar.PermGroup, f::SLPoly; limit::Int = typemax(Int))
   n = ngens(parent(f))
   F = GF(next_prime(2^50))
   p = [rand(F) for i=1:n]
@@ -350,6 +354,10 @@ function probable_orbit(G::Oscar.PermGroup, f::SLPoly)
         if !(z in v)
           push!(nw, h^g)
           push!(v, z)
+          if length(s) + length(nw) > limit
+            append!(s, nw)
+            return s
+          end
         end
       end
     end
@@ -404,6 +412,8 @@ function to_elementary_symmetric(f)
 end
 
 function ^(f::SLPoly, p::Oscar.PermGroupElem)
+#  Base.show_backtrace(stdout, Base.backtrace())
+
   g = gens(parent(f))
   h = typeof(f)[]
   for i=1:ngens(parent(f))
@@ -431,6 +441,52 @@ function isprobably_invariant(g, p)
   n = ngens(R)
   lp = [rand(k) for i=1:n]
   return evaluate(g, lp) == evaluate(g^p, lp)
+end
+#TODO: think about the order!
+
+function isprobably_invariant(p, G::PermGroup)
+  R = parent(p)
+  k = GF(next_prime(2^20))
+  n = ngens(R)
+  lp = [rand(k) for i=1:n]
+  gp = evaluate(p, lp)
+  return all(x->gp == evaluate(p^x, lp), gens(G))
+end
+
+function set_orbit(G::PermGroup, H::PermGroup)
+  #from Elsenhans
+  l = low_index_subgroups(H, 2*degree(G)^2)
+  S, g = slpoly_ring(ZZ, degree(G))
+
+  sort!(l, lt = (a,b) -> isless(order(b), order(a)))
+  for U = l
+    O = orbits(U)
+    for o in O
+      #TODO: should use orbits of Set(o)...
+      f = sum(g[o])
+      oH = probable_orbit(H, f)
+      oG = probable_orbit(G, f, limit = length(oH)+5)
+      if length(oH) < length(oG)
+        for i = 1:length(o)
+          I = sum(x^i for x = oH)
+          if isprobably_invariant(I, H) &&
+             !isprobably_invariant(I, G)
+            @vprint :GaloisInvariant 2 "SetOrbit won\n"
+            return true, I
+          end
+        end
+        f = prod(g[o])
+        oH = probable_orbit(H, f)
+        I = sum(oH)
+        if isprobably_invariant(I, H) &&
+           !isprobably_invariant(I, G)
+          @vprint :GaloisInvariant 2 "SetOrbit won - final attempt\n"
+          return true, I
+        end
+       end
+     end
+   end
+   return false, g[1]
 end
 
 @doc Markdown.doc"""
@@ -485,6 +541,8 @@ function invariant(G::PermGroup, H::PermGroup)
       @vprint :GaloisInvariant 3 "using sqrt_disc\n"
       return sqrt_disc(g)
     end
+    @vtime :GaloisInvariant 2 fl, I = set_orbit(G, H)
+    fl && return I
   end
 
   bG = all_blocks(G)
@@ -567,10 +625,44 @@ function invariant(G::PermGroup, H::PermGroup)
   return sum(m^s for s = H)
 
 
+  @vprint :GaloisInvariant 2 "bad case... all failed, going generic\n"
   R, _ = PolynomialRing(ZZ, degree(G))
   m = prod(gen(R, i)^i for i=1:degree(G)-1)
   I = sum(orbit(H, m))
   return evaluate(I, g)
+end
+
+@doc Markdown.doc"""
+    resolvent(C::GaloisCtx, G::PermGroup, U::PermGroup)
+
+Find a `G`-relative `H`-invariant `I` and form the correspondig resolvent polynomial
+```\prod (x-I^t)```
+where the product runs over all coset-representatives of `G/U`.
+"""
+function resolvent(C::GaloisCtx, G::PermGroup, U::PermGroup, extra::Int = 5)
+  I = invariant(G, U)
+  t = right_transversal(G, U)
+  n = length(t)
+  rt = roots(C, 5)
+  #make square-free (in residue field)
+  k, mk = ResidueField(parent(rt[1]))
+  k_rt = map(mk, rt)
+  ts = gen(Hecke.Globals.Zx)
+  while length(Set([evaluate(I^s, k_rt, ts) for s = t])) < length(t)
+    ts = rand(Hecke.Globals.Zx, 2:n, -4:4)
+  end
+
+  B = 2*n*evaluate(I, [C.B for i = 1:ngens(parent(I))], ts)^n
+  rt = roots(C, clog(value(B), C.C.p)+extra)
+  rt = map(ts, rt)
+  rt = [evaluate(I^s, rt) for s = t]
+  pr = copy(rt)
+  ps = fmpq[isinteger(C, B, sum(pr))[2]]
+  while length(ps) < n
+    pr .*=  rt
+    push!(ps, isinteger(C, B, sum(pr))[2])
+  end
+  return Hecke.power_sums_to_polynomial(ps)
 end
 
 struct GroupFilter
@@ -599,7 +691,7 @@ then so is the group...). The filtering is done via a `GroupFilter`.
 Furthermore we may compute (and store)
  - a `G`-relative `H`-invariant for any subgroup (`I`)
  - a list of Tschirnhausen transformations used (`T`)
- - a list (`l`) marking which subgroups we have dealt with (1 is group has been
+ - a list (`l`) marking which subgroups we have dealt with (`1` means group has been
  processed completely)
 """
 mutable struct DescentEnv
@@ -666,57 +758,25 @@ function Base.pop!(D::DescentEnv, i::Int)
   D.l[i] = 1
 end
 
-#TODO
-# - split: find primes and abort on Sn/An
-# - subfield lattice directly
-# - subfield to block system outsource (also for lattice)
-# - more invars
-# - re-arrange to make cheap this first, expensive later
-# - proof, live and later
-# - "isInt", ie. the test for being in Z: outsource...
-# - tschirnhausen transformation: slowly increasing degree and coeffs.
-# - for larger degrees: improve starting group by doing Galois groups of subfields
-# - make the descent a seperate function
-# - for reducibles...: write for irr. poly and for red. poly
-# - more base rings
-# - applications: subfields of splitting field, towers, solvability by radicals
-function galois_group(K::AnticNumberField, extra::Int = 5)
-  d_min = 2
-  d_max = typemax(Int)
-  p_best = 1
-  cnt = 5
-  ct = Set{Array{Int, 1}}()
-  #find a q-adic splitting field of "good degree":
-  # - too small, then the Frobenius automorphisms is not comtaining lots of
-  #   information
-  # - too large, all is slow.
-  for p = Hecke.PrimesSet(2^20, -1)
-    lf = factor(K.pol, GF(p))
-    if any(x->x>1, values(lf.fac))
-      continue
-    end
-    push!(ct, sort(map(degree, collect(keys(lf.fac)))))
-    d = lcm([degree(x) for x = keys(lf.fac)])
-    if d < d_max && d >= d_min
-      d_max = d
-      p_best = p
-      cnt = 5
-    else
-      cnt -= 1
-    end
-    if cnt < 1
-      break
-    end
-  end
+@doc Markdown.doc"""
+    starting_group(GC::GaloisCtx, K::AnticNumberField) 
 
-  p = p_best
+Finds a _starting group_, that is a group `G` as a subgroup of the
+symmetric group acting on the roots in the explicit ordering in the
+galois context.
 
-  @vprint :GaloisGroup 1 "using prime $p_best with degree $d_max\n"
-  @vprint :GaloisGroup 2 "and cycle types $ct\n"
+If the field is imprimitive, the group is derived from the subfields, otherwise
+the factorisation of the 2-sum polynomial is used.
 
-  GC = GaloisCtx(Hecke.Globals.Zx(K.pol), p_best)
+Returns a triple: 
+ - the group
+ - a filter for all groups that can occur
+ - a permutation representing the operation of the Frobenius automorphism
+"""
+function starting_group(GC::GaloisCtx, K::AnticNumberField)
   c = roots(GC, 5)
 
+  @vprint :GaloisGroup 1 "computing starting group (upper bound for Galois group\n"
   @vprint :GaloisGroup 1 "computing subfields ...\n"
   @vtime :GaloisGroup 2 S = subfields(K)
 
@@ -758,15 +818,15 @@ function galois_group(K::AnticNumberField, extra::Int = 5)
   F = GroupFilter()
   push!(F, istransitive) #poly is defining number field, hence irreducible
 
-  @vprint :GaloisGroup 2 "group will have (all) block systems: $([x[1] for x = bs])\n"
 
   #selecting maximal block systems only...
   if length(bs) > 1
+    @vprint :GaloisGroup 2 "group will have (all) block systems: $([x[1] for x = bs])\n"
     L = POSet(bs, (x,y) -> issubset(x[1], y[1]) || issubset(y[1], x[1]),
                   (x,y) -> issubset(x[1], y[1]) - issubset(y[1], x[1]))
     bs = minimal_elements(L)
+    @vprint :GaloisGroup 1 "group will have (maximal) block systems: $([x[1] for x = bs])\n"
   end
-  @vprint :GaloisGroup 1 "group will have (maximal) block systems: $([x[1] for x = bs])\n"
 
   d = map(frobenius, c)
   si = [findfirst(y->y==x, c) for x = d]
@@ -774,6 +834,14 @@ function galois_group(K::AnticNumberField, extra::Int = 5)
   @vprint :GaloisGroup 1 "found Frobenius element: $si\n"
 
   G = symmetric_group(degree(K))
+
+  if issquare(discriminant(K))
+    G = alternating_group(degree(K))
+    push!(F, iseven)
+  else
+    push!(F, isodd)
+  end
+
   S = G
   for b = bs
     W = isomorphic_perm_group(wreath_product(symmetric_group(length(b[1])), symmetric_group(length(b))))[1]
@@ -841,22 +909,70 @@ function galois_group(K::AnticNumberField, extra::Int = 5)
     #@show G = intersect([stabilizer(G, GAP.julia_to_gap(sort(o), Val(true)), GAP.Globals.OnSetsSets)[1] for o=O]...)[1]
   end
 
-  @vprint :GaloisGroup 2 "Have starting group with id $(transitive_group_identification(G))\n"
   si = G(si)
 
+  return G, F, si
+end
+  
 
-  if issquare(discriminant(K))
-    push!(F, iseven)
-    isev = true
-  else
-    push!(F, isodd)
-    isev = false
+#TODO
+# - split: find primes and abort on Sn/An
+# - subfield lattice directly
+# - subfield to block system outsource (also for lattice)
+# - more invars
+# - re-arrange to make cheap this first, expensive later
+# - proof, live and later
+# - "isInt", ie. the test for being in Z: outsource...
+# - tschirnhausen transformation: slowly increasing degree and coeffs.
+# - for larger degrees: improve starting group by doing Galois groups of subfields
+# - make the descent a seperate function
+# - for reducibles...: write for irr. poly and for red. poly
+# - more base rings
+# - applications: subfields of splitting field, towers, solvability by radicals
+function galois_group(K::AnticNumberField, extra::Int = 5)
+  d_min = 2
+  d_max = typemax(Int)
+  p_best = 1
+  cnt = 5
+  ct = Set{Array{Int, 1}}()
+  #find a q-adic splitting field of "good degree":
+  # - too small, then the Frobenius automorphisms is not comtaining lots of
+  #   information
+  # - too large, all is slow.
+  for p = Hecke.PrimesSet(2^20, -1)
+    lf = factor(K.pol, GF(p))
+    if any(x->x>1, values(lf.fac))
+      continue
+    end
+    push!(ct, sort(map(degree, collect(keys(lf.fac)))))
+    d = lcm([degree(x) for x = keys(lf.fac)])
+    if d < d_max && d >= d_min
+      d_max = d
+      p_best = p
+      cnt = 5
+    else
+      cnt -= 1
+    end
+    if cnt < 1
+      break
+    end
   end
 
-  nG = length(G)
+  p = p_best
+
+  @vprint :GaloisGroup 1 "using prime $p_best with degree $d_max\n"
+  @vprint :GaloisGroup 2 "and cycle types $ct\n"
+
+  GC = GaloisCtx(Hecke.Globals.Zx(K.pol), p_best)
+
+  G, F, si = starting_group(GC, K)
+
+  @vprint :GaloisGroup 2 "Have starting group with id $(transitive_group_identification(G))\n"
+
+  nG = order(G)
   while true
     D = DescentEnv(G, F)
-    @vprint :GaloisGroup 2 "found $(length(D.s)) many maximal subgroups\n"
+    @vprint :GaloisGroup 2 "found $(length(D.s)) maximal subgroups\n"
 
     while true
       d = iterate(D)
@@ -871,7 +987,7 @@ function galois_group(K::AnticNumberField, extra::Int = 5)
       @hassert :GaloisInvariant 1 any(x->!isprobably_invariant(I, x), gens(G))
 
       B = upper_bound(GC, I, ts)
-      @vprint :GaloisGroup 2 "invariant uses $(cost(I, ts)) many multiplications\n"
+      @vprint :GaloisGroup 2 "invariant uses $(cost(I, ts)) multiplications\n"
       @vprint :GaloisGroup 2 "of maximal degree $(total_degree(I)*degree(ts))\n"
       @vprint :GaloisGroup 2 "root upper_bound: $(value(B))\n"
 
@@ -886,11 +1002,11 @@ function galois_group(K::AnticNumberField, extra::Int = 5)
 
       local lt
       if index(G, s) < 100
-        lt = right_transversal(G, s)
+        @vtime :GaloisGroup 2 lt = right_transversal(G, s)
       elseif isnormal(G, s)
         lt = [one(G)] # I don't know how to get the identity
       else
-        lt = short_right_transversal(G, s, si)
+        @vtime :GaloisGroup 2 lt = short_right_transversal(G, s, si)
         @hassert :GaloisInvariant 2 all(x->si in s^x, lt)
       end
       #x^7-2 triggers wrong descent, occaisonly, if lt is only 10 elems long
@@ -902,7 +1018,7 @@ function galois_group(K::AnticNumberField, extra::Int = 5)
       end
 
       for t = lt
-        e = evaluate(I^t, c)
+        e = evaluate(I, t, c)
         if e in cs
           @vprint :GaloisGroup 2 " evaluation found duplicate, transforming...\n"
           push!(D, d[2])
@@ -933,10 +1049,10 @@ function galois_group(K::AnticNumberField, extra::Int = 5)
         end
         if length(fd)>0
           G = intersect([s^x for x = fd]...)[1]
-          @assert length(fd) > 1 || length(G) == length(s)
-          @assert length(G) < nG
+          @assert length(fd) > 1 || order(G) == order(s)
+          @assert order(G) < nG
           @vprint :GaloisGroup 2 "descending to $(transitive_group_identification(G))\n"
-          if length(G) == degree(K)
+          if order(G) == degree(K)
             GC.G = G
             return G, GC
           end
@@ -944,11 +1060,11 @@ function galois_group(K::AnticNumberField, extra::Int = 5)
         end
       end
     end
-    if nG == length(G)
+    if nG == order(G)
       GC.G = G
       return G, GC
     end
-    nG = length(G)
+    nG = order(G)
   end      
   GC.G = G
   return G, GC
@@ -1057,7 +1173,7 @@ function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
   m = length(T)
 
   r = roots(GC, clog(2*value(m*B^m), GC.C.p)+extra)
-  conj = [evaluate(a^t, r) for t = T]
+  conj = [evaluate(a^t, r) for t = T] #stupid: use the previous powers!
 
   ps = fmpq[isinteger(GC, 2*m*B^m, power_sum(conj, i))[2] for i=1:m]
   return number_field(Hecke.power_sums_to_polynomial(ps), check = false, cached = false)[1]
