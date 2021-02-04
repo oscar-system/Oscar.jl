@@ -17,9 +17,9 @@ And here are a few examples how the current code is intended.
 
 # Examples
 ```
-include( "GroupCharacters.jl" )
-
 using Oscar
+
+Oscar.example("GroupCharacters.jl")
 
 # an ordinary character table from the GAP library
 t = Main.GroupCharacters.character_table("A5");
@@ -136,14 +136,14 @@ using Oscar
 # character values are elements from QabField
 #using QabModule
 #import QabModule: QabElem
-include("QabAndPChars.jl")
+include("../experimental/Rings/QabAndPChars.jl")
 
 # functionality for displaying character tables
 include("MatrixDisplay.jl")
 
 import Base: getindex, length, mod, one, print, show, zero
 
-import AbstractAlgebra: nrows, ncols
+import Oscar: nrows, ncols
 
 import Nemo: degree
 
@@ -426,8 +426,8 @@ function Base.print(io::IO, tbl::GAPGroupCharacterTable)
     print(io, "character_table($id)")
 end
 
-AbstractAlgebra.nrows(tbl::GAPGroupCharacterTable) = length(GAP.Globals.Irr(tbl.GAPTable))
-AbstractAlgebra.ncols(tbl::GAPGroupCharacterTable) = length(GAP.Globals.Irr(tbl.GAPTable))
+Oscar.nrows(tbl::GAPGroupCharacterTable) = length(GAP.Globals.Irr(tbl.GAPTable))
+Oscar.ncols(tbl::GAPGroupCharacterTable) = length(GAP.Globals.Irr(tbl.GAPTable))
 
 function Base.getindex(tbl::GAPGroupCharacterTable, i::Int)
     return group_class_function(tbl, GAP.Globals.Irr(tbl.GAPTable)[i])
