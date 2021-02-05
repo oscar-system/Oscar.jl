@@ -797,8 +797,8 @@ function starting_group(GC::GaloisCtx, K::AnticNumberField; useSubfields::Bool =
   @vprint :GaloisGroup 1 "computing starting group (upper bound for Galois group\n"
 
   if useSubfields
-    @vprint :GaloisGroup 1 "computing subfields ...\n"
-    @vtime :GaloisGroup 2 S = subfields(K)
+    @vprint :GaloisGroup 1 "computing principal subfields ...\n"
+    @vtime :GaloisGroup 2 S = Hecke.principal_subfields(K)
   else
     S = []
   end
@@ -858,13 +858,6 @@ function starting_group(GC::GaloisCtx, K::AnticNumberField; useSubfields::Bool =
 
   G = symmetric_group(degree(K))
 
-  if issquare(discriminant(K))
-    G = alternating_group(degree(K))
-    push!(F, iseven)
-  else
-    push!(F, isodd)
-  end
-
   S = G
   for b = bs
     W = isomorphic_perm_group(wreath_product(symmetric_group(length(b[1])), symmetric_group(length(b))))[1]
@@ -873,6 +866,14 @@ function starting_group(GC::GaloisCtx, K::AnticNumberField; useSubfields::Bool =
     # courtesy of Max...
     G = intersect(G, W^s)[1]
   end
+
+  if issquare(discriminant(K))
+    G = intersect(G, alternating_group(degree(K)))[1]
+    push!(F, iseven)
+  else
+    push!(F, isodd)
+  end
+
 
   if length(bs) == 0 #primitive case: no subfields, no blocks, primitive group!
     push!(F, isprimitive)
@@ -953,7 +954,7 @@ end
 # - more base rings
 # - applications: subfields of splitting field, towers, solvability by radicals
 function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = true)
-  d_min = max(div(degree(K), 3), 2)
+  d_min = 2
   d_max = typemax(Int)
   p_best = 1
   cnt = 5
@@ -962,6 +963,7 @@ function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = 
   # - too small, then the Frobenius automorphisms is not comtaining lots of
   #   information
   # - too large, all is slow.
+  # careful: group could be (C_2)^n hence d_min might be small...
   for p = Hecke.PrimesSet(2*degree(K), -1)
     lf = factor(K.pol, GF(p))
     if any(x->x>1, values(lf.fac))
