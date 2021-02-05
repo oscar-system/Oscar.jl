@@ -337,6 +337,20 @@ end
 
 probable_orbit(G::Oscar.PermGroup, f::MPolyElem) = orbit(G, f)
 
+"""
+`slprogram`s can be compiled into "normal" Julia functions, but there is
+some overhead inthe compilation itself. By default, aparently nothing is
+compiled, so we allow to force this there.
+
+`isPoly` allows the use of inplace operations, as `SLPoly`s result
+in programs where intermediate results are used only once.
+"""
+function compile!(f::SLPoly)
+  if !isdefined(f.slprogram, :f)
+    Oscar.StraightLinePrograms.compile!(f.slprogram, isPoly = true)
+  end
+end
+
 #one cannot compare (==) slpoly, no hash either..
 #(cannot be done, thus comparison is indirect via evaluation)
 #I assume algo can be imporved (TODO: Max?)
@@ -369,7 +383,7 @@ function probable_orbit(G::Oscar.PermGroup, f::SLPoly; limit::Int = typemax(Int)
 end
 
 #TODO:
-#- ansehen der ZykelTypen um Sn/An zu erkennen
+#- ansehen der ZykelTypen um Sn/An zu erkennen (as well as to avoid 2-sum)
 #- Bessere Abstraktion um mehr Grundkoerper/ Ringe zu erlauben
 #- Bessere Teilkpoerper: ich brauche "nur" maximale
 #- sanity-checks
@@ -412,8 +426,8 @@ function to_elementary_symmetric(f)
 end
 
 function ^(f::SLPoly, p::Oscar.PermGroupElem)
-#  Base.show_backtrace(stdout, Base.backtrace())
-
+  #TODO: replace by makeing the permutation of the input an internal
+  #      operation.
   g = gens(parent(f))
   h = typeof(f)[]
   for i=1:ngens(parent(f))
@@ -455,6 +469,10 @@ end
 
 function set_orbit(G::PermGroup, H::PermGroup)
   #from Elsenhans
+  #https://math.uni-paderborn.de/fileadmin/mathematik/AG-Computeralgebra/inv_transfer_5_homepage.pdf
+  #    http://dblp.uni-trier.de/db/journals/jsc/jsc79.html#Elsenhans17
+  # https://doi.org/10.1016/j.jsc.2016.02.005
+
   l = low_index_subgroups(H, 2*degree(G)^2)
   S, g = slpoly_ring(ZZ, degree(G))
 
@@ -773,12 +791,17 @@ Returns a triple:
  - a filter for all groups that can occur
  - a permutation representing the operation of the Frobenius automorphism
 """
-function starting_group(GC::GaloisCtx, K::AnticNumberField)
+function starting_group(GC::GaloisCtx, K::AnticNumberField; useSubfields::Bool = true)
   c = roots(GC, 5)
 
   @vprint :GaloisGroup 1 "computing starting group (upper bound for Galois group\n"
-  @vprint :GaloisGroup 1 "computing subfields ...\n"
-  @vtime :GaloisGroup 2 S = subfields(K)
+
+  if useSubfields
+    @vprint :GaloisGroup 1 "computing subfields ...\n"
+    @vtime :GaloisGroup 2 S = subfields(K)
+  else
+    S = []
+  end
 
   #compute the block system for all subfields...
   bs = Array{Array{Int, 1}, 1}[]
@@ -929,8 +952,8 @@ end
 # - for reducibles...: write for irr. poly and for red. poly
 # - more base rings
 # - applications: subfields of splitting field, towers, solvability by radicals
-function galois_group(K::AnticNumberField, extra::Int = 5)
-  d_min = 2
+function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = true)
+  d_min = max(div(degree(K), 3), 2)
   d_max = typemax(Int)
   p_best = 1
   cnt = 5
@@ -939,7 +962,7 @@ function galois_group(K::AnticNumberField, extra::Int = 5)
   # - too small, then the Frobenius automorphisms is not comtaining lots of
   #   information
   # - too large, all is slow.
-  for p = Hecke.PrimesSet(2^20, -1)
+  for p = Hecke.PrimesSet(2*degree(K), -1)
     lf = factor(K.pol, GF(p))
     if any(x->x>1, values(lf.fac))
       continue
@@ -953,7 +976,7 @@ function galois_group(K::AnticNumberField, extra::Int = 5)
     else
       cnt -= 1
     end
-    if cnt < 1
+    if cnt < 1 && p_best > 1
       break
     end
   end
@@ -965,7 +988,7 @@ function galois_group(K::AnticNumberField, extra::Int = 5)
 
   GC = GaloisCtx(Hecke.Globals.Zx(K.pol), p_best)
 
-  G, F, si = starting_group(GC, K)
+  G, F, si = starting_group(GC, K, useSubfields = useSubfields)
 
   @vprint :GaloisGroup 2 "Have starting group with id $(transitive_group_identification(G))\n"
 
@@ -1017,6 +1040,7 @@ function galois_group(K::AnticNumberField, extra::Int = 5)
         end
       end
 
+      compile!(I)
       for t = lt
         e = evaluate(I, t, c)
         if e in cs
