@@ -14,6 +14,8 @@ const argshift    = 28 # argmask == 2^argshift - 1
 
 const dectrue = argmask
 
+import Nemo
+
 
 ## Op, Line, Arg
 
@@ -684,7 +686,13 @@ getres(p::SLProgram, xs) = Vector{eltype(xs)}(undef, length(p.lines))
 function evaluate(p::SLProgram{T}, xs::Vector{S}, conv::F=identity
                   ) where {T,S,F}
     if isassigned(p.f)
-        p.f[](xs)::S
+      #not too good, but avoids the worldage problem and, evetually the overhead of
+      #invokelatest
+      try
+        return p.f[](xs)::S
+      catch 
+        return Base.invokelatest(p.f[], xs)::S
+      end
     else
         evaluate!(getres(p, xs), p, xs, conv)
     end
@@ -706,6 +714,8 @@ retrieve(ints, cs, xs, res, i, conv::F=identity) where {F} =
 function evaluate!(res::Vector{S}, p::SLProgram{T}, xs::Vector{S},
                    conv::F=identity) where {S,T,F}
     # TODO: handle isempty(lines(p))
+    # TODO: use inplace (addeq!, mul!, ... ) when applicable
+    # TODO: add permutation of input?
     empty!(res)
 
     cs = constants(p)
@@ -793,9 +803,9 @@ cretrieve(i) =
 
 # return compiled execution function f, and updates
 # p.f[] = f, which is not invalidated when p is mutated
-function compile!(p::SLProgram)
+function compile!(p::SLProgram; isPoly::Bool = false)
     res = Expr[]
-    fn = :(function (xs::Vector)
+    fn = :(function (xs::Vector{T}) where {T}
            end)
     k = 0
     cs = constants(p)
@@ -817,14 +827,26 @@ function compile!(p::SLProgram)
             elseif isuniminus(op)
                 :($rk = -$x)
             else
-                y, idx = cretrieve(j)
-                mininput = max(mininput, idx)
+                y, idy = cretrieve(j)
+                mininput = max(mininput, idy)
                 if isplus(op)
-                    :($rk = $x + $y)
+                    if idx == 0 && isPoly
+                      :($rk = Nemo.addeq!($x, $y))
+                    else
+                      :($rk = $x + $y)
+                    end
                 elseif isminus(op)
-                    :($rk = $x - $y)
+                    if idx == 0 && isPoly
+                      :($rk = Nemo.subeq!($x, $y))
+                    else
+                      :($rk = $x - $y)
+                    end
                 elseif istimes(op)
-                    :($rk = $x * $y)
+                    if idx == 0 && isPoly
+                      :($rk = Nemo.mul!($x, $x, $y))
+                    else
+                      :($rk = $x * $y)
+                    end
                 elseif isdivide(op)
                     :($rk = divexact($x, $y))
                 end
@@ -832,11 +854,12 @@ function compile!(p::SLProgram)
         push!(res, line)
     end
     for k = 1:mininput-1
-        pushfirst!(res, :($(Symbol(:x, k)) = @inbounds xs[$k]))
+        pushfirst!(res, :($(Symbol(:x, k)) = @inbounds xs[$k ]))
     end
     if mininput >= 1
-        pushfirst!(res, :($(Symbol(:x, mininput)) = xs[$mininput]))
+        pushfirst!(res, :($(Symbol(:x, mininput)) = @inbounds xs[$mininput]))
     end
     append!(fn.args[2].args, res)
+    global last_bla = fn
     p.f[] = eval(fn)
 end
