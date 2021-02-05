@@ -11,4 +11,5 @@ include("conjugation.jl")
 include("homomorphisms.jl")
 include("libraries.jl")
 include("directproducts.jl")
+include("matrixgroups.jl")
 
