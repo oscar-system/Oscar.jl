@@ -290,9 +290,10 @@ end
 Base.in(x::MatElem, G::MatrixGroup) = lies_in(x,G,Nothing)[1]
 
 function Base.in(x::MatrixGroupElem, G::MatrixGroup)
-   if isdefined(x,:X) return lies_in(x.elm,G,x.X)[1]
-   else return lies_in(x.elm,G,Nothing)[1]
-   end
+   isdefined(x,:X) && lies_in(x.elm,G,x.X)[1]
+   vero, x_gap = lies_in(x.elm,G,Nothing)
+   if x_gap !=Nothing x.X = x_gap end
+   return vero
 end
 
 # embedding an element of type MatElem into a group G

@@ -29,7 +29,7 @@
    xg = Oscar.mat_oscar_gap(xo,riso)
    @test xg isa GapObj
    @test Oscar.mat_gap_oscar(xg,riso)==xo
-   @test Oscar.mat_oscar_gap(Oscar.mat_gap_oscar(xg,riso))==xg
+   @test Oscar.mat_oscar_gap(Oscar.mat_gap_oscar(xg,riso),riso)==xg
 
    xg = GapObj([[G.ring_iso(xo[i,j]) for j in 1:3] for i in 1:3]; recursive=true)
    @test G.mat_iso(xo) isa GapObj
@@ -93,6 +93,8 @@ end
    @test !isdefined(G,:mat_iso)
 
    @test order(G)==5760
+   @test order(G) isa fmpz
+   @test order(Int64, G) isa Int64
    @test isdefined(G,:X)
    @test !isdefined(G,:gens)
 
@@ -284,9 +286,8 @@ end
 
 
 @testset "Classical groups as PermGroup" begin
-   @test GL(PermGroup,2,3) isa PermGroup
-   @test order(G) isa fmpz
-   @test order(Int64, G) isa Int64
+   G = GL(PermGroup,2,3)
+   @test G isa PermGroup
    @test order(GL(PermGroup,2,3)) == order(GL(2,3))
    @test isisomorphic(GL(PermGroup,2,3),GL(2,3))[1]
    F2 = GF(2,1)[1]
@@ -363,7 +364,7 @@ end
    @test_throws ArgumentError O([z,0,0,1])
 
    K = matrix_group(S[1],S[2],S[1]*S[2])
-   x = matrix(F,2,2,[2,z,0,2])
+   x = S(matrix(F,2,2,[2,z,0,2]))
    @test x in K
    @test isdefined(K,:X)
    @test isdefined(x,:X)
