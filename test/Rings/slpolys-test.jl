@@ -322,9 +322,7 @@ end
     p = 2*x^3+y^2+3
     @test evaluate(p, [2, 3]) == 28
     @test SLP.evaluate!(Int[], p, [2, 3]) == 28
-    # @test evaluate(p, [2, 3], identity) == 28 # this could be a bit difficult to support
     @test SLP.evaluate!(Int[], p, [2, 3], x -> x) == 28
-    # @test evaluate(p, [2, 3], x -> -x) == -10 # this could be a bit difficult to support
     @test SLP.evaluate!(Int[], p, [2, 3], x -> -x) == -10
 
     # trivial rings
