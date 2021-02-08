@@ -311,9 +311,14 @@ end
 
 ## evaluate
 
-evaluate(p::SLPoly{T}, xs::Vector{S}, conv::F=identity
-         ) where {T<:RingElement,S<:RingElement,F} =
-             SLP.evaluate(p.slprogram, xs, conv)
+function evaluate(p::SLPoly{T}, xs::Vector{S}) where {T<:RingElement,S<:RingElement,F}
+    if isempty(xs)
+        SLP.evaluate(p.slprogram, xs)
+    else
+        R = parent(one(base_ring(parent(p)))*one(parent(xs[1])))
+        R(SLP.evaluate(p.slprogram, xs, R))
+    end
+end
 
 function SLP.evaluate!(res::Vector{S}, p::SLPoly{T}, xs::Vector{S},
                        conv::F=identity
