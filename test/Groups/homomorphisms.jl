@@ -177,7 +177,7 @@ end
    @test isabelian(G)
    @test !iscyclic(G)
    @test typeof(G)==DirectProductGroup
-   @test Set([order(x) for x in G])==Set([1,2,4])
+   @test Set([order(Int, x) for x in G])==Set([1,2,4])
 
    C3 = cyclic_group(3)
    C7 = cyclic_group(7)
@@ -187,7 +187,7 @@ end
    @test isabelian(G)
    @test iscyclic(G)
    @test typeof(G)==DirectProductGroup
-   @test Set([order(x) for x in G])==Set([1,3,7,21])
+   @test Set([order(Int, x) for x in G])==Set([1,3,7,21])
 
    S4 = symmetric_group(4)
    A5 = alternating_group(5)
