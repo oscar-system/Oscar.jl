@@ -77,7 +77,7 @@
 
   CC = conjugacy_classes_maximal_subgroups(G)
   @test length(CC)==3
-  @test Set([order(representative(l)) for l in CC])==Set([6,8,12])
+  @test Set([order(Int, representative(l)) for l in CC])==Set([6,8,12])
 
   x = G(cperm([1,2,3,4]))
   H = sub(G,[x])[1]

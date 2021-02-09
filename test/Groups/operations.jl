@@ -17,7 +17,7 @@
       oz=order(z)
 
       @test x isa PermGroupElem
-      @test ox isa Int64
+      @test ox isa fmpz
       @test inv(x) in G
       @test mul(x,y) == x*y
       @test mul!(x,x,y) == x*y

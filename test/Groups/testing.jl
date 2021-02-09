@@ -1,8 +1,6 @@
-L = [ alternating_group(5), cyclic_group(18), SL(3,3) ]
+L = [ alternating_group(5), cyclic_group(18), SL(3,3), free_group(0), free_group(1), free_group(2) ]
 
-@testset "GAPGroups_interface_conformance" begin
-
-for G in L
+@testset "GAPGroups_interface_conformance" for G in L
 
    g=rand(G)
    h=rand(G)
@@ -17,16 +15,18 @@ for G in L
       @test one(G) isa typeof(g)
       @test one(G)==one(g)==one(h)
 
+      @test isfinite(G) isa Bool
 #      @test hasorder(G) isa Bool
 #      @test hasgens(G) isa Bool
-      @test ngens(G) isa Integer
+      @test ngens(G) isa Int
       @test gens(G) isa Vector{typeof(g)}
-#=
-      if hasorder(G)
-         @test order(G) isa Integer
+
+      if isfinite(G)
+         @test order(G) isa fmpz
          @test order(G) > 0
+      else
+        @test_throws ErrorException order(G)
       end
-=#
    end
 
    @testset "Comparison methods" begin
@@ -171,7 +171,6 @@ for G in L
          g = g1
       end
    end
-end
 end
 
 

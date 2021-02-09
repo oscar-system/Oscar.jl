@@ -7,7 +7,7 @@
     @test degree(G) == n
     @test degree(A) == n
     @test isfinite(G)
-    @test order(G) isa Int64
+    @test order(G) isa fmpz
     @test exponent(G) isa Integer
     @test exponent(A) isa Integer
     @test exponent(G) == lcm(1:n)
@@ -16,7 +16,10 @@
     end
     @test order(G) == factorial(n)
     @test order(A) == factorial(n)/2
-    @test order(BigInt, G) == factorial(n)
+    @testset "order with type" for T in [Int, BigInt, fmpz]
+        @test order(T, G) == factorial(n)
+        @test order(T, G) isa T
+    end
     @test gens(G) isa Vector{PermGroupElem}
     @test gens(A) isa Vector{PermGroupElem}
     @test ngens(G) == length(gens(G))
