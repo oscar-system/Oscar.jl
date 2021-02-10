@@ -284,36 +284,6 @@ end
    @test_throws AssertionError matrix_group([x1,x3])
 end
 
-
-@testset "Classical groups as PermGroup" begin
-   G = GL(PermGroup,2,3)
-   @test G isa PermGroup
-   @test order(GL(PermGroup,2,3)) == order(GL(2,3))
-   @test isisomorphic(GL(PermGroup,2,3),GL(2,3))[1]
-   F2 = GF(2,1)[1]
-   F3 = GF(3,1)[1]
-   @test SL(PermGroup,2,F2) isa PermGroup
-
-   @test order(SL(PermGroup,2,2)) == order(SL(2,2))
-   @test order(SL(PermGroup,2,F2)) == order(SL(2,2))
-   @test order(GU(PermGroup,2,2)) == order(GU(2,2))
-   @test order(SU(PermGroup,2,2)) == order(SU(2,2))
-   @test order(GO(PermGroup,+1,2,2)) == order(GO(+1,2,2))
-   @test order(SO(PermGroup,+1,2,3)) == order(SO(+1,2,3))
-   @test order(GO(PermGroup,+1,2,F2)) == order(GO(+1,2,2))
-   @test order(SO(PermGroup,+1,2,F3)) == order(SO(+1,2,3))
-   @test order(Sp(PermGroup,2,2)) == order(Sp(2,2))
-   @test SL(MatrixGroup,2,3) == SL(2,3)
-   @test GL(MatrixGroup,2,3) == GL(2,3)
-   @test Sp(MatrixGroup,2,3) == Sp(2,3)
-   @test GO(MatrixGroup,3,3) == GO(3,3)
-   @test GO(MatrixGroup,-1,2,3) == GO(-1,2,3)
-   @test SO(MatrixGroup,-1,2,3) == SO(-1,2,3)
-   @test GU(MatrixGroup,2,3) == GU(2,3)
-   @test SU(MatrixGroup,2,3) == SU(2,3)
-end
-
-
 @testset "Iterator" begin
    G = SL(2,3)
    N = 0

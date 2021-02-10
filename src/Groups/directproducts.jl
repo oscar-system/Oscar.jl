@@ -195,7 +195,7 @@ end
 
 function sub(G::DirectProductGroup, elms::Vector{<:GAPGroupElem{DirectProductGroup}})
   elems_in_GAP = GAP.julia_to_gap(GapObj[x.X for x in elms])
-  H = GAP.Globals.Group(elems_in_GAP)
+  H = GAP.Globals.Subgroup(G.X,elems_in_GAP)
   #H is the group. I need to return the inclusion map too
   return _as_subgroup(G, H)
 end
@@ -353,7 +353,7 @@ end
 
 function sub(G::SemidirectProductGroup{S,T}, elms::Vector{<:GAPGroupElem{SemidirectProductGroup{S,T}}}) where { S, T }
   elems_in_GAP = GAP.julia_to_gap(GapObj[x.X for x in elms])
-  H = GAP.Globals.Group(elems_in_GAP)
+  H = GAP.Globals.Subgroup(G.X,elems_in_GAP)
   #H is the group. I need to return the inclusion map too
   return _as_subgroup(G, H)
 end
@@ -508,7 +508,7 @@ end
 
 function sub(W::WreathProductGroup, elms::Vector{<:GAPGroupElem{WreathProductGroup}})
   elems_in_GAP = GAP.julia_to_gap(GapObj[x.X for x in elms])
-  H = GAP.Globals.Group(elems_in_GAP)
+  H = GAP.Globals.Subgroup(W.X,elems_in_GAP)
   #H is the group. I need to return the inclusion map too
   return _as_subgroup(W, H)
 end
