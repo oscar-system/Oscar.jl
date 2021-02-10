@@ -12,6 +12,7 @@ include("Rings/MPolyQuo.jl")
 include("Rings/slpolys-test.jl")
 include("Polymake/nmbthy-test.jl")
 include("Groups/runtests.jl")
+include("Rings/NumberField.jl")
 
 if Oscar.is_dev
   include("Examples/PlaneCurve-test.jl")
