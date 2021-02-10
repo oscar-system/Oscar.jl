@@ -22,6 +22,7 @@ Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 Singular = "bcd08a7b-43d2-5ff7-b6d4-c458787f915c"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
+
 [compat]
 AbstractAlgebra = "^0.9.1, 0.10"
 DocStringExtensions = "0.8"
