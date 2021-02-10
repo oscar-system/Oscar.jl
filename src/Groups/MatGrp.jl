@@ -477,8 +477,8 @@ gen(G::MatrixGroup, i::Int) = gens(G)[i]
 
 ngens(G::MatrixGroup) = length(gens(G))
 
-function order(::Type{T}, G::MatrixGroup) where T
-   if !isdefined(G,:order) G.order = fmpz(GAP.Globals.Order(G.X)) end
+function order(::Type{T}, G::MatrixGroup) where T <: Union{Integer,fmpz}
+   if !isdefined(G,:order) G.order = fmpz(BigInt(GAP.Globals.Order(G.X))) end
    return T(G.order)
 end
 
