@@ -95,6 +95,7 @@ end
    @test order(G)==5760
    @test order(G) isa fmpz
    @test order(Int64, G) isa Int64
+   @test order(Int64, SL(2,F))==720
    @test isdefined(G,:X)
    @test !isdefined(G,:gens)
 
@@ -233,6 +234,8 @@ end
    @test order(omega_group(+1,4,3))==288
    @test order(omega_group(-1,4,3))==360
    @test order(omega_group(3,3))==12
+   @test_throws ArgumentError GO(+2,2,5)
+   @test_throws ArgumentError SO(+2,2,5)
 
    G = GL(4,3)
    
@@ -348,6 +351,8 @@ end
    G = GL(2,F)
    x = G([1,z,0,1])
    y = G([z+2,0,0,1])
+   @test y[1,1]==z+2
+   @test x[1,2]==z
    @test x*y==G([z+2,z,0,1])
    @test x^-1==G([1,2*z,0,1])
    @test y^x==G([z+2,z+2,0,1])
@@ -434,6 +439,15 @@ end
    @test H^G[2] in elements(cc)
    @test representative(cc)==H
    @test length(cc)==index(G,normalizer(G,H)[1])
+   @test rand(cc) in elements(cc)
+
+   x = G([1,z,0,1])
+   y = G([1,0,0,z+1])
+   H = matrix_group([x])
+   @test gens(H)==[x]
+   K = H^y
+   @test gens(K)==[x^y]
+   @test !isdefined(K,:X)
 
 
    G = GL(2,3)

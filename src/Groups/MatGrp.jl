@@ -482,13 +482,6 @@ function order(::Type{T}, G::MatrixGroup) where T <: Union{Integer,fmpz}
    return T(G.order)
 end
 
- #TODO remove once PR #269 is merged
-function order(G::MatrixGroup)
-   isdefined(G, :order) && return G.order
-   G.order = fmpz(BigInt(GAP.Globals.Size(G.X)))
-   return G.order
-end
-
 ########################################################################
 #
 # Constructors
