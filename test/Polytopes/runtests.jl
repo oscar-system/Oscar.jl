@@ -26,7 +26,7 @@ const pm = Polymake
     end
 
     @testset "(de)homogenize" begin
-        dehomogenize, homogenize = OscarPolytope.dehomogenize, OscarPolytope.homogenize
+        dehomogenize, homogenize = Oscar.dehomogenize, Oscar.homogenize
 
         m = [1 2 3; 4 5 6]'
         @test dehomogenize(homogenize(m, 0 // 1)) == m

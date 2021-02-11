@@ -8,7 +8,7 @@ struct Cone #a real polymake polyhedron
     pm_cone::Polymake.BigObjectAllocated
 end
 function Cone(Rays::Union{Oscar.MatElem,AbstractMatrix})
-    Cone(Polymake.polytope.Cone{Rational}(
+    Cone(Polymake.polytope.Cone{Polymake.Rational}(
         RAYS = matrix_for_polymake(Rays),
     ))
 end
@@ -58,7 +58,7 @@ of the `generators`. Redundant rays are allowed in the generators.
 """
 function positive_hull(generators::Union{Oscar.MatElem,AbstractMatrix})
     # TODO: Filter out zero rows
-    C=Polymake.polytope.Cone{Rational}(INPUT_RAYS =
+    C=Polymake.polytope.Cone{Polymake.Rational}(INPUT_RAYS =
       matrix_for_polymake(remove_zero_rows(generators)))
     Cone(C)
 end

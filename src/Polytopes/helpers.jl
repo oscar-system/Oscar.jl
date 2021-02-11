@@ -1,6 +1,6 @@
 matrix_for_polymake(x::Union{Oscar.fmpz_mat,AbstractMatrix{Oscar.fmpz}}) = Matrix{BigInt}(x)
 matrix_for_polymake(x::Union{Oscar.fmpq_mat,AbstractMatrix{Oscar.fmpq}}) =
-    Matrix{Rational{BigInt}}(x)
+    Matrix{Hecke.Rational{BigInt}}(x)
 matrix_for_polymake(x) = x
 
 function remove_zero_rows(A::Union{Oscar.MatElem,AbstractMatrix})

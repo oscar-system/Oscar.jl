@@ -14,7 +14,7 @@ function Polyhedron(pm_polytope::Polymake.BigObjectAllocated)
     Polyhedron(pm_polytope, :unknown)
 end
 function Polyhedron(A::Union{Oscar.MatElem,AbstractMatrix}, b)
-    Polyhedron(Polymake.polytope.Polytope{Rational}(
+    Polyhedron(Polymake.polytope.Polytope{Polymake.Rational}(
         INEQUALITIES = matrix_for_polymake(remove_zero_rows([b -A])),
     ))
 end
@@ -280,18 +280,18 @@ and generators of the lineality space (L) can be given as well.
 see Def. 2.11 and Def. 3.1.
 """ function convex_hull(V::AbstractVecOrMat)
     pm_polytope =
-        Polymake.polytope.Polytope{Rational}(POINTS = matrix_for_polymake(homogenize(V, 1)))
+        Polymake.polytope.Polytope{Polymake.Rational}(POINTS = matrix_for_polymake(homogenize(V, 1)))
     return Polyhedron(pm_polytope)
 end
 function convex_hull(V::AbstractVecOrMat, R::AbstractVecOrMat)
     points = stack(homogenize(V, 1), homogenize(R, 0))
-    pm_polytope = Polymake.polytope.Polytope{Rational}(POINTS = matrix_for_polymake(points))
+    pm_polytope = Polymake.polytope.Polytope{Polymake.Rational}(POINTS = matrix_for_polymake(points))
     return Polyhedron(pm_polytope)
 end
 function convex_hull(V::AbstractVecOrMat, R::AbstractVecOrMat, L::AbstractVecOrMat)
     points = stack(homogenize(V, 1), homogenize(R, 0))
     lineality = homogenize(L, 0)
-    pm_polytope = Polymake.polytope.Polytope{Rational}(
+    pm_polytope = Polymake.polytope.Polytope{Polymake.Rational}(
         POINTS = matrix_for_polymake(points),
         INPUT_LINEALITY = matrix_for_polymake(lineality),
     )
