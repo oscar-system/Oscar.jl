@@ -207,6 +207,8 @@ include("Geometry/basics.jl")
 include("Polymake/Ineq.jl")
 include("Polymake/NmbThy.jl")
 
+include("Polytopes/Polytopes.jl")
+
 include("../StraightLinePrograms/src/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl")
 include("Rings/slpolys.jl")

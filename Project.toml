@@ -1,6 +1,6 @@
 name = "Oscar"
 uuid = "f1435218-dba5-11e9-1e4d-f1a5fab5fc13"
-authors = ["Claus Fieker <fieker@mathematik.uni-kl.de>", "Giovanni De Franceschi <franceschi@mathematik.uni-kl.de>", "Johannes Schmitt <schmitt@mathematik.uni-kl.de>", "Max Horn <horn@mathematik.uni-kl.de>", "William Hart <goodwillhart@googlemail.com>"]
+authors = ["Claus Fieker <fieker@mathematik.uni-kl.de>", "Giovanni De Franceschi <franceschi@mathematik.uni-kl.de>", "Johannes Schmitt <schmitt@mathematik.uni-kl.de>", "Max Horn <horn@mathematik.uni-kl.de>", "William Hart <goodwillhart@googlemail.com>", "Taylor Brysiewicz <taylor.brysiewicz@mis.mpg.de>", "Michael Joswig <joswig@math.tu-berlin.de>", "Marek Kaluba <kalmar@amu.edu.pl>", "Sascha Timme <sascha.timme@googlemail.com>", "Sebastian Gutsche <gutsche@momo.math.rwth-aachen.de>"]
 version = "0.5.1-DEV"
 
 [deps]
@@ -8,6 +8,7 @@ AbstractAlgebra = "c3fe647b-3220-5bb0-a1ea-a7954cac585d"
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
 GAP = "c863536a-3901-11e9-33e7-d5cd0df7b904"
 Hecke = "3e1990a7-5d81-5526-99ce-9ba3ff248f21"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Markdown = "d6f4376e-aef5-505a-96c1-9c027394607a"
 Nemo = "2edaba10-b0f1-5616-af89-8c11ac63239a"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
