@@ -795,7 +795,7 @@ list(::Type{T}, res) where {T} = res
 
 cretrieve(i) =
     isinput(i) ? Symbol(:x, inputidx(i)) => inputidx(i) :
-    isconstant(i) ? Symbol(:c, constantidx(i)) => 0 :
+    isconstant(i) ? Symbol(:c, constantidx(i)) => -1 :
     Symbol(:res, i.x) => 0
 
 # TODO: handle the "conv" argument like in evaluate!
