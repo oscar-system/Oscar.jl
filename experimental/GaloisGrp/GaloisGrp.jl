@@ -953,18 +953,19 @@ end
 # - for reducibles...: write for irr. poly and for red. poly
 # - more base rings
 # - applications: subfields of splitting field, towers, solvability by radicals
-function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = true)
+function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = true, pStart::Int = 2*degree(K))
   d_min = 2
-  d_max = typemax(Int)
+  d_max = degree(K)^2
   p_best = 1
   cnt = 5
   ct = Set{Array{Int, 1}}()
+  ps = Array{Tuple{Int, Int}, 1}()
   #find a q-adic splitting field of "good degree":
   # - too small, then the Frobenius automorphisms is not comtaining lots of
   #   information
   # - too large, all is slow.
   # careful: group could be (C_2)^n hence d_min might be small...
-  for p = Hecke.PrimesSet(2*degree(K), -1)
+  for p = Hecke.PrimesSet(pStart, -1)
     lf = factor(K.pol, GF(p))
     if any(x->x>1, values(lf.fac))
       continue
@@ -972,18 +973,25 @@ function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = 
     push!(ct, sort(map(degree, collect(keys(lf.fac)))))
     d = lcm([degree(x) for x = keys(lf.fac)])
     if d < d_max && d >= d_min
-      d_max = d
-      p_best = p
-      cnt = 5
-    else
-      cnt -= 1
+      push!(ps, (p, d))
     end
-    if cnt < 1 && p_best > 1
+    if length(ps) > degree(K)
       break
     end
   end
 
-  p = p_best
+  @vprint :GaloisGroup 2 "possible primes and degrees: $ps\n"
+
+  #want: degree > degree K/2 - which might not be possible.
+  l = [x for x = ps if 2*x[2] <= degree(K)]
+  if length(l) > 0
+    pd = l[argmax([x[2] for x = l])]
+  else
+    pd = ps[argmin([x[2] for x = ps])]
+  end
+
+  p = p_best = pd[1]
+  d_max = pd[2]
 
   @vprint :GaloisGroup 1 "using prime $p_best with degree $d_max\n"
   @vprint :GaloisGroup 2 "and cycle types $ct\n"
@@ -1125,7 +1133,7 @@ extension.
 function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
   G = GC.G
   c = reverse(maximal_subgroup_chain(G, U))
-  @vprint :GaloisGroup 2 "using a subgroup cahin with orders $(map(order, c))\n"
+  @vprint :GaloisGroup 2 "using a subgroup chain with orders $(map(order, c))\n"
 
   I = [invariant(c[i], c[i+1]) for i=1:length(c)-1]
   #the I[i] is a relative primitive element - it may be absolute or not...
@@ -1198,10 +1206,20 @@ function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
   B = upper_bound(GC, a)
   m = length(T)
 
-  r = roots(GC, clog(2*value(m*B^m), GC.C.p)+extra)
-  conj = [evaluate(a^t, r) for t = T] #stupid: use the previous powers!
+  @vtime :GaloisGroup 2 r = roots(GC, clog(2*value(m*B^m), GC.C.p)+extra)
+  compile!(a)
+  @vtime :GaloisGroup 2 conj = [evaluate(a, t, r) for t = T]
 
-  ps = fmpq[isinteger(GC, 2*m*B^m, power_sum(conj, i))[2] for i=1:m]
+  B = 2*m*B^m
+
+  ps = fmpq[isinteger(GC, B, sum(conj))[2]]
+  d = copy(conj)
+  while length(ps) < m
+    @show length(ps)
+    @vtime :GaloisGroup 2 d .*= conj
+    push!(ps, isinteger(GC, B, sum(d))[2])
+  end
+
   return number_field(Hecke.power_sums_to_polynomial(ps), check = false, cached = false)[1]
 end
 
