@@ -1,7 +1,7 @@
 name = "Oscar"
 uuid = "f1435218-dba5-11e9-1e4d-f1a5fab5fc13"
 authors = ["Claus Fieker <fieker@mathematik.uni-kl.de>", "Giovanni De Franceschi <franceschi@mathematik.uni-kl.de>", "Johannes Schmitt <schmitt@mathematik.uni-kl.de>", "Max Horn <horn@mathematik.uni-kl.de>", "William Hart <goodwillhart@googlemail.com>", "Taylor Brysiewicz <taylor.brysiewicz@mis.mpg.de>", "Michael Joswig <joswig@math.tu-berlin.de>", "Marek Kaluba <kalmar@amu.edu.pl>", "Sascha Timme <sascha.timme@googlemail.com>", "Sebastian Gutsche <gutsche@momo.math.rwth-aachen.de>"]
-version = "0.5.1-DEV"
+version = "0.5.1"
 
 [deps]
 AbstractAlgebra = "c3fe647b-3220-5bb0-a1ea-a7954cac585d"
