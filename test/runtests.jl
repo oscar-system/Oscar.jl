@@ -1,6 +1,8 @@
 using Oscar
 using Test
 
+include("Polytopes/runtests.jl")
+
 include("GAP/runtests.jl")
 
 include("Rings/integer-test.jl")
