@@ -171,6 +171,33 @@ end
 #
 ################################################################################
 
+function factor(x::Oscar.MPolyElem_dec)
+  R = parent(x)
+  D = Dict{elem_type(R), Int64}()
+  F = factor(x.f)
+  n=length(F.fac)
+  #if n == 1
+  #  return Fac(R(F.unit), D)
+  #else
+    for i in keys(F.fac)
+     push!(D, R(i) => Int64(F[i]))
+    end
+  return Fac(R(F.unit), D)
+  #end
+end
+
+
+function gcd(x::Oscar.MPolyElem_dec, y::Oscar.MPolyElem_dec)
+  R = parent(x)
+  return R(gcd(x.f, y.f))
+end
+
+function div(x::Oscar.MPolyElem_dec, y::Oscar.MPolyElem_dec)
+  R = parent(x)
+  return R(div(x.f, y.f))
+end
+
+
 ==(a::MPolyElem_dec, b::MPolyElem_dec) = a.f == b.f
 
 ^(a::MPolyElem_dec, i::Int) = MPolyElem_dec(a.f^i, a.parent)

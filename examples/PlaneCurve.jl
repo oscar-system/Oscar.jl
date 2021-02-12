@@ -11,36 +11,6 @@ export factor, gcd, div, Point, ideal_point, AffinePlaneCurve, ProjPlaneCurve,
 abstract type PlaneCurve end
 
 ################################################################################
-# TODO: Move these three functions to the file mpoly-graded.jl
-################################################################################
-
-function Oscar.factor(x::Oscar.MPolyElem_dec)
-  R = parent(x)
-  D = Dict{elem_type(R), Int64}()
-  F = factor(x.f)
-  n=length(F.fac)
-  #if n == 1
-  #  return Fac(R(F.unit), D)
-  #else
-    for i in keys(F.fac)
-     push!(D, R(i) => Int64(F[i]))
-    end
-  return Fac(R(F.unit), D)
-  #end
-end
-
-
-function Oscar.gcd(x::Oscar.MPolyElem_dec, y::Oscar.MPolyElem_dec)
-  R = parent(x)
-  return R(gcd(x.f, y.f))
-end
-
-function Oscar.div(x::Oscar.MPolyElem_dec, y::Oscar.MPolyElem_dec)
-  R = parent(x)
-  return R(div(x.f, y.f))
-end
-
-################################################################################
 # Point (not specific to curves).
 ################################################################################
 # Point (first attempt).
