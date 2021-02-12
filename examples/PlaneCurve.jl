@@ -4,7 +4,7 @@ import Base.==
 
 export factor, gcd, div, Point, ideal_point, AffinePlaneCurve, ProjPlaneCurve,
        hash, degree, jacobi_ideal, curve_components, isirreducible, isreduced,
-       reduction, union, defining_equation
+       reduction, union, defining_equation, ring
 
 ################################################################################
 
@@ -309,6 +309,20 @@ end
 Return the union of `C` and `D` (with multiplicity).
 """
 Base.union(C::T, D::T) where T <: PlaneCurve = T(C.eq*D.eq)
+
+################################################################################
+# Ring associated to a curve
+
+@doc Markdown.doc"""
+    ring(C::PlaneCurve)
+
+Return the coordinate ring of the curve `C`.
+"""
+function ring(C::PlaneCurve)
+  F = C.eq
+  S = parent(F)
+  return quo(S, ideal(S, [F]))
+end
 
 ################################################################################
 

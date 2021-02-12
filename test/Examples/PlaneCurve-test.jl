@@ -261,6 +261,24 @@ end
 	@test !iseffective(D)
 	@test iseffective(ProjCurveDivisor(C, P, 3))
 	F = T(x)
+    phi = T(x)//T(y)
 	@test multiplicity(C, F, P) == 1
+	@test multiplicity(C, phi, P) == -1
 	@test divisor(PP[1], C, F) == ProjCurveDivisor(C, Dict(P => 1, Q => 1))
+	@test divisor(PP[1], C, phi) == ProjCurveDivisor(C, Dict(P => -1, Q => 1))
+end
+
+@testset "ProjCurveDivisor global sections" begin
+	S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+	T = grade(S)
+	C = ProjPlaneCurve(T(y^2*z - x*(x-z)*(x+3*z)))
+	PP = projective_space(QQ, 2)
+	P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(1), QQ(0)])
+	D = ProjCurveDivisor(C, P, 4)
+	L = global_sections(D)
+	@test length(L) == 4
+	@test length(findall(a->a==S(1)//S(1), L)) == 1
+	@test length(findall(a->a==S(y)//S(z), L)) == 1
+	@test length(findall(a->a==S(x)//S(z), L)) == 1
+	@test length(findall(a->a==S(x^2)//S(z^2), L)) == 1
 end
