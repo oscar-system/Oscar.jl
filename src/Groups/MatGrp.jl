@@ -23,7 +23,7 @@ export
 abstract type AbstractMatrixGroupElem <: GAPGroupElem{GAPGroup} end
 
 # NOTE: always defined are deg, ring and at least one between { X, gens, descr }
-# NOTE: the fields ring_iso and mat_iso are always defined if the field X is
+# NOTE: the field mat_iso are always defined if the field X is
 """
     MatrixGroup{RE<:RingElem, T<:MatElem{RE}} <: GAPGroup
 Type of groups `G` of `n x n` matrices over the ring `R`, where `n = degree(G)` and `R = base_ring(G)`.
@@ -36,14 +36,15 @@ mutable struct MatrixGroup{RE<:RingElem, T<:MatElem{RE}} <: GAPGroup
    X::GapObj
    gens::Vector{<:AbstractMatrixGroupElem}
    descr::Symbol                       # e.g. GL, SL, symbols for isometry groups
-   ring_iso::GenRingIso
    mat_iso::GenMatIso
    order::fmpz
    AbstractAlgebra.@declare_other
 
-   MatrixGroup(m::Int, F::Ring) = new{elem_type(F), dense_matrix_type(elem_type(F))}(m,F)
+   MatrixGroup(m::Int, F::Ring) = new{elem_type(typeof(F)), dense_matrix_type(elem_type(typeof(F)))}(m,F)
 
 end
+
+MatrixGroup{RE,T}(m::Int, F::Ring) where {RE,T} = MatrixGroup{elem_type(F), dense_matrix_type(elem_type(F))}(m,F)
 
 # build a MatrixGroup given a list of generators, given as array of either MatrixGroupElem or AbstractAlgebra matrices
 # WARNING: if the elements of V have type MatElem, it does not check whether the determinant is nonzero
@@ -76,6 +77,7 @@ function MatrixGroup(m::Int, F::Ring, V::AbstractVector{T}) where T<:Union{MatEl
    return G
 end
 
+MatrixGroup{RE,S}(m::Int, F::Ring, V::AbstractVector{T}) where {RE,S} where T<:Union{MatElem,AbstractMatrixGroupElem} = MatrixGroup(m,F,V)
 
 # NOTE: at least one of the fields :elm and :X must always defined, but not necessarily both of them.
 """
@@ -89,10 +91,10 @@ mutable struct MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: AbstractMatrixGr
    X::GapObj                     # GAP matrix. If x isa MatrixGroupElem, then x.X = x.parent.mat_iso(x.elm)
 
    #MatrixGroupElem(G::MatrixGroup{RE,MatElem{RE}}, x::MatElem{RE}) where RE <: RingElem = new{RE, MatElem{RE}}(G,x)
-   MatrixGroupElem(G::MatrixGroup, x::MatElem) = new{elem_type(G.ring),dense_matrix_type(elem_type(G.ring))}(G,x)
+   MatrixGroupElem{RE,T}(G::MatrixGroup{RE,T}, x::MatElem) where {RE, T} = new{elem_type(G.ring),dense_matrix_type(elem_type(G.ring))}(G,x)
 
    #function MatrixGroupElem(G::MatrixGroup{RE,MatElem{RE}}, x_gap::GapObj) where RE <: RingElem
-   function MatrixGroupElem(G::MatrixGroup, x_gap::GapObj)
+   function MatrixGroupElem{RE,T}(G::MatrixGroup, x_gap::GapObj) where {RE, T}
       z = new{elem_type(G.ring),dense_matrix_type(elem_type(G.ring))}()
       z.parent = G
       z.X = x_gap
@@ -105,11 +107,19 @@ end
 # WARNING: this does not check whether the element actually lies in the group G
 # nor whether the two given matrices really match.
 function MatrixGroupElem(G::MatrixGroup, x::MatElem, x_gap::GapObj)
-   z = MatrixGroupElem(G,x)
+   z = MatrixGroupElem{elem_type(base_ring(G)), typeof(x)}(G,x)
    z.X = x_gap
    return z
 end
 
+function MatrixGroupElem{RE,T}(G::MatrixGroup{RE,T}, x::MatElem{RE}, x_gap::GapObj) where {RE,T}
+   z = MatrixGroupElem{elem_type(base_ring(G)), typeof(x)}(G,x)
+   z.X = x_gap
+   return z
+end
+
+MatrixGroupElem(G::MatrixGroup{RE,T}, x::MatElem{RE}) where {RE, T} = MatrixGroupElem{RE,T}(G,x)
+MatrixGroupElem(G::MatrixGroup{RE,T}, x_gap::GapObj) where {RE, T} = MatrixGroupElem{RE,T}(G,x_gap)
 
 ring_elem_type(::Type{MatrixGroup{S,T}}) where {S,T} = S
 mat_elem_type(::Type{MatrixGroup{S,T}}) where {S,T} = T
@@ -152,17 +162,17 @@ end
 group_element(G::MatrixGroup, x::GapObj) = MatrixGroupElem(G,x)
 
 function assign_from_description(G::MatrixGroup)
-   if G.descr==:GL G.X=GAP.Globals.GL(G.deg,G.ring_iso.codomain)
-   elseif G.descr==:SL G.X=GAP.Globals.SL(G.deg,G.ring_iso.codomain)
-   elseif G.descr==:Sp G.X=GAP.Globals.Sp(G.deg,G.ring_iso.codomain)
-   elseif G.descr==Symbol("GO+") G.X=GAP.Globals.GO(1,G.deg,G.ring_iso.codomain)
-   elseif G.descr==Symbol("SO+") G.X=GAP.Globals.SO(1,G.deg,G.ring_iso.codomain)
+   if G.descr==:GL G.X=GAP.Globals.GL(G.deg,G.mat_iso.fr.codomain)
+   elseif G.descr==:SL G.X=GAP.Globals.SL(G.deg,G.mat_iso.fr.codomain)
+   elseif G.descr==:Sp G.X=GAP.Globals.Sp(G.deg,G.mat_iso.fr.codomain)
+   elseif G.descr==Symbol("GO+") G.X=GAP.Globals.GO(1,G.deg,G.mat_iso.fr.codomain)
+   elseif G.descr==Symbol("SO+") G.X=GAP.Globals.SO(1,G.deg,G.mat_iso.fr.codomain)
    elseif G.descr==Symbol("Omega+") G.X=GAP.Globals.Omega(1,G.deg,Int(order(G.ring)))
-   elseif G.descr==Symbol("GO-") G.X=GAP.Globals.GO(-1,G.deg,G.ring_iso.codomain)
-   elseif G.descr==Symbol("SO-") G.X=GAP.Globals.SO(-1,G.deg,G.ring_iso.codomain)
+   elseif G.descr==Symbol("GO-") G.X=GAP.Globals.GO(-1,G.deg,G.mat_iso.fr.codomain)
+   elseif G.descr==Symbol("SO-") G.X=GAP.Globals.SO(-1,G.deg,G.mat_iso.fr.codomain)
    elseif G.descr==Symbol("Omega-") G.X=GAP.Globals.Omega(-1,G.deg,Int(order(G.ring)))
-   elseif G.descr==:GO G.X=GAP.Globals.GO(0,G.deg,G.ring_iso.codomain)
-   elseif G.descr==:SO G.X=GAP.Globals.SO(0,G.deg,G.ring_iso.codomain)
+   elseif G.descr==:GO G.X=GAP.Globals.GO(0,G.deg,G.mat_iso.fr.codomain)
+   elseif G.descr==:SO G.X=GAP.Globals.SO(0,G.deg,G.mat_iso.fr.codomain)
    elseif G.descr==:Omega G.X=GAP.Globals.Omega(0,G.deg,Int(order(G.ring)))
    elseif G.descr==:GU G.X=GAP.Globals.GU(G.deg,Int(characteristic(G.ring)^(div(degree(G.ring),2) ) ))
    elseif G.descr==:SU G.X=GAP.Globals.SU(G.deg,Int(characteristic(G.ring)^(div(degree(G.ring),2) ) ))
@@ -171,29 +181,23 @@ function assign_from_description(G::MatrixGroup)
 end
 
 # return the G.sym if isdefined(G, :sym); otherwise, the field :sym is computed and set using information from other defined fields
-# NOTE: if G.X has to be set, then also the fields G.ring_iso and G.mat_iso are set
+# NOTE: if G.X has to be set, then also the field G.mat_iso is set
 function Base.getproperty(G::MatrixGroup, sym::Symbol)
 
    isdefined(G,sym) && return getfield(G,sym)
 
-   if sym === :mat_iso || sym === :ring_iso
-      fm = gen_mat_iso(G.deg, G.ring)
-      G.ring_iso=fm.fr
-      G.mat_iso=fm
+   if sym === :mat_iso
+      G.mat_iso = gen_mat_iso(G.deg, G.ring)
 
    elseif sym === :X
       if isdefined(G,:descr)
-         if !isdefined(G,:ring_iso)
-            fm = gen_mat_iso(G.deg, G.ring)
-            G.ring_iso=fm.fr
-            G.mat_iso=fm
+         if !isdefined(G,:mat_iso)
+            G.mat_iso = gen_mat_iso(G.deg, G.ring)
          end
          assign_from_description(G)
       elseif isdefined(G,:gens)
-         if !isdefined(G,:ring_iso)
-            fm = gen_mat_iso(G.deg, G.ring)
-            G.ring_iso=fm.fr
-            G.mat_iso=fm
+         if !isdefined(G,:mat_iso)
+            G.mat_iso = gen_mat_iso(G.deg, G.ring)
          end
          V = GAP.julia_to_gap([g.X for g in gens(G)])
          G.X=GAP.Globals.Group(V)
@@ -757,7 +761,6 @@ function conjugacy_classes_subgroups(G::MatrixGroup)
    V = Vector{GroupConjClass{typeof(G), typeof(G)}}(undef, length(L))
    for i in 1:length(L)
       y = MatrixGroup(G.deg,G.ring)
-      y.ring_iso = G.ring_iso
       y.mat_iso = G.mat_iso
       y.X = GAP.Globals.Representative(L[i])
       V[i] = _conjugacy_class(G,y,L[i])
@@ -771,7 +774,6 @@ function conjugacy_classes_maximal_subgroups(G::MatrixGroup)
    V = Vector{GroupConjClass{typeof(G), typeof(G)}}(undef, length(L))
    for i in 1:length(L)
       y = MatrixGroup(G.deg,G.ring)
-      y.ring_iso = G.ring_iso
       y.mat_iso = G.mat_iso
       y.X = GAP.Globals.Representative(L[i])
       V[i] = _conjugacy_class(G,y,L[i])
@@ -782,7 +784,6 @@ end
 
 function Base.rand(C::GroupConjClass{S,T}) where S<:MatrixGroup where T<:MatrixGroup
    H = MatrixGroup(C.X.deg,C.X.ring)
-   H.ring_iso = C.X.ring_iso
    H.mat_iso = C.X.mat_iso
    H.X = GAP.Globals.Random(C.CC)
    return H

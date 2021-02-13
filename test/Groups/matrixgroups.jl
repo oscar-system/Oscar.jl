@@ -4,24 +4,23 @@
    G = GL(3,F)
    @test G.X isa GapObj
    @test isdefined(G,:X)
-   @test isdefined(G, :ring_iso)
    @test isdefined(G, :mat_iso)
-   @test G.ring_iso(z) isa FFE
-   Z = G.ring_iso(z)
-   @test GAP.Globals.IN(Z,G.ring_iso.codomain)
-   @test G.ring_iso(Z)==z
-   @test G.ring_iso.domain==F
-   @test GAP.Globals.IsField(G.ring_iso.codomain)
-   @test GAP.Globals.Size(G.ring_iso.codomain)==29
+   @test G.mat_iso.fr(z) isa FFE
+   Z = G.mat_iso.fr(z)
+   @test GAP.Globals.IN(Z,G.mat_iso.fr.codomain)
+   @test G.mat_iso.fr(Z)==z
+   @test G.mat_iso.fr.domain==F
+   @test GAP.Globals.IsField(G.mat_iso.fr.codomain)
+   @test GAP.Globals.Size(G.mat_iso.fr.codomain)==29
    @test GAP.Globals.IsZero(14*Z+1)
-   @test iszero(G.ring_iso(GAP.Globals.Zero(G.ring_iso.codomain)))
-   @test GAP.Globals.IsOne(G.ring_iso(one(F)))
-   @test isone(G.ring_iso(GAP.Globals.One(G.ring_iso.codomain)))
+   @test iszero(G.mat_iso.fr(GAP.Globals.Zero(G.mat_iso.fr.codomain)))
+   @test GAP.Globals.IsOne(G.mat_iso.fr(one(F)))
+   @test isone(G.mat_iso.fr(GAP.Globals.One(G.mat_iso.fr.codomain)))
    
    xo = matrix(F,3,3,[1,z,0,0,1,2*z+1,0,0,z+2])
 #   xg = Vector{GapObj}(undef, 3)
 #   for i in 1:3
-#      xg[i] = GapObj([G.ring_iso(xo[i,j]) for j in 1:3])
+#      xg[i] = GapObj([G.mat_iso.fr(xo[i,j]) for j in 1:3])
 #   end
 #   xg=GAP.julia_to_gap(xg)
    riso=Oscar.gen_ring_iso(F)
@@ -31,11 +30,11 @@
    @test Oscar.mat_gap_oscar(xg,riso)==xo
    @test Oscar.mat_oscar_gap(Oscar.mat_gap_oscar(xg,riso),riso)==xg
 
-   xg = GapObj([[G.ring_iso(xo[i,j]) for j in 1:3] for i in 1:3]; recursive=true)
+   xg = GapObj([[G.mat_iso.fr(xo[i,j]) for j in 1:3] for i in 1:3]; recursive=true)
    @test G.mat_iso(xo) isa GapObj
    @test G.mat_iso(xo)==xg
    @test G.mat_iso(xg)==xo
-   @test G.mat_iso(GAP.Globals.One(GAP.Globals.GL(3,G.ring_iso.codomain)))==one(G).elm
+   @test G.mat_iso(GAP.Globals.One(GAP.Globals.GL(3,G.mat_iso.fr.codomain)))==one(G).elm
    @test GAP.Globals.Order(G.mat_iso(diagonal_matrix([z,z,one(F)])))==28
 
    T,t = PolynomialRing(GF(3),"t")
@@ -43,30 +42,29 @@
    G = GL(3,F)
    @test G.X isa GapObj
    @test isdefined(G,:X)
-   @test isdefined(G, :ring_iso)
    @test isdefined(G, :mat_iso)
-   @test G.ring_iso(z) isa FFE
-   Z = G.ring_iso(z)
-   @test GAP.Globals.IN(Z,G.ring_iso.codomain)
-   @test G.ring_iso(Z)==z
-   @test G.ring_iso(G.ring_iso(F(2)))==F(2)
-   @test G.ring_iso.domain==F
-   @test GAP.Globals.IsField(G.ring_iso.codomain)
-   @test GAP.Globals.Size(G.ring_iso.codomain)==9
-   @test iszero(G.ring_iso(GAP.Globals.Zero(G.ring_iso.codomain)))
+   @test G.mat_iso.fr(z) isa FFE
+   Z = G.mat_iso.fr(z)
+   @test GAP.Globals.IN(Z,G.mat_iso.fr.codomain)
+   @test G.mat_iso.fr(Z)==z
+   @test G.mat_iso.fr(G.mat_iso.fr(F(2)))==F(2)
+   @test G.mat_iso.fr.domain==F
+   @test GAP.Globals.IsField(G.mat_iso.fr.codomain)
+   @test GAP.Globals.Size(G.mat_iso.fr.codomain)==9
+   @test iszero(G.mat_iso.fr(GAP.Globals.Zero(G.mat_iso.fr.codomain)))
    @test GAP.Globals.IsZero(Z^2+1)
-   @test GAP.Globals.IsOne(G.ring_iso(one(F)))
-   @test isone(G.ring_iso(GAP.Globals.One(G.ring_iso.codomain)))
+   @test GAP.Globals.IsOne(G.mat_iso.fr(one(F)))
+   @test isone(G.mat_iso.fr(GAP.Globals.One(G.mat_iso.fr.codomain)))
    
    xo = matrix(F,3,3,[1,z,0,0,1,2*z+1,0,0,z+2])
    xg = Vector{GapObj}(undef, 3)
    for i in 1:3
-      xg[i] = GAP.julia_to_gap([G.ring_iso(xo[i,j]) for j in 1:3])
+      xg[i] = GAP.julia_to_gap([G.mat_iso.fr(xo[i,j]) for j in 1:3])
    end
    xg=GAP.julia_to_gap(xg)
    @test G.mat_iso(xo)==xg
    @test G.mat_iso(xg)==xo
-   @test G.mat_iso(GAP.Globals.One(GAP.Globals.GL(3,G.ring_iso.codomain)))==one(G).elm
+   @test G.mat_iso(GAP.Globals.One(GAP.Globals.GL(3,G.mat_iso.fr.codomain)))==one(G).elm
    @test GAP.Globals.Order(G.mat_iso(diagonal_matrix([z,z,one(F)])))==4
 end
 

@@ -387,8 +387,8 @@ function hom(x::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup
 end
 
 (f::GAPGroupElem{AutomorphismGroup{T}})(x::GAPGroupElem) where T <: GAPGroup = apply_automorphism(f, x, true)
-Base.:^(x::GAPGroupElem,f::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup = apply_automorphism(f, x, true)
-Base.:^(f::GAPGroupElem{AutomorphismGroup{T}},g::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup = g^-1*f*g
+Base.:^(x::GAPGroupElem{T},f::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup = apply_automorphism(f, x, true)
+#Base.:^(f::GAPGroupElem{AutomorphismGroup{T}},g::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup = g^-1*f*g
 
 function (A::AutomorphismGroup{T})(f::GAPGroupHomomorphism{T,T}) where T <: GAPGroup
    @assert domain(f)==A.G && codomain(f)==A.G "f not in A"
@@ -402,11 +402,7 @@ function apply_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, x::GAPGroupEl
   if check
     @assert A.G == G || GAP.Globals.IN(x.X, A.G.X) "Not in the domain of f!"      #TODO Do we really need the IN check?
   end
-  if x isa MatrixGroupElem
-     return MatrixGroupElem(G,GAP.Globals.Image(f.X,x.X))
-  else
-     return typeof(x)(G, GAP.Globals.Image(f.X,x.X))
-  end
+  return typeof(x)(G, GAP.Globals.Image(f.X,x.X))
 end
 
 Base.:*(f::GAPGroupElem{AutomorphismGroup{T}}, g::GAPGroupHomomorphism) where T = hom(f)*g
