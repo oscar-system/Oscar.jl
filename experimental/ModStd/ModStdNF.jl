@@ -35,8 +35,8 @@ mutable struct HilbertData
   data::Array{Int32, 1}
   I::MPolyIdeal
   function HilbertData(I::MPolyIdeal)
-    @time Oscar.groebner_assure(I)
-    @time h = sing_hilb(I.gb.S)
+    Oscar.groebner_assure(I)
+    h = sing_hilb(I.gb.S)
     return new(h, I)
   end
   function HilbertData(B::BiPolyArray)
