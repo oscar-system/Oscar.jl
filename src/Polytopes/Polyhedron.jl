@@ -73,11 +73,11 @@ Base.length(iter::VertexPointIterator) = n_vertices(iter.p)
 
 Returns the vertices of a polyhedron.
 """
-function vertices(P::Polyhedron; as = :points)
+function vertices(P::Polyhedron; as::Symbol = :points)
     if as == :points
         VertexPointIterator(P)
     elseif as == :point_matrix
-        return(decompose_vdata(pm_polytope(P).VERTICES).vertices)
+        return decompose_vdata(pm_polytope(P).VERTICES).vertices
     else
         throw(ArgumentError("Unsupported `as` argument :" * string(as)))
     end
@@ -124,11 +124,11 @@ n_vertices(P::Polyhedron) = pm_polytope(P).N_VERTICES - n_rays(P)
 
 Returns minimal set of generators of the cone of unbounded directions of a polyhedron.
 """
-function rays(P::Polyhedron; as = :points)
+function rays(P::Polyhedron; as::Symbol = :points)
     if as == :points
         PolyhedronRayIterator(P)
     elseif as == :point_matrix
-        return(decompose_vdata(pm_polytope(P).VERTICES).rays)
+        return decompose_vdata(pm_polytope(P).VERTICES).rays
     else
         throw(ArgumentError("Unsupported `as` argument :" * string(as)))
     end
@@ -183,13 +183,13 @@ The allowed values for `as` are
 * `polyhedra`: Returns for each facet its realization as a polyhedron
 * `halfspace_matrix_pair`: Returns `(A,b)` such `P={x | Ax ≦ b }`
 """
-function facets(P::Polyhedron; as = :halfspaces)
+function facets(P::Polyhedron; as::Symbol = :halfspaces)
     if as == :halfspaces
         PolyhedronFacetHalfspaceIterator(P)
     elseif as == :polyhedra
         PolyhedronFacetPolyhedronIterator(P)
     elseif as == :halfspace_matrix_pair
-        return(decompose_hdata(pm_polytope(P).FACETS))
+        return decompose_hdata(pm_polytope(P).FACETS)
     else
         throw(ArgumentError("Unsupported `as` argument :" * string(as)))
     end
@@ -318,7 +318,7 @@ Produces a function `h(ω) = max{dot(x,ω) | x ∈ P}`. max may be changed
 function support_function(P::Polyhedron; convention = :max)
     function h(ω::AbstractVector)
         lp=LinearProgram(P,ω; convention = convention)
-        return(solve_lp(lp)[1])
+        return solve_lp(lp)[1]
     end
-    return(h)
+    return h
 end
