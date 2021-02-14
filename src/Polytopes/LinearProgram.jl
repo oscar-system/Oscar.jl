@@ -4,20 +4,18 @@
 The linear program on the feasible set P (a Polyhedron) with
  respect to the function x ↦ dot(c,x)+k where k is optional (default 0).
 
-""" struct LinearProgram
+"""
+struct LinearProgram
    feasible_region::Polyhedron
    polymake_lp::Polymake.BigObjectAllocated
    convention::Symbol
-   function LinearProgram(Q::Polyhedron, objective::AbstractVector, k; convention = :max)
+   function LinearProgram(Q::Polyhedron, objective::AbstractVector, k = 0; convention = :max)
       P=Polyhedron(Polymake.polytope.Polytope(pm_polytope(Q)))
       ambDim = ambient_dim(P)
       size(objective, 1) == ambDim || error("objective has wrong dimension.")
       lp = Polymake.polytope.LinearProgram(LINEAR_OBJECTIVE=homogenize(objective, k))
       pm_polytope(P).LP = lp
       new(P, lp, convention)
-   end
-   function LinearProgram(Q::Polyhedron, objective::AbstractVector; convention = :max)
-      LinearProgram(Q,objective,0; convention=convention)
    end
 end
 
@@ -61,15 +59,14 @@ The allowed values for `as` are
 
 
 """
-function objective_function(LP::LinearProgram; as = :pair)
+function objective_function(LP::LinearProgram; as::Symbol = :pair)
    if as == :pair
-      return(dehomogenize(LP.polymake_lp.LINEAR_OBJECTIVE),LP.polymake_lp.LINEAR_OBJECTIVE[1])
+      return dehomogenize(LP.polymake_lp.LINEAR_OBJECTIVE),LP.polymake_lp.LINEAR_OBJECTIVE[1]
    elseif as == :function
       (c,k) = objective_function(LP, as = :pair)
-      function f(x)
-         eval=sum(x.*c)+k
-      end
-      return(f)
+      return x -> sum(x.*c)+k
+   else
+       throw(ArgumentError("Unsupported `as` argument :" * string(as)))
    end
 end
 
@@ -86,18 +83,18 @@ feasible_region(lp::LinearProgram) = lp.feasible_region
 function minimal_vertex(lp::LinearProgram)
    mv = lp.polymake_lp.MINIMAL_VERTEX
    if mv != nothing
-      return(dehomogenize(mv))
+      return dehomogenize(mv)
    else
-      return(nothing)
+      return nothing
    end
 end
 
 function maximal_vertex(lp::LinearProgram)
    mv = lp.polymake_lp.MAXIMAL_VERTEX
    if mv != nothing
-      return(dehomogenize(mv))
+      return dehomogenize(mv)
    else
-      return(nothing)
+      return nothing
    end
 end
 
@@ -114,9 +111,9 @@ Gives a pair `(m,v)` where the optimal value `m` of the objective
 """
 function solve_lp(lp::LinearProgram)
    if lp.convention == :max
-      return(maximal_value(lp),maximal_vertex(lp))
+      return maximal_value(lp),maximal_vertex(lp)
    elseif lp.convention == :min
-      return(minimal_value(lp),minimal_vertex(lp))
+      return minimal_value(lp),minimal_vertex(lp)
    end
 end
 
