@@ -428,7 +428,6 @@ end
 function ^(f::SLPoly, p::Oscar.PermGroupElem)
   #TODO: replace by makeing the permutation of the input an internal
   #      operation.
-#  Base.show_backtrace(stdout, Base.backtrace())
 
   g = gens(parent(f))
   h = typeof(f)[]
@@ -628,7 +627,7 @@ function invariant(G::PermGroup, H::PermGroup)
 
       sG = set_stabilizer(G, BB)[1]
       sH = set_stabilizer(H, BB)[1]
-      if length(sH) < length(sH)
+      if length(sH) < length(sG)
         J = invar(sG, sH)
         C = left_transversal(H, sH)
         gg = g[BB]
@@ -643,13 +642,6 @@ function invariant(G::PermGroup, H::PermGroup)
 
   m = prod(gen(S, i)^i for i=1:degree(G)-1)
   return sum(m^s for s = H)
-
-
-  @vprint :GaloisInvariant 2 "bad case... all failed, going generic\n"
-  R, _ = PolynomialRing(ZZ, degree(G))
-  m = prod(gen(R, i)^i for i=1:degree(G)-1)
-  I = sum(orbit(H, m))
-  return evaluate(I, g)
 end
 
 @doc Markdown.doc"""
