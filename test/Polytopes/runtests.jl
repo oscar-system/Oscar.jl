@@ -105,4 +105,15 @@ const pm = Polymake
         @test lhs == [1 0; 0 4; 0 0]
         @test rhs == [1, -3, 1]
     end
+
+    @testset "Polytope From Group Orbit" begin
+        G = symmetric_group(4)
+        x = [0,1,2,3]
+        M = matrix(ZZ, [permuted(x,g) for g in G])
+        P = convex_hull(M)
+        @test ambient_dim(P) == 4
+
+        F = facets(P; as = :polyhedra)
+        @test n_vertices.(F) == [6, 6, 4, 6, 4, 4, 6, 4, 6, 6, 4, 6, 6, 4]
+    end
 end # of @testset "OscarPolytope"

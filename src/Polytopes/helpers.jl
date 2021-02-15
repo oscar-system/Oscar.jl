@@ -25,6 +25,7 @@ end
 
 homogenize(vec::AbstractVector, val::Number = 0) = augment(vec, val)
 homogenize(mat::AbstractMatrix, val::Number = 1) = augment(mat, fill(val, size(mat, 1)))
+homogenize(mat::MatElem, val::Number = 1) = homogenize(Matrix(mat), val)
 
 dehomogenize(vec::AbstractVector) = vec[2:end]
 dehomogenize(mat::AbstractMatrix) = mat[:, 2:end]
