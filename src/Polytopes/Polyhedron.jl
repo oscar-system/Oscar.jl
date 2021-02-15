@@ -271,6 +271,8 @@ recession_cone(P::Polyhedron) = Cone(Polymake.polytope.recession_cone(pm_polytop
 ###############################################################################
 ###############################################################################
 
+const AnyVecOrMat = Union{MatElem, AbstractVecOrMat}
+
 @doc Markdown.doc"""
     convex_hull(V [, R [, L]])
 
@@ -278,17 +280,18 @@ The polytope given as the convex hull of the columns of V. Optionally, rays (R)
 and generators of the lineality space (L) can be given as well.
 
 see Def. 2.11 and Def. 3.1.
-""" function convex_hull(V::AbstractVecOrMat)
+"""
+function convex_hull(V::AnyVecOrMat)
     pm_polytope =
         Polymake.polytope.Polytope{Polymake.Rational}(POINTS = matrix_for_polymake(homogenize(V, 1)))
     return Polyhedron(pm_polytope)
 end
-function convex_hull(V::AbstractVecOrMat, R::AbstractVecOrMat)
+function convex_hull(V::AnyVecOrMat, R::AnyVecOrMat)
     points = stack(homogenize(V, 1), homogenize(R, 0))
     pm_polytope = Polymake.polytope.Polytope{Polymake.Rational}(POINTS = matrix_for_polymake(points))
     return Polyhedron(pm_polytope)
 end
-function convex_hull(V::AbstractVecOrMat, R::AbstractVecOrMat, L::AbstractVecOrMat)
+function convex_hull(V::AnyVecOrMat, R::AnyVecOrMat, L::AnyVecOrMat)
     points = stack(homogenize(V, 1), homogenize(R, 0))
     lineality = homogenize(L, 0)
     pm_polytope = Polymake.polytope.Polytope{Polymake.Rational}(
