@@ -44,7 +44,7 @@ mutable struct MatrixGroup{RE<:RingElem, T<:MatElem{RE}} <: GAPGroup
 
 end
 
-MatrixGroup{RE,T}(m::Int, F::Ring) where {RE,T} = MatrixGroup{elem_type(F), dense_matrix_type(elem_type(F))}(m,F)
+MatrixGroup{RE,T}(m::Int, F::Ring) where {RE,T} = MatrixGroup(m,F)
 
 # build a MatrixGroup given a list of generators, given as array of either MatrixGroupElem or AbstractAlgebra matrices
 # WARNING: if the elements of V have type MatElem, it does not check whether the determinant is nonzero
@@ -90,12 +90,13 @@ mutable struct MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: AbstractMatrixGr
    elm::T                         # Oscar matrix
    X::GapObj                     # GAP matrix. If x isa MatrixGroupElem, then x.X = x.parent.mat_iso(x.elm)
 
-   #MatrixGroupElem(G::MatrixGroup{RE,MatElem{RE}}, x::MatElem{RE}) where RE <: RingElem = new{RE, MatElem{RE}}(G,x)
-   MatrixGroupElem{RE,T}(G::MatrixGroup{RE,T}, x::MatElem) where {RE, T} = new{elem_type(G.ring),dense_matrix_type(elem_type(G.ring))}(G,x)
+   MatrixGroupElem{RE,T}(G::MatrixGroup{RE,T}, x::T) where {RE, T} = new{RE,T}(G,x)
 
-   #function MatrixGroupElem(G::MatrixGroup{RE,MatElem{RE}}, x_gap::GapObj) where RE <: RingElem
-   function MatrixGroupElem{RE,T}(G::MatrixGroup, x_gap::GapObj) where {RE, T}
-      z = new{elem_type(G.ring),dense_matrix_type(elem_type(G.ring))}()
+# build a MatrixGroupElem given both an OSCAR matrix and a corresponding GAP object.
+# WARNING: this does not check whether the element actually lies in the group G
+# nor whether the two given matrices really match.
+   function MatrixGroupElem{RE,T}(G::MatrixGroup{RE,T}, x_gap::GapObj) where {RE, T}
+      z = new{RE,T}()
       z.parent = G
       z.X = x_gap
       return z
@@ -103,22 +104,19 @@ mutable struct MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: AbstractMatrixGr
 
 end
 
-# build a MatrixGroupElem given both an OSCAR matrix and a corresponding GAP object.
-# WARNING: this does not check whether the element actually lies in the group G
-# nor whether the two given matrices really match.
-function MatrixGroupElem(G::MatrixGroup, x::MatElem, x_gap::GapObj)
-   z = MatrixGroupElem{elem_type(base_ring(G)), typeof(x)}(G,x)
+function MatrixGroupElem(G::MatrixGroup{RE,T}, x::T, x_gap::GapObj) where {RE,T}
+   z = MatrixGroupElem{RE,T}(G,x)
    z.X = x_gap
    return z
 end
 
-function MatrixGroupElem{RE,T}(G::MatrixGroup{RE,T}, x::MatElem{RE}, x_gap::GapObj) where {RE,T}
-   z = MatrixGroupElem{elem_type(base_ring(G)), typeof(x)}(G,x)
+function MatrixGroupElem{RE,T}(G::MatrixGroup{RE,T}, x::T, x_gap::GapObj) where {RE,T}
+   z = MatrixGroupElem{RE,T}(G,x)
    z.X = x_gap
    return z
 end
 
-MatrixGroupElem(G::MatrixGroup{RE,T}, x::MatElem{RE}) where {RE, T} = MatrixGroupElem{RE,T}(G,x)
+MatrixGroupElem(G::MatrixGroup{RE,T}, x::T) where {RE, T} = MatrixGroupElem{RE,T}(G,x)
 MatrixGroupElem(G::MatrixGroup{RE,T}, x_gap::GapObj) where {RE, T} = MatrixGroupElem{RE,T}(G,x_gap)
 
 ring_elem_type(::Type{MatrixGroup{S,T}}) where {S,T} = S
