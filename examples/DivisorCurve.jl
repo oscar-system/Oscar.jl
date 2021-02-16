@@ -1,6 +1,5 @@
 export AffineCurveDivisor, ProjCurveDivisor, iseffective, multiplicity,
-       divisor, curve, degree, divisor_ideals, global_sections,
-       _global_sections_ideals
+       divisor, curve, degree, divisor_ideals, global_sections
 
 ################################################################################
 
@@ -276,7 +275,6 @@ function divisor(C::AffinePlaneCurve{S}, F::Oscar.MPolyElem{S}) where S <: Field
 end
 
 ################################################################################
-# TODO: take phi in the function field of C when fixed
 
 @doc Markdown.doc"""
     divisor(C::AffinePlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T}) where {S <: FieldElem, T <: MPolyElem{S}}
@@ -320,7 +318,6 @@ function divisor(C::ProjPlaneCurve{S}, F::Oscar.MPolyElem_dec{S}) where S <: Fie
 end
 
 ################################################################################
-# TODO divisor with fraction of decorated polynomials when available
 
 function divisor(PP::Oscar.Geometry.ProjSpc{S}, C::ProjPlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T})  where {S <: FieldElem, T <: Oscar.MPolyElem_dec{S}}
     g = divrem(phi.den.f, C.eq.f)
@@ -363,7 +360,7 @@ end
 ################################################################################
 ################################################################################
 # This code is copied from Singulars "divisors.lib", based on the Macaulay 2
-# manual.
+# tutorial.
 
 # colon ideal (I : J) modulo Q
 function _qquotient(I::Oscar.MPolyIdeal, J::Oscar.MPolyIdeal, Q::Oscar.MPolyIdeal)
@@ -396,10 +393,10 @@ end
 
 ################################################################################
 # Remove components which are not codim 1
+
 function _purify1(I::Oscar.MPolyIdeal, Q::Oscar.MPolyIdeal)
    R = base_ring(I)
    Id = _remove_zeros(I)
-   # length(gens(Id)) == 1 && gens(Id)[1] == R(0) && error("ideal assumed to be non-zero")
    gens(Id)[1] != R(0) || error("ideal assumed to be non-zero")
    f = ideal(R, [gens(Id)[1]])
    #TODO: In Singular a minimal generating set is computed, not avaiable so far in Oscar...
@@ -433,7 +430,6 @@ function _global_sections_helper(I::Oscar.MPolyIdeal, J::Oscar.MPolyIdeal, Q::Os
 end
 
 ################################################################################
-#
 
 function _global_sections_ideals(D::ProjCurveDivisor)
     F = defining_equation(D.C)
