@@ -628,7 +628,7 @@ function invariant(G::PermGroup, H::PermGroup)
       sG = set_stabilizer(G, BB)[1]
       sH = set_stabilizer(H, BB)[1]
       if length(sH) < length(sG)
-        J = invar(sG, sH)
+        J = invariant(sG, sH)
         C = left_transversal(H, sH)
         gg = g[BB]
         F = sum(evaluate(J, [gg[t(i)] for i = BB]) for t = C)
@@ -878,6 +878,7 @@ function starting_group(GC::GaloisCtx, K::AnticNumberField; useSubfields::Bool =
     #we need this square-free, so we compute this over the finite field
     #actually, we only check that the roots over the finite field are distinct.
     #if not: transform (using ts) and try again.
+    
     k, mk = ResidueField(parent(c[1]))
     m = Dict{fq_nmod, Tuple{Int, Int}}()
     local ts = gen(Hecke.Globals.Zx)
@@ -897,6 +898,7 @@ function starting_group(GC::GaloisCtx, K::AnticNumberField; useSubfields::Bool =
           end
         end
         c = map(ts, roots(GC, 5))
+        empty!(m)
       else
         break
       end
@@ -1127,6 +1129,9 @@ extension.
 """
 function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
   G = GC.G
+  if index(G, U) == 1 # not type stable
+    return QQ
+  end
   c = reverse(maximal_subgroup_chain(G, U))
   @vprint :GaloisGroup 2 "using a subgroup chain with orders $(map(order, c))\n"
 
@@ -1137,6 +1142,8 @@ function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
   ts = [gen(Hecke.Globals.Zx) for i = I]
   tv  = [right_transversal(c[i], c[i+1]) for i=1:length(c)-1]
   r = roots(GC, 5)
+  k, mk = ResidueField(parent(r[1]))
+  r = map(mk, r)
   mu = ones(Int, length(I))
   #need tschirni per invar
   local conj
@@ -1210,7 +1217,7 @@ function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
   ps = fmpq[isinteger(GC, B, sum(conj))[2]]
   d = copy(conj)
   while length(ps) < m
-    @show length(ps)
+#    @show length(ps)
     @vtime :GaloisGroup 2 d .*= conj
     push!(ps, isinteger(GC, B, sum(d))[2])
   end
