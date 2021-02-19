@@ -67,11 +67,11 @@ end
 """
     issubgroup(G::T, H::T) where T <: GAPGroup
 
-Return (`true`,`f`) if `H` is a subgroup of `G`, where `f` is the embedding homomorphism of `H` into `G`, otherwise return (`false`,`Nothing`).
+Return (`true`,`f`) if `H` is a subgroup of `G`, where `f` is the embedding homomorphism of `H` into `G`, otherwise return (`false`,`nothing`).
 """
 function issubgroup(G::T, H::T) where T <: GAPGroup
    if false in [h in G for h in gens(H)]
-      return (false, Nothing)
+      return (false, nothing)
    else
       return (true, _as_subgroup(G, H.X)[2])
    end

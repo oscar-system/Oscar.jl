@@ -409,7 +409,8 @@ end
    @test isnormal(O,H)
    @test index(O,H)==2
 #   @test index(GO(0,3,3), omega_group(0,3,3))==4
-#   @test index(GO(-1,4,2), omega_group(-1,4,2))==2
+   @test index(GO(1,2,8), omega_group(1,2,8))==2
+   @test index(GO(1,2,9), omega_group(1,2,9))==4
 end
 
 @testset "Cosets and conjugacy classes" begin
