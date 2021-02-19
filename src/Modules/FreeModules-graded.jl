@@ -668,7 +668,6 @@ end
 function quo(S::SubQuo_dec, T::SubQuo_dec)
 #  @assert !isdefined(T, :quo)
   return SubQuo_dec(S, T.sum.O)
-  #return quo(S, gens(T))
 end
 
 function quo(F::FreeModule_dec, T::SubQuo_dec)
