@@ -667,7 +667,8 @@ end
 
 function quo(S::SubQuo_dec, T::SubQuo_dec)
 #  @assert !isdefined(T, :quo)
-  return quo(S, gens(T))
+  return SubQuo_dec(S, T.sum.O)
+  #return quo(S, gens(T))
 end
 
 function quo(F::FreeModule_dec, T::SubQuo_dec)
@@ -700,6 +701,10 @@ ngens(F::SubQuo_dec) = length(F.sub)
 base_ring(SQ::SubQuo_dec) = base_ring(SQ.F)
 
 zero(SQ::SubQuo_dec) = SubQuoElem_dec(zero(SQ.F), SQ)
+
+function Base.iszero(F::SubQuo_dec)
+  return all(iszero, gens(F))
+end
 
 function Base.getindex(F::SubQuo_dec, i::Int)
   i == 0 && return zero(F)
@@ -1433,6 +1438,19 @@ end
 #############################
 #TODO move to Hecke
 #  re-evaluate and use or not
+function Base.getindex(r::Hecke.SRow, u::UnitRange)
+  R = base_ring(r)
+  s = sparse_row(R)
+  shift = 1-first(u)
+  for (p,v) = r
+    if p in u
+      push!(s.pos, p+shift)
+      push!(s.values, v)
+    end
+  end
+  return s
+end
+
 function Base.getindex(r::Hecke.SRow, R::AbstractAlgebra.Ring, u::UnitRange)
   s = sparse_row(R)
   shift = 1-first(u)
