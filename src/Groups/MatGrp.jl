@@ -40,15 +40,15 @@ mutable struct MatrixGroup{RE<:RingElem, T<:MatElem{RE}} <: GAPGroup
    order::fmpz
    AbstractAlgebra.@declare_other
 
-   MatrixGroup(m::Int, F::Ring) = new{elem_type(typeof(F)), dense_matrix_type(elem_type(typeof(F)))}(m,F)
+   MatrixGroup{RE,T}(m::Int, F::Ring) where {RE,T} = new{RE,T}(m,F)
 
 end
 
-MatrixGroup{RE,T}(m::Int, F::Ring) where {RE,T} = MatrixGroup(m,F)
+MatrixGroup(m::Int, F::Ring) = MatrixGroup{elem_type(F), dense_matrix_type(elem_type(F))}(m,F)
 
 # build a MatrixGroup given a list of generators, given as array of either MatrixGroupElem or AbstractAlgebra matrices
 # WARNING: if the elements of V have type MatElem, it does not check whether the determinant is nonzero
-function MatrixGroup(m::Int, F::Ring, V::AbstractVector{T}) where T<:Union{MatElem,AbstractMatrixGroupElem}
+function MatrixGroup{RE,S}(m::Int, F::Ring, V::AbstractVector{T}) where {RE,S} where T<:Union{MatElem,AbstractMatrixGroupElem}
    G = MatrixGroup(m,F)
 
    L = Vector{MatrixGroupElem}(undef, length(V))
@@ -58,8 +58,7 @@ function MatrixGroup(m::Int, F::Ring, V::AbstractVector{T}) where T<:Union{MatEl
       if T<:MatElem
          L[i] = MatrixGroupElem(G,V[i])
       else
-# TODO: this part of code can be replaced by the following line
-# L[i] = deepcopy(V[i]); L[i].parent = G;
+# TODO: this part of code from here
          if isdefined(V[i],:elm)
             if isdefined(V[i],:X)
                L[i] = MatrixGroupElem(G,V[i].elm,V[i].X)
@@ -69,7 +68,10 @@ function MatrixGroup(m::Int, F::Ring, V::AbstractVector{T}) where T<:Union{MatEl
          else
             L[i] = MatrixGroupElem(G,V[i].X)
          end
-# once deepcopy works for GAP objects
+# to here
+
+# can be replaced by the following line once deepcopy works for GAP objects
+# > L[i] = deepcopy(V[i]); L[i].parent = G;
       end
    end
    G.gens = L
@@ -77,7 +79,7 @@ function MatrixGroup(m::Int, F::Ring, V::AbstractVector{T}) where T<:Union{MatEl
    return G
 end
 
-MatrixGroup{RE,S}(m::Int, F::Ring, V::AbstractVector{T}) where {RE,S} where T<:Union{MatElem,AbstractMatrixGroupElem} = MatrixGroup(m,F,V)
+MatrixGroup(m::Int, F::Ring, V::AbstractVector{T}) where T<:Union{MatElem,AbstractMatrixGroupElem} = MatrixGroup{elem_type(F), dense_matrix_type(elem_type(F))}(m,F,V)
 
 # NOTE: at least one of the fields :elm and :X must always defined, but not necessarily both of them.
 """
