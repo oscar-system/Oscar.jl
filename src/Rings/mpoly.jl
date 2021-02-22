@@ -14,7 +14,7 @@ import Hecke: MapHeader, math_html
 
 export PolynomialRing, total_degree, degree, MPolyElem, ordering, ideal,
        groebner_basis, eliminate, syzygy_generators, coordinates, 
-       jacobi_matrix, jacobi_ideal, radical
+       jacobi_matrix, jacobi_ideal, radical, normalize, AlgebraHomomorphism
 
 ##############################################################################
 #
@@ -203,6 +203,8 @@ end
 singular_ring(::Nemo.FlintRationalField) = Singular.Rationals()
 singular_ring(F::Nemo.GaloisField) = Singular.Fp(Int(characteristic(F)))
 singular_ring(F::Nemo.NmodRing) = Singular.Fp(Int(characteristic(F)))
+
+singular_ring(R::Singular.PolyRing; keep_ordering::Bool = true) = R
 
 function singular_ring(Rx::MPolyRing{T}; keep_ordering::Bool = true) where {T <: RingElem}
   if keep_ordering
