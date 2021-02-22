@@ -69,5 +69,27 @@ end
   I = ideal([2*x+3*y+4*z-5,3*x+4*y+5*z-2])
   @test groebner_basis(I,:degrevlex) == [y+2*z-11, 3*x+4*y+5*z-2]
   @test groebner_basis(I,:degrevlex, complete_reduction = true) == [y+2*z-11, x-z+14]
-  
+
+end
+
+@testset "normal_form" begin
+  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+  I = ideal(R, [x, y])
+  J = ideal(R, [x^2, y*z, z^2])
+  f = x*y^2+x^2+y*z+y^2 + z^2 +z^3
+  @test normal_form(f, I) == z^2 + z^3
+  @test normal_form(J, I) == ideal(R, [z^2])
+end
+
+@testset "Primary decomposition" begin
+  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+  I = ideal(R, [x, y*z^2])
+  J = ideal(R, [x, y^2])
+  L = PrimaryDecomposition(I)
+  D = Dict(ideal(R, [x, y]) => ideal(R, [x, y]), ideal(R, [x, z^2]) => ideal(R, [x, z]))
+  @test L == D
+  @test isprime_ideal(I) == false
+  @test isprimary_ideal(I) == false
+  @test isprime_ideal(J) == false
+  @test isprimary_ideal(J) == true
 end
