@@ -2,6 +2,7 @@ module PerfectPowers
 
 using Oscar
 import Oscar: Nemo, Hecke
+import Base: powermod
 
 function root_exact(a::fmpz, n::Int)
   @assert n>0
@@ -70,7 +71,7 @@ function _root_exact(a::fmpz, p::Val{2})
     Nemo.mul!(M, M, M)
     ccall((:fmpz_fdiv_q_2exp, Nemo.libflint), Nothing, (Ref{fmpz}, Ref{fmpz}, Int), M, M, 2)
 
-    T = powmod(D, 2, M)
+    T = powermod(D, 2, M)
     Nemo.mul!(T, T, B)
     Hecke.mod!(T, T, M)
     Nemo.sub!(T, one, T)
@@ -101,8 +102,8 @@ end
   ccall((:fmpz_fdiv_r_2exp, Nemo.libflint), Cvoid, (Ref{fmpz}, Ref{fmpz}, Clong), a, a, i)
 end
 
-function powmod_2exp(a::fmpz, p::Int, i::Int) #too slow - much worde than 
-                                              #powmod directly
+function powermod_2exp(a::fmpz, p::Int, i::Int) #too slow - much worde than 
+                                              #powermod directly
   @assert a > 0 && p > 0
   a = copy(a)
   while iseven(p)
@@ -168,8 +169,8 @@ function _root_exact(a::fmpz, p::Int, extra_s::Int = 5, extra_w::Int = 1)
     return fmpz(1)
   end
 
-#  B = powmod_2exp(a, p-1, 64*w+1)
-  B = powmod(a, p-1, fmpz(2)^(64*(w+extra_w)))
+#  B = powermod_2exp(a, p-1, 64*w+1)
+  B = powermod(a, p-1, fmpz(2)^(64*(w+extra_w)))
   L = fmpz(l)
   D = fmpz(d)
 
@@ -178,7 +179,7 @@ function _root_exact(a::fmpz, p::Int, extra_s::Int = 5, extra_w::Int = 1)
   two = fmpz(2)
   #TODO; better chain of exponents, use mpn? more inline?
   #TODO: better mod 2^n (done), use mullow?
-  #TODO: find powmod for 2^n modulus
+  #TODO: find powermod for 2^n modulus
   while i < w + extra_w
     i *= 2
     Nemo.mul!(M, M, M)
@@ -191,8 +192,8 @@ function _root_exact(a::fmpz, p::Int, extra_s::Int = 5, extra_w::Int = 1)
     @assert _x == L
 #    Hecke.mod!(L, L, M)
 
-#    T = powmod_2exp(D, p+1, i*64)
-    T = powmod(D, p+1, M)
+#    T = powermod_2exp(D, p+1, i*64)
+    T = powermod(D, p+1, M)
     Nemo.mul!(T, T, B)
     _x = T % M
     fmpz_trunc!(T, i*64)
@@ -256,7 +257,7 @@ function ispower_bernstein(a::fmpz)
     end
     if p>2 && p < 2^15
       aa = UInt(a % p^2)
-      if aa %p != 0 && powmod(aa, p-1, UInt(p^2)) != 1
+      if aa %p != 0 && powermod(aa, p-1, UInt(p^2)) != 1
         no_s += 1
         continue
       end
@@ -265,14 +266,14 @@ function ispower_bernstein(a::fmpz)
     pp = p
     d = _root_exact(a, p, 10, 2)
     if !isone(d)
-      if powmod(d, p, fmpz(p_test)) == a_test && d^p == a
+      if powermod(d, p, fmpz(p_test)) == a_test && d^p == a
         f *= p
         @show cl = min(cl, flog(d, 7))
         a = d
         a_test = a % p_test
       else
          d = fmpz(1)
-#        @show p, powmod(d, p, fmpz(p_test)) == a % p_test
+#        @show p, powermod(d, p, fmpz(p_test)) == a % p_test
       end
     end
     while !isone(d) && pp <= cl
