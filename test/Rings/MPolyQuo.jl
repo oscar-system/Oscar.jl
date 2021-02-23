@@ -14,3 +14,13 @@
   b = inv(Q(x))
   @test isone(b*Q(x))
 end
+
+@testset "MPolyQuo.normalize" begin
+  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+  Q, _ = quo(R, ideal(R, [z - x^4, z - y^6]))
+  for (S, M, FI) in normalize(Q)
+    @test parent(FI[1]) == Q
+    @test isa(FI[2], Oscar.Ideal)
+    @test parent(M(Q(x+y))) == S
+  end
+end
