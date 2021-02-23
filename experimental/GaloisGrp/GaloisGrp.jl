@@ -534,7 +534,7 @@ function invariant(G::PermGroup, H::PermGroup)
     d = setdiff(OH, OG)
     if length(d) > 0
       @vprint :GaloisInvariant 2 "groups have different orbits\n"
-      return sum(probable_orbit(H, d[1][1]))
+      return sum(probable_orbit(H, g[d[1][1]]))
     end
     #OH == OG
     for o = OH
