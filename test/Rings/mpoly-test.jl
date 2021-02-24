@@ -86,9 +86,7 @@ end
     Q = intersect(Q, q)
     @test isprimary(q)
     @test isprime(p)
-    rq = radical(q)
-    @test Singular.equal(rq.gens.S, p.gens.S)
+    @test p == radical(q)
   end
-  singular_assure(Q)
-  @test Singular.equal(Q.gens.S, I.gens.S)
+  @test Q == I
 end
