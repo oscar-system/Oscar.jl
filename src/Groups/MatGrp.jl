@@ -92,31 +92,22 @@ mutable struct MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: AbstractMatrixGr
    elm::T                         # Oscar matrix
    X::GapObj                     # GAP matrix. If x isa MatrixGroupElem, then x.X = x.parent.mat_iso(x.elm)
 
-   MatrixGroupElem{RE,T}(G::MatrixGroup{RE,T}, x::T) where {RE, T} = new{RE,T}(G,x)
+   # full constructor
+   MatrixGroupElem{RE,T}(G::MatrixGroup{RE,T}, x::T, x_gap::GapObj) where {RE, T} = new{RE,T}(G, x, x_gap)
 
-# build a MatrixGroupElem given both an OSCAR matrix and a corresponding GAP object.
-# WARNING: this does not check whether the element actually lies in the group G
-# nor whether the two given matrices really match.
+   # constructor which leaves `X` undefined
+   MatrixGroupElem{RE,T}(G::MatrixGroup{RE,T}, x::T) where {RE, T} = new{RE,T}(G, x)
+
+   # constructor which leaves `elm` undefined
    function MatrixGroupElem{RE,T}(G::MatrixGroup{RE,T}, x_gap::GapObj) where {RE, T}
-      z = new{RE,T}()
-      z.parent = G
+      z = new{RE,T}(G)
       z.X = x_gap
       return z
    end
 
 end
 
-function MatrixGroupElem(G::MatrixGroup{RE,T}, x::T, x_gap::GapObj) where {RE,T}
-   z = MatrixGroupElem{RE,T}(G,x)
-   z.X = x_gap
-   return z
-end
-
-function MatrixGroupElem{RE,T}(G::MatrixGroup{RE,T}, x::T, x_gap::GapObj) where {RE,T}
-   z = MatrixGroupElem{RE,T}(G,x)
-   z.X = x_gap
-   return z
-end
+MatrixGroupElem(G::MatrixGroup{RE,T}, x::T, x_gap::GapObj) where {RE,T} = MatrixGroupElem{RE,T}(G, x, x_gap)
 
 MatrixGroupElem(G::MatrixGroup{RE,T}, x::T) where {RE, T} = MatrixGroupElem{RE,T}(G,x)
 MatrixGroupElem(G::MatrixGroup{RE,T}, x_gap::GapObj) where {RE, T} = MatrixGroupElem{RE,T}(G,x_gap)
@@ -789,4 +780,3 @@ function Base.rand(C::GroupConjClass{S,T}) where S<:MatrixGroup where T<:MatrixG
    H.X = GAP.Globals.Random(C.CC)
    return H
 end
-
