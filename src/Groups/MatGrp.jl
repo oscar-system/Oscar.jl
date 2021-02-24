@@ -264,11 +264,7 @@ function lies_in(x::MatElem, G::MatrixGroup, x_gap)
       end
    end
    if isdefined(G,:descr) && G.descr==:GL
-      if det(x)!=0
-         return true, x_gap
-      else
-         return false, x_gap
-      end
+      return det(x)!=0, x_gap
    elseif isdefined(G,:descr) && G.descr==:SL
       if det(x)==1
          return true, x_gap
