@@ -1,4 +1,4 @@
-import AbstractAlgebra: MatElem, matrix, MatSpace, parent_type, Ring, RingElem
+import AbstractAlgebra: get_special, MatElem, matrix, MatSpace, parent_type, Ring, RingElem, set_special
 import Hecke: base_ring, det, fmpz, fq_nmod, FqNmodFiniteField, nrows, tr, trace
 import GAP: FFE
 
@@ -37,7 +37,7 @@ mutable struct MatrixGroup{RE<:RingElem, T<:MatElem{RE}} <: GAPGroup
    gens::Vector{<:AbstractMatrixGroupElem}
    descr::Symbol                       # e.g. GL, SL, symbols for isometry groups
    mat_iso::GenMatIso
-   order::fmpz
+#   order::fmpz
    AbstractAlgebra.@declare_other
 
    MatrixGroup{RE,T}(m::Int, F::Ring) where {RE,T} = new{RE,T}(m,F)
@@ -465,8 +465,9 @@ gen(G::MatrixGroup, i::Int) = gens(G)[i]
 ngens(G::MatrixGroup) = length(gens(G))
 
 function order(::Type{T}, G::MatrixGroup) where T <: Union{Integer,fmpz}
-   if !isdefined(G,:order) G.order = fmpz(BigInt(GAP.Globals.Order(G.X))) end
-   return T(G.order)
+   if get_special(G, :order)==nothing return fmpz(BigInt(GAP.Globals.Order(G.X)))
+   else return T(get_special(G, :order))
+   end
 end
 
 ########################################################################
