@@ -223,7 +223,7 @@ function Base.iterate(G::MatrixGroup)
   return MatrixGroupElem(G, G.mat_iso(i),i), L
 end
 
-function Base.iterate(G::MatrixGroup, state)
+function Base.iterate(G::MatrixGroup, state::GapObj)
   if GAP.Globals.IsDoneIterator(state)
     return nothing
   end
