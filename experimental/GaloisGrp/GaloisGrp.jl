@@ -581,32 +581,32 @@ function invariant(G::PermGroup, H::PermGroup)
       d = [sqrt_disc(g[b]) for b = B]
       D = sqrt_disc(y)
       I = D
-      if all(p->isprobably_invariant(I, p), gens(H)) &&
-         any(p->!isprobably_invariant(I, p), gens(G))
+      if all(p->isprobably_invariant(I, p), H) &&
+         any(p->!isprobably_invariant(I, p), G)
         @vprint :GaloisInvariant 3 "using D-invar for $BB\n"
         return I
       end
       I = elementary_symmetric(d, 1)
-      if all(p->isprobably_invariant(I, p), gens(H)) &&
-         any(p->!isprobably_invariant(I, p), gens(G))
+      if all(p->isprobably_invariant(I, p), H) &&
+         any(p->!isprobably_invariant(I, p), G)
         @vprint :GaloisInvariant 3 "using s1-invar for $BB\n"
         return I
       end
       I = elementary_symmetric(d, m)
-      if all(p->isprobably_invariant(I, p), gens(H)) &&
-         any(p->!isprobably_invariant(I, p), gens(G))
+      if all(p->isprobably_invariant(I, p), H) &&
+         any(p->!isprobably_invariant(I, p), G)
         @vprint :GaloisInvariant 3 "using sm-invar for $BB\n"
         return I
       end
       I = elementary_symmetric(d, 2)
-      if all(p->isprobably_invariant(I, p), gens(H)) &&
-         any(p->!isprobably_invariant(I, p), gens(G))
+      if all(p->isprobably_invariant(I, p), H) &&
+         any(p->!isprobably_invariant(I, p), G)
         @vprint :GaloisInvariant 3 "using s2-invar for $BB\n"
         return I
       end
       I = D*elementary_symmetric(d, m)
-      if all(p->isprobably_invariant(I, p), gens(H)) &&
-         any(p->!isprobably_invariant(I, p), gens(G))
+      if all(p->isprobably_invariant(I, p), H) &&
+         any(p->!isprobably_invariant(I, p), G)
         @vprint :GaloisInvariant 3 "using D sm-invar for $BB\n"
         return I
       end
@@ -634,13 +634,10 @@ function invariant(G::PermGroup, H::PermGroup)
         J = invariant(ssG, ssH)
         C = left_transversal(H, sH)
         gg = g[BB]
-        @show J, gg
         J = evaluate(J, gg)
-        @show J
-
         F = sum(J^t for t = C)
-        @assert isprobably_invariant(F, H)
-        @assert !isprobably_invariant(F, G)
+        @hassert :GaloisInvariant 1 isprobably_invariant(F, H)
+        @hassert :GaloisInvariant 1 !isprobably_invariant(F, G)
         @vprint :GaloisInvariant 3 "using F-invar for $BB (4.1.4)\n"
         return F
       end
@@ -1022,8 +1019,8 @@ function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = 
 
       @vprint :GaloisGroup 2 "testing descent $(transitive_group_identification(G)) -> $(transitive_group_identification(s)) of index $(index(G, s))\n"
 
-      @hassert :GaloisInvariant 1 all(x->isprobably_invariant(I, x), gens(s))
-      @hassert :GaloisInvariant 1 any(x->!isprobably_invariant(I, x), gens(G))
+      @hassert :GaloisInvariant 1 all(x->isprobably_invariant(I, x), s)
+      @hassert :GaloisInvariant 1 any(x->!isprobably_invariant(I, x), G)
 
       B = upper_bound(GC, I, ts)
       @vprint :GaloisGroup 2 "invariant uses $(cost(I, ts)) multiplications\n"
