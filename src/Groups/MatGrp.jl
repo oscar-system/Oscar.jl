@@ -204,7 +204,7 @@ end
 
 function Base.getproperty(x::MatrixGroupElem, sym::Symbol)
 
-   if isdefined(x,sym) return getfield(x,sym) end
+   isdefined(x,sym) && return getfield(x,sym)
 
    if sym === :X
       x.X = x.parent.mat_iso(x.elm)
