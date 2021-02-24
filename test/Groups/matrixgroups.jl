@@ -1,4 +1,19 @@
 @testset "Oscar-GAP relationship" begin
+
+   @testset for (p,e) in [(2,1),(5,1),(2,4),(3,3)]
+      F = GF(p,e)[1]
+      f = Oscar.gen_mat_iso(4,F)
+      for a in F for b in F
+         @test f.fr(a*b)==f.fr(a)*f.fr(b)
+         @test f.fr(a-b)==f.fr(a)-f.fr(b)
+      end end
+      G = GL(4,F)
+      for a in gens(G) for b in gens(G)
+         @test f(a.elm*b.elm)==f(a.elm)*f(b.elm)
+         @test f(a.elm-b.elm)==f(a.elm)-f(b.elm)
+      end end
+   end
+
    F = GF(29,1)[1]
    z = F(2)
    G = GL(3,F)
@@ -45,6 +60,10 @@
    @test isdefined(G, :mat_iso)
    @test G.mat_iso.fr(z) isa FFE
    Z = G.mat_iso.fr(z)
+   @testset for a in F for b in F
+      @test G.mat_iso.fr(a*b)==G.mat_iso.fr(a)*G.mat_iso.fr(b)
+      @test G.mat_iso.fr(a-b)==G.mat_iso.fr(a)-G.mat_iso.fr(b) 
+   end end
    @test GAP.Globals.IN(Z,G.mat_iso.fr.codomain)
    @test G.mat_iso.fr(Z)==z
    @test G.mat_iso.fr(G.mat_iso.fr(F(2)))==F(2)
@@ -311,7 +330,10 @@ end
    @test_throws ArgumentError S(x)
    @test G(x) isa MatrixGroupElem
    @test S(x; check=false)==G(x)
+   @test S(G(x); check=false)==G(x)
    x = G(x)
+   y = MatrixGroupElem(G,x.X)
+   @test_throws ArgumentError S(y)
    @test x==G([1,z,0,z])
    @test x==G([1 z; 0 z])
    @test parent(x)==G

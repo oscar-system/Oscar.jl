@@ -278,17 +278,17 @@ Base.in(x::MatElem, G::MatrixGroup) = lies_in(x,G,nothing)[1]
 
 function Base.in(x::MatrixGroupElem, G::MatrixGroup)
    isdefined(x,:X) && return lies_in(x.elm,G,x.X)[1]
-   vero, x_gap = lies_in(x.elm,G,nothing)
+   _is_true, x_gap = lies_in(x.elm,G,nothing)
    if x_gap !=nothing x.X = x_gap end
-   return vero
+   return _is_true
 end
 
 # embedding an element of type MatElem into a group G
 # if check=false, there are no checks on the condition `x in G`
 function (G::MatrixGroup)(x::MatElem; check=true)
    if check
-      vero, x_gap = lies_in(x,G,nothing)
-      vero || throw(ArgumentError("Element not in the group"))
+      _is_true, x_gap = lies_in(x,G,nothing)
+      _is_true || throw(ArgumentError("Element not in the group"))
       x_gap != nothing && return MatrixGroupElem(G,x,x_gap)
    end
    return MatrixGroupElem(G,x)
@@ -304,16 +304,16 @@ function (G::MatrixGroup)(x::MatrixGroupElem; check=true)
    end
    if isdefined(x,:X)
       if isdefined(x,:elm)
-         vero = lies_in(x.elm,G,x.X)[1]
-         vero || throw(ArgumentError("Element not in the group"))
+         _is_true = lies_in(x.elm,G,x.X)[1]
+         _is_true || throw(ArgumentError("Element not in the group"))
          return MatrixGroupElem(G,x.elm,x.X)
       else
          GAP.Globals.in(x.X, G.X) || throw(ArgumentError("Element not in the group"))
          return MatrixGroupElem(G,x.X)
       end
    else
-      vero, x_gap = lies_in(x.elm,G,nothing)
-      vero || throw(ArgumentError("Element not in the group"))
+      _is_true, x_gap = lies_in(x.elm,G,nothing)
+      _is_true || throw(ArgumentError("Element not in the group"))
       if x_gap==nothing return MatrixGroupElem(G,x.elm)
       else return MatrixGroupElem(G,x.elm,x_gap)
       end
