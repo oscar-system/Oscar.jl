@@ -178,40 +178,9 @@ function (G::DirectProductGroup)(V::GAPGroupElem...)
    return G([x for x in V])
 end
 
-# start part on subgroups
 function _as_subgroup_bare(G::DirectProductGroup, H::GapObj)
 #  t = H==G.X
   return DirectProductGroup(H, G.L, G.X, false)
-end
-
-function _as_subgroup(G::DirectProductGroup, H::GapObj, ::Type{U}) where U
-  H1 = _as_subgroup_bare(G, H)
-  return H1, hom(H1, G, x::U -> group_element(G, x.X))
-end
-
-function _as_subgroup(G::DirectProductGroup, H::GapObj)
-  return _as_subgroup(G, H, GAPGroupElem{DirectProductGroup})
-end
-
-function sub(G::DirectProductGroup, elms::Vector{<:GAPGroupElem{DirectProductGroup}})
-  elems_in_GAP = GAP.julia_to_gap(GapObj[x.X for x in elms])
-  H = GAP.Globals.Subgroup(G.X,elems_in_GAP)
-  #H is the group. I need to return the inclusion map too
-  return _as_subgroup(G, H)
-end
-
-function sub(L::T...) where T <: GAPGroupElem{DirectProductGroup}
-   length(L)>0 || throw(ArgumentError("Empty list"))
-   l=collect(L)
-   @assert all(x -> parent(x) == parent(l[1]), l)
-   return sub(parent(l[1]),l)
-end
-
-function sub(L::Vector{<:GAPGroupElem{DirectProductGroup}})
-   length(L)>0 || throw(ArgumentError("Empty list"))
-   l=collect(L)
-   @assert all(x -> parent(x) == parent(l[1]), l)
-   return sub(parent(l[1]),l)
 end
 
 function Base.show(io::IO, G::DirectProductGroup)
@@ -336,40 +305,9 @@ function projection(G::SemidirectProductGroup)
    return _hom_from_gap_map(G,H,p)
 end
 
-# start part on subgroups
 function _as_subgroup_bare(G::SemidirectProductGroup{S,T}, H::GapObj) where { S , T }
 #  t = G.X==H
   return SemidirectProductGroup(H, G.N, G.H, G.f, G.X, false)
-end
-
-function _as_subgroup(G::SemidirectProductGroup{S,T}, H::GapObj, ::Type{U}) where { T, S, U }
-  H1 = _as_subgroup_bare(G, H)
-  return H1, hom(H1, G, x::U -> group_element(G, x.X))
-end
-
-function _as_subgroup(G::SemidirectProductGroup{S,T}, H::GapObj) where S <: GAPGroup where T <: GAPGroup
-  return _as_subgroup(G, H, GAPGroupElem{SemidirectProductGroup{S,T}})
-end
-
-function sub(G::SemidirectProductGroup{S,T}, elms::Vector{<:GAPGroupElem{SemidirectProductGroup{S,T}}}) where { S, T }
-  elems_in_GAP = GAP.julia_to_gap(GapObj[x.X for x in elms])
-  H = GAP.Globals.Subgroup(G.X,elems_in_GAP)
-  #H is the group. I need to return the inclusion map too
-  return _as_subgroup(G, H)
-end
-
-function sub(L::U...) where U <: GAPGroupElem{SemidirectProductGroup{S,T}} where { S, T }
-   length(L)>0 || throw(ArgumentError("Empty list"))
-   l=collect(L)
-   @assert all(x -> parent(x) == parent(l[1]), l)
-   return sub(parent(l[1]),l)
-end
-
-function sub(L::Vector{<:GAPGroupElem{SemidirectProductGroup{S,T}}}) where { S, T }
-   length(L)>0 || throw(ArgumentError("Empty list"))
-   l=collect(L)
-   @assert all(x -> parent(x) == parent(l[1]), l)
-   return sub(parent(l[1]),l)
 end
 
 function Base.show(io::IO, x::SemidirectProductGroup)
@@ -490,41 +428,11 @@ end
 Base.show(io::IO, x::WreathProductGroup) = print(io, GAP.gap_to_julia(GAP.Globals.StringView(x.X)))
 
 
-# start part on subgroups
 #TODO : to be fixed
 function _as_subgroup_bare(W::WreathProductGroup, X::GapObj)
 #   t = X==W.X
   return WreathProductGroup(X, W.G, W.H, W.a, W.Xfull, false)
 end
 
-function _as_subgroup(W::WreathProductGroup, H::GapObj, ::Type{U}) where U
-  H1 = _as_subgroup_bare(W, H)
-  return H1, hom(H1, W, x::U -> group_element(W, x.X))
-end
-
-function _as_subgroup(W::WreathProductGroup, H::GapObj)
-  return _as_subgroup(W, H, GAPGroupElem{WreathProductGroup})
-end
-
-function sub(W::WreathProductGroup, elms::Vector{<:GAPGroupElem{WreathProductGroup}})
-  elems_in_GAP = GAP.julia_to_gap(GapObj[x.X for x in elms])
-  H = GAP.Globals.Subgroup(W.X,elems_in_GAP)
-  #H is the group. I need to return the inclusion map too
-  return _as_subgroup(W, H)
-end
-
-function sub(L::T...) where T <: GAPGroupElem{WreathProductGroup}
-   length(L)>0 || throw(ArgumentError("Empty list"))
-   l=collect(L)
-   @assert all(x -> parent(x) == parent(l[1]), l)
-   return sub(parent(l[1]),l)
-end
-
-function sub(L::Vector{<:GAPGroupElem{WreathProductGroup}})
-   length(L)>0 || throw(ArgumentError("Empty list"))
-   l=collect(L)
-   @assert all(x -> parent(x) == parent(l[1]), l)
-   return sub(parent(l[1]),l)
-end
 
 

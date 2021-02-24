@@ -61,7 +61,8 @@ function gen_ring_iso(F::FqNmodFiniteField)
    f_gap = GAP.Globals.UnivariatePolynomial(GAP.Globals.GF(p),L_gap)
    F_gap = GAP.Globals.GF(GAP.Globals.GF(p),f_gap)
    Basis_F = GAP.Globals.Basis(F_gap)
-   homom(x::fq_nmod) = elem_f(x,GAP.gap_to_julia(GAP.Globals.BasisVectors(Basis_F)),d)
+   Basis_g_j = GAP.gap_to_julia(GAP.Globals.BasisVectors(Basis_F))
+   homom(x::fq_nmod) = elem_f(x,Basis_g_j,d)
    homominv(x::FFE) = elem_g(x, Basis_F, z, d)
    return GenRingIso(F, F_gap, homom, homominv)
 end
@@ -95,8 +96,7 @@ end
 # assumes x is a square matrix
 function mat_gap_oscar(x::GapObj, riso)
    n = GAP.Globals.NrRows(x)
-   Arr = [GAP.gap_to_julia(x[i]) for i in 1:n]
-   L = [riso(Arr[i][j]) for i in 1:n for j in 1:n]
+   L = [riso(x[i, j]) for i in 1:n for j in 1:n]
 
    return matrix(riso.domain, n, n, L)
 end
