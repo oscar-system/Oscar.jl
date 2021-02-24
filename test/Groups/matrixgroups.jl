@@ -253,6 +253,7 @@ end
    @test order(omega_group(3,3))==12
    @test_throws ArgumentError GO(+2,2,5)
    @test_throws ArgumentError SO(+2,2,5)
+   @test_throws ArgumentError omega_group(-2,4,3)
 
    G = GL(4,3)
    
@@ -334,6 +335,8 @@ end
    x = G(x)
    y = MatrixGroupElem(G,x.X)
    @test_throws ArgumentError S(y)
+   @test G(y) isa MatrixGroupElem
+   @test G(y*y)==G(y)*G(y)
    @test x==G([1,z,0,z])
    @test x==G([1 z; 0 z])
    @test parent(x)==G
