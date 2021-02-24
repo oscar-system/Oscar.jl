@@ -534,7 +534,7 @@ function invariant(G::PermGroup, H::PermGroup)
     d = setdiff(OH, OG)
     if length(d) > 0
       @vprint :GaloisInvariant 2 "groups have different orbits\n"
-      return sum(probable_orbit(H, d[1][1]))
+      return sum(probable_orbit(H, g[d[1][1]]))
     end
     #OH == OG
     for o = OH
@@ -627,11 +627,20 @@ function invariant(G::PermGroup, H::PermGroup)
 
       sG = set_stabilizer(G, BB)[1]
       sH = set_stabilizer(H, BB)[1]
-      if length(sH) < length(sG)
-        J = invariant(sG, sH)
+      hG = action_homomorphism(sG, BB)
+      ssG = image(hG, sG)[1]
+      ssH = image(hG, sH)[1]
+      if length(ssH) < length(ssG)
+        J = invariant(ssG, ssH)
         C = left_transversal(H, sH)
         gg = g[BB]
-        F = sum(evaluate(J, [gg[t(i)] for i = BB]) for t = C)
+        @show J, gg
+        J = evaluate(J, gg)
+        @show J
+
+        F = sum(J^t for t = C)
+        @assert isprobably_invariant(F, H)
+        @assert !isprobably_invariant(F, G)
         @vprint :GaloisInvariant 3 "using F-invar for $BB (4.1.4)\n"
         return F
       end
