@@ -72,24 +72,23 @@ end
 
 end
 
-@testset "normal_form" begin
-  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-  I = ideal(R, [x, y])
-  J = ideal(R, [x^2, y*z, z^2])
-  f = x*y^2+x^2+y*z+y^2 + z^2 +z^3
-  @test normal_form(f, I) == z^2 + z^3
-  @test normal_form(J, I) == ideal(R, [z^2])
-end
-
 @testset "Primary decomposition" begin
   R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
   I = ideal(R, [x, y*z^2])
   J = ideal(R, [x, y^2])
-  L = PrimaryDecomposition(I)
-  D = Dict(ideal(R, [x, y]) => ideal(R, [x, y]), ideal(R, [x, z^2]) => ideal(R, [x, z]))
-  @test L == D
-  @test isprime_ideal(I) == false
-  @test isprimary_ideal(I) == false
-  @test isprime_ideal(J) == false
-  @test isprimary_ideal(J) == true
+  L = primary_decomposition(I)
+  Q = ideal(R, [R(1)])
+  @test isprime(I) == false
+  @test isprimary(I) == false
+  @test isprime(J) == false
+  @test isprimary(J) == true
+  for (q, p) in L
+    Q = intersect(Q, q)
+    @test isprimary(q)
+    @test isprime(p)
+    rq = radical(q)
+    @test Singular.equal(rq.gens.S, p.gens.S)
+  end
+  singular_assure(Q)
+  @test Singular.equal(Q.gens.S, I.gens.S)
 end

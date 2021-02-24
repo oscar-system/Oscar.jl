@@ -15,7 +15,7 @@ import Hecke: MapHeader, math_html
 export PolynomialRing, total_degree, degree, MPolyElem, ordering, ideal,
        groebner_basis, eliminate, syzygy_generators, coordinates, 
        jacobi_matrix, jacobi_ideal, radical, normalize, AlgebraHomomorphism,
-       normal_form, PrimaryDecomposition, isprimary_ideal, isprime_ideal
+       divrem, primary_decomposition, isprimary, isprime
 
 ##############################################################################
 #
@@ -1105,7 +1105,7 @@ end
 #=
 function factor(f::MPolyElem)
   I = ideal(parent(f), [f])
-  fS = Singular.factor(I.gens[Val(:S), 1])
+  fS = Singular.ffactor(I.gens[Val(:S), 1])
   R = parent(f)
   return Nemo.Fac(R(fS.unit), Dict(R(k) =>v for (k,v) = fS.fac))
 end
@@ -1113,24 +1113,14 @@ end
 
 ################################################################################
 
-function normal_form(f::MPolyElem, I::MPolyIdeal)
-  R = parent(f)
-  R == base_ring(I) || error("base rings do not match")
-  Oscar.groebner_assure(I)
-  L = Singular.reduce(I.gb.Sx(f), I.gb.S)
-  return R(L)
-end
-
-################################################################################
-
-function normal_form(I::MPolyIdeal, J::MPolyIdeal)
-  R = base_ring(I)
-  R == base_ring(J) || error("base rings do not match")
-  Oscar.groebner_assure(J)
-  singular_assure(I)
-  singular_assure(J)
-  L = Singular.reduce(I.gens.S, J.gb.S)
-  return ideal(R, L)
+@doc Markdown.doc"""
+    divrem(a::Vector{T}, b::Vector{T}) where T <: MPolyElem{S} where S <: RingElem
+Return an array of tuples (qi, ri) consisting of an array of polynomials qi, one
+for each polynomial in b, and a polynomial ri such that
+a[i] = sum_i b[i]*qi + ri.
+"""
+function divrem(a::Vector{T}, b::Vector{T}) where T <: MPolyElem{S} where S <: RingElem
+  return [divrem(x, b) for x in a]
 end
 
 ################################################################################
@@ -1143,11 +1133,13 @@ end
 
 ################################################################################
 @doc Markdown.doc"""
-    PrimaryDecomposition(I::MPolyIdeal, algo::String="GTZ")
+    primary_decomposition(I::MPolyIdeal, algo::String="GTZ")
 
-Compute a primary decomposition of the ideal `I` using the `GTZ`-algorithm by default, or `SY` if specified. The output is a dictionnary where the keys are the primary ideals, with values the corresponding prime ideal.
+Compute a primary decomposition of the ideal `I` using the `GTZ`-algorithm by
+default, or `SY` if specified. The output is a dictionnary where the keys are
+the primary ideals, with values the corresponding prime ideal.
 """
-function PrimaryDecomposition(I::MPolyIdeal, algo::String="GTZ")
+function primary_decomposition(I::MPolyIdeal, algo::String="GTZ")
   R = base_ring(I)
   singular_assure(I)
   if algo == "GTZ"
@@ -1165,31 +1157,37 @@ function PrimaryDecomposition(I::MPolyIdeal, algo::String="GTZ")
 end
 
 ################################################################################
-# I don't know if there is a smarter way to check if an ideal is prime
+# I don't know if there is a smarter way to check if an ideal is prime/primary
 
-function isprime_ideal(I::MPolyIdeal)
+@doc Markdown.doc"""
+    isprime(I::MPolyIdeal)
+
+Return `true` if the ideal `I` is prime, false otherwise
+"""
+function isprime(I::MPolyIdeal)
   R = base_ring(I)
-  D = PrimaryDecomposition(I)
+  D = primary_decomposition(I)
   if length(D) != 1
     return false
   else
     for (q, p) in D
-      r1 = normal_form(p, q)
-      return r1 == ideal(R, [R(0)])
+      r = divrem(gens(p), groebner_basis(q))
+      arr = [r[i][2] for i in 1:length(r)]
+      return length(findall(x->x==R(0), arr)) == length(arr)
     end
   end
 end
 
 ################################################################################
 
-function isprimary_ideal(I::MPolyIdeal)
-  D = PrimaryDecomposition(I)
+@doc Markdown.doc"""
+    isprimary(I::MPolyIdeal)
+
+Return `true` if the ideal `I` is primary, false otherwise
+"""
+function isprimary(I::MPolyIdeal)
+  D = primary_decomposition(I)
   return length(D) == 1
 end
 
 ################################################################################
-
-function hash(I::MPolyIdeal)
-  singular_assure(I)
-  return Singular.hash(I.gens.S)
-end
