@@ -480,3 +480,55 @@ end
    @test length(conjugacy_classes_maximal_subgroups(G))==3
 end
 
+@testset "Jordan structure" begin
+   F = GF(3,1)[1]
+   R,t = PolynomialRing(F,"t")
+   G = GL(9,F)
+
+   L_big = [
+        [(t-1,3), (t^2+1,1), (t^2+1,2)],
+        [(t^9 + t^7 + 2*t^6 + t^5 + 2*t^4 + t^3 + 2*t^2 + 2*t + 1, 1)],
+        [(t-2,9)]
+       ]
+   @testset for L in L_big
+      x = diagonal_join([generalized_jordan_block(a...) for a in L])
+   # TODO: the change_base_ring is necessary, otherwise the equality between polynomials does not work
+      @test MSet([(change_base_ring(F,f[1]),f[2]) for f in pol_elementary_divisors(x) ])==MSet([(change_base_ring(F,f[1]),f[2]) for f in L])
+      @test MSet([(change_base_ring(F,f[1]),f[2]) for f in pol_elementary_divisors(G(x)) ])==MSet([(change_base_ring(F,f[1]),f[2]) for f in L])
+      s, u = multiplicative_jordan_decomposition(G(x))
+      @test parent(s)==G
+      @test parent(u)==G
+      @test iscoprime(order(s),3)
+      @test isone(u) || ispower(order(u))[2]==3
+      @test issemisimple(s)
+      @test isunipotent(u)
+      @test s*u==G(x)
+      @test s*u==u*s
+
+      z = rand(G).elm
+      x = z^-1*x*z
+      a,b = generalized_jordan_form(x)
+      @test b^-1*a*b==x
+      z = rand(G).elm
+      @test generalized_jordan_form(z^-1*x*z)[1]==a
+      @test generalized_jordan_form(a)[1]==a
+   end
+   
+   x = one(G)
+   @test issemisimple(x) && isunipotent(x)
+
+   F,z = GF(5,3,"z")
+   G = GL(6,F)
+   R,t = PolynomialRing(F,"t")
+   f = t^3+t*z+1
+   x = generalized_jordan_block(f,2)
+   @test generalized_jordan_block(f,2)==block_matrix(2,2,[companion_matrix(f),identity_matrix(F,3),zero_matrix(F,3,3),companion_matrix(f)])
+   @testset for i in [2,4,42,62]
+      y = Oscar._elem_given_det(G(x),z^i)
+      @test x*y==y*x
+      @test det(y)==z^i
+   end
+   @test_throws ErrorException Oscar._elem_given_det(G(x),z)
+
+   
+end
