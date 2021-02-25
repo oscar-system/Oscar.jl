@@ -51,3 +51,107 @@
       end
    end
 end
+
+@testset "Matrix manipulation" begin
+   F = GF(5,1)[1]
+   
+   I = identity_matrix(F,6)
+   x = matrix(F,2,2,[2,3,4,0])
+   I1 = insert_block(I,x,3,3)
+   @test I==identity_matrix(F,6)
+   insert_block!(I,x,3,3)
+   @test I==I1
+   @test submatrix(I,3,3,2,2)==x
+   Y = block_matrix(2,1,[block_matrix(1,2,[x,x^2]), block_matrix(1,2,[-x,x])])
+   @test Y==block_matrix(2,2,[x,x^2,-x,x])
+   z = zero_matrix(F,2,2)
+   @test diagonal_join([x,x,x])==block_matrix(3,3,[x,z,z,z,x,z,z,z,x])
+   @test diagonal_join(x,x,zero_matrix(F,4,4))==diagonal_join([x,x,zero_matrix(F,4,4)])
+   V = VectorSpace(F,6)
+   @test matrix([V[i] for i in 1:6])==identity_matrix(F,6)
+   L = [1,4,6,2,3,5]
+   P = permutation_matrix(F,L)
+   @testset for i in 1:6
+      @test V[i]*P == V[L[i]]
+   end
+   
+   R,t=PolynomialRing(F,"t")
+   f = t^4+2*t^3+4*t+1
+   @test evaluate(f,identity_matrix(F,6))==f(1)*identity_matrix(F,6)
+   @test_throws ArgumentError conjugate_transpose(x)
+   @test issymmetric(P+transpose(P))
+   @test isskewsymmetric_matrix(P-transpose(P))
+
+   F,z=GF(2,2)
+   x=matrix(F,4,4,[1,z,0,0,0,1,z^2,z,z,0,0,1,0,0,z+1,0])
+   y=x+transpose(x)
+   @test issymmetric(y)
+   @test ishermitian_matrix(x+conjugate_transpose(x))
+   @test isskewsymmetric_matrix(y)
+   y[1,1]=1
+   @test !isskewsymmetric_matrix(y)
+   @test conjugate_transpose(x)==transpose(matrix(F,4,4,[1,z+1,0,0,0,1,z,z+1,z+1,0,0,1,0,0,z,0]))
+
+end
+
+@testset "Operations with vector spaces" begin
+   F=GF(7,1)[1]
+   V=VectorSpace(F,5)
+
+   @test V([1,0,2,0,6])==V[1]+2*V[3]-V[5]
+   U = sub(V,[V[1],V[3]])[1]
+   W = complement(V,U)[1]
+   @test dim(intersect(U,W)[1])==0
+   @test dim(W)==3
+   W0 = sub(V,[])[1]
+   @test complement(V,W0)[1]==V
+   @test complement(V,sub(V,gens(V))[1])[1]==W0
+
+   v1=V([1,2,3,4,5])
+   v2=V([1,6,0,5,2])
+   @test v1*v2==1
+   G = GL(5,F)
+   B=matrix(F,5,5,[1,2,3,1,0,4,5,2,0,1,3,2,5,4,0,1,6,4,3,5,2,0,4,1,1])
+   @test v1*B == V([ sum([v1[i]*B[i,j] for i in 1:5]) for j in 1:5 ])
+   @test V(transpose(B*v2))==V([ sum([v2[i]*B[j,i] for i in 1:5]) for j in 1:5 ])
+   @test v1*B*v2==(v1*B)*v2
+   B = G(B)
+   @test v1*B == V([ sum([v1[i]*B[i,j] for i in 1:5]) for j in 1:5 ])
+   @test V(transpose(B*v2))==V([ sum([v2[i]*B[j,i] for i in 1:5]) for j in 1:5 ])
+   @test v1*B*v2==(v1*B)*v2
+   @test map(x->x+1,v1)==V([2,3,4,5,6])
+
+end
+
+# from file matrices/stuff_field_gen.jl
+@testset "Stuff on fields" begin
+   F = GF(3)
+   R,t = PolynomialRing(F,"t")
+   f = t^2+1
+   f1 = Oscar._change_type(f)
+   @test collect(coefficients(f1))==collect(coefficients(f))
+   F1 = GF(3,1)[1]
+   @test base_ring(f1)==F1
+   x = evaluate(Oscar._centralizer(f1), companion_matrix(f1))
+   @test order(GL(2,F1)(x))==8
+   K,z = FiniteField(f,"z")
+   @test z^4==1
+   @test (change_base_ring(K,Oscar._centralizer(f1))(z))^4 !=1
+   @test primitive_element(K)^4 !=1
+
+   F = GF(17,1)[1]
+   a = F(3)
+   b = F(13)
+   @test a^Oscar._disc_log(a,b)==b
+   @test_throws AssertionError Oscar._disc_log(b,a)
+   @test Oscar._disc_log(F(16),F(1))==0
+   @test_throws AssertionError Oscar._disc_log(b,F(0))
+end
+
+
+@testset "Partitions" begin
+   L=partitions(7)
+   @testset for l in L
+      @test sum(l)==7
+   end
+end
