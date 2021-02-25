@@ -1,3 +1,4 @@
+
 # TODO: in this file are used many methods TEMPORARILY defined in files matrix_manipulation.jl and stuff_field_gen.jl
 # once methods in those files will be deleted / replaced / modified, this file need to be modified too
 
@@ -164,6 +165,7 @@ symmetric_form(B::MatElem{T}) where T <: FieldElem = SesquilinearForm(B, :symmet
 Return the hermitian form with Gram matrix `B`.
 """
 hermitian_form(B::MatElem{T}) where T <: FieldElem = SesquilinearForm(B, :hermitian)
+
 
 # turns the matrix of a quadratic form into an upper triangular matrix of the same form
 # (two matrices A,B represent the same quadratic form iff A-B is skew-symmetric)
