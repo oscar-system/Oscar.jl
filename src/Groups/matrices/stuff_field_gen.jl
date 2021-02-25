@@ -49,7 +49,6 @@ end
 function _disc_log(a,b)
    for g in 0:order(parent(a))
       if a^g==b
-         done=true
          return g
       end
    end

@@ -59,6 +59,7 @@ function insert_block!(A::MatElem{T}, B::MatElem{T}, i::Int, j::Int) where T <: 
    for s in 1:nrows(B), t in 1:ncols(B)
       A[i+s-1,j+t-1] = B[s,t]
    end
+
    return A
 end
 
@@ -72,6 +73,7 @@ Return the diagonal join of the matrices in `V`.
 function diagonal_join(V::AbstractVector{T}) where T <: MatElem
    nr = sum(nrows, V)
    nc = sum(ncols, V)
+
    B = zero_matrix(base_ring(V[1]), nr,nc)
    pos_i=1
    pos_j=1
