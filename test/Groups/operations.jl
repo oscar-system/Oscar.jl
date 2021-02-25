@@ -146,3 +146,4 @@ end
    @test Oscar._disc_log(F(16),F(1))==0
    @test_throws ErrorException Oscar._disc_log(b,F(0))
 end
+
