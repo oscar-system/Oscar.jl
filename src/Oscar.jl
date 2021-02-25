@@ -84,6 +84,7 @@ function __init__()
         (GAP.Globals.IsMatrixGroup, MatrixGroup),
         (GAP.Globals.IsFpGroup, FPGroup),
     ])
+    GAP.Packages.load("forms")
 end
 
 # pkgdir was added in Julia 1.4
