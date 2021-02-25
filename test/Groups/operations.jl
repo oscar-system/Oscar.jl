@@ -143,8 +143,23 @@ end
    a = F(3)
    b = F(13)
    @test a^Oscar._disc_log(a,b)==b
+<<<<<<< HEAD
    @test_throws ErrorException Oscar._disc_log(b,a)
    @test Oscar._disc_log(F(16),F(1))==0
    @test_throws ErrorException Oscar._disc_log(b,F(0))
 end
 
+=======
+   @test_throws AssertionError Oscar._disc_log(b,a)
+   @test Oscar._disc_log(F(16),F(1))==0
+   @test_throws AssertionError Oscar._disc_log(b,F(0))
+end
+
+
+@testset "Partitions" begin
+   L=partitions(7)
+   @testset for l in L
+      @test sum(l)==7
+   end
+end
+>>>>>>> GAP: deal with matrices, vectors, finite field elements

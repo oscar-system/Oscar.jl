@@ -193,7 +193,10 @@ include("Groups/libraries/libraries.jl")
 include("Groups/GAPGroups.jl")
 include("Groups/directproducts.jl")
 include("Groups/action.jl")
+<<<<<<< HEAD
 include("Groups/gsets.jl")
+=======
+>>>>>>> GAP: deal with matrices, vectors, finite field elements
 include("Groups/matrices/matrices.jl")
 
 include("Rings/integer.jl")
