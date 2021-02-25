@@ -32,6 +32,7 @@ function _centralizer(f::PolyElem{T}) where T <: FinFieldElem
 end
 
 # TODO very bold discrete log, waiting for a better one. Don't try with large fields!!
+
 # return g such that a^g = b
 function _disc_log(a,b)
    for g in 0:order(parent(a))
