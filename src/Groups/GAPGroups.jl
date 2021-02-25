@@ -499,7 +499,7 @@ function conjugacy_classes(G::GAPGroup)
    return GroupConjClass{typeof(G), elem_type(G)}[ _conjugacy_class(G,group_element(G,GAP.Globals.Representative(cc)),cc) for cc in L]
 end
 
-Base.:^(x::GAPGroupElem, y::GAPGroupElem) = group_element(_maxgroup(parent(x), parent(y)), x.X ^ y.X)
+Base.:^(x::T, y::T) where T <: GAPGroupElem = group_element(_maxgroup(parent(x), parent(y)), x.X ^ y.X)
 
 """
     isconjugate(G::Group, x::GAPGroupElem, y::GAPGroupElem)

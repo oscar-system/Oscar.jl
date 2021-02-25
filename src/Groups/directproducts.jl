@@ -6,7 +6,6 @@
 
 export
     acting_subgroup,
-    as_matrix_group,
     as_perm_group,
     as_polycyclic_group,
     cartesian_power,
@@ -49,17 +48,12 @@ end
     inner_direct_product(L::T...)
 
 Return a direct product of groups of the same type `T` as a group of type `T`. It works for `T` of the following types:
-- `PermGroup`, `PcGroup`, `MatrixGroup`, `FPGroup`.
-
-NOTE: if `T` = `MatrixGroup`, the groups of the vector `L` need to have the same base ring.
+- `PermGroup`, `PcGroup`, `FPGroup`.
 
 The parameter `morphisms` is `false` by default. If it is set `true`, then the output is a triple (`G`, `emb`, `proj`), where `emb` and `proj` are the vectors of the embeddings (resp. projections) of the direct product `G`.
 """
-function inner_direct_product(L::AbstractVector{T}; morphisms=false) where T<:Union{PcGroup,PermGroup,FPGroup,MatrixGroup}
+function inner_direct_product(L::AbstractVector{T}; morphisms=false) where T<:Union{PcGroup,PermGroup,FPGroup}
    P = GAP.Globals.DirectProduct(GAP.julia_to_gap([G.X for G in L]))
-   if T==MatrixGroup     # check that the matrix groups have the same base ring
-      length(Set{GapObj}(GAP.Globals.FieldOfMatrixGroup(H.X) for H in L))==1 || throw(ArgumentError("The result is not a matrix group"))
-   end
    if T==PermGroup
       DP = T(P,GAP.Globals.NrMovedPoints(P))
    else
@@ -74,7 +68,7 @@ function inner_direct_product(L::AbstractVector{T}; morphisms=false) where T<:Un
    end
 end
 
-function inner_direct_product(L::T... ; morphisms=false) where T<:Union{PcGroup,PermGroup,FPGroup,MatrixGroup}
+function inner_direct_product(L::T... ; morphisms=false) where T<:Union{PcGroup,PermGroup,FPGroup}
    return inner_direct_product([x for x in L]; morphisms=morphisms)
 end
 
@@ -145,20 +139,6 @@ function as_polycyclic_group(G::DirectProductGroup)
 end
 
 """
-    as_matrix_group(G::DirectProductGroup)
-
-If `G` is direct product of matrix groups over the ring `R` of dimension `n_1`, ... , `n_k` respectively, return `G` as matrix group over the ring `R` of dimension `n_1 + ... + n_k`.
-"""
-function as_matrix_group(G::DirectProductGroup)
-# TODO write in a more compact form once defined the function base_ring over GL
-   if [typeof(H)==MatrixGroup for H in G.L]==[true for i in 1:length(G.L)] && length(Set{GapObj}(GAP.Globals.FieldOfMatrixGroup(H.X) for H in G.L))==1
-      return MatrixGroup(G.X)
-   else
-      throw(ArgumentError("The group is not a matrix group"))
-   end
-end
-
-"""
     embedding(G::DirectProductGroup, j::Integer)
 
 Return the embedding of the `j`-th component of `G` into `G`, for `j` = 1,...,#factors of `G`.
@@ -198,40 +178,9 @@ function (G::DirectProductGroup)(V::GAPGroupElem...)
    return G([x for x in V])
 end
 
-# start part on subgroups
 function _as_subgroup_bare(G::DirectProductGroup, H::GapObj)
 #  t = H==G.X
   return DirectProductGroup(H, G.L, G.X, false)
-end
-
-function _as_subgroup(G::DirectProductGroup, H::GapObj, ::Type{U}) where U
-  H1 = _as_subgroup_bare(G, H)
-  return H1, hom(H1, G, x::U -> group_element(G, x.X))
-end
-
-function _as_subgroup(G::DirectProductGroup, H::GapObj)
-  return _as_subgroup(G, H, GAPGroupElem{DirectProductGroup})
-end
-
-function sub(G::DirectProductGroup, elms::Vector{GAPGroupElem{DirectProductGroup}})
-  elems_in_GAP = GAP.julia_to_gap(GapObj[x.X for x in elms])
-  H = GAP.Globals.Group(elems_in_GAP)
-  #H is the group. I need to return the inclusion map too
-  return _as_subgroup(G, H)
-end
-
-function sub(L::GAPGroupElem{DirectProductGroup}...)
-   length(L)>0 || throw(ArgumentError("Empty list"))
-   l=collect(L)
-   @assert all(x -> parent(x) == parent(l[1]), l)
-   return sub(parent(l[1]),l)
-end
-
-function sub(L::Vector{GAPGroupElem{DirectProductGroup}})
-   length(L)>0 || throw(ArgumentError("Empty list"))
-   l=collect(L)
-   @assert all(x -> parent(x) == parent(l[1]), l)
-   return sub(parent(l[1]),l)
 end
 
 function Base.show(io::IO, G::DirectProductGroup)
@@ -356,40 +305,9 @@ function projection(G::SemidirectProductGroup)
    return _hom_from_gap_map(G,H,p)
 end
 
-# start part on subgroups
 function _as_subgroup_bare(G::SemidirectProductGroup{S,T}, H::GapObj) where { S , T }
 #  t = G.X==H
   return SemidirectProductGroup(H, G.N, G.H, G.f, G.X, false)
-end
-
-function _as_subgroup(G::SemidirectProductGroup{S,T}, H::GapObj, ::Type{U}) where { T, S, U }
-  H1 = _as_subgroup_bare(G, H)
-  return H1, hom(H1, G, x::U -> group_element(G, x.X))
-end
-
-function _as_subgroup(G::SemidirectProductGroup{S,T}, H::GapObj) where S <: GAPGroup where T <: GAPGroup
-  return _as_subgroup(G, H, GAPGroupElem{SemidirectProductGroup{S,T}})
-end
-
-function sub(G::SemidirectProductGroup{S,T}, elms::Vector{GAPGroupElem{SemidirectProductGroup{S,T}}}) where { S, T }
-  elems_in_GAP = GAP.julia_to_gap(GapObj[x.X for x in elms])
-  H = GAP.Globals.Group(elems_in_GAP)
-  #H is the group. I need to return the inclusion map too
-  return _as_subgroup(G, H)
-end
-
-function sub(L::GAPGroupElem{SemidirectProductGroup{S,T}}...) where { S, T }
-   length(L)>0 || throw(ArgumentError("Empty list"))
-   l=collect(L)
-   @assert all(x -> parent(x) == parent(l[1]), l)
-   return sub(parent(l[1]),l)
-end
-
-function sub(L::Vector{GAPGroupElem{SemidirectProductGroup{S,T}}}) where { S, T }
-   length(L)>0 || throw(ArgumentError("Empty list"))
-   l=collect(L)
-   @assert all(x -> parent(x) == parent(l[1]), l)
-   return sub(parent(l[1]),l)
 end
 
 function Base.show(io::IO, x::SemidirectProductGroup)
@@ -510,41 +428,11 @@ end
 Base.show(io::IO, x::WreathProductGroup) = print(io, GAP.gap_to_julia(GAP.Globals.StringView(x.X)))
 
 
-# start part on subgroups
 #TODO : to be fixed
 function _as_subgroup_bare(W::WreathProductGroup, X::GapObj)
 #   t = X==W.X
   return WreathProductGroup(X, W.G, W.H, W.a, W.Xfull, false)
 end
 
-function _as_subgroup(W::WreathProductGroup, H::GapObj, ::Type{U}) where U
-  H1 = _as_subgroup_bare(W, H)
-  return H1, hom(H1, W, x::U -> group_element(W, x.X))
-end
-
-function _as_subgroup(W::WreathProductGroup, H::GapObj)
-  return _as_subgroup(W, H, GAPGroupElem{WreathProductGroup})
-end
-
-function sub(W::WreathProductGroup, elms::Vector{GAPGroupElem{WreathProductGroup}})
-  elems_in_GAP = GAP.julia_to_gap(GapObj[x.X for x in elms])
-  H = GAP.Globals.Group(elems_in_GAP)
-  #H is the group. I need to return the inclusion map too
-  return _as_subgroup(W, H)
-end
-
-function sub(L::GAPGroupElem{WreathProductGroup}...)
-   length(L)>0 || throw(ArgumentError("Empty list"))
-   l=collect(L)
-   @assert all(x -> parent(x) == parent(l[1]), l)
-   return sub(parent(l[1]),l)
-end
-
-function sub(L::Vector{GAPGroupElem{WreathProductGroup}})
-   length(L)>0 || throw(ArgumentError("Empty list"))
-   l=collect(L)
-   @assert all(x -> parent(x) == parent(l[1]), l)
-   return sub(parent(l[1]),l)
-end
 
 

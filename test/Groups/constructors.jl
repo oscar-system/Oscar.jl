@@ -146,16 +146,3 @@ end
    @test order(omega_group(-1,4,3))==360
    @test order(omega_group(3,3))==12
 end
-
-@testset "Classical groups as PermGroup" begin
-   @test GL(PermGroup,2,3) isa PermGroup
-   @test order(GL(PermGroup,2,2)) == order(GL(2,2))
-   @test isisomorphic(GL(PermGroup,2,2),GL(2,2))[1]
-
-   @test order(SL(PermGroup,2,2)) == order(SL(2,2))
-   @test order(GU(PermGroup,2,2)) == order(GU(2,2))
-   @test order(SU(PermGroup,2,2)) == order(SU(2,2))
-   @test order(GO(PermGroup,+1,2,2)) == order(GO(+1,2,2))
-   @test order(SO(PermGroup,+1,2,3)) == order(SO(+1,2,3))
-   @test order(Sp(PermGroup,2,2)) == order(Sp(2,2))
-end

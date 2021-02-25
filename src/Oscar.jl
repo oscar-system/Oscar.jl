@@ -189,6 +189,8 @@ include("Groups/libraries/libraries.jl")
 include("Groups/GAPGroups.jl")
 include("Groups/directproducts.jl")
 include("Groups/action.jl")
+include("Groups/iso_oscar_gap.jl")
+include("Groups/MatGrp.jl")
 
 include("Rings/integer.jl")
 include("Rings/rational.jl")

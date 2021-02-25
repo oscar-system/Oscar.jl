@@ -260,6 +260,7 @@ end
    @test f isa Oscar.GAPGroupElem{typeof(A)}
    @test fh isa Oscar.GAPGroupHomomorphism{PermGroup,PermGroup}
    @test A(fh)==f
+   @test f(x)==x^f
    @test f^o == one(A)
    @test f*f^-1 == one(A)
    @test (f*g)(x) == g(f(x))
