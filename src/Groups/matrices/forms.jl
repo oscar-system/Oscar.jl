@@ -36,10 +36,27 @@ mutable struct SesquilinearForm{T<:RingElem}
    X::GapObj
    mat_iso::GenMatIso
 
-   SesquilinearForm(B::MatElem{T},sym) where T = new{T}(B,sym)
+   function SesquilinearForm{T}(B::MatElem{T},sym) where T
+      if sym==:hermitian
+         @assert ishermitian_matrix(B) "The matrix is not hermitian"
+      elseif sym==:symmetric
+         @assert issymmetric(B) "The matrix is not symmetric"
+      elseif sym==:alternating
+         @assert isskewsymmetric_matrix(B) "The matrix is not skew-symmetric"
+      elseif sym != :quadratic
+         error("Unsupported description")
+      end
 
-   function SesquilinearForm(f::MPolyElem{T},sym) where T
+      if sym==:quadratic
+         return new{T}(_upper_triangular_version(B),sym)
+      else
+         return new{T}(B,sym)
+      end
+   end
+
+   function SesquilinearForm{T}(f::MPolyElem{T},sym) where T
       @assert sym==:quadratic "Only quadratic forms are described by polynomials"
+      @assert Set([total_degree(x) for x in monomials(f)])==Set(2) "The polynomials is not homoneneous of degree 2"
       r = new{T}()
       r.pol = f
       r.descr = :quadratic
@@ -47,7 +64,8 @@ mutable struct SesquilinearForm{T<:RingElem}
    end
 end
 
-
+SesquilinearForm(B::MatElem{T}, sym) where T = SesquilinearForm{T}(B,sym)
+SesquilinearForm(f::MPolyElem{T},sym) where T = SesquilinearForm{T}(f,sym)
 
 
 
@@ -115,40 +133,22 @@ end
 
 
 """
-    alternating_form(B::MatElem{T}; check=true)
-Return the alternating form with Gram matrix `B`. If `check` is set as `false`, it does not check whether the matrix is skew-symmetric.
+    alternating_form(B::MatElem{T})
+Return the alternating form with Gram matrix `B`.
 """
-function alternating_form(B::MatElem{T}; check=true) where T <: FieldElem
-   if check
-      @assert isskewsymmetric_matrix(B) "The matrix is not skew-symmetric"
-   end
-   f = SesquilinearForm(B, :alternating)
-   return f
-end
+alternating_form(B::MatElem{T}) where T <: FieldElem = SesquilinearForm(B, :alternating)
 
 """
-    symmetric_form(B::MatElem{T}; check=true)
-Return the symmetric form with Gram matrix `B`. If `check` is set as `false`, it does not check whether the matrix is symmetric.
+    symmetric_form(B::MatElem{T})
+Return the symmetric form with Gram matrix `B`.
 """
-function symmetric_form(B::MatElem{T}; check=true) where T <: FieldElem
-   if check
-      @assert issymmetric(B) "The matrix is not symmetric"
-   end
-   f = SesquilinearForm(B, :symmetric)
-   return f
-end
+symmetric_form(B::MatElem{T}) where T <: FieldElem = SesquilinearForm(B, :symmetric)
 
 """
-    hermitian_form(B::MatElem{T}; check=true)
-Return the hermitian form with Gram matrix `B`. If `check` is set as `false`, it does not check whether the matrix is hermitian.
+    hermitian_form(B::MatElem{T})
+Return the hermitian form with Gram matrix `B`.
 """
-function hermitian_form(B::MatElem{T}; check=true) where T <: FieldElem
-   if check
-      @assert ishermitian_matrix(B) "The matrix is not hermitian"
-   end
-   f = SesquilinearForm(B, :hermitian)
-   return f
-end
+hermitian_form(B::MatElem{T}) where T <: FieldElem = SesquilinearForm(B, :hermitian)
 
 # turns the matrix of a quadratic form into an upper triangular matrix of the same form
 # (two matrices A,B represent the same quadratic form iff A-B is skew-symmetric)
@@ -167,36 +167,22 @@ end
     quadratic_form(B::MatElem{T})
 Return the quadratic form with Gram matrix `B`.
 """
-function quadratic_form(B::MatElem{T}; check=true) where T <: FieldElem
-   f = SesquilinearForm(_upper_triangular_version(B), :quadratic)
-   return f
-end
+quadratic_form(B::MatElem{T}) where T <: FieldElem = SesquilinearForm(B, :quadratic)
 
 """
     quadratic_form(f::MPolyElem{T}; check=true)
 Return the quadratic form described by the polynomial `f`. Here, `f` must be a homogeneous polynomial of degree 2. If `check` is set as `false`, it does not check whether the polynomial is homogeneous of degree 2.
 To define quadratic forms of dimension 1, `f` can also have type `PolyElem{T}`.
 """
-function quadratic_form(f::MPolyElem{T}; check=true) where T <: FieldElem
+quadratic_form(f::MPolyElem{T}) where T <: FieldElem = SesquilinearForm(f, :quadratic)
 # TODO : neither ishomogeneous or ishomogenous works for variables of type MPolyElem{T}
-   if check
-      @assert Set([total_degree(x) for x in monomials(f)])==Set(2) "The polynomials is not homoneneous of degree 2"
-#   @assert total_degree(f)==2 "The polynomial must have degree 2"
-#   @assert ishomogenous(f) "The polynomial is not homogeneous"
-   end
-
-   f = SesquilinearForm(f, :quadratic)
-   return f
-end
 
 # just to allow quadratic forms over vector fields of dimension 1, so defined over polynomials in 1 variable
-function quadratic_form(f::PolyElem{T}; check=true) where T <: FieldElem
-   if check
-      @assert degree(f)==2 && coefficients(f)[0]==0 && coefficients(f)[1]==0 "The polynomials is not homoneneous of degree 2"
-   end
+function quadratic_form(f::PolyElem{T}) where T <: FieldElem
+   @assert degree(f)==2 && coefficients(f)[0]==0 && coefficients(f)[1]==0 "The polynomials is not homoneneous of degree 2"
    R1 = PolynomialRing(base_ring(f), [string(parent(f).S)])[1]
 
-   return SesquilinearForm(R1[1]*coefficients(f)[2], :quadratic)
+   return SesquilinearForm(R1[1]^2*coefficients(f)[2], :quadratic)
 end
 
 ########################################################################

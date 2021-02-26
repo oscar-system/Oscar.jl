@@ -17,7 +17,6 @@
    @test !ishermitian_form(f)
    @test_throws AssertionError f = symmetric_form(B)
    @test_throws AssertionError f = hermitian_form(B)
-   @test hermitian_form(B; check=false) isa SesquilinearForm
 
    B = matrix(F,4,4,[0 1 0 0; 1 0 0 0; 0 0 0 z+2; 0 0 -1-z 0])
    @test ishermitian_matrix(B)
@@ -30,8 +29,7 @@
    @test_throws AssertionError f = symmetric_form(B)
    @test_throws AssertionError f = alternating_form(B)
    @test_throws ArgumentError corresponding_quadratic_form(f)
-   f = SesquilinearForm(B,:unitary)
-   @test_throws ErrorException f.X
+   @test_throws ErrorException f = SesquilinearForm(B,:unitary)
 
    B = matrix(F,4,4,[0 1 0 0; 1 0 0 0; 0 0 0 z+2; 0 0 z+2 0])
    @test issymmetric(B)
