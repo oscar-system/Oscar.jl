@@ -24,3 +24,19 @@ end
     @test parent(M(Q(x+y))) == S
   end
 end
+
+@testset "MPolyQuo.ideals" begin
+  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+  Q, _ = quo(R, ideal(R, [x*y, x*z]))
+  (x, y, z) = map(Q, (x, y, z))
+
+  @test ideal(Q, [x, y, z]) isa Oscar.Ideal
+
+  @test !iszero(ideal(Q, [x, y]))
+  @test !iszero(ideal(Q, [y*z]))
+  @test iszero(ideal(Q, [x*y, x*z]))
+  @test iszero(ideal(Q, [x*y*z]))
+  @test ideal(Q, [2*x]) + ideal(Q, [x*(y+z)]) == ideal(Q, [x])
+  @test iszero(ideal(Q, [y*z])*ideal(Q, [x]))
+  @test quotient(ideal(Q, [zero(Q)]), ideal(Q, [y*z])) == ideal(Q, [x])
+end
