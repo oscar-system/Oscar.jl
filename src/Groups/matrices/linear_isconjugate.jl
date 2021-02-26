@@ -84,13 +84,11 @@ function pol_elementary_divisors(A::MatElem{T}) where T
 
 # sorting the vector in order to have all equal polynomials in a consecutive bunch
 # and block size in increasing order
-   for i in 1:length(L)-1
-   for j in i+1:length(L)
+   for i in 1:length(L)-1, j in i+1:length(L)
       if V[i][1]==V[j][1]
          V[i+1],V[j] = V[j],V[i+1]
          if V[i+1][2]<V[i][2] V[i],V[i+1] = V[i+1],V[i]  end
       end
-   end
    end
 
    return V

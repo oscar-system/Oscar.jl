@@ -1,7 +1,3 @@
-# Compute a generating set for every element in GL(n,q) and SL(n,q)
-# generators for GL(n,q) and SL(n,q) are described in:  Taylor, D. E., Pairs of Generators for Matrix Groups. I, The Cayley Bulletin, 3 (1987)
-# generators for centralizer of unipotent elements are described in: Giovanni De Franceschi, Centralizers and conjugacy classes in finite classical groups, arXiv:2008.12651
-
 
 ########################################################################
 #
@@ -31,26 +27,23 @@ _SL_order(n::Int, F::Ring) = _SL_order(n, order(F))
 #
 ########################################################################
 
+# Compute a generating set for every element in GL(n,q) and SL(n,q)
+# generators for GL(n,q) and SL(n,q) are described in:  Taylor, D. E., Pairs of Generators for Matrix Groups. I, The Cayley Bulletin, 3 (1987)
 
 # returns as matrices
 function _gens_for_GL(n::Int, F::Ring)
-   n !=1 || return [matrix(F,1,1,[primitive_element(F)])]
+   n !=1 || return [matrix(F,1,1,[primitive_root(F)])]
+   h1 = identity_matrix(F,n)
+   h2 = zero_matrix(F,n,n)
    if order(F)==2
-      h1 = identity_matrix(F,n)
       h1[1,2] = 1
-      h2 = zero_matrix(F,n,n)
-      h2[1,n] = 1
-      for i in 1:n-1 h2[i+1,i] = -1 end
-      return h1,h2
    else
-      h1 = identity_matrix(F,n)
-      h1[1,1] = primitive_element(F)
-      h2 = zero_matrix(F,n,n)
+      h1[1,1] = primitive_root(F)
       h2[1,1] = -1
-      h2[1,n] = 1
-      for i in 1:n-1 h2[i+1,i] = -1 end
-      return h1,h2
    end
+   h2[1,n] = 1
+   for i in 1:n-1 h2[i+1,i] = -1 end
+   return h1,h2
 end
 
 # returns as matrices
@@ -72,6 +65,7 @@ function _gens_for_GL_matrix(f::PolyElem, n::Int, F::Ring; D=1)
    return h1,h2
 end
 
+# generators for centralizer of unipotent elements are described in: Giovanni De Franceschi, Centralizers and conjugacy classes in finite classical groups, arXiv:2008.12651
 
 # V = vector of integers of the dimensions of Jordan blocks
 # return the generators for the centralizers of the diagonal join of unipotent Jordan blocks of dimensions V
@@ -101,13 +95,11 @@ function _centr_unipotent(F::Ring, V::AbstractVector{Int}; isSL=false)
          push!(listgens,z)
       end
       if l[1]>1
-         for i in 1:l[1]-1
-         for j in 1:degree(F)
+         for i in 1:l[1]-1, j in 1:degree(F)
             z = identity_matrix(F,l[1])
             for k in 1:l[1]-i z[k,i+k]=_lambda^j end
             z = insert_block(identity_matrix(F,n),z,pos,pos)
             push!(listgens,z)
-         end
          end
       end
       pos += l[1]*l[2]
@@ -130,10 +122,8 @@ function _centr_unipotent(F::Ring, V::AbstractVector{Int}; isSL=false)
    # cardinality
    res = prod([_GL_order(l[2],F) for l in L])
    exp = fmpz(0)
-   for i in 1:length(L)-1
-   for j in i+1:length(L)
+   for i in 1:length(L)-1, j in i+1:length(L)
       exp += L[i][1]*L[i][2]*L[j][2]
-   end
    end
    exp *= 2
    exp += sum([(L[i][1]-1)*L[i][2]^2 for i in 1:length(L)])
@@ -173,14 +163,14 @@ function _centr_block_unipotent(f::PolyElem, F::Ring, V::AbstractVector{Int}; is
       end
       if l[1]>1
          for i in 1:l[1]-1
-         c = identity_matrix(F,d)
-         for j in 1:degree(F)*d
-            z = identity_matrix(F,l[1]*d)
-            for k in 0:l[1]-i-1 insert_block!(z,c,d*k+1 ,d*(k+i)+1) end
-            z = insert_block(identity_matrix(F,n),z,pos,pos)
-            c *= C           # every time, the block C^(j-1) is inserted
-            push!(listgens,z)
-         end
+            c = identity_matrix(F,d)
+            for j in 1:degree(F)*d
+               z = identity_matrix(F,l[1]*d)
+               for k in 0:l[1]-i-1 insert_block!(z,c,d*k+1 ,d*(k+i)+1) end
+               z = insert_block(identity_matrix(F,n),z,pos,pos)
+               c *= C           # every time, the block C^(j-1) is inserted
+               push!(listgens,z)
+            end
          end
       end
       pos += l[1]*l[2]*d
@@ -203,11 +193,7 @@ function _centr_block_unipotent(f::PolyElem, F::Ring, V::AbstractVector{Int}; is
    # cardinality
    res = prod([_GL_order(l[2],order(F)^degree(f)) for l in L])
    exp = fmpz(0)
-   for i in 1:length(L)-1
-   for j in i+1:length(L)
-      exp += L[i][1]*L[i][2]*L[j][2]
-   end
-   end
+   for i in 1:length(L)-1, j in i+1:length(L)  exp += L[i][1]*L[i][2]*L[j][2] end
    exp *= 2
    exp += sum([(L[i][1]-1)*L[i][2]^2 for i in 1:length(L)])
    exp *= degree(f)
@@ -259,27 +245,23 @@ end
 #
 ########################################################################
 
+# generators for GL(n,q) and SL(n,q) are described in:  Taylor, D. E., Pairs of Generators for Matrix Groups. I, The Cayley Bulletin, 3 (1987)
 
 # returns as matrices
 function _gens_for_SL(n::Int, F::Ring)
    n != 1 || return []
+   h1 = identity_matrix(F,n)
+   h2 = zero_matrix(F,n,n)
    if order(F)==2 || order(F)==3
-      h1 = identity_matrix(F,n)
       h1[1,2] = 1
-      h2 = zero_matrix(F,n,n)
-      h2[1,n] = 1
-      for i in 1:n-1 h2[i+1,i] = -1 end
-      return h1,h2
    else
-      h1 = identity_matrix(F,n)
-      h1[1,1] = primitive_element(F)
+      h1[1,1] = primitive_root(F)
       h1[2,2] = inv(h1[1,1])
-      h2 = zero_matrix(F,n,n)
       h2[1,1] = -1
-      h2[1,n] = 1
-      for i in 1:n-1 h2[i+1,i] = -1 end
-      return h1,h2
    end
+   h2[1,n] = 1
+   for i in 1:n-1 h2[i+1,i] = -1 end
+   return h1,h2
 end
 
 # returns as matrices
@@ -307,12 +289,15 @@ function _gens_for_SL_matrix(f::PolyElem, n::Int, F::Ring; D=1)
    return h1,h2,h3
 end
 
+
+# generators for centralizer of unipotent elements are described in: Giovanni De Franceschi, Centralizers and conjugacy classes in finite classical groups, arXiv:2008.12651
+
 # returns the list of generators
 function _centralizer_SL(x::MatElem)
    _,cbm,ED = generalized_jordan_form(x; with_pol=true)    # cbm = change basis matrix
    n=nrows(x)
    listgens = MatElem[]
-   _lambda = primitive_element(base_ring(x))
+   _lambda = primitive_root(base_ring(x))
    res = fmpz(1)
    ind = fmpz(0)
 

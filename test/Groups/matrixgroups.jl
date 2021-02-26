@@ -530,5 +530,39 @@ end
    end
    @test_throws ErrorException Oscar._elem_given_det(G(x),z)
 
-   
+   @testset "Low-level methods in linear_centralizer.jl" begin
+      @test Oscar._SL_order(3,fmpz(8))== fmpz(div(prod([8^3-8^i for i in 0:2]),7))
+      @test Oscar._SL_order(4,GF(3,1)[1])== fmpz(div(prod([3^4-3^i for i in 0:3]),2))
+      L = Oscar._gens_for_GL(1,GF(7,1)[1])
+      @test length(L)==1
+      @test L[1]^2 !=1 && L[1]^3 !=1
+      L = Oscar._gens_for_GL(4,GF(2,2)[1])
+      @test length(L)==2
+      @test matrix_group(L...)==GL(4,GF(2,2)[1])
+      L = Oscar._gens_for_SL(5,GF(3,1)[1])
+      @test matrix_group(L...)==SL(5,GF(3,1)[1])
+      L = Oscar._gens_for_GL(5,GF(2,1)[1])
+      @test length(L)==2
+      @test matrix_group(L...)==GL(5,GF(2,1)[1])
+      _,t = PolynomialRing(GF(3,1)[1],"t")
+      f = t^2+t-1
+      L = Oscar._gens_for_GL_matrix(f,2,GF(3,1)[1]; D=2)
+      @test length(L)==2
+      @test nrows(L[1])==8
+      @test L[1]^8==1
+      @test L[2]^3==1
+      @test order(matrix_group(L...))==order(GL(2,9))
+      L = Oscar._gens_for_SL_matrix(f,2,GF(3,1)[1]; D=2)
+      @test length(L)==3
+      @test nrows(L[1])==8
+      @test L[1]^8==1
+      @test L[2]^3==1
+      @test order(matrix_group(L...))==div(order(GL(2,9)),2)
+      x = diagonal_join([generalized_jordan_block(f,n) for n in [1,1,1,2,2,3]])
+      L,c = Oscar._centr_block_unipotent(f,GF(3,1)[1],[1,1,1,2,2,3])
+      @testset for l in L
+         @test l*x==x*l
+      end
+      @test c==order(GL(3,9))*order(GL(2,9))*8*BigInt(9)^32
+   end
 end
