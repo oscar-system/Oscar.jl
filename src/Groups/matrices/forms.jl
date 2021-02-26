@@ -167,6 +167,7 @@ Return the hermitian form with Gram matrix `B`.
 hermitian_form(B::MatElem{T}) where T <: FieldElem = SesquilinearForm(B, :hermitian)
 
 
+
 # turns the matrix of a quadratic form into an upper triangular matrix of the same form
 # (two matrices A,B represent the same quadratic form iff A-B is skew-symmetric)
 function _upper_triangular_version(C::MatElem)
