@@ -6,8 +6,7 @@
 # functions in this file are to be removed / moved / replaced
 # TODO: when this happens, files mentioned above need to be modified too.
 
-
-import Hecke: evaluate, field_extension, FinField, FinFieldElem, PolyElem, primitive_element
+import Hecke: evaluate, field_extension, FinField, FinFieldElem, PolyElem
 
 
 # changes the base ring of a polynomial ring into fq_nmod
@@ -33,7 +32,6 @@ function _centralizer(f::PolyElem{T}) where T <: FinFieldElem
 end
 
 # TODO very bold discrete log, waiting for a better one. Don't try with large fields!!
-
 # return g such that a^g = b
 function _disc_log(a,b)
    for g in 0:order(parent(a))
