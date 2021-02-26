@@ -116,6 +116,10 @@ function example(s::String)
   Base.include(Main, joinpath(oscardir, "examples", s))
 end
 
+function build_doc()
+  Base.include(Main, joinpath(oscardir, "docs", "make_local.jl"))
+end
+export build_doc
 # This can be used in
 #
 # module A
