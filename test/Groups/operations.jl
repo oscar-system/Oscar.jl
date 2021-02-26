@@ -143,9 +143,9 @@ end
    a = F(3)
    b = F(13)
    @test a^Oscar._disc_log(a,b)==b
-   @test_throws AssertionError Oscar._disc_log(b,a)
+   @test_throws ErrorException Oscar._disc_log(b,a)
    @test Oscar._disc_log(F(16),F(1))==0
-   @test_throws AssertionError Oscar._disc_log(b,F(0))
+   @test_throws ErrorException Oscar._disc_log(b,F(0))
 end
 
 
