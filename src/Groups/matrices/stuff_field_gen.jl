@@ -9,7 +9,7 @@
 
 import Hecke: evaluate, field_extension, FinField, FinFieldElem, PolyElem
 
-export primitive_element
+export primitive_root
 
 # changes the base ring of a polynomial ring into fq_nmod
 function _change_type(f::PolyElem{T}) where T <: FinFieldElem
@@ -34,7 +34,7 @@ end
 # return a primitive element of F, i.e. a group generator for F*
 # TODO: are there faster procedures?
 """
-    primitive_element(F::FinField)
+    primitive_root(F::FinField)
 Return a generator of the multiplicative group of `F`.
 """
 function primitive_element(F::FinField)
