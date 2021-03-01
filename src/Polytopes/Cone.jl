@@ -12,11 +12,18 @@ function Cone(Rays::Union{Oscar.MatElem,AbstractMatrix})
         INPUT_RAYS = matrix_for_polymake(Rays),
     ))
 end
-function Cone(Rays::Union{Oscar.MatElem,AbstractMatrix}, LS::Union{Oscar.MatElem,AbstractMatrix})
-    Cone(Polymake.polytope.Cone{Polymake.Rational}(
-        INPUT_RAYS = matrix_for_polymake(Rays),
-        INPUT_LINEALITY = matrix_for_polymake(LS),
-    ))
+function Cone(Rays::Union{Oscar.MatElem,AbstractMatrix}, LS::Union{Oscar.MatElem,AbstractMatrix}; non_redundant::Bool=false)
+   if non_redundant
+       Cone(Polymake.polytope.Cone{Polymake.Rational}(
+           RAYS = matrix_for_polymake(Rays),
+           LINEALITY_SPACE = matrix_for_polymake(LS),
+       ))
+   else
+       Cone(Polymake.polytope.Cone{Polymake.Rational}(
+           INPUT_RAYS = matrix_for_polymake(Rays),
+           INPUT_LINEALITY = matrix_for_polymake(LS),
+       ))
+   end
 end
 
 """
