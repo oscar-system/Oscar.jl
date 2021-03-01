@@ -20,7 +20,7 @@ function Cone(Rays::Union{Oscar.MatElem,AbstractMatrix}, LS::Union{Oscar.MatElem
 end
 
 """
-    pm_polytope(C::Cone)
+    pm_cone(C::Cone)
 
 Get the underlying polymake `Cone`.
 """
@@ -40,6 +40,11 @@ function Base.iterate(iter::ConeRayIterator, index = 1)
 end
 Base.eltype(::Type{ConeRayIterator}) = Polymake.VectorAllocated{Polymake.Rational}
 Base.length(iter::ConeRayIterator) = n_rays(iter.cone)
+
+
+function rays_as_point_matrix(C::Cone)
+    pm_cone(C).RAYS
+end
 
 """
    n_rays(C::Cone)

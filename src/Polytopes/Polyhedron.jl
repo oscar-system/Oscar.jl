@@ -76,11 +76,13 @@ Returns the vertices of a polyhedron.
 function vertices(P::Polyhedron; as::Symbol = :points)
     if as == :points
         VertexPointIterator(P)
-    elseif as == :point_matrix
-        return decompose_vdata(pm_polytope(P).VERTICES).vertices
     else
         throw(ArgumentError("Unsupported `as` argument :" * string(as)))
     end
+end
+
+function vertices_as_point_matrix(P::Polyhedron)
+    decompose_vdata(pm_polytope(P).VERTICES).vertices
 end
 
 

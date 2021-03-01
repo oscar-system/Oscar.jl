@@ -37,10 +37,13 @@ export Cone,
     recession_cone,
     solve_lp,
     support_function,
+    pm_cone,
     pm_polytope,
     positive_hull,
     rays,
+    rays_as_point_matrix,
     vertices,
+    vertices_as_point_matrix,
     visual,
     volume
 
