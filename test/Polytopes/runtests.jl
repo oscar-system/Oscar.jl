@@ -87,6 +87,9 @@ const pm = Polymake
         @test isnormal(C0)
         @test isfeasible(C0)
         @test isfulldimensional(C0)
+        @test minkowski_sum(C0,C0) == cube(2,2,-2)
+        @test minkowski_sum(C0,C0; algorithm=:fukuda) == cube(2,2,-2)
+        @test intersect(C0,C0) == C0
     end
 
     @testset "newton_polytope" begin

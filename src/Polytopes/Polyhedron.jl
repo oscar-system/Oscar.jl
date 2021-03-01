@@ -351,6 +351,22 @@ function intersect(P::Polyhedron, Q::Polyhedron)
    return Polyhedron(Polymake.polytope.intersection(P.pm_polytope, Q.pm_polytope))
 end
 
+
+"""
+   minkowski_sum(P::Polyhedron, Q::Polyhedron)
+
+   Minkowski sum of two polyhedra
+"""
+function minkowski_sum(P::Polyhedron, Q::Polyhedron; algorithm::Symbol=:standard)
+   if algorithm == :standard
+      return Polyhedron(Polymake.polytope.minkowski_sum(P.pm_polytope, Q.pm_polytope))
+   elseif algorithm == :fukuda
+      return Polyhedron(Polymake.polytope.minkowski_sum_fukuda(P.pm_polytope, Q.pm_polytope))
+   else
+      throw(ArgumentError("Unknown minkowski sum `algorithm` argument :" * string(algorithm)))
+   end
+end
+
 ###############################################################################
 ###############################################################################
 ### Boolean properties
