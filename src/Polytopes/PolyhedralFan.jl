@@ -18,6 +18,13 @@ function Base.show(io::IO, PF::PolyhedralFan)
     print(io, "A polyhedral fan in dimension $(ambient_dim(PF))")
 end
 
+function PolyhedralFan(Cones::Array{Cone,1})
+   BigObjectArray = Polymake.Array{Polymake.BigObject}(length(Cones))
+   for i in 1:length(Cones)
+      BigObjectArray[i] = pm_cone(Cones[i])
+   end
+   PolyhedralFan(Polymake.fan.check_fan_objects(BigObjectArray))
+end
 
 #=
 function PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, Cones::AbstractArray{AbstractArray{Int64}})
