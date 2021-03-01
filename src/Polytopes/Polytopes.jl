@@ -5,6 +5,7 @@ import Base: ==
 export Cone,
     PolyhedralFan,
     Polyhedron,
+    IncidenceMatrix,
     ambient_dim,
     codim,
     convex_hull,
