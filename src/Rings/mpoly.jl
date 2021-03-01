@@ -13,9 +13,9 @@ import Hecke
 import Hecke: MapHeader, math_html
 
 export PolynomialRing, total_degree, degree, MPolyElem, ordering, ideal,
-       groebner_basis, eliminate, syzygy_generators, coordinates, 
-       jacobi_matrix, jacobi_ideal, radical, normalize, AlgebraHomomorphism,
-       divrem, primary_decomposition, isprimary, isprime
+       groebner_basis, eliminate, syzygy_generators, coordinates,
+       jacobi_matrix, jacobi_ideal, radical, divrem, primary_decomposition,
+       isprimary, isprime
 
 ##############################################################################
 #
@@ -205,8 +205,6 @@ singular_ring(::Nemo.FlintRationalField) = Singular.Rationals()
 singular_ring(F::Nemo.GaloisField) = Singular.Fp(Int(characteristic(F)))
 singular_ring(F::Nemo.NmodRing) = Singular.Fp(Int(characteristic(F)))
 
-singular_ring(R::Singular.PolyRing; keep_ordering::Bool = true) = R
-
 function singular_ring(Rx::MPolyRing{T}; keep_ordering::Bool = true) where {T <: RingElem}
   if keep_ordering
     return Singular.PolynomialRing(singular_ring(base_ring(Rx)),
@@ -394,7 +392,7 @@ end
 function Base.issubset(I::MPolyIdeal, J::MPolyIdeal)
   singular_assure(I)
   singular_assure(J)
-  return Singular.contains(J.gens.S, I.gens.S)
+  return Singular.contains(I.gens.S, J.gens.S)
 end
 
 function gens(I::MPolyIdeal)
@@ -1136,8 +1134,9 @@ end
     primary_decomposition(I::MPolyIdeal, algo::String="GTZ")
 
 Compute a primary decomposition of the ideal `I` using the `GTZ`-algorithm by
-default, or `SY` if specified. The output is a dictionnary where the keys are
-the primary ideals, with values the corresponding prime ideal.
+default, or `SY` if specified. The output is an array of pairs where the first
+element is a primary ideal appearing in the primary decomposition and the second
+entry is the radical of this primary ideal. 
 """
 function primary_decomposition(I::MPolyIdeal, algo::String="GTZ")
   R = base_ring(I)
@@ -1149,11 +1148,7 @@ function primary_decomposition(I::MPolyIdeal, algo::String="GTZ")
   else
     error("algorithm invalid")
   end
-  D = Dict{Oscar.MPolyIdeal, Oscar.MPolyIdeal}()
-    for q in L
-      D[ideal(R, q[1])] = ideal(R, q[2])
-    end
-  return D
+  return [ideal(R, q[1]) => ideal(R, q[2]) for q in L]
 end
 
 ################################################################################
