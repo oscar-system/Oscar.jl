@@ -3,6 +3,7 @@ import Markdown
 import Base: ==
 
 export Cone,
+    PolyhedralFan,
     Polyhedron,
     ambient_dim,
     codim,
@@ -10,15 +11,21 @@ export Cone,
     cube,
     dim,
     facets,
+    face_fan,
     feasible_region,
+    iscomplete,
+    isregular,
+    issmooth,
     lineality_space,
     LinearProgram,
+    maximal_cones,
     maximal_value,
     maximal_vertex,
     minimal_value,
     minimal_vertex,
     newton_polytope,
     normalized_volume,
+    normal_fan,
     n_facets,
     n_rays,
     n_vertices,
@@ -37,3 +44,4 @@ include("helpers.jl")
 include("Polyhedron.jl")
 include("Cone.jl")
 include("LinearProgram.jl")
+include("PolyhedralFan.jl")
