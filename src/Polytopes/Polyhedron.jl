@@ -188,13 +188,14 @@ function facets(P::Polyhedron; as::Symbol = :halfspaces)
         PolyhedronFacetHalfspaceIterator(P)
     elseif as == :polyhedra
         PolyhedronFacetPolyhedronIterator(P)
-    elseif as == :halfspace_matrix_pair
-        return decompose_hdata(pm_polytope(P).FACETS)
     else
         throw(ArgumentError("Unsupported `as` argument :" * string(as)))
     end
 end
 
+function facets_as_halfspace_matrix_pair(P:: Polyhedron)
+    return decompose_hdata(pm_polytope(P).FACETS)
+end
 
 
 ###############################################################################
