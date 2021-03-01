@@ -340,3 +340,57 @@ function support_function(P::Polyhedron; convention = :max)
     end
     return h
 end
+
+
+"""
+   intersect(P::Polyhedron, Q::Polyhedron)
+
+   Intersect two polyhedra
+"""
+function intersect(P::Polyhedron, Q::Polyhedron)
+   return Polyhedron(Polymake.polytope.intersection(P.pm_polytope, Q.pm_polytope))
+end
+
+###############################################################################
+###############################################################################
+### Boolean properties
+###############################################################################
+###############################################################################
+"""
+   isfeasible(P::Polyhedron)
+
+   Check whether a polyhedron is feasible, i.e. non-empty
+"""
+isfeasible(P::Polyhedron) = P.pm_polytope.FEASIBLE
+
+
+"""
+   issmooth(P::Polyhedron)
+
+   Check whether a polyhedron is smooth
+"""
+issmooth(P::Polyhedron) = P.pm_polytope.SMOOTH
+
+
+"""
+   isnormal(P::Polyhedron)
+
+   Check whether a polyhedron is normal
+"""
+isnormal(P::Polyhedron) = P.pm_polytope.NORMAL
+
+
+"""
+   isbounded(P::Polyhedron)
+
+   Check whether a polyhedron is bounded
+"""
+isbounded(P::Polyhedron) = P.pm_polytope.BOUNDED
+
+
+"""
+   isfulldimensional(P::Polyhedron)
+
+   Check whether a polyhedron is full dimensional
+"""
+isfulldimensional(P::Polyhedron) = P.pm_polytope.FULL_DIM
