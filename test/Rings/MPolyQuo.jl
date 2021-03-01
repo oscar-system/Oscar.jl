@@ -38,5 +38,16 @@ end
   @test iszero(ideal(Q, [x*y*z]))
   @test ideal(Q, [2*x]) + ideal(Q, [x*(y+z)]) == ideal(Q, [x])
   @test iszero(ideal(Q, [y*z])*ideal(Q, [x]))
-  @test quotient(ideal(Q, [zero(Q)]), ideal(Q, [y*z])) == ideal(Q, [x])
+
+  a = quotient(ideal(Q, [zero(Q)]), ideal(Q, [y*z]))
+  @test a == ideal(Q, [x])
+  @test a == ideal(Q, gens(a))
+
+  b = a + ideal(Q, [z])
+  @test b == ideal(Q, [z, x])
+  @test b == ideal(Q, gens(b))
+
+  b = a*ideal(Q, [z])
+  @test b == ideal(Q, [z*x])
+  @test b == ideal(Q, gens(b))
 end
