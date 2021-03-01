@@ -148,10 +148,3 @@ end
    @test_throws ErrorException Oscar._disc_log(b,F(0))
 end
 
-
-@testset "Partitions" begin
-   L=partitions(7)
-   @testset for l in L
-      @test sum(l)==7
-   end
-end
