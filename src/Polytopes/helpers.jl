@@ -102,7 +102,8 @@ function decompose_hdata(A)
 end
 
 
-
+# This is a specific polymake data structure supporting fast functions
+#  for rows->sets, rows containing col_i==true, etc.
 struct IncidenceMatrix
    pm_incidencematrix::Polymake.IncidenceMatrix
 end
