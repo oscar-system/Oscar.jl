@@ -12,6 +12,14 @@ const pm = Polymake
     C1 = cube(2, 1, 0)
     #positive orthant
     Pos=Polyhedron([-1 0 0; 0 -1 0; 0 0 -1],[0,0,0])
+    NFsquare = normal_fan(C0)
+
+    @testset "polyhedral fans" begin
+        @test issmooth(NFsquare)
+        @test rays_as_point_matrix(NFsquare) == [1 0; -1 0; 0 1; 0 -1]
+        @test isregular(NFsquare)
+        @test iscomplete(NFsquare)
+    end
 
 
     @testset "linear programs" begin
@@ -52,15 +60,15 @@ const pm = Polymake
         @test C0 == C0
         @test typeof(dim(Q0)) == Int
         @test typeof(ambient_dim(Q0)) == Int
-        @test collect(vertices(Q0)) == collect(vertices(convex_hull(vertices(Q0; as = :point_matrix))))
+        @test collect(vertices(Q0)) == collect(vertices(convex_hull(vertices_as_point_matrix(Q0))))
     end
 
     @testset "convex_hull" begin
-        @test size(vertices(Q0; as = :point_matrix)) == (3, 2)
-        @test size(vertices(Q1; as = :point_matrix)) == (3, 2)
+        @test size(vertices_as_point_matrix(Q0)) == (3, 2)
+        @test size(vertices_as_point_matrix(Q1)) == (3, 2)
         @test size(rays(Q1; as = :point_matrix)) == (1, 2)
         @test size(lineality_space(Q1)) == (0, 2)
-        @test size(vertices(Q2; as = :point_matrix)) == (2, 2)
+        @test size(vertices_as_point_matrix(Q2)) == (2, 2)
         @test size(rays(Q2; as = :point_matrix)) == (0, 2)
         @test size(lineality_space(Q2)) == (1, 2)
         @test dim(Q0) == 2
@@ -72,8 +80,13 @@ const pm = Polymake
     end
 
     @testset "standard constructions" begin
-        @test size(vertices(C0; as = :point_matrix)) == (4,2)
-        @test C0 == convex_hull(vertices(C0; as = :point_matrix))
+        @test size(vertices_as_point_matrix(C0)) == (4,2)
+        @test C0 == convex_hull(vertices_as_point_matrix(C0))
+        @test isbounded(C0)
+        @test issmooth(C0)
+        @test isnormal(C0)
+        @test isfeasible(C0)
+        @test isfulldimensional(C0)
     end
 
     @testset "newton_polytope" begin
@@ -81,16 +94,16 @@ const pm = Polymake
         f = sum([x; 1])^2 + x[1]^4 * x[2] * 3
         newt = newton_polytope(f)
         @test dim(newt) == 2
-        @test vertices(newt; as = :point_matrix) == [4 1; 2 0; 0 2; 0 0]
+        @test vertices_as_point_matrix(newt) == [4 1; 2 0; 0 2; 0 0]
     end
 
     @testset "Construct from fmpq" begin
         A = zeros(Oscar.QQ, 3, 2)
         A[1, 1] = 1
         A[3, 2] = 4
-        @test vertices(convex_hull(A); as = :point_matrix) == [1 0; 0 0; 0 4]
+        @test vertices_as_point_matrix(convex_hull(A)) == [1 0; 0 0; 0 4]
 
-        lhs, rhs = facets(Polyhedron(A, [1, 2, -3]); as = :halfspace_matrix_pair)
+        lhs, rhs = facets_as_halfspace_matrix_pair(Polyhedron(A, [1, 2, -3]))
         @test lhs == [1 0; 0 4; 0 0]
         @test rhs == [1, -3, 1]
     end
@@ -99,9 +112,9 @@ const pm = Polymake
         A = zeros(Oscar.ZZ, 3, 2)
         A[1, 1] = 1
         A[3, 2] = 4
-        @test vertices(convex_hull(A); as = :point_matrix) == [1 0; 0 0; 0 4]
+        @test vertices_as_point_matrix(convex_hull(A)) == [1 0; 0 0; 0 4]
 
-        lhs, rhs = facets(Polyhedron(A, [1, 2, -3]); as = :halfspace_matrix_pair)
+        lhs, rhs = facets_as_halfspace_matrix_pair(Polyhedron(A, [1, 2, -3]))
         @test lhs == [1 0; 0 4; 0 0]
         @test rhs == [1, -3, 1]
     end
