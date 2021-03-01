@@ -32,7 +32,7 @@ function PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, Incidence::Inc
    PolyhedralFan(Polymake.fan.PolyhedralFan{Polymake.Rational}(
       INPUT_RAYS = matrix_for_polymake(Rays),
       #TODO: Efficiency check - There's a quicker way to do this
-      INPUT_CONES = [[a-1 for a in findall(x->x==true, cone)] for cone in eachrow(Incidence.pm_incidencematrix)],
+      INPUT_CONES = [collect(to_zero_based_indexing(row(Incidence.pm_incidencematrix, i))) for i in 1:size(Incidence.pm_incidencematrix, 1)],
    ))
 end
 
