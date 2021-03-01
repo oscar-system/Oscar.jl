@@ -34,6 +34,13 @@ function PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, Cones::Abstrac
    ))
 end
 =#
+function PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, LS::Union{Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix)
+   PolyhedralFan(Polymake.fan.PolyhedralFan{Polymake.Rational}(
+      INPUT_RAYS = matrix_for_polymake(Rays),
+      INPUT_LINEALITY = matrix_for_polymake(LS),
+      INPUT_CONES = [collect(to_zero_based_indexing(row(Incidence.pm_incidencematrix, i))) for i in 1:size(Incidence.pm_incidencematrix, 1)],
+   ))
+end
 
 function PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix)
    PolyhedralFan(Polymake.fan.PolyhedralFan{Polymake.Rational}(
@@ -43,6 +50,9 @@ function PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, Incidence::Inc
 end
 
 #Same construction for when the user gives Array{Bool,2} as incidence matrix
+function PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, LS::Union{Oscar.MatElem,AbstractMatrix}, Incidence::Array{Bool,2})
+   PolyhedralFan(Rays, LS, IncidenceMatrix(Polymake.IncidenceMatrix(Incidence)))
+end
 function PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, Incidence::Array{Bool,2})
    PolyhedralFan(Rays,IncidenceMatrix(Polymake.IncidenceMatrix(Incidence)))
 end
@@ -125,22 +135,6 @@ rays_as_point_matrix(PF::PolyhedralFan) = pm_fan(PF).RAYS
 
 Returns the maximal cones of a polyhedral fan
 """
-#=
-# maximal_cones(PF::PolyhedralFan) = [[x+1 for x in cone] for cone in pm_fan(PF).MAXIMAL_CONES]
-function maximal_cones(PF::PolyhedralFan, as::Symbol = :cones)
-   mc = PF.pm_fan.MAXIMAL_CONES
-   if as == :cones
-      L = lineality_space(PF)
-      R = rays(PF)
-      cones = [Array{Int64,1}(Polymake.row(mc,i)) for i in 1:Polymake.nrows(mc)]
-      return [Cone(R[cone,:], L) for cone in cones]
-   elseif as == :array_set_int
-      result = [Array{Int64,1}(Polymake.row(mc,i)) for i in 1:Polymake.nrows(mc)]
-   else
-      throw(ArgumentError("Unsupported `as` argument :" * string(as)))
-   end
-end
-=#
 
 #TODO: should the documentation mention maximal_cones_as_incidence_matrix?
 #      similarly for cone ray iterators and facet iterators?
