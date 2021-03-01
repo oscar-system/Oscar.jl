@@ -16,12 +16,24 @@ end
 
 #TODO: rename this. It is the automorphism group of the vertex facet incidence
 function vf_group(P::Polyhedron)
-    pm_group_to_oscar_group(Polymake.group.automorphism_group(P.pm_polytope.VERTICES_IN_FACETS).PERMUTATION_ACTION)
+    if P.pm_polytope.BOUNDED
+        pm_group_to_oscar_group(Polymake.group.automorphism_group(P.pm_polytope.VERTICES_IN_FACETS).PERMUTATION_ACTION)
+    else
+        throw(ArgumentError("Symmetry groups currently supported for bounded polyhedra only"))
+    end
 end
 function combinatorial_symmetries(P::Polyhedron)
-    pm_group_to_oscar_group(Polymake.polytope.combinatorial_symmetries(P.pm_polytope))
+    if P.pm_polytope.BOUNDED
+        pm_group_to_oscar_group(Polymake.polytope.combinatorial_symmetries(P.pm_polytope))
+    else
+        throw(ArgumentError("Symmetry groups currently supported for bounded polyhedra only"))
+    end
 end
 
 function linear_symmetries(P::Polyhedron)
-    pm_group_to_oscar_group(Polymake.polytope.linear_symmetries(P.pm_polytope.VERTICES).PERMUTATION_ACTION)
+    if P.pm_polytope.BOUNDED
+        pm_group_to_oscar_group(Polymake.polytope.linear_symmetries(P.pm_polytope.VERTICES).PERMUTATION_ACTION)
+    else
+        throw(ArgumentError("Symmetry groups currently supported for bounded polyhedra only"))
+    end  
 end
