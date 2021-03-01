@@ -9,7 +9,7 @@ struct Cone #a real polymake polyhedron
 end
 function Cone(Rays::Union{Oscar.MatElem,AbstractMatrix})
     Cone(Polymake.polytope.Cone{Polymake.Rational}(
-        RAYS = matrix_for_polymake(Rays),
+        INPUT_RAYS = matrix_for_polymake(Rays),
     ))
 end
 function Cone(Rays::Union{Oscar.MatElem,AbstractMatrix}, LS::Union{Oscar.MatElem,AbstractMatrix})
@@ -59,6 +59,7 @@ n_rays(C::Cone) = size(pm_cone(C).RAYS, 1)
 Returns the rays of a cone.
 """
 rays(C::Cone) = ConeRayIterator(C)
+
 
 
 """

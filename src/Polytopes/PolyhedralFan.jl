@@ -46,7 +46,7 @@ end
 
 Returns the dimension of a polyhedral fan.
 """
-dim(PF::PolyhedralFan) = pm_object(PF).FAN_DIM
+dim(PF::PolyhedralFan) = pm_fan(PF).FAN_DIM
 
 """
    n_maximal_cones(PF::PolyhedralFan)
@@ -60,14 +60,14 @@ n_maximal_cones(PF::PolyhedralFan) = PF.pm_fan.N_MAXIMAL_CONES
 
 Returns the ambient dimension of a polyhedral fan.
 """
-ambient_dim(PF::PolyhedralFan) = pm_object(PF).FAN_AMBIENT_DIM
+ambient_dim(PF::PolyhedralFan) = pm_fan(PF).FAN_AMBIENT_DIM
 
 """
-   pm_object(PF::PolyhedralFan)
+   pm_fan(PF::PolyhedralFan)
 
 Get the underlying polymake BigObject
 """
-pm_object(PF::PolyhedralFan) = PF.pm_fan
+pm_fan(PF::PolyhedralFan) = PF.pm_fan
 
 
 """
@@ -75,14 +75,43 @@ pm_object(PF::PolyhedralFan) = PF.pm_fan
 
 Returns the lineality_space of a polyhedral fan
 """
-lineality_space(PF::PolyhedralFan) = pm_object(PF).LINEALITY_SPACE
+lineality_space(PF::PolyhedralFan) = pm_fan(PF).LINEALITY_SPACE
+
+struct PolyhedralFanRayIterator
+    fan::PolyhedralFan
+end
+
+function Base.iterate(iter::PolyhedralFanRayIterator, index = 1)
+    rays = pm_fan(iter.fan).RAYS
+    if size(rays, 1) < index
+        return nothing
+    end
+
+    return (rays[index, :], index + 1)
+end
+Base.eltype(::Type{PolyhedralFanRayIterator}) = Polymake.VectorAllocated{Polymake.Rational}
+Base.length(iter::PolyhedralFanRayIterator) = n_rays(iter.fan)
 
 """
    rays(PF::PolyhedralFan)
 
 Returns the rays of a polyhedral fan
 """
-rays(PF::PolyhedralFan) = pm_object(PF).RAYS
+rays(PF::PolyhedralFan) = PolyhedralFanRayIterator(PF)
+
+"""
+   n_rays(PF::PolyhedralFan)
+
+Returns the number of rays of a polyhedral fan
+"""
+n_rays(PF::PolyhedralFan) = pm_fan(PF).N_RAYS
+
+"""
+   rays_as_point_matrix(PF::PolyhedralFan)
+
+Returns the rays of a polyhedral fan as rows of a matrix
+"""
+rays_as_point_matrix(PF::PolyhedralFan) = pm_fan(PF).RAYS
 
 
 """
@@ -91,7 +120,7 @@ rays(PF::PolyhedralFan) = pm_object(PF).RAYS
 Returns the maximal cones of a polyhedral fan
 """
 #=
-# maximal_cones(PF::PolyhedralFan) = [[x+1 for x in cone] for cone in pm_object(PF).MAXIMAL_CONES]
+# maximal_cones(PF::PolyhedralFan) = [[x+1 for x in cone] for cone in pm_fan(PF).MAXIMAL_CONES]
 function maximal_cones(PF::PolyhedralFan, as::Symbol = :cones)
    mc = PF.pm_fan.MAXIMAL_CONES
    if as == :cones
@@ -149,21 +178,21 @@ end
 
 Determine whether the fan is smooth
 """
-issmooth(PF::PolyhedralFan) = pm_object(PF).SMOOTH_FAN
+issmooth(PF::PolyhedralFan) = pm_fan(PF).SMOOTH_FAN
 
 """
    isregular(PF::PolyhedralFan)
 
 Determine whether the fan is regular, i.e. the normal fan of a polytope
 """
-isregular(PF::PolyhedralFan) = pm_object(PF).REGULAR
+isregular(PF::PolyhedralFan) = pm_fan(PF).REGULAR
 
 """
    iscomplete(PF::PolyhedralFan)
 
 Determine whether the fan is complete
 """
-iscomplete(PF::PolyhedralFan) = pm_object(PF).COMPLETE
+iscomplete(PF::PolyhedralFan) = pm_fan(PF).COMPLETE
 
 """
    normal_fan(P::Polyhedron)
