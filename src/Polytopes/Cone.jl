@@ -77,7 +77,7 @@ end
 
 
 function Base.show(io::IO, C::Cone)
-    print(io,"A polyhedral cone")
+    print(io,"A polyhedral cone of dimension $(dim(C))")
 end
 """
    dim(C::Cone)

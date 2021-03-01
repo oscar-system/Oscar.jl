@@ -102,9 +102,11 @@ function decompose_hdata(A)
 end
 
 
+
 struct IncidenceMatrix
    pm_incidencematrix::Polymake.IncidenceMatrix
 end
+
 function IncidenceMatrix(TrueIndices::Array{Array{Int64,1},1})
    nrows = length(TrueIndices)
    ncols = maximum([maximum(set) for set in TrueIndices])
@@ -115,8 +117,13 @@ function IncidenceMatrix(TrueIndices::Array{Array{Int64,1},1})
          IM[i,j] = 1
       end
       i = i+1
-   end
+  end
    return IncidenceMatrix(IM)
 end
 
+
+
 #TODO: change how incidence matrices are shown (not zero base but maybe bool?)
+function Base.show(io::IO, I::IncidenceMatrix)
+    show(io,"text/plain", (Array{Bool,2}(I.pm_incidencematrix)))
+end

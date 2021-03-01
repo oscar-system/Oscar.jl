@@ -7,6 +7,18 @@
 struct PolyhedralFan
    pm_fan::Polymake.BigObjectAllocated
 end
+
+
+###############################################################################
+###############################################################################
+### Display
+###############################################################################
+###############################################################################
+function Base.show(io::IO, PF::PolyhedralFan)
+    print(io, "A polyhedral fan in dimension $(ambient_dim(PF))")
+end
+
+
 #=
 function PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, Cones::AbstractArray{AbstractArray{Int64}})
    PolyhedralFan(Polymake.fan.PolyhedralFan{Polymake.Rational}(
@@ -24,6 +36,10 @@ function PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, Incidence::Inc
    ))
 end
 
+#Same constructure for when the user gives Array{Bool,2} as incidence matrix
+function PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, Incidence::Array{Bool,2})
+   PolyhedralFan(Rays,IncidenceMatrix(Polymake.IncidenceMatrix(Incidence)))
+end
 
 """
    dim(PF::PolyhedralFan)
