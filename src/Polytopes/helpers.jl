@@ -100,3 +100,10 @@ end
 function decompose_hdata(A)
     (A = -A[:, 2:end], b = A[:, 1])
 end
+
+
+struct IncidenceMatrix
+   pm_incidencematrix::Polymake.IncidenceMatrix
+end
+
+#TODO: change how incidence matrices are shown (not zero base but maybe bool?)
