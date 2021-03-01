@@ -314,6 +314,18 @@ function newton_polytope(f)
     convex_hull(exponents)
 end
 
+function pm_far_face(P::Polyhedron)
+    #We use cone instead of Polytope so the convex hull alg. doesn't give
+    #  warning about no leading 1's
+    Polymake.polytope.Cone(RAYS=P.pm_polytope.VERTICES[[a+1 for a in Array{Int,1}(P.pm_polytope.FAR_FACE)],2:end])
+end
+
+function f_vector(P::Polyhedron)
+    f_vec=P.pm_polytope.F_VECTOR
+    far_f_vec=pm_far_face(P).F_VECTOR
+    push!(far_f_vec,1)
+    f_vec-far_f_vec
+end
 
 """
     support_function(P::Polyhedron; convention = :max)
