@@ -219,7 +219,7 @@ function isskewsymmetric_matrix(B::MatElem{T}) where T <: RingElem
 end
 
 """
-    ishermitian_matrix(B::MatElem{T}) where T <: Ring
+    ishermitian_matrix(B::MatElem{T}) where T <: FinFieldElem
 
 Return whether the matrix `B` is hermitian, i.e. `B = conjugate_transpose(B)`. Returns `false` if `B` is not a square matrix, or the field has not even degree.
 """
