@@ -88,6 +88,12 @@ end
 Base.eltype(::Type{ConeRayIterator}) = Polymake.VectorAllocated{Polymake.Rational}
 Base.length(iter::ConeRayIterator) = n_rays(iter.cone)
 
+"""
+   rays(C::Cone)
+
+Returns the rays of a cone.
+"""
+rays(C::Cone) = ConeRayIterator(C)
 
 ###############################################################################
 ###############################################################################
@@ -95,9 +101,9 @@ Base.length(iter::ConeRayIterator) = n_rays(iter.cone)
 ###############################################################################
 ###############################################################################
 
-function rays_as_point_matrix(C::Cone)
-    pm_cone(C).RAYS
-end
+###############################################################################
+## Scalar properties
+###############################################################################
 
 """
    n_rays(C::Cone)
@@ -105,13 +111,6 @@ end
 Returns the number of rays of the cone `C`.
 """
 n_rays(C::Cone) = size(pm_cone(C).RAYS, 1)
-
-"""
-   rays(C::Cone)
-
-Returns the rays of a cone.
-"""
-rays(C::Cone) = ConeRayIterator(C)
 
 """
    dim(C::Cone)
@@ -134,12 +133,26 @@ Returns the codimension of a cone.
 """
 codim(C::Cone) = ambient_dim(C)-dim(C)
 
-"""
-   facets(C::Cone)
+###############################################################################
+## Points properties
+###############################################################################
 
-Returns the facets of a cone.
 """
-facets(C::Cone) = C.pm_cone.facets
+   rays_as_point_matrix(C::Cone)
+
+   Return the rays of a cone as rows in a matrix
+"""
+function rays_as_point_matrix(C::Cone)
+    pm_cone(C).RAYS
+end
+
+
+"""
+   facets_as_point_matrix(C::Cone)
+
+Returns the facets of a cone as rows of a matrix.
+"""
+facets_as_point_matrix(C::Cone) = C.pm_cone.FACETS
 
 
 """
