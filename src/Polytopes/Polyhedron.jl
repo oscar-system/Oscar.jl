@@ -35,7 +35,7 @@ property_is_computed(P::Polyhedron, S::Symbol) = property_is_computed(pm_polytop
 ###############################################################################
 ###############################################################################
 function Base.show(io::IO, P::Polyhedron)
-    print(io, "A Polyhedron of dimension $(dim(P))")
+    print(io, "A polyhedron of dimension $(dim(P))")
 end
 
 
@@ -100,7 +100,7 @@ function Base.iterate(iter::VertexPointIterator, index = 1)
         end
     end
 end
-Base.eltype(::Type{VertexPointIterator}) = Polymake.VectorAllocated{Polymake.Rational}
+Base.eltype(::Type{VertexPointIterator}) = Polymake.Vector{Polymake.Rational}
 Base.length(iter::VertexPointIterator) = n_vertices(iter.p)
 
 """
@@ -261,6 +261,23 @@ Returns the dimension of a polyhedron.
 """
 dim(P::Polyhedron) = Polymake.polytope.dim(pm_polytope(P))
 
+
+"""
+   lattice_points(P::Polyhedron)
+
+Returns the integer points contained in a bounded polyhedron.
+"""
+function lattice_points(P::Polyhedron)
+    if pm_polytope(P).BOUNDED
+        lat_pts = pm_polytope(P).LATTICE_POINTS_GENERATORS[1]
+        return ([e[2:end] for e in eachrow(lat_pts)])
+    else
+        throw(ArgumentError("Polyhedron not bounded"))
+    end
+end
+#TODO: should this be an iterator too? If so, we should probably find a
+#      scalable way to construct these iterators for so many functions
+
 """
    ambient_dim(P::Polyhedron)
 
@@ -358,8 +375,12 @@ end
 function f_vector(P::Polyhedron)
     f_vec=P.pm_polytope.F_VECTOR
     far_f_vec=pm_far_face(P).F_VECTOR
-    push!(far_f_vec,1)
-    f_vec-far_f_vec
+    if far_f_vec == nothing
+        return(f_vec)
+    else
+        push!(far_f_vec,1)
+        return (f_vec-far_f_vec)
+    end
 end
 
 """
@@ -401,6 +422,27 @@ function minkowski_sum(P::Polyhedron, Q::Polyhedron; algorithm::Symbol=:standard
       throw(ArgumentError("Unknown minkowski sum `algorithm` argument :" * string(algorithm)))
    end
 end
+
+
+
+
+#TODO: documentation  + extend to different fields.
+
++(P::Polyhedron, Q::Polyhedron) = minkowski_sum(P,Q)
+*(k::Int, P::Polyhedron) = Polyhedron(Polymake.polytope.scale(pm_polytope(P),k))
+*(P::Polyhedron,k::Int) = k*P
+
+#TODO: documentation + extend to different fields
+function +(P::Polyhedron,v::AbstractVector)
+    if ambient_dim(P) != length(v)
+        throw(ArgumentError("Translation vector not correct dimension"))
+    else
+        return Polyhedron(Polymake.polytope.translate(pm_polytope(P),Polymake.Vector{Polymake.Rational}(v)))
+    end
+end
+
++(v::AbstractVector,P::Polyhedron) = P+v
+
 
 ###############################################################################
 ###############################################################################
