@@ -32,6 +32,9 @@ function Cone(Rays::Union{Oscar.MatElem,AbstractMatrix}, LS::Union{Oscar.MatElem
    end
 end
 
+property_is_computed(C::Cone, S::Symbol) = property_is_computed(pm_cone(C), S)
+==(C0::Cone, C1::Cone) = Polymake.polytope.equal_polyhedra(pm_cone(C0), pm_cone(C1))
+
 
 """
     positive_hull(generators::Union{Oscar.MatElem,AbstractMatrix})
@@ -132,6 +135,23 @@ ambient_dim(C::Cone) = pm_cone(C).CONE_AMBIENT_DIM
 Returns the codimension of a cone.
 """
 codim(C::Cone) = ambient_dim(C)-dim(C)
+
+###############################################################################
+## Boolean properties
+###############################################################################
+"""
+   ispointed(C::Cone)
+
+   Determine whether the cone is pointed, i.e. whether 0 is a face of the cone
+"""
+ispointed(C::Cone) = pm_cone(C).POINTED
+
+"""
+   isfulldimensional(C::Cone)
+
+   Determine whether the cone is full dimensional
+"""
+isfulldimensional(C::Cone) = pm_cone(C).FULL_DIM
 
 ###############################################################################
 ## Points properties
