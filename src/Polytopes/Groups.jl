@@ -1,3 +1,18 @@
+function PermGroup_to_polymake_array(G::PermGroup)
+   generators = gens(G)
+   d = degree(G)
+   result = Polymake.Array{Polymake.Array{Int64}}(length(generators))
+   i = 1
+   for g in generators
+      array = Polymake.Array{Int64}(d)
+      for j in 1:d
+         array[j] = g(j)-1
+      end
+      result[i] = array
+      i = i+1
+   end
+   return result
+end
 
 function pm_group_to_oscar_group(G)
     pm_arr_arr_to_group(G.GENERATORS)
@@ -30,6 +45,11 @@ function combinatorial_symmetries(P::Polyhedron)
     end
 end
 
+"""
+   linear_symmetries(P::Polyhedron)
+
+   Get the group of linear symmetries on the vertices of a polyhedron.
+"""
 function linear_symmetries(P::Polyhedron)
     if P.pm_polytope.BOUNDED
         pm_group_to_oscar_group(Polymake.polytope.linear_symmetries(P.pm_polytope.VERTICES).PERMUTATION_ACTION)
