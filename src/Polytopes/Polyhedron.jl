@@ -1,3 +1,9 @@
+###############################################################################
+###############################################################################
+### Definition and constructors
+###############################################################################
+###############################################################################
+
 @doc Markdown.doc"""
     Polyhedron(A, b)
 
@@ -38,6 +44,7 @@ function Base.show(io::IO, P::Polyhedron)
     print(io, "A polyhedron of dimension $(dim(P))")
 end
 
+Polymake.visual(P::Polyhedron; opts...) = Polymake.visual(pm_polytope(P); opts...)
 
 
 ###############################################################################
@@ -240,6 +247,10 @@ end
 ### Access properties
 ###############################################################################
 ###############################################################################
+
+###############################################################################
+## Scalar properties
+###############################################################################
 """
    volume(P::Polyhedron)
 
@@ -292,14 +303,10 @@ Returns the codimension of a polyhedron.
 """
 codim(P::Polyhedron) = ambient_dim(P)-dim(P)
 
+###############################################################################
+## Points properties
+###############################################################################
 
-
-@doc Markdown.doc"""
-   cube(d [, u, l])
-
-Construct the $[-1,1]$-cube in dimension $d$. If $u$ and $l$ are given, the $[l,u]$-cube in dimension $d$ is returned.
-""" cube(d) = Polyhedron(Polymake.polytope.cube(d))
-cube(d, u, l) = Polyhedron(Polymake.polytope.cube(d, u, l))
 
 # TODO: This implementation is not correct. Ask Taylor.
 # Taylor: lineality space generators always look like [0, v] so
@@ -311,7 +318,6 @@ Returns a basis of the lineality space of a polyhedron.
 """
 lineality_space(H::Polyhedron) = dehomogenize(pm_polytope(H).LINEALITY_SPACE)
 
-Polymake.visual(P::Polyhedron; opts...) = Polymake.visual(pm_polytope(P); opts...)
 
 """
     recession_cone(P::Polyhedron)
@@ -321,10 +327,60 @@ Returns the recession cone of `P`.
 recession_cone(P::Polyhedron) = Cone(Polymake.polytope.recession_cone(pm_polytope(P)))
 
 ###############################################################################
+## Boolean properties
+###############################################################################
+"""
+   isfeasible(P::Polyhedron)
+
+   Check whether a polyhedron is feasible, i.e. non-empty
+"""
+isfeasible(P::Polyhedron) = P.pm_polytope.FEASIBLE
+
+
+"""
+   issmooth(P::Polyhedron)
+
+   Check whether a polyhedron is smooth
+"""
+issmooth(P::Polyhedron) = P.pm_polytope.SMOOTH
+
+
+"""
+   isnormal(P::Polyhedron)
+
+   Check whether a polyhedron is normal
+"""
+isnormal(P::Polyhedron) = P.pm_polytope.NORMAL
+
+
+"""
+   isbounded(P::Polyhedron)
+
+   Check whether a polyhedron is bounded
+"""
+isbounded(P::Polyhedron) = P.pm_polytope.BOUNDED
+
+
+"""
+   isfulldimensional(P::Polyhedron)
+
+   Check whether a polyhedron is full dimensional
+"""
+isfulldimensional(P::Polyhedron) = P.pm_polytope.FULL_DIM
+
+###############################################################################
 ###############################################################################
 ### Standard constructions
 ###############################################################################
 ###############################################################################
+
+@doc Markdown.doc"""
+   cube(d [, u, l])
+
+Construct the $[-1,1]$-cube in dimension $d$. If $u$ and $l$ are given, the $[l,u]$-cube in dimension $d$ is returned.
+""" cube(d) = Polyhedron(Polymake.polytope.cube(d))
+cube(d, u, l) = Polyhedron(Polymake.polytope.cube(d, u, l))
+
 
 const AnyVecOrMat = Union{MatElem, AbstractVecOrMat}
 
@@ -444,46 +500,3 @@ end
 +(v::AbstractVector,P::Polyhedron) = P+v
 
 
-###############################################################################
-###############################################################################
-### Boolean properties
-###############################################################################
-###############################################################################
-"""
-   isfeasible(P::Polyhedron)
-
-   Check whether a polyhedron is feasible, i.e. non-empty
-"""
-isfeasible(P::Polyhedron) = P.pm_polytope.FEASIBLE
-
-
-"""
-   issmooth(P::Polyhedron)
-
-   Check whether a polyhedron is smooth
-"""
-issmooth(P::Polyhedron) = P.pm_polytope.SMOOTH
-
-
-"""
-   isnormal(P::Polyhedron)
-
-   Check whether a polyhedron is normal
-"""
-isnormal(P::Polyhedron) = P.pm_polytope.NORMAL
-
-
-"""
-   isbounded(P::Polyhedron)
-
-   Check whether a polyhedron is bounded
-"""
-isbounded(P::Polyhedron) = P.pm_polytope.BOUNDED
-
-
-"""
-   isfulldimensional(P::Polyhedron)
-
-   Check whether a polyhedron is full dimensional
-"""
-isfulldimensional(P::Polyhedron) = P.pm_polytope.FULL_DIM

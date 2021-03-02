@@ -1,3 +1,9 @@
+###############################################################################
+###############################################################################
+### Definition and constructors
+###############################################################################
+###############################################################################
+
 @doc Markdown.doc"""
     Cone(Rays)
 
@@ -26,12 +32,46 @@ function Cone(Rays::Union{Oscar.MatElem,AbstractMatrix}, LS::Union{Oscar.MatElem
    end
 end
 
+
+"""
+    positive_hull(generators::Union{Oscar.MatElem,AbstractMatrix})
+
+A polyhedral cone, not necessarily pointed, defined by the positive hull
+of the `generators`. Redundant rays are allowed in the generators.
+"""
+function positive_hull(generators::Union{Oscar.MatElem,AbstractMatrix})
+    # TODO: Filter out zero rows
+    C=Polymake.polytope.Cone{Polymake.Rational}(INPUT_RAYS =
+      matrix_for_polymake(remove_zero_rows(generators)))
+    Cone(C)
+end
+
+
 """
     pm_cone(C::Cone)
 
 Get the underlying polymake `Cone`.
 """
 pm_cone(C::Cone) = C.pm_cone
+
+
+###############################################################################
+###############################################################################
+### Display
+###############################################################################
+###############################################################################
+
+function Base.show(io::IO, C::Cone)
+    print(io,"A polyhedral cone of dimension $(dim(C))")
+end
+
+Polymake.visual(C::Cone; opts...) = Polymake.visual(pm_cone(C); opts...)
+
+###############################################################################
+###############################################################################
+### Iterators
+###############################################################################
+###############################################################################
 
 struct ConeRayIterator
     cone::Cone
@@ -48,6 +88,12 @@ end
 Base.eltype(::Type{ConeRayIterator}) = Polymake.VectorAllocated{Polymake.Rational}
 Base.length(iter::ConeRayIterator) = n_rays(iter.cone)
 
+
+###############################################################################
+###############################################################################
+### Access properties
+###############################################################################
+###############################################################################
 
 function rays_as_point_matrix(C::Cone)
     pm_cone(C).RAYS
@@ -67,31 +113,6 @@ Returns the rays of a cone.
 """
 rays(C::Cone) = ConeRayIterator(C)
 
-
-
-"""
-    positive_hull(generators::Union{Oscar.MatElem,AbstractMatrix})
-
-A polyhedral cone, not necessarily pointed, defined by the positive hull
-of the `generators`. Redundant rays are allowed in the generators.
-"""
-function positive_hull(generators::Union{Oscar.MatElem,AbstractMatrix})
-    # TODO: Filter out zero rows
-    C=Polymake.polytope.Cone{Polymake.Rational}(INPUT_RAYS =
-      matrix_for_polymake(remove_zero_rows(generators)))
-    Cone(C)
-end
-
-#Is there a Polymake.jl function for this?
-function pm_set_to_julia(S::Polymake.SetAllocated{Int64})
-    return(Array{Int64,1}(S))
-end
-
-
-
-function Base.show(io::IO, C::Cone)
-    print(io,"A polyhedral cone of dimension $(dim(C))")
-end
 """
    dim(C::Cone)
 
@@ -128,4 +149,3 @@ facets(C::Cone) = C.pm_cone.facets
 """
 lineality_space(C::Cone) = C.pm_cone.LINEALITY_SPACE
 
-Polymake.visual(C::Cone; opts...) = Polymake.visual(pm_cone(C); opts...)
