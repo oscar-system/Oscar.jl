@@ -12,6 +12,9 @@ import Singular
 import Hecke
 import Hecke: MapHeader, math_html
 
+export minimal_primes, weak_equidimensional_decomposition, equidimensional_hull,
+       radical_equidimensional_hull, decomposition_radical_equidimensional_hull
+
 export PolynomialRing, total_degree, degree, MPolyElem, ordering, ideal,
        groebner_basis, eliminate, syzygy_generators, coordinates, 
        jacobi_matrix, jacobi_ideal, radical, normalize, AlgebraHomomorphism
@@ -200,6 +203,8 @@ end
 (F::Nemo.GaloisField)(a::Singular.n_Zp) = F(Int(a))
 (F::Nemo.NmodRing)(a::Singular.n_Zp) = F(Int(a))
 
+#Note: Singular crashes if it gets Nemo.ZZ instead of Singular.ZZ ((Coeffs(17)) instead of (ZZ))
+singular_ring(::Nemo.FlintIntegerRing) = Singular.Integers()
 singular_ring(::Nemo.FlintRationalField) = Singular.Rationals()
 singular_ring(F::Nemo.GaloisField) = Singular.Fp(Int(characteristic(F)))
 singular_ring(F::Nemo.NmodRing) = Singular.Fp(Int(characteristic(F)))
@@ -1094,6 +1099,94 @@ end
 
 function leading_ideal(I::MPolyIdeal, ord::Symbol)
   return leading_ideal(groebner_basis(I, ord), ord)
+end
+
+# primary decomposition #######################################################
+
+@doc Markdown.doc"""
+    minimal_primes(I::MPolyIdeal, alg=:GTZ)
+
+Return an array of the minimal associated prime ideals of `I`.
+If `I` is the unit ideal, `[ideal(1)]` is returned.
+If the base ring of `I` is a polynomial ring over a field, the possibilities
+for the algorithm are `alg=:GTZ` (default) and `alg=:charSets`.
+"""
+function minimal_primes(I::MPolyIdeal; alg = :GTZ)
+  R = base_ring(I)
+  singular_assure(I)
+  if elem_type(base_ring(R)) <: FieldElement
+    if alg == :GTZ
+      l = Singular.LibPrimdec.minAssGTZ(I.gens.Sx, I.gens.S)
+    elseif alg == :charSets
+      l = Singular.LibPrimdec.minAssChar(I.gens.Sx, I.gens.S)
+    else
+      error("algorithm invalid")
+    end
+  elseif base_ring(I.gens.Sx) isa Singular.Integers
+    l = Singular.LibPrimdecint.minAssZ(I.gens.Sx, I.gens.S)
+  else
+    error("base ring not implemented")
+  end
+  return [ideal(R, i) for i in l]
+end
+
+@doc Markdown.doc"""
+    weak_equidimensional_decomposition(I::MPolyIdeal)
+
+Return an array of equidimensional ideals where the last element is the
+equidimensional locus of `I` and the previous elements are the lower
+dimensional equidimensional loci.
+If `I` is the unit ideal, `[ideal(1)]` is returned.
+"""
+function weak_equidimensional_decomposition(I::MPolyIdeal)
+  R = base_ring(I)
+  singular_assure(I)
+  l = Singular.LibPrimdec.equidim(I.gens.Sx, I.gens.S)
+  return [ideal(R, i) for i in l]
+end
+
+@doc Markdown.doc"""
+    equidimensional_hull(I::MPolyIdeal)
+
+If the base ring of `I` is a polynomial ring over a field, return the ideal of
+equidimensional locus (of maximal dimension) of `I`. In the case of polynomials
+over the integers, return the part of minimal height.
+"""
+function equidimensional_hull(I::MPolyIdeal)
+  R = base_ring(I)
+  singular_assure(I)
+  if elem_type(base_ring(R)) <: FieldElement
+    i = Singular.LibPrimdec.equidimMax(I.gens.Sx, I.gens.S)
+  elseif base_ring(I.gens.Sx) isa Singular.Integers
+    i = Singular.LibPrimdecint.equidimZ(I.gens.Sx, I.gens.S)
+  else
+    error("base ring not implemented")
+  end
+  return ideal(R, i)
+end
+
+@doc Markdown.doc"""
+    radical_equidimensional_hull(I::MPolyIdeal)
+
+Return the intersection of associated primes of `I` of maximal dimension.
+"""
+function radical_equidimensional_hull(I::MPolyIdeal)
+  R = base_ring(I)
+  singular_assure(I)
+  i = Singular.LibPrimdec.equiRadical(I.gens.Sx, I.gens.S)
+  return ideal(R, i)
+end
+
+@doc Markdown.doc"""
+    decomposition_radical_equidimensional_hull(I::MPolyIdeal)
+
+Return an array of the radicals of the maximal dimensional components of `I`.
+"""
+function decomposition_radical_equidimensional_hull(I::MPolyIdeal)
+  R = base_ring(I)
+  singular_assure(I)
+  l = Singular.LibPrimdec.prepareAss(I.gens.Sx, I.gens.S)
+  return [ideal(R, i) for i in l]
 end
 
 
