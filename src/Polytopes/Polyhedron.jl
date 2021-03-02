@@ -375,14 +375,30 @@ isfulldimensional(P::Polyhedron) = pm_polytope(P).FULL_DIM
 ###############################################################################
 
 @doc Markdown.doc"""
+   orbit_polytope(V::AbstractVecOrMat, G::PermGroup)
+
+Construct the convex hull of the orbit of the point(s) in $V$ under the action of $G$.
+"""
+function orbit_polytope(V::AbstractMatrix, G::PermGroup)
+   if size(V)[2] != degree(G)
+      throw(ArgumentError("Dimension of points and group degree need to be the same."))
+   end
+   generators = PermGroup_to_polymake_array(G)
+   pmGroup = Polymake.group.PermutationAction(GENERATORS=generators)
+   pmPolytope = Polymake.polytope.orbit_polytope(homogenize(V,1), pmGroup)
+   return Polyhedron(pmPolytope)
+end
+function orbit_polytope(V::AbstractVector, G::PermGroup)
+   return orbit_polytope(Matrix(reshape(V,(1,length(V)))), G)
+end
+
+@doc Markdown.doc"""
    cube(d [, u, l])
 
 Construct the $[-1,1]$-cube in dimension $d$. If $u$ and $l$ are given, the $[l,u]$-cube in dimension $d$ is returned.
 """ cube(d) = Polyhedron(Polymake.polytope.cube(d))
 cube(d, u, l) = Polyhedron(Polymake.polytope.cube(d, u, l))
 
-
-const AnyVecOrMat = Union{MatElem, AbstractVecOrMat}
 
 @doc Markdown.doc"""
     convex_hull(V [, R [, L]])

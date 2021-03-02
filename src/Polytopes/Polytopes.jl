@@ -2,6 +2,8 @@
 import Markdown
 import Base: ==
 
+const AnyVecOrMat = Union{MatElem, AbstractVecOrMat}
+
 export Cone,
     PolyhedralFan,
     Polyhedron,
@@ -27,6 +29,7 @@ export Cone,
     issmooth,
     lattice_points,
     lineality_space,
+    linear_symmetries,
     LinearProgram,
     maximal_cones,
     maximal_cones_as_incidence_matrix,
@@ -43,6 +46,7 @@ export Cone,
     n_rays,
     n_vertices,
     objective_function,
+    orbit_polytope,
     recession_cone,
     solve_lp,
     support_function,
