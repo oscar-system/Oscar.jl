@@ -17,7 +17,7 @@ end
 """
    pm_fan(PF::PolyhedralFan)
 
-Get the underlying polymake BigObject
+Get the underlying polymake BigObject.
 """
 pm_fan(PF::PolyhedralFan) = PF.pm_fan
 
@@ -94,7 +94,7 @@ Base.length(iter::PolyhedralFanRayIterator) = n_rays(iter.fan)
 """
    rays(PF::PolyhedralFan)
 
-Returns the rays of a polyhedral fan
+Returns the rays of a polyhedral fan.
 """
 rays(PF::PolyhedralFan) = PolyhedralFanRayIterator(PF)
 
@@ -102,7 +102,7 @@ rays(PF::PolyhedralFan) = PolyhedralFanRayIterator(PF)
 """
    maximal_cones(PF::PolyhedralFan)
 
-Returns the maximal cones of a polyhedral fan
+Returns the maximal cones of a polyhedral fan.
 """
 
 #TODO: should the documentation mention maximal_cones_as_incidence_matrix?
@@ -110,16 +110,10 @@ Returns the maximal cones of a polyhedral fan
 @doc Markdown.doc"""
    maximal_cones(PF::PolyhedralFan, as = :cones)
 
-Returns the maximal cones of the polyhedral fan `PF` in the format defined by `as`.
-The allowed values for `as` are
-* `cones`: Returns for each maximal cone its realization as a cone
+Returns an iterator over the maximal cones of the polyhedral fan `PF`.
 """
-function maximal_cones(PF::PolyhedralFan; as::Symbol = :cones)
-   if as == :cones
-      MaximalConeIterator(PF)
-   else
-     throw(ArgumentError("Unsupported `as` argument :" * string(as)))
-  end
+function maximal_cones(PF::PolyhedralFan)
+   MaximalConeIterator(PF)
 end
 
 struct MaximalConeIterator
@@ -170,7 +164,7 @@ ambient_dim(PF::PolyhedralFan) = pm_fan(PF).FAN_AMBIENT_DIM
 """
    n_rays(PF::PolyhedralFan)
 
-Returns the number of rays of a polyhedral fan
+Returns the number of rays of a polyhedral fan.
 """
 n_rays(PF::PolyhedralFan) = pm_fan(PF).N_RAYS
 
@@ -182,7 +176,7 @@ n_rays(PF::PolyhedralFan) = pm_fan(PF).N_RAYS
 """
    lineality_space(PF::PolyhedralFan)
 
-Returns the lineality_space of a polyhedral fan
+Returns the lineality_space of a polyhedral fan.
 """
 lineality_space(PF::PolyhedralFan) = pm_fan(PF).LINEALITY_SPACE
 
@@ -190,7 +184,7 @@ lineality_space(PF::PolyhedralFan) = pm_fan(PF).LINEALITY_SPACE
 """
    rays_as_point_matrix(PF::PolyhedralFan)
 
-Returns the rays of a polyhedral fan as rows of a matrix
+Returns the rays of a polyhedral fan as rows of a matrix.
 """
 rays_as_point_matrix(PF::PolyhedralFan) = pm_fan(PF).RAYS
 
@@ -211,28 +205,28 @@ end
 """
    issmooth(PF::PolyhedralFan)
 
-Determine whether the fan is smooth
+Determine whether the fan is smooth.
 """
 issmooth(PF::PolyhedralFan) = pm_fan(PF).SMOOTH_FAN
 
 """
    isregular(PF::PolyhedralFan)
 
-Determine whether the fan is regular, i.e. the normal fan of a polytope
+Determine whether the fan is regular, i.e. the normal fan of a polytope.
 """
 isregular(PF::PolyhedralFan) = pm_fan(PF).REGULAR
 
 """
    iscomplete(PF::PolyhedralFan)
 
-Determine whether the fan is complete
+Determine whether the fan is complete.
 """
 iscomplete(PF::PolyhedralFan) = pm_fan(PF).COMPLETE
 
 """
    normal_fan(P::Polyhedron)
 
-Returns the normal fan of a polyhedron
+Returns the normal fan of a polyhedron.
 """
 function normal_fan(P::Polyhedron)
    pmp = pm_polytope(P)
@@ -243,7 +237,7 @@ end
 """
    face_fan(P::Polyhedron)
 
-Returns the face fan of a polyhedron
+Returns the face fan of a polyhedron.
 """
 function face_fan(P::Polyhedron)
    pmp = pm_polytope(P)

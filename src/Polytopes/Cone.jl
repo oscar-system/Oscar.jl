@@ -140,7 +140,7 @@ codim(C::Cone) = ambient_dim(C)-dim(C)
 """
    rays_as_point_matrix(C::Cone)
 
-   Return the rays of a cone as rows in a matrix
+   Return the rays of a cone as rows in a matrix.
 """
 function rays_as_point_matrix(C::Cone)
     pm_cone(C).RAYS

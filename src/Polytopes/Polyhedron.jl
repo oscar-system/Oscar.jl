@@ -332,7 +332,7 @@ recession_cone(P::Polyhedron) = Cone(Polymake.polytope.recession_cone(pm_polytop
 """
    isfeasible(P::Polyhedron)
 
-   Check whether a polyhedron is feasible, i.e. non-empty
+   Check whether a polyhedron is feasible, i.e. non-empty.
 """
 isfeasible(P::Polyhedron) = pm_polytope(P).FEASIBLE
 
@@ -340,7 +340,7 @@ isfeasible(P::Polyhedron) = pm_polytope(P).FEASIBLE
 """
    issmooth(P::Polyhedron)
 
-   Check whether a polyhedron is smooth
+   Check whether a polyhedron is smooth.
 """
 issmooth(P::Polyhedron) = pm_polytope(P).SMOOTH
 
@@ -348,7 +348,7 @@ issmooth(P::Polyhedron) = pm_polytope(P).SMOOTH
 """
    isnormal(P::Polyhedron)
 
-   Check whether a polyhedron is normal
+   Check whether a polyhedron is normal.
 """
 isnormal(P::Polyhedron) = pm_polytope(P).NORMAL
 
@@ -356,7 +356,7 @@ isnormal(P::Polyhedron) = pm_polytope(P).NORMAL
 """
    isbounded(P::Polyhedron)
 
-   Check whether a polyhedron is bounded
+   Check whether a polyhedron is bounded.
 """
 isbounded(P::Polyhedron) = pm_polytope(P).BOUNDED
 
@@ -364,7 +364,7 @@ isbounded(P::Polyhedron) = pm_polytope(P).BOUNDED
 """
    isfulldimensional(P::Polyhedron)
 
-   Check whether a polyhedron is full dimensional
+   Check whether a polyhedron is full dimensional.
 """
 isfulldimensional(P::Polyhedron) = pm_polytope(P).FULL_DIM
 
@@ -457,7 +457,7 @@ end
 """
    intersect(P::Polyhedron, Q::Polyhedron)
 
-   Intersect two polyhedra
+   Intersect two polyhedra.
 """
 function intersect(P::Polyhedron, Q::Polyhedron)
    return Polyhedron(Polymake.polytope.intersection(pm_polytope(P), pm_polytope(Q)))
@@ -467,7 +467,7 @@ end
 """
    minkowski_sum(P::Polyhedron, Q::Polyhedron)
 
-   Minkowski sum of two polyhedra
+   Minkowski sum of two polyhedra.
 """
 function minkowski_sum(P::Polyhedron, Q::Polyhedron; algorithm::Symbol=:standard)
    if algorithm == :standard
