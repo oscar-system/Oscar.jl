@@ -113,7 +113,7 @@ rays(C::Cone) = ConeRayIterator(C)
 
 Returns the number of rays of the cone `C`.
 """
-n_rays(C::Cone) = size(pm_cone(C).RAYS, 1)
+n_rays(C::Cone) = pm_cone(C).N_RAYS
 
 """
    dim(C::Cone)
@@ -189,7 +189,7 @@ lineality_space(C::Cone) = pm_cone(C).LINEALITY_SPACE
 """
 function hilbert_basis(C::Cone)
    if ispointed(C)
-      return pm_cone(C).HILBERT_BASIS[1]
+      return pm_cone(C).HILBERT_BASIS_GENERATORS[1]
    else
       throw(ArgumentError("Cone not pointed."))
    end
