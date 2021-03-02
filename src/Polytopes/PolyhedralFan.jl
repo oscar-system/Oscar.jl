@@ -131,7 +131,7 @@ function Base.iterate(iter::MaximalConeIterator, index = 1)
     if index > n_max_cones
         return nothing
     end
-    current_cone = Cone(Polymake.fan.cone(iter.PF.pm_fan, index - 1))
+    current_cone = Cone(Polymake.fan.cone(pm_fan(iter.PF), index - 1))
     return (current_cone, index + 1)
 end
 Base.length(iter::MaximalConeIterator) = n_maximal_cones(iter.PF)
@@ -158,7 +158,7 @@ dim(PF::PolyhedralFan) = pm_fan(PF).FAN_DIM
 
 Returns the number of maximal cones in a polyhedral fan `PF`.
 """
-n_maximal_cones(PF::PolyhedralFan) = PF.pm_fan.N_MAXIMAL_CONES
+n_maximal_cones(PF::PolyhedralFan) = pm_fan(PF).N_MAXIMAL_CONES
 
 """
    ambient_dim(PF::PolyhedralFan)
@@ -202,7 +202,7 @@ Returns the maximal cones of a polyhedral fan as an incidence matrix where the
 rows correspond to the maximal cones and the columns to the rays.
 """
 function maximal_cones_as_incidence_matrix(PF::PolyhedralFan)
-   IncidenceMatrix(PF.pm_fan.MAXIMAL_CONES)
+   IncidenceMatrix(pm_fan(PF).MAXIMAL_CONES)
 end
 
 ###############################################################################

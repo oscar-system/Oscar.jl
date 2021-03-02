@@ -334,7 +334,7 @@ recession_cone(P::Polyhedron) = Cone(Polymake.polytope.recession_cone(pm_polytop
 
    Check whether a polyhedron is feasible, i.e. non-empty
 """
-isfeasible(P::Polyhedron) = P.pm_polytope.FEASIBLE
+isfeasible(P::Polyhedron) = pm_polytope(P).FEASIBLE
 
 
 """
@@ -342,7 +342,7 @@ isfeasible(P::Polyhedron) = P.pm_polytope.FEASIBLE
 
    Check whether a polyhedron is smooth
 """
-issmooth(P::Polyhedron) = P.pm_polytope.SMOOTH
+issmooth(P::Polyhedron) = pm_polytope(P).SMOOTH
 
 
 """
@@ -350,7 +350,7 @@ issmooth(P::Polyhedron) = P.pm_polytope.SMOOTH
 
    Check whether a polyhedron is normal
 """
-isnormal(P::Polyhedron) = P.pm_polytope.NORMAL
+isnormal(P::Polyhedron) = pm_polytope(P).NORMAL
 
 
 """
@@ -358,7 +358,7 @@ isnormal(P::Polyhedron) = P.pm_polytope.NORMAL
 
    Check whether a polyhedron is bounded
 """
-isbounded(P::Polyhedron) = P.pm_polytope.BOUNDED
+isbounded(P::Polyhedron) = pm_polytope(P).BOUNDED
 
 
 """
@@ -366,7 +366,7 @@ isbounded(P::Polyhedron) = P.pm_polytope.BOUNDED
 
    Check whether a polyhedron is full dimensional
 """
-isfulldimensional(P::Polyhedron) = P.pm_polytope.FULL_DIM
+isfulldimensional(P::Polyhedron) = pm_polytope(P).FULL_DIM
 
 ###############################################################################
 ###############################################################################
@@ -425,11 +425,11 @@ end
 function pm_far_face(P::Polyhedron)
     #We use cone instead of Polytope so the convex hull alg. doesn't give
     #  warning about no leading 1's
-    Polymake.polytope.Cone(RAYS=P.pm_polytope.VERTICES[[a+1 for a in Array{Int,1}(P.pm_polytope.FAR_FACE)],2:end])
+    Polymake.polytope.Cone(RAYS=pm_polytope(P).VERTICES[[a+1 for a in Array{Int,1}(pm_polytope(P).FAR_FACE)],2:end])
 end
 
 function f_vector(P::Polyhedron)
-    f_vec=P.pm_polytope.F_VECTOR
+    f_vec=pm_polytope(P).F_VECTOR
     far_f_vec=pm_far_face(P).F_VECTOR
     if far_f_vec == nothing
         return(f_vec)
@@ -460,7 +460,7 @@ end
    Intersect two polyhedra
 """
 function intersect(P::Polyhedron, Q::Polyhedron)
-   return Polyhedron(Polymake.polytope.intersection(P.pm_polytope, Q.pm_polytope))
+   return Polyhedron(Polymake.polytope.intersection(pm_polytope(P), pm_polytope(Q)))
 end
 
 
@@ -471,9 +471,9 @@ end
 """
 function minkowski_sum(P::Polyhedron, Q::Polyhedron; algorithm::Symbol=:standard)
    if algorithm == :standard
-      return Polyhedron(Polymake.polytope.minkowski_sum(P.pm_polytope, Q.pm_polytope))
+      return Polyhedron(Polymake.polytope.minkowski_sum(pm_polytope(P), pm_polytope(Q)))
    elseif algorithm == :fukuda
-      return Polyhedron(Polymake.polytope.minkowski_sum_fukuda(P.pm_polytope, Q.pm_polytope))
+      return Polyhedron(Polymake.polytope.minkowski_sum_fukuda(pm_polytope(P), pm_polytope(Q)))
    else
       throw(ArgumentError("Unknown minkowski sum `algorithm` argument :" * string(algorithm)))
    end

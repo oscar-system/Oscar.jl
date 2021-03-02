@@ -117,14 +117,14 @@ n_rays(C::Cone) = size(pm_cone(C).RAYS, 1)
 
 Returns the dimension of a cone.
 """
-dim(C::Cone) = C.pm_cone.CONE_DIM
+dim(C::Cone) = pm_cone(C).CONE_DIM
 
 """
    ambient_dim(C::Cone)
 
 Returns the ambient dimension of a cone.
 """
-ambient_dim(C::Cone) = C.pm_cone.CONE_AMBIENT_DIM
+ambient_dim(C::Cone) = pm_cone(C).CONE_AMBIENT_DIM
 
 """
    codim(C::Cone)
@@ -152,7 +152,7 @@ end
 
 Returns the facets of a cone as rows of a matrix.
 """
-facets_as_point_matrix(C::Cone) = C.pm_cone.FACETS
+facets_as_point_matrix(C::Cone) = pm_cone(C).FACETS
 
 
 """
@@ -160,5 +160,18 @@ facets_as_point_matrix(C::Cone) = C.pm_cone.FACETS
 
    Returns a basis of the lineality space of a cone.
 """
-lineality_space(C::Cone) = C.pm_cone.LINEALITY_SPACE
+lineality_space(C::Cone) = pm_cone(C).LINEALITY_SPACE
+
+"""
+   hilbert_basis(C::Cone)
+
+   Returns the Hilbert basis of a pointed cone as the rows of a matrix.
+"""
+function hilbert_basis(C::Cone)
+   if ispointed(C)
+      return pm_cone(C).HILBERT_BASIS[1]
+   else
+      throw(ArgumentError("Cone not pointed."))
+   end
+end
 
