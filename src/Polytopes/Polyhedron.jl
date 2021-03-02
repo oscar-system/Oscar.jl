@@ -45,7 +45,42 @@ end
 ### Iterators
 ###############################################################################
 ###############################################################################
+struct PolyhedronFacePolyhedronIterator
+    p::Polyhedron
+    face_dim::Int
+end
 
+
+function Base.iterate(iter::PolyhedronFacePolyhedronIterator, index = 1)
+    faces = Polymake.polytope.faces_of_dim(pm_polytope(iter.p),iter.face_dim)
+    n_faces = length(faces)
+    while true
+        if index > n_faces
+            return nothing
+        end
+        isfar=true
+        for v in faces[index]
+            if !iszero(pm_polytope(iter.p).VERTICES[1+v[1],1])
+                isfar=false
+            end
+        end
+        if isfar==true
+            index +=1
+        else
+            p = Polyhedron(Polymake.polytope.Polytope(VERTICES=pm_polytope(iter.p).VERTICES[[f+1 for f in faces[index]],:]))
+            return(p,index+1)
+        end
+    end
+end
+Base.length(iter::PolyhedronFacePolyhedronIterator) = f_vector(iter.p)[iter.face_dim+1]
+
+function faces(P::Polyhedron, face_dim::Int; as::Symbol = :polyhedra)
+    if as == :polyhedra
+        PolyhedronFacePolyhedronIterator(P,face_dim)
+    else
+        throw(ArgumentError("Unsupported `as` argument :" * string(as)))
+    end
+end
 
 struct VertexPointIterator
     p::Polyhedron
