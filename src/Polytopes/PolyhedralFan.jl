@@ -1,3 +1,9 @@
+###############################################################################
+###############################################################################
+### Definition and constructors
+###############################################################################
+###############################################################################
+
 @doc Markdown.doc"""
    PolyhedralFan(Rays, Cones)
 
@@ -8,15 +14,13 @@ struct PolyhedralFan
    pm_fan::Polymake.BigObjectAllocated
 end
 
+"""
+   pm_fan(PF::PolyhedralFan)
 
-###############################################################################
-###############################################################################
-### Display
-###############################################################################
-###############################################################################
-function Base.show(io::IO, PF::PolyhedralFan)
-    print(io, "A polyhedral fan in dimension $(ambient_dim(PF))")
-end
+Get the underlying polymake BigObject
+"""
+pm_fan(PF::PolyhedralFan) = PF.pm_fan
+
 
 function PolyhedralFan(Cones::Array{Cone,1})
    BigObjectArray = Polymake.Array{Polymake.BigObject}(length(Cones))
@@ -57,41 +61,20 @@ function PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, Incidence::Arr
    PolyhedralFan(Rays,IncidenceMatrix(Polymake.IncidenceMatrix(Incidence)))
 end
 
-"""
-   dim(PF::PolyhedralFan)
+###############################################################################
+###############################################################################
+### Display
+###############################################################################
+###############################################################################
+function Base.show(io::IO, PF::PolyhedralFan)
+    print(io, "A polyhedral fan in dimension $(ambient_dim(PF))")
+end
 
-Returns the dimension of a polyhedral fan.
-"""
-dim(PF::PolyhedralFan) = pm_fan(PF).FAN_DIM
-
-"""
-   n_maximal_cones(PF::PolyhedralFan)
-
-Returns the number of maximal cones in a polyhedral fan `PF`.
-"""
-n_maximal_cones(PF::PolyhedralFan) = PF.pm_fan.N_MAXIMAL_CONES
-
-"""
-   ambient_dim(PF::PolyhedralFan)
-
-Returns the ambient dimension of a polyhedral fan.
-"""
-ambient_dim(PF::PolyhedralFan) = pm_fan(PF).FAN_AMBIENT_DIM
-
-"""
-   pm_fan(PF::PolyhedralFan)
-
-Get the underlying polymake BigObject
-"""
-pm_fan(PF::PolyhedralFan) = PF.pm_fan
-
-
-"""
-   lineality_space(PF::PolyhedralFan)
-
-Returns the lineality_space of a polyhedral fan
-"""
-lineality_space(PF::PolyhedralFan) = pm_fan(PF).LINEALITY_SPACE
+###############################################################################
+###############################################################################
+### Iterators
+###############################################################################
+###############################################################################
 
 struct PolyhedralFanRayIterator
     fan::PolyhedralFan
@@ -114,20 +97,6 @@ Base.length(iter::PolyhedralFanRayIterator) = n_rays(iter.fan)
 Returns the rays of a polyhedral fan
 """
 rays(PF::PolyhedralFan) = PolyhedralFanRayIterator(PF)
-
-"""
-   n_rays(PF::PolyhedralFan)
-
-Returns the number of rays of a polyhedral fan
-"""
-n_rays(PF::PolyhedralFan) = pm_fan(PF).N_RAYS
-
-"""
-   rays_as_point_matrix(PF::PolyhedralFan)
-
-Returns the rays of a polyhedral fan as rows of a matrix
-"""
-rays_as_point_matrix(PF::PolyhedralFan) = pm_fan(PF).RAYS
 
 
 """
@@ -167,12 +136,78 @@ function Base.iterate(iter::MaximalConeIterator, index = 1)
 end
 Base.length(iter::MaximalConeIterator) = n_maximal_cones(iter.PF)
 
+###############################################################################
+###############################################################################
+### Access properties
+###############################################################################
+###############################################################################
 
+###############################################################################
+## Scalar properties
+###############################################################################
+
+"""
+   dim(PF::PolyhedralFan)
+
+Returns the dimension of a polyhedral fan.
+"""
+dim(PF::PolyhedralFan) = pm_fan(PF).FAN_DIM
+
+"""
+   n_maximal_cones(PF::PolyhedralFan)
+
+Returns the number of maximal cones in a polyhedral fan `PF`.
+"""
+n_maximal_cones(PF::PolyhedralFan) = PF.pm_fan.N_MAXIMAL_CONES
+
+"""
+   ambient_dim(PF::PolyhedralFan)
+
+Returns the ambient dimension of a polyhedral fan.
+"""
+ambient_dim(PF::PolyhedralFan) = pm_fan(PF).FAN_AMBIENT_DIM
+
+"""
+   n_rays(PF::PolyhedralFan)
+
+Returns the number of rays of a polyhedral fan
+"""
+n_rays(PF::PolyhedralFan) = pm_fan(PF).N_RAYS
+
+
+###############################################################################
+## Points properties
+###############################################################################
+
+"""
+   lineality_space(PF::PolyhedralFan)
+
+Returns the lineality_space of a polyhedral fan
+"""
+lineality_space(PF::PolyhedralFan) = pm_fan(PF).LINEALITY_SPACE
+
+
+"""
+   rays_as_point_matrix(PF::PolyhedralFan)
+
+Returns the rays of a polyhedral fan as rows of a matrix
+"""
+rays_as_point_matrix(PF::PolyhedralFan) = pm_fan(PF).RAYS
+
+
+"""
+   maximal_cones_as_incidence_matrix(PF::PolyhedralFan)
+
+Returns the maximal cones of a polyhedral fan as an incidence matrix where the
+rows correspond to the maximal cones and the columns to the rays.
+"""
 function maximal_cones_as_incidence_matrix(PF::PolyhedralFan)
    IncidenceMatrix(PF.pm_fan.MAXIMAL_CONES)
 end
 
-
+###############################################################################
+## Boolean properties
+###############################################################################
 """
    issmooth(PF::PolyhedralFan)
 
