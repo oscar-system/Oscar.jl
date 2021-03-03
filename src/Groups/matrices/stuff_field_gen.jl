@@ -2,6 +2,7 @@ import Hecke: evaluate, field_extension, FinField, FinFieldElem, PolyElem
 
 export primitive_element
 
+# changes the base ring of a polynomial ring into fq_nmod
 function _change_type(f::PolyElem{T}) where T <: FinFieldElem
    e,p = ispower(order(base_ring(f)))
    F = GF(Int(p),Int(e))[1]
@@ -9,16 +10,14 @@ function _change_type(f::PolyElem{T}) where T <: FinFieldElem
    return sum([t^i*F(lift(coeff(f,i))) for i in 0:degree(f)])
 end
 
-# return a generator for the unit group of F
+# return a generator for the unit group of F = K[X] / (f), where K = base_ring(f)
+# removing the three commented lines, the output is a generator for F / its prime subfield
 function _centralizer(f::PolyElem{T}) where T <: FinFieldElem
   if typeof(f)!=fq_nmod_poly && typeof(f)!=fq_poly
      f = _change_type(f)
   end
-  K = base_ring(f)
-  d = degree(K)
-  e = degree(f)
-  q = order(K)
   L, mL = field_extension(f)
+#  K = base_ring(f)
 #  m = divexact(order(L)-1, order(K)-1)
 #  U, mU = unit_group(L, n_quo = Int(m))
   U, mU = unit_group(L)
@@ -33,7 +32,7 @@ end
     primitive_element(F::FinField)
 Return a generator of the multiplicative group of `F`.
 """
-function primitive_element(F::T) where T <: FinField
+function primitive_element(F::FinField)
    z = gen(F)
    isprime(order(F)) && return z
    f = _centralizer(defining_polynomial(F))

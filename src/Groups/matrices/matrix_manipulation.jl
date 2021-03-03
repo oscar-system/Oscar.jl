@@ -150,7 +150,6 @@ function complement(V::AbstractAlgebra.Generic.FreeModule{T}, W::AbstractAlgebra
    e = W.map
 
    H = matrix( vcat([e(g) for g in gens(W)], [zero(V) for i in 1:(dim(V)-dim(W)) ]) )
-   d = dim(W)
    A_left = identity_matrix(base_ring(V), dim(V))
    A_right = identity_matrix(base_ring(V), dim(V))
    for rn in 1:dim(W)     # rn = row number
