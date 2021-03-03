@@ -398,7 +398,7 @@ end
 function Base.issubset(I::MPolyIdeal, J::MPolyIdeal)
   singular_assure(I)
   singular_assure(J)
-  return Singular.contains(I.gens.S, J.gens.S)
+  return Singular.contains(J.gens.S, I.gens.S)
 end
 
 function gens(I::MPolyIdeal)
@@ -1254,17 +1254,8 @@ end
 Return `true` if the ideal `I` is prime, false otherwise
 """
 function isprime(I::MPolyIdeal)
-  R = base_ring(I)
   D = primary_decomposition(I)
-  if length(D) != 1
-    return false
-  else
-    for (q, p) in D
-      r = divrem(gens(p), groebner_basis(q))
-      arr = [r[i][2] for i in 1:length(r)]
-      return length(findall(x->x==R(0), arr)) == length(arr)
-    end
-  end
+  return length(D) == 1 && issubset(D[1][2], D[1][1])
 end
 
 ################################################################################

@@ -62,6 +62,11 @@ end
   @test length(L) == 2
   @test length(findall(x->x==r1, L)) == 1
   @test length(findall(x->x==r2, L)) == 1
+
+  @test issubset(ideal(S, [a]), ideal(S, [a]))
+  @test issubset(ideal(S, [a]), ideal(S, [a, b]))
+  @test !issubset(ideal(S, [c]), ideal(S, [b]))
+  @test !issubset(ideal(S, [a, b, c]), ideal(S, [a*b*c]))
 end
 
 @testset "Primary decomposition" begin
