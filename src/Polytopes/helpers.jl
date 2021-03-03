@@ -3,6 +3,10 @@ matrix_for_polymake(x::Union{Oscar.fmpq_mat,AbstractMatrix{Oscar.fmpq}}) =
     Matrix{Hecke.Rational{BigInt}}(x)
 matrix_for_polymake(x) = x
 
+function to_zero_based_indexing(set::Polymake.SetAllocated{Int64})
+   return Polymake.Set{Int64}([x-1 for x in set])
+end
+
 function remove_zero_rows(A::Union{Oscar.MatElem,AbstractMatrix})
     A[findall(x->!iszero(x),collect(eachrow(A))),:]
 end
