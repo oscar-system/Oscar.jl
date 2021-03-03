@@ -42,14 +42,14 @@ function PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, LS::Union{Osca
    PolyhedralFan(Polymake.fan.PolyhedralFan{Polymake.Rational}(
       INPUT_RAYS = matrix_for_polymake(Rays),
       INPUT_LINEALITY = matrix_for_polymake(LS),
-      INPUT_CONES = [collect(to_zero_based_indexing(Polymake.row(Incidence.pm_incidencematrix, i))) for i in 1:size(Incidence.pm_incidencematrix, 1)],
+      INPUT_CONES = [collect(Polymake.to_zero_based_indexing(Polymake.row(Incidence.pm_incidencematrix, i))) for i in 1:size(Incidence.pm_incidencematrix, 1)],
    ))
 end
 
 function PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix)
    PolyhedralFan(Polymake.fan.PolyhedralFan{Polymake.Rational}(
       INPUT_RAYS = matrix_for_polymake(Rays),
-      INPUT_CONES = [collect(to_zero_based_indexing(Polymake.row(Incidence.pm_incidencematrix, i))) for i in 1:size(Incidence.pm_incidencematrix, 1)],
+      INPUT_CONES = [collect(Polymake.to_zero_based_indexing(Polymake.row(Incidence.pm_incidencematrix, i))) for i in 1:size(Incidence.pm_incidencematrix, 1)],
    ))
 end
 
