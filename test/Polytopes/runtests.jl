@@ -24,7 +24,7 @@ const pm = Polymake
     @testset "Polyhedron" begin
         @test n_vertices(Q0) == 3
         @test n_vertices.(faces(Q0,1)) == [2,2,2]
-        @test [Array{Int64}(x) for x in lattice_points(Q0)] == [[0, 0], [0, 1], [1, 0]]
+        @test length.(lattice_points(Q0)) == [2;2;2]
         @test isfeasible(Q0)
         @test issmooth(Q0)
         @test isnormal(Q0)
@@ -38,7 +38,7 @@ const pm = Polymake
     @testset "Cone" begin
         @test ispointed(Cone1)
         @test isfulldimensional(Cone1)
-        @test Array{Int64}(hilbert_basis(Cone1)) == [1 0; 0 1]
+        @test size(hilbert_basis(Cone1)) == (2,2)
         @test n_rays(Cone1) == 2
         @test rays_as_point_matrix(Cone1) == [1 0; 0 1]
         @test facets_as_point_matrix(Cone1) == [1 0; 0 1]
