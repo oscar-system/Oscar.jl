@@ -316,8 +316,8 @@ end
 
 
 function assign_from_description(f::SesquilinearForm)
-   if f.descr==:quadratic f.X=GAP.Globals.QuadraticFormByMatrix(f.mat_iso(gram_matrix(f)))
-   elseif f.descr==:symmetric || f.descr==:alternating f.X=GAP.Globals.BilinearFormByMatrix(f.mat_iso(gram_matrix(f)))
+   if f.descr==:quadratic f.X=GAP.Globals.QuadraticFormByMatrix(f.mat_iso(gram_matrix(f)),f.mat_iso.fr.codomain)
+   elseif f.descr==:symmetric || f.descr==:alternating f.X=GAP.Globals.BilinearFormByMatrix(f.mat_iso(gram_matrix(f)),f.mat_iso.fr.codomain)
    elseif f.descr==:hermitian f.X=GAP.Globals.HermitianFormByMatrix(f.mat_iso(gram_matrix(f)),f.mat_iso.fr.codomain)
    else error("unsupported description")
    end
@@ -329,12 +329,12 @@ function Base.getproperty(f::SesquilinearForm, sym::Symbol)
    if isdefined(f,sym) return getfield(f,sym) end
 
    if sym === :mat_iso
-      f.mat_iso = gen_mat_iso(nrows(gram_matrix(f)), base_ring(gram_matrix(f)))
+      f.mat_iso = gen_mat_iso(nrows(gram_matrix(f)), base_ring(f))
 
    elseif sym == :X
       if !isdefined(f, :X)
          if !isdefined(f,:mat_iso)
-            f.mat_iso = gen_mat_iso(nrows(gram_matrix(f)), base_ring(gram_matrix(f)))
+            f.mat_iso = gen_mat_iso(nrows(gram_matrix(f)), base_ring(f))
          end
          assign_from_description(f)
       end
