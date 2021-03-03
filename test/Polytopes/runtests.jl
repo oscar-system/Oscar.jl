@@ -11,6 +11,7 @@ const pm = Polymake
     Q2 = convex_hull(pts, [1 1], [1 1])
     C0 = cube(2)
     C1 = cube(2, 1, 0)
+    G0 = linear_symmetries(C0)
     #positive orthant
     Pos=Polyhedron([-1 0 0; 0 -1 0; 0 0 -1],[0,0,0])
     NFsquare = normal_fan(C0)
@@ -41,6 +42,7 @@ const pm = Polymake
         @test f_vector(Q0) == [3,3]
         @test intersect(Q0, Q0) == Q0
         @test Q0+Q0 == minkowski_sum(Q0, Q0)
+        @test degree(G0) == 4
     end
 
     @testset "Cone" begin
@@ -78,6 +80,14 @@ const pm = Polymake
         @test dim.(maximal_cones(F1)) == [2,2]
         @test n_maximal_cones(F1) == 2
         @test lineality_space(F2) == L
+        @test length(collect(rays(F0))) == 3
+        
+        II = maximal_cones_as_incidence_matrix(NFsquare)
+        NF0 = PolyhedralFan(rays_as_point_matrix(NFsquare), II)
+        @test n_rays(NF0) == 4
+        FF0 = face_fan(C0)
+        @test n_rays(FF0) == 4
+        @test !issmooth(FF0)
     end
 
 
@@ -193,5 +203,6 @@ const pm = Polymake
 
         op = orbit_polytope(x, G)
         @test P == op
+
     end
 end # of @testset "OscarPolytope"
