@@ -1104,7 +1104,7 @@ end
 # primary decomposition #######################################################
 
 @doc Markdown.doc"""
-    minimal_primes(I::MPolyIdeal, alg=:GTZ)
+    minimal_primes(I::MPolyIdeal; alg=:GTZ)
 
 Return an array of the minimal associated prime ideals of `I`.
 If `I` is the unit ideal, `[ideal(1)]` is returned.
@@ -1225,22 +1225,28 @@ end
 
 ################################################################################
 @doc Markdown.doc"""
-    primary_decomposition(I::MPolyIdeal, alg=:GTZ)
+    primary_decomposition(I::MPolyIdeal; alg=:GTZ)
 
 Compute a primary decomposition of the ideal `I` using the `GTZ`-algorithm by
 default, or `SY` if specified. The output is an array of tuples where the first
 element is a primary ideal appearing in the primary decomposition and the second
 entry is the radical of this primary ideal. 
 """
-function primary_decomposition(I::MPolyIdeal, algo::String="GTZ")
+function primary_decomposition(I::MPolyIdeal; alg=:GTZ)
   R = base_ring(I)
   singular_assure(I)
-  if algo == "GTZ"
-    L = Singular.LibPrimdec.primdecGTZ(I.gens.Sx, I.gens.S)
-  elseif algo == "SY"
-    L = Singular.LibPrimdec.primdecSY(I.gens.Sx, I.gens.S)
+  if elem_type(base_ring(R)) <: FieldElement
+    if alg == :GTZ
+      L = Singular.LibPrimdec.primdecGTZ(I.gens.Sx, I.gens.S)
+    elseif alg == :SY
+      L = Singular.LibPrimdec.primdecSY(I.gens.Sx, I.gens.S)
+    else
+      error("algorithm invalid")
+    end
+  elseif base_ring(I.gens.Sx) isa Singular.Integers
+    L = Singular.LibPrimdecint.primdecZ(I.gens.Sx, I.gens.S)
   else
-    error("algorithm invalid")
+    error("base ring not implemented")
   end
   return [(ideal(R, q[1]), ideal(R, q[2])) for q in L]
 end

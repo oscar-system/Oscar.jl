@@ -71,6 +71,25 @@ end
 
 @testset "Primary decomposition" begin
 
+  # primary_decomposition
+  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+  i = ideal(R, [x, y*z^2])
+  for method in (:GTZ, :SY)
+    j = ideal(R, [R(1)])
+    for (q, p) in primary_decomposition(i, alg=method)
+      j = intersect(j, q)
+      @test isprimary(q)
+      @test isprime(p)
+      @test p == radical(q)
+    end
+    @test j == i
+  end
+
+  R, (a, b, c, d) = PolynomialRing(ZZ, ["a", "b", "c", "d"])
+  i = ideal(R, [9, (a+3)*(b+3)])
+  l = primary_decomposition(i)
+  @test length(l) == 2
+
   # minimal_primes
   R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
   i = ideal(R, [(z^2+1)*(z^3+2)^2, y-z^2])
