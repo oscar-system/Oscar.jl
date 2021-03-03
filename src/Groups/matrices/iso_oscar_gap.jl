@@ -89,7 +89,7 @@ function mat_oscar_gap(x::fq_nmod_mat, riso)
       S[i] = GAP.julia_to_gap([riso(x[i,j]) for j in 1:n])
    end
 
-   return GAP.julia_to_gap(S)
+   return GAP.Globals.ImmutableMatrix(riso.codomain, GAP.julia_to_gap(S), true)
 end
 
 # return the Oscar matrix corresponding to the GAP matrix x
