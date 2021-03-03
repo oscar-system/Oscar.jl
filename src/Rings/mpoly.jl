@@ -1225,10 +1225,10 @@ end
 
 ################################################################################
 @doc Markdown.doc"""
-    primary_decomposition(I::MPolyIdeal, algo::String="GTZ")
+    primary_decomposition(I::MPolyIdeal, alg=:GTZ)
 
 Compute a primary decomposition of the ideal `I` using the `GTZ`-algorithm by
-default, or `SY` if specified. The output is an array of pairs where the first
+default, or `SY` if specified. The output is an array of tuples where the first
 element is a primary ideal appearing in the primary decomposition and the second
 entry is the radical of this primary ideal. 
 """
@@ -1242,7 +1242,7 @@ function primary_decomposition(I::MPolyIdeal, algo::String="GTZ")
   else
     error("algorithm invalid")
   end
-  return [ideal(R, q[1]) => ideal(R, q[2]) for q in L]
+  return [(ideal(R, q[1]), ideal(R, q[2])) for q in L]
 end
 
 ################################################################################
