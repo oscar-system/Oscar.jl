@@ -16,8 +16,9 @@ export minimal_primes, weak_equidimensional_decomposition, equidimensional_hull,
        radical_equidimensional_hull, decomposition_radical_equidimensional_hull
 
 export PolynomialRing, total_degree, degree, MPolyElem, ordering, ideal,
-       groebner_basis, eliminate, syzygy_generators, coordinates, 
-       jacobi_matrix, jacobi_ideal, radical, normalize, AlgebraHomomorphism
+       groebner_basis, eliminate, syzygy_generators, coordinates,
+       jacobi_matrix, jacobi_ideal, radical, normalize, AlgebraHomomorphism,
+       divrem, primary_decomposition, isprimary, isprime
 
 ##############################################################################
 #
@@ -115,8 +116,8 @@ end
 #type for orderings, use this...
 #in general: all algos here needs revision: do they benefit from gb or not?
 
-mutable struct BiPolyArray{S} 
-  O::Array{S, 1} 
+mutable struct BiPolyArray{S}
+  O::Array{S, 1}
   S::Singular.sideal
   Ox #Oscar Poly Ring
   Sx # Singular Poly Ring, poss. with different ordering
@@ -169,7 +170,7 @@ function Base.iterate(A::BiPolyArray, s::Int = 1)
   return A[Val(:O), s], s+1
 end
 
-Base.eltype(::BiPolyArray{S}) where S = S 
+Base.eltype(::BiPolyArray{S}) where S = S
 
 ##############################################################################
 #
@@ -208,24 +209,23 @@ singular_ring(::Nemo.FlintIntegerRing) = Singular.Integers()
 singular_ring(::Nemo.FlintRationalField) = Singular.Rationals()
 singular_ring(F::Nemo.GaloisField) = Singular.Fp(Int(characteristic(F)))
 singular_ring(F::Nemo.NmodRing) = Singular.Fp(Int(characteristic(F)))
-
 singular_ring(R::Singular.PolyRing; keep_ordering::Bool = true) = R
 
 function singular_ring(Rx::MPolyRing{T}; keep_ordering::Bool = true) where {T <: RingElem}
   if keep_ordering
-    return Singular.PolynomialRing(singular_ring(base_ring(Rx)), 
+    return Singular.PolynomialRing(singular_ring(base_ring(Rx)),
               [string(x) for x = Nemo.symbols(Rx)],
               ordering = ordering(Rx),
               cached = false)[1]
   else
-    return Singular.PolynomialRing(singular_ring(base_ring(Rx)), 
+    return Singular.PolynomialRing(singular_ring(base_ring(Rx)),
               [string(x) for x = Nemo.symbols(Rx)],
               cached = false)[1]
-  end          
+  end
 end
 
 function singular_ring(Rx::MPolyRing{T}, ord::Symbol) where {T <: RingElem}
-  return Singular.PolynomialRing(singular_ring(base_ring(Rx)), 
+  return Singular.PolynomialRing(singular_ring(base_ring(Rx)),
               [string(x) for x = Nemo.symbols(Rx)],
               ordering = ord,
               cached = false)[1]
@@ -398,7 +398,7 @@ end
 function Base.issubset(I::MPolyIdeal, J::MPolyIdeal)
   singular_assure(I)
   singular_assure(J)
-  return Singular.contains(J.gens.S, I.gens.S)
+  return Singular.contains(I.gens.S, J.gens.S)
 end
 
 function gens(I::MPolyIdeal)
@@ -665,7 +665,7 @@ end
 @doc Markdown.doc"""
     coordinates(a::Array{<:MPolyElem, 1}, b::Array{<:MPolyElem, 1})
 
-Tries to write the entries of `b` as linear combinations of `a`.    
+Tries to write the entries of `b` as linear combinations of `a`.
 """
 function coordinates(a::Array{<:MPolyElem, 1}, b::Array{<:MPolyElem, 1})
   ia = ideal(a)
@@ -1202,3 +1202,81 @@ function factor(f::MPolyElem)
   return Nemo.Fac(R(fS.unit), Dict(R(k) =>v for (k,v) = fS.fac))
 end
 =#
+
+################################################################################
+
+@doc Markdown.doc"""
+    divrem(a::Vector{T}, b::Vector{T}) where T <: MPolyElem{S} where S <: RingElem
+Return an array of tuples (qi, ri) consisting of an array of polynomials qi, one
+for each polynomial in b, and a polynomial ri such that
+a[i] = sum_i b[i]*qi + ri.
+"""
+function divrem(a::Vector{T}, b::Vector{T}) where T <: MPolyElem{S} where S <: RingElem
+  return [divrem(x, b) for x in a]
+end
+
+################################################################################
+
+function Base.:*(f::MPolyElem, I::MPolyIdeal)
+  R = base_ring(I)
+  R == parent(f) || error("base rings do not match")
+  return ideal(R, f.*gens(I))
+end
+
+################################################################################
+@doc Markdown.doc"""
+    primary_decomposition(I::MPolyIdeal, algo::String="GTZ")
+
+Compute a primary decomposition of the ideal `I` using the `GTZ`-algorithm by
+default, or `SY` if specified. The output is an array of pairs where the first
+element is a primary ideal appearing in the primary decomposition and the second
+entry is the radical of this primary ideal. 
+"""
+function primary_decomposition(I::MPolyIdeal, algo::String="GTZ")
+  R = base_ring(I)
+  singular_assure(I)
+  if algo == "GTZ"
+    L = Singular.LibPrimdec.primdecGTZ(I.gens.Sx, I.gens.S)
+  elseif algo == "SY"
+    L = Singular.LibPrimdec.primdecSY(I.gens.Sx, I.gens.S)
+  else
+    error("algorithm invalid")
+  end
+  return [ideal(R, q[1]) => ideal(R, q[2]) for q in L]
+end
+
+################################################################################
+# I don't know if there is a smarter way to check if an ideal is prime/primary
+
+@doc Markdown.doc"""
+    isprime(I::MPolyIdeal)
+
+Return `true` if the ideal `I` is prime, false otherwise
+"""
+function isprime(I::MPolyIdeal)
+  R = base_ring(I)
+  D = primary_decomposition(I)
+  if length(D) != 1
+    return false
+  else
+    for (q, p) in D
+      r = divrem(gens(p), groebner_basis(q))
+      arr = [r[i][2] for i in 1:length(r)]
+      return length(findall(x->x==R(0), arr)) == length(arr)
+    end
+  end
+end
+
+################################################################################
+
+@doc Markdown.doc"""
+    isprimary(I::MPolyIdeal)
+
+Return `true` if the ideal `I` is primary, false otherwise
+"""
+function isprimary(I::MPolyIdeal)
+  D = primary_decomposition(I)
+  return length(D) == 1
+end
+
+################################################################################

@@ -133,5 +133,24 @@ end
   I = ideal([2*x+3*y+4*z-5,3*x+4*y+5*z-2])
   @test groebner_basis(I,:degrevlex) == [y+2*z-11, 3*x+4*y+5*z-2]
   @test groebner_basis(I,:degrevlex, complete_reduction = true) == [y+2*z-11, x-z+14]
-  
+
+end
+
+@testset "Primary decomposition" begin
+  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+  I = ideal(R, [x, y*z^2])
+  J = ideal(R, [x, y^2])
+  L = primary_decomposition(I)
+  Q = ideal(R, [R(1)])
+  @test isprime(I) == false
+  @test isprimary(I) == false
+  @test isprime(J) == false
+  @test isprimary(J) == true
+  for (q, p) in L
+    Q = intersect(Q, q)
+    @test isprimary(q)
+    @test isprime(p)
+    @test p == radical(q)
+  end
+  @test Q == I
 end
