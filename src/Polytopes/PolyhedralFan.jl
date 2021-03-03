@@ -12,6 +12,9 @@
 """
 struct PolyhedralFan
    pm_fan::Polymake.BigObjectAllocated
+   function PolyhedralFan(pm::Polymake.BigObjectAllocated)
+      return new(pm)
+   end
 end
 
 """
