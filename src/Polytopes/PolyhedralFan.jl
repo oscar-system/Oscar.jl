@@ -22,19 +22,19 @@ Get the underlying polymake BigObject.
 pm_fan(PF::PolyhedralFan) = PF.pm_fan
 
 
-function PolyhedralFan(Cones::Array{Cone,1})
-   BigObjectArray = Polymake.Array{Polymake.BigObject}(length(Cones))
-   for i in 1:length(Cones)
-      BigObjectArray[i] = pm_cone(Cones[i])
+function PolyhedralFan(cones::Array{Cone,1})
+   BigObjectArray = Polymake.Array{Polymake.BigObject}(length(cones))
+   for i in 1:length(cones)
+      BigObjectArray[i] = pm_cone(cones[i])
    end
    PolyhedralFan(Polymake.fan.check_fan_objects(BigObjectArray))
 end
 
 #=
-function PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, Cones::AbstractArray{AbstractArray{Int64}})
+function PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, cones::AbstractArray{AbstractArray{Int64}})
    PolyhedralFan(Polymake.fan.PolyhedralFan{Polymake.Rational}(
       INPUT_RAYS = matrix_for_polymake(Rays),
-      INPUT_CONES = [[x-1 for x in cone] for cone in Cones],
+      INPUT_CONES = [[x-1 for x in cone] for cone in cones],
    ))
 end
 =#
