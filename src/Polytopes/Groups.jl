@@ -1,7 +1,7 @@
 function PermGroup_to_polymake_array(G::PermGroup)
    generators = gens(G)
    d = degree(G)
-   result = Polymake.Array{Polymake.Array{Int64}}(length(generators))
+   result = Polymake.Array{Polymake.Array{Polymake.to_cxx_type(Int)}}(length(generators))
    i = 1
    for g in generators
       array = Polymake.Array{Int64}(d)
