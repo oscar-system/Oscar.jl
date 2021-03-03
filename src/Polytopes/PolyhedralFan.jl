@@ -22,7 +22,8 @@ Get the underlying polymake BigObject.
 pm_fan(PF::PolyhedralFan) = PF.pm_fan
 
 
-function PolyhedralFan(cones::Array{Cone,1})
+function PolyhedralFan(itr)
+   cones = collect(Cone, itr)
    BigObjectArray = Polymake.Array{Polymake.BigObject}(length(cones))
    for i in 1:length(cones)
       BigObjectArray[i] = pm_cone(cones[i])
