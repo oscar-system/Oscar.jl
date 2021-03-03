@@ -81,11 +81,6 @@ function stack(A::Array{Polymake.VectorAllocated{Polymake.Rational},1})
 end
 =#
 
-function property_is_computed(P::Polymake.BigObjectAllocated, S::Symbol)
-    pv = Polymake.internal_call_method("lookup", P, Any[string(S)])
-    return nothing != Polymake.convert_from_property_value(pv)
-end
-
 """
    decompose_vdata(A::AbstractMatrix)
 

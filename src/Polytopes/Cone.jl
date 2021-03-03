@@ -32,7 +32,6 @@ function Cone(Rays::Union{Oscar.MatElem,AbstractMatrix}, LS::Union{Oscar.MatElem
    end
 end
 
-property_is_computed(C::Cone, S::Symbol) = property_is_computed(pm_cone(C), S)
 ==(C0::Cone, C1::Cone) = Polymake.polytope.equal_polyhedra(pm_cone(C0), pm_cone(C1))
 
 

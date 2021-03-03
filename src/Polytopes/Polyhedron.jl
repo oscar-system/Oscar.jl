@@ -32,7 +32,6 @@ Get the underlying polymake `Polytope`.
 """
 pm_polytope(P::Polyhedron) = P.pm_polytope
 
-property_is_computed(P::Polyhedron, S::Symbol) = property_is_computed(pm_polytope(P), S)
 ==(P0::Polyhedron, P1::Polyhedron) = Polymake.polytope.equal_polyhedra(pm_polytope(P0), pm_polytope(P1))
 
 ###############################################################################
