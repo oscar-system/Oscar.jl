@@ -212,8 +212,8 @@ struct PolyhedronFacetPolyhedronIterator
 end
 
 function Base.iterate(iter::PolyhedronFacetPolyhedronIterator, index = 1)
-    nfacets = nfacets(iter.p)
-    if index > nfacets
+    n_facets = nfacets(iter.p)
+    if index > n_facets
         return nothing
     end
 

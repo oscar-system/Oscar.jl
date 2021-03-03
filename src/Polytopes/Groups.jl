@@ -4,7 +4,7 @@ function PermGroup_to_polymake_array(G::PermGroup)
    result = Polymake.Array{Polymake.Array{Polymake.to_cxx_type(Int)}}(length(generators))
    i = 1
    for g in generators
-      array = Polymake.Array{Int64}(d)
+      array = Polymake.Array{Polymake.to_cxx_type(Int)}(d)
       for j in 1:d
          array[j] = g(j)-1
       end
