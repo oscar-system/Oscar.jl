@@ -1108,8 +1108,9 @@ end
 
 Return an array of the minimal associated prime ideals of `I`.
 If `I` is the unit ideal, `[ideal(1)]` is returned.
-If the base ring of `I` is a polynomial ring over a field, the possibilities
-for the algorithm are `alg=:GTZ` (default) and `alg=:charSets`.
+If the base ring of `I` is a polynomial ring over a field, the algorithm of
+Gianni-Trager-Zacharias is used by default and characteristic sets may be
+used by specifying `alg=:charSets`.
 """
 function minimal_primes(I::MPolyIdeal; alg = :GTZ)
   R = base_ring(I)
@@ -1230,10 +1231,11 @@ end
 @doc Markdown.doc"""
     primary_decomposition(I::MPolyIdeal; alg=:GTZ)
 
-Compute a primary decomposition of the ideal `I` using the `GTZ`-algorithm by
-default, or `SY` if specified. The output is an array of tuples where the first
-element is a primary ideal appearing in the primary decomposition and the second
-entry is the radical of this primary ideal. 
+Compute a primary decomposition of the ideal `I` using the
+Gianni-Trager-Zacharias algorithm by default, or the Shimoyama-Yokoyama
+algorithm if specified by `alg=:SY`. The output is an array of tuples where the
+first entry is a primary ideal appearing in the primary decomposition and the
+second entry is the radical of this primary ideal.
 """
 function primary_decomposition(I::MPolyIdeal; alg=:GTZ)
   R = base_ring(I)
