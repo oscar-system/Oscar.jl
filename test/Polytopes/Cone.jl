@@ -29,5 +29,8 @@ const pm = Polymake
         @test dim(Cone2) == 3
         @test ambient_dim(Cone2) == 3
         @test lineality_space(Cone2) == L
+        @test length(collect(rays(Cone4))) == 2
+        @test codim(Cone4) == 1
+        @test codim(Cone3) == 0
     end
 end
