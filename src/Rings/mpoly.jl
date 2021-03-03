@@ -1134,8 +1134,10 @@ end
     weak_equidimensional_decomposition(I::MPolyIdeal)
 
 Return an array of equidimensional ideals where the last element is the
-equidimensional locus of `I` and the previous elements are the lower
-dimensional equidimensional loci.
+equidimensional hull of `I`, that is, the intersection of the primary
+components of `I` of maximal dimension, and each of the previous elements
+is a lower dimensional ideal whose associated primes are exactly the associated
+primes of `I` of that dimension.
 If `I` is the unit ideal, `[ideal(1)]` is returned.
 """
 function weak_equidimensional_decomposition(I::MPolyIdeal)
@@ -1148,9 +1150,10 @@ end
 @doc Markdown.doc"""
     equidimensional_hull(I::MPolyIdeal)
 
-If the base ring of `I` is a polynomial ring over a field, return the ideal of
-equidimensional locus (of maximal dimension) of `I`. In the case of polynomials
-over the integers, return the part of minimal height.
+If the base ring of `I` is a polynomial ring over a field, return the intersection
+of the primary components of `I` of maximal dimension. In the case of polynomials
+over the integers, return the intersection of the primary components of I of
+minimal height.
 """
 function equidimensional_hull(I::MPolyIdeal)
   R = base_ring(I)
@@ -1180,7 +1183,7 @@ end
 @doc Markdown.doc"""
     decomposition_radical_equidimensional_hull(I::MPolyIdeal)
 
-Return an array of the radicals of the maximal dimensional components of `I`.
+Return an array of the associated primes of `I` of maximal dimension.
 """
 function decomposition_radical_equidimensional_hull(I::MPolyIdeal)
   R = base_ring(I)
