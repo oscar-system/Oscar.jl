@@ -91,7 +91,7 @@ function Base.iterate(iter::PolyhedralFanRayIterator, index = 1)
     return (rays[index, :], index + 1)
 end
 Base.eltype(::Type{PolyhedralFanRayIterator}) = Polymake.VectorAllocated{Polymake.Rational}
-Base.length(iter::PolyhedralFanRayIterator) = n_rays(iter.fan)
+Base.length(iter::PolyhedralFanRayIterator) = nrays(iter.fan)
 
 """
    rays(PF::PolyhedralFan)
@@ -123,14 +123,14 @@ struct MaximalConeIterator
 end
 
 function Base.iterate(iter::MaximalConeIterator, index = 1)
-    n_max_cones = n_maximal_cones(iter.PF)
+    n_max_cones = nmaximal_cones(iter.PF)
     if index > n_max_cones
         return nothing
     end
     current_cone = Cone(Polymake.fan.cone(pm_fan(iter.PF), index - 1))
     return (current_cone, index + 1)
 end
-Base.length(iter::MaximalConeIterator) = n_maximal_cones(iter.PF)
+Base.length(iter::MaximalConeIterator) = nmaximal_cones(iter.PF)
 
 ###############################################################################
 ###############################################################################
@@ -150,11 +150,11 @@ Returns the dimension of a polyhedral fan.
 dim(PF::PolyhedralFan) = pm_fan(PF).FAN_DIM
 
 """
-   n_maximal_cones(PF::PolyhedralFan)
+   nmaximal_cones(PF::PolyhedralFan)
 
 Returns the number of maximal cones in a polyhedral fan `PF`.
 """
-n_maximal_cones(PF::PolyhedralFan) = pm_fan(PF).N_MAXIMAL_CONES
+nmaximal_cones(PF::PolyhedralFan) = pm_fan(PF).N_MAXIMAL_CONES
 
 """
    ambient_dim(PF::PolyhedralFan)
@@ -164,11 +164,11 @@ Returns the ambient dimension of a polyhedral fan.
 ambient_dim(PF::PolyhedralFan) = pm_fan(PF).FAN_AMBIENT_DIM
 
 """
-   n_rays(PF::PolyhedralFan)
+   nrays(PF::PolyhedralFan)
 
 Returns the number of rays of a polyhedral fan.
 """
-n_rays(PF::PolyhedralFan) = pm_fan(PF).N_RAYS
+nrays(PF::PolyhedralFan) = pm_fan(PF).N_RAYS
 
 
 ###############################################################################

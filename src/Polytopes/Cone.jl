@@ -88,7 +88,7 @@ function Base.iterate(iter::ConeRayIterator, index = 1)
     return (rays[index, :], index + 1)
 end
 Base.eltype(::Type{ConeRayIterator}) = Polymake.VectorAllocated{Polymake.Rational}
-Base.length(iter::ConeRayIterator) = n_rays(iter.cone)
+Base.length(iter::ConeRayIterator) = nrays(iter.cone)
 
 """
    rays(C::Cone)
@@ -108,11 +108,11 @@ rays(C::Cone) = ConeRayIterator(C)
 ###############################################################################
 
 """
-   n_rays(C::Cone)
+   nrays(C::Cone)
 
 Returns the number of rays of the cone `C`.
 """
-n_rays(C::Cone) = pm_cone(C).N_RAYS
+nrays(C::Cone) = pm_cone(C).N_RAYS
 
 """
    dim(C::Cone)

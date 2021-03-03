@@ -31,8 +31,8 @@ const pm = Polymake
     F2 = PolyhedralFan(R, L, incidence2)
     
     @testset "Polyhedron" begin
-        @test n_vertices(Q0) == 3
-        @test n_vertices.(faces(Q0,1)) == [2,2,2]
+        @test nvertices(Q0) == 3
+        @test nvertices.(faces(Q0,1)) == [2,2,2]
         @test length.(lattice_points(Q0)) == [2;2;2]
         @test isfeasible(Q0)
         @test issmooth(Q0)
@@ -49,7 +49,7 @@ const pm = Polymake
         @test ispointed(Cone1)
         @test isfulldimensional(Cone1)
         @test size(hilbert_basis(Cone1)) == (2,2)
-        @test n_rays(Cone1) == 2
+        @test nrays(Cone1) == 2
         @test rays_as_point_matrix(Cone1) == [1 0; 0 1]
         @test facets_as_point_matrix(Cone1) == [1 0; 0 1]
         
@@ -73,20 +73,20 @@ const pm = Polymake
         @test iscomplete(NFsquare)
         @test !iscomplete(F0)
         @test length(rays(F0)) == 3
-        @test n_rays(F1) == 3
+        @test nrays(F1) == 3
         @test dim(F1) == 2
         @test ambient_dim(F1) == 3
-        @test n_rays(F2) == 2
+        @test nrays(F2) == 2
         @test dim.(maximal_cones(F1)) == [2,2]
-        @test n_maximal_cones(F1) == 2
+        @test nmaximal_cones(F1) == 2
         @test lineality_space(F2) == L
         @test length(collect(rays(F0))) == 3
         
         II = maximal_cones_as_incidence_matrix(NFsquare)
         NF0 = PolyhedralFan(rays_as_point_matrix(NFsquare), II)
-        @test n_rays(NF0) == 4
+        @test nrays(NF0) == 4
         FF0 = face_fan(C0)
-        @test n_rays(FF0) == 4
+        @test nrays(FF0) == 4
         @test !issmooth(FF0)
     end
 
@@ -199,7 +199,7 @@ const pm = Polymake
         @test ambient_dim(P) == 4
 
         F = facets(P; as = :polyhedra)
-        @test n_vertices.(F) == [6, 6, 4, 6, 4, 4, 6, 4, 6, 6, 4, 6, 6, 4]
+        @test nvertices.(F) == [6, 6, 4, 6, 4, 4, 6, 4, 6, 6, 4, 6, 6, 4]
 
         op = orbit_polytope(x, G)
         @test P == op

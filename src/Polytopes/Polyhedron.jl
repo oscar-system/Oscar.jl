@@ -72,9 +72,9 @@ end
 
 function Base.iterate(iter::PolyhedronFacePolyhedronIterator, index = 1)
     faces = Polymake.polytope.faces_of_dim(pm_polytope(iter.p),iter.face_dim)
-    n_faces = length(faces)
+    nfaces = length(faces)
     while true
-        if index > n_faces
+        if index > nfaces
             return nothing
         end
         isfar=true
@@ -120,7 +120,7 @@ function Base.iterate(iter::VertexPointIterator, index = 1)
     end
 end
 Base.eltype(::Type{VertexPointIterator}) = Polymake.Vector{Polymake.Rational}
-Base.length(iter::VertexPointIterator) = n_vertices(iter.p)
+Base.length(iter::VertexPointIterator) = nvertices(iter.p)
 
 """
    vertices(H::Polyhedron, as = :points)
@@ -159,21 +159,21 @@ function Base.iterate(iter::PolyhedronRayIterator, index = 1)
     end
 end
 Base.eltype(::Type{PolyhedronRayIterator}) = Polymake.VectorAllocated{Polymake.Rational}
-Base.length(iter::PolyhedronRayIterator) = n_rays(iter.p)
+Base.length(iter::PolyhedronRayIterator) = nrays(iter.p)
 
 """
-    n_rays(P::Polyhedron)
+    nrays(P::Polyhedron)
 
 Returns the number of rays of `P`.
 """
-n_rays(P::Polyhedron) = length(pm_polytope(P).FAR_FACE)
+nrays(P::Polyhedron) = length(pm_polytope(P).FAR_FACE)
 
 """
-    n_vertices(P::Polyhedron)
+    nvertices(P::Polyhedron)
 
 Returns the number of vertices of `P`.
 """
-n_vertices(P::Polyhedron) = pm_polytope(P).N_VERTICES - n_rays(P)
+nvertices(P::Polyhedron) = pm_polytope(P).N_VERTICES - nrays(P)
 
 """
    rays(P::Polyhedron)
@@ -202,7 +202,7 @@ function Base.iterate(iter::PolyhedronFacetHalfspaceIterator, index = 1)
 
     return ((Polymake.Vector(-facets[index, 2:end]), facets[index, 1]), index + 1)
 end
-Base.length(iter::PolyhedronFacetHalfspaceIterator) = n_facets(iter.p)
+Base.length(iter::PolyhedronFacetHalfspaceIterator) = nfacets(iter.p)
 Base.eltype(::Type{PolyhedronFacetHalfspaceIterator}) =
     Tuple{Polymake.VectorAllocated{Polymake.Rational},Polymake.RationalAllocated}
 
@@ -212,7 +212,7 @@ struct PolyhedronFacetPolyhedronIterator
 end
 
 function Base.iterate(iter::PolyhedronFacetPolyhedronIterator, index = 1)
-    nfacets = n_facets(iter.p)
+    nfacets = nfacets(iter.p)
     if index > nfacets
         return nothing
     end
@@ -220,15 +220,15 @@ function Base.iterate(iter::PolyhedronFacetPolyhedronIterator, index = 1)
     p = Polyhedron(Polymake.polytope.facet(pm_polytope(iter.p), index - 1))
     return (p, index + 1)
 end
-Base.length(iter::PolyhedronFacetPolyhedronIterator) = n_facets(iter.p)
+Base.length(iter::PolyhedronFacetPolyhedronIterator) = nfacets(iter.p)
 # Base.eltype(::Type{PolyhedronFacetPolyhedronIterator}) = Polyhedron
 
 """
-   n_facets(P::Polyhedron)
+   nfacets(P::Polyhedron)
 
 Returns the number of facets of the polyhedron `P`.
 """
-n_facets(P::Polyhedron) = pm_polytope(P).N_FACETS
+nfacets(P::Polyhedron) = pm_polytope(P).N_FACETS
 
 @doc Markdown.doc"""
    facets(P::Polyhedron, as = :halfspaces)
