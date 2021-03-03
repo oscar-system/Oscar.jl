@@ -29,7 +29,7 @@ end
 #  use walk, tracing, ...
 function Oscar.groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevlex; use_hilbert::Bool = false, Proof::Bool = true)
   if isdefined(I, :gb) && ord == :degrevlex
-    return I.gb
+    return collect(I.gb)
   end
   if Proof
     return Oscar.groebner_basis_with_transform(I, ord = ord)[1]

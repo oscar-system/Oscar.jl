@@ -62,9 +62,33 @@ end
   @test length(L) == 2
   @test length(findall(x->x==r1, L)) == 1
   @test length(findall(x->x==r2, L)) == 1
+
+  @test issubset(ideal(S, [a]), ideal(S, [a]))
+  @test issubset(ideal(S, [a]), ideal(S, [a, b]))
+  @test !issubset(ideal(S, [c]), ideal(S, [b]))
+  @test !issubset(ideal(S, [a, b, c]), ideal(S, [a*b*c]))
 end
 
 @testset "Primary decomposition" begin
+
+  # primary_decomposition
+  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+  i = ideal(R, [x, y*z^2])
+  for method in (:GTZ, :SY)
+    j = ideal(R, [R(1)])
+    for (q, p) in primary_decomposition(i, alg=method)
+      j = intersect(j, q)
+      @test isprimary(q)
+      @test isprime(p)
+      @test p == radical(q)
+    end
+    @test j == i
+  end
+
+  R, (a, b, c, d) = PolynomialRing(ZZ, ["a", "b", "c", "d"])
+  i = ideal(R, [9, (a+3)*(b+3)])
+  l = primary_decomposition(i)
+  @test length(l) == 2
 
   # minimal_primes
   R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])

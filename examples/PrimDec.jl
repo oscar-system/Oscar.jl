@@ -4,7 +4,7 @@ import Markdown
 import Singular
 
 include("ZeroDec.jl")
-export primary_decomposition
+#Note: primary_decomposition in now in src/Rings/mpoly.jl and uses Singular.LibPrimdec
 
 ######################################### PRIMARY DECOMPOSITION VIA GTZ #################################################################################
 # This is an implementation of the GTZ Algorithm, primarily based on Chapter 4 of "A SINGULAR introduction to Commutative Algebra" by Greuel and Pfister.

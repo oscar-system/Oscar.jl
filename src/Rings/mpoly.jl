@@ -398,7 +398,7 @@ end
 function Base.issubset(I::MPolyIdeal, J::MPolyIdeal)
   singular_assure(I)
   singular_assure(J)
-  return Singular.contains(I.gens.S, J.gens.S)
+  return Singular.contains(J.gens.S, I.gens.S)
 end
 
 function gens(I::MPolyIdeal)
@@ -1104,12 +1104,13 @@ end
 # primary decomposition #######################################################
 
 @doc Markdown.doc"""
-    minimal_primes(I::MPolyIdeal, alg=:GTZ)
+    minimal_primes(I::MPolyIdeal; alg=:GTZ)
 
 Return an array of the minimal associated prime ideals of `I`.
 If `I` is the unit ideal, `[ideal(1)]` is returned.
-If the base ring of `I` is a polynomial ring over a field, the possibilities
-for the algorithm are `alg=:GTZ` (default) and `alg=:charSets`.
+If the base ring of `I` is a polynomial ring over a field, the algorithm of
+Gianni-Trager-Zacharias is used by default and characteristic sets may be
+used by specifying `alg=:charSets`.
 """
 function minimal_primes(I::MPolyIdeal; alg = :GTZ)
   R = base_ring(I)
@@ -1134,8 +1135,10 @@ end
     weak_equidimensional_decomposition(I::MPolyIdeal)
 
 Return an array of equidimensional ideals where the last element is the
-equidimensional locus of `I` and the previous elements are the lower
-dimensional equidimensional loci.
+equidimensional hull of `I`, that is, the intersection of the primary
+components of `I` of maximal dimension, and each of the previous elements
+is a lower dimensional ideal whose associated primes are exactly the associated
+primes of `I` of that dimension.
 If `I` is the unit ideal, `[ideal(1)]` is returned.
 """
 function weak_equidimensional_decomposition(I::MPolyIdeal)
@@ -1148,9 +1151,10 @@ end
 @doc Markdown.doc"""
     equidimensional_hull(I::MPolyIdeal)
 
-If the base ring of `I` is a polynomial ring over a field, return the ideal of
-equidimensional locus (of maximal dimension) of `I`. In the case of polynomials
-over the integers, return the part of minimal height.
+If the base ring of `I` is a polynomial ring over a field, return the intersection
+of the primary components of `I` of maximal dimension. In the case of polynomials
+over the integers, return the intersection of the primary components of I of
+minimal height.
 """
 function equidimensional_hull(I::MPolyIdeal)
   R = base_ring(I)
@@ -1180,7 +1184,7 @@ end
 @doc Markdown.doc"""
     decomposition_radical_equidimensional_hull(I::MPolyIdeal)
 
-Return an array of the radicals of the maximal dimensional components of `I`.
+Return an array of the associated primes of `I` of maximal dimension.
 """
 function decomposition_radical_equidimensional_hull(I::MPolyIdeal)
   R = base_ring(I)
@@ -1225,24 +1229,31 @@ end
 
 ################################################################################
 @doc Markdown.doc"""
-    primary_decomposition(I::MPolyIdeal, algo::String="GTZ")
+    primary_decomposition(I::MPolyIdeal; alg=:GTZ)
 
-Compute a primary decomposition of the ideal `I` using the `GTZ`-algorithm by
-default, or `SY` if specified. The output is an array of pairs where the first
-element is a primary ideal appearing in the primary decomposition and the second
-entry is the radical of this primary ideal. 
+Compute a primary decomposition of the ideal `I` using the
+Gianni-Trager-Zacharias algorithm by default, or the Shimoyama-Yokoyama
+algorithm if specified by `alg=:SY`. The output is an array of tuples where the
+first entry is a primary ideal appearing in the primary decomposition and the
+second entry is the radical of this primary ideal.
 """
-function primary_decomposition(I::MPolyIdeal, algo::String="GTZ")
+function primary_decomposition(I::MPolyIdeal; alg=:GTZ)
   R = base_ring(I)
   singular_assure(I)
-  if algo == "GTZ"
-    L = Singular.LibPrimdec.primdecGTZ(I.gens.Sx, I.gens.S)
-  elseif algo == "SY"
-    L = Singular.LibPrimdec.primdecSY(I.gens.Sx, I.gens.S)
+  if elem_type(base_ring(R)) <: FieldElement
+    if alg == :GTZ
+      L = Singular.LibPrimdec.primdecGTZ(I.gens.Sx, I.gens.S)
+    elseif alg == :SY
+      L = Singular.LibPrimdec.primdecSY(I.gens.Sx, I.gens.S)
+    else
+      error("algorithm invalid")
+    end
+  elseif base_ring(I.gens.Sx) isa Singular.Integers
+    L = Singular.LibPrimdecint.primdecZ(I.gens.Sx, I.gens.S)
   else
-    error("algorithm invalid")
+    error("base ring not implemented")
   end
-  return [ideal(R, q[1]) => ideal(R, q[2]) for q in L]
+  return [(ideal(R, q[1]), ideal(R, q[2])) for q in L]
 end
 
 ################################################################################
@@ -1254,17 +1265,8 @@ end
 Return `true` if the ideal `I` is prime, false otherwise
 """
 function isprime(I::MPolyIdeal)
-  R = base_ring(I)
   D = primary_decomposition(I)
-  if length(D) != 1
-    return false
-  else
-    for (q, p) in D
-      r = divrem(gens(p), groebner_basis(q))
-      arr = [r[i][2] for i in 1:length(r)]
-      return length(findall(x->x==R(0), arr)) == length(arr)
-    end
-  end
+  return length(D) == 1 && issubset(D[1][2], D[1][1])
 end
 
 ################################################################################
