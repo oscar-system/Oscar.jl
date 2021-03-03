@@ -5,6 +5,7 @@
 ###############################################################################
 
 @doc Markdown.doc"""
+
     Polyhedron(A, b)
 
 The (metric) polyhedron defined by
@@ -12,6 +13,18 @@ The (metric) polyhedron defined by
 $$P(A,b) = \{ x |  Ax ≤ b \}.$$
 
 see Def. 3.35 and Section 4.1.
+
+# Arguments
+- `A::Matrix`: Matrix corresponding to the linear coefficients of the inequalilites that describe P.
+- `b::Vector`: Vector corresponding to the constant term of the inequalilites that describe P.
+
+# Examples
+```julia-repl
+julia> A=[1 0; 0 1; -1 0 ; 0 -1];
+julia> b=[1,1,0,0];
+julia> Polyhedron([1 0;0 1;-1 0;0 -1],[1 1 0 0])
+A polyhedron of dimension 2
+```
 """ struct Polyhedron #a real polymake polyhedron
     pm_polytope::Polymake.BigObjectAllocated
     boundedness::Symbol # Values: :unknown, :bounded, :unbounded
@@ -514,4 +527,8 @@ end
 
 +(v::AbstractVector,P::Polyhedron) = P+v
 
-
+@doc Markdown.doc"""
+   simplex(d)
+Construct a $d$-dimensional simplex whose vertices are the origin and the unit standard basis vectors.
+"""
+simplex(d) = Polyhedron(Polymake.polytope.simplex(d))
