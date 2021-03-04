@@ -531,7 +531,7 @@ end
 
    simplex(d[,n])
 
-Construct a $d$-dimensional standard simplex that is scaled by $n$.
+Construct a $d$-dimensional standard simplex in $R^d$ that is scaled by $n$.
 If $n$ is missing, construct a unit standart simplex.
 """
 simplex(d::Int64,n) = Polyhedron(Polymake.polytope.simplex(d,n))
