@@ -407,15 +407,6 @@ end
 
 gen(I::MPolyIdeal, i::Int) = I.gens[Val(:O), i]
 
-function saturation(I::MPolyIdeal, J::MPolyIdeal)
-  singular_assure(I)
-  singular_assure(J)
-  return MPolyIdeal(I.gens.Ox, Singular.saturation(I.gens.S, J.gens.S))
-end
-
-#TODO: is this a good idea? Conflicting meaning?
-#      add saturation at variables?
-(::Colon)(I::MPolyIdeal, J::MPolyIdeal) = saturation(I, J)
 
 function groebner_assure(I::MPolyIdeal)
   if !isdefined(I, :gb)
@@ -573,17 +564,6 @@ end
 # Singular library related functions
 #
 ##########################################
-@doc Markdown.doc"""
-    radical(I::MPolyIdeal)
-
-    Given an ideal $I$ this function returns the radical ideal ``\sqrt I``..
-"""
-function radical(I::MPolyIdeal)
-  singular_assure(I)
-  R = base_ring(I)
-  J = Singular.LibPrimdec.radical(I.gens.Sx, I.gens.S)
-  return ideal(R, J)
-end
 
 ##########################
 #
@@ -747,33 +727,6 @@ function preimage(h::MPolyHom_alg, I::MPolyIdeal)
 end
 
 ###################################################
-
-@doc Markdown.doc"""
-    eliminate(I::MPolyIdeal, polys::Array{MPolyElem, 1})
-
-Given a list of polynomials which are variables, construct the ideal
-corresponding geometrically to the projection of the variety given by the
-ideal $I$ where those variables have been eliminated.
-"""
-function eliminate(I::MPolyIdeal, l::Array{<:MPolyElem, 1})
-  singular_assure(I)
-  B = BiPolyArray(l)
-  S = base_ring(I.gens.S)
-  s = Singular.eliminate(I.gens.S, [S(x) for x = l]...)
-  return MPolyIdeal(base_ring(I), s)
-end
-
-@doc Markdown.doc"""
-    eliminate(I::MPolyIdeal, polys::AbstractArray{Int, 1})
-
-Given a list of indices, construct the ideal
-corresponding geometrically to the projection of the variety given by the
-ideal $I$ where those variables in the list have been eliminated.
-"""
-function eliminate(I::MPolyIdeal, l::AbstractArray{Int, 1})
-  R = base_ring(I)
-  return eliminate(I, [gen(R, i) for i=l])
-end
 
 module Orderings
 
@@ -1258,97 +1211,6 @@ function leading_ideal(I::MPolyIdeal, ord::Symbol)
   return leading_ideal(groebner_basis(I, ord), ord)
 end
 
-# primary decomposition #######################################################
-
-@doc Markdown.doc"""
-    minimal_primes(I::MPolyIdeal; alg=:GTZ)
-
-Return an array of the minimal associated prime ideals of `I`.
-If `I` is the unit ideal, `[ideal(1)]` is returned.
-If the base ring of `I` is a polynomial ring over a field, the algorithm of
-Gianni-Trager-Zacharias is used by default and characteristic sets may be
-used by specifying `alg=:charSets`.
-"""
-function minimal_primes(I::MPolyIdeal; alg = :GTZ)
-  R = base_ring(I)
-  singular_assure(I)
-  if elem_type(base_ring(R)) <: FieldElement
-    if alg == :GTZ
-      l = Singular.LibPrimdec.minAssGTZ(I.gens.Sx, I.gens.S)
-    elseif alg == :charSets
-      l = Singular.LibPrimdec.minAssChar(I.gens.Sx, I.gens.S)
-    else
-      error("algorithm invalid")
-    end
-  elseif base_ring(I.gens.Sx) isa Singular.Integers
-    l = Singular.LibPrimdecint.minAssZ(I.gens.Sx, I.gens.S)
-  else
-    error("base ring not implemented")
-  end
-  return [ideal(R, i) for i in l]
-end
-
-@doc Markdown.doc"""
-    weak_equidimensional_decomposition(I::MPolyIdeal)
-
-Return an array of equidimensional ideals where the last element is the
-equidimensional hull of `I`, that is, the intersection of the primary
-components of `I` of maximal dimension, and each of the previous elements
-is a lower dimensional ideal whose associated primes are exactly the associated
-primes of `I` of that dimension.
-If `I` is the unit ideal, `[ideal(1)]` is returned.
-"""
-function weak_equidimensional_decomposition(I::MPolyIdeal)
-  R = base_ring(I)
-  singular_assure(I)
-  l = Singular.LibPrimdec.equidim(I.gens.Sx, I.gens.S)
-  return [ideal(R, i) for i in l]
-end
-
-@doc Markdown.doc"""
-    equidimensional_hull(I::MPolyIdeal)
-
-If the base ring of `I` is a polynomial ring over a field, return the intersection
-of the primary components of `I` of maximal dimension. In the case of polynomials
-over the integers, return the intersection of the primary components of I of
-minimal height.
-"""
-function equidimensional_hull(I::MPolyIdeal)
-  R = base_ring(I)
-  singular_assure(I)
-  if elem_type(base_ring(R)) <: FieldElement
-    i = Singular.LibPrimdec.equidimMax(I.gens.Sx, I.gens.S)
-  elseif base_ring(I.gens.Sx) isa Singular.Integers
-    i = Singular.LibPrimdecint.equidimZ(I.gens.Sx, I.gens.S)
-  else
-    error("base ring not implemented")
-  end
-  return ideal(R, i)
-end
-
-@doc Markdown.doc"""
-    radical_equidimensional_hull(I::MPolyIdeal)
-
-Return the intersection of associated primes of `I` of maximal dimension.
-"""
-function radical_equidimensional_hull(I::MPolyIdeal)
-  R = base_ring(I)
-  singular_assure(I)
-  i = Singular.LibPrimdec.equiRadical(I.gens.Sx, I.gens.S)
-  return ideal(R, i)
-end
-
-@doc Markdown.doc"""
-    decomposition_radical_equidimensional_hull(I::MPolyIdeal)
-
-Return an array of the associated primes of `I` of maximal dimension.
-"""
-function decomposition_radical_equidimensional_hull(I::MPolyIdeal)
-  R = base_ring(I)
-  singular_assure(I)
-  l = Singular.LibPrimdec.prepareAss(I.gens.Sx, I.gens.S)
-  return [ideal(R, i) for i in l]
-end
 
 
 ##############################################################################
@@ -1385,33 +1247,6 @@ function Base.:*(f::MPolyElem, I::MPolyIdeal)
 end
 
 ################################################################################
-@doc Markdown.doc"""
-    primary_decomposition(I::MPolyIdeal; alg=:GTZ)
-
-Compute a primary decomposition of the ideal `I` using the
-Gianni-Trager-Zacharias algorithm by default, or the Shimoyama-Yokoyama
-algorithm if specified by `alg=:SY`. The output is an array of tuples where the
-first entry is a primary ideal appearing in the primary decomposition and the
-second entry is the radical of this primary ideal.
-"""
-function primary_decomposition(I::MPolyIdeal; alg=:GTZ)
-  R = base_ring(I)
-  singular_assure(I)
-  if elem_type(base_ring(R)) <: FieldElement
-    if alg == :GTZ
-      L = Singular.LibPrimdec.primdecGTZ(I.gens.Sx, I.gens.S)
-    elseif alg == :SY
-      L = Singular.LibPrimdec.primdecSY(I.gens.Sx, I.gens.S)
-    else
-      error("algorithm invalid")
-    end
-  elseif base_ring(I.gens.Sx) isa Singular.Integers
-    L = Singular.LibPrimdecint.primdecZ(I.gens.Sx, I.gens.S)
-  else
-    error("base ring not implemented")
-  end
-  return [(ideal(R, q[1]), ideal(R, q[2])) for q in L]
-end
 
 ################################################################################
 # I don't know if there is a smarter way to check if an ideal is prime/primary
