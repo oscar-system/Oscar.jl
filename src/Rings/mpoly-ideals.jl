@@ -144,7 +144,6 @@ is an ideal of lower dimension whose associated primes are exactly the associate
 primes of `I` of that dimension.
 If `I` is the unit ideal, `[ideal(1)]` is returned.
 """
-
 function equidimensional_decomposition_weak(I::MPolyIdeal)
   R = base_ring(I)
   singular_assure(I)
@@ -191,7 +190,6 @@ end
     equidimensional_hull_radical(I::MPolyIdeal)
 Return the intersection of associated primes of `I` of maximal dimension.
 """
-
 function equidimensional_hull_radical(I::MPolyIdeal)
   R = base_ring(I)
   singular_assure(I)
