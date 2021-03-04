@@ -353,6 +353,7 @@ function Base.copy(f::MPolyElem)
     return finish(g)
 end
 
+
 function map_entries(R, M::Singular.smatrix)
   s = nrows(M), ncols(M)
   S = parent(R(zero(base_ring(M))))
@@ -1172,7 +1173,6 @@ function leading_monomial(f::MPolyElem)
   return leading_monomial(f, ordering(parent(f)))
 end
 
-
 ##############################################################################
 #
 ##############################################################################
@@ -1208,6 +1208,3 @@ end
 
 ################################################################################
 
-
-
-################################################################################
