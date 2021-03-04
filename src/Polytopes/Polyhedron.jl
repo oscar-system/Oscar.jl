@@ -4,6 +4,7 @@
 ###############################################################################
 ###############################################################################
 
+
 @doc Markdown.doc"""
 
     Polyhedron(A, b)
@@ -12,7 +13,7 @@ The (metric) polyhedron defined by
 
 $$P(A,b) = \{ x |  Ax ≤ b \}.$$
 
-see Def. 3.35 and Section 4.1.
+see Def. 3.35 and Section 4.1. of Joswig, M. and Theobald, T. "Polyhedral and Algebraic Methods in Computational Geometry", Springer 2013.
 
 # Arguments
 - `A::Matrix`: Matrix corresponding to the linear coefficients of the inequalilites that describe P.
@@ -53,7 +54,7 @@ pm_polytope(P::Polyhedron) = P.pm_polytope
 ###############################################################################
 ###############################################################################
 function Base.show(io::IO, P::Polyhedron)
-    print(io, "A polyhedron of dimension $(dim(P))")
+    print(io, "A polyhedron in ambient dimension $(ambient_dim(P))")
 end
 
 Polymake.visual(P::Polyhedron; opts...) = Polymake.visual(pm_polytope(P); opts...)
@@ -64,12 +65,21 @@ Polymake.visual(P::Polyhedron; opts...) = Polymake.visual(pm_polytope(P); opts..
 ### Iterators
 ###############################################################################
 ###############################################################################
+struct Polyhedra
+end
+struct Points
+end
+struct Halfspaces
+end
+
+#TODO: take into account lineality space
+
 struct PolyhedronFacePolyhedronIterator
     p::Polyhedron
     face_dim::Int
 end
 
-
+#Note: the following generates the entire Hasse diagram and may be costly
 function Base.iterate(iter::PolyhedronFacePolyhedronIterator, index = 1)
     faces = Polymake.polytope.faces_of_dim(pm_polytope(iter.p),iter.face_dim)
     nfaces = length(faces)
@@ -79,6 +89,8 @@ function Base.iterate(iter::PolyhedronFacePolyhedronIterator, index = 1)
         end
         isfar=true
         for v in faces[index]
+            #Checking that the first coordinate is zero is equivalent
+            #  to being a vertex of the far face
             if !iszero(pm_polytope(iter.p).VERTICES[1+v[1],1])
                 isfar=false
             end
@@ -91,14 +103,19 @@ function Base.iterate(iter::PolyhedronFacePolyhedronIterator, index = 1)
         end
     end
 end
-Base.length(iter::PolyhedronFacePolyhedronIterator) = f_vector(iter.p)[iter.face_dim+1]
+#Note: it is impossible to know the number of faces prior to computation (and extraction of far faces)
+Base.IteratorSize(PolyhedronFacePolyhedronIterator) = Base.SizeUnknown()
 
-function faces(P::Polyhedron, face_dim::Int; as::Symbol = :polyhedra)
-    if as == :polyhedra
+function faces(P::Polyhedron, face_dim::Int, as::Type{T} = Polyhedron) where {T}
+    if as == Polyhedron || as == Polyhedra
         PolyhedronFacePolyhedronIterator(P,face_dim)
     else
         throw(ArgumentError("Unsupported `as` argument :" * string(as)))
     end
+end
+
+function faces(P::Polyhedron, face_dim::Int)
+    faces(P,face_dim,Polyhedron)
 end
 
 struct VertexPointIterator
@@ -123,16 +140,21 @@ Base.eltype(::Type{VertexPointIterator}) = Polymake.Vector{Polymake.Rational}
 Base.length(iter::VertexPointIterator) = nvertices(iter.p)
 
 """
-   vertices(H::Polyhedron, as = :points)
+   vertices(P::Polyhedron, as = :points)
 
 Returns the vertices of a polyhedron.
 """
-function vertices(P::Polyhedron; as::Symbol = :points)
-    if as == :points
+function vertices(P::Polyhedron, as::Type{T} = Points) where {T}
+    if as == Points
         VertexPointIterator(P)
     else
         throw(ArgumentError("Unsupported `as` argument :" * string(as)))
     end
+end
+
+
+function vertices(P::Polyhedron)
+    vertices(P,Points)
 end
 
 function vertices_as_point_matrix(P::Polyhedron)
@@ -180,15 +202,23 @@ nvertices(P::Polyhedron) = pm_polytope(P).N_VERTICES - nrays(P)
 
 Returns minimal set of generators of the cone of unbounded directions of a polyhedron.
 """
-function rays(P::Polyhedron; as::Symbol = :points)
-    if as == :points
+function rays(P::Polyhedron, as::Type{T} = Points) where {T}
+    if as == Points
         PolyhedronRayIterator(P)
-    elseif as == :point_matrix
-        return decompose_vdata(pm_polytope(P).VERTICES).rays
     else
         throw(ArgumentError("Unsupported `as` argument :" * string(as)))
     end
 end
+
+function rays(P::Polyhedron)
+    rays(P,Points)
+end
+
+function rays_as_point_matrix(P::Polyhedron)
+    decompose_vdata(pm_polytope(P).VERTICES).rays
+end
+
+
 
 struct PolyhedronFacetHalfspaceIterator
     p::Polyhedron
@@ -239,14 +269,18 @@ The allowed values for `as` are
 * `polyhedra`: Returns for each facet its realization as a polyhedron
 * `halfspace_matrix_pair`: Returns `(A,b)` such `P={x | Ax ≦ b }`
 """
-function facets(P::Polyhedron; as::Symbol = :halfspaces)
-    if as == :halfspaces
+function facets(P::Polyhedron,  as::Type{T} = Halfspaces) where {T}
+    if as == Halfspaces
         PolyhedronFacetHalfspaceIterator(P)
-    elseif as == :polyhedra
+    elseif as == Polyhedra || as == Polyhedron
         PolyhedronFacetPolyhedronIterator(P)
     else
         throw(ArgumentError("Unsupported `as` argument :" * string(as)))
     end
+end
+
+function facets(P::Polyhedron)
+    facets(P, Halfspaces)
 end
 
 function facets_as_halfspace_matrix_pair(P:: Polyhedron)
@@ -456,16 +490,14 @@ function pm_far_face(P::Polyhedron)
     Polymake.polytope.Cone(RAYS=pm_polytope(P).VERTICES[[a+1 for a in Array{Int,1}(pm_polytope(P).FAR_FACE)],2:end])
 end
 
+
+
+#TODO: integrate lineality space
 function f_vector(P::Polyhedron)
-    f_vec=pm_polytope(P).F_VECTOR
-    far_f_vec=pm_far_face(P).F_VECTOR
-    if far_f_vec == nothing
-        return(f_vec)
-    else
-        push!(far_f_vec,1)
-        return (f_vec-far_f_vec)
-    end
+    f_vec=[length(collect(faces(P,i))) for i in 0:dim(P)-1]
+    return f_vec
 end
+
 
 """
     support_function(P::Polyhedron; convention = :max)
@@ -531,8 +563,8 @@ end
 
    simplex(d[,n])
 
-Construct a $d$-dimensional standard simplex in $R^d$ that is scaled by $n$.
-If $n$ is missing, construct a unit standart simplex.
+Construct the simplex which is the convex hull of the standard basis vectors
+along with the origin in R^$d$, optionally scaled by $n$.
 """
 simplex(d::Int64,n) = Polyhedron(Polymake.polytope.simplex(d,n))
 simplex(d::Int64) = Polyhedron(Polymake.polytope.simplex(d))
@@ -542,7 +574,7 @@ simplex(d::Int64) = Polyhedron(Polymake.polytope.simplex(d))
 
    cross(d[,n])
 
-Construct a $d$-dimensional cross polytope around origin with vertices located at $\pm ne_i$ for each unit vector $e_i$ of $R^d$.
+Construct a $d$-dimensional cross polytope around origin with vertices located at $\pm e_i$ for each unit vector $e_i$ of $R^d$.
 If $n$ is not given, construct the unit cross polytope around origin.
 """
 cross(d::Int64,n) = Polyhedron(Polymake.polytope.cross(d,n))

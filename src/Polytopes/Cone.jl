@@ -64,7 +64,7 @@ pm_cone(C::Cone) = C.pm_cone
 ###############################################################################
 
 function Base.show(io::IO, C::Cone)
-    print(io,"A polyhedral cone of dimension $(dim(C))")
+    print(io,"A polyhedral cone in ambient dimension $(ambient_dim(C))")
 end
 
 Polymake.visual(C::Cone; opts...) = Polymake.visual(pm_cone(C); opts...)
@@ -193,4 +193,3 @@ function hilbert_basis(C::Cone)
       throw(ArgumentError("Cone not pointed."))
    end
 end
-

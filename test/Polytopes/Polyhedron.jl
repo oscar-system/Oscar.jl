@@ -1,5 +1,7 @@
+#TODO: include more examples with nontrivial lineality space
+
 @testset "Polyhedron" begin
-    
+
     pts = [1 0 0; 0 0 1]'
     Q0 = convex_hull(pts)
     Q1 = convex_hull(pts, [1 1])
@@ -31,7 +33,7 @@
         @test vertices_as_point_matrix([0,1,0] + point) == [0 2 0]
         @test length(collect(rays(Pos))) == 3
     end
-    
+
     @testset "linear programs" begin
         LP1 = LinearProgram(C0,[1,3])
         LP2 = LinearProgram(C0,[2,2],3; convention = :min)

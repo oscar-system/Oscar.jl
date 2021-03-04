@@ -42,10 +42,10 @@
     @testset "convex_hull" begin
         @test size(vertices_as_point_matrix(Q0)) == (3, 2)
         @test size(vertices_as_point_matrix(Q1)) == (3, 2)
-        @test size(rays(Q1; as = :point_matrix)) == (1, 2)
+        @test size(rays_as_point_matrix(Q1)) == (1, 2)
         @test size(lineality_space(Q1)) == (0, 2)
         @test size(vertices_as_point_matrix(Q2)) == (2, 2)
-        @test size(rays(Q2; as = :point_matrix)) == (0, 2)
+        @test size(rays_as_point_matrix(Q2)) == (0, 2)
         @test size(lineality_space(Q2)) == (1, 2)
         @test dim(Q0) == 2
         @test dim(Q1) == 2
@@ -99,4 +99,3 @@
     end
 
 end # of @testset "OscarPolytope"
-

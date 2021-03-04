@@ -73,7 +73,7 @@ end
 ###############################################################################
 ###############################################################################
 function Base.show(io::IO, PF::PolyhedralFan)
-    print(io, "A polyhedral fan in dimension $(ambient_dim(PF))")
+    print(io, "A polyhedral fan in ambient dimension $(ambient_dim(PF))")
 end
 
 ###############################################################################
@@ -228,6 +228,8 @@ isregular(PF::PolyhedralFan) = pm_fan(PF).REGULAR
 Determine whether the fan is complete.
 """
 iscomplete(PF::PolyhedralFan) = pm_fan(PF).COMPLETE
+
+#TODO: inward/outward options? via polymake changes?
 
 """
    normal_fan(P::Polyhedron)

@@ -1,5 +1,5 @@
 @testset "Group" begin
-    
+
     @testset "Polytope From Group Orbit" begin
         G = symmetric_group(4)
         x = [0,1,2,3]
@@ -7,7 +7,7 @@
         P = convex_hull(M)
         @test ambient_dim(P) == 4
 
-        F = facets(P; as = :polyhedra)
+        F = facets(P, Polyhedra)
         @test nvertices.(F) == [6, 6, 4, 6, 4, 4, 6, 4, 6, 6, 4, 6, 6, 4]
 
         op = orbit_polytope(x, G)
