@@ -104,7 +104,7 @@ function Base.iterate(iter::PolyhedronFacePolyhedronIterator, index = 1)
     end
 end
 #Note: it is impossible to know the number of faces prior to computation (and extraction of far faces)
-Base.IteratorSize(::Type{<:PolyhedronFacePolyhedronIterator}) = Base.SizeUnknown()
+Base.IteratorSize(::Type{PolyhedronFacePolyhedronIterator}) = Base.SizeUnknown()
 
 function faces(P::Polyhedron, face_dim::Int, as::Type{T} = Polyhedron) where {T}
     if as == Polyhedron || as == Polyhedra
