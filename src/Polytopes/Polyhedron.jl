@@ -104,7 +104,7 @@ function Base.iterate(iter::PolyhedronFacePolyhedronIterator, index = 1)
     end
 end
 #Note: it is impossible to know the number of faces prior to computation (and extraction of far faces)
-Base.IteratorSize(PolyhedronFacePolyhedronIterator) = Base.SizeUnknown()
+Base.IteratorSize(::Type{<:PolyhedronFacePolyhedronIterator}) = Base.SizeUnknown()
 
 function faces(P::Polyhedron, face_dim::Int, as::Type{T} = Polyhedron) where {T}
     if as == Polyhedron || as == Polyhedra
@@ -112,10 +112,6 @@ function faces(P::Polyhedron, face_dim::Int, as::Type{T} = Polyhedron) where {T}
     else
         throw(ArgumentError("Unsupported `as` argument :" * string(as)))
     end
-end
-
-function faces(P::Polyhedron, face_dim::Int)
-    faces(P,face_dim,Polyhedron)
 end
 
 struct VertexPointIterator
@@ -150,11 +146,6 @@ function vertices(P::Polyhedron, as::Type{T} = Points) where {T}
     else
         throw(ArgumentError("Unsupported `as` argument :" * string(as)))
     end
-end
-
-
-function vertices(P::Polyhedron)
-    vertices(P,Points)
 end
 
 function vertices_as_point_matrix(P::Polyhedron)
@@ -208,10 +199,6 @@ function rays(P::Polyhedron, as::Type{T} = Points) where {T}
     else
         throw(ArgumentError("Unsupported `as` argument :" * string(as)))
     end
-end
-
-function rays(P::Polyhedron)
-    rays(P,Points)
 end
 
 function rays_as_point_matrix(P::Polyhedron)
@@ -277,10 +264,6 @@ function facets(P::Polyhedron,  as::Type{T} = Halfspaces) where {T}
     else
         throw(ArgumentError("Unsupported `as` argument :" * string(as)))
     end
-end
-
-function facets(P::Polyhedron)
-    facets(P, Halfspaces)
 end
 
 function facets_as_halfspace_matrix_pair(P:: Polyhedron)
