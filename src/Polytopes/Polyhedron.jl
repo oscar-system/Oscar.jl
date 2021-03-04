@@ -27,10 +27,10 @@ julia> Polyhedron([1 0;0 1;-1 0;0 -1],[1 1 0 0])
 A polyhedron of dimension 2
 ```
 """ struct Polyhedron #a real polymake polyhedron
-    pm_polytope::Polymake.BigObjectAllocated
+    pm_polytope::Polymake.BigObject
     boundedness::Symbol # Values: :unknown, :bounded, :unbounded
 end
-function Polyhedron(pm_polytope::Polymake.BigObjectAllocated)
+function Polyhedron(pm_polytope::Polymake.BigObject)
     Polyhedron(pm_polytope, :unknown)
 end
 function Polyhedron(A::Union{Oscar.MatElem,AbstractMatrix}, b)
@@ -171,7 +171,7 @@ function Base.iterate(iter::PolyhedronRayIterator, index = 1)
         end
     end
 end
-Base.eltype(::Type{PolyhedronRayIterator}) = Polymake.VectorAllocated{Polymake.Rational}
+Base.eltype(::Type{PolyhedronRayIterator}) = Polymake.Vector{Polymake.Rational}
 Base.length(iter::PolyhedronRayIterator) = nrays(iter.p)
 
 """
@@ -221,7 +221,7 @@ function Base.iterate(iter::PolyhedronFacetHalfspaceIterator, index = 1)
 end
 Base.length(iter::PolyhedronFacetHalfspaceIterator) = nfacets(iter.p)
 Base.eltype(::Type{PolyhedronFacetHalfspaceIterator}) =
-    Tuple{Polymake.VectorAllocated{Polymake.Rational},Polymake.RationalAllocated}
+    Tuple{Polymake.Vector{Polymake.Rational},Polymake.Rational}
 
 
 struct PolyhedronFacetPolyhedronIterator

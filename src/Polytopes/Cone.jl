@@ -11,7 +11,7 @@
      of the rays, Rays.
 """
 struct Cone #a real polymake polyhedron
-    pm_cone::Polymake.BigObjectAllocated
+    pm_cone::Polymake.BigObject
 end
 function Cone(Rays::Union{Oscar.MatElem,AbstractMatrix})
     Cone(Polymake.polytope.Cone{Polymake.Rational}(
@@ -87,7 +87,7 @@ function Base.iterate(iter::ConeRayIterator, index = 1)
 
     return (rays[index, :], index + 1)
 end
-Base.eltype(::Type{ConeRayIterator}) = Polymake.VectorAllocated{Polymake.Rational}
+Base.eltype(::Type{ConeRayIterator}) = Polymake.Vector{Polymake.Rational}
 Base.length(iter::ConeRayIterator) = nrays(iter.cone)
 
 """

@@ -11,8 +11,8 @@
     the indices of the sets in Cones.
 """
 struct PolyhedralFan
-   pm_fan::Polymake.BigObjectAllocated
-   function PolyhedralFan(pm::Polymake.BigObjectAllocated)
+   pm_fan::Polymake.BigObject
+   function PolyhedralFan(pm::Polymake.BigObject)
       return new(pm)
    end
 end
@@ -94,7 +94,7 @@ function Base.iterate(iter::PolyhedralFanRayIterator, index = 1)
 
     return (rays[index, :], index + 1)
 end
-Base.eltype(::Type{PolyhedralFanRayIterator}) = Polymake.VectorAllocated{Polymake.Rational}
+Base.eltype(::Type{PolyhedralFanRayIterator}) = Polymake.Vector{Polymake.Rational}
 Base.length(iter::PolyhedralFanRayIterator) = nrays(iter.fan)
 
 """
