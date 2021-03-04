@@ -528,7 +528,22 @@ end
 +(v::AbstractVector,P::Polyhedron) = P+v
 
 @doc Markdown.doc"""
-   simplex(d)
-Construct a $d$-dimensional simplex whose vertices are the origin and the unit standard basis vectors.
+
+   simplex(d[,n])
+
+Construct a $d$-dimensional standard simplex that is scaled by $n$.
+If $n$ is missing, construct a unit standart simplex.
 """
-simplex(d) = Polyhedron(Polymake.polytope.simplex(d))
+simplex(d::Int64,n) = Polyhedron(Polymake.polytope.simplex(d,n))
+simplex(d::Int64) = Polyhedron(Polymake.polytope.simplex(d))
+
+
+@doc Markdown.doc"""
+
+   cross(d[,n])
+
+Construct a $d$-dimensional cross polytope around origin with vertices located at $\pm ne_i$ for each unit vector $e_i$ of $R^d$.
+If $n$ is not given, construct the unit cross polytope around origin.
+"""
+cross(d::Int64,n) = Polyhedron(Polymake.polytope.cross(d,n))
+cross(d::Int64) = Polyhedron(Polymake.polytope.cross(d))
