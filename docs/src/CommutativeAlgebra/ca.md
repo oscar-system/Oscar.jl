@@ -79,6 +79,32 @@ I*J
 
     Hilbert-driven
 
+#### Leading Ideals
+
+```@docs
+leading_ideal(g::Array{T, 1}, args...) where { T <: MPolyElem }
+```
+
+###### Example
+
+```@repl oscar
+R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+L = leading_ideal([x*y^2-3*x, x^3-14*y^5])
+```  
+
+```@docs
+leading_ideal(I::MPolyIdeal)
+```
+
+###### Example
+
+```@repl oscar
+R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+I = ideal(R,[x*y^2-3*x, x^3-14*y^5])
+L = leading_ideal(I)
+L = leading_ideal(I, :lex)
+```  
+
 #### Gröbner Bases over the integers
 
 #### ....
@@ -97,6 +123,9 @@ Distinction: ideals <--> homogeneous ideals. To be discussed.
 ```@docs
 intersect(I::MPolyIdeal, J::MPolyIdeal)
 ```
+
+###### Example
+
 ```@repl oscar
 R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 I = intersect(ideal(R, [x, y])^2, ideal(R, [y^2-x^3+x]))

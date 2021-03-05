@@ -15,7 +15,7 @@ import Hecke: MapHeader, math_html
 
 
 export PolynomialRing, total_degree, degree, MPolyElem, ordering, ideal,
-       groebner_basis, eliminate, syzygy_generators, coordinates,
+       eliminate, coordinates,
        jacobi_matrix, jacobi_ideal,  normalize, AlgebraHomomorphism,
        divrem,  isprimary, isprime
 
@@ -383,46 +383,6 @@ end
 gen(I::MPolyIdeal, i::Int) = I.gens[Val(:O), i]
 
 
-function groebner_assure(I::MPolyIdeal)
-  if !isdefined(I, :gb)
-    singular_assure(I)
-#    @show "std on", I.gens.S
-    I.gb = BiPolyArray(I.gens.Ox, Singular.std(I.gens.S))
-  end
-end
-
-function groebner_basis(B::BiPolyArray; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
-  if ord != :degrevlex
-    R = singular_ring(B.Ox, ord)
-    i = Singular.Ideal(R, [R(x) for x = B])
-#    @show "std on", i, B
-    i = Singular.std(i, complete_reduction = complete_reduction)
-    return BiPolyArray(B.Ox, i)
-  end
-  if !isdefined(B, :S)
-    B.S = Singular.Ideal(B.Sx, [B.Sx(x) for x = B.O])
-  end
-#  @show "dtd", B.S
-  return BiPolyArray(B.Ox, Singular.std(B.S, complete_reduction = complete_reduction))
-end
-
-function groebner_basis_with_transform(B::BiPolyArray; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
-  if ord != :degrevlex
-    R = singular_ring(B.Ox, ord)
-    i = Singular.Ideal(R, [R(x) for x = B])
-#    @show "std on", i, B
-    i, m = Singular.lift_std(i, complete_reduction = complete_reduction)
-    return BiPolyArray(B.Ox, i), map_entries(x->B.Ox(x), m)
-  end
-  if !isdefined(B, :S)
-    B.S = Singular.Ideal(B.Sx, [B.Sx(x) for x = B.O])
-  end
-#  @show "dtd", B.S
-
-  i, m = Singular.lift_std(B.S, complete_reduction = complete_reduction)
-  return BiPolyArray(B.Ox, i), map_entries(x->B.Ox(x), m)
-end
-
 function map_entries(R, M::Singular.smatrix)
   s = nrows(M), ncols(M)
   S = parent(R(zero(base_ring(M))))
@@ -458,15 +418,6 @@ function (F::Generic.FreeModule)(s::Singular.svector)
   return e
 end
 
-function syzygy_generators(a::Array{<:MPolyElem, 1})
-  I = ideal(a)
-  singular_assure(I)
-  s = Singular.syz(I.gens.S)
-  F = free_module(parent(a[1]), length(a))
-  @assert rank(s) == length(a)
-  return [F(s[i]) for i=1:Singular.ngens(s)]
-end
-
 function dim(I::MPolyIdeal)
   if I.dim > -1
     return I.dim
@@ -485,18 +436,6 @@ end
 
 function base_ring(I::MPolyIdeal{S}) where {S}
   return I.gens.Ox::parent_type(S)
-end
-
-function groebner_basis(I::MPolyIdeal)
-  groebner_assure(I)
-  return collect(I.gb)
-end
-
-function groebner_basis(I::MPolyIdeal, ord::Symbol; complete_reduction::Bool=false)
-  R = singular_ring(base_ring(I), ord)
-  !Oscar.Singular.has_global_ordering(R) && error("The ordering has to be a global ordering.")
-  i = Singular.std(Singular.Ideal(R, [R(x) for x = gens(I)]), complete_reduction = complete_reduction)
-  return collect(BiPolyArray(base_ring(I), i))
 end
 
 @doc Markdown.doc"""
@@ -1164,28 +1103,6 @@ end
 function leading_monomial(f::MPolyElem)
   return leading_monomial(f, ordering(parent(f)))
 end
-
-function leading_ideal(g::Array{T, 1}, args...) where { T <: MPolyElem }
-  return ideal([ leading_monomial(f, args...) for f in g ])
-end
-
-function leading_ideal(g::Array{Any, 1}, args...)
-  return leading_ideal(typeof(g[1])[ f for f in g ], args...)
-end
-
-function leading_ideal(Rx::MPolyRing, g::Array{Any, 1}, args...)
-  h = elem_type(Rx)[ Rx(f) for f in g ]
-  return leading_ideal(h, args...)
-end
-
-function leading_ideal(I::MPolyIdeal)
-  return leading_ideal(groebner_basis(I))
-end
-
-function leading_ideal(I::MPolyIdeal, ord::Symbol)
-  return leading_ideal(groebner_basis(I, ord), ord)
-end
-
 
 
 ##############################################################################
