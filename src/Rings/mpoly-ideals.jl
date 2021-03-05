@@ -10,7 +10,6 @@ export radical, primary_decomposition, minimal_primes, equidimensional_decomposi
 
 Returns the m-th power of `I`. 
 """
-
 function Base.:^(I::MPolyIdeal, m::Int)
   singular_assure(I)
   return MPolyIdeal(I.gens.Ox, I.gens.S^m)
@@ -21,7 +20,6 @@ end
 
 Returns the sum of `I` and `J`. 
 """
-
 function Base.:+(I::MPolyIdeal, J::MPolyIdeal)
   singular_assure(I)
   singular_assure(J)
