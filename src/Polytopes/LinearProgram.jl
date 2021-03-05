@@ -7,7 +7,7 @@ The linear program on the feasible set P (a Polyhedron) with
 """
 struct LinearProgram
    feasible_region::Polyhedron
-   polymake_lp::Polymake.BigObjectAllocated
+   polymake_lp::Polymake.BigObject
    convention::Symbol
    function LinearProgram(Q::Polyhedron, objective::AbstractVector, k = 0; convention = :max)
       P=Polyhedron(Polymake.polytope.Polytope(pm_polytope(Q)))
@@ -107,7 +107,7 @@ maximal_value(lp::LinearProgram) = lp.polymake_lp.MAXIMAL_VALUE
 Gives a pair `(m,v)` where the optimal value `m` of the objective
  function of lp is attained at `v` (if `m` exists). If the optimum
  is not attained, `m` may be `inf` or `-inf` in which case `v` is
- `nothing`. 
+ `nothing`.
 """
 function solve_lp(lp::LinearProgram)
    if lp.convention == :max
