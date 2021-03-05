@@ -665,3 +665,48 @@ If $n$ is not given, construct the unit cross polytope around origin.
 """
 cross(d::Int64,n) = Polyhedron(Polymake.polytope.cross(d,n))
 cross(d::Int64) = Polyhedron(Polymake.polytope.cross(d))
+
+@doc Markdown.doc"""
+
+   archimedean_solid(s)
+
+Construct an Archimedean solid with the name given by String `s` from the list below.
+The polytopes are realized with floating point numbers and thus not exact; Vertex-facet-incidences are correct in all cases.
+
+# Arguments
+- `s::String`: the name of the desired Archimedean solid
+
+    Possible values:
+
+      "truncated_tetrahedron" : Truncated tetrahedron.
+          Regular polytope with four triangular and four hexagonal facets.
+      "cuboctahedron" : Cuboctahedron.
+          Regular polytope with eight triangular and six square facets.
+      "truncated_cube" : Truncated cube.
+          Regular polytope with eight triangular and six octagonal facets.
+      "truncated_octahedron" : Truncated Octahedron.
+          Regular polytope with six square and eight hexagonal facets.
+      "rhombicuboctahedron" : Rhombicuboctahedron.
+          Regular polytope with eight triangular and 18 square facets.
+      "truncated_cuboctahedron" : Truncated Cuboctahedron.
+          Regular polytope with 12 square, eight hexagonal and six octagonal facets.
+      "snub_cube" : Snub Cube.
+          Regular polytope with 32 triangular and six square facets.
+          The vertices are realized as floating point numbers.
+          This is a chiral polytope.
+      "icosidodecahedron" : Icosidodecahedon.
+          Regular polytope with 20 triangular and 12 pentagonal facets.
+      "truncated_dodecahedron" : Truncated Dodecahedron.
+          Regular polytope with 20 triangular and 12 decagonal facets.
+      "truncated_icosahedron" : Truncated Icosahedron.
+          Regular polytope with 12 pentagonal and 20 hexagonal facets.
+      "rhombicosidodecahedron" : Rhombicosidodecahedron.
+          Regular polytope with 20 triangular, 30 square and 12 pentagonal facets.
+      "truncated_icosidodecahedron" : Truncated Icosidodecahedron.
+          Regular polytope with 30 square, 20 hexagonal and 12 decagonal facets.
+      "snub_dodecahedron" : Snub Dodecahedron.
+          Regular polytope with 80 triangular and 12 pentagonal facets.
+          The vertices are realized as floating point numbers.
+          This is a chiral polytope.
+"""
+archimedean_solid(s::String) = Polyhedron(Polymake.polytope.archimedean_solid(s))
