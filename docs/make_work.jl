@@ -222,6 +222,8 @@ makedocs(
                                    "$(hecke)/quad_forms/lattices.md"],
                            ],
 
+             "Commutative Algebra" => ["CommutativeAlgebra/ca.md"],
+
          ]
 )
 
