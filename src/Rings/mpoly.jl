@@ -366,17 +366,6 @@ function Base.:(==)(I::MPolyIdeal, J::MPolyIdeal)
   return Singular.equal(I.gens.S, J.gens.S)
 end
 
-function Base.:^(I::MPolyIdeal, j::Int)
-  singular_assure(I)
-  return MPolyIdeal(I.gens.Ox, I.gens.S^j)
-end
-
-function Base.intersect(I::MPolyIdeal, J::MPolyIdeal)
-  singular_assure(I)
-  singular_assure(J)
-  return MPolyIdeal(I.gens.Ox, Singular.intersection(I.gens.S, J.gens.S))
-end
-
 function ngens(I::MPolyIdeal)
   return length(I.gens)
 end
