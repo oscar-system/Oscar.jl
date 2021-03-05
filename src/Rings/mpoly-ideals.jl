@@ -1,11 +1,66 @@
+export saturation, quotient, elimination
 export radical, primary_decomposition, minimal_primes, equidimensional_decomposition_weak,
           equidimensional_decomposition_radical, equidimensional_hull,
           equidimensional_hull_radical
+
+# elementary operations #######################################################
+
+@doc Markdown.doc"""
+    ^(I::MPolyIdeal, m::Int)
+
+Returns the m-th power of `I`. 
+"""
+
+function Base.:^(I::MPolyIdeal, m::Int)
+  singular_assure(I)
+  return MPolyIdeal(I.gens.Ox, I.gens.S^m)
+end
+
+@doc Markdown.doc"""
+    +(I::MPolyIdeal, J::MPolyIdeal)
+
+Returns the sum of `I` and `J`. 
+"""
+
+function Base.:+(I::MPolyIdeal, J::MPolyIdeal)
+  singular_assure(I)
+  singular_assure(J)
+  return MPolyIdeal(I.gens.Ox, I.gens.S + J.gens.S)
+end
+Base.:-(I::MPolyIdeal, J::MPolyIdeal) = I+J
+
+@doc Markdown.doc"""
+    *(I::MPolyIdeal, J::MPolyIdeal)
+
+Returns the product of `I` and `J`. 
+"""
+function Base.:*(I::MPolyIdeal, J::MPolyIdeal)
+  singular_assure(I)
+  singular_assure(J)
+  return MPolyIdeal(I.gens.Ox, I.gens.S * J.gens.S)
+end
+
+#######################################################
+
+# ideal intersection #######################################################
+@doc Markdown.doc"""
+    intersect(I::MPolyIdeal, J::MPolyIdeal)
+
+Returns the intersection of `I` and `J`. 
+"""
+function Base.intersect(I::MPolyIdeal, J::MPolyIdeal)
+  singular_assure(I)
+  singular_assure(J)
+  return MPolyIdeal(I.gens.Ox, Singular.intersection(I.gens.S, J.gens.S))
+end
+
+#######################################################
+
 # ideal quotient #######################################################
 @doc Markdown.doc"""
     quotient(I::MPolyIdeal, J::MPolyIdeal)
     
-Returns the ideal quotient of `I` by `J`.
+Returns the ideal quotient of `I` by `J`. Alternatively, use `I:J`. 
 """
 function quotient(I::MPolyIdeal, J::MPolyIdeal)
   singular_assure(I)
@@ -63,8 +118,11 @@ end
 @doc Markdown.doc"""
     radical(I::MPolyIdeal)
     
-If the base ring of `I` is a polynomial ring over a field or over the integers, return
-the radical of `I`.
+Returns the radical of `I`. If the base ring of `I` is a polynomial
+ring over a field, a combination of the algorithms of Krick/Logar 
+(with modifications by Laplagne) and Kemper is used. For polynomial
+rings over the integers, the algorithm proceeds as suggested by 
+Pfister, Sadiq, and Steidel.
 """
 function radical(I::MPolyIdeal)
   singular_assure(I)
@@ -82,7 +140,7 @@ end
 @doc Markdown.doc"""
     primary_decomposition(I::MPolyIdeal)
 
-Compute a primary decomposition of the ideal `I`. If the base ring of `I` is a polynomial
+Returns a primary decomposition of the ideal `I`. If the base ring of `I` is a polynomial
 ring over a field, the algorithm of Gianni-Trager-Zacharias is used by default. Alternatively,
 the Shimoyama-Yokoyama algorithm can be used by specifying `alg=:SY`.  For polynomial
 rings over the integers, the algorithm proceeds as suggested by Pfister, Sadiq, and Steidel.
@@ -109,11 +167,12 @@ end
 @doc Markdown.doc"""
     minimal_primes(I::MPolyIdeal; alg=:GTZ)
 
-Return an array of the minimal associated prime ideals of `I`.
+Returns an array of the minimal associated prime ideals of `I`.
 If `I` is the unit ideal, `[ideal(1)]` is returned.
 If the base ring of `I` is a polynomial ring over a field, the algorithm of
 Gianni-Trager-Zacharias is used by default and characteristic sets may be
-used by specifying `alg=:charSets`.
+used by specifying `alg=:charSets`. For polynomial rings over the integers, 
+the algorithm proceeds as suggested by Pfister, Sadiq, and Steidel.
 """
 function minimal_primes(I::MPolyIdeal; alg = :GTZ)
   R = base_ring(I)
@@ -141,8 +200,8 @@ Return an array of equidimensional ideals where the last element is the
 equidimensional hull of `I`, that is, the intersection of the primary
 components of `I` of maximal dimension, and each of the previous elements
 is an ideal of lower dimension whose associated primes are exactly the associated
-primes of `I` of that dimension.
-If `I` is the unit ideal, `[ideal(1)]` is returned.
+primes of `I` of that dimension. If `I` is the unit ideal, `[ideal(1)]` is returned.
+Uses ideas of Eisenbud, Huneke, and Vasconcelos.
 """
 function equidimensional_decomposition_weak(I::MPolyIdeal)
   R = base_ring(I)
@@ -157,6 +216,7 @@ end
 Return an array of equidimensional radical ideals increasingly ordered by dimension.
 For each dimension, the returned radical ideal is the intersection of the associated primes 
 of `I` of that dimension. If `I` is the unit ideal, `[ideal(1)]` is returned.
+Uses a combination of the algorithms of Krick and Logar (with modifications by Laplagne) and Kemper.
 """
 function equidimensional_decomposition_radical(I::MPolyIdeal)
   R = base_ring(I)
@@ -168,10 +228,13 @@ end
 @doc Markdown.doc"""
     equidimensional_hull(I::MPolyIdeal)
 
-If the base ring of `I` is a polynomial ring over a field, return the intersection
+If the base ring of `I` is a polynomial ring over For polynomial rings over, return the intersection
 of the primary components of `I` of maximal dimension. In the case of polynomials
 over the integers, return the intersection of the primary components of I of
-minimal height.
+minimal height.  If `I` is the unit ideal, `[ideal(1)]` is returned. 
+For polynomial rings over a field, the algorithm relies on ideas as used by
+Gianni, Trager, and Zacharias or Krick and Logar. For polynomial rings over the integers, 
+the algorithm proceeds as suggested by Pfister, Sadiq, and Steidel.
 """
 function equidimensional_hull(I::MPolyIdeal)
   R = base_ring(I)
@@ -189,6 +252,9 @@ end
 @doc Markdown.doc"""
     equidimensional_hull_radical(I::MPolyIdeal)
 Return the intersection of associated primes of `I` of maximal dimension.
+If `I` is the unit ideal, `[ideal(1)]` is returned. 
+Uses a combination of the algorithms of Krick and Logar 
+(with modifications by Laplagne) and Kemper. 
 """
 function equidimensional_hull_radical(I::MPolyIdeal)
   R = base_ring(I)

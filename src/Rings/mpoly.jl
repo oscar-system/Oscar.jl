@@ -12,13 +12,12 @@ import Singular
 import Hecke
 import Hecke: MapHeader, math_html
 
-export minimal_primes, weak_equidimensional_decomposition, equidimensional_hull,
-       radical_equidimensional_hull, decomposition_radical_equidimensional_hull
+
 
 export PolynomialRing, total_degree, degree, MPolyElem, ordering, ideal,
        groebner_basis, eliminate, syzygy_generators, coordinates,
-       jacobi_matrix, jacobi_ideal, radical, normalize, AlgebraHomomorphism,
-       divrem, primary_decomposition, isprimary, isprime
+       jacobi_matrix, jacobi_ideal,  normalize, AlgebraHomomorphism,
+       divrem,  isprimary, isprime
 
 ##############################################################################
 #
@@ -360,19 +359,6 @@ function Base.copy(f::MPolyElem)
     end
     return finish(g)
 end
-
-function Base.:*(I::MPolyIdeal, J::MPolyIdeal)
-  singular_assure(I)
-  singular_assure(J)
-  return MPolyIdeal(I.gens.Ox, I.gens.S * J.gens.S)
-end
-
-function Base.:+(I::MPolyIdeal, J::MPolyIdeal)
-  singular_assure(I)
-  singular_assure(J)
-  return MPolyIdeal(I.gens.Ox, I.gens.S + J.gens.S)
-end
-Base.:-(I::MPolyIdeal, J::MPolyIdeal) = I+J
 
 function Base.:(==)(I::MPolyIdeal, J::MPolyIdeal)
   singular_assure(I)
