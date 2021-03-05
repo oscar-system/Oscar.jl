@@ -26,6 +26,7 @@ end
 homogenize(vec::AbstractVector, val::Number = 0) = augment(vec, val)
 homogenize(mat::AbstractMatrix, val::Number = 1) = augment(mat, fill(val, size(mat, 1)))
 homogenize(mat::MatElem, val::Number = 1) = homogenize(Matrix(mat), val)
+homogenize(nothing,val::Number)=nothing
 
 dehomogenize(vec::AbstractVector) = vec[2:end]
 dehomogenize(mat::AbstractMatrix) = mat[:, 2:end]
@@ -64,6 +65,8 @@ julia> stack([1 2], [])
  1  2
 ```
 """
+stack(A::AbstractMatrix,nothing) = A
+stack(nothing,B::AbstractMatrix) = B
 stack(A::AbstractMatrix, B::AbstractMatrix) = [A; B]
 stack(A::AbstractMatrix, B::AbstractVector) = isempty(B) ? A :  [A; B']
 stack(A::AbstractVector, B::AbstractMatrix) = isempty(A) ? B : [A'; B]
