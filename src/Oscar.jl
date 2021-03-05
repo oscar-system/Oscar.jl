@@ -176,6 +176,7 @@ function test_module(x, new::Bool = true)
    end
 end
 
+function weights end
 
 include("OscarTypes.jl")
 

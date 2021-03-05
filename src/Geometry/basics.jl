@@ -5,10 +5,11 @@ abstract type ProjSpcElem{T} end
 
 module Geometry
 using Oscar
+import Oscar: weights
 import AbstractAlgebra, Nemo
 import Base: ==, show, hash
 
-export projective_space, normalize!, weights, coordinate_ring
+export projective_space, normalize!, coordinate_ring
 
 struct ProjSpc{T}  <: Oscar.ProjSpc{T}
   R::AbstractAlgebra.Ring
