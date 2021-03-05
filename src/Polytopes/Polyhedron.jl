@@ -81,6 +81,9 @@ end
 
 #Note: the following generates the entire Hasse diagram and may be costly
 function Base.iterate(iter::PolyhedronFacePolyhedronIterator, index = 1)
+    if iter.face_dim<0
+        return nothing
+    end
     faces = Polymake.polytope.faces_of_dim(pm_polytope(iter.p),iter.face_dim)
     nfaces = length(faces)
     while true
@@ -98,7 +101,7 @@ function Base.iterate(iter::PolyhedronFacePolyhedronIterator, index = 1)
         if isfar==true
             index +=1
         else
-            p = Polyhedron(Polymake.polytope.Polytope(VERTICES=pm_polytope(iter.p).VERTICES[[f+1 for f in faces[index]],:]))
+            p = Polyhedron(Polymake.polytope.Polytope(VERTICES=pm_polytope(iter.p).VERTICES[[f+1 for f in faces[index]],:],LINEALITY_SPACE = pm_polytope(iter.p).LINEALITY_SPACE))
             return(p,index+1)
         end
     end
@@ -108,7 +111,7 @@ Base.IteratorSize(::Type{PolyhedronFacePolyhedronIterator}) = Base.SizeUnknown()
 
 function faces(P::Polyhedron, face_dim::Int, as::Type{T} = Polyhedron) where {T}
     if as == Polyhedron || as == Polyhedra
-        PolyhedronFacePolyhedronIterator(P,face_dim)
+        PolyhedronFacePolyhedronIterator(P,face_dim-size(lineality_space(P),1))
     else
         throw(ArgumentError("Unsupported `as` argument :" * string(as)))
     end
@@ -437,24 +440,55 @@ and generators of the lineality space (L) can be given as well.
 
 see Def. 2.11 and Def. 3.1.
 """
-function convex_hull(V::AnyVecOrMat)
-    pm_polytope =
-        Polymake.polytope.Polytope{Polymake.Rational}(POINTS = matrix_for_polymake(homogenize(V, 1)))
-    return Polyhedron(pm_polytope)
+function convex_hull(V::AnyVecOrMat; non_redundant::Bool=false)
+    if !non_redundant
+        pm_polytope =
+            Polymake.polytope.Polytope{Polymake.Rational}(POINTS = matrix_for_polymake(homogenize(V, 1)))
+        return Polyhedron(pm_polytope)
+    else
+        pm_polytope =
+            Polymake.polytope.Polytope{Polymake.Rational}(VERTICES = matrix_for_polymake(homogenize(V, 1)))
+            return Polyhedron(pm_polytope)
+    end
 end
-function convex_hull(V::AnyVecOrMat, R::AnyVecOrMat)
+#We want to be able to input trivial arguments. So we allow for R and L to be nothing
+#  and we check that the length (# entries) of these matrices is positive, else we
+#  call the function again with that argument = nothing
+function convex_hull(V::AnyVecOrMat, R::Union{AnyVecOrMat,Nothing}; non_redundant::Bool=false)
+    if R!=nothing && length(R) == 0
+        return convex_hull(V,nothing;non_redundant=non_redundant)
+    end
     points = stack(homogenize(V, 1), homogenize(R, 0))
-    pm_polytope = Polymake.polytope.Polytope{Polymake.Rational}(POINTS = matrix_for_polymake(points))
-    return Polyhedron(pm_polytope)
+    if !non_redundant
+        pm_polytope = Polymake.polytope.Polytope{Polymake.Rational}(POINTS = matrix_for_polymake(points))
+        return Polyhedron(pm_polytope)
+    else
+        pm_polytope = Polymake.polytope.Polytope{Polymake.Rational}(VERTICES = matrix_for_polymake(points))
+        return Polyhedron(pm_polytope)
+    end
 end
-function convex_hull(V::AnyVecOrMat, R::AnyVecOrMat, L::AnyVecOrMat)
+function convex_hull(V::AnyVecOrMat, R::Union{AnyVecOrMat,Nothing}, L::AnyVecOrMat; non_redundant::Bool=false)
+    if R!=nothing && length(R) == 0
+        return convex_hull(V,nothing,L;non_redundant=non_redundant)
+    end
+    if L!=nothing && length(L) == 0
+        return convex_hull(V,R,nothing; non_redundant=non_redundant)
+    end
     points = stack(homogenize(V, 1), homogenize(R, 0))
     lineality = homogenize(L, 0)
-    pm_polytope = Polymake.polytope.Polytope{Polymake.Rational}(
-        POINTS = matrix_for_polymake(points),
-        INPUT_LINEALITY = matrix_for_polymake(lineality),
-    )
-    return Polyhedron(pm_polytope)
+    if !non_redundant
+        pm_polytope = Polymake.polytope.Polytope{Polymake.Rational}(
+            POINTS = matrix_for_polymake(points),
+            INPUT_LINEALITY = matrix_for_polymake(lineality),
+        )
+        return Polyhedron(pm_polytope)
+    else
+        pm_polytope = Polymake.polytope.Polytope{Polymake.Rational}(
+            VERTICES = matrix_for_polymake(points),
+            LINEALITY_SPACE = matrix_for_polymake(lineality),
+        )
+        return Polyhedron(pm_polytope)
+    end
 end
 
 """
