@@ -12,9 +12,13 @@ import Singular
 import Hecke
 import Hecke: MapHeader, math_html
 
+export minimal_primes, weak_equidimensional_decomposition, equidimensional_hull,
+       radical_equidimensional_hull, decomposition_radical_equidimensional_hull
+
 export PolynomialRing, total_degree, degree, MPolyElem, ordering, ideal,
-       groebner_basis, eliminate, syzygy_generators, coordinates, 
-       jacobi_matrix, jacobi_ideal, radical, normalize, AlgebraHomomorphism
+       groebner_basis, eliminate, syzygy_generators, coordinates,
+       jacobi_matrix, jacobi_ideal, radical, normalize, AlgebraHomomorphism,
+       divrem, primary_decomposition, isprimary, isprime
 
 ##############################################################################
 #
@@ -112,8 +116,8 @@ end
 #type for orderings, use this...
 #in general: all algos here needs revision: do they benefit from gb or not?
 
-mutable struct BiPolyArray{S} 
-  O::Array{S, 1} 
+mutable struct BiPolyArray{S}
+  O::Array{S, 1}
   S::Singular.sideal
   Ox #Oscar Poly Ring
   Sx # Singular Poly Ring, poss. with different ordering
@@ -166,7 +170,7 @@ function Base.iterate(A::BiPolyArray, s::Int = 1)
   return A[Val(:O), s], s+1
 end
 
-Base.eltype(::BiPolyArray{S}) where S = S 
+Base.eltype(::BiPolyArray{S}) where S = S
 
 ##############################################################################
 #
@@ -200,27 +204,28 @@ end
 (F::Nemo.GaloisField)(a::Singular.n_Zp) = F(Int(a))
 (F::Nemo.NmodRing)(a::Singular.n_Zp) = F(Int(a))
 
+#Note: Singular crashes if it gets Nemo.ZZ instead of Singular.ZZ ((Coeffs(17)) instead of (ZZ))
+singular_ring(::Nemo.FlintIntegerRing) = Singular.Integers()
 singular_ring(::Nemo.FlintRationalField) = Singular.Rationals()
 singular_ring(F::Nemo.GaloisField) = Singular.Fp(Int(characteristic(F)))
 singular_ring(F::Nemo.NmodRing) = Singular.Fp(Int(characteristic(F)))
-
 singular_ring(R::Singular.PolyRing; keep_ordering::Bool = true) = R
 
 function singular_ring(Rx::MPolyRing{T}; keep_ordering::Bool = true) where {T <: RingElem}
   if keep_ordering
-    return Singular.PolynomialRing(singular_ring(base_ring(Rx)), 
+    return Singular.PolynomialRing(singular_ring(base_ring(Rx)),
               [string(x) for x = Nemo.symbols(Rx)],
               ordering = ordering(Rx),
               cached = false)[1]
   else
-    return Singular.PolynomialRing(singular_ring(base_ring(Rx)), 
+    return Singular.PolynomialRing(singular_ring(base_ring(Rx)),
               [string(x) for x = Nemo.symbols(Rx)],
               cached = false)[1]
-  end          
+  end
 end
 
 function singular_ring(Rx::MPolyRing{T}, ord::Symbol) where {T <: RingElem}
-  return Singular.PolynomialRing(singular_ring(base_ring(Rx)), 
+  return Singular.PolynomialRing(singular_ring(base_ring(Rx)),
               [string(x) for x = Nemo.symbols(Rx)],
               ordering = ord,
               cached = false)[1]
@@ -660,7 +665,7 @@ end
 @doc Markdown.doc"""
     coordinates(a::Array{<:MPolyElem, 1}, b::Array{<:MPolyElem, 1})
 
-Tries to write the entries of `b` as linear combinations of `a`.    
+Tries to write the entries of `b` as linear combinations of `a`.
 """
 function coordinates(a::Array{<:MPolyElem, 1}, b::Array{<:MPolyElem, 1})
   ia = ideal(a)
@@ -1096,6 +1101,98 @@ function leading_ideal(I::MPolyIdeal, ord::Symbol)
   return leading_ideal(groebner_basis(I, ord), ord)
 end
 
+# primary decomposition #######################################################
+
+@doc Markdown.doc"""
+    minimal_primes(I::MPolyIdeal; alg=:GTZ)
+
+Return an array of the minimal associated prime ideals of `I`.
+If `I` is the unit ideal, `[ideal(1)]` is returned.
+If the base ring of `I` is a polynomial ring over a field, the algorithm of
+Gianni-Trager-Zacharias is used by default and characteristic sets may be
+used by specifying `alg=:charSets`.
+"""
+function minimal_primes(I::MPolyIdeal; alg = :GTZ)
+  R = base_ring(I)
+  singular_assure(I)
+  if elem_type(base_ring(R)) <: FieldElement
+    if alg == :GTZ
+      l = Singular.LibPrimdec.minAssGTZ(I.gens.Sx, I.gens.S)
+    elseif alg == :charSets
+      l = Singular.LibPrimdec.minAssChar(I.gens.Sx, I.gens.S)
+    else
+      error("algorithm invalid")
+    end
+  elseif base_ring(I.gens.Sx) isa Singular.Integers
+    l = Singular.LibPrimdecint.minAssZ(I.gens.Sx, I.gens.S)
+  else
+    error("base ring not implemented")
+  end
+  return [ideal(R, i) for i in l]
+end
+
+@doc Markdown.doc"""
+    weak_equidimensional_decomposition(I::MPolyIdeal)
+
+Return an array of equidimensional ideals where the last element is the
+equidimensional hull of `I`, that is, the intersection of the primary
+components of `I` of maximal dimension, and each of the previous elements
+is a lower dimensional ideal whose associated primes are exactly the associated
+primes of `I` of that dimension.
+If `I` is the unit ideal, `[ideal(1)]` is returned.
+"""
+function weak_equidimensional_decomposition(I::MPolyIdeal)
+  R = base_ring(I)
+  singular_assure(I)
+  l = Singular.LibPrimdec.equidim(I.gens.Sx, I.gens.S)
+  return [ideal(R, i) for i in l]
+end
+
+@doc Markdown.doc"""
+    equidimensional_hull(I::MPolyIdeal)
+
+If the base ring of `I` is a polynomial ring over a field, return the intersection
+of the primary components of `I` of maximal dimension. In the case of polynomials
+over the integers, return the intersection of the primary components of I of
+minimal height.
+"""
+function equidimensional_hull(I::MPolyIdeal)
+  R = base_ring(I)
+  singular_assure(I)
+  if elem_type(base_ring(R)) <: FieldElement
+    i = Singular.LibPrimdec.equidimMax(I.gens.Sx, I.gens.S)
+  elseif base_ring(I.gens.Sx) isa Singular.Integers
+    i = Singular.LibPrimdecint.equidimZ(I.gens.Sx, I.gens.S)
+  else
+    error("base ring not implemented")
+  end
+  return ideal(R, i)
+end
+
+@doc Markdown.doc"""
+    radical_equidimensional_hull(I::MPolyIdeal)
+
+Return the intersection of associated primes of `I` of maximal dimension.
+"""
+function radical_equidimensional_hull(I::MPolyIdeal)
+  R = base_ring(I)
+  singular_assure(I)
+  i = Singular.LibPrimdec.equiRadical(I.gens.Sx, I.gens.S)
+  return ideal(R, i)
+end
+
+@doc Markdown.doc"""
+    decomposition_radical_equidimensional_hull(I::MPolyIdeal)
+
+Return an array of the associated primes of `I` of maximal dimension.
+"""
+function decomposition_radical_equidimensional_hull(I::MPolyIdeal)
+  R = base_ring(I)
+  singular_assure(I)
+  l = Singular.LibPrimdec.prepareAss(I.gens.Sx, I.gens.S)
+  return [ideal(R, i) for i in l]
+end
+
 
 ##############################################################################
 #
@@ -1109,3 +1206,79 @@ function factor(f::MPolyElem)
   return Nemo.Fac(R(fS.unit), Dict(R(k) =>v for (k,v) = fS.fac))
 end
 =#
+
+################################################################################
+
+@doc Markdown.doc"""
+    divrem(a::Vector{T}, b::Vector{T}) where T <: MPolyElem{S} where S <: RingElem
+Return an array of tuples (qi, ri) consisting of an array of polynomials qi, one
+for each polynomial in b, and a polynomial ri such that
+a[i] = sum_i b[i]*qi + ri.
+"""
+function divrem(a::Vector{T}, b::Vector{T}) where T <: MPolyElem{S} where S <: RingElem
+  return [divrem(x, b) for x in a]
+end
+
+################################################################################
+
+function Base.:*(f::MPolyElem, I::MPolyIdeal)
+  R = base_ring(I)
+  R == parent(f) || error("base rings do not match")
+  return ideal(R, f.*gens(I))
+end
+
+################################################################################
+@doc Markdown.doc"""
+    primary_decomposition(I::MPolyIdeal; alg=:GTZ)
+
+Compute a primary decomposition of the ideal `I` using the
+Gianni-Trager-Zacharias algorithm by default, or the Shimoyama-Yokoyama
+algorithm if specified by `alg=:SY`. The output is an array of tuples where the
+first entry is a primary ideal appearing in the primary decomposition and the
+second entry is the radical of this primary ideal.
+"""
+function primary_decomposition(I::MPolyIdeal; alg=:GTZ)
+  R = base_ring(I)
+  singular_assure(I)
+  if elem_type(base_ring(R)) <: FieldElement
+    if alg == :GTZ
+      L = Singular.LibPrimdec.primdecGTZ(I.gens.Sx, I.gens.S)
+    elseif alg == :SY
+      L = Singular.LibPrimdec.primdecSY(I.gens.Sx, I.gens.S)
+    else
+      error("algorithm invalid")
+    end
+  elseif base_ring(I.gens.Sx) isa Singular.Integers
+    L = Singular.LibPrimdecint.primdecZ(I.gens.Sx, I.gens.S)
+  else
+    error("base ring not implemented")
+  end
+  return [(ideal(R, q[1]), ideal(R, q[2])) for q in L]
+end
+
+################################################################################
+# I don't know if there is a smarter way to check if an ideal is prime/primary
+
+@doc Markdown.doc"""
+    isprime(I::MPolyIdeal)
+
+Return `true` if the ideal `I` is prime, false otherwise
+"""
+function isprime(I::MPolyIdeal)
+  D = primary_decomposition(I)
+  return length(D) == 1 && issubset(D[1][2], D[1][1])
+end
+
+################################################################################
+
+@doc Markdown.doc"""
+    isprimary(I::MPolyIdeal)
+
+Return `true` if the ideal `I` is primary, false otherwise
+"""
+function isprimary(I::MPolyIdeal)
+  D = primary_decomposition(I)
+  return length(D) == 1
+end
+
+################################################################################

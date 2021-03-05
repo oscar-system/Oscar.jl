@@ -7,7 +7,7 @@
 mutable struct MPolyQuo{S} <: AbstractAlgebra.Ring
   R::MPolyRing
   I::MPolyIdeal{S}
-  SQR::Singular.PolyRing  # R/I, set and retrived by singular_ring()
+  SQR::Singular.PolyRing  # expensive qring R/I, set and retrived by singular_ring()
   AbstractAlgebra.@declare_other
 
   function MPolyQuo(R, I) where S
@@ -121,22 +121,91 @@ end
 #
 ##############################################################################
 
-mutable struct MPolyQuoIdeal{S} <: Ideal{S}
-  data::Singular.sideal
-  gb::Singular.sideal
-  dim::Int
-  parent::MPolyQuo
+# For ideals over quotient rings, we would like to delay the expensive
+# construction of the singular quotient ring until the user does an operation
+# that actually requires it.
+mutable struct MPolyQuoIdeal{T} <: Ideal{T}
+  I::MPolyIdeal{T}    # ideal in the non-qring, possibly #undef
+  SI::Singular.sideal # ideal in the qring, possibly #undef if I isdefined
+  base_ring::MPolyQuo
 
-  function MPolyQuoIdeal(Ox::T, s::Singular.sideal) where {T <: MPolyQuo}
-    r = new{elem_type(T)}()
-    r.parent = Ox
-    r.dim = -1 #not known
-    r.data = s
-    if s.isGB
-      r.gb = r.data
-    end
+  function MPolyQuoIdeal(Ox::MPolyQuo{T}, si::Singular.sideal) where T <: MPolyElem
+    singular_ring(Ox) == base_ring(si) || error("base rings must match")
+    r = new{T}()
+    r.base_ring = Ox
+    r.SI = si
     return r
   end
+
+  function MPolyQuoIdeal(Ox::MPolyQuo{T}, i::MPolyIdeal{T}) where T <: MPolyElem
+    Ox.R == base_ring(i) || error("base rings must match")
+    r = new{T}()
+    r.base_ring = Ox
+    r.I = i
+    return r
+  end
+end
+
+function base_ring(a::MPolyQuoIdeal)
+  return a.base_ring
+end
+
+function oscar_assure(a::MPolyQuoIdeal)
+  isdefined(a, :I) && return
+  r = base_ring(a).R
+  a.I = ideal(r, map(p->_badpolymap(p, r), gens(a.SI)))
+end
+
+function singular_assure(a::MPolyQuoIdeal)
+  isdefined(a, :SI) && return
+  sa = singular_ring(base_ring(a))
+  a.SI = Singular.Ideal(sa, map(p->_badpolymap(p, sa), gens(a.I)))
+end
+
+function gens(a::MPolyQuoIdeal)
+  oscar_assure(a)
+  return map(base_ring(a), gens(a.I))
+end
+
+# addition and multiplication do not require the singular quotient ring
+function Base.:+(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
+  base_ring(a) == base_ring(b) || error("base rings must match")
+  if !isdefined(a, :SI) && !isdefined(b, :SI)
+    return MPolyQuoIdeal(base_ring(a), a.I + b.I)
+  end
+  singular_assure(a)
+  singular_assure(b)
+  return MPolyQuoIdeal(base_ring(a), a.SI + b.SI)
+end
+
+function Base.:*(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
+  base_ring(a) == base_ring(b) || error("base rings must match")
+  if !isdefined(a, :SI) && !isdefined(b, :SI)
+    return MPolyQuoIdeal(base_ring(a), a.I*b.I)
+  end
+  singular_assure(a)
+  singular_assure(b)
+  return MPolyQuoIdeal(base_ring(a), a.SI*b.SI)
+end
+
+function Base.:(==)(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
+  base_ring(a) == base_ring(b) || error("base rings must match")
+  singular_assure(a)
+  singular_assure(b)
+  return Singular.equal(a.SI, b.SI)
+end
+
+function quotient(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
+  base_ring(a) == base_ring(b) || error("base rings must match")
+  singular_assure(a)
+  singular_assure(b)
+  return MPolyQuoIdeal(base_ring(a), Singular.quotient(a.SI, b.SI))
+end
+
+function iszero(a::MPolyQuoIdeal)
+  singular_assure(a)
+  zero_ideal = Singular.Ideal(base_ring(a.SI), )
+  return contains(zero_ideal, a.SI)
 end
 
 function Base.show(io::IO, I::MPolyQuoIdeal)
@@ -153,29 +222,28 @@ function Base.show(io::IO, I::MPolyQuoIdeal)
   print(io, ")")
 end
 
-gens(I::MPolyQuoIdeal) = gens(I.data)
-iszero(I::MPolyQuoIdeal) = iszero(I.data)
-
 function ideal(Q::MPolyQuo{T}, v::Vector{T}) where T <: MPolyElem
-  sQ = singular_ring(Q)
-  idgens = map(p->_badpolymap(p, sQ), v)
-  ideal = MPolyQuoIdeal(Q, Singular.Ideal(sQ, idgens))
+  for p in v
+    Q.R == parent(p) || error("parents must match")
+  end
+  return MPolyQuoIdeal(Q, ideal(Q.R, v))
 end
 
 function ideal(Q::MPolyQuo{T}, v::Vector{MPolyQuoElem{T}}) where T <: MPolyElem
-  sQ = singular_ring(Q)
-  idgens = map(p->_badpolymap(p.f, sQ), v)
-  ideal = MPolyQuoIdeal(Q, Singular.Ideal(sQ, idgens))
+  for p in v
+    Q == parent(p) || error("parents must match")
+  end
+  return MPolyQuoIdeal(Q, ideal(Q.R, map(p->p.f, v)))
 end
 
 ##################################################################
 
 function singular_ring(Rx::MPolyQuo; keep_ordering::Bool = true)
   if !isdefined(Rx, :SQR)
-    Sx = singular_ring(Rx.R, keep_ordering = keep_ordering)
     groebner_assure(Rx.I)
     Rx.SQR = Singular.create_ring_from_singular_ring(
-                     Singular.libSingular.rQuotientRing(Rx.I.gb.S.ptr, Sx.ptr))
+                      Singular.libSingular.rQuotientRing(Rx.I.gb.S.ptr,
+                                             base_ring(Rx.I.gb.S).ptr))
   end
   return Rx.SQR
 end
@@ -473,15 +541,13 @@ function normalize(Q::MPolyQuo{T}) where T
   I = Q.I
   singular_assure(I)
   l = Singular.LibNormal.normal(I.gens.S)
-  sQ = singular_ring(Q)
   return [
     begin
-      norid = MPolyIdeal(l[1][i][1], l[1][i][2][:norid])
-      newR, newRmap = quo(l[1][i][1], norid)
-      hom = AlgebraHomomorphism(Q, newR, map(newRmap, gens(l[1][i][2][:normap])))
-      idgens = map(p->_badpolymap(p, sQ), gens(l[2][i]))
-      ideal = MPolyQuoIdeal(Q, Singular.Ideal(sQ, idgens))
-      (newR, hom, (Q(idgens[end]), ideal))
+      newR = l[1][i][1]
+      newQ, newQmap = quo(newR, MPolyIdeal(newR, l[1][i][2][:norid]))
+      hom = AlgebraHomomorphism(Q, newQ, map(newQmap, gens(l[1][i][2][:normap])))
+      idgens = map(p->_badpolymap(p, Q.R), gens(l[2][i]))
+      (newQ, hom, (Q(idgens[end]), ideal(Q, idgens)))
     end
     for i in 1:length(l[1])]
 end

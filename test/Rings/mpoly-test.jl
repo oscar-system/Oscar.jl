@@ -62,6 +62,94 @@ end
   @test length(L) == 2
   @test length(findall(x->x==r1, L)) == 1
   @test length(findall(x->x==r2, L)) == 1
+
+  @test issubset(ideal(S, [a]), ideal(S, [a]))
+  @test issubset(ideal(S, [a]), ideal(S, [a, b]))
+  @test !issubset(ideal(S, [c]), ideal(S, [b]))
+  @test !issubset(ideal(S, [a, b, c]), ideal(S, [a*b*c]))
+end
+
+@testset "Primary decomposition" begin
+
+  # primary_decomposition
+  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+  i = ideal(R, [x, y*z^2])
+  for method in (:GTZ, :SY)
+    j = ideal(R, [R(1)])
+    for (q, p) in primary_decomposition(i, alg=method)
+      j = intersect(j, q)
+      @test isprimary(q)
+      @test isprime(p)
+      @test p == radical(q)
+    end
+    @test j == i
+  end
+
+  R, (a, b, c, d) = PolynomialRing(ZZ, ["a", "b", "c", "d"])
+  i = ideal(R, [9, (a+3)*(b+3)])
+  l = primary_decomposition(i)
+  @test length(l) == 2
+
+  # minimal_primes
+  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+  i = ideal(R, [(z^2+1)*(z^3+2)^2, y-z^2])
+  i1 = ideal(R, [z^3+2, -z^2+y])
+  i2 = ideal(R, [z^2+1, -z^2+y])
+  l = minimal_primes(i)
+  @test length(l) == 2
+  @test l[1] == i1 && l[2] == i2 || l[1] == i2 && l[2] == i1
+
+  l = minimal_primes(i, alg=:charSets)
+  @test length(l) == 2
+  @test l[1] == i1 && l[2] == i2 || l[1] == i2 && l[2] == i1
+
+  R, (a, b, c, d) = PolynomialRing(ZZ, ["a", "b", "c", "d"])
+  i = ideal(R, [R(9), (a+3)*(b+3)])
+  i1 = ideal(R, [R(3), a])
+  i2 = ideal(R, [R(3), b])
+  l = minimal_primes(i)
+  @test length(l) == 2
+  @test l[1] == i1 && l[2] == i2 || l[1] == i2 && l[2] == i1
+
+  # weak_equidimensional_decomposition
+  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+  i = intersect(ideal(R, [z]), ideal(R, [x, y]))
+  i = intersect(i, ideal(R, [x^2, z^2]))
+  i = intersect(i, ideal(R, [x^5, y^5, z^5]))
+  l = weak_equidimensional_decomposition(i)
+  @test length(l) == 3
+  @test l[1] == ideal(R, [z^4, y^5, x^5, x^3*z^3, x^4*y^4])
+  @test l[2] == ideal(R, [y*z, x*z, x^2])
+  @test l[3] == ideal(R, [z])
+
+  # equidimensional_hull
+  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+  i = intersect(ideal(R, [z]), ideal(R, [x, y]))
+  i = intersect(i, ideal(R, [x^2, z^2]))
+  i = intersect(i, ideal(R, [x^5, y^5, z^5]))
+  @test equidimensional_hull(i) == ideal(R, [z])
+
+  R, (a, b, c, d) = PolynomialRing(ZZ, ["a", "b", "c", "d"])
+  i = ideal(R, [1326*a^2*d^5, 1989*a^2*c^5, 102*b^4*d^5, 153*b^4*c^5,
+            663*a^2*c^5*d^5, 51*b^4*c^5*d^5, 78*a^2*d^15, 117*a^2*c^15,
+            78*a^15*d^5, 117*a^15*c^5, 6*a^2*b^4*d^15, 9*a^2*b^4*c^15,
+            39*a^2*c^5*d^15, 39*a^2*c^15*d^5, 6*a^2*b^15*d^5, 9*a^2*b^15*c^5,
+            6*a^15*b^4*d^5, 9*a^15*b^4*c^5, 39*a^15*c^5*d^5, 3*a^2*b^4*c^5*d^15,
+            3*a^2*b^4*c^15*d^5, 3*a^2*b^15*c^5*d^5, 3*a^15*b^4*c^5*d^5])
+  @test equidimensional_hull(i) == ideal(R, [R(3)])
+
+  # radical_equidimensional_hull
+  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+  i = ideal(R, [(z^2+1)*(z^3+2)^2, y-z^2])
+  @test radical_equidimensional_hull(i) == ideal(R, [z^2-y, y^2*z+z^3+2*z^2+2])
+
+  # decomposition_radical_equidimensional_hull
+  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+  i = ideal(R, [(z^2+1)*(z^3+2)^2, y-z^2])
+  l = decomposition_radical_equidimensional_hull(i)
+  @test length(l) == 1
+  @test l[1] == ideal(R, [z^2-y, y^2*z+z^3+2*z^2+2])
+
 end
 
 @testset "Groebner" begin
@@ -69,5 +157,24 @@ end
   I = ideal([2*x+3*y+4*z-5,3*x+4*y+5*z-2])
   @test groebner_basis(I,:degrevlex) == [y+2*z-11, 3*x+4*y+5*z-2]
   @test groebner_basis(I,:degrevlex, complete_reduction = true) == [y+2*z-11, x-z+14]
-  
+
+end
+
+@testset "Primary decomposition" begin
+  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+  I = ideal(R, [x, y*z^2])
+  J = ideal(R, [x, y^2])
+  L = primary_decomposition(I)
+  Q = ideal(R, [R(1)])
+  @test isprime(I) == false
+  @test isprimary(I) == false
+  @test isprime(J) == false
+  @test isprimary(J) == true
+  for (q, p) in L
+    Q = intersect(Q, q)
+    @test isprimary(q)
+    @test isprime(p)
+    @test p == radical(q)
+  end
+  @test Q == I
 end
