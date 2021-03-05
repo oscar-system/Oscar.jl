@@ -79,6 +79,7 @@ struct PolyhedronFacePolyhedronIterator
     face_dim::Int
 end
 
+
 #Note: the following generates the entire Hasse diagram and may be costly
 function Base.iterate(iter::PolyhedronFacePolyhedronIterator, index = 1)
     if iter.face_dim<0
@@ -102,13 +103,20 @@ function Base.iterate(iter::PolyhedronFacePolyhedronIterator, index = 1)
             index +=1
         else
             p = Polyhedron(Polymake.polytope.Polytope(VERTICES=pm_polytope(iter.p).VERTICES[[f+1 for f in faces[index]],:],LINEALITY_SPACE = pm_polytope(iter.p).LINEALITY_SPACE))
-            return(p,index+1)
+            return (p,index+1)
         end
     end
 end
 #Note: it is impossible to know the number of faces prior to computation (and extraction of far faces)
 Base.IteratorSize(::Type{PolyhedronFacePolyhedronIterator}) = Base.SizeUnknown()
 
+"""
+    faces(P::Polyhedron, face_dim::Int [, as::Type{T} = Polyhedron])
+
+Returns the faces of `P` of dimension `face_dim` as an iterator over the type of object given
+by `as`. Optional arguments for `as` include
+* `Polyhedron` or `Polyhedra`: Returns for each face its realization as a polyhedron
+"""
 function faces(P::Polyhedron, face_dim::Int, as::Type{T} = Polyhedron) where {T}
     if as == Polyhedron || as == Polyhedra
         PolyhedronFacePolyhedronIterator(P,face_dim-size(lineality_space(P),1))
@@ -139,9 +147,13 @@ Base.eltype(::Type{VertexPointIterator}) = Polymake.Vector{Polymake.Rational}
 Base.length(iter::VertexPointIterator) = nvertices(iter.p)
 
 """
-   vertices(P::Polyhedron, as = :points)
+   vertices(P::Polyhedron, [,as::Type{T} = Points])
 
-Returns the vertices of a polyhedron.
+Returns an iterator over the vertices of a polyhedron `P` in the format defined by `as`.
+Optional arguments for `as` include
+* `Points`: Returns the representation of a vertex as a point.
+
+See also `vertices_as_point_matrix`.
 """
 function vertices(P::Polyhedron, as::Type{T} = Points) where {T}
     if as == Points
@@ -151,6 +163,12 @@ function vertices(P::Polyhedron, as::Type{T} = Points) where {T}
     end
 end
 
+
+"""
+   `vertices_as_point_matrix(P::Polyhedron)`
+
+Returns a matrix whose rows are the vertices of `P`.
+"""
 function vertices_as_point_matrix(P::Polyhedron)
     decompose_vdata(pm_polytope(P).VERTICES).vertices
 end
@@ -191,10 +209,16 @@ Returns the number of vertices of `P`.
 """
 nvertices(P::Polyhedron) = pm_polytope(P).N_VERTICES - nrays(P)
 
-"""
-   rays(P::Polyhedron)
 
-Returns minimal set of generators of the cone of unbounded directions of a polyhedron.
+"""
+   rays(P::Polyhedron, [,as::Type{T} = Points])
+
+
+Returns minimal set of generators of the cone of unbounded directions of a polyhedron `P` (i.e. its rays)
+ in the format defined by `as`. Optional arguments for `as` include
+* `Points`: Returns a vector representation of a ray.
+
+See also `rays_as_point_matrix`.
 """
 function rays(P::Polyhedron, as::Type{T} = Points) where {T}
     if as == Points
@@ -255,9 +279,10 @@ nfacets(P::Polyhedron) = pm_polytope(P).N_FACETS
 
 Returns the facets of the polyhedron `P` in the format defined by `as`.
 The allowed values for `as` are
-* `halfspaces`: Returns for each facet the tuple `(A, b)` describing the halfspace `dot(A,x) ≤ b`.
-* `polyhedra`: Returns for each facet its realization as a polyhedron
-* `halfspace_matrix_pair`: Returns `(A,b)` such `P={x | Ax ≦ b }`
+* `Halfspaces`: Returns for each facet the tuple `(A, b)` describing the halfspace `dot(A,x) ≤ b`.
+* `Polyhedron` or `Polyhedra`: Returns for each facet its realization as a polyhedron
+
+See also `facets_as_halfspace_matrix_pair`.
 """
 function facets(P::Polyhedron,  as::Type{T} = Halfspaces) where {T}
     if as == Halfspaces
@@ -269,7 +294,16 @@ function facets(P::Polyhedron,  as::Type{T} = Halfspaces) where {T}
     end
 end
 
-function facets_as_halfspace_matrix_pair(P:: Polyhedron)
+#TODO: how do underscores work in markdown?
+@doc Markdown.doc"""
+
+   `facets_as_halfspace_matrix_pair(P::Polyhedron)`
+
+Returns `(A,b)` such that $P=P(A,b)$ where
+
+$$P(A,b) = \{ x |  Ax ≤ b \}.$$
+"""
+function facets_as_halfspace_matrix_pair(P::Polyhedron)
     return decompose_hdata(pm_polytope(P).FACETS)
 end
 
@@ -340,15 +374,15 @@ codim(P::Polyhedron) = ambient_dim(P)-dim(P)
 ###############################################################################
 
 
-# TODO: This implementation is not correct. Ask Taylor.
+# Previously: This implementation is not correct. Ask Taylor.
 # Taylor: lineality space generators always look like [0, v] so
 #  v is a natural output.
 """
-   lineality_space(H::Polyhedron)
+   lineality_space(`P`::Polyhedron)
 
-Returns a basis of the lineality space of a polyhedron.
+Returns a matrix whose row span is the lineality space of a `P`. 
 """
-lineality_space(H::Polyhedron) = dehomogenize(pm_polytope(H).LINEALITY_SPACE)
+lineality_space(P::Polyhedron) = dehomogenize(pm_polytope(P).LINEALITY_SPACE)
 
 
 """
@@ -438,7 +472,7 @@ cube(d, u, l) = Polyhedron(Polymake.polytope.cube(d, u, l))
 The polytope given as the convex hull of the columns of V. Optionally, rays (R)
 and generators of the lineality space (L) can be given as well.
 
-see Def. 2.11 and Def. 3.1.
+see Def. 2.11 and Def. 3.1  of Joswig, M. and Theobald, T. "Polyhedral and Algebraic Methods in Computational Geometry", Springer 2013.
 """
 function convex_hull(V::AnyVecOrMat; non_redundant::Bool=false)
     if !non_redundant
@@ -508,8 +542,11 @@ function pm_far_face(P::Polyhedron)
 end
 
 
+"""
+    f_vector(P::Polyhedron)
 
-#TODO: integrate lineality space
+Computes the vector`(f_1,f_2,...,f_(dim(P)-1))` where `f_i` is the number of faces of `P` of dimension `i`.
+"""
 function f_vector(P::Polyhedron)
     f_vec=[length(collect(faces(P,i))) for i in 0:dim(P)-1]
     return f_vec
@@ -561,11 +598,37 @@ end
 
 #TODO: documentation  + extend to different fields.
 
+"""
+   +(P::Polyhedron, Q::Polyhedron)
+
+   Minkowski sum of two polyhedra.
+"""
 +(P::Polyhedron, Q::Polyhedron) = minkowski_sum(P,Q)
+
+
+#TODO: extend to different fields
+
+"""
+   *(k::Int, Q::Polyhedron)
+
+   Returns the scaled polyhedron `kQ`.
+"""
 *(k::Int, P::Polyhedron) = Polyhedron(Polymake.polytope.scale(pm_polytope(P),k))
+
+
+"""
+   *(P::Polyhedron, k::Int)
+
+   Returns the scaled polyhedron `kP`.
+"""
 *(P::Polyhedron,k::Int) = k*P
 
-#TODO: documentation + extend to different fields
+
+"""
+   +(P::Polyhedron, v::AbstractVector)
+
+   Returns the translation `P+v` of `P` by the vector `v`.
+"""
 function +(P::Polyhedron,v::AbstractVector)
     if ambient_dim(P) != length(v)
         throw(ArgumentError("Translation vector not correct dimension"))
@@ -574,6 +637,12 @@ function +(P::Polyhedron,v::AbstractVector)
     end
 end
 
+
+"""
+   +(v::AbstractVector,P::Polyhedron)
+
+   Returns the translation `v+P` of `P` by the vector `v`.
+"""
 +(v::AbstractVector,P::Polyhedron) = P+v
 
 @doc Markdown.doc"""

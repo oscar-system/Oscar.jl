@@ -10,6 +10,9 @@ struct LinearProgram
    polymake_lp::Polymake.BigObject
    convention::Symbol
    function LinearProgram(Q::Polyhedron, objective::AbstractVector, k = 0; convention = :max)
+      if convention != :max && convention != :min
+         throw(ArgumentError("convention must be set to :min or :max."))
+      end
       P=Polyhedron(Polymake.polytope.Polytope(pm_polytope(Q)))
       ambDim = ambient_dim(P)
       size(objective, 1) == ambDim || error("objective has wrong dimension.")
@@ -50,20 +53,20 @@ end
 ###############################################################################
 
 """
-    objective_function(LP::LinearProgram; as = :pair)
+    objective_function(lp::LinearProgram; as = :pair)
 
-Returns the objective function x ↦ dot(c,x)+k of the linear program LP.
+Returns the objective function x ↦ dot(c,x)+k of the linear program lp.
 The allowed values for `as` are
 * `pair`: Returns the pair `(c,k)`
 * `function`: Returns the objective function as a function.
 
 
 """
-function objective_function(LP::LinearProgram; as::Symbol = :pair)
+function objective_function(lp::LinearProgram; as::Symbol = :pair)
    if as == :pair
-      return dehomogenize(LP.polymake_lp.LINEAR_OBJECTIVE),LP.polymake_lp.LINEAR_OBJECTIVE[1]
+      return dehomogenize(lp.polymake_lp.LINEAR_OBJECTIVE),lp.polymake_lp.LINEAR_OBJECTIVE[1]
    elseif as == :function
-      (c,k) = objective_function(LP, as = :pair)
+      (c,k) = objective_function(lp, as = :pair)
       return x -> sum(x.*c)+k
    else
        throw(ArgumentError("Unsupported `as` argument :" * string(as)))
