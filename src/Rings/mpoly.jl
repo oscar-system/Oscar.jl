@@ -775,6 +775,157 @@ function eliminate(I::MPolyIdeal, l::AbstractArray{Int, 1})
   return eliminate(I, [gen(R, i) for i=l])
 end
 
+module Orderings
+
+using Oscar
+import Oscar: Ring, MPolyRing, MPolyElem, weights
+export anti_diagonal, lex, degrevlex, deglex, weights, MonomialOrdering
+
+abstract type AbsOrdering end
+mutable struct GenOrdering{T} <: AbsOrdering
+  vars::T
+  ord::Symbol
+  wgt::fmpz_mat
+  function GenOrdering(u::T, s::Symbol) where {T <: AbstractArray{Int, 1}}
+    r = new{typeof(u)}()
+    r.vars = u
+    r.ord = s
+    return r
+  end
+  function GenOrdering(u::T, m::fmpz_mat) where {T <: AbstractArray{Int, 1}}
+    r = new{typeof(u)}()
+    @assert ncols(m) == length(u)
+    r.vars = u
+    r.ord = :weight
+    r.wgt = m
+    return r
+  end
+end
+
+mutable struct ProdOrdering <: AbsOrdering
+  a::AbsOrdering
+  b::AbsOrdering
+end
+
+Base.:*(a::AbsOrdering, b::AbsOrdering) = ProdOrdering(a, b)
+
+function ordering(a::AbstractArray{Int, 1}, s::Union{Symbol, fmpz_mat})
+  i = minimum(a)
+  I = maximum(a)
+  if I-i+1 == length(a)
+    return GenOrdering(i:I, s)
+  end
+  return GenOrdering(collect(a), s)
+end
+
+function flat(a::GenOrdering)
+  return [a]
+end
+function flat(a::ProdOrdering)
+  return vcat(flat(a.a), flat(a.b))
+end
+
+function anti_diagonal(R::Ring, n::Int)
+  a = zero_matrix(R, n, n)
+  for i=1:n
+    a[i, n-i+1] = one(R)
+  end
+  return a
+end
+
+function weights(a::GenOrdering)
+  if a.ord == :lex
+    return identity_matrix(ZZ, length(a.vars))
+  end
+  if a.ord == :deglex
+    return vcat(matrix(ZZ, 1, length(a.vars), ones(fmpz, length(a.vars))), 
+                identity_matrix(ZZ, length(a.vars)))
+  end
+  if a.ord == :degrevlex
+    return vcat(matrix(ZZ, 1, length(a.vars), ones(fmpz, length(a.vars))), 
+                anti_diagonal(ZZ, length(a.vars)))
+  end              
+end
+
+function weights(a::AbsOrdering)
+  aa = flat(a)
+  m = matrix(ZZ, 0, 0, [])
+  for o = aa
+    w = weights(o)
+    if maximum(o.vars) > ncols(m)
+      m = hcat(m, zero_matrix(ZZ, nrows(m), maximum(o.vars) - ncols(m)))
+    end
+    mm = zero_matrix(ZZ, nrows(w), ncols(m))
+    for r = 1:nrows(w)
+      for c = 1:length(o.vars)
+        mm[r, o.vars[c]] = w[r, c]
+      end
+    end
+    m = vcat(m, mm)
+  end
+  return m
+end
+
+mutable struct MonomialOrdering{S}
+  R::S
+  o::AbsOrdering
+end
+
+function ordering(a::AbstractArray{<:MPolyElem, 1}, s::Union{Symbol, fmpz_mat})
+  R = parent(first(a))
+  g = gens(R)
+  aa = [findfirst(x -> x == y, g) for y = a]
+  if nothing in aa
+    error("only variables allowed")
+  end
+  return ordering(aa, s)
+end
+
+function Base.:*(M::MonomialOrdering, N::MonomialOrdering)
+  M.R == N.R || error("wrong rings")
+  return MonomialOrdering(M.R, M.o*N.o)
+end
+
+function Base.show(io::IO, M::MonomialOrdering)
+  a = flat(M.o)
+  if length(a) > 1
+    print(io, "Product ordering: ")
+    for i=1:length(a)-1
+      show(io, M.R, a[i])
+      print(io, " \\times ")
+    end
+  end
+  show(io, M.R, a[end])
+end
+
+function Base.show(io::IO, R::MPolyRing, o::GenOrdering)
+  if o.ord == :weight
+    print(io, "weight($(gens(R)[o.vars]) via $(o.wgt))")
+  else
+    print(io, "$(String(o.ord))($(gens(R)[o.vars]))")
+  end
+end
+
+function lex(v::AbstractArray{<:MPolyElem, 1})
+  return MonomialOrdering(parent(first(v)), ordering(v, :lex))
+end
+function deglex(v::AbstractArray{<:MPolyElem, 1})
+  return MonomialOrdering(parent(first(v)), ordering(v, :deglex))
+end
+function degrevlex(v::AbstractArray{<:MPolyElem, 1})
+  return MonomialOrdering(parent(first(v)), ordering(v, :degrevlex))
+end
+
+function weights(M::MonomialOrdering)
+  return weights(M.o)
+end
+
+end
+
+using .Orderings
+export lex, deglex, degrevlex, weights, MonomialOrdering
+
+
 ###################################################
 
 # Some isless functions for orderings:
@@ -945,7 +1096,7 @@ function _isless_matrix(f::MPolyElem, k::Int, l::Int, M::Union{ Array{T, 2}, Mat
   ek = exponent_vector(f, k)
   el = exponent_vector(f, l)
   n = nvars(parent(f))
-  for i = 1:n
+  for i = 1:size(M, 1)
     eki = sum( M[i, j]*ek[j] for j = 1:n )
     eli = sum( M[i, j]*el[j] for j = 1:n )
     if eki == eli
@@ -966,7 +1117,7 @@ function _perm_of_terms(f::MPolyElem, ord_lt::Function)
 end
 
 # Requiring R for consistence with the other lt_from_ordering functions
-function lt_from_ordering(R::MPolyRing, ord::Symbol)
+function lt_from_ordering(::MPolyRing, ord::Symbol)
   if ord == :lex || ord == :lp
     return _isless_lex
   elseif ord == :revlex || ord == :rp
@@ -1009,7 +1160,7 @@ function lt_from_ordering(R::MPolyRing, ord::Symbol, w::Vector{Int})
 end
 
 function lt_from_ordering(R::MPolyRing, M::Union{ Array{T, 2}, MatElem{T} }) where T
-  @assert size(M, 1) == nvars(R) && size(M, 2) == nvars(R) "Matrix dimensions have to match number of variables"
+  @assert size(M, 2) == nvars(R) "Matrix dimensions have to match number of variables"
 
   return (f, k, l) -> _isless_matrix(f, k, l, M)
 end
@@ -1055,6 +1206,12 @@ for s in (:terms, :coeffs, :exponent_vectors, :monomials)
     function ($s)(f::MPolyElem, ord::Symbol, weights::Vector{Int})
       R = parent(f)
       lt = lt_from_ordering(R, ord, weights)
+      return ($s)(f, lt)
+    end
+
+    function ($s)(f::MPolyElem, ord::MonomialOrdering)
+      R = parent(f)
+      lt = lt_from_ordering(R, weights(ord))
       return ($s)(f, lt)
     end
   end
