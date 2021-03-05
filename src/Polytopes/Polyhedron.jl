@@ -294,7 +294,6 @@ function facets(P::Polyhedron,  as::Type{T} = Halfspaces) where {T}
     end
 end
 
-<<<<<<< Updated upstream
 #TODO: how do underscores work in markdown?
 @doc Markdown.doc"""
 
@@ -305,9 +304,6 @@ Returns `(A,b)` such that $P=P(A,b)$ where
 $$P(A,b) = \{ x |  Ax ≤ b \}.$$
 """
 function facets_as_halfspace_matrix_pair(P::Polyhedron)
-=======
-function facets_as_halfspace_matrix_pair(P:: Polyhedron)
->>>>>>> Stashed changes
     return decompose_hdata(pm_polytope(P).FACETS)
 end
 
@@ -384,7 +380,7 @@ codim(P::Polyhedron) = ambient_dim(P)-dim(P)
 """
    lineality_space(`P`::Polyhedron)
 
-Returns a matrix whose row span is the lineality space of a `P`. 
+Returns a matrix whose row span is the lineality space of a `P`.
 """
 lineality_space(P::Polyhedron) = dehomogenize(pm_polytope(P).LINEALITY_SPACE)
 
