@@ -67,7 +67,19 @@ I*J
 
 ### Computing Gröbner Bases
 
-#### Gröbner Bases over fields
+```@docs
+groebner_assure(I::MPolyIdeal)
+```
+
+###### Example
+
+```@repl oscar
+R, (x, y) = PolynomialRing(QQ, ["x", "y"], ordering=:degrevlex)
+I = ideal([x*y-3*x,y^3-2*x^2*y])
+I.gb
+groebner_assure(I)
+I.gb
+```
 
 ```@docs
 groebner_basis(B::BiPolyArray; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
