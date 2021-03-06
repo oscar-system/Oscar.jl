@@ -1,5 +1,12 @@
-export  groebner_assure, groebner_basis, leading_ideal, syzygy_generators
+export  groebner_assure, groebner_basis, groebner_basis_with_transform, leading_ideal, syzygy_generators
 
+# groebner stuff #######################################################
+@doc Markdown.doc"""
+    groebner_assure(I::MPolyIdeal)
+
+Given an ideal `I` in a multivariate polynomial ring this function assures that a
+Groebner basis w.r.t. the given monomial ordering is attached to `I` in `I.gb`.
+"""
 function groebner_assure(I::MPolyIdeal)
   if !isdefined(I, :gb)
     singular_assure(I)
@@ -8,14 +15,22 @@ function groebner_assure(I::MPolyIdeal)
   end
 end
 
+@doc Markdown.doc"""
+    groebner_basis(B::BiPolyArray; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
+
+Given an `BiPolyArray` `B` and optional parameters `ord` for a monomial ordering and `complete_reduction`
+this function computes a Groebner basis (if `complete_reduction = true` the reduced Groebner basis) of the
+ideal spanned by the elements in `B` w.r.t. the given monomial ordering `ord`. The Groebner basis is then
+returned in `B.S`.
+"""
 function groebner_basis(B::BiPolyArray; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
-  if ord != :degrevlex
+  # if ord != :degrevlex
     R = singular_ring(B.Ox, ord)
     i = Singular.Ideal(R, [R(x) for x = B])
 #    @show "std on", i, B
     i = Singular.std(i, complete_reduction = complete_reduction)
     return BiPolyArray(B.Ox, i)
-  end
+  # end
   if !isdefined(B, :S)
     B.S = Singular.Ideal(B.Sx, [B.Sx(x) for x = B.O])
   end
@@ -23,11 +38,27 @@ function groebner_basis(B::BiPolyArray; ord::Symbol = :degrevlex, complete_reduc
   return BiPolyArray(B.Ox, Singular.std(B.S, complete_reduction = complete_reduction))
 end
 
+@doc Markdown.doc"""
+    groebner_basis(I::MPolyIdeal)
+
+Given an ideal `I` this function computes a Groebner basis
+w.r.t. the given monomial ordering of the polynomial ring. The Groebner basis is then
+returned as an array of multivariate polynomials.
+"""
 function groebner_basis(I::MPolyIdeal)
   groebner_assure(I)
   return collect(I.gb)
 end
 
+
+@doc Markdown.doc"""
+    groebner_basis(I::MPolyIdeal, ord::Symbol = :degrevlex; complete_reduction::Bool=false)
+
+Given an ideal `I`, a monomial ordering `ord` and an optional parameter `complete_reduction`
+this function computes a Groebner basis (if `complete_reduction = true` the reduced Groebner basis) of `I`
+w.r.t. the given monomial ordering `ord`. The Groebner basis is then
+returned as an array of multivariate polynomials.
+"""
 function groebner_basis(I::MPolyIdeal, ord::Symbol; complete_reduction::Bool=false)
   R = singular_ring(base_ring(I), ord)
   !Oscar.Singular.has_global_ordering(R) && error("The ordering has to be a global ordering.")
@@ -35,6 +66,13 @@ function groebner_basis(I::MPolyIdeal, ord::Symbol; complete_reduction::Bool=fal
   return collect(BiPolyArray(base_ring(I), i))
 end
 
+@doc Markdown.doc"""
+    groebner_basis_with_transform(B::BiPolyArray; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
+
+Given an `BiPolyArray` `B` and optional parameters `ord` for a monomial ordering and `complete_reduction`
+this function computes a Groebner basis (if `complete_reduction = true` the reduced Groebner basis) of the
+ideal spanned by the elements in `B` w.r.t. the given monomial ordering `ord` and the transformation matrix from the ideal to the Groebner basis. Return value is a BiPolyArray together with a map.
+"""
 function groebner_basis_with_transform(B::BiPolyArray; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
   if ord != :degrevlex
     R = singular_ring(B.Ox, ord)
@@ -52,7 +90,13 @@ function groebner_basis_with_transform(B::BiPolyArray; ord::Symbol = :degrevlex,
   return BiPolyArray(B.Ox, i), map_entries(x->B.Ox(x), m)
 end
 
-# syzygies#######################################################
+function lift_groebner_basis(I::MPolyIdeal, ord::Symbol; complete_reduction::Bool=false)
+  R = singular_ring(base_ring(I), ord)
+  !Oscar.Singular.has_global_ordering(R) && error("The ordering has to be a global ordering.")
+  i, m = Singular.lift_std(Singular.Ideal(R, [R(x) for x = gens(I)]), complete_reduction = complete_reduction)
+  return collect(BiPolyArray(base_ring(I), i)), m
+end
+# syzygies #######################################################
 @doc Markdown.doc"""
     syzygy_generators(a::Array{<:MPolyElem, 1})
 
