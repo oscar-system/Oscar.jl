@@ -110,6 +110,22 @@ L = leading_ideal(I, :lex)
 #### ....
 
 
+### Syzygies
+
+#### Generators of syzygies
+
+```@docs
+syzygy_generators(a::Array{<:MPolyElem, 1})
+```
+
+###### Example
+
+```@repl oscar
+R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+S = syzygy_generators([x^3+y+2,x*y^2-13*x^2,y-14])
+```  
+
+
 ## Ideals in Multivariate Polynomial Rings
 
 ### Introduction
