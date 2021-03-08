@@ -2,6 +2,8 @@ export saturation, quotient, elimination
 export radical, primary_decomposition, minimal_primes, equidimensional_decomposition_weak,
           equidimensional_decomposition_radical, equidimensional_hull,
           equidimensional_hull_radical
+export issubset, iscontained, isprime, isprimary
+export ngens, gens
 
 # elementary operations #######################################################
 
@@ -108,6 +110,10 @@ function eliminate(I::MPolyIdeal, l::AbstractArray{Int, 1})
   R = base_ring(I)
   return eliminate(I, [gen(R, i) for i=l])
 end
+
+### todo: wenn schon GB bzgl. richtiger eliminationsordnung bekannt ...
+### Frage: return MPolyIdeal(base_ring(I), s) ???
+
 ###################################################
 
 # primary decomposition #######################################################
@@ -250,6 +256,7 @@ end
 #######################################################
 @doc Markdown.doc"""
     equidimensional_hull_radical(I::MPolyIdeal)
+
 Returns the intersection of the associated primes of `I` of maximal dimension.
 If `I` is the unit ideal, `[ideal(1)]` is returned. 
 Uses a combination of the algorithms of Krick and Logar 
@@ -262,3 +269,83 @@ function equidimensional_hull_radical(I::MPolyIdeal)
   return ideal(R, i)
 end
 
+#######################################################
+@doc Markdown.doc"""
+    :(==)(I::MPolyIdeal, J::MPolyIdeal)
+
+Returns `true` if `I=J`, `false` otherwise.
+"""
+function Base.:(==)(I::MPolyIdeal, J::MPolyIdeal)
+  singular_assure(I)
+  singular_assure(J)
+  return Singular.equal(I.gens.S, J.gens.S)
+end
+
+### todo: wenn schon GB's  bekannt ...
+
+#######################################################
+@doc Markdown.doc"""
+    issubset(I::MPolyIdeal, J::MPolyIdeal)
+
+Returns `true` if `I` is contained in `J`, `false` otherwise.
+"""
+function Base.issubset(I::MPolyIdeal, J::MPolyIdeal)
+  singular_assure(I)
+  singular_assure(J)
+  return Singular.contains(J.gens.S, I.gens.S)
+end
+
+### todo: wenn schon GB's  bekannt ...
+
+#######################################################
+@doc Markdown.doc"""
+    iscontained(f::MPolyElem, J::MPolyIdeal)
+
+Returns `true` if `f` is contained in `J` and `false`, otherwise.
+"""
+function iscontained(f::MPolyElem, J::MPolyIdeal)
+  return issubset(ideal([f]), J)
+end
+
+################################################################################
+@doc Markdown.doc"""
+    isprime(I::MPolyIdeal)
+
+Returns `true` if the ideal `I` is prime, `false` otherwise. Proceeds by computing a primary decomposition.
+"""
+function isprime(I::MPolyIdeal)
+  D = primary_decomposition(I)
+  return length(D) == 1 && issubset(D[1][2], D[1][1])
+end
+
+################################################################################
+@doc Markdown.doc"""
+    isprimary(I::MPolyIdeal)
+
+Return `true` if the ideal `I` is primary, `false` otherwise. Proceeds by computing a primary decomposition.
+"""
+function isprimary(I::MPolyIdeal)
+  D = primary_decomposition(I)
+  return length(D) == 1
+end
+
+#######################################################
+@doc Markdown.doc"""
+    ngens(I::MPolyIdeal)
+Returns the number of generators of `I`.
+"""
+function ngens(I::MPolyIdeal)
+  return length(I.gens)
+end
+
+#######################################################
+@doc Markdown.doc"""
+    gens(I::MPolyIdeal)
+
+Returns the generators of `I` as an array of multivariate polynomials.
+"""
+function gens(I::MPolyIdeal)
+  return [I.gens[Val(:O), i] for i=1:ngens(I)]
+end
+
+gen(I::MPolyIdeal, i::Int) = I.gens[Val(:O), i]

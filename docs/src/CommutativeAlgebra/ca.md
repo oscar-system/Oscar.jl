@@ -18,46 +18,6 @@ This part of OSCAR is under development with regard to providing both the functi
 
 ## Ideal constructors
 
-## Simple ideal Operations
-
-### Powers of Ideal
-
-```@docs
-:^(I::MPolyIdeal, m::Int)
-```
-### Sum of Ideals
-
-```@docs
-:+(I::MPolyIdeal, J::MPolyIdeal)
-```
-
-### Product of Ideals
-
-```@docs
-:*(I::MPolyIdeal, J::MPolyIdeal)
-```
-###### Example
-
-```@repl oscar
-R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-I = ideal(R, [x, y])
-J = ideal(R, [z^2])
-I^3
-I+J
-I*J
-```
-
-## Module Constructors
-
-## Simple Module Operations
-
-### Sum of Submodules
-
-    N_1+N_2
-
-### Products of Ideal and Submodule
-
-    I*N
 
 ## Gröbner Bases
 
@@ -71,16 +31,14 @@ I*J
 groebner_assure(I::MPolyIdeal)
 ```
 
-```@docs
-groebner_basis(B::BiPolyArray; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
-```
+=======
+###### Example
 
-```@docs
-groebner_basis(I::MPolyIdeal)
-```
-
-```@docs
-groebner_basis(I::MPolyIdeal, ord::Symbol; complete_reduction::Bool=false)
+```@repl oscar
+R, (x, y) = PolynomialRing(QQ, ["x", "y"], ordering=:degrevlex)
+I = ideal([x*y-3*x,y^3-2*x^2*y])
+groebner_assure(I)
+I.gb
 ```
 
 #### Gröbner Bases with transformation matrix
@@ -125,6 +83,35 @@ syzygy_generators(a::Array{<:MPolyElem, 1})
 Distinction: ideals <--> homogeneous ideals. To be discussed.
 
 ### Ideal Operations for Multivariate Polynomial Rings
+
+#### Simple ideal Operations
+
+##### Powers of Ideal
+
+```@docs
+:^(I::MPolyIdeal, m::Int)
+```
+##### Sum of Ideals
+
+```@docs
+:+(I::MPolyIdeal, J::MPolyIdeal)
+```
+
+##### Product of Ideals
+
+```@docs
+:*(I::MPolyIdeal, J::MPolyIdeal)
+```
+###### Example
+
+```@repl oscar
+R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+I = ideal(R, [x, y])
+J = ideal(R, [z^2])
+I^3
+I+J
+I*J
+```
 
 #### Intersection of Ideals
 
@@ -343,16 +330,97 @@ L = equidimensional_hull_radical(I)
 
 
 ### Tests on Ideals
+
+#### Equality of Ideals
+
+```@docs
+:(==)(I::MPolyIdeal, J::MPolyIdeal)
+```
+##### Example
+```@repl oscar
+R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+I = ideal(R, [x^2])
+J = ideal(R, [x, y])^2
+I == J
+```
+
+#### Containment of Ideals
+
+```@docs
+issubset(I::MPolyIdeal, J::MPolyIdeal)
+```
+##### Example
+```@repl oscar
+R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+I = ideal(R, [x^2])
+J = ideal(R, [x, y])^2
+issubset(I, J)
+```
+
+#### Ideal Membership
+
+```@docs
+Base.iscontained(f::MPolyElem, J::MPolyIdeal)
+```
+##### Example
+```@repl oscar
+R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+f = x^2
+J = ideal(R, [x, y])^2
+iscontained(f, J)
+```
+#### Primality Test
+
+```@docs
+isprime(I::MPolyIdeal)
+```
+##### Example
+```@repl oscar
+R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+I = ideal(R, [x, y])^2
+isprime(I)
+```
+
+#### Primary Test
+
+```@docs
+isprimary(I::MPolyIdeal)
+```
+##### Example
+```@repl oscar
+R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+I = ideal(R, [x, y])^2
+isprimary(I)
+```
   
     homogeneity test:        ishomogeneous(I)
-    equality test:                 I==J
-	ideal membership test: iscontained(f,I) oder    f \in I
-    containment test:          issubset(I,J)    oder    I \subseteq J
+    
     .....
     
 ### Data Associated to Ideals
 
-    generators:            gens(I)                                (type list)
+   #### Number of Generators
+
+```@docs
+ngens(I::MPolyIdeal)
+```
+##### Example
+```@repl oscar
+R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+I = ideal(R, [x, y])^2
+ngens(I)
+```
+#### Generators
+
+```@docs
+gens(I::MPolyIdeal)
+```
+##### Example
+```@repl oscar
+R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+I = ideal(R, [x, y])^2
+gens(I)
+```
     dimension:             dim(I)                                 (type integer)
     codimension:           codim(I)                               (type integer)
     
@@ -369,9 +437,23 @@ L = equidimensional_hull_radical(I)
 
 ## Modules over Multivariate Polynomial Rings
 
+### Module Constructors
+
+### Simple Module Operations
+
+#### Sum of Submodules
+
+    N_1+N_2
+
+#### Products of Ideal and Submodule
+
+    I*N
+
 ### Flatness
 
 ### Depth and Codimension
+
+## Noether Normalization
 
 ## Normalization of Rings
 

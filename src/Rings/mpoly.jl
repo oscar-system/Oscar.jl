@@ -360,29 +360,6 @@ function Base.copy(f::MPolyElem)
     return finish(g)
 end
 
-function Base.:(==)(I::MPolyIdeal, J::MPolyIdeal)
-  singular_assure(I)
-  singular_assure(J)
-  return Singular.equal(I.gens.S, J.gens.S)
-end
-
-function ngens(I::MPolyIdeal)
-  return length(I.gens)
-end
-
-function Base.issubset(I::MPolyIdeal, J::MPolyIdeal)
-  singular_assure(I)
-  singular_assure(J)
-  return Singular.contains(J.gens.S, I.gens.S)
-end
-
-function gens(I::MPolyIdeal)
-  return [I.gens[Val(:O), i] for i=1:ngens(I)]
-end
-
-gen(I::MPolyIdeal, i::Int) = I.gens[Val(:O), i]
-
-
 function map_entries(R, M::Singular.smatrix)
   s = nrows(M), ncols(M)
   S = parent(R(zero(base_ring(M))))
@@ -1140,29 +1117,6 @@ end
 
 ################################################################################
 
-################################################################################
-# I don't know if there is a smarter way to check if an ideal is prime/primary
 
-@doc Markdown.doc"""
-    isprime(I::MPolyIdeal)
-
-Return `true` if the ideal `I` is prime, false otherwise
-"""
-function isprime(I::MPolyIdeal)
-  D = primary_decomposition(I)
-  return length(D) == 1 && issubset(D[1][2], D[1][1])
-end
-
-################################################################################
-
-@doc Markdown.doc"""
-    isprimary(I::MPolyIdeal)
-
-Return `true` if the ideal `I` is primary, false otherwise
-"""
-function isprimary(I::MPolyIdeal)
-  D = primary_decomposition(I)
-  return length(D) == 1
-end
 
 ################################################################################
