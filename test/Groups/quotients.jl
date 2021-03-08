@@ -27,4 +27,11 @@
    @test issurjective(f)
    @test exponent(G) == n
    @test isone(G[1]^n)
+   @test relators(G)==[x^n,y^n,comm(x,y)]
+
+   S = symmetric_group(4)
+   G,f = quo(S, [cperm(S,[1,3,2])])
+   @test order(G) == 2
+   @test f(S([1,2,4,3]))==G[1]
+   @test f(S([2,1,4,3]))==one(G)
 end
