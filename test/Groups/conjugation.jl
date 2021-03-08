@@ -17,11 +17,13 @@
   @test x == representative(cc)
   y = rand(cc)
   @test order(y) == order(x)
-  @test isconjugate(G,x,x^y)[1]
-  z = isconjugate(G,x,x^y)[2]
+  @test isconjugate(G,x,x^y)
+  @test representative_action(G,x,x^y)[1]
+  z = representative_action(G,x,x^y)[2]
   @test x^z == x^y
   z = cperm(G,[1,2])
-  @test !isconjugate(G,x,z)[1]
+  @test !isconjugate(G,x,z)
+  @test !representative_action(G,x,z)[1]
 
 
 # something in smaller dimension
@@ -48,11 +50,13 @@
      c = C[i]
      x = rand(c)
      y = rand(c)
-     @test isconjugate(G,x,y)[1]
-     z = isconjugate(G,x,y)[2]
+     @test isconjugate(G,x,y)
+     @test representative_action(G,x,y)[1]
+     z = representative_action(G,x,y)[2]
      @test x^z == y
      y = rand(C[(i%5)+1])
-     @test !isconjugate(G,x,y)[1]
+     @test !isconjugate(G,x,y)
+     @test !representative_action(G,x,y)[1]
   end
 
   CC = conjugacy_classes_subgroups(G)
@@ -68,11 +72,13 @@
      c = CC[i]
      x = rand(c)
      y = rand(c)
-     @test isconjugate(G,x,y)[1]
-     z = isconjugate(G,x,y)[2]
+     @test isconjugate(G,x,y)
+     @test representative_action(G,x,y)[1]
+     z = representative_action(G,x,y)[2]
      @test x^z == y
      y = rand(CC[(i % length(CC))+1])
-     @test !isconjugate(G,x,y)[1]
+     @test !isconjugate(G,x,y)
+     @test !representative_action(G,x,y)[1]
   end
 
   CC = conjugacy_classes_maximal_subgroups(G)
