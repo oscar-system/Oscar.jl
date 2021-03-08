@@ -44,14 +44,18 @@ end
 
 # ideal intersection #######################################################
 @doc Markdown.doc"""
-    intersect(I::MPolyIdeal, J::MPolyIdeal)
+    intersect(I::MPolyIdeal, Js::MPolyIdeal...)
 
-Returns the intersection of `I` and `J`. 
+Returns the intersection of two or more ideals.
 """
-function Base.intersect(I::MPolyIdeal, J::MPolyIdeal)
+function Base.intersect(I::MPolyIdeal, Js::MPolyIdeal...)
   singular_assure(I)
-  singular_assure(J)
-  return MPolyIdeal(I.gens.Ox, Singular.intersection(I.gens.S, J.gens.S))
+  si = I.gens.S
+  for J in Js
+    singular_assure(J)
+    si = Singular.intersection(si, J.gens.S)
+  end
+  return MPolyIdeal(I.gens.Ox, si)
 end
 
 #######################################################
