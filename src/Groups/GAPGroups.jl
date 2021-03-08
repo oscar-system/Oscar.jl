@@ -833,6 +833,10 @@ function relators(G::FPGroup)
    return [group_element(F,L[i]) for i in 1:length(L)]
 end
 
+"""
+    nilpotency_class(G::GAPGroup)
+Return the nilpotency class of `G`, that is the smallest integer `d` such that `G` has a central series of length `n`.
+"""
 function nilpotency_class(G::GAPGroup)
    @assert isnilpotent(G) "The group is not nilpotent."
    return GAP.Globals.NilpotencyClassOfGroup(G.X)
