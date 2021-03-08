@@ -41,22 +41,17 @@ J = ideal(R, [(x+y)^2])
 ### Computing Gröbner Bases
 
 ```@docs
-groebner_assure(I::MPolyIdeal)
+groebner_basis(I::MPolyIdeal)
 ```
 
-###### Example
-
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"], ordering=:degrevlex)
-I = ideal([x*y-3*x,y^3-2*x^2*y])
-groebner_assure(I)
-I.gb
+```@docs
+groebner_basis(I::MPolyIdeal, ord::Symbol; complete_reduction::Bool=false)
 ```
 
 #### Gröbner Bases with transformation matrix
 
 ```@docs
-groebner_basis_with_transform(B::BiPolyArray; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
+groebner_basis_with_transform(I::MPolyIdeal; ord::Symbol = :degrevlex, complete_reduction::Bool=false)
 ```
 
     fglm
