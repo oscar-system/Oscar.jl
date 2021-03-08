@@ -30,6 +30,10 @@ export
 function _as_subgroup_bare(G::T, H::GapObj) where T
   if T==PermGroup
     H1 = T(H, G.deg)
+  elseif T<:MatrixGroup
+    H1 = MatrixGroup(G.deg,G.ring)
+    H1.mat_iso = G.mat_iso
+    H1.X = H
   else
     H1 = T(H)
   end
@@ -48,7 +52,7 @@ end
 function sub(G::T, elements::Vector{S}) where T <: GAPGroup where S <: GAPGroupElem
   @assert elem_type(G) == S
   elems_in_GAP = GAP.julia_to_gap(GapObj[x.X for x in elements])
-  H = GAP.Globals.Group(elems_in_GAP)
+  H = GAP.Globals.Subgroup(G.X,elems_in_GAP)
   #H is the group. I need to return the inclusion map too
   return _as_subgroup(G, H)
 end
@@ -63,11 +67,11 @@ end
 """
     issubgroup(G::T, H::T) where T <: GAPGroup
 
-Return (`true`,`f`) if `H` is a subgroup of `G`, where `f` is the embedding homomorphism of `H` into `G`, otherwise return (`false`,`Nothing`).
+Return (`true`,`f`) if `H` is a subgroup of `G`, where `f` is the embedding homomorphism of `H` into `G`, otherwise return (`false`,`nothing`).
 """
 function issubgroup(G::T, H::T) where T <: GAPGroup
-   if false in [h in G for h in gens(H)]
-      return (false, Nothing)
+   if !all(h -> h in G, gens(H))
+      return (false, nothing)
    else
       return (true, _as_subgroup(G, H.X)[2])
    end

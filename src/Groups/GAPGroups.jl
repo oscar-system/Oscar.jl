@@ -413,9 +413,15 @@ function (G::PermGroup)(x::PermGroupElem)
 end
 
 #evaluation function
+function (x::PermGroupElem)(n::T) where T <: Union{Base.Integer,fmpz}
+   return T(GAP.Globals.OnPoints(GAP.GapObj(n), x.X))
+end
+
 function (x::PermGroupElem)(n::Int)
    return GAP.Globals.OnPoints(n,x.X)
 end
+
+^(n::T, x::PermGroupElem) where T <: Union{Base.Integer,fmpz} = T(GAP.Globals.OnPoints(GAP.GapObj(n), x.X))
 
 ^(n::Int, x::PermGroupElem) = GAP.Globals.OnPoints(n,x.X)
 
@@ -499,7 +505,7 @@ function conjugacy_classes(G::GAPGroup)
    return GroupConjClass{typeof(G), elem_type(G)}[ _conjugacy_class(G,group_element(G,GAP.Globals.Representative(cc)),cc) for cc in L]
 end
 
-Base.:^(x::GAPGroupElem, y::GAPGroupElem) = group_element(_maxgroup(parent(x), parent(y)), x.X ^ y.X)
+Base.:^(x::T, y::T) where T <: GAPGroupElem = group_element(_maxgroup(parent(x), parent(y)), x.X ^ y.X)
 
 """
     isconjugate(G::Group, x::GAPGroupElem, y::GAPGroupElem)

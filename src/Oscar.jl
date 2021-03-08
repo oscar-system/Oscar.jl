@@ -116,6 +116,10 @@ function example(s::String)
   Base.include(Main, joinpath(oscardir, "examples", s))
 end
 
+function build_doc()
+  Base.include(Main, joinpath(oscardir, "docs", "make_local.jl"))
+end
+export build_doc
 # This can be used in
 #
 # module A
@@ -172,6 +176,7 @@ function test_module(x, new::Bool = true)
    end
 end
 
+function weights end
 
 include("OscarTypes.jl")
 
@@ -189,11 +194,15 @@ include("Groups/libraries/libraries.jl")
 include("Groups/GAPGroups.jl")
 include("Groups/directproducts.jl")
 include("Groups/action.jl")
+include("Groups/iso_oscar_gap.jl")
+include("Groups/MatGrp.jl")
 
 include("Rings/integer.jl")
 include("Rings/rational.jl")
 include("Rings/Hecke.jl")
 include("Rings/mpoly.jl")
+include("Rings/mpoly-ideals.jl")
+include("Rings/groebner.jl")
 include("Rings/MPolyQuo.jl")
 include("Rings/mpoly-graded.jl")
 include("Rings/mpoly-local.jl")

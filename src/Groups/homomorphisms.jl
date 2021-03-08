@@ -28,9 +28,9 @@ export
 
 function Base.show(io::IO, x::GAPGroupHomomorphism)
   print(io, "Group homomorphism from \n")
-  println(io, domain(x))
-  print(io, "to\n")
-  println(io, codomain(x))
+  show(IOContext(io, :compact => true), domain(x))
+  print(io, "\nto\n")
+  show(IOContext(io, :compact => true), codomain(x))
 end
 
 function ==(f::GAPGroupHomomorphism{S,T}, g::GAPGroupHomomorphism{S,T}) where S where T
@@ -386,8 +386,9 @@ function hom(x::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup
   return _hom_from_gap_map(G, G, x.X)
 end
 
-(f::GAPGroupElem{AutomorphismGroup{T}})(x::GAPGroupElem{T}) where T <: GAPGroup = apply_automorphism(f, x)
-Base.:^(x::GAPGroupElem{T},f::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup = apply_automorphism(f, x)
+(f::GAPGroupElem{AutomorphismGroup{T}})(x::GAPGroupElem) where T <: GAPGroup = apply_automorphism(f, x, true)
+Base.:^(x::GAPGroupElem{T},f::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup = apply_automorphism(f, x, true)
+#Base.:^(f::GAPGroupElem{AutomorphismGroup{T}},g::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup = g^-1*f*g
 
 function (A::AutomorphismGroup{T})(f::GAPGroupHomomorphism{T,T}) where T <: GAPGroup
    @assert domain(f)==A.G && codomain(f)==A.G "f not in A"
@@ -395,11 +396,11 @@ function (A::AutomorphismGroup{T})(f::GAPGroupHomomorphism{T,T}) where T <: GAPG
    return group_element(A, f.map)
 end
 
-function apply_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, x::GAPGroupElem{T}, check=true) where T <: GAPGroup
+function apply_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, x::GAPGroupElem, check=true) where T <: GAPGroup
   A = parent(f)
   G = parent(x)
   if check
-    @assert A.G == G || GAP.Globals.IN(x.X, A.G.X) "Not in the domain of f!"
+    @assert A.G == G || GAP.Globals.IN(x.X, A.G.X) "Not in the domain of f!"      #TODO Do we really need the IN check?
   end
   return typeof(x)(G, GAP.Globals.Image(f.X,x.X))
 end

@@ -534,7 +534,7 @@ function invariant(G::PermGroup, H::PermGroup)
     d = setdiff(OH, OG)
     if length(d) > 0
       @vprint :GaloisInvariant 2 "groups have different orbits\n"
-      return sum(probable_orbit(H, d[1][1]))
+      return sum(probable_orbit(H, g[d[1][1]]))
     end
     #OH == OG
     for o = OH
@@ -581,32 +581,32 @@ function invariant(G::PermGroup, H::PermGroup)
       d = [sqrt_disc(g[b]) for b = B]
       D = sqrt_disc(y)
       I = D
-      if all(p->isprobably_invariant(I, p), gens(H)) &&
-         any(p->!isprobably_invariant(I, p), gens(G))
+      if all(p->isprobably_invariant(I, p), H) &&
+         any(p->!isprobably_invariant(I, p), G)
         @vprint :GaloisInvariant 3 "using D-invar for $BB\n"
         return I
       end
       I = elementary_symmetric(d, 1)
-      if all(p->isprobably_invariant(I, p), gens(H)) &&
-         any(p->!isprobably_invariant(I, p), gens(G))
+      if all(p->isprobably_invariant(I, p), H) &&
+         any(p->!isprobably_invariant(I, p), G)
         @vprint :GaloisInvariant 3 "using s1-invar for $BB\n"
         return I
       end
       I = elementary_symmetric(d, m)
-      if all(p->isprobably_invariant(I, p), gens(H)) &&
-         any(p->!isprobably_invariant(I, p), gens(G))
+      if all(p->isprobably_invariant(I, p), H) &&
+         any(p->!isprobably_invariant(I, p), G)
         @vprint :GaloisInvariant 3 "using sm-invar for $BB\n"
         return I
       end
       I = elementary_symmetric(d, 2)
-      if all(p->isprobably_invariant(I, p), gens(H)) &&
-         any(p->!isprobably_invariant(I, p), gens(G))
+      if all(p->isprobably_invariant(I, p), H) &&
+         any(p->!isprobably_invariant(I, p), G)
         @vprint :GaloisInvariant 3 "using s2-invar for $BB\n"
         return I
       end
       I = D*elementary_symmetric(d, m)
-      if all(p->isprobably_invariant(I, p), gens(H)) &&
-         any(p->!isprobably_invariant(I, p), gens(G))
+      if all(p->isprobably_invariant(I, p), H) &&
+         any(p->!isprobably_invariant(I, p), G)
         @vprint :GaloisInvariant 3 "using D sm-invar for $BB\n"
         return I
       end
@@ -627,11 +627,17 @@ function invariant(G::PermGroup, H::PermGroup)
 
       sG = set_stabilizer(G, BB)[1]
       sH = set_stabilizer(H, BB)[1]
-      if length(sH) < length(sG)
-        J = invariant(sG, sH)
+      hG = action_homomorphism(sG, BB)
+      ssG = image(hG, sG)[1]
+      ssH = image(hG, sH)[1]
+      if length(ssH) < length(ssG)
+        J = invariant(ssG, ssH)
         C = left_transversal(H, sH)
         gg = g[BB]
-        F = sum(evaluate(J, [gg[t(i)] for i = BB]) for t = C)
+        J = evaluate(J, gg)
+        F = sum(J^t for t = C)
+        @hassert :GaloisInvariant 1 isprobably_invariant(F, H)
+        @hassert :GaloisInvariant 1 !isprobably_invariant(F, G)
         @vprint :GaloisInvariant 3 "using F-invar for $BB (4.1.4)\n"
         return F
       end
@@ -660,11 +666,11 @@ function resolvent(C::GaloisCtx, G::PermGroup, U::PermGroup, extra::Int = 5)
   k, mk = ResidueField(parent(rt[1]))
   k_rt = map(mk, rt)
   ts = gen(Hecke.Globals.Zx)
-  while length(Set([evaluate(I^s, k_rt, ts) for s = t])) < length(t)
+  while length(Set([evaluate(I^s, map(ts, k_rt)) for s = t])) < length(t)
     ts = rand(Hecke.Globals.Zx, 2:n, -4:4)
   end
 
-  B = 2*n*evaluate(I, [C.B for i = 1:ngens(parent(I))], ts)^n
+  B = 2*n*evaluate(I, map(ts, [C.B for i = 1:ngens(parent(I))]))^n
   rt = roots(C, clog(value(B), C.C.p)+extra)
   rt = map(ts, rt)
   rt = [evaluate(I^s, rt) for s = t]
@@ -1013,8 +1019,8 @@ function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = 
 
       @vprint :GaloisGroup 2 "testing descent $(transitive_group_identification(G)) -> $(transitive_group_identification(s)) of index $(index(G, s))\n"
 
-      @hassert :GaloisInvariant 1 all(x->isprobably_invariant(I, x), gens(s))
-      @hassert :GaloisInvariant 1 any(x->!isprobably_invariant(I, x), gens(G))
+      @hassert :GaloisInvariant 1 all(x->isprobably_invariant(I, x), s)
+      @hassert :GaloisInvariant 1 any(x->!isprobably_invariant(I, x), G)
 
       B = upper_bound(GC, I, ts)
       @vprint :GaloisGroup 2 "invariant uses $(cost(I, ts)) multiplications\n"

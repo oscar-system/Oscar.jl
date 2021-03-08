@@ -10,9 +10,23 @@
     @test A==listperm(y)
     @test x==G(listperm(x))
     @test order(x) == lcm(15,n-8)
+
     @test x(3)==4
     @test x(8)==6
     @test x(n)==9
+
+    @test 3^x == 4
+    @test n^x == 9
+
+    @test x(Int32(n)) == Int32(9)
+    @test typeof(x(Int32(n))) == Int32
+    @test x(fmpz(n)) == fmpz(9)
+    @test typeof(x(fmpz(n))) == fmpz
+
+    @test Int32(n)^x == Int32(9)
+    @test typeof(Int32(n)^x) == Int32
+    @test fmpz(n)^x == fmpz(9)
+    @test typeof(fmpz(n)^x) == fmpz
   end
 
   G=symmetric_group(6)

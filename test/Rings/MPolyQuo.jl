@@ -14,3 +14,40 @@
   b = inv(Q(x))
   @test isone(b*Q(x))
 end
+
+@testset "MPolyQuo.normalize" begin
+  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+  Q, _ = quo(R, ideal(R, [z - x^4, z - y^6]))
+  for (S, M, FI) in normalize(Q)
+    @test parent(FI[1]) == Q
+    @test isa(FI[2], Oscar.Ideal)
+    @test parent(M(Q(x+y))) == S
+  end
+end
+
+@testset "MPolyQuo.ideals" begin
+  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+  Q, _ = quo(R, ideal(R, [x*y, x*z]))
+  (x, y, z) = map(Q, (x, y, z))
+
+  @test ideal(Q, [x, y, z]) isa Oscar.Ideal
+
+  @test !iszero(ideal(Q, [x, y]))
+  @test !iszero(ideal(Q, [y*z]))
+  @test iszero(ideal(Q, [x*y, x*z]))
+  @test iszero(ideal(Q, [x*y*z]))
+  @test ideal(Q, [2*x]) + ideal(Q, [x*(y+z)]) == ideal(Q, [x])
+  @test iszero(ideal(Q, [y*z])*ideal(Q, [x]))
+
+  a = quotient(ideal(Q, [zero(Q)]), ideal(Q, [y*z]))
+  @test a == ideal(Q, [x])
+  @test a == ideal(Q, gens(a))
+
+  b = a + ideal(Q, [z])
+  @test b == ideal(Q, [z, x])
+  @test b == ideal(Q, gens(b))
+
+  b = a*ideal(Q, [z])
+  @test b == ideal(Q, [z*x])
+  @test b == ideal(Q, gens(b))
+end

@@ -4,10 +4,10 @@
 #
 ##############################################################################
 
-#TODO: add to singular_ring natively as this is potentially one
 mutable struct MPolyQuo{S} <: AbstractAlgebra.Ring
   R::MPolyRing
   I::MPolyIdeal{S}
+  SQR::Singular.PolyRing  # expensive qring R/I, set and retrived by singular_ring()
   AbstractAlgebra.@declare_other
 
   function MPolyQuo(R, I) where S
@@ -31,6 +31,12 @@ ngens(Q::MPolyQuo) = ngens(Q.R)
 gen(Q::MPolyQuo, i::Int) = Q(gen(Q.R, i))
 Base.getindex(Q::MPolyQuo, i::Int) = Q(Q.R[i])
 
+##############################################################################
+#
+# Quotient ring elements
+#
+##############################################################################
+
 #TODO: think: do we want/ need to keep f on the Singular side to avoid conversions?
 #      or use Bill's divrem to speed things up?
 mutable struct MPolyQuoElem{S} <: RingElem
@@ -44,11 +50,202 @@ function show(io::IO, a::MPolyQuoElem)
   print(io, AbstractAlgebra.obj_to_string(a, context = io))
 end
 
+##############################################################################
+#
+# Quotient ring maps
+#
+##############################################################################
+
+# TODO do whatever is needed to turn this into an AlgebraAlgebra.Map
+mutable struct MPolyQuoHom
+  domain::MPolyQuo
+  codomain::MPolyQuo
+  image::Vector
+  salghom::Singular.SAlgHom
+end
+
+function domain(MPolyQuoHom)
+  return MPolyQuoHom.domain
+end
+
+function codomain(MPolyQuoHom)
+  return MPolyQuoHom.codomain
+end
+
+function Base.show(io::IO, m::MPolyQuoHom)
+  print(io, "AlgebraHomomorphism(")
+  print(io, domain(m))
+  print(io, " => ")
+  print(io, codomain(m))
+  print(io, ", ")
+  print(io, m.image)
+  print(io, ")")
+end
+
+# this terrible function is used to get polynomials in and out of Singular and
+# to change: polys over the quotient ring <=> polys over the non-quotient ring
+function _badpolymap(f, R::MPolyRing)
+  parent(f) == R && return f
+  @assert ngens(parent(f)) == ngens(R)
+  B = base_ring(R)
+  g = MPolyBuildCtx(R)
+  for (c, e) = zip(Nemo.coeffs(f), Nemo.exponent_vectors(f))
+    push_term!(g, B(c), e)
+  end
+  return finish(g)
+end
+
+# this function is nasty because: MPolyQuoElem takes polynomials over the
+# non-quotient ring, but we are using Singular's maps for poly over the qring.
+# Hence the conversion between the quotient ring and non-quotient ring.
+# Maybe a cleaner/faster way of converting in needed.
+function (f::MPolyQuoHom)(p::MPolyQuoElem)
+  sdomain = singular_ring(domain(f))    # sdomain is a qring
+  sp = _badpolymap(p.f, sdomain)
+  mp = Singular.map_poly(f.salghom, sp)
+  mp = _badpolymap(mp, codomain(f).R)   # codomain(f).R is a non-q ring
+  return codomain(f)(mp)
+end
+
+function AlgebraHomomorphism(D::MPolyQuo, C::MPolyQuo, V::Vector)
+  d = singular_ring(D)
+  c = singular_ring(C)
+  v = map(p -> _badpolymap(C(p).f, c), V)
+  return MPolyQuoHom(D, C, v, Singular.AlgebraHomomorphism(d, c, v))
+end
+
+
+##############################################################################
+#
+# Quotient ring ideals
+#
+##############################################################################
+
+# For ideals over quotient rings, we would like to delay the expensive
+# construction of the singular quotient ring until the user does an operation
+# that actually requires it.
+mutable struct MPolyQuoIdeal{T} <: Ideal{T}
+  I::MPolyIdeal{T}    # ideal in the non-qring, possibly #undef
+  SI::Singular.sideal # ideal in the qring, possibly #undef if I isdefined
+  base_ring::MPolyQuo
+
+  function MPolyQuoIdeal(Ox::MPolyQuo{T}, si::Singular.sideal) where T <: MPolyElem
+    singular_ring(Ox) == base_ring(si) || error("base rings must match")
+    r = new{T}()
+    r.base_ring = Ox
+    r.SI = si
+    return r
+  end
+
+  function MPolyQuoIdeal(Ox::MPolyQuo{T}, i::MPolyIdeal{T}) where T <: MPolyElem
+    Ox.R == base_ring(i) || error("base rings must match")
+    r = new{T}()
+    r.base_ring = Ox
+    r.I = i
+    return r
+  end
+end
+
+function base_ring(a::MPolyQuoIdeal)
+  return a.base_ring
+end
+
+function oscar_assure(a::MPolyQuoIdeal)
+  isdefined(a, :I) && return
+  r = base_ring(a).R
+  a.I = ideal(r, map(p->_badpolymap(p, r), gens(a.SI)))
+end
+
+function singular_assure(a::MPolyQuoIdeal)
+  isdefined(a, :SI) && return
+  sa = singular_ring(base_ring(a))
+  a.SI = Singular.Ideal(sa, map(p->_badpolymap(p, sa), gens(a.I)))
+end
+
+function gens(a::MPolyQuoIdeal)
+  oscar_assure(a)
+  return map(base_ring(a), gens(a.I))
+end
+
+# addition and multiplication do not require the singular quotient ring
+function Base.:+(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
+  base_ring(a) == base_ring(b) || error("base rings must match")
+  if !isdefined(a, :SI) && !isdefined(b, :SI)
+    return MPolyQuoIdeal(base_ring(a), a.I + b.I)
+  end
+  singular_assure(a)
+  singular_assure(b)
+  return MPolyQuoIdeal(base_ring(a), a.SI + b.SI)
+end
+
+function Base.:*(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
+  base_ring(a) == base_ring(b) || error("base rings must match")
+  if !isdefined(a, :SI) && !isdefined(b, :SI)
+    return MPolyQuoIdeal(base_ring(a), a.I*b.I)
+  end
+  singular_assure(a)
+  singular_assure(b)
+  return MPolyQuoIdeal(base_ring(a), a.SI*b.SI)
+end
+
+function Base.:(==)(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
+  base_ring(a) == base_ring(b) || error("base rings must match")
+  singular_assure(a)
+  singular_assure(b)
+  return Singular.equal(a.SI, b.SI)
+end
+
+function quotient(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
+  base_ring(a) == base_ring(b) || error("base rings must match")
+  singular_assure(a)
+  singular_assure(b)
+  return MPolyQuoIdeal(base_ring(a), Singular.quotient(a.SI, b.SI))
+end
+
+function iszero(a::MPolyQuoIdeal)
+  singular_assure(a)
+  zero_ideal = Singular.Ideal(base_ring(a.SI), )
+  return contains(zero_ideal, a.SI)
+end
+
+function Base.show(io::IO, I::MPolyQuoIdeal)
+  print(io, "MPolyQuoIdeal(")
+  first = true
+  for i in gens(I)
+    if first
+      print(io, i)
+      first = false
+    else
+      print(io, ", ", i)
+    end
+  end
+  print(io, ")")
+end
+
+function ideal(Q::MPolyQuo{T}, v::Vector{T}) where T <: MPolyElem
+  for p in v
+    Q.R == parent(p) || error("parents must match")
+  end
+  return MPolyQuoIdeal(Q, ideal(Q.R, v))
+end
+
+function ideal(Q::MPolyQuo{T}, v::Vector{MPolyQuoElem{T}}) where T <: MPolyElem
+  for p in v
+    Q == parent(p) || error("parents must match")
+  end
+  return MPolyQuoIdeal(Q, ideal(Q.R, map(p->p.f, v)))
+end
+
+##################################################################
+
 function singular_ring(Rx::MPolyQuo; keep_ordering::Bool = true)
-  Sx = singular_ring(Rx.R, keep_ordering = keep_ordering)
-  groebner_assure(Rx.I)
-  Q = Sx(Singular.libSingular.rQuotientRing(Rx.I.gb.S.ptr, Sx.ptr))
-  return Q
+  if !isdefined(Rx, :SQR)
+    groebner_assure(Rx.I)
+    Rx.SQR = Singular.create_ring_from_singular_ring(
+                      Singular.libSingular.rQuotientRing(Rx.I.gb.S.ptr,
+                                             base_ring(Rx.I.gb.S).ptr))
+  end
+  return Rx.SQR
 end
 
 parent_type(::MPolyQuoElem{S}) where S = MPolyQuo{S}
@@ -81,6 +278,11 @@ function Oscar.addeq!(a::MPolyQuoElem, b::MPolyQuoElem)
   return a
 end
 
+@doc Markdown.doc"""
+    simplify!(a::MPolyQuoElem)
+Use the relations of the parent ring to obtain a unique simplified representation
+inplace, ie. modify the representatio of ``a``.
+"""
 function simplify!(a::MPolyQuoElem)
   R = parent(a)
   I = R.I
@@ -92,6 +294,10 @@ function simplify!(a::MPolyQuoElem)
   return a
 end
 
+@doc Markdown.doc"""
+    simplify(a::MPolyQuoElem)
+Use the relations of the parent ring to obtain a unique simplified representation.
+"""
 function simplify(a::MPolyQuoElem)
   R = parent(a)
   I = R.I
@@ -110,6 +316,12 @@ function ==(a::MPolyQuoElem, b::MPolyQuoElem)
   return a.f == b.f
 end
 
+@doc Markdown.doc"""
+    quo(R::MPolyRing, I::MPolyIdeal) -> MPolyQuoRing, Map
+
+Creates the affine ring ``R`` modulo ``I`` and return the new
+ring as well as the inclusion map from ``R``
+"""
 function quo(R::MPolyRing, I::MPolyIdeal) 
   q = MPolyQuo(R, I)
   function im(a::MPolyElem)
@@ -121,8 +333,18 @@ function quo(R::MPolyRing, I::MPolyIdeal)
   return q, MapFromFunc(im, pr, R, q)
 end
 
-function quo(R::MPolyRing, f::MPolyElem...) 
-  return quo(R, ideal(R, [f...]))
+@doc Markdown.doc"""
+    quo(R::MPolyRing, I::Vector{MPolyElem}) -> MPolyQuoRing, Map
+
+Creates the affine ring ``R`` modulo the ideal generated by ``I`` and return the new
+ring as well as the inclusion map from ``R``
+"""
+function quo(R::MPolyRing, I::Vector{<:MPolyElem})
+  return quo(R, ideal(I))
+end
+
+function quo(R::MPolyRing, f::MPolyElem...)
+  return quo(R, ideal(collect(f)))
 end
 
 lift(a::MPolyQuoElem) = a.f
@@ -290,12 +512,7 @@ function vector_space(K::AbstractAlgebra.Field, Q::MPolyQuo)
   return V, MapFromFunc(im, V, Q)
 end
 
-################################################################################
-#
-#  To fix printing of fraction fields of MPolyQuo
-#
-################################################################################
-
+# To fix printing of fraction fields of MPolyQuo
 function AbstractAlgebra.expressify(a::AbstractAlgebra.Generic.Frac{T};
                                     context = nothing) where {T <: MPolyQuoElem}
   n = numerator(a, false)
@@ -303,6 +520,34 @@ function AbstractAlgebra.expressify(a::AbstractAlgebra.Generic.Frac{T};
   if isone(d)
     return expressify(n, context = context)
   else
-    return Expr(:call, ://, expressify(n, context = context), expressify(d, context = context))
+    return Expr(:call, ://, expressify(n, context = context),
+                            expressify(d, context = context))
   end
+end
+
+
+@doc Markdown.doc"""
+    normalize(Q::MPolyQuo)
+
+Given $Q$, a quotient by a radical ideal, return an array of size, say $r$,
+where each entry of the array is a triple $(S, M, f)$ corresponding to one of
+the $r$ components of $Q$ as found by Singular's algorithms. For each
+component, $S$ is a quotient ring giving the normalization, $M$ is a map from
+$Q$ to $S$, and $f$ is a fractional ideal of $Q$ giving the normalization. The
+fractional ideal $f$ is returned as a tuple $(d, i)$ where $d \in Q$ is the
+denominator, and $i$ is an ideal of $Q$.
+"""
+function normalize(Q::MPolyQuo{T}) where T
+  I = Q.I
+  singular_assure(I)
+  l = Singular.LibNormal.normal(I.gens.S)
+  return [
+    begin
+      newR = l[1][i][1]
+      newQ, newQmap = quo(newR, MPolyIdeal(newR, l[1][i][2][:norid]))
+      hom = AlgebraHomomorphism(Q, newQ, map(newQmap, gens(l[1][i][2][:normap])))
+      idgens = map(p->_badpolymap(p, Q.R), gens(l[2][i]))
+      (newQ, hom, (Q(idgens[end]), ideal(Q, idgens)))
+    end
+    for i in 1:length(l[1])]
 end
