@@ -16,8 +16,21 @@ Pages = ["integer.md"]
 
 This part of OSCAR is under development with regard to providing both the functionality and the documentation. At current state, the documentation serves as a guide on what to do and will be constantly updated.
 
-## Ideal constructors
+## Ideal Constructors for Multivariate Polynomial Rings
 
+```@docs
+ideal(g::Array{T, 1}) where {T <: MPolyElem}
+```
+```@docs
+ideal(Rx::MPolyRing, g::Array{<:Any, 1})
+```
+###### Example
+
+```@repl oscar
+R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+I = ideal([x*y-3*x,y^3-2*x^2*y])
+J = ideal(R, [(x+y)^2])
+```
 
 ## Gröbner Bases
 
@@ -31,7 +44,6 @@ This part of OSCAR is under development with regard to providing both the functi
 groebner_assure(I::MPolyIdeal)
 ```
 
-=======
 ###### Example
 
 ```@repl oscar
@@ -336,7 +348,7 @@ L = equidimensional_hull_radical(I)
 ```@docs
 :(==)(I::MPolyIdeal, J::MPolyIdeal)
 ```
-##### Example
+###### Example
 ```@repl oscar
 R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 I = ideal(R, [x^2])
@@ -349,7 +361,7 @@ I == J
 ```@docs
 issubset(I::MPolyIdeal, J::MPolyIdeal)
 ```
-##### Example
+###### Example
 ```@repl oscar
 R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 I = ideal(R, [x^2])
@@ -360,21 +372,21 @@ issubset(I, J)
 #### Ideal Membership
 
 ```@docs
-Base.iscontained(f::MPolyElem, J::MPolyIdeal)
+Base.in(f::MPolyElem, J::MPolyIdeal)
 ```
-##### Example
+###### Example
 ```@repl oscar
 R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 f = x^2
 J = ideal(R, [x, y])^2
-iscontained(f, J)
+in(f, J)
 ```
 #### Primality Test
 
 ```@docs
 isprime(I::MPolyIdeal)
 ```
-##### Example
+###### Example
 ```@repl oscar
 R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 I = ideal(R, [x, y])^2
@@ -386,7 +398,7 @@ isprime(I)
 ```@docs
 isprimary(I::MPolyIdeal)
 ```
-##### Example
+###### Example
 ```@repl oscar
 R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 I = ideal(R, [x, y])^2
@@ -399,12 +411,21 @@ isprimary(I)
     
 ### Data Associated to Ideals
 
-   #### Number of Generators
+```@docs
+base_ring(I::MPolyIdeal)
+```
+###### Example
+```@repl oscar
+R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+I = ideal(R, [x, y])^2
+base_ring(I)
+```
+#### Number of Generators
 
 ```@docs
 ngens(I::MPolyIdeal)
 ```
-##### Example
+###### Example
 ```@repl oscar
 R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 I = ideal(R, [x, y])^2
@@ -415,14 +436,37 @@ ngens(I)
 ```@docs
 gens(I::MPolyIdeal)
 ```
-##### Example
+###### Example
 ```@repl oscar
 R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 I = ideal(R, [x, y])^2
 gens(I)
 ```
-    dimension:             dim(I)                                 (type integer)
-    codimension:           codim(I)                               (type integer)
+#### Dimension
+
+```@docs
+dim(I::MPolyIdeal)
+```
+###### Example
+
+```@repl oscar
+R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+I = ideal(R, [y-x^2, x-z^3])
+dim(I)
+```
+
+#### Codimension
+
+```@docs
+codim(I::MPolyIdeal)
+```
+###### Example
+
+```@repl oscar
+R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+I = ideal(R, [y-x^2, x-z^3])
+codim(I)
+```
     
 ### Data Associated to Homogeneous Ideals
     
