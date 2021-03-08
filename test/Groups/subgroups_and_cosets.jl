@@ -258,6 +258,7 @@ end
    @test !ispgroup(alternating_group(4))[1]
    @test ispgroup(alternating_group(3)) == (true,3)
    @test ispgroup(quaternion_group(8)) == (true,2)
+   @test ispgroup(alternating_group(1))==(true,nothing)
 end
 
 @testset "Sylow and Hall subgroups" begin
@@ -268,7 +269,7 @@ end
    @test isisomorphic(P,dihedral_group(8))[1]
    P = sylow_subgroup(G,3)[1]
    @test order(P)==3
-   @test isconjugate(G, P, sub(G, [cperm(1:3)])[1])[1]
+   @test representative_action(G, P, sub(G, [cperm(1:3)])[1])[1]
    P = sylow_subgroup(G,5)[1]
    @test P==sub(G,[one(G)])[1]
    @test_throws ArgumentError P=sylow_subgroup(G,4)

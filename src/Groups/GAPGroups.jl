@@ -51,6 +51,7 @@ export
     radical_subgroup,
     rand_pseudo,
     relators,
+    representative_action,
     right_coset,
     right_cosets ,
     right_transversal,
@@ -361,6 +362,7 @@ end
 Return the list of length `n` that contains `x(i)` at position `i`.
 """
 Base.Vector{T}(x::PermGroupElem, n::Int = x.parent.deg) where {T} = T[x(i) for i in 1:n]
+Base.Vector(x::PermGroupElem) = Vector{Int}(x)
 
 """
     gens(G::Group)
@@ -508,7 +510,13 @@ end
 Base.:^(x::T, y::T) where T <: GAPGroupElem = group_element(_maxgroup(parent(x), parent(y)), x.X ^ y.X)
 
 """
-    isconjugate(G::Group, x::GAPGroupElem, y::GAPGroupElem)
+    isconjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
+Return whether `x` and `y` are conjugate elements in `G`.
+"""
+isconjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem) = GAP.Globals.IsConjugate(G.X,x.X,y.X)
+
+"""
+    representative_action(G::Group, x::GAPGroupElem, y::GAPGroupElem)
 
 If `x`,`y` are conjugate in `G`, return 
 ```
@@ -519,7 +527,7 @@ where `x^z=y`; otherwise, return
 false, nothing
 ```
 """
-function isconjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
+function representative_action(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
    conj = GAP.Globals.RepresentativeAction(G.X, x.X, y.X)
    if conj != GAP.Globals.fail
       return true, group_element(G, conj)
@@ -579,7 +587,13 @@ function conjugate_subgroup(G::T, x::GAPGroupElem) where T<:GAPGroup
 end
 
 """
-    isconjugate(G::Group, H::Group, K::Group)
+    isconjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup)
+Return whether `H` and `K` are conjugate subgroups in `G`.
+"""
+isconjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup) = GAP.Globals.IsConjugate(G.X,H.X,K.X)
+
+"""
+    representative_action(G::Group, H::Group, K::Group)
 
 If `H`,`K` are conjugate subgroups in `G`, return 
 ```
@@ -590,7 +604,7 @@ where `H^z=K`; otherwise, return
 false, nothing
 ```
 """
-function isconjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup)
+function representative_action(G::GAPGroup, H::GAPGroup, K::GAPGroup)
    conj = GAP.Globals.RepresentativeAction(G.X, H.X, K.X)
    if conj != GAP.Globals.fail
       return true, group_element(G, conj)
@@ -799,13 +813,15 @@ isalmostsimple(G::GAPGroup) = GAP.Globals.IsAlmostSimpleGroup(G.X)
 """
     ispgroup(G)
 
-Return (``true``,``p``) if |`G`| is a non-trivial ``p``-power, (``false``,nothing) otherwise.
+Return (``true``,nothing) if `G` is the trivial group, (``true``,``p``) if |`G`| is a non-trivial ``p``-power, (``false``,nothing) otherwise.
 """
 function ispgroup(G::GAPGroup)
    if GAP.Globals.IsPGroup(G.X)
       p = GAP.Globals.PrimePGroup(G.X)
       if p != GAP.Globals.fail
          return true, p
+      else
+         return true, nothing
       end
    end
    return false, nothing
