@@ -113,9 +113,8 @@ end
 
   # equidimensional_decomposition_weak
   R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-  i = intersect(ideal(R, [z]), ideal(R, [x, y]))
-  i = intersect(i, ideal(R, [x^2, z^2]))
-  i = intersect(i, ideal(R, [x^5, y^5, z^5]))
+  i = intersect(ideal(R, [z]), ideal(R, [x, y]),
+                ideal(R, [x^2, z^2]), ideal(R, [x^5, y^5, z^5]))
   l = equidimensional_decomposition_weak(i)
   @test length(l) == 3
   @test l[1] == ideal(R, [z^4, y^5, x^5, x^3*z^3, x^4*y^4])
@@ -131,18 +130,17 @@ end
   
   # equidimensional_hull
   R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-  i = intersect(ideal(R, [z]), ideal(R, [x, y]))
-  i = intersect(i, ideal(R, [x^2, z^2]))
-  i = intersect(i, ideal(R, [x^5, y^5, z^5]))
+  i = intersect(ideal(R, [z]), ideal(R, [x, y]),
+                ideal(R, [x^2, z^2]), ideal(R, [x^5, y^5, z^5]))
   @test equidimensional_hull(i) == ideal(R, [z])
 
   R, (a, b, c, d) = PolynomialRing(ZZ, ["a", "b", "c", "d"])
-  i = ideal(R, [1326*a^2*d^5, 1989*a^2*c^5, 102*b^4*d^5, 153*b^4*c^5,
-            663*a^2*c^5*d^5, 51*b^4*c^5*d^5, 78*a^2*d^15, 117*a^2*c^15,
-            78*a^15*d^5, 117*a^15*c^5, 6*a^2*b^4*d^15, 9*a^2*b^4*c^15,
-            39*a^2*c^5*d^15, 39*a^2*c^15*d^5, 6*a^2*b^15*d^5, 9*a^2*b^15*c^5,
-            6*a^15*b^4*d^5, 9*a^15*b^4*c^5, 39*a^15*c^5*d^5, 3*a^2*b^4*c^5*d^15,
-            3*a^2*b^4*c^15*d^5, 3*a^2*b^15*c^5*d^5, 3*a^15*b^4*c^5*d^5])
+  i = intersect(ideal(R, [R(9), a, b]),
+                ideal(R, [R(3), c]),
+                ideal(R, [R(11), 2*a, 7*b]),
+                ideal(R, [13*a^2, 17*b^4]),
+                ideal(R, [9*c^5, 6*d^5]),
+                ideal(R, [R(17), a^15, b^15, c^15, d^15]))
   @test equidimensional_hull(i) == ideal(R, [R(3)])
 
   # equidimensional_hull_radical
