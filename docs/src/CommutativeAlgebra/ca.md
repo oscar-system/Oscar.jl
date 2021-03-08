@@ -71,16 +71,6 @@ I*J
 groebner_assure(I::MPolyIdeal)
 ```
 
-###### Example
-
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"], ordering=:degrevlex)
-I = ideal([x*y-3*x,y^3-2*x^2*y])
-I.gb
-groebner_assure(I)
-I.gb
-```
-
 ```@docs
 groebner_basis(B::BiPolyArray; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
 ```
@@ -93,30 +83,11 @@ groebner_basis(I::MPolyIdeal)
 groebner_basis(I::MPolyIdeal, ord::Symbol; complete_reduction::Bool=false)
 ```
 
-###### Example
-
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"], ordering=:degrevlex)
-A = Oscar.BiPolyArray([x*y-3*x,y^3-2*x^2*y])
-B = groebner_basis(A)
-I = ideal([x*y-3*x,y^3-2*x^2*y])
-G = groebner_basis(I)
-H = groebner_basis(I, ord=:lex)
-```  
-
 #### Gröbner Bases with transformation matrix
 
 ```@docs
 groebner_basis_with_transform(B::BiPolyArray; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
 ```
-
-###### Example
-
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"], ordering=:degrevlex)
-A = Oscar.BiPolyArray([x*y-3*x,y^3-2*x^2*y])
-B,m = groebner_basis_with_transform(A)
-```  
 
     fglm
 
@@ -130,25 +101,9 @@ B,m = groebner_basis_with_transform(A)
 leading_ideal(g::Array{T, 1}, args...) where { T <: MPolyElem }
 ```
 
-###### Example
-
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-L = leading_ideal([x*y^2-3*x, x^3-14*y^5])
-```  
-
 ```@docs
 leading_ideal(I::MPolyIdeal)
 ```
-
-###### Example
-
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-I = ideal(R,[x*y^2-3*x, x^3-14*y^5])
-L = leading_ideal(I)
-L = leading_ideal(I, :lex)
-```  
 
 #### Gröbner Bases over the integers
 
@@ -162,14 +117,6 @@ L = leading_ideal(I, :lex)
 ```@docs
 syzygy_generators(a::Array{<:MPolyElem, 1})
 ```
-
-###### Example
-
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-S = syzygy_generators([x^3+y+2,x*y^2-13*x^2,y-14])
-```  
-
 
 ## Ideals in Multivariate Polynomial Rings
 
