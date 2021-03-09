@@ -502,20 +502,34 @@ codim(I)
 ## Normalization of Rings
 
 ```@docs
-normalize(Q::MPolyQuo)
+normalize(A::MPolyQuo)
 ```
 
 ###### Example
 
 ```@repl oscar
 R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-Q, _ = quo(R, ideal(R, [z - x^4, z - y^6]))
-L = normalize(Q)
+A, _ = quo(R, ideal(R, [z - x^4, z - y^6]))
+L = normalize(A)
 ```
 
-## Properties of Rings
+## Properties of Affine Algebras
 
- ### Normality
+### Reducedness
+
+```@docs
+isreduced(A::MPolyQuo)
+```
+
+###### Example
+
+```@repl oscar
+R, (x,) = PolynomialRing(QQ, ["x"])
+A, _ = quo(R, ideal(R, [x^4]))
+isreduced(A)
+```
+
+### Normality
 
     isnormal(R)
 
