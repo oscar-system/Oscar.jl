@@ -26,6 +26,7 @@ export
 # NOTE: the fields ring_iso and mat_iso are always defined if the field X is
 """
     SesquilinearForm{T<:RingElem}
+
 Type of groups `G` of `n x n` matrices over the ring `R`, where `n = degree(G)` and `R = base_ring(G)`.
 At the moment, only rings of type `FqNmodFiniteField` are supported.
 """
@@ -78,30 +79,35 @@ SesquilinearForm(f::MPolyElem{T},sym) where T = SesquilinearForm{T}(f,sym)
 
 """
     isalternating_form(f::SesquilinearForm)
+
 Return whether the form `f` is an alternating form.
 """
 isalternating_form(f::SesquilinearForm) = f.descr==:alternating
 
 """
     ishermitian_form(f::SesquilinearForm)
+
 Return whether the form `f` is a hermitian form.
 """
 ishermitian_form(f::SesquilinearForm) = f.descr==:hermitian
 
 """
     isquadratic_form(f::SesquilinearForm)
+
 Return whether the form `f` is a quadratic form.
 """
 isquadratic_form(f::SesquilinearForm) = f.descr==:quadratic
 
 """
     issymmetric_form(f::SesquilinearForm)
+
 Return whether the form `f` is a symmetric form.
 """
 issymmetric_form(f::SesquilinearForm) = f.descr==:symmetric
 
 """
     preserved_quadratic_forms(G::MatrixGroup)
+
 Return a generating set for the vector space of quadratic forms preserved by `G`.
 !!! warning "Note:"
     The process involves random procedures, so the function may return different outputs every time.
@@ -113,6 +119,7 @@ end
 
 """
     preserved_sesquilinear_forms(G::MatrixGroup)
+
 Return a generating set for the vector space of sesquilinear forms preserved by `G`.
 !!! warning "Note:"
     The process involves random procedures, so the function may return different outputs every time.
@@ -134,18 +141,21 @@ end
 
 """
     alternating_form(B::MatElem{T})
+
 Return the alternating form with Gram matrix `B`.
 """
 alternating_form(B::MatElem{T}) where T <: FieldElem = SesquilinearForm(B, :alternating)
 
 """
     symmetric_form(B::MatElem{T})
+
 Return the symmetric form with Gram matrix `B`.
 """
 symmetric_form(B::MatElem{T}) where T <: FieldElem = SesquilinearForm(B, :symmetric)
 
 """
     hermitian_form(B::MatElem{T})
+
 Return the hermitian form with Gram matrix `B`.
 """
 hermitian_form(B::MatElem{T}) where T <: FieldElem = SesquilinearForm(B, :hermitian)
@@ -154,23 +164,23 @@ hermitian_form(B::MatElem{T}) where T <: FieldElem = SesquilinearForm(B, :hermit
 # (two matrices A,B represent the same quadratic form iff A-B is skew-symmetric)
 function _upper_triangular_version(C::MatElem)
    B = deepcopy(C)
-   for i in 1:nrows(B)
-   for j in i+1:nrows(B)
+   for i in 1:nrows(B), j in i+1:nrows(B)
       B[i,j]+=B[j,i]
       B[j,i]=0
-   end
    end
    return B
 end
 
 """
     quadratic_form(B::MatElem{T})
+
 Return the quadratic form with Gram matrix `B`.
 """
 quadratic_form(B::MatElem{T}) where T <: FieldElem = SesquilinearForm(B, :quadratic)
 
 """
     quadratic_form(f::MPolyElem{T}; check=true)
+
 Return the quadratic form described by the polynomial `f`. Here, `f` must be a homogeneous polynomial of degree 2. If `check` is set as `false`, it does not check whether the polynomial is homogeneous of degree 2.
 To define quadratic forms of dimension 1, `f` can also have type `PolyElem{T}`.
 """
@@ -228,6 +238,7 @@ end
 
 """
     corresponding_bilinear_form(Q::SesquilinearForm)
+
 Given a quadratic form `Q`, return the bilinear form `B` defined by `B(u,v) = Q(u+v)-Q(u)-Q(v)`.
 """
 function corresponding_bilinear_form(B::SesquilinearForm)
@@ -240,6 +251,7 @@ end
 
 """
     corresponding_quadratic_form(Q::SesquilinearForm)
+
 Given a symmetric form `f`, returns the quadratic form `Q` defined by `Q(v) = f(v,v)/2`. It is defined only in odd characteristic.
 """
 function corresponding_quadratic_form(B::SesquilinearForm)
@@ -266,6 +278,7 @@ end
 
 """
     gram_matrix(B::SesquilinearForm)
+
 Return the Gram matrix of a sesquilinear or quadratic form `B`.
 """
 function gram_matrix(f::SesquilinearForm)
@@ -297,6 +310,7 @@ end
 
 """
     defining_polynomial(f::SesquilinearForm)
+
 Return the polynomial that defines the quadratic form `f`.
 """
 function defining_polynomial(f::SesquilinearForm)
@@ -305,10 +319,8 @@ function defining_polynomial(f::SesquilinearForm)
    @assert f.descr == :quadratic "Polynomial defined only for quadratic forms"
    R = PolynomialRing(base_ring(f.matrix), nrows(f.matrix) )[1]
    p = zero(R)
-   for i in 1:nrows(f.matrix)
-   for j in i:nrows(f.matrix)
+   for i in 1:nrows(f.matrix), j in i:nrows(f.matrix)
       p += f.matrix[i,j] * R[i]*R[j]
-   end
    end
    f.pol = p
    return p
@@ -408,6 +420,7 @@ end
 
 """
     radical(f::SesquilinearForm{T})
+
 Return the radical of the sesquilinear form `f`, i.e. the subspace of all `v` such that `f(u,v)=0` for all `u`. The radical of a quadratic form `Q` is the set of vectors `v` such that `Q(v)=0` and `v` lies in the radical of the corresponding bilinear form.
 """
 function radical(f::SesquilinearForm{T}) where T
@@ -424,12 +437,14 @@ end
 
 """
     witt_index(f::SesquilinearForm{T})
+
 Return the Witt index of the form induced by `f` on `V/Rad(f)`. The Witt Index is the dimension of a maximal totally isotropic (singular for quadratic forms) subspace.
 """
 witt_index(f::SesquilinearForm{T}) where T = GAP.Globals.WittIndex(f.X)
 
 """
     isdegenerate(f::SesquilinearForm{T})
+
 Return whether `f` is degenerate, i.e. `f` has nonzero radical. A quadratic form is degenerate if the corresponding bilinear form is.
 """
 function isdegenerate(f::SesquilinearForm{T}) where T
@@ -439,6 +454,7 @@ end
 
 """
     issingular(Q::SesquilinearForm{T})
+
 For a quadratic form `Q`, return whether `Q` is singular, i.e. `Q` has nonzero radical.
 """
 function issingular(f::SesquilinearForm{T}) where T
