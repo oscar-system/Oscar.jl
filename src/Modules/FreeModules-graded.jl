@@ -300,7 +300,6 @@ mutable struct BiModArray{T}
       r.SF = parent(s[1])
     end
     r.S = s
-    #r.O = Array{FreeModuleElem_dec{S}, 1}(undef, Singular.ngens(s))
     r.O = [convert(F, s[i]) for i=1:Singular.ngens(s)]
     return r
   end
