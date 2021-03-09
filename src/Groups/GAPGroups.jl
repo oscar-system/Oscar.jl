@@ -264,7 +264,7 @@ Base.in(g::GAPGroupElem, G::GAPGroup) = GAP.Globals.in(g.X, G.X)
 #end
 # FIXME: use name gap_perm for now
 """
-    gap_perm(L::AbstractVector{<:Integer})
+    gap_perm(L::AbstractVector{<:T}) where T <: 
 
 Return the permutation `x` which maps every `i` from `1` to `length(L)` to `L[i]`. `L` must contain every integer from 1 to `length(L)` exactly, otherwise an exception is thrown.
 The parent of `x` is set as Sym(`n`).
@@ -277,6 +277,7 @@ function gap_perm(L::AbstractVector{<:Base.Integer})
   return PermGroupElem(symmetric_group(length(L)), GAP.Globals.PermList(GAP.julia_to_gap(L)))
 end
 
+gap_perm(L::AbstractVector{<:fmpz}) = gap_perm([Int(y) for y in collect(L)])
 
 """
     perm(G::PermGroup, L::AbstractVector{<:Integer})
@@ -297,6 +298,8 @@ function perm(g::PermGroup, L::AbstractVector{<:Base.Integer})
    throw(ArgumentError("the element does not embed in the group"))
 end
 
+perm(g::PermGroup, L::AbstractVector{<:fmpz}) = perm(g, [Int(y) for y in collect(L)])
+
 function (g::PermGroup)(L::AbstractVector{<:Base.Integer})
    x = GAP.Globals.PermList(GAP.julia_to_gap(L))
    if GAP.Globals.IN(x,g.X) 
@@ -305,11 +308,13 @@ function (g::PermGroup)(L::AbstractVector{<:Base.Integer})
    throw(ArgumentError("the element does not embed in the group"))
 end
 
+(g::PermGroup)(L::AbstractVector{<:fmpz}) = g([Int(y) for y in collect(L)])
+
 # cperm stays for "cycle permutation", but we can change name if we want
 # takes as input a list of arrays (not necessarly disjoint)
 """
-    cperm(L::AbstractVector{<:Integer}...)
-    cperm(G::PermGroup, L::AbstractVector{<:Integer}...)
+    cperm(L::AbstractVector{<:T}...) where T <: Union{Integer, fmpz}
+    cperm(G::PermGroup, L::AbstractVector{<:T}...)
 
 For given lists of positive integers `[a_1, a_2, ..., a_n],[b_1, b_2, ... , b_m], ...` return the
 permutation `x = (a_1,a_2,...,a_n)(b_1,b_2,...,b_m)...`. The array `[n,n+1,...,n+k]` can be replaced by `n:n+k`.
@@ -324,22 +329,22 @@ julia> cperm([1,2],[2,3])
 (1,3,2)
 ```
 """
-function cperm(L::AbstractVector{<:Base.Integer}...)
+function cperm(L::AbstractVector{T}...) where T
    if length(L)==0
       return one(symmetric_group(1))
    else
-      return prod([PermGroupElem(symmetric_group(maximum(y)), GAP.Globals.CycleFromList(GAP.julia_to_gap(collect(y)))) for y in L])
+      return prod([PermGroupElem(symmetric_group(maximum(y)), GAP.Globals.CycleFromList(GAP.julia_to_gap(collect([Int(k) for k in y])))) for y in L])
    end
 end
 
 # cperm stays for "cycle permutation", but we can change name if we want
 # takes as input a list of arrays (not necessarly disjoint)
 # WARNING: we allow e.g. PermList([2,3,1,4,5,6]) in Sym(3)
-function cperm(g::PermGroup,L::AbstractVector{<:Base.Integer}...)
+function cperm(g::PermGroup,L::AbstractVector{T}...) where T
    if length(L)==0
       return one(g)
    else
-      x=GAP.Globals.Product(GAP.julia_to_gap([GAP.Globals.CycleFromList(GAP.julia_to_gap(collect(y))) for y in L]))
+      x=GAP.Globals.Product(GAP.julia_to_gap([GAP.Globals.CycleFromList(GAP.julia_to_gap(collect([Int(k) for k in collect(y)]))) for y in L]))
       if GAP.Globals.IN(x,g.X) return PermGroupElem(g, x)
       else throw(ArgumentError("the element does not embed in the group"))
       end
@@ -827,6 +832,11 @@ function ispgroup(G::GAPGroup)
    return false, nothing
 end
 
+"""
+    relators(G::FPGroup)
+
+Return a list of relators for the finitely presented group, i.e. elements `[x_1, ... , x_n]` in `F` = `free_group(ngens(G))` such that `G = F/[x_1,...,x_n]`.
+"""
 function relators(G::FPGroup)
    L=GAP.Globals.RelatorsOfFpGroup(G.X)
    F=free_group(G)
@@ -835,6 +845,7 @@ end
 
 """
     nilpotency_class(G::GAPGroup)
+
 Return the nilpotency class of `G`, that is the smallest integer `d` such that `G` has a central series of length `n`.
 """
 function nilpotency_class(G::GAPGroup)

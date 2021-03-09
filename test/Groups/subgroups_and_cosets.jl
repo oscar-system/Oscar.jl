@@ -181,11 +181,10 @@ end
       @test representative(rc) == x
       @test representative(lc) == x
       @test representative(dc) == x
-      @test Set(elements(rc)) == Set([z for z in rc])          # test iterator
-#      @test Set(elements(dc)) == Set([z for z in dc])
-      @test Set(elements(rc)) == Set([h*x for h in H])
-      @test Set(elements(lc)) == Set([x*h for h in H])
-      @test Set([h for h in dc]) == Set([h*x*k for h in H for k in K])
+      @test Set(elements(rc)) == Set(z for z in rc)          # test iterator
+      @test Set(elements(rc)) == Set(h*x for h in H)
+      @test Set(elements(lc)) == Set(x*h for h in H)
+      @test Set(h for h in dc) == Set(h*x*k for h in H for k in K)
       @test order(rc) == 3
       @test order(dc) == 6
       r1=rand(rc)
@@ -313,7 +312,7 @@ end
 
    L = hall_system(symmetric_group(4))
    @test issubgroup(symmetric_group(4),L[1])[1]
-   @test Set([order(H) for H in L])==Set(fmpz[1,3,8,24])
+   @test Set(order(H) for H in L)==Set(fmpz[1,3,8,24])
    @test_throws ArgumentError hall_system(symmetric_group(5))
    
 end
