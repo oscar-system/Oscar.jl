@@ -1,4 +1,4 @@
-using Documenter, Oscar, DocumenterMarkdown
+using Documenter, Oscar, DocumenterMarkdown, DocumenterCitations
 
 import Documenter:
     Anchors,
@@ -154,7 +154,9 @@ const nemo = sanitize(bla, "Nemo")
 bla = normpath(joinpath(dirname(pathof(AbstractAlgebra)), "..", "docs", "src"))
 const aa = sanitize(bla, "AbstractAlgebra")
 
-makedocs(
+bib = CitationBibliography("oscar_references.bib")
+
+makedocs(bib,
          format   = Documenter.HTML(prettyurls = !local_build),
 #         format   = Documenter.HTML(),
 #         format   = Markdown(),
@@ -223,7 +225,7 @@ makedocs(
                            ],
 
              "Commutative Algebra" => ["CommutativeAlgebra/ca.md"],
-
+             "References" => "references.md",
          ]
 )
 
@@ -245,4 +247,3 @@ deploydocs(
 #  make = () -> run(`mkdocs build`),
    make = nothing
 )
-
