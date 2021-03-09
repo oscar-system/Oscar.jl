@@ -188,4 +188,16 @@ end
    @testset for y in gens(C)
       @test x*y==y*x
    end
+
+   x = diagonal_join(companion_matrix((t^2+3)^2), companion_matrix(t^3+3*t+2), companion_matrix(t-3))
+   C = centralizer(G,G(x))[1]
+   @test order(C)==24*124*4*25
+   @testset for y in gens(C)
+      @test x*y==y*x
+   end
+   C = centralizer(S,S(x))[1]
+   @test order(C)==24*124*25
+   @testset for y in gens(C)
+      @test x*y==y*x
+   end
 end
