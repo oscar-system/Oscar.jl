@@ -51,7 +51,7 @@ groebner_basis(I::MPolyIdeal, ord::Symbol; complete_reduction::Bool=false)
 #### Gröbner Bases with transformation matrix
 
 ```@docs
-groebner_basis_with_transform(I::MPolyIdeal; ord::Symbol = :degrevlex, complete_reduction::Bool=false)
+groebner_basis_with_transformation_matrix(I::MPolyIdeal; ord::Symbol = :degrevlex, complete_reduction::Bool=false)
 ```
 
     fglm
