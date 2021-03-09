@@ -95,6 +95,328 @@ function Base.show(io::IO, ::IJuliaMime, R::MPolyElem)
   print(io, "\$")
 end
 
+###################################################
+
+module Orderings
+
+using Oscar, Markdown
+import Oscar: Ring, MPolyRing, MPolyElem, weights
+export anti_diagonal, lex, degrevlex, deglex, weights, MonomialOrdering, singular
+
+abstract type AbsOrdering end
+"""
+Ring-free monomial ordering: just the indices of the variables are given.
+`T` can be a `UnitRange` to make Singular happy or any `Array` if the
+  variables are not consequtive
+"""
+mutable struct GenOrdering{T} <: AbsOrdering
+  vars::T
+  ord::Symbol
+  wgt::fmpz_mat
+  function GenOrdering(u::T, s::Symbol) where {T <: AbstractArray{Int, 1}}
+    r = new{typeof(u)}()
+    r.vars = u
+    r.ord = s
+    return r
+  end
+  function GenOrdering(u::T, m::fmpz_mat; ord::Symbol = :weight) where {T <: AbstractArray{Int, 1}}
+    r = new{typeof(u)}()
+    @assert ncols(m) == length(u)
+    r.vars = u
+    r.ord = ord
+    r.wgt = m
+    return r
+  end
+end
+
+"""
+The product of `a` and `b` (`vcat` of the the matrices)
+"""
+mutable struct ProdOrdering <: AbsOrdering
+  a::AbsOrdering
+  b::AbsOrdering
+end
+
+Base.:*(a::AbsOrdering, b::AbsOrdering) = ProdOrdering(a, b)
+
+#not really user facing
+function ordering(a::AbstractArray{Int, 1}, s::Union{Symbol, fmpz_mat})
+  i = minimum(a)
+  I = maximum(a)
+  if I-i+1 == length(a) #testif variables are consecutive or not.
+    return GenOrdering(i:I, s)
+  end
+  return GenOrdering(collect(a), s)
+end
+
+#not really user facing
+function ordering(a::AbstractArray{Int, 1}, s::Symbol, w::fmpz_mat)
+  i = minimum(a)
+  I = maximum(a)
+  if I-i+1 == length(a)
+    return GenOrdering(i:I, w, ord = s)
+  end
+  return GenOrdering(collect(a), w, ord = s)
+end
+
+
+#not really user facing, flattens a product of product orderings into an array 
+function flat(a::GenOrdering)
+  return [a]
+end
+function flat(a::ProdOrdering)
+  return vcat(flat(a.a), flat(a.b))
+end
+
+@doc Markdown.doc"""
+    anti_diagonal(R::Ring, n::Int)
+
+A square matrix with `1` on the anti-diagonal.
+"""
+function anti_diagonal(R::Ring, n::Int)
+  a = zero_matrix(R, n, n)
+  for i=1:n
+    a[i, n-i+1] = one(R)
+  end
+  return a
+end
+
+#not user facing
+function weights(a::GenOrdering)
+  if a.ord == :lex || a.ord == Symbol("Singular(lp)")
+    return identity_matrix(ZZ, length(a.vars))
+  end
+  if a.ord == :deglex
+    return [matrix(ZZ, 1, length(a.vars), ones(fmpz, length(a.vars)));
+            identity_matrix(ZZ, length(a.vars)-1) zero_matrix(ZZ, length(a.vars)-1, 1)]
+  end
+  if a.ord == :degrevlex || a.ord == Symbol("Singular(dp)")
+    return [matrix(ZZ, 1, length(a.vars), ones(fmpz, length(a.vars))) ;
+            zero_matrix(ZZ, length(a.vars)-1, 1) anti_diagonal(ZZ, length(a.vars)-1)]
+  end              
+  if a.ord == Symbol("Singular(ls)")
+    return -identity_matrix(ZZ, length(a.vars))
+  end
+  if a.ord == Symbol("Singular(ds)")
+    return [-matrix(ZZ, 1, length(a.vars), ones(fmpz, length(a.vars))) ;
+            zero_matrix(ZZ, length(a.vars)-1, 1) anti_diagonal(ZZ, length(a.vars)-1)]
+  end              
+  if a.ord == Symbol("Singular(a)") || a.ord == Symbol("Singular(M)")
+    return a.wgt
+  end              
+end
+
+#not user facing
+function weights(a::AbsOrdering)
+  aa = flat(a)
+  m = matrix(ZZ, 0, 0, [])
+  for o = aa
+    w = weights(o)
+    if maximum(o.vars) > ncols(m)
+      m = hcat(m, zero_matrix(ZZ, nrows(m), maximum(o.vars) - ncols(m)))
+    end
+    mm = zero_matrix(ZZ, nrows(w), ncols(m))
+    for r = 1:nrows(w)
+      for c = 1:length(o.vars)
+        mm[r, o.vars[c]] = w[r, c]
+      end
+    end
+    m = vcat(m, mm)
+  end
+  return m
+end
+
+"""
+Orderings actually applied to polynomial rings (as opposed to variable indices)
+"""
+mutable struct MonomialOrdering{S}
+  R::S
+  o::AbsOrdering
+end
+
+#not really user facing, not exported
+@doc Markdown.doc"""
+    ordering(a::Vector{MPolyElem}, s::Symbol)
+    ordering(a::Vector{MPolyElem}, m::fmpz_mat)
+    ordering(a::Vector{MPolyElem}, s::Symbol, m::fmpz_mat)
+
+Defines an ordering to be applied to the variables in `a`.
+In the first form the symbol `s` has to be one of `:lex`, `:deglex` or `:degrevlex`.
+In the second form, a weight ordering using the given matrix is used.
+In the last version, the symbol if of the form `Singular(..)`.
+"""
+function ordering(a::AbstractArray{<:MPolyElem, 1}, s...)
+  R = parent(first(a))
+  g = gens(R)
+  aa = [findfirst(x -> x == y, g) for y = a]
+  if nothing in aa
+    error("only variables allowed")
+  end
+  return ordering(aa, s...)
+end
+
+@doc Markdown.doc"""
+    :*(M::MonomialOrdering, N::MonomialOrdering)
+
+For orderings on the same ring, the product ordering obained by concatenation
+of the weight matrics.
+"""
+function Base.:*(M::MonomialOrdering, N::MonomialOrdering)
+  M.R == N.R || error("wrong rings")
+  return MonomialOrdering(M.R, M.o*N.o)
+end
+
+function Base.show(io::IO, M::MonomialOrdering)
+  a = flat(M.o)
+  if length(a) > 1
+    print(io, "Product ordering: ")
+    for i=1:length(a)-1
+      show(io, M.R, a[i])
+      print(io, " \\times ")
+    end
+  end
+  show(io, M.R, a[end])
+end
+
+function Base.show(io::IO, R::MPolyRing, o::GenOrdering)
+  if o.ord == :weight
+    print(io, "weight($(gens(R)[o.vars]) via $(o.wgt))")
+  else
+    print(io, "$(String(o.ord))($(gens(R)[o.vars]))")
+  end
+end
+
+@doc Markdown.doc"""
+    lex(v::AbstractArray{<:MPolyElem, 1}) -> MonomialOrdering
+
+<<<<<<< HEAD
+
+function map_entries(R, M::Singular.smatrix)
+  s = nrows(M), ncols(M)
+  S = parent(R(zero(base_ring(M))))
+  return matrix(S, s[1], s[2], elem_type(S)[R(M[i,j]) for i=1:s[1] for j=1:s[2]])
+=======
+Defines the `lex` (lexicographic) ordering on the variables given.
+"""
+function lex(v::AbstractArray{<:MPolyElem, 1})
+  return MonomialOrdering(parent(first(v)), ordering(v, :lex))
+>>>>>>> 2f3257e... add ==, simplify and hash for orderings
+end
+@doc Markdown.doc"""
+    deglex(v::AbstractArray{<:MPolyElem, 1}) -> MonomialOrdering
+
+Defines the `deglex` ordering on the variables given.
+"""
+function deglex(v::AbstractArray{<:MPolyElem, 1})
+  return MonomialOrdering(parent(first(v)), ordering(v, :deglex))
+end
+@doc Markdown.doc"""
+    degrevlex(v::AbstractArray{<:MPolyElem, 1}) -> MonomialOrdering
+
+Defines the `degreveex` ordering on the variables given.
+"""
+function degrevlex(v::AbstractArray{<:MPolyElem, 1})
+  return MonomialOrdering(parent(first(v)), ordering(v, :degrevlex))
+end
+
+@doc Markdown.doc"""
+    singular(ord::Symbol, v::AbstractArray{<:MPolyElem, 1}) -> MonomialOrdering
+
+Defines an ordering given in terms of Singular primitives on the variables given.
+`ord` can be one of `:lp`, `:ls`, `:dp`, `:ds`.
+"""
+function singular(ord::Symbol, v::AbstractArray{<:MPolyElem, 1})
+  return MonomialOrdering(parent(first(v)), ordering(v, Symbol("Singular($(string(ord)))")))
+end
+
+@doc Markdown.doc"""
+    singular(ord::Symbol, v::AbstractArray{<:MPolyElem, 1}, w::AbstractArray{Int, 2}) -> MonomialOrdering
+
+Defines an ordering given in terms of Singular weight ordering (`M`) with the
+matrix given. `ord` has to be `:M` here.
+"""
+function singular(ord::Symbol, v::AbstractArray{<:MPolyElem, 1}, w::Array{<:Union{Integer, fmpz}, 2})
+  @assert ord == :M
+  W = matrix(ZZ, size(w, 1), size(w, 2), w)
+  return MonomialOrdering(parent(first(v)), ordering(v, Symbol("Singular($(string(ord)))"), W))
+end
+
+@doc Markdown.doc"""
+    singular(ord::Symbol, v::AbstractArray{<:MPolyElem, 1}, w::AbstractArray{Int, 2}) -> MonomialOrdering
+
+Defines an ordering given in terms of Singular weight ordering (`a`) with the
+weights given. `ord` has to be `:a` here. The weights will be supplemented by
+`0`.
+"""
+function singular(ord::Symbol, v::AbstractArray{<:MPolyElem, 1}, w::Array{<:Union{Integer, fmpz}, 1})
+  @assert ord == :a
+  W = map(fmpz, w)
+  while length(v) > length(W)
+    push!(W, 0)
+  end
+
+  return MonomialOrdering(parent(first(v)), ordering(v, Symbol("Singular($(string(ord)))"), matrix(ZZ, 1, length(W), W)))
+
+end
+
+@doc Markdown.doc"""
+    weights(M::MonomialOrdering)
+ 
+Compute a corresponding weight matrix for the given ordering.
+"""
+function weights(M::MonomialOrdering)
+  return weights(M.o)
+end
+
+@doc Markdown.doc"""
+    simplify(M::MonomialOrdering) -> MonomialOrdering
+
+Compute a weight ordering with a unique weight matrix.    
+"""
+function simplify(M::MonomialOrdering)
+  w = weights(M)
+  ww = matrix(ZZ, 0, ncols(w), [])
+  for i=1:nrows(w)
+    if iszero_row(w, i)
+      continue
+    end
+    nw = w[i, :]
+    c = content(nw)
+    if c != 1
+      nw = divexact(nw, c)
+    end
+    for j=1:nrows(ww)
+      h = findfirst(x->ww[j, x] != 0, 1:ncols(w))
+      if nw[1, h] != 0
+        nw = abs(ww[j, h])*nw - sign(ww[j, h])*nw[1, h]*ww[j, :]
+      end
+    end
+    if !iszero(nw)
+      c = content(nw)
+      if !isone(c)
+        nw = divexact(nw, c)
+      end
+      ww = vcat(ww, nw)
+    end
+  end
+  return MonomialOrdering(M.R, ordering(1:ncols(ww), ww))
+end
+
+import Base.==
+function ==(M::MonomialOrdering, N::MonomialOrdering)
+  return simplify(M).o.wgt == simplify(N).o.wgt
+end
+
+function Base.hash(M::MonomialOrdering, u::UInt)
+  return hash(simplify(M).o.wgt, u)
+end
+
+end  # module Orderings
+
+using .Orderings
+export lex, deglex, degrevlex, weights, MonomialOrdering, singular
+
+
 
 ##############################################################################
 #
@@ -121,6 +443,7 @@ mutable struct BiPolyArray{S}
   Ox #Oscar Poly Ring
   Sx # Singular Poly Ring, poss. with different ordering
   isGB::Bool #if the Singular side (the sideal) will be a GB
+  ord :: Orderings.AbsOrdering #for this ordering
   function BiPolyArray(a::Array{T, 1}; keep_ordering::Bool = true, isGB::Bool = false) where {T <: MPolyElem}
     r = new{T}()
     r.O = a
@@ -352,7 +675,6 @@ function Base.copy(f::MPolyElem)
     end
     return finish(g)
 end
-
 
 function map_entries(R, M::Singular.smatrix)
   s = nrows(M), ncols(M)
@@ -590,277 +912,6 @@ end
 function preimage(h::MPolyHom_alg, I::MPolyIdeal)
   return h.header.preimage(I)
 end
-
-###################################################
-
-module Orderings
-
-using Oscar, Markdown
-import Oscar: Ring, MPolyRing, MPolyElem, weights
-export anti_diagonal, lex, degrevlex, deglex, weights, MonomialOrdering, singular
-
-abstract type AbsOrdering end
-"""
-Ring-free monomial ordering: just the indices of the variables are given.
-`T` can be a `UnitRange` to make Singular happy or any `Array` if the
-  variables are not consequtive
-"""
-mutable struct GenOrdering{T} <: AbsOrdering
-  vars::T
-  ord::Symbol
-  wgt::fmpz_mat
-  function GenOrdering(u::T, s::Symbol) where {T <: AbstractArray{Int, 1}}
-    r = new{typeof(u)}()
-    r.vars = u
-    r.ord = s
-    return r
-  end
-  function GenOrdering(u::T, m::fmpz_mat; ord::Symbol = :weight) where {T <: AbstractArray{Int, 1}}
-    r = new{typeof(u)}()
-    @assert ncols(m) == length(u)
-    r.vars = u
-    r.ord = ord
-    r.wgt = m
-    return r
-  end
-end
-
-"""
-The product of `a` and `b` (`vcat` of the the matrices)
-"""
-mutable struct ProdOrdering <: AbsOrdering
-  a::AbsOrdering
-  b::AbsOrdering
-end
-
-Base.:*(a::AbsOrdering, b::AbsOrdering) = ProdOrdering(a, b)
-
-#not really user facing
-function ordering(a::AbstractArray{Int, 1}, s::Union{Symbol, fmpz_mat})
-  i = minimum(a)
-  I = maximum(a)
-  if I-i+1 == length(a) #testif variables are consecutive or not.
-    return GenOrdering(i:I, s)
-  end
-  return GenOrdering(collect(a), s)
-end
-
-#not really user facing
-function ordering(a::AbstractArray{Int, 1}, s::Symbol, w::fmpz_mat)
-  i = minimum(a)
-  I = maximum(a)
-  if I-i+1 == length(a)
-    return GenOrdering(i:I, w, ord = s)
-  end
-  return GenOrdering(collect(a), w, ord = s)
-end
-
-
-#not really user facing, flattens a product of product orderings into an array 
-function flat(a::GenOrdering)
-  return [a]
-end
-function flat(a::ProdOrdering)
-  return vcat(flat(a.a), flat(a.b))
-end
-
-@doc Markdown.doc"""
-    anti_diagonal(R::Ring, n::Int)
-
-A square matrix with `1` on the anti-diagonal.
-"""
-function anti_diagonal(R::Ring, n::Int)
-  a = zero_matrix(R, n, n)
-  for i=1:n
-    a[i, n-i+1] = one(R)
-  end
-  return a
-end
-
-#not user facing
-function weights(a::GenOrdering)
-  if a.ord == :lex || a.ord == Symbol("Singular(lp)")
-    return identity_matrix(ZZ, length(a.vars))
-  end
-  if a.ord == :deglex
-    return [matrix(ZZ, 1, length(a.vars), ones(fmpz, length(a.vars)));
-            identity_matrix(ZZ, length(a.vars)-1) zero_matrix(ZZ, length(a.vars)-1, 1)]
-  end
-  if a.ord == :degrevlex || a.ord == Symbol("Singular(dp)")
-    return [matrix(ZZ, 1, length(a.vars), ones(fmpz, length(a.vars))) ;
-            zero_matrix(ZZ, length(a.vars)-1, 1) anti_diagonal(ZZ, length(a.vars)-1)]
-  end              
-  if a.ord == Symbol("Singular(ls)")
-    return -identity_matrix(ZZ, length(a.vars))
-  end
-  if a.ord == Symbol("Singular(ds)")
-    return [-matrix(ZZ, 1, length(a.vars), ones(fmpz, length(a.vars))) ;
-            zero_matrix(ZZ, length(a.vars)-1, 1) anti_diagonal(ZZ, length(a.vars)-1)]
-  end              
-  if a.ord == Symbol("Singular(a)") || a.ord == Symbol("Singular(M)")
-    return a.wgt
-  end              
-end
-
-#not user facing
-function weights(a::AbsOrdering)
-  aa = flat(a)
-  m = matrix(ZZ, 0, 0, [])
-  for o = aa
-    w = weights(o)
-    if maximum(o.vars) > ncols(m)
-      m = hcat(m, zero_matrix(ZZ, nrows(m), maximum(o.vars) - ncols(m)))
-    end
-    mm = zero_matrix(ZZ, nrows(w), ncols(m))
-    for r = 1:nrows(w)
-      for c = 1:length(o.vars)
-        mm[r, o.vars[c]] = w[r, c]
-      end
-    end
-    m = vcat(m, mm)
-  end
-  return m
-end
-
-"""
-Orderings actually applied to polynomial rings (as opposed to variable indices)
-"""
-mutable struct MonomialOrdering{S}
-  R::S
-  o::AbsOrdering
-end
-
-#not really user facing, not exported
-@doc Markdown.doc"""
-    ordering(a::Vector{MPolyElem}, s::Symbol)
-    ordering(a::Vector{MPolyElem}, m::fmpz_mat)
-    ordering(a::Vector{MPolyElem}, s::Symbol, m::fmpz_mat)
-
-Defines an ordering to be applied to the variables in `a`.
-In the first form the symbol `s` has to be one of `lex`, `deglex` or `degrevlex`.
-In the second form, a weight ordering using the given matrix is used.
-In the last version, the symbol if of the form `Singular(..)`.
-"""
-function ordering(a::AbstractArray{<:MPolyElem, 1}, s...)
-  R = parent(first(a))
-  g = gens(R)
-  aa = [findfirst(x -> x == y, g) for y = a]
-  if nothing in aa
-    error("only variables allowed")
-  end
-  return ordering(aa, s...)
-end
-
-@doc Markdown.doc"""
-    :*(M::MonomialOrdering, N::MonomialOrdering)
-
-For orderings on the same ring, the product ordering obained by concatenation
-of the weight matrics.
-"""
-function Base.:*(M::MonomialOrdering, N::MonomialOrdering)
-  M.R == N.R || error("wrong rings")
-  return MonomialOrdering(M.R, M.o*N.o)
-end
-
-function Base.show(io::IO, M::MonomialOrdering)
-  a = flat(M.o)
-  if length(a) > 1
-    print(io, "Product ordering: ")
-    for i=1:length(a)-1
-      show(io, M.R, a[i])
-      print(io, " \\times ")
-    end
-  end
-  show(io, M.R, a[end])
-end
-
-function Base.show(io::IO, R::MPolyRing, o::GenOrdering)
-  if o.ord == :weight
-    print(io, "weight($(gens(R)[o.vars]) via $(o.wgt))")
-  else
-    print(io, "$(String(o.ord))($(gens(R)[o.vars]))")
-  end
-end
-
-@doc Markdown.doc"""
-    lex(v::AbstractArray{<:MPolyElem, 1}) -> MonomialOrdering
-
-Defines the `lex` (lexicographic) ordering on the variables given.
-"""
-function lex(v::AbstractArray{<:MPolyElem, 1})
-  return MonomialOrdering(parent(first(v)), ordering(v, :lex))
-end
-@doc Markdown.doc"""
-    deglex(v::AbstractArray{<:MPolyElem, 1}) -> MonomialOrdering
-
-Defines the `deglex` ordering on the variables given.
-"""
-function deglex(v::AbstractArray{<:MPolyElem, 1})
-  return MonomialOrdering(parent(first(v)), ordering(v, :deglex))
-end
-@doc Markdown.doc"""
-    degrevlex(v::AbstractArray{<:MPolyElem, 1}) -> MonomialOrdering
-
-Defines the `degreveex` ordering on the variables given.
-"""
-function degrevlex(v::AbstractArray{<:MPolyElem, 1})
-  return MonomialOrdering(parent(first(v)), ordering(v, :degrevlex))
-end
-
-@doc Markdown.doc"""
-    singular(ord::Symbol, v::AbstractArray{<:MPolyElem, 1}) -> MonomialOrdering
-
-Defines an ordering given in terms of Singular primitives on the variables given.
-`ord` can be one of `lp`, `ls`, `dp`, `ds`.
-"""
-function singular(ord::Symbol, v::AbstractArray{<:MPolyElem, 1})
-  return MonomialOrdering(parent(first(v)), ordering(v, Symbol("Singular($(string(ord)))")))
-end
-
-@doc Markdown.doc"""
-    singular(ord::Symbol, v::AbstractArray{<:MPolyElem, 1}, w::AbstractArray{Int, 2}) -> MonomialOrdering
-
-Defines an ordering given in terms of Singular weight ordering (`M`) with the
-matrix given. `ord` has to be `M` here.
-"""
-function singular(ord::Symbol, v::AbstractArray{<:MPolyElem, 1}, w::Array{<:Union{Integer, fmpz}, 2})
-  @assert ord == :M
-  W = matrix(ZZ, size(w, 1), size(w, 2), w)
-  return MonomialOrdering(parent(first(v)), ordering(v, Symbol("Singular($(string(ord)))"), W))
-end
-
-@doc Markdown.doc"""
-    singular(ord::Symbol, v::AbstractArray{<:MPolyElem, 1}, w::AbstractArray{Int, 2}) -> MonomialOrdering
-
-Defines an ordering given in terms of Singular weight ordering (`a`) with the
-weights given. `ord` has to be `a` here. The weights will be supplemented by
-`0`.
-"""
-function singular(ord::Symbol, v::AbstractArray{<:MPolyElem, 1}, w::Array{<:Union{Integer, fmpz}, 1})
-  @assert ord == :a
-  W = map(fmpz, w)
-  while length(v) > length(W)
-    push!(W, 0)
-  end
-
-  return MonomialOrdering(parent(first(v)), ordering(v, Symbol("Singular($(string(ord)))"), matrix(ZZ, 1, length(W), W)))
-
-end
-
-@doc Markdown.doc"""
-    weights(M::MonomialOrdering)
- 
-Compute a corresponding weight matrix for the given ordering.
-"""
-function weights(M::MonomialOrdering)
-  return weights(M.o)
-end
-
-end
-
-using .Orderings
-export lex, deglex, degrevlex, weights, MonomialOrdering, singular
-
 
 ###################################################
 
