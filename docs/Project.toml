@@ -1,5 +1,6 @@
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+DocumenterCitations = "daee34ce-89f3-4625-b898-19384cb65244"
 DocumenterMarkdown = "997ab1e6-3595-5248-9280-8efb232c3433"
 Hecke = "3e1990a7-5d81-5526-99ce-9ba3ff248f21"
 Oscar = "f1435218-dba5-11e9-1e4d-f1a5fab5fc13"
