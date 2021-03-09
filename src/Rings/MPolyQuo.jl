@@ -585,7 +585,7 @@ function normalize(A::MPolyQuo{T}) where T
       newA, newAmap = quo(newR, MPolyIdeal(newR, l[1][i][2][:norid]))
       hom = AlgebraHomomorphism(A, newA, map(newAmap, gens(l[1][i][2][:normap])))
       idgens = map(p->_badpolymap(p, A.R), gens(l[2][i]))
-      (newQ, hom, (A(idgens[end]), ideal(A, idgens)))
+      (newA, hom, (A(idgens[end]), ideal(A, idgens)))
     end
     for i in 1:length(l[1])]
 end
@@ -596,5 +596,4 @@ end
 
 @doc Markdown.doc"""
     isnormal(A::MPolyQuo)
-
 """
