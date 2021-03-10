@@ -43,12 +43,6 @@ thus the "category" needs to be set explicitly
 =#
 
 function AbstractAlgebra.extra_name(F::FreeMod)
-  if F.n == 1
-    n = Hecke.get_special(F.R, :name)
-    if n !== nothing
-      return "$n^$(ngens(F))($(-F.d[1]))"
-    end
-  end
   return nothing
 end
 
@@ -246,7 +240,7 @@ end
 getindex(F::ModuleGens, i::Int) = getindex(F, Val(:O), i)
 
 function singular_module(F::FreeMod)
-  Sx = singular_ring(base_ring(F).R)
+  Sx = singular_ring(base_ring(F))
   return Singular.FreeModule(Sx, dim(F))
 end
 
@@ -255,7 +249,7 @@ function convert(SF::Singular.FreeMod, m::FreeModuleElem)
   e = SF()
   Sx = base_ring(SF)
   for (p,v) = m.r
-    e += Sx(v.f)*g[p]
+    e += Sx(v)*g[p]
   end
   return e
 end
@@ -269,7 +263,7 @@ function convert(F::FreeMod, s::Singular.svector)
   for (i, e, c) = s
     f = Base.findfirst(x->x==i, pos)
     if f === nothing
-      push!(values, MPolyBuildCtx(base_ring(F).R))
+      push!(values, MPolyBuildCtx(base_ring(F)))
       f = length(values)
       push!(pos, i)
     end
@@ -669,8 +663,7 @@ function coordinates(a::FreeModuleElem, SQ::SubQuo)
   if Singular.ngens(s) == 0 || iszero(s[1])
     error("elem not in module")
   end
-  Sx = base_ring(SQ)
-  Rx = Sx.R
+  Rx = base_ring(SQ)
   R = base_ring(Rx)
   return sparse_row(Rx, s[1], 1:ngens(SQ))
 end
@@ -731,7 +724,6 @@ function hom(F::FreeMod, G::FreeMod)
   @assert base_ring(F) == base_ring(G)
   GH = FreeMod(F.R, F.n * G.n)
   GH.S = [Symbol("($i -> $j)") for i = F.S for j = G.S]
-  Hecke.set_special(GH, :show => Hecke.show_hom, :hom => (F, G))
 
   #list is g1 - f1, g2-f1, g3-f1, ...
   X = Hecke.MapParent(F, G, "homomorphisms")
@@ -753,7 +745,9 @@ function hom(F::FreeMod, G::FreeMod)
     end
     return FreeModuleElem(s, GH)
   end
-  return GH, Hecke.MapFromFunc(im, pre, GH, X)
+  to_hom_map = Hecke.MapFromFunc(im, pre, GH, X)
+  Hecke.set_special(GH, :show => Hecke.show_hom, :hom => (F, G), :module_to_hom_map => to_hom_map)
+  return GH, to_hom_map
 end
 
 function kernel(h::FreeModuleHom)  #ONLY for free modules...
@@ -851,7 +845,7 @@ function free_resolution(I::MPolyIdeal)
 end
 
 function free_resolution(Q::MPolyQuo)
-  F = free_module(Q.R, 1)
+  F = free_module(Q, 1)
   q = quo(F, [x * gen(F, 1) for x = gens(Q.I)])
   n = Hecke.find_name(Q)
   if n !== nothing
@@ -897,7 +891,6 @@ function hom(M::ModuleFP, N::ModuleFP)
   psi = hom(kDelta[1], H_s0_t0, [psi(g) for g = gens(kDelta[1])])
 
   H = quo(sub(D, kDelta[1]), image(rho)[1])
-  Hecke.set_special(H, :show => Hecke.show_hom, :hom => (M, N))
 
   #x in ker delta: mH_s0_t0(pro[1](x)) should be a hom from M to N
   function im(x::SubQuoElem)
@@ -915,14 +908,34 @@ function hom(M::ModuleFP, N::ModuleFP)
     return H(preimage(psi, (preimage(mH_s0_t0, g))).a)
     return SubQuoElem(emb[1](preimage(mH_s0_t0, g)), H) #???
   end
-  return H, MapFromFunc(im, pr, H, Hecke.MapParent(M, N, "homomorphisms"))
+  to_hom_map = MapFromFunc(im, pr, H, Hecke.MapParent(M, N, "homomorphisms"))
+  Hecke.set_special(H, :show => Hecke.show_hom, :hom => (M, N), :module_to_hom_map => to_hom_map)
+  return H, to_hom_map
+end
+
+function homomorphism(f::SubQuoElem)
+  H = f.parent
+  to_hom_map = get_special(H, :module_to_hom_map)
+  to_hom_map === nothing && error("element doesn't live in a hom module")  
+  return to_hom_map(f)
+end
+
+function homomorphism_to_module_elem(H::ModuleFP, phi::ModuleMap)
+  to_hom_map = get_special(H, :module_to_hom_map)
+  to_hom_map === nothing && error("module must be a hom module")
+  map_to_hom = to_hom_map.g
+  return map_to_hom(phi)
 end
 
 #TODO
 #  replace the +/- for the homs by proper constructors for homs and direct sums
 #  relshp to store the maps elsewhere
 
-function *(h::FreeModuleHom, g::FreeModuleHom) 
+function *(h::FreeModuleHom, g::FreeModuleHom)
+  @assert codomain(h) == domain(g)
+  return hom(domain(h), codomain(g), [g(h(x)) for x = gens(domain(h))])
+end
+function *(h::SubQuoHom, g::SubQuoHom)
   @assert codomain(h) == domain(g)
   return hom(domain(h), codomain(g), [g(h(x)) for x = gens(domain(h))])
 end
@@ -934,7 +947,7 @@ end
 ##################################################
 function direct_product(F::FreeMod{T}...; task::Symbol = :sum) where {T}
   R = base_ring(F[1])
-  G = FreeMod(R, sum([f.n for f = F]...))
+  G = FreeMod(R, sum([f.n for f = F]))
   G.S = []
   for i = 1:length(F)
     s = "("
@@ -1042,7 +1055,7 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
 
   function pure(g::FreeModuleElem...)
     @assert length(g) == length(G)
-    @assert all(i-> parent(g[i]) == G[i], 1:length(G))
+    @assert all(i -> parent(g[i]) == G[i], 1:length(G))
     z = [[x] for x = g[1].r.pos]
     zz = g[1].r.values
     for h = g[2:end]
@@ -1090,7 +1103,7 @@ rels(F::FreeMod) = elem_type(F)[]
 rels(F::SubQuo) = isdefined(F, :quo) ? collect(F.quo) : elem_type(F.F)[]
 
 @doc Markdown.doc"""
-    tensor_product(G::ModuleFP...; task::Symbol = :map) -> SubQuo_dec, Map
+    tensor_product(G::ModuleFP...; task::Symbol = :map) -> SubQuo, Map
 
 Given modules $G_i$ compute the tensor product $G_1\otimes \cdots \otimes G_n$.
 If `task` is set to ":map", a map $\phi$ is returned that
@@ -1118,6 +1131,22 @@ end
 #################################################
 #
 #################################################
+function lift_homomorphism(Hom_MP::ModuleFP, Hom_NP::ModuleFP, phi::ModuleMap)
+  # phi : N -> M
+  M_P = get_special(Hom_MP, :hom)
+  M_P === nothing && error("Both modules must be hom modules")
+  N_P = get_special(Hom_NP, :hom)
+  N_P === nothing && error("Both modules must be hom modules")
+  
+  @assert M_P[2] === N_P[2]
+  M,P = M_P
+  N,_ = N_P
+  @assert domain(phi) === N
+  @assert codomain(phi) === M
+  
+  phi_lifted = hom(Hom_MP, Hom_NP, [homomorphism_to_module_elem(Hom_NP, phi*homomorphism(f)) for f in gens(Hom_MP)])
+  return phi_lifted
+end
 
 
 #############################
