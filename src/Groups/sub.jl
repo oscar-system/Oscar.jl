@@ -68,8 +68,6 @@ end
     issubgroup(G::T, H::T) where T <: GAPGroup
 
 Return (`true`,`f`) if `H` is a subgroup of `G`, where `f` is the embedding homomorphism of `H` into `G`, otherwise return (`false`,`nothing`).
-
-An example of citation: [Mayer2012](@cite)
 """
 function issubgroup(G::T, H::T) where T <: GAPGroup
    if !all(h -> h in G, gens(H))
