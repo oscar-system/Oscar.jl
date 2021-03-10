@@ -312,20 +312,13 @@ end
 
 
 
-function ideal(g::Array{T, 1}) where {T <: MPolyElem}
-  @assert length(g) > 0
-  @assert all(x->parent(x) == parent(g[1]), g)
-  return MPolyIdeal(g)
-end
+
 
 function ideal(g::Array{Any, 1})
   return ideal(typeof(g[1])[x for x = g])
 end
 
-function ideal(Rx::MPolyRing, g::Array{<:Any, 1})
-  f = elem_type(Rx)[Rx(f) for f = g]
-  return ideal(f)
-end
+
 
 function ideal(Rx::MPolyRing, s::Singular.sideal)
   return MPolyIdeal(Rx, s)
@@ -393,26 +386,6 @@ function (F::Generic.FreeModule)(s::Singular.svector)
     e += v*gen(F, k)
   end
   return e
-end
-
-function dim(I::MPolyIdeal)
-  if I.dim > -1
-    return I.dim
-  end
-  groebner_assure(I)
-  singular_assure(I)
-  I.dim = Singular.dimension(I.gb.S)
-  return I.dim
-end
-
-function Base.in(f::MPolyElem, I::MPolyIdeal)
-  groebner_assure(I)
-  Sx = base_ring(I.gb.S)
-  return Singular.iszero(reduce(Sx(f), I.gb.S))
-end
-
-function base_ring(I::MPolyIdeal{S}) where {S}
-  return I.gens.Ox::parent_type(S)
 end
 
 @doc Markdown.doc"""
