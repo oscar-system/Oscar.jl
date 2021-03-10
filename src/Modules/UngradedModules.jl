@@ -1,10 +1,10 @@
 #TODO make d and S a function optionally - to support HUGE degree
-export presentation, decoration
+export presentation
 
 abstract type ModuleFP{T} end
 
-const Ring = Union{MPolyRing, MPolyQuo{<:Oscar.MPolyElem}, MPolyRing_dec, MPolyQuo{<:Oscar.MPolyElem_dec}}
-const RingElem = Union{MPolyElem, MPolyQuoElem{<:Oscar.MPolyElem}, MPolyElem_dec, MPolyQuoElem{<:Oscar.MPolyElem_dec}}
+const CRing = Union{MPolyRing, MPolyQuo{<:Oscar.MPolyElem}, MPolyRing_dec, MPolyQuo{<:Oscar.MPolyElem_dec}}
+const CRingElem = Union{MPolyElem, MPolyQuoElem{<:Oscar.MPolyElem}, MPolyElem_dec, MPolyQuoElem{<:Oscar.MPolyElem_dec}}
 #TODO: "fix" to allow QuoElem s as well...
 # this requires
 #  re-typeing of FreeModule
@@ -13,13 +13,13 @@ const RingElem = Union{MPolyElem, MPolyQuoElem{<:Oscar.MPolyElem}, MPolyElem_dec
 # parametrization has to be by elem_type(coeff_ring) and not, like currently, the bottom coeff ring
 # Also: qring is a Singular native. So it needs to be added to the ring creation
 
-mutable struct FreeModule{T} <: ModuleFP{T}
-  R::Ring
+mutable struct FreeMod{T} <: ModuleFP{T}
+  R::CRing
   n::Int
   S::Array{Symbol, 1}
   AbstractAlgebra.@declare_other
 
-  function FreeModule(n,b::Ring,c)
+  function FreeMod(n,b::CRing,c)
     r = new{elem_type(b)}()
     r.n = n
     r.R = b
@@ -28,10 +28,10 @@ mutable struct FreeModule{T} <: ModuleFP{T}
   end
 end
 
-function FreeModule(R::Ring, n::Int, name::String = "e"; cached::Bool = false) 
-  return FreeModule(n, R, [Symbol("$name[$i]") for i=1:n])
+function FreeMod(R::CRing, n::Int, name::String = "e"; cached::Bool = false) 
+  return FreeMod(n, R, [Symbol("$name[$i]") for i=1:n])
 end
-free_module(R::Ring, n::Int, name::String = "e"; cached::Bool = false) = FreeModule(R, n, name, cached = cached)
+free_module(R::CRing, n::Int, name::String = "e"; cached::Bool = false) = FreeMod(R, n, name, cached = cached)
 
 #=XXX this cannot be as it is inherently ambigous
   - FreeModule(R, n)
@@ -42,8 +42,8 @@ thus the "category" needs to be set explicitly
 ^(R::Ring_dec, n::Int) = FreeModule(R, n)
 =#
 
-function AbstractAlgebra.extra_name(F::FreeModule)
-  if length(Set(F.d)) == 1
+function AbstractAlgebra.extra_name(F::FreeMod)
+  if F.n == 1
     n = Hecke.get_special(F.R, :name)
     if n !== nothing
       return "$n^$(ngens(F))($(-F.d[1]))"
@@ -52,15 +52,15 @@ function AbstractAlgebra.extra_name(F::FreeModule)
   return nothing
 end
 
-function (F::FreeModule)()
+function (F::FreeMod)()
   return FreeModuleElem(sparse_row(base_ring(F)), F)
 end
 
-function show(io::IO, F::FreeModule)
+function show(io::IO, F::FreeMod)
   @show_name(io, F)
   @show_special(io, F)
 
-  print(io, "Free module of rank $(length(F.d)) over ")
+  print(io, "Free module of rank $(F.n) over ")
   print(IOContext(io, :compact =>true), F.R)
 #=
   i = 1
@@ -80,17 +80,17 @@ function show(io::IO, F::FreeModule)
   =#
 end
 
-dim(F::FreeModule) = F.n
-ngens(F::FreeModule) = dim(F)
+dim(F::FreeMod) = F.n
+ngens(F::FreeMod) = dim(F)
 
 struct FreeModuleElem{T}
   r::SRow{T}
-  parent::FreeModule{T}
+  parent::FreeMod{T}
 end
 
-elem_type(::Type{FreeModule{T}}) where {T} = FreeModuleElem{T}
-parent_type(::Type{FreeModuleElem{T}}) where {T} = FreeModule{T}
-elem_type(::FreeModule{T}) where {T} = FreeModuleElem{T}
+elem_type(::Type{FreeMod{T}}) where {T} = FreeModuleElem{T}
+parent_type(::Type{FreeModuleElem{T}}) where {T} = FreeMod{T}
+elem_type(::FreeMod{T}) where {T} = FreeModuleElem{T}
 
 function show(io::IO, e::FreeModuleElem)
   if length(e.r) == 0
@@ -107,7 +107,7 @@ function show(io::IO, e::FreeModuleElem)
   end
 end
 
-function basis(F::FreeModule)
+function basis(F::FreeMod)
   bas = elem_type(F)[]
   for i=1:dim(F)
     s = Hecke.sparse_row(F.R, [(i, F.R(1))])
@@ -115,20 +115,20 @@ function basis(F::FreeModule)
   end
   return bas
 end
-gens(F::FreeModule) = basis(F)
+gens(F::FreeMod) = basis(F)
 
-function gen(F::FreeModule, i::Int)
+function gen(F::FreeMod, i::Int)
   @assert 0 < i <= ngens(F)
   s = Hecke.sparse_row(F.R, [(i, F.R(1))])
   return FreeModuleElem(s, F)
 end
 
-function Base.getindex(F::FreeModule, i::Int)
+function Base.getindex(F::FreeMod, i::Int)
   i == 0 && return zero(F)
   return gen(F, i)
 end
 
-base_ring(F::FreeModule) = F.R
+base_ring(F::FreeMod) = F.R
 
 #TODO: Parent - checks everywhere!!!
 
@@ -159,15 +159,15 @@ end
 *(a::MPolyElem, b::FreeModuleElem) = FreeModuleElem(a*b.r, b.parent)
 *(a::Int, b::FreeModuleElem) = FreeModuleElem(a*b.r, b.parent)
 *(a::Integer, b::FreeModuleElem) = FreeModuleElem(b.parent.R(a)*b.r, b.parent)
-*(a::fmpq, b::FreeModuleElem) = FreeModuleElem_dec(b.parent.R(a)*b.r, b.parent)
-zero(F::FreeModule) = FreeModuleElem(sparse_row(F.R, Tuple{Int, elem_type(F.R)}[]), F)
+*(a::fmpq, b::FreeModuleElem) = FreeModuleElem(b.parent.R(a)*b.r, b.parent)
+zero(F::FreeMod) = FreeModuleElem(sparse_row(F.R, Tuple{Int, elem_type(F.R)}[]), F)
 parent(a::FreeModuleElem) = a.parent
 iszero(a::FreeModuleElem) = Hecke.iszero(a.r)
 
 mutable struct ModuleGens{T}
   O::Array{FreeModuleElem{T}, 1}
   S::Singular.smodule
-  F::FreeModule
+  F::FreeMod
   SF::Singular.FreeMod
 
   function ModuleGens(O::Array{<:FreeModuleElem{T}, 1}) where {T}
@@ -175,7 +175,7 @@ mutable struct ModuleGens{T}
     return ModuleGens(O, SF)
   end
 
-  function ModuleGens(O::Array{<:FreeModuleElem{T}, 1}, F::FreeModule) where {T}
+  function ModuleGens(O::Array{<:FreeModuleElem{T}, 1}, F::FreeMod) where {T}
     SF = singular_module(F)
     return ModuleGens(O, F, SF)
   end
@@ -184,7 +184,7 @@ mutable struct ModuleGens{T}
     return ModuleGens(O, parent(O[1]), SF)
   end
 
-  function ModuleGens(O::Array{<:FreeModuleElem{T}, 1}, F::FreeModule, SF::Singular.FreeMod) where {T}
+  function ModuleGens(O::Array{<:FreeModuleElem{T}, 1}, F::FreeMod, SF::Singular.FreeMod) where {T}
     r = new{T}()
     r.O = O
     r.SF = SF
@@ -192,7 +192,7 @@ mutable struct ModuleGens{T}
     return r
   end
 
-  function ModuleGens(F::FreeModule{S}, s::Singular.smodule) where {S}
+  function ModuleGens(F::FreeMod{S}, s::Singular.smodule) where {S}
     r = new{S}()
     r.F = F
     if Singular.ngens(s) == 0
@@ -245,7 +245,7 @@ end
 
 getindex(F::ModuleGens, i::Int) = getindex(F, Val(:O), i)
 
-function singular_module(F::FreeModule)
+function singular_module(F::FreeMod)
   Sx = singular_ring(base_ring(F).R)
   return Singular.FreeModule(Sx, dim(F))
 end
@@ -260,7 +260,7 @@ function convert(SF::Singular.FreeMod, m::FreeModuleElem)
   return e
 end
 
-function convert(F::FreeModule, s::Singular.svector)
+function convert(F::FreeMod, s::Singular.svector)
   pv = Tuple{Int, elem_type(base_ring(F))}[]
   pos = Int[]
   values = []
@@ -286,7 +286,7 @@ mutable struct FreeModuleHom{T1, T2} <: ModuleMap{T1, T2}
   header::MapHeader
   Hecke.@declare_other
 
-  function FreeModuleHom(F::FreeModule{T}, G::S, a::Array{<:Any, 1}) where {T, S}
+  function FreeModuleHom(F::FreeMod{T}, G::S, a::Array{<:Any, 1}) where {T, S}
 #    @assert isfiltrated(F) || all(ishomogenous, a) #neccessary and suffient according to Hans XXX
 #same as non-homogenous elements are required, this too must not be enforced
     @assert all(x->parent(x) == G, a)
@@ -317,7 +317,7 @@ mutable struct FreeModuleHom{T1, T2} <: ModuleMap{T1, T2}
 end
 (h::FreeModuleHom)(a::FreeModuleElem) = image(h, a)
 
-hom(F::FreeModule{T}, G, a) where {T} = FreeModuleHom(F, G, a)
+hom(F::FreeMod{T}, G, a) where {T} = FreeModuleHom(F, G, a)
 
 function identity_map(M::ModuleFP)
   return hom(M, M, gens(M))
@@ -325,7 +325,7 @@ end
 
 mutable struct SubQuo{T} <: ModuleFP{T}
   #meant to represent sub+ quo mod quo - as lazy as possible
-  F::FreeModule{T}
+  F::FreeMod{T}
   sub::ModuleGens
   quo::ModuleGens
   sum::ModuleGens
@@ -333,7 +333,7 @@ mutable struct SubQuo{T} <: ModuleFP{T}
   std_quo::ModuleGens
   AbstractAlgebra.@declare_other
 
-  function SubQuo(F::FreeModule{R}, O::Array{<:FreeModuleElem, 1}) where {R}
+  function SubQuo(F::FreeMod{R}, O::Array{<:FreeModuleElem, 1}) where {R}
     r = new{R}()
     r.F = F
     r.sub = ModuleGens(O, F, singular_module(F))
@@ -348,7 +348,7 @@ mutable struct SubQuo{T} <: ModuleFP{T}
     r.sum = ModuleGens(vcat(collect(r.sub), collect(r.quo)), S.F, S.sub.SF)
     return r
   end
-  function SubQuo(F::FreeModule{R}, s::Singular.smodule) where {R}
+  function SubQuo(F::FreeMod{R}, s::Singular.smodule) where {R}
     r = new{R}()
     r.F = F
     r.sub = ModuleGens(F, s)
@@ -358,7 +358,7 @@ mutable struct SubQuo{T} <: ModuleFP{T}
     end
     return r
   end
-  function SubQuo(F::FreeModule{R}, s::Singular.smodule, t::Singular.smodule) where {R}
+  function SubQuo(F::FreeMod{R}, s::Singular.smodule, t::Singular.smodule) where {R}
     r = new{R}()
     r.F = F
     r.sub = ModuleGens(F, s)
@@ -444,20 +444,20 @@ end
 -(a::SubQuoElem) = SubQuoElem(-a.a, a.parent)
 *(a::MPolyElem_dec, b::SubQuoElem) = SubQuoElem(a*b.a, b.parent)
 *(a::MPolyElem, b::SubQuoElem) = SubQuoElem(a*b.a, b.parent)
-*(a::Int, b::SubQuoElem) = SubQuoElem_dec(a*b.a, b.parent)
+*(a::Int, b::SubQuoElem) = SubQuoElem(a*b.a, b.parent)
 *(a::Integer, b::SubQuoElem) = SubQuoElem(a*b.a, b.parent)
 *(a::fmpq, b::SubQuoElem) = SubQuoElem(a*b.a, b.parent)
 ==(a::SubQuoElem, b::SubQuoElem) = iszero(a-b)
 
-function sub(F::FreeModule, O::Array{<:FreeModuleElem, 1})
+function sub(F::FreeMod, O::Array{<:FreeModuleElem, 1})
   s = SubQuo(F, O)
 end
 
-function sub(F::FreeModule, O::Array{<:SubQuoElem, 1})
-  return SubQuo_dec(F, [x.a for x = O])
+function sub(F::FreeMod, O::Array{<:SubQuoElem, 1})
+  return SubQuo(F, [x.a for x = O])
 end
 
-function sub(F::FreeModule, s::SubQuo)
+function sub(F::FreeMod, s::SubQuo)
   @assert !isdefined(s, :quo)
   return s
 end
@@ -471,12 +471,12 @@ function sub(S::SubQuo, O::Array{<:SubQuoElem, 1})
   end
 end
 
-function quo(F::FreeModule, O::Array{<:FreeModuleElem, 1})
+function quo(F::FreeMod, O::Array{<:FreeModuleElem, 1})
   S = SubQuo(F, basis(F))
   return SubQuo(S, O)
 end
 
-function quo(F::FreeModule, O::Array{<:SubQuoElem, 1})
+function quo(F::FreeMod, O::Array{<:SubQuoElem, 1})
   S = SubQuo(F, basis(F))
   return SubQuo(S, [x.a for x = O])
 end
@@ -501,7 +501,7 @@ function quo(S::SubQuo, T::SubQuo)
   return SubQuo(S, T.sum.O)
 end
 
-function quo(F::FreeModule, T::SubQuo)
+function quo(F::FreeMod, T::SubQuo)
   @assert !isdefined(T, :quo)
   return quo(F, gens(T))
 end
@@ -512,7 +512,7 @@ function syzygie_module(F::ModuleGens; sub = 0)
   if sub !== 0
     G = sub
   else
-    G = FreeModule(base_ring(F.F), length(F.O))
+    G = FreeMod(base_ring(F.F), length(F.O))
   end
   return SubQuo(G, s)
 end
@@ -565,7 +565,7 @@ function presentation(SQ::SubQuo)
   #TODO: wait for Hans to release Modulo(A, B) that does exactly this
   c = collect(s.sub)
   R = base_ring(SQ)
-  F = FreeModule(R, length(SQ.sub))
+  F = FreeMod(R, length(SQ.sub))
   q = elem_type(F)[]
 
   for x = c
@@ -586,19 +586,19 @@ function presentation(SQ::SubQuo)
   end
   #want R^a -> R^b -> SQ -> 0
   #TODO sort decoration and fix maps, same decoration should be bundled (to match pretty printing)
-  G = FreeModule(R, length(s.sub))
+  G = FreeMod(R, length(s.sub))
   h_G_F = hom(G, F, q)
   #@assert iszero(h_G_F) || iszero(degree(h_G_F)) #???
   h_F_SQ = hom(F, SQ, gens(SQ))
   #@assert iszero(h_F_SQ) || iszero(degree(h_F_SQ)) #???
-  Z = FreeModule(F.R, 0)
+  Z = FreeMod(F.R, 0)
   Hecke.set_special(Z, :name => "Zero")
   h_SQ_Z = hom(SQ, Z, [zero(Z) for i=1:ngens(SQ)])
   return Hecke.ChainComplex(Oscar.ModuleFP, Oscar.ModuleMap[h_G_F, h_F_SQ, h_SQ_Z], check = false)
 end
 
-function presentation(F::FreeModule)
-  Z = FreeModule(F.R, 0)
+function presentation(F::FreeMod)
+  Z = FreeMod(F.R, 0)
   Hecke.set_special(Z, :name => "Zero")
   return Hecke.ChainComplex(ModuleFP, ModuleMap[hom(Z, F, FreeModuleElem[]), hom(F, F, gens(F)), hom(F, Z, [zero(Z) for i=1:ngens(F)])], check = false)
 end
@@ -611,7 +611,7 @@ mutable struct SubQuoHom{T1, T2} <: ModuleMap{T1, T2}
     @assert length(im) == ngens(D)
     @assert all(x-> parent(x) == C, im)
 
-    r = new{SubQuo_dec, typeof(C)}()
+    r = new{SubQuo, typeof(C)}()
     r.header = Hecke.MapHeader(D, C)
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
@@ -727,9 +727,9 @@ function iszero(a::SubQuoElem)
   return iszero(x)
 end
 
-function hom(F::FreeModule, G::FreeModule)
+function hom(F::FreeMod, G::FreeMod)
   @assert base_ring(F) == base_ring(G)
-  GH = FreeModule(F.R, F.n * G.n)
+  GH = FreeMod(F.R, F.n * G.n)
   GH.S = [Symbol("($i -> $j)") for i = F.S for j = G.S]
   Hecke.set_special(GH, :show => Hecke.show_hom, :hom => (F, G))
 
@@ -798,7 +798,7 @@ end
 function kernel(h::SubQuoHom)
   D = domain(h)
   R = base_ring(D)
-  F = FreeModule(R, ngens(D))
+  F = FreeMod(R, ngens(D))
   hh = hom(F, codomain(h), map(h, gens(D)))
   k = kernel(hh)
   @assert domain(k[2]) == k[1]
@@ -809,7 +809,7 @@ function kernel(h::SubQuoHom)
   return k, hom(k, D, im)
 end
 
-function free_resolution(F::FreeModule)
+function free_resolution(F::FreeMod)
   return presentation(F)
 end
 
@@ -821,7 +821,7 @@ function free_resolution(S::SubQuo, limit::Int = -1)
     k, mk = kernel(mp[1])
     nz = findall(x->!iszero(x), gens(k))
     if length(nz) == 0 
-      Z = FreeModule(base_ring(S), 0)
+      Z = FreeMod(base_ring(S), 0)
       Hecke.set_special(Z, :name => "Zero")
       h = hom(Z, domain(mp[1]), FreeModuleElem[])
       insert!(mp, 1, h)
@@ -829,7 +829,7 @@ function free_resolution(S::SubQuo, limit::Int = -1)
     elseif limit != -1 && length(mp) > limit
       break
     end
-    F = FreeModule(base_ring(S), length(nz))
+    F = FreeMod(base_ring(S), length(nz))
     g = hom(F, codomain(mk), collect(k.sub)[nz])
     insert!(mp, 1, g)
   end
@@ -871,7 +871,7 @@ function hom(M::ModuleFP, N::ModuleFP)
   #Janko: have R^t1 -- g1 = map(p2, 0) -> R^t0 -> G
   #kernel g1: k -> R^t1
   #source: Janko's CA script: https://www.mathematik.uni-kl.de/~boehm/lehre/17_CA/ca.pdf
-  F = FreeModule(base_ring(M), ngens(k))
+  F = FreeMod(base_ring(M), ngens(k))
   g2 = hom(F, codomain(mk), collect(k.sub)) #not clean - but maps not (yet) working
   #step 2
   H_s0_t0, mH_s0_t0 = hom(domain(map(p1, 2)), domain(map(p2, 2)))
@@ -932,9 +932,9 @@ end
 ##################################################
 # direct product
 ##################################################
-function direct_product(F::FreeModule{T}...; task::Symbol = :sum) where {T}
+function direct_product(F::FreeMod{T}...; task::Symbol = :sum) where {T}
   R = base_ring(F[1])
-  G = FreeModule(R, sum([f.n for f = F]...))
+  G = FreeMod(R, sum([f.n for f = F]...))
   G.S = []
   for i = 1:length(F)
     s = "("
@@ -1025,7 +1025,7 @@ end
 # Tensor
 ##################################################
 
-function tensor_product(G::FreeModule...; task::Symbol = :none)
+function tensor_product(G::FreeMod...; task::Symbol = :none)
   s = G[1].S
   t = [[x] for x = 1:ngens(G[1])]
   for H = G[2:end]
@@ -1033,7 +1033,7 @@ function tensor_product(G::FreeModule...; task::Symbol = :none)
     t = [push!(deepcopy(x), y) for x = t  for y = 1:ngens(H)]
   end
 
-  F = FreeModule(G[1].R, prod([g.n for g in G]...))
+  F = FreeMod(G[1].R, prod([g.n for g in G]...))
   F.S = s
   Hecke.set_special(F, :show => Hecke.show_tensor_product, :tensor_product => G)
   if task == :none
@@ -1076,7 +1076,7 @@ end
 
 ⊗(G::ModuleFP...) = tensor_product(G..., task = :none)
 
-function free_module(F::FreeModule)
+function free_module(F::FreeMod)
   return F
 end
 
@@ -1084,13 +1084,13 @@ function free_module(F::SubQuo)
   return F.F
 end
 
-gens(F::FreeModule, G::FreeModule) = gens(F)
-gens(F::SubQuo, G::FreeModule) = [x.a for x = gens(F)]
-rels(F::FreeModule) = elem_type(F)[]
+gens(F::FreeMod, G::FreeMod) = gens(F)
+gens(F::SubQuo, G::FreeMod) = [x.a for x = gens(F)]
+rels(F::FreeMod) = elem_type(F)[]
 rels(F::SubQuo) = isdefined(F, :quo) ? collect(F.quo) : elem_type(F.F)[]
 
 @doc Markdown.doc"""
-    tensor_product(G::ModuleFP_dec...; task::Symbol = :map) -> SubQuo_dec, Map
+    tensor_product(G::ModuleFP...; task::Symbol = :map) -> SubQuo_dec, Map
 
 Given modules $G_i$ compute the tensor product $G_1\otimes \cdots \otimes G_n$.
 If `task` is set to ":map", a map $\phi$ is returned that
@@ -1121,7 +1121,7 @@ end
 
 
 #############################
-function homology(C::Hecke.ChainComplex{ModuleFP_dec})
+function homology(C::Hecke.ChainComplex{ModuleFP})
   H = SubQuo[]
   for i=1:length(C)-1
     push!(H, quo(kernel(C.maps[i+1])[1], image(C.maps[i])[1])[1])

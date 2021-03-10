@@ -209,6 +209,7 @@ include("Rings/mpoly-local.jl")
 include("Rings/FinField.jl")
 include("Rings/NumberField.jl")
 
+include("Modules/UngradedModules.jl")
 include("Modules/FreeModules-graded.jl")
 
 include("Geometry/basics.jl")
