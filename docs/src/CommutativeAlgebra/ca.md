@@ -372,14 +372,14 @@ issubset(I, J)
 #### Ideal Membership
 
 ```@docs
-Base.in(f::MPolyElem, J::MPolyIdeal)
+Base.:in(f::MPolyElem, J::MPolyIdeal)
 ```
 ###### Example
 ```@repl oscar
 R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 f = x^2
 J = ideal(R, [x, y])^2
-in(f, J)
+f in J
 ```
 #### Primality Test
 
@@ -497,9 +497,15 @@ codim(I)
 
 ### Depth and Codimension
 
-## Noether Normalization
+## Affine Algebras
 
-## Normalization of Rings
+By definition, an affine algebra over a field $K$, also called a $K$-algebra,
+is the quotient $A=R/I$ of a multivariate polynomial ring $R$ over $K$
+modulo a radical ideal $I$. 
+
+### Noether Normalization
+
+### Normalization of Rings
 
 ```@docs
 normalize(A::MPolyQuo)
@@ -513,9 +519,9 @@ A, _ = quo(R, ideal(R, [z - x^4, z - y^6]))
 L = normalize(A)
 ```
 
-## Properties of Affine Algebras
+### Properties of Affine Algebras
 
-### Reducedness
+#### Reducedness
 
 ```@docs
 isreduced(A::MPolyQuo)
@@ -529,11 +535,11 @@ A, _ = quo(R, ideal(R, [x^4]))
 isreduced(A)
 ```
 
-### Normality
+#### Normality
 
     isnormal(R)
 
-### Cohen-Macaulayness
+#### Cohen-Macaulayness
 
     iscohenmacaulay(R)
 
