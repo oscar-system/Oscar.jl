@@ -1,3 +1,12 @@
+
+# TODO : in this file, some functions for finite fields are defined just to make other files work,
+# such as forms.jl, transform_form.jl, linear_conjugate.jl and linear_centralizer.jl
+# TODO : functions in this file are only temporarily, and often inefficient.
+# TODO: once similar working methods are defined in other files or packages (e.g. Hecke), 
+# functions in this file are to be removed / moved / replaced
+# TODO: when this happens, files mentioned above need to be modified too.
+
+
 import Hecke: evaluate, field_extension, FinField, FinFieldElem, PolyElem
 
 export primitive_element
