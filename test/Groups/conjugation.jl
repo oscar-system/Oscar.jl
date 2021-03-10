@@ -200,4 +200,16 @@ end
    @testset for y in gens(C)
       @test x*y==y*x
    end
+
+   F,t = PolynomialRing(GF(3),"t")
+   F,z = FiniteField(t^2+1,"z")
+   _,t = PolynomialRing(F,"t")
+   G = GL(8,F)
+   x = cat(generalized_jordan_block(t^2+t+z,2), generalized_jordan_block(t^2+z+1,2); dims=(1,2))
+   C = centralizer(G,G(x))[1]
+   @test order(C)==81^2*80^2
+   @testset for y in gens(C)
+      @test x*y==y*x
+   end
+
 end
