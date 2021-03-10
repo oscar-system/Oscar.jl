@@ -327,11 +327,11 @@ end
 #######################################################
 
 @doc Markdown.doc"""
-    in(f::MPolyElem, I::MPolyIdeal)
+    :in(f::MPolyElem, I::MPolyIdeal)
 
 Returns `true` if `f` is contained in `J` and `false`, otherwise.
 """
-function Base.in(f::MPolyElem, I::MPolyIdeal)
+function Base.:in(f::MPolyElem, I::MPolyIdeal)
   groebner_assure(I)
   Sx = base_ring(I.gb.S)
   return Singular.iszero(reduce(Sx(f), I.gb.S))
