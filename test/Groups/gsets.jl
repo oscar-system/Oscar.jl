@@ -72,6 +72,7 @@
   Omega = gset(G, Set([omega]))  # action on ordered pairs
   g = gens(G)[1]
   x = Omega(omega)
+  @test x in Omega
   @test unwrap(x) == omega
   @test unwrap(omega) == omega
   @test x^g == Omega(omega^g)  # action via `^` is defined for both
@@ -81,6 +82,7 @@
   Omega = gset(G, permuted, Set([omega]))
   g = gens(G)[1]
   x = Omega(omega)
+  @test x in Omega
   @test unwrap(x) == omega
   @test unwrap(omega) == omega
   @test x^g == Omega(permuted(omega, g))  # action via `^` is defined for `x`
@@ -117,4 +119,20 @@
   @test pi == g^acthom
   @test haspreimage(acthom, pi)[1]
   @test order(image(acthom)[1]) == 720
+
+  # isconjugate
+  G = symmetric_group(6)
+  Omega = gset(G, permuted, [[0,1,0,1,0,1], [1,2,3,4,5,6]])
+  @test isconjugate(Omega, [0,1,0,1,0,1], [1,0,1,0,1,0])
+  @test ! isconjugate(Omega, [0,1,0,1,0,1], [1,2,3,4,5,6])
+
+  # representative_action
+  G = symmetric_group(6)
+  Omega = gset(G, permuted, [[0,1,0,1,0,1], [1,2,3,4,5,6]])
+  rep = representative_action(Omega, [0,1,0,1,0,1], [1,0,1,0,1,0])
+  @test rep[1]
+  @test permuted([0,1,0,1,0,1], rep[2]) == [1,0,1,0,1,0]
+  rep = representative_action(Omega, [0,1,0,1,0,1], [1,2,3,4,5,6])
+  @test ! rep[1]
+
 end
