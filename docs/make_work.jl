@@ -154,7 +154,7 @@ const nemo = sanitize(bla, "Nemo")
 bla = normpath(joinpath(dirname(pathof(AbstractAlgebra)), "..", "docs", "src"))
 const aa = sanitize(bla, "AbstractAlgebra")
 
-bib = CitationBibliography("oscar_references.bib")
+bib = CitationBibliography(joinpath(@__DIR__, "oscar_references.bib"))
 
 makedocs(bib,
          format   = Documenter.HTML(prettyurls = !local_build),
