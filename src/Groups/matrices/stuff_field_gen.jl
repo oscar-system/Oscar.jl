@@ -37,7 +37,7 @@ end
     primitive_root(F::FinField)
 Return a generator of the multiplicative group of `F`.
 """
-function primitive_element(F::FinField)
+function primitive_root(F::FinField)
    z = gen(F)
    isprime(order(F)) && return z
    f = _centralizer(defining_polynomial(F))
