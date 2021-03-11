@@ -1,8 +1,8 @@
-export saturation, quotient, elimination
+export saturation, quotient, eliminate
 export radical, primary_decomposition, minimal_primes, equidimensional_decomposition_weak,
           equidimensional_decomposition_radical, equidimensional_hull,
           equidimensional_hull_radical
-export issubset, iscontained, isprime, isprimary
+export issubset, ideal_membership, radical_membership, isprime, isprimary
 export ngens, gens
 
 # constructors #######################################################
@@ -326,14 +326,26 @@ end
 #######################################################
 
 @doc Markdown.doc"""
-    :in(f::MPolyElem, I::MPolyIdeal)
+    ideal_membership(f::MPolyElem, I::MPolyIdeal)
 
-Returns `true` if `f` is contained in `J` and `false`, otherwise.
+Returns `true` if `f` is contained in `I`, `false` otherwise. Alternatively, use `f in I`. 
 """
-function Base.:in(f::MPolyElem, I::MPolyIdeal)
+function ideal_membership(f::MPolyElem, I::MPolyIdeal)
   groebner_assure(I)
   Sx = base_ring(I.gb.S)
   return Singular.iszero(reduce(Sx(f), I.gb.S))
+end
+Base.:in(f::MPolyElem, I::MPolyIdeal) = ideal_membership(f,I)
+#######################################################
+@doc Markdown.doc"""
+    radical_membership(f::MPolyElem, I::MPolyIdeal)
+   
+Returns `true` if `f` is contained in the radical of `I`, `false` otherwise.
+"""
+function radical_membership(f::MPolyElem, I::Oscar.MPolyIdeal)
+  singular_assure(I)                                                                                    
+  Sx = base_ring(I.gens.S)                                                                                    
+  return Singular.LibPolylib.rad_con(Sx(f), I.gens.S) == 1                                                    
 end
 
 ################################################################################
