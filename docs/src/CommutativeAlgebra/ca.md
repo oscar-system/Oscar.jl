@@ -367,15 +367,31 @@ issubset(I, J)
 #### Ideal Membership
 
 ```@docs
-Base.:in(f::MPolyElem, J::MPolyIdeal)
+ideal_membership(f::MPolyElem, I::MPolyIdeal)
 ```
 ###### Example
 ```@repl oscar
 R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 f = x^2
-J = ideal(R, [x, y])^2
-f in J
+I = ideal(R, [x, y])^2
+ideal_membership(f, I)
+g = x
+g in I
 ```
+
+#### Radical Membership
+
+```@docs
+radical_membership(f::MPolyElem, I::MPolyIdeal)
+```
+###### Example
+```@repl oscar
+R, (x,) = PolynomialRing(QQ, ["x"])
+f = x
+I = ideal(R,  [x^2])
+radical_membership(f, I)
+```
+
 #### Primality Test
 
 ```@docs
@@ -494,9 +510,22 @@ codim(I)
 
 ## Affine Algebras
 
-By definition, an affine algebra over a field $K$, also called a $K$-algebra,
-is the quotient $A=R/I$ of a multivariate polynomial ring $R$ over $K$
-modulo a radical ideal $I$. 
+An affine algebra over a field $K$, or a $K$-algebra, is the quotient $A=R/I$ of a multivariate
+polynomial ring $R$ over $K$ modulo a radical ideal $I$.
+
+### Constructors
+
+```@docs
+quo(R::MPolyRing, I::MPolyIdeal)
+```
+###### Example
+
+```@repl oscar
+R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+A, _ = quo(R, ideal(R, [x^2-y^3, x-y]))
+A, f = quo(R, ideal(R, [x^2-y^3, x-y]))
+f
+```
 
 ### Noether Normalization
 
@@ -509,8 +538,12 @@ normalize(A::MPolyQuo)
 ###### Example
 
 ```@repl oscar
+R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+A, _ = quo(R, ideal(R, [(x^2-y^3)*(x^2+y^2)*x]))
+L = normalize(A)
+
 R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-A, _ = quo(R, ideal(R, [z - x^4, z - y^6]))
+A, _ = quo(R, ideal(R, [z^3-x*y^4]))
 L = normalize(A)
 ```
 

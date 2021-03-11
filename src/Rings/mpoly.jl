@@ -14,8 +14,7 @@ import Hecke: MapHeader, math_html
 
 
 
-export PolynomialRing, total_degree, degree, MPolyElem, ordering, ideal,
-       eliminate, coordinates,
+export PolynomialRing, total_degree, degree,  MPolyIdeal, MPolyElem, ordering, ideal, coordinates,
        jacobi_matrix, jacobi_ideal,  normalize, AlgebraHomomorphism,
        divrem,  isprimary, isprime
 
