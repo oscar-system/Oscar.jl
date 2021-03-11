@@ -83,7 +83,6 @@ end
 
 #######################################################
 
-# ideal quotient #######################################################
 @doc Markdown.doc"""
     quotient(I::MPolyIdeal, J::MPolyIdeal)
     
