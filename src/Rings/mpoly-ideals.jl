@@ -1,4 +1,4 @@
-export saturation, quotient, elimination
+export saturation, quotient, eliminate
 export radical, primary_decomposition, minimal_primes, equidimensional_decomposition_weak,
           equidimensional_decomposition_radical, equidimensional_hull,
           equidimensional_hull_radical
