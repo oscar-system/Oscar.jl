@@ -137,7 +137,8 @@ end
 """
     conjugate_transpose(x::MatElem{T}) where T <: FinFieldElem
 
-If the base ring of `x` is `GF(q^2)`, return the matrix `transpose( map ( y -> y^q, x) )`. An error is returned if the base ring has no even degree.
+If the base ring of `x` is `GF(q^2)`, return the matrix `transpose( map ( y -> y^q, x) )`.
+ An error is signalled if the base ring does not have even degree.
 """
 function conjugate_transpose(x::MatElem{T}) where T <: FinFieldElem
    iseven(degree(base_ring(x))) || throw(ArgumentError("The base ring must have even degree"))
