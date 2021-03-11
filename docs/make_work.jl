@@ -184,7 +184,6 @@ makedocs(
                               "$(aa)/puiseux.md",
                               "$(nemo)/series.md",
                               "$(nemo)/puiseux.md"],
-                          "Rings/affine.md",
                          ],
              "Fields" => [            
                           "$(aa)/fields.md",

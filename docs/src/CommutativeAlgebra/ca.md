@@ -510,7 +510,7 @@ codim(I)
 
 ## Affine Algebras
 
-An affine algebra over a field $K$, or a $K$-algebra, is the quotient $A=R/I$ of a multivariate
+An affine algebra over a field $K$, or an affine $K$-algebra, is the quotient $A=R/I$ of a multivariate
 polynomial ring $R$ over $K$ modulo a radical ideal $I$.
 
 ### Constructors
@@ -528,6 +528,21 @@ f
 ```
 
 ### Noether Normalization
+
+```@docs
+noether_normalization(A::MPolyQuo)
+```
+
+###### Example
+
+```@repl oscar
+R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+A, _ = quo(R, ideal(R, [x*y, x*z]))
+L = noether_normalization(A);
+L[1]
+L[2]
+L[3]
+```
 
 ### Normalization of Rings
 
@@ -567,9 +582,18 @@ isreduced(A)
 
     isnormal(R)
 
-#### Cohen-Macaulayness
+#### Cohen-Macaulayness 
 
-    iscohenmacaulay(R)
+iscohenmacaulay(R)
+
+### Homomorphisms of Affine Algebras
+
+#### Constructors
+
+```@docs
+hom(D::MPolyQuo, C::MPolyQuo, V::Vector)
+```
+###### Example
 
 ## Invariant Theory
 
