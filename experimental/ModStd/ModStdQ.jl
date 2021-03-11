@@ -29,7 +29,7 @@ end
 #  use walk, tracing, ...
 function Oscar.groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevlex; use_hilbert::Bool = false, Proof::Bool = true)
   if isdefined(I, :gb) && ord == :degrevlex
-    return I.gb
+    return collect(I.gb)
   end
   if Proof
     return Oscar.groebner_basis_with_transform(I, ord = ord)[1]
@@ -111,7 +111,7 @@ function Oscar.groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevl
   end
 end
 
-function Oscar.groebner_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}; ord::Symbol = :degrevlex, use_hilbert::Bool = false)
+function Oscar.groebner_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}; ord::Symbol = :degrevlex, complete_reduction::Bool = true, use_hilbert::Bool = false)
     
   ps = Hecke.PrimesSet(Hecke.p_start, -1)
   ps = Hecke.PrimesSet(2^28+2^20, -1)
@@ -140,7 +140,7 @@ function Oscar.groebner_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}; ord::Sym
     R = ResidueRing(ZZ, Int(p))
     Rt, t = PolynomialRing(R, [string(s) for s = symbols(Qt)], cached = false)
     @vtime :ModStdQ 3 Ip = Oscar.BiPolyArray([Rt(x) for x = gI], keep_ordering = false)
-    Gp, Tp = Oscar.groebner_basis_with_transform(Ip, ord = ord, complete_reduction = true)
+    Gp, Tp = Oscar.groebner_basis_with_transform(Ip, ord = ord, complete_reduction = complete_reduction)
     length_gc = length(Gp)
     Jp = vcat(map(x->lift(Zt, x), Gp), map(x->lift(Zt, x), collect(Tp)))
 

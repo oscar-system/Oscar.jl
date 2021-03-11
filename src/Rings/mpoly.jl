@@ -12,9 +12,11 @@ import Singular
 import Hecke
 import Hecke: MapHeader, math_html
 
-export PolynomialRing, total_degree, degree, MPolyElem, ordering, ideal,
-       groebner_basis, eliminate, syzygy_generators, coordinates, 
-       jacobi_matrix, jacobi_ideal, radical, normalize, AlgebraHomomorphism
+
+
+export PolynomialRing, total_degree, degree,  MPolyIdeal, MPolyElem, ordering, ideal, coordinates,
+       jacobi_matrix, jacobi_ideal,  normalize, AlgebraHomomorphism,
+       divrem,  isprimary, isprime
 
 ##############################################################################
 #
@@ -92,6 +94,320 @@ function Base.show(io::IO, ::IJuliaMime, R::MPolyElem)
   print(io, "\$")
 end
 
+###################################################
+
+module Orderings
+
+using Oscar, Markdown
+import Oscar: Ring, MPolyRing, MPolyElem, weights
+export anti_diagonal, lex, degrevlex, deglex, weights, MonomialOrdering, singular
+
+abstract type AbsOrdering end
+"""
+Ring-free monomial ordering: just the indices of the variables are given.
+`T` can be a `UnitRange` to make Singular happy or any `Array` if the
+  variables are not consequtive
+"""
+mutable struct GenOrdering{T} <: AbsOrdering
+  vars::T
+  ord::Symbol
+  wgt::fmpz_mat
+  function GenOrdering(u::T, s::Symbol) where {T <: AbstractArray{Int, 1}}
+    r = new{typeof(u)}()
+    r.vars = u
+    r.ord = s
+    return r
+  end
+  function GenOrdering(u::T, m::fmpz_mat; ord::Symbol = :weight) where {T <: AbstractArray{Int, 1}}
+    r = new{typeof(u)}()
+    @assert ncols(m) == length(u)
+    r.vars = u
+    r.ord = ord
+    r.wgt = m
+    return r
+  end
+end
+
+"""
+The product of `a` and `b` (`vcat` of the the matrices)
+"""
+mutable struct ProdOrdering <: AbsOrdering
+  a::AbsOrdering
+  b::AbsOrdering
+end
+
+Base.:*(a::AbsOrdering, b::AbsOrdering) = ProdOrdering(a, b)
+
+#not really user facing
+function ordering(a::AbstractArray{Int, 1}, s::Union{Symbol, fmpz_mat})
+  i = minimum(a)
+  I = maximum(a)
+  if I-i+1 == length(a) #testif variables are consecutive or not.
+    return GenOrdering(i:I, s)
+  end
+  return GenOrdering(collect(a), s)
+end
+
+#not really user facing
+function ordering(a::AbstractArray{Int, 1}, s::Symbol, w::fmpz_mat)
+  i = minimum(a)
+  I = maximum(a)
+  if I-i+1 == length(a)
+    return GenOrdering(i:I, w, ord = s)
+  end
+  return GenOrdering(collect(a), w, ord = s)
+end
+
+
+#not really user facing, flattens a product of product orderings into an array 
+function flat(a::GenOrdering)
+  return [a]
+end
+function flat(a::ProdOrdering)
+  return vcat(flat(a.a), flat(a.b))
+end
+
+@doc Markdown.doc"""
+    anti_diagonal(R::Ring, n::Int)
+
+A square matrix with `1` on the anti-diagonal.
+"""
+function anti_diagonal(R::Ring, n::Int)
+  a = zero_matrix(R, n, n)
+  for i=1:n
+    a[i, n-i+1] = one(R)
+  end
+  return a
+end
+
+#not user facing
+function weights(a::GenOrdering)
+  if a.ord == :lex || a.ord == Symbol("Singular(lp)")
+    return identity_matrix(ZZ, length(a.vars))
+  end
+  if a.ord == :deglex
+    return [matrix(ZZ, 1, length(a.vars), ones(fmpz, length(a.vars)));
+            identity_matrix(ZZ, length(a.vars)-1) zero_matrix(ZZ, length(a.vars)-1, 1)]
+  end
+  if a.ord == :degrevlex || a.ord == Symbol("Singular(dp)")
+    return [matrix(ZZ, 1, length(a.vars), ones(fmpz, length(a.vars))) ;
+            zero_matrix(ZZ, length(a.vars)-1, 1) anti_diagonal(ZZ, length(a.vars)-1)]
+  end              
+  if a.ord == Symbol("Singular(ls)")
+    return -identity_matrix(ZZ, length(a.vars))
+  end
+  if a.ord == Symbol("Singular(ds)")
+    return [-matrix(ZZ, 1, length(a.vars), ones(fmpz, length(a.vars))) ;
+            zero_matrix(ZZ, length(a.vars)-1, 1) anti_diagonal(ZZ, length(a.vars)-1)]
+  end              
+  if a.ord == Symbol("Singular(a)") || a.ord == Symbol("Singular(M)")
+    return a.wgt
+  end              
+end
+
+#not user facing
+function weights(a::AbsOrdering)
+  aa = flat(a)
+  m = matrix(ZZ, 0, 0, [])
+  for o = aa
+    w = weights(o)
+    if maximum(o.vars) > ncols(m)
+      m = hcat(m, zero_matrix(ZZ, nrows(m), maximum(o.vars) - ncols(m)))
+    end
+    mm = zero_matrix(ZZ, nrows(w), ncols(m))
+    for r = 1:nrows(w)
+      for c = 1:length(o.vars)
+        mm[r, o.vars[c]] = w[r, c]
+      end
+    end
+    m = vcat(m, mm)
+  end
+  return m
+end
+
+"""
+Orderings actually applied to polynomial rings (as opposed to variable indices)
+"""
+mutable struct MonomialOrdering{S}
+  R::S
+  o::AbsOrdering
+end
+
+#not really user facing, not exported
+@doc Markdown.doc"""
+    ordering(a::Vector{MPolyElem}, s::Symbol)
+    ordering(a::Vector{MPolyElem}, m::fmpz_mat)
+    ordering(a::Vector{MPolyElem}, s::Symbol, m::fmpz_mat)
+
+Defines an ordering to be applied to the variables in `a`.
+In the first form the symbol `s` has to be one of `:lex`, `:deglex` or `:degrevlex`.
+In the second form, a weight ordering using the given matrix is used.
+In the last version, the symbol if of the form `Singular(..)`.
+"""
+function ordering(a::AbstractArray{<:MPolyElem, 1}, s...)
+  R = parent(first(a))
+  g = gens(R)
+  aa = [findfirst(x -> x == y, g) for y = a]
+  if nothing in aa
+    error("only variables allowed")
+  end
+  return ordering(aa, s...)
+end
+
+@doc Markdown.doc"""
+    :*(M::MonomialOrdering, N::MonomialOrdering)
+
+For orderings on the same ring, the product ordering obained by concatenation
+of the weight matrics.
+"""
+function Base.:*(M::MonomialOrdering, N::MonomialOrdering)
+  M.R == N.R || error("wrong rings")
+  return MonomialOrdering(M.R, M.o*N.o)
+end
+
+function Base.show(io::IO, M::MonomialOrdering)
+  a = flat(M.o)
+  if length(a) > 1
+    print(io, "Product ordering: ")
+    for i=1:length(a)-1
+      show(io, M.R, a[i])
+      print(io, " \\times ")
+    end
+  end
+  show(io, M.R, a[end])
+end
+
+function Base.show(io::IO, R::MPolyRing, o::GenOrdering)
+  if o.ord == :weight
+    print(io, "weight($(gens(R)[o.vars]) via $(o.wgt))")
+  else
+    print(io, "$(String(o.ord))($(gens(R)[o.vars]))")
+  end
+end
+
+@doc Markdown.doc"""
+    lex(v::AbstractArray{<:MPolyElem, 1}) -> MonomialOrdering
+
+Defines the `lex` (lexicographic) ordering on the variables given.
+"""
+function lex(v::AbstractArray{<:MPolyElem, 1})
+  return MonomialOrdering(parent(first(v)), ordering(v, :lex))
+end
+@doc Markdown.doc"""
+    deglex(v::AbstractArray{<:MPolyElem, 1}) -> MonomialOrdering
+
+Defines the `deglex` ordering on the variables given.
+"""
+function deglex(v::AbstractArray{<:MPolyElem, 1})
+  return MonomialOrdering(parent(first(v)), ordering(v, :deglex))
+end
+@doc Markdown.doc"""
+    degrevlex(v::AbstractArray{<:MPolyElem, 1}) -> MonomialOrdering
+
+Defines the `degreveex` ordering on the variables given.
+"""
+function degrevlex(v::AbstractArray{<:MPolyElem, 1})
+  return MonomialOrdering(parent(first(v)), ordering(v, :degrevlex))
+end
+
+@doc Markdown.doc"""
+    singular(ord::Symbol, v::AbstractArray{<:MPolyElem, 1}) -> MonomialOrdering
+
+Defines an ordering given in terms of Singular primitives on the variables given.
+`ord` can be one of `:lp`, `:ls`, `:dp`, `:ds`.
+"""
+function singular(ord::Symbol, v::AbstractArray{<:MPolyElem, 1})
+  return MonomialOrdering(parent(first(v)), ordering(v, Symbol("Singular($(string(ord)))")))
+end
+
+@doc Markdown.doc"""
+    singular(ord::Symbol, v::AbstractArray{<:MPolyElem, 1}, w::AbstractArray{Int, 2}) -> MonomialOrdering
+
+Defines an ordering given in terms of Singular weight ordering (`M`) with the
+matrix given. `ord` has to be `:M` here.
+"""
+function singular(ord::Symbol, v::AbstractArray{<:MPolyElem, 1}, w::Array{<:Union{Integer, fmpz}, 2})
+  @assert ord == :M
+  W = matrix(ZZ, size(w, 1), size(w, 2), w)
+  return MonomialOrdering(parent(first(v)), ordering(v, Symbol("Singular($(string(ord)))"), W))
+end
+
+@doc Markdown.doc"""
+    singular(ord::Symbol, v::AbstractArray{<:MPolyElem, 1}, w::AbstractArray{Int, 2}) -> MonomialOrdering
+
+Defines an ordering given in terms of Singular weight ordering (`a`) with the
+weights given. `ord` has to be `:a` here. The weights will be supplemented by
+`0`.
+"""
+function singular(ord::Symbol, v::AbstractArray{<:MPolyElem, 1}, w::Array{<:Union{Integer, fmpz}, 1})
+  @assert ord == :a
+  W = map(fmpz, w)
+  while length(v) > length(W)
+    push!(W, 0)
+  end
+
+  return MonomialOrdering(parent(first(v)), ordering(v, Symbol("Singular($(string(ord)))"), matrix(ZZ, 1, length(W), W)))
+
+end
+
+@doc Markdown.doc"""
+    weights(M::MonomialOrdering)
+ 
+Compute a corresponding weight matrix for the given ordering.
+"""
+function weights(M::MonomialOrdering)
+  return weights(M.o)
+end
+
+@doc Markdown.doc"""
+    simplify(M::MonomialOrdering) -> MonomialOrdering
+
+Compute a weight ordering with a unique weight matrix.    
+"""
+function simplify(M::MonomialOrdering)
+  w = weights(M)
+  ww = matrix(ZZ, 0, ncols(w), [])
+  for i=1:nrows(w)
+    if iszero_row(w, i)
+      continue
+    end
+    nw = w[i, :]
+    c = content(nw)
+    if c != 1
+      nw = divexact(nw, c)
+    end
+    for j=1:nrows(ww)
+      h = findfirst(x->ww[j, x] != 0, 1:ncols(w))
+      if nw[1, h] != 0
+        nw = abs(ww[j, h])*nw - sign(ww[j, h])*nw[1, h]*ww[j, :]
+      end
+    end
+    if !iszero(nw)
+      c = content(nw)
+      if !isone(c)
+        nw = divexact(nw, c)
+      end
+      ww = vcat(ww, nw)
+    end
+  end
+  return MonomialOrdering(M.R, ordering(1:ncols(ww), ww))
+end
+
+import Base.==
+function ==(M::MonomialOrdering, N::MonomialOrdering)
+  return simplify(M).o.wgt == simplify(N).o.wgt
+end
+
+function Base.hash(M::MonomialOrdering, u::UInt)
+  return hash(simplify(M).o.wgt, u)
+end
+
+end  # module Orderings
+
+using .Orderings
+export lex, deglex, degrevlex, weights, MonomialOrdering, singular
+
+
 
 ##############################################################################
 #
@@ -112,12 +428,13 @@ end
 #type for orderings, use this...
 #in general: all algos here needs revision: do they benefit from gb or not?
 
-mutable struct BiPolyArray{S} 
-  O::Array{S, 1} 
+mutable struct BiPolyArray{S}
+  O::Array{S, 1}
   S::Singular.sideal
   Ox #Oscar Poly Ring
   Sx # Singular Poly Ring, poss. with different ordering
   isGB::Bool #if the Singular side (the sideal) will be a GB
+  ord :: Orderings.AbsOrdering #for this ordering
   function BiPolyArray(a::Array{T, 1}; keep_ordering::Bool = true, isGB::Bool = false) where {T <: MPolyElem}
     r = new{T}()
     r.O = a
@@ -166,7 +483,7 @@ function Base.iterate(A::BiPolyArray, s::Int = 1)
   return A[Val(:O), s], s+1
 end
 
-Base.eltype(::BiPolyArray{S}) where S = S 
+Base.eltype(::BiPolyArray{S}) where S = S
 
 ##############################################################################
 #
@@ -200,27 +517,28 @@ end
 (F::Nemo.GaloisField)(a::Singular.n_Zp) = F(Int(a))
 (F::Nemo.NmodRing)(a::Singular.n_Zp) = F(Int(a))
 
+#Note: Singular crashes if it gets Nemo.ZZ instead of Singular.ZZ ((Coeffs(17)) instead of (ZZ))
+singular_ring(::Nemo.FlintIntegerRing) = Singular.Integers()
 singular_ring(::Nemo.FlintRationalField) = Singular.Rationals()
 singular_ring(F::Nemo.GaloisField) = Singular.Fp(Int(characteristic(F)))
 singular_ring(F::Nemo.NmodRing) = Singular.Fp(Int(characteristic(F)))
-
 singular_ring(R::Singular.PolyRing; keep_ordering::Bool = true) = R
 
 function singular_ring(Rx::MPolyRing{T}; keep_ordering::Bool = true) where {T <: RingElem}
   if keep_ordering
-    return Singular.PolynomialRing(singular_ring(base_ring(Rx)), 
+    return Singular.PolynomialRing(singular_ring(base_ring(Rx)),
               [string(x) for x = Nemo.symbols(Rx)],
               ordering = ordering(Rx),
               cached = false)[1]
   else
-    return Singular.PolynomialRing(singular_ring(base_ring(Rx)), 
+    return Singular.PolynomialRing(singular_ring(base_ring(Rx)),
               [string(x) for x = Nemo.symbols(Rx)],
               cached = false)[1]
-  end          
+  end
 end
 
 function singular_ring(Rx::MPolyRing{T}, ord::Symbol) where {T <: RingElem}
-  return Singular.PolynomialRing(singular_ring(base_ring(Rx)), 
+  return Singular.PolynomialRing(singular_ring(base_ring(Rx)),
               [string(x) for x = Nemo.symbols(Rx)],
               ordering = ord,
               cached = false)[1]
@@ -308,20 +626,13 @@ end
 
 
 
-function ideal(g::Array{T, 1}) where {T <: MPolyElem}
-  @assert length(g) > 0
-  @assert all(x->parent(x) == parent(g[1]), g)
-  return MPolyIdeal(g)
-end
+
 
 function ideal(g::Array{Any, 1})
   return ideal(typeof(g[1])[x for x = g])
 end
 
-function ideal(Rx::MPolyRing, g::Array{<:Any, 1})
-  f = elem_type(Rx)[Rx(f) for f = g]
-  return ideal(f)
-end
+
 
 function ideal(Rx::MPolyRing, s::Singular.sideal)
   return MPolyIdeal(Rx, s)
@@ -356,102 +667,6 @@ function Base.copy(f::MPolyElem)
     return finish(g)
 end
 
-function Base.:*(I::MPolyIdeal, J::MPolyIdeal)
-  singular_assure(I)
-  singular_assure(J)
-  return MPolyIdeal(I.gens.Ox, I.gens.S * J.gens.S)
-end
-
-function Base.:+(I::MPolyIdeal, J::MPolyIdeal)
-  singular_assure(I)
-  singular_assure(J)
-  return MPolyIdeal(I.gens.Ox, I.gens.S + J.gens.S)
-end
-Base.:-(I::MPolyIdeal, J::MPolyIdeal) = I+J
-
-function Base.:(==)(I::MPolyIdeal, J::MPolyIdeal)
-  singular_assure(I)
-  singular_assure(J)
-  return Singular.equal(I.gens.S, J.gens.S)
-end
-
-function Base.:^(I::MPolyIdeal, j::Int)
-  singular_assure(I)
-  return MPolyIdeal(I.gens.Ox, I.gens.S^j)
-end
-
-function Base.intersect(I::MPolyIdeal, J::MPolyIdeal)
-  singular_assure(I)
-  singular_assure(J)
-  return MPolyIdeal(I.gens.Ox, Singular.intersection(I.gens.S, J.gens.S))
-end
-
-function ngens(I::MPolyIdeal)
-  return length(I.gens)
-end
-
-function Base.issubset(I::MPolyIdeal, J::MPolyIdeal)
-  singular_assure(I)
-  singular_assure(J)
-  return Singular.contains(J.gens.S, I.gens.S)
-end
-
-function gens(I::MPolyIdeal)
-  return [I.gens[Val(:O), i] for i=1:ngens(I)]
-end
-
-gen(I::MPolyIdeal, i::Int) = I.gens[Val(:O), i]
-
-function saturation(I::MPolyIdeal, J::MPolyIdeal)
-  singular_assure(I)
-  singular_assure(J)
-  return MPolyIdeal(I.gens.Ox, Singular.saturation(I.gens.S, J.gens.S))
-end
-
-#TODO: is this a good idea? Conflicting meaning?
-#      add saturation at variables?
-(::Colon)(I::MPolyIdeal, J::MPolyIdeal) = saturation(I, J)
-
-function groebner_assure(I::MPolyIdeal)
-  if !isdefined(I, :gb)
-    singular_assure(I)
-#    @show "std on", I.gens.S
-    I.gb = BiPolyArray(I.gens.Ox, Singular.std(I.gens.S))
-  end
-end
-
-function groebner_basis(B::BiPolyArray; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
-  if ord != :degrevlex
-    R = singular_ring(B.Ox, ord)
-    i = Singular.Ideal(R, [R(x) for x = B])
-#    @show "std on", i, B
-    i = Singular.std(i, complete_reduction = complete_reduction)
-    return BiPolyArray(B.Ox, i)
-  end
-  if !isdefined(B, :S)
-    B.S = Singular.Ideal(B.Sx, [B.Sx(x) for x = B.O])
-  end
-#  @show "dtd", B.S
-  return BiPolyArray(B.Ox, Singular.std(B.S, complete_reduction = complete_reduction))
-end
-
-function groebner_basis_with_transform(B::BiPolyArray; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
-  if ord != :degrevlex
-    R = singular_ring(B.Ox, ord)
-    i = Singular.Ideal(R, [R(x) for x = B])
-#    @show "std on", i, B
-    i, m = Singular.lift_std(i, complete_reduction = complete_reduction)
-    return BiPolyArray(B.Ox, i), map_entries(x->B.Ox(x), m)
-  end
-  if !isdefined(B, :S)
-    B.S = Singular.Ideal(B.Sx, [B.Sx(x) for x = B.O])
-  end
-#  @show "dtd", B.S
-
-  i, m = Singular.lift_std(B.S, complete_reduction = complete_reduction)
-  return BiPolyArray(B.Ox, i), map_entries(x->B.Ox(x), m)
-end
-
 function map_entries(R, M::Singular.smatrix)
   s = nrows(M), ncols(M)
   S = parent(R(zero(base_ring(M))))
@@ -462,7 +677,6 @@ function syzygy_module(a::Array{MPolyElem, 1})
   #only graded modules exist
   error("not implemented yet")
 end
-
 
 function (F::Generic.FreeModule)(s::Singular.svector)
   pv = Tuple{Int, elem_type(base_ring(F))}[]
@@ -485,47 +699,6 @@ function (F::Generic.FreeModule)(s::Singular.svector)
     e += v*gen(F, k)
   end
   return e
-end
-
-function syzygy_generators(a::Array{<:MPolyElem, 1})
-  I = ideal(a)
-  singular_assure(I)
-  s = Singular.syz(I.gens.S)
-  F = free_module(parent(a[1]), length(a))
-  @assert rank(s) == length(a)
-  return [F(s[i]) for i=1:Singular.ngens(s)]
-end
-
-function dim(I::MPolyIdeal)
-  if I.dim > -1
-    return I.dim
-  end
-  groebner_assure(I)
-  singular_assure(I)
-  I.dim = Singular.dimension(I.gb.S)
-  return I.dim
-end
-
-function Base.in(f::MPolyElem, I::MPolyIdeal)
-  groebner_assure(I)
-  Sx = base_ring(I.gb.S)
-  return Singular.iszero(reduce(Sx(f), I.gb.S))
-end
-
-function base_ring(I::MPolyIdeal{S}) where {S}
-  return I.gens.Ox::parent_type(S)
-end
-
-function groebner_basis(I::MPolyIdeal)
-  groebner_assure(I)
-  return collect(I.gb)
-end
-
-function groebner_basis(I::MPolyIdeal, ord::Symbol; complete_reduction::Bool=false)
-  R = singular_ring(base_ring(I), ord)
-  !Oscar.Singular.has_global_ordering(R) && error("The ordering has to be a global ordering.")
-  i = Singular.std(Singular.Ideal(R, [R(x) for x = gens(I)]), complete_reduction = complete_reduction)
-  return collect(BiPolyArray(base_ring(I), i))
 end
 
 @doc Markdown.doc"""
@@ -568,17 +741,6 @@ end
 # Singular library related functions
 #
 ##########################################
-@doc Markdown.doc"""
-    radical(I::MPolyIdeal)
-
-    Given an ideal $I$ this function returns the radical ideal ``\sqrt I``..
-"""
-function radical(I::MPolyIdeal)
-  singular_assure(I)
-  R = base_ring(I)
-  J = Singular.LibPrimdec.radical(I.gens.Sx, I.gens.S)
-  return ideal(R, J)
-end
 
 ##########################
 #
@@ -660,7 +822,7 @@ end
 @doc Markdown.doc"""
     coordinates(a::Array{<:MPolyElem, 1}, b::Array{<:MPolyElem, 1})
 
-Tries to write the entries of `b` as linear combinations of `a`.    
+Tries to write the entries of `b` as linear combinations of `a`.
 """
 function coordinates(a::Array{<:MPolyElem, 1}, b::Array{<:MPolyElem, 1})
   ia = ideal(a)
@@ -739,35 +901,6 @@ end
 
 function preimage(h::MPolyHom_alg, I::MPolyIdeal)
   return h.header.preimage(I)
-end
-
-###################################################
-
-@doc Markdown.doc"""
-    eliminate(I::MPolyIdeal, polys::Array{MPolyElem, 1})
-
-Given a list of polynomials which are variables, construct the ideal
-corresponding geometrically to the projection of the variety given by the
-ideal $I$ where those variables have been eliminated.
-"""
-function eliminate(I::MPolyIdeal, l::Array{<:MPolyElem, 1})
-  singular_assure(I)
-  B = BiPolyArray(l)
-  S = base_ring(I.gens.S)
-  s = Singular.eliminate(I.gens.S, [S(x) for x = l]...)
-  return MPolyIdeal(base_ring(I), s)
-end
-
-@doc Markdown.doc"""
-    eliminate(I::MPolyIdeal, polys::AbstractArray{Int, 1})
-
-Given a list of indices, construct the ideal
-corresponding geometrically to the projection of the variety given by the
-ideal $I$ where those variables in the list have been eliminated.
-"""
-function eliminate(I::MPolyIdeal, l::AbstractArray{Int, 1})
-  R = base_ring(I)
-  return eliminate(I, [gen(R, i) for i=l])
 end
 
 ###################################################
@@ -940,7 +1073,7 @@ function _isless_matrix(f::MPolyElem, k::Int, l::Int, M::Union{ Array{T, 2}, Mat
   ek = exponent_vector(f, k)
   el = exponent_vector(f, l)
   n = nvars(parent(f))
-  for i = 1:n
+  for i = 1:size(M, 1)
     eki = sum( M[i, j]*ek[j] for j = 1:n )
     eli = sum( M[i, j]*el[j] for j = 1:n )
     if eki == eli
@@ -961,7 +1094,7 @@ function _perm_of_terms(f::MPolyElem, ord_lt::Function)
 end
 
 # Requiring R for consistence with the other lt_from_ordering functions
-function lt_from_ordering(R::MPolyRing, ord::Symbol)
+function lt_from_ordering(::MPolyRing, ord::Symbol)
   if ord == :lex || ord == :lp
     return _isless_lex
   elseif ord == :revlex || ord == :rp
@@ -1004,7 +1137,7 @@ function lt_from_ordering(R::MPolyRing, ord::Symbol, w::Vector{Int})
 end
 
 function lt_from_ordering(R::MPolyRing, M::Union{ Array{T, 2}, MatElem{T} }) where T
-  @assert size(M, 1) == nvars(R) && size(M, 2) == nvars(R) "Matrix dimensions have to match number of variables"
+  @assert size(M, 2) == nvars(R) "Matrix dimensions have to match number of variables"
 
   return (f, k, l) -> _isless_matrix(f, k, l, M)
 end
@@ -1052,6 +1185,12 @@ for s in (:terms, :coeffs, :exponent_vectors, :monomials)
       lt = lt_from_ordering(R, ord, weights)
       return ($s)(f, lt)
     end
+
+    function ($s)(f::MPolyElem, ord::MonomialOrdering)
+      R = parent(f)
+      lt = lt_from_ordering(R, weights(ord))
+      return ($s)(f, lt)
+    end
   end
 end
 
@@ -1075,28 +1214,6 @@ function leading_monomial(f::MPolyElem)
   return leading_monomial(f, ordering(parent(f)))
 end
 
-function leading_ideal(g::Array{T, 1}, args...) where { T <: MPolyElem }
-  return ideal([ leading_monomial(f, args...) for f in g ])
-end
-
-function leading_ideal(g::Array{Any, 1}, args...)
-  return leading_ideal(typeof(g[1])[ f for f in g ], args...)
-end
-
-function leading_ideal(Rx::MPolyRing, g::Array{Any, 1}, args...)
-  h = elem_type(Rx)[ Rx(f) for f in g ]
-  return leading_ideal(h, args...)
-end
-
-function leading_ideal(I::MPolyIdeal)
-  return leading_ideal(groebner_basis(I))
-end
-
-function leading_ideal(I::MPolyIdeal, ord::Symbol)
-  return leading_ideal(groebner_basis(I, ord), ord)
-end
-
-
 ##############################################################################
 #
 ##############################################################################
@@ -1109,3 +1226,26 @@ function factor(f::MPolyElem)
   return Nemo.Fac(R(fS.unit), Dict(R(k) =>v for (k,v) = fS.fac))
 end
 =#
+
+################################################################################
+
+@doc Markdown.doc"""
+    divrem(a::Vector{T}, b::Vector{T}) where T <: MPolyElem{S} where S <: RingElem
+Return an array of tuples (qi, ri) consisting of an array of polynomials qi, one
+for each polynomial in b, and a polynomial ri such that
+a[i] = sum_i b[i]*qi + ri.
+"""
+function divrem(a::Vector{T}, b::Vector{T}) where T <: MPolyElem{S} where S <: RingElem
+  return [divrem(x, b) for x in a]
+end
+
+################################################################################
+
+function Base.:*(f::MPolyElem, I::MPolyIdeal)
+  R = base_ring(I)
+  R == parent(f) || error("base rings do not match")
+  return ideal(R, f.*gens(I))
+end
+
+################################################################################
+

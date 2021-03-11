@@ -413,9 +413,15 @@ function (G::PermGroup)(x::PermGroupElem)
 end
 
 #evaluation function
+function (x::PermGroupElem)(n::T) where T <: Union{Base.Integer,fmpz}
+   return T(GAP.Globals.OnPoints(GAP.GapObj(n), x.X))
+end
+
 function (x::PermGroupElem)(n::Int)
    return GAP.Globals.OnPoints(n,x.X)
 end
+
+^(n::T, x::PermGroupElem) where T <: Union{Base.Integer,fmpz} = T(GAP.Globals.OnPoints(GAP.GapObj(n), x.X))
 
 ^(n::Int, x::PermGroupElem) = GAP.Globals.OnPoints(n,x.X)
 

@@ -62,6 +62,92 @@ end
   @test length(L) == 2
   @test length(findall(x->x==r1, L)) == 1
   @test length(findall(x->x==r2, L)) == 1
+
+  @test issubset(ideal(S, [a]), ideal(S, [a]))
+  @test issubset(ideal(S, [a]), ideal(S, [a, b]))
+  @test !issubset(ideal(S, [c]), ideal(S, [b]))
+  @test !issubset(ideal(S, [a, b, c]), ideal(S, [a*b*c]))
+end
+
+@testset "Primary decomposition" begin
+
+  # primary_decomposition
+  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+  i = ideal(R, [x, y*z^2])
+  for method in (:GTZ, :SY)
+    j = ideal(R, [R(1)])
+    for (q, p) in primary_decomposition(i, alg=method)
+      j = intersect(j, q)
+      @test isprimary(q)
+      @test isprime(p)
+      @test p == radical(q)
+    end
+    @test j == i
+  end
+
+  R, (a, b, c, d) = PolynomialRing(ZZ, ["a", "b", "c", "d"])
+  i = ideal(R, [9, (a+3)*(b+3)])
+  l = primary_decomposition(i)
+  @test length(l) == 2
+
+  # minimal_primes
+  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+  i = ideal(R, [(z^2+1)*(z^3+2)^2, y-z^2])
+  i1 = ideal(R, [z^3+2, -z^2+y])
+  i2 = ideal(R, [z^2+1, -z^2+y])
+  l = minimal_primes(i)
+  @test length(l) == 2
+  @test l[1] == i1 && l[2] == i2 || l[1] == i2 && l[2] == i1
+
+  l = minimal_primes(i, alg=:charSets)
+  @test length(l) == 2
+  @test l[1] == i1 && l[2] == i2 || l[1] == i2 && l[2] == i1
+
+  R, (a, b, c, d) = PolynomialRing(ZZ, ["a", "b", "c", "d"])
+  i = ideal(R, [R(9), (a+3)*(b+3)])
+  i1 = ideal(R, [R(3), a])
+  i2 = ideal(R, [R(3), b])
+  l = minimal_primes(i)
+  @test length(l) == 2
+  @test l[1] == i1 && l[2] == i2 || l[1] == i2 && l[2] == i1
+
+  # equidimensional_decomposition_weak
+  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+  i = intersect(ideal(R, [z]), ideal(R, [x, y]),
+                ideal(R, [x^2, z^2]), ideal(R, [x^5, y^5, z^5]))
+  l = equidimensional_decomposition_weak(i)
+  @test length(l) == 3
+  @test l[1] == ideal(R, [z^4, y^5, x^5, x^3*z^3, x^4*y^4])
+  @test l[2] == ideal(R, [y*z, x*z, x^2])
+  @test l[3] == ideal(R, [z])
+
+ # equidimensional_decomposition_radical
+  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+  i = ideal(R, [(z^2+1)*(z^3+2)^2, y-z^2])
+  l = equidimensional_decomposition_radical(i)
+  @test length(l) == 1
+  @test l[1] == ideal(R, [z^2-y, y^2*z+z^3+2*z^2+2])
+  
+  # equidimensional_hull
+  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+  i = intersect(ideal(R, [z]), ideal(R, [x, y]),
+                ideal(R, [x^2, z^2]), ideal(R, [x^5, y^5, z^5]))
+  @test equidimensional_hull(i) == ideal(R, [z])
+
+  R, (a, b, c, d) = PolynomialRing(ZZ, ["a", "b", "c", "d"])
+  i = intersect(ideal(R, [R(9), a, b]),
+                ideal(R, [R(3), c]),
+                ideal(R, [R(11), 2*a, 7*b]),
+                ideal(R, [13*a^2, 17*b^4]),
+                ideal(R, [9*c^5, 6*d^5]),
+                ideal(R, [R(17), a^15, b^15, c^15, d^15]))
+  @test equidimensional_hull(i) == ideal(R, [R(3)])
+
+  # equidimensional_hull_radical
+  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+  i = ideal(R, [(z^2+1)*(z^3+2)^2, y-z^2])
+  @test equidimensional_hull_radical(i) == ideal(R, [z^2-y, y^2*z+z^3+2*z^2+2])
+
 end
 
 @testset "Groebner" begin
@@ -69,5 +155,24 @@ end
   I = ideal([2*x+3*y+4*z-5,3*x+4*y+5*z-2])
   @test groebner_basis(I,:degrevlex) == [y+2*z-11, 3*x+4*y+5*z-2]
   @test groebner_basis(I,:degrevlex, complete_reduction = true) == [y+2*z-11, x-z+14]
-  
+
+end
+
+@testset "Primary decomposition" begin
+  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+  I = ideal(R, [x, y*z^2])
+  J = ideal(R, [x, y^2])
+  L = primary_decomposition(I)
+  Q = ideal(R, [R(1)])
+  @test isprime(I) == false
+  @test isprimary(I) == false
+  @test isprime(J) == false
+  @test isprimary(J) == true
+  for (q, p) in L
+    Q = intersect(Q, q)
+    @test isprimary(q)
+    @test isprime(p)
+    @test p == radical(q)
+  end
+  @test Q == I
 end

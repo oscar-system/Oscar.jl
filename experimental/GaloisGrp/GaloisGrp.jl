@@ -666,11 +666,11 @@ function resolvent(C::GaloisCtx, G::PermGroup, U::PermGroup, extra::Int = 5)
   k, mk = ResidueField(parent(rt[1]))
   k_rt = map(mk, rt)
   ts = gen(Hecke.Globals.Zx)
-  while length(Set([evaluate(I^s, k_rt, ts) for s = t])) < length(t)
+  while length(Set([evaluate(I^s, map(ts, k_rt)) for s = t])) < length(t)
     ts = rand(Hecke.Globals.Zx, 2:n, -4:4)
   end
 
-  B = 2*n*evaluate(I, [C.B for i = 1:ngens(parent(I))], ts)^n
+  B = 2*n*evaluate(I, map(ts, [C.B for i = 1:ngens(parent(I))]))^n
   rt = roots(C, clog(value(B), C.C.p)+extra)
   rt = map(ts, rt)
   rt = [evaluate(I^s, rt) for s = t]
