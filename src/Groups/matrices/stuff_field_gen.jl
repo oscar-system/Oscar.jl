@@ -20,15 +20,11 @@ function _change_type(f::PolyElem{T}) where T <: FinFieldElem
 end
 
 # return a generator for the unit group of F = K[X] / (f), where K = base_ring(f)
-# removing the three commented lines, the output is a generator for F / its prime subfield
 function _centralizer(f::PolyElem{T}) where T <: FinFieldElem
   if typeof(f)!=fq_nmod_poly && typeof(f)!=fq_poly
      f = _change_type(f)
   end
   L, mL = field_extension(f)
-#  K = base_ring(f)
-#  m = divexact(order(L)-1, order(K)-1)
-#  U, mU = unit_group(L, n_quo = Int(m))
   U, mU = unit_group(L)
   g = mU(U[1])
   return mL\g
@@ -49,6 +45,7 @@ function primitive_element(F::FinField)
 end
 
 # TODO very bold discrete log, waiting for a better one. Don't try with large fields!!
+# return g such that a^g = b
 function _disc_log(a,b)
    for g in 0:order(parent(a))
       if a^g==b
