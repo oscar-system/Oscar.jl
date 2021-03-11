@@ -289,18 +289,10 @@ end
 @doc Markdown.doc"""
     lex(v::AbstractArray{<:MPolyElem, 1}) -> MonomialOrdering
 
-<<<<<<< HEAD
-
-function map_entries(R, M::Singular.smatrix)
-  s = nrows(M), ncols(M)
-  S = parent(R(zero(base_ring(M))))
-  return matrix(S, s[1], s[2], elem_type(S)[R(M[i,j]) for i=1:s[1] for j=1:s[2]])
-=======
 Defines the `lex` (lexicographic) ordering on the variables given.
 """
 function lex(v::AbstractArray{<:MPolyElem, 1})
   return MonomialOrdering(parent(first(v)), ordering(v, :lex))
->>>>>>> 2f3257e... add ==, simplify and hash for orderings
 end
 @doc Markdown.doc"""
     deglex(v::AbstractArray{<:MPolyElem, 1}) -> MonomialOrdering
@@ -686,7 +678,6 @@ function syzygy_module(a::Array{MPolyElem, 1})
   #only graded modules exist
   error("not implemented yet")
 end
-
 
 function (F::Generic.FreeModule)(s::Singular.svector)
   pv = Tuple{Int, elem_type(base_ring(F))}[]
