@@ -344,7 +344,8 @@ function cperm(g::PermGroup,L::AbstractVector{T}...) where T
    if length(L)==0
       return one(g)
    else
-      x=GAP.Globals.Product(GAP.julia_to_gap([GAP.Globals.CycleFromList(GAP.julia_to_gap(collect([Int(k) for k in collect(y)]))) for y in L]))
+#      x=GAP.Globals.Product(GAP.julia_to_gap([GAP.Globals.CycleFromList(GAP.julia_to_gap(collect([Int(k) for k in collect(y)]))) for y in L]))
+      x=prod(y -> GAP.Globals.CycleFromList(GAP.julia_to_gap([Int(k) for k in collect(y)])), L)
       if GAP.Globals.IN(x,g.X) return PermGroupElem(g, x)
       else throw(ArgumentError("the element does not embed in the group"))
       end
