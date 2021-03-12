@@ -137,7 +137,6 @@ end
    K,z = FiniteField(f,"z")
    @test z^4==1
    @test (change_base_ring(K,Oscar._centralizer(f1))(z))^4 !=1
-   @test primitive_root(K)^4 !=1
 
    F = GF(17,1)[1]
    a = F(3)

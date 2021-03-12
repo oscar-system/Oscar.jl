@@ -37,13 +37,13 @@ _SL_order(n::Int, F::Ring) = _SL_order(n, order(F))
 # returns as matrices
 # returns a generating set for GL(n,F) of at most two elements
 function _gens_for_GL(n::Int, F::FinField)
-   n !=1 || return [matrix(F,1,1,[primitive_root(F)])]
+   n !=1 || return [matrix(F,1,1,[primitive_element(F)])]
    h1 = identity_matrix(F,n)
    h2 = zero_matrix(F,n,n)
    if order(F)==2
       h1[1,2] = 1
    else
-      h1[1,1] = primitive_root(F)
+      h1[1,1] = primitive_element(F)
       h2[1,1] = -1
    end
    h2[1,n] = 1
@@ -283,7 +283,7 @@ function _gens_for_SL(n::Int, F::FinField)
    if order(F)==2 || order(F)==3
       h1[1,2] = 1
    else
-      h1[1,1] = primitive_root(F)
+      h1[1,1] = primitive_element(F)
       h1[2,2] = inv(h1[1,1])
       h2[1,1] = -1
    end
@@ -330,7 +330,7 @@ function _centralizer_SL(x::MatElem)
    _,cbm,ED = generalized_jordan_form(x; with_pol=true)    # cbm = change basis matrix
    n=nrows(x)
    listgens = MatElem[]
-   _lambda = primitive_root(base_ring(x))
+   _lambda = primitive_element(base_ring(x))
    res = fmpz(1)
    ind = fmpz(0)
    idN = identity_matrix(base_ring(x),n)
