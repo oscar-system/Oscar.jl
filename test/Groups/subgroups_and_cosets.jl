@@ -27,8 +27,8 @@
    @test H != symmetric_group(3)
    @test isisomorphic(H, symmetric_group(3))[1]
    @test isisomorphic(H, symmetric_group(3))[2]==id_hom(H)       # TODO: this in future may change to false.
-   @test listperm(H[1])==[2,3,1,4,5,6,7]
-   @test listperm(symmetric_group(3)(H[1]))==[2,3,1]
+   @test Vector(H[1])==[2,3,1,4,5,6,7]
+   @test Vector(symmetric_group(3)(H[1]))==[2,3,1]
 
    G = symmetric_group(4)
    A = alternating_group(4)

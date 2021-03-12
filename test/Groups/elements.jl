@@ -7,11 +7,10 @@
     y=G(A)
 
     @test x==y
-    @test A==listperm(y)
     @test A==Vector(y)
     @test typeof(Vector(y))==Array{Int64,1}
     @test typeof(Vector{fmpz}(y))==Array{fmpz,1}
-    @test x==G(listperm(x))
+    @test x==G(Vector(x))
     @test order(x) == lcm(15,n-8)
 
     @test x(3)==4
