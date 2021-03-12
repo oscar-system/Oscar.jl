@@ -1,5 +1,5 @@
 export weight, decorate, ishomogenous, homogenous_components, filtrate,
-grade, homogenous_component, jacobi_matrix, jacobi_ideal
+grade, homogenous_component, jacobi_matrix, jacobi_ideal, HilbertData, hilbert_series, hilbert_polynomial
 
 mutable struct MPolyRing_dec{T} <: AbstractAlgebra.MPolyRing{T}
   R::MPolyRing{T}
@@ -538,4 +538,86 @@ function hasrelshp(R, S)
   #now the hard bit: traverse the graph, not falling into cycles.
 end
 
+############################################################################
+############################################################################
+############################################################################
+
+function sing_hilb(I::Singular.sideal)
+  a = Array{Int32, 1}()
+  @assert I.isGB
+  Singular.libSingular.scHilb(I.ptr, base_ring(I).ptr, a)
+  return a
+end
+
+mutable struct HilbertData
+  data::Array{Int32, 1}
+  I::MPolyIdeal
+  function HilbertData(I::MPolyIdeal)
+    Oscar.groebner_assure(I)
+    h = sing_hilb(I.gb.S)
+    return new(h, I)
+  end
+  function HilbertData(B::BiPolyArray)
+    return HilbertData(Oscar.MPolyIdeal(B))
+  end
+end
+
+function hilbert_series(H::HilbertData, i::Int= 1)
+  Zx = Hecke.Globals.Zx
+  if i==1
+    return Zx(map(fmpz, H.data[1:end-1])), (1-gen(Zx))^(ngens(base_ring(H.I)))
+  elseif i==2
+    h = hilbert_series(H, 1)[1]
+    return divexact(h, (1-gen(Zx))^(ngens(base_ring(H.I))-dim(H.I))), (1-gen(Zx))^dim(H.I)
+  end
+  error("2nd parameter must be 1 or 2")
+end
+
+#Decker-Lossen, p23/24
+function hilbert_polynomial(H::HilbertData)
+  q, dn = hilbert_series(H, 2)
+  a = fmpq[]
+  nf = fmpq(1)
+  d = degree(dn)-1
+  for i=0:d
+    push!(a, q(1)//nf)
+    if i>0
+      nf *= i
+    end
+    q = derivative(q)
+  end
+  x = gen(Hecke.Globals.Qx)
+  bin = one(parent(x))
+  b = fmpq_poly[]
+  for i=0:d
+    push!(b, (-1)^(d-i)*a[d-i+1]*bin)
+    bin *= (x+i+1)*fmpq(1, i+1)
+  end
+  return sum(b)
+end
+
+function Oscar.degree(H::HilbertData)
+  P = hilbert_polynomial(H)
+  return lead(P)*factorial(degree(P))
+end
+
+function (P::FmpqRelSeriesRing)(H::HilbertData)
+  n = hilbert_series(H, 1)[1]
+  d = (1-gen(parent(n)))^ngens(base_ring(H.I))
+  g = gcd(n, d)
+  n = divexact(n, g)
+  d = divexact(d, g)
+  Qx = Hecke.Globals.Qx
+  nn = map_coeffs(QQ, n, parent = Qx)
+  dd = map_coeffs(QQ, d, parent = Qx)
+  gg, ee, _ = gcdx(dd, gen(Qx)^max_precision(P))
+  @assert isone(gg)
+  nn = Hecke.mullow(nn, ee, max_precision(P)+1)
+  c = collect(coefficients(nn))
+  return P(map(fmpq, c), length(c), max_precision(P), 0)
+end
+
+function Base.show(io::IO, h::HilbertData)
+  print(io, "Hilbert Series for $(h.I), data: $(h.data)")
+end
 
