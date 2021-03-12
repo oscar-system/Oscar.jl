@@ -221,9 +221,9 @@ parent(x)
 parent(y)
 ```
 
-The function `listperm` works in the opposite way with respect to `perm`:
+The function `Vector{T}` works in the opposite way with respect to `perm`:
 ```@docs
-listperm
+Vector(x::PermGroupElem, n::Int = x.parent.deg)
 ```
 
 

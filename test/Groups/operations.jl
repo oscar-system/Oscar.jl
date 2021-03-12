@@ -47,7 +47,7 @@
       @test x>y || x==y || x<y
       @test isequal(x,y) || isless(x,y) || isless(y,x)
       @test (isless(x,y) && x<y) || (isequal(x,y) && x==y) || (isless(y,x) && x>y)
-      @test y==G(listperm(y))
+      @test y==G(Vector(y))
       end
    end
 end

@@ -264,7 +264,7 @@ Base.in(g::GAPGroupElem, G::GAPGroup) = GAP.Globals.in(g.X, G.X)
 #end
 # FIXME: use name gap_perm for now
 """
-    gap_perm(L::AbstractVector{<:T}) where T <: 
+    gap_perm(L::AbstractVector{<:T}) where T
 
 Return the permutation `x` which maps every `i` from `1` to `length(L)` to `L[i]`. `L` must contain every integer from 1 to `length(L)` exactly, otherwise an exception is thrown.
 The parent of `x` is set as Sym(`n`).
@@ -329,7 +329,7 @@ julia> cperm([1,2],[2,3])
 (1,3,2)
 ```
 """
-function cperm(L::AbstractVector{T}...) where T
+function cperm(L::AbstractVector{T}...) where T <: Union{Base.Integer, fmpz}
    if length(L)==0
       return one(symmetric_group(1))
    else
@@ -340,7 +340,7 @@ end
 # cperm stays for "cycle permutation", but we can change name if we want
 # takes as input a list of arrays (not necessarly disjoint)
 # WARNING: we allow e.g. PermList([2,3,1,4,5,6]) in Sym(3)
-function cperm(g::PermGroup,L::AbstractVector{T}...) where T
+function cperm(g::PermGroup,L::AbstractVector{T}...) where T <: Union{Base.Integer, fmpz}
    if length(L)==0
       return one(g)
    else
@@ -364,11 +364,12 @@ end
 
 """
     Vector{T}(x::PermGroupElem, n::Int = x.parent.deg) where {T}
+    Vector(x::PermGroupElem, n::Int = x.parent.deg)
 
-Return the list of length `n` that contains `x(i)` at position `i`.
+Return the list of length `n` that contains `x(i)` at position `i`. If not specified, `T` is set as `Int`.
 """
-Base.Vector{T}(x::PermGroupElem, n::Int = x.parent.deg) where {T} = T[x(i) for i in 1:n]
-Base.Vector(x::PermGroupElem) = Vector{Int}(x)
+Base.Vector{T}(x::PermGroupElem, n::Int = x.parent.deg) where T <: Union{Base.Integer, fmpz} = T[x(i) for i in 1:n]
+Base.Vector(x::PermGroupElem, n::Int = x.parent.deg) = Vector{Int}(x,n)
 
 """
     gens(G::Group)
