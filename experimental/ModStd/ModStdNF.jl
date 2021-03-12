@@ -24,30 +24,6 @@ function stdhilb(I::Singular.sideal, h::Array{Int32, 1}; complete_reduction::Boo
   return z
 end
 
-function sing_hilb(I::Singular.sideal)
-  a = Array{Int32, 1}()
-  @assert I.isGB
-  Singular.libSingular.scHilb(I.ptr, base_ring(I).ptr, a)
-  return a
-end
-
-mutable struct HilbertData
-  data::Array{Int32, 1}
-  I::MPolyIdeal
-  function HilbertData(I::MPolyIdeal)
-    Oscar.groebner_assure(I)
-    h = sing_hilb(I.gb.S)
-    return new(h, I)
-  end
-  function HilbertData(B::BiPolyArray)
-    return HilbertData(Oscar.MPolyIdeal(B))
-  end
-end
-
-function Base.show(io::IO, h::HilbertData)
-  print(io, "Hilbert Series for $(h.I), data: $(h.data)")
-end
-
 function Oscar.groebner_basis(B::BiPolyArray{nmod_mpoly}, h::HilbertData; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
   if ord != :degrevlex
     R = Oscar.singular_ring(B.Ox, ord)
