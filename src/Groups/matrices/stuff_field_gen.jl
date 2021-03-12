@@ -6,9 +6,7 @@
 # functions in this file are to be removed / moved / replaced
 # TODO: when this happens, files mentioned above need to be modified too.
 
-import Hecke: evaluate, field_extension, FinField, FinFieldElem, PolyElem
-
-export primitive_element
+import Hecke: evaluate, field_extension, FinField, FinFieldElem, PolyElem, primitive_element
 
 # changes the base ring of a polynomial ring into fq_nmod
 function _change_type(f::PolyElem{T}) where T <: FinFieldElem
@@ -28,20 +26,6 @@ function _centralizer(f::PolyElem{T}) where T <: FinFieldElem
   U, mU = unit_group(L)
   g = mU(U[1])
   return mL\g
-end
-
-
-# return a primitive element of F, i.e. a group generator for F*
-# TODO: are there faster procedures?
-"""
-    primitive_element(F::FinField)
-Return a generator of the multiplicative group of `F`.
-"""
-function primitive_element(F::FinField)
-   z = gen(F)
-   isprime(order(F)) && return z
-   f = _centralizer(defining_polynomial(F))
-   return sum([z^i*F(coeff(f,i)) for i in 0:degree(f)])
 end
 
 # TODO very bold discrete log, waiting for a better one. Don't try with large fields!!
