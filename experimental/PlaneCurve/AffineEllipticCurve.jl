@@ -40,7 +40,7 @@ mutable struct AffineEllipticCurve{S <: FieldElem} <: PlaneCurve
     nvars(parent(eq)) == 2 || error("The defining equation must belong to a ring with two variables")
     !isconstant(eq) || error("The defining equation must be non constant")
     !isweierstrassform(eq) && error("Not in Weierstrass form!")
-    v = shortformtest(eq)    
+    v = shortformtest(eq) 
     new{S}(eq,
            -1,                   # -1 when it is not computed yet
             Dict{AffineEllipticCurve{S}, Int}(),
