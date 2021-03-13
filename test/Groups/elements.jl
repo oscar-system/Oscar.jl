@@ -38,7 +38,6 @@
   @test x==perm(G,fmpz.([2,3,4,5,6,1]))
   @test cperm(G,Int[])==one(G)
   @test x==cperm(G,1:6)
-  @test x==cperm(G,fmpz(1):fmpz(6))
   @test x==cperm(G,[1,2,3,4,5,6])
   @test one(G)==gap_perm(1:6)
   @test_throws ArgumentError G(gap_perm([2,3,4,5,6,7,1]))
