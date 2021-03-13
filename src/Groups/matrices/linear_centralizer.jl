@@ -10,7 +10,9 @@
 
 function _GL_order(n::Int, q::fmpz)
    res = q^div(n*(n-1),2)
-   for i in 1:n res *= (q^i-1) end
+   for i in 1:n
+      res *= (q^i-1)
+   end
    return res
 end
 
@@ -18,7 +20,9 @@ _GL_order(n::Int, F::Ring) = _GL_order(n, order(F))
 
 function _SL_order(n::Int, q::fmpz)
    res = q^div(n*(n-1),2)
-   for i in 2:n res *= (q^i-1) end
+   for i in 2:n
+     res *= (q^i-1)
+   end
    return res
 end
 
@@ -47,31 +51,37 @@ function _gens_for_GL(n::Int, F::FinField)
       h2[1,1] = -1
    end
    h2[1,n] = 1
-   for i in 1:n-1 h2[i+1,i] = -1 end
-   return h1,h2
+   for i in 1:n-1
+      h2[i+1,i] = -1
+   end
+   return [h1,h2]
 end
 
 # returns as matrices
 # does the same as above with the following changes:
 # the field F is replaced by F = F[x]/(f);
 # every entry y is replaced by a diagonal join of D copies of phi(y),
-# where phi is the ring automorphism sending a fixed root of f into the companion matrix of f.
-# (hence, the final output are still matrices with base ring F)
+# where phi: F -> matrix_algebra(F,degree(f))
+# is the ring homomorphism sending a fixed root of f into the companion matrix of f.
+# (hence, elements of the final output belong to matrix_algebra(F,n*D*degree(f)))
 # ASSUMPTION: deg(f) > 1
 function _gens_for_GL_matrix(f::PolyElem, n::Int, F::FinField; D::Int=1)
    C = companion_matrix(f)
    CP = evaluate(_centralizer(f),C)            # matrix of maximal order in the centralizer of the companion matrix
+   Df = degree(f)*D
 
    if n==1 return [diagonal_join([CP for i in 1:D])] end
-   h1 = identity_matrix(F,n*degree(f)*D)
+   h1 = identity_matrix(F,n*Df)
    insert_block!(h1,diagonal_join([CP for i in 1:D]),1,1)
-   h2 = zero_matrix(F,n*degree(f)*D,n*degree(f)*D)
-   for i in 1:(n-1)*degree(f)*D h2[i+degree(f)*D,i]=-1 end
-   for i in 1:degree(f)*D
-      h2[i,i]=-1
-      h2[i,i+(n-1)*degree(f)*D]=1
+   h2 = zero_matrix(F,n*degree(f)*D,n*Df)
+   for i in 1:(n-1)*Df
+      h2[i+Df,i]=-1
    end
-   return h1,h2
+   for i in 1:Df
+      h2[i,i]=-1
+      h2[i,i+(n-1)*Df]=1
+   end
+   return [h1,h2]
 end
 
 # generators for centralizer of unipotent elements are described in:
@@ -82,7 +92,7 @@ end
 # assumes V is sorted (e.g. [1,1,1,2,3,3])
 function _centr_unipotent(F::FinField, V::AbstractVector{Int}; isSL=false)
    n = sum(V)
-   _lambda = gen(F)  # yes, gen(F) is correct; we don't need a primitive root in this case
+   _lambda = gen(F)
    idN = identity_matrix(F,n)
 
    # L = multiset(V)
@@ -185,7 +195,9 @@ function _centr_block_unipotent(f::PolyElem, F::FinField, V::AbstractVector{Int}
             c = idD
             for j in 1:degree(F)*d
                z = identity_matrix(F,l[1]*d)
-               for k in 0:l[1]-i-1 insert_block!(z,c,d*k+1 ,d*(k+i)+1) end
+               for k in 0:l[1]-i-1
+                  insert_block!(z,c,d*k+1 ,d*(k+i)+1)
+               end
                z = insert_block(idN,z,pos,pos)
                c *= C           # every time, the block C^(j-1) is inserted
                push!(listgens,z)
@@ -218,7 +230,9 @@ function _centr_block_unipotent(f::PolyElem, F::FinField, V::AbstractVector{Int}
    # cardinality
    res = prod([_GL_order(l[2],order(F)^degree(f)) for l in L])
    exp = fmpz(0)
-   for i in 1:length(L)-1, j in i+1:length(L)  exp += L[i][1]*L[i][2]*L[j][2] end
+   for i in 1:length(L)-1, j in i+1:length(L)
+      exp += L[i][1]*L[i][2]*L[j][2]
+   end
    exp *= 2
    exp += sum([(L[i][1]-1)*L[i][2]^2 for i in 1:length(L)])
    exp *= degree(f)
@@ -227,9 +241,10 @@ function _centr_block_unipotent(f::PolyElem, F::FinField, V::AbstractVector{Int}
    return listgens, res
 end
 
-# returns the list of generators
+# returns the list of generators and the cardinality of the centralizer of x in GL
 function _centralizer_GL(x::MatElem)
-   _,cbm,ED = generalized_jordan_form(x; with_pol=true)    # cbm = change basis matrix
+   _,a,ED = generalized_jordan_form(x; with_pol=true)    # a = change basis matrix
+   am = inv(a)
    n=nrows(x)
    listgens = MatElem[]
    res = fmpz(1)
@@ -246,7 +261,7 @@ function _centralizer_GL(x::MatElem)
       else
          L = _centr_block_unipotent(f,base_ring(x),V)
          for z in L[1]
-            push!(listgens, insert_block(idN,z,pos,pos))
+            push!(listgens, am*insert_block(idN,z,pos,pos)*a)
          end
          res *= L[2]
          pos += degree(f)*sum(V)
@@ -258,7 +273,7 @@ function _centralizer_GL(x::MatElem)
       end
    end
 
-   return listgens, res, cbm
+   return listgens, res
 end
 
 
@@ -277,7 +292,7 @@ end
 # returns as matrices
 # returns a generating set for SL(n,F) of at most two elements
 function _gens_for_SL(n::Int, F::FinField)
-   n != 1 || return []
+   n != 1 || return dense_matrix_type(F)[]
    h1 = identity_matrix(F,n)
    h2 = zero_matrix(F,n,n)
    if order(F)==2 || order(F)==3
@@ -288,46 +303,53 @@ function _gens_for_SL(n::Int, F::FinField)
       h2[1,1] = -1
    end
    h2[1,n] = 1
-   for i in 1:n-1 h2[i+1,i] = -1 end
-   return h1,h2
+   for i in 1:n-1
+      h2[i+1,i] = -1
+   end
+   return [h1,h2]
 end
 
 # returns as matrices
 # does the same as above with the following changes:
 # the field F is replaced by F = F[x]/(f);
 # every entry y is replaced by a diagonal join of D copies of phi(y),
-# where phi is the ring automorphism sending a fixed root of f into the companion matrix of f.
-# (hence, the final output are still matrices with base ring F)
+# where phi: F -> matrix_algebra(F,degree(f))
+# is the ring homomorphism sending a fixed root of f into the companion matrix of f.
+# (hence, elements of the final output belong to matrix_algebra(F,n*D*degree(f)))
 # ASSUMPTION: deg(f) > 1
 function _gens_for_SL_matrix(f::PolyElem, n::Int, F::FinField; D::Int=1)
    C = companion_matrix(f)
    CP = evaluate(_centralizer(f),C)            # matrix of maximal order in the centralizer of the companion matrix
    CPi = inv(CP)
+   Df = D*degree(f)
 
-   n != 1 || return []
-   h1 = identity_matrix(F,n*degree(f)*D)
+   n != 1 || return dense_matrix_type(F)[]
+   h1 = identity_matrix(F,n*Df)
    insert_block!(h1,diagonal_join([CP for i in 1:D]),1,1)
-   insert_block!(h1,diagonal_join([CPi for i in 1:D]),D*degree(f)+1,D*degree(f)+1)
-   h2 = zero_matrix(F,n*degree(f)*D,n*degree(f)*D)
-   for i in 1:(n-1)*degree(f)*D h2[i+degree(f)*D,i]=-1 end
-   for i in 1:degree(f)*D
+   insert_block!(h1,diagonal_join([CPi for i in 1:D]),Df+1,Df+1)
+   h2 = zero_matrix(F,n*Df,n*Df)
+   for i in 1:(n-1)*Df
+      h2[i+Df,i]=-1
+   end
+   for i in 1:Df
       h2[i,i]=-1
-      h2[i,i+(n-1)*degree(f)*D]=1
+      h2[i,i+(n-1)*Df]=1
    end
 # TODO waiting for a better solution, the h3 generator is necessary
 #  because h1,h2 generate just the subgroup of SL(n*deg(f),F) isomorphic to SL(n, F^deg(f))
-   h3 = identity_matrix(F,n*degree(f)*D)
+   h3 = identity_matrix(F,n*Df)
    insert_block!(h3,diagonal_join([CP^(order(F)-1) for i in 1:D]),1,1)
-   return h1,h2,h3
+   return [h1,h2,h3]
 end
 
 
 # generators for centralizer of unipotent elements are described in:
 # Giovanni De Franceschi, Centralizers and conjugacy classes in finite classical groups, arXiv:2008.12651
 
-# returns the list of generators
+# returns the list of generators and the cardinality of the centralizer of x in SL
 function _centralizer_SL(x::MatElem)
-   _,cbm,ED = generalized_jordan_form(x; with_pol=true)    # cbm = change basis matrix
+   _,a,ED = generalized_jordan_form(x; with_pol=true)    # a = change basis matrix
+   am = inv(a)
    n=nrows(x)
    listgens = MatElem[]
    _lambda = primitive_element(base_ring(x))
@@ -340,11 +362,11 @@ function _centralizer_SL(x::MatElem)
    f=ED[1][1]
    V=[ED[1][2]]
    c = evaluate(_centralizer(f), companion_matrix(f))
-# Computes d such that det(c)^d = lambda and replace c by c^d.
-# The result c^d is a primitive root for the base ring of x such that det(c^d) = lambda
+   # Computes d such that det(c)^d = lambda and replace c by c^d.
+   # The result c^d is a primitive root for the base ring of x such that det(c^d) = lambda
    c = c^(_disc_log(det(c),_lambda))
-# block_dim is a list of [d,m,c], where
-# d = dimension of the Jordan block, m = its multiplicity, c = el of max order determinant in centralizer of the companion matrix
+   # block_dim is a list of triples [d,m,c], where
+   # d = dimension of the Jordan block, m = its multiplicity, c = el of max order determinant in centralizer of the companion matrix
    block_dim = [[ED[1][2],1,c]]
    while i <= length(ED)
       if i<length(ED) && ED[i+1][1]==f
@@ -356,7 +378,7 @@ function _centralizer_SL(x::MatElem)
       else
          L = _centr_block_unipotent(f,base_ring(x),V; isSL=true)
          for z in L[1]
-            push!(listgens, insert_block(idN,z,pos,pos))
+            push!(listgens, am*insert_block(idN,z,pos,pos)*a)
          end
          ind = gcd(ind, gcd([b[1] for b in block_dim]))
          res *= L[2]
@@ -366,8 +388,8 @@ function _centralizer_SL(x::MatElem)
             f = ED[i][1]
             V = [ED[i][2]]
             c = evaluate(_centralizer(f), companion_matrix(f))
-# Computes d such that det(c)^d = lambda and replace c by c^d.
-# The result c^d is a primitive root for the base ring of x such that det(c^d) = lambda
+            # Computes d such that det(c)^d = lambda and replace c by c^d.
+            # The result c^d is a primitive root for the base ring of x such that det(c^d) = lambda
             c = c^(_disc_log(det(c),_lambda))
             push!(block_dim, [ED[i][2],1,c])
          end
@@ -387,14 +409,14 @@ function _centralizer_SL(x::MatElem)
          insert_block!(z,diagonal_join([block_dim[i][3]^Int(g(k)[i]) for j in 1:block_dim[i][1]]),pos,pos)
          pos += block_dim[i][1]*block_dim[i][2]*nrows(block_dim[i][3])
       end
-      push!(listgens, z)
+      push!(listgens, am*z*a)
    end
    end
 
    ind = gcd(ind, order(base_ring(x))-1)
    res = div(res, order(base_ring(x))-1)
    res *= ind
-   return listgens, res, cbm
+   return listgens, res
 end
 
 
@@ -408,16 +430,15 @@ end
 
 """
     centralizer(G::MatrixGroup{T}, x::MatrixGroupElem{T})
-Return (`C`,`Nothing`), where `C` is the centralizer of `x` in `C`.
-To get the embedding homomorphism of `C` into `G`, type
+
+Return (`C`,`f`), where `C` is the centralizer of `x` in `C` and `f` is the embedding of `C` into `G`.
+If `G` = `GL(n,F)` or `SL(n,F)`, then `f` = `nothing`. In this case, to get the embedding homomorphism of `C` into `G`, use
 > `issubgroup(G,C)[2]`
 """
 function centralizer(G::MatrixGroup{T}, x::MatrixGroupElem{T}) where T <: FinFieldElem
    if isdefined(G,:descr) && (G.descr==:GL || G.descr==:SL)
-      V,card,a = G.descr==:GL ? _centralizer_GL(x.elm) : _centralizer_SL(x.elm)
-      am = inv(a)
-      L = [G(am*v*a) for v in V]
-      H = MatrixGroup(G.deg, G.ring, L)
+      V,card = G.descr==:GL ? _centralizer_GL(x.elm) : _centralizer_SL(x.elm)
+      H = MatrixGroup(G.deg, G.ring, V)
       set_special(H, :order => fmpz(card))
       return H, nothing          # do not return the embedding of the centralizer into G to do not compute G.X
    end
