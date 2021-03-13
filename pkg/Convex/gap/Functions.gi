@@ -23,13 +23,11 @@ InstallMethod( PolymakeAvailability, [  ],
     
     # Check if TopcomInterface is available
     if TestPackageAvailability( "JuliaInterface", ">= 0.5.2" ) = fail then
-      Print( "The Gap package JuliaInterface is not available\n" );
       available := false;
     fi;
     
     # and marked to be loaded as suggested package
     if not IsPackageMarkedForLoading( "JuliaInterface", ">= 0.5.2" ) then
-      Print( "The Gap package JuliaInterface has not been marked to be loaded by Convex if available.\n" );
       available := false;
     fi;
     
