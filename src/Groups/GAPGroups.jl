@@ -277,7 +277,7 @@ function gap_perm(L::AbstractVector{<:Base.Integer})
   return PermGroupElem(symmetric_group(length(L)), GAP.Globals.PermList(GAP.julia_to_gap(L)))
 end
 
-gap_perm(L::AbstractVector{<:fmpz}) = gap_perm([Int(y) for y in collect(L)])
+gap_perm(L::AbstractVector{<:fmpz}) = gap_perm([Int(y) for y in L])
 
 """
     perm(G::PermGroup, L::AbstractVector{<:Integer})
@@ -298,7 +298,7 @@ function perm(g::PermGroup, L::AbstractVector{<:Base.Integer})
    throw(ArgumentError("the element does not embed in the group"))
 end
 
-perm(g::PermGroup, L::AbstractVector{<:fmpz}) = perm(g, [Int(y) for y in collect(L)])
+perm(g::PermGroup, L::AbstractVector{<:fmpz}) = perm(g, [Int(y) for y in L])
 
 function (g::PermGroup)(L::AbstractVector{<:Base.Integer})
    x = GAP.Globals.PermList(GAP.julia_to_gap(L))
@@ -308,7 +308,7 @@ function (g::PermGroup)(L::AbstractVector{<:Base.Integer})
    throw(ArgumentError("the element does not embed in the group"))
 end
 
-(g::PermGroup)(L::AbstractVector{<:fmpz}) = g([Int(y) for y in collect(L)])
+(g::PermGroup)(L::AbstractVector{<:fmpz}) = g([Int(y) for y in L])
 
 # cperm stays for "cycle permutation", but we can change name if we want
 # takes as input a list of arrays (not necessarly disjoint)
@@ -333,7 +333,7 @@ function cperm(L::AbstractVector{T}...) where T <: Union{Base.Integer, fmpz}
    if length(L)==0
       return one(symmetric_group(1))
    else
-      return prod([PermGroupElem(symmetric_group(maximum(y)), GAP.Globals.CycleFromList(GAP.julia_to_gap(collect([Int(k) for k in y])))) for y in L])
+      return prod([PermGroupElem(symmetric_group(maximum(y)), GAP.Globals.CycleFromList(GAP.julia_to_gap([Int(k) for k in y]))) for y in L])
    end
 end
 
@@ -344,8 +344,7 @@ function cperm(g::PermGroup,L::AbstractVector{T}...) where T <: Union{Base.Integ
    if length(L)==0
       return one(g)
    else
-#      x=GAP.Globals.Product(GAP.julia_to_gap([GAP.Globals.CycleFromList(GAP.julia_to_gap(collect([Int(k) for k in collect(y)]))) for y in L]))
-      x=prod(y -> GAP.Globals.CycleFromList(GAP.julia_to_gap([Int(k) for k in collect(y)])), L)
+      x=prod(y -> GAP.Globals.CycleFromList(GAP.julia_to_gap([Int(k) for k in y])), L)
       if GAP.Globals.IN(x,g.X) return PermGroupElem(g, x)
       else throw(ArgumentError("the element does not embed in the group"))
       end
@@ -518,6 +517,7 @@ Base.:^(x::T, y::T) where T <: GAPGroupElem = group_element(_maxgroup(parent(x),
 
 """
     isconjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
+
 Return whether `x` and `y` are conjugate elements in `G`.
 """
 isconjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem) = GAP.Globals.IsConjugate(G.X,x.X,y.X)
@@ -595,6 +595,7 @@ end
 
 """
     isconjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup)
+
 Return whether `H` and `K` are conjugate subgroups in `G`.
 """
 isconjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup) = GAP.Globals.IsConjugate(G.X,H.X,K.X)
