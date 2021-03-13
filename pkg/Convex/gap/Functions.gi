@@ -11,30 +11,36 @@
 ##
 #############################################################################
 
-## Section: Availability of Polymake
+## Section: Availability and loading of Polymake
 
 ##
 InstallMethod( PolymakeAvailability, [  ],
   function( )
     local available;
+    available := false;
     
-    # initialize available
-    available := true;
-    
-    # Check if TopcomInterface is available
-    if TestPackageAvailability( "JuliaInterface", ">= 0.5.2" ) = fail then
-      available := false;
+    # Check if Polymake and the gap-julia interface are available
+    if ( TestPackageAvailability( "JuliaInterface", ">= 0.5.2" ) and IsPackageMarkedForLoading( "JuliaInterface", ">= 0.5.2" ) ) then
+        if JuliaImportPackage("Polymake") then
+            available := true;
+        fi;
     fi;
     
-    # and marked to be loaded as suggested package
-    if not IsPackageMarkedForLoading( "JuliaInterface", ">= 0.5.2" ) then
-      available := false;
-    fi;
-    
-    # finally test if polymake is available in Julia
-    #ImportJuliaModuleInGAP("polymake")
-    
-    # return the result of the operation
     return available;
+    
+end );
+
+##
+InstallMethod( LoadPolymake, [  ],
+  function( )
+    local result;
+    result := false;
+    
+    if PolymakeAvailability() then
+        ImportJuliaModuleIntoGAP( "Polymake" );
+        result := true;
+    fi;
+    
+    return result;
     
 end );

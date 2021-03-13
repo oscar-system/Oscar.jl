@@ -18,3 +18,9 @@
 #! @Description
 #! Checks if the polymake functionality is available in Julia.
 DeclareOperation( "PolymakeAvailability", [ ] );
+
+#! @Arguments
+#! @Returns a boolean
+#! @Description
+#! Checks if the polymake functionality is available and if yes loads it. For success, it returns true and false otherwise.
+DeclareOperation( "LoadPolymake", [ ] );
