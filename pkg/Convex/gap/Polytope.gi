@@ -17,11 +17,24 @@
 InstallMethod( FacetInequalities,
                " for external polytopes",
                [ IsExternalPolytopeRep ],
-               
-  function( polyt )
+  function( polytope )
+    local P, s;
     
-    #return Cdd_Inequalities( ExternalCddPolytope( polyt ) );
-    Error( "Test" );
-    return polyt;
+    if PolymakeAvailable() then
+        
+        # parse the vertices of polytope into format for Polymake
+        
+        # issue commands in Julia
+        JuliaEvalString( "F = Julia.Polymake.polytope.Polytope( POINTS = [1 -1 -1; 1 1 -1; 1 -1 1; 1 1 1; 1 0 0] ).FACETS" );
+        s := JuliaToGAP( IsString, Julia.string( Julia.F ) );
+        
+        # cast the resulting string into a list of integers
+        Error( Concatenation( "Test", s ) );
+        return false;
+        
+    fi;
+    
+    # otherwise try next method
+    TryNextMethod();
     
 end );

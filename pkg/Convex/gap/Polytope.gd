@@ -13,8 +13,11 @@
 
 #! @Section Operations on polytopes
 
-#! @Arguments Something?
-#! @Returns Something?
+#! @Arguments P
+#! @Returns a list of lists
 #! @Description
-#! Something.
-DeclareOperation( "FacetInequalities", [ IsExternalPolytopeRep ] );
+#! The operation returns the list of the inequalities of the facets.
+#! Each defining inequality that is not defining-equality of the 
+#! polytope is a facet inequality.
+DeclareAttribute( "FacetInequalities",
+                    IsPolytope );
