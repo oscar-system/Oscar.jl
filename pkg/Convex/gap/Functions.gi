@@ -14,7 +14,7 @@
 ## Section: Availability and loading of Polymake
 
 ##
-InstallMethod( PolymakeAvailability, [  ],
+InstallMethod( PolymakeAvailable, [  ],
   function( )
     local available;
     available := false;
@@ -23,24 +23,10 @@ InstallMethod( PolymakeAvailability, [  ],
     if ( TestPackageAvailability( "JuliaInterface", ">= 0.5.2" ) and IsPackageMarkedForLoading( "JuliaInterface", ">= 0.5.2" ) ) then
         if JuliaImportPackage("Polymake") then
             available := true;
+            ImportJuliaModuleIntoGAP( "Polymake" );
         fi;
     fi;
     
     return available;
-    
-end );
-
-##
-InstallMethod( LoadPolymake, [  ],
-  function( )
-    local result;
-    result := false;
-    
-    if PolymakeAvailability() then
-        ImportJuliaModuleIntoGAP( "Polymake" );
-        result := true;
-    fi;
-    
-    return result;
     
 end );
