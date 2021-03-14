@@ -20,10 +20,44 @@ InstallMethod( PolymakeAvailable, [  ],
     available := false;
     
     # Check if Polymake and the gap-julia interface are available
-    if ( TestPackageAvailability( "JuliaInterface", ">= 0.5.2" ) and IsPackageMarkedForLoading( "JuliaInterface", ">= 0.5.2" ) ) then
-        if JuliaImportPackage("Polymake") then
+    if ( TestPackageAvailability( "JuliaInterface", ">= 0.5.2" ) <> fail ) then
+        if IsPackageMarkedForLoading( "JuliaInterface", ">= 0.5.2" ) then
+            if JuliaImportPackage("Polymake") then
+                available := true;
+                ImportJuliaModuleIntoGAP( "Polymake" );
+            fi;
+        fi;
+    fi;
+    
+    return available;
+    
+end );
+
+##
+InstallMethod( CddInterfaceAvailable, [  ],
+  function( )
+    local available;
+    available := false;
+    
+    if ( TestPackageAvailability( "CddInterface", ">= 2020.06.24" ) <> fail ) then
+        if IsPackageMarkedForLoading( "CddInterface", ">= 2020.06.24" ) then
             available := true;
-            ImportJuliaModuleIntoGAP( "Polymake" );
+        fi;
+    fi;
+    
+    return available;
+    
+end );
+
+##
+InstallMethod( NormalizInterfaceAvailable, [  ],
+  function( )
+    local available;
+    available := false;
+    
+    if ( TestPackageAvailability( "NormalizInterface", ">= 1.2.0" ) <> fail ) then
+        if IsPackageMarkedForLoading( "NormalizInterface", ">= 1.2.0" ) then
+            available := true;
         fi;
     fi;
     

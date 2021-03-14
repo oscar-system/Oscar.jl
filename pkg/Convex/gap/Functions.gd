@@ -18,3 +18,15 @@
 #! @Description
 #! Checks if the polymake functionality is available in Julia.
 DeclareOperation( "PolymakeAvailable", [ ] );
+
+#! @Arguments
+#! @Returns a boolean
+#! @Description
+#! Checks if the CddInterface is available in Julia.
+DeclareOperation( "CddInterfaceAvailable", [ ] );
+
+#! @Arguments
+#! @Returns a boolean
+#! @Description
+#! Checks if the CddInterface is available in Julia.
+DeclareOperation( "NormalizInterfaceAvailable", [ ] );
