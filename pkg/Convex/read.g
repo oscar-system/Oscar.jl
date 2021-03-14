@@ -10,3 +10,4 @@
 #############################################################################
 
 ReadPackage( "Convex", "gap/Functions.gi" );
+ReadPackage( "Convex", "gap/Polytope.gi" );
