@@ -16,6 +16,14 @@ Pages = ["integer.md"]
 
 This part of OSCAR is under development with regard to providing both the functionality and the documentation. At current state, the documentation serves as a guide on what to do and will be constantly updated.
 
+General textbooks offering details on theory and algorithms include: 
+
+[GP07](@cite)
+
+[DL06](@cite)
+
+[DP13](@cite)
+
 ## Ideal Constructors for Multivariate Polynomial Rings
 
 ```@docs
@@ -292,7 +300,7 @@ codim(I::MPolyIdeal)
 An affine algebra over a field $K$, or an affine $K$-algebra, is the quotient $A=R/I$ of a multivariate
 polynomial ring $R$ over $K$ modulo a radical ideal $I$.
 
-### Constructors
+### Constructor
 
 ```@docs
 quo(R::MPolyRing, I::MPolyIdeal)
@@ -304,6 +312,113 @@ R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 A, _ = quo(R, ideal(R, [x^2-y^3, x-y]))
 A, f = quo(R, ideal(R, [x^2-y^3, x-y]))
 f
+```
+
+### Data Associated to Affine Algebras
+
+#### Basic Data
+
+If `B = S/J` is an affine algebra, then `B.R` refers to `S` and `A.I` to `J`.
+
+```@repl oscar
+R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+B, _ = quo(R, ideal(R, [y-x^2, x-z^3]))
+B.R
+B.I
+```
+
+Furthermore, `gens(B)` refers to the generators of `B` and  `ngens(B)` to their number.
+
+```@repl oscar
+gens(B)
+ngens(B)
+```
+
+#### Dimension
+
+```@docs
+dim(A::MPolyQuo)
+```
+
+###### Example
+
+```@repl oscar
+R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+A, _ = quo(R, ideal(R, [y-x^2, x-z^3]))
+dim(A)
+```
+
+### Ideals in Affine Algebras
+
+
+### Tests on Affine Algebras
+
+#### Subalgebra Membership
+
+```@docs
+subalgebra_membership(A::MPolyQuo, f::MPolyQuoElem, v::Vector{T}) where T <: MPolyQuoElem
+```
+
+#### Reducedness Test
+
+```@docs
+isreduced(A::MPolyQuo)
+```
+
+###### Example
+
+```@repl oscar
+R, (x,) = PolynomialRing(QQ, ["x"])
+A, _ = quo(R, ideal(R, [x^4]))
+isreduced(A)
+```
+
+#### Normality Test
+
+```@docs
+isnormal(A::MPolyQuo)
+```
+
+#### Cohen-Macaulayness Test
+
+iscohenmacaulay(R)
+
+###### Example
+
+### Homomorphisms of Affine Algebras
+
+#### Constructors
+
+```@docs
+hom(D::MPolyQuo, C::MPolyQuo, V::Vector)
+```
+###### Example
+
+#### Data Associated to Homomorphisms of Affine Algebras
+
+```@docs
+domain(F::MPolyQuoHom)
+```
+
+```@docs
+codomain(F::MPolyQuoHom)
+```
+#### Tests on Homomorphisms of Affine Algebras
+
+```@docs
+isinjective(F::MPolyQuoHom)
+```
+
+```@docs
+issurjective(F::MPolyQuoHom)
+```
+
+```@docs
+isbijective(F::MPolyQuoHom)
+```
+
+```@docs
+isfinite(F::MPolyQuoHom)
 ```
 
 ### Noether Normalization
@@ -341,38 +456,9 @@ A, _ = quo(R, ideal(R, [z^3-x*y^4]))
 L = normalize(A)
 ```
 
-### Properties of Affine Algebras
 
-#### Reducedness
 
-```@docs
-isreduced(A::MPolyQuo)
-```
-
-###### Example
-
-```@repl oscar
-R, (x,) = PolynomialRing(QQ, ["x"])
-A, _ = quo(R, ideal(R, [x^4]))
-isreduced(A)
-```
-
-#### Normality
-
-    isnormal(R)
-
-#### Cohen-Macaulayness 
-
-iscohenmacaulay(R)
-
-### Homomorphisms of Affine Algebras
-
-#### Constructors
-
-```@docs
-hom(D::MPolyQuo, C::MPolyQuo, V::Vector)
-```
-###### Example
+#### 
 
 ## Invariant Theory
 
