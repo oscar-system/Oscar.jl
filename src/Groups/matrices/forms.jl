@@ -484,6 +484,7 @@ end
 
 """
     invariant_bilinear_forms(G::MatrixGroup)
+
 Return a generating set for the vector spaces of bilinear forms preserved by the group `G`.
 !!! warning "Note:"
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
@@ -509,6 +510,7 @@ end
 
 """
     invariant_hermitian_forms(G::MatrixGroup)
+
 Return a generating set for the vector spaces of sesquilinear non-bilinear forms preserved by the group `G`. It works only if `base_ring(G)` has even degree.
 !!! warning "Note:"
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
@@ -535,6 +537,7 @@ end
 
 """
     invariant_sesquilinear_forms(G::MatrixGroup)
+
 Return a generating set for the vector spaces of quadratic forms preserved by the group `G`.
 !!! warning "Note:"
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
@@ -570,6 +573,7 @@ end
 
 """
     function invariant_bilinear_form(G::MatrixGroup)
+
 Return an invariant bilinear form for the group `G`. It works only if the module induced by the action of `G` is absolutely irreducible.
 !!! warning "Note:"
     At the moment, the output is returned of type `mat_elem_type(G)`.
@@ -582,6 +586,7 @@ end
 
 """
     function invariant_sesquilinear_form(G::MatrixGroup)
+
 Return an invariant sesquilinear (non bilinear) form for the group `G`. It works only if the module induced by the action of `G` is absolutely irreducible.
 !!! warning "Note:"
     At the moment, the output is returned of type `mat_elem_type(G)`.
@@ -594,6 +599,7 @@ end
 
 """
     function invariant_quadratic_form(G::MatrixGroup)
+
 Return an invariant bilinear form for the group `G`. It works only if the module induced by the action of `G` is absolutely irreducible.
 !!! warning "Note:"
     At the moment, the output is returned of type `mat_elem_type(G)`.
@@ -617,6 +623,7 @@ end
 # TODO 3rd approach: using GAP package "forms"
 """
     preserved_quadratic_forms(G::MatrixGroup)
+
 Uses random methods to find all of the quadratic forms preserved by `G` up to a scalar (i.e. such that `G` is a group of similarities for the forms). Since the procedure relies on a pseudo-random generator, the user may need to execute the operation more than once to find all invariant quadratic forms.
 """
 function preserved_quadratic_forms(G::MatrixGroup{S,T}) where {S,T}
@@ -633,6 +640,7 @@ end
 
 """
     preserved_sesquilinear_forms(G::MatrixGroup)
+
 Uses random methods to find all of the sesquilinear forms preserved by `G` up to a scalar (i.e. such that `G` is a group of similarities for the forms). Since the procedure relies on a pseudo-random generator, the user may need to execute the operation more than once to find all invariant sesquilinear forms.
 """
 function preserved_sesquilinear_forms(G::MatrixGroup{S,T}) where {S,T}
@@ -667,13 +675,13 @@ end
 # returns a generating set for GL(n,F) of at most two elements
 # TODO remove this function once merged jordan-struct branch. It's just a copy.
 function _gens_for_GL(n::Int, F::FinField)
-   n !=1 || return [matrix(F,1,1,[primitive_root(F)])]
+   n !=1 || return [matrix(F,1,1,[primitive_element(F)])]
    h1 = identity_matrix(F,n)
    h2 = zero_matrix(F,n,n)
    if order(F)==2
       h1[1,2] = 1
    else
-      h1[1,1] = primitive_root(F)
+      h1[1,1] = primitive_element(F)
       h2[1,1] = -1
    end
    h2[1,n] = 1
@@ -707,6 +715,7 @@ end
 
 """
     isometry_group(f::SesquilinearForm{T})
+
 Return the group of isometries for the sesquilinear form `f`.
 """
 function isometry_group(f::SesquilinearForm{T}) where T
@@ -717,6 +726,19 @@ function isometry_group(f::SesquilinearForm{T}) where T
 
    if f.descr==:quadratic
       @assert rank(B+transpose(B))==n "At the moment, only nondegenerate quadratic forms are considered"
+#=      W,phi = radical(f)
+      V = VectorSpace(F,n)
+      U,e = complement(V,W)
+      A = zero_matrix(F,n,n)
+      r = dim(U)
+      for i in 1:r, j in 1:n
+         A[i,j]=e(gen(U,i))[j]
+      end
+      for i in 1:n-r, j in 1:n
+         A[i+r,j]=phi(gen(W,i))[j]
+      end
+      C = _upper_triangular_version(A*B*transpose(A))      
+=#
    else
       degF=0
       if f.descr==:hermitian e = div(degree(F),2) end
@@ -752,17 +774,17 @@ function isometry_group(f::SesquilinearForm{T}) where T
       Xfn = Xf^-1
       An=A^-1
       Idn = identity_matrix(F,n)
-      L = dense_matrix_type(elem_type(F))[]
+      L = dense_matrix_type(F)[]
       for i in 1:ngens(G)
          push!(L, An*insert_block(Idn,Xfn*(G[i].elm)*Xf,1,1)*A)
       end
-      for i in _gens_for_GL(n-r,F)
-         push!(L, An*insert_block(Idn,G[i],r+1,r+1)*A)
+      for y in _gens_for_GL(n-r,F)
+         push!(L, An*insert_block(Idn,y,r+1,r+1)*A)
       end
 # TODO: not quite sure whether the last element is sufficient to generate the whole NE block
       for i in 1:r
          y = deepcopy(Idn)
-         y[r+1,i]=1
+         y[i,r+1]=1
          push!(L,An*y*A)
       end
       return matrix_group(L)

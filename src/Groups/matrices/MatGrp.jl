@@ -162,9 +162,24 @@ function assign_from_description(G::MatrixGroup)
    elseif G.descr==Symbol("GO-") G.X=GAP.Globals.GO(-1,G.deg,G.mat_iso.fr.codomain)
    elseif G.descr==Symbol("SO-") G.X=GAP.Globals.SO(-1,G.deg,G.mat_iso.fr.codomain)
    elseif G.descr==Symbol("Omega-") G.X=GAP.Globals.Omega(-1,G.deg,Int(order(G.ring)))
-   elseif G.descr==:GO G.X=GAP.Globals.GO(0,G.deg,G.mat_iso.fr.codomain)
-   elseif G.descr==:SO G.X=GAP.Globals.SO(0,G.deg,G.mat_iso.fr.codomain)
-   elseif G.descr==:Omega G.X=GAP.Globals.Omega(0,G.deg,Int(order(G.ring)))
+   elseif G.descr==:GO
+      if G.deg==1
+         G.X=GAP.Globals.Group(GapObj([GapObj([-GAP.Globals.One(G.mat_iso.f.riso.codomain)])]))
+      else
+         G.X=GAP.Globals.GO(0,G.deg,G.mat_iso.fr.codomain)
+      end
+   elseif G.descr==:SO
+      if G.deg==1
+         G.X=GAP.Globals.Group(GapObj([GapObj([GAP.Globals.One(G.mat_iso.f.riso.codomain)])]))
+      else
+         G.X=GAP.Globals.SO(0,G.deg,G.mat_iso.fr.codomain)
+      end
+   elseif G.descr==:Omega
+      if G.deg==1
+         G.X=GAP.Globals.Group(GapObj([GapObj([GAP.Globals.One(G.mat_iso.f.riso.codomain)])]))
+      else
+         G.X=GAP.Globals.Omega(0,G.deg,Int(order(G.ring)))
+      end
    elseif G.descr==:GU G.X=GAP.Globals.GU(G.deg,Int(characteristic(G.ring)^(div(degree(G.ring),2) ) ))
    elseif G.descr==:SU G.X=GAP.Globals.SU(G.deg,Int(characteristic(G.ring)^(div(degree(G.ring),2) ) ))
    else error("unsupported description")

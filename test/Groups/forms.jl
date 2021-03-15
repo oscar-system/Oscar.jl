@@ -232,7 +232,7 @@ end
 
    G = GO(1,6,3)
    L = preserved_quadratic_forms(G)
-   @test true in [isquadratic_form(f) for f in L]
+   L = [quadratic_form(f) for f in L]
    @testset for f in L
        for g in gens(G)
           @test f^g==f
