@@ -40,6 +40,9 @@ export Cone,
     lattice_points,
     lineality_space,
     linear_symmetries,
+    load_cone,
+    load_polyhedralfan,
+    load_polyhedron,
     maximal_cones,
     maximal_cones_as_incidence_matrix,
     maximal_value,
@@ -57,6 +60,9 @@ export Cone,
     objective_function,
     orbit_polytope,
     recession_cone,
+    save_cone,
+    save_polyhedralfan,
+    save_polyhedron,
     simplex,
     solve_lp,
     support_function,
@@ -77,3 +83,4 @@ include("Cone.jl")
 include("LinearProgram.jl")
 include("PolyhedralFan.jl")
 include("Groups.jl")
+include("Serialization.jl")
