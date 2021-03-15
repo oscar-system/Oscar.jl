@@ -1,6 +1,6 @@
 export noether_normalization, normalization
 export isreduced, subalgebra_membership
-
+export hilbert_series, hilbert_series_reduced, hilbert_polynomial, degree
 ##############################################################################
 #
 # Data associated to affine algebras
@@ -15,6 +15,44 @@ Returns the dimension of `A`.
 function dim(A::MPolyQuo) 
   I = A.I
   return dim(I)
+end
+
+##############################################################################
+#
+# Data associated to affine algebras
+#
+##############################################################################
+
+@doc Markdown.doc"""
+    hilbert_series(A::MPolyQuo)
+"""
+function hilbert_series(A::MPolyQuo)
+   H = HilbertData(A.I)
+   return hilbert_series(H,1)
+end
+
+@doc Markdown.doc"""
+    hilbert_series_reduced(A::MPolyQuo)
+"""
+function hilbert_series_reduced(A::MPolyQuo)
+   H = HilbertData(A.I)
+   return hilbert_series(H,2)
+end
+
+@doc Markdown.doc"""
+    hilbert_polynomial(A::MPolyQuo)
+"""
+function hilbert_polynomial(A::MPolyQuo)
+   H = HilbertData(A.I)
+   return hilbert_polynomial(H)
+end
+
+@doc Markdown.doc"""
+    degree(A::MPolyQuo)
+"""
+function degree(A::MPolyQuo)
+   H = HilbertData(A.I)
+   return degree(H)
 end
 
 ##############################################################################
@@ -79,7 +117,7 @@ end
 Return `true` if `F` is injective, `false` otherwise.
 """
 function isinjective(F::MPolyQuoHom)
-  aaa 
+  error("TODO: implement this") 
 end
 
 @doc Markdown.doc"""
@@ -88,7 +126,7 @@ end
 Return `true` if `F` is surjective, `false` otherwise.
 """
 function issurjective(F::MPolyQuoHom)
-  aaa 
+  error("TODO: implement this") 
 end
 
 @doc Markdown.doc"""
@@ -97,7 +135,7 @@ end
 Return `true` if `F` is bijective, `false` otherwise.
 """
 function isbijective(F::MPolyQuoHom)
-  aaa 
+  error("TODO: implement this") 
 end
 
 @doc Markdown.doc"""
@@ -106,7 +144,7 @@ end
 Return `true` if `F` is finite, `false` otherwise.
 """
 function isfinite(F::MPolyQuoHom)
-  aaa 
+  error("TODO: implement this") 
 end
 
 ##############################################################################
