@@ -315,13 +315,13 @@ f
 
 #### Basic Data
 
-If `B = S/J` is an affine algebra, then `B.R` refers to `S` and `A.I` to `J`.
+If `A = R/I` is an affine algebra, then `base_ring(A)` refers to `R` and `modulus(A)` to `I`.
 
 ```@repl oscar
 R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-B, _ = quo(R, ideal(R, [y-x^2, x-z^3]))
-B.R
-B.I
+A, _ = quo(R, ideal(R, [y-x^2, x-z^3]))
+base_ring(A)
+modulus(A)
 ```
 
 Furthermore, `gens(B)` refers to the generators of `B` and  `ngens(B)` to their number.
