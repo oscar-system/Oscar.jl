@@ -294,8 +294,8 @@ codim(I::MPolyIdeal)
 
 ## Affine Algebras
 
-An affine algebra over a field $K$, or an affine $K$-algebra, is the quotient $A=R/I$ of a multivariate
-polynomial ring $R$ over $K$ modulo a radical ideal $I$.
+An affine algebra over a field $K$, or an affine $K$-algebra, or simply an affine ring, is the quotient $A=R/I$ of a multivariate
+polynomial ring $R$ over $K$ modulo an ideal $I$ of $A$.
 
 ### Constructor
 
@@ -316,19 +316,15 @@ f
 #### Basic Data
 
 If `A = R/I` is an affine algebra, then `base_ring(A)` refers to `R` and `modulus(A)` to `I`.
+Furthermore, `gens(A)` refers to the generators of `A` and  `ngens(A)` to their number.
 
 ```@repl oscar
 R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 A, _ = quo(R, ideal(R, [y-x^2, x-z^3]))
 base_ring(A)
 modulus(A)
-```
-
-Furthermore, `gens(B)` refers to the generators of `B` and  `ngens(B)` to their number.
-
-```@repl oscar
-gens(B)
-ngens(B)
+gens(A)
+ngens(A)
 ```
 
 #### Dimension
@@ -343,6 +339,37 @@ dim(A::MPolyQuo)
 R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 A, _ = quo(R, ideal(R, [y-x^2, x-z^3]))
 dim(A)
+```
+
+### Data Associated to Graded Affine Algebras: Hilbert Series and Hilbert Polynomial
+
+Given a graded affine algebra, there are two convenient ways of representing its Hilbert series  as a univariate rational function.
+
+```@docs
+hilbert_series(A::MPolyQuo)
+```
+
+```@docs
+hilbert_series_reduced(A::MPolyQuo)
+```
+
+```@docs
+hilbert_polynomial(A::MPolyQuo)
+```
+
+```@docs
+degree(A::MPolyQuo)
+```
+
+###### Example
+
+```@repl oscar
+R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
+A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]))
+hilbert_series(A)
+hilbert_series_reduced(A)
+hilbert_polynomial(A)
+degree(A)
 ```
 
 ### Ideals in Affine Algebras
