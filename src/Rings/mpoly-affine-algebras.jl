@@ -37,7 +37,7 @@ end
     isnormal(A::MPolyQuo)
 """
 function isnormal(A::MPolyQuo) 
-  aaa
+  error("TODO: implement this")
 end
 
 
@@ -193,6 +193,5 @@ function noether_normalization(A::MPolyQuo)
  h2 = AlgebraHomomorphism(A, A, map(A, collect(matrix([gens(R)])'*map_entries(R, mi))))
  return map(x->h2(A(x)), i2), h1, h2
 end
-
 
 
