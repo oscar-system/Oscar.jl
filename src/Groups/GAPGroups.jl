@@ -209,7 +209,7 @@ inv!(out::GAPGroupElem, x::GAPGroupElem) = inv(x)  #if needed later
 
 Base.:^(x::GAPGroupElem, y::Int) = group_element(parent(x), x.X ^ y)
 
-Base.:^(x::GAPGroupElem, y::fmpz) = Hecke._generic_power(x, y)
+Base.:^(x::GAPGroupElem, y::fmpz) = Hecke._generic_power(x, y) # TODO: perhaps  let GAP handle this; also handle arbitrary Integer subtypes?
 
 Base.:<(x::PermGroupElem, y::PermGroupElem) = x.X < y.X
 
