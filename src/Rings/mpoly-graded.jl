@@ -592,6 +592,7 @@ function hilbert_polynomial(H::HilbertData)
   x = gen(Hecke.Globals.Qx)
   bin = one(parent(x))
   b = fmpq_poly[]
+  if d==-1 return zero(parent(x))
   for i=0:d
     push!(b, (-1)^(d-i)*a[d-i+1]*bin)
     bin *= (x+i+1)*fmpq(1, i+1)
@@ -601,6 +602,7 @@ end
 
 function Oscar.degree(H::HilbertData)
   P = hilbert_polynomial(H)
+  if P==zero(parent(P)) return P(1)
   return lead(P)*factorial(degree(P))
 end
 
