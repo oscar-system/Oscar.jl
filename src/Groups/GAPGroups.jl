@@ -264,7 +264,7 @@ Base.in(g::GAPGroupElem, G::GAPGroup) = GAP.Globals.in(g.X, G.X)
 #end
 # FIXME: use name gap_perm for now
 """
-    gap_perm(L::AbstractVector{<:T}) where T
+    gap_perm(L::AbstractVector) 
 
 Return the permutation `x` which maps every `i` from `1` to `length(L)` to `L[i]`. `L` must contain every integer from 1 to `length(L)` exactly, otherwise an exception is thrown.
 The parent of `x` is set as Sym(`n`).
