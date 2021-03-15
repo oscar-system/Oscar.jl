@@ -24,6 +24,11 @@ function stdhilb(I::Singular.sideal, h::Array{Int32, 1}; complete_reduction::Boo
   return z
 end
 
+function Oscar.binomial(a::RingElem, k::Int)
+  p = parent(a)
+  return prod([a-i for i=0:k-1])*inv(p(factorial(k)))
+end
+
 function Oscar.groebner_basis(B::BiPolyArray{nmod_mpoly}, h::HilbertData; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
   if ord != :degrevlex
     R = Oscar.singular_ring(B.Ox, ord)
