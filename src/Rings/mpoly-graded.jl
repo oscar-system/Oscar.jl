@@ -48,7 +48,10 @@ function decorate(R::MPolyRing)
   return MPolyRing_dec(R, [1*A[1] for i = 1: ngens(R)], (x,y) -> x[1] < y[1])
 end
 
-grade(R::MPolyRing) = decorate(R)
+function grade(R::MPolyRing)
+  A = abelian_group([0])
+  return MPolyRing_dec(R, [1*A[1] for i = 1: ngens(R)])
+end
 filtrate(R::MPolyRing) = decorate(R)
 
 function show_special_elem_grad(io::IO, a::GrpAbFinGenElem)
