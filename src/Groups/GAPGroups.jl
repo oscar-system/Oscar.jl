@@ -209,6 +209,8 @@ inv!(out::GAPGroupElem, x::GAPGroupElem) = inv(x)  #if needed later
 
 Base.:^(x::GAPGroupElem, y::Int) = group_element(parent(x), x.X ^ y)
 
+Base.:^(x::GAPGroupElem, y::fmpz) = Hecke._generic_power(x, y)
+
 Base.:<(x::PermGroupElem, y::PermGroupElem) = x.X < y.X
 
 Base.:/(x::GAPGroupElem, y::GAPGroupElem) = x*y^-1
