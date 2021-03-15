@@ -1,3 +1,4 @@
+export normalize_with_delta
 export noether_normalization, normalization
 export isreduced, subalgebra_membership
 
@@ -115,8 +116,30 @@ end
 #
 ##############################################################################
 
+function _convert_normalize_algorithm(alg::Symbol)
+  if alg == :primeDec
+    return "prim"
+  elseif alg == :equidimDec
+    return "equidim"
+  else
+    error("algorithm invalid")
+  end
+end
+
+function _convert_normalize_data(A, l)
+  return [
+    begin
+      newR = l[1][i][1]::Singular.PolyRing
+      newA, newAmap = quo(newR, MPolyIdeal(newR, l[1][i][2][:norid]))
+      hom = AlgebraHomomorphism(A, newA, map(newAmap, gens(l[1][i][2][:normap])))
+      idgens = map(p->_badpolymap(p, A.R), gens(l[2][i]))
+      (newA, hom, (A(idgens[end]), ideal(A, idgens)))
+    end
+    for i in 1:length(l[1])]
+end
+
 @doc Markdown.doc"""
-    normalize(A::MPolyQuo)
+    normalize(A::MPolyQuo; alg=:equidimDec)
 
 Finds the normalization of a reduced affine algebra over a perfect field $K$:
 Given the quotient $A=R/I$ of a multivariate polynomial ring $R$ over $K$
@@ -141,27 +164,30 @@ the algorithm computes an equidimensional decomposition of the radical ideal $I$
 Alternatively, if specified by `alg=:primeDec`, the algorithm computes $I=I_1\cap\dots\cap I_r$
 as the prime decomposition of the radical ideal $I$. 
 
-If `alg=:withDelta` is specified, the algorithm computes additionally the delta invariant of 
-$A$, that is, the dimension $\dim_K(\overline{A}/A)$. More precisely, it returns a tuple
-consisting of an array containing the delta invariants of the $A_k$ and an integer, the
-(total) delta invariant of $A$.  The return value -1 indicates that the delta invariant is infinite.
-
 CAVEAT: The function does not check whether $A$ is reduced. Use `isreduced(A)` in case 
 you are unsure (this may take some time).
 """
-function normalize(A::MPolyQuo)
+function normalize(A::MPolyQuo; alg=:equidimDec)
   I = A.I
   singular_assure(I)
-  l = Singular.LibNormal.normal(I.gens.S)
-  return [
-    begin
-      newR = l[1][i][1]
-      newA, newAmap = quo(newR, MPolyIdeal(newR, l[1][i][2][:norid]))
-      hom = AlgebraHomomorphism(A, newA, map(newAmap, gens(l[1][i][2][:normap])))
-      idgens = map(p->_badpolymap(p, A.R), gens(l[2][i]))
-      (newA, hom, (A(idgens[end]), ideal(A, idgens)))
-    end
-    for i in 1:length(l[1])]
+  l = Singular.LibNormal.normal(I.gens.S, _convert_normalize_algorithm(alg))
+  return _convert_normalize_data(A, l)
+end
+
+@doc Markdown.doc"""
+
+Compute the normalization of $A$ and additionally the delta invariant of $A$,
+that is, the dimension $\dim_K(\overline{A}/A)$. More precisely, it returns a
+tuple whose first element is `normalize(A)`, whose second element is an array
+containing the delta invariants of the $A_k$, and whose third element is the
+(total) delta invariant of $A$. The return value -1 in the third element
+indicates that the delta invariant is infinite.
+"""
+function normalize_with_delta(A::MPolyQuo, alg=:equidimDec)
+  I = A.I
+  singular_assure(I)
+  l = Singular.LibNormal.normal(I.gens.S, _convert_normalize_algorithm(alg), "withDelta")
+  return (_convert_normalize_data(A, l), l[3][1]::Vector{Int}, l[3][2]::Int)
 end
 
 
