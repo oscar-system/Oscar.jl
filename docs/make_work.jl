@@ -165,7 +165,7 @@ makedocs(bib,
          sitename = "Oscar.jl",
          modules = [Oscar, Hecke, Nemo, AbstractAlgebra],
          clean = true,
-         doctest = false,
+         doctest = true,
          pages    = [
              "index.md",
              "Rings" => [ "$(aa)/rings.md",
