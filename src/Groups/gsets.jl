@@ -7,6 +7,9 @@
 if isdefined(Hecke, :isregular)
     import Hecke: isregular
 end
+if isdefined(Hecke, :isprimitive)
+    import Hecke: isprimitive
+end
 
 export
     blocks,
