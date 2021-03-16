@@ -13,11 +13,28 @@
 
 #! @Section Operations on polytopes
 
+####################################
+##
+## Attributes
+##
+####################################
+
+#! @Arguments P
+#! @Returns a list of lists
+#! @Description
+#! The operation returns the vertices of the polytope
+DeclareAttribute( "VerticesOfPolytope", IsPolytope );
+
 #! @Arguments P
 #! @Returns a list of lists
 #! @Description
 #! The operation returns the list of the inequalities of the facets.
 #! Each defining inequality that is not defining-equality of the 
 #! polytope is a facet inequality.
-DeclareAttribute( "FacetInequalities",
-                    IsPolytope );
+DeclareAttribute( "FacetInequalities", IsPolytope );
+
+#! @Arguments P
+#! @Returns a PolymakePolyhedron
+#! @Description
+#! Converts the polytope to a PolymakePolyhedron. The operations of Polymake can then be applied.
+DeclareAttribute( "ExternalPolymakePolytope", IsPolytope );

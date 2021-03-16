@@ -13,6 +13,18 @@
 
 ## Section: Availability and loading of Polymake
 
+InstallMethod( VerticesOfPolytope,
+               "for polytopes",
+               [ IsPolytope ],
+               
+  function( polytope )
+    
+    #return Polymake_GeneratingVertices( ExternalPolymakePolytope( polyt ) );
+    return polytope!.input_points;
+    
+end );
+
+
 ##
 InstallMethod( FacetInequalities,
                " for external polytopes",
@@ -23,7 +35,7 @@ InstallMethod( FacetInequalities,
     if PolymakeAvailable() then
         
         # parse the vertices of polytope into format for Polymake
-        v := Vertices( polytope );
+        v := VerticesOfPolytope( polytope );
         
         # add a 1 as first argument to all these vertices as polymake requires homogeneous input
         v := List( [ 1 .. Length( v ) ], i -> Concatenation( [ 1 ], v[ i ] ) );
@@ -49,4 +61,58 @@ InstallMethod( FacetInequalities,
     # otherwise try next method
     TryNextMethod();
     
+end );
+
+
+####################################
+##
+## Attributes
+##
+####################################
+
+##
+InstallMethod( ExternalPolymakePolytope,
+               "for polytopes",
+               [ IsPolytope ],
+   function( polyt )
+   local old_pointlist, new_pointlist, ineqs, i,j;
+   
+   if IsBound( polyt!.input_points ) and IsBound( polyt!.input_ineqs ) then
+        
+        Error( "points and inequalities at the same time are not supported\n" );
+        
+   fi;
+    
+   if IsBound( polyt!.input_points ) then 
+        
+        old_pointlist := polyt!.input_points;
+        
+        new_pointlist:= [ ];
+        
+        for i in old_pointlist do 
+            
+            j:= ShallowCopy( i );
+            
+            Add( j, 1, 1 );
+            
+            Add( new_pointlist, j );
+            
+        od;
+        
+        #return Polymake_PolyhedronByGenerators( new_pointlist );
+        return false;
+        
+    elif  IsBound( polyt!.input_ineqs ) then
+        
+        ineqs := ShallowCopy( polyt!.input_ineqs );
+        
+        #return Polymake_PolyhedronByInequalities( ineqs );
+        return false;
+        
+    else
+        
+        Error( "something went wrong\n" );
+        
+   fi;
+   
 end );
