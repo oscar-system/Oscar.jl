@@ -75,10 +75,10 @@ end
 @doc Markdown.doc"""
     isnormal(A::MPolyQuo)
 """
-function isnormal(A::MPolyQuo) 
-  error("TODO: implement this")
+function isnormal(A::MPolyQuo)
+  _, _, d = normalize_with_delta(A)
+  return d == 1
 end
-
 
 ##############################################################################
 #
