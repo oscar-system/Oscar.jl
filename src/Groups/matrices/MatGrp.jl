@@ -163,6 +163,7 @@ function assign_from_description(G::MatrixGroup)
       # using the following inefficient code. In the future, we should use appropriate
       # generators for Omega (e.g. by applying a form change matrix to the Omega
       # generators returned by GAP).
+      # This also compensates for the fact that Omega(-1,2,q) is not supported in GAP.
       L = GAP.Globals.SubgroupsOfIndexTwo(GAP.Globals.SO(1,G.deg,G.mat_iso.fr.codomain))
       if G.deg==4 && order(G.ring)==2  # this is the only case SO(n,q) has more than one subgroup of index 2
          for y in L
@@ -179,6 +180,8 @@ function assign_from_description(G::MatrixGroup)
    elseif G.descr==Symbol("GO-") G.X=GAP.Globals.GO(-1,G.deg,G.mat_iso.fr.codomain)
    elseif G.descr==Symbol("SO-") G.X=GAP.Globals.SO(-1,G.deg,G.mat_iso.fr.codomain)
    elseif G.descr==Symbol("Omega-") G.X=GAP.Globals.SubgroupsOfIndexTwo(GAP.Globals.SO(-1,G.deg,G.mat_iso.fr.codomain))[1]
+   # TODO : we define explicitly orthogonal groups in dimension 1, since GAP does not support them
+   # GO(1,q) = { +1, -1 } and SO(1,q)=Omega(1,q) = { +1 }.
    elseif G.descr==:GO
       if G.deg==1
          G.X=GAP.Globals.Group(GapObj([GapObj([-GAP.Globals.One(G.mat_iso.f.riso.codomain)])]))
