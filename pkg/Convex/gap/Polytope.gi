@@ -30,28 +30,24 @@ InstallMethod( FacetInequalities,
                " for external polytopes",
                [ IsExternalPolytopeRep ],
   function( polytope )
-    local v, P, s, string_list, l;
+    local vertices, string_list, command_string, s, P, l;
     
     if PolymakeAvailable() then
         
-        # parse the vertices of polytope into format for Polymake
-        v := VerticesOfPolytope( polytope );
-        
-        # add a 1 as first argument to all these vertices as polymake requires homogeneous input
-        v := List( [ 1 .. Length( v ) ], i -> Concatenation( [ 1 ], v[ i ] ) );
-        s := String( v );
-        Error( Concatenation( "Test: ", s ) );
-        
-        # issue commands in Julia
-        JuliaEvalString( "F = Julia.Polymake.polytope.Polytope( POINTS = [1 -1 -1; 1 1 -1; 1 -1 1; 1 1 1; 1 0 0] ).FACETS" );
+        # Parse the polytope into format recognized by Polymake
+        vertices := VerticesOfPolytope( polytope );
+        vertices := List( [ 1 .. Length( vertices ) ], i -> Concatenation( [ 1 ], vertices[ i ] ) );
+        string_list := List( [ 1 .. Length( vertices ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( vertices[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
+        command_string := Concatenation( "F = Julia.Polymake.polytope.Polytope( POINTS = [ ", JoinStringsWithSeparator( string_list, "; " ), " ] ).FACETS" );
+
+        # issue command in Julia and fetch result as string
+        JuliaEvalString( command_string );
         s := JuliaToGAP( IsString, Julia.string( Julia.F ) );
         
-        # cast the resulting string into a list of integers
+        # cast the result into a list of integers
         string_list := SplitString( s, '\n' );
         string_list := List( [ 2 .. Length( string_list ) ], i -> Concatenation( "[", ReplacedString( string_list[ i ], " ", "," ), "]" ) );
         l := EvalString( Concatenation( "[", JoinStringsWithSeparator( string_list, "," ), "]" ) );
-        
-        Error( Concatenation( "Test", String( l ) ) );
         
         # return this list of inequalities
         return l;
