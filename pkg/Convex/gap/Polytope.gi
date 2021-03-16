@@ -18,7 +18,7 @@ InstallMethod( FacetInequalities,
                " for external polytopes",
                [ IsExternalPolytopeRep ],
   function( polytope )
-    local P, s;
+    local P, s, string_list, l;
     
     if PolymakeAvailable() then
         
@@ -29,8 +29,14 @@ InstallMethod( FacetInequalities,
         s := JuliaToGAP( IsString, Julia.string( Julia.F ) );
         
         # cast the resulting string into a list of integers
-        Error( Concatenation( "Test", s ) );
-        return false;
+        string_list := SplitString( s, '\n' );
+        string_list := List( [ 2 .. Length( string_list ) ], i -> Concatenation( "[", ReplacedString( string_list[ i ], " ", "," ), "]" ) );
+        l := EvalString( Concatenation( "[", JoinStringsWithSeparator( string_list, "," ), "]" ) );
+        
+        Error( Concatenation( "Test", String( l ) ) );
+        
+        # return this list of inequalities
+        return l;
         
     fi;
     
