@@ -476,7 +476,9 @@ function quo(F::FreeMod, O::Array{<:SubQuoElem, 1})
 end
 
 function quo(F::SubQuo, O::Array{<:FreeModuleElem, 1})
-  @assert parent(O[1]) == F.F
+  if length(O) > 0
+    @assert parent(O[1]) == F.F
+  end
   if isdefined(F, :quo)
     F.sub[Val(:S), 1]
     [F.quo[Val(:O), i] for i = 1:length(F.quo.O)]
@@ -810,7 +812,6 @@ end
 function free_resolution(S::SubQuo, limit::Int = -1)
   p = presentation(S)
   mp = [map(p, j) for j=1:length(p)]
-  D = decoration(S)
   while true
     k, mk = kernel(mp[1])
     nz = findall(x->!iszero(x), gens(k))
@@ -913,7 +914,7 @@ function hom(M::ModuleFP, N::ModuleFP)
   return H, to_hom_map
 end
 
-function homomorphism(f::SubQuoElem)
+function homomorphism(f::Union{SubQuoElem,FreeModuleElem})
   H = f.parent
   to_hom_map = get_special(H, :module_to_hom_map)
   to_hom_map === nothing && error("element doesn't live in a hom module")  
@@ -931,11 +932,7 @@ end
 #  replace the +/- for the homs by proper constructors for homs and direct sums
 #  relshp to store the maps elsewhere
 
-function *(h::FreeModuleHom, g::FreeModuleHom)
-  @assert codomain(h) == domain(g)
-  return hom(domain(h), codomain(g), [g(h(x)) for x = gens(domain(h))])
-end
-function *(h::SubQuoHom, g::SubQuoHom)
+function *(h::ModuleMap, g::ModuleMap)
   @assert codomain(h) == domain(g)
   return hom(domain(h), codomain(g), [g(h(x)) for x = gens(domain(h))])
 end
@@ -1131,7 +1128,7 @@ end
 #################################################
 #
 #################################################
-function lift_homomorphism(Hom_MP::ModuleFP, Hom_NP::ModuleFP, phi::ModuleMap)
+function lift_homomorphism_contravariant(Hom_MP::ModuleFP, Hom_NP::ModuleFP, phi::ModuleMap)
   # phi : N -> M
   M_P = get_special(Hom_MP, :hom)
   M_P === nothing && error("Both modules must be hom modules")
@@ -1148,15 +1145,86 @@ function lift_homomorphism(Hom_MP::ModuleFP, Hom_NP::ModuleFP, phi::ModuleMap)
   return phi_lifted
 end
 
+function lift_homomorphism_covariant(Hom_PM::ModuleFP, Hom_PN::ModuleFP, phi::ModuleMap)
+  # phi : M -> N
+  P_M = get_special(Hom_PM, :hom)
+  P_M === nothing && error("Both modules must be hom modules")
+  P_N = get_special(Hom_PN, :hom)
+  P_N === nothing && error("Both modules must be hom modules")
+
+  @assert P_M[1] === P_N[1]
+  P,M = P_M
+  _,N = P_N
+  @assert domain(phi) === M
+  @assert codomain(phi) === N
+
+  if iszero(Hom_PN)
+    return hom(Hom_PM, Hom_PN, [zero(Hom_PN) for _=1:ngens(Hom_PM)])
+  end
+  phi_lifted = hom(Hom_PM, Hom_PN, [homomorphism_to_module_elem(Hom_PN, homomorphism(f)*phi) for f in gens(Hom_PM)])
+  return phi_lifted
+end
+
+function hom_functor(P::ModuleFP, C::Hecke.ChainComplex{ModuleFP})
+  hom_chain = Hecke.map_type(C)[]
+  hom_modules = [hom(P, domain(C.maps[1]))]
+  hom_modules = vcat(hom_modules, [hom(P, codomain(f)) for f = C.maps])
+
+  for i=1:length(C)
+    A = hom_modules[i][1]
+    B = hom_modules[i+1][1]
+
+    push!(hom_chain, lift_homomorphism_covariant(A,B,map(C,i)))
+  end
+  return Hecke.ChainComplex(ModuleFP, hom_chain)
+end
+
+function hom_functor(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
+  hom_chain = Hecke.map_type(C)[]
+  hom_modules = [hom(domain(C.maps[1]),P)]
+  hom_modules = vcat(hom_modules, [hom(codomain(f), P) for f = C.maps])
+
+  for i=1:length(C)
+    A = hom_modules[i][1]
+    B = hom_modules[i+1][1]
+
+    push!(hom_chain, lift_homomorphism_contravariant(B,A,map(C,i)))
+  end
+  return Hecke.ChainComplex(ModuleFP, reverse(hom_chain))
+end
 
 #############################
 function homology(C::Hecke.ChainComplex{ModuleFP})
   H = SubQuo[]
   for i=1:length(C)-1
-    push!(H, quo(kernel(C.maps[i+1])[1], image(C.maps[i])[1])[1])
+    push!(H, quo(kernel(C.maps[i+1])[1], image(C.maps[i])[1]))
   end
   return H
 end
+
+function homology(C::Hecke.ChainComplex{ModuleFP}, i::Int)
+  @assert length(C) > 0 #TODO we need actually only the base ring
+  if i == 0
+    return kernel(map(C,1))[1]
+  elseif i == length(C)
+    return image(map(C,i))[1]
+  elseif i < 0 || i > length(C)
+    return FreeMod(base_ring(obj(C,1)),0)
+  else
+    return quo(kernel(map(C,i+1))[1], image(map(C,i))[1])
+  end
+end
+
+#############################
+# Ext
+#############################
+
+function ext(M::ModuleFP, N::ModuleFP, i::Int)
+  free_res = free_resolution(M)[1:end-2]
+  lifted_resolution = hom_functor(free_res, N) #TODO only three homs are neccessary
+  return homology(lifted_resolution,i)
+end
+
 #############################
 #TODO move to Hecke
 #  re-evaluate and use or not
