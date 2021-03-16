@@ -313,7 +313,7 @@ end
 # cperm stays for "cycle permutation", but we can change name if we want
 # takes as input a list of arrays (not necessarly disjoint)
 """
-    cperm(L::AbstractVector{<:T}...) where T <: Union{Integer, fmpz}
+    cperm(L::AbstractVector{<:T}...) where T <: Union{Base.Integer, fmpz}
     cperm(G::PermGroup, L::AbstractVector{<:T}...)
 
 For given lists of positive integers `[a_1, a_2, ..., a_n],[b_1, b_2, ... , b_m], ...` return the
