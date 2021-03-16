@@ -1,6 +1,9 @@
-export noether_normalization, normalization, isreduced, subalgebra_membership, 
-       hilbert_series, hilbert_series_reduced, hilbert_polynomial, degree,
-       issurjective, isinjective, isbijective
+
+export normalize_with_delta
+export noether_normalization, normalization
+export isreduced, subalgebra_membership
+export hilbert_series, hilbert_series_reduced, hilbert_polynomial, degree
+export issurjective, isinjective, isbijective
 
 ##############################################################################
 #
@@ -284,7 +287,7 @@ end
 @doc Markdown.doc"""
     normalize_with_delta(A::MPolyQuo; alg=:equidimDec)
 
-Finds the normalization 
+Finds the normalization
 
 $f=f_1\times \dots\times f_r: A \rightarrow A_1\times \dots\times A_r=\overline{A}$
 

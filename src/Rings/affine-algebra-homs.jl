@@ -171,9 +171,22 @@ hom(D::U, C::W, V::Vector{X}) where {T,
 
 function map_poly(F::Map(AlgHom), p::U) where U <: Union{MPolyElem, MPolyQuoElem}
    @assert parent(p) == domain(F)
+   D = domain(F)
    Dx = domain(F.salghom)
    C = codomain(F)
-   return C(F.salghom(Dx(p)))
+   Cx = codomain(F.salghom)
+   # TODO: _badpolymap really has to be replaced somehow ...
+   if isdefined(D, :I) ## Check if D is a quotient ring
+         px = _badpolymap(p.f, Dx)
+   else
+         px = _badpolymap(p, Dx)
+   end
+
+   if isdefined(C, :R) ## Check if C is a quotient ring
+      return C(_badpolymap(F.salghom(px), C.R))
+   else
+      return _badpolymap(F.salghom(px), C)
+   end
 end
 
 function (F::AlgHom)(p::U) where U <: Union{MPolyElem, MPolyQuoElem}
