@@ -66,8 +66,8 @@ isunipotent(x::MatrixGroupElem{T}) where T <: FinFieldElem = isone(x) || ispower
 
 
 # return an element in the centralizer of x in GL(n,F) with determinant d
-
-# first: brute force way
+# Method: compute generators for the centralizer of x in GL(n,F);
+# then, multiply them in order to get an element of determinant d.
 # x has type MatrixGroupElem
 function _elem_given_det(x,d)
    C,e = centralizer(GL(x.parent.deg, x.parent.ring),x)

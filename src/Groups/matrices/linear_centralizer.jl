@@ -335,8 +335,10 @@ function _gens_for_SL_matrix(f::PolyElem, n::Int, F::FinField; D::Int=1)
       h2[i,i]=-1
       h2[i,i+(n-1)*Df]=1
    end
-# TODO waiting for a better solution, the h3 generator is necessary
-#  because h1,h2 generate just the subgroup of SL(n*deg(f),F) isomorphic to SL(n, F^deg(f))
+   # TODO h1,h2 generate just the subgroup K of SL(n*deg(f),F) isomorphic to SL(n, F^deg(f))
+   # hence we need to add an element h3 of maximal order in SL(n*deg(f),F) \ K .
+   # TODO: if in future we find out how to generate intermediate groups between GL and SL with only 2 elements,
+   # then we can reduce the number of generators here from 3 to 2
    h3 = identity_matrix(F,n*Df)
    insert_block!(h3,diagonal_join([CP^(order(F)-1) for i in 1:D]),1,1)
    return [h1,h2,h3]
