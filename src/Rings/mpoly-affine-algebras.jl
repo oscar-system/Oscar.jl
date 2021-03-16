@@ -215,7 +215,11 @@ end
 @doc Markdown.doc"""
     normalize_with_delta(A::MPolyQuo; alg=:equidimDec)
 
-Compute the normalization of $A$ and additionally the delta invariant of $A$,
+Finds the normalization 
+
+$f=f_1\times \dots\times f_r: A \rightarrow A_1\times \dots\times A_r=\overline{A}$
+
+of $A$ as does `normalize(A)`, but computes additionally the delta invariant of $A$,
 that is, the dimension $\dim_K(\overline{A}/A)$. More precisely, it returns a
 tuple whose first element is `normalize(A)`, whose second element is an array
 containing the delta invariants of the $A_k$, and whose third element is the
@@ -244,6 +248,9 @@ $L$ is an array of $d=\dim A$ elements of $A$, all represented by linear forms i
 such that $K[L]\rightarrow A$ is a Noether normalization for $A$; $f: A \rightarrow A$ is an
 automorphism of $A$, induced by a linear change of coordinates of $R$, and mapping the
 $f_i$ to the last $d$ variables of $A$; and $g = f^{-1}$.
+
+CAVEAT: The algorithm may not terminate over a small finite field. If it terminates,
+the result is correct.
 """
 function noether_normalization(A::MPolyQuo)
  I = A.I
