@@ -267,6 +267,8 @@ might also be needed.
 
 elem_type(::Type{T}) where T <: GAPGroup = BasicGAPGroupElem{T}
 
+Base.eltype(::Type{T}) where T <: GAPGroup = BasicGAPGroupElem{T}
+
 
 
 #

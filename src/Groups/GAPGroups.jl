@@ -456,6 +456,8 @@ struct GroupConjClass{T<:GAPGroup, S<:Union{GAPGroupElem,GAPGroup}}
    CC::GapObj
 end
 
+Base.eltype(::Type{GroupConjClass{T,S}}) where {T,S} = S
+Base.eltype(::Type{GroupConjClass}) = GAPGroupElem
 Base.hash(x::GroupConjClass, h::UInt) = h # FIXME
 
 function Base.show(io::IO, x::GroupConjClass)

@@ -68,6 +68,26 @@ end
   end
 end
 
+@testset "Eltypes" begin
+   @test eltype(PermGroup)==PermGroupElem
+   @test eltype(PcGroup)==PcGroupElem
+   @test eltype(FPGroup)==FPGroupElem
+   @test eltype(MatrixGroup)==MatrixGroupElem
+   @test eltype(GL(2,3))==MatrixGroupElem{fq_nmod,fq_nmod_mat}
+   @test eltype(DirectProductGroup)==BasicGAPGroupElem{DirectProductGroup}
+   @test eltype(direct_product(symmetric_group(3),cyclic_group(2)))==BasicGAPGroupElem{DirectProductGroup}
+   @test eltype(SemidirectProductGroup)==BasicGAPGroupElem{SemidirectProductGroup}
+   @test eltype(WreathProductGroup)==BasicGAPGroupElem{WreathProductGroup}
+   @test eltype(AutomorphismGroup)==Oscar.BasicGAPGroupElem{AutomorphismGroup}
+   @test eltype(AutomorphismGroup{PcGroup})==Oscar.BasicGAPGroupElem{AutomorphismGroup{PcGroup}}
+   @test eltype(GroupConjClass)==GAPGroupElem
+   @test eltype(GroupConjClass{PermGroup,PermGroupElem})==PermGroupElem
+   @test eltype(GroupConjClass{PcGroup,PcGroup})==PcGroup
+   @test eltype(GroupCoset)==GAPGroupElem
+   @test eltype(GroupCoset{PermGroup,PermGroupElem})==PermGroupElem
+   @test eltype(GroupDoubleCoset{PcGroup,PcGroupElem})==PcGroupElem
+end
+
 @testset "Generators" begin
    L=[symmetric_group(4), cyclic_group(5), free_group(3), symplectic_group(4,3)]
    for G in L

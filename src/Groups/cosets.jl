@@ -33,6 +33,8 @@ struct GroupCoset{T<: GAPGroup, S <: GAPGroupElem}
 end
 
 Base.hash(x::GroupCoset, h::UInt) = h # FIXME
+Base.eltype(::Type{GroupCoset{T,S}}) where {T,S} = S
+Base.eltype(::Type{GroupCoset}) = GAPGroupElem
 
 function _group_coset(G::GAPGroup, H::GAPGroup, repr::GAPGroupElem, side::Symbol, X::GapObj)
   return GroupCoset{typeof(G), typeof(repr)}(G, H, repr, side, X)
@@ -244,6 +246,8 @@ struct GroupDoubleCoset{T <: GAPGroup, S <: GAPGroupElem}
 end
 
 Base.hash(x::GroupDoubleCoset, h::UInt) = h # FIXME
+Base.eltype(::Type{GroupDoubleCoset{T,S}}) where {T,S} = S
+Base.eltype(::Type{GroupDoubleCoset}) = GAPGroupElem
 
 function ==(x::GroupDoubleCoset, y::GroupDoubleCoset)
    return x.X == y.X
