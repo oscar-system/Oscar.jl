@@ -25,12 +25,12 @@ mutable struct MPolyRing_dec{T} <: AbstractAlgebra.MPolyRing{T}
 end
 
 isgraded(W::MPolyRing_dec) = !isdefined(W, :lt)
-isfiltrated(W::MPolyRing_dec) = isdefined(W, :lt)
+isfiltered(W::MPolyRing_dec) = isdefined(W, :lt)
 
 function show(io::IO, W::MPolyRing_dec)
   Hecke.@show_name(io, W)
   Hecke.@show_special(io, W)
-  if isfiltrated(W)
+  if isfiltered(W)
     println(io, "$(W.R) filtrated by ")
   else
     println(io, "$(W.R) graded by ")
@@ -276,7 +276,7 @@ function degree(a::MPolyElem_dec)
     for i=1:length(c)
       u += c[i]*d[i]
     end
-    if isfiltrated(W)
+    if isfiltered(W)
       w = W.lt(w, u) ? u : w
     elseif first
       first = false
@@ -347,7 +347,7 @@ function degree(a::MPolyQuoElem{<:MPolyElem_dec})
   return degree(a.f)
 end
 
-isfiltrated(q::MPolyQuo) = isfiltrated(q.R)
+isfiltered(q::MPolyQuo) = isfiltered(q.R)
 isgraded(q::MPolyQuo) = isgraded(q.R)
 
 function homogenous_component(a::MPolyQuoElem{<:MPolyElem_dec}, d::GrpAbFinGenElem)

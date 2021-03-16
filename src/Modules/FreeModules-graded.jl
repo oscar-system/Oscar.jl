@@ -378,7 +378,7 @@ function convert(F::FreeModule_dec, s::Singular.svector)
 end
 
 isgraded(F::FreeModule_dec) = isgraded(F.R)
-isfiltrated(F::FreeModule_dec) = isfiltrated(F.R)
+isfiltered(F::FreeModule_dec) = isfiltered(F.R)
 
 abstract type ModuleFPHom_dec end
 abstract type Map_dec{T1, T2} <: Map{T1, T2, Hecke.HeckeMap, ModuleFPHom_dec} end
@@ -388,7 +388,7 @@ mutable struct FreeModuleHom_dec{T1, T2} <: Map_dec{T1, T2}
   Hecke.@declare_other
 
   function FreeModuleHom_dec(F::FreeModule_dec{T}, G::S, a::Array{<:Any, 1}) where {T, S}
-#    @assert isfiltrated(F) || all(ishomogenous, a) #neccessary and suffient according to Hans XXX
+#    @assert isfiltered(F) || all(ishomogenous, a) #neccessary and suffient according to Hans XXX
 #same as non-homogenous elements are required, this too must not be enforced
     @assert all(x->parent(x) == G, a)
     @assert length(a) == ngens(F)
@@ -453,7 +453,7 @@ function degree(h::T) where {T <: Map_dec}
       first = false
     end
     dd = degree(hi) - degree(i)
-    if isfiltrated(R)
+    if isfiltered(R)
       if R.lt(d, dd)
         d = dd
       end
