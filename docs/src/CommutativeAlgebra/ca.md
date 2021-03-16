@@ -504,19 +504,29 @@ L[3]
 normalize(A::MPolyQuo)
 ```
 
-###### Example
+```@docs
+normalize_with_delta(A::MPolyQuo)
+```
+
+###### Examples
 
 ```@repl oscar
 R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 A, _ = quo(R, ideal(R, [(x^2-y^3)*(x^2+y^2)*x]))
 L = normalize(A)
+```
 
+```@repl oscar
 R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 A, _ = quo(R, ideal(R, [z^3-x*y^4]))
 L = normalize(A)
 ```
 
-
+```@repl oscar
+R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+A, _ = quo(R, ideal(R, [(x^2-y^3)*(x^2+y^2)*x]))
+L = normalize_with_delta(A, alg=:primeDec)
+```
 
 #### 
 
