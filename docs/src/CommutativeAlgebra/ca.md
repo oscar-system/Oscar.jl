@@ -87,6 +87,47 @@ syzygy_generators(a::Array{<:MPolyElem, 1})
 
 Distinction: ideals <--> homogeneous ideals. To be discussed.
 
+
+### Data Associated to Ideals
+
+```@docs
+base_ring(I::MPolyIdeal)
+```
+
+#### Number of Generators
+
+```@docs
+ngens(I::MPolyIdeal)
+```
+
+#### Generators
+
+```@docs
+gens(I::MPolyIdeal)
+```
+
+#### Dimension
+
+```@docs
+dim(I::MPolyIdeal)
+```
+
+#### Codimension
+
+```@docs
+codim(I::MPolyIdeal)
+```
+    
+### Data Associated to Homogeneous Ideals
+    
+                             min_base(I)   (or so)
+     
+    degree:                  degree(I)                             (type integer)
+    Hilbert function:        hilbert_function(d,I)                 (type integer)
+    Hilbert series:          hilbert_series(I)                     (type univariate rational function)  numerator, denominator
+    reduced Hilbert series:  reduced_Hilbert_series(I)             (type univariate rational function)
+    Hilbert polynomial:      hilbert_polynomial(I)                 (type univariate polynomial, direkt in Julia von hilbert_series(I))
+
 ### Ideal Operations for Multivariate Polynomial Rings
 
 #### Simple ideal Operations
@@ -116,11 +157,19 @@ intersect(I::MPolyIdeal, J::MPolyIdeal)
 
 #### Ideal Quotients
 
+Given two ideals $I, J$ of a ring $R$, the ideal quotient of $I$ by $J$ is defined to be the ideal
+
+$I:J= \bigl\{f \in R\:\big|\: f J \subset I\bigr\}\subset R.$
+
 ```@docs
 quotient(I::MPolyIdeal, J::MPolyIdeal)
 ```
 
 #### Saturation
+
+Given two ideals $I, J$ of a ring $R$, the saturation of $I$ with respect to $J$ is defined to be the ideal
+
+$I:J^{\infty} = \bigl\{ f \in R \:\big|\: f J^m \!\subset I {\text{ for some }}m\geq 1 \bigr\} = \textstyle{\bigcup\limits_{m=1}^{\infty} (I:J^m)}.$
 
 ```@docs
 saturation(I::MPolyIdeal, J::MPolyIdeal)
@@ -142,6 +191,48 @@ eliminate(I::MPolyIdeal, polys::AbstractArray{Int, 1})
 
     dehomogenize(I,t)
 
+### Tests on Ideals
+
+#### Equality of Ideals
+
+```@docs
+:(==)(I::MPolyIdeal, J::MPolyIdeal)
+```
+
+#### Containment of Ideals
+
+```@docs
+issubset(I::MPolyIdeal, J::MPolyIdeal)
+```
+
+#### Ideal Membership
+
+```@docs
+ideal_membership(f::MPolyElem, I::MPolyIdeal)
+```
+
+#### Radical Membership
+
+```@docs
+radical_membership(f::MPolyElem, I::MPolyIdeal)
+```
+
+#### Primality Test
+
+```@docs
+isprime(I::MPolyIdeal)
+```
+
+#### Primary Test
+
+```@docs
+isprimary(I::MPolyIdeal)
+```
+  
+    homogeneity test:        ishomogeneous(I)
+    
+    .....
+	
 #### Decomposition
 
 #### Radical
@@ -190,90 +281,7 @@ equidimensional_hull_radical(I::MPolyIdeal)
 
     absolute_primary_decomposition(I)               --->  absPrimdecGTZ   
 
-
-### Tests on Ideals
-
-#### Equality of Ideals
-
-```@docs
-:(==)(I::MPolyIdeal, J::MPolyIdeal)
-```
-
-#### Containment of Ideals
-
-```@docs
-issubset(I::MPolyIdeal, J::MPolyIdeal)
-```
-
-#### Ideal Membership
-
-```@docs
-ideal_membership(f::MPolyElem, I::MPolyIdeal)
-```
-
-#### Radical Membership
-
-```@docs
-radical_membership(f::MPolyElem, I::MPolyIdeal)
-```
-
-#### Primality Test
-
-```@docs
-isprime(I::MPolyIdeal)
-```
-
-#### Primary Test
-
-```@docs
-isprimary(I::MPolyIdeal)
-```
-  
-    homogeneity test:        ishomogeneous(I)
     
-    .....
-    
-### Data Associated to Ideals
-
-```@docs
-base_ring(I::MPolyIdeal)
-```
-
-#### Number of Generators
-
-```@docs
-ngens(I::MPolyIdeal)
-```
-
-#### Generators
-
-```@docs
-gens(I::MPolyIdeal)
-```
-
-#### Dimension
-
-```@docs
-dim(I::MPolyIdeal)
-```
-
-#### Codimension
-
-```@docs
-codim(I::MPolyIdeal)
-```
-    
-### Data Associated to Homogeneous Ideals
-    
-                             min_base(I)   (or so)
-     
-    degree:                  degree(I)                             (type integer)
-    Hilbert function:        hilbert_function(d,I)                 (type integer)
-    Hilbert series:          hilbert_series(I)                     (type univariate rational function)  numerator, denominator
-    reduced Hilbert series:  reduced_Hilbert_series(I)             (type univariate rational function)
-    Hilbert polynomial:      hilbert_polynomial(I)                 (type univariate polynomial, direkt in Julia von hilbert_series(I))
-
-
 ## Modules over Multivariate Polynomial Rings
 
 ### Module Constructors
@@ -315,8 +323,11 @@ f
 
 #### Basic Data
 
-If `A = R/I` is an affine algebra, then `base_ring(A)` refers to `R` and `modulus(A)` to `I`.
-Furthermore, `gens(A)` refers to the generators of `A` and  `ngens(A)` to their number.
+If `A = R/I` is an affine algebra, then
+- base_ring(A) refers to R,
+- modulus(A) to I,
+- gens(A) to the generators of A, and
+- ngens(A) to the number of these generators.
 
 ```@repl oscar
 R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
@@ -343,7 +354,32 @@ dim(A)
 
 ### Data Associated to Graded Affine Algebras: Hilbert Series and Hilbert Polynomial
 
-Given a graded affine algebra, there are two convenient ways of representing its Hilbert series  as a univariate rational function.
+Let $R=K[x_1, \dots x_n]$ be a polynomial ring in $n$ variables over a field $K$.
+Assign positive integer weights $w_i$ to the variables $x_i$, and grade
+$R=\bigoplus_{d\geq 0} R_d$ according to the corresponding weighted degree. Let $I$ be an
+ideal of $R$ which is homogeneous with respect to this
+grading. Then the affine $K$-algebra $A=R/I$ inherits the grading:
+$A = \bigoplus_{d\geq 0} A_d$, where each graded piece $A_d$ is a finite dimensional
+$K$-vector space. In this situation, the `Hilbert function` of $A$ is
+the function
+
+$H(A, \underline{\phantom{d}}): \N \rightarrow \N, d \mapsto \dim_K(d).$
+
+The `Hilbert series` of $A$ is the generating function
+
+$H_A(t)=\sum_{d\geq 0} H(A, d) t^d.$
+
+It can be written as a rational function in $t$ with denominator
+
+$(1-t^{w_1})\cdots (1-t^{w_n}).$ 
+
+Now suppose that the weights on the variables are all 1. Then we also have the `Hilbert
+polynomial` $P_A(t)\in\mathbb{Q}[t]$ which satisfies $H(M,d)=P_M(d)$ for all $d \gg 0$.
+Furthermore, the `degree` of $A$ is defined as the dimension of $A$ over $K$ if this dimension
+is finite, and as the integer $d$ such that the leading term of the
+Hilbert polynomial has the form $d t^e/e!$, otherwise.
+
+CAVEAT: Currently only implemented in the case where the weights on the variables are all 1.
 
 ```@docs
 hilbert_series(A::MPolyQuo)

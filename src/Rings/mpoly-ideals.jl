@@ -847,7 +847,7 @@ gen(I::MPolyIdeal, i::Int) = I.gens[Val(:O), i]
 @doc Markdown.doc"""
     dim(I::MPolyIdeal)
 
-Returns the dimension of `I`.
+Returns the Krull dimension of `I`.
 ###### Example
 ```jldoctest
 julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
