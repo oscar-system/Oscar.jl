@@ -116,7 +116,7 @@ end
 #
 ##############################################################################
 
-function _convert_normalize_algorithm(alg::Symbol)
+function _conv_normalize_alg(alg::Symbol)
   if alg == :primeDec
     return "prim"
   elseif alg == :equidimDec
@@ -126,7 +126,7 @@ function _convert_normalize_algorithm(alg::Symbol)
   end
 end
 
-function _convert_normalize_data(A, l)
+function _conv_normalize_data(A, l)
   return [
     begin
       newR = l[1][i][1]::Singular.PolyRing
@@ -170,11 +170,12 @@ you are unsure (this may take some time).
 function normalize(A::MPolyQuo; alg=:equidimDec)
   I = A.I
   singular_assure(I)
-  l = Singular.LibNormal.normal(I.gens.S, _convert_normalize_algorithm(alg))
-  return _convert_normalize_data(A, l)
+  l = Singular.LibNormal.normal(I.gens.S, _conv_normalize_alg(alg))
+  return _conv_normalize_data(A, l)
 end
 
 @doc Markdown.doc"""
+    normalize_with_delta(A::MPolyQuo; alg=:equidimDec)
 
 Compute the normalization of $A$ and additionally the delta invariant of $A$,
 that is, the dimension $\dim_K(\overline{A}/A)$. More precisely, it returns a
@@ -183,11 +184,11 @@ containing the delta invariants of the $A_k$, and whose third element is the
 (total) delta invariant of $A$. The return value -1 in the third element
 indicates that the delta invariant is infinite.
 """
-function normalize_with_delta(A::MPolyQuo, alg=:equidimDec)
+function normalize_with_delta(A::MPolyQuo; alg=:equidimDec)
   I = A.I
   singular_assure(I)
-  l = Singular.LibNormal.normal(I.gens.S, _convert_normalize_algorithm(alg), "withDelta")
-  return (_convert_normalize_data(A, l), l[3][1]::Vector{Int}, l[3][2]::Int)
+  l = Singular.LibNormal.normal(I.gens.S, _conv_normalize_alg(alg), "withDelta")
+  return (_conv_normalize_data(A, l), l[3][1]::Vector{Int}, l[3][2]::Int)
 end
 
 
