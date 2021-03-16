@@ -74,10 +74,10 @@ end
    @test eltype(FPGroup)==FPGroupElem
    @test eltype(MatrixGroup)==MatrixGroupElem
    @test eltype(GL(2,3))==MatrixGroupElem{fq_nmod,fq_nmod_mat}
-   @test eltype(DirectProductGroup)==BasicGAPGroupElem{DirectProductGroup}
-   @test eltype(direct_product(symmetric_group(3),cyclic_group(2)))==BasicGAPGroupElem{DirectProductGroup}
-   @test eltype(SemidirectProductGroup)==BasicGAPGroupElem{SemidirectProductGroup}
-   @test eltype(WreathProductGroup)==BasicGAPGroupElem{WreathProductGroup}
+   @test eltype(DirectProductGroup)==Oscar.BasicGAPGroupElem{DirectProductGroup}
+   @test eltype(direct_product(symmetric_group(3),cyclic_group(2)))==Oscar.BasicGAPGroupElem{DirectProductGroup}
+   @test eltype(SemidirectProductGroup)==Oscar.BasicGAPGroupElem{SemidirectProductGroup}
+   @test eltype(WreathProductGroup)==Oscar.BasicGAPGroupElem{WreathProductGroup}
    @test eltype(AutomorphismGroup)==Oscar.BasicGAPGroupElem{AutomorphismGroup}
    @test eltype(AutomorphismGroup{PcGroup})==Oscar.BasicGAPGroupElem{AutomorphismGroup{PcGroup}}
    @test eltype(GroupConjClass)==GAPGroupElem
