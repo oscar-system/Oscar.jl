@@ -158,10 +158,22 @@ function assign_from_description(G::MatrixGroup)
    elseif G.descr==:Sp G.X=GAP.Globals.Sp(G.deg,G.mat_iso.fr.codomain)
    elseif G.descr==Symbol("GO+") G.X=GAP.Globals.GO(1,G.deg,G.mat_iso.fr.codomain)
    elseif G.descr==Symbol("SO+") G.X=GAP.Globals.SO(1,G.deg,G.mat_iso.fr.codomain)
-   elseif G.descr==Symbol("Omega+") G.X=GAP.Globals.Omega(1,G.deg,Int(order(G.ring)))
+   elseif G.descr==Symbol("Omega+")
+      if G.deg==4 && order(G.ring)==2  # this is the only case SO(n,q) has more than one subgroup of index 2
+         L = GAP.Globals.SubgroupsOfIndexTwo(GAP.Globals.SO(1,G.deg,G.mat_iso.fr.codomain))
+         for y in L
+            _ranks = [GAP.Globals.Rank(u) for u in GAP.Globals.GeneratorsOfGroup(y)]
+            if all(r->iseven(r),_ranks)
+               G.X=y
+               break
+            end
+         end
+      else
+         G.X=GAP.Globals.SubgroupsOfIndexTwo(GAP.Globals.SO(1,G.deg,G.mat_iso.fr.codomain))[1]
+      end
    elseif G.descr==Symbol("GO-") G.X=GAP.Globals.GO(-1,G.deg,G.mat_iso.fr.codomain)
    elseif G.descr==Symbol("SO-") G.X=GAP.Globals.SO(-1,G.deg,G.mat_iso.fr.codomain)
-   elseif G.descr==Symbol("Omega-") G.X=GAP.Globals.Omega(-1,G.deg,Int(order(G.ring)))
+   elseif G.descr==Symbol("Omega-") G.X=GAP.Globals.SubgroupsOfIndexTwo(GAP.Globals.SO(-1,G.deg,G.mat_iso.fr.codomain))[1]
    elseif G.descr==:GO
       if G.deg==1
          G.X=GAP.Globals.Group(GapObj([GapObj([-GAP.Globals.One(G.mat_iso.f.riso.codomain)])]))
@@ -178,7 +190,7 @@ function assign_from_description(G::MatrixGroup)
       if G.deg==1
          G.X=GAP.Globals.Group(GapObj([GapObj([GAP.Globals.One(G.mat_iso.f.riso.codomain)])]))
       else
-         G.X=GAP.Globals.Omega(0,G.deg,Int(order(G.ring)))
+         G.X=GAP.Globals.SubgroupsOfIndexTwo(GAP.Globals.SO(0,G.deg,G.mat_iso.fr.codomain))[1]
       end
    elseif G.descr==:GU G.X=GAP.Globals.GU(G.deg,Int(characteristic(G.ring)^(div(degree(G.ring),2) ) ))
    elseif G.descr==:SU G.X=GAP.Globals.SU(G.deg,Int(characteristic(G.ring)^(div(degree(G.ring),2) ) ))
@@ -592,6 +604,7 @@ orthogonal_group(n::Int, q::Int) = orthogonal_group(0,n,q)
 Return the special orthogonal group of dimension `n` either over the field `F` or the field `GF(q)` of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0` for `n` odd. If `n` is odd, `e` can be omitted.
 """
 function special_orthogonal_group(e::Int, n::Int, F::Ring)
+   iseven(order(F)) && return GO(e,n,F)
    if e==1
       iseven(n) || throw(ArgumentError("The dimension must be even"))
       G = MatrixGroup(n,F)
@@ -620,25 +633,25 @@ special_orthogonal_group(n::Int, F::Ring) = special_orthogonal_group(0,n,F)
 special_orthogonal_group(n::Int, q::Int) = special_orthogonal_group(0,n,q)
 
 """
+    omega_group(e::Int, n::Int, F::Ring)
     omega_group(e::Int, n::Int, q::Int)
 
 Return the Omega group of dimension `n` over the field `GF(q)` of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0` for `n` odd. If `n` is odd, `e` can be omitted.
 """
-function omega_group(e::Int, n::Int, q::Int)
-   (a,b) = ispower(q)
-   isprime(b) || throw(ArgumentError("The field size must be a prime power"))
+function omega_group(e::Int, n::Int, F::Ring)
+   n==1 && return SO(e,n,F)
    if e==1
       iseven(n) || throw(ArgumentError("The dimension must be even"))
-      G = MatrixGroup(n,GF(b,a)[1])
+      G = MatrixGroup(n,F)
       G.descr = Symbol("Omega+")
    elseif e==-1
       iseven(n) || throw(ArgumentError("The dimension must be even"))
       n==2 && throw(ArgumentError("Dimension 2 not supported"))
-      G = MatrixGroup(n,GF(b,a)[1])
+      G = MatrixGroup(n,F)
       G.descr = Symbol("Omega-")
    elseif e==0
       isodd(n) || throw(ArgumentError("The dimension must be odd"))
-      G = MatrixGroup(n,GF(b,a)[1])
+      G = MatrixGroup(n,F)
       G.descr = :Omega
    else
       throw(ArgumentError("Invalid description of orthogonal group"))
@@ -646,7 +659,14 @@ function omega_group(e::Int, n::Int, q::Int)
    return G
 end
 
+function omega_group(e::Int, n::Int, q::Int)
+   (a,b) = ispower(q)
+   isprime(b) || throw(ArgumentError("The field size must be a prime power"))
+   return omega_group(e, n, GF(b,a)[1])
+end
+
 omega_group(n::Int, q::Int) = omega_group(0,n,q)
+omega_group(n::Int, F::Ring) = omega_group(0,n,F)
 
 """
     unitary_group(n::Int, q::Int)
