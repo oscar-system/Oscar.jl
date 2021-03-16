@@ -1,7 +1,7 @@
-export normalize_with_delta
-export noether_normalization, normalization
-export isreduced, subalgebra_membership
-export hilbert_series, hilbert_series_reduced, hilbert_polynomial, degree
+export noether_normalization, normalization, isreduced, subalgebra_membership, 
+       hilbert_series, hilbert_series_reduced, hilbert_polynomial, degree,
+       issurjective, isinjective, isbijective
+
 ##############################################################################
 #
 # Data associated to affine algebras
@@ -86,6 +86,37 @@ end
 #
 ##############################################################################
 
+# helper function for the containement problem, surjectivity and preimage
+function _containement_helper(R::MPolyRing, N::Int, M::Int, I::MPolyIdeal, W::Vector)
+   T = PolynomialRing(base_ring(R), N + M, ordering = :lex)[1]
+   phi = hom(R, T, [gen(T, i) for i in 1:M])
+
+   # Groebner computation
+   A = phi.(gens(I))
+   B = [phi(W[i])-gen(T, M + i) for i in 1:N]
+   J = ideal(T, union(A, B))
+   G = groebner_basis(J, complete_reduction = true, ord = :lex)
+   return (T, phi, G)
+end
+
+# helper function to obtain information about qring status and 
+# convert elements, if needed
+function _ring_helper(r, f, V)
+   if isdefined(r, :I)
+      R = r.R
+      I = r.I
+      W = [v.f for v in V]
+      F = f.f
+   else
+      R = r
+      I = ideal(R, [R(0)])
+      W = [v for v in V]
+      F = f
+   end
+   return (R, I, W, F)
+end
+
+
 @doc Markdown.doc"""
     subalgebra_membership(A::MPolyQuo, f::MPolyQuoElem, v::Vector{T}) where T <: MPolyQuoElem
 
@@ -98,12 +129,27 @@ function subalgebra_membership(A::MPolyQuo, f::MPolyQuoElem, v::Vector{T}) where
   return Singular.LibAlgebra.algebra_containment(SA(f), I.gens.S)
 end
 
+
+function subalgebra_membership(f::S, v::Vector{S}) where S <: Union{MPolyElem{U}, MPolyQuoElem{U}} where U
+   @assert !isempty(V)
+   r = parent(f)
+   (R, I, W, F) = _ring_helper(r, f, v)
+   n = length(W)
+   m = ngens(R)
+
+   # Build auxilliary objects
+   (T, phi, G) = _containement_helper(R, n, m, I, W)
+
+   # Check containement
+   D = divrem(phi(F), G)
+   return lm(D[2]) < gen(T, m)
+end
+
 ##############################################################################
 #
 # Maps of affine algebras
 #
 ##############################################################################
-
 
 
 ##############################################################################
@@ -113,38 +159,61 @@ end
 ##############################################################################
 
 @doc Markdown.doc"""
-    isinjective(F::MPolyQuoHom)
+    isinjective(F::AlgHom)
 
 Return `true` if `F` is injective, `false` otherwise.
 """
-function isinjective(F::MPolyQuoHom)
-  error("TODO: implement this") 
+function isinjective(F::AlgHom)
+   G = gens(kernel(F))
+   for i in 1:length(G)
+      !iszero(G[i]) && return false
+   end
+   return true
 end
 
 @doc Markdown.doc"""
-    issurjective(F::MPolyQuoHom)
+    issurjective(F::AlgHom)
 
 Return `true` if `F` is surjective, `false` otherwise.
 """
-function issurjective(F::MPolyQuoHom)
-  error("TODO: implement this") 
+function issurjective(F::AlgHom)
+   r = domain(F)
+   s = codomain(F)
+   R = _ring_helper(r, zero(r), [zero(r)])[1]
+   (S, I, W, f) = _ring_helper(s, zero(s), F.image)
+
+   n = ngens(R)
+   m = ngens(S)
+
+   # Build auxilliary objects
+   (T, phi, G) = _containement_helper(S, n, m, I, W)
+
+   # Check if map is surjective
+   D = divrem([gen(T, i) for i in 1:m], G)
+
+   for i in 1:m
+      if !(lm(D[i][2]) < gen(T, m))
+         return false
+      end
+   end
+   return true
 end
 
 @doc Markdown.doc"""
-    isbijective(F::MPolyQuoHom)
+    isbijective(F::AlgHom)
 
 Return `true` if `F` is bijective, `false` otherwise.
 """
-function isbijective(F::MPolyQuoHom)
-  error("TODO: implement this") 
+function isbijective(F::AlgHom)
+  return isinjective(F) && issurjective(F)
 end
 
 @doc Markdown.doc"""
-    isfinite(F::MPolyQuoHom)
+    isfinite(F::AlgHom)
 
 Return `true` if `F` is finite, `false` otherwise.
 """
-function isfinite(F::MPolyQuoHom)
+function isfinite(F::AlgHom)
   error("TODO: implement this") 
 end
 
@@ -186,7 +255,7 @@ of $A$ in its total ring of fractions $Q(A)$, together with the embedding
 $f: A \rightarrow \overline{A}$. The function relies on the algorithm 
 of Greuel, Laplagne, and Seelisch which proceeds by finding a suitable decomposition 
 $I=I_1\cap\dots\cap I_r$ into radical ideals $I_k$, together with
-the normalization maps $f_k: R/I_k \rightarrow A_k=\overline{R/I_k}$, such that 
+the normalization maps $f_k: R/I_k \rightarrow A_k=\overline{R/I_k}$, such that
 
 $f=f_1\times \dots\times f_r: A \rightarrow A_1\times \dots\times A_r=\overline{A}$
 
@@ -200,7 +269,7 @@ as $A$-submodules of the total ring of fractions of $A$.
 By default, as a first step on its way to find the decomposition $I=I_1\cap\dots\cap I_r$, 
 the algorithm computes an equidimensional decomposition of the radical ideal $I$.
 Alternatively, if specified by `alg=:primeDec`, the algorithm computes $I=I_1\cap\dots\cap I_r$
-as the prime decomposition of the radical ideal $I$. 
+as the prime decomposition of the radical ideal $I$.
 
 CAVEAT: The function does not check whether $A$ is reduced. Use `isreduced(A)` in case 
 you are unsure (this may take some time).

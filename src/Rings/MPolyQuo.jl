@@ -1,4 +1,5 @@
 export singular_ring
+
 ##############################################################################
 #
 # quotient rings
@@ -51,77 +52,6 @@ function show(io::IO, a::MPolyQuoElem)
   print(io, AbstractAlgebra.obj_to_string(a, context = io))
 end
 
-##############################################################################
-#
-# Quotient ring maps
-#
-##############################################################################
-
-# TODO do whatever is needed to turn this into an AlgebraAlgebra.Map
-mutable struct MPolyQuoHom
-  domain::MPolyQuo
-  codomain::MPolyQuo
-  image::Vector
-  salghom::Singular.SAlgHom
-end
-
-function domain(MPolyQuoHom)
-  return MPolyQuoHom.domain
-end
-
-function codomain(MPolyQuoHom)
-  return MPolyQuoHom.codomain
-end
-
-function Base.show(io::IO, m::MPolyQuoHom)
-  print(io, "AlgebraHomomorphism(")
-  print(io, domain(m))
-  print(io, " => ")
-  print(io, codomain(m))
-  print(io, ", ")
-  print(io, m.image)
-  print(io, ")")
-end
-
-# this terrible function is used to get polynomials in and out of Singular and
-# to change: polys over the quotient ring <=> polys over the non-quotient ring
-function _badpolymap(f, R::MPolyRing)
-  parent(f) == R && return f
-  @assert ngens(parent(f)) == ngens(R)
-  B = base_ring(R)
-  g = MPolyBuildCtx(R)
-  for (c, e) = zip(Nemo.coeffs(f), Nemo.exponent_vectors(f))
-    push_term!(g, B(c), e)
-  end
-  return finish(g)
-end
-
-# this function is nasty because: MPolyQuoElem takes polynomials over the
-# non-quotient ring, but we are using Singular's maps for poly over the qring.
-# Hence the conversion between the quotient ring and non-quotient ring.
-# Maybe a cleaner/faster way of converting in needed.
-function (f::MPolyQuoHom)(p::MPolyQuoElem)
-  sdomain = singular_ring(domain(f))    # sdomain is a qring
-  sp = _badpolymap(p.f, sdomain)
-  mp = Singular.map_poly(f.salghom, sp)
-  mp = _badpolymap(mp, codomain(f).R)   # codomain(f).R is a non-q ring
-  return codomain(f)(mp)
-end
-
-function AlgebraHomomorphism(D::MPolyQuo, C::MPolyQuo, V::Vector)
-  d = singular_ring(D)
-  c = singular_ring(C)
-  v = map(p -> _badpolymap(C(p).f, c), V)
-  return MPolyQuoHom(D, C, v, Singular.AlgebraHomomorphism(d, c, v))
-end
-
-@doc Markdown.doc"""
-    hom(D::MPolyQuo, C::MPolyQuo, V::Vector)
-
-Creates the algebra homomorphism $D \rightarrow C$ defined by sending the
-generators of $D$ to the elements given by $V$.
-"""
-hom(D::MPolyQuo, C::MPolyQuo, V::Vector) = AlgebraHomomorphism(D,C,V)
 ##############################################################################
 #
 # Quotient ring ideals
