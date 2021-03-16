@@ -6,6 +6,11 @@ import Oscar: MPolyIdeal, BiPolyArray, Hecke, AbstractAlgebra
 import Hecke: modular_lift, modular_proj, modular_env, RecoCtx, 
               induce_rational_reconstruction
 
+function __init__()
+  Hecke.add_verbose_scope(:ModStdNF)
+end
+
+
 function Oscar.singular_ring(F::AnticNumberField)
   return Singular.CoefficientRing(F)
 end
@@ -24,28 +29,9 @@ function stdhilb(I::Singular.sideal, h::Array{Int32, 1}; complete_reduction::Boo
   return z
 end
 
-function sing_hilb(I::Singular.sideal)
-  a = Array{Int32, 1}()
-  @assert I.isGB
-  Singular.libSingular.scHilb(I.ptr, base_ring(I).ptr, a)
-  return a
-end
-
-mutable struct HilbertData
-  data::Array{Int32, 1}
-  I::MPolyIdeal
-  function HilbertData(I::MPolyIdeal)
-    Oscar.groebner_assure(I)
-    h = sing_hilb(I.gb.S)
-    return new(h, I)
-  end
-  function HilbertData(B::BiPolyArray)
-    return HilbertData(Oscar.MPolyIdeal(B))
-  end
-end
-
-function Base.show(io::IO, h::HilbertData)
-  print(io, "Hilbert Series for $(h.I), data: $(h.data)")
+function Oscar.binomial(a::RingElem, k::Int)
+  p = parent(a)
+  return prod([a-i for i=0:k-1])*inv(p(factorial(k)))
 end
 
 function Oscar.groebner_basis(B::BiPolyArray{nmod_mpoly}, h::HilbertData; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
@@ -89,16 +75,16 @@ function Oscar.groebner_assure(I::MPolyIdeal{Generic.MPoly{nf_elem}}, ord::Symbo
   local H::HilbertData
   while true
     p = iterate(ps, p)[1]
-    @vprint :MPolyGcd 2 "Main loop: using $p\n"
-    @vtime :MPolyGcd 3 me = Hecke.modular_init(K, p, deg_limit = 1)
+    @vprint :ModStdNF 2 "Main loop: using $p\n"
+    @vtime :ModStdNF 3 me = Hecke.modular_init(K, p, deg_limit = 1)
 #    nbits(d) > 1700 && error("too long")
     if isempty(me)
       continue
     end
 
-    @vtime :MPolyGcd 3 Ip = Hecke.modular_proj(I.gens, me)
+    @vtime :ModStdNF 3 Ip = Hecke.modular_proj(I.gens, me)
     Jp = typeof(Ip[1])[]
-    @vtime :MPolyGcd 2 for fp = Ip
+    @vtime :ModStdNF 2 for fp = Ip
       if use_hilbert
         if very_first
           @show H = HilbertData(fp)
@@ -109,14 +95,14 @@ function Oscar.groebner_assure(I::MPolyIdeal{Generic.MPoly{nf_elem}}, ord::Symbo
         push!(Jp, groebner_basis(fp, ord = ord, complete_reduction = true))
       end
     end
-    @vtime :MPolyGcd 2 IP = Hecke.modular_lift(Jp, me)
+    @vtime :ModStdNF 2 IP = Hecke.modular_lift(Jp, me)
     if d == 1
       d = fmpz(p)
       gc = IP
       push!(R, d, lift(Zx, me.ce.pr[end]))
       fl = true
       gd = []
-      @vtime :MPolyGcd 2 for f = gc
+      @vtime :ModStdNF 2 for f = gc
         fl, fQ = Hecke.induce_rational_reconstruction(f, R, integral = false)
         fl || break
         push!(gd, fQ)
@@ -127,18 +113,18 @@ function Oscar.groebner_assure(I::MPolyIdeal{Generic.MPoly{nf_elem}}, ord::Symbo
 #      @show gd
     else
       new_idx = [any(x -> any(x->!iszero(x), Hecke.modular_proj(x, me)), coefficients(gd[i] - IP[i])) for i=1:length(gc)]
-      @vprint :MPolyGcd 1 "new information in $new_idx\n"
+      @vprint :ModStdNF 1 "new information in $new_idx\n"
       push!(R, fmpz(p), lift(Zx, me.ce.pr[end]))
       fl = !any(new_idx)
       if !fl
-        @vtime :MPolyGcd 2 for i = 1:length(gc)
+        @vtime :ModStdNF 2 for i = 1:length(gc)
           if new_idx[i]
             gc[i], _ = induce_crt(gc[i], d, IP[i], fmpz(p), true)
           end
         end
         d *= fmpz(p)
         fl = true
-        @vtime :MPolyGcd 2 for i = 1:length(gc)
+        @vtime :ModStdNF 2 for i = 1:length(gc)
           if new_idx[i]
             fl, gd[i] = Hecke.induce_rational_reconstruction(gc[i], R, integral = false)
             fl || break
@@ -157,7 +143,7 @@ function Oscar.groebner_assure(I::MPolyIdeal{Generic.MPoly{nf_elem}}, ord::Symbo
         end
       end
     end
-    @vprint :MPolyGcd 1 "Information now at $(nbits(d)) bits\n"
+    @vprint :ModStdNF 1 "Information now at $(nbits(d)) bits\n"
   end
 end
 

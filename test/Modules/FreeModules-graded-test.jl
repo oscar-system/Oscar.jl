@@ -86,7 +86,7 @@ end
       for F in Mods
         
         @test Oscar.isgraded(F) == Oscar.isgraded(RR)
-        @test Oscar.isfiltrated(F) == Oscar.isfiltrated(RR)
+        @test Oscar.isfiltered(F) == Oscar.isfiltered(RR)
 
         G = decoration(F)
         if j == 4

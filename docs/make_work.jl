@@ -1,4 +1,4 @@
-using Documenter, Oscar, DocumenterMarkdown
+using Documenter, Oscar, DocumenterMarkdown, DocumenterCitations
 
 import Documenter:
     Anchors,
@@ -154,7 +154,9 @@ const nemo = sanitize(bla, "Nemo")
 bla = normpath(joinpath(dirname(pathof(AbstractAlgebra)), "..", "docs", "src"))
 const aa = sanitize(bla, "AbstractAlgebra")
 
-makedocs(
+bib = CitationBibliography(joinpath(@__DIR__, "oscar_references.bib"))
+
+makedocs(bib,
          format   = Documenter.HTML(prettyurls = !local_build),
 #         format   = Documenter.HTML(),
 #         format   = Markdown(),
@@ -184,7 +186,6 @@ makedocs(
                               "$(aa)/puiseux.md",
                               "$(nemo)/series.md",
                               "$(nemo)/puiseux.md"],
-                          "Rings/affine.md",
                          ],
              "Fields" => [            
                           "$(aa)/fields.md",
@@ -223,26 +224,6 @@ makedocs(
                            ],
 
              "Commutative Algebra" => ["CommutativeAlgebra/ca.md"],
-
+             "References" => "references.md",
          ]
 )
-
-#deploydocs(
-#   julia = "1.3",
-#   repo   = "github.com/oscar-system/Oscar.jl.git",
-#   target = "build",
-#   deps = nothing,
-#   make   = nothing,
-#   osname = "linux"
-#)
-
-deploydocs(
-   repo   = "github.com/oscar-system/Oscar.jl.git",
-#  deps = Deps.pip("pymdown-extensions", "pygments", "mkdocs", "python-markdown-math", "mkdocs-material", "mkdocs-cinder"),
-   deps = nothing,
-   target = "build",
-   push_preview = true,
-#  make = () -> run(`mkdocs build`),
-   make = nothing
-)
-

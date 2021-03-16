@@ -7,8 +7,10 @@
     y=G(A)
 
     @test x==y
-    @test A==listperm(y)
-    @test x==G(listperm(x))
+    @test A==Vector(y)
+    @test typeof(Vector(y))==Array{Int64,1}
+    @test typeof(Vector{fmpz}(y))==Array{fmpz,1}
+    @test x==G(Vector(x))
     @test order(x) == lcm(15,n-8)
 
     @test x(3)==4
@@ -32,6 +34,9 @@
   G=symmetric_group(6)
   x=gap_perm([2,3,4,5,6,1])
   @test x==perm(G,[2,3,4,5,6,1])
+  @test x==gap_perm(fmpz.([2,3,4,5,6,1]))
+  @test x==perm(G,fmpz.([2,3,4,5,6,1]))
+  @test cperm(G,Int[])==one(G)
   @test x==cperm(G,1:6)
   @test x==cperm(G,[1,2,3,4,5,6])
   @test one(G)==gap_perm(1:6)

@@ -50,8 +50,8 @@
    P=sylow_subgroup(G,2)[1]
    PP=direct_product(P1,P2)
    @test order(P)==order(P1)*order(P2)
-   @test isconjugate(G,P,PP)[1]
-   x = isconjugate(G,P,PP)[2]
+   @test representative_action(G,P,PP)[1]
+   x = representative_action(G,P,PP)[2]
    @test P^x==PP
 
    @test_throws ArgumentError as_perm_group(G)

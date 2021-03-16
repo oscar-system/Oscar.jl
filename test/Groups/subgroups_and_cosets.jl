@@ -20,12 +20,15 @@
    @test H==G
    @test f==id_hom(G)
 
+   @test !issubgroup(G,symmetric_group(8))[1]
+   @test_throws ArgumentError embedding(G,symmetric_group(8))
+
    H=sub(G,[G([2,3,1]),G([2,1])])[1]
    @test H != symmetric_group(3)
    @test isisomorphic(H, symmetric_group(3))[1]
    @test isisomorphic(H, symmetric_group(3))[2]==id_hom(H)       # TODO: this in future may change to false.
-   @test listperm(H[1])==[2,3,1,4,5,6,7]
-   @test listperm(symmetric_group(3)(H[1]))==[2,3,1]
+   @test Vector(H[1])==[2,3,1,4,5,6,7]
+   @test Vector(symmetric_group(3)(H[1]))==[2,3,1]
 
    G = symmetric_group(4)
    A = alternating_group(4)
@@ -137,6 +140,7 @@ end
    @test isnormal(S,P2)
    P3=pcore(S,3)[1]
    @test order(P3)==1
+   @test_throws ArgumentError pcore(S,4)
 end
 
 @testset "Cosets" begin
@@ -177,11 +181,10 @@ end
       @test representative(rc) == x
       @test representative(lc) == x
       @test representative(dc) == x
-      @test Set(elements(rc)) == Set([z for z in rc])          # test iterator
-#      @test Set(elements(dc)) == Set([z for z in dc])
-      @test Set(elements(rc)) == Set([h*x for h in H])
-      @test Set(elements(lc)) == Set([x*h for h in H])
-      @test Set([h for h in dc]) == Set([h*x*k for h in H for k in K])
+      @test Set(elements(rc)) == Set(z for z in rc)          # test iterator
+      @test Set(elements(rc)) == Set(h*x for h in H)
+      @test Set(elements(lc)) == Set(x*h for h in H)
+      @test Set(h for h in dc) == Set(h*x*k for h in H for k in K)
       @test order(rc) == 3
       @test order(dc) == 6
       r1=rand(rc)
@@ -258,6 +261,16 @@ end
    @test !ispgroup(alternating_group(4))[1]
    @test ispgroup(alternating_group(3)) == (true,3)
    @test ispgroup(quaternion_group(8)) == (true,2)
+   @test ispgroup(alternating_group(1))==(true,nothing)
+
+   @test issolvable(alternating_group(4))
+   @test !issolvable(alternating_group(5))
+   @test !isnilpotent(symmetric_group(4))
+   @test !issupersolvable(symmetric_group(4))
+   @test isnilpotent(quaternion_group(8))
+   @test issupersolvable(quaternion_group(8))
+   @test nilpotency_class(quaternion_group(8))==2
+   @test_throws AssertionError nilpotency_class(symmetric_group(4))
 end
 
 @testset "Sylow and Hall subgroups" begin
@@ -268,7 +281,7 @@ end
    @test isisomorphic(P,dihedral_group(8))[1]
    P = sylow_subgroup(G,3)[1]
    @test order(P)==3
-   @test isconjugate(G, P, sub(G, [cperm(1:3)])[1])[1]
+   @test representative_action(G, P, sub(G, [cperm(1:3)])[1])[1]
    P = sylow_subgroup(G,5)[1]
    @test P==sub(G,[one(G)])[1]
    @test_throws ArgumentError P=sylow_subgroup(G,4)
@@ -296,6 +309,11 @@ end
    @test length(Lo)==length(factor(order(G)))
    @test prod(Lo) == order(G)
    @test [isprime(ispower(l)[2]) for l in Lo] == [1 for i in 1:length(L)]
+
+   L = hall_system(symmetric_group(4))
+   @test issubgroup(symmetric_group(4),L[1])[1]
+   @test Set(order(H) for H in L)==Set(fmpz[1,3,8,24])
+   @test_throws ArgumentError hall_system(symmetric_group(5))
    
 end
 

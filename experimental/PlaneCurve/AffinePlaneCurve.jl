@@ -14,7 +14,7 @@ export issmooth, tangent, common_components, curve_intersect, intersect,
 # curve.
 
 @doc Markdown.doc"""
-    issmooth_point(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
+    issmooth(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
 
 Throw an error if `P` is not a point of `C`, return `false` if `P` is a singular point of `C`, and `true` if `P` is a smooth point of `C`.
 """
@@ -98,8 +98,8 @@ function curve_intersect(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S
   # We factorize the polynomial we obtain (which is a polynomial where only
   # the second variable appears).
   Z = factor(gen(B, 1))
-  Y = []
-  L = Array{S, 1}[]
+  Y = Vector{Oscar.MPolyElem}()
+  L = Vector{S}[]
   # For the linear factors of g, we add the constant coefficient to the list Y.
   # The constant coefficient is stored as a mpoly to be used later in evaluate.
   for g in keys(Z.fac)
@@ -108,7 +108,6 @@ function curve_intersect(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S
         push!(Y, -f + gen(R, 2))
      end
   end
-  if !isempty(Y)
      # For each y, we compute the possible values of x by replacing the second
      # variable by the value y, and factorizing the resulting polynomial.
      for y in Y
@@ -124,15 +123,9 @@ function curve_intersect(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S
            end
         end
      end
-  end
   # L contains the intersection points as arrays (or can be empty).
-  Pts = Array{Point, 1}()
-  CC = Array{AffinePlaneCurve, 1}()
-  if !isempty(L)
-     for p in L
-        push!(Pts, Point(p))
-     end
-  end
+  Pts = [Point(p) for p in L]
+  CC = Vector{AffinePlaneCurve}()
   if !isone(G)
      push!(CC, AffinePlaneCurve(G))
   end
@@ -170,12 +163,7 @@ function curve_singular_locus(C::AffinePlaneCurve)
    Pts = Array{Point, 1}()
    CC = Array{AffinePlaneCurve, 1}()
    # The components with multiplicity > 1 are singular
-   f = []
-   for (h, c) in comp
-      if c != 1
-         push!(f, h.eq)
-      end
-   end
+   f = [h.eq for (h,c) in comp if c != 1]
    if !isempty(f)
       g = prod(f)
       push!(CC, AffinePlaneCurve(g))
