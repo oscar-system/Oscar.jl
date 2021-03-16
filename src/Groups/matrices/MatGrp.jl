@@ -159,8 +159,12 @@ function assign_from_description(G::MatrixGroup)
    elseif G.descr==Symbol("GO+") G.X=GAP.Globals.GO(1,G.deg,G.mat_iso.fr.codomain)
    elseif G.descr==Symbol("SO+") G.X=GAP.Globals.SO(1,G.deg,G.mat_iso.fr.codomain)
    elseif G.descr==Symbol("Omega+")
+      # FIXME/TODO: Work around GAP issue <https://github.com/gap-system/gap/issues/500>
+      # using the following inefficient code. In the future, we should use appropriate
+      # generators for Omega (e.g. by applying a form change matrix to the Omega
+      # generators returned by GAP).
+      L = GAP.Globals.SubgroupsOfIndexTwo(GAP.Globals.SO(1,G.deg,G.mat_iso.fr.codomain))
       if G.deg==4 && order(G.ring)==2  # this is the only case SO(n,q) has more than one subgroup of index 2
-         L = GAP.Globals.SubgroupsOfIndexTwo(GAP.Globals.SO(1,G.deg,G.mat_iso.fr.codomain))
          for y in L
             _ranks = [GAP.Globals.Rank(u) for u in GAP.Globals.GeneratorsOfGroup(y)]
             if all(r->iseven(r),_ranks)
@@ -169,7 +173,8 @@ function assign_from_description(G::MatrixGroup)
             end
          end
       else
-         G.X=GAP.Globals.SubgroupsOfIndexTwo(GAP.Globals.SO(1,G.deg,G.mat_iso.fr.codomain))[1]
+         @assert length(L) == 1
+         G.X=L[1]
       end
    elseif G.descr==Symbol("GO-") G.X=GAP.Globals.GO(-1,G.deg,G.mat_iso.fr.codomain)
    elseif G.descr==Symbol("SO-") G.X=GAP.Globals.SO(-1,G.deg,G.mat_iso.fr.codomain)
