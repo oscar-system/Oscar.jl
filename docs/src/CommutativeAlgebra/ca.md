@@ -16,6 +16,11 @@ Pages = ["integer.md"]
 
 This part of OSCAR is under development with regard to providing both the functionality and the documentation. At current state, the documentation serves as a guide on what to do and will be constantly updated.
 
+General textbooks offering details on theory and algorithms include: 
+- [GP07](@cite)
+- [DL06](@cite)
+- [DP13](@cite)
+
 ## Ideal Constructors for Multivariate Polynomial Rings
 
 ```@docs
@@ -23,13 +28,6 @@ ideal(g::Array{T, 1}) where {T <: MPolyElem}
 ```
 ```@docs
 ideal(Rx::MPolyRing, g::Array{<:Any, 1})
-```
-###### Example
-
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-I = ideal([x*y-3*x,y^3-2*x^2*y])
-J = ideal(R, [(x+y)^2])
 ```
 
 ## Gröbner Bases
@@ -41,22 +39,17 @@ J = ideal(R, [(x+y)^2])
 ### Computing Gröbner Bases
 
 ```@docs
-groebner_assure(I::MPolyIdeal)
+groebner_basis(I::MPolyIdeal)
 ```
 
-###### Example
-
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"], ordering=:degrevlex)
-I = ideal([x*y-3*x,y^3-2*x^2*y])
-groebner_assure(I)
-I.gb
+```@docs
+groebner_basis(I::MPolyIdeal, ord::Symbol; complete_reduction::Bool=false)
 ```
 
 #### Gröbner Bases with transformation matrix
 
 ```@docs
-groebner_basis_with_transform(B::BiPolyArray; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
+groebner_basis_with_transformation_matrix(I::MPolyIdeal; ord::Symbol = :degrevlex, complete_reduction::Bool=false)
 ```
 
     fglm
@@ -114,16 +107,6 @@ Distinction: ideals <--> homogeneous ideals. To be discussed.
 ```@docs
 :*(I::MPolyIdeal, J::MPolyIdeal)
 ```
-###### Example
-
-```@repl oscar
-R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-I = ideal(R, [x, y])
-J = ideal(R, [z^2])
-I^3
-I+J
-I*J
-```
 
 #### Intersection of Ideals
 
@@ -131,43 +114,17 @@ I*J
 intersect(I::MPolyIdeal, J::MPolyIdeal)
 ```
 
-###### Example
-
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-I = intersect(ideal(R, [x, y])^2, ideal(R, [y^2-x^3+x]))
-```  
-
 #### Ideal Quotients
 
 ```@docs
 quotient(I::MPolyIdeal, J::MPolyIdeal)
 ```
 
-###### Example
-
-```@repl oscar
-R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-I = ideal(R, [x^4+x^2*y*z+y^3*z, y^4+x^3*z+x*y^2*z, x^3*y+x*y^3])
-J = ideal(R,[x,y,z])^2
-L = quotient(I,J)
-I:J
-```
 #### Saturation
 
 ```@docs
 saturation(I::MPolyIdeal, J::MPolyIdeal)
 ```
-
-###### Example
-
-```@repl oscar
-R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-I = ideal(R, [x^4+x^2*y*z+y^3*z, y^4+x^3*z+x*y^2*z, x^3*y+x*y^3])
-J = ideal(R, [x,y,z])^2
-L = saturation(I,J)
-```
-
 
 #### Elimination
 
@@ -179,16 +136,6 @@ eliminate(I::MPolyIdeal, polys::Array{MPolyElem, 1})
 eliminate(I::MPolyIdeal, polys::AbstractArray{Int, 1})
 ```
 
-###### Example
-
-```@repl oscar
-R, (t, x, y, z) = PolynomialRing(QQ, ["t", "x", "y", "z"])
-I = ideal(R, [t-x, t^2-y, t-z^3])
-A = [t]
-AA = [1]
-TC = eliminate(I,A)
-TC = eliminate(I,AA)
-```	
 #### Homogenization and Dehomogenization
 
     homogenize(I,t)   CAVEAT: Als Ideal! Auch poly, vector, etc. Siehe M2.
@@ -203,48 +150,11 @@ TC = eliminate(I,AA)
 radical(I::MPolyIdeal)
 ```
 
-###### Example
-
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-I = intersect(ideal(R, [x, y])^2, ideal(R, [y^2-x^3+x]))
-I = intersect(I, ideal(R, [x-y-1])^2)
-RI = radical(I)
-
-R, (a, b, c, d) = PolynomialRing(ZZ, ["a", "b", "c", "d"])
-I = intersect(ideal(R, [9,a,b]), ideal(R, [3,c]))
-I = intersect(I, ideal(R, [11,2a,7b]))
-I = intersect(I, ideal(R, [13a^2,17b^4]))
-I = intersect(I, ideal(R, [9c^5,6d^5]))
-I = intersect(I, ideal(R, [17,a^15,b^15,c^15,d^15]))
-RI = radical(I)
-```
-
 ##### Primary Decomposition
 
 ```@docs
 primary_decomposition(I::MPolyIdeal)
 ```
-
-###### Example
-
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-I = intersect(ideal(R, [x, y])^2, ideal(R, [y^2-x^3+x]))
-I = intersect(I, ideal(R, [x-y-1])^2)
-L = primary_decomposition(I)
-
-L = primary_decomposition(I, alg=:SY)
-
-R, (a, b, c, d) = PolynomialRing(ZZ, ["a", "b", "c", "d"])
-I = ideal(R, [1326*a^2*d^5, 1989*a^2*c^5, 102*b^4*d^5, 153*b^4*c^5,
-663*a^2*c^5*d^5, 51*b^4*c^5*d^5, 78*a^2*d^15, 117*a^2*c^15,
-78*a^15*d^5, 117*a^15*c^5, 6*a^2*b^4*d^15, 9*a^2*b^4*c^15,
-39*a^2*c^5*d^15, 39*a^2*c^15*d^5, 6*a^2*b^15*d^5, 9*a^2*b^15*c^5,
-6*a^15*b^4*d^5, 9*a^15*b^4*c^5, 39*a^15*c^5*d^5, 3*a^2*b^4*c^5*d^15,
-3*a^2*b^4*c^15*d^5, 3*a^2*b^15*c^5*d^5, 3*a^15*b^4*c^5*d^5])
-L = primary_decomposition(I)
-```	
 
 ##### Minimal Associated Primes
 
@@ -252,37 +162,10 @@ L = primary_decomposition(I)
 minimal_primes(I::MPolyIdeal)
 ```
 
-###### Example
-
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-I = intersect(ideal(R, [x, y])^2, ideal(R, [y^2-x^3+x]))
-I = intersect(I, ideal(R, [x-y-1])^2)
-L = minimal_primes(I)
-
-L = minimal_primes(I, alg=:charSets)
-
-R, (a, b, c, d) = PolynomialRing(ZZ, ["a", "b", "c", "d"])
-I = ideal(R, [1326*a^2*d^5, 1989*a^2*c^5, 102*b^4*d^5, 153*b^4*c^5,
-663*a^2*c^5*d^5, 51*b^4*c^5*d^5, 78*a^2*d^15, 117*a^2*c^15,
-78*a^15*d^5, 117*a^15*c^5, 6*a^2*b^4*d^15, 9*a^2*b^4*c^15,
-39*a^2*c^5*d^15, 39*a^2*c^15*d^5, 6*a^2*b^15*d^5, 9*a^2*b^15*c^5,
-6*a^15*b^4*d^5, 9*a^15*b^4*c^5, 39*a^15*c^5*d^5, 3*a^2*b^4*c^5*d^15,
-3*a^2*b^4*c^15*d^5, 3*a^2*b^15*c^5*d^5, 3*a^15*b^4*c^5*d^5])
-L = minimal_primes(I)
-```
 ##### Weak Equidimensional Decomposition
 
 ```@docs
 equidimensional_decomposition_weak(I::MPolyIdeal)
-```
-###### Example
-
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-I = intersect(ideal(R, [x, y])^2, ideal(R, [y^2-x^3+x]))
-I = intersect(I, ideal(R, [x-y-1])^2)
-L = equidimensional_decomposition_weak(I)
 ```
 
 ##### Equidimensional Decomposition of radical
@@ -291,51 +174,18 @@ L = equidimensional_decomposition_weak(I)
 equidimensional_decomposition_radical(I::MPolyIdeal)
 ```
 
-###### Example
-
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-I = intersect(ideal(R, [x, y])^2, ideal(R, [y^2-x^3+x]))
-I = intersect(I, ideal(R, [x-y-1])^2)
-L = equidimensional_decomposition_radical(I)
-```
-
 ##### Equidimensional Hull
 
 ```@docs
 equidimensional_hull(I::MPolyIdeal)
 ```
 
-###### Example
-
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-I = intersect(ideal(R, [x, y])^2, ideal(R, [y^2-x^3+x]))
-I = intersect(I, ideal(R, [x-y-1])^2)
-L = equidimensional_hull(I)
-  
-R, (a, b, c, d) = PolynomialRing(ZZ, ["a", "b", "c", "d"])
-I = ideal(R, [1326*a^2*d^5, 1989*a^2*c^5, 102*b^4*d^5, 153*b^4*c^5,
-663*a^2*c^5*d^5, 51*b^4*c^5*d^5, 78*a^2*d^15, 117*a^2*c^15,
-78*a^15*d^5, 117*a^15*c^5, 6*a^2*b^4*d^15, 9*a^2*b^4*c^15,
-39*a^2*c^5*d^15, 39*a^2*c^15*d^5, 6*a^2*b^15*d^5, 9*a^2*b^15*c^5,
-6*a^15*b^4*d^5, 9*a^15*b^4*c^5, 39*a^15*c^5*d^5, 3*a^2*b^4*c^5*d^15,
-3*a^2*b^4*c^15*d^5, 3*a^2*b^15*c^5*d^5, 3*a^15*b^4*c^5*d^5])
-L = equidimensional_hull(I)
-```
 ##### Radical of the Equidimensional Hull
 
 ```@docs
 equidimensional_hull_radical(I::MPolyIdeal)
 ```
-###### Example
 
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-I = intersect(ideal(R, [x, y])^2, ideal(R, [y^2-x^3+x]))
-I = intersect(I, ideal(R, [x-y-1])^2)
-L = equidimensional_hull_radical(I)
-```
 ##### Absolute Primary Decomposition
 
     absolute_primary_decomposition(I)               --->  absPrimdecGTZ   
@@ -348,61 +198,35 @@ L = equidimensional_hull_radical(I)
 ```@docs
 :(==)(I::MPolyIdeal, J::MPolyIdeal)
 ```
-###### Example
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-I = ideal(R, [x^2])
-J = ideal(R, [x, y])^2
-I == J
-```
 
 #### Containment of Ideals
 
 ```@docs
 issubset(I::MPolyIdeal, J::MPolyIdeal)
 ```
-###### Example
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-I = ideal(R, [x^2])
-J = ideal(R, [x, y])^2
-issubset(I, J)
-```
 
 #### Ideal Membership
 
 ```@docs
-Base.in(f::MPolyElem, J::MPolyIdeal)
+ideal_membership(f::MPolyElem, I::MPolyIdeal)
 ```
-###### Example
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-f = x^2
-J = ideal(R, [x, y])^2
-in(f, J)
+
+#### Radical Membership
+
+```@docs
+radical_membership(f::MPolyElem, I::MPolyIdeal)
 ```
+
 #### Primality Test
 
 ```@docs
 isprime(I::MPolyIdeal)
-```
-###### Example
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-I = ideal(R, [x, y])^2
-isprime(I)
 ```
 
 #### Primary Test
 
 ```@docs
 isprimary(I::MPolyIdeal)
-```
-###### Example
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-I = ideal(R, [x, y])^2
-isprimary(I)
 ```
   
     homogeneity test:        ishomogeneous(I)
@@ -414,58 +238,29 @@ isprimary(I)
 ```@docs
 base_ring(I::MPolyIdeal)
 ```
-###### Example
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-I = ideal(R, [x, y])^2
-base_ring(I)
-```
+
 #### Number of Generators
 
 ```@docs
 ngens(I::MPolyIdeal)
 ```
-###### Example
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-I = ideal(R, [x, y])^2
-ngens(I)
-```
+
 #### Generators
 
 ```@docs
 gens(I::MPolyIdeal)
 ```
-###### Example
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-I = ideal(R, [x, y])^2
-gens(I)
-```
+
 #### Dimension
 
 ```@docs
 dim(I::MPolyIdeal)
-```
-###### Example
-
-```@repl oscar
-R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-I = ideal(R, [y-x^2, x-z^3])
-dim(I)
 ```
 
 #### Codimension
 
 ```@docs
 codim(I::MPolyIdeal)
-```
-###### Example
-
-```@repl oscar
-R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-I = ideal(R, [y-x^2, x-z^3])
-codim(I)
 ```
     
 ### Data Associated to Homogeneous Ideals
@@ -497,25 +292,98 @@ codim(I)
 
 ### Depth and Codimension
 
-## Noether Normalization
+## Affine Algebras
 
-## Normalization of Rings
+An affine algebra over a field $K$, or an affine $K$-algebra, or simply an affine ring, is the quotient $A=R/I$ of a multivariate
+polynomial ring $R$ over $K$ modulo an ideal $I$ of $A$.
+
+### Constructor
 
 ```@docs
-normalize(A::MPolyQuo)
+quo(R::MPolyRing, I::MPolyIdeal)
+```
+###### Example
+
+```@repl oscar
+R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+A, _ = quo(R, ideal(R, [x^2-y^3, x-y]))
+A, f = quo(R, ideal(R, [x^2-y^3, x-y]))
+f
+```
+
+### Data Associated to Affine Algebras
+
+#### Basic Data
+
+If `A = R/I` is an affine algebra, then `base_ring(A)` refers to `R` and `modulus(A)` to `I`.
+Furthermore, `gens(A)` refers to the generators of `A` and  `ngens(A)` to their number.
+
+```@repl oscar
+R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+A, _ = quo(R, ideal(R, [y-x^2, x-z^3]))
+base_ring(A)
+modulus(A)
+gens(A)
+ngens(A)
+```
+
+#### Dimension
+
+```@docs
+dim(A::MPolyQuo)
 ```
 
 ###### Example
 
 ```@repl oscar
 R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-A, _ = quo(R, ideal(R, [z - x^4, z - y^6]))
-L = normalize(A)
+A, _ = quo(R, ideal(R, [y-x^2, x-z^3]))
+dim(A)
 ```
 
-## Properties of Affine Algebras
+### Data Associated to Graded Affine Algebras: Hilbert Series and Hilbert Polynomial
 
-### Reducedness
+Given a graded affine algebra, there are two convenient ways of representing its Hilbert series  as a univariate rational function.
+
+```@docs
+hilbert_series(A::MPolyQuo)
+```
+
+```@docs
+hilbert_series_reduced(A::MPolyQuo)
+```
+
+```@docs
+hilbert_polynomial(A::MPolyQuo)
+```
+
+```@docs
+degree(A::MPolyQuo)
+```
+
+###### Example
+
+```@repl oscar
+R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
+A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]))
+hilbert_series(A)
+hilbert_series_reduced(A)
+hilbert_polynomial(A)
+degree(A)
+```
+
+### Ideals in Affine Algebras
+
+
+### Tests on Affine Algebras
+
+#### Subalgebra Membership
+
+```@docs
+subalgebra_membership(A::MPolyQuo, f::MPolyQuoElem, v::Vector{T}) where T <: MPolyQuoElem
+```
+
+#### Reducedness Test
 
 ```@docs
 isreduced(A::MPolyQuo)
@@ -529,17 +397,95 @@ A, _ = quo(R, ideal(R, [x^4]))
 isreduced(A)
 ```
 
-### Normality
+#### Normality Test
 
-    isnormal(R)
+```@docs
+isnormal(A::MPolyQuo)
+```
 
-### Cohen-Macaulayness
+#### Cohen-Macaulayness Test
 
-    iscohenmacaulay(R)
+iscohenmacaulay(R)
+
+###### Example
+
+### Homomorphisms of Affine Algebras
+
+#### Constructors
+
+```@docs
+hom(D::MPolyQuo, C::MPolyQuo, V::Vector)
+```
+###### Example
+
+#### Data Associated to Homomorphisms of Affine Algebras
+
+```@docs
+domain(F::MPolyQuoHom)
+```
+
+```@docs
+codomain(F::MPolyQuoHom)
+```
+#### Tests on Homomorphisms of Affine Algebras
+
+```@docs
+isinjective(F::MPolyQuoHom)
+```
+
+```@docs
+issurjective(F::MPolyQuoHom)
+```
+
+```@docs
+isbijective(F::MPolyQuoHom)
+```
+
+```@docs
+isfinite(F::MPolyQuoHom)
+```
+
+### Noether Normalization
+
+```@docs
+noether_normalization(A::MPolyQuo)
+```
+
+###### Example
+
+```@repl oscar
+R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+A, _ = quo(R, ideal(R, [x*y, x*z]))
+L = noether_normalization(A);
+L[1]
+L[2]
+L[3]
+```
+
+### Normalization of Rings
+
+```@docs
+normalize(A::MPolyQuo)
+```
+
+###### Example
+
+```@repl oscar
+R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+A, _ = quo(R, ideal(R, [(x^2-y^3)*(x^2+y^2)*x]))
+L = normalize(A)
+
+R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+A, _ = quo(R, ideal(R, [z^3-x*y^4]))
+L = normalize(A)
+```
+
+
+
+#### 
 
 ## Invariant Theory
 
 ### Invariant Theory of Finite Groups
 
 ### ...
-

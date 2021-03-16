@@ -189,13 +189,12 @@ include("Groups/group_constructors.jl")
 include("Groups/sub.jl")
 include("Groups/homomorphisms.jl")
 include("Groups/cosets.jl")
-include("Groups/gsets.jl")
 include("Groups/libraries/libraries.jl")
 include("Groups/GAPGroups.jl")
 include("Groups/directproducts.jl")
 include("Groups/action.jl")
-include("Groups/iso_oscar_gap.jl")
-include("Groups/MatGrp.jl")
+include("Groups/gsets.jl")
+include("Groups/matrices/matrices.jl")
 
 include("Rings/integer.jl")
 include("Rings/rational.jl")
@@ -204,6 +203,7 @@ include("Rings/mpoly.jl")
 include("Rings/mpoly-ideals.jl")
 include("Rings/groebner.jl")
 include("Rings/MPolyQuo.jl")
+include("Rings/mpoly-affine-algebras.jl")
 include("Rings/mpoly-graded.jl")
 include("Rings/mpoly-local.jl")
 include("Rings/FinField.jl")
@@ -232,7 +232,7 @@ if is_dev
   include("../examples/PrimDec.jl")
 #  include("../examples/GaloisGrp.jl")
 
-  include("../examples/PlaneCurve.jl")
+#  include("../examples/PlaneCurve.jl")
 end
 
 

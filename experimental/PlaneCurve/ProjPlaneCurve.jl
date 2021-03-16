@@ -116,7 +116,7 @@ end
 # at the point P.
 
 @doc Markdown.doc"""
-    tangent(C::ProjPlaneCurve{S}, P::Point{S}) where S <: FieldElem
+    tangent(C::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
 
 Return the tangent of `C` at `P` when `P` is a smooth point of `C`, and throw an error otherwise.
 """

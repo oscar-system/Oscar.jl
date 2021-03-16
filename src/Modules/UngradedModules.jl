@@ -43,12 +43,6 @@ thus the "category" needs to be set explicitly
 =#
 
 function AbstractAlgebra.extra_name(F::FreeMod)
-  if F.n == 1
-    n = Hecke.get_special(F.R, :name)
-    if n !== nothing
-      return "$n^$(ngens(F))($(-F.d[1]))"
-    end
-  end
   return nothing
 end
 
@@ -207,6 +201,15 @@ mutable struct ModuleGens{T}
   end
 end
 
+function Base.getproperty(M::ModuleGens, s::Symbol)
+  if s == :S
+    singular_assure(M)
+    return M.S
+  else
+    return getfield(M,s)
+  end
+end
+
 function show(io::IO, F::ModuleGens)
   println(io, "Array of length ", length(F))
   for i=1:length(F)
@@ -235,6 +238,14 @@ function getindex(F::ModuleGens, ::Val{:S}, i::Int)
   return F.S[i]
 end
 
+function oscar_assure(F::ModuleGens)
+  for i=1:length(F)
+    if !isassigned(F.O, i)
+      F.O[i] = convert(F.F, F.S[i])
+    end
+  end
+end
+
 function singular_assure(F::ModuleGens)
   if length(F) == 0 && !isdefined(F, :S)
     F.S = Singular.smodule{elem_type(base_ring(F.SF))}(base_ring(F.SF), F.SF())
@@ -246,7 +257,7 @@ end
 getindex(F::ModuleGens, i::Int) = getindex(F, Val(:O), i)
 
 function singular_module(F::FreeMod)
-  Sx = singular_ring(base_ring(F).R)
+  Sx = singular_ring(base_ring(F))
   return Singular.FreeModule(Sx, dim(F))
 end
 
@@ -255,7 +266,7 @@ function convert(SF::Singular.FreeMod, m::FreeModuleElem)
   e = SF()
   Sx = base_ring(SF)
   for (p,v) = m.r
-    e += Sx(v.f)*g[p]
+    e += Sx(v)*g[p]
   end
   return e
 end
@@ -269,7 +280,7 @@ function convert(F::FreeMod, s::Singular.svector)
   for (i, e, c) = s
     f = Base.findfirst(x->x==i, pos)
     if f === nothing
-      push!(values, MPolyBuildCtx(base_ring(F).R))
+      push!(values, MPolyBuildCtx(base_ring(F)))
       f = length(values)
       push!(pos, i)
     end
@@ -283,6 +294,7 @@ abstract type ModuleFPHom end
 abstract type ModuleMap{T1, T2} <: Map{T1, T2, Hecke.HeckeMap, ModuleFPHom} end
 
 mutable struct FreeModuleHom{T1, T2} <: ModuleMap{T1, T2} 
+  matrix::MatElem
   header::MapHeader
   Hecke.@declare_other
 
@@ -312,6 +324,14 @@ mutable struct FreeModuleHom{T1, T2} <: ModuleMap{T1, T2}
       return FreeModuleElem(c, F)
     end
     r.header = MapHeader{typeof(F), typeof(G)}(F, G, im_func, pr_func)
+
+    R = base_ring(F)
+    matrix = zero_matrix(R, F.n, ngens(G))
+    for i=1:F.n, j=1:ngens(G)
+      matrix[i,j] = a[i].r[j]
+    end
+    r.matrix = matrix
+
     return r
   end
 end
@@ -323,20 +343,106 @@ function identity_map(M::ModuleFP)
   return hom(M, M, gens(M))
 end
 
+mutable struct SubModuleOfFreeModule{T} <: ModuleFP{T}
+  F::FreeMod{T}
+  gens::ModuleGens
+  std_basis::ModuleGens
+  matrix::MatElem
+
+  function SubModuleOfFreeModule(F::FreeMod{R}, gens::Array{<:FreeModuleElem, 1}) where {R}
+    @assert all(x -> parent(x) === F, gens)
+    r = new{R}()
+    r.F = F
+    r.gens = ModuleGens(gens, F)
+    return r
+  end
+
+  function SubModuleOfFreeModule(F::FreeMod{R}, singular_module::Singular.smodule) where {R}
+    r = new{R}()
+    r.F = F
+    r.gens = ModuleGens(F, singular_module)
+    if singular_module.isGB
+      r.std_basis = r.gens
+    end
+    return r
+  end
+end
+
+function Base.getproperty(submod::SubModuleOfFreeModule, s::Symbol)
+  if s == :std_basis
+    if getfield(submod, s) === nothing
+        setfield!(submod, s, groebner_basis(submod.gens))
+    end
+    return getfield(submod, s)
+    
+  elseif s == :matrix
+    if getfield(submod, s) === nothing
+      R = base_ring(F)
+      matrix = zero_matrix(R, length(submod.gens), rank(submod.F))
+      for i = 1:nrows(matrix), j = 1:ncols(matrix)
+        matrix[i,j] = submod.gens[i].r[j]
+      end
+
+      setfield!(submod, s, matrix)
+    end
+    return getfield(submod, s)
+  else
+    return getfield(submod, s)
+  end
+end
+
+function Base.getindex(M::SubModuleOfFreeModule, i::Int)
+  return M.gens.O[i]
+end
+
+function show(io::IO, M::SubModuleOfFreeModule)
+  if length(M) == 1
+    println(io, "Submodule with ", length(M), " generator")
+  else
+    println(io, "Submodule with ", length(M), " generators")
+  end
+  for i=1:length(M)
+    if isassigned(M.gens.O, i)
+      println(io, i, " -> ", M[i])
+    end
+  end
+  if isdefined(M.gens, :S)
+    println(io, "defined on the Singular side")
+  end
+end
+
+function length(M::SubModuleOfFreeModule)
+  return length(M.gens)
+end
+
+function gens(M::SubModuleOfFreeModule)
+  return M.gens.O
+end
+
+function gen(M::SubModuleOfFreeModule, i::Int)
+  return M.gens[Val(:O), i]
+end
+
+function sum(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
+  @assert M.F === N.F
+  return SubModuleOfFreeModule(M.F, vcat(collect(M.gens), collect(N.gens)))
+end
+
+#+(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule) = sum(M, N)
+
 mutable struct SubQuo{T} <: ModuleFP{T}
   #meant to represent sub+ quo mod quo - as lazy as possible
   F::FreeMod{T}
-  sub::ModuleGens
-  quo::ModuleGens
-  sum::ModuleGens
-  std_sub::ModuleGens
-  std_quo::ModuleGens
+  sub::SubModuleOfFreeModule
+  quo::SubModuleOfFreeModule
+  sum::SubModuleOfFreeModule
   AbstractAlgebra.@declare_other
 
   function SubQuo(F::FreeMod{R}, O::Array{<:FreeModuleElem, 1}) where {R}
     r = new{R}()
     r.F = F
-    r.sub = ModuleGens(O, F, singular_module(F))
+    #r.sub = ModuleGens(O, F, singular_module(F))
+    r.sub = SubModuleOfFreeModule(F, O)
     r.sum = r.sub
     return r
   end
@@ -344,32 +450,29 @@ mutable struct SubQuo{T} <: ModuleFP{T}
     r = new{L}()
     r.F = S.F
     r.sub = S.sub
-    r.quo = ModuleGens(O, S.F, S.sub.SF)
-    r.sum = ModuleGens(vcat(collect(r.sub), collect(r.quo)), S.F, S.sub.SF)
+    #r.quo = ModuleGens(O, S.F, S.sub.SF)
+    r.quo = SubModuleOfFreeModule(S.F, O)
+    #r.sum = ModuleGens(vcat(collect(r.sub), collect(r.quo)), S.F, S.sub.SF)
+    r.sum = sum(r.sub, r.quo)
     return r
   end
   function SubQuo(F::FreeMod{R}, s::Singular.smodule) where {R}
     r = new{R}()
     r.F = F
-    r.sub = ModuleGens(F, s)
+    #r.sub = ModuleGens(F, s)
+    r.sub = SubModuleOfFreeModule(F, s)
     r.sum = r.sub
-    if s.isGB
-      r.std_sub = r.sub
-    end
     return r
   end
   function SubQuo(F::FreeMod{R}, s::Singular.smodule, t::Singular.smodule) where {R}
     r = new{R}()
     r.F = F
-    r.sub = ModuleGens(F, s)
-    if s.isGB
-      r.std_sub = r.sub
-    end
-    r.quo = ModuleGens(F, t)
-    if t.isGB
-      r.std_quo = r.quo
-    end
-    r.sum = ModuleGens(vcat(collect(r.sub), collect(r.quo)))
+    #r.sub = ModuleGens(F, s)
+    r.sub = SubModuleOfFreeModule(F, s)
+    #r.quo = ModuleGens(F, t)
+    r.quo = SubModuleOfFreeModule(F, t)
+    #r.sum = ModuleGens(vcat(collect(r.sub), collect(r.quo)))
+    r.sum = sum(r.sub, r.quo)
     return r
   end
 end
@@ -379,7 +482,7 @@ function show(io::IO, SQ::SubQuo)
   @show_special(io, SQ)
 
   if isdefined(SQ, :quo)
-    println(io, "Subquotient of ", SQ.sub, " by ", SQ.quo)
+    println(io, "Subquotient of ", SQ.sub, "by ", SQ.quo)
   else
     println(io, "Subquotient by ", SQ.sub)
   end
@@ -400,14 +503,6 @@ parent_type(::SubQuoElem{T}) where {T} = SubQuo{T}
 elem_type(::Type{SubQuo{T}}) where {T} = SubQuoElem{T}
 parent_type(::Type{SubQuoElem{T}}) where {T} = SubQuo{T}
 
-function sum_gb_assure(SQ::SubQuo)
-  singular_assure(SQ.sum)
-  if SQ.sum.S.isGB
-    return
-  end
-  SQ.sum = groebner_basis(SQ.sum)
-end
-
 function groebner_basis(F::ModuleGens)
   singular_assure(F)
   if F.S.isGB
@@ -424,9 +519,8 @@ parent(b::SubQuoElem) = b.parent
 
 function (R::SubQuo)(a::FreeModuleElem; check::Bool = true)
   if check
-    b = convert(R.sum.SF, a)
-    sum_gb_assure(R)
-    c = _reduce(b, R.sum.S)
+    b = convert(R.sum.gens.SF, a)
+    c = _reduce(b, R.sum.std_basis.S)
     iszero(c) || error("not in the module")
   end
   return SubQuoElem(a, R)
@@ -465,7 +559,7 @@ end
 function sub(S::SubQuo, O::Array{<:SubQuoElem, 1})
   t = sub(S.F, O)
   if isdefined(S, :quo)
-    return quo(t, collect(S.quo))
+    return quo(t, collect(S.quo.gens))
   else
     return t
   end
@@ -482,23 +576,27 @@ function quo(F::FreeMod, O::Array{<:SubQuoElem, 1})
 end
 
 function quo(F::SubQuo, O::Array{<:FreeModuleElem, 1})
-  @assert parent(O[1]) == F.F
+  if length(O) > 0
+    @assert parent(O[1]) == F.F
+  end
   if isdefined(F, :quo)
-    F.sub[Val(:S), 1]
-    [F.quo[Val(:O), i] for i = 1:length(F.quo.O)]
-    s = Singular.smodule{elem_type(base_ring(F.quo.SF))}(base_ring(F.quo.SF), [convert(F.quo.SF, x) for x = [O; F.quo.O]]...)
-    return SubQuo(F.F, F.sub.S, s)
+    #F.sub[Val(:S), 1]
+    #[F.quo.gens[Val(:O), i] for i = 1:length(F.quo.gens.O)] 
+    oscar_assure(F.quo.gens)
+    s = Singular.smodule{elem_type(base_ring(F.quo.gens.SF))}(base_ring(F.quo.gens.SF), [convert(F.quo.gens.SF, x) for x = [O; F.quo.gens.O]]...)
+    return SubQuo(F.F, F.sub.gens.S, s)
   end
   return SubQuo(F, O)
 end
 
 function quo(S::SubQuo, O::Array{<:SubQuoElem, 1})
-  return SubQuo(S, [x.a for x = O])
+  return quo(S, [x.a for x = O])
 end
 
 function quo(S::SubQuo, T::SubQuo)
 #  @assert !isdefined(T, :quo)
-  return SubQuo(S, T.sum.O)
+  # TODO @assert S.quo == T.quo
+  return SubQuo(S, T.sum.gens.O)
 end
 
 function quo(F::FreeMod, T::SubQuo)
@@ -506,7 +604,7 @@ function quo(F::FreeMod, T::SubQuo)
   return quo(F, gens(T))
 end
 
-function syzygie_module(F::ModuleGens; sub = 0)
+function syzygy_module(F::ModuleGens; sub = 0)
   F[Val(:S), 1] #to force the existence of F.S
   s = Singular.syz(F.S)
   if sub !== 0
@@ -518,11 +616,11 @@ function syzygie_module(F::ModuleGens; sub = 0)
 end
 
 function gens(F::SubQuo)
-  return map(x->SubQuoElem(x, F), collect(F.sub))
+  return map(x->SubQuoElem(x, F), gens(F.gens))
 end
 
 function gen(F::SubQuo, i::Int)
-  return SubQuoElem(F.sub[Val(:O), i], F)
+  return SubQuoElem(gen(F,i))
 end
 
 ngens(F::SubQuo) = length(F.sub)
@@ -561,9 +659,9 @@ end
 function presentation(SQ::SubQuo)
   #A+B/B is generated by A and B
   #the relations are A meet B? written wrt to A
-  s = syzygie_module(SQ.sum)
+  s = syzygy_module(SQ.sum.gens)
   #TODO: wait for Hans to release Modulo(A, B) that does exactly this
-  c = collect(s.sub)
+  c = collect(s.sub.gens)
   R = base_ring(SQ)
   F = FreeMod(R, length(SQ.sub))
   q = elem_type(F)[]
@@ -655,22 +753,24 @@ function coordinates(a::FreeModuleElem, SQ::SubQuo)
   if iszero(a)
     return sparse_row(base_ring(parent(a)))
   end
-  [SQ.sub[Val(:O), i] for i = 1:length(SQ.sub.O)]
+  #[SQ.sub[Val(:O), i] for i = 1:length(SQ.sub.O)]
+  oscar_assure(SQ.sub.gens)
   if isdefined(SQ, :quo)
-    [SQ.quo[Val(:O), i] for i = 1:length(SQ.quo.O)]
-    generators = vcat(SQ.sub.O, SQ.quo.O)
+    #[SQ.quo[Val(:O), i] for i = 1:length(SQ.quo.O)]
+    oscar_assure(SQ.quo.gens)
+    generators = sum(SQ.sub, SQ.quo)
   else
-    generators = SQ.sub.O
+    generators = SQ.sub
   end
-  S = Singular.smodule{elem_type(base_ring(SQ.sub.SF))}(base_ring(SQ.sub.SF), [convert(SQ.sub.SF, x) for x = generators]...)
-  b = ModuleGens([a], SQ.sum.SF)
+  S = generators.gens.S
+  #S = Singular.smodule{elem_type(base_ring(SQ.sub.gens.SF))}(base_ring(SQ.sub.gens.SF), [convert(SQ.sub.gens.SF, x) for x = generators]...)
+  b = ModuleGens([a], SQ.sum.gens.SF)
   singular_assure(b)
   s, r = Singular.lift(S, b.S)
   if Singular.ngens(s) == 0 || iszero(s[1])
     error("elem not in module")
   end
-  Sx = base_ring(SQ)
-  Rx = Sx.R
+  Rx = base_ring(SQ)
   R = base_ring(Rx)
   return sparse_row(Rx, s[1], 1:ngens(SQ))
 end
@@ -719,11 +819,7 @@ function iszero(a::SubQuoElem)
   if !isdefined(C, :quo)
     return iszero(a.a)
   end
-  if !isdefined(C, :std_quo)
-    singular_assure(C.quo)
-    C.std_quo = ModuleGens(C.quo.F, Singular.std(C.quo.S))
-  end
-  x = _reduce(convert(C.quo.SF, a.a), C.std_quo.S)
+  x = _reduce(convert(C.quo.gens.SF, a.a), C.quo.std_basis.S)
   return iszero(x)
 end
 
@@ -731,7 +827,6 @@ function hom(F::FreeMod, G::FreeMod)
   @assert base_ring(F) == base_ring(G)
   GH = FreeMod(F.R, F.n * G.n)
   GH.S = [Symbol("($i -> $j)") for i = F.S for j = G.S]
-  Hecke.set_special(GH, :show => Hecke.show_hom, :hom => (F, G))
 
   #list is g1 - f1, g2-f1, g3-f1, ...
   X = Hecke.MapParent(F, G, "homomorphisms")
@@ -753,7 +848,9 @@ function hom(F::FreeMod, G::FreeMod)
     end
     return FreeModuleElem(s, GH)
   end
-  return GH, Hecke.MapFromFunc(im, pre, GH, X)
+  to_hom_map = Hecke.MapFromFunc(im, pre, GH, X)
+  Hecke.set_special(GH, :show => Hecke.show_hom, :hom => (F, G), :module_to_hom_map => to_hom_map)
+  return GH, to_hom_map
 end
 
 function kernel(h::FreeModuleHom)  #ONLY for free modules...
@@ -766,21 +863,21 @@ function kernel(h::FreeModuleHom)  #ONLY for free modules...
   if isa(codomain(h), SubQuo)
     g = [x.a for x = g]
     if isdefined(codomain(h), :quo)
-      append!(g, collect(codomain(h).quo))
+      append!(g, collect(codomain(h).quo.gens))
     end
   end
   #TODO allow sub-quo here as well
   b = ModuleGens(g)
-  k = syzygie_module(b)
+  k = syzygy_module(b)
   if isa(codomain(h), SubQuo)
-    s = collect(k.sub)
+    s = collect(k.sub.gens)
     k = sub(G, [FreeModuleElem(x.r[1:dim(G)], G) for x = s])
   else
     #the syzygie_module creates a new free module to work in
-    k = sub(G, [FreeModuleElem(x.r, G) for x = collect(k.sub)])
+    k = sub(G, [FreeModuleElem(x.r, G) for x = collect(k.sub.gens)])
   end
   @assert k.F == G
-  c = collect(k.sub)
+  c = collect(k.sub.gens)
   return k, hom(k, parent(c[1]), c)
 end
 
@@ -816,7 +913,6 @@ end
 function free_resolution(S::SubQuo, limit::Int = -1)
   p = presentation(S)
   mp = [map(p, j) for j=1:length(p)]
-  D = decoration(S)
   while true
     k, mk = kernel(mp[1])
     nz = findall(x->!iszero(x), gens(k))
@@ -830,7 +926,7 @@ function free_resolution(S::SubQuo, limit::Int = -1)
       break
     end
     F = FreeMod(base_ring(S), length(nz))
-    g = hom(F, codomain(mk), collect(k.sub)[nz])
+    g = hom(F, codomain(mk), collect(k.sub.gens)[nz])
     insert!(mp, 1, g)
   end
   return Hecke.ChainComplex(ModuleFP, mp, check = false, direction = :right)
@@ -851,7 +947,7 @@ function free_resolution(I::MPolyIdeal)
 end
 
 function free_resolution(Q::MPolyQuo)
-  F = free_module(Q.R, 1)
+  F = free_module(Q, 1)
   q = quo(F, [x * gen(F, 1) for x = gens(Q.I)])
   n = Hecke.find_name(Q)
   if n !== nothing
@@ -872,7 +968,7 @@ function hom(M::ModuleFP, N::ModuleFP)
   #kernel g1: k -> R^t1
   #source: Janko's CA script: https://www.mathematik.uni-kl.de/~boehm/lehre/17_CA/ca.pdf
   F = FreeMod(base_ring(M), ngens(k))
-  g2 = hom(F, codomain(mk), collect(k.sub)) #not clean - but maps not (yet) working
+  g2 = hom(F, codomain(mk), collect(k.sub.gens)) #not clean - but maps not (yet) working
   #step 2
   H_s0_t0, mH_s0_t0 = hom(domain(map(p1, 2)), domain(map(p2, 2)))
   H_s1_t1, mH_s1_t1 = hom(domain(map(p1, 1)), domain(map(p2, 1)))
@@ -897,7 +993,6 @@ function hom(M::ModuleFP, N::ModuleFP)
   psi = hom(kDelta[1], H_s0_t0, [psi(g) for g = gens(kDelta[1])])
 
   H = quo(sub(D, kDelta[1]), image(rho)[1])
-  Hecke.set_special(H, :show => Hecke.show_hom, :hom => (M, N))
 
   #x in ker delta: mH_s0_t0(pro[1](x)) should be a hom from M to N
   function im(x::SubQuoElem)
@@ -915,14 +1010,30 @@ function hom(M::ModuleFP, N::ModuleFP)
     return H(preimage(psi, (preimage(mH_s0_t0, g))).a)
     return SubQuoElem(emb[1](preimage(mH_s0_t0, g)), H) #???
   end
-  return H, MapFromFunc(im, pr, H, Hecke.MapParent(M, N, "homomorphisms"))
+  to_hom_map = MapFromFunc(im, pr, H, Hecke.MapParent(M, N, "homomorphisms"))
+  Hecke.set_special(H, :show => Hecke.show_hom, :hom => (M, N), :module_to_hom_map => to_hom_map)
+  return H, to_hom_map
+end
+
+function homomorphism(f::Union{SubQuoElem,FreeModuleElem})
+  H = f.parent
+  to_hom_map = get_special(H, :module_to_hom_map)
+  to_hom_map === nothing && error("element doesn't live in a hom module")  
+  return to_hom_map(f)
+end
+
+function homomorphism_to_module_elem(H::ModuleFP, phi::ModuleMap)
+  to_hom_map = get_special(H, :module_to_hom_map)
+  to_hom_map === nothing && error("module must be a hom module")
+  map_to_hom = to_hom_map.g
+  return map_to_hom(phi)
 end
 
 #TODO
 #  replace the +/- for the homs by proper constructors for homs and direct sums
 #  relshp to store the maps elsewhere
 
-function *(h::FreeModuleHom, g::FreeModuleHom) 
+function *(h::ModuleMap, g::ModuleMap)
   @assert codomain(h) == domain(g)
   return hom(domain(h), codomain(g), [g(h(x)) for x = gens(domain(h))])
 end
@@ -934,7 +1045,7 @@ end
 ##################################################
 function direct_product(F::FreeMod{T}...; task::Symbol = :sum) where {T}
   R = base_ring(F[1])
-  G = FreeMod(R, sum([f.n for f = F]...))
+  G = FreeMod(R, sum([f.n for f = F]))
   G.S = []
   for i = 1:length(F)
     s = "("
@@ -1042,7 +1153,7 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
 
   function pure(g::FreeModuleElem...)
     @assert length(g) == length(G)
-    @assert all(i-> parent(g[i]) == G[i], 1:length(G))
+    @assert all(i -> parent(g[i]) == G[i], 1:length(G))
     z = [[x] for x = g[1].r.pos]
     zz = g[1].r.values
     for h = g[2:end]
@@ -1087,10 +1198,10 @@ end
 gens(F::FreeMod, G::FreeMod) = gens(F)
 gens(F::SubQuo, G::FreeMod) = [x.a for x = gens(F)]
 rels(F::FreeMod) = elem_type(F)[]
-rels(F::SubQuo) = isdefined(F, :quo) ? collect(F.quo) : elem_type(F.F)[]
+rels(F::SubQuo) = isdefined(F, :quo) ? collect(F.quo.gens) : elem_type(F.F)[]
 
 @doc Markdown.doc"""
-    tensor_product(G::ModuleFP...; task::Symbol = :map) -> SubQuo_dec, Map
+    tensor_product(G::ModuleFP...; task::Symbol = :map) -> SubQuo, Map
 
 Given modules $G_i$ compute the tensor product $G_1\otimes \cdots \otimes G_n$.
 If `task` is set to ":map", a map $\phi$ is returned that
@@ -1118,16 +1229,103 @@ end
 #################################################
 #
 #################################################
+function lift_homomorphism_contravariant(Hom_MP::ModuleFP, Hom_NP::ModuleFP, phi::ModuleMap)
+  # phi : N -> M
+  M_P = get_special(Hom_MP, :hom)
+  M_P === nothing && error("Both modules must be hom modules")
+  N_P = get_special(Hom_NP, :hom)
+  N_P === nothing && error("Both modules must be hom modules")
+  
+  @assert M_P[2] === N_P[2]
+  M,P = M_P
+  N,_ = N_P
+  @assert domain(phi) === N
+  @assert codomain(phi) === M
+  
+  phi_lifted = hom(Hom_MP, Hom_NP, [homomorphism_to_module_elem(Hom_NP, phi*homomorphism(f)) for f in gens(Hom_MP)])
+  return phi_lifted
+end
 
+function lift_homomorphism_covariant(Hom_PM::ModuleFP, Hom_PN::ModuleFP, phi::ModuleMap)
+  # phi : M -> N
+  P_M = get_special(Hom_PM, :hom)
+  P_M === nothing && error("Both modules must be hom modules")
+  P_N = get_special(Hom_PN, :hom)
+  P_N === nothing && error("Both modules must be hom modules")
+
+  @assert P_M[1] === P_N[1]
+  P,M = P_M
+  _,N = P_N
+  @assert domain(phi) === M
+  @assert codomain(phi) === N
+
+  if iszero(Hom_PN)
+    return hom(Hom_PM, Hom_PN, [zero(Hom_PN) for _=1:ngens(Hom_PM)])
+  end
+  phi_lifted = hom(Hom_PM, Hom_PN, [homomorphism_to_module_elem(Hom_PN, homomorphism(f)*phi) for f in gens(Hom_PM)])
+  return phi_lifted
+end
+
+function hom_functor(P::ModuleFP, C::Hecke.ChainComplex{ModuleFP})
+  hom_chain = Hecke.map_type(C)[]
+  hom_modules = [hom(P, domain(C.maps[1]))]
+  hom_modules = vcat(hom_modules, [hom(P, codomain(f)) for f = C.maps])
+
+  for i=1:length(C)
+    A = hom_modules[i][1]
+    B = hom_modules[i+1][1]
+
+    push!(hom_chain, lift_homomorphism_covariant(A,B,map(C,i)))
+  end
+  return Hecke.ChainComplex(ModuleFP, hom_chain)
+end
+
+function hom_functor(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
+  hom_chain = Hecke.map_type(C)[]
+  hom_modules = [hom(domain(C.maps[1]),P)]
+  hom_modules = vcat(hom_modules, [hom(codomain(f), P) for f = C.maps])
+
+  for i=1:length(C)
+    A = hom_modules[i][1]
+    B = hom_modules[i+1][1]
+
+    push!(hom_chain, lift_homomorphism_contravariant(B,A,map(C,i)))
+  end
+  return Hecke.ChainComplex(ModuleFP, reverse(hom_chain))
+end
 
 #############################
 function homology(C::Hecke.ChainComplex{ModuleFP})
   H = SubQuo[]
   for i=1:length(C)-1
-    push!(H, quo(kernel(C.maps[i+1])[1], image(C.maps[i])[1])[1])
+    push!(H, quo(kernel(C.maps[i+1])[1], image(C.maps[i])[1]))
   end
   return H
 end
+
+function homology(C::Hecke.ChainComplex{ModuleFP}, i::Int)
+  @assert length(C) > 0 #TODO we need actually only the base ring
+  if i == 0
+    return kernel(map(C,1))[1]
+  elseif i == length(C)
+    return image(map(C,i))[1]
+  elseif i < 0 || i > length(C)
+    return FreeMod(base_ring(obj(C,1)),0)
+  else
+    return quo(kernel(map(C,i+1))[1], image(map(C,i))[1])
+  end
+end
+
+#############################
+# Ext
+#############################
+
+function ext(M::ModuleFP, N::ModuleFP, i::Int)
+  free_res = free_resolution(M)[1:end-2]
+  lifted_resolution = hom_functor(free_res, N) #TODO only three homs are neccessary
+  return homology(lifted_resolution,i)
+end
+
 #############################
 #TODO move to Hecke
 #  re-evaluate and use or not
@@ -1191,3 +1389,42 @@ function _reduce(a::Singular.svector, b::Singular.smodule)
 end
 
 #TODO: tensor_product from Raul's H is broken
+
+
+
+######################################
+# Only for testing
+######################################
+#=using Random
+RNG = Random.MersenneTwister(42)
+
+@doc Markdown.doc"""
+	array_to_matrix(A::Array,R::AbstractAlgebra.Ring = parent(A[1,1]))
+> Return $A$ as an AbstractAlgebra Matrix
+"""
+function array_to_matrix(A::Array,R::Ring = parent(A[1,1]))
+	Mat = AbstractAlgebra.MatrixSpace(R,size(A)...)
+	return Mat(R.(A))
+end
+
+@doc Markdown.doc"""
+	randpoly(R::Union{Nemo.PolyRing,Nemo.MPolyRing},coeffs=0:9,max_exp=4,max_terms=8)
+> Return a random Polynomial from the Polynomial Ring $R$ with coefficients in $coeffs$
+> with exponents between $0$ and $max_exp$ und between $0$ and $max_terms$ terms
+"""
+function randpoly(R::Ring,coeffs=0:9,max_exp=4,max_terms=8)
+	n = nvars(R)
+	K = base_ring(R)
+	E = [[Random.rand(RNG,0:max_exp) for i=1:n] for j=1:max_terms]
+	C = [K(Random.rand(RNG,coeffs)) for i=1:max_terms]
+	M = MPolyBuildCtx(R)
+	for i=1:max_terms
+		push_term!(M,C[i],E[i])
+	end
+	return finish(M)
+end
+
+function matrix_to_map(A::AbstractAlgebra.MatElem, M::FreeMod, N::FreeMod)
+  A = sparse_matrix(A)
+  return Oscar.hom(M,N, [FreeModuleElem(A[i],N) for i=1:nrows(A)])
+end=#
