@@ -38,7 +38,7 @@ _SL_order(n::Int, F::Ring) = _SL_order(n, order(F))
 # generators for GL(n,q) and SL(n,q) are described in: 
 # Taylor, D. E., Pairs of Generators for Matrix Groups. I, The Cayley Bulletin, 3 (1987)
 
-# returns as matrices
+# returns elements of type MatElem{T}
 # returns a generating set for GL(n,F) of at most two elements
 function _gens_for_GL(n::Int, F::FinField)
    n !=1 || return [matrix(F,1,1,[primitive_element(F)])]
@@ -57,7 +57,7 @@ function _gens_for_GL(n::Int, F::FinField)
    return [h1,h2]
 end
 
-# returns as matrices
+# returns elements of type MatElem{T}
 # does the same as above with the following changes:
 # the field F is replaced by F = F[x]/(f);
 # every entry y is replaced by a diagonal join of D copies of phi(y),
@@ -289,7 +289,7 @@ end
 # generators for GL(n,q) and SL(n,q) are described in:
 # Taylor, D. E., Pairs of Generators for Matrix Groups. I, The Cayley Bulletin, 3 (1987)
 
-# returns as matrices
+# returns elements of type MatElem{T}
 # returns a generating set for SL(n,F) of at most two elements
 function _gens_for_SL(n::Int, F::FinField)
    n != 1 || return dense_matrix_type(F)[]
@@ -309,7 +309,7 @@ function _gens_for_SL(n::Int, F::FinField)
    return [h1,h2]
 end
 
-# returns as matrices
+# returns elements of type MatElem{T}
 # does the same as above with the following changes:
 # the field F is replaced by F = F[x]/(f);
 # every entry y is replaced by a diagonal join of D copies of phi(y),
