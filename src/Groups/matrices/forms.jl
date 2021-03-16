@@ -295,15 +295,16 @@ function gram_matrix(f::SesquilinearForm)
    V = collect(exponent_vectors(f.pol))
    C = collect(coeffs(f.pol))
    for i in 1:length(V)
+      x = y = 0
       for j in 1:d
          if V[i][j] !=0
-            global x = j
+            x = j
             break
          end
       end
       for j in 1:d
          if V[i][d+1-j] !=0
-            global y = d+1-j
+            y = d+1-j
             break
          end
       end
