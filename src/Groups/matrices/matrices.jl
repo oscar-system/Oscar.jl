@@ -5,4 +5,7 @@ include("matrix_manipulation.jl")
 include("linear_centralizer.jl")
 include("linear_isconjugate.jl")
 include("forms.jl")
+<<<<<<< HEAD
 
+=======
+>>>>>>> Correct a wrong employment of global
