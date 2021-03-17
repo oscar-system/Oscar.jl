@@ -15,18 +15,33 @@ InstallMethod( RayGenerators,
                [ IsCone ],
                
     function( cone )
-    local input_rays;
+    local input_rays, string_list, command_string, s, l;
     
-    # find the input rays
-    input_rays := [ Concatenation( [ 1 ], cone!.input_rays[ 1 ] ) ];
+    # compute the ray generators in Polymake
+    if PolymakeAvailable() then
+        
+        # Parse the rays into format recognized by Polymake
+        input_rays := cone!.input_rays;
+        string_list := List( [ 1 .. Length( input_rays ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( input_rays[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
+        command_string := Concatenation( "F = Julia.Polymake.polytope.Cone( INPUT_RAYS = [ ", JoinStringsWithSeparator( string_list, "; " ), " ] ).RAYS" );
+        
+        # issue command in Julia and fetch result as string
+        JuliaEvalString( command_string );
+        s := JuliaToGAP( IsString, Julia.string( Julia.F ) );
+        
+        # cast the result into a list of integers
+        string_list := SplitString( s, '\n' );
+        string_list := List( [ 2 .. Length( string_list ) ], i -> Concatenation( "[", ReplacedString( string_list[ i ], " ", "," ), "]" ) );
+        l := EvalString( Concatenation( "[", JoinStringsWithSeparator( string_list, "," ), "]" ) );
+        
+        #return Cdd_GeneratingRays( ExternalCddCone( cone ) );
+        #Error( "Test new method" );
+        return l;
+        
+    fi;
     
-    # create polyhedron by generators in polymake
-    # finds the ry generators and return them
-    
-    Error( "Test new method" );
-    return false;
-    
-    #return Cdd_GeneratingRays( ExternalCddCone( cone ) );
+    # otherwise try next method
+    TryNextMethod();
     
 end );
 
@@ -40,7 +55,7 @@ InstallMethod( ExternalPolymakeCone,
    
    new_list:= [ ];
    if IsBound( cone!.input_rays ) and Length( cone!.input_rays )= 1 and IsZero( cone!.input_rays ) then
-   
+        
       new_list:= [ Concatenation( [ 1 ], cone!.input_rays[ 1 ] ) ];
       
       return false;
