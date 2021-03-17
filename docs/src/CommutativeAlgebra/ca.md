@@ -458,11 +458,11 @@ iscohenmacaulay(R)
 #### Constructors
 
 ```@docs
-hom(D::MPolyQuo, C::MPolyQuo, V::Vector)
+function AlgebraHomomorphism(D::U, C::W, V::Vector{X}) where {T, U <: Union{MPolyRing{T}, MPolyQuo}, W <: Union{MPolyRing{T}, MPolyQuo}, X <: Union{MPolyElem{T}, MPolyQuoElem}}
 ```
-###### Example
 
 #### Data Associated to Homomorphisms of Affine Algebras
+
 
 ```@docs
 domain(F::AlgHom)
@@ -471,6 +471,39 @@ domain(F::AlgHom)
 ```@docs
 codomain(F::AlgHom)
 ```
+
+```@docs
+preimage(F::AlgHom, I::U) where U <: Union{MPolyIdeal, MPolyQuoIdeal}
+```
+
+```@docs
+kernel(F::AlgHom)
+```
+
+###### Examples
+
+```@repl oscar
+D1, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
+C1, (s,t) = PolynomialRing(QQ, ["s", "t"])
+V1 = [s^3, s^2*t, s*t^2, t^3]
+para = hom(D1, C1, V1)
+twistedCubic = kernel(para)
+C2, _ = quo(D1, twistedCubic)
+D2, (a, b, b) = PolynomialRing(QQ, ["a", "b", "c"])
+V2 = [w-y, x, z]
+proj = hom(D2, C2, V2)
+nodalCubic = kernel(proj)
+```
+
+```@repl oscar
+D3,y = PolynomialRing(QQ, :y => 1:3)
+C3, x = PolynomialRing(QQ, :x => 1:3)
+V3 = [x[1]*x[2], x[1]*x[3], x[2]*x[3]]
+F3 = hom(D3, C3, V3)
+sphere = ideal(C3, [x[1]^3 + x[2]^3  + x[3]^3 - 1])
+steinerRomanSurface = preimage(F3, sphere)
+```
+
 #### Tests on Homomorphisms of Affine Algebras
 
 ```@docs
@@ -487,6 +520,26 @@ isbijective(F::AlgHom)
 
 ```@docs
 isfinite(F::AlgHom)
+```
+
+###### Examples
+
+```@repl oscar
+D, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+S, (a, b, c) = PolynomialRing(QQ, ["a", "b", "c"])
+C, p = quo(S, ideal(S, [c-b^3]))
+V = [p(2*a + b^6), p(7*b - a^2), p(c^2)]
+F = hom(D, C, V)
+issurjective(F)
+D1, _ = quo(D, kernel(F))
+F1 = hom(D1, C, V)
+isbijective(F1)
+```
+
+#### Composition of Homomorphisms of Affine Algebras
+
+```@docs
+compose(F::AlgHom, G::AlgHom)
 ```
 
 ### Noether Normalization
