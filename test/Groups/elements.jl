@@ -78,13 +78,22 @@ end
    @test eltype(direct_product(symmetric_group(3),cyclic_group(2)))==Oscar.BasicGAPGroupElem{DirectProductGroup}
    @test eltype(SemidirectProductGroup)==Oscar.BasicGAPGroupElem{SemidirectProductGroup}
    @test eltype(WreathProductGroup)==Oscar.BasicGAPGroupElem{WreathProductGroup}
-   @test eltype(AutomorphismGroup)==Oscar.BasicGAPGroupElem{AutomorphismGroup}
    @test eltype(AutomorphismGroup{PcGroup})==Oscar.BasicGAPGroupElem{AutomorphismGroup{PcGroup}}
-   @test eltype(GroupConjClass)==GAPGroupElem
-   @test eltype(GroupConjClass{PermGroup,PermGroupElem})==PermGroupElem
-   @test eltype(GroupConjClass{PcGroup,PcGroup})==PcGroup
-   @test eltype(GroupCoset)==GAPGroupElem
-   @test eltype(GroupCoset{PermGroup,PermGroupElem})==PermGroupElem
+
+   G = symmetric_group(5)
+   x = cperm([1,4,2,5])
+   H = sub(G,[x])[1]
+   y = cperm(G,[2,3,4])
+   cc = conjugacy_class(G,y)
+   cs = conjugacy_class(G,H)
+   ls = x*H
+   @test [z for z in G] == @inferred collect(G)
+   @test [z for z in cc] == @inferred collect(cc)
+   @test [z for z in cs] == @inferred collect(cs)
+   @test [z for z in lc] == @inferred collect(lc)
+   @test eltype(cc)==typeof(y)
+   @test eltype(cs)==typeof(H)
+   @test eltype(lc)==typeof(y)
    @test eltype(GroupDoubleCoset{PcGroup,PcGroupElem})==PcGroupElem
 end
 
