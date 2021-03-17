@@ -77,7 +77,7 @@ end
    
    R,t=PolynomialRing(F,"t")
    f = t^4+2*t^3+4*t+1
-   @test evaluate(f,identity_matrix(F,6))==f(1)*identity_matrix(F,6)
+   @test f(identity_matrix(F,6))==f(1)*identity_matrix(F,6)
    @test_throws ArgumentError conjugate_transpose(x)
    @test issymmetric(P+transpose(P))
    @test isskewsymmetric_matrix(P-transpose(P))
@@ -132,7 +132,7 @@ end
    @test collect(coefficients(f1))==collect(coefficients(f))
    F1 = GF(3,1)[1]
    @test base_ring(f1)==F1
-   x = evaluate(Oscar._centralizer(f1), companion_matrix(f1))
+   x = Oscar._centralizer(f1)(companion_matrix(f1))
    @test order(GL(2,F1)(x))==8
    K,z = FiniteField(f,"z")
    @test z^4==1
