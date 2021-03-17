@@ -41,7 +41,7 @@ end
   h = hom(S, R, [I1, I2, I3])
   @test kernel(h) == ideal(S, [a^2*b - 4*b^2 - c^2])
   @test h(gen(S, 1)) == I1
-  @test image(h, ideal(S, [a,b])) == ideal(R, [I1, I2])
+  @test h.([a,b]) == [I1, I2]
   @test preimage(h, ideal(R, [I2, I3])) == ideal(S, [b, c])
 end
 

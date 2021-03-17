@@ -22,7 +22,7 @@ function dehomogenization(r::MPolyRing{S}, F::Oscar.MPolyElem_dec{S}, i::Int) wh
   V = gens(r)
   insert!(V, i, r(1))
   phi = hom(R.R, r, V)
-  return phi(F)
+  return phi(F.f)
 end
 
 ################################################################################
@@ -203,8 +203,8 @@ function curve_intersect(PP::Oscar.Geometry.ProjSpc{S}, C::ProjPlaneCurve{S}, D:
   end
   rr, (x,) = PolynomialRing(R.R.base_ring, ["x"])
   phi = hom(R.R, rr, [gen(rr, 1), rr(1), rr(0)])
-  phiF = phi(F)
-  phiH = phi(H)
+  phiF = phi(F.f)
+  phiH = phi(H.f)
   g = gcd(phiF, phiH)
   f = factor(g)
   ro = []
@@ -275,10 +275,10 @@ function curve_singular_locus(PP::Oscar.Geometry.ProjSpc{S}, C::ProjPlaneCurve{S
   R = parent(C.eq)
   rr, (x) = PolynomialRing(R.R.base_ring, ["x"])
   phi = hom(R.R, rr, [gen(rr, 1), rr(1), rr(0)])
-  pF = phi(D.eq)
-  pX = phi(FX)
-  pY = phi(FY)
-  pZ = phi(FZ)
+  pF = phi(D.eq.f)
+  pX = phi(FX.f)
+  pY = phi(FY.f)
+  pZ = phi(FZ.f)
   I = ideal([pF, pX, pY, pZ])
   g = groebner_basis(I, :lex, complete_reduction=true)
   f = factor(g[1])

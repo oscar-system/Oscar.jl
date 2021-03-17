@@ -465,28 +465,28 @@ hom(D::MPolyQuo, C::MPolyQuo, V::Vector)
 #### Data Associated to Homomorphisms of Affine Algebras
 
 ```@docs
-domain(F::MPolyQuoHom)
+domain(F::AlgHom)
 ```
 
 ```@docs
-codomain(F::MPolyQuoHom)
+codomain(F::AlgHom)
 ```
 #### Tests on Homomorphisms of Affine Algebras
 
 ```@docs
-isinjective(F::MPolyQuoHom)
+isinjective(F::AlgHom)
 ```
 
 ```@docs
-issurjective(F::MPolyQuoHom)
+issurjective(F::AlgHom)
 ```
 
 ```@docs
-isbijective(F::MPolyQuoHom)
+isbijective(F::AlgHom)
 ```
 
 ```@docs
-isfinite(F::MPolyQuoHom)
+isfinite(F::AlgHom)
 ```
 
 ### Noether Normalization
