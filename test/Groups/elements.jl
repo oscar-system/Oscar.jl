@@ -86,11 +86,15 @@ end
    y = cperm(G,[2,3,4])
    cc = conjugacy_class(G,y)
    cs = conjugacy_class(G,H)
-   ls = x*H
+   lc = x*H
    @test [z for z in G] == @inferred collect(G)
    @test [z for z in cc] == @inferred collect(cc)
    @test [z for z in cs] == @inferred collect(cs)
-   @test [z for z in lc] == @inferred collect(lc)
+   @test [z for z in lc] == collect(lc)
+   @test typeof(collect(G))==Vector{typeof(x)}
+   @test typeof(collect(lc))==Vector{typeof(x)}
+   @test typeof(collect(cc))==Vector{typeof(x)}
+   @test typeof(collect(cs))==Vector{typeof(H)}
    @test eltype(cc)==typeof(y)
    @test eltype(cs)==typeof(H)
    @test eltype(lc)==typeof(y)

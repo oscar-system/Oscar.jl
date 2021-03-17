@@ -142,14 +142,12 @@ If `C` = `Hx` or `xH`, return `x`.
 """
 representative(C::GroupCoset) = C.repr
 
-function elements(C::GroupCoset)
-  L = GAP.Globals.AsList(C.X)
-  l = Vector{elem_type(C.G)}(undef, length(L))
-  for i = 1:length(l)
-    l[i] = group_element(C.G, L[i])
-  end
-  return l
-end
+"""
+    elements(C::GroupCoset)
+
+Return the array of all elements of the coset `C`.
+"""
+elements(C::GroupCoset) = collect(C)
 
 """
     isbicoset(C::GroupCoset)
@@ -310,14 +308,7 @@ end
 
 Return the array of all elements of the double coset `C`.
 """
-function elements(C::GroupDoubleCoset)
-  L = GAP.Globals.AsList(C.X)
-  l = Vector{elem_type(C.G)}(undef, length(L))
-  for i = 1:length(l)
-    l[i] = group_element(C.G, L[i])
-  end
-  return l
-end
+elements(C::GroupDoubleCoset) = collect(C)
 
 """
     order(C::Union{GroupCoset,GroupDoubleCoset})
