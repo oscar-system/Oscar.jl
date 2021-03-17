@@ -11,3 +11,4 @@
 
 ReadPackage( "Convex", "gap/Functions.gi" );
 ReadPackage( "Convex", "gap/Polytope.gi" );
+ReadPackage( "Convex", "gap/Cone.gi" );
