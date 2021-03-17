@@ -61,7 +61,7 @@ end
 ################################################################################
 
 function Oscar.discriminant(E::AffineEllipticCurve)
-   return Hecke.disc(E.Hecke_ec)
+   return Hecke.discriminant(E.Hecke_ec)
 end
 
 function Oscar.issmooth(E::AffineEllipticCurve)
