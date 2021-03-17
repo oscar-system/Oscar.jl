@@ -7,7 +7,7 @@
 # TODO: when this happens, files mentioned above need to be modified too.
 
 import AbstractAlgebra: FieldElem, map, Ring
-import Hecke: evaluate, multiplicative_jordan_decomposition, PolyElem, _rational_canonical_form_setup, refine_for_jordan
+import Hecke: multiplicative_jordan_decomposition, PolyElem, _rational_canonical_form_setup, refine_for_jordan
 
 export
     block_matrix,
@@ -86,10 +86,6 @@ function diagonal_join(V::AbstractVector{T}) where T <: MatElem
 end
 
 diagonal_join(V::T...) where T <: MatElem = diagonal_join(collect(V))
-
-#=
-diagonal_join(V::T...) where T <: MatElem = cat(V; dims=(1,2))
-=#
 
 """
     block_matrix(m::Int, n::Int, V::AbstractVector{T}) where T <: MatElem
@@ -196,20 +192,7 @@ end
 
 permutation_matrix(F::Ring, p::PermGroupElem) = permutation_matrix(F, listperm(p))
 
-"""
-    evaluate(f::PolyElem, X::MatElem)
-
-Evaluate the polynomial `f` in the matrix `X`.
-"""
-function evaluate(f::PolyElem, X::MatElem)
-   B = zero(X)
-   C = one(X)
-   for i in 0:degree(f)
-      B += C*base_ring(X)(coeff(f,i))
-      C *= X
-   end
-   return B
-end
+^(a::MatElem, b::fmpz) = Hecke._generic_power(a, b)
 
 ########################################################################
 #

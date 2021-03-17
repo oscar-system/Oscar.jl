@@ -67,7 +67,7 @@ end
 # ASSUMPTION: deg(f) > 1
 function _gens_for_GL_matrix(f::PolyElem, n::Int, F::FinField; D::Int=1)
    C = companion_matrix(f)
-   CP = evaluate(_centralizer(f),C)            # matrix of maximal order in the centralizer of the companion matrix
+   CP = _centralizer(f)(C)            # matrix of maximal order in the centralizer of the companion matrix
    Df = degree(f)*D
 
    if n==1 return [diagonal_join([CP for i in 1:D])] end
@@ -319,7 +319,7 @@ end
 # ASSUMPTION: deg(f) > 1
 function _gens_for_SL_matrix(f::PolyElem, n::Int, F::FinField; D::Int=1)
    C = companion_matrix(f)
-   CP = evaluate(_centralizer(f),C)            # matrix of maximal order in the centralizer of the companion matrix
+   CP = _centralizer(f)(C)            # matrix of maximal order in the centralizer of the companion matrix
    CPi = inv(CP)
    Df = D*degree(f)
 
@@ -363,7 +363,7 @@ function _centralizer_SL(x::MatElem)
    pos=1
    f=ED[1][1]
    V=[ED[1][2]]
-   c = evaluate(_centralizer(f), companion_matrix(f))
+   c = _centralizer(f)(companion_matrix(f))
    # Computes d such that det(c)^d = lambda and replace c by c^d.
    # The result c^d is a primitive root for the base ring of x such that det(c^d) = lambda
    c = c^(_disc_log(det(c),_lambda))
@@ -389,7 +389,7 @@ function _centralizer_SL(x::MatElem)
          if i<=length(ED)
             f = ED[i][1]
             V = [ED[i][2]]
-            c = evaluate(_centralizer(f), companion_matrix(f))
+            c = _centralizer(f)(companion_matrix(f))
             # Computes d such that det(c)^d = lambda and replace c by c^d.
             # The result c^d is a primitive root for the base ring of x such that det(c^d) = lambda
             c = c^(_disc_log(det(c),_lambda))
