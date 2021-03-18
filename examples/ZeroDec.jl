@@ -167,8 +167,8 @@ function primaryTest(I::Singular.sideal, usefglm::Bool = false)
       #Similar to the previous Singular implementation, multiply with a factor to that there appear no fractions
       m = indexOfVarN(I, n);
       e = Singular.total_degree(Singular.lt(I[m])); 
-      t = Singular.lc(I[m])*e*gen(R, n)+ div((tail(I[m])), gen(R, n)^(e-1));
-      I[m] = (R(e)^e)*R((lc(I[m])^(e-1)))*I[m];
+      t = Singular.leading_coefficient(I[m])*e*gen(R, n)+ div((tail(I[m])), gen(R, n)^(e-1));
+      I[m] = (R(e)^e)*R((leading_coefficient(I[m])^(e-1)))*I[m];
       #This implies I was not in general position
       if Singular.reduce(I[m] - t^e, prm) != 0 
         return Ideal(R, R(0))
