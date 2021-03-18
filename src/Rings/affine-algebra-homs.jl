@@ -150,16 +150,19 @@ function _type_helper(R)
 end
 
 @doc Markdown.doc"""
-    function AlgebraHomomorphism(D::U, C::W, V::Vector{X}) where {T, U <: Union{MPolyRing{T}, MPolyQuo}, W <: Union{MPolyRing{T}, MPolyQuo}, X <: Union{MPolyElem{T}, MPolyQuoElem}}
+    AlgebraHomomorphism(D::U, C::W, V::Vector{X}) where 
+    {T, U <: Union{MPolyRing{T}, MPolyQuo}, 
+    W <: Union{MPolyRing{T}, MPolyQuo}, 
+    X <: Union{MPolyElem{T}, MPolyQuoElem}}
 
 Creates the algebra homomorphism $D \rightarrow C$ defined by sending the $i$th generator of $D$ to the $i$th element of $V$. 
-Allows types `MPolyRing` and `MPolyQuo` for $C$ and $D$ as well asxxxxxxxxs entries of type `MPolyElem` and `MPolyQuoElem` for `X`.
+Allows types `MPolyRing` and `MPolyQuo` for $C$ and $D$ as well as entries of type `MPolyElem` and `MPolyQuoElem` for `X`.
 Alternatively, use `hom(D::U, C::W, V::Vector{X})`.
 """
-function AlgebraHomomorphism(D::U, C::W, V::Vector{X}) where {T, 
-  U <: Union{MPolyRing{T}, MPolyQuo}, W <: Union{MPolyRing{T}, MPolyQuo}, 
-  X <: Union{MPolyElem{T}, MPolyQuoElem}}
-
+function AlgebraHomomorphism(D::U, C::W, V::Vector{X}) where 
+    {T, U <: Union{MPolyRing{T}, MPolyQuo}, 
+    W <: Union{MPolyRing{T}, MPolyQuo}, 
+    X <: Union{MPolyElem{T}, MPolyQuoElem}}
    n = length(V)
    @assert n == ngens(D)
    ty = _type_helper(D)

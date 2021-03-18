@@ -458,7 +458,10 @@ iscohenmacaulay(R)
 #### Constructors
 
 ```@docs
-function AlgebraHomomorphism(D::U, C::W, V::Vector{X}) where {T, U <: Union{MPolyRing{T}, MPolyQuo}, W <: Union{MPolyRing{T}, MPolyQuo}, X <: Union{MPolyElem{T}, MPolyQuoElem}}
+AlgebraHomomorphism(D::U, C::W, V::Vector{X}) where 
+{T, U <: Union{MPolyRing{T}, MPolyQuo}, 
+W <: Union{MPolyRing{T}, MPolyQuo}, 
+X <: Union{MPolyElem{T}, MPolyQuoElem}}
 ```
 
 #### Data Associated to Homomorphisms of Affine Algebras
