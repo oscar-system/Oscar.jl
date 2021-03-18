@@ -163,7 +163,7 @@ function Oscar.interpolate(Val::Vals{T}, M::MPolyInterpolateCtx) where {T}
         set_status!(M, :univariate_failed)
         return false, zero(M.R) # more z
       end
-      t = inv(trail(mu[3]))
+      t = inv(trailing_coefficient(mu[3]))
       push!(nd, (mu[2]*t, mu[3]*t))
     end
     Val.nd = nd
