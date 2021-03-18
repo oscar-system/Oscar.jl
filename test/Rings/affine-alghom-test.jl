@@ -1,17 +1,21 @@
 @testset "algebra homomorphisms" begin
-  r, (x, y, z, t) = PolynomialRing(QQ, ["x", "y", "z", "t"])
+  r, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
   s, (a, b, c) = PolynomialRing(QQ, ["a", "b", "c"])
   S = quo(s, ideal(s, [c-b^3]))[1]
-  V = S.([2*a+b^6, 7*b-a^2, c^2, zero(s)])
-  phi = hom(r, S, V)
-  K = kernel(phi)
+  V = S.([2*a+b^6, 7*b-a^2, c^2])
+  f = hom(r, S, V)
+  K = kernel(f)
   R = quo(r, K)[1]
-  psi = hom(R, S, V)
-  
+  phi = hom(R, S, V)
+  psi = inverse(phi)
+
+  @test issurjective(f) == true
+  @test isinjective(f) == false
+  @test isbijective(f) == false
+  @test isfinite(f) == true
   @test issurjective(phi) == true
-  @test isinjective(phi) == false
-  @test isbijective(phi) == false
-  @test issurjective(psi) == true
-  @test isinjective(psi) == true
-  @test isbijective(psi) == true
+  @test isinjective(phi) == true
+  @test isbijective(phi) == true
+  @test isfinite(phi) == true
 end
+
