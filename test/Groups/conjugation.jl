@@ -33,7 +33,7 @@
   cc = conjugacy_class(G,x)
 
   @test length(cc) == 3
-  @test Set(collect(cc)) == Set([x^y for y in G])
+  @test Set(collect(cc)) == Set(x^y for y in G)
   y = rand(cc)
   @test y in collect(cc)
   @test order(y) == 2
