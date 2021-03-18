@@ -230,6 +230,42 @@ function ishermitian_matrix(B::MatElem{T}) where T <: FinFieldElem
    return true
 end
 
+# return (true, h) if y = hx, (false, nothing) otherwise
+# FIXME: at the moment, works only for fields
+function _is_scalar_multiple_mat(x::MatElem{T}, y::MatElem{T}) where T <: RingElem
+   F=base_ring(x)
+   F==base_ring(y) || return (false, nothing)
+   nrows(x)==nrows(y) || return (false, nothing)
+   ncols(x)==ncols(y) || return (false, nothing)
+
+   if x==0
+      if y==0 return (true, F(1))
+      else return (false, nothing)
+      end
+   end
+
+
+   found = false
+   for i in 1:nrows(x)
+   for j in 1:ncols(x)
+      if x[i,j] !=0
+         global h = y[i,j] * x[i,j]^-1
+         found = true
+         break
+      end
+   end
+   if found==true break end
+   end
+
+   for i in 1:nrows(x)
+   for j in 1:ncols(x)
+     if y[i,j] != h*x[i,j] return (false, nothing) end
+   end
+   end
+
+   return (true,h)
+end
+
 ########################################################################
 #
 # New operations
