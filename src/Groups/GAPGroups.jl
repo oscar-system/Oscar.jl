@@ -457,7 +457,6 @@ struct GroupConjClass{T<:GAPGroup, S<:Union{GAPGroupElem,GAPGroup}}
 end
 
 Base.eltype(::Type{GroupConjClass{T,S}}) where {T,S} = S
-Base.eltype(::Type{GroupConjClass}) = GAPGroupElem
 Base.hash(x::GroupConjClass, h::UInt) = h # FIXME
 
 function Base.show(io::IO, x::GroupConjClass)
@@ -498,7 +497,7 @@ end
 
 Return the array of the elements in C.
 """
-elements(C::GroupConjClass{S, T}) where {S,T} = collect(C)
+elements(C::GroupConjClass) = collect(C)
 
 """
     conjugacy_classes(G::Group)
@@ -615,20 +614,9 @@ end
 # START iterator
 Base.IteratorSize(::Type{<:GroupConjClass}) = Base.SizeUnknown()
 
-function Base.iterate(cc::GroupConjClass{S,T}) where {S,T}
-  L=GAP.Globals.Iterator(cc.CC)
-  if GAP.Globals.IsDoneIterator(L)
-    return nothing
-  end
-  i = GAP.Globals.NextIterator(L)
-  if T <: GAPGroupElem
-     return group_element(cc.X, i), L
-  else
-     return _as_subgroup(cc.X, i)[1], L
-  end
-end
+Base.iterate(cc::GroupConjClass) = iterate(CC, GAP.Globals.Iterator(cc.CC))
 
-function Base.iterate(cc::GroupConjClass{S,T}, state) where {S,T}
+function Base.iterate(cc::GroupConjClass, state::GapObj)
   if GAP.Globals.IsDoneIterator(state)
     return nothing
   end
