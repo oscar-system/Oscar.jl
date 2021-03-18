@@ -686,7 +686,7 @@ function minpoly(a::NfNSGenElem)
         v[j] = N[2][j, 1]
       end
       f = Qt(v)
-      return f*inv(lead(f))
+      return f*inv(leading_coefficient(f))
     end
     z *= a
     elem_to_mat_row!(M, i+1, z)
