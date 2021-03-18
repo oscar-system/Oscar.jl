@@ -181,7 +181,7 @@ end
       @test representative(rc) == x
       @test representative(lc) == x
       @test representative(dc) == x
-      @test Set(collect(rc)) == Set(z for z in rc)          # test iterator
+      @test length(collect(rc)) == length(rc)
       @test Set(collect(rc)) == Set(h*x for h in H)
       @test Set(collect(lc)) == Set(x*h for h in H)
       @test Set(h for h in dc) == Set(h*x*k for h in H for k in K)

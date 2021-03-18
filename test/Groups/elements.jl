@@ -92,8 +92,8 @@ end
    @test [z for z in G] == @inferred collect(G)
    @test [z for z in cc] == @inferred collect(cc)
    @test [z for z in cs] == @inferred collect(cs)
-   @test [z for z in lc] == collect(lc)
-   @test [z for z in dc] == collect(dc)
+   @test [z for z in lc] == @inferred collect(lc)
+   @test [z for z in dc] == @inferred collect(dc)
    @test typeof(collect(G))==Vector{typeof(x)}
    @test typeof(collect(lc))==Vector{typeof(x)}
    @test typeof(collect(cc))==Vector{typeof(x)}
