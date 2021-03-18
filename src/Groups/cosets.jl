@@ -2,7 +2,7 @@ export
     acting_domain,
     double_coset,
     double_cosets,
-    elements,
+#    elements,
     GroupCoset,
     GroupDoubleCoset,
     isbicoset,
@@ -141,12 +141,7 @@ If `C` = `Hx` or `xH`, return `x`.
 """
 representative(C::GroupCoset) = C.repr
 
-"""
-    elements(C::GroupCoset)
-
-Return the array of all elements of the coset `C`.
-"""
-elements(C::GroupCoset) = collect(C)
+@deprecate elements(C::GroupCoset) collect(C)
 
 """
     isbicoset(C::GroupCoset)
@@ -209,14 +204,7 @@ function left_transversal(G::T, H::T) where T<: GAPGroup
    return [x^-1 for x in right_transversal(G,H)]
 end
 
-function Base.iterate(G::GroupCoset)
-  L=GAP.Globals.Iterator(G.X)
-  if GAP.Globals.IsDoneIterator(L)
-    return nothing
-  end
-  i = GAP.Globals.NextIterator(L)
-  return group_element(G.G, i), L
-end
+Base.iterate(G::GroupCoset) = iterate(G, GAP.Globals.Iterator(G.X))
 
 function Base.iterate(G::GroupCoset, state)
   if GAP.Globals.IsDoneIterator(state)
@@ -301,12 +289,7 @@ function double_cosets(G::T, H::T, K::T; NC=false) where T<: GAPGroup
    #return [GroupDoubleCoset(G,H,K,group_element(G.X,GAP.Globals.Representative(dc)),dc) for dc in dcs]
 end
 
-"""
-    elements(C::GroupDoubleCoset)
-
-Return the array of all elements of the double coset `C`.
-"""
-elements(C::GroupDoubleCoset) = collect(C)
+@deprecate elements(C::GroupDoubleCoset) collect(C)
 
 """
     order(C::Union{GroupCoset,GroupDoubleCoset})

@@ -492,12 +492,7 @@ function Base.rand(C::GroupConjClass{S,T}) where S where T<:GAPGroupElem
    return group_element(C.X, GAP.Globals.Random(C.CC))
 end
 
-"""
-    elements(C::GroupConjClass)
-
-Return the array of the elements in C.
-"""
-elements(C::GroupConjClass) = collect(C)
+@deprecate elements(C::GroupConjClass) collect(C)
 
 """
     conjugacy_classes(G::Group)
@@ -614,9 +609,9 @@ end
 # START iterator
 Base.IteratorSize(::Type{<:GroupConjClass}) = Base.SizeUnknown()
 
-Base.iterate(cc::GroupConjClass) = iterate(CC, GAP.Globals.Iterator(cc.CC))
+Base.iterate(cc::GroupConjClass) = iterate(cc, GAP.Globals.Iterator(cc.CC))
 
-function Base.iterate(cc::GroupConjClass, state::GapObj)
+function Base.iterate(cc::GroupConjClass{S,T}, state::GapObj) where {S,T}
   if GAP.Globals.IsDoneIterator(state)
     return nothing
   end
