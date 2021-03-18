@@ -106,7 +106,7 @@ function isUnital(I::Singular.sideal)
                 if !isBinomial(I[i])
                         return false
                 end
-        c = collect(coeffs(I[i]))
+        c = collect(coefficients(I[i]))
                 if length(c)==2 && c[1]==1 && c[2]==-1
                         counter=counter+1
                 end
@@ -187,7 +187,7 @@ function monomialFromVector(a::Array{Int64,1}, R::Singular.PolyRing)
 end
 
 function lead_coeff(f::Singular.spoly)
-    return first(coeffs(f))
+    return first(coefficients(f))
 end
 
 function matrixFromArray(A::Array{Int64,1})

@@ -20,7 +20,7 @@
 
   @test collect(terms(f, :deglex)) == [ 5z^3, x*y ]
   @test collect(exponent_vectors(f, :deglex)) == [ [ 0, 0, 3 ], [ 1, 1, 0 ] ]
-  @test collect(coeffs(f, :deglex)) == [ QQ(5), QQ(1) ]
+  @test collect(coefficients(f, :deglex)) == [ QQ(5), QQ(1) ]
 
   Fp = FiniteField(7)
   R, (x, y, z) = PolynomialRing(Fp, 3, ordering = :deglex)

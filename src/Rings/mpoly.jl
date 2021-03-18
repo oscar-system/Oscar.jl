@@ -502,7 +502,7 @@ function (Ox::MPolyRing)(f::Singular.spoly)
   Sx = parent(f)
   @assert ngens(Sx) == ngens(Ox)
   g = MPolyBuildCtx(Ox)
-  for (c, e) = Base.Iterators.zip(Singular.coeffs(f), Singular.exponent_vectors(f))
+  for (c, e) = Base.Iterators.zip(Singular.coefficients(f), Singular.exponent_vectors(f))
     push_term!(g, O(c), e)
   end
   return finish(g)
@@ -1084,7 +1084,7 @@ function terms(f::MPolyElem, ord::Function)
   return ( term(f, perm[i]) for i = 1:length(f) )
 end
 
-function coeffs(f::MPolyElem, ord::Function)
+function coefficients(f::MPolyElem, ord::Function)
   perm = _perm_of_terms(f, ord)
   return ( coeff(f, perm[i]) for i = 1:length(f) )
 end
