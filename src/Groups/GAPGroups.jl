@@ -323,7 +323,7 @@ permutation `x = (a_1,a_2,...,a_n)(b_1,b_2,...,b_m)...`. The array `[n,n+1,...,n
   
 If a list is empty or contains duplicates, it fails.
 The parent of `x` is `G`. If `x` is not contained in `G`, an ERROR is returned. If `G` is not specified, then the parent of `x` is set as Sym(`n`), where `n` is the largest moved point of `x`. Example:
-```jldoctest;
+```jldoctest
 julia> cperm([1,2,3],4:7)
 (1,2,3)(4,5,6,7)
 

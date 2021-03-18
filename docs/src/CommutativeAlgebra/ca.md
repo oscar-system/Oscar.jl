@@ -7,7 +7,7 @@ using Oscar
 ```
 
 ```@contents
-Pages = ["integer.md"]
+Pages = ["ca.md"]
 ```
 
 # Commutative Algebra

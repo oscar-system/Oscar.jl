@@ -32,7 +32,7 @@ Return the list of all primitive groups (up to isomorphism) satisfying the condi
 # Example
 ```jldoctest
 julia> all_primitive_groups(degree, 4, isabelian)
-0-element Array{PermGroup,1}
+PermGroup[]
 ```
 returns the list of all abelian primitive groups acting on a set of order 4.
 
