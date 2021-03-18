@@ -43,7 +43,7 @@
   @test cc in C
   @test sum([length(c) for c in C]) == order(G)
   @test sum([x in collect(c) for c in C]) == 1          # x belongs to a unique conjugacy class
-  @test sum([y in collect(c) for c in C]) == 1          # x belongs to a unique conjugacy class
+  @test count(c -> y in c, C) == 1          # x belongs to a unique conjugacy class
   z = rand(G)
   @test sum([z in collect(c) for c in C]) == 1          # x belongs to a unique conjugacy class
   @testset for i in 1:5
