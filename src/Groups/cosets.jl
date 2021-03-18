@@ -2,7 +2,6 @@ export
     acting_domain,
     double_coset,
     double_cosets,
-#    elements,
     GroupCoset,
     GroupDoubleCoset,
     isbicoset,

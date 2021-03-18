@@ -41,11 +41,11 @@
   C = conjugacy_classes(G)
   @test length(C) == 5
   @test cc in C
-  @test sum([length(c) for c in C]) == order(G)
-  @test sum([x in collect(c) for c in C]) == 1          # x belongs to a unique conjugacy class
-  @test count(c -> y in c, C) == 1          # x belongs to a unique conjugacy class
+  @test sum(length, C) == order(G)
+  @test count(c -> x in c, C) == 1          # x belongs to a unique conjugacy class
+  @test count(c -> y in c, C) == 1          # y belongs to a unique conjugacy class
   z = rand(G)
-  @test sum([z in collect(c) for c in C]) == 1          # x belongs to a unique conjugacy class
+  @test count(c -> z in c, C) == 1          # z belongs to a unique conjugacy class
   @testset for i in 1:5
      c = C[i]
      x = rand(c)
@@ -67,7 +67,7 @@
   end
   H=rand(subgroups(G))
   @test sum([length(c) for c in CC]) == length(subgroups(G))
-  @test sum([H in collect(c) for c in CC]) == 1         # H belongs to a unique conjugacy class
+  @test count(c -> H in c, CC) == 1          # H belongs to a unique conjugacy class
   @testset for i in 1:length(CC)
      c = CC[i]
      x = rand(c)
@@ -104,8 +104,8 @@ function TestConjCentr(G,x)
    cc = conjugacy_class(G,x)
    @test index(G,Cx)==length(cc)
    T=right_transversal(G,Cx)
-   @testset for y in collect(cc)
-       @test sum([y==x^t for t in T])==1
+   @testset for y in cc
+       @test count(t -> y==x^t, T) == 1
    end
    
    cs = conjugacy_class(G,Cx)

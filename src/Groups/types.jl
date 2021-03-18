@@ -266,6 +266,7 @@ might also be needed.
 """
 
 elem_type(::Type{T}) where T <: GAPGroup = BasicGAPGroupElem{T}
+elem_type(::T) where T <: GAPGroup = BasicGAPGroupElem{T}
 
 Base.eltype(::Type{T}) where T <: GAPGroup = BasicGAPGroupElem{T}
 
@@ -287,5 +288,4 @@ function _get_type(G::GapObj)
   end
   error("Not a known type of group")
 end
-
 
