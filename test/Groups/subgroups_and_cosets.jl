@@ -242,7 +242,7 @@ end
    @test left_acting_group(L[1])==H
    @test Set([G([4,5,1,2,3]), G([3,4,5,1,2]), G([2,3,4,5,1])])==Set(intersect(dc, sub(G,[x])[1]) )
    lc = left_coset(H,one(G))
-   @test Set(intersect(lc,H))==Set(collect(H))
+   @test Set(intersect(lc,H))==Set(H)
    lc = left_coset(H,x)
    @test intersect(lc,H)==[]
 end
