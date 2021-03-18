@@ -177,7 +177,7 @@ function subalgebra_membership(f::S, v::Vector{S}) where S <: Union{MPolyElem{U}
 
    # Check containement
    D = divrem(phi(F), G)
-   return lm(D[2]) < gen(T, m)
+   return leading_monomial(D[2]) < gen(T, m)
 end
 
 ##############################################################################
@@ -238,7 +238,7 @@ function issurjective(F::AlgHom)
    # Check if map is surjective
 
    for i in 1:m
-      if !(lm(D[i][2]) < gen(T, m))
+      if !(leading_monomial(D[i][2]) < gen(T, m))
          return false
       end
    end
