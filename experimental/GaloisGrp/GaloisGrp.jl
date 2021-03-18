@@ -540,7 +540,7 @@ function invariant(G::PermGroup, H::PermGroup)
     end
     #OH == OG
     for o = OH
-      h = action_homomorphism(G, Int[x for x = o])
+      h = action_homomorphism(G, o)
       hG = image(h)[1]
       hH = image(h, H)[1]
       if order(hG) > order(hH)
@@ -1159,6 +1159,48 @@ function descent(GC::GaloisCtx, G::PermGroup, F::GroupFilter, si::PermGroupElem;
   GC.G = G
   return G, GC
 end
+
+#=
+DNW (does not work)
+
+function subdir_invars(G, H)
+  GH, emb, pro = inner_direct_product(G, H, morphisms = true)
+  m = maximal_subgroup_reps(GH)
+  m = [x for x = m if pro[1](x)[1] == G && pro[2](x)[1] == H]
+  if length(m) == 0
+    return m, []
+  end
+  II = SLPoly[]
+  S, g = slpoly_ring(ZZ, degree(G)+degree(H))
+  for x = m
+    _, mx = Oscar._as_subgroup(GH, x.X)
+    A = pro[1](intersect(x, emb[1](G)[1])[1])[1]
+    B = pro[2](intersect(x, emb[2](H)[1])[1])[1]
+    AB = inner_direct_product(A, B)
+    #so G/A iso H/B iso x/(A x B)
+    I = invariant(G, A)
+    J = invariant(H, B)
+    IJ = evaluate(I, g[1:degree(G)])+evaluate(J, rand(H), 2 .* g[degree(G)+1:end])
+    push!(II, IJ) #sum(probable_orbit(x, IJ)))
+  end
+  return m, II
+  s = maximal_subgroup_reps(m[1])
+  s = [x for x = s if pro[1](x)[1] == G && pro[2](x)[1] == H]
+  _, mx = Oscar._as_subgroup(m[1], s[1].X)  
+
+    A = pro[1](intersect(s[1], emb[1](G)[1])[1])[1]
+    B = pro[2](intersect(s[1], emb[2](H)[1])[1])[1]
+    AB = inner_direct_product(A, B)
+    I = invariant(G, A)
+    J = invariant(H, B)
+    IJ = evaluate(I, g[1:degree(G)])+evaluate(J, g[degree(G)+1:end])
+    push!(II, sum(probable_orbit(m[1], IJ)))
+    push!(m, s[1])
+
+  return m, II
+end
+
+=#
 
 #TODO: use above as well.
 function isinteger(GC::GaloisCtx, B, e)
