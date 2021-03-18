@@ -293,3 +293,10 @@ end
 	@test Oscar.isprincipal(G)
 	@test Oscar.islinearly_equivalent(G, Oscar.divisor(C, Oscar.principal_divisor(G)))
 end
+
+@testset "Affine Elliptic Curves" begin
+	R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+	C = Oscar.AffineEllipticCurve(y^2 - x^3 -x)
+	@test Oscar.discriminant(C) == -64
+	@test Oscar.j_invariant(C) == 1728
+end
