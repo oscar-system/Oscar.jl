@@ -149,6 +149,13 @@ function _type_helper(R)
    end
 end
 
+@doc Markdown.doc"""
+    function AlgebraHomomorphism(D::U, C::W, V::Vector{X}) where {T, U <: Union{MPolyRing{T}, MPolyQuo}, W <: Union{MPolyRing{T}, MPolyQuo}, X <: Union{MPolyElem{T}, MPolyQuoElem}}
+
+Creates the algebra homomorphism $D \rightarrow C$ defined by sending the $i$th generator of $D$ to the $i$th element of $V$. 
+Allows types `MPolyRing` and `MPolyQuo` for $C$ and $D$ as well asxxxxxxxxs entries of type `MPolyElem` and `MPolyQuoElem` for `X`.
+Alternatively, use `hom(D::U, C::W, V::Vector{X})`.
+"""
 function AlgebraHomomorphism(D::U, C::W, V::Vector{X}) where {T, 
   U <: Union{MPolyRing{T}, MPolyQuo}, W <: Union{MPolyRing{T}, MPolyQuo}, 
   X <: Union{MPolyElem{T}, MPolyQuoElem}}
@@ -193,10 +200,20 @@ function (F::AlgHom)(p::U) where U <: Union{MPolyElem, MPolyQuoElem}
    return map_poly(F, p)
 end
 
+@doc Markdown.doc"""
+    function domain(F::AlgHom)
+
+Returns the domain of `F`.
+"""
 function domain(F::AlgHom)
    return F.domain
 end
 
+@doc Markdown.doc"""
+    function codomain(F::AlgHom)
+
+Returns the codomain of `F`.
+"""
 function codomain(F::AlgHom)
    return F.codomain
 end
@@ -210,8 +227,7 @@ end
 @doc Markdown.doc"""
     compose(F::AlgHom, G::AlgHom)
 
-Returns an algebra homomorphism $H: domain(F) --> codomain(G)$,
-where $H = G(F)$.
+Returns the algebra homomorphism $H = G\circ F: domain(F) --> codomain(G)$.
 """
 function compose(F::AlgHom, G::AlgHom)
    check_composable(F, G)
