@@ -369,7 +369,7 @@ The `Hilbert series` of $A$ is the generating function
 
 $H_A(t)=\sum_{d\geq 0} H(A, d) t^d.$
 
-It can be written as a rational function in $t$ with denominator
+It can be written as a rational function in $t$, say, with denominator
 
 $(1-t^{w_1})\cdots (1-t^{w_n}).$ 
 
@@ -379,7 +379,7 @@ Furthermore, the `degree` of $A$ is defined as the dimension of $A$ over $K$ if 
 is finite, and as the integer $d$ such that the leading term of the
 Hilbert polynomial has the form $d t^e/e!$, otherwise.
 
-CAVEAT: Currently only implemented in the case where the weights on the variables are all 1.
+CAVEAT: Currently only implemented in the case where the weights on the variables are all 1. Also, $x$ is used in place of $t$.
 
 ```@docs
 hilbert_series(A::MPolyQuo)
