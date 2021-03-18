@@ -29,6 +29,15 @@ end
 
 @doc Markdown.doc"""
     hilbert_series(A::MPolyQuo)
+
+Given a graded affine algebra $A$ over a field $K$, return a pair $(n,d)$, say, 
+of univariate polynomials in $t$ with integer coefficients
+such that: If $A = R/I$, where $R$ is a multivariate polynomial ring in $n$
+variables over $K$, with positive integer weights $w_1, \dots, w_n$ assigned to the variables,
+and $I$ is a homogeneous ideal of $R$ when we grade $R$ according to the corresponding 
+weighted degree, then $n/d$ represents the Hilbert series of $A$ as a rational function
+with denominator $d = (1-t^{w_1})\cdots (1-t^{w_n})$. See also 
+`hilbert_series_reduced(A::MPolyQuo)`.
 """
 function hilbert_series(A::MPolyQuo)
    H = HilbertData(A.I)
@@ -37,6 +46,14 @@ end
 
 @doc Markdown.doc"""
     hilbert_series_reduced(A::MPolyQuo)
+
+Given a graded affine algebra $A$ over a field $K$, return a pair $(n,d)$, say, 
+of univariate polynomials in $t$ with integer coefficients such that: 
+If $A = R/I$, where $R$ is a multivariate polynomial ring in $n$
+variables over $K$, with positive integer weights $w_1, \dots, w_n$ assigned to the variables,
+and $I$ is a homogeneous ideal of $R$ when we grade $R$ according to the corresponding 
+weighted degree, then $n/d$ represents the Hilbert series of $A$ as a rational function
+written in lowest terms. See also `hilbert_series(A::MPolyQuo)`.
 """
 function hilbert_series_reduced(A::MPolyQuo)
    H = HilbertData(A.I)
@@ -45,6 +62,11 @@ end
 
 @doc Markdown.doc"""
     hilbert_polynomial(A::MPolyQuo)
+
+Given an affine algebra $A = R/I$ over a field $K$, where $R$ is endowed with the
+standard grading by degree, and $I$ is a homogeneous ideal of $R$ with respect
+to this grading, return the Hilbert polynomial of $A$ as a univariate polynomial 
+in $t$ with integer coefficients.
 """
 function hilbert_polynomial(A::MPolyQuo)
    H = HilbertData(A.I)
@@ -53,6 +75,13 @@ end
 
 @doc Markdown.doc"""
     degree(A::MPolyQuo)
+
+Given an affine algebra $A = R/I$ over a field $K$, where $R$ is endowed with the
+standard grading by degree, and $I$ is a homogeneous ideal of $R$ with respect
+to this grading, return the degree of $A$.
+That is, return the dimension of $A$ over $K$ if this dimension
+is finite, and the integer $d$ such that the leading term of the
+Hilbert polynomial has the form $d t^e/e!$, otherwise.
 """
 function degree(A::MPolyQuo)
    H = HilbertData(A.I)
