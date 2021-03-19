@@ -485,6 +485,7 @@ end
 
 """
     invariant_bilinear_forms(G::MatrixGroup)
+
 Return a generating set for the vector spaces of bilinear forms preserved by the group `G`.
 !!! warning "Note:"
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
@@ -510,6 +511,7 @@ end
 
 """
     invariant_hermitian_forms(G::MatrixGroup)
+
 Return a generating set for the vector spaces of sesquilinear non-bilinear forms preserved by the group `G`. It works only if `base_ring(G)` has even degree.
 !!! warning "Note:"
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
@@ -535,7 +537,8 @@ function invariant_hermitian_forms(G::MatrixGroup{S,T}) where {S,T}
 end
 
 """
-    invariant_sesquilinear_forms(G::MatrixGroup)
+    invariant_quadratic_forms(G::MatrixGroup)
+
 Return a generating set for the vector spaces of quadratic forms preserved by the group `G`.
 !!! warning "Note:"
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
@@ -571,6 +574,7 @@ end
 
 """
     function invariant_bilinear_form(G::MatrixGroup)
+
 Return an invariant bilinear form for the group `G`. It works only if the module induced by the action of `G` is absolutely irreducible.
 !!! warning "Note:"
     At the moment, the output is returned of type `mat_elem_type(G)`.
@@ -583,6 +587,7 @@ end
 
 """
     function invariant_sesquilinear_form(G::MatrixGroup)
+
 Return an invariant sesquilinear (non bilinear) form for the group `G`. It works only if the module induced by the action of `G` is absolutely irreducible.
 !!! warning "Note:"
     At the moment, the output is returned of type `mat_elem_type(G)`.
@@ -595,6 +600,7 @@ end
 
 """
     function invariant_quadratic_form(G::MatrixGroup)
+
 Return an invariant bilinear form for the group `G`. It works only if the module induced by the action of `G` is absolutely irreducible.
 !!! warning "Note:"
     At the moment, the output is returned of type `mat_elem_type(G)`.
@@ -618,6 +624,7 @@ end
 # TODO 3rd approach: using GAP package "forms"
 """
     preserved_quadratic_forms(G::MatrixGroup)
+
 Uses random methods to find all of the quadratic forms preserved by `G` up to a scalar (i.e. such that `G` is a group of similarities for the forms). Since the procedure relies on a pseudo-random generator, the user may need to execute the operation more than once to find all invariant quadratic forms.
 """
 function preserved_quadratic_forms(G::MatrixGroup{S,T}) where {S,T}
@@ -634,6 +641,7 @@ end
 
 """
     preserved_sesquilinear_forms(G::MatrixGroup)
+
 Uses random methods to find all of the sesquilinear forms preserved by `G` up to a scalar (i.e. such that `G` is a group of similarities for the forms). Since the procedure relies on a pseudo-random generator, the user may need to execute the operation more than once to find all invariant sesquilinear forms.
 """
 function preserved_sesquilinear_forms(G::MatrixGroup{S,T}) where {S,T}
@@ -688,6 +696,7 @@ end
 
 """
     isometry_group(f::SesquilinearForm{T})
+
 Return the group of isometries for the sesquilinear form `f`.
 """
 function isometry_group(f::SesquilinearForm{T}) where T
@@ -697,7 +706,6 @@ function isometry_group(f::SesquilinearForm{T}) where T
    r=n
 
    if f.descr==:quadratic
-#      @assert rank(B+transpose(B))==n "At the moment, only nondegenerate quadratic forms are considered"
       W,phi = radical(f)
       V = VectorSpace(F,n)
       U,e = complement(V,W)
