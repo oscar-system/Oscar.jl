@@ -379,7 +379,7 @@ Furthermore, the `degree` of $A$ is defined as the dimension of $A$ over $K$ if 
 is finite, and as the integer $d$ such that the leading term of the
 Hilbert polynomial has the form $d t^e/e!$, otherwise.
 
-CAVEAT: Currently only implemented in the case where the weights on the variables are all 1. Also, $x$ is used in place of $t$.
+CAVEAT: Currently only implemented in the case where the weights on the variables are all 1.
 
 ```@docs
 hilbert_series(A::MPolyQuo)
