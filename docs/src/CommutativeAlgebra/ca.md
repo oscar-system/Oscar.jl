@@ -7,7 +7,7 @@ using Oscar
 ```
 
 ```@contents
-Pages = ["integer.md"]
+Pages = ["ca.md"]
 ```
 
 # Commutative Algebra
@@ -390,6 +390,14 @@ hilbert_series_reduced(A::MPolyQuo)
 ```
 
 ```@docs
+hilbert_function(A::MPolyQuo, d::Int)
+```
+
+```@docs
+hilbert_series_expanded(A::MPolyQuo, d::Int)
+```
+
+```@docs
 hilbert_polynomial(A::MPolyQuo)
 ```
 
@@ -404,6 +412,8 @@ R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
 A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]))
 hilbert_series(A)
 hilbert_series_reduced(A)
+hilbert_series_expanded(A, 7)
+hilbert_function(A,7)
 hilbert_polynomial(A)
 degree(A)
 ```
@@ -416,7 +426,13 @@ degree(A)
 #### Subalgebra Membership
 
 ```@docs
-subalgebra_membership(A::MPolyQuo, f::MPolyQuoElem, v::Vector{T}) where T <: MPolyQuoElem
+subalgebra_membership(f::S, v::Vector{S}) where S <: Union{MPolyElem{U}, MPolyQuoElem{U}} where U
+```
+```@repl oscar 
+R, x = PolynomialRing(QQ, :x => 1:3)
+f = x[1]^6*x[2]^6-x[1]^6*x[3]^6;
+v = [x[1]^3*x[2]^3-x[1]^3*x[3]^3, x[1]^3*x[2]^3+x[1]^3*x[3]^3]
+subalgebra_membership(f,v)
 ```
 
 #### Reducedness Test
@@ -537,6 +553,14 @@ issurjective(F)
 D1, _ = quo(D, kernel(F))
 F1 = hom(D1, C, V)
 isbijective(F1)
+```
+```@repl oscar
+R, (x, y, z) = PolynomialRing(QQ, [ "x", "y", "z"])
+C, (s, t) = PolynomialRing(QQ, ["s", "t"])
+V = [s*t, t, s^2]
+paraWhitneyUmbrella = hom(R, C, V)
+D, _ = quo(R, kernel(paraWhitneyUmbrella))
+isfinite(hom(D, C, V))
 ```
 
 #### Composition of Homomorphisms of Affine Algebras

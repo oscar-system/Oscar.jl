@@ -218,17 +218,17 @@ end
          @testset for e in [+1,-1]
             G = GO(e,n,F)
             S = SO(e,n,F)
+            O = omega_group(e,n,F)
             @test G==GO(e,n,q)
             @test G==orthogonal_group(e,n,F)
             @test G==orthogonal_group(e,n,q)
             @test S==SO(e,n,q)
             @test S==special_orthogonal_group(e,n,F)
             @test S==special_orthogonal_group(e,n,q)
+            @test O==omega_group(e,n,q)
+            @test index(S,O)==2
             if isodd(q)
                @test index(G,S)==2
-               @test order(S)==2*order(omega_group(e,n,q))
-            else
-               @test order(G)==2*order(omega_group(e,n,q))
             end
          end
       end
@@ -236,14 +236,16 @@ end
          if isodd(q)
             G = GO(n,F)
             S = SO(n,F)
+            O = omega_group(n,F)
             @test G==GO(n,q)
             @test G==orthogonal_group(n,F)
             @test G==orthogonal_group(n,q)
             @test S==SO(n,q)
             @test S==special_orthogonal_group(n,F)
             @test S==special_orthogonal_group(n,q)
+            @test O==omega_group(n,q)
             @test index(G,S)==2
-            @test order(S)==2*order(omega_group(n,q))
+            @test index(S,O)==2
          end
       end
    end
@@ -255,8 +257,13 @@ end
    @test_throws ArgumentError SO(+2,2,5)
    @test_throws ArgumentError omega_group(-2,4,3)
 
-   G = GL(4,3)
-   
+   @test omega_group(1,5)==SO(1,5)
+   @test index(GO(1,7),omega_group(1,7))==2
+   @test order(omega_group(1,5))==1
+   G = omega_group(1,4,2)
+   @testset for x in gens(G)
+       @test iseven(rank(x.elm-1))
+   end
 end
 
 
@@ -313,7 +320,7 @@ end
    end
    @test N==99
 
-   @test Set(elements(G))==Set([x for x in G])
+   @test Set(collect(G))==Set([x for x in G])
 end
 
 @testset "Membership" begin
@@ -454,16 +461,16 @@ end
    @test order(C)==64
 
    cc = conjugacy_class(G,x)
-   @test x^G[2] in elements(cc)
+   @test x^G[2] in collect(cc)
    @test representative(cc)==x
    @test parent(representative(cc))==G
    @test length(cc)==index(G,C)
 
    cc = conjugacy_class(G,H)
-   @test H^G[2] in elements(cc)
+   @test H^G[2] in collect(cc)
    @test representative(cc)==H
    @test length(cc)==index(G,normalizer(G,H)[1])
-   @test rand(cc) in elements(cc)
+   @test rand(cc) in collect(cc)
 
    x = G([1,z,0,1])
    y = G([1,0,0,z+1])
