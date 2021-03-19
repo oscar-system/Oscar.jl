@@ -37,19 +37,21 @@ end
 
 
 
-# if Symmetric, returns C,A,d where A*B*transpose(frobenius(A,e)) = C, C = block_matrix(2,2,[C,0,0,0]) and d = rank(C)
+# if _is_symmetric, returns C,A,d where A*B*transpose(frobenius(A,e)) = C, C = block_matrix(2,2,[C,0,0,0]) and d = rank(C)
 # else returns C,A,d where B*A = C, C = [C 0] and d = rank(C)
-# Assumption: if Symmetric==true, then nr=nc always
-function find_radical(B::MatElem{T}, F::Field, nr::Int, nc::Int; e=0, Symmetric=false) where T <: FieldElem
+# Assumption: if _is_symmetric==true, then nr=nc always
+function find_radical(B::MatElem{T}, F::Field, nr::Int, nc::Int; e::Int=0, _is_symmetric::Bool=false) where T <: FieldElem
 
+   @assert !_is_symmetric || nr==nc
    V1 = VectorSpace(F,nc)
    V2 = VectorSpace(F,nr)
-   K = Symmetric ? kernel(ModuleHomomorphism(V1,V2,B))[1] : kernel(ModuleHomomorphism(V1,V2,transpose(B)))[1]
+   K = kernel(ModuleHomomorphism(V1,V2, _is_symmetric ? B : transpose(B)))[1]
    U,emb = complement(V1,K)
    d = dim(U)
-   A = matrix(vcat(typeof(emb(gen(U,1)))[emb(v) for v in gens(U)], typeof(K.map(gen(K,1)))[K.map(v) for v in gens(K)] ))
+   type_vector = elem_type(V1)
+   A = matrix(vcat(type_vector[emb(v) for v in gens(U)], type_vector[K.map(v) for v in gens(K)] ))
 
-   if Symmetric
+   if _is_symmetric
       return A*B*transpose(map(y -> frobenius(y,e),A)), A, d
    else
       A = transpose(A)
@@ -70,7 +72,7 @@ function block_anisotropic_elim(B::MatElem{T}, _type::Symbol; isotr=false, f=0) 
 
    d = nrows(B)
    F = base_ring(B)
-   if d in (0,1)
+   if d <= 1
       return B, identity_matrix(F,d)
    end
 
@@ -86,7 +88,7 @@ function block_anisotropic_elim(B::MatElem{T}, _type::Symbol; isotr=false, f=0) 
    end
 
    # conjugate transpose
-   star(X; exp=degF) = transpose(map(y -> frobenius(y,exp),X))
+   star(X) = transpose(map(y -> frobenius(y,degF),X))
 
    if isotr
       q = characteristic(F)^degF
@@ -138,7 +140,7 @@ function block_anisotropic_elim(B::MatElem{T}, _type::Symbol; isotr=false, f=0) 
       B0 = submatrix(B,1,1,c,c)
       U = submatrix(B,c+1,1,f,c)
       V = submatrix(B,c+1,c+1,f,f)
-      B1,A0,e = find_radical(B0,F,c,c; e=degF, Symmetric=true)
+      B1,A0,e = find_radical(B0,F,c,c; e=degF, _is_symmetric=true)
       B1 = submatrix(B1,1,1,e,e)
       U = U*star(A0)
       U1 = submatrix(U,1,1,f,e)
@@ -313,9 +315,9 @@ end
 
 
 # return true, D such that D*B2*conjugatetranspose(D)=B1
-# return false, Nothing if D does not exist
+# return false, nothing if D does not exist
 # TODO: orthogonal only in odd char, at the moment
-function _change_basis(B1::MatElem{T}, B2::MatElem{T}, _type::Symbol)  where T <: FieldElem
+function _change_basis_forms(B1::MatElem{T}, B2::MatElem{T}, _type::Symbol)  where T <: FieldElem
 
    if _type==:alternating || _type==:hermitian
       D1 = _to_standard_form(B1,_type)
@@ -369,6 +371,7 @@ end
 
 """
     iscongruent(f::SesquilinearForm{T}, g::SesquilinearForm{T}) where T <: RingElem
+
 If `f` and `g` are sesquilinear forms, return (`true`, `C`) if there exists a matrix `C` such that `f^C = g`, or equivalently, `CBC* = A`, where `A` and `B` are the Gram matrices of `f` and `g` respectively, and `C*` is the transpose-conjugate matrix of `C`. If such `C` does not exist, then return (`false`, `nothing`).
 If `f` and `g` are quadratic forms, return (`true`, `C`) if there exists a matrix `C` such that `f^A = ag` for some scalar `a`. If such `C` does not exist, then return (`false`, `nothing`).
 """
@@ -384,7 +387,9 @@ function iscongruent(f::SesquilinearForm{T}, g::SesquilinearForm{T}) where T <: 
       if iseven(characteristic(F))            # in this case we use the GAP algorithms
          Bg = g.mat_iso(GAP.Globals.BaseChangeToCanonical(g.X))
          Bf = f.mat_iso(GAP.Globals.BaseChangeToCanonical(f.X))
-         if _is_scalar_multiple_mat(_upper_triangular_version(Bf*gram_matrix(f)*transpose(Bf)),_upper_triangular_version(Bg*gram_matrix(g)*transpose(Bg)))[1]
+         UTf = _upper_triangular_version(Bf*gram_matrix(f)*transpose(Bf))
+         UTg = _upper_triangular_version(Bg*gram_matrix(g)*transpose(Bg))
+         if _is_scalar_multiple_mat(UTf, UTg)[1]
             return true, Bf^-1*Bg
          else
             return false, nothing
@@ -393,18 +398,19 @@ function iscongruent(f::SesquilinearForm{T}, g::SesquilinearForm{T}) where T <: 
          return iscongruent(corresponding_bilinear_form(f), corresponding_bilinear_form(g))
       end
    else
-      rank(gram_matrix(f))==rank(gram_matrix(g)) || return false, nothing
-      if rank(gram_matrix(f))<n
+      rank_f = rank(gram_matrix(f))
+      rank_f==rank(gram_matrix(g)) || return false, nothing
+      if rank_f<n
          degF=0
          if f.descr==:hermitian degF=div(degree(F),2) end
-         Cf,Af,d = find_radical(gram_matrix(f),F,n,n; e=degF, Symmetric=true)
-         Cg,Ag,_ = find_radical(gram_matrix(g),F,n,n; e=degF, Symmetric=true)
-         _is_true, Z = _change_basis( submatrix(Cf,1,1,d,d), submatrix(Cg,1,1,d,d), f.descr)
+         Cf,Af,d = find_radical(gram_matrix(f),F,n,n; e=degF, _is_symmetric=true)
+         Cg,Ag,_ = find_radical(gram_matrix(g),F,n,n; e=degF, _is_symmetric=true)
+         _is_true, Z = _change_basis_forms( submatrix(Cf,1,1,d,d), submatrix(Cg,1,1,d,d), f.descr)
          _is_true || return false, nothing
          Z = insert_block(identity_matrix(F,n), Z, 1,1)
          return true, Af^-1*Z*Ag
       else
-         return _change_basis(gram_matrix(f), gram_matrix(g), f.descr)
+         return _change_basis_forms(gram_matrix(f), gram_matrix(g), f.descr)
       end
    end
 
