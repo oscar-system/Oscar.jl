@@ -456,6 +456,7 @@ struct GroupConjClass{T<:GAPGroup, S<:Union{GAPGroupElem,GAPGroup}}
    CC::GapObj
 end
 
+Base.eltype(::Type{GroupConjClass{T,S}}) where {T,S} = S
 Base.hash(x::GroupConjClass, h::UInt) = h # FIXME
 
 function Base.show(io::IO, x::GroupConjClass)
@@ -491,19 +492,7 @@ function Base.rand(C::GroupConjClass{S,T}) where S where T<:GAPGroupElem
    return group_element(C.X, GAP.Globals.Random(C.CC))
 end
 
-"""
-    elements(C::GroupConjClass)
-
-Return the array of the elements in C.
-"""
-function elements(C::GroupConjClass{S, T}) where S where T<:GAPGroupElem
-   L=GAP.Globals.AsList(C.CC)
-   l = Vector{T}(undef, length(L))
-   for i in 1:length(l)
-      l[i] = group_element(C.X,L[i])
-   end
-   return l
-end
+@deprecate elements(C::GroupConjClass) collect(C)
 
 """
     conjugacy_classes(G::Group)
@@ -558,15 +547,6 @@ end
 
 function Base.rand(C::GroupConjClass{S,T}) where S where T<:GAPGroup
    return T(GAP.Globals.Random(C.CC))
-end
-
-function elements(C::GroupConjClass{S, T}) where S where T<:GAPGroup
-   L=GAP.Globals.AsList(C.CC)
-   l = Vector{T}(undef, length(L))
-   for i in 1:length(l)
-      l[i] = _as_subgroup(C.X, L[i])[1]
-   end
-   return l
 end
 
 """
@@ -625,6 +605,23 @@ end
 
 # END subgroups conjugation
 
+
+# START iterator
+Base.IteratorSize(::Type{<:GroupConjClass}) = Base.SizeUnknown()
+
+Base.iterate(cc::GroupConjClass) = iterate(cc, GAP.Globals.Iterator(cc.CC))
+
+function Base.iterate(cc::GroupConjClass{S,T}, state::GapObj) where {S,T}
+  if GAP.Globals.IsDoneIterator(state)
+    return nothing
+  end
+  i = GAP.Globals.NextIterator(state)
+  if T <: GAPGroupElem
+     return group_element(cc.X, i), state
+  else
+     return _as_subgroup(cc.X, i)[1], state
+  end
+end
 
 ################################################################################
 #

@@ -2,7 +2,6 @@ export
     acting_domain,
     double_coset,
     double_cosets,
-    elements,
     GroupCoset,
     GroupDoubleCoset,
     isbicoset,
@@ -33,6 +32,7 @@ struct GroupCoset{T<: GAPGroup, S <: GAPGroupElem}
 end
 
 Base.hash(x::GroupCoset, h::UInt) = h # FIXME
+Base.eltype(::Type{GroupCoset{T,S}}) where {T,S} = S
 
 function _group_coset(G::GAPGroup, H::GAPGroup, repr::GAPGroupElem, side::Symbol, X::GapObj)
   return GroupCoset{typeof(G), typeof(repr)}(G, H, repr, side, X)
@@ -140,14 +140,7 @@ If `C` = `Hx` or `xH`, return `x`.
 """
 representative(C::GroupCoset) = C.repr
 
-function elements(C::GroupCoset)
-  L = GAP.Globals.AsList(C.X)
-  l = Vector{elem_type(C.G)}(undef, length(L))
-  for i = 1:length(l)
-    l[i] = group_element(C.G, L[i])
-  end
-  return l
-end
+@deprecate elements(C::GroupCoset) collect(C)
 
 """
     isbicoset(C::GroupCoset)
@@ -210,14 +203,8 @@ function left_transversal(G::T, H::T) where T<: GAPGroup
    return [x^-1 for x in right_transversal(G,H)]
 end
 
-function Base.iterate(G::GroupCoset)
-  L=GAP.Globals.Iterator(G.X)
-  if GAP.Globals.IsDoneIterator(L)
-    return nothing
-  end
-  i = GAP.Globals.NextIterator(L)
-  return group_element(G.G, i), L
-end
+Base.IteratorSize(::Type{<:GroupCoset}) = Base.SizeUnknown()
+Base.iterate(G::GroupCoset) = iterate(G, GAP.Globals.Iterator(G.X))
 
 function Base.iterate(G::GroupCoset, state)
   if GAP.Globals.IsDoneIterator(state)
@@ -244,6 +231,7 @@ struct GroupDoubleCoset{T <: GAPGroup, S <: GAPGroupElem}
 end
 
 Base.hash(x::GroupDoubleCoset, h::UInt) = h # FIXME
+Base.eltype(::Type{GroupDoubleCoset{T,S}}) where {T,S} = S
 
 function ==(x::GroupDoubleCoset, y::GroupDoubleCoset)
    return x.X == y.X
@@ -301,19 +289,7 @@ function double_cosets(G::T, H::T, K::T; NC=false) where T<: GAPGroup
    #return [GroupDoubleCoset(G,H,K,group_element(G.X,GAP.Globals.Representative(dc)),dc) for dc in dcs]
 end
 
-"""
-    elements(C::GroupDoubleCoset)
-
-Return the array of all elements of the double coset `C`.
-"""
-function elements(C::GroupDoubleCoset)
-  L = GAP.Globals.AsList(C.X)
-  l = Vector{elem_type(C.G)}(undef, length(L))
-  for i = 1:length(l)
-    l[i] = group_element(C.G, L[i])
-  end
-  return l
-end
+@deprecate elements(C::GroupDoubleCoset) collect(C)
 
 """
     order(C::Union{GroupCoset,GroupDoubleCoset})
@@ -351,14 +327,9 @@ if `C` = `HxK`, returns `K`
 """
 right_acting_group(C::GroupDoubleCoset) = C.K
 
-function Base.iterate(G::GroupDoubleCoset)
-  L=GAP.Globals.Iterator(G.X)
-  if GAP.Globals.IsDoneIterator(L)
-    return nothing
-  end
-  i = GAP.Globals.NextIterator(L)
-  return group_element(G.G, i), L
-end
+Base.IteratorSize(::Type{<:GroupDoubleCoset}) = Base.SizeUnknown()
+
+Base.iterate(G::GroupDoubleCoset) = iterate(G, GAP.Globals.Iterator(G.X))
 
 function Base.iterate(G::GroupDoubleCoset, state)
   if GAP.Globals.IsDoneIterator(state)

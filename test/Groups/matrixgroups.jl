@@ -313,7 +313,7 @@ end
    end
    @test N==99
 
-   @test Set(elements(G))==Set([x for x in G])
+   @test Set(collect(G))==Set([x for x in G])
 end
 
 @testset "Membership" begin
@@ -454,16 +454,16 @@ end
    @test order(C)==64
 
    cc = conjugacy_class(G,x)
-   @test x^G[2] in elements(cc)
+   @test x^G[2] in collect(cc)
    @test representative(cc)==x
    @test parent(representative(cc))==G
    @test length(cc)==index(G,C)
 
    cc = conjugacy_class(G,H)
-   @test H^G[2] in elements(cc)
+   @test H^G[2] in collect(cc)
    @test representative(cc)==H
    @test length(cc)==index(G,normalizer(G,H)[1])
-   @test rand(cc) in elements(cc)
+   @test rand(cc) in collect(cc)
 
    x = G([1,z,0,1])
    y = G([1,0,0,z+1])
