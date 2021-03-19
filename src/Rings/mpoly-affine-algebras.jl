@@ -330,13 +330,15 @@ function _conv_normalize_alg(alg::Symbol)
   end
 end
 
-function _conv_normalize_data(A, l)
+function _conv_normalize_data(A, l, br)
   return [
     begin
-      newR = l[1][i][1]::Singular.PolyRing
-      newA, newAmap = quo(newR, MPolyIdeal(newR, l[1][i][2][:norid]))
-      hom = AlgebraHomomorphism(A, newA, map(newAmap, gens(l[1][i][2][:normap])))
-      idgens = map(p->_badpolymap(p, A.R), gens(l[2][i]))
+      newSR = l[1][i][1]::Singular.PolyRing
+      newOR, _ = PolynomialRing(br, [string(x) for x in gens(newSR)])
+      newA, newAmap = quo(newOR, ideal(newOR, l[1][i][2][:norid]))
+      newgens = newOR.(gens(l[1][i][2][:normap]))
+      hom = AlgebraHomomorphism(A, newA, newA.(newgens))
+      idgens = A.R.(gens(l[2][i]))
       (newA, hom, (A(idgens[end]), ideal(A, idgens)))
     end
     for i in 1:length(l[1])]
@@ -373,9 +375,10 @@ you are unsure (this may take some time).
 """
 function normalize(A::MPolyQuo; alg=:equidimDec)
   I = A.I
+  br = base_ring(A.R)
   singular_assure(I)
   l = Singular.LibNormal.normal(I.gens.S, _conv_normalize_alg(alg))
-  return _conv_normalize_data(A, l)
+  return _conv_normalize_data(A, l, br)
 end
 
 @doc Markdown.doc"""
@@ -394,9 +397,10 @@ indicates that the delta invariant is infinite.
 """
 function normalize_with_delta(A::MPolyQuo; alg=:equidimDec)
   I = A.I
+  br = base_ring(A.R)
   singular_assure(I)
   l = Singular.LibNormal.normal(I.gens.S, _conv_normalize_alg(alg), "withDelta")
-  return (_conv_normalize_data(A, l), l[3][1]::Vector{Int}, l[3][2]::Int)
+  return (_conv_normalize_data(A, l, br), l[3][1]::Vector{Int}, l[3][2]::Int)
 end
 
 

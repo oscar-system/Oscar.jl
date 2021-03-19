@@ -79,19 +79,6 @@ end
 #
 ###############################################################################
 
-# this terrible function is used to get polynomials in and out of Singular and
-# to change: polys over the quotient ring <=> polys over the non-quotient ring
-function _badpolymap(f, R::MPolyRing)
-  parent(f) == R && return f
-  @assert ngens(parent(f)) == ngens(R)
-  B = base_ring(R)
-  g = MPolyBuildCtx(R)
-  for (c, e) = zip(Nemo.coeffs(f), Nemo.exponent_vectors(f))
-    push_term!(g, B(c), e)
-  end
-  return finish(g)
-end
-
 mutable struct AlgHom{T} <: AbstractAlgebra.Map{Ring, Ring,
          AbstractAlgebra.SetMap, AlgHom} where T <: Union{AbstractAlgebra.Ring, AbstractAlgebra.Field}
    domain::Union{MPolyRing, MPolyQuo}
@@ -110,13 +97,7 @@ mutable struct AlgHom{T} <: AbstractAlgebra.Map{Ring, Ring,
    function AlgHom{T}(R::U, S::W, V::Vector{X}) where {T, U, W, X}
       Rx = singular_ring(R)
       Sx = singular_ring(S)
-      if isdefined(S, :I) ## Check if S is a quotient ring
-         Vx = map(p -> _badpolymap(S(p).f, Sx), V)
-      else
-         Vx = map(p -> _badpolymap(S(p), Sx), V)
-      end
-
-      z = new(R, S, V, Singular.AlgebraHomomorphism(Rx, Sx, Vx))
+      z = new(R, S, V, Singular.AlgebraHomomorphism(Rx, Sx, Sx.(V)))
       return z
    end
 
@@ -191,19 +172,8 @@ function map_poly(F::Map(AlgHom), p::U) where U <: Union{MPolyElem, MPolyQuoElem
    D = domain(F)
    Dx = domain(F.salghom)
    C = codomain(F)
-   Cx = codomain(F.salghom)
-   # TODO: _badpolymap really has to be replaced somehow ...
-   if isdefined(D, :I) ## Check if D is a quotient ring
-         px = _badpolymap(p.f, Dx)
-   else
-         px = _badpolymap(p, Dx)
-   end
-
-   if isdefined(C, :R) ## Check if C is a quotient ring
-      return C(_badpolymap(F.salghom(px), C.R))
-   else
-      return _badpolymap(F.salghom(px), C)
-   end
+   px = Dx(p)
+   return C(F.salghom(px))
 end
 
 function (F::AlgHom)(p::U) where U <: Union{MPolyElem, MPolyQuoElem}
@@ -267,12 +237,7 @@ function preimage(F::AlgHom, I::U) where U <: Union{MPolyIdeal, MPolyQuoIdeal}
    C = codomain(F)
    Cx = codomain(F.salghom)
    V = gens(I)
-   if isdefined(C, :I) ## Check if C is a quotient ring
-         Vx = map(p -> _badpolymap(C(p).f, Cx), V)
-      else
-         Vx = map(p -> _badpolymap(C(p), Cx), V)
-      end
-   Ix = Singular.Ideal(Cx, Vx)
+   Ix = Singular.Ideal(Cx, Cx.(V))
    prIx = Singular.preimage(F.salghom, Ix)
    return ideal(D, D.(gens(prIx)))
 end

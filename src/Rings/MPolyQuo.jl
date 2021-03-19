@@ -90,13 +90,13 @@ end
 function oscar_assure(a::MPolyQuoIdeal)
   isdefined(a, :I) && return
   r = base_ring(a).R
-  a.I = ideal(r, map(p->_badpolymap(p, r), gens(a.SI)))
+  a.I = ideal(r, r.(gens(a.SI)))
 end
 
 function singular_assure(a::MPolyQuoIdeal)
   isdefined(a, :SI) && return
   sa = singular_ring(base_ring(a))
-  a.SI = Singular.Ideal(sa, map(p->_badpolymap(p, sa), gens(a.I)))
+  a.SI = Singular.Ideal(sa, sa.(gens(a.I)))
 end
 
 function gens(a::MPolyQuoIdeal)
@@ -287,7 +287,29 @@ end
 lift(a::MPolyQuoElem) = a.f
 
 (Q::MPolyQuo)() = MPolyQuoElem(Q.R(), Q)
-(Q::MPolyQuo)(a::MPolyQuoElem) = a
+
+function (Q::MPolyQuo)(a::MPolyQuoElem)
+   @assert parent(a) == Q
+   return a
+end
+
+function (Q::MPolyQuo)(a::MPolyElem) 
+   @assert parent(a) == Q.R
+   return MPolyQuoElem(Q.R(a), Q)
+end
+
+function (Q::MPolyQuo)(a::Singular.spoly)
+   @assert singular_ring(Q) == parent(a)
+   return MPolyQuoElem(Q.R(a), Q)
+end
+
+
+function (S::Singular.PolyRing)(a::MPolyQuoElem)
+   Q = parent(a)
+   @assert singular_ring(Q) == S
+   return S(a.f)
+end
+
 (Q::MPolyQuo)(a) = MPolyQuoElem(Q.R(a), Q)
 
 zero(Q::MPolyQuo) = Q(0)
