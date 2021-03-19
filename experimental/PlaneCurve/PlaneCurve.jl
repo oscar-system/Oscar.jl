@@ -299,6 +299,7 @@ end
 include("AffinePlaneCurve.jl")
 include("ProjPlaneCurve.jl")
 include("DivisorCurve.jl")
+include("AffineEllipticCurve.jl")
 
 ################################################################################
 end

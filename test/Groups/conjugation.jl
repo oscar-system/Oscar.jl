@@ -9,7 +9,7 @@
   
   ccid = conjugacy_class(G,one(G))
   @test length(ccid)==1
-  @test elements(ccid) == [one(G)]
+  @test collect(ccid) == [one(G)]
   
   x = perm(G,vcat(2:n,[1]))
   cc = conjugacy_class(G,x)
@@ -33,19 +33,19 @@
   cc = conjugacy_class(G,x)
 
   @test length(cc) == 3
-  @test Set(elements(cc)) == Set([x^y for y in G])
+  @test Set(collect(cc)) == Set(x^y for y in G)
   y = rand(cc)
-  @test y in elements(cc)
+  @test y in collect(cc)
   @test order(y) == 2
 
   C = conjugacy_classes(G)
   @test length(C) == 5
   @test cc in C
-  @test sum([length(c) for c in C]) == order(G)
-  @test sum([x in elements(c) for c in C]) == 1          # x belongs to a unique conjugacy class
-  @test sum([y in elements(c) for c in C]) == 1          # x belongs to a unique conjugacy class
+  @test sum(length, C) == order(G)
+  @test count(c -> x in c, C) == 1          # x belongs to a unique conjugacy class
+  @test count(c -> y in c, C) == 1          # y belongs to a unique conjugacy class
   z = rand(G)
-  @test sum([z in elements(c) for c in C]) == 1          # x belongs to a unique conjugacy class
+  @test count(c -> z in c, C) == 1          # z belongs to a unique conjugacy class
   @testset for i in 1:5
      c = C[i]
      x = rand(c)
@@ -67,7 +67,7 @@
   end
   H=rand(subgroups(G))
   @test sum([length(c) for c in CC]) == length(subgroups(G))
-  @test sum([H in elements(c) for c in CC]) == 1         # H belongs to a unique conjugacy class
+  @test count(c -> H in c, CC) == 1          # H belongs to a unique conjugacy class
   @testset for i in 1:length(CC)
      c = CC[i]
      x = rand(c)
@@ -104,16 +104,16 @@ function TestConjCentr(G,x)
    cc = conjugacy_class(G,x)
    @test index(G,Cx)==length(cc)
    T=right_transversal(G,Cx)
-   @testset for y in elements(cc)
-       @test sum([y==x^t for t in T])==1
+   @testset for y in cc
+       @test count(t -> y==x^t, T) == 1
    end
    
    cs = conjugacy_class(G,Cx)
    Nx = normalizer(G,Cx)[1]
    @test index(G,Nx)==length(cs)
    T=right_transversal(G,Nx)
-   # Set([Cx^t for t in T]) == Set(elements(cs)) does not work
-   @testset for H in elements(cs)
+   # Set([Cx^t for t in T]) == Set(collect(cs)) does not work
+   @testset for H in collect(cs)
        @test sum([H==Cx^t for t in T])==1
    end
 end
