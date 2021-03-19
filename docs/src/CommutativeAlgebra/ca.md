@@ -379,7 +379,7 @@ Furthermore, the `degree` of $A$ is defined as the dimension of $A$ over $K$ if 
 is finite, and as the integer $d$ such that the leading term of the
 Hilbert polynomial has the form $d t^e/e!$, otherwise.
 
-CAVEAT: Currently only implemented in the case where the weights on the variables are all 1. Also, $x$ is used in place of $t$.
+CAVEAT: Currently only implemented in the case where the weights on the variables are all 1.
 
 ```@docs
 hilbert_series(A::MPolyQuo)
@@ -615,6 +615,20 @@ R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 A, _ = quo(R, ideal(R, [(x^2-y^3)*(x^2+y^2)*x]))
 L = normalize_with_delta(A, alg=:primeDec)
 ```
+
+### Integral Bases
+
+
+CAVEAT: Function still to be written.
+
+```@docs
+integral_basis(f::MPolyElem, i::Int)
+```
+
+
+###### Examples
+
+
 
 #### 
 

@@ -566,12 +566,12 @@ mutable struct HilbertData
 end
 
 function hilbert_series(H::HilbertData, i::Int= 1)
-  Zx = Hecke.Globals.Zx
+  Zt, t = ZZ["t"]
   if i==1
-    return Zx(map(fmpz, H.data[1:end-1])), (1-gen(Zx))^(ngens(base_ring(H.I)))
+    return Zt(map(fmpz, H.data[1:end-1])), (1-gen(Zt))^(ngens(base_ring(H.I)))
   elseif i==2
     h = hilbert_series(H, 1)[1]
-    return divexact(h, (1-gen(Zx))^(ngens(base_ring(H.I))-dim(H.I))), (1-gen(Zx))^dim(H.I)
+    return divexact(h, (1-gen(Zt))^(ngens(base_ring(H.I))-dim(H.I))), (1-gen(Zt))^dim(H.I)
   end
   error("2nd parameter must be 1 or 2")
 end
@@ -589,13 +589,14 @@ function hilbert_polynomial(H::HilbertData)
     end
     q = derivative(q)
   end
-  x = gen(Hecke.Globals.Qx)
-  bin = one(parent(x))
+  Qt, t = QQ["t"]
+  t = gen(Qt)
+  bin = one(parent(t))
   b = fmpq_poly[]
-  if d==-1 return zero(parent(x)) end
+  if d==-1 return zero(parent(t)) end
   for i=0:d
     push!(b, (-1)^(d-i)*a[d-i+1]*bin)
-    bin *= (x+i+1)*fmpq(1, i+1)
+    bin *= (t+i+1)*fmpq(1, i+1)
   end
   return sum(b)
 end
@@ -615,10 +616,10 @@ function (P::FmpqRelSeriesRing)(H::HilbertData)
   g = gcd(n, d)
   n = divexact(n, g)
   d = divexact(d, g)
-  Qx = Hecke.Globals.Qx
-  nn = map_coeffs(QQ, n, parent = Qx)
-  dd = map_coeffs(QQ, d, parent = Qx)
-  gg, ee, _ = gcdx(dd, gen(Qx)^max_precision(P))
+  Qt, t = QQ["t"]
+  nn = map_coeffs(QQ, n, parent = Qt)
+  dd = map_coeffs(QQ, d, parent = Qt)
+  gg, ee, _ = gcdx(dd, gen(Qt)^max_precision(P))
   @assert isone(gg)
   nn = Hecke.mullow(nn, ee, max_precision(P)+1)
   c = collect(coefficients(nn))
