@@ -1,5 +1,5 @@
 export weight, decorate, ishomogenous, homogenous_components, filtrate,
-grade, homogenous_component, jacobi_matrix, jacobi_ideal, HilbertData, hilbert_series, hilbert_polynomial
+grade, homogenous_component, jacobi_matrix, jacobi_ideal, HilbertData, hilbert_series, hilbert_series_reduced, hilbert_series_expanded, hilbert_function, hilbert_polynomial
 
 mutable struct MPolyRing_dec{T} <: AbstractAlgebra.MPolyRing{T}
   R::MPolyRing{T}
@@ -623,6 +623,16 @@ function (P::FmpqRelSeriesRing)(H::HilbertData)
   nn = Hecke.mullow(nn, ee, max_precision(P)+1)
   c = collect(coefficients(nn))
   return P(map(fmpq, c), length(c), max_precision(P), 0)
+end
+
+function hilbert_series_expanded(H::HilbertData, d::Int)
+   T, t = PowerSeriesRing(QQ, d, "t")   
+   return T(H)
+end
+
+function hilbert_function(H::HilbertData, d::Int)
+   HS = hilbert_series_expanded(H,d)
+   return coeff(hilbert_series_expanded(H, d), d)
 end
 
 function Base.show(io::IO, h::HilbertData)
