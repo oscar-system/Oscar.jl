@@ -85,11 +85,6 @@ end
 
 @doc Markdown.doc"""
     hilbert_polynomial(A::MPolyQuo)
-
-Given an affine algebra $A = R/I$ over a field $K$, where $R$ is endowed with the
-standard grading by degree, and $I$ is a homogeneous ideal of $R$ with respect
-to this grading, return the Hilbert polynomial of $A$ as a univariate polynomial 
-in $t$ with integer coefficients.
 """
 function hilbert_polynomial(A::MPolyQuo)
    H = HilbertData(A.I)
@@ -98,13 +93,6 @@ end
 
 @doc Markdown.doc"""
     degree(A::MPolyQuo)
-
-Given an affine algebra $A = R/I$ over a field $K$, where $R$ is endowed with the
-standard grading by degree, and $I$ is a homogeneous ideal of $R$ with respect
-to this grading, return the degree of $A$.
-That is, return the dimension of $A$ over $K$ if this dimension
-is finite, and the integer $d$ such that the leading term of the
-Hilbert polynomial has the form $d t^e/e!$, otherwise.
 """
 function degree(A::MPolyQuo)
    H = HilbertData(A.I)
