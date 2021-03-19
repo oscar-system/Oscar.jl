@@ -82,6 +82,10 @@ struct FreeModuleElem{T}
   parent::FreeMod{T}
 end
 
+function getindex(v::FreeModuleElem, i::Int)
+  return v.r[i]
+end
+
 elem_type(::Type{FreeMod{T}}) where {T} = FreeModuleElem{T}
 parent_type(::Type{FreeModuleElem{T}}) where {T} = FreeMod{T}
 elem_type(::FreeMod{T}) where {T} = FreeModuleElem{T}
@@ -204,7 +208,7 @@ end
 function Base.getproperty(M::ModuleGens, s::Symbol)
   if s == :S
     singular_assure(M)
-    return M.S
+    return getfield(M, s)
   else
     return getfield(M,s)
   end
@@ -247,11 +251,11 @@ function oscar_assure(F::ModuleGens)
 end
 
 function singular_assure(F::ModuleGens)
-  if length(F) == 0 && !isdefined(F, :S)
-    F.S = Singular.smodule{elem_type(base_ring(F.SF))}(base_ring(F.SF), F.SF())
+  if !isdefined(F, :S)
+    F.S = Singular.smodule{elem_type(base_ring(F.SF))}(base_ring(F.SF), [convert(F.SF,x) for x = F.O]...)
     return
   end
-  F[Val(:S), 1]
+  #F[Val(:S), 1]
 end
 
 getindex(F::ModuleGens, i::Int) = getindex(F, Val(:O), i)
@@ -325,12 +329,12 @@ mutable struct FreeModuleHom{T1, T2} <: ModuleMap{T1, T2}
     end
     r.header = MapHeader{typeof(F), typeof(G)}(F, G, im_func, pr_func)
 
-    R = base_ring(F)
+    #=R = base_ring(F)
     matrix = zero_matrix(R, F.n, ngens(G))
     for i=1:F.n, j=1:ngens(G)
-      matrix[i,j] = a[i].r[j]
+      matrix[i,j] = a[i][j]
     end
-    r.matrix = matrix
+    r.matrix = matrix=#
 
     return r
   end
@@ -494,14 +498,37 @@ end
   in $A+B$
 """
 struct SubQuoElem{T} # this needs to be redone TODO
- a::FreeModuleElem{T}
- parent::SubQuo
+  coeffs::SRow{T}
+  a::FreeModuleElem{T}
+  parent::SubQuo
+
+  function SubQuoElem(v::SRow{R}, SQ::SubQuo) where {R}
+    @assert length(v) <= ngens(SQ.F)
+    r = new{R}(v, sum([v[i]*SQ.F[i] for i=1:ngens(SQ.F)]...), SQ)
+    #r.coeffs = v
+    #r.parent = SQ
+    #r.a = sum([v[i]*SQ.F[i] for i=1:ngens(SQ.F)]...)
+    return r
+  end
+
+  function SubQuoElem(a::FreeModuleElem{R}, SQ::SubQuo) where {R}
+    @assert a.parent === SQ.F
+    r = new{R}(coordinates(a,SQ), a, SQ)
+    #r.parent = SQ
+    #r.a = a
+    #r.v = coordinates(a, SQ)
+    return r
+  end
 end
 
 elem_type(::SubQuo{T}) where {T} = SubQuoElem{T}
 parent_type(::SubQuoElem{T}) where {T} = SubQuo{T}
 elem_type(::Type{SubQuo{T}}) where {T} = SubQuoElem{T}
 parent_type(::Type{SubQuoElem{T}}) where {T} = SubQuo{T}
+
+function getindex(v::SubQuoElem, i::Int)
+  return v.coeffs[i]
+end
 
 function groebner_basis(F::ModuleGens)
   singular_assure(F)
@@ -616,11 +643,11 @@ function syzygy_module(F::ModuleGens; sub = 0)
 end
 
 function gens(F::SubQuo)
-  return map(x->SubQuoElem(x, F), gens(F.gens))
+  return map(x->SubQuoElem(x, F), gens(F.sub))
 end
 
 function gen(F::SubQuo, i::Int)
-  return SubQuoElem(gen(F,i))
+  return SubQuoElem(gen(F.sub,i),F)
 end
 
 ngens(F::SubQuo) = length(F.sub)
@@ -677,9 +704,9 @@ function presentation(SQ::SubQuo)
       push!(b.pos, i)
       push!(b.values, v)
     end
-    if length(b) == 0
+    #=if length(b) == 0 #TODO why was this here
       continue
-    end
+    end=#
     push!(q, FreeModuleElem(b, F))
   end
   #want R^a -> R^b -> SQ -> 0
@@ -687,7 +714,7 @@ function presentation(SQ::SubQuo)
   G = FreeMod(R, length(s.sub))
   h_G_F = hom(G, F, q)
   #@assert iszero(h_G_F) || iszero(degree(h_G_F)) #???
-  h_F_SQ = hom(F, SQ, gens(SQ))
+  h_F_SQ = hom(F, SQ, gens(SQ)) # DO NOT CHANGE THIS LINE, see present and preimage
   #@assert iszero(h_F_SQ) || iszero(degree(h_F_SQ)) #???
   Z = FreeMod(F.R, 0)
   Hecke.set_special(Z, :name => "Zero")
@@ -701,7 +728,18 @@ function presentation(F::FreeMod)
   return Hecke.ChainComplex(ModuleFP, ModuleMap[hom(Z, F, FreeModuleElem[]), hom(F, F, gens(F)), hom(F, Z, [zero(Z) for i=1:ngens(F)])], check = false)
 end
 
+function present(SQ::SubQuo)
+  chainComplex = presentation(SQ)
+  R_b = obj(chainComplex, 1)
+  f = map(chainComplex, 1)
+  g = map(chainComplex, 2)
+  presentation_module = quo(R_b, image(f)[1])
+  isomorphism = hom(presentation_module, SQ, [g(x) for x in gens(R_b)])
+  return presentation_module, isomorphism
+end
+
 mutable struct SubQuoHom{T1, T2} <: ModuleMap{T1, T2}
+  matrix::MatElem
   header::Hecke.MapHeader
   im::Array{<:Any, 1}
   function SubQuoHom(D::SubQuo, C::ModuleFP, im::Array{<:Any, 1})
@@ -713,7 +751,15 @@ mutable struct SubQuoHom{T1, T2} <: ModuleMap{T1, T2}
     r.header = Hecke.MapHeader(D, C)
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
-    r.im =  im
+    r.im = im
+
+    #=R = base_ring(D)
+    matrix = zero_matrix(R, ngens(D), ngens(C))
+    for i=1:ngens(D), j=1:ngens(C)
+      matrix[i,j] = im[i][j]
+    end
+    r.matrix = matrix=#
+
     return r
   end
 end
@@ -1329,6 +1375,16 @@ end
 #############################
 #TODO move to Hecke
 #  re-evaluate and use or not
+function differential(c::Hecke.ChainComplex, i::Int)
+  return map(c,length(c)-i)
+end
+
+function module_in_complex(c::Hecke.ChainComplex, i::Int)
+  return obj(c,length(c)-i)
+end
+
+getindex(c::Hecke.ChainComplex, i::Int) = module_in_complex(c,i)
+
 function Base.getindex(r::Hecke.SRow, u::UnitRange)
   R = base_ring(r)
   s = sparse_row(R)
