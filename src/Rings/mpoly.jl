@@ -499,12 +499,15 @@ Base.eltype(::BiPolyArray{S}) where S = S
 
 function (Ox::MPolyRing)(f::Singular.spoly)
   O = base_ring(Ox)
+  Sx = parent(f)
+  @assert ngens(Sx) == ngens(Ox)
   g = MPolyBuildCtx(Ox)
   for (c, e) = Base.Iterators.zip(Singular.coeffs(f), Singular.exponent_vectors(f))
     push_term!(g, O(c), e)
   end
   return finish(g)
 end
+
 
 function (S::Singular.Rationals)(a::fmpq)
   b = Base.Rational{BigInt}(a)
