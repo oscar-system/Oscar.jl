@@ -355,7 +355,7 @@ end
 
 #one cannot compare (==) slpoly, no hash either..
 #(cannot be done, thus comparison is indirect via evaluation)
-#I assume algo can be imporved (TODO: Max?)
+#I assume algo can be improved (TODO: Max?)
 function probable_orbit(G::Oscar.PermGroup, f::SLPoly; limit::Int = typemax(Int))
   n = ngens(parent(f))
   F = GF(next_prime(2^50))
@@ -459,7 +459,7 @@ function isprobably_invariant(g, p)
   lp = [rand(k) for i=1:n]
   return evaluate(g, lp) == evaluate(g^p, lp)
 end
-#TODO: think about the order!
+#TODO: think about the order of arguments!
 
 function isprobably_invariant(p, G::PermGroup)
   R = parent(p)
@@ -550,12 +550,23 @@ function invariant(G::PermGroup, H::PermGroup)
         return evaluate(I, g[o])
       end
     end
-    if order(H) < 100
-      @vprint :GaloisInvariant 2 "group small enough, using orbit sum\n"
-      return sum(probable_orbit(H, prod(g[i]^i for i=1:length(g)-1)))
-    end
-    @show order(G), order(H), index(G, H)
-    error("give up")
+    @vprint :GaloisInvariant 2 "going transitive...\n"
+    #creating transitive version.
+    gs = Oscar.gset(G, [[x[1] for x = OG]])
+    os = Oscar.orbits(gs)
+    @assert length(os) == 1
+    os = os[1]
+    h = Oscar.action_homomorphism(os)
+    GG = h(G)[1]
+    HH = h(H)[1]
+    I = invariant(GG, HH)
+    #not sure why prod works and sum does not.
+    #also weighted sum (o .* g[o]) is also failing.
+    I = evaluate(I, [prod(g[o]) for o = elements(os)])
+    @hassert :GaloisInvariant 2 isprobably_invariant(I, H)
+    @hassert :GaloisInvariant 2 !isprobably_invariant(I, G)
+
+    return I
   end
 
   if isprimitive(G) && isprimitive(H)
@@ -860,6 +871,9 @@ function starting_group(GC::GaloisCtx, K::AnticNumberField; useSubfields::Bool =
   @vprint :GaloisGroup 1 "found Frobenius element: $si\n"
 
   G = symmetric_group(degree(K))
+  if degree(K) == 1
+    return G, F, one(G)
+  end
 
   S = G
   for b = bs
@@ -960,8 +974,8 @@ function find_prime(f::fmpq_poly, extra::Int = 5; pStart::Int = 2*degree(f))
     return p, [sort(map(degree, collect(keys(lf.fac))))]
   end
 
-  d_min = 2
   d_max = degree(f)^2
+  d_min = min(2, d_max)
   p_best = 1
   cnt = 5
   ct = Set{Array{Int, 1}}()
@@ -972,15 +986,24 @@ function find_prime(f::fmpq_poly, extra::Int = 5; pStart::Int = 2*degree(f))
   #   information
   # - too large, all is slow.
   # careful: group could be (C_2)^n hence d_min might be small...
+  no_p = 0
   for p = Hecke.PrimesSet(pStart, -1)
     lf = factor(f, GF(p))
     if any(x->x>1, values(lf.fac))
       continue
     end
+    no_p +=1 
     push!(ct, sort(map(degree, collect(keys(lf.fac)))))
     d = lcm([degree(x) for x = keys(lf.fac)])
-    if d < d_max && d >= d_min
-      push!(ps, (p, d))
+    if d <= d_max 
+      if d >= d_min
+        push!(ps, (p, d))
+      else
+        no_p += 1
+        if no_p > degree(f)
+          d_min = 1
+        end
+      end
     end
     if length(ps) > degree(f)
       break
@@ -1416,10 +1439,15 @@ function galois_group(f::fmpq_poly; pStart::Int = 2*degree(f))
 
   @vprint :GaloisGroup 1 "factoring input...gives\n$lf\n"
 
-  g = prod(keys(lf.fac))
+  lg = sort(collect(keys(lf.fac)), lt = (a,b) -> isless(degree(b), degree(a)))
+  #problem: inner_direct_product is "dropping" trivial factors.
+  #trivial factors at the end are harmless, so I sort...
+  #Max and/or Thomas are putting an option into Gap to not remove the
+  #trivial factors (actually in general it is more complicated)
+  g = prod(lg)
   p, ct = find_prime(g, pStart = pStart)
 
-  C = [galois_group(number_field(x, cached = false)[1], pStart = -p)[2] for x = keys(lf.fac)]
+  C = [galois_group(number_field(x, cached = false)[1], pStart = -p)[2] for x = lg]
   G, emb, pro = inner_direct_product([x.G for x = C], morphisms = true)
 
   CC = GaloisCtx(Hecke.Globals.Zx(g), p)
