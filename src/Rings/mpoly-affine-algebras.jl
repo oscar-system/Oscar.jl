@@ -433,3 +433,30 @@ function noether_normalization(A::MPolyQuo)
 end
 
 
+##############################################################################
+#
+# Integral bases
+#
+##############################################################################
+
+@doc Markdown.doc"""
+    integral_basis(f::MPolyElem, i::Int)
+
+Given a polynomial $f$ in two variables with rational coefficients and an
+integer $i\in\{1,2\}$ specifying one of the variables, $f$ must be irreducible
+and monic in the specified variable: Say, $f\in\mathbb Q[x,y]$ is monic in $y$.
+Then the normalization of $A = Q[x,y]/\langle f \rangle$, that is, the
+integral closure $\overline{A}$ of $A$ in its quotient field, is a free
+module over $K[x]$ of finite rank, and any set of free generators for
+$\overline{A}$ over $K[x]$ is called an `integral basis` for $\overline{A}$
+over $K[x]$. Relying on the algorithm by B\"ohm, Decker, Laplagne, and Pfister,
+the function returns a pair $(d, V)$, where $d$ is an element of $A$,
+and $V$ is a vector of elements in $A$, such that the fractions $v/d, v\in V$,
+form an `integral basis` for $\overline{A}$
+over $K[x]$.
+
+NOTE: The conditions on $f$ are automatically checked.
+"""
+function integral_basis(f::MPolyElem, i::Int)
+ aaa
+end

@@ -616,6 +616,20 @@ A, _ = quo(R, ideal(R, [(x^2-y^3)*(x^2+y^2)*x]))
 L = normalize_with_delta(A, alg=:primeDec)
 ```
 
+### Integral Bases
+
+
+CAVEAT: Function still to be written.
+
+```@docs
+integral_basis(f::MPolyElem, i::Int)
+```
+
+
+###### Examples
+
+
+
 #### 
 
 ## Invariant Theory
