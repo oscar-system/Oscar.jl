@@ -218,17 +218,17 @@ end
          @testset for e in [+1,-1]
             G = GO(e,n,F)
             S = SO(e,n,F)
+            O = omega_group(e,n,F)
             @test G==GO(e,n,q)
             @test G==orthogonal_group(e,n,F)
             @test G==orthogonal_group(e,n,q)
             @test S==SO(e,n,q)
             @test S==special_orthogonal_group(e,n,F)
             @test S==special_orthogonal_group(e,n,q)
+            @test O==omega_group(e,n,q)
+            @test index(S,O)==2
             if isodd(q)
                @test index(G,S)==2
-               @test order(S)==2*order(omega_group(e,n,q))
-            else
-               @test order(G)==2*order(omega_group(e,n,q))
             end
          end
       end
@@ -236,14 +236,16 @@ end
          if isodd(q)
             G = GO(n,F)
             S = SO(n,F)
+            O = omega_group(n,F)
             @test G==GO(n,q)
             @test G==orthogonal_group(n,F)
             @test G==orthogonal_group(n,q)
             @test S==SO(n,q)
             @test S==special_orthogonal_group(n,F)
             @test S==special_orthogonal_group(n,q)
+            @test O==omega_group(n,q)
             @test index(G,S)==2
-            @test order(S)==2*order(omega_group(n,q))
+            @test index(S,O)==2
          end
       end
    end
@@ -255,8 +257,13 @@ end
    @test_throws ArgumentError SO(+2,2,5)
    @test_throws ArgumentError omega_group(-2,4,3)
 
-   G = GL(4,3)
-   
+   @test omega_group(1,5)==SO(1,5)
+   @test index(GO(1,7),omega_group(1,7))==2
+   @test order(omega_group(1,5))==1
+   G = omega_group(1,4,2)
+   @testset for x in gens(G)
+       @test iseven(rank(x.elm-1))
+   end
 end
 
 
