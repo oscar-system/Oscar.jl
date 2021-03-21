@@ -20,7 +20,7 @@ Singular = "bcd08a7b-43d2-5ff7-b6d4-c458787f915c"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
-AbstractAlgebra = "0.14.0"
+AbstractAlgebra = "0.14.0, 0.15"
 DocStringExtensions = "0.8"
 GAP = "0.5"
 Hecke = "0.9.6"
