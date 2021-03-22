@@ -10,7 +10,7 @@ using Oscar
 Pages = ["ca_modules.md"]
 ```
 
-## Modules over Multivariate Polynomial Rings
+# Modules
 
 Modules over a multivariate polynomial ring are implemented as `subquotients`.
 That is, they are  submodules of quotients of free modules. Explicitly, the subquotient
