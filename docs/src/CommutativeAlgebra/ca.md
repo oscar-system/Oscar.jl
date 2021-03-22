@@ -282,24 +282,6 @@ equidimensional_hull_radical(I::MPolyIdeal)
     absolute_primary_decomposition(I)               --->  absPrimdecGTZ   
 
     
-## Modules over Multivariate Polynomial Rings
-
-### Module Constructors
-
-### Simple Module Operations
-
-#### Sum of Submodules
-
-    N_1+N_2
-
-#### Products of Ideal and Submodule
-
-    I*N
-
-### Flatness
-
-### Depth and Codimension
-
 ## Affine Algebras
 
 An affine algebra over a field $K$, or an affine $K$-algebra, or simply an affine ring, is the quotient $A=R/I$ of a multivariate

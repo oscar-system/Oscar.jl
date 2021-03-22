@@ -223,7 +223,8 @@ makedocs(bib,
                                    "$(hecke)/quad_forms/lattices.md"],
                            ],
 
-             "Commutative Algebra" => ["CommutativeAlgebra/ca.md"],
+             "Commutative Algebra" => ["CommutativeAlgebra/ca.md",
+	                               "CommutativeAlgebra/ca_modules.md"],
              "References" => "references.md",
          ]
 )
