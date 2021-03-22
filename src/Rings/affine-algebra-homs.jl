@@ -100,10 +100,6 @@ mutable struct AlgHom{T} <: AbstractAlgebra.Map{Ring, Ring,
       z = new(R, S, V, Singular.AlgebraHomomorphism(Rx, Sx, Sx.(V)))
       return z
    end
-
-   function AlgHom{T}(R::U, S::W, V::Vector{X}, phi::Singular.SAlgHom) where {T, U, W, X}
-      return new(R, S, V, phi)
-   end
 end
 
 ###############################################################################
@@ -128,15 +124,6 @@ end
 #
 ###############################################################################
 
-#Compute the type of the base_ring of the underlying poly ring
-function _type_helper(R)
-   if isdefined(R, :I)
-      return typeof(base_ring(R.R))
-   else
-      return typeof(base_ring(R))
-   end
-end
-
 @doc Markdown.doc"""
     AlgebraHomomorphism(D::U, C::W, V::Vector{X}) where 
     {T, U <: Union{MPolyRing{T}, MPolyQuo}, 
@@ -148,18 +135,18 @@ Allows types `MPolyRing` and `MPolyQuo` for $C$ and $D$ as well as entries of ty
 Alternatively, use `hom(D::U, C::W, V::Vector{X})`.
 """
 function AlgebraHomomorphism(D::U, C::W, V::Vector{X}) where 
-    {T, U <: Union{MPolyRing{T}, MPolyQuo}, 
-    W <: Union{MPolyRing{T}, MPolyQuo}, 
-    X <: Union{MPolyElem{T}, MPolyQuoElem}}
+    {T, S <: MPolyElem{T},
+    U <: Union{MPolyRing{T}, MPolyQuo{S}},
+    W <: Union{MPolyRing{T}, MPolyQuo{S}},
+    X <: Union{S, MPolyQuoElem{S}}}
    n = length(V)
    @assert n == ngens(D)
-   ty = _type_helper(D)
-   return AlgHom{ty}(D, C, V)
+   return AlgHom{T}(D, C, V)
 end
 
-hom(D::U, C::W, V::Vector{X}) where {T,
-   U <: Union{MPolyRing{T}, MPolyQuo}, W <: Union{MPolyRing{T}, MPolyQuo},
-   X <: Union{MPolyElem{T}, MPolyQuoElem}} = AlgebraHomomorphism(D, C, V)
+hom(D::U, C::W, V::Vector{X}) where {T, S <: MPolyElem{T},
+   U <: Union{MPolyRing{T}, MPolyQuo{S}}, W <: Union{MPolyRing{T}, MPolyQuo{S}},
+   X <: Union{S, MPolyQuoElem{S}}} = AlgebraHomomorphism(D, C, V)
 
 ###############################################################################
 #
@@ -209,14 +196,12 @@ end
 
 Returns the algebra homomorphism $H = G\circ F: domain(F) --> codomain(G)$.
 """
-function compose(F::AlgHom, G::AlgHom)
+function compose(F::AlgHom{T}, G::AlgHom{T}) where T
    check_composable(F, G)
-   phi = Singular.compose(F.salghom, G.salghom)
    D = domain(F)
-   ty = _type_helper(D)
    C = codomain(G)
-   V = C.(phi.image)
-   return AlgHom{ty}(D, C, V, phi)
+   V = G.(F.image)
+   return AlgHom{T}(D, C, V)
 end
 
 ###############################################################################
