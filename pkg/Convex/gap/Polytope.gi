@@ -24,6 +24,15 @@ InstallMethod( VerticesOfPolytope,
     
 end );
 
+InstallMethod( DefiningInequalities,
+               "for polytopes",
+               [ IsPolytope ],
+  function( polytope )
+    
+    return polytope!.input_ineqs;
+    
+end );
+
 
 ##
 InstallMethod( FacetInequalities,
@@ -51,6 +60,34 @@ InstallMethod( FacetInequalities,
         
         # return this list of inequalities
         return l;
+        
+    fi;
+    
+    # otherwise try next method
+    TryNextMethod();
+    
+end );
+
+
+InstallMethod( IsBounded,
+               " for external polytopes.",
+               [ IsPolytope ],
+    function( polytope )
+    local ineqs, string_list, command_string, s;
+    
+    if PolymakeAvailable() then
+        
+        # Parse the polytope into format recognized by Polymake
+        ineqs := DefiningInequalities( polytope );
+        string_list := List( [ 1 .. Length( ineqs ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( ineqs[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
+        command_string := Concatenation( "F = Julia.Polymake.polytope.Polytope( INEQUALITIES = [ ", JoinStringsWithSeparator( string_list, "; " ), " ] ).BOUNDED" );
+
+        # issue command in Julia and fetch result as string
+        JuliaEvalString( command_string );
+        s := JuliaToGAP( IsString, Julia.string( Julia.F ) );
+        
+        # cast the result into a list of integers
+        return EvalString( s );
         
     fi;
     
