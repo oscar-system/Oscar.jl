@@ -1099,7 +1099,7 @@ function monomials(f::MPolyElem, ord::Function)
   return ( monomial(f, perm[i]) for i = 1:length(f) )
 end
 
-for s in (:terms, :coeffs, :exponent_vectors, :monomials)
+for s in (:terms, :coefficients, :exponent_vectors, :monomials)
   @eval begin
     function ($s)(f::MPolyElem, ord::Symbol)
       R = parent(f)
@@ -1131,7 +1131,7 @@ for s in (:terms, :coeffs, :exponent_vectors, :monomials)
   end
 end
 
-for s in ("term", "coeff", "monomial")
+for s in ("term", "coefficient", "monomial")
   @eval begin
     function ($(Symbol("leading_$s")))(args...)
       return first($(Symbol("$(s)s"))(args...))
@@ -1143,8 +1143,8 @@ function leading_term(f::MPolyElem)
   return leading_term(f, ordering(parent(f)))
 end
 
-function leading_coeff(f::MPolyElem)
-  return leading_coeff(f, ordering(parent(f)))
+function leading_coefficient(f::MPolyElem)
+  return leading_coefficient(f, ordering(parent(f)))
 end
 
 function leading_monomial(f::MPolyElem)

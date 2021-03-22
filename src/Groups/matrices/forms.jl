@@ -293,7 +293,7 @@ function gram_matrix(f::SesquilinearForm)
    d = nvars(parent(f.pol))
    B = zero_matrix( base_ring(f.pol), d, d )
    V = collect(exponent_vectors(f.pol))
-   C = collect(coeffs(f.pol))
+   C = collect(coefficients(f.pol))
    for i in 1:length(V)
       x = y = 0
       for j in 1:d

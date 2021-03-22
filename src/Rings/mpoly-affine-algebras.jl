@@ -310,7 +310,7 @@ function preimage(F::AlgHom, f::Union{MPolyElem, MPolyQuoElem})
    (S, _, _, g) = _ring_helper(s, f, [zero(s)])
    (T, inc, pr, G, _) = _surj_helper(F)
    D = divrem(inc(g), G)
-   !(lm(D[2]) < gen(T, m)) && error("Element not contained in image")
+   !(leading_monomial(D[2]) < gen(T, m)) && error("Element not contained in image")
    return (pr(D[2]), kernel(F))
 end
 

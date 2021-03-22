@@ -277,7 +277,7 @@ function degree(a::MPolyElem_dec)
       u += c[i]*d[i]
     end
     if isfiltered(W)
-      w = W.leading_term(w, u) ? u : w
+      w = W.lt(w, u) ? u : w
     elseif first
       first = false
       w = u

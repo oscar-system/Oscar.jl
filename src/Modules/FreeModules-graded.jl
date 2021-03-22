@@ -210,7 +210,7 @@ function degree(a::FreeModuleElem_dec)
         error("elem not homogenous")
       end
     else
-      if W.leading_term(ww, w) 
+      if W.lt(ww, w) 
         ww = w
       end
     end
@@ -454,7 +454,7 @@ function degree(h::T) where {T <: Map_dec}
     end
     dd = degree(hi) - degree(i)
     if isfiltered(R)
-      if R.leading_term(d, dd)
+      if R.lt(d, dd)
         d = dd
       end
     else
