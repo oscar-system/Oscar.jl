@@ -126,10 +126,11 @@ end
 
 @doc Markdown.doc"""
     AlgebraHomomorphism(D::U, C::W, V::Vector{X}) where 
-    {T, U <: Union{MPolyRing{T}, MPolyQuo}, 
-    W <: Union{MPolyRing{T}, MPolyQuo}, 
-    X <: Union{MPolyElem{T}, MPolyQuoElem}}
-
+    {T, S <: MPolyElem{T},
+    U <: Union{MPolyRing{T}, MPolyQuo{S}},
+    W <: Union{MPolyRing{T}, MPolyQuo{S}},
+    X <: Union{S, MPolyQuoElem{S}}}
+   
 Creates the algebra homomorphism $D \rightarrow C$ defined by sending the $i$th generator of $D$ to the $i$th element of $V$. 
 Allows types `MPolyRing` and `MPolyQuo` for $C$ and $D$ as well as entries of type `MPolyElem` and `MPolyQuoElem` for `X`.
 Alternatively, use `hom(D::U, C::W, V::Vector{X})`.
@@ -192,9 +193,9 @@ end
 ###############################################################################
 
 @doc Markdown.doc"""
-    compose(F::AlgHom, G::AlgHom)
+    compose(F::AlgHom{T}, G::AlgHom{T}) where T
 
-Returns the algebra homomorphism $H = G\circ F: domain(F) --> codomain(G)$.
+Returns the algebra homomorphism $H = G\circ F: domain(F) \rightarrow codomain(G)$.
 """
 function compose(F::AlgHom{T}, G::AlgHom{T}) where T
    check_composable(F, G)
