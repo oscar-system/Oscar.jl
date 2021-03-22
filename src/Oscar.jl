@@ -237,7 +237,6 @@ if is_dev
 #  include("../examples/PlaneCurve.jl")
 end
 
-
 const global OSCAR = Oscar
 const global oscar = Oscar
 

@@ -607,7 +607,7 @@ function Oscar.degree(H::HilbertData)
      q, _ = hilbert_series(H, 2)
      return q(1)
   end
-  return lead(P)*factorial(degree(P))
+  return leading_coefficient(P)*factorial(degree(P))
 end
 
 function (P::FmpqRelSeriesRing)(H::HilbertData)

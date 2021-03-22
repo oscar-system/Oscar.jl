@@ -350,7 +350,7 @@ function ^(val::QabElem, sigma::QabAutomorphism)
       k = k*a*n0 + b*n1
     end
     data = val.data  # nf_elem
-    coeffs = Nemo.coeffs(data)
+    coeffs = Nemo.coefficients(data)
     res = zeros(eltype(coeffs), n)
     res[1] = coeffs[1]
     for i in 2:length(coeffs)

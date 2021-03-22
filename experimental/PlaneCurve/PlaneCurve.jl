@@ -131,7 +131,7 @@ Oscar.dim(::PlaneCurve) = 1 # since C is a plane curve, the dimension is always 
 # hash function
 
 function Base.hash(C::PlaneCurve, h::UInt)
-  F = 1//lc(C.eq)*C.eq
+  F = 1//leading_coefficient(C.eq)*C.eq
   return hash(F, h)
 end
 
@@ -142,7 +142,7 @@ end
 function ==(C::PlaneCurve, D::PlaneCurve)
   F = defining_equation(C)
   G = defining_equation(D)
-  return degree(C) == degree(D) && F*(lc(G)//lc(F)) == G
+  return degree(C) == degree(D) && F*(leading_coefficient(G)//leading_coefficient(F)) == G
 end
 
 ################################################################################
