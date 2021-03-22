@@ -100,6 +100,39 @@ InstallMethod( Dimension,
     
 end );
 
+InstallMethod( RaysInFacets,
+               " for cones",
+               [ IsCone ],
+    
+    function( cone )
+    local input_rays, string_list, command_string, s, l;
+    
+    # compute the ray generators in Polymake
+    if PolymakeAvailable() then
+        
+        # Parse the rays into format recognized by Polymake
+        input_rays := cone!.input_rays;
+        string_list := List( [ 1 .. Length( input_rays ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( input_rays[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
+        command_string := Concatenation( "F = Julia.Polymake.polytope.Cone( INPUT_RAYS = [ ", JoinStringsWithSeparator( string_list, "; " ), " ] ).FACETS" );
+        
+        # issue command in Julia and fetch result as string
+        JuliaEvalString( command_string );
+        s := JuliaToGAP( IsString, Julia.string( Julia.F ) );
+        
+        # cast the result into a list of integers
+        string_list := SplitString( s, '\n' );
+        string_list := List( [ 2 .. Length( string_list ) ], i -> Concatenation( "[", ReplacedString( string_list[ i ], " ", "," ), "]" ) );
+        l := EvalString( Concatenation( "[", JoinStringsWithSeparator( string_list, "," ), "]" ) );
+        
+        # return the result
+        return l;
+        
+    fi;
+    
+    # otherwise try next method
+    TryNextMethod();
+    
+end );
 
 InstallMethod( ExternalPolymakeCone,
                [ IsCone ],
