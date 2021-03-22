@@ -77,7 +77,7 @@ function Oscar.groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevl
       end
     else
       @assert length(Jp) == length(gc)
-      new_idx = [any(x -> !iszero(R(x)), coefficients(map_coeffs(QQ, Jp[i], parent = Qt) - gd[i])) for i=1:length(gc)]
+      new_idx = [any(x -> !iszero(R(x)), coefficients(map_coefficients(QQ, Jp[i], parent = Qt) - gd[i])) for i=1:length(gc)]
       @vprint :ModStdQ 1 "new information in $new_idx\n"
       fl = !any(new_idx)
       if !fl
@@ -159,7 +159,7 @@ function Oscar.groebner_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}; ord::Sym
       end
     else
       @assert length(Jp) == length(gc)
-      new_idx = [any(x -> !iszero(R(x)), coefficients(map_coeffs(QQ, Jp[i], parent = Qt) - gd[i])) for i=1:length(gc)]
+      new_idx = [any(x -> !iszero(R(x)), coefficients(map_coefficients(QQ, Jp[i], parent = Qt) - gd[i])) for i=1:length(gc)]
       @vprint :ModStdQ 1 "new information in $new_idx\n"
       fl = !any(new_idx)
       if !fl

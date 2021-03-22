@@ -946,7 +946,7 @@ end
 
 function image(f::MapDataFromNfNSGen, L, y)
   f.isid && return L(y)
-  z = map_coeffs(w -> image(f.base_field_map_data, L, w), data(y), cached = false)
+  z = map_coefficients(w -> image(f.base_field_map_data, L, w), data(y), cached = false)
   return evaluate(z, f.images)
 end
 
@@ -989,7 +989,7 @@ function Hecke.map_data(K::NfNSGen, L, x...; check = true)
 
   if check
     for i in 1:ngens(K)
-      w = evaluate(map_coeffs(w -> image(z, L, w), gens(defining_ideal(K))[i], cached = false), yy)
+      w = evaluate(map_coefficients(w -> image(z, L, w), gens(defining_ideal(K))[i], cached = false), yy)
       !iszero(w) && error("Data does not define a morphism")
     end
   end
