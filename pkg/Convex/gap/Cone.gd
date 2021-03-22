@@ -28,3 +28,13 @@
 #! @Description
 #! Converts the cone to a polymake polyhedron. The operations of Polymake can then be applied.
 DeclareAttribute( "ExternalPolymakeCone",  IsCone  );
+
+DeclareAttribute( "RaysInFacets",
+                  IsCone );
+
+#! @Arguments C
+#! @Returns a list
+#! @Description
+#! Returns the list of the defining inequalities of the cone <C>C</C>.
+DeclareAttribute( "DefiningInequalities", 
+                   IsCone );
