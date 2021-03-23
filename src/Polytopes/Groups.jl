@@ -30,6 +30,7 @@ function pm_arr_arr_to_group(M)
 end
 
 #TODO: rename this. It is the automorphism group of the vertex facet incidence
+#also applies to tests and exports
 function vf_group(P::Polyhedron)
     if P.pm_polytope.BOUNDED
         pm_group_to_oscar_group(Polymake.group.automorphism_group(P.pm_polytope.VERTICES_IN_FACETS).PERMUTATION_ACTION)
