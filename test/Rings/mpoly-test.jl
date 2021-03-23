@@ -20,14 +20,14 @@
 
   @test collect(terms(f, :deglex)) == [ 5z^3, x*y ]
   @test collect(exponent_vectors(f, :deglex)) == [ [ 0, 0, 3 ], [ 1, 1, 0 ] ]
-  @test collect(coeffs(f, :deglex)) == [ QQ(5), QQ(1) ]
+  @test collect(coefficients(f, :deglex)) == [ QQ(5), QQ(1) ]
 
   Fp = FiniteField(7)
   R, (x, y, z) = PolynomialRing(Fp, 3, ordering = :deglex)
   f = x*y + 5*z^3
   @test collect(monomials(f, :lex)) == [ x*y, z^3 ]
   @test Oscar.leading_monomial(f, :lex) == x*y
-  @test Oscar.leading_coeff(f, :lex) == Fp(1)
+  @test Oscar.leading_coefficient(f, :lex) == Fp(1)
   @test Oscar.leading_term(f, :lex) == x*y
 
 end
@@ -41,7 +41,7 @@ end
   h = hom(S, R, [I1, I2, I3])
   @test kernel(h) == ideal(S, [a^2*b - 4*b^2 - c^2])
   @test h(gen(S, 1)) == I1
-  @test image(h, ideal(S, [a,b])) == ideal(R, [I1, I2])
+  @test h.([a,b]) == [I1, I2]
   @test preimage(h, ideal(R, [I2, I3])) == ideal(S, [b, c])
 end
 
@@ -111,44 +111,42 @@ end
   @test length(l) == 2
   @test l[1] == i1 && l[2] == i2 || l[1] == i2 && l[2] == i1
 
-  # weak_equidimensional_decomposition
+  # equidimensional_decomposition_weak
   R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-  i = intersect(ideal(R, [z]), ideal(R, [x, y]))
-  i = intersect(i, ideal(R, [x^2, z^2]))
-  i = intersect(i, ideal(R, [x^5, y^5, z^5]))
-  l = weak_equidimensional_decomposition(i)
+  i = intersect(ideal(R, [z]), ideal(R, [x, y]),
+                ideal(R, [x^2, z^2]), ideal(R, [x^5, y^5, z^5]))
+  l = equidimensional_decomposition_weak(i)
   @test length(l) == 3
   @test l[1] == ideal(R, [z^4, y^5, x^5, x^3*z^3, x^4*y^4])
   @test l[2] == ideal(R, [y*z, x*z, x^2])
   @test l[3] == ideal(R, [z])
 
+ # equidimensional_decomposition_radical
+  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+  i = ideal(R, [(z^2+1)*(z^3+2)^2, y-z^2])
+  l = equidimensional_decomposition_radical(i)
+  @test length(l) == 1
+  @test l[1] == ideal(R, [z^2-y, y^2*z+z^3+2*z^2+2])
+  
   # equidimensional_hull
   R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-  i = intersect(ideal(R, [z]), ideal(R, [x, y]))
-  i = intersect(i, ideal(R, [x^2, z^2]))
-  i = intersect(i, ideal(R, [x^5, y^5, z^5]))
+  i = intersect(ideal(R, [z]), ideal(R, [x, y]),
+                ideal(R, [x^2, z^2]), ideal(R, [x^5, y^5, z^5]))
   @test equidimensional_hull(i) == ideal(R, [z])
 
   R, (a, b, c, d) = PolynomialRing(ZZ, ["a", "b", "c", "d"])
-  i = ideal(R, [1326*a^2*d^5, 1989*a^2*c^5, 102*b^4*d^5, 153*b^4*c^5,
-            663*a^2*c^5*d^5, 51*b^4*c^5*d^5, 78*a^2*d^15, 117*a^2*c^15,
-            78*a^15*d^5, 117*a^15*c^5, 6*a^2*b^4*d^15, 9*a^2*b^4*c^15,
-            39*a^2*c^5*d^15, 39*a^2*c^15*d^5, 6*a^2*b^15*d^5, 9*a^2*b^15*c^5,
-            6*a^15*b^4*d^5, 9*a^15*b^4*c^5, 39*a^15*c^5*d^5, 3*a^2*b^4*c^5*d^15,
-            3*a^2*b^4*c^15*d^5, 3*a^2*b^15*c^5*d^5, 3*a^15*b^4*c^5*d^5])
+  i = intersect(ideal(R, [R(9), a, b]),
+                ideal(R, [R(3), c]),
+                ideal(R, [R(11), 2*a, 7*b]),
+                ideal(R, [13*a^2, 17*b^4]),
+                ideal(R, [9*c^5, 6*d^5]),
+                ideal(R, [R(17), a^15, b^15, c^15, d^15]))
   @test equidimensional_hull(i) == ideal(R, [R(3)])
 
-  # radical_equidimensional_hull
+  # equidimensional_hull_radical
   R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
   i = ideal(R, [(z^2+1)*(z^3+2)^2, y-z^2])
-  @test radical_equidimensional_hull(i) == ideal(R, [z^2-y, y^2*z+z^3+2*z^2+2])
-
-  # decomposition_radical_equidimensional_hull
-  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-  i = ideal(R, [(z^2+1)*(z^3+2)^2, y-z^2])
-  l = decomposition_radical_equidimensional_hull(i)
-  @test length(l) == 1
-  @test l[1] == ideal(R, [z^2-y, y^2*z+z^3+2*z^2+2])
+  @test equidimensional_hull_radical(i) == ideal(R, [z^2-y, y^2*z+z^3+2*z^2+2])
 
 end
 

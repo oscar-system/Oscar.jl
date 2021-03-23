@@ -20,7 +20,7 @@ end
 
 function is_approx_integral(f::fmpq_mpoly, o::fmpz)
   g = MPolyBuildCtx(parent(f))
-  for (c, v) in zip(coeffs(f), exponent_vectors(f))
+  for (c, v) in zip(coefficients(f), exponent_vectors(f))
     r = c*o
     if abs(round(r)-r) < 1//100
       push_term!(g, round(r)//o, v)
@@ -105,7 +105,7 @@ end
 
 function best_approximation(a::fmpq_mpoly, B::fmpz)
   b = MPolyBuildCtx(parent(a))
-  for (c, v) in zip(coeffs(a), exponent_vectors(a))
+  for (c, v) in zip(coefficients(a), exponent_vectors(a))
     push_term!(b, best_approximation(c, B), v)
   end
   return finish(b)

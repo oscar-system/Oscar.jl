@@ -71,7 +71,7 @@ y^2+2*x+3
 function ^(f::Singular.spoly, g::Oscar.PermGroupElem)
   G = parent(g)
   @assert ngens(parent(f)) == degree(G)
-  return Singular.permute_variables(f, listperm(g), parent(f))
+  return Singular.permute_variables(f, Vector(g), parent(f))
 end
 
 # TODO: implement the above actions now for matrix groups over Q (later: over number fields)

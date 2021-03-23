@@ -22,7 +22,7 @@ function dehomogenization(r::MPolyRing{S}, F::Oscar.MPolyElem_dec{S}, i::Int) wh
   V = gens(r)
   insert!(V, i, r(1))
   phi = hom(R.R, r, V)
-  return phi(F)
+  return phi(F.f)
 end
 
 ################################################################################
@@ -116,7 +116,7 @@ end
 # at the point P.
 
 @doc Markdown.doc"""
-    tangent(C::ProjPlaneCurve{S}, P::Point{S}) where S <: FieldElem
+    tangent(C::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
 
 Return the tangent of `C` at `P` when `P` is a smooth point of `C`, and throw an error otherwise.
 """
@@ -203,19 +203,19 @@ function curve_intersect(PP::Oscar.Geometry.ProjSpc{S}, C::ProjPlaneCurve{S}, D:
   end
   rr, (x,) = PolynomialRing(R.R.base_ring, ["x"])
   phi = hom(R.R, rr, [gen(rr, 1), rr(1), rr(0)])
-  phiF = phi(F)
-  phiH = phi(H)
+  phiF = phi(F.f)
+  phiH = phi(H.f)
   g = gcd(phiF, phiH)
   f = factor(g)
   ro = []
   for h in keys(f.fac)
      if total_degree(h) == 1
-        f = h//lc(h)
+        f = h//leading_coefficient(h)
         push!(ro, -f + gen(rr, 1))
      end
   end
   for y in ro
-     push!(Pts, Oscar.Geometry.ProjSpcElem(PP, [lc(y), R.R.base_ring(1), R.R.base_ring(0)]))
+     push!(Pts, Oscar.Geometry.ProjSpcElem(PP, [leading_coefficient(y), R.R.base_ring(1), R.R.base_ring(0)]))
   end
   if iszero(evaluate(F, [1, 0, 0])) && iszero(evaluate(H, [1, 0, 0]))
      push!(Pts, Oscar.Geometry.ProjSpcElem(PP, [R.R.base_ring(1), R.R.base_ring(0), R.R.base_ring(0)]))
@@ -275,22 +275,22 @@ function curve_singular_locus(PP::Oscar.Geometry.ProjSpc{S}, C::ProjPlaneCurve{S
   R = parent(C.eq)
   rr, (x) = PolynomialRing(R.R.base_ring, ["x"])
   phi = hom(R.R, rr, [gen(rr, 1), rr(1), rr(0)])
-  pF = phi(D.eq)
-  pX = phi(FX)
-  pY = phi(FY)
-  pZ = phi(FZ)
+  pF = phi(D.eq.f)
+  pX = phi(FX.f)
+  pY = phi(FY.f)
+  pZ = phi(FZ.f)
   I = ideal([pF, pX, pY, pZ])
   g = groebner_basis(I, :lex, complete_reduction=true)
   f = factor(g[1])
   ro = []
   for h in keys(f.fac)
      if total_degree(h) == 1
-        f = h//lc(h)
+        f = h//leading_coefficient(h)
         push!(ro, -f + gen(rr, 1))
      end
   end
   for y in ro
-     push!(Pts, Oscar.Geometry.ProjSpcElem(PP, [lc(y), R.R.base_ring(1), R.R.base_ring(0)]))
+     push!(Pts, Oscar.Geometry.ProjSpcElem(PP, [leading_coefficient(y), R.R.base_ring(1), R.R.base_ring(0)]))
   end
   if iszero(evaluate(D.eq, [1,0,0])) && iszero(evaluate(FX, [1,0,0])) && iszero(evaluate(FY, [1,0,0])) && iszero(evaluate(FZ, [1,0,0]))
      push!(Pts, Oscar.Geometry.ProjSpcElem(PP, [R.R.base_ring(1), R.R.base_ring(0), R.R.base_ring(0)]))

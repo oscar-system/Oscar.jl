@@ -84,6 +84,7 @@ function __init__()
         (GAP.Globals.IsMatrixGroup, MatrixGroup),
         (GAP.Globals.IsFpGroup, FPGroup),
     ])
+    GAP.Packages.load("forms")
 end
 
 # pkgdir was added in Julia 1.4
@@ -176,10 +177,13 @@ function test_module(x, new::Bool = true)
    end
 end
 
+function weights end
 
 include("OscarTypes.jl")
 
 include("Groups/types.jl")
+
+include("Rings/Hecke.jl") #does all the importing from Hecke - to define names
 
 include("GAP/gap_to_oscar.jl")
 include("GAP/oscar_to_gap.jl")
@@ -188,19 +192,21 @@ include("Groups/group_constructors.jl")
 include("Groups/sub.jl")
 include("Groups/homomorphisms.jl")
 include("Groups/cosets.jl")
-include("Groups/gsets.jl")
 include("Groups/libraries/libraries.jl")
 include("Groups/GAPGroups.jl")
 include("Groups/directproducts.jl")
 include("Groups/action.jl")
-include("Groups/iso_oscar_gap.jl")
-include("Groups/MatGrp.jl")
+include("Groups/gsets.jl")
+include("Groups/matrices/matrices.jl")
 
 include("Rings/integer.jl")
 include("Rings/rational.jl")
-include("Rings/Hecke.jl")
 include("Rings/mpoly.jl")
+include("Rings/mpoly-ideals.jl")
+include("Rings/groebner.jl")
 include("Rings/MPolyQuo.jl")
+include("Rings/affine-algebra-homs.jl")
+include("Rings/mpoly-affine-algebras.jl")
 include("Rings/mpoly-graded.jl")
 include("Rings/mpoly-local.jl")
 include("Rings/FinField.jl")
@@ -228,9 +234,8 @@ if is_dev
   include("../examples/PrimDec.jl")
 #  include("../examples/GaloisGrp.jl")
 
-  include("../examples/PlaneCurve.jl")
+#  include("../examples/PlaneCurve.jl")
 end
-
 
 const global OSCAR = Oscar
 const global oscar = Oscar

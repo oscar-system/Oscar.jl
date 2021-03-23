@@ -77,7 +77,7 @@ end
                          grade(R, [GrpElems[i] for i =1:ngens(R)])]
 
       graded_rings = decorated_rings[[2, 5]]
-      filtrated_rings =  decorated_rings[[1, 3, 4]]
+      filtered_rings =  decorated_rings[[1, 3, 4]]
 
       d_Elems = IdDict(decorated_rings[1] => 4*decorated_rings[1].D[1],
                        decorated_rings[2] => 5*decorated_rings[2].D[1],
@@ -92,7 +92,7 @@ end
 
       for RR in decorated_rings
         @test (RR in graded_rings) == Oscar.isgraded(RR)
-        @test (RR in filtrated_rings) == Oscar.isfiltrated(RR)
+        @test (RR in filtered_rings) == Oscar.isfiltered(RR)
         polys = _random_poly(RR, 4) # create 4 random polynomials
         @test ngens(RR) == length(gens(RR))
         @test gen(RR, 1) == RR[1]
@@ -128,7 +128,7 @@ end
           @test h == homogenous_component(f, deg)
         end
 
-        @test Oscar.isfiltrated(R_quo) == Oscar.isfiltrated(RR)
+        @test Oscar.isfiltered(R_quo) == Oscar.isfiltered(RR)
         @test Oscar.isgraded(R_quo) == Oscar.isgraded(RR)
 
         @test decoration(R_quo) == decoration(RR)

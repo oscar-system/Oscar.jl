@@ -166,9 +166,9 @@ function primaryTest(I::Singular.sideal, usefglm::Bool = false)
       #Find a generating element which has a power of the n-th variable as leading term
       #Similar to the previous Singular implementation, multiply with a factor to that there appear no fractions
       m = indexOfVarN(I, n);
-      e = Singular.total_degree(Singular.lt(I[m])); 
-      t = Singular.lc(I[m])*e*gen(R, n)+ div((tail(I[m])), gen(R, n)^(e-1));
-      I[m] = (R(e)^e)*R((lc(I[m])^(e-1)))*I[m];
+      e = Singular.total_degree(Singular.leading_term(I[m])); 
+      t = Singular.leading_coefficient(I[m])*e*gen(R, n)+ div((tail(I[m])), gen(R, n)^(e-1));
+      I[m] = (R(e)^e)*R((leading_coefficient(I[m])^(e-1)))*I[m];
       #This implies I was not in general position
       if Singular.reduce(I[m] - t^e, prm) != 0 
         return Ideal(R, R(0))
@@ -188,7 +188,7 @@ function primaryTest(I::Singular.sideal, usefglm::Bool = false)
 
   #Calculates the tail of a polynomial
   function tail(f::Singular.spoly)
-    return f - lt(f)
+    return f - leading_term(f)
   end
   
    # adds a generator to an ideal
@@ -208,7 +208,8 @@ function primaryTest(I::Singular.sideal, usefglm::Bool = false)
   #RAUL: This is the idiot proof version, not taking into account that we have a GB wrt lex
   function indexOfVarN(I::Singular.sideal, n::Int64)
      m = 1
-     while div( Singular.lt(I[m]), Singular.gen(I.base_ring, n)^(Singular.total_degree(lt(I[m])))) == 0
+     while div( Singular.leading_term(I[m]),
+		Singular.gen(I.base_ring, n)^(Singular.total_degree(leading_term(I[m])))) == 0
        m+=1;
      end
      return m

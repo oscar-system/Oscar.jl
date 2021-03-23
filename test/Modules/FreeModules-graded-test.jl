@@ -1,5 +1,51 @@
-@testset "Modules" begin
+function _rand_polys_nonzero(R, n)
+  polys = elem_type(R)[]
+  while length(polys) < n
+    f = MPolyBuildCtx(R)
+    for z = 1:3
+      e = rand(0:2, ngens(R))
+      r = base_ring(R)(rand(0:22))
+      push_term!(f, r, e)
+    end
+    g = finish(f)
+    if !iszero(g)
+      push!(polys, g)
+    end
+  end
+  return polys
+end
 
+function _eq(A::Oscar.SubQuo_dec, B::Oscar.SubQuo_dec)
+  if A.F != B.F
+    return false
+  end
+  Oscar.singular_assure(A.sum)
+  Oscar.singular_assure(B.sum)
+  if !(iszero(Singular.lift(A.sum.S, B.sum.S)[2])) || !(iszero(Singular.lift(B.sum.S, A.sum.S)[2]))
+    return false
+  end
+  if isdefined(A, :quo) || isdefined(B, :quo)
+    if !isdefined(A, :quo) || !isdefined(B, :quo)
+      return false
+    end
+    Oscar.singular_assure(A.quo)
+    Oscar.singular_assure(B.quo)
+    if !(iszero(Singular.lift(A.quo.S, B.quo.S)[2])) || !(iszero(Singular.lift(B.quo.S, A.quo.S)[2]))
+      return false
+    end
+  end
+  return true
+end
+
+function _sparse_to_array(t::Oscar.FreeModuleElem_dec, F::Oscar.FreeModule_dec)
+  res = [zero(F) for i = 1:3]
+  for (i,g) = t.r
+    res[div(i-1, 3) + 1] += g * gen(F, (i-1)%3 + 1)
+  end
+  return res
+end
+
+@testset "Modules" begin
   Qx, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
   t = gen(Hecke.Globals.Qx)
   k1, l = number_field(t + 3)
@@ -10,105 +56,49 @@
   Rings = [Qx, NFx, GFx, RNmodx]
 
   A = abelian_group([0 3 0; 2 1 2])
-  GrpElems = [A([convert(fmpz,x) for x = [0,1,1]]), A([convert(fmpz,x) for x = [0,1,0]]), A([convert(fmpz,x) for x = [1,2,0]])]
+  GrpElems = elem_type(A)[A(fmpz[0, 1, 1]), A(fmpz[0, 1, 0]), A(fmpz[1, 2, 0])]
 
   Rings_dec = []
-  v = [1,2,4]
+  v = [1, 2, 4]
+
   for R in Rings
-    temp = []
-    push!(Rings_dec, [decorate(R), grade(R, [v[i] for i=1:ngens(R)]), filtrate(R, [v[i] for i=1:ngens(R)]), grade(R, [GrpElems[i] for i = 1:ngens(R)])])
-  end
+    
+    decorated_rings = [decorate(R),
+                     grade(R, [v[i] for i=1:ngens(R)]),
+                     filtrate(R, [v[i] for i=1:ngens(R)]),
+                     grade(R, [GrpElems[i] for i = 1:ngens(R)])]
 
-  function rmPols(i::Int64)
-    Pols = Array{elem_type(Rings[i]),1}()
-    if i == 2
-      coeff = fill(zero(k1),3,18)
-    for k = 1:18
-      for z = 1:3
-        coeff[z,k] = dot(rand(-5:5,2),[one(k1),l])
+
+    for (j, RR) in enumerate(decorated_rings)
+      G = RR.D
+      if j == 4
+        Elems = [G([convert(fmpz,x) for x = [0,4,1]]), G([convert(fmpz,x) for x = [2,1,0]]), G([convert(fmpz,x) for x = [1,0,1]])]
+      else
+        Elems = [G([convert(fmpz,1)]), G([convert(fmpz,2)]), G([convert(fmpz,3)])]
       end
-    end
-    else      
-      init = rand(0:22,3,18)
-      coeff = [(base_ring(Rings[i]))(x) for x = init]
-    end
-    for t = 1:18
-      f = MPolyBuildCtx(Rings[i])
-      g = MPolyBuildCtx(Rings[i])
-      for z = 1:3
-        e = rand(0:2, ngens(Rings[i]))
-        push_term!(f, coeff[z,t], e)
-        push_term!(g, coeff[z,t], e)
-      end
-      push!(Pols, finish(f))
-    end
-    return(Pols)
-  end
+      
+      F1, F2 = free_module(RR,3), free_module(RR, Elems)
+      Mods = [F1, F2]
 
-  function FModules(i::Int64, j::Int64)
-    G = Rings_dec[i][j].D
-    if j == 4
-      Elems = [G([convert(fmpz,x) for x = [0,4,1]]), G([convert(fmpz,x) for x = [2,1,0]]), G([convert(fmpz,x) for x = [1,0,1]])]
-    else
-      Elems = [G([convert(fmpz,1)]), G([convert(fmpz,2)]), G([convert(fmpz,3)])]
-    end
-    return ([free_module(Rings_dec[i][j],3), free_module(Rings_dec[i][j], Elems)], Elems)
-  end
+      polys = _rand_polys_nonzero(R, 18)
+      @assert all(!iszero, polys)
 
-  function eq(A::Oscar.SubQuo_dec, B::Oscar.SubQuo_dec)
-    if A.F != B.F
-      return false
-    end
-    Oscar.singular_assure(A.sum)
-    Oscar.singular_assure(B.sum)
-    if !(iszero(Singular.lift(A.sum.S, B.sum.S)[2])) || !(iszero(Singular.lift(B.sum.S, A.sum.S)[2]))
-      return false
-    end
-    if isdefined(A, :quo) || isdefined(B, :quo)
-      if !isdefined(A, :quo) || !isdefined(B, :quo)
-        return false
-      end
-      Oscar.singular_assure(A.quo)
-      Oscar.singular_assure(B.quo)
-      if !(iszero(Singular.lift(A.quo.S, B.quo.S)[2])) || !(iszero(Singular.lift(B.quo.S, A.quo.S)[2]))
-        return false
-      end
-    end
-    return true
-  end
+      for F in Mods
+        
+        @test Oscar.isgraded(F) == Oscar.isgraded(RR)
+        @test Oscar.isfiltered(F) == Oscar.isfiltered(RR)
 
-  function sparse_to_array(t::Oscar.FreeModuleElem_dec, F::Oscar.FreeModule_dec)
-    res = [zero(F) for i = 1:3]
-    for (i,g) = t.r
-      res[div(i-1, 3) + 1] += g * gen(F, (i-1)%3 + 1)
-    end
-    return res
-  end
-
-  for i = 1:4
-    for j = 1:4
-      Pols = rmPols(i)
-      R = Rings_dec[i][j]
-      Mods = FModules(i,j)
-      Elems = Mods[2]
-      for F in Mods[1]
-        if j == 1 || j == 3
-          @test !Oscar.isgraded(F)
-          @test Oscar.isfiltrated(F)
-        else
-          @test Oscar.isgraded(F)
-          @test !Oscar.isfiltrated(F)
-        end		
         G = decoration(F)
-        if j == 4 || j == 5
+        if j == 4
           a = G([convert(fmpz,x) for x = [1,0,1]])
         else
           a = G([convert(fmpz,5)])
         end
-        (F)(a)
+        b = (F)(a)
+        #@test parent(b) === F
         @test (F)() == zero(F)
         #@test ngens(R^3) == 3
-        FreeModElems = [Pols[c*3+1]*gen(F,1) + Pols[c*3+2]*gen(F,2) + Pols[c*3+3]*gen(F,3) for c = 0:5]
+        FreeModElems = [polys[c*3+1]*gen(F,1) + polys[c*3+2]*gen(F,2) + polys[c*3+3]*gen(F,3) for c = 0:5]
         @test parent_type(FreeModElems[1]) == typeof(F)
         #@test (5::Integer)*((4::Int)* (-(FreeModElems[1]))) == QQ(-20) * FreeModElems[1]
         Oscar.BiModArray(FreeModElems, F)
@@ -150,8 +140,8 @@
         for p = 1:6
           push!(Hom_FreeModElems, Hom_FreeModElemst[order_new[p]])
         end
-        hom_keys = [collect(keys(homogenous_components(F.R(Pols[s]))))[1] for s = 1:6]
-        hom_pols = [homogenous_component(F.R(Pols[s]), hom_keys[s]) for s = 1:6]
+        hom_keys = [collect(keys(homogenous_components(F.R(polys[s]))))[1] for s = 1:6]
+        hom_pols = [homogenous_component(F.R(polys[s]), hom_keys[s]) for s = 1:6]
         SubQuos = [sub(F, [Hom_FreeModElems[e] for e = 1:3]), quo(F, [Hom_FreeModElems[2*e-1] for e = 1:3])]
         Hom_SubQuoElems = [[SubQuos[1](SubQuos[1](hom_pols[e] * Hom_FreeModElems[e])) for e = 1:3], [SubQuos[2](Hom_FreeModElems[2*e]) for e = 1:3]]
         @test parent_type(Hom_SubQuoElems[1][1]) == typeof(SubQuos[1])
@@ -190,13 +180,13 @@
           Hom_SubQuoElems[1] = gens(SubQuos[1])
         end
 					        
-        @test eq(sub(F, Hom_SubQuoElems[1]), sub(SubQuos[1], Hom_SubQuoElems[1]))
-        @test eq(sub(F, SubQuos[1]), SubQuos[1])
-        @test eq(quo(F, Hom_SubQuoElems[2]), quo(SubQuos[2], Hom_SubQuoElems[2]))
-        @test eq(quo(F, [Hom_FreeModElems[e] for e = 1:6]), quo(SubQuos[2], [Hom_FreeModElems[2*e] for e = 1:3]))
-        @test eq(quo(SubQuos[1], SubQuos[2]), quo(F,gens(F)))
-        @test eq(quo(sub(F, gens(F, F)), sub(F, [Hom_FreeModElems[2*e - 1] for e = 1:3])), quo(F, [Hom_FreeModElems[2*e - 1] for e = 1:3]))
-        @test eq(quo(F, gens(SubQuos[1])), quo(F, SubQuos[1]))
+        @test _eq(sub(F, Hom_SubQuoElems[1]), sub(SubQuos[1], Hom_SubQuoElems[1]))
+        @test _eq(sub(F, SubQuos[1]), SubQuos[1])
+        @test _eq(quo(F, Hom_SubQuoElems[2]), quo(SubQuos[2], Hom_SubQuoElems[2]))
+        @test _eq(quo(F, [Hom_FreeModElems[e] for e = 1:6]), quo(SubQuos[2], [Hom_FreeModElems[2*e] for e = 1:3]))
+        @test _eq(quo(SubQuos[1], SubQuos[2]), quo(F,gens(F)))
+        @test _eq(quo(sub(F, gens(F, F)), sub(F, [Hom_FreeModElems[2*e - 1] for e = 1:3])), quo(F, [Hom_FreeModElems[2*e - 1] for e = 1:3]))
+        @test _eq(quo(F, gens(SubQuos[1])), quo(F, SubQuos[1]))
 
         FHoms = [Oscar.FreeModuleHom_dec(F, F, [Hom_FreeModElems[t] for t = 1:3]), Oscar.FreeModuleHom_dec(F, F, [Hom_FreeModElems[t] for t = 4:6])]
 
@@ -207,7 +197,7 @@
         h = hom(F,F)
         for a = 1:2
           k = h[2].header.preimage(FHoms[a])
-          @test sparse_to_array(k, F) == [Hom_FreeModElems[t] for t = (3*a - 2) : (3*a)]
+          @test _sparse_to_array(k, F) == [Hom_FreeModElems[t] for t = (3*a - 2) : (3*a)]
           for e in FreeModElems
             @test h[2].header.image(k)(e) == FHoms[a](e)
           end
@@ -215,7 +205,7 @@
 
         Image = []
         w = [1, 3, 1]
-        if j == 1 || j == 2 || j == 3
+        if j <= 3
           for s = 1:3
             deg = []
             for t = 1:3
@@ -245,7 +235,7 @@
 
         non_zero || continue #now the types and parents in Image are wrong
 
-        w = [1,2,3]
+        w = [1, 2, 3]
         for t = 1:3
           Image[t] = gens(SubQuos[t])
         end
@@ -255,17 +245,17 @@
           direct_product(SubQuos[4], SubQuos[4], task = t)
         end
 			        
-        if i == 1
-          @test ngens(direct_product(tensor_product(SubQuos[1], SubQuos[2]), tensor_product(SubQuos[1], SubQuos[3]))) == ngens(tensor_product(SubQuos[1], direct_product(SubQuos[2], SubQuos[3])))
-          @test ngens(direct_product(tensor_product(F, F), tensor_product(F, F))[1]) == ngens(tensor_product(F, direct_product(F, F)[1]))
-          tensor_product(SubQuos[1], SubQuos[3], task = :map)
-	end
+        #if i == 1
+        #  @test ngens(direct_product(tensor_product(SubQuos[1], SubQuos[2]), tensor_product(SubQuos[1], SubQuos[3]))) == ngens(tensor_product(SubQuos[1], direct_product(SubQuos[2], SubQuos[3])))
+        #  @test ngens(direct_product(tensor_product(F, F), tensor_product(F, F))[1]) == ngens(tensor_product(F, direct_product(F, F)[1]))
+        #  tensor_product(SubQuos[1], SubQuos[3], task = :map)
+	      #end
 			        
         f = SQHoms[3]
         k = kernel(f)
         @test iszero(k[2](gen(k[1], 1)))
         im = image(f)
-        @test eq(im[1], sub(codomain(f), [im[2](x.a) for x = gens(im[1])]))
+        @test _eq(im[1], sub(codomain(f), [im[2](x.a) for x = gens(im[1])]))
         D = homogenous_components(f)
         first = true
         res = 0
@@ -290,7 +280,7 @@
         =#
 
         I = ideal([hom_pols[t] for t = 1:3])
-        R_quo = Oscar.MPolyQuo(R, I)
+        R_quo = Oscar.MPolyQuo(RR, I)
 
         free_resolution(I)
         free_resolution(R_quo)
@@ -302,17 +292,17 @@
         end
 
         for f in FHoms
-          @test eq(image(f + f)[1], image(f)[1])
+          @test _eq(image(f + f)[1], image(f)[1])
           D = homogenous_components(f)
           for deg in keys(D)
             gm = D[deg]
             @test ishomogenous(gm)
             @test degree(gm) == deg
-            @test eq(kernel(gm + gm)[1], kernel(gm)[1])
+            @test _eq(kernel(gm + gm)[1], kernel(gm)[1])
           end
         end
 			        
-        if i != 4
+        if R isa AbstractAlgebra.Field
           g = hom_keys[rand(1:6)]
           Ob = [F, SubQuos[3], I]
           El = [gen(F, rand(1:3)), Hom_SubQuoElems[3][rand(1:3)], hom_pols[rand(1:3)]]

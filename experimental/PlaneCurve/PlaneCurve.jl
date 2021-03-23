@@ -2,9 +2,9 @@ module PlaneCurveModule
 using Oscar, Markdown
 import Base.==
 
-export factor, gcd, div, Point, ideal_point, AffinePlaneCurve, ProjPlaneCurve,
-       hash, degree, jacobi_ideal, curve_components, isirreducible, isreduced,
-       reduction, union, defining_equation
+export Point, ideal_point, AffinePlaneCurve, ProjPlaneCurve, hash, degree,
+       jacobi_ideal, curve_components, isirreducible, isreduced, reduction,
+       union, defining_equation, ring
 
 ################################################################################
 
@@ -131,7 +131,7 @@ Oscar.dim(::PlaneCurve) = 1 # since C is a plane curve, the dimension is always 
 # hash function
 
 function Base.hash(C::PlaneCurve, h::UInt)
-  F = 1//lc(C.eq)*C.eq
+  F = 1//leading_coefficient(C.eq)*C.eq
   return hash(F, h)
 end
 
@@ -142,7 +142,7 @@ end
 function ==(C::PlaneCurve, D::PlaneCurve)
   F = defining_equation(C)
   G = defining_equation(D)
-  return degree(C) == degree(D) && F*(lc(G)//lc(F)) == G
+  return degree(C) == degree(D) && F*(leading_coefficient(G)//leading_coefficient(F)) == G
 end
 
 ################################################################################
@@ -281,10 +281,25 @@ Return the union of `C` and `D` (with multiplicity).
 Base.union(C::T, D::T) where T <: PlaneCurve = T(C.eq*D.eq)
 
 ################################################################################
+# Ring associated to a curve
+
+@doc Markdown.doc"""
+    ring(C::PlaneCurve)
+
+Return the coordinate ring of the curve `C`.
+"""
+function ring(C::PlaneCurve)
+  F = C.eq
+  S = parent(F)
+  return quo(S, ideal(S, [F]))
+end
+
+################################################################################
 
 include("AffinePlaneCurve.jl")
 include("ProjPlaneCurve.jl")
 include("DivisorCurve.jl")
+include("AffineEllipticCurve.jl")
 
 ################################################################################
 end

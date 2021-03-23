@@ -12,7 +12,7 @@ end
 function (R::AbstractAlgebra.Generic.MPolyRing{Nemo.gfp_elem})(f::fmpq_mpoly)
   g  = MPolyBuildCtx(R)
   S = base_ring(R)
-  for (c, v) in zip(coeffs(f), exponent_vectors(f))
+  for (c, v) in zip(coefficients(f), exponent_vectors(f))
     push_term!(g, S(c), v)
   end
   return finish(g)
@@ -111,7 +111,7 @@ function Oscar.groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevl
   end
 end
 
-function Oscar.groebner_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}; ord::Symbol = :degrevlex, use_hilbert::Bool = false)
+function Oscar.groebner_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}; ord::Symbol = :degrevlex, complete_reduction::Bool = true, use_hilbert::Bool = false)
     
   ps = Hecke.PrimesSet(Hecke.p_start, -1)
   ps = Hecke.PrimesSet(2^28+2^20, -1)
@@ -140,7 +140,7 @@ function Oscar.groebner_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}; ord::Sym
     R = ResidueRing(ZZ, Int(p))
     Rt, t = PolynomialRing(R, [string(s) for s = symbols(Qt)], cached = false)
     @vtime :ModStdQ 3 Ip = Oscar.BiPolyArray([Rt(x) for x = gI], keep_ordering = false)
-    Gp, Tp = Oscar.groebner_basis_with_transform(Ip, ord = ord, complete_reduction = true)
+    Gp, Tp = Oscar.groebner_basis_with_transform(Ip, ord = ord, complete_reduction = complete_reduction)
     length_gc = length(Gp)
     Jp = vcat(map(x->lift(Zt, x), Gp), map(x->lift(Zt, x), collect(Tp)))
 
@@ -205,7 +205,7 @@ end
 
 function Oscar.lift(R::Nemo.Ring, f::nmod_mpoly)
   g = MPolyBuildCtx(R)
-  for (c, v) in zip(coeffs(f), exponent_vectors(f))
+  for (c, v) in zip(coefficients(f), exponent_vectors(f))
     push_term!(g, lift(c), v)
   end
   return finish(g)
@@ -213,7 +213,7 @@ end
 
 function induce_rational_reconstruction(f::fmpz_mpoly, d::fmpz, b::Bool; parent=1)
   g = MPolyBuildCtx(parent)
-  for (c, v) in zip(coeffs(f), exponent_vectors(f))
+  for (c, v) in zip(coefficients(f), exponent_vectors(f))
     fl, r, s = Hecke.rational_reconstruction(c, d)
     if !fl
       return false, finish(g)

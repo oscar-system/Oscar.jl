@@ -157,7 +157,7 @@ const PcGroupElem = BasicGAPGroupElem{PcGroup}
 """
     FPGroup
 
-Finitely presented group. It can be defined via the function ``free_group``.
+Finitely presented group. It can be defined via the function `free_group`.
 """
 mutable struct FPGroup <: GAPGroup
   X::GapObj
@@ -192,7 +192,7 @@ end
 """
     AutomorphismGroup{T} <: GAPGroup
 
-Group of automorphisms over a group of type `T`. It can be defined via the function ``automorphism_group``.
+Group of automorphisms over a group of type `T`. It can be defined via the function `automorphism_group`.
 """
 mutable struct AutomorphismGroup{T} <: GAPGroup
   X::GapObj
@@ -266,6 +266,9 @@ might also be needed.
 """
 
 elem_type(::Type{T}) where T <: GAPGroup = BasicGAPGroupElem{T}
+elem_type(::T) where T <: GAPGroup = BasicGAPGroupElem{T}
+
+Base.eltype(::Type{T}) where T <: GAPGroup = BasicGAPGroupElem{T}
 
 
 
@@ -285,5 +288,4 @@ function _get_type(G::GapObj)
   end
   error("Not a known type of group")
 end
-
 

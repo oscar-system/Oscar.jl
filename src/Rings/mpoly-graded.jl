@@ -1,5 +1,5 @@
 export weight, decorate, ishomogenous, homogenous_components, filtrate,
-grade, homogenous_component, jacobi_matrix, jacobi_ideal
+grade, homogenous_component, jacobi_matrix, jacobi_ideal, HilbertData, hilbert_series, hilbert_series_reduced, hilbert_series_expanded, hilbert_function, hilbert_polynomial
 
 mutable struct MPolyRing_dec{T} <: AbstractAlgebra.MPolyRing{T}
   R::MPolyRing{T}
@@ -25,12 +25,12 @@ mutable struct MPolyRing_dec{T} <: AbstractAlgebra.MPolyRing{T}
 end
 
 isgraded(W::MPolyRing_dec) = !isdefined(W, :lt)
-isfiltrated(W::MPolyRing_dec) = isdefined(W, :lt)
+isfiltered(W::MPolyRing_dec) = isdefined(W, :lt)
 
 function show(io::IO, W::MPolyRing_dec)
   Hecke.@show_name(io, W)
   Hecke.@show_special(io, W)
-  if isfiltrated(W)
+  if isfiltered(W)
     println(io, "$(W.R) filtrated by ")
   else
     println(io, "$(W.R) graded by ")
@@ -48,7 +48,10 @@ function decorate(R::MPolyRing)
   return MPolyRing_dec(R, [1*A[1] for i = 1: ngens(R)], (x,y) -> x[1] < y[1])
 end
 
-grade(R::MPolyRing) = decorate(R)
+function grade(R::MPolyRing)
+  A = abelian_group([0])
+  return MPolyRing_dec(R, [1*A[1] for i = 1: ngens(R)])
+end
 filtrate(R::MPolyRing) = decorate(R)
 
 function show_special_elem_grad(io::IO, a::GrpAbFinGenElem)
@@ -273,7 +276,7 @@ function degree(a::MPolyElem_dec)
     for i=1:length(c)
       u += c[i]*d[i]
     end
-    if isfiltrated(W)
+    if isfiltered(W)
       w = W.lt(w, u) ? u : w
     elseif first
       first = false
@@ -344,7 +347,7 @@ function degree(a::MPolyQuoElem{<:MPolyElem_dec})
   return degree(a.f)
 end
 
-isfiltrated(q::MPolyQuo) = isfiltrated(q.R)
+isfiltered(q::MPolyQuo) = isfiltered(q.R)
 isgraded(q::MPolyQuo) = isgraded(q.R)
 
 function homogenous_component(a::MPolyQuoElem{<:MPolyElem_dec}, d::GrpAbFinGenElem)
@@ -538,4 +541,102 @@ function hasrelshp(R, S)
   #now the hard bit: traverse the graph, not falling into cycles.
 end
 
+############################################################################
+############################################################################
+############################################################################
+
+function sing_hilb(I::Singular.sideal)
+  a = Array{Int32, 1}()
+  @assert I.isGB
+  Singular.libSingular.scHilb(I.ptr, base_ring(I).ptr, a)
+  return a
+end
+
+mutable struct HilbertData
+  data::Array{Int32, 1}
+  I::MPolyIdeal
+  function HilbertData(I::MPolyIdeal)
+    Oscar.groebner_assure(I)
+    h = sing_hilb(I.gb.S)
+    return new(h, I)
+  end
+  function HilbertData(B::BiPolyArray)
+    return HilbertData(Oscar.MPolyIdeal(B))
+  end
+end
+
+function hilbert_series(H::HilbertData, i::Int= 1)
+  Zt, t = ZZ["t"]
+  if i==1
+    return Zt(map(fmpz, H.data[1:end-1])), (1-gen(Zt))^(ngens(base_ring(H.I)))
+  elseif i==2
+    h = hilbert_series(H, 1)[1]
+    return divexact(h, (1-gen(Zt))^(ngens(base_ring(H.I))-dim(H.I))), (1-gen(Zt))^dim(H.I)
+  end
+  error("2nd parameter must be 1 or 2")
+end
+
+#Decker-Lossen, p23/24
+function hilbert_polynomial(H::HilbertData)
+  q, dn = hilbert_series(H, 2)
+  a = fmpq[]
+  nf = fmpq(1)
+  d = degree(dn)-1
+  for i=0:d
+    push!(a, q(1)//nf)
+    if i>0
+      nf *= i
+    end
+    q = derivative(q)
+  end
+  Qt, t = QQ["t"]
+  t = gen(Qt)
+  bin = one(parent(t))
+  b = fmpq_poly[]
+  if d==-1 return zero(parent(t)) end
+  for i=0:d
+    push!(b, (-1)^(d-i)*a[d-i+1]*bin)
+    bin *= (t+i+1)*fmpq(1, i+1)
+  end
+  return sum(b)
+end
+
+function Oscar.degree(H::HilbertData)
+  P = hilbert_polynomial(H)
+  if P==zero(parent(P))
+     q, _ = hilbert_series(H, 2)
+     return q(1)
+  end
+  return leading_coefficient(P)*factorial(degree(P))
+end
+
+function (P::FmpqRelSeriesRing)(H::HilbertData)
+  n = hilbert_series(H, 1)[1]
+  d = (1-gen(parent(n)))^ngens(base_ring(H.I))
+  g = gcd(n, d)
+  n = divexact(n, g)
+  d = divexact(d, g)
+  Qt, t = QQ["t"]
+  nn = map_coeffs(QQ, n, parent = Qt)
+  dd = map_coeffs(QQ, d, parent = Qt)
+  gg, ee, _ = gcdx(dd, gen(Qt)^max_precision(P))
+  @assert isone(gg)
+  nn = Hecke.mullow(nn, ee, max_precision(P)+1)
+  c = collect(coefficients(nn))
+  return P(map(fmpq, c), length(c), max_precision(P), 0)
+end
+
+function hilbert_series_expanded(H::HilbertData, d::Int)
+   T, t = PowerSeriesRing(QQ, d, "t")   
+   return T(H)
+end
+
+function hilbert_function(H::HilbertData, d::Int)
+   HS = hilbert_series_expanded(H,d)
+   return coeff(hilbert_series_expanded(H, d), d)
+end
+
+function Base.show(io::IO, h::HilbertData)
+  print(io, "Hilbert Series for $(h.I), data: $(h.data)")
+end
 
