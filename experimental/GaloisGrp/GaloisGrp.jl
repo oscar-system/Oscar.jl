@@ -71,11 +71,18 @@ Oscar.zero(R::BoundRing) = R(0)
 """
 Intended to be used to get upper bounds under evaluation in function fields (non 
   Archimedean valuaton, degree)
+
+Operations are: 
+ - `a+b := max(a, b)`
+ - `ab  := a+b`
 """
 function max_ring()
   return BoundRing( (x,y) -> x+y, (x,y) -> max(x, y), (x,y) -> y*x, x->x, "max-ring")
 end
 
+"""
+Normal ring
+"""
 function add_ring()
   return BoundRing( (x,y) -> x*y, (x,y) -> x+y, (x,y) -> x^y, x->x, "add-ring")
 end
@@ -84,6 +91,12 @@ end
 An slpoly evaluated at `cost_ring` elements `0` will count the number
 of multiplications involved. A measure of the cost of evaluation at more
 interesting scalars.
+
+Operations:
+ - `xy := x+y+1`
+ - `x+y := x+y`
+ - `x^y := x+2*log_2(y)`
+ - all constants are mapped to `0`
 """
 function cost_ring()
   return BoundRing( (x,y) -> x+y+1, (x,y) -> x+y, (x,y) -> x+2*nbits(y), x->0, "cost-ring")
@@ -92,6 +105,12 @@ end
 """
 An slpoly evaluated at `degree_ring` elements `1` will bound the total degree
 from above.
+
+Operations:
+ - `xy := x+y`
+ - `x+y := max(x,y)`
+ - `x^y := yx`
+ - all constants are mapped to `0`
 """
 function degree_ring()
   return BoundRing( (x,y) -> x+y, (x,y) -> max(x, y), (x,y) -> y*x, x->0, "degree-ring")
@@ -100,7 +119,8 @@ end
 @doc Markdown.doc"""
     cost(I::SLPoly)
 
-Counts the number of multiplcations to evaluate `I`
+Counts the number of multiplications to evaluate `I`, optionally
+a Tschirnhaus transformation (`fmpz_poly`) can be passed in as well.
 """
 function cost(I::SLPoly)
   n = ngens(parent(I))
@@ -174,12 +194,12 @@ function Oscar.discriminant(g::Array{<:RingElem, 1})
 end
 
 
-function slpoly_ring(R::AbstractAlgebra.Ring, n::Int)
-  return SLPolynomialRing(R, [ Symbol("x_$i") for i=1:n])
+function slpoly_ring(R::AbstractAlgebra.Ring, n::Int; cached ::Bool = false)
+  return SLPolynomialRing(R, [ Symbol("x_$i") for i=1:n], cached = cached)
 end
 
-function slpoly_ring(R::AbstractAlgebra.Ring, p::Pair{Symbol, UnitRange{Int}}...)
-  return SLPolynomialRing(R, p...)
+function slpoly_ring(R::AbstractAlgebra.Ring, p::Pair{Symbol, UnitRange{Int}}...; cached::Bool = false)
+  return SLPolynomialRing(R, p..., cached = cached)
 end
 
 function (R::SLPolyRing)(a::SLPoly)
@@ -239,27 +259,59 @@ groups of (univariate) polynomials. It contains
 
 This is constructed implicitly while computing a Galois group and returned
 together with the group.
+
+Not type stable, not sure what to do about it:
+Depends on type of
+ - `f`
+However, `f` is hardly ever used. 
 """
-mutable struct GaloisCtx
+mutable struct GaloisCtx{T}
   f::PolyElem
-  C
+  C::T
   B::BoundRingElem
   G::PermGroup
   chn::Array{Tuple{PermGroup, SLPoly, fmpz_poly, Array{PermGroupElem, 1}}, 1}
   function GaloisCtx(f::fmpz_poly, p::Int)
-    r = new()
+    r = new{Hecke.qAdicRootCtx}()
     r.f = f
     r.C = Hecke.qAdicRootCtx(f, p, splitting_field = true)
     r.B = add_ring()(roots_upper_bound(f))
     r.chn = Tuple{PermGroup, SLPoly, fmpz_poly, Array{PermGroupElem, 1}}[]
     return r
   end
+  #=
+  Roots in F_q[[t]] for q = p^d
+    - needs to be tweaked to do Q_q[[t]
+    - need q-lifting as well as t-lifting
+    - possibly also mul_ks for Q_q[[t]] case
+    - needs merging in Hecke
+
+  function GaloisCtx(f::fmpq_mpoly, p::Int, d::Int)
+    @assert ngens(parent(f)) == 2
+    r = new{Main.MPolyFact.RootCtx}()
+    Qt, t = PolynomialRing(QQ, "t", cached = false)
+    Qts, s = PolynomialRing(Qt, "s", cached = false)
+    r.f = evaluate(f, [Qts(t), s])
+    r.C = Main.MPolyFact.RootCtx(f, p, d)
+    #r.B = modre complicated: needs degree (inf. val.) bound as well as coeffs
+    r.chn = Tuple{PermGroup, SLPoly, fmpz_poly, Array{PermGroupElem, 1}}[]
+    return r
+  end
+  =#
 end
 
-function Base.show(io::IO, GC::GaloisCtx)
+function Base.show(io::IO, GC::GaloisCtx{Hecke.qAdicRootCtx})
   print(io, "Galois Context for $(GC.f) and prime $(GC.C.p)")
 end
+#=
+function Base.show(io::IO, GC::GaloisCtx{Main.MPolyFact.RootCtx})
+  print(io, "Galois Context for $(GC.f)")
+end
+=#
 
+
+#TODO: change pr to be a "bound_ring_elem": in the Qt case this has to handle
+#      both power series prec as well as q-adic...
 @doc Markdown.doc"""
     roots(G::GaloisCtx, pr::Int)
 
@@ -267,10 +319,20 @@ The roots of the polynomial used to define the Galois-context in the fixed order
 used in the algorithm. The roots are returned up to a precision of `pr`
 p-adic digits, thus they are correct modulo ``p^pr``
 """
-function Hecke.roots(G::GaloisCtx, pr::Int)
-  a = Hecke.roots(G.C, pr)
-  return Hecke.expand(a, all = true, flat = false, degs = Hecke.degrees(G.C.H))
+function Hecke.roots(G::GaloisCtx{Hecke.qAdicRootCtx}, pr::Int)
+  a = Hecke.roots(G.C, pr)::Array{qadic, 1}
+  return Hecke.expand(a, all = true, flat = false, degs = Hecke.degrees(G.C.H))::Array{qadic, 1}
 end
+#=
+too simplistic. RootCtx computes roots in F_q[[t]], but currently not
+in Q_q[[t]]
+
+function Hecke.roots(G::GaloisCtx{Main.MPolyFact.RootCtx}, pr::Int)
+  a = Main.MPolyFact.root(G.C, 1, 1)
+  return a
+end
+=#
+
 
 @doc Markdown.doc"""
     upper_bound(G::GaloisCtx, f...)
@@ -391,6 +453,7 @@ end
 #- sanity-checks
 #- "datenbank" fuer Beispiele
 
+#a gimmick, not used in galois groups
 @doc Markdown.doc"""
     to_elementary_symmetric(f)
 
@@ -477,7 +540,7 @@ function set_orbit(G::PermGroup, H::PermGroup)
   # https://doi.org/10.1016/j.jsc.2016.02.005
 
   l = low_index_subgroups(H, 2*degree(G)^2)
-  S, g = slpoly_ring(ZZ, degree(G))
+  S, g = slpoly_ring(ZZ, degree(G), cached = false)
 
   sort!(l, lt = (a,b) -> isless(order(b), order(a)))
   for U = l
@@ -522,7 +585,7 @@ function invariant(G::PermGroup, H::PermGroup)
   @vprint :GaloisInvariant 1 "Searching G-relative H-invariant\n"
   @vprint :GaloisInvariant 2 "that is a $G-relative $H-invariant\n"
 
-  S, g = slpoly_ring(ZZ, degree(G))
+  S, g = slpoly_ring(ZZ, degree(G), cached = false)
 
   if istransitive(G) && !istransitive(H)
     @vprint :GaloisInvariant 2 "top group transitive, bottom not\n"
@@ -560,9 +623,15 @@ function invariant(G::PermGroup, H::PermGroup)
     GG = h(G)[1]
     HH = h(H)[1]
     I = invariant(GG, HH)
-    #not sure why prod works and sum does not.
-    #also weighted sum (o .* g[o]) is also failing.
-    I = evaluate(I, [prod(g[o]) for o = elements(os)])
+    ex = 1
+    while true
+      J = evaluate(I, [sum(g[o])^ex for o = elements(os)])
+      if !isprobably_invariant(J, G)
+        I = J
+        break
+      end
+      @show ex += 1
+    end
     @hassert :GaloisInvariant 2 isprobably_invariant(I, H)
     @hassert :GaloisInvariant 2 !isprobably_invariant(I, G)
 
@@ -679,10 +748,7 @@ function resolvent(C::GaloisCtx, G::PermGroup, U::PermGroup, extra::Int = 5)
   #make square-free (in residue field)
   k, mk = ResidueField(parent(rt[1]))
   k_rt = map(mk, rt)
-  ts = gen(Hecke.Globals.Zx)
-  while length(Set([evaluate(I^s, map(ts, k_rt)) for s = t])) < length(t)
-    ts = rand(Hecke.Globals.Zx, 2:n, -4:4)
-  end
+  ts = find_transformation(k_rt, I, t)
 
   B = 2*n*evaluate(I, map(ts, [C.B for i = 1:ngens(parent(I))]))^n
   rt = roots(C, clog(value(B), C.C.p)+extra)
@@ -1374,7 +1440,14 @@ function galois_ideal(C::GaloisCtx, extra::Int = 5)
   R = parent(id[1])
   x = gens(R)
   n = length(x)
-  c = maximal_subgroup_chain(symmetric_group(n), C.G)
+  #we need to go down (by hand) to the starting group.
+  #This is either C.G (if there was no descent in Stauduhar)
+  #or the 1st group in the descent chain (C.chn)...
+  if length(C.chn) == 0
+    c = maximal_subgroup_chain(symmetric_group(n), C.G)
+  else
+    c = maximal_subgroup_chain(symmetric_group(n), C.chn[1][1])
+  end
 
   r = roots(C, 5)
   k, mk = ResidueField(parent(r[1]))
@@ -1392,7 +1465,7 @@ function galois_ideal(C::GaloisCtx, extra::Int = 5)
       e = evaluate(I, t, r)
       fl, v = isinteger(C, B, e)
       if fl
-        push!(id, v-evaluate(I, t, x))
+        push!(id, v-evaluate(I, t, map(ts, x)))
         break
       end
     end
@@ -1422,13 +1495,14 @@ function find_morphism(k::FqNmodFiniteField, K::FqNmodFiniteField)
   return phi
 end
 
+#TODO: do not move from fmpz_poly to fmpq_poly to fmpz_poly...
 function galois_group(f::fmpz_poly; pStart::Int = 2*degree(f))
   return galois_group(f(gen(Hecke.Globals.Qx)), pStart = pStart)
 end
 
 function galois_group(f::fmpq_poly; pStart::Int = 2*degree(f))
   lf = factor(f)
-  if any(x-> x > 1, values(lf.fac))
+  if any(x-> x > 1, values(lf.fac)) #think about this: do we drop the multiplicity or not
     error("polynomial must be squarefree")
   end
 
