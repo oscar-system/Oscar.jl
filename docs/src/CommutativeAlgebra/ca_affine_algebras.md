@@ -185,9 +185,10 @@ iscohenmacaulay(R)
 
 ```@docs
 AlgebraHomomorphism(D::U, C::W, V::Vector{X}) where 
-{T, U <: Union{MPolyRing{T}, MPolyQuo}, 
-W <: Union{MPolyRing{T}, MPolyQuo}, 
-X <: Union{MPolyElem{T}, MPolyQuoElem}}
+{T, S <: MPolyElem{T},
+U <: Union{MPolyRing{T}, MPolyQuo{S}},
+W <: Union{MPolyRing{T}, MPolyQuo{S}},
+X <: Union{S, MPolyQuoElem{S}}}
 ```
 
 ### Data Associated to Homomorphisms of Affine Algebras
@@ -276,7 +277,7 @@ isfinite(hom(D, C, V))
 ### Composition of Homomorphisms of Affine Algebras
 
 ```@docs
-compose(F::AlgHom, G::AlgHom)
+compose(F::AlgHom{T}, G::AlgHom{T}) where T
 ```
 
 ## Noether Normalization
