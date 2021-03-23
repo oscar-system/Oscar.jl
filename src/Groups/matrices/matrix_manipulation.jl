@@ -19,8 +19,10 @@ export
     isconjugate_gl,
     ishermitian_matrix,
     isskewsymmetric_matrix,
+    lower_triangular_matrix,
     permutation_matrix,
-    submatrix
+    submatrix,
+    upper_triangular_matrix
 
 
 
@@ -128,6 +130,50 @@ function matrix(A::Array{AbstractAlgebra.Generic.FreeModuleElem{T},1}) where T <
    end
 
    return X
+end
+
+"""
+    upper_triangular_matrix(L::AbstractVector{T}) where T <: RingElem
+
+Return the upper triangular matrix whose non-zero entries (ordered lexicographically) are the elements of the sequence `L`.
+
+An error is returned whenever the length of `L` has not the form `n*(n+1)/2` for some integer `n`.
+"""
+function upper_triangular_matrix(L::AbstractVector{T}) where T <: RingElem
+   d = 1                # dimension of the matrix
+   while div(d*(d+1),2)< length(L)
+      d+=1
+   end
+   length(L)==div(d*(d+1),2) || throw(ArgumentError("Input vector of invalid length"))
+   x = zero_matrix(parent(L[1]),d,d)
+   pos=1
+   for i in 1:d, j in i:d
+      x[i,j] = L[pos]
+      pos+=1
+   end
+   return x
+end
+
+"""
+    lower_triangular_matrix(L::AbstractVector{T}) where T <: RingElem
+
+Return the upper triangular matrix whose non-zero entries (ordered lexicographically) are the elements of the sequence `L`.
+
+An error is returned whenever the length of `L` has not the form `n*(n+1)/2` for some integer `n`.
+"""
+function lower_triangular_matrix(L::AbstractVector{T}) where T <: RingElem
+   d = 1                # dimension of the matrix
+   while div(d*(d+1),2)< length(L)
+      d+=1
+   end
+   length(L)==div(d*(d+1),2) || throw(ArgumentError("Input vector of invalid length"))
+   x = zero_matrix(parent(L[1]),d,d)
+   pos=1
+   for i in 1:d, j in 1:i
+      x[i,j] = L[pos]
+      pos+=1
+   end
+   return x
 end
 
 """

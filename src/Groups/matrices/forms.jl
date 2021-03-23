@@ -510,13 +510,13 @@ function invariant_bilinear_forms(G::MatrixGroup{S,T}) where {S,T}
 end
 
 """
-    invariant_hermitian_forms(G::MatrixGroup)
+    invariant_sesquilinear_forms(G::MatrixGroup)
 
 Return a generating set for the vector spaces of sesquilinear non-bilinear forms preserved by the group `G`. It works only if `base_ring(G)` has even degree.
 !!! warning "Note:"
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
 """
-function invariant_hermitian_forms(G::MatrixGroup{S,T}) where {S,T}
+function invariant_sesquilinear_forms(G::MatrixGroup{S,T}) where {S,T}
    F = base_ring(G)
    @assert iseven(degree(F)) "Base ring has no even degree"
    n = degree(G)
@@ -569,6 +569,79 @@ function invariant_quadratic_forms(G::MatrixGroup{S,T}) where {S,T}
    return M
 end
 
+#TODO: not ready yet
+function invariant_symmetric_forms(G::MatrixGroup{S,T}) where {S,T}
+   F = base_ring(G)
+   n = degree(G)
+   M = T[]
+
+   for mat in gens(G)
+      MM = zero_matrix(F,div(n*(n+1),2),div(n*(n+1),2))
+      idx_r=1
+      for i in 1:n, j in i:n
+         idx_c=1
+         for s in 1:n
+            MM[idx_r,idx_c] = mat[i,s]*mat[j,s]
+            idx_c+=1
+            for t in (s+1):n
+               MM[idx_r,idx_c] = mat[i,s]*mat[j,t]+mat[i,t]*mat[j,s]
+               idx_c+=1
+            end
+         end
+         idx_r+=1
+      end
+      MM -= one(MM)
+      push!(M,MM)
+   end
+
+   r,K = nullspace(block_matrix(length(M),1,M))
+
+   L = T[]
+   for j in 1:r
+      B = upper_triangular_matrix([K[i,j] for i in 1:div(n*(n+1),2)])
+      for i in 1:n, j in 1:i-1
+         B[i,j]=B[j,i]
+      end
+      push!(L, B)
+   end
+   return L
+end
+
+function invariant_alternating_forms(G::MatrixGroup{S,T}) where {S,T}
+   F = base_ring(G)
+   n = degree(G)
+   M = T[]
+
+   for mat in gens(G)
+      MM = zero_matrix(F,div(n*(n-1),2),div(n*(n-1),2))
+      idx_r=1
+      for i in 1:n, j in i+1:n
+         idx_c=1
+         for s in 1:n
+            for t in (s+1):n
+               MM[idx_r,idx_c] = mat[i,s]*mat[j,t]-mat[i,t]*mat[j,s]
+               idx_c+=1
+            end
+         end
+         idx_r+=1
+      end
+      MM -= one(MM)
+      push!(M,MM)
+   end
+
+   r,K = nullspace(block_matrix(length(M),1,M))
+
+   L = T[]
+   for j in 1:r
+      B = upper_triangular_matrix([K[i,j] for i in 1:div(n*(n-1),2)])
+      B = insert_block(zero_matrix(F,n,n),B,1,2)
+      for i in 1:n, j in 1:i-1
+         B[i,j]=-B[j,i]
+      end
+      push!(L, B)
+   end
+   return L
+end
 
 # TODO 2nd approach: using MeatAxe GAP functionalities
 
