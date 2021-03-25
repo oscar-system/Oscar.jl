@@ -355,7 +355,7 @@ end
 
 #TODO to change when we decide how to compute forms preserved by a group
    G = GU(2,3)
-   L = Oscar.invariant_hermitian_forms(G)
+   L = Oscar.invariant_sesquilinear_forms(G)
 #   @test true in [ishermitian_form(f) for f in L]
    @testset for f in L
        for g in gens(G)

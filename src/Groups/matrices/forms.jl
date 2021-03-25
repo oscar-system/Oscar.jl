@@ -569,7 +569,15 @@ function invariant_quadratic_forms(G::MatrixGroup{S,T}) where {S,T}
    return M
 end
 
-#TODO: not ready yet
+#TODO: do we want to keep these?
+#TODO: hermitian forms require resolution of semilinear systems
+"""
+    invariant_symmetric_forms(G::MatrixGroup)
+
+Return a generating set for the vector spaces of symmetric forms preserved by the group `G`.
+!!! warning "Note:"
+    At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
+"""
 function invariant_symmetric_forms(G::MatrixGroup{S,T}) where {S,T}
    F = base_ring(G)
    n = degree(G)
@@ -607,6 +615,13 @@ function invariant_symmetric_forms(G::MatrixGroup{S,T}) where {S,T}
    return L
 end
 
+"""
+    invariant_alternating_forms(G::MatrixGroup)
+
+Return a generating set for the vector spaces of alternating forms preserved by the group `G`.
+!!! warning "Note:"
+    At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
+"""
 function invariant_alternating_forms(G::MatrixGroup{S,T}) where {S,T}
    F = base_ring(G)
    n = degree(G)
