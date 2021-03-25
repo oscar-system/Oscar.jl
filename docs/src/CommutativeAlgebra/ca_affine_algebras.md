@@ -70,12 +70,12 @@ $R=\bigoplus_{d\geq 0} R_d$ according to the corresponding weighted degree. Let 
 ideal of $R$ which is homogeneous with respect to this
 grading. Then the affine $K$-algebra $A=R/I$ inherits the grading:
 $A = \bigoplus_{d\geq 0} A_d$, where each graded piece $A_d$ is a finite dimensional
-$K$-vector space. In this situation, the `Hilbert function` of $A$ is
+$K$-vector space. In this situation, the *Hilbert function* of $A$ is
 the function
 
 $H(A, \underline{\phantom{d}}): \N \rightarrow \N, d \mapsto \dim_K(d).$
 
-The `Hilbert series` of $A$ is the generating function
+The *Hilbert series* of $A$ is the generating function
 
 $H_A(t)=\sum_{d\geq 0} H(A, d) t^d.$
 
@@ -83,36 +83,36 @@ It can be written as a rational function in $t$, say, with denominator
 
 $(1-t^{w_1})\cdots (1-t^{w_n}).$ 
 
-Now suppose that the weights on the variables are all 1. Then we also have the `Hilbert
-polynomial` $P_A(t)\in\mathbb{Q}[t]$ which satisfies $H(M,d)=P_M(d)$ for all $d \gg 0$.
-Furthermore, the `degree` of $A$ is defined as the dimension of $A$ over $K$ if this dimension
+Now suppose that the weights on the variables are all 1. Then we also have the *Hilbert
+polynomial* $P_A(t)\in\mathbb{Q}[t]$ which satisfies $H(M,d)=P_M(d)$ for all $d \gg 0$.
+Furthermore, the *degree* of $A$ is defined as the dimension of $A$ over $K$ if this dimension
 is finite, and as the integer $d$ such that the leading term of the
 Hilbert polynomial has the form $d t^e/e!$, otherwise.
 
 CAVEAT: Currently only implemented in the case where the weights on the variables are all 1.
 
 ```@docs
-hilbert_series(A::MPolyQuo)
+hilbert_series(A::U) where U <: Union{MPolyRing{T}, MPolyQuo{T}} where T
 ```
 
 ```@docs
-hilbert_series_reduced(A::MPolyQuo)
+hilbert_series_reduced(A::U) where U <: Union{MPolyRing{T}, MPolyQuo{T}} where T
 ```
 
 ```@docs
-hilbert_function(A::MPolyQuo, d::Int)
+hilbert_series_expanded(A::U, d::Int) where U <: Union{MPolyRing{T}, MPolyQuo{T}} where T
 ```
 
 ```@docs
-hilbert_series_expanded(A::MPolyQuo, d::Int)
+hilbert_function(A::U, d::Int) where U <: Union{MPolyRing{T}, MPolyQuo{T}} where T
 ```
 
 ```@docs
-hilbert_polynomial(A::MPolyQuo)
+hilbert_polynomial(A::U) where U <: Union{MPolyRing{T}, MPolyQuo{T}} where T
 ```
 
 ```@docs
-degree(A::MPolyQuo)
+degree(A::U) where U <: Union{MPolyRing{T}, MPolyQuo{T}} where T
 ```
 
 ###### Example
@@ -300,11 +300,11 @@ L[3]
 ## Normalization of Rings
 
 ```@docs
-normalize(A::MPolyQuo)
+normalization(A::MPolyQuo)
 ```
 
 ```@docs
-normalize_with_delta(A::MPolyQuo)
+normalization_with_delta(A::MPolyQuo)
 ```
 
 ###### Examples
@@ -312,19 +312,19 @@ normalize_with_delta(A::MPolyQuo)
 ```@repl oscar
 R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 A, _ = quo(R, ideal(R, [(x^2-y^3)*(x^2+y^2)*x]))
-L = normalize(A)
+L = normalization(A)
 ```
 
 ```@repl oscar
 R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 A, _ = quo(R, ideal(R, [z^3-x*y^4]))
-L = normalize(A)
+L = normalization(A)
 ```
 
 ```@repl oscar
 R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 A, _ = quo(R, ideal(R, [(x^2-y^3)*(x^2+y^2)*x]))
-L = normalize_with_delta(A, alg=:primeDec)
+L = normalization_with_delta(A)
 ```
 
 ## Integral Bases

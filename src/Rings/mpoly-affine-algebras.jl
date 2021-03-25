@@ -1,5 +1,5 @@
 
-export normalize_with_delta
+export normalization_with_delta
 export noether_normalization, normalization
 export isreduced, subalgebra_membership
 export hilbert_series, hilbert_series_reduced, hilbert_series_expanded, hilbert_function, hilbert_polynomial, degree
@@ -28,7 +28,7 @@ end
 ##############################################################################
 
 @doc Markdown.doc"""
-    hilbert_series(A::MPolyQuo)
+    hilbert_series(A::U) where U <: Union{MPolyRing{T}, MPolyQuo{T}} where T
 
 Given a graded affine algebra $A$ over a field $K$, return a pair $(p,q)$, say, 
 of univariate polynomials in $t$ with integer coefficients
@@ -38,15 +38,20 @@ and $I$ is a homogeneous ideal of $R$ when we grade $R$ according to the corresp
 weighted degree, then $p/q$ represents the Hilbert series of $A$ as a rational function
 with denominator $q = (1-t^{w_1})\cdots (1-t^{w_n})$. 
 
-See also `hilbert_series_reduced(A::MPolyQuo)`.
+See also `hilbert_series_reduced`.
 """
-function hilbert_series(A::MPolyQuo)
+function hilbert_series(A::U) where U <: Union{MPolyRing{T}, MPolyQuo{T}} where T
+   if typeof(A) == FmpqMPolyRing
+      Zt, t = ZZ["t"]
+      return (one(parent(t)), (1-t)^(ngens(A)))
+   end
    H = HilbertData(A.I)
    return hilbert_series(H,1)
 end
 
+
 @doc Markdown.doc"""
-    hilbert_series_reduced(A::MPolyQuo)
+    hilbert_series_reduced(A::U) where U <: Union{MPolyRing{T}, MPolyQuo{T}} where T
 
 Given a graded affine algebra $A$ over a field $K$, return a pair $(p,q)$, say, 
 of univariate polynomials in $t$ with integer coefficients such that: 
@@ -56,54 +61,84 @@ and $I$ is a homogeneous ideal of $R$ when we grade $R$ according to the corresp
 weighted degree, then $p/q$ represents the Hilbert series of $A$ as a rational function
 written in lowest terms. 
 
-See also `hilbert_series(A::MPolyQuo)`.
+See also `hilbert_series`.
 """
-function hilbert_series_reduced(A::MPolyQuo)
+function hilbert_series_reduced(A::U) where U <: Union{MPolyRing{T}, MPolyQuo{T}} where T
+   if typeof(A) == FmpqMPolyRing
+      Zt, t = ZZ["t"]
+      return (one(parent(t)), (1-t)^(ngens(A)))
+   end
    H = HilbertData(A.I)
    return hilbert_series(H,2)
 end
 
 @doc Markdown.doc"""
-    hilbert_series_expanded(A::MPolyQuo, d::Int)
+    hilbert_series_expanded(A::U, d::Int) where U <: Union{MPolyRing{T}, MPolyQuo{T}} where T
 
 Given a graded affine algebra $A = R/I$ over a field $K$ and an integer $d\geq 0$, return the
 Hilbert series of $A$ to precision $d$. 
 """
-function hilbert_series_expanded(A::MPolyQuo, d::Int)
+function hilbert_series_expanded(A::U, d::Int) where U <: Union{MPolyRing{T}, MPolyQuo{T}} where T
+   if typeof(A) == FmpqMPolyRing
+      P, t = PowerSeriesRing(QQ, d, "t")   
+      b = zero(parent(t))
+      n = ngens(A)
+      for i=0:d
+           b = b + binomial(n-1+i, i)*t^i
+        end
+      return b	   
+     end
    H = HilbertData(A.I)  
    return hilbert_series_expanded(H, d)
 end
 
 @doc Markdown.doc"""
-    hilbert_function(A::MPolyQuo, d::Int)
+    hilbert_function(A::U, d::Int) where U <: Union{MPolyRing{T}, MPolyQuo{T}} where T
 
 Given a graded affine algebra $A = R/I$ over a field $K$ and an integer $d\geq 0$, return the value
 $H(A, d)$, where $H(A, \underline{\phantom{d}}): \N \rightarrow \N, d \mapsto \dim_K A_d$ is 
 the Hilbert function of $A$.
 """
-function hilbert_function(A::MPolyQuo, d::Int)
+function hilbert_function(A::U, d::Int) where U <: Union{MPolyRing{T}, MPolyQuo{T}} where T
+   if typeof(A) == FmpqMPolyRing
+       n = ngens(A)
+       return binomial(n-1+d, n-1)
+     end
    H = HilbertData(A.I)
    return hilbert_function(H, d)
 end
-
+   
 @doc Markdown.doc"""
-    hilbert_polynomial(A::MPolyQuo)
+     hilbert_polynomial(A::U) where U <: Union{MPolyRing{T}, MPolyQuo{T}} where T
 
 Given a graded affine algebra $A = R/I$ over a field $K$ such that the weights on the variables are all 1,
 return the Hilbert polynomial of $A$.
 """
-function hilbert_polynomial(A::MPolyQuo)
+function hilbert_polynomial(A::U) where U <: Union{MPolyRing{T}, MPolyQuo{T}} where T
+   if typeof(A) == FmpqMPolyRing
+       n = ngens(A)
+       Qt, t = QQ["t"]
+       b = one(parent(t))
+       for i=1:(n-1)
+           b = b * (t+i)
+        end
+       b = b//factorial(n-1)
+       return b	   
+     end
    H = HilbertData(A.I)
    return hilbert_polynomial(H)
 end
 
 @doc Markdown.doc"""
-    degree(A::MPolyQuo)
+    degree(A::U) where U <: Union{MPolyRing{T}, MPolyQuo{T}} where T
 
 Given a graded affine algebra $A = R/I$ over a field $K$ such that the weights on the variables are all 1,
 return the degree of $A$.
 """
-function degree(A::MPolyQuo)
+function degree(A::U) where U <: Union{MPolyRing{T}, MPolyQuo{T}} where T
+   if typeof(A) == FmpqMPolyRing
+       return 1
+     end
    H = HilbertData(A.I)
    return degree(H)
 end
@@ -128,9 +163,11 @@ end
     isnormal(A::MPolyQuo)
 
 Return `true` if `A` is normal, `false` otherwise.
+
+CAVEAT: The implementation proceeds by computing the normalization of `A` first. This may take some time.
 """
 function isnormal(A::MPolyQuo)
-  _, _, d = normalize_with_delta(A)
+  _, _, d = normalization_with_delta(A)
   return d == 1
 end
 
@@ -174,7 +211,8 @@ end
 @doc Markdown.doc"""
     subalgebra_membership(f::S, v::Vector{S}) where S <: Union{MPolyElem{U}, MPolyQuoElem{U}} where U
 
-Return a tuple `(true`, h)` if `f` is contained in the subalgebra of `A` generated by the elements contained in `v` with relation defined by `h`, `(false, 0)` otherwise.
+If  `f`  is contained in the subalgebra of `A` generated by the elements contained in `v`, return `(true, h)`, where `h` is giving the polynomial relation.
+Otherwise, return `(false, 0)`.
 """
 function subalgebra_membership(f::S, v::Vector{S}) where S <: Union{MPolyElem{U}, MPolyQuoElem{U}} where U
    @assert !isempty(v)
@@ -364,7 +402,7 @@ function _conv_normalize_data(A, l, br)
 end
 
 @doc Markdown.doc"""
-    normalize(A::MPolyQuo; alg=:equidimDec)
+    normalization(A::MPolyQuo; alg=:equidimDec)
 
 Find the normalization of a reduced affine algebra over a perfect field $K$.
 That is, given the quotient $A=R/I$ of a multivariate polynomial ring $R$ over $K$
@@ -396,7 +434,7 @@ as the prime decomposition of the radical ideal $I$.
 CAVEAT: The function does not check whether $A$ is reduced. Use `isreduced(A)` in case 
 you are unsure (this may take some time).
 """
-function normalize(A::MPolyQuo; alg=:equidimDec)
+function normalization(A::MPolyQuo; alg=:equidimDec)
   I = A.I
   br = base_ring(A.R)
   singular_assure(I)
@@ -405,7 +443,7 @@ function normalize(A::MPolyQuo; alg=:equidimDec)
 end
 
 @doc Markdown.doc"""
-    normalize_with_delta(A::MPolyQuo; alg=:equidimDec)
+    normalization_with_delta(A::MPolyQuo; alg=:equidimDec)
 
 Compute the normalization
 
@@ -423,7 +461,7 @@ containing the delta invariants of the $A_k$, and whose third element is the
 (total) delta invariant of $A$. The return value -1 in the third element
 indicates that the delta invariant is infinite.
 """
-function normalize_with_delta(A::MPolyQuo; alg=:equidimDec)
+function normalization_with_delta(A::MPolyQuo; alg=:equidimDec)
   I = A.I
   br = base_ring(A.R)
   singular_assure(I)
@@ -480,12 +518,11 @@ and monic in the specified variable: Say, $f\in\mathbb Q[x,y]$ is monic in $y$.
 Then the normalization of $A = Q[x,y]/\langle f \rangle$, that is, the
 integral closure $\overline{A}$ of $A$ in its quotient field, is a free
 module over $K[x]$ of finite rank, and any set of free generators for
-$\overline{A}$ over $K[x]$ is called an `integral basis` for $\overline{A}$
+$\overline{A}$ over $K[x]$ is called an *integral basis* for $\overline{A}$
 over $K[x]$. Relying on the algorithm by B\"ohm, Decker, Laplagne, and Pfister,
 the function returns a pair $(d, V)$, where $d$ is an element of $A$,
 and $V$ is a vector of elements in $A$, such that the fractions $v/d, v\in V$,
-form an `integral basis` for $\overline{A}$
-over $K[x]$.
+form an integral basis for $\overline{A}$ over $K[x]$.
 
 NOTE: The conditions on $f$ are automatically checked.
 """
