@@ -316,13 +316,13 @@ end
 Return `true` if `C` has no singular point, and `false` otherwise.
 """
 function issmooth_curve(C::ProjPlaneCurve)
-   R = parent(C.eq)
-   PP = projective_space(R.R.base_ring, 2)
-   s = curve_singular_locus(PP[1], C)
-   if isempty(s[1])
-      return isempty(s[2])
+   F = defining_equation(C)
+   R = parent(F)
+   J = jacobi_ideal(F)
+   if dim(J) > 0
+      return false
    else
-      error("The curve is not reduced.")
+      return true
    end
 end
 
