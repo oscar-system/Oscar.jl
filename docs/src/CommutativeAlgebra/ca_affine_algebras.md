@@ -92,27 +92,27 @@ Hilbert polynomial has the form $d t^e/e!$, otherwise.
 CAVEAT: Currently only implemented in the case where the weights on the variables are all 1.
 
 ```@docs
-hilbert_series(A::U) where U <: Union{MPolyRing{T}, MPolyQuo{T}} where T
+hilbert_series(A::Union{MPolyRing, MPolyQuo})
 ```
 
 ```@docs
-hilbert_series_reduced(A::U) where U <: Union{MPolyRing{T}, MPolyQuo{T}} where T
+hilbert_series_reduced(A::Union{MPolyRing, MPolyQuo})
 ```
 
 ```@docs
-hilbert_series_expanded(A::U, d::Int) where U <: Union{MPolyRing{T}, MPolyQuo{T}} where T
+hilbert_series_expanded(A::Union{MPolyRing, MPolyQuo}, d::Int)
 ```
 
 ```@docs
-hilbert_function(A::U, d::Int) where U <: Union{MPolyRing{T}, MPolyQuo{T}} where T
+hilbert_function(A::Union{MPolyRing, MPolyQuo}, d::Int)
 ```
 
 ```@docs
-hilbert_polynomial(A::U) where U <: Union{MPolyRing{T}, MPolyQuo{T}} where T
+hilbert_polynomial(A::Union{MPolyRing, MPolyQuo})
 ```
 
 ```@docs
-degree(A::U) where U <: Union{MPolyRing{T}, MPolyQuo{T}} where T
+degree(A::Union{MPolyRing, MPolyQuo})
 ```
 
 ###### Example

@@ -28,7 +28,7 @@ end
 ##############################################################################
 
 @doc Markdown.doc"""
-    hilbert_series(A::U) where U <: Union{MPolyRing{T}, MPolyQuo{T}} where T
+    hilbert_series(A::Union{MPolyRing, MPolyQuo})
 
 Given a graded affine algebra $A$ over a field $K$, return a pair $(p,q)$, say, 
 of univariate polynomials in $t$ with integer coefficients
@@ -40,7 +40,7 @@ with denominator $q = (1-t^{w_1})\cdots (1-t^{w_n})$.
 
 See also `hilbert_series_reduced`.
 """
-function hilbert_series(A::U) where U <: Union{MPolyRing{T}, MPolyQuo{T}} where T
+function hilbert_series(A::Union{MPolyRing, MPolyQuo})
    if typeof(A) == FmpqMPolyRing
       Zt, t = ZZ["t"]
       return (one(parent(t)), (1-t)^(ngens(A)))
@@ -51,7 +51,7 @@ end
 
 
 @doc Markdown.doc"""
-    hilbert_series_reduced(A::U) where U <: Union{MPolyRing{T}, MPolyQuo{T}} where T
+    hilbert_series_reduced(A::Union{MPolyRing, MPolyQuo})
 
 Given a graded affine algebra $A$ over a field $K$, return a pair $(p,q)$, say, 
 of univariate polynomials in $t$ with integer coefficients such that: 
@@ -63,7 +63,7 @@ written in lowest terms.
 
 See also `hilbert_series`.
 """
-function hilbert_series_reduced(A::U) where U <: Union{MPolyRing{T}, MPolyQuo{T}} where T
+function hilbert_series_reduced(A::Union{MPolyRing, MPolyQuo})
    if typeof(A) == FmpqMPolyRing
       Zt, t = ZZ["t"]
       return (one(parent(t)), (1-t)^(ngens(A)))
@@ -73,12 +73,12 @@ function hilbert_series_reduced(A::U) where U <: Union{MPolyRing{T}, MPolyQuo{T}
 end
 
 @doc Markdown.doc"""
-    hilbert_series_expanded(A::U, d::Int) where U <: Union{MPolyRing{T}, MPolyQuo{T}} where T
+    hilbert_series_expanded(A::Union{MPolyRing, MPolyQuo}, d::Int)
 
 Given a graded affine algebra $A = R/I$ over a field $K$ and an integer $d\geq 0$, return the
 Hilbert series of $A$ to precision $d$. 
 """
-function hilbert_series_expanded(A::U, d::Int) where U <: Union{MPolyRing{T}, MPolyQuo{T}} where T
+function hilbert_series_expanded(A::Union{MPolyRing, MPolyQuo}, d::Int)
    if typeof(A) == FmpqMPolyRing
       P, t = PowerSeriesRing(QQ, d, "t")   
       b = zero(parent(t))
@@ -93,13 +93,13 @@ function hilbert_series_expanded(A::U, d::Int) where U <: Union{MPolyRing{T}, MP
 end
 
 @doc Markdown.doc"""
-    hilbert_function(A::U, d::Int) where U <: Union{MPolyRing{T}, MPolyQuo{T}} where T
+    hilbert_function(A::Union{MPolyRing, MPolyQuo}, d::Int)
 
 Given a graded affine algebra $A = R/I$ over a field $K$ and an integer $d\geq 0$, return the value
 $H(A, d)$, where $H(A, \underline{\phantom{d}}): \N \rightarrow \N, d \mapsto \dim_K A_d$ is 
 the Hilbert function of $A$.
 """
-function hilbert_function(A::U, d::Int) where U <: Union{MPolyRing{T}, MPolyQuo{T}} where T
+function hilbert_function(A::Union{MPolyRing, MPolyQuo}, d::Int)
    if typeof(A) == FmpqMPolyRing
        n = ngens(A)
        return binomial(n-1+d, n-1)
@@ -109,12 +109,12 @@ function hilbert_function(A::U, d::Int) where U <: Union{MPolyRing{T}, MPolyQuo{
 end
    
 @doc Markdown.doc"""
-     hilbert_polynomial(A::U) where U <: Union{MPolyRing{T}, MPolyQuo{T}} where T
+     hilbert_polynomial(A::Union{MPolyRing, MPolyQuo})
 
 Given a graded affine algebra $A = R/I$ over a field $K$ such that the weights on the variables are all 1,
 return the Hilbert polynomial of $A$.
 """
-function hilbert_polynomial(A::U) where U <: Union{MPolyRing{T}, MPolyQuo{T}} where T
+function hilbert_polynomial(A::Union{MPolyRing, MPolyQuo})
    if typeof(A) == FmpqMPolyRing
        n = ngens(A)
        Qt, t = QQ["t"]
@@ -130,12 +130,12 @@ function hilbert_polynomial(A::U) where U <: Union{MPolyRing{T}, MPolyQuo{T}} wh
 end
 
 @doc Markdown.doc"""
-    degree(A::U) where U <: Union{MPolyRing{T}, MPolyQuo{T}} where T
+    degree(A::Union{MPolyRing, MPolyQuo})
 
 Given a graded affine algebra $A = R/I$ over a field $K$ such that the weights on the variables are all 1,
 return the degree of $A$.
 """
-function degree(A::U) where U <: Union{MPolyRing{T}, MPolyQuo{T}} where T
+function degree(A::Union{MPolyRing, MPolyQuo})
    if typeof(A) == FmpqMPolyRing
        return 1
      end
