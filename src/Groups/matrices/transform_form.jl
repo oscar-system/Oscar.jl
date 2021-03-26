@@ -23,11 +23,7 @@ export
 # TODO: it would be better if this is deterministic. This depends on gen(F) and issquare(F).
 function _solve_eqn(a::T, b::T, c::T) where T <: FinFieldElem
    F = parent(a)  
-   ch = Int(characteristic(F))
-   dg = degree(F)
-   w = gen(F)
-   for i in collect(Iterators.product([0:ch-1 for j in 1:dg]...))
-      x = sum([w^(j-1)*i[j] for j in 1:dg])
+   for x in F
       s = (c - a*x^2)*b^-1
 #      vero, y = issquare(s)
       if issquare(s) return x,square_root(s) end
