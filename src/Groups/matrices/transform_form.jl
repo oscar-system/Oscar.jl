@@ -333,7 +333,7 @@ function _change_basis_forms(B1::MatElem{T}, B2::MatElem{T}, _type::Symbol)  whe
       issquare( prod(diagonal(A1))*prod(diagonal(A2)) )[1] || return false, nothing
       # move all the squares on the diagonal at the begin
       _squares = [i for i in 1:n if issquare(A1[i,i])[1]]
-      our_perm = vcat(_squares, [i for i in 1:n if !(i in _squares)])      # TODO is there a more elengant way?
+      our_perm = vcat(_squares, setdiff(1:n, _squares))
       P = permutation_matrix(F,our_perm)
       s1 = length(_squares)
       D1 = P*D1
