@@ -351,10 +351,9 @@ function _change_basis_forms(B1::MatElem{T}, B2::MatElem{T}, _type::Symbol)  whe
          a,b = _solve_eqn(F(1),F(1),w)
          L = identity_matrix(F,n)
          for i in 0:div(abs(s1-s2),2)-1
-            L[s+2*i,s+2*i] = a
-            L[s+2*i,s+2*i+1] = b*square_root(A1[s+2*i,s+2*i]*A1[s+2*i+1,s+2*i+1]^-1)
-            L[s+2*i+1,s+2*i] = b
-            L[s+2*i+1,s+2*i+1] = -a*square_root(A1[s+2*i,s+2*i]*A1[s+2*i+1,s+2*i+1]^-1)
+            k = s+2*i
+            r = square_root(A1[k,k]/A1[k+1,k+1])
+            L[k:k+1,k:k+1] = [a b*r ; b -a*r]
          end
          D1 = L*D1
          A1 = L*A1*transpose(L)
