@@ -42,11 +42,10 @@ function _find_radical(B::MatElem{T}, F::Field, nr::Int, nc::Int; e::Int=0, _is_
    @assert !_is_symmetric || nr==nc
    V1 = VectorSpace(F,nc)
    V2 = VectorSpace(F,nr)
-   K = kernel(ModuleHomomorphism(V1,V2, _is_symmetric ? B : transpose(B)))[1]
-   U,emb = complement(V1,K)
+   K, embK = kernel(ModuleHomomorphism(V1, V2, _is_symmetric ? B : transpose(B)))
+   U, embU = complement(V1,K)
    d = dim(U)
-   type_vector = elem_type(V1)
-   A = matrix(vcat(type_vector[emb(v) for v in gens(U)], type_vector[K.map(v) for v in gens(K)] ))
+   A = matrix(vcat(map(embU, gens(U)), map(embK, gens(K))))
 
    if _is_symmetric
       return A*B*transpose(map(y -> frobenius(y,e),A)), A, d
