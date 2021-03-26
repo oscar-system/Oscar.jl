@@ -339,7 +339,7 @@ function _change_basis_forms(B1::MatElem{T}, B2::MatElem{T}, _type::Symbol)  whe
       D1 = P*D1
       A1 = P*A1*transpose(P)
       _squares = [i for i in 1:n if issquare(A2[i,i])[1]]
-      our_perm = vcat(_squares, [i for i in 1:n if !(i in _squares)])      # TODO is there a more elengant way?
+      our_perm = vcat(_squares, setdiff(1:n, _squares))
       P = permutation_matrix(F,our_perm)
       s2 = length(_squares)
       D2 = P*D2
