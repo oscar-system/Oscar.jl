@@ -239,7 +239,7 @@ function _is_scalar_multiple_mat(x::MatElem{T}, y::MatElem{T}) where T <: FieldE
 
    for i in 1:nrows(x), j in 1:ncols(x)
       if !iszero(x[i,j])
-         h = y[i,j] / x[i,j]
+         h = y[i,j] * x[i,j]^-1
          return y == h*x ? (true,h) : (false, nothing)
       end
    end

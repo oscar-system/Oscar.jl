@@ -45,7 +45,8 @@ function _find_radical(B::MatElem{T}, F::Field, nr::Int, nc::Int; e::Int=0, _is_
    K, embK = kernel(ModuleHomomorphism(V1, V2, _is_symmetric ? B : transpose(B)))
    U, embU = complement(V1,K)
    d = dim(U)
-   A = matrix(vcat(map(embU, gens(U)), map(embK, gens(K))))
+   type_vector = elem_type(V1)
+   A = matrix(vcat(type_vector[embU(v) for v in gens(U)], type_vector[embK(v) for v in gens(K)] ))
 
    if _is_symmetric
       return A*B*transpose(map(y -> frobenius(y,e),A)), A, d
@@ -286,7 +287,8 @@ end
 ###############################################################################################################
 
 # modifies A by eliminating all hyperbolic lines and turning A into a diagonal matrix
-# return the matrix Z such that Z*A*transpose(Z) is diagonal
+# return the matrix Z such that Z*A*transpose(Z) is diagonal;
+# works only in odd characteristic
 function _elim_hyp_lines(A::MatElem{T}) where T <: FinFieldElem
    F = base_ring(A)
    n = nrows(A)
@@ -322,6 +324,7 @@ function _change_basis_forms(B1::MatElem{T}, B2::MatElem{T}, _type::Symbol)  whe
       return true, D1^-1*D2
    elseif _type==:symmetric
       F = base_ring(B1)
+      isodd(characteristic(F)) || error("Even characteristic not supported")
       n = nrows(B1)
       A1,D1 = _block_herm_elim(B1, _type)
       A2,D2 = _block_herm_elim(B2, _type)
@@ -352,7 +355,7 @@ function _change_basis_forms(B1::MatElem{T}, B2::MatElem{T}, _type::Symbol)  whe
          L = identity_matrix(F,n)
          for i in 0:div(abs(s1-s2),2)-1
             k = s+2*i
-            r = square_root(A1[k,k]/A1[k+1,k+1])
+            r = square_root(A1[k,k]*A1[k+1,k+1]^-1)
             L[k:k+1,k:k+1] = [a b*r ; b -a*r]
          end
          D1 = L*D1

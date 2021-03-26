@@ -177,6 +177,21 @@ end
    @test !is_true
    @test z==nothing
 
+   T,t = PolynomialRing(FiniteField(3),"t")
+   F,a = FiniteField(t^2+1,"a")
+   x = zero_matrix(F,6,6)
+   x[1,2]=1+2*a; x[3,4]=a; x[5,6]=1; x=x+transpose(x)
+   y = diagonal_matrix(F.([a,1,1,a+1,2,2*a+2]))
+   f = symmetric_form(x); g = symmetric_form(y)
+   is_true,z = iscongruent(f,g)
+   @test is_true
+   @test f^z == g
+   y = diagonal_matrix(F.([a,1,1,a+1,2,2*a]))
+   g = symmetric_form(y)
+   is_true,z = iscongruent(f,g)
+   @test !is_true
+
+
    #alternating
    F = GF(3,1)[1]
    x = zero_matrix(F,6,6)
