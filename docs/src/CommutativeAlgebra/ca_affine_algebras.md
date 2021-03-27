@@ -20,24 +20,16 @@ polynomial ring $R$ over $K$ modulo an ideal $I$ of $A$.
 ```@docs
 quo(R::MPolyRing, I::MPolyIdeal)
 ```
-###### Example
-
-```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-A, _ = quo(R, ideal(R, [x^2-y^3, x-y]))
-A, f = quo(R, ideal(R, [x^2-y^3, x-y]))
-f
-```
 
 ## Data Associated to Affine Algebras
 
 ### Basic Data
 
 If `A = R/I` is an affine algebra, then
-- base_ring(A) refers to R,
-- modulus(A) to I,
-- gens(A) to the generators of A, and
-- ngens(A) to the number of these generators.
+- `base_ring(A)` refers to `R`,
+- `modulus(A)` to `I`,
+- `gens(A)` to the generators of `A`, and
+- `ngens(A)` to the number of these generators.
 
 ```@repl oscar
 R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
@@ -52,14 +44,6 @@ ngens(A)
 
 ```@docs
 dim(A::MPolyQuo)
-```
-
-###### Example
-
-```@repl oscar
-R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-A, _ = quo(R, ideal(R, [y-x^2, x-z^3]))
-dim(A)
 ```
 
 ## Hilbert Series and Hilbert Polynomial
