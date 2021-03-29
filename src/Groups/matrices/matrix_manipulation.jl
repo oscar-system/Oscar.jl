@@ -37,7 +37,7 @@ Return the `m x n` submatrix of `A` rooted at `(i,j)`
 """
 # TODO: eliminate this function again
 function submatrix(A::MatElem, i::Int, j::Int, nr::Int, nc::Int)
-   return A[i:i+nr-1, j:j+nr-1]
+   return matrix(base_ring(A),nr,nc, [A[s,t] for s in i:nr+i-1 for t in j:nc+j-1])
 end
 
 # exists already in Hecke _copy_matrix_into_matrix
