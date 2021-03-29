@@ -180,7 +180,7 @@ function permutation_matrix(F::Ring, Q::AbstractVector{T}) where T <: Base.Integ
    return Z
 end
 
-permutation_matrix(F::Ring, p::PermGroupElem) = permutation_matrix(F, listperm(p))
+permutation_matrix(F::Ring, p::PermGroupElem) = permutation_matrix(F, Vector(p))
 
 ^(a::MatElem, b::fmpz) = Hecke._generic_power(a, b)
 
