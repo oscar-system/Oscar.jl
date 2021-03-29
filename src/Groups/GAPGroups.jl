@@ -36,7 +36,6 @@ export
     isperfect,
     ispgroup,
     issimple,
-    listperm,
     mul,
     mul!,
     nilpotency_class,
@@ -354,15 +353,7 @@ function cperm(g::PermGroup,L::AbstractVector{T}...) where T <: Union{Base.Integ
    end
 end
 
-"""
-    listperm(x::PermGroupElem)
-
-Return the list L defined by L = [ `x`(i) for i in 1:n ], where `n` is the degree of `parent(x)`.
-"""
-function listperm(x::PermGroupElem)
-   return [x(i) for i in 1:x.parent.deg]
-end
-#TODO: Perhaps omit `listperm` and use just `Vector`?
+@deprecate listperm(x::PermGroupElem) Vector(x)
 
 """
     Vector{T}(x::PermGroupElem, n::Int = x.parent.deg) where {T}
