@@ -37,7 +37,7 @@ dehomogenize(mat::AbstractMatrix) = mat[:, 2:end]
 Stacks `A` and `B` vertically. The difference to `vcat`is that `AbstractVector`s are always
 interpreted as row vectors. Empty vectors are ignored.
 
-## Examples
+# Examples
 
 ```
 julia> stack([1, 2], [0, 0])

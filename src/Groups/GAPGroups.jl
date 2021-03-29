@@ -284,7 +284,9 @@ gap_perm(L::AbstractVector{<:fmpz}) = gap_perm([Int(y) for y in L])
     (G::PermGroup)(L::AbstractVector{<:Integer})
 
 Return the permutation `x` which maps every `i` from `1` to `length(L)` to `L[i]`. `L` must contain every integer from 1 to `length(L)` exactly, otherwise an exception is thrown.
-The parent of `x` is `G`. If `x` is not contained in `G`, an ERROR is returned. For `gap_perm`, the parent group of `x` is set as Sym(`n`), where `n` is the largest moved point of `x`. Example:
+The parent of `x` is `G`. If `x` is not contained in `G`, an ERROR is returned. For `gap_perm`, the parent group of `x` is set as Sym(`n`), where `n` is the largest moved point of `x`.
+
+# Examples
 ```jldoctest
 julia> perm(symmetric_group(6),[2,4,6,1,3,5])
 (1,2,4)(3,6,5)
@@ -320,7 +322,9 @@ For given lists of positive integers `[a_1, a_2, ..., a_n],[b_1, b_2, ... , b_m]
 permutation `x = (a_1,a_2,...,a_n)(b_1,b_2,...,b_m)...`. The array `[n,n+1,...,n+k]` can be replaced by `n:n+k`.
   
 If a list is empty or contains duplicates, it fails.
-The parent of `x` is `G`. If `x` is not contained in `G`, an ERROR is returned. If `G` is not specified, then the parent of `x` is set as Sym(`n`), where `n` is the largest moved point of `x`. Example:
+The parent of `x` is `G`. If `x` is not contained in `G`, an ERROR is returned. If `G` is not specified, then the parent of `x` is set as Sym(`n`), where `n` is the largest moved point of `x`.
+
+# Examples
 ```jldoctest
 julia> cperm([1,2,3],4:7)
 (1,2,3)(4,5,6,7)
