@@ -20,14 +20,14 @@
 
   @test collect(terms(f, :deglex)) == [ 5z^3, x*y ]
   @test collect(exponent_vectors(f, :deglex)) == [ [ 0, 0, 3 ], [ 1, 1, 0 ] ]
-  @test collect(coeffs(f, :deglex)) == [ QQ(5), QQ(1) ]
+  @test collect(coefficients(f, :deglex)) == [ QQ(5), QQ(1) ]
 
   Fp = FiniteField(7)
   R, (x, y, z) = PolynomialRing(Fp, 3, ordering = :deglex)
   f = x*y + 5*z^3
   @test collect(monomials(f, :lex)) == [ x*y, z^3 ]
   @test Oscar.leading_monomial(f, :lex) == x*y
-  @test Oscar.leading_coeff(f, :lex) == Fp(1)
+  @test Oscar.leading_coefficient(f, :lex) == Fp(1)
   @test Oscar.leading_term(f, :lex) == x*y
 
 end
@@ -41,7 +41,7 @@ end
   h = hom(S, R, [I1, I2, I3])
   @test kernel(h) == ideal(S, [a^2*b - 4*b^2 - c^2])
   @test h(gen(S, 1)) == I1
-  @test image(h, ideal(S, [a,b])) == ideal(R, [I1, I2])
+  @test h.([a,b]) == [I1, I2]
   @test preimage(h, ideal(R, [I2, I3])) == ideal(S, [b, c])
 end
 

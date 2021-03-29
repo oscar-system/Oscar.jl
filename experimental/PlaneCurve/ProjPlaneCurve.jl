@@ -1,92 +1,8 @@
 #module ProjPlaneCurveModule
 
-export dehomogenization, homogenization, issmooth, tangent,
-       common_components, curve_intersect, curve_singular_locus, issmooth_curve,
-       multiplicity, tangent_lines, intersection_multiplicity, aretransverse
-
-################################################################################
-# Homogenization and dehomogenization (not specific to curves).
-################################################################################
-# dehomogenization with respect to the specified variable into the specified
-# ring
-
-@doc Markdown.doc"""
-    dehomogenization([r::MPolyRing], F::Oscar.MPolyElem_dec, i::Int)
-
-Return the polynomial obtained by dehomogenization of `F` with respect to the `i`th variable of `parent(F)`. The new polynomial is in `r` if specified, or in a new ring with one variable less otherwise.
-"""
-function dehomogenization(r::MPolyRing{S}, F::Oscar.MPolyElem_dec{S}, i::Int) where S <: FieldElem
-  @assert ishomogenous(F)
-  R = parent(F)
-  nvars(R) -1 == nvars(r) || error("Incompatible number of variables")
-  V = gens(r)
-  insert!(V, i, r(1))
-  phi = hom(R.R, r, V)
-  return phi(F)
-end
-
-################################################################################
-# dehomogenization without specifying the ring with repect to the specified variable
-
-function dehomogenization(F::Oscar.MPolyElem_dec, i::Int)
-  R = parent(F)
-  A = String.(symbols(R))
-  r = PolynomialRing(R.R.base_ring, deleteat!(A, i))
-  dehomogenization(r[1], F, i)
-end
-
-################################################################################
-# non decorated version
-
-function dehomogenization(F::Oscar.MPolyElem, i::Int)
-  R = parent(F)
-  A = grade(R)
-  dehomogenization(A(F), i)
-end
-
-################################################################################
-# non decorated version
-
-function dehomogenization(r::MPolyRing{S}, F::Oscar.MPolyElem{S}, i::Int) where S <: FieldElem
-  R = parent(F)
-  A = grade(R)
-  dehomogenization(r, A(F), i)
-end
-
-################################################################################
-# homogenization
-
- @doc Markdown.doc"""
-     homogenization(R::MPolyRing{S}, F::MPolyElem{S}, i::Int) where S <: FieldElem
-
-Return the homogenization of `F` in `R` of a polynomial using the `i`th variable of `R`.
- """
- function homogenization(R::MPolyRing{S}, F::MPolyElem{S}, i::Int) where S <: FieldElem
-   r = parent(F)
-   V = gens(R)
-   W = [V[j]//V[i] for j=1:nvars(R)]
-   deleteat!(V, i)
-   phi = hom(r, R, V)
-   G = phi(F)
-   d = total_degree(F)
-   P = R[i]^d*evaluate(G, W)
-   return numerator(P)
- end
-
-################################################################################
-
-@doc Markdown.doc"""
-      homogenization(F::MPolyElem, x0::String="x0")
-
-Return the homogenization of `F` in a ring with one additional variable (named `x0` if not specified).
- """
- function homogenization(F::MPolyElem, x0::String="x0")
-   r = parent(F)
-   A = String.(symbols(r))
-   push!(A, x0)
-   R = PolynomialRing(r.base_ring, A)
-   homogenization(R[1], F, nvars(r)+1)
- end
+export issmooth, tangent, common_components, curve_intersect,
+       curve_singular_locus, issmooth_curve, multiplicity,
+       tangent_lines, intersection_multiplicity, aretransverse
 
 ################################################################################
 # Functions for ProjPlaneCurves
@@ -203,19 +119,19 @@ function curve_intersect(PP::Oscar.Geometry.ProjSpc{S}, C::ProjPlaneCurve{S}, D:
   end
   rr, (x,) = PolynomialRing(R.R.base_ring, ["x"])
   phi = hom(R.R, rr, [gen(rr, 1), rr(1), rr(0)])
-  phiF = phi(F)
-  phiH = phi(H)
+  phiF = phi(F.f)
+  phiH = phi(H.f)
   g = gcd(phiF, phiH)
   f = factor(g)
   ro = []
   for h in keys(f.fac)
      if total_degree(h) == 1
-        f = h//lc(h)
+        f = h//leading_coefficient(h)
         push!(ro, -f + gen(rr, 1))
      end
   end
   for y in ro
-     push!(Pts, Oscar.Geometry.ProjSpcElem(PP, [lc(y), R.R.base_ring(1), R.R.base_ring(0)]))
+     push!(Pts, Oscar.Geometry.ProjSpcElem(PP, [leading_coefficient(y), R.R.base_ring(1), R.R.base_ring(0)]))
   end
   if iszero(evaluate(F, [1, 0, 0])) && iszero(evaluate(H, [1, 0, 0]))
      push!(Pts, Oscar.Geometry.ProjSpcElem(PP, [R.R.base_ring(1), R.R.base_ring(0), R.R.base_ring(0)]))
@@ -275,22 +191,22 @@ function curve_singular_locus(PP::Oscar.Geometry.ProjSpc{S}, C::ProjPlaneCurve{S
   R = parent(C.eq)
   rr, (x) = PolynomialRing(R.R.base_ring, ["x"])
   phi = hom(R.R, rr, [gen(rr, 1), rr(1), rr(0)])
-  pF = phi(D.eq)
-  pX = phi(FX)
-  pY = phi(FY)
-  pZ = phi(FZ)
+  pF = phi(D.eq.f)
+  pX = phi(FX.f)
+  pY = phi(FY.f)
+  pZ = phi(FZ.f)
   I = ideal([pF, pX, pY, pZ])
   g = groebner_basis(I, :lex, complete_reduction=true)
   f = factor(g[1])
   ro = []
   for h in keys(f.fac)
      if total_degree(h) == 1
-        f = h//lc(h)
+        f = h//leading_coefficient(h)
         push!(ro, -f + gen(rr, 1))
      end
   end
   for y in ro
-     push!(Pts, Oscar.Geometry.ProjSpcElem(PP, [lc(y), R.R.base_ring(1), R.R.base_ring(0)]))
+     push!(Pts, Oscar.Geometry.ProjSpcElem(PP, [leading_coefficient(y), R.R.base_ring(1), R.R.base_ring(0)]))
   end
   if iszero(evaluate(D.eq, [1,0,0])) && iszero(evaluate(FX, [1,0,0])) && iszero(evaluate(FY, [1,0,0])) && iszero(evaluate(FZ, [1,0,0]))
      push!(Pts, Oscar.Geometry.ProjSpcElem(PP, [R.R.base_ring(1), R.R.base_ring(0), R.R.base_ring(0)]))
@@ -316,13 +232,13 @@ end
 Return `true` if `C` has no singular point, and `false` otherwise.
 """
 function issmooth_curve(C::ProjPlaneCurve)
-   R = parent(C.eq)
-   PP = projective_space(R.R.base_ring, 2)
-   s = curve_singular_locus(PP[1], C)
-   if isempty(s[1])
-      return isempty(s[2])
+   F = defining_equation(C)
+   R = parent(F)
+   J = jacobi_ideal(F)
+   if dim(J) > 0
+      return false
    else
-      error("The curve is not reduced.")
+      return true
    end
 end
 

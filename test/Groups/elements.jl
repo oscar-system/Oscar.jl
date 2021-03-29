@@ -41,6 +41,8 @@
   @test x==cperm(G,[1,2,3,4,5,6])
   @test one(G)==gap_perm(1:6)
   @test_throws ArgumentError G(gap_perm([2,3,4,5,6,7,1]))
+  @test_throws ArgumentError G([2,3,1,4,6,5,7])
+  @test G(gap_perm([2,3,1,4,6,5,7]))==gap_perm([2,3,1,4,6,5])
   @test_throws ArgumentError perm(G,[2,3,4,5,6,7,1])
   @test one(G)==cperm(G,Int64[])
 end
@@ -66,6 +68,41 @@ end
 
     @test cperm(K,Int64[]) == one(K)
   end
+end
+
+@testset "Eltypes" begin
+   @test eltype(PermGroup)==PermGroupElem
+   @test eltype(PcGroup)==PcGroupElem
+   @test eltype(FPGroup)==FPGroupElem
+   @test eltype(GL(2,3))==MatrixGroupElem{fq_nmod,fq_nmod_mat}
+   @test eltype(DirectProductGroup)==Oscar.BasicGAPGroupElem{DirectProductGroup}
+   @test eltype(direct_product(symmetric_group(3),cyclic_group(2)))==Oscar.BasicGAPGroupElem{DirectProductGroup}
+   @test eltype(SemidirectProductGroup)==Oscar.BasicGAPGroupElem{SemidirectProductGroup}
+   @test eltype(WreathProductGroup)==Oscar.BasicGAPGroupElem{WreathProductGroup}
+   @test eltype(AutomorphismGroup{PcGroup})==Oscar.BasicGAPGroupElem{AutomorphismGroup{PcGroup}}
+
+   G = symmetric_group(5)
+   x = cperm([1,4,2,5])
+   H = sub(G,[x])[1]
+   y = cperm(G,[2,3,4])
+   w = cperm(G,[1,4])
+   K = sub(G,[w])[1]
+   cc = conjugacy_class(G,y)
+   cs = conjugacy_class(G,H)
+   lc = x*H
+   dc = K*x*H
+   @test [z for z in G] == @inferred collect(G)
+   @test [z for z in cc] == @inferred collect(cc)
+   @test [z for z in cs] == @inferred collect(cs)
+   @test [z for z in lc] == @inferred collect(lc)
+   @test [z for z in dc] == @inferred collect(dc)
+   @test typeof(collect(G))==Vector{typeof(x)}
+   @test typeof(collect(lc))==Vector{typeof(x)}
+   @test typeof(collect(cc))==Vector{typeof(x)}
+   @test typeof(collect(cs))==Vector{typeof(H)}
+   @test eltype(cc)==typeof(y)
+   @test eltype(cs)==typeof(H)
+   @test eltype(lc)==typeof(y)
 end
 
 @testset "Generators" begin

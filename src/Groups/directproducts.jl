@@ -29,18 +29,27 @@ export
 
 
 """
-    direct_product(L::AbstractVector{<:GAPGroup})
+    direct_product(L::AbstractVector{<:GAPGroup}; morphisms)
     direct_product(L::GAPGroup...)
 
 Return the direct product of the groups in the collection `L`.
+
+The parameter `morphisms` is `false` by default. If it is set `true`, then the output is a triple (`G`, `emb`, `proj`), where `emb` and `proj` are the vectors of the embeddings (resp. projections) of the direct product `G`.
 """
-function direct_product(L::AbstractVector{<:GAPGroup})
+function direct_product(L::AbstractVector{<:GAPGroup}; morphisms=false)
    X = GAP.Globals.DirectProduct(GAP.julia_to_gap([G.X for G in L]))
-   return DirectProductGroup(X,L,X,true)
+   DP = DirectProductGroup(X,L,X,true)
+   if morphisms
+      emb = [_hom_from_gap_map(L[i],DP,GAP.Globals.Embedding(X,i)) for i in 1:length(L)]
+      proj = [_hom_from_gap_map(DP,L[i],GAP.Globals.Projection(X,i)) for i in 1:length(L)]
+      return DP, emb, proj
+   else
+      return DP
+   end
 end
 
-function direct_product(L::GAPGroup...)
-   return direct_product([x for x in L])
+function direct_product(L::GAPGroup...; morphisms=false)
+   return direct_product([x for x in L]; morphisms=morphisms)
 end
 
 """

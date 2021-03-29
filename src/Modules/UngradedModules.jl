@@ -78,12 +78,15 @@ dim(F::FreeMod) = F.n
 ngens(F::FreeMod) = dim(F)
 
 struct FreeModuleElem{T}
-  r::SRow{T}
+  coords::SRow{T}
   parent::FreeMod{T}
 end
 
 function getindex(v::FreeModuleElem, i::Int)
-  return v.r[i]
+  if isempty(v.coords)
+    return zero(base_ring(v.parent))
+  end
+  return v.coords[i]
 end
 
 elem_type(::Type{FreeMod{T}}) where {T} = FreeModuleElem{T}
@@ -91,14 +94,14 @@ parent_type(::Type{FreeModuleElem{T}}) where {T} = FreeMod{T}
 elem_type(::FreeMod{T}) where {T} = FreeModuleElem{T}
 
 function show(io::IO, e::FreeModuleElem)
-  if length(e.r) == 0
+  if length(e.coords) == 0
     print(io, 0)
     return
   end
   i = 1
-  while i <= length(e.r)
-    print(io, "(", e.r.values[i], ")*", e.parent.S[e.r.pos[i]])
-    if i < length(e.r)
+  while i <= length(e.coords)
+    print(io, "(", e.coords.values[i], ")*", e.parent.S[e.coords.pos[i]])
+    if i < length(e.coords)
       print(io, " + ")
     end
     i += 1
@@ -130,7 +133,7 @@ base_ring(F::FreeMod) = F.R
 
 #TODO: Parent - checks everywhere!!!
 
--(a::FreeModuleElem) = FreeModuleElem(-a.r, a.parent)
+-(a::FreeModuleElem) = FreeModuleElem(-a.coords, a.parent)
 
 function check_parent(a::FreeModuleElem, b::FreeModuleElem)
   if parent(a) !== parent(b)
@@ -140,27 +143,27 @@ end
 
 function +(a::FreeModuleElem, b::FreeModuleElem)
    check_parent(a, b)
-   return FreeModuleElem(a.r+b.r, a.parent)
+   return FreeModuleElem(a.coords+b.coords, a.parent)
 end
 
 function -(a::FreeModuleElem, b::FreeModuleElem)
     check_parent(a,b)
-    return FreeModuleElem(a.r+b.r, a.parent)
+    return FreeModuleElem(a.coords+b.coords, a.parent)
 end
 
 function ==(a::FreeModuleElem, b::FreeModuleElem) 
     check_parent(a,b)
-    return a.r == b.r
+    return a.coords == b.coords
 end
 
-*(a::MPolyElem_dec, b::FreeModuleElem) = FreeModuleElem(a*b.r, b.parent)
-*(a::MPolyElem, b::FreeModuleElem) = FreeModuleElem(a*b.r, b.parent)
-*(a::Int, b::FreeModuleElem) = FreeModuleElem(a*b.r, b.parent)
-*(a::Integer, b::FreeModuleElem) = FreeModuleElem(b.parent.R(a)*b.r, b.parent)
-*(a::fmpq, b::FreeModuleElem) = FreeModuleElem(b.parent.R(a)*b.r, b.parent)
+*(a::MPolyElem_dec, b::FreeModuleElem) = FreeModuleElem(a*b.coords, b.parent)
+*(a::MPolyElem, b::FreeModuleElem) = FreeModuleElem(a*b.coords, b.parent)
+*(a::Int, b::FreeModuleElem) = FreeModuleElem(a*b.coords, b.parent)
+*(a::Integer, b::FreeModuleElem) = FreeModuleElem(b.parent.R(a)*b.coords, b.parent)
+*(a::fmpq, b::FreeModuleElem) = FreeModuleElem(b.parent.R(a)*b.coords, b.parent)
 zero(F::FreeMod) = FreeModuleElem(sparse_row(F.R, Tuple{Int, elem_type(F.R)}[]), F)
 parent(a::FreeModuleElem) = a.parent
-iszero(a::FreeModuleElem) = Hecke.iszero(a.r)
+iszero(a::FreeModuleElem) = Hecke.iszero(a.coords)
 
 mutable struct ModuleGens{T}
   O::Array{FreeModuleElem{T}, 1}
@@ -212,6 +215,10 @@ function Base.getproperty(M::ModuleGens, s::Symbol)
   else
     return getfield(M,s)
   end
+end
+
+function iszero(M::ModuleGens)
+  return iszero(M.S)
 end
 
 function show(io::IO, F::ModuleGens)
@@ -269,7 +276,7 @@ function convert(SF::Singular.FreeMod, m::FreeModuleElem)
   g = Singular.gens(SF)
   e = SF()
   Sx = base_ring(SF)
-  for (p,v) = m.r
+  for (p,v) = m.coords
     e += Sx(v)*g[p]
   end
   return e
@@ -311,7 +318,7 @@ mutable struct FreeModuleHom{T1, T2} <: ModuleMap{T1, T2}
     r = new{typeof(F), typeof(G)}()
     function im_func(x::FreeModuleElem)
       b = zero(G)
-      for (i,v) = x.r
+      for (i,v) = x.coords
         b += v*a[i]
       end
       return b
@@ -324,21 +331,46 @@ mutable struct FreeModuleHom{T1, T2} <: ModuleMap{T1, T2}
     function pr_func(x)
       @assert parent(x) == G
       #assume S == SubQuoElem_dec which cannot be asserted here, the type if defined too late
-      c = coordinates(x.a, sub(G, a)) #??
+      c = coordinates(x.repres, sub(G, a)) #??
       return FreeModuleElem(c, F)
     end
     r.header = MapHeader{typeof(F), typeof(G)}(F, G, im_func, pr_func)
 
-    #=R = base_ring(F)
-    matrix = zero_matrix(R, F.n, ngens(G))
-    for i=1:F.n, j=1:ngens(G)
-      matrix[i,j] = a[i][j]
-    end
-    r.matrix = matrix=#
-
     return r
   end
+
+  function FreeModuleHom(F::FreeMod{T}, G::S, mat::MatElem{T}) where {T,S}
+    @assert nrows(mat) == ngens(F)
+    @assert ncols(mat) == ngens(G)
+    if typeof(G) <: FreeMod
+      hom = FreeModuleHom(F, G, [FreeModuleElem(sparse_row(mat[i,:]), G) for i=1:ngens(F)])
+    else
+      hom = FreeModuleHom(F, G, [SubQuoElem(sparse_row(mat[i,:]), G) for i=1:ngens(F)])
+    end
+    hom.matrix = mat
+    return hom
+  end
 end
+
+function Base.getproperty(f::FreeModuleHom, s::Symbol)
+  if s == :matrix
+    if !isdefined(f, s)
+      D = domain(f)
+      C = codomain(f)
+      R = base_ring(D)
+      matrix = zero_matrix(R, D.n, ngens(C))
+      for i=1:D.n
+        image_of_gen = f(D[i])
+        for j=1:ngens(C)
+          matrix[i,j] = image_of_gen[j]
+        end
+      end
+      setfield!(f, s, matrix)
+    end
+  end
+  return getfield(f, s)
+end
+
 (h::FreeModuleHom)(a::FreeModuleElem) = image(h, a)
 
 hom(F::FreeMod{T}, G, a) where {T} = FreeModuleHom(F, G, a)
@@ -374,17 +406,17 @@ end
 
 function Base.getproperty(submod::SubModuleOfFreeModule, s::Symbol)
   if s == :std_basis
-    if getfield(submod, s) === nothing
+    if !isdefined(submod, s)
         setfield!(submod, s, groebner_basis(submod.gens))
     end
     return getfield(submod, s)
     
   elseif s == :matrix
-    if getfield(submod, s) === nothing
+    if !isdefined(submod, s)
       R = base_ring(F)
       matrix = zero_matrix(R, length(submod.gens), rank(submod.F))
       for i = 1:nrows(matrix), j = 1:ncols(matrix)
-        matrix[i,j] = submod.gens[i].r[j]
+        matrix[i,j] = submod.gens[i].coords[j]
       end
 
       setfield!(submod, s, matrix)
@@ -397,6 +429,10 @@ end
 
 function Base.getindex(M::SubModuleOfFreeModule, i::Int)
   return M.gens.O[i]
+end
+
+function iszero(M::SubModuleOfFreeModule)
+  return iszero(M.gens)
 end
 
 function show(io::IO, M::SubModuleOfFreeModule)
@@ -430,6 +466,13 @@ end
 function sum(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
   @assert M.F === N.F
   return SubModuleOfFreeModule(M.F, vcat(collect(M.gens), collect(N.gens)))
+end
+
+function ==(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
+  @assert M.F == N.F
+  M_mod_N = _reduce(M.std_basis.S, N.std_basis.S)
+  N_mod_M = _reduce(N.std_basis.S, M.std_basis.S)
+  return iszero(M_mod_N) && iszero(N_mod_M)
 end
 
 #+(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule) = sum(M, N)
@@ -492,6 +535,22 @@ function show(io::IO, SQ::SubQuo)
   end
 end
 
+function ==(M::SubQuo{T}, N::SubQuo{T}) where {T}
+  if !isdefined(M, :quo) 
+    if !isdefined(N, :quo)
+      return M.sub == N.sub
+    else
+      return iszero(N.quo) && M.sub == N.sub
+    end
+  else
+    if !isdefined(N, :quo)
+      return iszero(M.quo) && M.sub == N.sub
+    else
+      return M.quo == N.quo && M.sum == N.sum
+    end
+  end
+end
+
 @doc Markdown.doc"""
   A subquotient is (internally) given wia two submodules A and B of the same 
   FreeModule F. It represents $(A+B)/B$, so elements are given as elements
@@ -499,15 +558,15 @@ end
 """
 struct SubQuoElem{T} # this needs to be redone TODO
   coeffs::SRow{T}
-  a::FreeModuleElem{T}
+  repres::FreeModuleElem{T}
   parent::SubQuo
 
   function SubQuoElem(v::SRow{R}, SQ::SubQuo) where {R}
     @assert length(v) <= ngens(SQ.F)
-    r = new{R}(v, sum([v[i]*SQ.F[i] for i=1:ngens(SQ.F)]...), SQ)
+    r = new{R}(v, Base.sum([v[i]*SQ.sub[i] for i=1:ngens(SQ.F)]), SQ)
     #r.coeffs = v
     #r.parent = SQ
-    #r.a = sum([v[i]*SQ.F[i] for i=1:ngens(SQ.F)]...)
+    #r.repres = sum([v[i]*SQ.F[i] for i=1:ngens(SQ.F)]...)
     return r
   end
 
@@ -515,7 +574,7 @@ struct SubQuoElem{T} # this needs to be redone TODO
     @assert a.parent === SQ.F
     r = new{R}(coordinates(a,SQ), a, SQ)
     #r.parent = SQ
-    #r.a = a
+    #r.repres = a
     #r.v = coordinates(a, SQ)
     return r
   end
@@ -527,6 +586,9 @@ elem_type(::Type{SubQuo{T}}) where {T} = SubQuoElem{T}
 parent_type(::Type{SubQuoElem{T}}) where {T} = SubQuo{T}
 
 function getindex(v::SubQuoElem, i::Int)
+  if isempty(v.coeffs)
+    return zero(base_ring(v.parent))
+  end
   return v.coeffs[i]
 end
 
@@ -539,7 +601,7 @@ function groebner_basis(F::ModuleGens)
 end
 
 function show(io::IO, b::SubQuoElem)
-  print(io, b.a)
+  print(io, b.repres)
 end
 
 parent(b::SubQuoElem) = b.parent
@@ -560,14 +622,14 @@ function (R::SubQuo)(a::SubQuoElem)
   error("illegal coercion")
 end
 
-+(a::SubQuoElem, b::SubQuoElem) = SubQuoElem(a.a+b.a, a.parent)
--(a::SubQuoElem, b::SubQuoElem) = SubQuoElem(a.a-b.a, a.parent)
--(a::SubQuoElem) = SubQuoElem(-a.a, a.parent)
-*(a::MPolyElem_dec, b::SubQuoElem) = SubQuoElem(a*b.a, b.parent)
-*(a::MPolyElem, b::SubQuoElem) = SubQuoElem(a*b.a, b.parent)
-*(a::Int, b::SubQuoElem) = SubQuoElem(a*b.a, b.parent)
-*(a::Integer, b::SubQuoElem) = SubQuoElem(a*b.a, b.parent)
-*(a::fmpq, b::SubQuoElem) = SubQuoElem(a*b.a, b.parent)
++(a::SubQuoElem, b::SubQuoElem) = SubQuoElem(a.coeffs+b.coeffs, a.parent)
+-(a::SubQuoElem, b::SubQuoElem) = SubQuoElem(a.coeffs-b.coeffs, a.parent)
+-(a::SubQuoElem) = SubQuoElem(-a.coeffs, a.parent)
+*(a::MPolyElem_dec, b::SubQuoElem) = SubQuoElem(a*b.coeffs, b.parent)
+*(a::MPolyElem, b::SubQuoElem) = SubQuoElem(a*b.coeffs, b.parent)
+*(a::Int, b::SubQuoElem) = SubQuoElem(a*b.coeffs, b.parent)
+*(a::Integer, b::SubQuoElem) = SubQuoElem(a*b.coeffs, b.parent)
+*(a::fmpq, b::SubQuoElem) = SubQuoElem(a*b.coeffs, b.parent)
 ==(a::SubQuoElem, b::SubQuoElem) = iszero(a-b)
 
 function sub(F::FreeMod, O::Array{<:FreeModuleElem, 1})
@@ -575,11 +637,12 @@ function sub(F::FreeMod, O::Array{<:FreeModuleElem, 1})
 end
 
 function sub(F::FreeMod, O::Array{<:SubQuoElem, 1})
-  return SubQuo(F, [x.a for x = O])
+  return SubQuo(F, [x.repres for x = O])
 end
 
 function sub(F::FreeMod, s::SubQuo)
   @assert !isdefined(s, :quo)
+  @assert s.F === F
   return s
 end
 
@@ -599,7 +662,7 @@ end
 
 function quo(F::FreeMod, O::Array{<:SubQuoElem, 1})
   S = SubQuo(F, basis(F))
-  return SubQuo(S, [x.a for x = O])
+  return SubQuo(S, [x.repres for x = O])
 end
 
 function quo(F::SubQuo, O::Array{<:FreeModuleElem, 1})
@@ -617,7 +680,7 @@ function quo(F::SubQuo, O::Array{<:FreeModuleElem, 1})
 end
 
 function quo(S::SubQuo, O::Array{<:SubQuoElem, 1})
-  return quo(S, [x.a for x = O])
+  return quo(S, [x.repres for x = O])
 end
 
 function quo(S::SubQuo, T::SubQuo)
@@ -677,7 +740,7 @@ Base.eltype(::ModuleGens{T}) where {T} = FreeModuleElem{T}
 function *(a::FreeModuleElem, b::Array{FreeModuleElem, 1})
   @assert dim(parent(a)) == length(b)
   s = zero(parent(a))
-  for (p,v) = a.r
+  for (p,v) = a.coords
     s += v*b[p]
   end
   return s
@@ -696,11 +759,11 @@ function presentation(SQ::SubQuo)
   for x = c
     b = sparse_row(R)
     e = zero(SQ.F)
-    for (i,v) = x.r
+    for (i,v) = x.coords
       if i>ngens(SQ)
         break
       end
-      e += v*gen(SQ, i).a
+      e += v*gen(SQ, i).repres
       push!(b.pos, i)
       push!(b.values, v)
     end
@@ -738,6 +801,11 @@ function present(SQ::SubQuo)
   return presentation_module, isomorphism
 end
 
+function change_generating_system(M::SubQuo{T}, N::SubQuo{T}) where {T}
+  @assert M == N
+  return hom(M, N, [SubQuoElem(coordinates(m.repres, N), N) for m in gens(M)])
+end
+
 mutable struct SubQuoHom{T1, T2} <: ModuleMap{T1, T2}
   matrix::MatElem
   header::Hecke.MapHeader
@@ -753,15 +821,34 @@ mutable struct SubQuoHom{T1, T2} <: ModuleMap{T1, T2}
     r.header.preimage = x->preimage(r, x)
     r.im = im
 
-    #=R = base_ring(D)
-    matrix = zero_matrix(R, ngens(D), ngens(C))
-    for i=1:ngens(D), j=1:ngens(C)
-      matrix[i,j] = im[i][j]
-    end
-    r.matrix = matrix=#
-
     return r
   end
+
+  function SubQuoHom(D::SubQuo, C::ModuleFP, mat::MatElem)
+    @assert nrows(mat) == ngens(D)
+    @assert ncols(mat) == ngens(C)
+    if typeof(C) <: FreeMod
+      hom = SubQuoHom(D, C, [FreeModuleElem(sparse_row(mat[i,:]), C) for i=1:ngens(D)])
+    else
+      hom = SubQuoHom(D, C, [SubQuoElem(sparse_row(mat[i,:]), C) for i=1:ngens(D)])
+    end
+  end
+end
+
+function Base.getproperty(f::SubQuoHom, s::Symbol)
+  if s == :matrix
+    if !isdefined(f, s)
+      D = domain(f)
+      C = codomain(f)
+      R = base_ring(D)
+      matrix = zero_matrix(R, ngens(D), ngens(C))
+      for i=1:ngens(D), j=1:ngens(C)
+        matrix[i,j] = f.im[i][j]
+      end
+      setfield!(f, s, matrix)
+    end
+  end
+  return getfield(f,s)
 end
 
 function hom_tensor(G::ModuleFP, H::ModuleFP, A::Array{ <: ModuleMap, 1})
@@ -827,7 +914,8 @@ hom(D::SubQuo, C::ModuleFP, A::Array{<:Any, 1}) = SubQuoHom(D, C, A)
 function image(f::SubQuoHom, a::SubQuoElem)
   i = zero(codomain(f))
   D = domain(f)
-  b = coordinates(a.a, D)
+  b = a.coeffs
+  #b = coordinates(a.repres, D)
   for (p,v) = b
     i += v*f.im[p]
   end
@@ -835,13 +923,14 @@ function image(f::SubQuoHom, a::SubQuoElem)
 end
 
 function image(f::SubQuoHom, a::FreeModuleElem)
-  i = zero(codomain(f))
+  return image(f, SubQuoElem(a, domain(f)))
+  #=i = zero(codomain(f))
   D = domain(f)
   b = coordinates(a, D)
   for (p,v) = b
     i += v*f.im[p]
   end
-  return i
+  return i=#
 end
 
 function preimage(f::SubQuoHom, a::FreeModuleElem)
@@ -863,9 +952,9 @@ end
 function iszero(a::SubQuoElem)
   C = parent(a)
   if !isdefined(C, :quo)
-    return iszero(a.a)
+    return iszero(a.repres)
   end
-  x = _reduce(convert(C.quo.gens.SF, a.a), C.quo.std_basis.S)
+  x = _reduce(convert(C.quo.gens.SF, a.repres), C.quo.std_basis.S)
   return iszero(x)
 end
 
@@ -880,13 +969,13 @@ function hom(F::FreeMod, G::FreeMod)
   m = ngens(G)
   R = base_ring(F)
   function im(x::FreeModuleElem)
-    return hom(F, G, [FreeModuleElem(x.r[R, (i-1)*m+1:i*m], G) for i=1:n])
+    return hom(F, G, [FreeModuleElem(x.coords[R, (i-1)*m+1:i*m], G) for i=1:n])
   end
   function pre(h::FreeModuleHom)
     s = sparse_row(F.R)
     o = 0
     for i=1:n
-      for (p,v) = h(gen(F, i)).r
+      for (p,v) = h(gen(F, i)).coords
         push!(s.pos, o+p)
         push!(s.values, v)
       end
@@ -907,7 +996,7 @@ function kernel(h::FreeModuleHom)  #ONLY for free modules...
   end
   g = map(h, basis(G))
   if isa(codomain(h), SubQuo)
-    g = [x.a for x = g]
+    g = [x.repres for x = g]
     if isdefined(codomain(h), :quo)
       append!(g, collect(codomain(h).quo.gens))
     end
@@ -917,10 +1006,10 @@ function kernel(h::FreeModuleHom)  #ONLY for free modules...
   k = syzygy_module(b)
   if isa(codomain(h), SubQuo)
     s = collect(k.sub.gens)
-    k = sub(G, [FreeModuleElem(x.r[1:dim(G)], G) for x = s])
+    k = sub(G, [FreeModuleElem(x.coords[1:dim(G)], G) for x = s])
   else
     #the syzygie_module creates a new free module to work in
-    k = sub(G, [FreeModuleElem(x.r, G) for x = collect(k.sub.gens)])
+    k = sub(G, [FreeModuleElem(x.coords, G) for x = collect(k.sub.gens)])
   end
   @assert k.F == G
   c = collect(k.sub.gens)
@@ -1043,7 +1132,7 @@ function hom(M::ModuleFP, N::ModuleFP)
   #x in ker delta: mH_s0_t0(pro[1](x)) should be a hom from M to N
   function im(x::SubQuoElem)
     @assert parent(x) == H
-    return hom(M, N, [map(p2, 2)(mH_s0_t0(pro[1](x.a))(preimage(map(p1, 2), g))) for g = gens(M)])
+    return hom(M, N, [map(p2, 2)(mH_s0_t0(pro[1](x.repres))(preimage(map(p1, 2), g))) for g = gens(M)])
   end
 
   function pr(f::SubQuoHom)
@@ -1053,7 +1142,7 @@ function hom(M::ModuleFP, N::ModuleFP)
     Rt0 = domain(map(p2, 2))
     g = hom(Rs0, Rt0, [preimage(map(p2, 2), f(map(p1, 2)(g))) for g = gens(Rs0)])
 
-    return H(preimage(psi, (preimage(mH_s0_t0, g))).a)
+    return H(preimage(psi, (preimage(mH_s0_t0, g))).repres)
     return SubQuoElem(emb[1](preimage(mH_s0_t0, g)), H) #???
   end
   to_hom_map = MapFromFunc(im, pr, H, Hecke.MapParent(M, N, "homomorphisms"))
@@ -1091,7 +1180,7 @@ end
 ##################################################
 function direct_product(F::FreeMod{T}...; task::Symbol = :sum) where {T}
   R = base_ring(F[1])
-  G = FreeMod(R, sum([f.n for f = F]))
+  G = FreeMod(R, Base.sum([f.n for f = F]))
   G.S = []
   for i = 1:length(F)
     s = "("
@@ -1200,13 +1289,13 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
   function pure(g::FreeModuleElem...)
     @assert length(g) == length(G)
     @assert all(i -> parent(g[i]) == G[i], 1:length(G))
-    z = [[x] for x = g[1].r.pos]
-    zz = g[1].r.values
+    z = [[x] for x = g[1].coords.pos]
+    zz = g[1].coords.values
     for h = g[2:end]
       zzz = Array{Int, 1}[]
       zzzz = elem_type(F.R)[]
       for i = 1:length(z)
-        for (p, v) = h.r
+        for (p, v) = h.coords
           push!(zzz, push!(deepcopy(z[i]), p))
           push!(zzzz, zz[i]*v)
         end
@@ -1220,12 +1309,12 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
     return pure(T...)
   end
   function inv_pure(e::FreeModuleElem)
-    if length(e.r.pos) == 0
+    if length(e.coords.pos) == 0
       return Tuple(zero(g) for g = G)
     end
-    @assert length(e.r.pos) == 1
-    @assert isone(e.r.values[1])
-    return Tuple(gen(G[i], t[e.r.pos[1]][i]) for i = 1:length(G))
+    @assert length(e.coords.pos) == 1
+    @assert isone(e.coords.values[1])
+    return Tuple(gen(G[i], t[e.coords.pos[1]][i]) for i = 1:length(G))
   end
 
   return F, MapFromFunc(pure, inv_pure, Hecke.TupleParent(Tuple([g[0] for g = G])), F)
@@ -1241,8 +1330,14 @@ function free_module(F::SubQuo)
   return F.F
 end
 
-gens(F::FreeMod, G::FreeMod) = gens(F)
-gens(F::SubQuo, G::FreeMod) = [x.a for x = gens(F)]
+function gens(F::FreeMod, G::FreeMod)
+  @assert F == G
+  return gens(F)
+end
+function gens(F::SubQuo, G::FreeMod)
+  @assert F.F == G
+  return [FreeModuleElem(x.repres.coords, G) for x = gens(F)]
+end
 rels(F::FreeMod) = elem_type(F)[]
 rels(F::SubQuo) = isdefined(F, :quo) ? collect(F.quo.gens) : elem_type(F.F)[]
 
@@ -1425,6 +1520,20 @@ function getindex(a::Hecke.SRow, b::AbstractArray{Int, 1})
   return b
 end
 
+function sparse_row(A::MatElem)
+  @assert nrows(A) == 1
+  return Hecke.sparse_matrix(A)[1]
+end
+
+function dense_row(r::Hecke.SRow, n::Int)
+  R = base_ring(r)
+  A = zero_matrix(R, 1, n)
+  for i in intersect(r.pos, 1:n)
+    A[1,i] = r[i]
+  end
+  return A
+end
+
 ##############################
 #should be in Singular.jl
 function Singular.intersection(a::Singular.smodule, b::Singular.smodule)
@@ -1447,6 +1556,57 @@ end
 #TODO: tensor_product from Raul's H is broken
 
 
+######################################
+# Migrating test
+######################################
+
+function projection(F::FreeMod, indices::AbstractArray)
+  @assert all(x -> x <= ngens(F), indices)
+  @assert length(Set(indices)) == length(indices) # unique indices
+  R = base_ring(F)
+  G = FreeMod(R, length(indices))
+  return hom(F, G, [i in indices ? G[findfirst(x->x==i,indices)] : zero(G) for i=1:ngens(F)])
+end
+
+@doc Markdown.doc"""
+    preimage_SQ(H::AbstractAlgebra.Generic.ModuleHomomorphism,elems::Vector{SubquotientElem})
+> Return the preimage of the submodule generated by the Elements $elems$ under $H$
+> as a Subquotient, as well as the injection homomorphism into the domain of $H$.
+"""
+function preimage_SQ(H::SubQuoHom,elems::Vector{SubQuoElem{T}}) where {T}
+    if length(elems)==0
+        throw(ArgumentError("too few arguments"))
+    end
+    R = base_ring(domain(H))
+    row_length = ngens(codomain(H))
+    submod = vcat((dense_row(e.coeffs, row_length) for e in elems)...)
+    C = present(codomain(H))[2].matrix
+    A = vcat(H.matrix, C, submod)
+    G = FreeMod(R, nrows(A))
+    A = FreeModuleHom(G, FreeMod(R, ncols(A)), A)
+    #K = kernel(A)
+    K,kernel_injection = kernel(A)
+    N = domain(H)
+    n = ngens(N)
+    generators = Array{SubQuoElem{T},1}()
+    projection_map = projection(G, 1:n)
+    for i=1:ngens(K)
+        #new = SubQuoElem(sparse_row(K[i:i,1:n]), N)
+        coeffs_for_new = projection_map(kernel_injection(K[i])).coords
+        if isempty(coeffs_for_new)
+          continue
+        end
+        new = SubQuoElem(coeffs_for_new, N)
+        #new = N(K[i:i,1:n])
+        if !iszero(new)
+            push!(generators, new)
+        end
+    end
+    if length(generators)==0
+        push!(generators,zero(N))
+    end
+    return sub(domain(H), generators)
+end
 
 ######################################
 # Only for testing
