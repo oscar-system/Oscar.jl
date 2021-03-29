@@ -258,7 +258,8 @@ end
 
 Creates the affine ring ``R/I`` and returns the new
 ring as well as the projection map $R\rightarrow R/I$.
-###### Example
+
+# Examples
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])

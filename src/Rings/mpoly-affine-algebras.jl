@@ -15,7 +15,8 @@ export issurjective, isinjective, isbijective, inverse, preimage, isfinite
     dim(A::MPolyQuo)
 
 Return the dimension of `A`.
-###### Example
+
+# Examples
 ```jldoctest
 julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])

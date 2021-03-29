@@ -132,7 +132,8 @@ const PermGroupElem = BasicGAPGroupElem{PermGroup}
     PcGroup
 
 Polycyclic group
-# Examples:
+
+# Examples
 - `cyclic_group(n::Int)`: cyclic group of order `n`
 - `abelian_group(v::Vector{Int})`: direct product of cyclic groups of order v[1],v[2],...,v[length(v)]
 """
