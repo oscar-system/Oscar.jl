@@ -7,7 +7,7 @@
 # TODO: when this happens, files mentioned above need to be modified too.
 
 import AbstractAlgebra: FieldElem, map, Ring
-import Hecke: evaluate, multiplicative_jordan_decomposition, PolyElem, _rational_canonical_form_setup, refine_for_jordan
+import Hecke: multiplicative_jordan_decomposition, PolyElem, _rational_canonical_form_setup, refine_for_jordan
 
 export
     block_matrix,
@@ -35,8 +35,9 @@ export
 
 Return the `m x n` submatrix of `A` rooted at `(i,j)`
 """
+# TODO: eliminate this function again
 function submatrix(A::MatElem, i::Int, j::Int, nr::Int, nc::Int)
-   return matrix(base_ring(A),nr,nc, [A[s,t] for s in i:nr+i-1 for t in j:nc+j-1])
+   return A[i:i+nr-1, j:j+nr-1]
 end
 
 # exists already in Hecke _copy_matrix_into_matrix
@@ -45,6 +46,7 @@ end
 
 Return the matrix `A` with the block `B` inserted at the position `(i,j)`.
 """
+# TODO: eliminate this function again
 function insert_block(A::MatElem{T}, B::MatElem{T}, i::Int, j::Int) where T <: RingElem
    C = deepcopy(A)
    return insert_block!(C,B,i,j)
@@ -55,45 +57,31 @@ end
 
 Insert the block `B` in the matrix `A` at the position `(i,j)`.
 """
+# TODO: eliminate this function again
 function insert_block!(A::MatElem{T}, B::MatElem{T}, i::Int, j::Int) where T <: RingElem
-   for s in 1:nrows(B), t in 1:ncols(B)
-      A[i+s-1,j+t-1] = B[s,t]
-   end
+   A[i:i+nrows(B)-1, j:j+ncols(B)-1] = B
    return A
 end
 
-# exists already in Hecke cat(V...; dims=(1,2))
 """
     diagonal_join(V::AbstractVector{<:MatElem})
     diagonal_join(V::T...) where T <: MatElem
 
 Return the diagonal join of the matrices in `V`.
 """
+# TODO: eliminate this function again, use cat instead
 function diagonal_join(V::AbstractVector{T}) where T <: MatElem
-   nr = sum(nrows, V)
-   nc = sum(ncols, V)
-   B = zero_matrix(base_ring(V[1]), nr,nc)
-   pos_i=1
-   pos_j=1
-   for k in 1:length(V)
-      insert_block!(B,V[k],pos_i,pos_j)
-      pos_i += nrows(V[k])
-      pos_j += ncols(V[k])
-   end
-   return B
+   return cat(V...; dims=(1,2))
 end
 
 diagonal_join(V::T...) where T <: MatElem = diagonal_join(collect(V))
-
-#=
-diagonal_join(V::T...) where T <: MatElem = cat(V; dims=(1,2))
-=#
 
 """
     block_matrix(m::Int, n::Int, V::AbstractVector{T}) where T <: MatElem
 
 Given a sequence `V` of matrices, return the `m x n` block matrix, where the `(i,j)`-block is the `((i-1)*n+j)`-th element of `V`. The sequence `V` must have length `mn` and the dimensions of the matrices of `V` must be compatible with the above construction.
 """
+# TODO: eliminate this function again, use cat/hcat/vcat/... instead
 function block_matrix(m::Int, n::Int, V::AbstractVector{T}) where T <: MatElem
    length(V)==m*n || throw(ArgumentError("Wrong number of inserted blocks"))
    n_rows=0
@@ -194,20 +182,7 @@ end
 
 permutation_matrix(F::Ring, p::PermGroupElem) = permutation_matrix(F, listperm(p))
 
-"""
-    evaluate(f::PolyElem, X::MatElem)
-
-Evaluate the polynomial `f` in the matrix `X`.
-"""
-function evaluate(f::PolyElem, X::MatElem)
-   B = zero(X)
-   C = one(X)
-   for i in 0:degree(f)
-      B += C*base_ring(X)(coeff(f,i))
-      C *= X
-   end
-   return B
-end
+^(a::MatElem, b::fmpz) = Hecke._generic_power(a, b)
 
 ########################################################################
 #
@@ -236,7 +211,7 @@ function isskewsymmetric_matrix(B::MatElem{T}) where T <: RingElem
 end
 
 """
-    ishermitian_matrix(B::MatElem{T}) where T <: Ring
+    ishermitian_matrix(B::MatElem{T}) where T <: FinFieldElem
 
 Return whether the matrix `B` is hermitian, i.e. `B = conjugate_transpose(B)`. Returns `false` if `B` is not a square matrix, or the field has not even degree.
 """

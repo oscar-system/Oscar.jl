@@ -13,6 +13,13 @@
    @test number_of_factors(G)==2
    @test isfull_direct_product(G)
 
+   G,emb,proj = direct_product(S,C; morphisms=true)
+   @test G==direct_product(S,C)
+   @test emb[1]==embedding(G,1)
+   @test emb[2]==embedding(G,2)
+   @test proj[1]==projection(G,1)
+   @test proj[2]==projection(G,2)
+
    x = rand(G)
    @test x in G
    @test projection(G,1)(x) in S

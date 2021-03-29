@@ -152,7 +152,7 @@ end
   
    C = right_coset(H, G[1])
    @test isright(C)
-   @test order(C) == length(elements(C))
+   @test order(C) == length(collect(C))
   
    @test length(right_transversal(G, H)) == index(G, H)
 
@@ -181,9 +181,9 @@ end
       @test representative(rc) == x
       @test representative(lc) == x
       @test representative(dc) == x
-      @test Set(elements(rc)) == Set(z for z in rc)          # test iterator
-      @test Set(elements(rc)) == Set(h*x for h in H)
-      @test Set(elements(lc)) == Set(x*h for h in H)
+      @test length(collect(rc)) == length(rc)
+      @test Set(collect(rc)) == Set(h*x for h in H)
+      @test Set(collect(lc)) == Set(x*h for h in H)
       @test Set(h for h in dc) == Set(h*x*k for h in H for k in K)
       @test order(rc) == 3
       @test order(dc) == 6
@@ -242,7 +242,7 @@ end
    @test left_acting_group(L[1])==H
    @test Set([G([4,5,1,2,3]), G([3,4,5,1,2]), G([2,3,4,5,1])])==Set(intersect(dc, sub(G,[x])[1]) )
    lc = left_coset(H,one(G))
-   @test Set(intersect(lc,H))==Set(elements(H))
+   @test Set(intersect(lc,H))==Set(H)
    lc = left_coset(H,x)
    @test intersect(lc,H)==[]
 end

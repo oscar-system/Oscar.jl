@@ -171,7 +171,7 @@ function reductionToZero(I::Singular.sideal, u::Array{Singular.spoly{U},1}, x_mi
     for i in 1:Singular.ngens(G)
         ptr2 = Singular.libSingular.p_PermPoly(G[i].ptr, Int32[transitionA...], T.ptr, S.ptr, ptr1, Int32[]) #(poly.ptr, Int32[0, variablen auf parameter], Ring 1, Ring2. ptr1, Int32[parameter auf variable]) 
         p = S(ptr2)
-        h = h*lc(p)
+        h = h*leading_coefficient(p)
     end
     #map h back to K[x\u, u]
     h = Singular.n_transExt_to_spoly(h, parent_ring = T)
@@ -204,7 +204,7 @@ function map_back_and_intersect(S::Singular.PolyRing, T::Singular.PolyRing, leng
         h = K(1)
         
         for i in 1:length(qprimary_gens)
-            h = h*lc(qprimary_gens[i])
+            h = h*leading_coefficient(qprimary_gens[i])
 
             qg = qprimary_gens[i]
             ptr4 = Singular.libSingular.p_PermPoly(qg.ptr, Int32[0,collect(lengthu+1:lengthu+lengthx_minus_u)...], S.ptr, T.ptr, ptr3, Int32[collect(1:lengthu)...])

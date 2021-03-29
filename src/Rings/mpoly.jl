@@ -15,8 +15,7 @@ import Hecke: MapHeader, math_html
 
 
 export PolynomialRing, total_degree, degree,  MPolyIdeal, MPolyElem, ordering, ideal, coordinates,
-       jacobi_matrix, jacobi_ideal,  normalize, AlgebraHomomorphism,
-       divrem,  isprimary, isprime
+       jacobi_matrix, jacobi_ideal,  normalize, divrem, isprimary, isprime
 
 ##############################################################################
 #
@@ -500,12 +499,15 @@ Base.eltype(::BiPolyArray{S}) where S = S
 
 function (Ox::MPolyRing)(f::Singular.spoly)
   O = base_ring(Ox)
+  Sx = parent(f)
+  @assert ngens(Sx) == ngens(Ox)
   g = MPolyBuildCtx(Ox)
-  for (c, e) = Base.Iterators.zip(Singular.coeffs(f), Singular.exponent_vectors(f))
+  for (c, e) = Base.Iterators.zip(Singular.coefficients(f), Singular.exponent_vectors(f))
     push_term!(g, O(c), e)
   end
   return finish(g)
 end
+
 
 function (S::Singular.Rationals)(a::fmpq)
   b = Base.Rational{BigInt}(a)
@@ -838,71 +840,6 @@ function coordinates(a::Array{<:MPolyElem, 1}, b::MPolyElem)
   return coordinates(a, [b])[1]
 end
 
-############################################
-mutable struct MPolyHom_alg{T1, T2}  <: Map{T1, T2, Hecke.HeckeMap, MPolyHom_vars}
-  header::Hecke.MapHeader
-  Hecke.@declare_other
-  i::Array{<:MPolyElem, 1}
-  f::Singular.SAlgHom
-
-  function MPolyHom_alg{T1, T2}(R::T1, S::T2, i::Array{<:MPolyElem, 1}) where {T1 <: MPolyRing, T2 <: MPolyRing}
-    r = new()
-    r.header = MapHeader{T1, T2}(R, S, x -> im_func(r, x), y-> pr_func(r, y))
-    r.i = i
-    I = ideal(i)
-    singular_assure(I)
-    r.f = Singular.AlgebraHomomorphism(singular_ring(R, keep_ordering = false), I.gens.Sx, gens(I.gens.S))
-    return r
-  end
-
-  function im_func(r, a::MPolyElem)
-    A = singular_ring(r.header.domain, keep_ordering = false)(a)
-    B = Singular.map_poly(r.f, A)
-    return r.header.codomain(B)
-  end
-
-  function im_func(r, a::MPolyIdeal)
-    singular_assure(a)
-    B = Singular.map_ideal(r.f, a.gens.S)
-    return MPolyIdeal(r.header.codomain, B)
-  end
-
-#  function pr_func(r, b::MPolyElem) #TODO: does not work: the ideal preimage is always there
-#    ib = ideal(codomain(r), [b])
-#    singular_assure(ib)
-#    A = Singular.preimage(r.f, ib.gens.S)
-#    return r.header.domain(gens(A)[1])
-#  end
-
-  function pr_func(r, b::MPolyIdeal)
-    singular_assure(b)
-    A = Singular.preimage(r.f, b.gens.S)
-    return MPolyIdeal(domain(r), A)
-  end
-end
-
-(f::MPolyHom_alg)(g::MPolyElem) = image(f, g)
-
-function Hecke.hom(R::MPolyRing, S::MPolyRing, i::Array{<:MPolyElem, 1})
-  return MPolyHom_alg{typeof(R), typeof(S)}(R, S, i)
-end
-
-function kernel(h::MPolyHom_alg)
-  return MPolyIdeal(domain(h), Singular.kernel(h.f))
-end
-
-function image(h::MPolyHom_alg)
-  return ideal(h.i)
-end
-
-function image(h::MPolyHom_alg, I::MPolyIdeal)
-  return h.header.image(I)
-end
-
-function preimage(h::MPolyHom_alg, I::MPolyIdeal)
-  return h.header.preimage(I)
-end
-
 ###################################################
 
 # Some isless functions for orderings:
@@ -1147,7 +1084,7 @@ function terms(f::MPolyElem, ord::Function)
   return ( term(f, perm[i]) for i = 1:length(f) )
 end
 
-function coeffs(f::MPolyElem, ord::Function)
+function coefficients(f::MPolyElem, ord::Function)
   perm = _perm_of_terms(f, ord)
   return ( coeff(f, perm[i]) for i = 1:length(f) )
 end
@@ -1162,7 +1099,7 @@ function monomials(f::MPolyElem, ord::Function)
   return ( monomial(f, perm[i]) for i = 1:length(f) )
 end
 
-for s in (:terms, :coeffs, :exponent_vectors, :monomials)
+for s in (:terms, :coefficients, :exponent_vectors, :monomials)
   @eval begin
     function ($s)(f::MPolyElem, ord::Symbol)
       R = parent(f)
@@ -1194,7 +1131,7 @@ for s in (:terms, :coeffs, :exponent_vectors, :monomials)
   end
 end
 
-for s in ("term", "coeff", "monomial")
+for s in ("term", "coefficient", "monomial")
   @eval begin
     function ($(Symbol("leading_$s")))(args...)
       return first($(Symbol("$(s)s"))(args...))
@@ -1206,8 +1143,8 @@ function leading_term(f::MPolyElem)
   return leading_term(f, ordering(parent(f)))
 end
 
-function leading_coeff(f::MPolyElem)
-  return leading_coeff(f, ordering(parent(f)))
+function leading_coefficient(f::MPolyElem)
+  return leading_coefficient(f, ordering(parent(f)))
 end
 
 function leading_monomial(f::MPolyElem)

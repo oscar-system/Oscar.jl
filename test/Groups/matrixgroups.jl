@@ -218,17 +218,17 @@ end
          @testset for e in [+1,-1]
             G = GO(e,n,F)
             S = SO(e,n,F)
+            O = omega_group(e,n,F)
             @test G==GO(e,n,q)
             @test G==orthogonal_group(e,n,F)
             @test G==orthogonal_group(e,n,q)
             @test S==SO(e,n,q)
             @test S==special_orthogonal_group(e,n,F)
             @test S==special_orthogonal_group(e,n,q)
+            @test O==omega_group(e,n,q)
+            @test index(S,O)==2
             if isodd(q)
                @test index(G,S)==2
-               @test order(S)==2*order(omega_group(e,n,q))
-            else
-               @test order(G)==2*order(omega_group(e,n,q))
             end
          end
       end
@@ -236,14 +236,16 @@ end
          if isodd(q)
             G = GO(n,F)
             S = SO(n,F)
+            O = omega_group(n,F)
             @test G==GO(n,q)
             @test G==orthogonal_group(n,F)
             @test G==orthogonal_group(n,q)
             @test S==SO(n,q)
             @test S==special_orthogonal_group(n,F)
             @test S==special_orthogonal_group(n,q)
+            @test O==omega_group(n,q)
             @test index(G,S)==2
-            @test order(S)==2*order(omega_group(n,q))
+            @test index(S,O)==2
          end
       end
    end
@@ -255,8 +257,13 @@ end
    @test_throws ArgumentError SO(+2,2,5)
    @test_throws ArgumentError omega_group(-2,4,3)
 
-   G = GL(4,3)
-   
+   @test omega_group(1,5)==SO(1,5)
+   @test index(GO(1,7),omega_group(1,7))==2
+   @test order(omega_group(1,5))==1
+   G = omega_group(1,4,2)
+   @testset for x in gens(G)
+       @test iseven(rank(x.elm-1))
+   end
 end
 
 
@@ -313,7 +320,7 @@ end
    end
    @test N==99
 
-   @test Set(elements(G))==Set([x for x in G])
+   @test Set(collect(G))==Set([x for x in G])
 end
 
 @testset "Membership" begin
@@ -454,16 +461,16 @@ end
    @test order(C)==64
 
    cc = conjugacy_class(G,x)
-   @test x^G[2] in elements(cc)
+   @test x^G[2] in collect(cc)
    @test representative(cc)==x
    @test parent(representative(cc))==G
    @test length(cc)==index(G,C)
 
    cc = conjugacy_class(G,H)
-   @test H^G[2] in elements(cc)
+   @test H^G[2] in collect(cc)
    @test representative(cc)==H
    @test length(cc)==index(G,normalizer(G,H)[1])
-   @test rand(cc) in elements(cc)
+   @test rand(cc) in collect(cc)
 
    x = G([1,z,0,1])
    y = G([1,0,0,z+1])
@@ -480,3 +487,89 @@ end
    @test length(conjugacy_classes_maximal_subgroups(G))==3
 end
 
+@testset "Jordan structure" begin
+   F = GF(3,1)[1]
+   R,t = PolynomialRing(F,"t")
+   G = GL(9,F)
+
+   L_big = [
+        [(t-1,3), (t^2+1,1), (t^2+1,2)],
+        [(t^9 + t^7 + 2*t^6 + t^5 + 2*t^4 + t^3 + 2*t^2 + 2*t + 1, 1)],
+        [(t-2,9)]
+       ]
+   @testset for L in L_big
+      x = diagonal_join([generalized_jordan_block(a...) for a in L])
+   # TODO: the change_base_ring is necessary, otherwise the equality between polynomials does not work
+      @test MSet([(change_base_ring(F,f[1]),f[2]) for f in pol_elementary_divisors(x) ])==MSet([(change_base_ring(F,f[1]),f[2]) for f in L])
+      @test MSet([(change_base_ring(F,f[1]),f[2]) for f in pol_elementary_divisors(G(x)) ])==MSet([(change_base_ring(F,f[1]),f[2]) for f in L])
+      s, u = multiplicative_jordan_decomposition(G(x))
+      @test parent(s)==G
+      @test parent(u)==G
+      @test iscoprime(order(s),3)
+      @test isone(u) || ispower(order(u))[2]==3
+      @test issemisimple(s)
+      @test isunipotent(u)
+      @test s*u==G(x)
+      @test s*u==u*s
+
+      z = rand(G).elm
+      x = z^-1*x*z
+      a,b = generalized_jordan_form(x)
+      @test b^-1*a*b==x
+      z = rand(G).elm
+      @test generalized_jordan_form(z^-1*x*z)[1]==a
+      @test generalized_jordan_form(a)[1]==a
+   end
+   
+   x = one(G)
+   @test issemisimple(x) && isunipotent(x)
+
+   F,z = GF(5,3,"z")
+   G = GL(6,F)
+   R,t = PolynomialRing(F,"t")
+   f = t^3+t*z+1
+   x = generalized_jordan_block(f,2)
+   @test generalized_jordan_block(f,2)==block_matrix(2,2,[companion_matrix(f),identity_matrix(F,3),zero_matrix(F,3,3),companion_matrix(f)])
+   @testset for i in [2,4,42,62]
+      y = Oscar._elem_given_det(G(x),z^i)
+      @test x*y==y*x
+      @test det(y)==z^i
+   end
+   @test_throws ErrorException Oscar._elem_given_det(G(x),z)
+
+   @testset "Low-level methods in linear_centralizer.jl" begin
+      @test Oscar._SL_order(3,fmpz(8))== fmpz(div(prod([8^3-8^i for i in 0:2]),7))
+      @test Oscar._SL_order(4,GF(3,1)[1])== fmpz(div(prod([3^4-3^i for i in 0:3]),2))
+      L = Oscar._gens_for_GL(1,GF(7,1)[1])
+      @test length(L)==1
+      @test L[1]^2 !=1 && L[1]^3 !=1
+      L = Oscar._gens_for_GL(4,GF(2,2)[1])
+      @test length(L)==2
+      @test matrix_group(L...)==GL(4,GF(2,2)[1])
+      L = Oscar._gens_for_SL(5,GF(3,1)[1])
+      @test matrix_group(L...)==SL(5,GF(3,1)[1])
+      L = Oscar._gens_for_GL(5,GF(2,1)[1])
+      @test length(L)==2
+      @test matrix_group(L...)==GL(5,GF(2,1)[1])
+      _,t = PolynomialRing(GF(3,1)[1],"t")
+      f = t^2+t-1
+      L = Oscar._gens_for_GL_matrix(f,2,GF(3,1)[1]; D=2)
+      @test length(L)==2
+      @test nrows(L[1])==8
+      @test L[1]^8==1
+      @test L[2]^3==1
+      @test order(matrix_group(L...))==order(GL(2,9))
+      L = Oscar._gens_for_SL_matrix(f,2,GF(3,1)[1]; D=2)
+      @test length(L)==3
+      @test nrows(L[1])==8
+      @test L[1]^8==1
+      @test L[2]^3==1
+      @test order(matrix_group(L...))==div(order(GL(2,9)),2)
+      x = diagonal_join([generalized_jordan_block(f,n) for n in [1,1,1,2,2,3]])
+      L,c = Oscar._centr_block_unipotent(f,GF(3,1)[1],[1,1,1,2,2,3])
+      @testset for l in L
+         @test l*x==x*l
+      end
+      @test c==order(GL(3,9))*order(GL(2,9))*8*BigInt(9)^32
+   end
+end

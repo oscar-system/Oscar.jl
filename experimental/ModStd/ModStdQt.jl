@@ -163,7 +163,7 @@ function Oscar.interpolate(Val::Vals{T}, M::MPolyInterpolateCtx) where {T}
         set_status!(M, :univariate_failed)
         return false, zero(M.R) # more z
       end
-      t = inv(trail(mu[3]))
+      t = inv(trailing_coefficient(mu[3]))
       push!(nd, (mu[2]*t, mu[3]*t))
     end
     Val.nd = nd
@@ -206,7 +206,7 @@ function Oscar.interpolate(Val::Vals{T}, M::MPolyInterpolateCtx) where {T}
       R[ii] += g
       for j=0:length(nd)-1
         t = evaluate(g, [T(M.pt.pt_p[l])^j*gen(Qx) + M.pt.pt_s[l] for l=1:length(M.pt.pt_p)])
-  #      @show t, lead(t), lead(nd[j+1][2] - cor[j+1])
+  #      @show t, leading_coefficient(t), leading_coefficient(nd[j+1][2] - cor[j+1])
         cor[j+1] += t
       end
   #    @show cor
@@ -297,7 +297,7 @@ function Oscar.groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Fra
       if frst
         lst = []
         for _g = gJ
-          g = inv(lead(_g))*_g
+          g = inv(leading_coefficient(_g))*_g
           f = []
           for (c, e) = zip(Generic.MPolyCoeffs(g), Generic.MPolyExponentVectors(g))
             push!(f, (e, Vals(Array{T, 1}[[c]])))
@@ -308,7 +308,7 @@ function Oscar.groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Fra
       else
         for ig = 1:length(gJ)
           g = gJ[ig]
-          g *= inv(lead(g))
+          g *= inv(leading_coefficient(g))
           jg = 1
           for (c, e) = zip(Generic.MPolyCoeffs(g), Generic.MPolyExponentVectors(g))
             if lst[ig][jg][1] != e #TODO: sort and match
