@@ -42,7 +42,6 @@ export
     nilpotency_class,
     ngens,
     normal_closure,
-    normaliser,
     normalizer,
     number_conjugacy_classes,
     one!,
@@ -399,6 +398,7 @@ function gen(G::GAPGroup, i::Int)
    @assert length(L) >= i "The number of generators is lower than the given index"
    return group_element(G, L[i])
 end
+Base.getindex(G::GAPGroup, i::Int) = gen(G, i)
 
 """
     ngens(G::Group) -> Int
@@ -411,7 +411,6 @@ Return the length of the array gens(G).
 ngens(G::GAPGroup) = length(GAP.Globals.GeneratorsOfGroup(G.X))
 
 
-Base.getindex(G::GAPGroup, i::Int) = gen(G, i)
 Base.sign(x::PermGroupElem) = GAP.Globals.SignPerm(x.X)
 
 Base.isless(x::PermGroupElem, y::PermGroupElem) = x<y
@@ -633,7 +632,6 @@ end
 
 """
     normalizer(G::Group, H::Group)
-    normaliser(G::Group, H::Group)
 
 Return `N,f`, where `N` is the normalizer of `H` in `G` and `f` is the embedding morphism of `N` into `G`.
 """
@@ -641,13 +639,10 @@ normalizer(G::T, H::T) where T<:GAPGroup = _as_subgroup(G, GAP.Globals.Normalize
 
 """
     normalizer(G::Group, x::GAPGroupElem)
-    normaliser(G::Group, x::GAPGroupElem)
 
 Return `N,f`, where `N` is the normalizer of <`x`> in `G` and `f` is the embedding morphism of `N` into `G`.
 """
 normalizer(G::GAPGroup, x::GAPGroupElem) = _as_subgroup(G, GAP.Globals.Normalizer(G.X,x.X))
-
-normaliser = normalizer
 
 """
     core(G::Group, H::Group)
