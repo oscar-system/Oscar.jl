@@ -107,7 +107,7 @@ The following attributes of `io` are supported.
   the default is to have just one portion in the `:TeX` case,
   and to create portions according to the screen width otherwise,
 
-## Examples:
+## Examples
 ```jldoctest
 julia> m = 3; n = 4;  mat = Array{String}(undef, m, n);
 
