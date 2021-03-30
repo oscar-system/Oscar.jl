@@ -406,7 +406,7 @@ function homogenous_component(W::MPolyRing_dec, d::GrpAbFinGenElem)
   for ee = 1:nrows(k)
     e = k[ee, :]
     a = MPolyBuildCtx(W.R)
-    push_term!(a, R(1), [Int(x) for x = e])
+    push_term!(a, R(1), [Int(e[i]) for i in 1:length(e)])
     push!(B, W(finish(a)))
   end
   M, h = vector_space(R, B, target = W)
