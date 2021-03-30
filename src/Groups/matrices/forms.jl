@@ -549,7 +549,7 @@ function invariant_quadratic_forms(G::MatrixGroup{S,T}) where {S,T}
    M = T[]
    for mat in gens(G)
       MM = zero_matrix(F,div(n*(n+1),2),div(n*(n+1),2))
-      for i in 1:n, j in i:n
+      for i in 1:n
       for p in 1:n, q in p:n
          MM[div((2*n-i+2)*(i-1),2)+1, div((2*n-p+2)*(p-1),2)+q-p+1] = mat[i,p]*mat[i,q]
       end
@@ -809,7 +809,7 @@ function isometry_group(f::SesquilinearForm{T}) where T
    else
       degF=0
       if f.descr==:hermitian e = div(degree(F),2) end
-      C,A,r = find_radical(B,F,n,n; e=degF, Symmetric=true)
+      C,A,r = _find_radical(B,F,n,n; e=degF, _is_symmetric=true)
    end
 
    if r<n
