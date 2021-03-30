@@ -6,7 +6,7 @@ export Localization, MPolyElemLoc, ideal, singular_assure, numerator,
 ###############################################################################
 
 function _sort_helper(p::MPolyElem)
-  return var_index(lt(p))
+  return var_index(leading_term(p))
 end
 
 mutable struct MPolyRingLoc{T} <: AbstractAlgebra.Ring where T <: AbstractAlgebra.FieldElem

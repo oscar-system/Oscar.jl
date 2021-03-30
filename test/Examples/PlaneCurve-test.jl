@@ -300,3 +300,16 @@ end
 	@test Oscar.discriminant(C) == -64
 	@test Oscar.j_invariant(C) == 1728
 end
+
+@testset "Weierstrass form" begin
+	S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+	T = grade(S)
+	PP = projective_space(QQ, 2)
+	P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(1), QQ(0)])
+	Q = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(-1), QQ(1), QQ(0)])
+	C = Oscar.ProjPlaneCurve(T(y^2*z - x^3 - x*z^2))
+	D = Oscar.ProjPlaneCurve(T(-x^3 - 3*x^2*y + 2*x^2*z - 3*x*y^2 + 3*x*y*z - 4*x*z^2 - y^3 - y*z^2 + 6*z^3))
+	@test Oscar.iselliptic(C)
+	@test Oscar.toweierstrass(C, P) == T(y^2*z - x^3 - x*z^2)
+	@test Oscar.toweierstrass(D, Q) ==  T(y^2*z + x*y*z + 3*y*z^2 - x^3 - 2*x^2*z - 4*x*z^2 - 6*z^3)
+end

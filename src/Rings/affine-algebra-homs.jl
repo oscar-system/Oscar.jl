@@ -79,19 +79,6 @@ end
 #
 ###############################################################################
 
-# this terrible function is used to get polynomials in and out of Singular and
-# to change: polys over the quotient ring <=> polys over the non-quotient ring
-function _badpolymap(f, R::MPolyRing)
-  parent(f) == R && return f
-  @assert ngens(parent(f)) == ngens(R)
-  B = base_ring(R)
-  g = MPolyBuildCtx(R)
-  for (c, e) = zip(Nemo.coeffs(f), Nemo.exponent_vectors(f))
-    push_term!(g, B(c), e)
-  end
-  return finish(g)
-end
-
 mutable struct AlgHom{T} <: AbstractAlgebra.Map{Ring, Ring,
          AbstractAlgebra.SetMap, AlgHom} where T <: Union{AbstractAlgebra.Ring, AbstractAlgebra.Field}
    domain::Union{MPolyRing, MPolyQuo}
@@ -110,18 +97,8 @@ mutable struct AlgHom{T} <: AbstractAlgebra.Map{Ring, Ring,
    function AlgHom{T}(R::U, S::W, V::Vector{X}) where {T, U, W, X}
       Rx = singular_ring(R)
       Sx = singular_ring(S)
-      if isdefined(S, :I) ## Check if S is a quotient ring
-         Vx = map(p -> _badpolymap(S(p).f, Sx), V)
-      else
-         Vx = map(p -> _badpolymap(S(p), Sx), V)
-      end
-
-      z = new(R, S, V, Singular.AlgebraHomomorphism(Rx, Sx, Vx))
+      z = new(R, S, V, Singular.AlgebraHomomorphism(Rx, Sx, Sx.(V)))
       return z
-   end
-
-   function AlgHom{T}(R::U, S::W, V::Vector{X}, phi::Singular.SAlgHom) where {T, U, W, X}
-      return new(R, S, V, phi)
    end
 end
 
@@ -147,38 +124,30 @@ end
 #
 ###############################################################################
 
-#Compute the type of the base_ring of the underlying poly ring
-function _type_helper(R)
-   if isdefined(R, :I)
-      return typeof(base_ring(R.R))
-   else
-      return typeof(base_ring(R))
-   end
-end
-
 @doc Markdown.doc"""
     AlgebraHomomorphism(D::U, C::W, V::Vector{X}) where 
-    {T, U <: Union{MPolyRing{T}, MPolyQuo}, 
-    W <: Union{MPolyRing{T}, MPolyQuo}, 
-    X <: Union{MPolyElem{T}, MPolyQuoElem}}
-
+    {T, S <: MPolyElem{T},
+    U <: Union{MPolyRing{T}, MPolyQuo{S}},
+    W <: Union{MPolyRing{T}, MPolyQuo{S}},
+    X <: Union{S, MPolyQuoElem{S}}}
+   
 Creates the algebra homomorphism $D \rightarrow C$ defined by sending the $i$th generator of $D$ to the $i$th element of $V$. 
 Allows types `MPolyRing` and `MPolyQuo` for $C$ and $D$ as well as entries of type `MPolyElem` and `MPolyQuoElem` for `X`.
 Alternatively, use `hom(D::U, C::W, V::Vector{X})`.
 """
 function AlgebraHomomorphism(D::U, C::W, V::Vector{X}) where 
-    {T, U <: Union{MPolyRing{T}, MPolyQuo}, 
-    W <: Union{MPolyRing{T}, MPolyQuo}, 
-    X <: Union{MPolyElem{T}, MPolyQuoElem}}
+    {T, S <: MPolyElem{T},
+    U <: Union{MPolyRing{T}, MPolyQuo{S}},
+    W <: Union{MPolyRing{T}, MPolyQuo{S}},
+    X <: Union{S, MPolyQuoElem{S}}}
    n = length(V)
    @assert n == ngens(D)
-   ty = _type_helper(D)
-   return AlgHom{ty}(D, C, V)
+   return AlgHom{T}(D, C, V)
 end
 
-hom(D::U, C::W, V::Vector{X}) where {T,
-   U <: Union{MPolyRing{T}, MPolyQuo}, W <: Union{MPolyRing{T}, MPolyQuo},
-   X <: Union{MPolyElem{T}, MPolyQuoElem}} = AlgebraHomomorphism(D, C, V)
+hom(D::U, C::W, V::Vector{X}) where {T, S <: MPolyElem{T},
+   U <: Union{MPolyRing{T}, MPolyQuo{S}}, W <: Union{MPolyRing{T}, MPolyQuo{S}},
+   X <: Union{S, MPolyQuoElem{S}}} = AlgebraHomomorphism(D, C, V)
 
 ###############################################################################
 #
@@ -191,19 +160,8 @@ function map_poly(F::Map(AlgHom), p::U) where U <: Union{MPolyElem, MPolyQuoElem
    D = domain(F)
    Dx = domain(F.salghom)
    C = codomain(F)
-   Cx = codomain(F.salghom)
-   # TODO: _badpolymap really has to be replaced somehow ...
-   if isdefined(D, :I) ## Check if D is a quotient ring
-         px = _badpolymap(p.f, Dx)
-   else
-         px = _badpolymap(p, Dx)
-   end
-
-   if isdefined(C, :R) ## Check if C is a quotient ring
-      return C(_badpolymap(F.salghom(px), C.R))
-   else
-      return _badpolymap(F.salghom(px), C)
-   end
+   px = Dx(p)
+   return C(F.salghom(px))
 end
 
 function (F::AlgHom)(p::U) where U <: Union{MPolyElem, MPolyQuoElem}
@@ -235,18 +193,16 @@ end
 ###############################################################################
 
 @doc Markdown.doc"""
-    compose(F::AlgHom, G::AlgHom)
+    compose(F::AlgHom{T}, G::AlgHom{T}) where T
 
-Returns the algebra homomorphism $H = G\circ F: domain(F) --> codomain(G)$.
+Returns the algebra homomorphism $H = G\circ F: domain(F) \rightarrow codomain(G)$.
 """
-function compose(F::AlgHom, G::AlgHom)
+function compose(F::AlgHom{T}, G::AlgHom{T}) where T
    check_composable(F, G)
-   phi = Singular.compose(F.salghom, G.salghom)
    D = domain(F)
-   ty = _type_helper(D)
    C = codomain(G)
-   V = C.(phi.image)
-   return AlgHom{ty}(D, C, V, phi)
+   V = G.(F.image)
+   return AlgHom{T}(D, C, V)
 end
 
 ###############################################################################
@@ -267,12 +223,7 @@ function preimage(F::AlgHom, I::U) where U <: Union{MPolyIdeal, MPolyQuoIdeal}
    C = codomain(F)
    Cx = codomain(F.salghom)
    V = gens(I)
-   if isdefined(C, :I) ## Check if C is a quotient ring
-         Vx = map(p -> _badpolymap(C(p).f, Cx), V)
-      else
-         Vx = map(p -> _badpolymap(C(p), Cx), V)
-      end
-   Ix = Singular.Ideal(Cx, Vx)
+   Ix = Singular.Ideal(Cx, Cx.(V))
    prIx = Singular.preimage(F.salghom, Ix)
    return ideal(D, D.(gens(prIx)))
 end

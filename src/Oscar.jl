@@ -209,6 +209,7 @@ include("Rings/affine-algebra-homs.jl")
 include("Rings/mpoly-affine-algebras.jl")
 include("Rings/mpoly-graded.jl")
 include("Rings/mpoly-local.jl")
+include("Rings/homogenization.jl")
 include("Rings/FinField.jl")
 include("Rings/NumberField.jl")
 
@@ -236,7 +237,6 @@ if is_dev
 
 #  include("../examples/PlaneCurve.jl")
 end
-
 
 const global OSCAR = Oscar
 const global oscar = Oscar

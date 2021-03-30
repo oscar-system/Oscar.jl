@@ -177,6 +177,20 @@ end
    @test !is_true
    @test z==nothing
 
+   T,t = PolynomialRing(FiniteField(3),"t")
+   F,a = FiniteField(t^2+1,"a")
+   x = zero_matrix(F,6,6)
+   x[1,2]=1+2*a; x[3,4]=a; x[5,6]=1; x=x+transpose(x)
+   y = diagonal_matrix(F.([a,1,1,a+1,2,2*a+2]))
+   f = symmetric_form(x); g = symmetric_form(y)
+   is_true,z = iscongruent(f,g)
+   @test is_true
+   @test f^z == g
+   y = diagonal_matrix(F.([a,1,1,a+1,2,2*a]))
+   g = symmetric_form(y)
+   is_true,z = iscongruent(f,g)
+   @test !is_true
+
    #alternating
    F = GF(3,1)[1]
    x = zero_matrix(F,6,6)
@@ -235,6 +249,23 @@ end
    x = diagonal_matrix(F.([1,2,1,1,1]))
    y = diagonal_matrix(F.([2,1,0,0,2]))
    y[3,4]=a; y[4,3]=a^3; y[4,5]=1+a; y[5,4]=(1+a)^3;
+   f = hermitian_form(x); g = hermitian_form(y)
+   is_true,z = iscongruent(f,g)
+   @test is_true
+   @test f^z == g
+
+   F,a = GF(2,2,"a")
+   x = zero_matrix(F,6,6)
+   x[4,5]=1; x[5,6]=a+1; x=x+conjugate_transpose(x)
+   y = zero_matrix(F,6,6)
+   y[1,2]=1; y=y+conjugate_transpose(y)
+   f = hermitian_form(x); g = hermitian_form(y)
+   is_true,z = iscongruent(f,g)
+   @test is_true
+   @test f^z == g
+   x = diagonal_matrix(F.([1,1,1,1,1]))
+   y = diagonal_matrix(F.([1,1,0,0,1]))
+   y[3,4]=a; y[4,3]=a^2; y[4,5]=1+a; y[5,4]=(1+a)^2;
    f = hermitian_form(x); g = hermitian_form(y)
    is_true,z = iscongruent(f,g)
    @test is_true

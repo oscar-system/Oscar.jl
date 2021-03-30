@@ -36,13 +36,11 @@ export
     isperfect,
     ispgroup,
     issimple,
-    listperm,
     mul,
     mul!,
     nilpotency_class,
     ngens,
     normal_closure,
-    normaliser,
     normalizer,
     number_conjugacy_classes,
     one!,
@@ -294,7 +292,7 @@ julia> perm(symmetric_group(6),[2,4,6,1,3,5])
 """
 function perm(g::PermGroup, L::AbstractVector{<:Base.Integer})
    x = GAP.Globals.PermList(GAP.julia_to_gap(L))
-   if GAP.Globals.IN(x,g.X) 
+   if length(L) <= degree(g) && GAP.Globals.IN(x,g.X) 
      return PermGroupElem(g, x)
    end
    throw(ArgumentError("the element does not embed in the group"))
@@ -304,7 +302,7 @@ perm(g::PermGroup, L::AbstractVector{<:fmpz}) = perm(g, [Int(y) for y in L])
 
 function (g::PermGroup)(L::AbstractVector{<:Base.Integer})
    x = GAP.Globals.PermList(GAP.julia_to_gap(L))
-   if GAP.Globals.IN(x,g.X) 
+   if length(L) <= degree(g) && GAP.Globals.IN(x,g.X) 
      return PermGroupElem(g, x)
    end
    throw(ArgumentError("the element does not embed in the group"))
@@ -347,21 +345,15 @@ function cperm(g::PermGroup,L::AbstractVector{T}...) where T <: Union{Base.Integ
       return one(g)
    else
       x=prod(y -> GAP.Globals.CycleFromList(GAP.julia_to_gap([Int(k) for k in y])), L)
-      if GAP.Globals.IN(x,g.X) return PermGroupElem(g, x)
-      else throw(ArgumentError("the element does not embed in the group"))
+      if length(L) <= degree(g) && GAP.Globals.IN(x,g.X)
+         return PermGroupElem(g, x)
+      else
+         throw(ArgumentError("the element does not embed in the group"))
       end
    end
 end
 
-"""
-    listperm(x::PermGroupElem)
-
-Return the list L defined by L = [ `x`(i) for i in 1:n ], where `n` is the degree of `parent(x)`.
-"""
-function listperm(x::PermGroupElem)
-   return [x(i) for i in 1:x.parent.deg]
-end
-#TODO: Perhaps omit `listperm` and use just `Vector`?
+@deprecate listperm(x::PermGroupElem) Vector(x)
 
 """
     Vector{T}(x::PermGroupElem, n::Int = x.parent.deg) where {T}
@@ -397,6 +389,7 @@ function gen(G::GAPGroup, i::Int)
    @assert length(L) >= i "The number of generators is lower than the given index"
    return group_element(G, L[i])
 end
+Base.getindex(G::GAPGroup, i::Int) = gen(G, i)
 
 """
     ngens(G::Group) -> Int
@@ -409,7 +402,6 @@ Return the length of the array gens(G).
 ngens(G::GAPGroup) = length(GAP.Globals.GeneratorsOfGroup(G.X))
 
 
-Base.getindex(G::GAPGroup, i::Int) = gen(G, i)
 Base.sign(x::PermGroupElem) = GAP.Globals.SignPerm(x.X)
 
 Base.isless(x::PermGroupElem, y::PermGroupElem) = x<y
@@ -631,7 +623,6 @@ end
 
 """
     normalizer(G::Group, H::Group)
-    normaliser(G::Group, H::Group)
 
 Return `N,f`, where `N` is the normalizer of `H` in `G` and `f` is the embedding morphism of `N` into `G`.
 """
@@ -639,13 +630,10 @@ normalizer(G::T, H::T) where T<:GAPGroup = _as_subgroup(G, GAP.Globals.Normalize
 
 """
     normalizer(G::Group, x::GAPGroupElem)
-    normaliser(G::Group, x::GAPGroupElem)
 
 Return `N,f`, where `N` is the normalizer of <`x`> in `G` and `f` is the embedding morphism of `N` into `G`.
 """
 normalizer(G::GAPGroup, x::GAPGroupElem) = _as_subgroup(G, GAP.Globals.Normalizer(G.X,x.X))
-
-normaliser = normalizer
 
 """
     core(G::Group, H::Group)
