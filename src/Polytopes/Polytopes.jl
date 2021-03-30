@@ -76,8 +76,9 @@ export Cone,
     volume
 
 include("helpers.jl")
+include("Cone/constructors.jl")
+include("Cone/properties.jl")
 include("Polyhedron.jl")
-include("Cone.jl")
 include("LinearProgram.jl")
 include("PolyhedralFan.jl")
 include("Groups.jl")
