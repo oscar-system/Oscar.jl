@@ -143,10 +143,14 @@ quotient(I::MPolyIdeal, J::MPolyIdeal)
 
 Given two ideals $I, J$ of a ring $R$, the saturation of $I$ with respect to $J$ is defined to be the ideal
 
-$I:J^{\infty} = \bigl\{ f \in R \:\big|\: f J^m \!\subset I {\text{ for some }}m\geq 1 \bigr\} = \textstyle{\bigcup\limits_{m=1}^{\infty} (I:J^m)}.$
+$I:J^{\infty} = \bigl\{ f \in R \:\big|\: f J^k \!\subset I {\text{ for some }}k\geq 1 \bigr\} = \textstyle{\bigcup\limits_{k=1}^{\infty} (I:J^k)}.$
 
 ```@docs
 saturation(I::MPolyIdeal, J::MPolyIdeal)
+```
+
+```@docs
+saturation_with_index(I::MPolyIdeal, J::MPolyIdeal)
 ```
 
 ### Elimination
