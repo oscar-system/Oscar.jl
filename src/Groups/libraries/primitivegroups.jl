@@ -29,7 +29,7 @@ end
 
 Return the list of all primitive groups (up to isomorphism) satisfying the conditions in `L`. Here, `L` is a vector whose arguments are organized as `L` = [ `func1`, `arg1`, `func2`, `arg2`, ... ], and the function returns all the groups `G` satisfying the conditions `func1`(`G`) = `arg1`, `func2`(`G`) = `arg2`, etc. An argument can be omitted if it corresponds to the boolean value ``true``.
 
-# Example
+# Examples
 ```jldoctest
 julia> all_primitive_groups(degree, 4, isabelian)
 PermGroup[]

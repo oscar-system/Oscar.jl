@@ -26,6 +26,7 @@ end
 homogenize(vec::AbstractVector, val::Number = 0) = augment(vec, val)
 homogenize(mat::AbstractMatrix, val::Number = 1) = augment(mat, fill(val, size(mat, 1)))
 homogenize(mat::MatElem, val::Number = 1) = homogenize(Matrix(mat), val)
+homogenize(nothing,val::Number)=nothing
 
 dehomogenize(vec::AbstractVector) = vec[2:end]
 dehomogenize(mat::AbstractMatrix) = mat[:, 2:end]
@@ -36,7 +37,7 @@ dehomogenize(mat::AbstractMatrix) = mat[:, 2:end]
 Stacks `A` and `B` vertically. The difference to `vcat`is that `AbstractVector`s are always
 interpreted as row vectors. Empty vectors are ignored.
 
-## Examples
+# Examples
 
 ```
 julia> stack([1, 2], [0, 0])
@@ -64,12 +65,14 @@ julia> stack([1 2], [])
  1  2
 ```
 """
+stack(A::AbstractMatrix,nothing) = A
+stack(nothing,B::AbstractMatrix) = B
 stack(A::AbstractMatrix, B::AbstractMatrix) = [A; B]
 stack(A::AbstractMatrix, B::AbstractVector) = isempty(B) ? A :  [A; B']
 stack(A::AbstractVector, B::AbstractMatrix) = isempty(A) ? B : [A'; B]
 stack(A::AbstractVector, B::AbstractVector) = isempty(A) ? B : [A'; B']
 #=
-function stack(A::Array{Polymake.VectorAllocated{Polymake.Rational},1})
+function stack(A::Array{Polymake.Vector{Polymake.Rational},1})
     if length(A)==2
         return stack(A[1],A[2])
     end
@@ -80,11 +83,6 @@ function stack(A::Array{Polymake.VectorAllocated{Polymake.Rational},1})
     return M
 end
 =#
-
-function property_is_computed(P::Polymake.BigObjectAllocated, S::Symbol)
-    pv = Polymake.internal_call_method("lookup", P, Any[string(S)])
-    return nothing != Polymake.convert_from_property_value(pv)
-end
 
 """
    decompose_vdata(A::AbstractMatrix)
@@ -99,4 +97,32 @@ end
 
 function decompose_hdata(A)
     (A = -A[:, 2:end], b = A[:, 1])
+end
+
+
+# This is a specific polymake data structure supporting fast functions
+#  for rows->sets, rows containing col_i==true, etc.
+struct IncidenceMatrix
+   pm_incidencematrix::Polymake.IncidenceMatrix
+end
+
+function IncidenceMatrix(TrueIndices::Array{Array{Int64,1},1})
+   nrows = length(TrueIndices)
+   ncols = maximum([maximum(set) for set in TrueIndices])
+   IM = Polymake.IncidenceMatrix(nrows, ncols)
+   i = 1
+   for set in TrueIndices
+      for j in set
+         IM[i,j] = 1
+      end
+      i = i+1
+  end
+   return IncidenceMatrix(IM)
+end
+
+
+
+#TODO: change how incidence matrices are shown (not zero base but maybe bool?)
+function Base.show(io::IO, I::IncidenceMatrix)
+    show(io,"text/plain", (Array{Bool,2}(I.pm_incidencematrix)))
 end

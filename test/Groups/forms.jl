@@ -151,3 +151,175 @@ end
    @test dim(radical(f)[1])==2
 
 end
+
+@testset "TransformForm" begin
+   # symmetric
+   F = GF(3,1)[1]
+   x = zero_matrix(F,6,6)
+   x[4,5]=1; x[5,6]=1; x=x+transpose(x)
+   y = zero_matrix(F,6,6)
+   y[1,3]=2;y[3,4]=1; y=y+transpose(y)
+   f = symmetric_form(x); g = symmetric_form(y)
+   is_true,z = iscongruent(f,g)
+   @test is_true
+   @test f^z == g
+
+   F = GF(7,1)[1]
+   x = diagonal_matrix(F.([1,4,2,3,6,5,4]))
+   y = diagonal_matrix(F.([3,1,5,6,4,2,1]))
+   f = symmetric_form(x); g = symmetric_form(y)
+   is_true,z = iscongruent(f,g)
+   @test is_true
+   @test f^z == g
+   y = diagonal_matrix(F.([3,1,5,6,4,3,1]))
+   f = symmetric_form(x); g = symmetric_form(y)
+   is_true,z = iscongruent(f,g)
+   @test !is_true
+   @test z==nothing
+
+   T,t = PolynomialRing(FiniteField(3),"t")
+   F,a = FiniteField(t^2+1,"a")
+   x = zero_matrix(F,6,6)
+   x[1,2]=1+2*a; x[3,4]=a; x[5,6]=1; x=x+transpose(x)
+   y = diagonal_matrix(F.([a,1,1,a+1,2,2*a+2]))
+   f = symmetric_form(x); g = symmetric_form(y)
+   is_true,z = iscongruent(f,g)
+   @test is_true
+   @test f^z == g
+   y = diagonal_matrix(F.([a,1,1,a+1,2,2*a]))
+   g = symmetric_form(y)
+   is_true,z = iscongruent(f,g)
+   @test !is_true
+
+
+   #alternating
+   F = GF(3,1)[1]
+   x = zero_matrix(F,6,6)
+   x[4,5]=1; x[5,6]=1; x=x-transpose(x)
+   y = zero_matrix(F,6,6)
+   y[1,3]=2;y[3,4]=1; y=y-transpose(y)
+   f = alternating_form(x); g = alternating_form(y)
+   is_true,z = iscongruent(f,g)
+   @test is_true
+   @test f^z == g
+
+   F,a = GF(2,3,"a")
+   x = zero_matrix(F,6,6)
+   x[1,2]=a; x[2,3]=a^2+1; x[3,4]=1; x[1,5]=a^2+a+1; x[5,6]=1; x=x-transpose(x)
+   y = zero_matrix(F,6,6)
+   y[1,6]=1; y[2,5]=a; y[3,4]=a^2+1; y = y-transpose(y)
+   f = alternating_form(x); g = alternating_form(y)
+   is_true,z = iscongruent(f,g)
+   @test is_true
+   @test f^z == g
+   x = zero_matrix(F,8,8)
+   x[1,2]=a; x[2,3]=a^2-1; x[3,4]=1; x[1,5]=a^2-a-1; x[5,6]=1; x[7,8]=-1; x=x-transpose(x)
+   y = zero_matrix(F,8,8)
+   y[1,8]=1; y[2,7]=a; y[3,6]=a^2+1; y[4,5] = -a^2-a-1; y = y-transpose(y)
+   f = alternating_form(x); g = alternating_form(y)
+   is_true,z = iscongruent(f,g)
+   @test is_true
+   @test f^z == g
+   y = zero_matrix(F,8,8)
+   y[1,8]=1; y[2,7]=a; y[3,6]=a^2+1; y = y-transpose(y)
+   f = alternating_form(x); g = alternating_form(y)
+   is_true,z = iscongruent(f,g)
+   @test !is_true
+
+   y = zero_matrix(F,6,6)
+   y[1,6]=1; y[2,5]=a; y[3,4]=a^2+1; y = y-transpose(y)
+   g = alternating_form(y)
+   @test_throws AssertionError iscongruent(f,g)
+
+   F = GF(3,1)[1]
+   y = zero_matrix(F,8,8)
+   y[1,3]=2;y[3,4]=1; y=y-transpose(y)
+   g = alternating_form(y)
+   @test_throws AssertionError iscongruent(f,g)
+
+   #hermitian
+   F,a = GF(3,2,"a")
+   x = zero_matrix(F,6,6)
+   x[4,5]=1; x[5,6]=a-1; x=x+conjugate_transpose(x)
+   y = zero_matrix(F,6,6)
+   y[1,2]=2; y=y+conjugate_transpose(y)
+   f = hermitian_form(x); g = hermitian_form(y)
+   is_true,z = iscongruent(f,g)
+   @test is_true
+   @test f^z == g
+   x = diagonal_matrix(F.([1,2,1,1,1]))
+   y = diagonal_matrix(F.([2,1,0,0,2]))
+   y[3,4]=a; y[4,3]=a^3; y[4,5]=1+a; y[5,4]=(1+a)^3;
+   f = hermitian_form(x); g = hermitian_form(y)
+   is_true,z = iscongruent(f,g)
+   @test is_true
+   @test f^z == g
+   F,a = GF(2,2,"a")
+   x = zero_matrix(F,6,6)
+   x[4,5]=1; x[5,6]=a+1; x=x+conjugate_transpose(x)
+   y = zero_matrix(F,6,6)
+   y[1,2]=1; y=y+conjugate_transpose(y)
+   f = hermitian_form(x); g = hermitian_form(y)
+   is_true,z = iscongruent(f,g)
+   @test is_true
+   @test f^z == g
+   x = diagonal_matrix(F.([1,1,1,1,1]))
+   y = diagonal_matrix(F.([1,1,0,0,1]))
+   y[3,4]=a; y[4,3]=a^2; y[4,5]=1+a; y[5,4]=(1+a)^2;
+   f = hermitian_form(x); g = hermitian_form(y)
+   is_true,z = iscongruent(f,g)
+   @test is_true
+   @test f^z == g
+
+   #quadratic
+   F = GF(5,1)[1]
+   R = PolynomialRing(F,6)[1]
+   p1 = R[1]*R[2]
+   p2 = R[4]*R[5]+3*R[4]^2
+   Q1 = quadratic_form(p1)
+   Q2 = quadratic_form(p2)
+   is_true,z = iscongruent(Q1,Q2)
+   @test is_true
+   @test Q1^z == Q2
+   p2 = R[4]*R[5]+3*R[4]^2+2*R[5]^2
+   Q2 = quadratic_form(p2)
+   is_true,z = iscongruent(Q1,Q2)
+   @test !is_true
+
+   p1 = R[1]^2+R[2]^2+R[3]^2+R[4]^2+R[5]*R[6]
+   p2 = R[1]*R[6]+R[2]*R[5]+R[3]*R[4]
+   Q1 = quadratic_form(p1)
+   Q2 = quadratic_form(p2)
+   is_true,z = iscongruent(Q1,Q2)
+   @test is_true
+   @test Q1^z == Q2
+   p1 = R[1]^2+R[2]^2+R[3]^2+R[4]^2+R[5]^2+R[5]*R[6]+2*R[6]^2
+   Q1 = quadratic_form(p1)
+   is_true,z = iscongruent(Q1,Q2)
+   @test !is_true
+
+   F,a = GF(2,2,"a")
+   R = PolynomialRing(F,6)[1]
+   p1 = R[1]*R[2]+R[3]*R[4]+R[5]^2+R[5]*R[6]+R[6]^2
+   p2 = R[1]*R[6]+a*R[2]*R[5]+R[3]*R[4]
+   Q1 = quadratic_form(p1)
+   Q2 = quadratic_form(p2)
+   is_true,z = iscongruent(Q1,Q2)
+   @test is_true
+   @test Q1^z == Q2
+   p1 = R[1]*R[2]+R[3]*R[4]+R[5]^2+R[5]*R[6]+a*R[6]^2
+   Q1 = quadratic_form(p1)
+   is_true,z = iscongruent(Q1,Q2)
+   @test !is_true
+   p1 = R[1]*R[2]
+   p2 = R[3]^2+(a+1)*R[3]*R[5]
+   Q1 = quadratic_form(p1)
+   Q2 = quadratic_form(p2)
+   is_true,z = iscongruent(Q1,Q2)
+   @test is_true
+   @test Q1^z == Q2
+   p2 = R[3]^2+R[3]*R[5]+(a+1)*R[5]^2
+   Q2 = quadratic_form(p2)
+   is_true,z = iscongruent(Q1,Q2)
+   @test !is_true
+end
