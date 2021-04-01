@@ -92,12 +92,14 @@ function invariant_quadratic_forms(G::MatrixGroup{S,T}) where {S,T}
    for mat in gens(G)
       MM = zero_matrix(F,div(n*(n+1),2),div(n*(n+1),2))
       for i in 1:n
-      for p in 1:n, q in p:n
-         MM[div((2*n-i+2)*(i-1),2)+1, div((2*n-p+2)*(p-1),2)+q-p+1] = mat[i,p]*mat[i,q]
-      end
-      for j in i+1:n, p in 1:n, q in p:n
-         MM[div((2*n-i+2)*(i-1),2)+j-i+1, div((2*n-p+2)*(p-1),2)+q-p+1] = mat[i,p]*mat[j,q]+mat[j,p]*mat[i,q]
-      end
+         row = div((2*n-i+2)*(i-1),2)+1
+         for p in 1:n, q in p:n
+            col = div((2*n-p+2)*(p-1),2)+q-p+1
+            MM[row, col] = mat[i,p]*mat[i,q]
+            for j in i+1:n
+               MM[row+j-i, col] = mat[i,p]*mat[j,q]+mat[j,p]*mat[i,q]
+            end
+         end
       end
       for i in 1:div(n*(n+1),2) MM[i,i]-=1 end
       push!(M,MM)
