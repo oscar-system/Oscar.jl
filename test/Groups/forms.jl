@@ -324,6 +324,7 @@ end
    @test !is_true
 end
 
+# TODO at the moment, only methods named "invariant_X_forms" are tested
 @testset "Relationship group - forms" begin
    G = GL(6,3)
    Op = GO(1,6,3)
@@ -386,19 +387,24 @@ end
 
 #TODO to change when we decide how to compute forms preserved by a group
    G = GU(2,3)
-   L = Oscar.invariant_sesquilinear_forms(G)
-#   @test true in [ishermitian_form(f) for f in L]
+   L = invariant_sesquilinear_forms(G)
    @testset for f in L
        for g in gens(G)
           @test g.elm*f*conjugate_transpose(g.elm)==f
        end
    end
    G = GO(-1,4,3)
-   L = Oscar.invariant_bilinear_forms(G)
-#   @test true in [issymmetric_form(f) for f in L]
+   L = invariant_bilinear_forms(G)
    @testset for f in L
        for g in gens(G)
           @test g.elm*f*transpose(g.elm)==f
+       end
+   end
+   L = invariant_quadratic_forms(G)
+   @testset for m in L
+       Q = quadratic_form(m)
+       for g in gens(G)
+          @test Q^g==Q
        end
    end
 
@@ -410,6 +416,93 @@ end
           @test f^g==f
        end
    end
+   L = invariant_quadratic_forms(G)
+   L = [quadratic_form(f) for f in L]
+   @testset for f in L
+       for g in gens(G)
+          @test f^g==f
+       end
+   end
+
+   @testset for q in [2,3,4,5]
+      G = GU(5,q)
+      x = rand(GL(5,base_ring(G)))
+      G = G^x
+      L = invariant_hermitian_forms(G)
+      @testset for m in L
+         f = hermitian_form(m)
+         for g in gens(G)
+            @test f^g==f
+         end
+      end
+   end
+   @test length(invariant_hermitian_forms(GL(2,5)))==0
+
+   @testset for q in [3,4,5]
+      G = Sp(6,q)^rand(GL(6,q))
+      L = invariant_alternating_forms(G)
+      @testset for m in L
+         f = alternating_form(m)
+         for g in gens(G)
+            @test f^g==f
+         end
+      end
+   end
+
+   G = GO(1,6,3)^rand(GL(6,3))
+   L = invariant_symmetric_forms(G)
+   for m in L
+      f = symmetric_form(m)
+      for g in gens(G)
+         @test f^g==f
+      end
+   end
+   G = omega_group(-1,6,9)^rand(GL(6,9))
+   L = invariant_symmetric_forms(G)
+   for m in L
+      f = symmetric_form(m)
+      for g in gens(G)
+         @test f^g==f
+      end
+   end
+   G = SO(0,5,7)^rand(GL(5,7))
+   L = invariant_symmetric_forms(G)
+   for m in L
+      f = symmetric_form(m)
+      for g in gens(G)
+         @test f^g==f
+      end
+   end
+
+   G = GO(1,6,8)^rand(GL(6,8))
+   L = invariant_quadratic_forms(G)
+   for m in L
+      f = quadratic_form(m)
+      for g in gens(G)
+         @test f^g==f
+      end
+   end
+   G = omega_group(-1,6,2)^rand(GL(6,2))
+   L = invariant_quadratic_forms(G)
+   for m in L
+      f = quadratic_form(m)
+      for g in gens(G)
+         @test f^g==f
+      end
+   end
+   G = GO(0,5,4)^rand(GL(5,4))
+   L = invariant_quadratic_forms(G)
+   for m in L
+      f = quadratic_form(m)
+      for g in gens(G)
+         @test f^g==f
+      end
+   end
+
+   G = sub(GL(6,3),[one(GL(6,3))])[1]
+   @test length(invariant_symmetric_forms(G))==21
+   @test length(invariant_alternating_forms(G))==15
+   @test length(invariant_quadratic_forms(G))==21
 
    # degenerate forms
    F = GF(3,1)[1]
@@ -431,14 +524,13 @@ end
    end
    @test order(H)==order(GO(1,4,2))*order(GL(2,F))*2^8
 
-   T,t = PolynomialRing(FiniteField(3),"t")
-   F = FiniteField(3,2)[1]
-   B = zero_matrix(F,6,6)
-   B[1,1]=2;B[5,6]=gen(F);B[6,5]=gen(F)^3
+   F = GF(3,2)[1]
+   B = zero_matrix(F,4,4)
+   B[3,4]=gen(F);B[4,3]=gen(F)^3
    f = hermitian_form(B)
    H = isometry_group(f)
    @testset for h in gens(H)
       @test f^h==f
    end
-   @test order(H)==order(GU(3,3))*order(GL(3,9))*9^9
+   @test order(H)==order(GU(2,3))*order(GL(2,9))*9^4
 end
