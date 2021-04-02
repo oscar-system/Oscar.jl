@@ -324,7 +324,7 @@ end
    @test !is_true
 end
 
-# TODO at the moment, only methods named "invariant_X_forms" are tested
+# TODO
 @testset "Relationship group - forms" begin
    G = GL(6,3)
    Op = GO(1,6,3)
@@ -385,7 +385,6 @@ end
    end
    @test order(H)==order(GU(5,3))
 
-#TODO to change when we decide how to compute forms preserved by a group
    G = GU(2,3)
    L = invariant_sesquilinear_forms(G)
    @testset for f in L
@@ -422,6 +421,46 @@ end
        for g in gens(G)
           @test f^g==f
        end
+   end
+
+   G = Sp(4,4)
+   L = preserved_sesquilinear_forms(G)
+   @testset for l in L
+      for g in gens(G)
+         @test g.elm*l*transpose(g.elm)==l
+      end
+   end
+   B = Oscar.invariant_bilinear_form(G)
+   @testset for g in gens(G)
+      @test g.elm*B*transpose(g.elm)==B
+   end
+
+   G = GO(-1,6,3)
+   L = preserved_sesquilinear_forms(G)
+   @testset for l in L
+      for g in gens(G)
+         @test g.elm*l*transpose(g.elm)==l
+      end
+   end
+   B = Oscar.invariant_bilinear_form(G)
+   @testset for g in gens(G)
+      @test g.elm*B*transpose(g.elm)==B
+   end
+   B = Oscar.invariant_quadratic_form(G)
+   @testset for g in gens(G)
+      @test isskewsymmetric_matrix(g.elm*B*transpose(g.elm)-B)
+   end
+
+   G = GU(4,5)
+   L = preserved_sesquilinear_forms(G)
+   @testset for l in L
+      for g in gens(G)
+         @test g.elm*l*conjugate_transpose(g.elm)==l
+      end
+   end
+   B = Oscar.invariant_sesquilinear_form(G)
+   @testset for g in gens(G)
+      @test g.elm*B*conjugate_transpose(g.elm)==B
    end
 
    @testset for q in [2,3,4,5]

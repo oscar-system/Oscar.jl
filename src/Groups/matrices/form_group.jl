@@ -21,9 +21,10 @@ export
 # TODO 1st approach: brute force calculation
 # Algorithm furnished by Thomas Breuer, Aachen University
 # extended to quadratic by Giovanni De Franceschi, TU Kaiserslautern
-# WARNING: huge linear system !!
+# WARNING: big linear system !!
 
-# TODO: there are also methods to get only symmetric / alternating / hermitian forms. In these cases, the resulting linear system has lower dimension.
+# METHOD: given a group G, the condition gBg*=B is a linear condition on the coefficients of B,
+# hence we write down such system of dimension n^2 (n*(n-1)/2 for quadratic forms)
 
 """
     invariant_bilinear_forms(G::MatrixGroup)
@@ -54,12 +55,14 @@ end
 """
     invariant_sesquilinear_forms(G::MatrixGroup)
 
-Return a generating set for the vector spaces of sesquilinear non-bilinear forms preserved by the group `G`. It works only if `base_ring(G)` has even degree.
+Return a generating set for the vector spaces of sesquilinear non-bilinear forms preserved by the group `G`.
+It works only if `base_ring(G)` has even degree.
 !!! warning "Note:"
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
 """
 function invariant_sesquilinear_forms(G::MatrixGroup{S,T}) where {S,T}
    F = base_ring(G)
+   @assert typeof(F)<:FinField "At the moment, only finite fields are considered"
    @assert iseven(degree(F)) "Base ring has no even degree"
    n = degree(G)
    M = T[]
@@ -115,6 +118,8 @@ end
 
 #TODO: do we want to keep these?
 
+# METHOD: if B = (b_ij) is the solution matrix, then b_ji = b_ij;
+# hence, the dimension of the linear system can be reduced to n(n+1)/2
 """
     invariant_symmetric_forms(G::MatrixGroup)
 
@@ -159,6 +164,8 @@ function invariant_symmetric_forms(G::MatrixGroup{S,T}) where {S,T}
    return L
 end
 
+# METHOD: if B = (b_ij) is the solution matrix, then b_ji = -b_ij and b_ii=0;
+# hence, the dimension of the linear system can be reduced to n(n-1)/2
 """
     invariant_alternating_forms(G::MatrixGroup)
 
@@ -202,6 +209,12 @@ function invariant_alternating_forms(G::MatrixGroup{S,T}) where {S,T}
    return L
 end
 
+# METHOD: if B = (c_ij) is the solution matrix, then c_ij = (c_ji)^q (where base_ring(G) = GF(q^2))
+# Let F0 be the subfield of F s.t. [F:F0] = 2 and w in F \ F0 fixed, then c_ij = x_ij +w*y_ij for x_ij, y_ij in F0
+# the condition c_ij = (c_ij)^q + condition for B to be a form preserved by G
+# is a F0-linear condition on the x_ij and y_ij.
+# Hence, we write down the F0-linear system in the x_ij and y_ij (dimension = n*(n+1))
+# NOTE: two different approaches for an appropriate w are employed for odd and even characteristic
 """
     invariant_hermitian_forms(G::MatrixGroup)
 
@@ -211,6 +224,7 @@ Return a generating set for the vector spaces of hermitian forms preserved by th
 """
 function invariant_hermitian_forms(G::MatrixGroup{S,T}) where {S,T}
    F = base_ring(G)
+   @assert typeof(F)<:FinField "At the moment, only finite fields are considered"
    n = degree(G)
    M = T[]
 
@@ -226,9 +240,8 @@ function invariant_hermitian_forms(G::MatrixGroup{S,T}) where {S,T}
    if isodd(q)
       w = gen(F) - (F(2)^-1)*(gen(F)+gen(F)^q)        # w in F \ F0 s.t. w+w^q = 0
       Nw = em(w*w^q)
-      # we want to write every element of F as a+bw for a,b in F0
 
-      # returns a,b such that x = a+bw
+      # returns a,b in F0 such that x = a+bw
       coeffq(x) = F(2)^-1*(x+x^q), F(2)^-1*(x-x^q)*w^-1
 
       for mat in gens(G)
@@ -243,6 +256,8 @@ function invariant_hermitian_forms(G::MatrixGroup{S,T}) where {S,T}
          pos_r = 1
          pos_c = 1
 
+         # the solution matrix has coefficients x_ij+w*y_ij
+         # where x_ji+w*y_ji = (x_ij+w*y_ij)^q = x_ij-w*y_ij (so, we don't need i>j)
          # in the vector of solutions, the coefficients are ordered as:
          # first the x_ii, then the x_ij (i<j) and finally the y_ij (i<j)
 
@@ -310,9 +325,8 @@ function invariant_hermitian_forms(G::MatrixGroup{S,T}) where {S,T}
 
       w = gen(F) * (gen(F)+gen(F)^q)^-1           # w in F \ F0 s.t. w+w^q=1
       Nw = em(w*w^q)
-      # we want to write every element of F as a+bw for a,b in F0
 
-      # returns a,b such that x = a+bw
+      # returns a,b in F0 such that x = a+bw
       coeff2(x) = x+w*(x+x^q), x+x^q
 
       for mat in gens(G)
@@ -327,6 +341,8 @@ function invariant_hermitian_forms(G::MatrixGroup{S,T}) where {S,T}
          pos_r = 1
          pos_c = 1
 
+         # the solution matrix has coefficients x_ij+w*y_ij
+         # where x_ji+w*y_ji = (x_ij+w*y_ij)^q = (x_ij+y_ij)+w*y_ij (so, we don't need i>j)
          # in the vector of solutions, the coefficients are ordered as:
          # first the x_ii, then the x_ij (i<j) and finally the y_ij (i<j)
 
@@ -404,13 +420,13 @@ function invariant_hermitian_forms(G::MatrixGroup{S,T}) where {S,T}
       if isodd(q)
          for i in 1:n, j in i+1:n
             sol[i,j] = e(K[pos,r])+w*e(K[pos+N,r])       # sol[i,j] = a_ij + w*b_ij
-            sol[j,i] = e(K[pos,r])-w*e(K[pos+N,r])
+            sol[j,i] = e(K[pos,r])-w*e(K[pos+N,r])       # sol[i,j] = sol[j,i]^q
             pos +=1
          end
       else
          for i in 1:n, j in i+1:n
-            sol[i,j] = e(K[pos,r])+w*e(K[pos+N,r])       # sol[i,j] = a_ij + w*b_ij
-            sol[j,i] = e(K[pos,r])+e(K[pos+N,r])+w*e(K[pos+N,r])
+            sol[i,j] = e(K[pos,r])+w*e(K[pos+N,r])        # sol[i,j] = a_ij + w*b_ij
+            sol[j,i] = e(K[pos,r])+(1+w)*e(K[pos+N,r])    # sol[i,j] = sol[j,i]^q
             pos +=1
          end
       end
@@ -426,7 +442,8 @@ end
 """
     function invariant_bilinear_form(G::MatrixGroup)
 
-Return an invariant bilinear form for the group `G`. It works only if the module induced by the action of `G` is absolutely irreducible.
+Return an invariant bilinear form for the group `G`.
+It works only if the module induced by the action of `G` is absolutely irreducible.
 !!! warning "Note:"
     At the moment, the output is returned of type `mat_elem_type(G)`.
 """
@@ -439,7 +456,8 @@ end
 """
     function invariant_sesquilinear_form(G::MatrixGroup)
 
-Return an invariant sesquilinear (non bilinear) form for the group `G`. It works only if the module induced by the action of `G` is absolutely irreducible.
+Return an invariant sesquilinear (non bilinear) form for the group `G`.
+It works only if the module induced by the action of `G` is absolutely irreducible.
 !!! warning "Note:"
     At the moment, the output is returned of type `mat_elem_type(G)`.
 """
@@ -452,7 +470,8 @@ end
 """
     function invariant_quadratic_form(G::MatrixGroup)
 
-Return an invariant bilinear form for the group `G`. It works only if the module induced by the action of `G` is absolutely irreducible.
+Return an invariant bilinear form for the group `G`.
+It works only if the module induced by the action of `G` is absolutely irreducible.
 !!! warning "Note:"
     At the moment, the output is returned of type `mat_elem_type(G)`.
 """
@@ -476,7 +495,10 @@ end
 """
     preserved_quadratic_forms(G::MatrixGroup)
 
-Uses random methods to find all of the quadratic forms preserved by `G` up to a scalar (i.e. such that `G` is a group of similarities for the forms). Since the procedure relies on a pseudo-random generator, the user may need to execute the operation more than once to find all invariant quadratic forms.
+Uses random methods to find all of the quadratic forms preserved by `G` up to a scalar
+(i.e. such that `G` is a group of similarities for the forms). 
+Since the procedure relies on a pseudo-random generator, 
+the user may need to execute the operation more than once to find all invariant quadratic forms.
 """
 function preserved_quadratic_forms(G::MatrixGroup{S,T}) where {S,T}
    L = GAP.Globals.PreservedQuadraticForms(G.X)
@@ -493,7 +515,10 @@ end
 """
     preserved_sesquilinear_forms(G::MatrixGroup)
 
-Uses random methods to find all of the sesquilinear forms preserved by `G` up to a scalar (i.e. such that `G` is a group of similarities for the forms). Since the procedure relies on a pseudo-random generator, the user may need to execute the operation more than once to find all invariant sesquilinear forms.
+Uses random methods to find all of the sesquilinear forms preserved by `G` up to a scalar
+(i.e. such that `G` is a group of similarities for the forms).
+Since the procedure relies on a pseudo-random generator,
+the user may need to execute the operation more than once to find all invariant sesquilinear forms.
 """
 function preserved_sesquilinear_forms(G::MatrixGroup{S,T}) where {S,T}
    L = GAP.Globals.PreservedSesquilinearForms(G.X)

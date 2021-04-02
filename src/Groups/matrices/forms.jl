@@ -184,7 +184,9 @@ quadratic_form(B::MatElem{T}) where T <: FieldElem = SesquilinearForm(B, :quadra
 """
     quadratic_form(f::MPolyElem{T}; check=true)
 
-Return the quadratic form described by the polynomial `f`. Here, `f` must be a homogeneous polynomial of degree 2. If `check` is set as `false`, it does not check whether the polynomial is homogeneous of degree 2.
+Return the quadratic form described by the polynomial `f`.
+Here, `f` must be a homogeneous polynomial of degree 2.
+If `check` is set as `false`, it does not check whether the polynomial is homogeneous of degree 2.
 To define quadratic forms of dimension 1, `f` can also have type `PolyElem{T}`.
 """
 quadratic_form(f::MPolyElem{T}) where T <: FieldElem = SesquilinearForm(f, :quadratic)
@@ -255,7 +257,8 @@ end
 """
     corresponding_quadratic_form(Q::SesquilinearForm)
 
-Given a symmetric form `f`, returns the quadratic form `Q` defined by `Q(v) = f(v,v)/2`. It is defined only in odd characteristic.
+Given a symmetric form `f`, returns the quadratic form `Q` defined by `Q(v) = f(v,v)/2`.
+It is defined only in odd characteristic.
 """
 function corresponding_quadratic_form(B::SesquilinearForm)
    B.descr==:symmetric || throw(ArgumentError("The form must be a symmetric form"))
@@ -425,7 +428,9 @@ end
 """
     radical(f::SesquilinearForm{T})
 
-Return the radical of the sesquilinear form `f`, i.e. the subspace of all `v` such that `f(u,v)=0` for all `u`. The radical of a quadratic form `Q` is the set of vectors `v` such that `Q(v)=0` and `v` lies in the radical of the corresponding bilinear form.
+Return the radical of the sesquilinear form `f`, i.e. the subspace of all `v` such that `f(u,v)=0` for all `u`.
+The radical of a quadratic form `Q` is the set of vectors `v` such that `Q(v)=0`
+ and `v` lies in the radical of the corresponding bilinear form.
 """
 function radical(f::SesquilinearForm{T}) where T
    V = VectorSpace(base_ring(f), nrows(gram_matrix(f)) )
@@ -442,7 +447,8 @@ end
 """
     witt_index(f::SesquilinearForm{T})
 
-Return the Witt index of the form induced by `f` on `V/Rad(f)`. The Witt Index is the dimension of a maximal totally isotropic (singular for quadratic forms) subspace.
+Return the Witt index of the form induced by `f` on `V/Rad(f)`.
+The Witt Index is the dimension of a maximal totally isotropic (singular for quadratic forms) subspace.
 """
 witt_index(f::SesquilinearForm{T}) where T = GAP.Globals.WittIndex(f.X)
 
