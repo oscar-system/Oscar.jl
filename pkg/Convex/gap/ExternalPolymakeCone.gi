@@ -338,14 +338,14 @@ InstallMethod( Polymake_IsPointed,
     # compute V-representation
     help_cone := Polymake_V_Rep( cone );
     
-    # parse the rays into format recognized by Polymake
-    command_string := Concatenation( Polymake_V_Rep_command_string( help_cone ), ".POINTED" );
-    
     dir := Directory( "/home/i" );
     file := Filename( dir, "test.txt" );
     output := OutputTextFile( file, true );;
-    AppendTo( output, command_string );
+    AppendTo( output, Polymake_V_Rep_command_string( help_cone ) );
     CloseStream(output);
+    
+    # parse the rays into format recognized by Polymake
+    command_string := Concatenation( Polymake_V_Rep_command_string( help_cone ), ".POINTED" );
     
     # issue command in Julia and fetch result as string
     JuliaEvalString( command_string );
@@ -397,7 +397,7 @@ InstallMethod( Polymake_V_Rep_command_string,
     
         # check if the given cone is a V-rep
         if not ( cone!.rep_type = "V-rep" ) then
-            return fail;
+            return "fail";
         fi;
         
         # prepare string with rays
