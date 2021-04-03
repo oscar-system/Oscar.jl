@@ -37,7 +37,7 @@ DeclareCategory( "IsPolymakeCone",
 #! @Description
 #! The function takes a list in which every entry represents a vertex in the ambient vector space.
 #! In case we want some vertices to be free (the vertex and its negative belong to the PolymakeCone) we should refer
-#! in a second list to their indices .
+#! in a second list to their indices.
 DeclareGlobalFunction( "Polymake_ConeByGenerators" );
 
 #! @Arguments ineq [, linearities_list ]
@@ -127,11 +127,11 @@ DeclareProperty( "Polymake_IsPointed", IsPolymakeCone );
 #! @Arguments C
 #! @Returns a string
 #! @Description
-#! Returns the string which, when executed in Julia, constructs the polytope in question as H-representation.
+#! Returns the string which, when executed in Julia, constructs the cone in question as H-representation.
 DeclareOperation( "Polymake_H_Rep_command_string", [ IsPolymakeCone ] );
 
 #! @Arguments C
 #! @Returns a string
 #! @Description
-#! Returns the string which, when executed in Julia, constructs the polytope in question as V-representation.
+#! Returns the string which, when executed in Julia, constructs the cone in question as V-representation.
 DeclareOperation( "Polymake_V_Rep_command_string", [ IsPolymakeCone ] );
