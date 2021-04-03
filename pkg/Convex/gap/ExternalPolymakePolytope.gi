@@ -173,7 +173,7 @@ end );
 InstallMethod( Polymake_V_Rep,
                [ IsPolymakePolytope ],
   function( poly )
-    local command_string, s, res_string, vertices, lineality;
+    local command_string, s, res_string, vertices, lineality, lineality_gens;
     
     if poly!.rep_type = "V-rep" then
         
@@ -195,10 +195,11 @@ InstallMethod( Polymake_V_Rep,
         s := JuliaToGAP( IsString, Julia.string( Julia.PolytopeByGAP4PackageConvex ) );
         res_string := SplitString( s, '\n' );
         res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
-        lineality := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
+        lineality_gens := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
         
-        # convert lineality -- NConvex want to know the positions of the 1s
-        lineality := List( [ 1 .. Length( lineality ) ], i -> Position( lineality[ i ], 1 ) );
+        # convert lineality -- for NConvex we add the lineality generators to the rays and add a second list, which label the position of the lineality-generators
+        lineality := [ 1 .. Length( lineality_gens ) ];
+        vertices := Concatenation( lineality_gens, vertices );
         
         # return the V-representation
         return Polymake_PolytopeByGenerators( vertices, lineality );
@@ -211,7 +212,7 @@ end );
 InstallMethod( Polymake_H_Rep,
                [ IsPolymakePolytope ],
   function( poly )
-    local command_string, s, res_string, ineqs, eqs;
+    local command_string, s, res_string, ineqs, eqs_gens, eqs;
     
     if poly!.rep_type = "H-rep" then
         
@@ -238,10 +239,11 @@ InstallMethod( Polymake_H_Rep,
         s := JuliaToGAP( IsString, Julia.string( Julia.PolytopeByGAP4PackageConvex ) );
         res_string := SplitString( s, '\n' );
         res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
-        eqs := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
+        eqs_gens := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
         
-        # convert eqs -- NConvex want to know the positions of the 1s
-        eqs := List( [ 1 .. Length( eqs ) ], i -> Position( eqs[ i ], 1 ) );
+        # convert eqs -- for NConvex we add the eqs to the ineqs and add a second list, which label the position of the equations
+        eqs := [ 1 .. Length( eqs_gens ) ];
+        ineqs := Concatenation( eqs_gens, ineqs );
         
         # return poly by inequalities
         return Polymake_PolytopeFromInequalities( ineqs, eqs );
