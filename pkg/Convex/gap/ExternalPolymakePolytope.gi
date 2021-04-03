@@ -204,7 +204,8 @@ end );
 InstallMethod( Polymake_H_Rep,
                [ IsPolymakePolytope ],
   function( poly )
-    local command_string, s, res_string, ineqs, eqs, dir, file, output;
+    local command_string, s, res_string, ineqs, eqs;
+    #dir, file, output;
     
     if poly!.rep_type = "H-rep" then
         
@@ -219,11 +220,11 @@ InstallMethod( Polymake_H_Rep,
         # compute facets
         command_string := Concatenation( Polymake_V_Rep_command_string( poly ), ".FACETS" );
         
-        dir := Directory( "/home/i" );
-        file := Filename( dir, "test.txt" );
-        output := OutputTextFile( file, true );;
-        AppendTo( output, command_string );
-        CloseStream(output);
+        #dir := Directory( "/home/i" );
+        #file := Filename( dir, "test.txt" );
+        #output := OutputTextFile( file, true );;
+        #AppendTo( output, command_string );
+        #CloseStream(output);
         
         JuliaEvalString( command_string );
         s := JuliaToGAP( IsString, Julia.string( Julia.PolytopeByGAP4PackageConvex ) );
@@ -413,25 +414,15 @@ InstallMethod( Polymake_V_Rep_command_string,
                "construct command string for V-Representation of Cone in Julia",
                [ IsPolymakePolytope ],
   function( poly )
-    local vertices, lin, command_string, dir, file, output;
+    local vertices, lin, command_string;
         
         # check if the given poly is a V-rep
         if not ( poly!.rep_type = "V-rep" ) then
             return "fail";
         fi;
         
-        dir := Directory( "/home/i" );
-        file := Filename( dir, "test.txt" );
-        output := OutputTextFile( file, true );;
-        AppendTo( output, String( poly!.generating_vertices ) );
-        AppendTo( output, "\n" );
-        AppendTo( output, String( poly!.generating_rays ) );
-        AppendTo( output, "\n" );
-        CloseStream(output);
-        
         # prepare string with vertices -- as polymake considers them affine, we have to add a 1 at the beginning
         vertices := poly!.matrix;
-        #vertices := Filtered( vertices, v -> not IsZero( v ) );
         vertices := List( [ 1 .. Length( vertices ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( vertices[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
         command_string := Concatenation( "PolytopeByGAP4PackageConvex", " = Julia.Polymake.polytope.Polytope( POINTS = [ ", JoinStringsWithSeparator( vertices, "; " ), "] " );
         
