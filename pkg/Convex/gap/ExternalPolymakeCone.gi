@@ -172,7 +172,7 @@ end );
 InstallMethod( Polymake_V_Rep,
                [ IsPolymakeCone ],
   function( cone )
-    local ineqs, eqs, command_string, s, rays, vertices;
+    local ineqs, eqs, command_string, s, rays, vertices, dir, file, output;
     
     if cone!.rep_type = "V-rep" then
         
@@ -184,12 +184,29 @@ InstallMethod( Polymake_V_Rep,
         command_string := Concatenation( Polymake_H_Rep_command_string( cone ), ".RAYS" );
         JuliaEvalString( command_string );
         s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
+        
+        dir := Directory( "/home/i" );
+        file := Filename( dir, "test.txt" );
+        output := OutputTextFile( file, true );;
+        AppendTo( output, "Next test:\n\n" );
+        AppendTo( output, "Rays:\n" );
+        AppendTo( output, s );
+        AppendTo( output, "\n" );
+        CloseStream(output);
+        
         rays := EvalString( s );
         
         # compute vertices
         command_string := Concatenation( Polymake_H_Rep_command_string( cone ), ".LINEALITY_SPACE" );
         JuliaEvalString( command_string );
         s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
+        
+        output := OutputTextFile( file, true );;
+        AppendTo( output, "Vertices:\n" );
+        AppendTo( output, s );
+        AppendTo( output, "\n" );
+        CloseStream(output);
+        
         vertices := EvalString( s );
         
         # return the V-representation

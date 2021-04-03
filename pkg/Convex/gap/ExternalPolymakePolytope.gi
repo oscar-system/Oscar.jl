@@ -204,7 +204,7 @@ end );
 InstallMethod( Polymake_H_Rep,
                [ IsPolymakePolytope ],
   function( poly )
-    local command_string, s, res_string, ineqs, eqs, dir, file, output;
+    local command_string, s, res_string, ineqs, eqs;
     
     if poly!.rep_type = "H-rep" then
         
@@ -232,12 +232,6 @@ InstallMethod( Polymake_H_Rep,
         res_string := SplitString( s, '\n' );
         res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
         eqs := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
-        
-        dir := Directory( "/home/i" );
-        file := Filename( dir, "test.txt" );
-        output := OutputTextFile( file, true );;
-        AppendTo( output, "Test\n" );
-        CloseStream(output);
         
         # return poly by inequalities
         return Polymake_PolytopeFromInequalities( ineqs, eqs );
