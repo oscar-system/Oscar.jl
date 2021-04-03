@@ -343,7 +343,7 @@ InstallMethod( Polymake_LatticePoints,
     JuliaEvalString( command_string );
     s := JuliaToGAP( IsString, Julia.string( Julia.PolytopeByGAP4PackageConvex ) );
     res_string := SplitString( s, '\n' );
-    res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
+    res_string := List( [ 2 .. Length( res_string ) - 3 ], i -> Concatenation( "[", ReplacedString( ReplacedString( res_string[ i ], " ", "," ), "<", "" ), "]" ) );
     return EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
     
 end );
