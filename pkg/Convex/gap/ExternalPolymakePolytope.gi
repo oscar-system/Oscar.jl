@@ -194,7 +194,7 @@ InstallMethod( Polymake_V_Rep,
         vertices := EvalString( s );
         
         # return the V-representation
-        return Polymake_ConeByGenerators( rays, vertices );
+        return Polymake_PolytopeByGenerators( rays, vertices );
         
     fi;
     
@@ -213,7 +213,7 @@ InstallMethod( Polymake_H_Rep,
     else
         
         if poly!.rep_type = "V-rep" and poly!.matrix = [] then
-            return Polymake_ConeFromInequalities( [ [ 0, 1 ], [ -1, -1 ] ] );
+            return Polymake_PolytopeFromInequalities( [ [ 0, 1 ], [ -1, -1 ] ] );
         fi;
         
         # compute facets
@@ -240,7 +240,7 @@ InstallMethod( Polymake_H_Rep,
         eqs := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
         
         # return poly by inequalities
-        return Polymake_ConeFromInequalities( ineqs, eqs );
+        return Polymake_PolytopeFromInequalities( ineqs, eqs );
         
     fi;
     
@@ -342,16 +342,9 @@ InstallMethod( Polymake_IsPointed,
                [ IsPolymakePolytope ],
   function( poly )
     local help_poly, rays, lin, command_string, s;
-    #dir, file, output;
     
     # compute V-representation
     help_poly := Polymake_V_Rep( poly );
-    
-    #dir := Directory( "/home/i" );
-    #file := Filename( dir, "test.txt" );
-    #output := OutputTextFile( file, true );;
-    #AppendTo( output, Polymake_V_Rep_command_string( help_poly ) );
-    #CloseStream(output);
     
     # parse the rays into format recognized by Polymake
     command_string := Concatenation( Polymake_V_Rep_command_string( help_poly ), ".POINTED" );
@@ -420,17 +413,18 @@ InstallMethod( Polymake_V_Rep_command_string,
                "construct command string for V-Representation of Cone in Julia",
                [ IsPolymakePolytope ],
   function( poly )
-    local rays, lin, command_string;
+    local vertices, lin, command_string;
         
         # check if the given poly is a V-rep
         if not ( poly!.rep_type = "V-rep" ) then
             return "fail";
         fi;
         
-        # prepare string with rays
-        rays := poly!.generating_rays;
-        rays := List( [ 1 .. Length( rays ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( rays[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
-        command_string := Concatenation( "PolytopeByGAP4PackageConvex", " = Julia.Polymake.polytope.Polytope( INPUT_POINTS = [ ", JoinStringsWithSeparator( rays, "; " ), "] " );
+        # prepare string with vertices
+        vertices := poly!.generating_vertices;
+        vertices := Filtered( vertices, v -> not IsZero( v ) );
+        vertices := List( [ 1 .. Length( vertices ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( vertices[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
+        command_string := Concatenation( "PolytopeByGAP4PackageConvex", " = Julia.Polymake.polytope.Polytope( INPUT_POINTS = [ ", JoinStringsWithSeparator( vertices, "; " ), "] " );
         
         # see if we need lineality
         lin := poly!.lineality;
@@ -444,5 +438,5 @@ InstallMethod( Polymake_V_Rep_command_string,
         
         # add return
         return command_string;
-    
+        
 end );
