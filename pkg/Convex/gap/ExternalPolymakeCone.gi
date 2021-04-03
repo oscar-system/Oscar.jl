@@ -207,7 +207,7 @@ end );
 InstallMethod( Polymake_H_Rep,
                [ IsPolymakeCone ],
   function( cone )
-    local command_string, s, res_string, ineqs, eqs;
+    local command_string, s, res_string, ineqs, eqs, dir, file, output;
     
     if cone!.rep_type = "H-rep" then
         
@@ -235,6 +235,18 @@ InstallMethod( Polymake_H_Rep,
         res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
         eqs := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
         
+        dir := Directory( "/home/i" );
+        file := Filename( dir, "test.txt" );
+        output := OutputTextFile( file, true );;
+        AppendTo( output, "Next test:\n\n" );
+        AppendTo( output, "ineqs:\n" );
+        AppendTo( output, ineqs );
+        AppendTo( output, "\n" );
+        AppendTo( output, "eqs:\n" );
+        AppendTo( output, eqs );
+        AppendTo( output, "\n\n" );
+        CloseStream(output);
+        
         # return cone by inequalities
         return Polymake_ConeFromInequalities( ineqs, eqs );
         
@@ -257,7 +269,7 @@ InstallMethod( Polymake_Dimension,
               " returns the dimension of the cone",
             [ IsPolymakeCone ],
   function( cone )
-    local help_cone, rays, lin, command_string, s, dir, file, output;
+    local help_cone, rays, lin, command_string, s;
     
     if Polymake_IsEmpty( cone ) then 
         return -1;
@@ -272,15 +284,6 @@ InstallMethod( Polymake_Dimension,
     # issue command in Julia and fetch result
     JuliaEvalString( command_string );
     s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
-    
-    #dir := Directory( "/home/i" );
-    #file := Filename( dir, "test.txt" );
-    #output := OutputTextFile( file, true );;
-    #AppendTo( output, "Next test:\n\n" );
-    #AppendTo( output, "dimension:\n" );
-    #AppendTo( output, s );
-    #AppendTo( output, "\n" );
-    #CloseStream(output);
     
     return EvalString( s );
     
