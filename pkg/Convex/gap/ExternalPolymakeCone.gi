@@ -390,11 +390,18 @@ InstallMethod( Polymake_H_Rep_command_string,
 end );
 
 InstallMethod( Polymake_V_Rep_command_string,
-               "construct command string for H-Representation of Cone in Julia",
+               "construct command string for V-Representation of Cone in Julia",
                [ IsPolymakeCone ],
   function( cone )
-    local rays, lin, command_string;
-    
+    local rays, lin, command_string, dir, file, output;
+        
+        dir := Directory( "/home/i" );
+        file := Filename( dir, "test.txt" );
+        output := OutputTextFile( file, true );;
+        AppendTo( output, String( cone!.rep_type ) );
+        AppendTo( output, "\n" );
+        CloseStream(output);
+        
         # check if the given cone is a V-rep
         if not ( cone!.rep_type = "V-rep" ) then
             return "fail";
@@ -405,6 +412,14 @@ InstallMethod( Polymake_V_Rep_command_string,
         rays := List( [ 1 .. Length( rays ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( rays[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
         command_string := Concatenation( "C = Julia.Polymake.polytope.Cone( INPUT_RAYS = [ ", JoinStringsWithSeparator( rays, "; " ), "] " );
         
+        dir := Directory( "/home/i" );
+        file := Filename( dir, "test.txt" );
+        output := OutputTextFile( file, true );;
+        AppendTo( output, "Step1: " );
+        AppendTo( output, command_string );
+        AppendTo( output, "\n" );
+        CloseStream(output);
+        
         # see if we need lineality
         lin := cone!.lineality;
         if ( Length( lin ) > 0 ) then
@@ -412,7 +427,18 @@ InstallMethod( Polymake_V_Rep_command_string,
             command_string := Concatenation( command_string, " INPUT_LINEALITY = [ ", JoinStringsWithSeparator( lin, "; " ), " ] " );
         fi;
         
+        # append closing bracket
+        command_string := Concatenation( command_string, " )" );
+        
+        dir := Directory( "/home/i" );
+        file := Filename( dir, "test.txt" );
+        output := OutputTextFile( file, true );;
+        AppendTo( output, "Step2: " );
+        AppendTo( output, command_string );
+        AppendTo( output, "\n" );
+        CloseStream(output);
+        
         # add closing bracket
-        return Concatenation( command_string, " ) " );
+        return command_string;
     
 end );
