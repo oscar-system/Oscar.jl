@@ -172,7 +172,7 @@ end );
 InstallMethod( Polymake_V_Rep,
                [ IsPolymakeCone ],
   function( cone )
-    local ineqs, eqs, command_string, s, rays, vertices, dir, file, output;
+    local ineqs, eqs, command_string, s, rays, vertices;
     
     if cone!.rep_type = "V-rep" then
         
@@ -184,29 +184,12 @@ InstallMethod( Polymake_V_Rep,
         command_string := Concatenation( Polymake_H_Rep_command_string( cone ), ".RAYS" );
         JuliaEvalString( command_string );
         s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
-        
-        dir := Directory( "/home/i" );
-        file := Filename( dir, "test.txt" );
-        output := OutputTextFile( file, true );;
-        AppendTo( output, "Next test:\n\n" );
-        AppendTo( output, "Rays:\n" );
-        AppendTo( output, s );
-        AppendTo( output, "\n" );
-        CloseStream(output);
-        
         rays := EvalString( s );
         
         # compute vertices
         command_string := Concatenation( Polymake_H_Rep_command_string( cone ), ".LINEALITY_SPACE" );
         JuliaEvalString( command_string );
         s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
-        
-        output := OutputTextFile( file, true );;
-        AppendTo( output, "Vertices:\n" );
-        AppendTo( output, s );
-        AppendTo( output, "\n" );
-        CloseStream(output);
-        
         vertices := EvalString( s );
         
         # return the V-representation
@@ -220,7 +203,7 @@ end );
 InstallMethod( Polymake_H_Rep,
                [ IsPolymakeCone ],
   function( cone )
-    local command_string, s, res_string, ineqs, eqs;
+    local command_string, s, res_string, ineqs, eqs, dir, file, output;
     
     if cone!.rep_type = "H-rep" then
         
@@ -238,6 +221,16 @@ InstallMethod( Polymake_H_Rep,
         s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
         res_string := SplitString( s, '\n' );
         res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
+        
+        dir := Directory( "/home/i" );
+        file := Filename( dir, "test.txt" );
+        output := OutputTextFile( file, true );;
+        AppendTo( output, "Next test:\n\n" );
+        AppendTo( output, "Facets:\n" );
+        AppendTo( output, res_string );
+        AppendTo( output, "\n" );
+        CloseStream(output);
+        
         ineqs := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
         
         # compute linear span
@@ -246,6 +239,13 @@ InstallMethod( Polymake_H_Rep,
         s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
         res_string := SplitString( s, '\n' );
         res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
+        
+        output := OutputTextFile( file, true );;
+        AppendTo( output, "Linear span:\n" );
+        AppendTo( output, res_string );
+        AppendTo( output, "\n" );
+        CloseStream(output);
+        
         eqs := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
         
         # return cone by inequalities
