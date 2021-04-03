@@ -172,7 +172,7 @@ end );
 InstallMethod( Polymake_V_Rep,
                [ IsPolymakeCone ],
   function( cone )
-    local ineqs, eqs, command_string, s, rays, vertices;
+    local ineqs, eqs, command_string, s, res_string, rays, vertices;
     
     if cone!.rep_type = "V-rep" then
         
@@ -184,13 +184,17 @@ InstallMethod( Polymake_V_Rep,
         command_string := Concatenation( Polymake_H_Rep_command_string( cone ), ".RAYS" );
         JuliaEvalString( command_string );
         s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
-        rays := EvalString( s );
+        res_string := SplitString( s, '\n' );
+        res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
+        rays := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
         
         # compute vertices
         command_string := Concatenation( Polymake_H_Rep_command_string( cone ), ".LINEALITY_SPACE" );
         JuliaEvalString( command_string );
         s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
-        vertices := EvalString( s );
+        res_string := SplitString( s, '\n' );
+        res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
+        vertices := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
         
         # return the V-representation
         return Polymake_ConeByGenerators( rays, vertices );
@@ -269,14 +273,14 @@ InstallMethod( Polymake_Dimension,
     JuliaEvalString( command_string );
     s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
     
-    dir := Directory( "/home/i" );
-        file := Filename( dir, "test.txt" );
-        output := OutputTextFile( file, true );;
-        AppendTo( output, "Next test:\n\n" );
-        AppendTo( output, "dimension:\n" );
-        AppendTo( output, s );
-        AppendTo( output, "\n" );
-        CloseStream(output);
+    #dir := Directory( "/home/i" );
+    #file := Filename( dir, "test.txt" );
+    #output := OutputTextFile( file, true );;
+    #AppendTo( output, "Next test:\n\n" );
+    #AppendTo( output, "dimension:\n" );
+    #AppendTo( output, s );
+    #AppendTo( output, "\n" );
+    #CloseStream(output);
     
     return EvalString( s );
     

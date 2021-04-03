@@ -173,7 +173,7 @@ end );
 InstallMethod( Polymake_V_Rep,
                [ IsPolymakePolytope ],
   function( poly )
-    local ineqs, eqs, command_string, s, rays, vertices;
+    local command_string, s, res_string, vertices, lineality;
     
     if poly!.rep_type = "V-rep" then
         
@@ -181,20 +181,24 @@ InstallMethod( Polymake_V_Rep,
         
     else
         
-        # compute rays
+        # compute vertices
         command_string := Concatenation( Polymake_H_Rep_command_string( poly ), ".VERTICES" );
         JuliaEvalString( command_string );
         s := JuliaToGAP( IsString, Julia.string( Julia.PolytopeByGAP4PackageConvex ) );
-        rays := EvalString( s );
+        res_string := SplitString( s, '\n' );
+        res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
+        vertices := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
         
-        # compute vertices
+        # compute lineality
         command_string := Concatenation( Polymake_H_Rep_command_string( poly ), ".LINEALITY_SPACE" );
         JuliaEvalString( command_string );
         s := JuliaToGAP( IsString, Julia.string( Julia.PolytopeByGAP4PackageConvex ) );
-        vertices := EvalString( s );
+        res_string := SplitString( s, '\n' );
+        res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
+        lineality := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
         
         # return the V-representation
-        return Polymake_PolytopeByGenerators( rays, vertices );
+        return Polymake_PolytopeByGenerators( vertices, lineality );
         
     fi;
     
