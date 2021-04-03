@@ -230,15 +230,20 @@ InstallMethod( Polymake_H_Rep,
         JuliaEvalString( command_string );
         s := JuliaToGAP( IsString, Julia.string( Julia.PolytopeByGAP4PackageConvex ) );
         
+        res_string := SplitString( s, '\n' );
+        res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
+        
         dir := Directory( "/home/i" );
         file := Filename( dir, "test.txt" );
         output := OutputTextFile( file, true );;
+        AppendTo( output, "The input:" );
         AppendTo( output, s );
+        AppendTo( output, "\n" );
+        AppendTo( output, "Next the result:" );
+        AppendTo( output, res_string );
         AppendTo( output, "\n" );
         CloseStream(output);
         
-        res_string := SplitString( s, '\n' );
-        res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
         eqs := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
         
         # return poly by inequalities
