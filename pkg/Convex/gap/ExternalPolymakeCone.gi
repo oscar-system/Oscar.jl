@@ -373,7 +373,7 @@ InstallMethod( Polymake_IsPointed,
                "finding if the cone is pointed or not",
                [ IsPolymakeCone ],
   function( cone )
-    local help_cone, rays, lin, command_string, s;
+    local help_cone, rays, lin, command_string, s, dir, file, output;
     
     # compute V-representation
     help_cone := Polymake_V_Rep( cone );
@@ -387,12 +387,15 @@ InstallMethod( Polymake_IsPointed,
     lin := help_cone!.lineality;
     if ( Length( lin ) > 0 ) then
         lin := List( [ 1 .. Length( lin ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( lin[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
-        command_string := Concatenation( command_string, ", INPUT_LINEALITY = [ ", JoinStringsWithSeparator( lin, "; " ), " ] )" );
-    else
-        command_string := Concatenation( command_string, ", INPUT_LINEALITY = [ ] )" );
+        command_string := Concatenation( command_string, ", INPUT_LINEALITY = [ ", JoinStringsWithSeparator( lin, "; " ), " ] " );
     fi;
-    command_string := Concatenation( command_string, ".POINTED" );
-    Print( command_string );
+    command_string := Concatenation( command_string, ").POINTED" );
+    
+    dir := Directory( "/home/i" );
+    file := Filename( dir, "test.txt" );
+    output := OutputTextFile( file, true );;
+    AppendTo( output, command_string );
+    CloseStream(output);
     
     # issue command in Julia and fetch result as string
     JuliaEvalString( command_string );
