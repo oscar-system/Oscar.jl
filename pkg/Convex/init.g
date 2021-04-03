@@ -11,6 +11,5 @@
 
 ReadPackage( "Convex", "gap/Functions.gd" );
 ReadPackage( "Convex", "gap/ExternalPolymakeCone.gd" );
-ReadPackage( "Convex", "gap/Tools.gd" );
 ReadPackage( "Convex", "gap/Cone.gd" );
 ReadPackage( "Convex", "gap/Polytope.gd" );

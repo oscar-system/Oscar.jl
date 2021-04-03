@@ -11,7 +11,9 @@
 ##
 #############################################################################
 
+#############################################################################
 #! @Section Availability of required software
+#############################################################################
 
 #! @Arguments
 #! @Returns a boolean
@@ -30,3 +32,11 @@ DeclareOperation( "CddInterfaceAvailable", [ ] );
 #! @Description
 #! Checks if the CddInterface is available in Julia.
 DeclareOperation( "NormalizInterfaceAvailable", [ ] );
+
+
+#############################################################################
+#! @Section Tools for cones
+#############################################################################
+
+DeclareOperation( "GeneratingVerticesAndGeneratingRays", [ IsList, IsList ] );
+DeclareOperation( "InequalitiesAndEqualities", [ IsList, IsList ] );
