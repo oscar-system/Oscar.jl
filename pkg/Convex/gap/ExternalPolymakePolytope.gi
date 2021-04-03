@@ -197,6 +197,9 @@ InstallMethod( Polymake_V_Rep,
         res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
         lineality := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
         
+        # convert lineality -- NConvex want to know the positions of the 1s
+        lineality := List( [ 1 .. Length( lineality ) ], i -> Position( lineality[ i ], 1 ) );
+        
         # return the V-representation
         return Polymake_PolytopeByGenerators( vertices, lineality );
         
@@ -236,6 +239,9 @@ InstallMethod( Polymake_H_Rep,
         res_string := SplitString( s, '\n' );
         res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
         eqs := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
+        
+        # convert eqs -- NConvex want to know the positions of the 1s
+        eqs := List( [ 1 .. Length( eqs ) ], i -> Position( eqs[ i ], 1 ) );
         
         # return poly by inequalities
         return Polymake_PolytopeFromInequalities( ineqs, eqs );

@@ -172,7 +172,7 @@ end );
 InstallMethod( Polymake_V_Rep,
                [ IsPolymakeCone ],
   function( cone )
-    local ineqs, eqs, command_string, s, res_string, rays, vertices;
+    local command_string, s, res_string, rays, lineality;
     
     if cone!.rep_type = "V-rep" then
         
@@ -188,16 +188,19 @@ InstallMethod( Polymake_V_Rep,
         res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
         rays := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
         
-        # compute vertices
+        # extract lineality
         command_string := Concatenation( Polymake_H_Rep_command_string( cone ), ".LINEALITY_SPACE" );
         JuliaEvalString( command_string );
         s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
         res_string := SplitString( s, '\n' );
         res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
-        vertices := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
+        lineality := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
+        
+        # convert lineality -- NConvex want to know the positions of the 1s
+        lineality := List( [ 1 .. Length( lineality ) ], i -> Position( lineality[ i ], 1 ) );
         
         # return the V-representation
-        return Polymake_ConeByGenerators( rays, vertices );
+        return Polymake_ConeByGenerators( rays, lineality );
         
     fi;
     
@@ -207,7 +210,8 @@ end );
 InstallMethod( Polymake_H_Rep,
                [ IsPolymakeCone ],
   function( cone )
-    local command_string, s, res_string, ineqs, eqs, dir, file, output;
+    local command_string, s, res_string, ineqs, eqs;
+         #, dir, file, output;
     
     if cone!.rep_type = "H-rep" then
         
@@ -235,17 +239,20 @@ InstallMethod( Polymake_H_Rep,
         res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
         eqs := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
         
-        dir := Directory( "/home/i" );
-        file := Filename( dir, "test.txt" );
-        output := OutputTextFile( file, true );;
-        AppendTo( output, "Next test:\n\n" );
-        AppendTo( output, "ineqs:\n" );
-        AppendTo( output, ineqs );
-        AppendTo( output, "\n" );
-        AppendTo( output, "eqs:\n" );
-        AppendTo( output, eqs );
-        AppendTo( output, "\n\n" );
-        CloseStream(output);
+        # convert eqs -- NConvex want to know the positions of the 1s
+        eqs := List( [ 1 .. Length( eqs ) ], i -> Position( eqs[ i ], 1 ) );
+        
+        #dir := Directory( "/home/i" );
+        #file := Filename( dir, "test.txt" );
+        #output := OutputTextFile( file, true );;
+        #AppendTo( output, "Next test:\n\n" );
+        #AppendTo( output, "ineqs:\n" );
+        #AppendTo( output, ineqs );
+        #AppendTo( output, "\n" );
+        #AppendTo( output, "eqs:\n" );
+        #AppendTo( output, eqs );
+        #AppendTo( output, "\n\n" );
+        #CloseStream(output);
         
         # return cone by inequalities
         return Polymake_ConeFromInequalities( ineqs, eqs );
