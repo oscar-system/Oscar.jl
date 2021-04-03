@@ -82,18 +82,18 @@ DeclareAttribute( "Polymake_GeneratingVertices", IsPolymakeCone );
 
 #! @Arguments P
 #! @Returns list
-#! @Description 
+#! @Description
 #! The output is the reduced generating rays of the PolymakeCone.
 DeclareAttribute( "Polymake_GeneratingRays", IsPolymakeCone );
 
 #! @Arguments P
 #! @Returns a list
-#! @Description 
+#! @Description
 #! The output is the reduced equalities of the PolymakeCone.
 DeclareAttribute( "Polymake_Equalities", IsPolymakeCone );
 
 #! @Arguments P
-#! @Description 
+#! @Description
 #! The output is the reduced inequalities of the PolymakeCone.
 DeclareAttribute( "Polymake_Inequalities", IsPolymakeCone );
 
@@ -116,3 +116,22 @@ DeclareProperty( "Polymake_IsEmpty", IsPolymakeCone );
 #! The output is <C>true</C> if the PolymakeCone is pointed and <C>false</C> otherwise
 DeclareProperty( "Polymake_IsPointed", IsPolymakeCone );
 #! @InsertChunk demo
+
+
+##############################################################################################
+##
+#! @Section Command strings
+##
+##############################################################################################
+
+#! @Arguments C
+#! @Returns a string
+#! @Description
+#! Returns the string which, when executed in Julia, constructs the polytope in question as H-representation.
+DeclareProperty( "Polymake_H_Rep_command_string", IsPolymakeCone );
+
+#! @Arguments C
+#! @Returns a string
+#! @Description
+#! Returns the string which, when executed in Julia, constructs the polytope in question as V-representation.
+DeclareProperty( "Polymake_V_Rep_command_string", IsPolymakeCone );
