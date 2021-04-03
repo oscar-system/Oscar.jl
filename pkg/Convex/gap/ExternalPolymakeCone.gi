@@ -33,7 +33,7 @@ BindGlobal( "TheTypeOfPolymakeCone", NewType( TheFamilyOfPolymakeCones, IsPolyma
 
 InstallGlobalFunction( Polymake_ConeByGenerators,
   function( arg )
-    local poly, i, matrix, temp, dim;
+    local cone, i, matrix, temp, dim;
     
     if Length( arg )= 0 then
         
@@ -47,15 +47,15 @@ InstallGlobalFunction( Polymake_ConeByGenerators,
         
         if IsEmpty( arg[ 1 ] ) or ForAny( arg[ 1 ], IsEmpty ) then
             
-            poly := rec( generating_vertices := [ ],
+            cone := rec( generating_vertices := [ ],
                         generating_rays := [ ],
                         matrix:= arg[ 1 ],
                         number_type := "rational",
                         rep_type := "V-rep" );
             
-            ObjectifyWithAttributes( poly, TheTypeOfPolymakeCone );
+            ObjectifyWithAttributes( cone, TheTypeOfPolymakeCone );
             
-            return poly;
+            return cone;
             
         fi;
         
@@ -88,16 +88,16 @@ InstallGlobalFunction( Polymake_ConeByGenerators,
         
         temp := GeneratingVerticesAndGeneratingRays( arg[ 1 ], arg[ 2 ] );
         
-        poly := rec( generating_vertices := temp[ 1 ],
+        cone := rec( generating_vertices := temp[ 1 ],
                     generating_rays := temp[ 2 ],
                     matrix :=arg[ 1 ],
                     lineality := arg[ 2 ],
                     number_type := "rational",
                     rep_type := "V-rep" );
                     
-        ObjectifyWithAttributes( poly, TheTypeOfPolymakeCone );
+        ObjectifyWithAttributes( cone, TheTypeOfPolymakeCone );
         
-        return poly;
+        return cone;
         
     fi;
     
@@ -105,7 +105,7 @@ end );
 
 InstallGlobalFunction( Polymake_ConeFromInequalities,
   function( arg )
-    local poly, i, temp, matrix, dim;
+    local cone, i, temp, matrix, dim;
     
     if Length( arg ) = 0 then
         
@@ -147,16 +147,16 @@ InstallGlobalFunction( Polymake_ConeFromInequalities,
         
         temp := InequalitiesAndEqualities( matrix, arg[ 2 ] );
         
-        poly := rec( matrix := matrix,
+        cone := rec( matrix := matrix,
                     inequalities := temp[ 1 ],
                     equalities := temp[ 2 ],
                     lineality := arg[ 2 ],
                     number_type := "rational",
                     rep_type := "H-rep" );
         
-        ObjectifyWithAttributes( poly, TheTypeOfPolymakeCone );
+        ObjectifyWithAttributes( cone, TheTypeOfPolymakeCone );
         
-        return poly;
+        return cone;
         
     fi;
     
@@ -171,23 +171,23 @@ end );
 
 InstallMethod( Polymake_V_Rep,
                [ IsPolymakeCone ],
-  function( poly )
+  function( cone )
     local ineqs, eqs, command_string, s, rays, vertices;
     
-    if poly!.rep_type = "V-rep" then
+    if cone!.rep_type = "V-rep" then
         
-        return poly;
+        return cone;
         
     else
         
         # compute rays
-        command_string := Concatenation( Polymake_H_Rep_command_string( help_cone ), ".RAYS" );
+        command_string := Concatenation( Polymake_H_Rep_command_string( cone ), ".RAYS" );
         JuliaEvalString( command_string );
         s := JuliaToGAP( IsString, Julia.string( Julia.F ) );
         rays := EvalString( s );
         
         # compute vertices
-        command_string := Concatenation( Polymake_H_Rep_command_string( help_cone ), ".LINEALITY_SPACE" );
+        command_string := Concatenation( Polymake_H_Rep_command_string( cone ), ".LINEALITY_SPACE" );
         JuliaEvalString( command_string );
         s := JuliaToGAP( IsString, Julia.string( Julia.F ) );
         vertices := EvalString( s );
@@ -216,7 +216,7 @@ InstallMethod( Polymake_H_Rep,
         fi;
         
         # compute facets
-        command_string := Concatenation( Polymake_V_Rep_command_string( help_cone ), ".FACETS" );
+        command_string := Concatenation( Polymake_V_Rep_command_string( cone ), ".FACETS" );
         JuliaEvalString( command_string );
         s := JuliaToGAP( IsString, Julia.string( Julia.F ) );
         res_string := SplitString( s, '\n' );
@@ -224,7 +224,7 @@ InstallMethod( Polymake_H_Rep,
         ineqs := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
         
         # compute linear span
-        command_string := Concatenation( Polymake_V_Rep_command_string( help_cone ), ".LINEAR_SPAN" );
+        command_string := Concatenation( Polymake_V_Rep_command_string( cone ), ".LINEAR_SPAN" );
         JuliaEvalString( command_string );
         s := JuliaToGAP( IsString, Julia.string( Julia.F ) );
         res_string := SplitString( s, '\n' );
@@ -242,9 +242,9 @@ end );
 InstallMethod( Polymake_AmbientSpaceDimension,
               "finding the dimension of the ambient space of the cone",
               [ IsPolymakeCone ],
-  function( poly )
+  function( cone )
     
-    return Length( Polymake_H_Rep( poly )!.matrix[1] )-1;
+    return Length( Polymake_H_Rep( cone )!.matrix[1] )-1;
     
 end );
 
@@ -374,13 +374,13 @@ InstallMethod( Polymake_H_Rep_command_string,
         fi;
         
         # prepare string with inequalities
-        ineqs := poly!.inequalities;
+        ineqs := cone!.inequalities;
         ineqs := List( [ 1 .. Length( ineqs ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( ineqs[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
         command_string := Concatenation( "C = Julia.Polymake.polytope.Cone( INEQUALITIES = [ ", JoinStringsWithSeparator( ineqs, "; " ), " ] " );
         
         # check if we also need equalities
-        eqs := poly!.equalities;
-        if ( length( eqs ) > 0 ) then
+        eqs := cone!.equalities;
+        if ( Length( eqs ) > 0 ) then
             eqs := List( [ 1 .. Length( eqs ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( eqs[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
             command_string := Concatenation( command_string, " EQUALITIES = [ ", JoinStringsWithSeparator( eqs, "; " ), " ] " );
         fi;
@@ -407,12 +407,12 @@ InstallMethod( Polymake_V_Rep_command_string,
         
         # see if we need lineality
         lin := cone!.lineality;
-        if ( Length( len ) > 0 ) then
-            lin := List( [ 1 .. Length( eqs ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( lin[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
+        if ( Length( lin ) > 0 ) then
+            lin := List( [ 1 .. Length( lin ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( lin[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
             command_string := Concatenation( command_string, " INPUT_LINEALITY = [ ", JoinStringsWithSeparator( lin, "; " ), " ] " );
         fi;
         
         # add closing bracket
-        return concatenation( command_string, " ) " );
+        return Concatenation( command_string, " ) " );
     
 end );
