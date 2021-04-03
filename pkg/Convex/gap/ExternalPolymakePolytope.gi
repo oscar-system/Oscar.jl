@@ -424,7 +424,7 @@ InstallMethod( Polymake_V_Rep_command_string,
         vertices := poly!.generating_vertices;
         vertices := Filtered( vertices, v -> not IsZero( v ) );
         vertices := List( [ 1 .. Length( vertices ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( vertices[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
-        command_string := Concatenation( "PolytopeByGAP4PackageConvex", " = Julia.Polymake.polytope.Polytope( INPUT_POINTS = [ ", JoinStringsWithSeparator( vertices, "; " ), "] " );
+        command_string := Concatenation( "PolytopeByGAP4PackageConvex", " = Julia.Polymake.polytope.Polytope( POINTS = [ ", JoinStringsWithSeparator( vertices, "; " ), "] " );
         
         # see if we need lineality
         lin := poly!.lineality;
