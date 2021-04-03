@@ -183,13 +183,13 @@ InstallMethod( Polymake_V_Rep,
         # compute rays
         command_string := Concatenation( Polymake_H_Rep_command_string( cone ), ".RAYS" );
         JuliaEvalString( command_string );
-        s := JuliaToGAP( IsString, Julia.string( Julia.F ) );
+        s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
         rays := EvalString( s );
         
         # compute vertices
         command_string := Concatenation( Polymake_H_Rep_command_string( cone ), ".LINEALITY_SPACE" );
         JuliaEvalString( command_string );
-        s := JuliaToGAP( IsString, Julia.string( Julia.F ) );
+        s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
         vertices := EvalString( s );
         
         # return the V-representation
@@ -218,7 +218,7 @@ InstallMethod( Polymake_H_Rep,
         # compute facets
         command_string := Concatenation( Polymake_V_Rep_command_string( cone ), ".FACETS" );
         JuliaEvalString( command_string );
-        s := JuliaToGAP( IsString, Julia.string( Julia.F ) );
+        s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
         res_string := SplitString( s, '\n' );
         res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
         ineqs := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
@@ -226,7 +226,7 @@ InstallMethod( Polymake_H_Rep,
         # compute linear span
         command_string := Concatenation( Polymake_V_Rep_command_string( cone ), ".LINEAR_SPAN" );
         JuliaEvalString( command_string );
-        s := JuliaToGAP( IsString, Julia.string( Julia.F ) );
+        s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
         res_string := SplitString( s, '\n' );
         res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
         eqs := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
@@ -267,7 +267,7 @@ InstallMethod( Polymake_Dimension,
     
     # issue command in Julia and fetch result
     JuliaEvalString( command_string );
-    s := JuliaToGAP( IsString, Julia.string( Julia.F ) );
+    s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
     return EvalString( s );
     
 end );
@@ -349,7 +349,7 @@ InstallMethod( Polymake_IsPointed,
     
     # issue command in Julia and fetch result as string
     JuliaEvalString( command_string );
-    s := JuliaToGAP( IsString, Julia.string( Julia.F ) );
+    s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
     return EvalString( s );
     
 end );
@@ -376,7 +376,7 @@ InstallMethod( Polymake_H_Rep_command_string,
         # prepare string with inequalities
         ineqs := cone!.inequalities;
         ineqs := List( [ 1 .. Length( ineqs ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( ineqs[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
-        command_string := Concatenation( "C = Julia.Polymake.polytope.Cone( INEQUALITIES = [ ", JoinStringsWithSeparator( ineqs, "; " ), " ] " );
+        command_string := Concatenation( "ConeByGAP4PackageConvex", " = Julia.Polymake.polytope.Cone( INEQUALITIES = [ ", JoinStringsWithSeparator( ineqs, "; " ), " ] " );
         
         # check if we also need equalities
         eqs := cone!.equalities;
@@ -407,7 +407,7 @@ InstallMethod( Polymake_V_Rep_command_string,
         # prepare string with rays
         rays := cone!.generating_rays;
         rays := List( [ 1 .. Length( rays ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( rays[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
-        command_string := Concatenation( "C = Julia.Polymake.polytope.Cone( INPUT_RAYS = [ ", JoinStringsWithSeparator( rays, "; " ), "] " );
+        command_string := Concatenation( "ConeByGAP4PackageConvex", " = Julia.Polymake.polytope.Cone( INPUT_RAYS = [ ", JoinStringsWithSeparator( rays, "; " ), "] " );
         
         # see if we need lineality
         lin := cone!.lineality;
