@@ -73,7 +73,7 @@ InstallGlobalFunction( Polymake_ConeByGenerators,
         
         if not ForAll( arg[ 2 ], i -> i in [ 1 .. NrRows( arg[ 1 ] ) ] ) then
             
-            Error( "Wronge input for linearity" );
+            Error( "Wronge input for lineality" );
         
         fi;
         
@@ -91,7 +91,7 @@ InstallGlobalFunction( Polymake_ConeByGenerators,
         poly := rec( generating_vertices := temp[ 1 ],
                     generating_rays := temp[ 2 ],
                     matrix :=arg[ 1 ],
-                    linearity := arg[ 2 ],
+                    lineality := arg[ 2 ],
                     number_type := "rational",
                     rep_type := "V-rep" );
                     
@@ -131,7 +131,7 @@ InstallGlobalFunction( Polymake_ConeFromInequalities,
         
         if not ForAll( arg[ 2 ], i -> i in [ 1 .. NrRows( arg[ 1 ] ) ] ) then
             
-            Error( "Wronge input for linearity" );
+            Error( "Wronge input for lineality" );
             
         fi;
         
@@ -150,7 +150,7 @@ InstallGlobalFunction( Polymake_ConeFromInequalities,
         poly := rec( matrix := matrix,
                     inequalities := temp[ 1 ],
                     equalities := temp[ 2 ],
-                    linearity := arg[ 2 ],
+                    lineality := arg[ 2 ],
                     number_type := "rational",
                     rep_type := "H-rep" );
         
@@ -201,7 +201,7 @@ InstallMethod( Polymake_V_Rep,
                                          JoinStringsWithSeparator( ineqs_string_list, "; " ),
                                          " ], EQUALITIES = [ ",
                                          JoinStringsWithSeparator( eqs_string_list, "; " ),
-                                         " ] ).VERTICES" );
+                                         " ] ).LINEALITY_SPACE" );
         JuliaEvalString( command_string );
         s := JuliaToGAP( IsString, Julia.string( Julia.F ) );
         vertices := EvalString( s );
@@ -231,10 +231,16 @@ InstallMethod( Polymake_H_Rep,
         
         # prepare string with rays
         rays := cone!.generating_rays;
-        string_list := List( [ 1 .. Length( rays ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( rays[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
+        rays := List( [ 1 .. Length( rays ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( rays[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
+        lin := cone!.lineality;
+        lin := List( [ 1 .. Length( eqs ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( lin[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
         
         # compute the inequalities
-        command_string := Concatenation( "F = Julia.Polymake.polytope.Cone( INPUT_RAYS = [ ", JoinStringsWithSeparator( string_list, "; " ), " ] ).FACETS" );
+        command_string := Concatenation( "F = Julia.Polymake.polytope.Cone( INPUT_RAYS = [ ",
+                                         JoinStringsWithSeparator( rays, "; " ),
+                                         " ], INPUT_LINEALITY = [ ",
+                                         JoinStringsWithSeparator( lin, "; " ),
+                                         " ] ).FACETS" );
         JuliaEvalString( command_string );
         s := JuliaToGAP( IsString, Julia.string( Julia.F ) );
         res_string := SplitString( s, '\n' );
@@ -242,7 +248,11 @@ InstallMethod( Polymake_H_Rep,
         ineqs := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
         
         # compute the equalities
-        command_string := Concatenation( "F = Julia.Polymake.polytope.Cone( INPUT_RAYS = [ ", JoinStringsWithSeparator( string_list, "; " ), " ] ).EQUALITIES" );
+        command_string := Concatenation( "F = Julia.Polymake.polytope.Cone( INPUT_RAYS = [ ",
+                                         JoinStringsWithSeparator( rays, "; " ),
+                                         " ], INPUT_LINEALITY = [ ",
+                                         JoinStringsWithSeparator( lin, "; " ),
+                                         " ] ).LINEAR_SPAN" );
         JuliaEvalString( command_string );
         s := JuliaToGAP( IsString, Julia.string( Julia.F ) );
         res_string := SplitString( s, '\n' );
@@ -270,20 +280,28 @@ end );
 InstallMethod( Polymake_Dimension,
               " returns the dimension of the cone",
             [ IsPolymakeCone ],
-  function( poly )
-    local help_poly, input_rays, string_list, command_string, s;
+  function( cone )
+    local help_cone, input_rays, string_list, command_string, s;
     
-    if Polymake_IsEmpty( poly ) then 
+    if Polymake_IsEmpty( cone ) then 
         return -1;
     else
         
         # compute v-representation
-        help_poly := Polymake_V_Rep( poly );
+        help_cone := Polymake_V_Rep( cone );
         
         # parse the rays into format recognized by Polymake
-        input_rays := help_poly!.generating_rays;
-        string_list := List( [ 1 .. Length( input_rays ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( input_rays[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
-        command_string := Concatenation( "F = Julia.Polymake.polytope.Cone( INPUT_RAYS = [ ", JoinStringsWithSeparator( string_list, "; " ), " ] ).CONE_DIM" );
+        rays := help_cone!.generating_rays;
+        rays := List( [ 1 .. Length( rays ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( rays[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
+        lin := help_cone!.lineality;
+        lin := List( [ 1 .. Length( eqs ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( lin[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
+        
+        # prepare command string
+        command_string := Concatenation( "F = Julia.Polymake.polytope.Cone( INPUT_RAYS = [ ",
+                                         JoinStringsWithSeparator( rays, "; " ),
+                                         " ], INPUT_LINEALITY = [ ",
+                                         JoinStringsWithSeparator( lin, "; " ),
+                                         " ] ).CONE_DIM" );
         
         # issue command in Julia and fetch result
         JuliaEvalString( command_string );
@@ -360,10 +378,18 @@ InstallMethod( Polymake_IsPointed,
     # compute V-representation
     help_cone := Polymake_V_Rep( cone );
     
-    # Parse the rays into format recognized by Polymake
-    input_rays := help_cone!.generating_rays;
-    string_list := List( [ 1 .. Length( input_rays ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( input_rays[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
-    command_string := Concatenation( "F = Julia.Polymake.polytope.Cone( INPUT_RAYS = [ ", JoinStringsWithSeparator( string_list, "; " ), " ] ).POINTED" );
+    # parse the rays into format recognized by Polymake
+    rays := help_cone!.generating_rays;
+    rays := List( [ 1 .. Length( rays ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( rays[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
+    lin := help_cone!.lineality;
+    lin := List( [ 1 .. Length( eqs ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( lin[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
+    
+    # prepare command string
+    command_string := Concatenation( "F = Julia.Polymake.polytope.Cone( INPUT_RAYS = [ ",
+                                    JoinStringsWithSeparator( rays, "; " ),
+                                    " ], INPUT_LINEALITY = [ ",
+                                    JoinStringsWithSeparator( lin, "; " ),
+                                    " ] ).POINTED" );
     
     # issue command in Julia and fetch result as string
     JuliaEvalString( command_string );
