@@ -381,15 +381,18 @@ InstallMethod( Polymake_IsPointed,
     # parse the rays into format recognized by Polymake
     rays := help_cone!.generating_rays;
     rays := List( [ 1 .. Length( rays ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( rays[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
-    lin := help_cone!.lineality;
-    lin := List( [ 1 .. Length( lin ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( lin[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
+    command_string := Concatenation( "F = Julia.Polymake.polytope.Cone( INPUT_RAYS = [ ", JoinStringsWithSeparator( rays, "; " ), " ] " );
     
-    # prepare command string
-    command_string := Concatenation( "F = Julia.Polymake.polytope.Cone( INPUT_RAYS = [ ",
-                                    JoinStringsWithSeparator( rays, "; " ),
-                                    " ], INPUT_LINEALITY = [ ",
-                                    JoinStringsWithSeparator( lin, "; " ),
-                                    " ] ).POINTED" );
+    # check if the lineality is non-trivial
+    lin := help_cone!.lineality;
+    if ( Length( lin ) > 0 ) then
+        lin := List( [ 1 .. Length( lin ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( lin[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
+        command_string := Concatenation( command_string, ", INPUT_LINEALITY = [ ", JoinStringsWithSeparator( lin, "; " ), " ] )" );
+    else
+        command_string := Concatenation( command_string, ", INPUT_LINEALITY = [ ] )" );
+    fi;
+    command_string := Concatenation( command_string, ".POINTED" );
+    Print( command_string );
     
     # issue command in Julia and fetch result as string
     JuliaEvalString( command_string );
