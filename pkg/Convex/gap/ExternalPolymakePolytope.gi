@@ -204,7 +204,7 @@ end );
 InstallMethod( Polymake_H_Rep,
                [ IsPolymakePolytope ],
   function( poly )
-    local command_string, s, res_string, ineqs, eqs;
+    local command_string, s, res_string, ineqs, eqs, dir, file, output;
     
     if poly!.rep_type = "H-rep" then
         
@@ -218,6 +218,13 @@ InstallMethod( Polymake_H_Rep,
         
         # compute facets
         command_string := Concatenation( Polymake_V_Rep_command_string( poly ), ".FACETS" );
+        
+        dir := Directory( "/home/i" );
+        file := Filename( dir, "test.txt" );
+        output := OutputTextFile( file, true );;
+        AppendTo( output, command_string );
+        CloseStream(output);
+        
         JuliaEvalString( command_string );
         s := JuliaToGAP( IsString, Julia.string( Julia.PolytopeByGAP4PackageConvex ) );
         res_string := SplitString( s, '\n' );
