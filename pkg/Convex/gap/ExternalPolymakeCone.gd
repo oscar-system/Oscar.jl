@@ -128,10 +128,10 @@ DeclareProperty( "Polymake_IsPointed", IsPolymakeCone );
 #! @Returns a string
 #! @Description
 #! Returns the string which, when executed in Julia, constructs the polytope in question as H-representation.
-DeclareProperty( "Polymake_H_Rep_command_string", IsPolymakeCone );
+DeclareOperation( "Polymake_H_Rep_command_string", [ IsPolymakeCone ] );
 
 #! @Arguments C
 #! @Returns a string
 #! @Description
 #! Returns the string which, when executed in Julia, constructs the polytope in question as V-representation.
-DeclareProperty( "Polymake_V_Rep_command_string", IsPolymakeCone );
+DeclareOperation( "Polymake_V_Rep_command_string", [ IsPolymakeCone ] );
