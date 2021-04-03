@@ -204,8 +204,7 @@ end );
 InstallMethod( Polymake_H_Rep,
                [ IsPolymakePolytope ],
   function( poly )
-    local command_string, s, res_string, ineqs, eqs;
-    #dir, file, output;
+    local command_string, s, res_string, ineqs, eqs, dir, file, output;
     
     if poly!.rep_type = "H-rep" then
         
@@ -220,12 +219,6 @@ InstallMethod( Polymake_H_Rep,
         # compute facets
         command_string := Concatenation( Polymake_V_Rep_command_string( poly ), ".FACETS" );
         
-        #dir := Directory( "/home/i" );
-        #file := Filename( dir, "test.txt" );
-        #output := OutputTextFile( file, true );;
-        #AppendTo( output, command_string );
-        #CloseStream(output);
-        
         JuliaEvalString( command_string );
         s := JuliaToGAP( IsString, Julia.string( Julia.PolytopeByGAP4PackageConvex ) );
         res_string := SplitString( s, '\n' );
@@ -236,6 +229,14 @@ InstallMethod( Polymake_H_Rep,
         command_string := Concatenation( Polymake_V_Rep_command_string( poly ), ".AFFINE_HULL" );
         JuliaEvalString( command_string );
         s := JuliaToGAP( IsString, Julia.string( Julia.PolytopeByGAP4PackageConvex ) );
+        
+        dir := Directory( "/home/i" );
+        file := Filename( dir, "test.txt" );
+        output := OutputTextFile( file, true );;
+        AppendTo( output, s );
+        AppendTo( output, "\n" );
+        CloseStream(output);
+        
         res_string := SplitString( s, '\n' );
         res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
         eqs := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
@@ -272,12 +273,12 @@ InstallMethod( Polymake_Dimension,
     help_poly := Polymake_V_Rep( poly );
     
     # produce command string
-    command_string := Concatenation( Polymake_V_Rep_command_string( help_poly ), ".POLYTOPE_DIM" );
+    command_string := Concatenation( Polymake_V_Rep_command_string( help_poly ), ".CONE_DIM" );
     
     # issue command in Julia and fetch result
     JuliaEvalString( command_string );
     s := JuliaToGAP( IsString, Julia.string( Julia.PolytopeByGAP4PackageConvex ) );
-    return EvalString( s );
+    return EvalString( s ) - 1;
     
 end );
 
@@ -380,7 +381,7 @@ end );
 ##############################################################################################
 
 InstallMethod( Polymake_H_Rep_command_string,
-               "construct command string for H-Representation of Cone in Julia",
+               "construct command string for H-Representation of polytope in Julia",
                [ IsPolymakePolytope ],
   function( poly )
     local ineqs, eqs, command_string;
@@ -411,7 +412,7 @@ InstallMethod( Polymake_H_Rep_command_string,
 end );
 
 InstallMethod( Polymake_V_Rep_command_string,
-               "construct command string for V-Representation of Cone in Julia",
+               "construct command string for V-Representation of polytope in Julia",
                [ IsPolymakePolytope ],
   function( poly )
     local vertices, lin, command_string;
