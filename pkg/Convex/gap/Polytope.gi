@@ -7,145 +7,101 @@
 ##
 ##  A Gap package to do convex geometry by Polymake, Cdd and Normaliz
 ##
-## Chapter: Functionality
+## Chapter: Polytopes
 ##
 #############################################################################
 
-## Section: Availability and loading of Polymake
+
+####################################
+##
+##  Attributes of polyopes
+##
+####################################
+
+##
+InstallMethod( ExternalPolymakePolytope,
+               "for polyopes",
+               [ IsPolytope ],
+    function( poly )
+    local old_pointlist, new_pointlist, ineqs, i,j;
+    
+    if IsBound( poly!.input_points ) and IsBound( poly!.input_ineqs ) then
+        Error( "points and inequalities at the same time are not supported\n" );
+    fi;
+    
+    if IsBound( poly!.input_points ) then
+        
+        old_pointlist := poly!.input_points;
+        new_pointlist:= [ ];
+        for i in old_pointlist do 
+            j:= ShallowCopy( i );
+            Add( j, 1, 1 );
+            Add( new_pointlist, j );
+        od;
+        return Polymake_PolytopeByGenerators( new_pointlist );
+        
+    elif  IsBound( poly!.input_ineqs ) then
+        
+        ineqs := ShallowCopy( poly!.input_ineqs );
+        return Polymake_PolytopeFromInequalities( ineqs );
+        
+    else
+        
+        Error( "something went wrong\n" );
+        
+    fi;
+    
+end );
+
 
 InstallMethod( VerticesOfPolytope,
-               "for polytopes",
+               "for polyopes",
                [ IsPolytope ],
-               
-  function( polytope )
+  function( poly )
     
-    #return Polymake_GeneratingVertices( ExternalPolymakePolytope( polyt ) );
-    return polytope!.input_points;
+    if PolymakeAvailable() then
+        return Polymake_V_Rep( ExternalPolymakePolytope( poly ) )!.generating_vertices;
+    fi;
+    TryNextMethod();
     
 end );
 
 InstallMethod( DefiningInequalities,
-               "for polytopes",
+               "for polyopes",
                [ IsPolytope ],
-  function( polytope )
+  function( poly )
     
-    return polytope!.input_ineqs;
+    if PolymakeAvailable() then
+        return Polymake_H_Rep( ExternalPolymakePolytope( poly ) )!.inequalities;
+    fi;
+    TryNextMethod();
     
 end );
 
 
 ##
 InstallMethod( FacetInequalities,
-               " for external polytopes",
+               " for external polyopes",
                [ IsExternalPolytopeRep ],
-  function( polytope )
-    local vertices, string_list, command_string, s, P, l;
+  function( poly )
     
     if PolymakeAvailable() then
-        
-        # Parse the polytope into format recognized by Polymake
-        vertices := VerticesOfPolytope( polytope );
-        vertices := List( [ 1 .. Length( vertices ) ], i -> Concatenation( [ 1 ], vertices[ i ] ) );
-        string_list := List( [ 1 .. Length( vertices ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( vertices[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
-        command_string := Concatenation( "F = Julia.Polymake.polytope.Polytope( POINTS = [ ", JoinStringsWithSeparator( string_list, "; " ), " ] ).FACETS" );
-
-        # issue command in Julia and fetch result as string
-        JuliaEvalString( command_string );
-        s := JuliaToGAP( IsString, Julia.string( Julia.F ) );
-        
-        # cast the result into a list of integers
-        string_list := SplitString( s, '\n' );
-        string_list := List( [ 2 .. Length( string_list ) ], i -> Concatenation( "[", ReplacedString( string_list[ i ], " ", "," ), "]" ) );
-        l := EvalString( Concatenation( "[", JoinStringsWithSeparator( string_list, "," ), "]" ) );
-        
-        # return this list of inequalities
-        return l;
-        
+        return Polymake_H_Rep( ExternalPolymakePolytope( poly ) )!.inequalities;
     fi;
-    
-    # otherwise try next method
     TryNextMethod();
     
 end );
 
 
 InstallMethod( IsBounded,
-               " for external polytopes.",
+               " for external polyopes.",
                [ IsPolytope ],
-    function( polytope )
-    local ineqs, string_list, command_string, s;
+    function( poly )
     
     if PolymakeAvailable() then
-        
-        # Parse the polytope into format recognized by Polymake
-        ineqs := DefiningInequalities( polytope );
-        string_list := List( [ 1 .. Length( ineqs ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( ineqs[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
-        command_string := Concatenation( "F = Julia.Polymake.polytope.Polytope( INEQUALITIES = [ ", JoinStringsWithSeparator( string_list, "; " ), " ] ).BOUNDED" );
-
-        # issue command in Julia and fetch result as string
-        JuliaEvalString( command_string );
-        s := JuliaToGAP( IsString, Julia.string( Julia.F ) );
-        
-        # cast the result into a list of integers
-        return EvalString( s );
-        
+        return Polymake_IsBounded( ExternalPolymakePolytope( poly ) );
     fi;
     
-    # otherwise try next method
     TryNextMethod();
     
-end );
-
-
-####################################
-##
-## Attributes
-##
-####################################
-
-##
-InstallMethod( ExternalPolymakePolytope,
-               "for polytopes",
-               [ IsPolytope ],
-   function( polyt )
-   local old_pointlist, new_pointlist, ineqs, i,j;
-   
-   if IsBound( polyt!.input_points ) and IsBound( polyt!.input_ineqs ) then
-        
-        Error( "points and inequalities at the same time are not supported\n" );
-        
-   fi;
-    
-   if IsBound( polyt!.input_points ) then 
-        
-        old_pointlist := polyt!.input_points;
-        
-        new_pointlist:= [ ];
-        
-        for i in old_pointlist do 
-            
-            j:= ShallowCopy( i );
-            
-            Add( j, 1, 1 );
-            
-            Add( new_pointlist, j );
-            
-        od;
-        
-        #return Polymake_PolyhedronByGenerators( new_pointlist );
-        return false;
-        
-    elif  IsBound( polyt!.input_ineqs ) then
-        
-        ineqs := ShallowCopy( polyt!.input_ineqs );
-        
-        #return Polymake_PolyhedronByInequalities( ineqs );
-        return false;
-        
-    else
-        
-        Error( "something went wrong\n" );
-        
-   fi;
-   
 end );

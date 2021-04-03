@@ -11,13 +11,18 @@
 ##
 #############################################################################
 
-#! @Section Operations on polytopes
 
 ####################################
 ##
-## Attributes
+#! @Section Attributes of polytopes
 ##
 ####################################
+
+#! @Arguments C
+#! @Returns a polymake cone
+#! @Description
+#! Converts the cone to a Polymake cone.
+DeclareAttribute( "ExternalPolymakePolytope",  IsPolytope  );
 
 #! @Arguments P
 #! @Returns a list of lists
