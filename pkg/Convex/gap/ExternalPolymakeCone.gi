@@ -333,16 +333,17 @@ InstallMethod( Polymake_IsPointed,
                "finding if the cone is pointed or not",
                [ IsPolymakeCone ],
   function( cone )
-    local help_cone, rays, lin, command_string, s, dir, file, output;
+    local help_cone, rays, lin, command_string, s;
+    #dir, file, output;
     
     # compute V-representation
     help_cone := Polymake_V_Rep( cone );
     
-    dir := Directory( "/home/i" );
-    file := Filename( dir, "test.txt" );
-    output := OutputTextFile( file, true );;
-    AppendTo( output, Polymake_V_Rep_command_string( help_cone ) );
-    CloseStream(output);
+    #dir := Directory( "/home/i" );
+    #file := Filename( dir, "test.txt" );
+    #output := OutputTextFile( file, true );;
+    #AppendTo( output, Polymake_V_Rep_command_string( help_cone ) );
+    #CloseStream(output);
     
     # parse the rays into format recognized by Polymake
     command_string := Concatenation( Polymake_V_Rep_command_string( help_cone ), ".POINTED" );
