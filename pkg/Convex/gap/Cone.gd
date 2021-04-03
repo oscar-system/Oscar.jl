@@ -11,30 +11,27 @@
 ##
 #############################################################################
 
-##############################
+###############################
 ##
-##  Attributes
-##
-##############################
-
 #! @Section Attributes of Cones
-
-# DeclareAttribute( "RayGenerators",
-#                    IsCone );
-
+##
+###############################
 
 #! @Arguments C
-#! @Returns a cdd object
+#! @Returns a polymake cone
 #! @Description
-#! Converts the cone to a polymake polyhedron. The operations of Polymake can then be applied.
+#! Converts the cone to a Polymake cone.
 DeclareAttribute( "ExternalPolymakeCone",  IsCone  );
 
-DeclareAttribute( "RaysInFacets",
-                  IsCone );
+#! @Arguments C
+#! @Returns a list of all rays contained in the facets of the cone
+#! @Description
+#! Converts the cone to a Polymake cone.
+DeclareAttribute( "RaysInFacets", IsCone );
 
 #! @Arguments C
-#! @Returns a list
+#! @Returns a list of the defining inequalities of the given cone.
 #! @Description
-#! Returns the list of the defining inequalities of the cone <C>C</C>.
-DeclareAttribute( "DefiningInequalities", 
-                   IsCone );
+#! Converts the cone to a Polymake cone.
+DeclareAttribute( "DefiningInequalities", IsCone );
+
