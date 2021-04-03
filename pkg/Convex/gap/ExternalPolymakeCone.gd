@@ -32,20 +32,20 @@ DeclareCategory( "IsPolymakeCone",
 ##
 ##############################################################################################
 
-#! @Arguments genes[, linearities_list ] 
+#! @Arguments genes[, linearities_list ]
 #! @Returns a PolymakeCone
 #! @Description
 #! The function takes a list in which every entry represents a vertex in the ambient vector space.
 #! In case we want some vertices to be free (the vertex and its negative belong to the PolymakeCone) we should refer
 #! in a second list to their indices .
-DeclareOperation( "Polymake_ConeByGenerators", [ IsList ] );
+DeclareGlobalFunction( "Polymake_ConeByGenerators" );
 
 #! @Arguments ineq [, linearities_list ]
 #! @Returns a PolymakeCone
 #! @Description
 #! The function takes a list in which every entry represents an inequality (or equality).
 #! In case we want some entries to represent equalities we should refer in a second list to their indices.
-DeclareOperation( "Polymake_ConeFromInequalities", [ IsList ] );
+DeclareGlobalFunction( "Polymake_ConeFromInequalities" );
 
 
 ##############################################################################################

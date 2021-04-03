@@ -31,9 +31,7 @@ BindGlobal( "TheTypeOfPolymakeCone", NewType( TheFamilyOfPolymakeCones, IsPolyma
 ##
 ##############################################################################################
 
-InstallMethod( Polymake_ConeByGenerators,
-               " a list of vertices",
-               [ IsList ],
+InstallGlobalFunction( Polymake_ConeByGenerators,
   function( arg )
     local poly, i, matrix, temp, dim;
     
@@ -105,9 +103,7 @@ InstallMethod( Polymake_ConeByGenerators,
     
 end );
 
-InstallMethod( Polymake_ConeFromInequalities,
-               " a list of vertices",
-               [ IsList ],
+InstallGlobalFunction( Polymake_ConeFromInequalities,
   function( arg )
     local poly, i, temp, matrix, dim;
     
