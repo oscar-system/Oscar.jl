@@ -413,12 +413,21 @@ InstallMethod( Polymake_V_Rep_command_string,
                "construct command string for V-Representation of Cone in Julia",
                [ IsPolymakePolytope ],
   function( poly )
-    local vertices, lin, command_string;
+    local vertices, lin, command_string, dir, file, output;
         
         # check if the given poly is a V-rep
         if not ( poly!.rep_type = "V-rep" ) then
             return "fail";
         fi;
+        
+        dir := Directory( "/home/i" );
+        file := Filename( dir, "test.txt" );
+        output := OutputTextFile( file, true );;
+        AppendTo( output, String( poly!.generating_vertices ) );
+        AppendTo( output, "\n" );
+        AppendTo( output, String( poly!.generating_rays ) );
+        AppendTo( output, "\n" );
+        CloseStream(output);
         
         # prepare string with vertices
         vertices := poly!.generating_vertices;

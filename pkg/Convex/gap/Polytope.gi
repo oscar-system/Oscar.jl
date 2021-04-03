@@ -33,7 +33,7 @@ InstallMethod( ExternalPolymakePolytope,
         
         old_pointlist := poly!.input_points;
         new_pointlist:= [ ];
-        for i in old_pointlist do 
+        for i in old_pointlist do
             j:= ShallowCopy( i );
             Add( j, 1, 1 );
             Add( new_pointlist, j );
