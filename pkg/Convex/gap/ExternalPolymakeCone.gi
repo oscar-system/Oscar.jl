@@ -210,8 +210,7 @@ end );
 InstallMethod( Polymake_H_Rep,
                [ IsPolymakeCone ],
   function( cone )
-    local command_string, s, res_string, ineqs, eqs;
-         #, dir, file, output;
+    local command_string, s, res_string, ineqs, eqs, dir, file, output;
     
     if cone!.rep_type = "H-rep" then
         
@@ -242,17 +241,17 @@ InstallMethod( Polymake_H_Rep,
         # convert eqs -- NConvex want to know the positions of the 1s
         eqs := List( [ 1 .. Length( eqs ) ], i -> Position( eqs[ i ], 1 ) );
         
-        #dir := Directory( "/home/i" );
-        #file := Filename( dir, "test.txt" );
-        #output := OutputTextFile( file, true );;
-        #AppendTo( output, "Next test:\n\n" );
-        #AppendTo( output, "ineqs:\n" );
-        #AppendTo( output, ineqs );
-        #AppendTo( output, "\n" );
-        #AppendTo( output, "eqs:\n" );
-        #AppendTo( output, eqs );
-        #AppendTo( output, "\n\n" );
-        #CloseStream(output);
+        dir := Directory( "/home/i" );
+        file := Filename( dir, "test.txt" );
+        output := OutputTextFile( file, true );;
+        AppendTo( output, "Next test:\n\n" );
+        AppendTo( output, "ineqs:\n" );
+        AppendTo( output, ineqs );
+        AppendTo( output, "\n" );
+        AppendTo( output, "eqs:\n" );
+        AppendTo( output, eqs );
+        AppendTo( output, "\n\n" );
+        CloseStream(output);
         
         # return cone by inequalities
         return Polymake_ConeFromInequalities( ineqs, eqs );
