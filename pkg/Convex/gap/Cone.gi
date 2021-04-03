@@ -54,7 +54,7 @@ InstallMethod( ExternalPolymakeCone,
             Add( new_list, u );
         od;
         
-        return Polymake_ConeByInequalities( new_list, linearity );
+        return Polymake_ConeFromInequalities( new_list, linearity );
         
     else
         
@@ -66,7 +66,7 @@ InstallMethod( ExternalPolymakeCone,
             Add( new_list, u );
         od;
         
-        return Polymake_ConeByInequalities( new_list );
+        return Polymake_ConeFromInequalities( new_list );
         
     fi;
     
@@ -157,7 +157,7 @@ InstallMethod( DefiningInequalities,
     
     # compute the ray generators in Polymake
     if PolymakeAvailable() then
-        return Polymake_Inequalities( External_PolymakeCone( cone ) );
+        return Polymake_Inequalities( ExternalPolymakeCone( cone ) );
     fi;
     
     TryNextMethod();

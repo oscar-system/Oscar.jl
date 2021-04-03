@@ -18,7 +18,7 @@
 ##
 ##############################################################################################
 
-DeclareRepresentation( "IsPolymakeCone", IsPolymakeCone and IsAttributeStoringRep, [ ] );
+DeclareRepresentation( "IsPolymakeConeRep", IsPolymakeCone and IsAttributeStoringRep, [ ] );
 
 BindGlobal( "TheFamilyOfPolymakeCones", NewFamily( "TheFamilyOfPolymakeCones" ) );
 
@@ -105,7 +105,7 @@ InstallMethod( Polymake_ConeByGenerators,
     
 end );
 
-InstallMethod( Polymake_ConeByInequalities,
+InstallMethod( Polymake_ConeFromInequalities,
                " a list of vertices",
                [ IsList ],
   function( arg )
@@ -117,7 +117,7 @@ InstallMethod( Polymake_ConeByInequalities,
         
     elif Length( arg ) = 1 and IsList( arg[ 1 ] ) then
         
-        return Cdd_PolyhedronByInequalities( arg[ 1 ], [ ] );
+        return Polymake_ConeFromInequalities( arg[ 1 ], [ ] );
         
     elif Length( arg ) = 2 and IsList( arg[ 1 ] ) and IsList( arg[ 2 ] ) then
         
@@ -176,7 +176,7 @@ end );
 InstallMethod( Polymake_V_Rep,
                [ IsPolymakeCone ],
   function( poly )
-    local ineqs, eqs, command_string, s, rays, vertices;
+    local ineqs, ineqs_string_list, eqs, eqs_string_list, command_string, s, rays, vertices;
     
     if poly!.rep_type = "V-rep" then
         
@@ -194,7 +194,7 @@ InstallMethod( Polymake_V_Rep,
         command_string := Concatenation( "F = Julia.Polymake.polytope.Cone( INEQUALITIES = [ ",
                                          JoinStringsWithSeparator( ineqs_string_list, "; " ),
                                          " ], EQUALITIES = [ ",
-                                         JoinStringsWithSeparator( equ_string_list, "; " ),
+                                         JoinStringsWithSeparator( eqs_string_list, "; " ),
                                          " ] ).RAYS" );
         JuliaEvalString( command_string );
         s := JuliaToGAP( IsString, Julia.string( Julia.F ) );
@@ -204,7 +204,7 @@ InstallMethod( Polymake_V_Rep,
         command_string := Concatenation( "F = Julia.Polymake.polytope.Cone( INEQUALITIES = [ ",
                                          JoinStringsWithSeparator( ineqs_string_list, "; " ),
                                          " ], EQUALITIES = [ ",
-                                         JoinStringsWithSeparator( equ_string_list, "; " ),
+                                         JoinStringsWithSeparator( eqs_string_list, "; " ),
                                          " ] ).VERTICES" );
         JuliaEvalString( command_string );
         s := JuliaToGAP( IsString, Julia.string( Julia.F ) );
@@ -220,17 +220,17 @@ end );
 
 InstallMethod( Polymake_H_Rep,
                [ IsPolymakeCone ],
-  function( poly )
+  function( cone )
     local rays, string_list, command_string, s, res_string, ineqs, eqs;
     
-    if poly!.rep_type = "H-rep" then
+    if cone!.rep_type = "H-rep" then
         
-        return poly;
+        return cone;
         
     else
         
-        if poly!.rep_type = "V-rep" and poly!.matrix = [] then
-            return Polymake_ConeByInequalities( [ [ 0, 1 ], [ -1, -1 ] ] );
+        if cone!.rep_type = "V-rep" and cone!.matrix = [] then
+            return Polymake_ConeFromInequalities( [ [ 0, 1 ], [ -1, -1 ] ] );
         fi;
         
         # prepare string with rays
@@ -254,7 +254,7 @@ InstallMethod( Polymake_H_Rep,
         eqs := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
         
         # return cone by inequalities
-        return Polymake_ConeByInequalities( ineqs, eqs );
+        return Polymake_ConeFromInequalities( ineqs, eqs );
         
     fi;
     
@@ -304,7 +304,7 @@ InstallMethod( Polymake_GeneratingVertices,
               [ IsPolymakeCone ],
   function( poly )
     
-    return Set( Polymake_V_rep( poly )!.generating_vertices );
+    return Set( Polymake_V_Rep( poly )!.generating_vertices );
     
 end );
 
@@ -314,7 +314,7 @@ InstallMethod( Polymake_GeneratingRays,
               [ IsPolymakeCone ],
   function( poly )
     
-    return Set( Polymake_V_rep( poly )!.generating_rays );
+    return Set( Polymake_V_Rep( poly )!.generating_rays );
     
 end );
 
@@ -324,7 +324,7 @@ InstallMethod( Polymake_Equalities,
               [ IsPolymakeCone ],
   function( poly )
     
-    return Set( Polymake_H_Rep( poly ) )!.equalities );
+    return Set( ( Polymake_H_Rep( poly ) )!.equalities );
     
 end );
 
@@ -334,7 +334,7 @@ InstallMethod( Polymake_Inequalities,
               [ IsPolymakeCone ],
   function( poly )
     
-    return Set( Polymake_H_Rep( poly ) )!.inequalities );
+    return Set( ( Polymake_H_Rep( poly ) )!.inequalities );
     
 end );
 
@@ -348,9 +348,9 @@ end );
 InstallMethod( Polymake_IsEmpty,
                "finding if the cone empty is or not",
                [ IsPolymakeCone ],
-  function( poly )
+  function( cone )
     
-    return Length( Polymake_V_Rep( poly )!.matrix ) = 0;
+    return Length( Polymake_V_Rep( cone )!.matrix ) = 0;
     
 end );
 
@@ -358,17 +358,14 @@ end );
 InstallMethod( Polymake_IsPointed,
                "finding if the cone is pointed or not",
                [ IsPolymakeCone ],
-  function( poly )
-    local help_poly, input_rays, string_list, command_string, s;
+  function( cone )
+    local help_cone, input_rays, string_list, command_string, s;
     
-    if poly!.rep_type = "H-rep" then
-        help_poly := Polymake_V_Rep( poly );
-    else
-        help_poly := poly;
-    fi;
+    # compute V-representation
+    help_cone := Polymake_V_Rep( cone );
     
     # Parse the rays into format recognized by Polymake
-    input_rays := cone!.generating_rays;
+    input_rays := help_cone!.generating_rays;
     string_list := List( [ 1 .. Length( input_rays ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( input_rays[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
     command_string := Concatenation( "F = Julia.Polymake.polytope.Cone( INPUT_RAYS = [ ", JoinStringsWithSeparator( string_list, "; " ), " ] ).POINTED" );
     
