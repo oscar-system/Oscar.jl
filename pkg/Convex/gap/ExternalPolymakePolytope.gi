@@ -429,9 +429,9 @@ InstallMethod( Polymake_V_Rep_command_string,
         AppendTo( output, "\n" );
         CloseStream(output);
         
-        # prepare string with vertices
-        vertices := poly!.generating_vertices;
-        vertices := Filtered( vertices, v -> not IsZero( v ) );
+        # prepare string with vertices -- as polymake considers them affine, we have to add a 1 at the beginning
+        vertices := poly!.matrix;
+        #vertices := Filtered( vertices, v -> not IsZero( v ) );
         vertices := List( [ 1 .. Length( vertices ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( vertices[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
         command_string := Concatenation( "PolytopeByGAP4PackageConvex", " = Julia.Polymake.polytope.Polytope( POINTS = [ ", JoinStringsWithSeparator( vertices, "; " ), "] " );
         
