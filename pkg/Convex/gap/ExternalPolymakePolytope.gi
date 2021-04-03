@@ -173,7 +173,7 @@ end );
 InstallMethod( Polymake_V_Rep,
                [ IsPolymakePolytope ],
   function( poly )
-    local ineqs, eqs, command_string, s, rays, vertices, dir, file, output;
+    local ineqs, eqs, command_string, s, rays, vertices;
     
     if poly!.rep_type = "V-rep" then
         
@@ -191,15 +191,6 @@ InstallMethod( Polymake_V_Rep,
         command_string := Concatenation( Polymake_H_Rep_command_string( poly ), ".LINEALITY_SPACE" );
         JuliaEvalString( command_string );
         s := JuliaToGAP( IsString, Julia.string( Julia.PolytopeByGAP4PackageConvex ) );
-        
-        dir := Directory( "/home/i" );
-        file := Filename( dir, "test.txt" );
-        output := OutputTextFile( file, true );;
-        AppendTo( output, "The output:\n" );
-        AppendTo( output, s );
-        AppendTo( output, "\n" );
-        CloseStream(output);
-        
         vertices := EvalString( s );
         
         # return the V-representation
@@ -213,7 +204,7 @@ end );
 InstallMethod( Polymake_H_Rep,
                [ IsPolymakePolytope ],
   function( poly )
-    local command_string, s, res_string, ineqs, eqs;
+    local command_string, s, res_string, ineqs, eqs, dir, file, output;
     
     if poly!.rep_type = "H-rep" then
         
@@ -241,6 +232,12 @@ InstallMethod( Polymake_H_Rep,
         res_string := SplitString( s, '\n' );
         res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
         eqs := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
+        
+        dir := Directory( "/home/i" );
+        file := Filename( dir, "test.txt" );
+        output := OutputTextFile( file, true );;
+        AppendTo( output, "Test\n" );
+        CloseStream(output);
         
         # return poly by inequalities
         return Polymake_PolytopeFromInequalities( ineqs, eqs );
