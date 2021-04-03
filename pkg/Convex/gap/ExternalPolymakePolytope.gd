@@ -97,6 +97,12 @@ DeclareAttribute( "Polymake_Equalities", IsPolymakePolytope );
 DeclareAttribute( "Polymake_Inequalities", IsPolymakePolytope );
 
 
+#! @Arguments P
+#! @Description
+#! The output are the lattice points of the given polytope.
+DeclareAttribute( "Polymake_LatticePoints", IsPolymakePolytope );
+
+
 ##############################################################################################
 ##
 #! @Section Properties of PolymakePolytopes

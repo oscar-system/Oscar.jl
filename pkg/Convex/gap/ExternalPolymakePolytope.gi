@@ -327,6 +327,28 @@ InstallMethod( Polymake_Inequalities,
 end );
 
 
+InstallMethod( Polymake_LatticePoints,
+              " return the list of the lattice points of poly",
+              [ IsPolymakePolytope ],
+  function( poly )
+    local help_poly, command_string, s, res_string;
+    
+    # compute v-representation
+    help_poly := Polymake_V_Rep( poly );
+    
+    # produce command string
+    command_string := Concatenation( Polymake_V_Rep_command_string( help_poly ), ".LATTICE_POINTS_GENERATORS" );
+    
+    # issue command in Julia and fetch result
+    JuliaEvalString( command_string );
+    s := JuliaToGAP( IsString, Julia.string( Julia.PolytopeByGAP4PackageConvex ) );
+    res_string := SplitString( s, '\n' );
+    res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
+    return EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
+    
+end );
+
+
 ##############################################################################################
 ##
 ##  Properties of PolymakeCones

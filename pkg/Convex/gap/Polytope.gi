@@ -105,3 +105,16 @@ InstallMethod( IsBounded,
     TryNextMethod();
     
 end );
+
+
+InstallMethod( LatticePoints,
+               [ IsPolytope ],
+    function( poly )
+    
+    if PolymakeAvailable() then
+        return Polymake_LatticePoints( ExternalPolymakePolytope( poly ) );
+    fi;
+    
+    TryNextMethod();
+    
+end );
