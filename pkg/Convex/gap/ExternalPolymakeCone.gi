@@ -211,8 +211,7 @@ end );
 InstallMethod( Polymake_H_Rep,
                [ IsPolymakeCone ],
   function( cone )
-    local command_string, s, res_string, ineqs, eqs_gens, eqs;
-         #, dir, file, output;
+    local command_string, s, res_string, ineqs, eqs_gens, eqs, dir, file, output;
     
     if cone!.rep_type = "H-rep" then
         
@@ -226,6 +225,15 @@ InstallMethod( Polymake_H_Rep,
         
         # compute facets
         command_string := Concatenation( Polymake_V_Rep_command_string( cone ), ".FACETS" );
+        
+        dir := Directory( "/home/i" );
+        file := Filename( dir, "test.txt" );
+        output := OutputTextFile( file, true );;
+        AppendTo( output, "Next test:\n\n" );
+        AppendTo( output, command_string );
+        AppendTo( output, "\n\n" );
+        CloseStream(output);
+        
         JuliaEvalString( command_string );
         s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
         res_string := SplitString( s, '\n' );
@@ -243,18 +251,6 @@ InstallMethod( Polymake_H_Rep,
         # convert eqs -- for NConvex we add the eqs to the ineqs and add a second list, which label the position of the equations
         eqs := [ 1 .. Length( eqs_gens ) ];
         ineqs := Concatenation( eqs_gens, ineqs );
-        
-        #dir := Directory( "/home/i" );
-        #file := Filename( dir, "test.txt" );
-        #output := OutputTextFile( file, true );;
-        #AppendTo( output, "Next test:\n\n" );
-        #AppendTo( output, "ineqs:\n" );
-        #AppendTo( output, ineqs );
-        #AppendTo( output, "\n" );
-        #AppendTo( output, "eqs:\n" );
-        #AppendTo( output, eqs );
-        #AppendTo( output, "\n\n" );
-        #CloseStream(output);
         
         # return cone by inequalities
         return Polymake_ConeFromInequalities( ineqs, eqs );
