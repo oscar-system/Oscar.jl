@@ -215,7 +215,8 @@ end );
 InstallMethod( Polymake_H_Rep,
                [ IsPolymakeCone ],
   function( cone )
-    local command_string, s, res_string, ineqs, eqs_gens, eqs, dir, file, output;
+    local command_string, s, res_string, ineqs, eqs_gens, eqs;
+    #dir, file, output;
     
     if cone!.rep_type = "H-rep" then
         
@@ -234,13 +235,13 @@ InstallMethod( Polymake_H_Rep,
         # compute facets
         command_string := Concatenation( Polymake_V_Rep_command_string( cone ), ".FACETS" );
         
-        dir := Directory( "/home/i" );
-        file := Filename( dir, "test.txt" );
-        output := OutputTextFile( file, true );;
-        AppendTo( output, "Next test:\n\n" );
-        AppendTo( output, command_string );
-        AppendTo( output, "\n\n" );
-        CloseStream(output);
+        #dir := Directory( "/home/i" );
+        #file := Filename( dir, "test.txt" );
+        #output := OutputTextFile( file, true );;
+        #AppendTo( output, "Next test:\n\n" );
+        #AppendTo( output, command_string );
+        #AppendTo( output, "\n\n" );
+        #CloseStream(output);
         
         JuliaEvalString( command_string );
         s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
@@ -347,7 +348,7 @@ InstallMethod( Polymake_RaysInFacets,
               " returns the incident matrix of the rays in the facets",
             [ IsPolymakeCone ],
   function( cone )
-    local help_cone, command_string, s, res_string;
+    local help_cone, command_string, s, res_string, dir, file, output;
     
     # compute V-representation
     help_cone := Polymake_V_Rep( cone );
@@ -358,6 +359,17 @@ InstallMethod( Polymake_RaysInFacets,
     # issue command in Julia and fetch result
     JuliaEvalString( command_string );
     s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
+    
+    dir := Directory( "/home/i" );
+    file := Filename( dir, "test.txt" );
+    output := OutputTextFile( file, true );;
+    AppendTo( output, "\n" );
+    AppendTo( output, "InRaysInFacets\n" );
+    AppendTo( output, command_string );
+    AppendTo( output, "\n" );
+    AppendTo( output, s );
+    AppendTo( output, "\n\n" );
+    CloseStream(output);
     
     # process the string
     res_string := SplitString( s, '\n' );
