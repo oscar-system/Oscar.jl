@@ -178,6 +178,10 @@ InstallMethod( Polymake_V_Rep,
         
         return cone;
         
+    elif Polymake_IsEmpty( cone ) then
+        
+        return Polymake_ConeByGenerators( [ ] );
+        
     else
         
         # compute rays
@@ -216,6 +220,10 @@ InstallMethod( Polymake_H_Rep,
     if cone!.rep_type = "H-rep" then
         
         return cone;
+        
+    elif Polymake_IsEmpty( cone ) then
+        
+        return Polymake_ConeFromInequalities( [ ] );
         
     else
         
