@@ -278,7 +278,7 @@ InstallMethod( Polymake_Dimension,
               " returns the dimension of the cone",
             [ IsPolymakeCone ],
   function( cone )
-    local help_cone, rays, lin, command_string, s;
+    local help_cone, command_string, s;
     
     if Polymake_IsEmpty( cone ) then 
         return -1;
@@ -335,6 +335,30 @@ InstallMethod( Polymake_Inequalities,
   function( cone )
     
     return Set( ( Polymake_H_Rep( cone ) )!.inequalities );
+    
+end );
+
+
+InstallMethod( Polymake_RaysInFacets,
+              " returns the incident matrix of the rays in the facets",
+            [ IsPolymakeCone ],
+  function( cone )
+    local help_cone, command_string, s, res_string;
+    
+    # compute V-representation
+    help_cone := Polymake_V_Rep( cone );
+    
+    # produce command string
+    command_string := Concatenation( Polymake_V_Rep_command_string( help_cone ), ".RAYS_IN_FACETS" );
+    
+    # issue command in Julia and fetch result
+    JuliaEvalString( command_string );
+    s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
+    
+    # process the string
+    res_string := SplitString( s, '\n' );
+    res_string := List( [ 2 .. Length( res_string ) ], i -> ReplacedString( ReplacedString( ReplacedString( res_string[ i ], " ", "," ), "{", "[" ), "}", "]" ) );
+    return EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
     
 end );
 

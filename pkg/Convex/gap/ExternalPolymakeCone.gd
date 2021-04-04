@@ -97,6 +97,11 @@ DeclareAttribute( "Polymake_Equalities", IsPolymakeCone );
 #! The output is the reduced inequalities of the PolymakeCone.
 DeclareAttribute( "Polymake_Inequalities", IsPolymakeCone );
 
+#! @Arguments P
+#! @Description
+#! The output is the incident matrix of the ray generators in the facets.
+DeclareAttribute( "Polymake_RaysInFacets", IsPolymakeCone );
+
 
 ##############################################################################################
 ##
