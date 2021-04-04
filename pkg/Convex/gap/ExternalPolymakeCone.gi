@@ -370,7 +370,7 @@ InstallMethod( Polymake_RaysInFacets,
         dummy := [];
         for j in [ 1 .. Length( res_string[ i ] ) ] do
             helper := List( [ 1 .. number_rays ], i -> 0 );
-            helper[ res_string[ i ][ j ] ] := 1;
+            helper[ res_string[ i ][ j ] + 1 ] := 1;
             Append( dummy, [ helper ] );
         od;
         Append( ray_list, [ dummy ] );
