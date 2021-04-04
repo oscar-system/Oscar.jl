@@ -360,6 +360,11 @@ InstallMethod( Polymake_RaysInFacets,
     JuliaEvalString( command_string );
     s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
     
+    # process the string
+    res_string := SplitString( s, '\n' );
+    res_string := List( [ 2 .. Length( res_string ) ], i -> ReplacedString( ReplacedString( ReplacedString( res_string[ i ], " ", "," ), "{", "[" ), "}", "]" ) );
+    res_string := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
+    
     dir := Directory( "/home/i" );
     file := Filename( dir, "test.txt" );
     output := OutputTextFile( file, true );;
@@ -368,13 +373,12 @@ InstallMethod( Polymake_RaysInFacets,
     AppendTo( output, command_string );
     AppendTo( output, "\n" );
     AppendTo( output, s );
+        AppendTo( output, "\n" );
+    AppendTo( output, res_string );
     AppendTo( output, "\n\n" );
     CloseStream(output);
     
-    # process the string
-    res_string := SplitString( s, '\n' );
-    res_string := List( [ 2 .. Length( res_string ) ], i -> ReplacedString( ReplacedString( ReplacedString( res_string[ i ], " ", "," ), "{", "[" ), "}", "]" ) );
-    return EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
+    return res_string;
     
 end );
 
