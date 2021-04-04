@@ -178,9 +178,9 @@ InstallMethod( Polymake_V_Rep,
         
         return cone;
         
-    elif Polymake_IsEmpty( cone ) then
+    #elif Polymake_IsEmpty( cone ) then
         
-        return Polymake_ConeByGenerators( [ ] );
+    #    return Polymake_ConeByGenerators( [ ] );
         
     else
         
@@ -222,9 +222,9 @@ InstallMethod( Polymake_H_Rep,
         
         return cone;
         
-    elif Polymake_IsEmpty( cone ) then
+    #elif Polymake_IsEmpty( cone ) then
         
-        return Polymake_ConeFromInequalities( [ ] );
+    #    return Polymake_ConeFromInequalities( [ ] );
         
     else
         
@@ -364,6 +364,7 @@ InstallMethod( Polymake_RaysInFacets,
     res_string := SplitString( s, '\n' );
     res_string := List( [ 2 .. Length( res_string ) ], i -> ReplacedString( ReplacedString( ReplacedString( res_string[ i ], " ", "," ), "{", "[" ), "}", "]" ) );
     res_string := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
+    res_string := List( [ 1 .. Length( res_string ) ], i -> List( [ 1 .. Length( res_string[ i ] ) ], j -> res_string[ i ][ j ] + 1 ) );
     
     dir := Directory( "/home/i" );
     file := Filename( dir, "test.txt" );
