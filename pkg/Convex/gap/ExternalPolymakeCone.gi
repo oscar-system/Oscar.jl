@@ -348,7 +348,8 @@ InstallMethod( Polymake_RaysInFacets,
               " returns the incident matrix of the rays in the facets",
             [ IsPolymakeCone ],
   function( cone )
-    local help_cone, command_string, s, res_string, number_rays, ray_list, i, dummy, j, helper, dir, file, output;
+    local help_cone, command_string, s, res_string, number_rays, ray_list, i, dummy, j, helper;
+    #dir, file, output;
     
     # compute V-representation
     help_cone := Polymake_V_Rep( cone );
@@ -376,22 +377,22 @@ InstallMethod( Polymake_RaysInFacets,
         Append( ray_list, dummy );
     od;
     
-    dir := Directory( "/home/i" );
-    file := Filename( dir, "test.txt" );
-    output := OutputTextFile( file, true );;
-    AppendTo( output, "\n" );
-    AppendTo( output, "InRaysInFacets\n" );
-    AppendTo( output, command_string );
-    AppendTo( output, "\n" );
-    AppendTo( output, s );
-        AppendTo( output, "\n" );
-    AppendTo( output, res_string );
-    AppendTo( output, "\n" );
-    AppendTo( output, String( number_rays ) );
-    AppendTo( output, "\n" );
-    AppendTo( output, String( ray_list ) );
-    AppendTo( output, "\n\n" );
-    CloseStream(output);
+    #dir := Directory( "/home/i" );
+    #file := Filename( dir, "test.txt" );
+    #output := OutputTextFile( file, true );;
+    #AppendTo( output, "\n" );
+    #AppendTo( output, "InRaysInFacets\n" );
+    #AppendTo( output, command_string );
+    #AppendTo( output, "\n" );
+    #AppendTo( output, s );
+    #    AppendTo( output, "\n" );
+    #AppendTo( output, res_string );
+    #AppendTo( output, "\n" );
+    #AppendTo( output, String( number_rays ) );
+    #AppendTo( output, "\n" );
+    #AppendTo( output, String( ray_list ) );
+    #AppendTo( output, "\n\n" );
+    #CloseStream(output);
     
     return ray_list;
     
