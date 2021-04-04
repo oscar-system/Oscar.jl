@@ -373,7 +373,7 @@ InstallMethod( Polymake_RaysInFacets,
             helper[ res_string[ i ][ j ] + 1 ] := 1;
             Append( dummy, [ helper ] );
         od;
-        Append( ray_list, [ dummy ] );
+        Append( ray_list, dummy );
     od;
     
     dir := Directory( "/home/i" );
