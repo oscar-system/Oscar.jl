@@ -78,7 +78,7 @@ InstallMethod( RayGenerators,
     function( cone )
     
     if PolymakeAvailable() then
-        return Set( Polymake_V_Rep( ExternalPolymakeCone( cone ) )!.generating_rays );
+        return Polymake_V_Rep( ExternalPolymakeCone( cone ) )!.generating_rays;
     fi;
     
     TryNextMethod();
