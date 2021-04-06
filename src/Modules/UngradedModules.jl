@@ -13,10 +13,17 @@ const CRingElem = Union{MPolyElem, MPolyQuoElem{<:Oscar.MPolyElem}, MPolyElem_de
 # parametrization has to be by elem_type(coeff_ring) and not, like currently, the bottom coeff ring
 # Also: qring is a Singular native. So it needs to be added to the ring creation
 
+abstract type ModuleFPHom end
+abstract type ModuleMap{T1, T2} <: Map{T1, T2, Hecke.HeckeMap, ModuleFPHom} end
+
 mutable struct FreeMod{T} <: ModuleFP{T}
   R::CRing
   n::Int
   S::Array{Symbol, 1}
+
+  ingoing_morphisms::Array{<:ModuleMap,1}
+  outgoing_morphisms::Array{<:ModuleMap,1}
+
   AbstractAlgebra.@declare_other
 
   function FreeMod(n,b::CRing,c)
@@ -302,8 +309,6 @@ function convert(F::FreeMod, s::Singular.svector)
   return FreeModuleElem(sparse_row(base_ring(F), pv), F)
 end
 
-abstract type ModuleFPHom end
-abstract type ModuleMap{T1, T2} <: Map{T1, T2, Hecke.HeckeMap, ModuleFPHom} end
 
 mutable struct FreeModuleHom{T1, T2} <: ModuleMap{T1, T2} 
   matrix::MatElem
@@ -506,6 +511,10 @@ mutable struct SubQuo{T} <: ModuleFP{T}
   sub::SubModuleOfFreeModule
   quo::SubModuleOfFreeModule
   sum::SubModuleOfFreeModule
+
+  ingoing_morphisms::Array{<:ModuleMap,1}
+  outgoing_morphisms::Array{<:ModuleMap,1} # TODO is it possible to make ModuleMap to SubQuoHom?
+
   AbstractAlgebra.@declare_other
 
   function SubQuo(sub::SubModuleOfFreeModule{R}) where {R}
@@ -1713,23 +1722,26 @@ function preimage_SQ(H::SubQuoHom,elems::Vector{SubQuoElem{T}}, task::Symbol = :
   end
 
   
-  preimage = sub(domain(H), generators, task)
-  local emb
+  preimage, emb = sub(domain(H), generators, :map)
+  preimage_pruned, prune_isomorphism = prune(preimage)
   if task != :none
-    preimage, emb = preimage
-  end
-  local preimage_std
-  if isdefined(preimage, :quo)
-    preimage_std = SubQuo(SubModuleOfFreeModule(preimage.F, preimage.sub.std_basis), preimage.quo)
+    return preimage_pruned, prune_isomorphism*emb
   else
-    preimage_std = SubQuo(SubModuleOfFreeModule(preimage.F, preimage.sub.std_basis))
+    return preimage_pruned
   end
-  if ngens(preimage_std) < ngens(preimage)
-    if task == :none
-      return preimage_std
-    else
-      return preimage_std, change_generating_system(preimage_std, preimage)*emb
-    end
+end
+
+function prune(M::SubQuo)
+  local M_std
+  if isdefined(M, :quo)
+    M_std = SubQuo(SubModuleOfFreeModule(M.F, M.sub.std_basis), M.quo)
+  else
+    M_std = SubQuo(SubModuleOfFreeModule(M.F, M.sub.std_basis))
+  end
+  if ngens(M_std) < ngens(M)
+    return M_std, change_generating_system(M_std, M)
+  else
+    return M, identity_map(M)
   end
 end
 
