@@ -56,7 +56,7 @@ end
     invariant_sesquilinear_forms(G::MatrixGroup)
 
 Return a generating set for the vector spaces of sesquilinear non-bilinear forms preserved by the group `G`.
-It works only if `base_ring(G)` has even degree.
+It works only if `base_ring(G)` is a finite field with even degree on its prime subfield.
 !!! warning "Note:"
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
 """
@@ -111,7 +111,7 @@ function invariant_quadratic_forms(G::MatrixGroup{S,T}) where {S,T}
    r,K = nullspace(block_matrix(length(M),1,M))
    M = T[]
    for i in 1:r
-      push!(M,upper_triangular_matrix([K[j,i] for j in 1:div(n*(n+1),2)]))
+      push!(M,upper_triangular_matrix(K[1:div(n*(n+1),2),i]))
    end
    return M
 end
@@ -126,43 +126,10 @@ end
 Return a generating set for the vector spaces of symmetric forms preserved by the group `G`.
 !!! warning "Note:"
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
+!!! warning "Note:"
+    Work properly only in odd characteristic. In even characteristic, only alternating forms are found.
 """
-function invariant_symmetric_forms(G::MatrixGroup{S,T}) where {S,T}
-   F = base_ring(G)
-   n = degree(G)
-   M = T[]
-
-   for mat in gens(G)
-      MM = zero_matrix(F,div(n*(n+1),2),div(n*(n+1),2))
-      idx_r=1
-      for i in 1:n, j in i:n
-         idx_c=1
-         for s in 1:n
-            MM[idx_r,idx_c] = mat[i,s]*mat[j,s]
-            idx_c+=1
-            for t in (s+1):n
-               MM[idx_r,idx_c] = mat[i,s]*mat[j,t]+mat[i,t]*mat[j,s]
-               idx_c+=1
-            end
-         end
-         idx_r+=1
-      end
-      MM -= one(MM)
-      push!(M,MM)
-   end
-
-   r,K = nullspace(block_matrix(length(M),1,M))
-
-   L = T[]
-   for j in 1:r
-      B = upper_triangular_matrix([K[i,j] for i in 1:div(n*(n+1),2)])
-      for i in 1:n, j in 1:i-1
-         B[i,j]=B[j,i]
-      end
-      push!(L, B)
-   end
-   return L
-end
+invariant_symmetric_forms(G::MatrixGroup{S,T}) where {S,T} = T[x + transpose(x) for x in invariant_quadratic_forms(G)]
 
 # METHOD: if B = (b_ij) is the solution matrix, then b_ji = -b_ij and b_ii=0;
 # hence, the dimension of the linear system can be reduced to n(n-1)/2
@@ -199,7 +166,7 @@ function invariant_alternating_forms(G::MatrixGroup{S,T}) where {S,T}
 
    L = T[]
    for j in 1:r
-      B = upper_triangular_matrix([K[i,j] for i in 1:div(n*(n-1),2)])
+      B = upper_triangular_matrix(K[1:div(n*(n-1),2),j])
       B = insert_block(zero_matrix(F,n,n),B,1,2)
       for i in 1:n, j in 1:i-1
          B[i,j]=-B[j,i]
@@ -219,6 +186,7 @@ end
     invariant_hermitian_forms(G::MatrixGroup)
 
 Return a generating set for the vector spaces of hermitian forms preserved by the group `G`.
+It works only if `base_ring(G)` is a finite field with even degree on its prime subfield.
 !!! warning "Note:"
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
 """

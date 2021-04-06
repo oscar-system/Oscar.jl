@@ -152,7 +152,7 @@ end
 """
     lower_triangular_matrix(L)
 
-Return the upper triangular matrix whose on and below the diagonal are the elements of `L`.
+Return the upper triangular matrix whose entries on and below the diagonal are the elements of `L`.
 
 An error is returned whenever the length of `L` is not `n*(n+1)/2` for some integer `n`.
 """
