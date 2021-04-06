@@ -80,6 +80,7 @@ This function returns two objects: a group `H`, that is the subgroup of `G` gene
   **Examples:**
 ```jldoctest
 julia> G = symmetric_group(4); H = sub(G,[cperm([1,2,3]),cperm([2,3,4])]);
+
 julia> H[1] == alternating_group(4)
 true
 ```
@@ -144,8 +145,14 @@ This is the typical way to build finitely presented groups.
   **Example:**
 ```jldoctest
 julia> F=free_group(2);
+
 julia> (f1,f2)=gens(F);
-julia> G=quo(F,[f1^2,f2^3,(f1*f2)^2])[1];
+
+julia> G,_=quo(F,[f1^2,f2^3,(f1*f2)^2]);
+
+julia> isfinite(G)
+true
+
 julia> isisomorphic(G,symmetric_group(3))[1]
 true
 ```
@@ -199,10 +206,15 @@ At the moment, the input vectors of the function `cperm` need not to be disjoint
 Every permutation has always a permutation group as a parent. Two permutations coincide if, and only if, they move the same points and their parent groups have the same degree.
 ```jldoctest
 julia> G=symmetric_group(5);
+
 julia> A=alternating_group(5);
-julia> x=cperm(G,[1,2]);
-julia> y=cperm(A,[1,2]);
-julia> z=cperm([1,2]);
+
+julia> x=cperm(G,[1,2,3]);
+
+julia> y=cperm(A,[1,2,3]);
+
+julia> z=cperm([1,2,3]);
+
 julia> x==y
 true
 
@@ -235,6 +247,7 @@ A permutation can be viewed as a function on the set `{1,...,n}`, hence it can b
 
 ```jldoctest
 julia> x = cperm([1,2,3,4,5]);
+
 julia> x(2)
 3
 ```
@@ -259,8 +272,10 @@ The generators of a polycyclic group are displayed as `f1`, `f2`, `f3`, etc., an
   **Example:**
 ```jldoctest
 julia> G=abelian_group(PcGroup, [2,4]);
+
 julia> G[1], G[2]
 (f1, f2)
+
 julia> G[2]*G[1]
 f1*f2
 ```
@@ -289,9 +304,13 @@ If the function `g` does not satisfy the group homomorphism properties, an error
 The following procedures define the same homomorphism (conjugation by `x`) in the two ways explained above.
 ```jldoctest
 julia> S=symmetric_group(4);
+
 julia> x=S[1];
+
 julia> f=hom(S,S,gens(S),[S[1]^x,S[2]^x]);
+
 julia> g=hom(S,S,y->y^x);
+
 julia> f==g
 true
 ```
@@ -311,12 +330,17 @@ or the more compact notations `f(x)` and `x^f`.
   **Example:**
 ```jldoctest
 julia> S=symmetric_group(4);
+
 julia> f=hom(S,S,x->x^S[1]);
+
 julia> x=cperm(S,[1,2]);
+
 julia> image(f,x)
 (2,3)
+
 julia> f(x)
 (2,3)
+
 julia> x^f
 (2,3)
 ```
@@ -328,10 +352,13 @@ haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem)
   **Example:**
 ```jldoctest
 julia> S=symmetric_group(4);
+
 julia> f=hom(S,S,x->x^S[1]);
+
 julia> x=cperm(S,[1,2]);
+
 julia> haspreimage(f,x)
-(true,(1,4))
+(true, (1,4))
 ```
 
 !!! warning
@@ -353,10 +380,14 @@ Oscar supports the following operations on homomorphisms.
   **Example:**
 ```jldoctest
 julia> S=symmetric_group(4);
+
 julia> f=hom(S,S,x->x^S[1]);
+
 julia> g=hom(S,S,x->x^S[2]);
+
 julia> f*g==hom(S,S,x->x^(S[1]*S[2]))
 true
+
 julia> f==f^-3
 true
 ```
@@ -403,18 +434,27 @@ It is possible to turn an automorphism `f` into a homomorphism by typing `hom(f)
   **Example:**
 ```jldoctest
 julia> S=symmetric_group(4);
+
 julia> A=automorphism_group(S);
+
 julia> g=hom(S,S,x->x^S[1]);
+
 julia> g in A
 false
+
 julia> au=A(g);
+
 julia> au in A
 true
-julia> g=hom(au)
+
+julia> g==hom(au)
 true
+
 julia> x=cperm(S,[1,2,3]);
+
 julia> au(x)
 (2,3,4)
+
 julia> g(x)==au(x)
 true
 ```
