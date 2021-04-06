@@ -40,7 +40,7 @@ struct MPolyElemLoc{T} <: AbstractAlgebra.RingElem where {T}
     R = parent(numerator(f))
     B = base_ring(R)
     (R != base_ring(m)) && error("Parent rings do not match!")
-    pt = lc.([gen(R, i)-m.gens.Ox[i] for i in 1:nvars(R)]) # This should be easier, somehow ...
+    pt = leading_coefficient.([gen(R, i)-m.gens.Ox[i] for i in 1:nvars(R)]) # This should be easier, somehow ...
     (evaluate(denominator(f), pt) == base_ring(R)(0)) && error("Element does not belong to the localization.")
     r = new{elem_type(B)}(f, Localization(R, m))
   end

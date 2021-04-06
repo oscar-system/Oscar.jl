@@ -37,7 +37,7 @@ Return the `m x n` submatrix of `A` rooted at `(i,j)`
 """
 # TODO: eliminate this function again
 function submatrix(A::MatElem, i::Int, j::Int, nr::Int, nc::Int)
-   return A[i:i+nr-1, j:j+nr-1]
+   return A[i:i+nr-1, j:j+nc-1]
 end
 
 # exists already in Hecke _copy_matrix_into_matrix
@@ -180,7 +180,7 @@ function permutation_matrix(F::Ring, Q::AbstractVector{T}) where T <: Base.Integ
    return Z
 end
 
-permutation_matrix(F::Ring, p::PermGroupElem) = permutation_matrix(F, listperm(p))
+permutation_matrix(F::Ring, p::PermGroupElem) = permutation_matrix(F, Vector(p))
 
 ^(a::MatElem, b::fmpz) = Hecke._generic_power(a, b)
 
@@ -228,6 +228,24 @@ function ishermitian_matrix(B::MatElem{T}) where T <: FinFieldElem
    end
 
    return true
+end
+
+# return (true, h) if y = hx, (false, nothing) otherwise
+function _is_scalar_multiple_mat(x::MatElem{T}, y::MatElem{T}) where T <: FieldElem
+   F=base_ring(x)
+   F==base_ring(y) || return (false, nothing)
+   nrows(x)==nrows(y) || return (false, nothing)
+   ncols(x)==ncols(y) || return (false, nothing)
+
+   for i in 1:nrows(x), j in 1:ncols(x)
+      if !iszero(x[i,j])
+         h = y[i,j] * x[i,j]^-1
+         return y == h*x ? (true,h) : (false, nothing)
+      end
+   end
+  
+   # at this point, x must be zero
+   return y == 0 ? (true, F(1)) : (false, nothing)
 end
 
 ########################################################################
