@@ -322,5 +322,6 @@ end
 	@test Oscar.geometric_genus(C) == 1
 	R, (a, b) = PolynomialRing(GF(7), ["a", "b"])
 	D = Oscar.AffinePlaneCurve(b^9 - a^2*(a-1)^9)
+	@test Oscar.arithmetic_genus(D) == 45
 	@test Oscar.geometric_genus(D) == 0
 end
