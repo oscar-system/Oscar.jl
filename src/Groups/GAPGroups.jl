@@ -164,17 +164,33 @@ function Base.rand(rng::Random.AbstractRNG, G::GAPGroup)
    return group_element(G, s)
 end
 
+function Base.rand(rng::Random.AbstractRNG, rs::Random.SamplerTrivial{Gr}) where Gr<:Oscar.GAPGroup
+   return rand(rng, rs[])
+end
+
 """
     rand_pseudo(G::Group)
 
 Return a pseudo random element of `G`.  This works faster than `rand`,
 but the returned elements are not necessarily uniformly distributed.
-"""
-function rand_pseudo(G::GAPGroup)
-   s = GAP.Globals.PseudoRandom(G.X)
-   return group_element(G,s)
-end
 
+It is sometimes necessary to work with finite groups that we cannot
+effectively enumerate, e.g. matrix groups over finite fields. We may not even
+know the size of these groups. Yet many algorithms need to sample elements
+from the group "as randomly as possible", whatever that means; but also they
+need this *fast*.
+
+The function `rand_pseudo` returns elements that are cheap to compute and
+somehow random, but makes no guarantees about their distribution.
+
+For finitely presented groups, it returns random words of bounded length.
+
+For finite permutation and matrix groups, it uses a variant of the product
+replacement algorithm. For most inputs, the resulting stream of elements
+relatively quickly converges to a uniform distribution.
+
+"""
+rand_pseudo(G::GAPGroup) = group_element(G, GAP.Globals.PseudoRandom(G.X))
 
 function _maxgroup(x::T, y::T) where T <: GAPGroup
    # A typical situation should be that the two groups are identical,
