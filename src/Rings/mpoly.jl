@@ -1184,5 +1184,8 @@ function Base.:*(f::MPolyElem, I::MPolyIdeal)
   return ideal(R, f.*gens(I))
 end
 
+*(I::MPolyIdeal, f::MPolyElem) = f*I
+
+
 ################################################################################
 
