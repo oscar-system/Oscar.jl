@@ -104,7 +104,8 @@ function invariant_quadratic_forms(G::MatrixGroup{S,T}) where {S,T}
             end
          end
       end
-      for i in 1:div(n*(n+1),2) MM[i,i]-=1 end
+#      for i in 1:div(n*(n+1),2) MM[i,i]-=1 end
+      MM -= one(MM)
       push!(M,MM)
    end
 
@@ -168,9 +169,10 @@ function invariant_alternating_forms(G::MatrixGroup{S,T}) where {S,T}
    for j in 1:r
       B = upper_triangular_matrix(K[1:div(n*(n-1),2),j])
       B = insert_block(zero_matrix(F,n,n),B,1,2)
-      for i in 1:n, j in 1:i-1
+#=      for i in 1:n, j in 1:i-1
          B[i,j]=-B[j,i]
-      end
+      end  =#
+      B -= transpose(B)
       push!(L, B)
    end
    return L
@@ -283,9 +285,10 @@ function invariant_hermitian_forms(G::MatrixGroup{S,T}) where {S,T}
             pos_c =1
          end
 
-         for i in 1:n^2
+#=         for i in 1:n^2
             MM[i,i] -=1
-         end
+         end =#
+         MM -= one(MM)
          push!(M,MM)
       end
 
@@ -368,9 +371,10 @@ function invariant_hermitian_forms(G::MatrixGroup{S,T}) where {S,T}
             pos_c =1
          end
  
-         for i in 1:n^2
+         #= for i in 1:n^2
             MM[i,i] -=1
-         end
+         end   =#
+         MM -= one(MM)
          push!(M,MM)
       end
    end
@@ -576,8 +580,10 @@ function isometry_group(f::SesquilinearForm{T}) where T
 
    e=0
    if (fn.descr==:quadratic || fn.descr==:symmetric) && iseven(r)
-      if witt_index(fn)== div(r,2) e=1
-      else e=-1
+      if witt_index(fn)== div(r,2)
+         e = 1
+      else
+         e = -1
       end
    end
    Xf = iscongruent(SesquilinearForm( fn.mat_iso(_standard_form(fn.descr,e,r,F)), fn.descr),fn)[2]

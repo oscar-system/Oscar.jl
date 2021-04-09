@@ -114,7 +114,7 @@ end
     matrix(A::Array{AbstractAlgebra.Generic.FreeModuleElem{T},1})
 
 Return the matrix whose rows are the vectors in `A`.
-Of course, vectors in `A` must have the same length and the same base ring.
+All vectors in `A` must have the same length and the same base ring.
 """
 function matrix(A::Array{AbstractAlgebra.Generic.FreeModuleElem{T},1}) where T <: FieldElem
    c = length(A[1].v)

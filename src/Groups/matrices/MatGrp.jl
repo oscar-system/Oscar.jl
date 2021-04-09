@@ -656,7 +656,6 @@ function omega_group(e::Int, n::Int, F::Ring)
       G.descr = Symbol("Omega+")
    elseif e==-1
       iseven(n) || throw(ArgumentError("The dimension must be even"))
-      n==2 && throw(ArgumentError("Dimension 2 not supported"))
       G = MatrixGroup(n,F)
       G.descr = Symbol("Omega-")
    elseif e==0

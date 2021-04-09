@@ -409,7 +409,6 @@ end
 
    G = GO(0,5,3)
    L = preserved_quadratic_forms(G)
-   L = [quadratic_form(f) for f in L]
    @testset for f in L
        for g in gens(G)
           @test f^g==f
@@ -425,7 +424,6 @@ end
 
    G = GO(1,6,4)
    L = preserved_quadratic_forms(G)
-   L = [quadratic_form(f) for f in L]
    @testset for f in L
        for g in gens(G)
           @test f^g==f
@@ -438,24 +436,36 @@ end
           @test f^g==f
        end
    end
+   Q = quadratic_form(Oscar.invariant_quadratic_form(G))
+   @testset for g in gens(G)
+      Q^g==Q
+   end
+   
 
    G = Sp(4,4)
    L = preserved_sesquilinear_forms(G)
-   @testset for l in L
+   @testset for f in L
       for g in gens(G)
-         @test g.elm*l*transpose(g.elm)==l
+         @test f^g==f
       end
    end
    B = Oscar.invariant_bilinear_form(G)
    @testset for g in gens(G)
       @test g.elm*B*transpose(g.elm)==B
    end
+   L = preserved_sesquilinear_forms(G)
+   @testset for f in L
+      for g in gens(G)
+         @test f^g==f
+      end
+   end
+   
 
    G = GO(-1,6,3)
    L = preserved_sesquilinear_forms(G)
-   @testset for l in L
+   @testset for f in L
       for g in gens(G)
-         @test g.elm*l*transpose(g.elm)==l
+         @test f^g==f
       end
    end
    B = Oscar.invariant_bilinear_form(G)
@@ -469,9 +479,9 @@ end
 
    G = GU(4,5)
    L = preserved_sesquilinear_forms(G)
-   @testset for l in L
+   @testset for f in L
       for g in gens(G)
-         @test g.elm*l*conjugate_transpose(g.elm)==l
+         @test f^g==f
       end
    end
    B = Oscar.invariant_sesquilinear_form(G)
@@ -588,4 +598,5 @@ end
       @test f^h==f
    end
    @test order(H)==order(GU(2,3))*order(GL(2,9))*9^4
+
 end
