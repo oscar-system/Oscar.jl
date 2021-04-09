@@ -46,6 +46,7 @@ end
   @test base_ring(a) == R
   @test_throws ArgumentError integral_basis(x*y^5-x^3*(x+1)^4, 2)
   @test_throws ArgumentError integral_basis(y^5-x^3*(x+1)^4, 3)
+  @test_throws ArgumentError integral_basis((x+y)*(x+y^2), 1)
 
   R, (x, y) = Singular.PolynomialRing(Singular.QQ, ["x", "y"])
   a = integral_basis(y^5-x^3*(x+1)^4, 2)
@@ -53,6 +54,7 @@ end
   @test base_ring(a) == R
   @test_throws ArgumentError integral_basis(x*y^5-x^3*(x+1)^4, 2)
   @test_throws ArgumentError integral_basis(y^5-x^3*(x+1)^4, 3)
+  @test_throws ArgumentError integral_basis((x+y)*(x+y^2), 1)
 
   R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
   @test_throws ArgumentError integral_basis(y^5-x^3*(x+1)^4, 2)
