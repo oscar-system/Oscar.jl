@@ -1,6 +1,6 @@
 
 export normalization_with_delta
-export noether_normalization, normalization
+export noether_normalization, normalization, integral_basis
 export isreduced, subalgebra_membership
 export hilbert_series, hilbert_series_reduced, hilbert_series_expanded, hilbert_function, hilbert_polynomial, degree
 export issurjective, isinjective, isbijective, inverse, preimage, isfinite
@@ -541,5 +541,30 @@ form an integral basis for $\overline{A}$ over $K[x]$.
 NOTE: The conditions on $f$ are automatically checked.
 """
 function integral_basis(f::MPolyElem, i::Int)
- aaa
+  R = parent(f)
+
+  if !(nvars(R) == 2)
+    throw(ArgumentError("The base ring must be a ring in two variables."))
+  end
+
+  if !(i == 1 || i == 2)
+    throw(ArgumentError("The index $i must be either 1 or 2, indicating the integral variable."))
+  end
+
+  if !(base_ring(R) == QQ || base_ring(R) == Singular.QQ)
+    throw(ArgumentError("The base ring must be the rationals."))
+  end
+
+  if !isone(coeff(f, [i], [degree(f, i)]))
+    throw(ArgumentError("The input polynomial must be monic as a polynomial in $(gen(R,i))"))
+  end
+
+  if !isirreducible(f)
+    throw(ArgumentError("The input polynomial must be irreducible"))
+  end
+
+  SR = singular_ring(R)
+  l = Singular.LibIntegralbasis.integralBasis(SR(f), i, "isIrred")
+  return fractional_ideal(ideal(R, R.(gens(l[1]))), R(l[2]))
 end
+

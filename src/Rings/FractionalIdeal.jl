@@ -30,6 +30,10 @@ function denominator(b::FractionalIdeal)
   return b.den
 end
 
+function base_ring(a::FractionalIdeal)
+  return base_ring(numerator(a))
+end
+
 function iszero(a::FractionalIdeal)
   return iszero(numerator(a))
 end
