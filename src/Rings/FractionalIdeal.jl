@@ -7,7 +7,17 @@ mutable struct FractionalIdeal{S <: Ideal, T <: RingElem}
   den::T
 end
 
+#TODO get expressify working on all of the ideals
+function Base.show(io::IOContext, a::FractionalIdeal)
+  print(io, "(")
+  show(io, a.num)
+  print(io, ")/(")
+  show(io, a.den)
+  print(io, ")")
+end
+
 function fractional_ideal(n::Ideal, d::RingElem)
+  base_ring(n) === parent(d) || error("wrong parents")
   iszero(d) && error("zero divisor detected in denominator")
   return FractionalIdeal{typeof(n), typeof(d)}(n, d)
 end
