@@ -407,7 +407,23 @@ end
        end
    end
 
-   G = GO(1,6,3)
+   G = GO(0,5,3)
+   L = preserved_quadratic_forms(G)
+   L = [quadratic_form(f) for f in L]
+   @testset for f in L
+       for g in gens(G)
+          @test f^g==f
+       end
+   end
+   L = invariant_quadratic_forms(G)
+   L = [quadratic_form(f) for f in L]
+   @testset for f in L
+       for g in gens(G)
+          @test f^g==f
+       end
+   end
+
+   G = GO(1,6,4)
    L = preserved_quadratic_forms(G)
    L = [quadratic_form(f) for f in L]
    @testset for f in L

@@ -74,7 +74,12 @@ end
    @testset for i in 1:6
       @test V[i]*P == V[L[i]]
    end
-   
+   p = symmetric_group(6)(L)
+   @test permutation_matrix(F,p)==permutation_matrix(F,L)
+   @test upper_triangular_matrix(F.([2,3,1,1,0,1]))==matrix(F,3,3,[2,3,1,0,1,0,0,0,1])
+   @test lower_triangular_matrix(F.([2,3,1,1,0,1]))==matrix(F,3,3,[2,0,0,3,1,0,1,0,1])
+   @test_throws ArgumentError lower_triangular_matrix(F.([2,3,1,1]))
+
    R,t=PolynomialRing(F,"t")
    f = t^4+2*t^3+4*t+1
    @test f(identity_matrix(F,6))==f(1)*identity_matrix(F,6)
