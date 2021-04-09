@@ -31,6 +31,10 @@ mutable struct FreeMod{T} <: ModuleFP{T}
     r.n = n
     r.R = b
     r.S = c
+
+    r.ingoing_morphisms = Array{ModuleMap,1}()
+    r.outgoing_morphisms = Array{ModuleMap,1}()
+
     return r
   end
 end
@@ -313,6 +317,7 @@ end
 mutable struct FreeModuleHom{T1, T2} <: ModuleMap{T1, T2} 
   matrix::MatElem
   header::MapHeader
+  inverse_isomorphism::ModuleMap
   Hecke.@declare_other
 
   function FreeModuleHom(F::FreeMod{T}, G::S, a::Array{<:Any, 1}) where {T, S}
@@ -522,6 +527,10 @@ mutable struct SubQuo{T} <: ModuleFP{T}
     r.F = sub.F
     r.sub = sub
     r.sum = r.sub
+
+    r.ingoing_morphisms = Array{ModuleMap,1}()
+    r.outgoing_morphisms = Array{ModuleMap,1}()
+
     return r
   end
   function SubQuo(sub::SubModuleOfFreeModule{R}, quo::SubModuleOfFreeModule{R}) where {R}
@@ -531,6 +540,10 @@ mutable struct SubQuo{T} <: ModuleFP{T}
     r.sub = sub
     r.quo = quo
     r.sum = sum(r.sum, r.quo)
+
+    r.ingoing_morphisms = Array{ModuleMap,1}()
+    r.outgoing_morphisms = Array{ModuleMap,1}()
+
     return r
   end
   function SubQuo(F::FreeMod{R}, O::Array{<:FreeModuleElem, 1}) where {R}
@@ -539,6 +552,10 @@ mutable struct SubQuo{T} <: ModuleFP{T}
     #r.sub = ModuleGens(O, F, singular_module(F))
     r.sub = SubModuleOfFreeModule(F, O)
     r.sum = r.sub
+
+    r.ingoing_morphisms = Array{ModuleMap,1}()
+    r.outgoing_morphisms = Array{ModuleMap,1}()
+
     return r
   end
   function SubQuo(S::SubQuo, O::Array{<:FreeModuleElem{L}, 1}) where {L} #TODO to be replaced by quo
@@ -549,6 +566,10 @@ mutable struct SubQuo{T} <: ModuleFP{T}
     r.quo = SubModuleOfFreeModule(S.F, O)
     #r.sum = ModuleGens(vcat(collect(r.sub), collect(r.quo)), S.F, S.sub.SF)
     r.sum = sum(r.sub, r.quo)
+
+    r.ingoing_morphisms = Array{ModuleMap,1}()
+    r.outgoing_morphisms = Array{ModuleMap,1}()
+
     return r
   end
   #=function SubQuo(S::SubQuo, O::Array{<:SubQuoElem, 1})
@@ -564,6 +585,10 @@ mutable struct SubQuo{T} <: ModuleFP{T}
     #r.sub = ModuleGens(F, s)
     r.sub = SubModuleOfFreeModule(F, s)
     r.sum = r.sub
+
+    r.ingoing_morphisms = Array{ModuleMap,1}()
+    r.outgoing_morphisms = Array{ModuleMap,1}()
+
     return r
   end
   function SubQuo(F::FreeMod{R}, s::Singular.smodule, t::Singular.smodule) where {R}
@@ -575,6 +600,10 @@ mutable struct SubQuo{T} <: ModuleFP{T}
     r.quo = SubModuleOfFreeModule(F, t)
     #r.sum = ModuleGens(vcat(collect(r.sub), collect(r.quo)))
     r.sum = sum(r.sub, r.quo)
+
+    r.ingoing_morphisms = Array{ModuleMap,1}()
+    r.outgoing_morphisms = Array{ModuleMap,1}()
+
     return r
   end
 end
@@ -634,8 +663,8 @@ struct SubQuoElem{T} # this needs to be redone TODO
   parent::SubQuo
 
   function SubQuoElem(v::SRow{R}, SQ::SubQuo) where {R}
-    @assert length(v) <= ngens(SQ.F)
-    r = new{R}(v, Base.sum([v[i]*SQ.sub[i] for i=1:ngens(SQ.F)]), SQ)
+    @assert length(v) <= length(SQ.sub)
+    r = new{R}(v, Base.sum([v[i]*SQ.sub[i] for i=1:length(SQ.sub)]), SQ)
     #r.coeffs = v
     #r.parent = SQ
     #r.repres = sum([v[i]*SQ.F[i] for i=1:ngens(SQ.F)]...)
@@ -706,10 +735,12 @@ end
 
 function sub(F::FreeMod, O::Array{<:FreeModuleElem, 1}, task::Symbol = :none)
   s = SubQuo(F, O)
-  if task == :none
+  if task == :none || task == :module
     return s
   else
     emb = hom(s, F, O)
+    task == :store && register_morphism!(emb)
+    task == :morphism && return emb
     return s, emb
   end
 end
@@ -727,10 +758,12 @@ end
 function sub(F::FreeMod, s::SubQuo, task::Symbol = :none)
   @assert !isdefined(s, :quo)
   @assert s.F == F
-  if task == :none
+  if task == :none || task == :module
     return s
   else
     emb = hom(s, F, [FreeModuleElem(x.repres.coords, F) for x in gens(s)])
+    task == :store && register_morphism!(emb)
+    task == :morphism && return emb 
     return s, emb
   end
 end
@@ -742,10 +775,12 @@ function sub(S::SubQuo, O::Array{<:SubQuoElem, 1}, task::Symbol = :none)
     t.quo = S.quo
     t.sum = sum(t.sub, t.quo)
   end
-  if task == :none
+  if task == :none || task == :module
     return t
   else
     emb = hom(t, S, O)
+    task == :store && register_morphism!(emb)
+    task == :morphism && return emb 
     return t, emb
   end
 
@@ -901,25 +936,56 @@ function presentation(F::FreeMod)
   return Hecke.ChainComplex(ModuleFP, ModuleMap[hom(Z, F, FreeModuleElem[]), hom(F, F, gens(F)), hom(F, Z, [zero(Z) for i=1:ngens(F)])], check = false)
 end
 
-function present(SQ::SubQuo)
+function present(SQ::SubQuo, task = :none)
   chainComplex = presentation(SQ)
   R_b = obj(chainComplex, 1)
   f = map(chainComplex, 1)
   g = map(chainComplex, 2)
   presentation_module = quo(R_b, image(f)[1])
+
+  if task == :none
+    return presentation_module
+  end
+  
+  # The isomorphism is just the identity matrix
   isomorphism = hom(presentation_module, SQ, [g(x) for x in gens(R_b)])
+  inverse_isomorphism = hom(SQ, presentation_module, [presentation_module[i] for i=1:ngens(SQ)])
+  isomorphism.inverse_isomorphism = inverse_isomorphism
+
+  if task == :store
+    register_morphism!(isomorphism)
+    register_morphism!(inverse_isomorphism)
+  end
+  task == :morphism && return isomorphism
+  
   return presentation_module, isomorphism
 end
 
-function change_generating_system(M::SubQuo{T}, N::SubQuo{T}) where {T}
+function change_generating_system(M::SubQuo{T}, N::SubQuo{T}, task = :none) where {T}
   @assert M == N
-  return hom(M, N, [SubQuoElem(coordinates(m.repres, N), N) for m in gens(M)])
+
+  M_to_N = hom(M, N, [SubQuoElem(coordinates(m.repres, N), N) for m in gens(M)])
+
+  if task == :store || task == :inverse
+    N_to_M = hom(N, M, [SubQuoElem(coordinates(n.repres, M), M) for n in gens(N)])
+    M_to_N.inverse_isomorphism = N_to_M
+    N_to_M.inverse_isomorphism = M_to_N
+
+    if task == :store
+      register_morphism!(M_to_N) 
+      register_morphism!(N_to_M)
+    end
+  end
+  
+  return M_to_N
 end
 
 mutable struct SubQuoHom{T1, T2} <: ModuleMap{T1, T2}
   matrix::MatElem
   header::Hecke.MapHeader
   im::Array{<:Any, 1}
+  inverse_isomorphism::ModuleMap
+
   function SubQuoHom(D::SubQuo, C::ModuleFP, im::Array{<:Any, 1})
     first = true
     @assert length(im) == ngens(D)
@@ -1583,6 +1649,15 @@ function ext(M::ModuleFP, N::ModuleFP, i::Int)
 end
 
 #############################
+# Useful functions
+#############################
+
+function register_morphism!(f::ModuleMap)
+  push!(domain(f).outgoing_morphisms, f)
+  push!(codomain(f).ingoing_morphisms, f)
+end
+
+#############################
 #TODO move to Hecke
 #  re-evaluate and use or not
 function differential(c::Hecke.ChainComplex, i::Int)
@@ -1695,7 +1770,7 @@ function preimage_SQ(H::SubQuoHom,elems::Vector{SubQuoElem{T}}, task::Symbol = :
   R = base_ring(domain(H))
   row_length = ngens(codomain(H))
   submod = vcat((dense_row(e.coeffs, row_length) for e in elems)...)
-  C = present(codomain(H))[1].quo.matrix
+  C = present(codomain(H)).quo.matrix
   A = vcat(H.matrix, C, submod)
   G = FreeMod(R, nrows(A))
   A = FreeModuleHom(G, FreeMod(R, ncols(A)), A)
@@ -1706,13 +1781,11 @@ function preimage_SQ(H::SubQuoHom,elems::Vector{SubQuoElem{T}}, task::Symbol = :
   generators = Array{SubQuoElem{T},1}()
   projection_map = projection(G, 1:n)
   for i=1:ngens(K)
-      #new = SubQuoElem(sparse_row(K[i:i,1:n]), N)
       coeffs_for_new = projection_map(kernel_injection(K[i])).coords
       if isempty(coeffs_for_new)
         continue
       end
       new = SubQuoElem(coeffs_for_new, N)
-      #new = N(K[i:i,1:n])
       if !iszero(new)
           push!(generators, new)
       end
