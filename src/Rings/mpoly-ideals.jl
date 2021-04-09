@@ -47,6 +47,18 @@ function ideal(Rx::MPolyRing, g::Array{<:Any, 1})
 end
 
 # elementary operations #######################################################
+@doc Markdown.doc"""
+    :iszero(I::MPolyIdeal)
+
+Return `true` if `I` the zero ideal.
+"""
+function iszero(I::MPolyIdeal)
+  if isdefined(I.gens, :S)
+    return iszero(I.gens.S)
+  else
+    return all(iszero, I.gens.O)
+  end
+end
 
 @doc Markdown.doc"""
     :^(I::MPolyIdeal, m::Int)

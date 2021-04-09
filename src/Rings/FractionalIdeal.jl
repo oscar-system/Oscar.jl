@@ -46,6 +46,14 @@ function *(a::FractionalIdeal, b::FractionalIdeal)
   return fractional_ideal(a.num*b.num, a.den*b.den)
 end
 
+function *(a::FractionalIdeal{S, T}, b::T) where {S <: Ideal, T <: RingElem}
+  return fractional_ideal(a.num*b, a.den)
+end
+
+function *(b::T, a::FractionalIdeal{S, T}) where {S <: Ideal, T <: RingElem}
+  return fractional_ideal(a.num*b, a.den)
+end
+
 function ==(a::FractionalIdeal, b::FractionalIdeal)
   return a.num*b.den == b.num*a.den
 end
