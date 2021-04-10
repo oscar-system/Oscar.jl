@@ -565,6 +565,6 @@ function integral_basis(f::MPolyElem, i::Int)
 
   SR = singular_ring(R)
   l = Singular.LibIntegralbasis.integralBasis(SR(f), i, "isIrred")
-  return fractional_ideal(ideal(R, R.(gens(l[1]))), R(l[2]))
+  return (R(l[2]), R.(gens(l[1])))
 end
 
