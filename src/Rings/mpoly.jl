@@ -1164,6 +1164,12 @@ function factor(f::MPolyElem)
 end
 =#
 
+# generic fallback since this is not implemented specifically anywhere yet
+function isirreducible(a::MPolyElem)
+  af = factor(a)
+  return !(length(af.fac) > 1 || any(x->x>1, values(af.fac)))
+end
+
 ################################################################################
 
 @doc Markdown.doc"""
@@ -1183,6 +1189,9 @@ function Base.:*(f::MPolyElem, I::MPolyIdeal)
   R == parent(f) || error("base rings do not match")
   return ideal(R, f.*gens(I))
 end
+
+*(I::MPolyIdeal, f::MPolyElem) = f*I
+
 
 ################################################################################
 
