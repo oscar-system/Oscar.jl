@@ -313,14 +313,15 @@ L = normalization_with_delta(A)
 
 ## Integral Bases
 
-
-CAVEAT: Function still to be written.
-
 ```@docs
 integral_basis(f::MPolyElem, i::Int)
 ```
 
+###### Example
 
-###### Examples
 
-
+```@repl oscar
+R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+f = (y^2-2)^2 + x^5
+integral_basis(f, 2)
+```
