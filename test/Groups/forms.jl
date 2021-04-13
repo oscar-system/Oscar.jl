@@ -191,7 +191,6 @@ end
    is_true,z = iscongruent(f,g)
    @test !is_true
 
-
    #alternating
    F = GF(3,1)[1]
    x = zero_matrix(F,6,6)
@@ -254,6 +253,7 @@ end
    is_true,z = iscongruent(f,g)
    @test is_true
    @test f^z == g
+
    F,a = GF(2,2,"a")
    x = zero_matrix(F,6,6)
    x[4,5]=1; x[5,6]=a+1; x=x+conjugate_transpose(x)
@@ -322,4 +322,281 @@ end
    Q2 = quadratic_form(p2)
    is_true,z = iscongruent(Q1,Q2)
    @test !is_true
+end
+
+# TODO
+@testset "Relationship group - forms" begin
+   G = GL(6,3)
+   Op = GO(1,6,3)
+   Om = GO(-1,6,3)
+   F = base_ring(G)
+   B = zero_matrix(F,6,6)
+   for i in 1:6 B[i,7-i]=1 end
+   f = symmetric_form(B)
+   H = isometry_group(f)
+   @testset for x in gens(H)
+      @test f^x==f
+   end
+   @test order(H)==order(Op)
+   insert_block!(B,identity_matrix(F,2),3,3)
+   f = symmetric_form(B)
+   H = isometry_group(f)
+   @testset for x in gens(H)
+      @test f^x==f
+   end
+   @test order(H)==order(Om)
+
+   G = GL(4,2)
+   Op = GO(1,4,2)
+   Om = GO(-1,4,2)
+   F = base_ring(G)
+   B = zero_matrix(F,4,4)
+   B[1,4]=1; B[2,3]=1
+   f = quadratic_form(B)
+   H = isometry_group(f)
+   @testset for x in gens(H)
+      @test f^x==f
+   end
+   @test isconjugate(G,H,Op)[1]
+   B[2,2]=1; B[3,3]=1;
+   f = quadratic_form(B)
+   H = isometry_group(f)
+   @testset for x in gens(H)
+      @test f^x==f
+   end
+   @test isconjugate(G,H,Om)[1]
+   Q = f
+   f = corresponding_bilinear_form(Q)
+   H = isometry_group(f)
+   @testset for x in gens(H)
+      @test f^x==f
+   end
+   @test isconjugate(G,H,Sp(4,2))[1]
+
+   G = GL(5,9)
+   F = base_ring(G)
+   B = diagonal_matrix(F.([1,1,1,2,2]))
+   B[4,5] = gen(F)
+   B[5,4] = gen(F)^3
+   f = hermitian_form(B)
+   H = isometry_group(f)
+   @testset for x in gens(H)
+      @test f^x==f
+   end
+   @test order(H)==order(GU(5,3))
+
+   G = GU(2,3)
+   L = invariant_sesquilinear_forms(G)
+   @testset for f in L
+       for g in gens(G)
+          @test g.elm*f*conjugate_transpose(g.elm)==f
+       end
+   end
+   G = GO(-1,4,3)
+   L = invariant_bilinear_forms(G)
+   @testset for f in L
+       for g in gens(G)
+          @test g.elm*f*transpose(g.elm)==f
+       end
+   end
+   L = invariant_quadratic_forms(G)
+   @testset for m in L
+       Q = quadratic_form(m)
+       for g in gens(G)
+          @test Q^g==Q
+       end
+   end
+
+   G = GO(0,5,3)
+   L = preserved_quadratic_forms(G)
+   @testset for f in L
+       for g in gens(G)
+          @test f^g==f
+       end
+   end
+   L = invariant_quadratic_forms(G)
+   L = [quadratic_form(f) for f in L]
+   @testset for f in L
+       for g in gens(G)
+          @test f^g==f
+       end
+   end
+
+   G = GO(1,6,4)
+   L = preserved_quadratic_forms(G)
+   @testset for f in L
+       for g in gens(G)
+          @test f^g==f
+       end
+   end
+   L = invariant_quadratic_forms(G)
+   L = [quadratic_form(f) for f in L]
+   @testset for f in L
+       for g in gens(G)
+          @test f^g==f
+       end
+   end
+   Q = quadratic_form(Oscar.invariant_quadratic_form(G))
+   @testset for g in gens(G)
+      Q^g==Q
+   end
+   
+
+   G = Sp(4,4)
+   L = preserved_sesquilinear_forms(G)
+   @testset for f in L
+      for g in gens(G)
+         @test f^g==f
+      end
+   end
+   B = Oscar.invariant_bilinear_form(G)
+   @testset for g in gens(G)
+      @test g.elm*B*transpose(g.elm)==B
+   end
+   L = preserved_sesquilinear_forms(G)
+   @testset for f in L
+      for g in gens(G)
+         @test f^g==f
+      end
+   end
+   
+
+   G = GO(-1,6,3)
+   L = preserved_sesquilinear_forms(G)
+   @testset for f in L
+      for g in gens(G)
+         @test f^g==f
+      end
+   end
+   B = Oscar.invariant_bilinear_form(G)
+   @testset for g in gens(G)
+      @test g.elm*B*transpose(g.elm)==B
+   end
+   B = Oscar.invariant_quadratic_form(G)
+   @testset for g in gens(G)
+      @test isskewsymmetric_matrix(g.elm*B*transpose(g.elm)-B)
+   end
+
+   G = GU(4,5)
+   L = preserved_sesquilinear_forms(G)
+   @testset for f in L
+      for g in gens(G)
+         @test f^g==f
+      end
+   end
+   B = Oscar.invariant_sesquilinear_form(G)
+   @testset for g in gens(G)
+      @test g.elm*B*conjugate_transpose(g.elm)==B
+   end
+
+   @testset for q in [2,3,4,5]
+      G = GU(5,q)
+      x = rand(GL(5,base_ring(G)))
+      G = G^x
+      L = invariant_hermitian_forms(G)
+      @testset for m in L
+         f = hermitian_form(m)
+         for g in gens(G)
+            @test f^g==f
+         end
+      end
+   end
+   @test length(invariant_hermitian_forms(GL(2,5)))==0
+
+   @testset for q in [3,4,5]
+      G = Sp(6,q)^rand(GL(6,q))
+      L = invariant_alternating_forms(G)
+      @testset for m in L
+         f = alternating_form(m)
+         for g in gens(G)
+            @test f^g==f
+         end
+      end
+   end
+
+   G = GO(1,6,3)^rand(GL(6,3))
+   L = invariant_symmetric_forms(G)
+   for m in L
+      f = symmetric_form(m)
+      for g in gens(G)
+         @test f^g==f
+      end
+   end
+   G = omega_group(-1,6,9)^rand(GL(6,9))
+   L = invariant_symmetric_forms(G)
+   for m in L
+      f = symmetric_form(m)
+      for g in gens(G)
+         @test f^g==f
+      end
+   end
+   G = SO(0,5,7)^rand(GL(5,7))
+   L = invariant_symmetric_forms(G)
+   for m in L
+      f = symmetric_form(m)
+      for g in gens(G)
+         @test f^g==f
+      end
+   end
+
+   G = GO(1,6,8)^rand(GL(6,8))
+   L = invariant_quadratic_forms(G)
+   for m in L
+      f = quadratic_form(m)
+      for g in gens(G)
+         @test f^g==f
+      end
+   end
+   G = omega_group(-1,6,2)^rand(GL(6,2))
+   L = invariant_quadratic_forms(G)
+   for m in L
+      f = quadratic_form(m)
+      for g in gens(G)
+         @test f^g==f
+      end
+   end
+   G = GO(0,5,4)^rand(GL(5,4))
+   L = invariant_quadratic_forms(G)
+   for m in L
+      f = quadratic_form(m)
+      for g in gens(G)
+         @test f^g==f
+      end
+   end
+
+   G = sub(GL(6,3),[one(GL(6,3))])[1]
+   @test length(invariant_symmetric_forms(G))==21
+   @test length(invariant_alternating_forms(G))==15
+   @test length(invariant_quadratic_forms(G))==21
+
+   # degenerate forms
+   F = GF(3,1)[1]
+   B = diagonal_matrix(F.([1,1,1,0,0,0]))
+   Q = quadratic_form(B)
+   H = isometry_group(Q)
+   @testset for h in gens(H)
+      @test Q^h==Q
+   end
+   @test order(H)==order(GO(3,3))*order(GL(3,F))*3^9
+
+   F = GF(2,1)[1]
+   B = zero_matrix(F,6,6)
+   B[1,2]=1;B[3,4]=1;
+   Q = quadratic_form(B)
+   H = isometry_group(Q)
+   @testset for h in gens(H)
+      @test Q^h==Q
+   end
+   @test order(H)==order(GO(1,4,2))*order(GL(2,F))*2^8
+
+   F = GF(3,2)[1]
+   B = zero_matrix(F,4,4)
+   B[3,4]=gen(F);B[4,3]=gen(F)^3
+   f = hermitian_form(B)
+   H = isometry_group(f)
+   @testset for h in gens(H)
+      @test f^h==f
+   end
+   @test order(H)==order(GU(2,3))*order(GL(2,9))*9^4
+
 end

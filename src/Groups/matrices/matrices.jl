@@ -5,5 +5,5 @@ include("matrix_manipulation.jl")
 include("linear_centralizer.jl")
 include("linear_isconjugate.jl")
 include("forms.jl")
+include("form_group.jl")
 include("transform_form.jl")
-
