@@ -120,6 +120,10 @@ elem_type(::Type{MatrixGroup{S,T}}) where {S,T} = MatrixGroupElem{S,T}
 elem_type(::MatrixGroup{S,T}) where {S,T} = MatrixGroupElem{S,T}
 Base.eltype(::Type{MatrixGroup{S,T}}) where {S,T} = MatrixGroupElem{S,T}
 
+# `parent_type` is defined and documented in AbstractAlgebra.
+parent_type(::Type{T}) where T<:MatrixGroupElem{RE,S} where {RE,S} = MatrixGroup{RE,S}
+parent_type(::T) where T<:MatrixGroupElem{RE,S} where {RE,S} = MatrixGroup{RE,S}
+
 
 ########################################################################
 #
@@ -656,7 +660,6 @@ function omega_group(e::Int, n::Int, F::Ring)
       G.descr = Symbol("Omega+")
    elseif e==-1
       iseven(n) || throw(ArgumentError("The dimension must be even"))
-      n==2 && throw(ArgumentError("Dimension 2 not supported"))
       G = MatrixGroup(n,F)
       G.descr = Symbol("Omega-")
    elseif e==0

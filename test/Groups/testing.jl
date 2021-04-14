@@ -11,7 +11,10 @@ L = [ alternating_group(5), cyclic_group(18), SL(3,3), free_group(0), free_group
    @test parent(h) == G
 
    @testset "Parent methods" begin
+      @test elem_type(typeof(G)) == typeof(g)
       @test elem_type(G) == typeof(g)
+      @test parent_type(typeof(g)) == typeof(G)
+      @test parent_type(g) == typeof(G)
       @test one(G) isa typeof(g)
       @test one(G)==one(g)==one(h)
 

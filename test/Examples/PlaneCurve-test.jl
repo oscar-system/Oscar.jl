@@ -313,3 +313,15 @@ end
 	@test Oscar.toweierstrass(C, P) == T(y^2*z - x^3 - x*z^2)
 	@test Oscar.toweierstrass(D, Q) ==  T(y^2*z + x*y*z + 3*y*z^2 - x^3 - 2*x^2*z - 4*x*z^2 - 6*z^3)
 end
+
+@testset "genus" begin
+	S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+	T = grade(S)
+	C = Oscar.ProjPlaneCurve(T(y^2*z - x^3 - x*z^2))
+	@test Oscar.arithmetic_genus(C) == 1
+	@test Oscar.geometric_genus(C) == 1
+	R, (a, b) = PolynomialRing(GF(7), ["a", "b"])
+	D = Oscar.AffinePlaneCurve(b^9 - a^2*(a-1)^9)
+	@test Oscar.arithmetic_genus(D) == 45
+	@test Oscar.geometric_genus(D) == 0
+end

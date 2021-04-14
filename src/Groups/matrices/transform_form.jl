@@ -21,11 +21,11 @@ export
 # at the moment, it simply search for x such that (c-ax^2)/b is a square
 # TODO: is there a faster way to find x and y?
 # TODO: it would be better if this is deterministic. This depends on gen(F) and issquare(F).
+
 function _solve_eqn(a::T, b::T, c::T) where T <: FinFieldElem
    F = parent(a)  
    for x in F
       s = (c - a*x^2)*b^-1
-#      vero, y = issquare(s)
       if issquare(s) return x,square_root(s) end
    end
    return nothing, nothing
@@ -66,7 +66,6 @@ end
 # returns D, A such that A*B*transpose(frobenius(A)) = D and 
 # D is diagonal matrix (or with blocks [0 1 s 0])
 # f = dimension of the zero block in B in the isotropic case
-
 function _block_anisotropic_elim(B::MatElem{T}, _type::Symbol; isotr=false, f=0)  where T <: FinFieldElem
 
    d = nrows(B)
