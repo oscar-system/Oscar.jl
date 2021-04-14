@@ -1,4 +1,4 @@
-# further possible functions: similar, literal_pow, parent_type
+# further possible functions: similar, literal_pow
 
 import Base: ^, Base.Vector
 
