@@ -187,3 +187,17 @@ The polytopes are realized with floating point numbers and thus not exact; Verte
 """
 archimedean_solid(s::String) = Polyhedron(Polymake.polytope.archimedean_solid(s))
 
+
+@doc Markdown.doc"""
+
+   upper_bound_theorem(d::Int,n::Int)
+
+Returns a polymake polytope which contains the combinatioral data shared by all simplicial d-polytopes with n vertices with the maximal number of facets as given by McMullen's Upper-Bound-Theorem.
+Essentially, one can read the ``H_VECTOR`` and ``F_VECTOR`` of a polytope that attains the McMullen's upperbounds.
+ Essentially this lets you read off all possible entries of the ``H_VECTOR`` and the ``F_VECTOR``.
+
+Arguments:
+- `d::Int`: the dimension
+- `n::Int`: the number of vertices
+"""
+upper_bound_theorem(d::Int,n::Int) = Polymake.polytope.upper_bound_theorem(d,n)
