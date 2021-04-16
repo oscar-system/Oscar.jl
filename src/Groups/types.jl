@@ -132,7 +132,8 @@ const PermGroupElem = BasicGAPGroupElem{PermGroup}
     PcGroup
 
 Polycyclic group
-# Examples:
+
+# Examples
 - `cyclic_group(n::Int)`: cyclic group of order `n`
 - `abelian_group(v::Vector{Int})`: direct product of cyclic groups of order v[1],v[2],...,v[length(v)]
 """
@@ -270,7 +271,9 @@ elem_type(::T) where T <: GAPGroup = BasicGAPGroupElem{T}
 
 Base.eltype(::Type{T}) where T <: GAPGroup = BasicGAPGroupElem{T}
 
-
+# `parent_type` is defined and documented in AbstractAlgebra.
+parent_type(::Type{T}) where T<:BasicGAPGroupElem{S} where S = S
+parent_type(::T) where T<:BasicGAPGroupElem{S} where S = S
 
 #
 # The array _gap_group_types contains pairs (X,Y) where

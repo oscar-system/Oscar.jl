@@ -1,4 +1,4 @@
-# further possible functions: similar, literal_pow, parent_type
+# further possible functions: similar, literal_pow
 
 import Base: ^, Base.Vector
 
@@ -36,13 +36,11 @@ export
     isperfect,
     ispgroup,
     issimple,
-    listperm,
     mul,
     mul!,
     nilpotency_class,
     ngens,
     normal_closure,
-    normaliser,
     normalizer,
     number_conjugacy_classes,
     one!,
@@ -286,7 +284,9 @@ gap_perm(L::AbstractVector{<:fmpz}) = gap_perm([Int(y) for y in L])
     (G::PermGroup)(L::AbstractVector{<:Integer})
 
 Return the permutation `x` which maps every `i` from `1` to `length(L)` to `L[i]`. `L` must contain every integer from 1 to `length(L)` exactly, otherwise an exception is thrown.
-The parent of `x` is `G`. If `x` is not contained in `G`, an ERROR is returned. For `gap_perm`, the parent group of `x` is set as Sym(`n`), where `n` is the largest moved point of `x`. Example:
+The parent of `x` is `G`. If `x` is not contained in `G`, an ERROR is returned. For `gap_perm`, the parent group of `x` is set as Sym(`n`), where `n` is the largest moved point of `x`.
+
+# Examples
 ```jldoctest
 julia> perm(symmetric_group(6),[2,4,6,1,3,5])
 (1,2,4)(3,6,5)
@@ -322,7 +322,9 @@ For given lists of positive integers `[a_1, a_2, ..., a_n],[b_1, b_2, ... , b_m]
 permutation `x = (a_1,a_2,...,a_n)(b_1,b_2,...,b_m)...`. The array `[n,n+1,...,n+k]` can be replaced by `n:n+k`.
   
 If a list is empty or contains duplicates, it fails.
-The parent of `x` is `G`. If `x` is not contained in `G`, an ERROR is returned. If `G` is not specified, then the parent of `x` is set as Sym(`n`), where `n` is the largest moved point of `x`. Example:
+The parent of `x` is `G`. If `x` is not contained in `G`, an ERROR is returned. If `G` is not specified, then the parent of `x` is set as Sym(`n`), where `n` is the largest moved point of `x`.
+
+# Examples
 ```jldoctest
 julia> cperm([1,2,3],4:7)
 (1,2,3)(4,5,6,7)
@@ -355,15 +357,7 @@ function cperm(g::PermGroup,L::AbstractVector{T}...) where T <: Union{Base.Integ
    end
 end
 
-"""
-    listperm(x::PermGroupElem)
-
-Return the list L defined by L = [ `x`(i) for i in 1:n ], where `n` is the degree of `parent(x)`.
-"""
-function listperm(x::PermGroupElem)
-   return [x(i) for i in 1:x.parent.deg]
-end
-#TODO: Perhaps omit `listperm` and use just `Vector`?
+@deprecate listperm(x::PermGroupElem) Vector(x)
 
 """
     Vector{T}(x::PermGroupElem, n::Int = x.parent.deg) where {T}
@@ -399,6 +393,7 @@ function gen(G::GAPGroup, i::Int)
    @assert length(L) >= i "The number of generators is lower than the given index"
    return group_element(G, L[i])
 end
+Base.getindex(G::GAPGroup, i::Int) = gen(G, i)
 
 """
     ngens(G::Group) -> Int
@@ -411,7 +406,6 @@ Return the length of the array gens(G).
 ngens(G::GAPGroup) = length(GAP.Globals.GeneratorsOfGroup(G.X))
 
 
-Base.getindex(G::GAPGroup, i::Int) = gen(G, i)
 Base.sign(x::PermGroupElem) = GAP.Globals.SignPerm(x.X)
 
 Base.isless(x::PermGroupElem, y::PermGroupElem) = x<y
@@ -633,7 +627,6 @@ end
 
 """
     normalizer(G::Group, H::Group)
-    normaliser(G::Group, H::Group)
 
 Return `N,f`, where `N` is the normalizer of `H` in `G` and `f` is the embedding morphism of `N` into `G`.
 """
@@ -641,13 +634,10 @@ normalizer(G::T, H::T) where T<:GAPGroup = _as_subgroup(G, GAP.Globals.Normalize
 
 """
     normalizer(G::Group, x::GAPGroupElem)
-    normaliser(G::Group, x::GAPGroupElem)
 
 Return `N,f`, where `N` is the normalizer of <`x`> in `G` and `f` is the embedding morphism of `N` into `G`.
 """
 normalizer(G::GAPGroup, x::GAPGroupElem) = _as_subgroup(G, GAP.Globals.Normalizer(G.X,x.X))
-
-normaliser = normalizer
 
 """
     core(G::Group, H::Group)

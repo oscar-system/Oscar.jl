@@ -2,7 +2,8 @@
 
 export issmooth, tangent, common_components, curve_intersect,
        curve_singular_locus, issmooth_curve, multiplicity,
-       tangent_lines, intersection_multiplicity, aretransverse
+       tangent_lines, intersection_multiplicity, aretransverse,
+       arithmetic_genus, geometric_genus
 
 ################################################################################
 # Functions for ProjPlaneCurves
@@ -362,6 +363,50 @@ Returns `true` if `C` and `D` intersect transversally at `P` and `false` otherwi
 """
 function aretransverse(C::ProjPlaneCurve{S}, D::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
   return issmooth(C, P) && issmooth(D, P) && intersection_multiplicity(C, D, P) == 1
+end
+
+################################################################################
+
+@doc Markdown.doc"""
+    arithmetic_genus(C::ProjPlaneCurve)
+
+Return the arithmetic genus of `C`.
+"""
+function arithmetic_genus(C::ProjPlaneCurve)
+  F = defining_equation(C)
+  S = parent(F)
+  I = ideal(S, [F])
+  A = quo(S, I)
+  H = hilbert_polynomial(A[1])
+  return -coeff(H, 0) + 1
+end
+
+################################################################################
+
+@doc Markdown.doc"""
+    geometric_genus(C::ProjPlaneCurve)
+
+Return the geometric genus of `C`.
+"""
+function geometric_genus(C::ProjPlaneCurve{S}) where S <: FieldElem
+   F = defining_equation(C)
+   R = parent(F)
+   I = ideal(parent(F), [F])
+   if S == fmpq
+      singular_assure(I)
+      return Singular.LibNormal.genus(I.gens.S)
+   else
+      A = quo(R, I)
+      L = normalization(A[1])
+      m = length(L)
+      pa = 0
+      for i in 1:m
+         A = L[i][1]
+         H = hilbert_polynomial(A)
+         pa = pa - coeff(H, 0)
+      end
+      return pa + 1
+   end
 end
 
 ################################################################################

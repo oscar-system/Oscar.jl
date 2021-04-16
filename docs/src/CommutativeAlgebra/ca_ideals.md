@@ -23,7 +23,7 @@ ideal(Rx::MPolyRing, g::Array{<:Any, 1})
 
 ## Gröbner Bases
 
-### Monomial Orders
+### Monomial Orderings
 
 ### Normal Forms
 
@@ -102,16 +102,6 @@ dim(I::MPolyIdeal)
 codim(I::MPolyIdeal)
 ```
     
-## Hilbert Function and Hilbert Series
-    
-                             min_base(I)   (or so)
-     
-    degree:                  degree(I)                             (type integer)
-    Hilbert function:        hilbert_function(d,I)                 (type integer)
-    Hilbert series:          hilbert_series(I)                     (type univariate rational function)  numerator, denominator
-    reduced Hilbert series:  reduced_Hilbert_series(I)             (type univariate rational function)
-    Hilbert polynomial:      hilbert_polynomial(I)                 (type univariate polynomial, direkt in Julia von hilbert_series(I))
-
 ## Operations on Ideals
 
 ### Simple ideal Operations
@@ -153,20 +143,24 @@ quotient(I::MPolyIdeal, J::MPolyIdeal)
 
 Given two ideals $I, J$ of a ring $R$, the saturation of $I$ with respect to $J$ is defined to be the ideal
 
-$I:J^{\infty} = \bigl\{ f \in R \:\big|\: f J^m \!\subset I {\text{ for some }}m\geq 1 \bigr\} = \textstyle{\bigcup\limits_{m=1}^{\infty} (I:J^m)}.$
+$I:J^{\infty} = \bigl\{ f \in R \:\big|\: f J^k \!\subset I {\text{ for some }}k\geq 1 \bigr\} = \textstyle{\bigcup\limits_{k=1}^{\infty} (I:J^k)}.$
 
 ```@docs
 saturation(I::MPolyIdeal, J::MPolyIdeal)
 ```
 
+```@docs
+saturation_with_index(I::MPolyIdeal, J::MPolyIdeal)
+```
+
 ### Elimination
 
 ```@docs
-eliminate(I::MPolyIdeal, polys::Array{MPolyElem, 1})
+eliminate(I::MPolyIdeal, lv::Array{MPolyElem, 1})
 ```
 
 ```@docs
-eliminate(I::MPolyIdeal, polys::AbstractArray{Int, 1})
+eliminate(I::MPolyIdeal, li::AbstractArray{Int, 1})
 ```
 
 ### Homogenization and Dehomogenization

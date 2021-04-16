@@ -142,7 +142,7 @@ function Oscar.groebner_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}; ord::Sym
     @vtime :ModStdQ 3 Ip = Oscar.BiPolyArray([Rt(x) for x = gI], keep_ordering = false)
     Gp, Tp = Oscar.groebner_basis_with_transform(Ip, ord = ord, complete_reduction = complete_reduction)
     length_gc = length(Gp)
-    Jp = vcat(map(x->lift(Zt, x), Gp), map(x->lift(Zt, x), collect(Tp)))
+    Jp = vcat(map(x->lift(Zt, x), Gp), map(x->lift(Zt, x), reshape(collect(Tp), :)))
 
     if d == 1
       d = fmpz(p)
