@@ -6,7 +6,8 @@ using .VarietyModule
 
 export issmooth, tangent, common_components, curve_intersect, intersect,
        curve_singular_locus, multiplicity, tangent_lines, singular_locus,
-       intersection_multiplicity, aretransverse, issmooth_curve
+       intersection_multiplicity, aretransverse, issmooth_curve,
+       arithmetic_genus, geometric_genus
 
 ################################################################################
 # To check if a point is smooth: return true if the point is a smooth point on
@@ -339,5 +340,32 @@ end
 
 ################################################################################
 
+@doc Markdown.doc"""
+    arithmetic_genus(C::AffinePlaneCurve)
+
+Return the arithmetic genus of the projective closure of `C`.
+"""
+function arithmetic_genus(C::AffinePlaneCurve)
+   F = defining_equation(C)
+   G = homogenization(F, variable = "vrbl")
+   D = ProjPlaneCurve(G)
+   return arithmetic_genus(D)
+end
+
+################################################################################
+
+@doc Markdown.doc"""
+    geometric_genus(C::AffinePlaneCurve)
+
+Return the geometric genus of the projective closure of `C`.
+"""
+function geometric_genus(C::AffinePlaneCurve)
+   F = defining_equation(C)
+   G = homogenization(F, variable = "vrbl")
+   D = ProjPlaneCurve(G)
+   return geometric_genus(D)
+end
+
+################################################################################
 #end
 #using .AffinePlaneCurveModule

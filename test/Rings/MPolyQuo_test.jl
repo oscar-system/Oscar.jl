@@ -13,6 +13,11 @@
   @test length(Oscar._kbase(Q)) == 12
   b = inv(Q(x))
   @test isone(b*Q(x))
+
+  xx, yy = gens(Q)
+
+  @test xx^2 == xx * xx
+  @test xx^0 == one(Q)
 end
 
 @testset "MPolyQuo.ideals" begin

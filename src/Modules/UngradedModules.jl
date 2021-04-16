@@ -723,6 +723,12 @@ function (R::SubQuo)(a::SubQuoElem)
   error("illegal coercion")
 end
 
+function index_of_gen(v::SubQuoElem)
+  @assert length(v.coeffs.pos) == 1
+  @assert isone(v.coeffs.values[1])
+  return v.coeffs.pos[1]
+end
+
 +(a::SubQuoElem, b::SubQuoElem) = SubQuoElem(a.coeffs+b.coeffs, a.parent)
 -(a::SubQuoElem, b::SubQuoElem) = SubQuoElem(a.coeffs-b.coeffs, a.parent)
 -(a::SubQuoElem) = SubQuoElem(-a.coeffs, a.parent)
@@ -800,17 +806,21 @@ function sub(S::SubQuo, O::Array{<:SubQuoElem, 1}, task::Symbol = :none)
   end=#
 end
 
-function quo(F::FreeMod, O::Array{<:FreeModuleElem, 1})
+function quo(F::FreeMod, O::Array{<:FreeModuleElem, 1}, task::Symbol = :none)
   S = SubQuo(F, basis(F))
-  return SubQuo(S, O)
+  Q = SubQuo(S, O)
+
+  return return_quo_wrt_task(F, Q, task)
 end
 
-function quo(F::FreeMod, O::Array{<:SubQuoElem, 1})
+function quo(F::FreeMod, O::Array{<:SubQuoElem, 1}, task::Symbol = :none)
   S = SubQuo(F, basis(F))
-  return SubQuo(S, [x.repres for x = O])
+  Q = SubQuo(S, [x.repres for x = O])
+
+  return return_quo_wrt_task(F, Q, task)
 end
 
-function quo(F::SubQuo, O::Array{<:FreeModuleElem, 1})
+function quo(F::SubQuo, O::Array{<:FreeModuleElem, 1}, task::Symbol = :none)
   if length(O) > 0
     @assert parent(O[1]) == F.F
   end
@@ -819,24 +829,38 @@ function quo(F::SubQuo, O::Array{<:FreeModuleElem, 1})
     #[F.quo.gens[Val(:O), i] for i = 1:length(F.quo.gens.O)] 
     oscar_assure(F.quo.gens)
     s = Singular.smodule{elem_type(base_ring(F.quo.gens.SF))}(base_ring(F.quo.gens.SF), [convert(F.quo.gens.SF, x) for x = [O; F.quo.gens.O]]...)
-    return SubQuo(F.F, F.sub.gens.S, s)
+    Q = SubQuo(F.F, F.sub.gens.S, s)
+    return return_quo_wrt_task(F, Q, task)
   end
-  return SubQuo(F, O)
+  Q = SubQuo(F, O)
+  return return_quo_wrt_task(F, Q, task)
 end
 
-function quo(S::SubQuo, O::Array{<:SubQuoElem, 1})
-  return quo(S, [x.repres for x = O])
+function quo(S::SubQuo, O::Array{<:SubQuoElem, 1}, task::Symbol = :none)
+  return quo(S, [x.repres for x = O], task)
 end
 
-function quo(S::SubQuo, T::SubQuo)
+function quo(S::SubQuo, T::SubQuo, task::Symbol = :none)
 #  @assert !isdefined(T, :quo)
   # TODO @assert S.quo == T.quo
-  return SubQuo(S, T.sum.gens.O)
+  Q = SubQuo(S, T.sum.gens.O)
+  return return_quo_wrt_task(S, Q, task)
 end
 
-function quo(F::FreeMod, T::SubQuo)
+function quo(F::FreeMod, T::SubQuo, task::Symbol = :none)
   @assert !isdefined(T, :quo)
-  return quo(F, gens(T))
+  return quo(F, gens(T), task)
+end
+
+function return_quo_wrt_task(M::SubQuo, Q::SubQuo, task)
+  if task == :none || task == :module
+    return Q
+  else
+    pro = hom(M, Q, gens(Q))
+    task == :store && register_morphism!(pro)
+    task == :morphism && return pro
+    return Q, pro
+  end
 end
 
 function syzygy_module(F::ModuleGens; sub = 0)
@@ -851,11 +875,15 @@ function syzygy_module(F::ModuleGens; sub = 0)
 end
 
 function gens(F::SubQuo)
-  return map(x->SubQuoElem(x, F), gens(F.sub))
+  return [gen(F,i) for i=1:ngens(F)]
 end
 
 function gen(F::SubQuo, i::Int)
-  return SubQuoElem(gen(F.sub,i),F)
+  R = base_ring(F)
+  v = sparse_row(R)
+  v.pos = [i]
+  v.values = [R(1)]
+  return SubQuoElem(v, F)
 end
 
 ngens(F::SubQuo) = length(F.sub)
@@ -936,7 +964,7 @@ function presentation(F::FreeMod)
   return Hecke.ChainComplex(ModuleFP, ModuleMap[hom(Z, F, FreeModuleElem[]), hom(F, F, gens(F)), hom(F, Z, [zero(Z) for i=1:ngens(F)])], check = false)
 end
 
-function present(SQ::SubQuo, task = :none)
+function present(SQ::SubQuo, task::Symbol = :none)
   chainComplex = presentation(SQ)
   R_b = obj(chainComplex, 1)
   f = map(chainComplex, 1)
@@ -961,7 +989,7 @@ function present(SQ::SubQuo, task = :none)
   return presentation_module, isomorphism
 end
 
-function change_generating_system(M::SubQuo{T}, N::SubQuo{T}, task = :none) where {T}
+function change_generating_system(M::SubQuo{T}, N::SubQuo{T}, task::Symbol = :none) where {T}
   @assert M == N
 
   M_to_N = hom(M, N, [SubQuoElem(coordinates(m.repres, N), N) for m in gens(M)])
@@ -1460,7 +1488,7 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
     t = [push!(deepcopy(x), y) for x = t  for y = 1:ngens(H)]
   end
 
-  F = FreeMod(G[1].R, prod([g.n for g in G]...))
+  F = FreeMod(G[1].R, prod([rank(g) for g in G]))
   F.S = s
   Hecke.set_special(F, :show => Hecke.show_tensor_product, :tensor_product => G)
   if task == :none
@@ -1532,15 +1560,33 @@ $g_1 \otimes \cdots \otimes g_n$. The map admits a preimage as well.
 """
 function tensor_product(G::ModuleFP...; task::Symbol = :none)
   F, mF = tensor_product([free_module(x) for x = G]..., task = :map)
-  s = sub(F, vec([mF(x) for x = Base.Iterators.ProductIterator(Tuple(gens(x, free_module(x)) for x = G))]))
+  s, emb = sub(F, vec([mF(x) for x = Base.Iterators.ProductIterator(Tuple(gens(x, free_module(x)) for x = G))]), :map)
+  corresponding_tuples = vec([x for x = Base.Iterators.ProductIterator(Tuple(gens(x, free_module(x)) for x = G))])
   q = vcat([vec([mF(x) for x = Base.Iterators.ProductIterator(Tuple(i == j ? rels(G[i]) : gens(free_module(G[i])) for i=1:length(G)))]) for j=1:length(G)]...) 
+  local projection_map
   if length(q) != 0
-    s = quo(s, q)
+    s, projection_map = quo(s, q, :map)
   end
   if task == :none
     return s
   else
-    return s
+
+    function pure(tuple_elems::SubQuoElem...)
+      tensor_elem = preimage(emb,mF(Tuple(x.repres for x in tuple_elems)))
+      if length(q) != 0
+        tensor_elem = projection_map(tensor_elem)
+      end
+      return tensor_elem
+    end
+
+    decompose_generator = function(v::SubQuoElem)
+      i = index_of_gen(v)
+      return corresponding_tuples[i]
+    end
+
+    Hecke.set_special(s, :tensor_generator_decompose_function => decompose_generator)
+
+    return s, MapFromFunc(pure, Hecke.TupleParent(Tuple([g[0] for g = G])), s)
   end
 end
 

@@ -19,8 +19,10 @@ export
     isconjugate_gl,
     ishermitian_matrix,
     isskewsymmetric_matrix,
+    lower_triangular_matrix,
     permutation_matrix,
-    submatrix
+    submatrix,
+    upper_triangular_matrix
 
 
 
@@ -79,7 +81,9 @@ diagonal_join(V::T...) where T <: MatElem = diagonal_join(collect(V))
 """
     block_matrix(m::Int, n::Int, V::AbstractVector{T}) where T <: MatElem
 
-Given a sequence `V` of matrices, return the `m x n` block matrix, where the `(i,j)`-block is the `((i-1)*n+j)`-th element of `V`. The sequence `V` must have length `mn` and the dimensions of the matrices of `V` must be compatible with the above construction.
+Given a sequence `V` of matrices, return the `m x n` block matrix,
+where the `(i,j)`-block is the `((i-1)*n+j)`-th element of `V`.
+The sequence `V` must have length `mn` and the dimensions of the matrices of `V` must be compatible with the above construction.
 """
 # TODO: eliminate this function again, use cat/hcat/vcat/... instead
 function block_matrix(m::Int, n::Int, V::AbstractVector{T}) where T <: MatElem
@@ -109,7 +113,8 @@ end
 """
     matrix(A::Array{AbstractAlgebra.Generic.FreeModuleElem{T},1})
 
-Return the matrix whose rows are the vectors in `A`. Of course, vectors in `A` must have the same length and the same base ring.
+Return the matrix whose rows are the vectors in `A`.
+All vectors in `A` must have the same length and the same base ring.
 """
 function matrix(A::Array{AbstractAlgebra.Generic.FreeModuleElem{T},1}) where T <: FieldElem
    c = length(A[1].v)
@@ -120,6 +125,50 @@ function matrix(A::Array{AbstractAlgebra.Generic.FreeModuleElem{T},1}) where T <
    end
 
    return X
+end
+
+"""
+    upper_triangular_matrix(L)
+
+Return the upper triangular matrix whose entries on and above the diagonal are the elements of `L`.
+
+An error is returned whenever the length of `L` is not `n*(n+1)/2` for some integer `n`.
+"""
+function upper_triangular_matrix(L)
+   T = eltype(L)
+   @assert T <: RingElem "L must be a collection of ring elements"
+   d = Int(floor((sqrt(1+8*length(L))-1)/2))
+   length(L)==div(d*(d+1),2) || throw(ArgumentError("Input vector of invalid length"))
+   R = parent(L[1])
+   x = zero_matrix(R,d,d)
+   pos=1
+   for i in 1:d, j in i:d
+      x[i,j] = L[pos]
+      pos+=1
+   end
+   return x
+end
+
+"""
+    lower_triangular_matrix(L)
+
+Return the upper triangular matrix whose entries on and below the diagonal are the elements of `L`.
+
+An error is returned whenever the length of `L` is not `n*(n+1)/2` for some integer `n`.
+"""
+function lower_triangular_matrix(L)
+   T = eltype(L)
+   @assert T <: RingElem "L must be a collection of ring elements"
+   d = Int(floor((sqrt(1+8*length(L))-1)/2))
+   length(L)==div(d*(d+1),2) || throw(ArgumentError("Input vector of invalid length"))
+   R = parent(L[1])
+   x = zero_matrix(R,d,d)
+   pos=1
+   for i in 1:d, j in 1:i
+      x[i,j] = L[pos]
+      pos+=1
+   end
+   return x
 end
 
 """
@@ -171,7 +220,8 @@ end
     permutation_matrix(F::Ring, Q::AbstractVector{T}) where T <: Int
     permutation_matrix(F::Ring, p::PermGroupElem)
 
-Return the permutation matrix over the ring `R` corresponding to the sequence `Q` or to the permutation `p`. If `Q` is a sequence, then `Q` must contain exactly once every integer from 1 to some `n`.
+Return the permutation matrix over the ring `R` corresponding to the sequence `Q` or to the permutation `p`.
+If `Q` is a sequence, then `Q` must contain exactly once every integer from 1 to some `n`.
 """
 function permutation_matrix(F::Ring, Q::AbstractVector{T}) where T <: Base.Integer
    @assert Set(Q)==Set(1:length(Q)) "Invalid input"
@@ -194,7 +244,9 @@ permutation_matrix(F::Ring, p::PermGroupElem) = permutation_matrix(F, Vector(p))
 """
     isskewsymmetric_matrix(B::MatElem{T}) where T <: Ring
 
-Return whether the matrix `B` is skew-symmetric, i.e. `B = -transpose(B)` and `B` has zeros on the diagonal. Returns `false` if `B` is not a square matrix.
+Return whether the matrix `B` is skew-symmetric,
+i.e. `B = -transpose(B)` and `B` has zeros on the diagonal.
+Returns `false` if `B` is not a square matrix.
 """
 function isskewsymmetric_matrix(B::MatElem{T}) where T <: RingElem
    n = nrows(B)
@@ -213,7 +265,8 @@ end
 """
     ishermitian_matrix(B::MatElem{T}) where T <: FinFieldElem
 
-Return whether the matrix `B` is hermitian, i.e. `B = conjugate_transpose(B)`. Returns `false` if `B` is not a square matrix, or the field has not even degree.
+Return whether the matrix `B` is hermitian, i.e. `B = conjugate_transpose(B)`.
+Returns `false` if `B` is not a square matrix, or the field has not even degree.
 """
 function ishermitian_matrix(B::MatElem{T}) where T <: FinFieldElem
    n = nrows(B)
@@ -231,7 +284,8 @@ function ishermitian_matrix(B::MatElem{T}) where T <: FinFieldElem
 end
 
 # return (true, h) if y = hx, (false, nothing) otherwise
-function _is_scalar_multiple_mat(x::MatElem{T}, y::MatElem{T}) where T <: FieldElem
+# FIXME: at the moment, works only for fields
+function _is_scalar_multiple_mat(x::MatElem{T}, y::MatElem{T}) where T <: RingElem
    F=base_ring(x)
    F==base_ring(y) || return (false, nothing)
    nrows(x)==nrows(y) || return (false, nothing)
