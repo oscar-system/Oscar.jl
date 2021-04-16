@@ -36,7 +36,6 @@ function H_one(C::CohomologyModule)
   phi_i = oplus h_j M for some homs h_j coming from the word in r
   so, a kernel computation again
 
-  Problem: how do I get generating relations?
   =#
   G = Group(C)
   n = ngens(G)
@@ -72,7 +71,7 @@ function H_one(C::CohomologyModule)
   return quo(K, image(g)[1])[1]
 end
 
-function rules(G)
+function confluent_rws(G)
   C = GAP.Globals.ConfluentMonoidPresentationForGroup(G.X)
   #has different generators than G! So the action will have to
   #be adjusted to those words. I do not know if a RWS (Confluent) can
@@ -84,6 +83,9 @@ function rules(G)
   g = map(GAP.Globals.LetterRepAssocWord, g)
   @assert all(x->length(x) == 1, g)
   g = [Int(x[1]) for x = g]
+  #the Gap code uses RelationsOfFpMonoid rather than
+  # ReducedConfluentRewritingSystem...
+  # no idea why
 #  R = GAP.Globals.Rules(GAP.Globals.ReducedConfluentRewritingSystem(M))
   R = GAP.Globals.RelationsOfFpMonoid(M)
 
@@ -104,13 +106,15 @@ function rules(G)
     push!(ge, map(Int, GAP.Globals.LetterRepAssocWord(GAP.Globals.UnderlyingElement(i))))
   end
 
+  #actually, need the map (isomorphism) between G <-> Fp group with the
+  #RWS in ru
   return ru, ge
 end
 
 mutable struct CollectCtx
-  r::Array{Tuple{Vector{Int}, Vector{Int}}, 1} #the rules
+  r::Array{Tuple{Vector{Int}, Vector{Int}}, 1} #the rules, RWS
 
-  d1::Dict{Int, Int}
+  d1::Dict{Int, Int} #rules where lhs has length 1
 
   d2::Dict{Tuple{Int, Int}, Array{Int, 1}} # length 2 prefixes
 
@@ -219,7 +223,8 @@ function H_two(C::CohomologyModule)
   Ac = action(C)
   iAc = map(inv, Ac)
 
-  R, ge = rules(G)
+  R, ge = confluent_rws(G)
+  #now map the action generators (for gens(G)) to the gens for the RWS
   ac = []
   iac = []
   for g = ge
@@ -237,6 +242,8 @@ function H_two(C::CohomologyModule)
 
   c = CollectCtx(R)
 
+  #rules with length(LHS) == 1 and rules of the form
+  # [a a^-1] -> [], [a^-1 1] -> [] do not get tails
   pos = Array{Int, 1}()
   n = 0
   for i = 1:length(R)
@@ -255,6 +262,15 @@ function H_two(C::CohomologyModule)
 
   D, pro, inj = direct_product([M for i=1:n]..., task = :both)
 
+  #when collecting (i.e. applying the RWS we need to also
+  #use the tails:  g v h -> gh h(v) 
+  #and if [gh] -> [x] with tail t, then
+  #       gh -> x t, so 
+  #       g v h -> gh h(v) -> x t+h(v)
+  # Hulpke calls this the normal version: reduced group word
+  # at the beginning, module at the end, the tail.
+  # collect will call the extra function c.f if set in the
+  # CollectCtx
   c.f = function(w::Array{Int, 1}, r::Int, p::Int)
     #w = ABC and B == r[1], B -> r[2] * tail[r]
     # -> A r[2] C C(tail)
@@ -277,8 +293,10 @@ function H_two(C::CohomologyModule)
 
   E = D
   all_T = []
+  Z = hom(D, M, [M[0] for i=1:ngens(D)], check = false)
   for i = 1:length(R)
     r = R[i]
+    #rules of LHS length 1 do not generate equations
     if length(r[1]) == 1
       continue
     end
@@ -306,11 +324,11 @@ function H_two(C::CohomologyModule)
               end
             end
           else
-            c.T = hom(D, M, [M[0] for i=1:ngens(D)], check = false)
+            c.T = Z
           end
           z1 = collect(vcat(r[2], s[1][l+1:end]), c)
           T = c.T
-          c.T = hom(D, M, [M[0] for i=1:ngens(D)], check = false)
+          c.T = Z
           z2 = collect(vcat(r[1][1:end-l], s[2]), c)
           if pos[j] > 0
             c.T += pro[pos[j]]
@@ -381,10 +399,59 @@ function H_two(C::CohomologyModule)
   # gmhn -> gh h(m)+n -> x t+h(m) + n where x is the reduced
   #                                   word under collection and t is the 
   #                                   "tail"
-  # so gamma(g, h) = t??
+  # so gamma(g, h) = t
   # given gamma need the tails:
+  # need to implement the group operation for the extension
+  # (g, v)(h, u) -> (gh, v^h + u + gamma(g, h))
+  # then the rules with tails need to be evaluated at
+  # the group generators (g_i, 0) 
+  # r -> s gives a relation r s^-1 which should evaluate, using gamma
+  # to (0, t) where t is the tail for this rule
 end
 
 Base.:-(M::GrpAbFinGenMap) = hom(domain(M), codomain(M), [-M(g) for g = gens(domain(M))], check = false)
+
+#= TODO
+  for Z, Z/nZ, F_p and F_q moduln -> find Fp-presentation
+  for GrpAbFinGen            -> find Fp-presentation
+  for a in H^2 find Fp-presentation
+  for a in H^2 find (low degree) perm group using the perm group we have?
+  Magma's DistinctExtensions
+  probably aut(GrpAb), ...
+
+Sort: 
+ - move the additional GrpAbFinGenMap stuff elsewhere
+ - move (and fix) the ModuleHom stuff
+ - add proper quo for Modules
+
+  group better: the CohomologyModule should
+   - cache the H^i's that are computed
+   - we need to sort caching for the IsomorphismFpGroupByGenerators as it is
+     used frequently
+
+  features   
+   - need to provide translations to other reps for cocycles, coboundaries
+     (gamma in H^i -> function from G^i -> M)
+     (for cyclic G special?)
+   - test for triviality and return the boundary!
+   - inflation, restriction, long exact sequence  
+
+  dreams
+   - we we extend to H^-1, ^-2?
+   - H^3 (in some cases)
+   - cup products
+   - the relative cohomology
+     https://arxiv.org/pdf/1809.01209.pdf
+     https://doi.org/10.1017/S2040618500033050
+   - understand Derek Holt and use BSGS for large perm groups
+     rather than the RWS (or use BSGS to get an RWS?)
+
+
+  CohomologyModule for 
+    - abelian_extension (do for subgroups of the aut of the base field!)
+    - local field (add (trivial) and mult)
+    - (S-)units
+    - Ali's stuff....
+=#    
 
 end # module GrpCoh
