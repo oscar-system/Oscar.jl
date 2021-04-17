@@ -160,7 +160,7 @@ end
 
 function -(a::FreeModuleElem, b::FreeModuleElem)
     check_parent(a,b)
-    return FreeModuleElem(a.coords+b.coords, a.parent)
+    return FreeModuleElem(a.coords-b.coords, a.parent)
 end
 
 function ==(a::FreeModuleElem, b::FreeModuleElem) 
@@ -1071,8 +1071,16 @@ function hom_tensor(G::ModuleFP, H::ModuleFP, A::Array{ <: ModuleMap, 1})
   #thus need the pure map - and re-create the careful ordering of the generators as in the 
   # constructor
   #store the maps? and possibly more data, like the ordeing
-  error("not done yet")
-  return hom(G, H)
+  decompose_G = get_special(G, :tensor_generator_decompose_function)
+  pure_H = get_special(H, :tensor_pure_function)
+  function map_gen(g) # Is there something that generalizes FreeModuleElem and SubQuoElem?
+    g_decomposed = decompose_G(g)
+    image_as_tuple = Tuple(f(x) for (f,x) in zip(A,g_decomposed))
+    res = pure_H(image_as_tuple)
+    return res
+  end
+  #error("not done yet")
+  return hom(G, H, map(map_gen, gens(G)))
 end
 
 function hom_prod_prod(G::ModuleFP, H::ModuleFP, A::Array{ <: ModuleMap, 2})
@@ -1120,6 +1128,7 @@ end
 hom(D::SubQuo, C::ModuleFP, A::Array{<:Any, 1}) = SubQuoHom(D, C, A)
 
 function image(f::SubQuoHom, a::SubQuoElem)
+  # TODO matrix vector multiplication
   @assert a.parent === domain(f)
   i = zero(codomain(f))
   D = domain(f)
@@ -1526,6 +1535,8 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
     return Tuple(gen(G[i], t[e.coords.pos[1]][i]) for i = 1:length(G))
   end
 
+  Hecke.set_special(F, :tensor_pure_function => pure, :tensor_generator_decompose_function => inv_pure)
+
   return F, MapFromFunc(pure, inv_pure, Hecke.TupleParent(Tuple([g[0] for g = G])), F)
 end
 
@@ -1560,23 +1571,49 @@ $g_1 \otimes \cdots \otimes g_n$. The map admits a preimage as well.
 """
 function tensor_product(G::ModuleFP...; task::Symbol = :none)
   F, mF = tensor_product([free_module(x) for x = G]..., task = :map)
-  s, emb = sub(F, vec([mF(x) for x = Base.Iterators.ProductIterator(Tuple(gens(x, free_module(x)) for x = G))]), :map)
-  corresponding_tuples = vec([x for x = Base.Iterators.ProductIterator(Tuple(gens(x, free_module(x)) for x = G))])
+  corresponding_tuples_as_indices = vec([x for x = Base.Iterators.ProductIterator(Tuple(1:ngens(x) for x = G))])
+  corresponding_tuples = map(index_tuple -> Tuple(map(index -> G[index][index_tuple[index]],1:length(index_tuple))), corresponding_tuples_as_indices)
+  #println(corresponding_tuples_as_indices)
+  #println(test_corr)
+  #corresponding_tuples = vec([x for x = Base.Iterators.ProductIterator(Tuple(gens(x, free_module(x)) for x = G))])
+  #println(corresponding_tuples)
+  #generating_tensors = map(mF, corresponding_tuples)
+  generating_tensors = map(mF, map(tuple -> map(x -> x.repres, tuple), corresponding_tuples))
+  s, emb = sub(F, generating_tensors, :map)
+  #tuples_pure_tensors_dict = IdDict(zip(corresponding_tuples, gens(s)))
+  #s, emb = sub(F, vec([mF(x) for x = Base.Iterators.ProductIterator(Tuple(gens(x, free_module(x)) for x = G))]), :map)
   q = vcat([vec([mF(x) for x = Base.Iterators.ProductIterator(Tuple(i == j ? rels(G[i]) : gens(free_module(G[i])) for i=1:length(G)))]) for j=1:length(G)]...) 
   local projection_map
   if length(q) != 0
     s, projection_map = quo(s, q, :map)
   end
+  test_dict = IdDict(zip(corresponding_tuples_as_indices, gens(s)))
+  Hecke.set_special(s, :show => Hecke.show_tensor_product, :tensor_product => G)
   if task == :none
     return s
   else
-
+    
     function pure(tuple_elems::SubQuoElem...)
+      #println(vec([x for x = Base.Iterators.ProductIterator(Tuple(x.coeffs for x = tuple_elems))]))
+      coeffs_tuples = vec([x for x = Base.Iterators.ProductIterator(Tuple(x.coeffs for x = tuple_elems))])
+      res = zero(s)
+      for coeffs_tuple in coeffs_tuples
+        indices = map(x -> x[1], coeffs_tuple)
+        coeff_for_pure = prod(map(x -> x[2], coeffs_tuple))
+        #println(coeff_for_pure*test_dict[indices])
+        res += coeff_for_pure*test_dict[indices]
+      end
+      return res
+
+
       tensor_elem = preimage(emb,mF(Tuple(x.repres for x in tuple_elems)))
       if length(q) != 0
         tensor_elem = projection_map(tensor_elem)
       end
       return tensor_elem
+    end
+    function pure(T::Tuple)
+      return pure(T...)
     end
 
     decompose_generator = function(v::SubQuoElem)
@@ -1584,7 +1621,7 @@ function tensor_product(G::ModuleFP...; task::Symbol = :none)
       return corresponding_tuples[i]
     end
 
-    Hecke.set_special(s, :tensor_generator_decompose_function => decompose_generator)
+    Hecke.set_special(s, :tensor_pure_function => pure, :tensor_generator_decompose_function => decompose_generator)
 
     return s, MapFromFunc(pure, Hecke.TupleParent(Tuple([g[0] for g = G])), s)
   end
