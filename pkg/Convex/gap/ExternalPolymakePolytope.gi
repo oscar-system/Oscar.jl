@@ -321,8 +321,12 @@ InstallMethod( Polymake_Inequalities,
               " return the list of inequalities of a poly",
               [ IsPolymakePolytope ],
   function( poly )
+    local equ, ineq;
     
-    return Set( ( Polymake_H_Rep( poly ) )!.inequalities );
+    equ := ( Polymake_H_Rep( poly ) )!.equalities;
+    ineq := ( Polymake_H_Rep( poly ) )!.inequalities;
+    
+    return Set( Concatenation( equ, (-1) * equ, ineq ) );
     
 end );
 
