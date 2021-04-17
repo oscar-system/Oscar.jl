@@ -338,8 +338,12 @@ InstallMethod( Polymake_Inequalities,
               " return the list of inequalities of a cone",
               [ IsPolymakeCone ],
   function( cone )
+    local equ, ineq;
     
-    return Set( ( Polymake_H_Rep( cone ) )!.inequalities );
+    equ := ( Polymake_H_Rep( cone ) )!.equalities;
+    ineq := ( Polymake_H_Rep( cone ) )!.inequalities;
+    
+    return Set( Concatenation( equ, (-1) * equ, ineq ) );
     
 end );
 
