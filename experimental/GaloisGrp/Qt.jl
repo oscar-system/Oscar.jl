@@ -37,5 +37,50 @@
  
  if this is > 1, the a_n -> 0    
 
+=======================================================
+
+OK, s is a root, so the coeffs s = sum s_n (x-t)^n 
+satisfy, by above, |s_n| <= B/r^n for some explicit r > 1
+
+Lemma:
+  let s, t be power series with
+    |s_n| <= B (n+1)^k/r^n for some B, k
+    |t_n| <= C (n+1)^l/r^n
+  then
+    st = sum d_i (x-t)^n with
+    |d_n| <= BC (n+1)^(k+l+1)/r^n
+
+pf:
+  Cauchy product:
+
+  |d_n| =  |sum_{i+j = n} s_i t_j|
+        <= sum |s_i t_j|
+        <= sum Bi^k/r^i C j^l/r^j
+        <= BC sum (n+1)^k (n+1)^l/r^(i+j) = BC (n+1)^(k+l) (n+1) 1/r^n
+
+Clear: 
+  |(s+t)_n| <= ...
+
+
+Lemma:
+  if |s_n| <= B (n+1)^k/r^n, then the largest coeff is either at
+    floor(x) or ceil(x) for x = (k/log r) - 1
+
+pf:
+ as a function of n:
+   (B (n+1)^k/r^n)' = B k (n+1)^(k-1)/r^n - B (n+1)^k log r /r^n
+ which is zero iff
+   k - (n+1) log r = 0 or n+1 = k/log r
+
+
+Possibly we can get better estimates for sum_{i+j=n} i^k j^l
+on particular for powering:
+  sum_{|alpha| = k} prod alpha^k
+
+===============================================================
+Also see 
+https://math.uni-paderborn.de/fileadmin/mathematik/AG-Computeralgebra/Publications-klueners/function.pdf
+
+for analysis of the denominator and the infinite valuations  
 =#
 
