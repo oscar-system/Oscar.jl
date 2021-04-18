@@ -87,7 +87,7 @@ end );
 
 InstallGlobalFunction( Polymake_ConeFromInequalities,
   function( arg )
-    local cone, i, temp, matrix, dim;
+    local cone, i, ineqs;
     
     if Length( arg ) = 0 then
         Error( "Wronge input: Please provide some input!" );
@@ -120,7 +120,7 @@ InstallGlobalFunction( Polymake_ConeFromInequalities,
                      rep_type := "H-rep" );
         
         ObjectifyWithAttributes( cone, TheTypeOfPolymakeCone );
-        return cone;
+        return Polymake_CanonicalConeFromInequalities( cone );
         
     fi;
     
@@ -136,7 +136,7 @@ end );
 InstallMethod( Polymake_CanonicalConeByGenerators,
                [ IsPolymakeCone ],
   function( cone )
-    local command_string, s, res_string, rays, scaled_rays, scale, lineality, scaled_lineality, new_cone;
+    local command_string, s, res_string, rays, scaled_rays, i, scale, lineality, scaled_lineality, new_cone;
     
     if cone!.rep_type = "H-rep" then
         
@@ -189,7 +189,7 @@ end );
 InstallMethod( Polymake_CanonicalConeFromInequalities,
                [ IsPolymakeCone ],
   function( cone )
-    local command_string, s, res_string, ineqs, scaled_ineqs, scale, eqs, scaled_eqs, new_cone;
+    local command_string, s, res_string, ineqs, scaled_ineqs, i, scale, eqs, scaled_eqs, new_cone;
     
     if cone!.rep_type = "V-rep" then
         
@@ -249,7 +249,7 @@ end );
 InstallMethod( Polymake_V_Rep,
                [ IsPolymakeCone ],
   function( cone )
-    local command_string, s, res_string, rays, scaled_rays, cale, lineality, scaled_lineality, new_cone;
+    local command_string, s, res_string, rays, scaled_rays, i, scale, lineality, scaled_lineality, new_cone;
     
     if cone!.rep_type = "V-rep" then
         return cone;
@@ -300,7 +300,7 @@ end );
 InstallMethod( Polymake_H_Rep,
                [ IsPolymakeCone ],
   function( cone )
-    local command_string, s, res_string, ineqs, scaled_ineqs, scale, eqs, scaled_eqs, new_cone;
+    local command_string, s, res_string, ineqs, scaled_ineqs, i, scale, eqs, scaled_eqs, new_cone;
     
     if cone!.rep_type = "H-rep" then
         
@@ -430,7 +430,7 @@ InstallMethod( Polymake_Inequalities,
               [ IsPolymakeCone ],
   function( cone )
     
-    return Set( Polymake_H_Rep( cone ) )!.inequalities );
+    return Set( ( Polymake_H_Rep( cone ) )!.inequalities );
     
 end );
 

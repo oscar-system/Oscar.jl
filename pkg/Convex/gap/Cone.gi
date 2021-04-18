@@ -130,7 +130,7 @@ InstallMethod( DefiningInequalities,
     if PolymakeAvailable() then
         ineqs := Polymake_Inequalities( ExternalPolymakeCone( cone ) );
         eqs := Polymake_Equalities( ExternalPolymakeCone( cone ) );
-        return Set( Concatenation( equ, (-1) * equ, ineq ) );
+        return Set( Concatenation( eqs, (-1) * eqs, ineq ) );
     fi;
     
     TryNextMethod();
