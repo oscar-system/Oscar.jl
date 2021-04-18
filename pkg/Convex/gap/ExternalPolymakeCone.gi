@@ -94,7 +94,7 @@ InstallGlobalFunction( Polymake_ConeByGenerators,
                     lineality := arg[ 2 ],
                     number_type := "rational",
                     rep_type := "V-rep" );
-                    
+        
         ObjectifyWithAttributes( cone, TheTypeOfPolymakeCone );
         
         return cone;
@@ -465,7 +465,7 @@ InstallMethod( Polymake_V_Rep_command_string,
         fi;
         
         # prepare string with rays
-        rays := cone!.generating_rays;
+        rays := Polymake_GeneratingRays( cone );
         rays := List( [ 1 .. Length( rays ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( rays[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
         command_string := Concatenation( "ConeByGAP4PackageConvex", " = Julia.Polymake.polytope.Cone( INPUT_RAYS = [ ", JoinStringsWithSeparator( rays, "; " ), "] " );
         
