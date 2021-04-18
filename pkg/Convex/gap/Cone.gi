@@ -142,16 +142,20 @@ InstallMethod( IntersectionOfCones,
                "for homalg cones",
                [ IsCone, IsCone ],
   function( cone1, cone2 )
-    local cone, ext_cone;
+    local ext_cone, ineqs, eqs, cone;
     
     if not Rank( ContainingGrid( cone1 ) ) = Rank( ContainingGrid( cone2 ) ) then
         Error( "cones are not from the same grid" );
     fi;
     
+    # compute the intersection cone
     ext_cone := Polymake_Intersection( ExternalPolymakeCone( cone1), ExternalPolymakeCone( cone2 ) );
-    cone := Cone( ext_cone );
+    ineqs := ext_cone!.inequalities;
+    eqs := ext_cone!.equalities;
+    cone := ConeByEqualitiesAndInequalities( ineqs, eqs );
     SetContainingGrid( cone, ContainingGrid( cone1 ) );
     
+    # and return it
     return cone;
     
 end );
