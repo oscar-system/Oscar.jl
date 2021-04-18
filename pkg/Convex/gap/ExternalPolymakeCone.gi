@@ -155,6 +155,7 @@ InstallMethod( Polymake_CanonicalConeByGenerators,
         # sometimes, Polymake returns rational rays - we turn them into integral vectors
         scaled_rays := [];
         for i in [ 1 .. Length( rays ) ] do
+            Remove( rays[ i], 1 );
             scale := Lcm( List( rays[ i ], r -> DenominatorRat( r ) ) );
             Append( scaled_rays, [ scale * rays[ i ] ] );
         od;
@@ -173,7 +174,7 @@ InstallMethod( Polymake_CanonicalConeByGenerators,
             scale := Lcm( List( lineality[ i ], r -> DenominatorRat( r ) ) );
             Append( scaled_lineality, [ scale * lineality[ i ] ] );
         od;
-        Error( "Test" );
+        
         # construct the new cone
         new_cone := rec( generating_rays := scaled_rays,
                          lineality := scaled_lineality,
