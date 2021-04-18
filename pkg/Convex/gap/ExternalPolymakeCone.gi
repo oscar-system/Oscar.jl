@@ -308,7 +308,7 @@ InstallMethod( Polymake_H_Rep,
         
     else
         
-        if cone!.rep_type = "V-rep" and cone!.matrix = [] then
+        if cone!.rep_type = "V-rep" and cone!.generating_rays = [] then
             return Polymake_ConeFromInequalities( [ [ 0, 1 ], [ -1, -1 ] ] );
         fi;
         
