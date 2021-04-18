@@ -35,7 +35,7 @@ InstallGlobalFunction( Polymake_ConeByGenerators,
   function( arg )
     local cone, i, rays;
     
-    if Length( arg )= 0 then
+    if Length( arg ) = 0 then
         Error( "Wronge input" );
     elif Length( arg ) = 1 and IsList( arg[1] ) then
         return Polymake_ConeByGenerators( arg[ 1 ], [ ] );
@@ -57,13 +57,13 @@ InstallGlobalFunction( Polymake_ConeByGenerators,
             Error( "Wronge input: The first argument should be a Gap matrix!" );
         fi;
         
-        if not ForAll( arg[ 1 ], row -> row[ 1 ] in [ 0, 1 ] ) then
-            Error( "Wronge input: Please see the documentation!" );
-        fi;
+        #if not ForAll( arg[ 1 ], row -> row[ 1 ] in [ 0, 1 ] ) then
+        #    Error( "Wronge input: Please see the documentation!" );
+        #fi;
         
-        if not ForAll( arg[ 2 ], i -> i in [ 1 .. NrRows( arg[ 1 ] ) ] ) then
-            Error( "Wronge input for lineality" );
-        fi;
+        #if not ForAll( arg[ 2 ], i -> i in [ 1 .. NrRows( arg[ 1 ] ) ] ) then
+        #    Error( "Wronge input for lineality" );
+        #fi;
         
         # find rays
         rays := Filtered( arg[ 1 ], row -> not IsZero( row ) );
@@ -103,9 +103,9 @@ InstallGlobalFunction( Polymake_ConeFromInequalities,
             Error( "Wronge input: The first argument should be a Gap matrix!" );
         fi;
         
-        if not ForAll( arg[ 2 ], i -> i in [ 1 .. NrRows( arg[ 1 ] ) ] ) then
-            Error( "Wronge input for lineality" );
-        fi;
+        #if not ForAll( arg[ 2 ], i -> i in [ 1 .. NrRows( arg[ 1 ] ) ] ) then
+        #    Error( "Wronge input for lineality" );
+        #fi;
         
         # find the inequalities
         ineqs := Filtered( arg[ 1 ], row -> not IsZero( row ) );
