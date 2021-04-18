@@ -76,7 +76,7 @@ end );
 InstallMethod( RayGenerators,
                [ IsCone ],
     function( cone )
-    local list_of_rays, scaled_rays, denoms;
+    local list_of_rays, scaled_rays, i, scale;
     
     if PolymakeAvailable() then
         
