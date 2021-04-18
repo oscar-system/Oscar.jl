@@ -31,7 +31,7 @@ InstallMethod( ExternalPolymakeCone,
         
         for i in [1..Length( list ) ] do 
             u:= ShallowCopy( list[ i ] );
-            Add( u, 0, 1 );
+            #Add( u, 0, 1 );
             Add( new_list, u );
         od;
         
@@ -50,7 +50,7 @@ InstallMethod( ExternalPolymakeCone,
         
         for i in [1..Length( list ) ] do 
             u:= ShallowCopy( list[ i ] );
-            Add( u, 0, 1 );
+            #Add( u, 0, 1 );
             Add( new_list, u );
         od;
         
@@ -62,7 +62,7 @@ InstallMethod( ExternalPolymakeCone,
         
         for i in [1..Length( list ) ] do 
             u:= ShallowCopy( list[ i ] );
-            Add( u, 0, 1 );
+            #Add( u, 0, 1 );
             Add( new_list, u );
         od;
         
