@@ -210,7 +210,6 @@ InstallMethod( Polymake_CanonicalConeFromInequalities,
         # sometimes, Polymake returns rational facets - we turn them into integral vectors
         scaled_ineqs := [];
         for i in [ 1 .. Length( ineqs ) ] do
-            #Remove( ineqs[ i ], 1 );
             scale := Lcm( List( ineqs[ i ], r -> DenominatorRat( r ) ) );
             Append( scaled_ineqs, [ scale * ineqs[ i ] ] );
         od;
@@ -226,7 +225,6 @@ InstallMethod( Polymake_CanonicalConeFromInequalities,
         # sometimes, Polymake returns rational facets - we turn them into integral vectors
         scaled_eqs := [];
         for i in [ 1 .. Length( eqs ) ] do
-            #Remove( eqs[ i ], 1 );
             scale := Lcm( List( eqs[ i ], r -> DenominatorRat( r ) ) );
             Append( scaled_eqs, [ scale * eqs[ i ] ] );
         od;
@@ -268,7 +266,6 @@ InstallMethod( Polymake_V_Rep,
         rays := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
         
         # sometimes, Polymake returns rational rays - we turn them into integral vectors
-        Error( "Test" );
         scaled_rays := [];
         for i in [ 1 .. Length( rays ) ] do
             Remove( rays[ i ], 1 );
@@ -330,7 +327,6 @@ InstallMethod( Polymake_H_Rep,
         # sometimes, Polymake returns rational facets - we turn them into integral vectors
         scaled_ineqs := [];
         for i in [ 1 .. Length( ineqs ) ] do
-            #Remove( ineqs[ i ], 1 );
             scale := Lcm( List( ineqs[ i ], r -> DenominatorRat( r ) ) );
             Append( scaled_ineqs, [ scale * ineqs[ i ] ] );
         od;
@@ -346,7 +342,6 @@ InstallMethod( Polymake_H_Rep,
         # sometimes, Polymake returns rational facets - we turn them into integral vectors
         scaled_eqs := [];
         for i in [ 1 .. Length( eqs ) ] do
-            #Remove( eqs[ i ], 1 );
             scale := Lcm( List( eqs[ i ], r -> DenominatorRat( r ) ) );
             Append( scaled_eqs, [ scale * eqs[ i ] ] );
         od;
