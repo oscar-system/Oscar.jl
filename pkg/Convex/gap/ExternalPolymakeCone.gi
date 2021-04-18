@@ -118,7 +118,7 @@ InstallGlobalFunction( Polymake_ConeFromInequalities,
                      equalities := arg[ 2 ],
                      number_type := "rational",
                      rep_type := "H-rep" );
-        
+        Error( "Test1" );
         ObjectifyWithAttributes( cone, TheTypeOfPolymakeCone );
         return Polymake_CanonicalConeFromInequalities( cone );
         
@@ -230,7 +230,7 @@ InstallMethod( Polymake_CanonicalConeFromInequalities,
             scale := Lcm( List( eqs[ i ], r -> DenominatorRat( r ) ) );
             Append( scaled_eqs, [ scale * eqs[ i ] ] );
         od;
-        
+        Error( "Test2" );
         # construct the new cone
         new_cone := rec( inequalities := scaled_ineqs,
                          equalities := scaled_eqs,
