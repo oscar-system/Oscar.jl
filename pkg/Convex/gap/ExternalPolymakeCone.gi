@@ -573,7 +573,7 @@ InstallMethod( Polymake_H_Rep_command_string,
         eqs := cone!.equalities;
         if ( Length( eqs ) > 0 ) then
             eqs := List( [ 1 .. Length( eqs ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( eqs[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
-            command_string := Concatenation( command_string, ", EQUALITIES = [ ", JoinStringsWithSeparator( eqs, "; " ), " ] " );
+            command_string := Concatenation( command_string, ", EQUATIONS = [ ", JoinStringsWithSeparator( eqs, "; " ), " ] " );
         fi;
         
         # append closing bracket
