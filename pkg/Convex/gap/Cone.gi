@@ -15,25 +15,21 @@
 InstallMethod( ExternalPolymakeCone,
                [ IsCone ],
    function( cone )
-    local list, new_list, number_of_equalities, linearity, i, u ;
     
-    new_list:= [ ];
-    if IsBound( cone!.input_rays ) and Length( cone!.input_rays )= 1 and IsZero( cone!.input_rays ) then
-        
-        new_list:= [ Concatenation( cone!.input_rays[ 1 ] ) ];
-        return Polymake_ConeByGenerators( new_list );
-        
+    if IsBound( cone!.input_rays ) and Length( cone!.input_rays ) = 1 and IsZero( cone!.input_rays ) then
+        return Polymake_ConeByGenerators( cone!.input_rays[ 1 ] );
     fi;
     
-    if IsBound( cone!.input_rays ) then 
-        return Polymake_ConeByGenerators( new_list );
+    if IsBound( cone!.input_rays ) then
+        return Polymake_ConeByGenerators( cone!.input_rays );
     fi;
     
     if IsBound( cone!.input_equalities ) then
         return Polymake_ConeFromInequalities( cone!.input_inequalities, cone!.input_equalities );
-    else
-        return Polymake_ConeFromInequalities( cone!.input_inequalities );
     fi;
+    
+    # otherwise our fallback is cone from inequalities
+    return Polymake_ConeFromInequalities( cone!.input_inequalities );
     
 end );
 
@@ -114,7 +110,7 @@ InstallMethod( IntersectionOfCones,
     fi;
     
     # compute the intersection cone
-    ext_cone := Polymake_Intersection( ExternalPolymakeCone( cone1), ExternalPolymakeCone( cone2 ) );
+    ext_cone := Polymake_Intersection( ExternalPolymakeCone( cone1 ), ExternalPolymakeCone( cone2 ) );
     ineqs := ext_cone!.inequalities;
     eqs := ext_cone!.equalities;
     cone := ConeByEqualitiesAndInequalities( ineqs, eqs );
