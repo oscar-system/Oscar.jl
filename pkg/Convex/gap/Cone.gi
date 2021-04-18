@@ -20,54 +20,19 @@ InstallMethod( ExternalPolymakeCone,
     new_list:= [ ];
     if IsBound( cone!.input_rays ) and Length( cone!.input_rays )= 1 and IsZero( cone!.input_rays ) then
         
-        new_list:= [ Concatenation( [ 1 ], cone!.input_rays[ 1 ] ) ];
+        new_list:= [ Concatenation( cone!.input_rays[ 1 ] ) ];
         return Polymake_ConeByGenerators( new_list );
         
     fi;
     
     if IsBound( cone!.input_rays ) then 
-        
-        list := cone!.input_rays;
-        
-        for i in [1..Length( list ) ] do 
-            u:= ShallowCopy( list[ i ] );
-            #Add( u, 0, 1 );
-            Add( new_list, u );
-        od;
-        
         return Polymake_ConeByGenerators( new_list );
-        
     fi;
     
-    
     if IsBound( cone!.input_equalities ) then
-        
-        list := StructuralCopy( cone!.input_equalities );
-        number_of_equalities:= Length( list );
-        linearity := [1..number_of_equalities];
-        
-        Append( list, StructuralCopy( cone!.input_inequalities ) );
-        
-        for i in [1..Length( list ) ] do 
-            u:= ShallowCopy( list[ i ] );
-            #Add( u, 0, 1 );
-            Add( new_list, u );
-        od;
-        
-        return Polymake_ConeFromInequalities( new_list, linearity );
-        
+        return Polymake_ConeFromInequalities( cone!.input_inequalities, cone!.input_equalities );
     else
-        
-        list:= StructuralCopy( cone!.input_inequalities );
-        
-        for i in [1..Length( list ) ] do 
-            u:= ShallowCopy( list[ i ] );
-            #Add( u, 0, 1 );
-            Add( new_list, u );
-        od;
-        
-        return Polymake_ConeFromInequalities( new_list );
-        
+        return Polymake_ConeFromInequalities( cone!.input_inequalities );
     fi;
     
 end );
