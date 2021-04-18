@@ -210,10 +210,10 @@ InstallMethod( Polymake_CanonicalConeFromInequalities,
         # sometimes, Polymake returns rational facets - we turn them into integral vectors
         scaled_ineqs := [];
         for i in [ 1 .. Length( ineqs ) ] do
+            Remove( ineqs[ i ], 1 );
             scale := Lcm( List( ineqs[ i ], r -> DenominatorRat( r ) ) );
             Append( scaled_ineqs, [ scale * ineqs[ i ] ] );
         od;
-        Error( "Test" );
         
         # compute linear span
         command_string := Concatenation( Polymake_H_Rep_command_string( cone ), ".LINEAR_SPAN" );
@@ -226,6 +226,7 @@ InstallMethod( Polymake_CanonicalConeFromInequalities,
         # sometimes, Polymake returns rational facets - we turn them into integral vectors
         scaled_eqs := [];
         for i in [ 1 .. Length( eqs ) ] do
+            Remove( eqs[ i ], 1 );
             scale := Lcm( List( eqs[ i ], r -> DenominatorRat( r ) ) );
             Append( scaled_eqs, [ scale * eqs[ i ] ] );
         od;
@@ -328,6 +329,7 @@ InstallMethod( Polymake_H_Rep,
         # sometimes, Polymake returns rational facets - we turn them into integral vectors
         scaled_ineqs := [];
         for i in [ 1 .. Length( ineqs ) ] do
+            Remove( ineqs[ i ], 1 );
             scale := Lcm( List( ineqs[ i ], r -> DenominatorRat( r ) ) );
             Append( scaled_ineqs, [ scale * ineqs[ i ] ] );
         od;
@@ -343,6 +345,7 @@ InstallMethod( Polymake_H_Rep,
         # sometimes, Polymake returns rational facets - we turn them into integral vectors
         scaled_eqs := [];
         for i in [ 1 .. Length( eqs ) ] do
+            Remove( eqs[ i ], 1 );
             scale := Lcm( List( eqs[ i ], r -> DenominatorRat( r ) ) );
             Append( scaled_eqs, [ scale * eqs[ i ] ] );
         od;
