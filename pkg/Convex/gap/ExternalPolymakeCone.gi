@@ -216,7 +216,6 @@ InstallMethod( Polymake_H_Rep,
                [ IsPolymakeCone ],
   function( cone )
     local command_string, s, res_string, ineqs, eqs_gens, eqs;
-    #dir, file, output;
     
     if cone!.rep_type = "H-rep" then
         
@@ -326,10 +325,17 @@ InstallMethod( Polymake_Inequalities,
               " return the list of inequalities of a cone",
               [ IsPolymakeCone ],
   function( cone )
-    local equ, ineq;
+    local equ, ineq, i;
     
     equ := ( Polymake_H_Rep( cone ) )!.equalities;
+    
+    # for cones in H-rep, we use a 0 as first position in the inequalities, remove it here
     ineq := ( Polymake_H_Rep( cone ) )!.inequalities;
+    if ( cone!.rep_type = "H-rep" ) then
+        for i in [ 1 .. Length( ineq ) ] do
+            ineq[ i ] := Remove( ineq[ i ], 1 );
+        od;
+    fi;
     
     return Set( Concatenation( equ, (-1) * equ, ineq ) );
     
@@ -341,7 +347,6 @@ InstallMethod( Polymake_RaysInFacets,
             [ IsPolymakeCone ],
   function( cone )
     local help_cone, command_string, s, res_string, number_rays, ray_list, i, dummy, j, helper;
-    #dir, file, output;
     
     # compute V-representation
     help_cone := Polymake_V_Rep( cone );
