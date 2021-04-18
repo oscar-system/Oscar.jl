@@ -43,18 +43,18 @@ IsRay( P );
 #! false
 R:= Cone( [ [ 4, 5 ], [ -2, 1 ] ] );
 #! <A cone in |R^2>
-#! @EndExample
-
-#! The following do not yet work
-
-# Not yet working
------------------
 T:= IntersectionOfCones( P, R );
 #! <A cone in |R^2>
 RayGenerators( T );
 #! [ [ -2, 5 ], [ 2, 7 ] ]
 W:= Cone( [ [-3,-4 ] ] );
 #! <A ray in |R^2>
+#! @EndExample
+
+#! The following do not yet work
+
+# Not yet working
+-----------------
 I:= IntersectionOfCones( P, W );
 #! <A cone in |R^2>
 RayGenerators( I );
