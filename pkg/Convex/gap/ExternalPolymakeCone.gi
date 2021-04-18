@@ -213,6 +213,7 @@ InstallMethod( Polymake_CanonicalConeFromInequalities,
             scale := Lcm( List( ineqs[ i ], r -> DenominatorRat( r ) ) );
             Append( scaled_ineqs, [ scale * ineqs[ i ] ] );
         od;
+        Error( "Test" );
         
         # compute linear span
         command_string := Concatenation( Polymake_H_Rep_command_string( cone ), ".LINEAR_SPAN" );
