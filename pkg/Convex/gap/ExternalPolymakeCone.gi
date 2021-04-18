@@ -305,9 +305,20 @@ InstallMethod( Polymake_GeneratingRays,
               " return the list of generating vertices",
               [ IsPolymakeCone ],
   function( cone )
-    
-    return Set( Polymake_V_Rep( cone )!.generating_rays );
-    
+        local list_of_rays, scaled_rays, i, scale;
+        
+        # find the generating rays
+        list_of_rays := Polymake_V_Rep( cone )!.generating_rays;
+        
+        # sometimes, Polymake returns rational rays - we turn them into integral vectors
+        scaled_rays := [];
+        for i in [ 1 .. Length( list_of_rays ) ] do
+            scale := Lcm( List( list_of_rays[ i ], r -> DenominatorRat( r ) ) );
+            Append( scaled_rays, [ scale * list_of_rays[ i ] ] );
+        od;
+        
+        return Set( scaled_rays );
+        
 end );
 
 

@@ -76,23 +76,9 @@ end );
 InstallMethod( RayGenerators,
                [ IsCone ],
     function( cone )
-    local list_of_rays, scaled_rays, i, scale;
     
     if PolymakeAvailable() then
-        
-        # find the rays
-        list_of_rays := Polymake_V_Rep( ExternalPolymakeCone( cone ) )!.generating_rays;
-        
-        # sometimes, Polymake returns rational rays - we turned them into integral vectors
-        scaled_rays := [];
-        for i in [ 1 .. Length( list_of_rays ) ] do
-            
-            scale := Lcm( List( list_of_rays[ i ], r -> DenominatorRat( r ) ) );
-            Append( scaled_rays, [ scale * list_of_rays[ i ] ] );
-            
-        od;
-        
-        return Set( scaled_rays );
+        return Polymake_GeneratingRays( ExternalPolymakeCone( cone ) );
     fi;
     
     TryNextMethod();
