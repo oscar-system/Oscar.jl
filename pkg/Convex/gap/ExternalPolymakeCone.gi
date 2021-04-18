@@ -268,6 +268,7 @@ InstallMethod( Polymake_V_Rep,
         rays := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
         
         # sometimes, Polymake returns rational rays - we turn them into integral vectors
+        Error( "Test" );
         scaled_rays := [];
         for i in [ 1 .. Length( rays ) ] do
             Remove( rays[ i ], 1 );
