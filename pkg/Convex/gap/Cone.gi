@@ -113,7 +113,7 @@ InstallMethod( IntersectionOfCones,
     ext_cone := Polymake_Intersection( ExternalPolymakeCone( cone1 ), ExternalPolymakeCone( cone2 ) );
     ineqs := ext_cone!.inequalities;
     eqs := ext_cone!.equalities;
-    cone := ConeByEqualitiesAndInequalities( ineqs, eqs );
+    cone := ConeByEqualitiesAndInequalities( eqs, ineqs );
     SetContainingGrid( cone, ContainingGrid( cone1 ) );
     
     # and return it
