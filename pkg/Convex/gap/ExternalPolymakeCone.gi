@@ -222,10 +222,6 @@ InstallMethod( Polymake_H_Rep,
         
         return cone;
         
-    #elif Polymake_IsEmpty( cone ) then
-        
-    #    return Polymake_ConeFromInequalities( [ ] );
-        
     else
         
         if cone!.rep_type = "V-rep" and cone!.matrix = [] then
@@ -234,14 +230,6 @@ InstallMethod( Polymake_H_Rep,
         
         # compute facets
         command_string := Concatenation( Polymake_V_Rep_command_string( cone ), ".FACETS" );
-        
-        #dir := Directory( "/home/i" );
-        #file := Filename( dir, "test.txt" );
-        #output := OutputTextFile( file, true );;
-        #AppendTo( output, "Next test:\n\n" );
-        #AppendTo( output, command_string );
-        #AppendTo( output, "\n\n" );
-        #CloseStream(output);
         
         JuliaEvalString( command_string );
         s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
@@ -380,23 +368,6 @@ InstallMethod( Polymake_RaysInFacets,
         od;
         Append( ray_list, dummy );
     od;
-    
-    #dir := Directory( "/home/i" );
-    #file := Filename( dir, "test.txt" );
-    #output := OutputTextFile( file, true );;
-    #AppendTo( output, "\n" );
-    #AppendTo( output, "InRaysInFacets\n" );
-    #AppendTo( output, command_string );
-    #AppendTo( output, "\n" );
-    #AppendTo( output, s );
-    #    AppendTo( output, "\n" );
-    #AppendTo( output, res_string );
-    #AppendTo( output, "\n" );
-    #AppendTo( output, String( number_rays ) );
-    #AppendTo( output, "\n" );
-    #AppendTo( output, String( ray_list ) );
-    #AppendTo( output, "\n\n" );
-    #CloseStream(output);
     
     return ray_list;
     
