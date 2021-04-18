@@ -333,7 +333,7 @@ InstallMethod( Polymake_Inequalities,
     ineq := ( Polymake_H_Rep( cone ) )!.inequalities;
     if ( cone!.rep_type = "H-rep" ) then
         for i in [ 1 .. Length( ineq ) ] do
-            ineq[ i ] := Remove( ineq[ i ], 1 );
+            Remove( ineq[ i ], 1 );
         od;
     fi;
     
