@@ -178,10 +178,6 @@ InstallMethod( Polymake_V_Rep,
         
         return cone;
         
-    #elif Polymake_IsEmpty( cone ) then
-        
-    #    return Polymake_ConeByGenerators( [ ] );
-        
     else
         
         # compute rays
@@ -198,6 +194,7 @@ InstallMethod( Polymake_V_Rep,
         s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
         res_string := SplitString( s, '\n' );
         res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
+        Error( "Test" );
         lineality_gens := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
         
         # convert lineality -- for NConvex we add the lineality generators to the rays and add a second list, which label the position of the lineality-generators
@@ -453,7 +450,7 @@ InstallMethod( Polymake_H_Rep_command_string,
         eqs := cone!.equalities;
         if ( Length( eqs ) > 0 ) then
             eqs := List( [ 1 .. Length( eqs ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( eqs[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
-            command_string := Concatenation( command_string, " EQUALITIES = [ ", JoinStringsWithSeparator( eqs, "; " ), " ] " );
+            command_string := Concatenation( command_string, ", EQUALITIES = [ ", JoinStringsWithSeparator( eqs, "; " ), " ] " );
         fi;
         
         # append closing bracket
@@ -484,7 +481,7 @@ InstallMethod( Polymake_V_Rep_command_string,
         lin := cone!.lineality;
         if ( Length( lin ) > 0 ) then
             lin := List( [ 1 .. Length( lin ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( lin[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
-            command_string := Concatenation( command_string, " INPUT_LINEALITY = [ ", JoinStringsWithSeparator( lin, "; " ), " ] " );
+            command_string := Concatenation( command_string, ", INPUT_LINEALITY = [ ", JoinStringsWithSeparator( lin, "; " ), " ] " );
         fi;
         
         # append closing bracket
