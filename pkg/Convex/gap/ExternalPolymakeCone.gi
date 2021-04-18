@@ -33,71 +33,53 @@ BindGlobal( "TheTypeOfPolymakeCone", NewType( TheFamilyOfPolymakeCones, IsPolyma
 
 InstallGlobalFunction( Polymake_ConeByGenerators,
   function( arg )
-    local cone, i, matrix, temp, dim;
+    local cone, i, rays;
     
     if Length( arg )= 0 then
-        
         Error( "Wronge input" );
-        
     elif Length( arg ) = 1 and IsList( arg[1] ) then
-        
         return Polymake_ConeByGenerators( arg[ 1 ], [ ] );
-        
     elif Length( arg ) = 2 and IsList( arg[ 1 ] ) and IsList( arg[ 2 ] ) then
         
         if IsEmpty( arg[ 1 ] ) or ForAny( arg[ 1 ], IsEmpty ) then
             
-            cone := rec( generating_vertices := [ ],
-                        generating_rays := [ ],
-                        matrix:= arg[ 1 ],
-                        number_type := "rational",
-                        rep_type := "V-rep" );
-            
+            # construct cone
+            cone := rec( generating_rays := arg[ 1 ],
+                         lineality := [],
+                         number_type := "rational",
+                         rep_type := "V-rep" );
             ObjectifyWithAttributes( cone, TheTypeOfPolymakeCone );
-            
-            return cone;
+            return Polymake_CanonicalConeByGenerators( cone );
             
         fi;
         
         if not IsMatrix( arg[ 1 ] ) then
-            
             Error( "Wronge input: The first argument should be a Gap matrix!" );
-            
         fi;
         
         if not ForAll( arg[ 1 ], row -> row[ 1 ] in [ 0, 1 ] ) then
-            
             Error( "Wronge input: Please see the documentation!" );
-            
         fi;
         
         if not ForAll( arg[ 2 ], i -> i in [ 1 .. NrRows( arg[ 1 ] ) ] ) then
-            
             Error( "Wronge input for lineality" );
-        
         fi;
         
-        dim := Length( arg[ 1 ][ 1 ] ) - 1;
-        matrix := Filtered( arg[ 1 ], row -> not IsZero( row ) );
+        # find rays
+        rays := Filtered( arg[ 1 ], row -> not IsZero( row ) );
         
-        if IsEmpty( matrix ) then
-            
+        if IsEmpty( rays ) then
             Error( "Wronge input: Please make sure the input has sensable direction vectors!" );
-            
         fi;
         
-        temp := GeneratingVerticesAndGeneratingRays( arg[ 1 ], arg[ 2 ] );
-        
-        cone := rec( generating_vertices := temp[ 1 ],
-                    generating_rays := temp[ 2 ],
-                    matrix :=arg[ 1 ],
+        # construct cone
+        cone := rec( generating_rays := rays,
                     lineality := arg[ 2 ],
                     number_type := "rational",
                     rep_type := "V-rep" );
         
         ObjectifyWithAttributes( cone, TheTypeOfPolymakeCone );
-        
-        return cone;
+        return Polymake_CanonicalConeByGenerators( cone );
         
     fi;
     
@@ -108,54 +90,36 @@ InstallGlobalFunction( Polymake_ConeFromInequalities,
     local cone, i, temp, matrix, dim;
     
     if Length( arg ) = 0 then
-        
         Error( "Wronge input: Please provide some input!" );
-        
     elif Length( arg ) = 1 and IsList( arg[ 1 ] ) then
-        
         return Polymake_ConeFromInequalities( arg[ 1 ], [ ] );
-        
     elif Length( arg ) = 2 and IsList( arg[ 1 ] ) and IsList( arg[ 2 ] ) then
         
         if IsEmpty( arg[ 1 ] ) or ForAny( arg[ 1 ], IsEmpty ) then 
-            
             Error( "Wronge input: Please remove the empty lists from the input!" );
-            
         fi;
         
         if not IsMatrix( arg[ 1 ] ) then
-            
             Error( "Wronge input: The first argument should be a Gap matrix!" );
-            
         fi;
         
         if not ForAll( arg[ 2 ], i -> i in [ 1 .. NrRows( arg[ 1 ] ) ] ) then
-            
             Error( "Wronge input for lineality" );
-            
         fi;
         
-        dim := Length( arg[ 1 ][ 1 ] ) - 1;
-        
-        matrix := Filtered( arg[ 1 ], row -> not IsZero( row ) );
-        
-        if IsEmpty( matrix ) then
-            
-            matrix := [ Concatenation( [ 1 ], ListWithIdenticalEntries( dim, 0 ) ) ];
-            
+        # find the inequalities
+        ineqs := Filtered( arg[ 1 ], row -> not IsZero( row ) );
+        if IsEmpty( ineqs ) then
+            ineqs := [ Concatenation( [ 1 ], ListWithIdenticalEntries( Length( arg[ 1 ][ 1 ] ) - 1, 0 ) ) ];
         fi;
         
-        temp := InequalitiesAndEqualities( matrix, arg[ 2 ] );
-        
-        cone := rec( matrix := matrix,
-                    inequalities := temp[ 1 ],
-                    equalities := temp[ 2 ],
-                    lineality := arg[ 2 ],
-                    number_type := "rational",
-                    rep_type := "H-rep" );
+        # construct cone
+        cone := rec( inequalities := ineqs,
+                     equalities := arg[ 2 ],
+                     number_type := "rational",
+                     rep_type := "H-rep" );
         
         ObjectifyWithAttributes( cone, TheTypeOfPolymakeCone );
-        
         return cone;
         
     fi;
@@ -165,19 +129,130 @@ end );
 
 ##############################################################################################
 ##
-##  Attributes of PolymakeCones
+##  Canonicalize cones
+##
+##############################################################################################
+
+InstallMethod( Polymake_CanonicalConeByGenerators,
+               [ IsPolymakeCone ],
+  function( cone )
+    local command_string, s, res_string, rays, scaled_rays, scale, lineality, scaled_lineality, new_cone;
+    
+    if cone!.rep_type = "H-rep" then
+        
+        return fail;
+        
+    else
+        
+        # compute rays
+        command_string := Concatenation( Polymake_V_Rep_command_string( cone ), ".RAYS" );
+        JuliaEvalString( command_string );
+        s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
+        res_string := SplitString( s, '\n' );
+        res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
+        rays := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
+        
+        # sometimes, Polymake returns rational rays - we turn them into integral vectors
+        scaled_rays := [];
+        for i in [ 1 .. Length( rays ) ] do
+            scale := Lcm( List( rays[ i ], r -> DenominatorRat( r ) ) );
+            Append( scaled_rays, [ scale * rays[ i ] ] );
+        od;
+        
+        # extract lineality
+        command_string := Concatenation( Polymake_V_Rep_command_string( cone ), ".LINEALITY_SPACE" );
+        JuliaEvalString( command_string );
+        s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
+        res_string := SplitString( s, '\n' );
+        res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
+        lineality := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
+        
+        # sometimes, Polymake returns rational lineality - we turn them into integral vectors
+        scaled_lineality := [];
+        for i in [ 1 .. Length( lineality ) ] do
+            scale := Lcm( List( lineality[ i ], r -> DenominatorRat( r ) ) );
+            Append( scaled_lineality, [ scale * lineality[ i ] ] );
+        od;
+        
+        # construct the new cone
+        new_cone := rec( generating_rays := scaled_rays[ 1 ],
+                         lineality := scaled_lineality,
+                         number_type := "rational",
+                         rep_type := "V-rep" );
+        ObjectifyWithAttributes( new_cone, TheTypeOfPolymakeCone );
+        return new_cone;
+        
+    fi;
+    
+end );
+
+InstallMethod( Polymake_CanonicalConeFromInequalities,
+               [ IsPolymakeCone ],
+  function( cone )
+    local command_string, s, res_string, ineqs, scaled_ineqs, scale, eqs, scaled_eqs, new_cone;
+    
+    if cone!.rep_type = "V-rep" then
+        
+        return fail;
+        
+    else
+        
+        # compute facets
+        command_string := Concatenation( Polymake_H_Rep_command_string( cone ), ".FACETS" );
+        JuliaEvalString( command_string );
+        s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
+        res_string := SplitString( s, '\n' );
+        res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
+        ineqs := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
+        
+        # sometimes, Polymake returns rational facets - we turn them into integral vectors
+        scaled_ineqs := [];
+        for i in [ 1 .. Length( ineqs ) ] do
+            scale := Lcm( List( ineqs[ i ], r -> DenominatorRat( r ) ) );
+            Append( scaled_ineqs, [ scale * ineqs[ i ] ] );
+        od;
+        
+        # compute linear span
+        command_string := Concatenation( Polymake_H_Rep_command_string( cone ), ".LINEAR_SPAN" );
+        JuliaEvalString( command_string );
+        s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
+        res_string := SplitString( s, '\n' );
+        res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
+        eqs := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
+        
+        # sometimes, Polymake returns rational facets - we turn them into integral vectors
+        scaled_eqs := [];
+        for i in [ 1 .. Length( eqs ) ] do
+            scale := Lcm( List( eqs[ i ], r -> DenominatorRat( r ) ) );
+            Append( scaled_eqs, [ scale * eqs[ i ] ] );
+        od;
+        
+        # construct the new cone
+        new_cone := rec( inequalities := scaled_ineqs,
+                         equalities := scaled_eqs,
+                         number_type := "rational",
+                         rep_type := "H-rep" );
+        ObjectifyWithAttributes( new_cone, TheTypeOfPolymakeCone );
+        return new_cone;
+        
+    fi;
+    
+end );
+
+
+##############################################################################################
+##
+##  Conversion of cones
 ##
 ##############################################################################################
 
 InstallMethod( Polymake_V_Rep,
                [ IsPolymakeCone ],
   function( cone )
-    local command_string, s, res_string, rays, lineality, lineality_gens;
+    local command_string, s, res_string, rays, scaled_rays, cale, lineality, scaled_lineality, new_cone;
     
     if cone!.rep_type = "V-rep" then
-        
         return cone;
-        
     else
         
         # compute rays
@@ -188,31 +263,44 @@ InstallMethod( Polymake_V_Rep,
         res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
         rays := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
         
+        # sometimes, Polymake returns rational rays - we turn them into integral vectors
+        scaled_rays := [];
+        for i in [ 1 .. Length( rays ) ] do
+            scale := Lcm( List( rays[ i ], r -> DenominatorRat( r ) ) );
+            Append( scaled_rays, [ scale * rays[ i ] ] );
+        od;
+        
         # extract lineality
         command_string := Concatenation( Polymake_H_Rep_command_string( cone ), ".LINEALITY_SPACE" );
         JuliaEvalString( command_string );
         s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
         res_string := SplitString( s, '\n' );
         res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
-        Error( "Test" );
-        lineality_gens := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
+        lineality := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
         
-        # convert lineality -- for NConvex we add the lineality generators to the rays and add a second list, which label the position of the lineality-generators
-        lineality := [ 1 .. Length( lineality_gens ) ];
-        rays := Concatenation( lineality_gens, rays );
+        # sometimes, Polymake returns rational lineality - we turn them into integral vectors
+        scaled_lineality := [];
+        for i in [ 1 .. Length( lineality ) ] do
+            scale := Lcm( List( lineality[ i ], r -> DenominatorRat( r ) ) );
+            Append( scaled_lineality, [ scale * lineality[ i ] ] );
+        od;
         
-        # return the V-representation
-        return Polymake_ConeByGenerators( rays, lineality );
+        # construct the new cone
+        new_cone := rec( generating_rays := scaled_rays[ 1 ],
+                         lineality := scaled_lineality,
+                         number_type := "rational",
+                         rep_type := "V-rep" );
+        ObjectifyWithAttributes( new_cone, TheTypeOfPolymakeCone );
+        return new_cone;
         
     fi;
     
 end );
 
-
 InstallMethod( Polymake_H_Rep,
                [ IsPolymakeCone ],
   function( cone )
-    local command_string, s, res_string, ineqs, eqs_gens, eqs;
+    local command_string, s, res_string, ineqs, scaled_ineqs, scale, eqs, scaled_eqs, new_cone;
     
     if cone!.rep_type = "H-rep" then
         
@@ -226,12 +314,18 @@ InstallMethod( Polymake_H_Rep,
         
         # compute facets
         command_string := Concatenation( Polymake_V_Rep_command_string( cone ), ".FACETS" );
-        
         JuliaEvalString( command_string );
         s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
         res_string := SplitString( s, '\n' );
         res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
         ineqs := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
+        
+        # sometimes, Polymake returns rational facets - we turn them into integral vectors
+        scaled_ineqs := [];
+        for i in [ 1 .. Length( ineqs ) ] do
+            scale := Lcm( List( ineqs[ i ], r -> DenominatorRat( r ) ) );
+            Append( scaled_ineqs, [ scale * ineqs[ i ] ] );
+        od;
         
         # compute linear span
         command_string := Concatenation( Polymake_V_Rep_command_string( cone ), ".LINEAR_SPAN" );
@@ -239,26 +333,40 @@ InstallMethod( Polymake_H_Rep,
         s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
         res_string := SplitString( s, '\n' );
         res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
-        eqs_gens := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
+        eqs := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
         
-        # convert eqs -- for NConvex we add the eqs to the ineqs and add a second list, which label the position of the equations
-        eqs := [ 1 .. Length( eqs_gens ) ];
-        ineqs := Concatenation( eqs_gens, ineqs );
+        # sometimes, Polymake returns rational facets - we turn them into integral vectors
+        scaled_eqs := [];
+        for i in [ 1 .. Length( eqs ) ] do
+            scale := Lcm( List( eqs[ i ], r -> DenominatorRat( r ) ) );
+            Append( scaled_eqs, [ scale * eqs[ i ] ] );
+        od;
         
-        # return cone by inequalities
-        return Polymake_ConeFromInequalities( ineqs, eqs );
+        # construct the new cone
+        new_cone := rec( inequalities := scaled_ineqs,
+                         equalities := scaled_eqs,
+                         number_type := "rational",
+                         rep_type := "H-rep" );
+        ObjectifyWithAttributes( new_cone, TheTypeOfPolymakeCone );
+        return new_cone;
         
     fi;
     
 end );
 
 
+##############################################################################################
+##
+##  Attributes of cones
+##
+##############################################################################################
+
 InstallMethod( Polymake_AmbientSpaceDimension,
               "finding the dimension of the ambient space of the cone",
               [ IsPolymakeCone ],
   function( cone )
     
-    return Length( Polymake_H_Rep( cone )!.matrix[1] )-1;
+    return Length( Polymake_V_Rep( cone )!.generating_rays[1] );
     
 end );
 
@@ -278,22 +386,11 @@ InstallMethod( Polymake_Dimension,
     
     # produce command string
     command_string := Concatenation( Polymake_V_Rep_command_string( help_cone ), ".CONE_DIM" );
-    
-    # issue command in Julia and fetch result
     JuliaEvalString( command_string );
     s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
     
+    # return the result
     return EvalString( s );
-    
-end );
-
-
-InstallMethod( Polymake_GeneratingVertices,
-              " return the list of generating vertices",
-              [ IsPolymakeCone ],
-  function( cone )
-    
-    return Set( Polymake_V_Rep( cone )!.generating_vertices );
     
 end );
 
@@ -302,20 +399,19 @@ InstallMethod( Polymake_GeneratingRays,
               " return the list of generating vertices",
               [ IsPolymakeCone ],
   function( cone )
-        local list_of_rays, scaled_rays, i, scale;
-        
-        # find the generating rays
-        list_of_rays := Polymake_V_Rep( cone )!.generating_rays;
-        
-        # sometimes, Polymake returns rational rays - we turn them into integral vectors
-        scaled_rays := [];
-        for i in [ 1 .. Length( list_of_rays ) ] do
-            scale := Lcm( List( list_of_rays[ i ], r -> DenominatorRat( r ) ) );
-            Append( scaled_rays, [ scale * list_of_rays[ i ] ] );
-        od;
-        
-        return Set( scaled_rays );
-        
+    
+    return Set( Polymake_V_Rep( cone )!.generating_rays );
+    
+end );
+
+
+InstallMethod( Polymake_Lineality,
+              " return the list of generating vertices",
+              [ IsPolymakeCone ],
+  function( cone )
+    
+    return Set( Polymake_V_Rep( cone )!.lineality );
+    
 end );
 
 
@@ -333,19 +429,8 @@ InstallMethod( Polymake_Inequalities,
               " return the list of inequalities of a cone",
               [ IsPolymakeCone ],
   function( cone )
-    local equ, ineq, i;
     
-    equ := ( Polymake_H_Rep( cone ) )!.equalities;
-    
-    # for cones in H-rep, we use a 0 as first position in the inequalities, remove it here
-    ineq := ( Polymake_H_Rep( cone ) )!.inequalities;
-    if ( cone!.rep_type = "H-rep" ) then
-        for i in [ 1 .. Length( ineq ) ] do
-            Remove( ineq[ i ], 1 );
-        od;
-    fi;
-    
-    return Set( Concatenation( equ, (-1) * equ, ineq ) );
+    return Set( Polymake_H_Rep( cone ) )!.inequalities );
     
 end );
 
@@ -398,7 +483,7 @@ InstallMethod( Polymake_IsEmpty,
                [ IsPolymakeCone ],
   function( cone )
     
-    return Length( Polymake_V_Rep( cone )!.matrix ) = 0;
+    return Length( Polymake_V_Rep( cone )!.generating_rays ) = 0;
     
 end );
 
@@ -414,10 +499,10 @@ InstallMethod( Polymake_IsPointed,
     
     # parse the rays into format recognized by Polymake
     command_string := Concatenation( Polymake_V_Rep_command_string( help_cone ), ".POINTED" );
-    
-    # issue command in Julia and fetch result as string
     JuliaEvalString( command_string );
     s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
+    
+    # return the result
     return EvalString( s );
     
 end );
@@ -429,6 +514,34 @@ end );
 ##  Command strings
 ##
 ##############################################################################################
+
+InstallMethod( Polymake_V_Rep_command_string,
+               "construct command string for V-Representation of Cone in Julia",
+               [ IsPolymakeCone ],
+  function( cone )
+    local rays, lin, command_string;
+        
+        # check if the given cone is a V-rep
+        if not ( cone!.rep_type = "V-rep" ) then
+            return "fail";
+        fi;
+        
+        # prepare string with rays
+        rays := cone!.generating_rays;
+        rays := List( [ 1 .. Length( rays ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( rays[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
+        command_string := Concatenation( "ConeByGAP4PackageConvex", " = Julia.Polymake.polytope.Cone( INPUT_RAYS = [ ", JoinStringsWithSeparator( rays, "; " ), "] " );
+        
+        # check if we also have lineality
+        lin := cone!.lineality;
+        if ( Length( lin ) > 0 ) then
+            lin := List( [ 1 .. Length( lin ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( lin[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
+            command_string := Concatenation( command_string, ", INPUT_LINEALITY = [ ", JoinStringsWithSeparator( lin, "; " ), " ] " );
+        fi;
+        
+        # append closing bracket
+        return Concatenation( command_string, ")" );
+    
+end );
 
 InstallMethod( Polymake_H_Rep_command_string,
                "construct command string for H-Representation of Cone in Julia",
@@ -446,7 +559,7 @@ InstallMethod( Polymake_H_Rep_command_string,
         ineqs := List( [ 1 .. Length( ineqs ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( ineqs[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
         command_string := Concatenation( "ConeByGAP4PackageConvex", " = Julia.Polymake.polytope.Cone( INEQUALITIES = [ ", JoinStringsWithSeparator( ineqs, "; " ), " ] " );
         
-        # check if we also need equalities
+        # check if we also have equalities
         eqs := cone!.equalities;
         if ( Length( eqs ) > 0 ) then
             eqs := List( [ 1 .. Length( eqs ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( eqs[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
@@ -454,40 +567,6 @@ InstallMethod( Polymake_H_Rep_command_string,
         fi;
         
         # append closing bracket
-        command_string := Concatenation( command_string, ")" );
+        return Concatenation( command_string, ")" );
         
-        # add return
-        return command_string;
-        
-end );
-
-InstallMethod( Polymake_V_Rep_command_string,
-               "construct command string for V-Representation of Cone in Julia",
-               [ IsPolymakeCone ],
-  function( cone )
-    local rays, lin, command_string;
-        
-        # check if the given cone is a V-rep
-        if not ( cone!.rep_type = "V-rep" ) then
-            return "fail";
-        fi;
-        
-        # prepare string with rays
-        rays := Polymake_GeneratingRays( cone );
-        rays := List( [ 1 .. Length( rays ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( rays[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
-        command_string := Concatenation( "ConeByGAP4PackageConvex", " = Julia.Polymake.polytope.Cone( INPUT_RAYS = [ ", JoinStringsWithSeparator( rays, "; " ), "] " );
-        
-        # see if we need lineality
-        lin := cone!.lineality;
-        if ( Length( lin ) > 0 ) then
-            lin := List( [ 1 .. Length( lin ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( lin[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
-            command_string := Concatenation( command_string, ", INPUT_LINEALITY = [ ", JoinStringsWithSeparator( lin, "; " ), " ] " );
-        fi;
-        
-        # append closing bracket
-        command_string := Concatenation( command_string, ")" );
-        
-        # add return
-        return command_string;
-    
 end );

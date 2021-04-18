@@ -47,12 +47,24 @@ DeclareGlobalFunction( "Polymake_ConeByGenerators" );
 #! In case we want some entries to represent equalities we should refer in a second list to their indices.
 DeclareGlobalFunction( "Polymake_ConeFromInequalities" );
 
-
 ##############################################################################################
 ##
 #! @Section Attributes of PolymakeCones
 ##
 ##############################################################################################
+
+#! @Arguments P
+#! @Returns a PolymakeCone
+#! @Description
+#! The function takes a PolymakeCone and returns its canonical V-rep.
+DeclareAttribute( "Polymake_CanonicalConeByGenerators",  IsPolymakeCone  );
+
+#! @Arguments P
+#! @Returns a PolymakeCone
+#! @Description
+#! The function takes a PolymakeCone and returns its canonical H-rep.
+DeclareAttribute( "Polymake_CanonicalConeFromInequalities",  IsPolymakeCone  );
+
 
 #! @Arguments P
 #! @Returns a PolymakeCone
@@ -77,24 +89,26 @@ DeclareAttribute( "Polymake_AmbientSpaceDimension", IsPolymakeCone );
 DeclareAttribute( "Polymake_Dimension", IsPolymakeCone );
 
 #! @Arguments P
-#! @Returns The reduced generating vertices of the PolymakeCone.
-DeclareAttribute( "Polymake_GeneratingVertices", IsPolymakeCone );
+#! @Returns list
+#! @Description
+#! The output is the set of generating rays of the PolymakeCone.
+DeclareAttribute( "Polymake_GeneratingRays", IsPolymakeCone );
 
 #! @Arguments P
 #! @Returns list
 #! @Description
-#! The output is the reduced generating rays of the PolymakeCone.
-DeclareAttribute( "Polymake_GeneratingRays", IsPolymakeCone );
+#! The output is the lineality of the PolymakeCone.
+DeclareAttribute( "Polymake_Lineality", IsPolymakeCone );
 
 #! @Arguments P
 #! @Returns a list
 #! @Description
-#! The output is the reduced equalities of the PolymakeCone.
+#! The output is the set of equalities of the PolymakeCone.
 DeclareAttribute( "Polymake_Equalities", IsPolymakeCone );
 
 #! @Arguments P
 #! @Description
-#! The output is the reduced inequalities of the PolymakeCone.
+#! The output is the set of inequalities of the PolymakeCone.
 DeclareAttribute( "Polymake_Inequalities", IsPolymakeCone );
 
 #! @Arguments P

@@ -125,9 +125,12 @@ end );
 InstallMethod( DefiningInequalities,
                [ IsCone ],
   function( cone )
+    local ineqs, eqs;
     
     if PolymakeAvailable() then
-        return Polymake_Inequalities( ExternalPolymakeCone( cone ) );
+        ineqs := Polymake_Inequalities( ExternalPolymakeCone( cone ) );
+        eqs := Polymake_Equalities( ExternalPolymakeCone( cone ) );
+        return Set( Concatenation( equ, (-1) * equ, ineq ) );
     fi;
     
     TryNextMethod();
