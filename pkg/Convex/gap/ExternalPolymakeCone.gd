@@ -139,6 +139,19 @@ DeclareProperty( "Polymake_IsPointed", IsPolymakeCone );
 
 ##############################################################################################
 ##
+#! @Section Operations with cones
+##
+##############################################################################################
+
+#! @Arguments C
+#! @Returns a string
+#! @Description
+#! Returns the Polymake cone that defines the intersection of the two cones.
+DeclareOperation( "Polymake_Intersection", [ IsPolymakeCone, IsPolymakeCone ] );
+
+
+##############################################################################################
+##
 #! @Section Command strings
 ##
 ##############################################################################################

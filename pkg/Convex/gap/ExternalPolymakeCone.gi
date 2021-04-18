@@ -498,6 +498,29 @@ end );
 
 ##############################################################################################
 ##
+##  Operations with cones
+##
+##############################################################################################
+
+InstallMethod( Polymake_Intersection,
+               "construct intersection of two cones",
+               [ IsPolymakeCone, IsPolymakeCone ],
+  function( cone1, cone2 )
+    local cone1_h, cone2_h, new_ineqs, new_lin;
+    
+    cone1_h := Polymake_H_Rep( cone1 );
+    cone2_h := Polymake_H_Rep( cone2 );
+    
+    new_ineqs := Concatenation( cone1_h!.inequalities, cone2_h!.inequalities );
+    new_lin := Concatenation( cone1_h!.lineality, cone2_h!.lineality );
+    
+    return Polymake_ConeFromInequalities( new_ineqs, new_lin );
+    
+end );
+
+
+##############################################################################################
+##
 ##  Command strings
 ##
 ##############################################################################################

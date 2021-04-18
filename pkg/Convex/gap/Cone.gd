@@ -35,3 +35,9 @@ DeclareAttribute( "RaysInFacets", IsCone );
 #! Converts the cone to a Polymake cone.
 DeclareAttribute( "DefiningInequalities", IsCone );
 
+#! @Arguments C1, C2
+#! @Returns a cone
+#! @Description
+#! Returns the intersection of two cones.
+DeclareOperation( "IntersectionOfCones",
+                  [ IsCone, IsCone ] );
