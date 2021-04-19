@@ -49,12 +49,6 @@ RayGenerators( T );
 #! [ [ -2, 5 ], [ 2, 7 ] ]
 W:= Cone( [ [-3,-4 ] ] );
 #! <A ray in |R^2>
-#! @EndExample
-
-#! The following do not yet work
-
-# Not yet working
------------------
 I:= IntersectionOfCones( P, W );
 #! <A cone in |R^2>
 RayGenerators( I );
@@ -67,11 +61,10 @@ Contains( P, R );
 #! false
 Contains( R, P );
 #! true
+#! @EndExample
 
+#! The following do not yet work
 
-faces := FacesOfCone( P );
-#! [ <A cone in |R^2>, <A cone in |R^2>, <A ray in |R^2>, 
-#!  <A ray in |R^2> ]
 RelativeInteriorRay( P );
 #! [ -2, 41 ]
 IsRelativeInteriorRay( [ -2, 41 ], P );
@@ -80,13 +73,6 @@ IsRelativeInteriorRay( [ 2, 7 ], P );
 #! false
 LinealitySpaceGenerators( P );
 #! [  ]
-proj_x1:= FourierProjection( P, 2 );
-#! <A cone in |R^1>
-RayGenerators( proj_x1 );
-#! [ [ -1 ], [ 1 ] ]
-DefiningInequalities( proj_x1 );
-#! [ [ 0 ] ]
-
 
 
 
@@ -116,11 +102,4 @@ RayGenerators( DualCone( P ) );
 
 # Not yet functional
 --------------------
-faces := FacesOfCone( P );
-#! [ <A cone in |R^3>, <A cone in |R^3>, <A cone in |R^3>, 
-#!  <A cone in |R^3>, <A cone in |R^3> ]
-FVector( P );
-#! [ 1, 2, 1 ]
-List( faces, Dimension );
-#! [ 0, 3, 2, 1, 2 ]
 L := LatticePointsGenerators( P );;
