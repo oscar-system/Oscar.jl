@@ -36,35 +36,47 @@ InstallGlobalFunction( Polymake_ConeByGenerators,
     local cone, i, rays;
     
     if Length( arg ) = 0 then
-        Error( "Wronge input" );
+        
+        Error( "Wronge input: Please provide some input!" );
+        
     elif Length( arg ) = 1 and IsList( arg[1] ) then
+        
         return Polymake_ConeByGenerators( arg[ 1 ], [ ] );
+        
     elif Length( arg ) = 2 and IsList( arg[ 1 ] ) and IsList( arg[ 2 ] ) then
         
-        if IsEmpty( arg[ 1 ] ) or ForAny( arg[ 1 ], IsEmpty ) then
-            
-            # construct cone
-            cone := rec( generating_rays := arg[ 1 ],
-                         lineality := [],
-                         number_type := "rational",
-                         rep_type := "V-rep" );
-            ObjectifyWithAttributes( cone, TheTypeOfPolymakeCone );
-            return Polymake_CanonicalConeByGenerators( cone );
-            
-        fi;
+        #if IsEmpty( arg[ 1 ] ) or ForAny( arg[ 1 ], IsEmpty ) then
+        #    
+        #    # construct cone
+        #    cone := rec( generating_rays := arg[ 1 ],
+        #                 lineality := [],
+        #                 number_type := "rational",
+        #                 rep_type := "V-rep" );
+        #    ObjectifyWithAttributes( cone, TheTypeOfPolymakeCone );
+        #    return Polymake_CanonicalConeByGenerators( cone );
+        #    
+        #fi;
         
-        if not IsMatrix( arg[ 1 ] ) then
+        if ( not IsEmpty( arg[ 1 ] ) ) and not ( IsMatrix( arg[ 1 ] ) ) then
             Error( "Wronge input: The first argument should be a Gap matrix!" );
         fi;
         
-        # find rays
-        rays := Filtered( arg[ 1 ], row -> not IsZero( row ) );
-        if IsEmpty( rays ) then
-            Error( "Wronge input: Please make sure the input has sensable direction vectors!" );
+        if ( not IsEmpty( arg[ 2 ] ) ) and not ( IsMatrix( arg[ 2 ] ) ) then
+            Error( "Wronge input: The second argument should be a Gap matrix!" );
         fi;
         
+        #if not IsMatrix( arg[ 1 ] ) then
+        #    Error( "Wronge input: The first argument should be a Gap matrix!" );
+        #fi;
+        
+        # find rays
+        #rays := Filtered( arg[ 1 ], row -> not IsZero( row ) );
+        #if IsEmpty( rays ) then
+        #    Error( "Wronge input: Please make sure the input has sensable direction vectors!" );
+        #fi;
+        
         # construct cone
-        cone := rec( generating_rays := rays,
+        cone := rec( generating_rays := arg[ 1 ],
                     lineality := arg[ 2 ],
                     number_type := "rational",
                     rep_type := "V-rep" );
@@ -80,28 +92,29 @@ InstallGlobalFunction( Polymake_ConeFromInequalities,
   function( arg )
     local cone, i, ineqs;
     
-    if Length( arg ) = 0 then
+    if Length( arg ) = 0 or ForAll( arg, IsEmpty ) then
+        
         Error( "Wronge input: Please provide some input!" );
+        
     elif Length( arg ) = 1 and IsList( arg[ 1 ] ) then
+        
         return Polymake_ConeFromInequalities( arg[ 1 ], [ ] );
+        
     elif Length( arg ) = 2 and IsList( arg[ 1 ] ) and IsList( arg[ 2 ] ) then
         
-        if IsEmpty( arg[ 1 ] ) or ForAny( arg[ 1 ], IsEmpty ) then 
-            Error( "Wronge input: Please remove the empty lists from the input!" );
-        fi;
-        
-        if not IsMatrix( arg[ 1 ] ) then
+        if ( not IsEmpty( arg[ 1 ] ) ) and not ( IsMatrix( arg[ 1 ] ) ) then
             Error( "Wronge input: The first argument should be a Gap matrix!" );
         fi;
         
-        # find the inequalities
-        ineqs := Filtered( arg[ 1 ], row -> not IsZero( row ) );
-        if IsEmpty( ineqs ) then
-            ineqs := [ Concatenation( [ 1 ], ListWithIdenticalEntries( Length( arg[ 1 ][ 1 ] ) - 1, 0 ) ) ];
+        if ( not IsEmpty( arg[ 2 ] ) ) and not ( IsMatrix( arg[ 2 ] ) ) then
+            Error( "Wronge input: The second argument should be a Gap matrix!" );
         fi;
         
+        # find the inequalities
+        #ineqs := Filtered( arg[ 1 ], row -> not IsZero( row ) );
+        
         # construct cone
-        cone := rec( inequalities := ineqs,
+        cone := rec( inequalities := arg[ 1 ],
                      equalities := arg[ 2 ],
                      number_type := "rational",
                      rep_type := "H-rep" );
