@@ -4,7 +4,7 @@
 
 LoadPackage( "Convex" );
 
-#! Basic operations with cones include the following:
+#! The following demonstrates cone operations performed with Polymake:
 
 #! @Example
 P:= Cone( [ [ 2, 7 ], [ 0, 12 ], [ -2, 5 ] ] );
@@ -61,23 +61,8 @@ Contains( P, R );
 #! false
 Contains( R, P );
 #! true
-#! @EndExample
-
-#! The following do not yet work
-
-RelativeInteriorRay( P );
-#! [ -2, 41 ]
-IsRelativeInteriorRay( [ -2, 41 ], P );
-#! true
-IsRelativeInteriorRay( [ 2, 7 ], P );
-#! false
 LinealitySpaceGenerators( P );
 #! [  ]
-
-
-
-# Again working
------------------
 P:= Cone( [ [ 1, 1, -3 ], [ -1, -1, 3 ], [ 1, 2, 1 ], [ 2, 1, 2 ] ] );
 #! < A cone in |R^3>
 IsPointed( P );
@@ -97,9 +82,7 @@ facets:= Facets( P );
 DualCone( P );
 #! < A cone in |R^3>
 RayGenerators( DualCone( P ) );
-#! [ [ -5, 8, 1 ], [ 7, -4, 1 ] ] <- Gives different ray generators
-
-
-# Not yet functional
---------------------
-L := LatticePointsGenerators( P );;
+#! [ [ 0, -1, 2 ], [ 0, 2, -1 ] ]
+LinealitySpaceGenerators( DualCone( P ) );
+#! [ [ -1, 0, 1 ] ]
+#! @EndExample
