@@ -99,6 +99,19 @@ InstallMethod( DefiningInequalities,
 end );
 
 
+InstallMethod( LinealitySpaceGenerators,
+               [ IsCone ],
+  function( cone )
+    local ineqs, eqs;
+    
+    if PolymakeAvailable() then
+        return Set( Polymake_Lineality( ExternalPolymakeCone( cone ) ) );
+    fi;
+    
+    TryNextMethod();
+    
+end );
+
 InstallMethod( IntersectionOfCones,
                "for homalg cones",
                [ IsCone, IsCone ],
@@ -109,14 +122,20 @@ InstallMethod( IntersectionOfCones,
         Error( "cones are not from the same grid" );
     fi;
     
-    # compute the intersection cone
-    ext_cone := Polymake_Intersection( ExternalPolymakeCone( cone1 ), ExternalPolymakeCone( cone2 ) );
-    ineqs := ext_cone!.inequalities;
-    eqs := ext_cone!.equalities;
-    cone := ConeByEqualitiesAndInequalities( eqs, ineqs );
-    SetContainingGrid( cone, ContainingGrid( cone1 ) );
+    if PolymakeAvailable() then
+        
+        # compute the intersection cone in Polymake
+        ext_cone := Polymake_Intersection( ExternalPolymakeCone( cone1 ), ExternalPolymakeCone( cone2 ) );
+        ineqs := ext_cone!.inequalities;
+        eqs := ext_cone!.equalities;
+        cone := ConeByEqualitiesAndInequalities( eqs, ineqs );
+        SetContainingGrid( cone, ContainingGrid( cone1 ) );
+        
+        # and return it
+        return cone;
     
-    # and return it
-    return cone;
+    fi;
+    
+    TryNextMethod();
     
 end );
