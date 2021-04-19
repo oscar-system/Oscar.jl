@@ -549,19 +549,27 @@ InstallMethod( Polymake_V_Rep_command_string,
             return "fail";
         fi;
         
-        # prepare string with rays
+        # extract data
         rays := cone!.generating_rays;
+        lin := cone!.lineality;
+        
+        # check for degenerate case
+        if Length( rays ) = 0 then
+            rays := lin;
+        fi;
+        
+        # prepare rays (always non-zero) for command string
         rays := List( [ 1 .. Length( rays ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( rays[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
         command_string := Concatenation( "ConeByGAP4PackageConvex", " = Julia.Polymake.polytope.Cone( INPUT_RAYS = [ ", JoinStringsWithSeparator( rays, "; " ), "] " );
         
-        # check if we also have lineality
+        # if we also have lineality, add them
         lin := cone!.lineality;
         if ( Length( lin ) > 0 ) then
             lin := List( [ 1 .. Length( lin ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( lin[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
             command_string := Concatenation( command_string, ", INPUT_LINEALITY = [ ", JoinStringsWithSeparator( lin, "; " ), " ] " );
         fi;
         
-        # append closing bracket
+        # return command string
         return Concatenation( command_string, ")" );
     
 end );
@@ -577,19 +585,27 @@ InstallMethod( Polymake_H_Rep_command_string,
             return fail;
         fi;
         
-        # prepare string with inequalities
+        # extract data
         ineqs := cone!.inequalities;
+        eqs := cone!.equalities;
+        
+        # check for degenerate case
+        if Length( ineqs ) = 0 then
+            ineqs := eqs;
+        fi;
+        
+        # prepare inequalities (always non-zero) for command string
         ineqs := List( [ 1 .. Length( ineqs ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( ineqs[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
         command_string := Concatenation( "ConeByGAP4PackageConvex", " = Julia.Polymake.polytope.Cone( INEQUALITIES = [ ", JoinStringsWithSeparator( ineqs, "; " ), " ] " );
         
-        # check if we also have equalities
+        # if we have non-zero equalities, add them
         eqs := cone!.equalities;
         if ( Length( eqs ) > 0 ) then
             eqs := List( [ 1 .. Length( eqs ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( eqs[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
             command_string := Concatenation( command_string, ", EQUATIONS = [ ", JoinStringsWithSeparator( eqs, "; " ), " ] " );
         fi;
         
-        # append closing bracket
+        # return command string
         return Concatenation( command_string, ")" );
         
 end );
