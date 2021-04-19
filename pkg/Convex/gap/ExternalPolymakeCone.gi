@@ -45,18 +45,6 @@ InstallGlobalFunction( Polymake_ConeByGenerators,
         
     elif Length( arg ) = 2 and IsList( arg[ 1 ] ) and IsList( arg[ 2 ] ) then
         
-        #if IsEmpty( arg[ 1 ] ) or ForAny( arg[ 1 ], IsEmpty ) then
-        #    
-        #    # construct cone
-        #    cone := rec( generating_rays := arg[ 1 ],
-        #                 lineality := [],
-        #                 number_type := "rational",
-        #                 rep_type := "V-rep" );
-        #    ObjectifyWithAttributes( cone, TheTypeOfPolymakeCone );
-        #    return Polymake_CanonicalConeByGenerators( cone );
-        #    
-        #fi;
-        
         if ( not IsEmpty( arg[ 1 ] ) ) and not ( IsMatrix( arg[ 1 ] ) ) then
             Error( "Wronge input: The first argument should be a Gap matrix!" );
         fi;
@@ -65,17 +53,6 @@ InstallGlobalFunction( Polymake_ConeByGenerators,
             Error( "Wronge input: The second argument should be a Gap matrix!" );
         fi;
         
-        #if not IsMatrix( arg[ 1 ] ) then
-        #    Error( "Wronge input: The first argument should be a Gap matrix!" );
-        #fi;
-        
-        # find rays
-        #rays := Filtered( arg[ 1 ], row -> not IsZero( row ) );
-        #if IsEmpty( rays ) then
-        #    Error( "Wronge input: Please make sure the input has sensable direction vectors!" );
-        #fi;
-        
-        # construct cone
         cone := rec( generating_rays := arg[ 1 ],
                     lineality := arg[ 2 ],
                     number_type := "rational",
@@ -110,10 +87,6 @@ InstallGlobalFunction( Polymake_ConeFromInequalities,
             Error( "Wronge input: The second argument should be a Gap matrix!" );
         fi;
         
-        # find the inequalities
-        #ineqs := Filtered( arg[ 1 ], row -> not IsZero( row ) );
-        
-        # construct cone
         cone := rec( inequalities := arg[ 1 ],
                      equalities := arg[ 2 ],
                      number_type := "rational",
@@ -220,7 +193,7 @@ InstallMethod( Polymake_CanonicalConeFromInequalities,
         res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
         eqs := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
         
-        # sometimes, Polymake returns rational facets - we turn them into integral vectors
+        # sometimes, Polymake returns rational linear spans - we turn them into integral vectors
         scaled_eqs := [];
         for i in [ 1 .. Length( eqs ) ] do
             scale := Lcm( List( eqs[ i ], r -> DenominatorRat( r ) ) );
@@ -335,7 +308,7 @@ InstallMethod( Polymake_H_Rep,
         res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
         eqs := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
         
-        # sometimes, Polymake returns rational facets - we turn them into integral vectors
+        # sometimes, Polymake returns rational linear spans - we turn them into integral vectors
         scaled_eqs := [];
         for i in [ 1 .. Length( eqs ) ] do
             scale := Lcm( List( eqs[ i ], r -> DenominatorRat( r ) ) );
@@ -375,21 +348,15 @@ InstallMethod( Polymake_Dimension,
               " returns the dimension of the cone",
             [ IsPolymakeCone ],
   function( cone )
-    local help_cone, command_string, s;
+    local command_string, s;
     
     if Polymake_IsEmpty( cone ) then 
         return -1;
     fi;
     
-    # compute v-representation
-    help_cone := Polymake_V_Rep( cone );
-    
-    # produce command string
-    command_string := Concatenation( Polymake_V_Rep_command_string( help_cone ), ".CONE_DIM" );
+    command_string := Concatenation( Polymake_V_Rep_command_string( Polymake_V_Rep( cone ) ), ".CONE_DIM" );
     JuliaEvalString( command_string );
     s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
-    
-    # return the result
     return EvalString( s );
     
 end );
@@ -506,7 +473,6 @@ InstallMethod( Polymake_IsPointed,
     return EvalString( s );
     
 end );
-
 
 
 ##############################################################################################
