@@ -12,8 +12,7 @@ function isweierstrassform(eq::Oscar.MPolyElem{S}) where S <: FieldElem
    y = gen(R, 2)
    z = gen(R, 3)
    A = [x*y*z, y*z^2, x^2*z, x*z^2, z^3]
-   f = deepcopy(eq)
-   f = f - y^2*z + x^3
+   f = eq - y^2*z + x^3
    for t in A
       f = f - coeff(eq, t)*t
    end
