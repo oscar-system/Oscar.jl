@@ -6,7 +6,7 @@ export ProjEllipticCurve, discriminant, issmooth, j_invariant,
 # Helping functions
 ################################################################################
 
-function isweierstrassform(eq::Oscar.MPolyElem{S}) where S <: FieldElem
+function isweierstrass_form(eq::Oscar.MPolyElem{S}) where S <: FieldElem
    R = parent(eq)
    x = gen(R, 1)
    y = gen(R, 2)
@@ -33,7 +33,7 @@ end
 
 ################################################################################
 
-function iselliptic(F::Oscar.MPolyElem_dec)
+function _iselliptic(F::Oscar.MPolyElem_dec)
    C = ProjPlaneCurve(F)
    return iselliptic(C)
 end
@@ -129,8 +129,8 @@ mutable struct ProjEllipticCurve{S} <: ProjectivePlaneCurve{S}
     nvars(parent(eq)) == 3 || error("The defining equation must belong to a ring with three variables")
     !isconstant(eq) || error("The defining equation must be non constant")
     ishomogenous(eq) || error("The defining equation is not homogeneous")
-    iselliptic(eq) || error("Not an elliptic curve")
-    isweierstrassform(eq.f) || error("Not in Weierstrass form")
+    _iselliptic(eq) || error("Not an elliptic curve")
+    isweierstrass_form(eq.f) || error("Not in Weierstrass form")
     v = shortformtest(eq.f)
     T = parent(eq)
     K = T.R.base_ring
@@ -145,11 +145,11 @@ mutable struct ProjEllipticCurve{S} <: ProjectivePlaneCurve{S}
      !isconstant(eq) || error("The defining equation must be non constant")
      ishomogenous(eq) || error("The defining equation is not homogeneous")
      isinflection(eq, P) || error("Not an inflection point -- structure implemented only with an inflection point as base point.")
-     iselliptic(eq) || error("Not an elliptic curve")
+     _iselliptic(eq) || error("Not an elliptic curve")
      T = parent(eq)
      L = _change_coord(eq, P)
      H = L[1](eq)
-     isweierstrassform(H) || error("Not in Weierstrass form")
+     isweierstrass_form(H) || error("Not in Weierstrass form")
      v = shortformtest(H)
      new{S}(eq, 3, Dict{ProjEllipticCurve{S}, Int}(), P, L, Hecke.EllipticCurve(v[2], v[1]))
   end
@@ -394,7 +394,7 @@ end
 
 
 ################################################################################
-# This code is copied from Macaulay2, based on Tibouchi, M. ''A Nagell Algorithm
+# This code is inspired from Macaulay2, based on Tibouchi, M. ''A Nagell Algorithm
 # in Any Characteristic'', Cryptography and Security: From Theory to
 # Applications, 474--479, 2012.
 
@@ -406,7 +406,7 @@ return an elliptic curve birationally equivalent to `C` given by an equation in
 long Weierstrass form.
 """
 function toweierstrass(C::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
-   iselliptic(C.eq) || error("not elliptic curve")
+   _iselliptic(C.eq) || error("not elliptic curve")
    P in C || error("The point ", P, " is not on the curve")
    F = defining_equation(C)
    R = parent(F)
