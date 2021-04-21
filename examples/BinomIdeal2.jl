@@ -1,12 +1,12 @@
 module BinomialIdeal
 
 using Oscar
-Oscar.example("QabAndPChars.jl")
-using Main.QabModule
-import Main.QabModule: my_product, QabElem, PCharSaturateAll, LatticeEqual
-import lib4ti2_jll
+Oscar.include("../experimental/Rings/QabAndPChars.jl")
+using Oscar.QabModule
+import Oscar.QabModule: my_product, QabElem, PCharSaturateAll, LatticeEqual
+import Oscar.lib4ti2_jll
 
-using DelimitedFiles
+#using DelimitedFiles
 
 export isbinomial, iscellular, isunital, QabField, Binomial, Cellular
 
@@ -480,6 +480,7 @@ function cellularDecompMacaulay(I::Singular.sideal)
 
         compo=0
         while size(ToDo,1)>0
+                @show [(x[1], x[2], gens(x[3])) for x in ToDo]
                 L=ToDo[1]
 
                 if size(ToDo,1)>1
@@ -507,6 +508,7 @@ function cellularDecompMacaulay(I::Singular.sideal)
                         else
                                 newL2=[]
                         end
+                        @show gens(L[3]), i
                         result=saturate(L[3],Ideal(R,i))
                         J=result[1]     #ideal
                         k=result[2]     #saturation exponent
@@ -1104,4 +1106,4 @@ using .Binomial, .Cellular
 
 end
 
-using Main.BinomialIdeal
+#using Main.BinomialIdeal
