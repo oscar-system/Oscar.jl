@@ -8,7 +8,7 @@ export Point, ideal_point, AffinePlaneCurve, ProjPlaneCurve, hash, degree,
 
 ################################################################################
 
-abstract type PlaneCurve{S <: Union{RingElem, FieldElem}} end
+abstract type PlaneCurve{S <: FieldElem} end
 abstract type ProjectivePlaneCurve{S} <: PlaneCurve{S} end
 
 ################################################################################
