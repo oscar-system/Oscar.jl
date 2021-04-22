@@ -852,7 +852,7 @@ function quo(F::FreeMod, T::SubQuo, task::Symbol = :none)
   return quo(F, gens(T), task)
 end
 
-function return_quo_wrt_task(M::SubQuo, Q::SubQuo, task)
+function return_quo_wrt_task(M::ModuleFP, Q::ModuleFP, task)
   if task == :none || task == :module
     return Q
   else
@@ -1722,6 +1722,86 @@ function ext(M::ModuleFP, N::ModuleFP, i::Int)
   free_res = free_resolution(M)[1:end-2]
   lifted_resolution = hom_functor(free_res, N) #TODO only three homs are neccessary
   return homology(lifted_resolution,i)
+end
+
+#############################
+# TODO ?
+#############################
+function map_canonically(M::SubQuo, v::SubQuoElem)
+  N = parent(v)
+  if N===M
+    return v
+  end
+
+  # Breadth-First Search to find path to N:
+  parent_hom = IdDict{SubQuo,ModuleMap}()
+  modules = Set([M])
+  found_N = false
+  for A in modules
+    for H in A.ingoing_morphisms
+      B = domain(H)
+      if B!==A # on trees "B!==A" is enough!
+        if !(B in modules)
+          parent_hom[B] = H
+          push!(modules,B)
+        end
+      end
+      if B===N
+        found_N = true
+        break
+      end
+    end
+    if found_N
+      break
+    end
+  end
+  if !found_N
+    throw(DomainError("There is no path of canonical homomorphisms between the modules!"))
+  end
+  result = v
+  A = N
+  while A !== M
+    H = parent_hom[A]
+    result = H(result)
+    A = codomain(H)
+  end
+  return result
+end
+
+function all_canonical_maps(M::SubQuo, N::SubQuo)
+  # from N to M
+
+  all_paths = []
+
+  function helper_dfs(U::SubQuo, D::SubQuo, visited::Set, path::Vector)
+    if U === D
+      push!(all_paths, path)
+      return
+    end
+    for neighbor_morphism in U.outgoing_morphisms
+      if !(neighbor_morphism in visited)
+
+        #push!(visited, neighbor_morphism)
+        #push!(path, neighbor_morphism)
+        #helper_dfs(codomain(neighbor_morphism), D, visited, path)
+        helper_dfs(codomain(neighbor_morphism), D, union(visited, Set([neighbor_morphism])), union(path, [neighbor_morphism]))
+        #helper_dfs(codomain(neighbor_morphism), D, visited, union(path, [neighbor_morphism]))
+      end
+    end
+  end
+
+  helper_dfs(N, M, Set(), [])
+
+  morphisms = Array{ModuleMap, 1}()
+  for path in all_paths
+    phi = identity_map(N)
+    for h in path
+      phi = phi*h
+    end
+    push!(morphisms, phi)
+  end
+
+  return morphisms
 end
 
 #############################
