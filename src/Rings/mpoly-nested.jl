@@ -64,13 +64,13 @@ end
 function _add_variables(R2::Singular.PolyRing, n::Int)
   n += nvars(R2)
   x = map(i->"x"*string(i), 1:n)
-  return Singular.PolynomialRing(base_ring(R2), x)[1]
+  return Singular.PolynomialRing(base_ring(R2), x, cached=false)[1]
 end
 
 function _add_variables(R2::Union{MPolyRing, PolyRing}, n::Int)
   n += nvars(R2)
   x = map(i->"x"*string(i), 1:n)
-  return PolynomialRing(base_ring(R2), x)[1]
+  return PolynomialRing(base_ring(R2), x, cached=false)[1]
 end
 
 
