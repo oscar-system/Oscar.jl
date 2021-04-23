@@ -36,9 +36,9 @@ InstallGlobalFunction( Polymake_PolytopeByGenerators,
   function( arg )
     local poly, i, matrix, temp, dim;
     
-    if Length( arg )= 0 then
+    if Length( arg )= 0 or ForAll( arg, IsEmpty ) then
         
-        Error( "Wronge input" );
+        Error( "Wronge input: Please provide some input!" );
         
     elif Length( arg ) = 1 and IsList( arg[1] ) then
         
@@ -46,69 +46,31 @@ InstallGlobalFunction( Polymake_PolytopeByGenerators,
         
     elif Length( arg ) = 2 and IsList( arg[ 1 ] ) and IsList( arg[ 2 ] ) then
         
-        if IsEmpty( arg[ 1 ] ) or ForAny( arg[ 1 ], IsEmpty ) then
-            
-            poly := rec( generating_vertices := [ ],
-                        generating_rays := [ ],
-                        matrix:= arg[ 1 ],
-                        number_type := "rational",
-                        rep_type := "V-rep" );
-            
-            ObjectifyWithAttributes( poly, TheTypeOfPolymakePolytope );
-            
-            return poly;
-            
-        fi;
-        
-        if not IsMatrix( arg[ 1 ] ) then
-            
+        if ( not IsEmpty( arg[ 1 ] ) ) and not ( IsMatrix( arg[ 1 ] ) ) then
             Error( "Wronge input: The first argument should be a Gap matrix!" );
-            
         fi;
         
-        if not ForAll( arg[ 1 ], row -> row[ 1 ] in [ 0, 1 ] ) then
-            
-            Error( "Wronge input: Please see the documentation!" );
-            
+        if ( not IsEmpty( arg[ 2 ] ) ) and not ( IsMatrix( arg[ 2 ] ) ) then
+            Error( "Wronge input: The second argument should be a Gap matrix!" );
         fi;
         
-        if not ForAll( arg[ 2 ], i -> i in [ 1 .. NrRows( arg[ 1 ] ) ] ) then
-            
-            Error( "Wronge input for lineality" );
-        
-        fi;
-        
-        dim := Length( arg[ 1 ][ 1 ] ) - 1;
-        matrix := Filtered( arg[ 1 ], row -> not IsZero( row ) );
-        
-        if IsEmpty( matrix ) then
-            
-            Error( "Wronge input: Please make sure the input has sensable direction vectors!" );
-            
-        fi;
-        
-        temp := GeneratingVerticesAndGeneratingRays( arg[ 1 ], arg[ 2 ] );
-        
-        poly := rec( generating_vertices := temp[ 1 ],
-                    generating_rays := temp[ 2 ],
-                    matrix :=arg[ 1 ],
-                    lineality := arg[ 2 ],
-                    number_type := "rational",
-                    rep_type := "V-rep" );
-                    
+        poly := rec( generating_vertices := arg[ 1 ],
+                     lineality := arg[ 2 ],
+                     number_type := "rational",
+                     rep_type := "V-rep" );
         ObjectifyWithAttributes( poly, TheTypeOfPolymakePolytope );
-        
         return poly;
         
     fi;
     
 end );
 
+
 InstallGlobalFunction( Polymake_PolytopeFromInequalities,
   function( arg )
     local poly, i, temp, matrix, dim;
     
-    if Length( arg ) = 0 then
+    if Length( arg ) = 0 or ForAll( arg, IsEmpty ) then
         
         Error( "Wronge input: Please provide some input!" );
         
@@ -118,45 +80,19 @@ InstallGlobalFunction( Polymake_PolytopeFromInequalities,
         
     elif Length( arg ) = 2 and IsList( arg[ 1 ] ) and IsList( arg[ 2 ] ) then
         
-        if IsEmpty( arg[ 1 ] ) or ForAny( arg[ 1 ], IsEmpty ) then 
-            
-            Error( "Wronge input: Please remove the empty lists from the input!" );
-            
-        fi;
-        
-        if not IsMatrix( arg[ 1 ] ) then
-            
+        if ( not IsEmpty( arg[ 1 ] ) ) and not ( IsMatrix( arg[ 1 ] ) ) then
             Error( "Wronge input: The first argument should be a Gap matrix!" );
-            
         fi;
         
-        if not ForAll( arg[ 2 ], i -> i in [ 1 .. NrRows( arg[ 1 ] ) ] ) then
-            
-            Error( "Wronge input for lineality" );
-            
+        if ( not IsEmpty( arg[ 2 ] ) ) and not ( IsMatrix( arg[ 2 ] ) ) then
+            Error( "Wronge input: The second argument should be a Gap matrix!" );
         fi;
         
-        dim := Length( arg[ 1 ][ 1 ] ) - 1;
-        
-        matrix := Filtered( arg[ 1 ], row -> not IsZero( row ) );
-        
-        if IsEmpty( matrix ) then
-            
-            matrix := [ Concatenation( [ 1 ], ListWithIdenticalEntries( dim, 0 ) ) ];
-            
-        fi;
-        
-        temp := InequalitiesAndEqualities( matrix, arg[ 2 ] );
-        
-        poly := rec( matrix := matrix,
-                    inequalities := temp[ 1 ],
-                    equalities := temp[ 2 ],
-                    lineality := arg[ 2 ],
-                    number_type := "rational",
-                    rep_type := "H-rep" );
-        
+        poly := rec( inequalities := arg[ 1 ],
+                     equalities := arg[ 2 ],
+                     number_type := "rational",
+                     rep_type := "H-rep" );
         ObjectifyWithAttributes( poly, TheTypeOfPolymakePolytope );
-        
         return poly;
         
     fi;
