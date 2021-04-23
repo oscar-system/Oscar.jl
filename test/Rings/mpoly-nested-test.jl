@@ -1,4 +1,4 @@
-@testset "mpoly-parametric.gcd" begin
+@testset "mpoly-nested.frac.gcd" begin
 
   function check_gcd(a, b, gdiv)
     g = gcd(a, b)
@@ -29,7 +29,7 @@
   check_gcd(g*a, g*b, g)
 end
 
-@testset "mpoly-parametric.factor" begin
+@testset "mpoly-nested.frac.factor" begin
 
   function check_factor(a, esum)
     f = factor(a)
