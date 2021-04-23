@@ -222,7 +222,7 @@ end );
 InstallMethod( Polymake_V_Rep,
                [ IsPolymakePolytope ],
   function( poly )
-    local command_string, s, res_string, vertices, lineality, scaled_lineality, new_poly;
+    local command_string, s, res_string, vertices, scaled_vertices, i, scale, lineality, scaled_lineality, new_poly;
     
     if poly!.rep_type = "V-rep" then
         
@@ -276,7 +276,7 @@ end );
 InstallMethod( Polymake_H_Rep,
                [ IsPolymakePolytope ],
   function( poly )
-    local command_string, s, res_string, ineqs, scaled_ineqs, eqs, scaled_eqs, new_poly;
+    local command_string, s, res_string, ineqs, i, scale, scaled_ineqs, eqs, scaled_eqs, new_poly;
     
     if poly!.rep_type = "H-rep" then
         
@@ -376,7 +376,7 @@ InstallMethod( Polymake_Vertices,
 end );
 
 
-InstallMethod( Polymake_Lineality,
+InstallMethod( Polymake_Linealities,
               " return the list of linealities",
               [ IsPolymakePolytope ],
   function( poly )
