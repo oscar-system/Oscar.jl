@@ -61,3 +61,71 @@ end
                  (x1^2*t1+x2^2*t1//t2+x4*x3^2*t1//t3)^2, 5)
   end
 end
+
+@testset "mpoly-nested.iterated.conversion" begin
+  R = QQ
+  R, x1 = PolynomialRing(R, "x1")
+  p = (x1 + 2)^2
+  @test p == renest(R, denest(denest(R), p))
+
+  R = QQ
+  R, (x1, x2) = PolynomialRing(R, ["x1", "x2"])
+  p = (x1*x2 + x1 + x2^2)^2
+  @test p == renest(R, denest(denest(R), p))
+
+  R = QQ
+  R, x3 = PolynomialRing(R, "x3")
+  R, x2 = PolynomialRing(R, "x2")
+  R, x1 = PolynomialRing(R, "x1")
+  p = (x1*x2*x3 + x1 + x2^2 + x3^3)^2
+  @test p == renest(R, denest(denest(R), p))
+
+  R = QQ
+  R, (x3, x4) = PolynomialRing(R, ["x3", "x4"])
+  R, x2 = PolynomialRing(R, "x2")
+  R, x1 = PolynomialRing(R, "x1")
+  p = (x1*x2*x3*x4 + x1 + x2^2 + x3^3 + x4^4)^2
+  @test p == renest(R, denest(denest(R), p))
+
+  R = QQ
+  R, x4 = PolynomialRing(R, "x4")
+  R, (x2, x3) = PolynomialRing(R, ["x2", "x3"])
+  R, x1 = PolynomialRing(R, "x1")
+  p = (x1*x2*x3*x4 + x1 + x2^2 + x3^3 + x4^4)^2
+  @test p == renest(R, denest(denest(R), p))
+
+  R = QQ
+  R, x4 = PolynomialRing(R, "x4")
+  R, x3 = PolynomialRing(R, "x3")
+  R, (x1, x2) = PolynomialRing(R, ["x1", "x2"])
+  p = (x1*x2*x3*x4 + x1 + x2^2 + x3^3 + x4^4)^2
+  @test p == renest(R, denest(denest(R), p))
+
+  R = QQ
+  R, x5 = PolynomialRing(R, "x5")
+  R, (x3, x4) = PolynomialRing(R, ["x3", "x4"])
+  R, (x1, x2) = PolynomialRing(R, ["x1", "x2"])
+  p = (x1*x2*x3*x4*x5 + x1 + x2^2 + x3^3 + x4^4 + x5^5)^2
+  @test p == renest(R, denest(denest(R), p))
+
+  R = QQ
+  R, (x4, x5) = PolynomialRing(R, ["x5", "x6"])
+  R, x3 = PolynomialRing(R, "x4")
+  R, (x1, x2) = PolynomialRing(R, ["x1", "x2"])
+  p = (x1*x2*x3*x4*x5 + x1 + x2^2 + x3^3 + x4^4 + x5^5)^2
+  @test p == renest(R, denest(denest(R), p))
+
+  R = QQ
+  R, (x4, x5) = PolynomialRing(R, ["x4", "x5"])
+  R, (x2, x3) = PolynomialRing(R, ["x2", "x3"])
+  R, x1 = PolynomialRing(R, "x1")
+  p = (x1*x2*x3*x4*x5 + x1 + x2^2 + x3^3 + x4^4 + x5^5)^2
+  @test p == renest(R, denest(denest(R), p))
+
+  R = QQ
+  R, (x5, x6) = PolynomialRing(R, ["x5", "x6"])
+  R, (x3, x4) = PolynomialRing(R, ["x3", "x4"])
+  R, (x1, x2) = PolynomialRing(R, ["x1", "x2"])
+  p = (x1*x2*x3*x4*x5*x6 + x1 + x2^2 + x3^3 + x4^4 + x5^5 + x6^6)^2
+  @test p == renest(R, denest(denest(R), p))
+end
