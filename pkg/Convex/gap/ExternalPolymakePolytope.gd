@@ -54,6 +54,18 @@ DeclareGlobalFunction( "Polymake_PolytopeFromInequalities" );
 ##############################################################################################
 
 #! @Arguments P
+#! @Returns a PolymakeCone
+#! @Description
+#! The function takes a PolymakePolytope and returns its canonical V-rep.
+DeclareAttribute( "Polymake_CanonicalPolytopeByGenerators",  IsPolymakePolytope  );
+
+#! @Arguments P
+#! @Returns a PolymakeCone
+#! @Description
+#! The function takes a PolymakePolytope and returns its canonical H-rep.
+DeclareAttribute( "Polymake_CanonicalPolytopeFromInequalities",  IsPolymakePolytope  );
+
+#! @Arguments P
 #! @Returns a PolymakePolytope
 #! @Description
 #! The function takes a PolymakePolytope and returns its reduced $V$-representation.
