@@ -51,14 +51,16 @@ function _restore_numerators(R::MPolyRing, g::MPolyElem)
 end
 
 # if R2 is a singular ring, keep it that way since limited types can be factored
-function _add_variables(R2::MPolyRing, n::Int)
-   n += nvars(R2)
-   x = map(i->"x"*string(i), 1:n)
-   if isa(R2, Singular.PolyRing)
-      return Singular.PolynomialRing(base_ring(R2), x)[1]
-   else
-      return PolynomialRing(base_ring(R2), x)[1]
-   end
+function _add_variables(R2::Singular.PolyRing, n::Int)
+  n += nvars(R2)
+  x = map(i->"x"*string(i), 1:n)
+  return Singular.PolynomialRing(base_ring(R2), x)[1]
+end
+
+function _add_variables(R2::Union{MPolyRing, PolyRing}, n::Int)
+  n += nvars(R2)
+  x = map(i->"x"*string(i), 1:n)
+  return PolynomialRing(base_ring(R2), x)[1]
 end
 
 
