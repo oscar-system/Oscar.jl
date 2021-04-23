@@ -1,4 +1,4 @@
-#! @Chapter Functionality
+#! @Chapter Cones
 
 #! @Section Examples
 
