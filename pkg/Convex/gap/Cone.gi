@@ -39,7 +39,7 @@ InstallMethod( RayGenerators,
     function( cone )
     
     if PolymakeAvailable() then
-        return Polymake_GeneratingRays( ExternalPolymakeCone( cone ) );
+        return Polymake_Rays( ExternalPolymakeCone( cone ) );
     fi;
     
     TryNextMethod();

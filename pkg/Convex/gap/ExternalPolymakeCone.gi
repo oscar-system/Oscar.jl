@@ -53,7 +53,7 @@ InstallGlobalFunction( Polymake_ConeByGenerators,
             Error( "Wronge input: The second argument should be a Gap matrix!" );
         fi;
         
-        cone := rec( generating_rays := arg[ 1 ],
+        cone := rec( rays := arg[ 1 ],
                     lineality := arg[ 2 ],
                     number_type := "rational",
                     rep_type := "V-rep" );
@@ -148,7 +148,7 @@ InstallMethod( Polymake_CanonicalConeByGenerators,
         od;
         
         # construct the new cone
-        new_cone := rec( generating_rays := scaled_rays,
+        new_cone := rec( rays := scaled_rays,
                          lineality := scaled_lineality,
                          number_type := "rational",
                          rep_type := "V-rep" );
@@ -259,7 +259,7 @@ InstallMethod( Polymake_V_Rep,
         od;
         
         # construct the new cone
-        new_cone := rec( generating_rays := scaled_rays,
+        new_cone := rec( rays := scaled_rays,
                          lineality := scaled_lineality,
                          number_type := "rational",
                          rep_type := "V-rep" );
@@ -281,7 +281,7 @@ InstallMethod( Polymake_H_Rep,
         
     else
         
-        if cone!.rep_type = "V-rep" and cone!.generating_rays = [] then
+        if cone!.rep_type = "V-rep" and cone!.rays = [] then
             return Polymake_ConeFromInequalities( [ [ 0, 1 ], [ -1, -1 ] ] );
         fi;
         
@@ -339,7 +339,7 @@ InstallMethod( Polymake_AmbientSpaceDimension,
               [ IsPolymakeCone ],
   function( cone )
     
-    return Length( Polymake_V_Rep( cone )!.generating_rays[1] );
+    return Length( Polymake_V_Rep( cone )!.rays[1] );
     
 end );
 
@@ -362,12 +362,12 @@ InstallMethod( Polymake_Dimension,
 end );
 
 
-InstallMethod( Polymake_GeneratingRays,
+InstallMethod( Polymake_Rays,
               " return the list of generating vertices",
               [ IsPolymakeCone ],
   function( cone )
     
-    return Set( Polymake_V_Rep( cone )!.generating_rays );
+    return Set( Polymake_V_Rep( cone )!.rays );
     
 end );
 
@@ -422,7 +422,7 @@ InstallMethod( Polymake_RaysInFacets,
     res_string := SplitString( s, '\n' );
     res_string := List( [ 2 .. Length( res_string ) ], i -> ReplacedString( ReplacedString( ReplacedString( res_string[ i ], " ", "," ), "{", "[" ), "}", "]" ) );
     res_string := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
-    number_rays := Length( help_cone!.generating_rays );
+    number_rays := Length( help_cone!.rays );
     ray_list := [];
     for i in [ 1 .. Length( res_string ) ] do
         dummy := [];
@@ -450,7 +450,7 @@ InstallMethod( Polymake_IsEmpty,
                [ IsPolymakeCone ],
   function( cone )
     
-    return Length( Polymake_V_Rep( cone )!.generating_rays ) = 0;
+    return Length( Polymake_V_Rep( cone )!.rays ) = 0;
     
 end );
 
@@ -516,7 +516,7 @@ InstallMethod( Polymake_V_Rep_command_string,
         fi;
         
         # extract data
-        rays := cone!.generating_rays;
+        rays := cone!.rays;
         lin := cone!.lineality;
         
         # check for degenerate case

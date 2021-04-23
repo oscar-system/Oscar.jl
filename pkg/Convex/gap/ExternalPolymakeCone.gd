@@ -91,8 +91,8 @@ DeclareAttribute( "Polymake_Dimension", IsPolymakeCone );
 #! @Arguments P
 #! @Returns list
 #! @Description
-#! The output is the set of generating rays of the PolymakeCone.
-DeclareAttribute( "Polymake_GeneratingRays", IsPolymakeCone );
+#! The output is the set of rays of the PolymakeCone.
+DeclareAttribute( "Polymake_Rays", IsPolymakeCone );
 
 #! @Arguments P
 #! @Returns list
