@@ -8,7 +8,8 @@ export Point, ideal_point, AffinePlaneCurve, ProjPlaneCurve, hash, degree,
 
 ################################################################################
 
-abstract type PlaneCurve end
+abstract type PlaneCurve{S <: FieldElem} end
+abstract type ProjectivePlaneCurve{S} <: PlaneCurve{S} end
 
 ################################################################################
 # Point (not specific to curves).
@@ -62,7 +63,7 @@ end
 # Structure of Affine Plane Curves and Projective Plane Curves
 ################################################################################
 
-mutable struct AffinePlaneCurve{S <: FieldElem} <: PlaneCurve
+mutable struct AffinePlaneCurve{S} <: PlaneCurve{S}
   eq::Oscar.MPolyElem{S}                # Equation of the curve (polynomial in two variables)
   degree::Int                           # degree of the equation of the curve
   components::Dict{AffinePlaneCurve{S}, Int}
@@ -87,7 +88,7 @@ end
 
 ################################################################################
 
-mutable struct ProjPlaneCurve{S <: FieldElem} <: PlaneCurve
+mutable struct ProjPlaneCurve{S} <: ProjectivePlaneCurve{S}
   eq::Oscar.MPolyElem_dec{S}            # Equation of the curve (polynomial in three variables)
   degree::Int                           # degree of the equation of the curve
   components::Dict{ProjPlaneCurve{S}, Int}
@@ -120,8 +121,8 @@ end
 # Plane Curves related functions.
 ################################################################################
 
-defining_equation(C::AffinePlaneCurve) = C.eq
-defining_equation(C::ProjPlaneCurve) = C.eq.f
+defining_equation(C::PlaneCurve) = C.eq
+defining_equation(C::ProjectivePlaneCurve) = C.eq.f
 
 
 Oscar.dim(::PlaneCurve) = 1 # since C is a plane curve, the dimension is always 1
@@ -156,11 +157,11 @@ function Base.in(P::Point{S}, C::AffinePlaneCurve{S}) where S <: FieldElem
 end
 
 @doc Markdown.doc"""
-    in(P::Oscar.Geometry.ProjSpcElem{S}, C::ProjPlaneCurve{S})
+    in(P::Oscar.Geometry.ProjSpcElem{S}, C::ProjectivePlaneCurve{S}) where S <: FieldElem
 
 Return `true` if the point `P` is on the curve `C`, and `false` otherwise.
 """
-function Base.in(P::Oscar.Geometry.ProjSpcElem{S}, C::ProjPlaneCurve{S}) where S <: FieldElem
+function Base.in(P::Oscar.Geometry.ProjSpcElem{S}, C::ProjectivePlaneCurve{S}) where S <: FieldElem
   return iszero(evaluate(C.eq, P.v))
 end
 
@@ -195,11 +196,11 @@ end
 # Components of the curve
 
 @doc Markdown.doc"""
-    curve_components(C::PlaneCurve)
+    curve_components(C::PlaneCurve{S}) where S <: FieldElem
 
 Return a dictionary containing the irreducible components of `C` and their multiplicity.
 """
-function curve_components(C::PlaneCurve)
+function curve_components(C::PlaneCurve{S}) where S <: FieldElem
   if isempty(C.components)
     T = typeof(C)
     D = factor(C.eq)
@@ -213,11 +214,11 @@ end
 # TODO: change for a direct irreducibility check when available.
 
 @doc Markdown.doc"""
-    isirreducible(C::PlaneCurve)
+    isirreducible(C::PlaneCurve{S}) where S <: FieldElem
 
 Return `true` if `C` is irreducible, and `false` otherwise.
 """
-function Oscar.isirreducible(C::PlaneCurve)
+function Oscar.isirreducible(C::PlaneCurve{S}) where S <: FieldElem
    comp = curve_components(C)
    return length(comp) == 1 && all(isone, values(comp))
 end
@@ -226,11 +227,11 @@ end
 # Check reducedness by computing a factorization
 
 @doc Markdown.doc"""
-    isreduced(C::PlaneCurve)
+    isreduced(C::PlaneCurve{S}) where S <: FieldElem
 
 Return `true` if `C` is reduced, and `false` otherwise.
 """
-function Oscar.isreduced(C::PlaneCurve)
+function Oscar.isreduced(C::PlaneCurve{S}) where S <: FieldElem
   if isempty(C.components)
      L = factor_squarefree(defining_equation(C))
      return all(isone, values(L.fac))
@@ -244,11 +245,11 @@ end
 # TODO: change for a direct squarefree computation when available.
 
 @doc Markdown.doc"""
-    reduction(C::PlaneCurve)
+    reduction(C::PlaneCurve{S}) where S <: FieldElem
 
 Return the plane curve defined by the squarefree part of the equation of `C`.
 """
-function reduction(C::AffinePlaneCurve)
+function reduction(C::AffinePlaneCurve{S}) where S <: FieldElem
   if isempty(C.components)
      L = factor_squarefree(C.eq)
      F = prod(f -> f, keys(L.fac))
@@ -262,7 +263,7 @@ function reduction(C::AffinePlaneCurve)
   end
 end
 
-function reduction(C::ProjPlaneCurve)
+function reduction(C::ProjPlaneCurve{S}) where S <: FieldElem
   comp = curve_components(C)
   F = prod(D -> D.eq, keys(comp))
   rC = ProjPlaneCurve(F)
@@ -299,7 +300,7 @@ end
 include("AffinePlaneCurve.jl")
 include("ProjPlaneCurve.jl")
 include("DivisorCurve.jl")
-include("AffineEllipticCurve.jl")
+include("ProjEllipticCurve.jl")
 
 ################################################################################
 end
