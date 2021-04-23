@@ -1,18 +1,35 @@
-@testset "mpoly-nested.frac.gcd" begin
+begin
 
-  function check_gcd(a, b, gdiv)
-    g = gcd(a, b)
-    if iszero(g)
-      @test iszero(a)
-      @test iszero(b)
-      return
-    end
-    @test iszero(gdiv) || divides(g, gdiv)[1]
-    a = divexact(a, g)
-    b = divexact(b, g)
-    @test isunit(gcd(a, b))
+local check_gcd, check_factor
+
+function check_gcd(a, b, gdiv)
+  g = gcd(a, b)
+  if iszero(g)
+    @test iszero(a)
+    @test iszero(b)
+    return
   end
+  @test iszero(gdiv) || divides(g, gdiv)[1]
+  a = divexact(a, g)
+  b = divexact(b, g)
+  @test isunit(gcd(a, b))
+end
 
+function check_factor(a, esum)
+  f = factor(a)
+
+  @test isunit(unit(f))
+  @test a == unit(f) * prod([p^e for (p, e) in f])
+  @test esum == sum(e for (p, e) in f)
+
+  f = factor_squarefree(a)
+
+  @test isunit(unit(f))
+  @test a == unit(f) * prod([p^e for (p, e) in f])
+end
+
+
+@testset "mpoly-nested.frac.gcd" begin
   r, (t1, t2, t3) = PolynomialRing(QQ, ["t1", "t2", "t3"])
   r = FractionField(r)
   (t1, t2, t3) = map(r, (t1, t2, t3))
@@ -30,20 +47,6 @@
 end
 
 @testset "mpoly-nested.frac.factor" begin
-
-  function check_factor(a, esum)
-    f = factor(a)
-
-    @test isunit(unit(f))
-    @test a == unit(f) * prod([p^e for (p, e) in f])
-    @test esum == sum(e for (p, e) in f)
-
-    f = factor_squarefree(a)
-
-    @test isunit(unit(f))
-    @test a == unit(f) * prod([p^e for (p, e) in f])
-  end
-
   for (PR, Q) in ((PolynomialRing, QQ),
                   (PolynomialRing, GF(101)),
                   #(Singular.PolynomialRing, Singular.QQ) TODO enable after bug fixes
@@ -128,4 +131,31 @@ end
   R, (x1, x2) = PolynomialRing(R, ["x1", "x2"])
   p = (x1*x2*x3*x4*x5*x6 + x1 + x2^2 + x3^3 + x4^4 + x5^5 + x6^6)^2
   @test p == renest(R, denest(denest(R), p))
+end
+
+@testset "mpoly-nested.iterated.gcd_factor" begin
+  r3 = PolynomialRing(QQ, "x3")[1]
+  r2 = PolynomialRing(r3, "x3")[1]
+
+  R1 = PolynomialRing(r2, "x3")[1]
+  xs1 = [gen(R1), R1(gen(r2)), R1(gen(r3))]
+
+  R2 = PolynomialRing(r3, ["x1", "x2"])[1]
+  xs2 = [gen(R2, 1), gen(R2, 2), R2(gen(r3))]
+
+  for ((x1, x2, x3), R) in ((xs1, R1), (xs2, R2))
+    check_gcd(zero(R), zero(R), zero(R))
+    check_gcd(zero(R), x2+x3, x2+x3)
+    check_gcd(x1+x2, zero(R), x1+x2)
+    check_gcd(zero(R), zero(R), zero(R))
+
+    g = (x1 + 2*x2 + 3*x3)
+    a = (x1^2 + 4*x2^2 + 5*x3^2)
+    b = (x1^3 + 6*x2^3 + 7*x3^3)
+    check_gcd(g*a, g*b, g)
+
+    check_factor(g^2*a*b, 4)
+  end
+end
+
 end

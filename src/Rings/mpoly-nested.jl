@@ -89,7 +89,7 @@ function Oscar.gcd(
 end
 
 
-function _convert_fac(R, u, fac)
+function _convert_frac_fac(R, u, fac)
   Rfac = Fac{elem_type(R)}()
   Rfac.unit = R(u)
   for (f, e) in fac
@@ -111,7 +111,7 @@ function Oscar.factor(
   R2 = base_ring(base_ring(R))    # Q[t1, t2]
   S = _add_variables(R2, nvars(R))
   A, u = _remove_denominators(S, a)
-  return _convert_fac(R, u, factor(A))
+  return _convert_frac_fac(R, u, factor(A))
 end
 
 function Oscar.factor_squarefree(
@@ -122,7 +122,7 @@ function Oscar.factor_squarefree(
   R2 = base_ring(base_ring(R))    # Q[t1, t2]
   S = _add_variables(R2, nvars(R))
   A, u = _remove_denominators(S, a)
-  return _convert_fac(R, u, factor_squarefree(A))
+  return _convert_frac_fac(R, u, factor_squarefree(A))
 end
 
 ##############################################################################
@@ -254,4 +254,41 @@ function renest(R::Union{PolyRing, MPolyRing}, g::MPolyElem)
   gcoeffs = collect(coefficients(g))
   gexps = collect(exponent_vectors(g))
   return _renest_recursive(R, 1, collect(1:length(gcoeffs)), gcoeffs, gexps)
+end
+
+function Oscar.gcd(a::PolyElem{T}, b::PolyElem{T}) where
+                                                T <: Union{PolyElem, MPolyElem}
+  R = parent(a)
+  R == parent(b) || error("parents do not match")
+  S = denest(R)
+  return renest(R, gcd(denest(S, a), denest(S, b)))
+end
+
+function Oscar.gcd(a::MPolyElem{T}, b::MPolyElem{T}) where
+                                                T <: Union{PolyElem, MPolyElem}
+  R = parent(a)
+  R == parent(b) || error("parents do not match")
+  S = denest(R)
+  return renest(R, gcd(denest(S, a), denest(S, b)))
+end
+
+function _convert_iter_fac(R, fac::Fac)
+  Rfac = Fac{elem_type(R)}()
+  Rfac.unit = renest(R, fac.unit)
+  for (f, e) in fac
+    Rfac[renest(R, f)] = e
+  end
+  return Rfac
+end
+
+function Oscar.factor(a::Union{PolyElem{T}, MPolyElem{T}}) where
+                                                T <: Union{PolyElem, MPolyElem}
+  A = denest(denest(parent(a)), a)
+  return _convert_iter_fac(parent(a), factor(A))
+end
+
+function Oscar.factor_squarefree(a::Union{PolyElem{T}, MPolyElem{T}}) where
+                                                T <: Union{PolyElem, MPolyElem}
+  A = denest(denest(parent(a)), a)
+  return _convert_iter_fac(parent(a), factor_squarefree(A))
 end
