@@ -88,26 +88,23 @@ DeclareAttribute( "Polymake_AmbientSpaceDimension", IsPolymakePolytope );
 DeclareAttribute( "Polymake_Dimension", IsPolymakePolytope );
 
 #! @Arguments P
-#! @Returns The reduced generating vertices of the PolymakePolytope.
-DeclareAttribute( "Polymake_GeneratingVertices", IsPolymakePolytope );
+#! @Returns The vertices of the PolymakePolytope.
+DeclareAttribute( "Polymake_Vertices", IsPolymakePolytope );
 
 #! @Arguments P
-#! @Returns list
-#! @Description
-#! The output is the reduced generating rays of the PolymakePolytope.
-DeclareAttribute( "Polymake_GeneratingRays", IsPolymakePolytope );
+#! @Returns The linealities of the PolymakePolytope.
+DeclareAttribute( "Polymake_Linealities", IsPolymakePolytope );
 
 #! @Arguments P
 #! @Returns a list
 #! @Description
-#! The output is the reduced equalities of the PolymakePolytope.
+#! The output is the equalities of the PolymakePolytope.
 DeclareAttribute( "Polymake_Equalities", IsPolymakePolytope );
 
 #! @Arguments P
 #! @Description
-#! The output is the reduced inequalities of the PolymakePolytope.
+#! The output is the inequalities of the PolymakePolytope.
 DeclareAttribute( "Polymake_Inequalities", IsPolymakePolytope );
-
 
 #! @Arguments P
 #! @Description

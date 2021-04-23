@@ -7,7 +7,7 @@
 ##
 ##  A Gap package to do convex geometry by Polymake, Cdd and Normaliz
 ##
-## Chapter: Polytopes
+##  Chapter: Polytopes
 ##
 #############################################################################
 
@@ -18,38 +18,26 @@
 ##
 ####################################
 
-##
+    
 InstallMethod( ExternalPolymakePolytope,
                "for polyopes",
                [ IsPolytope ],
     function( poly )
-    local old_pointlist, new_pointlist, ineqs, i,j;
     
-    if IsBound( poly!.input_points ) and IsBound( poly!.input_ineqs ) then
-        Error( "points and inequalities at the same time are not supported\n" );
+    if IsBound( poly!.input_points ) and Length( poly!.input_points ) = 1 and IsZero( poly!.input_points ) then
+        return Polymake_PolytopeByGenerators( poly!.input_points[ 1 ] );
     fi;
     
     if IsBound( poly!.input_points ) then
-        
-        old_pointlist := poly!.input_points;
-        new_pointlist:= [ ];
-        for i in old_pointlist do
-            j:= ShallowCopy( i );
-            Add( j, 1, 1 );
-            Add( new_pointlist, j );
-        od;
-        return Polymake_PolytopeByGenerators( new_pointlist );
-        
-    elif  IsBound( poly!.input_ineqs ) then
-        
-        ineqs := ShallowCopy( poly!.input_ineqs );
-        return Polymake_PolytopeFromInequalities( ineqs );
-        
-    else
-        
-        Error( "something went wrong\n" );
-        
+        return Polymake_PolytopeByGenerators( poly!.input_points );
     fi;
+    
+    if IsBound( poly!.input_equalities ) then
+        return Polymake_PolytopeFromInequalities( poly!.input_inequalities, poly!.input_equalities );
+    fi;
+    
+    # otherwise our fallback is poly from inequalities
+    return Polymake_PolytopeFromInequalities( poly!.input_inequalities );
     
 end );
 
@@ -60,33 +48,36 @@ InstallMethod( VerticesOfPolytope,
   function( poly )
     
     if PolymakeAvailable() then
-        return Polymake_V_Rep( ExternalPolymakePolytope( poly ) )!.generating_vertices;
+        return Polymake_V_Rep( ExternalPolymakePolytope( poly ) )!.vertices;
     fi;
     TryNextMethod();
     
 end );
+
 
 InstallMethod( DefiningInequalities,
                "for polyopes",
                [ IsPolytope ],
   function( poly )
+    local ineqs, eqs;
     
     if PolymakeAvailable() then
-        return Polymake_H_Rep( ExternalPolymakePolytope( poly ) )!.inequalities;
+        ineqs := Polymake_Inequalities( ExternalPolymakePolytope( poly ) );
+        eqs := Polymake_Equalities( ExternalPolymakePolytope( poly ) );
+        return Set( Concatenation( eqs, (-1) * eqs, ineqs ) );
     fi;
     TryNextMethod();
     
 end );
 
 
-##
 InstallMethod( FacetInequalities,
                " for external polyopes",
                [ IsExternalPolytopeRep ],
   function( poly )
     
     if PolymakeAvailable() then
-        return Polymake_H_Rep( ExternalPolymakePolytope( poly ) )!.inequalities;
+        return Polymake_Inequalities( ExternalPolymakePolytope( poly ) );
     fi;
     TryNextMethod();
     

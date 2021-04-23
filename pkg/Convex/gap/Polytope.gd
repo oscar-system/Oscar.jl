@@ -18,11 +18,11 @@
 ##
 ####################################
 
-#! @Arguments C
-#! @Returns a polymake cone
+#! @Arguments P
+#! @Returns a PolymakePolyhedron
 #! @Description
-#! Converts the cone to a Polymake cone.
-DeclareAttribute( "ExternalPolymakePolytope",  IsPolytope  );
+#! Converts the polytope to a PolymakePolytope. The operations of Polymake can then be applied.
+DeclareAttribute( "ExternalPolymakePolytope", IsPolytope );
 
 #! @Arguments P
 #! @Returns a list of lists
@@ -37,9 +37,3 @@ DeclareAttribute( "VerticesOfPolytope", IsPolytope );
 #! Each defining inequality that is not defining-equality of the 
 #! polytope is a facet inequality.
 DeclareAttribute( "FacetInequalities", IsPolytope );
-
-#! @Arguments P
-#! @Returns a PolymakePolyhedron
-#! @Description
-#! Converts the polytope to a PolymakePolyhedron. The operations of Polymake can then be applied.
-DeclareAttribute( "ExternalPolymakePolytope", IsPolytope );
