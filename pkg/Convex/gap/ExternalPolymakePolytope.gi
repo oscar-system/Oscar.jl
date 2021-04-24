@@ -120,7 +120,7 @@ InstallMethod( Polymake_CanonicalPolytopeByGenerators,
         # compute vertices
         command_string := Concatenation( Polymake_V_Rep_command_string( poly ), ".VERTICES" );
         JuliaEvalString( command_string );
-        s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
+        s := JuliaToGAP( IsString, Julia.string( Julia.PolytopeByGAP4PackageConvex ) );
         res_string := SplitString( s, '\n' );
         res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
         vertices := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
@@ -135,7 +135,7 @@ InstallMethod( Polymake_CanonicalPolytopeByGenerators,
         # extract lineality
         command_string := Concatenation( Polymake_V_Rep_command_string( poly ), ".LINEALITY_SPACE" );
         JuliaEvalString( command_string );
-        s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
+        s := JuliaToGAP( IsString, Julia.string( Julia.PolytopeByGAP4PackageConvex ) );
         res_string := SplitString( s, '\n' );
         res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
         lineality := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
@@ -173,7 +173,7 @@ InstallMethod( Polymake_CanonicalPolytopeFromInequalities,
         # compute facets
         command_string := Concatenation( Polymake_H_Rep_command_string( poly ), ".FACETS" );
         JuliaEvalString( command_string );
-        s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
+        s := JuliaToGAP( IsString, Julia.string( Julia.PolytopeByGAP4PackageConvex ) );
         res_string := SplitString( s, '\n' );
         res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
         ineqs := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
@@ -188,7 +188,7 @@ InstallMethod( Polymake_CanonicalPolytopeFromInequalities,
         # compute affine hull
         command_string := Concatenation( Polymake_H_Rep_command_string( poly ), ".AFFINE_HULL" );
         JuliaEvalString( command_string );
-        s := JuliaToGAP( IsString, Julia.string( Julia.ConeByGAP4PackageConvex ) );
+        s := JuliaToGAP( IsString, Julia.string( Julia.PolytopeByGAP4PackageConvex ) );
         res_string := SplitString( s, '\n' );
         res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
         eqs := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
@@ -482,7 +482,7 @@ InstallMethod( Polymake_V_Rep_command_string,
                "construct command string for V-Representation of polytope in Julia",
                [ IsPolymakePolytope ],
   function( poly )
-    local vertices, lin, command_string;
+    local vertices, lin, i, command_string;
         
         # check if the given poly is a V-rep
         if not ( poly!.rep_type = "V-rep" ) then
@@ -492,6 +492,14 @@ InstallMethod( Polymake_V_Rep_command_string,
         # extract data
         vertices := poly!.vertices;
         lin := poly!.lineality;
+        
+        # add 1s at the beginning, since Polymake always considers polytopes as intersections with the hyperplane x0 = 1
+        for i in [ 1 .. Length( vertices ) ] do
+            Add( vertices[ i ], 1, 1 );
+        od;
+        for i in [ 1 .. Length( lin ) ] do
+            Add( lin[ i ], 1, 1 );
+        od;
         
         # check for degenerate case
         if Length( vertices ) = 0 then
