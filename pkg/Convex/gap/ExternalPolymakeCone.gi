@@ -33,7 +33,7 @@ BindGlobal( "TheTypeOfPolymakeCone", NewType( TheFamilyOfPolymakeCones, IsPolyma
 
 InstallGlobalFunction( Polymake_ConeByGenerators,
   function( arg )
-    local given_rays, given_lineality, cone;
+    local given_rays, i, given_lineality, cone;
     
     if Length( arg ) = 0 then
         
@@ -41,7 +41,23 @@ InstallGlobalFunction( Polymake_ConeByGenerators,
         
     elif Length( arg ) = 1 and IsList( arg[1] ) then
         
-        return Polymake_ConeByGenerators( arg[ 1 ], [ ] );
+        given_rays := Filtered( arg[ 1 ], row -> not IsZero( row ) );
+        if Length( given_rays ) > 0 then
+            
+            # non-trivial cone
+            return Polymake_ConeByGenerators( arg[ 1 ], [ ] );
+            
+        else
+            
+            # received the trivial cone
+            cone := rec( rays := [ ],
+                         lineality := [ ],
+                         number_type := "rational",
+                         rep_type := "V-rep" );
+            ObjectifyWithAttributes( cone, TheTypeOfPolymakeCone );
+            return cone;
+            
+        fi;
         
     elif Length( arg ) = 2 and IsList( arg[ 1 ] ) and IsList( arg[ 2 ] ) then
         
@@ -484,7 +500,7 @@ InstallMethod( Polymake_RaysInFaces,
         rays_in_faces := Concatenation( rays_in_faces, converted_additional_rays  );
         
     od;
-    Error( "Test" );
+    
     # return the result
     return DuplicateFreeList( rays_in_faces );
     
