@@ -5,7 +5,7 @@
 ##
 ##  Copyright 2021      University of Pennsylvania
 ##
-##  A Gap package to do convex geometry by Polymake, Cdd and Normaliz
+##  A Gap package for convex geometry via Polymake in Julia
 ##
 #############################################################################
 
@@ -13,7 +13,7 @@ SetPackageInfo( rec(
 
 PackageName := "Convex",
 
-Subtitle := "A Gap package to do convex geometry by Polymake, Cdd and Normaliz",
+Subtitle := "A Gap package for convex geometry via Polymake in Julia",
 
 Version :=  Maximum( [
   "2021.03.13", # Martins version
@@ -52,7 +52,7 @@ ArchiveURL     := "https://github.com/homalg-project/ToricVarieties_project/rele
 README_URL     := Concatenation( ~.PackageWWWHome, "README" ),
 PackageInfoURL := Concatenation( ~.PackageWWWHome, "PackageInfo.g" ),
 
-AbstractHTML := "Convex provides functionality to perform convex geometry with Polymake, Cdd and Normaliz.",
+AbstractHTML := "Convex provides functionality to perform convex geometry with Polymake in Julia.",
 
 PackageDoc := rec(
   BookName  := "Convex",
@@ -60,7 +60,7 @@ PackageDoc := rec(
   HTMLStart := "doc/chap0.html",
   PDFFile   := "doc/manual.pdf",
   SixFile   := "doc/manual.six",
-  LongTitle := "A Gap package to do convex geometry by Polymake, Cdd and Normaliz",
+  LongTitle := "A Gap package for convex geometry via Polymake in Julia",
   Autoload  := false
 ),
 
@@ -83,7 +83,7 @@ AvailabilityTest := function()
 Autoload := false,
 
 
-Keywords := [ "Convex geometry", "Polymake", "Cdd", "Normaliz" ],
+Keywords := [ "Convex geometry", "Polymake" ],
 
 AutoDoc := rec(
     TitlePage := rec(
