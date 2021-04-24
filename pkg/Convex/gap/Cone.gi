@@ -37,9 +37,12 @@ end );
 InstallMethod( RayGenerators,
                [ IsCone ],
     function( cone )
+    local rays, lin;
     
     if PolymakeAvailable() then
-        return Polymake_Rays( ExternalPolymakeCone( cone ) );
+        rays := Polymake_Rays( ExternalPolymakeCone( cone ) );
+        lin := Polymake_Lineality( ExternalPolymakeCone( cone ) );
+        return Set( Concatenation( rays, lin, (-1) * lin ) );
     fi;
     
     TryNextMethod();
