@@ -82,7 +82,7 @@ facets:= Facets( P );
 DualCone( P );
 #! < A cone in |R^3>
 RayGenerators( DualCone( P ) );
-#! [ [ 0, -1, 2 ], [ 0, 2, -1 ] ]
+#! [ [ -5, 8, 1 ], [ 7, -4, 1 ] ]
 LinealitySpaceGenerators( DualCone( P ) );
-#! [ [ -1, 0, 1 ] ]
+#! [ ]
 #! @EndExample
