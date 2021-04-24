@@ -109,7 +109,7 @@ end );
 InstallMethod( Polymake_CanonicalPolytopeByGenerators,
                [ IsPolymakePolytope ],
   function( poly )
-    local command_string, s, res_string, vertices, scaled_vertices, i, scale, lineality, scaled_lineality, new_poly;
+    local command_string, s, res_string, vertices, v_copy, scaled_vertices, i, scale, lineality, scaled_lineality, new_poly;
     
     if poly!.rep_type = "H-rep" then
         
@@ -126,10 +126,13 @@ InstallMethod( Polymake_CanonicalPolytopeByGenerators,
         vertices := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
         
         # sometimes, Polymake returns rational vertices - we turn them into integral vectors
+        # also, Polymake requires x0 = 1 in affine coordinates - we remove this 1
         scaled_vertices := [];
         for i in [ 1 .. Length( vertices ) ] do
             scale := Lcm( List( vertices[ i ], r -> DenominatorRat( r ) ) );
-            Append( scaled_vertices, [ scale * vertices[ i ] ] );
+            v_copy := ShallowCopy( vertices[ i ] );
+            Remove( v_copy, 1 );
+            Append( scaled_vertices, [ scale * v_copy ] );
         od;
         
         # extract lineality
@@ -144,7 +147,9 @@ InstallMethod( Polymake_CanonicalPolytopeByGenerators,
         scaled_lineality := [];
         for i in [ 1 .. Length( lineality ) ] do
             scale := Lcm( List( lineality[ i ], r -> DenominatorRat( r ) ) );
-            Append( scaled_lineality, [ scale * lineality[ i ] ] );
+            v_copy := ShallowCopy( lineality[ i ] );
+            Remove( v_copy, 1 );
+            Append( scaled_lineality, [ scale * v_copy ] );
         od;
         
         # construct the new poly
@@ -222,7 +227,7 @@ end );
 InstallMethod( Polymake_V_Rep,
                [ IsPolymakePolytope ],
   function( poly )
-    local command_string, s, res_string, vertices, scaled_vertices, i, scale, lineality, scaled_lineality, new_poly;
+    local command_string, s, res_string, vertices, v_copy, scaled_vertices, i, scale, lineality, scaled_lineality, new_poly;
     
     if poly!.rep_type = "V-rep" then
         
@@ -242,7 +247,9 @@ InstallMethod( Polymake_V_Rep,
         scaled_vertices := [];
         for i in [ 1 .. Length( vertices ) ] do
             scale := Lcm( List( vertices[ i ], r -> DenominatorRat( r ) ) );
-            Append( scaled_vertices, [ scale * vertices[ i ] ] );
+            v_copy := ShallowCopy( vertices[ i ] );
+            Remove( v_copy, 1 );
+            Append( scaled_vertices, [ scale * v_copy ] );
         od;
         
         # compute lineality
@@ -257,7 +264,9 @@ InstallMethod( Polymake_V_Rep,
         scaled_lineality := [];
         for i in [ 1 .. Length( lineality ) ] do
             scale := Lcm( List( lineality[ i ], r -> DenominatorRat( r ) ) );
-            Append( scaled_lineality, [ scale * lineality[ i ] ] );
+            v_copy := ShallowCopy( lineality[ i ] );
+            Remove( v_copy, 1 );
+            Append( scaled_lineality, [ scale * v_copy ] );
         od;
         
         # construct the new poly
