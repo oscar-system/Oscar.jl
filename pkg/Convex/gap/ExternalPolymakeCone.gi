@@ -410,12 +410,11 @@ InstallMethod( Polymake_RaysInFacets,
               " returns the incident matrix of the rays in the facets",
             [ IsPolymakeCone ],
   function( cone )
-    local help_cone, command_string, s, res_string, number_rays, ray_list, i, dummy, j, helper;
-    
-    # compute V-representation
-    help_cone := Polymake_V_Rep( cone );
+    local command_string, s, res_string, number_rays, ray_list, i, dummy, j, helper;
     
     # produce command string
+    help_cone := Polymake_V_Rep( cone );
+    number_rays := Length( help_cone!.rays );
     command_string := Concatenation( Polymake_V_Rep_command_string( help_cone ), ".RAYS_IN_FACETS" );
     
     # issue command in Julia and fetch result
@@ -426,18 +425,18 @@ InstallMethod( Polymake_RaysInFacets,
     res_string := SplitString( s, '\n' );
     res_string := List( [ 2 .. Length( res_string ) ], i -> ReplacedString( ReplacedString( ReplacedString( res_string[ i ], " ", "," ), "{", "[" ), "}", "]" ) );
     res_string := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
-    number_rays := Length( help_cone!.rays );
+    
+    # now construct list of rays -- each facets is a list number_rays entries: 0 indicates that the ray generator is not in the facet and a 1 that it is part of the facet
     ray_list := [];
     for i in [ 1 .. Length( res_string ) ] do
-        dummy := [];
+        dummy := List( [ 1 .. number_rays ], i -> 0 );
         for j in [ 1 .. Length( res_string[ i ] ) ] do
-            helper := List( [ 1 .. number_rays ], i -> 0 );
-            helper[ res_string[ i ][ j ] + 1 ] := 1;
-            Append( dummy, [ helper ] );
+            dummy[ res_string[ i ][ j ] + 1 ] := 1;
         od;
-        Append( ray_list, dummy );
+        Append( ray_list, [ dummy ] );
     od;
     
+    # return the result
     return ray_list;
     
 end );
