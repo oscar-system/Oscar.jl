@@ -152,7 +152,7 @@ InstallMethod( Polymake_CanonicalPolytopeByGenerators,
                          lineality := scaled_lineality,
                          number_type := "rational",
                          rep_type := "V-rep" );
-        ObjectifyWithAttributes( new_poly, TheTypeOfPolymakeCone );
+        ObjectifyWithAttributes( new_poly, TheTypeOfPolymakePolytope );
         return new_poly;
         
     fi;
@@ -205,7 +205,7 @@ InstallMethod( Polymake_CanonicalPolytopeFromInequalities,
                          equalities := scaled_eqs,
                          number_type := "rational",
                          rep_type := "H-rep" );
-        ObjectifyWithAttributes( new_poly, TheTypeOfPolymakeCone );
+        ObjectifyWithAttributes( new_poly, TheTypeOfPolymakePolytope );
         return new_poly;
         
     fi;
@@ -265,7 +265,7 @@ InstallMethod( Polymake_V_Rep,
                          lineality := scaled_lineality,
                          number_type := "rational",
                          rep_type := "V-rep" );
-        ObjectifyWithAttributes( new_poly, TheTypeOfPolymakeCone );
+        ObjectifyWithAttributes( new_poly, TheTypeOfPolymakePolytope );
         return new_poly;
         
     fi;
@@ -323,7 +323,7 @@ InstallMethod( Polymake_H_Rep,
                          equalities := scaled_eqs,
                          number_type := "rational",
                          rep_type := "H-rep" );
-        ObjectifyWithAttributes( new_poly, TheTypeOfPolymakeCone );
+        ObjectifyWithAttributes( new_poly, TheTypeOfPolymakePolytope );
         return new_poly;
         
     fi;
