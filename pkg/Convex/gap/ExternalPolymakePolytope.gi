@@ -482,7 +482,7 @@ InstallMethod( Polymake_V_Rep_command_string,
                "construct command string for V-Representation of polytope in Julia",
                [ IsPolymakePolytope ],
   function( poly )
-    local vertices, lin, i, command_string;
+    local vertices, lin, new_vertices, new_lin, i, v, command_string;
         
         # check if the given poly is a V-rep
         if not ( poly!.rep_type = "V-rep" ) then
@@ -494,26 +494,32 @@ InstallMethod( Polymake_V_Rep_command_string,
         lin := poly!.lineality;
         
         # add 1s at the beginning, since Polymake always considers polytopes as intersections with the hyperplane x0 = 1
+        new_vertices := [];
         for i in [ 1 .. Length( vertices ) ] do
-            Add( vertices[ i ], 1, 1 );
+            v := ShallowCopy( vertices[ i ] );
+            Add( v, 1, 1 );
+            Add( new_vertices, v );
         od;
+        new_lin := [];
         for i in [ 1 .. Length( lin ) ] do
-            Add( lin[ i ], 1, 1 );
+            v := ShallowCopy( lin[ i ] );
+            Add( v, 1, 1 );
+            Add( new_lin, v );
         od;
         
         # check for degenerate case
-        if Length( vertices ) = 0 then
-            vertices := lin;
+        if Length( new_vertices ) = 0 then
+            new_vertices := new_lin;
         fi;
         
         # prepare string with vertices -- as polymake considers them affine, we have to add a 1 at the beginning
-        vertices := List( [ 1 .. Length( vertices ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( vertices[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
-        command_string := Concatenation( "PolytopeByGAP4PackageConvex", " = Julia.Polymake.polytope.Polytope( POINTS = [ ", JoinStringsWithSeparator( vertices, "; " ), "] " );
+        new_vertices := List( [ 1 .. Length( new_vertices ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( new_vertices[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
+        command_string := Concatenation( "PolytopeByGAP4PackageConvex", " = Julia.Polymake.polytope.Polytope( POINTS = [ ", JoinStringsWithSeparator( new_vertices, "; " ), "] " );
         
         # see if we need lineality
-        if ( Length( lin ) > 0 ) then
-            lin := List( [ 1 .. Length( lin ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( lin[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
-            command_string := Concatenation( command_string, ", INPUT_LINEALITY = [ ", JoinStringsWithSeparator( lin, "; " ), " ] " );
+        if ( Length( new_lin ) > 0 ) then
+            new_lin := List( [ 1 .. Length( new_lin ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( new_lin[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
+            command_string := Concatenation( command_string, ", INPUT_LINEALITY = [ ", JoinStringsWithSeparator( new_lin, "; " ), " ] " );
         fi;
         
         # return command string
