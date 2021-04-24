@@ -1,4 +1,4 @@
-@testset "Graded MOdules 1" begin
+@testset "Graded Modules 1" begin
   Qx, g = PolynomialRing(QQ, 3)
   R = grade(Qx, [1,2,3])
   F = FreeModule(R, [i^2*R.D[1] for i=1:4])
@@ -52,4 +52,19 @@ end
 
   tensor_product(s, s, task = :none)
 
+end
+
+@testset "Graded modules kernel" begin
+  R, (x,y) = PolynomialRing(QQ, ["x", "y"])
+  R = grade(R, [0,0])
+
+  F1 = FreeModule(R, 1)
+  M1 = quo(F1, [x*F1[1], y*F1[1]])
+
+  F2 = FreeModule(R, 2)
+  M2 = quo(F2, [x*F2[1], y*F2[1], x*F2[2], y*F2[2]])
+
+  phi = hom(M2,M1, [y*M1[1], x*M1[1]]) # zero-morphism
+  K = kernel(phi)[1]
+  @test (iszero(quo(M2,K)) && iszero(quo(K,M2))) # mathematical equality
 end
