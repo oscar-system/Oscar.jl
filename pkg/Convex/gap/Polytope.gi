@@ -5,7 +5,7 @@
 ##
 ##  Copyright 2021      University of Pennsylvania
 ##
-##  A Gap package to do convex geometry by Polymake, Cdd and Normaliz
+##  A Gap package to do convex geometry by Polymake
 ##
 ##  Chapter: Polytopes
 ##
