@@ -109,3 +109,16 @@ InstallMethod( LatticePoints,
     TryNextMethod();
     
 end );
+
+
+InstallMethod( Dimension,
+               [ IsPolytope ],
+    function( poly )
+    
+    if PolymakeAvailable() then
+        return Polymake_Dimension( ExternalPolymakePolytope( poly ) );
+    fi;
+    
+    TryNextMethod();
+    
+end );

@@ -37,3 +37,9 @@ DeclareAttribute( "VerticesOfPolytope", IsPolytope );
 #! Each defining inequality that is not defining-equality of the 
 #! polytope is a facet inequality.
 DeclareAttribute( "FacetInequalities", IsPolytope );
+
+#! @Arguments P
+#! @Returns a list of lists
+#! @Description
+#! The operation returns the dimension of the polytope.
+DeclareAttribute( "Dimension", IsPolytope );
