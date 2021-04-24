@@ -33,7 +33,7 @@ BindGlobal( "TheTypeOfPolymakeCone", NewType( TheFamilyOfPolymakeCones, IsPolyma
 
 InstallGlobalFunction( Polymake_ConeByGenerators,
   function( arg )
-    local cone, i, rays;
+    local given_rays, given_lineality, cone;
     
     if Length( arg ) = 0 then
         
@@ -53,12 +53,14 @@ InstallGlobalFunction( Polymake_ConeByGenerators,
             Error( "Wronge input: The second argument should be a Gap matrix!" );
         fi;
         
-        cone := rec( rays := arg[ 1 ],
-                    lineality := arg[ 2 ],
-                    number_type := "rational",
-                    rep_type := "V-rep" );
-        
+        given_rays := Filtered( arg[ 1 ], row -> not IsZero( row ) );
+        given_lineality := Filtered( arg[ 2 ], row -> not IsZero( row ) );
+        cone := rec( rays := given_rays,
+                     lineality := given_lineality,
+                     number_type := "rational",
+                     rep_type := "V-rep" );
         ObjectifyWithAttributes( cone, TheTypeOfPolymakeCone );
+        
         return Polymake_CanonicalConeByGenerators( cone );
         
     fi;
@@ -67,7 +69,7 @@ end );
 
 InstallGlobalFunction( Polymake_ConeFromInequalities,
   function( arg )
-    local cone, i, ineqs;
+    local given_ineqs, given_eqs, cone;
     
     if Length( arg ) = 0 or ForAll( arg, IsEmpty ) then
         
@@ -87,12 +89,14 @@ InstallGlobalFunction( Polymake_ConeFromInequalities,
             Error( "Wronge input: The second argument should be a Gap matrix!" );
         fi;
         
-        cone := rec( inequalities := arg[ 1 ],
-                     equalities := arg[ 2 ],
+        given_ineqs := Filtered( arg[ 1 ], row -> not IsZero( row ) );
+        given_eqs := Filtered( arg[ 2 ], row -> not IsZero( row ) );
+        cone := rec( inequalities := given_ineqs,
+                     equalities := given_eqs,
                      number_type := "rational",
                      rep_type := "H-rep" );
-        
         ObjectifyWithAttributes( cone, TheTypeOfPolymakeCone );
+        
         return Polymake_CanonicalConeFromInequalities( cone );
         
     fi;
