@@ -70,18 +70,6 @@ InstallMethod( Dimension,
     
 end );
 
-InstallMethod( RaysInFacets,
-               [ IsCone ],
-    function( cone )
-    
-    if PolymakeAvailable() then
-        return Polymake_RaysInFacets( ExternalPolymakeCone( cone ) );
-    fi;
-    
-    TryNextMethod();
-    
-end );
-
 
 InstallMethod( DefiningInequalities,
                [ IsCone ],
@@ -102,7 +90,6 @@ end );
 InstallMethod( LinealitySpaceGenerators,
                [ IsCone ],
   function( cone )
-    local ineqs, eqs;
     
     if PolymakeAvailable() then
         return Set( Polymake_Lineality( ExternalPolymakeCone( cone ) ) );
@@ -111,6 +98,36 @@ InstallMethod( LinealitySpaceGenerators,
     TryNextMethod();
     
 end );
+
+
+
+InstallMethod( RaysInFacets,
+               [ IsCone ],
+    function( cone )
+    
+    if PolymakeAvailable() then
+        return Polymake_RaysInFacets( ExternalPolymakeCone( cone ) );
+    fi;
+    
+    TryNextMethod();
+    
+end );
+
+
+InstallMethod( RaysInFaces,
+               " for cones",
+               [ IsCone ],
+               
+  function( cone )
+    
+    if PolymakeAvailable() then
+        return Set( Polymake_RaysInFaces( ExternalPolymakeCone( cone ) ) );
+    fi;
+    
+    TryNextMethod();
+    
+end );
+
 
 InstallMethod( IntersectionOfCones,
                "for homalg cones",

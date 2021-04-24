@@ -116,6 +116,11 @@ DeclareAttribute( "Polymake_Inequalities", IsPolymakeCone );
 #! The output is the incident matrix of the ray generators in the facets.
 DeclareAttribute( "Polymake_RaysInFacets", IsPolymakeCone );
 
+#! @Arguments P
+#! @Description
+#! The output is the incident matrix of the rays in the faces.
+DeclareAttribute( "Polymake_RaysInFaces", IsPolymakeCone );
+
 
 ##############################################################################################
 ##

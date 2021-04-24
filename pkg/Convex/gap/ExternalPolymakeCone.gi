@@ -441,6 +441,55 @@ InstallMethod( Polymake_RaysInFacets,
     
 end );
 
+InstallMethod( Polymake_RaysInFaces,
+              " returns the incident matrix of the rays in the faces",
+            [ IsPolymakeCone ],
+  function( cone )
+    local dim, help_cone, rays, rays_in_faces, i, additional_rays, j, converted_additional_rays, pos, pos2, k, help_list;
+    
+    # check degenerate case
+    dim := Polymake_Dimension( cone );
+    if ( dim = 2 ) then
+        return Polymake_RaysInFacets( cone );
+    fi;
+    
+    # compute a V-representation of the cone
+    help_cone := Polymake_V_Rep( cone );
+    
+    # read-off the rays and the list of rays in the facets
+    rays := help_cone!.rays;
+    rays_in_faces := Polymake_RaysInFacets( help_cone );
+    
+    # construct the facets as cones, compute their facets and add them
+    # this is thus a recursive function, with (presumably) low performance
+    for i in [ 1 .. Length( rays_in_faces ) ] do
+        
+        # construct the i-th facet and compute the rays in its facets
+        generators := List( Filtered( [ 1 .. Length( rays ) ], j -> not IsZero( rays_in_faces[ i ][ j ] ) ), k -> rays[ k ] );
+        additional_rays := RaysInFaces( Cone( generators ) );
+        
+        # convert these lists into a list with the rays above
+        converted_additional_rays := [];
+        for j in [ 1 .. Length( additional_rays ) ] do
+            pos := Positions( additional_rays[ j ], 1 );
+            pos2 := List( [ 1 .. Length( pos ) ], k -> Position( rays, generators[ pos[ k ] ] ) );
+            help_list := List( [ 1 .. Length( rays ) ], k -> 0 );
+            for k in pos2 do
+                help_list[ k ] := 1;
+            od;
+            converted_additional_rays := Concatenation( converted_additional_rays, [ help_list ] );
+        od;
+        
+        # add this list of rays in the faces of the i-th facet to the above-computed list of rays_in_facets
+        rays_in_faces := Concatenation( rays_in_faces, converted_additional_rays  );
+        
+    od;
+    Error( "Test" );
+    # return the result
+    return DuplicateFreeList( rays_in_faces );
+    
+end );
+
 
 ##############################################################################################
 ##
