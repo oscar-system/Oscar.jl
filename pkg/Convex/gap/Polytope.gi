@@ -24,20 +24,16 @@ InstallMethod( ExternalPolymakePolytope,
                [ IsPolytope ],
     function( poly )
     
-    if IsBound( poly!.input_points ) and Length( poly!.input_points ) = 1 and IsZero( poly!.input_points ) then
-        return Polymake_PolytopeByGenerators( poly!.input_points[ 1 ] );
-    fi;
+    #if IsBound( poly!.input_points ) and Length( poly!.input_points ) = 1 and IsZero( poly!.input_points ) then
+    #    return Polymake_PolytopeByGenerators( poly!.input_points[ 1 ] );
+    #fi;
     
     if IsBound( poly!.input_points ) then
         return Polymake_PolytopeByGenerators( poly!.input_points );
     fi;
     
-    if IsBound( poly!.input_equalities ) then
-        return Polymake_PolytopeFromInequalities( poly!.input_inequalities, poly!.input_equalities );
-    fi;
-    
     # otherwise our fallback is poly from inequalities
-    return Polymake_PolytopeFromInequalities( poly!.input_inequalities );
+    return Polymake_PolytopeFromInequalities( poly!.input_ineqs );
     
 end );
 
