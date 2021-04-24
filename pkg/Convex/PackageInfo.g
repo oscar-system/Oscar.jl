@@ -16,7 +16,7 @@ PackageName := "Convex",
 Subtitle := "A Gap package for convex geometry via Polymake in Julia",
 
 Version :=  Maximum( [
-  "2021.03.13", # Martins version
+  "2021.04.24", # Martins version
 ] ),
 
 Date := ~.Version{[ 1 .. 10 ]},
