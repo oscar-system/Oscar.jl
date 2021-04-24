@@ -419,20 +419,28 @@ InstallMethod( Polymake_LatticePoints,
               " return the list of the lattice points of poly",
               [ IsPolymakePolytope ],
   function( poly )
-    local help_poly, command_string, s, res_string;
-    
-    # compute v-representation
-    help_poly := Polymake_V_Rep( poly );
+    local command_string, s, res_string, point_list, lattice_points, i, copy;
     
     # produce command string
-    command_string := Concatenation( Polymake_V_Rep_command_string( help_poly ), ".LATTICE_POINTS_GENERATORS" );
+    command_string := Concatenation( Polymake_V_Rep_command_string( Polymake_V_Rep( poly ) ), ".LATTICE_POINTS_GENERATORS" );
     
     # issue command in Julia and fetch result
     JuliaEvalString( command_string );
     s := JuliaToGAP( IsString, Julia.string( Julia.PolytopeByGAP4PackageConvex ) );
     res_string := SplitString( s, '\n' );
     res_string := List( [ 2 .. Length( res_string ) - 3 ], i -> Concatenation( "[", ReplacedString( ReplacedString( res_string[ i ], " ", "," ), "<", "" ), "]" ) );
-    return EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
+    point_list := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
+    
+    # the point list is in affine coordinate, that is we have a 1 at position one, which should be removed
+    lattice_points := [];
+    for i in [ 1 .. Length( point_list ) ] do
+        copy := ShallowCopy( point_list[ i ] );
+        Remove( copy, 1 );
+        Add( lattice_points, copy );
+    od;
+    
+    # return result
+    return lattice_points;
     
 end );
 
