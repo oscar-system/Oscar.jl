@@ -293,7 +293,7 @@ InstallMethod( Polymake_H_Rep,
         
     else
         
-        if poly!.rep_type = "V-rep" and poly!.matrix = [] then
+        if poly!.rep_type = "V-rep" and poly!.vertices = [] then
             return Polymake_PolytopeFromInequalities( [ [ 0, 1 ], [ -1, -1 ] ] );
         fi;
         
