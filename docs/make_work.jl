@@ -157,15 +157,18 @@ const aa = sanitize(bla, "AbstractAlgebra")
 bib = CitationBibliography(joinpath(@__DIR__, "oscar_references.bib"))
 
 DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar); recursive = true)
+DocMeta.setdocmeta!(Hecke, :DocTestSetup, :(using Hecke); recursive = true)
 
 makedocs(bib,
          format   = Documenter.HTML(prettyurls = !local_build),
 #         format   = Documenter.HTML(),
 #         format   = Markdown(),
          sitename = "Oscar.jl",
-         modules = [Oscar],
+         modules = [Oscar, Hecke, Nemo, AbstractAlgebra, Singular],
          clean = true,
          doctest = true,
+         strict = true,
+         checkdocs = :none,
          pages    = [
              "index.md",
              "Rings" => [ "$(aa)/rings.md",
