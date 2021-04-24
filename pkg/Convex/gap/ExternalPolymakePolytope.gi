@@ -445,6 +445,25 @@ InstallMethod( Polymake_LatticePoints,
 end );
 
 
+InstallMethod( Polymake_Intersection,
+               [ IsPolymakePolytope, IsPolymakePolytope ],
+  function( poly1, poly2 )
+    local poly1_h, poly2_h, new_ineqs, new_equ;
+    
+    # compute H-reps
+    poly1_h := Polymake_H_Rep( poly1 );
+    poly2_h := Polymake_H_Rep( poly2 );
+    
+    # add the inequalities and equalities
+    new_ineqs := Concatenation( poly1_h!.inequalities, poly2_h!.inequalities );
+    new_equ := Concatenation( poly1_h!.equalities, poly2_h!.equalities );
+    
+    # return result
+    return Polymake_PolytopeFromInequalities( new_ineqs, new_equ );
+    
+end );
+
+
 ##############################################################################################
 ##
 ##  Properties of PolymakeCones

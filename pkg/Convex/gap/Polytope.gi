@@ -114,3 +114,36 @@ InstallMethod( Dimension,
     TryNextMethod();
     
 end );
+
+
+InstallMethod( IntersectionOfPolytopes,
+               [ IsPolytope, IsPolytope ],
+  function( poly1, poly2 )
+    local poly, ext_polytope;
+    
+    if not Rank( ContainingGrid( poly1 ) ) = Rank( ContainingGrid( poly2 ) ) then
+        Error( "polytopes are not of the same dimension" );
+    fi;
+    
+    if PolymakeAvailable() then
+        
+        # compute the intersection
+        ext_polytope:= Polymake_Intersection( ExternalPolymakePolytope( poly1 ), ExternalPolymakePolytope( poly2 ) );
+        
+        # find the generating vertices of this new polytope and construct the polytope
+        # currently, this ignores the lineality space Polymake_Linealities( ext_polytope ) completely!
+        poly := Polytope( Polymake_Vertices( ext_polytope ) );
+        
+        # set properties
+        SetExternalPolymakePolytope( poly, ext_polytope );
+        SetContainingGrid( poly, ContainingGrid( poly1 ) );
+        SetAmbientSpaceDimension( poly, AmbientSpaceDimension( poly1 ) );
+        
+        # return the result
+        return poly;
+        
+    fi;
+    
+    TryNextMethod();
+    
+end );

@@ -140,6 +140,18 @@ DeclareProperty( "Polymake_IsBounded", IsPolymakePolytope );
 
 ##############################################################################################
 ##
+#! @Section Intersection of two polytopes
+##
+##############################################################################################
+
+#! @Arguments P1, P2
+#! @Description
+#! The output is the intersection of P1 and P2.
+DeclareOperation( "Polymake_Intersection", [ IsPolymakePolytope, IsPolymakePolytope ] );
+
+
+##############################################################################################
+##
 #! @Section Command strings
 ##
 ##############################################################################################
