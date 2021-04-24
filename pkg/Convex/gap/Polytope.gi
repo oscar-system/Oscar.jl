@@ -24,10 +24,6 @@ InstallMethod( ExternalPolymakePolytope,
                [ IsPolytope ],
     function( poly )
     
-    #if IsBound( poly!.input_points ) and Length( poly!.input_points ) = 1 and IsZero( poly!.input_points ) then
-    #    return Polymake_PolytopeByGenerators( poly!.input_points[ 1 ] );
-    #fi;
-    
     if IsBound( poly!.input_points ) then
         return Polymake_PolytopeByGenerators( poly!.input_points );
     fi;
@@ -44,7 +40,7 @@ InstallMethod( VerticesOfPolytope,
   function( poly )
     
     if PolymakeAvailable() then
-        return Polymake_V_Rep( ExternalPolymakePolytope( poly ) )!.vertices;
+        return Set( Polymake_V_Rep( ExternalPolymakePolytope( poly ) )!.vertices );
     fi;
     TryNextMethod();
     
