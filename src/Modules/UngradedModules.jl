@@ -423,6 +423,16 @@ mutable struct SubModuleOfFreeModule{T} <: ModuleFP{T}
     end
     return r
   end
+
+  function SubModuleOfFreeModule(A::MatElem{R}) where {R}
+    r = new{R}()
+    F = FreeMod(ncols(A), r)
+    r.F = F
+    O = [FreeModuleElem(sparse_row(A[i]), F) for i in 1:nrows(A)]
+    r.gens = ModuleGens(O, F)
+    r.matrix = A
+    return r
+  end
 end
 
 function Base.getproperty(submod::SubModuleOfFreeModule, s::Symbol)
@@ -605,6 +615,11 @@ mutable struct SubQuo{T} <: ModuleFP{T}
     r.outgoing_morphisms = Array{ModuleMap,1}()
 
     return r
+  end
+
+  function SubQuo(A::MatElem{R}, B::MatElem{R}) where {R}
+    @assert ncols(A) == ncols(B)
+    return SubQuo(SubModuleOfFreeModule(A), SubModuleOfFreeModule(B))
   end
 end
 
@@ -1976,87 +1991,95 @@ end
 
 
 
+function matrix_kernel(A::MatElem)
+  R = base_ring(A)
+  F_domain = FreeMod(nrows(A), R)
+  F_codomain = FreeMod(ncols(A), R)
+
+  phi = FreeModuleHom(F_domain, F_codomain, A)
+  _, inclusion = kernel(phi)
+  return inclusion.matrix
+end
 
 @doc Markdown.doc"""
     simplify_subquotient(M::Subquotient{T}) where T <: Union{Nemo.PolyElem,Nemo.MPolyElem}
 > Simplify the given subquotient and return the simplified subquotient $N$ along
 > with the injection map $N --> M$ and the projection map $M --> N$.
 """
-#=function simplify_subquotient(M::Subquotient{T}) where T <: Union{Nemo.PolyElem,Nemo.MPolyElem}
-  function _to_julia_matrix(A::AbstractAlgebra.MatElem) # TODO Replace by something better
-    return eltype(A)[A[i, j] for i = 1:AbstractAlgebra.nrows(A), j = 1:AbstractAlgebra.ncols(A)]
+function simplify_subquotient(M::SubQuo)
+  function unit_vector_in_relations(i::Int, M::SubQuo)
+    reduced_unit_vector = _reduce(convert(M.quo.gens.SF, M.F[i]), M.quo.std_basis.S)
+    return iszero(reduced_unit_vector)
   end
-  function unit_vector_in_relations(i::Int, M::Subquotient{T}, singular_ring::Singular.MPolyRing)
-      unit_vector = Singular.vector(singular_ring, [j == i ? singular_ring(1) : singular_ring(0) for j=1:size(M.relations)[2]]...)
-      return Singular.iszero(Singular.reduce(unit_vector, M.singular_rel_std))
-  end
-  function delete_rows(A::AbstractAlgebra.MatElem{T}, to_delete::Array{Int,1})
+
+  function delete_rows(A::MatElem, to_delete::Array{Int,1})
     Mat = A[deleteat!(1:nrows(A),to_delete),:]
     return Mat
   end
-
-  function delete_columns(A::AbstractAlgebra.MatElem{T}, to_delete::Array{Int,1})
-      return delete_rows(A', to_delete)'
+  function delete_columns(A::MatElem, to_delete::Array{Int,1})
+    return delete_rows(A', to_delete)'
   end
 
-  function assign_row!(A::AbstractAlgebra.MatElem{T}, v::Vector{T}, row_index::Int)
-      if length(v) != size(A)[2]
-          throw(DimensionMismatch("Different row lengths"))
-      end
-      for i=1:length(v)
-          A[row_index,i] = v[i]
-      end
-      return A
+  function assign_row!(A::MatElem, v::Vector, row_index::Int)
+    if length(v) != size(A)[2]
+      throw(DimensionMismatch("Different row lengths"))
+    end
+    for i=1:length(v)
+      A[row_index,i] = v[i]
+    end
+    return A
   end
 
-  function assign_row!(A::AbstractAlgebra.MatElem{T}, v::AbstractAlgebra.MatElem{T}, row_index::Int)
-      if size(v)[1] > 1
-          throw(DimensionMismatch("Expected row vector"))
-      end
-      if length(v) != size(A)[2]
-          throw(DimensionMismatch("Different row lengths"))
-      end
-      for i=1:length(v)
-          A[row_index,i] = v[1,i]
-      end
-      return A
+  function assign_row!(A::MatElem, v::MatElem, row_index::Int)
+    if size(v)[1] > 1
+      throw(DimensionMismatch("Expected row vector"))
+    end
+    if length(v) != size(A)[2]
+      throw(DimensionMismatch("Different row lengths"))
+    end
+    for i=1:length(v)
+      A[row_index,i] = v[1,i]
+    end
+    return A
   end
 
-  function rows_to_delete(A::AbstractAlgebra.MatElem{T}, max_index::Int)
-      to_delete_indices::Array{Int,1} = []
-      corresponding_row_index::Array{Int,1} = []
-      K = kernel(A)
-      for i=1:size(K)[1], j=1:max_index
-          if AbstractAlgebra.isunit(K[i,j])
-              deletion_possible = true
-              for k in to_delete_indices
-                  if !iszero(K[i,k])
-                      deletion_possible = false
-                      break
-                  end
-              end
-              if deletion_possible
-                  push!(to_delete_indices, j)
-                  push!(corresponding_row_index, i)
-              end
+  function rows_to_delete(A::MatElem, max_index::Int)
+    to_delete_indices::Array{Int,1} = []
+    corresponding_row_index::Array{Int,1} = []
+    K = matrix_kernel(A)
+    for i=1:size(K)[1], j=1:max_index
+      if isunit(K[i,j])
+        deletion_possible = true
+        for k in to_delete_indices
+          if !iszero(K[i,k])
+            deletion_possible = false
+            break
           end
+        end
+        if deletion_possible
+          push!(to_delete_indices, j)
+          push!(corresponding_row_index, i)
+        end
       end
-      return to_delete_indices, corresponding_row_index, K
+    end
+    return to_delete_indices, corresponding_row_index, K
   end
 
   R = base_ring(M)
-  singular_ring = nemo_ring_to_singular(R)
   #remove columns
 
+  M_generators = M.sub.matrix
+  M_relations = M.quo.matrix
+
   to_delete::Array{Int,1} = []
-  for i=1:size(M.relations)[2]
-    if unit_vector_in_relations(i, M, singular_ring)
+  for i=1:size(M_relations)[2]
+    if unit_vector_in_relations(i, M)
       push!(to_delete, i)
     end
   end
 
-  new_generators = delete_columns(M.generators, to_delete)
-  new_relations = delete_columns(M.relations, to_delete)
+  new_generators = delete_columns(M_generators, to_delete)
+  new_relations = delete_columns(M_relations, to_delete)
 
   to_delete,_,_ = rows_to_delete(vcat(new_generators, new_relations)',size(new_relations)[2])
 
@@ -2073,12 +2096,12 @@ end
   to_delete, corresponding_row, K_gen = rows_to_delete(vcat(new_generators, new_relations), size(new_generators)[1])
 
 
-  injection_matrix = delete_rows(AbstractAlgebra.identity_matrix(R, size(M.generators)[1]), to_delete)
-  projection_matrix = AbstractAlgebra.zero_matrix(R, size(M.generators)[1], size(K_gen)[2]-length(to_delete))
-  for i=1:size(M.generators)[1]
+  injection_matrix = delete_rows(identity_matrix(R, size(M_generators)[1]), to_delete)
+  projection_matrix = zero_matrix(R, size(M_generators)[1], size(K_gen)[2]-length(to_delete))
+  for i=1:size(M_generators)[1]
     if i in to_delete
       index = findfirst(x -> x==i, to_delete)
-      assign_row!(projection_matrix, R(-1)*R(AbstractAlgebra.inv(AbstractAlgebra.coeff(K_gen[corresponding_row[index],i], 1)))*delete_columns(K_gen[corresponding_row[index],:], to_delete), i)
+      assign_row!(projection_matrix, R(-1)*R(inv(coeff(K_gen[corresponding_row[index],i], 1)))*delete_columns(K_gen[corresponding_row[index],:], to_delete), i)
     else
       unit_vector_index = i-length(filter(x -> x < i, to_delete))
       unit_vector = [j == unit_vector_index ? R(1) : R(0) for j=1:size(projection_matrix)[2]]
@@ -2089,26 +2112,25 @@ end
   new_generators = delete_rows(new_generators, to_delete)
 
   if length(new_generators)==0
-    SQ,injection,projection = zero_module_with_maps(M)
+    error("to be done")
+    #SQ,injection,projection = zero_module_with_maps(M)
   else
-    SQ = Subquotient(new_generators, new_relations)
-    injection = AbstractAlgebra.ModuleHomomorphism(SQ, M, injection_matrix)
-    projection = AbstractAlgebra.ModuleHomomorphism(M, SQ, projection_matrix[:,1:size(projection_matrix)[2]-size(new_relations)[1]])
+    SQ = SubQuo(new_generators, new_relations)
+    injection = SubQuoHom(SQ, M, injection_matrix)
+    projection = SubQuoHom(SQ, M, projection_matrix[:,1:size(projection_matrix)[2]-size(new_relations)[1]])
   end
-  push!(M.in_homomorphisms, injection)
-  push!(M.out_homomorphisms, projection)
-  push!(SQ.in_homomorphisms, projection)
-  push!(SQ.out_homomorphisms, injection)
-  subquotient_module_homomorphism_inverses[projection] = injection
-  subquotient_module_homomorphism_inverses[injection] = projection
+  register_morphism!(injection)
+  register_morphism!(projection)
+  injection.inverse_isomorphism = projection
+  projection.inverse_isomorphism = injection
 
-  if isgraded(M)
+  #=if isgraded(M)
     ishomogeneous_function_lookup_table[SQ] = x -> custom_ishomogeneous(injection(x))
     degree_function_lookup_table[SQ] = x -> custom_degree(injection(x))
-  end
+  end=#
 
   return SQ,injection,projection
-end=#
+end
 
 ######################################
 # Only for testing
