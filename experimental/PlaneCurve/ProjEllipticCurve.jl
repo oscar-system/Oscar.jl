@@ -270,7 +270,7 @@ end
 ################################################################################
 
 function _point_fromweierstrass(E::ProjEllipticCurve{S}, PP::Oscar.Geometry.ProjSpc{S}, P::Hecke.EllCrvPt{S}) where S <: FieldElem
-   E.Hecke_ec == P.parent || error("not the same curve")
+   E.Hecke_ec.coeff == P.parent.coeff || error("not the same curve")
    L = E.maps
    K = P.parent.base_field
    if P.isinfinite
@@ -343,16 +343,6 @@ function Base.:*(n::Int64, P::Point_EllCurve)
 end
 
 ################################################################################
-@doc Markdown.doc"""
-    order(E::ProjEllipticCurve)
-Given an elliptic curve `E` over a finite field $\mathbf F$, computes
-$\#E(\mathbf F)$.
-"""
-function Oscar.order(E::ProjEllipticCurve)
-   return Hecke.order(E.Hecke_ec)
-end
-
-################################################################################
 # helping function
 
 function contract(i::Int, F::Oscar.MPolyElem{S}) where {S <: FieldElem}
@@ -390,8 +380,6 @@ function _eva(F::Oscar.MPolyElem{S}) where {S <: FieldElem}
    X = gens(R)
    return evaluate(evaluate(F, [X[1], X[2], R(0)]), [R(1), X[1], R(1)])
 end
-
-
 
 ################################################################################
 # This code is inspired from Macaulay2, based on Tibouchi, M. ''A Nagell Algorithm
@@ -456,4 +444,95 @@ function toweierstrass(C::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) w
    a4 = u*evaluate(contract(1, G[2]), [R(0), X[2], X[3]])
    a6 = u^2*evaluate(G[2], [R(0), X[2], X[3]])
    return T(X[2]^2*X[3] + a1*X[1]*X[2]*X[3] + a3*X[2]*X[3]^2 - X[1]^3 - a2*X[1]^2*X[3] - a4*X[1]*X[3]^2 - a6*X[3]^3)
+end
+
+
+################################################################################
+
+function proj_space(E::ProjEllipticCurve)
+   return base_point(E).parent
+end
+
+################################################################################
+#
+# Interface calling the functions in Hecke
+#
+################################################################################
+
+@doc Markdown.doc"""
+    order(E::ProjEllipticCurve)
+Given an elliptic curve `E` over a finite field $\mathbf F$, computes
+$\#E(\mathbf F)$.
+"""
+function Oscar.order(E::ProjEllipticCurve)
+   return Hecke.order(E.Hecke_ec)
+end
+
+################################################################################
+
+@doc Markdown.doc"""
+    rand(E::ProjEllipticCurve)
+
+Return a random point on the elliptic curve `E` defined over a finite field.
+"""
+function Oscar.rand(E::ProjEllipticCurve)
+   PP = proj_space(E)
+   H = E.Hecke_ec
+   if !Hecke.isshort(H)
+      L = Hecke.short_weierstrass_model(H)
+      P = Hecke.rand(L[1])
+      Q = L[3](P)
+   else
+      Q = Hecke.rand(H)
+   end
+   return _point_fromweierstrass(E, PP, Q)
+end
+
+################################################################################
+@doc Markdown.doc"""
+    order(P::Point_EllCurve{fmpq})
+
+Returns the order of the point `P` or `0` if the order is infinite.
+"""
+function Oscar.order(P::Point_EllCurve{fmpq})
+   return Hecke.order(P.Hecke_Pt)
+end
+
+################################################################################
+
+@doc Markdown.doc"""
+    istorsion_point(P::Point_EllCurve{fmpq})
+
+Returns whether the point `P` is a torsion point.
+"""
+function Oscar.istorsion_point(P::Point_EllCurve{fmpq})
+   return Hecke.istorsion_point(P.Hecke_Pt)
+end
+
+################################################################################
+@doc Markdown.doc"""
+    torsion_points_lutz_nagell(E::ProjEllipticCurve{fmpq})
+Computes the rational torsion points of the elliptic curve `E` using the
+Lutz-Nagell theorem.
+"""
+function Oscar.torsion_points_lutz_nagell(E::ProjEllipticCurve{fmpq})
+   PP = proj_space(E)
+   H = E.Hecke_ec
+   M = Hecke.torsion_points_lutz_nagell(H)
+   return [_point_fromweierstrass(E, PP, a) for a in M]
+end
+
+################################################################################
+
+@doc Markdown.doc"""
+    torsion_points_division_poly(E::ProjEllipticCurve{fmpq})
+
+Computes the rational torsion points of a rational elliptic curve `E` using
+division polynomials.
+"""
+function Oscar.torsion_points_division_poly(E::ProjEllipticCurve{fmpq})
+   PP = proj_space(E)
+   H = E.Hecke_ec
+   M = Hecke.torsion_points_division_poly(H)
+   return [_point_fromweierstrass(E, PP, a) for a in M]
 end
