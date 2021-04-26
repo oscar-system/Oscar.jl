@@ -353,3 +353,21 @@ end
        E = Oscar.ProjEllipticCurve(F, P1)
        @test order(E) == 78633
 end
+
+@testset "Torsion points on elliptic curves" begin
+	S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+	T = grade(S)
+	F = T(-x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3)
+	PP = projective_space(QQ, 2)
+	P1 = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(-1), QQ(1), QQ(0)])
+	E = Oscar.ProjEllipticCurve(F, P1)
+	Q1 = Oscar.Point_EllCurve(E, P1)
+	P2 = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(-2), QQ(2), QQ(1)])
+	Q2 = Oscar.Point_EllCurve(E, P2)
+	@test Oscar.order(Q1) == 1
+	@test Oscar.order(Q2) == 0
+	@test istorsion_point(Q1)
+	@test !istorsion_point(Q2)
+	@test Oscar.torsion_points_lutz_nagell(E) == [Q1]
+	@test Oscar.torsion_points_division_poly(E) == [Q1]
+end
