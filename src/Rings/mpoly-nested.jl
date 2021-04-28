@@ -256,20 +256,25 @@ function renest(R::Union{PolyRing, MPolyRing}, g::MPolyElem)
   return _renest_recursive(R, 1, collect(1:length(gcoeffs)), gcoeffs, gexps)
 end
 
-function Oscar.gcd(a::PolyElem{T}, b::PolyElem{T}) where
-                                                T <: Union{PolyElem, MPolyElem}
+function _nested_gcd(a, b)
   R = parent(a)
   R == parent(b) || error("parents do not match")
   S = denest(R)
   return renest(R, gcd(denest(S, a), denest(S, b)))
 end
 
-function Oscar.gcd(a::MPolyElem{T}, b::MPolyElem{T}) where
-                                                T <: Union{PolyElem, MPolyElem}
-  R = parent(a)
-  R == parent(b) || error("parents do not match")
-  S = denest(R)
-  return renest(R, gcd(denest(S, a), denest(S, b)))
+function Oscar.gcd(
+   a::AbstractAlgebra.Generic.Poly{T},
+   b::AbstractAlgebra.Generic.Poly{T}
+) where T <: Union{PolyElem, MPolyElem}
+   return _nested_gcd(a, b)
+end
+
+function Oscar.gcd(
+   a::AbstractAlgebra.Generic.MPoly{T},
+   b::AbstractAlgebra.Generic.MPoly{T}
+) where T <: Union{PolyElem, MPolyElem}
+   return _nested_gcd(a, b)
 end
 
 function _convert_iter_fac(R, fac::Fac)
