@@ -186,11 +186,6 @@ function primaryTest(I::Singular.sideal, usefglm::Bool = false)
 ###################################################### helpprocs PrimaryTest ############################################################################
 
 
-  #Calculates the tail of a polynomial
-  function tail(f::Singular.spoly)
-    return f - leading_term(f)
-  end
-  
    # adds a generator to an ideal
   function addGenerator(I::Singular.sideal, f::Singular.spoly)
     G = Singular.gens(I);

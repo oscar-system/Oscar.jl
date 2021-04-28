@@ -43,6 +43,10 @@ mutable struct QabElem <: Nemo.FieldElem
   c::Int #conductor of field
 end
 
+Oscar.elem_type(::QabField) = QabElem
+Oscar.parent_type(::Type{QabElem}) = QabField
+Oscar.parent_type(::QabElem) = QabField
+
 function Base.show(io::IO, a::QabElem)
   if get(io, :compact, false) == true
     math_html(io, a.data)
@@ -141,6 +145,10 @@ end
 
 *(a::Integer, b::QabElem) = QabElem(b.data*a, b.c)
 *(a::fmpz, b::QabElem) = QabElem(b.data*a, b.c)
+*(a::fmpq, b::QabElem) = QabElem(b.data*a, b.c)
+*(a::QabElem, b::fmpq) = b*a
+*(a::QabElem, b::fmpz) = b*a
+*(a::QabElem, b::Integer) = b*a
 
 function mul!(c::QabElem, a::QabElem, b::QabElem)
 	a, b = make_compatible(a, b)
@@ -199,6 +207,15 @@ end
 function (b::QabField)(a::Integer)
   return a*root_of_unity(b, 1)
 end
+
+function (b::QabField)(a::fmpz)
+  return a*root_of_unity(b, 1)
+end
+
+function (b::QabField)(a::fmpq)
+  return a*root_of_unity(b, 1)
+end
+
 function (b::QabField)(a::QabElem)
   return a
 end
@@ -268,42 +285,24 @@ function Oscar.root(a::QabElem, n::Int)
 end
 
 function allroot(a::QabElem, n::Int)
+  #Assuming that a is a root of unity, finds all its n-th roots.
 	#all roots in a probably smaller field than with the function allrootNew
 	#(using root_of_unity -> construct field Q(z_5) when needing a 10th root of unity,
 	#root_of_unity constructs the field Q(z_10))
-	o = Oscar.order(a)
+	o = order(a)
   l = o*n
   mu = root_of_unity(QabField(), Int(l))
-	A=QabElem[]
-	if l==1 && mu^1==a
-		A=[A;mu]
+	A = QabElem[]
+	if l==1 && mu==a
+		push!(A, mu)
 	end
-  for k=1:(l-1)
-		if (mu^k)^n==a
-    	A=[A; mu^(k)]
+  for k = 0:(l-1)
+    el = mu^k
+		if el^n == a
+      push!(A, el)
 		end
   end
   return A
-end
-
-function allrootNew(a::QabElem, n::Int)
-	#compute all nth roots of a, where a has to be a root_of_unity
-	o=Oscar.order(a)
-	l=o*n
-	A=QabElem[]
-	mu=root_of_unity2(QabField(),Int(l))
-	if l==1 && mu^1==a
-		A=[A;mu]
-	end
-	for k=1:(l-1)
-		if (mu^k)^n==a
-			A=[A;mu^k]
-		end
-	end
-	if size(A,1)==0
-		error("no root found")
-	end
-	return A
 end
 
 
@@ -518,67 +517,12 @@ function quadratic_irrationality_info(a::QabModule.QabElem)
     return (x, y, m)
 end
 
-
-###############################################################################
-#
-#   Partial character functions
-#
-###############################################################################
-
-struct PChar
-	#A has generators of the lattice in rows
-  A::fmpz_mat
-	#images of the generators are saved in b
-  b::Array{FieldElem, 1}
-	#Delta are the indices of the cellular variables of the associated ideal
-	#(the partial character is a partial character on Z^Delta)
-  D::Set{Int64}
-end
-
-function (Chi::PChar)(b::fmpz_mat)
-  @assert Nemo.nrows(b)==1
-  @assert Nemo.ncols(b) == Nemo.ncols(Chi.A)
-  s = solve(Chi.A', b')
-  return evaluate(FacElem(Dict([(Chi.b[i], s[i, 1]) for i=1:length(Chi.b)])))
-end
-
-function (Chi::PChar)(b::Array{Nemo.fmpz,})
-	@assert size(b,2)==Nemo.ncols(Chi.A)
-	B=Matrix(FlintZZ,1,Nemo.ncols(Chi.A),b)
-	s = solve(Chi.A', B')
-	return evaluate(FacElem(Dict([(Chi.b[i], s[i, 1]) for i=1:length(Chi.b)])))
-end
-
 function isroot_of_unity(a::QabElem)
+  return istorsion_unit(a.data)
+  #=
   b = a^a.c
   return b.data == 1 || b.data == -1
-end
-
-function LatticeEqual(A::fmpz_mat,B::fmpz_mat)
-  @assert Nemo.ncols(A)==Nemo.ncols(B)
-  A=A'
-  B=B'
-  #use solve to check if lattices are equal
-  testVector=matrix(FlintZZ,Nemo.nrows(A),1,zeros(Int64,Nemo.nrows(A),1))
-  #test if A contained in B
-  for k=1:Nemo.ncols(A)
-		for j=1:Nemo.nrows(A)
-			testVector[j,1]=A[j,k]
-		end
-		if cansolve(B,testVector)[1]==false
-       	   return(false)
-		end
-  end
-
-  for k=1:Nemo.ncols(A)
-		for j=1:Nemo.nrows(A)
-			testVector[j,1]=B[j,k]
-		end
-		if cansolve(A,testVector)[1]==false
-      return(false)
-		end
-  end
-  return(true)
+  =#
 end
 
 function Oscar.order(a::QabElem)
@@ -597,118 +541,133 @@ function Oscar.order(a::QabElem)
   return o
 end
 
-function PCharEqual(P::PChar,Q::PChar)
-  if LatticeEqual(P.A,Q.A)==false
-		return false
+
+###############################################################################
+#
+#   Partial character functions
+#
+###############################################################################
+
+mutable struct PartialCharacter{T}
+  #A has generators of the lattice in rows
+  A::fmpz_mat
+	#images of the generators are saved in b
+  b::Vector{T}
+	#Delta are the indices of the cellular variables of the associated ideal
+	#(the partial character is a partial character on Z^Delta)
+  D::Set{Int64}
+  function PartialCharacter{T}() where T 
+    return new{T}()
   end
 
-  #now test if the values taken on the generators of the lattices are equal
-	for i=1:Nemo.nrows(P.A)
-		TestVec=sub(P.A,i:i,1:Nemo.ncols(P.A))
-		if P(TestVec)!=Q(TestVec)
-			return false
-		end
-	end
+  function PartialCharacter{T}(mat::fmpz_mat, vals::Vector{T}) where T
+    z = new{T}()
+    z.A = mat
+    z.b = vals
+    return z
+  end
+end
 
-	for i=1:Nemo.nrows(Q.A)
-		TestVec=sub(Q.A,i:i,1:Nemo.ncols(P.A))
-		if P(TestVec)!=Q(TestVec)
+function partial_character(A::fmpz_mat, vals::Vector{T}, variables::Set{Int} = Set{Int}()) where T <: FieldElem
+  @assert nrows(A) == length(vals)
+  z = PartialCharacter{T}(A, vals)
+  if !isempty(variables)
+    z.D = variables
+  end
+  return z
+end
+
+function (Chi::PartialCharacter)(b::fmpz_mat)
+  @assert nrows(b) == 1
+  @assert Nemo.ncols(b) == Nemo.ncols(Chi.A)
+  s = can_solve_with_solution(Chi.A, b, side = :left)
+  @assert s[1]
+  return evaluate(FacElem(Dict([(Chi.b[i], s[2][1, i]) for i = 1:length(Chi.b)])))
+end
+
+function (Chi::PartialCharacter)(b::Vector{fmpz})
+  return Chi(matrix(FlintZZ, 1, length(b), b))
+end
+
+function have_same_domain(P::PartialCharacter, Q::PartialCharacter)
+  return have_same_span(P.A, Q.A)
+end
+
+function have_same_span(A::fmpz_mat, B::fmpz_mat)
+  @assert ncols(A) == ncols(B)
+  return hnf(A) == hnf(B)
+end
+
+
+
+function Base.:(==)(P::PartialCharacter{T}, Q::PartialCharacter{T}) where T <: FieldElem
+  if P === Q
+    return true
+  end
+  if !have_same_domain(P, Q)
+  	return false
+  end
+  #now test if the values taken on the generators of the lattices are equal
+	for i = 1:nrows(P.A)
+		TestVec = view(P.A, i:i, 1:Nemo.ncols(P.A))
+		if P(TestVec) != Q(TestVec)
 			return false
 		end
 	end
   return true
 end
 
-function Hecke.saturate(L::PChar)
-  #this function doesn't work, we have to change root_of_unity to root_of_unity2 in the function root
-  H = hnf(L.A')
-  s = sub(H, 1:Nemo.ncols(H), 1:Nemo.ncols(H))
-  i, d = pseudo_inv(s)  #is = d I_n
-  #so, saturation is i' * H // d
-  S = divexact(i'*L.A, d)
-  l = QabElem[]
-  for k=1:Nemo.nrows(s)
-    c = i[1,k]
-    for j=2:Nemo.ncols(s)
-      c = gcd(c, i[j,k])
-      if isone(c)
-        break
-      end
-    end
-    mu = evaluate(FacElem(Dict([(L.b[j], div(i[j, k], c)) for j=1:Nemo.ncols(s)])))
-    mu = root(mu, Int(div(d, c)))
-    push!(l,  mu)  # for all saturations, use all roots - a cartesian product
-  end
-  #new values are d-th root of l
-  return PChar(S, l, L.D)
-end
-
-Oscar.elem_type(::QabField) = QabElem
-Oscar.parent_type(::Type{QabElem}) = QabField
-Oscar.parent_type(::QabElem) = QabField
-
-function PCharSaturateAll(L::PChar)
+function saturations(L::PartialCharacter{QabElem})
 	#computes all saturations of the partial character L
-  Result=PChar[]
+  res = PartialCharacter{QabElem}[]
 
   #first handle case wher the domain of the partial character is the zero lattice
   #in this case return L
-  ZeroTest=matrix(FlintZZ,1,Nemo.ncols(L.A),zeros(Int64,1,Nemo.ncols(L.A)))
-  if LatticeEqual(L.A,ZeroTest)==true
-		push!(Result,L)
-		return Result
+  if iszero(L.A)
+		push!(res, L)
+		return res
   end
 
   #now not trivial case
   H = hnf(L.A')
-  s = sub(H, 1:Nemo.ncols(H), 1:Nemo.ncols(H))
-  i, d = pseudo_inv(s)  #is = d I_n
+  H = view(H, 1:ncols(H), 1:ncols(H))
+  i, d = pseudo_inv(H)  #iH = d I_n
   #so, saturation is i' * H // d
-  S = divexact(i'*L.A, d)
-  Re = QabElem[]
+  S = divexact(transpose(i)*L.A, d)
 
-	B = Array[]
-  for k=1:Nemo.nrows(s)
-    c = i[1,k]
-    for j=2:Nemo.ncols(s)
-      c = gcd(c, i[j,k])
+	B = Vector{Vector{QabElem}}()
+  for k = 1:nrows(H)
+    c = i[1, k]
+    for j = 2:ncols(H)
+      c = gcd(c, i[j, k])
       if isone(c)
         break
       end
     end
-    mu = evaluate(FacElem(Dict([(L.b[j], div(i[j, k], c)) for j=1:Nemo.ncols(s)])))
-		#change between the two options allrootNew and allroot in order to use a possibly smaller or
-		#bigger field
-		#mu=allrootNew(mu, Int(div(d,c)))
-		mu=allroot(mu, Int(div(d,c)))
-    push!(B,  mu)
+    mu = evaluate(FacElem(Dict(Tuple{QabElem, fmpz}[(L.b[j], div(i[j, k], c)) for j = 1:ncols(H)])))
+		mu1 = allroot(mu, Int(div(d, c)))
+    push!(B,  mu1)
   end
-  C=my_product(B)
-  T=Array[]
-  for a in C
-		push!(T,collect(a))
+  it = Hecke.cartesian_product_iterator(UnitRange{Int}[1:length(x) for x in B])
+  T = Vector{Vector{QabElem}}()
+  for I in it
+    push!(T, [B[i][I[i]] for i = 1:length(B)])
   end
-
-  for k=1:size(T,1)
+  
+  for k = 1:length(T)
 		#check if PChar(S,T[k],L.D) puts on the right value on the lattice generators of L
-		Pnew=PChar(S,T[k],L.D)
-		flag=true	#flag if value on lattice generators is right
-		for i=1:Nemo.nrows(L.A)
-			if Pnew(sub(L.A,i:i,1:Nemo.ncols(L.A)))!=L.b[i]
-				flag=false
+		Pnew = partial_character(S, T[k], L.D)
+		flag = true	#flag if value on lattice generators is right
+		for i = 1:Nemo.nrows(L.A)
+			if Pnew(sub(L.A, i:i ,1:Nemo.ncols(L.A))) != L.b[i]
+				flag = false
 				println("found wrong saturation (for information), we delete it")
 			end
 		end
-		if flag==true
-			push!(Result,PChar(S, T[k],L.D))
+		if flag
+			push!(res, Pnew)
 		end
   end
-  return Result
+  return res
 end
-
-function my_product(P::Array)
-  T = ntuple(x->P[x], length(P))
-  return Iterators.product(T...)
-end
-
 end

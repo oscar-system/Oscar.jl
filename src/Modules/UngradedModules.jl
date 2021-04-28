@@ -160,7 +160,7 @@ end
 
 function -(a::FreeModuleElem, b::FreeModuleElem)
     check_parent(a,b)
-    return FreeModuleElem(a.coords+b.coords, a.parent)
+    return FreeModuleElem(a.coords-b.coords, a.parent)
 end
 
 function ==(a::FreeModuleElem, b::FreeModuleElem) 
@@ -852,7 +852,7 @@ function quo(F::FreeMod, T::SubQuo, task::Symbol = :none)
   return quo(F, gens(T), task)
 end
 
-function return_quo_wrt_task(M::SubQuo, Q::SubQuo, task)
+function return_quo_wrt_task(M::ModuleFP, Q::ModuleFP, task)
   if task == :none || task == :module
     return Q
   else
@@ -1071,8 +1071,16 @@ function hom_tensor(G::ModuleFP, H::ModuleFP, A::Array{ <: ModuleMap, 1})
   #thus need the pure map - and re-create the careful ordering of the generators as in the 
   # constructor
   #store the maps? and possibly more data, like the ordeing
-  error("not done yet")
-  return hom(G, H)
+  decompose_G = get_special(G, :tensor_generator_decompose_function)
+  pure_H = get_special(H, :tensor_pure_function)
+  function map_gen(g) # Is there something that generalizes FreeModuleElem and SubQuoElem?
+    g_decomposed = decompose_G(g)
+    image_as_tuple = Tuple(f(x) for (f,x) in zip(A,g_decomposed))
+    res = pure_H(image_as_tuple)
+    return res
+  end
+  #error("not done yet")
+  return hom(G, H, map(map_gen, gens(G)))
 end
 
 function hom_prod_prod(G::ModuleFP, H::ModuleFP, A::Array{ <: ModuleMap, 2})
@@ -1120,6 +1128,7 @@ end
 hom(D::SubQuo, C::ModuleFP, A::Array{<:Any, 1}) = SubQuoHom(D, C, A)
 
 function image(f::SubQuoHom, a::SubQuoElem)
+  # TODO matrix vector multiplication
   @assert a.parent === domain(f)
   i = zero(codomain(f))
   D = domain(f)
@@ -1526,6 +1535,8 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
     return Tuple(gen(G[i], t[e.coords.pos[1]][i]) for i = 1:length(G))
   end
 
+  Hecke.set_special(F, :tensor_pure_function => pure, :tensor_generator_decompose_function => inv_pure)
+
   return F, MapFromFunc(pure, inv_pure, Hecke.TupleParent(Tuple([g[0] for g = G])), F)
 end
 
@@ -1560,23 +1571,42 @@ $g_1 \otimes \cdots \otimes g_n$. The map admits a preimage as well.
 """
 function tensor_product(G::ModuleFP...; task::Symbol = :none)
   F, mF = tensor_product([free_module(x) for x = G]..., task = :map)
-  s, emb = sub(F, vec([mF(x) for x = Base.Iterators.ProductIterator(Tuple(gens(x, free_module(x)) for x = G))]), :map)
-  corresponding_tuples = vec([x for x = Base.Iterators.ProductIterator(Tuple(gens(x, free_module(x)) for x = G))])
+  # We want to store a dict where the keys are tuples of indices and the values
+  # are the corresponding pure vectors (i.e. a tuple (2,1,5) represents the 
+  # 2nd, 1st and 5th generator of the 1st, 2nd and 3rd module, which we are 
+  # tensoring. The corresponding value is then G[1][2] ⊗ G[2][1] ⊗ G[2][5]). 
+  corresponding_tuples_as_indices = vec([x for x = Base.Iterators.ProductIterator(Tuple(1:ngens(x) for x = G))])
+  # In corresponding_tuples we store tuples of the actual generators, so in 
+  # the example above we would store (G[1][2], G[2][1], G[2][5]).
+  corresponding_tuples = map(index_tuple -> Tuple(map(index -> G[index][index_tuple[index]],1:length(index_tuple))), corresponding_tuples_as_indices)
+
+  generating_tensors = map(mF, map(tuple -> map(x -> x.repres, tuple), corresponding_tuples))
+  s, emb = sub(F, generating_tensors, :map)
+  #s, emb = sub(F, vec([mF(x) for x = Base.Iterators.ProductIterator(Tuple(gens(x, free_module(x)) for x = G))]), :map)
   q = vcat([vec([mF(x) for x = Base.Iterators.ProductIterator(Tuple(i == j ? rels(G[i]) : gens(free_module(G[i])) for i=1:length(G)))]) for j=1:length(G)]...) 
   local projection_map
   if length(q) != 0
     s, projection_map = quo(s, q, :map)
   end
+
+  tuples_pure_tensors_dict = IdDict(zip(corresponding_tuples_as_indices, gens(s)))
+  Hecke.set_special(s, :show => Hecke.show_tensor_product, :tensor_product => G)
   if task == :none
     return s
   else
-
+    
     function pure(tuple_elems::SubQuoElem...)
-      tensor_elem = preimage(emb,mF(Tuple(x.repres for x in tuple_elems)))
-      if length(q) != 0
-        tensor_elem = projection_map(tensor_elem)
+      coeffs_tuples = vec([x for x = Base.Iterators.ProductIterator(Tuple(x.coeffs for x = tuple_elems))])
+      res = zero(s)
+      for coeffs_tuple in coeffs_tuples
+        indices = map(x -> x[1], coeffs_tuple)
+        coeff_for_pure = prod(map(x -> x[2], coeffs_tuple))
+        res += coeff_for_pure*tuples_pure_tensors_dict[indices]
       end
-      return tensor_elem
+      return res
+    end
+    function pure(T::Tuple)
+      return pure(T...)
     end
 
     decompose_generator = function(v::SubQuoElem)
@@ -1584,7 +1614,7 @@ function tensor_product(G::ModuleFP...; task::Symbol = :none)
       return corresponding_tuples[i]
     end
 
-    Hecke.set_special(s, :tensor_generator_decompose_function => decompose_generator)
+    Hecke.set_special(s, :tensor_pure_function => pure, :tensor_generator_decompose_function => decompose_generator)
 
     return s, MapFromFunc(pure, Hecke.TupleParent(Tuple([g[0] for g = G])), s)
   end
@@ -1692,6 +1722,86 @@ function ext(M::ModuleFP, N::ModuleFP, i::Int)
   free_res = free_resolution(M)[1:end-2]
   lifted_resolution = hom_functor(free_res, N) #TODO only three homs are neccessary
   return homology(lifted_resolution,i)
+end
+
+#############################
+# TODO ?
+#############################
+function map_canonically(M::SubQuo, v::SubQuoElem)
+  N = parent(v)
+  if N===M
+    return v
+  end
+
+  # Breadth-First Search to find path to N:
+  parent_hom = IdDict{SubQuo,ModuleMap}()
+  modules = Set([M])
+  found_N = false
+  for A in modules
+    for H in A.ingoing_morphisms
+      B = domain(H)
+      if B!==A # on trees "B!==A" is enough!
+        if !(B in modules)
+          parent_hom[B] = H
+          push!(modules,B)
+        end
+      end
+      if B===N
+        found_N = true
+        break
+      end
+    end
+    if found_N
+      break
+    end
+  end
+  if !found_N
+    throw(DomainError("There is no path of canonical homomorphisms between the modules!"))
+  end
+  result = v
+  A = N
+  while A !== M
+    H = parent_hom[A]
+    result = H(result)
+    A = codomain(H)
+  end
+  return result
+end
+
+function all_canonical_maps(M::SubQuo, N::SubQuo)
+  # from N to M
+
+  all_paths = []
+
+  function helper_dfs(U::SubQuo, D::SubQuo, visited::Set, path::Vector)
+    if U === D
+      push!(all_paths, path)
+      return
+    end
+    for neighbor_morphism in U.outgoing_morphisms
+      if !(neighbor_morphism in visited)
+
+        #push!(visited, neighbor_morphism)
+        #push!(path, neighbor_morphism)
+        #helper_dfs(codomain(neighbor_morphism), D, visited, path)
+        helper_dfs(codomain(neighbor_morphism), D, union(visited, Set([neighbor_morphism])), union(path, [neighbor_morphism]))
+        #helper_dfs(codomain(neighbor_morphism), D, visited, union(path, [neighbor_morphism]))
+      end
+    end
+  end
+
+  helper_dfs(N, M, Set(), [])
+
+  morphisms = Array{ModuleMap, 1}()
+  for path in all_paths
+    phi = identity_map(N)
+    for h in path
+      phi = phi*h
+    end
+    push!(morphisms, phi)
+  end
+
+  return morphisms
 end
 
 #############################
@@ -1863,6 +1973,142 @@ function prune(M::SubQuo)
     return M, identity_map(M)
   end
 end
+
+
+
+
+@doc Markdown.doc"""
+    simplify_subquotient(M::Subquotient{T}) where T <: Union{Nemo.PolyElem,Nemo.MPolyElem}
+> Simplify the given subquotient and return the simplified subquotient $N$ along
+> with the injection map $N --> M$ and the projection map $M --> N$.
+"""
+#=function simplify_subquotient(M::Subquotient{T}) where T <: Union{Nemo.PolyElem,Nemo.MPolyElem}
+  function _to_julia_matrix(A::AbstractAlgebra.MatElem) # TODO Replace by something better
+    return eltype(A)[A[i, j] for i = 1:AbstractAlgebra.nrows(A), j = 1:AbstractAlgebra.ncols(A)]
+  end
+  function unit_vector_in_relations(i::Int, M::Subquotient{T}, singular_ring::Singular.MPolyRing)
+      unit_vector = Singular.vector(singular_ring, [j == i ? singular_ring(1) : singular_ring(0) for j=1:size(M.relations)[2]]...)
+      return Singular.iszero(Singular.reduce(unit_vector, M.singular_rel_std))
+  end
+  function delete_rows(A::AbstractAlgebra.MatElem{T}, to_delete::Array{Int,1})
+    Mat = A[deleteat!(1:nrows(A),to_delete),:]
+    return Mat
+  end
+
+  function delete_columns(A::AbstractAlgebra.MatElem{T}, to_delete::Array{Int,1})
+      return delete_rows(A', to_delete)'
+  end
+
+  function assign_row!(A::AbstractAlgebra.MatElem{T}, v::Vector{T}, row_index::Int)
+      if length(v) != size(A)[2]
+          throw(DimensionMismatch("Different row lengths"))
+      end
+      for i=1:length(v)
+          A[row_index,i] = v[i]
+      end
+      return A
+  end
+
+  function assign_row!(A::AbstractAlgebra.MatElem{T}, v::AbstractAlgebra.MatElem{T}, row_index::Int)
+      if size(v)[1] > 1
+          throw(DimensionMismatch("Expected row vector"))
+      end
+      if length(v) != size(A)[2]
+          throw(DimensionMismatch("Different row lengths"))
+      end
+      for i=1:length(v)
+          A[row_index,i] = v[1,i]
+      end
+      return A
+  end
+
+  function rows_to_delete(A::AbstractAlgebra.MatElem{T}, max_index::Int)
+      to_delete_indices::Array{Int,1} = []
+      corresponding_row_index::Array{Int,1} = []
+      K = kernel(A)
+      for i=1:size(K)[1], j=1:max_index
+          if AbstractAlgebra.isunit(K[i,j])
+              deletion_possible = true
+              for k in to_delete_indices
+                  if !iszero(K[i,k])
+                      deletion_possible = false
+                      break
+                  end
+              end
+              if deletion_possible
+                  push!(to_delete_indices, j)
+                  push!(corresponding_row_index, i)
+              end
+          end
+      end
+      return to_delete_indices, corresponding_row_index, K
+  end
+
+  R = base_ring(M)
+  singular_ring = nemo_ring_to_singular(R)
+  #remove columns
+
+  to_delete::Array{Int,1} = []
+  for i=1:size(M.relations)[2]
+    if unit_vector_in_relations(i, M, singular_ring)
+      push!(to_delete, i)
+    end
+  end
+
+  new_generators = delete_columns(M.generators, to_delete)
+  new_relations = delete_columns(M.relations, to_delete)
+
+  to_delete,_,_ = rows_to_delete(vcat(new_generators, new_relations)',size(new_relations)[2])
+
+  new_generators = delete_columns(new_generators, to_delete)
+  new_relations = delete_columns(new_relations, to_delete)
+
+  #remove rows
+  #simplify relations
+  to_delete,_,_ = rows_to_delete(new_relations, size(new_relations)[1])
+
+  new_relations = delete_rows(new_relations, to_delete)
+
+  #simplify generators
+  to_delete, corresponding_row, K_gen = rows_to_delete(vcat(new_generators, new_relations), size(new_generators)[1])
+
+
+  injection_matrix = delete_rows(AbstractAlgebra.identity_matrix(R, size(M.generators)[1]), to_delete)
+  projection_matrix = AbstractAlgebra.zero_matrix(R, size(M.generators)[1], size(K_gen)[2]-length(to_delete))
+  for i=1:size(M.generators)[1]
+    if i in to_delete
+      index = findfirst(x -> x==i, to_delete)
+      assign_row!(projection_matrix, R(-1)*R(AbstractAlgebra.inv(AbstractAlgebra.coeff(K_gen[corresponding_row[index],i], 1)))*delete_columns(K_gen[corresponding_row[index],:], to_delete), i)
+    else
+      unit_vector_index = i-length(filter(x -> x < i, to_delete))
+      unit_vector = [j == unit_vector_index ? R(1) : R(0) for j=1:size(projection_matrix)[2]]
+      assign_row!(projection_matrix, unit_vector, i)
+    end
+  end
+
+  new_generators = delete_rows(new_generators, to_delete)
+
+  if length(new_generators)==0
+    SQ,injection,projection = zero_module_with_maps(M)
+  else
+    SQ = Subquotient(new_generators, new_relations)
+    injection = AbstractAlgebra.ModuleHomomorphism(SQ, M, injection_matrix)
+    projection = AbstractAlgebra.ModuleHomomorphism(M, SQ, projection_matrix[:,1:size(projection_matrix)[2]-size(new_relations)[1]])
+  end
+  push!(M.in_homomorphisms, injection)
+  push!(M.out_homomorphisms, projection)
+  push!(SQ.in_homomorphisms, projection)
+  push!(SQ.out_homomorphisms, injection)
+  subquotient_module_homomorphism_inverses[projection] = injection
+  subquotient_module_homomorphism_inverses[injection] = projection
+
+  if isgraded(M)
+    ishomogeneous_function_lookup_table[SQ] = x -> custom_ishomogeneous(injection(x))
+    degree_function_lookup_table[SQ] = x -> custom_degree(injection(x))
+  end
+
+  return SQ,injection,projection
+end=#
 
 ######################################
 # Only for testing

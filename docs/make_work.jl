@@ -163,7 +163,7 @@ makedocs(bib,
 #         format   = Documenter.HTML(),
 #         format   = Markdown(),
          sitename = "Oscar.jl",
-         modules = [Oscar, Hecke, Nemo, AbstractAlgebra],
+         modules = [Oscar],
          clean = true,
          doctest = true,
          pages    = [
