@@ -517,18 +517,22 @@ The return value is an array
       and the multiplicity
 
 # Examples     
-```jldoctest
-julia>  Qa, a = PolynomialRing(QQ, :a=>1:2);
-julia>  R, X = PolynomialRing(FractionField(Qa), :X=>1:2);
-julia>  f = (X[1]^2+a[1]*X[2]^2)*(X[1]+X[2]);
-julia>  z = factor_absolute(f)
+
+```julia
+julia> Qa, a = PolynomialRing(QQ, :a=>1:2);
+
+julia> R, X = PolynomialRing(FractionField(Qa), :X=>1:2);
+
+julia> f = (X[1]^2+a[1]*X[2]^2)*(X[1]+X[2]+a[1]+a[2]);
+
+julia> z = factor_absolute(f)
 3-element Vector{Any}:
  1
+ (x1 + x2 + x3 + x4, 1)
  (X1 + t*X2, X1 - t*X2, 1)
- (x1 + x2, 1)
 
 julia> parent(z[2][1])
-Multivariate Polynomial Ring in X1, X2 over Residue field of Univariate Polynomial Ring in t over Fraction field of Multivariate Polynomial Ring in a1, a2 over Rational Field modulo t^2 + a1
+Multivariate Polynomial Ring in x1, x2, x3, x4 over Rational Field
 ```  
 """
 function Oscar.factor_absolute(f::MPolyElem{Generic.Frac{fmpq_mpoly}})
