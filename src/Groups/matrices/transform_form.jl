@@ -92,15 +92,15 @@ function _block_anisotropic_elim(B::MatElem{T}, _type::Symbol; isotr=false, f=0)
    if isotr
       q = characteristic(F)^degF
       g = d-f
-      U = submatrix(B,1,f+1,f,g)
-      V = submatrix(B,f+1,f+1,g,g)
+      U = B[1:f, f+1:f+g]
+      V = B[f+1:f+g, f+1:f+g]
       C,A,e = _find_radical(U,F,f,g)
       # I expect C always to be of rank f
-      C = submatrix(C,1,1,f,f)                     
+      C = C[1:f, 1:f]
       Vprime = star(A)*V*A
-      Z = submatrix(Vprime, 1,1,f,f)
-      Y = submatrix(Vprime,f+1,1,g-f,f)
-      Bprime = submatrix(Vprime,f+1,f+1,g-f,g-f)
+      Z = Vprime[1:f, 1:f]
+      Y = Vprime[f+1:g, 1:f]
+      Bprime = Vprime[f+1:g, f+1:g]
       TR = zero_matrix(F,f,f)
       D = zero_matrix(F,f,f)
       for i in 1:f
@@ -136,14 +136,14 @@ function _block_anisotropic_elim(B::MatElem{T}, _type::Symbol; isotr=false, f=0)
       return B1, A1*Temp
    else
       c,f = Int(ceil(d/2)), Int(floor(d/2))
-      B0 = submatrix(B,1,1,c,c)
-      U = submatrix(B,c+1,1,f,c)
-      V = submatrix(B,c+1,c+1,f,f)
+      B0 = B[1:c,1:c]
+      U = B[c+1:c+f, 1:c]
+      V = B[c+1:c+f, c+1:c+f]
       B1,A0,e = _find_radical(B0,F,c,c; e=degF, _is_symmetric=true)
-      B1 = submatrix(B1,1,1,e,e)
+      B1 = B1[1:e, 1:e]
       U = U*star(A0)
-      U1 = submatrix(U,1,1,f,e)
-      U2 = submatrix(U,1,e+1,f,c-e)
+      U1 = U[1:f, 1:e]
+      U2 = U[1:f, e+1:c]
       Z = V-s*U1*B1^-1*star(U1)
       D1,A1 = _block_anisotropic_elim(B1,_type)
       Temp = zero_matrix(F,d-e,d-e)
@@ -180,7 +180,7 @@ function _block_herm_elim(B::MatElem{T}, _type) where T <: FinFieldElem
    end
 
    c = Int(ceil(d/2))
-   B2 = submatrix(B,1,1,c,c)
+   B2 = B[1:c, 1:c]
    if B2==0
       D,A = _block_anisotropic_elim(B,_type; isotr=true, f=c)
    else
@@ -405,7 +405,7 @@ function iscongruent(f::SesquilinearForm{T}, g::SesquilinearForm{T}) where T <: 
          if f.descr==:hermitian degF=div(degree(F),2) end
          Cf,Af,d = _find_radical(gram_matrix(f),F,n,n; e=degF, _is_symmetric=true)
          Cg,Ag,_ = _find_radical(gram_matrix(g),F,n,n; e=degF, _is_symmetric=true)
-         _is_true, Z = _change_basis_forms( submatrix(Cf,1,1,d,d), submatrix(Cg,1,1,d,d), f.descr)
+         _is_true, Z = _change_basis_forms( Cf[1:d, 1:d], Cg[1:d, 1:d], f.descr)
          _is_true || return false, nothing
          Z = insert_block(identity_matrix(F,n), Z, 1,1)
          return true, Af^-1*Z*Ag

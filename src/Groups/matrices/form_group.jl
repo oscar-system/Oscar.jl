@@ -573,7 +573,7 @@ function isometry_group(f::SesquilinearForm{T}) where T
    end
 
    if r<n
-      fn = SesquilinearForm(submatrix(C,1,1,r,r),f.descr)
+      fn = SesquilinearForm(C[1:r, 1:r],f.descr)
    else
       fn = f
    end

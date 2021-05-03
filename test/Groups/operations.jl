@@ -61,7 +61,7 @@ end
    @test I==identity_matrix(F,6)
    insert_block!(I,x,3,3)
    @test I==I1
-   @test submatrix(I,3,3,2,2)==x
+   @test I[3:4,3:4]==x
    Y = block_matrix(2,1,[block_matrix(1,2,[x,x^2]), block_matrix(1,2,[-x,x])])
    @test Y==block_matrix(2,2,[x,x^2,-x,x])
    z = zero_matrix(F,2,2)
