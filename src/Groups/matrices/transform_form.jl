@@ -120,8 +120,8 @@ function _block_anisotropic_elim(B::MatElem{T}, _type::Symbol; isotr=false, f=0)
          end
       end
       B0,A0 = _block_anisotropic_elim(Bprime,_type)
-      B1 = diagonal_join(Barray)
-      B1 = diagonal_join(B1,B0)
+      B1 = cat(Barray..., dims=(1,2))
+      B1 = cat(B1,B0,dims=(1,2))
       C = C^-1
       Temp = vcat(C,-TR*C)
       Temp = vcat(Temp,-Y*C)
@@ -131,8 +131,8 @@ function _block_anisotropic_elim(B::MatElem{T}, _type::Symbol; isotr=false, f=0)
          P[2*i-1,i] = 1
          P[2*i,i+f] = 1
       end
-      A1 = diagonal_join(Aarray)*P
-      A1 = diagonal_join(A1,A0)
+      A1 = cat(Aarray..., dims=(1,2))*P
+      A1 = cat(A1,A0, dims=(1,2))
       return B1, A1*Temp
    else
       c,f = Int(ceil(d/2)), Int(floor(d/2))
@@ -159,7 +159,7 @@ function _block_anisotropic_elim(B::MatElem{T}, _type::Symbol; isotr=false, f=0)
       Temp = vcat(A0,Temp)
       Temp = insert_block(identity_matrix(F,d),Temp,1,1)
 
-      return diagonal_join(D1,D2), diagonal_join(A1,A2)*Temp
+      return cat(D1,D2, dims=(1,2)), cat(A1,A2, dims=(1,2))*Temp
    end
 end
 
@@ -260,7 +260,7 @@ function _to_standard_form(B::MatElem{T}, _type::Symbol)  where T <: FinFieldEle
       if div(n-NOZ,2)==0
          S = zero_matrix(F,0,0)
       else
-         S = diagonal_join([S for i in 1:div(n-NOZ,2)])
+         S = cat([S for i in 1:div(n-NOZ,2)]..., dims=(1,2))
       end
       # turn into standard GAP form
       sec_perm = Int[]

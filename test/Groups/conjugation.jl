@@ -156,7 +156,7 @@ end
    G = GL(8,5)
    S = SL(8,5)
    R,t = PolynomialRing(base_ring(G),"t")
-   x = diagonal_join(generalized_jordan_block(t-1,4), generalized_jordan_block(t-1,2), identity_matrix(base_ring(G),2))
+   x = cat(generalized_jordan_block(t-1,4), generalized_jordan_block(t-1,2), identity_matrix(base_ring(G),2), dims=(1,2))
    C = centralizer(G,G(x))[1]
    @test order(C) == order(GL(2,5))*4^2*5^16
    @testset for y in gens(C)
@@ -167,7 +167,7 @@ end
    @testset for y in gens(Cs)
       @test x*y==y*x
    end
-   x = diagonal_join( [generalized_jordan_block(t-1,2) for i in 1:4] )
+   x = cat( [generalized_jordan_block(t-1,2) for i in 1:4]..., dims=(1,2) )
    C = centralizer(G,G(x))[1]
    @test order(C) == order(GL(4,5))*5^16
    @testset for y in gens(C)
@@ -175,7 +175,7 @@ end
    end
    Cs = centralizer(S,S(x))[1]
    @test order(Cs) == div(order(GL(4,5))*5^16,2)
-   x = diagonal_join( [generalized_jordan_block(t-1,4) for i in 1:2] )
+   x = cat( [generalized_jordan_block(t-1,4) for i in 1:2]..., dims=(1,2) )
    C = centralizer(G,G(x))[1]
    @test order(C) == order(GL(2,5))*5^12
    Cs = centralizer(S,S(x))[1]
@@ -189,7 +189,7 @@ end
       @test x*y==y*x
    end
 
-   x = diagonal_join(companion_matrix((t^2+3)^2), companion_matrix(t^3+3*t+2), companion_matrix(t-3))
+   x = cat(companion_matrix((t^2+3)^2), companion_matrix(t^3+3*t+2), companion_matrix(t-3), dims=(1,2))
    C = centralizer(G,G(x))[1]
    @test order(C)==24*124*4*25
    @testset for y in gens(C)

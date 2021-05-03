@@ -70,9 +70,9 @@ function _gens_for_GL_matrix(f::PolyElem, n::Int, F::FinField; D::Int=1)
    CP = _centralizer(f)(C)            # matrix of maximal order in the centralizer of the companion matrix
    Df = degree(f)*D
 
-   if n==1 return [diagonal_join([CP for i in 1:D])] end
+   if n==1 return [cat([CP for i in 1:D]..., dims=(1,2))] end
    h1 = identity_matrix(F,n*Df)
-   insert_block!(h1,diagonal_join([CP for i in 1:D]),1,1)
+   insert_block!(h1,cat([CP for i in 1:D]..., dims=(1,2)),1,1)
    h2 = zero_matrix(F,n*degree(f)*D,n*Df)
    for i in 1:(n-1)*Df
       h2[i+Df,i]=-1
@@ -325,8 +325,8 @@ function _gens_for_SL_matrix(f::PolyElem, n::Int, F::FinField; D::Int=1)
 
    n != 1 || return dense_matrix_type(F)[]
    h1 = identity_matrix(F,n*Df)
-   insert_block!(h1,diagonal_join([CP for i in 1:D]),1,1)
-   insert_block!(h1,diagonal_join([CPi for i in 1:D]),Df+1,Df+1)
+   insert_block!(h1,cat([CP for i in 1:D]..., dims=(1,2)),1,1)
+   insert_block!(h1,cat([CPi for i in 1:D]..., dims=(1,2)),Df+1,Df+1)
    h2 = zero_matrix(F,n*Df,n*Df)
    for i in 1:(n-1)*Df
       h2[i+Df,i]=-1
@@ -340,7 +340,7 @@ function _gens_for_SL_matrix(f::PolyElem, n::Int, F::FinField; D::Int=1)
    # TODO: if in future we find out how to generate intermediate groups between GL and SL with only 2 elements,
    # then we can reduce the number of generators here from 3 to 2
    h3 = identity_matrix(F,n*Df)
-   insert_block!(h3,diagonal_join([CP^(order(F)-1) for i in 1:D]),1,1)
+   insert_block!(h3,cat([CP^(order(F)-1) for i in 1:D]..., dims=(1,2)),1,1)
    return [h1,h2,h3]
 end
 
@@ -409,6 +409,7 @@ function _centralizer_SL(x::MatElem)
       pos = 1
       for i in 1:length(block_dim)
          insert_block!(z,diagonal_join([block_dim[i][3]^Int(g(k)[i]) for j in 1:block_dim[i][1]]),pos,pos)
+         insert_block!(z,cat([block_dim[i][3]^Int(g(k)[i]) for j in 1:block_dim[i][1]]..., dims=(1,2)),pos,pos)
          pos += block_dim[i][1]*block_dim[i][2]*nrows(block_dim[i][3])
       end
       push!(listgens, am*z*a)
