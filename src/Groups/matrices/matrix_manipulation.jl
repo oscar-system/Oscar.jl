@@ -7,7 +7,7 @@
 # TODO: when this happens, files mentioned above need to be modified too.
 
 import AbstractAlgebra: FieldElem, map, Ring
-import Hecke: multiplicative_jordan_decomposition, PolyElem, _rational_canonical_form_setup, refine_for_jordan
+import Hecke: _copy_matrix_into_matrix, multiplicative_jordan_decomposition, PolyElem, _rational_canonical_form_setup, refine_for_jordan
 
 export
     block_matrix,
@@ -102,7 +102,7 @@ function block_matrix(m::Int, n::Int, V::AbstractVector{T}) where T <: MatElem
    for i in 1:m
       pos_j=1
       for j in 1:n
-         insert_block!(B,V[n*(i-1)+j],pos_i,pos_j)
+         _copy_matrix_into_matrix(B,pos_i,pos_j,V[n*(i-1)+j])
          pos_j += ncols(V[n*(i-1)+j])
       end
       pos_i += nrows(V[n*(i-1)+1])

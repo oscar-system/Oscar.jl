@@ -57,9 +57,10 @@ end
    
    I = identity_matrix(F,6)
    x = matrix(F,2,2,[2,3,4,0])
-   I1 = insert_block(I,x,3,3)
+   I1 = deepcopy(I)
+   Hecke._copy_matrix_into_matrix(I1,3,3,x)
    @test I==identity_matrix(F,6)
-   insert_block!(I,x,3,3)
+   Hecke._copy_matrix_into_matrix(I,3,3,x)
    @test I==I1
    @test I[3:4,3:4]==x
    Y = block_matrix(2,1,[block_matrix(1,2,[x,x^2]), block_matrix(1,2,[-x,x])])

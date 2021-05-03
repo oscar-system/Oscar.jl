@@ -147,9 +147,9 @@ function _block_anisotropic_elim(B::MatElem{T}, _type::Symbol; isotr=false, f=0)
       Z = V-s*U1*B1^-1*star(U1)
       D1,A1 = _block_anisotropic_elim(B1,_type)
       Temp = zero_matrix(F,d-e,d-e)
-      insert_block!(Temp,s*star(U2),1,c-e+1)
-      insert_block!(Temp,U2,c-e+1,1)
-      insert_block!(Temp,Z,c-e+1,c-e+1)
+      _copy_matrix_into_matrix(Temp,1,c-e+1,s*star(U2))
+      _copy_matrix_into_matrix(Temp,c-e+1,1,U2)
+      _copy_matrix_into_matrix(Temp,c-e+1,c-e+1,Z)
       if c-e==0
          D2,A2 = _block_anisotropic_elim(Temp,_type)
       else
@@ -157,9 +157,10 @@ function _block_anisotropic_elim(B::MatElem{T}, _type::Symbol; isotr=false, f=0)
       end
       Temp = hcat(-U1*B1^-1, zero_matrix(F,f,c-e))*A0
       Temp = vcat(A0,Temp)
-      Temp = insert_block(identity_matrix(F,d),Temp,1,1)
+      Temp1 = identity_matrix(F,d)
+      _copy_matrix_into_matrix(Temp1,1,1,Temp)
 
-      return cat(D1,D2, dims=(1,2)), cat(A1,A2, dims=(1,2))*Temp
+      return cat(D1,D2, dims=(1,2)), cat(A1,A2, dims=(1,2))*Temp1
    end
 end
 
@@ -268,10 +269,10 @@ function _to_standard_form(B::MatElem{T}, _type::Symbol)  where T <: FinFieldEle
          sec_perm = vcat([i,n+1-i],sec_perm)
       end
       if isodd(n)
-         insert_block!(Z,S,2,2)
+         _copy_matrix_into_matrix(Z,2,2,S)
          sec_perm = vcat([div(n+1,2)],sec_perm)
       else
-         insert_block!(Z,S,1,1)
+         _copy_matrix_into_matrix(Z,1,1,S)
       end
       D = transpose(permutation_matrix(F,sec_perm))*Z*D
    end
@@ -303,7 +304,7 @@ function _elim_hyp_lines(A::MatElem{T}) where T <: FinFieldElem
          A[i,i+1]=0
          A[i+1,i]=0
          A[i+1,i+1]=-2
-         insert_block!(Z,b,i,i)
+         _copy_matrix_into_matrix(Z,i,i,b)
          i+=2
       else
          i+=1
@@ -407,8 +408,9 @@ function iscongruent(f::SesquilinearForm{T}, g::SesquilinearForm{T}) where T <: 
          Cg,Ag,_ = _find_radical(gram_matrix(g),F,n,n; e=degF, _is_symmetric=true)
          _is_true, Z = _change_basis_forms( Cf[1:d, 1:d], Cg[1:d, 1:d], f.descr)
          _is_true || return false, nothing
-         Z = insert_block(identity_matrix(F,n), Z, 1,1)
-         return true, Af^-1*Z*Ag
+         Z1 = identity_matrix(F,n)
+         _copy_matrix_into_matrix(Z1,1,1,Z)
+         return true, Af^-1*Z1*Ag
       else
          return _change_basis_forms(gram_matrix(f), gram_matrix(g), f.descr)
       end

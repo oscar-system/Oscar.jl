@@ -167,8 +167,8 @@ function invariant_alternating_forms(G::MatrixGroup{S,T}) where {S,T}
 
    L = T[]
    for j in 1:r
-      B = upper_triangular_matrix(K[1:div(n*(n-1),2),j])
-      B = insert_block(zero_matrix(F,n,n),B,1,2)
+      B = zero_matrix(F,n,n)
+      _copy_matrix_into_matrix(B,1,2,upper_triangular_matrix(K[1:div(n*(n-1),2),j]))
 #=      for i in 1:n, j in 1:i-1
          B[i,j]=-B[j,i]
       end  =#
@@ -609,10 +609,14 @@ function isometry_group(f::SesquilinearForm{T}) where T
       Idn = identity_matrix(F,n)
       L = dense_matrix_type(elem_type(F))[]
       for i in 1:ngens(G)
-         push!(L, An*insert_block(Idn,Xfn*(G[i].elm)*Xf,1,1)*A)
+         temp = deepcopy(Idn)
+         _copy_matrix_into_matrix(temp,1,1,Xfn*(G[i].elm)*Xf)
+         push!(L, An*temp*A)
       end
       for g in _gens_for_GL(n-r,F)
-         push!(L, An*insert_block(Idn,g,r+1,r+1)*A)
+         temp = deepcopy(Idn)
+         _copy_matrix_into_matrix(temp,r+1,r+1,g)
+         push!(L, An*temp*A)
       end
 # TODO: not quite sure whether the last element (the one with i=r) is sufficient to generate the whole top-right block
       for i in 1:r
