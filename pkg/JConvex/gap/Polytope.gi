@@ -1,6 +1,6 @@
 #############################################################################
 ##
-##  Functions.gi        Convex package
+##  Functions.gi        JConvex package
 ##                      Martin Bies
 ##
 ##  Copyright 2021      University of Pennsylvania

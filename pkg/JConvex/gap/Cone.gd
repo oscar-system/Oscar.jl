@@ -1,6 +1,6 @@
 #############################################################################
 ##
-##  Cone.gd             Convex package
+##  Cone.gd             JConvex package
 ##                      Martin Bies
 ##
 ##  Copyright 2021      University of Pennsylvania

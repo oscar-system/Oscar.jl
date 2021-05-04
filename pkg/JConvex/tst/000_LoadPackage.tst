@@ -10,9 +10,9 @@ gap> HOMALG_IO.suppress_PID := true;;
 gap> HOMALG_IO.use_common_stream := true;;
 gap> package_loading_info_level := InfoLevel( InfoPackageLoading );;
 gap> SetInfoLevel( InfoPackageLoading, PACKAGE_ERROR );;
-gap> LoadPackage( "Convex", false );
+gap> LoadPackage( "JConvex", false );
 true
 gap> SetInfoLevel( InfoPackageLoading, PACKAGE_INFO );;
-gap> LoadPackage( "Convex" );
+gap> LoadPackage( "JConvex" );
 true
 gap> SetInfoLevel( InfoPackageLoading, package_loading_info_level );;

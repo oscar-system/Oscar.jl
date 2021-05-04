@@ -2,7 +2,7 @@
 
 #! @Section Examples
 
-LoadPackage( "Convex" );
+LoadPackage( "JConvex" );
 
 #! The following demonstrates cone operations performed with Polymake:
 

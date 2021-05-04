@@ -1,6 +1,6 @@
 #############################################################################
 ##
-##  README              Convex package
+##  README              JConvex package
 ##
 ##                      Martin Bies
 ##                      University of Pennsylvania
@@ -11,7 +11,7 @@
 ##
 #############################################################################
 
-README file for the `Convex' GAP4 package
+README file for the `JConvex' GAP4 package
 
 
 (1) Installation this package
@@ -23,7 +23,7 @@ To get the latest version of this GAP 4 package pull the corresponding branch fr
 (2) Documentation and test
 --------------------------
 
-You can create the documentation for this package by issuing "make doc" inside the Convex folder. Provided a running LaTeX installation, the documentation will subsequently be available inside the /doc subfolder as manual.pdf. After this step, you can also issue a test on this software by issuing "make test".
+You can create the documentation for this package by issuing "make doc" inside the JConvex folder. Provided a running LaTeX installation, the documentation will subsequently be available inside the /doc subfolder as manual.pdf. After this step, you can also issue a test on this software by issuing "make test".
 
 (3) Contact
 --------------------------

@@ -1,6 +1,6 @@
 #############################################################################
 ##
-##  ExternalPolymakeCone.gd      Convex package
+##  ExternalPolymakeCone.gi      JConvex package
 ##                               Martin Bies
 ##
 ##  Copyright 2021               University of Pennsylvania

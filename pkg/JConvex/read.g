@@ -1,6 +1,6 @@
 #############################################################################
 ##
-##  PackageInfo.g       Convex package
+##  PackageInfo.g       JConvex package
 ##                      Martin Bies
 ##
 ##  Copyright 2021      University of Pennsylvania
@@ -9,8 +9,8 @@
 ##
 #############################################################################
 
-ReadPackage( "Convex", "gap/Functions.gd" );
-ReadPackage( "Convex", "gap/ExternalPolymakeCone.gd" );
-ReadPackage( "Convex", "gap/Cone.gd" );
-ReadPackage( "Convex", "gap/ExternalPolymakePolytope.gd" );
-ReadPackage( "Convex", "gap/Polytope.gd" );
+ReadPackage( "JConvex", "gap/Functions.gi" );
+ReadPackage( "JConvex", "gap/ExternalPolymakeCone.gi" );
+ReadPackage( "JConvex", "gap/Cone.gi" );
+ReadPackage( "JConvex", "gap/ExternalPolymakePolytope.gi" );
+ReadPackage( "JConvex", "gap/Polytope.gi" );

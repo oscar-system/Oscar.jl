@@ -1,5 +1,0 @@
-@Chapter Introduction
-
-@Section What is the goal of the Convex package?
-
-**Convex** aims to perform convex geometry by Polymake (and eventually also Cdd and Normaliz) in Julia. This is key to make the functionality of the ToricVarieties_package available in Julia.

@@ -1,6 +1,6 @@
 #############################################################################
 ##
-##  PackageInfo.g       Convex package
+##  PackageInfo.g       JConvex package
 ##                      Martin Bies
 ##
 ##  Copyright 2021      University of Pennsylvania
@@ -11,7 +11,7 @@
 
 SetPackageInfo( rec(
 
-PackageName := "Convex",
+PackageName := "JConvex",
 
 Subtitle := "A Gap package for convex geometry via Polymake in Julia",
 
@@ -46,16 +46,16 @@ rec(
 ],
 
 Status := "dev",
-PackageWWWHome := "https://github.com/homalg-project/ToricVarieties_project/tree/Convex/Convex/",
+PackageWWWHome := "https://github.com/homalg-project/ToricVarieties_project/tree/master/JConvex/",
 ArchiveFormats := ".zip",
-ArchiveURL     := "https://github.com/homalg-project/ToricVarieties_project/releases/download/2021-05-04/Convex",
+ArchiveURL     := "https://github.com/homalg-project/ToricVarieties_project/releases/download/2021-05-04/JConvex",
 README_URL     := Concatenation( ~.PackageWWWHome, "README" ),
 PackageInfoURL := Concatenation( ~.PackageWWWHome, "PackageInfo.g" ),
 
-AbstractHTML := "Convex provides functionality to perform convex geometry with Polymake in Julia.",
+AbstractHTML := "JConvex provides functionality to perform convex geometry with Polymake in Julia.",
 
 PackageDoc := rec(
-  BookName  := "Convex",
+  BookName  := "JConvex",
   ArchiveURLSubset := ["doc"],
   HTMLStart := "doc/chap0.html",
   PDFFile   := "doc/manual.pdf",
@@ -76,7 +76,7 @@ Dependencies := rec(
 
 AvailabilityTest := ReturnTrue,
 
-Keywords := [ "Convex geometry", "Polymake" ],
+Keywords := [ "Convex geometry", "Polymake", "Julia" ],
 
 AutoDoc := rec(
     TitlePage := rec(
