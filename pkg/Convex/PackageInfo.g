@@ -61,7 +61,6 @@ PackageDoc := rec(
   PDFFile   := "doc/manual.pdf",
   SixFile   := "doc/manual.six",
   LongTitle := "A Gap package for convex geometry via Polymake in Julia",
-  Autoload  := false
 ),
 
 
@@ -75,13 +74,7 @@ Dependencies := rec(
   ExternalConditions := [ ],
 ),
 
-AvailabilityTest := function()
-
-    return true;
-  end,
-
-Autoload := false,
-
+AvailabilityTest := ReturnTrue,
 
 Keywords := [ "Convex geometry", "Polymake" ],
 
