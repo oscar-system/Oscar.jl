@@ -15,8 +15,8 @@ PackageName := "Convex",
 
 Subtitle := "A Gap package for convex geometry via Polymake in Julia",
 
-Version :=  Maximum( [
-  "2021.04.24", # Martins version
+Version := Maximum( [
+   "2021.05.04",
 ] ),
 
 Date := ~.Version{[ 1 .. 10 ]},
@@ -48,7 +48,7 @@ rec(
 Status := "dev",
 PackageWWWHome := "https://github.com/homalg-project/ToricVarieties_project/tree/Convex/Convex/",
 ArchiveFormats := ".zip",
-ArchiveURL     := "https://github.com/homalg-project/ToricVarieties_project/releases/download/2021-04-25/Convex.zip",
+ArchiveURL     := "https://github.com/homalg-project/ToricVarieties_project/releases/download/2021-05-04/Convex",
 README_URL     := Concatenation( ~.PackageWWWHome, "README" ),
 PackageInfoURL := Concatenation( ~.PackageWWWHome, "PackageInfo.g" ),
 
