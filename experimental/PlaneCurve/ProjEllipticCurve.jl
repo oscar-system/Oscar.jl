@@ -1,6 +1,6 @@
 export ProjEllipticCurve, discriminant, issmooth, j_invariant,
        Point_EllCurve, curve, weierstrass_form, toweierstrass,
-       iselliptic
+       iselliptic, list_rand
 
 ################################################################################
 # Helping functions
@@ -130,7 +130,7 @@ mutable struct ProjEllipticCurve{S} <: ProjectivePlaneCurve{S}
     !isconstant(eq) || error("The defining equation must be non constant")
     ishomogenous(eq) || error("The defining equation is not homogeneous")
     _iselliptic(eq) || error("Not an elliptic curve")
-    isweierstrass_form(eq.f) || error("Not in Weierstrass form")
+    isweierstrass_form(eq.f) || error("Not in Weierstrass form, please specify the point at infinity")
     v = shortformtest(eq.f)
     T = parent(eq)
     K = T.R.base_ring
@@ -461,6 +461,7 @@ end
 
 @doc Markdown.doc"""
     order(E::ProjEllipticCurve)
+
 Given an elliptic curve `E` over a finite field $\mathbf F$, computes
 $\#E(\mathbf F)$.
 """
@@ -489,6 +490,34 @@ function Oscar.rand(E::ProjEllipticCurve)
 end
 
 ################################################################################
+
+@doc Markdown.doc"""
+    list_rand(E::ProjEllipticCurve, N::Int)
+
+Return a list of `N` random points on the elliptic curve `E` defined over a finite field.
+"""
+function list_rand(E::ProjEllipticCurve, N::Int)
+   PP = proj_space(E)
+   H = E.Hecke_ec
+   M = []
+   if !Hecke.isshort(H)
+      L = Hecke.short_weierstrass_model(H)
+      for i in 1:N
+         P = Hecke.rand(L[1])
+         Q = L[3](P)
+         push!(M, Q)
+      end
+   else
+      for i in 1:N
+         Q = Hecke.rand(H)
+         push!(M, Q)
+      end
+   end
+   return [_point_fromweierstrass(E, PP, Q) for Q in M]
+end
+
+
+################################################################################
 @doc Markdown.doc"""
     order(P::Point_EllCurve{fmpq})
 
@@ -512,6 +541,7 @@ end
 ################################################################################
 @doc Markdown.doc"""
     torsion_points_lutz_nagell(E::ProjEllipticCurve{fmpq})
+
 Computes the rational torsion points of the elliptic curve `E` using the
 Lutz-Nagell theorem.
 """
