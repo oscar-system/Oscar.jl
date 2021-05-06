@@ -392,7 +392,8 @@ function H_two(C::CohomologyModule)
     C += (T-S)*inj[pos[i]]
   end
   i = image(C)[1]
-  return quo(E, image(C)[1])[1]
+  H2, mH2 = quo(E, image(C)[1])
+  return H2, mH2
   #now the rest...
   #(g, m)*(h, n) = (gh, m^h+n+gamma(g, h)) where gamma is "the" 2-cocycle
   #using tails:
@@ -409,7 +410,38 @@ function H_two(C::CohomologyModule)
   # to (0, t) where t is the tail for this rule
 end
 
+function gamma(f::PermGroup, g::PermGroup, mH2, pro, cocycle)
+end
+
 Base.:-(M::GrpAbFinGenMap) = hom(domain(M), codomain(M), [-M(g) for g = gens(domain(M))], check = false)
+
+function Oscar.automorphism_group(::Type{PermGroup}, k::AnticNumberField)
+  G, mG = automorphism_group(k)
+  H = symmetric_group(degree(k))
+  H = sub(H, [H(G.mult_table[i, :]) for i=G.gens])[1]
+
+  function HtoG(p::PermGroupElem)
+    m = [i^p for i=1:degree(k)]
+    i = Base.findfirst(x->G.mult_table[x, :] == m, 1:degree(k))
+    return mG(GrpGenElem(G, i))
+  end
+
+  function GtoH(a::NfToNfMor)
+    g = preimage(mG, a)
+    return H(G.mult_table[g.i, :])
+  end
+
+  return H, MapFromFunc(HtoG, GtoH, H, codomain(mG))
+end
+
+function cohomology_module(H::PermGroup, mR::MapRayClassGrp)
+  k = nf(order(codomain(mR)))
+  G, mG = automorphism_group(PermGroup, k)
+
+  ac = Hecke.induce_action(mR, [image(mG, G(g)) for g = gens(H)])
+  return CohomologyModule(H, domain(mR), ac)
+end
+
 
 #= TODO
   for Z, Z/nZ, F_p and F_q moduln -> find Fp-presentation
