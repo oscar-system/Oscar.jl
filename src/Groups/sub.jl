@@ -1,25 +1,26 @@
 import Base.intersect
+import GAP.@gapattribute
 
 export
     centralizer,
-    centre,
-    characteristic_subgroups,
-    derived_series,
-    derived_subgroup,
+    centre, hascentre, setcentre,
+    characteristic_subgroups, hascharacteristic_subgroups, setcharacteristic_subgroups,
+    derived_series, hasderived_series, setderived_series,
+    derived_subgroup, hasderived_subgroup, setderived_subgroup,
     embedding,
     index,
     ischaracteristic_subgroup,
-    isnilpotent,
-    issolvable,
-    issupersolvable,
-    maximal_normal_subgroups,
-    maximal_subgroups,
-    minimal_normal_subgroups,
-    normal_subgroups,
-    order,
+    isnilpotent, hasisnilpotent, setisnilpotent,
+    issolvable, hasissolvable, setissolvable,
+    issupersolvable, hasissupersolvable, setissupersolvable,
+    maximal_normal_subgroups, hasmaximal_normal_subgroups, setmaximal_normal_subgroups,
+    maximal_subgroups, hasmaximal_subgroups, setmaximal_subgroups,
+    minimal_normal_subgroups, hasminimal_normal_subgroups, setminimal_normal_subgroups,
+    normal_subgroups, hasnormal_subgroups, setnormal_subgroups,
+    order, hasorder, setorder,
     quo,
     sub,
-    trivial_subgroup
+    trivial_subgroup, hastrivial_subgroup, settrivial_subgroup
 
 ################################################################################
 #
@@ -91,12 +92,13 @@ function embedding(G::T, H::T) where T <: GAPGroup
    end
 end
 
-"""
+@gapattribute trivial_subgroup(G::GAPGroup) =_as_subgroup(G, GAP.Globals.TrivialSubgroup(G.X))
+@doc """
     trivial_subgroup(G::GAPGroup)
 
 Return the trivial subgroup of `G`.
-"""
-trivial_subgroup(G::GAPGroup) = sub(G,[one(G)])
+""" trivial_subgroup
+
 
 ###############################################################################
 #
@@ -130,14 +132,13 @@ function _as_subgroups(G::T, subs::GapObj) where T <: GAPGroup
 end
 
 
+@gapattribute normal_subgroups(G::GAPGroup) =
+  _as_subgroups(G, GAP.Globals.NormalSubgroups(G.X))
 """
     normal_subgroups(G::Group)
 
 Return the list of normal subgroups of `G`.
-"""
-function normal_subgroups(G::GAPGroup)
-  return _as_subgroups(G, GAP.Globals.NormalSubgroups(G.X))
-end
+""" normal_subgroups
 
 """
     subgroups(G::Group)
@@ -148,41 +149,37 @@ function subgroups(G::GAPGroup)
   return _as_subgroups(G, GAP.Globals.AllSubgroups(G.X))
 end
 
+@gapattribute maximal_subgroups(G::GAPGroup) =
+  _as_subgroups(G, GAP.Globals.MaximalSubgroups(G.X))
 """
     maximal_subgroups(G::Group)
 
 Return the list of maximal subgroups of `G`.
-"""
-function maximal_subgroups(G::GAPGroup)
-  return _as_subgroups(G, GAP.Globals.MaximalSubgroups(G.X))
-end
+""" maximal_subgroups
 
+@gapattribute maximal_normal_subgroups(G::GAPGroup) =
+  _as_subgroups(G, GAP.Globals.MaximalNormalSubgroups(G.X))
 """
     maximal_normal_subgroups(G::Group)
 
 Return the list of maximal normal subgroups of `G`.
-"""
-function maximal_normal_subgroups(G::GAPGroup)
-  return _as_subgroups(G, GAP.Globals.MaximalNormalSubgroups(G.X))
-end
+""" maximal_normal_subgroups
 
+@gapattribute minimal_normal_subgroups(G::GAPGroup) =
+  _as_subgroups(G, GAP.Globals.MinimalNormalSubgroups(G.X))
 """
     minimal_normal_subgroups(G::Group)
 
 Return the list of minimal normal subgroups of `G`.
-"""
-function minimal_normal_subgroups(G::GAPGroup)
-  return _as_subgroups(G, GAP.Globals.MinimalNormalSubgroups(G.X))
-end
+""" minimal_normal_subgroups
 
+@gapattribute characteristic_subgroups(G::GAPGroup) =
+  _as_subgroups(G, GAP.Globals.CharacteristicSubgroups(G.X))
 """
     characteristic_subgroups(G::Group)
 
 Return the list of characteristic subgroups of `G`, i.e. the subgroups that are invariant under all automorphisms of `G`.
-"""
-function characteristic_subgroups(G::GAPGroup)
-  return _as_subgroups(G, GAP.Globals.CharacteristicSubgroups(G.X))
-end
+""" characteristic_subgroups
 
 """
     ischaracteristic_subgroup(G::T, H::T) where T <: Group
@@ -193,15 +190,12 @@ function ischaracteristic_subgroup(G::T, H::T) where T <: GAPGroup
    return GAP.Globals.IsCharacteristicSubgroup(G.X,H.X)
 end
 
+@gapattribute centre(G::GAPGroup) = _as_subgroup(G, GAP.Globals.Centre(G.X))
 """
     centre(G::Group)
 
 Return the centre of `G`, i.e. the subgroup of all `x` in `G` such that `xy`=`yx` for every `y` in `G`, together with its embedding morphism into `G`.
-"""
-function centre(G::GAPGroup)
-  Z = GAP.Globals.Center(G.X)
-  return _as_subgroup(G, Z)
-end
+""" centre
 
 """
     centralizer(G::Group, H::Group)
@@ -249,32 +243,26 @@ function ischaracteristic(G::T, H::T) where T <: GAPGroup
   return GAP.Globals.IsCharacteristicSubgroup(G.X, H.X)
 end
 
+@gapattribute issolvable(G::GAPGroup) = GAP.Globals.IsSolvableGroup(G.X)
 """
     issolvable(G::GAPGroup)
 
 Return whether the `G` is solvable.
-"""
-function issolvable(G::GAPGroup)
-  return GAP.Globals.IsSolvable(G.X)
-end
+""" issolvable
 
+@gapattribute isnilpotent(G::GAPGroup) = GAP.Globals.IsNilpotentGroup(G.X)
 """
     isnilpotent(G::GAPGroup)
 
 Return whether the `G` is nilpotent.
-"""
-function isnilpotent(G::GAPGroup)
-  return GAP.Globals.IsNilpotent(G.X)
-end
+""" isnilpotent
 
+@gapattribute issupersolvable(G::GAPGroup) = GAP.Globals.IsSupersolvableGroup(G.X)
 """
     issupersolvable(G::GAPGroup)
 
 Return whether the `G` is supersolvable.
-"""
-function issupersolvable(G::GAPGroup)
-   return GAP.Globals.IsSupersolvableGroup(G.X)
-end
+""" issupersolvable
 
 ################################################################################
 #
@@ -335,24 +323,20 @@ end
 #  
 ################################################################################
 
+@gapattribute derived_subgroup(G::GAPGroup) =
+  _as_subgroup(G, GAP.Globals.DerivedSubgroup(G.X))
 """
     derived_subgroup(G::GAPGroup)
 
 Return the derived subgroup of `G`, i.e. the subgroup generated by all commutators of `G`.
-"""
-function derived_subgroup(G::GAPGroup)
-  H = GAP.Globals.DerivedSubgroup(G.X)
-  return _as_subgroup(G, H)
-end
+""" derived_subgroup
 
+@gapattribute derived_series(G::GAPGroup) = _as_subgroups(G, GAP.Globals.DerivedSeries(G.X))
 """
     derived_series(G::GAPGroup)
 
 Return the list [`G_1`, `G_2`, `G_3`, ... ], where `G_1`=`G` and `G_{i+1}` = `derived_subgroup(G_i)`.
-"""
-function derived_series(G::GAPGroup)
-  return _as_subgroups(G, GAP.Globals.DerivedSeries(G.X))
-end
+""" derived_series
 
 
 ################################################################################
