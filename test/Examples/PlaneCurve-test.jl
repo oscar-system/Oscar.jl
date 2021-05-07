@@ -371,3 +371,19 @@ end
 	@test Oscar.torsion_points_lutz_nagell(E) == [Q1]
 	@test Oscar.torsion_points_division_poly(E) == [Q1]
 end
+
+@testset "Elliptic Curve Method" begin
+	n = Oscar.ECM(4453)
+	@test gcd(n, 4453) == n
+
+	A = ResidueRing(ZZ, ZZ(4453))
+	S, (x, y, z) = PolynomialRing(A, ["x", "y", "z"])
+	T = grade(S)
+	F = T(y^2*z - x^3 - 10*x*z^2 + 2*z^3)
+	E = Oscar.ProjEllipticCurve(F)
+	PP = projective_space(A, 2)
+	P = Oscar.Point_EllCurve(E, Oscar.Geometry.ProjSpcElem(PP[1], [A(1), A(3), A(1)]))
+	Q = Oscar.Point_EllCurve(E, Oscar.Geometry.ProjSpcElem(PP[1], [A(4332), A(3230), A(1)]))
+	@test Oscar.sum_Point_EllCurveZnZ(P, P).Pt.v == Q.Pt.v
+	@test Oscar.IntMult_Point_EllCurveZnZ(2, P).Pt.v == Q.Pt.v
+end
