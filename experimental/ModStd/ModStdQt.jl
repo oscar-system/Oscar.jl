@@ -24,6 +24,7 @@ end
 Oscar.normalise(f::fmpq_poly, ::Int64) = error("no normalise") #length(f)
 #Oscar.set_length!(f::fmpq_poly, ::Int64) = error("no set_length") #f
 
+#=
 function points(p::Vector{T}, j::Int, z::Vector{T}, s::Vector{T}) where {T}
 
   pp = map(fmpz, p)
@@ -36,7 +37,16 @@ end
 function eval(f::FracElem{fmpq_mpoly}, pt; ErrorTolerant::Bool = false)
   return [[evaluate(f, x, ErrorTolerant= ErrorTolerant) for x = y] for y = pt]
 end
+=#
 
+"""
+same as crt_env in Hecke, but a differnt point of view:
+crt_env deals with the chinese remainder theorem in euclidean rings,
+while this is for interpolation of polynomials, hence
+has a different interface:
+ - creation via the evaluation points rather than the linear polynomials
+ - use via the values, not (contant) polynomials
+"""
 mutable struct InterpolateCtx{T}
   C::Hecke.crt_env{T}
   function InterpolateCtx(a::Vector{S}, parent = PolynomialRing(parent(a[1]), cached = false)[1]) where {S}
@@ -51,13 +61,14 @@ end
 function Oscar.base_ring(I::InterpolateCtx)
   return base_ring(base_ring(I.C))
 end
-function Oscar.base_ring(C::Hecke.crt_env)
-  return parent(C.pr[1])
-end
 
 function Oscar.interpolate(v::Vector, I::InterpolateCtx)
   bt = base_ring(I.C)
   return crt([bt(i) for i = v], I.C)
+end
+
+function Oscar.base_ring(C::Hecke.crt_env)
+  return parent(C.pr[1])
 end
 
 function Oscar.prod(C::Hecke.crt_env)
@@ -71,6 +82,10 @@ function Oscar.rational_reconstruction(f::PolyElem, I::InterpolateCtx; ErrorTole
   return rational_reconstruction(f, prod(I.C), ErrorTolerant = ErrorTolerant)
 end
 
+"""
+  for evaluation of multivariate rational functions at
+   [z*p[i]^j + s[i]] for 0<=j <= ?
+"""
 mutable struct MPolyPt{T}
   pt_z::Array{T, 1}
   pt_p::Array{T, 1}
@@ -97,9 +112,11 @@ mutable struct MPolyPt{T}
   end
 end
 
+#=
 function eval(f::FracElem{fmpq_mpoly}, P::MPolyPt; ErrorTolerant::Bool = false)
   return eval(f, points(P.pt_p, P.j, P.pt_z, P.pt_s), ErrorTolerant = ErrorTolerant)
 end
+=#
 
 function Base.push!(pt::MPolyPt, p::Int)
   if p in pt.pt_z
@@ -554,6 +571,7 @@ function Oscar.factor_absolute(f::MPolyElem{Generic.Frac{fmpq_mpoly}})
   for (k, e) = lF.fac
     res = afact(k, collect(ngens(parent(f))+1:ngens(parent(f))+ngens(parent(d))))
     if res === nothing
+      #XXX: wrong ring!!!! k needs to be back into the original ring
       push!(an, (k, e))
       continue
     end
@@ -586,6 +604,17 @@ function Oscar.monomial(R::MPolyRing, v::Vector{Int})
   return finish(b)
 end
 
+#=TODO
+ - if after a specialisation the degree of the field is wrong (too high) 
+   or the multiplicity is wrong (not squarefree)
+   disgard the evaluation
+ - for every disgarded evaluation: choose a different z as to not
+   loose the geometric progression of the p-powers
+ - if after a specialisation the field degree is wrong (too low), disgard everything 
+   so far...change shift?
+ - deal with coefficients that are non-primitive
+ - write up and publish...
+=#
 """
 Helper function for the absolute factorisation:
     g in Q[T] where T = A cup X
