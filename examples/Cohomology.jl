@@ -410,7 +410,73 @@ function H_two(C::CohomologyModule)
   # to (0, t) where t is the tail for this rule
 end
 
-function gamma(f::PermGroup, g::PermGroup, mH2, pro, cocycle)
+struct GroupFromTail
+  C::CollectCtx #needs the c.f entry set properly. using the tail
+  ac::Array{Any, 1} #the matching action
+  iac::Array{Any, 1} # the inverses
+
+  function GroupFromTail(t::Array{Any, 1}, C::CollectCtx, ac, iac)
+    r = new()
+    r.C = copy(C)
+    r.ac = ac
+    r.iac = iac
+    r.C.f = function(w::Vector{Int}, r::Int, p::Int)
+      tail = t[r]
+      for i in w[p+length(r.C.r[r][1]):end]
+        if i<0
+          tail = tail * r.iac[-i]
+        else
+          tail = tail * r.ac[i]
+        end
+      end
+      r.C.T += tail
+    end
+  end
+end
+
+struct GroupFromTailElem
+  parent::GroupFromTailElem
+  g::Array{Int, 1} # the word
+  m::Any #the module elem in the tail
+end
+
+parent(a::GroupFromTailElem) = a.parent
+
+function mul(a::GroupFromTailElem, b::GroupFromTailElem)
+  P = parent(a)
+  @assert P == parent(b)
+  P.C.T = a.m + b.m
+  d = collect(vcat(a.g, b.g), P.C)
+  return GroupFromTailElem(P, d, P.C.T)
+end
+
+struct GroupFromCocycle
+  gamma::Dict{Tuple{PermGroupElem, PermGroupElem}, Any}
+  M::Any #the module
+end
+
+struct GroupFromCocycleElem
+  parent::GroupFromCocycle
+  g::PermGroupElem
+  m::Any
+end
+
+function mul(a::GroupFromCocycleElem, b::GroupFromCocycleElem)
+  return GroupFromCocycleElem(a.parent, a.g*b.g, a.m^b.g+b.m+b.parent.gamma[(a.g, b.g)])
+end
+
+function gamma(f::PermGroupElem, g::PermGroupElem, mH2, pro, cocycle)
+  #=
+    needs to
+    - create GroupFromTailElem(f, 0)
+    - create GroupFromTailElem(g, 0)
+    - return mul(...).m
+    and possibly cache it?
+    or just create a dictionary with all values?
+    or create a type for an element of H2, ie. a 2-cocycle?
+        (this would need to use and store the GroupFromTail struct)
+  =#
+
 end
 
 Base.:-(M::GrpAbFinGenMap) = hom(domain(M), codomain(M), [-M(g) for g = gens(domain(M))], check = false)
