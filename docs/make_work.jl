@@ -140,6 +140,25 @@ function Documenter.Documents.addpage!(doc::Document, src::AbstractString, dst::
     doc.blueprint.pages[name] = page
 end
 
+# Overwrite printing to make the header not full of redundant nonsense
+# Turns
+#   Hecke.Order - Method
+# into
+#   Order - Method
+
+# To remove the '-'
+# Documenter.Utilities.print_signature(io::IO, signature)        = print(io, signature)
+
+# To remove the "Method", "Type", "Module" use the following
+# Documenter.Utilities.doccat(b::Base.Docs.Binding, ::Type)  = ""
+# doccat(::Type)     = ""
+# doccat(::Module)   = ""
+
+# Remove the module prefix
+Base.print(io::IO, b::Base.Docs.Binding) = print(io, b.var)
+
+# Sanitize paths
+
 function sanitize(a::AbstractString, n::AbstractString)
   b = splitpath(replace(a, Regex(".*$(n)") => n))
   return joinpath(b[1], b[3:end]...)
