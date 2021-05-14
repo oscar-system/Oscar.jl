@@ -4,13 +4,13 @@ using Oscar
 import AbstractAlgebra: Group, Module
 import Base: parent
 
-mutable struct CohomologyModule
-  G::Group # the group we started with
-  M::Union{Module, GrpAbFinGen} #the "module", can be a GrpAb eg
+mutable struct CohomologyModule{gT,mT}
+  G::gT
+  M::mT
   ac::Array{Map, 1} # automorphisms of M, one for each generator of G
 
   function CohomologyModule(G::PermGroup, ac::Array{<:Map, 1})
-    r = new()
+    r = new{PermGroup,typeof(domain(ac[1]))}()
     r.G = G
     r.ac = ac
     r.M = domain(ac[1])
@@ -620,11 +620,11 @@ function H_two(C::CohomologyModule)
 
   function iscoboundary(c::CoChain{2})
     t = TailFromCoChain(c)
-    fl, b = haspreimage(mi, t)
+    fl, b = haspreimage(CC, t)
     if !fl
       return false, nothing
     end
-    return true, CoChain{1,elem_type(G),elem_type{M}}(C, Dict([(gen(G, i),) => B_pro[i](b) for i=1:ngens(G)]))
+    return true, CoChain{1,elem_type(G),elem_type(M)}(C, Dict([(gen(G, i),) => B_pro[i](b) for i=1:ngens(G)]))
   end
 
   return H2, MapFromFunc(x->TailToCoChain(mE(preimage(mH2, x))), 
@@ -652,7 +652,8 @@ For a cohomology module `C` compute the `i`-th cohomology group
 Together with the abstract module, a map is provided that will 
   produce explicit cochains.
 """
-function cohomology_group(C::CohomologyModule, i::Int)
+function cohomology_group(C::CohomologyModule{PermGroup,GrpAbFinGen}, i::Int)
+  #should also allow modules...
   if i==0
     return H_zero(C)
   elseif i==1
@@ -770,14 +771,90 @@ function cohomology_module(H::PermGroup, ac::Array{<:Map, 1})
   return CohomologyModule(H, ac)
 end
 
+function _cohomology_module(k::AnticNumberField, H::PermGroup, mu::Map{GrpAbFinGen, FacElemMon{AnticNumberField}})
+  u = domain(mu)
+  U = [mu(g) for g = gens(u)]
+  G, mG = automorphism_group(PermGroup, k)
+  ac = [hom(u, u, [preimage(mu, mG(g)(x)) for x = U]) for g = gens(H)]
+  return cohomology_module(H, ac)
+end
+
+function cohomology_module(H::PermGroup, mu::Map{GrpAbFinGen, FacElemMon{AnticNumberField}})
+  return _cohomology_module(base_ring(codomain(mu)), H, mu)
+end
+
+function cohomology_module(H::PermGroup, mu::Hecke.MapUnitGrp{NfOrd})
+  #TODO: preimage for sunits can fail (inf. loop) if
+  # (experimentally) the ideals in S are not coprime ar include 1
+  # or if the s-unit is not in the image (eg. action and not closed set S)
+  u = domain(mu)
+  U = [mu(g) for g = gens(u)]
+  zk = codomain(mu)
+  k = nf(zk)
+  G, mG = automorphism_group(PermGroup, k)
+  ac = [hom(u, u, [preimage(mu, zk(mG(g)(k(x)))) for x = U]) for g = gens(H)]
+  return cohomology_module(H, ac)
+end
+
+function cohomology_module(H::PermGroup, mu::Map{GrpAbFinGen, AnticNumberField})
+  return _cohomology_module(codomain(mu), H, mu)
+end
+
+function iscoboundary(c::CoChain{2,PermGroupElem,nf_elem})
+  zk = maximal_order(parent(first(values(c.d))))
+  cp = coprime_base(vcat([numerator(norm(x*denominator(x))) for x = values(c.d)],
+                         map(denominator, values(c.d))))
+  s = Set(reduce(vcat, [collect(keys(factor(x).fac)) for x = cp], init = [1]))
+  if 1 in s
+    pop!(s, 1)
+  end
+
+  Cl, mCl = class_group(zk)
+  if length(s) == 0
+    S = Set{NfOrdIdl}()
+  else
+    S = Set(reduce(vcat, [collect(keys(prime_decomposition(zk, p))) for p = s]))
+  end
+  
+  q, mq = quo(Cl, [preimage(mCl, x) for x = s])
+  p = 2
+  while order(q) > 1
+    p = next_prime(p)
+    if p in s
+      continue
+    end
+    lp = prime_decomposition(zk, p)
+    cP = [mq(preimage(mCl, x[1])) for x= lp]
+    if all(iszero, cP)
+      continue
+    end
+    S = union(S, Set([x[1] for x = lp]))
+    q, mmq = quo(q, cP)
+    mq = mq*mmq
+  end
+  if length(S) == 0
+    u, mu = Hecke.unit_group_fac_elem(zk)
+  else
+    u, mu = Hecke.sunit_group_fac_elem(collect(S))
+  end
+  C = cohomology_module(Group(c.C), mu)
+  _, _, z = cohomology_group(C, 2)
+  cc = CoChain{2,PermGroupElem,GrpAbFinGenElem}(C, Dict((h, preimage(mu, v)) for (h,v) = c.d))
+  fl, d = z(cc)
+  if !fl
+    return fl, d
+  end
+  return fl, CoChain{1,PermGroupElem,nf_elem}(c.C, Dict((h, evaluate(mu(v))) for (h,v) = d.d))
+end
+
 export cohomology_module, word, fp_group, confluent_fp_group, relations,
-       action, cohomology_group
+       action, cohomology_group, extension, iscoboundary
 
 
 #= TODO
   for Z, Z/nZ, F_p and F_q moduln -> find Fp-presentation
-  for GrpAbFinGen            -> find Fp-presentation
-  for a in H^2 find Fp-presentation
+  #done: for GrpAbFinGen            -> find Fp-presentation
+  #done: for a in H^2 find Fp-presentation
   for a in H^2 find (low degree) perm group using the perm group we have?
   Magma's DistinctExtensions
   probably aut(GrpAb), ...
