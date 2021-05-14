@@ -197,13 +197,13 @@ function H_one(C::CohomologyModule)
     W = word(r)
     g = idM
     P = hom(D, M, [id(M) for i=1:ngens(D)])
-    for w in reverse(W)
+    for w in W
       if w < 0
-        g = iac[-w]*g
-        P -= pro[-w]*g
+        g = g*iac[-w]
+        P -= g*pro[-w]
       else
-        P += pro[w]*g
-        g = ac[w]*g
+        P += g*pro[w]
+        g = g*ac[w]
       end
     end
     K = intersect(kernel(P)[1], K)
@@ -704,7 +704,7 @@ function extension(c::CoChain{2,PermGroupElem})
         g = g*gen(G, w)
         r = r*gen(N, w)
       else
-        t = iac[w](t) + c(g, inv(gen(G, -w)))
+        t = iac[-w](t) + c(g, inv(gen(G, -w)))
         g = g*inv(gen(G, -w))
         r = r*inv(gen(N, -w))
       end
