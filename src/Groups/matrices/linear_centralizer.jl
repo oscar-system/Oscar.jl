@@ -111,7 +111,8 @@ function _centr_unipotent(F::FinField, V::AbstractVector{Int}; isSL=false)
       idN = identity_matrix(F,n)
       v_g = isSL ? _gens_for_SL(l[2],F) : _gens_for_GL(l[2],F)
       for x in v_g
-         z = block_matrix(l[2],l[2],[x[i,j]*identity_matrix(F,l[1]) for i in 1:l[2] for j in 1:l[2]])
+#         z = block_matrix(l[2],l[2],[x[i,j]*identity_matrix(F,l[1]) for i in 1:l[2] for j in 1:l[2]])
+         z = vcat([hcat([x[i,j]*identity_matrix(F,l[1]) for j in 1:l[2]]) for i in 1:l[2]])
          _copy_matrix_into_matrix(idN,pos,pos,z)
          push!(listgens,idN)
       end

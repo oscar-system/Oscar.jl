@@ -33,7 +33,7 @@ end
 
 
 
-# if _is_symmetric, returns C,A,d where A*B*transpose(frobenius(A,e)) = C, C = block_matrix(2,2,[C,0,0,0]) and d = rank(C)
+# if _is_symmetric, returns C,A,d where A*B*transpose(frobenius(A,e)) = C, C = [C 0; 0 0] and d = rank(C)
 # else returns C,A,d where B*A = C, C = [C 0] and d = rank(C)
 # Assumption: if _is_symmetric==true, then nr=nc always
 # Assumption: e = deg(F)/2 in the hermitian case, e=0 otherwise

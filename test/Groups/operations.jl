@@ -63,10 +63,10 @@ end
    Hecke._copy_matrix_into_matrix(I,3,3,x)
    @test I==I1
    @test I[3:4,3:4]==x
-   Y = block_matrix(2,1,[block_matrix(1,2,[x,x^2]), block_matrix(1,2,[-x,x])])
-   @test Y==block_matrix(2,2,[x,x^2,-x,x])
-   z = zero_matrix(F,2,2)
-   @test cat(x,x,x, dims=(1,2))==block_matrix(3,3,[x,z,z,z,x,z,z,z,x])
+#   Y = block_matrix(2,1,[block_matrix(1,2,[x,x^2]), block_matrix(1,2,[-x,x])])
+#   @test Y==block_matrix(2,2,[x,x^2,-x,x])
+#   z = zero_matrix(F,2,2)
+#   @test cat(x,x,x, dims=(1,2))==block_matrix(3,3,[x,z,z,z,x,z,z,z,x])
    V = VectorSpace(F,6)
    @test matrix([V[i] for i in 1:6])==identity_matrix(F,6)
    L = [1,4,6,2,3,5]

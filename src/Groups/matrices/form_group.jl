@@ -47,7 +47,7 @@ function invariant_bilinear_forms(G::MatrixGroup{S,T}) where {S,T}
       push!(M,MM)
    end
 
-   r,K = nullspace(block_matrix(length(M),1,M))
+   r,K = nullspace(vcat(M))
    
    return [matrix(F,n,n,[K[i,j] for i in 1:n^2]) for j in 1:r]
 end
@@ -76,7 +76,7 @@ function invariant_sesquilinear_forms(G::MatrixGroup{S,T}) where {S,T}
       push!(M,MM)
    end
 
-   r,K = nullspace(block_matrix(length(M),1,M))
+   r,K = nullspace(vcat(M))
    
    return [matrix(F,n,n,[K[i,j] for i in 1:n^2]) for j in 1:r]
 end
@@ -109,7 +109,7 @@ function invariant_quadratic_forms(G::MatrixGroup{S,T}) where {S,T}
       push!(M,MM)
    end
 
-   r,K = nullspace(block_matrix(length(M),1,M))
+   r,K = nullspace(vcat(M))
    M = T[]
    for i in 1:r
       push!(M,upper_triangular_matrix(K[1:div(n*(n+1),2),i]))
@@ -163,7 +163,7 @@ function invariant_alternating_forms(G::MatrixGroup{S,T}) where {S,T}
       push!(M,MM)
    end
 
-   r,K = nullspace(block_matrix(length(M),1,M))
+   r,K = nullspace(vcat(M))
 
    L = T[]
    for j in 1:r
@@ -379,7 +379,7 @@ function invariant_hermitian_forms(G::MatrixGroup{S,T}) where {S,T}
       end
    end
 
-   n_gens,K = nullspace(block_matrix(length(M),1,M))
+   n_gens,K = nullspace(vcat(M))
    N = div(n*(n-1),2)
    L = T[]
 
