@@ -14,7 +14,7 @@ export issurjective, isinjective, isbijective, inverse, preimage, isfinite
 @doc Markdown.doc"""
     dim(A::MPolyQuo)
 
-Return the dimension of `A`.
+Given an affine algebra `A`, return the dimension of `A`.
 
 # Examples
 ```jldoctest
@@ -166,7 +166,10 @@ end
 @doc Markdown.doc"""
     isreduced(A::MPolyQuo)
 
-Return `true` if `A` is reduced, `false` otherwise.
+Given an affine algebra `A = R/I`,
+return `true` if `A` is reduced, `false` otherwise.
+
+CAVEAT: The implementation proceeds by computing the radical of `A` first. This may take some time.
 """
 function isreduced(A::MPolyQuo) 
   I = A.I
@@ -176,7 +179,8 @@ end
 @doc Markdown.doc"""
     isnormal(A::MPolyQuo)
 
-Return `true` if `A` is normal, `false` otherwise.
+Given an affine algebra `A` over a perfect field,
+return `true` if `A` is normal, `false` otherwise.
 
 CAVEAT: The implementation proceeds by computing the normalization of `A` first. This may take some time.
 """
@@ -444,6 +448,8 @@ By default, as a first step on its way to find the decomposition $I=I_1\cap\dots
 the algorithm computes an equidimensional decomposition of the radical ideal $I$.
 Alternatively, if specified by `alg=:primeDec`, the algorithm computes $I=I_1\cap\dots\cap I_r$
 as the prime decomposition of the radical ideal $I$.
+
+See [GLP10](@cite).
 
 CAVEAT: The function does not check whether $A$ is reduced. Use `isreduced(A)` in case 
 you are unsure (this may take some time).
