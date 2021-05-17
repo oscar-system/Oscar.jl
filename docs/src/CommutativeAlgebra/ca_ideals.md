@@ -17,9 +17,6 @@ Pages = ["ca_ideals.md"]
 ```@docs
 ideal(g::Array{T, 1}) where {T <: MPolyElem}
 ```
-```@docs
-ideal(Rx::MPolyRing, g::Array{<:Any, 1})
-```
 
 ## Gröbner Bases
 
@@ -131,7 +128,7 @@ intersect(I::MPolyIdeal, J::MPolyIdeal)
 
 ### Ideal Quotients
 
-Given two ideals $I, J$ of a ring $R$, the ideal quotient of $I$ by $J$ is defined to be the ideal
+Given two ideals $I, J$ of a ring $R$, the ideal quotient of $I$ by $J$ is the ideal
 
 $I:J= \bigl\{f \in R\:\big|\: f J \subset I\bigr\}\subset R.$
 
@@ -141,7 +138,7 @@ quotient(I::MPolyIdeal, J::MPolyIdeal)
 
 ### Saturation
 
-Given two ideals $I, J$ of a ring $R$, the saturation of $I$ with respect to $J$ is defined to be the ideal
+Given two ideals $I, J$ of a ring $R$, the saturation of $I$ with respect to $J$ is the ideal
 
 $I:J^{\infty} = \bigl\{ f \in R \:\big|\: f J^k \!\subset I {\text{ for some }}k\geq 1 \bigr\} = \textstyle{\bigcup\limits_{k=1}^{\infty} (I:J^k)}.$
 
