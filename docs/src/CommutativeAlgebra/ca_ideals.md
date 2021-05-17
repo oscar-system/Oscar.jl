@@ -156,10 +156,6 @@ saturation_with_index(I::MPolyIdeal, J::MPolyIdeal)
 eliminate(I::MPolyIdeal, lv::Array{MPolyElem, 1})
 ```
 
-```@docs
-eliminate(I::MPolyIdeal, li::AbstractArray{Int, 1})
-```
-
 ### Homogenization and Dehomogenization
 
     homogenize(I,t)   CAVEAT: Als Ideal! Auch poly, vector, etc. Siehe M2.
