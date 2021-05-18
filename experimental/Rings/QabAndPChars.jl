@@ -3,7 +3,8 @@ module QabModule
 using Oscar
 import Hecke: math_html
 import Oscar: IJuliaMime
-export QabField, QabAutomorphism, isconductor, root_of_unity, PChar, isroot_of_unity
+export QabField, QabAutomorphism, isconductor, root_of_unity, PartialCharacter, partial_character, 
+      isroot_of_unity, saturations
 
 ###############################################################################
 #
