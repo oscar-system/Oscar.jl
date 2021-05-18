@@ -1,4 +1,4 @@
-export singular_ring
+export singular_ring, MPolyQuoElem
 
 ##############################################################################
 #
