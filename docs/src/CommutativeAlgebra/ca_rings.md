@@ -25,23 +25,12 @@ PolynomialRing(P::Ring, v::Vector{AbstractString}; ordering=:lex)
 
 ### Examples
 ```@repl oscar
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
-
-julia> f = x^2+y*z
-x^2 + y*z
-
-julia> typeof(f)
-fmpq_mpoly
-
-julia> S, (a,b) = PolynomialRing(ZZ, ["a", "b"])
-(Multivariate Polynomial Ring in a, b over Integer Ring, fmpz_mpoly[a, b])
-
-julia> g = a*b
-a*b
-
-julia> typeof(g)
-fmpz_mpoly
+R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+f = x^2+y*z
+typeof(f)
+S, (a,b) = PolynomialRing(ZZ, ["a", "b"])
+g = a*b
+typeof(g)
 ```
 
 !!! note
