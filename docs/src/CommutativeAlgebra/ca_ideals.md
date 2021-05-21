@@ -24,6 +24,14 @@ ideal(g::Array{T, 1}) where {T <: MPolyElem}
 
 ### Normal Forms
 
+```@docs
+normal_form(f::T, J::MPolyIdeal) where { T <: MPolyElem }
+```
+
+```@docs
+normal_form(A::Array{T, 1}, J::MPolyIdeal) where { T <: MPolyElem }
+```
+
 ### Computing Gröbner Bases
 
 ```@docs
