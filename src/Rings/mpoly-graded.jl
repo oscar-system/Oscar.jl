@@ -43,11 +43,29 @@ function show(io::IO, W::MPolyRing_dec)
 #  println(IOContext(io, :compact => true, ), W.d)
 end
 
+
 function decorate(R::MPolyRing)
   A = abelian_group([0])
   return MPolyRing_dec(R, [1*A[1] for i = 1: ngens(R)], (x,y) -> x[1] < y[1])
 end
 
+@doc Markdown.doc"""
+    grade(R::MPolyRing)
+
+Grade `R` by assigning weight 1 to each variable. 
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> grade(R)
+Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
+	x -> [1]
+	y -> [1]
+	z -> [1]
+```
+"""
 function grade(R::MPolyRing)
   A = abelian_group([0])
   return MPolyRing_dec(R, [1*A[1] for i = 1: ngens(R)])

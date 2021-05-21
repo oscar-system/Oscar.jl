@@ -10,7 +10,7 @@ using Oscar
 Pages = ["ca_ideals.md"]
 ```
 
-# Ideals
+# Ideals in Multivariate Polynomial Rings
 
 ## Constructors
 
@@ -156,12 +156,6 @@ saturation_with_index(I::MPolyIdeal, J::MPolyIdeal)
 eliminate(I::MPolyIdeal, lv::Array{MPolyElem, 1})
 ```
 
-### Homogenization and Dehomogenization
-
-    homogenize(I,t)   CAVEAT: Als Ideal! Auch poly, vector, etc. Siehe M2.
-
-    dehomogenize(I,t)
-
 ## Tests on Ideals
 
 ### Equality of Ideals
@@ -200,10 +194,6 @@ isprime(I::MPolyIdeal)
 isprimary(I::MPolyIdeal)
 ```
   
-    homogeneity test:        ishomogeneous(I)
-    
-    .....
-	
 ## Decomposition of Ideals
 
 ### Radical
@@ -252,6 +242,16 @@ equidimensional_hull_radical(I::MPolyIdeal)
 
     absolute_primary_decomposition(I)               --->  absPrimdecGTZ   
 
+## Homogenization and Dehomogenization
+
+    homogenize(I,t)   CAVEAT: Als Ideal! Auch poly, vector, etc. Siehe M2.
+
+    dehomogenize(I,t)
+
+
+     test:        ishomogeneous(I)
     
+    .....
+	
 
 
