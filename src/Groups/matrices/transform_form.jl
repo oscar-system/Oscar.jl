@@ -147,9 +147,9 @@ function _block_anisotropic_elim(B::MatElem{T}, _type::Symbol; isotr=false, f=0)
       Z = V-s*U1*B1^-1*star(U1)
       D1,A1 = _block_anisotropic_elim(B1,_type)
       Temp = zero_matrix(F,d-e,d-e)
-      _copy_matrix_into_matrix(Temp,1,c-e+1,s*star(U2))
-      _copy_matrix_into_matrix(Temp,c-e+1,1,U2)
-      _copy_matrix_into_matrix(Temp,c-e+1,c-e+1,Z)
+      Temp[1:c-e, c-e+1:c-e+f] = s*star(U2)
+      Temp[c-e+1:c-e+f, 1:c-e] = U2
+      Temp[c-e+1:c-e+f, c-e+1:c-e+f] = Z
       if c-e==0
          D2,A2 = _block_anisotropic_elim(Temp,_type)
       else
@@ -158,7 +158,7 @@ function _block_anisotropic_elim(B::MatElem{T}, _type::Symbol; isotr=false, f=0)
       Temp = hcat(-U1*B1^-1, zero_matrix(F,f,c-e))*A0
       Temp = vcat(A0,Temp)
       Temp1 = identity_matrix(F,d)
-      _copy_matrix_into_matrix(Temp1,1,1,Temp)
+      Temp1[1:nrows(Temp), 1:ncols(Temp)] = Temp
 
       return cat(D1,D2, dims=(1,2)), cat(A1,A2, dims=(1,2))*Temp1
    end
@@ -269,10 +269,10 @@ function _to_standard_form(B::MatElem{T}, _type::Symbol)  where T <: FinFieldEle
          sec_perm = vcat([i,n+1-i],sec_perm)
       end
       if isodd(n)
-         _copy_matrix_into_matrix(Z,2,2,S)
+         Z[2:1+nrows(S), 2:1+ncols(S)] = S
          sec_perm = vcat([div(n+1,2)],sec_perm)
       else
-         _copy_matrix_into_matrix(Z,1,1,S)
+         Z[1:nrows(S), 1:ncols(S)] = S
       end
       D = transpose(permutation_matrix(F,sec_perm))*Z*D
    end
@@ -304,7 +304,7 @@ function _elim_hyp_lines(A::MatElem{T}) where T <: FinFieldElem
          A[i,i+1]=0
          A[i+1,i]=0
          A[i+1,i+1]=-2
-         _copy_matrix_into_matrix(Z,i,i,b)
+         Z[i:i+1, i:i+1] = b
          i+=2
       else
          i+=1
@@ -409,7 +409,7 @@ function iscongruent(f::SesquilinearForm{T}, g::SesquilinearForm{T}) where T <: 
          _is_true, Z = _change_basis_forms( Cf[1:d, 1:d], Cg[1:d, 1:d], f.descr)
          _is_true || return false, nothing
          Z1 = identity_matrix(F,n)
-         _copy_matrix_into_matrix(Z1,1,1,Z)
+         Z1[1:nrows(Z), 1:ncols(Z)] = Z
          return true, Af^-1*Z1*Ag
       else
          return _change_basis_forms(gram_matrix(f), gram_matrix(g), f.descr)

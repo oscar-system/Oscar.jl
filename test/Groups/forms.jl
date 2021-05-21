@@ -338,7 +338,7 @@ end
       @test f^x==f
    end
    @test order(H)==order(Op)
-   Hecke._copy_matrix_into_matrix(B,3,3,identity_matrix(F,2))
+   B[3:4,3:4] = identity_matrix(F,2)
    f = symmetric_form(B)
    H = isometry_group(f)
    @testset for x in gens(H)

@@ -115,7 +115,7 @@ function generalized_jordan_block(f::T, n::Int) where T<:PolyElem
    JB = cat([companion_matrix(f) for i in 1:n]..., dims=(1,2))
    pos = 1
    for i in 1:n-1
-      _copy_matrix_into_matrix(JB, pos,pos+degree(f),identity_matrix(base_ring(f),degree(f)))
+      JB[pos:pos-1+degree(f), pos+degree(f):pos-1+2*degree(f)] = identity_matrix(base_ring(f),degree(f))
       pos += degree(f)
    end
    return JB

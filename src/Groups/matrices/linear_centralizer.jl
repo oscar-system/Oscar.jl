@@ -72,7 +72,7 @@ function _gens_for_GL_matrix(f::PolyElem, n::Int, F::FinField; D::Int=1)
 
    if n==1 return [cat([CP for i in 1:D]..., dims=(1,2))] end
    h1 = identity_matrix(F,n*Df)
-   _copy_matrix_into_matrix(h1,1,1,cat([CP for i in 1:D]..., dims=(1,2)))
+   h1[1:Df,1:Df] = cat([CP for i in 1:D]..., dims=(1,2))
    h2 = zero_matrix(F,n*degree(f)*D,n*Df)
    for i in 1:(n-1)*Df
       h2[i+Df,i]=-1
@@ -113,7 +113,7 @@ function _centr_unipotent(F::FinField, V::AbstractVector{Int}; isSL=false)
       for x in v_g
 #         z = block_matrix(l[2],l[2],[x[i,j]*identity_matrix(F,l[1]) for i in 1:l[2] for j in 1:l[2]])
          z = vcat([hcat([x[i,j]*identity_matrix(F,l[1]) for j in 1:l[2]]) for i in 1:l[2]])
-         _copy_matrix_into_matrix(idN,pos,pos,z)
+         idN[pos:pos+l[1]*l[2]-1,pos:pos+l[1]*l[2]-1] = z
          push!(listgens,idN)
       end
       idN = identity_matrix(F,n)
@@ -121,7 +121,7 @@ function _centr_unipotent(F::FinField, V::AbstractVector{Int}; isSL=false)
          for i in 1:l[1]-1, j in 1:degree(F)
             z = identity_matrix(F,l[1])
             for k in 1:l[1]-i z[k,i+k]=_lambda^j end
-            _copy_matrix_into_matrix(idN,pos,pos,z)
+            idN[pos:pos+l[1]-1, pos:pos+l[1]-1] = z
             push!(listgens,idN)
          end
       end
@@ -190,7 +190,7 @@ function _centr_block_unipotent(f::PolyElem, F::FinField, V::AbstractVector{Int}
       v_g = isSL ? _gens_for_SL_matrix(f,l[2],F; D=l[1]) : _gens_for_GL_matrix(f,l[2],F; D=l[1])
       idN = identity_matrix(F,n)
       for x in v_g
-         _copy_matrix_into_matrix(idN,pos,pos,x)
+         idN[pos:pos+nrows(x)-1,pos:pos+ncols(x)-1] = x
          push!(listgens,idN)
       end
       if l[1]>1
@@ -200,9 +200,9 @@ function _centr_block_unipotent(f::PolyElem, F::FinField, V::AbstractVector{Int}
             for j in 1:degree(F)*d
                z = identity_matrix(F,l[1]*d)
                for k in 0:l[1]-i-1
-                  _copy_matrix_into_matrix(z,d*k+1 ,d*(k+i)+1,c)
+                  z[d*k+1:d*(k+1),d*(k+i)+1:d*(k+i+1)] = c
                end
-               _copy_matrix_into_matrix(idN,pos,pos,z)
+               idN[pos:pos+l[1]*d-1,pos:pos+l[1]*d-1] = z
                c *= C           # every time, the block C^(j-1) is inserted
                push!(listgens,idN)
             end
@@ -266,7 +266,7 @@ function _centralizer_GL(x::MatElem)
          L = _centr_block_unipotent(f,base_ring(x),V)
          for z in L[1]
             idN = identity_matrix(base_ring(x),n)
-            _copy_matrix_into_matrix(idN,pos,pos,z)
+            idN[pos:pos+nrows(z)-1, pos:pos+ncols(z)-1] = z
             push!(listgens, am*idN*a)
          end
          res *= L[2]
@@ -331,8 +331,8 @@ function _gens_for_SL_matrix(f::PolyElem, n::Int, F::FinField; D::Int=1)
 
    n != 1 || return dense_matrix_type(F)[]
    h1 = identity_matrix(F,n*Df)
-   _copy_matrix_into_matrix(h1,1,1,cat([CP for i in 1:D]..., dims=(1,2)))
-   _copy_matrix_into_matrix(h1,Df+1,Df+1,cat([CPi for i in 1:D]..., dims=(1,2)))
+   h1[1:Df, 1:Df] = cat([CP for i in 1:D]..., dims=(1,2))
+   h1[Df+1:2*Df, Df+1:2*Df] = cat([CPi for i in 1:D]..., dims=(1,2))
    h2 = zero_matrix(F,n*Df,n*Df)
    for i in 1:(n-1)*Df
       h2[i+Df,i]=-1
@@ -346,7 +346,7 @@ function _gens_for_SL_matrix(f::PolyElem, n::Int, F::FinField; D::Int=1)
    # TODO: if in future we find out how to generate intermediate groups between GL and SL with only 2 elements,
    # then we can reduce the number of generators here from 3 to 2
    h3 = identity_matrix(F,n*Df)
-   _copy_matrix_into_matrix(h3,1,1,cat([CP^(order(F)-1) for i in 1:D]..., dims=(1,2)))
+   h3[1:Df, 1:Df] = cat([CP^(order(F)-1) for i in 1:D]..., dims=(1,2))
    return [h1,h2,h3]
 end
 
@@ -387,7 +387,7 @@ function _centralizer_SL(x::MatElem)
          L = _centr_block_unipotent(f,base_ring(x),V; isSL=true)
          for z in L[1]
             temp = deepcopy(idN)
-            _copy_matrix_into_matrix(temp,pos,pos,z)
+            temp[pos:pos-1+nrows(z), pos:pos-1+ncols(z)] = z
             push!(listgens, am*temp*a)
          end
          ind = gcd(ind, gcd([b[1] for b in block_dim]))
@@ -416,8 +416,10 @@ function _centralizer_SL(x::MatElem)
       z = deepcopy(idN)
       pos = 1
       for i in 1:length(block_dim)
-         _copy_matrix_into_matrix(z,pos,pos,diagonal_join([block_dim[i][3]^Int(g(k)[i]) for j in 1:block_dim[i][1]]))
-         _copy_matrix_into_matrix(z,pos,pos,cat([block_dim[i][3]^Int(g(k)[i]) for j in 1:block_dim[i][1]]..., dims=(1,2)))
+         t1 = diagonal_join([block_dim[i][3]^Int(g(k)[i]) for j in 1:block_dim[i][1]])
+         z[pos:pos-1+nrows(t1), pos:pos-1+ncols(t1)] = t1
+         t1 = cat([block_dim[i][3]^Int(g(k)[i]) for j in 1:block_dim[i][1]]..., dims=(1,2))
+         z[pos:pos-1+nrows(t1), pos:pos-1+ncols(t1)] = t1
          pos += block_dim[i][1]*block_dim[i][2]*nrows(block_dim[i][3])
       end
       push!(listgens, am*z*a)
