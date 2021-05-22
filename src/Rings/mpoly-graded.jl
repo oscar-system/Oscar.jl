@@ -709,7 +709,7 @@ function homogenization(V::Vector{T}, var::String, pos::Int = 1) where {T <: MPo
   L, _ = PolynomialRing(R.base_ring, A)
   S = grade(L)
   l = length(V)
-  return [homogenization(V[i], var, pos) for i=1:l]
+  return [homogenization(V[i], S, pos) for i=1:l]
 end
 function homogenization(I::MPolyIdeal{T}, var::String, pos::Int = 1; ordering::Symbol = :degrevlex) where {T <: MPolyElem}
   return homogenization(groebner_basis(I, ordering), var, pos)
