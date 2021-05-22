@@ -316,7 +316,7 @@ end
 
 **Note**: Internal function, subject to change, do not use.
 
-Compute the normal form of the generators of the ideal `I` w.r.t. a
+Compute the normal form of the generators `gens(I)` of the ideal `I` w.r.t. a
 Groebner basis of `J`.
 
 CAVEAT: This computation needs a Groebner basis of `J`. If this Groebner basis
