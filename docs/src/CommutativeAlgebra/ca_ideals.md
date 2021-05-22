@@ -244,14 +244,28 @@ equidimensional_hull_radical(I::MPolyIdeal)
 
 ## Homogenization and Dehomogenization
 
-    homogenize(I,t)   CAVEAT: Als Ideal! Auch poly, vector, etc. Siehe M2.
+```@docs
+homogenization(f::MPolyElem, var::String, pos::Int=1)
+```
+
+###### Examples
+
+```@repl oscar
+R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+f = x^3-y^2-z
+F = homogenization(f, "w", 4)
+parent(F)
+V = [y-x^2, z-x^3]
+homogenization(V, "w")
+I = ideal(R, V)
+PTC = homogenization(I, "w")
+parent(PTC[1])
+homogenization(I, "w", ordering = :deglex)
+```
+
 
     dehomogenize(I,t)
 
-
-     test:        ishomogeneous(I)
-    
-    .....
 	
 
 
