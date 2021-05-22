@@ -1,7 +1,7 @@
 export weight, decorate, ishomogenous, homogenous_components, filtrate,
 grade, homogenous_component, jacobi_matrix, jacobi_ideal,
 HilbertData, hilbert_series, hilbert_series_reduced, hilbert_series_expanded, hilbert_function, hilbert_polynomial,
-homogenization
+homogenization, dehomogenization
 
 mutable struct MPolyRing_dec{T} <: AbstractAlgebra.MPolyRing{T}
   R::MPolyRing{T}
@@ -714,3 +714,51 @@ end
 function homogenization(I::MPolyIdeal{T}, var::String, pos::Int = 1; ordering::Symbol = :degrevlex) where {T <: MPolyElem}
   return ideal(homogenization(groebner_basis(I, ordering), var, pos))
 end
+
+function dehomogenization(F::MPolyElem_dec, R::MPolyRing, pos::Int)
+  B = MPolyBuildCtx(R)
+  for (c,e) = zip(coefficients(F), exponent_vectors(F))
+    deleteat!(e, pos)
+    push_term!(B, c, e)
+  end
+  return finish(B)
+end
+
+@doc Markdown.doc"""
+    dehomogenization(F::MPolyElem_dec, pos::Int)
+
+    dehomogenization(V::Vector{T}, pos::Int) where {T <: MPolyElem_dec}
+
+    dehomogenization(I::MPolyIdeal{T}, pos::Int) where {T <: MPolyElem_dec}
+
+Return the dehomogenization of `F`, `V`, or `I` in a ring not depending on the variable at position `pos`.
+"""
+function dehomogenization(F::MPolyElem_dec, pos::Int)
+  S = parent(F)
+  A = String.(symbols(S))
+  l = length(A)
+  if (pos > l+1) ||  (pos <1)
+      throw(ArgumentError("Index out of range."))
+  end
+  deleteat!(A, pos)
+  R, _ = PolynomialRing(base_ring(S), A)
+  return dehomogenization(F, R, pos)
+end
+function dehomogenization(V::Vector{T}, pos::Int) where {T <: MPolyElem_dec}
+  @assert all(x->parent(x) == parent(V[1]), V)
+  S = parent(V[1])
+  A = String.(symbols(S))
+  l = length(A)
+  if (pos > l+1) ||  (pos <1)
+      throw(ArgumentError("Index out of range."))
+  end
+  deleteat!(A, pos)
+  R, _ = PolynomialRing(base_ring(S), A)
+  l = length(V)
+  return [dehomogenization(V[i], R, pos) for i=1:l]
+end
+function dehomogenization(I::MPolyIdeal{T}, pos::Int) where {T <: MPolyElem_dec}
+  return ideal(dehomogenization(gens(I), pos))
+end
+
+

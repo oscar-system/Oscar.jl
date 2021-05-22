@@ -263,8 +263,23 @@ parent(PTC[1])
 homogenization(I, "w", ordering = :deglex)
 ```
 
+```@docs
+dehomogenization(F::MPolyElem_dec, pos::Int)
+```
 
-    dehomogenize(I,t)
+###### Examples
+
+```@repl oscar
+R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+S = grade(R)
+F = x^3-x^2*y-x*z^2
+f = dehomogenization(S(F), 1)
+parent(f)
+V = [S(x*y-z^2), S(x^2*z-x^3)]
+dehomogenization(V, 3)
+I = ideal(S, V)
+dehomogenization(I, 3)
+```
 
 	
 
