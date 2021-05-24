@@ -94,6 +94,10 @@ function ==(F::FreeMod, G::FreeMod)
   return F.R == G.R && rank(F) == rank(G)
 end
 
+function iszero(F::FreeMod)
+  return rank(F) == 0
+end
+
 struct FreeModuleElem{T}
   coords::SRow{T} # also usable via coeffs
   parent::FreeMod{T}
@@ -360,6 +364,9 @@ mutable struct FreeModuleHom{T1, T2} <: ModuleMap{T1, T2}
       @assert parent(x) == G
       #assume S == SubQuoElem_dec which cannot be asserted here, the type if defined too late
       c = coordinates(x.repres, sub(G, a))
+      if isempty(c)
+        c = sparse_row(F.R)
+      end
       return FreeModuleElem(c, F)
     end
     r.header = MapHeader{typeof(F), typeof(G)}(F, G, im_func, pr_func)
@@ -587,7 +594,7 @@ mutable struct SubQuo{T} <: ModuleFP{T}
 
     return r
   end
-  function SubQuo(S::SubQuo, O::Array{<:FreeModuleElem{L}, 1}) where {L} #TODO to be replaced by quo
+  function SubQuo(S::SubQuo{L}, O::Array{<:FreeModuleElem, 1}) where {L} #TODO to be replaced by quo
     r = new{L}()
     r.F = S.F
     r.sub = S.sub
@@ -663,7 +670,11 @@ function show_subquo(SQ::SubQuo)
     if isfree_module(SQ.sub)
       println("Cokernel of ", SQ.quo.matrix)
     else
-      println("Subquotient with of image of ", SQ.sub.matrix, "by image of ", SQ.quo.matrix)
+      println("Subquotient with of image of")
+      display(SQ.sub.matrix)
+      println("by image of")
+      display(SQ.quo.matrix)
+      #println("Subquotient with of image of ", SQ.sub.matrix, " by image of ", SQ.quo.matrix)
     end
   else
     println("Image of ", SQ.sub.matrix)
@@ -826,6 +837,10 @@ function (R::SubQuo)(a::FreeModuleElem; check::Bool = true)
   return SubQuoElem(a, R)
 end
 
+function (R::SubQuo)(a::SRow)
+  return SubQuoElem(a, R)
+end
+
 function (R::SubQuo)(a::SubQuoElem)
   if parent(a) == R
     return a
@@ -926,7 +941,7 @@ end
 function quo(F::FreeMod, O::Array{<:SubQuoElem, 1}, task::Symbol = :none)
   S = SubQuo(F, basis(F))
   Q = SubQuo(S, [x.repres for x = O])
-
+  
   return return_quo_wrt_task(F, Q, task)
 end
 
@@ -975,7 +990,7 @@ end
 
 function syzygy_module(F::ModuleGens; sub = 0)
   F[Val(:S), 1] #to force the existence of F.S
-  s = Singular.syz(F.S)
+  s = Singular.syz(F.S) # TODO syz is sometimes too slow, example [8*x^2*y^2*z^2 + 13*x*y*z^2 12*x^2 + 7*y^2*z; 13*x*y^2 + 12*y*z^2 4*x^2*y^2*z + 8*x*y*z; 9*x*y^2 + 4*z 12*x^2*y*z^2 + 9*x*y^2*z]
   if sub !== 0
     G = sub
   else
@@ -1317,6 +1332,7 @@ end
 
 function kernel(h::FreeModuleHom)  #ONLY for free modules...
   G = domain(h)
+  R = base_ring(G)
   if ngens(G) == 0
     s = sub(G, gens(G))
     return s, hom(s, G, gens(G))
@@ -1333,7 +1349,7 @@ function kernel(h::FreeModuleHom)  #ONLY for free modules...
   k = syzygy_module(b)
   if isa(codomain(h), SubQuo)
     s = collect(k.sub.gens)
-    k = sub(G, [FreeModuleElem(x.coords[1:dim(G)], G) for x = s])
+    k = sub(G, [FreeModuleElem(x.coords[R,1:dim(G)], G) for x = s])
   else
     #the syzygie_module creates a new free module to work in
     k = sub(G, [FreeModuleElem(x.coords, G) for x = collect(k.sub.gens)])
@@ -1512,6 +1528,52 @@ function *(h::ModuleMap, g::ModuleMap)
 end
 -(h::FreeModuleHom, g::FreeModuleHom) = hom(domain(h), codomain(h), [h(x) - g(x) for x = gens(domain(h))])
 +(h::FreeModuleHom, g::FreeModuleHom) = hom(domain(h), codomain(h), [h(x) + g(x) for x = gens(domain(h))])
+
+function restrict_codomain(H::ModuleMap, M::SubQuo)
+  @assert typeof(codomain(H)) <: SubQuo
+  return hom(domain(H), M, map(v -> SubQuoElem(v, M), map(x -> H(x).repres, gens(domain(H)))))
+end
+
+function restrict_domain(H::SubQuoHom, M::SubQuo)
+  # TODO
+  error("tbd")
+end
+
+#=function Base.inv(H::ModuleMap)
+  # make this also work if (co)domain is FreeMod
+  if isdefined(H, :inverse_isomorphism)
+    return H.inverse_isomorphism
+  end
+  @assert isbijective(H)
+  N = domain(H)
+  n = ngens(N)
+  M = codomain(H)
+  m = ngens(M)
+  R = base_ring(M)
+  mat = zero_matrix(R,0,n)
+
+  # TODO
+  error("tbd")
+
+  for i=1:m 
+    g = M[i]
+    S, injection = preimage_SQ(H, [g], :both)
+    if iszero(S)
+      mat = vcat(mat, zero_matrix(R,1,n))
+      continue
+    end
+    ImS = image(H,S)
+    coeffs = coordinates(g.repres, ImS)
+    g_preimage = dense_row(coeffs, nrows(injection.matrix))*injection.matrix
+    mat = vcat(mat,g_preimage)
+  end
+
+  Hinv = SubQuoHom(codomain(H), domain(H), mat)
+  Hinv.inverse_isomorphism = H
+  H.inverse_isomorphism = Hinv
+
+  return Hinv
+end=#
 
 ##################################################
 # direct product
@@ -2285,6 +2347,15 @@ end
 ######################################
 # Not only for testing
 ######################################
+function matrix_to_map(A::MatElem)
+  R = base_ring(A)
+  F_domain = FreeMod(R, nrows(A))
+  F_codomain = FreeMod(R, ncols(A))
+
+  phi = FreeModuleHom(F_domain, F_codomain, A)
+  return phi
+end
+
 function isinjective(f::ModuleMap)
   return iszero(kernel(f)[1])
 end
@@ -2354,3 +2425,174 @@ end
   A = sparse_matrix(A)
   return Oscar.hom(M,N, [FreeModuleElem(A[i],N) for i=1:nrows(A)])
 end=#
+
+#############################################
+# Test hom
+#############################################
+function to_julia_matrix(A::Union{MatElem})
+  return eltype(A)[A[i, j] for i = 1:nrows(A), j = 1:ncols(A)]
+end
+
+function Base.reshape(M::MatElem, n, m)
+  julia_matrix = to_julia_matrix(M)
+  julia_matrix = reshape(julia_matrix, n, m)
+  R = base_ring(M)
+  mat_space = MatrixSpace(R, n, m)
+  return mat_space(julia_matrix)
+end
+
+function hom2(f1::MatElem{T}, g1::MatElem{T}) where T
+  R = base_ring(f1)
+  s1, s0 = size(f1)
+  t1, t0 = size(g1)
+
+  g2 = matrix_kernel(g1)
+  n = s1*t0
+  m = s0*t0 + s1*t1
+  delta::MatrixElem{T} = zero_matrix(R, m,n)
+  #delta::Matrix{T} = zeros(R, n, m)
+  for j=1:m
+    #b_vector::Vector{T} = [i == j ? R(1) : R(0) for i=1:m]
+    b_vector::MatrixElem{T} = zero_matrix(R, 1,m)
+    b_vector[1,j] = R(1)
+    #println(typeof(Core.Array(b_vector[1,1:s0*t0])))
+    A = reshape(b_vector[1,1:s0*t0], s0, t0)
+    #Mat = AbstractAlgebra.MatrixSpace(R, t0, s0)
+    #A = Mat(A)
+    B = reshape(b_vector[1,s0*t0+1:length(b_vector)], s1, t1)
+    #Mat = AbstractAlgebra.MatrixSpace(R, t1, s1)
+    #B = Mat(B)
+    res = f1*A - B*g1
+    res = reshape(res, 1, length(res))
+    for i=1:length(res)
+      delta[j,i] = res[1,i]
+    end
+  end
+
+  #Mat = AbstractAlgebra.MatrixSpace(R, size(delta)...)
+  #display(delta)
+  gamma = matrix_kernel(delta)
+
+  t2 = size(g2)[1]
+  n = m
+  m = s0*t1 + s1*t2
+  #rho::Matrix{T} = zeros(R, n, m)
+  rho::MatrixElem{T} = zero_matrix(R, m,n)
+  for j=1:m
+    #b_vector::Vector{T} = [R(0) for i=1:m]
+    b_vector = zero_matrix(R, 1,m)
+    b_vector[1,j] = R(1)
+    C = reshape(b_vector[1,1:s0*t1], s0, t1)
+    #Mat = AbstractAlgebra.MatrixSpace(R, t1, s0)
+    #C = Mat(C)
+    D = reshape(b_vector[1,s0*t1+1:length(b_vector)], s1, t2)
+    #Mat = AbstractAlgebra.MatrixSpace(R, t2, s1)
+    #D = Mat(D)
+    res1 = C*g1
+    res1 = reshape(res1, 1,length(res1))
+    res2 = f1*C - D*g2
+    res2 = reshape(res2, 1,length(res2))
+    for i=1:length(res1)
+        rho[j,i] = res1[1,i]
+    end
+    for i=1:length(res2)
+        #rho[:,j] = vcat(vec(res1), vec(res2))
+        rho[j,i+length(res1)] = res2[1,i]
+    end
+  end
+
+  M = SubQuo(gamma, rho)
+
+  function convert_to_matrix(v::SubQuoElem{T})
+    if parent(v) !== M
+      throw(DomainError("v does not represent a homomorphism"))
+    end
+    R = base_ring(M)
+    #A = AbstractAlgebra.matrix(R,map(x -> convert_poly(R,x),Array(v.singular_v)))
+    #A = map(x -> convert_poly(R,x),Array(v.singular_v))
+    #A = AbstractAlgebra.matrix(R, t0, s0, A[1:s0*t0])'
+    A = reshape(dense_row(v.repres.coords[R, 1:s0*t0], s0*t0), s0, t0)
+    #A = matrix(R, t0, s0, dense_row(v.repres.coords[R, 1:s0*t0], s0*t0))'
+    #A = v.v*v.parent_sq.generators  # ineffizienter
+    #A = reshape(A[1,1:s0*t0], s0, t0)
+    #N = cokernel(g1)
+    #for i=1:s0ems) <: Tuple ? [i for i in elems] : [elems])
+
+    #    row = lift(N,A[i,:])
+    #    for j=1:t0
+    #        A[i,j]=row[1,j]
+    #    end
+    #end
+    return A
+  end
+
+  return M, convert_to_matrix
+end
+
+# lookup-tables to find the correct function, that converts subquotient elements to homomorphisms or homomorphisms to subquotient elements:
+#global subquotient_elem_to_homomorphism_lookup_table = IdDict{Subquotient,Function}()
+#global homomorphism_to_subquotient_elem_lookup_table = IdDict{Tuple{Subquotient,Subquotient},Function}()
+
+@doc Markdown.doc"""
+  hom(M::Subquotient,N::Subquotient)
+> Return a subquotient S such that $Hom(M,N) \cong S$
+"""
+function hom2(M::SubQuo{T},N::SubQuo{T},simplify=true) where T
+  f1 = present(M).quo.matrix
+  g1 = present(N).quo.matrix
+  #f1 = presentation_matrix(M)
+  #g1 = presentation_matrix(N)
+  SQ, convert_to_matrix = hom2(f1,g1)
+  if simplify
+    SQ2, i, p = simplify_subquotient(SQ)
+    to_homomorphism = function(elem::SubQuoElem{T})
+      elem2 = i(elem)
+      A = convert_to_matrix(elem2)
+      return SubQuoHom(M,N,A)
+      #return AbstractAlgebra.ModuleHomomorphism(M,N,A)
+    end
+    to_subquotient_elem = function(H::ModuleMap)
+      m = length(H.matrix)
+      v = reshape(H.matrix,1,m)
+      #v = i(v)
+      tmp_sq = Oscar.SubQuo(SQ.sub.matrix[:,1:m], SQ.quo.matrix[:,1:m])
+      #tmp_sq = Subquotient(SQ.generators[:,1:m], SQ.relations[:,1:m])
+      #coeffs = Nemo.lift(tmp_sq, v)
+      v = FreeModuleElem(sparse_row(v), FreeMod(R, length(v)))
+      coeffs = coordinates(v, tmp_sq)
+      return p(SubQuoElem(coeffs, SQ))
+      #return p(SubquotientElem(SQ, coeffs))
+    end
+    #subquotient_elem_to_homomorphism_lookup_table[SQ2] = elem -> to_homomorphism(elem)
+    #homomorphism_to_subquotient_elem_lookup_table[(M,N)] = H -> to_subquotient_elem(H)
+
+    to_hom_map = MapFromFunc(to_homomorphism, to_subquotient_elem, SQ2, Hecke.MapParent(M, N, "homomorphisms"))
+    Hecke.set_special(SQ2, :hom => (M, N), :module_to_hom_map => to_hom_map)
+
+    return SQ2
+  else
+    to_subquotient_elem = function(H::ModuleMap)
+      m = length(H.matrix)
+      v = reshape(H.matrix,1,m)
+      #tmp_sq = Subquotient(SQ.generators[:,1:m], SQ.relations[:,1:m])
+      tmp_sq = Oscar.SubQuo(SQ.sub.matrix[:,1:m], SQ.quo.matrix[:,1:m])
+      v = FreeModuleElem(sparse_row(v), FreeMod(R, length(v)))
+      coeffs = coordinates(v, tmp_sq)
+      #coeffs = Nemo.lift(tmp_sq, v)
+      return SubQuoElem(coeffs, SQ)
+      #return SubquotientElem(SQ, coeffs)
+    end
+    to_homomorphism = function(elem::SubQuoElem{T})
+      A = convert_to_matrix(elem)
+      return SubQuoHom(M,N,A)
+      #return AbstractAlgebra.ModuleHomomorphism(M,N,A)
+    end
+    #subquotient_elem_to_homomorphism_lookup_table[SQ] = to_homomorphism
+    #homomorphism_to_subquotient_elem_lookup_table[(M,N)] = H -> to_subquotient_elem(H)
+
+    to_hom_map = MapFromFunc(to_homomorphism, to_subquotient_elem, SQ, Hecke.MapParent(M, N, "homomorphisms"))
+    Hecke.set_special(SQ, :hom => (M, N), :module_to_hom_map => to_hom_map)
+
+    return SQ
+  end
+end
