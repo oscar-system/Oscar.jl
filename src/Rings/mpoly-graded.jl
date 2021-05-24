@@ -52,6 +52,10 @@ function decorate(R::MPolyRing)
 end
 
 @doc Markdown.doc"""
+    grade(R::MPolyRing, v::Array{Int, 1})
+
+Grade `R` by assigning weights to the variables according to the entries of `v`. 
+
     grade(R::MPolyRing)
 
 Grade `R` by assigning weight 1 to each variable. 
@@ -61,17 +65,43 @@ Grade `R` by assigning weight 1 to each variable.
 julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
 
-julia> grade(R)
+julia> v = [1, 2, 3]
+3-element Array{Int64,1}:
+ 1
+ 2
+ 3
+
+julia> grade(R, v)
+Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
+	x -> [1]
+	y -> [2]
+	z -> [3]
+
+
+julia> S = grade(R)
 Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
 	x -> [1]
 	y -> [1]
 	z -> [1]
+
+
+julia> typeof(x)
+fmpq_mpoly
+
+julia> typeof(S(x))
+Oscar.MPolyElem_dec{fmpq}
 ```
 """
+function grade(R::MPolyRing, v::Array{Int, 1})
+  A = abelian_group([0])
+  Hecke.set_special(A, :show_elem => show_special_elem_grad) 
+  return MPolyRing_dec(R, [i*A[1] for i = v])
+end
 function grade(R::MPolyRing)
   A = abelian_group([0])
   return MPolyRing_dec(R, [1*A[1] for i = 1: ngens(R)])
 end
+
 filtrate(R::MPolyRing) = decorate(R)
 
 function show_special_elem_grad(io::IO, a::GrpAbFinGenElem)
@@ -86,12 +116,6 @@ function filtrate(R::MPolyRing, v::Array{Int, 1})
   A = abelian_group([0])
   Hecke.set_special(A, :show_elem => show_special_elem_grad) 
   return MPolyRing_dec(R, [i*A[1] for i = v], (x,y) -> x[1] < y[1])
-end
-
-function grade(R::MPolyRing, v::Array{Int, 1})
-  A = abelian_group([0])
-  Hecke.set_special(A, :show_elem => show_special_elem_grad) 
-  return MPolyRing_dec(R, [i*A[1] for i = v])
 end
 
 function filtrate(R::MPolyRing, v::Array{GrpAbFinGenElem, 1}, lt)

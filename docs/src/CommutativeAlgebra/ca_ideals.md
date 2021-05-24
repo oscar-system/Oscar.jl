@@ -10,7 +10,7 @@ using Oscar
 Pages = ["ca_ideals.md"]
 ```
 
-# Ideals in Multivariate Polynomial Rings
+# Ideals in Polynomial Rings
 
 ## Constructors
 

@@ -24,3 +24,9 @@ General textbooks offering details on theory and algorithms include:
 - [DL06](@cite)
 - [DP13](@cite)
 
+!!! note
+    Most of the commutative algebra functionality provided by OSCAR
+    relies on Gröbner basis methods. If not indicated otherwise, these
+    methods are implemented for both polynomial rings over fields
+	and  polynomial rings over the integers.
+    ungraded or graded, GB, fields or ZZ
