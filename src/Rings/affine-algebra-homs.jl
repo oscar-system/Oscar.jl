@@ -115,7 +115,7 @@ function show(io::IO, M::Map(AlgHom))
    println(io, "")
    println(io, "codomain: ", codomain(M))
    println(io, "")
-   println(io, "defining equations: ", M.image)
+   println(io, "defining images of generators: ", M.image)
 end
 
 ###############################################################################
@@ -131,8 +131,8 @@ end
     W <: Union{MPolyRing{T}, MPolyQuo{S}},
     X <: Union{S, MPolyQuoElem{S}}}
    
-Creates the algebra homomorphism $D \rightarrow C$ defined by sending the $i$th generator of $D$ to the $i$th element of $V$. 
-Allows types `MPolyRing` and `MPolyQuo` for $C$ and $D$ as well as entries of type `MPolyElem` and `MPolyQuoElem` for `X`.
+Create the algebra homomorphism $D \rightarrow C$ defined by sending the $i$th generator of $D$ to the $i$th element of $V$. 
+Allow types `MPolyRing` and `MPolyQuo` for $C$ and $D$ as well as entries of type `MPolyElem` and `MPolyQuoElem` for `X`.
 Alternatively, use `hom(D::U, C::W, V::Vector{X})`.
 """
 function AlgebraHomomorphism(D::U, C::W, V::Vector{X}) where 
@@ -171,7 +171,7 @@ end
 @doc Markdown.doc"""
     function domain(F::AlgHom)
 
-Returns the domain of `F`.
+Return the domain of `F`.
 """
 function domain(F::AlgHom)
    return F.domain
@@ -180,7 +180,7 @@ end
 @doc Markdown.doc"""
     function codomain(F::AlgHom)
 
-Returns the codomain of `F`.
+Return the codomain of `F`.
 """
 function codomain(F::AlgHom)
    return F.codomain
@@ -195,7 +195,7 @@ end
 @doc Markdown.doc"""
     compose(F::AlgHom{T}, G::AlgHom{T}) where T
 
-Returns the algebra homomorphism $H = G\circ F: domain(F) \rightarrow codomain(G)$.
+Return the algebra homomorphism $H = G\circ F: domain(F) \rightarrow codomain(G)$.
 """
 function compose(F::AlgHom{T}, G::AlgHom{T}) where T
    check_composable(F, G)
@@ -214,7 +214,7 @@ end
 @doc Markdown.doc"""
     preimage(F::AlgHom, I::U) where U <: Union{MPolyIdeal, MPolyQuoIdeal}
 
-Returns the preimage of the ideal $I$ under the algebra homomorphism $F$.
+Return the preimage of the ideal $I$ under the algebra homomorphism $F$.
 """
 function preimage(F::AlgHom, I::U) where U <: Union{MPolyIdeal, MPolyQuoIdeal}
 
@@ -231,7 +231,7 @@ end
 @doc Markdown.doc"""
     kernel(F::AlgHom)
 
-Returns the kernel of the algebra homomorphism $F$.
+Return the kernel of the algebra homomorphism $F$.
 """
 function kernel(F::AlgHom)
    isdefined(F, :kernel) && return F.kernel
