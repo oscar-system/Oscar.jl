@@ -15,7 +15,7 @@ Pages = ["ca_rings.md"]
 Referring to the sections on rings and fields for more details, we summarize how
 to construct multivariate polynomial rings.
 
-## Admissible Rings of Coefficients
+## Coefficients
 
 Here is a list of rings of coefficients which allow for Gröbner basis computations :
 
@@ -55,7 +55,7 @@ K, a = FiniteField(x^2 + 1, "a")
 ZZ
 ```
 
-## Constructing Polynomial Rings
+## Constructions
 
 
 The basic constructor for multivariate polynomial rings reads as follows:
@@ -94,7 +94,7 @@ Qx, x = @PolynomialRing(QQ, x[I]);
 x
 ```
 
-## Grading Polynomial Rings
+## Gradings
 
 ```@docs
     grade(R::MPolyRing, v::Array{Int, 1})

@@ -193,8 +193,12 @@ isprime(I::MPolyIdeal)
 ```@docs
 isprimary(I::MPolyIdeal)
 ```
-  
+
 ## Decomposition of Ideals
+
+We discuss various decomposition techniques. They are implemented for
+polynomial rings over fields and, if explicitly mentioned, also for
+polynomial rings over the integers.
 
 ### Radical
 
