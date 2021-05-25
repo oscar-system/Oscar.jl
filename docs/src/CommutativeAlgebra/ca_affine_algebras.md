@@ -12,8 +12,9 @@ Pages = ["ca_affine_algebras.md"]
 
 # Affine Algebras
 
-An affine algebra over a field $K$, or an affine $K$-algebra, or simply an affine ring, is the quotient $A=R/I$ of a multivariate
-polynomial ring $R$ over $K$ modulo an ideal $I$ of $A$.
+An affine algebra over a field $K$, or an affine $K$-algebra, or simply an affine algebra, is the quotient $A=R/I$ of a multivariate
+polynomial ring $R$ over $K$ modulo an ideal $I$ of $R$. The general constructor for quotients of multivariate polynomial rings
+modulo ideals allows one to create such algebras.
 
 ## Constructor
 
@@ -25,7 +26,7 @@ quo(R::MPolyRing, I::MPolyIdeal)
 
 ### Basic Data
 
-If `A = R/I` is an affine algebra, then
+If `A=R/I` is the quotient of a multivariate polynomial ring `R` modulo an ideal `I` of `R`, then
 - `base_ring(A)` refers to `R`,
 - `modulus(A)` to `I`,
 - `gens(A)` to the generators of `A`, and
@@ -114,6 +115,14 @@ degree(A)
 
 ## Ideals in Affine Algebras
 
+### Constructors
+
+```@docs
+ideal(g::Array{T, 1}) where {T <: MPolyQuoElem}
+```
+```@docs
+ ideal(Rx::MPolyQuo, g::Array{<:Any, 1})
+```
 
 ## Tests on Affine Algebras
 

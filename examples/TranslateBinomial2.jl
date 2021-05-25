@@ -32,6 +32,17 @@ function iscellular(I::MPolyIdeal)
   end
 end
 
+function isone_easy(I::MPolyIdeal)
+  p = next_prime(2^28)
+  fl = false
+  Qt = base_ring(I)
+  R = ResidueRing(ZZ, Int(p)) #gfp_mpoly missing...
+  Rt, t = PolynomialRing(R, nvars(Qt), cached = false)
+  Ip = Oscar.BiPolyArray([Rt(x) for x in gens(I)], keep_ordering = false)
+  Gp = Oscar.groebner_basis(Ip, ord = :degrevlex, complete_reduction = true)
+  return any(isone, Gp)
+end
+
 function _iscellular(I::MPolyIdeal)
   #input: binomial ideal in a polynomial ring
   #output: the decision true/false whether I is cellular or not
@@ -39,7 +50,7 @@ function _iscellular(I::MPolyIdeal)
   #index of a variable which is a zerodivisor but not nilpotent modulo I
   if iszero(I)
     return false, Int[-1]
-  elseif isone(I)
+  elseif isone_easy(I) && isone(I)
     return false, Int[-1]
   end
   Delta = Int64[]
@@ -50,7 +61,7 @@ function _iscellular(I::MPolyIdeal)
   for i = 1:ngens(Rxy)
     J = ideal(Rxy, variables[i])
     sat = saturation(I, J)
-    if !isone(sat)
+    if !isone_easy(sat) || !isone(sat)
       push!(Delta, i)
     end
   end
@@ -85,7 +96,7 @@ function cellular_decomposition(I::MPolyIdeal)
   #with less redundancies
   #input: binomial ideal I
   #output: a cellular decomposition of I
-  @assert !iszero(I) && !isone(I)
+  #@assert !iszero(I) && !isone(I)
   @assert isbinomial(I)
 
   fl, v = _iscellular(I)
@@ -182,9 +193,9 @@ function _find_minimal(A::Vector{T}) where T <: MPolyIdeal
         continue
       end
       if issubset(A[i], A[j])
-        minimal[j] = false
+        isminimal[j] = false
       elseif issubset(A[j], A[i])
-        minimal[i] = false
+        isminimal[i] = false
         break
       end
     end
@@ -236,13 +247,13 @@ function cellular_decomposition_macaulay(I::MPolyIdeal)
         #compute product of all variables in L[1]
         r = prod(L[1], init = one(R))
         J2 = saturation(J2, ideal(R, r))
-        if !isone(J2)
+        if !isone_easy(J2) || !isone(J2)
           #we have to decompose J2 further
           push!(todo, (copy(L[1]), L2, J2))
         end
       end
       #continue with the next variable and add i to L[1]
-      if !isone(J)
+      if !isone_easy(J) || !isone(J)
         L1 = copy(L[1])
         push!(L1, i)
         push!(todo, (L[1], L2, J))
@@ -369,7 +380,12 @@ function partial_character_from_ideal(I::MPolyIdeal, R::MPolyRing)
   #for this use eliminate function from Singular. We first have to compute the product of all
   #variables not in Delta
   Variables = gens(R)
-  J = eliminate(I, elem_type(R)[Variables[i] for i = 1:nvars(R) if !(i in Delta)])
+  to_eliminate = elem_type(R)[Variables[i] for i = 1:nvars(R) if !(i in Delta)]
+  if isempty(to_eliminate)
+    J = I
+  else
+    J = eliminate(I, to_eliminate)
+  end
   if iszero(J)
     return QabModule.partial_character(zero_matrix(FlintZZ, 1, nvars(R)), [one(QabModule.QabField())], Set{Int64}())
   end
@@ -424,12 +440,15 @@ function cellular_standard_monomials(I::MPolyIdeal)
   end
   R = base_ring(I)
 
+  if length(cell[2]) == nvars(R)
+    return elem_type(R)[one(R)]
+  end
   #now we start computing the standard monomials
   #first determine the set Delta^c of noncellular variables
   DeltaC = Int[i for i = 1:nvars(R) if !(i in cell[2])]
 
   #eliminate the variables in Delta
-  Variables=Singular.gens(R)
+  Variables = gens(R)
   prodDelta = elem_type(R)[Variables[i] for i in cell[2]]
   if isempty(prodDelta)
     J = I
@@ -440,7 +459,6 @@ function cellular_standard_monomials(I::MPolyIdeal)
   bas = Vector{elem_type(R)}[]
   for i in DeltaC
     mon = elem_type(R)[] #this will hold set of standard monomials
-    flag = true
     push!(mon, one(R))
     x = Variables[i]
     while !(x in I)
@@ -542,6 +560,9 @@ function cellular_associated_primes(I::MPolyIdeal)
 
   #construct the ideal (x_i \mid i \in \Delta^c)
   gi = elem_type(R)[Variables[i] for i = 1:nvars(R) if !(i in cell[2])]
+  if isempty(gi)
+    push!(gi, zero(R))
+  end
   idealDeltaC = ideal(R, gi)
 
   for m in U
@@ -650,7 +671,11 @@ function cellular_primary_decomposition(I::MPolyIdeal)
   J = ideal(R, prodDelta)
   res = Vector{Tuple{typeof(I), typeof(I)}}()
   for P in cell_ass
-    helpIdeal = I + eliminate(P, prodDeltaC)
+    if isempty(prodDeltaC)
+      helpIdeal = I + P
+    else
+      helpIdeal = I + eliminate(P, prodDeltaC)
+    end
     #now saturate the ideal with respect to the cellular variables
     helpIdeal = saturation(helpIdeal, J)
     push!(res, (cellular_hull(helpIdeal), P))
@@ -729,4 +754,57 @@ function markov4ti2(L::fmpz_mat)
   #run(`rm julia4ti2.lat`)
   #run(`rm julia4ti2.mar`)
   return helpArrayInt
+end
+
+################################################################################
+#
+#  Birth-Death ideal - for testing purposes
+#
+################################################################################
+
+function birth_death_ideal(m::Int, n::Int)
+  
+  #To make it clearer, I split the variables 
+  U = Array{fmpq_mpoly, 2}(undef, m+1, n)
+  R = Array{fmpq_mpoly, 2}(undef, m, n+1)
+  D = Array{fmpq_mpoly, 2}(undef, m+1, m)
+  L = Array{fmpq_mpoly, 2}(undef, m+1, n+1)
+  Qxy, gQxy = PolynomialRing(FlintQQ, length(U)+length(R)+length(D)+length(L))
+  pols = Vector{elem_type(Qxy)}(undef, 4*n*m)
+  ind = 1
+  for i = 1:m+1
+    for j = 1:n
+      U[i, j] = gQxy[ind]
+      ind += 1
+    end
+  end
+  for i = 1:m
+    for j = 1:n+1
+      R[i, j] = gQxy[ind]
+      ind += 1
+    end
+  end
+  for i = 1:m+1
+    for j = 1:m
+      D[i, j] = gQxy[ind]
+      ind += 1
+    end
+  end
+  for i = 1:m+1
+    for j = 1:n+1
+      L[i, j] = gQxy[ind]
+      ind += 1
+    end
+  end
+  ind = 1
+  for i = 1:m
+    for j = 1:n
+      pols[ind] = U[i, j]*R[i, j+1] - R[i, j]*U[i+1, j]
+      pols[ind+1] = D[i, j]*R[i, j] - R[i, j+1]*D[i+1, j]
+      pols[ind+2] = D[i+1, j]*L[i+1, j] - L[i+1, j+1]*D[i, j]
+      pols[ind+3] = U[i+1, j]*L[i+1, j+1] - L[i+1, j]*U[i, j]
+      ind += 4
+    end
+  end
+  return ideal(Qxy, pols)
 end
