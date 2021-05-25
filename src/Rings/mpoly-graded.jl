@@ -40,7 +40,11 @@ function show(io::IO, W::MPolyRing_dec)
   R = W.R
   g = gens(R)
   for i = 1:ngens(R)
-    println(io, "\t$(g[i]) -> $(W.d[i].coeff)")
+    if i == ngens(R)
+       print(io, "\t$(g[i]) -> $(W.d[i].coeff)")
+    else  
+       println(io, "\t$(g[i]) -> $(W.d[i].coeff)")
+    end  
   end
 #  println(IOContext(io, :compact => true, ), W.d)
 end

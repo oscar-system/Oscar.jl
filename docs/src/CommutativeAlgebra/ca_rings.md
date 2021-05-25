@@ -13,11 +13,12 @@ Pages = ["ca_rings.md"]
 # Polynomial Rings
 
 Referring to the sections on rings and fields for more details, we summarize how
-to construct multivariate polynomial rings.
+to construct multivariate polynomial rings. Also, we show how to decorate such
+rings with gradings.
 
 ## Coefficients
 
-Here is a list of rings of coefficients which allow for Gröbner basis computations :
+Multivariate polynomial rings over coefficient rings from the list below allow for Gröbner basis computations :
 
 ###### The field of rational numbers $\mathbb{Q}$
 
@@ -47,7 +48,16 @@ Fx, x = F["x"]
 K, a = FiniteField(x^2 + 1, "a")
 ```
 
-###### Pure transcendental extensions of $\mathbb{Q}$ or $\mathbb{F}_p$
+###### Purely transcendental extensions of $\mathbb{Q}$ or $\mathbb{F}_p$
+
+```@repl oscar
+T, t = PolynomialRing(QQ, :t=>1:2);
+QT = FractionField(T)
+parent(t[1])
+parent(1//t[1])
+U, u = PolynomialRing(GF(3), :u=>1:2);
+QU = FractionField(U)
+```
 
 ###### The ring of integers $\mathbb{ZZ}$
 
@@ -64,33 +74,47 @@ The basic constructor for multivariate polynomial rings reads as follows:
 PolynomialRing(C::Ring, v::Vector{String}; ordering=:lex)
 ```
 
-The use of this constructor and that of additional constructors which allow for indexed variables is indicated below.
+Its use and that of additional constructors which allow for indexed variables is indicated below.
 
 ###### Examples
 
 ```@repl oscar
 R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+base_ring(R)
+gens(R)
+gen(R, 2)
+R[3]
+ngens(R)
 f = x^2+y*z
+parent(f)
 typeof(f)
+```
+
+```@repl oscar
 S, (a,b) = PolynomialRing(ZZ, ["a", "b"])
 g = a*b
 typeof(g)
 ```
 
 ```@repl oscar
-Qx, x = PolynomialRing(QQ, 2, "x");
+R, x = PolynomialRing(QQ, 2, "x");
 x
+x1
+x[1]^2-x[2]
+S, a, b, c= PolynomialRing(QQ, "a"=>1:3, "b"=>1:3, "c"=>1:5:10)
+a, b, c
 ```
 
 ```@repl oscar
-Qx, x = @PolynomialRing(QQ, x[1:3]);
+R, x = @PolynomialRing(QQ, x[1:3]);
 x
-Qx, x = @PolynomialRing(QQ, x[1:3, 1:3]);
+x[1]^2-x[2]
+R, x = @PolynomialRing(QQ, x[1:3, 1:3]);
 x
-Qx, x, y = @PolynomialRing(QQ, x[1:3], y[1:2]);
+R, x, y = @PolynomialRing(QQ, x[1:3], y[1:2]);
 x, y
 I = [1, 3, 5];
-Qx, x = @PolynomialRing(QQ, x[I]);
+R, x = @PolynomialRing(QQ, x[I]);
 x
 ```
 
@@ -100,6 +124,5 @@ x
     grade(R::MPolyRing, v::Array{Int, 1})
 ```
 
-!!! note
     
     
