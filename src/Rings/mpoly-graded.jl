@@ -1,5 +1,7 @@
 export weight, decorate, ishomogenous, homogenous_components, filtrate,
-grade, homogenous_component, jacobi_matrix, jacobi_ideal, HilbertData, hilbert_series, hilbert_series_reduced, hilbert_series_expanded, hilbert_function, hilbert_polynomial
+grade, homogenous_component, jacobi_matrix, jacobi_ideal,
+HilbertData, hilbert_series, hilbert_series_reduced, hilbert_series_expanded, hilbert_function, hilbert_polynomial,
+homogenization, dehomogenization
 
 mutable struct MPolyRing_dec{T} <: AbstractAlgebra.MPolyRing{T}
   R::MPolyRing{T}
@@ -38,20 +40,72 @@ function show(io::IO, W::MPolyRing_dec)
   R = W.R
   g = gens(R)
   for i = 1:ngens(R)
-    println(io, "\t$(g[i]) -> $(W.d[i].coeff)")
+    if i == ngens(R)
+       print(io, "\t$(g[i]) -> $(W.d[i].coeff)")
+    else  
+       println(io, "\t$(g[i]) -> $(W.d[i].coeff)")
+    end  
   end
 #  println(IOContext(io, :compact => true, ), W.d)
 end
+
 
 function decorate(R::MPolyRing)
   A = abelian_group([0])
   return MPolyRing_dec(R, [1*A[1] for i = 1: ngens(R)], (x,y) -> x[1] < y[1])
 end
 
+@doc Markdown.doc"""
+    grade(R::MPolyRing, v::Array{Int, 1})
+
+Grade `R` by assigning weights to the variables according to the entries of `v`. 
+
+    grade(R::MPolyRing)
+
+Grade `R` by assigning weight 1 to each variable. 
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> v = [1, 2, 3]
+3-element Array{Int64,1}:
+ 1
+ 2
+ 3
+
+julia> grade(R, v)
+Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
+	x -> [1]
+	y -> [2]
+	z -> [3]
+
+
+julia> S = grade(R)
+Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
+	x -> [1]
+	y -> [1]
+	z -> [1]
+
+
+julia> typeof(x)
+fmpq_mpoly
+
+julia> typeof(S(x))
+Oscar.MPolyElem_dec{fmpq}
+```
+"""
+function grade(R::MPolyRing, v::Array{Int, 1})
+  A = abelian_group([0])
+  Hecke.set_special(A, :show_elem => show_special_elem_grad) 
+  return MPolyRing_dec(R, [i*A[1] for i = v])
+end
 function grade(R::MPolyRing)
   A = abelian_group([0])
   return MPolyRing_dec(R, [1*A[1] for i = 1: ngens(R)])
 end
+
 filtrate(R::MPolyRing) = decorate(R)
 
 function show_special_elem_grad(io::IO, a::GrpAbFinGenElem)
@@ -66,12 +120,6 @@ function filtrate(R::MPolyRing, v::Array{Int, 1})
   A = abelian_group([0])
   Hecke.set_special(A, :show_elem => show_special_elem_grad) 
   return MPolyRing_dec(R, [i*A[1] for i = v], (x,y) -> x[1] < y[1])
-end
-
-function grade(R::MPolyRing, v::Array{Int, 1})
-  A = abelian_group([0])
-  Hecke.set_special(A, :show_elem => show_special_elem_grad) 
-  return MPolyRing_dec(R, [i*A[1] for i = v])
 end
 
 function filtrate(R::MPolyRing, v::Array{GrpAbFinGenElem, 1}, lt)
@@ -639,4 +687,106 @@ end
 function Base.show(io::IO, h::HilbertData)
   print(io, "Hilbert Series for $(h.I), data: $(h.data)")
 end
+
+############################################################################
+### Homogenization and Dehomogenization
+############################################################################
+
+function homogenization(f::MPolyElem, S::MPolyRing_dec, pos::Int = 1)
+  d = total_degree(f)
+  B = MPolyBuildCtx(S)
+  for (c,e) = zip(coefficients(f), exponent_vectors(f))
+    insert!(e, pos, d-sum(e))
+    push_term!(B, c, e)
+  end
+  return finish(B)
+end
+
+@doc Markdown.doc"""
+    homogenization(f::MPolyElem, var::String, pos::Int = 1)
+
+    homogenization(V::Vector{T}, var::String, pos::Int = 1) where {T <: MPolyElem}
+
+    homogenization(I::MPolyIdeal{T}, var::String, pos::Int = 1; ordering::Symbol = :degrevlex) where {T <: MPolyElem}
+
+Return the homogenization of `f`, `V`, or `I` in a graded ring with additional variable `var` at position `pos`.
+
+CAVEAT: Homogenizing an ideal requires a Gröbner basis computation. This may take some time.
+"""
+function homogenization(f::MPolyElem, var::String, pos::Int = 1)
+  R = parent(f)
+  A = String.(symbols(R))
+  l = length(A)
+  if (pos > l+1) ||  (pos <1)
+      throw(ArgumentError("Index out of range."))
+  end
+  insert!(A, pos, var)
+  L, _ = PolynomialRing(R.base_ring, A)
+  S = grade(L)
+  return homogenization(f, S, pos)
+end
+function homogenization(V::Vector{T}, var::String, pos::Int = 1) where {T <: MPolyElem}
+  @assert all(x->parent(x) == parent(V[1]), V)
+  R = parent(V[1])
+  A = String.(symbols(R))
+  l = length(A)
+  if (pos > l+1) ||  (pos <1)
+      throw(ArgumentError("Index out of range."))
+  end
+  insert!(A, pos, var)
+  L, _ = PolynomialRing(R.base_ring, A)
+  S = grade(L)
+  l = length(V)
+  return [homogenization(V[i], S, pos) for i=1:l]
+end
+function homogenization(I::MPolyIdeal{T}, var::String, pos::Int = 1; ordering::Symbol = :degrevlex) where {T <: MPolyElem}
+  return ideal(homogenization(groebner_basis(I, ordering), var, pos))
+end
+
+function dehomogenization(F::MPolyElem_dec, R::MPolyRing, pos::Int)
+  B = MPolyBuildCtx(R)
+  for (c,e) = zip(coefficients(F), exponent_vectors(F))
+    deleteat!(e, pos)
+    push_term!(B, c, e)
+  end
+  return finish(B)
+end
+
+@doc Markdown.doc"""
+    dehomogenization(F::MPolyElem_dec, pos::Int)
+
+    dehomogenization(V::Vector{T}, pos::Int) where {T <: MPolyElem_dec}
+
+    dehomogenization(I::MPolyIdeal{T}, pos::Int) where {T <: MPolyElem_dec}
+
+Return the dehomogenization of `F`, `V`, or `I` in a ring not depending on the variable at position `pos`.
+"""
+function dehomogenization(F::MPolyElem_dec, pos::Int)
+  S = parent(F)
+  A = String.(symbols(S))
+  l = length(A)
+  if (pos > l+1) ||  (pos <1)
+      throw(ArgumentError("Index out of range."))
+  end
+  deleteat!(A, pos)
+  R, _ = PolynomialRing(base_ring(S), A)
+  return dehomogenization(F, R, pos)
+end
+function dehomogenization(V::Vector{T}, pos::Int) where {T <: MPolyElem_dec}
+  @assert all(x->parent(x) == parent(V[1]), V)
+  S = parent(V[1])
+  A = String.(symbols(S))
+  l = length(A)
+  if (pos > l+1) ||  (pos <1)
+      throw(ArgumentError("Index out of range."))
+  end
+  deleteat!(A, pos)
+  R, _ = PolynomialRing(base_ring(S), A)
+  l = length(V)
+  return [dehomogenization(V[i], R, pos) for i=1:l]
+end
+function dehomogenization(I::MPolyIdeal{T}, pos::Int) where {T <: MPolyElem_dec}
+  return ideal(dehomogenization(gens(I), pos))
+end
+
 

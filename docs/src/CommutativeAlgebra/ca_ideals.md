@@ -10,7 +10,7 @@ using Oscar
 Pages = ["ca_ideals.md"]
 ```
 
-# Ideals
+# Ideals in Polynomial Rings
 
 ## Constructors
 
@@ -156,12 +156,6 @@ saturation_with_index(I::MPolyIdeal, J::MPolyIdeal)
 eliminate(I::MPolyIdeal, lv::Array{MPolyElem, 1})
 ```
 
-### Homogenization and Dehomogenization
-
-    homogenize(I,t)   CAVEAT: Als Ideal! Auch poly, vector, etc. Siehe M2.
-
-    dehomogenize(I,t)
-
 ## Tests on Ideals
 
 ### Equality of Ideals
@@ -199,12 +193,12 @@ isprime(I::MPolyIdeal)
 ```@docs
 isprimary(I::MPolyIdeal)
 ```
-  
-    homogeneity test:        ishomogeneous(I)
-    
-    .....
-	
+
 ## Decomposition of Ideals
+
+We discuss various decomposition techniques. They are implemented for
+polynomial rings over fields and, if explicitly mentioned, also for
+polynomial rings over the integers.
 
 ### Radical
 
@@ -252,6 +246,45 @@ equidimensional_hull_radical(I::MPolyIdeal)
 
     absolute_primary_decomposition(I)               --->  absPrimdecGTZ   
 
-    
+## Homogenization and Dehomogenization
+
+```@docs
+homogenization(f::MPolyElem, var::String, pos::Int=1)
+```
+
+###### Examples
+
+```@repl oscar
+R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+f = x^3-y^2-z
+F = homogenization(f, "w", 4)
+parent(F)
+V = [y-x^2, z-x^3]
+homogenization(V, "w")
+I = ideal(R, V)
+PTC = homogenization(I, "w")
+parent(PTC[1])
+homogenization(I, "w", ordering = :deglex)
+```
+
+```@docs
+dehomogenization(F::MPolyElem_dec, pos::Int)
+```
+
+###### Examples
+
+```@repl oscar
+R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+S = grade(R)
+F = x^3-x^2*y-x*z^2
+f = dehomogenization(S(F), 1)
+parent(f)
+V = [S(x*y-z^2), S(x^2*z-x^3)]
+dehomogenization(V, 3)
+I = ideal(S, V)
+dehomogenization(I, 3)
+```
+
+	
 
 
