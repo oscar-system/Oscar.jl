@@ -2566,12 +2566,19 @@ function hom2(f1::MatElem{T}, g1::MatElem{T}) where T
   return M, convert_to_matrix
 end
 
+# lookup-tables only used in the old code
 # lookup-tables to find the correct function, that converts subquotient elements to homomorphisms or homomorphisms to subquotient elements:
 #global subquotient_elem_to_homomorphism_lookup_table = IdDict{Subquotient,Function}()
 #global homomorphism_to_subquotient_elem_lookup_table = IdDict{Tuple{Subquotient,Subquotient},Function}()
 
+
+# since hom yields possibly wrong results, this is an alternative implementation for comparison, 
+# which is known to work correctly in various examples (by comparing with Macaulay2 and by testing 
+# whether the homomorphism corresponding to elements of the subquotient are well-defined
+# the function also supports simplification of the subquotient, while retaining the correspondence to 
+# morphisms, which is essential for checking correctness and practical use of the output
 @doc Markdown.doc"""
-  hom(M::Subquotient,N::Subquotient)
+  hom2(M::Subquotient,N::Subquotient)
 > Return a subquotient S such that $Hom(M,N) \cong S$
 """
 function hom2(M::SubQuo{T},N::SubQuo{T},simplify=true) where T
