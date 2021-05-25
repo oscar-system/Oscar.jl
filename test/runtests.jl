@@ -24,6 +24,7 @@ include("Rings/NumberField.jl")
 
 if Oscar.is_dev
   include("Examples/PlaneCurve-test.jl")
+  include("Examples/binomial-ideals-tests.jl")
 end
 
 include("Examples/galois-test.jl")

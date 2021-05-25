@@ -17,6 +17,7 @@ RandomExtensions = "fb686558-2515-59ef-acaa-46db3789a887"
 Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 Singular = "bcd08a7b-43d2-5ff7-b6d4-c458787f915c"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 
 [compat]
 AbstractAlgebra = "0.17.0"

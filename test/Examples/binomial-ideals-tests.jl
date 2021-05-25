@@ -1,3 +1,5 @@
+Oscar.include(joinpath(Oscar.oscardir, "examples", "TranslateBinomial2.jl"))
+
 @testset "Binomial Ideals" begin
   Qxy, (x, y, z, t) = PolynomialRing(FlintQQ, 4)
   I = ideal([x*y, z*t^2-t^3, z^2-y^2])
