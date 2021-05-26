@@ -261,6 +261,7 @@ mutable struct ModuleGens{T}
     end
     r.S = s
     #r.O = Array{FreeModuleElem_dec{S}, 1}(undef, Singular.ngens(s))
+    # TODO lazy
     r.O = [convert(F, s[i]) for i=1:Singular.ngens(s)]
     return r
   end
@@ -534,6 +535,7 @@ function base_ring(M::SubModuleOfFreeModule)
 end
 
 function isfree_module(M::SubModuleOfFreeModule)
+  # TODO no mathematical function, only for show
   m,n = size(M.matrix)
   if m != n 
     return false
@@ -558,6 +560,7 @@ function show(io::IO, M::SubModuleOfFreeModule)
 end
 
 function length(M::SubModuleOfFreeModule)
+  #TODO replace all calls by length(M.gens)
   return length(M.gens)
 end
 
@@ -1576,41 +1579,20 @@ function restrict_domain(H::SubQuoHom, M::SubQuo)
   error("tbd")
 end
 
-#=function Base.inv(H::ModuleMap)
-  # make this also work if (co)domain is FreeMod
+function Base.inv(H::ModuleMap)
   if isdefined(H, :inverse_isomorphism)
     return H.inverse_isomorphism
   end
   @assert isbijective(H)
   N = domain(H)
-  n = ngens(N)
   M = codomain(H)
-  m = ngens(M)
-  R = base_ring(M)
-  mat = zero_matrix(R,0,n)
 
-  # TODO
-  error("tbd")
-
-  for i=1:m 
-    g = M[i]
-    S, injection = preimage_SQ(H, [g], :both)
-    if iszero(S)
-      mat = vcat(mat, zero_matrix(R,1,n))
-      continue
-    end
-    ImS = image(H,S)
-    coeffs = coordinates(g.repres, ImS)
-    g_preimage = dense_row(coeffs, nrows(injection.matrix))*injection.matrix
-    mat = vcat(mat,g_preimage)
-  end
-
-  Hinv = SubQuoHom(codomain(H), domain(H), mat)
+  Hinv = hom(M,N, [preimage(H,m) for m in gens(M)])
   Hinv.inverse_isomorphism = H
   H.inverse_isomorphism = Hinv
 
   return Hinv
-end=#
+end
 
 ##################################################
 # direct product
