@@ -248,6 +248,7 @@ makedocs(bib,
                            ],
 
              "Commutative Algebra" => ["CommutativeAlgebra/ca.md",
+	                               "CommutativeAlgebra/ca_rings.md",
 	                               "CommutativeAlgebra/ca_ideals.md",
 	                               "CommutativeAlgebra/ca_modules.md",
 				       "CommutativeAlgebra/ca_affine_algebras.md",
