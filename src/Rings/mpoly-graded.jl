@@ -52,7 +52,8 @@ end
 
 function decorate(R::MPolyRing)
   A = abelian_group([0])
-  return MPolyRing_dec(R, [1*A[1] for i = 1: ngens(R)], (x,y) -> x[1] < y[1])
+  S = MPolyRing_dec(R, [1*A[1] for i = 1: ngens(R)], (x,y) -> x[1] < y[1])
+  return S, map(R, gens(R))
 end
 
 @doc Markdown.doc"""
@@ -103,7 +104,8 @@ function grade(R::MPolyRing, v::Array{Int, 1})
 end
 function grade(R::MPolyRing)
   A = abelian_group([0])
-  return MPolyRing_dec(R, [1*A[1] for i = 1: ngens(R)])
+  S = MPolyRing_dec(R, [1*A[1] for i = 1: ngens(R)])
+  return S, map(S, gens(R))
 end
 
 filtrate(R::MPolyRing) = decorate(R)
@@ -119,15 +121,25 @@ end
 function filtrate(R::MPolyRing, v::Array{Int, 1})
   A = abelian_group([0])
   Hecke.set_special(A, :show_elem => show_special_elem_grad) 
-  return MPolyRing_dec(R, [i*A[1] for i = v], (x,y) -> x[1] < y[1])
+  S = MPolyRing_dec(R, [i*A[1] for i = v], (x,y) -> x[1] < y[1])
+  return S, map(S, gens(R))
+end
+
+function grade(R::MPolyRing, v::Array{Int, 1})
+  A = abelian_group([0])
+  Hecke.set_special(A, :show_elem => show_special_elem_grad) 
+  S = MPolyRing_dec(R, [i*A[1] for i = v])
+  return S, map(S, gens(R))
 end
 
 function filtrate(R::MPolyRing, v::Array{GrpAbFinGenElem, 1}, lt)
-  return MPolyRing_dec(R, v, lt)
+  S = MPolyRing_dec(R, v, lt)
+  return S, map(S, gens(R))
 end
 
 function grade(R::MPolyRing, v::Array{GrpAbFinGenElem, 1})
-  return MPolyRing_dec(R, v)
+  S = MPolyRing_dec(R, v)
+  return S, map(S, gens(R))
 end
 
 struct MPolyElem_dec{T} <: MPolyElem{T}

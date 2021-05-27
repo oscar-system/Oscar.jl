@@ -63,10 +63,10 @@ end
 
   for R in Rings
     
-    decorated_rings = [decorate(R),
-                     grade(R, [v[i] for i=1:ngens(R)]),
-                     filtrate(R, [v[i] for i=1:ngens(R)]),
-                     grade(R, [GrpElems[i] for i = 1:ngens(R)])]
+    decorated_rings = [decorate(R)[1],
+                     grade(R, [v[i] for i=1:ngens(R)])[1],
+                     filtrate(R, [v[i] for i=1:ngens(R)])[1],
+                     grade(R, [GrpElems[i] for i = 1:ngens(R)])[1]]
 
 
     for (j, RR) in enumerate(decorated_rings)

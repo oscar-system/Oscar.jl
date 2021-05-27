@@ -56,25 +56,25 @@ end
 
     GrpElems = [A(fmpz[1,0,2,1]), A(fmpz[1,1,0,0]), A(fmpz[2,2,1,0])]
 
-    T = grade(Qx)
+    T, _ = grade(Qx)
     @test sprint(show, "text/plain", T(x)//T(1)) isa String
 
     v = [1,1,2]
 
     for R in Rings
-      decorated_rings = [decorate(R),
-                         grade(R, [v[i] for i=1:ngens(R)]),
-                         filtrate(R, [v[i] for i=1:ngens(R)]),
-                         filtrate(R, [GrpElems[i] for i =1:ngens(R)], (x, y) -> x[1]+x[2]+x[3]+x[4] < y[1]+y[2]+y[3]+y[4]),
-                         grade(R, [GrpElems[i] for i =1:ngens(R)])]
+      decorated_rings = [decorate(R)[1],
+                         grade(R, [v[i] for i=1:ngens(R)])[1],
+                         filtrate(R, [v[i] for i=1:ngens(R)])[1],
+                         filtrate(R, [GrpElems[i] for i =1:ngens(R)], (x, y) -> x[1]+x[2]+x[3]+x[4] < y[1]+y[2]+y[3]+y[4])[1],
+                         grade(R, [GrpElems[i] for i =1:ngens(R)])[1]]
     end
 
     for R in Rings
-      decorated_rings = [decorate(R),
-                         grade(R, [v[i] for i=1:ngens(R)]),
-                         filtrate(R, [v[i] for i=1:ngens(R)]),
-                         filtrate(R, [GrpElems[i] for i =1:ngens(R)], (x, y) -> x[1]+x[2]+x[3]+x[4] < y[1]+y[2]+y[3]+y[4]),
-                         grade(R, [GrpElems[i] for i =1:ngens(R)])]
+      decorated_rings = [decorate(R)[1],
+                         grade(R, [v[i] for i=1:ngens(R)])[1],
+                         filtrate(R, [v[i] for i=1:ngens(R)])[1],
+                         filtrate(R, [GrpElems[i] for i =1:ngens(R)], (x, y) -> x[1]+x[2]+x[3]+x[4] < y[1]+y[2]+y[3]+y[4])[1],
+                         grade(R, [GrpElems[i] for i =1:ngens(R)])[1]]
 
       graded_rings = decorated_rings[[2, 5]]
       filtered_rings =  decorated_rings[[1, 3, 4]]

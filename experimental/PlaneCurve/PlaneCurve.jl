@@ -104,7 +104,7 @@ end
 
 ProjPlaneCurve(eq::Oscar.MPolyElem_dec{S}) where {S <: FieldElem} = ProjPlaneCurve{S}(eq)
 function ProjPlaneCurve(eq::Oscar.MPolyElem{S}) where {S <: FieldElem}
-  R = grade(parent(eq))
+  R = grade(parent(eq))[1]
   return ProjPlaneCurve{S}(R(eq))
 end
 
