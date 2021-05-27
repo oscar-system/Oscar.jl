@@ -168,8 +168,8 @@ end
 
 Return a factor of `n`, obtained with the Elliptic Curve Method.
 """
-function ECM(n::Int64; nbcurve::Int64 = 10, multfact::Int64 = 8)
-   A = ResidueRing(ZZ, ZZ(n))
+function ECM(n::fmpz; nbcurve::Int64 = 10, multfact::Int64 = 8)
+   A = ResidueRing(ZZ, n)
    N = nbcurve
    m = multfact
    L = _rand_list(A, N)
