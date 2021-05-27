@@ -373,8 +373,8 @@ end
 end
 
 @testset "Elliptic Curve Method" begin
-	n = Oscar.ECM(4453)
-	@test gcd(n, 4453) == n
+	n = Oscar.ECM(ZZ(4453))
+	@test gcd(n, ZZ(4453)) == n
 
 	A = ResidueRing(ZZ, ZZ(4453))
 	S, (x, y, z) = PolynomialRing(A, ["x", "y", "z"])
