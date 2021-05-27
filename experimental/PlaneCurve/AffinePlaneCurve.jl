@@ -347,7 +347,7 @@ Return the arithmetic genus of the projective closure of `C`.
 """
 function arithmetic_genus(C::AffinePlaneCurve)
    F = defining_equation(C)
-   G = homogenization(F, variable = "vrbl")
+   G = homogenization(F, "vrbl")
    D = ProjPlaneCurve(G)
    return arithmetic_genus(D)
 end
@@ -361,7 +361,7 @@ Return the geometric genus of the projective closure of `C`.
 """
 function geometric_genus(C::AffinePlaneCurve)
    F = defining_equation(C)
-   G = homogenization(F, variable = "vrbl")
+   G = homogenization(F, "vrbl")
    D = ProjPlaneCurve(G)
    return geometric_genus(D)
 end
