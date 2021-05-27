@@ -1179,7 +1179,6 @@ mutable struct SubQuoHom{T1, T2} <: ModuleMap{T1, T2}
   inverse_isomorphism::ModuleMap
 
   function SubQuoHom(D::SubQuo, C::ModuleFP, im::Array{<:Any, 1})
-    first = true
     @assert length(im) == ngens(D)
     @assert all(x-> parent(x) == C, im)
 
@@ -1580,6 +1579,7 @@ function restrict_domain(H::SubQuoHom, M::SubQuo)
 end
 
 function Base.inv(H::ModuleMap)
+  println("Inversing map")
   if isdefined(H, :inverse_isomorphism)
     return H.inverse_isomorphism
   end
@@ -1587,7 +1587,10 @@ function Base.inv(H::ModuleMap)
   N = domain(H)
   M = codomain(H)
 
+  println("hahahahah")
+  println(preimage(H,M[1]))
   Hinv = hom(M,N, [preimage(H,m) for m in gens(M)])
+  println("hohohoho")
   Hinv.inverse_isomorphism = H
   H.inverse_isomorphism = Hinv
 
