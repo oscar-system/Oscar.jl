@@ -41,9 +41,9 @@ function show(io::IO, W::MPolyRing_dec)
   g = gens(R)
   for i = 1:ngens(R)
     if i == ngens(R)
-       print(io, "\t$(g[i]) -> $(W.d[i].coeff)")
+       print(io, "  $(g[i]) -> $(W.d[i].coeff)")
     else  
-       println(io, "\t$(g[i]) -> $(W.d[i].coeff)")
+       println(io, "  $(g[i]) -> $(W.d[i].coeff)")
     end  
   end
 #  println(IOContext(io, :compact => true, ), W.d)
@@ -76,32 +76,29 @@ julia> v = [1, 2, 3]
  2
  3
 
-julia> grade(R, v)
-Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
-	x -> [1]
-	y -> [2]
-	z -> [3]
+julia> R, (x, y, z) = grade(R, v)
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [2]
+  z -> [3], Oscar.MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
 
-
-julia> S = grade(R)
-Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
-	x -> [1]
-	y -> [1]
-	z -> [1]
-
-
-julia> typeof(x)
-fmpq_mpoly
-
-julia> typeof(S(x))
-Oscar.MPolyElem_dec{fmpq}
+julia> S, (x, y, z) = grade(R)
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [2]
+  z -> [3] graded by
+  x -> [1]
+  y -> [1]
+  z -> [1], Oscar.MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
 ```
 """
 function grade(R::MPolyRing, v::Array{Int, 1})
   A = abelian_group([0])
   Hecke.set_special(A, :show_elem => show_special_elem_grad) 
-  return MPolyRing_dec(R, [i*A[1] for i = v])
+  S = MPolyRing_dec(R, [i*A[1] for i = v])
+  return S, map(S, gens(R))
 end
+
 function grade(R::MPolyRing)
   A = abelian_group([0])
   S = MPolyRing_dec(R, [1*A[1] for i = 1: ngens(R)])
@@ -122,13 +119,6 @@ function filtrate(R::MPolyRing, v::Array{Int, 1})
   A = abelian_group([0])
   Hecke.set_special(A, :show_elem => show_special_elem_grad) 
   S = MPolyRing_dec(R, [i*A[1] for i = v], (x,y) -> x[1] < y[1])
-  return S, map(S, gens(R))
-end
-
-function grade(R::MPolyRing, v::Array{Int, 1})
-  A = abelian_group([0])
-  Hecke.set_special(A, :show_elem => show_special_elem_grad) 
-  S = MPolyRing_dec(R, [i*A[1] for i = v])
   return S, map(S, gens(R))
 end
 
