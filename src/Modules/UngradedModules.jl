@@ -295,6 +295,7 @@ function show(io::IO, F::ModuleGens)
 end
 
 length(F::ModuleGens) = length(F.O)
+ngens(F::ModuleGens) = length(F.O)
 
 function getindex(F::ModuleGens, ::Val{:O}, i::Int)
   if !isassigned(F.O, i)
@@ -544,12 +545,12 @@ function isfree_module(M::SubModuleOfFreeModule)
 end
 
 function show(io::IO, M::SubModuleOfFreeModule)
-  if length(M) == 1
-    println(io, "Submodule with ", length(M), " generator")
+  if ngens(M) == 1
+    println(io, "Submodule with ", ngens(M), " generator")
   else
-    println(io, "Submodule with ", length(M), " generators")
+    println(io, "Submodule with ", ngens(M), " generators")
   end
-  for i=1:length(M)
+  for i=1:ngens(M)
     if isassigned(M.gens.O, i)
       println(io, i, " -> ", M[i])
     end
@@ -560,8 +561,12 @@ function show(io::IO, M::SubModuleOfFreeModule)
 end
 
 function length(M::SubModuleOfFreeModule)
-  #TODO replace all calls by length(M.gens)
+  #TODO replace all calls by ngens
   return length(M.gens)
+end
+
+function ngens(M::SubModuleOfFreeModule)
+  return ngens(M.gens)
 end
 
 function gens(M::SubModuleOfFreeModule)
@@ -820,12 +825,12 @@ struct SubQuoElem{T} # this needs to be redone TODO
   parent::SubQuo
 
   function SubQuoElem(v::SRow{R}, SQ::SubQuo) where {R}
-    @assert length(v) <= length(SQ.sub)
+    @assert length(v) <= ngens(SQ.sub)
     if isempty(v)
       r = new{R}(v, zero(SQ.F), SQ)
       return r
     end
-    r = new{R}(v, Base.sum([v[i]*SQ.sub[i] for i=1:length(SQ.sub)]), SQ)
+    r = new{R}(v, Base.sum([v[i]*SQ.sub[i] for i=1:ngens(SQ.sub)]), SQ)
     #r.coeffs = v
     #r.parent = SQ
     #r.repres = sum([v[i]*SQ.F[i] for i=1:ngens(SQ.F)]...)
@@ -939,8 +944,14 @@ function sub(F::FreeMod, s::SubQuo, task::Symbol = :none)
   end
 end
 
-function sub(S::SubQuo, O::Array{<:SubQuoElem, 1}, task::Symbol = :none)
-  @assert all(x -> x.parent === S, O)
+function sub(S::SubQuo, O::Array{<:SubQuoElem, 1}, task::Symbol = :none, check_only_relations = false)
+  if !check_only_relations
+    @assert all(x -> x.parent === S, O)
+  else
+    if length(O) > 0
+      @assert O[1].parent.quo == S.quo
+    end
+  end
   t = SubQuo(S.F, [x.repres for x in O])
   if isdefined(S, :quo)
     t.quo = S.quo
@@ -1051,7 +1062,7 @@ function gen(F::SubQuo, i::Int)
   return SubQuoElem(v, F)
 end
 
-ngens(F::SubQuo) = length(F.sub)
+ngens(F::SubQuo) = ngens(F.sub)
 base_ring(SQ::SubQuo) = base_ring(SQ.F)
 
 zero(SQ::SubQuo) = SubQuoElem(zero(SQ.F), SQ)
@@ -1091,7 +1102,7 @@ function presentation(SQ::SubQuo)
   #TODO: wait for Hans to release Modulo(A, B) that does exactly this
   c = collect(s.sub.gens)
   R = base_ring(SQ)
-  F = FreeMod(R, length(SQ.sub))
+  F = FreeMod(R, ngens(SQ.sub))
   q = elem_type(F)[]
 
   for x = c
@@ -1112,7 +1123,7 @@ function presentation(SQ::SubQuo)
   end
   #want R^a -> R^b -> SQ -> 0
   #TODO sort decoration and fix maps, same decoration should be bundled (to match pretty printing)
-  G = FreeMod(R, length(s.sub))
+  G = FreeMod(R, ngens(s.sub))
   h_G_F = hom(G, F, q)
   h_F_SQ = hom(F, SQ, gens(SQ)) # DO NOT CHANGE THIS LINE, see present and preimage
 
@@ -1180,7 +1191,7 @@ mutable struct SubQuoHom{T1, T2} <: ModuleMap{T1, T2}
 
   function SubQuoHom(D::SubQuo, C::ModuleFP, im::Array{<:Any, 1})
     @assert length(im) == ngens(D)
-    @assert all(x-> parent(x) == C, im)
+    @assert all(x-> parent(x) === C, im)
 
     r = new{SubQuo, typeof(C)}()
     r.header = Hecke.MapHeader(D, C)
@@ -1196,8 +1207,10 @@ mutable struct SubQuoHom{T1, T2} <: ModuleMap{T1, T2}
     @assert ncols(mat) == ngens(C)
     if typeof(C) <: FreeMod
       hom = SubQuoHom(D, C, [FreeModuleElem(sparse_row(mat[i,:]), C) for i=1:ngens(D)])
+      return hom
     else
       hom = SubQuoHom(D, C, [SubQuoElem(sparse_row(mat[i,:]), C) for i=1:ngens(D)])
+      return hom
     end
   end
 end
@@ -1314,11 +1327,11 @@ function image(f::SubQuoHom, a::FreeModuleElem)
   return i=#
 end
 
-function preimage(f::SubQuoHom, a::FreeModuleElem)
+function preimage(f::SubQuoHom, a::Union{SubQuoElem,FreeModuleElem})
   @assert parent(a) == codomain(f)
   D = domain(f)
   i = zero(D)
-  b = coordinates(a, image(f)[1])
+  b = coordinates(typeof(a) <: FreeModuleElem ? a : a.repres, image(f)[1])
   for (p,v) = b
     i += v*gen(D, p)
   end
@@ -1574,12 +1587,17 @@ function restrict_codomain(H::ModuleMap, M::SubQuo)
 end
 
 function restrict_domain(H::SubQuoHom, M::SubQuo)
-  # TODO
-  error("tbd")
+  for i in M.outgoing_morphisms
+    if codomain(i) === domain(H)
+      return i*H
+    end
+  end
+  # else there is no cached map
+  i = sub(domain(H), gens(M), :store, true)[2]
+  return i*H
 end
 
 function Base.inv(H::ModuleMap)
-  println("Inversing map")
   if isdefined(H, :inverse_isomorphism)
     return H.inverse_isomorphism
   end
@@ -1587,10 +1605,7 @@ function Base.inv(H::ModuleMap)
   N = domain(H)
   M = codomain(H)
 
-  println("hahahahah")
-  println(preimage(H,M[1]))
   Hinv = hom(M,N, [preimage(H,m) for m in gens(M)])
-  println("hohohoho")
   Hinv.inverse_isomorphism = H
   H.inverse_isomorphism = Hinv
 
@@ -1651,19 +1666,44 @@ end
 
 function direct_product(G::ModuleFP...; task::Symbol = :none)
   F, pro, mF = direct_product([free_module(x) for x = G]..., task = :both)
-  s = sub(F, vcat([[mF[i](y) for y = gens(G[i], free_module(G[i]))] for i=1:length(G)]...))
+  s, emb_sF = sub(F, vcat([[mF[i](y) for y = gens(G[i], free_module(G[i]))] for i=1:length(G)]...), :both)
   q = vcat([[mF[i](y) for y = rels(G[i])] for i=1:length(G)]...)
+  pro_quo = nothing
   if length(q) != 0
-    s = quo(s, q)
+    s, pro_quo = quo(s, q, :both)
   end
   if task == :none
     return s
-  elseif task == :prod
-    return s, pro
-  elseif task == :sum
-    return s, mF
-  else
-    return s, pro, mF
+  end
+  if task == :prod || task != :sum
+    if pro_quo === nothing
+      for i=1:length(pro)
+        pro[i] = hom(s, G[i], [G[i](pro[i](emb_sF(gen))) for gen in gens(s)])
+      end
+    else
+      for i=1:length(pro)
+        pro[i] = hom(s, G[i], [G[i](pro[i](emb_sF(preimage(pro_quo,gen)))) for gen in gens(s)])
+      end
+    end
+    if task == :prod
+      return s, pro
+    end
+  end
+  if task == :sum || task != :prod
+    if pro_quo === nothing
+      for i=1:length(mF)
+        mF[i] = hom(G[i], s, [preimage(emb_sF, mF[i](typeof(G) <: FreeMod ? g : g.repres)) for g in gens(G[i])])
+      end
+    else
+      for i=1:length(mF)
+        mF[i] = hom(G[i], s, [pro_quo(preimage(emb_sF, mF[i](typeof(G) <: FreeMod ? g : g.repres))) for g in gens(G[i])])
+      end
+    end
+    if task == :sum
+      return s, mF
+    else
+      return s, pro, mF
+    end
   end
 end
 ⊕(M::ModuleFP...) = direct_product(M..., task = :none)
