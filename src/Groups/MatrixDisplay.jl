@@ -26,7 +26,7 @@ export labelled_matrix_formatted
 # `lpad` is wrong for example for strings containing overlined characters,
 # such as "A̅".
 # (This had been observed already by Jean Michel.
-# See https://github.com/JuliaLang/julia/issues/38256,
+# See https://github.com/JuliaLang/julia/pull/39044,
 # a fix seems to be not far away.)
 mylpad(s::String,n::Int) = " "^(n-textwidth(s))*s
 
@@ -119,7 +119,9 @@ julia> mat
  "(2, 1)"  "(2, 2)"  "(2, 3)"  "(2, 4)"
  "(3, 1)"  "(3, 2)"  "(3, 3)"  "(3, 4)"
 
-julia> io = IOContext(stdout,
+julia> io = IOBuffer();   # simply using `stdout` does not work in doctests
+
+julia> ioc = IOContext(io,
               :header => ["", "a labelled matrix", ""],
               :labels_row => [string(i) for i in 1:m],
               :labels_col => [string(j) for j in 1:n],
@@ -128,7 +130,9 @@ julia> io = IOContext(stdout,
               :footer => ["", "with footer"],
              );
 
-julia> labelled_matrix_formatted( io, mat )
+julia> labelled_matrix_formatted(ioc, mat)
+
+julia> print(String(take!(io)))
 
 a labelled matrix
 
@@ -140,7 +144,7 @@ a labelled matrix
 
 with footer
 
-julia> io = IOContext(stdout,
+julia> ioc = IOContext(io,
               :labels_row => [string(i) for i in 1:m],
               :labels_col => [string(j) for j in 1:n],
               :separators_row => [0],
@@ -149,7 +153,9 @@ julia> io = IOContext(stdout,
               :portions_col => [2,2],
              );
 
-julia> labelled_matrix_formatted( io, mat )
+julia> labelled_matrix_formatted(ioc, mat)
+
+julia> print(String(take!(io)))
  │     1      2
 ─┼─────────────
 1│(1, 1) (1, 2)
