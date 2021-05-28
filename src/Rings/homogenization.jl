@@ -11,7 +11,7 @@ export dehomogenization, homogenization
 
 Return the polynomial obtained by dehomogenization of `F` with respect to the `i`th variable of `parent(F)`. The new polynomial is in `r` if specified, or in a new ring with one variable less otherwise.
 """
-function dehomogenization(r::MPolyRing{S}, F::Oscar.MPolyElem_dec{S}, i::Int) where S <: FieldElem
+function dehomogenization(r::MPolyRing{T}, F::Oscar.MPolyElem_dec{T, S}, i::Int) where {S, T <: FieldElem}
   @assert ishomogenous(F)
   R = parent(F)
   nvars(R) -1 == nvars(r) || error("Incompatible number of variables")
