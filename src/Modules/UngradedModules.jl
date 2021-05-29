@@ -260,9 +260,6 @@ mutable struct ModuleGens{T}
       r.SF = parent(s[1])
     end
     r.S = s
-    #r.O = Array{FreeModuleElem_dec{S}, 1}(undef, Singular.ngens(s))
-    # TODO lazy
-    r.O = [convert(F, s[i]) for i=1:Singular.ngens(s)]
     return r
   end
 end
@@ -271,6 +268,9 @@ end
 function Base.getproperty(M::ModuleGens, s::Symbol)
   if s == :S
     singular_assure(M)
+    return getfield(M, s)
+  elseif s == :O
+    oscar_assure(M)
     return getfield(M, s)
   else
     return getfield(M,s)
@@ -313,10 +313,8 @@ end
 
 # fill in the OSCAR side, given the Singular side
 function oscar_assure(F::ModuleGens)
-  for i=1:length(F)
-    if !isassigned(F.O, i)
-      F.O[i] = convert(F.F, F.S[i])
-    end
+  if !isdefined(F, :O)
+    F.O = [convert(F.F, F.S[i]) for i=1:Singular.ngens(F.S)]
   end
 end
 
