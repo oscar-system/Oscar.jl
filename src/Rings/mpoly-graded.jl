@@ -745,7 +745,7 @@ function homogenization(f::MPolyElem, var::String, pos::Int = 1)
   end
   insert!(A, pos, var)
   L, _ = PolynomialRing(R.base_ring, A)
-  S = grade(L)
+  S, = grade(L)
   return homogenization(f, S, pos)
 end
 function homogenization(V::Vector{T}, var::String, pos::Int = 1) where {T <: MPolyElem}
@@ -758,7 +758,7 @@ function homogenization(V::Vector{T}, var::String, pos::Int = 1) where {T <: MPo
   end
   insert!(A, pos, var)
   L, _ = PolynomialRing(R.base_ring, A)
-  S = grade(L)
+  S, = grade(L)
   l = length(V)
   return [homogenization(V[i], S, pos) for i=1:l]
 end
