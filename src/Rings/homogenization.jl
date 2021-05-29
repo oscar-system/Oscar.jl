@@ -21,15 +21,6 @@ function dehomogenization(r::MPolyRing{T}, F::Oscar.MPolyElem_dec{T, S}, i::Int)
   return phi(F.f)
 end
 
-################################################################################
-# dehomogenization without specifying the ring with repect to the specified variable
-
-function dehomogenization(F::Oscar.MPolyElem_dec, i::Int)
-  R = parent(F)
-  A = String.(symbols(R))
-  r = PolynomialRing(R.R.base_ring, deleteat!(A, i))
-  dehomogenization(r[1], F, i)
-end
 
 ################################################################################
 # non decorated version
