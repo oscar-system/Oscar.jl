@@ -152,9 +152,10 @@ end
 
 @testset "Groebner" begin
   R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-  I = ideal([2*x+3*y+4*z-5,3*x+4*y+5*z-2])
-  @test groebner_basis(I,:degrevlex) == [y+2*z-11, 3*x+4*y+5*z-2]
-  @test groebner_basis(I,:degrevlex, complete_reduction = true) == [y+2*z-11, x-z+14]
+  I = ideal([x+y^2+4*z-5,x+y*z+5*z-2])
+  @test groebner_basis(I,ord=:lex) == [y^2 - y*z - z - 3, x + y*z + 5*z - 2]
+  @test groebner_basis(I,ord=:degrevlex, complete_reduction = true) == [x + y*z + 5*z - 2, x + y^2 + 4*z - 5, x*y - x*z - 5*x - 2*y - 4*z^2 - 20*z + 10, x^2 + x*z^2 + 10*x*z - 4*x + 4*z^3 + 20*z^2 - 20*z + 4]
+
 
 end
 
