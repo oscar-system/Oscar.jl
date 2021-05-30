@@ -35,11 +35,7 @@ normal_form(A::Array{T, 1}, J::MPolyIdeal) where { T <: MPolyElem }
 ### Computing Gröbner Bases
 
 ```@docs
-groebner_basis(I::MPolyIdeal)
-```
-
-```@docs
-groebner_basis(I::MPolyIdeal, ord::Symbol; complete_reduction::Bool=false)
+groebner_basis(I::MPolyIdeal; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
 ```
 
 #### Gröbner Bases with transformation matrix
