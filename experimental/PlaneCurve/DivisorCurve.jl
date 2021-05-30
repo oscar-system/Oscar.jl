@@ -383,7 +383,7 @@ function _qquotient(I::Oscar.MPolyIdeal, J::Oscar.MPolyIdeal, Q::Oscar.MPolyIdea
    II = I + Q
    JJ = J + Q
    Q1 = quotient(II, JJ)
-   B = groebner_basis(Q, :lex, complete_reduction = true)
+   B = groebner_basis(Q, ord = :lex, complete_reduction = true)
    r = divrem(gens(Q1), B)
    arr = [r[i][2] for i in 1:length(r)]
    return ideal(R, arr)
@@ -441,7 +441,7 @@ function _global_sections_helper(I::Oscar.MPolyIdeal, J::Oscar.MPolyIdeal, Q::Os
    Q1 = _qquotient(fJ, Ip, Q)
    P = _purify1(Q1, Q)
    B = _basis(P, total_degree(f))
-   BQ = groebner_basis(Q, :lex, complete_reduction = true)
+   BQ = groebner_basis(Q, ord = :lex, complete_reduction = true)
    r = divrem(gens(B), BQ)
    arr = [r[i][2] for i in 1:length(r)]
    LD = ideal(R, arr)

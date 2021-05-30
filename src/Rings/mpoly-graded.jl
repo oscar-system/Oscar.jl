@@ -760,7 +760,7 @@ function homogenization(V::Vector{T}, var::String, pos::Int = 1) where {T <: MPo
   return [homogenization(V[i], S, pos) for i=1:l]
 end
 function homogenization(I::MPolyIdeal{T}, var::String, pos::Int = 1; ordering::Symbol = :degrevlex) where {T <: MPolyElem}
-  return ideal(homogenization(groebner_basis(I, ordering), var, pos))
+  return ideal(homogenization(groebner_basis(I, ord=ordering), var, pos))
 end
 
 function dehomogenization(F::MPolyElem_dec, R::MPolyRing, pos::Int)
