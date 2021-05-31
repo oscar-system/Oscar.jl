@@ -1,5 +1,6 @@
 import Oscar.Singular.lib4ti2_jll
-
+export isbinomial, iscellular, binomial_primary_decomposition, 
+       cellular_decomposition
 """
     isbinomial(f::MPolyElem)
 
@@ -70,7 +71,7 @@ function _iscellular(I::MPolyIdeal)
   end
 
   #compute product of ring variables in Delta
-  prodRingVar = prod(variables[i] for i in Delta; init = one(Rxy))
+  prodRingVar = reduce(*, variables[i] for i in Delta; init = one(Rxy))
   prodRingVarIdeal = ideal(Rxy, prodRingVar)
   J = saturation(I, prodRingVarIdeal)
 
@@ -244,7 +245,7 @@ function cellular_decomposition_macaulay(I::MPolyIdeal)
         #under consideration
         J2 = L[3] + ideal(R, [i^k])
         #compute product of all variables in L[1]
-        r = prod(L[1], init = one(R))
+        r = reduce(*, L[1], init = one(R))
         J2 = saturation(J2, ideal(R, r))
         if !isone_easy(J2) || !isone(J2)
           #we have to decompose J2 further
