@@ -108,8 +108,8 @@ function curve_intersect(PP::Oscar.Geometry.ProjSpc{S}, C::ProjectivePlaneCurve{
   end
   Pts = []
   r, (X, Y) = PolynomialRing(R.R.base_ring, ["X", "Y"])
-  Fa = dehomogenization(r, F, 3)
-  Ha = dehomogenization(r, H, 3)
+  Fa = dehomogenization(F, r, 3)
+  Ha = dehomogenization(H, r, 3)
   if !isconstant(Fa) && !isconstant(Ha)
      Ca = AffinePlaneCurve(Fa)
      Da = AffinePlaneCurve(Ha)
@@ -324,8 +324,8 @@ Returns the tangent lines at `P` to `C` with their multiplicity.
 # helping function for intersection_multiplicity
 
 function _dehom_curves_r(r::MPolyRing, C::ProjectivePlaneCurve, D::ProjectivePlaneCurve, i::Int)
-  F = dehomogenization(r, C.eq, i)
-  G = dehomogenization(r, D.eq, i)
+  F = dehomogenization(C.eq, r, i)
+  G = dehomogenization(D.eq, r, i)
   return [AffinePlaneCurve(F), AffinePlaneCurve(G)]
 end
 
