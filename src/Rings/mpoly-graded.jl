@@ -76,14 +76,14 @@ julia> v = [1, 2, 3]
  2
  3
 
-> julia> S, (x, y, z) = grade(R, v)
-> (Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
+julia> S, (x, y, z) = grade(R, v)
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
   x -> [1]
   y -> [2]
   z -> [3], Oscar.MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
 
-> julia> T, (x, y, z) = grade(R)
-> (Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
+julia> T, (x, y, z) = grade(R)
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
   x -> [1]
   y -> [1]
   z -> [1], Oscar.MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
