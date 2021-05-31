@@ -97,6 +97,12 @@ typeof(g)
 ```
 
 ```@repl oscar
+v = ["x[1]", "x[2]"]
+T, x = PolynomialRing(GF(3), v)
+x
+```
+
+```@repl oscar
 R, x = PolynomialRing(QQ, 2, "x");
 x
 x1
