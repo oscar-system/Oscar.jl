@@ -1,11 +1,11 @@
 using Oscar
 using Test
 using Debugger
-#= using GAP =#
+using GAP
 
-#= include("Polytopes/runtests.jl")
- =
- = include("GAP/runtests.jl") =#
+include("Polytopes/runtests.jl")
+
+include("GAP/runtests.jl")
 
 include("Rings/integer-test.jl")
 include("Rings/rational-test.jl")
@@ -18,9 +18,9 @@ include("Rings/MPolyQuo_test.jl")
 include("Rings/FractionalIdeal-test.jl")
 include("Rings/mpoly_affine_algebras_test.jl")
 include("Rings/slpolys-test.jl")
-#= include("Polymake/nmbthy-test.jl")
- = include("Groups/runtests.jl")
- = include("Rings/NumberField.jl") =#
+include("Polymake/nmbthy-test.jl")
+include("Groups/runtests.jl")
+include("Rings/NumberField.jl")
 
 if Oscar.is_dev
   include("Examples/PlaneCurve-test.jl")
