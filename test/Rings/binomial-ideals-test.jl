@@ -1,5 +1,5 @@
 @testset "Binomial Ideals" begin
-  Oscar.include(joinpath(Oscar.oscardir, "src/Rings/binomial_ideals.jl"))
+  
   @testset "Binomial and unital test" begin
     R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
     f = x+y

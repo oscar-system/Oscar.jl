@@ -22,9 +22,10 @@ include("Groups/runtests.jl")
 include("Rings/NumberField.jl")
 
 if Oscar.is_dev
-  include("Examples/binomial-ideals-tests.jl")
   include("Examples/PlaneCurve-test.jl")
 end
+
+include("Rings/binomial-ideals-test.jl")
 
 include("Examples/galois-test.jl")
 include("Examples/ModStdQt-test.jl")
