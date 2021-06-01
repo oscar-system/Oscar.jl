@@ -1,6 +1,5 @@
 using Oscar
 using Test
-using Debugger
 using GAP
 
 include("Polytopes/runtests.jl")
