@@ -54,7 +54,7 @@ function _iscellular(I::MPolyIdeal)
   #index of a variable which is a zerodivisor but not nilpotent modulo I
   if iszero(I)
     return false, Int[-1]
-  elseif isone_easy(I) && isone(I)
+  elseif isone(I)
     return false, Int[-1]
   end
   Delta = Int64[]
@@ -65,7 +65,7 @@ function _iscellular(I::MPolyIdeal)
   for i = 1:ngens(Rxy)
     J = ideal(Rxy, variables[i])
     sat = saturation(I, J)
-    if !isone_easy(sat) || !isone(sat)
+    if !isone(sat)
       push!(Delta, i)
     end
   end
@@ -247,13 +247,13 @@ function cellular_decomposition_macaulay(I::MPolyIdeal)
         #compute product of all variables in L[1]
         r = reduce(*, L[1], init = one(R))
         J2 = saturation(J2, ideal(R, r))
-        if !isone_easy(J2) || !isone(J2)
+        if !isone(J2)
           #we have to decompose J2 further
           push!(todo, (copy(L[1]), L2, J2))
         end
       end
       #continue with the next variable and add i to L[1]
-      if !isone_easy(J) || !isone(J)
+      if !isone(J)
         L1 = copy(L[1])
         push!(L1, i)
         push!(todo, (L[1], L2, J))
@@ -352,7 +352,7 @@ function _make_binomials(P::QabModule.PartialCharacter, R::MPolyRing)
       end
     end
     #the new generator for the ideal is monomial1-P.b[k]*monomial2
-    I += ideal(R, monomial1-(coeff(P.b[k].data, 0))*monomial2)
+    I += ideal(R, monomial1-P.b[k]*monomial2)
   end
   return I
 end
@@ -541,7 +541,7 @@ end
 #
 ###################################################################################
 
-function cellular_associated_primes(I::MPolyIdeal)
+function cellular_associated_primes(I::MPolyIdeal{fmpq_mpoly}, RQab::MPolyRing = PolynomialRing(QabModule.QabField(), nvars(base_ring(I)))[1])
   #input: cellular binomial ideal
   #output: the set of associated primes of I
 
@@ -553,30 +553,33 @@ function cellular_associated_primes(I::MPolyIdeal)
     error("Input ideal is not cellular")
   end
 
-  associated_primes = Vector{typeof(I)}()  #this will hold the set of associated primes of I
+  associated_primes = Vector{MPolyIdeal{Generic.MPoly{QabModule.QabElem}}}()  #this will hold the set of associated primes of I
   R = base_ring(I)
-  Variables = gens(R)
+  
   U = cellular_standard_monomials(I)  #set of standard monomials
 
   #construct the ideal (x_i \mid i \in \Delta^c)
-  gi = elem_type(R)[Variables[i] for i = 1:nvars(R) if !(i in cell[2])]
+  
+  Variables = gens(RQab)
+  gi = elem_type(RQab)[Variables[i] for i = 1:nvars(R) if !(i in cell[2])]
   if isempty(gi)
-    push!(gi, zero(R))
+    push!(gi, zero(RQab))
   end
-  idealDeltaC = ideal(R, gi)
-
+  idealDeltaC = ideal(RQab, gi)
+  
   for m in U
     Im = quotient(I, ideal(R, m))
     Pm = partial_character_from_ideal(Im, R)
     #now compute all saturations of the partial character Pm
     PmSat = QabModule.saturations(Pm)
     for P in PmSat
-      push!(associated_primes, ideal_from_character(P, R) + idealDeltaC)
+      new_id = ideal_from_character(P, RQab) + idealDeltaC
+      push!(associated_primes, new_id)
     end
   end
 
   #now check if there are superflous elements in Ass
-  res = Vector{typeof(I)}() 
+  res = typeof(associated_primes)() 
   for i = 1:length(associated_primes)
     found = false
     for j = 1:length(res)
@@ -592,7 +595,7 @@ function cellular_associated_primes(I::MPolyIdeal)
   return res
 end
 
-function cellular_minimal_associated_primes(I::MPolyIdeal)
+function cellular_minimal_associated_primes(I::MPolyIdeal{fmpq_mpoly})
   #input: cellular unital ideal
   #output: the set of minimal associated primes of I
 
@@ -605,16 +608,17 @@ function cellular_minimal_associated_primes(I::MPolyIdeal)
   end
   R = base_ring(I)
   P = partial_character_from_ideal(I, R)
+  RQab = PolynomialRing(QabField(), nvars(R))
   PSat = QabModule.saturations(P)
-  minimal_associated = Vector{typeof(I)}() #this will hold the set of minimal associated primes
+  minimal_associated = Vector{MPolyIdeal{Generic.MPoly{QabModule.QabElem}}}() #this will hold the set of minimal associated primes
 
   #construct the ideal (x_i \mid i \in \Delta^c)
   Variables = gens(R)
   gs = [Variables[i] for i = 1:nvars(R) if !(i in cell[2])]
-  idealDeltaC = ideal(R, gs)
+  idealDeltaC = ideal(RQab, gs)
 
   for Q in PSat
-    push!(minimal_associated, ideal_from_character(Q, R)+idealDeltaC)
+    push!(minimal_associated, ideal_from_character(Q, RQab)+idealDeltaC)
   end
   return minimal_associated
 end
@@ -643,7 +647,7 @@ end
 #
 ###################################################################################
 
-function cellular_primary_decomposition(I::MPolyIdeal)    
+function cellular_primary_decomposition(I::MPolyIdeal, RQab::MPolyRing = PolynomialRing(QabModule.QabField(), nvars(base_ring(I)))[1])    
   #algorithm from macaulay2
   #input: unital cellular binomial ideal in k[x]
   #output: binomial primary ideals which form a minimal primary decomposition of I 
@@ -659,22 +663,25 @@ function cellular_primary_decomposition(I::MPolyIdeal)
   end
 
   #compute associated primes
-  cell_ass = cellular_associated_primes(I)
-  cell_primary = typeof(I)[]     #this will hold the set of primary components
+  cell_ass = cellular_associated_primes(I, RQab)
+
+  Qab = base_ring(RQab)
+  IQab = ideal(RQab, [map_coefficients(Qab, x, parent = RQab) for x in gens(I)])
 
   #compute product of all non cellular variables and the product of all cell variables
   R = base_ring(I)
-  Variables = gens(R)
-  prodDeltaC = elem_type(R)[Variables[i] for i = 1:nvars(R) if !(i in cell[2])]
-  prodDelta = elem_type(R)[Variables[i] for i in cell[2]]
+  Variables = gens(RQab)
+  prodDeltaC = elem_type(RQab)[Variables[i] for i = 1:nvars(R) if !(i in cell[2])]
+  prodDelta = elem_type(RQab)[Variables[i] for i in cell[2]]
 
-  J = ideal(R, prodDelta)
-  res = Vector{Tuple{typeof(I), typeof(I)}}()
+  J = ideal(RQab, prodDelta)
+  T = MPolyIdeal{Generic.MPoly{QabModule.QabElem}}
+  res = Vector{Tuple{T, T}}()
   for P in cell_ass
     if isempty(prodDeltaC)
-      helpIdeal = I + P
+      helpIdeal = IQab + P
     else
-      helpIdeal = I + eliminate(P, prodDeltaC)
+      helpIdeal = IQab + eliminate(P, prodDeltaC)
     end
     #now saturate the ideal with respect to the cellular variables
     helpIdeal = saturation(helpIdeal, J)
@@ -693,10 +700,13 @@ function binomial_primary_decomposition(I::MPolyIdeal)
   #first compute a cellular decomposition of I
   cell_comps = cellular_decomposition_macaulay(I)
 
-  res = Vector{Tuple{typeof(I), typeof(I)}}() #This will hold the set of primary components
+  T = MPolyIdeal{Generic.MPoly{QabModule.QabElem}}
+  res = Vector{Tuple{T, T}}() #This will hold the set of primary components
   #now compute a primary decomposition of each cellular component
+  Qab = QabModule.QabField()
+  RQab = PolynomialRing(Qab, nvars(base_ring(I)))[1]
   for J in cell_comps
-    resJ = cellular_primary_decomposition(J)
+    resJ = cellular_primary_decomposition(J, RQab)
     append!(res, resJ)
   end
   return _remove_redundancy(res)

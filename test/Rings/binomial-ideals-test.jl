@@ -40,20 +40,35 @@
   @testset "Binomial primary decomposition" begin
     Qxy, (x, y, z, t) = PolynomialRing(FlintQQ, 4)
     I = ideal(elem_type(Qxy)[x*y, z*t^2-t^3, z^2-y^2])
-    lP = Oscar.primary_decomposition(I)
-    lP1 = Oscar.binomial_primary_decomposition(I)
-    @test length(lP) == length(lP1)
-    for x in lP
-      @test x in lP1
+    lP = Oscar.binomial_primary_decomposition(I)
+    
+    J = lP[1][1]
+    for i = 2:length(lP)
+      J = intersect(J, lP[i][1])
     end
+    RQab = base_ring(J)
+    Qab = base_ring(RQab)
+    x, y, z, t = gens(RQab) 
+    IQab = ideal([x*y, z*t^2-t^3, z^2-y^2])
+    @test IQab == J
+    
 
     I = Oscar.birth_death_ideal(2, 1)
     lP = Oscar.primary_decomposition(I)
     lP1 = Oscar.binomial_primary_decomposition(I)
     @test length(lP) == length(lP1)
+    RQab = base_ring(lP1[1][1])
+    Qab = base_ring(RQab)
     for x in lP
-      @test x in lP1
+      y = ideal(RQab, [map_coefficients(Qab, p, parent = RQab) for p in gens(x[1])])
+      z = ideal(RQab, [map_coefficients(Qab, p, parent = RQab) for p in gens(x[2])])
+      @test (y, z) in lP1
     end
+    
+    R, x = PolynomialRing(QQ, "x"=>1:3)
+    I = ideal(R, [x[3]^2*(x[1]^2-x[2]^2), x[3]*(x[1]^4-x[2]^4), x[3]^3])
+    @test length(Oscar.binomial_primary_decomposition(I)) == 5
+
   end
 
 end
