@@ -211,7 +211,6 @@ include("Rings/affine-algebra-homs.jl")
 include("Rings/mpoly-affine-algebras.jl")
 include("Rings/mpoly-graded.jl")
 include("Rings/mpoly-local.jl")
-include("Rings/homogenization.jl")
 include("Rings/FinField.jl")
 include("Rings/NumberField.jl")
 
@@ -229,7 +228,8 @@ include("../StraightLinePrograms/src/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl")
 include("Rings/slpolys.jl")
 
-#include("../experimental/Experimental.jl")
+include("../experimental/Experimental.jl")
+include("Rings/binomial_ideals.jl")
 
 if is_dev
 #  include("../examples/ModStdNF.jl")

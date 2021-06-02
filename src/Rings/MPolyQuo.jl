@@ -225,10 +225,18 @@ function check_parent(a::MPolyQuoElem, b::MPolyQuoElem)
 end
 
 +(a::MPolyQuoElem, b::MPolyQuoElem) = check_parent(a, b) && MPolyQuoElem(a.f+b.f, a.P)
+
 -(a::MPolyQuoElem, b::MPolyQuoElem) = check_parent(a, b) && MPolyQuoElem(a.f-b.f, a.P)
+
 -(a::MPolyQuoElem) = MPolyQuoElem(-a.f, a.P)
-*(a::MPolyQuoElem, b::MPolyQuoElem) = check_parent(a, b) && MPolyQuoElem(a.f*b.f, a.P)
-^(a::MPolyQuoElem, b::Base.Integer) = MPolyQuoElem(Base.power_by_squaring(a.f, b), a.P)
+
+*(a::MPolyQuoElem, b::MPolyQuoElem) = check_parent(a, b) && simplify(MPolyQuoElem(a.f*b.f, a.P))
+
+^(a::MPolyQuoElem, b::Base.Integer) = simplify(MPolyQuoElem(Base.power_by_squaring(a.f, b), a.P))
+
+#*(a::MPolyQuoElem, b::MPolyQuoElem) = check_parent(a, b) && MPolyQuoElem(a.f*b.f, a.P)
+#
+#^(a::MPolyQuoElem, b::Base.Integer) = MPolyQuoElem(Base.power_by_squaring(a.f, b), a.P)
 
 function Oscar.mul!(a::MPolyQuoElem, b::MPolyQuoElem, c::MPolyQuoElem)
   a.f = b.f*c.f
@@ -421,7 +429,8 @@ function sparse_row(R::MPolyRing, M::Singular.svector{<:Singular.spoly}, U::Unit
     end
     push_term!(v[i], base_ring(R)(c), e)
   end
-  sparse_row(R, [(k,finish(v)) for (k,v) = v])
+  pos_value_vector::Vector{Tuple{Int, elem_type(R)}} = [(k,finish(v)) for (k,v) = v]
+  return sparse_row(R, pos_value_vector)
 end
 
 """

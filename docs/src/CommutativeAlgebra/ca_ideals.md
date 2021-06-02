@@ -166,6 +166,16 @@ eliminate(I::MPolyIdeal, lv::Array{MPolyElem, 1})
 
 ## Tests on Ideals
 
+### Basic Tests
+
+```@docs
+iszero(I::MPolyIdeal)
+```
+
+```@docs
+isone(I::MPolyIdeal)
+```
+
 ### Equality of Ideals
 
 ```@docs

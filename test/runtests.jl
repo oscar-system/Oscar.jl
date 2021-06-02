@@ -17,7 +17,6 @@ include("Rings/MPolyQuo_test.jl")
 include("Rings/FractionalIdeal-test.jl")
 include("Rings/mpoly_affine_algebras_test.jl")
 include("Rings/slpolys-test.jl")
-include("Rings/homogenization-test.jl")
 include("Polymake/nmbthy-test.jl")
 include("Groups/runtests.jl")
 include("Rings/NumberField.jl")
@@ -26,9 +25,12 @@ if Oscar.is_dev
   include("Examples/PlaneCurve-test.jl")
 end
 
+include("Rings/binomial-ideals-test.jl")
+
 include("Examples/galois-test.jl")
 include("Examples/ModStdQt-test.jl")
 include("Examples/ModStdNF-test.jl")
 
 include("Modules/FreeModules-graded-test.jl")
 include("Modules/GradedModules.jl")
+include("Modules/UngradedModules.jl")

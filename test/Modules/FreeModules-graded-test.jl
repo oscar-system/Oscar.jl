@@ -63,10 +63,10 @@ end
 
   for R in Rings
     
-    decorated_rings = [decorate(R),
-                     grade(R, [v[i] for i=1:ngens(R)]),
-                     filtrate(R, [v[i] for i=1:ngens(R)]),
-                     grade(R, [GrpElems[i] for i = 1:ngens(R)])]
+    decorated_rings = [decorate(R)[1],
+                     grade(R, [v[i] for i=1:ngens(R)])[1],
+                     filtrate(R, [v[i] for i=1:ngens(R)])[1],
+                     grade(R, [GrpElems[i] for i = 1:ngens(R)])[1]]
 
 
     for (j, RR) in enumerate(decorated_rings)
@@ -218,7 +218,9 @@ end
           for s = 1:3
             deg = []
             for t = 1:3
-              push!(deg, degree(Hom_SubQuoElems[s][t]).coeff - degree(gen(SubQuos[w[s]], t)).coeff)
+              #push!(deg, degree(Hom_SubQuoElems[s][t]).coeff - degree(gen(SubQuos[w[s]], t)).coeff)
+              push!(deg, (iszero(Hom_SubQuoElems[s][t]) ? id(G).coeff : degree(Hom_SubQuoElems[s][t]).coeff) -
+                    (iszero(gen(SubQuos[w[s]], t)) ? id(G).coeff : degree(gen(SubQuos[w[s]], t)).coeff))
             end
             m = [max(deg[1][l], deg[2][l], deg[3][l]) for l = 1:3]
             push!(Image, [((gen(F.R, 2) * gen(F.R, 3))^(m[1] - deg[t][1]) * gen(F.R, 2)^(m[2] - deg[t][2]) * (gen(F.R, 1) * gen(F.R, 2)^2)^(m[3] - deg[t][3])) * Hom_SubQuoElems[s][t]  for t = 1:3])
