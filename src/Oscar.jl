@@ -228,7 +228,8 @@ include("../StraightLinePrograms/src/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl")
 include("Rings/slpolys.jl")
 
-#include("../experimental/Experimental.jl")
+include("../experimental/Experimental.jl")
+include("Rings/binomial_ideals.jl")
 
 if is_dev
 #  include("../examples/ModStdNF.jl")
