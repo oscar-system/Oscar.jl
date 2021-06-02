@@ -1294,7 +1294,6 @@ function coordinates(a::FreeModuleElem, SQ::SubQuo)
     error("elem not in module")
   end
   Rx = base_ring(SQ)
-  R = base_ring(Rx)
   return sparse_row(Rx, s[1], 1:ngens(SQ))
 end
 

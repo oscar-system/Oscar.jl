@@ -429,7 +429,8 @@ function sparse_row(R::MPolyRing, M::Singular.svector{<:Singular.spoly}, U::Unit
     end
     push_term!(v[i], base_ring(R)(c), e)
   end
-  sparse_row(R, [(k,finish(v)) for (k,v) = v])
+  pos_value_vector::Vector{Tuple{Int, elem_type(R)}} = [(k,finish(v)) for (k,v) = v]
+  return sparse_row(R, pos_value_vector)
 end
 
 """

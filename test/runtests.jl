@@ -31,3 +31,4 @@ include("Examples/ModStdNF-test.jl")
 
 include("Modules/FreeModules-graded-test.jl")
 include("Modules/GradedModules.jl")
+include("Modules/UngradedModules.jl")
