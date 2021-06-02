@@ -116,7 +116,7 @@ julia> H = groebner_basis(I, ordering=:lex)
 3-element Array{fmpq_mpoly,1}:
  y^4 - 3*y^3
  x*y - 3*x
- -1//6*y^3 + x^2
+ -y^3 + 6*x^2
 ```
 """
 function groebner_basis(I::MPolyIdeal; ordering::Symbol = :degrevlex, complete_reduction::Bool = false)
@@ -351,7 +351,7 @@ julia> Oscar.normal_form_internal(I,J)
 function normal_form_internal(I::Singular.sideal, J::MPolyIdeal)
     singular_assure(J)
     if !isdefined(J, :gb)
-        groebner_basis(J)
+        groebner_assure(J)
     end
     K = ideal(base_ring(J), reduce(I, J.gb.S))
     return [J.gens.Ox(x) for x = gens(K.gens.S)]
