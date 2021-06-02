@@ -89,6 +89,7 @@ end
 
 
 #=@testset "Test kernel" begin
+	# This test doesn't terminate due to a bug in syz
 
 	# over Integers
 	R, (x,y,z) = PolynomialRing(ZZ, ["x", "y", "z"])
@@ -381,6 +382,7 @@ end
 # testing lift ?
 
 @testset "homomorphism testing" begin
+	# This test doesn't terminate due to a bug in syz
 	R, (x,y) = PolynomialRing(QQ, ["x", "y"])
 	k_max = 10
 	for k=1:k_max
