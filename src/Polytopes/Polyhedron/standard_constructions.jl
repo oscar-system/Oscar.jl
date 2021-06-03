@@ -200,4 +200,4 @@ Arguments:
 - `d::Int`: the dimension
 - `n::Int`: the number of vertices
 """
-upper_bound_theorem(d::Int,n::Int) = Polymake.polytope.upper_bound_theorem(d,n)
+upper_bound_theorem(d::Int,n::Int) = Polyhedron(Polymake.polytope.upper_bound_theorem(d,n))
