@@ -194,7 +194,7 @@ archimedean_solid(s::String) = Polyhedron(Polymake.polytope.archimedean_solid(s)
 
 @doc Markdown.doc"""
 
-   upper_bound_theorem(d::Int,n::Int)
+    upper_bound_theorem(d::Int, n::Int)
 
 Returns a polyhedron which contains the combinatioral data shared by all
 simplicial d-polytopes with n vertices with the maximal number of facets as
