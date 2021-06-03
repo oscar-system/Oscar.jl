@@ -15,10 +15,6 @@ function Oscar.singular_ring(F::AnticNumberField)
   return Singular.CoefficientRing(F)
 end
 
-function (b::AnticNumberField)(a::Singular.n_unknown{nf_elem})
-  Singular.libSingular.julia(Singular.libSingular.cast_number_to_void(a.ptr))
-end
-
 function stdhilb(I::Singular.sideal, h::Array{Int32, 1}; complete_reduction::Bool=false)
   R = base_ring(I)
 #  @show "stdhilb", I

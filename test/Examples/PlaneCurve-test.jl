@@ -105,7 +105,7 @@ end
 
 @testset "ProjPlaneCurve constructors" begin
     R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
-    T = grade(R)
+    T = grade(R)[1]
 	F = T(y^3*x^6 - y^6*x^2*z)
     C = Oscar.ProjPlaneCurve(F)
 
@@ -121,7 +121,7 @@ end
 
 @testset "ProjPlaneCurve reducible functions" begin
     R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
-    T = grade(R)
+    T = grade(R)[1]
     F = Oscar.ProjPlaneCurve(T(x^2+y^2))
     P = Oscar.Point([QQ(0), QQ(0), QQ(1)])
 
@@ -145,7 +145,7 @@ end
 
 @testset "ProjPlaneCurve intersection functions" begin
     R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
-    T = grade(R)
+    T = grade(R)[1]
     F = Oscar.ProjPlaneCurve(T(x*(x+y)))
     G = Oscar.ProjPlaneCurve(T(x*z+y^2+z^2))
     H = Oscar.ProjPlaneCurve(T(x*(x+y)*y))
@@ -179,7 +179,7 @@ end
 
 @testset "ProjPlaneCurve int_multiplicity functions" begin
     R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
-    T = grade(R)
+    T = grade(R)[1]
 	F = Oscar.ProjPlaneCurve(T((x^2+y^2)*(x^2 + y^2 + 2*y*z)))
     G = Oscar.ProjPlaneCurve(T((x^2+y^2)*(y^3*x^6 - y^6*x^2*z)))
 	PP = projective_space(QQ, 2)
@@ -199,7 +199,7 @@ end
 
 @testset "ProjPlaneCurve singularity functions" begin
     R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
-    T = grade(R)
+    T = grade(R)[1]
     PP = projective_space(QQ, 2)
     F = Oscar.ProjPlaneCurve(T(x*z+y^2))
     P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(1), QQ(0), QQ(0)])
@@ -250,7 +250,7 @@ end
 
 @testset "ProjCurveDivisor basic functions" begin
 	S, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
-	T = grade(S)
+	T = grade(S)[1]
 	C = Oscar.ProjPlaneCurve(T(y^2 + y*z + x^2))
 	PP = projective_space(QQ, 2)
 	P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(0), QQ(1)])
@@ -270,7 +270,7 @@ end
 
 @testset "ProjCurveDivisor global sections" begin
 	S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-	T = grade(S)
+	T = grade(S)[1]
 	C = Oscar.ProjPlaneCurve(T(y^2*z - x*(x-z)*(x+3*z)))
 	PP = projective_space(QQ, 2)
 	P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(1), QQ(0)])
@@ -294,16 +294,9 @@ end
 	@test Oscar.islinearly_equivalent(G, Oscar.divisor(C, Oscar.principal_divisor(G)))
 end
 
-@testset "Affine Elliptic Curves" begin
-	R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-	C = Oscar.AffineEllipticCurve(y^2 - x^3 -x)
-	@test Oscar.discriminant(C) == -64
-	@test Oscar.j_invariant(C) == 1728
-end
-
 @testset "Weierstrass form" begin
 	S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-	T = grade(S)
+	T = grade(S)[1]
 	PP = projective_space(QQ, 2)
 	P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(1), QQ(0)])
 	Q = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(-1), QQ(1), QQ(0)])
@@ -316,7 +309,7 @@ end
 
 @testset "genus" begin
 	S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-	T = grade(S)
+	T = grade(S)[1]
 	C = Oscar.ProjPlaneCurve(T(y^2*z - x^3 - x*z^2))
 	@test Oscar.arithmetic_genus(C) == 1
 	@test Oscar.geometric_genus(C) == 1
@@ -324,4 +317,39 @@ end
 	D = Oscar.AffinePlaneCurve(b^9 - a^2*(a-1)^9)
 	@test Oscar.arithmetic_genus(D) == 45
 	@test Oscar.geometric_genus(D) == 0
+end
+
+@testset "ProjEllipticCurve" begin
+	S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+	T = grade(S)[1]
+	F = T(y^2*z - x^3 - x*z^2)
+	E = Oscar.ProjEllipticCurve(F)
+	@test Oscar.discriminant(E) == -64
+	@test Oscar.j_invariant(E) == 1728
+end
+
+@testset "Point addition" begin
+	S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+	T = grade(S)[1]
+	F = T(-x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3)
+	PP = projective_space(QQ, 2)
+	P1 = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(-1), QQ(1), QQ(0)])
+	E = Oscar.ProjEllipticCurve(F, P1)
+	@test Oscar.weierstrass_form(E) == T(-x^3 - x*z^2 + y^2*z - 4*z^3)
+	Q1 = Oscar.Point_EllCurve(E, P1)
+	P2 = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(-2), QQ(2), QQ(1)])
+	Q2 = Oscar.Point_EllCurve(E, P2)
+	@test Q1 + Q2 == Q2
+	@test - Q2 == Oscar.Point_EllCurve(E, Oscar.Geometry.ProjSpcElem(PP[1], [QQ(2), QQ(-2), QQ(1)]))
+end
+
+@testset "Counting Points on Elliptic Curves" begin
+       K = GF(5, 7)[1]
+       S, (x, y, z) = PolynomialRing(K, ["x", "y", "z"])
+       T = grade(S)[1]
+       F = T(-x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3)
+       PP = projective_space(K, 2)
+       P1 = Oscar.Geometry.ProjSpcElem(PP[1], [K(-1), K(1), K(0)])
+       E = Oscar.ProjEllipticCurve(F, P1)
+       @test order(E) == 78633
 end

@@ -12,11 +12,11 @@ include("Rings/mpoly-test.jl")
 include("Rings/affine-alghom-test.jl")
 include("Rings/mpoly-graded-test.jl")
 include("Rings/mpoly-local-test.jl")
+include("Rings/mpoly-nested-test.jl")
 include("Rings/MPolyQuo_test.jl")
 include("Rings/FractionalIdeal-test.jl")
 include("Rings/mpoly_affine_algebras_test.jl")
 include("Rings/slpolys-test.jl")
-include("Rings/homogenization-test.jl")
 include("Polymake/nmbthy-test.jl")
 include("Groups/runtests.jl")
 include("Rings/NumberField.jl")
@@ -24,6 +24,8 @@ include("Rings/NumberField.jl")
 if Oscar.is_dev
   include("Examples/PlaneCurve-test.jl")
 end
+
+include("Rings/binomial-ideals-test.jl")
 
 include("Examples/galois-test.jl")
 include("Examples/ModStdQt-test.jl")

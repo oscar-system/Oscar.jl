@@ -13,11 +13,11 @@ export issmooth, tangent, common_components, curve_intersect,
 # curve.
 
 @doc Markdown.doc"""
-    issmooth(C::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
+    issmooth(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
 
 Throw an error if `P` is not a point of `C`, return `false` if `P` is a singular point of `C`, and `true` if `P` is a smooth point of `C`.
 """
-function Oscar.issmooth(C::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
+function Oscar.issmooth(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
   dim(P.parent) == 2 || error("The point needs to be in a projective two dimensional space")
   iszero(evaluate(C.eq, P.v)) || error("The point is not on the curve defined by ", C.eq)
   J = jacobi_ideal(C)
@@ -33,11 +33,11 @@ end
 # at the point P.
 
 @doc Markdown.doc"""
-    tangent(C::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
+    tangent(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
 
 Return the tangent of `C` at `P` when `P` is a smooth point of `C`, and throw an error otherwise.
 """
-function tangent(C::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
+function tangent(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
   dim(P.parent) == 2 || error("The point needs to be in a projective two dimensional space")
   iszero(evaluate(C.eq, P.v)) || error("The point is not on the curve")
   J = jacobi_ideal(C)
@@ -58,11 +58,11 @@ end
 # gives the common components of two projective plane curves
 
 @doc Markdown.doc"""
-    common_components(C::ProjPlaneCurve{S}, D::ProjPlaneCurve{S}) where S <: FieldElem
+    common_components(C::ProjectivePlaneCurve{S}, D::ProjectivePlaneCurve{S}) where S <: FieldElem
 
 Return the projective plane curve consisting of the common component of `C` and `D`, or an empty vector if they do not have a common component.
 """
-function common_components(C::ProjPlaneCurve{S}, D::ProjPlaneCurve{S}) where S <: FieldElem
+function common_components(C::ProjectivePlaneCurve{S}, D::ProjectivePlaneCurve{S}) where S <: FieldElem
   G = gcd(C.eq, D.eq)
   if isone(G)
      return Vector{ProjPlaneCurve}()
@@ -89,11 +89,11 @@ end
 # of intersection points. Some might be contained in the common component too.
 
 @doc Markdown.doc"""
-    curve_intersect([PP::Oscar.Geometry.ProjSpc{S}], C::ProjPlaneCurve{S}, D::ProjPlaneCurve{S}) where S <: FieldElem
+    curve_intersect([PP::Oscar.Geometry.ProjSpc{S}], C::ProjectivePlaneCurve{S}, D::ProjectivePlaneCurve{S}) where S <: FieldElem
 
 Return a list whose first element is the projective plane curve defined by the gcd of `C.eq` and `D.eq`, the second element is the list of the remaining intersection points when the common components are removed from `C` and `D` (the points are in `PP` if specified, or in a new projective space otherwise).
 """
-function curve_intersect(PP::Oscar.Geometry.ProjSpc{S}, C::ProjPlaneCurve{S}, D::ProjPlaneCurve{S}) where S <: FieldElem
+function curve_intersect(PP::Oscar.Geometry.ProjSpc{S}, C::ProjectivePlaneCurve{S}, D::ProjectivePlaneCurve{S}) where S <: FieldElem
   G = gcd(C.eq, D.eq)
   R = parent(C.eq)
   CC = []
@@ -108,8 +108,8 @@ function curve_intersect(PP::Oscar.Geometry.ProjSpc{S}, C::ProjPlaneCurve{S}, D:
   end
   Pts = []
   r, (X, Y) = PolynomialRing(R.R.base_ring, ["X", "Y"])
-  Fa = dehomogenization(r, F, 3)
-  Ha = dehomogenization(r, H, 3)
+  Fa = dehomogenization(F, r, 3)
+  Ha = dehomogenization(H, r, 3)
   if !isconstant(Fa) && !isconstant(Ha)
      Ca = AffinePlaneCurve(Fa)
      Da = AffinePlaneCurve(Ha)
@@ -143,7 +143,7 @@ end
 ################################################################################
 # without specifying the projective space.
 
-function curve_intersect(C::ProjPlaneCurve{S}, D::ProjPlaneCurve{S}) where S <: FieldElem
+function curve_intersect(C::ProjectivePlaneCurve{S}, D::ProjectivePlaneCurve{S}) where S <: FieldElem
    R = parent(C.eq)
    PP = projective_space(R.R.base_ring, 2)
    curve_intersect(PP[1], C, D)
@@ -154,11 +154,11 @@ end
 # derivatives. The points might also be contained in the components.
 
 @doc Markdown.doc"""
-    curve_singular_locus([PP::Oscar.Geometry.ProjSpc{S}], C::ProjPlaneCurve{S}) where S <: FieldElem
+    curve_singular_locus([PP::Oscar.Geometry.ProjSpc{S}], C::ProjectivePlaneCurve{S}) where S <: FieldElem
 
 Return the reduced singular locus of `C` as a list whose first element is the projective plane curve consisting of the singular components of `C` (if any), and the second element is the list of the singular points of the reduction of `C` (the points are in `PP` if specified, or in a new projective space otherwise). The singular component might not contain any point over the considered field.
 """
-function curve_singular_locus(PP::Oscar.Geometry.ProjSpc{S}, C::ProjPlaneCurve{S}) where S <: FieldElem
+function curve_singular_locus(PP::Oscar.Geometry.ProjSpc{S}, C::ProjectivePlaneCurve{S}) where S <: FieldElem
   D = reduction(C)
   Pts = Array{Oscar.Geometry.ProjSpcElem, 1}()
   CC = Array{ProjPlaneCurve, 1}()
@@ -218,7 +218,7 @@ end
 ################################################################################
 # without specifying the projective space.
 
-function curve_singular_locus(C::ProjPlaneCurve)
+function curve_singular_locus(C::ProjectivePlaneCurve)
    R = parent(C.eq)
    PP = projective_space(R.R.base_ring, 2)
    curve_singular_locus(PP[1], C)
@@ -228,11 +228,11 @@ end
 #
 
 @doc Markdown.doc"""
-    issmooth_curve(C::ProjPlaneCurve)
+    issmooth_curve(C::ProjectivePlaneCurve)
 
 Return `true` if `C` has no singular point, and `false` otherwise.
 """
-function issmooth_curve(C::ProjPlaneCurve)
+function issmooth_curve(C::ProjectivePlaneCurve)
    F = defining_equation(C)
    R = parent(F)
    J = jacobi_ideal(F)
@@ -247,11 +247,11 @@ end
 # multiplicity
 
 @doc Markdown.doc"""
-     multiplicity(C::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
+     multiplicity(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
 
 Returns the multiplicity of `C` at `P`.
 """
-function multiplicity(C::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
+function multiplicity(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
   if P.v[3] != 0
      Fa = dehomogenization(C.eq, 3)
      Ca = AffinePlaneCurve(Fa)
@@ -287,11 +287,11 @@ end
 # tangent lines
 
  @doc Markdown.doc"""
-      tangent_lines(C::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
+      tangent_lines(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
 
 Returns the tangent lines at `P` to `C` with their multiplicity.
  """
- function tangent_lines(C::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
+ function tangent_lines(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
    evaluate(C.eq, P.v) == 0 || error("The point is not on the curve.")
    R = parent(C.eq)
    if P.v[3] != 0
@@ -323,20 +323,20 @@ Returns the tangent lines at `P` to `C` with their multiplicity.
 ################################################################################
 # helping function for intersection_multiplicity
 
-function _dehom_curves_r(r::MPolyRing, C::ProjPlaneCurve, D::ProjPlaneCurve, i::Int)
-  F = dehomogenization(r, C.eq, i)
-  G = dehomogenization(r, D.eq, i)
+function _dehom_curves_r(r::MPolyRing, C::ProjectivePlaneCurve, D::ProjectivePlaneCurve, i::Int)
+  F = dehomogenization(C.eq, r, i)
+  G = dehomogenization(D.eq, r, i)
   return [AffinePlaneCurve(F), AffinePlaneCurve(G)]
 end
 
 ################################################################################
 
 @doc Markdown.doc"""
-     intersection_multiplicity(C::ProjPlaneCurve{S}, D::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
+     intersection_multiplicity(C::ProjectivePlaneCurve{S}, D::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
 
 Returns the intersection multiplicity of `C` and `D` at `P`.
 """
-function intersection_multiplicity(C::ProjPlaneCurve{S}, D::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
+function intersection_multiplicity(C::ProjectivePlaneCurve{S}, D::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
    dim(P.parent) == 2 || error("The point needs to be in a projective two dimensional space")
    R = parent(C.eq)
    r, (X, Y) = PolynomialRing(R.R.base_ring, ["X", "Y"])
@@ -357,22 +357,22 @@ end
 #
 
 @doc Markdown.doc"""
-     aretransverse(C::ProjPlaneCurve{S}, D::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S<:FieldElem
+     aretransverse(C::ProjectivePlaneCurve{S}, D::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S<:FieldElem
 
 Returns `true` if `C` and `D` intersect transversally at `P` and `false` otherwise.
 """
-function aretransverse(C::ProjPlaneCurve{S}, D::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
+function aretransverse(C::ProjectivePlaneCurve{S}, D::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
   return issmooth(C, P) && issmooth(D, P) && intersection_multiplicity(C, D, P) == 1
 end
 
 ################################################################################
 
 @doc Markdown.doc"""
-    arithmetic_genus(C::ProjPlaneCurve)
+    arithmetic_genus(C::ProjectivePlaneCurve)
 
 Return the arithmetic genus of `C`.
 """
-function arithmetic_genus(C::ProjPlaneCurve)
+function arithmetic_genus(C::ProjectivePlaneCurve)
   F = defining_equation(C)
   S = parent(F)
   I = ideal(S, [F])
@@ -384,11 +384,11 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    geometric_genus(C::ProjPlaneCurve)
+    geometric_genus(C::ProjectivePlaneCurve)
 
 Return the geometric genus of `C`.
 """
-function geometric_genus(C::ProjPlaneCurve{S}) where S <: FieldElem
+function geometric_genus(C::ProjectivePlaneCurve{S}) where S <: FieldElem
    F = defining_equation(C)
    R = parent(F)
    I = ideal(parent(F), [F])

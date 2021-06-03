@@ -28,13 +28,13 @@ end
 
 function projective_space(R::AbstractAlgebra.Ring, n::Int, name::Symbol=:x)
   Sx = PolynomialRing(R, name => 0:n)[1]
-  Rx = grade(Sx, [1 for i=0:n])
+  Rx = grade(Sx, [1 for i=0:n])[1]
   return ProjSpc(R, n, Rx), gens(Rx)
 end
 
 function projective_space(R::AbstractAlgebra.Ring, n::Array{<:Integer, 1}, name::Symbol = :x)
   Sx = PolynomialRing(R, name => 0:length(n)-1)[1]
-  Rx = grade(Sx, n)
+  Rx = grade(Sx, n)[1]
   return ProjSpc(R, length(n)-1, Rx), gens(Rx)
 end
 

@@ -4,19 +4,22 @@ struct SLPolyRing{T<:RingElement,R<:Ring}  <: Ring
     base_ring::R
     S::Vector{Symbol}
 
-    SLPolyRing(r::Ring, s::Vector{Symbol}) = new{elem_type(r),typeof(r)}(r, s)
+    function SLPolyRing(r::Ring, s::Vector{Symbol}; cached::Bool = false)
+      @assert !cached
+      return new{elem_type(r),typeof(r)}(r, s)
+    end
 end
 
 SLPolyRing(r::Ring, s::Union{AbstractVector{<:AbstractString},
-                             AbstractVector{<:AbstractChar}}) =
-                                 SLPolyRing(r, Symbol.(s))
+                             AbstractVector{<:AbstractChar}}; cached::Bool = false) =
+                                 SLPolyRing(r, Symbol.(s), cached = cached)
 
-SLPolyRing(r::Ring, n::Base.Integer) = SLPolyRing(r, [Symbol("x$i") for i=1:n])
+SLPolyRing(r::Ring, n::Base.Integer; cached::Bool = false) = SLPolyRing(r, [Symbol("x$i") for i=1:n], cached = cached)
 
 # cf. mpoly.jl in Oscar
 SLPolyRing(r::Ring, v::Pair{<:Union{String,Symbol},
-                            <:AbstractVector{<:Base.Integer}}...) =
-    SLPolyRing(r, [Symbol(s, n) for (s, ns) in v for n in ns])
+                            <:AbstractVector{<:Base.Integer}}...; cached::Bool = false) =
+    SLPolyRing(r, [Symbol(s, n) for (s, ns) in v for n in ns], cached = cached)
 
 base_ring(S::SLPolyRing) = S.base_ring
 
@@ -41,14 +44,14 @@ ngens(S::SLPolyRing) = length(symbols(S))
 nvars(S::SLPolyRing) = ngens(S)
 
 # TODO: how to name this function? namespace it?
-function SLPolynomialRing(R::Ring, s)
-    S = SLPolyRing(R, s)
+function SLPolynomialRing(R::Ring, s; cached::Bool = false)
+    S = SLPolyRing(R, s, cached = cached)
     S, gens(S)
 end
 
 function SLPolynomialRing(R::Ring, v::Pair{<:Union{String,Symbol},
-                                         <:AbstractVector{<:Base.Integer}}...)
-    S = SLPolyRing(R, v...)
+                                         <:AbstractVector{<:Base.Integer}}...; cached::Bool = false)
+    S = SLPolyRing(R, v...; cached = cached)
 
     # TODO: enable on Julia 1.5 (required for init keyword)
     # rs = Iterators.accumulate(v; init=0:0) do x, a

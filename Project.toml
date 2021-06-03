@@ -1,7 +1,7 @@
 name = "Oscar"
 uuid = "f1435218-dba5-11e9-1e4d-f1a5fab5fc13"
 authors = ["Claus Fieker <fieker@mathematik.uni-kl.de>", "Giovanni De Franceschi <franceschi@mathematik.uni-kl.de>", "Johannes Schmitt <schmitt@mathematik.uni-kl.de>", "Max Horn <horn@mathematik.uni-kl.de>", "William Hart <goodwillhart@googlemail.com>", "Taylor Brysiewicz <taylor.brysiewicz@mis.mpg.de>", "Michael Joswig <joswig@math.tu-berlin.de>", "Marek Kaluba <kalmar@amu.edu.pl>", "Sascha Timme <sascha.timme@googlemail.com>", "Sebastian Gutsche <gutsche@momo.math.rwth-aachen.de>"]
-version = "0.5.2-DEV"
+version = "0.5.3-DEV"
 
 [deps]
 AbstractAlgebra = "c3fe647b-3220-5bb0-a1ea-a7954cac585d"
@@ -19,13 +19,13 @@ Singular = "bcd08a7b-43d2-5ff7-b6d4-c458787f915c"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
-AbstractAlgebra = "0.15.1"
+AbstractAlgebra = "0.17.0"
 DocStringExtensions = "0.8"
 GAP = "0.5"
-Hecke = "0.10.0"
-Nemo = "0.22"
+Hecke = "0.10.5"
+Nemo = "0.23.0"
 Polymake = "0.5.5"
 RandomExtensions = "0.4.3"
 Requires = "1.0"
-Singular = "0.5.1"
+Singular = "0.5.3"
 julia = "1.3"

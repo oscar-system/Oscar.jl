@@ -21,10 +21,6 @@ R, x = PolynomialRing(QQ, :x=>1:3)
 Q, mQ = quo(R, ideal([x[1]^2-2, x[2]^2-3, x[3]^2-5]))
 ```
 
-```@docs
-quo(R::MPolyRing, I::MPolyIdeal)
-```
-
 ### Elements
 
 Elements are created by moving polynomials into the ring:

@@ -235,7 +235,7 @@ function multiplicity(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
   D = curve_map_point_origin(C, P)
   G = D.eq
   R = parent(G)
-  A = grade(R)
+  A = grade(R)[1]
   HC = homogenous_components(A(G))
   L = collect(keys(HC))
   M = sort(L, by=_sort_helper_multiplicity)
@@ -257,7 +257,7 @@ function tangent_lines(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
   G = D.eq
   R = parent(G)
   V = gens(R)
-  A = grade(R)
+  A = grade(R)[1]
   HC = homogenous_components(A(G))
   L = collect(keys(HC))
   M = sort(L, by=_sort_helper_multiplicity)
@@ -347,7 +347,7 @@ Return the arithmetic genus of the projective closure of `C`.
 """
 function arithmetic_genus(C::AffinePlaneCurve)
    F = defining_equation(C)
-   G = homogenization(F, variable = "vrbl")
+   G = homogenization(F, "vrbl")
    D = ProjPlaneCurve(G)
    return arithmetic_genus(D)
 end
@@ -361,7 +361,7 @@ Return the geometric genus of the projective closure of `C`.
 """
 function geometric_genus(C::AffinePlaneCurve)
    F = defining_equation(C)
-   G = homogenization(F, variable = "vrbl")
+   G = homogenization(F, "vrbl")
    D = ProjPlaneCurve(G)
    return geometric_genus(D)
 end

@@ -1,6 +1,6 @@
 @testset "Graded MOdules 1" begin
   Qx, g = PolynomialRing(QQ, 3)
-  R = grade(Qx, [1,2,3])
+  R = grade(Qx, [1,2,3])[1]
   F = FreeModule(R, [i^2*R.D[1] for i=1:4])
   s = sub(F, [R(g[1])^2*gen(F, 1), R(g[2])*gen(F, 1)])
   q = quo(s, [R(g[1])^4*gen(F, 1), R(g[2])^2*gen(F, 1)]) 
@@ -34,7 +34,7 @@ end
 
   D = free_abelian_group(2)
   Qx, x, y = PolynomialRing(QQ, :x=>1:2, :y=>1:2)
-  R = grade(Qx, [D[1], D[1], D[2], D[2]])
+  R = grade(Qx, [D[1], D[1], D[2], D[2]])[1]
 
   f = x[1]^3-x[2]^3
   g = y[1]^5+y[2]^5

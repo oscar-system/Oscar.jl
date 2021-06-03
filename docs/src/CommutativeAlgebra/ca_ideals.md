@@ -10,15 +10,12 @@ using Oscar
 Pages = ["ca_ideals.md"]
 ```
 
-# Ideals
+# Ideals in Polynomial Rings
 
 ## Constructors
 
 ```@docs
 ideal(g::Array{T, 1}) where {T <: MPolyElem}
-```
-```@docs
-ideal(Rx::MPolyRing, g::Array{<:Any, 1})
 ```
 
 ## Gröbner Bases
@@ -26,6 +23,14 @@ ideal(Rx::MPolyRing, g::Array{<:Any, 1})
 ### Monomial Orderings
 
 ### Normal Forms
+
+```@docs
+normal_form(f::T, J::MPolyIdeal) where { T <: MPolyElem }
+```
+
+```@docs
+normal_form(A::Array{T, 1}, J::MPolyIdeal) where { T <: MPolyElem }
+```
 
 ### Computing Gröbner Bases
 
@@ -131,7 +136,7 @@ intersect(I::MPolyIdeal, J::MPolyIdeal)
 
 ### Ideal Quotients
 
-Given two ideals $I, J$ of a ring $R$, the ideal quotient of $I$ by $J$ is defined to be the ideal
+Given two ideals $I, J$ of a ring $R$, the ideal quotient of $I$ by $J$ is the ideal
 
 $I:J= \bigl\{f \in R\:\big|\: f J \subset I\bigr\}\subset R.$
 
@@ -141,7 +146,7 @@ quotient(I::MPolyIdeal, J::MPolyIdeal)
 
 ### Saturation
 
-Given two ideals $I, J$ of a ring $R$, the saturation of $I$ with respect to $J$ is defined to be the ideal
+Given two ideals $I, J$ of a ring $R$, the saturation of $I$ with respect to $J$ is the ideal
 
 $I:J^{\infty} = \bigl\{ f \in R \:\big|\: f J^k \!\subset I {\text{ for some }}k\geq 1 \bigr\} = \textstyle{\bigcup\limits_{k=1}^{\infty} (I:J^k)}.$
 
@@ -159,17 +164,17 @@ saturation_with_index(I::MPolyIdeal, J::MPolyIdeal)
 eliminate(I::MPolyIdeal, lv::Array{MPolyElem, 1})
 ```
 
+## Tests on Ideals
+
+### Basic Tests
+
 ```@docs
-eliminate(I::MPolyIdeal, li::AbstractArray{Int, 1})
+iszero(I::MPolyIdeal)
 ```
 
-### Homogenization and Dehomogenization
-
-    homogenize(I,t)   CAVEAT: Als Ideal! Auch poly, vector, etc. Siehe M2.
-
-    dehomogenize(I,t)
-
-## Tests on Ideals
+```@docs
+isone(I::MPolyIdeal)
+```
 
 ### Equality of Ideals
 
@@ -206,12 +211,12 @@ isprime(I::MPolyIdeal)
 ```@docs
 isprimary(I::MPolyIdeal)
 ```
-  
-    homogeneity test:        ishomogeneous(I)
-    
-    .....
-	
+
 ## Decomposition of Ideals
+
+We discuss various decomposition techniques. They are implemented for
+polynomial rings over fields and, if explicitly mentioned, also for
+polynomial rings over the integers.
 
 ### Radical
 
@@ -259,6 +264,45 @@ equidimensional_hull_radical(I::MPolyIdeal)
 
     absolute_primary_decomposition(I)               --->  absPrimdecGTZ   
 
-    
+## Homogenization and Dehomogenization
+
+```@docs
+homogenization(f::MPolyElem, var::String, pos::Int=1)
+```
+
+###### Examples
+
+```@repl oscar
+R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+f = x^3-y^2-z
+F = homogenization(f, "w", 4)
+parent(F)
+V = [y-x^2, z-x^3]
+homogenization(V, "w")
+I = ideal(R, V)
+PTC = homogenization(I, "w")
+parent(PTC[1])
+homogenization(I, "w", ordering = :deglex)
+```
+
+```@docs
+dehomogenization(F::MPolyElem_dec, pos::Int)
+```
+
+###### Examples
+
+```@repl oscar
+R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+S = grade(R)
+F = x^3-x^2*y-x*z^2
+f = dehomogenization(S(F), 1)
+parent(f)
+V = [S(x*y-z^2), S(x^2*z-x^3)]
+dehomogenization(V, 3)
+I = ideal(S, V)
+dehomogenization(I, 3)
+```
+
+	
 
 
