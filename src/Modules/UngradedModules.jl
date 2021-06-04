@@ -1,4 +1,3 @@
-#TODO make d and S a function optionally - to support HUGE degree
 export presentation
 
 abstract type ModuleFP{T} end
@@ -215,35 +214,47 @@ parent(a::FreeModuleElem) = a.parent
 # test whether a free module element is zero
 iszero(a::FreeModuleElem) = Hecke.iszero(a.coords)
 
-# generating systems for submodules
-# contain structures for the generators, the corresponding module on the Singular side, 
+# data structure for a generating systems for submodules
+# contains structures for the generators, the corresponding module on the Singular side, 
 # the embedding free module, the embedding free module on the Singular side
 # subquotients will be built from a tuple of submodules which again are given by 
 # generating sets. In this way, the Singular stuff is hidden on the higher structures
 # and all the conversion is taken care of here
 # a module generating system is generated from an array of free module elements
 # the fields are called O,S,F,SF rename?
+#
+# The same could be done rather on the level of vectors, that might be preferable if 
+# performance is ok.
+#
 mutable struct ModuleGens{T}
   O::Array{FreeModuleElem{T}, 1}
   S::Singular.smodule
   F::FreeMod
   SF::Singular.FreeMod
 
+  # ModuleGens from an Array of Oscar free module elements
+  # Todo: Empty generating set
   function ModuleGens(O::Array{<:FreeModuleElem{T}, 1}) where {T}
     @assert length(O) > 0
     SF = singular_module(parent(O[1]))
     return ModuleGens(O, SF)
   end
 
+  # ModuleGens from an Array of Oscar free module elements, specifying the Oscar free module
+  # note that the array might be empty
   function ModuleGens(O::Array{<:FreeModuleElem, 1}, F::FreeMod{T}) where {T}
     SF = singular_module(F)
     return ModuleGens(O, F, SF)
   end
 
+  # ModuleGens from an Array of Oscar free module elements, specifying the Singular free module
+  # note that the array might be empty
   function ModuleGens(O::Array{<:FreeModuleElem{T}, 1}, SF::Singular.FreeMod) where {T}
     return ModuleGens(O, parent(O[1]), SF)
   end
 
+  # ModuleGens from an Array of Oscar free module elements, specifying the free module 
+  # and Singular free module, only useful indirectly
   function ModuleGens(O::Array{<:FreeModuleElem, 1}, F::FreeMod{T}, SF::Singular.FreeMod) where {T}
     r = new{T}()
     r.O = O
@@ -252,6 +263,7 @@ mutable struct ModuleGens{T}
     return r
   end
 
+  # ModuleGens from a Singular submodule
   function ModuleGens(F::FreeMod{S}, s::Singular.smodule) where {S}
     r = new{S}()
     r.F = F
@@ -278,11 +290,12 @@ function Base.getproperty(M::ModuleGens, s::Symbol)
   end
 end
 
+# Test for zero module
 function iszero(M::ModuleGens)
   return iszero(M.S)
 end
 
-# remove output defined on the Singular side?
+# remove output saying defined on the Singular side?
 function show(io::IO, F::ModuleGens)
   println(io, "Array of length ", length(F))
   for i=1:length(F)
@@ -295,9 +308,13 @@ function show(io::IO, F::ModuleGens)
   end
 end
 
+# number of elements of the module generating set
 length(F::ModuleGens) = length(F.O)
+# number of elements of the module generating set
 ngens(F::ModuleGens) = length(F.O)
 
+# i-th entry of module generating set on Oscar side
+# Todo: clean up, convert or assure
 function getindex(F::ModuleGens, ::Val{:O}, i::Int)
   if !isassigned(F.O, i)
     F.O[i] = convert(F.F, F.S[i])
@@ -305,6 +322,8 @@ function getindex(F::ModuleGens, ::Val{:O}, i::Int)
   return F.O[i]
 end
 
+# i-th entry of module generating set on Singular side
+# Todo: clean up, convert or assure
 function getindex(F::ModuleGens, ::Val{:S}, i::Int)
   if !isdefined(F, :S)
     F.S = Singular.smodule{elem_type(base_ring(F.SF))}(base_ring(F.SF), [convert(F.SF,x) for x = F.O]...)
@@ -333,6 +352,7 @@ function singular_assure(F::ModuleGens)
   #F[Val(:S), 1]
 end
 
+# i-th entry of module generating set (taken from Oscar side)
 getindex(F::ModuleGens, i::Int) = getindex(F, Val(:O), i)
 
 # create a Singular free module from an OSCAR free module
@@ -372,19 +392,18 @@ function convert(F::FreeMod, s::Singular.svector)
   return FreeModuleElem(sparse_row(base_ring(F), pv), F)
 end
 
-
+# data structure for homomorphisms of free modules
 mutable struct FreeModuleHom{T1, T2} <: ModuleMap{T1, T2} 
   matrix::MatElem
   header::MapHeader
   inverse_isomorphism::ModuleMap
   Hecke.@declare_other
 
+  # generate homomorphism of free modules from F to G where the Array a contains the images of
+  # the generators of F
   function FreeModuleHom(F::FreeMod{T}, G::S, a::Array{<:Any, 1}) where {T, S}
-#    @assert isfiltrated(F) || all(ishomogenous, a) #neccessary and suffient according to Hans XXX
-#same as non-homogenous elements are required, this too must not be enforced
     @assert all(x->parent(x) == G, a)
     @assert length(a) == ngens(F)
-    #for filtrations, all is legal...
     r = new{typeof(F), typeof(G)}()
     function im_func(x::FreeModuleElem)
       b = zero(G)
@@ -400,7 +419,6 @@ mutable struct FreeModuleHom{T1, T2} <: ModuleMap{T1, T2}
     end
     function pr_func(x)
       @assert parent(x) == G
-      #assume S == SubQuoElem_dec which cannot be asserted here, the type if defined too late
       c = coordinates(x.repres, sub(G, a))
       if isempty(c)
         c = sparse_row(F.R)
