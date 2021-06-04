@@ -230,6 +230,7 @@ mutable struct ModuleGens{T}
   SF::Singular.FreeMod
 
   function ModuleGens(O::Array{<:FreeModuleElem{T}, 1}) where {T}
+    @assert length(O) > 0
     SF = singular_module(parent(O[1]))
     return ModuleGens(O, SF)
   end
