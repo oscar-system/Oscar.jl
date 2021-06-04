@@ -204,7 +204,7 @@ function _containement_helper(R::MPolyRing, N::Int, M::Int, I::MPolyIdeal, W::Ve
    A = phi.(gens(I))
    B = [phi(W[i])-gen(T, M + i) for i in 1:N]
    J = ideal(T, vcat(A, B))
-   G = groebner_basis(J, complete_reduction = true, ord = :lex)
+   G = groebner_basis(J, complete_reduction = true, ordering = :lex)
    return (T, phi, G)
 end
 

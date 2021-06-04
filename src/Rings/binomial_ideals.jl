@@ -47,7 +47,7 @@ function isone_easy(I::MPolyIdeal)
   R = ResidueRing(ZZ, Int(p)) #gfp_mpoly missing...
   Rt, t = PolynomialRing(R, nvars(Qt), cached = false)
   Ip = Oscar.BiPolyArray([Rt(x) for x in gens(I)], keep_ordering = false)
-  Gp = Oscar.groebner_basis(Ip, ord = :degrevlex, complete_reduction = true)
+  Gp = Oscar.groebner_basis(Ip, ordering = :degrevlex, complete_reduction = true)
   return any(isone, Gp)
 end
 
