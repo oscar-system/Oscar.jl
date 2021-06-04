@@ -264,7 +264,7 @@ mutable struct ModuleGens{T}
   end
 
   # ModuleGens from a Singular submodule
-  function ModuleGens(F::FreeMod{S}, s::Singular.smodule) where {S}
+  function ModuleGens(F::FreeMod{S}, s::Singular.smodule) where {S} # FreeMod is neccessary due to type S
     r = new{S}()
     r.F = F
     if Singular.ngens(s) == 0
