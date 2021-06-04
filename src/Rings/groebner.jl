@@ -428,3 +428,19 @@ function normal_form(A::Array{T, 1}, J::MPolyIdeal) where { T <: MPolyElem }
     I = Singular.Ideal(J.gens.Sx, [J.gens.Sx(x) for x in A])
     normal_form_internal(I, J)
 end
+
+function groebner_basis(B::BiPolyArray, ord::MonomialOrdering; complete_reduction::Bool = false)
+    R = singular_ring(B.Ox, ord.o)
+    i = Singular.Ideal(R, [R(x) for x = B])
+    i = Singular.std(i, complete_reduction = complete_reduction)
+    return BiPolyArray(B.Ox, i)
+end
+
+function groebner_basis(I::MPolyIdeal, ord::MonomialOrdering; complete_reduction::Bool=false)
+  R = singular_ring(base_ring(I), ord)
+  !Oscar.Singular.has_global_ordering(R) && error("The ordering has to be a global ordering.")
+  i = Singular.std(Singular.Ideal(R, [R(x) for x = gens(I)]), complete_reduction = complete_reduction)
+  return collect(BiPolyArray(base_ring(I), i))
+end
+
+
