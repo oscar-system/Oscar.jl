@@ -1180,6 +1180,13 @@ function present(SQ::SubQuo, task::Symbol = :none)
   return presentation_module, isomorphism
 end
 
+@doc Markdown.doc"""
+  change_generating_system(M::SubQuo{T}, N::SubQuo{T}, task::Symbol = :none) where {T}
+If $M = N$ (mathematically, but with (possibly) different generating systems), return $\phi : M → N$ 
+which is mathematically the identity. 
+If `task == :inverse` also the inverse map is computed and cached (in the morphism).
+If `task == :store` the inverse map is also cached in `M` and `N`.
+"""
 function change_generating_system(M::SubQuo{T}, N::SubQuo{T}, task::Symbol = :none) where {T}
   @assert M == N
 
@@ -1290,6 +1297,11 @@ end
 # tensor and hom functors for chain complex
 # dual: ambig: hom(M, R) or hom(M, Q(R))?
 
+@doc Markdown.doc"""
+  coordinates(a::FreeModuleElem, SQ::SubQuo)
+Compute a sparse row `r` such that `a` is a representative of `SubQuoElem(r, SQ)`.
+If no such `r` exists an error is thrown.
+"""
 function coordinates(a::FreeModuleElem, SQ::SubQuo)
   if iszero(a)
     return sparse_row(base_ring(parent(a)))
@@ -1318,6 +1330,10 @@ end
 
 hom(D::SubQuo, C::ModuleFP, A::Array{<:Any, 1}) = SubQuoHom(D, C, A)
 
+@doc Markdown.doc"""
+  image(f::SubQuoHom, a::SubQuoElem)
+Return $f(a)$.
+"""
 function image(f::SubQuoHom, a::SubQuoElem)
   # TODO matrix vector multiplication
   @assert a.parent === domain(f)
@@ -1331,6 +1347,10 @@ function image(f::SubQuoHom, a::SubQuoElem)
   return i
 end
 
+@doc Markdown.doc"""
+  image(f::SubQuoHom, a::FreeModuleElem)
+Return $f(a)$. `a` must represent an element in the domain of `f`.
+"""
 function image(f::SubQuoHom, a::FreeModuleElem)
   return image(f, SubQuoElem(a, domain(f)))
   #=i = zero(codomain(f))
@@ -1342,6 +1362,10 @@ function image(f::SubQuoHom, a::FreeModuleElem)
   return i=#
 end
 
+@doc Markdown.doc"""
+  preimage(f::SubQuoHom, a::Union{SubQuoElem,FreeModuleElem})
+Compute a preimage of `a` under `f`.
+"""
 function preimage(f::SubQuoHom, a::Union{SubQuoElem,FreeModuleElem})
   @assert parent(a) == codomain(f)
   D = domain(f)
@@ -1367,6 +1391,11 @@ function iszero(a::SubQuoElem)
   return iszero(x)
 end
 
+@doc Markdown.doc"""
+  hom(F::FreeMod, G::FreeMod)
+Return a subquotient $S$ such that $Hom(F,G) \cong S$ along with a function 
+that converts elements from $S$ into morphisms $F → G$.
+"""
 function hom(F::FreeMod, G::FreeMod)
   @assert base_ring(F) == base_ring(G)
   GH = FreeMod(F.R, rank(F) * rank(G))
@@ -1397,6 +1426,12 @@ function hom(F::FreeMod, G::FreeMod)
   return GH, to_hom_map
 end
 
+@doc Markdown.doc"""
+  kernel(h::FreeModuleHom)
+
+Compute the kernel $K$ of `h` along with the inclusion morphism 
+of $K$ into the domain of `h`.
+"""
 function kernel(h::FreeModuleHom)  #ONLY for free modules...
   G = domain(h)
   R = base_ring(G)
@@ -1426,12 +1461,22 @@ function kernel(h::FreeModuleHom)  #ONLY for free modules...
   return k, hom(k, parent(c[1]), c)
 end
 
+@doc Markdown.doc"""
+  image(h::FreeModuleHom)
+
+Compute the image of `h`. Return also the inclusion map into the codomain of `h`.
+"""
 function image(h::FreeModuleHom)
   si = [x for x = map(h, basis(domain(h))) if !iszero(x)]
   s = sub(codomain(h), si)
   return s, hom(s, codomain(h), si)
 end
 
+@doc Markdown.doc"""
+  image(h::SubQuoHom)
+
+Compute the image of `h`. Return also the inclusion map into the codomain of `h`.
+"""
 function image(h::SubQuoHom)
   if typeof(codomain(h)) <: FreeMod
     image_vector::Array{FreeModuleElem} = h.im
@@ -1446,6 +1491,12 @@ function image(h::SubQuoHom)
   #return s, hom(s, codomain(h), h.im)
 end
 
+@doc Markdown.doc"""
+  kernel(h::SubQuoHom)
+
+Compute the kernel $K$ of `h` along with the inclusion morphism 
+of $K$ into the domain of `h`.
+"""
 function kernel(h::SubQuoHom)
   D = domain(h)
   R = base_ring(D)
@@ -1460,10 +1511,20 @@ function kernel(h::SubQuoHom)
   return k, hom(k, D, im)
 end
 
+@doc Markdown.doc"""
+  free_resolution(F::FreeMod)
+
+Compute a free resolution of the free module `F`.
+"""
 function free_resolution(F::FreeMod)
   return presentation(F)
 end
 
+@doc Markdown.doc"""
+  free_resolution(S::SubQuo, limit::Int = -1)
+Compute a free resolution of `S`. If `limit != -1` the free resolution
+is only computed up to the `limit`-th free module.
+"""
 function free_resolution(S::SubQuo, limit::Int = -1)
   p = presentation(S)
   mp = [map(p, j) for j=1:length(p)]
@@ -1514,6 +1575,11 @@ function iszero(f::ModuleMap)
   return all(iszero, map(f, gens(domain(f))))
 end
 
+@doc Markdown.doc"""
+  hom(M::ModuleFP, N::ModuleFP)
+Return a subquotient $S$ such that $Hom(M,N) \cong S$ along with a function 
+that converts elements from $S$ into morphisms $M → N$.
+"""
 function hom(M::ModuleFP, N::ModuleFP)
   p1 = presentation(M)
   p2 = presentation(N)
@@ -1571,6 +1637,11 @@ function hom(M::ModuleFP, N::ModuleFP)
   return H, to_hom_map
 end
 
+@doc Markdown.doc"""
+  homomorphism(f::Union{SubQuoElem,FreeModuleElem})
+If `f` is an element in a module created via `hom(M,N)` for some `M` and `N`, 
+return the morphism $\phi : M → N$ that corresponds to `f`.
+"""
 function homomorphism(f::Union{SubQuoElem,FreeModuleElem})
   H = f.parent
   to_hom_map = get_special(H, :module_to_hom_map)
@@ -1578,6 +1649,11 @@ function homomorphism(f::Union{SubQuoElem,FreeModuleElem})
   return to_hom_map(f)
 end
 
+@doc Markdown.doc"""
+  homomorphism_to_module_elem(H::ModuleFP, phi::ModuleMap)
+Let `H` is created via `hom(M,N)` for some `M` and `N`. Return 
+the element in `H` corresponding to `phi`.
+"""
 function homomorphism_to_module_elem(H::ModuleFP, phi::ModuleMap)
   to_hom_map = get_special(H, :module_to_hom_map)
   to_hom_map === nothing && error("module must be a hom module")
@@ -1596,6 +1672,12 @@ end
 -(h::FreeModuleHom, g::FreeModuleHom) = hom(domain(h), codomain(h), [h(x) - g(x) for x = gens(domain(h))])
 +(h::FreeModuleHom, g::FreeModuleHom) = hom(domain(h), codomain(h), [h(x) + g(x) for x = gens(domain(h))])
 
+
+@doc Markdown.doc"""
+  restrict_codomain(H::ModuleMap, M::SubQuo)
+Return, if possible, a homomorphism, which is mathematically identical to `H`,
+but has codomain `M`. `M` has to be a submodule of the codomain of `H`.
+"""
 function restrict_codomain(H::ModuleMap, M::SubQuo)
   @assert typeof(codomain(H)) <: SubQuo
   return hom(domain(H), M, map(v -> SubQuoElem(v, M), map(x -> H(x).repres, gens(domain(H)))))
@@ -1604,7 +1686,7 @@ end
 @doc Markdown.doc"""
   restrict_domain(H::SubQuoHom, M::SubQuo)
 
-Restrict the morphism H to M. For this `M` has to be a submodule
+Restrict the morphism `H` to `M`. For this `M` has to be a submodule
 of the domain of `H`. The relations of `M` must be the relations of 
 the domain of `H`.
 """
@@ -1619,6 +1701,10 @@ function restrict_domain(H::SubQuoHom, M::SubQuo)
   return i*H
 end
 
+@doc Markdown.doc"""
+  Base.inv(H::ModuleMap)
+Compute $H^{-1}$. `H` must be bijective.
+"""
 function Base.inv(H::ModuleMap)
   if isdefined(H, :inverse_isomorphism)
     return H.inverse_isomorphism
@@ -1637,6 +1723,17 @@ end
 ##################################################
 # direct product
 ##################################################
+@doc Markdown.doc"""
+  direct_product(F::FreeMod{T}...; task::Symbol = :sum)
+
+Given free modules $F_i$ compute the direct product $P := F_1\oplus \cdots \oplus F_n$.
+If `task` is set to ":prod", an array of maps $\phi_1, \cdot, \phi_n$ is returned such
+that $\phi_i$ is the canonical projection $P → F_i$.
+If `task` is set to ":sum", an array of maps $\psi_1, \cdot, \psi_n$ is returned such 
+that $\psi_i$ is the canonical injection $F_i → P$.
+If `task` is set to ":both", both, the array of projections and the array of injections,
+are returned (with projections first).
+"""
 function direct_product(F::FreeMod{T}...; task::Symbol = :sum) where {T}
   R = base_ring(F[1])
   G = FreeMod(R, Base.sum([rank(f) for f = F]))
@@ -1686,6 +1783,17 @@ function direct_product(F::FreeMod{T}...; task::Symbol = :sum) where {T}
   end
 end
 
+@doc Markdown.doc"""
+  direct_product(G::ModuleFP...; task::Symbol = :none)
+
+Given modules $G_i$ compute the direct product $P := G_1\oplus \cdots \oplus G_n$.
+If `task` is set to ":prod", an array of maps $\phi_1, \cdot, \phi_n$ is returned such
+that $\phi_i$ is the canonical projection $P → G_i$.
+If `task` is set to ":sum", an array of maps $\psi_1, \cdot, \psi_n$ is returned such 
+that $\psi_i$ is the canonical injection $G_i → P$.
+If `task` is set to ":both", both, the array of projections and the array of injections,
+are returned (with projections first).
+"""
 function direct_product(G::ModuleFP...; task::Symbol = :none)
   F, pro, mF = direct_product([free_module(x) for x = G]..., task = :both)
   s, emb_sF = sub(F, vcat([[mF[i](y) for y = gens(G[i], free_module(G[i]))] for i=1:length(G)]...), :both)
@@ -1755,6 +1863,14 @@ end
 # Tensor
 ##################################################
 
+@doc Markdown.doc"""
+  tensor_product(G::FreeMod...; task::Symbol = :none)
+
+Given free modules $G_i$ compute the tensor product $G_1\otimes \cdots \otimes G_n$.
+If `task` is set to ":map", a map $\phi$ is returned that
+maps tuples in $G_1 \times \cdots \times G_n$ to pure tensors
+$g_1 \otimes \cdots \otimes g_n$. The map admits a preimage as well.
+"""
 function tensor_product(G::FreeMod...; task::Symbol = :none)
   s = G[1].S
   t = [[x] for x = 1:ngens(G[1])]
@@ -1888,6 +2004,10 @@ end
 #############################
 # Tor
 #############################
+@doc Markdown.doc"""
+  tensor_product(P::ModuleFP, C::Hecke.ChainComplex{ModuleFP})
+Apply $P⊗-$ to `C`.
+"""
 function tensor_product(P::ModuleFP, C::Hecke.ChainComplex{ModuleFP})
   tensor_chain = Hecke.map_type(C)[]
   tensor_modules = [tensor_product(P, domain(C.maps[1]), task=:store)[1]]
@@ -1903,7 +2023,10 @@ function tensor_product(P::ModuleFP, C::Hecke.ChainComplex{ModuleFP})
   return Hecke.ChainComplex(ModuleFP, tensor_chain)
 end
 
-
+@doc Markdown.doc"""
+  tensor_product(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
+Apply $-⊗P$ to `C`.
+"""
 function tensor_product(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
   tensor_chain = Hecke.map_type(C)[]
   tensor_modules = [tensor_product(domain(C.maps[1]), P, task=:store)[1]]
@@ -1919,6 +2042,10 @@ function tensor_product(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
   return Hecke.ChainComplex(ModuleFP, tensor_chain)
 end
 
+@doc Markdown.doc"""
+  tor(M::ModuleFP, N::ModuleFP, i::Int)
+Compute $Tor_i(M,N)$.
+"""
 function tor(M::ModuleFP, N::ModuleFP, i::Int)
   free_res = free_resolution(M)[1:end-2]
   lifted_resolution = tensor_product(free_res, N) #TODO only three homs are neccessary
@@ -1932,6 +2059,11 @@ end
 #################################################
 #
 #################################################
+@doc Markdown.doc"""
+  lift_homomorphism_contravariant(Hom_MP::ModuleFP, Hom_NP::ModuleFP, phi::ModuleMap)
+Let $Hom_MP = Hom(M,P)$, $Hom_NP = Hom(N,P)$ and $phi = φ : N → M$ a morphism.
+Compute $φ^{\ast} : Hom(M,P) → Hom(N,P)$.
+"""
 function lift_homomorphism_contravariant(Hom_MP::ModuleFP, Hom_NP::ModuleFP, phi::ModuleMap)
   # phi : N -> M
   M_P = get_special(Hom_MP, :hom)
@@ -1949,6 +2081,11 @@ function lift_homomorphism_contravariant(Hom_MP::ModuleFP, Hom_NP::ModuleFP, phi
   return phi_lifted
 end
 
+@doc Markdown.doc"""
+  lift_homomorphism_covariant(Hom_PM::ModuleFP, Hom_PN::ModuleFP, phi::ModuleMap)
+Let $Hom_PM = Hom(P,M)$, $Hom_PN = Hom(P,N)$ and $phi = φ : M → N$ a morphism.
+Compute $φ_{\ast} : Hom(P,M) → Hom(P,N)$.
+"""
 function lift_homomorphism_covariant(Hom_PM::ModuleFP, Hom_PN::ModuleFP, phi::ModuleMap)
   # phi : M -> N
   P_M = get_special(Hom_PM, :hom)
@@ -1969,6 +2106,10 @@ function lift_homomorphism_covariant(Hom_PM::ModuleFP, Hom_PN::ModuleFP, phi::Mo
   return phi_lifted
 end
 
+@doc Markdown.doc"""
+  hom_functor(P::ModuleFP, C::Hecke.ChainComplex{ModuleFP})
+Apply $Hom(P,-)$ to `C`. Return the lifted chain complex.
+"""
 function hom_functor(P::ModuleFP, C::Hecke.ChainComplex{ModuleFP})
   hom_chain = Hecke.map_type(C)[]
   hom_modules = [hom(P, domain(C.maps[1]))]
@@ -1983,6 +2124,10 @@ function hom_functor(P::ModuleFP, C::Hecke.ChainComplex{ModuleFP})
   return Hecke.ChainComplex(ModuleFP, hom_chain)
 end
 
+@doc Markdown.doc"""
+  hom_functor(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
+Apply $Hom(-,P)$ to `C`. Return the lifted chain complex.
+"""
 function hom_functor(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
   hom_chain = Hecke.map_type(C)[]
   hom_modules = [hom(domain(C.maps[1]),P)]
@@ -1998,6 +2143,10 @@ function hom_functor(C::Hecke.ChainComplex{ModuleFP}, P::ModuleFP)
 end
 
 #############################
+@doc Markdown.doc"""
+  homology(C::Hecke.ChainComplex{ModuleFP})
+Compute all homology groups of `C`.
+"""
 function homology(C::Hecke.ChainComplex{ModuleFP})
   H = SubQuo[]
   for i=1:length(C)-1
@@ -2006,6 +2155,10 @@ function homology(C::Hecke.ChainComplex{ModuleFP})
   return H
 end
 
+@doc Markdown.doc"""
+  homology(C::Hecke.ChainComplex{ModuleFP}, i::Int)
+Compute the `i`-th homology of `C`.
+"""
 function homology(C::Hecke.ChainComplex{ModuleFP}, i::Int)
   @assert length(C) > 0 #TODO we need actually only the base ring
   if i == 0
@@ -2022,7 +2175,10 @@ end
 #############################
 # Ext
 #############################
-
+@doc Markdown.doc"""
+  ext(M::ModuleFP, N::ModuleFP, i::Int)
+Compute $Ext^i(M,N)$.
+"""
 function ext(M::ModuleFP, N::ModuleFP, i::Int)
   free_res = free_resolution(M)[1:end-2]
   lifted_resolution = hom_functor(free_res, N) #TODO only three homs are neccessary
@@ -2032,6 +2188,11 @@ end
 #############################
 # TODO ?
 #############################
+@doc Markdown.doc"""
+  map_canonically(M::SubQuo, v::SubQuoElem)
+Map the element `v` to an elemet of the module `M` using cached 
+canonical homomorphisms between the parent Module of `v` and `M`.
+"""
 function map_canonically(M::SubQuo, v::SubQuoElem)
   N = parent(v)
   if N===M
@@ -2113,6 +2274,10 @@ end
 # Useful functions
 #############################
 
+@doc Markdown.doc"""
+  register_morphism!(f::ModuleMap)
+Cache the morphism `f` in the corresponding caches of the domain and codomain of `f`.
+"""
 function register_morphism!(f::ModuleMap)
   push!(domain(f).outgoing_morphisms, f)
   push!(codomain(f).ingoing_morphisms, f)
@@ -2171,11 +2336,20 @@ function getindex(a::Hecke.SRow, b::AbstractArray{Int, 1})
   return b
 end
 
+@doc Markdown.doc"""
+  sparse_row(A::MatElem)
+Convert `A` to a sparse row. 
+`nrows(A) == 1` must hold.
+"""
 function sparse_row(A::MatElem)
   @assert nrows(A) == 1
   return Hecke.sparse_matrix(A)[1]
 end
 
+@doc Markdown.doc"""
+  dense_row(r::Hecke.SRow, n::Int)
+Convert `r[1:n]` to a dense row, that is an AbstractAlgebra matrix.
+"""
 function dense_row(r::Hecke.SRow, n::Int)
   R = base_ring(r)
   A = zero_matrix(R, 1, n)
@@ -2210,7 +2384,10 @@ end
 ######################################
 # Migrating test
 ######################################
-
+@doc Markdown.doc"""
+  projection(F::FreeMod, indices::AbstractArray)
+Return the canonical projection from $F = R^I$ to $R^(indices)$ where $indices ⊂ I$.
+"""
 function projection(F::FreeMod, indices::AbstractArray)
   @assert all(x -> x <= ngens(F), indices)
   @assert length(Set(indices)) == length(indices) # unique indices
@@ -2221,8 +2398,8 @@ end
 
 @doc Markdown.doc"""
     preimage_SQ(H::SubQuoHom,elems::Vector{SubQuoElem{T}}, task::Symbol = :none) where {T}
-> Return the preimage of the submodule generated by the Elements $elems$ under $H$
-> as a Subquotient, as well as the injection homomorphism into the domain of $H$.
+Return the preimage of the submodule generated by the Elements $elems$ under $H$
+as a subquotient, as well as the injection homomorphism into the domain of $H$.
 """
 function preimage_SQ(H::SubQuoHom,elems::Vector{SubQuoElem{T}}, task::Symbol = :none) where {T}
   if length(elems)==0
@@ -2265,6 +2442,7 @@ function preimage_SQ(H::SubQuoHom,elems::Vector{SubQuoElem{T}}, task::Symbol = :
   end
 end
 
+# should probably be deprecated
 function prune(M::SubQuo)
   local M_std
   if isdefined(M, :quo)
@@ -2279,8 +2457,11 @@ function prune(M::SubQuo)
   end
 end
 
-
-
+@doc Markdown.doc"""
+  matrix_kernel(A::MatElem)
+Compute the kernel of `A` where `A` is considered as the correponding morphism
+between free modules.
+"""
 function matrix_kernel(A::MatElem)
   R = base_ring(A)
   F_domain = FreeMod(R, nrows(A))
@@ -2292,9 +2473,9 @@ function matrix_kernel(A::MatElem)
 end
 
 @doc Markdown.doc"""
-    simplify_subquotient(M::Subquotient{T}) where T <: Union{Nemo.PolyElem,Nemo.MPolyElem}
-> Simplify the given subquotient and return the simplified subquotient $N$ along
-> with the injection map $N --> M$ and the projection map $M --> N$.
+  simplify_subquotient(M::SubQuo)
+Simplify the given subquotient `M` and return the simplified subquotient `N` along
+with the injection map $N --> M$ and the projection map $M --> N$.
 """
 function simplify_subquotient(M::SubQuo)
   function unit_vector_in_relations(i::Int, M::SubQuo)
@@ -2431,6 +2612,10 @@ end
 ######################################
 # Not only for testing
 ######################################
+@doc Markdown.doc"""
+  matrix_to_map(A::MatElem)
+Converts a given n×m-matrix into the corresponding morphism $A : R^n → R^m$.
+"""
 function matrix_to_map(A::MatElem)
   R = base_ring(A)
   F_domain = FreeMod(R, nrows(A))
@@ -2440,21 +2625,33 @@ function matrix_to_map(A::MatElem)
   return phi
 end
 
+@doc Markdown.doc"""
+  isinjective(f::ModuleMap)
+Test if `f` is injective.
+"""
 function isinjective(f::ModuleMap)
   return iszero(kernel(f)[1])
 end
 
+@doc Markdown.doc"""
+  issurjective(f::ModuleMap)
+Test if `f` is surjective.
+"""
 function issurjective(f::ModuleMap)
   return image(f)[1] == codomain(f)
 end
 
+@doc Markdown.doc"""
+  isbijective(f::ModuleMap)
+Test if `f` is bijective.
+"""
 function isbijective(f::ModuleMap)
   return isinjective(f) && issurjective(f)
 end
 
 @doc Markdown.doc"""
-    iswelldefined(H::AbstractAlgebra.Generic.ModuleHomomorphism)
-> Test if $H$ is well-defined, works if $H.domain$ is of type 'Subquotient'.
+    iswelldefined(H::ModuleMap)
+Test if `H` is well-defined.
 """
 function iswelldefined(H::ModuleMap)
   if typeof(H) <: FreeModuleHom
@@ -2480,10 +2677,10 @@ using Random
 RNG = Random.MersenneTwister(42)
 
 @doc Markdown.doc"""
-	array_to_matrix(A::Array,R::AbstractAlgebra.Ring = parent(A[1,1]))
-> Return $A$ as an AbstractAlgebra Matrix
+	array_to_matrix(A::Array,R::CRing = parent(A[1,1]))
+Return `A` as an AbstractAlgebra Matrix
 """
-function array_to_matrix(A::Array,R::Ring = parent(A[1,1]))
+function array_to_matrix(A::Array,R::CRing = parent(A[1,1]))
 	Mat = AbstractAlgebra.MatrixSpace(R,size(A)...)
 	return Mat(R.(A))
 end
