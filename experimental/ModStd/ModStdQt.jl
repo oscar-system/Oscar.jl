@@ -273,11 +273,11 @@ function Base.setindex!(v::Vals{T}, c::T, i::Int, j::Int) where {T}
   v.v[i][j] = c
 end
 
-function Oscar.groebner_basis(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Frac{fmpq_mpoly}}}; ord::Symbol = :degrevlex, complete_reduction::Bool = true)
-  Oscar.groebner_assure(I, ord, complete_reduction = complete_reduction)
+function exp_groebner_basis(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Frac{fmpq_mpoly}}}; ord::Symbol = :degrevlex, complete_reduction::Bool = true)
+  Oscar.exp_groebner_assure(I, ord, complete_reduction = complete_reduction)
 end
 
-function Oscar.groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Frac{fmpq_mpoly}}}, ord::Symbol = :degrevlex; complete_reduction::Bool = true)
+function exp_groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Frac{fmpq_mpoly}}}, ord::Symbol = :degrevlex; complete_reduction::Bool = true)
   T = fmpq
   if ord == :degrevlex && isdefined(I, :gb)
     return I.gb

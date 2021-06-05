@@ -27,12 +27,13 @@ end
 #  the rat-reco for different polys in parallel
 #  crt in parallel
 #  use walk, tracing, ...
+
 function Oscar.groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevlex; use_hilbert::Bool = false, Proof::Bool = true)
   if isdefined(I, :gb) && ord == :degrevlex
     return collect(I.gb)
   end
   if Proof
-    return Oscar.groebner_basis_with_transform(I, ord = ord)[1]
+    return Oscar.groebner_basis_with_transform(I, ordering = ord)[1]
   end
 
   ps = Hecke.PrimesSet(Hecke.p_start, -1)
@@ -60,7 +61,7 @@ function Oscar.groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevl
     R = ResidueRing(ZZ, Int(p)) #gfp_mpoly missing...
     Rt, t = PolynomialRing(R, [string(s) for s = symbols(Qt)], cached = false)
     @vtime :ModStdQ 3 Ip = Oscar.BiPolyArray([Rt(x) for x = gI], keep_ordering = false)
-    Gp = Oscar.groebner_basis(Ip, ord = ord, complete_reduction = true)
+    Gp = Oscar.exp_groebner_basis(Ip, ord = ord, complete_reduction = true)
     Jp = map(x->lift(Zt, x), Gp)
     if d == 1
       d = fmpz(p)
@@ -111,7 +112,7 @@ function Oscar.groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevl
   end
 end
 
-function Oscar.groebner_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}; ord::Symbol = :degrevlex, complete_reduction::Bool = true, use_hilbert::Bool = false)
+function Oscar.groebner_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}; ordering::Symbol = :degrevlex, complete_reduction::Bool = true, use_hilbert::Bool = false)
     
   ps = Hecke.PrimesSet(Hecke.p_start, -1)
   ps = Hecke.PrimesSet(2^28+2^20, -1)
@@ -140,7 +141,7 @@ function Oscar.groebner_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}; ord::Sym
     R = ResidueRing(ZZ, Int(p))
     Rt, t = PolynomialRing(R, [string(s) for s = symbols(Qt)], cached = false)
     @vtime :ModStdQ 3 Ip = Oscar.BiPolyArray([Rt(x) for x = gI], keep_ordering = false)
-    Gp, Tp = Oscar.groebner_basis_with_transform(Ip, ord = ord, complete_reduction = complete_reduction)
+    Gp, Tp = Oscar.groebner_basis_with_transform(Ip, ord = ordering, complete_reduction = complete_reduction)
     length_gc = length(Gp)
     Jp = vcat(map(x->lift(Zt, x), Gp), map(x->lift(Zt, x), reshape(collect(Tp), :)))
 
@@ -186,7 +187,7 @@ function Oscar.groebner_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}; ord::Sym
           T = matrix(Qt, length_gc, length(gI), gd[length_gc+1:end])
           #at this point we SHOULD have T*gens(I) == G...
           if T*matrix(Qt, length(gI), 1, gI) == matrix(Qt, length_gc, 1, G)
-            if ord == :degrevlex && !isdefined(I, :gb)
+            if ordering == :degrevlex && !isdefined(I, :gb)
               I.gb = BiPolyArray(gd[1:length_gc], keep_ordering = false)
               singular_assure(I.gb)
               I.gb.S.isGB = true
@@ -233,8 +234,8 @@ function induce_crt(f::fmpz_mpoly, d::fmpz, g::fmpz_mpoly, p::fmpz, b::Bool)
   return finish(mu), d*p
 end
 
-function Oscar.groebner_basis(I::MPolyIdeal{fmpq_mpoly}; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
-  H = Oscar.groebner_assure(I, ord)
+function exp_groebner_basis(I::MPolyIdeal{fmpq_mpoly}; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
+  H = Oscar.exp_groebner_assure(I, ord)
   return H
 end
 
