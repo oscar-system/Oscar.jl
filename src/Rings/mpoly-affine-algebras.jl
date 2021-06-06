@@ -169,7 +169,7 @@ end
 Given an affine algebra `A = R/I`,
 return `true` if `A` is reduced, `false` otherwise.
 
-CAVEAT: The implementation proceeds by computing the radical of `A` first. This may take some time.
+CAVEAT: The implementation proceeds by computing the radical of `I` first. This may take some time.
 """
 function isreduced(A::MPolyQuo) 
   I = A.I
