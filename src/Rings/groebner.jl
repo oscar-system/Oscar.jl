@@ -437,7 +437,7 @@ function groebner_basis(B::BiPolyArray, ord::MonomialOrdering; complete_reductio
 end
 
 function groebner_basis(I::MPolyIdeal, ord::MonomialOrdering; complete_reduction::Bool=false)
-  R = singular_ring(base_ring(I), ord)
+  R = singular_ring(base_ring(I), ord.o)
   !Oscar.Singular.has_global_ordering(R) && error("The ordering has to be a global ordering.")
   i = Singular.std(Singular.Ideal(R, [R(x) for x = gens(I)]), complete_reduction = complete_reduction)
   return collect(BiPolyArray(base_ring(I), i))
