@@ -30,7 +30,7 @@ function Oscar.binomial(a::RingElem, k::Int)
   return prod([a-i for i=0:k-1])*inv(p(factorial(k)))
 end
 
-function Oscar.groebner_basis(B::BiPolyArray{nmod_mpoly}, h::HilbertData; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
+function exp_groebner_basis(B::BiPolyArray{nmod_mpoly}, h::HilbertData; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
   if ord != :degrevlex
     R = Oscar.singular_ring(B.Ox, ord)
     i = stdhilb(Singular.Ideal(R, [convert(R, x) for x = B]), h.data, complete_reduction = complete_reduction)
@@ -47,7 +47,7 @@ end
 #  the rat-reco for different polys in parallel
 #  crt in parallel
 #  use walk, tracing, ...
-function Oscar.groebner_assure(I::MPolyIdeal{Generic.MPoly{nf_elem}}, ord::Symbol = :degrevlex; use_hilbert::Bool = false)
+function exp_groebner_assure(I::MPolyIdeal{Generic.MPoly{nf_elem}}, ord::Symbol = :degrevlex; use_hilbert::Bool = false)
   if isdefined(I, :gb) && ord == :degrevlex
     return I.gb
   end
@@ -86,9 +86,9 @@ function Oscar.groebner_assure(I::MPolyIdeal{Generic.MPoly{nf_elem}}, ord::Symbo
           @show H = HilbertData(fp)
           very_first = false
         end
-        push!(Jp, groebner_basis(fp, H, ord = ord, complete_reduction = true))
+        push!(Jp, exp_groebner_basis(fp, H, ord = ord, complete_reduction = true))
       else
-        push!(Jp, groebner_basis(fp, ord = ord, complete_reduction = true))
+        push!(Jp, exp_groebner_basis(fp, ord = ord, complete_reduction = true))
       end
     end
     @vtime :ModStdNF 2 IP = Hecke.modular_lift(Jp, me)
@@ -143,8 +143,8 @@ function Oscar.groebner_assure(I::MPolyIdeal{Generic.MPoly{nf_elem}}, ord::Symbo
   end
 end
 
-function Oscar.groebner_basis(I::MPolyIdeal{Generic.MPoly{nf_elem}}; ord::Symbol = :degrevlex, complete_reduction::Bool = true)
-  return Oscar.groebner_assure(I, ord)
+function exp_groebner_basis(I::MPolyIdeal{Generic.MPoly{nf_elem}}; ord::Symbol = :degrevlex, complete_reduction::Bool = true)
+  return Oscar.exp_groebner_assure(I, ord)
 end
 
 

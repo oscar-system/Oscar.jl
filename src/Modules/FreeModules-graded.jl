@@ -377,6 +377,10 @@ function convert(F::FreeModule_dec, s::Singular.svector)
   return FreeModuleElem_dec(sparse_row(base_ring(F), pv), F)
 end
 
+function (F::FreeModule_dec)(s::Singular.svector)
+    convert(F, s)
+end
+
 isgraded(F::FreeModule_dec) = isgraded(F.R)
 isfiltered(F::FreeModule_dec) = isfiltered(F.R)
 

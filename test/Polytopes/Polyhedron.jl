@@ -50,4 +50,9 @@
         @test normalized_volume(s) == 1
     end
 
+    @testset "standard_constructions" begin
+        p = upper_bound_theorem(4,8)
+        @test p.pm_polytope.F_VECTOR == [8, 28, 40, 20]
+    end
+
 end

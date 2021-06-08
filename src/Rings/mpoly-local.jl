@@ -307,9 +307,9 @@ function groebner_assure(I::MPolyIdealLoc)
   end
 end
 
-function groebner_basis(I::MPolyIdealLoc; ord::Symbol = :negdegrevlex)
-  if ord != :negdegrevlex
-    B = BiPolyArrayLoc(I.gens.O, ord = ord)
+function groebner_basis(I::MPolyIdealLoc; ordering::Symbol = :negdegrevlex)
+  if ordering != :negdegrevlex
+    B = BiPolyArrayLoc(I.gens.O, ordering = ordering)
     singular_assure(B)
     R = B.Sx
     !Oscar.Singular.has_local_ordering(R) && error("The ordering has to be a local ordering.")
