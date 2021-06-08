@@ -301,6 +301,19 @@ function finish(M::MPolyBuildCtx{<:MPolyElem_dec})
   return parent(M.poly)(f)
 end
 
+# constructor for ideals#######################################################
+
+function ideal(g::Vector{T}) where {T <: MPolyElem_dec}
+  @assert length(g) > 0
+  @assert all(x->parent(x) == parent(g[1]), g)
+  if isgraded(parent(g[1]))
+     if !(all(ishomogenous, g))
+       throw(ArgumentError("The generators of the ideal must be homogeneous."))
+     end
+  end
+  return MPolyIdeal(g)
+end
+
 function jacobi_matrix(f::MPolyElem_dec)
   R = parent(f)
   n = nvars(R)
