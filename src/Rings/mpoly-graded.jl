@@ -1,5 +1,5 @@
 export weight, decorate, ishomogenous, homogenous_components, filtrate,
-grade, homogenous_component, jacobi_matrix, jacobi_ideal,
+grade, GradedPolynomialRing, homogenous_component, jacobi_matrix, jacobi_ideal,
 HilbertData, hilbert_series, hilbert_series_reduced, hilbert_series_expanded, hilbert_function, hilbert_polynomial,
 homogenization, dehomogenization
 
@@ -57,49 +57,61 @@ function decorate(R::MPolyRing)
 end
 
 @doc Markdown.doc"""
-    grade(R::MPolyRing, v::Array{Int, 1})
-
-Grade `R` by assigning weights to the variables according to the entries of `v`. 
-
     grade(R::MPolyRing)
 
 Grade `R` by assigning weight 1 to each variable. 
+
+    grade(R::MPolyRing, W::Vector{Int})
+
+Grade `R` by assigning weights to the variables according to the entries of `W`. 
 
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
 
-julia> v = [1, 2, 3]
-3-element Array{Int64,1}:
- 1
- 2
- 3
-
-julia> S, (x, y, z) = grade(R, v)
-(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
-  x -> [1]
-  y -> [2]
-  z -> [3], Oscar.MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
-
 julia> T, (x, y, z) = grade(R)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
   x -> [1]
   y -> [1]
   z -> [1], Oscar.MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
+
+julia> W = [1, 2, 3];
+
+julia> S, (x, y, z) = grade(R, W)
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
+  x -> [1]
+  y -> [2]
+  z -> [3], Oscar.MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
 ```
 """
-function grade(R::MPolyRing, v::Array{Int, 1})
-  A = abelian_group([0])
-  Hecke.set_special(A, :show_elem => show_special_elem_grad) 
-  S = MPolyRing_dec(R, [i*A[1] for i = v])
-  return S, map(S, gens(R))
-end
-
 function grade(R::MPolyRing)
   A = abelian_group([0])
   S = MPolyRing_dec(R, [1*A[1] for i = 1: ngens(R)])
   return S, map(S, gens(R))
+end
+function grade(R::MPolyRing, W::Vector{Int})
+  A = abelian_group([0])
+  Hecke.set_special(A, :show_elem => show_special_elem_grad) 
+  S = MPolyRing_dec(R, [i*A[1] for i = W])
+  return S, map(S, gens(R))
+end
+
+@doc Markdown.doc"""
+    GradedPolynomialRing(C::Ring, V::Vector{String}, W::Vector{Int}; ordering=:lex)
+
+Return a multivariate polynomial ring with weights assigned to the variables according to the entries of `W`. 
+# Examples
+```jldoctest
+julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"], [1, 2, 3])
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
+  x -> [1]
+  y -> [2]
+  z -> [3], Oscar.MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
+```
+"""
+function GradedPolynomialRing(C::Ring, V::Vector{String}, W::Vector{Int}; ordering=:lex)
+   return grade(PolynomialRing(C, V; ordering)[1], W)
 end
 
 filtrate(R::MPolyRing) = decorate(R)
@@ -287,15 +299,6 @@ function finish(M::MPolyBuildCtx{<:MPolyElem_dec})
   f = sort_terms!(M.poly.f)
   f = combine_like_terms!(M.poly.f)
   return parent(M.poly)(f)
-end
-
-function ideal(g::Array{T, 1}) where {T <: MPolyElem_dec}
-  if isgraded(parent(g[1]))
-     if !(all(ishomogenous, g))
-       throw(ArgumentError("The generators of the ideal must be homogeneous."))
-     end
-  end
-  return MPolyIdeal(g)
 end
 
 function jacobi_matrix(f::MPolyElem_dec)
