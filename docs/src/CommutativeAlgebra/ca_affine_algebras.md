@@ -100,11 +100,12 @@ hilbert_polynomial(A::Union{MPolyRing, MPolyQuo})
 degree(A::Union{MPolyRing, MPolyQuo})
 ```
 
-###### Example
+###### Examples
 
 ```@repl oscar
 R, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
-A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]))
+R,  (w, x, y, z) = grade(R)
+A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 hilbert_series(A)
 hilbert_series_reduced(A)
 hilbert_series_expanded(A, 7)

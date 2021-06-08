@@ -291,7 +291,9 @@ end
 
 function ideal(g::Array{T, 1}) where {T <: MPolyElem_dec}
   if isgraded(parent(g[1]))
-    @assert all(ishomogenous, g)
+     if !(all(ishomogenous, g))
+       throw(ArgumentError("The generators of the ideal must be homogeneous."))
+     end
   end
   return MPolyIdeal(g)
 end
@@ -624,6 +626,19 @@ mutable struct HilbertData
   data::Array{Int32, 1}
   I::MPolyIdeal
   function HilbertData(I::MPolyIdeal)
+
+    if !(typeof(base_ring(base_ring(I))) <: AbstractAlgebra.Field)
+       throw(ArgumentError("The coefficient ring of the base ring must be a field."))
+    end
+
+    if !((typeof(base_ring(I)) <: Oscar.MPolyRing_dec) && (isgraded(base_ring(I))))
+       throw(ArgumentError("The base ring must be graded."))
+    end
+    
+    if !(all(ishomogenous, gens(I)))
+       throw(ArgumentError("The generators of the ideal must be homogeneous."))
+    end
+    
     Oscar.groebner_assure(I)
     h = sing_hilb(I.gb.S)
     return new(h, I)
