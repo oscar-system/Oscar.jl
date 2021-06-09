@@ -385,5 +385,5 @@ end
 	P = Oscar.Point_EllCurve(E, Oscar.Geometry.ProjSpcElem(PP[1], [A(1), A(3), A(1)]))
 	Q = Oscar.Point_EllCurve(E, Oscar.Geometry.ProjSpcElem(PP[1], [A(4332), A(3230), A(1)]))
 	@test Oscar.sum_Point_EllCurveZnZ(P, P).Pt.v == Q.Pt.v
-	@test Oscar.IntMult_Point_EllCurveZnZ(2, P).Pt.v == Q.Pt.v
+	@test Oscar.IntMult_Point_EllCurveZnZ(ZZ(2), P).Pt.v == Q.Pt.v
 end
