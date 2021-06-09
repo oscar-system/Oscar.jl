@@ -291,7 +291,9 @@ end
 
 function ideal(g::Array{T, 1}) where {T <: MPolyElem_dec}
   if isgraded(parent(g[1]))
-    @assert all(ishomogenous, g)
+     if !(all(ishomogenous, g))
+       throw(ArgumentError("The generators of the ideal must be homogeneous."))
+     end
   end
   return MPolyIdeal(g)
 end
@@ -410,31 +412,6 @@ function homogenous_component(a::MPolyElem_dec, g::GrpAbFinGenElem)
   return parent(a)(r)
 end
 
-function degree(a::MPolyQuoElem{<:MPolyElem_dec})
-  simplify!(a)
-  return degree(a.f)
-end
-
-isfiltered(q::MPolyQuo) = isfiltered(q.R)
-isgraded(q::MPolyQuo) = isgraded(q.R)
-
-function homogenous_component(a::MPolyQuoElem{<:MPolyElem_dec}, d::GrpAbFinGenElem)
-  simplify!(a)
-  return homogenous_component(a.f, d)
-end
-
-function homogenous_components(a::MPolyQuoElem{<:MPolyElem_dec})
-  simplify!(a)
-  return homogenous_components(a.f)
-end
-
-function ishomogenous(a::MPolyQuoElem{<:MPolyElem_dec})
-  simplify!(a)
-  return ishomogenous(a.f)
-end
-
-decoration(q::MPolyQuo{<:MPolyElem_dec}) = decoration(q.R)
-
 base_ring(W::MPolyRing_dec) = base_ring(W.R)
 Nemo.ngens(W::MPolyRing_dec) = Nemo.ngens(W.R)
 Nemo.ngens(R::MPolyRing) = Nemo.nvars(R)
@@ -481,37 +458,6 @@ function homogenous_component(W::MPolyRing_dec, d::GrpAbFinGenElem)
   Hecke.set_special(M, :show => show_homo_comp, :data => (W, d))
   add_relshp(M, W, x -> sum(x[i] * B[i] for i=1:length(B)))
 #  add_relshp(W, M, g)
-  return M, h
-end
-
-base_ring(W::MPolyQuo) = W.R
-modulus(W::MPolyQuo) = W.I
-
-function hash(w::MPolyQuoElem, u::UInt)
-  simplify!(w)
-  return hash(w.f, u)
-end
-
-function homogenous_component(W::MPolyQuo{<:MPolyElem_dec}, d::GrpAbFinGenElem)
-  #TODO: lazy: ie. no enumeration of points
-  #      aparently it is possible to get the number of points faster than the points
-  D = parent(d)
-  @assert D == decoration(W)
-  R = base_ring(W)
-  I = modulus(W)
-
-  H, mH = homogenous_component(R, d)
-  B = Set{elem_type(W)}()
-  for h = basis(H)
-    b = W(mH(h))
-    if !iszero(b)
-      push!(B, b)
-    end
-  end
-  B = [x for x = B]
-
-  M, h = vector_space(base_ring(R), B, target = W)
-  Hecke.set_special(M, :show => show_homo_comp, :data => (W, d))
   return M, h
 end
 
@@ -624,6 +570,19 @@ mutable struct HilbertData
   data::Array{Int32, 1}
   I::MPolyIdeal
   function HilbertData(I::MPolyIdeal)
+
+    if !(typeof(base_ring(base_ring(I))) <: AbstractAlgebra.Field)
+       throw(ArgumentError("The coefficient ring of the base ring must be a field."))
+    end
+
+    if !((typeof(base_ring(I)) <: Oscar.MPolyRing_dec) && (isgraded(base_ring(I))))
+       throw(ArgumentError("The base ring must be graded."))
+    end
+    
+    if !(all(ishomogenous, gens(I)))
+       throw(ArgumentError("The generators of the ideal must be homogeneous."))
+    end
+    
     Oscar.groebner_assure(I)
     h = sing_hilb(I.gb.S)
     return new(h, I)
@@ -808,5 +767,3 @@ end
 function dehomogenization(I::MPolyIdeal{T}, pos::Int) where {T <: MPolyElem_dec}
   return ideal(dehomogenization(gens(I), pos))
 end
-
-
