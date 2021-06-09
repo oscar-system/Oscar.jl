@@ -120,7 +120,7 @@ function GradedPolynomialRing(C::Ring, V::Vector{String}, W::Vector{Int}; orderi
 end
 function GradedPolynomialRing(C::Ring, V::Vector{String}; ordering=:lex)
    W = ones(Int, length(V))
-   return GradedPolynomialRing(C, V, W; ordering)
+   return GradedPolynomialRing(C, V, W; ordering = ordering)
 end
 
 filtrate(R::MPolyRing) = decorate(R)
