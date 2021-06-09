@@ -1,5 +1,5 @@
 export sum_Point_EllCurveZnZ, ECM, rand_pair_EllCurve_Point,
-       IntMult_Point_EllCurveZnZ
+       IntMult_Point_EllCurveZnZ, _scalar_mult, random_point, _random_point
 
 ################################################################################
 # Elliptic curves over a ring Z/nZ
@@ -18,6 +18,7 @@ function _add(P::Array{Nemo.fmpz_mod, 1}, Q::Array{Nemo.fmpz_mod, 1}, E::Array{N
    length(E) == 2 || error("array of size 2 required")
    A = P[1].parent
    A == Q[1].parent && A == E[1].parent || error("Not the same parent")
+   #print("P=", P, "\n", "Q=", Q, "\n")
    P[3] != A(1) && P != [A(0), A(1), A(0)] && error("require infinity point or last coordinate 1")
    Q[3] != A(1) && Q != [A(0), A(1), A(0)] && error("require infinity point or last coordinate 1")
    n = modulus(A)
@@ -76,7 +77,7 @@ end
 # Creates a list of pairs composed of a the coefficitents of an elliptic curve
 # and the coordinates of a point on it.
 
-function _rand_list(A::Nemo.FmpzModRing, N::Int64)
+function _rand_list(A::Nemo.FmpzModRing, N::Int)
    E = Array{Nemo.fmpz_mod, 1}[]
    P = Array{Nemo.fmpz_mod, 1}[]
    for i in 1:N
@@ -91,62 +92,31 @@ end
 # Returns the coordinates of m*P and ZZ(1) when the computation is possible, and
 # returns (0, 0, 0) and the gcd otherwise.
 
-function _scalar_mult(P::Array{Nemo.fmpz_mod, 1}, E::Array{Nemo.fmpz_mod, 1}, m::Int64)
+function _scalar_mult(P::Array{Nemo.fmpz_mod, 1}, E::Array{Nemo.fmpz_mod, 1}, m::fmpz)
    length(P) == 3 || error("arrays of size 3 required")
    length(E) == 2 || error("array of size 2 required")
    A = P[1].parent
+   res = [[A(0), A(1), A(0)], ZZ(1)]
    if m < 0
       error("Positive integer expected")
    elseif m == 0
-      return [[A(0), A(1), A(0)], ZZ(1)]
+      return res
    elseif m == 1
       return [P, ZZ(1)]
    else
-      Q = _add(P, P, E)
-      if Q[2] != ZZ(1)
-         return Q
-      elseif iszero(m-2)
-         return Q
-      else
-         for i in 1:m-1
-            Q = _add(Q[1], P, E)
-            if Q[2] != ZZ(1)
-               return Q
-            end
+      b = m
+      Q = [P, ZZ(1)]
+      while !iszero(b)
+         if b % 2 == 1
+            res  = _add(res[1], Q[1], E)
+            res[2] != ZZ(1) && return res
          end
+         Q = _add(Q[1], Q[1], E)
+         Q[2] != ZZ(1) && return Q
+         b = div(b, 2)
       end
-      return Q
+      return res
    end
-end
-
-################################################################################
-# Returns the coordinates of m!*P and ZZ(1) when the computation is possible, and
-# returns (0, 0, 0) and the gcd otherwise.
-
-function _fac_mult(P::Array{Nemo.fmpz_mod, 1}, E::Array{Nemo.fmpz_mod, 1}, m::Int64)
-   length(P) == 3 || error("arrays of size 3 required")
-   length(E) == 2 || error("array of size 2 required")
-   A = P[1].parent
-   if m < 0
-      error("Positive integer expected")
-   elseif m == 1 || m == 0
-      return [P, ZZ(1)]
-   else
-      Q = _scalar_mult(P, E, 2)
-      if Q[2] != ZZ(1)
-         return Q
-      elseif iszero(m-2)
-         return Q
-      else
-         for i in 1:m-2
-            Q = _scalar_mult(Q[1], E, i+2)
-            if Q[2] != ZZ(1)
-               return Q
-            end
-         end
-      end
-   end
-   return Q
 end
 
 ################################################################################
@@ -164,20 +134,18 @@ end
 # Functions
 ################################################################################
 @doc Markdown.doc"""
-    ECM(n::Int64; nbcurve::Int64 = 10, multfact::Int64 = 8)
+    ECM(n::fmpz; nbcurve::Int = 25000, multfact::fmpz = factorial(ZZ(10^4)))
 
 Return a factor of `n`, obtained with the Elliptic Curve Method.
 """
-function ECM(n::fmpz; nbcurve::Int64 = 10, multfact::Int64 = 8)
+function ECM(n::fmpz; nbcurve::Int = 25000, multfact::fmpz = factorial(ZZ(10^4)))
    A = ResidueRing(ZZ, n)
    N = nbcurve
-   m = multfact
    L = _rand_list(A, N)
+
    for i in 1:length(L)
-      Q = _fac_mult(L[2][i], L[1][i], m)
-      if Q[2] != ZZ(1)
-         return Q[2]
-      end
+      Q = _scalar_mult(L[2][i], L[1][i], multfact)
+      Q[2] > 1 && return Q[2]
    end
    return ZZ(1)
 end
@@ -205,11 +173,11 @@ end
 
 ################################################################################
 @doc Markdown.doc"""
-    IntMult_Point_EllCurveZnZ(m::Int, P::Point_EllCurve{S}) where S <: Nemo.fmpz_mod
+    IntMult_Point_EllCurveZnZ(m::fmpz, P::Point_EllCurve{S}) where S <: Nemo.fmpz_mod
 
 Return, if possible, the point `mP`, and an error otherwise.
 """
-function IntMult_Point_EllCurveZnZ(m::Int, P::Point_EllCurve{S}) where S <: Nemo.fmpz_mod
+function IntMult_Point_EllCurveZnZ(m::fmpz, P::Point_EllCurve{S}) where S <: Nemo.fmpz_mod
    E = P.C
    E.Hecke_ec.short || error("requires short Weierstrass form")
    PP = P.Pt.parent
