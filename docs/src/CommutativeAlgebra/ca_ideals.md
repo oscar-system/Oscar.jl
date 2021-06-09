@@ -161,7 +161,7 @@ saturation_with_index(I::MPolyIdeal, J::MPolyIdeal)
 ### Elimination
 
 ```@docs
-eliminate(I::MPolyIdeal, l::Array{T}, 1) where T <: Union{MPolyElem, MPolyElem_dec}
+eliminate(I::MPolyIdeal, l::Array{T, 1}) where T <: Union{MPolyElem, MPolyElem_dec}
 ```
 
 ## Tests on Ideals

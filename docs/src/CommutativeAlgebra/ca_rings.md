@@ -113,7 +113,7 @@ x
 The following functions allow one to assign gradings to multivariate polynomial rings:
 
 ```@docs
-grade(R::MPolyRing)
+grade(R::MPolyRing, W::Vector{Int})
 ```
 
 More directly, graded polynomial rings can be constructed as follows:
@@ -123,6 +123,6 @@ GradedPolynomialRing(C::Ring, V::Vector{String}, W::Vector{Int}; ordering=:lex)
 ```
 
 !!! note
-    The return type of `PolynomialRing``as well as that of the constructors for graded rings above is a subtype of `MPolyRing`.
+    The return type of `PolynomialRing``as well as that of the constructors for graded rings is a subtype of `MPolyRing`.
 
 

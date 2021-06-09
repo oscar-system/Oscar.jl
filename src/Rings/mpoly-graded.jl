@@ -57,13 +57,13 @@ function decorate(R::MPolyRing)
 end
 
 @doc Markdown.doc"""
-    grade(R::MPolyRing)
-
-Grade `R` by assigning weight 1 to each variable. 
-
     grade(R::MPolyRing, W::Vector{Int})
 
 Grade `R` by assigning weights to the variables according to the entries of `W`. 
+
+    grade(R::MPolyRing)
+
+Grade `R` by assigning weight 1 to each variable. 
 
 # Examples
 ```jldoctest
@@ -85,15 +85,15 @@ julia> S, (x, y, z) = grade(R, W)
   z -> [3], Oscar.MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
 ```
 """
-function grade(R::MPolyRing)
-  A = abelian_group([0])
-  S = MPolyRing_dec(R, [1*A[1] for i = 1: ngens(R)])
-  return S, map(S, gens(R))
-end
 function grade(R::MPolyRing, W::Vector{Int})
   A = abelian_group([0])
   Hecke.set_special(A, :show_elem => show_special_elem_grad) 
   S = MPolyRing_dec(R, [i*A[1] for i = W])
+  return S, map(S, gens(R))
+end
+function grade(R::MPolyRing)
+  A = abelian_group([0])
+  S = MPolyRing_dec(R, [1*A[1] for i = 1: ngens(R)])
   return S, map(S, gens(R))
 end
 
@@ -101,6 +101,11 @@ end
     GradedPolynomialRing(C::Ring, V::Vector{String}, W::Vector{Int}; ordering=:lex)
 
 Return a multivariate polynomial ring with weights assigned to the variables according to the entries of `W`. 
+
+    GradedPolynomialRing(C::Ring, V::Vector{String}; ordering=:lex)
+
+Return a multivariate polynomial ring with weight 1 assigned to each variable. 
+
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"], [1, 2, 3])
@@ -112,6 +117,10 @@ julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"], [1, 2, 3])
 """
 function GradedPolynomialRing(C::Ring, V::Vector{String}, W::Vector{Int}; ordering=:lex)
    return grade(PolynomialRing(C, V; ordering)[1], W)
+end
+function GradedPolynomialRing(C::Ring, V::Vector{String}; ordering=:lex)
+   W = ones(Int, length(V))
+   return GradedPolynomialRing(C, V, W; ordering)
 end
 
 filtrate(R::MPolyRing) = decorate(R)
