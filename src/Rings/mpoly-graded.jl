@@ -116,7 +116,7 @@ julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"], [1, 2, 3])
 ```
 """
 function GradedPolynomialRing(C::Ring, V::Vector{String}, W::Vector{Int}; ordering=:lex)
-   return grade(PolynomialRing(C, V; ordering)[1], W)
+   return grade(PolynomialRing(C, V; ordering = ordering)[1], W)
 end
 function GradedPolynomialRing(C::Ring, V::Vector{String}; ordering=:lex)
    W = ones(Int, length(V))
