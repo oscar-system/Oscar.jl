@@ -55,7 +55,7 @@ T, (s, t) = PolynomialRing(QQ, ["s", "t"]);
 QT = FractionField(T)
 parent(t)
 parent(1//t)
-T, (s, t) = PolynomialRing(GF(3), ["s", "t"]);
+T, t = PolynomialRing(GF(3), "t");
 QT = FractionField(T)
 ```
 
@@ -74,7 +74,7 @@ The basic constructor for multivariate polynomial rings reads as follows:
 PolynomialRing(C::Ring, v::Vector{String}; ordering=:lex)
 ```
 
-Its use and that of an additional constructor which conveniently allows for variables with multi-indices is indicated below.
+Its use, together with that of a convenient constructor for handling variables with multi-indices, is indicated below:
 
 ###### Examples
 
@@ -97,8 +97,8 @@ typeof(g)
 ```
 
 ```@repl oscar
-v = ["x[1]", "x[2]"]
-T, x = PolynomialRing(GF(3), v)
+V = ["x[1]", "x[2]"]
+T, x = PolynomialRing(GF(3), V)
 x
 ```
 
@@ -123,6 +123,6 @@ GradedPolynomialRing(C::Ring, V::Vector{String}, W::Vector{Int}; ordering=:lex)
 ```
 
 !!! note
-    The return type of both constructors `PolynomialRing`and `GradedPolynomialRing` is a subtype of `MPolyRing`.
+    The return type of `PolynomialRing``as well as that of the constructors for graded rings above is a subtype of `MPolyRing`.
 
 
