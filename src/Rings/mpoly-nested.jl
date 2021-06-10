@@ -91,7 +91,7 @@ end
 
 function _convert_frac_fac(R, u, fac)
   Rfac = Fac{elem_type(R)}()
-  Rfac.unit = R(u)
+  Rfac.unit = R(u)*_restore_numerators(R, fac.unit)
   for (f, e) in fac
     t = _restore_numerators(R, f)
     if isconstant(t)
@@ -145,7 +145,7 @@ end
 @doc Markdown.doc"""
     denest(R::Union{PolyRing, MPolyRing})
 
-Returns a multivariate polynomial ring resulting from denesting an interated
+Returns a multivariate polynomial ring resulting from denesting an iterated
 polynomial ring `R`.
 """
 function denest(R::Union{PolyRing, MPolyRing})
@@ -185,7 +185,7 @@ end
     denest(S::MPolyRing, f::Union{PolyElem, MPolyElem})
 
 Returns an element of `S` resulting from denesting a element `f` of an
-interated polynomial ring. The ring `S` should have the same base ring and
+iterated polynomial ring. The ring `S` should have the same base ring and
 number of variables as `denest(parent(f))`.
 """
 function denest(S::MPolyRing, f::Union{PolyElem, MPolyElem})
