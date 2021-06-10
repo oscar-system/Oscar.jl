@@ -16,10 +16,10 @@ import Documenter.Documents: Document, Page
 #=
  copied from Documenter (0.26.1)
 
- Adds the loop to collect the AA/Nemo/Hecke doc files into the 
+ Adds the loop to collect the AA/Nemo/Hecke doc files into the
  build tree of Oscar.
 
-=# 
+=#
 function Selectors.runner(::Type{SetupBuildDirectory}, doc::Documents.Document)
     @info "SetupBuildDirectory: setting up build directory."
 
@@ -211,7 +211,7 @@ makedocs(bib,
                               "$(nemo)/series.md",
                               "$(nemo)/puiseux.md"],
                          ],
-             "Fields" => [            
+             "Fields" => [
                           "$(aa)/fields.md",
 			  "Rings/rational.md",
                           "Number Fields" => [
@@ -226,7 +226,7 @@ makedocs(bib,
                           "Local Fields" => [
                               "$(nemo)/padic.md",
                               "$(nemo)/qadic.md"],
-                          "$(nemo)/finitefield.md",    
+                          "$(nemo)/finitefield.md",
                          ],
              "Groups" => [ "Groups/groups.md",
                            "$(hecke)/abelian/introduction.md"
@@ -253,6 +253,9 @@ makedocs(bib,
 	                               "CommutativeAlgebra/ca_modules.md",
 				       "CommutativeAlgebra/ca_affine_algebras.md",
 				       "CommutativeAlgebra/ca_invariant_theory.md"],
+                       "PolyhedralGeometry" => ["PolyhedralGeometry/pg.md",
+                                   "PolyhedralGeometry/pg_polyhedra.md",
+                                   "PolyhedralGeometry/pg_linear_programs.md"],
              "References" => "references.md",
          ]
 )

@@ -4,10 +4,24 @@
 ###############################################################################
 ###############################################################################
 
+struct Polyhedron #a real polymake polyhedron
+    pm_polytope::Polymake.BigObject
+    boundedness::Symbol # Values: :unknown, :bounded, :unbounded
+end
 
 @doc Markdown.doc"""
 
-    Polyhedron(A, b)
+    Polyhedron(P::Polymake.BigObject)
+
+Construct a `Polyhedron` equal to a polymake `Polytope`.
+"""
+function Polyhedron(pm_polytope::Polymake.BigObject)
+    Polyhedron(pm_polytope, :unknown)
+end
+
+@doc Markdown.doc"""
+
+    Polyhedron(A::Union{Oscar.MatElem,AbstractMatrix}, b)
 
 The (metric) polyhedron defined by
 
@@ -20,19 +34,14 @@ see Def. 3.35 and Section 4.1. of Joswig, M. and Theobald, T. "Polyhedral and Al
 - `b::Vector`: Vector corresponding to the constant term of the inequalilites that describe P.
 
 # Examples
+The following lines define the square $[0,1]^2 \subset \mathbb{R}^2$:
 ```julia-repl
 julia> A=[1 0; 0 1; -1 0 ; 0 -1];
 julia> b=[1,1,0,0];
 julia> Polyhedron([1 0;0 1;-1 0;0 -1],[1 1 0 0])
 A polyhedron of dimension 2
 ```
-""" struct Polyhedron #a real polymake polyhedron
-    pm_polytope::Polymake.BigObject
-    boundedness::Symbol # Values: :unknown, :bounded, :unbounded
-end
-function Polyhedron(pm_polytope::Polymake.BigObject)
-    Polyhedron(pm_polytope, :unknown)
-end
+"""
 function Polyhedron(A::Union{Oscar.MatElem,AbstractMatrix}, b)
     Polyhedron(Polymake.polytope.Polytope{Polymake.Rational}(
         INEQUALITIES = matrix_for_polymake(remove_zero_rows([b -A])),
@@ -53,10 +62,20 @@ pm_polytope(P::Polyhedron) = P.pm_polytope
 @doc Markdown.doc"""
     convex_hull(V [, R [, L]])
 
-The polytope given as the convex hull of the columns of V. Optionally, rays (R)
-and generators of the lineality space (L) can be given as well.
+The polytope given as the convex hull of the rows of a set of points.
 
 see Def. 2.11 and Def. 3.1  of Joswig, M. and Theobald, T. "Polyhedral and Algebraic Methods in Computational Geometry", Springer 2013.
+
+# Arguments
+- `V::Matrix`: Points whose convex hull is to be computed; encoded as row vectors.
+- `R::Matrix`: Rays completing the set of points; encoded row-wise as representative vectors.
+- `L::Matrix`: Generators of the Lineality space; encoded as row vectors.
+
+# Examples
+The following lines define the square $[0,1]^2 \subset \mathbb{R}^2$:
+```julia-repl
+julia> Square = convex_hull([0 0; 0 1; 1 0; 1 1])
+A polyhedron of dimension 2
 """
 function convex_hull(V::AnyVecOrMat; non_redundant::Bool=false)
     if !non_redundant
@@ -119,4 +138,3 @@ function Base.show(io::IO, P::Polyhedron)
 end
 
 Polymake.visual(P::Polyhedron; opts...) = Polymake.visual(pm_polytope(P); opts...)
-
