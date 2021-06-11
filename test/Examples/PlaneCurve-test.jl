@@ -387,3 +387,11 @@ end
 	@test Oscar.sum_Point_EllCurveZnZ(P, P).Pt.v == Q.Pt.v
 	@test Oscar.IntMult_Point_EllCurveZnZ(ZZ(2), P).Pt.v == Q.Pt.v
 end
+
+@testset "Primality Proving" begin
+	n = ZZ(8051)
+	m = Oscar.Pollard_rho(n)
+	p = Oscar.Pollard_p_1(n)
+	@test gcd(n, m) == m
+	@test gcd(n, p) == p
+end
