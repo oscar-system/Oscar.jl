@@ -1,5 +1,5 @@
 export sum_Point_EllCurveZnZ, ECM, rand_pair_EllCurve_Point,
-       IntMult_Point_EllCurveZnZ, _scalar_mult, random_point, _random_point
+       IntMult_Point_EllCurveZnZ
 
 ################################################################################
 # Elliptic curves over a ring Z/nZ
