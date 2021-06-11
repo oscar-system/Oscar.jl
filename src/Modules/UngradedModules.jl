@@ -1258,6 +1258,12 @@ function show_morphism(f::ModuleMap)
   display(f.matrix)
 end
 
+@doc Markdown.doc"""
+  hom_tensor(G::ModuleFP, H::ModuleFP, A::Array{ <: ModuleMap, 1})
+
+Let $G = G_1 ⊗ \cdot ⊗ G_n$, $H = H_1 ⊗ \cdot H_n$ and `A` an array of morphisms
+$φ_1, \cdot, φ_n$ with $φ_i : G_i → H_i$. Return then $φ_1 ⊗ \cdot ⊗ φ_n$.
+"""
 function hom_tensor(G::ModuleFP, H::ModuleFP, A::Array{ <: ModuleMap, 1})
   tG = get_special(G, :tensor_product)
   tG === nothing && error("both modules must be tensor products")
