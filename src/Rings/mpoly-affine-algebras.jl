@@ -14,7 +14,7 @@ export issurjective, isinjective, isbijective, inverse, preimage, isfinite
 @doc Markdown.doc"""
     dim(A::MPolyQuo)
 
-Given an affine algebra `A`, return the dimension of `A`.
+Given an affine algebra `A`, return the Krull dimension of `A`.
 
 # Examples
 ```jldoctest
