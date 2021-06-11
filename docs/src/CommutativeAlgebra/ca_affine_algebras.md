@@ -22,11 +22,15 @@ modulo ideals allows one to create such algebras.
 quo(R::MPolyRing, I::MPolyIdeal)
 ```
 
+!!! note
+    The return type of `quo` is a subtype of `MPolyQuo`.
+
 ## Data Associated to Affine Algebras
 
 ### Basic Data
 
 If `A=R/I` is the quotient of a multivariate polynomial ring `R` modulo an ideal `I` of `R`, then
+
 - `base_ring(A)` refers to `R`,
 - `modulus(A)` to `I`,
 - `gens(A)` to the generators of `A`, and
@@ -40,7 +44,7 @@ modulus(A)
 gens(A)
 ngens(A)
 ```
-
+i
 ### Dimension
 
 ```@docs
@@ -118,12 +122,7 @@ degree(A)
 
 ### Constructors
 
-```@docs
-ideal(g::Array{T, 1}) where {T <: MPolyQuoElem}
-```
-```@docs
- ideal(Rx::MPolyQuo, g::Array{<:Any, 1})
-```
+
 
 ## Tests on Affine Algebras
 

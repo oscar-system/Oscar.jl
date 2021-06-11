@@ -123,6 +123,6 @@ GradedPolynomialRing(C::Ring, V::Vector{String}, W::Vector{Int}; ordering=:lex)
 ```
 
 !!! note
-    The return type of `PolynomialRing``as well as that of the constructors for graded rings is a subtype of `MPolyRing`.
+    The return type of `PolynomialRing` as well as that of the constructors for graded rings is a subtype of `MPolyRing`.
 
 

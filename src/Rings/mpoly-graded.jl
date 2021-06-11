@@ -2,7 +2,7 @@ export weight, decorate, ishomogenous, homogenous_components, filtrate,
 grade, GradedPolynomialRing, homogenous_component, jacobi_matrix, jacobi_ideal,
 HilbertData, hilbert_series, hilbert_series_reduced, hilbert_series_expanded, hilbert_function, hilbert_polynomial,
 homogenization, dehomogenization
-
+export MPolyRing_dec, MPolyElem_dec
 mutable struct MPolyRing_dec{T, S} <: AbstractAlgebra.MPolyRing{T}
   R::S
   D::GrpAbFinGen
@@ -74,7 +74,7 @@ julia> T, (x, y, z) = grade(R)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
   x -> [1]
   y -> [1]
-  z -> [1], Oscar.MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
+  z -> [1], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
 
 julia> W = [1, 2, 3];
 
@@ -82,7 +82,7 @@ julia> S, (x, y, z) = grade(R, W)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
   x -> [1]
   y -> [2]
-  z -> [3], Oscar.MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
+  z -> [3], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
 ```
 """
 function grade(R::MPolyRing, W::Vector{Int})
@@ -112,7 +112,7 @@ julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"], [1, 2, 3])
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
   x -> [1]
   y -> [2]
-  z -> [3], Oscar.MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
+  z -> [3], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
 ```
 """
 function GradedPolynomialRing(C::Ring, V::Vector{String}, W::Vector{Int}; ordering=:lex)
