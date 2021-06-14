@@ -2,6 +2,7 @@ export saturation, saturation_with_index, quotient, eliminate
 export radical, primary_decomposition, minimal_primes, equidimensional_decomposition_weak,
           equidimensional_decomposition_radical, equidimensional_hull,
           equidimensional_hull_radical
+export absolute_primary_decomposition
 export iszero, isone, issubset, ideal_membership, radical_membership, isprime, isprimary
 export ngens, gens
 
@@ -441,6 +442,61 @@ function primary_decomposition(I::MPolyIdeal; alg=:GTZ)
   end
   return [(ideal(R, q[1]), ideal(R, q[2])) for q in L]
 end
+########################################################
+@doc Markdown.doc"""
+    absolute_primary_decomposition(I::MPolyIdeal{fmpq_mpoly})
+
+Return an absolute primary decomposition of `I`. The decomposition is returned
+as an array of tuples `(a,b,c,d)`, where `(a,b)` is the (primary, prime) tuple
+from `primary_decomposition`, `c` represents a class of conjugated absolute
+primes defined over a degree `d` extension of `QQ`.
+```
+"""
+function absolute_primary_decomposition(I::MPolyIdeal{fmpq_mpoly})
+  R = base_ring(I)
+  singular_assure(I)
+  (S, d) = Singular.LibPrimdec.absPrimdecGTZ(I.gens.Sx, I.gens.S)
+  decomp = d[:primary_decomp]
+  absprimes = d[:absolute_primes]
+  @assert length(decomp) == length(absprimes)
+  return [(_map_last_var(R, decomp[i][1], 1, one(QQ)),
+           _map_last_var(R, decomp[i][2], 1, one(QQ)),
+           _map_to_ext(R, absprimes[i][1]),
+           absprimes[i][2]::Int)
+          for i in 1:length(decomp)]
+end
+
+# the ideals in QQbar[x] come back in QQ[x,a] with an extra variable a added
+# and the minpoly of a prepended to the ideal generator list
+function _map_to_ext(Qx::MPolyRing, I::Oscar.Singular.sideal)
+  Qxa = base_ring(I)
+  @assert nvars(Qxa) == nvars(Qx) + 1
+  # TODO AbstractAlgebra's coefficients_of_univariate is still broken
+  p = I[1]
+  minpoly = zero(Hecke.Globals.Qx)
+  for (c, e) in zip(coefficients(p), exponent_vectors(p))
+    setcoeff!(minpoly, e[nvars(Qxa)], QQ(c))
+  end
+  R, a = number_field(minpoly)
+  Rx, _ = PolynomialRing(R, String.(symbols(Qx)))
+  return _map_last_var(Rx, I, 2, a)
+end
+
+# the ideals in QQ[x] also come back in QQ[x,a]
+function _map_last_var(Qx::MPolyRing, I::Singular.sideal, start, a)
+  newgens = elem_type(Qx)[]
+  for i in start:ngens(I)
+    p = I[i]
+    g = MPolyBuildCtx(Qx)
+    for (c, e) in zip(coefficients(p), exponent_vectors(p))
+      ca = QQ(c)*a^pop!(e)
+      push_term!(g, ca, e)
+    end
+    push!(newgens, finish(g))
+  end
+  return ideal(Qx, newgens)
+end
+
 #######################################################y
 @doc Markdown.doc"""
     minimal_primes(I::MPolyIdeal; alg=:GTZ)
