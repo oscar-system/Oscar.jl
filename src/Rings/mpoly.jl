@@ -14,7 +14,7 @@ import Hecke: MapHeader, math_html
 
 
 
-export PolynomialRing, total_degree, degree,  MPolyIdeal, MPolyElem, ordering, ideal, coordinates,
+export PolynomialRing, total_degree, degree,  MPolyIdeal, MPolyElem, ideal, coordinates,
        jacobi_matrix, jacobi_ideal,  normalize, divrem, isprimary, isprime
 
 ##############################################################################
@@ -429,6 +429,11 @@ end
 Compute a weight ordering with a unique weight matrix.    
 """
 function simplify(M::MonomialOrdering)
+  ww = simplify_weight_matrix(weights(M))
+  return MonomialOrdering(M.R, ordering(1:ncols(ww), ww))
+end
+
+function simplify_weight_matrix(M::AbsOrdering)
   w = weights(M)
   ww = matrix(ZZ, 0, ncols(w), [])
   for i=1:nrows(w)
@@ -454,7 +459,7 @@ function simplify(M::MonomialOrdering)
       ww = vcat(ww, nw)
     end
   end
-  return MonomialOrdering(M.R, ordering(1:ncols(ww), ww))
+  return ww
 end
 
 import Base.==
@@ -611,11 +616,61 @@ function singular_ring(Rx::MPolyRing{T}, ord::Symbol) where {T <: RingElem}
               cached = false)[1]
 end
 
+function singular(o::Orderings.GenOrdering)
+  v = o.vars
+  @assert minimum(v)+length(v) == maximum(v)+1
+  if o.ord == :lex
+    return Singular.ordering_lp(length(v))
+  elseif o.ord == :degrevlex
+    return Singular.ordering_dp(length(v))
+  elseif o.ord == :weights
+    return Singular.ordering_M(o.wgt)
+  else
+    error("not done yet")
+  end
+end
+
+function singular_ring(Rx::MPolyRing{T}, ord::Orderings.AbsOrdering) where {T <: RingElem}
+  #test if it can be mapped directly to singular:
+  # - consecutive, non-overlapping variables
+  # - covering everything
+  # if this fails, create a matrix...
+  f = Orderings.flat(ord)
+  st = 1
+  iseasy = true
+  for i = 1:length(f)
+    mi = minimum(f[i].vars)
+    ma = maximum(f[i].vars)
+    if mi == st && length(f[i].vars) + st == ma+1
+      st = ma+1
+    else
+      iseasy = false
+      break
+    end
+  end
+
+  if iseasy
+    o = singular(f[1])
+    for i=2:length(f)
+      o = o*singular(f[i])
+    end
+  else
+    o = Singular.ordering_M(Orderings.simplify_weight_matrix(ord))
+  end
+
+  return Singular.PolynomialRing(singular_ring(base_ring(Rx)),
+              [string(x) for x = Nemo.symbols(Rx)],
+              ordering = o,
+              cached = false)[1]
+end
+
+
 #catch all for generic nemo rings
 function Oscar.singular_ring(F::AbstractAlgebra.Ring)
   return Singular.CoefficientRing(F)
 end
 
+#??? needs to coerce into b? assert parent?
 function (b::AbstractAlgebra.Ring)(a::Singular.n_unknown)
   Singular.libSingular.julia(Singular.libSingular.cast_number_to_void(a.ptr))
 end
