@@ -540,57 +540,52 @@ julia> Qa, a = PolynomialRing(QQ, :a=>1:2);
 
 julia> R, X = PolynomialRing(FractionField(Qa), :X=>1:2);
 
-julia> f = (X[1]^2+a[1]*X[2]^2)*(X[1]+X[2]+a[1]+a[2]);
-
-julia> z = factor_absolute(f)
+julia> f = factor_absolute((X[1]^2+a[1]*X[2]^2)*(X[1]+2*X[2]+3*a[1]+4*a[2]))
 3-element Vector{Any}:
  1
- (x1 + x2 + x3 + x4, 1)
- (X1 + t*X2, X1 - t*X2, 1)
+ (X[1] + t*X[2], X[1] - t*X[2], 1)
+ (X[1] + 2*X[2] + 3*a[1] + 4*a[2], 1)
 
-julia> parent(z[2][1])
-Multivariate Polynomial Ring in x1, x2, x3, x4 over Rational Field
+julia> parent(f[3][1])
+Multivariate Polynomial Ring in X[1], X[2] over Fraction field of Multivariate Polynomial Ring in a[1], a[2] over Rational Field
+
+julia> parent(f[2][1])
+Multivariate Polynomial Ring in X[1], X[2] over Residue field of Univariate Polynomial Ring in t over Fraction field of Multivariate Polynomial Ring in a[1], a[2] over Rational Field modulo t^2 + a[1]
 ```  
 """
 function Oscar.factor_absolute(f::MPolyElem{Generic.Frac{fmpq_mpoly}})
-  d = reduce(lcm, map(denominator, coefficients(f)))
-  Rx, x = PolynomialRing(QQ, ngens(parent(f))+ngens(parent(d)))
-  bF = MPolyBuildCtx(Rx)
-  for (c,e) = zip(coefficients(f), exponent_vectors(f))
-    cc = d*c
-    for (d, f) = zip(coefficients(numerator(cc)), exponent_vectors(numerator(cc)))
-      push_term!(bF, d, vcat(e, f))
-    end
-  end
-  F = finish(bF)
+  Qtx = parent(f)                 # Q[t1,t2][x1,x2]
+  Qt = base_ring(base_ring(Qtx))  # Q[t1,t2]
+  Rx, x = PolynomialRing(QQ, ngens(Qtx) + ngens(Qt)) # Q[x1,x2,t1,t2]
+  # write f = cont*F, cont in Qt, F in Rx
+  F, cont = Oscar._remove_denominators(Rx, f)
   lF = factor(F)
   an = []
-  push!(an, lF.unit)
+  push!(an, Qtx(cont)*Oscar._restore_numerators(Qtx, lF.unit))
   K = base_ring(f)
   Kt, t = PolynomialRing(K, "t", cached = false)
   for (k, e) = lF.fac
-    res = afact(k, collect(ngens(parent(f))+1:ngens(parent(f))+ngens(parent(d))))
+    res = afact(k, collect(ngens(Qtx)+1:ngens(Qtx)+ngens(Qt)))
     if res === nothing
-      #XXX: wrong ring!!!! k needs to be back into the original ring
-      push!(an, (k, e))
+      push!(an, (Oscar._restore_numerators(Qtx, k), e))
       continue
     end
     p, c, ex = res
     #p is a univariate over S
     #c[i] lives in quo(p)
-    #S is a FracField(MPoly(QQ, ngens(parent(d))))
-    R = ResidueField(Kt, Kt([evaluate(numerator(x), gens(parent(d)))//evaluate(denominator(x), gens(parent(d))) for x = coefficients(p)]))
-    RX, X = PolynomialRing(R, map(String, parent(f).S), cached = false)
+    #S is a FracField(MPoly(QQ, ngens(Qt)))
+    R = ResidueField(Kt, Kt([evaluate(numerator(x), gens(Qt))//evaluate(denominator(x), gens(Qt)) for x = coefficients(p)]))
+    RX, X = PolynomialRing(R, map(String, Qtx.S), cached = false)
     b = MPolyBuildCtx(RX)
     for i=1:length(c)
-      C = R(Kt([evaluate(numerator(x), gens(parent(d)))//evaluate(denominator(x), gens(parent(d))) for x = coefficients((c[i]))]))
-      push_term!(b, C, ex[i][1:ngens(parent(f))])
-      @assert iszero(ex[i][ngens(parent(f))+1:end])
+      C = R(Kt([evaluate(numerator(x), gens(Qt))//evaluate(denominator(x), gens(Qt)) for x = coefficients((c[i]))]))
+      push_term!(b, C, ex[i][1:ngens(Qtx)])
+      @assert iszero(ex[i][ngens(Qtx)+1:end])
     end
     bb = finish(b)
     b = zero(RX)
     for (c, ex) = zip(coefficients(k), exponent_vectors(k))
-      b += c*R(K(monomial(parent(d), ex[ngens(parent(f))+1:end])))*monomial(RX, ex[1:ngens(parent(f))])
+      b += c*R(K(monomial(Qt, ex[ngens(Qtx)+1:end])))*monomial(RX, ex[1:ngens(Qtx)])
     end
     kk = b
     push!(an, (bb, divexact(kk, bb), e))
