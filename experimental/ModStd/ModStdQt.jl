@@ -540,7 +540,7 @@ julia> Qa, a = PolynomialRing(QQ, :a=>1:2);
 
 julia> R, X = PolynomialRing(FractionField(Qa), :X=>1:2);
 
-julia> f = factor_absolute((X[1]^2+a[1]*X[2]^2)*(X[1]+X[2]+a[1]+a[2])
+julia> f = factor_absolute((X[1]^2+a[1]*X[2]^2)*(X[1]+2*X[2]+3*a[1]+4*a[2]))
 3-element Vector{Any}:
  1
  (X[1] + t*X[2], X[1] - t*X[2], 1)
