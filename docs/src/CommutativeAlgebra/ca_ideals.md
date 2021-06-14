@@ -262,7 +262,9 @@ equidimensional_hull_radical(I::MPolyIdeal)
 
 ### Absolute Primary Decomposition
 
-    absolute_primary_decomposition(I)               --->  absPrimdecGTZ   
+```@docs
+absolute_primary_decomposition(I::MPolyIdeal{fmpq_mpoly})
+```
 
 ## Homogenization and Dehomogenization
 

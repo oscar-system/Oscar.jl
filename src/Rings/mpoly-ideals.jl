@@ -450,7 +450,6 @@ Return an absolute primary decomposition of `I`. The decomposition is returned
 as an array of tuples `(a,b,c,d)`, where `(a,b)` is the (primary, prime) tuple
 from `primary_decomposition`, `c` represents a class of conjugated absolute
 primes defined over a degree `d` extension of `QQ`.
-```
 """
 function absolute_primary_decomposition(I::MPolyIdeal{fmpq_mpoly})
   R = base_ring(I)
