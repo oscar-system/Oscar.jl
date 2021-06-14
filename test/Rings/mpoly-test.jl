@@ -210,6 +210,15 @@ end
   i = ideal(R, [(z^2+1)*(z^3+2)^2, y-z^2])
   @test equidimensional_hull_radical(i) == ideal(R, [z^2-y, y^2*z+z^3+2*z^2+2])
 
+  # absolute_primary_decomposition
+  R,(x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
+  I = ideal(R, [(z+1)*(z^2+1)*(z^3+2)^2, x-y*z^2])
+  d = absolute_primary_decomposition(I)
+  @test length(d) == 3
+  @test isa(d, Vector{Tuple{MPolyIdeal{fmpq_mpoly},
+                            MPolyIdeal{fmpq_mpoly},
+                            MPolyIdeal{AbstractAlgebra.Generic.MPoly{nf_elem}},
+                            Int}})
 end
 
 @testset "Groebner" begin
