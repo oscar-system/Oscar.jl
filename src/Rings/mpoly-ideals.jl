@@ -825,6 +825,7 @@ false
 """
 function ideal_membership(f::T, I::MPolyIdeal) where T <: MPolyElem
   groebner_assure(I)
+  singular_assure(I.gb)
   Sx = base_ring(I.gb.S)
   return Singular.iszero(reduce(Sx(f), I.gb.S))
 end
@@ -1001,7 +1002,7 @@ function dim(I::MPolyIdeal)
     return I.dim
   end
   groebner_assure(I)
-  singular_assure(I)
+  singular_assure(I.gb)
   I.dim = Singular.dimension(I.gb.S)
   return I.dim
 end
