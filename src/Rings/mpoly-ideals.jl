@@ -759,9 +759,7 @@ false
 ```
 """
 function Base.:(==)(I::MPolyIdeal, J::MPolyIdeal)
-  singular_assure(I)
-  singular_assure(J)
-  return Singular.equal(I.gens.S, J.gens.S)
+  return issubset(I, J) && issubset(J, I)
 end
 
 ### todo: wenn schon GB's  bekannt ...
@@ -788,9 +786,11 @@ true
 ```
 """
 function Base.issubset(I::MPolyIdeal, J::MPolyIdeal)
+  # avoid Singular.contains as it does not save the gb it might compute
   singular_assure(I)
-  singular_assure(J)
-  return Singular.contains(J.gens.S, I.gens.S)
+  groebner_assure(J)
+  singular_assure(J.gb)
+  return Singular.iszero(Singular.reduce(I.gens.S, J.gb.S))
 end
 
 ### todo: wenn schon GB's  bekannt ...
