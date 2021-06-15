@@ -73,7 +73,7 @@ ideal(Q::MPolyQuo{T}, V::Vector{T}) where T <: MPolyElem
 
 ### Data Associated to Ideals in Quotient Rings
 
-### Basic Data
+#### Basic Data
 
 If `a` is an ideal of the quotient ring `Q`, then
 
@@ -81,32 +81,38 @@ If `a` is an ideal of the quotient ring `Q`, then
 - `gens(a)` to the generators of `a`, and
 - `ngens(a)` to the number of these generators.
 
-### Dimension
+#### Dimension
 
 
 
 ### Operations on Ideals in Quotient Rings 
 
-### Simple ideal Operations in Quotient Rings
+#### Simple Ideal Operations in Quotient Rings
 
-#### Powers of Ideal
+##### Powers of Ideal
 
+```@docs
+:^(a::MPolyQuoIdeal, m::Int)
+```
+##### Sum of Ideals
 
-#### Sum of Ideals
+```@docs
+:+(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
+```
 
+##### Product of Ideals
 
+```@docs
+:*(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
+```
 
-#### Product of Ideals
-
-
-
-### Intersection of Ideals
+#### Intersection of Ideals
 
 ```@docs
 intersect(a::MPolyQuoIdeal, bs::MPolyQuoIdeal...)
 ```
 
-### Ideal Quotients
+#### Ideal Quotients
 
 ```@docs
 quotient(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
@@ -122,7 +128,9 @@ iszero(a::MPolyQuoIdeal)
 
 #### Equality of Ideals in Quotient Rings
 
-
+```@docs
+:(==)(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
+```
 
 #### Containment of Ideals in Quotient Rings
 

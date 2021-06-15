@@ -109,7 +109,7 @@ codim(I::MPolyIdeal)
     
 ## Operations on Ideals
 
-### Simple ideal Operations
+### Simple Ideal Operations
 
 #### Powers of Ideal
 
