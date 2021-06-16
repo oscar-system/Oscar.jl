@@ -114,11 +114,11 @@ cellular_hull(I::MPolyIdeal)
 ```
 
 ```@docs
-cellular_associated_primes(I::MPolyIdeal)
+cellular_associated_primes
 ```
 
 ```@docs
-cellular_minimal_associated_primes(I::MPolyIdeal)
+cellular_minimal_associated_primes
 ```
 
 ```@docs
