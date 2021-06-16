@@ -5,10 +5,30 @@
 ###############################################################################
 
 @doc Markdown.doc"""
-    Cone(Rays)
+    Cone(R [, L])
 
-     A polyhedral cone, not necessarily pointed, defined by the positive hull
-     of the rays, Rays.
+# Arguments
+- `R::Matrix`: Rays generating the cone; encoded row-wise as representative vectors.
+- `L::Matrix`: Generators of the Lineality space; encoded as row vectors.
+
+A polyhedral cone, not necessarily pointed, defined by the positive hull
+of the rays, Rays.
+
+# Examples
+To construct the positive orthant as a `Cone`, you can write:
+```julia-repl
+R = [1 0; 0 1]
+PO = Cone(R)
+A polyhedral cone in ambient dimension 2
+```
+
+To obtain the upper half-space of the plane:
+```julia-repl
+R = [0 1];
+L = [1 0];
+HS = Cone(R, L)
+A polyhedral cone in ambient dimension 2
+```
 """
 struct Cone #a real polymake polyhedron
     pm_cone::Polymake.BigObject
@@ -36,7 +56,10 @@ end
 
 
 """
-    positive_hull(generators::Union{Oscar.MatElem,AbstractMatrix})
+    positive_hull(generators)
+
+# Arguments
+- `generators::Matrix`: Rays generating the cone; encoded row-wise as representative vectors.
 
 A polyhedral cone, not necessarily pointed, defined by the positive hull
 of the `generators`. Redundant rays are allowed in the generators.
@@ -68,4 +91,3 @@ function Base.show(io::IO, C::Cone)
 end
 
 Polymake.visual(C::Cone; opts...) = Polymake.visual(pm_cone(C); opts...)
-

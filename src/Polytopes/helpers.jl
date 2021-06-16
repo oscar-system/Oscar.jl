@@ -71,6 +71,8 @@ stack(A::AbstractMatrix, B::AbstractMatrix) = [A; B]
 stack(A::AbstractMatrix, B::AbstractVector) = isempty(B) ? A :  [A; B']
 stack(A::AbstractVector, B::AbstractMatrix) = isempty(A) ? B : [A'; B]
 stack(A::AbstractVector, B::AbstractVector) = isempty(A) ? B : [A'; B']
+stack(A::AbstractVector,nothing) = A'
+stack(nothing,B::AbstractVector) = B'
 #=
 function stack(A::Array{Polymake.Vector{Polymake.Rational},1})
     if length(A)==2

@@ -52,8 +52,28 @@ Base.IteratorSize(::Type{PolyhedronFacePolyhedronIterator}) = Base.SizeUnknown()
     faces(P::Polyhedron, face_dim::Int [, as::Type{T} = Polyhedron])
 
 Returns the faces of `P` of dimension `face_dim` as an iterator over the type of object given
-by `as`. Optional arguments for `as` include
-* `Polyhedron` or `Polyhedra`: Returns for each face its realization as a polyhedron
+by `as`.
+
+# Arguments
+- `P::Polyhedron`: A polyhedron.
+- `face_dim::Int`: Dimension of the desired faces.
+- `as::Type{T}`: Object type which is to be contained in the returned iterator.
+
+# Example
+An `Array` containing the six sides of the 3-dimensional cube can be obtained via the following input:
+```julia-repl
+julia> F = faces(cube(3),2)
+Oscar.PolyhedronFacePolyhedronIterator(A polyhedron in ambient dimension 3, 2)
+
+julia> collect(F)
+6-element Array{Any,1}:
+ A polyhedron in ambient dimension 3
+ A polyhedron in ambient dimension 3
+ A polyhedron in ambient dimension 3
+ A polyhedron in ambient dimension 3
+ A polyhedron in ambient dimension 3
+ A polyhedron in ambient dimension 3
+```
 """
 function faces(P::Polyhedron, face_dim::Int, as::Type{T} = Polyhedron) where {T}
     if as == Polyhedron || as == Polyhedra
@@ -87,11 +107,34 @@ Base.length(iter::VertexPointIterator) = nvertices(iter.p)
 """
    vertices(P::Polyhedron, [,as::Type{T} = Points])
 
-Returns an iterator over the vertices of a polyhedron `P` in the format defined by `as`.
+Return an iterator over the vertices of a polyhedron `P` in the format defined by `as`.
 Optional arguments for `as` include
 * `Points`: Returns the representation of a vertex as a point.
 
 See also `vertices_as_point_matrix`.
+
+# Arguments
+- `P::Polyhedron`: A polyhedron.
+- `as::Type{T}`: Object type which is to be contained in the returned iterator.
+
+# Examples
+The following code computes the vertices of the Minkowski sum of a triangle and a square:
+```julia-repl
+julia> P = simplex(2) + cube(2);
+
+julia> collect(vertices(P))
+5-element Array{Polymake.Vector{Polymake.Rational},1}:
+pm::Vector<pm::Rational>
+-1 -1
+pm::Vector<pm::Rational>
+2 -1
+pm::Vector<pm::Rational>
+2 1
+pm::Vector<pm::Rational>
+-1 2
+pm::Vector<pm::Rational>
+1 2
+```
 """
 function vertices(P::Polyhedron, as::Type{T} = Points) where {T}
     if as == Points
@@ -106,6 +149,23 @@ end
    `vertices_as_point_matrix(P::Polyhedron)`
 
 Returns a matrix whose rows are the vertices of `P`.
+
+# Arguments
+- `P::Polyhedron`: A polyhedron.
+
+# Examples
+The following code computes the vertices of the Minkowski sum of a triangle and a square:
+```julia-repl
+julia> P = simplex(2) + cube(2);
+
+julia> vertices_as_point_matrix(P)
+pm::Matrix<pm::Rational>
+-1 -1
+2 -1
+2 1
+-1 2
+1 2
+```
 """
 function vertices_as_point_matrix(P::Polyhedron)
     decompose_vdata(pm_polytope(P).VERTICES).vertices
@@ -136,7 +196,18 @@ Base.length(iter::PolyhedronRayIterator) = nrays(iter.p)
 """
     nrays(P::Polyhedron)
 
-Returns the number of rays of `P`.
+Return the number of rays of a `Polyhedron`.
+
+# Arguments
+- `P::Polyhedron`: A polyhedron.
+
+# Examples
+```julia-repl
+julia> UH = convex_hull([0 0],[0 1],[1 0]);
+
+julia> nrays(UH)
+1
+```
 """
 nrays(P::Polyhedron) = length(pm_polytope(P).FAR_FACE)
 
@@ -209,6 +280,13 @@ Base.length(iter::PolyhedronFacetPolyhedronIterator) = nfacets(iter.p)
    nfacets(P::Polyhedron)
 
 Returns the number of facets of the polyhedron `P`.
+
+# Examples
+Compute number of facets of the 5-dimensional cross polytope
+```julia-repl
+julia> nfacets(cross(5))
+32
+```
 """
 nfacets(P::Polyhedron) = pm_polytope(P).N_FACETS
 
@@ -221,6 +299,35 @@ The allowed values for `as` are
 * `Polyhedron` or `Polyhedra`: Returns for each facet its realization as a polyhedron
 
 See also `facets_as_halfspace_matrix_pair`.
+
+# Examples
+```julia-repl
+julia> C=cube(3);
+
+julia> collect(facets(C,Polyhedron))
+6-element Array{Any,1}:
+A polyhedron in ambient dimension 3
+A polyhedron in ambient dimension 3
+A polyhedron in ambient dimension 3
+A polyhedron in ambient dimension 3
+A polyhedron in ambient dimension 3
+A polyhedron in ambient dimension 3
+
+julia> collect(facets(C,Halfspaces))
+6-element Array{Tuple{Polymake.Vector{Polymake.Rational},Polymake.Rational},1}:
+(pm::Vector<pm::Rational>
+-1 0 0, 1)
+(pm::Vector<pm::Rational>
+1 0 0, 1)
+(pm::Vector<pm::Rational>
+0 -1 0, 1)
+(pm::Vector<pm::Rational>
+0 1 0, 1)
+(pm::Vector<pm::Rational>
+0 0 -1, 1)
+(pm::Vector<pm::Rational>
+0 0 1, 1)
+```
 """
 function facets(P::Polyhedron,  as::Type{T} = Halfspaces) where {T}
     if as == Halfspaces
@@ -375,7 +482,19 @@ isfulldimensional(P::Polyhedron) = pm_polytope(P).FULL_DIM
 """
     f_vector(P::Polyhedron)
 
-Computes the vector`(f_1,f_2,...,f_(dim(P)-1))` where `f_i` is the number of faces of `P` of dimension `i`.
+Compute the vector`(f_1,f_2,...,f_(dim(P)-1))` where `f_i` is the number of faces of `P` of dimension `i`.
+
+# Examples
+Compute the f-vector of the 5-cube:
+```julia-repl
+julia> f_vector(cube(5))
+5-element Array{Int64,1}:
+ 32
+ 80
+ 80
+ 40
+ 10
+```
 """
 function f_vector(P::Polyhedron)
     f_vec=[length(collect(faces(P,i))) for i in 0:dim(P)-1]
@@ -386,7 +505,7 @@ end
 """
     support_function(P::Polyhedron; convention = :max)
 
-Produces a function `h(ω) = max{dot(x,ω) | x ∈ P}`. max may be changed
+Produce a function `h(ω) = max{dot(x,ω) | x ∈ P}`. max may be changed
     to min by setting convention = :min.
 """
 function support_function(P::Polyhedron; convention = :max)
@@ -396,5 +515,3 @@ function support_function(P::Polyhedron; convention = :max)
     end
     return h
 end
-
-
