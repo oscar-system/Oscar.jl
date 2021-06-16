@@ -1,6 +1,6 @@
 import Oscar.Singular.lib4ti2_jll
 export isbinomial, iscellular, isunital, binomial_primary_decomposition, 
-       cellular_decomposition, cellular_associated_primes, cellular_minimal_associated_primes, cellular_primary_decomposition
+       cellular_decomposition, cellular_associated_primes, cellular_minimal_associated_primes, cellular_hull, cellular_primary_decomposition
 @doc Markdown.doc"""
     isbinomial(f::MPolyElem)
 
