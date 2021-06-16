@@ -35,11 +35,16 @@ If `x` is an element of the group `G` of type `T`, then the type of `x` is `GAPG
 Given a group `G`, it is always possible to have access to some particular elements.
 
 ```@docs
+GAPGroup
+BasicGAPGroupElem{T<:GAPGroup}
+elem_type(::Type{T}) where T
 one(x::GAPGroup)
+one(x::GAPGroupElem)
+gens(::GAPGroup)
+ngens(G::GAPGroup)
+gen(::GAPGroup, i::Int)
 rand(::GAPGroup)
 rand_pseudo(G::GAPGroup)
-gens(::GAPGroup)
-gen(::GAPGroup, i::Int)
 ```
 
 It is also possible to obtain the generators of `G` by typing
@@ -69,6 +74,31 @@ Oscar supports the following operations and functions on group elements.
 
 !!! note
     In Oscar, the expression `x^y^z` is equivalent to `x^(y^z)`. In other words, conjugations are evaluated from the right to the left.
+
+```@docs
+comm(x::GAPGroupElem, y::GAPGroupElem)
+nilpotency_class(G::GAPGroup)
+```
+
+### Properties of groups
+
+```@docs
+isabelian
+ispgroup
+isnilpotent
+issupersolvable
+issolvable
+isperfect
+issimple
+isalmostsimple
+```
+
+
+### Attributes of groups
+
+```@docs
+Base.exponent(x::GAPGroup)
+```
 
 
 ## [Subgroups](@id subgroups)
@@ -110,6 +140,8 @@ fitting_subgroup(G::GAPGroup)
 frattini_subgroup(G::GAPGroup)
 radical_subgroup(G::GAPGroup)
 socle(G::GAPGroup)
+pcore(G::GAPGroup, p::Int64)
+intersect(V::T...) where T<:GAPGroup
 ```
 
 The following functions return a list of subgroups.
@@ -124,10 +156,60 @@ characteristic_subgroups
 derived_series
 sylow_system
 hall_system
+complement_system
 ```
 
 !!! note
     When a function returns a list of subgroups, the output consists in the subgroups only; the embeddings are not returned as well. To get the embedding homomorphism of the subgroup `H` in `G`, one has to type `embedding(G,H)`
+
+
+### Conjugation action of elements and subgroups
+
+```@docs
+isconjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
+isconjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup)
+representative_action(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
+representative_action(G::GAPGroup, H::GAPGroup, K::GAPGroup)
+centralizer(G::GAPGroup, x::GAPGroupElem)
+centralizer(G::T, H::T) where T <: GAPGroup
+normalizer(G::GAPGroup, x::GAPGroupElem)
+normalizer(G::T, H::T) where T<:GAPGroup
+core(G::T, H::T) where T<:GAPGroup
+normal_closure(G::T, H::T) where T<:GAPGroup
+GroupConjClass{T<:GAPGroup, S<:Union{GAPGroupElem,GAPGroup}}
+conjugacy_class(G::GAPGroup, g::GAPGroupElem)
+conjugacy_class(G::T, g::T) where T<:GAPGroup
+conjugacy_classes(G::GAPGroup)
+conjugacy_classes_subgroups(G::GAPGroup)
+conjugacy_classes_maximal_subgroups(G::GAPGroup)
+```
+
+
+### Cosets (left/right/double)
+
+```@docs
+GroupCoset
+right_coset(H::GAPGroup, g::GAPGroupElem)
+left_coset(H::GAPGroup, g::GAPGroupElem)
+isright(c::GroupCoset)
+isleft(c::GroupCoset)
+isbicoset(C::GroupCoset)
+acting_domain(C::GroupCoset)
+representative(C::GroupCoset)
+right_cosets(G::GAPGroup, H::GAPGroup)
+left_cosets(G::GAPGroup, H::GAPGroup)
+right_transversal(G::T, H::T) where T<: GAPGroup
+left_transversal(G::T, H::T) where T<: GAPGroup
+GroupDoubleCoset{T <: GAPGroup, S <: GAPGroupElem}
+double_coset(G::T, g::GAPGroupElem{T}, H::T) where T<: GAPGroup
+double_cosets(G::T, H::T, K::T; NC=false) where T<: GAPGroup
+left_acting_group(C::GroupDoubleCoset)
+right_acting_group(C::GroupDoubleCoset)
+representative(C::GroupDoubleCoset)
+order(C::Union{GroupCoset,GroupDoubleCoset})
+rand(C::Union{GroupCoset,GroupDoubleCoset})
+intersect(V::AbstractVector{Union{T, GroupCoset, GroupDoubleCoset}}) where T <: GAPGroup
+```
 
 
 ## [Quotients](@id quotient)
@@ -161,18 +243,69 @@ true
 ```
 Similarly to the subgroups, the output consists of a pair (`Q`,`p`), where `Q` is the quotient group and `p` is the projection homomorphism of `G` into `Q`.
 
+
+## Products of groups
+
+### Direct products
+
+```@docs
+DirectProductGroup
+direct_product(L::AbstractVector{<:GAPGroup}; morphisms=false)
+inner_direct_product(L::AbstractVector{T}; morphisms=false) where T<:Union{PcGroup,PermGroup,FPGroup}
+number_of_factors(G::DirectProductGroup)
+cartesian_power(G::GAPGroup, n::Base.Integer)
+inner_cartesian_power(G::T, n::Base.Integer; morphisms=false) where T<: GAPGroup
+factor_of_direct_product(G::DirectProductGroup, j::Base.Integer)
+as_perm_group(G::DirectProductGroup)
+as_polycyclic_group(G::DirectProductGroup)
+embedding(G::DirectProductGroup, j::Base.Integer)
+projection(G::DirectProductGroup, j::Base.Integer)
+write_as_full(G::DirectProductGroup)
+isfull_direct_product(G::DirectProductGroup)
+```
+
+### Semidirect products
+
+```@docs
+SemidirectProductGroup{S<:GAPGroup, T<:GAPGroup}
+semidirect_product(N::S, f::GAPGroupHomomorphism{T,AutomorphismGroup{S}}, H::T) where S <: GAPGroup where T <: GAPGroup
+normal_subgroup(G::SemidirectProductGroup)
+acting_subgroup(G::SemidirectProductGroup)
+homomorphism_of_semidirect_product(G::SemidirectProductGroup)
+isfull_semidirect_product(G::SemidirectProductGroup)
+embedding(G::SemidirectProductGroup{S,T}, n::Base.Integer) where S where T
+projection(G::SemidirectProductGroup)
+```
+
+### Wreath products
+
+```@docs
+WreathProductGroup
+wreath_product(G::T, H::PermGroup) where T<: GAPGroup
+normal_subgroup(W::WreathProductGroup)
+acting_subgroup(W::WreathProductGroup)
+homomorphism_of_wreath_product(G::WreathProductGroup)
+isfull_wreath_product(G::WreathProductGroup)
+projection(W::WreathProductGroup)
+embedding(W::WreathProductGroup, n::Base.Integer)
+```
+
+
 ## Permutation groups
 
 Permutation groups can be defined as symmetric groups, alternating groups or their subgroups.
 
 ```@docs
+PermGroup
+PermGroupElem
 symmetric_group
 alternating_group
 ```
 
-In Oscar, every permutation group has a degree `n`, that corresponds to the size of the set on which `G` acts. This can be displayed by typing
-```julia
-degree(G)
+In Oscar, every permutation group has a degree `n`, that corresponds to the size of the set on which `G` acts.
+
+```@docs
+degree(x::PermGroup)
 ```
 
 !!! note
@@ -258,7 +391,23 @@ This works also if the argument is not in the range `1:n`; in such a case, the o
 
 
 
+## Finitely presented groups
+
+```@docs
+FPGroup
+FPGroupElem
+free_group(n::Int)
+relators(G::FPGroup)
+```
+
+
+
 ## Polycyclic groups
+
+```@docs
+PcGroup
+PcGroupElem
+```
 
 Julia has the following functions that allow to generate polycyclic groups:
 ```@docs
@@ -285,7 +434,105 @@ f1*f2
 
 Note that this does not define Julia variables named `f1`, `f2`, etc.! To get the generators of the group `G`, use `gens(G)`; for convenience they can also be accessed as `G[1]`, `G[2]`, as shown in Section [Elements of groups](@ref elements_of_groups).
 
-## Homomorphisms
+
+
+## Matrix groups
+
+```@docs
+MatrixGroup{RE<:RingElem, T<:MatElem{RE}}
+MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}}
+base_ring(G::MatrixGroup)
+degree(G::MatrixGroup)
+centralizer(G::MatrixGroup{T}, x::MatrixGroupElem{T}) where T <: FinFieldElem
+```
+
+### Elements of matrix groups
+
+```@docs
+matrix(x::MatrixGroupElem)
+base_ring(x::MatrixGroupElem)
+nrows(x::MatrixGroupElem)
+det(x::MatrixGroupElem)
+trace(x::MatrixGroupElem)
+multiplicative_jordan_decomposition(x::MatrixGroupElem)
+issemisimple(x::MatrixGroupElem{T}) where T <: FinFieldElem
+isunipotent(x::MatrixGroupElem{T}) where T <: FinFieldElem
+```
+
+### Sesquilinear forms
+
+```@docs
+SesquilinearForm{T<:RingElem}
+isalternating_form(f::SesquilinearForm)
+ishermitian_form(f::SesquilinearForm)
+isquadratic_form(f::SesquilinearForm)
+issymmetric_form(f::SesquilinearForm)
+alternating_form(B::MatElem{T}) where T <: FieldElem
+symmetric_form(B::MatElem{T}) where T <: FieldElem
+hermitian_form(B::MatElem{T}) where T <: FieldElem
+quadratic_form(B::MatElem{T}) where T <: FieldElem
+quadratic_form(f::MPolyElem{T}) where T <: FieldElem
+corresponding_bilinear_form(B::SesquilinearForm)
+corresponding_quadratic_form(B::SesquilinearForm)
+gram_matrix(f::SesquilinearForm)
+defining_polynomial(f::SesquilinearForm)
+radical(f::SesquilinearForm{T}) where T
+witt_index(f::SesquilinearForm{T}) where T
+isdegenerate(f::SesquilinearForm{T}) where T
+issingular(f::SesquilinearForm{T}) where T
+iscongruent(f::SesquilinearForm{T}, g::SesquilinearForm{T}) where T <: RingElem
+```
+
+### Invariant forms
+
+```@docs
+invariant_bilinear_forms(G::MatrixGroup{S,T}) where {S,T}
+invariant_sesquilinear_forms(G::MatrixGroup{S,T}) where {S,T}
+invariant_quadratic_forms(G::MatrixGroup{S,T}) where {S,T}
+invariant_symmetric_forms(G::MatrixGroup{S,T}) where {S,T}
+invariant_alternating_forms(G::MatrixGroup{S,T}) where {S,T}
+invariant_hermitian_forms(G::MatrixGroup{S,T}) where {S,T}
+invariant_bilinear_form(G::MatrixGroup)
+invariant_sesquilinear_form(G::MatrixGroup)
+invariant_quadratic_form(G::MatrixGroup)
+preserved_quadratic_forms(G::MatrixGroup{S,T}) where {S,T}
+preserved_sesquilinear_forms(G::MatrixGroup{S,T}) where {S,T}
+isometry_group(f::SesquilinearForm{T}) where T
+```
+
+### Utilities for matrices (replace by available functions, or document elsewhere?)
+
+```@docs
+pol_elementary_divisors(A::MatElem{T}) where T
+generalized_jordan_block(f::T, n::Int) where T<:PolyElem
+generalized_jordan_form(A::MatElem{T}; with_pol=false) where T
+matrix(A::Array{AbstractAlgebra.Generic.FreeModuleElem{T},1}) where T<: FieldElem
+upper_triangular_matrix(L)
+lower_triangular_matrix(L)
+conjugate_transpose(x::MatElem{T}) where T <: FinFieldElem
+complement(V::AbstractAlgebra.Generic.FreeModule{T}, W::AbstractAlgebra.Generic.Submodule{T}) where T <: FieldElem
+permutation_matrix(F::Ring, Q::AbstractVector{T}) where T <: Base.Integer
+isskewsymmetric_matrix(B::MatElem{T}) where T <: RingElem
+ishermitian_matrix(B::MatElem{T}) where T <: FinFieldElem
+```
+
+### Classical groups
+
+```@docs
+general_linear_group(n::Int, F::Ring)
+special_linear_group(n::Int, F::Ring)
+symplectic_group(n::Int, F::Ring)
+orthogonal_group(e::Int, n::Int, F::Ring)
+special_orthogonal_group(e::Int, n::Int, F::Ring)
+omega_group(e::Int, n::Int, F::Ring)
+unitary_group(n::Int, q::Int)
+special_unitary_group(n::Int, q::Int)
+matrix_group(V::AbstractVector{T}) where T<:Union{MatElem,MatrixGroupElem}
+```
+
+
+
+## Group homomorphisms
 
 In Oscar, a group homomorphism from `G` to `H` is an object of parametric type `GAPGroupHomomorphism{S,T}`, where `S` and `T` are the types of `G` and `H` respectively.
 
@@ -316,6 +563,13 @@ julia> g=hom(S,S,y->y^x);
 
 julia> f==g
 true
+```
+
+```@docs
+hom(G::GAPGroup, H::GAPGroup, img::Function)
+hom(G::GAPGroup, H::GAPGroup, gensG::Vector, imgs::Vector)
+image(f::GAPGroupHomomorphism, x::GAPGroupElem)
+restrict_homomorphism(f::GAPGroupHomomorphism, H::GAPGroup)
 ```
 
 Oscar has also the following standard homomorphism.
@@ -424,15 +678,30 @@ cokernel(f::GAPGroupHomomorphism)
 preimage(f::GAPGroupHomomorphism{S, T}, H::T) where S <: GAPGroup where T <: GAPGroup
 ```
 
-## Automorphisms groups
+### Groups created by isomorphisms
+
+```@docs
+isomorphic_perm_group(G::GAPGroup)
+isomorphic_pc_group(G::GAPGroup)
+isomorphic_fp_group(G::GAPGroup)
+```
+
+
+
+## Groups of automorphisms
 
 Groups of automorphisms over a group `G` have parametric type `AutomorphismGroup{T}`, where `T` is the type of `G`. The group of automorphisms over a group `G` is defined by the following instruction:
 ```julia
+AutomorphismGroup{T}
 automorphism_group(G)
 ```
 The evaluation of the automorphism `f` in the element `x` is analogous to the homomorphism evaluation: it can be obtained by typing either `f(x)` or `x^f`.
 
 It is possible to turn an automorphism `f` into a homomorphism by typing `hom(f)`. The viceversa is also possible: if `g` is a bijective homomorphism from the group `G` to itself and `A` is the automorphism group of `G`, then the instruction `A(g)` returns `g` as automorphism of `G`. This is the standard way to build explicitly an automorphism (another way, available for inner automorphisms, is shown in Section [Inner_automorphisms](@ref inner_automorphisms)).
+
+```@docs
+automorphism_group(G::GAPGroup)
+```
 
   **Example:**
 ```jldoctest
@@ -475,6 +744,7 @@ The following functions are available for automorphisms, some of them similar to
 isinvariant(f::GAPGroupElem{AutomorphismGroup{T}}, H::T) where T<:GAPGroup
 restrict_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, H::T, A=automorphism_group(H)) where T <: GAPGroup
 induced_automorphism(f::GAPGroupHomomorphism, mH::GAPGroupHomomorphism)
+hom(x::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup
 ```
 
 ### [Inner automorphisms](@id inner_automorphisms)
@@ -486,3 +756,40 @@ isinner_automorphism(f::GAPGroupHomomorphism)
 inner_automorphisms_group(A::AutomorphismGroup{T}) where T <: GAPGroup
 ```
 
+
+
+## Group libraries
+
+### Transitive permutation groups of small degree
+
+```@docs
+number_transitive_groups
+transitive_group
+transitive_identification
+all_transitive_groups
+```
+
+### Primitive permutation groups of small degree
+
+```@docs
+number_primitive_groups
+primitive_group
+all_primitive_groups
+```
+
+### Perfect groups of small order
+
+```@docs
+number_perfect_groups
+perfect_group
+perfect_identification
+```
+
+### Groups of small order
+
+```@docs
+number_small_groups
+small_group
+small_group_identification
+all_small_groups
+```
