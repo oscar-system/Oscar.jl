@@ -236,7 +236,7 @@ function multiplicity(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
   G = D.eq
   R = parent(G)
   A = grade(R)[1]
-  HC = homogenous_components(A(G))
+  HC = homogeneous_components(A(G))
   L = collect(keys(HC))
   M = sort(L, by=_sort_helper_multiplicity)
   return M[1].coeff[1, 1]
@@ -258,7 +258,7 @@ function tangent_lines(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
   R = parent(G)
   V = gens(R)
   A = grade(R)[1]
-  HC = homogenous_components(A(G))
+  HC = homogeneous_components(A(G))
   L = collect(keys(HC))
   M = sort(L, by=_sort_helper_multiplicity)
   Gm = HC[M[1]]

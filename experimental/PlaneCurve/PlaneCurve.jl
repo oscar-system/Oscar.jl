@@ -95,7 +95,7 @@ mutable struct ProjPlaneCurve{S} <: ProjectivePlaneCurve{S}
   function ProjPlaneCurve{S}(eq::Oscar.MPolyElem_dec{S}) where {S <: FieldElem}
     nvars(parent(eq)) == 3 || error("The defining equation must belong to a ring with three variables")
     !isconstant(eq) || error("The defining equation must be non constant")
-    ishomogenous(eq) || error("The defining equation is not homogeneous")
+    ishomogeneous(eq) || error("The defining equation is not homogeneous")
     new{S}(eq,
            -1,                   # -1 when it is not computed yet
             Dict{ProjPlaneCurve{S}, Int}())

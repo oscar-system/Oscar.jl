@@ -164,7 +164,7 @@ If `check` is set as `false`, it does not check whether the polynomial is homoge
 To define quadratic forms of dimension 1, `f` can also have type `PolyElem{T}`.
 """
 quadratic_form(f::MPolyElem{T}) where T <: FieldElem = SesquilinearForm(f, :quadratic)
-# TODO : neither ishomogeneous or ishomogenous works for variables of type MPolyElem{T}
+# TODO : neither ishomogeneous or ishomogeneous works for variables of type MPolyElem{T}
 
 # just to allow quadratic forms over vector fields of dimension 1, so defined over polynomials in 1 variable
 function quadratic_form(f::PolyElem{T}) where T <: FieldElem

@@ -583,19 +583,19 @@ end
 isfiltered(q::MPolyQuo) = isfiltered(q.R)
 isgraded(q::MPolyQuo) = isgraded(q.R)
 
-function homogenous_component(a::MPolyQuoElem{<:MPolyElem_dec}, d::GrpAbFinGenElem)
+function homogeneous_component(a::MPolyQuoElem{<:MPolyElem_dec}, d::GrpAbFinGenElem)
   simplify!(a)
-  return homogenous_component(a.f, d)
+  return homogeneous_component(a.f, d)
 end
 
-function homogenous_components(a::MPolyQuoElem{<:MPolyElem_dec})
+function homogeneous_components(a::MPolyQuoElem{<:MPolyElem_dec})
   simplify!(a)
-  return homogenous_components(a.f)
+  return homogeneous_components(a.f)
 end
 
-function ishomogenous(a::MPolyQuoElem{<:MPolyElem_dec})
+function ishomogeneous(a::MPolyQuoElem{<:MPolyElem_dec})
   simplify!(a)
-  return ishomogenous(a.f)
+  return ishomogeneous(a.f)
 end
 
 decoration(q::MPolyQuo{<:MPolyElem_dec}) = decoration(q.R)
@@ -605,7 +605,7 @@ function hash(w::MPolyQuoElem, u::UInt)
   return hash(w.f, u)
 end
 
-function homogenous_component(W::MPolyQuo{<:MPolyElem_dec}, d::GrpAbFinGenElem)
+function homogeneous_component(W::MPolyQuo{<:MPolyElem_dec}, d::GrpAbFinGenElem)
   #TODO: lazy: ie. no enumeration of points
   #      aparently it is possible to get the number of points faster than the points
   D = parent(d)
@@ -613,7 +613,7 @@ function homogenous_component(W::MPolyQuo{<:MPolyElem_dec}, d::GrpAbFinGenElem)
   R = base_ring(W)
   I = modulus(W)
 
-  H, mH = homogenous_component(R, d)
+  H, mH = homogeneous_component(R, d)
   B = Set{elem_type(W)}()
   for h = basis(H)
     b = W(mH(h))
