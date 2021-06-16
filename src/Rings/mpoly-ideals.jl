@@ -740,7 +740,7 @@ end
 @doc Markdown.doc"""
     :(==)(I::MPolyIdeal, J::MPolyIdeal)
 
-Return `true` if `I=J`, `false` otherwise.
+Return `true` if `I` is equal to `J`, `false` otherwise.
 
 # Examples
 ```jldoctest
