@@ -221,8 +221,8 @@ end
 
 Group double coset. It is displayed as `H * x * K`, where `H` and `K` are subgroups of a group `G` and `x` is an element of `G`. Two double cosets are equal if, and only if, they contain the same elements.
 """
-# T=type of the group, S=type of the element
 struct GroupDoubleCoset{T <: GAPGroup, S <: GAPGroupElem}
+# T=type of the group, S=type of the element
    G::T
    H::T
    K::T
@@ -321,7 +321,7 @@ if `C` = `HxK`, returns `H`
 left_acting_group(C::GroupDoubleCoset) = C.H
 
 """
-    left_acting_group(C::GroupDoubleCoset)
+    right_acting_group(C::GroupDoubleCoset)
 
 if `C` = `HxK`, returns `K`
 """

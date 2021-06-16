@@ -364,7 +364,9 @@ end
 
 Return the full automorphism group of `G`. If `f` is an object of type ``GAPGroupHomomorphism`` and it is bijective from `G` to itself, then `A(f)` return the embedding of `f` in `A`. 
 
-Elements of `A` can be multiplied with other elements of `A` or by elements of type ``GAPGroupHomomorphism``; in this last case, the result has type ``GAPGroupHomomorphism``.
+Elements of `A` can be multiplied with other elements of `A` or by elements
+of type `GAPGroupHomomorphism`; in this last case, the result has type
+`GAPGroupHomomorphism`.
 """
 function automorphism_group(G::GAPGroup)
   AutGAP = GAP.Globals.AutomorphismGroup(G.X)
