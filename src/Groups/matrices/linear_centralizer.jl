@@ -415,7 +415,7 @@ function _centralizer_SL(x::MatElem)
       z = deepcopy(idN)
       pos = 1
       for i in 1:length(block_dim)
-         t1 = diagonal_join([block_dim[i][3]^Int(g(k)[i]) for j in 1:block_dim[i][1]])
+         t1 = cat([block_dim[i][3]^Int(g(k)[i]) for j in 1:block_dim[i][1]]..., dims=(1,2))
          z[pos:pos-1+nrows(t1), pos:pos-1+ncols(t1)] = t1
          t1 = cat([block_dim[i][3]^Int(g(k)[i]) for j in 1:block_dim[i][1]]..., dims=(1,2))
          z[pos:pos-1+nrows(t1), pos:pos-1+ncols(t1)] = t1

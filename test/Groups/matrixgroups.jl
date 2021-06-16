@@ -529,7 +529,7 @@ end
    R,t = PolynomialRing(F,"t")
    f = t^3+t*z+1
    x = generalized_jordan_block(f,2)
-   @test generalized_jordan_block(f,2)==block_matrix(2,2,[companion_matrix(f),identity_matrix(F,3),zero_matrix(F,3,3),companion_matrix(f)])
+   @test generalized_jordan_block(f,2)==hvcat((2,2),companion_matrix(f),identity_matrix(F,3),zero_matrix(F,3,3),companion_matrix(f))
    @testset for i in [2,4,42,62]
       y = Oscar._elem_given_det(G(x),z^i)
       @test x*y==y*x
