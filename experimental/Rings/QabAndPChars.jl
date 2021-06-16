@@ -3,7 +3,7 @@ module QabModule
 using Oscar
 import Hecke: math_html
 import Oscar: IJuliaMime
-export QabField, QabAutomorphism, isconductor, root_of_unity, PartialCharacter, partial_character, 
+export QabField, QabElem, QabAutomorphism, isconductor, root_of_unity, PartialCharacter, partial_character, 
       isroot_of_unity, saturations
 
 ###############################################################################
@@ -103,13 +103,16 @@ function make_compatible(a::QabElem, b::QabElem)
 end
 
 import Base.+, Base.*, Base.-, Base.//, Base.==, Base.zero, Base.one, Base.^
-import Nemo.mul!, Nemo.addeq!, Nemo.divexact, Nemo.iszero
+import Nemo.mul!, Nemo.addeq!, Nemo.divexact, Nemo.iszero, Nemo.isunit
 
 Oscar.show_minus_one(::Type{QabElem}) = false
 Oscar.needs_parentheses(a::QabElem) = Oscar.needs_parentheses(a.data)
 Oscar.displayed_with_minus_in_front(a::QabElem) = Oscar.displayed_with_minus_in_front(a.data)
 
 ==(::QabField, ::QabField) = true
+
+isunit(a::QabElem) = !iszero(a)
+
 
 function ^(a::QabElem, n::Integer)
   return QabElem(a.data^n, a.c)

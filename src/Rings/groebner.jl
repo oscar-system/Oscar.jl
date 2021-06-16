@@ -30,11 +30,16 @@ julia> I.gb
 Oscar.BiPolyArray{fmpq_mpoly}(fmpq_mpoly[x*y - 3*x, y^3 - 6*x^2, x^3 - 9//2*x], Singular Ideal over Singular Polynomial Ring (QQ),(x,y),(dp(2),C) with generators (x*y - 3*x, y^3 - 6*x^2, x^3 - 9//2*x), Multivariate Polynomial Ring in x, y over Rational Field, Singular Polynomial Ring (QQ),(x,y),(dp(2),C), false, #undef)
 ```
 """
-function groebner_assure(I::MPolyIdeal)
+function groebner_assure(I::MPolyIdeal; complete_reduction::Bool = false)
   if !isdefined(I, :gb)
     singular_assure(I)
 #    @show "std on", I.gens.S
-    I.gb = BiPolyArray(I.gens.Ox, Singular.std(I.gens.S))
+    if complete_reduction
+      i = Singular.std(I.gens.S, complete_reduction = complete_reduction)
+      I.gb = BiPolyArray(base_ring(I), i)
+    else
+      I.gb = BiPolyArray(base_ring(I), Singular.std(I.gens.S))
+    end
   end
 end
 
