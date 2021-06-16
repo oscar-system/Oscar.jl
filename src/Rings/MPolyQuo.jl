@@ -315,6 +315,7 @@ end
 function singular_ring(Rx::MPolyQuo; keep_ordering::Bool = true)
   if !isdefined(Rx, :SQR)
     groebner_assure(Rx.I)
+    singular_assure(Rx.I.gb)
     Rx.SQR = Singular.create_ring_from_singular_ring(
                       Singular.libSingular.rQuotientRing(Rx.I.gb.S.ptr,
                                              base_ring(Rx.I.gb.S).ptr))

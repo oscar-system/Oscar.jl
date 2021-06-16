@@ -8,6 +8,9 @@ export  groebner_basis, groebner_basis_with_transformation_matrix, leading_ideal
 
 Given an ideal `I` in a multivariate polynomial ring this function assures that a
 Groebner basis w.r.t. the given monomial ordering is attached to `I` in `I.gb`.
+It *currently* also ensures that the basis is defined on the Singular side in
+`I.gb.S`, but this should not be relied upon: use `singular_assure(I.gb)` before
+accessing `I.gb.S`.
 
 # Examples
 ```jldoctest
