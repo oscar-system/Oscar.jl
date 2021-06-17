@@ -253,6 +253,7 @@ makedocs(bib,
 	                               "CommutativeAlgebra/ca_modules.md",
 				       "CommutativeAlgebra/ca_quotient_rings.md",
 				       "CommutativeAlgebra/ca_affine_algebras.md",
+				       "CommutativeAlgebra/ca_binomial_ideals.md",
 				       "CommutativeAlgebra/ca_invariant_theory.md"],
              "References" => "references.md",
          ]
