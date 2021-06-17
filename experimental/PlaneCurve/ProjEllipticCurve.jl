@@ -128,7 +128,7 @@ mutable struct ProjEllipticCurve{S} <: ProjectivePlaneCurve{S}
   function ProjEllipticCurve{S}(eq::Oscar.MPolyElem_dec{S}) where {S <: FieldElem}
     nvars(parent(eq)) == 3 || error("The defining equation must belong to a ring with three variables")
     !isconstant(eq) || error("The defining equation must be non constant")
-    ishomogenous(eq) || error("The defining equation is not homogeneous")
+    ishomogeneous(eq) || error("The defining equation is not homogeneous")
     _iselliptic(eq) || error("Not an elliptic curve")
     isweierstrass_form(eq.f) || error("Not in Weierstrass form")
     v = shortformtest(eq.f)
@@ -143,7 +143,7 @@ mutable struct ProjEllipticCurve{S} <: ProjectivePlaneCurve{S}
      nvars(parent(eq)) == 3 || error("The defining equation must belong to a ring with three variables")
      iszero(evaluate(eq, P.v)) || error("The point is not on the curve")
      !isconstant(eq) || error("The defining equation must be non constant")
-     ishomogenous(eq) || error("The defining equation is not homogeneous")
+     ishomogeneous(eq) || error("The defining equation is not homogeneous")
      isinflection(eq, P) || error("Not an inflection point -- structure implemented only with an inflection point as base point.")
      _iselliptic(eq) || error("Not an elliptic curve")
      T = parent(eq)

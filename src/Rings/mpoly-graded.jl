@@ -1,5 +1,5 @@
-export weight, decorate, ishomogenous, homogenous_components, filtrate,
-grade, GradedPolynomialRing, homogenous_component, jacobi_matrix, jacobi_ideal,
+export weight, decorate, ishomogeneous, homogeneous_components, filtrate,
+grade, GradedPolynomialRing, homogeneous_component, jacobi_matrix, jacobi_ideal,
 HilbertData, hilbert_series, hilbert_series_reduced, hilbert_series_expanded, hilbert_function, hilbert_polynomial,
 homogenization, dehomogenization
 export MPolyRing_dec, MPolyElem_dec
@@ -156,8 +156,8 @@ struct MPolyElem_dec{T, S} <: MPolyElem{T}
   function MPolyElem_dec(f::S, p) where {S}
     r = new{elem_type(base_ring(f)), S}(f, p)
 #    if isgraded(p) && length(r) > 1
-#      if !ishomogenous(r)
-#        error("element not homogenous")
+#      if !ishomogeneous(r)
+#        error("element not homogeneous")
 #      end
 #both wrong and undesired.
 #    end
@@ -316,7 +316,7 @@ function ideal(g::Vector{T}) where {T <: MPolyElem_dec}
   @assert length(g) > 0
   @assert all(x->parent(x) == parent(g[1]), g)
   if isgraded(parent(g[1]))
-     if !(all(ishomogenous, g))
+     if !(all(ishomogeneous, g))
        throw(ArgumentError("The generators of the ideal must be homogeneous."))
      end
   end
@@ -358,13 +358,13 @@ function degree(a::MPolyElem_dec)
       first = false
       w = u
     else
-      w == u || error("element not homogenous")
+      w == u || error("element not homogeneous")
     end
   end
   return w
 end
 
-function ishomogenous(a::MPolyElem_dec)
+function ishomogeneous(a::MPolyElem_dec)
   D = parent(a).D
   d = parent(a).d
   S = Set{elem_type(D)}()
@@ -381,13 +381,13 @@ function ishomogenous(a::MPolyElem_dec)
   return true
 end
 
-function homogenous_components(a::MPolyElem_dec{T, S}) where {T, S}
+function homogeneous_components(a::MPolyElem_dec{T, S}) where {T, S}
   D = parent(a).D
   d = parent(a).d
   h = Dict{elem_type(D), typeof(a)}()
   W = parent(a)
   R = W.R
-  # First assemble the homogenous components into the build contexts.
+  # First assemble the homogeneous components into the build contexts.
   # Afterwards compute the polynomials.
   hh = Dict{elem_type(D), MPolyBuildCtx{S, DataType}}()
   dmat = vcat([d[i].coeff for i in 1:length(d)])
@@ -420,7 +420,7 @@ function homogenous_components(a::MPolyElem_dec{T, S}) where {T, S}
   return hhh
 end
 
-function homogenous_component(a::MPolyElem_dec, g::GrpAbFinGenElem)
+function homogeneous_component(a::MPolyElem_dec, g::GrpAbFinGenElem)
   R = parent(a).R
   r = R(0)
   d = parent(a).d
@@ -454,11 +454,11 @@ function show_homo_comp(io::IO, M)
   if n != nothing
     print(io, "$(n)_$(d.coeff) of dim $(dim(M))")
   else
-    println(io, "homogenous component of $W of degree $d")
+    println(io, "homogeneous component of $W of degree $d")
   end
 end
 
-function homogenous_component(W::MPolyRing_dec, d::GrpAbFinGenElem)
+function homogeneous_component(W::MPolyRing_dec, d::GrpAbFinGenElem)
   #TODO: lazy: ie. no enumeration of points
   #      aparently it is possible to get the number of points faster than the points
   D = W.D
@@ -604,7 +604,7 @@ mutable struct HilbertData
        throw(ArgumentError("The base ring must be graded."))
     end
     
-    if !(all(ishomogenous, gens(I)))
+    if !(all(ishomogeneous, gens(I)))
        throw(ArgumentError("The generators of the ideal must be homogeneous."))
     end
     

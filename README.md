@@ -113,7 +113,7 @@ defined on the Singular side
 julia> D = decoration(H)
 GrpAb: Z
 
-julia> homogenous_component(H, D[0])
+julia> homogeneous_component(H, D[0])
 (H_[0] of dim 2, Map from
 H_[0] of dim 2 to H defined by a julia-function with inverse
 )

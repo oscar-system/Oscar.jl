@@ -16,12 +16,12 @@ function _random_poly(RR, n)
   return pols
 end
 
-function _homogenous_polys(polys::Vector{<:MPolyElem})
+function _homogeneous_polys(polys::Vector{<:MPolyElem})
   R = parent(polys[1])
   D = []
   _monomials = [zero(R)]
   for i = 1:4
-    push!(D, homogenous_components(polys[i]))
+    push!(D, homogeneous_components(polys[i]))
     _monomials = append!(_monomials, monomials(polys[i]))
   end
   hom_polys = []
@@ -30,11 +30,11 @@ function _homogenous_polys(polys::Vector{<:MPolyElem})
     for i = 1:4
       if haskey(D[i], deg)
         temp = get(D[i], deg, 'x')
-        @test homogenous_component(polys[i], deg) == temp
+        @test homogeneous_component(polys[i], deg) == temp
         g += temp
       end
     end
-    @test ishomogenous(g)
+    @test ishomogeneous(g)
     push!(hom_polys, g)
   end
   return hom_polys
@@ -87,7 +87,7 @@ end
 
       dims = IdDict(zip(decorated_rings, [15, 12, 6, 1, 1]))
 
-      # In RR, we take the quotient by the homogenous component corresponding to d_Elems[RR]
+      # In RR, we take the quotient by the homogeneous component corresponding to d_Elems[RR]
       # The dimension should be dims[RR]
 
       for RR in decorated_rings
@@ -115,17 +115,17 @@ end
                 finish(push_term!(MPolyBuildCtx(RR), collect(Oscar.MPolyCoeffs(polys[4]))[k], collect(Oscar.MPolyExponentVectors(polys[4]))[k]))
         end
 
-        hom_polys = _homogenous_polys(polys)
+        hom_polys = _homogeneous_polys(polys)
         I = ideal(hom_polys)
         R_quo = Oscar.MPolyQuo(RR, I)
         @test base_ring(R_quo) == RR
         @test modulus(R_quo) == I
         f = R_quo(polys[2])
-        D = homogenous_components(f)
+        D = homogeneous_components(f)
         for deg in [degree(R_quo(mon)) for mon  = Oscar.monomials(f.f)]
           h = get(D, deg, 'x')
-          @test ishomogenous(R_quo(h))
-          @test h == homogenous_component(f, deg)
+          @test ishomogeneous(R_quo(h))
+          @test h == homogeneous_component(f, deg)
         end
 
         @test Oscar.isfiltered(R_quo) == Oscar.isfiltered(RR)
@@ -139,7 +139,7 @@ end
 
         if base_ring(R) isa AbstractAlgebra.Field
           grp_elem = d_Elem
-          H = homogenous_component(RR, grp_elem)
+          H = homogeneous_component(RR, grp_elem)
           @test Oscar.hasrelshp(H[1], RR) !== nothing
           for g in gens(H[1])
             @test degree(H[2](g)) == grp_elem
@@ -147,7 +147,7 @@ end
           end
           @test dim(H[1]) == dim_test # j
         end
-        #H_quo = homogenous_component(R_quo, grp_elem)
+        #H_quo = homogeneous_component(R_quo, grp_elem)
         #Oscar.hasrelshp(H_quo[1], R_quo) !== nothing
         #for g in gens(H_quo[1])
         #    degree(H_quo[2](g)) == grp_elem
