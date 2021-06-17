@@ -27,7 +27,7 @@ export labelled_matrix_formatted
 # such as "A̅".
 # (This had been observed already by Jean Michel.
 # See https://github.com/JuliaLang/julia/pull/39044,
-# a fix seems to be not far away.)
+# a fix seems to become available in Julia 1.7.)
 mylpad(s::String,n::Int) = " "^(n-textwidth(s))*s
 
 
@@ -71,7 +71,7 @@ The following attributes of `io` are supported.
 
 - `:corner`:
   matrix (or vector) of strings to be shown on the left of (and aligned to)
-  the the column labels and above (and aligned to) the row labels
+  the column labels and above (and aligned to) the row labels
 
 - `:labels_row`:
   matrix (or vector) of strings to be shown on the left of and aligned to
@@ -280,7 +280,6 @@ function labelled_matrix_formatted(io::IO, mat::Matrix{String})
               # This column will be too wide
               # but we have to take at least one.
               push!(portions_col, 1)
-              num = 0
               width = leftwidthsum
             else
               push!(portions_col, num)
@@ -291,7 +290,9 @@ function labelled_matrix_formatted(io::IO, mat::Matrix{String})
             num = num+1
           end
         end
-        push!(portions_col, num)
+        if num != 0
+          push!(portions_col, num)
+        end
       end
     end
 

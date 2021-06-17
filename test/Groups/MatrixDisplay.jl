@@ -38,6 +38,14 @@
   labelled_matrix_formatted(ioc, mat)
   @test String(take!(io)) == "1: 1/1 1/2\n2: 2/1 2/2\n"
 
+  # with too wide row labels
+  ioc = IOContext(io,
+          :labels_row => reshape(["_"^30*string(i)*":" for i in 1:m], m, 1),
+          :displaysize => (52, 30),
+        );
+  labelled_matrix_formatted(ioc, mat)
+  @test String(take!(io)) == "(row label part is too wide for the screen)\n"
+
   # with column labels as vector
   ioc = IOContext(io,
           :labels_col => [string(j) for j in 1:n],
@@ -59,6 +67,34 @@
         );
   labelled_matrix_formatted(ioc, mat)
   @test String(take!(io)) == "     1   2\n1: 1/1 1/2\n2: 2/1 2/2\n"
+
+  # with row and column labels and corner as vector
+  ioc = IOContext(io,
+          :labels_row => [string(i)*":" for i in 1:m],
+          :labels_col => [string(j) for j in 1:n],
+          :corner => ["(i,j)"],
+        );
+  labelled_matrix_formatted(ioc, mat)
+  @test String(take!(io)) == "(i,j)   1   2\n   1: 1/1 1/2\n   2: 2/1 2/2\n"
+
+  # with row and column labels and corner as matrix
+  ioc = IOContext(io,
+          :labels_row => [string(i)*":" for i in 1:m],
+          :labels_col => [string(j) for j in 1:n],
+          :corner => reshape(["(i,j)"], 1, 1),
+        );
+  labelled_matrix_formatted(ioc, mat)
+  @test String(take!(io)) == "(i,j)   1   2\n   1: 1/1 1/2\n   2: 2/1 2/2\n"
+
+  # with a too wide column
+  ioc = IOContext(io,
+          :labels_row => [string(i)*":" for i in 1:m],
+          :labels_col => ["_"^30*string(j) for j in 1:n],
+          :corner => reshape(["(i,j)"], 1, 1),
+          :displaysize => (52, 30),
+        );
+  labelled_matrix_formatted(ioc, mat)
+  @test String(take!(io)) == "(i,j) ______________________________1\n   1:                             1/1\n   2:                             2/1\n\n(i,j) ______________________________2\n   1:                             1/2\n   2:                             2/2\n"
 
   # with row separators but without column labels
   ioc = IOContext(io,
