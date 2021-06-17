@@ -34,6 +34,12 @@
       @test iscellular(x)[1]
       @test x in lI2
     end
+    R, x = PolynomialRing(QQ, "x"=>1:3)
+    I = ideal(R, [x[3]^2*(x[1]^2-x[2]^2), x[3](x[1]^4-x[2]^4), x[3]^3])
+    ap = cellular_minimal_associated_primes(I)
+    @test length(ap) == 1
+    RQab = base_ring(ap[1])
+    @test ap[1] == ideal(RQab, [RQab[3]])
 
   end
 
