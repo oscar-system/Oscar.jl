@@ -311,7 +311,6 @@ function groebner_data(F::AlgHom, ord::Symbol)
             (S, I, W, _) = _ring_helper(s, zero(s), F.image)
             # Build auxilliary objects
             (T, inc, J) = _containement_helper(S, n, m, I, W, ord)
-            #D = divrem([gen(T, i) for i in 1:m], G)
             D = normal_form([gen(T, i) for i in 1:m], J)
             A = [zero(r) for i in 1:m]
             B = [gen(r, i) for i in 1:n]
@@ -325,7 +324,6 @@ function groebner_data(F::AlgHom, ord::Symbol)
             # Build auxilliary objects
             (T, inc, J) = _containement_helper(S, n, m, I, W, ord)
             D = normal_form([gen(T, i) for i in 1:m], J)
-            #D = divrem([gen(T, i) for i in 1:m], G)
             A = [zero(r) for i in 1:m]
             B = [gen(r, i) for i in 1:n]
             pr = hom(T, r, vcat(A, B))

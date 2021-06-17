@@ -439,11 +439,7 @@ end
 
 function groebner_assure(I::MPolyIdeal, ord::MonomialOrdering; complete_reduction::Bool = false)
   R = base_ring(I)
-  if typeof(ord) == Symbol
-     Rx = singular_ring(R, ord)
-  else
-     Rx = singular_ring(R, ord.o)
-  end
+  Rx = singular_ring(R, ord.o)
 
   if !isdefined(I, :gb) || ordering(J.gb.Sx) != ordering(Rx)
     I.gens.Sx = Rx
