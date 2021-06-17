@@ -10,18 +10,13 @@ import AbstractAlgebra: FieldElem, map, Ring
 import Hecke: multiplicative_jordan_decomposition, PolyElem, _rational_canonical_form_setup, refine_for_jordan
 
 export
-    block_matrix,
     complement,
     conjugate_transpose,
-    diagonal_join,
-    insert_block,
-    insert_block!,
     isconjugate_gl,
     ishermitian_matrix,
     isskewsymmetric_matrix,
     lower_triangular_matrix,
     permutation_matrix,
-    submatrix,
     upper_triangular_matrix
 
 
@@ -32,83 +27,6 @@ export
 #
 ########################################################################
 
-"""
-    submatrix(A::MatElem{T}, i::Int, j::Int, m::Int, n::Int)
-
-Return the `m x n` submatrix of `A` rooted at `(i,j)`
-"""
-# TODO: eliminate this function again
-function submatrix(A::MatElem, i::Int, j::Int, nr::Int, nc::Int)
-   return A[i:i+nr-1, j:j+nc-1]
-end
-
-# exists already in Hecke _copy_matrix_into_matrix
-"""
-    insert_block(A::MatElem, B::MatElem, i,j)
-
-Return the matrix `A` with the block `B` inserted at the position `(i,j)`.
-"""
-# TODO: eliminate this function again
-function insert_block(A::MatElem{T}, B::MatElem{T}, i::Int, j::Int) where T <: RingElem
-   C = deepcopy(A)
-   return insert_block!(C,B,i,j)
-end
-
-"""
-    insert_block!(A::MatElem, B::MatElem, i,j)
-
-Insert the block `B` in the matrix `A` at the position `(i,j)`.
-"""
-# TODO: eliminate this function again
-function insert_block!(A::MatElem{T}, B::MatElem{T}, i::Int, j::Int) where T <: RingElem
-   A[i:i+nrows(B)-1, j:j+ncols(B)-1] = B
-   return A
-end
-
-"""
-    diagonal_join(V::AbstractVector{<:MatElem})
-    diagonal_join(V::T...) where T <: MatElem
-
-Return the diagonal join of the matrices in `V`.
-"""
-# TODO: eliminate this function again, use cat instead
-function diagonal_join(V::AbstractVector{T}) where T <: MatElem
-   return cat(V...; dims=(1,2))
-end
-
-diagonal_join(V::T...) where T <: MatElem = diagonal_join(collect(V))
-
-"""
-    block_matrix(m::Int, n::Int, V::AbstractVector{T}) where T <: MatElem
-
-Given a sequence `V` of matrices, return the `m x n` block matrix,
-where the `(i,j)`-block is the `((i-1)*n+j)`-th element of `V`.
-The sequence `V` must have length `mn` and the dimensions of the matrices of `V` must be compatible with the above construction.
-"""
-# TODO: eliminate this function again, use cat/hcat/vcat/... instead
-function block_matrix(m::Int, n::Int, V::AbstractVector{T}) where T <: MatElem
-   length(V)==m*n || throw(ArgumentError("Wrong number of inserted blocks"))
-   n_rows=0
-   for i in 1:m
-      for j in 1:n
-         nrows(V[n*(i-1)+j])==nrows(V[n*(i-1)+1]) || throw(ArgumentError("Invalid matrix dimension"))
-         ncols(V[n*(i-1)+j])==ncols(V[j]) || throw(ArgumentError("Invalid matrix dimension"))
-      end
-      n_rows += nrows(V[n*(i-1)+1])
-   end
-   n_cols = sum(ncols(V[j]) for j in 1:n)
-   B = zero_matrix(base_ring(V[1]), n_rows, n_cols)
-   pos_i=1
-   for i in 1:m
-      pos_j=1
-      for j in 1:n
-         insert_block!(B,V[n*(i-1)+j],pos_i,pos_j)
-         pos_j += ncols(V[n*(i-1)+j])
-      end
-      pos_i += nrows(V[n*(i-1)+1])
-   end
-   return B
-end
 
 """
     matrix(A::Array{AbstractAlgebra.Generic.FreeModuleElem{T},1})

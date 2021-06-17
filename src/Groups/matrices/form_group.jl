@@ -47,7 +47,7 @@ function invariant_bilinear_forms(G::MatrixGroup{S,T}) where {S,T}
       push!(M,MM)
    end
 
-   r,K = nullspace(block_matrix(length(M),1,M))
+   r,K = nullspace(vcat(M))
    
    return [matrix(F,n,n,[K[i,j] for i in 1:n^2]) for j in 1:r]
 end
@@ -76,7 +76,7 @@ function invariant_sesquilinear_forms(G::MatrixGroup{S,T}) where {S,T}
       push!(M,MM)
    end
 
-   r,K = nullspace(block_matrix(length(M),1,M))
+   r,K = nullspace(vcat(M))
    
    return [matrix(F,n,n,[K[i,j] for i in 1:n^2]) for j in 1:r]
 end
@@ -109,7 +109,7 @@ function invariant_quadratic_forms(G::MatrixGroup{S,T}) where {S,T}
       push!(M,MM)
    end
 
-   r,K = nullspace(block_matrix(length(M),1,M))
+   r,K = nullspace(vcat(M))
    M = T[]
    for i in 1:r
       push!(M,upper_triangular_matrix(K[1:div(n*(n+1),2),i]))
@@ -163,12 +163,12 @@ function invariant_alternating_forms(G::MatrixGroup{S,T}) where {S,T}
       push!(M,MM)
    end
 
-   r,K = nullspace(block_matrix(length(M),1,M))
+   r,K = nullspace(vcat(M))
 
    L = T[]
    for j in 1:r
-      B = upper_triangular_matrix(K[1:div(n*(n-1),2),j])
-      B = insert_block(zero_matrix(F,n,n),B,1,2)
+      B = zero_matrix(F,n,n)
+      B[1:n-1,2:n] = upper_triangular_matrix(K[1:div(n*(n-1),2),j])
 #=      for i in 1:n, j in 1:i-1
          B[i,j]=-B[j,i]
       end  =#
@@ -379,7 +379,7 @@ function invariant_hermitian_forms(G::MatrixGroup{S,T}) where {S,T}
       end
    end
 
-   n_gens,K = nullspace(block_matrix(length(M),1,M))
+   n_gens,K = nullspace(vcat(M))
    N = div(n*(n-1),2)
    L = T[]
 
@@ -573,7 +573,7 @@ function isometry_group(f::SesquilinearForm{T}) where T
    end
 
    if r<n
-      fn = SesquilinearForm(submatrix(C,1,1,r,r),f.descr)
+      fn = SesquilinearForm(C[1:r, 1:r],f.descr)
    else
       fn = f
    end
@@ -609,10 +609,14 @@ function isometry_group(f::SesquilinearForm{T}) where T
       Idn = identity_matrix(F,n)
       L = dense_matrix_type(elem_type(F))[]
       for i in 1:ngens(G)
-         push!(L, An*insert_block(Idn,Xfn*(G[i].elm)*Xf,1,1)*A)
+         temp = deepcopy(Idn)
+         temp[1:r,1:r] = Xfn*(G[i].elm)*Xf
+         push!(L, An*temp*A)
       end
       for g in _gens_for_GL(n-r,F)
-         push!(L, An*insert_block(Idn,g,r+1,r+1)*A)
+         temp = deepcopy(Idn)
+         temp[r+1:n, r+1:n] = g
+         push!(L, An*temp*A)
       end
 # TODO: not quite sure whether the last element (the one with i=r) is sufficient to generate the whole top-right block
       for i in 1:r

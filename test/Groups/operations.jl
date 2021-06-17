@@ -57,16 +57,12 @@ end
    
    I = identity_matrix(F,6)
    x = matrix(F,2,2,[2,3,4,0])
-   I1 = insert_block(I,x,3,3)
+   I1 = deepcopy(I)
+   I1[3:4,3:4] = x
    @test I==identity_matrix(F,6)
-   insert_block!(I,x,3,3)
+   I[3:4,3:4] = x
    @test I==I1
-   @test submatrix(I,3,3,2,2)==x
-   Y = block_matrix(2,1,[block_matrix(1,2,[x,x^2]), block_matrix(1,2,[-x,x])])
-   @test Y==block_matrix(2,2,[x,x^2,-x,x])
-   z = zero_matrix(F,2,2)
-   @test diagonal_join([x,x,x])==block_matrix(3,3,[x,z,z,z,x,z,z,z,x])
-   @test diagonal_join(x,x,zero_matrix(F,4,4))==diagonal_join([x,x,zero_matrix(F,4,4)])
+   @test I[3:4,3:4]==x
    V = VectorSpace(F,6)
    @test matrix([V[i] for i in 1:6])==identity_matrix(F,6)
    L = [1,4,6,2,3,5]
