@@ -8,6 +8,9 @@ export  groebner_basis, groebner_basis_with_transformation_matrix, leading_ideal
 
 Given an ideal `I` in a multivariate polynomial ring this function assures that a
 Groebner basis w.r.t. the given monomial ordering is attached to `I` in `I.gb`.
+It *currently* also ensures that the basis is defined on the Singular side in
+`I.gb.S`, but this should not be relied upon: use `singular_assure(I.gb)` before
+accessing `I.gb.S`.
 
 # Examples
 ```jldoctest
@@ -433,3 +436,19 @@ function normal_form(A::Array{T, 1}, J::MPolyIdeal) where { T <: MPolyElem }
     I = Singular.Ideal(J.gens.Sx, [J.gens.Sx(x) for x in A])
     normal_form_internal(I, J)
 end
+
+function groebner_basis(B::BiPolyArray, ord::MonomialOrdering; complete_reduction::Bool = false)
+    R = singular_ring(B.Ox, ord.o)
+    i = Singular.Ideal(R, [R(x) for x = B])
+    i = Singular.std(i, complete_reduction = complete_reduction)
+    return BiPolyArray(B.Ox, i)
+end
+
+function groebner_basis(I::MPolyIdeal, ord::MonomialOrdering; complete_reduction::Bool=false)
+  R = singular_ring(base_ring(I), ord.o)
+  !Oscar.Singular.has_global_ordering(R) && error("The ordering has to be a global ordering.")
+  i = Singular.std(Singular.Ideal(R, [R(x) for x = gens(I)]), complete_reduction = complete_reduction)
+  return collect(BiPolyArray(base_ring(I), i))
+end
+
+

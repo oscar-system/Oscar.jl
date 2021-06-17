@@ -18,6 +18,10 @@ Pages = ["ca_ideals.md"]
 ideal(g::Array{T, 1}) where {T <: MPolyElem}
 ```
 
+!!! note
+    The return type of all constructors above is a subtype of `MPolyIdeal`.
+
+
 ## Gröbner Bases
 
 ### Monomial Orderings
@@ -105,7 +109,7 @@ codim(I::MPolyIdeal)
     
 ## Operations on Ideals
 
-### Simple ideal Operations
+### Simple Ideal Operations
 
 #### Powers of Ideal
 
@@ -157,7 +161,7 @@ saturation_with_index(I::MPolyIdeal, J::MPolyIdeal)
 ### Elimination
 
 ```@docs
-eliminate(I::MPolyIdeal, lv::Array{MPolyElem, 1})
+eliminate(I::MPolyIdeal, l::Array{T, 1}) where T <: Union{MPolyElem, MPolyElem_dec}
 ```
 
 ## Tests on Ideals
@@ -187,13 +191,13 @@ issubset(I::MPolyIdeal, J::MPolyIdeal)
 ### Ideal Membership
 
 ```@docs
-ideal_membership(f::MPolyElem, I::MPolyIdeal)
+ideal_membership(f::T, I::MPolyIdeal) where T <: Union{MPolyElem, MPolyElem_dec}
 ```
 
 ### Radical Membership
 
 ```@docs
-radical_membership(f::MPolyElem, I::MPolyIdeal)
+radical_membership(f::T, I::MPolyIdeal) where T <: Union{MPolyElem, MPolyElem_dec}
 ```
 
 ### Primality Test
@@ -258,7 +262,9 @@ equidimensional_hull_radical(I::MPolyIdeal)
 
 ### Absolute Primary Decomposition
 
-    absolute_primary_decomposition(I)               --->  absPrimdecGTZ   
+```@docs
+absolute_primary_decomposition(I::MPolyIdeal{fmpq_mpoly})
+```
 
 ## Homogenization and Dehomogenization
 
@@ -288,12 +294,11 @@ dehomogenization(F::MPolyElem_dec, pos::Int)
 ###### Examples
 
 ```@repl oscar
-R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-S = grade(R)
+S, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"])
 F = x^3-x^2*y-x*z^2
-f = dehomogenization(S(F), 1)
+f = dehomogenization(F, 1)
 parent(f)
-V = [S(x*y-z^2), S(x^2*z-x^3)]
+V = [x*y-z^2, x^2*z-x^3]
 dehomogenization(V, 3)
 I = ideal(S, V)
 dehomogenization(I, 3)

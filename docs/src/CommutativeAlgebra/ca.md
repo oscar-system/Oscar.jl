@@ -13,15 +13,14 @@ Pages = ["ca.md"]
 # Introduction
 
 The commutative algebra part of OSCAR provides functionality for handling
-- ideals and modules over polynomial rings,
-- quotient rings of polynomial rings, with particular emphasis on affine $K$-algebras.
+- ideals and modules over multivariated polynomial rings,
+- quotient rings of such rings, with particular emphasis on affine $K$-algebras.
 
-It is under development with regard to providing
-both the functionality and the documentation. 
+It is under development with regard to providing both the functionality and the documentation. 
 
 !!! note
-    - The functions discussed here essentially rely on Gröbner basis techniques. If not indicated otherwise, they are  implemented for both polynomial rings over fields and polynomial rings over the integers.
-    - We distinguish between multivariate polynomial rings and multivariate polynomial rings which carry a distinguished grading. For simplicity of the presentation, functions are often only described with focus on the former case, but work similarly for homogeneous ideals and graded modules in the latter case.
+    - The functions discussed here essentially rely on Gröbner basis techniques. If not indicated otherwise, they are  implemented for multivariate polynomial rings over fields and over the integers.
+    - Multivariate polynomial rings may or may not carry a distinguished grading. For simplicity of the presentation, functions are often only illustrated by examples with focus on the latter case, but work similarly for homogeneous ideals and graded modules in the former case.
 
 
 General textbooks offering details on theory and algorithms include: 
