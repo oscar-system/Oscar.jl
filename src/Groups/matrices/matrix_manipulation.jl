@@ -7,7 +7,7 @@
 # TODO: when this happens, files mentioned above need to be modified too.
 
 import AbstractAlgebra: FieldElem, map, Ring
-import Hecke: _copy_matrix_into_matrix, multiplicative_jordan_decomposition, PolyElem, _rational_canonical_form_setup, refine_for_jordan
+import Hecke: multiplicative_jordan_decomposition, PolyElem, _rational_canonical_form_setup, refine_for_jordan
 
 export
     complement,
