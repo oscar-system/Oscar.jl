@@ -667,13 +667,13 @@ function cellular_minimal_associated_primes(I::MPolyIdeal{fmpq_mpoly})
   end
   R = base_ring(I)
   P = partial_character_from_ideal(I, R)
-  RQab = PolynomialRing(QabField(), nvars(R))
+  RQab = PolynomialRing(QabModule.QabField(), nvars(R))[1]
   PSat = QabModule.saturations(P)
   minimal_associated = Vector{MPolyIdeal{Generic.MPoly{QabModule.QabElem}}}() #this will hold the set of minimal associated primes
 
   #construct the ideal (x_i \mid i \in \Delta^c)
-  Variables = gens(R)
-  gs = [Variables[i] for i = 1:nvars(R) if !(i in cell[2])]
+  Variables = gens(RQab)
+  gs = [Variables[i] for i = 1:nvars(RQab) if !(i in cell[2])]
   idealDeltaC = ideal(RQab, gs)
 
   for Q in PSat
