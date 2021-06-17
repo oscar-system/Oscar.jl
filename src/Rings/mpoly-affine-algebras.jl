@@ -210,16 +210,26 @@ end
 ##############################################################################
 
 # helper function for the containement problem, surjectivity and preimage
-function _containement_helper(R::MPolyRing, N::Int, M::Int, I::MPolyIdeal, W::Vector)
-   T = PolynomialRing(base_ring(R), N + M, ordering = :lex)[1]
+function _containement_helper(R::MPolyRing, N::Int, M::Int, I::MPolyIdeal, W::Vector, ord::Symbol)
+   T, _ = PolynomialRing(base_ring(R), N + M, ordering = :lex) # :lex is needed in further computation,
+                                                               # since we do not have block orderings in Oscar
    phi = hom(R, T, [gen(T, i) for i in 1:M])
 
    # Groebner computation
    A = phi.(gens(I))
    B = [phi(W[i])-gen(T, M + i) for i in 1:N]
    J = ideal(T, vcat(A, B))
-   G = groebner_basis(J, complete_reduction = true, ordering = :lex)
-   return (T, phi, G)
+   GG = gens(T)
+
+   if ord == :lex
+      #G = groebner_basis(J, complete_reduction = true)
+      #return (T, phi, G)
+      O = degrevlex(GG[1:M])*lex(GG[M+1:M+N])
+   else ## ord == :degrevlex
+      O = degrevlex(GG[1:M])*degrevlex(GG[M+1:M+N])
+   end
+   groebner_assure(J, O, complete_reduction = true)
+   return (T, phi, J)
 end
 
 # helper function to obtain information about qring status and 
@@ -254,16 +264,16 @@ function subalgebra_membership(f::S, v::Vector{S}) where S <: Union{MPolyElem{U}
    m = ngens(R)
 
    # Build auxilliary objects
-   (T, phi, G) = _containement_helper(R, n, m, I, W)
-   TT, _ = PolynomialRing(base_ring(T), ["t_$i" for i in 1:n])
+   (T, phi, J) = _containement_helper(R, n, m, I, W, :degrevlex)
+   TT, _ = PolynomialRing(base_ring(T), ["t_$i" for i in 1:n], ordering = :lex)
    
    # Check containement
-   D = divrem(phi(F), G)
-   if leading_monomial(D[2]) < gen(T, m)
+   D = normal_form([phi(F)], J)
+   if leading_monomial(D[1]) < gen(T, m)
       A = [zero(TT) for i in 1:m]
       B = [gen(TT, i) for i in 1:n]
       psi = hom(T, TT, vcat(A, B))
-      return (true, psi(D[2]))
+      return (true, psi(D[1]))
    else
       return (false, TT(0))
    end
@@ -289,26 +299,41 @@ function isinjective(F::AlgHom)
 end
 
 # Helper function related to the computation of surjectivity, preimage etc.
-# Stores the necessary data in F.surj_help
-function _surj_helper(F::AlgHom)
+# Stores the necessary data in groebner_data, resp. groebner_data_lex
+function groebner_data(F::AlgHom, ord::Symbol)
    r = domain(F)
    s = codomain(F)
    n = ngens(r)
    m = ngens(s)
 
-   if !isdefined(F, :surj_helper)
-      (S, I, W, _) = _ring_helper(s, zero(s), F.image)
-      # Build auxilliary objects
-      (T, inc, G) = _containement_helper(S, n, m, I, W)
-      D = divrem([gen(T, i) for i in 1:m], G)
-      A = [zero(r) for i in 1:m]
-      B = [gen(r, i) for i in 1:n]
-      pr = hom(T, r, vcat(A, B))
-      F.surj_helper = (T, inc, pr, G, D)
+   if ord == :lex
+         if !isdefined(F, :groebner_data_lex)
+            (S, I, W, _) = _ring_helper(s, zero(s), F.image)
+            # Build auxilliary objects
+            (T, inc, J) = _containement_helper(S, n, m, I, W, ord)
+            #D = divrem([gen(T, i) for i in 1:m], G)
+            D = normal_form([gen(T, i) for i in 1:m], J)
+            A = [zero(r) for i in 1:m]
+            B = [gen(r, i) for i in 1:n]
+            pr = hom(T, r, vcat(A, B))
+            F.groebner_data_lex = (T, inc, pr, J, D)
+          end
+      return F.groebner_data_lex
+   else ##ord == :degrevlex
+         if !isdefined(F, :groebner_data)
+            (S, I, W, _) = _ring_helper(s, zero(s), F.image)
+            # Build auxilliary objects
+            (T, inc, J) = _containement_helper(S, n, m, I, W, ord)
+            D = normal_form([gen(T, i) for i in 1:m], J)
+            #D = divrem([gen(T, i) for i in 1:m], G)
+            A = [zero(r) for i in 1:m]
+            B = [gen(r, i) for i in 1:n]
+            pr = hom(T, r, vcat(A, B))
+            F.groebner_data = (T, inc, pr, J, D)
+         end
+      return F.groebner_data
    end
-   return F.surj_helper
 end
-
 
 @doc Markdown.doc"""
     issurjective(F::AlgHom)
@@ -322,12 +347,12 @@ function issurjective(F::AlgHom)
    s = codomain(F)
    n = ngens(r)
    m = ngens(s)
-   (T, _, _, _, D) = _surj_helper(F)
+   (T, _, _, _, D) = groebner_data(F, :degrevlex)
 
    # Check if map is surjective
 
    for i in 1:m
-      if !(leading_monomial(D[i][2]) < gen(T, m))
+      if !(leading_monomial(D[i]) < gen(T, m))
          return false
       end
    end
@@ -349,7 +374,8 @@ end
 Return `true` if `F` is finite, `false` otherwise.
 """
 function isfinite(F::AlgHom)
-  (T, _, _, G, _) = _surj_helper(F)
+  (T, _, _, J, _) = groebner_data(F, :lex)
+  G = collect(J.gb)
   # Find all elements with leading monomial which contains the 
   # variables x_i.
   s = codomain(F)
@@ -383,8 +409,8 @@ function inverse(F::AlgHom)
    n = ngens(r)
    m = ngens(s)
 
-   (T, _, pr, _, D) = _surj_helper(F)
-   psi = hom(s, r, [pr(D[i][2]) for i in 1:m])
+   (T, _, pr, _, D) = groebner_data(F, :degrevlex)
+   psi = hom(s, r, [pr(D[i]) for i in 1:m])
    psi.kernel = ideal(s, [zero(s)])
    return psi
 end
@@ -397,10 +423,10 @@ function preimage(F::AlgHom, f::Union{MPolyElem, MPolyQuoElem})
    m = ngens(s)
 
    (S, _, _, g) = _ring_helper(s, f, [zero(s)])
-   (T, inc, pr, G, _) = _surj_helper(F)
-   D = divrem(inc(g), G)
-   !(leading_monomial(D[2]) < gen(T, m)) && error("Element not contained in image")
-   return (pr(D[2]), kernel(F))
+   (T, inc, pr, J, o) = groebner_data(F, :degrevlex)
+   D = normal_form([inc(g)], J)
+   !(leading_monomial(D[1]) < gen(T, m)) && error("Element not contained in image")
+   return (pr(D[1]), kernel(F))
 end
 
 ##############################################################################
