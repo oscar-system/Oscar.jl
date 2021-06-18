@@ -30,25 +30,31 @@ end
 struct MPolyElemLoc{T} <: AbstractAlgebra.RingElem where {T}
   frac::AbstractAlgebra.Generic.Frac
   parent::MPolyRingLoc{T}
-  function MPolyElemLoc(f::MPolyElem{T}, m::Oscar.MPolyIdeal) where {T}
-    R = parent(f)
-    (R != base_ring(m)) && error("Parent rings do not match!")
-    r = new{T}(f//R(1), Localization(R, m))
-    return r
-  end
-  function MPolyElemLoc(f::AbstractAlgebra.Generic.Frac, m::Oscar.MPolyIdeal)
-    R = parent(numerator(f))
-    B = base_ring(R)
-    (R != base_ring(m)) && error("Parent rings do not match!")
-    pt = leading_coefficient.([gen(R, i)-m.gens.Ox[i] for i in 1:nvars(R)]) # This should be easier, somehow ...
-    (evaluate(denominator(f), pt) == base_ring(R)(0)) && error("Element does not belong to the localization.")
-    r = new{elem_type(B)}(f, Localization(R, m))
-  end
+end
+
+function MPolyElemLoc(f::MPolyElem{T}, m::Oscar.MPolyIdeal) where {T}
+  R = parent(f)
+  (R != base_ring(m)) && error("Parent rings do not match!")
+  r = MPolyElemLoc{T}(f//R(1), Localization(R, m))
+  return r
+end
+
+function MPolyElemLoc(f::AbstractAlgebra.Generic.Frac, m::Oscar.MPolyIdeal)
+  R = parent(numerator(f))
+  B = base_ring(R)
+  (R != base_ring(m)) && error("Parent rings do not match!")
+  pt = leading_coefficient.([gen(R, i)-m.gens.Ox[i] for i in 1:nvars(R)]) # This should be easier, somehow ...
+  (evaluate(denominator(f), pt) == base_ring(R)(0)) && error("Element does not belong to the localization.")
+  r = MPolyElemLoc{elem_type(B)}(f, Localization(R, m))
 end
 
 ###############################################################################
 # Basic functions                                                             #
 ###############################################################################
+
+function Base.deepcopy_internal(a::MPolyElemLoc, dict::IdDict)
+  return MPolyElemLoc(Base.deepcopy_internal(a.frac, dict), a.parent)
+end
 
 function Base.show(io::IO, W::MPolyRingLoc)
   print("Localization of the ", W.base_ring, " at the maximal ", W.max_ideal)
