@@ -19,11 +19,11 @@ Singular = "bcd08a7b-43d2-5ff7-b6d4-c458787f915c"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
-AbstractAlgebra = "0.17.0"
+AbstractAlgebra = "0.18.0"
 DocStringExtensions = "0.8"
 GAP = "0.5"
 Hecke = "0.10.8"
-Nemo = "0.23.0"
+Nemo = "0.24.0"
 Polymake = "0.5.5"
 RandomExtensions = "0.4.3"
 Requires = "1.0"
