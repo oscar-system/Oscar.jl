@@ -54,7 +54,7 @@ end
 	for (A,B,true_pres_mat) in zip(generator_matrices, relation_matrices, true_pres_matrices)
     println(A,B,true_pres_mat)
 		SQ = Oscar.SubQuo(A,B)
-		pres_mat = Oscar.present(SQ).quo.matrix
+		pres_mat = matrix(Oscar.present(SQ).quo)
 		@test Oscar.cokernel(pres_mat) == Oscar.cokernel(true_pres_mat)
 
 		pres_SQ, i = Oscar.present(SQ, :both)
@@ -75,7 +75,7 @@ end
 	true_pres_matrices = [R[x^5*y-y^4 -x^5+x*y^3], R[-x^2*y-x*y-y x^2+x; -x^2*y^4+x^4*y x^2*y^3-x^4], R[-x*y R(1); -x^2*y^5+x*y^3 R(0)], R[-x^4+y^4-x^2-y^2 -x^10+x+R(1)], R[R(0) -x^2+y^2; -2*x^2 -x^9*y+x+1; -2*x*y^2 -x^8*y^3+y^2+x; -2*x*y^2+2*y^2 -x^8*y^3+x^7*y^3+y^2-1]]
 	for (A,B,true_pres_mat) in zip(generator_matrices, relation_matrices, true_pres_matrices)
 		SQ = Oscar.SubQuo(A,B)
-		pres_mat = Oscar.present(SQ).quo.matrix
+		pres_mat = matrix(Oscar.present(SQ).quo)
 		@test Oscar.cokernel(pres_mat) == Oscar.cokernel(true_pres_mat)
 
 		pres_SQ, i= Oscar.present(SQ, :both)
@@ -189,7 +189,7 @@ end
 	M2,i2,p2 = Oscar.simplify_subquotient(M1)
 	#display(M1)
 	#display(M2)
-	#println(p2.matrix)
+	#println(matrix(p2))
 
 	for k=1:5
 		#elem = M1(R[randpoly(R) for i=1:3])
@@ -404,8 +404,8 @@ end
 		ImH,iImH = Oscar.image(H)
 
 		NmodKerH, pNmodKerH = quo(N,KerH, :store)
-		Hbar = Oscar.SubQuoHom(NmodKerH,M,H.matrix)
-		#Hbar = AbstractAlgebra.Generic.ModuleHomomorphism(NmodKerH,M,H.matrix) # induced map N/KerH --> M
+		Hbar = Oscar.SubQuoHom(NmodKerH,M,matrix(H))
+		#Hbar = AbstractAlgebra.Generic.ModuleHomomorphism(NmodKerH,M,matrix(H)) # induced map N/KerH --> M
 		Hbar = Oscar.restrict_codomain(Hbar,ImH) # induced map N/KerH --> ImH
 
 		@test Oscar.iswelldefined(Hbar)
@@ -440,8 +440,8 @@ end
 		ImH,iImH = Oscar.image(H)
 
 		NmodKerH, pNmodKerH = Oscar.quo(N,KerH, :store)
-		Hbar = Oscar.SubQuoHom(NmodKerH,M,H.matrix) # induced map N/KerH --> M
-		#Hbar = AbstractAlgebra.Generic.ModuleHomomorphism(NmodKerH,M,H.matrix) # induced map N/KerH --> M
+		Hbar = Oscar.SubQuoHom(NmodKerH,M,matrix(H)) # induced map N/KerH --> M
+		#Hbar = AbstractAlgebra.Generic.ModuleHomomorphism(NmodKerH,M,matrix(H)) # induced map N/KerH --> M
 		Hbar = Oscar.restrict_codomain(Hbar,ImH) # induced map N/KerH --> ImH
 
 		@test Oscar.iswelldefined(Hbar)
@@ -479,7 +479,7 @@ end
 		ImH,iImH = Oscar.image(H)
 
 		NmodKerH, pNmodKerH = Oscar.quo(N,KerH, :store)
-		Hbar = Oscar.SubQuoHom(NmodKerH,M,H.matrix) # induced map N/KerH --> M
+		Hbar = Oscar.SubQuoHom(NmodKerH,M,matrix(H)) # induced map N/KerH --> M
 		Hbar = Oscar.restrict_codomain(Hbar,ImH) # induced map N/KerH --> ImH
 
 		@test Oscar.iswelldefined(Hbar)
@@ -511,8 +511,8 @@ end
 		ImH,iImH = Oscar.image(H)
 
 		NmodKerH, pNmodKerH = Oscar.quo(N,KerH, :store)
-		Hbar = Oscar.SubQuoHom(NmodKerH,M,H.matrix) # induced map N/KerH --> M
-		#Hbar = AbstractAlgebra.Generic.ModuleHomomorphism(NmodKerH,M,H.matrix) # induced map N/KerH --> M
+		Hbar = Oscar.SubQuoHom(NmodKerH,M,matrix(H)) # induced map N/KerH --> M
+		#Hbar = AbstractAlgebra.Generic.ModuleHomomorphism(NmodKerH,M,matrix(H)) # induced map N/KerH --> M
 		Hbar = Oscar.restrict_codomain(Hbar,ImH) # induced map N/KerH --> ImH
 
 		@test Oscar.iswelldefined(Hbar)

@@ -112,11 +112,19 @@ struct FreeModuleElem{T}
   parent::FreeMod{T}
 end
 
-function Base.getproperty(v::FreeModuleElem, s::Symbol)
+#=function Base.getproperty(v::FreeModuleElem, s::Symbol)
   if s == :coeffs
     return getfield(v, :coords)
   end
   return getfield(v, s)  
+end=#
+
+function coords(v::FreeModuleElem)
+  return v.coords
+end
+
+function coeffs(v::FreeModuleElem)
+  return coords(v)
 end
 
 function getindex(v::FreeModuleElem, i::Int)
@@ -278,21 +286,33 @@ mutable struct ModuleGens{T}
 end
 
 # getproperty is used to fill in fields with duplicate data
-function Base.getproperty(M::ModuleGens, s::Symbol)
+#=function Base.getproperty(M::ModuleGens, s::Symbol)
   if s == :S
+    error("deprecated")
     singular_assure(M)
     return getfield(M, s)
   elseif s == :O
+    error("deprecated")
     oscar_assure(M)
     return getfield(M, s)
   else
     return getfield(M,s)
   end
+end=#
+
+function singular_generators(M::ModuleGens)
+  singular_assure(M)
+  return M.S
+end
+
+function oscar_generators(M::ModuleGens)
+  oscar_assure(M)
+  return M.O
 end
 
 # Test for zero module
 function iszero(M::ModuleGens)
-  return iszero(M.S)
+  return iszero(singular_generators(M))
 end
 
 # remove output saying defined on the Singular side?
@@ -309,24 +329,24 @@ function show(io::IO, F::ModuleGens)
 end
 
 # number of elements of the module generating set
-length(F::ModuleGens) = length(F.O)
+length(F::ModuleGens) = length(oscar_generators(F))
 # number of elements of the module generating set
-ngens(F::ModuleGens) = length(F.O)
+ngens(F::ModuleGens) = length(oscar_generators(F))
 
 # i-th entry of module generating set on Oscar side
 # Todo: clean up, convert or assure
 function getindex(F::ModuleGens, ::Val{:O}, i::Int)
   if !isassigned(F.O, i)
-    F.O[i] = convert(F.F, F.S[i])
+    F.O[i] = convert(F.F, singular_generators(F)[i])
   end
-  return F.O[i]
+  return oscar_generators(F)[i]
 end
 
 # i-th entry of module generating set on Singular side
 # Todo: clean up, convert or assure
 function getindex(F::ModuleGens, ::Val{:S}, i::Int)
   if !isdefined(F, :S)
-    F.S = Singular.smodule{elem_type(base_ring(F.SF))}(base_ring(F.SF), [convert(F.SF,x) for x = F.O]...)
+    F.S = Singular.smodule{elem_type(base_ring(F.SF))}(base_ring(F.SF), [convert(F.SF,x) for x = oscar_generators(F)]...)
   end
   return F.S[i]
 end
@@ -334,7 +354,7 @@ end
 # fill in the OSCAR side, given the Singular side
 function oscar_assure(F::ModuleGens)
   if !isdefined(F, :O)
-    F.O = [convert(F.F, F.S[i]) for i=1:Singular.ngens(F.S)]
+    F.O = [convert(F.F, singular_generators(F)[i]) for i=1:Singular.ngens(singular_generators(F))]
   end
 end
 
@@ -346,7 +366,7 @@ function singular_assure(F::ModuleGens)
       F.S = Singular.smodule{elem_type(base_ring(F.SF))}(singular_ring, Singular.vector(singular_ring, singular_ring(0)))
       return 
     end
-    F.S = Singular.smodule{elem_type(base_ring(F.SF))}(base_ring(F.SF), [convert(F.SF,x) for x = F.O]...)
+    F.S = Singular.smodule{elem_type(base_ring(F.SF))}(base_ring(F.SF), [convert(F.SF,x) for x = oscar_generators(F)]...)
     return
   end
   #F[Val(:S), 1]
@@ -443,8 +463,9 @@ mutable struct FreeModuleHom{T1, T2} <: ModuleMap{T1, T2}
   end
 end
 
-function Base.getproperty(f::FreeModuleHom, s::Symbol)
+#=function Base.getproperty(f::FreeModuleHom, s::Symbol)
   if s == :matrix
+    error("deprecated")
     if !isdefined(f, s)
       D = domain(f)
       C = codomain(f)
@@ -460,6 +481,23 @@ function Base.getproperty(f::FreeModuleHom, s::Symbol)
     end
   end
   return getfield(f, s)
+end=#
+
+function matrix(f::FreeModuleHom)
+  if !isdefined(f, :matrix)
+    D = domain(f)
+    C = codomain(f)
+    R = base_ring(D)
+    matrix = zero_matrix(R, D.n, ngens(C))
+    for i=1:D.n
+      image_of_gen = f(D[i])
+      for j=1:ngens(C)
+        matrix[i,j] = image_of_gen[j]
+      end
+    end
+    setfield!(f, :matrix, matrix)
+  end
+  return f.matrix
 end
 
 (h::FreeModuleHom)(a::FreeModuleElem) = image(h, a)
@@ -498,7 +536,7 @@ mutable struct SubModuleOfFreeModule{T} <: ModuleFP{T}
     r = new{R}()
     r.F = F
     r.gens = gens
-    if gens.S.isGB
+    if singular_generators(gens).isGB
       r.std_basis = r.gens
     end
     return r
@@ -516,14 +554,16 @@ mutable struct SubModuleOfFreeModule{T} <: ModuleFP{T}
   end
 end
 
-function Base.getproperty(submod::SubModuleOfFreeModule, s::Symbol)
+#=function Base.getproperty(submod::SubModuleOfFreeModule, s::Symbol)
   if s == :std_basis
+    error("deprecated")
     if !isdefined(submod, s)
         setfield!(submod, s, groebner_basis(submod.gens))
     end
     return getfield(submod, s)
     
   elseif s == :matrix
+    error("deprecated")
     if !isdefined(submod, s)
       R = base_ring(submod)
       matrix = zero_matrix(R, length(submod.gens), rank(submod.F))
@@ -538,10 +578,10 @@ function Base.getproperty(submod::SubModuleOfFreeModule, s::Symbol)
   else
     return getfield(submod, s)
   end
-end
+end=#
 
 function Base.getindex(M::SubModuleOfFreeModule, i::Int)
-  return M.gens.O[i]
+  return oscar_generators(M.gens)[i]
 end
 
 function iszero(M::SubModuleOfFreeModule)
@@ -552,12 +592,31 @@ function base_ring(M::SubModuleOfFreeModule)
   return base_ring(M.F)
 end
 
+function std_basis(submod::SubModuleOfFreeModule)
+  if !isdefined(submod, :std_basis)
+    submod.std_basis = groebner_basis(submod.gens)
+  end
+  return submod.std_basis
+end
+
+function matrix(submod::SubModuleOfFreeModule)
+  if !isdefined(submod, :matrix)
+    R = base_ring(submod)
+    matrix = zero_matrix(R, length(submod.gens), rank(submod.F))
+    for i = 1:nrows(matrix), j = 1:ncols(matrix)
+      matrix[i,j] = submod.gens[i][j] 
+    end
+    submod.matrix = matrix
+  end
+  return submod.matrix
+end
+
 function isgeneratd_by_unit_vectors(M::SubModuleOfFreeModule)
-  m,n = size(M.matrix)
+  m,n = size(matrix(M))
   if m != n 
     return false
   end
-  return M.matrix == identity_matrix(base_ring(M),n)
+  return matrix(M) == identity_matrix(base_ring(M),n)
 end
 
 function show(io::IO, M::SubModuleOfFreeModule)
@@ -586,11 +645,12 @@ function ngens(M::SubModuleOfFreeModule)
 end
 
 function gens(M::SubModuleOfFreeModule)
-  return M.gens.O
+  return oscar_generators(M.gens)
 end
 
 function gen(M::SubModuleOfFreeModule, i::Int)
-  return M.gens[Val(:O), i]
+  return oscar_generators(M.gens)[i]
+  #return M.gens[Val(:O), i]
 end
 
 function sum(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
@@ -600,8 +660,8 @@ end
 
 function ==(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
   @assert M.F == N.F
-  M_mod_N = _reduce(M.std_basis.S, N.std_basis.S)
-  N_mod_M = _reduce(N.std_basis.S, M.std_basis.S)
+  M_mod_N = _reduce(singular_generators(std_basis(M)), singular_generators(std_basis(N)))
+  N_mod_M = _reduce(singular_generators(std_basis(N)), singular_generators(std_basis(M)))
   return iszero(M_mod_N) && iszero(N_mod_M)
 end
 
@@ -729,16 +789,16 @@ function show_subquo(SQ::SubQuo)
 
   if isdefined(SQ, :quo)
     if isgeneratd_by_unit_vectors(SQ.sub)
-      println("Cokernel of ", SQ.quo.matrix)
+      println("Cokernel of ", matrix(SQ.quo))
     else
       println("Subquotient with of image of")
-      display(SQ.sub.matrix)
+      display(matrix(SQ.sub))
       println("by image of")
-      display(SQ.quo.matrix)
+      display(matrix(SQ.quo))
       #println("Subquotient with of image of ", SQ.sub.matrix, " by image of ", SQ.quo.matrix)
     end
   else
-    println("Image of ", SQ.sub.matrix)
+    println("Image of ", matrix(SQ.sub))
   end
 end
 
@@ -774,14 +834,14 @@ end
 
 function sum(M::SubQuo{T},N::SubQuo{T}) where T
   #TODO use SubModuleOfFreeModule instead of matrices
-  n_rel = N.quo.matrix
-  m_rel = M.quo.matrix
+  n_rel = matrix(N.quo)
+  m_rel = matrix(M.quo)
 
   if (m_rel == n_rel) || Set([m_rel[i,:] for i=1:size(m_rel)[1]])==Set([n_rel[j,:] for j=1:size(n_rel)[1]]) || M.quo == N.quo
-    SQ = SubQuo(vcat(M.sub.matrix, N.sub.matrix), m_rel)
+    SQ = SubQuo(vcat(matrix(M.sub), matrix(N.sub)), m_rel)
 
-    gm1,gm2 = size(M.sub.matrix)
-    gn1,gn2 = size(N.sub.matrix)
+    gm1,gm2 = size(matrix(M.sub))
+    gn1,gn2 = size(matrix(N.sub))
     R = base_ring(M)
 
     # injection maps:
@@ -801,23 +861,23 @@ end
 
 function Base.:intersect(M::SubQuo{T}, N::SubQuo{T}) where T
   #TODO allow task as argument?
-  n_rel = N.quo.matrix
-  m_rel = M.quo.matrix
+  n_rel = matrix(N.quo)
+  m_rel = matrix(M.quo)
 
   if (m_rel == n_rel) || Set([m_rel[i,:] for i=1:size(m_rel)[1]])==Set([n_rel[j,:] for j=1:size(n_rel)[1]]) || M.quo == N.quo
-    n = size(N.sub.matrix)
-    m = size(M.sub.matrix)
+    n = size(matrix(N.sub))
+    m = size(matrix(M.sub))
     if n[2]!=m[2]
       throw(DimensionMismatch("Matrices have different number of columns"))
     end
 
-    global_module_matrix = vcat(M.sub.matrix, N.sub.matrix, M.quo.matrix)
+    global_module_matrix = vcat(matrix(M.sub), matrix(N.sub), matrix(M.quo))
 
     CD = matrix_kernel(global_module_matrix)
 
     C = CD[:,1:m[1]]
     D = CD[:,(m[1]+1):(m[1]+n[1])]
-    new_gen = C*M.sub.matrix
+    new_gen = C*matrix(M.sub)
     SQ = SubQuo(new_gen, m_rel)
 
     M_hom = SubQuoHom(SQ,M,C)
@@ -869,18 +929,22 @@ elem_type(::Type{SubQuo{T}}) where {T} = SubQuoElem{T}
 parent_type(::Type{SubQuoElem{T}}) where {T} = SubQuo{T}
 
 function getindex(v::SubQuoElem, i::Int)
-  if isempty(v.coeffs)
+  if isempty(coeffs(v))
     return zero(base_ring(v.parent))
   end
-  return v.coeffs[i]
+  return coeffs(v)[i]
+end
+
+function coeffs(v::SubQuoElem)
+  return v.coeffs
 end
 
 function groebner_basis(F::ModuleGens)
   singular_assure(F)
-  if F.S.isGB
+  if singular_generators(F).isGB
     return F
   end
-  return ModuleGens(F.F, Singular.std(F.S))
+  return ModuleGens(F.F, Singular.std(singular_generators(F)))
 end
 
 function show(io::IO, b::SubQuoElem)
@@ -892,7 +956,7 @@ parent(b::SubQuoElem) = b.parent
 function (R::SubQuo)(a::FreeModuleElem; check::Bool = true)
   if check
     b = convert(R.sum.gens.SF, a)
-    c = _reduce(b, R.sum.std_basis.S)
+    c = _reduce(b, singular_generators(std_basis(R.sum)))
     iszero(c) || error("not in the module")
   end
   return SubQuoElem(a, R)
@@ -910,19 +974,19 @@ function (R::SubQuo)(a::SubQuoElem)
 end
 
 function index_of_gen(v::SubQuoElem)
-  @assert length(v.coeffs.pos) == 1
-  @assert isone(v.coeffs.values[1])
-  return v.coeffs.pos[1]
+  @assert length(coeffs(v).pos) == 1
+  @assert isone(coeffs(v).values[1])
+  return coeffs(v).pos[1]
 end
 
-+(a::SubQuoElem, b::SubQuoElem) = SubQuoElem(a.coeffs+b.coeffs, a.parent)
--(a::SubQuoElem, b::SubQuoElem) = SubQuoElem(a.coeffs-b.coeffs, a.parent)
--(a::SubQuoElem) = SubQuoElem(-a.coeffs, a.parent)
-*(a::MPolyElem_dec, b::SubQuoElem) = SubQuoElem(a*b.coeffs, b.parent)
-*(a::MPolyElem, b::SubQuoElem) = SubQuoElem(a*b.coeffs, b.parent)
-*(a::Int, b::SubQuoElem) = SubQuoElem(a*b.coeffs, b.parent)
-*(a::Integer, b::SubQuoElem) = SubQuoElem(a*b.coeffs, b.parent)
-*(a::fmpq, b::SubQuoElem) = SubQuoElem(a*b.coeffs, b.parent)
++(a::SubQuoElem, b::SubQuoElem) = SubQuoElem(coeffs(a)+coeffs(b), a.parent)
+-(a::SubQuoElem, b::SubQuoElem) = SubQuoElem(coeffs(a)-coeffs(b), a.parent)
+-(a::SubQuoElem) = SubQuoElem(-coeffs(a), a.parent)
+*(a::MPolyElem_dec, b::SubQuoElem) = SubQuoElem(a*coeffs(b), b.parent)
+*(a::MPolyElem, b::SubQuoElem) = SubQuoElem(a*coeffs(b), b.parent)
+*(a::Int, b::SubQuoElem) = SubQuoElem(a*coeffs(b), b.parent)
+*(a::Integer, b::SubQuoElem) = SubQuoElem(a*coeffs(b), b.parent)
+*(a::fmpq, b::SubQuoElem) = SubQuoElem(a*coeffs(b), b.parent)
 ==(a::SubQuoElem, b::SubQuoElem) = iszero(a-b)
 
 function sub(F::FreeMod, O::Array{<:FreeModuleElem, 1}, task::Symbol = :none)
@@ -1020,8 +1084,8 @@ function quo(F::SubQuo, O::Array{<:FreeModuleElem, 1}, task::Symbol = :none)
     #F.sub[Val(:S), 1]
     #[F.quo.gens[Val(:O), i] for i = 1:length(F.quo.gens.O)] 
     oscar_assure(F.quo.gens)
-    s = Singular.smodule{elem_type(base_ring(F.quo.gens.SF))}(base_ring(F.quo.gens.SF), [convert(F.quo.gens.SF, x) for x = [O; F.quo.gens.O]]...)
-    Q = SubQuo(F.F, F.sub.gens.S, s)
+    s = Singular.smodule{elem_type(base_ring(F.quo.gens.SF))}(base_ring(F.quo.gens.SF), [convert(F.quo.gens.SF, x) for x = [O; oscar_generators(F.quo.gens)]]...)
+    Q = SubQuo(F.F, singular_generators(F.sub.gens), s)
     return return_quo_wrt_task(F, Q, task)
   end
   Q = SubQuo(F, O)
@@ -1035,7 +1099,7 @@ end
 function quo(S::SubQuo, T::SubQuo, task::Symbol = :none)
 #  @assert !isdefined(T, :quo)
   # TODO @assert S.quo == T.quo or too expensive?
-  Q = SubQuo(S, T.sum.gens.O)
+  Q = SubQuo(S, oscar_generators(T.sum.gens))
   return return_quo_wrt_task(S, Q, task)
 end
 
@@ -1057,11 +1121,11 @@ end
 
 function syzygy_module(F::ModuleGens; sub = 0)
   F[Val(:S), 1] #to force the existence of F.S
-  s = Singular.syz(F.S) # TODO syz is sometimes too slow, example [8*x^2*y^2*z^2 + 13*x*y*z^2 12*x^2 + 7*y^2*z; 13*x*y^2 + 12*y*z^2 4*x^2*y^2*z + 8*x*y*z; 9*x*y^2 + 4*z 12*x^2*y*z^2 + 9*x*y^2*z]
+  s = Singular.syz(singular_generators(F)) # TODO syz is sometimes too slow, example [8*x^2*y^2*z^2 + 13*x*y*z^2 12*x^2 + 7*y^2*z; 13*x*y^2 + 12*y*z^2 4*x^2*y^2*z + 8*x*y*z; 9*x*y^2 + 4*z 12*x^2*y*z^2 + 9*x*y^2*z]
   if sub !== 0
     G = sub
   else
-    G = FreeMod(base_ring(F.F), length(F.O))
+    G = FreeMod(base_ring(F.F), length(oscar_generators(F)))
   end
   return SubQuo(G, s)
 end
@@ -1238,8 +1302,9 @@ mutable struct SubQuoHom{T1, T2} <: ModuleMap{T1, T2}
   end
 end
 
-function Base.getproperty(f::SubQuoHom, s::Symbol)
+#=function Base.getproperty(f::SubQuoHom, s::Symbol)
   if s == :matrix
+    error("deprecated")
     if !isdefined(f, s)
       D = domain(f)
       C = codomain(f)
@@ -1252,10 +1317,24 @@ function Base.getproperty(f::SubQuoHom, s::Symbol)
     end
   end
   return getfield(f,s)
+end=#
+
+function matrix(f::SubQuoHom)
+  if !isdefined(f, :matrix)
+    D = domain(f)
+    C = codomain(f)
+    R = base_ring(D)
+    matrix = zero_matrix(R, ngens(D), ngens(C))
+    for i=1:ngens(D), j=1:ngens(C)
+      matrix[i,j] = f.im[i][j]
+    end
+    f.matrix = matrix
+  end
+  return f.matrix
 end
 
 function show_morphism(f::ModuleMap)
-  display(f.matrix)
+  display(matrix(f))
 end
 
 @doc Markdown.doc"""
@@ -1321,11 +1400,11 @@ function coordinates(a::FreeModuleElem, SQ::SubQuo)
   else
     generators = SQ.sub
   end
-  S = generators.gens.S
+  S = singular_generators(generators.gens)
   #S = Singular.smodule{elem_type(base_ring(SQ.sub.gens.SF))}(base_ring(SQ.sub.gens.SF), [convert(SQ.sub.gens.SF, x) for x = generators]...)
   b = ModuleGens([a], SQ.sum.gens.SF)
   singular_assure(b)
-  s, r = Singular.lift(S, b.S)
+  s, r = Singular.lift(S, singular_generators(b))
   if Singular.ngens(s) == 0 || iszero(s[1])
     error("elem not in module")
   end
@@ -1345,7 +1424,7 @@ function image(f::SubQuoHom, a::SubQuoElem)
   @assert a.parent === domain(f)
   i = zero(codomain(f))
   D = domain(f)
-  b = a.coeffs
+  b = coeffs(a)
   #b = coordinates(a.repres, D)
   for (p,v) = b
     i += v*f.im[p]
@@ -1393,7 +1472,7 @@ function iszero(a::SubQuoElem)
   if !isdefined(C, :quo)
     return iszero(a.repres)
   end
-  x = _reduce(convert(C.quo.gens.SF, a.repres), C.quo.std_basis.S)
+  x = _reduce(convert(C.quo.gens.SF, a.repres), singular_generators(std_basis(C.quo)))
   return iszero(x)
 end
 
@@ -1983,7 +2062,7 @@ function tensor_product(G::ModuleFP...; task::Symbol = :none)
     return s
   else
     function pure(tuple_elems::Union{SubQuoElem,FreeModuleElem}...)
-      coeffs_tuples = vec([x for x = Base.Iterators.ProductIterator(Tuple(x.coeffs for x = tuple_elems))])
+      coeffs_tuples = vec([x for x = Base.Iterators.ProductIterator(Tuple(coeffs(x) for x = tuple_elems))])
       res = zero(s)
       for coeffs_tuple in coeffs_tuples
         indices = map(x -> x[1], coeffs_tuple)
@@ -2413,9 +2492,9 @@ function preimage_SQ(H::SubQuoHom,elems::Vector{SubQuoElem{T}}, task::Symbol = :
   end
   R = base_ring(domain(H))
   row_length = ngens(codomain(H))
-  submod = vcat((dense_row(e.coeffs, row_length) for e in elems)...)
-  C = present(codomain(H)).quo.matrix
-  A = vcat(H.matrix, C, submod)
+  submod = vcat((dense_row(coeffs(e), row_length) for e in elems)...)
+  C = matrix(present(codomain(H)).quo)
+  A = vcat(matrix(H), C, submod)
   G = FreeMod(R, nrows(A))
   A = FreeModuleHom(G, FreeMod(R, ncols(A)), A)
   #K = kernel(A)
@@ -2452,9 +2531,9 @@ end
 function prune(M::SubQuo)
   local M_std
   if isdefined(M, :quo)
-    M_std = SubQuo(SubModuleOfFreeModule(M.F, M.sub.std_basis), M.quo)
+    M_std = SubQuo(SubModuleOfFreeModule(M.F, std_basis(M.sub)), M.quo)
   else
-    M_std = SubQuo(SubModuleOfFreeModule(M.F, M.sub.std_basis))
+    M_std = SubQuo(SubModuleOfFreeModule(M.F, std_basis(M.sub)))
   end
   if ngens(M_std) < ngens(M)
     return M_std, change_generating_system(M_std, M)
@@ -2475,7 +2554,7 @@ function matrix_kernel(A::MatElem)
 
   phi = FreeModuleHom(F_domain, F_codomain, A)
   _, inclusion = kernel(phi)
-  return inclusion.matrix
+  return matrix(inclusion)
 end
 
 @doc Markdown.doc"""
@@ -2488,7 +2567,7 @@ function simplify_subquotient(M::SubQuo)
     if !isdefined(M, :quo)
       return false
     end
-    reduced_unit_vector = _reduce(convert(M.quo.gens.SF, M.F[i]), M.quo.std_basis.S)
+    reduced_unit_vector = _reduce(convert(M.quo.gens.SF, M.F[i]), singular_generators(std_basis(M.quo)))
     return iszero(reduced_unit_vector)
   end
 
@@ -2548,8 +2627,8 @@ function simplify_subquotient(M::SubQuo)
   R = base_ring(M)
   #remove columns
 
-  M_generators = M.sub.matrix
-  M_relations = isdefined(M, :quo) ? M.quo.matrix : zero_matrix(R, 1,ncols(M_generators))
+  M_generators = matrix(M.sub)
+  M_relations = isdefined(M, :quo) ? matrix(M.quo) : zero_matrix(R, 1,ncols(M_generators))
 
   to_delete::Array{Int,1} = []
   for i=1:size(M_relations)[2]
@@ -2664,7 +2743,7 @@ function iswelldefined(H::ModuleMap)
     return true
   end
   M = domain(H)
-  C = present(M).quo.matrix
+  C = matrix(present(M).quo)
   n,m = size(C)
   g = M[1]
   ImH = map(x -> H(x), gens(M))
@@ -2832,8 +2911,8 @@ end
 > Return a subquotient S such that $Hom(M,N) \cong S$
 """
 function hom2(M::SubQuo{T},N::SubQuo{T},simplify=true) where T
-  f1 = present(M).quo.matrix
-  g1 = present(N).quo.matrix
+  f1 = matrix(present(M).quo)
+  g1 = matrix(present(N).quo)
   #f1 = presentation_matrix(M)
   #g1 = presentation_matrix(N)
   SQ, convert_to_matrix = hom2(f1,g1)
@@ -2846,10 +2925,10 @@ function hom2(M::SubQuo{T},N::SubQuo{T},simplify=true) where T
       #return AbstractAlgebra.ModuleHomomorphism(M,N,A)
     end
     to_subquotient_elem = function(H::ModuleMap)
-      m = length(H.matrix)
-      v = reshape(H.matrix,1,m)
+      m = length(matrix(H))
+      v = reshape(matrix(H),1,m)
       #v = i(v)
-      tmp_sq = Oscar.SubQuo(SQ.sub.matrix[:,1:m], SQ.quo.matrix[:,1:m])
+      tmp_sq = SubQuo(matrix(SQ.sub)[:,1:m], matrix(SQ.quo)[:,1:m])
       #tmp_sq = Subquotient(SQ.generators[:,1:m], SQ.relations[:,1:m])
       #coeffs = Nemo.lift(tmp_sq, v)
       v = FreeModuleElem(sparse_row(v), FreeMod(R, length(v)))
@@ -2866,10 +2945,10 @@ function hom2(M::SubQuo{T},N::SubQuo{T},simplify=true) where T
     return SQ2
   else
     to_subquotient_elem = function(H::ModuleMap)
-      m = length(H.matrix)
-      v = reshape(H.matrix,1,m)
+      m = length(matrix(H))
+      v = reshape(matrix(H),1,m)
       #tmp_sq = Subquotient(SQ.generators[:,1:m], SQ.relations[:,1:m])
-      tmp_sq = Oscar.SubQuo(SQ.sub.matrix[:,1:m], SQ.quo.matrix[:,1:m])
+      tmp_sq = SubQuo(matrix(SQ.sub)[:,1:m], matrix(SQ.quo)[:,1:m])
       v = FreeModuleElem(sparse_row(v), FreeMod(R, length(v)))
       coeffs = coordinates(v, tmp_sq)
       #coeffs = Nemo.lift(tmp_sq, v)
