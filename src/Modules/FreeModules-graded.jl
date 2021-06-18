@@ -862,7 +862,7 @@ function coordinates(a::FreeModuleElem_dec, SQ::SubQuo_dec)
   Sx = base_ring(SQ)
   Rx = Sx.R
   R = base_ring(Rx)
-  return sparse_row(Rx, s[1], 1:ngens(SQ))
+  return sparse_row(Sx, s[1], 1:ngens(SQ))
 end
 
 
