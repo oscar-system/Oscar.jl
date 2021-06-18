@@ -48,6 +48,10 @@ mutable struct MPolyQuoElem{S} <: RingElem
   P::MPolyQuo{S}
 end
 
+function Base.deepcopy_internal(a::MPolyQuoElem, dict::IdDict)
+  return MPolyQuoElem(Base.deepcopy_internal(a.f, dict), a.P)
+end
+
 AbstractAlgebra.expressify(a::MPolyQuoElem; context = nothing) = expressify(a.f, context = context)
 
 function show(io::IO, a::MPolyQuoElem)

@@ -20,6 +20,16 @@
   @test xx^0 == one(Q)
 end
 
+@testset "MpolyQuo.manipulation" begin
+  R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+  A, _ = quo(R, 2*x^2-5*y^3)
+  (x, y) = (A(x), A(y))
+
+  @test iszero(x-x)
+  @test x*deepcopy(x) == x^2
+  @test iszero(det(matrix(A, [x 5; y^3 2*x])))
+end
+
 @testset "MPolyQuo.ideals" begin
   R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
   Q, _ = quo(R, ideal(R, [x*y, x*z]))
