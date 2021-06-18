@@ -1,6 +1,6 @@
 export sum_Point_EllCurveZnZ, ECM, rand_pair_EllCurve_Point,
        IntMult_Point_EllCurveZnZ,  cornacchia_algorithm,
-       Miller_Rabin_test, Pollard_rho, Pollard_p_1, ECPP
+       Miller_Rabin_test, Pollard_rho, Pollard_p_1, ECPP, trial_division
 
 ################################################################################
 # Elliptic curves over a ring Z/nZ
@@ -268,9 +268,7 @@ function cornacchia_algorithm(d::fmpz, m::fmpz)
 
     A = m
     while B^2 >= m
-       dr = divrem(A, B)
-       A = B
-       B = dr[2]
+       A, B = B, A%B
     end
     t = m - B^2
     L = divrem(t, D)
@@ -294,8 +292,7 @@ function class_data(D::fmpz)
 
    h = 0
    b = abs(D % 2)
-   sqrD3 = sqrt(div(BigInt(-D), 3))
-   B = BigInt(floor(sqrD3))
+   B = root(div(-D, 3), 2)
    L = Vector{Tuple{fmpz,fmpz,fmpz}}()
 
    while b <= B
@@ -308,9 +305,9 @@ function class_data(D::fmpz)
                push!(L, (a,b, div(b^2-D, 4*a)))
             else
                h = h + 2
-               push!(L, (a,-b, div(b^2-D, 4*a)))
-               push!(L, (a,b, div(b^2-D, 4*a)))
-
+               v = div(b^2-D, 4*a)
+               push!(L, (a,-b, v))
+               push!(L, (a,b, v))
             end
          end
          a = a + 1
@@ -355,12 +352,11 @@ function hilbert_class_polynomial(D::fmpz)
 
     # estimate bit precision, summand 10 is experimental
     rp_sum = sum([inv(BigInt(L[i][1])) for i in 1:BigInt(h)])
-    pr_bit = Int(binomial(h, div(h, 2)))*Int(ceil(pi*sqrD*rp_sum*inv(log(2))))+33
-
+    pr_bit = Int(binomial(h, div(h, 2)))*ceil(Int, pi*sqrD*rp_sum*inv(log(2)))+33
     # estimate helper for needed value for sequence
     pr_seq = inv(3*pi*sqrD)*(2*log(6)+pr_bit*log(2))
     m = maximum([BigInt(L[i][1]) for i in 1:BigInt(h)])
-    n = Int(ceil(sqrt(pr_seq*m)))
+    n = ceil(Int, sqrt(pr_seq*m))
 
     # data based on complex and real numbers
     CC = ComplexField(pr_bit)
@@ -427,7 +423,7 @@ function _Miller_Rabin_witness(N::fmpz, a::fmpz, even::fmpz, odd::fmpz)
 	if x == ZZ(1) || x == N - ZZ(1)
 		return false
 	else
-		for i in 1:Int(log2(even))
+		for i in 1:nbits(even)
 			x = ZZ(R(x)^2)
 			if x == N - ZZ(1)
 				return false
@@ -466,9 +462,9 @@ end
 The algorithm computes a factor of `N` and returns it.
 """
 function Pollard_rho(N::fmpz, bound::Int = 50000)
-        R = ResidueRing(ZZ, N)
-	x = ZZ(2)
-	y = ZZ(2)
+   R = ResidueRing(ZZ, N)
+   x = rand(ZZ(2):N - 1)
+   y = rand(ZZ(2):N - 1)
 	d = ZZ(1)
 	i = 1
 	while d == 1 && i <= bound
@@ -490,7 +486,7 @@ The algorithm computes a factor of `N` and returns it.
 """
 function Pollard_p_1(N::fmpz, B::fmpz = ZZ(10)^5)
 	p = [i for i in PrimesSet(ZZ(1), B)]
-	x = ZZ(2)
+   x = rand(ZZ(2):N - 1)
 	y = x
 	c = ZZ(0)
 	i = 0
@@ -565,19 +561,13 @@ end
 ############ ECPP helper functions #############################################
 ################################################################################
 
-function trial_division(N::fmpz, P::PrimesSet{fmpz})
-   t = ZZ(1)
-   m = ZZ(1)
-   q = N
-   for p in P
-      if N % p == 0
-         (res, q) = evenodd(N, p)
-         t = t*res
-         m = max(m, p)
-      end
-   end
-   t< N && return (evenodd(N, t))
-   return (ZZ(1), m)
+function trial_division(N::fmpz)
+   D = Hecke.factor_trial_range(N)[1]
+   V = [p^D[p] for p in keys(D)]
+   t = prod(v for v in V)
+   m = div(N, t)
+   m != 1 && return (t, m)
+   return (ZZ(1), maximum(keys(D)))
 end
 
 ################################################################################
@@ -600,8 +590,9 @@ function find_q(N::fmpz, D::fmpz)
        (_, q) = evenodd(m)
 
        #trial divisions
-       P = PrimesSet(ZZ(2), ZZ(10)^6)
-       (_, q) = trial_division(q, P)
+       ## P = PrimesSet(ZZ(2), ZZ(10)^6)
+       ## (_, q) = trial_division(q, P)
+       (_, q) = trial_division(q)
 
        #Factoring via ECM
        t = ZZ(2)
@@ -610,7 +601,7 @@ function find_q(N::fmpz, D::fmpz)
        while t != ZZ(1) && !Miller_Rabin_test(q) && i<=10
           i = i + 1
           t = ZZ(1)
-          t = lcm(t, Oscar.ECM(q))
+          t = lcm(t, ECM(q))
           if t == ZZ(1)
              t = ZZ(2)
           else
@@ -640,12 +631,30 @@ end
 
 ################################################################################
 
+function random_point(v::Vector{fmpz_mod})
+   R = parent(v[1])
+   N = modulus(R)
+   A = rand(Int, 1000)
+   for a in A
+       z = R(a)^3+R(a)*v[1]+v[2]
+       if jacobi_symbol(ZZ(z), N) != -1
+          (bool, res) = issquare_with_square_root(z)
+          if bool
+             return (bool, [R(a), res, R(1)])
+          end
+       end
+   end
+   return (false, R.([0, 0, 0]))
+end
+
+################################################################################
+
 function compute_p1p2(v::Vector{fmpz_mod}, m::fmpz, q::fmpz)
-   (bool, P) = Oscar.random_point(v)
+   (bool, P) = random_point(v)
    R = parent(v[1])
    !bool && return (false, (R.([0, 0, 0]), ZZ(1)), (R.([0, 0, 0]), ZZ(1)))
-   P2 = Oscar._scalar_mult(P, v, div(m, q))
-   P1 = Oscar._scalar_mult(P2[1], v, div(m, q))
+   P2 = _scalar_mult(P, v, div(m, q))
+   P1 = _scalar_mult(P2[1], v, div(m, q))
    return (true, P1, P2)
 end
 
