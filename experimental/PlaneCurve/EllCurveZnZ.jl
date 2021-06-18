@@ -1,6 +1,6 @@
 export sum_Point_EllCurveZnZ, ECM, rand_pair_EllCurve_Point,
        IntMult_Point_EllCurveZnZ,  cornacchia_algorithm,
-       Miller_Rabin_test, Pollard_rho, Pollard_p_1, ECPP, trial_division
+       Miller_Rabin_test, Pollard_rho, Pollard_p_1, ECPP
 
 ################################################################################
 # Elliptic curves over a ring Z/nZ
