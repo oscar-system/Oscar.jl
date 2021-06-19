@@ -105,7 +105,7 @@ end
         Hom_FreeModElemst = []
         len = Dict{GrpAbFinGenElem, Int64}()
         for c = 1:6
-          for k in keys(homogenous_components(FreeModElems[c]))
+          for k in keys(homogeneous_components(FreeModElems[c]))
             if haskey(len, k)
               len[k] += 1
             else
@@ -125,7 +125,7 @@ end
           len[temp] = 0
           comp = zero(F)
           for l = 1:6
-            comp += homogenous_component(FreeModElems[l], temp)
+            comp += homogeneous_component(FreeModElems[l], temp)
           end
           push!(Hom_FreeModElemst, comp)
         end
@@ -140,8 +140,8 @@ end
         for p = 1:6
           push!(Hom_FreeModElems, Hom_FreeModElemst[order_new[p]])
         end
-        hom_keys = [collect(keys(homogenous_components(F.R(polys[s]))))[1] for s = 1:6]
-        hom_pols = [homogenous_component(F.R(polys[s]), hom_keys[s]) for s = 1:6]
+        hom_keys = [collect(keys(homogeneous_components(F.R(polys[s]))))[1] for s = 1:6]
+        hom_pols = [homogeneous_component(F.R(polys[s]), hom_keys[s]) for s = 1:6]
         SubQuos = [sub(F, [Hom_FreeModElems[e] for e = 1:3]), quo(F, [Hom_FreeModElems[2*e-1] for e = 1:3])]
         Hom_SubQuoElems = [[SubQuos[1](SubQuos[1](hom_pols[e] * Hom_FreeModElems[e])) for e = 1:3], [SubQuos[2](Hom_FreeModElems[2*e]) for e = 1:3]]
         @test parent_type(Hom_SubQuoElems[1][1]) == typeof(SubQuos[1])
@@ -258,13 +258,13 @@ end
         @test iszero(k[2](gen(k[1], 1)))
         im = image(f)
         @test _eq(im[1], sub(codomain(f), [im[2](x.a) for x = gens(im[1])]))
-        D = homogenous_components(f)
+        D = homogeneous_components(f)
         first = true
         res = 0
         t = gen(domain(f), 1)
         for deg in keys(D)
           gm = D[deg]
-          @test ishomogenous(gm)
+          @test ishomogeneous(gm)
           @test degree(gm) == deg
           if first
             res = gm(t)
@@ -295,10 +295,10 @@ end
 
         for f in FHoms
           @test _eq(image(f + f)[1], image(f)[1])
-          D = homogenous_components(f)
+          D = homogeneous_components(f)
           for deg in keys(D)
             gm = D[deg]
-            @test ishomogenous(gm)
+            @test ishomogeneous(gm)
             @test degree(gm) == deg
             @test _eq(kernel(gm + gm)[1], kernel(gm)[1])
           end
@@ -309,11 +309,11 @@ end
           Ob = [F, SubQuos[3], I]
           El = [gen(F, rand(1:3)), Hom_SubQuoElems[3][rand(1:3)], hom_pols[rand(1:3)]]
           for t = 1:2
-            comp = homogenous_component(Ob[t], g)[2]
+            comp = homogeneous_component(Ob[t], g)[2]
 
             #=
             if j < 4
-              temp = homogenous_component(El[t], g)
+              temp = homogeneous_component(El[t], g)
               comp.header.image(comp.header.preimage(temp)) == temp
             end
             =#

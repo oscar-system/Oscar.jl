@@ -33,7 +33,7 @@ end
 
 
 
-# if _is_symmetric, returns C,A,d where A*B*transpose(frobenius(A,e)) = C, C = block_matrix(2,2,[C,0,0,0]) and d = rank(C)
+# if _is_symmetric, returns C,A,d where A*B*transpose(frobenius(A,e)) = C, C = [C 0; 0 0] and d = rank(C)
 # else returns C,A,d where B*A = C, C = [C 0] and d = rank(C)
 # Assumption: if _is_symmetric==true, then nr=nc always
 # Assumption: e = deg(F)/2 in the hermitian case, e=0 otherwise
@@ -92,15 +92,15 @@ function _block_anisotropic_elim(B::MatElem{T}, _type::Symbol; isotr=false, f=0)
    if isotr
       q = characteristic(F)^degF
       g = d-f
-      U = submatrix(B,1,f+1,f,g)
-      V = submatrix(B,f+1,f+1,g,g)
+      U = B[1:f, f+1:f+g]
+      V = B[f+1:f+g, f+1:f+g]
       C,A,e = _find_radical(U,F,f,g)
       # I expect C always to be of rank f
-      C = submatrix(C,1,1,f,f)                     
+      C = C[1:f, 1:f]
       Vprime = star(A)*V*A
-      Z = submatrix(Vprime, 1,1,f,f)
-      Y = submatrix(Vprime,f+1,1,g-f,f)
-      Bprime = submatrix(Vprime,f+1,f+1,g-f,g-f)
+      Z = Vprime[1:f, 1:f]
+      Y = Vprime[f+1:g, 1:f]
+      Bprime = Vprime[f+1:g, f+1:g]
       TR = zero_matrix(F,f,f)
       D = zero_matrix(F,f,f)
       for i in 1:f
@@ -120,8 +120,8 @@ function _block_anisotropic_elim(B::MatElem{T}, _type::Symbol; isotr=false, f=0)
          end
       end
       B0,A0 = _block_anisotropic_elim(Bprime,_type)
-      B1 = diagonal_join(Barray)
-      B1 = diagonal_join(B1,B0)
+      B1 = cat(Barray..., dims=(1,2))
+      B1 = cat(B1,B0,dims=(1,2))
       C = C^-1
       Temp = vcat(C,-TR*C)
       Temp = vcat(Temp,-Y*C)
@@ -131,25 +131,25 @@ function _block_anisotropic_elim(B::MatElem{T}, _type::Symbol; isotr=false, f=0)
          P[2*i-1,i] = 1
          P[2*i,i+f] = 1
       end
-      A1 = diagonal_join(Aarray)*P
-      A1 = diagonal_join(A1,A0)
+      A1 = cat(Aarray..., dims=(1,2))*P
+      A1 = cat(A1,A0, dims=(1,2))
       return B1, A1*Temp
    else
       c,f = Int(ceil(d/2)), Int(floor(d/2))
-      B0 = submatrix(B,1,1,c,c)
-      U = submatrix(B,c+1,1,f,c)
-      V = submatrix(B,c+1,c+1,f,f)
+      B0 = B[1:c,1:c]
+      U = B[c+1:c+f, 1:c]
+      V = B[c+1:c+f, c+1:c+f]
       B1,A0,e = _find_radical(B0,F,c,c; e=degF, _is_symmetric=true)
-      B1 = submatrix(B1,1,1,e,e)
+      B1 = B1[1:e, 1:e]
       U = U*star(A0)
-      U1 = submatrix(U,1,1,f,e)
-      U2 = submatrix(U,1,e+1,f,c-e)
+      U1 = U[1:f, 1:e]
+      U2 = U[1:f, e+1:c]
       Z = V-s*U1*B1^-1*star(U1)
       D1,A1 = _block_anisotropic_elim(B1,_type)
       Temp = zero_matrix(F,d-e,d-e)
-      insert_block!(Temp,s*star(U2),1,c-e+1)
-      insert_block!(Temp,U2,c-e+1,1)
-      insert_block!(Temp,Z,c-e+1,c-e+1)
+      Temp[1:c-e, c-e+1:c-e+f] = s*star(U2)
+      Temp[c-e+1:c-e+f, 1:c-e] = U2
+      Temp[c-e+1:c-e+f, c-e+1:c-e+f] = Z
       if c-e==0
          D2,A2 = _block_anisotropic_elim(Temp,_type)
       else
@@ -157,9 +157,10 @@ function _block_anisotropic_elim(B::MatElem{T}, _type::Symbol; isotr=false, f=0)
       end
       Temp = hcat(-U1*B1^-1, zero_matrix(F,f,c-e))*A0
       Temp = vcat(A0,Temp)
-      Temp = insert_block(identity_matrix(F,d),Temp,1,1)
+      Temp1 = identity_matrix(F,d)
+      Temp1[1:nrows(Temp), 1:ncols(Temp)] = Temp
 
-      return diagonal_join(D1,D2), diagonal_join(A1,A2)*Temp
+      return cat(D1,D2, dims=(1,2)), cat(A1,A2, dims=(1,2))*Temp1
    end
 end
 
@@ -180,7 +181,7 @@ function _block_herm_elim(B::MatElem{T}, _type) where T <: FinFieldElem
    end
 
    c = Int(ceil(d/2))
-   B2 = submatrix(B,1,1,c,c)
+   B2 = B[1:c, 1:c]
    if B2==0
       D,A = _block_anisotropic_elim(B,_type; isotr=true, f=c)
    else
@@ -260,7 +261,7 @@ function _to_standard_form(B::MatElem{T}, _type::Symbol)  where T <: FinFieldEle
       if div(n-NOZ,2)==0
          S = zero_matrix(F,0,0)
       else
-         S = diagonal_join([S for i in 1:div(n-NOZ,2)])
+         S = cat([S for i in 1:div(n-NOZ,2)]..., dims=(1,2))
       end
       # turn into standard GAP form
       sec_perm = Int[]
@@ -268,10 +269,10 @@ function _to_standard_form(B::MatElem{T}, _type::Symbol)  where T <: FinFieldEle
          sec_perm = vcat([i,n+1-i],sec_perm)
       end
       if isodd(n)
-         insert_block!(Z,S,2,2)
+         Z[2:1+nrows(S), 2:1+ncols(S)] = S
          sec_perm = vcat([div(n+1,2)],sec_perm)
       else
-         insert_block!(Z,S,1,1)
+         Z[1:nrows(S), 1:ncols(S)] = S
       end
       D = transpose(permutation_matrix(F,sec_perm))*Z*D
    end
@@ -303,7 +304,7 @@ function _elim_hyp_lines(A::MatElem{T}) where T <: FinFieldElem
          A[i,i+1]=0
          A[i+1,i]=0
          A[i+1,i+1]=-2
-         insert_block!(Z,b,i,i)
+         Z[i:i+1, i:i+1] = b
          i+=2
       else
          i+=1
@@ -405,10 +406,11 @@ function iscongruent(f::SesquilinearForm{T}, g::SesquilinearForm{T}) where T <: 
          if f.descr==:hermitian degF=div(degree(F),2) end
          Cf,Af,d = _find_radical(gram_matrix(f),F,n,n; e=degF, _is_symmetric=true)
          Cg,Ag,_ = _find_radical(gram_matrix(g),F,n,n; e=degF, _is_symmetric=true)
-         _is_true, Z = _change_basis_forms( submatrix(Cf,1,1,d,d), submatrix(Cg,1,1,d,d), f.descr)
+         _is_true, Z = _change_basis_forms( Cf[1:d, 1:d], Cg[1:d, 1:d], f.descr)
          _is_true || return false, nothing
-         Z = insert_block(identity_matrix(F,n), Z, 1,1)
-         return true, Af^-1*Z*Ag
+         Z1 = identity_matrix(F,n)
+         Z1[1:nrows(Z), 1:ncols(Z)] = Z
+         return true, Af^-1*Z1*Ag
       else
          return _change_basis_forms(gram_matrix(f), gram_matrix(g), f.descr)
       end

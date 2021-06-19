@@ -10,9 +10,9 @@
 
   @test length([h(g) for g = basis(F)]) == dim(F)
 
-  @test !Oscar.ishomogenous(h)
+  @test !Oscar.ishomogeneous(h)
 
-  c = homogenous_components(h)
+  c = homogeneous_components(h)
   @test length(c) == 3
 
   for g = keys(c)
@@ -27,7 +27,7 @@
 
   free_resolution(H)
 
-  homogenous_component(H, Oscar.decoration(F)[0])
+  homogeneous_component(H, Oscar.decoration(F)[0])
 end
 
 @testset "Graded Modules 2" begin

@@ -207,7 +207,7 @@ function degree(a::FreeModuleElem_dec)
       first = false
     elseif isgraded(W)
       if ww != w
-        error("elem not homogenous")
+        error("elem not homogeneous")
       end
     else
       if W.lt(ww, w) 
@@ -218,11 +218,11 @@ function degree(a::FreeModuleElem_dec)
   return w
 end
 
-function homogenous_components(a::FreeModuleElem_dec)
+function homogeneous_components(a::FreeModuleElem_dec)
   res = Dict{GrpAbFinGenElem, FreeModuleElem_dec}()
   F = parent(a)
   for (p,v) = a.r
-    c = homogenous_components(v)
+    c = homogeneous_components(v)
     for (pp, vv) = c
       w = pp + F.d[p]
       if haskey(res, w)
@@ -235,16 +235,16 @@ function homogenous_components(a::FreeModuleElem_dec)
   return res
 end
 
-function homogenous_component(a::FreeModuleElem_dec, g::GrpAbFinGenElem)
+function homogeneous_component(a::FreeModuleElem_dec, g::GrpAbFinGenElem)
   F = parent(a)
   x = zero(F)
   for (p,v) = a.r
-    x += homogenous_component(v, g-F.d[p])*gen(F, p)
+    x += homogeneous_component(v, g-F.d[p])*gen(F, p)
   end
   return x
 end
 
-function ishomogenous(a::FreeModuleElem_dec)
+function ishomogeneous(a::FreeModuleElem_dec)
   if iszero(a)
     return true
   end
@@ -252,7 +252,7 @@ function ishomogenous(a::FreeModuleElem_dec)
   first = true
   local d::GrpAbFinGenElem
   for (p,v) = a.r
-    ishomogenous(v) || return false
+    ishomogeneous(v) || return false
     if first
       d = F.d[p] + degree(v)
       first = false
@@ -392,8 +392,8 @@ mutable struct FreeModuleHom_dec{T1, T2} <: Map_dec{T1, T2}
   Hecke.@declare_other
 
   function FreeModuleHom_dec(F::FreeModule_dec{T}, G::S, a::Array{<:Any, 1}) where {T, S}
-#    @assert isfiltered(F) || all(ishomogenous, a) #neccessary and suffient according to Hans XXX
-#same as non-homogenous elements are required, this too must not be enforced
+#    @assert isfiltered(F) || all(ishomogeneous, a) #neccessary and suffient according to Hans XXX
+#same as non-homogeneous elements are required, this too must not be enforced
     @assert all(x->parent(x) == G, a)
     @assert length(a) == ngens(F)
     #for filtrations, all is legal...
@@ -428,7 +428,7 @@ function identity_map(M::ModuleFP_dec)
   return hom(M, M, gens(M))
 end
 
-function ishomogenous(h::T) where {T <: Map_dec}
+function ishomogeneous(h::T) where {T <: Map_dec}
   first = true
   local d::GrpAbFinGenElem
   for i = gens(domain(h))
@@ -462,7 +462,7 @@ function degree(h::T) where {T <: Map_dec}
         d = dd
       end
     else
-      d == dd || error("hom is not homogenous")
+      d == dd || error("hom is not homogeneous")
     end
   end
   if first
@@ -471,7 +471,7 @@ function degree(h::T) where {T <: Map_dec}
   return d
 end
 
-function homogenous_components(h::T) where {T <: Map_dec}
+function homogeneous_components(h::T) where {T <: Map_dec}
   c = Dict{GrpAbFinGenElem, typeof(h)}()
   d = Dict{GrpAbFinGenElem, Array{Int, 1}}()
   F = domain(h)
@@ -620,12 +620,12 @@ end
 ==(a::SubQuoElem_dec, b::SubQuoElem_dec) = iszero(a-b)
 
 function sub(F::FreeModule_dec, O::Array{<:FreeModuleElem_dec, 1})
-  all(ishomogenous, O) || error("generators have to be homogenous")
+  all(ishomogeneous, O) || error("generators have to be homogeneous")
   s = SubQuo_dec(F, O)
 end
 
 function sub(F::FreeModule_dec, O::Array{<:SubQuoElem_dec, 1})
-  all(ishomogenous, O) || error("generators have to be homogenous")
+  all(ishomogeneous, O) || error("generators have to be homogeneous")
   return SubQuo_dec(F, [x.a for x = O])
 end
 
@@ -654,7 +654,7 @@ function quo(F::FreeModule_dec, O::Array{<:SubQuoElem_dec, 1})
 end
 
 function quo(F::SubQuo_dec, O::Array{<:FreeModuleElem_dec, 1})
-  all(ishomogenous, O) || error("generators have to be homogenous")
+  all(ishomogeneous, O) || error("generators have to be homogeneous")
   @assert parent(O[1]) == F.F
   if isdefined(F, :quo)
     F.sub[Val(:S), 1]
@@ -866,7 +866,7 @@ function coordinates(a::FreeModuleElem_dec, SQ::SubQuo_dec)
   Sx = base_ring(SQ)
   Rx = Sx.R
   R = base_ring(Rx)
-  return sparse_row(Rx, s[1], 1:ngens(SQ))
+  return sparse_row(Sx, s[1], 1:ngens(SQ))
 end
 
 
@@ -929,17 +929,17 @@ function degree(a::FreeModuleElem_dec, C::SubQuo_dec)
   return degree(convert(C.F, x))
 end
 
-function ishomogenous(a::SubQuoElem_dec)
+function ishomogeneous(a::SubQuoElem_dec)
   C = parent(a)
   if !isdefined(C, :quo)
-    return ishomogenous(a.a)
+    return ishomogeneous(a.a)
   end
   if !isdefined(C, :std_quo)
     singular_assure(C.quo)
     C.std_quo = BiModArray(C.quo.F, Singular.std(C.quo.S))
   end
   x = _reduce(convert(C.quo.SF, a.a), C.std_quo.S)
-  return ishomogenous(convert(C.F, x))
+  return ishomogeneous(convert(C.F, x))
 end
 
 function iszero(a::SubQuoElem_dec)
@@ -1339,7 +1339,7 @@ end
 #################################################
 #
 #################################################
-function homogenous_component(F::T, d::GrpAbFinGenElem) where {T <: Union{FreeModule_dec, SubQuo_dec, MPolyIdeal{<:MPolyElem_dec}}}
+function homogeneous_component(F::T, d::GrpAbFinGenElem) where {T <: Union{FreeModule_dec, SubQuo_dec, MPolyIdeal{<:MPolyElem_dec}}}
 
   #TODO: lazy: ie. no enumeration of points
   #      aparently it is possible to get the number of points faster than the points
@@ -1354,7 +1354,7 @@ function homogenous_component(F::T, d::GrpAbFinGenElem) where {T <: Union{FreeMo
     if iszero(g)
       continue
     end
-    Md, mMd = homogenous_component(W, d - degree(g))
+    Md, mMd = homogeneous_component(W, d - degree(g))
     #TODO careful <0> is 0-dim but non empty...
     if dim(Md) > 0
       push!(all, (g, mMd))

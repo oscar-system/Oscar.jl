@@ -49,7 +49,7 @@ end
 @testset "mpoly-nested.frac.factor" begin
   for (PR, Q) in ((PolynomialRing, QQ),
                   (PolynomialRing, GF(101)),
-                  #(Singular.PolynomialRing, Singular.QQ) TODO enable after bug fixes
+                  (Singular.PolynomialRing, Singular.QQ)
                  )
 
     r, (t1, t2, t3) = PR(Q, ["t1", "t2", "t3"])

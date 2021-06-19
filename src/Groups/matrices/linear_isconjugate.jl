@@ -112,10 +112,10 @@ Return the Jordan block of dimension `n` corresponding to the polynomial `f`.
 """
 function generalized_jordan_block(f::T, n::Int) where T<:PolyElem
    d = degree(f)
-   JB = diagonal_join([companion_matrix(f) for i in 1:n])
+   JB = cat([companion_matrix(f) for i in 1:n]..., dims=(1,2))
    pos = 1
    for i in 1:n-1
-      insert_block!(JB, identity_matrix(base_ring(f),degree(f)),pos,pos+degree(f))
+      JB[pos:pos-1+degree(f), pos+degree(f):pos-1+2*degree(f)] = identity_matrix(base_ring(f),degree(f))
       pos += degree(f)
    end
    return JB
@@ -129,7 +129,7 @@ Return (`J`,`Z`), where `Z^-1*J*Z = A` and `J` is a diagonal join of Jordan bloc
 """
 function generalized_jordan_form(A::MatElem{T}; with_pol=false) where T
    V = pol_elementary_divisors(A)
-   GJ = diagonal_join([generalized_jordan_block(v[1],v[2]) for v in V])
+   GJ = cat([generalized_jordan_block(v[1],v[2]) for v in V]..., dims=(1,2))
    a = rational_canonical_form(A)[2]
    gj = rational_canonical_form(GJ)[2]
    if with_pol return GJ, gj^-1*a, V
