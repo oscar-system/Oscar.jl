@@ -2,6 +2,11 @@ using Random
 
 RNG = Random.MersenneTwister(42)
 
+"""
+	randpoly(R::Oscar.CRing,coeffs=0:9,max_exp=4,max_terms=8)
+> Return a random Polynomial from the Polynomial Ring `R` with coefficients in `coeffs`
+> with exponents between `0` and `max_exp` und between `0` and `max_terms` terms
+"""
 function randpoly(R::Oscar.CRing,coeffs=0:9,max_exp=4,max_terms=8)
 	n = nvars(R)
 	K = base_ring(R)
@@ -14,6 +19,10 @@ function randpoly(R::Oscar.CRing,coeffs=0:9,max_exp=4,max_terms=8)
 	return finish(M)
 end
 
+"""
+	array_to_matrix(A::Array,R::CRing = parent(A[1,1]))
+Return `A` as an AbstractAlgebra Matrix
+"""
 function array_to_matrix(A::Array,R::AbstractAlgebra.Ring = parent(A[1,1]))
 	Mat = AbstractAlgebra.MatrixSpace(R,size(A)...)
 	return Mat(R.(A))
@@ -145,7 +154,7 @@ end
 	A1 = R[x*y R(0)]
 	B1 = R[R(0) R(1)]
 	M1 = Oscar.SubQuo(A1,B1)
-	M2,i2,p2 = Oscar.simplify_subquotient(M1)
+	M2,i2,p2 = Oscar.simplify(M1)
 	#display(M1)
 	#display(M2)
 	for k=1:5
@@ -165,7 +174,7 @@ end
 	A1 = array_to_matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:2])
 	B1 = array_to_matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:2])
 	M1 = Oscar.SubQuo(A1,B1)
-	M2,i2,p2 = Oscar.simplify_subquotient(M1)
+	M2,i2,p2 = Oscar.simplify(M1)
 	#display(M1)
 	#display(M2)
 	for k=1:5
@@ -186,7 +195,7 @@ end
 	A1 = array_to_matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:3])
 	B1 = array_to_matrix([randpoly(R,0:15,2,1) for i=1:2,j=1:3])
 	M1 = Oscar.SubQuo(A1,B1)
-	M2,i2,p2 = Oscar.simplify_subquotient(M1)
+	M2,i2,p2 = Oscar.simplify(M1)
 	#display(M1)
 	#display(M2)
 	#println(matrix(p2))
@@ -207,7 +216,7 @@ end
 	#@test inv(i2) === p2 && inv(p2) === i2
 
 	M1 = Oscar.SubQuo(B1,A1)
-	M2,i2,p2 = Oscar.simplify_subquotient(M1)
+	M2,i2,p2 = Oscar.simplify(M1)
 	#display(M1)
 	#display(M2)
 	for k=1:5
@@ -308,7 +317,7 @@ end
 	#println("-------")
 	#display(SQ)
 	#println("--------")
-	#display(simplify_subquotient(SQ)[1])
+	#display(simplify(SQ)[1])
 	#println("--------")
 
 	f2 = R[0 0]
@@ -319,7 +328,7 @@ end
 	#println("-------")
 	#display(SQ)
 	#println("--------")
-	#display(simplify_subquotient(SQ)[1])
+	#display(simplify(SQ)[1])
 	#println("--------")
 
 	function free_module_SQ(ring,n)
@@ -334,7 +343,7 @@ end
 			M=free_module_SQ(R,n)
 			N=free_module_SQ(R,m)
 			#SQ = Oscar.hom(M,N)[1] # it's weird that it fails without simplifying
-			SQ = Oscar.simplify_subquotient(Oscar.hom(M,N)[1])[1]
+			SQ = Oscar.simplify(Oscar.hom(M,N)[1])[1]
 			@test SQ==free_module_SQ(R,n*m)
 		end
 	end
