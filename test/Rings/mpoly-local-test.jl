@@ -33,6 +33,10 @@ end
   @test K3.gens.O == Q.([x^3 - 6*x^2 + 12*x - 8, x^2*y - x^2 - 4*x*y + 4*x + 4*y - 4, x*y^2 - 2*x*y + x - 2*y^2 + 4*y - 2, y^3 - 3*y^2 + 3*y - 1])
   @test c1.frac == (x*(3 + x - y) + (1 + x)*(x + y))//((1 + x)*(3 + x - y))
   @test c2.frac == (x*(x + y))//((1 + x)*(3 + x - y))
+
+  (x, y, z) = map(Q, (x, y, z))
+  @test 1//x + 1//y == (x + y)//(x*y)
+  @test_throws Exception x//(x - 2)
 end
 
 @testset "mpoly-loc groebner" begin
