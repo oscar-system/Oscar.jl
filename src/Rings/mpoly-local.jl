@@ -88,25 +88,66 @@ elem_type(::MPolyRingLoc{T}) where {T} = MPolyElemLoc{T}
 elem_type(::Type{MPolyRingLoc{T}}) where {T} = MPolyElemLoc{T}
 parent_type(::Type{MPolyElemLoc{T}}) where {T} = MPolyRingLoc{T}
 
+function check_parent(a::MPolyElemLoc{T}, b::MPolyElemLoc{T}, thr::Bool = true) where {T}
+  if parent(a) == parent(b)
+    return true
+  elseif thr
+     error("Parent rings do not match")
+  else
+    return false
+  end
+end
+
+
 ###############################################################################
 # Arithmetics                                                                 #
 ###############################################################################
 
-(W::MPolyRingLoc)() = MPolyElemLoc(W.base_ring(), W.max_ideal)
-(W::MPolyRingLoc)(i::Int) = MPolyElemLoc(W.base_ring(i), W.max_ideal)
-(W::MPolyRingLoc)(i::RingElem) = MPolyElemLoc(W.base_ring(i), W.max_ideal)
-(W::MPolyRingLoc)(f::MPolyElem) = MPolyElemLoc(f, W.max_ideal)
-(W::MPolyRingLoc)(g::AbstractAlgebra.Generic.Frac) = MPolyElemLoc(g, W.max_ideal)
-(W::MPolyRingLoc)(g::MPolyElemLoc) = W(g.frac)
-Base.one(W::MPolyRingLoc) = MPolyElemLoc(one(W.base_ring), W.max_ideal)
-Base.zero(W::MPolyRingLoc) = MPolyElemLoc(zero(W.base_ring), W.max_ideal)
+(W::MPolyRingLoc)() = W(W.base_ring())
+(W::MPolyRingLoc)(i::Int) = W(W.base_ring(i))
+(W::MPolyRingLoc)(i::RingElem) = W(W.base_ring(i))
 
-+(a::MPolyElemLoc, b::MPolyElemLoc)   = MPolyElemLoc(a.frac+b.frac, a.parent.max_ideal)
--(a::MPolyElemLoc, b::MPolyElemLoc)   = MPolyElemLoc(a.frac-b.frac, a.parent.max_ideal)
--(a::MPolyElemLoc)   = MPolyElemLoc(-a.frac, a.parent.max_ideal)
-*(a::MPolyElemLoc, b::MPolyElemLoc)   = MPolyElemLoc(a.frac*b.frac, a.parent.max_ideal)
-==(a::MPolyElemLoc, b::MPolyElemLoc)   = a.frac == b.frac
-^(a::MPolyElemLoc, i::Int)    = MPolyElemLoc(a.frac^i, a.parent.max_ideal)
+function (W::MPolyRingLoc{T})(f::MPolyElem) where {T}
+  return MPolyElemLoc{T}(f//one(parent(f)), W)
+end
+
+function (W::MPolyRingLoc{T})(g::AbstractAlgebra.Generic.Frac) where {T}
+  return MPolyElemLoc{T}(g, W)
+end
+
+(W::MPolyRingLoc)(g::MPolyElemLoc) = W(g.frac)
+Base.one(W::MPolyRingLoc) = W(1)
+Base.zero(W::MPolyRingLoc) = W(0)
+
+# Since a.parent.max_ideal is maximal and AA's frac arithmetic is reasonable,
+# none of these ring operations should generate bad denominators.
+# If this turns out to be a problem, remove the last false argument.
+function +(a::MPolyElemLoc{T}, b::MPolyElemLoc{T}) where {T}
+  check_parent(a, b)
+  return MPolyElemLoc{T}(a.frac + b.frac, a.parent, false)
+end
+
+function -(a::MPolyElemLoc{T}, b::MPolyElemLoc{T}) where {T}
+  check_parent(a, b)
+  return MPolyElemLoc{T}(a.frac - b.frac, a.parent, false)
+end
+
+function -(a::MPolyElemLoc{T}) where {T}
+  return MPolyElemLoc{T}(-a.frac, a.parent, false)
+end
+
+function *(a::MPolyElemLoc{T}, b::MPolyElemLoc{T}) where {T}
+  check_parent(a, b)
+  return MPolyElemLoc{T}(a.frac*b.frac, a.parent, false)
+end
+
+function ==(a::MPolyElemLoc{T}, b::MPolyElemLoc{T}) where {T}
+  return check_parent(a, b, false) && a.frac == b.frac
+end
+
+function ^(a::MPolyElemLoc{T}, i::Int) where {T}
+  return MPolyElemLoc{T}(a.frac^i, a.parent, false)
+end
 
 function Oscar.mul!(a::MPolyElemLoc, b::MPolyElemLoc, c::MPolyElemLoc)
   return b*c
@@ -114,6 +155,11 @@ end
 
 function Oscar.addeq!(a::MPolyElemLoc, b::MPolyElemLoc)
   return a+b
+end
+
+function Base.:(//)(a::MPolyElemLoc{T}, b::MPolyElemLoc{T}) where {T}
+  check_parent(a, b)
+  return MPolyElemLoc{T}(a.frac//b.frac, a.parent)
 end
 
 ###############################################################################
