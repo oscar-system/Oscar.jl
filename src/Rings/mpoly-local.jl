@@ -30,30 +30,44 @@ end
 struct MPolyElemLoc{T} <: AbstractAlgebra.RingElem where {T}
   frac::AbstractAlgebra.Generic.Frac
   parent::MPolyRingLoc{T}
+
+  # pass with checked = false to skip the non-trivial denominator check
+  function MPolyElemLoc{T}(f::AbstractAlgebra.Generic.Frac,
+                           p::MPolyRingLoc{T}, checked = true) where {T}
+    R = p.base_ring
+    B = base_ring(R)
+    R != parent(numerator(f)) && error("Parent rings do not match")
+    T != elem_type(B) && error("Type mismatch")
+    if checked
+      # this code seems to assume m.gens is of the form [xi - ai]_i
+      m = p.max_ideal
+      # This should be easier, somehow ...
+      pt = leading_coefficient.([gen(R, i)-m.gens.Ox[i] for i in 1:nvars(R)])
+      if evaluate(denominator(f), pt) == base_ring(R)(0)
+        error("Element does not belong to the localization.")
+      end
+    end
+    return new{T}(f, p)
+  end
 end
 
 function MPolyElemLoc(f::MPolyElem{T}, m::Oscar.MPolyIdeal) where {T}
   R = parent(f)
-  (R != base_ring(m)) && error("Parent rings do not match!")
-  r = MPolyElemLoc{T}(f//R(1), Localization(R, m))
-  return r
+  return MPolyElemLoc{T}(f//R(1), Localization(R, m), false)
 end
 
 function MPolyElemLoc(f::AbstractAlgebra.Generic.Frac, m::Oscar.MPolyIdeal)
   R = parent(numerator(f))
   B = base_ring(R)
-  (R != base_ring(m)) && error("Parent rings do not match!")
-  pt = leading_coefficient.([gen(R, i)-m.gens.Ox[i] for i in 1:nvars(R)]) # This should be easier, somehow ...
-  (evaluate(denominator(f), pt) == base_ring(R)(0)) && error("Element does not belong to the localization.")
-  r = MPolyElemLoc{elem_type(B)}(f, Localization(R, m))
+  return MPolyElemLoc{elem_type(B)}(f, Localization(R, m))
 end
 
 ###############################################################################
 # Basic functions                                                             #
 ###############################################################################
 
-function Base.deepcopy_internal(a::MPolyElemLoc, dict::IdDict)
-  return MPolyElemLoc(Base.deepcopy_internal(a.frac, dict), a.parent)
+function Base.deepcopy_internal(a::MPolyElemLoc{T}, dict::IdDict) where T
+  return MPolyElemLoc{T}(Base.deepcopy_internal(a.frac, dict), a.parent, false)
 end
 
 function Base.show(io::IO, W::MPolyRingLoc)
