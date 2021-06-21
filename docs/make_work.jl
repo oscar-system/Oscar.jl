@@ -181,7 +181,7 @@ const nemo = sanitize(bla, "Nemo")
 bla = normpath(joinpath(dirname(pathof(AbstractAlgebra)), "..", "docs", "src"))
 const aa = sanitize(bla, "AbstractAlgebra")
 
-bib = CitationBibliography(joinpath(@__DIR__, "oscar_references.bib"))
+bib = CitationBibliography(joinpath(@__DIR__, "oscar_references.bib"), sorting = :nyt)
 
 DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar); recursive = true)
 DocMeta.setdocmeta!(Hecke, :DocTestSetup, :(using Hecke); recursive = true)
