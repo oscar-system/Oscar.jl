@@ -131,6 +131,9 @@ end
 
 # new signature: trunc is added to sanitize paths (truncate)
 function Documenter.Documents.addpage!(doc::Document, src::AbstractString, dst::AbstractString, wd::AbstractString, trunc::AbstractString)
+    if occursin(trunc, dst)
+      dst = sanitize_dst(dst, trunc)
+    end
     page = Page(src, dst, wd)
     # page's identifier is the path relative to the `doc.user.source` directory
     name = normpath(relpath(src, doc.user.source))
@@ -162,6 +165,11 @@ Base.print(io::IO, b::Base.Docs.Binding) = print(io, b.var)
 function sanitize(a::AbstractString, n::AbstractString)
   b = splitpath(replace(a, Regex(".*$(n)") => n))
   return joinpath(b[1], b[3:end]...)
+end
+
+function sanitize_dst(a::AbstractString, n::AbstractString)
+  b = splitpath(replace(a, Regex(".*$(n)") => n))
+  return joinpath("build", b[1], b[3:end]...)
 end
 
 bla = normpath(joinpath(dirname(pathof(Hecke)), "..", "docs", "src"))
@@ -267,5 +275,6 @@ makedocs(bib,
 				       "CommutativeAlgebra/ca_binomial_ideals.md",
 				       "CommutativeAlgebra/ca_invariant_theory.md"],
              "References" => "references.md",
+             "Index" => "manualindex.md",
          ]
 )
