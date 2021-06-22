@@ -421,7 +421,7 @@ function partial_character_from_ideal(I::MPolyIdeal, R::MPolyRing)
 
   Delta = cell[2]   #cell variables
   if isempty(Delta)
-    return QabModule.partial_character(zero_matrix(FlintZZ, 1, nvars(R)), [one(QabModule.QabField())], Set{Int64}())
+    return QabModule.partial_character(zero_matrix(FlintZZ, 1, nvars(R)), [one(QabModule.Qab)], Set{Int64}())
   end
 
   #now consider the case where Delta is not empty
@@ -436,14 +436,14 @@ function partial_character_from_ideal(I::MPolyIdeal, R::MPolyRing)
     J = eliminate(I, to_eliminate)
   end
   if iszero(J)
-    return QabModule.partial_character(zero_matrix(FlintZZ, 1, nvars(R)), [one(QabModule.QabField())], Set{Int64}())
+    return QabModule.partial_character(zero_matrix(FlintZZ, 1, nvars(R)), [one(QabModule.Qab)], Set{Int64}())
   end
   #now case if J \neq 0
   #let ts be a list of minimal binomial generators for J
   gb = groebner_basis(J, complete_reduction = true)
   vs = zero_matrix(FlintZZ, 0, nvars(R))
   images = QabModule.QabElem[]
-  Qabcl = QabModule.QabField()
+  Qabcl = QabModule.Qab
   for t in gb
     #TODO: Once tail will be available, use it.
     lm = leading_monomial(t)
@@ -595,7 +595,7 @@ end
 
 Given a cellular binomial ideal `I`, return the associated primes of `I`.
 """
-function cellular_associated_primes(I::MPolyIdeal{fmpq_mpoly}, RQab::MPolyRing = PolynomialRing(QabModule.QabField(), nvars(base_ring(I)))[1])
+function cellular_associated_primes(I::MPolyIdeal{fmpq_mpoly}, RQab::MPolyRing = PolynomialRing(QabModule.Qab, nvars(base_ring(I)))[1])
   #input: cellular binomial ideal
   #output: the set of associated primes of I
 
@@ -667,7 +667,7 @@ function cellular_minimal_associated_primes(I::MPolyIdeal{fmpq_mpoly})
   end
   R = base_ring(I)
   P = partial_character_from_ideal(I, R)
-  RQab = PolynomialRing(QabModule.QabField(), nvars(R))[1]
+  RQab = PolynomialRing(QabModule.Qab, nvars(R))[1]
   PSat = QabModule.saturations(P)
   minimal_associated = Vector{MPolyIdeal{Generic.MPoly{QabModule.QabElem}}}() #this will hold the set of minimal associated primes
 
@@ -712,7 +712,7 @@ end
 
 Given a cellular binomial ideal `I`, return a binomial primary decomposition of `I`.
 """
-function cellular_primary_decomposition(I::MPolyIdeal, RQab::MPolyRing = PolynomialRing(QabModule.QabField(), nvars(base_ring(I)))[1])
+function cellular_primary_decomposition(I::MPolyIdeal, RQab::MPolyRing = PolynomialRing(QabModule.Qab, nvars(base_ring(I)))[1])
   #algorithm from macaulay2
   #input: unital cellular binomial ideal in k[x]
   #output: binomial primary ideals which form a minimal primary decomposition of I 
@@ -773,7 +773,7 @@ function binomial_primary_decomposition(I::MPolyIdeal)
   T = MPolyIdeal{Generic.MPoly{QabModule.QabElem}}
   res = Vector{Tuple{T, T}}() #This will hold the set of primary components
   #now compute a primary decomposition of each cellular component
-  Qab = QabModule.QabField()
+  Qab = QabModule.Qab
   RQab = PolynomialRing(Qab, nvars(base_ring(I)))[1]
   for J in cell_comps
     resJ = cellular_primary_decomposition(J, RQab)
