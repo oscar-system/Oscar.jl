@@ -30,7 +30,7 @@ mutable struct FreeMod{T <: CRingElem} <: ModuleFP{T}
 
   AbstractAlgebra.@declare_other
 
-  function FreeMod(n::Int,R::CRing,S::Vector{Symbol})
+  function FreeMod{T}(n::Int,R::CRing,S::Vector{Symbol}) where T <: CRingElem
     r = new{elem_type(R)}()
     r.n = n
     r.R = R
@@ -45,7 +45,7 @@ end
 
 # if one des not provide names for the generators, the standard names e_i are used for the unit vectors
 function FreeMod(R::CRing, n::Int, name::String = "e"; cached::Bool = false) 
-  return FreeMod(n, R, [Symbol("$name[$i]") for i=1:n])
+  return FreeMod{elem_type(R)}(n, R, [Symbol("$name[$i]") for i=1:n])
 end
 free_module(R::CRing, n::Int, name::String = "e"; cached::Bool = false) = FreeMod(R, n, name, cached = cached)
 
@@ -243,30 +243,9 @@ mutable struct ModuleGens{T}
   F::FreeMod{T}
   SF::Singular.FreeMod
 
-  # ModuleGens from an Array of Oscar free module elements
-  # Todo: Empty generating set
-  function ModuleGens(O::Vector{<:FreeModuleElem{T}}) where {T}
-    @assert length(O) > 0
-    SF = singular_module(parent(O[1]))
-    return ModuleGens(O, SF)
-  end
-
-  # ModuleGens from an Array of Oscar free module elements, specifying the Oscar free module
-  # note that the array might be empty
-  function ModuleGens(O::Vector{<:FreeModuleElem}, F::FreeMod{T}) where {T}
-    SF = singular_module(F)
-    return ModuleGens(O, F, SF)
-  end
-
-  # ModuleGens from an Array of Oscar free module elements, specifying the Singular free module
-  # note that the array might be empty
-  function ModuleGens(O::Vector{<:FreeModuleElem{T}}, SF::Singular.FreeMod) where {T}
-    return ModuleGens(O, parent(O[1]), SF)
-  end
-
   # ModuleGens from an Array of Oscar free module elements, specifying the free module 
   # and Singular free module, only useful indirectly
-  function ModuleGens(O::Vector{<:FreeModuleElem}, F::FreeMod{T}, SF::Singular.FreeMod) where {T}
+  function ModuleGens{T}(O::Vector{<:FreeModuleElem}, F::FreeMod{T}, SF::Singular.FreeMod) where {T}
     r = new{T}()
     r.O = O
     r.SF = SF
@@ -275,7 +254,7 @@ mutable struct ModuleGens{T}
   end
 
   # ModuleGens from a Singular submodule
-  function ModuleGens(F::FreeMod{S}, s::Singular.smodule) where {S} # FreeMod is neccessary due to type S
+  function ModuleGens{S}(F::FreeMod{S}, s::Singular.smodule) where {S} # FreeMod is neccessary due to type S
     r = new{S}()
     r.F = F
     if Singular.ngens(s) == 0
@@ -286,6 +265,34 @@ mutable struct ModuleGens{T}
     r.S = s
     return r
   end
+end
+
+# ModuleGens from an Array of Oscar free module elements, specifying the free module 
+# and Singular free module, only useful indirectly
+ModuleGens(O::Vector{<:FreeModuleElem}, F::FreeMod{T}, SF::Singular.FreeMod) where T = ModuleGens{T}(O, F, SF)
+
+# ModuleGens from a Singular submodule
+ModuleGens(F::FreeMod{S}, s::Singular.smodule) where {S} = ModuleGens{S}(F, s)
+
+# ModuleGens from an Array of Oscar free module elements
+# Todo: Empty generating set
+function ModuleGens(O::Vector{<:FreeModuleElem})
+  @assert length(O) > 0
+  SF = singular_module(parent(O[1]))
+  return ModuleGens(O, SF)
+end
+
+# ModuleGens from an Array of Oscar free module elements, specifying the Oscar free module
+# note that the array might be empty
+function ModuleGens(O::Vector{<:FreeModuleElem}, F::FreeMod{T}) where {T}
+  SF = singular_module(F)
+  return ModuleGens{T}(O, F, SF)
+end
+
+# ModuleGens from an Array of Oscar free module elements, specifying the Singular free module
+# note that the array might be empty
+function ModuleGens(O::Vector{<:FreeModuleElem}, SF::Singular.FreeMod)
+  return ModuleGens{elem_type(base_ring(parent(O[1])))}(O, parent(O[1]), SF)
 end
 
 # getproperty is used to fill in fields with duplicate data
@@ -424,7 +431,7 @@ mutable struct FreeModuleHom{T1, T2} <: ModuleMap{T1, T2}
 
   # generate homomorphism of free modules from F to G where the Array a contains the images of
   # the generators of F
-  function FreeModuleHom(F::FreeMod{T}, G::S, a::Vector{<:Any}) where {T, S}
+  function FreeModuleHom{T,S}(F::FreeMod{T}, G::S, a::Vector{<:Any}) where {T, S}
     @assert all(x->parent(x) == G, a)
     @assert length(a) == ngens(F)
     r = new{typeof(F), typeof(G)}()
@@ -453,7 +460,7 @@ mutable struct FreeModuleHom{T1, T2} <: ModuleMap{T1, T2}
     return r
   end
 
-  function FreeModuleHom(F::FreeMod{T}, G::S, mat::MatElem{T}) where {T,S}
+  function FreeModuleHom{T,S}(F::FreeMod{T}, G::S, mat::MatElem{T}) where {T,S}
     @assert nrows(mat) == ngens(F)
     @assert ncols(mat) == ngens(G)
     if typeof(G) <: FreeMod
@@ -465,6 +472,10 @@ mutable struct FreeModuleHom{T1, T2} <: ModuleMap{T1, T2}
     return hom
   end
 end
+
+FreeModuleHom(F::FreeMod{T}, G::S, a::Vector{<:Any}) where {T, S} = FreeModuleHom{T,S}(F, G, a)
+
+FreeModuleHom(F::FreeMod{T}, G::S, mat::MatElem{T}) where {T,S} = FreeModuleHom{T,S}(F, G, mat)
 
 #=function Base.getproperty(f::FreeModuleHom, s::Symbol)
   if s == :matrix
@@ -517,7 +528,7 @@ mutable struct SubModuleOfFreeModule{T} <: ModuleFP{T}
   std_basis::ModuleGens
   matrix::MatElem
 
-  function SubModuleOfFreeModule(F::FreeMod{R}, gens::Vector{<:FreeModuleElem}) where {R}
+  function SubModuleOfFreeModule{R}(F::FreeMod{R}, gens::Vector{<:FreeModuleElem}) where {R}
     @assert all(x -> parent(x) == F, gens)
     r = new{R}()
     r.F = F
@@ -525,7 +536,7 @@ mutable struct SubModuleOfFreeModule{T} <: ModuleFP{T}
     return r
   end
 
-  function SubModuleOfFreeModule(F::FreeMod{R}, singular_module::Singular.smodule) where {R}
+  function SubModuleOfFreeModule{R}(F::FreeMod{R}, singular_module::Singular.smodule) where {R}
     r = new{R}()
     r.F = F
     r.gens = ModuleGens(F, singular_module)
@@ -535,7 +546,7 @@ mutable struct SubModuleOfFreeModule{T} <: ModuleFP{T}
     return r
   end
   
-  function SubModuleOfFreeModule(F::FreeMod{R}, gens::ModuleGens) where {R}
+  function SubModuleOfFreeModule{R}(F::FreeMod{R}, gens::ModuleGens) where {R}
     r = new{R}()
     r.F = F
     r.gens = gens
@@ -545,7 +556,7 @@ mutable struct SubModuleOfFreeModule{T} <: ModuleFP{T}
     return r
   end
 
-  function SubModuleOfFreeModule(A::MatElem{L}) where {L}
+  function SubModuleOfFreeModule{L}(A::MatElem{L}) where {L}
     r = new{L}()
     R = base_ring(A)
     F = FreeMod(R, ncols(A))
@@ -556,6 +567,14 @@ mutable struct SubModuleOfFreeModule{T} <: ModuleFP{T}
     return r
   end
 end
+
+SubModuleOfFreeModule(F::FreeMod{R}, gens::Vector{<:FreeModuleElem}) where {R} = SubModuleOfFreeModule{R}(F, gens)
+
+SubModuleOfFreeModule(F::FreeMod{R}, singular_module::Singular.smodule) where {R} = SubModuleOfFreeModule{R}(F, singular_module)
+
+SubModuleOfFreeModule(F::FreeMod{R}, gens::ModuleGens{R}) where {R} = SubModuleOfFreeModule{R}(F, gens)
+
+SubModuleOfFreeModule(A::MatElem{L}) where {L} = SubModuleOfFreeModule{L}(A)
 
 #=function Base.getproperty(submod::SubModuleOfFreeModule, s::Symbol)
   if s == :std_basis
@@ -682,7 +701,7 @@ mutable struct SubQuo{T} <: ModuleFP{T}
 
   AbstractAlgebra.@declare_other
 
-  function SubQuo(sub::SubModuleOfFreeModule{R}) where {R}
+  function SubQuo{R}(sub::SubModuleOfFreeModule{R}) where {R}
     r = new{R}()
     r.F = sub.F
     r.sub = sub
@@ -693,7 +712,7 @@ mutable struct SubQuo{T} <: ModuleFP{T}
 
     return r
   end
-  function SubQuo(sub::SubModuleOfFreeModule{R}, quo::SubModuleOfFreeModule{R}) where {R}
+  function SubQuo{R}(sub::SubModuleOfFreeModule{R}, quo::SubModuleOfFreeModule{R}) where {R}
     @assert sub.F == quo.F
     r = new{R}()
     r.F = sub.F
@@ -706,7 +725,7 @@ mutable struct SubQuo{T} <: ModuleFP{T}
 
     return r
   end
-  function SubQuo(F::FreeMod{R}, O::Vector{<:FreeModuleElem}) where {R}
+  function SubQuo{R}(F::FreeMod{R}, O::Vector{<:FreeModuleElem}) where {R}
     r = new{R}()
     r.F = F
     #r.sub = ModuleGens(O, F, singular_module(F))
@@ -718,7 +737,7 @@ mutable struct SubQuo{T} <: ModuleFP{T}
 
     return r
   end
-  function SubQuo(S::SubQuo{L}, O::Vector{<:FreeModuleElem}) where {L} #TODO to be replaced by quo
+  function SubQuo{L}(S::SubQuo{L}, O::Vector{<:FreeModuleElem}) where {L} #TODO to be replaced by quo
     r = new{L}()
     r.F = S.F
     r.sub = S.sub
@@ -739,7 +758,7 @@ mutable struct SubQuo{T} <: ModuleFP{T}
     r.sum = sum(r.sub, r.quo)
     return r
   end=#
-  function SubQuo(F::FreeMod{R}, s::Singular.smodule) where {R}
+  function SubQuo{R}(F::FreeMod{R}, s::Singular.smodule) where {R}
     r = new{R}()
     r.F = F
     #r.sub = ModuleGens(F, s)
@@ -751,7 +770,7 @@ mutable struct SubQuo{T} <: ModuleFP{T}
 
     return r
   end
-  function SubQuo(F::FreeMod{R}, s::Singular.smodule, t::Singular.smodule) where {R}
+  function SubQuo{R}(F::FreeMod{R}, s::Singular.smodule, t::Singular.smodule) where {R}
     r = new{R}()
     r.F = F
     #r.sub = ModuleGens(F, s)
@@ -766,11 +785,23 @@ mutable struct SubQuo{T} <: ModuleFP{T}
 
     return r
   end
+end
 
-  function SubQuo(A::MatElem{R}, B::MatElem{R}) where {R}
-    @assert ncols(A) == ncols(B)
-    return SubQuo(SubModuleOfFreeModule(A), SubModuleOfFreeModule(B))
-  end
+SubQuo(sub::SubModuleOfFreeModule{R}) where {R} = SubQuo{R}(sub)
+
+SubQuo(sub::SubModuleOfFreeModule{R}, quo::SubModuleOfFreeModule{R}) where {R} = SubQuo{R}(sub, quo)
+
+SubQuo(F::FreeMod{R}, O::Vector{<:FreeModuleElem}) where {R} = SubQuo{R}(F, O)
+
+SubQuo(S::SubQuo{L}, O::Vector{<:FreeModuleElem}) where {L} = SubQuo{L}(S, O)
+
+SubQuo(F::FreeMod{R}, s::Singular.smodule) where {R} = SubQuo{R}(F, s)
+
+SubQuo(F::FreeMod{R}, s::Singular.smodule, t::Singular.smodule) where {R} = SubQuo{R}(F, s, t)
+
+function SubQuo(A::MatElem{R}, B::MatElem{R}) where {R}
+  @assert ncols(A) == ncols(B)
+  return SubQuo(SubModuleOfFreeModule(A), SubModuleOfFreeModule(B))
 end
 
 function show(io::IO, SQ::SubQuo)
@@ -903,7 +934,7 @@ struct SubQuoElem{T} # this needs to be redone TODO
   repres::FreeModuleElem{T}
   parent::SubQuo
 
-  function SubQuoElem(v::SRow{R}, SQ::SubQuo) where {R}
+  function SubQuoElem{R}(v::SRow{R}, SQ::SubQuo) where {R}
     @assert length(v) <= ngens(SQ.sub)
     if isempty(v)
       r = new{R}(v, zero(SQ.F), SQ)
@@ -916,7 +947,7 @@ struct SubQuoElem{T} # this needs to be redone TODO
     return r
   end
 
-  function SubQuoElem(a::FreeModuleElem{R}, SQ::SubQuo) where {R}
+  function SubQuoElem{R}(a::FreeModuleElem{R}, SQ::SubQuo) where {R}
     @assert a.parent === SQ.F
     r = new{R}(coordinates(a,SQ), a, SQ)
     #r.parent = SQ
@@ -925,6 +956,10 @@ struct SubQuoElem{T} # this needs to be redone TODO
     return r
   end
 end
+
+SubQuoElem(v::SRow{R}, SQ::SubQuo) where {R} = SubQuoElem{R}(v, SQ)
+
+SubQuoElem(a::FreeModuleElem{R}, SQ::SubQuo) where {R} = SubQuoElem{R}(a, SQ)
 
 elem_type(::SubQuo{T}) where {T} = SubQuoElem{T}
 parent_type(::SubQuoElem{T}) where {T} = SubQuo{T}
@@ -1054,7 +1089,7 @@ function sub(F::FreeMod, s::SubQuo, task::Symbol = :none)
   end
 end
 
-function sub(S::SubQuo, O::Vector{<:SubQuoElem}, task::Symbol = :none, check = true)
+function sub(S::SubQuo, O::Vector{<:SubQuoElem}, task::Symbol = :none, check = true) 
   if check
     @assert all(x -> x.parent === S, O)
   end
@@ -1095,9 +1130,9 @@ function quo(F::FreeMod, O::Vector{<:FreeModuleElem}, task::Symbol = :none)
   return return_quo_wrt_task(F, Q, task)
 end
 
-function quo(F::FreeMod, O::Vector{<:SubQuoElem}, task::Symbol = :none)
+function quo(F::FreeMod{T}, O::Vector{<:SubQuoElem{T}}, task::Symbol = :none) where T
   S = SubQuo(F, basis(F))
-  Q = SubQuo(S, [x.repres for x = O])
+  Q = SubQuo{T}(S, [x.repres for x = O])
   
   return return_quo_wrt_task(F, Q, task)
 end
@@ -1129,7 +1164,7 @@ function quo(S::SubQuo, T::SubQuo, task::Symbol = :none)
   return return_quo_wrt_task(S, Q, task)
 end
 
-function quo(F::FreeMod, T::SubQuo, task::Symbol = :none)
+function quo(F::FreeMod{R}, T::SubQuo{R}, task::Symbol = :none) where R
   @assert !isdefined(T, :quo)
   return quo(F, gens(T), task)
 end
@@ -1157,16 +1192,16 @@ function syzygy_module(F::ModuleGens; sub = FreeMod(base_ring(F.F), length(oscar
   return SubQuo(sub, s)
 end
 
-function gens(F::SubQuo)
+function gens(F::SubQuo{T}) where T
   return [gen(F,i) for i=1:ngens(F)]
 end
 
-function gen(F::SubQuo, i::Int)
+function gen(F::SubQuo{T}, i::Int) where T
   R = base_ring(F)
   v = sparse_row(R)
   v.pos = [i]
   v.values = [R(1)]
-  return SubQuoElem(v, F)
+  return SubQuoElem{T}(v, F)
 end
 
 ngens(F::SubQuo) = ngens(F.sub)
@@ -1300,32 +1335,41 @@ end
 mutable struct SubQuoHom{T1, T2} <: ModuleMap{T1, T2}
   matrix::MatElem
   header::Hecke.MapHeader
-  im::Array{<:Any}
+  im::Vector
   inverse_isomorphism::ModuleMap
 
-  function SubQuoHom(D::SubQuo, C::ModuleFP, im::Vector{<:Any})
+  function SubQuoHom{T1,T2}(D::SubQuo, C::ModuleFP, im::Vector) where {T1,T2}
     @assert length(im) == ngens(D)
     @assert all(x-> parent(x) === C, im)
 
-    r = new{SubQuo, typeof(C)}()
+    #r = new{SubQuo, typeof(C)}()
+    r = new{T1, T2}()
     r.header = Hecke.MapHeader(D, C)
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
-    r.im = im
+    if C isa FreeMod
+      r.im = Vector{FreeModuleElem}(im)
+    elseif C isa SubQuo
+      r.im = Vector{SubQuoElem}(im)
+    else
+      r.im = im
+    end
 
     return r
   end
+end
 
-  function SubQuoHom(D::SubQuo, C::ModuleFP, mat::MatElem)
-    @assert nrows(mat) == ngens(D)
-    @assert ncols(mat) == ngens(C)
-    if typeof(C) <: FreeMod
-      hom = SubQuoHom(D, C, [FreeModuleElem(sparse_row(mat[i,:]), C) for i=1:ngens(D)])
-      return hom
-    else
-      hom = SubQuoHom(D, C, [SubQuoElem(sparse_row(mat[i,:]), C) for i=1:ngens(D)])
-      return hom
-    end
+SubQuoHom(D::SubQuo, C::ModuleFP, im::Vector) = SubQuoHom{SubQuo, typeof(C)}(D, C, im)
+
+function SubQuoHom(D::SubQuo, C::ModuleFP, mat::MatElem)
+  @assert nrows(mat) == ngens(D)
+  @assert ncols(mat) == ngens(C)
+  if typeof(C) <: FreeMod
+    hom = SubQuoHom(D, C, [FreeModuleElem(sparse_row(mat[i,:]), C) for i=1:ngens(D)])
+    return hom
+  else
+    hom = SubQuoHom(D, C, [SubQuoElem(sparse_row(mat[i,:]), C) for i=1:ngens(D)])
+    return hom
   end
 end
 
@@ -1588,7 +1632,7 @@ end
 Compute the image of `h`. Return also the inclusion map into the codomain of `h`.
 """
 function image(h::SubQuoHom)
-  if typeof(codomain(h)) <: FreeMod
+  #=if typeof(codomain(h)) <: FreeMod
     image_vector::Array{FreeModuleElem} = h.im
     s = sub(codomain(h), image_vector)
     return s, hom(s, codomain(h), image_vector)
@@ -1596,9 +1640,9 @@ function image(h::SubQuoHom)
     image_vector2::Array{SubQuoElem} = h.im
     s = sub(codomain(h), image_vector2)
     return s, hom(s, codomain(h), image_vector2)
-  end
-  #s = sub(codomain(h), h.im)
-  #return s, hom(s, codomain(h), h.im)
+  end=#
+  s = sub(codomain(h), h.im)
+  return s, hom(s, codomain(h), h.im)
 end
 
 @doc Markdown.doc"""
