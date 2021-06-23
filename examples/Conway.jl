@@ -19,14 +19,14 @@ function conway_polynomial(p::Int, n::Int)
   end
   if unsafe_load(c, i) == 0 ||
      unsafe_load(c, i+1) != n
-     error("no conway polynomial known")
+     error("Conway polynomial not known")
   end
   return polynomial(GF(p), [unsafe_load(c, j) for j=i+2:i+2+unsafe_load(c, i+1)+1])
 end
 
 @doc Markdown.doc"""
     hasconway_polynomial(p::Int, n::Int)
-Tests if the Conway polynomial of degree `n` is known for this prime.
+Test if the Conway polynomial of degree `n` is known for the prime `p`.
 """
 function hasconway_polynomial(p::Int, n::Int)
   c = cglobal((:flint_conway_polynomials, Nemo.libflint), Cint)
@@ -46,7 +46,7 @@ end
 
 @doc Markdown.doc"""
     conway_polynomials(p::Int)
-Returns an array with all Conway polynomials for the given prime `p`.
+Return an array with all Conway polynomials for the given prime `p`.
 """
 function conway_polynomials(p::Int)
   c = cglobal((:flint_conway_polynomials, Nemo.libflint), Cint)
@@ -74,4 +74,3 @@ end
 
 using .ConwayDB
 export conway_polynomials, conway_polynomial, hasconway_polynomial
-
