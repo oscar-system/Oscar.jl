@@ -36,9 +36,9 @@ see Def. 3.35 and Section 4.1. of Joswig, M. and Theobald, T. "Polyhedral and Al
 # Examples
 The following lines define the square $[0,1]^2 \subset \mathbb{R}^2$:
 ```julia-repl
-A=[1 0; 0 1; -1 0 ; 0 -1];
-b=[1,1,0,0];
-Polyhedron(A,b)
+julia> A = [1 0; 0 1; -1 0 ; 0 -1];
+julia> b = [1, 1, 0, 0];
+julia> Polyhedron(A,b)
 A polyhedron in ambient dimension 2
 ```
 """
@@ -74,30 +74,30 @@ see Def. 2.11 and Def. 3.1  of Joswig, M. and Theobald, T. "Polyhedral and Algeb
 # Examples
 The following lines define the square $[0,1]^2 \subset \mathbb{R}^2$:
 ```julia-repl
-Square = convex_hull([0 0; 0 1; 1 0; 1 1])
+julia> Square = convex_hull([0 0; 0 1; 1 0; 1 1])
 A polyhedron in ambient dimension 2
 ```
 To construct the positive orthant, rays have to be passed:
 ```julia-repl
-V = [0 0];
-R = [1 0; 0 1];
-PO = convex_hull(V, R)
+julia> V = [0 0];
+julia> R = [1 0; 0 1];
+julia> PO = convex_hull(V, R)
 A polyhedron in ambient dimension 2
 ```
 The closed-upper half plane can be constructed by passing rays and a lineality space:
 ```julia-repl
-V = [0 0];
-R = [0 1];
-L = [1 0];
-UH = convex_hull(V, R, L)
+julia> V = [0 0];
+julia> R = [0 1];
+julia> L = [1 0];
+julia> UH = convex_hull(V, R, L)
 A polyhedron in ambient dimension 2
 ```
 To obtain the x-axis in $\mathbb{R}^2$:
 ```julia-repl
-V = [0 0];
-R = [];
-L = [1 0];
-XA = convex_hull(V, R, L)
+julia> V = [0 0];
+julia> R = [];
+julia> L = [1 0];
+julia> XA = convex_hull(V, R, L)
 A polyhedron in ambient dimension 2
 ```
 """

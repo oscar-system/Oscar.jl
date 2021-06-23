@@ -17,16 +17,19 @@ of the rays, Rays.
 # Examples
 To construct the positive orthant as a `Cone`, you can write:
 ```julia-repl
-R = [1 0; 0 1]
-PO = Cone(R)
+julia> R = [1 0; 0 1];
+
+julia> PO = Cone(R)
 A polyhedral cone in ambient dimension 2
 ```
 
 To obtain the upper half-space of the plane:
 ```julia-repl
-R = [0 1];
-L = [1 0];
-HS = Cone(R, L)
+julia> R = [0 1];
+
+julia> L = [1 0];
+
+julia> HS = Cone(R, L)
 A polyhedral cone in ambient dimension 2
 ```
 """
@@ -58,11 +61,19 @@ end
 """
     positive_hull(generators)
 
+A polyhedral cone, not necessarily pointed, defined by the positive hull
+of the `generators`. Redundant rays are allowed in the generators.
+
 # Arguments
 - `generators::Matrix`: Rays generating the cone; encoded row-wise as representative vectors.
 
-A polyhedral cone, not necessarily pointed, defined by the positive hull
-of the `generators`. Redundant rays are allowed in the generators.
+# Examples
+```julia-repl
+julia> R = [1 0; 0 1];
+
+julia> PO = positive_hull(R)
+A polyhedral cone in ambient dimension 2
+```
 """
 function positive_hull(generators::Union{Oscar.MatElem,AbstractMatrix})
     # TODO: Filter out zero rows

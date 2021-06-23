@@ -21,9 +21,10 @@ Writing $P$ as above is called the $H$-representation of $P$.
 
 Polyhedra are convex bodies. When a polyhedron $P \subset \mathbb{R}^n$ is bounded, it is called a polytope and the fundamental theorem of polytopes states that it may be written as the convex hull of finitely many points in $\mathbb{R}^n$. That is $$P = \textrm{conv}(p_1,\ldots,p_N), p_i \in \mathbb{R}^n.$$ Writing $P$ in this way is called its $V$-representation.
 
-Since many polyhedral computations are done through ```polymake```, the structure ```Polyhedron``` contains a pointer  ```pm_polytope``` to the corresponding ```polymake``` object. Thus, all functionality of ```Polymake.jl``` is accessible by calling a ```Polymake.jl``` function on this pointer.
+Since many polyhedral computations are done through `polymake`, the structure `Polyhedron` contains a pointer  `pm_polytope` to the corresponding `polymake` object. Thus, all functionality of `Polymake.jl` is accessible by calling a `Polymake.jl` function on this pointer.
 
-**Warning**: Polyhedra in ```polymake``` and ```Polymake.jl``` use homogeneous coordinates. The polyhedra in ```Oscar``` use affine coordinates.
+!!! warning
+    Polyhedra in `polymake` and `Polymake.jl` use homogeneous coordinates. The polyhedra in `Oscar` use affine coordinates.
 
 ## Construction
 
