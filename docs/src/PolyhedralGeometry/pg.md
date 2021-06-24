@@ -12,8 +12,10 @@ Pages = ["pg.md"]
 
 # Introduction
 
+The polyhedral geometry part of OSCAR provides functionality for handling
+- convex polytopes, unbounded polyhedra and cones
+- linear programs
 
 General textbooks offering details on theory and algorithms include: 
-- Theobald + Joswig
-- Ziegler
-
+- [JT13](@cite)
+- [Zie95](@cite)

@@ -23,11 +23,11 @@ end
 
     Polyhedron(A::Union{Oscar.MatElem,AbstractMatrix}, b)
 
-The (metric) polyhedron defined by
+The (convex) polyhedron defined by
 
 $$P(A,b) = \{ x |  Ax ≤ b \}.$$
 
-see Def. 3.35 and Section 4.1. of Joswig, M. and Theobald, T. "Polyhedral and Algebraic Methods in Computational Geometry", Springer 2013.
+see Def. 3.35 and Section 4.1. of [JT13]
 
 # Arguments
 - `A::Matrix`: Matrix corresponding to the linear coefficients of the inequalilites that describe P.
@@ -64,7 +64,7 @@ pm_polytope(P::Polyhedron) = P.pm_polytope
 
 The polytope given as the convex hull of the rows of a set of points.
 
-see Def. 2.11 and Def. 3.1  of Joswig, M. and Theobald, T. "Polyhedral and Algebraic Methods in Computational Geometry", Springer 2013.
+see Def. 2.11 and Def. 3.1  of [JT13]
 
 # Arguments
 - `V::Matrix`: Points whose convex hull is to be computed; encoded as row vectors.
