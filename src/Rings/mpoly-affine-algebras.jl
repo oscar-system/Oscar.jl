@@ -42,7 +42,7 @@ end
 ##############################################################################
 
 @doc Markdown.doc"""
-    hilbert_series(A::Union{MPolyRing, MPolyQuo})
+    hilbert_series(A::MPolyQuo)
 
 Given a graded affine algebra $A$ over a field $K$, return a pair $(p,q)$, say, 
 of univariate polynomials in $t$ with integer coefficients
@@ -54,8 +54,8 @@ with denominator $q = (1-t^{w_1})\cdots (1-t^{w_n})$.
 
 See also `hilbert_series_reduced`.
 """
-function hilbert_series(A::Union{MPolyRing, MPolyQuo})
-   if typeof(A) == FmpqMPolyRing
+function hilbert_series(A:: MPolyQuo)
+   if iszero(A.I)
       Zt, t = ZZ["t"]
       return (one(parent(t)), (1-t)^(ngens(A)))
    end
@@ -65,7 +65,7 @@ end
 
 
 @doc Markdown.doc"""
-    hilbert_series_reduced(A::Union{MPolyRing, MPolyQuo})
+    hilbert_series_reduced(A::MPolyQuo)
 
 Given a graded affine algebra $A$ over a field $K$, return a pair $(p,q)$, say, 
 of univariate polynomials in $t$ with integer coefficients such that: 
@@ -77,8 +77,8 @@ written in lowest terms.
 
 See also `hilbert_series`.
 """
-function hilbert_series_reduced(A::Union{MPolyRing, MPolyQuo})
-   if typeof(A) == FmpqMPolyRing
+function hilbert_series_reduced(A::MPolyQuo)
+   if iszero(A.I)
       Zt, t = ZZ["t"]
       return (one(parent(t)), (1-t)^(ngens(A)))
    end
@@ -87,13 +87,13 @@ function hilbert_series_reduced(A::Union{MPolyRing, MPolyQuo})
 end
 
 @doc Markdown.doc"""
-    hilbert_series_expanded(A::Union{MPolyRing, MPolyQuo}, d::Int)
+    hilbert_series_expanded(A::MPolyQuo, d::Int)
 
 Given a graded affine algebra $A = R/I$ over a field $K$ and an integer $d\geq 0$, return the
 Hilbert series of $A$ to precision $d$. 
 """
-function hilbert_series_expanded(A::Union{MPolyRing, MPolyQuo}, d::Int)
-   if typeof(A) == FmpqMPolyRing
+function hilbert_series_expanded(A::MPolyQuo, d::Int)
+   if iszero(A.I)
       P, t = PowerSeriesRing(QQ, d, "t")   
       b = zero(parent(t))
       n = ngens(A)
@@ -107,14 +107,14 @@ function hilbert_series_expanded(A::Union{MPolyRing, MPolyQuo}, d::Int)
 end
 
 @doc Markdown.doc"""
-    hilbert_function(A::Union{MPolyRing, MPolyQuo}, d::Int)
+    hilbert_function(A::MPolyQuo, d::Int)
 
 Given a graded affine algebra $A = R/I$ over a field $K$ and an integer $d\geq 0$, return the value
 $H(A, d)$, where $H(A, \underline{\phantom{d}}): \N \rightarrow \N, d \mapsto \dim_K A_d$ is 
 the Hilbert function of $A$.
 """
-function hilbert_function(A::Union{MPolyRing, MPolyQuo}, d::Int)
-   if typeof(A) == FmpqMPolyRing
+function hilbert_function(A::MPolyQuo, d::Int)
+   if iszero(A.I)
        n = ngens(A)
        return binomial(n-1+d, n-1)
      end
@@ -123,13 +123,13 @@ function hilbert_function(A::Union{MPolyRing, MPolyQuo}, d::Int)
 end
    
 @doc Markdown.doc"""
-     hilbert_polynomial(A::Union{MPolyRing, MPolyQuo})
+     hilbert_polynomial(A::MPolyQuo)
 
 Given a graded affine algebra $A = R/I$ over a field $K$ such that the weights on the variables are all 1,
 return the Hilbert polynomial of $A$.
 """
-function hilbert_polynomial(A::Union{MPolyRing, MPolyQuo})
-   if typeof(A) == FmpqMPolyRing
+function hilbert_polynomial(A::MPolyQuo)
+   if iszero(A.I)
        n = ngens(A)
        Qt, t = QQ["t"]
        b = one(parent(t))
@@ -144,13 +144,13 @@ function hilbert_polynomial(A::Union{MPolyRing, MPolyQuo})
 end
 
 @doc Markdown.doc"""
-    degree(A::Union{MPolyRing, MPolyQuo})
+    degree(A::MPolyQuo)
 
 Given a graded affine algebra $A = R/I$ over a field $K$ such that the weights on the variables are all 1,
 return the degree of $A$.
 """
-function degree(A::Union{MPolyRing, MPolyQuo})
-   if typeof(A) == FmpqMPolyRing
+function degree(A::MPolyQuo)
+   if iszero(A.I)
        return 1
      end
    H = HilbertData(A.I)
@@ -554,10 +554,10 @@ Then the normalization of $A = Q[x,y]/\langle f \rangle$, that is, the
 integral closure $\overline{A}$ of $A$ in its quotient field, is a free
 module over $K[x]$ of finite rank, and any set of free generators for
 $\overline{A}$ over $K[x]$ is called an *integral basis* for $\overline{A}$
-over $K[x]$. Relying on the algorithm by B\"ohm, Decker, Laplagne, and Pfister,
+over $K[x]$. Relying on the algorithm by Böhm, Decker, Laplagne, and Pfister,
 the function returns a pair $(d, V)$, where $d$ is an element of $A$,
 and $V$ is a vector of elements in $A$, such that the fractions $v/d, v\in V$,
-form an integral basis for $\overline{A}$ over $K[x]$.
+form an integral basis for $\overline{A}$ over $K[x]$. See [BDLP19](@cite).
 
 NOTE: The conditions on $f$ are automatically checked.
 """

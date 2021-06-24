@@ -267,10 +267,18 @@ However, `f` is hardly ever used.
 """
 mutable struct GaloisCtx{T}
   f::PolyElem
-  C::T
-  B::BoundRingElem
+  C::T # a suitable root context
+  B::BoundRingElem # a "bound" on the roots, might be "anything"
   G::PermGroup
   chn::Array{Tuple{PermGroup, SLPoly, fmpz_poly, Array{PermGroupElem, 1}}, 1}
+  #= the descent chain, recodring
+   - the group
+   - the invariant
+   - the tschirnhaus transformation
+   - the cosets used
+   should probably also record if the step was proven or not
+   and the starting group  
+  =#
   function GaloisCtx(f::fmpz_poly, p::Int)
     r = new{Hecke.qAdicRootCtx}()
     r.f = f
@@ -285,29 +293,34 @@ mutable struct GaloisCtx{T}
     - need q-lifting as well as t-lifting
     - possibly also mul_ks for Q_q[[t]] case
     - needs merging in Hecke
+  =#
 
-  function GaloisCtx(f::fmpq_mpoly, p::Int, d::Int)
+  function GaloisCtx(f::fmpz_mpoly, p::Int, d::Int)
     @assert ngens(parent(f)) == 2
-    r = new{Main.MPolyFact.RootCtx}()
+    Qq, _ = QadicField(p, d, 10)
+    F, mF = ResidueField(Qq)
+    H = Hecke.MPolyFact.HenselCtxFqRelSeries(f, F)
+    SQq, _ = PowerSeriesRing(Qq, 2, "s", cached = false)
+    SQqt, _ = PolynomialRing(SQq, "t", cached = false)
+    mc(f) = map_coefficients(x->map_coefficients(y->setprecision(preimage(mF, y), 1), x, parent = SQq), f, parent = SQqt)
+    HQ = Hecke.MPolyFact.HenselCtxFqRelSeries(H.f, map(mc, H.lf), map(mc, H.cf), H.n)
+    r = new{Hecke.MPolyFact.HenselCtxFqRelSeries{AbstractAlgebra.Generic.RelSeries{qadic}}}()
     Qt, t = PolynomialRing(QQ, "t", cached = false)
     Qts, s = PolynomialRing(Qt, "s", cached = false)
     r.f = evaluate(f, [Qts(t), s])
-    r.C = Main.MPolyFact.RootCtx(f, p, d)
-    #r.B = modre complicated: needs degree (inf. val.) bound as well as coeffs
+    r.C = HQ
+    #r.B = more complicated: needs degree (inf. val.) bound as well as coeffs
     r.chn = Tuple{PermGroup, SLPoly, fmpz_poly, Array{PermGroupElem, 1}}[]
     return r
   end
-  =#
 end
 
 function Base.show(io::IO, GC::GaloisCtx{Hecke.qAdicRootCtx})
   print(io, "Galois Context for $(GC.f) and prime $(GC.C.p)")
 end
-#=
-function Base.show(io::IO, GC::GaloisCtx{Main.MPolyFact.RootCtx})
+function Base.show(io::IO, GC::GaloisCtx{<:Hecke.MPolyFact.HenselCtxFqRelSeries})
   print(io, "Galois Context for $(GC.f)")
 end
-=#
 
 
 #TODO: change pr to be a "bound_ring_elem": in the Qt case this has to handle
@@ -322,6 +335,16 @@ p-adic digits, thus they are correct modulo ``p^pr``
 function Hecke.roots(G::GaloisCtx{Hecke.qAdicRootCtx}, pr::Int)
   a = Hecke.roots(G.C, pr)::Array{qadic, 1}
   return Hecke.expand(a, all = true, flat = false, degs = Hecke.degrees(G.C.H))::Array{qadic, 1}
+end
+function Hecke.roots(G::GaloisCtx{<:Hecke.MPolyFact.HenselCtxFqRelSeries}, pr)
+  C = G.C
+  while precision(C)[1] < pr[1]
+    Hecke.MPolyFact.lift_q(C)
+  end
+  while precision(C)[2] < pr[2]
+    Hecke.MPolyFact.lift(C)
+  end
+  return [-coeff(x, 0) for x = C.lf[1:C.n]]
 end
 #=
 too simplistic. RootCtx computes roots in F_q[[t]], but currently not

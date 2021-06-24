@@ -13,9 +13,35 @@ Pages = ["ca_affine_algebras.md"]
 # Affine Algebras
 
 An affine algebra over a field $K$, or an affine $K$-algebra, or simply an affine algebra, is the quotient $A=R/I$ of a multivariate
-polynomial ring $R$ over $K$ modulo an ideal $I$ of $R$. The general constructor for quotients of multivariate polynomial rings
-modulo ideals allows one to create such algebras.
+polynomial ring $R$ over $K$ modulo an ideal $I$ of $R$. 
 
+## Constructions of Affine Algebras
+
+The general constructor for quotients of multivariate polynomial rings
+modulo ideals (graded multivariate polynomial rings modulo homogeneous ideals)
+allows one to create affine algebras:
+
+```@julia
+quo(R::MPolyRing, I::MPolyIdeal) -> MPolyQuoRing, Map
+```
+
+Alternatively, the ideal may be given by entering a vector of generators:
+
+
+```@julia
+quo(R::MPolyRing, V::Vector{MPolyElem}) -> MPolyQuoRing, Map
+```
+
+##### Examples
+
+```@repl oscar
+R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+I = ideal(R, [y-x^2])
+A, p = quo(R, I)
+R, (x, y) = grade(R)
+V = [y^2-x^2]
+A, p = quo(R, V)
+```
 
 ## Homomorphisms of Affine Algebras
 
@@ -64,8 +90,8 @@ nodalCubic = kernel(proj)
 ```
 
 ```@repl oscar
-D3,y = PolynomialRing(QQ, :y => 1:3)
-C3, x = PolynomialRing(QQ, :x => 1:3)
+D3,y = PolynomialRing(QQ, "y" => 1:3)
+C3, x = PolynomialRing(QQ, "x" => 1:3)
 V3 = [x[1]*x[2], x[1]*x[3], x[2]*x[3]]
 F3 = hom(D3, C3, V3)
 sphere = ideal(C3, [x[1]^3 + x[2]^3  + x[3]^3 - 1])
@@ -244,27 +270,27 @@ Hilbert polynomial has the form $d t^e/e!$, otherwise.
 CAVEAT: Currently only implemented in the case where the weights on the variables are all 1.
 
 ```@docs
-hilbert_series(A::Union{MPolyRing, MPolyQuo})
+hilbert_series(A::MPolyQuo)
 ```
 
 ```@docs
-hilbert_series_reduced(A::Union{MPolyRing, MPolyQuo})
+hilbert_series_reduced(A::MPolyQuo)
 ```
 
 ```@docs
-hilbert_series_expanded(A::Union{MPolyRing, MPolyQuo}, d::Int)
+hilbert_series_expanded(A::MPolyQuo, d::Int)
 ```
 
 ```@docs
-hilbert_function(A::Union{MPolyRing, MPolyQuo}, d::Int)
+hilbert_function(A::MPolyQuo, d::Int)
 ```
 
 ```@docs
-hilbert_polynomial(A::Union{MPolyRing, MPolyQuo})
+hilbert_polynomial(A::MPolyQuo)
 ```
 
 ```@docs
-degree(A::Union{MPolyRing, MPolyQuo})
+degree(A::MPolyQuo)
 ```
 
 ###### Examples

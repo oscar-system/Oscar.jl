@@ -131,6 +131,9 @@ end
 
 # new signature: trunc is added to sanitize paths (truncate)
 function Documenter.Documents.addpage!(doc::Document, src::AbstractString, dst::AbstractString, wd::AbstractString, trunc::AbstractString)
+    if occursin(trunc, dst)
+      dst = sanitize_dst(dst, trunc)
+    end
     page = Page(src, dst, wd)
     # page's identifier is the path relative to the `doc.user.source` directory
     name = normpath(relpath(src, doc.user.source))
@@ -164,6 +167,11 @@ function sanitize(a::AbstractString, n::AbstractString)
   return joinpath(b[1], b[3:end]...)
 end
 
+function sanitize_dst(a::AbstractString, n::AbstractString)
+  b = splitpath(replace(a, Regex(".*$(n)") => n))
+  return joinpath("build", b[1], b[3:end]...)
+end
+
 bla = normpath(joinpath(dirname(pathof(Hecke)), "..", "docs", "src"))
 const hecke = sanitize(bla, "Hecke")
 
@@ -173,7 +181,7 @@ const nemo = sanitize(bla, "Nemo")
 bla = normpath(joinpath(dirname(pathof(AbstractAlgebra)), "..", "docs", "src"))
 const aa = sanitize(bla, "AbstractAlgebra")
 
-bib = CitationBibliography(joinpath(@__DIR__, "oscar_references.bib"))
+bib = CitationBibliography(joinpath(@__DIR__, "oscar_references.bib"), sorting = :nyt)
 
 DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar); recursive = true)
 DocMeta.setdocmeta!(Hecke, :DocTestSetup, :(using Hecke); recursive = true)
@@ -267,5 +275,6 @@ makedocs(bib,
 				       "CommutativeAlgebra/ca_binomial_ideals.md",
 				       "CommutativeAlgebra/ca_invariant_theory.md"],
              "References" => "references.md",
+             "Index" => "manualindex.md",
          ]
 )
