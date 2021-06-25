@@ -24,7 +24,7 @@ It is under development with regard to providing both the functionality and the 
 
 
 General textbooks offering details on theory and algorithms include: 
-- [GP07](@cite)
+- [GP08](@cite)
 - [DL06](@cite)
 - [DP13](@cite)
 
