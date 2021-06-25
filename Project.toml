@@ -3,6 +3,9 @@ uuid = "9bfa4af0-0a41-40a3-86ae-7e8f6cc9e7ab"
 authors = ["Martin Bies", "University of Pennsylvania"]
 version = "0.1.0"
 
+[deps]
+CapAndHomalg = "c4774649-1891-41ea-a883-87141804c57c"
+
 [compat]
 julia = "1"
 
