@@ -7,7 +7,7 @@
     Q1 = convex_hull(pts, [1 1])
     Q2 = convex_hull(pts, [1 1], [1 1])
     C0 = cube(2)
-    C1 = cube(2, 1, 0)
+    C1 = cube(2, 0, 1)
     Pos=Polyhedron([-1 0 0; 0 -1 0; 0 0 -1],[0,0,0])
     point = convex_hull([0 1 0])
     s = simplex(2)
