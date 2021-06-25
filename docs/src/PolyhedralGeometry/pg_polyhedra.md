@@ -28,11 +28,6 @@ Each polytope has a unique $V$-representation which is minimal with respect to i
 Conversely, a polyhedron which is full-dimensional, has a unique minimal $H$-representation.
 If the polyhedron is not full-dimensional, then there is no canonical choice of an $H$-representation.
 
-Since many polyhedral computations are done through `polymake`, the structure `Polyhedron` contains a pointer  `pm_polytope` to the corresponding `polymake` object.
-Thus, all functionality of `Polymake.jl` is accessible by calling a suitable `Polymake.jl` function on this pointer.
-
-!!! warning
-    Polyhedra in `polymake` and `Polymake.jl` use homogeneous coordinates. The polyhedra in `Oscar` use affine coordinates.
 
 ## Construction
 
@@ -59,9 +54,18 @@ facets_as_halfspace_matrix_pair(T)
 
 ## `Polyhedron` and `polymake`'s `Polytope`
 
+Many polyhedral computations are done through `polymake`.
+This is visible in the structure `Polyhedron` via a pointer  `pm_polytope` to the corresponding `polymake` object.
+This allows to apply all functionality of `polymake` by calling a suitable `Polymake.jl` function on this pointer.
+
 To allow both `Oscar`'s and `polymake`'s functionality to be applicable to a polyhedron object, it can be converted back and forth:
 
 ```@docs
 Polyhedron(::Polymake.BigObject)
 pm_polytope(::Polyhedron)
 ```
+
+There are several design differences between `polymake` and `Oscar`.
+
+!!! warning
+    Polyhedra in `polymake` and `Polymake.jl` use homogeneous coordinates. The polyhedra in `Oscar` use affine coordinates.
