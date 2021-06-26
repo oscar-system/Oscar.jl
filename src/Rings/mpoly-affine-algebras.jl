@@ -463,7 +463,7 @@ the algorithm computes an equidimensional decomposition of the radical ideal $I$
 Alternatively, if specified by `alg=:primeDec`, the algorithm computes $I=I_1\cap\dots\cap I_r$
 as the prime decomposition of the radical ideal $I$.
 
-See [GLP10](@cite).
+See [GLS10](@cite).
 
 CAVEAT: The function does not check whether $A$ is reduced. Use `isreduced(A)` in case 
 you are unsure (this may take some time).
