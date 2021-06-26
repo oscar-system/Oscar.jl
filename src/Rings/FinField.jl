@@ -65,7 +65,7 @@ end
 
 function disc_log(a::T) where {T <: FinFieldElem}
   K = parent(a)
-  res = Array{Tuple{fmpz, fmpz}, 1}()
+  res = Vector{Tuple{fmpz, fmpz}}()
   qm1 = size(K)-1
   g = generator(K)
   for (p, k) = factored_order(K)

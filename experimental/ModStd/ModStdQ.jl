@@ -46,8 +46,8 @@ function Oscar.groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevl
   max_stable = 2
   stable = max_stable
 
-  local gc::Array{fmpz_mpoly, 1}
-  local gd::Array{fmpq_mpoly, 1}
+  local gc::Vector{fmpz_mpoly}
+  local gd::Vector{fmpq_mpoly}
 
   fl = true
   d = fmpz(1)
@@ -124,8 +124,8 @@ function Oscar.groebner_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}; ordering
   max_stable = 2
   stable = max_stable
 
-  local gc::Array{fmpz_mpoly, 1}
-  local gd::Array{fmpq_mpoly, 1}
+  local gc::Vector{fmpz_mpoly}
+  local gd::Vector{fmpq_mpoly}
   local length_gc::Int
 
   fl = true

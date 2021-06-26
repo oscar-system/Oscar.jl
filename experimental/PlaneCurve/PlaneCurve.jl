@@ -21,7 +21,7 @@ abstract type ProjectivePlaneCurve{S} <: PlaneCurve{S} end
 mutable struct Point{S <: FieldElem}
   coord::Vector{S}
   ambient_dim::Int
-  function Point(coordinates::Array{S, 1}) where {S <: FieldElem}
+  function Point(coordinates::Vector{S}) where {S <: FieldElem}
     r = new{S}()
     r.coord = coordinates
     r.ambient_dim = length(coordinates)

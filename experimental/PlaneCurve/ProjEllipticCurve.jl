@@ -122,7 +122,7 @@ mutable struct ProjEllipticCurve{S} <: ProjectivePlaneCurve{S}
   degree::Int
   components::Dict{ProjEllipticCurve{S}, Int}
   point::Oscar.Geometry.ProjSpcElem{S}
-  maps::Array{Oscar.AlgHom{S}, 1}
+  maps::Vector{Oscar.AlgHom{S}}
   Hecke_ec::EllCrv{S}
 
   function ProjEllipticCurve{S}(eq::Oscar.MPolyElem_dec{S}) where {S <: FieldElem}
@@ -249,7 +249,7 @@ end
 
 ################################################################################
 
-function _image_point(phi::Oscar.AlgHom{S}, V::Array{S, 1}) where S <: FieldElem
+function _image_point(phi::Oscar.AlgHom{S}, V::Vector{S}) where S <: FieldElem
    return [evaluate(phi.image[i], V) for i in 1:3]
 end
 

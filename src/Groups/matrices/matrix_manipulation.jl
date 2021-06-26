@@ -29,12 +29,12 @@ export
 
 
 """
-    matrix(A::Array{AbstractAlgebra.Generic.FreeModuleElem{T},1})
+    matrix(A::Vector{AbstractAlgebra.Generic.FreeModuleElem{T}})
 
 Return the matrix whose rows are the vectors in `A`.
 All vectors in `A` must have the same length and the same base ring.
 """
-function matrix(A::Array{AbstractAlgebra.Generic.FreeModuleElem{T},1}) where T <: FieldElem
+function matrix(A::Vector{AbstractAlgebra.Generic.FreeModuleElem{T}}) where T <: FieldElem
    c = length(A[1].v)
    @assert all(x -> length(x.v)==c, A) "Vectors must have the same length"
    X = zero_matrix(base_ring(A[1]), length(A), c)

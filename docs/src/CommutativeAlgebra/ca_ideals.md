@@ -15,7 +15,7 @@ Pages = ["ca_ideals.md"]
 ## Constructors
 
 ```@docs
-ideal(g::Array{T, 1}) where {T <: MPolyElem}
+ideal(g::Vector{T}) where {T <: MPolyElem}
 ```
 
 !!! note
@@ -33,7 +33,7 @@ normal_form(f::T, J::MPolyIdeal) where { T <: MPolyElem }
 ```
 
 ```@docs
-normal_form(A::Array{T, 1}, J::MPolyIdeal) where { T <: MPolyElem }
+normal_form(A::Vector{T}, J::MPolyIdeal) where { T <: MPolyElem }
 ```
 
 ### Computing Gröbner Bases
@@ -57,7 +57,7 @@ groebner_basis_with_transformation_matrix(I::MPolyIdeal; ordering::Symbol = :deg
 #### Leading Ideals
 
 ```@docs
-leading_ideal(g::Array{T, 1}, args...) where { T <: MPolyElem }
+leading_ideal(g::Vector{T}, args...) where { T <: MPolyElem }
 ```
 
 ```@docs
@@ -74,7 +74,7 @@ leading_ideal(I::MPolyIdeal)
 #### Generators of syzygies
 
 ```@docs
-syzygy_generators(a::Array{<:MPolyElem, 1})
+syzygy_generators(a::Vector{<:MPolyElem})
 ```
 
 ## Data Associated to Ideals
@@ -161,7 +161,7 @@ saturation_with_index(I::MPolyIdeal, J::MPolyIdeal)
 ### Elimination
 
 ```@docs
-eliminate(I::MPolyIdeal, l::Array{T, 1}) where T <: Union{MPolyElem, MPolyElem_dec}
+eliminate(I::MPolyIdeal, l::Vector{T}) where T <: Union{MPolyElem, MPolyElem_dec}
 ```
 
 ## Tests on Ideals

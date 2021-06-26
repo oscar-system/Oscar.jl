@@ -1,13 +1,13 @@
 #TODO: do this properly, with indexed types and such
 # Partially Ordered Set ...
 mutable struct POSet{T}
-  elem::Array{T, 1}
+  elem::Vector{T}
   "for two elements that are comparable, return -1, 0, 1"
   cmp::Function #(::T, ::T) -> -1, 0, 1
   "take two elems and test if they are comparable, returns Bool"
   can_cmp::Function #(::T, ::T) -> Bool
 
-  function POSet{S}(elem::Array{S, 1}, can_cmp::Function, cmp::Function) where {S}
+  function POSet{S}(elem::Vector{S}, can_cmp::Function, cmp::Function) where {S}
     r = new{S}()
     r.elem = elem
     r.cmp = cmp
@@ -16,7 +16,7 @@ mutable struct POSet{T}
   end
 end
 
-POSet(elem::Array{S, 1}, can_cmp::Function, cmp::Function) where {S} = POSet{S}(elem, can_cmp, cmp)
+POSet(elem::Vector{S}, can_cmp::Function, cmp::Function) where {S} = POSet{S}(elem, can_cmp, cmp)
 
 struct POSetElem{T}
   e::Int
@@ -30,7 +30,7 @@ struct POSetElem{T}
 end
 
 function maximal_elements(L::POSet)
-  d = Dict{typeof(L.elem[1]), Array{Int, 1}}()
+  d = Dict{typeof(L.elem[1]), Vector{Int}}()
   for i = 1:length(L.elem)
     e = L.elem[i]
     d[e] = Int[]
@@ -47,7 +47,7 @@ function maximal_elements(L::POSet)
 end
 
 function minimal_elements(L::POSet)
-  d = Dict{typeof(L.elem[1]), Array{Int, 1}}()
+  d = Dict{typeof(L.elem[1]), Vector{Int}}()
   for i = 1:length(L.elem)
     e = L.elem[i]
     d[e] = Int[]

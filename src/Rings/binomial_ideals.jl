@@ -829,7 +829,7 @@ function _parse_matrix(filename::String)
   end
   nrows = parse(Int, s[1:i-1])
   ncols = parse(Int, s[i+1:end])
-  M = Array{Int, 2}(undef, nrows, ncols)
+  M = Matrix{Int}(undef, nrows, ncols)
   for i = 1:nrows
     s = readline(f)
     ind1 = 1
@@ -861,10 +861,10 @@ end
 function birth_death_ideal(m::Int, n::Int)
   
   #To make it clearer, I split the variables 
-  U = Array{fmpq_mpoly, 2}(undef, m+1, n)
-  R = Array{fmpq_mpoly, 2}(undef, m, n+1)
-  D = Array{fmpq_mpoly, 2}(undef, m+1, m)
-  L = Array{fmpq_mpoly, 2}(undef, m+1, n+1)
+  U = Matrix{fmpq_mpoly}(undef, m+1, n)
+  R = Matrix{fmpq_mpoly}(undef, m, n+1)
+  D = Matrix{fmpq_mpoly}(undef, m+1, m)
+  L = Matrix{fmpq_mpoly}(undef, m+1, n+1)
   Qxy, gQxy = PolynomialRing(FlintQQ, length(U)+length(R)+length(D)+length(L))
   pols = Vector{elem_type(Qxy)}(undef, 4*n*m)
   ind = 1

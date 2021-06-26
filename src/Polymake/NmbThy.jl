@@ -124,11 +124,11 @@ function isirreducible(a::NfAbsOrdElem{AnticNumberField,nf_elem})
 end
 
 @doc Markdown.doc"""
-    irreducibles(S::Array{NfAbsOrdIdl{AnticNumberField,nf_elem},1}) -> Array{NfAbsOrdElem, 1}
+    irreducibles(S::Vector{NfAbsOrdIdl{AnticNumberField,nf_elem}}) -> Vector{NfAbsOrdElem}
 
 Computes all irreducibles whose support is contained in $S$.
 """
-function irreducibles(S::Array{NfAbsOrdIdl{AnticNumberField,nf_elem},1})
+function irreducibles(S::Vector{NfAbsOrdIdl{AnticNumberField,nf_elem}})
   if length(S) == 0
     return []
   end
@@ -155,7 +155,7 @@ function irreducibles(S::Array{NfAbsOrdIdl{AnticNumberField,nf_elem},1})
 end
 
 @doc Markdown.doc"""
-    factorisations(a::NfAbsOrdElem{AnticNumberField,nf_elem}) -> Array{Fac{OrdElem}, 1}
+    factorisations(a::NfAbsOrdElem{AnticNumberField,nf_elem}) -> Vector{Fac{OrdElem}}
 
 Computes all factorisations of $a$ into irreducibles.
 """

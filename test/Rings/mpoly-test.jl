@@ -9,7 +9,7 @@
 
   R, x = @inferred PolynomialRing(QQ, "x" => (1:3, 1:4))
   @test length(x) == 12
-  @test x isa Array{<: Any, 2}
+  @test x isa Matrix{<: Any}
   @test size(x) == (3, 4)
   @test length(unique(x)) == 12
   @test Set(gens(R)) == Set(x)
@@ -21,7 +21,7 @@
 
   R, x, y = @inferred PolynomialRing(QQ, "x" => (1:3, 1:4), "y" => 1:2)
   @test length(x) == 12
-  @test x isa Array{<: Any, 2}
+  @test x isa Matrix{<: Any}
   @test size(x) == (3, 4)
   @test length(unique(x)) == 12
   for i in 1:3
@@ -41,7 +41,7 @@
                                             "y" => 1:2,
                                             "z" => (1:1, 1:1, 1:1))
   @test length(x) == 12
-  @test x isa Array{<: Any, 2}
+  @test x isa Matrix{<: Any}
   @test size(x) == (3, 4)
   @test length(unique(x)) == 12
   for i in 1:3

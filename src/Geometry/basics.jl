@@ -32,7 +32,7 @@ function projective_space(R::AbstractAlgebra.Ring, n::Int, name::Symbol=:x)
   return ProjSpc(R, n, Rx), gens(Rx)
 end
 
-function projective_space(R::AbstractAlgebra.Ring, n::Array{<:Integer, 1}, name::Symbol = :x)
+function projective_space(R::AbstractAlgebra.Ring, n::Vector{<:Integer}, name::Symbol = :x)
   Sx = PolynomialRing(R, name => 0:length(n)-1)[1]
   Rx = grade(Sx, n)[1]
   return ProjSpc(R, length(n)-1, Rx), gens(Rx)
@@ -55,10 +55,10 @@ function Oscar.dim(P::ProjSpc)
 end
 
 struct ProjSpcElem{T} <: Oscar.ProjSpcElem{T}
-  v::Array{T, 1}
+  v::Vector{T}
   parent::ProjSpc{T}
 
-  function ProjSpcElem(P::ProjSpc{T}, a::Array{T, 1}) where {T}
+  function ProjSpcElem(P::ProjSpc{T}, a::Vector{T}) where {T}
     @assert length(a) == dim(P)+1
     @assert _isprojective(a)
     r = new{T}(a, P)
@@ -66,15 +66,15 @@ struct ProjSpcElem{T} <: Oscar.ProjSpcElem{T}
   end
 end
 
-function _isprojective(a::Array{T, 1}) where {T <: AbstractAlgebra.FieldElem}
+function _isprojective(a::Vector{T}) where {T <: AbstractAlgebra.FieldElem}
   return !all(iszero, a) 
 end
 
-function _isprojective(a::Array{T, 1}) where {T}
+function _isprojective(a::Vector{T}) where {T}
   return !all(iszero, a)
 end
 
-function _isprojective(a::Array{fmpz, 1})
+function _isprojective(a::Vector{fmpz})
   all(iszero, a) && return false
   return isone(gcd(a))
 end
@@ -87,7 +87,7 @@ Nemo.base_ring(P::ProjSpc) = P.R
 Base.getindex(a::ProjSpcElem, i::Int) = a.v[i+1]
 Base.setindex!(a::ProjSpcElem, v, i::Int) = a.v[i+1] = v
 
-function (P::ProjSpc)(a::Array{<:Any, 1})
+function (P::ProjSpc)(a::Vector{<:Any})
   R = base_ring(P)
   @assert length(a) == dim(P)+1
   return ProjSpcElem(P, elem_type(R)[R(x) for x = a])

@@ -76,7 +76,7 @@ end
 # convert array of lenght 2 to ProjSpcElem with 1 for last coordinate.
 # Helping function
 
-function Array_to_ProjSpcElem(PP::Oscar.Geometry.ProjSpc{S}, p::Array{S, 1}) where S <: FieldElem
+function Array_to_ProjSpcElem(PP::Oscar.Geometry.ProjSpc{S}, p::Vector{S}) where S <: FieldElem
   dim(PP) == length(p) || error("Not the right size")
   m = push!(p, 1)
   return Oscar.Geometry.ProjSpcElem(PP, m)
@@ -160,8 +160,8 @@ Return the reduced singular locus of `C` as a list whose first element is the pr
 """
 function curve_singular_locus(PP::Oscar.Geometry.ProjSpc{S}, C::ProjectivePlaneCurve{S}) where S <: FieldElem
   D = reduction(C)
-  Pts = Array{Oscar.Geometry.ProjSpcElem, 1}()
-  CC = Array{ProjPlaneCurve, 1}()
+  Pts = Vector{Oscar.Geometry.ProjSpcElem}()
+  CC = Vector{ProjPlaneCurve}()
   # The components with multiplicity > 1 are singular
   f = []
   for (h, c) in C.components
