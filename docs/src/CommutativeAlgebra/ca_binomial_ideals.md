@@ -30,8 +30,8 @@ is called cellular if each variable $x_i$ is either a nonzerodivisor or nilpoten
 Papers offering details on theory and algorithms as well as examples include:
 
 - [ES96](@cite)
-- [OS00](@cite)
-- [Kahle10](@cite)
+- [OMdCS00](@cite)
+- [Kah10](@cite)
 - [EM16](@cite)
 - [EM19](@cite)
 
