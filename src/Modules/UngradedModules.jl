@@ -356,7 +356,7 @@ end
 # Todo: clean up, convert or assure
 function getindex(F::ModuleGens, ::Val{:S}, i::Int)
   if !isdefined(F, :S)
-    F.S = Singular.smodule{elem_type(base_ring(F.SF))}(base_ring(F.SF), [convert(F.SF,x) for x = oscar_generators(F)]...)
+    F.S = Singular.Module(base_ring(F.SF), [convert(F.SF,x) for x = oscar_generators(F)]...)
   end
   return F.S[i]
 end
@@ -373,10 +373,10 @@ function singular_assure(F::ModuleGens)
   if !isdefined(F, :S)
     if length(F) == 0
       singular_ring = base_ring(F.SF)
-      F.S = Singular.smodule{elem_type(base_ring(F.SF))}(singular_ring, Singular.vector(singular_ring, singular_ring(0)))
+      F.S = Singular.Module(singular_ring, Singular.vector(singular_ring, singular_ring(0)))
       return 
     end
-    F.S = Singular.smodule{elem_type(base_ring(F.SF))}(base_ring(F.SF), [convert(F.SF,x) for x = oscar_generators(F)]...)
+    F.S = Singular.Module(base_ring(F.SF), [convert(F.SF,x) for x = oscar_generators(F)]...)
     return
   end
   #F[Val(:S), 1]
@@ -404,7 +404,6 @@ end
 
 # convert a Singular vector to a free module element on the OSCAR side
 function convert(F::FreeMod, s::Singular.svector)
-  pv = Tuple{Int, elem_type(base_ring(F))}[]
   pos = Int[]
   values = []
   Rx = base_ring(F)
@@ -868,15 +867,15 @@ end
 
 function sum(M::SubQuo{T},N::SubQuo{T}) where T
   #TODO use SubModuleOfFreeModule instead of matrices
-  n_rel = matrix(N.quo)
-  m_rel = matrix(M.quo)
+  gm1,gm2 = size(matrix(M.sub))
+  gn1,gn2 = size(matrix(N.sub))
+  R = base_ring(M)
+
+  n_rel = isdefined(N, :quo) ? matrix(N.quo) : zero_matrix(R, 1, gn2)
+  m_rel = isdefined(M, :quo) ? matrix(M.quo) : zero_matrix(R, 1, gm2)
 
   if (m_rel == n_rel) || Set([m_rel[i,:] for i=1:size(m_rel)[1]])==Set([n_rel[j,:] for j=1:size(n_rel)[1]]) || M.quo == N.quo
     SQ = SubQuo(vcat(matrix(M.sub), matrix(N.sub)), m_rel)
-
-    gm1,gm2 = size(matrix(M.sub))
-    gn1,gn2 = size(matrix(N.sub))
-    R = base_ring(M)
 
     # injection maps:
     M_mat = hcat(identity_matrix(R,gm1), zero_matrix(R,gm1,gn1))
@@ -891,6 +890,10 @@ function sum(M::SubQuo{T},N::SubQuo{T}) where T
     return SQ, iM, iN
   end
   throw(ArgumentError("img(M.relations) != img(N.relations)"))
+end
+
+function Base.:+(M::SubQuo{T},N::SubQuo{T}) where T 
+  return sum(M,N)[1]
 end
 
 function Base.:intersect(M::SubQuo{T}, N::SubQuo{T}) where T
@@ -1145,7 +1148,7 @@ function quo(F::SubQuo, O::Vector{<:FreeModuleElem}, task::Symbol = :none)
     #F.sub[Val(:S), 1]
     #[F.quo.gens[Val(:O), i] for i = 1:length(F.quo.gens.O)] 
     oscar_assure(F.quo.gens)
-    s = Singular.smodule{elem_type(base_ring(F.quo.gens.SF))}(base_ring(F.quo.gens.SF), [convert(F.quo.gens.SF, x) for x = [O; oscar_generators(F.quo.gens)]]...)
+    s = Singular.Module(base_ring(F.quo.gens.SF), [convert(F.quo.gens.SF, x) for x = [O; oscar_generators(F.quo.gens)]]...)
     Q = SubQuo(F.F, singular_generators(F.sub.gens), s)
     return return_quo_wrt_task(F, Q, task)
   end
@@ -1359,7 +1362,7 @@ mutable struct SubQuoHom{T1, T2} <: ModuleMap{T1, T2}
   end
 end
 
-SubQuoHom(D::SubQuo, C::ModuleFP, im::Vector) = SubQuoHom{SubQuo, typeof(C)}(D, C, im)
+SubQuoHom(D::SubQuo, C::ModuleFP, im::Vector) = SubQuoHom{typeof(D), typeof(C)}(D, C, im)
 
 function SubQuoHom(D::SubQuo, C::ModuleFP, mat::MatElem)
   @assert nrows(mat) == ngens(D)
@@ -1876,6 +1879,20 @@ function Base.inv(H::ModuleMap)
 
   return Hinv
 end
+
+#=@doc Markdown.doc"""
+  pseudo_inv(f::ModuleMap)
+Compute $g : im(f) -> domain(f)$ such that $f ∘ g = id$.
+"""
+function pseudo_inv(f::ModuleMap)
+  if isdefined(f, :inverse_isomorphism)
+    return f.inverse_isomorphism
+  end
+  image_f,emb = image(f)
+  f_pseudo_inv = hom(image_f, domain(f), [preimage(f,emb(g)) for g in gens(image_f)])
+
+  return f_pseudo_inv
+end=#
 
 ##################################################
 # direct product
