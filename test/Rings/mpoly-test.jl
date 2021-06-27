@@ -1,3 +1,65 @@
+@testset "Polynomial ring constructor" begin
+  R, x = @inferred PolynomialRing(QQ, "x" => 1:3)
+  @test length(x) == 3
+  @test x isa Vector
+  @test x == gens(R)
+  for i in 1:3
+    @test sprint(show, "text/plain", x[i]) == "x[$i]"
+  end
+
+  R, x = @inferred PolynomialRing(QQ, "x" => (1:3, 1:4))
+  @test length(x) == 12
+  @test x isa Array{<: Any, 2}
+  @test size(x) == (3, 4)
+  @test length(unique(x)) == 12
+  @test Set(gens(R)) == Set(x)
+  for i in 1:3
+    for j in 1:4
+      @test sprint(show, "text/plain", x[i, j]) == "x[$i, $j]"
+    end
+  end
+
+  R, x, y = @inferred PolynomialRing(QQ, "x" => (1:3, 1:4), "y" => 1:2)
+  @test length(x) == 12
+  @test x isa Array{<: Any, 2}
+  @test size(x) == (3, 4)
+  @test length(unique(x)) == 12
+  for i in 1:3
+    for j in 1:4
+      @test sprint(show, "text/plain", x[i, j]) == "x[$i, $j]"
+    end
+  end
+  @test y isa Vector{<: Any}
+  @test length(y) == 2
+  @test length(unique(y)) == 2
+  for i in 1:2
+    @test sprint(show, "text/plain", y[i]) == "y[$i]"
+  end
+  @test Set(gens(R)) == union(Set(x), Set(y))
+
+  R, x, y, z = @inferred PolynomialRing(QQ, "x" => (1:3, 1:4),
+                                            "y" => 1:2,
+                                            "z" => (1:1, 1:1, 1:1))
+  @test length(x) == 12
+  @test x isa Array{<: Any, 2}
+  @test size(x) == (3, 4)
+  @test length(unique(x)) == 12
+  for i in 1:3
+    for j in 1:4
+      @test sprint(show, "text/plain", x[i, j]) == "x[$i, $j]"
+    end
+  end
+  @test y isa Vector{<: Any}
+  @test length(y) == 2
+  @test length(unique(y)) == 2
+  for i in 1:2
+    @test sprint(show, "text/plain", y[i]) == "y[$i]"
+  end
+  @test z isa Array{<: Any, 3}
+  @test sprint(show, "text/plain", z[1, 1, 1]) == "z[1, 1, 1]"
+  @test Set(gens(R)) == union(Set(x), Set(y), Set(z))
+end
+
 @testset "Polynomial Orderings" begin
   R, (x, y, z) = PolynomialRing(QQ, 3)
   f = x*y + 5*z^3
@@ -148,13 +210,23 @@ end
   i = ideal(R, [(z^2+1)*(z^3+2)^2, y-z^2])
   @test equidimensional_hull_radical(i) == ideal(R, [z^2-y, y^2*z+z^3+2*z^2+2])
 
+  # absolute_primary_decomposition
+  R,(x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
+  I = ideal(R, [(z+1)*(z^2+1)*(z^3+2)^2, x-y*z^2])
+  d = absolute_primary_decomposition(I)
+  @test length(d) == 3
+  @test isa(d, Vector{Tuple{MPolyIdeal{fmpq_mpoly},
+                            MPolyIdeal{fmpq_mpoly},
+                            MPolyIdeal{AbstractAlgebra.Generic.MPoly{nf_elem}},
+                            Int}})
 end
 
 @testset "Groebner" begin
   R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-  I = ideal([2*x+3*y+4*z-5,3*x+4*y+5*z-2])
-  @test groebner_basis(I,:degrevlex) == [y+2*z-11, 3*x+4*y+5*z-2]
-  @test groebner_basis(I,:degrevlex, complete_reduction = true) == [y+2*z-11, x-z+14]
+  I = ideal([x+y^2+4*z-5,x+y*z+5*z-2])
+  @test groebner_basis(I,ordering=:lex) == [y^2 - y*z - z - 3, x + y*z + 5*z - 2]
+  @test groebner_basis(I,ordering=:degrevlex, complete_reduction = true) == [x + y*z + 5*z - 2, x + y^2 + 4*z - 5, x*y - x*z - 5*x - 2*y - 4*z^2 - 20*z + 10, x^2 + x*z^2 + 10*x*z - 4*x + 4*z^3 + 20*z^2 - 20*z + 4]
+
 
 end
 

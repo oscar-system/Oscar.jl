@@ -83,7 +83,7 @@ MatrixGroup(m::Int, F::Ring, V::AbstractVector{T}) where T<:Union{MatElem,Abstra
 
 # NOTE: at least one of the fields :elm and :X must always defined, but not necessarily both of them.
 """
-    MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: GAPGroupElem{MatrixGroup}
+    MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: AbstractMatrixGroupElem
 
 Elements of a group of type `MatrixGroup{RE<:RingElem, T<:MatElem{RE}}`
 """

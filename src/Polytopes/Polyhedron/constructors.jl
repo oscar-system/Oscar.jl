@@ -158,7 +158,7 @@ end
 ###############################################################################
 ###############################################################################
 function Base.show(io::IO, P::Polyhedron)
-    print(io, "A polyhedron in ambient dimension $(ambient_dim(P))")
+    print(io, "A polyhedron")
 end
 
 Polymake.visual(P::Polyhedron; opts...) = Polymake.visual(pm_polytope(P); opts...)

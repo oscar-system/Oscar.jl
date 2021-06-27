@@ -498,7 +498,7 @@ end
         [(t-2,9)]
        ]
    @testset for L in L_big
-      x = diagonal_join([generalized_jordan_block(a...) for a in L])
+      x = cat([generalized_jordan_block(a...) for a in L]..., dims=(1,2))
    # TODO: the change_base_ring is necessary, otherwise the equality between polynomials does not work
       @test MSet([(change_base_ring(F,f[1]),f[2]) for f in pol_elementary_divisors(x) ])==MSet([(change_base_ring(F,f[1]),f[2]) for f in L])
       @test MSet([(change_base_ring(F,f[1]),f[2]) for f in pol_elementary_divisors(G(x)) ])==MSet([(change_base_ring(F,f[1]),f[2]) for f in L])
@@ -529,7 +529,7 @@ end
    R,t = PolynomialRing(F,"t")
    f = t^3+t*z+1
    x = generalized_jordan_block(f,2)
-   @test generalized_jordan_block(f,2)==block_matrix(2,2,[companion_matrix(f),identity_matrix(F,3),zero_matrix(F,3,3),companion_matrix(f)])
+   @test generalized_jordan_block(f,2)==hvcat((2,2),companion_matrix(f),identity_matrix(F,3),zero_matrix(F,3,3),companion_matrix(f))
    @testset for i in [2,4,42,62]
       y = Oscar._elem_given_det(G(x),z^i)
       @test x*y==y*x
@@ -565,7 +565,7 @@ end
       @test L[1]^8==1
       @test L[2]^3==1
       @test order(matrix_group(L...))==div(order(GL(2,9)),2)
-      x = diagonal_join([generalized_jordan_block(f,n) for n in [1,1,1,2,2,3]])
+      x = cat([generalized_jordan_block(f,n) for n in [1,1,1,2,2,3]]..., dims=(1,2))
       L,c = Oscar._centr_block_unipotent(f,GF(3,1)[1],[1,1,1,2,2,3])
       @testset for l in L
          @test l*x==x*l

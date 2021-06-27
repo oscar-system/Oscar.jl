@@ -24,11 +24,19 @@ end
   c1 = a+b
   c2 = a*b
 
+  @test iszero(a-a)
+  @test a*deepcopy(a) == a^2
+  @test det(matrix(Q, [1 x; y z])) == Q(z-x*y)
+
   @test K1.gens.O == Q.([x - 2, y^2*z - 2*y*z + z, y - 1])
   @test K2.gens.O == Q.([x^2 - 4*x + 4, x*y - x - 2*y + 2, x*y^2*z - 2*x*y*z + x*z - 2*y^2*z + 4*y*z - 2*z, y^3*z - 3*y^2*z + 3*y*z - z])
   @test K3.gens.O == Q.([x^3 - 6*x^2 + 12*x - 8, x^2*y - x^2 - 4*x*y + 4*x + 4*y - 4, x*y^2 - 2*x*y + x - 2*y^2 + 4*y - 2, y^3 - 3*y^2 + 3*y - 1])
   @test c1.frac == (x*(3 + x - y) + (1 + x)*(x + y))//((1 + x)*(3 + x - y))
   @test c2.frac == (x*(x + y))//((1 + x)*(3 + x - y))
+
+  (x, y, z) = map(Q, (x, y, z))
+  @test 1//x + 1//y == (x + y)//(x*y)
+  @test_throws Exception x//(x - 2)
 end
 
 @testset "mpoly-loc groebner" begin

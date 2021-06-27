@@ -14,7 +14,7 @@ import Hecke: MapHeader, math_html
 
 
 
-export PolynomialRing, total_degree, degree,  MPolyIdeal, MPolyElem, ordering, ideal, coordinates,
+export PolynomialRing, total_degree, degree,  MPolyIdeal, MPolyElem, ideal, coordinates,
        jacobi_matrix, jacobi_ideal,  normalize, divrem, isprimary, isprime
 
 ##############################################################################
@@ -30,30 +30,95 @@ export PolynomialRing, total_degree, degree,  MPolyIdeal, MPolyElem, ordering, i
 #allows
 # PolynomialRing(QQ, :a=>1:3, "b"=>1:3, "c=>1:5:10)
 # -> QQx, [a1, a2, a3], [b1 ,b2, b3], ....
-function PolynomialRing(R::AbstractAlgebra.Ring, v::Pair{<:Union{String, Symbol}, <:Union{StepRange{Int, Int}, UnitRange{Int}}}...; cached::Bool = false, ordering::Symbol = :lex)
-  s = String[]
-  g = []
-  j = 1
-  for (a, b) = v
-    h = []
-    for i = b
-      if occursin('#', "$a")
-        aa = replace("$a", '#' => "$i")
-      else
-        if Hecke.inNotebook()
-          aa = "$(a)_{$i}"
-        else
-          aa = "$a$i"
-        end
-      end
-      push!(s, aa)
-      push!(h, j)
-      j += 1
-    end
-    push!(g, h)
+
+function PolynomialRing(R::AbstractAlgebra.Ring, v::Vararg{<:Pair{<:Union{String, Symbol}, <:Any}, N}; cached::Bool = false, ordering::Symbol = :lex) where {M, N, S}
+  str = _make_strings(v)
+  strings = vcat(str...)
+  Rx, c = PolynomialRing(R, strings, cached = cached, ordering = ordering)
+  # Now we need to collect the variables
+  # We do it recursively to make it type stable
+  Rx, _collect_variables(c, v)...
+end
+
+# To print [1, 2, 3] or (1, 2, 3) as "1, 2, 3"
+function _print_comma_list(i)
+  s = IOBuffer()
+  print(s, i[1])
+  for j in 2:length(i)
+    print(s, ", ", i[j])
   end
-  Rx, c = PolynomialRing(R, s, cached = cached, ordering = ordering)
-  return Rx, [c[x] for x = g]...
+  return String(take!(s))
+end
+
+# To turn "x", 'x' or :x, (1, 2, 3) into x[1, 2, 3]
+
+_make_variable(a, i) = _make_variable(String(a), i)
+
+function _make_variable(a::String, i)
+  ii = _print_comma_list(i)
+  if occursin('#', a)
+    aa = replace(a, '#' => "$ii")
+  else
+    if Hecke.inNotebook()
+      aa = "$(a)_{$ii}"
+    else
+      aa = "$a[$ii]"
+    end
+  end
+  return aa
+end
+
+# Type stable recursive function to create strings from "a" => 1:2 or
+# "a" => (1:3, 1:3)
+function _make_strings(v::Pair{<:Union{String, Symbol}, <: Any})
+  lv = last(v)
+  if lv isa Tuple
+    p = Iterators.product(lv...)
+  else
+    p = lv
+  end
+  res = String[]
+  a = first(v)
+  for i in p
+    push!(res, _make_variable(a, i))
+  end
+  return res
+end
+
+function _make_strings(v)
+  s = _make_strings(first(v))
+  if length(v) == 1
+    return (s, )
+  end
+  return tuple(s, _make_strings(Base.tail(v))...)
+end
+
+# Type stable recursive function that given a vector of
+# variables (or any polynomials) and v = "a" => 1:2 or "a" =>
+# (1:2, 1:3) extracts the first variables into an
+# n-dimensional array with the given dimensions.
+# For example, _collect_variables([x1, x2, x3, x4, x5], "a" => (1:2, 1:2))
+# returns [x1 x3; x2 x4], 5
+function _collect_variables(c::Vector, v::Pair, start = 1)
+  lv = last(v)
+  if lv isa Tuple
+    res = Array{eltype(c)}(undef, map(length, lv))
+  else
+    res = Array{eltype(c)}(undef, length(lv))
+  end
+  for i in eachindex(res)
+    res[i] = c[start]
+    start += 1
+  end
+  return res, start
+end
+
+function _collect_variables(c, v, start = 1)
+  s, next = _collect_variables(c, first(v), start)
+  if length(v) == 1
+    return (s, )
+  end
+  return tuple(s, _collect_variables(c, Base.tail(v), next)...)
 end
 
 function Base.getindex(R::MPolyRing, i::Int)
@@ -364,6 +429,11 @@ end
 Compute a weight ordering with a unique weight matrix.    
 """
 function simplify(M::MonomialOrdering)
+  ww = simplify_weight_matrix(weights(M))
+  return MonomialOrdering(M.R, ordering(1:ncols(ww), ww))
+end
+
+function simplify_weight_matrix(M::AbsOrdering)
   w = weights(M)
   ww = matrix(ZZ, 0, ncols(w), [])
   for i=1:nrows(w)
@@ -389,7 +459,7 @@ function simplify(M::MonomialOrdering)
       ww = vcat(ww, nw)
     end
   end
-  return MonomialOrdering(M.R, ordering(1:ncols(ww), ww))
+  return ww
 end
 
 import Base.==
@@ -546,11 +616,61 @@ function singular_ring(Rx::MPolyRing{T}, ord::Symbol) where {T <: RingElem}
               cached = false)[1]
 end
 
+function singular(o::Orderings.GenOrdering)
+  v = o.vars
+  @assert minimum(v)+length(v) == maximum(v)+1
+  if o.ord == :lex
+    return Singular.ordering_lp(length(v))
+  elseif o.ord == :degrevlex
+    return Singular.ordering_dp(length(v))
+  elseif o.ord == :weights
+    return Singular.ordering_M(o.wgt)
+  else
+    error("not done yet")
+  end
+end
+
+function singular_ring(Rx::MPolyRing{T}, ord::Orderings.AbsOrdering) where {T <: RingElem}
+  #test if it can be mapped directly to singular:
+  # - consecutive, non-overlapping variables
+  # - covering everything
+  # if this fails, create a matrix...
+  f = Orderings.flat(ord)
+  st = 1
+  iseasy = true
+  for i = 1:length(f)
+    mi = minimum(f[i].vars)
+    ma = maximum(f[i].vars)
+    if mi == st && length(f[i].vars) + st == ma+1
+      st = ma+1
+    else
+      iseasy = false
+      break
+    end
+  end
+
+  if iseasy
+    o = singular(f[1])
+    for i=2:length(f)
+      o = o*singular(f[i])
+    end
+  else
+    o = Singular.ordering_M(Orderings.simplify_weight_matrix(ord))
+  end
+
+  return Singular.PolynomialRing(singular_ring(base_ring(Rx)),
+              [string(x) for x = Nemo.symbols(Rx)],
+              ordering = o,
+              cached = false)[1]
+end
+
+
 #catch all for generic nemo rings
 function Oscar.singular_ring(F::AbstractAlgebra.Ring)
   return Singular.CoefficientRing(F)
 end
 
+#??? needs to coerce into b? assert parent?
 function (b::AbstractAlgebra.Ring)(a::Singular.n_unknown)
   Singular.libSingular.julia(Singular.libSingular.cast_number_to_void(a.ptr))
 end

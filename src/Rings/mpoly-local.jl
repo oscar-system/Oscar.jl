@@ -30,25 +30,45 @@ end
 struct MPolyElemLoc{T} <: AbstractAlgebra.RingElem where {T}
   frac::AbstractAlgebra.Generic.Frac
   parent::MPolyRingLoc{T}
-  function MPolyElemLoc(f::MPolyElem{T}, m::Oscar.MPolyIdeal) where {T}
-    R = parent(f)
-    (R != base_ring(m)) && error("Parent rings do not match!")
-    r = new{T}(f//R(1), Localization(R, m))
-    return r
-  end
-  function MPolyElemLoc(f::AbstractAlgebra.Generic.Frac, m::Oscar.MPolyIdeal)
-    R = parent(numerator(f))
+
+  # pass with checked = false to skip the non-trivial denominator check
+  function MPolyElemLoc{T}(f::AbstractAlgebra.Generic.Frac,
+                           p::MPolyRingLoc{T}, checked = true) where {T}
+    R = p.base_ring
     B = base_ring(R)
-    (R != base_ring(m)) && error("Parent rings do not match!")
-    pt = leading_coefficient.([gen(R, i)-m.gens.Ox[i] for i in 1:nvars(R)]) # This should be easier, somehow ...
-    (evaluate(denominator(f), pt) == base_ring(R)(0)) && error("Element does not belong to the localization.")
-    r = new{elem_type(B)}(f, Localization(R, m))
+    R != parent(numerator(f)) && error("Parent rings do not match")
+    T != elem_type(B) && error("Type mismatch")
+    if checked
+      # this code seems to assume m.gens is of the form [xi - ai]_i
+      m = p.max_ideal
+      # This should be easier, somehow ...
+      pt = leading_coefficient.([gen(R, i)-m.gens.O[i] for i in 1:nvars(R)])
+      if evaluate(denominator(f), pt) == base_ring(R)(0)
+        error("Element does not belong to the localization.")
+      end
+    end
+    return new(f, p)
   end
+end
+
+function MPolyElemLoc(f::MPolyElem{T}, m::Oscar.MPolyIdeal) where {T}
+  R = parent(f)
+  return MPolyElemLoc{T}(f//R(1), Localization(R, m), false)
+end
+
+function MPolyElemLoc(f::AbstractAlgebra.Generic.Frac, m::Oscar.MPolyIdeal)
+  R = parent(numerator(f))
+  B = base_ring(R)
+  return MPolyElemLoc{elem_type(B)}(f, Localization(R, m))
 end
 
 ###############################################################################
 # Basic functions                                                             #
 ###############################################################################
+
+function Base.deepcopy_internal(a::MPolyElemLoc{T}, dict::IdDict) where T
+  return MPolyElemLoc{T}(Base.deepcopy_internal(a.frac, dict), a.parent, false)
+end
 
 function Base.show(io::IO, W::MPolyRingLoc)
   print("Localization of the ", W.base_ring, " at the maximal ", W.max_ideal)
@@ -68,25 +88,66 @@ elem_type(::MPolyRingLoc{T}) where {T} = MPolyElemLoc{T}
 elem_type(::Type{MPolyRingLoc{T}}) where {T} = MPolyElemLoc{T}
 parent_type(::Type{MPolyElemLoc{T}}) where {T} = MPolyRingLoc{T}
 
+function check_parent(a::MPolyElemLoc{T}, b::MPolyElemLoc{T}, thr::Bool = true) where {T}
+  if parent(a) == parent(b)
+    return true
+  elseif thr
+     error("Parent rings do not match")
+  else
+    return false
+  end
+end
+
+
 ###############################################################################
 # Arithmetics                                                                 #
 ###############################################################################
 
-(W::MPolyRingLoc)() = MPolyElemLoc(W.base_ring(), W.max_ideal)
-(W::MPolyRingLoc)(i::Int) = MPolyElemLoc(W.base_ring(i), W.max_ideal)
-(W::MPolyRingLoc)(i::RingElem) = MPolyElemLoc(W.base_ring(i), W.max_ideal)
-(W::MPolyRingLoc)(f::MPolyElem) = MPolyElemLoc(f, W.max_ideal)
-(W::MPolyRingLoc)(g::AbstractAlgebra.Generic.Frac) = MPolyElemLoc(g, W.max_ideal)
-(W::MPolyRingLoc)(g::MPolyElemLoc) = W(g.frac)
-Base.one(W::MPolyRingLoc) = MPolyElemLoc(one(W.base_ring), W.max_ideal)
-Base.zero(W::MPolyRingLoc) = MPolyElemLoc(zero(W.base_ring), W.max_ideal)
+(W::MPolyRingLoc)() = W(W.base_ring())
+(W::MPolyRingLoc)(i::Int) = W(W.base_ring(i))
+(W::MPolyRingLoc)(i::RingElem) = W(W.base_ring(i))
 
-+(a::MPolyElemLoc, b::MPolyElemLoc)   = MPolyElemLoc(a.frac+b.frac, a.parent.max_ideal)
--(a::MPolyElemLoc, b::MPolyElemLoc)   = MPolyElemLoc(a.frac-b.frac, a.parent.max_ideal)
--(a::MPolyElemLoc)   = MPolyElemLoc(-a.frac, a.parent.max_ideal)
-*(a::MPolyElemLoc, b::MPolyElemLoc)   = MPolyElemLoc(a.frac*b.frac, a.parent.max_ideal)
-==(a::MPolyElemLoc, b::MPolyElemLoc)   = a.frac == b.frac
-^(a::MPolyElemLoc, i::Int)    = MPolyElemLoc(a.frac^i, a.parent.max_ideal)
+function (W::MPolyRingLoc{T})(f::MPolyElem) where {T}
+  return MPolyElemLoc{T}(f//one(parent(f)), W)
+end
+
+function (W::MPolyRingLoc{T})(g::AbstractAlgebra.Generic.Frac) where {T}
+  return MPolyElemLoc{T}(g, W)
+end
+
+(W::MPolyRingLoc)(g::MPolyElemLoc) = W(g.frac)
+Base.one(W::MPolyRingLoc) = W(1)
+Base.zero(W::MPolyRingLoc) = W(0)
+
+# Since a.parent.max_ideal is maximal and AA's frac arithmetic is reasonable,
+# none of these ring operations should generate bad denominators.
+# If this turns out to be a problem, remove the last false argument.
+function +(a::MPolyElemLoc{T}, b::MPolyElemLoc{T}) where {T}
+  check_parent(a, b)
+  return MPolyElemLoc{T}(a.frac + b.frac, a.parent, false)
+end
+
+function -(a::MPolyElemLoc{T}, b::MPolyElemLoc{T}) where {T}
+  check_parent(a, b)
+  return MPolyElemLoc{T}(a.frac - b.frac, a.parent, false)
+end
+
+function -(a::MPolyElemLoc{T}) where {T}
+  return MPolyElemLoc{T}(-a.frac, a.parent, false)
+end
+
+function *(a::MPolyElemLoc{T}, b::MPolyElemLoc{T}) where {T}
+  check_parent(a, b)
+  return MPolyElemLoc{T}(a.frac*b.frac, a.parent, false)
+end
+
+function ==(a::MPolyElemLoc{T}, b::MPolyElemLoc{T}) where {T}
+  return check_parent(a, b, false) && a.frac == b.frac
+end
+
+function ^(a::MPolyElemLoc{T}, i::Int) where {T}
+  return MPolyElemLoc{T}(a.frac^i, a.parent, false)
+end
 
 function Oscar.mul!(a::MPolyElemLoc, b::MPolyElemLoc, c::MPolyElemLoc)
   return b*c
@@ -94,6 +155,11 @@ end
 
 function Oscar.addeq!(a::MPolyElemLoc, b::MPolyElemLoc)
   return a+b
+end
+
+function Base.:(//)(a::MPolyElemLoc{T}, b::MPolyElemLoc{T}) where {T}
+  check_parent(a, b)
+  return MPolyElemLoc{T}(a.frac//b.frac, a.parent)
 end
 
 ###############################################################################
@@ -307,9 +373,9 @@ function groebner_assure(I::MPolyIdealLoc)
   end
 end
 
-function groebner_basis(I::MPolyIdealLoc; ord::Symbol = :negdegrevlex)
-  if ord != :negdegrevlex
-    B = BiPolyArrayLoc(I.gens.O, ord = ord)
+function groebner_basis(I::MPolyIdealLoc; ordering::Symbol = :negdegrevlex)
+  if ordering != :negdegrevlex
+    B = BiPolyArrayLoc(I.gens.O, ordering = ordering)
     singular_assure(B)
     R = B.Sx
     !Oscar.Singular.has_local_ordering(R) && error("The ordering has to be a local ordering.")

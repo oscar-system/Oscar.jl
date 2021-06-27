@@ -464,8 +464,9 @@ cross(d::Int64) = Polyhedron(Polymake.polytope.cross(d))
 
    archimedean_solid(s)
 
-Construct an Archimedean solid with the name given by String `s` from the list below.
-The polytopes are realized with floating point numbers and thus not exact; Vertex-facet-incidences are correct in all cases.
+Construct an Archimedean solid with the name given by String `s` from the list
+below.  The polytopes are realized with floating point numbers and thus not
+exact; Vertex-facet-incidences are correct in all cases.
 
 # Arguments
 - `s::String`: The name of the desired Archimedean solid.
@@ -483,7 +484,8 @@ The polytopes are realized with floating point numbers and thus not exact; Verte
       "rhombicuboctahedron" : Rhombicuboctahedron.
           Regular polytope with eight triangular and 18 square facets.
       "truncated_cuboctahedron" : Truncated Cuboctahedron.
-          Regular polytope with 12 square, eight hexagonal and six octagonal facets.
+          Regular polytope with 12 square, eight hexagonal and six octagonal
+          facets.
       "snub_cube" : Snub Cube.
           Regular polytope with 32 triangular and six square facets.
           The vertices are realized as floating point numbers.
@@ -495,9 +497,11 @@ The polytopes are realized with floating point numbers and thus not exact; Verte
       "truncated_icosahedron" : Truncated Icosahedron.
           Regular polytope with 12 pentagonal and 20 hexagonal facets.
       "rhombicosidodecahedron" : Rhombicosidodecahedron.
-          Regular polytope with 20 triangular, 30 square and 12 pentagonal facets.
+          Regular polytope with 20 triangular, 30 square and 12 pentagonal
+          facets.
       "truncated_icosidodecahedron" : Truncated Icosidodecahedron.
-          Regular polytope with 30 square, 20 hexagonal and 12 decagonal facets.
+          Regular polytope with 30 square, 20 hexagonal and 12 decagonal
+          facets.
       "snub_dodecahedron" : Snub Dodecahedron.
           Regular polytope with 80 triangular and 12 pentagonal facets.
           The vertices are realized as floating point numbers.
@@ -519,3 +523,19 @@ julia> nfacets(T)
 ```
 """
 archimedean_solid(s::String) = Polyhedron(Polymake.polytope.archimedean_solid(s))
+
+@doc Markdown.doc"""
+
+    upper_bound_theorem(d::Int, n::Int)
+
+Returns a polyhedron which contains the combinatioral data shared by all
+simplicial d-polytopes with n vertices with the maximal number of facets as
+given by McMullen's Upper-Bound-Theorem. Essentially, one can read the
+``H_VECTOR`` and ``F_VECTOR`` of a polytope that attains the McMullen's
+upperbounds.
+
+Arguments:
+- `d::Int`: the dimension
+- `n::Int`: the number of vertices
+"""
+upper_bound_theorem(d::Int,n::Int) = Polyhedron(Polymake.polytope.upper_bound_theorem(d,n))

@@ -7,3 +7,6 @@ Hecke = "3e1990a7-5d81-5526-99ce-9ba3ff248f21"
 Kroki = "b3565e16-c1f2-4fe9-b4ab-221c88942068"
 Nemo = "2edaba10-b0f1-5616-af89-8c11ac63239a"
 Oscar = "f1435218-dba5-11e9-1e4d-f1a5fab5fc13"
+
+[compat]
+DocumenterCitations = "0.2.5"

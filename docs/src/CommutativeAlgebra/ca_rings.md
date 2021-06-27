@@ -13,8 +13,8 @@ Pages = ["ca_rings.md"]
 # Polynomial Rings
 
 Referring to the sections on rings and fields for more details, we summarize how
-to construct multivariate polynomial rings. Also, we show how to decorate such
-rings with gradings.
+to construct multivariate polynomial rings. Also, we show how to decorate
+multivariate polynomial rings with gradings.
 
 ## Coefficients
 
@@ -51,15 +51,15 @@ K, a = FiniteField(x^2 + 1, "a")
 ###### Purely transcendental extensions of $\mathbb{Q}$ or $\mathbb{F}_p$
 
 ```@repl oscar
-T, t = PolynomialRing(QQ, :t=>1:2);
+T, (s, t) = PolynomialRing(QQ, ["s", "t"]);
 QT = FractionField(T)
-parent(t[1])
-parent(1//t[1])
-U, u = PolynomialRing(GF(3), :u=>1:2);
-QU = FractionField(U)
+parent(t)
+parent(1//t)
+T, t = PolynomialRing(GF(3), "t");
+QT = FractionField(T)
 ```
 
-###### The ring of integers $\mathbb{ZZ}$
+###### The ring of integers $\mathbb{Z}$
 
 ```@repl oscar
 ZZ
@@ -74,7 +74,7 @@ The basic constructor for multivariate polynomial rings reads as follows:
 PolynomialRing(C::Ring, v::Vector{String}; ordering=:lex)
 ```
 
-Its use and that of additional constructors which allow for indexed variables is indicated below.
+Its use, together with that of a convenient constructor for handling variables with multi-indices, is indicated below:
 
 ###### Examples
 
@@ -97,38 +97,32 @@ typeof(g)
 ```
 
 ```@repl oscar
-v = ["x[1]", "x[2]"]
-T, x = PolynomialRing(GF(3), v)
+V = ["x[1]", "x[2]"]
+T, x = PolynomialRing(GF(3), V)
 x
 ```
 
 ```@repl oscar
-R, x = PolynomialRing(QQ, 2, "x");
+R, x, y, z = PolynomialRing(QQ, "x" => (1:3, 1:4), "y" => 1:2, "z" => (1:1, 1:1, 1:1))
 x
-x1
-x[1]^2-x[2]
-S, a, b, c= PolynomialRing(QQ, "a"=>1:3, "b"=>1:3, "c"=>1:5:10)
-a, b, c
 ```
 
-```@repl oscar
-R, x = @PolynomialRing(QQ, x[1:3]);
-x
-x[1]^2-x[2]
-R, x = @PolynomialRing(QQ, x[1:3, 1:3]);
-x
-R, x, y = @PolynomialRing(QQ, x[1:3], y[1:2]);
-x, y
-I = [1, 3, 5];
-R, x = @PolynomialRing(QQ, x[I]);
-x
-```
 
 ## Gradings
 
+The following functions allow one to assign gradings to multivariate polynomial rings:
+
 ```@docs
-    grade(R::MPolyRing, v::Array{Int, 1})
+grade(R::MPolyRing, W::Vector{Int})
 ```
 
-    
-    
+More directly, graded polynomial rings can be constructed as follows:
+
+```@docs
+GradedPolynomialRing(C::Ring, V::Vector{String}, W::Vector{Int}; ordering=:lex)
+```
+
+!!! note
+    The return type of `PolynomialRing` as well as that of the constructors for graded rings is a subtype of `MPolyRing`.
+
+

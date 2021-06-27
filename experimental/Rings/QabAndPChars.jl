@@ -3,7 +3,7 @@ module QabModule
 using Oscar
 import Hecke: math_html
 import Oscar: IJuliaMime
-export QabField, QabAutomorphism, isconductor, root_of_unity, PartialCharacter, partial_character, 
+export QabField, QabElem, QabAutomorphism, isconductor, root_of_unity, PartialCharacter, partial_character, 
       isroot_of_unity, saturations
 
 ###############################################################################
@@ -23,6 +23,8 @@ export QabField, QabAutomorphism, isconductor, root_of_unity, PartialCharacter, 
 #singular cannot use immutable structs
 mutable struct QabField <: Nemo.Field # union of cyclotomic fields
 end
+
+const Qab = QabField()
 
 function Base.show(io::IO, a::QabField)
   print(io, "Abelian closure of Q")
@@ -103,13 +105,14 @@ function make_compatible(a::QabElem, b::QabElem)
 end
 
 import Base.+, Base.*, Base.-, Base.//, Base.==, Base.zero, Base.one, Base.^
-import Nemo.mul!, Nemo.addeq!, Nemo.divexact, Nemo.iszero
+import Nemo.mul!, Nemo.addeq!, Nemo.divexact, Nemo.iszero, Nemo.isunit
 
 Oscar.show_minus_one(::Type{QabElem}) = false
 Oscar.needs_parentheses(a::QabElem) = Oscar.needs_parentheses(a.data)
 Oscar.displayed_with_minus_in_front(a::QabElem) = Oscar.displayed_with_minus_in_front(a.data)
 
-==(::QabField, ::QabField) = true
+isunit(a::QabElem) = !iszero(a)
+
 
 function ^(a::QabElem, n::Integer)
   return QabElem(a.data^n, a.c)
@@ -234,9 +237,9 @@ function Base.deepcopy(a::QabElem, b::QabElem)
   return QabElem(a.data//b.data, a.c)
 end
 
-Base.parent(::QabElem) = QabField()
-Base.one(::QabField) = QabField()(1)
-Base.one(::QabElem) = QabField()(1)
+Base.parent(::QabElem) = Qab
+Base.one(::QabField) = Qab(1)
+Base.one(::QabElem) = Qab(1)
 
 Oscar.isnegative(::QabElem) = false
 
@@ -281,7 +284,7 @@ end
 function Oscar.root(a::QabElem, n::Int)
  o = Oscar.order(a)
  l = o*n
- mu = root_of_unity2(QabField(), Int(l))
+ mu = root_of_unity2(Qab, Int(l))
  return mu
 end
 
@@ -292,7 +295,7 @@ function allroot(a::QabElem, n::Int)
 	#root_of_unity constructs the field Q(z_10))
 	o = order(a)
   l = o*n
-  mu = root_of_unity(QabField(), Int(l))
+  mu = root_of_unity(Qab, Int(l))
 	A = QabElem[]
 	if l==1 && mu==a
 		push!(A, mu)
