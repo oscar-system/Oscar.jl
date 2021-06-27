@@ -9,7 +9,7 @@ struct Points
 end
 @doc Markdown.doc"""
 
-   Halfspaces
+    Halfspaces
 
 Dummy type used for specifying the desired output format.
 One halfspace `H(a,b)` is given by a vector `a` and a value `b` such that
@@ -141,7 +141,7 @@ Base.eltype(::Type{VertexPointIterator}) = Polymake.Vector{Polymake.Rational}
 Base.length(iter::VertexPointIterator) = nvertices(iter.p)
 
 """
-   vertices(as, P)
+    vertices(as, P)
 
 Return an iterator over the vertices of a polyhedron `P` in the format defined by `as`.
 Optional arguments for `as` include
@@ -181,7 +181,7 @@ function vertices(as::Type{T}, P::Polyhedron) where {T}
 end
 
 """
-   vertices(P)
+    vertices(P)
 
 Return an iterator over the vertices of a polyhedron `P` as points.
 
@@ -212,7 +212,7 @@ pm::Vector<pm::Rational>
 vertices(P::Polyhedron) = vertices(Points, P)
 
 """
-   `vertices_as_point_matrix(P)`
+    `vertices_as_point_matrix(P)`
 
 Return a matrix whose rows are the vertices of `P`.
 
@@ -299,7 +299,7 @@ nvertices(P::Polyhedron) = pm_polytope(P).N_VERTICES - nrays(P)
 
 
 """
-   rays(as, P)
+    rays(as, P)
 
 
 Return minimal set of generators of the cone of unbounded directions of a polyhedron `P` (i.e. its rays)
@@ -333,7 +333,7 @@ function rays(as::Type{T}, P::Polyhedron) where {T}
 end
 
 """
-   rays(P)
+    rays(P)
 
 
 Return minimal set of generators of the cone of unbounded directions of a polyhedron `P` (i.e. its rays)
@@ -398,7 +398,7 @@ Base.length(iter::PolyhedronFacetPolyhedronIterator) = nfacets(iter.p)
 # Base.eltype(::Type{PolyhedronFacetPolyhedronIterator}) = Polyhedron
 
 """
-   nfacets(P)
+    nfacets(P)
 
 Return the number of facets of the polyhedron `P`.
 
@@ -415,7 +415,7 @@ julia> nfacets(cross(5))
 nfacets(P::Polyhedron) = pm_polytope(P).N_FACETS
 
 @doc Markdown.doc"""
-   facets(as::Type{T}, P::Polyhedron)
+    facets(as::Type{T}, P::Polyhedron)
 
 Return the facets of the polyhedron `P` in the format defined by `as`.
 The allowed values for `as` are
@@ -468,7 +468,7 @@ function facets(as::Type{T}, P::Polyhedron) where {T}
     end
 end
 @doc Markdown.doc"""
-   facets(P::Polyhedron)
+    facets(P::Polyhedron)
 
 Return the facets of the polyhedron `P` as halfspaces.
 
@@ -503,7 +503,7 @@ facets(P::Polyhedron) = facets(Halfspaces, P)
 #TODO: how do underscores work in markdown?
 @doc Markdown.doc"""
 
-   `facets_as_halfspace_matrix_pair(P::Polyhedron)`
+    facets_as_halfspace_matrix_pair(P::Polyhedron)
 
 Return `(A,b)` such that $P=P(A,b)$ where
 
@@ -543,7 +543,7 @@ end
 ## Scalar properties
 ###############################################################################
 """
-   volume(P)
+    volume(P)
 
 Return the (Euclidean) volume of a polyhedron.
 
@@ -561,7 +561,7 @@ julia> volume(C)
 volume(P::Polyhedron) = (pm_polytope(P)).VOLUME
 
 """
-   normalized_volume(P)
+    normalized_volume(P)
 
 Return the (normalized) volume of a polyhedron.
 
@@ -579,7 +579,7 @@ julia> normalized_volume(C)
 normalized_volume(P::Polyhedron) = factorial(dim(P))*(pm_polytope(P)).VOLUME
 
 """
-   dim(P)
+    dim(P)
 
 Return the dimension of a polyhedron.
 
@@ -601,7 +601,7 @@ dim(P::Polyhedron) = Polymake.polytope.dim(pm_polytope(P))
 
 
 """
-   lattice_points(P)
+    lattice_points(P)
 
 Return the integer points contained in a bounded polyhedron.
 
@@ -640,7 +640,7 @@ end
 #      scalable way to construct these iterators for so many functions
 
 """
-   ambient_dim(P)
+    ambient_dim(P)
 
 Return the ambient dimension of a polyhedron.
 
@@ -661,7 +661,7 @@ julia> ambient_dim(P)
 ambient_dim(P::Polyhedron) = Polymake.polytope.ambient_dim(pm_polytope(P))
 
 """
-   codim(P)
+    codim(P)
 
 Return the codimension of a polyhedron.
 
@@ -690,7 +690,7 @@ codim(P::Polyhedron) = ambient_dim(P)-dim(P)
 # Taylor: lineality space generators always look like [0, v] so
 #  v is a natural output.
 """
-   lineality_space(P)
+    lineality_space(P)
 
 Return a matrix whose row span is the lineality space of a polyhedron.
 
@@ -747,7 +747,7 @@ recession_cone(P::Polyhedron) = Cone(Polymake.polytope.recession_cone(pm_polytop
 ## Boolean properties
 ###############################################################################
 """
-   isfeasible(P)
+    isfeasible(P)
 
 Check whether a polyhedron is feasible, i.e. non-empty.
 
@@ -767,7 +767,7 @@ isfeasible(P::Polyhedron) = pm_polytope(P).FEASIBLE
 
 
 """
-   issmooth(P)
+    issmooth(P)
 
 Check whether a polyhedron is smooth.
 
@@ -786,7 +786,7 @@ issmooth(P::Polyhedron) = pm_polytope(P).SMOOTH
 
 
 """
-   isnormal(P)
+    isnormal(P)
 
 Check whether a polyhedron is normal.
 
@@ -800,7 +800,7 @@ isnormal(P::Polyhedron) = pm_polytope(P).NORMAL
 
 
 """
-   isbounded(P)
+    isbounded(P)
 
 Check whether a polyhedron is bounded.
 
@@ -819,7 +819,7 @@ isbounded(P::Polyhedron) = pm_polytope(P).BOUNDED
 
 
 """
-   isfulldimensional(P)
+    isfulldimensional(P)
 
 Check whether a polyhedron is full dimensional.
 

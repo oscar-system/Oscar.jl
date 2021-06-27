@@ -20,7 +20,7 @@ Base.eltype(::Type{ConeRayIterator}) = Polymake.Vector{Polymake.Rational}
 Base.length(iter::ConeRayIterator) = nrays(iter.cone)
 
 """
-   rays(C)
+    rays(C)
 
 Return the rays of a cone.
 
@@ -55,7 +55,7 @@ rays(C::Cone) = ConeRayIterator(C)
 ###############################################################################
 
 """
-   nrays(C)
+    nrays(C)
 
 Return the number of rays of the cone `C`.
 
@@ -76,7 +76,7 @@ julia> nrays(PO)
 nrays(C::Cone) = pm_cone(C).N_RAYS
 
 """
-   dim(C)
+    dim(C)
 
 Return the dimension of a cone.
 
@@ -95,7 +95,7 @@ julia> dim(C)
 dim(C::Cone) = pm_cone(C).CONE_DIM
 
 """
-   ambient_dim(C)
+    ambient_dim(C)
 
 Return the ambient dimension of a cone.
 
@@ -114,7 +114,7 @@ julia> ambient_dim(C)
 ambient_dim(C::Cone) = pm_cone(C).CONE_AMBIENT_DIM
 
 """
-   codim(C)
+    codim(C)
 
 Returns the codimension of a cone.
 
@@ -136,7 +136,7 @@ codim(C::Cone) = ambient_dim(C)-dim(C)
 ## Boolean properties
 ###############################################################################
 """
-   ispointed(C)
+    ispointed(C)
 
 Determine whether the cone is pointed, i.e. whether 0 is a face of the cone.
 
@@ -160,7 +160,7 @@ true
 ispointed(C::Cone) = pm_cone(C).POINTED
 
 """
-   isfulldimensional(C)
+    isfulldimensional(C)
 
 Determine whether the cone is full dimensional
 
@@ -183,7 +183,7 @@ isfulldimensional(C::Cone) = pm_cone(C).FULL_DIM
 ###############################################################################
 
 """
-   rays_as_point_matrix(C)
+    rays_as_point_matrix(C)
 
 Return the rays of a cone as rows in a matrix.
 
@@ -209,7 +209,7 @@ end
 
 
 """
-   facets_as_point_matrix(C)
+    facets_as_point_matrix(C)
 
 Return the facets of a cone as rows of a matrix.
 
@@ -233,7 +233,7 @@ facets_as_point_matrix(C::Cone) = pm_cone(C).FACETS
 
 
 """
-   lineality_space(C)
+    lineality_space(C)
 
 Return a basis of the lineality space of a cone.
 
@@ -254,7 +254,7 @@ pm::Matrix<pm::Rational>
 lineality_space(C::Cone) = pm_cone(C).LINEALITY_SPACE
 
 """
-   hilbert_basis(C)
+    hilbert_basis(C)
 
 Return the Hilbert basis of a pointed cone as the rows of a matrix.
 

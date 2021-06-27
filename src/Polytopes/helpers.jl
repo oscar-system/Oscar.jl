@@ -87,7 +87,7 @@ end
 =#
 
 """
-   decompose_vdata(A::AbstractMatrix)
+    decompose_vdata(A::AbstractMatrix)
 
 Given a (homogeneous) polymake matrix split into vertices and rays and dehomogenize.
 """

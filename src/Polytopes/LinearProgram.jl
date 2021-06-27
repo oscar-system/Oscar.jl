@@ -105,7 +105,7 @@ minimal_value(lp::LinearProgram) = lp.polymake_lp.MINIMAL_VALUE
 maximal_value(lp::LinearProgram) = lp.polymake_lp.MAXIMAL_VALUE
 
 """
-   solve_lp(lp::LinearProgram)
+    solve_lp(lp::LinearProgram)
 
 Gives a pair `(m,v)` where the optimal value `m` of the objective
  function of lp is attained at `v` (if `m` exists). If the optimum
@@ -129,7 +129,7 @@ end
 
 
 """
-   primal_program(c, A, b)
+    primal_program(c, A, b)
 
 Constructs the primal linear program max{dot(c,x) | Ax<= b}.
 

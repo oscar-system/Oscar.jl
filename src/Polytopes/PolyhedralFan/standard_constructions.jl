@@ -1,7 +1,7 @@
 #TODO: inward/outward options? via polymake changes?
 
 """
-   normal_fan(P::Polyhedron)
+    normal_fan(P::Polyhedron)
 
 Returns the normal fan of a polyhedron.
 """
@@ -12,7 +12,7 @@ function normal_fan(P::Polyhedron)
 end
 
 """
-   face_fan(P::Polyhedron)
+    face_fan(P::Polyhedron)
 
 Returns the face fan of a polyhedron.
 """

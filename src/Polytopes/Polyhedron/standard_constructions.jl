@@ -5,7 +5,7 @@
 ###############################################################################
 
 @doc Markdown.doc"""
-   orbit_polytope(V, G)
+    orbit_polytope(V, G)
 
 Construct the convex hull of the orbit of one or several points under the action of a permutation group.
 
@@ -53,7 +53,7 @@ function orbit_polytope(V::AbstractVector, G::PermGroup)
 end
 
 @doc Markdown.doc"""
-   cube(d [, l, u])
+    cube(d [, l, u])
 
 Construct the $[-1,1]$-cube in dimension $d$. If $l$ and $u$ are given, the $[l,u]$-cube in dimension $d$ is returned.
 
@@ -114,7 +114,7 @@ end
 
 
 @doc Markdown.doc"""
-   intersect(P, Q)
+    intersect(P, Q)
 
 Intersect two polyhedra.
 
@@ -146,7 +146,7 @@ end
 
 
 """
-   minkowski_sum(P::Polyhedron, Q::Polyhedron)
+    minkowski_sum(P::Polyhedron, Q::Polyhedron)
 
 Minkowski sum of two polyhedra.
 
@@ -184,7 +184,7 @@ end
 #TODO: documentation  + extend to different fields.
 
 """
-   +(P::Polyhedron, Q::Polyhedron)
+    +(P::Polyhedron, Q::Polyhedron)
 
 Minkowski sum of two polyhedra.
 
@@ -212,7 +212,7 @@ julia> nvertices(M)
 #TODO: extend to different fields
 
 @doc Markdown.doc"""
-   *(k::Int, Q::Polyhedron)
+    *(k::Int, Q::Polyhedron)
 
 Return the scaled polyhedron `kQ`.
 
@@ -237,7 +237,7 @@ julia> volume(SC)//volume(C)
 
 
 @doc Markdown.doc"""
-   *(P::Polyhedron, k::Int)
+    *(P::Polyhedron, k::Int)
 
 Return the scaled polyhedron `kP`.
 
@@ -262,7 +262,7 @@ julia> volume(SC)//volume(C)
 
 
 @doc Markdown.doc"""
-   +(P::Polyhedron, v::AbstractVector)
+    +(P::Polyhedron, v::AbstractVector)
 
 Return the translation `P+v` of `P` by the vector `v`.
 
@@ -303,7 +303,7 @@ end
 
 
 @doc Markdown.doc"""
-   +(v::AbstractVector,P::Polyhedron)
+    +(v::AbstractVector,P::Polyhedron)
 
 Return the translation `v+P` of `P` by the vector `v`.
 
@@ -338,7 +338,7 @@ julia> collect(vertices(S))
 
 @doc Markdown.doc"""
 
-   simplex(d[,n])
+    simplex(d[,n])
 
 Construct the simplex which is the convex hull of the standard basis vectors
 along with the origin in $\mathbb{R}^d$, optionally scaled by $n$.
@@ -401,7 +401,7 @@ simplex(d::Int64) = Polyhedron(Polymake.polytope.simplex(d))
 
 @doc Markdown.doc"""
 
-   cross(d[,n])
+    cross(d[,n])
 
 Construct a $d$-dimensional cross polytope around origin with vertices located at $\pm e_i$ for each unit vector $e_i$ of $R^d$, scaled by $n$.
 
@@ -462,7 +462,7 @@ cross(d::Int64) = Polyhedron(Polymake.polytope.cross(d))
 
 @doc Markdown.doc"""
 
-   archimedean_solid(s)
+    archimedean_solid(s)
 
 Construct an Archimedean solid with the name given by String `s` from the list
 below.  The polytopes are realized with floating point numbers and thus not
