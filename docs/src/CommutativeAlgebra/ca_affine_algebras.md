@@ -251,7 +251,7 @@ $A = \bigoplus_{d\geq 0} A_d$, where each graded piece $A_d$ is a finite dimensi
 $K$-vector space. In this situation, the *Hilbert function* of $A$ is
 the function
 
-$H(A, \underline{\phantom{d}}): \N \rightarrow \N, d \mapsto \dim_K(d).$
+$H(A, \underline{\phantom{d}}): \N \to \N, d \mapsto \dim_K(d).$
 
 The *Hilbert series* of $A$ is the generating function
 

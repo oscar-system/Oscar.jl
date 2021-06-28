@@ -13,7 +13,7 @@ Pages = ["ca.md"]
 # Introduction
 
 The commutative algebra part of OSCAR provides functionality for handling
-- ideals and modules over multivariated polynomial rings,
+- ideals and modules over multivariate polynomial rings,
 - quotient rings of such rings, with particular emphasis on affine $K$-algebras.
 
 It is under development with regard to providing both the functionality and the documentation. 
