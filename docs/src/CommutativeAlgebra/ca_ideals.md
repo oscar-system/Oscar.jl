@@ -216,7 +216,7 @@ isprimary(I::MPolyIdeal)
 
 We discuss various decomposition techniques. They are implemented for
 polynomial rings over fields and, if explicitly mentioned, also for
-polynomial rings over the integers.
+polynomial rings over the integers. See [DGP99](@cite) for a survey.
 
 ### Radical
 
