@@ -117,9 +117,27 @@ function example(s::String)
   Base.include(Main, joinpath(oscardir, "examples", s))
 end
 
-function build_doc()
+function doc_init()
+  old = Pkg.project().path
+  Pkg.activate(joinpath(oscardir, "docs"))
+#  Pkg.update()
   Base.include(Main, joinpath(oscardir, "docs", "make_local.jl"))
+  Pkg.activate(old)
 end
+
+function doc_update_deps()
+  old = Pkg.project().path
+  Pkg.activate(joinpath(oscardir, "docs"))
+  Pkg.update()
+  Pkg.activate(old)
+end
+
+
+function build_doc()
+  Main.BuildDoc.doit(false, true)
+  Main.BuildDoc.open_doc()
+end
+
 export build_doc
 # This can be used in
 #

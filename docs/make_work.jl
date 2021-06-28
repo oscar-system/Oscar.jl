@@ -183,8 +183,16 @@ const aa = sanitize(bla, "AbstractAlgebra")
 
 bib = CitationBibliography(joinpath(@__DIR__, "oscar_references.bib"), sorting = :nyt)
 
-DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar); recursive = true)
-DocMeta.setdocmeta!(Hecke, :DocTestSetup, :(using Hecke); recursive = true)
+function __init()
+  DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar); recursive = true)
+  DocMeta.setdocmeta!(Hecke, :DocTestSetup, :(using Hecke); recursive = true)
+
+  println("Docu set up")
+end
+
+function doit(strict::Bool = true, local_build::Bool = false)
+
+  cd(joinpath(dirname(pathof(Oscar)), "..", "docs")) do
 
 makedocs(bib,
          format   = Documenter.HTML(prettyurls = !local_build),
@@ -194,7 +202,7 @@ makedocs(bib,
          modules = [Oscar, Hecke, Nemo, AbstractAlgebra, Singular],
          clean = true,
          doctest = true,
-         strict = true,
+         strict = !true,
          checkdocs = :none,
          pages    = [
             "index.md",
@@ -307,3 +315,6 @@ makedocs(bib,
             "Index" => "manualindex.md",
          ]
 )
+end
+
+end
