@@ -152,11 +152,11 @@ Oscar.elem_type(::BoundRing) = BoundRingElem
 
 #my 1st invariant!!!
 @doc Markdown.doc"""
-    sqrt_disc(a::Array{<:Any, 1})
+    sqrt_disc(a::Vector{<:Any})
 
 The product of differences ``a[i] - a[j]`` for all indices ``i<j``.    
 """
-function sqrt_disc(a::Array{<:Any, 1})
+function sqrt_disc(a::Vector{<:Any})
   if length(a) == 1
     return one(parent(a[1]))
   end
@@ -170,7 +170,7 @@ Evaluates the `i`-th elementary symmetric polynomial at the values in `g`.
 The `i`-th elementary symmetric polynomial is the sum over all
 products of `i` distinct variables.
 """
-function elementary_symmetric(g::Array{<:Any, 1}, i::Int)
+function elementary_symmetric(g::Vector{<:Any}, i::Int)
   return sum(prod(g[i] for i = s) for s = Hecke.subsets(Set(1:length(g)), i))
 end
 
@@ -180,7 +180,7 @@ end
 Evaluates the `i`-th power sums at the values in `g`, ie. the sum
 of the `i`-th power of the values.
 """
-function power_sum(g::Array{<:Any, 1}, i::Int)
+function power_sum(g::Vector{<:Any}, i::Int)
   return sum(a^i for a = g)
 end
 
@@ -189,7 +189,7 @@ end
 
 Compute the product of all differences of distinct elements in the array.    
 """
-function Oscar.discriminant(g::Array{<:RingElem, 1})
+function Oscar.discriminant(g::Vector{<:RingElem})
   return prod(a-b for a = g for b = g if a!=b)
 end
 
@@ -270,7 +270,7 @@ mutable struct GaloisCtx{T}
   C::T # a suitable root context
   B::BoundRingElem # a "bound" on the roots, might be "anything"
   G::PermGroup
-  chn::Array{Tuple{PermGroup, SLPoly, fmpz_poly, Array{PermGroupElem, 1}}, 1}
+  chn::Vector{Tuple{PermGroup, SLPoly, fmpz_poly, Vector{PermGroupElem}}}
   #= the descent chain, recodring
    - the group
    - the invariant
@@ -284,7 +284,7 @@ mutable struct GaloisCtx{T}
     r.f = f
     r.C = Hecke.qAdicRootCtx(f, p, splitting_field = true)
     r.B = add_ring()(roots_upper_bound(f))
-    r.chn = Tuple{PermGroup, SLPoly, fmpz_poly, Array{PermGroupElem, 1}}[]
+    r.chn = Tuple{PermGroup, SLPoly, fmpz_poly, Vector{PermGroupElem}}[]
     return r
   end
   #=
@@ -310,7 +310,7 @@ mutable struct GaloisCtx{T}
     r.f = evaluate(f, [Qts(t), s])
     r.C = HQ
     #r.B = more complicated: needs degree (inf. val.) bound as well as coeffs
-    r.chn = Tuple{PermGroup, SLPoly, fmpz_poly, Array{PermGroupElem, 1}}[]
+    r.chn = Tuple{PermGroup, SLPoly, fmpz_poly, Vector{PermGroupElem}}[]
     return r
   end
 end
@@ -333,8 +333,8 @@ used in the algorithm. The roots are returned up to a precision of `pr`
 p-adic digits, thus they are correct modulo ``p^pr``
 """
 function Hecke.roots(G::GaloisCtx{Hecke.qAdicRootCtx}, pr::Int)
-  a = Hecke.roots(G.C, pr)::Array{qadic, 1}
-  return Hecke.expand(a, all = true, flat = false, degs = Hecke.degrees(G.C.H))::Array{qadic, 1}
+  a = Hecke.roots(G.C, pr)::Vector{qadic}
+  return Hecke.expand(a, all = true, flat = false, degs = Hecke.degrees(G.C.H))::Vector{qadic}
 end
 function Hecke.roots(G::GaloisCtx{<:Hecke.MPolyFact.HenselCtxFqRelSeries}, pr)
   C = G.C
@@ -787,7 +787,7 @@ function resolvent(C::GaloisCtx, G::PermGroup, U::PermGroup, extra::Int = 5)
 end
 
 struct GroupFilter
-  f::Array{Function, 1}
+  f::Vector{Function}
   GroupFilter() = new([x->true])
 end
 
@@ -817,10 +817,10 @@ Furthermore we may compute (and store)
 """
 mutable struct DescentEnv
   G::PermGroup
-  s::Array{PermGroup, 1}
+  s::Vector{PermGroup}
   I::Dict{Int, SLPoly}
-  T::Dict{Int, Array{fmpz_poly, 1}}
-  l::Array{Int, 1}
+  T::Dict{Int, Vector{fmpz_poly}}
+  l::Vector{Int}
   #the coset reps need to be cached as well
   #a "work limit" on the "invariant" function
   #a more select choice of group....
@@ -831,7 +831,7 @@ mutable struct DescentEnv
     r.G = G
     r.s = filter(f, s)
     r.I = Dict{Int, SLPoly}()
-    r.T = Dict{Int, Array{fmpz_poly, 1}}()
+    r.T = Dict{Int, Vector{fmpz_poly}}()
     r.l = zeros(Int, length(r.s))
     return r
   end
@@ -907,7 +907,7 @@ function starting_group(GC::GaloisCtx, K::AnticNumberField; useSubfields::Bool =
   end
 
   #compute the block system for all subfields...
-  bs = Array{Array{Int, 1}, 1}[]
+  bs = Vector{Vector{Int}}[]
   for (s, ms) = S
     if degree(s) == degree(K) || degree(s) == 1
       continue
@@ -919,7 +919,7 @@ function starting_group(GC::GaloisCtx, K::AnticNumberField; useSubfields::Bool =
 
       g = ms(gen(s))
       d = map(parent(K.pol)(g), c)
-      b = Dict{typeof(c[1]), Array{Int, 1}}()
+      b = Dict{typeof(c[1]), Vector{Int}}()
       for i=1:length(c)
         if Base.haskey(b, d[i])
           push!(b[d[i]], i)
@@ -1067,8 +1067,8 @@ function find_prime(f::fmpq_poly, extra::Int = 5; pStart::Int = 2*degree(f))
   d_min = min(2, d_max)
   p_best = 1
   cnt = 5
-  ct = Set{Array{Int, 1}}()
-  ps = Array{Tuple{Int, Int}, 1}()
+  ct = Set{Vector{Int}}()
+  ps = Vector{Tuple{Int, Int}}()
 
   #find a q-adic splitting field of "good degree":
   # - too small, then the Frobenius automorphisms is not containing lots of
@@ -1337,7 +1337,7 @@ Finds a Tschirnhausen transformation, ie a polynomial in `Zx` s.th.
 
   ``|\{ I^s(t(r_1), ..., t(r_n)) | s in T\}| = |T|``
 """
-function find_transformation(r, I::SLPoly, T::Array{PermGroupElem, 1})
+function find_transformation(r, I::SLPoly, T::Vector{PermGroupElem})
   Zx = Hecke.Globals.Zx
   ts = gen(Zx)
   while true

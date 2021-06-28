@@ -80,7 +80,7 @@ end
 # To get a nice output for the divisors. The needs_parentheses is needed since
 # expressify wants to know if parentheses are needed.
 
-function AbstractAlgebra.needs_parentheses(A::Array{T, 1}) where T <: RingElem
+function AbstractAlgebra.needs_parentheses(A::Vector{T}) where T <: RingElem
     return false
 end
 

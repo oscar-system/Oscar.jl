@@ -16,7 +16,7 @@ The main SLP type is `SLProgram`, to which other types can "compile" (or
 julia> using StraightLinePrograms; const SL = StraightLinePrograms
 
 julia> x, y, z = gens(SLProgram, 3)
-3-element Array{SLProgram{Union{}},1}:
+3-element Vector{SLProgram{Union{}}}:
  x
  y
  z
@@ -36,7 +36,7 @@ represent "formulas" as trees:
 
 ```julia
 julia> X, Y, Z = gens(Free, 3)
-3-element Array{Free,1}:
+3-element Vector{Free}:
  x
  y
  z
@@ -118,7 +118,7 @@ keep: #1..#2
 return: [#1, #2]
 
 julia> evaluate(p, [X, Y, Z])
-2-element Array{Free,1}:
+2-element Vector{Free}:
  (xy^2)
  ((xy^2) + (1.3z))^-1
 ```
@@ -279,7 +279,7 @@ Currently, SLPs have a polynomial interface (`SLPoly`).
 julia> using AbstractAlgebra, StraightLinePrograms, BenchmarkTools;
 
 julia> S = SLPolyRing(zz, [:x, :y]); x, y = gens(S)
-2-element Array{SLPoly{Int64,SLPolyRing{Int64,AbstractAlgebra.Integers{Int64}}},1}:
+2-element Vector{SLPoly{Int64,SLPolyRing{Int64,AbstractAlgebra.Integers{Int64}}}}:
  x
  y
 
@@ -290,7 +290,7 @@ julia> p = 3 + 2x * y^2 # each line of the SLP is shown with current value
   #4 = + 3 #3   ==>     (3 + (2xy^2))
 
 julia> p.cs # constants used in the program
-2-element Array{Int64,1}:
+2-element Vector{Int64}:
  3
  2
 
@@ -331,7 +331,7 @@ julia> res = Int[]; @btime StraightLinePrograms.evaluate!($res, $p2, $v)
 -1458502820125772303
 
 julia> res # intermediate computations (first 2 elements are constants)
-9-element Array{Int64,1}:
+9-element Vector{Int64}:
                     3
                     2
                     6

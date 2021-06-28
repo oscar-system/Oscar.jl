@@ -174,7 +174,7 @@ function singular_ring_loc(R::MPolyRingLoc{T}; ord::Symbol = :negdegrevlex) wher
 end
 
 mutable struct BiPolyArrayLoc{S}
-  O::Array{S, 1}
+  O::Vector{S}
   S::Singular.sideal
   Ox::MPolyRingLoc
   Sx::Singular.PolyRing
@@ -190,7 +190,7 @@ mutable struct BiPolyArrayLoc{S}
     r.O = Ox.(phi.([R(x) for x = gens(b)]))
     return r
   end
-  function BiPolyArrayLoc(a::Array{T, 1}; ord::Symbol = :negdegrevlex) where T <: MPolyElemLoc
+  function BiPolyArrayLoc(a::Vector{T}; ord::Symbol = :negdegrevlex) where T <: MPolyElemLoc
     r = new{T}()
     r.O = a
     r.Ox = parent(a[1])
@@ -220,7 +220,7 @@ mutable struct MPolyIdealLoc{S} <: Ideal{S}
     r.gens = B
     return r
   end
-  function MPolyIdealLoc(g::Array{T, 1}) where {T <: MPolyElemLoc}
+  function MPolyIdealLoc(g::Vector{T}) where {T <: MPolyElemLoc}
     r = new{T}()
     r.dim = -1 # not known
     r.gens = BiPolyArrayLoc(g)
@@ -304,11 +304,11 @@ end
 # Ideal constructor functions                                                 #
 ###############################################################################
 
-function ideal(g::Array{T, 1}) where T <: MPolyElemLoc
+function ideal(g::Vector{T}) where T <: MPolyElemLoc
   return MPolyIdealLoc(g)
 end
 
-function ideal(Rx::MPolyRingLoc, g::Array{<:Any, 1})
+function ideal(Rx::MPolyRingLoc, g::Vector{<:Any})
   f = elem_type(Rx)[Rx(f) for f = g]
   return ideal(f)
 end

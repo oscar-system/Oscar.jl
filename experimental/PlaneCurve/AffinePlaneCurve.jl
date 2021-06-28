@@ -161,8 +161,8 @@ Return the reduced singular locus of `C` as a list whose first element is the af
 function curve_singular_locus(C::AffinePlaneCurve)
    comp = curve_components(C)
    D = reduction(C)
-   Pts = Array{Point, 1}()
-   CC = Array{AffinePlaneCurve, 1}()
+   Pts = Vector{Point}()
+   CC = Vector{AffinePlaneCurve}()
    # The components with multiplicity > 1 are singular
    f = [h.eq for (h,c) in comp if c != 1]
    if !isempty(f)

@@ -44,7 +44,7 @@ function zerodecomp(I::Singular.sideal, outputReduced::Bool = false, usefglm::Bo
   if Singular.vdim(Icopy) == Singular.total_degree(Icopy[1]) #Easy case, see documentation for vdim_internal
     return vdim_internal(Icopy, usefglm)
   else
-    result = Array{Singular.sideal, 1}(undef, 0)
+    result = Vector{Singular.sideal}(undef, 0)
     return zerodecomp_internal(Icopy, result, outputReduced, usefglm)
   end
 end
@@ -72,10 +72,10 @@ function zerodecomp_internal(I::Singular.sideal, result::Array{Singular.sideal},
     #The arrays Qdash and Pdash are used to compute the elements of the primary decomposition. As general position is needed to 
     #compute and we do not want the ideal in general position for the output, P and Q denote the ideals of Pdash and Qdash obtained by applying 
     #the inverse coordinate change.
-    Q = Array{Singular.sideal, 1}(undef, length(gi));
-    Qdash = Array{Singular.sideal, 1}(undef, length(gi));
-    P = Array{Singular.sideal, 1}(undef, length(gi));
-    Pdash = Array{Singular.sideal, 1}(undef, length(gi));
+    Q = Vector{Singular.sideal}(undef, length(gi));
+    Qdash = Vector{Singular.sideal}(undef, length(gi));
+    P = Vector{Singular.sideal}(undef, length(gi));
+    Pdash = Vector{Singular.sideal}(undef, length(gi));
 
     #For each factor of g another primary ideal is added to the primary decomposition (see Algorithm)
     for i in 1:length(gi)
@@ -241,7 +241,7 @@ end
 
 
 #requires: A has elements of the coefficient field of the base ring of the ideal of length nvars-1
-function generalPosition(I::Singular.sideal, A::Array{T, 1}) where T <: Singular.spoly
+function generalPosition(I::Singular.sideal, A::Vector{T}) where T <: Singular.spoly
     R = I.base_ring;
     n = Singular.nvars(R);
     G = Singular.gens(R);
@@ -268,7 +268,7 @@ function randomGeneralPosition(I::Singular.sideal)
             A[i] = -A[i];
         end
     end
-    B = Array{Singular.spoly, 1}(undef, n-1)
+    B = Vector{Singular.spoly}(undef, n-1)
     R = I.base_ring;
     for i in 1:length(A)
         if A[i] == 0
@@ -280,7 +280,7 @@ function randomGeneralPosition(I::Singular.sideal)
 end
 
 #gives the image of the ideal I under the inverse of the coordinate change obtained by general position and array A
-function inverseGeneralPosition(I::Singular.sideal, A::Array{T,1}) where T<: Singular.spoly
+function inverseGeneralPosition(I::Singular.sideal, A::Vector{T}) where T<: Singular.spoly
     R = I.base_ring;
     n = Singular.nvars(R);
     G = Singular.gens(R);
@@ -303,7 +303,7 @@ function vdim_internal(I::Singular.sideal, usefglm::Bool = false)
   R = I.base_ring
   g = Singular.factor(I[1])
   gi = collect(keys(g.fac))
-  primary = Array{Singular.sideal, 1}(undef, 0)
+  primary = Vector{Singular.sideal}(undef, 0)
 
   #Compute ideal I without the first element for easier computation
   I_without_I1 = Singular.Ideal(R, gens(I)[2:length(gens(I))])

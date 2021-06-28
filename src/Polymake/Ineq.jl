@@ -7,17 +7,17 @@ ncols(A::Polymake.MatrixAllocated) = Int(size(A)[2])
 
 function _polytope(; A::fmpz_mat=zero_matrix(FlintZZ, 1, 1), b::fmpz_mat=zero_matrix(FlintZZ, ncols(A), 1), C::fmpz_mat=zero_matrix(FlintZZ, 1, 1))
   if !iszero(A)
-    bA = Array{BigInt, 2}(hcat(-b, A))
+    bA = Matrix{BigInt}(hcat(-b, A))
     z = findall(i->!iszero_row(bA, i), 1:nrows(bA))
-    zbA = Array{BigInt, 2}(bA[z, :])
+    zbA = Matrix{BigInt}(bA[z, :])
   else
-    zbA = Array{BigInt, 2}(undef, 0, 0)
+    zbA = Matrix{BigInt}(undef, 0, 0)
   end
   if !iszero(C)
     z = findall(i->!iszero_row(C, i), 1:nrows(C))
-    zI = Array{BigInt, 2}(hcat(zero_matrix(FlintZZ, nrows(C), 1), C))[z, :]
+    zI = Matrix{BigInt}(hcat(zero_matrix(FlintZZ, nrows(C), 1), C))[z, :]
   else
-    zI = Array{BigInt, 2}(undef, 0, 0)
+    zI = Matrix{BigInt}(undef, 0, 0)
   end
   if length(zbA) == 0
     p =  Polymake.polytope.Polytope(INEQUALITIES = zI)
@@ -33,17 +33,17 @@ end
 
 function _cone(; A::fmpz_mat=zero_matrix(FlintZZ, 1, 1), b::fmpz_mat=zero_matrix(FlintZZ, ncols(A), 1), C::fmpz_mat=zero_matrix(FlintZZ, 1, 1))
   if !iszero(A)
-    bA = Array{BigInt, 2}(hcat(-b, A))
+    bA = Matrix{BigInt}(hcat(-b, A))
     z = findall(i->!iszero_row(bA, i), 1:nrows(bA))
-    zbA = Array{BigInt, 2}(bA[z, :])
+    zbA = Matrix{BigInt}(bA[z, :])
   else
-    zbA = Array{BigInt, 2}(undef, 0, 0)
+    zbA = Matrix{BigInt}(undef, 0, 0)
   end
   if !iszero(C)
     z = findall(i->!iszero_row(C, i), 1:nrows(C))
-    zI = Array{BigInt, 2}(hcat(zero_matrix(FlintZZ, nrows(C), 1), C))[z, :]
+    zI = Matrix{BigInt}(hcat(zero_matrix(FlintZZ, nrows(C), 1), C))[z, :]
   else
-    zI = Array{BigInt, 2}(undef, 0, 0)
+    zI = Matrix{BigInt}(undef, 0, 0)
   end
   if length(zbA) == 0
     p =  Polymake.polytope.Cone(INEQUALITIES = zI)

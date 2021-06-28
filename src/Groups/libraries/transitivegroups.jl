@@ -37,7 +37,7 @@ Return the list of all transitive groups (up to isomorphism) satisfying the cond
 # Examples
 ```jldoctest
 julia> all_transitive_groups(degree, 4, isabelian)
-2-element Array{PermGroup,1}:
+2-element Vector{PermGroup}:
  C(4) = 4
  E(4) = 2[x]2
 ```

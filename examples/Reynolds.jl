@@ -50,7 +50,7 @@ function is_approx_integral(f::fmpq_mat, o::fmpz)
 end
 
 struct ContinuedFraction
-  cf::Array{fmpz, 1}
+  cf::Vector{fmpz}
   function ContinuedFraction(a::fmpq, n::Int = typemax(Int))
     iszero(a) && return new(fmpz[0])
     cf = fmpz[]
@@ -78,7 +78,7 @@ struct ContinuedFraction
     end
   end
 
-  function ContinuedFraction(a::Array{fmpz, 1})
+  function ContinuedFraction(a::Vector{fmpz})
     return new(a)
   end
 
@@ -152,7 +152,7 @@ end
 
 #z, zi = make_integral...
 #then [x*x*zi for x = M] is an integral rep
-function make_integral(M::Array{fmpq_mat, 1})
+function make_integral(M::Vector{fmpq_mat})
   I = identity_matrix(ZZ, nrows(M[1]))
   d = [lcm(collect(map(denominator, m))) for m = M]
   N = [map(numerator, d[i]*M[i]) for i=1:length(M)]
@@ -176,7 +176,7 @@ function make_integral(M::Array{fmpq_mat, 1})
   end
 end
 
-function reynolds(f::fmpq_mpoly, M::Array{<:MatElem, 1}, ord::fmpz)
+function reynolds(f::fmpq_mpoly, M::Vector{<:MatElem}, ord::fmpz)
 
   ord *= lcm(map(denominator, M))
 
@@ -229,13 +229,13 @@ function Oscar.monomials(R::MPolyRing, d::Int)
   return nn
 end
 
-function action_on_monomials(R::MPolyRing, d::Int, A::Array{fmpq_mat, 1})
+function action_on_monomials(R::MPolyRing, d::Int, A::Vector{fmpq_mat})
   g = gens(R)
   m = sort(monomials(R, d))
 
   B = fmpq_mat[]
   for a = A
-    bb = Array{fmpq, 1}[]
+    bb = Vector{fmpq}[]
     h = [x^a for x = g]
     for x = m
       b = zeros(QQ, length(m))
@@ -250,7 +250,7 @@ function action_on_monomials(R::MPolyRing, d::Int, A::Array{fmpq_mat, 1})
   return B, m
 end
 
-function reynolds(f::fmpq_mat, M::Array{<:MatElem, 1}, ord::fmpz)
+function reynolds(f::fmpq_mat, M::Vector{<:MatElem}, ord::fmpz)
   ord *= lcm(map(denominator, M))
 
   I = one(parent(M[1]))
@@ -285,7 +285,7 @@ function reynolds(f::fmpq_mat, M::Array{<:MatElem, 1}, ord::fmpz)
   return f
 end
 
-function reynolds_via_linalg(f::fmpq_mpoly, A::Array{fmpq_mat, 1}, ord::fmpz)
+function reynolds_via_linalg(f::fmpq_mpoly, A::Vector{fmpq_mat}, ord::fmpz)
   @assert length(f) == 1 #currently technical probs
 
   h, m = action_on_monomials(parent(f), total_degree(f), A)

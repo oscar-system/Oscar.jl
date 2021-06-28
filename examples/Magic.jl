@@ -3,7 +3,7 @@ module Magic
 using Oscar
 
 function magic_square_generators(n::Int)
-  l = Array{Array{Int, 1}, 1}()
+  l = Vector{Vector{Int}}()
   for i=1:1
     for j=i+1:n
       m = zeros(Int, n*n)

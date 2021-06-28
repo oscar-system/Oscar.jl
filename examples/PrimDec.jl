@@ -31,7 +31,7 @@ set to 'true' then the FGLM - algorithm is used in zero-dimensional computations
 function primary_decomposition(I::Oscar.MPolyIdeal; usefglm::Bool = false)
     Oscar.singular_assure(I)
     B = base_ring(I)
-    trivial = Array{Singular.sideal, 1}(undef, 0)
+    trivial = Vector{Singular.sideal}(undef, 0)
     n = 1
     Is = I.gens.S
     J = changeOrderOfBasering(I.gens.S, :lex)
@@ -42,7 +42,7 @@ function primary_decomposition(I::Oscar.MPolyIdeal; usefglm::Bool = false)
     R = Is.base_ring
     S = J.base_ring
     phi = Singular.AlgebraHomomorphism(S, R, gens(R))
-    PDres = Array{Oscar.MPolyIdeal, 1}(undef, 0)
+    PDres = Vector{Oscar.MPolyIdeal}(undef, 0)
     
     for i in 1:length(PDint)
       push!(PDres, Oscar.MPolyIdeal(B, phi(PDint[i])))
@@ -156,7 +156,7 @@ end
 #           G a Groebner basis of I w.r.t lex:= [x\u , u] over K[]
 #           h in K(u) s.t. IK(u)[x\u] intersecting K[x] = I:<h> = I:<h^infinity> 
 
-function reductionToZero(I::Singular.sideal, u::Array{Singular.spoly{U},1}, x_minus_u::Array{Singular.spoly{U},1}) where U <: Singular.FieldElem
+function reductionToZero(I::Singular.sideal, u::Vector{Singular.spoly{U}}, x_minus_u::Vector{Singular.spoly{U}}) where U <: Singular.FieldElem
     ureturn = Singular.deepcopy(u)
     G = Singular.std(I)
     T = G.base_ring
@@ -193,11 +193,11 @@ end
 ####################################### helpprocs, mainly for mapping forwards and backwards between different orderings #######################
 
 #this is used to compute the mapping back to K[x] and intersecting the primary ideals and primes 
-function map_back_and_intersect(S::Singular.PolyRing, T::Singular.PolyRing, lengthu::Int64, lengthx_minus_u::Int64, qprimary::Array{W,1}, primary::Array{Singular.sideal ,1}, switch_morphism_inverse, check::Singular.sideal) where { U <: Singular.FieldElem, V <: Singular.spoly, W <: Singular.sideal}
+function map_back_and_intersect(S::Singular.PolyRing, T::Singular.PolyRing, lengthu::Int64, lengthx_minus_u::Int64, qprimary::Vector{W}, primary::Vector{Singular.sideal }, switch_morphism_inverse, check::Singular.sideal) where { U <: Singular.FieldElem, V <: Singular.spoly, W <: Singular.sideal}
     S = qprimary[1].base_ring
     for j in 1:length(qprimary)
         qprimary_gens = Singular.gens(qprimary[j])
-        newgens = Array{Singular.spoly,1}(undef,length(qprimary_gens))
+        newgens = Vector{Singular.spoly}(undef,length(qprimary_gens))
         K = base_ring(S)
         #map all elements of the primary decomposition and their associated primes back to original K[u,x\u] ring
         ptr3 = Singular.libSingular.n_SetMap(base_ring(S).ptr, base_ring(T).ptr)
@@ -243,7 +243,7 @@ function  saturationExponent(G::Singular.sideal, h::Singular.sideal)
 end
 
 #Switches basering of ideal I to a custom lexicographic ordering where the variables are given by the Array H,returns both the forwards and backwards map as an AlgebraHomomorphism, and the ring that is mapped into.
-function customLexOrdering(I:: Singular.sideal, H::Array{T, 1}) where T <: Singular.spoly
+function customLexOrdering(I:: Singular.sideal, H::Vector{T}) where T <: Singular.spoly
     R = I.base_ring;
     Hstring = ["$i" for i in H]
     S, = Singular.PolynomialRing(R.base_ring, Hstring, ordering=:lex)
@@ -266,7 +266,7 @@ function customLexOrdering(I:: Singular.sideal, H::Array{T, 1}) where T <: Singu
 end
 
 #Calls customLexOrdering for our case.
-function switchLexOrdering(I:: Singular.sideal, x_minus_u::Array{T, 1}, u::Array{T, 1}) where T <: Singular.spoly 
+function switchLexOrdering(I:: Singular.sideal, x_minus_u::Vector{T}, u::Vector{T}) where T <: Singular.spoly 
     H = vcat(u, x_minus_u);
     return customLexOrdering(I,H)
 end

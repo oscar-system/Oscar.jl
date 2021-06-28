@@ -5,7 +5,7 @@ using Oscar
 struct BlockSystems
   n::Int
   l::Int
-  cur::Array{Array{Int, 1}, 1}
+  cur::Vector{Vector{Int}}
   function BlockSystems(n::Int, l::Int)
     @assert n % l == 0
     return new(n, l, [collect((i-1)*l+1:i*l) for i=1:divexact(n, l)])
@@ -16,7 +16,7 @@ function Base.iterate(B::BlockSystems)
   return B.cur, deepcopy(B.cur)
 end
 
-function Base.iterate(B::BlockSystems, st::Array{Array{Int, 1}})
+function Base.iterate(B::BlockSystems, st::Array{Vector{Int}})
   if B.l==1||B.l==B.n
     return nothing
   end
