@@ -546,7 +546,7 @@ rising_factorial(ZZ(-30), 3)
 * `primorial(n::Base.Int) -> Base.Int`
 * `primorial(n::Oscar.Integer) -> Oscar.Integer`
 
-Returns the promorial ``P(n)``, i.e. the product of all primes less than or
+Returns the primorial ``P(n)``, i.e. the product of all primes less than or
 equal to ``n``. An exception is raised if ``n < 0``. We define
 ``P(0) = P(1) = 1``.
 

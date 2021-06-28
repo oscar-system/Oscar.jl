@@ -29,7 +29,7 @@ is its ring of invariants.
 
 !!! note
     Except where mentioned otherwise, we will be in the favourable situation where $G$ is a linear reductive group which acts rationally on $V$. This has several important consequences:
-    - There exists a Reynolds operator $\mathcal R: K[V] \rightarrow K[V]$. That is, $\mathcal R$ is a $K$-linear graded map which projects $K[V]$ onto $K[V]^G$, and which is a $K[V]^G$-module homomorphism;
+    - There exists a Reynolds operator $\mathcal R: K[V] \to K[V]$. That is, $\mathcal R$ is a $K$-linear graded map which projects $K[V]$ onto $K[V]^G$, and which is a $K[V]^G$-module homomorphism;
     - by Hilbert's finiteness theorem, $K[V]^G$ is finitely generated as a $K$-algebra;
     - by a result of Hochster and Roberts, $K[V]^G$ is Cohen-Macaulay. Equivalently, $K[V]^G$ is a free module (of finite rank) over any of its Noether normalizations.
     If $k[V]^G$ is finitely generated as a $K$-algebra, we call any irredundant system of homogeneous generators a fundamental system of invariants of $k[V]^G$. By Nakayama's lemma, the number of elements in such a system is uniquely determined as the embedding dimension of $K[V]^G$. Similarly, the degrees of these elements are uniquely determined.

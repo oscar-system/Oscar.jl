@@ -22,7 +22,7 @@ automorphism_group(G)
 ```
 The evaluation of the automorphism `f` in the element `x` is analogous to the homomorphism evaluation: it can be obtained by typing either `f(x)` or `x^f`.
 
-It is possible to turn an automorphism `f` into a homomorphism by typing `hom(f)`. The viceversa is also possible: if `g` is a bijective homomorphism from the group `G` to itself and `A` is the automorphism group of `G`, then the instruction `A(g)` returns `g` as automorphism of `G`. This is the standard way to build explicitly an automorphism (another way, available for inner automorphisms, is shown in Section [Inner_automorphisms](@ref inner_automorphisms)).
+It is possible to turn an automorphism `f` into a homomorphism by typing `hom(f)`. The converse is also possible: if `g` is a bijective homomorphism from the group `G` to itself and `A` is the automorphism group of `G`, then the instruction `A(g)` returns `g` as automorphism of `G`. This is the standard way to build explicitly an automorphism (another way, available for inner automorphisms, is shown in Section [Inner_automorphisms](@ref inner_automorphisms)).
 
 ```@docs
 automorphism_group(G::GAPGroup)
