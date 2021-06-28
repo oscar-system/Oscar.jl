@@ -7,7 +7,7 @@
     Q1 = convex_hull(pts, [1 1])
     Q2 = convex_hull(pts, [1 1], [1 1])
     C0 = cube(2)
-    C1 = cube(2, 1, 0)
+    C1 = cube(2, 0, 1)
 
     @testset "(de)homogenize" begin
         dehomogenize, homogenize = Oscar.dehomogenize, Oscar.homogenize
@@ -63,8 +63,8 @@
         @test isnormal(C0)
         @test isfeasible(C0)
         @test isfulldimensional(C0)
-        @test minkowski_sum(C0,C0) == cube(2,2,-2)
-        @test minkowski_sum(C0,C0; algorithm=:fukuda) == cube(2,2,-2)
+        @test minkowski_sum(C0,C0) == cube(2,-2,2)
+        @test minkowski_sum(C0,C0; algorithm=:fukuda) == cube(2,-2, 2)
         @test intersect(C0,C0) == C0
     end
 

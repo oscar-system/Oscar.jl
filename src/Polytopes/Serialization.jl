@@ -1,6 +1,6 @@
 ##############################################################################
 """
-   save_cone(Cone, String)
+    save_cone(Cone, String)
 
 Save a cone to a file in JSON format. The first argument is the cone, the
 second argument is the filename.
@@ -11,7 +11,7 @@ function save_cone(C::Cone, filename::String)
 end
 
 """
-   load_cone(String)
+    load_cone(String)
 
 Load a cone stored in JSON format, given the filename as input.
 """
@@ -25,7 +25,7 @@ end
 
 ##############################################################################
 """
-   save_polyhedron(Cone, String)
+    save_polyhedron(Cone, String)
 
 Save a polyhedron to a file in JSON format. The first argument is the
 polyhedron, the second argument is the filename.
@@ -36,7 +36,7 @@ function save_polyhedron(P::Polyhedron, filename::String)
 end
 
 """
-   load_polyhedron(String)
+    load_polyhedron(String)
 
 Load a polyhedron stored in JSON format, given the filename as input.
 """
@@ -51,7 +51,7 @@ end
 
 ##############################################################################
 """
-   save_polyhedralfan(PolyhedralFan, String)
+    save_polyhedralfan(PolyhedralFan, String)
 
 Save a polyhedral fan to a file in JSON format. The first argument is the
 polyhedral fan, the second argument is the filename.
@@ -62,7 +62,7 @@ function save_polyhedralfan(PF::PolyhedralFan, filename::String)
 end
 
 """
-   load_polyhedralfan(String)
+    load_polyhedralfan(String)
 
 Load a polyhedral fan stored in JSON format, given the filename as input.
 """

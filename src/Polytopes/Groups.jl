@@ -47,9 +47,9 @@ function combinatorial_symmetries(P::Polyhedron)
 end
 
 """
-   linear_symmetries(P::Polyhedron)
+    linear_symmetries(P::Polyhedron)
 
-   Get the group of linear symmetries on the vertices of a polyhedron.
+Get the group of linear symmetries on the vertices of a polyhedron.
 """
 function linear_symmetries(P::Polyhedron)
     if P.pm_polytope.BOUNDED
