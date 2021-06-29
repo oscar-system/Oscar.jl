@@ -192,7 +192,7 @@ end
 
 function doit(strict::Bool = true, local_build::Bool = false)
 
-  cd(joinpath(dirname(pathof(Oscar)), "..", "docs")) do
+  cd(joinpath(Oscar.oscardir, "docs")) do
 
 makedocs(bib,
          format   = Documenter.HTML(prettyurls = !local_build),
@@ -202,7 +202,7 @@ makedocs(bib,
          modules = [Oscar, Hecke, Nemo, AbstractAlgebra, Singular],
          clean = true,
          doctest = true,
-         strict = !true,
+         strict = strict,
          checkdocs = :none,
          pages    = [
             "index.md",

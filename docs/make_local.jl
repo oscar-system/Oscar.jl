@@ -1,7 +1,7 @@
 module BuildDoc
 using Oscar
 using Kroki
-bla = normpath(joinpath(dirname(pathof(Oscar)), "..", "docs", "make_work.jl"))
+include(normpath(joinpath(Oscar.oscardir, "docs", "make_work.jl")))
 include(bla)
 
 function open_doc()
@@ -22,4 +22,3 @@ end
 end
 
 using .BuildDoc
-
