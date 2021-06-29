@@ -1,6 +1,6 @@
 module BuildDoc
 using Oscar
-using Kroki
+
 include(normpath(joinpath(Oscar.oscardir, "docs", "make_work.jl")))
 include(bla)
 
