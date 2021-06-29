@@ -1,5 +1,8 @@
+using Oscar
+
 module BuildDocu
 using Oscar
+
 include(normpath(joinpath(Oscar.oscardir, "docs", "make_work.jl")))
 end
 
