@@ -1,3 +1,4 @@
+import Base: ==
 export singular_ring, MPolyQuo, MPolyQuoElem, MPolyQuoIdeal
 export quo, base_ring, modulus, gens, ngens, dim, simplify
 export issubset
@@ -383,6 +384,7 @@ function simplify(I::MPolyQuoIdeal)
   J = R.I
   groebner_assure(J)
   singular_assure(J.gb)
+  oscar_assure(I)
   singular_assure(I.I)
   red = reduce(I.I.gens.S, J.gb.S)
 	SR		=	singular_ring(R)
