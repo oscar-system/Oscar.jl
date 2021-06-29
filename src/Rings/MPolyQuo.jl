@@ -358,8 +358,8 @@ function Oscar.addeq!(a::MPolyQuoElem, b::MPolyQuoElem)
 end
 
 @doc Markdown.doc"""
-    simplify(I::MPolyQuoIdeal)
-Simplify the ideal `I` w.r.t. the parent quotient ring. Replace inplace `I.SI`to the unique simplified representation.
+    simplify(a::MPolyQuoIdeal)
+Simplify the ideal `a` w.r.t. the parent quotient ring. Replace inplace `a.SI`to the unique simplified representation.
 
 CAVEAT: The implementation proceeds by computing a Groebner basis of the quotient ideal first. This may take some time.
 
@@ -378,18 +378,19 @@ MPolyQuoIdeal(x^3*y^4 - x + y, x*y^2 + x*y)
 
 julia> simplify(I)
 Singular Ideal over Singular Polynomial Quotient Ring (QQ),(x,y),(dp(2),C) with generators (x^2*y^3 - x + y, x*y^2 + x*y)
+```
 """
-function simplify(I::MPolyQuoIdeal)
-  R = base_ring(I)
+function simplify(a::MPolyQuoIdeal)
+  R = base_ring(a)
   J = R.I
   groebner_assure(J)
   singular_assure(J.gb)
-  oscar_assure(I)
-  singular_assure(I.I)
-  red = reduce(I.I.gens.S, J.gb.S)
+  oscar_assure(a)
+  singular_assure(a.I)
+  red = reduce(a.I.gens.S, J.gb.S)
 	SR		=	singular_ring(R)
-	I.SI	=	Singular.Ideal(SR, gens(red))
-	return I.SI
+	a.SI	=	Singular.Ideal(SR, gens(red))
+	return a.SI
 end
 
 @doc Markdown.doc"""
@@ -418,6 +419,7 @@ false
 
 julia> issubset(J,I)
 true
+```
 """
 function Base.issubset(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
   base_ring(a) == base_ring(b) || error("base rings must match")
@@ -453,6 +455,7 @@ MPolyQuoIdeal(x^3*y^3 - x + y, x^2*y + x*y^2)
 
 julia> I == J
 false
+```
 """
 function Base.:(==)(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
   return issubset(a, b) && issubset(b, a)
@@ -829,9 +832,9 @@ function homogeneous_component(W::MPolyQuo{<:MPolyElem_dec}, d::GrpAbFinGenElem)
 end
 
 @doc Markdown.doc"""
-    dim(I::MPolyQuoIdeal )
+    dim(a::MPolyQuoIdeal)
 
-Return the Krull dimension of `I`.
+Return the Krull dimension of `a`.
 
 # Examples
 ```jldoctest
