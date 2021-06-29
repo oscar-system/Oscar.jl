@@ -120,7 +120,6 @@ end
 function doc_init()
   old = Pkg.project().path
   Pkg.activate(joinpath(oscardir, "docs"))
-#  Pkg.update()
   Base.include(Main, joinpath(oscardir, "docs", "make_local.jl"))
   Pkg.activate(old)
 end
@@ -134,7 +133,9 @@ end
 
 
 function build_doc()
-  Main.BuildDoc.doit(false, true)
+  Pkg.activate(joinpath(oscardir, "docs")) do
+    Main.BuildDoc.doit(false, true)
+  end
   Main.BuildDoc.open_doc()
 end
 

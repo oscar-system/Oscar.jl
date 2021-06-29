@@ -847,6 +847,30 @@ function iscoboundary(c::CoChain{2,PermGroupElem,nf_elem})
   return fl, CoChain{1,PermGroupElem,nf_elem}(c.C, Dict((h, evaluate(mu(v))) for (h,v) = d.d))
 end
 
+function isunramified(p::NfOrdIdl)
+  return ramification_index(p) == 1
+end
+
+"""
+`p` has to be unramifed in the `base_ring` of `A`
+"""
+function local_cohomology_easy(A::ClassField, p::NfOrdIdl)
+  O = order(p)
+  @assert base_ring(A) == nf(O)
+  @assert isunramified(p) # && iseasy(p)
+  e, f, g = Hecke.prime_decomposition_type(A, p)
+  c, cinf = conductor(A)
+  @assert length(cinf) == 0 #for the time being, not sure why
+  #=
+    so, according to the theory:
+    p^f * U^val(c, p)) <= N(A_p) <= k_p
+
+    we're unramified, so k_p = <p> * F_q * U^1
+    and
+    U^1 = Z_q via log (in general this is wrong)
+  =#
+end
+
 export cohomology_module, word, fp_group, confluent_fp_group, relations,
        action, cohomology_group, extension, iscoboundary
 
