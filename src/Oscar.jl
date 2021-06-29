@@ -133,10 +133,13 @@ end
 
 
 function build_doc()
-  Pkg.activate(joinpath(oscardir, "docs")) do
-    Main.BuildDoc.doit(false, true)
+  if !isdefined(Main, :BuildDoc)
+    doc_init()
   end
-  Main.BuildDoc.open_doc()
+  Pkg.activate(joinpath(oscardir, "docs")) do
+    Base.invokelatest(Main.BuildDoc.doit, false, true)
+  end
+  Base.invokelatest(Main.BuildDoc.open_doc)
 end
 
 export build_doc
