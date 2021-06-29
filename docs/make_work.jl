@@ -195,6 +195,9 @@ function doit(strict::Bool = true, local_build::Bool = false)
 
   cd(joinpath(Oscar.oscardir, "docs")) do
 
+  DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar); recursive = true)
+  DocMeta.setdocmeta!(Hecke, :DocTestSetup, :(using Hecke); recursive = true)
+
   makedocs(bib,
          format   = Documenter.HTML(prettyurls = !local_build),
 #         format   = Documenter.HTML(),
