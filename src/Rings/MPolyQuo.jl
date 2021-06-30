@@ -387,7 +387,7 @@ function simplify(a::MPolyQuoIdeal)
   singular_assure(J.gb)
   oscar_assure(a)
   singular_assure(a.I)
-  red = reduce(a.I.gens.S, J.gb.S)
+  red   = reduce(a.I.gens.S, J.gb.S)
 	SR		=	singular_ring(R)
 	a.SI	=	Singular.Ideal(SR, gens(red))
 	return a.SI
@@ -424,9 +424,13 @@ true
 function Base.issubset(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
   base_ring(a) == base_ring(b) || error("base rings must match")
   simplify(a)
-  simplify(b)
-	b.SI			=	Singular.std(b.SI)
-	b.SI.isGB	= true
+  if !(isdefined(b, :SI))
+    simplify(b)
+  end
+  if b.SI.isGB == false
+    b.SI			=	Singular.std(b.SI)
+    b.SI.isGB	= true
+  end
   #= singular_assure(b.gb)
    = return Singular.iszero(Singular.reduce(a.gens.S, b.gb.S)) =#
   return Singular.iszero(Singular.reduce(a.SI, b.SI))
