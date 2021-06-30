@@ -125,10 +125,9 @@ function doc_init()
 end
 
 function doc_update_deps()
-  old = Pkg.project().path
-  Pkg.activate(joinpath(oscardir, "docs"))
-  Pkg.update()
-  Pkg.activate(old)
+  Pkg.activate(joinpath(oscardir, "docs")) do
+    Pkg.update()
+  end
 end
 
 
