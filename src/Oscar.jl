@@ -118,18 +118,15 @@ function example(s::String)
 end
 
 function doc_init()
-  old = Pkg.project().path
-  Pkg.activate(joinpath(oscardir, "docs"))
-  Base.include(Main, joinpath(oscardir, "docs", "make_local.jl"))
-  Pkg.activate(old)
-end
-
-function doc_update_deps()
   Pkg.activate(joinpath(oscardir, "docs")) do
-    Pkg.update()
+    Pkg.instantiate()
+    Base.include(Main, joinpath(oscardir, "docs", "make_local.jl"))
   end
 end
 
+function doc_update_deps()
+  Pkg.activate(Pkg.update, joinpath(oscardir, "docs"))
+end
 
 function build_doc()
   if !isdefined(Main, :BuildDoc)
