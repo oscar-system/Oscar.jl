@@ -2,7 +2,6 @@ module BuildDoc
 using Oscar
 
 include(normpath(joinpath(Oscar.oscardir, "docs", "make_work.jl")))
-include(bla)
 
 function open_doc()
     filename = normpath(joinpath(dirname(pathof(Oscar)), "..", "docs", "build", "index.html"))
