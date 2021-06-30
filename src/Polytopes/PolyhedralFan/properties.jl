@@ -152,4 +152,3 @@ isregular(PF::PolyhedralFan) = pm_fan(PF).REGULAR
 Determine whether the fan is complete.
 """
 iscomplete(PF::PolyhedralFan) = pm_fan(PF).COMPLETE
-

@@ -53,9 +53,9 @@ function orbit_polytope(V::AbstractVector, G::PermGroup)
 end
 
 @doc Markdown.doc"""
-    cube(d [, l, u])
+   cube(d , l = -1, u = 1)
 
-Construct the $[-1,1]$-cube in dimension $d$. If $l$ and $u$ are given, the $[l,u]$-cube in dimension $d$ is returned.
+Construct the $[l,u]$-cube in dimension $d$.
 
 # Arguments
 - `d::Int`: Dimension of the cube.
@@ -215,6 +215,7 @@ julia> nvertices(M)
     *(k::Int, Q::Polyhedron)
 
 Return the scaled polyhedron `kQ`.
+Note that `k*Q = Q*k`.
 
 # Arguments
 - `k::Int`: Scaling factor.
@@ -240,6 +241,7 @@ julia> volume(SC)//volume(C)
     *(P::Polyhedron, k::Int)
 
 Return the scaled polyhedron `kP`.
+Note that `k*P = P*k`.
 
 # Arguments
 - `k::Int`: Scaling factor.

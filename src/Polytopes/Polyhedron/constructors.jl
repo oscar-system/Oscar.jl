@@ -11,9 +11,12 @@ end
 
 @doc Markdown.doc"""
 
-    Polyhedron(P::Polymake.BigObject)
+    Polyhedron(P)
 
 Construct a `Polyhedron` corresponding to a polymake `Polytope`.
+
+# Arguments
+- `P::Polytope`: A `Polymake.jl` polytope as a `Polymake.BigObject`.
 """
 function Polyhedron(pm_polytope::Polymake.BigObject)
     Polyhedron(pm_polytope, :unknown)
@@ -21,7 +24,7 @@ end
 
 @doc Markdown.doc"""
 
-    Polyhedron(A::Union{Oscar.MatElem,AbstractMatrix}, b)
+    Polyhedron(A, b)
 
 The (convex) polyhedron defined by
 
