@@ -1,6 +1,6 @@
 import Base: ==
 export singular_ring, MPolyQuo, MPolyQuoElem, MPolyQuoIdeal
-export quo, base_ring, modulus, gens, ngens, dim, simplify
+export quo, base_ring, modulus, gens, ngens, dim, simplify!
 export issubset
 ##############################################################################
 #
@@ -80,7 +80,7 @@ mutable struct MPolyQuoIdeal{T} <: Ideal{T}
     r = new{T}()
     r.base_ring = Ox
     r.SI = si
-	  r.dim = -1
+    r.dim = -1
     return r
   end
 
@@ -89,7 +89,7 @@ mutable struct MPolyQuoIdeal{T} <: Ideal{T}
     r = new{T}()
     r.base_ring = Ox
     r.I = i
-	  r.dim = -1
+    r.dim = -1
     return r
   end
 end
@@ -358,8 +358,8 @@ function Oscar.addeq!(a::MPolyQuoElem, b::MPolyQuoElem)
 end
 
 @doc Markdown.doc"""
-    simplify(a::MPolyQuoIdeal)
-Simplify the ideal `a` w.r.t. the parent quotient ring. Replace inplace `a.SI`to the unique simplified representation.
+    simplify!(a::MPolyQuoIdeal)
+Simplify the ideal `a` w.r.t. the parent quotient ring. Replace inplace `a`to the unique simplified representation.
 
 CAVEAT: The implementation proceeds by computing a Groebner basis of the quotient ideal first. This may take some time.
 
@@ -376,21 +376,25 @@ Multivariate Polynomial Ring in x, y over Rational Field to Q defined by a julia
 julia> I = ideal(Q,[x^3*y^4-x+y, x*y+y^2*x])
 MPolyQuoIdeal(x^3*y^4 - x + y, x*y^2 + x*y)
 
-julia> simplify(I)
-Singular Ideal over Singular Polynomial Quotient Ring (QQ),(x,y),(dp(2),C) with generators (x^2*y^3 - x + y, x*y^2 + x*y)
+julia> simplify!(I)
+MPolyQuoIdeal(x^2*y^3 - x + y, x*y^2 + x*y)
 ```
 """
-function simplify(a::MPolyQuoIdeal)
-  R = base_ring(a)
-  J = R.I
-  groebner_assure(J)
-  singular_assure(J.gb)
-  oscar_assure(a)
-  singular_assure(a.I)
-  red   = reduce(a.I.gens.S, J.gb.S)
-	SR		=	singular_ring(R)
-	a.SI	=	Singular.Ideal(SR, gens(red))
-	return a.SI
+function simplify!(a::MPolyQuoIdeal)
+    R   = base_ring(a)
+    oscar_assure(a)
+    RI  = base_ring(a.I)
+    J = R.I
+    groebner_assure(J)
+    singular_assure(J.gb)
+    oscar_assure(a)
+    singular_assure(a.I)
+    red  = reduce(a.I.gens.S, J.gb.S)
+    SR   = singular_ring(R)
+    a.SI = Singular.Ideal(SR, gens(red))
+    a.I  = ideal(RI, RI.(gens(a.SI)))
+
+    return a
 end
 
 @doc Markdown.doc"""
@@ -423,16 +427,14 @@ true
 """
 function Base.issubset(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
   base_ring(a) == base_ring(b) || error("base rings must match")
-  simplify(a)
+  simplify!(a)
   if !(isdefined(b, :SI))
-    simplify(b)
+    simplify!(b)
   end
   if b.SI.isGB == false
-    b.SI			=	Singular.std(b.SI)
-    b.SI.isGB	= true
+    b.SI      = Singular.std(b.SI)
+    b.SI.isGB = true
   end
-  #= singular_assure(b.gb)
-   = return Singular.iszero(Singular.reduce(a.gens.S, b.gb.S)) =#
   return Singular.iszero(Singular.reduce(a.SI, b.SI))
 end
 

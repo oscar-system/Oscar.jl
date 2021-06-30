@@ -84,7 +84,7 @@ If `a` is an ideal of the quotient ring `Q`, then
 #### Simplifying Ideals with regard to the modulus of the Quotient Ring
 
 ```@docs
-simplify(a::MPolyQuoIdeal)
+simplify!(a::MPolyQuoIdeal)
 ```
 
 #### Dimension of Ideals in Quotient Rings

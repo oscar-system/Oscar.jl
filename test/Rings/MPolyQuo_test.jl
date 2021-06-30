@@ -57,11 +57,12 @@ end
   @test b == ideal(Q, gens(b))
 
   I = ideal(Q, [x^2*y-x+y,y+1])
-  simplify(I)
+  simplify!(I)
   @test I.SI[1] == singular_ring(Q)(-x+y) && I.SI[2] == singular_ring(Q)(y+1)
   J = ideal(Q, [x+y+1,y+1])
   @test issubset(J, I) == true
   @test issubset(I, J) == false
   @test (I == J) == false
   @test dim(J)  == 1
+  @test dim(J)  == J.dim  # test case if dim(J) is already set
 end
