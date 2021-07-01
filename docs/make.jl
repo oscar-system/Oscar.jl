@@ -1,4 +1,4 @@
-using Oscar
+using Documenter, Oscar
 
 module BuildDocu
 using Oscar
