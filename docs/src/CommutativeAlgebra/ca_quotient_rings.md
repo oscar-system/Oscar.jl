@@ -81,9 +81,17 @@ If `a` is an ideal of the quotient ring `Q`, then
 - `gens(a)` to the generators of `a`, and
 - `ngens(a)` to the number of these generators.
 
-#### Dimension
+#### Simplifying Ideals with regard to the modulus of the Quotient Ring
 
+```@docs
+simplify!(a::MPolyQuoIdeal)
+```
 
+#### Dimension of Ideals in Quotient Rings
+
+```@docs
+dim(a::MPolyQuoIdeal)
+```
 
 ### Operations on Ideals in Quotient Rings 
 
@@ -133,4 +141,8 @@ iszero(a::MPolyQuoIdeal)
 ```
 
 #### Containment of Ideals in Quotient Rings
+
+```@docs
+issubset(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
+```
 
