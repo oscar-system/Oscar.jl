@@ -98,7 +98,7 @@ ngens(F::FreeMod) = dim(F)
 # two free modules are equal if the rank and the ring are
 function ==(F::FreeMod, G::FreeMod)
   # TODO it this enough or e.g. stored morphisms also be considered?
-  return F.R == G.R && rank(F) == rank(G)
+  return F.R == G.R && rank(F) == rank(G) && F.S == G.S
 end
 
 # the zero module is the module of rank zero
@@ -108,7 +108,7 @@ end
 
 # elements of free modules are encoded in SRows
 struct FreeModuleElem{T}
-  coords::SRow{T} # also usable via coeffs
+  coords::SRow{T} # also usable via coeffs()
   parent::FreeMod{T}
 end
 
@@ -431,7 +431,7 @@ mutable struct FreeModuleHom{T1, T2} <: ModuleMap{T1, T2}
   # generate homomorphism of free modules from F to G where the Array a contains the images of
   # the generators of F
   function FreeModuleHom{T,S}(F::FreeMod{T}, G::S, a::Vector{<:Any}) where {T, S}
-    @assert all(x->parent(x) == G, a)
+    @assert all(x->parent(x) === G, a)
     @assert length(a) == ngens(F)
     r = new{typeof(F), typeof(G)}()
     function im_func(x::FreeModuleElem)
@@ -447,7 +447,7 @@ mutable struct FreeModuleHom{T1, T2} <: ModuleMap{T1, T2}
       return FreeModuleElem(c, F)
     end
     function pr_func(x)
-      @assert parent(x) == G
+      @assert parent(x) === G
       c = coordinates(x.repres, sub(G, a))
       if isempty(c)
         c = sparse_row(F.R)
@@ -528,7 +528,7 @@ mutable struct SubModuleOfFreeModule{T} <: ModuleFP{T}
   matrix::MatElem
 
   function SubModuleOfFreeModule{R}(F::FreeMod{R}, gens::Vector{<:FreeModuleElem}) where {R}
-    @assert all(x -> parent(x) == F, gens)
+    @assert all(x -> parent(x) === F, gens)
     r = new{R}()
     r.F = F
     r.gens = ModuleGens(gens, F)
@@ -555,10 +555,10 @@ mutable struct SubModuleOfFreeModule{T} <: ModuleFP{T}
     return r
   end
 
-  function SubModuleOfFreeModule{L}(A::MatElem{L}) where {L}
+  function SubModuleOfFreeModule{L}(F::FreeMod{L}, A::MatElem{L}) where {L}
     r = new{L}()
-    R = base_ring(A)
-    F = FreeMod(R, ncols(A))
+    #R = base_ring(A)
+    #F = FreeMod(R, ncols(A))
     r.F = F
     O = [FreeModuleElem(sparse_row(A[i,:]), F) for i in 1:nrows(A)]
     r.gens = ModuleGens(O, F)
@@ -573,7 +573,13 @@ SubModuleOfFreeModule(F::FreeMod{R}, singular_module::Singular.smodule) where {R
 
 SubModuleOfFreeModule(F::FreeMod{R}, gens::ModuleGens{R}) where {R} = SubModuleOfFreeModule{R}(F, gens)
 
-SubModuleOfFreeModule(A::MatElem{L}) where {L} = SubModuleOfFreeModule{L}(A)
+SubModuleOfFreeModule(F::FreeMod{L}, A::MatElem{L}) where {L} = SubModuleOfFreeModule{L}(F, A)
+
+function SubModuleOfFreeModule(A::MatElem{L}) where {L} 
+  R = base_ring(A)
+  F = FreeMod(R, ncols(A))
+  return SubModuleOfFreeModule(F, A)
+end
 
 #=function Base.getproperty(submod::SubModuleOfFreeModule, s::Symbol)
   if s == :std_basis
@@ -800,7 +806,9 @@ SubQuo(F::FreeMod{R}, s::Singular.smodule, t::Singular.smodule) where {R} = SubQ
 
 function SubQuo(A::MatElem{R}, B::MatElem{R}) where {R}
   @assert ncols(A) == ncols(B)
-  return SubQuo(SubModuleOfFreeModule(A), SubModuleOfFreeModule(B))
+  S = base_ring(A)
+  F = FreeMod(S, ncols(A))
+  return SubQuo(SubModuleOfFreeModule(F, A), SubModuleOfFreeModule(F, B))
 end
 
 function show(io::IO, SQ::SubQuo)
@@ -1081,7 +1089,7 @@ end
 
 function sub(F::FreeMod, s::SubQuo, task::Symbol = :none)
   @assert !isdefined(s, :quo)
-  @assert s.F == F
+  @assert s.F === F
   if task == :none || task == :module
     return s
   else
@@ -1142,7 +1150,7 @@ end
 
 function quo(F::SubQuo, O::Vector{<:FreeModuleElem}, task::Symbol = :none)
   if length(O) > 0
-    @assert parent(O[1]) == F.F
+    @assert parent(O[1]) === F.F
   end
   if isdefined(F, :quo)
     #F.sub[Val(:S), 1]
@@ -1526,7 +1534,7 @@ end
 Compute a preimage of `a` under `f`.
 """
 function preimage(f::SubQuoHom, a::Union{SubQuoElem,FreeModuleElem})
-  @assert parent(a) == codomain(f)
+  @assert parent(a) === codomain(f)
   D = domain(f)
   i = zero(D)
   b = coordinates(typeof(a) <: FreeModuleElem ? a : a.repres, image(f)[1])
@@ -1554,7 +1562,7 @@ Return a subquotient $S$ such that $Hom(F,G) \cong S$ along with a function
 that converts elements from $S$ into morphisms $F → G$.
 """
 function hom(F::FreeMod, G::FreeMod)
-  @assert base_ring(F) == base_ring(G)
+  @assert base_ring(F) === base_ring(G)
   GH = FreeMod(F.R, rank(F) * rank(G))
   GH.S = [Symbol("($i -> $j)") for i = F.S for j = G.S]
 
@@ -1613,7 +1621,7 @@ function kernel(h::FreeModuleHom)  #ONLY for free modules...
     #the syzygie_module creates a new free module to work in
     k = sub(G, [FreeModuleElem(x.coords, G) for x = collect(k.sub.gens)])
   end
-  @assert k.F == G
+  @assert k.F === G
   c = collect(k.sub.gens)
   return k, hom(k, parent(c[1]), c)
 end
@@ -1773,14 +1781,14 @@ function hom(M::ModuleFP, N::ModuleFP)
 
   #x in ker delta: mH_s0_t0(pro[1](x)) should be a hom from M to N
   function im(x::SubQuoElem)
-    @assert parent(x) == H
+    @assert parent(x) === H
     #return SubQuoHom(M, N, mH_s0_t0(pro[1](x.repres)).matrix)
     return hom(M, N, [map(p2, 2)(mH_s0_t0(pro[1](x.repres))(preimage(map(p1, 2), g))) for g = gens(M)])
   end
 
   function pre(f::ModuleMap)
-    @assert domain(f) == M
-    @assert codomain(f) == N
+    @assert domain(f) === M
+    @assert codomain(f) === N
     Rs0 = domain(map(p1, 2))
     Rt0 = domain(map(p2, 2))
     g = hom(Rs0, Rt0, [preimage(map(p2, 2), f(map(p1, 2)(g))) for g = gens(Rs0)])
@@ -1823,7 +1831,7 @@ end
 #  relshp to store the maps elsewhere
 
 function *(h::ModuleMap, g::ModuleMap)
-  @assert codomain(h) == domain(g)
+  @assert codomain(h) === domain(g)
   return hom(domain(h), codomain(g), [g(h(x)) for x = gens(domain(h))])
 end
 -(h::FreeModuleHom, g::FreeModuleHom) = hom(domain(h), codomain(h), [h(x) - g(x) for x = gens(domain(h))])
@@ -2111,7 +2119,7 @@ function gens(F::FreeMod, G::FreeMod)
   return gens(F)
 end
 function gens(F::SubQuo, G::FreeMod)
-  @assert F.F == G
+  @assert F.F === G
   return [FreeModuleElem(x.repres.coords, G) for x = gens(F)]
 end
 rels(F::FreeMod) = elem_type(F)[]
