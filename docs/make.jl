@@ -1,7 +1,13 @@
+using Documenter, Oscar
+
+module BuildDocu
 using Oscar
-local_build = false
-bla = normpath(joinpath(dirname(pathof(Oscar)), "..", "docs", "make_work.jl"))
-include(bla)
+
+include(normpath(joinpath(Oscar.oscardir, "docs", "make_work.jl")))
+end
+
+using .BuildDocu
+Main.BuildDocu.doit(true, false)
 
 deploydocs(
    repo   = "github.com/oscar-system/Oscar.jl.git",
