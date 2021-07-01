@@ -400,8 +400,8 @@ nfacets(P::Polyhedron) = pm_polytope(P).N_FACETS
 Return the facets of `P` in the format defined by `as`.
 
 The allowed values for `as` are
-* `Halfspaces`: Returns for each facet the tuple `(A, b)` describing the halfspace `dot(A,x) ≤ b`.
-* `Polyhedron` or `Polyhedra`: Returns for each facet its realization as a polyhedron
+* `Halfspaces`,
+* `Polyhedron`/`Polyhedra`.
 
 See also `facets_as_halfspace_matrix_pair`.
 
@@ -604,8 +604,7 @@ Return the ambient dimension of `P`.
 ```julia-repl
 julia> V = [1 2 3; 1 3 2; 2 1 3; 2 3 1; 3 1 2; 3 2 1];
 
-julia> P = convex_hull(V)
-A polyhedron in ambient dimension 3
+julia> P = convex_hull(V);
 
 julia> ambient_dim(P)
 3
@@ -644,6 +643,8 @@ codim(P::Polyhedron) = ambient_dim(P)-dim(P)
 Return a matrix whose row span is the lineality space of `P`.
 
 # Examples
+Despite not being reflected in this construction of the upper half-plane,
+its lineality in $x$-direction is recognized:
 ```julia-repl
 julia> UH = convex_hull([0 0],[0 1; 1 0; -1 0]);
 
@@ -846,3 +847,50 @@ function support_function(P::Polyhedron; convention = :max)
     end
     return h
 end
+
+# @doc Markdown.doc"""
+#     print_constraints(P::Polyhedron)
+#
+# Pretty print the constraints given by $P(A,b) = \{ x |  Ax ≤ b \}$.
+#
+# # Examples
+# The 3-cube is given by $-1 ≦ x_i ≦ 0 ∀ i ∈ \{1, 2, 3\}$.
+# ```julia-repl
+# julia> Oscar.print_constraints(cube(3))
+# 0: x1 >= -1
+# 1: -x1 >= -1
+# 2: x2 >= -1
+# 3: -x2 >= -1
+# 4: x3 >= -1
+# 5: -x3 >= -1
+# ```
+# """
+function print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial = false)
+    for i in 1:length(b)
+        terms = Vector{String}(undef, size(A)[2])
+        first = true
+        for j in 1:size(A)[2]
+            if iszero(A[i, j])
+                terms[j] = ""
+            else
+                if isone(abs(A[i, j]))
+                    terms[j] = first ? string(isone(A[i, j]) ? "x" : "-x" , ['₀'+ d for d in digits(j)]...) :
+                        string(isone(A[i, j]) ? " + x" : " - x", ['₀'+ d for d in digits(j)]...)
+                else
+                    terms[j] = first ? string(A[i, j], "*x", ['₀'+ d for d in digits(j)]...) :
+                        string(A[i, j] < 0 ? " - " : " + ", abs(A[i, j]), "*x", ['₀'+ d for d in digits(j)]...)
+                end
+                first = false
+            end
+        end
+        if first
+            if b[i] >= 0 && !trivial
+                continue
+            end
+            terms[1] = "0"
+        end
+        println(string(i, ": ", terms..., " ≦ ", b[i]))
+    end
+end
+
+print_constraints(P::Polyhedron) = print_constraints(facets_as_halfspace_matrix_pair(P)...)
