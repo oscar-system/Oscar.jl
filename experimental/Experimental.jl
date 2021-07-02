@@ -5,6 +5,7 @@ end
 include("GaloisGrp.jl")
 include("Rings.jl")
 include("ModStd.jl")
+include("PlaneCurve.jl")
 include("GITFans.jl")
 include("GModule.jl")
 include("MPolyRingSparse.jl")
@@ -34,4 +35,4 @@ include("Schemes/Auxiliary.jl")
 include("Schemes/BlowupMorphism.jl")
 
 include("ExteriorAlgebra/ExteriorAlgebra.jl")
-
+include("IntersectionTheory.jl")
