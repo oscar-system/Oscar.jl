@@ -72,14 +72,15 @@ Base.IteratorSize(::Type{PolyhedronFacePolyhedronIterator}) = Base.SizeUnknown()
 """
     faces(as::Type{T} = Polyhedron, P::Polyhedron, face_dim::Int)
 
-Return the faces of `P` of dimension `face_dim` as an iterator over the type of object given
-by `as`.
+Return the faces of `P` of dimension `face_dim` as an iterator over the type of
+object given by `as`.
 
 Optional arguments for `as` include
 * `Polyhedron`/`Polyhedra`.
 
 # Examples
-An `Array` containing the six sides of the 3-dimensional cube can be obtained via the following input:
+An `Array` containing the six sides of the 3-dimensional cube can be obtained
+via the following input:
 ```julia-repl
 julia> F = faces(Polyhedron, cube(3), 2)
 Oscar.PolyhedronFacePolyhedronIterator(A polyhedron in ambient dimension 3, 2)
@@ -101,27 +102,27 @@ function faces(as::Type{T}, P::Polyhedron, face_dim::Int) where {T}
         throw(ArgumentError("Unsupported `as` argument:" * string(as)))
     end
 end
-# """
-#     faces(P::Polyhedron, face_dim::Int)
-#
-# Return the faces of `P` of dimension `face_dim` as an iterator over `Polyhedron` objects.
-#
-# # Examples
-# An `Array` containing the six sides of the 3-dimensional cube can be obtained via the following input:
-# ```julia-repl
-# julia> F = faces(cube(3),2)
-# Oscar.PolyhedronFacePolyhedronIterator(A polyhedron in ambient dimension 3, 2)
-#
-# julia> collect(F)
-# 6-element Array{Any,1}:
-#  A polyhedron in ambient dimension 3
-#  A polyhedron in ambient dimension 3
-#  A polyhedron in ambient dimension 3
-#  A polyhedron in ambient dimension 3
-#  A polyhedron in ambient dimension 3
-#  A polyhedron in ambient dimension 3
-# ```
-# """
+"""
+    faces(P::Polyhedron, face_dim::Int)
+
+Return the faces of `P` of dimension `face_dim` as an iterator over `Polyhedron` objects.
+
+# Examples
+An `Array` containing the six sides of the 3-dimensional cube can be obtained via the following input:
+```julia-repl
+julia> F = faces(cube(3),2)
+Oscar.PolyhedronFacePolyhedronIterator(A polyhedron in ambient dimension 3, 2)
+
+julia> collect(F)
+6-element Array{Any,1}:
+ A polyhedron in ambient dimension 3
+ A polyhedron in ambient dimension 3
+ A polyhedron in ambient dimension 3
+ A polyhedron in ambient dimension 3
+ A polyhedron in ambient dimension 3
+ A polyhedron in ambient dimension 3
+```
+"""
 faces(P::Polyhedron, face_dim::Int) = faces(Polyhedron, P, face_dim)
 
 struct VertexPointIterator
@@ -156,7 +157,8 @@ Optional arguments for `as` include
 See also: [`vertices_as_point_matrix`](@ref).
 
 # Examples
-The following code computes the vertices of the Minkowski sum of a triangle and a square:
+The following code computes the vertices of the Minkowski sum of a triangle and
+a square:
 ```julia-repl
 julia> P = simplex(2) + cube(2);
 
@@ -182,31 +184,32 @@ function vertices(as::Type{T}, P::Polyhedron) where {T}
     end
 end
 
-# """
-#     vertices(P::Polyhedron)
-#
-# Return an iterator over the vertices of a polyhedron `P` as points.
-#
-# See also `vertices_as_point_matrix`.
-#
-# # Examples
-# The following code computes the vertices of the Minkowski sum of a triangle and a square:
-# ```julia-repl
-# julia> P = simplex(2) + cube(2);
-#
-# julia> collect(vertices(P))
-# 5-element Array{Polymake.Vector{Polymake.Rational},1}:
-# pm::Vector<pm::Rational>
-# -1 -1
-# pm::Vector<pm::Rational>
-# 2 -1
-# pm::Vector<pm::Rational>
-# 2 1
-# pm::Vector<pm::Rational>
-# -1 2
-# pm::Vector<pm::Rational>
-# 1 2
-# ```
+"""
+    vertices(P::Polyhedron)
+
+Return an iterator over the vertices of a polyhedron `P` as points.
+
+See also `vertices_as_point_matrix`.
+
+# Examples
+The following code computes the vertices of the Minkowski sum of a triangle and
+a square:
+```julia-repl
+julia> P = simplex(2) + cube(2);
+
+julia> collect(vertices(P))
+5-element Array{Polymake.Vector{Polymake.Rational},1}:
+pm::Vector<pm::Rational>
+-1 -1
+pm::Vector<pm::Rational>
+2 -1
+pm::Vector<pm::Rational>
+2 1
+pm::Vector<pm::Rational>
+-1 2
+pm::Vector<pm::Rational>
+1 2
+```
 # """
 vertices(P::Polyhedron) = vertices(Points, P)
 
@@ -216,7 +219,8 @@ vertices(P::Polyhedron) = vertices(Points, P)
 Return a matrix whose rows are the vertices of `P`.
 
 # Examples
-The following code computes the vertices of the Minkowski sum of a triangle and a square:
+The following code computes the vertices of the Minkowski sum of a triangle and
+a square:
 ```julia-repl
 julia> P = simplex(2) + cube(2);
 
@@ -291,16 +295,17 @@ nvertices(P::Polyhedron) = pm_polytope(P).N_VERTICES - nrays(P)
 @doc Markdown.doc"""
     rays(as::Type{T} = Points, P::Polyhedron)
 
-Return minimal set of generators of the cone of unbounded directions of `P` (i.e. its rays)
- in the format defined by `as`.
+Return minimal set of generators of the cone of unbounded directions of `P`
+(i.e. its rays) in the format defined by `as`.
 
- Optional arguments for `as` include
+Optional arguments for `as` include
 * `Points`.
 
 See also `rays_as_point_matrix`.
 
 # Examples
-We can verify that the positive orthant of the plane is generated by the two rays in positive unit direction:
+We can verify that the positive orthant of the plane is generated by the two
+rays in positive unit direction:
 ```julia-repl
 julia> PO = convex_hull([0 0], [1 0; 0 1]);
 julia> collect(rays(Points, PO))
@@ -322,13 +327,14 @@ end
 @doc Markdown.doc"""
     rays(P::Polyhedron)
 
-Return minimal set of generators of the cone of unbounded directions of `P` (i.e. its rays)
- as points.
+Return minimal set of generators of the cone of unbounded directions of `P`
+(i.e. its rays) as points.
 
 See also `rays_as_point_matrix`.
 
 # Examples
-We can verify that the positive orthant of the plane is generated by the two rays in positive unit direction:
+We can verify that the positive orthant of the plane is generated by the two
+rays in positive unit direction:
 ```julia-repl
 julia> PO = convex_hull([0 0], [1 0; 0 1]);
 julia> collect(rays(PO))
@@ -386,7 +392,8 @@ Base.length(iter::PolyhedronFacetPolyhedronIterator) = nfacets(iter.p)
 Return the number of facets of `P`.
 
 # Examples
-The number of facets of the 5-dimensional cross polytope can be retrieved via the following line:
+The number of facets of the 5-dimensional cross polytope can be retrieved via
+the following line:
 ```julia-repl
 julia> nfacets(cross(5))
 32
@@ -799,7 +806,8 @@ isfulldimensional(P::Polyhedron) = pm_polytope(P).FULL_DIM
 @doc Markdown.doc"""
     f_vector(P::Polyhedron)
 
-Compute the vector `(f_1,f_2,...,f_(dim(P)-1))` where `f_i` is the number of faces of `P` of dimension `i`.
+Compute the vector $(f₁,f₂,...,f_{(dim(P)-1))$` where $f_i$ is the number of
+faces of $P$ of dimension $i$.
 
 # Examples
 Here we compute the f-vector of the 5-cube:
@@ -848,24 +856,34 @@ function support_function(P::Polyhedron; convention = :max)
     return h
 end
 
-# @doc Markdown.doc"""
-#     print_constraints(P::Polyhedron)
-#
-# Pretty print the constraints given by $P(A,b) = \{ x |  Ax ≤ b \}$.
-#
-# # Examples
-# The 3-cube is given by $-1 ≦ x_i ≦ 0 ∀ i ∈ \{1, 2, 3\}$.
-# ```julia-repl
-# julia> Oscar.print_constraints(cube(3))
-# 0: x1 >= -1
-# 1: -x1 >= -1
-# 2: x2 >= -1
-# 3: -x2 >= -1
-# 4: x3 >= -1
-# 5: -x3 >= -1
-# ```
-# """
-function print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial = false)
+@doc Markdown.doc"""
+    print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = false)
+
+Pretty print the constraints given by $P(A,b) = \{ x |  Ax ≤ b \}$.
+
+Trivial inequalities are counted but omitted. They are included if `trivial` is
+set to `true`.
+
+# Examples
+The 3-cube is given by $-1 ≦ x_i ≦ 0 ∀ i ∈ \{1, 2, 3\}$.
+```julia-repl
+julia> print_constraints([-1 0 4 5; 4 4 4 3; 1 0 0 0; 0 0 0 0; 0 0 0 0; 9 9 9 9], [0, 1, 2, 3, -4, 5])
+1: -x₁ + 4*x₃ + 5*x₄ ≦ 0
+2: 4*x₁ + 4*x₂ + 4*x₃ + 3*x₄ ≦ 1
+3: x₁ ≦ 2
+5: 0 ≦ -4
+6: 9*x₁ + 9*x₂ + 9*x₃ + 9*x₄ ≦ 5
+
+julia> print_constraints([-1 0 4 5; 4 4 4 3; 1 0 0 0; 0 0 0 0; 0 0 0 0; 9 9 9 9], [0, 1, 2, 3, -4, 5]; trivial = true)
+1: -x₁ + 4*x₃ + 5*x₄ ≦ 0
+2: 4*x₁ + 4*x₂ + 4*x₃ + 3*x₄ ≦ 1
+3: x₁ ≦ 2
+4: 0 ≦ 3
+5: 0 ≦ -4
+6: 9*x₁ + 9*x₂ + 9*x₃ + 9*x₄ ≦ 5
+```
+"""
+function print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = false)
     for i in 1:length(b)
         terms = Vector{String}(undef, size(A)[2])
         first = true
@@ -893,4 +911,24 @@ function print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial = false)
     end
 end
 
-print_constraints(P::Polyhedron) = print_constraints(facets_as_halfspace_matrix_pair(P)...)
+@doc Markdown.doc"""
+    print_constraints(P::Polyhedron; trivial::Bool = false)
+
+Pretty print the constraints given by $P(A,b) = \{ x |  Ax ≤ b \}$.
+
+Trivial inequalities are counted but omitted. They are included if `trivial` is
+set to `true`.
+
+# Examples
+The 3-cube is given by $-1 ≦ x_i ≦ 0 ∀ i ∈ \{1, 2, 3\}$.
+```julia-repl
+julia> print_constraints(cube(3))
+1: -x₁ ≦ 1
+2: x₁ ≦ 1
+3: -x₂ ≦ 1
+4: x₂ ≦ 1
+5: -x₃ ≦ 1
+6: x₃ ≦ 1
+```
+"""
+print_constraints(P::Polyhedron; trivial::Bool = false) = print_constraints(facets_as_halfspace_matrix_pair(P)...; trivial = trivial)

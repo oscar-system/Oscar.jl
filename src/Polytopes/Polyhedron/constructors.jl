@@ -11,12 +11,9 @@ end
 
 @doc Markdown.doc"""
 
-    Polyhedron(P)
+    Polyhedron(P::Polymake.BigObject)
 
-Construct a `Polyhedron` corresponding to a polymake `Polytope`.
-
-# Arguments
-- `P::Polytope`: A `Polymake.jl` polytope as a `Polymake.BigObject`.
+Construct a `Polyhedron` corresponding to a `Polymake.BigObject` of type `Polytope`.
 """
 function Polyhedron(pm_polytope::Polymake.BigObject)
     Polyhedron(pm_polytope, :unknown)
@@ -24,17 +21,13 @@ end
 
 @doc Markdown.doc"""
 
-    Polyhedron(A, b)
+    Polyhedron(A::Union{Oscar.MatElem,AbstractMatrix}, b)
 
 The (convex) polyhedron defined by
 
 $$P(A,b) = \{ x |  Ax ≤ b \}.$$
 
 see Def. 3.35 and Section 4.1. of [JT13]
-
-# Arguments
-- `A::Matrix`: Matrix corresponding to the linear coefficients of the inequalilites that describe P.
-- `b::Vector`: Vector corresponding to the constant term of the inequalilites that describe P.
 
 # Examples
 The following lines define the square $[0,1]^2 \subset \mathbb{R}^2$:
@@ -63,16 +56,21 @@ pm_polytope(P::Polyhedron) = P.pm_polytope
 
 ### Construct polyhedron from V-data, as the convex hull of points, rays and lineality.
 @doc Markdown.doc"""
-    convex_hull(V [, R [, L]])
+    convex_hull(V::Matrix [, R::Matrix [, L::Matrix]]; non_redundant::Bool = false)
 
 The polytope given as the convex hull of the rows of a set of points.
 
-see Def. 2.11 and Def. 3.1  of [JT13]
+The matrices rows are the points, the rays and the generators of the lineality space,
+respectively.
 
-# Arguments
-- `V::Matrix`: Points whose convex hull is to be computed; encoded as row vectors.
-- `R::Matrix`: Rays completing the set of points; encoded row-wise as representative vectors.
-- `L::Matrix`: Generators of the Lineality space; encoded as row vectors.
+`R` can be given as an empty matrix or as `nothing` if the user wants to compute
+the convex hull only from `V` and `L`.
+
+If the user is sure that `V` and `R` only contains extreme points and that
+the description of the lineality space is complete, they can set
+`non_redundant = true` to avoid unneccessary redundancy checks.
+
+See Def. 2.11 and Def. 3.1  of [JT13].
 
 # Examples
 The following lines define the square $[0,1]^2 \subset \mathbb{R}^2$:
