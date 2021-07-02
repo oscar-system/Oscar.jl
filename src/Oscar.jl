@@ -232,6 +232,7 @@ include("Rings/mpoly-affine-algebras.jl")
 include("Rings/mpoly-local.jl")
 include("Rings/FinField.jl")
 include("Rings/NumberField.jl")
+include("Rings/FunctionField.jl")
 
 include("Modules/FreeModules-graded.jl")
 
