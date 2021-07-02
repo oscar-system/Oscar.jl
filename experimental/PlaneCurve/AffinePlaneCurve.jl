@@ -18,6 +18,21 @@ export issmooth, tangent, common_components, curve_intersect, intersect,
     issmooth(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
 
 Throw an error if `P` is not a point of `C`, return `false` if `P` is a singular point of `C`, and `true` if `P` is a smooth point of `C`.
+
+# Example
+```jldoctest
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia> C = Oscar.AffinePlaneCurve(x^2*(x+y)*(y^3-x^2))
+Affine plane curve defined by -x^5 - x^4*y + x^3*y^3 + x^2*y^4
+
+julia> P = Oscar.Point([QQ(0), QQ(0)])
+Point with coordinates fmpq[0, 0]
+
+julia> Oscar.issmooth(C, P)
+false
+```
 """
 function Oscar.issmooth(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
   P.ambient_dim == 2 || error("The point needs to be in a two dimensional space")
@@ -37,6 +52,23 @@ end
     tangent(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
 
 Return the tangent of `C` at `P` when `P` is a smooth point of `C`, and throw an error otherwise.
+
+# Example
+```jldoctest
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia> C = Oscar.AffinePlaneCurve(x^2*(x+y)*(y^3-x^2))
+Affine plane curve defined by -x^5 - x^4*y + x^3*y^3 + x^2*y^4
+
+
+julia> P2 = Oscar.Point([QQ(2), QQ(-2)])
+Point with coordinates fmpq[2, -2]
+
+
+julia> Oscar.tangent(C, P2)
+Affine plane curve defined by -48*x - 48*y
+```
 """
 function tangent(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
   P.ambient_dim == 2 || error("The point needs to be in a two dimensional space")
@@ -58,9 +90,27 @@ end
 # gives the common components of two affine plane curves
 
 @doc Markdown.doc"""
-    common_components(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S <: FieldElem(C::AffinePlaneCurve)
+    common_components(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S <: FieldElem
 
 Return the affine plane curve consisting of the common component of `C` and `D`, or an empty vector if they do not have a common component.
+
+# Example
+```jldoctest
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia> C = Oscar.AffinePlaneCurve(x*(x+y)*(x^2 + x + 1))
+Affine plane curve defined by x^4 + x^3*y + x^3 + x^2*y + x^2 + x*y
+
+
+julia> D = Oscar.AffinePlaneCurve(x*(x+y)*(x-y))
+Affine plane curve defined by x^3 - x*y^2
+
+
+julia> Oscar.common_components(C, D)
+1-element Array{Oscar.PlaneCurveModule.AffinePlaneCurve{fmpq},1}:
+ Affine plane curve defined by x^2 + x*y
+```
 """
 function common_components(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S <: FieldElem
   G = gcd(C.eq, D.eq)
@@ -81,6 +131,27 @@ end
     curve_intersect(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S <: FieldElem
 
 Return a list whose first element is the affine plane curve defined by the gcd of `C.eq` and `D.eq`, the second element is the list of the remaining intersection points when the common components are removed from `C` and `D`.
+
+# Example
+```jldoctest
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia> C = Oscar.AffinePlaneCurve(x*(x+y))
+Affine plane curve defined by x^2 + x*y
+
+
+julia> D = Oscar.AffinePlaneCurve((x-y)*(x-2))
+Affine plane curve defined by x^2 - x*y - 2*x + 2*y
+
+
+julia> Oscar.curve_intersect(C, D)
+2-element Array{Array{T,1} where T,1}:
+ Oscar.PlaneCurveModule.AffinePlaneCurve[]
+ Oscar.PlaneCurveModule.Point{fmpq}[Point with coordinates fmpq[2, -2]
+, Point with coordinates fmpq[0, 0]
+]
+```
 """
 function curve_intersect(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S <: FieldElem
   G = gcd(C.eq, D.eq)
@@ -109,7 +180,7 @@ function curve_intersect(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S
         push!(Y, -f + gen(R, 2))
      end
   end
-     # For each y, we compute the possible values of x by replacing the second
+     # For each y, we compute the possible values of x by jldoctestacing the second
      # variable by the value y, and factorizing the resulting polynomial.
      for y in Y
         FF = evaluate(F, [gen(R, 1), y])
@@ -157,6 +228,24 @@ end
     curve_singular_locus(C::AffinePlaneCurve)
 
 Return the reduced singular locus of `C` as a list whose first element is the affine plane curve consisting of the singular components of `C` (if any), and the second element is the list of the isolated singular points (which may be contained in the singular component). The singular component might not contain any point over the considered field.
+
+# Example
+```jldoctest
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia> C = Oscar.AffinePlaneCurve(x^2*(x+y)*(y^3-x^2))
+Affine plane curve defined by -x^5 - x^4*y + x^3*y^3 + x^2*y^4
+
+
+julia> Oscar.curve_singular_locus(C)
+2-element Array{Array{T,1} where T,1}:
+ Oscar.PlaneCurveModule.AffinePlaneCurve[Affine plane curve defined by x
+]
+ Oscar.PlaneCurveModule.Point[Point with coordinates fmpq[0, 0]
+, Point with coordinates fmpq[-1, 1]
+]
+```
 """
 function curve_singular_locus(C::AffinePlaneCurve)
    comp = curve_components(C)
@@ -229,6 +318,23 @@ end
     multiplicity(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
 
 Return the multiplicity of `C` at `P`.
+
+# Example
+```repl
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia> C = Oscar.AffinePlaneCurve(x^2*(x+y)*(y^3-x^2))
+Affine plane curve defined by -x^5 - x^4*y + x^3*y^3 + x^2*y^4
+
+
+julia> P2 = Oscar.Point([QQ(2), QQ(-2)])
+Point with coordinates fmpq[2, -2]
+
+
+julia> Oscar.multiplicity(C, P2)
+1
+```
 """
 function multiplicity(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
   P.ambient_dim == 2 || error("The point needs to be in a two dimensional space")
@@ -250,6 +356,25 @@ end
     tangent_lines(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
 
 Return the tangent lines at `P` to `C` with their multiplicity.
+
+# Example
+```repl
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia> C = Oscar.AffinePlaneCurve(x^2*(x+y)*(y^3-x^2))
+Affine plane curve defined by -x^5 - x^4*y + x^3*y^3 + x^2*y^4
+
+
+julia> P = Oscar.Point([QQ(0), QQ(0)])
+Point with coordinates fmpq[0, 0]
+
+
+julia> Oscar.tangent_lines(C, P)
+Dict{Oscar.PlaneCurveModule.AffinePlaneCurve{fmpq},Int64} with 2 entries:
+  x…     => 4
+  x + y… => 1
+```
 """
 function tangent_lines(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
   P.ambient_dim == 2 || error("The point needs to be in a two dimensional space")
@@ -298,6 +423,27 @@ end
     intersection_multiplicity(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
 
 Return the intersection multiplicity of `C` and `D` at `P`.
+
+# Example
+```jldoctest
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia> C = Oscar.AffinePlaneCurve((x^2+y^2)*(x^2 + y^2 + 2*y))
+Affine plane curve defined by x^4 + 2*x^2*y^2 + 2*x^2*y + y^4 + 2*y^3
+
+
+julia> D = Oscar.AffinePlaneCurve((x^2+y^2)*(y^3*x^6 - y^6*x^2))
+Affine plane curve defined by x^8*y^3 + x^6*y^5 - x^4*y^6 - x^2*y^8
+
+
+julia> Q = Oscar.Point([QQ(0), QQ(-2)])
+Point with coordinates fmpq[0, -2]
+
+
+julia> Oscar.intersection_multiplicity(C, D, Q)
+2
+```
 """
 function intersection_multiplicity(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
   P.ambient_dim == 2 || error("The point needs to be in a two dimensional space")
@@ -316,6 +462,34 @@ end
     aretransverse(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}, P::Point{S}) where S<:FieldElem
 
 Return `true` if `C` and `D` intersect transversally at `P` and `false` otherwise.
+
+# Example
+```jldoctest
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia> C = Oscar.AffinePlaneCurve(x*(x+y))
+Affine plane curve defined by x^2 + x*y
+
+
+julia> D = Oscar.AffinePlaneCurve((x-y)*(x-2))
+Affine plane curve defined by x^2 - x*y - 2*x + 2*y
+
+
+julia> P = Oscar.Point([QQ(0), QQ(0)])
+Point with coordinates fmpq[0, 0]
+
+
+julia> Q = Oscar.Point([QQ(2), QQ(-2)])
+Point with coordinates fmpq[2, -2]
+
+
+julia> Oscar.aretransverse(C, D, P)
+false
+
+julia> Oscar.aretransverse(C, D, Q)
+true
+```
 """
 function aretransverse(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}, P::Point{S}) where S<:FieldElem
   return issmooth(C, P) && issmooth(D, P) && intersection_multiplicity(C, D, P) == 1
@@ -328,6 +502,18 @@ end
     issmooth_curve(C::AffinePlaneCurve)
 
 Return `true` if `C` has no singular point, and `false` otherwise.
+
+# Example
+```jldoctest
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia> C = Oscar.AffinePlaneCurve(x*(x+y))
+Affine plane curve defined by x^2 + x*y
+
+julia> Oscar.issmooth_curve(C)
+false
+```
 """
 function issmooth_curve(C::AffinePlaneCurve)
   S = curve_singular_locus(C)
@@ -344,6 +530,19 @@ end
     arithmetic_genus(C::AffinePlaneCurve)
 
 Return the arithmetic genus of the projective closure of `C`.
+
+# Example
+```repl
+julia> R, (x, y) = PolynomialRing(GF(7), ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Galois field with characteristic 7, gfp_mpoly[x, y])
+
+julia> C = Oscar.AffinePlaneCurve(y^9 - x^2*(x-1)^9)
+Affine plane curve defined by 6*x^11 + 2*x^10 + 6*x^9 + x^4 + 5*x^3 + x^2 + y^9
+
+
+julia> Oscar.arithmetic_genus(C)
+45
+```
 """
 function arithmetic_genus(C::AffinePlaneCurve)
    F = defining_equation(C)
@@ -361,6 +560,19 @@ end
     geometric_genus(C::AffinePlaneCurve)
 
 Return the geometric genus of the projective closure of `C`.
+
+# Example
+```repl
+julia> R, (x, y) = PolynomialRing(GF(7), ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Galois field with characteristic 7, gfp_mpoly[x, y])
+
+julia> C = Oscar.AffinePlaneCurve(y^9 - x^2*(x-1)^9)
+Affine plane curve defined by 6*x^11 + 2*x^10 + 6*x^9 + x^4 + 5*x^3 + x^2 + y^9
+
+
+julia> Oscar.geometric_genus(C)
+0
+```
 """
 function geometric_genus(C::AffinePlaneCurve)
    F = defining_equation(C)

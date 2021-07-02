@@ -132,7 +132,44 @@ end
 ################################################################################
 # Definition EllipticCurve
 ################################################################################
+@doc Markdown.doc"""
+    ProjEllipticCurve{S}(eq::Oscar.MPolyElem_dec{S}) where {S <: FieldElem}
+    ProjEllipticCurve(eq::Oscar.MPolyElem_dec{S}, P::Oscar.Geometry.ProjSpcElem{S}) where {S <: FieldElem}
+    ProjEllipticCurve(eq::Oscar.MPolyElem_dec{S}) where {S <: Nemo.fmpz_mod}
 
+Return the Projective Elliptic Curve defined by the equation `eq`, with `P` as
+infinity point. If no point is specified it is expected that `eq` is in
+Weierstrass form, and the infinity point is `(0:1:0)`.
+
+# Example
+```jldoctest
+julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> T, _ = grade(S)
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
+
+julia> F = T(-x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3)
+-x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3
+
+julia> PP = projective_space(QQ, 2)
+(Projective space of dim 2 over Rational Field
+, MPolyElem_dec{fmpq,fmpq_mpoly}[x[0], x[1], x[2]])
+
+julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(-1), QQ(1), QQ(0)])
+(-1 : 1 : 0)
+
+julia> E = Oscar.ProjEllipticCurve(F, P)
+Projective elliptic curve defined by -x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3
+
+
+julia> Oscar.ProjEllipticCurve(T(y^2*z - x^3 - x*z^2))
+Projective elliptic curve defined by -x^3 - x*z^2 + y^2*z
+```
+"""
 mutable struct ProjEllipticCurve{S} <: ProjectivePlaneCurve{S}
   eq::Oscar.MPolyElem_dec{S}
   degree::Int
@@ -223,6 +260,35 @@ end
 
 Return the equation of a projective elliptic curve defined by an equation in
 Weierstrass form and which is linearly equivalent to `E`.
+
+# Example
+```jldoctest
+julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> T, _ = grade(S)
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
+
+julia> F = T(-x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3)
+-x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3
+
+julia> PP = projective_space(QQ, 2)
+(Projective space of dim 2 over Rational Field
+, MPolyElem_dec{fmpq,fmpq_mpoly}[x[0], x[1], x[2]])
+
+julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(-1), QQ(1), QQ(0)])
+(-1 : 1 : 0)
+
+julia> E = Oscar.ProjEllipticCurve(F, P)
+Projective elliptic curve defined by -x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3
+
+
+julia> Oscar.weierstrass_form(E)
+-x^3 - x*z^2 + y^2*z - 4*z^3
+```
 """
 function weierstrass_form(E::ProjEllipticCurve{S}) where S <: FieldElem
    V = E.Hecke_ec.coeff
@@ -238,6 +304,7 @@ function weierstrass_form(E::ProjEllipticCurve{S}) where S <: FieldElem
    return F
 end
 
+
 function base_point(E::ProjEllipticCurve)
    return E.point
 end
@@ -246,7 +313,7 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    discriminant(E::ProjEllipticCurve)
+    discriminant(E::ProjEllipticCurve{S}) where S <: FieldElem
 
 Return the discriminant of the projective elliptic curve `E`.
 """
@@ -259,7 +326,7 @@ function Oscar.issmooth(E::ProjEllipticCurve{S}) where {S <: FieldElem}
 end
 
 @doc Markdown.doc"""
-    j_invariant(E::ProjEllipticCurve)
+    j_invariant(E::ProjEllipticCurve{S}) where S <: FieldElem
 
 Return the j-invariant of the projective elliptic curve `E`.
 """
@@ -270,6 +337,46 @@ end
 ################################################################################
 # Structure for points on elliptic curve.
 ################################################################################
+#Point_EllCurve(E::ProjEllipticCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where {S <: Nemo.fmpz_mod}
+
+@doc Markdown.doc"""
+    Point_EllCurve(E::ProjEllipticCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where {S <: FieldElem}
+    Point_EllCurve(E::ProjEllipticCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where {S <: Nemo.fmpz_mod}
+
+Create the point `P` on the elliptic curve `E`.
+
+# Example
+```jldoctest
+julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> T, _ = grade(S)
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
+
+julia> F = T(-x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3)
+-x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3
+
+julia> PP = projective_space(QQ, 2)
+(Projective space of dim 2 over Rational Field
+, MPolyElem_dec{fmpq,fmpq_mpoly}[x[0], x[1], x[2]])
+
+julia> P1 = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(-1), QQ(1), QQ(0)])
+(-1 : 1 : 0)
+
+julia> E = Oscar.ProjEllipticCurve(F, P1)
+Projective elliptic curve defined by -x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3
+
+
+julia> P2 = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(-2), QQ(2), QQ(1)])
+(-2 : 2 : 1)
+
+julia> Oscar.Point_EllCurve(E, P2)
+(-2 : 2 : 1)
+```
+"""
 struct Point_EllCurve{S <: RingElem}
    Pt::Oscar.Geometry.ProjSpcElem{S}
    C::ProjEllipticCurve{S}
@@ -351,7 +458,7 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    curve(P::Point_EllCurve)
+    curve(P::Point_EllCurve{S}) where S <: FieldElem
 
 Return the curve on which the point `P` is considered.
 """
@@ -452,6 +559,32 @@ end
 Given a smooth plane cubic projective curve `C` and a point `P` on the curve,
 return an elliptic curve birationally equivalent to `C` given by an equation in
 long Weierstrass form.
+
+# Example
+```jldoctest
+julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> T, _ = grade(S)
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
+
+julia> PP = projective_space(QQ, 2)
+(Projective space of dim 2 over Rational Field
+, MPolyElem_dec{fmpq,fmpq_mpoly}[x[0], x[1], x[2]])
+
+julia> Q = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(-1), QQ(1), QQ(0)])
+(-1 : 1 : 0)
+
+julia> D = Oscar.ProjPlaneCurve(T(-x^3 - 3*x^2*y + 2*x^2*z - 3*x*y^2 + 3*x*y*z - 4*x*z^2 - y^3 - y*z^2 + 6*z^3))
+Projective plane curve defined by -x^3 - 3*x^2*y + 2*x^2*z - 3*x*y^2 + 3*x*y*z - 4*x*z^2 - y^3 - y*z^2 + 6*z^3
+
+
+julia> Oscar.toweierstrass(D, Q)
+-x^3 - 2*x^2*z + x*y*z - 4*x*z^2 + y^2*z + 3*y*z^2 - 6*z^3
+```
 """
 function toweierstrass(C::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
    _iselliptic(C.eq) || error("not elliptic curve")
@@ -520,7 +653,7 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    order(E::ProjEllipticCurve)
+    order(E::ProjEllipticCurve{S}) where S <: FieldElem
 
 Given an elliptic curve `E` over a finite field $\mathbf F$, computes
 $\#E(\mathbf F)$.
@@ -532,7 +665,7 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    rand(E::ProjEllipticCurve)
+    rand(E::ProjEllipticCurve{S}) where S <: FieldElem
 
 Return a random point on the elliptic curve `E` defined over a finite field.
 """
@@ -600,7 +733,7 @@ end
 ################################################################################
 @doc Markdown.doc"""
     torsion_points_lutz_nagell(E::ProjEllipticCurve{fmpq})
-    
+
 Computes the rational torsion points of the elliptic curve `E` using the
 Lutz-Nagell theorem.
 """
