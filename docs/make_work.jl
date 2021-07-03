@@ -132,7 +132,7 @@ end
 # new signature: trunc is added to sanitize paths (truncate)
 function Documenter.Documents.addpage!(doc::Document, src::AbstractString, dst::AbstractString, wd::AbstractString, trunc::AbstractString)
     if occursin(trunc, dst)
-      dst = sanitize_dst(dst, trunc)
+      dst = joinpath("build", sanitize(dst, trunc))
     end
     page = Page(src, dst, wd)
     # page's identifier is the path relative to the `doc.user.source` directory
@@ -167,31 +167,21 @@ function sanitize(a::AbstractString, n::AbstractString)
   return joinpath(b[1], b[3:end]...)
 end
 
-function sanitize_dst(a::AbstractString, n::AbstractString)
-  b = splitpath(replace(a, Regex(".*$(n)") => n))
-  return joinpath("build", b[1], b[3:end]...)
+function pkgdocprefix(M)
+   dir = normpath(dirname(pathof(M)), "..", "docs", "src")
+   return sanitize(dir, string(nameof(M)))
 end
 
-bla = normpath(joinpath(dirname(pathof(Hecke)), "..", "docs", "src"))
-const hecke = sanitize(bla, "Hecke")
-
-bla = normpath(joinpath(dirname(pathof(Nemo)), "..", "docs", "src"))
-const nemo = sanitize(bla, "Nemo")
-
-bla = normpath(joinpath(dirname(pathof(AbstractAlgebra)), "..", "docs", "src"))
-const aa = sanitize(bla, "AbstractAlgebra")
+const hecke = pkgdocprefix(Hecke)
+const nemo = pkgdocprefix(Nemo)
+const aa = pkgdocprefix(AbstractAlgebra)
 
 bib = CitationBibliography(joinpath(@__DIR__, "oscar_references.bib"), sorting = :nyt)
 
 function doit(strict::Bool = true, local_build::Bool = false)
 
-  s = prod(eachline(joinpath(Oscar.oscardir, "docs", "doc.main")))
-  s = replace(s, r"\$\(aa\)" => "$aa")
-  s = replace(s, r"\$\(nemo\)" => "$nemo")
-  s = replace(s, r"\$\(hecke\)" => "$hecke")
-
-
-  doc = Meta.eval(Meta.parse(s))
+  s = read(joinpath(Oscar.oscardir, "docs", "doc.main"), String)
+  doc = eval(Meta.parse(s))
 
   cd(joinpath(Oscar.oscardir, "docs")) do
 
