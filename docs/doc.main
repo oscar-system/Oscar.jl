@@ -1,6 +1,22 @@
 [
   "index.md",
 
+  "Groups" => [
+     "Groups/groups.md",
+     "Groups/basics.md",
+     "Groups/subgroups.md",
+     "Groups/quotients.md",
+     "Groups/products.md",
+     "Groups/permgroup.md",
+     "Groups/fpgroup.md",
+     "Groups/pcgroup.md",
+     "Groups/matgroup.md",
+     "Groups/grouphom.md",
+     "Groups/autgroup.md",
+     "Groups/grouplib.md",
+     "$(hecke)/abelian/introduction.md"
+  ],
+
   "Rings" => [
      "$(aa)/rings.md",
      "Rings/integer.md",
@@ -48,22 +64,6 @@
      "$(nemo)/finitefield.md",
   ],
 
-  "Groups" => [
-     "Groups/groups.md",
-     "Groups/basics.md",
-     "Groups/subgroups.md",
-     "Groups/quotients.md",
-     "Groups/products.md",
-     "Groups/permgroup.md",
-     "Groups/fpgroup.md",
-     "Groups/pcgroup.md",
-     "Groups/matgroup.md",
-     "Groups/grouphom.md",
-     "Groups/autgroup.md",
-     "Groups/grouplib.md",
-     "$(hecke)/abelian/introduction.md"
-  ],
-
   "Linear Algebra" => [
      "$(hecke)/sparse/intro.md",
      "$(aa)/matrix_spaces.md",
@@ -84,6 +84,12 @@
      ],
   ],
 
+  "Polyhedral Geometry" => [
+     "PolyhedralGeometry/pg.md",
+     "PolyhedralGeometry/pg_polyhedra.md",
+     "PolyhedralGeometry/pg_linear_programs.md",
+  ],
+
   "Commutative Algebra" => [
      "CommutativeAlgebra/ca.md",
      "CommutativeAlgebra/ca_rings.md",
@@ -97,12 +103,6 @@
   "Invariant Theory" => ["InvariantTheory/it.md",
      "InvariantTheory/it_fg.md",
      "InvariantTheory/it_lrg.md",
-  ],
-
-  "Polyhedral Geometry" => [
-     "PolyhedralGeometry/pg.md",
-     "PolyhedralGeometry/pg_polyhedra.md",
-     "PolyhedralGeometry/pg_linear_programs.md",
   ],
 
   "References" => "references.md",
