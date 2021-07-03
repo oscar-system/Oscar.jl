@@ -24,8 +24,8 @@ quo(R::MPolyRing, I::MPolyIdeal)
     In each case, with or without an assigned grading, the return type of `quo` is a subtype of `MPolyQuo`.
 
 !!! note
-    In Oscar, elements of quotient rings are not necessarily reduced with regard to their modulus.
-    Operations involving Gröbner basis computations may lead to partial reductions. Full reductions are achieved by explicitly computing normal forms. See the corresponding section on Groebner bases and normal forms.
+    In Oscar, elements of quotient rings are not necessarily reduced with regard to the modulus of the quotient ring.
+    Operations involving Gröbner basis computations may lead to partial reductions. Full reductions, depending on the choice of a monomial ordering, are achieved by explicitly computing normal forms. The functions `simplify` and `simplify!` discussed in the sections below implements this.
 
 ## Data Associated to Quotient Rings of Polynomial Rings
 
@@ -63,12 +63,32 @@ dim(Q::MPolyQuo)
 isreduced(Q::MPolyQuo)
 ```
 
+## Elements of Quotient Rings
+
+### Reducing Elements of Quotient Rings
+
+```@docs
+simplify(f::MPolyQuoElem)
+```
+
+### Tests on Elements of Quotient Rings
+
+```@docs
+ ==(f::MPolyQuoElem, g::MPolyQuoElem)
+```
+
 ## Ideals in Quotient Rings of Polynomial Rings
 
 ### Constructors
 
 ```@docs
 ideal(Q::MPolyQuo{T}, V::Vector{T}) where T <: MPolyElem
+```
+
+### Reducing Ideals in Quotient Rings
+
+```@docs
+simplify(a::MPolyQuoIdeal)
 ```
 
 ### Data Associated to Ideals in Quotient Rings
@@ -81,9 +101,12 @@ If `a` is an ideal of the quotient ring `Q`, then
 - `gens(a)` to the generators of `a`, and
 - `ngens(a)` to the number of these generators.
 
-#### Dimension
 
+#### Dimension of Ideals in Quotient Rings
 
+```@docs
+dim(a::MPolyQuoIdeal)
+```
 
 ### Operations on Ideals in Quotient Rings 
 
@@ -133,4 +156,8 @@ iszero(a::MPolyQuoIdeal)
 ```
 
 #### Containment of Ideals in Quotient Rings
+
+```@docs
+issubset(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
+```
 

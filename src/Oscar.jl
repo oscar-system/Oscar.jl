@@ -117,9 +117,27 @@ function example(s::String)
   Base.include(Main, joinpath(oscardir, "examples", s))
 end
 
-function build_doc()
-  Base.include(Main, joinpath(oscardir, "docs", "make_local.jl"))
+function doc_init()
+  Pkg.activate(joinpath(oscardir, "docs")) do
+    Pkg.instantiate()
+    Base.include(Main, joinpath(oscardir, "docs", "make_local.jl"))
+  end
 end
+
+function doc_update_deps()
+  Pkg.activate(Pkg.update, joinpath(oscardir, "docs"))
+end
+
+function build_doc()
+  if !isdefined(Main, :BuildDoc)
+    doc_init()
+  end
+  Pkg.activate(joinpath(oscardir, "docs")) do
+    Base.invokelatest(Main.BuildDoc.doit, false, true)
+  end
+  Base.invokelatest(Main.BuildDoc.open_doc)
+end
+
 export build_doc
 # This can be used in
 #

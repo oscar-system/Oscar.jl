@@ -440,6 +440,17 @@ function normal_form(A::Array{T, 1}, J::MPolyIdeal) where { T <: MPolyElem }
     normal_form_internal(I, J)
 end
 
+function groebner_assure(I::MPolyIdeal, ord::MonomialOrdering; complete_reduction::Bool = false)
+  R = base_ring(I)
+  Rx = singular_ring(R, ord.o)
+
+  if !isdefined(I, :gb) || ordering(J.gb.Sx) != ordering(Rx)
+    I.gens.Sx = Rx
+    I.gens.S = Singular.Ideal(Rx, Rx.(gens(I)))
+    I.gb = BiPolyArray(I.gens.Ox, Singular.std(I.gens.S, complete_reduction = complete_reduction))
+  end
+end
+
 function groebner_basis(B::BiPolyArray, ord::MonomialOrdering; complete_reduction::Bool = false)
     R = singular_ring(B.Ox, ord.o)
     i = Singular.Ideal(R, [R(x) for x = B])

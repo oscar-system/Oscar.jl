@@ -5,7 +5,7 @@
 ###############################################################################
 
 @doc Markdown.doc"""
-   PolyhedralFan(Rays, Cones)
+    PolyhedralFan(Rays, Cones)
 
 A polyhedral fan formed from rays and cones made of these rays. The cones are
 given as an IncidenceMatrix, where the columns represent the rays and the rows
@@ -35,7 +35,7 @@ function PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, LS::Union{Osca
 end
 
 """
-   pm_fan(PF::PolyhedralFan)
+    pm_fan(PF::PolyhedralFan)
 
 Get the underlying polymake object, which can be used via Polymake.jl.
 """

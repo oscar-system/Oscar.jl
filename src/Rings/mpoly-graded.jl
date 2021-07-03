@@ -634,11 +634,9 @@ function hilbert_polynomial(H::HilbertData)
   a = fmpq[]
   nf = fmpq(1)
   d = degree(dn)-1
-  for i=0:d
-    push!(a, q(1)//nf)
-    if i>0
-      nf *= i
-    end
+  for i=1:d+1
+    push!(a, q(1)//nf)    
+    nf *= i
     q = derivative(q)
   end
   Qt, t = QQ["t"]
