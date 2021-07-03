@@ -199,7 +199,7 @@ function doit(strict::Bool = true, local_build::Bool = false)
   DocMeta.setdocmeta!(Hecke, :DocTestSetup, :(using Hecke); recursive = true)
 
   makedocs(bib,
-         format   = Documenter.HTML(prettyurls = !local_build),
+         format   = Documenter.HTML(prettyurls = !local_build, collapselevel = 1),
 #         format   = Documenter.HTML(),
 #         format   = Markdown(),
          sitename = "Oscar.jl",
