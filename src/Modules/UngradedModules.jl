@@ -127,6 +127,10 @@ function coeffs(v::FreeModuleElem)
   return coords(v)
 end
 
+function repres(v::FreeModuleElem)
+  return v
+end
+
 function getindex(v::FreeModuleElem, i::Int)
   if isempty(v.coords)
     return zero(base_ring(v.parent))
@@ -441,17 +445,9 @@ mutable struct FreeModuleHom{T1, T2} <: ModuleMap{T1, T2}
       end
       return b
     end
-    function pr_func(x::FreeModuleElem)
-      @assert parent(x) == G
-      c = coordinates(x, sub(G, a)) 
-      return FreeModuleElem(c, F)
-    end
     function pr_func(x)
       @assert parent(x) === G
-      c = coordinates(x.repres, sub(G, a))
-      if isempty(c)
-        c = sparse_row(F.R)
-      end
+      c = coordinates(repres(x), sub(G, a))
       return FreeModuleElem(c, F)
     end
     r.header = MapHeader{typeof(F), typeof(G)}(F, G, im_func, pr_func)
@@ -578,7 +574,7 @@ SubModuleOfFreeModule(F::FreeMod{L}, A::MatElem{L}) where {L} = SubModuleOfFreeM
 function SubModuleOfFreeModule(A::MatElem{L}) where {L} 
   R = base_ring(A)
   F = FreeMod(R, ncols(A))
-  return SubModuleOfFreeModule(F, A)
+  return SubModuleOfFreeModule{L}(F, A)
 end
 
 #=function Base.getproperty(submod::SubModuleOfFreeModule, s::Symbol)
@@ -681,12 +677,12 @@ function gen(M::SubModuleOfFreeModule, i::Int)
 end
 
 function sum(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
-  @assert M.F == N.F
+  @assert M.F === N.F
   return SubModuleOfFreeModule(M.F, vcat(collect(M.gens), collect(N.gens)))
 end
 
 function ==(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
-  @assert M.F == N.F
+  @assert M.F === N.F
   M_mod_N = _reduce(singular_generators(std_basis(M)), singular_generators(std_basis(N)))
   N_mod_M = _reduce(singular_generators(std_basis(N)), singular_generators(std_basis(M)))
   return iszero(M_mod_N) && iszero(N_mod_M)
@@ -718,7 +714,7 @@ mutable struct SubQuo{T} <: ModuleFP{T}
     return r
   end
   function SubQuo{R}(sub::SubModuleOfFreeModule{R}, quo::SubModuleOfFreeModule{R}) where {R}
-    @assert sub.F == quo.F
+    @assert sub.F === quo.F
     r = new{R}()
     r.F = sub.F
     r.sub = sub
@@ -804,6 +800,11 @@ SubQuo(F::FreeMod{R}, s::Singular.smodule) where {R} = SubQuo{R}(F, s)
 
 SubQuo(F::FreeMod{R}, s::Singular.smodule, t::Singular.smodule) where {R} = SubQuo{R}(F, s, t)
 
+function SubQuo(F::FreeMod{R}, A::MatElem{R}, B::MatElem{R}) where {R}
+  @assert ncols(A) == ncols(B) == rank(F)
+  return SubQuo(SubModuleOfFreeModule(F, A), SubModuleOfFreeModule(F, B))
+end
+
 function SubQuo(A::MatElem{R}, B::MatElem{R}) where {R}
   @assert ncols(A) == ncols(B)
   S = base_ring(A)
@@ -848,13 +849,12 @@ function cokernel(f::FreeModuleHom)
   return quo(codomain(f), image(f)[1])
 end
 
+function cokernel(F::FreeMod{R}, A::MatElem{R}) where R
+  return cokernel(matrix_to_map(F,A))
+end
+
 function cokernel(A::MatElem)
-  R = base_ring(A)
-  domain_F = FreeMod(R, nrows(A))
-  codomain_F = FreeMod(R, ncols(A))
-  
-  f = FreeModuleHom(domain_F, codomain_F, A)
-  return cokernel(f)
+  return cokernel(matrix_to_map(A))
 end
 
 function ==(M::SubQuo{T}, N::SubQuo{T}) where {T}
@@ -906,6 +906,7 @@ end
 
 function Base.:intersect(M::SubQuo{T}, N::SubQuo{T}) where T
   #TODO allow task as argument?
+  @assert free_module(M) === free_module(N)
   n_rel = matrix(N.quo)
   m_rel = matrix(M.quo)
 
@@ -923,7 +924,7 @@ function Base.:intersect(M::SubQuo{T}, N::SubQuo{T}) where T
     C = CD[:,1:m[1]]
     D = CD[:,(m[1]+1):(m[1]+n[1])]
     new_gen = C*matrix(M.sub)
-    SQ = SubQuo(new_gen, m_rel)
+    SQ = SubQuo(free_module(M),new_gen, m_rel)
 
     M_hom = SubQuoHom(SQ,M,C)
     N_hom = SubQuoHom(SQ,N,D)
@@ -1431,7 +1432,7 @@ function hom_tensor(G::ModuleFP, H::ModuleFP, A::Vector{ <: ModuleMap})
   tH = get_special(H, :tensor_product)
   tH === nothing && error("both modules must be tensor products")
   @assert length(tG) == length(tH) == length(A)
-  @assert all(i-> domain(A[i]) == tG[i] && codomain(A[i]) == tH[i], 1:length(A))
+  @assert all(i-> domain(A[i]) === tG[i] && codomain(A[i]) === tH[i], 1:length(A))
   #gens of G are G[i][j] tensor G[h][l] for i != h and all j, l
   #such a pure tensor is mapped to A[i](G[i][j]) tensor A[h](G[j][l])
   #thus need the pure map - and re-create the careful ordering of the generators as in the 
@@ -1449,13 +1450,13 @@ function hom_tensor(G::ModuleFP, H::ModuleFP, A::Vector{ <: ModuleMap})
   return hom(G, H, map(map_gen, gens(G)))
 end
 
-function hom_prod_prod(G::ModuleFP, H::ModuleFP, A::Array{ <: ModuleMap, 2})
+function hom_prod_prod(G::ModuleFP, H::ModuleFP, A::Matrix{<:ModuleMap})
   tG = get_special(G, :direct_product)
   tG === nothing && error("both modules must be direct products")
   tH = get_special(H, :direct_product)
   tH === nothing && error("both modules must be direct products")
   @assert length(tG) == size(A, 1) && length(tH) == size(A, 2)
-  @assert all((i,j)-> domain(A[i,j]) == tG[i] && codomain(A[i,j]) == tH[j], Base.Iterators.ProductIterator((1:size(A, 1), 1:size(A, 2))))
+  @assert all((i,j)-> domain(A[i,j]) === tG[i] && codomain(A[i,j]) === tH[j], Base.Iterators.ProductIterator((1:size(A, 1), 1:size(A, 2))))
   #need the canonical maps..., maybe store them as well?
   error("not done yet")
 end
@@ -2064,13 +2065,10 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
   F = FreeMod(G[1].R, prod([rank(g) for g in G]))
   F.S = s
   Hecke.set_special(F, :show => Hecke.show_tensor_product, :tensor_product => G)
-  if task == :none
-    return F
-  end
 
   function pure(g::FreeModuleElem...)
     @assert length(g) == length(G)
-    @assert all(i -> parent(g[i]) == G[i], 1:length(G))
+    @assert all(i -> parent(g[i]) === G[i], 1:length(G))
     z = [[x] for x = g[1].coords.pos]
     zz = g[1].coords.values
     for h = g[2:end]
@@ -2085,7 +2083,8 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
       z = zzz
       zz = zzzz
     end
-    return FreeModuleElem(sparse_row(F.R, [findfirst(x->x == y, t) for y = z], zz), F)
+    indices = Vector{Int}([findfirst(x->x == y, t) for y = z])
+    return FreeModuleElem(sparse_row(F.R, indices, zz), F)
   end
   function pure(T::Tuple)
     return pure(T...)
@@ -2101,6 +2100,10 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
 
   Hecke.set_special(F, :tensor_pure_function => pure, :tensor_generator_decompose_function => inv_pure)
 
+  if task == :none
+    return F
+  end
+
   return F, MapFromFunc(pure, inv_pure, Hecke.TupleParent(Tuple([g[0] for g = G])), F)
 end
 
@@ -2115,7 +2118,7 @@ function free_module(F::SubQuo)
 end
 
 function gens(F::FreeMod, G::FreeMod)
-  @assert F == G
+  @assert F === G
   return gens(F)
 end
 function gens(F::SubQuo, G::FreeMod)
@@ -2155,32 +2158,34 @@ function tensor_product(G::ModuleFP...; task::Symbol = :none)
 
   tuples_pure_tensors_dict = IdDict(zip(corresponding_tuples_as_indices, gens(s)))
   Hecke.set_special(s, :show => Hecke.show_tensor_product, :tensor_product => G)
+
+  
+  function pure(tuple_elems::Union{SubQuoElem,FreeModuleElem}...)
+    coeffs_tuples = vec([x for x = Base.Iterators.ProductIterator(Tuple(coeffs(x) for x = tuple_elems))])
+    res = zero(s)
+    for coeffs_tuple in coeffs_tuples
+      indices = map(x -> x[1], coeffs_tuple)
+      coeff_for_pure = prod(map(x -> x[2], coeffs_tuple))
+      res += coeff_for_pure*tuples_pure_tensors_dict[indices]
+    end
+    return res
+  end
+  function pure(T::Tuple)
+    return pure(T...)
+  end
+
+  decompose_generator = function(v::SubQuoElem)
+    i = index_of_gen(v)
+    return corresponding_tuples[i]
+  end
+
+  Hecke.set_special(s, :tensor_pure_function => pure, :tensor_generator_decompose_function => decompose_generator)
+
   if task == :none
     return s
-  else
-    function pure(tuple_elems::Union{SubQuoElem,FreeModuleElem}...)
-      coeffs_tuples = vec([x for x = Base.Iterators.ProductIterator(Tuple(coeffs(x) for x = tuple_elems))])
-      res = zero(s)
-      for coeffs_tuple in coeffs_tuples
-        indices = map(x -> x[1], coeffs_tuple)
-        coeff_for_pure = prod(map(x -> x[2], coeffs_tuple))
-        res += coeff_for_pure*tuples_pure_tensors_dict[indices]
-      end
-      return res
-    end
-    function pure(T::Tuple)
-      return pure(T...)
-    end
-
-    decompose_generator = function(v::SubQuoElem)
-      i = index_of_gen(v)
-      return corresponding_tuples[i]
-    end
-
-    Hecke.set_special(s, :tensor_pure_function => pure, :tensor_generator_decompose_function => decompose_generator)
-
-    return s, MapFromFunc(pure, Hecke.TupleParent(Tuple([g[0] for g = G])), s)
   end
+
+  return s, MapFromFunc(pure, Hecke.TupleParent(Tuple([g[0] for g = G])), s)
 end
 
 #############################
@@ -2780,16 +2785,26 @@ end
 # Not only for testing
 ######################################
 @doc Markdown.doc"""
+  matrix_to_map(F::FreeMod{T}, A::MatElem{T}) where T
+Converts a given n×m-matrix into the corresponding morphism $A : R^n → F$, 
+with `rank(F) == m`.
+"""
+function matrix_to_map(F::FreeMod{T}, A::MatElem{T}) where T
+  R = base_ring(F)
+  F_domain = FreeMod(R, nrows(A))
+
+  phi = FreeModuleHom(F_domain, F, A)
+  return phi
+end
+
+@doc Markdown.doc"""
   matrix_to_map(A::MatElem)
 Converts a given n×m-matrix into the corresponding morphism $A : R^n → R^m$.
 """
 function matrix_to_map(A::MatElem)
   R = base_ring(A)
-  F_domain = FreeMod(R, nrows(A))
   F_codomain = FreeMod(R, ncols(A))
-
-  phi = FreeModuleHom(F_domain, F_codomain, A)
-  return phi
+  return matrix_to_map(F_codomain,A)
 end
 
 @doc Markdown.doc"""
