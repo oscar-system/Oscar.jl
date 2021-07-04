@@ -1,2 +1,5 @@
 /docs/build/
+/docs/src/AbstractAlgebra/
+/docs/src/Hecke/
+/docs/src/Nemo/
 Manifest.toml

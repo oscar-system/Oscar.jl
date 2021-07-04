@@ -1,10 +1,10 @@
 module BuildDoc
 using Oscar
 
-include(normpath(joinpath(Oscar.oscardir, "docs", "make_work.jl")))
+include(normpath(Oscar.oscardir, "docs", "make_work.jl"))
 
 function open_doc()
-    filename = normpath(joinpath(dirname(pathof(Oscar)), "..", "docs", "build", "index.html"))
+    filename = normpath(Oscar.oscardir, "docs", "build", "index.html")
     @static if Sys.isapple()
         run(`open $(filename)`; wait = false)
     elseif Sys.islinux() || Sys.isbsd()
