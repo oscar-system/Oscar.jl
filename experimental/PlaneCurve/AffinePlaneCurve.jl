@@ -180,7 +180,7 @@ function curve_intersect(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S
         push!(Y, -f + gen(R, 2))
      end
   end
-     # For each y, we compute the possible values of x by jldoctestacing the second
+     # For each y, we compute the possible values of x by replacing the second
      # variable by the value y, and factorizing the resulting polynomial.
      for y in Y
         FF = evaluate(F, [gen(R, 1), y])
@@ -320,7 +320,7 @@ end
 Return the multiplicity of `C` at `P`.
 
 # Example
-```repl
+```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
 
@@ -328,11 +328,11 @@ julia> C = Oscar.AffinePlaneCurve(x^2*(x+y)*(y^3-x^2))
 Affine plane curve defined by -x^5 - x^4*y + x^3*y^3 + x^2*y^4
 
 
-julia> P2 = Oscar.Point([QQ(2), QQ(-2)])
+julia> P = Oscar.Point([QQ(2), QQ(-2)])
 Point with coordinates fmpq[2, -2]
 
 
-julia> Oscar.multiplicity(C, P2)
+julia> Oscar.multiplicity(C, P)
 1
 ```
 """
@@ -358,7 +358,7 @@ end
 Return the tangent lines at `P` to `C` with their multiplicity.
 
 # Example
-```repl
+```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
 
@@ -532,7 +532,7 @@ end
 Return the arithmetic genus of the projective closure of `C`.
 
 # Example
-```repl
+```jldoctest
 julia> R, (x, y) = PolynomialRing(GF(7), ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Galois field with characteristic 7, gfp_mpoly[x, y])
 
@@ -562,7 +562,7 @@ end
 Return the geometric genus of the projective closure of `C`.
 
 # Example
-```repl
+```jldoctest
 julia> R, (x, y) = PolynomialRing(GF(7), ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Galois field with characteristic 7, gfp_mpoly[x, y])
 

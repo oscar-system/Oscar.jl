@@ -23,8 +23,8 @@ abstract type ProjectivePlaneCurve{S} <: PlaneCurve{S} end
 Return the point with the given coordinates.
 
 # Examples
-```repl
-P = Oscar.Point([QQ(1), QQ(2), QQ(2)])
+```jldoctest
+julia> P = Oscar.Point([QQ(1), QQ(2), QQ(2)])
 Point with coordinates fmpq[1, 2, 2]
 ```
 """
@@ -131,15 +131,15 @@ end
 Return the Projective Plane Curve defined by the homogeneous polynomial in three variables `eq`.
 
 # Example
-```repl
+```jldoctest
 julia> R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
 
 julia> T, _ = grade(R)
-Multivariate Polynomial Ring in x, y, z over Rational Field graded by
-        x -> [1]
-        y -> [1]
-        z -> [1]
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
 
 julia> F = T(y^3*x^6 - y^6*x^2*z)
 x^6*y^3 - x^2*y^6*z

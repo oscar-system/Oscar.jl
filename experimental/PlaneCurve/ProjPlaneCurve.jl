@@ -18,15 +18,15 @@ export issmooth, tangent, common_components, curve_intersect,
 Throw an error if `P` is not a point of `C`, return `false` if `P` is a singular point of `C`, and `true` if `P` is a smooth point of `C`.
 
 # Example
-```repl
+```jldoctest
 julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
 
 julia> T, _ = grade(S)
-Multivariate Polynomial Ring in x, y, z over Rational Field graded by
-        x -> [1]
-        y -> [1]
-        z -> [1]
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
 
 julia> C = Oscar.ProjPlaneCurve(x^2*(x+y)*(y^3-x^2*z))
 Projective plane curve defined by -x^5*z - x^4*y*z + x^3*y^3 + x^2*y^4
@@ -34,7 +34,7 @@ Projective plane curve defined by -x^5*z - x^4*y*z + x^3*y^3 + x^2*y^4
 
 julia> PP = projective_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
-, Oscar.MPolyElem_dec{fmpq}[x0, x1, x2])
+, MPolyElem_dec{fmpq,fmpq_mpoly}[x[0], x[1], x[2]])
 
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(0), QQ(1)])
 (0 : 0 : 1)
@@ -64,20 +64,19 @@ end
 Return the tangent of `C` at `P` when `P` is a smooth point of `C`, and throw an error otherwise.
 
 # Example
-```repl
+```jldoctest
 julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y","z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
 
 julia> T, _ = grade(S)
-Multivariate Polynomial Ring in x, y, z over Rational Field graded by
-        x -> [1]
-        y -> [1]
-        z -> [1]
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
 
 julia> PP = projective_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
-, Oscar.MPolyElem_dec{fmpq}[x0, x1, x2])
-
+, MPolyElem_dec{fmpq,fmpq_mpoly}[x[0], x[1], x[2]])
 
 julia> C = Oscar.ProjPlaneCurve(x^2*(x+y)*(y^3-x^2*z))
 Projective plane curve defined by -x^5*z - x^4*y*z + x^3*y^3 + x^2*y^4
@@ -147,7 +146,7 @@ end
 Return a list whose first element is the projective plane curve defined by the gcd of `C.eq` and `D.eq`, the second element is the list of the remaining intersection points when the common components are removed from `C` and `D` (the points are in `PP` if specified, or in a new projective space otherwise).
 
 # Example
-```repl
+```jldoctest
 julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y","z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
 
@@ -156,6 +155,10 @@ julia> T, _ = grade(S)
   x -> [1]
   y -> [1]
   z -> [1], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
+
+julia> PP = projective_space(QQ, 2)
+(Projective space of dim 2 over Rational Field
+, MPolyElem_dec{fmpq,fmpq_mpoly}[x[0], x[1], x[2]])
 
 julia> C = Oscar.ProjPlaneCurve(T(x+y+z))
 Projective plane curve defined by x + y + z
