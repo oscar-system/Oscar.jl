@@ -48,6 +48,7 @@ end
     NFx = PolynomialRing(k1, ["x", "y", "z"])[1]
     k2 = Nemo.GF(23)
     GFx = PolynomialRing(k2, ["x", "y", "z"])[1]
+    # TODO explain why test fails if Nemo.ResidueRing(ZZ,17) => Nemo.GF(17)
     RNmodx=PolynomialRing(Nemo.ResidueRing(ZZ,17), :x => 1:2)[1]
     Rings= [Qx, NFx, GFx, RNmodx]
 
