@@ -2,8 +2,12 @@
   r, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
   s, (a, b, c) = PolynomialRing(QQ, ["a", "b", "c"])
   S = quo(s, ideal(s, [c-b^3]))[1]
+  T, (X, Y, Z) = grade(r)
+  U = [X, Y, Z]
   V = S.([2*a+b^6, 7*b-a^2, c^2])
   f = hom(r, S, V)
+  g1 = hom(r, T, U)
+  g2 = hom(T, T, U)
   K = kernel(f)
   R = quo(r, K)[1]
   phi = hom(R, S, V)
