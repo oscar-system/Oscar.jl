@@ -1,3 +1,5 @@
+using Oscar
+
 module BuildDoc
 using Oscar
 
@@ -21,3 +23,4 @@ end
 end
 
 using .BuildDoc
+Main.BuildDoc.doit(true, true)
