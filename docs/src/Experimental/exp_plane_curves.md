@@ -75,144 +75,39 @@ The following methods are implemented for both affine and projective plane curve
 
 ```@docs
 in(P::Point{S}, C::AffinePlaneCurve{S}) where S <: FieldElem
-```
-```@docs
 in(P::Oscar.Geometry.ProjSpcElem{S}, C::Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}) where S <: FieldElem
-```
-
-
-```@docs
 degree(C::Oscar.PlaneCurveModule.PlaneCurve)
-```
-
-```@docs
 jacobi_ideal(C::Oscar.PlaneCurveModule.PlaneCurve)
-```
-
-```@docs
-curve_components
-```
-
-```@docs
-reduction
-```
-
-```@docs
-isirreducible(C::Oscar.PlaneCurveModule.PlaneCurve{S}) where S <: FieldElem
-```
-
-```@docs
-isreduced(C::Oscar.PlaneCurveModule.PlaneCurve{S}) where S <: FieldElem
-```
-
-
-```@docs
-issmooth(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
-```
-
-```@docs
-issmooth(C::Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
-```
-
-```@docs
-tangent(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
-```
-
-```@docs
-tangent(C::Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
-```
-
-```@docs
 union(C::T, D::T) where T <: Oscar.PlaneCurveModule.PlaneCurve
-```
-
-```@docs
 ring(C::Oscar.PlaneCurveModule.PlaneCurve)
-```
-
-
-
-```@docs
+curve_components
+reduction
+isirreducible(C::Oscar.PlaneCurveModule.PlaneCurve{S}) where S <: FieldElem
+isreduced(C::Oscar.PlaneCurveModule.PlaneCurve{S}) where S <: FieldElem
+issmooth(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
+issmooth(C::Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
+tangent(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
+tangent(C::Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
 common_components(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S <: FieldElem
-```
-```@docs
 common_components(C::Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, D::Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}) where S <: FieldElem
-```
-
-```@docs
 curve_intersect(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S <: FieldElem
-```
-
-```@docs
 curve_intersect([PP::Oscar.Geometry.ProjSpc{S}], C::Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, D::Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}) where S <: FieldElem
-```
-
-```@docs
 intersection_multiplicity(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
-```
-
-```@docs
 intersection_multiplicity(C::Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, D::Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
-```
-
-```@docs
 intersection_multiplicity
-```
-
-```@docs
 curve_singular_locus(C::AffinePlaneCurve)
-```
-
-```@docs
 curve_singular_locus([PP::Oscar.Geometry.ProjSpc{S}], C::Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}) where S <: FieldElem
-```
-
-```@docs
 multiplicity(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
-```
-
-```@docs
 multiplicity(C::Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
-```
-
-```@docs
 tangent_lines(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
-```
-
-```@docs
 tangent_lines(C::Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
-```
-
-```@docs
 aretransverse(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}, P::Point{S}) where S<:FieldElem
-```
-
-```@docs
 aretransverse(C::Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, D::Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S<:FieldElem
-```
-
-
-```@docs
 issmooth_curve(C::AffinePlaneCurve)
-```
-
-```@docs
 issmooth_curve(C::Oscar.PlaneCurveModule.ProjectivePlaneCurve)
-```
-
-```@docs
 arithmetic_genus(C::AffinePlaneCurve)
-```
-
-```@docs
 arithmetic_genus(C::Oscar.PlaneCurveModule.ProjectivePlaneCurve)
-```
-
-```@docs
 geometric_genus(C::AffinePlaneCurve)
-```
-
-```@docs
 geometric_genus(C::Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}) where S <: FieldElem
 ```
 
@@ -239,74 +134,22 @@ ProjCurveDivisor
 
 ```@docs
 curve(D::Oscar.PlaneCurveModule.CurveDivisor)
-```
-
-```@docs
 degree(D::Oscar.PlaneCurveModule.CurveDivisor)
-```
-
-```@docs
 iseffective(D::Oscar.PlaneCurveModule.CurveDivisor)
-```
-
-```@docs
 curve_zero_divisor(C::ProjPlaneCurve{S}) where S <: FieldElem
-```
-
-```@docs
 curve_zero_divisor(C::AffinePlaneCurve{S}) where S <: FieldElem
-```
-
-```@docs
 multiplicity(C::AffinePlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T}, P::Point{S}) where {S <: FieldElem, T <: MPolyElem{S}}
-```
-
-```@docs
 multiplicity(C::AffinePlaneCurve{S}, F::Oscar.MPolyElem{S}, P::Point{S}) where S <: FieldElem
-```
-
-```@docs
 multiplicity(C::ProjPlaneCurve{S}, F::Oscar.MPolyElem_dec{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
-```
-
-```@docs
 multiplicity(C::ProjPlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T}, P::Oscar.Geometry.ProjSpcElem{S})  where {S <: FieldElem, T <: Oscar.MPolyElem_dec{S}}
-```
-
-```@docs
 divisor(C::AffinePlaneCurve{S}, F::Oscar.MPolyElem{S}) where S <: FieldElem
-```
-
-```@docs
 divisor(C::AffinePlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T}) where {S <: FieldElem, T <: MPolyElem{S}}
-```
-
-```@docs
 divisor([PP::Oscar.Geometry.ProjSpc{S}], C::ProjPlaneCurve{S}, F::Oscar.MPolyElem_dec{S}) where S <: FieldElem
-```
-
-```@docs
 divisor(PP::Oscar.Geometry.ProjSpc{S}, C::ProjPlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T})  where {S <: FieldElem, T <: Oscar.MPolyElem_dec{S}}
-```
-
-
-```@docs
 islinearly_equivalent(D::ProjCurveDivisor, E::ProjCurveDivisor)
-```
-
-```@docs
 isprincipal(D::ProjCurveDivisor{S}) where S <: FieldElem
-```
-
-```@docs
 principal_divisor(D::ProjCurveDivisor{S}) where S <: FieldElem
-```
-
-```@docs
 global_sections(D::ProjCurveDivisor)
-```
-
-```@docs
 dimension_global_sections(D::ProjCurveDivisor)
 ```
 
@@ -324,7 +167,7 @@ Considering elliptic curves over a ring is helpful in some primality proving tes
 ProjEllipticCurve
 ```
 
-We define a specific structure for the points on an elliptic curve, on which the operation of addition is definde.
+We define a specific structure for the points on an elliptic curve, on which the operation of addition and multiplication by an integer are defined.
 
 ```@docs
 Point_EllCurve
@@ -336,62 +179,19 @@ Most of the functions described for projective plane curves are also available f
 
 ```@docs
 weierstrass_form(E::ProjEllipticCurve{S}) where {S <: FieldElem}
-```
-
-```@docs
 toweierstrass(C::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
-```
-
-```@docs
 discriminant(E::ProjEllipticCurve{S}) where S <: FieldElem
-```
-
-```@docs
 j_invariant(E::ProjEllipticCurve{S}) where S <: FieldElem
-```
-
-```@docs
 rand(E::ProjEllipticCurve{S}) where S <: FieldElem
-```
-
-```@docs
 curve(P::Point_EllCurve{S}) where S <: FieldElem
-```
-
-```@docs
 order(E::ProjEllipticCurve{S}) where S <: FieldElem
-```
-
-
-```@docs
 istorsion_point(P::Point_EllCurve{fmpq})
-```
-
-```@docs
 torsion_points_lutz_nagell(E::ProjEllipticCurve{fmpq})
-```
-
-```@docs
 torsion_points_division_poly(E::ProjEllipticCurve{fmpq})
-```
-
-```@docs
 order(P::Point_EllCurve{fmpq})
-```
-
-```@docs
 list_rand(E::ProjEllipticCurve, N::Int)
-```
-
-```@docs
 sum_Point_EllCurveZnZ(P::Point_EllCurve{S}, Q::Point_EllCurve{S}) where S <: Nemo.fmpz_mod
-```
-
-```@docs
 IntMult_Point_EllCurveZnZ(m::fmpz, P::Point_EllCurve{S}) where S <: Nemo.fmpz_mod
-```
-
-```@docs
 rand_pair_EllCurve_Point(R::Oscar.MPolyRing_dec{S}, PP::Oscar.Geometry.ProjSpc{S}) where S <: Nemo.fmpz_mod
 ```
 
@@ -403,24 +203,9 @@ The Elliptic Curve Method (ECM) and the Elliptic Curve Primality Proving (ECPP) 
 
 ```@docs
 ECM(n::fmpz; nbcurve::Int = 25000, multfact::fmpz = factorial(ZZ(10^4)))
-```
-
-```@docs
 ECPP(n::fmpz)
-```
-
-```@docs
 cornacchia_algorithm(d::fmpz, m::fmpz)
-```
-
-```@docs
 Miller_Rabin_test(N::fmpz, k::Int64 = 20)
-```
-
-```@docs
 Pollard_rho(N::fmpz, bound::Int = 50000)
-```
-
-```@docs
 Pollard_p_1(N::fmpz, B::fmpz = ZZ(10)^5)
 ```
