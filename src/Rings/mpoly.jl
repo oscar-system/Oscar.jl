@@ -567,7 +567,8 @@ Base.eltype(::BiPolyArray{S}) where S = S
 # singular_ring(Nemo-Ring) tries to create the appropriate Ring
 #
 
-function (Ox::MPolyRing)(f::Singular.spoly)
+for T in [:MPolyRing, :(AbstractAlgebra.Generic.MPolyRing)]
+@eval function (Ox::$T)(f::Singular.spoly)
   O = base_ring(Ox)
   Sx = parent(f)
   @assert ngens(Sx) == ngens(Ox)
@@ -576,6 +577,7 @@ function (Ox::MPolyRing)(f::Singular.spoly)
     push_term!(g, O(c), e)
   end
   return finish(g)
+end
 end
 
 
