@@ -848,6 +848,14 @@ end
 #
 ################################################################################
 
+function degree_generators(R::MPolyQuo)
+  if R.R isa MPolyRing_dec
+    return R.R.d
+  else
+    error("Must be quotient ring of graded polynomial ring")
+  end
+end
+
 function degree(a::MPolyQuoElem{<:MPolyElem_dec})
   simplify!(a)
   return degree(a.f)

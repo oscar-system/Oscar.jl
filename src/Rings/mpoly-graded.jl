@@ -26,6 +26,8 @@ mutable struct MPolyRing_dec{T, S} <: AbstractAlgebra.MPolyRing{T}
   end
 end
 
+degree_generators(R::MPolyRing_dec) = R.d
+
 isgraded(W::MPolyRing_dec) = !isdefined(W, :lt)
 isfiltered(W::MPolyRing_dec) = isdefined(W, :lt)
 
