@@ -858,6 +858,14 @@ end
 #
 ################################################################################
 
+function grading(R::MPolyQuo)
+  if R.R isa MPolyRing_dec
+    return grading(R.R)
+  else
+    error("Underlying polynomialring must be graded")
+  end
+end
+
 function degree(a::MPolyQuoElem{<:MPolyElem_dec})
   simplify!(a)
   @req !iszero(a) "Element must be non-zero"
@@ -883,7 +891,7 @@ function ishomogeneous(a::MPolyQuoElem{<:MPolyElem_dec})
   return ishomogeneous(a.f)
 end
 
-decoration(q::MPolyQuo{<:MPolyElem_dec}) = decoration(q.R)
+grading_group(q::MPolyQuo{<:MPolyElem_dec}) = grading_group(q.R)
 
 function hash(w::MPolyQuoElem, u::UInt)
   simplify!(w)
@@ -894,7 +902,7 @@ function homogeneous_component(W::MPolyQuo{<:MPolyElem_dec}, d::GrpAbFinGenElem)
   #TODO: lazy: ie. no enumeration of points
   #      aparently it is possible to get the number of points faster than the points
   D = parent(d)
-  @assert D == decoration(W)
+  @assert D == grading_group(W)
   R = base_ring(W)
   I = modulus(W)
 
