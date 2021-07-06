@@ -138,7 +138,7 @@ end
         @test Oscar.isfiltered(R_quo) == Oscar.isfiltered(RR)
         @test Oscar.isgraded(R_quo) == Oscar.isgraded(RR)
 
-        @test decoration(R_quo) == decoration(RR)
+        @test grading_group(R_quo) == grading_group(RR)
 
         d_Elem = d_Elems[RR]
 
@@ -170,11 +170,19 @@ end
   @test parent(Q(x)) === Q
   @test parent(Q(gens(R.R)[1])) === Q
 end
+
 @testset "Evaluation" begin
   R, (x,y) = grade(PolynomialRing(QQ, ["x", "y"])[1]);
   @test x(y, x) == y
 end
+
 @testset "Promotion" begin
   R, (x,y) = grade(PolynomialRing(QQ, ["x", "y"])[1]);
   @test x + QQ(1//2) == x + 1//2
+end
+
+@testset "Grading" begin
+  R, (x,y) = grade(PolynomialRing(QQ, ["x", "y"])[1]);
+  D = grading_group(R)
+  @test isisomorphic(D, abelian_group([0]))
 end
