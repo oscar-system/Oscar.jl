@@ -21,7 +21,7 @@ quo(R::MPolyRing, I::MPolyIdeal)
 ```
 
 !!! note
-    In each case, with or without an assigned grading, the return type of `quo` is a subtype of `MPolyQuo`.
+    With or without an assigned grading, the return types of `quo` are  subtypes of `MPolyQuo`.
 
 !!! note
     In Oscar, elements of quotient rings are not necessarily reduced with regard to the modulus of the quotient ring.
