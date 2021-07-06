@@ -863,7 +863,8 @@ end
 
 function homogeneous_components(a::MPolyQuoElem{<:MPolyElem_dec})
   simplify!(a)
-  return homogeneous_components(a.f)
+  h = homogeneous_components(a.f)
+  return Dict{keytype(h), typeof(a)}(x => parent(a)(y) for (x, y) in h)
 end
 
 function ishomogeneous(a::MPolyQuoElem{<:MPolyElem_dec})
