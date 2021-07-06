@@ -70,15 +70,21 @@ Grade `R` by assigning weight 1 to each variable.
 julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
 
-julia> T, (x, y, z) = grade(R)
+julia> typeof(R)
+FmpqMPolyRing
+
+julia> S, (x, y, z) = grade(R)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
   x -> [1]
   y -> [1]
   z -> [1], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
 
+julia> typeof(S)
+MPolyRing_dec{fmpq,FmpqMPolyRing}
+
 julia> W = [1, 2, 3];
 
-julia> S, (x, y, z) = grade(R, W)
+julia> T, (x, y, z) = grade(R, W)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
   x -> [1]
   y -> [2]

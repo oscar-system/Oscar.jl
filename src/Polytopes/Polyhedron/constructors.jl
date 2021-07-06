@@ -27,7 +27,7 @@ The (convex) polyhedron defined by
 
 $$P(A,b) = \{ x |  Ax ≤ b \}.$$
 
-see Def. 3.35 and Section 4.1. of [JT13]
+see Def. 3.35 and Section 4.1. of [JT13](@cite)
 
 # Examples
 The following lines define the square $[0,1]^2 \subset \mathbb{R}^2$:
@@ -70,7 +70,7 @@ If the user is sure that `V` and `R` only contains extreme points and that
 the description of the lineality space is complete, they can set
 `non_redundant = true` to avoid unneccessary redundancy checks.
 
-See Def. 2.11 and Def. 3.1  of [JT13].
+See Def. 2.11 and Def. 3.1  of [JT13](@cite).
 
 # Examples
 The following lines define the square $[0,1]^2 \subset \mathbb{R}^2$:

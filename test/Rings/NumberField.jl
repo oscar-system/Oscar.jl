@@ -121,8 +121,10 @@
         @test b == @inferred (R(1) * b)
         @test b == @inferred b//R(1)
         @test b == @inferred divexact(b, R(1))
-        @test inv(b) == @inferred R(1)//b
-        @test inv(b) == @inferred divexact(R(1), b)
+        if !iszero(b)
+          @test inv(b) == @inferred R(1)//b
+          @test inv(b) == @inferred divexact(R(1), b)
+        end
       end
     end
 
