@@ -20,6 +20,7 @@ include("Rings/slpolys-test.jl")
 include("Polymake/nmbthy-test.jl")
 include("Groups/runtests.jl")
 include("Rings/NumberField.jl")
+include("Rings/FunctionField-test.jl")
 
 # if Oscar.is_dev
 #   include("Examples/PlaneCurve-test.jl")
