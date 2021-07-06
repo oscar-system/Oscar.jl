@@ -796,3 +796,11 @@ end
 function dehomogenization(I::MPolyIdeal{T}, pos::Int) where {T <: MPolyElem_dec}
   return ideal(dehomogenization(gens(I), pos))
 end
+
+################################################################################
+#
+#  Evaluation
+#
+################################################################################
+
+(f::MPolyElem_dec)(x...) = evaluate(f, collect(x))
