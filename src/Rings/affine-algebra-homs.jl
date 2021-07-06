@@ -109,7 +109,7 @@ mutable struct AlgHom{T} <: AbstractAlgebra.Map{Ring, Ring,
    X <: Union{S, MPolyQuoElem{S}}}
       
       if typeof(C) <: MPolyRing_dec
-         all(ishomogenous, V) || error("Array needs to contain homogeneous elements")
+         all(ishomogeneous, V) || error("Array needs to contain homogeneous elements")
       end
 
       Dx = singular_ring(D)
@@ -124,8 +124,7 @@ mutable struct AlgHom{T} <: AbstractAlgebra.Map{Ring, Ring,
    X <: Union{S, MPolyQuoElem{S}}}
 
       if typeof(C) <: MPolyRing_dec
-         bit = ishomogenous.(V)
-         length(findall(x->x==1, bit)) == length(V) || error("Array needs to contain homogeneous elements")
+         all(ishomogeneous, V) || error("Array needs to contain homogeneous elements")
       end
 
       Dx = singular_ring(D)
@@ -139,7 +138,7 @@ mutable struct AlgHom{T} <: AbstractAlgebra.Map{Ring, Ring,
    X <: Union{S, MPolyQuoElem{S}}}
 
       if typeof(C) <: MPolyRing_dec
-         all(ishomogenous, V) || error("Array needs to contain homogeneous elements")
+         all(ishomogeneous, V) || error("Array needs to contain homogeneous elements")
       end
 
       Dx = singular_ring(D)
