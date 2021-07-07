@@ -188,7 +188,16 @@ parent_type(::Type{MPolyElem_dec{T, S}}) where {T, S} = MPolyRing_dec{T, parent_
 (W::MPolyRing_dec)(i::Int) = MPolyElem_dec(W.R(i), W)
 (W::MPolyRing_dec)(i::RingElem) = MPolyElem_dec(W.R(i), W)
 (W::MPolyRing_dec)(f::Singular.spoly) = MPolyElem_dec(W.R(f), W)
-(W::MPolyRing_dec)(f::MPolyElem) = MPolyElem_dec(f, W)
+
+function (W::MPolyRing_dec)(f::MPolyElem)
+  @assert W.R === parent(f)
+  return MPolyElem_dec(f, W)
+end
+
+function (W::MPolyRing_dec)(a)
+  return W(W.R(a))
+end
+
 (W::MPolyRing_dec)(g::MPolyElem_dec) = MPolyElem_dec(g.f, W)
 one(W::MPolyRing_dec) = MPolyElem_dec(one(W.R), W)
 zero(W::MPolyRing_dec) = MPolyElem_dec(zero(W.R), W)
@@ -226,22 +235,22 @@ divexact(a::MPolyElem_dec, b::Rational) = MPolyElem_dec(divexact(a.f, b), parent
 
 for T in [:(-), :(+)]
   @eval ($T)(a::MPolyElem_dec,
-             b::RingElem) = MPolyElem_dec($(T)(a.poly, b), parent(a))
+             b::RingElem) = MPolyElem_dec($(T)(a.f, b), parent(a))
 
   @eval ($T)(a::MPolyElem_dec,
-             b::Integer) = MPolyElem_dec($(T)(a.poly, b), parent(a))
+             b::Integer) = MPolyElem_dec($(T)(a.f, b), parent(a))
 
   @eval ($T)(a::MPolyElem_dec,
-             b::Rational) = MPolyElem_dec($(T)(a.poly, b), parent(a))
+             b::Rational) = MPolyElem_dec($(T)(a.f, b), parent(a))
 
   @eval ($T)(a::RingElem,
-             b::MPolyElem_dec) = MPolyElem_dec($(T)(a, b.poly), b.parent)
+             b::MPolyElem_dec) = MPolyElem_dec($(T)(a, b.f), b.parent)
 
   @eval ($T)(a::Integer,
-             b::MPolyElem_dec) = MPolyElem_dec($(T)(a, b.poly), b.parent)
+             b::MPolyElem_dec) = MPolyElem_dec($(T)(a, b.f), b.parent)
 
   @eval ($T)(a::Rational,
-             b::MPolyElem_dec) = MPolyElem_dec($(T)(a, b.poly), b.parent)
+             b::MPolyElem_dec) = MPolyElem_dec($(T)(a, b.f), b.parent)
 end
 
 ################################################################################
