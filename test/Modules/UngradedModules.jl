@@ -441,7 +441,76 @@ end
 end
 
 @testset "direct product" begin
+	R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
 	
+	F2 = Oscar.FreeMod(R,2)
+	F3 = Oscar.FreeMod(R,3)
+
+	for _=1:3
+		A1 = array_to_matrix([randpoly(R,0:15,2,2) for i=1:3,j=1:2])
+		B1 = array_to_matrix([randpoly(R,0:15,2,2) for i=1:1,j=1:2])
+		M1 = Oscar.SubQuo(F2,A1,B1)
+
+		A2 = array_to_matrix([randpoly(R,0:15,2,1) for i=1:2,j=1:3])
+		B2 = array_to_matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:3])
+		M2 = Oscar.SubQuo(F3,A2,B2)
+
+		prod_M, proj, emb = Oscar.direct_product(M1,M2,task=:both)
+		@test length(proj) == length(emb) == 2
+		@test ngens(prod_M) == ngens(M1) + ngens(M2)
+
+		for g in gens(prod_M)
+			@test g == sum([emb[i](proj[i](g)) for i=1:length(proj)])
+		end
+		for g in gens(M1)
+			@test g == proj[1](emb[1](g))
+		end
+		for g in gens(M2)
+			@test g == proj[2](emb[2](g))
+		end
+
+		A1 = array_to_matrix([randpoly(R,0:15,2,2) for i=1:3,j=1:2])
+		B1 = array_to_matrix([randpoly(R,0:15,2,2) for i=1:1,j=1:2])
+		N1 = Oscar.SubQuo(F2,A1,B1)
+
+		A2 = array_to_matrix([randpoly(R,0:15,2,1) for i=1:2,j=1:3])
+		B2 = array_to_matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:3])
+		N2 = Oscar.SubQuo(F3,A2,B2)
+
+		prod_N = Oscar.direct_product(N1,N2)
+		@test ngens(prod_M) == ngens(M1) + ngens(M2)
+
+		for g in gens(prod_N)
+			@test g == sum([Oscar.canonical_injection(prod_N,i)(Oscar.canonical_projection(prod_N,i)(g)) for i=1:2])
+		end
+		for g in gens(M1)
+			@test g == Oscar.canonical_projection(prod_N,1)(Oscar.canonical_injection(prod_N,1)(g))
+		end
+		for g in gens(M2)
+			@test g == Oscar.canonical_projection(prod_N,2)(Oscar.canonical_injection(prod_N,2)(g))
+		end
+
+		# testing hom_prod_prod
+
+		M1_to_N1 = Oscar.SubQuoHom(M1,N1,R[x y 0; 0 x+z^2 0; 1 1 2])
+		M1_to_N2 = Oscar.SubQuoHom(M1,N2,R[x*y*z^4-x 1; 3 1+x+y^2-z])
+		M2_to_N1 = Oscar.SubQuoHom(M2,N1,Oscar.zero_matrix(R,2,3))
+		M2_to_N2 = Oscar.SubQuoHom(M2,N2,R[0 0; 1 0])
+		@assert Oscar.iswelldefined(M1_to_N1)
+		@assert Oscar.iswelldefined(M1_to_N2)
+		@assert Oscar.iswelldefined(M2_to_N1)
+		@assert Oscar.iswelldefined(M2_to_N2)
+
+		phi = Oscar.hom_prod_prod(prod_M,prod_N,[M1_to_N1 M1_to_N2; M2_to_N1 M2_to_N2])
+		for g in gens(M1)
+			@test M1_to_N1(g) == Oscar.canonical_projection(prod_N,1)(phi(emb[1](g)))
+			@test M1_to_N2(g) == Oscar.canonical_projection(prod_N,2)(phi(emb[1](g)))
+		end
+		for g in gens(M2)
+			@test M2_to_N1(g) == Oscar.canonical_projection(prod_N,1)(phi(emb[2](g)))
+			@test M2_to_N2(g) == Oscar.canonical_projection(prod_N,2)(phi(emb[2](g)))
+		end
+	end
 end
 
 # testing lift ?
