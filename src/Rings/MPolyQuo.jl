@@ -652,15 +652,17 @@ function (Q::MPolyQuo)(a::MPolyQuoElem)
 end
 
 function (Q::MPolyQuo)(a::MPolyElem) 
-   @assert parent(a) == Q.R
-   return MPolyQuoElem(Q.R(a), Q)
+   if base_ring(Q) === parent(a)
+      return MPolyQuoElem(a, Q)
+   else
+      return MPolyQuoElem(Q.R(a), Q)
+   end
 end
 
 function (Q::MPolyQuo)(a::Singular.spoly)
    @assert singular_ring(Q) == parent(a)
    return MPolyQuoElem(Q.R(a), Q)
 end
-
 
 function (S::Singular.PolyRing)(a::MPolyQuoElem)
    Q = parent(a)
@@ -865,7 +867,8 @@ end
 
 function homogeneous_components(a::MPolyQuoElem{<:MPolyElem_dec})
   simplify!(a)
-  return homogeneous_components(a.f)
+  h = homogeneous_components(a.f)
+  return Dict{keytype(h), typeof(a)}(x => parent(a)(y) for (x, y) in h)
 end
 
 function ishomogeneous(a::MPolyQuoElem{<:MPolyElem_dec})

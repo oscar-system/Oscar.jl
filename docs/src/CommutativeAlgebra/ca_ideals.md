@@ -19,7 +19,7 @@ ideal(g::Array{T, 1}) where {T <: MPolyElem}
 ```
 
 !!! note
-    The return type of all constructors above is a subtype of `MPolyIdeal`.
+    The return types of all constructors above are subtypes of `MPolyIdeal`.
 
 
 ## Gröbner Bases
