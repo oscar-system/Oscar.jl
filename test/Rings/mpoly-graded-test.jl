@@ -1,3 +1,10 @@
+@testset "MPolyQuo.graded" begin
+  R, (x, y) = grade(PolynomialRing(QQ, ["x", "y"])[1]);
+  Q = quo(R, ideal([x^2, y]))[1];
+  h = homogeneous_components(Q[1])
+  @test valtype(h) === elem_type(Q)
+end
+
 function _random_poly(RR, n)
   pols = elem_type(RR)[]
   for t in 1:n
@@ -125,7 +132,7 @@ end
         for deg in [degree(R_quo(mon)) for mon  = Oscar.monomials(f.f)]
           h = get(D, deg, 'x')
           @test ishomogeneous(R_quo(h))
-          @test h == homogeneous_component(f, deg)
+          @test h == R_quo(homogeneous_component(f, deg))
         end
 
         @test Oscar.isfiltered(R_quo) == Oscar.isfiltered(RR)
