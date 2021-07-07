@@ -42,12 +42,13 @@ const hecke = "Hecke"
 const nemo = "Nemo"
 const aa = "AbstractAlgebra"
 
-bib = CitationBibliography(joinpath(@__DIR__, "oscar_references.bib"), sorting = :nyt)
-
 function doit(strict::Bool = true, local_build::Bool = false)
 
   s = read(joinpath(Oscar.oscardir, "docs", "doc.main"), String)
   doc = eval(Meta.parse(s))
+
+  # Load the bibliography
+  bib = CitationBibliography(joinpath(Oscar.oscardir, "docs", "oscar_references.bib"), sorting = :nyt)
 
   cd(joinpath(Oscar.oscardir, "docs")) do
 
