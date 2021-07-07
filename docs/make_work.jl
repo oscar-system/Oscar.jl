@@ -1,23 +1,10 @@
+#
+# This file is included by docs/make.jl and by a helper function
+# in src/Oscar.jl
+#
 module BuildDoc
 
 using Documenter, Oscar, DocumenterMarkdown, DocumenterCitations
-
-# Copy documentation from Hecke, Nemo, AnstratAlgebra
-for pkg in [Oscar.Hecke, Oscar.Nemo, Oscar.AbstractAlgebra]
-    build = normpath(pkgdir(Oscar), "docs", "src", string(nameof(pkg)))
-    source = normpath(pkgdir(pkg), "docs", "src")
-    for (root, dirs, files) in walkdir(source)
-        for dir in dirs
-            d = normpath(joinpath(build, relpath(root, source), dir))
-            mkpath(d)
-        end
-        for file in files
-            src = normpath(joinpath(root, file))
-            dst = normpath(joinpath(build, relpath(root, source), file))
-            cp(src, dst; force = true)
-        end
-    end
-end
 
 
 # Overwrite printing to make the header not full of redundant nonsense
@@ -39,16 +26,40 @@ Base.print(io::IO, b::Base.Docs.Binding) = print(io, b.var)
 
 function doit(strict::Bool = true, local_build::Bool = false)
 
+  # include the list of pages, performing substitutions
   s = read(joinpath(Oscar.oscardir, "docs", "doc.main"), String)
   doc = eval(Meta.parse(s))
 
   # Load the bibliography
   bib = CitationBibliography(joinpath(Oscar.oscardir, "docs", "oscar_references.bib"), sorting = :nyt)
 
+  # Copy documentation from Hecke, Nemo, AnstratAlgebra
+  other_packages = [Oscar.Hecke, Oscar.Nemo, Oscar.AbstractAlgebra]
+  for pkg in other_packages
+      srcbase = normpath(pkgdir(pkg), "docs", "src")
+      dstbase = normpath(pkgdir(Oscar), "docs", "src", string(nameof(pkg)))
+
+      # clear the destination directory first
+      rm(dstbase, recursive=true, force=true)
+
+      for (root, dirs, files) in walkdir(srcbase)
+          for dir in dirs
+              d = normpath(joinpath(dstbase, relpath(root, srcbase), dir))
+              mkpath(d)
+          end
+          for file in files
+              src = normpath(joinpath(root, file))
+              dst = normpath(joinpath(dstbase, relpath(root, srcbase), file))
+              cp(src, dst; force = true)
+          end
+      end
+  end
+
   cd(joinpath(Oscar.oscardir, "docs")) do
 
     DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar); recursive = true)
     DocMeta.setdocmeta!(Hecke, :DocTestSetup, :(using Hecke); recursive = true)
+
 
     makedocs(bib,
            format   = Documenter.HTML(prettyurls = !local_build, collapselevel = 1),
@@ -61,6 +72,12 @@ function doit(strict::Bool = true, local_build::Bool = false)
            strict = strict,
            checkdocs = :none,
            pages    = doc)
+  end
+
+  # remove the copied documentation agains
+  for pkg in other_packages
+      dstbase = normpath(pkgdir(Oscar), "docs", "src", string(nameof(pkg)))
+      rm(dstbase, recursive=true, force=true)
   end
 
 end
