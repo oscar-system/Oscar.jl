@@ -63,17 +63,6 @@ function iscellular(I::MPolyIdeal)
   end
 end
 
-function isone_easy(I::MPolyIdeal)
-  p = next_prime(2^28)
-  fl = false
-  Qt = base_ring(I)
-  R = ResidueRing(ZZ, Int(p)) #gfp_mpoly missing...
-  Rt, t = PolynomialRing(R, nvars(Qt), cached = false)
-  Ip = Oscar.BiPolyArray([Rt(x) for x in gens(I)], keep_ordering = false)
-  Gp = Oscar.groebner_basis(Ip, ordering = :degrevlex, complete_reduction = true)
-  return any(isone, Gp)
-end
-
 function _iscellular(I::MPolyIdeal)
   #input: binomial ideal in a polynomial ring
   #output: the decision true/false whether I is cellular or not
