@@ -37,11 +37,6 @@ end
 # Remove the module prefix
 Base.print(io::IO, b::Base.Docs.Binding) = print(io, b.var)
 
-
-const hecke = "Hecke"
-const nemo = "Nemo"
-const aa = "AbstractAlgebra"
-
 function doit(strict::Bool = true, local_build::Bool = false)
 
   s = read(joinpath(Oscar.oscardir, "docs", "doc.main"), String)
