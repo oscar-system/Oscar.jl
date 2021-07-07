@@ -156,3 +156,8 @@ end
     end
   end
 end
+
+@testset "Promotion" begin
+  R, (x,y) = grade(PolynomialRing(QQ, ["x", "y"])[1]);
+  @test x + QQ(1//2) == x + 1//2
+end
