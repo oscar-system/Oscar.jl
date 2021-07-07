@@ -173,7 +173,7 @@ mutable struct ProjEllipticCurve{S} <: ProjectivePlaneCurve{S}
   function ProjEllipticCurve(eq::Oscar.MPolyElem_dec{S}) where {S <: Nemo.fmpz_mod}
     nvars(parent(eq)) == 3 || error("The defining equation must belong to a ring with three variables")
     !isconstant(eq) || error("The defining equation must be non constant")
-    ishomogenous(eq) || error("The defining equation is not homogeneous")
+    ishomogeneous(eq) || error("The defining equation is not homogeneous")
     isweierstrass_form(eq.f) || error("Not in Weierstrass form")
     v = shortformtest(eq.f)
     v[1] || error("Not in short Weierstrass form")
@@ -196,7 +196,7 @@ end
 ProjEllipticCurve(eq::Oscar.MPolyElem_dec{S}) where {S <: FieldElem} = ProjEllipticCurve{S}(eq)
 
 function ProjEllipticCurve(eq::Oscar.MPolyElem{S}) where {S <: FieldElem}
-  R = grade(parent(eq))
+  R, _ = grade(parent(eq))
   return ProjEllipticCurve{S}(R(eq))
 end
 

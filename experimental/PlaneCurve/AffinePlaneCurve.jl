@@ -235,7 +235,7 @@ function multiplicity(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
   D = curve_map_point_origin(C, P)
   G = D.eq
   R = parent(G)
-  A = grade(R)[1]
+  A, _ = grade(R)
   HC = homogeneous_components(A(G))
   L = collect(keys(HC))
   M = sort(L, by=_sort_helper_multiplicity)
@@ -257,7 +257,7 @@ function tangent_lines(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
   G = D.eq
   R = parent(G)
   V = gens(R)
-  A = grade(R)[1]
+  A, _ = grade(R)
   HC = homogeneous_components(A(G))
   L = collect(keys(HC))
   M = sort(L, by=_sort_helper_multiplicity)

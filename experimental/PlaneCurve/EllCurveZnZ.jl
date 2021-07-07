@@ -318,74 +318,13 @@ function class_data(D::fmpz)
 end
 
 
-function roundarb(x::arb)
-   test = unique_integer(x)
-   test[1] && return test[2]
-   xf = floor(x)
-   x-xf < 0.5 && return xf
-   return xf + 1
-end
-
-function eta_function(tau::acb, n::Int = 17)
-   q = exppii(2*tau)
-   res = sum([(-1)^k*(q^(div(k*(3k-1), 2))+q^(div(k*(3k+1), 2))) for k in 1:n])
-   return (q, 1+res)
-end
-
-function delta_function(tau::acb, n::Int = 17)
-   (q, eta) = eta_function(tau::acb, n)
-   return q*eta^24
-end
-
-function j_function(tau::acb, n::Int = 17)
-   f_tau = inv(delta_function(tau, n))*delta_function(2*tau, n)
-   return inv(f_tau)*(256*f_tau+1)^3
-end
-
-# Computing the Hilbert class polynomial
-function hilbert_class_polynomial(D::fmpz)
-    D>=ZZ(0) && error("Input needs to be negative!")
-    (h, L) = class_data(D)
-    # initial data
-    i = 1
-    sqrD = sqrt(BigInt(-D))
-
-    # estimate bit precision, summand 10 is experimental
-    rp_sum = sum([inv(BigInt(L[i][1])) for i in 1:BigInt(h)])
-    pr_bit = Int(binomial(h, div(h, 2)))*ceil(Int, pi*sqrD*rp_sum*inv(log(2)))+33
-    # estimate helper for needed value for sequence
-    pr_seq = inv(3*pi*sqrD)*(2*log(6)+pr_bit*log(2))
-    m = maximum([BigInt(L[i][1]) for i in 1:BigInt(h)])
-    n = ceil(Int, sqrt(pr_seq*m))
-
-    # data based on complex and real numbers
-    CC = ComplexField(pr_bit)
-    RR = Nemo.RealField(pr_bit)
-    R, x = PolynomialRing(RR, "x")
-    P = one(R)
-    csqrD = onei(CC)*CC(sqrD)
-
-    # Find polynomial over reals via modification of Algo 7.6.1 in Cohens book
-    while i<=h
-       a = L[i][1]
-       b = L[i][2]
-       omega_D = inv(CC(2*a))*(CC(-b)+csqrD)
-       j = j_function(omega_D, n)
-
-       if b>=0
-          P = P*(x-real(j))
-          i = i + 1
-       else
-          P = P*(x^2-2*real(j)*x+abs(j)^2)
-          i = i + 2
-       end
-    end
-
-    # Convert P to poly over integers
-    T, t = PolynomialRing(ZZ, "t")
-    C = [c for c in coefficients(P)]
-    l = length(C)
-    return sum([ZZ(roundarb(C[i]))*t^(i-1) for i in 1:l])
+function  hilbert_class_polynomial(R::FmpzPolyRing, d::Int)
+   z = R()
+   d < 0 && mod(d, 4) < 2 || error("oops")
+   ccall((:acb_modular_hilbert_class_poly, Nemo.libarb), Nothing,
+         (Ref{fmpz_poly}, Int),
+         z, d)
+   return z
 end
 
 #################################################################################
@@ -621,7 +560,8 @@ function compute_ell_curve(N::fmpz, D::fmpz)
    elseif D == ZZ(-4)
       return (R.([-1, 0]), ZZ(1))
    else
-      p = hilbert_class_polynomial(D)
+      T, t = ZZ["t"]
+      p = hilbert_class_polynomial(T, D)
       p = change_base_ring(R, p)
       j = roots(p)[1]
       c = inv(j-R(1728))*j
