@@ -1,3 +1,5 @@
+module BuildDoc
+
 using Documenter, Oscar, DocumenterMarkdown, DocumenterCitations
 
 # Copy documentation from Hecke, Nemo, AnstratAlgebra
@@ -49,20 +51,24 @@ function doit(strict::Bool = true, local_build::Bool = false)
 
   cd(joinpath(Oscar.oscardir, "docs")) do
 
-  DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar); recursive = true)
-  DocMeta.setdocmeta!(Hecke, :DocTestSetup, :(using Hecke); recursive = true)
+    DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar); recursive = true)
+    DocMeta.setdocmeta!(Hecke, :DocTestSetup, :(using Hecke); recursive = true)
 
-  makedocs(bib,
-         format   = Documenter.HTML(prettyurls = !local_build, collapselevel = 1),
-#         format   = Documenter.HTML(),
-#         format   = Markdown(),
-         sitename = "Oscar.jl",
-         modules = [Oscar, Hecke, Nemo, AbstractAlgebra, Singular],
-         clean = true,
-         doctest = true,
-         strict = strict,
-         checkdocs = :none,
-         pages    = doc)
+    makedocs(bib,
+           format   = Documenter.HTML(prettyurls = !local_build, collapselevel = 1),
+  #         format   = Documenter.HTML(),
+  #         format   = Markdown(),
+           sitename = "Oscar.jl",
+           modules = [Oscar, Hecke, Nemo, AbstractAlgebra, Singular],
+           clean = true,
+           doctest = true,
+           strict = strict,
+           checkdocs = :none,
+           pages    = doc)
+  end
+
 end
 
-end
+end # module BuildDoc
+
+using .BuildDoc
