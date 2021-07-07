@@ -440,6 +440,10 @@ end
 	end
 end
 
+@testset "direct product" begin
+	
+end
+
 # testing lift ?
 
 @testset "homomorphism testing" begin

@@ -1456,9 +1456,10 @@ function hom_prod_prod(G::ModuleFP, H::ModuleFP, A::Matrix{<:ModuleMap})
   tH = get_special(H, :direct_product)
   tH === nothing && error("both modules must be direct products")
   @assert length(tG) == size(A, 1) && length(tH) == size(A, 2)
-  @assert all((i,j)-> domain(A[i,j]) === tG[i] && codomain(A[i,j]) === tH[j], Base.Iterators.ProductIterator((1:size(A, 1), 1:size(A, 2))))
+  @assert all(ij -> domain(A[ij[1],ij[2]]) === tG[ij[1]] && codomain(A[ij[1],ij[2]]) === tH[ij[2]], Base.Iterators.ProductIterator((1:size(A, 1), 1:size(A, 2))))
   #need the canonical maps..., maybe store them as well?
-  error("not done yet")
+  return hom(G,H,[Base.sum([Hecke.canonical_injection(H,j)(Base.sum([A[i,j](Hecke.canonical_projection(G,i)(g)) for i=1:length(tG)])) for j=1:length(tH)]) for g in gens(G)])
+  #error("not done yet")
 end
 # hom(prod -> X), hom(x -> prod)
 # if too much time: improve the hom(A, B) in case of A and/or B are products - or maybe not...
@@ -1945,13 +1946,18 @@ function direct_product(F::FreeMod{T}...; task::Symbol = :sum) where {T}
   Hecke.set_special(G, :show => Hecke.show_direct_product, :direct_product => F)
   emb = []
   pro = []
+  projection_dictionary = IdDict{Int,ModuleMap}()
+  injection_dictionary = IdDict{Int,ModuleMap}()
+  Hecke.set_special(G, :projection_morphisms => projection_dictionary, :injection_morphisms => injection_dictionary)
   i = 0
   for f = F
     if task in [:sum, :both]
       push!(emb, hom(f, G, [gen(G, j+i) for j=1:ngens(f)]))
+      injection_dictionary[length(emb)] = emb[length(emb)]
     end
     if task in [:prod, :both]
       push!(pro, hom(G, f, vcat(elem_type(f)[zero(f) for j=1:i], gens(f), elem_type(f)[zero(f) for j=i+ngens(f)+1:ngens(G)])))
+      projection_dictionary[length(pro)] = pro[length(pro)]
     end
     i += ngens(f)
   end
@@ -1985,6 +1991,10 @@ function direct_product(G::ModuleFP...; task::Symbol = :none)
   if length(q) != 0
     s, pro_quo = quo(s, q, :both)
   end
+  Hecke.set_special(s, :show => Hecke.show_direct_product, :direct_product => G)
+  projection_dictionary = IdDict{Int,ModuleMap}()
+  injection_dictionary = IdDict{Int,ModuleMap}()
+  Hecke.set_special(s, :projection_morphisms => projection_dictionary, :injection_morphisms => injection_dictionary)
   if task == :none
     return s
   end
@@ -1992,10 +2002,12 @@ function direct_product(G::ModuleFP...; task::Symbol = :none)
     if pro_quo === nothing
       for i=1:length(pro)
         pro[i] = hom(s, G[i], [G[i](pro[i](emb_sF(gen))) for gen in gens(s)])
+        projection_dictionary[i] = pro[i]
       end
     else
       for i=1:length(pro)
         pro[i] = hom(s, G[i], [G[i](pro[i](emb_sF(preimage(pro_quo,gen)))) for gen in gens(s)])
+        projection_dictionary[i] = pro[i]
       end
     end
     if task == :prod
@@ -2006,10 +2018,12 @@ function direct_product(G::ModuleFP...; task::Symbol = :none)
     if pro_quo === nothing
       for i=1:length(mF)
         mF[i] = hom(G[i], s, [preimage(emb_sF, mF[i](typeof(G) <: FreeMod ? g : g.repres)) for g in gens(G[i])])
+        injection_dictionary[i] = mF[i]
       end
     else
       for i=1:length(mF)
         mF[i] = hom(G[i], s, [pro_quo(preimage(emb_sF, mF[i](typeof(G) <: FreeMod ? g : g.repres))) for g in gens(G[i])])
+        injection_dictionary[i] = mF[i]
       end
     end
     if task == :sum
@@ -2027,9 +2041,15 @@ function Hecke.canonical_injection(G::ModuleFP, i::Int)
   if H === nothing
     error("module not a direct product")
   end
+  injection_dictionary = Hecke.get_special(G, :injection_morphisms)
+  if haskey(injection_dictionary, i)
+    return injection_dictionary[i]
+  end
   0<i<= length(H) || error("index out of bound")
   j = i == 1 ? 0 : sum(ngens(H[l]) for l=1:i-1) -1
-  return hom(H[i], G, [G[l+j] for l = 1:ngens(H[i])])
+  emb = hom(H[i], G, [G[l+j] for l = 1:ngens(H[i])])
+  injection_dictionary[i] = emb
+  return emb
 end
 
 function Hecke.canonical_projection(G::ModuleFP, i::Int)
@@ -2037,9 +2057,15 @@ function Hecke.canonical_projection(G::ModuleFP, i::Int)
   if H === nothing
     error("module not a direct product")
   end
+  projection_dictionary = Hecke.get_special(G, :projection_morphisms)
+  if haskey(projection_dictionary, i)
+    return projection_dictionary[i]
+  end
   0<i<= length(H) || error("index out of bound")
   j = i == 1 ? 0 : sum(ngens(H[l]) for l=1:i-1) 
-  return hom(G, H[i], vcat([zero(H[i]) for l=1:j], gens(H[i]), [zero(H[i]) for l=1+j+ngens(H[i]):ngens(G)]))
+  pro = hom(G, H[i], vcat([zero(H[i]) for l=1:j], gens(H[i]), [zero(H[i]) for l=1+j+ngens(H[i]):ngens(G)]))
+  projection_dictionary[i] = pro
+  return pro
 end
     
 ##################################################
