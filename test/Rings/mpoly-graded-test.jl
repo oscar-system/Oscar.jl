@@ -157,6 +157,12 @@ end
   end
 end
 
+@testset "Coercion" begin
+  R, (x, y) = grade(PolynomialRing(QQ, ["x", "y"])[1]);
+  Q = quo(R, ideal([x^2, y]))[1];
+  @test parent(Q(x)) === Q
+  @test parent(Q(gens(R.R)[1])) === Q
+end
 @testset "Evaluation" begin
   R, (x,y) = grade(PolynomialRing(QQ, ["x", "y"])[1]);
   @test x(y, x) == y

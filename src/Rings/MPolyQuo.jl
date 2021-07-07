@@ -652,15 +652,17 @@ function (Q::MPolyQuo)(a::MPolyQuoElem)
 end
 
 function (Q::MPolyQuo)(a::MPolyElem) 
-   @assert parent(a) == Q.R
-   return MPolyQuoElem(Q.R(a), Q)
+   if base_ring(Q) === parent(a)
+      return MPolyQuoElem(a, Q)
+   else
+      return MPolyQuoElem(Q.R(a), Q)
+   end
 end
 
 function (Q::MPolyQuo)(a::Singular.spoly)
    @assert singular_ring(Q) == parent(a)
    return MPolyQuoElem(Q.R(a), Q)
 end
-
 
 function (S::Singular.PolyRing)(a::MPolyQuoElem)
    Q = parent(a)
