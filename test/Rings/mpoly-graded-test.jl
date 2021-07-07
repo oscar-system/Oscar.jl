@@ -163,3 +163,11 @@ end
   @test parent(Q(x)) === Q
   @test parent(Q(gens(R.R)[1])) === Q
 end
+@testset "Evaluation" begin
+  R, (x,y) = grade(PolynomialRing(QQ, ["x", "y"])[1]);
+  @test x(y, x) == y
+end
+@testset "Promotion" begin
+  R, (x,y) = grade(PolynomialRing(QQ, ["x", "y"])[1]);
+  @test x + QQ(1//2) == x + 1//2
+end
