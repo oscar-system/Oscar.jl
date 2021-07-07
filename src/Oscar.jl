@@ -90,6 +90,8 @@ end
 # pkgdir was added in Julia 1.4
 if VERSION < v"1.4"
    pkgdir(m::Core.Module) = abspath(Base.pathof(Base.moduleroot(m)), "..", "..")
+else
+   import Base.pkgdir
 end
 pkgproject(m::Core.Module) = Pkg.Operations.read_project(Pkg.Types.projectfile_path(pkgdir(m)))
 pkgversion(m::Core.Module) = pkgproject(m).version
@@ -120,12 +122,27 @@ end
 function doc_init()
   Pkg.activate(joinpath(oscardir, "docs")) do
     Pkg.instantiate()
-    Base.include(Main, joinpath(oscardir, "docs", "make_local.jl"))
+    Base.include(Main, joinpath(oscardir, "docs", "make_work.jl"))
   end
 end
 
 function doc_update_deps()
   Pkg.activate(Pkg.update, joinpath(oscardir, "docs"))
+end
+
+function open_doc()
+    filename = normpath(Oscar.oscardir, "docs", "build", "index.html")
+    @static if Sys.isapple()
+        run(`open $(filename)`; wait = false)
+    elseif Sys.islinux() || Sys.isbsd()
+        run(`xdg-open $(filename)`; wait = false)
+    elseif Sys.iswindows()
+        cmd = get(ENV, "COMSPEC", "cmd.exe")
+        run(`$(cmd) /c start $(filename)`; wait = false)
+    else
+        @warn("Opening files the default application is not supported on this OS.",
+              KERNEL = Sys.KERNEL)
+    end
 end
 
 function build_doc()
@@ -135,7 +152,7 @@ function build_doc()
   Pkg.activate(joinpath(oscardir, "docs")) do
     Base.invokelatest(Main.BuildDoc.doit, false, true)
   end
-  Base.invokelatest(Main.BuildDoc.open_doc)
+  open_doc()
 end
 
 export build_doc
