@@ -88,7 +88,7 @@ end
         @test Oscar.isgraded(F) == Oscar.isgraded(RR)
         @test Oscar.isfiltered(F) == Oscar.isfiltered(RR)
 
-        G = decoration(F)
+        G = grading_group(F)
         if j == 4
           a = G([convert(fmpz,x) for x = [1,0,1]])
         else

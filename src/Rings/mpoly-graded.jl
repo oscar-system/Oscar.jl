@@ -1,6 +1,6 @@
 export weight, decorate, ishomogeneous, homogeneous_components, filtrate,
 grade, GradedPolynomialRing, homogeneous_component, jacobi_matrix, jacobi_ideal,
-HilbertData, hilbert_series, hilbert_series_reduced, hilbert_series_expanded, hilbert_function, hilbert_polynomial,
+HilbertData, hilbert_series, hilbert_series_reduced, hilbert_series_expanded, hilbert_function, hilbert_polynomial, grading,
 homogenization, dehomogenization
 export MPolyRing_dec, MPolyElem_dec
 mutable struct MPolyRing_dec{T, S} <: AbstractAlgebra.MPolyRing{T}
@@ -25,6 +25,8 @@ mutable struct MPolyRing_dec{T, S} <: AbstractAlgebra.MPolyRing{T}
     return r
   end
 end
+
+grading_group(W::MPolyRing_dec) = W.D
 
 isgraded(W::MPolyRing_dec) = !isdefined(W, :lt)
 isfiltered(W::MPolyRing_dec) = isdefined(W, :lt)

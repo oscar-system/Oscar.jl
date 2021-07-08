@@ -27,7 +27,7 @@
 
   free_resolution(H)
 
-  homogeneous_component(H, Oscar.decoration(F)[0])
+  homogeneous_component(H, grading_group(F)[0])
 end
 
 @testset "Graded Modules 2" begin
