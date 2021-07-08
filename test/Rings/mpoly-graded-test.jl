@@ -32,7 +32,7 @@ function _homogeneous_polys(polys::Vector{<:MPolyElem})
     _monomials = append!(_monomials, monomials(polys[i]))
   end
   hom_polys = []
-  for deg in unique([degree(mon) for mon = _monomials])
+  for deg in unique([iszero(mon) ? id(decoration(R)) : degree(mon) for mon = _monomials])
     g = zero(R)
     for i = 1:4
       if haskey(D[i], deg)
@@ -170,11 +170,18 @@ end
   @test parent(Q(x)) === Q
   @test parent(Q(gens(R.R)[1])) === Q
 end
+
 @testset "Evaluation" begin
   R, (x,y) = grade(PolynomialRing(QQ, ["x", "y"])[1]);
   @test x(y, x) == y
 end
+
 @testset "Promotion" begin
   R, (x,y) = grade(PolynomialRing(QQ, ["x", "y"])[1]);
   @test x + QQ(1//2) == x + 1//2
+end
+
+@testset "Degree" begin
+  R, (x,y) = grade(PolynomialRing(QQ, ["x", "y"])[1]);
+  @test_throws ArgumentError degree(zero(R))
 end
