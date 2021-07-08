@@ -1,6 +1,7 @@
 export sum_Point_EllCurveZnZ, ECM, rand_pair_EllCurve_Point,
        IntMult_Point_EllCurveZnZ,  cornacchia_algorithm,
-       Miller_Rabin_test, Pollard_rho, Pollard_p_1, ECPP
+       Miller_Rabin_test, Pollard_rho, Pollard_p_1, ECPP, 
+       hilbert_class_polynomial
 
 ################################################################################
 # Elliptic curves over a ring Z/nZ
@@ -561,7 +562,7 @@ function compute_ell_curve(N::fmpz, D::fmpz)
       return (R.([-1, 0]), ZZ(1))
    else
       T, t = ZZ["t"]
-      p = hilbert_class_polynomial(T, D)
+      p = hilbert_class_polynomial(T, int(D))
       p = change_base_ring(R, p)
       j = roots(p)[1]
       c = inv(j-R(1728))*j
