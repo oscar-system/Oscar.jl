@@ -343,6 +343,14 @@ end
 
 ^(a::MPolyQuoElem, b::Base.Integer) = simplify(MPolyQuoElem(Base.power_by_squaring(a.f, b), a.P))
 
+*(a::MPolyQuoElem, b::fmpq) = simplify(MPolyQuoElem(a.f * b, a.P))
+
+*(a::MPolyQuoElem, b::fmpz) = simplify(MPolyQuoElem(a.f * b, a.P))
+
+*(a::fmpq, b::MPolyQuoElem) = simplify(MPolyQuoElem(a * b.f, b.P))
+
+*(a::fmpz, b::MPolyQuoElem) = simplify(MPolyQuoElem(a * b.f, b.P))
+
 #*(a::MPolyQuoElem, b::MPolyQuoElem) = check_parent(a, b) && MPolyQuoElem(a.f*b.f, a.P)
 #
 #^(a::MPolyQuoElem, b::Base.Integer) = MPolyQuoElem(Base.power_by_squaring(a.f, b), a.P)
