@@ -373,7 +373,7 @@ end
 Return the arithmetic genus of `C`.
 """
 function arithmetic_genus(C::ProjectivePlaneCurve)
-  F = defining_equation(C)
+  F = C.eq
   S = parent(F)
   I = ideal(S, [F])
   A = quo(S, I)
@@ -391,7 +391,7 @@ Return the geometric genus of `C`.
 function geometric_genus(C::ProjectivePlaneCurve{S}) where S <: FieldElem
    F = defining_equation(C)
    R = parent(F)
-   I = ideal(parent(F), [F])
+   I = ideal(R, [F])
    if S == fmpq
       singular_assure(I)
       return Singular.LibNormal.genus(I.gens.S)
@@ -401,8 +401,12 @@ function geometric_genus(C::ProjectivePlaneCurve{S}) where S <: FieldElem
       m = length(L)
       pa = 0
       for i in 1:m
-         A = L[i][1]
-         H = hilbert_polynomial(A)
+         J = L[i][1].I
+         T, _ = grade(parent(J[1]))
+         V = T.(gens(J))
+         JJ = ideal(T, V)
+         B = quo(T, JJ)
+         H = hilbert_polynomial(B[1])
          pa = pa - coeff(H, 0)
       end
       return pa + 1
