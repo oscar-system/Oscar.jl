@@ -15,7 +15,8 @@ import Hecke: MapHeader, math_html
 
 
 export PolynomialRing, total_degree, degree,  MPolyIdeal, MPolyElem, ideal, coordinates,
-       jacobi_matrix, jacobi_ideal,  normalize, divrem, isprimary, isprime
+       jacobi_matrix, jacobi_ideal,  normalize, divrem, isprimary, isprime,
+       embed_names
 
 ##############################################################################
 #
@@ -929,6 +930,30 @@ end
 function Hecke.hom(R::MPolyRing, S::MPolyRing, i::Array{Int, 1})
   return MPolyHom_vars{typeof(R), typeof(S)}(R, S, i)
 end
+
+@doc Markdown.doc"""
+    embed_names(D::S, C::T) where {S <: MPolyRing, T <: MPolyRing}
+
+Return a function that maps elements of $D$ to elements of $C$ by the names
+of the variables. If a variable in $D$ does not appear in $C$, it maps to zero.
+The target $C$ must not have duplicate variables names among the names
+of the variables in $D$.
+"""
+function embed_names(D::S, R::T) where {S <: MPolyRing, T <: MPolyRing}
+  sD = symbols(D)
+  sR = symbols(R)
+  var_map = zeros(Int, length(sD))
+  for j in 1:length(sD)
+    inds = findall(x -> x == sD[j], sR)
+    if length(inds) == 1
+      var_map[j] = inds[1]
+    elseif length(inds) > 1
+      error("duplicate variable $(sD[i]) found among $sR")
+    end
+  end
+  return MPolyHom_vars{S, T}(D, R, var_map)
+end
+
 
 function _lift(S::Singular.sideal, T::Singular.sideal)
   R = base_ring(S)
