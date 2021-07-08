@@ -45,13 +45,11 @@ function isomorphic_group_over_finite_field(matrices::Vector{T}) where T <: Unio
 end
 
 function good_reduction(matrices::Vector{T}, p::Int = 2) where T <: Union{ fmpq_mat, AbstractAlgebra.MatElem{nf_elem} }
-   p = next_prime(p)
-   b, Fq, matrices_Fq = test_modulus(matrices, p)
-   while !b
+   while true
       p = next_prime(p)
       b, Fq, matrices_Fq = test_modulus(matrices, p)
+      b && return Fq, matrices_Fq
    end
-   return Fq, matrices_Fq
 end
 
 # Detinko, Flannery, O'Brien "Recognizing finite matrix  groups over infinite
