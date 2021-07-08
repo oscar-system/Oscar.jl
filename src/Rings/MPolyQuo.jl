@@ -720,7 +720,7 @@ function sparse_row(R::MPolyRing, M::Singular.svector{<:Singular.spoly})
     end
     push_term!(v[i], base_ring(R)(c), e)
   end
-  sparse_row(R, [(k,finish(v)) for (k,v) = v])
+  sparse_row(R, Tuple{Int, elem_type(R)}[(k,finish(v)) for (k,v) = v])
 end
 
 """
@@ -736,7 +736,7 @@ function sparse_row(R::MPolyRing, M::Singular.svector{<:Singular.spoly}, U::Unit
     end
     push_term!(v[i], base_ring(R)(c), e)
   end
-  sparse_row(R, [(k,finish(v)) for (k,v) = v])
+  sparse_row(R, Tuple{Int, elem_type(R)}[(k,finish(v)) for (k,v) = v])
 end
 
 """
@@ -791,8 +791,8 @@ function divides(a::MPolyQuoElem, b::MPolyQuoElem)
   BJ = BiPolyArray(J, keep_ordering = false)
   singular_assure(BJ)
 
-  s, = Singular.lift(BJ.S, BS.S)
-  if Singular.ngens(s) < 1 || iszero(s[1])
+  s, rest = Singular.lift(BJ.S, BS.S)
+  if !iszero(rest)
     return false, a
   end
   return true, Q(sparse_matrix(base_ring(Q), s, 1:1, length(J):length(J))[1, length(J)])
