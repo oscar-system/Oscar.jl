@@ -104,8 +104,19 @@ function degree(x::PermGroup)
    return x.deg
 end
 
-order(x::Union{GAPGroupElem, GAPGroup}) = order(fmpz, x)
+"""
+    order([::Type{T}, ]x::Union{GAPGroupElem, GAPGroup}) where T
 
+Return the order of `x`, as an instance of `T`.
+The default for `T` is `fmpz`.
+
+For a group element `x` in the group `G`, the order of `x` is the smallest
+positive integer `n` such that `x^n` is the identity of `G`.
+For a group `x`, the order of `x` is the number of elements in `x`.
+
+An exception is raised if the order of `x` is infinite,
+use `isfinite` in order to check for finiteness.
+"""
 function order(::Type{T}, x::Union{GAPGroupElem, GAPGroup}) where T
    ord = GAP.Globals.Order(x.X)
    if ord === GAP.Globals.infinity
@@ -113,6 +124,8 @@ function order(::Type{T}, x::Union{GAPGroupElem, GAPGroup}) where T
    end
    return T(ord)
 end
+
+order(x::Union{GAPGroupElem, GAPGroup}) = order(fmpz, x)
 
 """
     exponent(G::Group)

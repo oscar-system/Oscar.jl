@@ -82,5 +82,6 @@ isalmostsimple
 ## Attributes of groups
 
 ```@docs
+order(::Type{T}, x::Union{GAPGroupElem, GAPGroup}) where T
 Base.exponent(x::GAPGroup)
 ```
