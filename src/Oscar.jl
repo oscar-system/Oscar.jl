@@ -42,6 +42,8 @@ export Nemo, Hecke, Singular, Polymake, AbstractAlgebra, GAP
 import AbstractAlgebra: @show_name, @show_special, elem_type, force_coerce, force_op,
                         parent_type, expressify, canonical_unit
 
+import Hecke: @req
+
 # More helpful error message for users on Windows.
 windows_error() = error("""
 

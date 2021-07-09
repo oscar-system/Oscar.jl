@@ -852,6 +852,7 @@ end
 
 function degree(a::MPolyQuoElem{<:MPolyElem_dec})
   simplify!(a)
+  @req !iszero(a) "Element must be non-zero"
   return degree(a.f)
 end
 

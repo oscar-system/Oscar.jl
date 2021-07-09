@@ -353,11 +353,12 @@ end
 function jacobi_matrix(g::Array{<:MPolyElem_dec, 1})
   R = parent(g[1])
   n = nvars(R)
-  @assert all(x->parent(x) == R, g)
+  @assert all(x->parent(x) === R, g)
   return matrix(R, n, length(g), [derivative(x, i) for i=1:n for x = g])
 end
 
 function degree(a::MPolyElem_dec)
+  @req !iszero(a) "Element must be non-zero"
   W = parent(a)
   w = W.D[0]
   first = true
