@@ -1,12 +1,12 @@
 export ProjEllipticCurve, discriminant, issmooth, j_invariant,
        Point_EllCurve, curve, weierstrass_form, toweierstrass,
-       iselliptic
+       iselliptic, list_rand
 
 ################################################################################
 # Helping functions
 ################################################################################
 
-function isweierstrass_form(eq::Oscar.MPolyElem{S}) where S <: FieldElem
+function isweierstrass_form(eq::Oscar.MPolyElem{S}) where S <: RingElem
    R = parent(eq)
    x = gen(R, 1)
    y = gen(R, 2)
@@ -21,7 +21,7 @@ end
 
 ################################################################################
 
-function shortformtest(eq::Oscar.MPolyElem{S}) where S <: FieldElem
+function shortformtest(eq::Oscar.MPolyElem{S}) where S <: RingElem
    R = parent(eq)
    x = gen(R, 1)
    y = gen(R, 2)
@@ -113,6 +113,22 @@ function _change_coord(F::Oscar.MPolyElem_dec, P::Oscar.Geometry.ProjSpcElem)
 end
 
 ################################################################################
+
+function _discr(eq::Oscar.MPolyElem_dec)
+   R = parent(eq)
+   x = gen(R, 1)
+   z = gen(R, 3)
+   a = -coeff(eq, x*z^2)
+   b = -coeff(eq, z^3)
+   d = 4*a^3 + 27*b^2
+   return d
+end
+
+################################################################################
+################################################################################
+# Definition EllipticCurve
+################################################################################
+
 ################################################################################
 # Definition EllipticCurve
 ################################################################################
@@ -130,7 +146,7 @@ mutable struct ProjEllipticCurve{S} <: ProjectivePlaneCurve{S}
     !isconstant(eq) || error("The defining equation must be non constant")
     ishomogeneous(eq) || error("The defining equation is not homogeneous")
     _iselliptic(eq) || error("Not an elliptic curve")
-    isweierstrass_form(eq.f) || error("Not in Weierstrass form")
+    isweierstrass_form(eq.f) || error("Not in Weierstrass form, please specify the point at infinity")
     v = shortformtest(eq.f)
     T = parent(eq)
     K = T.R.base_ring
@@ -154,12 +170,33 @@ mutable struct ProjEllipticCurve{S} <: ProjectivePlaneCurve{S}
      new{S}(eq, 3, Dict{ProjEllipticCurve{S}, Int}(), P, L, Hecke.EllipticCurve(v[2], v[1]))
   end
 
+  function ProjEllipticCurve(eq::Oscar.MPolyElem_dec{S}) where {S <: Nemo.fmpz_mod}
+    nvars(parent(eq)) == 3 || error("The defining equation must belong to a ring with three variables")
+    !isconstant(eq) || error("The defining equation must be non constant")
+    ishomogeneous(eq) || error("The defining equation is not homogeneous")
+    isweierstrass_form(eq.f) || error("Not in Weierstrass form")
+    v = shortformtest(eq.f)
+    v[1] || error("Not in short Weierstrass form")
+    d = _discr(eq)
+    T = parent(eq)
+    K = T.R.base_ring
+    n = modulus(K)
+    gcd(Hecke.data(d), n) == ZZ(1) || error("The discriminant is not invertible")
+    PP = projective_space(K, 2)
+    V = gens(T)
+    E = new{S}()
+    E.eq = eq
+    E.degree = 3
+    E.point = Oscar.Geometry.ProjSpcElem(PP[1], [K(0), K(1), K(0)])
+    E.Hecke_ec = Hecke.EllipticCurve(v[2], v[1])
+    return E
+  end
 end
 
 ProjEllipticCurve(eq::Oscar.MPolyElem_dec{S}) where {S <: FieldElem} = ProjEllipticCurve{S}(eq)
 
 function ProjEllipticCurve(eq::Oscar.MPolyElem{S}) where {S <: FieldElem}
-  R = grade(parent(eq))
+  R, _ = grade(parent(eq))
   return ProjEllipticCurve{S}(R(eq))
 end
 
@@ -174,7 +211,7 @@ end
 ################################################################################
 ################################################################################
 
-function curve_components(E::ProjEllipticCurve)
+function curve_components(E::ProjEllipticCurve{S}) where S <: FieldElem
    E.components = Dict(E => 1)
    return E.components
 end
@@ -182,12 +219,12 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    weierstrass_form(E::ProjEllipticCurve)
+    weierstrass_form(E::ProjEllipticCurve{S}) where {S <: FieldElem}
 
 Return the equation of a projective elliptic curve defined by an equation in
 Weierstrass form and which is linearly equivalent to `E`.
 """
-function weierstrass_form(E::ProjEllipticCurve)
+function weierstrass_form(E::ProjEllipticCurve{S}) where S <: FieldElem
    V = E.Hecke_ec.coeff
    R = parent(E.eq)
    x = gen(R, 1)
@@ -213,11 +250,11 @@ end
 
 Return the discriminant of the projective elliptic curve `E`.
 """
-function Oscar.discriminant(E::ProjEllipticCurve)
+function Oscar.discriminant(E::ProjEllipticCurve{S}) where S <: FieldElem
    return Hecke.discriminant(E.Hecke_ec)
 end
 
-function Oscar.issmooth(E::ProjEllipticCurve)
+function Oscar.issmooth(E::ProjEllipticCurve{S}) where {S <: FieldElem}
    return true
 end
 
@@ -226,20 +263,35 @@ end
 
 Return the j-invariant of the projective elliptic curve `E`.
 """
-function Oscar.j_invariant(E::ProjEllipticCurve)
+function Oscar.j_invariant(E::ProjEllipticCurve{S}) where S <: FieldElem
    return j_invariant(E.Hecke_ec)
 end
 
 ################################################################################
 # Structure for points on elliptic curve.
 ################################################################################
-struct Point_EllCurve{S <: FieldElem}
+struct Point_EllCurve{S <: RingElem}
    Pt::Oscar.Geometry.ProjSpcElem{S}
    C::ProjEllipticCurve{S}
    Hecke_Pt::Hecke.EllCrvPt{S}
+
    function Point_EllCurve(E::ProjEllipticCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where {S <: FieldElem}
       P in E || error("The point is not on the curve")
       new{S}(P, E, _point_toweierstrass(E, P))
+   end
+
+   function Point_EllCurve(E::ProjEllipticCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where {S <: Nemo.fmpz_mod}
+      T = E.eq.parent
+      A = base_ring(T)
+      zz = gen(T, 3)
+      P in E || error("The point is not on the curve")
+      if iszero(P.v[1]) && iszero(P.v[3])
+         Q = new{S}(P, E, Hecke.infinity(E.Hecke_ec))
+      else
+         P.v[3] == A(1) || error("Requires a point satisfying ", zz ," = 1")
+         Q = new{S}(P, E, _point_tohecke_znz(E, P))
+      end
+      return Q
    end
 end
 
@@ -259,7 +311,7 @@ function _point_toweierstrass(E::ProjEllipticCurve{S}, P::Oscar.Geometry.ProjSpc
    P in E || error("not on the curve")
    L = E.maps
    V = _image_point(L[2], P.v)
-   if V[3] == 0
+   if iszero(V[3])
       return Hecke.infinity(E.Hecke_ec)
    else
       W = [V[1]//V[3], V[2]//V[3]]
@@ -267,10 +319,18 @@ function _point_toweierstrass(E::ProjEllipticCurve{S}, P::Oscar.Geometry.ProjSpc
    end
 end
 
+function _point_tohecke_znz(E::ProjEllipticCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: Nemo.fmpz_mod
+   if iszero(P.v[3])
+      return Hecke.infinity(E.Hecke_ec)
+   else
+      return E.Hecke_ec([P.v[1], P.v[2]])
+   end
+end
+
 ################################################################################
 
 function _point_fromweierstrass(E::ProjEllipticCurve{S}, PP::Oscar.Geometry.ProjSpc{S}, P::Hecke.EllCrvPt{S}) where S <: FieldElem
-   E.Hecke_ec == P.parent || error("not the same curve")
+   E.Hecke_ec.coeff == P.parent.coeff || error("not the same curve")
    L = E.maps
    K = P.parent.base_field
    if P.isinfinite
@@ -284,7 +344,7 @@ end
 
 ################################################################################
 
-function _EllCrvPt(P::Point_EllCurve)
+function _EllCrvPt(P::Point_EllCurve{S}) where S <: FieldElem
    return P.Hecke_Pt
 end
 
@@ -295,25 +355,25 @@ end
 
 Return the curve on which the point `P` is considered.
 """
-function curve(P::Point_EllCurve)
+function curve(P::Point_EllCurve{S}) where S <: FieldElem
    return P.C
 end
 
 ################################################################################
 # Helping function
 
-function proj_space(P::Point_EllCurve)
+function proj_space(P::Point_EllCurve{S}) where S <: FieldElem
    return P.Pt.parent
 end
 
 ################################################################################
 
-function ==(P::Point_EllCurve, Q::Point_EllCurve)
+function ==(P::Point_EllCurve{S}, Q::Point_EllCurve{S}) where S <: FieldElem
    return P.C == Q.C && P.Pt == Q.Pt
 end
 
 ################################################################################
-function Base.:+(P::Point_EllCurve, Q::Point_EllCurve)
+function Base.:+(P::Point_EllCurve{S}, Q::Point_EllCurve{S}) where S <: FieldElem
    E = P.C
    PP = proj_space(P)
    A = _EllCrvPt(P) + _EllCrvPt(Q)
@@ -322,13 +382,13 @@ end
 
 ################################################################################
 
-function Base.:-(P::Point_EllCurve)
+function Base.:-(P::Point_EllCurve{S}) where S <: FieldElem
    E = P.C
    PP = proj_space(P)
    return _point_fromweierstrass(E, PP, -_EllCrvPt(P))
 end
 
-function Base.:-(P::Point_EllCurve, Q::Point_EllCurve)
+function Base.:-(P::Point_EllCurve{S}, Q::Point_EllCurve{S}) where S <: FieldElem
    E = P.C
    PP = proj_space(P)
    A = _EllCrvPt(P) + (-_EllCrvPt(Q))
@@ -336,20 +396,10 @@ function Base.:-(P::Point_EllCurve, Q::Point_EllCurve)
 end
 ################################################################################
 
-function Base.:*(n::Int64, P::Point_EllCurve)
+function Base.:*(n::Int64, P::Point_EllCurve{S}) where S <: FieldElem
    E = curve(P)
    PP = proj_space(P)
    return _point_fromweierstrass(E, PP, n*_EllCrvPt(P))
-end
-
-################################################################################
-@doc Markdown.doc"""
-    order(E::ProjEllipticCurve)
-Given an elliptic curve `E` over a finite field $\mathbf F$, computes
-$\#E(\mathbf F)$.
-"""
-function Oscar.order(E::ProjEllipticCurve)
-   return Hecke.order(E.Hecke_ec)
 end
 
 ################################################################################
@@ -390,8 +440,6 @@ function _eva(F::Oscar.MPolyElem{S}) where {S <: FieldElem}
    X = gens(R)
    return evaluate(evaluate(F, [X[1], X[2], R(0)]), [R(1), X[1], R(1)])
 end
-
-
 
 ################################################################################
 # This code is inspired from Macaulay2, based on Tibouchi, M. ''A Nagell Algorithm
@@ -456,4 +504,124 @@ function toweierstrass(C::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) w
    a4 = u*evaluate(contract(1, G[2]), [R(0), X[2], X[3]])
    a6 = u^2*evaluate(G[2], [R(0), X[2], X[3]])
    return T(X[2]^2*X[3] + a1*X[1]*X[2]*X[3] + a3*X[2]*X[3]^2 - X[1]^3 - a2*X[1]^2*X[3] - a4*X[1]*X[3]^2 - a6*X[3]^3)
+end
+
+
+################################################################################
+
+function proj_space(E::ProjEllipticCurve{S}) where S <: FieldElem
+   return base_point(E).parent
+end
+
+################################################################################
+#
+# Interface calling the functions in Hecke
+#
+################################################################################
+
+@doc Markdown.doc"""
+    order(E::ProjEllipticCurve)
+
+Given an elliptic curve `E` over a finite field $\mathbf F$, computes
+$\#E(\mathbf F)$.
+"""
+function Oscar.order(E::ProjEllipticCurve{S}) where S <: FieldElem
+   return Hecke.order(E.Hecke_ec)
+end
+
+################################################################################
+
+@doc Markdown.doc"""
+    rand(E::ProjEllipticCurve)
+
+Return a random point on the elliptic curve `E` defined over a finite field.
+"""
+function Oscar.rand(E::ProjEllipticCurve{S}) where S <: FieldElem
+   PP = proj_space(E)
+   H = E.Hecke_ec
+   if !Hecke.isshort(H)
+      L = Hecke.short_weierstrass_model(H)
+      P = Hecke.rand(L[1])
+      Q = L[3](P)
+   else
+      Q = Hecke.rand(H)
+   end
+   return _point_fromweierstrass(E, PP, Q)
+end
+
+################################################################################
+
+@doc Markdown.doc"""
+    list_rand(E::ProjEllipticCurve, N::Int)
+
+Return a list of `N` random points on the elliptic curve `E` defined over a finite field.
+"""
+function list_rand(E::ProjEllipticCurve, N::Int)
+   PP = proj_space(E)
+   H = E.Hecke_ec
+   M = []
+   if !Hecke.isshort(H)
+      L = Hecke.short_weierstrass_model(H)
+      for i in 1:N
+         P = Hecke.rand(L[1])
+         Q = L[3](P)
+         push!(M, Q)
+      end
+   else
+      for i in 1:N
+         Q = Hecke.rand(H)
+         push!(M, Q)
+      end
+   end
+   return [_point_fromweierstrass(E, PP, Q) for Q in M]
+end
+
+################################################################################
+@doc Markdown.doc"""
+    order(P::Point_EllCurve{fmpq})
+
+Returns the order of the point `P` or `0` if the order is infinite.
+"""
+function Oscar.order(P::Point_EllCurve{fmpq})
+   return Hecke.order(P.Hecke_Pt)
+end
+
+################################################################################
+
+@doc Markdown.doc"""
+    istorsion_point(P::Point_EllCurve{fmpq})
+
+Returns whether the point `P` is a torsion point.
+"""
+function Oscar.istorsion_point(P::Point_EllCurve{fmpq})
+   return Hecke.istorsion_point(P.Hecke_Pt)
+end
+
+################################################################################
+@doc Markdown.doc"""
+    torsion_points_lutz_nagell(E::ProjEllipticCurve{fmpq})
+    
+Computes the rational torsion points of the elliptic curve `E` using the
+Lutz-Nagell theorem.
+"""
+function Oscar.torsion_points_lutz_nagell(E::ProjEllipticCurve{fmpq})
+   PP = proj_space(E)
+   H = E.Hecke_ec
+   M = Hecke.torsion_points_lutz_nagell(H)
+   return [_point_fromweierstrass(E, PP, a) for a in M]
+end
+
+################################################################################
+
+@doc Markdown.doc"""
+    torsion_points_division_poly(E::ProjEllipticCurve{fmpq})
+
+Computes the rational torsion points of a rational elliptic curve `E` using
+division polynomials.
+"""
+function Oscar.torsion_points_division_poly(E::ProjEllipticCurve{fmpq})
+   PP = proj_space(E)
+   H = E.Hecke_ec
+   M = Hecke.torsion_points_division_poly(H)
+   return [_point_fromweierstrass(E, PP, a) for a in M]
 end
