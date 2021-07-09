@@ -2,7 +2,7 @@
   "index.md",
 
   "Groups" => [
-     "Groups/groups.md",
+     "Groups/intro.md",
      "Groups/basics.md",
      "Groups/subgroups.md",
      "Groups/quotients.md",
@@ -18,6 +18,7 @@
   ],
 
   "Rings" => [
+     "Rings/intro.md",
      "AbstractAlgebra/rings.md",
      "Rings/integer.md",
      "Univariate Polynomials" => [
@@ -45,6 +46,7 @@
   ],
 
   "Fields" => [
+     "Fields/intro.md",
      "AbstractAlgebra/fields.md",
      "Rings/rational.md",
      "Number Fields" => [
@@ -54,7 +56,6 @@
      ],
      "Hecke/FacElem.md",
      "Hecke/class_fields/intro.md",
-     "AbstractAlgebra/fields.md",
      "AbstractAlgebra/fraction_fields.md",
      "AbstractAlgebra/fraction.md",
      "Local Fields" => [
@@ -65,6 +66,7 @@
   ],
 
   "Linear Algebra" => [
+     "LinearAlgebra/intro.md",
      "Hecke/sparse/intro.md",
      "AbstractAlgebra/matrix_spaces.md",
      "AbstractAlgebra/matrix.md",
@@ -100,7 +102,8 @@
      "CommutativeAlgebra/ca_binomial_ideals.md",
   ],
 
-  "Invariant Theory" => ["InvariantTheory/it.md",
+  "Invariant Theory" => [
+     "InvariantTheory/it.md",
      "InvariantTheory/it_fg.md",
      "InvariantTheory/it_lrg.md",
   ],
