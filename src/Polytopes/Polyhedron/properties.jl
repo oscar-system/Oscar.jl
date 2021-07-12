@@ -384,7 +384,7 @@ function Base.iterate(iter::PolyhedronFacetPolyhedronIterator, index = 1)
     return (p, index + 1)
 end
 Base.length(iter::PolyhedronFacetPolyhedronIterator) = nfacets(iter.p)
-# Base.eltype(::Type{PolyhedronFacetPolyhedronIterator}) = Polyhedron
+Base.eltype(::Type{PolyhedronFacetPolyhedronIterator}) = Polyhedron
 
 """
     nfacets(P::Polyhedron)
@@ -737,6 +737,7 @@ contains(P::Polyhedron, v::AbstractVector) = Polymake.polytope.contains(pm_polyt
 Check whether `P` is smooth.
 
 # Examples
+A cube is always smooth.
 ```julia-repl
 julia> C = cube(8);
 

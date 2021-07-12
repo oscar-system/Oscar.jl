@@ -60,7 +60,7 @@ pm_polytope(P::Polyhedron) = P.pm_polytope
 
 The polytope given as the convex hull of the rows of a set of points.
 
-The matrices rows are the points, the rays and the generators of the lineality space,
+The matrices rows are the points, representative vectors of the rays and the generators of the lineality space,
 respectively.
 
 `R` can be given as an empty matrix or as `nothing` if the user wants to compute
