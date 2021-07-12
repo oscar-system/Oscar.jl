@@ -15,6 +15,3 @@ Pages = ["pg_linear_programs.md"]
 ## Introduction
 
 ## Constructions
-
-
-
