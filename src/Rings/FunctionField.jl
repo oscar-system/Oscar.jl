@@ -100,3 +100,21 @@ end
 function (F::Nemo.GaloisField)(x::AbstractAlgebra.Generic.Rat{gfp_elem})
   return F(x.d)
 end
+
+################################################################################
+#
+#  Some ad hoc promote rules
+#
+################################################################################
+
+AbstractAlgebra.promote_rule(::Type{nf_elem}, ::Type{Singular.n_transExt}) = Singular.n_transExt
+
+AbstractAlgebra.promote_rule(::Type{fmpq}, ::Type{Singular.n_transExt}) = Singular.n_transExt
+
+AbstractAlgebra.promote_rule(::Type{gfp_elem}, ::Type{Singular.n_transExt}) = Singular.n_transExt
+
+AbstractAlgebra.promote_rule(::Type{gfp_fmpz_elem}, ::Type{Singular.n_transExt}) = Singular.n_transExt
+
+AbstractAlgebra.promote_rule(::Type{fq}, ::Type{Singular.n_transExt}) = Singular.n_transExt
+
+AbstractAlgebra.promote_rule(::Type{fq_nmod}, ::Type{Singular.n_transExt}) = Singular.n_transExt

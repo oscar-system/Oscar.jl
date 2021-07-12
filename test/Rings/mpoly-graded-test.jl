@@ -1,3 +1,10 @@
+@testset "MPolyQuo.graded" begin
+  R, (x, y) = grade(PolynomialRing(QQ, ["x", "y"])[1]);
+  Q = quo(R, ideal([x^2, y]))[1];
+  h = homogeneous_components(Q[1])
+  @test valtype(h) === elem_type(Q)
+end
+
 function _random_poly(RR, n)
   pols = elem_type(RR)[]
   for t in 1:n
@@ -25,7 +32,7 @@ function _homogeneous_polys(polys::Vector{<:MPolyElem})
     _monomials = append!(_monomials, monomials(polys[i]))
   end
   hom_polys = []
-  for deg in unique([degree(mon) for mon = _monomials])
+  for deg in unique([iszero(mon) ? id(decoration(R)) : degree(mon) for mon = _monomials])
     g = zero(R)
     for i = 1:4
       if haskey(D[i], deg)
@@ -125,7 +132,7 @@ end
         for deg in [degree(R_quo(mon)) for mon  = Oscar.monomials(f.f)]
           h = get(D, deg, 'x')
           @test ishomogeneous(R_quo(h))
-          @test h == homogeneous_component(f, deg)
+          @test h == R_quo(homogeneous_component(f, deg))
         end
 
         @test Oscar.isfiltered(R_quo) == Oscar.isfiltered(RR)
@@ -155,4 +162,26 @@ end
         #end
     end
   end
+end
+
+@testset "Coercion" begin
+  R, (x, y) = grade(PolynomialRing(QQ, ["x", "y"])[1]);
+  Q = quo(R, ideal([x^2, y]))[1];
+  @test parent(Q(x)) === Q
+  @test parent(Q(gens(R.R)[1])) === Q
+end
+
+@testset "Evaluation" begin
+  R, (x,y) = grade(PolynomialRing(QQ, ["x", "y"])[1]);
+  @test x(y, x) == y
+end
+
+@testset "Promotion" begin
+  R, (x,y) = grade(PolynomialRing(QQ, ["x", "y"])[1]);
+  @test x + QQ(1//2) == x + 1//2
+end
+
+@testset "Degree" begin
+  R, (x,y) = grade(PolynomialRing(QQ, ["x", "y"])[1]);
+  @test_throws ArgumentError degree(zero(R))
 end

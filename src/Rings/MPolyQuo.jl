@@ -343,6 +343,14 @@ end
 
 ^(a::MPolyQuoElem, b::Base.Integer) = simplify(MPolyQuoElem(Base.power_by_squaring(a.f, b), a.P))
 
+*(a::MPolyQuoElem, b::fmpq) = simplify(MPolyQuoElem(a.f * b, a.P))
+
+*(a::MPolyQuoElem, b::fmpz) = simplify(MPolyQuoElem(a.f * b, a.P))
+
+*(a::fmpq, b::MPolyQuoElem) = simplify(MPolyQuoElem(a * b.f, b.P))
+
+*(a::fmpz, b::MPolyQuoElem) = simplify(MPolyQuoElem(a * b.f, b.P))
+
 #*(a::MPolyQuoElem, b::MPolyQuoElem) = check_parent(a, b) && MPolyQuoElem(a.f*b.f, a.P)
 #
 #^(a::MPolyQuoElem, b::Base.Integer) = MPolyQuoElem(Base.power_by_squaring(a.f, b), a.P)
@@ -652,15 +660,17 @@ function (Q::MPolyQuo)(a::MPolyQuoElem)
 end
 
 function (Q::MPolyQuo)(a::MPolyElem) 
-   @assert parent(a) == Q.R
-   return MPolyQuoElem(Q.R(a), Q)
+   if base_ring(Q) === parent(a)
+      return MPolyQuoElem(a, Q)
+   else
+      return MPolyQuoElem(Q.R(a), Q)
+   end
 end
 
 function (Q::MPolyQuo)(a::Singular.spoly)
    @assert singular_ring(Q) == parent(a)
    return MPolyQuoElem(Q.R(a), Q)
 end
-
 
 function (S::Singular.PolyRing)(a::MPolyQuoElem)
    Q = parent(a)
@@ -718,7 +728,7 @@ function sparse_row(R::MPolyRing, M::Singular.svector{<:Singular.spoly})
     end
     push_term!(v[i], base_ring(R)(c), e)
   end
-  sparse_row(R, [(k,finish(v)) for (k,v) = v])
+  sparse_row(R, Tuple{Int, elem_type(R)}[(k,finish(v)) for (k,v) = v])
 end
 
 """
@@ -734,7 +744,7 @@ function sparse_row(R::MPolyRing, M::Singular.svector{<:Singular.spoly}, U::Unit
     end
     push_term!(v[i], base_ring(R)(c), e)
   end
-  sparse_row(R, [(k,finish(v)) for (k,v) = v])
+  sparse_row(R, Tuple{Int, elem_type(R)}[(k,finish(v)) for (k,v) = v])
 end
 
 """
@@ -789,8 +799,8 @@ function divides(a::MPolyQuoElem, b::MPolyQuoElem)
   BJ = BiPolyArray(J, keep_ordering = false)
   singular_assure(BJ)
 
-  s, = Singular.lift(BJ.S, BS.S)
-  if Singular.ngens(s) < 1 || iszero(s[1])
+  s, rest = Singular.lift(BJ.S, BS.S)
+  if !iszero(rest)
     return false, a
   end
   return true, Q(sparse_matrix(base_ring(Q), s, 1:1, length(J):length(J))[1, length(J)])
@@ -850,6 +860,7 @@ end
 
 function degree(a::MPolyQuoElem{<:MPolyElem_dec})
   simplify!(a)
+  @req !iszero(a) "Element must be non-zero"
   return degree(a.f)
 end
 
@@ -863,7 +874,8 @@ end
 
 function homogeneous_components(a::MPolyQuoElem{<:MPolyElem_dec})
   simplify!(a)
-  return homogeneous_components(a.f)
+  h = homogeneous_components(a.f)
+  return Dict{keytype(h), typeof(a)}(x => parent(a)(y) for (x, y) in h)
 end
 
 function ishomogeneous(a::MPolyQuoElem{<:MPolyElem_dec})
