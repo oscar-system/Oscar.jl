@@ -21,22 +21,23 @@ function isomorphic_group_over_finite_field(matrices::Vector{T}) where T <: Unio
    F = GAP.Globals.Range(G_to_fin_pres)
    rels = GAP.Globals.RelatorsOfFpGroup(F)
 
-   inv_matrices = Vector{T}(undef, length(matrices))
-   inv_computed = falses(length(matrices))
+   #inv_matrices = Vector{T}(undef, length(matrices))
+   #inv_computed = falses(length(matrices))
    for i = 1:length(rels)
-      rel = map(Int, GAP.Globals.LetterRepAssocWord(rels[i]))
-      M = identity_matrix(K, n)
-      for k in rel
-         if k < 0
-            k = -k
-            if !inv_computed[k]
-               inv_matrices[k] = inv(matrices[k])
-            end
-            M *= inv_matrices[k]
-         else
-            M *= matrices[k]
-         end
-      end
+      #rel = map(Int, GAP.Globals.LetterRepAssocWord(rels[i]))
+      #M = identity_matrix(K, n)
+      #for k in rel
+      #   if k < 0
+      #      k = -k
+      #      if !inv_computed[k]
+      #         inv_matrices[k] = inv(matrices[k])
+      #      end
+      #      M *= inv_matrices[k]
+      #   else
+      #      M *= matrices[k]
+      #   end
+      #end
+      M = GAP.Globals.MappedWord(rels[i], GAP.Globals.FreeGeneratorsOfFpGroup(F), GAP.julia_to_gap(matrices))
       if !isone(M)
          error("Group is not finite")
       end
