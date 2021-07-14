@@ -1,4 +1,4 @@
-mutable struct InvariantRing{T1 <: RingElem, T2 <: MatElem{T1}}
+mutable struct InvariantRing{T1 <: RingElem, T2 <: MatrixElem{T1}}
    field::Nemo.Field # coefficient field
 
    group::MatrixGroup{T1, T2}
@@ -9,6 +9,12 @@ mutable struct InvariantRing{T1 <: RingElem, T2 <: MatElem{T1}}
    primary::Vector{<: MPolyElem{T1}}
    secondary::Vector{<: MPolyElem{T1}}
    irreducible_secondary::Vector{<: MPolyElem{T1}}
+
+   # Cache some stuff on the Singular side
+   # (possibly removed at some point)
+   reynolds_singular::Singular.smatrix
+   molien_singular::Singular.smatrix
+   primary_singular::Singular.smatrix
 
    function InvariantRing{T1, T2}(matrices::Vector{T2}) where { T1 <: RingElem, T2 <: MatrixElem{T1} }
       @assert !isempty(matrices)
@@ -37,11 +43,11 @@ function InvariantRing(matrices::Vector{T2}) where T2 <: MatrixElem{fmpq}
    return InvariantRing{elem_type(base_ring(matrices[1])), T2}(matrices)
 end
 
-function InvariantRing(G::MatrixGroup{T1, T2}) where { T1 <: fmpq, T2 <: MatrixElem{fmpq} }
+function InvariantRing(G::MatrixGroup{T1, T2}) where { T1 <: fmpq, T2 <: MatrixElem{T1} }
    return InvariantRing{T1, T2}(G)
 end
 
-InvariantRing(matrices...) = InvariantRing(collect(matrices))
+InvariantRing(matrices::MatrixElem{fmpq}...) = InvariantRing(collect(matrices))
 
 function Base.show(io::IO, IR::InvariantRing)
    if isdefined(IR, :group)
@@ -53,55 +59,92 @@ function Base.show(io::IO, IR::InvariantRing)
    end
 end
 
-# Very first interface. We should split the different functions up.
-function _compute_invariants(IR::InvariantRing)
-   if isdefined(IR, :primary) && isdefined(IR, :secondary) && isdefined(IR, :irreducible_secondary)
-      return nothing
-   end
+function reynolds_molien_via_singular(IR::InvariantRing)
+   if !isdefined(IR, :reynolds_singular) || !isdefined(IR, :molien_singular)
+      R = IR.poly_ring
+      RS = Oscar.singular_ring(R)
+      singular_matrices = Vector{Singular.smatrix{elem_type(RS)}}(undef, length(IR.matrices))
+      for i = 1:length(IR.matrices)
+         singular_matrices[i] = map_entries(RS, IR.matrices[i])
+      end
 
-   R = IR.poly_ring
-   RS = Oscar.singular_ring(R)
-   singular_matrices = Vector{Singular.smatrix{elem_type(RS)}}(undef, length(IR.matrices))
-   for i = 1:length(IR.matrices)
-      singular_matrices[i] = map_entries(RS, IR.matrices[i])
+      rey, mol = Singular.LibFinvar.reynolds_molien(singular_matrices...)
+      IR.reynolds_singular = rey
+      IR.molien_singular = mol
    end
-
-   P, S, IS = Singular.LibFinvar.invariant_ring(singular_matrices...)
-   p = Vector{elem_type(R)}()
-   for i = 1:ncols(P)
-      push!(p, R(P[1, i]))
-   end
-   s = Vector{elem_type(R)}()
-   for i = 1:ncols(S)
-      push!(s, R(S[1, i]))
-   end
-   is = Vector{elem_type(R)}()
-   for i = 1:ncols(IS)
-      push!(is, R(IS[1, i]))
-   end
-   IR.primary = p
-   IR.secondary = s
-   IR.irreducible_secondary = is
-   return nothing
+   return IR.reynolds_singular, IR.molien_singular
 end
 
-function primary_invariants(IR::InvariantRing)
-   if !isdefined(IR, :primary)
-      _compute_invariants(IR)
+function primary_invariants_via_singular(IR::InvariantRing)
+   @assert characteristic(IR.field) == 0
+   if !isdefined(IR, :primary_singular)
+      rey, mol = reynolds_molien_via_singular(IR)
+      P = Singular.LibFinvar.primary_char0(rey, mol)
+      p = Vector{elem_type(IR.poly_ring)}()
+      for i = 1:ncols(P)
+         push!(p, IR.poly_ring(P[1, i]))
+      end
+      IR.primary_singular = P
+      IR.primary = p
    end
    return IR.primary
 end
 
+function primary_invariants(IR::InvariantRing)
+   if !isdefined(IR, :primary)
+      return primary_invariants_via_singular(IR)
+   end
+   return IR.primary
+end
+
+function secondary_invariants_via_singular(IR::InvariantRing)
+   if !isdefined(IR, :secondary)
+      rey, mol = reynolds_molien_via_singular(IR)
+      primary_invariants_via_singular(IR)
+      P = IR.primary_singular
+      S, IS = Singular.LibFinvar.secondary_char0(P, rey, mol)
+      s = Vector{elem_type(IR.poly_ring)}()
+      for i = 1:ncols(S)
+         push!(s, IR.poly_ring(S[1, i]))
+      end
+      is = Vector{elem_type(IR.poly_ring)}()
+      for i = 1:ncols(IS)
+         push!(is, IR.poly_ring(IS[1, i]))
+      end
+      IR.secondary = s
+      IR.irreducible_secondary = is
+   end
+   return IR.secondary
+end
+
 function secondary_invariants(IR::InvariantRing)
    if !isdefined(IR, :secondary)
-      _compute_invariants(IR)
+      return secondary_invariants_via_singular(IR)
    end
    return IR.secondary
 end
 
 function irreducible_secondary_invariants(IR::InvariantRing)
    if !isdefined(IR, :irreducible_secondary)
-      _compute_invariants(IR)
+      secondary_invariants_via_singular(IR)
    end
    return IR.irreducible_secondary
+end
+
+# Doesn't belong here...
+# Matrix act from the left here!
+function heisenberg_group(n::Int)
+   K, a = CyclotomicField(n, "a")
+   M1 = zero_matrix(K, n, n)
+   M1[1, n] = one(K)
+   for i = 2:n
+      M1[i, i - 1] = one(K)
+   end
+
+   M2 = zero_matrix(K, n, n)
+   M2[1, 1] = one(K)
+   for i = 2:n
+      M2[i, i] = M2[i - 1, i - 1]*a
+   end
+   return MatrixGroup(n, K, [ M1, M2 ])
 end
