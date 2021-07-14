@@ -17,10 +17,10 @@
    F = GF(29,1)[1]
    z = F(2)
    G = GL(3,F)
-   @test G.X isa GapObj
+   @test G.X isa Oscar.GapObj
    @test isdefined(G,:X)
    @test isdefined(G, :mat_iso)
-   @test G.mat_iso.fr(z) isa FFE
+   @test G.mat_iso.fr(z) isa Oscar.FFE
    Z = G.mat_iso.fr(z)
    @test GAP.Globals.IN(Z,G.mat_iso.fr.codomain)
    @test G.mat_iso.fr(Z)==z
@@ -41,12 +41,12 @@
    riso=Oscar.gen_ring_iso(F)
    @test riso isa Oscar.GenRingIso
    xg = Oscar.mat_oscar_gap(xo,riso)
-   @test xg isa GapObj
+   @test xg isa Oscar.GapObj
    @test Oscar.mat_gap_oscar(xg,riso)==xo
    @test Oscar.mat_oscar_gap(Oscar.mat_gap_oscar(xg,riso),riso)==xg
 
-   xg = GapObj([[G.mat_iso.fr(xo[i,j]) for j in 1:3] for i in 1:3]; recursive=true)
-   @test G.mat_iso(xo) isa GapObj
+   xg = Oscar.GapObj([[G.mat_iso.fr(xo[i,j]) for j in 1:3] for i in 1:3]; recursive=true)
+   @test G.mat_iso(xo) isa Oscar.GapObj
    @test G.mat_iso(xo)==xg
    @test G.mat_iso(xg)==xo
    @test G.mat_iso(GAP.Globals.One(GAP.Globals.GL(3,G.mat_iso.fr.codomain)))==one(G).elm
@@ -55,10 +55,10 @@
    T,t = PolynomialRing(GF(3),"t")
    F,z = FiniteField(t^2+1,"z")
    G = GL(3,F)
-   @test G.X isa GapObj
+   @test G.X isa Oscar.GapObj
    @test isdefined(G,:X)
    @test isdefined(G, :mat_iso)
-   @test G.mat_iso.fr(z) isa FFE
+   @test G.mat_iso.fr(z) isa Oscar.FFE
    Z = G.mat_iso.fr(z)
    @testset for a in F for b in F
       @test G.mat_iso.fr(a*b)==G.mat_iso.fr(a)*G.mat_iso.fr(b)
@@ -76,7 +76,7 @@
    @test isone(G.mat_iso.fr(GAP.Globals.One(G.mat_iso.fr.codomain)))
    
    xo = matrix(F,3,3,[1,z,0,0,1,2*z+1,0,0,z+2])
-   xg = Vector{GapObj}(undef, 3)
+   xg = Vector{Oscar.GapObj}(undef, 3)
    for i in 1:3
       xg[i] = GAP.julia_to_gap([G.mat_iso.fr(xo[i,j]) for j in 1:3])
    end
@@ -85,6 +85,20 @@
    @test G.mat_iso(xg)==xo
    @test G.mat_iso(GAP.Globals.One(GAP.Globals.GL(3,G.mat_iso.fr.codomain)))==one(G).elm
    @test GAP.Globals.Order(G.mat_iso(diagonal_matrix([z,z,one(F)])))==4
+
+   M = matrix(QQ, [ 0 1 0; -1 0 0; 0 0 -1 ])
+   G = Oscar.isomorphic_group_over_finite_field([ M ])
+   H = GAP.Globals.Group(GAP.julia_to_gap([ 0 1 0; -1 0 0; 0 0 -1 ]))
+   @test GAP.Globals.IsomorphismGroups(G.X, H) != GAP.Globals.fail
+
+   M = matrix(QQ, [ 2 0; 0 2 ])
+   @test_throws ErrorException Oscar.isomorphic_group_over_finite_field([ M ])
+
+   K, a = CyclotomicField(5, "a")
+   M = matrix(K, [ a 0; 0 a ])
+   G = Oscar.isomorphic_group_over_finite_field([ M ])
+   H = GAP.Globals.Group(GAP.julia_to_gap([ GAP.Globals.E(5) 0; 0 GAP.Globals.E(5) ]))
+   @test GAP.Globals.IsomorphismGroups(G.X, H) != GAP.Globals.fail
 end
 
 @testset "Type operations" begin
@@ -122,7 +136,7 @@ end
    x = matrix(F,2,2,[1,0,0,1])
    x = G(x)
    @test !isdefined(x,:X)
-   @test x.X isa GapObj
+   @test x.X isa Oscar.GapObj
    x = G[1].elm
    x = G(x)
    @test !isdefined(x,:X)
@@ -144,7 +158,7 @@ end
    @test parent(f(H[1]))==G
 
    K1 = matrix_group(x,y,x*y)
-   @test K1.X isa GapObj
+   @test K1.X isa Oscar.GapObj
    @test K1.X==H.X
 
    K = matrix_group(x,x^2,y)
