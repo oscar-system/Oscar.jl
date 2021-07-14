@@ -1,6 +1,6 @@
 # Detinko, Flannery, O'Brien "Recognizing finite matrix groups over infinite
 # fields", Section 4.2
-function isomorphic_group_over_finite_field(matrices::Vector{T}) where T <: Union{ MatrixElem{fmpq}, AbstractAlgebra.MatElem{nf_elem} }
+function isomorphic_group_over_finite_field(matrices::Vector{T}) where T <: Union{MatrixElem{fmpq}, AbstractAlgebra.MatElem{nf_elem}}
    @assert !isempty(matrices)
 
    # One should probably check whether all matrices are n by n (and invertible
@@ -45,7 +45,7 @@ function isomorphic_group_over_finite_field(matrices::Vector{T}) where T <: Unio
    return G
 end
 
-function good_reduction(matrices::Vector{T}, p::Int = 2) where T <: Union{ MatrixElem{fmpq}, AbstractAlgebra.MatElem{nf_elem} }
+function good_reduction(matrices::Vector{T}, p::Int = 2) where T <: Union{MatrixElem{fmpq}, AbstractAlgebra.MatElem{nf_elem}}
    while true
       p = next_prime(p)
       b, Fq, matrices_Fq = test_modulus(matrices, p)
