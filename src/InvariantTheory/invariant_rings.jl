@@ -101,7 +101,7 @@ end
 
 function primary_invariants_via_singular(IR::InvRing)
    if !isdefined(IR, :primary_singular)
-      if ismodular(IR)
+      if !ismodular(IR)
          rey, mol = reynolds_molien_via_singular(IR)
          P = Singular.LibFinvar.primary_char0(rey, mol)
          R = polynomial_ring(IR)
@@ -127,7 +127,7 @@ end
 
 function primary_invariants(IR::InvRing)
    if !isdefined(IR, :primary)
-      return primary_invariants_via_singular(IR)
+      primary_invariants_via_singular(IR)
    end
    return copy(IR.primary)
 end
@@ -155,16 +155,16 @@ end
 
 function secondary_invariants(IR::InvRing)
    if !isdefined(IR, :secondary)
-      return secondary_invariants_via_singular(IR)
+      secondary_invariants_via_singular(IR)
    end
-   return IR.secondary
+   return copy(IR.secondary)
 end
 
 function irreducible_secondary_invariants(IR::InvRing)
    if !isdefined(IR, :irreducible_secondary)
       secondary_invariants_via_singular(IR)
    end
-   return IR.irreducible_secondary
+   return copy(IR.irreducible_secondary)
 end
 
 # Doesn't belong here...
