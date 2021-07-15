@@ -219,8 +219,7 @@ end
 Return `true` if `C` is irreducible, and `false` otherwise.
 """
 function Oscar.isirreducible(C::PlaneCurve{S}) where S <: FieldElem
-   comp = curve_components(C)
-   return length(comp) == 1 && all(isone, values(comp))
+   return isirreducible(defining_equation(C))
 end
 
 ################################################################################
