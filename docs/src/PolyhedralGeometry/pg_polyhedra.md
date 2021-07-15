@@ -14,13 +14,15 @@ Pages = ["pg_polyhedra.md"]
 
 ## Introduction
 
-A set $P \subseteq \mathbb{R}^n$ is called a (convex) polyhedron if it can be written as the intersection of finitely many closed affine halfspaces in $\mathbb{R}^n$.
+Let $\mathbb{F}$ be an ordered field; the most prominent case here is where $\mathbb{F}=\mathbb{Q}$ are the rational numbers.
+
+A set $P \subseteq \mathbb{F}^n$ is called a (convex) polyhedron if it can be written as the intersection of finitely many closed affine halfspaces in $\mathbb{F}^n$.
 That is, there exists a matrix $A$ and a vector $b$ such that
-$$P = P(A,b) = \{ x \in \mathbb{R}^n \mid Ax \leq b\}.$$
+$$P = P(A,b) = \{ x \in \mathbb{F}^n \mid Ax \leq b\}.$$
 Writing $P$ as above is called an $H$-representation of $P$.
 
-When a polyhedron $P \subset \mathbb{R}^n$ is bounded, it is called a polytope and the fundamental theorem of polytopes states that it may be written as the convex hull of finitely many points.
-That is $$P = \textrm{conv}(p_1,\ldots,p_N), p_i \in \mathbb{R}^n.$$
+When a polyhedron $P \subset \mathbb{F}^n$ is bounded, it is called a polytope and the fundamental theorem of polytopes states that it may be written as the convex hull of finitely many points.
+That is $$P = \textrm{conv}(p_1,\ldots,p_N), p_i \in \mathbb{F}^n.$$
 Writing $P$ in this way is called a $V$-representation.
 Polytopes are necessarily compact, i.e., they form convex bodies.
 

@@ -89,6 +89,8 @@
   "Polyhedral Geometry" => [
      "PolyhedralGeometry/pg.md",
      "PolyhedralGeometry/pg_polyhedra.md",
+     "PolyhedralGeometry/pg_cones.md",
+     "PolyhedralGeometry/pg_fans.md",		
      "PolyhedralGeometry/pg_linear_programs.md",
   ],
 
