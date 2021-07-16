@@ -18,7 +18,7 @@ Let $\mathbb{F}$ be an ordered field; the most prominent case here is where $\ma
 
 A nonempty finite collection $\mathcal{F}$ of (polyhedral) cones in $\mathbb{F}^n$, for $n$ fixed, is a (polyhedral) fan if
 
-- $\mathcal{F}$ is closed with respect to taking faces and
+- the set $\mathcal{F}$ is closed with respect to taking faces and
 - if $C,D\in\mathcal{F}$ then $C\cap D$ is a face of both, $C$ and $D$.
 
 ## Construction
