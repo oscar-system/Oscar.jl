@@ -620,6 +620,51 @@ function singular_ring(K::AnticNumberField)
   return SK
 end
 
+function singular_ring(F::FqNmodFiniteField)
+  # TODO: the Fp(Int(char)) can throw
+  minpoly = modulus(F)
+  Fa = parent(minpoly)
+  SFa, (Sa,) = Singular.FunctionField(Singular.Fp(Int(characteristic(F))),
+                                                    map(String, symbols(Fa)))
+  Sminpoly = SFa(coeff(minpoly, 0))
+  for i in 1:degree(minpoly)
+    Sminpoly += SFa(coeff(minpoly, i))*Sa^i
+  end
+  SF, _ = Singular.AlgebraicExtensionField(SFa, Sminpoly)
+  return SF
+end
+
+#### TODO stuff to move to singular.jl
+function (F::Singular.N_FField)(a::Union{nmod, gfp_elem})
+  return F(a.data)
+end
+
+function (K::FqNmodFiniteField)(a::Singular.n_algExt)
+  SK = parent(a)
+  SF = parent(Singular.modulus(SK))
+  SFa = SF(a)
+  numSa = Singular.n_transExt_to_spoly(numerator(SFa))
+  denSa = first(coefficients(Singular.n_transExt_to_spoly(denominator(SFa))))
+  @assert isone(denSa)
+  res = zero(K)
+  Ka = gen(K)
+  for (c, e) in zip(coefficients(numSa), exponent_vectors(numSa))
+    res += K(Int(c))*Ka^e[1]
+  end
+  return res
+end
+
+function (SF::Singular.N_AlgExtField)(a::fq_nmod)
+  F = parent(a)
+  SFa = gen(SF)
+  res = SF(coeff(a, 0))
+  for i in 1:degree(F)-1
+    res += SF(coeff(a, i))*SFa^i
+  end
+  return res
+end
+#### end stuff to move to singular.jl
+
 function singular_ring(Rx::MPolyRing{T}; keep_ordering::Bool = true) where {T <: RingElem}
   if keep_ordering
     return Singular.PolynomialRing(singular_ring(base_ring(Rx)),

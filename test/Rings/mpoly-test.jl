@@ -232,8 +232,14 @@ end
     R, (x, y) = PolynomialRing(Zn, ["x", "y"], ordering = :degrevlex)
     l = [x*y+x^3+1, x*y^2+x^2+1]
     g = groebner_basis(ideal(R, l), ordering = :degrevlex)
-    @assert iszero(divrem(l[1] + l[2], g)[2])
+    @test iszero(divrem(l[1] + l[2], g)[2])
   end
+
+  F, a = FiniteField(11, 2, "a")
+  R, (x, y, z) = PolynomialRing(F, ["x", "y", "z"], ordering = :degrevlex)
+  l = [3*x^5 + a*x*y^2 + a^2*z^2, z^3*x^2 + 7*y^3 + z]
+  gb = groebner_basis(ideal(R, l), ordering = :degrevlex)
+  @test iszero(divrem(l[1] + l[2], gb)[2])
 end
 
 @testset "Primary decomposition" begin
