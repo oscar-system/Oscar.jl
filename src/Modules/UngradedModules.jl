@@ -2001,7 +2001,7 @@ function direct_product(G::ModuleFP...; task::Symbol = :none)
   if task == :prod || task != :sum
     if pro_quo === nothing
       for i=1:length(pro)
-        pro[i] = hom(s, G[i], [G[i](pro[i](emb_sF(gen))) for gen in gens(s)])
+        pro[i] = hom(s, G[i], [G[i](pro[i](emb_sF(gen))) for gen in gens(s)]) # TODO distinction between pro on the left and pro on the right side!
         projection_dictionary[i] = pro[i]
       end
     else
