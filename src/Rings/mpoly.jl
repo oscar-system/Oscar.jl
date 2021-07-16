@@ -594,8 +594,14 @@ end
 #Note: Singular crashes if it gets Nemo.ZZ instead of Singular.ZZ ((Coeffs(17)) instead of (ZZ))
 singular_ring(::Nemo.FlintIntegerRing) = Singular.Integers()
 singular_ring(::Nemo.FlintRationalField) = Singular.Rationals()
+
+# if the characteristic overflows an Int, Singular doesn't support it anyways
 singular_ring(F::Nemo.GaloisField) = Singular.Fp(Int(characteristic(F)))
-singular_ring(F::Nemo.NmodRing) = Singular.Fp(Int(characteristic(F)))
+
+function singular_ring(F::Union{Nemo.NmodRing, Nemo.FmpzModRing})
+  return Singular.ResidueRing(Singular.Integers(), BigInt(modulus(F)))
+end
+
 singular_ring(R::Singular.PolyRing; keep_ordering::Bool = true) = R
 
 # Note: Several Singular functions crash if they get the catch-all
