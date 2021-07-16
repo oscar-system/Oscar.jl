@@ -9,7 +9,7 @@ function __init__()
   Hecke.add_verbose_scope(:ModStdQ)
 end
 
-function (R::AbstractAlgebra.Generic.MPolyRing{Nemo.gfp_elem})(f::fmpq_mpoly)
+function (R::GFPMPolyRing)(f::fmpq_mpoly)
   g  = MPolyBuildCtx(R)
   S = base_ring(R)
   for (c, v) in zip(coefficients(f), exponent_vectors(f))
@@ -18,7 +18,7 @@ function (R::AbstractAlgebra.Generic.MPolyRing{Nemo.gfp_elem})(f::fmpq_mpoly)
   return finish(g)
 end
 
-function (S::Nemo.NmodRing)(a::fmpq)
+function (S::Union{Nemo.NmodRing, Nemo.GaloisField})(a::fmpq)
   return S(numerator(a))//S(denominator(a))
 end
 
@@ -138,7 +138,7 @@ function Oscar.groebner_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}; ordering
     p = iterate(ps, p)[1]
     @vprint :ModStdQ 2 "Main loop: using $p\n"
 #    nbits(d) > 1700 && error("too long")
-    R = ResidueRing(ZZ, Int(p))
+    R = GF(p)
     Rt, t = PolynomialRing(R, [string(s) for s = symbols(Qt)], cached = false)
     @vtime :ModStdQ 3 Ip = Oscar.BiPolyArray([Rt(x) for x = gI], keep_ordering = false)
     Gp, Tp = Oscar.groebner_basis_with_transform(Ip, ord = ordering, complete_reduction = complete_reduction)
@@ -204,7 +204,7 @@ function Oscar.groebner_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}; ordering
 end
 
 
-function Oscar.lift(R::Nemo.Ring, f::nmod_mpoly)
+function Oscar.lift(R::Nemo.Ring, f::Union{gfp_mpoly, nmod_mpoly})
   g = MPolyBuildCtx(R)
   for (c, v) in zip(coefficients(f), exponent_vectors(f))
     push_term!(g, lift(c), v)

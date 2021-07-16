@@ -42,6 +42,8 @@ export Nemo, Hecke, Singular, Polymake, AbstractAlgebra, GAP
 import AbstractAlgebra: @show_name, @show_special, elem_type, force_coerce, force_op,
                         parent_type, expressify, canonical_unit
 
+import Hecke: @req
+
 # More helpful error message for users on Windows.
 windows_error() = error("""
 
@@ -113,6 +115,9 @@ const is_dev = (function(m)
 const IJuliaMime = Union{MIME"text/latex", MIME"text/html"}
 
 const oscardir = pkgdir(Oscar)
+const aadir = pkgdir(AbstractAlgebra)
+const nemodir = pkgdir(Nemo)
+const heckedir = pkgdir(Hecke)
 
 
 function example(s::String)
@@ -150,7 +155,7 @@ function build_doc()
     doc_init()
   end
   Pkg.activate(joinpath(oscardir, "docs")) do
-    Base.invokelatest(Main.BuildDoc.doit, false, true)
+    Base.invokelatest(Main.BuildDoc.doit, Oscar, false, true)
   end
   open_doc()
 end

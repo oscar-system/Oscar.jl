@@ -28,6 +28,10 @@ end
   @test iszero(x-x)
   @test x*deepcopy(x) == x^2
   @test iszero(det(matrix(A, [x 5; y^3 2*x])))
+
+  @test !divides(x, y)[1]
+  @test divides(x, x) == (true, one(A))
+  @test divides(zero(A), x) == (true, zero(A))
 end
 
 @testset "MPolyQuo.ideals" begin

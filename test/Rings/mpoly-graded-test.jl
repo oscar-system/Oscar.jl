@@ -32,7 +32,7 @@ function _homogeneous_polys(polys::Vector{<:MPolyElem})
     _monomials = append!(_monomials, monomials(polys[i]))
   end
   hom_polys = []
-  for deg in unique([degree(mon) for mon = _monomials])
+  for deg in unique([iszero(mon) ? id(decoration(R)) : degree(mon) for mon = _monomials])
     g = zero(R)
     for i = 1:4
       if haskey(D[i], deg)
@@ -55,6 +55,7 @@ end
     NFx = PolynomialRing(k1, ["x", "y", "z"])[1]
     k2 = Nemo.GF(23)
     GFx = PolynomialRing(k2, ["x", "y", "z"])[1]
+    # TODO explain why test fails if Nemo.ResidueRing(ZZ,17) => Nemo.GF(17)
     RNmodx=PolynomialRing(Nemo.ResidueRing(ZZ,17), :x => 1:2)[1]
     Rings= [Qx, NFx, GFx, RNmodx]
 
@@ -170,11 +171,18 @@ end
   @test parent(Q(x)) === Q
   @test parent(Q(gens(R.R)[1])) === Q
 end
+
 @testset "Evaluation" begin
   R, (x,y) = grade(PolynomialRing(QQ, ["x", "y"])[1]);
   @test x(y, x) == y
 end
+
 @testset "Promotion" begin
   R, (x,y) = grade(PolynomialRing(QQ, ["x", "y"])[1]);
   @test x + QQ(1//2) == x + 1//2
+end
+
+@testset "Degree" begin
+  R, (x,y) = grade(PolynomialRing(QQ, ["x", "y"])[1]);
+  @test_throws ArgumentError degree(zero(R))
 end

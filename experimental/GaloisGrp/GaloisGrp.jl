@@ -1584,9 +1584,20 @@ function Nemo.cyclotomic(n::Int, x::fmpq_poly)
   return Nemo.cyclotomic(n, gen(Hecke.Globals.Zx))(x)
 end
 
+################################################################################
+#
+#  Promote rules
+#
+################################################################################
+
+AbstractAlgebra.promote_rule(::Type{BoundRingElem}, ::Type{fmpz}) = BoundRingElem
+
+AbstractAlgebra.promote_rule(::Type{BoundRingElem}, ::Type{T}) where {T <: Integer} = BoundRingElem
+
 include("Group.jl")
 include("POSet.jl")
 include("SeriesEval.jl")
+include("Qt.jl")
 
 end
 

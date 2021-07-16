@@ -253,6 +253,14 @@ for T in [:(-), :(+)]
              b::MPolyElem_dec) = MPolyElem_dec($(T)(a, b.f), b.parent)
 end
 
+function *(a::MPolyElem_dec{T, S}, b::T) where {T <: RingElem, S}
+  return MPolyElem_dec(a.f * b, parent(a))
+end
+
+function *(a::T, b::MPolyElem_dec{T, S}) where {T <: RingElem, S}
+  return b * a
+end
+
 ################################################################################
 #
 #  Equality
@@ -353,11 +361,12 @@ end
 function jacobi_matrix(g::Array{<:MPolyElem_dec, 1})
   R = parent(g[1])
   n = nvars(R)
-  @assert all(x->parent(x) == R, g)
+  @assert all(x->parent(x) === R, g)
   return matrix(R, n, length(g), [derivative(x, i) for i=1:n for x = g])
 end
 
 function degree(a::MPolyElem_dec)
+  @req !iszero(a) "Element must be non-zero"
   W = parent(a)
   w = W.D[0]
   first = true
@@ -460,8 +469,6 @@ Nemo.gen(W::MPolyRing_dec, i::Int) = W(gen(W.R, i))
 Base.getindex(W::MPolyRing_dec, i::Int) = W(W.R[i])
 
 base_ring(f::MPolyElem_dec) = base_ring(f.f)
-
-*(r::fmpq, w::MPolyElem_dec) = parent(w)(r*w.f)
 
 function show_homo_comp(io::IO, M)
   (W, d) = Hecke.get_special(M, :data)
