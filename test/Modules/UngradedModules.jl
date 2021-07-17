@@ -440,7 +440,7 @@ end
 	end
 end
 
-#=@testset "direct product" begin
+@testset "direct product" begin
 	R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
 	
 	F2 = Oscar.FreeMod(R,2)
@@ -511,7 +511,7 @@ end
 			@test M2_to_N2(g) == Oscar.canonical_projection(prod_N,2)(phi(emb[2](g)))
 		end
 	end
-end=#
+end
 
 # testing lift ?
 

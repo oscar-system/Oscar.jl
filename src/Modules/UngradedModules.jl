@@ -743,7 +743,8 @@ mutable struct SubQuo{T} <: ModuleFP{T}
     r.F = S.F
     r.sub = S.sub
     #r.quo = ModuleGens(O, S.F, S.sub.SF)
-    r.quo = SubModuleOfFreeModule(S.F, O)
+    O_as_submodule = SubModuleOfFreeModule(S.F, O)
+    r.quo = isdefined(S,:quo) ? sum(S.quo,O_as_submodule) : O_as_submodule
     #r.sum = ModuleGens(vcat(collect(r.sub), collect(r.quo)), S.F, S.sub.SF)
     r.sum = sum(r.sub, r.quo)
 
@@ -794,17 +795,39 @@ SubQuo(sub::SubModuleOfFreeModule{R}, quo::SubModuleOfFreeModule{R}) where {R} =
 
 SubQuo(F::FreeMod{R}, O::Vector{<:FreeModuleElem}) where {R} = SubQuo{R}(F, O)
 
+@doc Markdown.doc"""
+  SubQuo(S::SubQuo{L}, O::Vector{<:FreeModuleElem}) where {L}
+
+Construct a subquotient where the generators are those of `S` and the relations are 
+the union of `O` and the relations of `S`.
+"""
 SubQuo(S::SubQuo{L}, O::Vector{<:FreeModuleElem}) where {L} = SubQuo{L}(S, O)
 
 SubQuo(F::FreeMod{R}, s::Singular.smodule) where {R} = SubQuo{R}(F, s)
 
 SubQuo(F::FreeMod{R}, s::Singular.smodule, t::Singular.smodule) where {R} = SubQuo{R}(F, s, t)
 
+@doc Markdown.doc"""
+  SubQuo(F::FreeMod{R}, A::MatElem{R}, B::MatElem{R}) where {R}
+
+Let $A$ be an $n_1×m$-matrix, $B$ an $n_2×m$-matrix over the ring $R$ and 
+$F = R^m$. Return the subquotient $(\im(A) + \im(B))/ \im(B)$, where the 
+surrounding free module is $F$.
+"""
 function SubQuo(F::FreeMod{R}, A::MatElem{R}, B::MatElem{R}) where {R}
   @assert ncols(A) == ncols(B) == rank(F)
   return SubQuo(SubModuleOfFreeModule(F, A), SubModuleOfFreeModule(F, B))
 end
 
+@doc Markdown.doc"""
+  SubQuo(A::MatElem{R}, B::MatElem{R}) where {R}
+
+Let $A$ be an $n_1×m$-matrix, $B$ an $n_2×m$-matrix over the ring $R$. 
+Then return the subquotient $(\im(A) + \im(B))/ \im(B)$. 
+Note: The surrounding free module of the subquotient is constructed by the function and therefore
+not compatible with free modules $R^m$ that are defined by the user or other functions. 
+If you need compatiblity use `SubQuo(F::FreeMod{R}, A::MatElem{R}, B::MatElem{R})`.
+"""
 function SubQuo(A::MatElem{R}, B::MatElem{R}) where {R}
   @assert ncols(A) == ncols(B)
   S = base_ring(A)
@@ -825,6 +848,9 @@ function show(io::IO, SQ::SubQuo)
   end
 end
 
+@doc Markdown.doc"""
+  show_subquo(SQ::SubQuo)
+"""
 function show_subquo(SQ::SubQuo)
   #@show_name(io, SQ)
   #@show_special(io, SQ)
@@ -844,19 +870,43 @@ function show_subquo(SQ::SubQuo)
   end
 end
 
+@doc Markdown.doc"""
+  cokernel(f::FreeModuleHom)
+
+Let $f : F → G$ be a morphism between free modules. Return the cokernel of $f$ as a subquotient.
+"""
 function cokernel(f::FreeModuleHom)
   @assert typeof(codomain(f)) <: FreeMod
   return quo(codomain(f), image(f)[1])
 end
 
+@doc Markdown.doc"""
+  cokernel(F::FreeMod{R}, A::MatElem{R}) where R
+
+Let $F = R^m$ and $A$ an $n×m$-matrix. Return the subquotient $F / \im(A)$.
+"""
 function cokernel(F::FreeMod{R}, A::MatElem{R}) where R
   return cokernel(matrix_to_map(F,A))
 end
 
+@doc Markdown.doc"""
+  cokernel(A::MatElem)
+
+Let $A$ be an $n×m$-matrix over the ring $R$. Then return the subquotient $R^m / \im(A)$. 
+Note: The free module $R^m$ is constructed by the function and therefore not compatible with 
+free modules $R^m$ that are defined by the user or other functions. If you need compatiblity
+use `cokernel(F::FreeMod{R}, A::MatElem{R})`.
+"""
 function cokernel(A::MatElem)
   return cokernel(matrix_to_map(A))
 end
 
+@doc Markdown.doc"""
+  ==(M::SubQuo{T}, N::SubQuo{T}) where {T}
+
+Check for equality. For two subquotients to be equal their surrounding free modules 
+must be identical (`===`) and the generators and relations must be equal.
+"""
 function ==(M::SubQuo{T}, N::SubQuo{T}) where {T}
   if !isdefined(M, :quo) 
     if !isdefined(N, :quo)
@@ -873,6 +923,11 @@ function ==(M::SubQuo{T}, N::SubQuo{T}) where {T}
   end
 end
 
+@doc Markdown.doc"""
+  sum(M::SubQuo{T},N::SubQuo{T}) where T
+
+Compute $M+N$ along with the inclusion morphisms $M → M+N$ and $N → M+N$.
+"""
 function sum(M::SubQuo{T},N::SubQuo{T}) where T
   #TODO use SubModuleOfFreeModule instead of matrices
   gm1,gm2 = size(matrix(M.sub))
@@ -900,10 +955,20 @@ function sum(M::SubQuo{T},N::SubQuo{T}) where T
   throw(ArgumentError("img(M.relations) != img(N.relations)"))
 end
 
-function Base.:+(M::SubQuo{T},N::SubQuo{T}) where T 
+@doc Markdown.doc"""
+  Base.:+(M::SubQuo{T},N::SubQuo{T}) where T
+
+Compute $M+N$.
+"""
+function Base.:+(M::SubQuo{T},N::SubQuo{T}) where T
   return sum(M,N)[1]
 end
 
+@doc Markdown.doc"""
+  Base.:intersect(M::SubQuo{T}, N::SubQuo{T}) where T
+
+Compute the intersection $M ∩ N$ along with the inclusion morphisms $M∩N → M$ and $M∩N → N$.
+"""
 function Base.:intersect(M::SubQuo{T}, N::SubQuo{T}) where T
   #TODO allow task as argument?
   @assert free_module(M) === free_module(N)
@@ -969,8 +1034,18 @@ struct SubQuoElem{T} # this needs to be redone TODO
   end
 end
 
+@doc Markdown.doc"""
+  SubQuoElem(v::SRow{R}, SQ::SubQuo) where {R}
+
+Return the element $\sum_i v[i]*SQ[i]$.
+"""
 SubQuoElem(v::SRow{R}, SQ::SubQuo) where {R} = SubQuoElem{R}(v, SQ)
 
+@doc Markdown.doc"""
+  SubQuoElem(a::FreeModuleElem{R}, SQ::SubQuo) where {R}
+
+Construct an element $v ∈ SQ$ that is represented by $a$.
+"""
 SubQuoElem(a::FreeModuleElem{R}, SQ::SubQuo) where {R} = SubQuoElem{R}(a, SQ)
 
 elem_type(::SubQuo{T}) where {T} = SubQuoElem{T}
@@ -978,6 +1053,11 @@ parent_type(::SubQuoElem{T}) where {T} = SubQuo{T}
 elem_type(::Type{SubQuo{T}}) where {T} = SubQuoElem{T}
 parent_type(::Type{SubQuoElem{T}}) where {T} = SubQuo{T}
 
+@doc Markdown.doc"""
+  getindex(v::SubQuoElem, i::Int)
+
+Let $v ∈ M$ with $v = \sum_i a[i]*M[i]$. Return $a[i]$
+"""
 function getindex(v::SubQuoElem, i::Int)
   if isempty(coeffs(v))
     return zero(base_ring(v.parent))
@@ -985,14 +1065,29 @@ function getindex(v::SubQuoElem, i::Int)
   return coeffs(v)[i]
 end
 
+@doc Markdown.doc"""
+  coeffs(v::SubQuoElem)
+
+Let $v ∈ M$. Return an `SRow` `a` such that $\sum_i a[i]*M[i] = v$.
+"""
 function coeffs(v::SubQuoElem)
   return v.coeffs
 end
 
+@doc Markdown.doc"""
+  repres(v::SubQuoElem)
+
+Return a free module element that is a representative of `v`.
+"""
 function repres(v::SubQuoElem)
   return v.repres
 end
 
+@doc Markdown.doc"""
+  groebner_basis(F::ModuleGens)
+
+Return a Gröbner basis of `F` as an object of type `ModuleGens`.
+"""
 function groebner_basis(F::ModuleGens)
   singular_assure(F)
   if singular_generators(F).isGB
@@ -1005,8 +1100,19 @@ function show(io::IO, b::SubQuoElem)
   print(io, b.repres)
 end
 
+@doc Markdown.doc"""
+  parent(b::SubQuoElem)
+
+Let $b ∈ M$. Return $M$.
+"""
 parent(b::SubQuoElem) = b.parent
 
+@doc Markdown.doc"""
+  (R::SubQuo)(a::FreeModuleElem; check::Bool = true)
+
+Return `a` as an element of `R`. If `check == true` (default) it is checked that `a` represents
+indeed an element of `R`.
+"""
 function (R::SubQuo)(a::FreeModuleElem; check::Bool = true)
   if check
     b = convert(R.sum.gens.SF, a)
@@ -1016,10 +1122,20 @@ function (R::SubQuo)(a::FreeModuleElem; check::Bool = true)
   return SubQuoElem(a, R)
 end
 
+@doc Markdown.doc"""
+  (R::SubQuo)(a::SRow)
+
+Return the subquotient element $\sum_i R[i]*a[i] ∈ R$.
+"""
 function (R::SubQuo)(a::SRow)
   return SubQuoElem(a, R)
 end
 
+@doc Markdown.doc"""
+  (R::SubQuo)(a::SubQuoElem)
+
+Return `a` if it lives in `R`.
+"""
 function (R::SubQuo)(a::SubQuoElem)
   if parent(a) == R
     return a
@@ -1027,6 +1143,11 @@ function (R::SubQuo)(a::SubQuoElem)
   error("illegal coercion")
 end
 
+@doc Markdown.doc"""
+  index_of_gen(v::SubQuoElem)
+
+Let $v ∈ G$ with $v$ the `i`th generator of $G$. Return `i`.
+"""
 function index_of_gen(v::SubQuoElem)
   @assert length(coeffs(v).pos) == 1
   @assert isone(coeffs(v).values[1])
@@ -1066,6 +1187,17 @@ end
 *(a::fmpq, b::SubQuoElem) = SubQuoElem(a*coeffs(b), b.parent)
 ==(a::SubQuoElem, b::SubQuoElem) = iszero(a-b)
 
+@doc Markdown.doc"""
+  sub(F::FreeMod, O::Vector{<:FreeModuleElem}, task::Symbol = :none)
+
+Return `S` as a submodule of `F`, where `S` is generated by `O`.
+`S` is a represented as a subquotient module.
+The elements of `O` must live in `F`.
+If `task` is set to `:with_morphism` or to `:both` return also the canonical injection morphism
+$S → F$.
+If `task` is set to `:store` the morphism is also cached.
+If `task` is set to `:morphism` return only the morphism.
+"""
 function sub(F::FreeMod, O::Vector{<:FreeModuleElem}, task::Symbol = :none)
   s = SubQuo(F, O)
   if task == :none || task == :module
@@ -1078,6 +1210,16 @@ function sub(F::FreeMod, O::Vector{<:FreeModuleElem}, task::Symbol = :none)
   end
 end
 
+@doc Markdown.doc"""
+  sub(F::FreeMod, O::Vector{<:SubQuoElem}, task::Symbol = :none)
+
+Return `S` as a submodule of `F`, where `S` is generated by `O`.
+The surrounding module of the parent of the elements of `O` must be `F`.
+If `task` is set to `:with_morphism` or to `:both` return also the canonical injection morphism
+$S → F$.
+If `task` is set to `:store` the morphism is also cached.
+If `task` is set to `:morphism` return only the morphism.
+"""
 function sub(F::FreeMod, O::Vector{<:SubQuoElem}, task::Symbol = :none)
   s = SubQuo(F, [x.repres for x = O])
   return sub(F, s, task)
@@ -1088,6 +1230,16 @@ function sub(F::FreeMod, O::Vector{<:SubQuoElem}, task::Symbol = :none)
   end=#
 end
 
+@doc Markdown.doc"""
+  sub(F::FreeMod, s::SubQuo, task::Symbol = :none)
+
+Return `s` as a submodule of `F`, that is the surrounding free module of `s` must 
+be `F` and `s` has no relations.
+If `task` is set to `:with_morphism` or to `:both` return also the canonical injection morphism
+$s → F$.
+If `task` is set to `:store` the morphism is also cached.
+If `task` is set to `:morphism` return only the morphism.
+"""
 function sub(F::FreeMod, s::SubQuo, task::Symbol = :none)
   @assert !isdefined(s, :quo)
   @assert s.F === F
@@ -1101,7 +1253,18 @@ function sub(F::FreeMod, s::SubQuo, task::Symbol = :none)
   end
 end
 
-function sub(S::SubQuo, O::Vector{<:SubQuoElem}, task::Symbol = :none, check = true) 
+@doc Markdown.doc"""
+  sub(S::SubQuo, O::Vector{<:SubQuoElem}, task::Symbol = :none, check = true)
+
+Compute a subquotient $T ≤ S$, where $T$ is generated by $O$. 
+The elements of `O` must live in `S`.
+If `task` is set to `:with_morphism` or to `:both` return also the canonical injection morphism
+$T → S$.
+If `task` is set to `:store` the morphism is also cached.
+If `task` is set to `:morphism` return only the morphism.
+If `check` is set to `false` then it is not checked that the elements of `O` live in `S`.
+"""
+function sub(S::SubQuo, O::Vector{<:SubQuoElem}, task::Symbol = :none, check = true)
   if check
     @assert all(x -> x.parent === S, O)
   end
@@ -1135,6 +1298,16 @@ function sub(S::SubQuo, O::Vector{<:SubQuoElem}, task::Symbol = :none, check = t
   end=#
 end
 
+@doc Markdown.doc"""
+  quo(F::FreeMod, O::Vector{<:FreeModuleElem}, task::Symbol = :none)
+
+Compute $F / T$, where $T$ is generated by $O$.
+The elements of `O` must live in `F`.
+If `task` is set to `:with_morphism` or to `:both` return also the canonical projection morphism
+$F → F/T$.
+If `task` is set to `:store` the morphism is also cached.
+If `task` is set to `:morphism` return only the morphism.
+"""
 function quo(F::FreeMod, O::Vector{<:FreeModuleElem}, task::Symbol = :none)
   S = SubQuo(F, basis(F))
   Q = SubQuo(S, O)
@@ -1142,6 +1315,16 @@ function quo(F::FreeMod, O::Vector{<:FreeModuleElem}, task::Symbol = :none)
   return return_quo_wrt_task(F, Q, task)
 end
 
+@doc Markdown.doc"""
+  quo(F::FreeMod{T}, O::Vector{<:SubQuoElem{T}}, task::Symbol = :none) where T
+
+Compute $F / T$, where $T$ is generated by $O$.
+The surrounding free module of the parent of the elements of `O` must be `F`.
+If `task` is set to `:with_morphism` or to `:both` return also the canonical projection morphism
+$F → F/T$.
+If `task` is set to `:store` the morphism is also cached.
+If `task` is set to `:morphism` return only the morphism.
+"""
 function quo(F::FreeMod{T}, O::Vector{<:SubQuoElem{T}}, task::Symbol = :none) where T
   S = SubQuo(F, basis(F))
   Q = SubQuo{T}(S, [x.repres for x = O])
@@ -1149,6 +1332,16 @@ function quo(F::FreeMod{T}, O::Vector{<:SubQuoElem{T}}, task::Symbol = :none) wh
   return return_quo_wrt_task(F, Q, task)
 end
 
+@doc Markdown.doc"""
+  quo(F::SubQuo, O::Vector{<:FreeModuleElem}, task::Symbol = :none)
+
+Compute $F / T$, where $T$ is generated by $O$.
+The elements of `O` must be elements of the surrounding free module of `S`.
+If `task` is set to `:with_morphism` or to `:both` return also the canonical projection morphism
+$F → F/T$.
+If `task` is set to `:store` the morphism is also cached.
+If `task` is set to `:morphism` return only the morphism.
+"""
 function quo(F::SubQuo, O::Vector{<:FreeModuleElem}, task::Symbol = :none)
   if length(O) > 0
     @assert parent(O[1]) === F.F
@@ -1165,10 +1358,28 @@ function quo(F::SubQuo, O::Vector{<:FreeModuleElem}, task::Symbol = :none)
   return return_quo_wrt_task(F, Q, task)
 end
 
+@doc Markdown.doc"""
+  quo(S::SubQuo, O::Vector{<:SubQuoElem}, task::Symbol = :none)
+
+Compute $S / T$, where $T$ is generated by $O$.
+If `task` is set to `:with_morphism` or to `:both` return also the canonical projection morphism
+$S → S/T$.
+If `task` is set to `:store` the morphism is also cached.
+If `task` is set to `:morphism` return only the morphism.
+"""
 function quo(S::SubQuo, O::Vector{<:SubQuoElem}, task::Symbol = :none)
   return quo(S, [x.repres for x = O], task)
 end
 
+@doc Markdown.doc"""
+  quo(S::SubQuo, T::SubQuo, task::Symbol = :none)
+
+Compute $S / T$.
+If `task` is set to `:with_morphism` or to `:both` return also the canonical projection morphism
+$S → S/T$.
+If `task` is set to `:store` the morphism is also cached.
+If `task` is set to `:morphism` return only the morphism.
+"""
 function quo(S::SubQuo, T::SubQuo, task::Symbol = :none)
 #  @assert !isdefined(T, :quo)
   # TODO @assert S.quo == T.quo or too expensive?
@@ -1176,11 +1387,27 @@ function quo(S::SubQuo, T::SubQuo, task::Symbol = :none)
   return return_quo_wrt_task(S, Q, task)
 end
 
+@doc Markdown.doc"""
+  quo(F::FreeMod{R}, T::SubQuo{R}, task::Symbol = :none) where R
+
+Compute $F / T$.
+If `task` is set to `:with_morphism` or to `:both` return also the canonical projection morphism
+$F → F/T$.
+If `task` is set to `:store` the morphism is also cached.
+If `task` is set to `:morphism` return only the morphism.
+"""
 function quo(F::FreeMod{R}, T::SubQuo{R}, task::Symbol = :none) where R
   @assert !isdefined(T, :quo)
   return quo(F, gens(T), task)
 end
 
+@doc Markdown.doc"""
+  return_quo_wrt_task(M::ModuleFP, Q::ModuleFP, task)
+
+This helper function returns the module `Q = M / N` for some `N` 
+along with the canonical projection morphism $M → Q$ according to the 
+given `task`.
+"""
 function return_quo_wrt_task(M::ModuleFP, Q::ModuleFP, task)
   if task == :none || task == :module
     return Q
@@ -1192,6 +1419,9 @@ function return_quo_wrt_task(M::ModuleFP, Q::ModuleFP, task)
   end
 end
 
+@doc Markdown.doc"""
+  syzygy_module(F::ModuleGens; sub = FreeMod(base_ring(F.F), length(oscar_generators(F))))
+"""
 function syzygy_module(F::ModuleGens; sub = FreeMod(base_ring(F.F), length(oscar_generators(F))))
   F[Val(:S), 1] #to force the existence of F.S
   s = Singular.syz(singular_generators(F)) # TODO syz is sometimes too slow, example [8*x^2*y^2*z^2 + 13*x*y*z^2 12*x^2 + 7*y^2*z; 13*x*y^2 + 12*y*z^2 4*x^2*y^2*z + 8*x*y*z; 9*x*y^2 + 4*z 12*x^2*y*z^2 + 9*x*y^2*z]
@@ -1204,10 +1434,20 @@ function syzygy_module(F::ModuleGens; sub = FreeMod(base_ring(F.F), length(oscar
   return SubQuo(sub, s)
 end
 
+@doc Markdown.doc"""
+  gens(F::SubQuo{T}) where T
+
+Return the generators of `F`.
+"""
 function gens(F::SubQuo{T}) where T
   return [gen(F,i) for i=1:ngens(F)]
 end
 
+@doc Markdown.doc"""
+  gen(F::SubQuo{T}, i::Int) where T
+
+Return the `i`th generator of `F`.
+"""
 function gen(F::SubQuo{T}, i::Int) where T
   R = base_ring(F)
   v = sparse_row(R)
@@ -1216,15 +1456,41 @@ function gen(F::SubQuo{T}, i::Int) where T
   return SubQuoElem{T}(v, F)
 end
 
+@doc Markdown.doc"""
+  ngens(F::SubQuo)
+
+Return the number of generators of `F`.
+"""
 ngens(F::SubQuo) = ngens(F.sub)
+
+@doc Markdown.doc"""
+  base_ring(SQ::SubQuo)
+
+Let `SQ` be an `R`-module. Return `R`.
+"""
 base_ring(SQ::SubQuo) = base_ring(SQ.F)
 
+@doc Markdown.doc"""
+  zero(SQ::SubQuo)
+
+Return the zero element in `SQ`.
+"""
 zero(SQ::SubQuo) = SubQuoElem(zero(SQ.F), SQ)
 
+@doc Markdown.doc"""
+  Base.iszero(F::SubQuo)
+
+Check if `F` is the zero module.
+"""
 function Base.iszero(F::SubQuo)
   return all(iszero, gens(F))
 end
 
+@doc Markdown.doc"""
+  Base.getindex(F::SubQuo, i::Int)
+
+Return the `i`th generator of `F`.
+"""
 function Base.getindex(F::SubQuo, i::Int)
   i == 0 && return zero(F)
   return gen(F, i)
@@ -1249,6 +1515,11 @@ function *(a::FreeModuleElem, b::Vector{FreeModuleElem})
   return s
 end
 
+@doc Markdown.doc"""
+  presentation(SQ::SubQuo)
+
+Compute a free resolution of `SQ`. 
+"""
 function presentation(SQ::SubQuo)
   #A+B/B is generated by A and B
   #the relations are A meet B? written wrt to A
@@ -1287,12 +1558,27 @@ function presentation(SQ::SubQuo)
   return Hecke.ChainComplex(Oscar.ModuleFP, Oscar.ModuleMap[h_G_F, h_F_SQ, h_SQ_Z], check = false)
 end
 
+@doc Markdown.doc"""
+  presentation(F::FreeMod)
+
+Return a free resolution of $F$.
+"""
 function presentation(F::FreeMod)
   Z = FreeMod(F.R, 0)
   Hecke.set_special(Z, :name => "Zero")
   return Hecke.ChainComplex(ModuleFP, ModuleMap[hom(Z, F, FreeModuleElem[]), hom(F, F, gens(F)), hom(F, Z, [zero(Z) for i=1:ngens(F)])], check = false)
 end
 
+@doc Markdown.doc"""
+  present_as_cokernel(SQ::SubQuo, task::Symbol = :none)
+
+Return a subquotient $M = R^n / im(φ) $, i.e. $M = \text{coker}(φ)$, such that
+$M ≅ SQ$.
+If `task` is set to `:with_morphism` or to `:both` then return also an isomorphism $M → SQ$. Calling `inv()`
+on this isomorphism is cheap.
+If `task` is set to `:store` then the isomorphism is cached.
+If `task` is set to `:morphism` then return only the isomorphism.
+"""
 function present_as_cokernel(SQ::SubQuo, task::Symbol = :none)
   chainComplex = presentation(SQ)
   R_b = obj(chainComplex, 1)
@@ -1371,8 +1657,20 @@ mutable struct SubQuoHom{T1, T2} <: ModuleMap{T1, T2}
   end
 end
 
+@doc Markdown.doc"""
+  SubQuoHom(D::SubQuo, C::ModuleFP, im::Vector)
+
+Return the morphism $D → C$ for a subquotient $D$ where `D[i]` is mapped to `im[i]`.
+In particular, `length(im) == ngens(D)` must hold.
+"""
 SubQuoHom(D::SubQuo, C::ModuleFP, im::Vector) = SubQuoHom{typeof(D), typeof(C)}(D, C, im)
 
+@doc Markdown.doc"""
+  SubQuoHom(D::SubQuo, C::ModuleFP, mat::MatElem)
+
+Return the morphism $D → C$ corresponding to the given matrix, where $D$ is a subquotient.
+`mat` must have `ngens(D)` many rows and `ngens(C)` many columns.
+"""
 function SubQuoHom(D::SubQuo, C::ModuleFP, mat::MatElem)
   @assert nrows(mat) == ngens(D)
   @assert ncols(mat) == ngens(C)
@@ -1402,6 +1700,12 @@ end
   return getfield(f,s)
 end=#
 
+@doc Markdown.doc"""
+  matrix(f::SubQuoHom)
+
+Return the matrix corresponding to `f`. 
+The matrix is cached.
+"""
 function matrix(f::SubQuoHom)
   if !isdefined(f, :matrix)
     D = domain(f)
@@ -1450,6 +1754,12 @@ function hom_tensor(G::ModuleFP, H::ModuleFP, A::Vector{ <: ModuleMap})
   return hom(G, H, map(map_gen, gens(G)))
 end
 
+@doc Markdown.doc"""
+  hom_prod_prod(G::ModuleFP, H::ModuleFP, A::Matrix{<:ModuleMap})
+
+Let $G = G_1 ⊕ \cdot ⊕ G_n$, $H = H_1 ⊕ \cdot H_m$ and $A = (φ_{ij})_{1≤i≤n,1≤j≤m}$ with 
+$φ_{ij} : G_i → H_j$ morphisms. Return the morphism $φ : G → H$ corresponding to $A$.
+"""
 function hom_prod_prod(G::ModuleFP, H::ModuleFP, A::Matrix{<:ModuleMap})
   tG = get_special(G, :direct_product)
   tG === nothing && error("both modules must be direct products")
@@ -1549,6 +1859,11 @@ end
 (f::SubQuoHom)(a::FreeModuleElem) = image(f, a)
 (f::SubQuoHom)(a::SubQuoElem) = image(f, a)
 
+@doc Markdown.doc"""
+  iszero(a::SubQuoElem)
+
+Return if the subquotient element `a` is zero.
+"""
 function iszero(a::SubQuoElem)
   C = parent(a)
   if !isdefined(C, :quo)
@@ -1718,6 +2033,11 @@ function Hecke.ring(I::MPolyIdeal)
   return parent(gen(I, 1))
 end
 
+@doc Markdown.doc"""
+  free_resolution(I::MPolyIdeal)
+
+Compute a free resolution of `I`.
+"""
 function free_resolution(I::MPolyIdeal)
   F = free_module(Hecke.ring(I), 1)
   S = sub(F, [x * gen(F, 1) for x = gens(I)])
@@ -1728,6 +2048,11 @@ function free_resolution(I::MPolyIdeal)
   return free_resolution(S)
 end
 
+@doc Markdown.doc"""
+  free_resolution(Q::MPolyQuo)
+
+Compute a free resolution of `Q`.
+"""
 function free_resolution(Q::MPolyQuo)
   F = free_module(Q, 1)
   q = quo(F, [x * gen(F, 1) for x = gens(Q.I)])
@@ -1738,6 +2063,11 @@ function free_resolution(Q::MPolyQuo)
   return free_resolution(q)
 end
 
+@doc Markdown.doc"""
+  iszero(f::ModuleMap)
+
+Return true iff `f` is the zero map.
+"""
 function iszero(f::ModuleMap)
   return all(iszero, map(f, gens(domain(f))))
 end
@@ -1832,6 +2162,11 @@ end
 #  replace the +/- for the homs by proper constructors for homs and direct sums
 #  relshp to store the maps elsewhere
 
+@doc Markdown.doc"""
+  *(h::ModuleMap, g::ModuleMap)
+
+Return the composition $g ∘ h$.
+"""
 function *(h::ModuleMap, g::ModuleMap)
   @assert codomain(h) === domain(g)
   return hom(domain(h), codomain(g), [g(h(x)) for x = gens(domain(h))])
@@ -2036,6 +2371,11 @@ end
 ⊕(M::ModuleFP...) = direct_product(M..., task = :none)
 
 
+@doc Markdown.doc"""
+  Hecke.canonical_injection(G::ModuleFP, i::Int)
+
+Return the canonical injection $G_i → G$ where $G = G_1 ⊕ \cdot ⊕ G_n$.
+"""
 function Hecke.canonical_injection(G::ModuleFP, i::Int)
   H = Hecke.get_special(G, :direct_product)
   if H === nothing
@@ -2052,6 +2392,11 @@ function Hecke.canonical_injection(G::ModuleFP, i::Int)
   return emb
 end
 
+@doc Markdown.doc"""
+  Hecke.canonical_projection(G::ModuleFP, i::Int)
+
+Return the canonical projection $G → G_i$ where $G = G_1 ⊕ \cdot ⊕ G_n$.
+"""
 function Hecke.canonical_projection(G::ModuleFP, i::Int)
   H = Hecke.get_special(G, :direct_product)
   if H === nothing
@@ -2135,18 +2480,40 @@ end
 
 ⊗(G::ModuleFP...) = tensor_product(G..., task = :none)
 
+@doc Markdown.doc"""
+  free_module(F::FreeMod)
+
+Just return `F`. This function exists only for compatiblity reasons.
+"""
 function free_module(F::FreeMod)
   return F
 end
 
+@doc Markdown.doc"""
+  free_module(F::SubQuo)
+
+Return the surrounding free module of `F`.
+"""
 function free_module(F::SubQuo)
   return F.F
 end
 
+@doc Markdown.doc"""
+  gens(F::FreeMod, G::FreeMod)
+
+Return the generators of `F` as elements of `G` where `G === F`. This function 
+exists only for compatiblity reasons.
+"""
 function gens(F::FreeMod, G::FreeMod)
   @assert F === G
   return gens(F)
 end
+
+@doc Markdown.doc"""
+  gens(F::SubQuo, G::FreeMod)
+
+Return the generators of `F` as elements of `G` where `G` is the surrounding free module.
+"""
 function gens(F::SubQuo, G::FreeMod)
   @assert F.F === G
   return [FreeModuleElem(x.repres.coords, G) for x = gens(F)]
