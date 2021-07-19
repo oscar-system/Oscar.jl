@@ -32,7 +32,7 @@ function _homogeneous_polys(polys::Vector{<:MPolyElem})
     _monomials = append!(_monomials, monomials(polys[i]))
   end
   hom_polys = []
-  for deg in unique([iszero(mon) ? id(decoration(R)) : degree(mon) for mon = _monomials])
+  for deg in unique([iszero(mon) ? id(grading_group(R)) : degree(mon) for mon = _monomials])
     g = zero(R)
     for i = 1:4
       if haskey(D[i], deg)
@@ -55,6 +55,7 @@ end
     NFx = PolynomialRing(k1, ["x", "y", "z"])[1]
     k2 = Nemo.GF(23)
     GFx = PolynomialRing(k2, ["x", "y", "z"])[1]
+    # TODO explain why test fails if Nemo.ResidueRing(ZZ,17) => Nemo.GF(17)
     RNmodx=PolynomialRing(Nemo.ResidueRing(ZZ,17), :x => 1:2)[1]
     Rings= [Qx, NFx, GFx, RNmodx]
 
@@ -138,7 +139,7 @@ end
         @test Oscar.isfiltered(R_quo) == Oscar.isfiltered(RR)
         @test Oscar.isgraded(R_quo) == Oscar.isgraded(RR)
 
-        @test decoration(R_quo) == decoration(RR)
+        @test grading_group(R_quo) == grading_group(RR)
 
         d_Elem = d_Elems[RR]
 
@@ -184,4 +185,10 @@ end
 @testset "Degree" begin
   R, (x,y) = grade(PolynomialRing(QQ, ["x", "y"])[1]);
   @test_throws ArgumentError degree(zero(R))
+end
+
+@testset "Grading" begin
+  R, (x,y) = grade(PolynomialRing(QQ, ["x", "y"])[1]);
+  D = grading_group(R)
+  @test isisomorphic(D, abelian_group([0]))
 end

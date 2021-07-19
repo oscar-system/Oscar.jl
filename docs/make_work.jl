@@ -4,7 +4,7 @@
 #
 module BuildDoc
 
-using Documenter, Oscar, DocumenterMarkdown, DocumenterCitations
+using Documenter, DocumenterMarkdown, DocumenterCitations
 
 
 # Overwrite printing to make the header not full of redundant nonsense
@@ -24,7 +24,7 @@ using Documenter, Oscar, DocumenterMarkdown, DocumenterCitations
 # Remove the module prefix
 Base.print(io::IO, b::Base.Docs.Binding) = print(io, b.var)
 
-function doit(strict::Bool = true, local_build::Bool = false)
+function doit(Oscar::Module, strict::Bool = true, local_build::Bool = false)
 
   # include the list of pages, performing substitutions
   s = read(joinpath(Oscar.oscardir, "docs", "doc.main"), String)
@@ -34,10 +34,14 @@ function doit(strict::Bool = true, local_build::Bool = false)
   bib = CitationBibliography(joinpath(Oscar.oscardir, "docs", "oscar_references.bib"), sorting = :nyt)
 
   # Copy documentation from Hecke, Nemo, AnstratAlgebra
-  other_packages = [Oscar.Hecke, Oscar.Nemo, Oscar.AbstractAlgebra]
-  for pkg in other_packages
-      srcbase = normpath(pkgdir(pkg), "docs", "src")
-      dstbase = normpath(pkgdir(Oscar), "docs", "src", string(nameof(pkg)))
+  other_packages = [
+    (Oscar.Hecke,Oscar.heckedir),
+    (Oscar.Nemo, Oscar.nemodir),
+    (Oscar.AbstractAlgebra, Oscar.aadir),
+    ]
+  for (pkg, pkgdir) in other_packages
+      srcbase = normpath(pkgdir, "docs", "src")
+      dstbase = normpath(Oscar.oscardir, "docs", "src", string(nameof(pkg)))
 
       # clear the destination directory first
       rm(dstbase, recursive=true, force=true)
@@ -58,7 +62,7 @@ function doit(strict::Bool = true, local_build::Bool = false)
   cd(joinpath(Oscar.oscardir, "docs")) do
 
     DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar); recursive = true)
-    DocMeta.setdocmeta!(Hecke, :DocTestSetup, :(using Hecke); recursive = true)
+    DocMeta.setdocmeta!(Oscar.Hecke, :DocTestSetup, :(using Hecke); recursive = true)
 
 
     makedocs(bib,
@@ -66,7 +70,7 @@ function doit(strict::Bool = true, local_build::Bool = false)
   #         format   = Documenter.HTML(),
   #         format   = Markdown(),
            sitename = "Oscar.jl",
-           modules = [Oscar, Hecke, Nemo, AbstractAlgebra, Singular],
+           modules = [Oscar, Oscar.Hecke, Oscar.Nemo, Oscar.AbstractAlgebra, Oscar.Singular],
            clean = true,
            doctest = true,
            strict = strict,
@@ -75,8 +79,8 @@ function doit(strict::Bool = true, local_build::Bool = false)
   end
 
   # remove the copied documentation agains
-  for pkg in other_packages
-      dstbase = normpath(pkgdir(Oscar), "docs", "src", string(nameof(pkg)))
+  for (pkg, pkgdir) in other_packages
+      dstbase = normpath(Oscar.oscardir, "docs", "src", string(nameof(pkg)))
       rm(dstbase, recursive=true, force=true)
   end
 
