@@ -86,6 +86,11 @@
      ],
   ],
 
+  "Number Theory" => [
+     "NumberTheory/intro.md",
+     "NumberTheory/abelian_closure.md",
+  ],
+
   "Polyhedral Geometry" => [
      "PolyhedralGeometry/pg.md",
      "PolyhedralGeometry/pg_polyhedra.md",
