@@ -33,5 +33,5 @@ If the cone is not full-dimensional, then there is no canonical choice of an $H$
 The following function defines a `Cone` via a $V$-representation:
 
 ```@docs
-convex_hull(::AnyVecOrMat)
+positive_hull
 ```
