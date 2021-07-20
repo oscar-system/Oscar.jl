@@ -469,31 +469,24 @@ function Pollard_p_1(N::fmpz, B::fmpz = ZZ(10)^5)
     end
     w = 1
 
-    while w == 1
+    while i <= k
 
         i = i + 1
-        if i > k
-            return gcd(x - ZZ(1), N)
-        else
-            q = p[i]
-            qq = q
-            t = 0
+        q = p[i]
+        qq = q
+        t = 0
+        while true
 
-            while t == 0
-
-                x = x^q % N
-                g = gcd(x - ZZ(1), N)
-                if g == ZZ(1)
-                    qq = q * qq
-                    if qq > B
-                        t = 1
-                    end
-                else
-                    return g
-                end
+            x = x^q % N
+            g = gcd(x - ZZ(1), N)
+            !isone(g) && return g
+            qq = q * qq
+            if qq > B
+                break
             end
         end
     end
+    return gcd(x - ZZ(1), N)
 end
 
 ################################################################################
@@ -637,18 +630,16 @@ function atkin_morain_step(
     R = parent(v[1])
     O_E = R.([0, 1, 0])
     g = quadratic_non_residue(N, D)
-    k = 0
 
-    while k < h
+    for k in 0: (h - 1)
         P1 = (O_E, ZZ(1))
         while P1[1] == O_E
             (bool2, P1, P2) = compute_p1p2(v, m, q)
-            !bool2 && return (false, N, ZZ(1))
-            P2[1] == R.([0, 0, 0]) && return (false, N, P2[2])
-            P1[1] == R.([0, 0, 0]) && return (false, N, P1[2])
+            !bool2 && return (false, N, ZZ(1), res, pos)
+            P2[1] == R.([0, 0, 0]) && return (false, N, P2[2], res, pos)
+            P1[1] == R.([0, 0, 0]) && return (false, N, P1[2], res, pos)
             P2[1] != O_E && return (true, q, ZZ(1), push!(res, (q, pos)), pos)
         end
-        k = k + 1
         if D == ZZ(-3)
             v = [v[1], v[2] * g]
         elseif D == ZZ(-4)
@@ -681,7 +672,6 @@ function atkin_morain(
             (bool1, (m, q)) = find_q(N, L[i])
             if bool1
                 (bool2, A, B, res, pos) = atkin_morain_step(N, L[i], m, q, res, i)
-                B > 1 && false
                 if bool2
                     return atkin_morain(A, L, pos, res)
                 elseif length(res) == 0
