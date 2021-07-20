@@ -1,3 +1,4 @@
+if !isdefined(AbstractAlgebra, Symbol("@enable_all_show_via_expressify"))
 
 # Only when AbstractAlgebra.expressify(a::T; context = nothing) has been
 # defined may these be used.
@@ -10,20 +11,22 @@
 
 macro enable_all_show_via_expressify(T)
   return quote
-    function Base.show(io::IO, x::$T)
+    function Base.show(io::IO, x::$(esc(T)))
        AbstractAlgebra.show_via_expressify(io, x)
     end
 
-    function Base.show(io::IO, mi::MIME"text/plain", x::$T)
+    function Base.show(io::IO, mi::MIME"text/plain", x::$(esc(T)))
        AbstractAlgebra.show_via_expressify(io, mi, x)
     end
 
-    function Base.show(io::IO, mi::MIME"text/latex", x::$T)
+    function Base.show(io::IO, mi::MIME"text/latex", x::$(esc(T)))
        AbstractAlgebra.show_via_expressify(io, mi, x)
     end
 
-    function Base.show(io::IO, mi::MIME"text/html", x::$T)
+    function Base.show(io::IO, mi::MIME"text/html", x::$(esc(T)))
        AbstractAlgebra.show_via_expressify(io, mi, x)
     end
   end
+end
+
 end
