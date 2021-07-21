@@ -1,28 +1,6 @@
 import AbstractAlgebra: MatElem
 import GAP: FFE
 
-# isomorphism from the Oscar field to the GAP field
-# T: type of the domain
-# S: element type of the domain (S == elem_type(T))
-#struct GenRingIso{T, S} <: Map{T,GapObj,SetMap,GenRingIso}
-#   domain::T      # Oscar field
-#   codomain::GapObj          # GAP field
-#   f                      # function from the Oscar field to the GAP field
-#   f_inv               # its inverse
-#end
-#
-## isomorphism from the Oscar matrix space to the GAP matrix space
-## T: type of the domain
-## S: element type base ring (!) of the domain, that is, the entries of the
-##    matrices are of type S (T <: MatSpace{S})
-#struct GenMatIso{T, S} <: Map{T,GapObj,SetMap,GenMatIso}
-#   domain::T        # Oscar matrix space
-#   codomain::GapObj             # GAP matrix space
-#   fr::GenRingIso             # see type above
-#   f                         # function from the Oscar matrix space to the GAP matrix space
-#   f_inv                  # its inverse
-#end
-
 # Basically the same as the usual image function but without a type check since
 # we don't have elem_type(C) in this case
 function image(M::Map{D, C}, a) where {D, C <: GAP.GAP_jll.MPtr}
