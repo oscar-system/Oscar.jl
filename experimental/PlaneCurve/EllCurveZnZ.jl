@@ -27,9 +27,8 @@ function _add(
 )
     length(P) == 3 && length(Q) == 3 || error("arrays of size 3 required")
     length(E) == 2 || error("array of size 2 required")
-    A = P[1].parent
-    A == Q[1].parent && A == E[1].parent || error("Not the same parent")
-    #print("P=", P, "\n", "Q=", Q, "\n")
+    A = parent(P[1])
+    all(x -> parent(x) == A, [P...,Q...,E...]) || error("Not the same parent")
     P[3] != A(1) &&
         P != [A(0), A(1), A(0)] &&
         error("require infinity point or last coordinate 1")
@@ -110,7 +109,7 @@ end
 function _scalar_mult(P::Array{Nemo.fmpz_mod,1}, E::Array{Nemo.fmpz_mod,1}, m::fmpz)
     length(P) == 3 || error("arrays of size 3 required")
     length(E) == 2 || error("array of size 2 required")
-    A = P[1].parent
+    A = parent(P[1])
     res = [[A(0), A(1), A(0)], ZZ(1)]
     if m < 0
         error("Positive integer expected")
@@ -177,7 +176,7 @@ function sum_Point_EllCurveZnZ(
     P::Point_EllCurve{S},
     Q::Point_EllCurve{S},
 ) where {S<:Nemo.fmpz_mod}
-    A = P.Pt[1].parent
+    A = parent(P.Pt[1])
     E = P.C
     E.Hecke_ec.short || error("requires short Weierstrass form")
     Q = _add(P.Pt.v, Q.Pt.v, E.Hecke_ec.coeff)
@@ -259,7 +258,7 @@ end
 @doc Markdown.doc"""
     cornacchia_algorithm(d::fmpz, m::fmpz)
 
-Return `true` and a solution of `x^2 + d*y^2 = m`if it exists, and false and
+Return `true` and a solution of `x^2 + d*y^2 = m` if it exists, and false and
 `(0, 0)` otherwise.
 """
 function cornacchia_algorithm(d::fmpz, m::fmpz)
@@ -431,9 +430,8 @@ function Pollard_p_1(N::fmpz, B::fmpz = ZZ(10)^5)
     i = 0
     j = i
     k = length(p)
-    w = 0
 
-    while w == 0
+    while true
         i = i + 1
         if i > k
             g = gcd(x - ZZ(1), N)
@@ -442,7 +440,7 @@ function Pollard_p_1(N::fmpz, B::fmpz = ZZ(10)^5)
             else
                 i = j
                 x = y
-                w = 1
+                break
             end
         else
             q = p[i]
@@ -462,12 +460,11 @@ function Pollard_p_1(N::fmpz, B::fmpz = ZZ(10)^5)
                 else
                     i = j
                     x = y
-                    w = 1
+                    break
                 end
             end
         end
     end
-    w = 1
 
     while i <= k
 
@@ -529,8 +526,6 @@ function find_q(N::fmpz, D::fmpz)
         (_, q) = evenodd(m)
 
         #trial divisions
-        ## P = PrimesSet(ZZ(2), ZZ(10)^6)
-        ## (_, q) = trial_division(q, P)
         (_, q) = trial_division(q)
 
         #Factoring via ECM
