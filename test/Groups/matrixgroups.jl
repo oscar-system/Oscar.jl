@@ -2,16 +2,21 @@
 
    @testset for (p,e) in [(2,1),(5,1),(2,4),(3,3)]
       F = GF(p,e)[1]
-      f = Oscar.gen_mat_iso(4,F)
-      for a in F for b in F
-         @test f.fr(a*b)==f.fr(a)*f.fr(b)
-         @test f.fr(a-b)==f.fr(a)-f.fr(b)
-      end end
+      f = Oscar.ring_iso_oscar_gap(F)
+      g = Oscar.mat_iso_oscar_gap(F, 4, f)
+      for a in F
+         for b in F
+            @test f(a*b)==f(a)*f(b)
+            @test f(a-b)==f(a)-f(b)
+         end
+      end
       G = GL(4,F)
-      for a in gens(G) for b in gens(G)
-         @test f(a.elm*b.elm)==f(a.elm)*f(b.elm)
-         @test f(a.elm-b.elm)==f(a.elm)-f(b.elm)
-      end end
+      for a in gens(G)
+         for b in gens(G)
+            @test g(a.elm*b.elm)==g(a.elm)*g(b.elm)
+            @test g(a.elm-b.elm)==g(a.elm)-g(b.elm)
+         end
+      end
    end
 
    F = GF(29,1)[1]
@@ -19,37 +24,32 @@
    G = GL(3,F)
    @test G.X isa GapObj
    @test isdefined(G,:X)
+   @test isdefined(G, :ring_iso)
    @test isdefined(G, :mat_iso)
-   @test G.mat_iso.fr(z) isa FFE
-   Z = G.mat_iso.fr(z)
-   @test GAP.Globals.IN(Z,G.mat_iso.fr.codomain)
-   @test G.mat_iso.fr(Z)==z
-   @test G.mat_iso.fr.domain==F
-   @test GAP.Globals.IsField(G.mat_iso.fr.codomain)
-   @test GAP.Globals.Size(G.mat_iso.fr.codomain)==29
+   @test G.ring_iso(z) isa FFE
+   Z = G.ring_iso(z)
+   @test GAP.Globals.IN(Z,codomain(G.ring_iso))
+   @test preimage(G.ring_iso, Z)==z
+   @test domain(G.ring_iso) == F
+   @test GAP.Globals.IsField(codomain(G.ring_iso))
+   @test GAP.Globals.Size(codomain(G.ring_iso))==29
    @test GAP.Globals.IsZero(14*Z+1)
-   @test iszero(G.mat_iso.fr(GAP.Globals.Zero(G.mat_iso.fr.codomain)))
-   @test GAP.Globals.IsOne(G.mat_iso.fr(one(F)))
-   @test isone(G.mat_iso.fr(GAP.Globals.One(G.mat_iso.fr.codomain)))
+   @test iszero(preimage(G.ring_iso, GAP.Globals.Zero(codomain(G.ring_iso))))
+   @test GAP.Globals.IsOne(G.ring_iso(one(F)))
+   @test isone(preimage(G.ring_iso, GAP.Globals.One(codomain(G.ring_iso))))
    
    xo = matrix(F,3,3,[1,z,0,0,1,2*z+1,0,0,z+2])
 #   xg = Vector{GapObj}(undef, 3)
 #   for i in 1:3
-#      xg[i] = GapObj([G.mat_iso.fr(xo[i,j]) for j in 1:3])
+#      xg[i] = GapObj([preimage(G.ring_iso, xo[i,j]) for j in 1:3])
 #   end
 #   xg=GAP.julia_to_gap(xg)
-   riso=Oscar.gen_ring_iso(F)
-   @test riso isa Oscar.GenRingIso
-   xg = Oscar.mat_oscar_gap(xo,riso)
-   @test xg isa GapObj
-   @test Oscar.mat_gap_oscar(xg,riso)==xo
-   @test Oscar.mat_oscar_gap(Oscar.mat_gap_oscar(xg,riso),riso)==xg
 
-   xg = GapObj([[G.mat_iso.fr(xo[i,j]) for j in 1:3] for i in 1:3]; recursive=true)
+   xg = GapObj([[G.ring_iso(xo[i,j]) for j in 1:3] for i in 1:3]; recursive=true)
    @test G.mat_iso(xo) isa GapObj
    @test G.mat_iso(xo)==xg
-   @test G.mat_iso(xg)==xo
-   @test G.mat_iso(GAP.Globals.One(GAP.Globals.GL(3,G.mat_iso.fr.codomain)))==one(G).elm
+   @test preimage(G.mat_iso, xg)==xo
+   @test preimage(G.mat_iso, GAP.Globals.One(GAP.Globals.GL(3,codomain(G.ring_iso))))==one(G).elm
    @test GAP.Globals.Order(G.mat_iso(diagonal_matrix([z,z,one(F)])))==28
 
    T,t = PolynomialRing(GF(3),"t")
@@ -57,33 +57,36 @@
    G = GL(3,F)
    @test G.X isa GapObj
    @test isdefined(G,:X)
+   @test isdefined(G, :ring_iso)
    @test isdefined(G, :mat_iso)
-   @test G.mat_iso.fr(z) isa FFE
-   Z = G.mat_iso.fr(z)
-   @testset for a in F for b in F
-      @test G.mat_iso.fr(a*b)==G.mat_iso.fr(a)*G.mat_iso.fr(b)
-      @test G.mat_iso.fr(a-b)==G.mat_iso.fr(a)-G.mat_iso.fr(b) 
-   end end
-   @test GAP.Globals.IN(Z,G.mat_iso.fr.codomain)
-   @test G.mat_iso.fr(Z)==z
-   @test G.mat_iso.fr(G.mat_iso.fr(F(2)))==F(2)
-   @test G.mat_iso.fr.domain==F
-   @test GAP.Globals.IsField(G.mat_iso.fr.codomain)
-   @test GAP.Globals.Size(G.mat_iso.fr.codomain)==9
-   @test iszero(G.mat_iso.fr(GAP.Globals.Zero(G.mat_iso.fr.codomain)))
+   @test G.ring_iso(z) isa FFE
+   Z = G.ring_iso(z)
+   @testset for a in F
+      for b in F
+         @test G.ring_iso(a*b)==G.ring_iso(a)*G.ring_iso(b)
+         @test G.ring_iso(a-b)==G.ring_iso(a)-G.ring_iso(b)
+      end
+   end
+   @test GAP.Globals.IN(Z,codomain(G.ring_iso))
+   @test preimage(G.ring_iso, Z)==z
+   @test preimage(G.ring_iso, G.ring_iso(F(2)))==F(2)
+   @test domain(G.ring_iso) == F
+   @test GAP.Globals.IsField(codomain(G.ring_iso))
+   @test GAP.Globals.Size(codomain(G.ring_iso))==9
+   @test iszero(preimage(G.ring_iso, GAP.Globals.Zero(codomain(G.ring_iso))))
    @test GAP.Globals.IsZero(Z^2+1)
-   @test GAP.Globals.IsOne(G.mat_iso.fr(one(F)))
-   @test isone(G.mat_iso.fr(GAP.Globals.One(G.mat_iso.fr.codomain)))
+   @test GAP.Globals.IsOne(G.ring_iso(one(F)))
+   @test isone(preimage(G.ring_iso, GAP.Globals.One(codomain(G.ring_iso))))
    
    xo = matrix(F,3,3,[1,z,0,0,1,2*z+1,0,0,z+2])
    xg = Vector{GapObj}(undef, 3)
    for i in 1:3
-      xg[i] = GAP.julia_to_gap([G.mat_iso.fr(xo[i,j]) for j in 1:3])
+      xg[i] = GAP.julia_to_gap([G.ring_iso(xo[i,j]) for j in 1:3])
    end
    xg=GAP.julia_to_gap(xg)
    @test G.mat_iso(xo)==xg
-   @test G.mat_iso(xg)==xo
-   @test G.mat_iso(GAP.Globals.One(GAP.Globals.GL(3,G.mat_iso.fr.codomain)))==one(G).elm
+   @test preimage(G.mat_iso, xg)==xo
+   @test preimage(G.mat_iso, GAP.Globals.One(GAP.Globals.GL(3,codomain(G.ring_iso))))==one(G).elm
    @test GAP.Globals.Order(G.mat_iso(diagonal_matrix([z,z,one(F)])))==4
 
    M = matrix(QQ, [ 0 1 0; -1 0 0; 0 0 -1 ])
@@ -123,6 +126,7 @@ end
    @test 2==degree(G)
    @test !isdefined(G,:X)
    @test !isdefined(G,:gens)
+   @test !isdefined(G,:ring_iso)
    @test !isdefined(G,:mat_iso)
 
    @test order(G)==5760
@@ -183,7 +187,7 @@ end
    @test isdefined(G,:mat_iso)
 
    G = GL(4,2)
-   @test G.mat_iso isa Oscar.GenMatIso
+   @test G.mat_iso isa MapFromFunc
    
    G = MatrixGroup(4,F)
    @test_throws ErrorException G.X
@@ -422,7 +426,7 @@ end
    xg = GAP.Globals.Random(G.X)
    yg = GAP.Globals.Random(G.X)
    pg = MatrixGroupElem(G, xg*yg)
-   @test pg==MatrixGroupElem(G,G.mat_iso(xg))*MatrixGroupElem(G,G.mat_iso(yg))
+   @test pg==MatrixGroupElem(G,preimage(G.mat_iso, xg))*MatrixGroupElem(G,preimage(G.mat_iso, yg))
 
    O = GO(-1,2,F)
    S = SL(2,F)

@@ -4,23 +4,37 @@ import GAP: FFE
 # isomorphism from the Oscar field to the GAP field
 # T: type of the domain
 # S: element type of the domain (S == elem_type(T))
-struct GenRingIso{T, S} <: Map{T,GapObj,SetMap,GenRingIso}
-   domain::T      # Oscar field
-   codomain::GapObj          # GAP field
-   f                      # function from the Oscar field to the GAP field
-   f_inv               # its inverse
-end
+#struct GenRingIso{T, S} <: Map{T,GapObj,SetMap,GenRingIso}
+#   domain::T      # Oscar field
+#   codomain::GapObj          # GAP field
+#   f                      # function from the Oscar field to the GAP field
+#   f_inv               # its inverse
+#end
+#
+## isomorphism from the Oscar matrix space to the GAP matrix space
+## T: type of the domain
+## S: element type base ring (!) of the domain, that is, the entries of the
+##    matrices are of type S (T <: MatSpace{S})
+#struct GenMatIso{T, S} <: Map{T,GapObj,SetMap,GenMatIso}
+#   domain::T        # Oscar matrix space
+#   codomain::GapObj             # GAP matrix space
+#   fr::GenRingIso             # see type above
+#   f                         # function from the Oscar matrix space to the GAP matrix space
+#   f_inv                  # its inverse
+#end
 
-# isomorphism from the Oscar matrix space to the GAP matrix space
-# T: type of the domain
-# S: element type base ring (!) of the domain, that is, the entries of the
-#    matrices are of type S (T <: MatSpace{S})
-struct GenMatIso{T, S} <: Map{T,GapObj,SetMap,GenMatIso}
-   domain::T        # Oscar matrix space
-   codomain::GapObj             # GAP matrix space
-   fr::GenRingIso             # see type above
-   f                         # function from the Oscar matrix space to the GAP matrix space
-   f_inv                  # its inverse
+# Basically the same as the usual image function but without a type check since
+# we don't have elem_type(C) in this case
+function image(M::Map{D, C}, a) where {D, C <: GAP.GAP_jll.MPtr}
+  if isdefined(M, :header)
+    if isdefined(M.header, :image)
+      return M.header.image(a)
+    else
+      error("No image function known")
+    end
+  else
+    return M(a)
+  end
 end
 
 ################################################################################
@@ -29,10 +43,8 @@ end
 #
 ################################################################################
 
-# computes the isomorphism between the Oscar field F and the corresponding GAP field F_gap
-# the output has type GenRingIso (see above)
-
-function gen_ring_iso(F::T) where T <: Union{Nemo.GaloisField, Nemo.GaloisFmpzField}
+# computes the isomorphism between the Oscar field F and the corresponding GAP field
+function ring_iso_oscar_gap(F::T) where T <: Union{Nemo.GaloisField, Nemo.GaloisFmpzField}
    p = characteristic(F)
    G = GAP.Globals.GF(GAP.julia_to_gap(p))
 
@@ -41,10 +53,10 @@ function gen_ring_iso(F::T) where T <: Union{Nemo.GaloisField, Nemo.GaloisFmpzFi
    # For "small" primes x should be an FFE, but for bigger ones it's GAP_jll.Mptr (?)
    finv(x) = F(GAP.gap_to_julia(GAP.Globals.IntFFE(x)))
 
-   return GenRingIso{typeof(F), elem_type(F)}(F, G, f, finv)
+   return MapFromFunc(f, finv, F, G)
 end
 
-function gen_ring_iso(F::T) where T <: Union{Nemo.FqNmodFiniteField, Nemo.FqFiniteField}
+function ring_iso_oscar_gap(F::T) where T <: Union{Nemo.FqNmodFiniteField, Nemo.FqFiniteField}
    p = characteristic(F)
    d = degree(F)
    Fp_gap = GAP.Globals.GF(GAP.julia_to_gap(p))
@@ -55,7 +67,7 @@ function gen_ring_iso(F::T) where T <: Union{Nemo.FqNmodFiniteField, Nemo.FqFini
       # For "small" primes x should be an FFE, but for bigger ones it's GAP_jll.Mptr (?)
       finv1(x) = F(GAP.gap_to_julia(GAP.Globals.IntFFE(x)))
 
-      return GenRingIso{T, elem_type(F)}(F, Fp_gap, f1, finv1)
+      return MapFromFunc(f1, finv1, F, Fp_gap)
    end
 
    e = GAP.Globals.One(Fp_gap)
@@ -92,19 +104,8 @@ function gen_ring_iso(F::T) where T <: Union{Nemo.FqNmodFiniteField, Nemo.FqFini
       return sum([ v_int[i]*Basis_F[i] for i = 1:d ])
    end
 
-   return GenRingIso{T, elem_type(F)}(F, G, f, finv)
+   return MapFromFunc(f, finv, F, G)
 end
-
-function (g::GenRingIso{T, S})(x::S) where { T, S }
-   @assert parent(x) === g.domain "Not an element of the domain"
-   return g.f(x)
-end
-
-# TODO: Do we really want it like this? I does not make any sense intuitively
-# (to me) to call the map itself for the preimage/inverse.
-(g::GenRingIso)(x) = g.f_inv(x)
-
-Base.show(io::IO, f::GenRingIso) = print(io, "Ring isomorphism between ", f.domain, " and the corresponding GAP field")
 
 ################################################################################
 #
@@ -112,43 +113,30 @@ Base.show(io::IO, f::GenRingIso) = print(io, "Ring isomorphism between ", f.doma
 #
 ################################################################################
 
-# return the GAP matrix corresponding to the Oscar matrix x
-# assumes x is a square matrix
-function mat_oscar_gap(x::MatElem{S}, riso::GenRingIso{T, S}) where { T, S }
-   rows = Vector{GapObj}(undef, nrows(x))
-   for i in 1:nrows(x)
-      rows[i] = GAP.julia_to_gap([ riso(x[i,j]) for j in 1:ncols(x) ])
+# computes the isomorphism between the Oscar matrix space of dimension deg over
+# F and the corresponding GAP matrix space
+
+mat_iso_oscar_gap(F::Union{Nemo.GaloisField, Nemo.GaloisFmpzField, Nemo.FqNmodFiniteField, Nemo.FqFiniteField}, deg) = mat_iso_oscar_gap(F, deg, ring_iso_oscar_gap(F))
+
+function mat_iso_oscar_gap(F::T, deg::Int, FtoGAP::MapFromFunc{T, S}) where {T <: Union{Nemo.GaloisField, Nemo.GaloisFmpzField, Nemo.FqNmodFiniteField, Nemo.FqFiniteField}, S}
+   function f(x::MatElem)
+      @assert base_ring(x) === domain(FtoGAP)
+      rows = Vector{GapObj}(undef, nrows(x))
+      for i in 1:nrows(x)
+         rows[i] = GAP.julia_to_gap([ FtoGAP(x[i, j]) for j in 1:ncols(x) ])
+      end
+
+      return GAP.Globals.ImmutableMatrix(codomain(FtoGAP), GAP.julia_to_gap(rows), true)
    end
 
-   return GAP.Globals.ImmutableMatrix(riso.codomain, GAP.julia_to_gap(rows), true)
-end
+   function finv(x::GapObj)
+      m = GAP.Globals.Size(x)# == nrows
+      n = GAP.Globals.Size(x[1])# == ncols
+      L = [ preimage(FtoGAP, x[i, j]) for i in 1:m for j in 1:n]
 
-# return the Oscar matrix corresponding to the GAP matrix x
-# assumes x is a square matrix
-function mat_gap_oscar(x::GapObj, riso::GenRingIso)
-   m = GAP.Globals.Size(x)# == nrows
-   n = GAP.Globals.Size(x[1])# == ncols
-   L = [ riso(x[i, j]) for i in 1:m for j in 1:n]
+      return matrix(domain(FtoGAP), m, n, L)
+   end
 
-   return matrix(riso.domain, m, n, L)
-end
-
-# computes the isomorphism between the Oscar matrix space of dimension deg over F and the corresponding GAP matrix space
-# the output has type GenMatIso (see above)
-
-function gen_mat_iso(deg::Int, F::Union{Nemo.GaloisField, Nemo.GaloisFmpzField, Nemo.FqNmodFiniteField, Nemo.FqFiniteField})
-   riso = gen_ring_iso(F)                                      # "riso" = Ring ISOmorphism
-   homom(x::MatElem) = mat_oscar_gap(x, riso)
-   homominv(x::GapObj) = mat_gap_oscar(x, riso)
    M = MatrixSpace(F, deg, deg)
-   return GenMatIso{typeof(M), elem_type(F)}(M, GAP.Globals.MatrixAlgebra(riso.codomain, deg), riso, homom, homominv)
+   return MapFromFunc(f, finv, M, GAP.Globals.MatrixAlgebra(codomain(FtoGAP), deg))
 end
-
-function (g::GenMatIso{T, S})(x::MatElem{S}) where { T, S }
-   @assert parent(x) === g.domain "Not an element of the domain"
-   return g.f(x)
-end
-
-(g::GenMatIso)(x::GapObj) = g.f_inv(x)
-
-Base.show(io::IO, f::GenMatIso) = print(io, "Matrix algebra homomorphism from Oscar algebra to GAP algebra")
