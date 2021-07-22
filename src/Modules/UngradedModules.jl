@@ -141,6 +141,7 @@ end
 elem_type(::Type{FreeMod{T}}) where {T} = FreeModuleElem{T}
 parent_type(::Type{FreeModuleElem{T}}) where {T} = FreeMod{T}
 elem_type(::FreeMod{T}) where {T} = FreeModuleElem{T}
+parent_type(::FreeModuleElem{T}) where {T} = FreeMod{T}
 
 function show(io::IO, e::FreeModuleElem)
   if length(e.coords) == 0
@@ -850,6 +851,8 @@ end
 
 @doc Markdown.doc"""
   show_subquo(SQ::SubQuo)
+
+Show `SQ` as a subquotient of *matrices* `A` and `B`.
 """
 function show_subquo(SQ::SubQuo)
   #@show_name(io, SQ)
