@@ -8,7 +8,7 @@ export Point, ideal_point, AffinePlaneCurve, ProjPlaneCurve, hash, degree,
 
 ################################################################################
 
-abstract type PlaneCurve{S <: FieldElem} end
+abstract type PlaneCurve{S <: RingElem} end
 abstract type ProjectivePlaneCurve{S} <: PlaneCurve{S} end
 
 ################################################################################
@@ -104,7 +104,7 @@ end
 
 ProjPlaneCurve(eq::Oscar.MPolyElem_dec{S}) where {S <: FieldElem} = ProjPlaneCurve{S}(eq)
 function ProjPlaneCurve(eq::Oscar.MPolyElem{S}) where {S <: FieldElem}
-  R = grade(parent(eq))[1]
+  R, _ = grade(parent(eq))
   return ProjPlaneCurve{S}(R(eq))
 end
 
@@ -140,7 +140,7 @@ end
 # check for equality of curves (the equations are equal up to multiplication by
 # a non zero constant).
 
-function ==(C::PlaneCurve, D::PlaneCurve)
+function ==(C::PlaneCurve{S}, D::PlaneCurve{S}) where S <: FieldElem
   F = defining_equation(C)
   G = defining_equation(D)
   return degree(C) == degree(D) && F*(leading_coefficient(G)//leading_coefficient(F)) == G
@@ -161,7 +161,7 @@ end
 
 Return `true` if the point `P` is on the curve `C`, and `false` otherwise.
 """
-function Base.in(P::Oscar.Geometry.ProjSpcElem{S}, C::ProjectivePlaneCurve{S}) where S <: FieldElem
+function Base.in(P::Oscar.Geometry.ProjSpcElem{S}, C::ProjectivePlaneCurve{S}) where S <: RingElem
   return iszero(evaluate(C.eq, P.v))
 end
 
@@ -301,6 +301,7 @@ include("AffinePlaneCurve.jl")
 include("ProjPlaneCurve.jl")
 include("DivisorCurve.jl")
 include("ProjEllipticCurve.jl")
+include("EllCurveZnZ.jl")
 
 ################################################################################
 end
