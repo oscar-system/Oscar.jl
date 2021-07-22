@@ -7,10 +7,10 @@ using Oscar
 ```
 
 ```@contents
-Pages = ["pg_cones.md"]
+Pages = ["pg_fans.md"]
 ```
 
-# Cones
+# Fans
 
 Test
 
