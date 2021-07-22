@@ -375,20 +375,6 @@ end
 # This code is copied from Singulars "divisors.lib", based on the Macaulay 2
 # tutorial.
 
-# colon ideal (I : J) modulo Q
-function _qquotient(I::Oscar.MPolyIdeal, J::Oscar.MPolyIdeal, Q::Oscar.MPolyIdeal)
-   R = base_ring(I)
-   R == base_ring(J) || error("Cannot be computed")
-   R == base_ring(Q) || error("Cannot be computed")
-   II = I + Q
-   JJ = J + Q
-   Q1 = quotient(II, JJ)
-   B = groebner_basis(Q, ordering = :lex, complete_reduction = true)
-   r = divrem(gens(Q1), B)
-   arr = [r[i][2] for i in 1:length(r)]
-   return ideal(R, arr)
-end
-
 function jet(I::Oscar.MPolyIdeal, d::Int)
    singular_assure(I)
    R = base_ring(I)
@@ -396,7 +382,7 @@ function jet(I::Oscar.MPolyIdeal, d::Int)
    return ideal(R, Is)
 end
 
-function _remove_zeros(I::Oscar.MPolyIdeal)
+function _remove_zeros(I::T) where T <: Union{MPolyIdeal, MPolyQuoIdeal}
    R = base_ring(I)
    g = gens(I)
    filter!(x->x!= R(0), g)
@@ -411,16 +397,19 @@ function _minimal_generating_set(I::Oscar.MPolyIdeal)
     Ic = deepcopy(I.gens.S)
     Sx = I.gens.Sx
     Imin = Singular.Ideal(Sx, Singular.libSingular.idMinBase(Ic.ptr, Sx.ptr))
-    return ideal(R, Imin)
+    return R.(gens(Imin))
 end
 
 # Remove components which are not codim 1
-function _purify1(I::Oscar.MPolyIdeal, Q::Oscar.MPolyIdeal)
+function _purify1(I::T, Q) where T <: Union{MPolyIdeal, MPolyQuoIdeal}
    R = base_ring(I)
    Id = _remove_zeros(I)
    gens(Id)[1] != R(0) || error("ideal assumed to be non-zero")
-   f = ideal(R, [gens(Id)[1]])
-   return _minimal_generating_set(_qquotient(f, _qquotient(f, Id, Q), Q))
+   IdQ = ideal(Q, gens(Id))
+   f = ideal(Q, [gens(Id)[1]])
+   res = f:(f:IdQ)
+   Oscar.oscar_assure(res)
+   return ideal(Q, _minimal_generating_set(res.I))
 end
 
 function _basis(I::Oscar.MPolyIdeal, d::Int)
@@ -429,23 +418,23 @@ function _basis(I::Oscar.MPolyIdeal, d::Int)
    return _minimal_generating_set(_remove_zeros(jet(intersect(I, m^d),d)))
 end
 
-function _global_sections_helper(I::Oscar.MPolyIdeal, J::Oscar.MPolyIdeal, Q::Oscar.MPolyIdeal)
+function _global_sections_helper(I::Oscar.MPolyIdeal, J::Oscar.MPolyIdeal, q::Oscar.MPolyIdeal)
    R = base_ring(I)
    R == base_ring(J) || error("base rings do not match")
-   R == base_ring(Q) || error("base rings do not match")
+   R == base_ring(q) || error("base rings do not match")
+   Q, _ = quo(R, q)
    Ip = _purify1(I, Q)
    Jp = _purify1(J, Q)
    Is = _remove_zeros(Ip)
    f = gens(Is)[1]
-   fJ = f*Jp
-   Q1 = _qquotient(fJ, Ip, Q)
-   P = _purify1(Q1, Q)
-   B = _basis(P, total_degree(f))
-   BQ = groebner_basis(Q, ordering = :lex, complete_reduction = true)
-   r = divrem(gens(B), BQ)
-   arr = [r[i][2] for i in 1:length(r)]
+   fJ = ideal(Q, [f*g for g in gens(Jp)])
+   q1 = fJ:Ip
+   P = _purify1(q1, Q)
+   Oscar.oscar_assure(P)
+   B = _basis(P.I, total_degree(f.f))
+   arr = normal_form(B, q)
    LD = ideal(R, arr)
-   return [_remove_zeros(LD), f]
+   return [_remove_zeros(LD), f.f]
 end
 
 ################################################################################
@@ -453,9 +442,9 @@ end
 function _global_sections_ideals(D::ProjCurveDivisor)
     F = defining_equation(D.C)
     R = parent(F)
-    Q = ideal(R, [F])
+    q = ideal(R, [F])
     E = divisor_ideals(D)
-    _global_sections_helper(E[1], E[2], Q)
+    _global_sections_helper(E[1], E[2], q)
 end
 
 ################################################################################
@@ -490,16 +479,19 @@ function _section_ideal(f::Oscar.MPolyElem, g::Oscar.MPolyElem, D::ProjCurveDivi
     R = parent(f)
     F = defining_equation(D.C)
     R == parent(g) && R == parent(F) || error("base rings do not match")
-    J = ideal(R, [g])
-    Q = ideal(R, [F])
-    return _purify1(_qquotient(_qquotient(f*E[1], J, Q), E[2], Q), Q)
+
+    q = ideal(R, [F])
+    Q, _ = quo(R, q)
+    J = ideal(Q, [g])
+    fE1 = ideal(Q, gens(f*E[1]))
+    E2 = ideal(Q, gens(E[2]))
+    return _purify1((fE1:J):E2, Q)
 end
 
 ################################################################################
 
 function _linearly_equivalent(D::ProjCurveDivisor, E::ProjCurveDivisor)
     F = D - E
-    R = parent(defining_equation(D.C))
     T = parent(D.C.eq)
     L = _global_sections_ideals(F)
     if length(gens(L[1])) !=1
@@ -508,7 +500,8 @@ function _linearly_equivalent(D::ProjCurveDivisor, E::ProjCurveDivisor)
         return T(0)//T(1)
     else
         V = _section_ideal(gens(L[1])[1], L[2], F)
-        if V == ideal(R, [R(1)])
+        Q = base_ring(V)
+        if V == ideal(Q, [Q(1)])
             return T(gens(L[1])[1])//T(L[2])
         else
             return T(0)//T(1)
