@@ -30,6 +30,11 @@ mutable struct AffineScheme{S <: Ring, T <: MPolyRing, U <: MPolyElem} <: Scheme
     return new{S, T, elem_type(T)}(k, R, I)
   end
 
+@doc Markdown.doc"""
+    AffineScheme(R::MPolyRing) -> AffineScheme
+
+Return the affine scheme corresponding to the ring $R$.
+"""
   function AffineScheme( R::T ) where{T <: MPolyRing}
     I = ideal(R, zero(R))
     k = base_ring( R )
