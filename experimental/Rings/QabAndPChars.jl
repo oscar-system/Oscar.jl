@@ -50,6 +50,10 @@ Oscar.elem_type(::QabField) = QabElem
 Oscar.parent_type(::Type{QabElem}) = QabField
 Oscar.parent_type(::QabElem) = QabField
 
+function AbstractAlgebra.expressify(a::QabElem; context = nothing)
+  return AbstractAlgebra.expressify(a.data, context = nothing)
+end
+
 function Base.show(io::IO, a::QabElem)
   if get(io, :compact, false) == true
     math_html(io, a.data)

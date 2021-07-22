@@ -115,6 +115,9 @@ const is_dev = (function(m)
 const IJuliaMime = Union{MIME"text/latex", MIME"text/html"}
 
 const oscardir = pkgdir(Oscar)
+const aadir = pkgdir(AbstractAlgebra)
+const nemodir = pkgdir(Nemo)
+const heckedir = pkgdir(Hecke)
 
 
 function example(s::String)
@@ -152,7 +155,7 @@ function build_doc()
     doc_init()
   end
   Pkg.activate(joinpath(oscardir, "docs")) do
-    Base.invokelatest(Main.BuildDoc.doit, false, true)
+    Base.invokelatest(Main.BuildDoc.doit, Oscar, false, true)
   end
   open_doc()
 end
@@ -221,6 +224,8 @@ include("OscarTypes.jl")
 include("Groups/types.jl")
 
 include("Rings/Hecke.jl") #does all the importing from Hecke - to define names
+
+include("printing.jl")
 
 include("GAP/gap_to_oscar.jl")
 include("GAP/oscar_to_gap.jl")

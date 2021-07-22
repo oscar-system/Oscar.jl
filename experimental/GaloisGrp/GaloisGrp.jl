@@ -29,16 +29,20 @@ Actually, not even a ring. Defined in terms of operations
  - `map` to create elements from (large) integers/ fmpz
  - `name` is only used for printing.
 """
-struct BoundRing  <: AbstractAlgebra.Ring
-  mul
-  add
-  pow
-  map
+struct BoundRing{T}  <: AbstractAlgebra.Ring
+  mul#::(T,T) -> T
+  add#::(T,T) -> T
+  pow#::(T, Int) -> T
+  map#:: R -> T
   name::String
 end
 
-struct BoundRingElem <: AbstractAlgebra.RingElem
-  val::fmpz
+function Base.show(io::IO, b::BoundRing{T}) where {T}
+  print(io, "$(b.name) for type $T")
+end
+
+struct BoundRingElem{T} <: AbstractAlgebra.RingElem
+  val::T
   p::BoundRing # the parent
 end
 
@@ -54,6 +58,7 @@ end
 +(a::BoundRingElem, b::BoundRingElem) = check_parent(a, b) && BoundRingElem(a.p.add(a.val, b.val), a.p)
 -(a::BoundRingElem, b::BoundRingElem) = check_parent(a, b) && BoundRingElem(a.p.add(a.val, b.val), a.p)
 *(a::BoundRingElem, b::BoundRingElem) = check_parent(a, b) && BoundRingElem(a.p.mul(a.val, b.val), a.p)
+*(a::fmpz, b::BoundRingElem) = BoundRingElem(b.p.mul(b.p.map(a), b.val), b.p)
 ^(a::BoundRingElem, b::Int) = BoundRingElem(a.p.pow(a.val, b), a.p)
 -(a::BoundRingElem) = a
 
@@ -84,8 +89,29 @@ end
 Normal ring
 """
 function add_ring()
-  return BoundRing( (x,y) -> x*y, (x,y) -> x+y, (x,y) -> x^y, x->x, "add-ring")
+  return BoundRing{fmpz}( (x,y) -> x*y, (x,y) -> x+y, (x,y) -> x^y, x->x, "add-ring")
 end
+
+#roots rt are power series sum a_n x^n
+#we have |a_n| <= r^-n B (n+1)^k for B = x[1], k = x[2]
+#and deg(rt) <= x[3] (infinite valuation)
+function qt_ring()
+  return BoundRing{Tuple{fmpz, Int, fmpq}}( (x,y) -> (x[1]*y[1], x[2]+y[2]+1, x[3]+y[3]),
+                                            (x,y) -> (x[1]+y[1], max(x[2], y[2]), max(x[3], y[3])),
+                                            (x,y) -> (x[1]^y, y*x[2]+y-1, y*x[3]),
+                                                x -> _coerce_qt(x), "qt-ring")
+end
+
+_coerce_qt(x::fmpz) = (x, 0, fmpq(0))
+_coerce_qt(x::Integer) = (fmpz(x), 0, fmpq(0))
+function _coerce_qt(x::fmpz_poly)
+  return (maximum(abs, coefficients(x))*(degree(x)+1), 0, fmpq(0))
+end
+
+(R::BoundRing{Tuple{fmpz, Int, fmpq}})(a::Tuple{fmpz, Int, fmpq}) = BoundRingElem(a, R)
+(R::BoundRing{Tuple{fmpz, Int, fmpq}})(a::Integer) = BoundRingElem(R.map(a), R)
+(R::BoundRing{Tuple{fmpz, Int, fmpq}})(a::fmpz) = BoundRingElem(R.map(a), R)
+(R::BoundRing{Tuple{fmpz, Int, fmpq}})(a::fmpz_poly) = BoundRingElem(R.map(a), R)
 
 """
 An slpoly evaluated at `cost_ring` elements `0` will count the number
@@ -99,7 +125,7 @@ Operations:
  - all constants are mapped to `0`
 """
 function cost_ring()
-  return BoundRing( (x,y) -> x+y+1, (x,y) -> x+y, (x,y) -> x+2*nbits(y), x->0, "cost-ring")
+  return BoundRing{fmpz}( (x,y) -> x+y+1, (x,y) -> x+y, (x,y) -> x+2*nbits(y), x->0, "cost-ring")
 end
 
 """
@@ -113,7 +139,7 @@ Operations:
  - all constants are mapped to `0`
 """
 function degree_ring()
-  return BoundRing( (x,y) -> x+y, (x,y) -> max(x, y), (x,y) -> y*x, x->0, "degree-ring")
+  return BoundRing{fmpz}( (x,y) -> x+y, (x,y) -> max(x, y), (x,y) -> y*x, x->0, "degree-ring")
 end
 
 @doc Markdown.doc"""
@@ -215,6 +241,11 @@ Uses the Cauchy bound.
 """
 function Nemo.roots_upper_bound(f::fmpz_poly)
   a = coeff(f, degree(f))
+  b = ceil(fmpz, abs(coeff(f, degree(f)-1)//a))
+  for i=0:degree(f)-2
+    b = max(b, root(ceil(fmpz, abs(coeff(f, i)//a)), degree(f)-i)+1)
+  end
+  return 2*b
   return max(fmpz(1), maximum([ceil(fmpz, abs(coeff(f, i)//a)) for i=0:degree(f)]))
 end
 function Nemo.roots_upper_bound(f::fmpq_poly)
@@ -271,13 +302,15 @@ mutable struct GaloisCtx{T}
   B::BoundRingElem # a "bound" on the roots, might be "anything"
   G::PermGroup
   chn::Array{Tuple{PermGroup, SLPoly, fmpz_poly, Array{PermGroupElem, 1}}, 1}
+  start::Vector{Vector{Vector{Int}}} # a list of block systems
+  data::Any #whatever else is needed in special cases
   #= the descent chain, recodring
    - the group
    - the invariant
    - the tschirnhaus transformation
    - the cosets used
    should probably also record if the step was proven or not
-   and the starting group  
+    the starting group  and the block systems used to get them
   =#
   function GaloisCtx(f::fmpz_poly, p::Int)
     r = new{Hecke.qAdicRootCtx}()
@@ -305,14 +338,69 @@ mutable struct GaloisCtx{T}
     mc(f) = map_coefficients(x->map_coefficients(y->setprecision(preimage(mF, y), 1), x, parent = SQq), f, parent = SQqt)
     HQ = Hecke.MPolyFact.HenselCtxFqRelSeries(H.f, map(mc, H.lf), map(mc, H.cf), H.n)
     r = new{Hecke.MPolyFact.HenselCtxFqRelSeries{AbstractAlgebra.Generic.RelSeries{qadic}}}()
-    Qt, t = PolynomialRing(QQ, "t", cached = false)
+    Qt, t = RationalFunctionField(QQ, "t", cached = false)
     Qts, s = PolynomialRing(Qt, "s", cached = false)
-    r.f = evaluate(f, [Qts(t), s])
+    r.f = evaluate(f, [s, Qts(t)])
     r.C = HQ
     #r.B = more complicated: needs degree (inf. val.) bound as well as coeffs
     r.chn = Tuple{PermGroup, SLPoly, fmpz_poly, Array{PermGroupElem, 1}}[]
+    vl = roots_upper_bound(f)
+    r.B = qt_ring()(vl[1])
+    r.data = vl[2]
     return r
   end
+end
+
+Base.floor(::Type{Int}, q::fmpq) = Int(floor(fmpz, q))
+Base.ceil(::Type{Int}, q::fmpq) = Int(ceil(fmpz, q))
+Base.round(::Type{Int}, q::fmpq) = Int(round(fmpz, q))
+
+function Oscar.prime(C::GaloisCtx{Hecke.MPolyFact.HenselCtxFqRelSeries{Generic.RelSeries{qadic}}})
+  return prime(base_ring(base_ring(C.C.lf[1])))
+end
+
+function bound_to_precision(G::GaloisCtx{T}, B::BoundRingElem{Tuple{fmpz, Int, fmpq}}) where {T}
+  C, k, d = B.val
+  r = G.data
+  #so power series prec need to be floor(Int, d)
+  n = floor(fmpz, d+1)
+  #padic: we ne |a_i| for i=0:n and |a_i| <= C (i+1)^k/r^i
+  #and then log_p()
+  #according to the Qt file, a_i is maximal around k/log(r) -1
+  if isone(r)
+    b = C*(n+1)^k
+  else
+    c = floor(Int, k/log(r)-1)
+    if n<c
+      b = C*(n+1)^k//r^n
+    else
+      b = maximum(C*(c+1)^k//r^c, C*(c+2)^k//r^(c+1))
+    end
+  end
+  b = max(b, fmpz(1))
+  return (clog(floor(fmpz, b), prime(G)), Int(n))
+end
+
+function bound_to_precision(G::GaloisCtx{T}, B::BoundRingElem{fmpz}) where {T}
+  return clog(B.val, G.C.p)
+end
+
+function Nemo.roots_upper_bound(f::fmpz_mpoly, t::Int = 0)
+  @assert nvars(parent(f)) == 2
+  Qs, s = RationalFunctionField(FlintQQ, "t", cached = false)
+  Qsx, x = PolynomialRing(Qs, cached = false)
+  F = evaluate(f, [x, Qsx(s)])
+  dis = numerator(discriminant(F))
+  @assert !iszero(dis(t))
+  rt = roots(dis, ComplexField(20))
+  r = Hecke.lower_bound(minimum([abs(x-t) for x = rt]), fmpz)
+  @assert r > 0
+  ff = map_coefficients(abs, f)
+  C = roots_upper_bound(Hecke.Globals.Zx(map(x->evaluate(x, fmpz[r, 0]), coefficients(ff, 2))))
+  C1 = maximum(map(x->evaluate(x, fmpz[r, 0]), coefficients(ff, 2)))
+  #the infinite valuation... need Newton
+  vl = valuations_of_roots(F)
+  return (C+1, 0, maximum(x[1] for x = vl)), r
 end
 
 function Base.show(io::IO, GC::GaloisCtx{Hecke.qAdicRootCtx})
@@ -402,6 +490,25 @@ function upper_bound(G::GaloisCtx, ::typeof(power_sum), A::Vector, i::Int, ts::f
   end
   B = [upper_bound(G, x)^i for x = A]
   return sum(B)
+end
+
+function upper_bound(G::GaloisCtx, ::typeof(elementary_symmetric), i::Int, ts::fmpz_poly = gen(Oscar.Hecke.Globals.Zx))
+  if ts != gen(Hecke.Globals.Zx)
+    b = ts(G.B)
+  else
+    b = G.B
+  end
+  n = degree(G.f)
+  return parent(b)(binomial(n, i))*b^i
+end
+
+function upper_bound(G::GaloisCtx, ::typeof(power_sum), i::Int, ts::fmpz_poly = gen(Oscar.Hecke.Globals.Zx))
+  if ts != gen(Hecke.Globals.Zx)
+    b = ts(G.B)
+  else
+    b = G.B
+  end
+  return parent(b)(degree(G.f))*b^i
 end
 
 
