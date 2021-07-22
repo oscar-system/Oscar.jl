@@ -114,15 +114,9 @@ end
 end
 
 @testset "ProjPlaneCurve constructors" begin
-<<<<<<< HEAD
     R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
     T, _ = grade(R)
     F = T(y^3 * x^6 - y^6 * x^2 * z)
-=======
-    R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
-    T, _ = grade(R)
-    F = T(y^3*x^6 - y^6*x^2*z)
->>>>>>> Minor changes to Plane Curve and Curve Divisor
     C = Oscar.ProjPlaneCurve(F)
 
     @test Oscar.defining_equation(C) == F.f
