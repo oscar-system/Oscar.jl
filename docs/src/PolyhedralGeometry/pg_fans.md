@@ -22,3 +22,9 @@ A nonempty finite collection $\mathcal{F}$ of (polyhedral) cones in $\mathbb{F}^
 - if $C,D\in\mathcal{F}$ then $C\cap D$ is a face of both, $C$ and $D$.
 
 ## Construction
+
+To construct a polyhedral fan, you must pass the rays of each cone in the fan, along with an `IncidenceMatrix` encoding which rays are extremal with respect to which cones.
+
+```@docs
+PolyhedralFan(Rays, Cones)
+```

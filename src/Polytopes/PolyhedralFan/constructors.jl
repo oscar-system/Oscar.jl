@@ -7,10 +7,24 @@
 @doc Markdown.doc"""
     PolyhedralFan(Rays, Cones)
 
+# Arguments
+- `R::Matrix`: Rays generating the cones of the fan; encoded row-wise as representative vectors.
+- `Cones::IncidenceMatrix`: An incidence matrix; there is a 1 at position (i,j) if cone i has ray j as extremal ray, and 0 otherwise.
+
 A polyhedral fan formed from rays and cones made of these rays. The cones are
 given as an IncidenceMatrix, where the columns represent the rays and the rows
-represent the cones. There is a 1 at position (i,j) if cone i has ray j as
-extremal ray, otherwise there is a 0.
+represent the cones.
+
+# Examples
+To obtain the upper half-space of the plane:
+```julia-repl
+julia> R = [1 0; 1 1; 0 1; -1 0; 0 -1];
+
+julia> IM=IncidenceMatrix([[1,2],[2,3],[3,4],[4,5],[1,5]]);
+
+PF=PolyhedralFan(R,IM)
+A polyhedral fan in ambient dimension 2
+```
 """
 struct PolyhedralFan
    pm_fan::Polymake.BigObject
@@ -18,6 +32,27 @@ struct PolyhedralFan
       return new(pm)
    end
 end
+
+@doc Markdown.doc"""
+    PolyhedralFan(Rays, Cones)
+
+# Arguments
+- `R::Matrix`: Rays generating the cones of the fan; encoded row-wise as representative vectors.
+- `Cones::IncidenceMatrix`: An incidence matrix; there is a 1 at position (i,j) if cone i has ray j as extremal ray, and 0 otherwise.
+
+A polyhedral fan formed from rays and cones made of these rays. The cones are
+given as an IncidenceMatrix, where the columns represent the rays and the rows
+represent the cones.
+
+# Examples
+To obtain the upper half-space of the plane:
+```julia-repl
+julia> R = [1 0; 1 1; 0 1; -1 0; 0 -1];
+julia> IM=IncidenceMatrix([[1,2],[2,3],[3,4],[4,5],[1,5]]);
+PF=PolyhedralFan(R,IM)
+A polyhedral fan in ambient dimension 2
+```
+"""
 function PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix)
    arr = @Polymake.convert_to Array{Set{Int}} Polymake.common.rows(Incidence.pm_incidencematrix)
    PolyhedralFan(Polymake.fan.PolyhedralFan{Polymake.Rational}(
@@ -69,4 +104,3 @@ end
 function Base.show(io::IO, PF::PolyhedralFan)
     print(io, "A polyhedral fan in ambient dimension $(ambient_dim(PF))")
 end
-

@@ -4,6 +4,9 @@
 ###############################################################################
 ###############################################################################
 
+#TODO: have cone accept exterior description and reserve positive  hull for
+#interior description?
+
 @doc Markdown.doc"""
     Cone(R [, L])
 
