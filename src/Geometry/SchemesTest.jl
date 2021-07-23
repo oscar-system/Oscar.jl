@@ -16,4 +16,4 @@ g = y[1]^3*y[3]+y[2]^4 -5
 
 Z, psi = localize( Y, g )
 
-
+mu = compose( psi, phi )

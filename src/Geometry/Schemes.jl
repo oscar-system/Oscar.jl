@@ -1,12 +1,17 @@
 module Schemes
 
 using Oscar
+using Markdown
 
-import AbstractAlgebra.Ring, Oscar.AlgHom
+import AbstractAlgebra.Ring, Oscar.AlgHom, Oscar.compose
+import Base: ∘
 
-export AffineScheme, affine_space, localize, MorphismAffSch
+export AffineScheme, affine_space, AffSchMorphism
+
+export localize
 
 abstract type Scheme end
+abstract type SchemeMorphism end
 
 mutable struct AffineScheme{S <: Ring, T <: MPolyRing, U <: MPolyElem} <: Scheme
   k::S			# the base ring (usually a field) of definition for the scheme
@@ -65,15 +70,15 @@ function Base.show( io::Base.IO, X::AffineScheme )
   Base.print( io, X.I )
 end
 
-mutable struct MorphismAffSch{ 
+mutable struct AffSchMorphism{
     Sdom <: Ring, Tdom <: MPolyRing, Udom <: MPolyElem, 
     Scod <: Ring, Tcod <: MPolyRing, Ucod <: MPolyElem 
-  } 
+  } <: SchemeMorphism
   domain::AffineScheme{ Sdom, Tdom, Udom } 
   codomain::AffineScheme{ Scod, Tcod, Ucod } 
   pullback::AlgHom
   
-  function MorphismAffSch( domain::AffineScheme, codomain::AffineScheme, pullback::AlgHom )
+  function AffSchMorphism( domain::AffineScheme, codomain::AffineScheme, pullback::AlgHom )
     if base_ring( domain.R ) != base_ring( codomain.R )
       error( "the base rings of the domain and the codomain do not coincide!" )
     end
@@ -108,7 +113,7 @@ function localize( X, f::MPolyElem, name::String="denom" )
     pullback = AlgebraHomomorphism( X.R, X.R, var_images )
     I = ideal( pullback.( gens(X.I) ))
     Y = AffineScheme( X.R, I )
-    phi = MorphismAffSch( X, Y, pullback )
+    phi = AffSchMorphism( X, Y, pullback )
   else
     # If not, then localize by introducing a new denominator
     # This will be the first variable in the new ring, since we 
@@ -120,9 +125,90 @@ function localize( X, f::MPolyElem, name::String="denom" )
     I = ideal( B, [ pullback( g ) for g in gens(X.I) ] )
     I = I + ideal( B, one(B) - y[1]*pullback(f) )
     Y = AffineScheme( B, I )
-    phi = MorphismAffSch( X, Y, pullback )
+    phi = AffSchMorphism( X, Y, pullback )
   end
   return Y, phi
+end
+
+
+@doc Markdown.doc"""
+    struct Glueing( domain::AffineScheme, codomain::AffineScheme, pullback::AlgHom )
+
+    Maintains the data for the glueing of two affine varieties. 
+    In practice, domain and codomain will be distinguished open subsets 
+    of different affine algebras and then pullback will specify 
+    a concrete isomorphism between them. 
+
+    Compared to AffSchMorphism, this structure has an additional field 
+    in which the inverse morphism can be stored.
+"""
+mutable struct Glueing{
+    Sdom <: Ring, Tdom <: MPolyRing, Udom <: MPolyElem, 
+    Scod <: Ring, Tcod <: MPolyRing, Ucod <: MPolyElem 
+  } <: SchemeMorphism
+  domain::AffineScheme{ Sdom, Tdom, Udom } 
+  codomain::AffineScheme{ Scod, Tcod, Ucod } 
+  pullback::AlgHom
+  inverse::AlgHom
+  
+  function Glueing( domain::AffineScheme, codomain::AffineScheme, pullback::AlgHom, inverse::AlgHom )
+    if base_ring( domain.R ) != base_ring( codomain.R )
+      error( "the base rings of the domain and the codomain do not coincide!" )
+    end
+    #if domain(pullback) != codomain.R || codomain(pullback) != domain.R
+      #error( "the domain and codomain of the given ring homomorphism is not compatible with the affine schemes." )
+    #end 
+    return new{ 
+      typeof(base_ring(domain.R)), typeof(domain.R), elem_type(domain.R), 
+      typeof(base_ring(codomain.R)), typeof(codomain.R), elem_type(codomain.R) 
+    }( domain, codomain, pullback, inverse )
+  end
+
+  function Glueing( domain::AffineScheme, codomain::AffineScheme, pullback::AlgHom )
+    if base_ring( domain.R ) != base_ring( codomain.R )
+      error( "the base rings of the domain and the codomain do not coincide!" )
+    end
+    inv_list = [ preimage( pullback, g )[1] for g in gens( codomain( pullback ))]
+    inverse = AlgebraHomomorphism( pullback.codomain, pullback.domain, inv_list )
+    return new{ 
+      typeof(base_ring(domain.R)), typeof(domain.R), elem_type(domain.R), 
+      typeof(base_ring(codomain.R)), typeof(codomain.R), elem_type(codomain.R) 
+    }( domain, codomain, pullback, inverse )
+  end
+end
+
+function Oscar.compose( phi::AffSchMorphism, psi::AffSchMorphism )
+  if psi.codomain != phi.domain 
+    error( "Morphisms of schemes can not be composed." )
+  end
+  return AffSchMorphism( phi.domain, psi.codomain, compose( psi.pullback, phi.pullback ))
+end
+
+function Oscar.compose( phi::Glueing, psi::AffSchMorphism )
+  if psi.codomain != phi.domain 
+    error( "Morphisms of schemes can not be composed." )
+  end
+  return AffSchMorphism( phi.domain, psi.codomain, compose( psi.pullback, phi.pullback ))
+end
+
+function Oscar.compose( phi::AffSchMorphism, psi::Glueing )
+  if psi.codomain != phi.domain 
+    error( "Morphisms of schemes can not be composed." )
+  end
+  return AffSchMorphism( phi.domain, psi.codomain, compose( psi.pullback, phi.pullback ))
+end
+
+function Oscar.compose( phi::Glueing, psi::Glueing )
+  if psi.codomain != phi.domain 
+    error( "Morphisms of schemes can not be composed." )
+  end
+  return Glueing( phi.domain, psi.codomain, 
+		 compose( psi.pullback, phi.pullback ),
+		 compose( phi.inverse, psi.inverse) )
+end
+
+function ∘( phi::SchemeMorphism, psi::SchemeMorphism )
+  return compose( phi, psi )
 end
 
 end
