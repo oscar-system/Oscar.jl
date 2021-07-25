@@ -3,58 +3,8 @@
 ### Iterators
 ###############################################################################
 ###############################################################################
-struct Polyhedra
-end
-struct Points
-end
-@doc Markdown.doc"""
-
-    Halfspaces
-
-Dummy type used for specifying the desired output format.
-One halfspace `H(a,b)` is given by a vector `a` and a value `b` such that
-$$H(a,b) = \{ x | ax ≤ b \}.$$
-"""
-struct Halfspaces
-end
 
 #TODO: take into account lineality space
-
-struct PolyhedronFacePolyhedronIterator
-    p::Polyhedron
-    face_dim::Int
-end
-
-
-#Note: the following generates the entire Hasse diagram and may be costly
-function Base.iterate(iter::PolyhedronFacePolyhedronIterator, index = 1)
-    if iter.face_dim<0
-        return nothing
-    end
-    faces = Polymake.polytope.faces_of_dim(pm_polytope(iter.p),iter.face_dim)
-    nfaces = length(faces)
-    while true
-        if index > nfaces
-            return nothing
-        end
-        isfar=true
-        for v in faces[index]
-            #Checking that the first coordinate is zero is equivalent
-            #  to being a vertex of the far face
-            if !iszero(pm_polytope(iter.p).VERTICES[1+v[1],1])
-                isfar=false
-            end
-        end
-        if isfar==true
-            index +=1
-        else
-            p = Polyhedron(Polymake.polytope.Polytope(VERTICES=pm_polytope(iter.p).VERTICES[[f+1 for f in faces[index]],:],LINEALITY_SPACE = pm_polytope(iter.p).LINEALITY_SPACE))
-            return (p,index+1)
-        end
-    end
-end
-#Note: it is impossible to know the number of faces prior to computation (and extraction of far faces)
-Base.IteratorSize(::Type{PolyhedronFacePolyhedronIterator}) = Base.SizeUnknown()
 
 """
     faces(as, P, face_dim)
@@ -87,7 +37,28 @@ julia> collect(F)
 """
 function faces(as::Type{T}, P::Polyhedron, face_dim::Int) where {T}
     if as == Polyhedron || as == Polyhedra
-        PolyhedronFacePolyhedronIterator(P,face_dim-size(lineality_space(P),1))
+        if (face_dim < 0)
+            return nothing
+        end
+        faces = Polymake.polytope.faces_of_dim(pm_polytope(P),face_dim-size(lineality_space(P),1))
+        nfaces = length(faces)
+        rfaces = Polymake.Set{Int64}()
+        sizehint!(rfaces, nfaces)
+        for index in 1:nfaces
+            isfar = true
+            for v in faces[index]
+                #Checking that the first coordinate is zero is equivalent
+                #  to being a vertex of the far face
+                if !iszero(pm_polytope(P).VERTICES[1+v[1],1])
+                    isfar = false
+                    break
+                end
+            end
+            if !isfar
+                push!(rfaces, index)
+            end
+        end
+        return PolyhedronFaceIterator{as}(P.pm_polytope,faces)
     else
         throw(ArgumentError("Unsupported `as` argument :" * string(as)))
     end
