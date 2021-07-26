@@ -1,45 +1,3 @@
-# struct PointIterator
-#     o::Polymake.BigObject
-#     p::Symbol
-# end
-#
-# # VERTICES
-# function _iterate(o::Polymake.BigObject, ::Val{:VERTICES}, index)
-#     vertices = o.VERTICES
-#     while index <= size(vertices, 1)
-#         if iszero(vertices[index, 1])
-#             index += 1
-#         else
-#             return (vertices[index, 2:end], index + 1)
-#         end
-#     end
-#     return nothing
-# end
-#
-# _length(o::Polymake.BigObject, ::Val{:VERTICES}) = o.N_VERTICES - length(o.FAR_FACE)
-#
-# # LATTICE_POINTS
-# function _iterate(o::Polymake.BigObject, ::Val{:LATTICE_POINTS_GENERATORS}, index)
-#     lp = o.LATTICE_POINTS_GENERATORS[1]
-#     while index <= size(lp, 1)
-#         if iszero(lp[index, 1])
-#             index += 1
-#         else
-#             return (lp[index, 2:end], index + 1)
-#         end
-#     end
-#     return nothing
-# end
-#
-# _length(o::Polymake.BigObject, ::Val{:LATTICE_POINTS_GENERATORS}) = size(o.LATTICE_POINTS_GENERATORS[1],2)
-#
-# function Base.iterate(iter::PointIterator, index::Int64 = 1)
-#     return _iterate(iter.o, Val(iter.p), index)
-# end
-#
-# Base.eltype(::Type{PointIterator}) = Polymake.Vector{Polymake.Rational}
-# Base.length(iter::PointIterator) = _length(iter.o, Val(iter.p))
-
 struct Polyhedra
 end
 struct Points
@@ -76,11 +34,16 @@ end
 Base.eltype(::Type{PolyhedronFaceIterator{T}}) where T = T
 Base.length(iter::PolyhedronFaceIterator) = length(iter.faces)
 
-#####################################
+function Base.getindex(iter::PolyhedronFaceIterator, i::Int64)
+    @boundscheck checkbounds(iter.faces, i)
+    return iterate(iter, i)[1]
+end
 
-# struct PolyhedronFacetIterator{T}
-#     facets::Polymake.Matrix{Polymake.Rational}
-# end
+function Base.show(io::IO, I::PolyhedronFaceIterator{T}) where T
+    print(io, "A collection of faces as `$T`")
+end
+
+#####################################
 
 struct PolyhedronFacetIterator{T}
     A::AbstractMatrix{Polymake.Rational}
@@ -97,12 +60,24 @@ end
 Base.eltype(::Type{PolyhedronFacetIterator{T}}) where T = T
 Base.length(iter::PolyhedronFacetIterator) = length(iter.b)
 
+function Base.getindex(iter::PolyhedronFacetIterator, i::Int64)
+    @boundscheck checkbounds(iter.b, i)
+    return iterate(iter, i)[1]
+end
+
 halfspace_matrix_pair(iter::PolyhedronFacetIterator) = (A = iter.A, b = iter.b)
+
+PolyhedronFacetIterator{T}(x...) where T<:Halfspaces = PolyhedronFacetIterator{Halfspace}(x...)
+PolyhedronFacetIterator{T}(x...) where T<:Polyhedra = PolyhedronFacetIterator{Polyhedron}(x...)
+
+function Base.show(io::IO, I::PolyhedronFacetIterator{T}) where T
+    print(io, "A collection of facets as `$T`")
+end
 
 ###############################
 
-struct PointIterator
-    m::Polymake.Matrix{Polymake.Rational}
+struct PointIterator{T, U}
+    m::Polymake.Matrix{U}
 end
 
 function Base.iterate(iter::PointIterator, index::Int64 = 1)
@@ -112,12 +87,23 @@ function Base.iterate(iter::PointIterator, index::Int64 = 1)
     return nothing
 end
 
-Base.eltype(::Type{PointIterator}) = Polymake.Vector{Polymake.Rational}
+Base.eltype(::Type{PointIterator{T, U}}) where {T, U} = Polymake.Vector{U}
 Base.length(iter::PointIterator) = size(iter.m, 1)
 
 function Base.getindex(iter::PointIterator, i::Int64)
     @boundscheck checkbounds(iter.m, i, 1)
-    return iterate(iter)[1]
+    return iterate(iter, i)[1]
 end
 
 point_matrix(iter::PointIterator) = iter.m
+
+function Base.show(io::IO, I::PointIterator{T, U}) where {T, U}
+    print(io, "A collection of faces as `$T{$U}`")
+end
+
+####################
+
+AsTypeIdentitiesP(as::Type{T}) where T<:Points = Polymake.Vector
+AsTypeIdentitiesF(as::Type{T}) where T<:Halfspaces = Halfspace
+AsTypeIdentitiesF(as::Type{T}) where T<:Polyhedra = Polyhedron
+AsTypeIdentitiesFD(as::Type{T}) where T<:Polyhedra = Polyhedron

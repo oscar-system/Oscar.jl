@@ -42,7 +42,7 @@ function faces(as::Type{T}, P::Polyhedron, face_dim::Int) where {T}
         end
         faces = Polymake.polytope.faces_of_dim(pm_polytope(P),face_dim-size(lineality_space(P),1))
         nfaces = length(faces)
-        rfaces = Polymake.Set{Int64}()
+        rfaces = Vector{Int64}()
         sizehint!(rfaces, nfaces)
         for index in 1:nfaces
             isfar = true
@@ -58,7 +58,7 @@ function faces(as::Type{T}, P::Polyhedron, face_dim::Int) where {T}
                 push!(rfaces, index)
             end
         end
-        return PolyhedronFaceIterator{as}(P.pm_polytope,faces)
+        return PolyhedronFaceIterator{AsTypeIdentitiesFD(as)}(P.pm_polytope,faces[rfaces])
     else
         throw(ArgumentError("Unsupported `as` argument :" * string(as)))
     end
@@ -89,27 +89,6 @@ julia> collect(F)
 ```
 """
 faces(P::Polyhedron, face_dim::Int) = faces(Polyhedron, P, face_dim)
-
-struct VertexPointIterator
-    p::Polyhedron
-end
-
-function Base.iterate(iter::VertexPointIterator, index = 1)
-    vertices = pm_polytope(iter.p).VERTICES
-    while true
-        if size(vertices, 1) < index
-            return nothing
-        end
-
-        if iszero(vertices[index, 1])
-            index += 1
-        else
-            return (vertices[index, 2:end], index + 1)
-        end
-    end
-end
-Base.eltype(::Type{VertexPointIterator}) = Polymake.Vector{Polymake.Rational}
-Base.length(iter::VertexPointIterator) = nvertices(iter.p)
 
 """
     vertices(as, P)
@@ -145,7 +124,15 @@ pm::Vector<pm::Rational>
 """
 function vertices(as::Type{T}, P::Polyhedron) where {T}
     if as == Points
-        VertexPointIterator(P)
+        vertices = pm_polytope(P).VERTICES
+        rvertices = Vector{Int64}()
+        sizehint!(rvertices, size(vertices, 1))
+        for index in 1:size(vertices, 1)
+            if !iszero(vertices[index, 1])
+                push!(rvertices, index)
+            end
+        end
+        return PointIterator{AsTypeIdentitiesP(as), Polymake.Rational}(vertices[rvertices, 2:end])
     else
         throw(ArgumentError("Unsupported `as` argument :" * string(as)))
     end
@@ -182,6 +169,7 @@ pm::Vector<pm::Rational>
 """
 vertices(P::Polyhedron) = vertices(Points, P)
 
+# TODO: design decision
 """
     `vertices_as_point_matrix(P)`
 
@@ -207,28 +195,6 @@ pm::Matrix<pm::Rational>
 function vertices_as_point_matrix(P::Polyhedron)
     decompose_vdata(pm_polytope(P).VERTICES).vertices
 end
-
-
-struct PolyhedronRayIterator
-    p::Polyhedron
-end
-
-function Base.iterate(iter::PolyhedronRayIterator, index = 1)
-    vertices = pm_polytope(iter.p).VERTICES
-    while true
-        if size(vertices, 1) < index
-            return nothing
-        end
-
-        if !iszero(vertices[index, 1])
-            index += 1
-        else
-            return (vertices[index, 2:end], index + 1)
-        end
-    end
-end
-Base.eltype(::Type{PolyhedronRayIterator}) = Polymake.Vector{Polymake.Rational}
-Base.length(iter::PolyhedronRayIterator) = nrays(iter.p)
 
 """
     nrays(P)
@@ -297,7 +263,15 @@ julia> collect(rays(Points, PO))
 """
 function rays(as::Type{T}, P::Polyhedron) where {T}
     if as == Points
-        PolyhedronRayIterator(P)
+        vertices = pm_polytope(P).VERTICES
+        rrays = Vector{Int64}()
+        sizehint!(rrays, size(vertices, 1))
+        for index in 1:size(vertices, 1)
+            if iszero(vertices[index, 1])
+                push!(rrays, index)
+            end
+        end
+        return PointIterator{AsTypeIdentitiesP(as), Polymake.Rational}(vertices[rrays, 2:end])
     else
         throw(ArgumentError("Unsupported `as` argument :" * string(as)))
     end
@@ -332,41 +306,6 @@ rays(P::Polyhedron) = rays(Points,P)
 function rays_as_point_matrix(P::Polyhedron)
     decompose_vdata(pm_polytope(P).VERTICES).rays
 end
-
-
-
-struct PolyhedronFacetHalfspaceIterator
-    p::Polyhedron
-end
-
-function Base.iterate(iter::PolyhedronFacetHalfspaceIterator, index = 1)
-    facets = pm_polytope(iter.p).FACETS
-    if size(facets, 1) < index
-        return nothing
-    end
-
-    return ((Polymake.Vector(-facets[index, 2:end]), facets[index, 1]), index + 1)
-end
-Base.length(iter::PolyhedronFacetHalfspaceIterator) = nfacets(iter.p)
-Base.eltype(::Type{PolyhedronFacetHalfspaceIterator}) =
-    Tuple{Polymake.Vector{Polymake.Rational},Polymake.Rational}
-
-
-struct PolyhedronFacetPolyhedronIterator
-    p::Polyhedron
-end
-
-function Base.iterate(iter::PolyhedronFacetPolyhedronIterator, index = 1)
-    n_facets = nfacets(iter.p)
-    if index > n_facets
-        return nothing
-    end
-
-    p = Polyhedron(Polymake.polytope.facet(pm_polytope(iter.p), index - 1))
-    return (p, index + 1)
-end
-Base.length(iter::PolyhedronFacetPolyhedronIterator) = nfacets(iter.p)
-# Base.eltype(::Type{PolyhedronFacetPolyhedronIterator}) = Polyhedron
 
 """
     nfacets(P)
@@ -429,15 +368,8 @@ julia> collect(facets(Halfspaces, C))
 0 0 1, 1)
 ```
 """
-function facets(as::Type{T}, P::Polyhedron) where {T}
-    if as == Halfspaces
-        PolyhedronFacetHalfspaceIterator(P)
-    elseif as == Polyhedra || as == Polyhedron
-        PolyhedronFacetPolyhedronIterator(P)
-    else
-        throw(ArgumentError("Unsupported `as` argument :" * string(as)))
-    end
-end
+facets(as::Type{T}, P::Polyhedron) where {T} = PolyhedronFacetIterator{AsTypeIdentitiesF(as)}(decompose_hdata(pm_polytope(P).FACETS)...)
+
 @doc Markdown.doc"""
     facets(P::Polyhedron)
 
@@ -469,7 +401,7 @@ julia> collect(facets(C))
 0 0 1, 1)
 ```
 """
-facets(P::Polyhedron) = facets(Halfspaces, P)
+facets(P::Polyhedron) = facets(Halfspace, P)
 
 #TODO: how do underscores work in markdown?
 @doc Markdown.doc"""
@@ -602,7 +534,7 @@ julia> lattice_points(S)
 function lattice_points(P::Polyhedron)
     if pm_polytope(P).BOUNDED
         lat_pts = pm_polytope(P).LATTICE_POINTS_GENERATORS[1]
-        return ([e[2:end] for e in eachrow(lat_pts)])
+        return PointIterator{Polymake.Vector, Polymake.Integer}(lat_pts[:, 2:end])
     else
         throw(ArgumentError("Polyhedron not bounded"))
     end
