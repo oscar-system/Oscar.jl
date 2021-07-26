@@ -16,6 +16,32 @@ export issmooth, tangent, common_components, curve_intersect,
     issmooth(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
 
 Throw an error if `P` is not a point of `C`, return `false` if `P` is a singular point of `C`, and `true` if `P` is a smooth point of `C`.
+
+# Example
+```jldoctest
+julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> T, _ = grade(S)
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
+
+julia> C = Oscar.ProjPlaneCurve(x^2*(x+y)*(y^3-x^2*z))
+Projective plane curve defined by -x^5*z - x^4*y*z + x^3*y^3 + x^2*y^4
+
+
+julia> PP = projective_space(QQ, 2)
+(Projective space of dim 2 over Rational Field
+, MPolyElem_dec{fmpq,fmpq_mpoly}[x[0], x[1], x[2]])
+
+julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(0), QQ(1)])
+(0 : 0 : 1)
+
+julia> Oscar.issmooth(C, P)
+false
+```
 """
 function Oscar.issmooth(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
   dim(P.parent) == 2 || error("The point needs to be in a projective two dimensional space")
@@ -36,6 +62,32 @@ end
     tangent(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
 
 Return the tangent of `C` at `P` when `P` is a smooth point of `C`, and throw an error otherwise.
+
+# Example
+```jldoctest
+julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y","z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> T, _ = grade(S)
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
+
+julia> PP = projective_space(QQ, 2)
+(Projective space of dim 2 over Rational Field
+, MPolyElem_dec{fmpq,fmpq_mpoly}[x[0], x[1], x[2]])
+
+julia> C = Oscar.ProjPlaneCurve(x^2*(x+y)*(y^3-x^2*z))
+Projective plane curve defined by -x^5*z - x^4*y*z + x^3*y^3 + x^2*y^4
+
+
+julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(2), QQ(-2), QQ(1)])
+(2 : -2 : 1)
+
+julia> Oscar.tangent(C, P)
+Projective plane curve defined by -48*x - 48*y
+```
 """
 function tangent(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
   dim(P.parent) == 2 || error("The point needs to be in a projective two dimensional space")
@@ -92,6 +144,35 @@ end
     curve_intersect([PP::Oscar.Geometry.ProjSpc{S}], C::ProjectivePlaneCurve{S}, D::ProjectivePlaneCurve{S}) where S <: FieldElem
 
 Return a list whose first element is the projective plane curve defined by the gcd of `C.eq` and `D.eq`, the second element is the list of the remaining intersection points when the common components are removed from `C` and `D` (the points are in `PP` if specified, or in a new projective space otherwise).
+
+# Example
+```jldoctest
+julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y","z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> T, _ = grade(S)
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
+
+julia> PP = projective_space(QQ, 2)
+(Projective space of dim 2 over Rational Field
+, MPolyElem_dec{fmpq,fmpq_mpoly}[x[0], x[1], x[2]])
+
+julia> C = Oscar.ProjPlaneCurve(T(x+y+z))
+Projective plane curve defined by x + y + z
+
+
+julia> D = Oscar.ProjPlaneCurve(T(z))
+Projective plane curve defined by z
+
+
+julia> Oscar.curve_intersect(PP[1], C, D)
+2-element Array{Array{Any,1},1}:
+ []
+ [(-1 : 1 : 0)]
+```
 """
 function curve_intersect(PP::Oscar.Geometry.ProjSpc{S}, C::ProjectivePlaneCurve{S}, D::ProjectivePlaneCurve{S}) where S <: FieldElem
   G = gcd(C.eq, D.eq)
@@ -384,7 +465,7 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    geometric_genus(C::ProjectivePlaneCurve)
+    geometric_genus(C::ProjectivePlaneCurve{S}) where S <: FieldElem
 
 Return the geometric genus of `C`.
 """
