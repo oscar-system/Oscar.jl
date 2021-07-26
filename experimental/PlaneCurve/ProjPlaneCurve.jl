@@ -378,7 +378,7 @@ function arithmetic_genus(C::ProjectivePlaneCurve)
   I = ideal(S, [F])
   A = quo(S, I)
   H = hilbert_polynomial(A[1])
-  return -coeff(H, 0) + 1
+  return -ZZ(coeff(H, 0)) + 1
 end
 
 ################################################################################
@@ -394,12 +394,12 @@ function geometric_genus(C::ProjectivePlaneCurve{S}) where S <: FieldElem
    I = ideal(R, [F])
    if S == fmpq
       singular_assure(I)
-      return Singular.LibNormal.genus(I.gens.S)
+      return ZZ(Singular.LibNormal.genus(I.gens.S)::Int)
    else
       A = quo(R, I)
       L = normalization(A[1])
       m = length(L)
-      pa = 0
+      pa = zero(ZZ)
       for i in 1:m
          J = L[i][1].I
          T, _ = grade(parent(J[1]))
@@ -407,7 +407,7 @@ function geometric_genus(C::ProjectivePlaneCurve{S}) where S <: FieldElem
          JJ = ideal(T, V)
          B = quo(T, JJ)
          H = hilbert_polynomial(B[1])
-         pa = pa - coeff(H, 0)
+         pa = pa - ZZ(coeff(H, 0))
       end
       return pa + 1
    end

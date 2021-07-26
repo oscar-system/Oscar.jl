@@ -128,7 +128,7 @@ end
 Given a graded affine algebra $A = R/I$ over a field $K$ such that the weights on the variables are all 1,
 return the Hilbert polynomial of $A$.
 """
-function hilbert_polynomial(A::MPolyQuo)
+function hilbert_polynomial(A::MPolyQuo)::fmpq_poly
    if iszero(A.I)
        n = ngens(A)
        Qt, t = QQ["t"]
