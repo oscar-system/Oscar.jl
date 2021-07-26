@@ -4,28 +4,27 @@
 ###############################################################################
 ###############################################################################
 
-struct PolyhedralFanRayIterator
-    fan::PolyhedralFan
-end
-
-function Base.iterate(iter::PolyhedralFanRayIterator, index = 1)
-    rays = pm_fan(iter.fan).RAYS
-    if size(rays, 1) < index
-        return nothing
-    end
-
-    return (rays[index, :], index + 1)
-end
-Base.eltype(::Type{PolyhedralFanRayIterator}) = Polymake.Vector{Polymake.Rational}
-Base.length(iter::PolyhedralFanRayIterator) = nrays(iter.fan)
+# struct PolyhedralFanRayIterator
+#     fan::PolyhedralFan
+# end
+#
+# function Base.iterate(iter::PolyhedralFanRayIterator, index = 1)
+#     rays = pm_fan(iter.fan).RAYS
+#     if size(rays, 1) < index
+#         return nothing
+#     end
+#
+#     return (rays[index, :], index + 1)
+# end
+# Base.eltype(::Type{PolyhedralFanRayIterator}) = Polymake.Vector{Polymake.Rational}
+# Base.length(iter::PolyhedralFanRayIterator) = nrays(iter.fan)
 
 """
     rays(PF::PolyhedralFan)
 
 Returns the rays of a polyhedral fan.
 """
-rays(PF::PolyhedralFan) = PolyhedralFanRayIterator(PF)
-
+rays(PF::PolyhedralFan) = PointIterator{Polymake.Vector, Int64}(pm_fan(PF).RAYS)
 
 """
     maximal_cones(PF::PolyhedralFan)
@@ -49,8 +48,7 @@ struct MaximalConeIterator
 end
 
 function Base.iterate(iter::MaximalConeIterator, index = 1)
-    n_max_cones = nmaximal_cones(iter.PF)
-    if index > n_max_cones
+    if index > nmaximal_cones(iter.PF)
         return nothing
     end
     current_cone = Cone(Polymake.fan.cone(pm_fan(iter.PF), index - 1))
@@ -108,7 +106,7 @@ nrays(PF::PolyhedralFan) = pm_fan(PF).N_RAYS
 
 Returns the lineality_space of a polyhedral fan.
 """
-lineality_space(PF::PolyhedralFan) = pm_fan(PF).LINEALITY_SPACE
+lineality_space(PF::PolyhedralFan) = PointIterator{Polymake.Vector, Polymake.Rational}(pm_fan(PF).LINEALITY_SPACE)
 
 
 """
@@ -152,4 +150,3 @@ isregular(PF::PolyhedralFan) = pm_fan(PF).REGULAR
 Determine whether the fan is complete.
 """
 iscomplete(PF::PolyhedralFan) = pm_fan(PF).COMPLETE
-

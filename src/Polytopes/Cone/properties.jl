@@ -4,21 +4,6 @@
 ###############################################################################
 ###############################################################################
 
-struct ConeRayIterator
-    cone::Cone
-end
-
-function Base.iterate(iter::ConeRayIterator, index = 1)
-    rays = pm_cone(iter.cone).RAYS
-    if size(rays, 1) < index
-        return nothing
-    end
-
-    return (rays[index, :], index + 1)
-end
-Base.eltype(::Type{ConeRayIterator}) = Polymake.Vector{Polymake.Rational}
-Base.length(iter::ConeRayIterator) = nrays(iter.cone)
-
 """
     rays(C)
 
@@ -42,7 +27,7 @@ julia> collect(rays(PO))
 0 1
 ```
 """
-rays(C::Cone) = ConeRayIterator(C)
+rays(C::Cone) = PointIterator{Polymake.Vector, Polymake.Rational}(pm_cone(C).RAYS)
 
 ###############################################################################
 ###############################################################################
@@ -208,6 +193,8 @@ function rays_as_point_matrix(C::Cone)
 end
 
 
+facets(C::Cone) = PointIterator{Polymake.Vector, Polymake.Rational}(pm_cone(C).FACETS)
+
 """
     facets_as_point_matrix(C)
 
@@ -251,7 +238,7 @@ pm::Matrix<pm::Rational>
 1 0
 ```
 """
-lineality_space(C::Cone) = pm_cone(C).LINEALITY_SPACE
+lineality_space(C::Cone) = PointIterator{Polymake.Vector, Polymake.Rational}(pm_cone(C).LINEALITY_SPACE)
 
 """
     hilbert_basis(C)
@@ -276,7 +263,7 @@ pm::Matrix<pm::Integer>
 """
 function hilbert_basis(C::Cone)
    if ispointed(C)
-      return pm_cone(C).HILBERT_BASIS_GENERATORS[1]
+      return PointIterator{Polymake.Vector, Int64}(pm_cone(C).HILBERT_BASIS_GENERATORS[1])
    else
       throw(ArgumentError("Cone not pointed."))
    end
