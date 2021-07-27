@@ -17,42 +17,60 @@ mutable struct AffineScheme{S <: Ring, T <: MPolyRing, U <: MPolyElem} <: Scheme
   k::S			# the base ring (usually a field) of definition for the scheme
   R::T		  	# the ambient polynomial ring to model this affine scheme
   I::MPolyIdeal{U}	# The ideal in R defining the scheme
-#mutable struct AffineScheme{S <: Ring, T <: MPolyRing, U <: MPolyElem} <: Scheme
-# k::S			# the base ring (usually a field) of definition for the scheme
-# R::T		  	# the ambient polynomial ring to model this affine scheme
-# I::MPolyIdeal{U}	# The ideal in R defining the scheme
+  denom::Union{Nothing,Vector{U}}	# list of denominators at which has been localized
 
-  function AffineScheme(k::S, R::T, I::MPolyIdeal{U}) where{S <: Ring, T <:MPolyRing , U <: MPolyElem}
+  function AffineScheme(k::S, R::T, I::MPolyIdeal{U}, denom::Union{Nothing,Vector{U}} ) where{
+			S <: Ring, T <:MPolyRing , U <: MPolyElem}
     if k != base_ring(R)
       error( "Base ring of the affine scheme does not coincide with the base ring of the associated algebra." )
     end
     # TODO: Implement further plausibility checks to be performed at runtime.
-    return new{S, T, U}(k, R, I)
+    return new{S, T, U}(k, R, I, denom)
   end
 
-  function AffineScheme( k::S, R::T ) where{S <: Ring, T <:MPolyRing}
-    I = ideal(R, zero(R))
-    return new{S, T, elem_type(T)}(k, R, I)
-  end
+end
+
+# outer constructors
+function AffineScheme(k::S, R::T, I::MPolyIdeal{U}) where{
+			S <: Ring, T <:MPolyRing , U <: MPolyElem}
+  return AffineScheme( k, R, I, nothing )
+end
+
+function AffineScheme( k::S, R::T ) where{S <: Ring, T <:MPolyRing}
+  I = ideal(R, zero(R))
+  return AffineScheme(k, R, I, nothing )
+end
 
 @doc Markdown.doc"""
     AffineScheme(R::MPolyRing) -> AffineScheme
 
 Return the affine scheme corresponding to the ring $R$.
 """
-  function AffineScheme( R::T ) where{T <: MPolyRing}
-    I = ideal(R, zero(R))
-    k = base_ring( R )
-    #@show typeof(k), T, elem_type(T)
-    return new{typeof(k), T, elem_type(T)}(k, R, I)
-  end
-
-  function AffineScheme( R::T, I::MPolyIdeal{U} ) where { T <: MPolyRing, U <: MPolyElem }
-    k = base_ring(R)
-    return new{typeof(k), T, elem_type(T)}(k, R, I)
-  end
-
+function AffineScheme( R::T ) where{T <: MPolyRing}
+  I = ideal(R, zero(R))
+  k = base_ring( R )
+  return AffineScheme(k, R, I, nothing )
 end
+
+function AffineScheme( R::T, I::MPolyIdeal{U} ) where{ T <: MPolyRing, U <: MPolyElem }
+  k = base_ring(R)
+  return AffineScheme(k, R, I, nothing )
+end
+
+function AffineScheme( R::T, denom::Vector{U} ) where{
+			T <: MPolyRing, U <: MPolyElem }
+  I = ideal(R, zero(R))
+  k = base_ring( R )
+  return AffineScheme(k, R, I, denom )
+end
+
+function AffineScheme( R::T, f::U ) where{
+			T <: MPolyRing, U <: MPolyElem }
+  I = ideal(R, zero(R))
+  k = base_ring( R )
+  return AffineScheme(k, R, I, [f] )
+end
+
 
 # Construct affine n-space over the ring k.
 function affine_space( k::Ring, n::Int, name::String="x" )
@@ -142,7 +160,7 @@ end
     Compared to AffSchMorphism, this structure has an additional field 
     in which the inverse morphism can be stored.
 """
-mutable struct Glueing{
+mutable struct Isomorphism{
     Sdom <: Ring, Tdom <: MPolyRing, Udom <: MPolyElem, 
     Scod <: Ring, Tcod <: MPolyRing, Ucod <: MPolyElem 
   } <: SchemeMorphism
@@ -151,7 +169,7 @@ mutable struct Glueing{
   pullback::AlgHom
   inverse::AlgHom
   
-  function Glueing( domain::AffineScheme, codomain::AffineScheme, pullback::AlgHom, inverse::AlgHom )
+  function Isomorphism( domain::AffineScheme, codomain::AffineScheme, pullback::AlgHom, inverse::AlgHom )
     if base_ring( domain.R ) != base_ring( codomain.R )
       error( "the base rings of the domain and the codomain do not coincide!" )
     end
@@ -164,7 +182,7 @@ mutable struct Glueing{
     }( domain, codomain, pullback, inverse )
   end
 
-  function Glueing( domain::AffineScheme, codomain::AffineScheme, pullback::AlgHom )
+  function Isomorphism( domain::AffineScheme, codomain::AffineScheme, pullback::AlgHom )
     if base_ring( domain.R ) != base_ring( codomain.R )
       error( "the base rings of the domain and the codomain do not coincide!" )
     end
@@ -177,6 +195,19 @@ mutable struct Glueing{
   end
 end
 
+# The inclusion of open subsets. 
+# Note that this struct can only instantiate open inclusions which 
+# are determined by an explicit ring homomorphism. Not all open 
+# inclusions (not even of affine schemes) can be described this way!
+mutable struct OpenInclusion{
+    Sdom <: Ring, Tdom <: MPolyRing, Udom <: MPolyElem, 
+    Scod <: Ring, Tcod <: MPolyRing, Ucod <: MPolyElem 
+  } <: SchemeMorphism
+  domain::AffineScheme{ Sdom, Tdom, Udom } 
+  codomain::AffineScheme{ Scod, Tcod, Ucod } 
+  pullback::AlgHom
+end
+
 function Oscar.compose( phi::AffSchMorphism, psi::AffSchMorphism )
   if psi.codomain != phi.domain 
     error( "Morphisms of schemes can not be composed." )
@@ -184,31 +215,77 @@ function Oscar.compose( phi::AffSchMorphism, psi::AffSchMorphism )
   return AffSchMorphism( phi.domain, psi.codomain, compose( psi.pullback, phi.pullback ))
 end
 
-function Oscar.compose( phi::Glueing, psi::AffSchMorphism )
+function Oscar.compose( phi::Isomorphism, psi::AffSchMorphism )
   if psi.codomain != phi.domain 
     error( "Morphisms of schemes can not be composed." )
   end
   return AffSchMorphism( phi.domain, psi.codomain, compose( psi.pullback, phi.pullback ))
 end
 
-function Oscar.compose( phi::AffSchMorphism, psi::Glueing )
+function Oscar.compose( phi::AffSchMorphism, psi::Isomorphism )
   if psi.codomain != phi.domain 
     error( "Morphisms of schemes can not be composed." )
   end
   return AffSchMorphism( phi.domain, psi.codomain, compose( psi.pullback, phi.pullback ))
 end
 
-function Oscar.compose( phi::Glueing, psi::Glueing )
+function Oscar.compose( phi::Isomorphism, psi::Isomorphism )
   if psi.codomain != phi.domain 
     error( "Morphisms of schemes can not be composed." )
   end
-  return Glueing( phi.domain, psi.codomain, 
+  return Isomorphism( phi.domain, psi.codomain, 
 		 compose( psi.pullback, phi.pullback ),
 		 compose( phi.inverse, psi.inverse) )
 end
 
 function ∘( phi::SchemeMorphism, psi::SchemeMorphism )
   return compose( phi, psi )
+end
+
+# A struct for glueing of two affine schemes X = Spec A and Y = Spec B along a common 
+# principal open subset U. Then U is given as both, Spec A_f and Spec B_g for 
+# elements f ∈  A and g ∈  B, and there is an isomorphism ϕ : A_f →  B_g. The 
+# Glueing maintains this information, together with the two inclusions of 
+# open sets i : U ↪  X and j : U ↪  Y given by A →  A_f, and B →  B_f, respectively.
+mutable struct Glueing
+  X::AffineScheme
+  Y::AffineScheme
+  i::SchemeMorphism
+  j::SchemeMorphism
+  ϕ::Isomorphism
+
+end
+
+# A struct maintaining the information for a covering 
+# of a scheme. A scheme itself can have multiple coverings 
+# with a partial order given by refinement. Any object relying 
+# on a covering such as, for instance, a vector bundle given by 
+# transition functions, can refer to such a covering. 
+#
+# TODO: Simon argued that such a struct should not be mutable, 
+# because the objects depending on it can not keep track 
+# of such changes. Technically, however, that means all data 
+# for the covering has to be computed before the actual instantiation 
+# of the covering. That will involve a lot of temporary variables 
+# resembling the final struct and seems a bit tedious. Therefore, 
+# I make it mutable for now. 
+mutable struct Covering 
+  charts::Vector{AffineScheme} 
+  glueings::Vector{Glueing}
+end
+
+mutable struct CoveredScheme <: Scheme
+  coverings::Vector{Covering}
+end
+
+abstract type ChowCycle end
+
+# This is the data structure for a cycle in an affine 
+# scheme given by a list of coefficients and prime ideals
+# TODO: Parametrize by types.
+mutable struct AffineCycle{ CoefficientType <: Ring } <: ChowCycle
+  parent::AffineScheme
+  summands::Tuple{CoefficientType, AbstractAlgebra.Ideal}
 end
 
 end
