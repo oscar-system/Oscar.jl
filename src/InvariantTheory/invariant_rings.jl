@@ -20,11 +20,12 @@ mutable struct InvRing{S, T, U, V, W, X}
    molien_singular::Singular.smatrix
    primary_singular::Singular.smatrix
 
-   function InvRing(K::S, R::T, G::U, action::Vector{V}) where {S, T, U, V}
+   function InvRing(K::S, G::U, action::Vector{V}) where {S, U, V}
      n = degree(G)
      R, = PolynomialRing(K, "x" => 1:n)
      R_sing = singular_ring(R)
      action_singular = identity.([change_base_ring(R_sing, g) for g in action])
+     T = typeof(R)
      X = elem_type(R)
      W = eltype(action_singular)
      z = new{S, T, U, V, W, X}()
@@ -73,10 +74,8 @@ end
 
 function invariant_ring(G::MatrixGroup)
   n = degree(G)
-  R, = PolynomialRing(base_ring(G), "x" => 1:n, cached = false)
-  S = singular_ring(R)
   action = mat_elem_type(typeof(G))[g.elm for g in gens(G)]
-  return InvRing(base_ring(G), R, G, action)
+  return InvRing(base_ring(G), G, action)
 end
 
 invariant_ring(matrices::MatrixElem{T}...) where {T} = invariant_ring(collect(matrices))
@@ -101,7 +100,7 @@ end
 
 function primary_invariants_via_singular(IR::InvRing)
    if !isdefined(IR, :primary_singular)
-      if characteristic(coefficient_ring(IR)) == 0
+      if iszero(characteristic(coefficient_ring(IR)))
          rey, mol = reynolds_molien_via_singular(IR)
          P = Singular.LibFinvar.primary_char0(rey, mol)
          R = polynomial_ring(IR)
