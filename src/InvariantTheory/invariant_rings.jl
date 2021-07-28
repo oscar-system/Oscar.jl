@@ -22,7 +22,7 @@ mutable struct InvRing{S, T, U, V, W, X}
 
    function InvRing(K::S, G::U, action::Vector{V}) where {S, U, V}
      n = degree(G)
-     R, = PolynomialRing(K, "x" => 1:n)
+     R, = PolynomialRing(K, "x" => 1:n, cached = false)
      R_sing = singular_ring(R)
      action_singular = identity.([change_base_ring(R_sing, g) for g in action])
      T = typeof(R)
