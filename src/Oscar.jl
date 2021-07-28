@@ -225,6 +225,8 @@ include("Groups/types.jl")
 
 include("Rings/Hecke.jl") #does all the importing from Hecke - to define names
 
+include("printing.jl")
+
 include("GAP/gap_to_oscar.jl")
 include("GAP/oscar_to_gap.jl")
 
@@ -255,6 +257,7 @@ include("Rings/mpoly-local.jl")
 include("Rings/FinField.jl")
 include("Rings/NumberField.jl")
 include("Rings/FunctionField.jl")
+include("Rings/AbelianClosure.jl")
 
 include("Modules/FreeModules-graded.jl")
 
@@ -271,6 +274,8 @@ include("Rings/slpolys.jl")
 
 include("../experimental/Experimental.jl")
 include("Rings/binomial_ideals.jl")
+
+include("InvariantTheory/InvariantTheory.jl")
 
 if is_dev
 #  include("../examples/ModStdNF.jl")

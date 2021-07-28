@@ -402,8 +402,6 @@ function _subfields(FF::Generic.FunctionField, f::fmpz_mpoly)
   return res
 end
 
-Oscar.gen(R::Generic.RationalFunctionField) = R(gen(base_ring(R.fraction_field)))
-
 function isinteger(G::GaloisCtx, p::Tuple{Int, Int}, r::Generic.RelSeries{qadic})
 #  @show "testing", r, "against", p
   if iszero(r) 
