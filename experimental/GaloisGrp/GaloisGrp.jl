@@ -12,7 +12,8 @@ import Hecke: orbit, fixed_field
 
 
 function __init__()
-  GAP.Packages.load("ferret", install = true)
+  GAP.Packages.install("ferret"; interactive=false, quiet=true)
+  GAP.Packages.load("ferret")
 
   Hecke.add_verbose_scope(:GaloisGroup)
   Hecke.add_verbose_scope(:GaloisInvariant)
