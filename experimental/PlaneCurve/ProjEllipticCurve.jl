@@ -382,7 +382,7 @@ struct Point_EllCurve{S <: RingElem}
    C::ProjEllipticCurve{S}
    Hecke_Pt::Hecke.EllCrvPt{S}
 
-   function Point_EllCurve(E::ProjEllipticCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where {S <: FieldElem}
+   function Point_EllCurve(E::ProjEllipticCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S
       P in E || error("The point is not on the curve")
       new{S}(P, E, _point_toweierstrass(E, P))
    end
