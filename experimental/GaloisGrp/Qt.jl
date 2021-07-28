@@ -254,7 +254,6 @@ function _subfields(FF::Generic.FunctionField, f::fmpz_mpoly)
         @show e
         return nothing
       end
-      ps = map_coefficients(x->parent(x)(Generic._rat_canonicalise(numerator(x), denominator(x))...), ps, parent = parent(ps))
       return ps
     end
 
