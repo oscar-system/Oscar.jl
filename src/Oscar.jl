@@ -35,6 +35,8 @@ import GAP
 import Pkg
 using Markdown
 using Test
+import Libdl
+import msolve_jll
 # to allow access to the cornerstones! Otherwise, not even import or using from the
 # user level will work as none of them will have been "added" by the user.
 # possibly all should add a doc string to the module?
@@ -250,6 +252,8 @@ include("Rings/rational.jl")
 include("Rings/mpoly.jl")
 include("Rings/mpoly-graded.jl")
 include("Rings/mpoly-ideals.jl")
+include("Rings/msolve/interface.jl")
+include("Rings/msolve/msolve.jl")
 include("Rings/groebner.jl")
 include("Rings/MPolyQuo.jl")
 include("Rings/mpoly-nested.jl")
