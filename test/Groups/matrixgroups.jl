@@ -1,7 +1,7 @@
 @testset "Oscar-GAP relationship" begin
 
-   @testset for (p,e) in [(2,1),(5,1),(2,4),(3,3)]
-      F = GF(p,e)[1]
+   @testset for (p,d) in [(2,1),(5,1),(2,4),(3,3),(2,8)]
+      F, _ = GF(p,d)
       f = Oscar.ring_iso_oscar_gap(F)
       g = Oscar.mat_iso_oscar_gap(F, 4, f)
       for a in F
