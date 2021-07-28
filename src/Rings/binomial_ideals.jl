@@ -438,15 +438,15 @@ function partial_character_from_ideal(I::MPolyIdeal, R::MPolyRing)
   else
     J = eliminate(I, to_eliminate)
   end
+  Qabcl, = abelian_closure(QQ)
   if iszero(J)
-    return QabModule.partial_character(zero_matrix(FlintZZ, 1, nvars(R)), [one(QabModule.Qab)], Set{Int64}())
+    return QabModule.partial_character(zero_matrix(FlintZZ, 1, nvars(R)), [one(Qabcl)], Set{Int64}())
   end
   #now case if J \neq 0
   #let ts be a list of minimal binomial generators for J
   gb = groebner_basis(J, complete_reduction = true)
   vs = zero_matrix(FlintZZ, 0, nvars(R))
-  images = QabModule.QabElem[]
-  Qabcl = QabModule.Qab
+  images = QabElem[]
   for t in gb
     #TODO: Once tail will be available, use it.
     lm = leading_monomial(t)
@@ -622,13 +622,13 @@ julia> I = ideal(R, [x[5]*(x[1]-x[2]), x[6]*(x[3]-x[4]), x[5]^2, x[6]^2, x[5]*x[
 ideal(x[1]*x[5] - x[2]*x[5], x[3]*x[6] - x[4]*x[6], x[5]^2, x[6]^2, x[5]*x[6])
 
 julia> cellular_associated_primes(I)
-3-element Array{MPolyIdeal{AbstractAlgebra.Generic.MPoly{Oscar.QabModule.QabElem}},1}:
+3-element Array{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}},1}:
  ideal(x5, x6)
  ideal(x1 - x2, x5, x6)
  ideal(x3 - x4, x5, x6)
 ```
 """
-function cellular_associated_primes(I::MPolyIdeal{fmpq_mpoly}, RQab::MPolyRing = PolynomialRing(QabModule.Qab, nvars(base_ring(I)))[1])
+function cellular_associated_primes(I::MPolyIdeal{fmpq_mpoly}, RQab::MPolyRing = PolynomialRing(abelian_closure(QQ)[1], nvars(base_ring(I)))[1])
   #input: cellular binomial ideal
   #output: the set of associated primes of I
 
@@ -696,7 +696,7 @@ julia> I = ideal(R, [x[5]*(x[1]-x[2]), x[6]*(x[3]-x[4]), x[5]^2, x[6]^2, x[5]*x[
 ideal(x[1]*x[5] - x[2]*x[5], x[3]*x[6] - x[4]*x[6], x[5]^2, x[6]^2, x[5]*x[6])
 
 julia> cellular_minimal_associated_primes(I)
-1-element Array{MPolyIdeal{AbstractAlgebra.Generic.MPoly{Oscar.QabModule.QabElem}},1}:
+1-element Array{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}},1}:
  ideal(x5, x6)
 ```
 """
@@ -713,9 +713,10 @@ function cellular_minimal_associated_primes(I::MPolyIdeal{fmpq_mpoly})
   end
   R = base_ring(I)
   P = partial_character_from_ideal(I, R)
-  RQab = PolynomialRing(QabModule.Qab, nvars(R))[1]
+  Qabcl, = abelian_closure(QQ)
+  RQab = PolynomialRing(Qabcl, nvars(R))[1]
   PSat = QabModule.saturations(P)
-  minimal_associated = Vector{MPolyIdeal{Generic.MPoly{QabModule.QabElem}}}() #this will hold the set of minimal associated primes
+  minimal_associated = Vector{MPolyIdeal{Generic.MPoly{QabElem}}}() #this will hold the set of minimal associated primes
 
   #construct the ideal (x_i \mid i \in \Delta^c)
   Variables = gens(RQab)
@@ -767,13 +768,13 @@ julia> I = ideal(R, [x[5]*(x[1]-x[2]), x[6]*(x[3]-x[4]), x[5]^2, x[6]^2, x[5]*x[
 ideal(x[1]*x[5] - x[2]*x[5], x[3]*x[6] - x[4]*x[6], x[5]^2, x[6]^2, x[5]*x[6])
 
 julia> cellular_primary_decomposition(I)
-3-element Array{Tuple{MPolyIdeal{AbstractAlgebra.Generic.MPoly{Oscar.QabModule.QabElem}},MPolyIdeal{AbstractAlgebra.Generic.MPoly{Oscar.QabModule.QabElem}}},1}:
+3-element Array{Tuple{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}},MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}}},1}:
  (ideal(x1*x5 - x2*x5, x3*x6 - x4*x6, x5^2, x6^2, x5*x6, x5, x6), ideal(x5, x6))
  (ideal(x1*x5 - x2*x5, x3*x6 - x4*x6, x5^2, x6^2, x5*x6, x1 - x2, x6), ideal(x1 - x2, x5, x6))
  (ideal(x1*x5 - x2*x5, x3*x6 - x4*x6, x5^2, x6^2, x5*x6, x3 - x4, x5), ideal(x3 - x4, x5, x6))
 ```
 """
-function cellular_primary_decomposition(I::MPolyIdeal, RQab::MPolyRing = PolynomialRing(QabModule.Qab, nvars(base_ring(I)))[1])
+function cellular_primary_decomposition(I::MPolyIdeal, RQab::MPolyRing = PolynomialRing(abelian_closure(QQ)[1], nvars(base_ring(I)))[1])
   #algorithm from macaulay2
   #input: unital cellular binomial ideal in k[x]
   #output: binomial primary ideals which form a minimal primary decomposition of I 
@@ -801,7 +802,7 @@ function cellular_primary_decomposition(I::MPolyIdeal, RQab::MPolyRing = Polynom
   prodDelta = elem_type(RQab)[Variables[i] for i in cell[2]]
 
   J = ideal(RQab, prodDelta)
-  T = MPolyIdeal{Generic.MPoly{QabModule.QabElem}}
+  T = MPolyIdeal{Generic.MPoly{QabElem}}
   res = Vector{Tuple{T, T}}()
   for P in cell_ass
     if isempty(prodDeltaC)
@@ -830,9 +831,9 @@ julia> I = ideal(R, [x-y,x^3-1,z*y^2-z])
 ideal(x - y, x^3 - 1, y^2*z - z)
 
 julia> binomial_primary_decomposition(I)
-3-element Array{Tuple{MPolyIdeal{AbstractAlgebra.Generic.MPoly{Oscar.QabModule.QabElem}},MPolyIdeal{AbstractAlgebra.Generic.MPoly{Oscar.QabModule.QabElem}}},1}:
- (ideal(x1 - x2, x1^3 - 1, x2^2*x3 - x3, x3, x2 - z_3, x1 - z_3), ideal(x1*x2^2 - 1, x2 - z_3, x3))
- (ideal(x1 - x2, x1^3 - 1, x2^2*x3 - x3, x3, x2 + z_3 + 1, x1 + z_3 + 1), ideal(x1*x2^2 - 1, x2 + z_3 + 1, x3))
+3-element Array{Tuple{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}},MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}}},1}:
+ (ideal(x1 - x2, x1^3 - 1, x2^2*x3 - x3, x3, x2 - z(3), x1 - z(3)), ideal(x1*x2^2 - 1, x2 - z(3), x3))
+ (ideal(x1 - x2, x1^3 - 1, x2^2*x3 - x3, x3, x2 + z(3) + 1, x1 + z(3) + 1), ideal(x1*x2^2 - 1, x2 + z(3) + 1, x3))
  (ideal(x2 - 1, x1 - 1, x1*x2 - 1), ideal(x2 - 1, x1 - 1, x1*x2 - 1))
 ```
 """
@@ -846,10 +847,10 @@ function binomial_primary_decomposition(I::MPolyIdeal)
   #first compute a cellular decomposition of I
   cell_comps = cellular_decomposition_macaulay(I)
 
-  T = MPolyIdeal{Generic.MPoly{QabModule.QabElem}}
+  T = MPolyIdeal{Generic.MPoly{QabElem}}
   res = Vector{Tuple{T, T}}() #This will hold the set of primary components
   #now compute a primary decomposition of each cellular component
-  Qab = QabModule.Qab
+  Qab, = abelian_closure(QQ)
   RQab = PolynomialRing(Qab, nvars(base_ring(I)))[1]
   for J in cell_comps
     resJ = cellular_primary_decomposition(J, RQab)

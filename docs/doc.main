@@ -19,14 +19,12 @@
 
   "Rings" => [
      "Rings/intro.md",
-     "AbstractAlgebra/rings.md",
+     "AbstractAlgebra/ring.md",
      "Rings/integer.md",
      "Univariate Polynomials" => [
-        "AbstractAlgebra/polynomial_rings.md",
         "AbstractAlgebra/polynomial.md",
      ],
      "Multivariate Polynomials" => [
-        "AbstractAlgebra/mpolynomial_rings.md",
         "AbstractAlgebra/mpolynomial.md",
      ],
      "Orders" => [
@@ -37,7 +35,6 @@
         "Hecke/orders/frac_ideals.md",
      ],
      "Series Rings" => [
-        "AbstractAlgebra/series_rings.md",
         "AbstractAlgebra/series.md",
         "AbstractAlgebra/puiseux.md",
         "Nemo/series.md",
@@ -47,7 +44,7 @@
 
   "Fields" => [
      "Fields/intro.md",
-     "AbstractAlgebra/fields.md",
+     "AbstractAlgebra/field.md",
      "Rings/rational.md",
      "Number Fields" => [
         "Hecke/number_fields/intro.md",
@@ -56,7 +53,6 @@
      ],
      "Hecke/FacElem.md",
      "Hecke/class_fields/intro.md",
-     "AbstractAlgebra/fraction_fields.md",
      "AbstractAlgebra/fraction.md",
      "Local Fields" => [
         "Nemo/padic.md",
@@ -68,7 +64,6 @@
   "Linear Algebra" => [
      "LinearAlgebra/intro.md",
      "Hecke/sparse/intro.md",
-     "AbstractAlgebra/matrix_spaces.md",
      "AbstractAlgebra/matrix.md",
      "AbstractAlgebra/matrix_algebras.md",
      "Modules" => [
@@ -86,12 +81,18 @@
      ],
   ],
 
+  "Number Theory" => [
+     "NumberTheory/intro.md",
+     "NumberTheory/abelian_closure.md",
+  ],
+
   "Polyhedral Geometry" => [
      "PolyhedralGeometry/pg.md",
      "PolyhedralGeometry/pg_polyhedra.md",
      "PolyhedralGeometry/pg_cones.md",
      "PolyhedralGeometry/pg_fans.md",
      "PolyhedralGeometry/pg_linear_programs.md",
+     "PolyhedralGeometry/pg_cones.md",
   ],
 
   "Commutative Algebra" => [

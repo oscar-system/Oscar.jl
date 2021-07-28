@@ -42,7 +42,7 @@ Polyhedron(A::Union{Oscar.MatElem,AbstractMatrix}, b)
 The following defines a polytope, as a `Polyhedron`, via a $V$-representation by calling the following function:
 
 ```@docs
-convex_hull(::AnyVecOrMat)
+convex_hull(::AnyVecOrMat; non_redundant::Bool=false)
 ```
 
 ### Computing convex hulls

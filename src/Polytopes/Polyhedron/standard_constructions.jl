@@ -5,13 +5,10 @@
 ###############################################################################
 
 @doc Markdown.doc"""
-    orbit_polytope(V, G)
+    orbit_polytope(V::AbstractVecOrMat, G::PermGroup)
 
-Construct the convex hull of the orbit of one or several points under the action of a permutation group.
-
-# Arguments
-- `V::AbstractVecOrMat`: Initial point(s).
-- `P::PermGroup`: A permutation group.
+Construct the convex hull of the orbit of one or several points (given row-wise
+in `V`) under the action of `G`.
 
 # Examples
 This will construct the $3$-dimensional permutahedron:
@@ -53,17 +50,13 @@ function orbit_polytope(V::AbstractVector, G::PermGroup)
 end
 
 @doc Markdown.doc"""
-    cube(d [, l, u])
+   cube(d::Int , [l::Rational = -1, u::Rational = 1])
 
-Construct the $[-1,1]$-cube in dimension $d$. If $l$ and $u$ are given, the $[l,u]$-cube in dimension $d$ is returned.
-
-# Arguments
-- `d::Int`: Dimension of the cube.
-- `l::Rational`: Lower bound for each coordinate.
-- `u::Rational`: Upper bound for each coordinate.
+Construct the $[l,u]$-cube in dimension $d$.
 
 # Examples
-In this example the 5-dimensional unit cube is constructed to ask for one of its properties:
+In this example the 5-dimensional unit cube is constructed to ask for one of its
+properties:
 ```julia-repl
 julia> C = cube(5,0,1);
 
@@ -77,12 +70,9 @@ cube(d, l, u) = Polyhedron(Polymake.polytope.cube(d, u, l))
 
 
 """
-    newton_polytope(poly)
+    newton_polytope(poly::Polynomial)
 
-Compute the Newton polytope of the given polynomial `poly`.
-
-# Arguments
-- `poly::Polynomial`: A multivariate polynomial.
+Compute the Newton polytope of the multivariate polynomial `poly`.
 
 # Examples
 ```julia-repl
@@ -114,16 +104,13 @@ end
 
 
 @doc Markdown.doc"""
-    intersect(P, Q)
+    intersect(P::Polyhedron, Q::Polyhedron)
 
-Intersect two polyhedra.
-
-# Arguments
-- `P::Polyhedron`: First polyhedron.
-- `Q::Polyhedron`: Second polyhedron.
+Return the intersection $P \cap Q$ of `P` and `Q`.
 
 # Examples
-The positive orthant of the plane is the intersection of the two halfspaces with $x>0$ and $y>0$ respectively.
+The positive orthant of the plane is the intersection of the two halfspaces with
+$x>0$ and $y>0$ respectively.
 ```julia-repl
 julia> UH1 = convex_hull([0 0],[1 0],[0 1]);
 
@@ -145,17 +132,14 @@ function intersect(P::Polyhedron, Q::Polyhedron)
 end
 
 
-"""
+@doc Markdown.doc"""
     minkowski_sum(P::Polyhedron, Q::Polyhedron)
 
-Minkowski sum of two polyhedra.
-
-# Arguments
-- `P::Polyhedron`: First polyhedron.
-- `Q::Polyhedron`: Second polyhedron.
+Return the Minkowski sum $P + Q = \{ x+y\ |\ x∈P, y∈Q\}$ of `P` and `Q`.
 
 # Examples
-The Minkowski sum of a square and the 2-dimensional cross-polytope is an octagon:
+The Minkowski sum of a square and the 2-dimensional cross-polytope is an
+octagon:
 ```julia-repl
 julia> P = cube(2);
 
@@ -183,17 +167,14 @@ end
 
 #TODO: documentation  + extend to different fields.
 
-"""
+@doc Markdown.doc"""
     +(P::Polyhedron, Q::Polyhedron)
 
-Minkowski sum of two polyhedra.
-
-# Arguments
-- `P::Polyhedron`: First polyhedron.
-- `Q::Polyhedron`: Second polyhedron.
+Return the Minkowski sum $P + Q = \{ x+y\ |\ x∈P, y∈Q\}$ of `P` and `Q`.
 
 # Examples
-The Minkowski sum of a square and the 2-dimensional cross-polytope is an octagon:
+The Minkowski sum of a square and the 2-dimensional cross-polytope is an
+octagon:
 ```julia-repl
 julia> P = cube(2);
 
@@ -214,14 +195,13 @@ julia> nvertices(M)
 @doc Markdown.doc"""
     *(k::Int, Q::Polyhedron)
 
-Return the scaled polyhedron `kQ`.
+Return the scaled polyhedron $kQ = \{ kx\ |\ x∈Q\}$.
 
-# Arguments
-- `k::Int`: Scaling factor.
-- `Q::Polyhedron`: A polyhedron.
+Note that `k*Q = Q*k`.
 
 # Examples
-Scaling an $n$-dimensional bounded polyhedron by the factor $k$ results in the volume being scaled by $k^n$.
+Scaling an $n$-dimensional bounded polyhedron by the factor $k$ results in the
+volume being scaled by $k^n$.
 This example confirms the statement for the 6-dimensional cube and $k = 2$.
 ```julia-repl
 julia> C = cube(6);
@@ -239,14 +219,13 @@ julia> volume(SC)//volume(C)
 @doc Markdown.doc"""
     *(P::Polyhedron, k::Int)
 
-Return the scaled polyhedron `kP`.
+Return the scaled polyhedron $kP = \{ kx\ |\ x∈P\}$.
 
-# Arguments
-- `k::Int`: Scaling factor.
-- `Q::Polyhedron`: A polyhedron.
+Note that `k*P = P*k`.
 
 # Examples
-Scaling an $n$-dimensional bounded polyhedron by the factor $k$ results in the volume being scaled by $k^n$.
+Scaling an $n$-dimensional bounded polyhedron by the factor $k$ results in the
+volume being scaled by $k^n$.
 This example confirms the statement for the 6-dimensional cube and $k = 2$.
 ```julia-repl
 julia> C = cube(6);
@@ -264,15 +243,13 @@ julia> volume(SC)//volume(C)
 @doc Markdown.doc"""
     +(P::Polyhedron, v::AbstractVector)
 
-Return the translation `P+v` of `P` by the vector `v`.
+Return the translation $P+v = \{ x+v\ |\ x∈P\}$ of `P` by `v`.
 
-# Arguments
-- `P::Polyhedron`: A polyhedron.
-- `v::AbstractVector`: A vector of the same dimension as the ambient space of `P`.
+Note that `P+v = v+P`.
 
 # Examples
-We construct a polyhedron from its $V$-description. Shifting it by the right vector reveals that its inner geometry
-corresponds to that of the 3-simplex.
+We construct a polyhedron from its $V$-description. Shifting it by the right
+vector reveals that its inner geometry corresponds to that of the 3-simplex.
 ```julia-repl
 julia> P = convex_hull([100 200 300; 101 200 300; 100 201 300; 100 200 301]);
 
@@ -303,17 +280,15 @@ end
 
 
 @doc Markdown.doc"""
-    +(v::AbstractVector,P::Polyhedron)
+    +(v::AbstractVector, P::Polyhedron)
 
-Return the translation `v+P` of `P` by the vector `v`.
+Return the translation $P+v = \{ x+v\ |\ x∈P\}$ of `P` by `v`.
 
-# Arguments
-- `P::Polyhedron`: A polyhedron.
-- `v::AbstractVector`: A vector of the same dimension as the ambient space of `P`.
+Note that `P+v = v+P`.
 
 # Examples
-We construct a polyhedron from its $V$-description. Shifting it by the right vector reveals that its inner geometry
-corresponds to that of the 3-simplex.
+We construct a polyhedron from its $V$-description. Shifting it by the right
+vector reveals that its inner geometry corresponds to that of the 3-simplex.
 ```julia-repl
 julia> P = convex_hull([100 200 300; 101 200 300; 100 201 300; 100 200 301]);
 
@@ -338,14 +313,10 @@ julia> collect(vertices(S))
 
 @doc Markdown.doc"""
 
-    simplex(d[,n])
+    simplex(d::Int [,n::Rational])
 
 Construct the simplex which is the convex hull of the standard basis vectors
-along with the origin in $\mathbb{R}^d$, optionally scaled by $n$.
-
-# Arguments
-- `d::Int`: Dimension of the simplex (and its ambient space).
-- `n::Scalar`: Scaling factor.
+along with the origin in $\mathbb{R}^d$, scaled by $n$.
 
 # Examples
 Here we take a look at the facets of the 7-simplex and a scaled 7-simplex:
@@ -401,16 +372,14 @@ simplex(d::Int64) = Polyhedron(Polymake.polytope.simplex(d))
 
 @doc Markdown.doc"""
 
-    cross(d[,n])
+    cross(d::Int [,n::Rational])
 
-Construct a $d$-dimensional cross polytope around origin with vertices located at $\pm e_i$ for each unit vector $e_i$ of $R^d$, scaled by $n$.
-
-# Arguments
-- `d::Int`: Dimension of the cross polytope (and its ambient space).
-- `n::Scalar`: Scaling factor.
+Construct a $d$-dimensional cross polytope around origin with vertices located
+at $\pm e_i$ for each unit vector $e_i$ of $R^d$, scaled by $n$.
 
 # Examples
-Here we print the facets of a non-scaled and a scaled 3-dimensional cross polytope:
+Here we print the facets of a non-scaled and a scaled 3-dimensional cross
+polytope:
 ```julia-repl
 julia> C = cross(3)
 A polyhedron in ambient dimension 3
@@ -528,14 +497,12 @@ archimedean_solid(s::String) = Polyhedron(Polymake.polytope.archimedean_solid(s)
 
     upper_bound_theorem(d::Int, n::Int)
 
-Returns a polyhedron which contains the combinatioral data shared by all
+Return a polyhedron which contains the combinatioral data shared by all
 simplicial d-polytopes with n vertices with the maximal number of facets as
-given by McMullen's Upper-Bound-Theorem. Essentially, one can read the
-``H_VECTOR`` and ``F_VECTOR`` of a polytope that attains the McMullen's
-upperbounds.
+given by McMullen's Upper-Bound-Theorem.
 
-Arguments:
-- `d::Int`: the dimension
-- `n::Int`: the number of vertices
+Essentially, one can read the
+`H_VECTOR` and `F_VECTOR` of a polytope that attains the McMullen's
+upperbounds.
 """
 upper_bound_theorem(d::Int,n::Int) = Polyhedron(Polymake.polytope.upper_bound_theorem(d,n))

@@ -1,8 +1,8 @@
 @doc Markdown.doc"""
-    LinearProgram(P, c [, k])
+    LinearProgram(P, c, k = 0, convention = :max)
 
-The linear program on the feasible set P (a Polyhedron) with
- respect to the function x ↦ dot(c,x)+k where k is optional (default 0).
+The linear program on the feasible set `P` (a Polyhedron) with
+respect to the function x ↦ dot(c,x)+k.
 
 """
 struct LinearProgram
@@ -22,6 +22,9 @@ struct LinearProgram
    end
 end
 
+LinearProgram(A::Union{Oscar.MatElem,AbstractMatrix}, b, objective::AbstractVector, k = 0; convention = :max) =
+   LinearProgram(Polyhedron(A, b), b,  k = k, convention = convention)
+
 
 ###############################################################################
 ###############################################################################
@@ -37,7 +40,7 @@ function Base.show(io::IO, lp::LinearProgram)
     elseif lp.convention == :min
       print(io, "   min")
     end
-    print(io, "{dot(c,x)+k | x ∈ P}\n")
+    print(io, "{c⋅x + k | x ∈ P}\n")
     print(io, "where P is a "*string(typeof(lp.feasible_region)))
     print(io, " and\n   c=")
     print(io, string(c'))
