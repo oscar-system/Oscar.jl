@@ -101,7 +101,7 @@ end
 
 function primary_invariants_via_singular(IR::InvRing)
    if !isdefined(IR, :primary_singular)
-      if !ismodular(IR)
+      if characteristic(coefficient_ring(IR)) == 0
          rey, mol = reynolds_molien_via_singular(IR)
          P = Singular.LibFinvar.primary_char0(rey, mol)
          R = polynomial_ring(IR)
