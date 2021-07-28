@@ -14,31 +14,57 @@ abstract type Scheme end
 abstract type SchemeMorphism end
 
 mutable struct AffineScheme{S <: Ring, T <: MPolyRing, U <: MPolyElem} <: Scheme
+  # the basic fields 
   k::S			# the base ring (usually a field) of definition for the scheme
   R::T		  	# the ambient polynomial ring to model this affine scheme
   I::MPolyIdeal{U}	# The ideal in R defining the scheme
-  denom::Union{Nothing,Vector{U}}	# list of denominators at which has been localized
 
-  function AffineScheme(k::S, R::T, I::MPolyIdeal{U}, denom::Union{Nothing,Vector{U}} ) where{
+  # fields for caching
+  denom::Vector{U}	# list of denominators at which has been localized
+  as_poly_algebra::T	# A concrete instance of an ambient polynomial ring 
+  					# realizing the localization as a polynomial algebra
+  localized_ideal::MPolyIdeal{U}  	# The ideal in the ring as_poly_algebra 
+  					# realizing the localization.
+  localization_map::AlgHom 	 	# The ring homomorphism from R to 
+					# as_poly_algebra for the localization.
+  saturated_ideal::MPolyIdeal{U}	# the ideal I'= I:f^∞ in R with f the product 
+  					# of elements in the list denom.
+  #restriction_maps::AffSchMorphism	# A place to store restriction maps from other 
+  					# affine schemes to this one.
+
+  # The very basic constructor
+  function AffineScheme(k::S, R::T, I::MPolyIdeal{U} ) where{
 			S <: Ring, T <:MPolyRing , U <: MPolyElem}
     if k != base_ring(R)
       error( "Base ring of the affine scheme does not coincide with the base ring of the associated algebra." )
     end
     # TODO: Implement further plausibility checks to be performed at runtime.
-    return new{S, T, U}(k, R, I, denom)
+    return new{S, T, U}(k, R, I )
   end
 
 end
 
 # outer constructors
-function AffineScheme(k::S, R::T, I::MPolyIdeal{U}) where{
-			S <: Ring, T <:MPolyRing , U <: MPolyElem}
-  return AffineScheme( k, R, I, nothing )
+
+# Constructor with denominators 
+function AffineScheme(
+    k::S, 
+    R::T, 
+    I::MPolyIdeal{U}, 
+    denom::Union{Nothing,Vector{U}} 
+  ) where{
+	  S <: Ring, 
+	  T <:MPolyRing , 
+	  U <: MPolyElem}
+  X = AffineScheme( k, R, I )
+  # TODO: implement a check whether the elements in denom belong to the correct ring.
+  X.denom = denom
+  return X 
 end
 
 function AffineScheme( k::S, R::T ) where{S <: Ring, T <:MPolyRing}
   I = ideal(R, zero(R))
-  return AffineScheme(k, R, I, nothing )
+  return AffineScheme(k, R, I )
 end
 
 @doc Markdown.doc"""
@@ -49,12 +75,12 @@ Return the affine scheme corresponding to the ring $R$.
 function AffineScheme( R::T ) where{T <: MPolyRing}
   I = ideal(R, zero(R))
   k = base_ring( R )
-  return AffineScheme(k, R, I, nothing )
+  return AffineScheme(k, R, I )
 end
 
 function AffineScheme( R::T, I::MPolyIdeal{U} ) where{ T <: MPolyRing, U <: MPolyElem }
   k = base_ring(R)
-  return AffineScheme(k, R, I, nothing )
+  return AffineScheme(k, R, I )
 end
 
 function AffineScheme( R::T, denom::Vector{U} ) where{

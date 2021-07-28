@@ -1,5 +1,6 @@
 
-using Oscar
+using Revise, Oscar
+includet( "Schemes.jl" )
 using Main.Schemes
 
 An = affine_space( QQ, 4 )
