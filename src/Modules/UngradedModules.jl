@@ -947,6 +947,12 @@ function sum(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
   return SubModuleOfFreeModule(M.F, vcat(collect(M.gens), collect(N.gens)))
 end
 
+@doc Markdown.doc"""
+  issubset(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
+
+Check if `M` is a subset of `N`. For this their embedding free modules must be 
+identical (`===`).
+"""
 function issubset(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
   @assert M.F === N.F
   M_mod_N = _reduce(singular_generators(std_basis(M)), singular_generators(std_basis(N)))
@@ -1235,13 +1241,36 @@ function cokernel(A::MatElem)
 end
 
 @doc Markdown.doc"""
+  issubset(M::SubQuo{T}, N::SubQuo{T}) where {T}
+
+Check if `M` is a subset of `N`. For this their embedding free modules 
+must be identical (`===`), the relations must be equal and the (generators + relations)
+of `M` must be a submodule of (generators + relations) of `N`.
+"""
+function issubset(M::SubQuo{T}, N::SubQuo{T}) where {T}
+  if !isdefined(M, :quo) 
+    if !isdefined(N, :quo)
+      return issubset(M.sub, N.sub)
+    else
+      return iszero(N.quo) && issubset(M.sub, N.sub)
+    end
+  else
+    if !isdefined(N, :quo)
+      return iszero(M.quo) && issubset(M.sub, N.sub)
+    else
+      return M.quo == N.quo && issubset(M.sum, N.sum)
+    end
+  end
+end
+
+@doc Markdown.doc"""
   ==(M::SubQuo{T}, N::SubQuo{T}) where {T}
 
 Check for equality. For two subquotients to be equal their embedding free modules 
-must be identical (`===`) and the generators respectively (generators + relations) must 
+must be identical (`===`) and the (generators + relations) respectively the relations must 
 generate equal submodules.
 """
-function ==(M::SubQuo{T}, N::SubQuo{T}) where {T}
+function ==(M::SubQuo{T}, N::SubQuo{T}) where {T} # TODO replace implementation by two inclusion checks?
   if !isdefined(M, :quo) 
     if !isdefined(N, :quo)
       return M.sub == N.sub
