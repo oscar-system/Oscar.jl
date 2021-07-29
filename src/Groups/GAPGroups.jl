@@ -854,7 +854,7 @@ end
     nilpotency_class(G::GAPGroup)
 
 Return the nilpotency class of `G`, that is the smallest integer `d` such that `G` has a central series of length `n`.
-""" nilpotency_class
+""" nilpotency_class(G::GAPGroup)
 
 #
 describe(G::GAPGroup) = GAP.gap_to_julia(GAP.Globals.StructureDescription(G.X))

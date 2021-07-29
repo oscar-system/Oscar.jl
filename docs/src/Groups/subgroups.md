@@ -48,10 +48,10 @@ centre
 sylow_subgroup(G::GAPGroup, p::Int64)
 hall_subgroup(G::GAPGroup, P::AbstractVector{<:Base.Integer})
 derived_subgroup
-fitting_subgroup(G::GAPGroup)
-frattini_subgroup(G::GAPGroup)
-radical_subgroup(G::GAPGroup)
-socle(G::GAPGroup)
+fitting_subgroup
+frattini_subgroup
+radical_subgroup
+socle
 pcore(G::GAPGroup, p::Int64)
 intersect(V::T...) where T<:GAPGroup
 ```
