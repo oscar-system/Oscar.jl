@@ -127,9 +127,12 @@ end
 # This relies on results in a preprint "The orders of finite linear groups" by
 # W. Feit (1995), possibly published as mathscinet.ams.org/mathscinet-getitem?mr=1484185
 # in the "Proceedings of the First Jamaican Conference on Group Theory and its
-# Applications", 1996. However, I can't find either paper.
+# Applications", 1996. However, it seems basically impossible to that paper.
 # Geoff Robinson claims to have the preprint and posted the relevant information
 # at mathoverflow.net/questions/168292/maximal-order-of-finite-subgroups-of-gln-z .
+# The table is also repeated in [BDEPS04] where the authors however state that
+# Feit does not actually provide a proof, and in any case relies heavily on unpublished
+# work by Weisfeiler. Go figure...
 const max_ords = [ 2, 12, 48, 1152, 3840, 103680, 2903040, 696729600, 1393459200, 8360755200 ]
 function maximal_order_of_finite_linear_group_qq(n::Int)
    @assert n >= 0
