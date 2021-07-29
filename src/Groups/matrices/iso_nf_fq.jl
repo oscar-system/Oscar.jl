@@ -21,22 +21,7 @@ function isomorphic_group_over_finite_field(matrices::Vector{T}) where T <: Matr
    F = GAP.Globals.Range(G_to_fin_pres)
    rels = GAP.Globals.RelatorsOfFpGroup(F)
 
-   #inv_matrices = Vector{T}(undef, length(matrices))
-   #inv_computed = falses(length(matrices))
    for i = 1:length(rels)
-      #rel = map(Int, GAP.Globals.LetterRepAssocWord(rels[i]))
-      #M = identity_matrix(K, n)
-      #for k in rel
-      #   if k < 0
-      #      k = -k
-      #      if !inv_computed[k]
-      #         inv_matrices[k] = inv(matrices[k])
-      #      end
-      #      M *= inv_matrices[k]
-      #   else
-      #      M *= matrices[k]
-      #   end
-      #end
       M = GAP.Globals.MappedWord(rels[i], GAP.Globals.FreeGeneratorsOfFpGroup(F), GAP.julia_to_gap(matrices))
       if !isone(M)
          error("Group is not finite")
@@ -145,10 +130,10 @@ end
 # Applications", 1996. However, I can't find either paper.
 # Geoff Robinson claims to have the preprint and posted the relevant information
 # at mathoverflow.net/questions/168292/maximal-order-of-finite-subgroups-of-gln-z .
+const max_ords = [ 2, 12, 48, 1152, 3840, 103680, 2903040, 696729600, 1393459200, 8360755200 ]
 function maximal_order_of_finite_linear_group_qq(n::Int)
    @assert n >= 0
-   max_ords = [ 1, 2, 12, 48, 1152, 3840, 103680, 2903040, 696729600, 1393459200, 8360755200 ]
-   n <= 10 && return fmpz(max_ords[n + 1])
+   n <= 10 && return fmpz(max_ords[n])
    # For n > 10, we can use 2^n*n!
    return factorial(fmpz(n)) << n
 end

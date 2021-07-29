@@ -101,8 +101,8 @@ function mat_iso_oscar_gap(F::T, deg::Int, FtoGAP::MapFromFunc{T, S}) where {T <
    end
 
    function finv(x::GapObj)
-      m = GAP.Globals.Size(x)# == nrows
-      n = GAP.Globals.Size(x[1])# == ncols
+      m = GAP.Globals.NrRows(x)
+      n = GAP.Globals.NrCols(x)
       L = [ preimage(FtoGAP, x[i, j]) for i in 1:m for j in 1:n]
 
       return matrix(domain(FtoGAP), m, n, L)
