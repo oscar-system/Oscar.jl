@@ -530,19 +530,6 @@ end
     arithmetic_genus(C::AffinePlaneCurve)
 
 Return the arithmetic genus of the projective closure of `C`.
-
-# Example
-```jldoctest
-julia> R, (x, y) = PolynomialRing(GF(7), ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Galois field with characteristic 7, gfp_mpoly[x, y])
-
-julia> C = Oscar.AffinePlaneCurve(y^9 - x^2*(x-1)^9)
-Affine plane curve defined by 6*x^11 + 2*x^10 + 6*x^9 + x^4 + 5*x^3 + x^2 + y^9
-
-
-julia> Oscar.arithmetic_genus(C)
-45
-```
 """
 function arithmetic_genus(C::AffinePlaneCurve)
    F = defining_equation(C)
