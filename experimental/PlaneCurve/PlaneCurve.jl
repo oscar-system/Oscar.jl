@@ -300,7 +300,6 @@ end
 
 ################################################################################
 # Check irreducibility.
-# TODO: change for a direct irreducibility check when available.
 
 @doc Markdown.doc"""
     isirreducible(C::PlaneCurve{S}) where S <: FieldElem
@@ -326,8 +325,7 @@ false
 ```
 """
 function Oscar.isirreducible(C::PlaneCurve{S}) where S <: FieldElem
-   comp = curve_components(C)
-   return length(comp) == 1 && all(isone, values(comp))
+   return isirreducible(defining_equation(C))
 end
 
 ################################################################################
@@ -367,10 +365,10 @@ end
 
 ################################################################################
 # Compute squarefree equation.
-# TODO: change for a direct squarefree computation when available.
 
 @doc Markdown.doc"""
-    reduction(C::PlaneCurve{S}) where S <: FieldElem
+    reduction(C::AffinePlaneCurve{S}) where S <: FieldElem
+    reduction(C::ProjPlaneCurve{S}) where S <: FieldElem
 
 Return the plane curve defined by the squarefree part of the equation of `C`.
 
@@ -381,7 +379,6 @@ julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 
 julia> C = Oscar.AffinePlaneCurve(y^3*x^6 - y^6*x^2)
 Affine plane curve defined by x^6*y^3 - x^2*y^6
-
 
 julia> Oscar.reduction(C)
 Affine plane curve defined by x^5*y - x*y^4

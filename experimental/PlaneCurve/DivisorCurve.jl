@@ -299,6 +299,7 @@ end
 
 @doc Markdown.doc"""
     multiplicity(C::AffinePlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T}, P::Point{S}) where {S <: FieldElem, T <: MPolyElem{S}}
+    multiplicity(C::ProjPlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T}, P::Oscar.Geometry.ProjSpcElem{S})  where {S <: FieldElem, T <: Oscar.MPolyElem_dec{S}}
 
 Return the multiplicity of the rational function `phi` on the curve `C` at the point `P`.
 
@@ -338,10 +339,21 @@ function multiplicity(C::AffinePlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{
     return multiplicity(C, f[2], P) - multiplicity(C, g[2], P)
 end
 
+function multiplicity(C::ProjPlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T}, P::Oscar.Geometry.ProjSpcElem{S})  where {S <: FieldElem, T <: Oscar.MPolyElem_dec{S}}
+    g = divrem(phi.den.f, C.eq.f)
+    !iszero(g[2]) || error("This is not a rational function on the curve")
+    f = divrem(phi.num.f, C.eq.f)
+    !iszero(f[2]) || error("The numerator is zero on the curve")
+    R = parent(C.eq)
+    return multiplicity(C, R(f[2]), P) - multiplicity(C, R(g[2]), P)
+end
+
+
 ###############################################################################
 
 @doc Markdown.doc"""
     multiplicity(C::AffinePlaneCurve{S}, F::Oscar.MPolyElem{S}, P::Point{S}) where S <: FieldElem
+    multiplicity(C::ProjPlaneCurve{S}, F::Oscar.MPolyElem_dec{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
 
 Return the multiplicity of the polynomial `F` on the curve `C` at the point `P`.
 """
@@ -355,11 +367,7 @@ function multiplicity(C::AffinePlaneCurve{S}, F::Oscar.MPolyElem{S}, P::Point{S}
         return intersection_multiplicity(C, AffinePlaneCurve(f[2]), P)
     end
 end
-@doc Markdown.doc"""
-    multiplicity(C::ProjPlaneCurve{S}, F::Oscar.MPolyElem_dec{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
 
-Return the multiplicity of the polynomial `F` on the curve `C` at the point `P`.
-"""
 function multiplicity(C::ProjPlaneCurve{S}, F::Oscar.MPolyElem_dec{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
     f = divrem(F.f, defining_equation(C))
     if iszero(f[2])
@@ -370,22 +378,6 @@ function multiplicity(C::ProjPlaneCurve{S}, F::Oscar.MPolyElem_dec{S}, P::Oscar.
         R = parent(C.eq)
         return intersection_multiplicity(C, ProjPlaneCurve(R(f[2])), P)
     end
-end
-
-################################################################################
-
-@doc Markdown.doc"""
-    multiplicity(C::ProjPlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T}, P::Oscar.Geometry.ProjSpcElem{S})  where {S <: FieldElem, T <: Oscar.MPolyElem_dec{S}}
-
-Return the multiplicity of the rational function `phi` on the curve `C` at the point `P`.
-"""
-function multiplicity(C::ProjPlaneCurve{S}, phi::AbstractAlgebra.Generic.Frac{T}, P::Oscar.Geometry.ProjSpcElem{S})  where {S <: FieldElem, T <: Oscar.MPolyElem_dec{S}}
-    g = divrem(phi.den.f, C.eq.f)
-    !iszero(g[2]) || error("This is not a rational function on the curve")
-    f = divrem(phi.num.f, C.eq.f)
-    !iszero(f[2]) || error("The numerator is zero on the curve")
-    R = parent(C.eq)
-    return multiplicity(C, R(f[2]), P) - multiplicity(C, R(g[2]), P)
 end
 
 ################################################################################
