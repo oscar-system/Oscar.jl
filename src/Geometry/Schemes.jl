@@ -51,7 +51,7 @@ function AffineScheme(
     k::S, 
     R::T, 
     I::MPolyIdeal{U}, 
-    denom::Union{Nothing,Vector{U}} 
+    denom::Vector{U}
   ) where{
 	  S <: Ring, 
 	  T <:MPolyRing , 
