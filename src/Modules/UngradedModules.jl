@@ -1,5 +1,7 @@
 export presentation
 
+# TODO replace asserts by error messages?
+
 @doc Markdown.doc"""
   ModuleFP{T}
 
@@ -185,6 +187,10 @@ true
 struct FreeModuleElem{T}
   coords::SRow{T} # also usable via coeffs()
   parent::FreeMod{T}
+end
+
+function in(v::FreeModuleElem, M::ModuleFP)
+  return parent(v) === M
 end
 
 @doc Markdown.doc"""
@@ -941,6 +947,12 @@ function sum(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
   return SubModuleOfFreeModule(M.F, vcat(collect(M.gens), collect(N.gens)))
 end
 
+function issubset(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
+  @assert M.F === N.F
+  M_mod_N = _reduce(singular_generators(std_basis(M)), singular_generators(std_basis(N)))
+  return iszero(M_mod_N)
+end
+
 @doc Markdown.doc"""
   ==(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
 
@@ -1377,6 +1389,10 @@ elem_type(::SubQuo{T}) where {T} = SubQuoElem{T}
 parent_type(::SubQuoElem{T}) where {T} = SubQuo{T}
 elem_type(::Type{SubQuo{T}}) where {T} = SubQuoElem{T}
 parent_type(::Type{SubQuoElem{T}}) where {T} = SubQuo{T}
+
+function in(v::SubQuoElem, M::ModuleFP)
+  return parent(v) === M
+end
 
 @doc Markdown.doc"""
   getindex(v::SubQuoElem, i::Int)
@@ -2102,11 +2118,11 @@ end
 # dual: ambig: hom(M, R) or hom(M, Q(R))?
 
 @doc Markdown.doc"""
-  coordinates(a::FreeModuleElem, SQ::SubQuo)
+  coordinates(a::FreeModuleElem, SQ::SubQuo)::Union{Nothing,Oscar.SRow}
 Compute a sparse row `r` such that `a` is a representative of `SubQuoElem(r, SQ)`.
-If no such `r` exists an error is thrown.
+If no such `r` exists, `nothing` is returned.
 """
-function coordinates(a::FreeModuleElem, SQ::SubQuo)
+function coordinates(a::FreeModuleElem, SQ::SubQuo)::Union{Nothing,Oscar.SRow}
   if iszero(a)
     return sparse_row(base_ring(parent(a)))
   end
@@ -2125,12 +2141,21 @@ function coordinates(a::FreeModuleElem, SQ::SubQuo)
   singular_assure(b)
   s, r = Singular.lift(S, singular_generators(b))
   if Singular.ngens(s) == 0 || iszero(s[1])
-    error("elem not in module")
+    #error("elem not in module")
+    return nothing
   end
   Rx = base_ring(SQ)
   return sparse_row(Rx, s[1], 1:ngens(SQ))
 end
 
+@doc Markdown.doc"""
+  represents_element(a::FreeModuleElem, SQ::SubQuo)
+
+Check if `a` represents an element `SQ`.
+"""
+function represents_element(a::FreeModuleElem, SQ::SubQuo)
+  return !isnothing(coordinates(a,SQ))
+end
 
 hom(D::SubQuo, C::ModuleFP, A::Vector{<:Any}) = SubQuoHom(D, C, A)
 
