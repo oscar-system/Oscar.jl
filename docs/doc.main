@@ -116,6 +116,15 @@
      "InvariantTheory/reductive_groups.md",
   ],
 
+  "Geometry" => [
+     "Plane Curves" => [
+        "Experimental/introduction.md",
+        "Experimental/plane_curves.md",
+        "Experimental/divisors.md",
+        "Experimental/elliptic_curves.md",
+     ],
+  ],
+
   "References" => "references.md",
   "Index" => "manualindex.md",
 ]

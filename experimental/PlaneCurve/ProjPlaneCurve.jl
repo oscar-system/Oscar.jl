@@ -452,6 +452,25 @@ end
     arithmetic_genus(C::ProjectivePlaneCurve)
 
 Return the arithmetic genus of `C`.
+
+# Example
+```jldoctest
+julia> S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> T, _ = grade(S)
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
+  x -> [1]
+  y -> [1]
+  z -> [1], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
+
+julia> C = Oscar.ProjPlaneCurve(T(y^2 * z - x^3 - x * z^2))
+Projective plane curve defined by -x^3 - x*z^2 + y^2*z
+
+
+julia> Oscar.arithmetic_genus(C)
+1
+```
 """
 function arithmetic_genus(C::ProjectivePlaneCurve)
   F = C.eq
