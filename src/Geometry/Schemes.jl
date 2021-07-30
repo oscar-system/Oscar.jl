@@ -2,8 +2,8 @@
 import AbstractAlgebra.Ring, Oscar.AlgHom, Oscar.compose
 import Base: ∘
 
-export AffineScheme, PrincipalSubScheme,Spec, SpecPrincipalOpen, affine_space, AffSchMorphism, base_ring,ambient_ring,defining_ideal
-
+export AffineScheme, PrincipalSubScheme,Spec, SpecPrincipalOpen, affine_space
+export AffSchMorphism, base_ring,ambient_ring,defining_ideal
 export localize
 
 abstract type Scheme end
@@ -55,6 +55,10 @@ mutable struct SpecPrincipalOpen{S <: Ring, T<:MPolyRing, U<:MPolyElem} <: Affin
 end
 
 function PrincipalSubScheme(parent, denom)
+  return SpecPrincipalOpen(parent, denom)
+end
+
+function localize(parent, denom)
   return SpecPrincipalOpen(parent, denom)
 end
 
