@@ -397,7 +397,7 @@ end
 	end
 end
 
-@testset "tensoring morphisms" begin
+#=@testset "tensoring morphisms" begin
 	R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
 
 	F2 = Oscar.FreeMod(R,2)
@@ -511,7 +511,7 @@ end
 			@test M2_to_N2(g) == Oscar.canonical_projection(prod_N,2)(phi(emb[2](g)))
 		end
 	end
-end
+end=#
 
 # testing lift ?
 
@@ -602,7 +602,7 @@ end
 		# test, if H is surjective:
 		@test ImH == M
 
-
+#=
 		#3) H:N --> M neither injective nor surjective, also: tests 'restrict_domain()'
 		MM = Oscar.SubQuo(A1,B1)
 		M, iM, iSQ = Oscar.sum(MM, Oscar.SubQuo(A2,B1))
@@ -667,7 +667,7 @@ end
 
 		# test if Hbar and Hbar_inv are inverse to each other:
 		@test all([Hbar_inv(Hbar(g))==g for g in Oscar.gens(NmodKerH)])
-		@test all([Hbar(Hbar_inv(g))==g for g in Oscar.gens(ImH)])
+		@test all([Hbar(Hbar_inv(g))==g for g in Oscar.gens(ImH)])=#
 		#######################################################################
 	end
 	print("\r                                        ")
