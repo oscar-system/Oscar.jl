@@ -733,7 +733,6 @@ end
 function Oscar.automorphism_group(::Type{PermGroup}, k::AnticNumberField)
   G, mG = automorphism_group(k)
   H = symmetric_group(degree(k))
-  gens(G) #to make sure gens are actually there...
   H = sub(H, [H(G.mult_table[i, :]) for i=G.gens])[1]
 
   function HtoG(p::PermGroupElem)

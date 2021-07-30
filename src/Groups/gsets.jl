@@ -279,9 +279,9 @@ end
 # The following must be executed at runtime.
 # (Eventually put it into some `__init__`.)
 function __init_JuliaData()
-    if ! hasproperty(GAP.Globals, :JuliaData)
+    if ! GAP.Globals.ISB_GVAR(GAP.julia_to_gap("JuliaData"))
       GAP.evalstr("""
-DeclareAttribute( "JuliaData", IsObject );
+DeclareAttribute( "JuliaData", IsObject );");
 InstallOtherMethod( ImagesRepresentative,
 [ IsActionHomomorphism and HasJuliaData, IsMultiplicativeElementWithInverse ],
 function( hom, elm )

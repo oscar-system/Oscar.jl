@@ -257,7 +257,6 @@ include("Rings/mpoly-local.jl")
 include("Rings/FinField.jl")
 include("Rings/NumberField.jl")
 include("Rings/FunctionField.jl")
-include("Rings/AbelianClosure.jl")
 
 include("Modules/FreeModules-graded.jl")
 
@@ -275,8 +274,6 @@ include("Rings/slpolys.jl")
 
 include("../experimental/Experimental.jl")
 include("Rings/binomial_ideals.jl")
-
-include("InvariantTheory/InvariantTheory.jl")
 
 if is_dev
 #  include("../examples/ModStdNF.jl")
