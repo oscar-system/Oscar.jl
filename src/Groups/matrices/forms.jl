@@ -38,7 +38,8 @@ mutable struct SesquilinearForm{T<:RingElem}
    descr::Symbol       # quadratic, symmetric, alternating or hermitian
    pol::MPolyElem{T}     # only for quadratic forms
    X::GapObj
-   mat_iso::GenMatIso
+   ring_iso::MapFromFunc
+   mat_iso::MapFromFunc
 
    function SesquilinearForm{T}(B::MatElem{T},sym) where T
       if sym==:hermitian
@@ -309,9 +310,9 @@ end
 
 
 function assign_from_description(f::SesquilinearForm)
-   if f.descr==:quadratic f.X=GAP.Globals.QuadraticFormByMatrix(f.mat_iso(gram_matrix(f)),f.mat_iso.fr.codomain)
-   elseif f.descr==:symmetric || f.descr==:alternating f.X=GAP.Globals.BilinearFormByMatrix(f.mat_iso(gram_matrix(f)),f.mat_iso.fr.codomain)
-   elseif f.descr==:hermitian f.X=GAP.Globals.HermitianFormByMatrix(f.mat_iso(gram_matrix(f)),f.mat_iso.fr.codomain)
+   if f.descr==:quadratic f.X=GAP.Globals.QuadraticFormByMatrix(f.mat_iso(gram_matrix(f)),codomain(f.ring_iso))
+   elseif f.descr==:symmetric || f.descr==:alternating f.X=GAP.Globals.BilinearFormByMatrix(f.mat_iso(gram_matrix(f)),codomain(f.ring_iso))
+   elseif f.descr==:hermitian f.X=GAP.Globals.HermitianFormByMatrix(f.mat_iso(gram_matrix(f)),codomain(f.ring_iso))
    else error("unsupported description")
    end
 end
@@ -321,13 +322,16 @@ function Base.getproperty(f::SesquilinearForm, sym::Symbol)
 
    if isdefined(f,sym) return getfield(f,sym) end
 
-   if sym === :mat_iso
-      f.mat_iso = gen_mat_iso(nrows(gram_matrix(f)), base_ring(f))
+   if sym === :ring_iso
+      f.ring_iso = ring_iso_oscar_gap(base_ring(f))
+
+   elseif sym === :mat_iso
+      f.mat_iso = mat_iso_oscar_gap(base_ring(f), nrows(gram_matrix(f)), f.ring_iso)
 
    elseif sym == :X
       if !isdefined(f, :X)
          if !isdefined(f,:mat_iso)
-            f.mat_iso = gen_mat_iso(nrows(gram_matrix(f)), base_ring(f))
+            f.mat_iso = mat_iso_oscar_gap(base_ring(f), nrows(gram_matrix(f)), f.ring_iso)
          end
          assign_from_description(f)
       end
@@ -412,7 +416,7 @@ function radical(f::SesquilinearForm{T}) where T
    GAP.Globals.Dimension(R)==0 && return sub(V,[])
    L = AbstractAlgebra.Generic.FreeModuleElem{T}[]
    for l in GAP.Globals.GeneratorsOfVectorSpace(R)
-      v = V([f.mat_iso.fr(t) for t in l])
+      v = V([preimage(f.ring_iso, t) for t in l])
       push!(L,v)
    end
    return sub(V,L)
