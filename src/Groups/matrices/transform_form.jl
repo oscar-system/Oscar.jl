@@ -386,8 +386,8 @@ function iscongruent(f::SesquilinearForm{T}, g::SesquilinearForm{T}) where T <: 
    
    if f.descr==:quadratic
       if iseven(characteristic(F))            # in this case we use the GAP algorithms
-         Bg = g.mat_iso(GAP.Globals.BaseChangeToCanonical(g.X))
-         Bf = f.mat_iso(GAP.Globals.BaseChangeToCanonical(f.X))
+         Bg = preimage(g.mat_iso, GAP.Globals.BaseChangeToCanonical(g.X))
+         Bf = preimage(f.mat_iso, GAP.Globals.BaseChangeToCanonical(f.X))
          UTf = _upper_triangular_version(Bf*gram_matrix(f)*transpose(Bf))
          UTg = _upper_triangular_version(Bg*gram_matrix(g)*transpose(Bg))
          if _is_scalar_multiple_mat(UTf, UTg)[1]
