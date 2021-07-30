@@ -8,7 +8,7 @@ import Base: ∘
 
 export AffineScheme, affine_space, AffSchMorphism
 
-export localize
+export localize, base_ring, defining_ideal, ambient_ring
 
 abstract type Scheme end
 abstract type SchemeMorphism end
@@ -41,7 +41,7 @@ function defining_ideal(A::AffineScheme)
   return A.I
 end
 
-mutable struct PrincipalOpenAffSubSch{S <: ring, T<:MpolyRing, U<:MPolyElem}
+mutable struct PrincipalOpenAffSubSch{S <: Ring, T<:MPolyRing, U<:MPolyElem}
   parent::Union{AffineScheme{S,T,U},PrincipalOpenAffSubSch{S,T,U}}
   denom::MPolyElem{U}  # element of the "ambient" polynomial ring of the root
   # these fields are only initialized if needed and used to comply to the AffineScheme interface
