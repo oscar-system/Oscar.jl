@@ -19,20 +19,6 @@ mutable struct AffineScheme{S <: Ring, T <: MPolyRing, U <: MPolyElem} <: Scheme
   R::T		  	# the ambient polynomial ring to model this affine scheme
   I::MPolyIdeal{U}	# The ideal in R defining the scheme
 
-  # fields for caching
-  denom::Vector{U}	# list of denominators at which has been localized
-  as_poly_algebra::T	# A concrete instance of an ambient polynomial ring 
-  					# realizing the localization as a polynomial algebra
-  localized_ideal::MPolyIdeal{U}  	# The ideal in the ring as_poly_algebra 
-  					# realizing the localization.
-  localization_map::AlgHom 	 	# The ring homomorphism from R to 
-					# as_poly_algebra for the localization.
-  saturated_ideal::MPolyIdeal{U}	# the ideal I'= I:f^∞ in R with f the product 
-  					# of elements in the list denom.
-  #restriction_maps::AffSchMorphism	# A place to store restriction maps from other 
-  					# affine schemes to this one.
-
-  # The very basic constructor
   function AffineScheme(k::S, R::T, I::MPolyIdeal{U} ) where{
 			S <: Ring, T <:MPolyRing , U <: MPolyElem}
     if k != base_ring(R)
@@ -41,27 +27,36 @@ mutable struct AffineScheme{S <: Ring, T <: MPolyRing, U <: MPolyElem} <: Scheme
     # TODO: Implement further plausibility checks to be performed at runtime.
     return new{S, T, U}(k, R, I )
   end
-
 end
 
+function base_ring(A::AffineScheme)
+  return A.k
+end
+
+function ambient_ring(A::AffineScheme)
+  return A.R
+end
+
+function defining_ideal(A::AffineScheme)
+  return A.I
+end
+
+mutable struct PrincipalOpenAffSubSch{S <: ring, T<:MpolyRing, U<:MPolyElem}
+  parent::Union{AffineScheme{S,T,U},PrincipalOpenAffSubSch{S,T,U}}
+  denom::MPolyElem{U}  # element of the "ambient" polynomial ring of the root
+  # these fields are only initialized if needed and used to comply to the AffineScheme interface
+  k::S  
+  R::T
+  I::MPolyIdeal{U} 
+  
+  function PrincipalOpenAffSubScheme(parent, denom)
+    x = new{S,T,U}() 
+    x.parent = parent
+    x.denom = denom
+  end 
+end
+  
 # outer constructors
-
-# Constructor with denominators 
-function AffineScheme(
-    k::S, 
-    R::T, 
-    I::MPolyIdeal{U}, 
-    denom::Vector{U}
-  ) where{
-	  S <: Ring, 
-	  T <:MPolyRing , 
-	  U <: MPolyElem}
-  X = AffineScheme( k, R, I )
-  # TODO: implement a check whether the elements in denom belong to the correct ring.
-  X.denom = denom
-  return X 
-end
-
 function AffineScheme( k::S, R::T ) where{S <: Ring, T <:MPolyRing}
   I = ideal(R, zero(R))
   return AffineScheme(k, R, I )
@@ -82,21 +77,6 @@ function AffineScheme( R::T, I::MPolyIdeal{U} ) where{ T <: MPolyRing, U <: MPol
   k = base_ring(R)
   return AffineScheme(k, R, I )
 end
-
-function AffineScheme( R::T, denom::Vector{U} ) where{
-			T <: MPolyRing, U <: MPolyElem }
-  I = ideal(R, zero(R))
-  k = base_ring( R )
-  return AffineScheme(k, R, I, denom )
-end
-
-function AffineScheme( R::T, f::U ) where{
-			T <: MPolyRing, U <: MPolyElem }
-  I = ideal(R, zero(R))
-  k = base_ring( R )
-  return AffineScheme(k, R, I, [f] )
-end
-
 
 # Construct affine n-space over the ring k.
 function affine_space( k::Ring, n::Int, name::String="x" )
