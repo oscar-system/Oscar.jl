@@ -24,6 +24,8 @@
   @test root(D21) == A
   @test D12 != D21
   I = defining_ideal(D12)
+  phi = Oscar.AffSchMorphism(D12,A,Oscar.get_ring_hom(D12))
+  Oscar.imgs_frac(phi)
   #=
   Y, phi= P( An, f )
 
