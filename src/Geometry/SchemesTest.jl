@@ -3,18 +3,22 @@ using Revise, Oscar
 includet( "Schemes.jl" )
 using Main.Schemes
 
-An = affine_space( QQ, 4 )
+R, var = QQ["x","y"]
 
-R = An.R
-x = gens(R)
+X = AffineScheme( R )
 
-f = x[1]^2 + x[2]^2 -1
+#An = affine_space( QQ, 4 )
 
-Y, phi= localize( An, f )
+#R = An.R
+#x = gens(R)
 
-y = gens( Y.R )
-g = y[1]^3*y[3]+y[2]^4 -5
-
-Z, psi = localize( Y, g )
-
-mu = compose( psi, phi )
+#f = x[1]^2 + x[2]^2 -1
+#
+#Y, phi= localize( An, f )
+#
+#y = gens( Y.R )
+#g = y[1]^3*y[3]+y[2]^4 -5
+#
+#Z, psi = localize( Y, g )
+#
+#mu = compose( psi, phi )

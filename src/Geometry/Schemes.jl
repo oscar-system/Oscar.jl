@@ -5,10 +5,11 @@ using Markdown
 
 import AbstractAlgebra.Ring, Oscar.AlgHom, Oscar.compose
 import Base: ∘
+import Oscar: base_ring
 
 export AffineScheme, affine_space, AffSchMorphism
 
-export localize, base_ring, defining_ideal, ambient_ring
+export localize, defining_ideal, ambient_ring
 
 abstract type Scheme end
 abstract type SchemeMorphism end
@@ -48,6 +49,11 @@ mutable struct PrincipalOpenAffSubSch{S <: Ring, T<:MPolyRing, U<:MPolyElem}
   k::S  
   R::T
   I::MPolyIdeal{U} 
+
+  # cached objects
+  base_ring::S
+  ambient_ring::MPolyRing
+  defining_ideal::MPolyIdeal{U}
   
   function PrincipalOpenAffSubScheme(parent, denom)
     x = new{S,T,U}() 
@@ -55,7 +61,15 @@ mutable struct PrincipalOpenAffSubSch{S <: Ring, T<:MPolyRing, U<:MPolyElem}
     x.denom = denom
   end 
 end
+
+function base_ring( X::PrincipalOpenAffSubSch )
+  return base_ring( X.parent )
+end
   
+function ambient_ring( X::PrincipalOpenAffSubSch )
+  return ambient_ring( X.parent )
+end
+
 # outer constructors
 function AffineScheme( k::S, R::T ) where{S <: Ring, T <:MPolyRing}
   I = ideal(R, zero(R))
