@@ -42,34 +42,6 @@ function defining_ideal(A::AffineScheme)
   return A.I
 end
 
-mutable struct PrincipalOpenAffSubSch{S <: Ring, T<:MPolyRing, U<:MPolyElem}
-  parent::Union{AffineScheme{S,T,U},PrincipalOpenAffSubSch{S,T,U}}
-  denom::MPolyElem{U}  # element of the "ambient" polynomial ring of the root
-  # these fields are only initialized if needed and used to comply to the AffineScheme interface
-  k::S  
-  R::T
-  I::MPolyIdeal{U} 
-
-  # cached objects
-  base_ring::S
-  ambient_ring::MPolyRing
-  defining_ideal::MPolyIdeal{U}
-  
-  function PrincipalOpenAffSubScheme(parent, denom)
-    x = new{S,T,U}() 
-    x.parent = parent
-    x.denom = denom
-  end 
-end
-
-function base_ring( X::PrincipalOpenAffSubSch )
-  return base_ring( X.parent )
-end
-  
-function ambient_ring( X::PrincipalOpenAffSubSch )
-  return ambient_ring( X.parent )
-end
-
 # outer constructors
 function AffineScheme( k::S, R::T ) where{S <: Ring, T <:MPolyRing}
   I = ideal(R, zero(R))
@@ -108,6 +80,55 @@ function Base.show( io::Base.IO, X::AffineScheme )
   Base.print( io, X.I )
 end
 
+### PrincipalOpenAffSubSch
+# This section is for the definition and the methods around this struct.
+
+mutable struct PrincipalOpenAffSubSch{S <: Ring, T<:MPolyRing, U<:MPolyElem}
+  parent::Union{AffineScheme{S,T,U},PrincipalOpenAffSubSch{S,T,U}}
+  denom::MPolyElem{U}  # element of the "ambient" polynomial ring of the root
+  # these fields are only initialized if needed and used to comply to the AffineScheme interface
+  k::S  
+  R::T
+  I::MPolyIdeal{U} 
+
+  # cached objects
+  base_ring::S
+  ambient_ring::MPolyRing
+  defining_ideal::MPolyIdeal{U}
+  restriction::AlgHom
+  
+  function PrincipalOpenAffSubScheme(parent, denom)
+    x = new{S,T,U}() 
+    x.parent = parent
+    x.denom = denom
+  end 
+end
+
+function base_ring( X::PrincipalOpenAffSubSch )
+  if isdefined( X, :base_ring )
+    return X.base_ring
+  else
+    X.base_ring = base_ring( X.parent )
+    return X.base_ring
+  end
+end
+  
+function ambient_ring( X::PrincipalOpenAffSubSch )
+  if isdefined( X, :ambient_ring )
+    return X.ambient_ring 
+  else
+    S = ambient_ring( X.parent )
+    R, phi, u = add_variables( S, ["denom"] )
+    X.restriction = phi
+    X.base_ring = R
+    return R
+  end
+end
+
+
+### Morphisms of affine schemes
+# First for the classical affine schemes, then for the localized ones.
+#
 mutable struct AffSchMorphism{
     Sdom <: Ring, Tdom <: MPolyRing, Udom <: MPolyElem, 
     Scod <: Ring, Tcod <: MPolyRing, Ucod <: MPolyElem 
