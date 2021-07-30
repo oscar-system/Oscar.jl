@@ -14,7 +14,7 @@ export localize, defining_ideal, ambient_ring
 abstract type Scheme end
 abstract type SchemeMorphism end
 
-mutable struct AffineScheme{S <: Ring, T <: MPolyRing, U <: MPolyElem} <: Scheme
+mutable struct AffineScheme{S <: Ring, T <: MPolyRing, U <: MPolyElem} <: Scheme # this is the mutuble struct 
   # the basic fields 
   k::S			# the base ring (usually a field) of definition for the scheme
   R::T		  	# the ambient polynomial ring to model this affine scheme
