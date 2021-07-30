@@ -1,27 +1,24 @@
-module Schemes
-
-using Oscar
-using Markdown
 
 import AbstractAlgebra.Ring, Oscar.AlgHom, Oscar.compose
 import Base: ∘
 
-export AffineScheme, affine_space, AffSchMorphism
-
+export AffineScheme, PrincipalSubScheme,Spec, SpecPrincipalOpen, affine_space
+export AffSchMorphism, base_ring,ambient_ring,defining_ideal
 export localize
 
 abstract type Scheme end
+abstract type AffineScheme end
 abstract type SchemeMorphism end
 
-mutable struct AffineScheme{S <: Ring, T <: MPolyRing, U <: MPolyElem} <: Scheme
+mutable struct Spec{S <: Ring, T <: MPolyRing, U <: MPolyElem} <: AffineScheme
   # the basic fields 
   k::S			# the base ring (usually a field) of definition for the scheme
   R::T		  	# the ambient polynomial ring to model this affine scheme
   I::MPolyIdeal{U}	# The ideal in R defining the scheme
 
-  function AffineScheme(k::S, R::T, I::MPolyIdeal{U} ) where{
+  function Spec(k::S, R::T, I::MPolyIdeal{U} ) where{
 			S <: Ring, T <:MPolyRing , U <: MPolyElem}
-    if k != base_ring(R)
+    if k != coefficient_ring(R)
       error( "Base ring of the affine scheme does not coincide with the base ring of the associated algebra." )
     end
     # TODO: Implement further plausibility checks to be performed at runtime.
@@ -29,174 +26,223 @@ mutable struct AffineScheme{S <: Ring, T <: MPolyRing, U <: MPolyElem} <: Scheme
   end
 end
 
-function base_ring(A::AffineScheme)
+function base_ring(A::Spec)
   return A.k
 end
 
-function ambient_ring(A::AffineScheme)
+function ambient_ring(A::Spec)
   return A.R
 end
 
-function defining_ideal(A::AffineScheme)
+function defining_ideal(A::Spec)
   return A.I
 end
 
-mutable struct PrincipalOpenAffSubSch{S <: ring, T<:MpolyRing, U<:MPolyElem}
-  parent::Union{AffineScheme{S,T,U},PrincipalOpenAffSubSch{S,T,U}}
-  denom::MPolyElem{U}  # element of the "ambient" polynomial ring of the root
+mutable struct SpecPrincipalOpen{S <: Ring, T<:MPolyRing, U<:MPolyElem} <: AffineScheme
+  parent::Union{Spec{S,T,U},SpecPrincipalOpen{S,T,U}}
+  denom::U  # element of the "ambient" polynomial ring of the root
   # these fields are only initialized if needed and used to comply to the AffineScheme interface
   k::S  
   R::T
   I::MPolyIdeal{U} 
   
-  function PrincipalOpenAffSubScheme(parent, denom)
+  function SpecPrincipalOpen(parent::Union{Spec{S,T,U},SpecPrincipalOpen{S,T,U}}, denom::U) where {S <: Ring, T<:MPolyRing, U<:MPolyElem}
     x = new{S,T,U}() 
     x.parent = parent
     x.denom = denom
+    return x 
   end 
 end
-  
+
+function PrincipalSubScheme(parent, denom)
+  return SpecPrincipalOpen(parent, denom)
+end
+
+function localize(parent, denom)
+  return SpecPrincipalOpen(parent, denom)
+end
+
+function parent(S::AffineScheme)
+  return S
+end
+
+function parent(D::SpecPrincipalOpen)
+  return D.parent
+end 
+
+function root(D::SpecPrincipalOpen)
+  return parent(parent(D))
+end
+
+function base_ring(D::SpecPrincipalOpen)
+  if isdefined(D,Symbol("k"))
+    return D.k
+  end
+  k = base_ring(root(D))
+  D.k = k
+  return k
+end
+
+
+function denoms(D::SpecPrincipalOpen{S,T,U}) where {S <: Ring, T <: MPolyRing, U<:MPolyElem}
+  result = U[]
+  P = D
+  while typeof(P) <: SpecPrincipalOpen
+    push!(result, P.denom)
+    P = parent(P)
+  end
+  return result
+end 
+
+function ambient_ring(D::SpecPrincipalOpen)
+  if isdefined(D,Symbol("R"))
+    return D.R
+  end
+  names = ["t$i" for i in 1:length(denoms(D))]
+  R = ambient_ring(root(D))
+  names = vcat( names, String.( symbols( R)) )
+  S, x = PolynomialRing( base_ring(D), names)
+  D.R = S
+  return S
+end 
+
+function get_ring_hom(D::SpecPrincipalOpen)
+  R = ambient_ring(root(D))
+  S = ambient_ring(D)
+  d = length(denoms(D))
+  n = length(gens(R))
+  return AlgebraHomomorphism(R,S, gens(S)[d+1:n+d])
+end
+
+function defining_ideal(D::SpecPrincipalOpen)
+  phi = get_ring_hom(D)
+  I = defining_ideal(root(D))
+  den = denoms(D)
+  R = ambient_ring(root(D))
+  S = ambient_ring(D)
+  gen = gens(S)
+  tmp = [gen[i]*phi(den[i]) - 1 for i in 1:length(den)]
+  for g in gens(R)
+    push!(tmp,phi(g))
+  end
+  return ideal(tmp)
+end
+
+
 # outer constructors
-function AffineScheme( k::S, R::T ) where{S <: Ring, T <:MPolyRing}
+function Spec( k::S, R::T ) where{S <: Ring, T <:MPolyRing}
   I = ideal(R, zero(R))
-  return AffineScheme(k, R, I )
+  return Spec(k, R, I )
 end
 
 @doc Markdown.doc"""
-    AffineScheme(R::MPolyRing) -> AffineScheme
+    Spec(R::MPolyRing) -> Spec
 
-Return the affine scheme corresponding to the ring $R$.
+Return the affine scheme corresponding to the ring $R/(0)$.
 """
-function AffineScheme( R::T ) where{T <: MPolyRing}
+function Spec( R::T ) where{T <: MPolyRing}
   I = ideal(R, zero(R))
-  k = base_ring( R )
-  return AffineScheme(k, R, I )
+  k = coefficient_ring( R )
+  return Spec(k, R, I )
 end
 
-function AffineScheme( R::T, I::MPolyIdeal{U} ) where{ T <: MPolyRing, U <: MPolyElem }
-  k = base_ring(R)
-  return AffineScheme(k, R, I )
+function Spec( R::T, I::MPolyIdeal{U} ) where{ T <: MPolyRing, U <: MPolyElem }
+  k = coefficient_ring(R)
+  return Spec(k, R, I )
 end
 
 # Construct affine n-space over the ring k.
 function affine_space( k::Ring, n::Int, name::String="x" )
   R, x = PolynomialRing( k, name => (1:n))
-  return AffineScheme( R )
+  return Spec( R )
 end
 
 function Base.show( io::Base.IO, X::AffineScheme )
   Base.print( io, "Affine scheme over " )
-  Base.print( io, X.k )
+  Base.print( io, base_ring(X) )
   Base.print( io, "\n" ) 
   Base.print( io, "given as the quotient of the polynomial ring \n" )
-  Base.print( io, X.R )
+  Base.print( io, ambient_ring(X) )
   Base.print( io, "\nby the ideal \n" )
-  Base.print( io, X.I )
+  Base.print( io, defining_ideal(X) )
 end
+
+
+function Base.show( io::Base.IO, X::SpecPrincipalOpen)
+  Base.print( io, "Principal open subscheme of \n" )
+  Base.print( io, root(X) )
+  Base.print( io, "\n" )
+  Base.print( io, "defined by\n" )
+  Base.print( io,  denoms(X))
+end
+
 
 mutable struct AffSchMorphism{
     Sdom <: Ring, Tdom <: MPolyRing, Udom <: MPolyElem, 
     Scod <: Ring, Tcod <: MPolyRing, Ucod <: MPolyElem 
   } <: SchemeMorphism
-  domain::AffineScheme{ Sdom, Tdom, Udom } 
-  codomain::AffineScheme{ Scod, Tcod, Ucod } 
+  domain::Spec{ Sdom, Tdom, Udom }
+  codomain::Spec{ Scod, Tcod, Ucod }
   pullback::AlgHom
-  
+
   function AffSchMorphism( domain::AffineScheme, codomain::AffineScheme, pullback::AlgHom )
-    if base_ring( domain.R ) != base_ring( codomain.R )
+    if coefficient_ring( domain.R ) != coefficient_ring( codomain.R )
       error( "the base rings of the domain and the codomain do not coincide!" )
     end
     #if domain(pullback) != codomain.R || codomain(pullback) != domain.R
       #error( "the domain and codomain of the given ring homomorphism is not compatible with the affine schemes." )
     #end 
     return new{ 
-      typeof(base_ring(domain.R)), typeof(domain.R), elem_type(domain.R), 
-      typeof(base_ring(codomain.R)), typeof(codomain.R), elem_type(codomain.R) 
+      typeof(coefficient_ring(domain.R)), typeof(domain.R), elem_type(domain.R),
+      typeof(coefficient_ring(codomain.R)), typeof(codomain.R), elem_type(codomain.R)
     }( domain, codomain, pullback )
     # return new( domain, codomain, pullback )
   end
-end
-
-# construct the affine scheme given by localization 
-# and return that new scheme together with the algebra 
-# morphism for the open inclusion
-function localize( X, f::MPolyElem, name::String="denom" ) 
-  # Check whether there already exists a variable named 'denom'
-  var_symb = symbols( X.R )
-  if Symbol( name ) in var_symb 
-    # If yes, recycle it.
-    # We implicitly assume that the variable called "denom" is 
-    # coming from a previous localization and the defining ideal 
-    # I in X.R is of the form I = I' + ⟨1-denom⋅f⟩ for some f 
-    # and some ideal I' not involving the variable denom.
-    y = gens( X.R )
-    unit_index = indexin( [Symbol(name)], var_symb )[1]
-    unit = y[unit_index]
-    var_images = gens( X.R )
-    var_images[unit_index] = unit*f
-    pullback = AlgebraHomomorphism( X.R, X.R, var_images )
-    I = ideal( pullback.( gens(X.I) ))
-    Y = AffineScheme( X.R, I )
-    phi = AffSchMorphism( X, Y, pullback )
-  else
-    # If not, then localize by introducing a new denominator
-    # This will be the first variable in the new ring, since we 
-    # expect an elimination ordering for 'denom' to be imposed 
-    # on this ring for saturation purposes.
-    B, y = PolynomialRing( base_ring(X.R), vcat( [name], String.( symbols( X.R )) ))
-    n = length( gens( X.R ))
-    pullback = AlgebraHomomorphism( X.R, B, y[2:n+1] )
-    I = ideal( B, [ pullback( g ) for g in gens(X.I) ] )
-    I = I + ideal( B, one(B) - y[1]*pullback(f) )
-    Y = AffineScheme( B, I )
-    phi = AffSchMorphism( X, Y, pullback )
-  end
-  return Y, phi
 end
 
 
 @doc Markdown.doc"""
     struct Glueing( domain::AffineScheme, codomain::AffineScheme, pullback::AlgHom )
 
-    Maintains the data for the glueing of two affine varieties. 
-    In practice, domain and codomain will be distinguished open subsets 
-    of different affine algebras and then pullback will specify 
-    a concrete isomorphism between them. 
+    Maintains the data for the glueing of two affine varieties.
+    In practice, domain and codomain will be distinguished open subsets
+    of different affine algebras and then pullback will specify
+    a concrete isomorphism between them.
 
-    Compared to AffSchMorphism, this structure has an additional field 
+    Compared to AffSchMorphism, this structure has an additional field
     in which the inverse morphism can be stored.
 """
 mutable struct Isomorphism{
-    Sdom <: Ring, Tdom <: MPolyRing, Udom <: MPolyElem, 
-    Scod <: Ring, Tcod <: MPolyRing, Ucod <: MPolyElem 
+    Sdom <: Ring, Tdom <: MPolyRing, Udom <: MPolyElem,
+    Scod <: Ring, Tcod <: MPolyRing, Ucod <: MPolyElem
   } <: SchemeMorphism
-  domain::AffineScheme{ Sdom, Tdom, Udom } 
-  codomain::AffineScheme{ Scod, Tcod, Ucod } 
+  domain::Spec{ Sdom, Tdom, Udom }
+  codomain::Spec{ Scod, Tcod, Ucod }
   pullback::AlgHom
   inverse::AlgHom
-  
+
   function Isomorphism( domain::AffineScheme, codomain::AffineScheme, pullback::AlgHom, inverse::AlgHom )
-    if base_ring( domain.R ) != base_ring( codomain.R )
+    if coefficient_ring( domain.R ) != coefficient_ring( codomain.R )
       error( "the base rings of the domain and the codomain do not coincide!" )
     end
     #if domain(pullback) != codomain.R || codomain(pullback) != domain.R
       #error( "the domain and codomain of the given ring homomorphism is not compatible with the affine schemes." )
-    #end 
-    return new{ 
-      typeof(base_ring(domain.R)), typeof(domain.R), elem_type(domain.R), 
-      typeof(base_ring(codomain.R)), typeof(codomain.R), elem_type(codomain.R) 
+    #end
+    return new{
+      typeof(coefficient_ring(domain.R)), typeof(domain.R), elem_type(domain.R),
+      typeof(coefficient_ring(codomain.R)), typeof(codomain.R), elem_type(codomain.R)
     }( domain, codomain, pullback, inverse )
   end
 
   function Isomorphism( domain::AffineScheme, codomain::AffineScheme, pullback::AlgHom )
-    if base_ring( domain.R ) != base_ring( codomain.R )
+    if coefficient_ring( domain.R ) != coefficient_ring( codomain.R )
       error( "the base rings of the domain and the codomain do not coincide!" )
     end
     inv_list = [ preimage( pullback, g )[1] for g in gens( codomain( pullback ))]
     inverse = AlgebraHomomorphism( pullback.codomain, pullback.domain, inv_list )
-    return new{ 
-      typeof(base_ring(domain.R)), typeof(domain.R), elem_type(domain.R), 
-      typeof(base_ring(codomain.R)), typeof(codomain.R), elem_type(codomain.R) 
+    return new{
+      typeof(coefficient_ring(domain.R)), typeof(domain.R), elem_type(domain.R),
+      typeof(coefficient_ring(codomain.R)), typeof(codomain.R), elem_type(codomain.R)
     }( domain, codomain, pullback, inverse )
   end
 end
@@ -209,8 +255,8 @@ mutable struct OpenInclusion{
     Sdom <: Ring, Tdom <: MPolyRing, Udom <: MPolyElem, 
     Scod <: Ring, Tcod <: MPolyRing, Ucod <: MPolyElem 
   } <: SchemeMorphism
-  domain::AffineScheme{ Sdom, Tdom, Udom } 
-  codomain::AffineScheme{ Scod, Tcod, Ucod } 
+  domain::Spec{ Sdom, Tdom, Udom }
+  codomain::Spec{ Scod, Tcod, Ucod }
   pullback::AlgHom
 end
 
@@ -294,4 +340,3 @@ mutable struct AffineCycle{ CoefficientType <: Ring } <: ChowCycle
   summands::Tuple{CoefficientType, AbstractAlgebra.Ideal}
 end
 
-end
