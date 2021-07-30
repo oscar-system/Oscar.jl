@@ -1,16 +1,16 @@
 
-import AbstractAlgebra.Ring, Oscar.AlgHom, Oscar.compose
+import AbstractAlgebra.Ring, Oscar.AlgHom, Oscar.compose, AbstractAlgebra.Generic.Frac
 import Base: ∘
 
 export AffineScheme, PrincipalSubScheme,Spec, SpecPrincipalOpen, affine_space
-export AffSchMorphism, base_ring,ambient_ring,defining_ideal
+export AffSchMorphism, base_ring,ambient_ring,defining_ideal, pullback
 export localize
 
 abstract type Scheme end
-abstract type AffineScheme end
+abstract type AffineScheme{S <: Ring, T <: MPolyRing, U <: MPolyElem} <: Scheme end
 abstract type SchemeMorphism end
 
-mutable struct Spec{S <: Ring, T <: MPolyRing, U <: MPolyElem} <: AffineScheme
+mutable struct Spec{S,T,U} <: AffineScheme{S,T,U}
   # the basic fields 
   k::S			# the base ring (usually a field) of definition for the scheme
   R::T		  	# the ambient polynomial ring to model this affine scheme
@@ -38,8 +38,8 @@ function defining_ideal(A::Spec)
   return A.I
 end
 
-mutable struct SpecPrincipalOpen{S <: Ring, T<:MPolyRing, U<:MPolyElem} <: AffineScheme
-  parent::Union{Spec{S,T,U},SpecPrincipalOpen{S,T,U}}
+mutable struct SpecPrincipalOpen{S,T,U} <: AffineScheme{S,T,U}
+  parent::AffineScheme{S,T,U}
   denom::U  # element of the "ambient" polynomial ring of the root
   # these fields are only initialized if needed and used to comply to the AffineScheme interface
   k::S  
@@ -73,6 +73,8 @@ end
 function root(D::SpecPrincipalOpen)
   return parent(parent(D))
 end
+
+root(A::Spec) = A
 
 function base_ring(D::SpecPrincipalOpen)
   if isdefined(D,Symbol("k"))
@@ -177,30 +179,89 @@ function Base.show( io::Base.IO, X::SpecPrincipalOpen)
 end
 
 
-mutable struct AffSchMorphism{
-    Sdom <: Ring, Tdom <: MPolyRing, Udom <: MPolyElem, 
-    Scod <: Ring, Tcod <: MPolyRing, Ucod <: MPolyElem 
-  } <: SchemeMorphism
-  domain::Spec{ Sdom, Tdom, Udom }
-  codomain::Spec{ Scod, Tcod, Ucod }
+mutable struct AffSchMorphism{S,Tdom, Udom, Tcod, Ucod}
+  domain::AffineScheme{S, Tdom, Udom}
+  codomain::AffineScheme{S, Tcod, Ucod}
   pullback::AlgHom
+  imgs_frac::Vector{Frac{Ucod}}
 
-  function AffSchMorphism( domain::AffineScheme, codomain::AffineScheme, pullback::AlgHom )
-    if coefficient_ring( domain.R ) != coefficient_ring( codomain.R )
+  function AffSchMorphism( domain::AffineScheme{S,Td,Ud},
+                           codomain::AffineScheme{S,Tc,Uc}, pullback::AlgHom
+                           ) where {S,Td,Ud,Tc,Uc}
+
+   if base_ring(domain) != base_ring(codomain)
       error( "the base rings of the domain and the codomain do not coincide!" )
     end
+    k = base_ring(domain)
+    #if domain(pullback) != ambient_ring(R) || codomain(pullback) != domain.R
+      #error( "the domain and codomain of the given ring homomorphism is not compatible with the affine schemes." )
+    #end
+    x = new{S,Td,Ud,Tc,Uc}()
+    x.domain = domain
+    x.codomain = codomain
+    x.pullback = pullback
+    return x
+
+  end
+
+  function AffSchMorphism( domain::AffineScheme{S,Td,Ud},
+                           codomain::AffineScheme{S,Tc,Uc}, imgs_frac::Frac{Uc}
+                           ) where {S,Td,Ud,Tc,Uc}
+    if base_ring(domain) != base_ring(codomain)
+      error( "the base rings of the domain and the codomain do not coincide!" )
+    end
+    k = base_ring(domain)
     #if domain(pullback) != codomain.R || codomain(pullback) != domain.R
       #error( "the domain and codomain of the given ring homomorphism is not compatible with the affine schemes." )
-    #end 
-    return new{ 
-      typeof(coefficient_ring(domain.R)), typeof(domain.R), elem_type(domain.R),
-      typeof(coefficient_ring(codomain.R)), typeof(codomain.R), elem_type(codomain.R)
-    }( domain, codomain, pullback )
-    # return new( domain, codomain, pullback )
+    #end
+    x = new{S,Td,Ud,Tc,Uc}()
+    x.domain = domain
+    x.codomain = codomain
+    x.imgs_frac = imgs_frac
+    return x
   end
 end
 
+domain(f::AffSchMorphism) = f.domain
+codomain(f::AffSchMorphism) = f.codomain
 
+function pullback(f::AffSchMorphism)
+  if isdefined(f, Symbol("pullback"))
+    return f.pullback
+  end
+  R = base_ring(codomain(f))
+  S = base_ring(domain(f))
+  # TODO reconstruct the ring homomorphism R -> S
+end
+
+function imgs_frac(f::AffSchMorphism)
+  if isdefined(f, Symbol("imgs_frac"))
+    return f.imgs_frac
+  end
+  phi = pullback(f)
+  P = ambient_ring(root(codomain(f)))
+  F = FractionField(P)
+  den = denoms(domain(f))
+  d = length(den)
+  n = length(gens(P))
+  fracs = [1//g for g in den]
+  for g in gens(P)
+    push!(fracs,F(g))
+  end
+  R = ambient_ring(codomain(f))
+  imgs_frac = elem_type(F)[]
+  for g in gens(R)
+    h = phi(g)
+    push!(imgs_frac,evaluate(h, fracs))
+  end
+  f.imgs_frac = imgs_frac
+  return imgs_frac
+end
+
+
+# Todo adapt the code below to the new data structure
+
+#=
 @doc Markdown.doc"""
     struct Glueing( domain::AffineScheme, codomain::AffineScheme, pullback::AlgHom )
 
@@ -340,3 +401,4 @@ mutable struct AffineCycle{ CoefficientType <: Ring } <: ChowCycle
   summands::Tuple{CoefficientType, AbstractAlgebra.Ideal}
 end
 
+=#
