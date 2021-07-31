@@ -727,7 +727,7 @@ end
 
 #??? needs to coerce into b? assert parent?
 function (b::AbstractAlgebra.Ring)(a::Singular.n_unknown)
-  Singular.libSingular.julia(Singular.libSingular.cast_number_to_void(a.ptr))::elem_type(b)
+  Singular.libSingular.julia(Singular.libSingular.cast_number_to_void(a.ptr))
 end
 
 ##############################################################################

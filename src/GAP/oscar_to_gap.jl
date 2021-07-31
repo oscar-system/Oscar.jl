@@ -9,7 +9,7 @@ function GAP.julia_to_gap(obj::fmpz)
   Nemo._fmpz_is_small(obj) && return GAP.julia_to_gap(Int(obj))
   GC.@preserve obj begin
     x = Nemo._as_bigint(obj)
-    return ccall((:MakeObjInt, GAP.libgap), GapObj, (Ptr{UInt64}, Cint), x.d, x.size)
+    return ccall(:MakeObjInt, GapObj, (Ptr{UInt64}, Cint), x.d, x.size)
   end
 end
 
