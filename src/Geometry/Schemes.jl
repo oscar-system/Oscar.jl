@@ -233,6 +233,14 @@ function Base.show( io::Base.IO, X::SpecPrincipalOpen)
   Base.print( io,  denoms(X))
 end
 
+############################################################################
+# Morphisms of affine schemes.
+#
+# These need to take into account both the Specs and their localizations. 
+# The information on the morphism is stored either as an explicit 
+# homomorphism of polynomial rings for the coordinate rings of the 
+# associated specs, or as a list of rational functions, the images of 
+# the variables. 
 
 mutable struct AffSchMorphism{S,Tdom, Udom, Tcod, Ucod}
   domain::AffineScheme{S, Tdom, Udom}
@@ -280,29 +288,44 @@ end
 domain(f::AffSchMorphism) = f.domain
 codomain(f::AffSchMorphism) = f.codomain
 
+# Construct the pullback on the level of coordinate rings 
+# from the fractional representation 
 function pullback(f::AffSchMorphism)
-  if isdefined(f, Symbol("pullback"))
+  if isdefined(f, :pullback)
     return f.pullback
+  end
+  if !isdefined(f, :imgs_frac )
+    error( "Neither the fractional representation, nor the pullback is defined for this morphism." )
   end
   R = base_ring(codomain(f))
   S = base_ring(domain(f))
-  # TODO reconstruct the ring homomorphism R -> S
+  # TODO reconstruct the ring homomorphism R -> S from the fractional representation.
 end
 
+# Construct the fractional representation of the morphism 
+# from the explicit algebra homomorphism. 
 function imgs_frac(f::AffSchMorphism)
   if isdefined(f, Symbol("imgs_frac"))
     return f.imgs_frac
   end
+  if !isdefined( f, :pullback )
+    error( "Neither the fractional representation, nor the pullback is defined for this morphism." )
+  end
   phi = pullback(f)
   P = ambient_ring(root(codomain(f)))
+  # Do we really want the quotient field of the ambient polynomial ring? 
+  # This is not the coordinate ring of the root!
   F = FractionField(P)
   den = denoms(domain(f))
   d = length(den)
   n = length(gens(P))
-  fracs = [1//g for g in den]
+  fracs = [1//F(g) for g in den]
   for g in gens(P)
     push!(fracs,F(g))
   end
+  # We probably have to change the order of the elements in frac 
+  # according to the add_variables routine which is now used 
+  # for the creation of the ambient ring.
   R = ambient_ring(codomain(f))
   imgs_frac = elem_type(F)[]
   for g in gens(R)
