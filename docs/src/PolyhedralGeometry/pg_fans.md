@@ -26,5 +26,5 @@ A nonempty finite collection $\mathcal{F}$ of (polyhedral) cones in $\mathbb{F}^
 To construct a polyhedral fan, you must pass the rays of each cone in the fan, along with an `IncidenceMatrix` encoding which rays are extremal with respect to which cones.
 
 ```@docs
-PolyhedralFan(Rays, Cones)
+PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix)
 ```
