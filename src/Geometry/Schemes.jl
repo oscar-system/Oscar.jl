@@ -11,6 +11,9 @@ abstract type Scheme end
 abstract type AffineScheme{S <: Ring, T <: MPolyRing, U <: MPolyElem} <: Scheme end
 abstract type SchemeMorphism end
 
+####################################################################################
+# The classical affine scheme, explicitly given as the quotient 
+# ring of a polynomial algebra.
 mutable struct Spec{S,T,U} <: AffineScheme{S,T,U}
   # the basic fields 
   k::S			# the base ring (usually a field) of definition for the scheme
@@ -27,6 +30,12 @@ mutable struct Spec{S,T,U} <: AffineScheme{S,T,U}
   end
 end
 
+###################################################################################
+# Getter functions
+#
+# No caching is needed in this case, since all these variables need to be assigned 
+# at instantiation
+#
 function base_ring(A::Spec)
   return A.k
 end
@@ -39,21 +48,42 @@ function defining_ideal(A::Spec)
   return A.I
 end
 
+##################################################################################
+# Affine scheme that arises as the localization of a Spec at a specific 
+# element 'denom' of the coordinate ring, i.e. a principal open subset. 
+#
+# These are implemented in a recursive fashion meaning there is a parent 
+# which is either a classical Spec or another principal open subset, from 
+# which this instance is derived by inverting an element 'denom'. 
+#
+# Such parent structures form a tree which necessarily has a Spec at its 
+# root. Currently, the implementation only allows localizations at elements 
+# denom from the coordinate ring of this root. 
+#
 mutable struct SpecPrincipalOpen{S,T,U} <: AffineScheme{S,T,U}
   parent::AffineScheme{S,T,U}
   denom::U  # element of the "ambient" polynomial ring of the root
-  # these fields are only initialized if needed and used to comply to the AffineScheme interface
+
+  # Fields for caching. These provide the data as a Spec for this 
+  # affine scheme
   k::S  
   R::T
   I::MPolyIdeal{U} 
+  pullbackFromParent::AlgHom
+  pullbackFromRoot::AlgHom
+  u::U # The inverse of denom in R
   
   function SpecPrincipalOpen(parent::Union{Spec{S,T,U},SpecPrincipalOpen{S,T,U}}, denom::U) where {S <: Ring, T<:MPolyRing, U<:MPolyElem}
     x = new{S,T,U}() 
     x.parent = parent
+    # TODO: Implement a plausibility check: Does denom belong to the coordinate ring of the root?
     x.denom = denom
     return x 
   end 
 end
+
+###############################################################################
+# Getter functions
 
 function PrincipalSubScheme(parent, denom)
   return SpecPrincipalOpen(parent, denom)
@@ -78,7 +108,7 @@ end
 root(A::Spec) = A
 
 function base_ring(D::SpecPrincipalOpen)
-  if isdefined(D,Symbol("k"))
+  if isdefined(D,:k)
     return D.k
   end
   k = base_ring(root(D))
@@ -86,6 +116,7 @@ function base_ring(D::SpecPrincipalOpen)
   return k
 end
 
+# Collect the denominators from this localization up to the root. 
 
 function denoms(D::SpecPrincipalOpen{S,T,U}) where {S <: Ring, T <: MPolyRing, U<:MPolyElem}
   result = U[]
@@ -97,38 +128,61 @@ function denoms(D::SpecPrincipalOpen{S,T,U}) where {S <: Ring, T <: MPolyRing, U
   return result
 end 
 
+# Set up an ambient ring for this localization. 
+#
+# The current implementation adds a variable 'denom$i' for 
+# every element whose inverse has been added to the 
+# coordinate ring of the root. Again, the implementation is 
+# recursive, but flattened in the sense that all variables
+# are on the same level over the base ring.
+ 
 function ambient_ring(D::SpecPrincipalOpen)
-  if isdefined(D,Symbol("R"))
+  if isdefined( D, :R )
     return D.R
   end
-  names = ["t$i" for i in 1:length(denoms(D))]
-  R = ambient_ring(root(D))
+  #names = ["denom$i" for i in 1:length(denoms(D))]
+  n = length( denoms( D )) + 1
+  R = ambient_ring(parent(D))
   names = vcat( names, String.( symbols( R)) )
-  S, x = PolynomialRing( base_ring(D), names)
+  S, ϕ, u = add_variables( R, ["denom$n"] )
   D.R = S
+  D.u = u
+  D.pullbackFromParent = ϕ
+  D.pullbackFromRoot = compose( ϕ, pullbackFromRoot( parent( D )))
   return S
 end 
 
-function get_ring_hom(D::SpecPrincipalOpen)
-  R = ambient_ring(root(D))
-  S = ambient_ring(D)
-  d = length(denoms(D))
-  n = length(gens(R))
-  return AlgebraHomomorphism(R,S, gens(S)[d+1:n+d])
+function pullback_from_root( D::SpecPrincipalOpen )
+  if isdef( D, :pullbackFromRoot )
+    return D.pullback_from_root
+  end
+  ambient_ring( D ) # This also stores the homomorphism
+  return D.pullbackFromRoot
 end
 
-function defining_ideal(D::SpecPrincipalOpen)
-  phi = get_ring_hom(D)
-  I = defining_ideal(root(D))
-  den = denoms(D)
-  R = ambient_ring(root(D))
-  S = ambient_ring(D)
-  gen = gens(S)
-  tmp = [gen[i]*phi(den[i]) - 1 for i in 1:length(den)]
-  for g in gens(R)
-    push!(tmp,phi(g))
+function pullback_from_parent( D::SpecPrincipalOpen )
+  if isdef( D, :pullbackFromParent )
+    return D.pullback_from_parent
   end
-  return ideal(tmp)
+  ambient_ring( D ) # This also stores the homomorphism
+  return D.pullbackFromParent
+end
+
+#function get_ring_hom(D::SpecPrincipalOpen)
+#  R = ambient_ring(root(D))
+#  S = ambient_ring(D)
+#  d = length(denoms(D))
+#  n = length(gens(R))
+#  return AlgebraHomomorphism(R,S, gens(S)[d+1:n+d])
+#end
+
+function defining_ideal(D::SpecPrincipalOpen)
+  ϕ = pullback_from_parent(D)
+  I = defining_ideal(parent(D))
+  R = ambient_ring(D)
+  J = ideal( J, [ ϕ(f) for f in gens( I ) ])
+  J = J + ideal( J, [ 1-u*denom ] )
+  return ( J )
 end
 
 
