@@ -305,32 +305,34 @@ end
 # Construct the fractional representation of the morphism 
 # from the explicit algebra homomorphism. 
 function imgs_frac(f::AffSchMorphism)
+  # first check if this variable is already cached
   if isdefined(f, Symbol("imgs_frac"))
     return f.imgs_frac
   end
+  # if both forms of the morphisms are not to be found, it is not defined at all.
   if !isdefined( f, :pullback )
     error( "Neither the fractional representation, nor the pullback is defined for this morphism." )
   end
-  phi = pullback(f)
-  P = ambient_ring(root(codomain(f)))
-  # Do we really want the quotient field of the ambient polynomial ring? 
-  # This is not the coordinate ring of the root!
+
+  # start reconstructing the fraction representation from 
+  # the explicit ring homomorphism
+  ϕ = pullback(f)
+  # Set up the codomain of a lift of the pullback ϕ to the ambient ring of 
+  # the domain of f. This is a localization of a *free* polynomial ring, 
+  # considered as a subalgebra of the fraction field. 
+  P = ambient_ring(root(domain(f)))
   F = FractionField(P)
   den = denoms(domain(f))
   d = length(den)
   n = length(gens(P))
-  fracs = [1//F(g) for g in den]
-  for g in gens(P)
-    push!(fracs,F(g))
-  end
-  # We probably have to change the order of the elements in frac 
-  # according to the add_variables routine which is now used 
-  # for the creation of the ambient ring.
-  R = ambient_ring(codomain(f))
+  # prepare a list of the images of the generators 
+  fracs = [ F(x) for x in gens(P) ]
+  fracs = vcat( fracs, [ 1//g for g in den ])
+  R = ambient_ring(root(codomain(f)))
   imgs_frac = elem_type(F)[]
   for g in gens(R)
-    h = phi(g)
-    push!(imgs_frac,evaluate(h, fracs))
+    h = compose( ϕ, pullback_from_root(codomain(f)) )
+    push!(imgs_frac,evaluate(h(g), fracs))
   end
   f.imgs_frac = imgs_frac
   return imgs_frac
