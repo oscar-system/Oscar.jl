@@ -22,11 +22,11 @@
    F = GF(29,1)[1]
    z = F(2)
    G = GL(3,F)
-   @test G.X isa GapObj
+   @test G.X isa GAP.GapObj
    @test isdefined(G,:X)
    @test isdefined(G, :ring_iso)
    @test isdefined(G, :mat_iso)
-   @test G.ring_iso(z) isa FFE
+   @test G.ring_iso(z) isa GAP.FFE
    Z = G.ring_iso(z)
    @test GAP.Globals.IN(Z,codomain(G.ring_iso))
    @test preimage(G.ring_iso, Z)==z
@@ -39,14 +39,14 @@
    @test isone(preimage(G.ring_iso, GAP.Globals.One(codomain(G.ring_iso))))
    
    xo = matrix(F,3,3,[1,z,0,0,1,2*z+1,0,0,z+2])
-#   xg = Vector{GapObj}(undef, 3)
+#   xg = Vector{GAP.GapObj}(undef, 3)
 #   for i in 1:3
-#      xg[i] = GapObj([preimage(G.ring_iso, xo[i,j]) for j in 1:3])
+#      xg[i] = GAP.GapObj([preimage(G.ring_iso, xo[i,j]) for j in 1:3])
 #   end
 #   xg=GAP.julia_to_gap(xg)
 
-   xg = GapObj([[G.ring_iso(xo[i,j]) for j in 1:3] for i in 1:3]; recursive=true)
-   @test G.mat_iso(xo) isa GapObj
+   xg = GAP.GapObj([[G.ring_iso(xo[i,j]) for j in 1:3] for i in 1:3]; recursive=true)
+   @test G.mat_iso(xo) isa GAP.GapObj
    @test G.mat_iso(xo)==xg
    @test preimage(G.mat_iso, xg)==xo
    @test preimage(G.mat_iso, GAP.Globals.One(GAP.Globals.GL(3,codomain(G.ring_iso))))==one(G).elm
@@ -55,11 +55,11 @@
    T,t = PolynomialRing(GF(3),"t")
    F,z = FiniteField(t^2+1,"z")
    G = GL(3,F)
-   @test G.X isa GapObj
+   @test G.X isa GAP.GapObj
    @test isdefined(G,:X)
    @test isdefined(G, :ring_iso)
    @test isdefined(G, :mat_iso)
-   @test G.ring_iso(z) isa FFE
+   @test G.ring_iso(z) isa GAP.FFE
    Z = G.ring_iso(z)
    @testset for a in F
       for b in F
@@ -79,7 +79,7 @@
    @test isone(preimage(G.ring_iso, GAP.Globals.One(codomain(G.ring_iso))))
    
    xo = matrix(F,3,3,[1,z,0,0,1,2*z+1,0,0,z+2])
-   xg = Vector{GapObj}(undef, 3)
+   xg = Vector{GAP.GapObj}(undef, 3)
    for i in 1:3
       xg[i] = GAP.julia_to_gap([G.ring_iso(xo[i,j]) for j in 1:3])
    end
@@ -142,7 +142,7 @@ end
    x = matrix(F,2,2,[1,0,0,1])
    x = G(x)
    @test !isdefined(x,:X)
-   @test x.X isa GapObj
+   @test x.X isa GAP.GapObj
    x = G[1].elm
    x = G(x)
    @test !isdefined(x,:X)
@@ -164,7 +164,7 @@ end
    @test parent(f(H[1]))==G
 
    K1 = matrix_group(x,y,x*y)
-   @test K1.X isa GapObj
+   @test K1.X isa GAP.GapObj
    @test K1.X==H.X
 
    K = matrix_group(x,x^2,y)

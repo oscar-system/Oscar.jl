@@ -1,3 +1,5 @@
+using Random
+
 export
     acting_domain,
     double_coset,
@@ -300,11 +302,17 @@ order(C::Union{GroupCoset,GroupDoubleCoset}) = GAP.Globals.Size(C.X)
 Base.length(C::Union{GroupCoset,GroupDoubleCoset}) = GAP.Globals.Size(C.X)
 
 """
-    rand(C::Union{GroupCoset,GroupDoubleCoset})
+    rand(rng::Random.AbstractRNG = Random.GLOBAL_RNG, C::Union{GroupCoset,GroupDoubleCoset})
 
-Return a random element of the (double) coset `C`.
+Return a random element of the (double) coset `C`,
+using the random number generator `rng`.
 """
-Base.rand(C::Union{GroupCoset,GroupDoubleCoset}) = group_element(C.G, GAP.Globals.Random(C.X))
+function Base.rand(rng::Random.AbstractRNG, C::Union{GroupCoset,GroupDoubleCoset})
+  s = GAP.Globals.Random(GAP.wrap_rng(rng), C.X)
+  return group_element(C.G, s)
+end
+
+Base.rand(C::Union{GroupCoset,GroupDoubleCoset}) = Base.rand(Random.GLOBAL_RNG, C)
 
 """
     representative(C::GroupDoubleCoset)

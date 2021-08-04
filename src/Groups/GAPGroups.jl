@@ -4,6 +4,8 @@ import Base: ^, Base.Vector
 import GAP.@gapattribute
 import GAP.@gapwrap
 
+using Random
+
 export GroupConjClass
 
 export
@@ -130,14 +132,16 @@ Return the exponent of `G`, i.e. the smallest positive integer `e` such that `g`
 """ exponent
 
 """
-    rand(G::Group)
+    rand(rng::Random.AbstractRNG = Random.GLOBAL_RNG, G::Group)
 
-Return a random element of the group `G`.
+Return a random element of `G`, using the random number generator `rng`.
 """
-function Base.rand(x::GAPGroup)
-   s = GAP.Globals.Random(x.X)
-   return group_element(x, s)
+function Base.rand(rng::Random.AbstractRNG, G::GAPGroup)
+   s = GAP.Globals.Random(GAP.wrap_rng(rng), G.X)
+   return group_element(G, s)
 end
+
+Base.rand(G::GAPGroup) = Base.rand(Random.GLOBAL_RNG, G)
 
 """
     rand_pseudo(G::Group)
