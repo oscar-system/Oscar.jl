@@ -1,3 +1,6 @@
+export invariant_ring, primary_invariants, secondary_invariants
+
+###############################################
 
 mutable struct InvRing{S, T, U, V, W, X}
    field::S
@@ -72,11 +75,47 @@ function invariant_ring(K::Field, M::Vector{<: MatrixElem})
   return invariant_ring(matrix_group([change_base_ring(K, g) for g in M]))
 end
 
+#######################################################
+
+@doc Markdown.doc"""
+    invariant_ring(G::MatrixGroup)
+
+Return the invariant ring $K[V]^G$ of the finite matrix group `G`.
+    
+CAVEAT: The creation of invariant rings is lazy in the sense that no explicit computations are done until specifically invoked (for example by the `primary_invariants` function).
+
+# Examples
+```jldoctest
+julia> K, a = CyclotomicField(3, "a")
+(Cyclotomic field of order 3, a)
+
+julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0])
+[0   0   1]
+[1   0   0]
+[0   1   0]
+
+julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
+[1   0        0]
+[0   a        0]
+[0   0   -a - 1]
+
+julia> G = MatrixGroup(3, K, [ M1, M2 ])
+Matrix group of degree 3 over Cyclotomic field of order 3
+
+julia> IR = invariant_ring(G)
+Invariant ring of
+Matrix group of degree 3 over Cyclotomic field of order 3
+with generators
+AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+```
+"""
 function invariant_ring(G::MatrixGroup)
   n = degree(G)
   action = mat_elem_type(typeof(G))[g.elm for g in gens(G)]
   return InvRing(base_ring(G), G, action)
 end
+
+#######################################################
 
 invariant_ring(matrices::MatrixElem{T}...) where {T} = invariant_ring(collect(matrices))
 
@@ -124,6 +163,49 @@ function primary_invariants_via_singular(IR::InvRing)
    return IR.primary
 end
 
+#######################################################
+
+@doc Markdown.doc"""
+    primary_invariants(IR::InvRing)
+
+Return a system of primary invariants of `IR`.
+
+If a system of primary invariants of `IR` is already cached, return the cached system. 
+Otherwise, compute and cache such a system first.
+
+NOTE: The primary invariants are sorted by increasing degree.
+
+# Examples
+```jldoctest
+julia> K, a = CyclotomicField(3, "a")
+(Cyclotomic field of order 3, a)
+
+julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0])
+[0   0   1]
+[1   0   0]
+[0   1   0]
+
+julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
+[1   0        0]
+[0   a        0]
+[0   0   -a - 1]
+
+julia> G = MatrixGroup(3, K, [ M1, M2 ])
+Matrix group of degree 3 over Cyclotomic field of order 3
+
+julia> IR = invariant_ring(G)
+Invariant ring of
+Matrix group of degree 3 over Cyclotomic field of order 3
+with generators
+AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+
+julia> primary_invariants(IR)
+3-element Array{AbstractAlgebra.Generic.MPoly{nf_elem},1}:
+ x[1]*x[2]*x[3]
+ x[1]^3 + x[2]^3 + x[3]^3
+ x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
+```
+"""    
 function primary_invariants(IR::InvRing)
    if !isdefined(IR, :primary)
       primary_invariants_via_singular(IR)
@@ -152,6 +234,49 @@ function secondary_invariants_via_singular(IR::InvRing)
    return IR.secondary
 end
 
+#######################################################
+
+@doc Markdown.doc"""
+    secondary_invariants(IR::InvRing)
+
+Return a system of secondary invariants of `IR` with respect to the currently cached system of primary invariants of `IR`
+(if no system of primary invariants of `IR` is cached, compute and cache such a system first).
+
+If a corresponding system of secondary invariants is already cached, return the cached system. 
+Otherwise, compute and cache such a system first.
+
+NOTE: The secondary invariants are sorted by increasing degree.
+
+# Examples
+```jldoctest
+julia> K, a = CyclotomicField(3, "a")
+(Cyclotomic field of order 3, a)
+
+julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0])
+[0   0   1]
+[1   0   0]
+[0   1   0]
+
+julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
+[1   0        0]
+[0   a        0]
+[0   0   -a - 1]
+
+julia> G = MatrixGroup(3, K, [ M1, M2 ])
+Matrix group of degree 3 over Cyclotomic field of order 3
+
+julia> IR = invariant_ring(G)
+Invariant ring of
+Matrix group of degree 3 over Cyclotomic field of order 3
+with generators
+AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+
+julia> secondary_invariants(IR)
+2-element Array{AbstractAlgebra.Generic.MPoly{nf_elem},1}:
+ 1
+ x[1]^6*x[3]^3 + x[1]^3*x[2]^6 + x[2]^3*x[3]^6
+```
+"""    
 function secondary_invariants(IR::InvRing)
    if !isdefined(IR, :secondary)
       secondary_invariants_via_singular(IR)

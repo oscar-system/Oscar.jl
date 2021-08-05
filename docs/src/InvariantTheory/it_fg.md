@@ -12,24 +12,58 @@ Pages = ["it_fg.md"]
 
 # Invariants of Finite Groups
 
-Using the notation from the introductory section, we now suppose that $\rho: G\to V$ is the representation
-of a *finite* group $G$ on $V$. Recall that we identify $K[V]\cong K[x] $ via a fixed set of cooordinates $x_1, \dots, x_n\in V^*$.
+Using the notation from the introductory section to this chapter, we now suppose that $G$ is a *finite* group.
 
 !!! note
-    - By Emmy Noether's finiteneness theorem, $K[V]^G$ is a finitely generated $K$-algebra of dimension $\dim K[V]^G = \dim K[V] = n$.
-    - If the group order $|G|$ is invertible in $K$, then $K[V]^G$ is Cohen-Macaulay. In fact, in this case, $G$ is a linearly reductive group with explicitly given Reynolds operator
+     - By a result of Emmy Noether, $K[V]$ is integral over $K[V]^G$. In particular,
 
-       $\mathcal R: K[V] \to K[V], f(x)\to \sum_{\pi\in G}(\pi f(x))$.
+          $\dim K[V]^G = \dim K[V] = n.$
+         
+         Moreover, $K[V]^G$ is finitely generated as a $K$-algebra.
+		   
+    - If the group order $|G|$ is invertible in $K$, then we have the explicit Reynolds operator
+
+         $\mathcal R: K[V] \to K[V], f\to \frac{1}{|G|}\sum_{\pi\in G}(\pi f).$
+
+    - Using  Emmy Noether's result and the Reynolds operator, it is not too difficult to show that $K[V]^G$ is a free module (of finite rank) over any of its graded Noether normalizations. That is, $K[V]^G$ is Cohen-Macaulay.
+
 
 !!! note
     We speak of *non-modular* invariant theory if $|G|$ is invertible in $K$, and of *modular* invariant theory otherwise.
 
 !!! note
-    In the non-modular case, the Hilbert series of $K[V]^G$ is explicitly given as the Molien series of $G$, see [DK15](@cite) or [DJ98](@cite).
+    In the non-modular case, the Hilbert series of $K[V]^G$ can be precomputed via Molien's theorem. See [DK15](@cite) or [DJ98](@cite) for explicit formulas.
 
-The algorithms for computing generators of invariant rings of finite groups proceed in two steps. First, compute a system of primary invariants. Then, compute a corresponding system of secondary invariants.
+The algorithms for computing generators of invariant rings of finite groups proceed in two steps.
+- First, compute a system of primary invariants.
+- Then, compute a corresponding system of secondary invariants.
+
+## Creating Invariant Rings
+
+```@docs
+invariant_ring(G::MatrixGroup)
+```
+
+## Basic Data Associated to Invariant Rings
+
+## The Reynolds Operator
+
+## Invariants of a Given Degree
+
+## The Molien Series
+
 ## Primary Invariants
+
+```@docs
+primary_invariants(IR::InvRing)
+```
 
 ## Secondary Invariants
 
-## Invariant Rings and Fundamental Invariants
+```@docs
+secondary_invariants(IR::InvRing)
+```
+
+## Fundamental Systems of Invariants
+
+## Invariant Rings as Affine Algebras
