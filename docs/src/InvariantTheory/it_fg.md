@@ -25,11 +25,11 @@ Using the notation from the introductory section to this chapter, we now suppose
 
          $\mathcal R: K[V] \to K[V], f\to \frac{1}{|G|}\sum_{\pi\in G}(\pi f).$
 
-    - Using  Emmy Noether's result and the Reynolds operator, it is not too difficult to show that $K[V]^G$ is a free module (of finite rank) over any of its graded Noether normalizations. That is, $K[V]^G$ is Cohen-Macaulay.
-
-
 !!! note
     We speak of *non-modular* invariant theory if $|G|$ is invertible in $K$, and of *modular* invariant theory otherwise.
+
+!!! note
+    In the non-modular case, using  Emmy Noether's result and the Reynolds operator, it is not too difficult to show that $K[V]^G$ is a free module over any of its graded Noether normalizations. That is, $K[V]^G$ is Cohen-Macaulay.
 
 !!! note
     In the non-modular case, the Hilbert series of $K[V]^G$ can be precomputed via Molien's theorem. See [DK15](@cite) or [DJ98](@cite) for explicit formulas.
