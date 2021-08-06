@@ -19,7 +19,6 @@
 
   "Rings" => [
      "Rings/intro.md",
-     "AbstractAlgebra/ring.md",
      "Rings/integer.md",
      "Univariate Polynomials" => [
         "AbstractAlgebra/polynomial.md",
@@ -44,7 +43,6 @@
 
   "Fields" => [
      "Fields/intro.md",
-     "AbstractAlgebra/field.md",
      "Rings/rational.md",
      "Number Fields" => [
         "Hecke/number_fields/intro.md",
@@ -92,7 +90,6 @@
      "PolyhedralGeometry/pg_cones.md",
      "PolyhedralGeometry/pg_fans.md",
      "PolyhedralGeometry/pg_linear_programs.md",
-     "PolyhedralGeometry/pg_cones.md",
   ],
 
   "Commutative Algebra" => [
