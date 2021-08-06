@@ -83,7 +83,7 @@
      "NumberTheory/intro.md",
      "NumberTheory/abelian_closure.md",
   ],
-
+#=
   "Polyhedral Geometry" => [
      "PolyhedralGeometry/pg.md",
      "PolyhedralGeometry/pg_polyhedra.md",
@@ -91,6 +91,18 @@
      "PolyhedralGeometry/pg_fans.md",
      "PolyhedralGeometry/pg_linear_programs.md",
   ],
+=#
+    "Polyhedral Geometry" => [
+       "PolyhedralGeometry/pg.md",
+       "Polyhedra"=> [
+         "PolyhedralGeometry/Polyhedra/pg_polyhedra_intro.md",
+         "PolyhedralGeometry/Polyhedra/pg_polyhedra_constructions.md",
+         "PolyhedralGeometry/Polyhedra/pg_polyhedra_polymake.md"
+       ],
+        "PolyhedralGeometry/pg_cones.md",
+        "PolyhedralGeometry/pg_fans.md",
+        "PolyhedralGeometry/pg_linear_programs.md"
+    ],
 
   "Commutative Algebra" => [
      "CommutativeAlgebra/ca.md",
