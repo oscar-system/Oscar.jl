@@ -147,7 +147,7 @@ Equality check between `F` and `G`. `F` and `G` are equal iff their
 base rings, ranks and (basis) element names are equal.
 """
 # two free modules are equal if the rank and the ring are
-function ==(F::FreeMod, G::FreeMod)
+function Base.:(==)(F::FreeMod, G::FreeMod)
   # TODO it this enough or e.g. stored morphisms also be considered?
   return F.R == G.R && rank(F) == rank(G) && F.S == G.S
 end
@@ -308,7 +308,7 @@ function -(a::FreeModuleElem, b::FreeModuleElem)
 end
 
 # Equality of free module elements
-function ==(a::FreeModuleElem, b::FreeModuleElem) 
+function Base.:(==)(a::FreeModuleElem, b::FreeModuleElem) 
     check_parent(a,b)
     return a.coords == b.coords
 end
@@ -965,7 +965,7 @@ end
 Check for equality. For two submodules of free modules to be equal their embedding 
 free modules must be identical (`===`) and the generators must generate equal submodules.
 """
-function ==(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
+function Base.:(==)(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
   @assert M.F === N.F
   M_mod_N = _reduce(singular_generators(std_basis(M)), singular_generators(std_basis(N)))
   N_mod_M = _reduce(singular_generators(std_basis(N)), singular_generators(std_basis(M)))
@@ -1270,7 +1270,7 @@ Check for equality. For two subquotients to be equal their embedding free module
 must be identical (`===`) and the (generators + relations) respectively the relations must 
 generate equal submodules.
 """
-function ==(M::SubQuo{T}, N::SubQuo{T}) where {T} # TODO replace implementation by two inclusion checks?
+function Base.:(==)(M::SubQuo{T}, N::SubQuo{T}) where {T} # TODO replace implementation by two inclusion checks?
   if !isdefined(M, :quo) 
     if !isdefined(N, :quo)
       return M.sub == N.sub
