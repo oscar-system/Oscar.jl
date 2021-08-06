@@ -1,21 +1,20 @@
 export invariant_ring, primary_invariants, secondary_invariants
 
 ###############################################
+mutable struct InvRing{FldT, GrpT, PolyRingT, ActionT, SingularActionT, PolyElemT}
+   field::FldT
+   poly_ring::PolyRingT
 
-mutable struct InvRing{S, T, U, V, W, X}
-   field::S
-   poly_ring::T
-
-   group::U
-   action::Vector{V}          # Needs to be set (so far)
-   action_singular::Vector{W} # Needs to be set (so far)
+   group::GrpT
+   action::Vector{ActionT}
+   action_singular::Vector{SingularActionT}
 
    modular::Bool
 
-   primary::Vector{X}
-   secondary::Vector{X}
-   irreducible_secondary::Vector{X}
-   fundamental::Vector{X}
+   primary::Vector{PolyElemT}
+   secondary::Vector{PolyElemT}
+   irreducible_secondary::Vector{PolyElemT}
+   fundamental::Vector{PolyElemT}
 
    # Cache some stuff on the Singular side
    # (possibly removed at some point)
@@ -23,15 +22,15 @@ mutable struct InvRing{S, T, U, V, W, X}
    molien_singular::Singular.smatrix
    primary_singular::Singular.smatrix
 
-   function InvRing(K::S, G::U, action::Vector{V}) where {S, U, V}
+   function InvRing(K::FldT, G::GrpT, action::Vector{ActionT}) where {FldT <: Field, GrpT <: AbstractAlgebra.Group, ActionT}
      n = degree(G)
      R, = PolynomialRing(K, "x" => 1:n, cached = false)
      R_sing = singular_ring(R)
      action_singular = identity.([change_base_ring(R_sing, g) for g in action])
-     T = typeof(R)
-     X = elem_type(R)
-     W = eltype(action_singular)
-     z = new{S, T, U, V, W, X}()
+     PolyRingT = typeof(R)
+     PolyElemT = elem_type(R)
+     SingularActionT = eltype(action_singular)
+     z = new{FldT, GrpT, PolyRingT, ActionT, SingularActionT, PolyElemT}()
      z.field = K
      z.poly_ring = R
      z.group = G
