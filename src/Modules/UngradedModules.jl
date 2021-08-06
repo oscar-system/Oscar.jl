@@ -942,7 +942,7 @@ end
 
 Compute $M+N$.
 """
-function sum(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
+function Base.sum(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
   @assert M.F === N.F
   return SubModuleOfFreeModule(M.F, vcat(collect(M.gens), collect(N.gens)))
 end
@@ -953,7 +953,7 @@ end
 Check if `M` is a subset of `N`. For this their embedding free modules must be 
 identical (`===`).
 """
-function issubset(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
+function Base.issubset(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
   @assert M.F === N.F
   M_mod_N = _reduce(singular_generators(std_basis(M)), singular_generators(std_basis(N)))
   return iszero(M_mod_N)
@@ -1247,7 +1247,7 @@ Check if `M` is a subset of `N`. For this their embedding free modules
 must be identical (`===`), the relations must be equal and the (generators + relations)
 of `M` must be a submodule of (generators + relations) of `N`.
 """
-function issubset(M::SubQuo{T}, N::SubQuo{T}) where {T}
+function Base.issubset(M::SubQuo{T}, N::SubQuo{T}) where {T}
   if !isdefined(M, :quo) 
     if !isdefined(N, :quo)
       return issubset(M.sub, N.sub)
@@ -1291,7 +1291,7 @@ end
 
 Compute $M+N$ along with the inclusion morphisms $M → M+N$ and $N → M+N$.
 """
-function sum(M::SubQuo{T},N::SubQuo{T}) where T
+function Base.sum(M::SubQuo{T},N::SubQuo{T}) where T
   #TODO use SubModuleOfFreeModule instead of matrices
   gm1,gm2 = size(matrix(M.sub))
   gn1,gn2 = size(matrix(N.sub))
