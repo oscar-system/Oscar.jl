@@ -26,7 +26,10 @@ function _solve_eqn(a::T, b::T, c::T) where T <: FinFieldElem
    F = parent(a)  
    for x in F
       s = (c - a*x^2)*b^-1
-      if issquare(s) return x,square_root(s) end
+      fl, t = issquare_with_sqrt(s)
+      if fl
+        return x, t
+      end
    end
    return nothing, nothing
 end
@@ -357,14 +360,14 @@ function _change_basis_forms(B1::MatElem{T}, B2::MatElem{T}, _type::Symbol)  whe
          L = identity_matrix(F,n)
          for i in 0:div(abs(s1-s2),2)-1
             k = s+2*i
-            r = square_root(A1[k,k]*A1[k+1,k+1]^-1)
+            r = sqrt(A1[k,k]*A1[k+1,k+1]^-1)
             L[k:k+1,k:k+1] = [a b*r ; b -a*r]
          end
          D1 = L*D1
          A1 = L*A1*transpose(L)
       end
       # change matrix from A1 to A2
-      S = diagonal_matrix([square_root(A1[i,i]*A2[i,i]^-1) for i in 1:n])
+      S = diagonal_matrix([sqrt(A1[i,i]*A2[i,i]^-1) for i in 1:n])
       return true, D1^-1*S*D2
    end
 

@@ -27,13 +27,6 @@
      "Multivariate Polynomials" => [
         "AbstractAlgebra/mpolynomial.md",
      ],
-     "Orders" => [
-        "Hecke/orders/introduction.md",
-        "Hecke/orders/orders.md",
-        "Hecke/orders/elements.md",
-        "Hecke/orders/ideals.md",
-        "Hecke/orders/frac_ideals.md",
-     ],
      "Series Rings" => [
         "AbstractAlgebra/series.md",
         "AbstractAlgebra/puiseux.md",
@@ -46,11 +39,6 @@
      "Fields/intro.md",
      "AbstractAlgebra/field.md",
      "Rings/rational.md",
-     "Number Fields" => [
-        "Hecke/number_fields/intro.md",
-        "Hecke/number_fields/basics.md",
-        "Hecke/number_fields/elements.md",
-     ],
      "Hecke/FacElem.md",
      "Hecke/class_fields/intro.md",
      "AbstractAlgebra/fraction.md",
@@ -83,6 +71,19 @@
 
   "Number Theory" => [
      "NumberTheory/intro.md",
+     "Number Fields" => [
+        "Hecke/number_fields/intro.md",
+        "Hecke/number_fields/fields.md",
+        "Hecke/number_fields/elements.md",
+        "Hecke/number_fields/internal.md",
+     ],
+     "Orders" => [
+        "Hecke/orders/introduction.md",
+        "Hecke/orders/orders.md",
+        "Hecke/orders/elements.md",
+        "Hecke/orders/ideals.md",
+        "Hecke/orders/frac_ideals.md",
+     ],
      "NumberTheory/abelian_closure.md",
   ],
 
