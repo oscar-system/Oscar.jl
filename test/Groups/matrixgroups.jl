@@ -247,32 +247,30 @@ end
             @test S==special_orthogonal_group(e,n,q)
             @test O==omega_group(e,n,q)
             @test index(S,O)==2
-            if isodd(q)
-               @test index(G,S)==2
-            end
+            @test index(G,S) == gcd(2, q-1)
          end
       end
       @testset for n in [3,5]
-         if isodd(q)
-            G = GO(n,F)
-            S = SO(n,F)
-            O = omega_group(n,F)
-            @test G==GO(n,q)
-            @test G==orthogonal_group(n,F)
-            @test G==orthogonal_group(n,q)
-            @test S==SO(n,q)
-            @test S==special_orthogonal_group(n,F)
-            @test S==special_orthogonal_group(n,q)
-            @test O==omega_group(n,q)
-            @test index(G,S)==2
-            @test index(S,O)==2
-         end
+         G = GO(n,F)
+         S = SO(n,F)
+         O = omega_group(n,F)
+         @test G==GO(n,q)
+         @test G==orthogonal_group(n,F)
+         @test G==orthogonal_group(n,q)
+         @test S==SO(n,q)
+         @test S==special_orthogonal_group(n,F)
+         @test S==special_orthogonal_group(n,q)
+         @test O==omega_group(n,q)
+         @test index(G,S) == gcd(2, q-1)
+         @test index(S,O) == gcd(2, q-1)
       end
    end
 
    @test order(omega_group(+1,4,3))==288
    @test order(omega_group(-1,4,3))==360
    @test order(omega_group(3,3))==12
+   @test order(omega_group(3,4)) == 60
+
    @test_throws ArgumentError GO(+2,2,5)
    @test_throws ArgumentError SO(+2,2,5)
    @test_throws ArgumentError omega_group(-2,4,3)
