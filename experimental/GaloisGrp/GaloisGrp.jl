@@ -352,8 +352,6 @@ mutable struct GaloisCtx{T}
   end
 end
 
-Base.floor(::Type{Int}, q::fmpq) = Int(floor(fmpz, q))
-Base.ceil(::Type{Int}, q::fmpq) = Int(ceil(fmpz, q))
 Base.round(::Type{Int}, q::fmpq) = Int(round(fmpz, q))
 
 function Oscar.prime(C::GaloisCtx{Hecke.MPolyFact.HenselCtxFqRelSeries{Generic.RelSeries{qadic}}})

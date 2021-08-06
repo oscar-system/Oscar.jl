@@ -10,4 +10,4 @@ Oscar = "f1435218-dba5-11e9-1e4d-f1a5fab5fc13"
 
 [compat]
 DocumenterCitations = "0.2.5"
-AbstractAlgebra = "= 0.20.0"
+AbstractAlgebra = "= 0.21.0"

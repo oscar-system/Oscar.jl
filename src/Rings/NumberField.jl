@@ -247,7 +247,7 @@ function -(a::NfNSGenElem, b::NfNSGenElem)
   NfNSGenElem(data(a) - data(b), parent(a))
 end
 
-function divexact(a::NfNSGenElem, b::NfNSGenElem)
+function divexact(a::NfNSGenElem, b::NfNSGenElem; check::Bool = true)
   @req !iszero(b) "Division by zero"
   check_parent(a, b)
   return a * inv(b)
