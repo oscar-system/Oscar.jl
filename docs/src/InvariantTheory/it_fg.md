@@ -23,7 +23,7 @@ Using the notation from the introductory section to this chapter, we now suppose
 		   
     - If the group order $|G|$ is invertible in $K$, then we have the explicit Reynolds operator
 
-         $\mathcal R: K[V] \to K[V], f\to \frac{1}{|G|}\sum_{\pi\in G}(\pi f).$
+       $\mathcal R: K[V] \to K[V], f\to \frac{1}{|G|}\sum_{\pi\in G}(\pi \;\!  . f).$
 
 !!! note
     We speak of *non-modular* invariant theory if $|G|$ is invertible in $K$, and of *modular* invariant theory otherwise.
@@ -34,15 +34,30 @@ Using the notation from the introductory section to this chapter, we now suppose
 !!! note
     In the non-modular case, the Hilbert series of $K[V]^G$ can be precomputed via Molien's theorem. See [DK15](@cite) or [DJ98](@cite) for explicit formulas.
 
-The algorithms for computing generators of invariant rings of finite groups proceed in two steps.
-- First, compute a system of primary invariants.
-- Then, compute a corresponding system of secondary invariants.
+Having means to compute a $K$-basis for the invariants of each given degree, the algorithms for computing generators of invariant rings of finite groups proceed in two steps:
+
+- First, compute a system of primary invariants $p_1,\dots, p_n$.
+- Then, compute a system of secondary invariants with respect to $p_1,\dots, p_n$.
+
+In the non-modular case, the Molien series allows one to precompute the number of $K$-linearly independent invariants for each given degree,
 
 ## Creating Invariant Rings
+
+The invariant theory module of OSCAR  distinguishes two ways of how  finite groups and their actions on $K[x_1, \dots, x_n]\cong K[V]$ are given.
+
+### Matrix Groups
+
+Here, $G$ will be explicitly given as a matrix group $G\subset \text{GL}_n(K)\cong \text{GL}(V) $ by (finitely many) generating matrices, acting on $K[x_1, \dots, x_n]\cong K[V]$ by linear substitution:
+
+$(\pi \;\!  .f) \;\! (x_1, \dots, x_n)  = f(\pi^{-1} \cdot (x_1, \dots, x_n)^T) \text{ for all } \pi\in G.$
+
 
 ```@docs
 invariant_ring(G::MatrixGroup)
 ```
+
+### Permutation Groups
+
 
 ## Basic Data Associated to Invariant Rings
 
