@@ -28,7 +28,7 @@ function array_to_matrix(A::Array,R::AbstractAlgebra.Ring = parent(A[1,1]))
 	return Mat(R.(A))
 end
 
-@testset "Test intersection" begin
+@testset "Intersection of modules" begin
   R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 
   A1 = R[x y;
@@ -54,7 +54,7 @@ end
   @test Oscar.SubQuo(F2, A2, B1) == intersect(Oscar.SubQuo(F2, A1,B1), Oscar.SubQuo(F2, A2,B1))[1]
 end
 
-@testset "Test presentation" begin
+@testset "Presentation" begin
 
 	# over Integers
 	#=R, (x,y,z) = PolynomialRing(ZZ, ["x", "y", "z"])
@@ -138,7 +138,7 @@ end
 	end
 end=#
 
-@testset "Test iszero(SubQuo)" begin
+@testset "iszero(SubQuo)" begin
 	R, (x,y) = PolynomialRing(QQ, ["x", "y"])
 	A = R[x^2+2*x*y y^2*x-2*x^2*y;-y x*y]
 	B = R[x^2 y^2*x;-y x*y]
@@ -151,7 +151,7 @@ end=#
 	end
 end
 
-@testset "Test simplify" begin
+@testset "simplify subquotient" begin
 	R, (x,y) = PolynomialRing(QQ, ["x", "y"])
 	A1 = R[x*y R(0)]
 	B1 = R[R(0) R(1)]
@@ -237,7 +237,7 @@ end
 	#@test inv(i2) === p2 && inv(p2) === i2
 end
 
-@testset "testing quotient modules" begin
+@testset "quotient modules" begin
   R, (x,y) = PolynomialRing(QQ, ["x", "y"])
 
   F3 = Oscar.FreeMod(R,3)
@@ -278,7 +278,7 @@ end
   end
 end
 
-@testset "testing submodules" begin
+@testset "submodules" begin
   R, (x,y) = PolynomialRing(QQ, ["x", "y"])
 
   F2 = Oscar.FreeMod(R,2)
@@ -311,7 +311,7 @@ end
   end
 end
 
-@testset "testing Hom" begin
+@testset "Hom module" begin
 	R, (x0,x1,x2,x3,x4,x5) = PolynomialRing(QQ, ["x0", "x1", "x2", "x3", "x4", "x5"])
 	f1=R[-x2*x3 -x4*x5 0; x0*x1 0 -x4*x5; 0 x0*x1 -x2*x3]'
 	g1=R[x0*x1 x2*x3 x4*x5]'
@@ -515,7 +515,7 @@ end=#
 
 # testing lift ?
 
-@testset "homomorphism testing" begin
+@testset "module homomorphisms" begin
 	# This test doesn't terminate due to a bug in syz
 	R, (x,y) = PolynomialRing(QQ, ["x", "y"])
 
