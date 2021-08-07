@@ -80,7 +80,7 @@ end
 @doc Markdown.doc"""
     invariant_ring(G::MatrixGroup)
 
-Return the invariant ring $K[V]^G$ of the finite matrix group `G`.
+Return the invariant ring of the finite matrix group `G`.
     
 CAVEAT: The creation of invariant rings is lazy in the sense that no explicit computations are done until specifically invoked (for example by the `primary_invariants` function).
 

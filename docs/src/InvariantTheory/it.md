@@ -19,15 +19,15 @@ $x = \{x_1, \dots, x_n\}\subset V^*$ denotes a fixed set of cooordinates.
 
 The action of $G$ on $V$ defines an action of  $G$ on $V^\ast$,
 
-$(\pi f)(v)=f(\rho(\pi^{-1}) v).$
+$(\pi \;\!  . f)(v)=f(\rho(\pi^{-1}) \;\!  . v),$
 
-This extends naturally to an action of $G$ on the graded symmetric algebra
+which extends to an action of $G$ on the graded symmetric algebra
 
 $K[x] = K[x_1, \dots, x_n] \cong K[V]:=S(V^*)=\bigoplus_{d\geq 0} S^d V^*.$
 
 The *invariants* of $G$ are the fixed points of this action, its *ring of invariants* is the graded subalgebra
 
-$K[x]^G = K[x_1, \dots, x_n]^G\cong  K[V]^G=\{f\in K[V] \mid \pi f=f {\text { for any }} \pi\in G\}\subset K[V].$
+$K[x]^G = K[x_1, \dots, x_n]^G\cong  K[V]^G=\{f\in K[V] \mid \pi  \;\!  . f=f {\text { for any }} \pi\in G\}\subset K[V].$
 
 Clearly, $K[V]^G$ depends only on the image $\rho(G)\subset \text{GL}(V)$.
 
