@@ -28,9 +28,9 @@ julia> I = ideal([x*y-3*x,y^3-2*x^2*y])
 ideal(x*y - 3*x, -2*x^2*y + y^3)
 
 julia> S, (x, y) = GradedPolynomialRing(QQ, ["x", "y"],  [1, 2])
-(Multivariate Polynomial Ring in x, y over Rational Field graded by 
+(Multivariate Polynomial Ring in x, y over Rational Field graded by
   x -> [1]
-  y -> [2], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y])
+  y -> [2], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y])
 
 julia> J = ideal(S, [(x^2+y)^2])
 ideal(x^4 + 2*x^2*y + y^2)
@@ -245,13 +245,13 @@ function saturation_with_index(I::MPolyIdeal, J::MPolyIdeal)
 
 # elimination #######################################################
 @doc Markdown.doc"""
-    eliminate(I::MPolyIdeal, l::Array{T, 1}) where T <: MPolyElem
+    eliminate(I::MPolyIdeal, l::Vector{T}) where T <: MPolyElem
 
 Given a list of polynomials which are variables, these variables are eliminated from `I`. 
 
 That is, return the ideal of all polynomials in `I` which only depend on the remaining variables.
 
-    eliminate(I::MPolyIdeal, l::AbstractArray{Int, 1})
+    eliminate(I::MPolyIdeal, l::AbstractVector{Int})
 
 Given a list of indices which specify variables, these variables are eliminated from `I`. 
 
@@ -267,28 +267,28 @@ julia> I = ideal(R, [t-x, t^2-y, t^3-z])
 ideal(t - x, t^2 - y, t^3 - z)
 
 julia> A = [t]
-1-element Array{fmpq_mpoly,1}:
+1-element Vector{fmpq_mpoly}:
  t
 
 julia> TC = eliminate(I,A)
 ideal(-x*z + y^2, x*y - z, x^2 - y)
 
 julia> A = [1]
-1-element Array{Int64,1}:
+1-element Vector{Int64}:
  1
 
 julia> TC = eliminate(I,A)
 ideal(-x*z + y^2, x*y - z, x^2 - y)
 ```
 """
-function eliminate(I::MPolyIdeal, l::Array{T, 1}) where T <: MPolyElem
+function eliminate(I::MPolyIdeal, l::Vector{T}) where T <: MPolyElem
   singular_assure(I)
   B = BiPolyArray(l)
   S = base_ring(I.gens.S)
   s = Singular.eliminate(I.gens.S, [S(x) for x = l]...)
   return MPolyIdeal(base_ring(I), s)
 end
-function eliminate(I::MPolyIdeal, l::AbstractArray{Int, 1})
+function eliminate(I::MPolyIdeal, l::AbstractVector{Int})
   R = base_ring(I)
   return eliminate(I, [gen(R, i) for i=l])
 end
@@ -389,13 +389,13 @@ julia> I = intersect(I, ideal(R, [x-y-1])^2)
 ideal(x^5*y - 2*x^4*y^2 - 2*x^4*y + x^3*y^3 + 2*x^3*y^2 - x^2*y^3 + 2*x^2*y^2 + 2*x^2*y + 2*x*y^4 + x*y^3 - 2*x*y^2 - x*y - y^5 - 2*y^4 - y^3, x^6 - 2*x^5 - 3*x^4*y^2 - 2*x^4*y + 2*x^3*y^3 + 3*x^3*y^2 + 2*x^3*y + 2*x^3 + 5*x^2*y^2 + 2*x^2*y - x^2 + 3*x*y^4 - 5*x*y^2 - 2*x*y - 2*y^5 - 4*y^4 - 2*y^3)
 
 julia> L = primary_decomposition(I)
-3-element Array{Tuple{MPolyIdeal{fmpq_mpoly},MPolyIdeal{fmpq_mpoly}},1}:
+3-element Vector{Tuple{MPolyIdeal{fmpq_mpoly}, MPolyIdeal{fmpq_mpoly}}}:
  (ideal(x^3 - x - y^2), ideal(x^3 - x - y^2))
  (ideal(x^2 - 2*x*y - 2*x + y^2 + 2*y + 1), ideal(x - y - 1))
  (ideal(y, x^2), ideal(x, y))
 
 julia> L = primary_decomposition(I, alg=:SY)
-3-element Array{Tuple{MPolyIdeal{fmpq_mpoly},MPolyIdeal{fmpq_mpoly}},1}:
+3-element Vector{Tuple{MPolyIdeal{fmpq_mpoly}, MPolyIdeal{fmpq_mpoly}}}:
  (ideal(x^3 - x - y^2), ideal(x^3 - x - y^2))
  (ideal(x^2 - 2*x*y - 2*x + y^2 + 2*y + 1), ideal(x - y - 1))
  (ideal(y, x^2), ideal(y, x))
@@ -413,7 +413,7 @@ julia> I = ideal(R, [1326*a^2*d^5, 1989*a^2*c^5, 102*b^4*d^5, 153*b^4*c^5,
 ideal(1326*a^2*d^5, 1989*a^2*c^5, 102*b^4*d^5, 153*b^4*c^5, 663*a^2*c^5*d^5, 51*b^4*c^5*d^5, 78*a^2*d^15, 117*a^2*c^15, 78*a^15*d^5, 117*a^15*c^5, 6*a^2*b^4*d^15, 9*a^2*b^4*c^15, 39*a^2*c^5*d^15, 39*a^2*c^15*d^5, 6*a^2*b^15*d^5, 9*a^2*b^15*c^5, 6*a^15*b^4*d^5, 9*a^15*b^4*c^5, 39*a^15*c^5*d^5, 3*a^2*b^4*c^5*d^15, 3*a^2*b^4*c^15*d^5, 3*a^2*b^15*c^5*d^5, 3*a^15*b^4*c^5*d^5)
 
 julia> L = primary_decomposition(I)
-8-element Array{Tuple{MPolyIdeal{fmpz_mpoly},MPolyIdeal{fmpz_mpoly}},1}:
+8-element Vector{Tuple{MPolyIdeal{fmpz_mpoly}, MPolyIdeal{fmpz_mpoly}}}:
  (ideal(d^5, c^5), ideal(d, c))
  (ideal(a^2, b^4), ideal(b, a))
  (ideal(2, c^5), ideal(2, c))
@@ -468,7 +468,7 @@ julia> I = ideal(R, [p*q^2, y-z^2])
 ideal(z^8 + z^6 + 4*z^5 + 4*z^3 + 4*z^2 + 4, y - z^2)
 
 julia> L = absolute_primary_decomposition(I)
-2-element Array{Tuple{MPolyIdeal{fmpq_mpoly},MPolyIdeal{fmpq_mpoly},MPolyIdeal{AbstractAlgebra.Generic.MPoly{nf_elem}},Int64},1}:
+2-element Vector{Tuple{MPolyIdeal{fmpq_mpoly}, MPolyIdeal{fmpq_mpoly}, MPolyIdeal{AbstractAlgebra.Generic.MPoly{nf_elem}}, Int64}}:
  (ideal(z^2 + 1, y + 1), ideal(z^2 + 1, y + 1), ideal(z - _a, y + 1), 2)
  (ideal(z^6 + 4*z^3 + 4, y - z^2), ideal(z^3 + 2, y - z^2), ideal(z - _a, y - _a*z), 3)
 
@@ -560,12 +560,12 @@ julia> I = intersect(I, ideal(R, [x-y-1])^2)
 ideal(x^5*y - 2*x^4*y^2 - 2*x^4*y + x^3*y^3 + 2*x^3*y^2 - x^2*y^3 + 2*x^2*y^2 + 2*x^2*y + 2*x*y^4 + x*y^3 - 2*x*y^2 - x*y - y^5 - 2*y^4 - y^3, x^6 - 2*x^5 - 3*x^4*y^2 - 2*x^4*y + 2*x^3*y^3 + 3*x^3*y^2 + 2*x^3*y + 2*x^3 + 5*x^2*y^2 + 2*x^2*y - x^2 + 3*x*y^4 - 5*x*y^2 - 2*x*y - 2*y^5 - 4*y^4 - 2*y^3)
 
 julia> L = minimal_primes(I)
-2-element Array{MPolyIdeal{fmpq_mpoly},1}:
+2-element Vector{MPolyIdeal{fmpq_mpoly}}:
  ideal(x - y - 1)
  ideal(x^3 - x - y^2)
 
 julia> L = minimal_primes(I, alg=:charSets)
-2-element Array{MPolyIdeal{fmpq_mpoly},1}:
+2-element Vector{MPolyIdeal{fmpq_mpoly}}:
  ideal(x - y - 1)
  ideal(x^3 - x - y^2)
 ```
@@ -582,7 +582,7 @@ julia> I = ideal(R, [1326*a^2*d^5, 1989*a^2*c^5, 102*b^4*d^5, 153*b^4*c^5,
 ideal(1326*a^2*d^5, 1989*a^2*c^5, 102*b^4*d^5, 153*b^4*c^5, 663*a^2*c^5*d^5, 51*b^4*c^5*d^5, 78*a^2*d^15, 117*a^2*c^15, 78*a^15*d^5, 117*a^15*c^5, 6*a^2*b^4*d^15, 9*a^2*b^4*c^15, 39*a^2*c^5*d^15, 39*a^2*c^15*d^5, 6*a^2*b^15*d^5, 9*a^2*b^15*c^5, 6*a^15*b^4*d^5, 9*a^15*b^4*c^5, 39*a^15*c^5*d^5, 3*a^2*b^4*c^5*d^15, 3*a^2*b^4*c^15*d^5, 3*a^2*b^15*c^5*d^5, 3*a^15*b^4*c^5*d^5)
 
 julia> L = minimal_primes(I)
-6-element Array{MPolyIdeal{fmpz_mpoly},1}:
+6-element Vector{MPolyIdeal{fmpz_mpoly}}:
  ideal(d, c)
  ideal(b, a)
  ideal(2, c)
@@ -635,7 +635,7 @@ julia> I = intersect(I, ideal(R, [x-y-1])^2)
 ideal(x^5*y - 2*x^4*y^2 - 2*x^4*y + x^3*y^3 + 2*x^3*y^2 - x^2*y^3 + 2*x^2*y^2 + 2*x^2*y + 2*x*y^4 + x*y^3 - 2*x*y^2 - x*y - y^5 - 2*y^4 - y^3, x^6 - 2*x^5 - 3*x^4*y^2 - 2*x^4*y + 2*x^3*y^3 + 3*x^3*y^2 + 2*x^3*y + 2*x^3 + 5*x^2*y^2 + 2*x^2*y - x^2 + 3*x*y^4 - 5*x*y^2 - 2*x*y - 2*y^5 - 4*y^4 - 2*y^3)
 
 julia> L = equidimensional_decomposition_weak(I)
-2-element Array{MPolyIdeal{fmpq_mpoly},1}:
+2-element Vector{MPolyIdeal{fmpq_mpoly}}:
  ideal(y, x)
  ideal(x^5 - 2*x^4*y - 2*x^4 + x^3*y^2 + 2*x^3*y - x^2*y^2 + 2*x^2*y + 2*x^2 + 2*x*y^3 + x*y^2 - 2*x*y - x - y^4 - 2*y^3 - y^2)
 ```
@@ -673,7 +673,7 @@ julia> I = intersect(I, ideal(R, [x-y-1])^2)
 ideal(x^5*y - 2*x^4*y^2 - 2*x^4*y + x^3*y^3 + 2*x^3*y^2 - x^2*y^3 + 2*x^2*y^2 + 2*x^2*y + 2*x*y^4 + x*y^3 - 2*x*y^2 - x*y - y^5 - 2*y^4 - y^3, x^6 - 2*x^5 - 3*x^4*y^2 - 2*x^4*y + 2*x^3*y^3 + 3*x^3*y^2 + 2*x^3*y + 2*x^3 + 5*x^2*y^2 + 2*x^2*y - x^2 + 3*x*y^4 - 5*x*y^2 - 2*x*y - 2*y^5 - 4*y^4 - 2*y^3)
 
 julia> L = equidimensional_decomposition_radical(I)
-2-element Array{MPolyIdeal{fmpq_mpoly},1}:
+2-element Vector{MPolyIdeal{fmpq_mpoly}}:
  ideal(y, x)
  ideal(x^4 - x^3*y - x^3 - x^2 - x*y^2 + x*y + x + y^3 + y^2)
 ```
@@ -1011,7 +1011,7 @@ julia> I = ideal(R, [x, y])^2
 ideal(x^2, x*y, y^2)
 
 julia> gens(I)
-3-element Array{fmpq_mpoly,1}:
+3-element Vector{fmpq_mpoly}:
  x^2
  x*y
  y^2

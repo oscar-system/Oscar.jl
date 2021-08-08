@@ -21,7 +21,7 @@ end
 function pm_arr_arr_to_group(M)
     n=length(M[1])
     S=symmetric_group(n)
-    perm_bucket = Array{Oscar.BasicGAPGroupElem{PermGroup},1}()
+    perm_bucket = Vector{Oscar.BasicGAPGroupElem{PermGroup}}()
     for g in M
         push!(perm_bucket,perm(S,[a+1 for a in g]))
     end
