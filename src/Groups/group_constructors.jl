@@ -144,7 +144,7 @@ end
 There are four ways to define a free group.
 - `free_group(n::Int) -> FPGroup`; return the free group of rank `n`, with generators printed as `"f1"`,`"f2"`,`"f3"`, etc.
 - `free_group(L::String...) -> FPGroup`; return the free group with length(`L`) generators, printed as `L[1]`, `L[2]`, `L[3]`, etc.
-- `free_group(L::Array{String,1}) -> FPGroup`; same as above.
+- `free_group(L::Vector{String}) -> FPGroup`; same as above.
 - `free_group(n::Int, s::String) -> FPGroup`; return the free group of rank `n`, with generators printed as `"s1"`, `"s2"`, `"s3"`, etc.
 
 !!! warning "Note"
@@ -155,7 +155,7 @@ function free_group(n::Int)
 end
 
 
-function free_group(L::Array{String,1})
+function free_group(L::Vector{String})
    J=GAP.julia_to_gap([GAP.julia_to_gap(x) for x in L])
    return FPGroup(GAP.Globals.FreeGroup(J))
 end

@@ -150,14 +150,14 @@ julia> T, _ = grade(S)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
-  z -> [1], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
+  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
 
 julia> F = T(-x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3)
 -x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3
 
 julia> PP = projective_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
-, MPolyElem_dec{fmpq,fmpq_mpoly}[x[0], x[1], x[2]])
+, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
 
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(-1), QQ(1), QQ(0)])
 (-1 : 1 : 0)
@@ -175,7 +175,7 @@ mutable struct ProjEllipticCurve{S} <: ProjectivePlaneCurve{S}
   degree::Int
   components::Dict{ProjEllipticCurve{S}, Int}
   point::Oscar.Geometry.ProjSpcElem{S}
-  maps::Array{Oscar.AlgHom{S}, 1}
+  maps::Vector{Oscar.AlgHom{S}}
   Hecke_ec::EllCrv{S}
 
   function ProjEllipticCurve{S}(eq::Oscar.MPolyElem_dec{S}) where {S <: FieldElem}
@@ -270,14 +270,14 @@ julia> T, _ = grade(S)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
-  z -> [1], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
+  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
 
 julia> F = T(-x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3)
 -x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3
 
 julia> PP = projective_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
-, MPolyElem_dec{fmpq,fmpq_mpoly}[x[0], x[1], x[2]])
+, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
 
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(-1), QQ(1), QQ(0)])
 (-1 : 1 : 0)
@@ -354,14 +354,14 @@ julia> T, _ = grade(S)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
-  z -> [1], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
+  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
 
 julia> F = T(-x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3)
 -x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3
 
 julia> PP = projective_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
-, MPolyElem_dec{fmpq,fmpq_mpoly}[x[0], x[1], x[2]])
+, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
 
 julia> P1 = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(-1), QQ(1), QQ(0)])
 (-1 : 1 : 0)
@@ -408,7 +408,7 @@ end
 
 ################################################################################
 
-function _image_point(phi::Oscar.AlgHom{S}, V::Array{S, 1}) where S <: FieldElem
+function _image_point(phi::Oscar.AlgHom{S}, V::Vector{S}) where S <: FieldElem
    return [evaluate(phi.image[i], V) for i in 1:3]
 end
 
@@ -569,11 +569,11 @@ julia> T, _ = grade(S)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
-  z -> [1], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
+  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
 
 julia> PP = projective_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
-, MPolyElem_dec{fmpq,fmpq_mpoly}[x[0], x[1], x[2]])
+, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
 
 julia> Q = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(-1), QQ(1), QQ(0)])
 (-1 : 1 : 0)

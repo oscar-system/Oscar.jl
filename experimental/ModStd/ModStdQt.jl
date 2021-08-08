@@ -87,13 +87,13 @@ end
    [z*p[i]^j + s[i]] for 0<=j <= ?
 """
 mutable struct MPolyPt{T}
-  pt_z::Array{T, 1}
-  pt_p::Array{T, 1}
-  pt_s::Array{T, 1}
+  pt_z::Vector{T}
+  pt_p::Vector{T}
+  pt_s::Vector{T}
   j::Int
 
   function MPolyPt(n::Int)
-    p = Array{Int, 1}()
+    p = Vector{Int}()
     for q = PrimesSet(11, -1)
       push!(p, q)
       if length(p) == n
@@ -159,10 +159,10 @@ function set_status!(M::MPolyInterpolateCtx, s::Symbol)
 end
 
 mutable struct Vals{T}
-  v::Array{Array{T, 1}, 1}
-  nd::Array{Tuple{<:PolyElem{T}, <:PolyElem{T}}, 1}
+  v::Vector{Vector{T}}
+  nd::Vector{Tuple{<:PolyElem{T}, <:PolyElem{T}}}
   G::RingElem # can be Generic.Frac{<:MPolyElem{T}} or PolyElem
-  function Vals(v::Array{Array{S, 1}, 1}) where {S}
+  function Vals(v::Vector{Vector{S}}) where {S}
     r = new{S}()
     r.v = v
     return r
@@ -335,7 +335,7 @@ function exp_groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Frac{
           g = inv(leading_coefficient(_g))*_g
           f = []
           for (c, e) = zip(Generic.MPolyCoeffs(g), Generic.MPolyExponentVectors(g))
-            push!(f, (e, Vals(Array{T, 1}[[c]])))
+            push!(f, (e, Vals(Vector{T}[[c]])))
           end
           push!(lst, f)
         end
@@ -616,7 +616,7 @@ Helper function for the absolute factorisation:
 is factored over K[X] for K the algebraic closure of Q(A). 
 The subset of variables in A is identified by the indices in `a`
 """
-function afact(g::fmpq_mpoly, a::Array{Int, 1}; int::Bool = false)
+function afact(g::fmpq_mpoly, a::Vector{Int}; int::Bool = false)
   T = fmpq
   S = parent(g)
   n = length(a)
@@ -688,7 +688,7 @@ function afact(g::fmpq_mpoly, a::Array{Int, 1}; int::Bool = false)
         fpt = pt
         lst = []
         for x = MM 
-          push!(lst, Vals(Array{T, 1}[[x]]))
+          push!(lst, Vals(Vector{T}[[x]]))
         end
         frst = false
       else
@@ -873,7 +873,7 @@ end
 
 =#
 
-function cleanup(Lambda::PolyElem{T}, E::Int, c::Array{T, 1}, k::Int) where {T}
+function cleanup(Lambda::PolyElem{T}, E::Int, c::Vector{T}, k::Int) where {T}
   c = copy(c)
   t = degree(Lambda)
   i = k+2*t
@@ -899,7 +899,7 @@ function cleanup(Lambda::PolyElem{T}, E::Int, c::Array{T, 1}, k::Int) where {T}
   return c, e
 end
 
-function FTBM(c::Array{Q, 1}, T::Int, E::Int) where {Q <: FieldElem}
+function FTBM(c::Vector{Q}, T::Int, E::Int) where {Q <: FieldElem}
   R = parent(c[1])
   Rt, t = PolynomialRing(R, cached = false)
   L = []
@@ -916,7 +916,7 @@ function FTBM(c::Array{Q, 1}, T::Int, E::Int) where {Q <: FieldElem}
   return L
 end
 
-function MRBM(c::Array{Q, 1}, T::Int, E::Int) where {Q <: FieldElem}
+function MRBM(c::Vector{Q}, T::Int, E::Int) where {Q <: FieldElem}
   R = parent(c[1])
   Rt, t = PolynomialRing(R, cached = false)
   L = Dict{elem_type(Rt), Set{Int}}()
@@ -952,7 +952,7 @@ function MRBM(c::Array{Q, 1}, T::Int, E::Int) where {Q <: FieldElem}
   end
   return false, t
 end
-function MRBM(c::Array{Q, 1}) where {Q <: FieldElem}
+function MRBM(c::Vector{Q}) where {Q <: FieldElem}
   n = length(c)
   #we need, by paper: (2T)(2E+1) <= n
   #assuming E < T/2 => (2T)(T+1) = 2T^2+2T <= n
@@ -972,7 +972,7 @@ end
 
 
 #####################################################################
-function ben_or(lp::Array{Int, 1}, a::Array{fmpz, 1}, P::fmpz)
+function ben_or(lp::Vector{Int}, a::Vector{fmpz}, P::fmpz)
   #tries to write a as a product of powers of lp
 
   K = GF(Int(P))

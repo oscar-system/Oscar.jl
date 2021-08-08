@@ -195,7 +195,7 @@ Multivariate Polynomial Ring in x, y over Rational Field to Quotient of Multivar
 )
 
 julia> V = [y]
-1-element Array{fmpq_mpoly,1}:
+1-element Vector{fmpq_mpoly}:
  y
 
 julia> P = hom(D, C, V)

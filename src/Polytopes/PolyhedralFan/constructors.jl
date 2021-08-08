@@ -53,11 +53,11 @@ end
 
 
 
-#Same construction for when the user gives Array{Bool,2} as incidence matrix
-function PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, LS::Union{Oscar.MatElem,AbstractMatrix}, Incidence::Array{Bool,2})
+#Same construction for when the user gives Matrix{Bool} as incidence matrix
+function PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, LS::Union{Oscar.MatElem,AbstractMatrix}, Incidence::Matrix{Bool})
    PolyhedralFan(Rays, LS, IncidenceMatrix(Polymake.IncidenceMatrix(Incidence)))
 end
-function PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, Incidence::Array{Bool,2})
+function PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, Incidence::Matrix{Bool})
    PolyhedralFan(Rays,IncidenceMatrix(Polymake.IncidenceMatrix(Incidence)))
 end
 

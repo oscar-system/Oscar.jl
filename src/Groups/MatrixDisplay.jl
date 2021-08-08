@@ -114,7 +114,7 @@ julia> m = 3; n = 4;  mat = Array{String}(undef, m, n);
 julia> for i in 1:m for j in 1:n mat[i,j] = string( (i,j) ); end; end
 
 julia> mat
-3×4 Array{String,2}:
+3×4 Matrix{String}:
  "(1, 1)"  "(1, 2)"  "(1, 3)"  "(1, 4)"
  "(2, 1)"  "(2, 2)"  "(2, 3)"  "(2, 4)"
  "(3, 1)"  "(3, 2)"  "(3, 3)"  "(3, 4)"

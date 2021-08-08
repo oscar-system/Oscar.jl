@@ -18,7 +18,7 @@ abstract type ProjectivePlaneCurve{S} <: PlaneCurve{S} end
 # The point is described by its coordinates.
 # ambient_dim gives the dimension of the space to which belongs the point.
 @doc Markdown.doc"""
-    Point(coordinates::Array{S, 1}) where {S <: FieldElem}
+    Point(coordinates::Vector{S}) where {S <: FieldElem}
 
 Return the point with the given coordinates.
 
@@ -31,7 +31,7 @@ Point with coordinates fmpq[1, 2, 2]
 mutable struct Point{S <: FieldElem}
   coord::Vector{S}
   ambient_dim::Int
-  function Point(coordinates::Array{S, 1}) where {S <: FieldElem}
+  function Point(coordinates::Vector{S}) where {S <: FieldElem}
     r = new{S}()
     r.coord = coordinates
     r.ambient_dim = length(coordinates)
@@ -139,7 +139,7 @@ julia> T, _ = grade(R)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
-  z -> [1], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
+  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
 
 julia> F = T(y^3*x^6 - y^6*x^2*z)
 x^6*y^3 - x^2*y^6*z
@@ -283,10 +283,10 @@ Affine plane curve defined by x^6*y^3 - x^2*y^6
 
 
 julia> Oscar.curve_components(C)
-Dict{Oscar.PlaneCurveModule.AffinePlaneCurve{fmpq},Int64} with 3 entries:
-  x…         => 2
+Dict{Oscar.PlaneCurveModule.AffinePlaneCurve{fmpq}, Int64} with 3 entries:
   x^4 - y^3… => 1
   y…         => 3
+  x…         => 2
 ```
 """
 function curve_components(C::PlaneCurve{S}) where S <: FieldElem
