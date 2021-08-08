@@ -12,7 +12,7 @@ Pages = ["it_fg.md"]
 
 # Invariants of Finite Groups
 
-Using the notation from the introductory section to this chapter, we now suppose that $G$ is a *finite* group.
+In this section, with notation as in the introduction to this chapter, $G$ will always be a *finite* group.
 
 !!! note
      - By a result of Emmy Noether, $K[V]$ is integral over $K[V]^G$. In particular,
@@ -43,7 +43,7 @@ In the non-modular case, the Molien series allows one to precompute the number o
 
 ## Creating Invariant Rings
 
-The invariant theory module of OSCAR  distinguishes two ways of how  finite groups and their actions on $K[x_1, \dots, x_n]\cong K[V]$ are given.
+The invariant theory module of OSCAR  distinguishes two ways of how  finite groups and their actions on $K[x_1, \dots, x_n]\cong K[V]$ are specified.
 
 ### Matrix Groups
 

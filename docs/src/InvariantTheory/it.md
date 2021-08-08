@@ -17,13 +17,14 @@ $V$ over $K$ of finite dimension $n,$  and a representation $\rho: G \to \text{G
 of $G$ on $V$. Furthermore, $V^\ast$ denotes the dual vector space of $V$ and 
 $x = \{x_1, \dots, x_n\}\subset V^*$ denotes a fixed set of cooordinates.
 
-The action of $G$ on $V$ defines an action of  $G$ on $V^\ast$,
+The action of $G$ on $V$ defines an action of  $G$ on the graded symmetric algebra
 
-$(\pi \;\!  . f)(v)=f(\rho(\pi^{-1}) \;\!  . v),$
+$K[x] = K[x_1, \dots, x_n] \cong K[V]:=S(V^*)=\bigoplus_{d\geq 0} S^d V^*$
 
-which extends to an action of $G$ on the graded symmetric algebra
+by linear substitution: Identify $\text{GL}_n(K)\cong \text{GL}(V)$ and set
 
-$K[x] = K[x_1, \dots, x_n] \cong K[V]:=S(V^*)=\bigoplus_{d\geq 0} S^d V^*.$
+$(\pi \;\!  .f) \;\! (x_1, \dots, x_n)  = f(\rho(\pi^{-1}) \cdot (x_1, \dots, x_n)^T) \text{ for all } \pi\in G.$
+
 
 The *invariants* of $G$ are the fixed points of this action, its *ring of invariants* is the graded subalgebra
 
