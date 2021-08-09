@@ -159,7 +159,7 @@ function open_doc()
     end
 end
 
-function build_doc(; doctest=true)
+function build_doc(; doctest=false)
   if !isdefined(Main, :BuildDoc)
     doc_init()
   end
