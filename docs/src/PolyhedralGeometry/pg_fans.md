@@ -28,3 +28,16 @@ To construct a polyhedral fan, you must pass the rays of each cone in the fan, a
 ```@docs
 PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix)
 ```
+
+## Saving and loading
+
+Polyhedral fans can be saved to a file and loaded from a file in the following way:
+```@repl oscar
+square = cube(2)
+fan = normal_fan(square)
+save_polyhedralfan(fan, "F.fan")
+f = load_polyhedralfan("F.fan")
+collect(rays(f))
+```
+The file is in json format and contains all the underlying polymake object. In
+particular, this file can now be read by both polymake and Oscar.

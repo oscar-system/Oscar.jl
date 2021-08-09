@@ -32,3 +32,16 @@ One can construct a cone through an interior description, analogous  to the $V$-
 ```@docs
 positive_hull(::Union{MatElem, AbstractArray{T,2} where T})
 ```
+
+## Saving and loading
+
+Cones can be saved to a file and loaded from a file in the following way:
+```@repl oscar
+C = positive_hull([1 0; 0 1])
+save_cone(C, "C.cone")
+CC = load_cone("C.cone")
+collect(rays(CC))
+```
+The file is in json format and contains all the underlying polymake object. In
+particular, this file can now be read by both polymake and Oscar.
+
