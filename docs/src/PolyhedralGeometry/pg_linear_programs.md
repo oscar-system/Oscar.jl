@@ -10,7 +10,7 @@ using Oscar
 Pages = ["pg_linear_programs.md"]
 ```
 
-# Linear programs
+# Linear Programs
 
 
 ## Introduction
