@@ -16,6 +16,8 @@ jobs:
       - uses: julia-actions/setup-julia@latest
         with:
           version: '1.6'
+      - name: Build package
+        uses: julia-actions/julia-buildpkg@latest
       - name: Install dependencies
         run: julia --project=. -e 'using Oscar; Oscar.doc_init(; path="docs/")'
       - name: Build and deploy
