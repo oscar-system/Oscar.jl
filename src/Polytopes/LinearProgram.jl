@@ -76,6 +76,12 @@ function objective_function(lp::LinearProgram; as::Symbol = :pair)
    end
 end
 
+"""
+    feasible_region(lp::LinearProgram)
+
+Returns the feasible region of the linear program lp, which is a Polyhedron.
+
+"""
 feasible_region(lp::LinearProgram) = lp.feasible_region
 
 
