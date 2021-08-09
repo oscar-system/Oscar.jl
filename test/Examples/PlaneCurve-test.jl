@@ -422,3 +422,41 @@ end
     @test gcd(n, m) == m
     @test gcd(n, p) == p
 end
+
+@testset "ParaPlaneCurve" begin
+    S, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+    T, _ = grade(S)
+    C1 = Oscar.ProjPlaneCurve(T(1//2*x^5+x^2*y*z^2+x^3*y*z+1//2*x*y^2*z^2-2*x*y^3*z+y^5))
+    I1 = Oscar.parametrization_plane_curve(C1)
+    I2 = Oscar.adjoint_ideal(C1)
+    R1 = base_ring(I1)
+    s, t = gens(R1)
+    @test gens(I1) == [-4*s^4*t + 2*s^3*t^2, 2*s^2*t^3 - s*t^4, 4*s^5 - t^5]
+    @test gens(I2) == [T(-x*y*z + y^3), T(-x^2*z + x*y^2), T(x^2*y + y^2*z), T(x^3 + x*y*z)]
+    C2 = Oscar.ProjPlaneCurve(T(y^2 - x*z))
+    P = Oscar.rational_point_conic(C2)
+    I3 = Oscar.parametrization_conic(C2)
+    R2 = base_ring(I3)
+    s1, t1 = gens(R2)
+    @test iszero(evaluate(C2.eq, P))
+    @test gens(I3) == [s1^2,  s1*t1, t1^2]
+    C3 = Oscar.ProjPlaneCurve(T(y^8-x^3*(z+x)^5))
+    D = Oscar.map_to_rational_normal_curve(C3)
+    I4 = Oscar.rat_normal_curve_anticanonical_map(D)
+    Y = gens(base_ring(I4))
+    @test gens(I4) == [Y[1], -Y[2], -Y[5], -Y[4], -Y[7]]
+    C4 = Oscar.rat_normal_curve_It_Proj_Even(D)
+    R3 = parent(C4.eq)
+    U = gens(R3)
+    @test C4 == Oscar.ProjPlaneCurve(-U[1]*U[3] + U[2]^2)
+    C5 = Oscar.ProjPlaneCurve(T(-x^7-10*x^5*y^2-10*x^4*y^3-3*x^3*y^4+8*x^2*y^5+
+    7*x*y^6+11*y^7+3*x^6*z+10*x^5*y*z+30*x^4*y^2*z+26*x^3*y^3*z-13*x^2*y^4*z-
+    29*x*y^5*z-33*y^6*z-3*x^5*z^2-20*x^4*y*z^2-33*x^3*y^2*z^2-8*x^2*y^3*z^2+
+    37*x*y^4*z^2+33*y^5*z^2+x^4*z^3+10*x^3*y*z^3+13*x^2*y^2*z^3-15*x*y^3*z^3-
+    11*y^4*z^3))
+    D2 = Oscar.map_to_rational_normal_curve(C5)
+    I5 = Oscar.rat_normal_curve_It_Proj_Odd(D2)
+    R4 = base_ring(I5)
+    V = gens(R4)
+    @test gens(I5) == [121*V[3] + 77*V[4], -11*V[5] - 7*V[6]]
+end
