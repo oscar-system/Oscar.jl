@@ -17,6 +17,7 @@ Load a cone stored in JSON format, given the filename as input.
 """
 function load_cone(filename::String)
    bigobject = Polymake.load_bigobject(filename)
+   typename = Polymake.type_name(bigobject)
    if typename[1:4] != "Cone"
       throw(ArgumentError("Loaded object is not of polymake type Cone, it has type " * typename))
    end
@@ -57,7 +58,7 @@ Save a polyhedral fan to a file in JSON format. The first argument is the
 polyhedral fan, the second argument is the filename.
 """
 function save_polyhedralfan(PF::PolyhedralFan, filename::String)
-   bigobject = pm_ralfan(PF)
+   bigobject = pm_fan(PF)
    Polymake.save_bigobject(bigobject, filename)
 end
 
@@ -68,6 +69,7 @@ Load a polyhedral fan stored in JSON format, given the filename as input.
 """
 function load_polyhedralfan(filename::String)
    bigobject = Polymake.load_bigobject(filename)
+   typename = Polymake.type_name(bigobject)
    if typename[1:13] != "PolyhedralFan"
       throw(ArgumentError("Loaded object is not of polymake type PolyhedralFan, it has type " * typename))
    end
