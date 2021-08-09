@@ -165,12 +165,79 @@ end
 
 
 
+
+@doc Markdown.doc"""
+    product(P::Polyhedron, Q::Polyhedron)
+
+Return the Cartesian product of `P` and `Q`.
+
+# Examples
+The Cartesian product of a triangle and a line segment is a triangular prism.
+```julia-repl
+julia> T=simplex(2)
+A polyhedron
+
+julia> S=cube(1)
+A polyhedron
+
+julia> length(vertices(product(T,S)))
+6
+```
+"""
+product(P::Polyhedron, Q::Polyhedron) = Polyhedron(Polymake.polytope.product(pm_polytope(P), pm_polytope(Q)))
+
+@doc Markdown.doc"""
+    *(P::Polyhedron, Q::Polyhedron)
+
+Return the Cartesian product of `P` and `Q` (see also `product`).
+
+# Examples
+The Cartesian product of a triangle and a line segment is a triangular prism.
+```julia-repl
+julia> T=simplex(2)
+A polyhedron
+
+julia> S=cube(1)
+A polyhedron
+
+julia> length(vertices(T*S))
+6
+```
+"""
+*(P::Polyhedron, Q::Polyhedron) = product(P,Q)
+
+@doc Markdown.doc"""
+    convex_hull(P::Polyhedron, Q::Polyhedron)
+
+Return the convex_hull of `P` and `Q`.
+
+# Examples
+The convex hull of the following two line segments in $R^3$ is a tetrahedron.
+```julia-repl
+julia> L₁ = convex_hull([-1 0 0; 1 0 0])
+A polyhedron
+
+julia> L₂ = convex_hull([0 -1 0; 0 1 0])
+A polyhedron
+
+julia> T=convex_hull(L₁,L₂);
+
+julia> f_vector(T)
+2-element Vector{Int64}:
+ 4
+ 4
+```
+"""
+convex_hull(P::Polyhedron,Q::Polyhedron) = Polyhedron(Polymake.polytope.conv(pm_polytope(P),pm_polytope(Q)))
+
+
+
 #TODO: documentation  + extend to different fields.
 
 @doc Markdown.doc"""
     +(P::Polyhedron, Q::Polyhedron)
 
-Return the Minkowski sum $P + Q = \{ x+y\ |\ x∈P, y∈Q\}$ of `P` and `Q`.
+Return the Minkowski sum $P + Q = \{ x+y\ |\ x∈P, y∈Q\}$ of `P` and `Q` (see also `minkowski_sum`).
 
 # Examples
 The Minkowski sum of a square and the 2-dimensional cross-polytope is an
