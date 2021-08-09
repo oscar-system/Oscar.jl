@@ -193,7 +193,8 @@ function assign_from_description(G::MatrixGroup)
    elseif G.descr==:Omega
      # For even q or d = 1, \Omega(d,q) is equal to SO(d,q).
      # Otherwise, \Omega(d,q) has index 2 in SO(d,q).
-     # Here d is odd, and we do not get here if d == 1 holds.
+     # Here d is odd, and we do not get here if d == 1 holds
+     # because `omega_group` delegates to `SO` in this case.
      @assert G.deg > 1
      if iseven(GAP.Globals.Size(F))
        G.X = GAP.Globals.SO(0, G.deg, F)

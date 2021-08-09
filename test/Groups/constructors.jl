@@ -128,7 +128,7 @@ end
             @test SO(e,n,q)==special_orthogonal_group(e,n,q)
             @test index(GO(e,n,q), SO(e,n,q)) == gcd(2, q-1)
             @test index(SO(e,n,q), omega_group(e,n,q)) == 2
-            @test index(GO(e,n,q),omega_group(e,n,q)) == 2 * gcd(2, q-1)
+            @test index(GO(e,n,q), omega_group(e,n,q)) == 2 * gcd(2, q-1)
          end
       end
       @testset for n in [3,5]
