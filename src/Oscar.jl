@@ -159,12 +159,12 @@ function open_doc()
     end
 end
 
-function build_doc()
+function build_doc(; doctest=true)
   if !isdefined(Main, :BuildDoc)
     doc_init()
   end
   Pkg.activate(docsproject) do
-    Base.invokelatest(Main.BuildDoc.doit, Oscar, false, true)
+    Base.invokelatest(Main.BuildDoc.doit, Oscar; strict=false, local_build=true, doctest=doctest)
   end
   open_doc()
 end
