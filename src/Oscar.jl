@@ -124,16 +124,25 @@ function example(s::String)
   Base.include(Main, joinpath(oscardir, "examples", s))
 end
 
-function doc_init()
-  Pkg.activate(joinpath(oscardir, "docs")) do
+# use tempdir by default to ensure a clean manifest (and avoid modifying the project)
+function doc_init(;path=mktempdir())
+  global docsproject = path
+  if !isfile(joinpath(docsproject,"Project.toml"))
+    cp(joinpath(oscardir, "docs", "Project.toml"), joinpath(docsproject,"Project.toml"))
+  end
+  Pkg.activate(docsproject) do
+    # we dev all packages with the paths from where they are currently loaded
+    for dir in [aadir, nemodir, heckedir, oscardir]
+      Pkg.develop(path=dir)
+    end
     Pkg.instantiate()
     Base.include(Main, joinpath(oscardir, "docs", "make_work.jl"))
   end
 end
 
-function doc_update_deps()
-  Pkg.activate(Pkg.update, joinpath(oscardir, "docs"))
-end
+#function doc_update_deps()
+#  Pkg.activate(Pkg.update, joinpath(oscardir, "docs"))
+#end
 
 function open_doc()
     filename = normpath(Oscar.oscardir, "docs", "build", "index.html")
@@ -154,7 +163,7 @@ function build_doc()
   if !isdefined(Main, :BuildDoc)
     doc_init()
   end
-  Pkg.activate(joinpath(oscardir, "docs")) do
+  Pkg.activate(docsproject) do
     Base.invokelatest(Main.BuildDoc.doit, Oscar, false, true)
   end
   open_doc()
