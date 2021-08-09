@@ -108,7 +108,7 @@ Affine plane curve defined by x^3 - x*y^2
 
 
 julia> Oscar.common_components(C, D)
-1-element Array{Oscar.PlaneCurveModule.AffinePlaneCurve{fmpq},1}:
+1-element Vector{Oscar.PlaneCurveModule.AffinePlaneCurve{fmpq}}:
  Affine plane curve defined by x^2 + x*y
 ```
 """
@@ -146,10 +146,10 @@ Affine plane curve defined by x^2 - x*y - 2*x + 2*y
 
 
 julia> Oscar.curve_intersect(C, D)
-2-element Array{Array{T,1} where T,1}:
+2-element Vector{Vector{T} where T}:
  Oscar.PlaneCurveModule.AffinePlaneCurve[]
- Oscar.PlaneCurveModule.Point{fmpq}[Point with coordinates fmpq[2, -2]
-, Point with coordinates fmpq[0, 0]
+ Oscar.PlaneCurveModule.Point{fmpq}[Point with coordinates fmpq[0, 0]
+, Point with coordinates fmpq[2, -2]
 ]
 ```
 """
@@ -239,19 +239,19 @@ Affine plane curve defined by -x^5 - x^4*y + x^3*y^3 + x^2*y^4
 
 
 julia> Oscar.curve_singular_locus(C)
-2-element Array{Array{T,1} where T,1}:
+2-element Vector{Vector{T} where T}:
  Oscar.PlaneCurveModule.AffinePlaneCurve[Affine plane curve defined by x
 ]
- Oscar.PlaneCurveModule.Point[Point with coordinates fmpq[0, 0]
-, Point with coordinates fmpq[-1, 1]
+ Oscar.PlaneCurveModule.Point[Point with coordinates fmpq[-1, 1]
+, Point with coordinates fmpq[0, 0]
 ]
 ```
 """
 function curve_singular_locus(C::AffinePlaneCurve)
    comp = curve_components(C)
    D = reduction(C)
-   Pts = Array{Point, 1}()
-   CC = Array{AffinePlaneCurve, 1}()
+   Pts = Vector{Point}()
+   CC = Vector{AffinePlaneCurve}()
    # The components with multiplicity > 1 are singular
    f = [h.eq for (h,c) in comp if c != 1]
    if !isempty(f)
@@ -371,7 +371,7 @@ Point with coordinates fmpq[0, 0]
 
 
 julia> Oscar.tangent_lines(C, P)
-Dict{Oscar.PlaneCurveModule.AffinePlaneCurve{fmpq},Int64} with 2 entries:
+Dict{Oscar.PlaneCurveModule.AffinePlaneCurve{fmpq}, Int64} with 2 entries:
   x…     => 4
   x + y… => 1
 ```

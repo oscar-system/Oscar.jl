@@ -36,7 +36,8 @@ mutable struct MatrixGroup{RE<:RingElem, T<:MatElem{RE}} <: GAPGroup
    X::GapObj
    gens::Vector{<:AbstractMatrixGroupElem}
    descr::Symbol                       # e.g. GL, SL, symbols for isometry groups
-   mat_iso::GenMatIso
+   ring_iso::MapFromFunc # Isomorphism from the Oscar base ring to the GAP base ring
+   mat_iso::MapFromFunc # Isomorphism from the Oscar matrix space to the GAP one
 #   order::fmpz
    AbstractAlgebra.@declare_other
 
@@ -159,18 +160,18 @@ end
 group_element(G::MatrixGroup, x::GapObj) = MatrixGroupElem(G,x)
 
 function assign_from_description(G::MatrixGroup)
-   if G.descr==:GL G.X=GAP.Globals.GL(G.deg,G.mat_iso.fr.codomain)
-   elseif G.descr==:SL G.X=GAP.Globals.SL(G.deg,G.mat_iso.fr.codomain)
-   elseif G.descr==:Sp G.X=GAP.Globals.Sp(G.deg,G.mat_iso.fr.codomain)
-   elseif G.descr==Symbol("GO+") G.X=GAP.Globals.GO(1,G.deg,G.mat_iso.fr.codomain)
-   elseif G.descr==Symbol("SO+") G.X=GAP.Globals.SO(1,G.deg,G.mat_iso.fr.codomain)
+   if G.descr==:GL G.X=GAP.Globals.GL(G.deg,codomain(G.ring_iso))
+   elseif G.descr==:SL G.X=GAP.Globals.SL(G.deg,codomain(G.ring_iso))
+   elseif G.descr==:Sp G.X=GAP.Globals.Sp(G.deg,codomain(G.ring_iso))
+   elseif G.descr==Symbol("GO+") G.X=GAP.Globals.GO(1,G.deg,codomain(G.ring_iso))
+   elseif G.descr==Symbol("SO+") G.X=GAP.Globals.SO(1,G.deg,codomain(G.ring_iso))
    elseif G.descr==Symbol("Omega+")
       # FIXME/TODO: Work around GAP issue <https://github.com/gap-system/gap/issues/500>
       # using the following inefficient code. In the future, we should use appropriate
       # generators for Omega (e.g. by applying a form change matrix to the Omega
       # generators returned by GAP).
       # This also compensates for the fact that Omega(-1,2,q) is not supported in GAP.
-      L = GAP.Globals.SubgroupsOfIndexTwo(GAP.Globals.SO(1,G.deg,G.mat_iso.fr.codomain))
+      L = GAP.Globals.SubgroupsOfIndexTwo(GAP.Globals.SO(1,G.deg,codomain(G.ring_iso)))
       if G.deg==4 && order(G.ring)==2  # this is the only case SO(n,q) has more than one subgroup of index 2
          for y in L
             _ranks = [GAP.Globals.Rank(u) for u in GAP.Globals.GeneratorsOfGroup(y)]
@@ -183,28 +184,28 @@ function assign_from_description(G::MatrixGroup)
          @assert length(L) == 1
          G.X=L[1]
       end
-   elseif G.descr==Symbol("GO-") G.X=GAP.Globals.GO(-1,G.deg,G.mat_iso.fr.codomain)
-   elseif G.descr==Symbol("SO-") G.X=GAP.Globals.SO(-1,G.deg,G.mat_iso.fr.codomain)
-   elseif G.descr==Symbol("Omega-") G.X=GAP.Globals.SubgroupsOfIndexTwo(GAP.Globals.SO(-1,G.deg,G.mat_iso.fr.codomain))[1]
+   elseif G.descr==Symbol("GO-") G.X=GAP.Globals.GO(-1,G.deg,codomain(G.ring_iso))
+   elseif G.descr==Symbol("SO-") G.X=GAP.Globals.SO(-1,G.deg,codomain(G.ring_iso))
+   elseif G.descr==Symbol("Omega-") G.X=GAP.Globals.SubgroupsOfIndexTwo(GAP.Globals.SO(-1,G.deg,codomain(G.ring_iso)))[1]
    # TODO : we define explicitly orthogonal groups in dimension 1, since GAP does not support them
    # GO(1,q) = { +1, -1 } and SO(1,q)=Omega(1,q) = { +1 }.
    elseif G.descr==:GO
       if G.deg==1
-         G.X=GAP.Globals.Group(GapObj([GapObj([-GAP.Globals.One(G.mat_iso.f.riso.codomain)])]))
+         G.X=GAP.Globals.Group(GapObj([GapObj([-GAP.Globals.One(codomain(G.ring_iso))])]))
       else
-         G.X=GAP.Globals.GO(0,G.deg,G.mat_iso.fr.codomain)
+         G.X=GAP.Globals.GO(0,G.deg,codomain(G.ring_iso))
       end
    elseif G.descr==:SO
       if G.deg==1
-         G.X=GAP.Globals.Group(GapObj([GapObj([GAP.Globals.One(G.mat_iso.f.riso.codomain)])]))
+         G.X=GAP.Globals.Group(GapObj([GapObj([GAP.Globals.One(codomain(G.ring_iso))])]))
       else
-         G.X=GAP.Globals.SO(0,G.deg,G.mat_iso.fr.codomain)
+         G.X=GAP.Globals.SO(0,G.deg,codomain(G.ring_iso))
       end
    elseif G.descr==:Omega
       if G.deg==1
-         G.X=GAP.Globals.Group(GapObj([GapObj([GAP.Globals.One(G.mat_iso.f.riso.codomain)])]))
+         G.X=GAP.Globals.Group(GapObj([GapObj([GAP.Globals.One(codomain(G.ring_iso))])]))
       else
-         G.X=GAP.Globals.SubgroupsOfIndexTwo(GAP.Globals.SO(0,G.deg,G.mat_iso.fr.codomain))[1]
+         G.X=GAP.Globals.SubgroupsOfIndexTwo(GAP.Globals.SO(0,G.deg,codomain(G.ring_iso)))[1]
       end
    elseif G.descr==:GU G.X=GAP.Globals.GU(G.deg,Int(characteristic(G.ring)^(div(degree(G.ring),2) ) ))
    elseif G.descr==:SU G.X=GAP.Globals.SU(G.deg,Int(characteristic(G.ring)^(div(degree(G.ring),2) ) ))
@@ -218,18 +219,21 @@ function Base.getproperty(G::MatrixGroup, sym::Symbol)
 
    isdefined(G,sym) && return getfield(G,sym)
 
-   if sym === :mat_iso
-      G.mat_iso = gen_mat_iso(G.deg, G.ring)
+   if sym === :ring_iso
+      G.ring_iso = ring_iso_oscar_gap(G.ring)
+
+   elseif sym === :mat_iso
+      G.mat_iso = mat_iso_oscar_gap(G.ring, G.deg, G.ring_iso)
 
    elseif sym === :X
       if isdefined(G,:descr)
          if !isdefined(G,:mat_iso)
-            G.mat_iso = gen_mat_iso(G.deg, G.ring)
+            G.mat_iso = mat_iso_oscar_gap(G.ring, G.deg, G.ring_iso)
          end
          assign_from_description(G)
       elseif isdefined(G,:gens)
          if !isdefined(G,:mat_iso)
-            G.mat_iso = gen_mat_iso(G.deg, G.ring)
+            G.mat_iso = mat_iso_oscar_gap(G.ring, G.deg, G.ring_iso)
          end
          V = GAP.julia_to_gap([g.X for g in gens(G)])
          G.X=GAP.Globals.Group(V)
@@ -250,7 +254,7 @@ function Base.getproperty(x::MatrixGroupElem, sym::Symbol)
    if sym === :X
       x.X = x.parent.mat_iso(x.elm)
    elseif sym == :elm
-      x.elm = x.parent.mat_iso(x.X)
+      x.elm = preimage(x.parent.mat_iso, x.X)
    end
    return getfield(x,sym)
 end
@@ -261,7 +265,7 @@ function Base.iterate(G::MatrixGroup)
   L=GAP.Globals.Iterator(G.X)
   @assert ! GAP.Globals.IsDoneIterator(L)
   i = GAP.Globals.NextIterator(L)
-  return MatrixGroupElem(G, G.mat_iso(i),i), L
+  return MatrixGroupElem(G, preimage(G.mat_iso, i),i), L
 end
 
 function Base.iterate(G::MatrixGroup, state::GapObj)
@@ -269,7 +273,7 @@ function Base.iterate(G::MatrixGroup, state::GapObj)
     return nothing
   end
   i = GAP.Globals.NextIterator(state)
-  return MatrixGroupElem(G, G.mat_iso(i),i), state
+  return MatrixGroupElem(G, preimage(G.mat_iso, i),i), state
 end
 
 ########################################################################
@@ -489,14 +493,14 @@ Base.one(G::MatrixGroup) = MatrixGroupElem(G, identity_matrix(G.ring, G.deg))
 
 function Base.rand(G::MatrixGroup)
    x_gap = GAP.Globals.Random(G.X)
-   x_oscar = G.mat_iso(x_gap)
+   x_oscar = preimage(G.mat_iso, x_gap)
    return MatrixGroupElem(G,x_oscar,x_gap)
 end
 
 function gens(G::MatrixGroup)
    if !isdefined(G,:gens)
       L = GAP.Globals.GeneratorsOfGroup(G.X)
-      G.gens=[MatrixGroupElem(G,G.mat_iso(a),a) for a in L]
+      G.gens=[MatrixGroupElem(G,preimage(G.mat_iso, a),a) for a in L]
    end
    return G.gens
 end

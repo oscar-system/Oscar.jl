@@ -11,7 +11,7 @@ function __init__()
 end
 
 
-function stdhilb(I::Singular.sideal, h::Array{Int32, 1}; complete_reduction::Bool=false)
+function stdhilb(I::Singular.sideal, h::Vector{Int32}; complete_reduction::Bool=false)
   R = base_ring(I)
 #  @show "stdhilb", I
   @time ptr = Singular.libSingular.id_StdHilb(I.ptr, R.ptr, h, complete_reduction)
@@ -56,8 +56,8 @@ function exp_groebner_assure(I::MPolyIdeal{Generic.MPoly{nf_elem}}, ord::Symbol 
   max_stable = 2
   stable = max_stable
 
-  local gc::Array{Generic.MPoly{nf_elem}, 1}
-  local gd::Array{Generic.MPoly{nf_elem}, 1}
+  local gc::Vector{Generic.MPoly{nf_elem}}
+  local gd::Vector{Generic.MPoly{nf_elem}}
   Zx = Hecke.Globals.Zx
   R = RecoCtx(K)
 
@@ -150,7 +150,7 @@ end
 # for induced stuff and majority voting and such think of data structures
 #   that allow to match monomials effectively.
 function Hecke.modular_proj(B::BiPolyArray{Generic.MPoly{nf_elem}}, me::Hecke.modular_env)
-  g = [Array{nmod_mpoly, 1}() for i = me.fld]
+  g = [Vector{nmod_mpoly}() for i = me.fld]
   for i=B
     h = Hecke.modular_proj(i, me)
     for j = 1:length(h)
@@ -160,7 +160,7 @@ function Hecke.modular_proj(B::BiPolyArray{Generic.MPoly{nf_elem}}, me::Hecke.mo
   return [BiPolyArray(x, keep_ordering = false) for x = g] 
 end
 
-function Hecke.modular_lift(f::Array{BiPolyArray{nmod_mpoly}, 1}, me::Hecke.modular_env)
+function Hecke.modular_lift(f::Vector{BiPolyArray{nmod_mpoly}}, me::Hecke.modular_env)
   g = []
   @assert all(x -> length(x) == length(f[1]), f)
   for i=1:length(f[1])

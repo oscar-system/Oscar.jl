@@ -86,7 +86,7 @@ julia> F = faces(Polyhedron, cube(3), 2)
 Oscar.PolyhedronFacePolyhedronIterator(A polyhedron in ambient dimension 3, 2)
 
 julia> collect(F)
-6-element Array{Any,1}:
+6-element Vector{Any}:
  A polyhedron in ambient dimension 3
  A polyhedron in ambient dimension 3
  A polyhedron in ambient dimension 3
@@ -114,7 +114,7 @@ julia> F = faces(cube(3),2)
 Oscar.PolyhedronFacePolyhedronIterator(A polyhedron in ambient dimension 3, 2)
 
 julia> collect(F)
-6-element Array{Any,1}:
+6-element Vector{Any}:
  A polyhedron in ambient dimension 3
  A polyhedron in ambient dimension 3
  A polyhedron in ambient dimension 3
@@ -163,7 +163,7 @@ a square:
 julia> P = simplex(2) + cube(2);
 
 julia> collect(vertices(Points, P))
-5-element Array{Polymake.Vector{Polymake.Rational},1}:
+5-element Vector{Polymake.Vector{Polymake.Rational}}:
 pm::Vector<pm::Rational>
 -1 -1
 pm::Vector<pm::Rational>
@@ -198,7 +198,7 @@ a square:
 julia> P = simplex(2) + cube(2);
 
 julia> collect(vertices(P))
-5-element Array{Polymake.Vector{Polymake.Rational},1}:
+5-element Vector{Polymake.Vector{Polymake.Rational}}:
 pm::Vector<pm::Rational>
 -1 -1
 pm::Vector<pm::Rational>
@@ -309,7 +309,7 @@ rays in positive unit direction:
 ```julia-repl
 julia> PO = convex_hull([0 0], [1 0; 0 1]);
 julia> collect(rays(Points, PO))
-2-element Array{Polymake.Vector{Polymake.Rational},1}:
+2-element Vector{Polymake.Vector{Polymake.Rational}}:
  pm::Vector<pm::Rational>
 1 0
  pm::Vector<pm::Rational>
@@ -338,7 +338,7 @@ rays in positive unit direction:
 ```julia-repl
 julia> PO = convex_hull([0 0], [1 0; 0 1]);
 julia> collect(rays(PO))
-2-element Array{Polymake.Vector{Polymake.Rational},1}:
+2-element Vector{Polymake.Vector{Polymake.Rational}}:
  pm::Vector<pm::Rational>
 1 0
  pm::Vector<pm::Rational>
@@ -418,7 +418,7 @@ We can retrieve the six facets of the 3-dimensional cube this way:
 julia> C = cube(3);
 
 julia> collect(facets(Polyhedron, C))
-6-element Array{Any,1}:
+6-element Vector{Any}:
 A polyhedron in ambient dimension 3
 A polyhedron in ambient dimension 3
 A polyhedron in ambient dimension 3
@@ -427,7 +427,7 @@ A polyhedron in ambient dimension 3
 A polyhedron in ambient dimension 3
 
 julia> collect(facets(Halfspaces, C))
-6-element Array{Tuple{Polymake.Vector{Polymake.Rational},Polymake.Rational},1}:
+6-element Vector{Tuple{Polymake.Vector{Polymake.Rational},Polymake.Rational}}:
 (pm::Vector<pm::Rational>
 -1 0 0, 1)
 (pm::Vector<pm::Rational>
@@ -464,7 +464,7 @@ We can retrieve the six facets of the 3-dimensional cube this way:
 julia> C = cube(3);
 
 julia> collect(facets(C))
-6-element Array{Tuple{Polymake.Vector{Polymake.Rational},Polymake.Rational},1}:
+6-element Vector{Tuple{Polymake.Vector{Polymake.Rational},Polymake.Rational}}:
 (pm::Vector<pm::Rational>
 -1 0 0, 1)
 (pm::Vector<pm::Rational>
@@ -576,7 +576,7 @@ Return the integer points contained in the bounded polyhedron `P`.
 julia> S = 2 * simplex(2);
 
 julia> lattice_points(S)
-6-element Array{Polymake.VectorAllocated{Polymake.Integer},1}:
+6-element Vector{Polymake.VectorAllocated{Polymake.Integer}}:
  pm::Vector<pm::Integer>
 0 0
  pm::Vector<pm::Integer>
@@ -673,7 +673,7 @@ Return the recession cone of `P`.
 julia> P = Polyhedron([1 -2; -1 1; -1 0; 0 -1],[2,1,1,1]);
 
 julia> collect(vertices(P))
-3-element Array{Polymake.Vector{Polymake.Rational},1}:
+3-element Vector{Polymake.Vector{Polymake.Rational}}:
  pm::Vector<pm::Rational>
 0 -1
  pm::Vector<pm::Rational>
@@ -685,7 +685,7 @@ julia> recession_cone(P)
 A polyhedral cone in ambient dimension 2
 
 julia> collect(rays(recession_cone(P)))
-2-element Array{Polymake.Vector{Polymake.Rational},1}:
+2-element Vector{Polymake.Vector{Polymake.Rational}}:
  pm::Vector<pm::Rational>
 1 1/2
  pm::Vector<pm::Rational>
@@ -814,7 +814,7 @@ faces of $P$ of dimension $i$.
 Here we compute the f-vector of the 5-cube:
 ```julia-repl
 julia> f_vector(cube(5))
-5-element Array{Int64,1}:
+5-element Vector{Int64}:
  32
  80
  80

@@ -9,14 +9,14 @@ mutable struct MPolyRing_dec{T, S} <: AbstractAlgebra.MPolyRing{T}
   d::Vector{GrpAbFinGenElem}
   lt
   Hecke.@declare_other
-  function MPolyRing_dec(R::S, d::Array{GrpAbFinGenElem, 1}) where {S}
+  function MPolyRing_dec(R::S, d::Vector{GrpAbFinGenElem}) where {S}
     r = new{elem_type(base_ring(R)), S}()
     r.R = R
     r.D = parent(d[1])
     r.d = d
     return r
   end
-  function MPolyRing_dec(R::S, d::Array{GrpAbFinGenElem, 1}, lt) where {S}
+  function MPolyRing_dec(R::S, d::Vector{GrpAbFinGenElem}, lt) where {S}
     r = new{elem_type(base_ring(R)), S}()
     r.R = R
     r.D = parent(d[1])
@@ -76,21 +76,21 @@ julia> typeof(R)
 FmpqMPolyRing
 
 julia> S, (x, y, z) = grade(R)
-(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
-  z -> [1], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
+  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
 
 julia> typeof(S)
-MPolyRing_dec{fmpq,FmpqMPolyRing}
+MPolyRing_dec{fmpq, FmpqMPolyRing}
 
 julia> W = [1, 2, 3];
 
 julia> T, (x, y, z) = grade(R, W)
-(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [2]
-  z -> [3], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
+  z -> [3], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
 ```
 """
 function grade(R::MPolyRing, W::Vector{Int})
@@ -117,10 +117,10 @@ Return a multivariate polynomial ring with weight 1 assigned to each variable.
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"], [1, 2, 3])
-(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [2]
-  z -> [3], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
+  z -> [3], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
 ```
 """
 function GradedPolynomialRing(C::Ring, V::Vector{String}, W::Vector{Int}; ordering=:lex)
@@ -141,19 +141,19 @@ function show_special_elem_grad(io::IO, a::GrpAbFinGenElem)
   end
 end
 
-function filtrate(R::MPolyRing, v::Array{Int, 1})
+function filtrate(R::MPolyRing, v::Vector{Int})
   A = abelian_group([0])
   Hecke.set_special(A, :show_elem => show_special_elem_grad) 
   S = MPolyRing_dec(R, [i*A[1] for i = v], (x,y) -> x[1] < y[1])
   return S, map(S, gens(R))
 end
 
-function filtrate(R::MPolyRing, v::Array{GrpAbFinGenElem, 1}, lt)
+function filtrate(R::MPolyRing, v::Vector{GrpAbFinGenElem}, lt)
   S = MPolyRing_dec(R, v, lt)
   return S, map(S, gens(R))
 end
 
-function grade(R::MPolyRing, v::Array{GrpAbFinGenElem, 1})
+function grade(R::MPolyRing, v::Vector{GrpAbFinGenElem})
   S = MPolyRing_dec(R, v)
   return S, map(S, gens(R))
 end
@@ -360,7 +360,7 @@ function jacobi_ideal(f::MPolyElem_dec)
   return ideal(R, [derivative(f, i) for i=1:n])
 end
 
-function jacobi_matrix(g::Array{<:MPolyElem_dec, 1})
+function jacobi_matrix(g::Vector{<:MPolyElem_dec})
   R = parent(g[1])
   n = nvars(R)
   @assert all(x->parent(x) === R, g)
@@ -510,7 +510,7 @@ function homogeneous_component(W::MPolyRing_dec, d::GrpAbFinGenElem)
   return M, h
 end
 
-function vector_space(K::AbstractAlgebra.Field, e::Array{T, 1}; target = nothing) where {T <:MPolyElem}
+function vector_space(K::AbstractAlgebra.Field, e::Vector{T}; target = nothing) where {T <:MPolyElem}
   local R
   if length(e) == 0
     R = target
@@ -520,12 +520,12 @@ function vector_space(K::AbstractAlgebra.Field, e::Array{T, 1}; target = nothing
   end
   @assert base_ring(R) == K
   mon = Dict{elem_type(R), Int}()
-  mon_idx = Array{elem_type(R), 1}()
+  mon_idx = Vector{elem_type(R)}()
   M = sparse_matrix(K)
   last_pos = 1
   for i = e
-    pos = Array{Int, 1}()
-    val = Array{elem_type(K), 1}()
+    pos = Vector{Int}()
+    val = Vector{elem_type(K)}()
     for (c, m) = Base.Iterators.zip(coefficients(i), monomials(i))
       if haskey(mon, m)
         push!(pos, mon[m])
@@ -542,7 +542,7 @@ function vector_space(K::AbstractAlgebra.Field, e::Array{T, 1}; target = nothing
   end
   Hecke.echelon!(M, complete = true)
 
-  b = Array{elem_type(R), 1}()
+  b = Vector{elem_type(R)}()
   for i=1:nrows(M)
     s = zero(e[1])
     for (k,v) = M[i]
@@ -609,14 +609,14 @@ end
 ############################################################################
 
 function sing_hilb(I::Singular.sideal)
-  a = Array{Int32, 1}()
+  a = Vector{Int32}()
   @assert I.isGB
   Singular.libSingular.scHilb(I.ptr, base_ring(I).ptr, a)
   return a
 end
 
 mutable struct HilbertData
-  data::Array{Int32, 1}
+  data::Vector{Int32}
   I::MPolyIdeal
   function HilbertData(I::MPolyIdeal)
 

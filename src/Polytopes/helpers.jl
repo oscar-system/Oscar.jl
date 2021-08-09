@@ -41,27 +41,27 @@ interpreted as row vectors. Empty vectors are ignored.
 
 ```
 julia> stack([1, 2], [0, 0])
-2×2 Array{Int64,2}:
+2×2 Matrix{Int64}:
  1  2
  0  0
 
 julia> stack([1 2], [0 0])
-2×2 Array{Int64,2}:
+2×2 Matrix{Int64}:
  1  2
  0  0
 
 julia> stack([1 2], [0, 0])
-2×2 Array{Int64,2}:
+2×2 Matrix{Int64}:
  1  2
  0  0
 
 julia> stack([1, 2], [0 0])
-2×2 Array{Int64,2}:
+2×2 Matrix{Int64}:
  1  2
  0  0
 
 julia> stack([1 2], [])
-1×2 Array{Int64,2}:
+1×2 Matrix{Int64}:
  1  2
 ```
 """
@@ -74,7 +74,7 @@ stack(A::AbstractVector, B::AbstractVector) = isempty(A) ? B : [A'; B']
 stack(A::AbstractVector,nothing) = A'
 stack(nothing,B::AbstractVector) = B'
 #=
-function stack(A::Array{Polymake.Vector{Polymake.Rational},1})
+function stack(A::Vector{Polymake.Vector{Polymake.Rational}})
     if length(A)==2
         return stack(A[1],A[2])
     end
@@ -108,7 +108,7 @@ struct IncidenceMatrix
    pm_incidencematrix::Polymake.IncidenceMatrix
 end
 
-function IncidenceMatrix(TrueIndices::Array{Array{Int64,1},1})
+function IncidenceMatrix(TrueIndices::Vector{Vector{Int64}})
    nrows = length(TrueIndices)
    ncols = maximum([maximum(set) for set in TrueIndices])
    IM = Polymake.IncidenceMatrix(nrows, ncols)
@@ -126,5 +126,5 @@ end
 
 #TODO: change how incidence matrices are shown (not zero base but maybe bool?)
 function Base.show(io::IO, I::IncidenceMatrix)
-    show(io,"text/plain", (Array{Bool,2}(I.pm_incidencematrix)))
+    show(io,"text/plain", (Matrix{Bool}(I.pm_incidencematrix)))
 end

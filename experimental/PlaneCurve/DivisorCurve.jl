@@ -78,7 +78,7 @@ julia> T, _ = grade(S)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
-  z -> [1], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
+  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
 
 julia> C = Oscar.ProjPlaneCurve(T(y^2 + y*z + x^2))
 Projective plane curve defined by x^2 + y^2 + y*z
@@ -86,7 +86,7 @@ Projective plane curve defined by x^2 + y^2 + y*z
 
 julia> PP = projective_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
-, MPolyElem_dec{fmpq,fmpq_mpoly}[x[0], x[1], x[2]])
+, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
 
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(0), QQ(1)])
 (0 : 0 : 1)
@@ -130,7 +130,7 @@ end
 # To get a nice output for the divisors. The needs_parentheses is needed since
 # expressify wants to know if parentheses are needed.
 
-function AbstractAlgebra.needs_parentheses(A::Array{T, 1}) where T <: RingElem
+function AbstractAlgebra.needs_parentheses(A::Vector{T}) where T <: RingElem
     return false
 end
 
@@ -311,7 +311,7 @@ julia> T, _ = grade(S)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
-  z -> [1], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
+  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
 
 julia> C = Oscar.ProjPlaneCurve(T(y^2 + y*z + x^2))
 Projective plane curve defined by x^2 + y^2 + y*z
@@ -319,7 +319,7 @@ Projective plane curve defined by x^2 + y^2 + y*z
 
 julia> PP = projective_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
-, MPolyElem_dec{fmpq,fmpq_mpoly}[x[0], x[1], x[2]])
+, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
 
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(0), QQ(1)])
 (0 : 0 : 1)
@@ -469,7 +469,7 @@ julia> T, _ = grade(S)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
-  z -> [1], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
+  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
 
 julia> C = Oscar.ProjPlaneCurve(T(y^2 + y*z + x^2))
 Projective plane curve defined by x^2 + y^2 + y*z
@@ -477,7 +477,7 @@ Projective plane curve defined by x^2 + y^2 + y*z
 
 julia> PP = projective_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
-, MPolyElem_dec{fmpq,fmpq_mpoly}[x[0], x[1], x[2]])
+, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
 
 julia> phi = T(x)//T(y)
 x//y
@@ -617,7 +617,7 @@ julia> T, _ = grade(S)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
-  z -> [1], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
+  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
 
 julia> C = Oscar.ProjPlaneCurve(T(y^2*z - x*(x-z)*(x+3*z)))
 Projective plane curve defined by -x^3 - 2*x^2*z + 3*x*z^2 + y^2*z
@@ -625,7 +625,7 @@ Projective plane curve defined by -x^3 - 2*x^2*z + 3*x*z^2 + y^2*z
 
 julia> PP = projective_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
-, MPolyElem_dec{fmpq,fmpq_mpoly}[x[0], x[1], x[2]])
+, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
 
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(1), QQ(0)])
 (0 : 1 : 0)
@@ -634,7 +634,7 @@ julia> D = Oscar.ProjCurveDivisor(C, P, 4)
 4*(0 : 1 : 0)
 
 julia> Oscar.global_sections(D)
-4-element Array{AbstractAlgebra.Generic.Frac{fmpq_mpoly},1}:
+4-element Vector{AbstractAlgebra.Generic.Frac{fmpq_mpoly}}:
  1
  y//z
  x//z
@@ -717,7 +717,7 @@ julia> T, _ = grade(S)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
-  z -> [1], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
+  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
 
 julia> C = Oscar.ProjPlaneCurve(T(y^2*z - x*(x-z)*(x+3*z)))
 Projective plane curve defined by -x^3 - 2*x^2*z + 3*x*z^2 + y^2*z
@@ -725,7 +725,7 @@ Projective plane curve defined by -x^3 - 2*x^2*z + 3*x*z^2 + y^2*z
 
 julia> PP = projective_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
-, MPolyElem_dec{fmpq,fmpq_mpoly}[x[0], x[1], x[2]])
+, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
 
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(1), QQ(0)])
 (0 : 1 : 0)
@@ -762,7 +762,7 @@ julia> T, _ = grade(S)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
-  z -> [1], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
+  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
 
 julia> C = Oscar.ProjPlaneCurve(T(y^2*z - x*(x-z)*(x+3*z)))
 Projective plane curve defined by -x^3 - 2*x^2*z + 3*x*z^2 + y^2*z
@@ -770,7 +770,7 @@ Projective plane curve defined by -x^3 - 2*x^2*z + 3*x*z^2 + y^2*z
 
 julia> PP = projective_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
-, MPolyElem_dec{fmpq,fmpq_mpoly}[x[0], x[1], x[2]])
+, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
 
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(1), QQ(0)])
 (0 : 1 : 0)
@@ -805,7 +805,7 @@ julia> T, _ = grade(S)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
-  z -> [1], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
+  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
 
 julia> C = Oscar.ProjPlaneCurve(T(y^2*z - x*(x-z)*(x+3*z)))
 Projective plane curve defined by -x^3 - 2*x^2*z + 3*x*z^2 + y^2*z
@@ -813,7 +813,7 @@ Projective plane curve defined by -x^3 - 2*x^2*z + 3*x*z^2 + y^2*z
 
 julia> PP = projective_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
-, MPolyElem_dec{fmpq,fmpq_mpoly}[x[0], x[1], x[2]])
+, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
 
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(1), QQ(0)])
 (0 : 1 : 0)

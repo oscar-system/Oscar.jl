@@ -86,7 +86,7 @@ julia> NP = newton_polytope(f)
 A polyhedron in ambient dimension 2
 
 julia> collect(vertices(NP))
-3-element Array{Polymake.Vector{Polymake.Rational},1}:
+3-element Vector{Polymake.Vector{Polymake.Rational}}:
  pm::Vector<pm::Rational>
 3 1
  pm::Vector<pm::Rational>
