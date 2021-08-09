@@ -27,7 +27,39 @@ Linear programs are constructed by passing a polyhedron, and a linear function i
 LinearProgram
 ```
 
-## Solving a linear program
+## Solving a linear program - an example
+Let $P$ be the $3$-dimensional cube $C=[-1,1]^3$ in $\mathbb{R}^3$ and consider the linear function $\ell$, given by $\ell(x,y,z) = 3x-2y+4z+2$. Minimizing $\ell$ over $C$ can be done by solving the corresponding linear program. Computationally, this means first defining a linear program:
+
+```@repl oscar
+C = cube(3)
+LP = LinearProgram(C,[3,-2,4];k=2,convention = :min)
+```
+
+The information about the linear program `LP` can be easily extracted.
+
+```@repl oscar
+(c,k)=objective_function(LP)
+C == feasible_region(LP)
+ℓ = objective_function(LP; as = :function)
+```
+
+Solving the optimization problem can be achieved using `solve_lp`: the output is a pair `(m,v)` where the optimal value is `m`, and that value is achieved at `v`.
+
+```@repl oscar
+(m,v) = solve_lp(LP)
+ℓ(v) == m
+```
+
+Despite the linear program being initially defined with the `:min` convention, one can still ask for the maximal value and a point on the cube for which $\ell$ is maximized.
+
+```@repl oscar
+M = maximal_value(LP)
+V = maximal_vertex(LP)
+ℓ(V) == M
+```
+
+
+## Functions
 
 After constructing a linear program, it is straightforward to extract the feasible region and objective function
 

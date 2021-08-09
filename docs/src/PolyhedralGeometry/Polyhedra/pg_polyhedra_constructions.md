@@ -67,19 +67,27 @@ Polyhedra can be produced through operations on other polyhedra. For example, th
 
 ```@docs
 +(::Polyhedron, ::Polyhedron)
-minkowski_sum
-+(::AbstractVector, ::Polyhedron)
 ```
 
 ```@docs
 *(::Int, ::Polyhedron)
 ```
 
-You can also intersect polyhedra to obtain a new polyhedron.
+You can also intersect polyhedra to obtain a new polyhedron, or take Cartesian products.
 
 ```@docs
 intersect(::Polyhedron, ::Polyhedron)
 ```
+
+```@docs
+*(::Polyhedron, ::Polyhedron)
+```
+
+The convex hull of two polytopes is supported by the function `convex_hull`.
+```@docs
+convex_hull(::Polyhedron,::Polyhedron)
+```
+
 
 
 ## Polyhedra from other objects
