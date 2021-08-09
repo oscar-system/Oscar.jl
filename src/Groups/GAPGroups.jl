@@ -1,8 +1,6 @@
 # further possible functions: similar, literal_pow
 
 import Base: ^, Base.Vector
-import GAP.@gapattribute
-import GAP.@gapwrap
 
 using Random
 
@@ -38,9 +36,11 @@ export
     isalmostsimple, hasisalmostsimple, setisalmostsimple,
     isconjugate,
     isfinite, hasisfinite, setisfinite,
+    isfinite_order,
     isperfect, hasisperfect, setisperfect,
     ispgroup,
     issimple, hasissimple, setissimple,
+    moved_points, hasmoved_points, setmoved_points,
     mul,
     mul!,
     nilpotency_class, hasnilpotency_class, setnilpotency_class,
@@ -48,6 +48,7 @@ export
     normal_closure,
     normalizer,
     number_conjugacy_classes, hasnumber_conjugacy_classes, setnumber_conjugacy_classes,
+    number_moved_points, hasnumber_moved_points, setnumber_moved_points,
     one!,
     order, hasorder, setorder,
     pcore,
@@ -85,33 +86,149 @@ function parent(x::GAPGroupElem)
   return x.parent
 end
 
-function Base.isfinite(G::PermGroup)
-  return true
-end
-
-function Base.isfinite(G::PcGroup)
-  return true
-end
-
 import Base.isfinite
 
 @gapattribute isfinite(G::GAPGroup) = GAP.Globals.IsFinite(G.X)
+"""
+    isfinite(G::GAPGroup) -> Bool
+
+Return `true` if `G` is finite, and `false` otherwise.
+
+# Examples
+```jldoctest
+julia> isfinite(symmetric_group(5))
+true
+
+julia> isfinite(free_group(2))
+false
+
+```
+""" isfinite(G::GAPGroup)
+
+Base.isfinite(G::PermGroup) = true
+
+Base.isfinite(G::PcGroup) = true
 
 """
-    degree(G::PermGroup)
+    isfinite_order(g::GAPGroupElem) -> Bool
 
-Return the degree as permutation group, that is the integer `n` such that `G < Sym(n)`.
+Return `true` if `g` has finite order, and `false` otherwise.
 
-!!! warning "Note"
-    This is *not* the smallest `k` such that `G` embeds in `Sym(k)`.
+# Examples
+```jldoctest
+julia> isfinite_order(gen(symmetric_group(5), 1))
+true
+
+julia> isfinite_order(gen(free_group(2), 1))
+false
+
+```
 """
-function degree(x::PermGroup)
-   return x.deg
-end
+isfinite_order(x::GAPGroupElem) = GAP.Globals.IsInt(GAP.Globals.Order(x.X))
 
-order(x::Union{GAPGroupElem, GAPGroup}) = order(fmpz, x)
+"""
+    degree(G::PermGroup) -> Int
 
-function order(::Type{T}, x::Union{GAPGroupElem, GAPGroup}) where T
+Return the degree of `G` as a permutation group, that is,
+an integer `n` that is stored in `G`, with the following meaning.
+
+- `G` embeds into `symmetric_group(n)`.
+- Two permutation groups of different degrees are regarded as not equal,
+  even if they contain the same permutations.
+- Subgroups constructed with `derived_subgroup`, `sylow_subgroup`, etc.,
+  get the same degree as the given group.
+- The range `1:degree(G)` is used as the default set of points on which
+  `G` and its element acts.
+
+!!! note
+    The degree of a group of permutations is not necessarily equal to the largest moved point of the group `G`. For example, the trivial subgroup of `symmetric_group(n)` has degree `n` even though it fixes `n`.
+
+# Examples
+```jldoctest
+julia> degree(symmetric_group(4))
+4
+
+julia> t4 = trivial_subgroup(symmetric_group(4))[1];
+
+julia> degree(t4)
+4
+
+julia> t4 == trivial_subgroup(symmetric_group(5))[1]
+false
+
+julia> show(Vector(gen(symmetric_group(4), 2)))
+[2, 1, 3, 4]
+julia> show(Vector(gen(symmetric_group(5), 2)))
+[2, 1, 3, 4, 5]
+```
+"""
+degree(x::PermGroup) = x.deg
+
+@gapattribute moved_points(x::Union{PermGroupElem,PermGroup}) = [y for y in GAP.gap_to_julia(GAP.Globals.MovedPoints(x.X))]
+# This is more efficient than `Vector{Int}(GAP.Globals.MovedPoints(x.X))`.
+# (And note that `GAP.gap_to_julia(GAP.Globals.MovedPoints(G.X))` may return
+# a range.)
+"""
+    moved_points(x::PermGroupElem)
+    moved_points(G::PermGroup)
+
+Return the array of those points in `1:degree(x)` or `1:degree(G)`,
+respectively, that are not mapped to themselves under the action `^`.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(4);  s = sylow_subgroup(g, 3)[1];
+
+julia> length(moved_points(s))
+3
+
+julia> length(moved_points(gen(s, 1)))
+3
+
+```
+""" moved_points
+
+@gapattribute number_moved_points(x::Union{PermGroupElem,PermGroup}) = fmpz(GAP.Globals.NrMovedPoints(x.X))
+"""
+    number_moved_points(::Type{T} = fmpz, x::PermGroupElem) where T <: Union{Integer, fmpz}
+    number_moved_points(::Type{T} = fmpz, G::PermGroup) where T <: Union{Integer, fmpz}
+
+Return the number of those points in `1:degree(x)` or `1:degree(G)`,
+respectively, that are not mapped to themselves under the action `^`,
+as an instance of `T`.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(4);  s = sylow_subgroup(g, 3)[1];
+
+julia> number_moved_points(s)
+3
+
+julia> number_moved_points(Int, s)
+3
+
+julia> number_moved_points(gen(s, 1))
+3
+
+```
+""" number_moved_points
+
+number_moved_points(::Type{T}, x::Union{PermGroupElem,PermGroup}) where T <: Union{Base.Integer, fmpz} = T(GAP.Globals.NrMovedPoints(x.X))
+
+
+"""
+    order(::Type{T} = fmpz, x::Union{GAPGroupElem, GAPGroup}) where T <: Union{Integer, fmpz}
+
+Return the order of `x`, as an instance of `T`.
+
+For a group element `x` in the group `G`, the order of `x` is the smallest
+positive integer `n` such that `x^n` is the identity of `G`.
+For a group `x`, the order of `x` is the number of elements in `x`.
+
+An exception is thrown if the order of `x` is infinite,
+use [`isfinite`](@ref) in order to check for finiteness.
+"""
+function order(::Type{T}, x::Union{GAPGroupElem, GAPGroup}) where T <: Union{Base.Integer, fmpz}
    ord = GAP.Globals.Order(x.X)
    if ord === GAP.Globals.infinity
       error("order() not supported for infinite groups, use isfinite()")
@@ -119,34 +236,41 @@ function order(::Type{T}, x::Union{GAPGroupElem, GAPGroup}) where T
    return T(ord)
 end
 
+order(x::Union{GAPGroupElem, GAPGroup}) = order(fmpz, x)
+
 @gapwrap hasorder(G::GAPGroup) = GAP.Globals.HasSize(G.X)
 @gapwrap setorder(G::GAPGroup, val::T) where T<:Union{Base.Integer,fmpz} = GAP.Globals.SetSize(G.X, GapObj(val))
 
 import Base.exponent
 
-@gapattribute exponent(x::GAPGroup) = GAP.Globals.Exponent(x.X)
-"""
-    exponent(G::Group)
+@gapattribute exponent(x::GAPGroup) = fmpz(GAP.Globals.Exponent(x.X))
+@doc Markdown.doc"""
+    exponent(::Type{T} = fmpz, G::GAPGroup) where T <: Union{Integer, fmpz}
 
-Return the exponent of `G`, i.e. the smallest positive integer `e` such that `g`^`e`=1 for every `g` in `G`.
-""" exponent
+Return the exponent of `G`, as an instance of `T`,
+i. e., the smallest positive integer $e$ such that
+$g^e$ is the identity of `G` for every $g$ in `G`.
+""" exponent(x::GAPGroup)
+
+Base.exponent(::Type{T}, G::GAPGroup) where T <: Union{Base.Integer, fmpz} = T(GAP.Globals.Exponent(G.X))
 
 """
     rand(rng::Random.AbstractRNG = Random.GLOBAL_RNG, G::Group)
 
 Return a random element of `G`, using the random number generator `rng`.
 """
+Base.rand(G::GAPGroup) = Base.rand(Random.GLOBAL_RNG, G)
+
 function Base.rand(rng::Random.AbstractRNG, G::GAPGroup)
    s = GAP.Globals.Random(GAP.wrap_rng(rng), G.X)
    return group_element(G, s)
 end
 
-Base.rand(G::GAPGroup) = Base.rand(Random.GLOBAL_RNG, G)
-
 """
     rand_pseudo(G::Group)
 
-Return a random element of the group `G`. It works faster than `rand`, but the elements are not necessarily equally distributed.
+Return a pseudo random element of `G`.  This works faster than `rand`,
+but the returned elements are not necessarily equally distributed.
 """
 function rand_pseudo(G::GAPGroup)
    s = GAP.Globals.PseudoRandom(G.X)
@@ -178,41 +302,33 @@ end
 
 Base.:*(x::GAPGroupElem, y::GAPGroupElem) = _prod(x, y)
 
-function ==(x::PermGroup, y::PermGroup)
-   return x.X == y.X && x.deg == y.deg
-end
+==(x::PermGroup, y::PermGroup) = x.X == y.X && x.deg == y.deg
 
-function ==(x::GAPGroup, y::GAPGroup)
-   return x.X == y.X
-end
+==(x::GAPGroup, y::GAPGroup) = x.X == y.X
 
-function ==(x::PermGroupElem, y::PermGroupElem)
-   return x.X == y.X && degree(parent(x))==degree(parent(y))
-end
+==(x::PermGroupElem, y::PermGroupElem) = x.X == y.X && degree(parent(x))==degree(parent(y))
 
-function ==(x::T, y::T) where T <: BasicGAPGroupElem
-   return x.X == y.X
-end
+==(x::T, y::T) where T <: BasicGAPGroupElem = x.X == y.X
 
 """
-    one(G::Group) -> x::GAPGroupElem{typeof(G)}
+    one(G::GAPGroup) -> elem_type(G)
 
 Return the identity of the group `G`.
 """
 Base.one(x::GAPGroup) = group_element(x, GAP.Globals.Identity(x.X))
 
 """
-    one(x::GAPGroupElement{T}) -> x::GAPGroupElem{T}
+    one(x::GAPGroupElem{T}) -> GAPGroupElem{T}
 
-Return the identity of the parent group of x.
+Return the identity of the parent group of `x`.
 """
 Base.one(x::GAPGroupElem) = one(parent(x))
 one!(x::GAPGroupElem) = one(parent(x))
 
-Base.show(io::IO, x::GAPGroupElem) =  print(io, GAP.gap_to_julia(GAP.Globals.StringViewObj(x.X)))
-Base.show(io::IO, x::GAPGroup) = print(io, GAP.gap_to_julia(GAP.Globals.StringViewObj(x.X)))
+Base.show(io::IO, x::GAPGroupElem) = print(io, String(GAP.Globals.StringViewObj(x.X)))
+Base.show(io::IO, x::GAPGroup) = print(io, String(GAP.Globals.StringViewObj(x.X)))
 
-Base.isone(x::GAPGroupElem) = x == one(parent(x))
+Base.isone(x::GAPGroupElem) = GAP.Globals.IsOne(x.X)
 
 Base.inv(x::GAPGroupElem) = group_element(parent(x), GAP.Globals.Inverse(x.X))
 
@@ -240,7 +356,9 @@ Base.conj!(out::GAPGroupElem, x::GAPGroupElem, y::GAPGroupElem) = x^y
 """
     comm(x::GAPGroupElem, y::GAPGroupElem)
 
-Return `[x,y]` = `x^-1*y^-1*x*y`.
+Return the commutator of `x` and `y`,
+which is defined as `x^-1*y^-1*x*y`,
+and usually denoted as `[x,y]` in the literature.
 """
 comm(x::GAPGroupElem, y::GAPGroupElem) = x^-1*x^y
 comm!(out::GAPGroupElem, x::GAPGroupElem, y::GAPGroupElem) = x^-1*x^y
@@ -250,9 +368,6 @@ Base.IteratorSize(::Type{PermGroup}) = Base.HasLength()
 
 function Base.iterate(G::GAPGroup)
   L=GAP.Globals.Iterator(G.X)
-  if GAP.Globals.IsDoneIterator(L)
-    return nothing
-  end
   i = GAP.Globals.NextIterator(L)
   return group_element(G, i), L
 end
@@ -268,6 +383,12 @@ end
 # need this function just for the iterator
 Base.length(x::GAPGroup)::Int = order(x)
 
+"""
+    Base.in(g::GAPGroupElem, G::GAPGroup)
+
+Return whether `g` is an element of `G`.
+The parent of `g` need not be equal to `G`.
+"""
 Base.in(g::GAPGroupElem, G::GAPGroup) = GAP.Globals.in(g.X, G.X)
 
 # FIXME: clashes with AbstractAlgebra.perm method
@@ -275,28 +396,39 @@ Base.in(g::GAPGroupElem, G::GAPGroup) = GAP.Globals.in(g.X, G.X)
 #   return PermGroupElem(symmetric_group(length(L)), GAP.Globals.PermList(GAP.julia_to_gap(L)))
 #end
 # FIXME: use name gap_perm for now
-"""
-    gap_perm(L::AbstractVector) 
+@doc Markdown.doc"""
+    gap_perm(L::AbstractVector{<:Base.Integer})
 
-Return the permutation `x` which maps every `i` from `1` to `length(L)` to `L[i]`. `L` must contain every integer from 1 to `length(L)` exactly, otherwise an exception is thrown.
-The parent of `x` is set as Sym(`n`).
+Return the permutation $x$ which maps every $i$ from `1` to $n$` = length(L)`
+to `L`$[i]$.
+The parent of $x$ is set to [`symmetric_group`](@ref)$(n)$.
+An exception is thrown if `L` does not contain every integer from 1 to $n$
+exactly once.
+
+# Examples
 ```jldoctest
 julia> gap_perm([2,4,6,1,3,5])
 (1,2,4)(3,6,5)
 ```
 """
 function gap_perm(L::AbstractVector{<:Base.Integer})
-  return PermGroupElem(symmetric_group(length(L)), GAP.Globals.PermList(GAP.julia_to_gap(L)))
+  return PermGroupElem(symmetric_group(length(L)), GAP.Globals.PermList(GAP.GapObj(L)))
 end
 
 gap_perm(L::AbstractVector{<:fmpz}) = gap_perm([Int(y) for y in L])
 
-"""
+@doc Markdown.doc"""
     perm(G::PermGroup, L::AbstractVector{<:Integer})
     (G::PermGroup)(L::AbstractVector{<:Integer})
 
-Return the permutation `x` which maps every `i` from `1` to `length(L)` to `L[i]`. `L` must contain every integer from 1 to `length(L)` exactly, otherwise an exception is thrown.
-The parent of `x` is `G`. If `x` is not contained in `G`, an ERROR is returned. For `gap_perm`, the parent group of `x` is set as Sym(`n`), where `n` is the largest moved point of `x`.
+Return the permutation $x$ which maps every `i` from 1 to $n$` = length(L)`
+to `L`$[i]$.
+The parent of $x$ is `G`.
+An exception is thrown if $x$ is not contained in `G`
+or `L` does not contain every integer from 1 to $n$ exactly once.
+
+For [`gap_perm`](@ref),
+the parent group of $x$ is set to [`symmetric_group`](@ref)$(n)$.
 
 # Examples
 ```jldoctest
@@ -326,15 +458,22 @@ end
 
 # cperm stays for "cycle permutation", but we can change name if we want
 # takes as input a list of arrays (not necessarly disjoint)
-"""
-    cperm(L::AbstractVector{<:T}...) where T <: Union{Base.Integer, fmpz}
+@doc Markdown.doc"""
+    cperm(L::AbstractVector{<:T}...) where T <: Union{Integer, fmpz}
     cperm(G::PermGroup, L::AbstractVector{<:T}...)
 
-For given lists of positive integers `[a_1, a_2, ..., a_n],[b_1, b_2, ... , b_m], ...` return the
-permutation `x = (a_1,a_2,...,a_n)(b_1,b_2,...,b_m)...`. The array `[n,n+1,...,n+k]` can be replaced by `n:n+k`.
-  
-If a list is empty or contains duplicates, it fails.
-The parent of `x` is `G`. If `x` is not contained in `G`, an ERROR is returned. If `G` is not specified, then the parent of `x` is set as Sym(`n`), where `n` is the largest moved point of `x`.
+For given lists $[a_1, a_2, \ldots, a_n], [b_1, b_2, \ldots , b_m], \ldots$
+of positive integers, return the
+permutation $x = (a_1, a_2, \ldots, a_n) * (b_1, b_2, \ldots, b_m) * \ldots$.
+Arrays of the form `[n, n+1, ..., n+k]` can be replaced by `n:n+k`.
+
+The parent of $x$ is `G`.
+If `G` is not specified then the parent of $x$ is set to
+[`symmetric_group`](@ref)$(n)$,
+where $n$ is the largest integer that occurs in an entry of `L`.
+
+An exception is thrown if $x$ is not contained in `G`
+or one of the given arrays is empty or contains duplicates.
 
 # Examples
 ```jldoctest
@@ -343,13 +482,27 @@ julia> cperm([1,2,3],4:7)
 
 julia> cperm([1,2],[2,3])
 (1,3,2)
+
+julia> p = cperm([1,2,3],[7])
+(1,2,3)
+
+julia> degree(parent(p))
+7
+
 ```
+
+At the moment, the input vectors of the function `cperm` need not be disjoint.
+
+!!! warning
+    If the function `perm` is evaluated in a vector of integers without specifying the group `G`, then the returned value is an element of the AbstractAlgebra.jl type `Perm{Int}`. For this reason, if one wants a permutation of type `GAPGroupElem{PermGroup}` without specifying a parent, one has to use the function `gap_perm`.
+
 """
 function cperm(L::AbstractVector{T}...) where T <: Union{Base.Integer, fmpz}
    if length(L)==0
       return one(symmetric_group(1))
    else
       return prod([PermGroupElem(symmetric_group(maximum(y)), GAP.Globals.CycleFromList(GAP.julia_to_gap([Int(k) for k in y]))) for y in L])
+#TODO: better create the product of GAP permutations?
    end
 end
 
@@ -372,10 +525,36 @@ end
 @deprecate listperm(x::PermGroupElem) Vector(x)
 
 """
-    Vector{T}(x::PermGroupElem, n::Int = x.parent.deg) where {T}
+    Vector{T}(x::PermGroupElem, n::Int = x.parent.deg) where T <: Union{Integer, fmpz}
     Vector(x::PermGroupElem, n::Int = x.parent.deg)
 
 Return the list of length `n` that contains `x(i)` at position `i`. If not specified, `T` is set as `Int`.
+
+# Examples
+```jldoctest
+julia> pi = cperm(1:3)
+(1,2,3)
+julia> Vector(pi)
+3-element Vector{Int64}:
+ 2
+ 3
+ 1
+julia> Vector(pi, 2)
+2-element Vector{Int64}:
+ 2
+ 3
+julia> Vector(pi, 4)
+4-element Vector{Int64}:
+ 2
+ 3
+ 1
+ 4
+julia> Vector{fmpz}(pi, 2)
+2-element Vector{fmpz}:
+ 2
+ 3
+
+```
 """
 Base.Vector{T}(x::PermGroupElem, n::Int = x.parent.deg) where T <: Union{Base.Integer, fmpz} = T[x(i) for i in 1:n]
 Base.Vector(x::PermGroupElem, n::Int = x.parent.deg) = Vector{Int}(x,n)
@@ -383,8 +562,25 @@ Base.Vector(x::PermGroupElem, n::Int = x.parent.deg) = Vector{Int}(x,n)
 """
     gens(G::Group)
 
-Return an array of generators of the group `G`. To get a specific generator,
-use `G[i]` or `gen(G,i)` instead of `gens(G)[i]`, as that is more efficient.
+Return an array of generators of the group `G`.
+To get the `i`-th generator,
+use `G[i]` or `gen(G,i)` (see [`gen`](@ref)) instead of `gens(G)[i]`,
+as that is more efficient.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(5);  gens(g)
+2-element Vector{PermGroupElem}:
+ (1,2,3,4,5)
+ (1,2)
+
+julia> g[2]
+(1,2)
+
+```
+
+!!! note
+    The output of `gens(G)` is not, in general, the minimal list of generators for `G`.
 """
 function gens(G::GAPGroup)
    L = GAP.Globals.GeneratorsOfGroup(G.X)
@@ -396,9 +592,11 @@ function gens(G::GAPGroup)
 end
 
 """
-    gen(G::Group, i::Integer)
+    gen(G::GAPGroup, i::Integer)
 
-Return the `i`-th element of the array gens(`G`). This is equivalent to `G[i]`, and returns `gens(G)[i]` but may be more efficient than the latter. If `i` is greater than the length of gens(`G`), an ERROR is thrown.
+Return the `i`-th element of the array gens(`G`). This is equivalent to `G[i]`, and returns `gens(G)[i]` but may be more efficient than the latter.
+
+An exception is thrown if `i` is larger than the length of `gens(G)`.
 """
 function gen(G::GAPGroup, i::Int)
    L = GAP.Globals.GeneratorsOfGroup(G.X)
@@ -408,9 +606,9 @@ end
 Base.getindex(G::GAPGroup, i::Int) = gen(G, i)
 
 """
-    ngens(G::Group) -> Int
+    ngens(G::GAPGroup) -> Int
 
-Return the length of the array gens(G).
+Return the length of the array [`gens`](@ref)`(G)`.
 
 !!! warning "WARNING:" 
     this is *NOT*, in general, the minimum number of generators for G.
@@ -435,9 +633,7 @@ function (x::PermGroupElem)(n::T) where T <: Union{Base.Integer,fmpz}
    return T(GAP.Globals.OnPoints(GAP.GapObj(n), x.X))
 end
 
-function (x::PermGroupElem)(n::Int)
-   return GAP.Globals.OnPoints(n,x.X)
-end
+(x::PermGroupElem)(n::Int) = GAP.Globals.OnPoints(n,x.X)
 
 ^(n::T, x::PermGroupElem) where T <: Union{Base.Integer,fmpz} = T(GAP.Globals.OnPoints(GAP.GapObj(n), x.X))
 
@@ -514,24 +710,20 @@ end
 
 Base.:^(x::T, y::T) where T <: GAPGroupElem = group_element(_maxgroup(parent(x), parent(y)), x.X ^ y.X)
 
-"""
+@doc Markdown.doc"""
     isconjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
 
-Return whether `x` and `y` are conjugate elements in `G`.
+Return whether `x` and `y` are conjugate elements in `G`,
+i. e., there is an element $z$ in `G` such that `x^`$z$ equals `y`.
 """
 isconjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem) = GAP.Globals.IsConjugate(G.X,x.X,y.X)
 
 """
     representative_action(G::Group, x::GAPGroupElem, y::GAPGroupElem)
 
-If `x`,`y` are conjugate in `G`, return 
-```
-true, z
-```
-where `x^z=y`; otherwise, return
-```
-false, nothing
-```
+If `x` and `y` are conjugate in `G`,
+return `(true, z)`, where `x^z == y` holds;
+otherwise, return `(false, nothing)`.
 """
 function representative_action(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
    conj = GAP.Globals.RepresentativeAction(G.X, x.X, y.X)
@@ -593,13 +785,8 @@ isconjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup) = GAP.Globals.IsConjugate(G.X
 """
     representative_action(G::Group, H::Group, K::Group)
 
-If `H`,`K` are conjugate subgroups in `G`, return 
-```
-true, z
-```
-where `H^z=K`; otherwise, return
-```
-false, nothing
+If `H` and `K` are conjugate subgroups in `G`, return `true, z`
+where `H^z = K`; otherwise, return `false, nothing`.
 ```
 """
 function representative_action(G::GAPGroup, H::GAPGroup, K::GAPGroup)
@@ -640,21 +827,22 @@ end
 """
     normalizer(G::Group, H::Group)
 
-Return `N,f`, where `N` is the normalizer of `H` in `G` and `f` is the embedding morphism of `N` into `G`.
+Return `N, f`, where `N` is the normalizer of `H` in `G` and `f` is the embedding morphism of `N` into `G`.
 """
 normalizer(G::T, H::T) where T<:GAPGroup = _as_subgroup(G, GAP.Globals.Normalizer(G.X,H.X))
 
 """
     normalizer(G::Group, x::GAPGroupElem)
 
-Return `N,f`, where `N` is the normalizer of <`x`> in `G` and `f` is the embedding morphism of `N` into `G`.
+Return `N, f`, where `N` is the normalizer of the cyclic subgroup generated
+by `x` in `G` and `f` is the embedding morphism of `N` into `G`.
 """
 normalizer(G::GAPGroup, x::GAPGroupElem) = _as_subgroup(G, GAP.Globals.Normalizer(G.X,x.X))
 
 """
     core(G::Group, H::Group)
 
-Return `C,f`, where `C` is the normal core of `H` in `G`,
+Return `C, f`, where `C` is the normal core of `H` in `G`,
 that is, the largest normal subgroup of `G` that is contained in `H`,
 and `f` is the embedding morphism of `C` into `G`.
 """
@@ -698,34 +886,45 @@ end
 ################################################################################
 
 # commutator_subgroup(G::T, H::T) where T<:GAPGroup = T(GAP.Globals.CommutatorSubgroup(G.X,H.X))
-# we don't know how G,H embed into [G,H]
+# In the literature, the name commutator subgroup is often used as a synonym
+# of derived subgroup.
+# GAP defines `CommutatorSubgroup( G, H )` for arbitrary groups `G`, `H` in
+# the same family; thus the result is in general not contained in `G` or `H`,
+# and we do not know into which group the result should be embedded.
+# Is this function useful at all?
+# (The name `Commutator*Subgroup*` is irritating, isn't it?)
 
 @gapattribute fitting_subgroup(G::GAPGroup) = _as_subgroup(G, GAP.Globals.FittingSubgroup(G.X))
 """
     fitting_subgroup(G::GAPGroup)
 
-Return the Fitting subgroup of `G`, the largest nilpotent normal subgroup of `G`.
+Return the Fitting subgroup of `G`, i.e.,
+the largest nilpotent normal subgroup of `G`.
 """ fitting_subgroup
 
 @gapattribute frattini_subgroup(G::GAPGroup) = _as_subgroup(G, GAP.Globals.FrattiniSubgroup(G.X))
 """
     frattini_subgroup(G::GAPGroup)
 
-Return the Frattini subgroup of `G`, the intersection of all maximal subgroups of `G`.
+Return the Frattini subgroup of `G`, i.e.,
+the intersection of all maximal subgroups of `G`.
 """ frattini_subgroup
 
 @gapattribute radical_subgroup(G::GAPGroup) = _as_subgroup(G, GAP.Globals.RadicalGroup(G.X))
 """
     radical_subgroup(G::GAPGroup)
 
-Return the radical subgroup of `G`, the largest solvable normal subgroup of `G`.
+Return the solvable radical of `G`, i.e.,
+the largest solvable normal subgroup of `G`.
 """ radical_subgroup
+#T wrong name, already in GAP!
 
 @gapattribute socle(G::GAPGroup) = _as_subgroup(G, GAP.Globals.Socle(G.X))
 """
     socle(G::GAPGroup)
 
-Return the socle of `G`, the subgroup generated by all minimal normal subgroups of `G`.
+Return the socle of `G`, i.e.,
+the subgroup generated by all minimal normal subgroups of `G`.
 """ socle
 
 
@@ -748,9 +947,10 @@ function sylow_subgroup(G::GAPGroup, p::Int64)
 end
 
 """
-    hall_subgroup(G::Group, P::Array{Int64})
+    hall_subgroup(G::Group, P::Vector{Int64})
 
-Return a Hall `P`-subgroup of `G`. It works only if `G` is solvable.
+Return a Hall `P`-subgroup of `G`.
+An exception is thrown if `G` is not solvable.
 """
 function hall_subgroup(G::GAPGroup, P::AbstractVector{<:Base.Integer})
    P = unique(P)
@@ -767,30 +967,37 @@ end
    if !issolvable(G) throw(ArgumentError("The group is not solvable")) end
    return _as_subgroups(G, GAP.Globals.SylowSystem(G.X))
 end
-"""
+@doc Markdown.doc"""
     sylow_system(G::Group)
 
-Return an array of Sylow ``p``-subgroups of `G`, where ``p`` runs over the prime factors of |`G`|, such that every two such subgroups commute each other (as subgroups). It works only if `G` is solvable.
+Return an array of Sylow $p$-subgroups of `G`,
+where $p$ runs over the prime factors of the order of `G`,
+such that every two such subgroups commute with each other (as subgroups).
+An exception is thrown if `G` is not solvable.
 """ sylow_system
 
 @gapattribute function complement_system(G::GAPGroup)
    if !issolvable(G) throw(ArgumentError("The group is not solvable")) end
    return _as_subgroups(G, GAP.Globals.ComplementSystem(G.X))
 end
-"""
+@doc Markdown.doc"""
     complement_system(G::Group)
 
-Return an array of ``p'``-Hall subgroups of `G`, where ``p`` runs over the prime factors of |`G`|. It works only if `G` is solvable.
+Return an array of $p'$-Hall subgroups of `G`,
+where $p$ runs over the prime factors of the order of `G`.
+An exception is thrown if `G` is not solvable.
 """ complement_system
 
 @gapattribute function hall_system(G::GAPGroup)
    if !issolvable(G) throw(ArgumentError("The group is not solvable")) end
    return _as_subgroups(G, GAP.Globals.HallSystem(G.X))
 end
-"""
+@doc Markdown.doc"""
     hall_system(G::Group)
 
-Return an array of ``P``-Hall subgroups of `G`, where ``P`` runs over the subsets of prime factors of |`G`|. It works only if `G` is solvable.
+Return an array of $P$-Hall subgroups of `G`,
+where $P$ runs over the subsets of prime factors of the order of `G`.
+An exception is thrown if `G` is not solvable.
 """ hall_system
 
 
@@ -816,16 +1023,20 @@ Return whether `G` is a simple group, i.e.,
 """ issimple
 
 @gapattribute isalmostsimple(G::GAPGroup) = GAP.Globals.IsAlmostSimpleGroup(G.X)
-"""
+@doc Markdown.doc"""
     isalmostsimple(G)
 
-Return whether `G` is an almost simple group, i.e., if `S` < `G` < `Aut(S)` for some non-abelian simple group `S`.
+Return whether `G` is an almost simple group,
+i. e., `G` is isomorphic to a Group $H$ with the property
+$S \leq H \leq Aut(S)$, for some non-abelian simple group $S$.
 """ isalmostsimple
 
 """
     ispgroup(G)
 
-Return (``true``,nothing) if `G` is the trivial group, (``true``,``p``) if |`G`| is a non-trivial ``p``-power, (``false``,nothing) otherwise.
+Return `(true, nothing)` if `G` is the trivial group,
+`(true, p)` if |`G`| is a non-trivial power of a prime `p`,
+and `(false, nothing)` otherwise.
 """
 function ispgroup(G::GAPGroup)
    if GAP.Globals.IsPGroup(G.X)
@@ -842,7 +1053,7 @@ end
 """
     relators(G::FPGroup)
 
-Return a list of relators for the finitely presented group, i.e. elements `[x_1, ... , x_n]` in `F` = `free_group(ngens(G))` such that `G = F/[x_1,...,x_n]`.
+Return an array of relators for the finitely presented group, i.e. elements `[x_1, ... , x_n]` in `F` = `free_group(ngens(G))` such that `G = F/[x_1,...,x_n]`.
 """
 function relators(G::FPGroup)
    L=GAP.Globals.RelatorsOfFpGroup(G.X)
@@ -854,11 +1065,15 @@ end
    @assert isnilpotent(G) "The group is not nilpotent."
    return GAP.Globals.NilpotencyClassOfGroup(G.X)
 end
-"""
-    nilpotency_class(G::GAPGroup)
 
-Return the nilpotency class of `G`, that is the smallest integer `d` such that `G` has a central series of length `n`.
+@doc Markdown.doc"""
+    nilpotency_class(G::GAPGroup) -> Int
+
+Return the nilpotency class of `G`, i.e.,
+the smallest integer $n$ such that `G` has a central series of length $n$.
+
+An exception is thrown if `G` is not nilpotent.
 """ nilpotency_class(G::GAPGroup)
 
 #
-describe(G::GAPGroup) = GAP.gap_to_julia(GAP.Globals.StructureDescription(G.X))
+describe(G::GAPGroup) = String(GAP.Globals.StructureDescription(G.X))

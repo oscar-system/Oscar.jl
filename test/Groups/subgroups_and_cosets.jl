@@ -48,7 +48,7 @@
    @test minimal_normal_subgroups(G)==[H]
    @test length(characteristic_subgroups(G))==4
    @test H in characteristic_subgroups(G)
-   @test ischaracteristic_subgroup(G,H)
+   @test ischaracteristic(G,H)
 
    H1,h1 = sub(G, gens(symmetric_group(3)))
    H2,h2 = sub(G, gens(alternating_group(4)))
@@ -326,7 +326,7 @@ end
    @test frattini_subgroup(S)==sub(S,[one(S)])
    @test frattini_subgroup(G)[1]==intersect(maximal_subgroups(G))[1]
    @test frattini_subgroup(G)==centre(G)
-   @test ischaracteristic_subgroup(G,centre(G)[1])
+   @test ischaracteristic(G,centre(G)[1])
    @test socle(G)==frattini_subgroup(G)
    @test socle(S)==fitting_subgroup(S)   
    @test radical_subgroup(S)[1]==S

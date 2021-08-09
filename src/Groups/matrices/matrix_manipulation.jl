@@ -45,12 +45,13 @@ function matrix(A::Vector{AbstractAlgebra.Generic.FreeModuleElem{T}}) where T <:
    return X
 end
 
-"""
+@doc Markdown.doc"""
     upper_triangular_matrix(L)
 
 Return the upper triangular matrix whose entries on and above the diagonal are the elements of `L`.
 
-An error is returned whenever the length of `L` is not `n*(n+1)/2` for some integer `n`.
+An exception is thrown whenever the length of `L` is not equal to $n(n+1)/2$,
+for some integer $n$.
 """
 function upper_triangular_matrix(L)
    T = eltype(L)
@@ -67,12 +68,13 @@ function upper_triangular_matrix(L)
    return x
 end
 
-"""
+@doc Markdown.doc"""
     lower_triangular_matrix(L)
 
 Return the upper triangular matrix whose entries on and below the diagonal are the elements of `L`.
 
-An error is returned whenever the length of `L` is not `n*(n+1)/2` for some integer `n`.
+An exception is thrown whenever the length of `L` is not equal to $n(n+1)/2$,
+for some integer $n$.
 """
 function lower_triangular_matrix(L)
    T = eltype(L)
@@ -93,7 +95,7 @@ end
     conjugate_transpose(x::MatElem{T}) where T <: FinFieldElem
 
 If the base ring of `x` is `GF(q^2)`, return the matrix `transpose( map ( y -> y^q, x) )`.
- An error is signalled if the base ring does not have even degree.
+ An exception is thrown if the base ring does not have even degree.
 """
 function conjugate_transpose(x::MatElem{T}) where T <: FinFieldElem
    iseven(degree(base_ring(x))) || throw(ArgumentError("The base ring must have even degree"))

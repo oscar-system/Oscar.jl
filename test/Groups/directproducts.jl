@@ -42,7 +42,7 @@
    @test x==H(cperm([1,2]),C[1])
    @test_throws ArgumentError H(cperm([2,3]),C[1])
    @test order(H)==2
-   @test index(G,H) isa Integer
+   @test index(G,H) isa Oscar.Integer
    @test_throws ArgumentError write_as_full(H)
    @test G==write_as_full(G)
    @test intersect(G,H)[1]==H

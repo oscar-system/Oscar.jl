@@ -119,6 +119,6 @@ left_acting_group(C::GroupDoubleCoset)
 right_acting_group(C::GroupDoubleCoset)
 representative(C::GroupDoubleCoset)
 order(C::Union{GroupCoset,GroupDoubleCoset})
-rand(C::Union{GroupCoset,GroupDoubleCoset})
+Base.rand(C::Union{GroupCoset,GroupDoubleCoset})
 intersect(V::AbstractVector{Union{T, GroupCoset, GroupDoubleCoset}}) where T <: GAPGroup
 ```
