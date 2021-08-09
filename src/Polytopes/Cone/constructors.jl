@@ -33,26 +33,15 @@ julia> HS = Cone(R, L)
 A polyhedral cone in ambient dimension 2
 ```
 """
-struct Cone #a real polymake polyhedron
-    pm_cone::Polymake.BigObject
-end
-function Cone(Rays::Union{Oscar.MatElem,AbstractMatrix})
-    Cone(Polymake.polytope.Cone{Polymake.Rational}(
-        INPUT_RAYS = matrix_for_polymake(Rays),
-    ))
-end
-function Cone(Rays::Union{Oscar.MatElem,AbstractMatrix}, LS::Union{Oscar.MatElem,AbstractMatrix}; non_redundant::Bool=false)
-   if non_redundant
-       Cone(Polymake.polytope.Cone{Polymake.Rational}(
-           RAYS = matrix_for_polymake(Rays),
-           LINEALITY_SPACE = matrix_for_polymake(LS),
-       ))
-   else
-       Cone(Polymake.polytope.Cone{Polymake.Rational}(
-           INPUT_RAYS = matrix_for_polymake(Rays),
-           INPUT_LINEALITY = matrix_for_polymake(LS),
-       ))
-   end
+function Cone(R::Union{PointIterator{Ray}, Oscar.MatElem, AbstractMatrix}, L::Union{PointIterator{Ray}, Oscar.MatElem, AbstractMatrix, Nothing} = nothing; non_redundant::Bool = false)
+    RM = R isa PointIterator{Ray} ? R.m : R isa Union{AnyVecOrMat, Oscar.MatElem} ? matrix_for_polymake(R) : Polymake.Matrix{Polymake.Rational}(undef, 0, size(V.m, 2))
+    LM = L isa PointIterator ? L.m : L isa Union{AnyVecOrMat, Oscar.MatElem} ? matrix_for_polymake(L) : Polymake.Matrix{Polymake.Rational}(undef, 0, size(V.m, 2))
+
+    if non_redundant
+        return Cone(Polymake.polytope.Cone{Polymake.Rational}(RAYS = RM, LINEALITY_SPACE = LM,))
+    else
+        return Cone(Polymake.polytope.Cone{Polymake.Rational}(INPUT_RAYS = RM, INPUT_LINEALITY = LM,))
+    end
 end
 
 ==(C0::Cone, C1::Cone) = Polymake.polytope.equal_polyhedra(pm_cone(C0), pm_cone(C1))

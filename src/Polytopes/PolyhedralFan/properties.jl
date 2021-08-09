@@ -4,21 +4,6 @@
 ###############################################################################
 ###############################################################################
 
-# struct PolyhedralFanRayIterator
-#     fan::PolyhedralFan
-# end
-#
-# function Base.iterate(iter::PolyhedralFanRayIterator, index = 1)
-#     rays = pm_fan(iter.fan).RAYS
-#     if size(rays, 1) < index
-#         return nothing
-#     end
-#
-#     return (rays[index, :], index + 1)
-# end
-# Base.eltype(::Type{PolyhedralFanRayIterator}) = Polymake.Vector{Polymake.Rational}
-# Base.length(iter::PolyhedralFanRayIterator) = nrays(iter.fan)
-
 """
     rays(PF::PolyhedralFan)
 
@@ -55,6 +40,15 @@ function Base.iterate(iter::MaximalConeIterator, index = 1)
     return (current_cone, index + 1)
 end
 Base.length(iter::MaximalConeIterator) = nmaximal_cones(iter.PF)
+
+# function cones(as::Type{T}, PF::PolyhedralFan, cone_dim::Int) where {T}
+#     rtype = AsTypeIdentitiesC(as)
+#     if (cone_dim < 0)
+#         return nothing
+#     end
+#     rcones = Polymake.fan.cones_of_dim(PF.pm_fan,cone_dim-length(lineality_space(PF)))
+#     return PolyhedronOrConeIterator{rtype}(PF.pm_fan.RAYS,rcones, PF.pm_fan.LINEALITY_SPACE)
+# end
 
 ###############################################################################
 ###############################################################################

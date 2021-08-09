@@ -1,7 +1,88 @@
+# When asking for a property of a `Polymake.BigObject`, e.g. VERTICES, the
+# polymake kernel entirely calculates this property before we can even partially
+# access this property. Thus, these iterators are constructed with meaningful
+# input and perform no calculations themselves during iteration. While this
+# implies that the (probably time-critical) calculations have to be performed
+# before the actual construction of an iterator (which would otherwise usually
+# be executed during the first iteration), this speeds up access and allows for
+# useful abstractions and definitions.
+
+struct Polyhedron #a real polymake polyhedron
+    pm_polytope::Polymake.BigObject
+    boundedness::Symbol # Values: :unknown, :bounded, :unbounded
+end
+
+struct Cone #a real polymake polyhedron
+    pm_cone::Polymake.BigObject
+end
+
 struct Polyhedra
 end
-struct Points
+
+struct Points{U} <: AbstractVector{U}
+    p::Polymake.Vector{U}
 end
+
+Base.IndexStyle(::Type{<:Points}) = IndexLinear()
+
+Base.getindex(po::Points, i::Int64) = po.p[i]
+
+function Base.setindex!(po::Points{U}, val::U, i::Int64) where U
+    @boundscheck checkbounds(po.p, i)
+    po.p[i] = val
+    return val
+end
+
+Base.firstindex(::Points) = 1
+Base.lastindex(iter::Points) = length(iter)
+Base.size(po::Points) = size(po.p)
+
+Points(x...) = Points{Polymake.Rational}(x...)
+
+Points{U}(n::Base.Integer) where U = Points{U}(Polymake.Vector{U}(undef, Polymake.Integer(n)))
+
+function Base.similar(X::Points, ::Type{S}, dims::Dims{1}) where S <: Union{Polymake.Rational, Polymake.Integer}
+    return Points{S}(dims...)
+end
+
+Base.BroadcastStyle(::Type{<:Points}) = Broadcast.ArrayStyle{Points}()
+
+function Base.similar(bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{Points}}, ::Type{ElType}) where ElType
+    return Points{Polymake.promote_to_pm_type(Vector, ElType)}(axes(bc)...)
+end
+
+struct Ray{U} <: AbstractVector{U}
+    p::Polymake.Vector{U}
+end
+
+Base.IndexStyle(::Type{<:Ray}) = IndexLinear()
+
+Base.getindex(po::Ray, i::Int64) = po.p[i]
+
+function Base.setindex!(po::Ray{U}, val::U, i::Int64) where U
+    @boundscheck checkbounds(po.p, i)
+    po.p[i] = val
+    return val
+end
+
+Base.firstindex(::Ray) = 1
+Base.lastindex(iter::Ray) = length(iter)
+Base.size(po::Ray) = size(po.p)
+
+Ray(x...) = Ray{Polymake.Rational}(x...)
+
+Ray{U}(n::Base.Integer) where U = Ray{U}(Polymake.Vector{U}(undef, Polymake.Integer(n)))
+
+function Base.similar(X::Ray, ::Type{S}, dims::Dims{1}) where S <: Union{Polymake.Rational, Polymake.Integer}
+    return Ray{S}(dims...)
+end
+
+Base.BroadcastStyle(::Type{<:Ray}) = Broadcast.ArrayStyle{Ray}()
+
+function Base.similar(bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{Ray}}, ::Type{ElType}) where ElType
+    return Ray{Polymake.promote_to_pm_type(Vector, ElType)}(axes(bc)...)
+end
+
 @doc Markdown.doc"""
 
     Halfspaces
@@ -18,92 +99,131 @@ struct Halfspace
     b::Polymake.Rational
 end
 
-struct PolyhedronFaceIterator{T}
-    p::Polymake.BigObject
+struct Cones
+end
+
+struct PolyhedronOrConeIterator{T} <: AbstractArray{T, 1}
+    vertices::Polymake.Matrix{Polymake.Rational}
     faces::Polymake.Array{Polymake.Set{Int64}}
+    lineality::Polymake.Matrix{Polymake.Rational}
 end
 
-function Base.iterate(iter::PolyhedronFaceIterator, index::Int64 = 1)
-    if index > length(iter.faces)
-        return nothing
-    end
-    p = Polyhedron(Polymake.polytope.Polytope(VERTICES=iter.p.VERTICES[[f+1 for f in iter.faces[index]],:],LINEALITY_SPACE = iter.p.LINEALITY_SPACE))
-    return (p,index+1)
-end
-
-Base.eltype(::Type{PolyhedronFaceIterator{T}}) where T = T
-Base.length(iter::PolyhedronFaceIterator) = length(iter.faces)
-
-function Base.getindex(iter::PolyhedronFaceIterator, i::Int64)
+function Base.getindex(iter::PolyhedronOrConeIterator{Polyhedron}, i::Int64)
     @boundscheck checkbounds(iter.faces, i)
-    return iterate(iter, i)[1]
+    return Polyhedron(Polymake.polytope.Polytope(VERTICES=iter.vertices[[f+1 for f in iter.faces[index]],:],LINEALITY_SPACE = iter.lineality))
 end
 
-function Base.show(io::IO, I::PolyhedronFaceIterator{T}) where T
-    print(io, "A collection of faces as `$T`")
+function Base.getindex(iter::PolyhedronOrConeIterator{Cone}, i::Int64)
+    @boundscheck checkbounds(iter.faces, i)
+    return Cone(Polymake.polytope.Cone(RAYS=iter.vertices[[f+1 for f in iter.faces[index]],:],LINEALITY_SPACE = iter.lineality))
+end
+
+function Base.setindex!(iter::PolyhedronOrConeIterator, val::Polymake.Set{Int64}, i::Int64)
+    @boundscheck checkbounds(iter.faces, i)
+    iter.faces[i] = val
+end
+
+# function setvertices!(iter::PolyhedronOrConeIterator{Polyhedron}, val::Polymake.Matrix{Polymake.Rational}; non_redundant = false)
+#     if non_redundant
+#         iter.vertices = val
+#     else
+#         iter.vertices = remove_redundant_rows(val)
+#     end
+#     return val
+# end
+#
+# function addvertices!(iter::PolyhedronOrConeIterator{Polyhedron}, val::Polymake.Matrix{Polymake.Rational}; non_redundant = false)
+#     if non_redundant
+#         iter.vertices = [iter.vertices; val]
+#     else
+#         iter.vertices = remove_redundant_rows([iter.vertices; val])
+#     end
+#     return val
+# end
+
+Base.firstindex(::PolyhedronOrConeIterator) = 1
+Base.lastindex(iter::PolyhedronOrConeIterator) = length(iter)
+Base.size(iter::PolyhedronOrConeIterator) = (length(iter),)
+
+function Base.show(io::IO, I::PolyhedronOrConeIterator{T}) where T
+    print(io, "A collection of $T objects as `$T`")
 end
 
 #####################################
 
-struct PolyhedronFacetIterator{T}
-    A::AbstractMatrix{Polymake.Rational}
-    b::AbstractVector{Polymake.Rational}
+struct HalfSpaceIterator{T} <: AbstractArray{T, 1}
+    A::Polymake.Matrix{Polymake.Rational}
+    b::Polymake.Vector{Polymake.Rational}
 end
 
-function Base.iterate(iter::PolyhedronFacetIterator{T}, index::Int64 = 1) where T
-    if (length(iter.b) < index)
-        return nothing
-    end
-    return (T(reshape(iter.A[index, :], 1, :), iter.b[index]), index + 1)
-end
+Base.IndexStyle(::Type{<:HalfSpaceIterator}) = IndexLinear()
 
-Base.eltype(::Type{PolyhedronFacetIterator{T}}) where T = T
-Base.length(iter::PolyhedronFacetIterator) = length(iter.b)
-
-function Base.getindex(iter::PolyhedronFacetIterator, i::Int64)
+function Base.getindex(iter::HalfSpaceIterator{T}, i::Int64) where T
     @boundscheck checkbounds(iter.b, i)
-    return iterate(iter, i)[1]
+    return T(reshape(iter.A[i, :], 1, :), iter.b[i])
 end
 
-halfspace_matrix_pair(iter::PolyhedronFacetIterator) = (A = iter.A, b = iter.b)
-
-PolyhedronFacetIterator{T}(x...) where T<:Halfspaces = PolyhedronFacetIterator{Halfspace}(x...)
-PolyhedronFacetIterator{T}(x...) where T<:Polyhedra = PolyhedronFacetIterator{Polyhedron}(x...)
-
-function Base.show(io::IO, I::PolyhedronFacetIterator{T}) where T
-    print(io, "A collection of facets as `$T`")
+function Base.setindex!(iter::HalfSpaceIterator, val::Halfspace, i::Int64)
+    @boundscheck checkbounds(iter.b, i)
+    iter.A[i, :] = val.a
+    iter.b[i] = val.b
+    return val
 end
+
+Base.firstindex(::HalfSpaceIterator) = 1
+Base.lastindex(iter::HalfSpaceIterator) = length(iter)
+Base.size(iter::HalfSpaceIterator) = (length(iter.b),)
+
+halfspace_matrix_pair(iter::HalfSpaceIterator) = (A = iter.A, b = iter.b)
+
+HalfSpaceIterator(x...) = HalfSpaceIterator{Halfspace}(x...)
 
 ###############################
 
-struct PointIterator{T, U}
+struct PointIterator{T, U} <: AbstractArray{T, 1}
     m::Polymake.Matrix{U}
 end
 
-function Base.iterate(iter::PointIterator, index::Int64 = 1)
-    if (index <= size(iter.m, 1))
-        return (iter.m[index, :], index +1)
-    end
-    return nothing
-end
+Base.IndexStyle(::Type{<:PointIterator}) = IndexLinear()
 
-Base.eltype(::Type{PointIterator{T, U}}) where {T, U} = Polymake.Vector{U}
-Base.length(iter::PointIterator) = size(iter.m, 1)
-
-function Base.getindex(iter::PointIterator, i::Int64)
+function Base.getindex(iter::PointIterator{T, U}, i::Int64) where {T, U}
     @boundscheck checkbounds(iter.m, i, 1)
-    return iterate(iter, i)[1]
+    return T{U}(iter.m[i, :])
 end
+
+function Base.setindex!(iter::PointIterator{T}, val::T, i::Int64) where T
+    @boundscheck checkbounds(iter.m, i, 1)
+    iter.m[i, :] = val.p
+    return val
+end
+
+Base.firstindex(::PointIterator) = 1
+Base.lastindex(iter::PointIterator) = length(iter)
+Base.size(iter::PointIterator) = (size(iter.m, 1),)
 
 point_matrix(iter::PointIterator) = iter.m
 
-function Base.show(io::IO, I::PointIterator{T, U}) where {T, U}
-    print(io, "A collection of faces as `$T{$U}`")
-end
+PointIterator{T, U}(vertices::Union{Oscar.fmpz_mat,AbstractMatrix{Oscar.fmpz}, Oscar.fmpq_mat,AbstractMatrix{Oscar.fmpq}}) where {T, U} = PointIterator{T, U}(matrix_for_polymake(vertices))
+PointIterator{T, U}(vertices::Array{V, 1}) where {T, U, V<:Union{AbstractVector, T}} = PointIterator{T, U}(cat((v' for v in vertices)...; dims = 1))
+
+PointIterator{T}(x...) where T = PointIterator{T, Polymake.Rational}(x...)
+PointIterator(x...) = PointIterator{Points}(x...)
 
 ####################
 
-AsTypeIdentitiesP(as::Type{T}) where T<:Points = Polymake.Vector
-AsTypeIdentitiesF(as::Type{T}) where T<:Halfspaces = Halfspace
-AsTypeIdentitiesF(as::Type{T}) where T<:Polyhedra = Polyhedron
-AsTypeIdentitiesFD(as::Type{T}) where T<:Polyhedra = Polyhedron
+AsTypeIdentitiesP(as::Type{T}) where T<:Union{Points, Polymake.Vector} = Points
+
+AsTypeIdentitiesR(as::Type{T}) where T<:Union{Points} = Ray
+
+AsTypeIdentitiesH(as::Type{T}) where T<:Union{Halfspace, Halfspaces} = Halfspace
+AsTypeIdentitiesH(as::Type{T}) where T<:Union{Polyhedron, Polyhedra} = Polyhedron
+AsTypeIdentitiesH(as::Type{T}) where T<:Pair = Pair{Polymake.Matrix, Polymake.Rational}
+
+AsTypeIdentitiesPoly(as::Type{T}) where T<:Union{Polyhedron, Polyhedra} = Polyhedron
+
+AsTypeIdentitiesC(as::Type{T}) where T<:Union{Cone, Cones} = Cone
+
+AsTypeIdentitiesP(as::Any) = throw(ArgumentError("Unsupported `as` argument :" * string(as)))
+AsTypeIdentitiesH(as::Any) = throw(ArgumentError("Unsupported `as` argument :" * string(as)))
+AsTypeIdentitiesPoly(as::Any) = throw(ArgumentError("Unsupported `as` argument :" * string(as)))
+AsTypeIdentitiesC(as::Any) = throw(ArgumentError("Unsupported `as` argument :" * string(as)))

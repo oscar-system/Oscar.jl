@@ -7,6 +7,21 @@ function remove_zero_rows(A::Union{Oscar.MatElem,AbstractMatrix})
     A[findall(x->!iszero(x),collect(eachrow(A))),:]
 end
 
+function remove_redundant_rows(A::Union{Oscar.MatElem,AbstractMatrix})
+    rindices = Polymake.Set{Int64}(1:size(A, 1))
+    for i in rindices
+        for j in rindices
+            if i == j
+                continue
+            end
+            if A[i, :] == A[j, :]
+                delete!(rindices, j)
+            end
+        end
+    end
+    return A[rindices]
+end
+
 function augment(vec::AbstractVector, val)
     s = size(vec)
     res = similar(vec, (s[1] + 1,))

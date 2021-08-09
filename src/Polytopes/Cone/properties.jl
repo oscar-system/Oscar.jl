@@ -27,7 +27,16 @@ julia> collect(rays(PO))
 0 1
 ```
 """
-rays(C::Cone) = PointIterator{Polymake.Vector, Polymake.Rational}(pm_cone(C).RAYS)
+rays(C::Cone) = PointIterator{Ray, Polymake.Rational}(pm_cone(C).RAYS)
+
+function faces(as::Type{T}, C::Cone, face_dim::Int) where {T}
+    rtype = AsTypeIdentitiesC(as)
+    if (face_dim < 0)
+        return nothing
+    end
+    cfaces = Polymake.polytope.faces_of_dim(C.pm_cone,face_dim-length(lineality_space(C)))
+    return PolyhedronOrConeIterator{rtype}(C.pm_cone.RAYS,cfaces, C.pm_cone.LINEALITY_SPACE)
+end
 
 ###############################################################################
 ###############################################################################
@@ -167,56 +176,56 @@ isfulldimensional(C::Cone) = pm_cone(C).FULL_DIM
 ## Points properties
 ###############################################################################
 
-"""
-    rays_as_point_matrix(C)
+# """
+#     rays_as_point_matrix(C)
+#
+# Return the rays of a cone as rows in a matrix.
+#
+# # Arguments
+# - `C::Cone`: A cone.
+#
+# # Examples
+# Here a cone is constructed from three rays. Calling `rays_as_point_matrix` reveals that one of these was redundant:
+# ```julia-repl
+# julia> R = [1 0; 0 1; 0 2];
+#
+# julia> PO = positive_hull(R);
+#
+# julia> rays_as_point_matrix(PO)
+# pm::Matrix<pm::Rational>
+# 1 0
+# 0 1
+# ```
+# """
+# function rays_as_point_matrix(C::Cone)
+#     pm_cone(C).RAYS
+# end
 
-Return the rays of a cone as rows in a matrix.
 
-# Arguments
-- `C::Cone`: A cone.
+facets(C::Cone) = PointIterator{Polymake.Ray, Polymake.Rational}(pm_cone(C).FACETS)
 
-# Examples
-Here a cone is constructed from three rays. Calling `rays_as_point_matrix` reveals that one of these was redundant:
-```julia-repl
-julia> R = [1 0; 0 1; 0 2];
-
-julia> PO = positive_hull(R);
-
-julia> rays_as_point_matrix(PO)
-pm::Matrix<pm::Rational>
-1 0
-0 1
-```
-"""
-function rays_as_point_matrix(C::Cone)
-    pm_cone(C).RAYS
-end
-
-
-facets(C::Cone) = PointIterator{Polymake.Vector, Polymake.Rational}(pm_cone(C).FACETS)
-
-"""
-    facets_as_point_matrix(C)
-
-Return the facets of a cone as rows of a matrix.
-
-# Arguments
-- `C::Cone`: A cone.
-
-# Examples
-From this little example it is easy to see that the facets are displayed as their inside-pointing (w.r.t. the cone) normals.
-```julia-repl
-julia> R = [1 0; 1 1];
-
-julia> C = positive_hull(R);
-
-julia> facets_as_point_matrix(C)
-pm::Matrix<pm::Rational>
-0 1
-1 -1
-```
-"""
-facets_as_point_matrix(C::Cone) = pm_cone(C).FACETS
+# """
+#     facets_as_point_matrix(C)
+#
+# Return the facets of a cone as rows of a matrix.
+#
+# # Arguments
+# - `C::Cone`: A cone.
+#
+# # Examples
+# From this little example it is easy to see that the facets are displayed as their inside-pointing (w.r.t. the cone) normals.
+# ```julia-repl
+# julia> R = [1 0; 1 1];
+#
+# julia> C = positive_hull(R);
+#
+# julia> facets_as_point_matrix(C)
+# pm::Matrix<pm::Rational>
+# 0 1
+# 1 -1
+# ```
+# """
+# facets_as_point_matrix(C::Cone) = pm_cone(C).FACETS
 
 
 """
@@ -238,7 +247,7 @@ pm::Matrix<pm::Rational>
 1 0
 ```
 """
-lineality_space(C::Cone) = PointIterator{Polymake.Vector, Polymake.Rational}(pm_cone(C).LINEALITY_SPACE)
+lineality_space(C::Cone) = PointIterator{Ray, Polymake.Rational}(pm_cone(C).LINEALITY_SPACE)
 
 """
     hilbert_basis(C)
@@ -263,7 +272,7 @@ pm::Matrix<pm::Integer>
 """
 function hilbert_basis(C::Cone)
    if ispointed(C)
-      return PointIterator{Polymake.Vector, Int64}(pm_cone(C).HILBERT_BASIS_GENERATORS[1])
+      return PointIterator{Points, Int64}(pm_cone(C).HILBERT_BASIS_GENERATORS[1])
    else
       throw(ArgumentError("Cone not pointed."))
    end

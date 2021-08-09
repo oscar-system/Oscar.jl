@@ -5,6 +5,7 @@ import Base: ==
 const AnyVecOrMat = Union{MatElem, AbstractVecOrMat}
 
 export Cone,
+    Point,
     Points,
     PolyhedralFan,
     Polyhedra,
@@ -13,6 +14,7 @@ export Cone,
     Halfspaces,
     IncidenceMatrix,
     LinearProgram,
+    Ray,
     archimedean_solid,
     ambient_dim,
     codim,
@@ -60,6 +62,7 @@ export Cone,
     nvertices,
     objective_function,
     orbit_polytope,
+    point_matrix,
     recession_cone,
     save_cone,
     save_polyhedralfan,
@@ -79,9 +82,9 @@ export Cone,
 
 include("helpers.jl")
 include("iterators.jl")
+include("Polyhedron/constructors.jl")
 include("Cone/constructors.jl")
 include("Cone/properties.jl")
-include("Polyhedron/constructors.jl")
 include("Polyhedron/properties.jl")
 include("Polyhedron/standard_constructions.jl")
 include("PolyhedralFan/constructors.jl")
