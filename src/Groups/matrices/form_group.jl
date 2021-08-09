@@ -56,7 +56,9 @@ end
     invariant_sesquilinear_forms(G::MatrixGroup)
 
 Return a generating set for the vector spaces of sesquilinear non-bilinear forms preserved by the group `G`.
-It works only if `base_ring(G)` is a finite field with even degree on its prime subfield.
+An exception is thrown if `base_ring(G)` is not a finite field with even degree
+over its prime subfield.
+
 !!! warning "Note:"
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
 """
@@ -125,6 +127,7 @@ end
     invariant_symmetric_forms(G::MatrixGroup)
 
 Return a generating set for the vector spaces of symmetric forms preserved by the group `G`.
+
 !!! warning "Note:"
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
 !!! warning "Note:"
@@ -188,7 +191,9 @@ end
     invariant_hermitian_forms(G::MatrixGroup)
 
 Return a generating set for the vector spaces of hermitian forms preserved by the group `G`.
-It works only if `base_ring(G)` is a finite field with even degree on its prime subfield.
+An exception is thrown if `base_ring(G)` is not a finite field with even degree
+over its prime subfield.
+
 !!! warning "Note:"
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
 """
@@ -415,7 +420,9 @@ end
     function invariant_bilinear_form(G::MatrixGroup)
 
 Return an invariant bilinear form for the group `G`.
-It works only if the module induced by the action of `G` is absolutely irreducible.
+An exception is thrown if the module induced by the action of `G`
+is not absolutely irreducible.
+
 !!! warning "Note:"
     At the moment, the output is returned of type `mat_elem_type(G)`.
 """
@@ -429,7 +436,9 @@ end
     function invariant_sesquilinear_form(G::MatrixGroup)
 
 Return an invariant sesquilinear (non bilinear) form for the group `G`.
-It works only if the module induced by the action of `G` is absolutely irreducible.
+An exception is thrown if the module induced by the action of `G`
+is not absolutely irreducible.
+
 !!! warning "Note:"
     At the moment, the output is returned of type `mat_elem_type(G)`.
 """
@@ -443,7 +452,9 @@ end
     function invariant_quadratic_form(G::MatrixGroup)
 
 Return an invariant bilinear form for the group `G`.
-It works only if the module induced by the action of `G` is absolutely irreducible.
+An exception is thrown if the module induced by the action of `G`
+is not absolutely irreducible.
+
 !!! warning "Note:"
     At the moment, the output is returned of type `mat_elem_type(G)`.
 """

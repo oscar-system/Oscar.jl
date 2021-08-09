@@ -9,7 +9,7 @@ export
     derived_subgroup, hasderived_subgroup, setderived_subgroup,
     embedding,
     index,
-    ischaracteristic_subgroup,
+    ischaracteristic,
     isnilpotent, hasisnilpotent, setisnilpotent,
     issolvable, hasissolvable, setissolvable,
     issupersolvable, hasissupersolvable, setissupersolvable,
@@ -17,7 +17,6 @@ export
     maximal_subgroups, hasmaximal_subgroups, setmaximal_subgroups,
     minimal_normal_subgroups, hasminimal_normal_subgroups, setminimal_normal_subgroups,
     normal_subgroups, hasnormal_subgroups, setnormal_subgroups,
-    order, hasorder, setorder,
     quo,
     sub,
     trivial_subgroup, hastrivial_subgroup, settrivial_subgroup
@@ -82,12 +81,13 @@ end
 """
     embedding(G::T, H::T) where T <: GAPGroup
 
-Return the embedding morphism of `H` into `G`. It throws ERROR if `H` is not a subgroup of `G`.
+Return the embedding morphism of `H` into `G`.
+An exception is thrown if `H` is not a subgroup of `G`.
 """
 function embedding(G::T, H::T) where T <: GAPGroup
    a,f = issubgroup(G,H)
    if !a
-      throw(ArgumentError("Not a subgroup"))
+      throw(ArgumentError("H is not a subgroup of G"))
    else
       return f
    end
@@ -97,7 +97,8 @@ end
 @doc """
     trivial_subgroup(G::GAPGroup)
 
-Return the trivial subgroup of `G`.
+Return the trivial subgroup of `G`,
+together with its embedding morphism into `G`.
 """ trivial_subgroup
 
 
@@ -108,13 +109,18 @@ Return the trivial subgroup of `G`.
 ###############################################################################
 
 """
-    index(G::T, H::T) where T <: GAPGroup
+    index(::Type{I} = fmpz, G::T, H::T) where I <: Union{Integer, fmpz} where T <: GAPGroup
 
-Return the index of `H` in `G`.
+Return the index of `H` in `G`, as an instance of `I`.
 """
-function index(G::T, H::T) where T <: GAPGroup
-  i = GAP.Globals.Index(G.X, H.X)
-  return GAP.gap_to_julia(i)
+index(G::T, H::T) where T <: GAPGroup = index(fmpz, G, H)
+
+function index(::Type{I}, G::T, H::T) where I <: Union{Base.Integer, fmpz} where T <: GAPGroup
+   i = GAP.Globals.Index(G.X, H.X)
+   if i === GAP.Globals.infinity
+      error("index() not supported for subgroup of infinite index, use isfinite()")
+   end
+   return I(i)
 end
 
 ###############################################################################
@@ -138,13 +144,13 @@ end
 """
     normal_subgroups(G::Group)
 
-Return the list of normal subgroups of `G`.
+Return the array of normal subgroups of `G` (see [`isnormal`](@ref)).
 """ normal_subgroups
 
 """
     subgroups(G::Group)
 
-Return the list of subgroups of `G`.
+Return the array of all subgroups of `G`.
 """
 function subgroups(G::GAPGroup)
   return _as_subgroups(G, GAP.Globals.AllSubgroups(G.X))
@@ -155,7 +161,7 @@ end
 """
     maximal_subgroups(G::Group)
 
-Return the list of maximal subgroups of `G`.
+Return the array of maximal subgroups of `G`.
 """ maximal_subgroups
 
 @gapattribute maximal_normal_subgroups(G::GAPGroup) =
@@ -163,7 +169,9 @@ Return the list of maximal subgroups of `G`.
 """
     maximal_normal_subgroups(G::Group)
 
-Return the list of maximal normal subgroups of `G`.
+Return the array of maximal normal subgroups of `G`,
+i. e., of those proper normal subgroups of `G` that are maximal
+among the proper normal subgroups.
 """ maximal_normal_subgroups
 
 @gapattribute minimal_normal_subgroups(G::GAPGroup) =
@@ -171,7 +179,9 @@ Return the list of maximal normal subgroups of `G`.
 """
     minimal_normal_subgroups(G::Group)
 
-Return the list of minimal normal subgroups of `G`.
+Return the array of minimal normal subgroups of `G`,
+i. e., of those nontrivial normal subgroups of `G` that are minimal
+among the nontrivial normal subgroups.
 """ minimal_normal_subgroups
 
 @gapattribute characteristic_subgroups(G::GAPGroup) =
@@ -179,43 +189,39 @@ Return the list of minimal normal subgroups of `G`.
 """
     characteristic_subgroups(G::Group)
 
-Return the list of characteristic subgroups of `G`, i.e. the subgroups that are invariant under all automorphisms of `G`.
+Return the list of characteristic subgroups of `G`,
+i.e., those subgroups that are invariant under all automorphisms of `G`.
 """ characteristic_subgroups
 
-"""
-    ischaracteristic_subgroup(G::T, H::T) where T <: Group
-
-Return whether `H` is a characteristic subgroup of `G`, i.e. `H` is invariant under all automorphisms of `G`.
-"""
-function ischaracteristic_subgroup(G::T, H::T) where T <: GAPGroup
-   return GAP.Globals.IsCharacteristicSubgroup(G.X,H.X)
-end
-
 @gapattribute centre(G::GAPGroup) = _as_subgroup(G, GAP.Globals.Centre(G.X))
-"""
+@doc Markdown.doc"""
     centre(G::Group)
 
-Return the centre of `G`, i.e. the subgroup of all `x` in `G` such that `xy`=`yx` for every `y` in `G`, together with its embedding morphism into `G`.
+Return the centre of `G`, i.e.,
+the subgroup of all $x$ in `G` such that $x y$ equals $y x$ for every $y$
+in `G`, together with its embedding morphism into `G`.
 """ centre
 
-"""
+@doc Markdown.doc"""
     centralizer(G::Group, H::Group)
 
-Return the centralizer of `H` in `G`, i.e. the subgroup of all `g` in `G` such that `gh=hg` for every `h` in `H`, together with its embedding morphism into `G`.
+Return the centralizer of `H` in `G`, i.e.,
+the subgroup of all $g$ in `G` such that $g h$ equals $h g$ for every $h$
+in `H`, together with its embedding morphism into `G`.
 """
 function centralizer(G::T, H::T) where T <: GAPGroup
-  C = GAP.Globals.Centralizer(G.X, H.X)
-  return _as_subgroup(G, C)
+  return _as_subgroup(G, GAP.Globals.Centralizer(G.X, H.X))
 end
 
-"""
+@doc Markdown.doc"""
     centralizer(G::Group, x::GroupElem) 
 
-Return the centralizer of `x` in `G`, i.e. the subgroup of all `g` in `G` such that `gx=xg`, together with its embedding morphism into `G`.
+Return the centralizer of `x` in `G`, i.e.,
+the subgroup of all $g$ in `G` such that $g$ `x` equals `x` $g$,
+together with its embedding morphism into `G`.
 """
 function centralizer(G::GAPGroup, x::GAPGroupElem)
-  C = GAP.Globals.Centralizer(G.X, x.X)
-  return _as_subgroup(G, C)
+  return _as_subgroup(G, GAP.Globals.Centralizer(G.X, x.X))
 end
 
 centraliser = centralizer
@@ -229,16 +235,16 @@ centraliser = centralizer
 """
     isnormal(G::T, H::T) where T <: GAPGroup
 
-Return whether the subgroup `H` is normal in `G`.
+Return whether the subgroup `H` is normal in `G`,
+i. e., `H` is invariant under conjugation with elements of `G`.
 """
-function isnormal(G::T, H::T) where T <: GAPGroup
-  return GAP.Globals.IsNormal(G.X, H.X)
-end
+isnormal(G::T, H::T) where T <: GAPGroup = GAP.Globals.IsNormal(G.X, H.X)
 
 """
     ischaracteristic(G::T, H::T) where T <: GAPGroup
 
-Return whether the subgroup `H` is characteristic in `G`.
+Return whether the subgroup `H` is characteristic in `G`,
+i. e., `H` is invariant under all automorphisms of `G`.
 """
 function ischaracteristic(G::T, H::T) where T <: GAPGroup
   return GAP.Globals.IsCharacteristicSubgroup(G.X, H.X)
@@ -248,21 +254,26 @@ end
 """
     issolvable(G::GAPGroup)
 
-Return whether the `G` is solvable.
+Return whether `G` is solvable,
+i. e., whether [`derived_series`](@ref)(`G`)
+reaches the trivial subgroup in a finite number of steps.
 """ issolvable
 
 @gapattribute isnilpotent(G::GAPGroup) = GAP.Globals.IsNilpotentGroup(G.X)
 """
     isnilpotent(G::GAPGroup)
 
-Return whether the `G` is nilpotent.
+Return whether `G` is nilpotent,
+i. e., whether the lower central series of `G` reaches the trivial subgroup
+in a finite number of steps.
 """ isnilpotent
 
 @gapattribute issupersolvable(G::GAPGroup) = GAP.Globals.IsSupersolvableGroup(G.X)
 """
     issupersolvable(G::GAPGroup)
 
-Return whether the `G` is supersolvable.
+Return whether `G` is supersolvable,
+i. e., `G` is finite and has a normal series with cyclic factors.
 """ issupersolvable
 
 ################################################################################
@@ -274,6 +285,7 @@ Return whether the `G` is supersolvable.
 function quo(G::FPGroup, elements::Vector{S}) where T <: GAPGroup where S <: GAPGroupElem
   @assert elem_type(G) == S
   elems_in_gap = GAP.julia_to_gap(GapObj[x.X for x in elements])
+#T better!
   Q=FPGroup((G.X)/elems_in_gap)
   function proj(x::FPGroupElem)
      return group_element(Q,GAP.Globals.MappedWord(x.X,GAP.Globals.GeneratorsOfGroup(G.X), GAP.Globals.GeneratorsOfGroup(Q.X)))
@@ -294,6 +306,7 @@ function quo(G::T, elements::Vector{S}) where T <: GAPGroup where S <: GAPGroupE
   H1 = T(H)
   return quo(G, H1)
 end
+#T prescribe other type?
 
 """
     quo(G::T, H::T)
@@ -329,14 +342,16 @@ end
 """
     derived_subgroup(G::GAPGroup)
 
-Return the derived subgroup of `G`, i.e. the subgroup generated by all commutators of `G`.
+Return the derived subgroup of `G`, i.e.,
+the subgroup generated by all commutators of `G`.
 """ derived_subgroup
 
 @gapattribute derived_series(G::GAPGroup) = _as_subgroups(G, GAP.Globals.DerivedSeries(G.X))
-"""
+@doc Markdown.doc"""
     derived_series(G::GAPGroup)
 
-Return the list [`G_1`, `G_2`, `G_3`, ... ], where `G_1`=`G` and `G_{i+1}` = `derived_subgroup(G_i)`.
+Return the array $[ G_1, G_2, \ldots ]$,
+where $G_1 =$ `G` and $G_{i+1} =$ `derived_subgroup`$(G_i)$.
 """ derived_series
 
 
@@ -346,11 +361,13 @@ Return the list [`G_1`, `G_2`, `G_3`, ... ], where `G_1`=`G` and `G_{i+1}` = `de
 #
 ################################################################################
 
-"""
+@doc Markdown.doc"""
     intersect(V::T...) where T <: Group
     intersect(V::AbstractVector{T}) where T <: Group
 
-If `V` = [`G_1`, ... , `G_n`], return the group intersection `K` of the groups `G_1`, ..., `G_n`, together with the embeddings `K` -> `G_i`.
+If `V` is $[ G_1, G_2, \ldots, G_n ]$,
+return the intersection $K$ of the groups $G_1, G_2, \ldots, G_n$,
+together with the embeddings of $K into $G_i$.
 """
 function intersect(V::T...) where T<:GAPGroup
    L = GAP.julia_to_gap([G.X for G in V])
@@ -369,6 +386,7 @@ function intersect(V::AbstractVector{T}) where T<:GAPGroup
    Arr = Tuple(vcat([K],Embds))
    return Arr
 end
+#T why duplicate this code?
 
 
 ################################################################################

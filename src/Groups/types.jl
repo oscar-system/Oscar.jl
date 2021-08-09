@@ -69,15 +69,26 @@ export
     SemidirectProductGroup,
     WreathProductGroup
 
-"""
-TODO: document this
+@doc Markdown.doc"""
+    GAPGroup <: AbstractAlgebra.Group
+
+The idea is that each object of the abstract type `GAPGroup` stores
+a group object from the GAP system,
+and thus can delegate questions about this group to GAP.
+
+Concrete subtypes of `GAPGroup` are `PermGroup`, `FPGroup`, `PcGroup`,
+and `MatrixGroup`.
 """
 abstract type GAPGroup <: AbstractAlgebra.Group end
 abstract type GAPGroupElem{T<:GAPGroup} <: AbstractAlgebra.GroupElem end
 
-"""
+@doc Markdown.doc"""
     BasicGAPGroupElem{T<:GAPGroup}
+
 The type `BasicGAPGroupElem` gathers all types of group elements described only by an underlying GAP object.
+
+If $x$ is an element of the group `G` of type `T`,
+then the type of $x$ is `GAPGroupElem{T}`.
 """
 struct BasicGAPGroupElem{T<:GAPGroup} <: GAPGroupElem{T}
    parent::T
@@ -165,7 +176,7 @@ mutable struct FPGroup <: GAPGroup
   AbstractAlgebra.@declare_other
   
   function FPGroup(G::GapObj)
-    @assert GAP.Globals.IsFpGroup(G)
+    @assert GAP.Globals.IsSubgroupFpGroup(G)
     z = new(G)
     return z
   end
@@ -257,15 +268,15 @@ end
 
 
 """
-TODO: document this
+    elem_type(::Type{T}) where T <: GAPGroup
+    elem_type(::T) where T <: GAPGroup
 
-`elem_type` maps a group to the type of its elements. For now,
-a group of type `T` has elements of type `GAPGroupElem{T}`. So
-we provide it mostly for consistency with other parts of OSCAR.
+`elem_type` maps (the type of) a group to the type of its elements.
+For now, a group of type `T` has elements of type `BasicGAPGroupElem{T}`.
+So we provide it mostly for consistency with other parts of OSCAR.
 In the future, a more elaborate setup for group element types
 might also be needed.
 """
-
 elem_type(::Type{T}) where T <: GAPGroup = BasicGAPGroupElem{T}
 elem_type(::T) where T <: GAPGroup = BasicGAPGroupElem{T}
 

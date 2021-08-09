@@ -27,8 +27,6 @@ cyclic_group
 dihedral_group
 quaternion_group
 ```
-!!! warning
-    The type need to be specified in the input of the function `abelian_group`, otherwise a group of type `GrpAbFinGen` is returned, which is not a GAP group type. In future versions of Oscar, this may change.
 
 The generators of a polycyclic group are displayed as `f1`, `f2`, `f3`, etc., and every element of a polycyclic group is displayed as product of such generators.
 

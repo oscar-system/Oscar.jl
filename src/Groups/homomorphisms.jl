@@ -94,17 +94,17 @@ end
 """
     hom(G::GAPGroup, H::GAPGroup, f::Function)
 
-Return the group homomorphism defined by the function ``f``.
+Return the group homomorphism defined by the function `f`.
 """
 function hom(G::GAPGroup, H::GAPGroup, img::Function)
-  
+
   #I create the gap function from the julia function
   #The julia function is supposed to be defined on GAPGroupElem
   #We need a function defined on the underlying GapObj
   function gap_fun(x::GapObj)
     el = group_element(G, x)
     img_el = img(el)
-    return img_el.X  
+    return img_el.X
   end
   mp = GAP.Globals.GroupHomomorphismByFunction(G.X, H.X, GAP.julia_to_gap(gap_fun))
   return GAPGroupHomomorphism{typeof(G), typeof(H)}(G, H, mp)
@@ -195,11 +195,13 @@ end
     isinvariant(f::GAPGroupHomomorphism, H::Group)
     isinvariant(f::GAPGroupElem{AutomorphismGroup{T}}, H::T)
 
-Return whether `f`(`H`) == `H`.
+Return whether `f(H) == H` holds.
+An exception is thrown if `domain(f)` and `codomain(f)` are not equal
+or if `H` is not contained in `domain(f)`.
 """
 function isinvariant(f::GAPGroupHomomorphism, H::GAPGroup)
   @assert domain(f) == codomain(f) "Not an endomorphism!"
-  @assert GAP.Globals.IsSubset(codomain(f).X, H.X) "Not a subgroup of the domain"
+  @assert GAP.Globals.IsSubset(domain(f).X, H.X) "Not a subgroup of the domain"
   return GAP.Globals.Image(f.map, H.X) == H.X
 end
 
@@ -207,12 +209,18 @@ end
     restrict_homomorphism(f::GAPGroupHomomorphism, H::Group)
     restrict_homomorphism(f::GAPGroupElem{AutomorphismGroup{T}}, H::T) where T <: Group
 
-Return the restriction of `f` to `H`; otherwise it return ERROR.
+Return the restriction of `f` to `H`.
+An exception is thrown if `H` is not a subgroup of `domain(f)`.
 """
 function restrict_homomorphism(f::GAPGroupHomomorphism, H::GAPGroup)
+  # We have to check whether `H` is really a subgroup of `f.domain`,
+  # since `GAP.Globals.RestrictedMappin` does not check this.
+  # (The GAP documentation does not claim anything about the result
+  # in the case that `H` is not a subgroup of `f.domain`,
+  # and in fact just the given map may be returned.)
+  @assert issubgroup(domain(f), H)[1] "Not a subgroup!"
   return _hom_from_gap_map(H, f.codomain, GAP.Globals.RestrictedMapping(f.map,H.X))
 end
-
 
 ################################################################################
 #
@@ -362,7 +370,7 @@ end
 """
     automorphism_group(G::Group) -> A::AutomorphismGroup{T}
 
-Return the full automorphism group of `G`. If `f` is an object of type ``GAPGroupHomomorphism`` and it is bijective from `G` to itself, then `A(f)` return the embedding of `f` in `A`. 
+Return the full automorphism group of `G`. If `f` is an object of type `GAPGroupHomomorphism` and it is bijective from `G` to itself, then `A(f)` return the embedding of `f` in `A`.
 
 Elements of `A` can be multiplied with other elements of `A` or by elements
 of type `GAPGroupHomomorphism`; in this last case, the result has type
@@ -380,7 +388,7 @@ end
 """
     hom(f::GAPGroupElem{AutomorphismGroup{T}}) where T
 
-Return the element f of type ``GAPGroupHomomorphism{T,T}``.
+Return the element f of type `GAPGroupHomomorphism{T,T}`.
 """
 function hom(x::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup
   A = parent(x)
@@ -472,7 +480,8 @@ induced_automorphism(f::GAPGroupHomomorphism, mH::GAPGroupElem{AutomorphismGroup
 """
     restrict_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, H::T)
 
-If `H` is invariant under `f`, returns the restriction of `f` to `H` as automorphism of `H`; otherwise it returns ERROR.
+Return the restriction of `f` to `H` as an automorphism of `H`.
+An exception is thrown if `H` is not invariant under `f`.
 """
 function restrict_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, H::T, A=automorphism_group(H)) where T <: GAPGroup
   @assert isinvariant(f,H) "H is not invariant under f!"

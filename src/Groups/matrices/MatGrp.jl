@@ -454,9 +454,6 @@ Return the trace of `x`.
 trace(x::MatrixGroupElem) = trace(x.elm)
 tr(x::MatrixGroupElem) = tr(x.elm)
 
-order(::Type{T}, x::MatrixGroupElem)  where T = T(GAP.Globals.Order(x.X))
-order(x::MatrixGroupElem) = order(fmpz, x)
-
 #FIXME for the following functions, the output may not belong to the parent group of x
 #=
 frobenius(x::MatrixGroupElem, n::Int) = MatrixGroupElem(x.parent, matrix(x.parent.ring, x.parent.deg, x.parent.deg, [frobenius(y,n) for y in x.elm]))
