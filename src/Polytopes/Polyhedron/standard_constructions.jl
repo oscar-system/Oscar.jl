@@ -558,6 +558,74 @@ julia> nfacets(T)
 """
 archimedean_solid(s::String) = Polyhedron(Polymake.polytope.archimedean_solid(s))
 
+
+@doc Markdown.doc"""
+
+    catalan_solid(s)
+
+Construct a Catalan solid with the name given by String `s` from the list
+below.  The polytopes are realized with floating point numbers and thus not
+exact; Vertex-facet-incidences are correct in all cases.
+
+# Arguments
+- `s::String`: The name of the desired Catalan solid.
+
+    Possible values:
+
+  String s the name of the desired Catalan solid
+    Possible values:
+
+      "triakis_tetrahedron" : Triakis Tetrahedron.
+          Dual polytope to the Truncated Tetrahedron, made of 12 isosceles
+          triangular facets.
+      "triakis_octahedron" : Triakis Octahedron.
+          Dual polytope to the Truncated Cube, made of 24 isosceles triangular
+          facets.
+      "rhombic_dodecahedron" : Rhombic dodecahedron.
+          Dual polytope to the cuboctahedron, made of 12 rhombic facets.
+      "tetrakis_hexahedron" : Tetrakis hexahedron.
+          Dual polytope to the truncated octahedron, made of 24 isosceles
+          triangluar facets.
+      "disdyakis_dodecahedron" : Disdyakis dodecahedron.
+          Dual polytope to the truncated cuboctahedron, made of 48 scalene
+          triangular facets.
+      "pentagonal_icositetrahedron" : Pentagonal Icositetrahedron.
+          Dual polytope to the snub cube, made of 24 irregular pentagonal facets.
+          The vertices are realized as floating point numbers.
+      "pentagonal_hexecontahedron" : Pentagonal Hexecontahedron.
+          Dual polytope to the snub dodecahedron, made of 60 irregular pentagonal
+          facets. The vertices are realized as floating point numbers.
+      "rhombic_triacontahedron" : Rhombic triacontahedron.
+          Dual polytope to the icosidodecahedron, made of 30 rhombic facets.
+      "triakis_icosahedron" : Triakis icosahedron.
+          Dual polytope to the icosidodecahedron, made of 30 rhombic facets.
+      "deltoidal_icositetrahedron" : Deltoidal Icositetrahedron.
+          Dual polytope to the rhombicubaoctahedron, made of 24 kite facets.
+      "pentakis_dodecahedron" : Pentakis dodecahedron.
+          Dual polytope to the truncated icosahedron, made of 60 isosceles
+          triangular facets.
+      "deltoidal_hexecontahedron" : Deltoidal hexecontahedron.
+          Dual polytope to the rhombicosidodecahedron, made of 60 kite facets.
+      "disdyakis_triacontahedron" : Disdyakis triacontahedron.
+          Dual polytope to the truncated icosidodecahedron, made of 120 scalene
+          triangular facets.
+
+
+# Examples
+```julia-repl
+julia> T = catalan_solid("triakis_tetrahedron")
+A polyhedron in ambient dimension 3
+
+julia> sum([nvertices(F) for F in faces(T, 2)] .== 3)
+12
+
+julia> nfacets(T)
+12
+```
+"""
+catalan_solid(s::String) = Polyhedron(Polymake.polytope.catalan_solid(s))
+
+
 @doc Markdown.doc"""
 
     upper_bound_theorem(d::Int, n::Int)
