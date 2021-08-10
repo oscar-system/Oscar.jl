@@ -75,3 +75,42 @@ function load_polyhedralfan(filename::String)
    end
    return PolyhedralFan(bigobject)
 end
+
+
+##############################################################################
+"""
+    save_linearprogram(LinearProgram, String)
+
+Save a cone to a file in JSON format. The first argument is the cone, the
+second argument is the filename.
+"""
+function save_linearprogram(LP::LinearProgram, filename::String)
+   bigobject = pm_polytope(feasible_region(LP))
+   Polymake.save_bigobject(bigobject, filename)
+end
+
+"""
+    load_linearprogram(String)
+
+Load a cone stored in JSON format, given the filename as input.
+"""
+function load_linearprogram(filename::String)
+   fr = Polymake.load_bigobject(filename)
+   typename = Polymake.type_name(fr)
+   if typename[1:8] != "Polytope"
+      throw(ArgumentError("Loaded object is not of polymake type LinearProgram."))
+   end
+   if !Polymake.exists(fr, "LP")
+      throw(ArgumentError("Loaded object is not of polymake type LinearProgram."))
+   end
+   lp = fr.LP
+   conv = Polymake.get_attachment(lp, "convention")
+   if isnothing(conv)
+      throw(ArgumentError("Loaded object is not of polymake type LinearProgram."))
+   end
+   if conv == "max"
+       return LinearProgram(Polyhedron(fr), lp, :max)
+   elseif conv == "min"
+       return LinearProgram(Polyhedron(fr), lp, :min)
+   end
+end
