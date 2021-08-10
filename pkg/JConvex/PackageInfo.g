@@ -67,7 +67,7 @@ PackageDoc := rec(
 Dependencies := rec(
   GAP := ">=4.9",
   NeededOtherPackages := [ [ "AutoDoc", ">= 2019.05.20" ],
-                           [ "NConvex", ">= 2021.04-24" ],
+                           [ "NConvex", ">= 2020.11-04" ],
                            [ "JuliaInterface", ">= 0.5.2" ],
                          ],
   SuggestedOtherPackages := [ ],
