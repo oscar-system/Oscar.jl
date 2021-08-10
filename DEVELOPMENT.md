@@ -8,6 +8,8 @@ We have a large codebase for infrastructure in place, comprising at least
  - power series
  - number fields
  - (abelian) groups
+ - polytopes, cones, linear programs
+ - polyhedral fans
  - ... and MUCH more
 As well as specialised stuff
  - polymake
@@ -23,8 +25,10 @@ people think.
 
 The infrastructure is incomplete, e.g. we do not have
  - varieties, (we've started with curves recently)
- - polytopes, cones
+ - simplicial complexes, combinatorial manifolds
  - surfaces
+ - tropical varieties, in particular hypersurfaces
+ - tropical polytopes
  - ....
 
 If you need them, e.g. you want a library/ package for (elliptic) curves, then
