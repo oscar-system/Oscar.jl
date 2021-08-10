@@ -435,7 +435,7 @@ end
 
 		phi = Oscar.hom_tensor(N,M,[M3_to_M1,F4_to_M2])
 		u1 = Oscar.SubQuoElem(Oscar.sparse_row(array_to_matrix([randpoly(R) for _=1:1, i=1:ngens(M3)])), M3)
-		u2 = Oscar.FreeModuleElem(Oscar.sparse_row(array_to_matrix([randpoly(R) for _=1:1, i=1:ngens(F4)])), F4)
+		u2 = Oscar.FreeModElem(Oscar.sparse_row(array_to_matrix([randpoly(R) for _=1:1, i=1:ngens(F4)])), F4)
 		@test phi(pure_N((u1,u2))) == pure_M((M3_to_M1(u1),F4_to_M2(u2)))
 	end
 end
