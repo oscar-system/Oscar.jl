@@ -426,7 +426,7 @@ InstallMethod( Polymake_RaysInFacets,
               " returns the incident matrix of the rays in the facets",
             [ IsPolymakeCone ],
   function( cone )
-    local command_string, s, res_string, number_rays, ray_list, i, dummy, j, helper;
+    local help_cone, command_string, s, res_string, number_rays, ray_list, i, dummy, j, helper;
     
     # produce command string
     help_cone := Polymake_V_Rep( cone );
@@ -461,7 +461,7 @@ InstallMethod( Polymake_RaysInFaces,
               " returns the incident matrix of the rays in the faces",
             [ IsPolymakeCone ],
   function( cone )
-    local dim, help_cone, rays, rays_in_faces, i, additional_rays, j, converted_additional_rays, pos, pos2, k, help_list;
+    local dim, help_cone, rays, rays_in_faces, i, generators, additional_rays, j, converted_additional_rays, pos, pos2, k, help_list;
     
     # check degenerate case
     dim := Polymake_Dimension( cone );
