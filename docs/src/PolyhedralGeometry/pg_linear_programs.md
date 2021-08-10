@@ -95,3 +95,17 @@ maximal_vertex
 ```@docs
 minimal_vertex
 ```
+
+## Saving and loading
+
+Linear programs can be saved to a file and loaded from a file in the following way:
+```@repl oscar
+C = cube(3)
+LP=LinearProgram(C, [1,2,-3], convention=:min)
+save_linearprogram(LP, "lp.poly")
+LP0 = load_linearprogram("lp.poly")
+solve_lp(LP0)
+solve_lp(LP)
+```
+The file is in json format and contains all the underlying polymake object. In
+particular, this file can now be read by both polymake and Oscar.
