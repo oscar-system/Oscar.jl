@@ -85,10 +85,11 @@ abstract type GAPGroupElem{T<:GAPGroup} <: AbstractAlgebra.GroupElem end
 @doc Markdown.doc"""
     BasicGAPGroupElem{T<:GAPGroup}
 
-The type `BasicGAPGroupElem` gathers all types of group elements described only by an underlying GAP object.
+The type `BasicGAPGroupElem` gathers all types of group elements
+described only by an underlying GAP object.
 
 If $x$ is an element of the group `G` of type `T`,
-then the type of $x$ is `GAPGroupElem{T}`.
+then the type of $x$ is `BasicGAPGroupElem{T}`.
 """
 struct BasicGAPGroupElem{T<:GAPGroup} <: GAPGroupElem{T}
    parent::T
@@ -102,13 +103,16 @@ Base.hash(x::GAPGroupElem, h::UInt) = h # FIXME
 """
     PermGroup
 
-Groups of permutations. Every group of this type is the subgroup of Sym(n) for some n.
+Groups of permutations.
+Every group of this type is the subgroup of Sym(n) for some n.
 
 # Examples
 - `symmetric_group(n::Int)`: the symmetric group Sym(n)
 - `alternating_group(n::Int)`: the alternating group Alt(n)
 - subgroups of Sym(n)
-- `dihedral_group(PermGroup, n::Int)`: the dihedral group D(n) as group of permutations. Same holds replacing `dihedral_group` by `quaternion_group`
+- `dihedral_group(PermGroup, n::Int)`:
+  the dihedral group of order `n` as a group of permutations.
+  Same holds replacing `dihedral_group` by `quaternion_group`
 """
 mutable struct PermGroup <: GAPGroup
    X::GapObj
@@ -132,7 +136,8 @@ end
 """
     PermGroupElem
 
-Element of a group of permutation. It is displayed as product of disjoint cycles.
+Element of a group of permutations.
+It is displayed as product of disjoint cycles.
 # Assumptions:
 - for `x`,`y` in Sym(n), the product `xy` is read from left to right;
 - for `x` in Sym(n) and `i` in {1,...,n}, `i^x` and `x(i)` return the image of `i` under the action of `x`.
@@ -146,7 +151,9 @@ Polycyclic group
 
 # Examples
 - `cyclic_group(n::Int)`: cyclic group of order `n`
-- `abelian_group(v::Vector{Int})`: direct product of cyclic groups of order v[1],v[2],...,v[length(v)]
+- `abelian_group(PcGroup, v::Vector{Int})`:
+  direct product of cyclic groups of the orders
+  `v[1]`, `v[2]`, ..., `v[length(v)]`
 """
 mutable struct PcGroup <: GAPGroup
   X::GapObj
@@ -169,7 +176,9 @@ const PcGroupElem = BasicGAPGroupElem{PcGroup}
 """
     FPGroup
 
-Finitely presented group. It can be defined via the function `free_group`.
+Finitely presented group.
+Such groups can be constructed a factors of free groups,
+see [`free_group`](@ref).
 """
 mutable struct FPGroup <: GAPGroup
   X::GapObj

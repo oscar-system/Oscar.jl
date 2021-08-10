@@ -13,7 +13,10 @@ export
 """
     small_group(n::Int, i::Int)
 
-Return the `i`-th group of order `n` in the catalogue of the GAP Small Groups Library. The group is given of type `PcGroup` if the group is solvable, `PermGroup` otherwise.
+Return the `i`-th group of order `n` in the catalogue of GAP's
+Small Groups Library.
+The group is given of type `PcGroup` if the group is solvable,
+`PermGroup` otherwise.
 """
 function small_group(n::Int, m::Int)
   @assert m<= number_small_groups(n) "There are less than $m groups of order $n, up to isomorphism."

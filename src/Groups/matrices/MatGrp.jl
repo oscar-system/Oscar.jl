@@ -484,8 +484,8 @@ degree(G::MatrixGroup) = G.deg
 
 Base.one(G::MatrixGroup) = MatrixGroupElem(G, identity_matrix(G.ring, G.deg))
 
-function Base.rand(G::MatrixGroup)
-   x_gap = GAP.Globals.Random(G.X)
+function Base.rand(rng::Random.AbstractRNG, G::MatrixGroup)
+   x_gap = GAP.Globals.Random(GAP.wrap_rng(rng), G.X)
    x_oscar = preimage(G.mat_iso, x_gap)
    return MatrixGroupElem(G,x_oscar,x_gap)
 end
@@ -812,9 +812,13 @@ function conjugacy_classes_maximal_subgroups(G::MatrixGroup)
 #   return GroupConjClass{typeof(G), typeof(G)}[ _conjugacy_class(G,MatrixGroup(G.deg,G.ring,GAP.Globals.Representative(cc)),cc) for cc in L]
 end
 
-function Base.rand(C::GroupConjClass{S,T}) where S<:MatrixGroup where T<:MatrixGroup
+function Base.rand(rng::Random.AbstractRNG, C::GroupConjClass{S,T}) where S<:MatrixGroup where T<:MatrixGroup
    H = MatrixGroup(C.X.deg,C.X.ring)
    H.mat_iso = C.X.mat_iso
-   H.X = GAP.Globals.Random(C.CC)
+   H.X = GAP.Globals.Random(GAP.wrap_rng(rng), C.CC)
    return H
+end
+
+function Base.rand(C::GroupConjClass{S,T}) where S<:MatrixGroup where T<:MatrixGroup
+   return Base.rand(Random.GLOBAL_RNG, C)
 end

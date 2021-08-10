@@ -135,10 +135,13 @@ Return the direct product of cyclic groups of the orders
 Here, `T` must be one of `PermGroup`, `FPGroup`, or `PcGroup`.
 
 !!! warning
-    The type need to be specified in the input of the function `abelian_group`, otherwise a group of type `GrpAbFinGen` is returned, which is not a GAP group type. In future versions of Oscar, this may change.
+    The type need to be specified in the input of the function `abelian_group`,
+    otherwise a group of type `GrpAbFinGen` is returned,
+    which is not a GAP group type.
+    In future versions of Oscar, this may change.
 """
 function abelian_group(::Type{T}, v::Vector{Int}) where T <: GAPGroup
-  return T(GAP.Globals.AbelianGroup(_gap_filter(T), GAP.julia_to_gap(v)))
+  return T(GAP.Globals.AbelianGroup(_gap_filter(T), GAP.GapObj(v)))
 end
 
 @gapattribute isabelian(G::GAPGroup) = GAP.Globals.IsAbelian(G.X)
