@@ -13,16 +13,16 @@ function isomorphic_group_over_finite_field(matrices::Vector{T}) where T <: Matr
 
    G = MatrixGroup(n, Fq, matrices_Fq)
    N = order(G)
-   if maximal_order_of_finite_linear_group_qq(degree(K)*n) < N
+   if !isdivisible_by(Hecke._minkowski_multiple(K, n), N)
       error("Group is not finite")
    end
 
-   G_to_fin_pres = GAP.Globals.IsomorphismFpGroupByGenerators(G.X, GAP.julia_to_gap([ g.X for g in gens(G) ]))
+   G_to_fin_pres = GAP.Globals.IsomorphismFpGroupByGenerators(G.X, GapObj([ g.X for g in gens(G) ]))
    F = GAP.Globals.Range(G_to_fin_pres)
    rels = GAP.Globals.RelatorsOfFpGroup(F)
 
    for i = 1:length(rels)
-      M = GAP.Globals.MappedWord(rels[i], GAP.Globals.FreeGeneratorsOfFpGroup(F), GAP.julia_to_gap(matrices))
+      M = GAP.Globals.MappedWord(rels[i], GAP.Globals.FreeGeneratorsOfFpGroup(F), GapObj(matrices))
       if !isone(M)
          error("Group is not finite")
       end
@@ -122,8 +122,10 @@ function test_modulus(matrices::Vector{T}, p::Int) where T <: MatrixElem{nf_elem
    return true, Fq, matrices_Fq
 end
 
-# Returns the maximal possible order of a finite subgroup of GL(n, QQ).
+# Returns the largest possible order of a finite subgroup of GL(n, QQ) (equivalently:
+# of GL(n, ZZ), as any finite subgroup of GL(n, QQ) is conjugate to a subgroup of GL(n, ZZ)).
 # Always return a fmpz, only the orders for n <= 16 would fit into an Int64.
+#
 # This relies on results in a preprint "The orders of finite linear groups" by
 # W. Feit (1995), possibly published as mathscinet.ams.org/mathscinet-getitem?mr=1484185
 # in the "Proceedings of the First Jamaican Conference on Group Theory and its
@@ -132,9 +134,13 @@ end
 # at mathoverflow.net/questions/168292/maximal-order-of-finite-subgroups-of-gln-z .
 # The table is also repeated in [BDEPS04] where the authors however state that
 # Feit does not actually provide a proof, and in any case relies heavily on unpublished
-# work by Weisfeiler. Go figure...
+# work by Weisfeiler.
+#
+# Since this leaves the result in doubt, we do not currently actually use this code,
+# and instead resort to the Minkowski bound and its generalization. Luckily for us,
+# Hecke already implements these.
 const max_ords = [ 2, 12, 48, 1152, 3840, 103680, 2903040, 696729600, 1393459200, 8360755200 ]
-function maximal_order_of_finite_linear_group_qq(n::Int)
+function largest_order_of_finite_linear_group_qq(n::Int)
    @assert n >= 0
    n <= 10 && return fmpz(max_ords[n])
    # For n > 10, we can use 2^n*n!
