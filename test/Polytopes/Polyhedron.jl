@@ -53,10 +53,14 @@
     @testset "standard_constructions" begin
         p = upper_bound_theorem(4,8)
         A = archimedean_solid("cuboctahedron")
-        C = catalan_solid("triakis_tetrahedron")
         @test p.pm_polytope.F_VECTOR == [8, 28, 40, 20]
         @test sum([nvertices(F) for F in faces(A, 2)] .== 3) == 8
-        @test sum([nvertices(F) for F in faces(C, 2)] .== 3) == 12
+        # due to GLIBCXX issues with the outdated julia-shipped libstdc++
+        # we run this only where recent CompilerSupportLibraries are available
+        if VERSION >= v"1.6"
+            C = catalan_solid("triakis_tetrahedron")
+            @test sum([nvertices(F) for F in faces(C, 2)] .== 3) == 12
+        end
     end
 
 end
