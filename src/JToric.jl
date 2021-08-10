@@ -22,7 +22,7 @@ function __init__()
     CapAndHomalg.LoadPackage( "ToricV" )
     
     # inform that JToric has been loaded
-    print("Welome to JToric ")
+    print("Welcome to JToric ")
     printstyled("$version\n", color = :green)
     println("Enjoy this software to perform computations on toric geometry!")
     #println("Type: ?JToric for more information")
