@@ -218,7 +218,7 @@ end
 
 #############################################################################
 ##
-##  `:orbits` an array of G-sets
+##  `:orbits` a vector of G-sets
 
 function orbits(Omega::GSetByElements{<:GAPGroup})
     orbs = AbstractAlgebra.get_special(Omega, :orbits)
@@ -238,7 +238,7 @@ end
 
 #############################################################################
 ##
-##  `:elements` an array of points
+##  `:elements` a vector of points
 
 function elements(Omega::GSetByElements)
     elms = AbstractAlgebra.get_special(Omega, :elements)
@@ -420,7 +420,7 @@ An exception is thrown if this action is not transitive.
 function blocks(G::PermGroup, L::AbstractVector{Int})
    @assert istransitive(G,L) "The group action is not transitive"
    l = GAP.gap_to_julia(GAP.Globals.Blocks(G.X, GAP.julia_to_gap(L)))
-   return [ [y for y in l1] for l1 in l]              # to return an array of integers
+   return [ [y for y in l1] for l1 in l]              # to return a vector of integers
 end
 
 blocks(G::PermGroup) = blocks(G,[i for i in GAP.gap_to_julia(GAP.Globals.MovedPoints(G.X))])
@@ -439,7 +439,7 @@ An exception is thrown if this action is not transitive.
 function maximal_blocks(G::PermGroup, L::AbstractVector{Int})
    @assert istransitive(G,L) "The group action is not transitive"
    l = GAP.gap_to_julia(GAP.Globals.MaximalBlocks(G.X, GAP.julia_to_gap(L)))
-   return [ [y for y in l1] for l1 in l]              # to return an array of integers
+   return [ [y for y in l1] for l1 in l]              # to return a vector of integers
 end
 
 maximal_blocks(G::PermGroup) = maximal_blocks(G,[i for i in GAP.gap_to_julia(GAP.Globals.MovedPoints(G.X))])
@@ -457,7 +457,7 @@ An exception is thrown if this action is not transitive.
 function representatives_minimal_blocks(G::PermGroup, L::AbstractVector{Int})
    @assert istransitive(G,L) "The group action is not transitive"
    l = GAP.gap_to_julia(GAP.Globals.RepresentativesMinimalBlocks(G.X, GAP.julia_to_gap(L)))
-   return [ [y for y in l1] for l1 in l]              # to return an array of integers
+   return [ [y for y in l1] for l1 in l]              # to return a vector of integers
 end
 
 representatives_minimal_blocks(G::PermGroup) = minimal_blocks(G,[i for i in GAP.gap_to_julia(GAP.Globals.MovedPoints(G.X))])
@@ -470,7 +470,7 @@ Return a list of representatives of all block systems for the action of
 """
 function allblocks(G::PermGroup)
    l = GAP.gap_to_julia(GAP.Globals.AllBlocks(G.X))
-   return [ [y for y in l1] for l1 in l]              # to return an array of integers
+   return [ [y for y in l1] for l1 in l]              # to return a vector of integers
 end
 
 """

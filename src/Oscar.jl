@@ -87,7 +87,6 @@ function __init__()
         (GAP.Globals.IsFpGroup, FPGroup),
     ])
     GAP.Packages.load("forms")
-    GAP.Packages.load("ctbllib")
 end
 
 # pkgdir was added in Julia 1.4
