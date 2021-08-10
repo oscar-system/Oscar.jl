@@ -28,18 +28,18 @@ LinearProgram
 ```
 
 ## Solving a linear program - an example
-Let $P$ be the $3$-dimensional cube $C=[-1,1]^3$ in $\mathbb{R}^3$ and consider the linear function $\ell$, given by $\ell(x,y,z) = 3x-2y+4z+2$. Minimizing $\ell$ over $C$ can be done by solving the corresponding linear program. Computationally, this means first defining a linear program:
+Let $P=[-1,1]^3$ be the $3$-dimensional cube in $\mathbb{R}^3$, and consider the linear function $\ell$, given by $\ell(x,y,z) = 3x-2y+4z+2$. Minimizing $\ell$ over $P$ can be done by solving the corresponding linear program. Computationally, this means first defining a linear program:
 
 ```@repl oscar
-C = cube(3)
-LP = LinearProgram(C,[3,-2,4];k=2,convention = :min)
+P = cube(3)
+LP = LinearProgram(P,[3,-2,4];k=2,convention = :min)
 ```
 
 The information about the linear program `LP` can be easily extracted.
 
 ```@repl oscar
 (c,k)=objective_function(LP)
-C == feasible_region(LP)
+P == feasible_region(LP)
 ℓ = objective_function(LP; as = :function)
 ```
 
