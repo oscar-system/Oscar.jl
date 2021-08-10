@@ -1,12 +1,15 @@
 module JToric
 
+
 # load and export CapAndHomalg
 import CapAndHomalg
 export CapAndHomalg
 
+
 # use packages
 using Pkg
 using JToric
+
 
 """
 Initializing function for 'JToric'.
@@ -25,6 +28,7 @@ function __init__()
     #println("Type: ?JToric for more information")
     
 end
+
 
 """
     JToric.version
@@ -61,11 +65,15 @@ else
     end
 end
 
+
 # export functions defined in JToric
 export ProjectiveSpace
+export Fan
 export IsSmooth
+
 
 # include code with function definitions
 include("ToricVarieties.jl")
+
 
 end
