@@ -23,7 +23,7 @@ In this section, with notation as in the introduction to this chapter, $G$ will 
 		   
     - If the group order $|G|$ is invertible in $K$, then we have the explicit Reynolds operator
 
-       $\mathcal R: K[V] \to K[V], f\to \frac{1}{|G|}\sum_{\pi\in G}(\pi \;\!  . f).$
+       $\mathcal R: K[V] \to K[V], f\to \frac{1}{|G|}\sum_{\pi\in G}(\pi \;\!  . \;\! f).$
 
 !!! note
     We speak of *non-modular* invariant theory if $|G|$ is invertible in $K$, and of *modular* invariant theory otherwise.
@@ -32,7 +32,7 @@ In this section, with notation as in the introduction to this chapter, $G$ will 
     In the non-modular case, using  Emmy Noether's result and the Reynolds operator, it is not too difficult to show that $K[V]^G$ is a free module over any of its graded Noether normalizations. That is, $K[V]^G$ is Cohen-Macaulay.
 
 !!! note
-    In the non-modular case, the Hilbert series of $K[V]^G$ can be precomputed via Molien's theorem. See [DK15](@cite) or [DJ98](@cite) for explicit formulas.
+    In the non-modular case, the Hilbert series of $K[V]^G$ can be precomputed via Molien's theorem. See [DK15](@cite) and [DJ98](@cite) for explicit formulas.
 
 Having means to compute a $K$-basis for the invariants of each given degree, the algorithms for computing generators of invariant rings of finite groups proceed in two steps:
 
@@ -43,13 +43,13 @@ In the non-modular case, the Molien series allows one to precompute the number o
 
 ## Creating Invariant Rings
 
-The invariant theory module of OSCAR  distinguishes two ways of how  finite groups and their actions on $K[x_1, \dots, x_n]\cong K[V]$ are specified.
+The invariant theory part of OSCAR  distinguishes two ways of how  finite groups and their actions on $K[x_1, \dots, x_n]\cong K[V]$ are specified.
 
 ### Matrix Groups
 
 Here, $G$ will be explicitly given as a matrix group $G\subset \text{GL}_n(K)\cong \text{GL}(V) $ by (finitely many) generating matrices, acting on $K[x_1, \dots, x_n]\cong K[V]$ by linear substitution:
 
-$(\pi \;\!  .f) \;\! (x_1, \dots, x_n)  = f(\pi^{-1} \cdot (x_1, \dots, x_n)^T) \text{ for all } \pi\in G.$
+$(\pi \;\!  . \;\! f) \;\! (x_1, \dots, x_n)  = f(\pi^{-1} \cdot (x_1, \dots, x_n)^T) \text{ for all } \pi\in G.$
 
 
 ```@docs
