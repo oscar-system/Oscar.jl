@@ -19,6 +19,11 @@ function LinearProgram(Q::Polyhedron, objective::AbstractVector; k = 0, conventi
    ambDim = ambient_dim(P)
    size(objective, 1) == ambDim || error("objective has wrong dimension.")
    lp = Polymake.polytope.LinearProgram(LINEAR_OBJECTIVE=homogenize(objective, k))
+   if convention == :max
+      Polymake.attach(lp, "convention", "max")
+   elseif convention == :min
+      Polymake.attach(lp, "convention", "min")
+   end
    pm_polytope(P).LP = lp
    LinearProgram(P, lp, convention)
 end
