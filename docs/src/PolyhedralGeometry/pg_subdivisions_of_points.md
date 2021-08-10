@@ -55,3 +55,8 @@ isregular(SOP)
 ```
 The file is in json format and contains all the underlying polymake object. In
 particular, this file can now be read by both polymake and Oscar.
+
+```@docs
+save_subdivisionofpoints(SOP::SubdivisionOfPoints, filename::String)
+load_subdivisionofpoints(filename::String)
+```

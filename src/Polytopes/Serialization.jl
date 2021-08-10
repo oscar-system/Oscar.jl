@@ -81,8 +81,8 @@ end
 """
     save_linearprogram(LinearProgram, String)
 
-Save a cone to a file in JSON format. The first argument is the cone, the
-second argument is the filename.
+Save a linear program to a file in JSON format. The first argument is the
+linear program, the second argument is the filename.
 """
 function save_linearprogram(LP::LinearProgram, filename::String)
    bigobject = pm_polytope(feasible_region(LP))
@@ -92,7 +92,7 @@ end
 """
     load_linearprogram(String)
 
-Load a cone stored in JSON format, given the filename as input.
+Load a linear program stored in JSON format, given the filename as input.
 """
 function load_linearprogram(filename::String)
    fr = Polymake.load_bigobject(filename)
