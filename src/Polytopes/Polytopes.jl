@@ -9,6 +9,7 @@ export Cone,
     PolyhedralFan,
     Polyhedra,
     Polyhedron,
+    SubdivisionOfPoints,
     Halfspaces,
     IncidenceMatrix,
     LinearProgram,
@@ -44,18 +45,23 @@ export Cone,
     load_linearprogram,
     load_polyhedralfan,
     load_polyhedron,
+    load_subdivisionofpoints,
+    maximal_cells,
+    maximal_cells_as_incidence_matrix,
     maximal_cones,
     maximal_cones_as_incidence_matrix,
     maximal_value,
     maximal_vertex,
     minimal_value,
     minimal_vertex,
+    min_weights,
     minkowski_sum,
     newton_polytope,
     normalized_volume,
     normal_fan,
     nfacets,
     nmaximal_cones,
+    nmaximal_cells,
     nrays,
     nvertices,
     objective_function,
@@ -67,6 +73,8 @@ export Cone,
     save_linearprogram,
     save_polyhedralfan,
     save_polyhedron,
+    save_subdivisionofpoints,
+    secondary_cone,
     simplex,
     solve_lp,
     support_function,
@@ -89,6 +97,9 @@ include("Polyhedron/standard_constructions.jl")
 include("PolyhedralFan/constructors.jl")
 include("PolyhedralFan/properties.jl")
 include("PolyhedralFan/standard_constructions.jl")
+include("SubdivisionOfPoints/constructors.jl")
+include("SubdivisionOfPoints/properties.jl")
+include("SubdivisionOfPoints/functions.jl")
 include("LinearProgram.jl")
 include("Groups.jl")
 include("Serialization.jl")

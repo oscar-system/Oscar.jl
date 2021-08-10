@@ -96,7 +96,8 @@
        ],
         "PolyhedralGeometry/pg_cones.md",
         "PolyhedralGeometry/pg_fans.md",
-        "PolyhedralGeometry/pg_linear_programs.md"
+        "PolyhedralGeometry/pg_linear_programs.md",
+        "PolyhedralGeometry/pg_subdivisions_of_points.md"
     ],
 
   "Commutative Algebra" => [
