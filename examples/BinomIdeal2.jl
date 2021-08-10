@@ -24,10 +24,10 @@ import Oscar.Singular: std, Ideal, lead_exponent
 #isUnital(I::Singular.sideal)
 #nemo(a::Singular.n_unknown{})
 #lead_coeff(f::Singular.spoly)
-#intersectionArray(A::Array{Singular.sideal,1})
-#extractInclusionMinimalIdeals(A::Array{Any,1})
-#removeSomeRedundancies(A::Array{Any,1})
-#monomialFromVector(a::Array{Int64,1}, R::Singular.PolyRing)
+#intersectionArray(A::Vector{Singular.sideal})
+#extractInclusionMinimalIdeals(A::Vector{Any})
+#removeSomeRedundancies(A::Vector{Any})
+#monomialFromVector(a::Vector{Int64}, R::Singular.PolyRing)
 #markov4ti2(L::fmpz_mat)
 #"=="(I::Singular.sideal,J::Singular.sideal)
 #isSubset(I::Singular.sideal,J::Singular.sideal)
@@ -175,7 +175,7 @@ function markov4ti2(L::fmpz_mat)
         return helpArrayInt
 end
 
-function monomialFromVector(a::Array{Int64,1}, R::Singular.PolyRing)
+function monomialFromVector(a::Vector{Int64}, R::Singular.PolyRing)
         #returns the monomial corresponding to an exponent vector
 
         Variables=Singular.gens(R)
@@ -190,7 +190,7 @@ function lead_coeff(f::Singular.spoly)
     return first(coefficients(f))
 end
 
-function matrixFromArray(A::Array{Int64,1})
+function matrixFromArray(A::Vector{Int64})
         #returns a matrix over FlintZZ with the entries of A transposed
         Mat=zeros(Int64,size(A,1),1)
         MatFlint=matrix(FlintZZ,size(A,1),1,Mat)
@@ -228,7 +228,7 @@ function isSubset(I::Singular.sideal,J::Singular.sideal)
         return false
 end
 
-function removeSomeRedundancies(A::Array{Any,1}, B::Array{Any,1})
+function removeSomeRedundancies(A::Vector{Any}, B::Vector{Any})
         #input:two Array of ideals, the first are primary ideals, the second the corresponding associated primes
         #output:Arrays of ideals consisting of some ideals less which give the same interseciton as
         #all ideals before
@@ -269,7 +269,7 @@ function removeSomeRedundancies(A::Array{Any,1}, B::Array{Any,1})
         return Result1,Result2
 end
 
-function extractInclusionMinimalIdeals(A::Array{Any,1})
+function extractInclusionMinimalIdeals(A::Vector{Any})
         #returns all ideals of A which are minimal with respect to inclusion
 
         n=size(A,1)
@@ -299,7 +299,7 @@ function extractInclusionMinimalIdeals(A::Array{Any,1})
         return Result
 end
 
-function extractInclusionMinimalIdeals(A::Array{Singular.sideal,1})
+function extractInclusionMinimalIdeals(A::Vector{Singular.sideal})
         #returns all ideals of A which are minimal with respect to inclusion
 
         n=size(A,1)

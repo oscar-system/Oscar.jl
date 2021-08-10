@@ -7,9 +7,9 @@ import Base: parent
 mutable struct CohomologyModule{gT,mT}
   G::gT
   M::mT
-  ac::Array{Map, 1} # automorphisms of M, one for each generator of G
+  ac::Vector{Map} # automorphisms of M, one for each generator of G
 
-  function CohomologyModule(G::PermGroup, ac::Array{<:Map, 1})
+  function CohomologyModule(G::PermGroup, ac::Vector{<:Map})
     r = new{PermGroup,typeof(domain(ac[1]))}()
     r.G = G
     r.ac = ac
@@ -21,7 +21,7 @@ mutable struct CohomologyModule{gT,mT}
   F::Group # G as an Fp-group (if set)
   mF::GAPGroupHomomorphism  # F -> G, maps F[i] to G[i]
 
-  iac::Array{Map, 1} # the inverses of ac
+  iac::Vector{Map} # the inverses of ac
 end
 
 function Base.show(io::IO, C::CohomologyModule)
@@ -241,7 +241,7 @@ function confluent_fp_group(G::Oscar.GAPGroup)
   g = map(x->Int(x[1]), g)
   R = GAP.Globals.RelationsOfFpMonoid(M)
 
-  ru = Array{Tuple{Array{Int, 1}, Array{Int, 1}}, 1}()
+  ru = Vector{Tuple{Vector{Int}, Vector{Int}}}()
   for r = R
     push!(ru, (map(x->g[Int(x)], GAP.Globals.LetterRepAssocWord(r[1])), 
                map(x->g[Int(x)], GAP.Globals.LetterRepAssocWord(r[2]))))
@@ -260,22 +260,22 @@ function Oscar.preimage(f::GAPGroupHomomorphism, x::GAPGroupElem)
 end
 
 mutable struct CollectCtx
-  r::Array{Tuple{Vector{Int}, Vector{Int}}, 1} #the rules, RWS
+  r::Vector{Tuple{Vector{Int}, Vector{Int}}} #the rules, RWS
 
   d1::Dict{Int, Int} #rules where lhs has length 1
 
-  d2::Dict{Tuple{Int, Int}, Array{Int, 1}} # length 2 prefixes
+  d2::Dict{Tuple{Int, Int}, Vector{Int}} # length 2 prefixes
 
-  f::Function #(w::Array{Int, 1}, r::Int, p::Int)
+  f::Function #(w::Vector{Int}, r::Int, p::Int)
               #to be called in addition (to play with the tail(s))
               #w the word, to be "reduced" using rule no r at pos p
 
   T::Any
-  function CollectCtx(R::Array{Tuple{Vector{Int}, Vector{Int}}, 1})
+  function CollectCtx(R::Vector{Tuple{Vector{Int}, Vector{Int}}})
     n = new()
     n.r = R
     n.d1 = Dict{Int, Int}()
-    n.d2 = Dict{Tuple{Int, Int}, Array{Int, 1}}()
+    n.d2 = Dict{Tuple{Int, Int}, Vector{Int}}()
     for i = 1:length(R)
       r = R[i]
       if length(r[1]) == 1
@@ -298,7 +298,7 @@ mutable struct CollectCtx
   end
 end
 
-function Base.collect(w::Array{Int, 1}, C::CollectCtx)
+function Base.collect(w::Vector{Int}, C::CollectCtx)
   d1 = C.d1
   d2 = C.d2
   R = C.r
@@ -396,7 +396,7 @@ function H_two(C::CohomologyModule)
 
   #rules with length(LHS) == 1 and rules of the form
   # [a a^-1] -> [], [a^-1 1] -> [] do not get tails
-  pos = Array{Int, 1}()
+  pos = Vector{Int}()
   n = 0
   for i = 1:length(R)
     r = R[i]
@@ -423,7 +423,7 @@ function H_two(C::CohomologyModule)
   # at the beginning, module at the end, the tail.
   # collect will call the extra function c.f if set in the
   # CollectCtx
-  c.f = function(C::CollectCtx, w::Array{Int, 1}, r::Int, p::Int)
+  c.f = function(C::CollectCtx, w::Vector{Int}, r::Int, p::Int)
     #w = ABC and B == r[1], B -> r[2] * tail[r]
     # -> A r[2] C C(tail)
     # C = c1 c2 ... C(tail):
@@ -577,7 +577,7 @@ function H_two(C::CohomologyModule)
   end
 
   function TailToCoChain(t)
-    c.f = function(C::CollectCtx, w::Array{Int, 1}, r::Int, p::Int)
+    c.f = function(C::CollectCtx, w::Vector{Int}, r::Int, p::Int)
       #w = ABC and B == r[1], B -> r[2] * tail[r]
       # -> A r[2] C C(tail)
       # C = c1 c2 ... C(tail):
@@ -768,7 +768,7 @@ group `H`, return the `ZZ[H]` module.
 
 Note: we do not check that this defined indeed a `ZZ[H]` module.
 """
-function cohomology_module(H::PermGroup, ac::Array{<:Map, 1})
+function cohomology_module(H::PermGroup, ac::Vector{<:Map})
   return CohomologyModule(H, ac)
 end
 

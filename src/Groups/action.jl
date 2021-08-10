@@ -93,7 +93,7 @@ julia> on_tuples(l, g[1])
 GAP: [ 2, 3, 4 ]
 
 julia> on_tuples([1, 2, 4], g[1])
-3-element Array{Int64,1}:
+3-element Vector{Int64}:
  2
  3
  4
@@ -136,7 +136,7 @@ julia> on_sets(l, g[1])
 GAP: [ 1, 2 ]
 
 julia> on_sets([1, 3], g[1])
-2-element Array{Int64,1}:
+2-element Vector{Int64}:
  1
  2
 
@@ -181,13 +181,13 @@ julia> g = symmetric_group(3);  g[1]
 (1,2,3)
 
 julia> a = ["a", "b", "c"]
-3-element Array{String,1}:
+3-element Vector{String}:
  "a"
  "b"
  "c"
 
 julia> permuted(a, g[1])
-3-element Array{String,1}:
+3-element Vector{String}:
  "c"
  "a"
  "b"

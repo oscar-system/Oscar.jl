@@ -52,7 +52,7 @@ Maximal order of Number field over Rational Field with defining polynomial x^2+5
 with basis nf_elem[1, sqrt(-5)]
 
 julia> factorisations(zk(6))
-2-element Array{Fac{NfAbsOrdElem{AnticNumberField,nf_elem}},1}:
+2-element Vector{Fac{NfAbsOrdElem{AnticNumberField,nf_elem}}}:
  -1 * (2) * (-3)
  -1 * (sqrt(-5)+1) * (sqrt(-5)-1)
 

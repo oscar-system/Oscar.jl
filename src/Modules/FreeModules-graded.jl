@@ -14,9 +14,9 @@ const RingElem_dec = Union{MPolyElem_dec, MPolyQuoElem{<:Oscar.MPolyElem_dec}}
 # Also: qring is a Singular native. So it needs to be added to the ring creation
 
 mutable struct FreeModule_dec{T} <: ModuleFP_dec{T}
-  d::Array{GrpAbFinGenElem, 1}
+  d::Vector{GrpAbFinGenElem}
   R::Ring_dec
-  S::Array{Symbol, 1}
+  S::Vector{Symbol}
   AbstractAlgebra.@declare_other
 
   function FreeModule_dec(a,b::Ring_dec,c)
@@ -33,10 +33,10 @@ function FreeModule(R::Ring_dec, n::Int, name::String = "e"; cached::Bool = fals
 end
 free_module(R::Ring_dec, n::Int, name::String = "e"; cached::Bool = false) = FreeModule(R, n, name, cached = cached)
 
-function FreeModule(R::Ring_dec, d::Array{GrpAbFinGenElem, 1}, name::String = "e"; cached::Bool = false)
+function FreeModule(R::Ring_dec, d::Vector{GrpAbFinGenElem}, name::String = "e"; cached::Bool = false)
   return FreeModule_dec(d, R, [Symbol("$name[$i]") for i=1:length(d)])
 end
-free_module(R::Ring_dec, d::Array{GrpAbFinGenElem, 1}, name::String = "e"; cached::Bool = false) = FreeModule(R, d, name, cached = cached)
+free_module(R::Ring_dec, d::Vector{GrpAbFinGenElem}, name::String = "e"; cached::Bool = false) = FreeModule(R, d, name, cached = cached)
 
 #=XXX this cannot be as it is inherently ambigous
   - FreeModule(R, n)
@@ -264,26 +264,26 @@ function ishomogeneous(a::FreeModuleElem_dec)
 end
 
 mutable struct BiModArray{T}
-  O::Array{FreeModuleElem_dec{T}, 1}
+  O::Vector{FreeModuleElem_dec{T}}
   S::Singular.smodule
   F::FreeModule_dec
   SF::Singular.FreeMod
 
-  function BiModArray(O::Array{<:FreeModuleElem_dec{T}, 1}) where {T}
+  function BiModArray(O::Vector{<:FreeModuleElem_dec{T}}) where {T}
     SF = singular_module(parent(O[1]))
     return BiModArray(O, SF)
   end
 
-  function BiModArray(O::Array{<:FreeModuleElem_dec{T}, 1}, F::FreeModule_dec) where {T}
+  function BiModArray(O::Vector{<:FreeModuleElem_dec{T}}, F::FreeModule_dec) where {T}
     SF = singular_module(F)
     return BiModArray(O, F, SF)
   end
 
-  function BiModArray(O::Array{<:FreeModuleElem_dec{T}, 1}, SF::Singular.FreeMod) where {T}
+  function BiModArray(O::Vector{<:FreeModuleElem_dec{T}}, SF::Singular.FreeMod) where {T}
     return BiModArray(O, parent(O[1]), SF)
   end
 
-  function BiModArray(O::Array{<:FreeModuleElem_dec{T}, 1}, F::FreeModule_dec, SF::Singular.FreeMod) where {T}
+  function BiModArray(O::Vector{<:FreeModuleElem_dec{T}}, F::FreeModule_dec, SF::Singular.FreeMod) where {T}
     r = new{T}()
     r.O = O
     r.SF = SF
@@ -300,7 +300,7 @@ mutable struct BiModArray{T}
       r.SF = parent(s[1])
     end
     r.S = s
-    r.O = [convert(F, s[i]) for i=1:Singular.ngens(s)]
+    r.O = Vector{FreeModuleElem_dec{S}}(undef, Singular.ngens(s))
     return r
   end
 end
@@ -391,7 +391,7 @@ mutable struct FreeModuleHom_dec{T1, T2} <: Map_dec{T1, T2}
   header::MapHeader
   Hecke.@declare_other
 
-  function FreeModuleHom_dec(F::FreeModule_dec{T}, G::S, a::Array{<:Any, 1}) where {T, S}
+  function FreeModuleHom_dec(F::FreeModule_dec{T}, G::S, a::Vector{<:Any}) where {T, S}
 #    @assert isfiltered(F) || all(ishomogeneous, a) #neccessary and suffient according to Hans XXX
 #same as non-homogeneous elements are required, this too must not be enforced
     @assert all(x->parent(x) == G, a)
@@ -473,7 +473,7 @@ end
 
 function homogeneous_components(h::T) where {T <: Map_dec}
   c = Dict{GrpAbFinGenElem, typeof(h)}()
-  d = Dict{GrpAbFinGenElem, Array{Int, 1}}()
+  d = Dict{GrpAbFinGenElem, Vector{Int}}()
   F = domain(h)
   im = elem_type(codomain(h))[]
   for i = 1:ngens(F)
@@ -503,14 +503,14 @@ mutable struct SubQuo_dec{T} <: ModuleFP_dec{T}
   std_quo::BiModArray
   AbstractAlgebra.@declare_other
 
-  function SubQuo_dec(F::FreeModule_dec{R}, O::Array{<:FreeModuleElem_dec, 1}) where {R}
+  function SubQuo_dec(F::FreeModule_dec{R}, O::Vector{<:FreeModuleElem_dec}) where {R}
     r = new{R}()
     r.F = F
     r.sub = BiModArray(O, F, singular_module(F))
     r.sum = r.sub
     return r
   end
-  function SubQuo_dec(S::SubQuo_dec, O::Array{<:FreeModuleElem_dec{L}, 1}) where {L}
+  function SubQuo_dec(S::SubQuo_dec, O::Vector{<:FreeModuleElem_dec{L}}) where {L}
     r = new{L}()
     r.F = S.F
     r.sub = S.sub
@@ -619,12 +619,12 @@ end
 *(a::fmpq, b::SubQuoElem_dec) = SubQuoElem_dec(a*b.a, b.parent)
 ==(a::SubQuoElem_dec, b::SubQuoElem_dec) = iszero(a-b)
 
-function sub(F::FreeModule_dec, O::Array{<:FreeModuleElem_dec, 1})
+function sub(F::FreeModule_dec, O::Vector{<:FreeModuleElem_dec})
   all(ishomogeneous, O) || error("generators have to be homogeneous")
   s = SubQuo_dec(F, O)
 end
 
-function sub(F::FreeModule_dec, O::Array{<:SubQuoElem_dec, 1})
+function sub(F::FreeModule_dec, O::Vector{<:SubQuoElem_dec})
   all(ishomogeneous, O) || error("generators have to be homogeneous")
   return SubQuo_dec(F, [x.a for x = O])
 end
@@ -634,7 +634,7 @@ function sub(F::FreeModule_dec, s::SubQuo_dec)
   return s
 end
 
-function sub(S::SubQuo_dec, O::Array{<:SubQuoElem_dec, 1})
+function sub(S::SubQuo_dec, O::Vector{<:SubQuoElem_dec})
   t = sub(S.F, O)
   if isdefined(S, :quo)
     return quo(t, collect(S.quo))
@@ -643,17 +643,17 @@ function sub(S::SubQuo_dec, O::Array{<:SubQuoElem_dec, 1})
   end
 end
 
-function quo(F::FreeModule_dec, O::Array{<:FreeModuleElem_dec, 1})
+function quo(F::FreeModule_dec, O::Vector{<:FreeModuleElem_dec})
   S = SubQuo_dec(F, basis(F))
   return SubQuo_dec(S, O)
 end
 
-function quo(F::FreeModule_dec, O::Array{<:SubQuoElem_dec, 1})
+function quo(F::FreeModule_dec, O::Vector{<:SubQuoElem_dec})
   S = SubQuo_dec(F, basis(F))
   return SubQuo_dec(S, [x.a for x = O])
 end
 
-function quo(F::SubQuo_dec, O::Array{<:FreeModuleElem_dec, 1})
+function quo(F::SubQuo_dec, O::Vector{<:FreeModuleElem_dec})
   all(ishomogeneous, O) || error("generators have to be homogeneous")
   @assert parent(O[1]) == F.F
   if isdefined(F, :quo)
@@ -665,7 +665,7 @@ function quo(F::SubQuo_dec, O::Array{<:FreeModuleElem_dec, 1})
   return SubQuo_dec(F, O)
 end
 
-function quo(S::SubQuo_dec, O::Array{<:SubQuoElem_dec, 1})
+function quo(S::SubQuo_dec, O::Vector{<:SubQuoElem_dec})
   return SubQuo_dec(S, [x.a for x = O])
 end
 
@@ -724,7 +724,7 @@ end
 Base.eltype(::BiModArray{T}) where {T} = FreeModuleElem_dec{T} 
 
 #??? A scalar product....
-function *(a::FreeModuleElem_dec, b::Array{FreeModuleElem_dec, 1})
+function *(a::FreeModuleElem_dec, b::Vector{FreeModuleElem_dec})
   @assert dim(parent(a)) == length(b)
   s = zero(parent(a))
   for (p,v) = a.r
@@ -785,8 +785,8 @@ end
 
 mutable struct SubQuoHom_dec{T1, T2} <: Map_dec{T1, T2}
   header::Hecke.MapHeader
-  im::Array{<:Any, 1}
-  function SubQuoHom_dec(D::SubQuo_dec, C::ModuleFP_dec, im::Array{<:Any, 1})
+  im::Vector{<:Any}
+  function SubQuoHom_dec(D::SubQuo_dec, C::ModuleFP_dec, im::Vector{<:Any})
     first = true
     @assert length(im) == ngens(D)
     @assert all(x-> parent(x) == C, im)
@@ -813,7 +813,7 @@ mutable struct SubQuoHom_dec{T1, T2} <: Map_dec{T1, T2}
   end
 end
 
-function hom_tensor(G::ModuleFP_dec, H::ModuleFP_dec, A::Array{ <: Map_dec, 1})
+function hom_tensor(G::ModuleFP_dec, H::ModuleFP_dec, A::Vector{ <: Map_dec})
   tG = get_special(G, :tensor_product)
   tG === nothing && error("both modules must be tensor products")
   tH = get_special(H, :tensor_product)
@@ -829,7 +829,7 @@ function hom_tensor(G::ModuleFP_dec, H::ModuleFP_dec, A::Array{ <: Map_dec, 1})
   return hom(G, H)
 end
 
-function hom_prod_prod(G::ModuleFP_dec, H::ModuleFP_dec, A::Array{ <: Map_dec, 2})
+function hom_prod_prod(G::ModuleFP_dec, H::ModuleFP_dec, A::Matrix{ <: Map_dec})
   tG = get_special(G, :tensor_product)
   tG === nothing && error("both modules must be direct products")
   tH = get_special(H, :tensor_product)
@@ -869,7 +869,7 @@ function coordinates(a::FreeModuleElem_dec, SQ::SubQuo_dec)
 end
 
 
-hom(D::SubQuo_dec, C::ModuleFP_dec, A::Array{<:Any, 1}) = SubQuoHom_dec(D, C, A)
+hom(D::SubQuo_dec, C::ModuleFP_dec, A::Vector{<:Any}) = SubQuoHom_dec(D, C, A)
 
 function image(f::SubQuoHom_dec, a::SubQuoElem_dec)
   i = zero(codomain(f))
@@ -1266,7 +1266,7 @@ function tensor_product(G::FreeModule_dec...; task::Symbol = :none)
     z = [[x] for x = g[1].r.pos]
     zz = g[1].r.values
     for h = g[2:end]
-      zzz = Array{Int, 1}[]
+      zzz = Vector{Int}[]
       zzzz = elem_type(F.R)[]
       for i = 1:length(z)
         for (p, v) = h.r
@@ -1404,5 +1404,62 @@ function homogeneous_component(F::T, d::GrpAbFinGenElem) where {T <: Union{FreeM
 end
 
 
+
+#############################
+function homology(C::Hecke.ChainComplex{ModuleFP_dec})
+  H = SubQuo_dec[]
+  for i=1:length(C)-1
+    push!(H, quo(kernel(C.maps[i+1])[1], image(C.maps[i])[1])[1])
+  end
+  return H
+end
+#############################
+#TODO move to Hecke
+#  re-evaluate and use or not
+function Base.getindex(r::Hecke.SRow, R::AbstractAlgebra.Ring, u::UnitRange)
+  s = sparse_row(R)
+  shift = 1-first(u)
+  for (p,v) = r
+    if p in u
+      push!(s.pos, p+shift)
+      push!(s.values, v)
+    end
+  end
+  return s
+end
+
+function getindex(a::Hecke.SRow, b::AbstractVector{Int})
+  if length(a.pos) == 0
+    return a
+  end
+  m = minimum(b)
+  b = sparse_row(parent(a.values[1]))
+  for (k,v) = a
+    if k in b
+      push!(b.pos, k-b+1)
+      push!(b.values, v)
+    end
+  end
+  return b
+end
+
+##############################
+#should be in Singular.jl
+function Singular.intersection(a::Singular.smodule, b::Singular.smodule)
+  c = base_ring(a)
+  return Singular.Module(c, Singular.libSingular.id_Intersection(a.ptr, b.ptr, c.ptr))
+end
+
+function _reduce(a::Singular.smodule, b::Singular.smodule)
+  @assert b.isGB
+  p = Singular.libSingular.p_Reduce(a.ptr, b.ptr, base_ring(b).ptr)
+  return Singular.Module(base_ring(b), p)
+end
+
+function _reduce(a::Singular.svector, b::Singular.smodule)
+  @assert b.isGB
+  p = _reduce(Singular.Module(base_ring(b), a), b)[1]
+  return Singular.Module(base_ring(b), p)[1]
+end
 
 #TODO: tensor_product from Raul's H is broken

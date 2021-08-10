@@ -83,7 +83,7 @@ isometry_group(f::SesquilinearForm{T}) where T
 pol_elementary_divisors(A::MatElem{T}) where T
 generalized_jordan_block(f::T, n::Int) where T<:PolyElem
 generalized_jordan_form(A::MatElem{T}; with_pol=false) where T
-matrix(A::Array{AbstractAlgebra.Generic.FreeModuleElem{T},1}) where T<: FieldElem
+matrix(A::Vector{AbstractAlgebra.Generic.FreeModuleElem{T}}) where T<: FieldElem
 upper_triangular_matrix(L)
 lower_triangular_matrix(L)
 conjugate_transpose(x::MatElem{T}) where T <: FinFieldElem

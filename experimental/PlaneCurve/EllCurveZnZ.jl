@@ -21,9 +21,9 @@ export sum_Point_EllCurveZnZ,
 # Adapted from the corresponding code in Hecke.
 
 function _add(
-    P::Array{Nemo.fmpz_mod,1},
-    Q::Array{Nemo.fmpz_mod,1},
-    E::Array{Nemo.fmpz_mod,1},
+    P::Vector{Nemo.fmpz_mod},
+    Q::Vector{Nemo.fmpz_mod},
+    E::Vector{Nemo.fmpz_mod},
 )
     length(P) == 3 && length(Q) == 3 || error("arrays of size 3 required")
     length(E) == 2 || error("array of size 2 required")
@@ -92,8 +92,8 @@ end
 # and the coordinates of a point on it.
 
 function _rand_list(A::Nemo.FmpzModRing, N::Int)
-    E = Array{Nemo.fmpz_mod,1}[]
-    P = Array{Nemo.fmpz_mod,1}[]
+    E = Vector{Nemo.fmpz_mod}[]
+    P = Vector{Nemo.fmpz_mod}[]
     for i = 1:N
         L = _rand_point_curve(A)
         E = push!(E, L[2])
@@ -106,7 +106,7 @@ end
 # Returns the coordinates of m*P and ZZ(1) when the computation is possible, and
 # returns (0, 0, 0) and the gcd otherwise.
 
-function _scalar_mult(P::Array{Nemo.fmpz_mod,1}, E::Array{Nemo.fmpz_mod,1}, m::fmpz)
+function _scalar_mult(P::Vector{Nemo.fmpz_mod}, E::Vector{Nemo.fmpz_mod}, m::fmpz)
     length(P) == 3 || error("arrays of size 3 required")
     length(E) == 2 || error("array of size 2 required")
     A = parent(P[1])
@@ -136,7 +136,7 @@ end
 ################################################################################
 # Returns the elliptic plane curve corresponding to the array.
 
-function _toProjEllipticCurve(R::MPolyRing{S}, E::Array{S,1}) where {S<:Nemo.fmpz_mod}
+function _toProjEllipticCurve(R::MPolyRing{S}, E::Vector{S}) where {S<:Nemo.fmpz_mod}
     length(E) == 2 || error("array of size 2 required")
     x = gen(R, 1)
     y = gen(R, 2)
@@ -183,7 +183,7 @@ julia> T, _ = grade(S)
 (Multivariate Polynomial Ring in x, y, z over Integers modulo 4453 graded by
   x -> [1]
   y -> [1]
-  z -> [1], MPolyElem_dec{fmpz_mod,AbstractAlgebra.Generic.MPoly{fmpz_mod}}[x, y, z])
+  z -> [1], MPolyElem_dec{fmpz_mod, AbstractAlgebra.Generic.MPoly{fmpz_mod}}[x, y, z])
 
 julia> F = T(y^2*z - x^3 - 10*x*z^2 + 2*z^3)
 4452*x^3 + 4443*x*z^2 + y^2*z + 2*z^3
@@ -194,7 +194,7 @@ Projective elliptic curve defined by 4452*x^3 + 4443*x*z^2 + y^2*z + 2*z^3
 
 julia> PP = projective_space(A, 2)
 (Projective space of dim 2 over Integers modulo 4453
-, MPolyElem_dec{fmpz_mod,AbstractAlgebra.Generic.MPoly{fmpz_mod}}[x[0], x[1], x[2]])
+, MPolyElem_dec{fmpz_mod, AbstractAlgebra.Generic.MPoly{fmpz_mod}}[x[0], x[1], x[2]])
 
 julia> P = Oscar.Point_EllCurve(E, Oscar.Geometry.ProjSpcElem(PP[1], [A(1), A(3), A(1)]))
 (1 : 3 : 1)
@@ -237,7 +237,7 @@ julia> T, _ = grade(S)
 (Multivariate Polynomial Ring in x, y, z over Integers modulo 4453 graded by
   x -> [1]
   y -> [1]
-  z -> [1], MPolyElem_dec{fmpz_mod,AbstractAlgebra.Generic.MPoly{fmpz_mod}}[x, y, z])
+  z -> [1], MPolyElem_dec{fmpz_mod, AbstractAlgebra.Generic.MPoly{fmpz_mod}}[x, y, z])
 
 julia> F = T(y^2*z - x^3 - 10*x*z^2 + 2*z^3)
 4452*x^3 + 4443*x*z^2 + y^2*z + 2*z^3
@@ -248,7 +248,7 @@ Projective elliptic curve defined by 4452*x^3 + 4443*x*z^2 + y^2*z + 2*z^3
 
 julia> PP = projective_space(A, 2)
 (Projective space of dim 2 over Integers modulo 4453
-, MPolyElem_dec{fmpz_mod,AbstractAlgebra.Generic.MPoly{fmpz_mod}}[x[0], x[1], x[2]])
+, MPolyElem_dec{fmpz_mod, AbstractAlgebra.Generic.MPoly{fmpz_mod}}[x[0], x[1], x[2]])
 
 julia> P = Oscar.Point_EllCurve(E, Oscar.Geometry.ProjSpcElem(PP[1], [A(1), A(3), A(1)]))
 (1 : 3 : 1)

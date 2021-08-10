@@ -120,7 +120,7 @@ julia> I = ideal(R, [x-y,x^3-1,z*y^2-z])
 ideal(x - y, x^3 - 1, y^2*z - z)
 
 julia> cellular_decomposition(I)
-2-element Array{MPolyIdeal{fmpq_mpoly},1}:
+2-element Vector{MPolyIdeal{fmpq_mpoly}}:
  ideal(y - 1, x - 1)
  ideal(x - y, x^3 - 1, y^2*z - z, z)
 ```
@@ -622,7 +622,7 @@ julia> I = ideal(R, [x[5]*(x[1]-x[2]), x[6]*(x[3]-x[4]), x[5]^2, x[6]^2, x[5]*x[
 ideal(x[1]*x[5] - x[2]*x[5], x[3]*x[6] - x[4]*x[6], x[5]^2, x[6]^2, x[5]*x[6])
 
 julia> cellular_associated_primes(I)
-3-element Array{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}},1}:
+3-element Vector{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}}}:
  ideal(x5, x6)
  ideal(x1 - x2, x5, x6)
  ideal(x3 - x4, x5, x6)
@@ -696,7 +696,7 @@ julia> I = ideal(R, [x[5]*(x[1]-x[2]), x[6]*(x[3]-x[4]), x[5]^2, x[6]^2, x[5]*x[
 ideal(x[1]*x[5] - x[2]*x[5], x[3]*x[6] - x[4]*x[6], x[5]^2, x[6]^2, x[5]*x[6])
 
 julia> cellular_minimal_associated_primes(I)
-1-element Array{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}},1}:
+1-element Vector{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}}}:
  ideal(x5, x6)
 ```
 """
@@ -768,7 +768,7 @@ julia> I = ideal(R, [x[5]*(x[1]-x[2]), x[6]*(x[3]-x[4]), x[5]^2, x[6]^2, x[5]*x[
 ideal(x[1]*x[5] - x[2]*x[5], x[3]*x[6] - x[4]*x[6], x[5]^2, x[6]^2, x[5]*x[6])
 
 julia> cellular_primary_decomposition(I)
-3-element Array{Tuple{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}},MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}}},1}:
+3-element Vector{Tuple{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}}, MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}}}}:
  (ideal(x1*x5 - x2*x5, x3*x6 - x4*x6, x5^2, x6^2, x5*x6, x5, x6), ideal(x5, x6))
  (ideal(x1*x5 - x2*x5, x3*x6 - x4*x6, x5^2, x6^2, x5*x6, x1 - x2, x6), ideal(x1 - x2, x5, x6))
  (ideal(x1*x5 - x2*x5, x3*x6 - x4*x6, x5^2, x6^2, x5*x6, x3 - x4, x5), ideal(x3 - x4, x5, x6))
@@ -831,7 +831,7 @@ julia> I = ideal(R, [x-y,x^3-1,z*y^2-z])
 ideal(x - y, x^3 - 1, y^2*z - z)
 
 julia> binomial_primary_decomposition(I)
-3-element Array{Tuple{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}},MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}}},1}:
+3-element Vector{Tuple{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}}, MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}}}}:
  (ideal(x1 - x2, x1^3 - 1, x2^2*x3 - x3, x3, x2 - z(3), x1 - z(3)), ideal(x1*x2^2 - 1, x2 - z(3), x3))
  (ideal(x1 - x2, x1^3 - 1, x2^2*x3 - x3, x3, x2 + z(3) + 1, x1 + z(3) + 1), ideal(x1*x2^2 - 1, x2 + z(3) + 1, x3))
  (ideal(x2 - 1, x1 - 1, x1*x2 - 1), ideal(x2 - 1, x1 - 1, x1*x2 - 1))
@@ -906,7 +906,7 @@ function _parse_matrix(filename::String)
   end
   nrows = parse(Int, s[1:i-1])
   ncols = parse(Int, s[i+1:end])
-  M = Array{Int, 2}(undef, nrows, ncols)
+  M = Matrix{Int}(undef, nrows, ncols)
   for i = 1:nrows
     s = readline(f)
     ind1 = 1
@@ -938,10 +938,10 @@ end
 function birth_death_ideal(m::Int, n::Int)
   
   #To make it clearer, I split the variables 
-  U = Array{fmpq_mpoly, 2}(undef, m+1, n)
-  R = Array{fmpq_mpoly, 2}(undef, m, n+1)
-  D = Array{fmpq_mpoly, 2}(undef, m+1, m)
-  L = Array{fmpq_mpoly, 2}(undef, m+1, n+1)
+  U = Matrix{fmpq_mpoly}(undef, m+1, n)
+  R = Matrix{fmpq_mpoly}(undef, m, n+1)
+  D = Matrix{fmpq_mpoly}(undef, m+1, m)
+  L = Matrix{fmpq_mpoly}(undef, m+1, n+1)
   Qxy, gQxy = PolynomialRing(FlintQQ, length(U)+length(R)+length(D)+length(L))
   pols = Vector{elem_type(Qxy)}(undef, 4*n*m)
   ind = 1

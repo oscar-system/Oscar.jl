@@ -25,10 +25,10 @@ using Random, RandomExtensions
 # in Hecke to distinguish between relative and absolute fields.
 mutable struct NfNSGen{T, S} <: Hecke.NonSimpleNumField{T}
   I::MPolyIdeal{S}
-  S::Array{Symbol, 1}
+  S::Vector{Symbol}
   degree::Int
   basis
-  auxilliary_data::Array{Any, 1}
+  auxilliary_data::Vector{Any}
   AbstractAlgebra.@declare_other
 
   function NfNSGen{U, V}(I, S::Vector{Symbol}) where {U, V}
@@ -247,7 +247,7 @@ function -(a::NfNSGenElem, b::NfNSGenElem)
   NfNSGenElem(data(a) - data(b), parent(a))
 end
 
-function divexact(a::NfNSGenElem, b::NfNSGenElem)
+function divexact(a::NfNSGenElem, b::NfNSGenElem; check::Bool = true)
   @req !iszero(b) "Division by zero"
   check_parent(a, b)
   return a * inv(b)
