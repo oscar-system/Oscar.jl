@@ -12,7 +12,7 @@ in `V`) under the action of `G`.
 
 # Examples
 This will construct the $3$-dimensional permutahedron:
-```julia-repl
+```jldoctest
 julia> V = [1 2 3];
 
 julia> G = symmetric_group(3);
@@ -57,7 +57,7 @@ Construct the $[l,u]$-cube in dimension $d$.
 # Examples
 In this example the 5-dimensional unit cube is constructed to ask for one of its
 properties:
-```julia-repl
+```jldoctest
 julia> C = cube(5,0,1);
 
 julia> normalized_volume(C)
@@ -75,7 +75,7 @@ cube(d, l, u) = Polyhedron(Polymake.polytope.cube(d, u, l))
 Compute the Newton polytope of the multivariate polynomial `poly`.
 
 # Examples
-```julia-repl
+```jldoctest
 julia> S, (x, y) = PolynomialRing(ZZ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Integer Ring, fmpz_mpoly[x, y])
 
@@ -111,7 +111,7 @@ Return the intersection $P \cap Q$ of `P` and `Q`.
 # Examples
 The positive orthant of the plane is the intersection of the two halfspaces with
 $x>0$ and $y>0$ respectively.
-```julia-repl
+```jldoctest
 julia> UH1 = convex_hull([0 0],[1 0],[0 1]);
 
 julia> UH2 = convex_hull([0 0],[0 1],[1 0]);
@@ -140,7 +140,7 @@ Return the Minkowski sum $P + Q = \{ x+y\ |\ x∈P, y∈Q\}$ of `P` and `Q`.
 # Examples
 The Minkowski sum of a square and the 2-dimensional cross-polytope is an
 octagon:
-```julia-repl
+```jldoctest
 julia> P = cube(2);
 
 julia> Q = cross(2);
@@ -173,12 +173,12 @@ Return the Cartesian product of `P` and `Q`.
 
 # Examples
 The Cartesian product of a triangle and a line segment is a triangular prism.
-```julia-repl
+```jldoctest
 julia> T=simplex(2)
-A polyhedron
+A polyhedron in ambient dimension 2
 
 julia> S=cube(1)
-A polyhedron
+A polyhedron in ambient dimension 1
 
 julia> length(vertices(product(T,S)))
 6
@@ -193,12 +193,12 @@ Return the Cartesian product of `P` and `Q` (see also `product`).
 
 # Examples
 The Cartesian product of a triangle and a line segment is a triangular prism.
-```julia-repl
+```jldoctest
 julia> T=simplex(2)
-A polyhedron
+A polyhedron in ambient dimension 2
 
 julia> S=cube(1)
-A polyhedron
+A polyhedron in ambient dimension 1
 
 julia> length(vertices(T*S))
 6
@@ -213,12 +213,12 @@ Return the convex_hull of `P` and `Q`.
 
 # Examples
 The convex hull of the following two line segments in $R^3$ is a tetrahedron.
-```julia-repl
+```jldoctest
 julia> L₁ = convex_hull([-1 0 0; 1 0 0])
-A polyhedron
+A polyhedron in ambient dimension 3
 
 julia> L₂ = convex_hull([0 -1 0; 0 1 0])
-A polyhedron
+A polyhedron in ambient dimension 3
 
 julia> T=convex_hull(L₁,L₂);
 
@@ -242,7 +242,7 @@ Return the Minkowski sum $P + Q = \{ x+y\ |\ x∈P, y∈Q\}$ of `P` and `Q` (see
 # Examples
 The Minkowski sum of a square and the 2-dimensional cross-polytope is an
 octagon:
-```julia-repl
+```jldoctest
 julia> P = cube(2);
 
 julia> Q = cross(2);
@@ -270,7 +270,7 @@ Note that `k*Q = Q*k`.
 Scaling an $n$-dimensional bounded polyhedron by the factor $k$ results in the
 volume being scaled by $k^n$.
 This example confirms the statement for the 6-dimensional cube and $k = 2$.
-```julia-repl
+```jldoctest
 julia> C = cube(6);
 
 julia> SC = 2*C
@@ -294,7 +294,7 @@ Note that `k*P = P*k`.
 Scaling an $n$-dimensional bounded polyhedron by the factor $k$ results in the
 volume being scaled by $k^n$.
 This example confirms the statement for the 6-dimensional cube and $k = 2$.
-```julia-repl
+```jldoctest
 julia> C = cube(6);
 
 julia> SC = C*2
@@ -317,7 +317,7 @@ Note that `P+v = v+P`.
 # Examples
 We construct a polyhedron from its $V$-description. Shifting it by the right
 vector reveals that its inner geometry corresponds to that of the 3-simplex.
-```julia-repl
+```jldoctest
 julia> P = convex_hull([100 200 300; 101 200 300; 100 201 300; 100 200 301]);
 
 julia> v = [-100, -200, -300];
@@ -356,7 +356,7 @@ Note that `P+v = v+P`.
 # Examples
 We construct a polyhedron from its $V$-description. Shifting it by the right
 vector reveals that its inner geometry corresponds to that of the 3-simplex.
-```julia-repl
+```jldoctest
 julia> P = convex_hull([100 200 300; 101 200 300; 100 201 300; 100 200 301]);
 
 julia> v = [-100, -200, -300];
@@ -387,7 +387,7 @@ along with the origin in $\mathbb{R}^d$, scaled by $n$.
 
 # Examples
 Here we take a look at the facets of the 7-simplex and a scaled 7-simplex:
-```julia-repl
+```jldoctest
 julia> s = simplex(7)
 A polyhedron in ambient dimension 7
 
@@ -447,7 +447,7 @@ at $\pm e_i$ for each unit vector $e_i$ of $R^d$, scaled by $n$.
 # Examples
 Here we print the facets of a non-scaled and a scaled 3-dimensional cross
 polytope:
-```julia-repl
+```jldoctest
 julia> C = cross(3)
 A polyhedron in ambient dimension 3
 
@@ -544,7 +544,7 @@ exact; Vertex-facet-incidences are correct in all cases.
           This is a chiral polytope.
 
 # Examples
-```julia-repl
+```jldoctest
 julia> T = archimedean_solid("cuboctahedron")
 A polyhedron in ambient dimension 3
 

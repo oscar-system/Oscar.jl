@@ -18,7 +18,7 @@ rows of `L`.
 
 # Examples
 To construct the positive orthant as a `Cone`, you can write:
-```julia-repl
+```jldoctest
 julia> R = [1 0; 0 1];
 
 julia> PO = Cone(R)
@@ -26,7 +26,7 @@ A polyhedral cone in ambient dimension 2
 ```
 
 To obtain the upper half-space of the plane:
-```julia-repl
+```jldoctest
 julia> R = [0 1];
 
 julia> L = [1 0];
@@ -70,7 +70,7 @@ of the `generators`.
 Redundant rays are allowed.
 
 # Examples
-```julia-repl
+```jldoctest
 julia> R = [1 0; 0 1];
 
 julia> PO = positive_hull(R)

@@ -31,9 +31,11 @@ see Def. 3.35 and Section 4.1. of [JT13](@cite)
 
 # Examples
 The following lines define the square $[0,1]^2 \subset \mathbb{R}^2$:
-```julia-repl
+```jldoctest
 julia> A = [1 0; 0 1; -1 0 ; 0 -1];
+
 julia> b = [1, 1, 0, 0];
+
 julia> Polyhedron(A,b)
 A polyhedron in ambient dimension 2
 ```
@@ -74,30 +76,38 @@ See Def. 2.11 and Def. 3.1  of [JT13](@cite).
 
 # Examples
 The following lines define the square $[0,1]^2 \subset \mathbb{R}^2$:
-```julia-repl
+```jldoctest
 julia> Square = convex_hull([0 0; 0 1; 1 0; 1 1])
 A polyhedron in ambient dimension 2
 ```
 To construct the positive orthant, rays have to be passed:
-```julia-repl
+```jldoctest
 julia> V = [0 0];
+
 julia> R = [1 0; 0 1];
+
 julia> PO = convex_hull(V, R)
 A polyhedron in ambient dimension 2
 ```
 The closed-upper half plane can be constructed by passing rays and a lineality space:
-```julia-repl
+```jldoctest
 julia> V = [0 0];
+
 julia> R = [0 1];
+
 julia> L = [1 0];
+
 julia> UH = convex_hull(V, R, L)
 A polyhedron in ambient dimension 2
 ```
 To obtain the x-axis in $\mathbb{R}^2$:
-```julia-repl
+```jldoctest
 julia> V = [0 0];
+
 julia> R = [];
+
 julia> L = [1 0];
+
 julia> XA = convex_hull(V, R, L)
 A polyhedron in ambient dimension 2
 ```

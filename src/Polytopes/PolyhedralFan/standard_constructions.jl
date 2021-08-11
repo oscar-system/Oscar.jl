@@ -8,7 +8,7 @@ Return the normal fan of `P`.
 # Examples
 The rays of a normal fan of a cube point in every positive and negative unit
 direction.
-```julia-repl
+```jldoctest
 julia> C = cube(3);
 
 julia> NF = normal_fan(C)
@@ -44,7 +44,7 @@ Return the face fan of `P`.
 # Examples
 By definition, this bounded polyhedron's number of facets equals the amount of
 maximal cones of its face fan.
-```julia-repl
+```jldoctest
 julia> C = cross(3);
 
 julia> FF = face_fan(C)

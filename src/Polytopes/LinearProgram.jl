@@ -109,9 +109,9 @@ Return `nothing` if the objective function does not obtain a minimal value over 
 The following example constructs a linear program over the three dimensional cube.
 Although the linear program is given using the `:max` convention, one may still call
 `minimal_vertex`.
-```julia-repl
+```jldoctest
 julia> C=cube(3)
-A polyhedron
+A polyhedron in ambient dimension 3
 
 julia> LP=LinearProgram(C,[1,2,-3])
 The linear program
@@ -145,9 +145,9 @@ end
 # Examples
 The following example constructs a linear program over the three dimensional cube, and
 obtains the vertex of the cube which maximizes the function (x,y,z) ↦ x+2y-3z.
-```julia-repl
+```jldoctest
 julia> C=cube(3)
-A polyhedron
+A polyhedron in ambient dimension 3
 
 julia> LP=LinearProgram(C,[1,2,-3])
 The linear program
@@ -180,9 +180,9 @@ Return, if it exists, the minimal value of the objective function of LP over the
 # Examples
 The following example constructs a linear program over the three dimensional cube, and
 obtains the minimal value of the function (x,y,z) ↦ x+2y-3z over that cube.
-```julia-repl
+```jldoctest
 julia> C=cube(3)
-A polyhedron
+A polyhedron in ambient dimension 3
 
 julia> LP=LinearProgram(C,[1,2,-3])
 The linear program
@@ -207,9 +207,9 @@ Return the maximal value of the objective function of LP over the feasible regio
 # Examples
 The following example constructs a linear program over the three dimensional cube, and
 obtains the maximal value of the function (x,y,z) ↦ x+2y-3z over that cube.
-```julia-repl
+```jldoctest
 julia> C=cube(3)
-A polyhedron
+A polyhedron in ambient dimension 3
 
 julia> LP=LinearProgram(C,[1,2,-3])
 The linear program

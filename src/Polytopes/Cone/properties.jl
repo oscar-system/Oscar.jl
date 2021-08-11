@@ -26,7 +26,7 @@ Return the rays of `C`.
 
 # Examples
 Here a cone is constructed from three rays. Calling `rays` reveals that one of these was redundant:
-```julia-repl
+```jldoctest
 julia> R = [1 0; 0 1; 0 2];
 
 julia> PO = positive_hull(R);
@@ -58,7 +58,7 @@ Return the number of rays of `C`.
 
 # Examples
 Here a cone is constructed from three rays. Calling `nrays` reveals that one of these was redundant:
-```julia-repl
+```jldoctest
 julia> R = [1 0; 0 1; 0 2];
 
 julia> PO = positive_hull(R);
@@ -76,7 +76,7 @@ Return the dimension of `C`.
 
 # Examples
 The cone `C` in this example is 2-dimensional within a 3-dimensional ambient space.
-```julia-repl
+```jldoctest
 julia> C = Cone([1 0 0; 1 1 0; 0 1 0]);
 
 julia> dim(C)
@@ -92,7 +92,7 @@ Return the ambient dimension of `C`.
 
 # Examples
 The cone `C` in this example is 2-dimensional within a 3-dimensional ambient space.
-```julia-repl
+```jldoctest
 julia> C = Cone([1 0 0; 1 1 0; 0 1 0]);
 
 julia> ambient_dim(C)
@@ -108,7 +108,7 @@ Returns the codimension of `C`.
 
 # Examples
 The cone `C` in this example is 2-dimensional within a 3-dimensional ambient space.
-```julia-repl
+```jldoctest
 julia> C = Cone([1 0 0; 1 1 0; 0 1 0]);
 
 julia> codim(C)
@@ -127,7 +127,7 @@ Determine whether `C` is pointed, i.e. whether 0 is a face of `C`.
 
 # Examples
 A cone with lineality is not pointed, but a cone only consisting of a single ray is.
-```julia-repl
+```jldoctest
 julia> C = Cone([1 0], [0 1]);
 
 julia> ispointed(C)
@@ -148,7 +148,7 @@ Determine whether `C` is full dimensional.
 
 # Examples
 The cone `C` in this example is 2-dimensional within a 3-dimensional ambient space.
-```julia-repl
+```jldoctest
 julia> C = Cone([1 0 0; 1 1 0; 0 1 0]);
 
 julia> isfulldimensional(C)
@@ -168,7 +168,7 @@ Return the rays of `C` as rows in a matrix.
 
 # Examples
 Here a cone is constructed from three rays. Calling `rays_as_point_matrix` reveals that one of these was redundant:
-```julia-repl
+```jldoctest
 julia> R = [1 0; 0 1; 0 2];
 
 julia> PO = positive_hull(R);
@@ -191,7 +191,7 @@ Return the facets of `C` as rows of a matrix.
 
 # Examples
 From this little example it is easy to see that the facets are displayed as their inside-pointing (w.r.t. the cone) normals.
-```julia-repl
+```jldoctest
 julia> R = [1 0; 1 1];
 
 julia> C = positive_hull(R);
@@ -213,7 +213,7 @@ Return a basis of the lineality space of `C`.
 # Examples
 Three rays are used here to construct the upper half-plane. Actually, two of these rays point in opposite directions.
 This gives us a 1-dimensional lineality.
-```julia-repl
+```jldoctest
 julia> UH = Cone([1 0; 0 1; -1 0]);
 
 julia> lineality_space(UH)
@@ -230,7 +230,7 @@ Return the Hilbert basis of a pointed cone `C` as the rows of a matrix.
 
 # Examples
 This (non-smooth) cone in the plane has a hilbert basis with three elements.
-```julia-repl
+```jldoctest; filter = r".*"
 julia> C = Cone([1 0; 1 2])
 A polyhedral cone in ambient dimension 2
 
