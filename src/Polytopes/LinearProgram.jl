@@ -134,10 +134,8 @@ end
 """
     maximal_vertex(LP::LinearProgram)
 
-    Return, if it exists, a point of the feasible region of `LP` which maximizes the objective
-    function of `LP`.
-
-    Return `nothing` if the objective function does not obtain a maximal value over the feasible region.
+Return either a point of the feasible region of `LP` which maximizes the objective
+function of `LP`, or `nothing` if no such point exists.
 
 # Examples
 The following example constructs a linear program over the three dimensional cube, and
@@ -199,7 +197,7 @@ minimal_value(lp::LinearProgram) = lp.polymake_lp.MINIMAL_VALUE
     maximal_value(LP::LinearProgram)
 
 Return the maximal value of the objective function of `LP` over the feasible region
-of `LP`. Otherwise, return `inf`
+of `LP`. Otherwise, return `inf`.
 
 # Examples
 The following example constructs a linear program over the three dimensional cube, and

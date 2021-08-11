@@ -114,5 +114,6 @@ LP0 = load_linearprogram("lp.poly")
 solve_lp(LP0)
 solve_lp(LP)
 ```
-The file is in json format and contains all the underlying polymake object. In
-particular, this file can now be read by both polymake and Oscar.
+The file is in JSON format and contains all previously gathered data belonging
+to the underlying polymake object. In particular, this file can now be read by
+both polymake and Oscar.

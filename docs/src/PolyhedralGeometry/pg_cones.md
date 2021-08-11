@@ -50,5 +50,6 @@ save_cone(C, "C.cone")
 CC = load_cone("C.cone")
 collect(rays(CC))
 ```
-The file is in JSON format and contains all the underlying polymake object. In
-particular, this file can now be read by both polymake and Oscar.
+The file is in JSON format and contains all previously gathered data belonging
+to the underlying polymake object. In particular, this file can now be read by
+both polymake and Oscar.
