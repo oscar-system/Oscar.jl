@@ -1,6 +1,6 @@
 # JToric
 
-[![Build Status](https://github.com/HereAround/JToric.jl/workflows/CI/badge.svg)](https://github.com/HereAround/JToric.jl/actions)
+[![CI](https://github.com/HereAround/JToric/actions/workflows/CI.yml/badge.svg)](https://github.com/HereAround/JToric/actions/workflows/CI.yml)
 [![codecov](https://codecov.io/gh/HereAround/JToric/branch/master/graph/badge.svg?token=P0OW0QDKM8)](https://codecov.io/gh/HereAround/JToric)
 
 
