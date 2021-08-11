@@ -225,7 +225,7 @@ maximal_value(lp::LinearProgram) = lp.polymake_lp.MAXIMAL_VALUE
     solve_lp(LP::LinearProgram)
 
 Gives a pair `(m,v)` where the optimal value `m` of the objective
- function of LP is attained at `v` (if `m` exists). If the optimum
+ function of `LP` is attained at `v` (if `m` exists). If the optimum
  is not attained, `m` may be `inf` or `-inf` in which case `v` is
  `nothing`.
 """
