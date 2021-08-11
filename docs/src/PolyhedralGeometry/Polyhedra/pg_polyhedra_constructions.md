@@ -49,7 +49,7 @@ facets_as_halfspace_matrix_pair(T)
 
 
 ## Named polyhedra
-Some commonly used polyhedra are able to be constructed by name. For example
+For some commonly used types of polyhedra, dedicated constructors are provided:
 
 ```@docs
 simplex
