@@ -1,7 +1,8 @@
 # JToric
 
 [![Build Status](https://github.com/HereAround/JToric.jl/workflows/CI/badge.svg)](https://github.com/HereAround/JToric.jl/actions)
-[![Coverage](https://codecov.io/gh/HereAround/JToric.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/HereAround/JToric.jl)
+[![codecov](https://codecov.io/gh/HereAround/JToric/branch/master/graph/badge.svg?token=P0OW0QDKM8)](https://codecov.io/gh/HereAround/JToric)
+
 
 ## What is JToric about?
 
