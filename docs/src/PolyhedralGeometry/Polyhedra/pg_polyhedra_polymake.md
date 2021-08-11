@@ -13,11 +13,17 @@ Pages = ["pg_polyhedra_polymake.md"]
 
 # `Polyhedron` and `polymake`'s `Polytope`
 
-Many polyhedral computations are done through `polymake`.
-This is visible in the structure `Polyhedron` via a pointer `pm_polytope` to the corresponding `polymake` object.
-This allows to apply all functionality of `polymake` by calling a suitable `Polymake.jl` function on this pointer.
+Many polyhedral computations are done through `polymake`. `polymake`
+([GJ00](@cite), [polymake.org](https://polymake.org)) is open source software
+for research in polyhedral geometry and is attached to Julia via `Polymake.jl`
+([KLT20](@cite), [Polymake.jl](https://github.com/oscar-system/Polymake.jl)).
+This is visible in the structure `Polyhedron` via a pointer `pm_polytope` to
+the corresponding `polymake` object.
+Using `Polymake.jl` one can apply all functionality of `polymake` to the
+`polymake` object hidden behind this pointer.
 
-To allow both `Oscar`'s and `polymake`'s functionality to be applicable to a polyhedron object, it can be converted back and forth:
+To allow both `Oscar`'s and `polymake`'s functionality to be applicable to a
+polyhedron object, it can be converted back and forth:
 
 ```@docs
 Polyhedron(::Polymake.BigObject)
