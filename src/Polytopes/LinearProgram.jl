@@ -66,8 +66,8 @@ end
 
 Return the objective function x ↦ dot(c,x)+k of the linear program LP.
 The allowed values for `as` are
-* `pair`: Returns the pair `(c,k)`
-* `function`: Returns the objective function as a function.
+* `pair`: Return the pair `(c,k)`
+* `function`: Return the objective function as a function.
 
 
 """
