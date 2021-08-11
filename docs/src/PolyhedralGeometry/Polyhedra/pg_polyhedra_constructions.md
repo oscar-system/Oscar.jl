@@ -12,12 +12,12 @@ Pages = ["pg_polyhedra_constructions.md"]
 
 # Constructions
 
-The standard way to define a polyhedron is by either giving a V-description or an H-description.
+The standard way to define a polyhedron is by either giving a $V$-representation or an $H$-representation.
 But polyhedra may also be constructed through other means: by name, via operations on other polyhedra, or from other objects in Oscar.
 
 ## H and V representations
 
-### Intersecting halfspaces: H-description
+### Intersecting halfspaces: H-representation
 
 Based on the definition of an $H$-representation, the constructor of `Polyhedron` can be used:
 
@@ -31,7 +31,7 @@ The following defines a polytope, as a `Polyhedron`, via a $V$-representation by
 convex_hull(::AnyVecOrMat; non_redundant::Bool=false)
 ```
 
-### Computing convex hulls: V-description
+### Computing convex hulls: V-representation
 
 This is a standard triangle, defined via a (redundant) $V$-representation  and its unique minimal $H$-representation:
 
