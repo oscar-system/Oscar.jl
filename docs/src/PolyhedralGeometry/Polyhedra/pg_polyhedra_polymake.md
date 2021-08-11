@@ -45,9 +45,9 @@ C.pm_polytope
 
 
 !!! warning
-   There are several design differences between `polymake` and `Oscar`.
-   Polyhedra in `polymake` and `Polymake.jl` use homogeneous coordinates. The polyhedra in `Oscar` use affine coordinates.
-	Indices in `polymake` are zero-based, whereas in `Oscar` they are one-based.
+    There are several design differences between `polymake` and `Oscar`.
+    Polyhedra in `polymake` and `Polymake.jl` use homogeneous coordinates. The polyhedra in `Oscar` use affine coordinates.
+	 Indices in `polymake` are zero-based, whereas in `Oscar` they are one-based.
 
 The next example shows a purely combinatorial construction of a polytope (here: a square).
 In spite of being given no coordinates, `polymake` can check for us that this is a simple polytope; i.e., each vertex is contained in dimension many facets.

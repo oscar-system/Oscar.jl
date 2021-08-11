@@ -99,7 +99,7 @@ function faces(as::Type{T}, P::Polyhedron, face_dim::Int) where {T}
     if as == Polyhedron || as == Polyhedra
         PolyhedronFacePolyhedronIterator(P,face_dim-size(lineality_space(P),1))
     else
-        throw(ArgumentError("Unsupported `as` argument:" * string(as)))
+        throw(ArgumentError("Unsupported `as` argument: $(as)"))
     end
 end
 """
