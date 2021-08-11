@@ -6,8 +6,7 @@
 """
     Polyhedra
 
-Dummy type used for specifying the desired output format.
-Each polyhedron is given by a `Polyhedron`.
+Empty type for selecting `Polyhedron` as return type for polyhedra.
 """
 struct Polyhedra
 end
@@ -15,8 +14,7 @@ end
 """
     Points
 
-Dummy type used for specifying the desired output format.
-Each point is given by a vector.
+Empty type for selecting `Vector` as return type for points.
 """
 struct Points
 end
@@ -24,8 +22,8 @@ end
 @doc Markdown.doc"""
     Halfspaces
 
-Dummy type used for specifying the desired output format.
-Each halfspace `H(a,b)` is given by a vector `a` and a value `b` such that
+Empty type for specifying that the return type for a halfspace `H(a,b)` should
+be a pair of a vector `a` and a value `b` such that
 $$H(a,b) = \{ x\ |\ ax ≤ b \}.$$
 """
 struct Halfspaces
