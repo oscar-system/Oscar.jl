@@ -5,9 +5,9 @@ module JToric
 import CapAndHomalg
 export CapAndHomalg
 
-
 # use packages
 using Pkg
+using GAP
 using JToric
 
 

@@ -15,6 +15,6 @@ end
 
 function IsSmooth( x )
     
-    return CapAndHomalg.GAP.Globals.IsSmooth( x )
+    return GAP.Globals.GAPToJulia( CapAndHomalg.GAP.Globals.IsSmooth( x ) )
     
 end
