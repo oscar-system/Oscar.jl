@@ -18,7 +18,7 @@ Let $\mathbb{F}$ be an ordered field; the most prominent case here is where
 $\mathbb{F}=\mathbb{Q}$ are the rational numbers.
 
 A nonempty finite collection $\mathcal{F}$ of (polyhedral) cones in
-$\mathbb{F}^n$, for $n$ fixed, is a (polyhedral) fan if
+$\mathbb{F}^n$, for $n$ fixed, is a *(polyhedral) fan* if
 
 - the set $\mathcal{F}$ is closed with respect to taking faces and
 - if $C,D\in\mathcal{F}$ then $C\cap D$ is a face of both, $C$ and $D$.
@@ -35,7 +35,8 @@ PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMat
 
 ## Saving and loading
 
-Polyhedral fans can be saved to a file and loaded from a file in the following way:
+Objects of type `PolyhedralFan` can be saved to a file and loaded from a file
+in the following way:
 ```@repl oscar
 square = cube(2)
 fan = normal_fan(square)

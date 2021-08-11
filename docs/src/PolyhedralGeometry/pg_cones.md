@@ -18,7 +18,7 @@ Pages = ["pg_cones.md"]
 Let $\mathbb{F}$ be an ordered field; the most prominent case here is where
 $\mathbb{F}=\mathbb{Q}$ are the rational numbers.
 
-A set $C \subseteq \mathbb{F}^n$ is called a (polyhedral) cone if it can be
+A set $C \subseteq \mathbb{F}^n$ is called a *(polyhedral) cone* if it can be
 written as the set of nonnegative linear combinations of finitely many vectors
 in $\mathbb{F}^n$.  Equivalently, cones can be written as the intersection of
 finitely many homogeneous linear inequalities.
@@ -41,7 +41,8 @@ positive_hull(::Union{MatElem, AbstractArray{T,2} where T})
 
 ## Saving and loading
 
-Cones can be saved to a file and loaded from a file in the following way:
+Objects of type `Cone` can be saved to a file and loaded from a file in the
+following way:
 ```@repl oscar
 C = positive_hull([1 0; 0 1])
 save_cone(C, "C.cone")
