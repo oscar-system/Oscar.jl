@@ -83,6 +83,9 @@ function Base.similar(bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{Ray}}, ::Ty
     return Ray{Polymake.promote_to_pm_type(Vector, ElType)}(axes(bc)...)
 end
 
+struct Rays
+end
+
 @doc Markdown.doc"""
 
     Halfspaces
@@ -110,12 +113,12 @@ end
 
 function Base.getindex(iter::PolyhedronOrConeIterator{Polyhedron}, i::Int64)
     @boundscheck checkbounds(iter.faces, i)
-    return Polyhedron(Polymake.polytope.Polytope(VERTICES=iter.vertices[[f+1 for f in iter.faces[index]],:],LINEALITY_SPACE = iter.lineality))
+    return Polyhedron(Polymake.polytope.Polytope(VERTICES=iter.vertices[[f+1 for f in iter.faces[i]],:],LINEALITY_SPACE = iter.lineality))
 end
 
 function Base.getindex(iter::PolyhedronOrConeIterator{Cone}, i::Int64)
     @boundscheck checkbounds(iter.faces, i)
-    return Cone(Polymake.polytope.Cone(RAYS=iter.vertices[[f+1 for f in iter.faces[index]],:],LINEALITY_SPACE = iter.lineality))
+    return Cone(Polymake.polytope.Cone(RAYS=iter.vertices[[f+1 for f in iter.faces[i]],:],LINEALITY_SPACE = iter.lineality))
 end
 
 function Base.setindex!(iter::PolyhedronOrConeIterator, val::Polymake.Set{Int64}, i::Int64)
@@ -143,7 +146,7 @@ end
 
 Base.firstindex(::PolyhedronOrConeIterator) = 1
 Base.lastindex(iter::PolyhedronOrConeIterator) = length(iter)
-Base.size(iter::PolyhedronOrConeIterator) = (length(iter),)
+Base.size(iter::PolyhedronOrConeIterator) = (length(iter.faces),)
 
 function Base.show(io::IO, I::PolyhedronOrConeIterator{T}) where T
     print(io, "A collection of $T objects as `$T`")
@@ -175,6 +178,13 @@ Base.lastindex(iter::HalfSpaceIterator) = length(iter)
 Base.size(iter::HalfSpaceIterator) = (length(iter.b),)
 
 halfspace_matrix_pair(iter::HalfSpaceIterator) = (A = iter.A, b = iter.b)
+
+function point_matrix(iter::HalfSpaceIterator)
+    if !iszero(iter.b)
+        throw(ArgumentError("Half-spaces have to be affine in order for point_matrix to be definded"))
+    end
+    return iter.A
+end
 
 HalfSpaceIterator(x...) = HalfSpaceIterator{Halfspace}(x...)
 
@@ -212,15 +222,10 @@ PointIterator(x...) = PointIterator{Points}(x...)
 ####################
 
 AsTypeIdentities(as::Type{T}) where T<:Union{Points, Polymake.Vector} = Points
-
-AsTypeIdentities(as::Type{T}) where T<:Union{Points} = Ray
-
+AsTypeIdentities(as::Type{T}) where T<:Union{Rays, Ray} = Ray
 AsTypeIdentities(as::Type{T}) where T<:Union{Halfspace, Halfspaces} = Halfspace
 AsTypeIdentities(as::Type{T}) where T<:Union{Polyhedron, Polyhedra} = Polyhedron
 AsTypeIdentities(as::Type{T}) where T<:Pair = Pair{Polymake.Matrix, Polymake.Rational}
-
-AsTypeIdentities(as::Type{T}) where T<:Union{Polyhedron, Polyhedra} = Polyhedron
-
 AsTypeIdentities(as::Type{T}) where T<:Union{Cone, Cones} = Cone
 
 ####################

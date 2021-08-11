@@ -29,8 +29,8 @@
         @test codim(point) == 3
         @test !isfulldimensional(point)
         @test nrays(recession_cone(Pos)) == 3
-        @test vertices_as_point_matrix(2*point) == [0 2 0]
-        @test vertices_as_point_matrix([0,1,0] + point) == [0 2 0]
+        @test point_matrix(vertices(2*point)) == [0 2 0]
+        @test point_matrix(vertices([0,1,0] + point)) == [0 2 0]
         @test length(collect(rays(Pos))) == 3
     end
 

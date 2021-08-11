@@ -26,9 +26,9 @@
         @test nrays(F2) == 2
         @test dim.(maximal_cones(F1)) == [2,2]
         @test nmaximal_cones(F1) == 2
-        @test lineality_space(F2) == L
+        @test point_matrix(lineality_space(F2)) == L
         @test length(collect(rays(F0))) == 3
-        
+
         II = maximal_cones_as_incidence_matrix(NFsquare)
         NF0 = PolyhedralFan(rays_as_point_matrix(NFsquare), II)
         @test nrays(NF0) == 4

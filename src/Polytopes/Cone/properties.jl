@@ -201,7 +201,7 @@ isfulldimensional(C::Cone) = pm_cone(C).FULL_DIM
 # end
 
 
-facets(C::Cone) = PointIterator{Polymake.Ray, Polymake.Rational}(pm_cone(C).FACETS)
+facets(C::Cone) = PointIterator{Ray, Polymake.Rational}(pm_cone(C).FACETS)
 
 # """
 #     facets_as_point_matrix(C)
