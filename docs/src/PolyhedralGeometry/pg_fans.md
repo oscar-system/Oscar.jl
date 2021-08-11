@@ -14,8 +14,9 @@ Pages = ["pg_fans.md"]
 
 ## Introduction
 
-Let $\mathbb{F}$ be an ordered field; the most prominent case here is where
-$\mathbb{F}=\mathbb{Q}$ are the rational numbers.
+Let $\mathbb{F}$ be an ordered field; the default is that
+$\mathbb{F}=\mathbb{Q}$ is the field of rational numbers and other fields are
+not yet supported everywhere in the implementation.
 
 A nonempty finite collection $\mathcal{F}$ of (polyhedral) cones in
 $\mathbb{F}^n$, for $n$ fixed, is a *(polyhedral) fan* if

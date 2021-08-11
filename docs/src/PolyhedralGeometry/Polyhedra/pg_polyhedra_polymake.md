@@ -22,8 +22,12 @@ the corresponding `polymake` object.
 Using `Polymake.jl` one can apply all functionality of `polymake` to the
 `polymake` object hidden behind this pointer.
 
-To allow both `Oscar`'s and `polymake`'s functionality to be applicable to a
-polyhedron object, it can be converted back and forth:
+Sometimes it can be necessary to directly invoke some `polymake` functions on
+an Oscar `Polyhedron` object (e.g. because some functionality has not yet been
+made available via Oscar's interface). In that case, the following two
+functions allow extracting the underlying `Polymake.jl` object from a
+`Polyhedron`, respectively wrapping a `Polymake.jl` object representing a
+polyhedron into a high-level `Polyhedron` object.
 
 ```@docs
 Polyhedron(::Polymake.BigObject)

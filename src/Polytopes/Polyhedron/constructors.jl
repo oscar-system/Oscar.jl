@@ -60,7 +60,7 @@ pm_polytope(P::Polyhedron) = P.pm_polytope
 @doc Markdown.doc"""
     convex_hull(V::Matrix [, R::Matrix [, L::Matrix]]; non_redundant::Bool = false)
 
-Compute the convex hull of the rows of the matrix `V`. Optionally one can give
+Compute the convex hull of the rows of the matrix `V`. One can give
 a set of rays as the rows of the matrix `R` and a set of lineality generators
 as the rows of the matrix `L`. If `R` and `L` are omitted, then these are
 assumed to be zero.
