@@ -795,7 +795,7 @@ isbounded(P::Polyhedron) = pm_polytope(P).BOUNDED
 """
     isfulldimensional(P::Polyhedron)
 
-Check whether `P` is full dimensional.
+Check whether `P` is full-dimensional.
 
 # Examples
 ```jldoctest

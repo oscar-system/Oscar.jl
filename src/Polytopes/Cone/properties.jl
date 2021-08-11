@@ -144,7 +144,7 @@ ispointed(C::Cone) = pm_cone(C).POINTED
 """
     isfulldimensional(C::Cone)
 
-Determine whether `C` is full dimensional.
+Determine whether `C` is full-dimensional.
 
 # Examples
 The cone `C` in this example is 2-dimensional within a 3-dimensional ambient space.
