@@ -99,10 +99,8 @@ feasible_region(lp::LinearProgram) = lp.feasible_region
 """
     minimal_vertex(LP::LinearProgram)
 
-Return, if it exists, a point of the feasible region of `LP` which minimizes the objective
-function of `LP`.
-
-Return `nothing` if the objective function does not obtain a minimal value over the feasible region.
+Return either a point of the feasible region of `LP` which minimizes the objective
+function of `LP`, or `nothing` if no such point exists.
 
 # Examples
 The following example constructs a linear program over the three dimensional cube.
@@ -238,4 +236,3 @@ function solve_lp(lp::LinearProgram)
       return minimal_value(lp),minimal_vertex(lp)
    end
 end
-
