@@ -19,6 +19,7 @@
 
   "Rings" => [
      "Rings/intro.md",
+     "AbstractAlgebra/ring.md",
      "Rings/integer.md",
      "Univariate Polynomials" => [
         "AbstractAlgebra/polynomial.md",
@@ -36,6 +37,7 @@
 
   "Fields" => [
      "Fields/intro.md",
+     "AbstractAlgebra/field.md",
      "Rings/rational.md",
      "Hecke/FacElem.md",
      "Hecke/class_fields/intro.md",
