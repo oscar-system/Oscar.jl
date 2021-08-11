@@ -61,12 +61,12 @@ end
 
 
 """
-    positive_hull(generators::Union{Oscar.MatElem,AbstractMatrix})
+    positive_hull(R::Union{Oscar.MatElem,AbstractMatrix})
 
-A polyhedral cone, not necessarily pointed, defined by the positive hull
-of the `generators`.
+A polyhedral cone, not necessarily pointed, defined by the positive hull of the
+rows of the matrix `R`. This means the cone consists of all positive linear
+combinations of the rows of `R`.
 
-`generators` is given row-wise as representative vectors.
 Redundant rays are allowed.
 
 # Examples
@@ -77,10 +77,10 @@ julia> PO = positive_hull(R)
 A polyhedral cone in ambient dimension 2
 ```
 """
-function positive_hull(generators::Union{Oscar.MatElem,AbstractMatrix})
+function positive_hull(R::Union{Oscar.MatElem,AbstractMatrix})
     # TODO: Filter out zero rows
     C=Polymake.polytope.Cone{Polymake.Rational}(INPUT_RAYS =
-      matrix_for_polymake(remove_zero_rows(generators)))
+      matrix_for_polymake(remove_zero_rows(R)))
     Cone(C)
 end
 
