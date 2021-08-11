@@ -23,7 +23,7 @@ polyhedron.
 ## Constructions
 
 Linear programs are constructed from a polyhedron and a linear *objective function*
-in terms of a vector and translation. One may specify whether the optimization
+which is described by a vector and (optionally) a translation. One can select whether the optimization
 problem is in terms of maximum or minimum.
 
 ```@docs
