@@ -35,8 +35,7 @@ julia> collect(F)
  A polyhedron in ambient dimension 3
 ```
 """
-function faces(as::Type{T}, P::Polyhedron, face_dim::Int) where {T}
-    rtype = AsTypeIdentitiesPoly(as)
+function faces(as::Type{T}, P::Polyhedron, face_dim::Int) where T<:Union{Polyhedron, Polyhedra}
     if (face_dim < 0)
         return nothing
     end
@@ -58,7 +57,7 @@ function faces(as::Type{T}, P::Polyhedron, face_dim::Int) where {T}
             push!(rfaces, index)
         end
     end
-    return PolyhedronOrConeIterator{rtype}(P.pm_polytope.VERTICES,pfaces[rfaces], P.pm_polytope.LINEALITY_SPACE)
+    return PolyhedronOrConeIterator{AsTypeIdentities(as)}(P.pm_polytope.VERTICES,pfaces[rfaces], P.pm_polytope.LINEALITY_SPACE)
 end
 """
     faces(P, face_dim)
@@ -119,8 +118,7 @@ pm::Vector<pm::Rational>
 1 2
 ```
 """
-function vertices(as::Type{T}, P::Polyhedron) where {T}
-    rtype = AsTypeIdentitiesP(as)
+function vertices(as::Type{T}, P::Polyhedron) where T<:Points
     vertices = pm_polytope(P).VERTICES
     rvertices = Vector{Int64}()
     sizehint!(rvertices, size(vertices, 1))
@@ -129,7 +127,7 @@ function vertices(as::Type{T}, P::Polyhedron) where {T}
             push!(rvertices, index)
         end
     end
-    return PointIterator{rtype, Polymake.Rational}(vertices[rvertices, 2:end])
+    return PointIterator{AsTypeIdentities(as), Polymake.Rational}(vertices[rvertices, 2:end])
 end
 
 """
@@ -255,8 +253,7 @@ julia> collect(rays(Points, PO))
 0 1
 ```
 """
-function rays(as::Type{T}, P::Polyhedron) where {T}
-    rtype = AsTypeIdentitiesR(as)
+function rays(as::Type{T}, P::Polyhedron) where T<:Union{Ray, Rays}
     vertices = pm_polytope(P).VERTICES
     rrays = Vector{Int64}()
     sizehint!(rrays, size(vertices, 1))
@@ -265,7 +262,7 @@ function rays(as::Type{T}, P::Polyhedron) where {T}
             push!(rrays, index)
         end
     end
-    return PointIterator{rtype, Polymake.Rational}(vertices[rrays, 2:end])
+    return PointIterator{AsTypeIdentities(as), Polymake.Rational}(vertices[rrays, 2:end])
 end
 
 # """
@@ -359,7 +356,7 @@ julia> collect(facets(Halfspaces, C))
 0 0 1, 1)
 ```
 """
-facets(as::Type{T}, P::Polyhedron) where {T} = HalfspaceIterator{AsTypeIdentitiesH(as)}(decompose_hdata(pm_polytope(P).FACETS)...)
+facets(as::Type{T}, P::Polyhedron) where T<:Union{Halfspace, Halfspaces, Pair, Polyhedron, Polyhedra} = HalfspaceIterator{AsTypeIdentities(as)}(decompose_hdata(pm_polytope(P).FACETS)...)
 
 @doc Markdown.doc"""
     facets(P::Polyhedron)
@@ -393,39 +390,6 @@ julia> collect(facets(C))
 ```
 """
 facets(P::Polyhedron) = facets(Halfspace, P)
-
-# #TODO: how do underscores work in markdown?
-# @doc Markdown.doc"""
-#
-#     facets_as_halfspace_matrix_pair(P::Polyhedron)
-#
-# Return `(A,b)` such that $P=P(A,b)$ where
-#
-# $$P(A,b) = \{ x |  Ax ≤ b \}.$$
-#
-# # Arguments
-# - `P::Polyhedron`: A polyhedron.
-#
-# # Examples
-# ```julia-repl
-# julia> C = cube(3);
-#
-# julia> facets_as_halfspace_matrix_pair(C)
-# (A = pm::SparseMatrix<pm::Rational, pm::NonSymmetric>
-# (3) (0 -1)
-# (3) (0 1)
-# (3) (1 -1)
-# (3) (1 1)
-# (3) (2 -1)
-# (3) (2 1)
-# , b = pm::SparseVector<pm::Rational>
-# 1 1 1 1 1 1)
-# ```
-# """
-# function facets_as_halfspace_matrix_pair(P::Polyhedron)
-#     return decompose_hdata(pm_polytope(P).FACETS)
-# end
-
 
 ###############################################################################
 ###############################################################################

@@ -34,8 +34,8 @@ A polyhedral cone in ambient dimension 2
 ```
 """
 function Cone(R::Union{PointIterator{Ray}, Oscar.MatElem, AbstractMatrix}, L::Union{PointIterator{Ray}, Oscar.MatElem, AbstractMatrix, Nothing} = nothing; non_redundant::Bool = false)
-    RM = R isa PointIterator{Ray} ? R.m : R isa Union{AnyVecOrMat, Oscar.MatElem} ? matrix_for_polymake(R) : Polymake.Matrix{Polymake.Rational}(undef, 0, size(V.m, 2))
-    LM = L isa PointIterator ? L.m : L isa Union{AnyVecOrMat, Oscar.MatElem} ? matrix_for_polymake(L) : Polymake.Matrix{Polymake.Rational}(undef, 0, size(V.m, 2))
+    RM = matrix_for_polymake(R)
+    LM = isnothing(L) ? Polymake.Matrix{Polymake.Rational}(undef, 0, size(RM, 2)) : matrix_for_polymake(L)
 
     if non_redundant
         return Cone(Polymake.polytope.Cone{Polymake.Rational}(RAYS = RM, LINEALITY_SPACE = LM,))

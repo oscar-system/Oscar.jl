@@ -98,11 +98,11 @@ julia> XA = convex_hull(V, R, L)
 A polyhedron in ambient dimension 2
 ```
 """
-function convex_hull(V::Union{PointIterator{Points}, AnyVecOrMat, Oscar.MatElem}, R::Union{PointIterator{Ray}, AnyVecOrMat, Oscar.MatElem, Nothing} = nothing, L::Union{PointIterator, AnyVecOrMat, Oscar.MatElem, Nothing} = nothing; non_redundant::Bool = false)
+function convex_hull(V::Union{PointIterator{Points}, AnyVecOrMat, Oscar.MatElem}, R::Union{PointIterator{Ray}, AnyVecOrMat, Oscar.MatElem, Nothing} = nothing, L::Union{PointIterator{Ray}, AnyVecOrMat, Oscar.MatElem, Nothing} = nothing; non_redundant::Bool = false)
     # we access the matrices which polymake can work with.
-    VM = V isa PointIterator{Points} ? V.m : matrix_for_polymake(V)
-    RM = R isa PointIterator{Ray} ? R.m : R isa Union{AnyVecOrMat, Oscar.MatElem} ? matrix_for_polymake(R) : Polymake.Matrix{Polymake.Rational}(undef, 0, size(V.m, 2))
-    LM = L isa PointIterator ? L.m : L isa Union{AnyVecOrMat, Oscar.MatElem} ? matrix_for_polymake(L) : Polymake.Matrix{Polymake.Rational}(undef, 0, size(V.m, 2))
+    VM = matrix_for_polymake(V)
+    RM = isnothing(R) ? Polymake.Matrix{Polymake.Rational}(undef, 0, size(VM, 2)) : matrix_for_polymake(R)
+    LM = isnothing(L) ? Polymake.Matrix{Polymake.Rational}(undef, 0, size(VM, 2)) : matrix_for_polymake(L)
 
     # Rays and Points are homogenized and combined and
     # Lineality is homogenized

@@ -211,19 +211,18 @@ PointIterator(x...) = PointIterator{Points}(x...)
 
 ####################
 
-AsTypeIdentitiesP(as::Type{T}) where T<:Union{Points, Polymake.Vector} = Points
+AsTypeIdentities(as::Type{T}) where T<:Union{Points, Polymake.Vector} = Points
 
-AsTypeIdentitiesR(as::Type{T}) where T<:Union{Points} = Ray
+AsTypeIdentities(as::Type{T}) where T<:Union{Points} = Ray
 
-AsTypeIdentitiesH(as::Type{T}) where T<:Union{Halfspace, Halfspaces} = Halfspace
-AsTypeIdentitiesH(as::Type{T}) where T<:Union{Polyhedron, Polyhedra} = Polyhedron
-AsTypeIdentitiesH(as::Type{T}) where T<:Pair = Pair{Polymake.Matrix, Polymake.Rational}
+AsTypeIdentities(as::Type{T}) where T<:Union{Halfspace, Halfspaces} = Halfspace
+AsTypeIdentities(as::Type{T}) where T<:Union{Polyhedron, Polyhedra} = Polyhedron
+AsTypeIdentities(as::Type{T}) where T<:Pair = Pair{Polymake.Matrix, Polymake.Rational}
 
-AsTypeIdentitiesPoly(as::Type{T}) where T<:Union{Polyhedron, Polyhedra} = Polyhedron
+AsTypeIdentities(as::Type{T}) where T<:Union{Polyhedron, Polyhedra} = Polyhedron
 
-AsTypeIdentitiesC(as::Type{T}) where T<:Union{Cone, Cones} = Cone
+AsTypeIdentities(as::Type{T}) where T<:Union{Cone, Cones} = Cone
 
-AsTypeIdentitiesP(as::Any) = throw(ArgumentError("Unsupported `as` argument :" * string(as)))
-AsTypeIdentitiesH(as::Any) = throw(ArgumentError("Unsupported `as` argument :" * string(as)))
-AsTypeIdentitiesPoly(as::Any) = throw(ArgumentError("Unsupported `as` argument :" * string(as)))
-AsTypeIdentitiesC(as::Any) = throw(ArgumentError("Unsupported `as` argument :" * string(as)))
+####################
+
+matrix_for_polymake(iter::PointIterator) = iter.m

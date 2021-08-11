@@ -29,13 +29,12 @@ julia> collect(rays(PO))
 """
 rays(C::Cone) = PointIterator{Ray, Polymake.Rational}(pm_cone(C).RAYS)
 
-function faces(as::Type{T}, C::Cone, face_dim::Int) where {T}
-    rtype = AsTypeIdentitiesC(as)
-    if (face_dim < 0)
+function faces(as::Type{T}, C::Cone, face_dim::Int) where T<:Union{Cone, Cones}
+    if face_dim < 0
         return nothing
     end
     cfaces = Polymake.polytope.faces_of_dim(C.pm_cone,face_dim-length(lineality_space(C)))
-    return PolyhedronOrConeIterator{rtype}(C.pm_cone.RAYS,cfaces, C.pm_cone.LINEALITY_SPACE)
+    return PolyhedronOrConeIterator{AsTypeIdentities(as)}(C.pm_cone.RAYS,cfaces, C.pm_cone.LINEALITY_SPACE)
 end
 
 ###############################################################################
