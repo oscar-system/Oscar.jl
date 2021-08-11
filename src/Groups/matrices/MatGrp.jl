@@ -160,18 +160,19 @@ end
 group_element(G::MatrixGroup, x::GapObj) = MatrixGroupElem(G,x)
 
 function assign_from_description(G::MatrixGroup)
-   if G.descr==:GL G.X=GAP.Globals.GL(G.deg,codomain(G.ring_iso))
-   elseif G.descr==:SL G.X=GAP.Globals.SL(G.deg,codomain(G.ring_iso))
-   elseif G.descr==:Sp G.X=GAP.Globals.Sp(G.deg,codomain(G.ring_iso))
-   elseif G.descr==Symbol("GO+") G.X=GAP.Globals.GO(1,G.deg,codomain(G.ring_iso))
-   elseif G.descr==Symbol("SO+") G.X=GAP.Globals.SO(1,G.deg,codomain(G.ring_iso))
+   F = codomain(G.ring_iso)
+   if G.descr==:GL G.X=GAP.Globals.GL(G.deg, F)
+   elseif G.descr==:SL G.X=GAP.Globals.SL(G.deg, F)
+   elseif G.descr==:Sp G.X=GAP.Globals.Sp(G.deg, F)
+   elseif G.descr==Symbol("GO+") G.X=GAP.Globals.GO(1, G.deg, F)
+   elseif G.descr==Symbol("SO+") G.X=GAP.Globals.SO(1, G.deg, F)
    elseif G.descr==Symbol("Omega+")
       # FIXME/TODO: Work around GAP issue <https://github.com/gap-system/gap/issues/500>
       # using the following inefficient code. In the future, we should use appropriate
       # generators for Omega (e.g. by applying a form change matrix to the Omega
       # generators returned by GAP).
       # This also compensates for the fact that Omega(-1,2,q) is not supported in GAP.
-      L = GAP.Globals.SubgroupsOfIndexTwo(GAP.Globals.SO(1,G.deg,codomain(G.ring_iso)))
+      L = GAP.Globals.SubgroupsOfIndexTwo(GAP.Globals.SO(1, G.deg, F))
       if G.deg==4 && order(G.ring)==2  # this is the only case SO(n,q) has more than one subgroup of index 2
          for y in L
             _ranks = [GAP.Globals.Rank(u) for u in GAP.Globals.GeneratorsOfGroup(y)]
@@ -184,29 +185,24 @@ function assign_from_description(G::MatrixGroup)
          @assert length(L) == 1
          G.X=L[1]
       end
-   elseif G.descr==Symbol("GO-") G.X=GAP.Globals.GO(-1,G.deg,codomain(G.ring_iso))
-   elseif G.descr==Symbol("SO-") G.X=GAP.Globals.SO(-1,G.deg,codomain(G.ring_iso))
-   elseif G.descr==Symbol("Omega-") G.X=GAP.Globals.SubgroupsOfIndexTwo(GAP.Globals.SO(-1,G.deg,codomain(G.ring_iso)))[1]
-   # TODO : we define explicitly orthogonal groups in dimension 1, since GAP does not support them
-   # GO(1,q) = { +1, -1 } and SO(1,q)=Omega(1,q) = { +1 }.
-   elseif G.descr==:GO
-      if G.deg==1
-         G.X=GAP.Globals.Group(GapObj([GapObj([-GAP.Globals.One(codomain(G.ring_iso))])]))
-      else
-         G.X=GAP.Globals.GO(0,G.deg,codomain(G.ring_iso))
-      end
-   elseif G.descr==:SO
-      if G.deg==1
-         G.X=GAP.Globals.Group(GapObj([GapObj([GAP.Globals.One(codomain(G.ring_iso))])]))
-      else
-         G.X=GAP.Globals.SO(0,G.deg,codomain(G.ring_iso))
-      end
+   elseif G.descr==Symbol("GO-") G.X=GAP.Globals.GO(-1, G.deg, F)
+   elseif G.descr==Symbol("SO-") G.X=GAP.Globals.SO(-1, G.deg, F)
+   elseif G.descr==Symbol("Omega-") G.X=GAP.Globals.SubgroupsOfIndexTwo(GAP.Globals.SO(-1, G.deg, F))[1]
+   elseif G.descr==:GO G.X=GAP.Globals.GO(0, G.deg, F)
+   elseif G.descr==:SO G.X=GAP.Globals.SO(0, G.deg, F)
    elseif G.descr==:Omega
-      if G.deg==1
-         G.X=GAP.Globals.Group(GapObj([GapObj([GAP.Globals.One(codomain(G.ring_iso))])]))
-      else
-         G.X=GAP.Globals.SubgroupsOfIndexTwo(GAP.Globals.SO(0,G.deg,codomain(G.ring_iso)))[1]
-      end
+     # For even q or d = 1, \Omega(d,q) is equal to SO(d,q).
+     # Otherwise, \Omega(d,q) has index 2 in SO(d,q).
+     # Here d is odd, and we do not get here if d == 1 holds
+     # because `omega_group` delegates to `SO` in this case.
+     @assert G.deg > 1
+     if iseven(GAP.Globals.Size(F))
+       G.X = GAP.Globals.SO(0, G.deg, F)
+     else
+       L = GAP.Globals.SubgroupsOfIndexTwo(GAP.Globals.SO(0, G.deg, F))
+       @assert length(L) == 1
+       G.X = L[1]
+     end
    elseif G.descr==:GU G.X=GAP.Globals.GU(G.deg,Int(characteristic(G.ring)^(div(degree(G.ring),2) ) ))
    elseif G.descr==:SU G.X=GAP.Globals.SU(G.deg,Int(characteristic(G.ring)^(div(degree(G.ring),2) ) ))
    else error("unsupported description")
