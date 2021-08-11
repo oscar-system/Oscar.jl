@@ -15,7 +15,7 @@ Pages = ["pg_linear_programs.md"]
 
 ## Introduction
 
-The task of a linear program is to optimize a linear function over a
+The purpose of a linear program is to optimize a linear function over a
 polyhedron.
 
 
