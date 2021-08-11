@@ -77,7 +77,7 @@ Optional arguments for `as` include
 * `Polyhedron`/`Polyhedra`.
 
 # Examples
-An `Array` containing the six sides of the 3-dimensional cube can be obtained
+A `Vector` containing the six sides of the 3-dimensional cube can be obtained
 via the following input:
 ```jldoctest
 julia> F = faces(Polyhedron, cube(3), 2)
@@ -106,7 +106,7 @@ end
 Return the faces of `P` of dimension `face_dim` as an iterator over `Polyhedron` objects.
 
 # Examples
-An `Array` containing the six sides of the 3-dimensional cube can be obtained via the following input:
+A `Vector` containing the six sides of the 3-dimensional cube can be obtained via the following input:
 ```jldoctest
 julia> F = faces(cube(3),2)
 Oscar.PolyhedronFacePolyhedronIterator(A polyhedron in ambient dimension 3, 2)
