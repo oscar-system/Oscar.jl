@@ -40,16 +40,15 @@ C.pm_polytope
 	Indices in `polymake` are zero-based, whereas in `Oscar` they are one-based.
 
 The next example shows a purely combinatorial construction of a polytope (here: a square).
-Inspite of being given no coordinates, we can see that this is a simple polytope; i.e., each vertex is contained in dimension many facets.
+In spite of being given no coordinates, `polymake` can check for us that this is a simple polytope; i.e., each vertex is contained in dimension many facets.
 
 ```@repl oscar
 Q = Polymake.polytope.Polytope(VERTICES_IN_FACETS=[[0,2],[1,3],[0,1],[2,3]]);
 Q.SIMPLE
 ```
 
-However, without coordinates, e.g., computing the volume cannot work:
+However, without coordinates, some operations such as computing the volume cannot work:
 ```@repl oscar
 Q.VOLUME
 ```
-
 
