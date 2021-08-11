@@ -17,7 +17,7 @@ $V$-representation or an $H$-representation.  But polyhedra may also be
 constructed through other means: by name, via operations on other polyhedra, or
 from other objects in Oscar.
 
-## H and V representations
+## $H$- and $V$-representations
 
 ### Intersecting halfspaces: H-representation
 
