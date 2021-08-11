@@ -28,7 +28,7 @@ Based on the definition of an $H$-representation, the constructor of
 Polyhedron(A::Union{Oscar.MatElem,AbstractMatrix}, b)
 ```
 
-### Computing convex hulls: V-representation
+### Computing convex hulls: $V$-representation
 
 The following defines a polytope, as a `Polyhedron`, via a $V$-representation
 by calling the following function:
