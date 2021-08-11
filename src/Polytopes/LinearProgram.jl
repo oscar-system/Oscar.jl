@@ -240,27 +240,3 @@ function solve_lp(lp::LinearProgram)
 end
 
 
-###############################################################################
-###############################################################################
-### Construction of linear programs
-###############################################################################
-###############################################################################
-#=
-
-"""
-    primal_program(c, A, b)
-
-Constructs the primal linear program max{dot(c,x) | Ax<= b}.
-
-see Def. 4.10
-"""
-primal_program(c, A, b) = LinearProgram(Polyhedron(A,b), c; convention = :max)
-=#
-# """
-#    DualProgram(c, A, b)
-#
-# Constructs the dual linear program min{yb | yA=c, y>=0}.
-#
-# see Def. 4.10
-# """
-# DualProgram(c, A, b) = LinearProgram(DualPolyhedron(A,c), b)
