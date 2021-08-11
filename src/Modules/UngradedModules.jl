@@ -71,7 +71,7 @@ not provide names for the generators, the standard names e_i are used for the un
 function FreeMod(R::Ring, n::Int, name::String = "e"; cached::Bool = false) # TODO cached?
   return FreeMod{elem_type(R)}(n, R, [Symbol("$name[$i]") for i=1:n])
 end
-@doc Markdown.doc"""
+#=@doc Markdown.doc"""
   free_module(R::Ring, n::Int, name::String = "e"; cached::Bool = false)
 
 Construct a free module over the ring `R` with rank `n`.
@@ -79,7 +79,7 @@ Additionally one can provide names for the generators. If one does
 not provide names for the generators, the standard names e_i are used for the unit vectors.
 """
 # TODO is this function neccessary?
-free_module(R::Ring, n::Int, name::String = "e"; cached::Bool = false) = FreeMod(R, n, name, cached = cached)
+free_module(R::Ring, n::Int, name::String = "e"; cached::Bool = false) = FreeMod(R, n, name, cached = cached)=#
 
 #=XXX this cannot be as it is inherently ambigous
   - FreeModule(R, n)
