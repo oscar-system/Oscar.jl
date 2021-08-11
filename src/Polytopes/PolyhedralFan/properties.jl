@@ -130,6 +130,7 @@ dim(PF::PolyhedralFan) = pm_fan(PF).FAN_DIM
     nmaximal_cones(PF::PolyhedralFan)
 
 Return the number of maximal cones of `PF`.
+
 # Examples
 The cones given in this construction are non-redundant. Thus there are two
 maximal cones.
