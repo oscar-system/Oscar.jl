@@ -10,13 +10,6 @@ The type variable `T` refers to the type of the elements of the base ring.
 """
 abstract type ModuleFP{T} end
 
-@doc Markdown.doc"""
-  CRing
-
-Type union for commutative rings.
-"""
-const CRing = Union{MPolyRing, MPolyQuo{<:Oscar.MPolyElem}, MPolyRing_dec, MPolyQuo{<:Oscar.MPolyElem_dec}}
-const CRingElem = Union{MPolyElem, MPolyQuoElem{<:Oscar.MPolyElem}, MPolyElem_dec, MPolyQuoElem{<:Oscar.MPolyElem_dec}}
 #TODO: "fix" to allow QuoElem s as well...
 # this requires
 #  re-typeing of FreeModule
@@ -36,7 +29,7 @@ abstract type ModuleMap{T1, T2} <: Map{T1, T2, Hecke.HeckeMap, ModuleFPHom} end
 
 
 @doc Markdown.doc"""
-  FreeMod{T <: CRingElem} <: ModuleFP{T}
+  FreeMod{T <: RingElem} <: ModuleFP{T}
 
 The type of free modules.
 Free modules are determined by their base ring, the rank and the names of 
@@ -45,8 +38,8 @@ Moreover, canonical in- and outgoing morphisms are stored if the corresponding
 option is set in suitable functions.
 `FreeMod{T}` is a subtype of `ModuleFP{T}`.
 """
-mutable struct FreeMod{T <: CRingElem} <: ModuleFP{T}
-  R::CRing
+mutable struct FreeMod{T <: RingElem} <: ModuleFP{T}
+  R::Ring
   n::Int
   S::Vector{Symbol}
 
@@ -55,7 +48,7 @@ mutable struct FreeMod{T <: CRingElem} <: ModuleFP{T}
 
   AbstractAlgebra.@declare_other
 
-  function FreeMod{T}(n::Int,R::CRing,S::Vector{Symbol}) where T <: CRingElem
+  function FreeMod{T}(n::Int,R::Ring,S::Vector{Symbol}) where T <: RingElem
     r = new{elem_type(R)}()
     r.n = n
     r.R = R
@@ -69,24 +62,24 @@ mutable struct FreeMod{T <: CRingElem} <: ModuleFP{T}
 end
 
 @doc Markdown.doc"""
-  FreeMod(R::CRing, n::Int, name::String = "e"; cached::Bool = false)
+  FreeMod(R::Ring, n::Int, name::String = "e"; cached::Bool = false)
 
 Construct a free module over the ring `R` with rank `n`.
 Additionally one can provide names for the generators. If one does 
 not provide names for the generators, the standard names e_i are used for the unit vectors.
 """
-function FreeMod(R::CRing, n::Int, name::String = "e"; cached::Bool = false) # TODO cached?
+function FreeMod(R::Ring, n::Int, name::String = "e"; cached::Bool = false) # TODO cached?
   return FreeMod{elem_type(R)}(n, R, [Symbol("$name[$i]") for i=1:n])
 end
 @doc Markdown.doc"""
-  free_module(R::CRing, n::Int, name::String = "e"; cached::Bool = false)
+  free_module(R::Ring, n::Int, name::String = "e"; cached::Bool = false)
 
 Construct a free module over the ring `R` with rank `n`.
 Additionally one can provide names for the generators. If one does 
 not provide names for the generators, the standard names e_i are used for the unit vectors.
 """
 # TODO is this function neccessary?
-free_module(R::CRing, n::Int, name::String = "e"; cached::Bool = false) = FreeMod(R, n, name, cached = cached)
+free_module(R::Ring, n::Int, name::String = "e"; cached::Bool = false) = FreeMod(R, n, name, cached = cached)
 
 #=XXX this cannot be as it is inherently ambigous
   - FreeModule(R, n)
@@ -326,7 +319,7 @@ function *(a::MPolyElem, b::FreeModElem)
   end
   return FreeModElem(a*b.coords, b.parent)
 end
-function *(a::CRingElem, b::FreeModElem) 
+function *(a::RingElem, b::FreeModElem) 
   if parent(a) !== base_ring(parent(b))
     error("elements not compatible")
   end
@@ -1558,7 +1551,7 @@ function *(a::MPolyElem, b::SubQuoElem)
   end
   return SubQuoElem(a*coeffs(b), b.parent)
 end
-function *(a::CRingElem, b::SubQuoElem) 
+function *(a::RingElem, b::SubQuoElem) 
   if parent(a) !== base_ring(parent(b))
     error("elements not compatible")
   end

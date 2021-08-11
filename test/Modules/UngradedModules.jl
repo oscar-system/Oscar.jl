@@ -3,11 +3,11 @@ using Random
 RNG = Random.MersenneTwister(42)
 
 """
-	randpoly(R::Oscar.CRing,coeffs=0:9,max_exp=4,max_terms=8)
+	randpoly(R::Oscar.Ring,coeffs=0:9,max_exp=4,max_terms=8)
 > Return a random Polynomial from the Polynomial Ring `R` with coefficients in `coeffs`
 > with exponents between `0` and `max_exp` und between `0` and `max_terms` terms
 """
-function randpoly(R::Oscar.CRing,coeffs=0:9,max_exp=4,max_terms=8)
+function randpoly(R::Oscar.Ring,coeffs=0:9,max_exp=4,max_terms=8)
 	n = nvars(R)
 	K = base_ring(R)
 	E = [[Random.rand(RNG,0:max_exp) for i=1:n] for j=1:max_terms]
@@ -20,7 +20,7 @@ function randpoly(R::Oscar.CRing,coeffs=0:9,max_exp=4,max_terms=8)
 end
 
 """
-	array_to_matrix(A::Array,R::CRing = parent(A[1,1]))
+	array_to_matrix(A::Array,R::Ring = parent(A[1,1]))
 Return `A` as an AbstractAlgebra Matrix
 """
 function array_to_matrix(A::Array,R::AbstractAlgebra.Ring = parent(A[1,1]))
