@@ -19,9 +19,9 @@ jobs:
       - name: Build package
         uses: julia-actions/julia-buildpkg@latest
       - name: Install dependencies
-        run: julia --project=. -e 'using Oscar; Oscar.doc_init(; path="docs/")'
+        run: julia --project=. --color=yes -e 'using Oscar; Oscar.doc_init(; path="docs/")'
       - name: Build and deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # For authentication with GitHub Actions token
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }} # For authentication with SSH deploy key
-        run: julia --project=docs/ docs/make.jl
+        run: julia --project=docs/ --color=yes docs/make.jl
