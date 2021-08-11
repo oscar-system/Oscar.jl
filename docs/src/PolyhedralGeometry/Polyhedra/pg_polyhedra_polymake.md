@@ -33,10 +33,10 @@ C.pm_polytope
 
 `polymake` allows for an interactive visualization of 3-dimensional polytopes in the browser: `Polymake.visual(C.pm_polytope)`.
 
-There are several design differences between `polymake` and `Oscar`.
 
 !!! warning
-    Polyhedra in `polymake` and `Polymake.jl` use homogeneous coordinates. The polyhedra in `Oscar` use affine coordinates.
+   There are several design differences between `polymake` and `Oscar`.
+   Polyhedra in `polymake` and `Polymake.jl` use homogeneous coordinates. The polyhedra in `Oscar` use affine coordinates.
 	Indices in `polymake` are zero-based, whereas in `Oscar` they are one-based.
 
 The next example shows a purely combinatorial construction of a polytope (here: a square).
