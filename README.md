@@ -15,7 +15,29 @@ This crucially hings on a functional Gap4-package `NConvex`. Unfortuantely, the 
 
 ## Installation
 
-A quick way to satisfy the dependency of `JToric` on a functional `NConvex`, is to replace `NConvex` with a development version, which does not depend on `CddInterface` and `NormalizInterface`. Such a version is prepared in the `martindevel` branch of the repository https://github.com/HereAround/NConvex.git. To use this version, please proceed as follows:
+First, install the `Julia` packages `Singular.jl`, `Polymake.jl`, `Oscar.jl` and `CapAndHomalg.jl`:
+
+1. Start julia
+2. `using Pkg`
+3. `Pkg.add( "Singular" )`
+4. `Pkg.add( Polymake )`
+5. `Pkg.add( Oscar )`
+6. `Pkg.add( CapAndHomalg )`
+
+Next, remember that this development version of `JToric` should be placed outside of the `.julia` folder of your home folder. If not done yet, please move it to such a location now and register it in `julia` via:
+
+7. `Pkg.develop( path = "path/to/your/JToric" )`
+
+Finally build, the package:
+
+8. `Pkg.build( "JToric" )`
+
+
+## Details of the build step
+
+As mentioned above, `JToric` crucially depends on `NConvex`.  A quick way to satisfy this dependency, is to replace `NConvex` with a development version, which is functional in `Julia`, i.e. does not depend on `CddInterface` and `NormalizInterface`. Such a version is prepared in the `martindevel` branch of the repository https://github.com/HereAround/NConvex.git. The build step tries to ensure that the `gap` used in `Julia` employs this very version of `NConvex`.
+
+Explicitly, you can reproduce the build process by following the following steps:
 
 1. Start `Julia`
 2. Issue the tollowing two lines of code:
@@ -29,20 +51,7 @@ A quick way to satisfy the dependency of `JToric` on a functional `NConvex`, is 
 5. `git clone https://github.com/HereAround/NConvex.git`
 6. `git fetch origin martindevel:martindevel`
 
-Restart `Julia` and, if necessary, install the packages `Singular.jl`, `Polymake.jl`, `Oscar.jl` and `CapAndHomalg.jl`:
-
-7. Start julia
-8. `using Pkg`
-9. `Pkg.add( "Singular" )`
-10. `Pkg.add( Polymake )`
-11. `Pkg.add( Oscar )`
-12. `Pkg.add( CapAndHomalg )`
-
-Finally, remember that your development version of `JToric` should be placed outside of the `.julia` folder of your home folder. If not done yet, please move it to such a location now and register it in `julia` via:
-
-13. `Pkg.develop( path = "path/to/your/JToric" )`
-
-This completes the installation.
+In `$(gap_location)/pkg` you should now have the development version of `NConvex` which does not depend on `CddInterface` and `NormalizInterface`. Since its version is higher than the distributed `NConvex`, this version should be used by `gap` in `julia`.
 
 
 ## Towards a functional CddInterface
