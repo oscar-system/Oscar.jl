@@ -12,25 +12,35 @@ Pages = ["it.md"]
 
 # Introduction
 
-The basic setting in this chapter consists of a group $G$, a field $K$, a vector space
-$V$ over $K$ of finite dimension $n,$  and a representation $\rho: G \to \text{GL}(V)$
-of $G$ on $V$. Furthermore, $V^\ast$ denotes the dual vector space of $V$ and 
-$x = \{x_1, \dots, x_n\}\subset V^*$ denotes a fixed set of cooordinates.
+The invariant theory part of OSCAR provides functionality for computing polynomial invariants
+of group actions. The basic setting in this context consists of a group $G$, a field $K$, a vector space
+$V$ over $K$ of finite dimension $n,$ and  a representation $\rho: G \to \text{GL}(V)$ of $G$ on $V$.
+The induced action 
 
-The action of $G$ on $V$ defines an action of  $G$ on the graded symmetric algebra
+$G\times V \rightarrow V, (\pi,v)\to \pi \;\!  . \;\!  v := \rho(\pi)(v),$ 
 
-$K[x] = K[x_1, \dots, x_n] \cong K[V]:=S(V^*)=\bigoplus_{d\geq 0} S^d V^*$
+gives rise to the dual action 
 
-by linear substitution: Identify $\text{GL}_n(K)\cong \text{GL}(V)$ and set
+$G \times V^\ast \rightarrow V^\ast, (\pi,f)\to \pi \;\!  . \;\!  f := (v \to f(\pi^{-1} \;\!  . \;\!  v)),$
 
-$(\pi \;\!  .f) \;\! (x_1, \dots, x_n)  = f(\rho(\pi^{-1}) \cdot (x_1, \dots, x_n)^T) \text{ for all } \pi\in G.$
+which extends to an action of $G$ on the graded symmetric algebra
 
+$K[V]:=S(V^*)=\bigoplus_{d\geq 0} S^d V^*.$
 
 The *invariants* of $G$ are the fixed points of this action, its *ring of invariants* is the graded subalgebra
 
-$K[x]^G = K[x_1, \dots, x_n]^G\cong  K[V]^G=\{f\in K[V] \mid \pi  \;\!  . f=f {\text { for any }} \pi\in G\}\subset K[V].$
+$K[V]^G:=\{f\in K[V] \mid \pi  \;\!  . \;\!  f=f {\text { for any }} \pi\in G\} \subset K[V].$
 
-Clearly, $K[V]^G$ depends only on the image $\rho(G)\subset \text{GL}(V)$.
+Explicitly, the choice of a basis of $V$ and its dual basis, say, $\{x_1, \dots, x_n\}$ of $V^*$
+gives rise to isomorphisms $\text{GL}(V) \cong \text{GL}_n(K)$ and $K[V]\cong  K[x_1, \dots, x_n]$.
+After identifying $\text{GL}(V)$ with $\text{GL}_n(K)$ and $K[V]$ with $K[x_1, \dots, x_n]$ by means of
+these isomorphisms, the action of $G$ on $K[V]$ is given by linear substitution as follows:
+
+$(\pi \;\!  . \;\!  f) \;\! (x_1, \dots, x_n)  = f(\rho(\pi^{-1}) \cdot (x_1, \dots, x_n)^T).$
+
+Accordingly, $K[V]^G$ may be regarded as a graded subalgebra of $K[x_1, \dots, x_n]$:
+
+$K[V]^G \cong K[x_1, \dots, x_n]^G :=\{f\in K[x_1, \dots, x_n] \mid \pi  \;\!  . \;\!  f=f {\text { for any }} \pi\in G\}.$
 
 !!! note
     If $K[V]^G$ is finitely generated as a $K$-algebra, then any minimal system of homogeneous generators is called a *fundamental system of invariants* of $K[V]^G$. By Nakayama's lemma, the number of elements in such a system is uniquely determined as the embedding dimension of $K[V]^G$. Similarly, the degrees of these elements are uniquely determined.
