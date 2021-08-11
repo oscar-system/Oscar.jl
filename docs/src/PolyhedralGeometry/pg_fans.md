@@ -27,8 +27,7 @@ $\mathbb{F}^n$, for $n$ fixed, is a *(polyhedral) fan* if
 ## Construction
 
 To construct a polyhedral fan, you must pass the rays of each cone in the fan,
-along with an `IncidenceMatrix` encoding which rays are extremal with respect
-to which cones.
+along with an `IncidenceMatrix` encoding which rays generate which cones.
 
 ```@docs
 PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix)

@@ -34,7 +34,7 @@ Polyhedron(::Polymake.BigObject)
 pm_polytope(::Polyhedron)
 ```
 
-The following shows all the data "known to" a `Polyhedron`.
+The following shows all the data currently known for a `Polyhedron`.
 
 ```@repl oscar
 C = cube(3)

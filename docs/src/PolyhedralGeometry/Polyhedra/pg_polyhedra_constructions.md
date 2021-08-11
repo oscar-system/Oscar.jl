@@ -21,8 +21,6 @@ from other objects in Oscar.
 
 ### Intersecting halfspaces: $H$-representation
 
-Based on the definition of an $H$-representation, the constructor of
-`Polyhedron` can be used:
 
 ```@docs
 Polyhedron(A::Union{Oscar.MatElem,AbstractMatrix}, b)
@@ -30,8 +28,6 @@ Polyhedron(A::Union{Oscar.MatElem,AbstractMatrix}, b)
 
 ### Computing convex hulls: $V$-representation
 
-The following defines a polytope, as a `Polyhedron`, via a $V$-representation
-by calling the following function:
 
 ```@docs
 convex_hull(::AnyVecOrMat; non_redundant::Bool=false)
