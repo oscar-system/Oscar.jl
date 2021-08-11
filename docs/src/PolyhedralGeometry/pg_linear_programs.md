@@ -24,7 +24,7 @@ polyhedron.
 
 Linear programs are constructed from a polyhedron and a linear *objective function*
 which is described by a vector and (optionally) a translation. One can select whether the optimization
-problem is in terms of maximum or minimum.
+problem is to maximize or to minimize the objective function.
 
 ```@docs
 LinearProgram
