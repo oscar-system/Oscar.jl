@@ -198,8 +198,8 @@ minimal_value(lp::LinearProgram) = lp.polymake_lp.MINIMAL_VALUE
 """
     maximal_value(LP::LinearProgram)
 
-Return the maximal value of the objective function of LP over the feasible region
-   of LP. Otherwise, return `inf`
+Return the maximal value of the objective function of `LP` over the feasible region
+of `LP`. Otherwise, return `inf`
 
 # Examples
 The following example constructs a linear program over the three dimensional cube, and
