@@ -115,7 +115,7 @@ Base.length(iter::MaximalConeIterator) = nmaximal_cones(iter.PF)
 Return the dimension of `PF`.
 
 # Examples
-This fan in the plane contains a 2-dimensional cone and is this 2-dimensional
+This fan in the plane contains a 2-dimensional cone and is thus 2-dimensional
 itself.
 ```jldoctest
 julia> PF = PolyhedralFan([1 0; 0 1; -1 -1], IncidenceMatrix([[1, 2], [3]]));

@@ -64,7 +64,7 @@ end
 """
     objective_function(LP::LinearProgram; as = :pair)
 
-Returns the objective function x ↦ dot(c,x)+k of the linear program LP.
+Return the objective function x ↦ dot(c,x)+k of the linear program LP.
 The allowed values for `as` are
 * `pair`: Returns the pair `(c,k)`
 * `function`: Returns the objective function as a function.
@@ -85,8 +85,7 @@ end
 """
     feasible_region(lp::LinearProgram)
 
-Returns the feasible region of the linear program lp, which is a Polyhedron.
-
+Return the feasible region of the linear program lp, which is a `Polyhedron`.
 """
 feasible_region(lp::LinearProgram) = lp.feasible_region
 

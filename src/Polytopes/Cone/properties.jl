@@ -104,7 +104,7 @@ ambient_dim(C::Cone) = pm_cone(C).CONE_AMBIENT_DIM
 """
     codim(C::Cone)
 
-Returns the codimension of `C`.
+Return the codimension of `C`.
 
 # Examples
 The cone `C` in this example is 2-dimensional within a 3-dimensional ambient space.
@@ -123,7 +123,7 @@ codim(C::Cone) = ambient_dim(C)-dim(C)
 """
     ispointed(C::Cone)
 
-Determine whether `C` is pointed, i.e. whether 0 is a face of `C`.
+Determine whether `C` is pointed, i.e. whether the origin is a face of `C`.
 
 # Examples
 A cone with lineality is not pointed, but a cone only consisting of a single ray is.

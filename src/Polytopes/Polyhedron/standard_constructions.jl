@@ -110,7 +110,7 @@ Return the intersection $P \cap Q$ of `P` and `Q`.
 
 # Examples
 The positive orthant of the plane is the intersection of the two halfspaces with
-$x>0$ and $y>0$ respectively.
+$x≥0$ and $y≥0$ respectively.
 ```jldoctest
 julia> UH1 = convex_hull([0 0],[1 0],[0 1]);
 
