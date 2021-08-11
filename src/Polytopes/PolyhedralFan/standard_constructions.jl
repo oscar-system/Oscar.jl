@@ -3,7 +3,8 @@
 """
     normal_fan(P::Polyhedron)
 
-Return the normal fan of `P`.
+Return the normal fan of `P`. The maximal cones of the normal fan of `P` are
+dual to the edge cones at the vertices of `P`.
 
 # Examples
 The rays of a normal fan of a cube point in every positive and negative unit
@@ -39,7 +40,8 @@ end
 """
     face_fan(P::Polyhedron)
 
-Return the face fan of `P`.
+Return the face fan of `P`. The polytope `P` has to contain the origin, then
+the maximal cones of the face fan of `P` are the cones over the facets of `P`.
 
 # Examples
 By definition, this bounded polyhedron's number of facets equals the amount of

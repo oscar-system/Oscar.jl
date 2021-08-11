@@ -312,7 +312,8 @@ isregular(PF::PolyhedralFan) = pm_fan(PF).REGULAR
 """
     iscomplete(PF::PolyhedralFan)
 
-Determine whether `PF` is complete.
+Determine whether `PF` is complete, i.e. its support, the set-theoretic union
+of its cones, covers the whole space.
 
 # Examples
 Normal fans of polytopes are complete.

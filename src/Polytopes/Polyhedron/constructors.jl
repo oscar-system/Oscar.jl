@@ -60,17 +60,17 @@ pm_polytope(P::Polyhedron) = P.pm_polytope
 @doc Markdown.doc"""
     convex_hull(V::Matrix [, R::Matrix [, L::Matrix]]; non_redundant::Bool = false)
 
-The polytope given as the convex hull of the rows of a set of points.
-
-The matrices rows are the points, representative vectors of the rays and the generators of the lineality space,
-respectively.
+Computes the convex hull of the rows of the matrix `V`. Optionally one can give
+a set of rays as the rows of the matrix `R` and a set of lineality generators
+as the rows of the matrix `L`. If `R` and `L` are omitted, then these are
+assumed to be zero.
 
 `R` can be given as an empty matrix or as `nothing` if the user wants to compute
 the convex hull only from `V` and `L`.
 
-If the user is sure that `V` and `R` only contains extreme points and that
-the description of the lineality space is complete, they can set
-`non_redundant = true` to avoid unneccessary redundancy checks.
+If it is known that `V` and `R` only contain extremal points and that the
+description of the lineality space is complete, they can set `non_redundant =
+true` to avoid unneccessary redundancy checks.
 
 See Def. 2.11 and Def. 3.1  of [JT13](@cite).
 

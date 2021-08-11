@@ -539,7 +539,7 @@ volume(P::Polyhedron) = (pm_polytope(P)).VOLUME
 @doc Markdown.doc"""
     normalized_volume(P::Polyhedron)
 
-Return the (normalized) volume of `P``.
+Return the (normalized) volume of `P`.
 
 # Examples
 ```jldoctest
