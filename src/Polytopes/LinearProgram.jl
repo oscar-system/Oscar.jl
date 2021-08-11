@@ -171,8 +171,8 @@ end
 """
     minimal_value(LP::LinearProgram)
 
-Return, if it exists, the minimal value of the objective function of LP over the feasible region
-   of LP. Otherwise, return `-inf`.
+Return, if it exists, the minimal value of the objective function of `LP` over the feasible region
+of `LP`. Otherwise, return `-inf`.
 
 # Examples
 The following example constructs a linear program over the three dimensional cube, and
