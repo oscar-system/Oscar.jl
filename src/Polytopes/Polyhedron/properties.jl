@@ -295,7 +295,7 @@ nvertices(P::Polyhedron) = pm_polytope(P).N_VERTICES - nrays(P)
 @doc Markdown.doc"""
     rays(as::Type{T} = Points, P::Polyhedron)
 
-Return minimal set of generators of the cone of unbounded directions of `P`
+Return a minimal set of generators of the cone of unbounded directions of `P`
 (i.e. its rays) in the format defined by `as`.
 
 Optional arguments for `as` include
