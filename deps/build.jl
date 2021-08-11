@@ -1,5 +1,3 @@
-include("ToricVarieties-project.jl")
+include("JToricBuilder.jl")
 
-BuildToricVarieties_project()
-
-UpdateNConvex()
+InstallDevelopmentVersionNConvex()
