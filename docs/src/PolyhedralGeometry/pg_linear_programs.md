@@ -44,7 +44,7 @@ LP = LinearProgram(P,[3,-2,4];k=2,convention = :min)
 The information about the linear program `LP` can be easily extracted.
 
 ```@repl oscar
-(c,k)=objective_function(LP)
+c, k = objective_function(LP)
 P == feasible_region(LP)
 ℓ = objective_function(LP; as = :function)
 ```
