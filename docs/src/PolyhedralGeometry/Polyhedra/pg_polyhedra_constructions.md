@@ -19,7 +19,7 @@ from other objects in Oscar.
 
 ## $H$- and $V$-representations
 
-### Intersecting halfspaces: H-representation
+### Intersecting halfspaces: $H$-representation
 
 Based on the definition of an $H$-representation, the constructor of
 `Polyhedron` can be used:
@@ -79,8 +79,7 @@ convex_hull(::Polyhedron,::Polyhedron)
 
 ## Polyhedra from other objects
 
-There is a growing list of functionality for constructing polyhedra coming from
-other mathematical objects. We list a handful below.
+Polyhedra can also be constructed from other mathematical objects:
 
 ```@docs
 orbit_polytope
