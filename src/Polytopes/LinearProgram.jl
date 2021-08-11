@@ -85,7 +85,7 @@ end
 """
     feasible_region(lp::LinearProgram)
 
-Return the feasible region of the linear program lp, which is a `Polyhedron`.
+Return the feasible region of the linear program `lp`, which is a `Polyhedron`.
 """
 feasible_region(lp::LinearProgram) = lp.feasible_region
 
@@ -238,5 +238,4 @@ function solve_lp(lp::LinearProgram)
       return minimal_value(lp),minimal_vertex(lp)
    end
 end
-
 
