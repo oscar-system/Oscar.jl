@@ -29,17 +29,18 @@ A quick way to satisfy the dependency of `JToric` on a functional `NConvex`, is 
 5. `git clone https://github.com/HereAround/NConvex.git`
 6. `git fetch origin martindevel:martindevel`
 
-Restart `Julia` and, if necessary, install the packages `Polymake.jl`, `Oscar.jl` and `CapAndHomalg.jl`:
+Restart `Julia` and, if necessary, install the packages `Singular.jl`, `Polymake.jl`, `Oscar.jl` and `CapAndHomalg.jl`:
 
 7. Start julia
 8. `using Pkg`
-9. `Pkg.add( Polymake )`
-10. `Pkg.add( Oscar )`
-11. `Pkg.add( CapAndHomalg )`
+9. `Pkg.add( "Singular" )`
+10. `Pkg.add( Polymake )`
+11. `Pkg.add( Oscar )`
+12. `Pkg.add( CapAndHomalg )`
 
 Finally, remember that your development version of `JToric` should be placed outside of the `.julia` folder of your home folder. If not done yet, please move it to such a location now and register it in `julia` via:
 
-12. `Pkg.develop( path = "path/to/your/JToric" )`
+13. `Pkg.develop( path = "path/to/your/JToric" )`
 
 This completes the installation.
 
