@@ -54,7 +54,7 @@ is a pair `(m,v)` where the optimal value is `m`, and that value is achieved at
 `v`.
 
 ```@repl oscar
-(m,v) = solve_lp(LP)
+m, v = solve_lp(LP)
 ℓ(v) == m
 ```
 
