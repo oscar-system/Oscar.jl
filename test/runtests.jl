@@ -18,5 +18,7 @@ using Test
     H5 = JToricVariety( Rays, Cones )
     @test JToric.IsSmooth( H5 ) == true
     @test JToric.IsComplete( H5 ) == true
+    @test JToric.IsAffine( H5 ) == false
+    @test JToric.IsOrbifold( H5 ) == true
     
 end

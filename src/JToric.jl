@@ -77,6 +77,8 @@ include("ConstructorsOfToricVarieties.jl")
 # export properties
 export IsSmooth
 export IsComplete
+export IsAffine
+export IsOrbifold
 include("PropertiesOfToricVarieties.jl" )
 
 end
