@@ -12,6 +12,7 @@ Polymake = "d720cf60-89b5-51f5-aff5-213f193123e7"
 
 [compat]
 CapAndHomalg = "1"
+GAP = "0.6"
 julia = "1.4"
 
 [extras]
