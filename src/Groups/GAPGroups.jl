@@ -1124,8 +1124,11 @@ $S \leq H \leq Aut(S)$, for some non-abelian simple group $S$.
     ispgroup(G)
 
 Return `(true, nothing)` if `G` is the trivial group,
-`(true, p)` if |`G`| is a non-trivial power of a prime `p`,
+`(true, p)` if the order of every element in `G` is a power of a prime `p`,
 and `(false, nothing)` otherwise.
+
+For finite groups `G`, the first return value is `true` if and only if
+the order of `G` is a prime power.
 """
 function ispgroup(G::GAPGroup)
    if GAP.Globals.IsPGroup(G.X)
