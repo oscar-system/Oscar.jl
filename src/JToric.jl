@@ -5,11 +5,13 @@ module JToric
 import CapAndHomalg
 export CapAndHomalg
 
+# load and export GAP
+import GAP
+export GAP
+
 # use packages
 using Pkg
-using GAP
 using JToric
-
 
 """
 Initializing function for 'JToric'.
@@ -18,6 +20,7 @@ Initializing function for 'JToric'.
 function __init__()
     
     # load necessary gap packages
+    CapAndHomalg.LoadPackage( "JuliaInterface" )
     CapAndHomalg.LoadPackage( "JConvex" )
     CapAndHomalg.LoadPackage( "ToricV" )
     
@@ -65,15 +68,23 @@ else
     end
 end
 
-
-# export functions defined in JToric
-export ProjectiveSpace
-export Fan
-export IsSmooth
-
-
-# include code with function definitions
+# include files
 include("ToricVarieties.jl")
+
+#export ProjectiveSpace
+#export JToricVariety
+
+
+# export properties
+#export IsNormalVariety
+#export IsAffine
+#export IsProjective
+#export IsSmooth
+#export IsComplete
+#export HasTorusfactor
+#export HasNoTorusfactor
+#export IsOrbifold
+#export IsSimplicial
 
 
 end
