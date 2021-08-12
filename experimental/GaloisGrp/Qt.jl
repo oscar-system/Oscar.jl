@@ -254,7 +254,6 @@ function _subfields(FF::Generic.FunctionField, f::fmpz_mpoly)
         @show e
         return nothing
       end
-      ps = map_coefficients(x->parent(x)(Generic._rat_canonicalise(numerator(x), denominator(x))...), ps, parent = parent(ps))
       return ps
     end
 
@@ -401,8 +400,6 @@ function _subfields(FF::Generic.FunctionField, f::fmpz_mpoly)
   end
   return res
 end
-
-Oscar.gen(R::Generic.RationalFunctionField) = R(gen(base_ring(R.fraction_field)))
 
 function isinteger(G::GaloisCtx, p::Tuple{Int, Int}, r::Generic.RelSeries{qadic})
 #  @show "testing", r, "against", p

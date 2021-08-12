@@ -8,42 +8,49 @@ export
 """
     number_transitive_groups(n::Int)
 
-Return the number of transitive groups acting on a set of size `n`.
+Return the number of transitive groups acting on a set of size `n`,
+up to permutation isomorphism.
 """
 number_transitive_groups(n::Int) = GAP.Globals.NrTransitiveGroups(n)
 
 """
     transitive_group(deg::Int, i::Int)
 
-Return the `i`-th group in the catalogue of transitive groups over the set {`1`,...,`deg`} in the GAP Small Groups Library. The output is a group of type ``PermGroup``.
+Return the `i`-th group in the catalogue of transitive groups over the set
+`{1, ..., deg}` in GAP's Transitive Groups Library.
+The output is a group of type `PermGroup`.
 """
 function transitive_group(deg::Int, n::Int)
-   @assert n<= number_transitive_groups(deg) "There are less than $n transitive groups of degree $deg."
+   @assert n<= number_transitive_groups(deg) "There are less than $n transitive groups of degree $deg, up to permutation isomorphism."
+
    return PermGroup(GAP.Globals.TransitiveGroup(deg,n), deg)
 end
 
 """
     transitive_identification(G::PermGroup)
 
-Return (`deg`, `m`), where `G` = transitive_group(`deg`,`m`).
+Return `(deg, m)` such that `G` is permutation isomorphic with
+`transitive_group(deg, m)`.
 """
 transitive_identification(G::PermGroup) = GAP.Globals.TransitiveIdentification(G.X)
 
 """
     all_transitive_groups(L...)
 
-Return the list of all transitive groups (up to isomorphism) satisfying the conditions in `L`. Here, `L` is a vector whose arguments are organized as `L` = [ `func1`, `arg1`, `func2`, `arg2`, ... ], and the function returns all the groups `G` satisfying the conditions `func1`(`G`) = `arg1`, `func2`(`G`) = `arg2`, etc. An argument can be omitted if it corresponds to the boolean value ``true``.
+Return the list of all transitive groups (up to permutation isomorphism)
+satisfying the conditions in `L`.
+Here, `L` is a vector whose arguments are organized as `L` = [ `func1`, `arg1`, `func2`, `arg2`, ... ], and the function returns all the groups `G` satisfying the conditions `func1`(`G`) = `arg1`, `func2`(`G`) = `arg2`, etc. An argument can be omitted if it corresponds to the boolean value `true`.
 
 # Examples
 ```jldoctest
 julia> all_transitive_groups(degree, 4, isabelian)
-2-element Array{PermGroup,1}:
+2-element Vector{PermGroup}:
  C(4) = 4
  E(4) = 2[x]2
 ```
 returns the list of all abelian transitive groups acting on a set of order 4.
 
-The type of the groups is ``PermGroup``.
+The type of the groups is `PermGroup`.
 """
 function all_transitive_groups(L...)
    valid, temp = CheckValidType(L; isapg=true)

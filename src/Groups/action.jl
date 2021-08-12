@@ -15,7 +15,7 @@ and `^` is taken as the default whenever no other function is prescribed.
 
 However, the action is not always determined by the types of the involved
 objects.
-For example, permutations can act on arrays of positive integers by
+For example, permutations can act on vectors of positive integers by
 applying the permutations pointwise, or by permuting the entries;
 matrices can act on vectors by multiplying the vector with the matrix,
 or by multiplying the inverse of the matrix with the vector;
@@ -93,7 +93,7 @@ julia> on_tuples(l, g[1])
 GAP: [ 2, 3, 4 ]
 
 julia> on_tuples([1, 2, 4], g[1])
-3-element Array{Int64,1}:
+3-element Vector{Int64}:
  2
  3
  4
@@ -119,7 +119,7 @@ on_tuples(tuple::T, x::GAPGroupElem) where T <: Tuple = T([pnt^x for pnt in tupl
 
 Return the image of `set` under `x`,
 where the action is given by applying `^` to the entries
-of `set`, and then turning the result into a sorted array/tuple or a set,
+of `set`, and then turning the result into a sorted vector/tuple or a set,
 respectively.
 
 For `Set` objects, one can also call `^` instead of `on_sets`.
@@ -136,7 +136,7 @@ julia> on_sets(l, g[1])
 GAP: [ 1, 2 ]
 
 julia> on_sets([1, 3], g[1])
-2-element Array{Int64,1}:
+2-element Vector{Int64}:
  1
  2
 
@@ -181,13 +181,13 @@ julia> g = symmetric_group(3);  g[1]
 (1,2,3)
 
 julia> a = ["a", "b", "c"]
-3-element Array{String,1}:
+3-element Vector{String}:
  "a"
  "b"
  "c"
 
 julia> permuted(a, g[1])
-3-element Array{String,1}:
+3-element Vector{String}:
  "c"
  "a"
  "b"

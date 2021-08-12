@@ -8,10 +8,15 @@
 
     @test x==y
     @test A==Vector(y)
-    @test typeof(Vector(y))==Array{Int64,1}
-    @test typeof(Vector{fmpz}(y))==Array{fmpz,1}
+    @test typeof(Vector(y))==Vector{Int64}
+    @test typeof(Vector{fmpz}(y))==Vector{fmpz}
     @test x==G(Vector(x))
+    @test isfinite_order(x)
     @test order(x) == lcm(15,n-8)
+    for T in [Int, BigInt, fmpz]
+      @test order(T, x) == lcm(15,n-8)
+      @test order(T, x) isa T
+    end
 
     @test x(3)==4
     @test x(8)==6
@@ -20,15 +25,12 @@
     @test 3^x == 4
     @test n^x == 9
 
-    @test x(Int32(n)) == Int32(9)
-    @test typeof(x(Int32(n))) == Int32
-    @test x(fmpz(n)) == fmpz(9)
-    @test typeof(x(fmpz(n))) == fmpz
-
-    @test Int32(n)^x == Int32(9)
-    @test typeof(Int32(n)^x) == Int32
-    @test fmpz(n)^x == fmpz(9)
-    @test typeof(fmpz(n)^x) == fmpz
+    for T in [Int32, Int, BigInt, fmpz]
+      @test x(T(n)) == T(9)
+      @test typeof(x(T(n))) == T
+      @test T(n)^x == T(9)
+      @test typeof(T(n)^x) == T
+    end
   end
 
   G=symmetric_group(6)
@@ -46,7 +48,7 @@
   @test_throws ArgumentError perm(G,[2,3,4,5,6,7,1])
   @test one(G)==cperm(G,Int64[])
 end
- 
+
 @testset "Change of parent" begin
   for n = 10:12
     H = symmetric_group(n+3)
@@ -90,19 +92,25 @@ end
    cc = conjugacy_class(G,y)
    cs = conjugacy_class(G,H)
    lc = x*H
+   rc = H*x
    dc = K*x*H
    @test [z for z in G] == @inferred collect(G)
    @test [z for z in cc] == @inferred collect(cc)
    @test [z for z in cs] == @inferred collect(cs)
    @test [z for z in lc] == @inferred collect(lc)
+   @test [z for z in rc] == @inferred collect(rc)
    @test [z for z in dc] == @inferred collect(dc)
    @test typeof(collect(G))==Vector{typeof(x)}
    @test typeof(collect(lc))==Vector{typeof(x)}
+   @test typeof(collect(rc))==Vector{typeof(x)}
+   @test typeof(collect(dc))==Vector{typeof(x)}
    @test typeof(collect(cc))==Vector{typeof(x)}
    @test typeof(collect(cs))==Vector{typeof(H)}
    @test eltype(cc)==typeof(y)
    @test eltype(cs)==typeof(H)
    @test eltype(lc)==typeof(y)
+   @test eltype(rc)==typeof(y)
+   @test eltype(dc)==typeof(y)
 end
 
 @testset "Generators" begin
@@ -115,5 +123,9 @@ end
          @test K[i] == gen(G,i)
       end
    end
+
+   G = free_group(2)
+   @test_throws AssertionError gen(G, 3)
+   @test_throws ErrorException gen(G, 0)
 end
-   
+

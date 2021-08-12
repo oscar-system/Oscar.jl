@@ -48,7 +48,7 @@
    @test minimal_normal_subgroups(G)==[H]
    @test length(characteristic_subgroups(G))==4
    @test H in characteristic_subgroups(G)
-   @test ischaracteristic_subgroup(G,H)
+   @test ischaracteristic(G,H)
 
    H1,h1 = sub(G, gens(symmetric_group(3)))
    H2,h2 = sub(G, gens(alternating_group(4)))
@@ -293,11 +293,15 @@ end
    end
    L = [[2],[3],[5],[7],[2,3],[2,5],[2,7],[3,5],[3,7],[5,7],[2,3,5],[2,3,7],[2,5,7],[3,5,7],[2,3,5,7]]
    @testset for l in L
-      @test hall_subgroup(G,l) == sub(G,[g^(210÷lcm(l))])
+      h = hall_subgroups_representatives(G, l)
+      @test length(h) == 1
+      @test h[1] == sub(G,[g^(210÷lcm(l))])[1]
    end
-   @test hall_subgroup(G,Int64[])==sub(G,[one(G)])
-   @test_throws ArgumentError P=hall_subgroup(G,[4])
-   @test_throws ArgumentError P=hall_subgroup(symmetric_group(5),[2,3])
+   h = hall_subgroups_representatives(G, Int64[])
+   @test length(h) == 1
+   @test h[1] == sub(G, [one(G)])[1]
+   @test length(hall_subgroups_representatives(symmetric_group(5), [2, 5])) == 0
+   @test_throws ArgumentError hall_subgroups_representatives(G, [4])
 
    L = sylow_system(G)
    Lo = [order(l) for l in L]
@@ -326,7 +330,7 @@ end
    @test frattini_subgroup(S)==sub(S,[one(S)])
    @test frattini_subgroup(G)[1]==intersect(maximal_subgroups(G))[1]
    @test frattini_subgroup(G)==centre(G)
-   @test ischaracteristic_subgroup(G,centre(G)[1])
+   @test ischaracteristic(G,centre(G)[1])
    @test socle(G)==frattini_subgroup(G)
    @test socle(S)==fitting_subgroup(S)   
    @test radical_subgroup(S)[1]==S

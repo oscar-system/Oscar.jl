@@ -56,7 +56,9 @@ end
     invariant_sesquilinear_forms(G::MatrixGroup)
 
 Return a generating set for the vector spaces of sesquilinear non-bilinear forms preserved by the group `G`.
-It works only if `base_ring(G)` is a finite field with even degree on its prime subfield.
+An exception is thrown if `base_ring(G)` is not a finite field with even degree
+over its prime subfield.
+
 !!! warning "Note:"
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
 """
@@ -125,6 +127,7 @@ end
     invariant_symmetric_forms(G::MatrixGroup)
 
 Return a generating set for the vector spaces of symmetric forms preserved by the group `G`.
+
 !!! warning "Note:"
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
 !!! warning "Note:"
@@ -188,7 +191,9 @@ end
     invariant_hermitian_forms(G::MatrixGroup)
 
 Return a generating set for the vector spaces of hermitian forms preserved by the group `G`.
-It works only if `base_ring(G)` is a finite field with even degree on its prime subfield.
+An exception is thrown if `base_ring(G)` is not a finite field with even degree
+over its prime subfield.
+
 !!! warning "Note:"
     At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
 """
@@ -415,43 +420,49 @@ end
     function invariant_bilinear_form(G::MatrixGroup)
 
 Return an invariant bilinear form for the group `G`.
-It works only if the module induced by the action of `G` is absolutely irreducible.
+An exception is thrown if the module induced by the action of `G`
+is not absolutely irreducible.
+
 !!! warning "Note:"
     At the moment, the output is returned of type `mat_elem_type(G)`.
 """
 function invariant_bilinear_form(G::MatrixGroup)
-   V = GAP.Globals.GModuleByMats(GAP.Globals.GeneratorsOfGroup(G.X), G.mat_iso.fr.codomain)
+   V = GAP.Globals.GModuleByMats(GAP.Globals.GeneratorsOfGroup(G.X), codomain(G.ring_iso))
    B = GAP.Globals.MTX.InvariantBilinearForm(V)
-   return G.mat_iso(B)   
+   return preimage(G.mat_iso, B)
 end
 
 """
     function invariant_sesquilinear_form(G::MatrixGroup)
 
 Return an invariant sesquilinear (non bilinear) form for the group `G`.
-It works only if the module induced by the action of `G` is absolutely irreducible.
+An exception is thrown if the module induced by the action of `G`
+is not absolutely irreducible.
+
 !!! warning "Note:"
     At the moment, the output is returned of type `mat_elem_type(G)`.
 """
 function invariant_sesquilinear_form(G::MatrixGroup)
-   V = GAP.Globals.GModuleByMats(GAP.Globals.GeneratorsOfGroup(G.X), G.mat_iso.fr.codomain)
+   V = GAP.Globals.GModuleByMats(GAP.Globals.GeneratorsOfGroup(G.X), codomain(G.ring_iso))
    B = GAP.Globals.MTX.InvariantSesquilinearForm(V)
-   return G.mat_iso(B)   
+   return preimage(G.mat_iso, B)
 end
 
 """
     function invariant_quadratic_form(G::MatrixGroup)
 
 Return an invariant bilinear form for the group `G`.
-It works only if the module induced by the action of `G` is absolutely irreducible.
+An exception is thrown if the module induced by the action of `G`
+is not absolutely irreducible.
+
 !!! warning "Note:"
     At the moment, the output is returned of type `mat_elem_type(G)`.
 """
 function invariant_quadratic_form(G::MatrixGroup)
    if iseven(characteristic(base_ring(G)))
-      V = GAP.Globals.GModuleByMats(GAP.Globals.GeneratorsOfGroup(G.X), G.mat_iso.fr.codomain)
+      V = GAP.Globals.GModuleByMats(GAP.Globals.GeneratorsOfGroup(G.X), codomain(G.ring_iso))
       B = GAP.Globals.MTX.InvariantQuadraticForm(V)
-      return _upper_triangular_version(G.mat_iso(B))
+      return _upper_triangular_version(preimage(G.mat_iso, B))
    else
       m = invariant_bilinear_form(G)
       for i in 1:degree(G), j in i+1:degree(G)
@@ -476,8 +487,9 @@ function preserved_quadratic_forms(G::MatrixGroup{S,T}) where {S,T}
    L = GAP.Globals.PreservedQuadraticForms(G.X)
    R = SesquilinearForm{S}[]
    for f_gap in L
-      f = quadratic_form(G.mat_iso(GAP.Globals.GramMatrix(f_gap)))
+      f = quadratic_form(preimage(G.mat_iso, GAP.Globals.GramMatrix(f_gap)))
       f.X = f_gap
+      f.ring_iso = G.ring_iso
       f.mat_iso = G.mat_iso
       push!(R,f)
    end
@@ -497,11 +509,11 @@ function preserved_sesquilinear_forms(G::MatrixGroup{S,T}) where {S,T}
    R = SesquilinearForm{S}[]
    for f_gap in L
       if GAP.Globals.IsHermitianForm(f_gap)
-         f = hermitian_form(G.mat_iso(GAP.Globals.GramMatrix(f_gap)))
+         f = hermitian_form(preimage(G.mat_iso, GAP.Globals.GramMatrix(f_gap)))
       elseif GAP.Globals.IsSymmetricForm(f_gap)
-         f = symmetric_form(G.mat_iso(GAP.Globals.GramMatrix(f_gap)))
+         f = symmetric_form(preimage(G.mat_iso, GAP.Globals.GramMatrix(f_gap)))
       elseif GAP.Globals.IsAlternatingForm(f_gap)
-         f = alternating_form(G.mat_iso(GAP.Globals.GramMatrix(f_gap)))
+         f = alternating_form(preimage(G.mat_iso, GAP.Globals.GramMatrix(f_gap)))
       else
          error("Invalid form")
       end
@@ -586,11 +598,11 @@ function isometry_group(f::SesquilinearForm{T}) where T
          e = -1
       end
    end
-   Xf = iscongruent(SesquilinearForm( fn.mat_iso(_standard_form(fn.descr,e,r,F)), fn.descr),fn)[2]
+   Xf = iscongruent(SesquilinearForm( preimage(fn.mat_iso, _standard_form(fn.descr,e,r,F)), fn.descr),fn)[2]
 # if dimension is odd, fn may be congruent to a scalar multiple of the standard form
 # TODO: I don't really need a primitive_element(F); I just need a non-square in F. Is there a faster way to get it?
    if Xf==nothing && isodd(r)
-      Xf = iscongruent(SesquilinearForm( primitive_element(F)*fn.mat_iso(_standard_form(fn.descr,e,r,F)), fn.descr),fn)[2]
+      Xf = iscongruent(SesquilinearForm( primitive_element(F)*preimage(fn.mat_iso, _standard_form(fn.descr,e,r,F)), fn.descr),fn)[2]
    end
 
 

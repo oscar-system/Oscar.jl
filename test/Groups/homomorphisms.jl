@@ -35,6 +35,7 @@ n = 6
    @test domain(fa)==A
    @test codomain(fa)==G
    @test fa(A[1])==f(A[1])
+   @test_throws AssertionError restrict_homomorphism(fa, G)
 end
 
 @testset "Operations on homomorphism in Sym($n)" begin

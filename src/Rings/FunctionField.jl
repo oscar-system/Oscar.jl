@@ -56,18 +56,6 @@ function (F::AbstractAlgebra.Generic.RationalFunctionField{T})(x::Singular.n_tra
   return F(F.fraction_field(x))
 end
 
-# constants
-function (F::Singular.N_FField)(x::gfp_elem)
-  check_char(F, parent(x))
-  F(lift(x))
-end
-
-# These should probably be put in Singular.jl
-function (F::Singular.N_FField)(x::fmpq)
-  check_char(F, parent(x))
-  F(numerator(x)) // F(denominator(x))
-end
-
 function (Ox::PolyRing)(f::Singular.spoly)
   O = base_ring(Ox)
   @assert ngens(parent(f)) == 1

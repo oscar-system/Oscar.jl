@@ -24,8 +24,8 @@
    @test f isa SesquilinearForm
    @test gram_matrix(f)==B
    @test ishermitian_form(f)
-   @test f.mat_iso isa Oscar.GenMatIso
-   @test f.X isa GapObj
+   @test f.mat_iso isa MapFromFunc
+   @test f.X isa GAP.GapObj
    @test_throws AssertionError f = symmetric_form(B)
    @test_throws AssertionError f = alternating_form(B)
    @test_throws ArgumentError corresponding_quadratic_form(f)
@@ -598,5 +598,4 @@ end
       @test f^h==f
    end
    @test order(H)==order(GU(2,3))*order(GL(2,9))*9^4
-
 end

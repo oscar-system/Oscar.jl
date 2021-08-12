@@ -144,20 +144,6 @@ function math_html(io::IO, R::MPolyRing)
   math_html(io, base_ring(R))
 end
 
-function math_html(io::IO, R::MPolyElem)
-  f = "$R"
-  f = replace(f, r"_\$([0-9]*)" => s"t_{\1}")
-  f = replace(f, "*" => "")
-  f = replace(f, r"\^([0-9]*)" => s"^{\1}")
-  print(io, f)
-end
-
-function Base.show(io::IO, ::IJuliaMime, R::MPolyElem)
-  print(io, "\$")
-  math_html(io, R)
-  print(io, "\$")
-end
-
 ###################################################
 
 module Orderings
@@ -176,13 +162,13 @@ mutable struct GenOrdering{T} <: AbsOrdering
   vars::T
   ord::Symbol
   wgt::fmpz_mat
-  function GenOrdering(u::T, s::Symbol) where {T <: AbstractArray{Int, 1}}
+  function GenOrdering(u::T, s::Symbol) where {T <: AbstractVector{Int}}
     r = new{typeof(u)}()
     r.vars = u
     r.ord = s
     return r
   end
-  function GenOrdering(u::T, m::fmpz_mat; ord::Symbol = :weight) where {T <: AbstractArray{Int, 1}}
+  function GenOrdering(u::T, m::fmpz_mat; ord::Symbol = :weight) where {T <: AbstractVector{Int}}
     r = new{typeof(u)}()
     @assert ncols(m) == length(u)
     r.vars = u
@@ -203,7 +189,7 @@ end
 Base.:*(a::AbsOrdering, b::AbsOrdering) = ProdOrdering(a, b)
 
 #not really user facing
-function ordering(a::AbstractArray{Int, 1}, s::Union{Symbol, fmpz_mat})
+function ordering(a::AbstractVector{Int}, s::Union{Symbol, fmpz_mat})
   i = minimum(a)
   I = maximum(a)
   if I-i+1 == length(a) #testif variables are consecutive or not.
@@ -213,7 +199,7 @@ function ordering(a::AbstractArray{Int, 1}, s::Union{Symbol, fmpz_mat})
 end
 
 #not really user facing
-function ordering(a::AbstractArray{Int, 1}, s::Symbol, w::fmpz_mat)
+function ordering(a::AbstractVector{Int}, s::Symbol, w::fmpz_mat)
   i = minimum(a)
   I = maximum(a)
   if I-i+1 == length(a)
@@ -308,7 +294,7 @@ In the first form the symbol `s` has to be one of `:lex`, `:deglex` or `:degrevl
 In the second form, a weight ordering using the given matrix is used.
 In the last version, the symbol if of the form `Singular(..)`.
 """
-function ordering(a::AbstractArray{<:MPolyElem, 1}, s...)
+function ordering(a::AbstractVector{<:MPolyElem}, s...)
   R = parent(first(a))
   g = gens(R)
   aa = [findfirst(x -> x == y, g) for y = a]
@@ -350,60 +336,60 @@ function Base.show(io::IO, R::MPolyRing, o::GenOrdering)
 end
 
 @doc Markdown.doc"""
-    lex(v::AbstractArray{<:MPolyElem, 1}) -> MonomialOrdering
+    lex(v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
 
 Defines the `lex` (lexicographic) ordering on the variables given.
 """
-function lex(v::AbstractArray{<:MPolyElem, 1})
+function lex(v::AbstractVector{<:MPolyElem})
   return MonomialOrdering(parent(first(v)), ordering(v, :lex))
 end
 @doc Markdown.doc"""
-    deglex(v::AbstractArray{<:MPolyElem, 1}) -> MonomialOrdering
+    deglex(v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
 
 Defines the `deglex` ordering on the variables given.
 """
-function deglex(v::AbstractArray{<:MPolyElem, 1})
+function deglex(v::AbstractVector{<:MPolyElem})
   return MonomialOrdering(parent(first(v)), ordering(v, :deglex))
 end
 @doc Markdown.doc"""
-    degrevlex(v::AbstractArray{<:MPolyElem, 1}) -> MonomialOrdering
+    degrevlex(v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
 
 Defines the `degreveex` ordering on the variables given.
 """
-function degrevlex(v::AbstractArray{<:MPolyElem, 1})
+function degrevlex(v::AbstractVector{<:MPolyElem})
   return MonomialOrdering(parent(first(v)), ordering(v, :degrevlex))
 end
 
 @doc Markdown.doc"""
-    singular(ord::Symbol, v::AbstractArray{<:MPolyElem, 1}) -> MonomialOrdering
+    singular(ord::Symbol, v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
 
 Defines an ordering given in terms of Singular primitives on the variables given.
 `ord` can be one of `:lp`, `:ls`, `:dp`, `:ds`.
 """
-function singular(ord::Symbol, v::AbstractArray{<:MPolyElem, 1})
+function singular(ord::Symbol, v::AbstractVector{<:MPolyElem})
   return MonomialOrdering(parent(first(v)), ordering(v, Symbol("Singular($(string(ord)))")))
 end
 
 @doc Markdown.doc"""
-    singular(ord::Symbol, v::AbstractArray{<:MPolyElem, 1}, w::AbstractArray{Int, 2}) -> MonomialOrdering
+    singular(ord::Symbol, v::AbstractVector{<:MPolyElem}, w::AbstractMatrix{Int}) -> MonomialOrdering
 
 Defines an ordering given in terms of Singular weight ordering (`M`) with the
 matrix given. `ord` has to be `:M` here.
 """
-function singular(ord::Symbol, v::AbstractArray{<:MPolyElem, 1}, w::Array{<:Union{Integer, fmpz}, 2})
+function singular(ord::Symbol, v::AbstractVector{<:MPolyElem}, w::Matrix{<:Union{Integer, fmpz}})
   @assert ord == :M
   W = matrix(ZZ, size(w, 1), size(w, 2), w)
   return MonomialOrdering(parent(first(v)), ordering(v, Symbol("Singular($(string(ord)))"), W))
 end
 
 @doc Markdown.doc"""
-    singular(ord::Symbol, v::AbstractArray{<:MPolyElem, 1}, w::AbstractArray{Int, 2}) -> MonomialOrdering
+    singular(ord::Symbol, v::AbstractVector{<:MPolyElem}, w::AbstractMatrix{Int}) -> MonomialOrdering
 
 Defines an ordering given in terms of Singular weight ordering (`a`) with the
 weights given. `ord` has to be `:a` here. The weights will be supplemented by
 `0`.
 """
-function singular(ord::Symbol, v::AbstractArray{<:MPolyElem, 1}, w::Array{<:Union{Integer, fmpz}, 1})
+function singular(ord::Symbol, v::AbstractVector{<:MPolyElem}, w::Vector{<:Union{Integer, fmpz}})
   @assert ord == :a
   W = map(fmpz, w)
   while length(v) > length(W)
@@ -483,7 +469,7 @@ export lex, deglex, degrevlex, weights, MonomialOrdering, singular
 # workhorse: BiPolyArray
 # ideals are (mostly) generated on the Nemo side, but structural computations
 # are in Singular. To avoid permanent conversion, the list of generators = sideal
-# is captured in BiPolyArray: for Ocsar this is Array{MPoly, 1}
+# is captured in BiPolyArray: for Ocsar this is Vector{MPoly}
 #                                 Singular      sideal
 #
 #TODO/ to think
@@ -498,13 +484,13 @@ export lex, deglex, degrevlex, weights, MonomialOrdering, singular
 #in general: all algos here needs revision: do they benefit from gb or not?
 
 mutable struct BiPolyArray{S}
-  O::Array{S, 1}
+  O::Vector{S}
   S::Singular.sideal
   Ox #Oscar Poly Ring
   Sx # Singular Poly Ring, poss. with different ordering
   isGB::Bool #if the Singular side (the sideal) will be a GB
   ord :: Orderings.AbsOrdering #for this ordering
-  function BiPolyArray(a::Array{T, 1}; keep_ordering::Bool = true, isGB::Bool = false) where {T <: MPolyElem}
+  function BiPolyArray(a::Vector{T}; keep_ordering::Bool = true, isGB::Bool = false) where {T <: MPolyElem}
     r = new{T}()
     r.O = a
     r.Ox = parent(a[1])
@@ -741,7 +727,7 @@ end
 
 #??? needs to coerce into b? assert parent?
 function (b::AbstractAlgebra.Ring)(a::Singular.n_unknown)
-  Singular.libSingular.julia(Singular.libSingular.cast_number_to_void(a.ptr))
+  Singular.libSingular.julia(Singular.libSingular.cast_number_to_void(a.ptr))::elem_type(b)
 end
 
 ##############################################################################
@@ -755,7 +741,7 @@ mutable struct MPolyIdeal{S} <: Ideal{S}
   gb::BiPolyArray{S}
   dim::Int
 
-  function MPolyIdeal(g::Array{T, 1}) where {T <: MPolyElem}
+  function MPolyIdeal(g::Vector{T}) where {T <: MPolyElem}
     r = new{T}()
     r.dim = -1 #not known
     r.gens = BiPolyArray(g, keep_ordering = false)
@@ -778,52 +764,16 @@ mutable struct MPolyIdeal{S} <: Ideal{S}
   end
 end
 
-function Base.show(io::IO, I::MPolyIdeal)
-  print(io, "ideal generated by: ")
-  g = collect(I.gens)
-  first = true
-  for i = g
-    if first
-      print(io, i)
-      first = false
-    else
-      print(io, ", ", i)
-    end
-  end
-  print(io, "")
-end
+@enable_all_show_via_expressify MPolyIdeal
 
-function Base.show(io::IO, ::IJuliaMime, I::MPolyIdeal)
-  print(io, "\$")
-  math_html(io, I)
-  print(io, "\$")
-end
-
-function math_html(io::IO, I::MPolyIdeal)
-  print(io, "\\text{ideal generated by: }")
-  g = collect(I.gens)
-  first = true
-  for i = g
-    if first
-      math_html(io, i)
-      first = false
-    else
-      print(io, ", ")
-      math_html(io, i)
-    end
-  end
-  print(io, "")
+function AbstractAlgebra.expressify(a::MPolyIdeal; context = nothing)
+  return Expr(:call, :ideal, [expressify(g, context = context) for g in collect(a.gens)]...)
 end
 
 
-
-
-
-function ideal(g::Array{Any, 1})
+function ideal(g::Vector{Any})
   return ideal(typeof(g[1])[x for x = g])
 end
-
-
 
 function ideal(Rx::MPolyRing, s::Singular.sideal)
   return MPolyIdeal(Rx, s)
@@ -841,7 +791,6 @@ function singular_assure(I::BiPolyArray)
     end
   end
 end
-
 
 function oscar_assure(I::MPolyIdeal)
   if !isdefined(I.gens, :O)
@@ -864,7 +813,7 @@ function map_entries(R, M::Singular.smatrix)
   return matrix(S, s[1], s[2], elem_type(S)[R(M[i,j]) for i=1:s[1] for j=1:s[2]])
 end
 
-function syzygy_module(a::Array{MPolyElem, 1})
+function syzygy_module(a::Vector{MPolyElem})
   #only graded modules exist
   error("not implemented yet")
 end
@@ -915,12 +864,12 @@ function jacobi_ideal(f::MPolyElem)
 end
 
 @doc Markdown.doc"""
-    jacobi_matrix(g::Array{<:MPolyElem, 1})
+    jacobi_matrix(g::Vector{<:MPolyElem})
 
 Given an array ``g=[f_1,...,f_m]`` of polynomials over the same base ring,
 this function returns the Jacobian matrix ``J=(\partial_{x_i}f_j)_{i,j}`` of ``g``.
 """
-function jacobi_matrix(g::Array{<:MPolyElem, 1})
+function jacobi_matrix(g::Vector{<:MPolyElem})
   R = parent(g[1])
   n = nvars(R)
   @assert all(x->parent(x) == R, g)
@@ -938,7 +887,7 @@ end
 # basic maps
 #
 ##########################
-function im_func(f::MPolyElem, S::MPolyRing, i::Array{Int, 1})
+function im_func(f::MPolyElem, S::MPolyRing, i::Vector{Int})
   O = base_ring(S)
   g = MPolyBuildCtx(S)
   for (c, e) = Base.Iterators.zip(MPolyCoeffs(f), MPolyExponentVectors(f))
@@ -961,9 +910,9 @@ abstract type OscarMap <: SetMap end
 mutable struct MPolyHom_vars{T1, T2}  <: Map{T1, T2, Hecke.HeckeMap, MPolyHom_vars}
   header::Hecke.MapHeader
   Hecke.@declare_other
-  i::Array{Int, 1}
+  i::Vector{Int}
 
-  function MPolyHom_vars{T1, T2}(R::T1, S::T2, i::Array{Int, 1}) where {T1 <: MPolyRing, T2 <: MPolyRing}
+  function MPolyHom_vars{T1, T2}(R::T1, S::T2, i::Vector{Int}) where {T1 <: MPolyRing, T2 <: MPolyRing}
     r = new()
     p = sortperm(i)
     j = Int[]
@@ -993,7 +942,7 @@ end
 
 (f::MPolyHom_vars)(g::MPolyElem) = image(f, g)
 
-function Hecke.hom(R::MPolyRing, S::MPolyRing, i::Array{Int, 1})
+function Hecke.hom(R::MPolyRing, S::MPolyRing, i::Vector{Int})
   return MPolyHom_vars{typeof(R), typeof(S)}(R, S, i)
 end
 
@@ -1011,11 +960,11 @@ end
 
 #TODO: return a matrix??
 @doc Markdown.doc"""
-    coordinates(a::Array{<:MPolyElem, 1}, b::Array{<:MPolyElem, 1})
+    coordinates(a::Vector{<:MPolyElem}, b::Vector{<:MPolyElem})
 
 Tries to write the entries of `b` as linear combinations of `a`.
 """
-function coordinates(a::Array{<:MPolyElem, 1}, b::Array{<:MPolyElem, 1})
+function coordinates(a::Vector{<:MPolyElem}, b::Vector{<:MPolyElem})
   ia = ideal(a)
   ib = ideal(b)
   singular_assure(ia)
@@ -1025,7 +974,7 @@ function coordinates(a::Array{<:MPolyElem, 1}, b::Array{<:MPolyElem, 1})
   return [F(c[x]) for x = 1:Singular.ngens(c)]
 end
 
-function coordinates(a::Array{<:MPolyElem, 1}, b::MPolyElem)
+function coordinates(a::Vector{<:MPolyElem}, b::MPolyElem)
   return coordinates(a, [b])[1]
 end
 
@@ -1195,7 +1144,7 @@ function _isless_weightnegrevlex(f::MPolyElem, k::Int, l::Int, w::Vector{Int})
   return _isless_negrevlex(f, k, l)
 end
 
-function _isless_matrix(f::MPolyElem, k::Int, l::Int, M::Union{ Array{T, 2}, MatElem{T} }) where T
+function _isless_matrix(f::MPolyElem, k::Int, l::Int, M::Union{ Matrix{T}, MatElem{T} }) where T
   ek = exponent_vector(f, k)
   el = exponent_vector(f, l)
   n = nvars(parent(f))
@@ -1262,7 +1211,7 @@ function lt_from_ordering(R::MPolyRing, ord::Symbol, w::Vector{Int})
   end
 end
 
-function lt_from_ordering(R::MPolyRing, M::Union{ Array{T, 2}, MatElem{T} }) where T
+function lt_from_ordering(R::MPolyRing, M::Union{ Matrix{T}, MatElem{T} }) where T
   @assert size(M, 2) == nvars(R) "Matrix dimensions have to match number of variables"
 
   return (f, k, l) -> _isless_matrix(f, k, l, M)
@@ -1300,7 +1249,7 @@ for s in (:terms, :coefficients, :exponent_vectors, :monomials)
       return ($s)(f, lt)
     end
 
-    function ($s)(f::MPolyElem, M::Union{ Array{T, 2}, MatElem{T} }) where T
+    function ($s)(f::MPolyElem, M::Union{ Matrix{T}, MatElem{T} }) where T
       R = parent(f)
       lt = lt_from_ordering(R, M)
       return ($s)(f, lt)
