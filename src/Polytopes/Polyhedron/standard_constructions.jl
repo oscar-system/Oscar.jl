@@ -5,17 +5,14 @@
 ###############################################################################
 
 @doc Markdown.doc"""
-    orbit_polytope(V, G)
+    orbit_polytope(V::AbstractVecOrMat, G::PermGroup)
 
-Construct the convex hull of the orbit of one or several points under the action of a permutation group.
-
-# Arguments
-- `V::AbstractVecOrMat`: Initial point(s).
-- `P::PermGroup`: A permutation group.
+Construct the convex hull of the orbit of one or several points (given row-wise
+in `V`) under the action of `G`.
 
 # Examples
 This will construct the $3$-dimensional permutahedron:
-```julia-repl
+```jldoctest
 julia> V = [1 2 3];
 
 julia> G = symmetric_group(3);
@@ -53,18 +50,14 @@ function orbit_polytope(V::AbstractVector, G::PermGroup)
 end
 
 @doc Markdown.doc"""
-    cube(d [, l, u])
+   cube(d::Int , [l::Rational = -1, u::Rational = 1])
 
-Construct the $[-1,1]$-cube in dimension $d$. If $l$ and $u$ are given, the $[l,u]$-cube in dimension $d$ is returned.
-
-# Arguments
-- `d::Int`: Dimension of the cube.
-- `l::Rational`: Lower bound for each coordinate.
-- `u::Rational`: Upper bound for each coordinate.
+Construct the $[l,u]$-cube in dimension $d$.
 
 # Examples
-In this example the 5-dimensional unit cube is constructed to ask for one of its properties:
-```julia-repl
+In this example the 5-dimensional unit cube is constructed to ask for one of its
+properties:
+```jldoctest
 julia> C = cube(5,0,1);
 
 julia> normalized_volume(C)
@@ -77,15 +70,12 @@ cube(d, l, u) = Polyhedron(Polymake.polytope.cube(d, u, l))
 
 
 """
-    newton_polytope(poly)
+    newton_polytope(poly::Polynomial)
 
-Compute the Newton polytope of the given polynomial `poly`.
-
-# Arguments
-- `poly::Polynomial`: A multivariate polynomial.
+Compute the Newton polytope of the multivariate polynomial `poly`.
 
 # Examples
-```julia-repl
+```jldoctest
 julia> S, (x, y) = PolynomialRing(ZZ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Integer Ring, fmpz_mpoly[x, y])
 
@@ -114,17 +104,14 @@ end
 
 
 @doc Markdown.doc"""
-    intersect(P, Q)
+    intersect(P::Polyhedron, Q::Polyhedron)
 
-Intersect two polyhedra.
-
-# Arguments
-- `P::Polyhedron`: First polyhedron.
-- `Q::Polyhedron`: Second polyhedron.
+Return the intersection $P \cap Q$ of `P` and `Q`.
 
 # Examples
-The positive orthant of the plane is the intersection of the two halfspaces with $x>0$ and $y>0$ respectively.
-```julia-repl
+The positive orthant of the plane is the intersection of the two halfspaces with
+$x≥0$ and $y≥0$ respectively.
+```jldoctest
 julia> UH1 = convex_hull([0 0],[1 0],[0 1]);
 
 julia> UH2 = convex_hull([0 0],[0 1],[1 0]);
@@ -145,18 +132,15 @@ function intersect(P::Polyhedron, Q::Polyhedron)
 end
 
 
-"""
+@doc Markdown.doc"""
     minkowski_sum(P::Polyhedron, Q::Polyhedron)
 
-Minkowski sum of two polyhedra.
-
-# Arguments
-- `P::Polyhedron`: First polyhedron.
-- `Q::Polyhedron`: Second polyhedron.
+Return the Minkowski sum $P + Q = \{ x+y\ |\ x∈P, y∈Q\}$ of `P` and `Q`.
 
 # Examples
-The Minkowski sum of a square and the 2-dimensional cross-polytope is an octagon:
-```julia-repl
+The Minkowski sum of a square and the 2-dimensional cross-polytope is an
+octagon:
+```jldoctest
 julia> P = cube(2);
 
 julia> Q = cross(2);
@@ -181,20 +165,84 @@ end
 
 
 
-#TODO: documentation  + extend to different fields.
 
-"""
-    +(P::Polyhedron, Q::Polyhedron)
+@doc Markdown.doc"""
+    product(P::Polyhedron, Q::Polyhedron)
 
-Minkowski sum of two polyhedra.
-
-# Arguments
-- `P::Polyhedron`: First polyhedron.
-- `Q::Polyhedron`: Second polyhedron.
+Return the Cartesian product of `P` and `Q`.
 
 # Examples
-The Minkowski sum of a square and the 2-dimensional cross-polytope is an octagon:
-```julia-repl
+The Cartesian product of a triangle and a line segment is a triangular prism.
+```jldoctest
+julia> T=simplex(2)
+A polyhedron in ambient dimension 2
+
+julia> S=cube(1)
+A polyhedron in ambient dimension 1
+
+julia> length(vertices(product(T,S)))
+6
+```
+"""
+product(P::Polyhedron, Q::Polyhedron) = Polyhedron(Polymake.polytope.product(pm_polytope(P), pm_polytope(Q)))
+
+@doc Markdown.doc"""
+    *(P::Polyhedron, Q::Polyhedron)
+
+Return the Cartesian product of `P` and `Q` (see also `product`).
+
+# Examples
+The Cartesian product of a triangle and a line segment is a triangular prism.
+```jldoctest
+julia> T=simplex(2)
+A polyhedron in ambient dimension 2
+
+julia> S=cube(1)
+A polyhedron in ambient dimension 1
+
+julia> length(vertices(T*S))
+6
+```
+"""
+*(P::Polyhedron, Q::Polyhedron) = product(P,Q)
+
+@doc Markdown.doc"""
+    convex_hull(P::Polyhedron, Q::Polyhedron)
+
+Return the convex_hull of `P` and `Q`.
+
+# Examples
+The convex hull of the following two line segments in $R^3$ is a tetrahedron.
+```jldoctest
+julia> L₁ = convex_hull([-1 0 0; 1 0 0])
+A polyhedron in ambient dimension 3
+
+julia> L₂ = convex_hull([0 -1 0; 0 1 0])
+A polyhedron in ambient dimension 3
+
+julia> T=convex_hull(L₁,L₂);
+
+julia> f_vector(T)
+2-element Vector{Int64}:
+ 4
+ 4
+```
+"""
+convex_hull(P::Polyhedron,Q::Polyhedron) = Polyhedron(Polymake.polytope.conv(pm_polytope(P),pm_polytope(Q)))
+
+
+
+#TODO: documentation  + extend to different fields.
+
+@doc Markdown.doc"""
+    +(P::Polyhedron, Q::Polyhedron)
+
+Return the Minkowski sum $P + Q = \{ x+y\ |\ x∈P, y∈Q\}$ of `P` and `Q` (see also `minkowski_sum`).
+
+# Examples
+The Minkowski sum of a square and the 2-dimensional cross-polytope is an
+octagon:
+```jldoctest
 julia> P = cube(2);
 
 julia> Q = cross(2);
@@ -214,16 +262,15 @@ julia> nvertices(M)
 @doc Markdown.doc"""
     *(k::Int, Q::Polyhedron)
 
-Return the scaled polyhedron `kQ`.
+Return the scaled polyhedron $kQ = \{ kx\ |\ x∈Q\}$.
 
-# Arguments
-- `k::Int`: Scaling factor.
-- `Q::Polyhedron`: A polyhedron.
+Note that `k*Q = Q*k`.
 
 # Examples
-Scaling an $n$-dimensional bounded polyhedron by the factor $k$ results in the volume being scaled by $k^n$.
+Scaling an $n$-dimensional bounded polyhedron by the factor $k$ results in the
+volume being scaled by $k^n$.
 This example confirms the statement for the 6-dimensional cube and $k = 2$.
-```julia-repl
+```jldoctest
 julia> C = cube(6);
 
 julia> SC = 2*C
@@ -239,16 +286,15 @@ julia> volume(SC)//volume(C)
 @doc Markdown.doc"""
     *(P::Polyhedron, k::Int)
 
-Return the scaled polyhedron `kP`.
+Return the scaled polyhedron $kP = \{ kx\ |\ x∈P\}$.
 
-# Arguments
-- `k::Int`: Scaling factor.
-- `Q::Polyhedron`: A polyhedron.
+Note that `k*P = P*k`.
 
 # Examples
-Scaling an $n$-dimensional bounded polyhedron by the factor $k$ results in the volume being scaled by $k^n$.
+Scaling an $n$-dimensional bounded polyhedron by the factor $k$ results in the
+volume being scaled by $k^n$.
 This example confirms the statement for the 6-dimensional cube and $k = 2$.
-```julia-repl
+```jldoctest
 julia> C = cube(6);
 
 julia> SC = C*2
@@ -264,16 +310,14 @@ julia> volume(SC)//volume(C)
 @doc Markdown.doc"""
     +(P::Polyhedron, v::AbstractVector)
 
-Return the translation `P+v` of `P` by the vector `v`.
+Return the translation $P+v = \{ x+v\ |\ x∈P\}$ of `P` by `v`.
 
-# Arguments
-- `P::Polyhedron`: A polyhedron.
-- `v::AbstractVector`: A vector of the same dimension as the ambient space of `P`.
+Note that `P+v = v+P`.
 
 # Examples
-We construct a polyhedron from its $V$-description. Shifting it by the right vector reveals that its inner geometry
-corresponds to that of the 3-simplex.
-```julia-repl
+We construct a polyhedron from its $V$-description. Shifting it by the right
+vector reveals that its inner geometry corresponds to that of the 3-simplex.
+```jldoctest
 julia> P = convex_hull([100 200 300; 101 200 300; 100 201 300; 100 200 301]);
 
 julia> v = [-100, -200, -300];
@@ -303,18 +347,16 @@ end
 
 
 @doc Markdown.doc"""
-    +(v::AbstractVector,P::Polyhedron)
+    +(v::AbstractVector, P::Polyhedron)
 
-Return the translation `v+P` of `P` by the vector `v`.
+Return the translation $P+v = \{ x+v\ |\ x∈P\}$ of `P` by `v`.
 
-# Arguments
-- `P::Polyhedron`: A polyhedron.
-- `v::AbstractVector`: A vector of the same dimension as the ambient space of `P`.
+Note that `P+v = v+P`.
 
 # Examples
-We construct a polyhedron from its $V$-description. Shifting it by the right vector reveals that its inner geometry
-corresponds to that of the 3-simplex.
-```julia-repl
+We construct a polyhedron from its $V$-description. Shifting it by the right
+vector reveals that its inner geometry corresponds to that of the 3-simplex.
+```jldoctest
 julia> P = convex_hull([100 200 300; 101 200 300; 100 201 300; 100 200 301]);
 
 julia> v = [-100, -200, -300];
@@ -338,18 +380,14 @@ julia> collect(vertices(S))
 
 @doc Markdown.doc"""
 
-    simplex(d[,n])
+    simplex(d::Int [,n::Rational])
 
 Construct the simplex which is the convex hull of the standard basis vectors
-along with the origin in $\mathbb{R}^d$, optionally scaled by $n$.
-
-# Arguments
-- `d::Int`: Dimension of the simplex (and its ambient space).
-- `n::Scalar`: Scaling factor.
+along with the origin in $\mathbb{R}^d$, scaled by $n$.
 
 # Examples
 Here we take a look at the facets of the 7-simplex and a scaled 7-simplex:
-```julia-repl
+```jldoctest
 julia> s = simplex(7)
 A polyhedron in ambient dimension 7
 
@@ -401,17 +439,15 @@ simplex(d::Int64) = Polyhedron(Polymake.polytope.simplex(d))
 
 @doc Markdown.doc"""
 
-    cross(d[,n])
+    cross(d::Int [,n::Rational])
 
-Construct a $d$-dimensional cross polytope around origin with vertices located at $\pm e_i$ for each unit vector $e_i$ of $R^d$, scaled by $n$.
-
-# Arguments
-- `d::Int`: Dimension of the cross polytope (and its ambient space).
-- `n::Scalar`: Scaling factor.
+Construct a $d$-dimensional cross polytope around origin with vertices located
+at $\pm e_i$ for each unit vector $e_i$ of $R^d$, scaled by $n$.
 
 # Examples
-Here we print the facets of a non-scaled and a scaled 3-dimensional cross polytope:
-```julia-repl
+Here we print the facets of a non-scaled and a scaled 3-dimensional cross
+polytope:
+```jldoctest
 julia> C = cross(3)
 A polyhedron in ambient dimension 3
 
@@ -470,45 +506,43 @@ exact; Vertex-facet-incidences are correct in all cases.
 
 # Arguments
 - `s::String`: The name of the desired Archimedean solid.
-
     Possible values:
-
-      "truncated_tetrahedron" : Truncated tetrahedron.
+    - "truncated_tetrahedron" : Truncated tetrahedron.
           Regular polytope with four triangular and four hexagonal facets.
-      "cuboctahedron" : Cuboctahedron.
+    - "cuboctahedron" : Cuboctahedron.
           Regular polytope with eight triangular and six square facets.
-      "truncated_cube" : Truncated cube.
+    - "truncated_cube" : Truncated cube.
           Regular polytope with eight triangular and six octagonal facets.
-      "truncated_octahedron" : Truncated Octahedron.
+    - "truncated_octahedron" : Truncated Octahedron.
           Regular polytope with six square and eight hexagonal facets.
-      "rhombicuboctahedron" : Rhombicuboctahedron.
+    - "rhombicuboctahedron" : Rhombicuboctahedron.
           Regular polytope with eight triangular and 18 square facets.
-      "truncated_cuboctahedron" : Truncated Cuboctahedron.
+    - "truncated_cuboctahedron" : Truncated Cuboctahedron.
           Regular polytope with 12 square, eight hexagonal and six octagonal
           facets.
-      "snub_cube" : Snub Cube.
+    - "snub_cube" : Snub Cube.
           Regular polytope with 32 triangular and six square facets.
           The vertices are realized as floating point numbers.
           This is a chiral polytope.
-      "icosidodecahedron" : Icosidodecahedon.
+    - "icosidodecahedron" : Icosidodecahedon.
           Regular polytope with 20 triangular and 12 pentagonal facets.
-      "truncated_dodecahedron" : Truncated Dodecahedron.
+    - "truncated_dodecahedron" : Truncated Dodecahedron.
           Regular polytope with 20 triangular and 12 decagonal facets.
-      "truncated_icosahedron" : Truncated Icosahedron.
+    - "truncated_icosahedron" : Truncated Icosahedron.
           Regular polytope with 12 pentagonal and 20 hexagonal facets.
-      "rhombicosidodecahedron" : Rhombicosidodecahedron.
+    - "rhombicosidodecahedron" : Rhombicosidodecahedron.
           Regular polytope with 20 triangular, 30 square and 12 pentagonal
           facets.
-      "truncated_icosidodecahedron" : Truncated Icosidodecahedron.
+    - "truncated_icosidodecahedron" : Truncated Icosidodecahedron.
           Regular polytope with 30 square, 20 hexagonal and 12 decagonal
           facets.
-      "snub_dodecahedron" : Snub Dodecahedron.
+    - "snub_dodecahedron" : Snub Dodecahedron.
           Regular polytope with 80 triangular and 12 pentagonal facets.
           The vertices are realized as floating point numbers.
           This is a chiral polytope.
 
 # Examples
-```julia-repl
+```jldoctest
 julia> T = archimedean_solid("cuboctahedron")
 A polyhedron in ambient dimension 3
 
@@ -528,14 +562,12 @@ archimedean_solid(s::String) = Polyhedron(Polymake.polytope.archimedean_solid(s)
 
     upper_bound_theorem(d::Int, n::Int)
 
-Returns a polyhedron which contains the combinatioral data shared by all
+Return a polyhedron which contains the combinatioral data shared by all
 simplicial d-polytopes with n vertices with the maximal number of facets as
-given by McMullen's Upper-Bound-Theorem. Essentially, one can read the
-``H_VECTOR`` and ``F_VECTOR`` of a polytope that attains the McMullen's
-upperbounds.
+given by McMullen's Upper-Bound-Theorem.
 
-Arguments:
-- `d::Int`: the dimension
-- `n::Int`: the number of vertices
+Essentially, one can read the
+`H_VECTOR` and `F_VECTOR` of a polytope that attains the McMullen's
+upperbounds.
 """
 upper_bound_theorem(d::Int,n::Int) = Polyhedron(Polymake.polytope.upper_bound_theorem(d,n))

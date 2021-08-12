@@ -36,7 +36,7 @@
 
     @testset "linear programs" begin
         LP1 = LinearProgram(C0,[1,3])
-        LP2 = LinearProgram(C0,[2,2],3; convention = :min)
+        LP2 = LinearProgram(C0,[2,2]; k=3, convention = :min)
         LP3 = LinearProgram(Pos,[1,2,3])
 
         @test solve_lp(LP1)==(4,[1,1])
