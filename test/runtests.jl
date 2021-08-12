@@ -1,26 +1,22 @@
 using JToric
 using Test
-using GAP
-
-# load and export CapAndHomalg
-import CapAndHomalg
-export CapAndHomalg
 
 @testset "JToric.jl" begin
     # Write your tests here.
 
-    # load necessary gap packages
+    # load GAP-Julia interface
     CapAndHomalg.LoadPackage( "JuliaInterface" )
-    CapAndHomalg.LoadPackage( "JConvex" )
-    CapAndHomalg.LoadPackage( "ToricV" )
     
-    # Is P2 smooth?
+    # Compute properties of P2
     P2 = JToric.ProjectiveSpace( 2 )
-    @test GAP.Globals.GAPToJulia( JToric.IsSmooth( P2 ) ) == true
+    @test JToric.IsSmooth( P2 ) == true
+    @test JToric.IsComplete( P2 ) == true
     
-    # Construct Hirzebruch surface
+    # Compute properties of a Hirzebruch surface
     Rays = [[-1,5],[0,1],[1,0],[0,-1]]
     Cones = [[1,2],[2,3],[3,4],[4,1]]
-    H5 = JToric.Fan( Rays, Cones )
+    H5 = JToricVariety( Rays, Cones )
+    @test JToric.IsSmooth( H5 ) == true
+    @test JToric.IsComplete( H5 ) == true
     
 end
