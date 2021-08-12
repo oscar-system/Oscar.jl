@@ -53,6 +53,14 @@
     @testset "standard_constructions" begin
         p = upper_bound_theorem(4,8)
         @test p.pm_polytope.F_VECTOR == [8, 28, 40, 20]
+        A = archimedean_solid("cuboctahedron")
+        @test count(F -> nvertices(F) == 3, faces(A, 2)) == 8
+        # due to GLIBCXX issues with the outdated julia-shipped libstdc++
+        # we run this only where recent CompilerSupportLibraries are available
+        if VERSION >= v"1.6"
+            C = catalan_solid("triakis_tetrahedron")
+            @test count(F -> nvertices(F) == 3, faces(C, 2)) == 12
+        end
     end
 
 end

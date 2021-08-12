@@ -53,3 +53,8 @@ collect(rays(CC))
 The file is in JSON format and contains all previously gathered data belonging
 to the underlying polymake object. In particular, this file can now be read by
 both polymake and Oscar.
+
+```@docs
+save_cone(C::Cone, filename::String)
+load_cone(filename::String)
+```

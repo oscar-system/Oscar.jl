@@ -126,19 +126,16 @@ end
          @testset for e in [+1,-1]
             @test GO(e,n,q)==orthogonal_group(e,n,q)
             @test SO(e,n,q)==special_orthogonal_group(e,n,q)
-            if isodd(q)
-               @test index(GO(e,n,q),SO(e,n,q))==2
-           #    @test index(SO(e,n,q),omega_group(e,n,q))==2
-            else
-           #    @test index(GO(e,n,q),omega_group(e,n,q))==2
-            end
+            @test index(GO(e,n,q), SO(e,n,q)) == gcd(2, q-1)
+            @test index(SO(e,n,q), omega_group(e,n,q)) == 2
+            @test index(GO(e,n,q), omega_group(e,n,q)) == 2 * gcd(2, q-1)
          end
       end
       @testset for n in [3,5]
          @test GO(n,q)==orthogonal_group(n,q)
          @test SO(n,q)==special_orthogonal_group(n,q)
-         if isodd(q) @test index(GO(n,q),SO(n,q))==2 end
-    #     @test index(SO(n,q),omega_group(n,q))==2
+         @test index(GO(n, q), SO(n, q)) == gcd(2, q-1)
+         @test index(SO(n, q), omega_group(n, q)) == gcd(2, q-1)
       end
    end
 
