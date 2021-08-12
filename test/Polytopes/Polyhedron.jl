@@ -6,7 +6,7 @@
     Q0 = convex_hull(pts)
     Q1 = convex_hull(pts, [1 1])
     Q2 = convex_hull(pts, [1 1], [1 1])
-    C0 = cube(2)
+    square = cube(2)
     C1 = cube(2, 0, 1)
     Pos=Polyhedron([-1 0 0; 0 -1 0; 0 0 -1],[0,0,0])
     point = convex_hull([0 1 0])
@@ -25,7 +25,7 @@
         @test intersect(Q0, Q0) == Q0
         @test Q0+Q0 == minkowski_sum(Q0, Q0)
         @test f_vector(Pos) == [1,3,3]
-        @test codim(C0) == 0
+        @test codim(square) == 0
         @test codim(point) == 3
         @test !isfulldimensional(point)
         @test nrays(recession_cone(Pos)) == 3
@@ -35,8 +35,8 @@
     end
 
     @testset "linear programs" begin
-        LP1 = LinearProgram(C0,[1,3])
-        LP2 = LinearProgram(C0,[2,2]; k=3, convention = :min)
+        LP1 = LinearProgram(square,[1,3])
+        LP2 = LinearProgram(square,[2,2]; k=3, convention = :min)
         LP3 = LinearProgram(Pos,[1,2,3])
 
         @test solve_lp(LP1)==(4,[1,1])
@@ -45,8 +45,8 @@
     end
 
     @testset "volume" begin
-        @test volume(C0) == 4
-        @test normalized_volume(C0) == 8
+        @test volume(square) == 4
+        @test normalized_volume(square) == 8
         @test normalized_volume(s) == 1
     end
 
@@ -61,6 +61,8 @@
             C = catalan_solid("triakis_tetrahedron")
             @test count(F -> nvertices(F) == 3, faces(C, 2)) == 12
         end
+        nc = normal_cone(square, 1)
+        @test rays_as_point_matrix(nc) == [1 0; 0 1]
     end
 
 end

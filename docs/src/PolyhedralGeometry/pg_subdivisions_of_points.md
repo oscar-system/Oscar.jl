@@ -10,7 +10,7 @@ using Oscar
 Pages = ["pg_subdivision_of_points.md"]
 ```
 
-# Subdivisions of points
+# Subdivisions of Points
 
 ## Introduction
 
