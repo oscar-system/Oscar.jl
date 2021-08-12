@@ -14,10 +14,11 @@ Pages = ["pg_subdivision_of_points.md"]
 
 ## Introduction
 
-Let $\mathbb{F}$ be an ordered field; the most prominent case here is where
-$\mathbb{F}=\mathbb{Q}$ are the rational numbers.
+Let $\mathbb{F}$ be an ordered field; the default is that
+$\mathbb{F}=\mathbb{Q}$ is the field of rational numbers and other fields are
+not yet supported everywhere in the implementation.
 
-A subdivision of points consists of
+A *subdivision of points* consists of
 
 - a finite set $\mathcal{P}\subseteq\mathbb{F}^n$ of points; and
 - a finite set of cells $\mathcal{S}\subseteq 2^{\mathcal{P}}$.
@@ -44,7 +45,8 @@ SubdivisionOfPoints(Points::Union{Oscar.MatElem,AbstractMatrix}, Weights::Abstra
 
 ## Saving and loading
 
-Subdivisions of points can be saved to a file and loaded from a file in the following way:
+Objects of type `SubdivisionsOfPoints` can be saved to a file and loaded from a
+file in the following way:
 ```@repl oscar
 moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2]
 moaeincidence = IncidenceMatrix([[4,5,6],[1,4,2],[2,4,5],[2,3,5],[3,5,6],[1,3,6],[1,4,6]])
@@ -53,8 +55,10 @@ save_subdivisionofpoints(MOAE, "moae.sop");
 SOP = load_subdivisionofpoints("moae.sop");
 isregular(SOP)
 ```
-The file is in json format and contains all the underlying polymake object. In
-particular, this file can now be read by both polymake and Oscar.
+The file is in JSON format and contains all previously gathered data belonging
+to the underlying polymake object. In particular, this file can now be read by
+both polymake and Oscar.
+
 
 ```@docs
 save_subdivisionofpoints(SOP::SubdivisionOfPoints, filename::String)
