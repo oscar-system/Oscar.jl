@@ -33,6 +33,14 @@ along with an `IncidenceMatrix` encoding which rays generate which cones.
 PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix)
 ```
 
+```@docs
+normal_fan(P::Polyhedron)
+```
+
+```@docs
+face_fan(P::Polyhedron)
+```
+
 ## Saving and loading
 
 Objects of type `PolyhedralFan` can be saved to a file and loaded from a file
