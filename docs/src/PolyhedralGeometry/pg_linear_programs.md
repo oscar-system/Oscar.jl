@@ -49,9 +49,8 @@ P == feasible_region(LP)
 ℓ = objective_function(LP; as = :function)
 ```
 
-Solving the optimization problem can be achieved using `solve_lp`: the output
-is a pair `(m,v)` where the optimal value is `m`, and that value is achieved at
-`v`.
+To solve the optimization problem call `solve_lp`, which returns a pair `m, v`
+where the optimal value is `m`, and that value is attained at `v`.
 
 ```@repl oscar
 m, v = solve_lp(LP)
