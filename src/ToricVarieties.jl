@@ -118,3 +118,19 @@ function IsSimplicial( v::JToricVariety )
     
 end
 export IsSimplicial
+
+
+function IsIsomorphicToProjectiveSpace( v::JToricVariety )
+    
+    return GAP.Globals.GAPToJulia( CapAndHomalg.GAP.Globals.IsIsomorphicToProjectiveSpace( v.GapToricVariety ) )
+    
+end
+export IsIsomorphicToProjectiveSpace
+
+
+function IsDirectProductOfPNs( v::JToricVariety )
+    
+    return GAP.Globals.GAPToJulia( CapAndHomalg.GAP.Globals.IsDirectProductOfPNs( v.GapToricVariety ) )
+    
+end
+export IsDirectProductOfPNs

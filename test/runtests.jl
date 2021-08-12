@@ -20,10 +20,21 @@ using Test
     @test JToric.HasNoTorusfactor( H5 ) == true
     @test JToric.IsOrbifold( H5 ) == true
     @test JToric.IsSimplicial( H5 ) == true
+    @test JToric.IsIsomorphicToProjectiveSpace( H5 ) == false
+    @test JToric.IsDirectProductOfPNs( H5 ) == false
     
-    # Compute properties of P2
+    # Compute properties of toric varieties on the example of a projective space
     P2 = JToric.ProjectiveSpace( 2 )
+    @test JToric.IsNormalVariety( P2 ) == true
+    @test JToric.IsAffine( P2 ) == false
+    @test JToric.IsProjective( P2 ) == true
     @test JToric.IsSmooth( P2 ) == true
     @test JToric.IsComplete( P2 ) == true
+    @test JToric.HasTorusfactor( P2 ) == false
+    @test JToric.HasNoTorusfactor( P2 ) == true
+    @test JToric.IsOrbifold( P2 ) == true
+    @test JToric.IsSimplicial( P2 ) == true
+    @test JToric.IsIsomorphicToProjectiveSpace( P2 ) == true
+    @test JToric.IsDirectProductOfPNs( P2 ) == true
     
 end
