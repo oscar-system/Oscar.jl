@@ -62,7 +62,7 @@
             @test count(F -> nvertices(F) == 3, faces(C, 2)) == 12
         end
         nc = normal_cone(square, 1)
-        @test rays_as_point_matrix(nc) == [1 0; 0 1]
+        @test point_matrix(rays(nc)) == [1 0; 0 1]
     end
 
 end

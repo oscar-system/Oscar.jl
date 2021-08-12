@@ -3,34 +3,6 @@
 ### Iterators
 ###############################################################################
 ###############################################################################
-<<<<<<< HEAD
-=======
-"""
-    Polyhedra
-
-Empty type for selecting `Polyhedron` as return type for polyhedra.
-"""
-struct Polyhedra
-end
-
-"""
-    Points
-
-Empty type for selecting `Vector` as return type for points.
-"""
-struct Points
-end
-
-@doc Markdown.doc"""
-    Halfspaces
-
-Empty type for specifying that the return type for a halfspace `H(a,b)` should
-be a pair of a vector `a` and a value `b` such that
-$$H(a,b) = \{ x\ |\ ax ≤ b \}.$$
-"""
-struct Halfspaces
-end
->>>>>>> master
 
 #TODO: take into account lineality space
 
