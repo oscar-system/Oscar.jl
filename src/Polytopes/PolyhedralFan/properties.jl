@@ -210,7 +210,7 @@ Return the rays of `PF` as rows of a matrix.
 
 # Examples
 The rays of a face fan (centered at the origin) point into the direction of the
-polytope's vertices; here we see this for the `3`-cube.
+polytope's vertices; here we see this for the 3-cube.
 ```jldoctest
 julia> collect(rays(face_fan(cube(3))))
 8-element Vector{Polymake.Vector{Polymake.Rational}}:
