@@ -4,7 +4,7 @@
 ###############################################################################
 ###############################################################################
 
-"""
+@doc Markdown.doc"""
     secondary_cone(SOP::SubdivisionOfPoints)
 
 Return the secondary cone of a subdivision of points, the closure of all the
@@ -26,13 +26,7 @@ A polyhedral cone in ambient dimension 6
 
 julia> dim(C)
 4
-"""
-
-@doc Markdown.doc"""
-    secondary_cone(SOP::SubdivisionOfPoints)
-
-Return the secondary cone of a subdivision of points, the closure of all the
-weight vectors inducing the given subdivision of points.
+```
 """
 function secondary_cone(SOP::SubdivisionOfPoints)
    Cone(Polymake.fan.secondary_cone(pm_subdivision(SOP)))
