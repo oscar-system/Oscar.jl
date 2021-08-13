@@ -91,11 +91,29 @@ using Test
     MorphismFromCoxVariety( H5 )
     CoxVariety( H5 )
     FanOfVariety( H5 )
+    Fan( H5 )
     CartierTorusInvariantDivisorGroup( H5 )
     PicardGroup( H5 )
     @test NameOfVariety( H5 ) == "No name set for this variety"
     ZariskiCotangentSheaf( H5 )
     CotangentSheaf( H5 )
     @test EulerCharacteristic( H5 ) == 0
+    # UnderlyingSheaf( H5 ) <- Error in gap
+    
+    # apply methods to toric varieties on the example of the Hirzebruch surface H5 and projective space P2 defined above
+    CoordinateRingOfTorus( H5, [ "u", "v", "w", "z" ] )
+    CoxRing( H5, "u" )
+    v = H5 * P2;
+    @test JToric.IsNormalVariety( v ) == true
+    @test JToric.IsAffine( v ) == false
+    @test JToric.IsProjective( v ) == true
+    @test JToric.IsSmooth( v ) == true
+    @test JToric.IsComplete( v ) == true
+    @test JToric.HasTorusfactor( v ) == false
+    @test JToric.HasNoTorusfactor( v ) == true
+    @test JToric.IsOrbifold( v ) == true
+    @test JToric.IsSimplicial( v ) == true
+    @test JToric.IsIsomorphicToProjectiveSpace( v ) == false
+    @test JToric.IsDirectProductOfPNs( v ) == false
     
 end

@@ -33,7 +33,7 @@ end
 export CoxRing
 
 
-function ListOfVariablesOfCoxRing( v::JToricVariety )
+function ListOfVariablesOfCoxRing( v::JToricVariety,  )
     
     gap_variables = CapAndHomalg.GAP.Globals.ListOfVariablesOfCoxRing( v.GapToricVariety )
     len = GAP.Globals.GAPToJulia( GAP.Globals.Length( gap_variables ) )
@@ -260,6 +260,14 @@ end
 export FanOfVariety
 
 
+function Fan( v::JToricVariety )
+    
+    return FanOfVariety( v )
+    
+end
+export Fan
+
+
 struct JCartierTorusInvariantDivisorGroup
            bar
            GapCartierTorusInvariantDivisorGroup
@@ -338,3 +346,105 @@ function EulerCharacteristic( v::JToricVariety )
     
 end
 export EulerCharacteristic
+
+
+struct JUnderlyingSheaf
+           bar
+           GapUnderlyingSheaf
+end
+export JUnderlyingSheaf
+
+function UnderlyingSheaf( v::JToricVariety )
+    
+    gap_Underlying = CapAndHomalg.GAP.Globals.UnderlyingSheaf( v.GapToricVariety )
+    return JUnderlyingSheaf( 1, gap_UnderlyingSheaf )
+    
+end
+export UnderlyingSheaf
+
+
+######################
+# 2: Methods of ToricVarieties
+######################
+
+function CoordinateRingOfTorus( v::JToricVariety, names::Array{String,1} )
+    
+    gap_names = [ GAP.Globals.JuliaToGAP( GAP.Globals.IsString, names[ i ] ) for i in 1 : size(names)[1] ]
+    gap_names = GAP.Globals.JuliaToGAP( GAP.Globals.IsList, gap_names )
+    gap_CoordinateRingOfTorus = CapAndHomalg.GAP.Globals.CoordinateRingOfTorus( v.GapToricVariety, gap_names )
+    return JCoordinateRingOfTorus( 1, gap_CoordinateRingOfTorus )
+    
+end
+export CoordinateRingOfTorus
+
+
+function CoxRing( v::JToricVariety, names::String )
+    
+    gap_names = GAP.Globals.JuliaToGAP( GAP.Globals.IsString, names )
+    gap_CoxRing = CapAndHomalg.GAP.Globals.CoxRing( v.GapToricVariety, gap_names )
+    return JCoxRing( 1, gap_CoxRing )
+    
+end
+export CoordinateRingOfTorus
+
+
+function Base.:*( v::JToricVariety, w::JToricVariety )
+    
+    gap_ToricVariety = v.GapToricVariety * w.GapToricVariety
+    return JToricVariety( 1, gap_ToricVariety )
+    
+end
+export *
+
+#= 
+
+#! @Description
+#!  Computes the rational function corresponding to the character grid element <A>elem</A> or to the list of 
+#!  integers <A>elem</A>. This computation needs to know the coordinate ring of the torus of the variety <A>vari</A>. By
+#!  default this ring is introduced with variables <A>x1</A> to <A>xn</A> where <A>n</A> is the dimension of the variety. If
+#!  different variables should be used, then <A>CoordinateRingOfTorus</A> has to be set accordingly before calling this method.
+#! @Returns a homalg element
+#! @Arguments elem, vari
+DeclareOperation( "CharacterToRationalFunction",
+                  [ IsList, IsToricVariety ] );
+
+#! @Description
+#!  Returns a list of the currently defined Divisors of the toric variety.
+#! @Returns a list
+#! @Arguments vari
+DeclareOperation( "WeilDivisorsOfVariety",
+                  [ IsToricVariety ] );
+
+#! @Description
+#!  
+#! @Arguments vari
+DeclareOperation( "Factors",
+                  [ IsToricVariety ] );
+
+#! @Description
+#!  
+#! @Arguments vari, p
+DeclareOperation( "BlowUpOnIthMinimalTorusOrbit",
+                  [ IsToricVariety, IsInt ] );
+
+#! @Description
+#!
+DeclareGlobalFunction( "ZariskiCotangentSheafViaEulerSequence" );
+
+#! @Description
+#!
+DeclareGlobalFunction( "ZariskiCotangentSheafViaPoincareResidueMap" );
+
+#! @Description
+#!  
+#! @Arguments vari, p
+DeclareOperation( "ithBettiNumber",
+                  [ IsToricVariety, IsInt ] );
+
+#! @Description
+#!  
+#! @Arguments vari, p
+DeclareOperation( "NrOfqRationalPoints",
+                  [ IsToricVariety, IsInt ] );
+
+=#
