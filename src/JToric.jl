@@ -69,22 +69,6 @@ else
 end
 
 # include files
-include("ToricVarieties.jl")
-
-#export ProjectiveSpace
-#export JToricVariety
-
-
-# export properties
-#export IsNormalVariety
-#export IsAffine
-#export IsProjective
-#export IsSmooth
-#export IsComplete
-#export HasTorusfactor
-#export HasNoTorusfactor
-#export IsOrbifold
-#export IsSimplicial
-
+include("ToricDivisors.jl")
 
 end

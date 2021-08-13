@@ -10,6 +10,7 @@ struct JToricVariety
            bar
            GapToricVariety
 end
+export JToricVariety
 
 
 ######################
@@ -17,7 +18,12 @@ end
 ######################
 
 function JToricVariety( rays::Array{Array{Int64,1},1}, cones::Array{Array{Int64,1},1} )
-
+    
+    # load necessary gap packages
+    CapAndHomalg.LoadPackage( "JuliaInterface" )
+    CapAndHomalg.LoadPackage( "JConvex" )
+    CapAndHomalg.LoadPackage( "ToricV" )
+    
     # construct the toric variety in GAP
     gap_rays = CapAndHomalg.GAP.Globals.ConvertJuliaToGAP( rays )
     gap_cones = CapAndHomalg.GAP.Globals.ConvertJuliaToGAP( cones )
@@ -37,7 +43,15 @@ export JToricVariety
 
 function ProjectiveSpace( x )
     
+    # load necessary gap packages
+    CapAndHomalg.LoadPackage( "JuliaInterface" )
+    CapAndHomalg.LoadPackage( "JConvex" )
+    CapAndHomalg.LoadPackage( "ToricV" )
+
+    # construct the projective space in gap
     variety = CapAndHomalg.GAP.Globals.ProjectiveSpace( x )
+    
+    # wrap it and return
     return JToricVariety(  1, variety )
     
 end
