@@ -69,4 +69,10 @@ using Test
     @test JToric.IsVeryAmple( D3 ) == true
     @test JToric.IsNumericallyEffective( D3 ) == true
     
+    # compute attributes of toric varieties on the example of the Hirzebruch surface H5 defined above
+    cover = AffineOpenCovering( H5 )
+    @test size( cover )[ 1 ] == 4
+    cox_ring = CoxRing( H5 )
+    @test size( ListOfVariablesOfCoxRing( H5 ) )[ 1 ] == 4
+    
 end
