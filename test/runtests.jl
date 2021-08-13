@@ -4,8 +4,10 @@ using Test
 @testset "JToric.jl" begin
     # Write your tests here.
     
-    # load GAP-Julia interface
+    # load necessary gap-packages
     CapAndHomalg.LoadPackage( "JuliaInterface" )
+    CapAndHomalg.LoadPackage( "JConvex" )
+    CapAndHomalg.LoadPackage( "ToricV" )
     
     # Compute properties of toric varieties on the example of a Hirzebruch surface
     Rays = [[-1,5],[0,1],[1,0],[0,-1]]
@@ -36,5 +38,35 @@ using Test
     @test JToric.IsSimplicial( P2 ) == true
     @test JToric.IsIsomorphicToProjectiveSpace( P2 ) == true
     @test JToric.IsDirectProductOfPNs( P2 ) == true
+
+    # compute properties of toric divisors on the example of the trivial divisor
+    D=CreateDivisor( [ 0,0,0,0 ], H5 )
+    @test JToric.IsCartier( D ) == true
+    @test JToric.IsPrincipal( D ) == true
+    @test JToric.IsPrimedivisor( D ) == false
+    @test JToric.IsBasepointFree( D ) == true
+    @test JToric.IsAmple( D ) == false
+    @test JToric.IsVeryAmple( D ) == "fail"
+    @test JToric.IsNumericallyEffective( D ) == true
+
+    # compute properties of toric divisors on the example of a non-trivial divisor
+    D2 = DivisorOfCharacter( [ 1,2 ], H5 )
+    @test JToric.IsCartier( D2 ) == true
+    @test JToric.IsPrincipal( D2 ) == true
+    @test JToric.IsPrimedivisor( D2 ) == false
+    @test JToric.IsBasepointFree( D2 ) == true
+    @test JToric.IsAmple( D2 ) == false
+    @test JToric.IsVeryAmple( D2 ) == "fail"
+    @test JToric.IsNumericallyEffective( D2 ) == true
+    
+    # compute properties of toric divisors on the example of another non-trivial divisor
+    D3 = DivisorOfGivenClass( H5, [ 1,2 ] )
+    @test JToric.IsCartier( D3 ) == true
+    @test JToric.IsPrincipal( D3 ) == false
+    @test JToric.IsPrimedivisor( D3 ) == false
+    @test JToric.IsBasepointFree( D3 ) == true
+    @test JToric.IsAmple( D3 ) == true
+    @test JToric.IsVeryAmple( D3 ) == true
+    @test JToric.IsNumericallyEffective( D3 ) == true
     
 end
