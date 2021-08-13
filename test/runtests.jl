@@ -75,5 +75,6 @@ using Test
     cox_ring = CoxRing( H5 )
     @test size( ListOfVariablesOfCoxRing( H5 ) )[ 1 ] == 4
     ClassGroup( H5 )
+    TorusInvariantDivisorGroup( H5 )
     
 end
