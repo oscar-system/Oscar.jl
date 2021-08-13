@@ -74,5 +74,6 @@ using Test
     @test size( cover )[ 1 ] == 4
     cox_ring = CoxRing( H5 )
     @test size( ListOfVariablesOfCoxRing( H5 ) )[ 1 ] == 4
+    ClassGroup( H5 )
     
 end
