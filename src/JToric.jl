@@ -69,6 +69,6 @@ else
 end
 
 # include files
-include("ToricDivisors.jl")
+include("AttributesAndMethods.jl")
 
 end
