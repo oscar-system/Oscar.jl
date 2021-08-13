@@ -76,5 +76,15 @@ using Test
     @test size( ListOfVariablesOfCoxRing( H5 ) )[ 1 ] == 4
     ClassGroup( H5 )
     TorusInvariantDivisorGroup( H5 )
+    MapFromCharacterToPrincipalDivisor( H5 )
+    MapFromWeilDivisorsToClassGroup( H5 )
+    @test Dimension( H5 ) == 2
+    @test DimensionOfTorusfactor( H5 ) == 0
+    CoordinateRingOfTorus( H5 )
+    @test size( ListOfVariablesOfCoordinateRingOfTorus( H5 ) )[ 1 ] == 4
+    @test size( IsProductOf( H5 ) )[ 1 ] == 1
+    CharacterLattice( H5 )
+    divisors = TorusInvariantPrimeDivisors( H5 )
+    #@assert IsPrimedivisor.(divisors)
     
 end
