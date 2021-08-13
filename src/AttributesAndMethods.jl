@@ -348,19 +348,19 @@ end
 export EulerCharacteristic
 
 
-struct JUnderlyingSheaf
-           bar
-           GapUnderlyingSheaf
-end
-export JUnderlyingSheaf
+#struct JUnderlyingSheaf
+#          bar
+#          GapUnderlyingSheaf
+#end
+#export JUnderlyingSheaf
 
-function UnderlyingSheaf( v::JToricVariety )
+#function UnderlyingSheaf( v::JToricVariety )
     
-    gap_Underlying = CapAndHomalg.GAP.Globals.UnderlyingSheaf( v.GapToricVariety )
-    return JUnderlyingSheaf( 1, gap_UnderlyingSheaf )
+#   gap_Underlying = CapAndHomalg.GAP.Globals.UnderlyingSheaf( v.GapToricVariety )
+#    return JUnderlyingSheaf( 1, gap_UnderlyingSheaf )
     
-end
-export UnderlyingSheaf
+#end
+#export UnderlyingSheaf
 
 
 ######################
