@@ -181,3 +181,160 @@ function TorusInvariantPrimeDivisors( v::JToricVariety )
     
 end
 export TorusInvariantPrimeDivisors
+
+
+struct JIrrelevantIdeal
+           bar
+           GapIrrelevantIdeal
+end
+export JIrrelevantIdeal
+
+function IrrelevantIdeal( v::JToricVariety )
+    
+    gap_IrrelevantIdeal = CapAndHomalg.GAP.Globals.IrrelevantIdeal( v.GapToricVariety )
+    return JIrrelevantIdeal( 1, gap_IrrelevantIdeal )
+    
+end
+export IrrelevantIdeal
+
+
+struct JSRIdeal
+           bar
+           GapSRIdeal
+end
+export JSRIdeal
+
+function SRIdeal( v::JToricVariety )
+    
+    gap_SRIdeal = CapAndHomalg.GAP.Globals.SRIdeal( v.GapToricVariety )
+    return JSRIdeal( 1, gap_SRIdeal )
+    
+end
+export SRIdeal
+
+
+struct JMorphismFromCoxVariety
+           bar
+           GapMorphismFromCoxVariety
+end
+export JMorphismFromCoxVariety
+
+function MorphismFromCoxVariety( v::JToricVariety )
+    
+    gap_MorphismFromCoxVariety = CapAndHomalg.GAP.Globals.MorphismFromCoxVariety( v.GapToricVariety )
+    return JMorphismFromCoxVariety( 1, gap_MorphismFromCoxVariety )
+    
+end
+export MorphismFromCoxVariety
+
+
+function CoxVariety( v::JToricVariety )
+    
+    gap_CoxVariety = CapAndHomalg.GAP.Globals.CoxVariety( v.GapToricVariety )
+    return JToricVariety( 1, gap_CoxVariety )
+    
+end
+export CoxVariety
+
+
+struct JuliaFan
+           bar
+           gap_fan
+           rays::Array{Array{Int64,1},1}
+           cones::Array{Array{Int64,1},1}
+end
+export JuliaFan
+
+function FanOfVariety( v::JToricVariety )
+
+    # collect data
+    gap_fan = CapAndHomalg.GAP.Globals.FanOfVariety( v.GapToricVariety )
+    rays = GAP.Globals.GAPToJulia( CapAndHomalg.GAP.Globals.RayGenerators( gap_fan ) )
+    cones = GAP.Globals.GAPToJulia( CapAndHomalg.GAP.Globals.RaysInMaximalCones( gap_fan ) )
+    cones = [ findall( x -> x == 1, cones[i] ) for i in 1 : size( cones )[ 1 ] ]
+
+    # return the fan
+    return JuliaFan( 1, gap_fan, rays, cones )
+    
+end
+export FanOfVariety
+
+
+struct JCartierTorusInvariantDivisorGroup
+           bar
+           GapCartierTorusInvariantDivisorGroup
+end
+export JCartierTorusInvariantDivisorGroup
+
+function CartierTorusInvariantDivisorGroup( v::JToricVariety )
+    
+    gap_CartierTorusInvariantDivisorGroup = CapAndHomalg.GAP.Globals.CartierTorusInvariantDivisorGroup( v.GapToricVariety )
+    return JCartierTorusInvariantDivisorGroup( 1, gap_CartierTorusInvariantDivisorGroup )
+    
+end
+export CartierTorusInvariantDivisorGroup
+
+
+struct JPicardGroup
+           bar
+           GapPicardGroup
+end
+export JPicardGroup
+
+function PicardGroup( v::JToricVariety )
+    
+    gap_PicardGroup = CapAndHomalg.GAP.Globals.PicardGroup( v.GapToricVariety )
+    return JPicardGroup( 1, gap_PicardGroup )
+    
+end
+export PicardGroup
+
+
+function NameOfVariety( v::JToricVariety )
+    
+    if ! ( GAP.Globals.GAPToJulia( CapAndHomalg.GAP.Globals.HasNameOfVariety( v.GapToricVariety ) ) )
+            return "No name set for this variety"
+    end
+    
+    return GAP.Globals.GAPToJulia( CapAndHomalg.GAP.Globals.NameOfVariety( v.GapToricVariety ) )
+    
+end
+export NameOfVariety
+
+
+struct JZariskiCotangentSheaf
+           bar
+           GapZariskiCotangentSheaf
+end
+export JZariskiCotangentSheaf
+
+function ZariskiCotangentSheaf( v::JToricVariety )
+    
+    gap_ZariskiCotangentSheaf = CapAndHomalg.GAP.Globals.ZariskiCotangentSheaf( v.GapToricVariety )
+    return JZariskiCotangentSheaf( 1, gap_ZariskiCotangentSheaf )
+    
+end
+export ZariskiCotangentSheaf
+
+
+struct JCotangentSheaf
+           bar
+           GapCotangentSheaf
+end
+export JCotangentSheaf
+
+function CotangentSheaf( v::JToricVariety )
+    
+    gap_CotangentSheaf = CapAndHomalg.GAP.Globals.CotangentSheaf( v.GapToricVariety )
+    return JCotangentSheaf( 1, gap_CotangentSheaf )
+    
+end
+export CotangentSheaf
+
+
+function EulerCharacteristic( v::JToricVariety )
+    
+    return GAP.Globals.GAPToJulia( CapAndHomalg.GAP.Globals.EulerCharacteristic( v.GapToricVariety ) )
+    
+end
+export EulerCharacteristic

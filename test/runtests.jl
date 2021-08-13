@@ -85,6 +85,17 @@ using Test
     @test size( IsProductOf( H5 ) )[ 1 ] == 1
     CharacterLattice( H5 )
     divisors = TorusInvariantPrimeDivisors( H5 )
-    #@assert IsPrimedivisor.(divisors)
+    @test ( 0 in [ IsPrimedivisor( divisors[ i ] ) for i in 1 : size(divisors)[1] ] ) == false
+    IrrelevantIdeal( H5 )
+    SRIdeal( H5 )
+    MorphismFromCoxVariety( H5 )
+    CoxVariety( H5 )
+    FanOfVariety( H5 )
+    CartierTorusInvariantDivisorGroup( H5 )
+    PicardGroup( H5 )
+    @test NameOfVariety( H5 ) == "No name set for this variety"
+    ZariskiCotangentSheaf( H5 )
+    CotangentSheaf( H5 )
+    @test EulerCharacteristic( H5 ) == 0
     
 end
