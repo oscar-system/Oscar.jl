@@ -53,38 +53,9 @@ if VERSION >= v"1.4"
     else
         version = "not installed"
     end
-else
-    deps = Pkg.API.__installed(Pkg.PKGMODE_MANIFEST) #to also get installed dependencies
-    if haskey(deps, "JToric")
-        ver = deps["JToric"]
-        dir = dirname(@__DIR__)
-        if occursin("/dev/", dir)
-            version = VersionNumber("$(ver)-dev")
-        else
-            version = VersionNumber("$(ver)")
-        end
-    else
-        version = "not installed"
-    end
 end
 
 # include files
-include("ToricVarieties.jl")
-
-#export ProjectiveSpace
-#export JToricVariety
-
-
-# export properties
-#export IsNormalVariety
-#export IsAffine
-#export IsProjective
-#export IsSmooth
-#export IsComplete
-#export HasTorusfactor
-#export HasNoTorusfactor
-#export IsOrbifold
-#export IsSimplicial
-
+include("AttributesAndMethods.jl")
 
 end
