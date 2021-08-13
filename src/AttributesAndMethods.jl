@@ -42,3 +42,18 @@ function ListOfVariablesOfCoxRing( v::JToricVariety )
     
 end
 export ListOfVariablesOfCoxRing
+
+
+struct JClassGroup
+           bar
+           GapClassGroup
+end
+export JClassGroup
+
+function ClassGroup( v::JToricVariety )
+    
+    gap_class_group = CapAndHomalg.GAP.Globals.ClassGroup( v.GapToricVariety )
+    return JClassGroup( 1, gap_class_group )
+    
+end
+export ClassGroup
