@@ -310,6 +310,15 @@ end
 export NameOfVariety
 
 
+function SetNameOfVariety( v::JToricVariety, s::String )
+    
+    CapAndHomalg.GAP.Globals.SetNameOfVariety( v.GapToricVariety, GAP.Globals.JuliaToGAP( GAP.Globals.IsString, s ) )
+    return true
+    
+end
+export SetNameOfVariety
+
+
 struct JZariskiCotangentSheaf
            bar
            GapZariskiCotangentSheaf

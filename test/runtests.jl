@@ -95,6 +95,8 @@ using Test
     CartierTorusInvariantDivisorGroup( H5 )
     PicardGroup( H5 )
     @test NameOfVariety( H5 ) == "No name set for this variety"
+    SetNameOfVariety( H5, "Hirzebruch surface" )
+    @test NameOfVariety( H5 ) == "Hirzebruch surface"
     ZariskiCotangentSheaf( H5 )
     CotangentSheaf( H5 )
     @test EulerCharacteristic( H5 ) == 0
