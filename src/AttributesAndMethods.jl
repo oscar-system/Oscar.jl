@@ -57,3 +57,18 @@ function ClassGroup( v::JToricVariety )
     
 end
 export ClassGroup
+
+
+struct JTorusInvariantDivisorGroup
+           bar
+           GapTorusInvariantDivisorGroup
+end
+export JTorusInvariantDivisorGroup
+
+function TorusInvariantDivisorGroup( v::JToricVariety )
+    
+    gap_TorusInvariantDivisorGroup = CapAndHomalg.GAP.Globals.TorusInvariantDivisorGroup( v.GapToricVariety )
+    return JTorusInvariantDivisorGroup( 1, gap_TorusInvariantDivisorGroup )
+    
+end
+export TorusInvariantDivisorGroup
