@@ -38,7 +38,7 @@ its unique minimal $H$-representation:
 
 ```@repl oscar
 T = convex_hull([ 0 0 ; 1 0 ; 0 1; 0 1/2 ])
-facets_as_halfspace_matrix_pair(T)
+halfspace_matrix_pair(facets(T))
 ```
 
 

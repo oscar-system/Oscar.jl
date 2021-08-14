@@ -16,12 +16,10 @@ julia> R = [1 0; 0 1; 0 2];
 
 julia> PO = positive_hull(R);
 
-julia> collect(rays(PO))
-2-element Vector{Polymake.Vector{Polymake.Rational}}:
- pm::Vector<pm::Rational>
-1 0
- pm::Vector<pm::Rational>
-0 1
+julia> rays(PO)
+2-element PointIterator{Ray, Polymake.Rational}:
+ Polymake.Rational[1, 0]
+ Polymake.Rational[0, 1]
 ```
 """
 rays(C::Cone) = PointIterator{Ray, Polymake.Rational}(pm_cone(C).RAYS)
@@ -168,8 +166,8 @@ This gives us a 1-dimensional lineality.
 julia> UH = Cone([1 0; 0 1; -1 0]);
 
 julia> lineality_space(UH)
-pm::Matrix<pm::Rational>
-1 0
+1-element PointIterator{Ray, Polymake.Rational}:
+ Polymake.Rational[1, 0]
 ```
 """
 lineality_space(C::Cone) = PointIterator{Ray, Polymake.Rational}(pm_cone(C).LINEALITY_SPACE)

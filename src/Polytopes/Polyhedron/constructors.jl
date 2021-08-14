@@ -104,7 +104,7 @@ To obtain the x-axis in $\mathbb{R}^2$:
 ```jldoctest
 julia> V = [0 0];
 
-julia> R = [];
+julia> R = nothing;
 
 julia> L = [1 0];
 

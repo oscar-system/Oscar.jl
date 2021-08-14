@@ -20,10 +20,7 @@ A `Vector` containing the six sides of the 3-dimensional cube can be obtained
 via the following input:
 ```jldoctest
 julia> F = faces(Polyhedron, cube(3), 2)
-Oscar.PolyhedronFacePolyhedronIterator(A polyhedron in ambient dimension 3, 2)
-
-julia> collect(F)
-6-element Vector{Any}:
+6-element PolyhedronOrConeIterator{Polyhedron}:
  A polyhedron in ambient dimension 3
  A polyhedron in ambient dimension 3
  A polyhedron in ambient dimension 3
@@ -33,9 +30,7 @@ julia> collect(F)
 ```
 """
 function faces(as::Type{T}, P::Polyhedron, face_dim::Int) where T<:Union{Polyhedron, Polyhedra}
-    if (face_dim < 0)
-        return nothing
-    end
+    face_dim < 0 && return nothing
     pfaces = Polymake.polytope.faces_of_dim(pm_polytope(P),face_dim-size(lineality_space(P),1))
     nfaces = length(pfaces)
     rfaces = Vector{Int64}()
@@ -65,10 +60,7 @@ Return the faces of `P` of dimension `face_dim` as an iterator over `Polyhedron`
 A `Vector` containing the six sides of the 3-dimensional cube can be obtained via the following input:
 ```jldoctest
 julia> F = faces(cube(3),2)
-Oscar.PolyhedronFacePolyhedronIterator(A polyhedron in ambient dimension 3, 2)
-
-julia> collect(F)
-6-element Vector{Any}:
+6-element PolyhedronOrConeIterator{Polyhedron}:
  A polyhedron in ambient dimension 3
  A polyhedron in ambient dimension 3
  A polyhedron in ambient dimension 3
@@ -95,18 +87,13 @@ a square:
 ```jldoctest
 julia> P = simplex(2) + cube(2);
 
-julia> collect(vertices(Points, P))
-5-element Vector{Polymake.Vector{Polymake.Rational}}:
- pm::Vector<pm::Rational>
--1 -1
- pm::Vector<pm::Rational>
-2 -1
- pm::Vector<pm::Rational>
-2 1
- pm::Vector<pm::Rational>
--1 2
- pm::Vector<pm::Rational>
-1 2
+julia> vertices(Points, P)
+5-element PointIterator{Points, Polymake.Rational}:
+ Polymake.Rational[-1, -1]
+ Polymake.Rational[2, -1]
+ Polymake.Rational[2, 1]
+ Polymake.Rational[-1, 2]
+ Polymake.Rational[1, 2]
 ```
 """
 function vertices(as::Type{T}, P::Polyhedron) where T<:Points
@@ -134,18 +121,13 @@ a square:
 ```jldoctest
 julia> P = simplex(2) + cube(2);
 
-julia> collect(vertices(P))
-5-element Vector{Polymake.Vector{Polymake.Rational}}:
- pm::Vector<pm::Rational>
--1 -1
- pm::Vector<pm::Rational>
-2 -1
- pm::Vector<pm::Rational>
-2 1
- pm::Vector<pm::Rational>
--1 2
- pm::Vector<pm::Rational>
-1 2
+julia> vertices(P)
+5-element PointIterator{Points, Polymake.Rational}:
+ Polymake.Rational[-1, -1]
+ Polymake.Rational[2, -1]
+ Polymake.Rational[2, 1]
+ Polymake.Rational[-1, 2]
+ Polymake.Rational[1, 2]
 ```
 """
 vertices(P::Polyhedron) = vertices(Points, P)
@@ -201,12 +183,10 @@ rays in positive unit direction:
 ```jldoctest
 julia> PO = convex_hull([0 0], [1 0; 0 1]);
 
-julia> collect(rays(Points, PO))
-2-element Vector{Polymake.Vector{Polymake.Rational}}:
- pm::Vector<pm::Rational>
-1 0
- pm::Vector<pm::Rational>
-0 1
+julia> rays(Ray, PO)
+2-element PointIterator{Ray, Polymake.Rational}:
+ Polymake.Rational[1, 0]
+ Polymake.Rational[0, 1]
 ```
 """
 function rays(as::Type{T}, P::Polyhedron) where T<:Union{Ray, Rays}
@@ -235,12 +215,10 @@ rays in positive unit direction:
 ```jldoctest
 julia> PO = convex_hull([0 0], [1 0; 0 1]);
 
-julia> collect(rays(PO))
-2-element Vector{Polymake.Vector{Polymake.Rational}}:
- pm::Vector<pm::Rational>
-1 0
- pm::Vector<pm::Rational>
-0 1
+julia> rays(PO)
+2-element PointIterator{Ray, Polymake.Rational}:
+ Polymake.Rational[1, 0]
+ Polymake.Rational[0, 1]
 ```
 """
 rays(P::Polyhedron) = rays(Ray,P)
@@ -276,8 +254,8 @@ We can retrieve the six facets of the 3-dimensional cube this way:
 ```jldoctest
 julia> C = cube(3);
 
-julia> collect(facets(Polyhedron, C))
-6-element Vector{Polyhedron}:
+julia> facets(Polyhedron, C)
+6-element HalfSpaceIterator{Polyhedron}:
  A polyhedron in ambient dimension 3
  A polyhedron in ambient dimension 3
  A polyhedron in ambient dimension 3
@@ -285,20 +263,26 @@ julia> collect(facets(Polyhedron, C))
  A polyhedron in ambient dimension 3
  A polyhedron in ambient dimension 3
 
-julia> collect(facets(Halfspaces, C))
-6-element Vector{Tuple{Polymake.Vector{Polymake.Rational}, Polymake.Rational}}:
- (pm::Vector<pm::Rational>
--1 0 0, 1)
- (pm::Vector<pm::Rational>
-1 0 0, 1)
- (pm::Vector<pm::Rational>
-0 -1 0, 1)
- (pm::Vector<pm::Rational>
-0 1 0, 1)
- (pm::Vector<pm::Rational>
-0 0 -1, 1)
- (pm::Vector<pm::Rational>
-0 0 1, 1)
+julia> facets(Halfspaces, C)
+6-element HalfSpaceIterator{Halfspace}:
+ Halfspace(pm::Matrix<pm::Rational>
+-1 0 0
+, 1)
+ Halfspace(pm::Matrix<pm::Rational>
+1 0 0
+, 1)
+ Halfspace(pm::Matrix<pm::Rational>
+0 -1 0
+, 1)
+ Halfspace(pm::Matrix<pm::Rational>
+0 1 0
+, 1)
+ Halfspace(pm::Matrix<pm::Rational>
+0 0 -1
+, 1)
+ Halfspace(pm::Matrix<pm::Rational>
+0 0 1
+, 1)
 ```
 """
 facets(as::Type{T}, P::Polyhedron) where T<:Union{Halfspace, Halfspaces, Pair, Polyhedron, Polyhedra} = HalfSpaceIterator{AsTypeIdentities(as)}(decompose_hdata(pm_polytope(P).FACETS)...)
@@ -315,21 +299,26 @@ We can retrieve the six facets of the 3-dimensional cube this way:
 ```jldoctest
 julia> C = cube(3);
 
-julia> collect(facets(C))
-6-element Vector{Tuple{Polymake.Vector{Polymake.Rational}, Polymake.Rational}}:
- (pm::Vector<pm::Rational>
--1 0 0, 1)
- (pm::Vector<pm::Rational>
-1 0 0, 1)
- (pm::Vector<pm::Rational>
-0 -1 0, 1)
- (pm::Vector<pm::Rational>
-0 1 0, 1)
- (pm::Vector<pm::Rational>
-0 0 -1, 1)
- (pm::Vector<pm::Rational>
-0 0 1, 1)
-
+julia> facets(C)
+6-element HalfSpaceIterator{Halfspace}:
+ Halfspace(pm::Matrix<pm::Rational>
+-1 0 0
+, 1)
+ Halfspace(pm::Matrix<pm::Rational>
+1 0 0
+, 1)
+ Halfspace(pm::Matrix<pm::Rational>
+0 -1 0
+, 1)
+ Halfspace(pm::Matrix<pm::Rational>
+0 1 0
+, 1)
+ Halfspace(pm::Matrix<pm::Rational>
+0 0 -1
+, 1)
+ Halfspace(pm::Matrix<pm::Rational>
+0 0 1
+, 1)
 ```
 """
 facets(P::Polyhedron) = facets(Halfspace, P)
@@ -401,19 +390,13 @@ Return the integer points contained in the bounded polyhedron `P`.
 julia> S = 2 * simplex(2);
 
 julia> lattice_points(S)
-6-element Vector{Polymake.VectorAllocated{Polymake.Integer}}:
- pm::Vector<pm::Integer>
-0 0
- pm::Vector<pm::Integer>
-0 1
- pm::Vector<pm::Integer>
-0 2
- pm::Vector<pm::Integer>
-1 0
- pm::Vector<pm::Integer>
-1 1
- pm::Vector<pm::Integer>
-2 0
+6-element PointIterator{Points, Polymake.Integer}:
+ Polymake.Integer[0, 0]
+ Polymake.Integer[0, 1]
+ Polymake.Integer[0, 2]
+ Polymake.Integer[1, 0]
+ Polymake.Integer[1, 1]
+ Polymake.Integer[2, 0]
 ```
 """
 function lattice_points(P::Polyhedron)
@@ -479,8 +462,8 @@ its lineality in $x$-direction is recognized:
 julia> UH = convex_hull([0 0],[0 1; 1 0; -1 0]);
 
 julia> lineality_space(UH)
-pm::Matrix<pm::Rational>
-1 0
+1-element PointIterator{Ray, Polymake.Rational}:
+ Polymake.Rational[1, 0]
 ```
 """
 lineality_space(P::Polyhedron) = PointIterator{Ray, Polymake.Rational}(dehomogenize(P.pm_polytope.LINEALITY_SPACE))
@@ -495,24 +478,19 @@ Return the recession cone of `P`.
 ```jldoctest
 julia> P = Polyhedron([1 -2; -1 1; -1 0; 0 -1],[2,1,1,1]);
 
-julia> collect(vertices(P))
-3-element Vector{Polymake.Vector{Polymake.Rational}}:
- pm::Vector<pm::Rational>
-0 -1
- pm::Vector<pm::Rational>
--1 0
- pm::Vector<pm::Rational>
--1 -1
+julia> vertices(P)
+3-element PointIterator{Points, Polymake.Rational}:
+ Polymake.Rational[0, -1]
+ Polymake.Rational[-1, 0]
+ Polymake.Rational[-1, -1]
 
 julia> recession_cone(P)
 A polyhedral cone in ambient dimension 2
 
-julia> collect(rays(recession_cone(P)))
-2-element Vector{Polymake.Vector{Polymake.Rational}}:
- pm::Vector<pm::Rational>
-1 1/2
- pm::Vector<pm::Rational>
-1 1
+julia> rays(recession_cone(P))
+2-element PointIterator{Ray, Polymake.Rational}:
+ Polymake.Rational[1, 1/2]
+ Polymake.Rational[1, 1]
 ```
 """
 recession_cone(P::Polyhedron) = Cone(Polymake.polytope.recession_cone(pm_polytope(P)))
@@ -755,4 +733,4 @@ julia> print_constraints(cube(3))
 6: x₃ ≦ 1
 ```
 """
-print_constraints(P::Polyhedron; trivial::Bool = false) = print_constraints(facets_as_halfspace_matrix_pair(P)...; trivial = trivial)
+print_constraints(P::Polyhedron; trivial::Bool = false) = print_constraints(halfspace_matrix_pair(facets(P))...; trivial = trivial)
