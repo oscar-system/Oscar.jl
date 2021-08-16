@@ -35,7 +35,7 @@ A subdivision of points in ambient dimension 3
 ```
 """
 function SubdivisionOfPoints(Points::Union{Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix)
-   arr = @Polymake.convert_to Array{Set{Int}} Polymake.common.rows(Incidence.pm_incidencematrix)
+   arr = @Polymake.convert_to Array{Set{Int}} Polymake.common.rows(Incidence)
    SubdivisionOfPoints(Polymake.fan.SubdivisionOfPoints{Polymake.Rational}(
       POINTS = matrix_for_polymake(homogenize(Points,1)),
       MAXIMAL_CELLS = arr,

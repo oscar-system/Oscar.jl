@@ -21,7 +21,7 @@
         @test min_weights(SOP1) == [0,0,0,1,1,1]
         @test dim(C1) == 6
         @test dim(CMOAE) == 4
-        @test moaeimnonreg0.pm_incidencematrix == maximal_cells_as_incidence_matrix(MOAE).pm_incidencematrix
+        @test moaeimnonreg0 == maximal_cells_as_incidence_matrix(MOAE)
     end
 
 end
