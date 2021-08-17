@@ -20,8 +20,8 @@ export JToricDivisor
 function CreateDivisor( coeffs::Vector{Int64}, v::JToricVariety )
 
     # create the divisor
-    gap_coeffs = CapAndHomalg.GAP.Globals.ConvertJuliaToGAP( coeffs )
-    gap_divisor = CapAndHomalg.GAP.Globals.CreateDivisor( gap_coeffs, v.GapToricVariety )
+    gap_coeffs = GAP.Globals.ConvertJuliaToGAP( coeffs )
+    gap_divisor = GAP.Globals.CreateDivisor( gap_coeffs, v.GapToricVariety )
     
     # wrap and return
     return JToricDivisor( gap_divisor )
@@ -32,8 +32,8 @@ export CreateDivisor
 function DivisorOfCharacter( character::Vector{Int64}, v::JToricVariety )
 
     # create the divisor
-    gap_character = CapAndHomalg.GAP.Globals.ConvertJuliaToGAP( character )
-    gap_divisor = CapAndHomalg.GAP.Globals.DivisorOfCharacter( gap_character, v.GapToricVariety )
+    gap_character = GAP.Globals.ConvertJuliaToGAP( character )
+    gap_divisor = GAP.Globals.DivisorOfCharacter( gap_character, v.GapToricVariety )
     
     # wrap and return
     return JToricDivisor( gap_divisor )
@@ -45,8 +45,8 @@ export DivisorOfCharacter
 function DivisorOfGivenClass( v::JToricVariety, class::Vector{Int64} )
 
     # create the divisor
-    gap_class = CapAndHomalg.GAP.Globals.ConvertJuliaToGAP( class )
-    gap_divisor = CapAndHomalg.GAP.Globals.DivisorOfGivenClass( v.GapToricVariety, gap_class )
+    gap_class = GAP.Globals.ConvertJuliaToGAP( class )
+    gap_divisor = GAP.Globals.DivisorOfGivenClass( v.GapToricVariety, gap_class )
     
     # wrap and return
     return JToricDivisor( gap_divisor )
@@ -61,7 +61,7 @@ export DivisorOfGivenClass
 
 function IsCartier( d::JToricDivisor )
     
-    return GAP.Globals.GAPToJulia( CapAndHomalg.GAP.Globals.IsCartier( d.GapToricDivisor ) )
+    return GAP.Globals.GAPToJulia( GAP.Globals.IsCartier( d.GapToricDivisor ) )
     
 end
 export IsCartier
@@ -69,7 +69,7 @@ export IsCartier
 
 function IsPrincipal( d::JToricDivisor )
     
-    return GAP.Globals.GAPToJulia( CapAndHomalg.GAP.Globals.IsPrincipal( d.GapToricDivisor ) )
+    return GAP.Globals.GAPToJulia( GAP.Globals.IsPrincipal( d.GapToricDivisor ) )
     
 end
 export IsPrincipal
@@ -77,7 +77,7 @@ export IsPrincipal
 
 function IsPrimedivisor( d::JToricDivisor )
     
-    return GAP.Globals.GAPToJulia( CapAndHomalg.GAP.Globals.IsPrimedivisor( d.GapToricDivisor ) )
+    return GAP.Globals.GAPToJulia( GAP.Globals.IsPrimedivisor( d.GapToricDivisor ) )
     
 end
 export IsPrimedivisor
@@ -85,7 +85,7 @@ export IsPrimedivisor
 
 function IsBasepointFree( d::JToricDivisor )
     
-    return GAP.Globals.GAPToJulia( CapAndHomalg.GAP.Globals.IsBasepointFree( d.GapToricDivisor ) )
+    return GAP.Globals.GAPToJulia( GAP.Globals.IsBasepointFree( d.GapToricDivisor ) )
     
 end
 export IsBasepointFree
@@ -93,7 +93,7 @@ export IsBasepointFree
 
 function IsAmple( d::JToricDivisor )
     
-    return GAP.Globals.GAPToJulia( CapAndHomalg.GAP.Globals.IsAmple( d.GapToricDivisor ) )
+    return GAP.Globals.GAPToJulia( GAP.Globals.IsAmple( d.GapToricDivisor ) )
     
 end
 export IsAmple
@@ -106,7 +106,7 @@ function IsVeryAmple( d::JToricDivisor )
         return "fail"
     end
     
-    return GAP.Globals.GAPToJulia( CapAndHomalg.GAP.Globals.IsVeryAmple( d.GapToricDivisor ) )
+    return GAP.Globals.GAPToJulia( GAP.Globals.IsVeryAmple( d.GapToricDivisor ) )
     
 end
 export IsVeryAmple
@@ -114,7 +114,7 @@ export IsVeryAmple
 
 function IsNumericallyEffective( d::JToricDivisor )
     
-    return GAP.Globals.GAPToJulia( CapAndHomalg.GAP.Globals.IsNumericallyEffective( d.GapToricDivisor ) )
+    return GAP.Globals.GAPToJulia( GAP.Globals.IsNumericallyEffective( d.GapToricDivisor ) )
     
 end
 export IsNumericallyEffective
