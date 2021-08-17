@@ -58,7 +58,7 @@ export projective_space
 ######################
 
 function is_normal_variety( v::toric_variety )
-    return Bool( GAP.Globals.IsNormalVariety( v.GapToricVariety ) )
+    return true
 end
 export is_normal_variety
 
