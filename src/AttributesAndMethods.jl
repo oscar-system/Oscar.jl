@@ -15,7 +15,7 @@ export affine_open_covering
 
 
 struct cox_ring
-           GapCoxRing
+           GapCoxRing::GapObj
 end
 export cox_ring
 
@@ -34,7 +34,7 @@ export list_of_variables_of_cox_ring
 
 
 struct class_group
-           GapClassGroup
+           GapClassGroup::GapObj
 end
 export class_group
 
@@ -46,7 +46,7 @@ export class_group
 
 
 struct torus_invariant_divisor_group
-           GapTorusInvariantDivisorGroup
+           GapTorusInvariantDivisorGroup::GapObj
 end
 export torus_invariant_divisor_group
 
@@ -58,7 +58,7 @@ export torus_invariant_divisor_group
 
 
 struct map_from_character_to_principal_divisor
-           GapMapFromCharacterToPrincipalDivisor
+           GapMapFromCharacterToPrincipalDivisor::GapObj
 end
 export map_from_character_to_principal_divisor
 
@@ -70,7 +70,7 @@ export map_from_character_to_principal_divisor
 
 
 struct map_from_weil_divisors_to_class_group
-           GapMapFromWeilDivisorsToClassGroup
+           GapMapFromWeilDivisorsToClassGroup::GapObj
 end
 export map_from_weil_divisors_to_class_group
 
@@ -94,7 +94,7 @@ export dimension_of_torusfactor
 
 
 struct coordinate_ring_of_torus
-           GapCoordinateRingOfTorus
+           GapCoordinateRingOfTorus::GapObj
 end
 export coordinate_ring_of_torus
 
@@ -120,7 +120,7 @@ export is_product_of
 
 
 struct character_lattice
-           GapCharacterLattice
+           GapCharacterLattice::GapObj
 end
 export character_lattice
 
@@ -139,7 +139,7 @@ export torus_invariant_prime_divisors
 
 
 struct irrelevant_ideal
-           GapIrrelevantIdeal
+           GapIrrelevantIdeal::GapObj
 end
 export irrelevant_ideal
 
@@ -151,7 +151,7 @@ export irrelevant_ideal
 
 
 struct stanley_reisner_ideal
-           GapSRIdeal
+           GapSRIdeal::GapObj
 end
 export stanley_reisner_ideal
 
@@ -163,7 +163,7 @@ export stanley_reisner_ideal
 
 
 struct morphism_from_cox_variety
-           GapMorphismFromCoxVariety
+           GapMorphismFromCoxVariety::GapObj
 end
 export morphism_from_cox_variety
 
@@ -182,7 +182,7 @@ export cox_variety
 
 
 struct fan
-           gap_fan
+           gap_fan::GapObj
            rays::Vector{Vector{Int64}}
            cones::Vector{Vector{Int64}}
 end
@@ -208,7 +208,7 @@ export fan
 
 
 struct cartier_torus_invariant_divisor_group
-           GapCartierTorusInvariantDivisorGroup
+           GapCartierTorusInvariantDivisorGroup::GapObj
 end
 export cartier_torus_invariant_divisor_group
 
@@ -220,7 +220,7 @@ export cartier_torus_invariant_divisor_group
 
 
 struct picard_group
-           GapPicardGroup
+           GapPicardGroup::GapObj
 end
 export picard_group
 
@@ -249,7 +249,7 @@ export set_name_of_variety
 
 
 struct zariski_cotangent_sheaf
-           GapZariskiCotangentSheaf
+           GapZariskiCotangentSheaf::GapObj
 end
 export zariski_cotangent_sheaf
 
@@ -261,7 +261,7 @@ export zariski_cotangent_sheaf
 
 
 struct cotangent_sheaf
-           GapCotangentSheaf
+           GapCotangentSheaf::GapObj
 end
 export cotangent_sheaf
 
@@ -279,7 +279,7 @@ export euler_characteristic
 
 
 #struct underlying_sheaf
-#          GapUnderlyingSheaf
+#          GapUnderlyingSheaf::GapObj
 #end
 #export underlying_sheaf
 

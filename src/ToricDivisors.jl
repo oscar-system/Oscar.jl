@@ -9,7 +9,7 @@ include("ToricVarieties.jl")
 ######################
 
 struct toric_divisor
-           GapToricDivisor
+           GapToricDivisor::GapObj
 end
 export toric_divisor
 

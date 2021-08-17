@@ -7,7 +7,7 @@ using CapAndHomalg
 ######################
 
 struct toric_variety
-           GapToricVariety
+           GapToricVariety::GapObj
 end
 export toric_variety
 
