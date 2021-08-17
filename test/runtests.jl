@@ -2,8 +2,6 @@ using JToric
 using Test
 
 @testset "JToric.jl" begin
-    # Write your tests here.
-    
     # load necessary gap-packages
     using CapAndHomalg
     CapAndHomalg.LoadPackage( "JuliaInterface" )
