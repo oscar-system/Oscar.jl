@@ -133,7 +133,7 @@ export CharacterLattice
 
 function TorusInvariantPrimeDivisors( v::toric_variety )
     divisors = GAP.Globals.TorusInvariantPrimeDivisors( v.GapToricVariety )
-    return [ JToricDivisor( d ) for d in divisors ]    
+    return [ toric_divisor( d ) for d in divisors ]    
 end
 export TorusInvariantPrimeDivisors
 

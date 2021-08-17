@@ -39,34 +39,34 @@ using Test
     @test JToric.is_direct_product_of_projective_spaces( P2 ) == true
 
     # compute properties of toric divisors on the example of the trivial divisor
-    D=CreateDivisor( [ 0,0,0,0 ], H5 )
-    @test JToric.IsCartier( D ) == true
-    @test JToric.IsPrincipal( D ) == true
-    @test JToric.IsPrimedivisor( D ) == false
-    @test JToric.IsBasepointFree( D ) == true
-    @test JToric.IsAmple( D ) == false
-    @test JToric.IsVeryAmple( D ) == "fail"
-    @test JToric.IsNumericallyEffective( D ) == true
+    D=create_divisor( [ 0,0,0,0 ], H5 )
+    @test JToric.is_cartier( D ) == true
+    @test JToric.is_principal( D ) == true
+    @test JToric.is_primedivisor( D ) == false
+    @test JToric.is_basepoint_free( D ) == true
+    @test JToric.is_ample( D ) == false
+    @test JToric.is_very_ample( D ) == "fail"
+    @test JToric.is_numerically_effective( D ) == true
 
     # compute properties of toric divisors on the example of a non-trivial divisor
-    D2 = DivisorOfCharacter( [ 1,2 ], H5 )
-    @test JToric.IsCartier( D2 ) == true
-    @test JToric.IsPrincipal( D2 ) == true
-    @test JToric.IsPrimedivisor( D2 ) == false
-    @test JToric.IsBasepointFree( D2 ) == true
-    @test JToric.IsAmple( D2 ) == false
-    @test JToric.IsVeryAmple( D2 ) == "fail"
-    @test JToric.IsNumericallyEffective( D2 ) == true
+    D2 = divisor_of_character( [ 1,2 ], H5 )
+    @test JToric.is_cartier( D2 ) == true
+    @test JToric.is_principal( D2 ) == true
+    @test JToric.is_primedivisor( D2 ) == false
+    @test JToric.is_basepoint_free( D2 ) == true
+    @test JToric.is_ample( D2 ) == false
+    @test JToric.is_very_ample( D2 ) == "fail"
+    @test JToric.is_numerically_effective( D2 ) == true
     
     # compute properties of toric divisors on the example of another non-trivial divisor
-    D3 = DivisorOfGivenClass( H5, [ 1,2 ] )
-    @test JToric.IsCartier( D3 ) == true
-    @test JToric.IsPrincipal( D3 ) == false
-    @test JToric.IsPrimedivisor( D3 ) == false
-    @test JToric.IsBasepointFree( D3 ) == true
-    @test JToric.IsAmple( D3 ) == true
-    @test JToric.IsVeryAmple( D3 ) == true
-    @test JToric.IsNumericallyEffective( D3 ) == true
+    D3 = divisor_of_given_class( H5, [ 1,2 ] )
+    @test JToric.is_cartier( D3 ) == true
+    @test JToric.is_principal( D3 ) == false
+    @test JToric.is_primedivisor( D3 ) == false
+    @test JToric.is_basepoint_free( D3 ) == true
+    @test JToric.is_ample( D3 ) == true
+    @test JToric.is_very_ample( D3 ) == true
+    @test JToric.is_numerically_effective( D3 ) == true
     
     # compute attributes of toric varieties on the example of the Hirzebruch surface H5 defined above
     cover = AffineOpenCovering( H5 )
@@ -84,7 +84,7 @@ using Test
     @test size( IsProductOf( H5 ) )[ 1 ] == 1
     CharacterLattice( H5 )
     divisors = TorusInvariantPrimeDivisors( H5 )
-    @test ( 0 in [ IsPrimedivisor( divisors[ i ] ) for i in 1 : size(divisors)[1] ] ) == false
+    @test ( 0 in [ is_primedivisor( divisors[ i ] ) for i in 1 : size(divisors)[1] ] ) == false
     IrrelevantIdeal( H5 )
     SRIdeal( H5 )
     MorphismFromCoxVariety( H5 )
