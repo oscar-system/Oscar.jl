@@ -37,7 +37,7 @@ function divisor_of_character( character::Vector{Int64}, v::toric_variety )
 end
 export divisor_of_character
 
-function divisor_of_given_class( v::toric_variety, class::Vector{Int64} )
+function divisor_of_class( v::toric_variety, class::Vector{Int64} )
     # create the divisor
     gap_class = GapObj( class )
     gap_divisor = GAP.Globals.DivisorOfGivenClass( v.GapToricVariety, gap_class )
@@ -45,7 +45,7 @@ function divisor_of_given_class( v::toric_variety, class::Vector{Int64} )
     # wrap and return
     return toric_divisor( gap_divisor )
 end
-export divisor_of_given_class
+export divisor_of_class
 
 
 ######################

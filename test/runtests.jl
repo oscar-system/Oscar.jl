@@ -59,7 +59,7 @@ using Test
     @test JToric.is_numerically_effective( D2 ) == true
     
     # compute properties of toric divisors on the example of another non-trivial divisor
-    D3 = divisor_of_given_class( H5, [ 1,2 ] )
+    D3 = divisor_of_class( H5, [ 1,2 ] )
     @test JToric.is_cartier( D3 ) == true
     @test JToric.is_principal( D3 ) == false
     @test JToric.is_primedivisor( D3 ) == false
