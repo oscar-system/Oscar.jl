@@ -113,7 +113,7 @@ export list_of_variables_of_coordinate_ring_of_torus
 
 
 function is_product_of(v::toric_variety)
-    factors = CapAndHomalg.GAP.Globals.IsProductOf(v.GapToricVariety)
+    factors = GAP.Globals.IsProductOf(v.GapToricVariety)
     return [ toric_variety( f ) for f in factors ]
 end
 export is_product_of
