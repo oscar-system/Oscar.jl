@@ -69,41 +69,41 @@ using Test
     @test JToric.is_numerically_effective( D3 ) == true
     
     # compute attributes of toric varieties on the example of the Hirzebruch surface H5 defined above
-    cover = AffineOpenCovering( H5 )
+    cover = affine_open_covering( H5 )
     @test size( cover )[ 1 ] == 4
-    cox_ring = CoxRing( H5 )
-    @test size( ListOfVariablesOfCoxRing( H5 ) )[ 1 ] == 4
-    ClassGroup( H5 )
-    TorusInvariantDivisorGroup( H5 )
-    MapFromCharacterToPrincipalDivisor( H5 )
-    MapFromWeilDivisorsToClassGroup( H5 )
-    @test Dimension( H5 ) == 2
-    @test DimensionOfTorusfactor( H5 ) == 0
-    CoordinateRingOfTorus( H5 )
-    @test size( ListOfVariablesOfCoordinateRingOfTorus( H5 ) )[ 1 ] == 4
-    @test size( IsProductOf( H5 ) )[ 1 ] == 1
-    CharacterLattice( H5 )
-    divisors = TorusInvariantPrimeDivisors( H5 )
+    cox_ring( H5 )
+    @test size( list_of_variables_of_cox_ring( H5 ) )[ 1 ] == 4
+    class_group( H5 )
+    torus_invariant_divisor_group( H5 )
+    map_from_character_to_principal_divisor( H5 )
+    map_from_weil_divisors_to_class_group( H5 )
+    @test dimension( H5 ) == 2
+    @test dimension_of_torusfactor( H5 ) == 0
+    coordinate_ring_of_torus( H5 )
+    @test size( list_of_variables_of_coordinate_ring_of_torus( H5 ) )[ 1 ] == 4
+    @test size( is_product_of( H5 ) )[ 1 ] == 1
+    character_lattice( H5 )
+    divisors = torus_invariant_prime_divisors( H5 )
     @test ( 0 in [ is_primedivisor( d ) for d in divisors ] ) == false
-    IrrelevantIdeal( H5 )
-    SRIdeal( H5 )
-    MorphismFromCoxVariety( H5 )
-    CoxVariety( H5 )
-    FanOfVariety( H5 )
-    Fan( H5 )
-    CartierTorusInvariantDivisorGroup( H5 )
-    PicardGroup( H5 )
-    @test NameOfVariety( H5 ) == "No name set for this variety"
-    SetNameOfVariety( H5, "Hirzebruch surface" )
-    @test NameOfVariety( H5 ) == "Hirzebruch surface"
-    ZariskiCotangentSheaf( H5 )
-    CotangentSheaf( H5 )
-    @test EulerCharacteristic( H5 ) == 0
+    irrelevant_ideal( H5 )
+    stanley_reisner_ideal( H5 )
+    morphism_from_cox_variety( H5 )
+    cox_variety( H5 )
+    fan_of_variety( H5 )
+    fan( H5 )
+    cartier_torus_invariant_divisor_group( H5 )
+    picard_group( H5 )
+    @test name_of_variety( H5 ) == "No name set for this variety"
+    set_name_of_variety( H5, "Hirzebruch surface" )
+    @test name_of_variety( H5 ) == "Hirzebruch surface"
+    zariski_cotangent_sheaf( H5 )
+    cotangent_sheaf( H5 )
+    @test euler_characteristic( H5 ) == 0
     # UnderlyingSheaf( H5 ) <- Error in gap
     
     # apply methods to toric varieties on the example of the Hirzebruch surface H5 and projective space P2 defined above
-    CoordinateRingOfTorus( H5, [ "u", "v", "w", "z" ] )
-    CoxRing( H5, "u" )
+    coordinate_ring_of_torus( H5, [ "u", "v", "w", "z" ] )
+    cox_ring( H5, "u" )
     v = H5 * P2;
     @test JToric.is_normal_variety( v ) == true
     @test JToric.is_affine( v ) == false
