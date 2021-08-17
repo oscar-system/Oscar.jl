@@ -17,7 +17,7 @@ export JToricDivisor
 # 2: Generic constructors
 ######################
 
-function CreateDivisor( coeffs::Vector{Int64}, v::JToricVariety )
+function CreateDivisor( coeffs::Vector{Int64}, v::toric_variety )
     # create the divisor
     gap_coeffs = GapObj( coeffs )
     gap_divisor = GAP.Globals.CreateDivisor( gap_coeffs, v.GapToricVariety )
@@ -27,7 +27,7 @@ function CreateDivisor( coeffs::Vector{Int64}, v::JToricVariety )
 end
 export CreateDivisor
 
-function DivisorOfCharacter( character::Vector{Int64}, v::JToricVariety )
+function DivisorOfCharacter( character::Vector{Int64}, v::toric_variety )
     # create the divisor
     gap_character = GapObj( character )
     gap_divisor = GAP.Globals.DivisorOfCharacter( gap_character, v.GapToricVariety )
@@ -37,7 +37,7 @@ function DivisorOfCharacter( character::Vector{Int64}, v::JToricVariety )
 end
 export DivisorOfCharacter
 
-function DivisorOfGivenClass( v::JToricVariety, class::Vector{Int64} )
+function DivisorOfGivenClass( v::toric_variety, class::Vector{Int64} )
     # create the divisor
     gap_class = GapObj( class )
     gap_divisor = GAP.Globals.DivisorOfGivenClass( v.GapToricVariety, gap_class )

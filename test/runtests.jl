@@ -11,32 +11,32 @@ using Test
     # Compute properties of toric varieties on the example of a Hirzebruch surface
     Rays = [[-1,5],[0,1],[1,0],[0,-1]]
     Cones = [[1,2],[2,3],[3,4],[4,1]]
-    H5 = JToricVariety( Rays, Cones )
-    @test JToric.IsNormalVariety( H5 ) == true
-    @test JToric.IsAffine( H5 ) == false
-    @test JToric.IsProjective( H5 ) == true
-    @test JToric.IsSmooth( H5 ) == true
-    @test JToric.IsComplete( H5 ) == true
-    @test JToric.HasTorusfactor( H5 ) == false
-    @test JToric.HasNoTorusfactor( H5 ) == true
-    @test JToric.IsOrbifold( H5 ) == true
-    @test JToric.IsSimplicial( H5 ) == true
-    @test JToric.IsIsomorphicToProjectiveSpace( H5 ) == false
-    @test JToric.IsDirectProductOfPNs( H5 ) == false
+    H5 = toric_variety( Rays, Cones )
+    @test JToric.is_normal_variety( H5 ) == true
+    @test JToric.is_affine( H5 ) == false
+    @test JToric.is_projective( H5 ) == true
+    @test JToric.is_smooth( H5 ) == true
+    @test JToric.is_complete( H5 ) == true
+    @test JToric.has_torusfactor( H5 ) == false
+    @test JToric.has_no_torusfactor( H5 ) == true
+    @test JToric.is_orbifold( H5 ) == true
+    @test JToric.is_simplicial( H5 ) == true
+    @test JToric.is_isomorphic_to_projective_space( H5 ) == false
+    @test JToric.is_direct_product_of_projective_spaces( H5 ) == false
     
     # Compute properties of toric varieties on the example of a projective space
-    P2 = JToric.ProjectiveSpace( 2 )
-    @test JToric.IsNormalVariety( P2 ) == true
-    @test JToric.IsAffine( P2 ) == false
-    @test JToric.IsProjective( P2 ) == true
-    @test JToric.IsSmooth( P2 ) == true
-    @test JToric.IsComplete( P2 ) == true
-    @test JToric.HasTorusfactor( P2 ) == false
-    @test JToric.HasNoTorusfactor( P2 ) == true
-    @test JToric.IsOrbifold( P2 ) == true
-    @test JToric.IsSimplicial( P2 ) == true
-    @test JToric.IsIsomorphicToProjectiveSpace( P2 ) == true
-    @test JToric.IsDirectProductOfPNs( P2 ) == true
+    P2 = JToric.projective_space( 2 )
+    @test JToric.is_normal_variety( P2 ) == true
+    @test JToric.is_affine( P2 ) == false
+    @test JToric.is_projective( P2 ) == true
+    @test JToric.is_smooth( P2 ) == true
+    @test JToric.is_complete( P2 ) == true
+    @test JToric.has_torusfactor( P2 ) == false
+    @test JToric.has_no_torusfactor( P2 ) == true
+    @test JToric.is_orbifold( P2 ) == true
+    @test JToric.is_simplicial( P2 ) == true
+    @test JToric.is_isomorphic_to_projective_space( P2 ) == true
+    @test JToric.is_direct_product_of_projective_spaces( P2 ) == true
 
     # compute properties of toric divisors on the example of the trivial divisor
     D=CreateDivisor( [ 0,0,0,0 ], H5 )
@@ -105,15 +105,15 @@ using Test
     CoordinateRingOfTorus( H5, [ "u", "v", "w", "z" ] )
     CoxRing( H5, "u" )
     v = H5 * P2;
-    @test JToric.IsNormalVariety( v ) == true
-    @test JToric.IsAffine( v ) == false
-    @test JToric.IsProjective( v ) == true
-    @test JToric.IsSmooth( v ) == true
-    @test JToric.IsComplete( v ) == true
-    @test JToric.HasTorusfactor( v ) == false
-    @test JToric.HasNoTorusfactor( v ) == true
-    @test JToric.IsOrbifold( v ) == true
-    @test JToric.IsSimplicial( v ) == true
-    @test JToric.IsIsomorphicToProjectiveSpace( v ) == false
-    @test JToric.IsDirectProductOfPNs( v ) == false
+    @test JToric.is_normal_variety( v ) == true
+    @test JToric.is_affine( v ) == false
+    @test JToric.is_projective( v ) == true
+    @test JToric.is_smooth( v ) == true
+    @test JToric.is_complete( v ) == true
+    @test JToric.has_torusfactor( v ) == false
+    @test JToric.has_no_torusfactor( v ) == true
+    @test JToric.is_orbifold( v ) == true
+    @test JToric.is_simplicial( v ) == true
+    @test JToric.is_isomorphic_to_projective_space( v ) == false
+    @test JToric.is_direct_product_of_projective_spaces( v ) == false
 end

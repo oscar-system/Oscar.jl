@@ -7,9 +7,9 @@ include("ToricDivisors.jl")
 # 1: Attributes of ToricVarieties
 ######################
 
-function AffineOpenCovering( v::JToricVariety )
+function AffineOpenCovering( v::toric_variety )
     gap_cover = GAP.Globals.AffineOpenCovering( v.GapToricVariety )
-    return [ JToricVariety( v ) for v in gap_cover ]
+    return [ toric_variety( v ) for v in gap_cover ]
 end
 export AffineOpenCovering
 
@@ -19,14 +19,14 @@ struct JCoxRing
 end
 export JCoxRing
 
-function CoxRing( v::JToricVariety )
+function CoxRing( v::toric_variety )
     gap_ring = GAP.Globals.CoxRing( v.GapToricVariety )
     return JCoxRing( gap_ring )
 end
 export CoxRing
 
 
-function ListOfVariablesOfCoxRing(v::JToricVariety)
+function ListOfVariablesOfCoxRing(v::toric_variety)
     vars = GAP.Globals.ListOfVariablesOfCoxRing(v.GapToricVariety)
     return Vector{String}(vars)
 end
@@ -38,7 +38,7 @@ struct JClassGroup
 end
 export JClassGroup
 
-function ClassGroup( v::JToricVariety )
+function ClassGroup( v::toric_variety )
     gap_class_group = GAP.Globals.ClassGroup( v.GapToricVariety )
     return JClassGroup( gap_class_group )
 end
@@ -50,7 +50,7 @@ struct JTorusInvariantDivisorGroup
 end
 export JTorusInvariantDivisorGroup
 
-function TorusInvariantDivisorGroup( v::JToricVariety )
+function TorusInvariantDivisorGroup( v::toric_variety )
     gap_TorusInvariantDivisorGroup = GAP.Globals.TorusInvariantDivisorGroup( v.GapToricVariety )
     return JTorusInvariantDivisorGroup( gap_TorusInvariantDivisorGroup )
 end
@@ -62,7 +62,7 @@ struct JMapFromCharacterToPrincipalDivisor
 end
 export JMapFromCharacterToPrincipalDivisor
 
-function MapFromCharacterToPrincipalDivisor( v::JToricVariety )
+function MapFromCharacterToPrincipalDivisor( v::toric_variety )
     gap_MapFromCharacterToPrincipalDivisor = GAP.Globals.MapFromCharacterToPrincipalDivisor( v.GapToricVariety )
     return JMapFromCharacterToPrincipalDivisor( gap_MapFromCharacterToPrincipalDivisor )
 end
@@ -74,20 +74,20 @@ struct JMapFromWeilDivisorsToClassGroup
 end
 export JMapFromWeilDivisorsToClassGroup
 
-function MapFromWeilDivisorsToClassGroup( v::JToricVariety )
+function MapFromWeilDivisorsToClassGroup( v::toric_variety )
     gap_MapFromWeilDivisorsToClassGroup = GAP.Globals.MapFromWeilDivisorsToClassGroup( v.GapToricVariety )
     return JMapFromWeilDivisorsToClassGroup( gap_MapFromWeilDivisorsToClassGroup )
 end
 export MapFromWeilDivisorsToClassGroup
 
 
-function Dimension( v::JToricVariety )
+function Dimension( v::toric_variety )
     return UInt64( GAP.Globals.Dimension( v.GapToricVariety ) )
 end
 export Dimension
 
 
-function DimensionOfTorusfactor( v::JToricVariety )
+function DimensionOfTorusfactor( v::toric_variety )
     return UInt64( GAP.Globals.DimensionOfTorusfactor( v.GapToricVariety ) )
 end
 export DimensionOfTorusfactor
@@ -98,23 +98,23 @@ struct JCoordinateRingOfTorus
 end
 export JCoordinateRingOfTorus
 
-function CoordinateRingOfTorus( v::JToricVariety )
+function CoordinateRingOfTorus( v::toric_variety )
     gap_CoordinateRingOfTorus = GAP.Globals.CoordinateRingOfTorus( v.GapToricVariety )
     return JCoordinateRingOfTorus( gap_CoordinateRingOfTorus )
 end
 export CoordinateRingOfTorus
 
 
-function ListOfVariablesOfCoordinateRingOfTorus(v::JToricVariety)
+function ListOfVariablesOfCoordinateRingOfTorus(v::toric_variety)
     vars = GAP.Globals.ListOfVariablesOfCoordinateRingOfTorus(v.GapToricVariety)
     return Vector{String}(vars)
 end
 export ListOfVariablesOfCoordinateRingOfTorus
 
 
-function IsProductOf(v::JToricVariety)
+function IsProductOf(v::toric_variety)
     factors = CapAndHomalg.GAP.Globals.IsProductOf(v.GapToricVariety)
-    return [ JToricVariety( f ) for f in factors ]
+    return [ toric_variety( f ) for f in factors ]
 end
 export IsProductOf
 
@@ -124,14 +124,14 @@ struct JCharacterLattice
 end
 export JCharacterLattice
 
-function CharacterLattice( v::JToricVariety )
+function CharacterLattice( v::toric_variety )
     gap_CharacterLattice = GAP.Globals.CharacterLattice( v.GapToricVariety )
     return JCharacterLattice( gap_CharacterLattice )
 end
 export CharacterLattice
 
 
-function TorusInvariantPrimeDivisors( v::JToricVariety )
+function TorusInvariantPrimeDivisors( v::toric_variety )
     divisors = GAP.Globals.TorusInvariantPrimeDivisors( v.GapToricVariety )
     return [ JToricDivisor( d ) for d in divisors ]    
 end
@@ -143,7 +143,7 @@ struct JIrrelevantIdeal
 end
 export JIrrelevantIdeal
 
-function IrrelevantIdeal( v::JToricVariety )
+function IrrelevantIdeal( v::toric_variety )
     gap_IrrelevantIdeal = GAP.Globals.IrrelevantIdeal( v.GapToricVariety )
     return JIrrelevantIdeal( gap_IrrelevantIdeal )
 end
@@ -155,7 +155,7 @@ struct JSRIdeal
 end
 export JSRIdeal
 
-function SRIdeal( v::JToricVariety )
+function SRIdeal( v::toric_variety )
     gap_SRIdeal = GAP.Globals.SRIdeal( v.GapToricVariety )
     return JSRIdeal( gap_SRIdeal )
 end
@@ -167,16 +167,16 @@ struct JMorphismFromCoxVariety
 end
 export JMorphismFromCoxVariety
 
-function MorphismFromCoxVariety( v::JToricVariety )
+function MorphismFromCoxVariety( v::toric_variety )
     gap_MorphismFromCoxVariety = GAP.Globals.MorphismFromCoxVariety( v.GapToricVariety )
     return JMorphismFromCoxVariety( gap_MorphismFromCoxVariety )
 end
 export MorphismFromCoxVariety
 
 
-function CoxVariety( v::JToricVariety )
+function CoxVariety( v::toric_variety )
     gap_CoxVariety = GAP.Globals.CoxVariety( v.GapToricVariety )
-    return JToricVariety( gap_CoxVariety )
+    return toric_variety( gap_CoxVariety )
 end
 export CoxVariety
 
@@ -188,7 +188,7 @@ struct JuliaFan
 end
 export JuliaFan
 
-function FanOfVariety( v::JToricVariety )
+function FanOfVariety( v::toric_variety )
     # collect data
     gap_fan = GAP.Globals.FanOfVariety( v.GapToricVariety )
     rays = Vector{Vector{Int64}}( GAP.Globals.RayGenerators( gap_fan ) )
@@ -201,7 +201,7 @@ end
 export FanOfVariety
 
 
-function Fan( v::JToricVariety )
+function Fan( v::toric_variety )
     return FanOfVariety( v )
 end
 export Fan
@@ -212,7 +212,7 @@ struct JCartierTorusInvariantDivisorGroup
 end
 export JCartierTorusInvariantDivisorGroup
 
-function CartierTorusInvariantDivisorGroup( v::JToricVariety )
+function CartierTorusInvariantDivisorGroup( v::toric_variety )
     gap_CartierTorusInvariantDivisorGroup = GAP.Globals.CartierTorusInvariantDivisorGroup( v.GapToricVariety )
     return JCartierTorusInvariantDivisorGroup( gap_CartierTorusInvariantDivisorGroup )
 end
@@ -224,14 +224,14 @@ struct JPicardGroup
 end
 export JPicardGroup
 
-function PicardGroup( v::JToricVariety )
+function PicardGroup( v::toric_variety )
     gap_PicardGroup = GAP.Globals.PicardGroup( v.GapToricVariety )
     return JPicardGroup( gap_PicardGroup )
 end
 export PicardGroup
 
 
-function NameOfVariety( v::JToricVariety )
+function NameOfVariety( v::toric_variety )
     if ! ( Bool( GAP.Globals.HasNameOfVariety( v.GapToricVariety ) ) )
             return "No name set for this variety"
     end
@@ -241,7 +241,7 @@ end
 export NameOfVariety
 
 
-function SetNameOfVariety( v::JToricVariety, s::String )
+function SetNameOfVariety( v::toric_variety, s::String )
     GAP.Globals.SetNameOfVariety( v.GapToricVariety, GapObj( s ) )
     return true
 end
@@ -253,7 +253,7 @@ struct JZariskiCotangentSheaf
 end
 export JZariskiCotangentSheaf
 
-function ZariskiCotangentSheaf( v::JToricVariety )
+function ZariskiCotangentSheaf( v::toric_variety )
     gap_ZariskiCotangentSheaf = GAP.Globals.ZariskiCotangentSheaf( v.GapToricVariety )
     return JZariskiCotangentSheaf( gap_ZariskiCotangentSheaf )
 end
@@ -265,14 +265,14 @@ struct JCotangentSheaf
 end
 export JCotangentSheaf
 
-function CotangentSheaf( v::JToricVariety )
+function CotangentSheaf( v::toric_variety )
     gap_CotangentSheaf = GAP.Globals.CotangentSheaf( v.GapToricVariety )
     return JCotangentSheaf( gap_CotangentSheaf )
 end
 export CotangentSheaf
 
 
-function EulerCharacteristic( v::JToricVariety )
+function EulerCharacteristic( v::toric_variety )
     return Int64( GAP.Globals.EulerCharacteristic( v.GapToricVariety ) )
 end
 export EulerCharacteristic
@@ -283,7 +283,7 @@ export EulerCharacteristic
 #end
 #export JUnderlyingSheaf
 
-#function UnderlyingSheaf( v::JToricVariety )
+#function UnderlyingSheaf( v::toric_variety )
 #   gap_Underlying = GAP.Globals.UnderlyingSheaf( v.GapToricVariety )
 #    return JUnderlyingSheaf( gap_UnderlyingSheaf )
 #end
@@ -294,7 +294,7 @@ export EulerCharacteristic
 # 2: Methods of ToricVarieties
 ######################
 
-function CoordinateRingOfTorus( v::JToricVariety, names::Vector{String} )
+function CoordinateRingOfTorus( v::toric_variety, names::Vector{String} )
     gap_names = [ GapObj( names[ i ] ) for i in 1 : size(names)[1] ]
     gap_names = GapObj( gap_names )
     gap_CoordinateRingOfTorus = GAP.Globals.CoordinateRingOfTorus( v.GapToricVariety, gap_names )
@@ -303,7 +303,7 @@ end
 export CoordinateRingOfTorus
 
 
-function CoxRing( v::JToricVariety, names::String )
+function CoxRing( v::toric_variety, names::String )
     gap_names = GapObj( names )
     gap_CoxRing = GAP.Globals.CoxRing( v.GapToricVariety, gap_names )
     return JCoxRing( gap_CoxRing )
@@ -311,9 +311,9 @@ end
 export CoordinateRingOfTorus
 
 
-function Base.:*( v::JToricVariety, w::JToricVariety )
+function Base.:*( v::toric_variety, w::toric_variety )
     gap_ToricVariety = v.GapToricVariety * w.GapToricVariety
-    return JToricVariety( gap_ToricVariety )
+    return toric_variety( gap_ToricVariety )
 end
 export *
 

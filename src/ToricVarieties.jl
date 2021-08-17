@@ -6,17 +6,17 @@ using CapAndHomalg
 # 1: The Julia type for ToricVarieties
 ######################
 
-struct JToricVariety
+struct toric_variety
            GapToricVariety
 end
-export JToricVariety
+export toric_variety
 
 
 ######################
 # 2: Generic constructors
 ######################
 
-function JToricVariety( rays::Vector{Vector{Int64}}, cones::Vector{Vector{Int64}} )
+function toric_variety( rays::Vector{Vector{Int64}}, cones::Vector{Vector{Int64}} )
     # load necessary gap packages
     CapAndHomalg.LoadPackage( "JuliaInterface" )
     CapAndHomalg.LoadPackage( "JConvex" )
@@ -29,16 +29,16 @@ function JToricVariety( rays::Vector{Vector{Int64}}, cones::Vector{Vector{Int64}
     variety = GAP.Globals.ToricVariety( fan )
     
     # wrap it into a struct and return
-    return JToricVariety( variety )
+    return toric_variety( variety )
 end
-export JToricVariety
+export toric_variety
 
 
 ######################
 # 3: Special constructors
 ######################
 
-function ProjectiveSpace( x )
+function projective_space( x )
     # load necessary gap packages
     CapAndHomalg.LoadPackage( "JuliaInterface" )
     CapAndHomalg.LoadPackage( "JConvex" )
@@ -48,76 +48,76 @@ function ProjectiveSpace( x )
     variety = GAP.Globals.ProjectiveSpace( x )
     
     # wrap it and return
-    return JToricVariety(  variety )
+    return toric_variety(  variety )
 end
-export ProjectiveSpace
+export projective_space
 
 
 ######################
 # 4: Properties
 ######################
 
-function IsNormalVariety( v::JToricVariety )
+function is_normal_variety( v::toric_variety )
     return Bool( GAP.Globals.IsNormalVariety( v.GapToricVariety ) )
 end
-export IsNormalVariety
+export is_normal_variety
 
 
-function IsAffine( v::JToricVariety )
+function is_affine( v::toric_variety )
     return Bool( GAP.Globals.IsAffine( v.GapToricVariety ) )
 end
-export IsAffine
+export is_affine
 
 
-function IsProjective( v::JToricVariety )
+function is_projective( v::toric_variety )
     return Bool( GAP.Globals.IsProjective( v.GapToricVariety ) )
 end
-export IsProjective
+export is_projective
 
 
-function IsSmooth( v::JToricVariety )
+function is_smooth( v::toric_variety )
     return Bool( GAP.Globals.IsSmooth( v.GapToricVariety ) )
 end
-export IsSmooth
+export is_smooth
 
 
-function IsComplete( v::JToricVariety )
+function is_complete( v::toric_variety )
     return Bool( GAP.Globals.IsComplete( v.GapToricVariety ) )
 end
-export IsComplete
+export is_complete
 
 
-function HasTorusfactor( v::JToricVariety )
+function has_torusfactor( v::toric_variety )
     return Bool( GAP.Globals.HasTorusfactor( v.GapToricVariety ) )
 end
-export HasTorusfactor
+export has_torusfactor
 
 
-function HasNoTorusfactor( v::JToricVariety )
+function has_no_torusfactor( v::toric_variety )
     return Bool( GAP.Globals.HasNoTorusfactor( v.GapToricVariety ) )
 end
-export HasNoTorusfactor
+export has_no_torusfactor
 
 
-function IsOrbifold( v::JToricVariety )
+function is_orbifold( v::toric_variety )
     return Bool( GAP.Globals.IsOrbifold( v.GapToricVariety ) )
 end
-export IsOrbifold
+export is_orbifold
 
 
-function IsSimplicial( v::JToricVariety )
+function is_simplicial( v::toric_variety )
     return Bool( GAP.Globals.IsSimplicial( v.GapToricVariety ) )
 end
-export IsSimplicial
+export is_simplicial
 
 
-function IsIsomorphicToProjectiveSpace( v::JToricVariety )
+function is_isomorphic_to_projective_space( v::toric_variety )
     return Bool( GAP.Globals.IsIsomorphicToProjectiveSpace( v.GapToricVariety ) )
 end
-export IsIsomorphicToProjectiveSpace
+export is_isomorphic_to_projective_space
 
 
-function IsDirectProductOfPNs( v::JToricVariety )
+function is_direct_product_of_projective_spaces( v::toric_variety )
     return Bool( GAP.Globals.IsDirectProductOfPNs( v.GapToricVariety ) )
 end
-export IsDirectProductOfPNs
+export is_direct_product_of_projective_spaces
