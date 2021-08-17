@@ -242,7 +242,7 @@ end
 Return a system of secondary invariants of `IR` with respect to the currently cached system of primary invariants of `IR`
 (if no system of primary invariants of `IR` is cached, compute and cache such a system first).
 
-If a corresponding system of secondary invariants is already cached, return the cached system. 
+If a system of secondary invariants is already cached, return the cached system. 
 Otherwise, compute and cache such a system first.
 
 NOTE: The secondary invariants are sorted by increasing degree.

@@ -13,19 +13,19 @@ Pages = ["it.md"]
 # Introduction
 
 The invariant theory part of OSCAR provides functionality for computing polynomial invariants
-of group actions. The basic setting in this context consists of a group $G$, a field $K$, a vector space
+of group actions.
+
+The basic setting in this context consists of a group $G$, a field $K$, a vector space
 $V$ over $K$ of finite dimension $n,$ and  a representation $\rho: G \to \text{GL}(V)$ of $G$ on $V$.
-The induced action 
+The induced action on the dual vector space $V^\ast$,
 
-$G\times V \rightarrow V, (\pi,v)\to \pi \;\!  . \;\!  v := \rho(\pi)(v),$ 
+$G \times V^\ast \rightarrow V^\ast, (\pi,f)\mapsto \pi \;\!  . \;\!  f := f\circ \rho(\pi^{-1}),$
+ 
+extends to an action of $G$ on the graded symmetric algebra
 
-gives rise to the dual action 
+$K[V]:=S(V^*)=\bigoplus_{d\geq 0} S^d V^*$
 
-$G \times V^\ast \rightarrow V^\ast, (\pi,f)\to \pi \;\!  . \;\!  f := (v \to f(\pi^{-1} \;\!  . \;\!  v)),$
-
-which extends to an action of $G$ on the graded symmetric algebra
-
-$K[V]:=S(V^*)=\bigoplus_{d\geq 0} S^d V^*.$
+which preserves the grading.
 
 The *invariants* of $G$ are the fixed points of this action, its *ring of invariants* is the graded subalgebra
 
@@ -34,7 +34,7 @@ $K[V]^G:=\{f\in K[V] \mid \pi  \;\!  . \;\!  f=f {\text { for any }} \pi\in G\} 
 Explicitly, the choice of a basis of $V$ and its dual basis, say, $\{x_1, \dots, x_n\}$ of $V^*$
 gives rise to isomorphisms $\text{GL}(V) \cong \text{GL}_n(K)$ and $K[V]\cong  K[x_1, \dots, x_n]$.
 After identifying $\text{GL}(V)$ with $\text{GL}_n(K)$ and $K[V]$ with $K[x_1, \dots, x_n]$ by means of
-these isomorphisms, the action of $G$ on $K[V]$ is given by linear substitution as follows:
+these isomorphisms, the action of $G$ on $K[V]$ is given as follows:
 
 $(\pi \;\!  . \;\!  f) \;\! (x_1, \dots, x_n)  = f(\rho(\pi^{-1}) \cdot (x_1, \dots, x_n)^T).$
 
