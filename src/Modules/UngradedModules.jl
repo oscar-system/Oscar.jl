@@ -1,4 +1,5 @@
-export presentation
+export presentation, ModuleFP, AbstractFreeMod, AbstractSubQuo,
+       AbstractFreeModElem, AbstractSubQuoElem, ModuleMap
 
 # TODO replace asserts by error messages?
 
@@ -9,6 +10,12 @@ The abstract supertype of all modules. Here, all modules are finitely presented.
 The type variable `T` refers to the type of the elements of the base ring.
 """
 abstract type ModuleFP{T} end
+
+abstract type AbstractFreeMod{T} <: ModuleFP{T} end
+abstract type AbstractSubQuo{T} <: ModuleFP{T} end
+
+abstract type AbstractFreeModElem{T} end
+abstract type AbstractSubQuoElem{T} end
 
 #TODO: "fix" to allow QuoElem s as well...
 # this requires
@@ -38,7 +45,7 @@ Moreover, canonical in- and outgoing morphisms are stored if the corresponding
 option is set in suitable functions.
 `FreeMod{T}` is a subtype of `ModuleFP{T}`.
 """
-mutable struct FreeMod{T <: RingElem} <: ModuleFP{T}
+mutable struct FreeMod{T <: RingElem} <: AbstractFreeMod{T}
   R::Ring
   n::Int
   S::Vector{Symbol}
@@ -177,7 +184,7 @@ true
 
 ```
 """
-struct FreeModElem{T}
+struct FreeModElem{T} <: AbstractFreeModElem{T}
   coords::SRow{T} # also usable via coeffs()
   parent::FreeMod{T}
 end
@@ -986,7 +993,7 @@ Moreover, canonical in- and outgoing morphisms are stored if the corresponding
 option is set in suitable functions.
 `SubQuo{T}` is a subtype of `ModuleFP{T}`.
 """
-mutable struct SubQuo{T} <: ModuleFP{T}
+mutable struct SubQuo{T} <: AbstractSubQuo{T}
   #meant to represent sub+ quo mod quo - as lazy as possible
   F::FreeMod{T}
   sub::SubModuleOfFreeModule
@@ -1371,7 +1378,7 @@ a vector) $v$. The element is then just $u := \sum_i v[i]\cdot A[i]$ (where $A[i
 The representative $u$ is also stored (along with the parent module where the 
 element lives in).
 """
-struct SubQuoElem{T} # this needs to be redone TODO
+struct SubQuoElem{T} <: AbstractSubQuoElem{T} # this needs to be redone TODO
   coeffs::SRow{T}
   repres::FreeModElem{T}
   parent::SubQuo
