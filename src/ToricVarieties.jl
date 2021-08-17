@@ -63,7 +63,7 @@ export ProjectiveSpace
 
 function IsNormalVariety( v::JToricVariety )
     
-    return GAP.Globals.GAPToJulia( GAP.Globals.IsNormalVariety( v.GapToricVariety ) )
+    return Bool( GAP.Globals.IsNormalVariety( v.GapToricVariety ) )
     
 end
 export IsNormalVariety
@@ -71,7 +71,7 @@ export IsNormalVariety
 
 function IsAffine( v::JToricVariety )
     
-    return GAP.Globals.GAPToJulia( GAP.Globals.IsAffine( v.GapToricVariety ) )
+    return Bool( GAP.Globals.IsAffine( v.GapToricVariety ) )
     
 end
 export IsAffine
@@ -79,7 +79,7 @@ export IsAffine
 
 function IsProjective( v::JToricVariety )
     
-    return GAP.Globals.GAPToJulia( GAP.Globals.IsProjective( v.GapToricVariety ) )
+    return Bool( GAP.Globals.IsProjective( v.GapToricVariety ) )
     
 end
 export IsProjective
@@ -87,7 +87,7 @@ export IsProjective
 
 function IsSmooth( v::JToricVariety )
     
-    return GAP.Globals.GAPToJulia( GAP.Globals.IsSmooth( v.GapToricVariety ) )
+    return Bool( GAP.Globals.IsSmooth( v.GapToricVariety ) )
     
 end
 export IsSmooth
@@ -95,7 +95,7 @@ export IsSmooth
 
 function IsComplete( v::JToricVariety )
     
-    return GAP.Globals.GAPToJulia( GAP.Globals.IsComplete( v.GapToricVariety ) )
+    return Bool( GAP.Globals.IsComplete( v.GapToricVariety ) )
     
 end
 export IsComplete
@@ -103,7 +103,7 @@ export IsComplete
 
 function HasTorusfactor( v::JToricVariety )
     
-    return GAP.Globals.GAPToJulia( GAP.Globals.HasTorusfactor( v.GapToricVariety ) )
+    return Bool( GAP.Globals.HasTorusfactor( v.GapToricVariety ) )
     
 end
 export HasTorusfactor
@@ -111,7 +111,7 @@ export HasTorusfactor
 
 function HasNoTorusfactor( v::JToricVariety )
     
-    return GAP.Globals.GAPToJulia( GAP.Globals.HasNoTorusfactor( v.GapToricVariety ) )
+    return Bool( GAP.Globals.HasNoTorusfactor( v.GapToricVariety ) )
     
 end
 export HasNoTorusfactor
@@ -119,7 +119,7 @@ export HasNoTorusfactor
 
 function IsOrbifold( v::JToricVariety )
     
-    return GAP.Globals.GAPToJulia( GAP.Globals.IsOrbifold( v.GapToricVariety ) )
+    return Bool( GAP.Globals.IsOrbifold( v.GapToricVariety ) )
     
 end
 export IsOrbifold
@@ -127,7 +127,7 @@ export IsOrbifold
 
 function IsSimplicial( v::JToricVariety )
     
-    return GAP.Globals.GAPToJulia( GAP.Globals.IsSimplicial( v.GapToricVariety ) )
+    return Bool( GAP.Globals.IsSimplicial( v.GapToricVariety ) )
     
 end
 export IsSimplicial
@@ -135,7 +135,7 @@ export IsSimplicial
 
 function IsIsomorphicToProjectiveSpace( v::JToricVariety )
     
-    return GAP.Globals.GAPToJulia( GAP.Globals.IsIsomorphicToProjectiveSpace( v.GapToricVariety ) )
+    return Bool( GAP.Globals.IsIsomorphicToProjectiveSpace( v.GapToricVariety ) )
     
 end
 export IsIsomorphicToProjectiveSpace
@@ -143,7 +143,7 @@ export IsIsomorphicToProjectiveSpace
 
 function IsDirectProductOfPNs( v::JToricVariety )
     
-    return GAP.Globals.GAPToJulia( GAP.Globals.IsDirectProductOfPNs( v.GapToricVariety ) )
+    return Bool( GAP.Globals.IsDirectProductOfPNs( v.GapToricVariety ) )
     
 end
 export IsDirectProductOfPNs

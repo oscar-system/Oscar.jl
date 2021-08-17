@@ -101,7 +101,7 @@ export MapFromWeilDivisorsToClassGroup
 
 function Dimension( v::JToricVariety )
     
-    return GAP.Globals.GAPToJulia( GAP.Globals.Dimension( v.GapToricVariety ) )
+    return UInt128( GAP.Globals.Dimension( v.GapToricVariety ) )
     
 end
 export Dimension
@@ -109,7 +109,7 @@ export Dimension
 
 function DimensionOfTorusfactor( v::JToricVariety )
     
-    return GAP.Globals.GAPToJulia( GAP.Globals.DimensionOfTorusfactor( v.GapToricVariety ) )
+    return UInt128( GAP.Globals.DimensionOfTorusfactor( v.GapToricVariety ) )
     
 end
 export DimensionOfTorusfactor
@@ -287,11 +287,11 @@ export PicardGroup
 
 function NameOfVariety( v::JToricVariety )
     
-    if ! ( GAP.Globals.GAPToJulia( GAP.Globals.HasNameOfVariety( v.GapToricVariety ) ) )
+    if ! ( Bool( GAP.Globals.HasNameOfVariety( v.GapToricVariety ) ) )
             return "No name set for this variety"
     end
     
-    return GAP.Globals.GAPToJulia( GAP.Globals.NameOfVariety( v.GapToricVariety ) )
+    return String( GAP.Globals.NameOfVariety( v.GapToricVariety ) )
     
 end
 export NameOfVariety
@@ -299,7 +299,7 @@ export NameOfVariety
 
 function SetNameOfVariety( v::JToricVariety, s::String )
     
-    GAP.Globals.SetNameOfVariety( v.GapToricVariety, GAP.Globals.JuliaToGAP( GAP.Globals.IsString, s ) )
+    GAP.Globals.SetNameOfVariety( v.GapToricVariety, GapObj( s ) )
     return true
     
 end
@@ -336,7 +336,7 @@ export CotangentSheaf
 
 function EulerCharacteristic( v::JToricVariety )
     
-    return GAP.Globals.GAPToJulia( GAP.Globals.EulerCharacteristic( v.GapToricVariety ) )
+    return Int128( GAP.Globals.EulerCharacteristic( v.GapToricVariety ) )
     
 end
 export EulerCharacteristic
@@ -362,8 +362,8 @@ export EulerCharacteristic
 
 function CoordinateRingOfTorus( v::JToricVariety, names::Vector{String} )
     
-    gap_names = [ GAP.Globals.JuliaToGAP( GAP.Globals.IsString, names[ i ] ) for i in 1 : size(names)[1] ]
-    gap_names = GAP.Globals.JuliaToGAP( GAP.Globals.IsList, gap_names )
+    gap_names = [ GapObj( names[ i ] ) for i in 1 : size(names)[1] ]
+    gap_names = GapObj( gap_names )
     gap_CoordinateRingOfTorus = GAP.Globals.CoordinateRingOfTorus( v.GapToricVariety, gap_names )
     return JCoordinateRingOfTorus( gap_CoordinateRingOfTorus )
     
@@ -373,7 +373,7 @@ export CoordinateRingOfTorus
 
 function CoxRing( v::JToricVariety, names::String )
     
-    gap_names = GAP.Globals.JuliaToGAP( GAP.Globals.IsString, names )
+    gap_names = GapObj( names )
     gap_CoxRing = GAP.Globals.CoxRing( v.GapToricVariety, gap_names )
     return JCoxRing( gap_CoxRing )
     
