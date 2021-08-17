@@ -5,6 +5,7 @@ using Test
     # Write your tests here.
     
     # load necessary gap-packages
+    using CapAndHomalg
     CapAndHomalg.LoadPackage( "JuliaInterface" )
     CapAndHomalg.LoadPackage( "JConvex" )
     CapAndHomalg.LoadPackage( "ToricV" )

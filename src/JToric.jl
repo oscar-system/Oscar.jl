@@ -1,13 +1,9 @@
 module JToric
 
 
-# load and export CapAndHomalg
+# load GAP and CapAndHomalg
 import CapAndHomalg
-export CapAndHomalg
-
-# load and export GAP
 import GAP
-export GAP
 
 # use packages
 using Pkg
