@@ -41,7 +41,6 @@ function DivisorOfCharacter( character::Vector{Int64}, v::JToricVariety )
 end
 export DivisorOfCharacter
 
-# potentially duplicate of the former -> clean up the gap code!
 function DivisorOfGivenClass( v::JToricVariety, class::Vector{Int64} )
 
     # create the divisor
