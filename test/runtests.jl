@@ -118,5 +118,4 @@ using Test
     @test JToric.IsSimplicial( v ) == true
     @test JToric.IsIsomorphicToProjectiveSpace( v ) == false
     @test JToric.IsDirectProductOfPNs( v ) == false
-    
 end

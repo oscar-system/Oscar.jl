@@ -14,7 +14,6 @@ Initializing function for 'JToric'.
 """
 # initialization
 function __init__()
-    
     # load necessary gap packages
     CapAndHomalg.LoadPackage( "JuliaInterface" )
     CapAndHomalg.LoadPackage( "JConvex" )
@@ -25,7 +24,6 @@ function __init__()
     printstyled("$version\n", color = :green)
     println("Enjoy this software to perform computations on toric geometry!")
     #println("Type: ?JToric for more information")
-    
 end
 
 
