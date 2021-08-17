@@ -8,12 +8,8 @@ include("ToricDivisors.jl")
 ######################
 
 function AffineOpenCovering( v::JToricVariety )
-    
     gap_cover = GAP.Globals.AffineOpenCovering( v.GapToricVariety )
-    len = GAP.Globals.GAPToJulia( GAP.Globals.Length( gap_cover ) )
-    j_cover = [ JToricVariety( gap_cover[ i ] ) for i in 1:len ]
-    return j_cover
-    
+    return [ JToricVariety( v ) for v in gap_cover ]
 end
 export AffineOpenCovering
 
@@ -32,13 +28,9 @@ end
 export CoxRing
 
 
-function ListOfVariablesOfCoxRing( v::JToricVariety,  )
-    
-    gap_variables = GAP.Globals.ListOfVariablesOfCoxRing( v.GapToricVariety )
-    len = GAP.Globals.GAPToJulia( GAP.Globals.Length( gap_variables ) )
-    julia_variables = [  GAP.Globals.GAPToJulia( gap_variables[ i ] ) for i in 1:len ]
-    return julia_variables
-    
+function ListOfVariablesOfCoxRing(v::JToricVariety)
+    vars = GAP.Globals.ListOfVariablesOfCoxRing(v.GapToricVariety)
+    return Vector{String}(vars)
 end
 export ListOfVariablesOfCoxRing
 
@@ -129,24 +121,16 @@ end
 export CoordinateRingOfTorus
 
 
-function ListOfVariablesOfCoordinateRingOfTorus( v::JToricVariety )
-    
-    gap_variables = GAP.Globals.ListOfVariablesOfCoordinateRingOfTorus( v.GapToricVariety )
-    len = GAP.Globals.GAPToJulia( GAP.Globals.Length( gap_variables ) )
-    julia_variables = [  GAP.Globals.GAPToJulia( gap_variables[ i ] ) for i in 1:len ]
-    return julia_variables
-    
+function ListOfVariablesOfCoordinateRingOfTorus(v::JToricVariety)
+    vars = GAP.Globals.ListOfVariablesOfCoordinateRingOfTorus(v.GapToricVariety)
+    return Vector{String}(vars)
 end
 export ListOfVariablesOfCoordinateRingOfTorus
 
 
-function IsProductOf( v::JToricVariety )
-    
-    factors = GAP.Globals.IsProductOf( v.GapToricVariety )
-    len = GAP.Globals.GAPToJulia( GAP.Globals.Length( factors ) )
-    j_factors = [ JToricVariety( factors[ i ] ) for i in 1:len ]
-    return j_factors
-    
+function IsProductOf(v::JToricVariety)
+    factors = CapAndHomalg.GAP.Globals.IsProductOf(v.GapToricVariety)
+    return [ JToricVariety( f ) for f in factors ]
 end
 export IsProductOf
 
@@ -166,12 +150,8 @@ export CharacterLattice
 
 
 function TorusInvariantPrimeDivisors( v::JToricVariety )
-    
     divisors = GAP.Globals.TorusInvariantPrimeDivisors( v.GapToricVariety )
-    len = GAP.Globals.GAPToJulia( GAP.Globals.Length( divisors ) )
-    j_divisors = [ JToricDivisor( divisors[ i ] ) for i in 1:len ]
-    return j_divisors
-    
+    return [ JToricDivisor( d ) for d in divisors ]    
 end
 export TorusInvariantPrimeDivisors
 
@@ -238,10 +218,10 @@ function FanOfVariety( v::JToricVariety )
 
     # collect data
     gap_fan = GAP.Globals.FanOfVariety( v.GapToricVariety )
-    rays = GAP.Globals.GAPToJulia( GAP.Globals.RayGenerators( gap_fan ) )
-    cones = GAP.Globals.GAPToJulia( GAP.Globals.RaysInMaximalCones( gap_fan ) )
-    cones = [ findall( x -> x == 1, cones[i] ) for i in 1 : size( cones )[ 1 ] ]
-
+    rays = Vector{Vector{Int64}}( GAP.Globals.RayGenerators( gap_fan ) )
+    cones = Vector{Vector{Int64}}( GAP.Globals.RaysInMaximalCones( gap_fan ) )
+    cones = [ findall( x -> x == 1, c ) for c in cones ]
+    
     # return the fan
     return JuliaFan( gap_fan, rays, cones )
     
