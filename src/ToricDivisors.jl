@@ -9,7 +9,6 @@ include("ToricVarieties.jl")
 ######################
 
 struct JToricDivisor
-           bar
            GapToricDivisor
 end
 export JToricDivisor
@@ -25,7 +24,7 @@ function CreateDivisor( coeffs::Vector{Int64}, v::JToricVariety )
     gap_divisor = CapAndHomalg.GAP.Globals.CreateDivisor( gap_coeffs, v.GapToricVariety )
     
     # wrap and return
-    return JToricDivisor( 1, gap_divisor )
+    return JToricDivisor( gap_divisor )
 
 end
 export CreateDivisor
@@ -37,7 +36,7 @@ function DivisorOfCharacter( character::Vector{Int64}, v::JToricVariety )
     gap_divisor = CapAndHomalg.GAP.Globals.DivisorOfCharacter( gap_character, v.GapToricVariety )
     
     # wrap and return
-    return JToricDivisor( 1, gap_divisor )
+    return JToricDivisor( gap_divisor )
 
 end
 export DivisorOfCharacter
@@ -50,7 +49,7 @@ function DivisorOfGivenClass( v::JToricVariety, class::Vector{Int64} )
     gap_divisor = CapAndHomalg.GAP.Globals.DivisorOfGivenClass( v.GapToricVariety, gap_class )
     
     # wrap and return
-    return JToricDivisor( 1, gap_divisor )
+    return JToricDivisor( gap_divisor )
 
 end
 export DivisorOfGivenClass

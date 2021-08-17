@@ -7,7 +7,6 @@ using CapAndHomalg
 ######################
 
 struct JToricVariety
-           bar
            GapToricVariety
 end
 export JToricVariety
@@ -31,7 +30,7 @@ function JToricVariety( rays::Vector{Vector{Int64}}, cones::Vector{Vector{Int64}
     variety = CapAndHomalg.GAP.Globals.ToricVariety( fan )
     
     # wrap it into a struct and return
-    return JToricVariety( 1, variety )
+    return JToricVariety( variety )
 
 end
 export JToricVariety
@@ -52,7 +51,7 @@ function ProjectiveSpace( x )
     variety = CapAndHomalg.GAP.Globals.ProjectiveSpace( x )
     
     # wrap it and return
-    return JToricVariety(  1, variety )
+    return JToricVariety(  variety )
     
 end
 export ProjectiveSpace
