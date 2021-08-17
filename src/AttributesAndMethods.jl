@@ -93,7 +93,7 @@ export MapFromWeilDivisorsToClassGroup
 
 function Dimension( v::JToricVariety )
     
-    return UInt128( GAP.Globals.Dimension( v.GapToricVariety ) )
+    return UInt64( GAP.Globals.Dimension( v.GapToricVariety ) )
     
 end
 export Dimension
@@ -101,7 +101,7 @@ export Dimension
 
 function DimensionOfTorusfactor( v::JToricVariety )
     
-    return UInt128( GAP.Globals.DimensionOfTorusfactor( v.GapToricVariety ) )
+    return UInt64( GAP.Globals.DimensionOfTorusfactor( v.GapToricVariety ) )
     
 end
 export DimensionOfTorusfactor
@@ -316,7 +316,7 @@ export CotangentSheaf
 
 function EulerCharacteristic( v::JToricVariety )
     
-    return Int128( GAP.Globals.EulerCharacteristic( v.GapToricVariety ) )
+    return Int64( GAP.Globals.EulerCharacteristic( v.GapToricVariety ) )
     
 end
 export EulerCharacteristic
