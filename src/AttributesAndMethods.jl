@@ -240,8 +240,8 @@ export CoxVariety
 struct JuliaFan
            bar
            gap_fan
-           rays::Array{Array{Int64,1},1}
-           cones::Array{Array{Int64,1},1}
+           rays::Vector{Vector{Int64}}
+           cones::Vector{Vector{Int64}}
 end
 export JuliaFan
 
@@ -376,7 +376,7 @@ export EulerCharacteristic
 # 2: Methods of ToricVarieties
 ######################
 
-function CoordinateRingOfTorus( v::JToricVariety, names::Array{String,1} )
+function CoordinateRingOfTorus( v::JToricVariety, names::Vector{String} )
     
     gap_names = [ GAP.Globals.JuliaToGAP( GAP.Globals.IsString, names[ i ] ) for i in 1 : size(names)[1] ]
     gap_names = GAP.Globals.JuliaToGAP( GAP.Globals.IsList, gap_names )

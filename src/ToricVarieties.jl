@@ -17,7 +17,7 @@ export JToricVariety
 # 2: Generic constructors
 ######################
 
-function JToricVariety( rays::Array{Array{Int64,1},1}, cones::Array{Array{Int64,1},1} )
+function JToricVariety( rays::Vector{Vector{Int64}}, cones::Vector{Vector{Int64}} )
     
     # load necessary gap packages
     CapAndHomalg.LoadPackage( "JuliaInterface" )
