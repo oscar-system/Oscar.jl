@@ -84,7 +84,7 @@ using Test
     @test size( IsProductOf( H5 ) )[ 1 ] == 1
     CharacterLattice( H5 )
     divisors = TorusInvariantPrimeDivisors( H5 )
-    @test ( 0 in [ is_primedivisor( divisors[ i ] ) for i in 1 : size(divisors)[1] ] ) == false
+    @test ( 0 in [ is_primedivisor( d ) for d in divisors ] ) == false
     IrrelevantIdeal( H5 )
     SRIdeal( H5 )
     MorphismFromCoxVariety( H5 )
