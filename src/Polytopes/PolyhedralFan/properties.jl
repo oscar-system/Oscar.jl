@@ -18,7 +18,7 @@ julia> C = cube(3);
 julia> NF = normal_fan(C);
 
 julia> rays(NF)
-6-element PointIterator{Ray, Polymake.Rational}:
+6-element VectorIterator{RayVector, Polymake.Rational}:
  Polymake.Rational[1, 0, 0]
  Polymake.Rational[-1, 0, 0]
  Polymake.Rational[0, 1, 0]
@@ -27,7 +27,7 @@ julia> rays(NF)
  Polymake.Rational[0, 0, -1]
 ```
 """
-rays(PF::PolyhedralFan) = PointIterator{Ray, Polymake.Rational}(pm_fan(PF).RAYS)
+rays(PF::PolyhedralFan) = VectorIterator{RayVector, Polymake.Rational}(pm_fan(PF).RAYS)
 
 """
     maximal_cones(PF::PolyhedralFan)
@@ -181,36 +181,11 @@ julia> PF = PolyhedralFan([1 0; 0 1; -1 0; 0 -1], IncidenceMatrix([[1, 2, 3], [3
 A polyhedral fan in ambient dimension 2
 
 julia> lineality_space(PF)
-1-element PointIterator{Ray, Polymake.Rational}:
+1-element VectorIterator{RayVector, Polymake.Rational}:
  Polymake.Rational[1, 0]
 ```
 """
-lineality_space(PF::PolyhedralFan) = PointIterator{Ray, Polymake.Rational}(pm_fan(PF).LINEALITY_SPACE)
-
-
-"""
-    rays_as_point_matrix(PF::PolyhedralFan)
-
-Return the rays of `PF` as rows of a matrix.
-
-# Examples
-The rays of a face fan (centered at the origin) point into the direction of the
-polytope's vertices; here we see this for the 3-cube.
-```jldoctest
-julia> rays(face_fan(cube(3)))
-8-element PointIterator{Ray, Polymake.Rational}:
- Polymake.Rational[-1, -1, -1]
- Polymake.Rational[1, -1, -1]
- Polymake.Rational[-1, 1, -1]
- Polymake.Rational[1, 1, -1]
- Polymake.Rational[-1, -1, 1]
- Polymake.Rational[1, -1, 1]
- Polymake.Rational[-1, 1, 1]
- Polymake.Rational[1, 1, 1]
-```
-"""
-rays_as_point_matrix(PF::PolyhedralFan) = pm_fan(PF).RAYS
-
+lineality_space(PF::PolyhedralFan) = VectorIterator{RayVector, Polymake.Rational}(pm_fan(PF).LINEALITY_SPACE)
 
 @doc Markdown.doc"""
     maximal_cones_as_incidence_matrix(PF::PolyhedralFan)
@@ -228,7 +203,7 @@ $e_2$ are the two unit vectors. These cones correspond to the four quadrants.
 julia> PF = normal_fan(cube(2));
 
 julia> rays(PF)
-4-element PointIterator{Ray, Polymake.Rational}:
+4-element VectorIterator{RayVector, Polymake.Rational}:
  Polymake.Rational[1, 0]
  Polymake.Rational[-1, 0]
  Polymake.Rational[0, 1]

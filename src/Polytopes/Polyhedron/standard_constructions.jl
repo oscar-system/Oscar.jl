@@ -19,7 +19,7 @@ julia> square = cube(2)
 A polyhedron in ambient dimension 2
 
 julia> vertices(square)
-4-element PointIterator{Points, Polymake.Rational}:
+4-element VectorIterator{PointVector, Polymake.Rational}:
  Polymake.Rational[-1, -1]
  Polymake.Rational[1, -1]
  Polymake.Rational[-1, 1]
@@ -29,7 +29,7 @@ julia> nc = normal_cone(square, 1)
 A polyhedral cone in ambient dimension 2
 
 julia> rays(nc)
-2-element PointIterator{Ray, Polymake.Rational}:
+2-element VectorIterator{RayVector, Polymake.Rational}:
  Polymake.Rational[1, 0]
  Polymake.Rational[0, 1]
 ```
@@ -60,7 +60,7 @@ julia> P = orbit_polytope(V, G)
 A polyhedron in ambient dimension 3
 
 julia> vertices(P)
-6-element PointIterator{Points, Polymake.Rational}:
+6-element VectorIterator{PointVector, Polymake.Rational}:
  Polymake.Rational[1, 2, 3]
  Polymake.Rational[1, 3, 2]
  Polymake.Rational[2, 1, 3]
@@ -119,7 +119,7 @@ julia> NP = newton_polytope(f)
 A polyhedron in ambient dimension 2
 
 julia> vertices(NP)
-3-element PointIterator{Points, Polymake.Rational}:
+3-element VectorIterator{PointVector, Polymake.Rational}:
  Polymake.Rational[3, 1]
  Polymake.Rational[1, 2]
  Polymake.Rational[0, 0]
@@ -150,7 +150,7 @@ julia> PO = intersect(UH1, UH2)
 A polyhedron in ambient dimension 2
 
 julia> rays(PO)
-2-element PointIterator{Ray, Polymake.Rational}:
+2-element VectorIterator{RayVector, Polymake.Rational}:
  Polymake.Rational[1, 0]
  Polymake.Rational[0, 1]
 ```
@@ -354,7 +354,7 @@ julia> S = P + v
 A polyhedron in ambient dimension 3
 
 julia> vertices(S)
-4-element PointIterator{Points, Polymake.Rational}:
+4-element VectorIterator{PointVector, Polymake.Rational}:
  Polymake.Rational[0, 0, 0]
  Polymake.Rational[1, 0, 0]
  Polymake.Rational[0, 1, 0]
@@ -389,7 +389,7 @@ julia> S = v + P
 A polyhedron in ambient dimension 3
 
 julia> vertices(S)
-4-element PointIterator{Points, Polymake.Rational}:
+4-element VectorIterator{PointVector, Polymake.Rational}:
  Polymake.Rational[0, 0, 0]
  Polymake.Rational[1, 0, 0]
  Polymake.Rational[0, 1, 0]
@@ -412,7 +412,7 @@ julia> s = simplex(7)
 A polyhedron in ambient dimension 7
 
 julia> facets(s)
-8-element HalfSpaceIterator{Halfspace}:
+8-element HalfspaceIterator{Halfspace}:
  Halfspace(pm::Matrix<pm::Rational>
 -1 0 0 0 0 0 0
 , 0)
@@ -442,7 +442,7 @@ julia> t = simplex(7, 5)
 A polyhedron in ambient dimension 7
 
 julia> facets(t)
-8-element HalfSpaceIterator{Halfspace}:
+8-element HalfspaceIterator{Halfspace}:
  Halfspace(pm::Matrix<pm::Rational>
 -1 0 0 0 0 0 0
 , 0)
@@ -488,7 +488,7 @@ julia> C = cross(3)
 A polyhedron in ambient dimension 3
 
 julia> facets(C)
-8-element HalfSpaceIterator{Halfspace}:
+8-element HalfspaceIterator{Halfspace}:
  Halfspace(pm::Matrix<pm::Rational>
 1 1 1
 , 1)
@@ -518,7 +518,7 @@ julia> D = cross(3, 2)
 A polyhedron in ambient dimension 3
 
 julia> facets(D)
-8-element HalfSpaceIterator{Halfspace}:
+8-element HalfspaceIterator{Halfspace}:
  Halfspace(pm::Matrix<pm::Rational>
 1 1 1
 , 2)

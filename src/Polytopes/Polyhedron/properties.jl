@@ -31,7 +31,7 @@ julia> F = faces(Polyhedron, cube(3), 2)
 """
 function faces(as::Type{T}, P::Polyhedron, face_dim::Int) where T<:Union{Polyhedron, Polyhedra}
     face_dim < 0 && return nothing
-    pfaces = Polymake.polytope.faces_of_dim(pm_polytope(P),face_dim-size(lineality_space(P),1))
+    pfaces = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(pm_polytope(P),face_dim-size(lineality_space(P),1)))
     nfaces = length(pfaces)
     rfaces = Vector{Int64}()
     sizehint!(rfaces, nfaces)
@@ -40,7 +40,7 @@ function faces(as::Type{T}, P::Polyhedron, face_dim::Int) where T<:Union{Polyhed
         for v in pfaces[index]
             #Checking that the first coordinate is zero is equivalent
             #  to being a vertex of the far face
-            if !iszero(pm_polytope(P).VERTICES[1+v[1],1])
+            if !iszero(pm_polytope(P).VERTICES[v[1],1])
                 isfar = false
                 break
             end
@@ -77,7 +77,7 @@ faces(P::Polyhedron, face_dim::Int) = faces(Polyhedron, P, face_dim)
 Return an iterator over the vertices of `P` in the format defined by `as`.
 
 Optional arguments for `as` include
-* `Points`.
+* `PointVector`.
 
 See also: [`vertices_as_point_matrix`](@ref).
 
@@ -87,8 +87,8 @@ a square:
 ```jldoctest
 julia> P = simplex(2) + cube(2);
 
-julia> vertices(Points, P)
-5-element PointIterator{Points, Polymake.Rational}:
+julia> vertices(PointVector, P)
+5-element VectorIterator{PointVector, Polymake.Rational}:
  Polymake.Rational[-1, -1]
  Polymake.Rational[2, -1]
  Polymake.Rational[2, 1]
@@ -96,7 +96,7 @@ julia> vertices(Points, P)
  Polymake.Rational[1, 2]
 ```
 """
-function vertices(as::Type{T}, P::Polyhedron) where T<:Points
+function vertices(as::Type{T}, P::Polyhedron) where T<:_pointTypes
     vertices = pm_polytope(P).VERTICES
     rvertices = Vector{Int64}()
     sizehint!(rvertices, size(vertices, 1))
@@ -105,7 +105,7 @@ function vertices(as::Type{T}, P::Polyhedron) where T<:Points
             push!(rvertices, index)
         end
     end
-    return PointIterator{AsTypeIdentities(as), Polymake.Rational}(vertices[rvertices, 2:end])
+    return VectorIterator{AsTypeIdentities(as), Polymake.Rational}(vertices[rvertices, 2:end])
 end
 
 """
@@ -122,7 +122,7 @@ a square:
 julia> P = simplex(2) + cube(2);
 
 julia> vertices(P)
-5-element PointIterator{Points, Polymake.Rational}:
+5-element VectorIterator{PointVector, Polymake.Rational}:
  Polymake.Rational[-1, -1]
  Polymake.Rational[2, -1]
  Polymake.Rational[2, 1]
@@ -130,7 +130,7 @@ julia> vertices(P)
  Polymake.Rational[1, 2]
 ```
 """
-vertices(P::Polyhedron) = vertices(Points, P)
+vertices(P::Polyhedron) = vertices(PointVector, P)
 
 
 """
@@ -167,13 +167,13 @@ nvertices(P::Polyhedron) = pm_polytope(P).N_VERTICES - nrays(P)
 
 
 @doc Markdown.doc"""
-    rays(as::Type{T} = Points, P::Polyhedron)
+    rays(as::Type{T} = RayVector, P::Polyhedron)
 
 Return a minimal set of generators of the cone of unbounded directions of `P`
 (i.e. its rays) in the format defined by `as`.
 
 Optional arguments for `as` include
-* `Points`.
+* `RayVector`.
 
 See also `rays_as_point_matrix`.
 
@@ -183,13 +183,13 @@ rays in positive unit direction:
 ```jldoctest
 julia> PO = convex_hull([0 0], [1 0; 0 1]);
 
-julia> rays(Ray, PO)
-2-element PointIterator{Ray, Polymake.Rational}:
+julia> rays(RayVector, PO)
+2-element VectorIterator{RayVector, Polymake.Rational}:
  Polymake.Rational[1, 0]
  Polymake.Rational[0, 1]
 ```
 """
-function rays(as::Type{T}, P::Polyhedron) where T<:Union{Ray, Rays}
+function rays(as::Type{T}, P::Polyhedron) where T<:_rayTypes
     vertices = pm_polytope(P).VERTICES
     rrays = Vector{Int64}()
     sizehint!(rrays, size(vertices, 1))
@@ -198,7 +198,7 @@ function rays(as::Type{T}, P::Polyhedron) where T<:Union{Ray, Rays}
             push!(rrays, index)
         end
     end
-    return PointIterator{AsTypeIdentities(as), Polymake.Rational}(vertices[rrays, 2:end])
+    return VectorIterator{AsTypeIdentities(as), Polymake.Rational}(vertices[rrays, 2:end])
 end
 
 @doc Markdown.doc"""
@@ -216,12 +216,12 @@ rays in positive unit direction:
 julia> PO = convex_hull([0 0], [1 0; 0 1]);
 
 julia> rays(PO)
-2-element PointIterator{Ray, Polymake.Rational}:
+2-element VectorIterator{RayVector, Polymake.Rational}:
  Polymake.Rational[1, 0]
  Polymake.Rational[0, 1]
 ```
 """
-rays(P::Polyhedron) = rays(Ray,P)
+rays(P::Polyhedron) = rays(RayVector,P)
 
 """
     nfacets(P::Polyhedron)
@@ -255,7 +255,7 @@ We can retrieve the six facets of the 3-dimensional cube this way:
 julia> C = cube(3);
 
 julia> facets(Polyhedron, C)
-6-element HalfSpaceIterator{Polyhedron}:
+6-element HalfspaceIterator{Polyhedron}:
  A polyhedron in ambient dimension 3
  A polyhedron in ambient dimension 3
  A polyhedron in ambient dimension 3
@@ -264,7 +264,7 @@ julia> facets(Polyhedron, C)
  A polyhedron in ambient dimension 3
 
 julia> facets(Halfspaces, C)
-6-element HalfSpaceIterator{Halfspace}:
+6-element HalfspaceIterator{Halfspace}:
  Halfspace(pm::Matrix<pm::Rational>
 -1 0 0
 , 1)
@@ -285,7 +285,7 @@ julia> facets(Halfspaces, C)
 , 1)
 ```
 """
-facets(as::Type{T}, P::Polyhedron) where T<:Union{Halfspace, Halfspaces, Pair, Polyhedron, Polyhedra} = HalfSpaceIterator{AsTypeIdentities(as)}(decompose_hdata(pm_polytope(P).FACETS)...)
+facets(as::Type{T}, P::Polyhedron) where T<:Union{Halfspace, Halfspaces, Pair, Polyhedron, Polyhedra} = HalfspaceIterator{AsTypeIdentities(as)}(decompose_hdata(pm_polytope(P).FACETS)...)
 
 @doc Markdown.doc"""
     facets(P::Polyhedron)
@@ -300,7 +300,7 @@ We can retrieve the six facets of the 3-dimensional cube this way:
 julia> C = cube(3);
 
 julia> facets(C)
-6-element HalfSpaceIterator{Halfspace}:
+6-element HalfspaceIterator{Halfspace}:
  Halfspace(pm::Matrix<pm::Rational>
 -1 0 0
 , 1)
@@ -390,7 +390,7 @@ Return the integer points contained in the bounded polyhedron `P`.
 julia> S = 2 * simplex(2);
 
 julia> lattice_points(S)
-6-element PointIterator{Points, Polymake.Integer}:
+6-element VectorIterator{PointVector, Polymake.Integer}:
  Polymake.Integer[0, 0]
  Polymake.Integer[0, 1]
  Polymake.Integer[0, 2]
@@ -402,7 +402,7 @@ julia> lattice_points(S)
 function lattice_points(P::Polyhedron)
     if pm_polytope(P).BOUNDED
         lat_pts = pm_polytope(P).LATTICE_POINTS_GENERATORS[1]
-        return PointIterator{Points, Polymake.Integer}(lat_pts[:, 2:end])
+        return VectorIterator{PointVector, Polymake.Integer}(lat_pts[:, 2:end])
     else
         throw(ArgumentError("Polyhedron not bounded"))
     end
@@ -462,11 +462,11 @@ its lineality in $x$-direction is recognized:
 julia> UH = convex_hull([0 0],[0 1; 1 0; -1 0]);
 
 julia> lineality_space(UH)
-1-element PointIterator{Ray, Polymake.Rational}:
+1-element VectorIterator{RayVector, Polymake.Rational}:
  Polymake.Rational[1, 0]
 ```
 """
-lineality_space(P::Polyhedron) = PointIterator{Ray, Polymake.Rational}(dehomogenize(P.pm_polytope.LINEALITY_SPACE))
+lineality_space(P::Polyhedron) = VectorIterator{RayVector, Polymake.Rational}(dehomogenize(P.pm_polytope.LINEALITY_SPACE))
 
 
 @doc Markdown.doc"""
@@ -479,7 +479,7 @@ Return the recession cone of `P`.
 julia> P = Polyhedron([1 -2; -1 1; -1 0; 0 -1],[2,1,1,1]);
 
 julia> vertices(P)
-3-element PointIterator{Points, Polymake.Rational}:
+3-element VectorIterator{PointVector, Polymake.Rational}:
  Polymake.Rational[0, -1]
  Polymake.Rational[-1, 0]
  Polymake.Rational[-1, -1]
@@ -488,7 +488,7 @@ julia> recession_cone(P)
 A polyhedral cone in ambient dimension 2
 
 julia> rays(recession_cone(P))
-2-element PointIterator{Ray, Polymake.Rational}:
+2-element VectorIterator{RayVector, Polymake.Rational}:
  Polymake.Rational[1, 1/2]
  Polymake.Rational[1, 1]
 ```

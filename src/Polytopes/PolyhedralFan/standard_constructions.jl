@@ -16,7 +16,7 @@ julia> NF = normal_fan(C)
 A polyhedral fan in ambient dimension 3
 
 julia> rays(NF)
-6-element PointIterator{Ray, Polymake.Rational}:
+6-element VectorIterator{RayVector, Polymake.Rational}:
  Polymake.Rational[1, 0, 0]
  Polymake.Rational[-1, 0, 0]
  Polymake.Rational[0, 1, 0]

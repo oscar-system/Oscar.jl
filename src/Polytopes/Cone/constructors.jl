@@ -1,4 +1,4 @@
-###############################################################################
+RayVector###############################################################################
 ###############################################################################
 ### Definition and constructors
 ###############################################################################
@@ -35,7 +35,7 @@ julia> HS = Cone(R, L)
 A polyhedral cone in ambient dimension 2
 ```
 """
-function Cone(R::Union{PointIterator{Ray}, Oscar.MatElem, AbstractMatrix}, L::Union{PointIterator{Ray}, Oscar.MatElem, AbstractMatrix, Nothing} = nothing; non_redundant::Bool = false)
+function Cone(R::Union{VectorIterator{RayVector}, Oscar.MatElem, AbstractMatrix}, L::Union{VectorIterator{RayVector}, Oscar.MatElem, AbstractMatrix, Nothing} = nothing; non_redundant::Bool = false)
     RM = matrix_for_polymake(R)
     LM = isnothing(L) ? Polymake.Matrix{Polymake.Rational}(undef, 0, size(RM, 2)) : matrix_for_polymake(L)
 

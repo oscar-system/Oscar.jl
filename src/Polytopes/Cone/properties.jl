@@ -17,12 +17,12 @@ julia> R = [1 0; 0 1; 0 2];
 julia> PO = positive_hull(R);
 
 julia> rays(PO)
-2-element PointIterator{Ray, Polymake.Rational}:
+2-element VectorIterator{RayVector, Polymake.Rational}:
  Polymake.Rational[1, 0]
  Polymake.Rational[0, 1]
 ```
 """
-rays(C::Cone) = PointIterator{Ray, Polymake.Rational}(pm_cone(C).RAYS)
+rays(C::Cone) = VectorIterator{RayVector, Polymake.Rational}(pm_cone(C).RAYS)
 
 function faces(as::Type{T}, C::Cone, face_dim::Int) where T<:Union{Cone, Cones}
     if face_dim < 0
@@ -152,7 +152,7 @@ isfulldimensional(C::Cone) = pm_cone(C).FULL_DIM
 ## Points properties
 ###############################################################################
 
-facets(C::Cone) = PointIterator{Ray, Polymake.Rational}(pm_cone(C).FACETS)
+facets(C::Cone) = VectorIterator{RayVector, Polymake.Rational}(pm_cone(C).FACETS)
 
 """
     lineality_space(C::Cone)
@@ -166,11 +166,11 @@ This gives us a 1-dimensional lineality.
 julia> UH = Cone([1 0; 0 1; -1 0]);
 
 julia> lineality_space(UH)
-1-element PointIterator{Ray, Polymake.Rational}:
+1-element VectorIterator{RayVector, Polymake.Rational}:
  Polymake.Rational[1, 0]
 ```
 """
-lineality_space(C::Cone) = PointIterator{Ray, Polymake.Rational}(pm_cone(C).LINEALITY_SPACE)
+lineality_space(C::Cone) = VectorIterator{RayVector, Polymake.Rational}(pm_cone(C).LINEALITY_SPACE)
 
 """
     hilbert_basis(C::Cone)
@@ -192,7 +192,7 @@ pm::Matrix<pm::Integer>
 """
 function hilbert_basis(C::Cone)
    if ispointed(C)
-      return PointIterator{Points, Int64}(pm_cone(C).HILBERT_BASIS_GENERATORS[1])
+      return VectorIterator{PointVector, Int64}(pm_cone(C).HILBERT_BASIS_GENERATORS[1])
    else
       throw(ArgumentError("Cone not pointed."))
    end

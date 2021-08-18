@@ -41,7 +41,7 @@ function Polyhedron(A::Union{Oscar.MatElem,AbstractMatrix}, b)
     ))
 end
 
-Polyhedron(H::HalfSpaceIterator) = Polyhedron(H.A, H.b)
+Polyhedron(H::HalfspaceIterator) = Polyhedron(H.A, H.b)
 
 """
     pm_polytope(P::Polyhedron)
@@ -112,7 +112,7 @@ julia> XA = convex_hull(V, R, L)
 A polyhedron in ambient dimension 2
 ```
 """
-function convex_hull(V::Union{PointIterator{Points}, AnyVecOrMat, Oscar.MatElem}, R::Union{PointIterator{Ray}, AnyVecOrMat, Oscar.MatElem, Nothing} = nothing, L::Union{PointIterator{Ray}, AnyVecOrMat, Oscar.MatElem, Nothing} = nothing; non_redundant::Bool = false)
+function convex_hull(V::Union{VectorIterator{PointVector}, AnyVecOrMat, Oscar.MatElem}, R::Union{VectorIterator{RayVector}, AnyVecOrMat, Oscar.MatElem, Nothing} = nothing, L::Union{VectorIterator{RayVector}, AnyVecOrMat, Oscar.MatElem, Nothing} = nothing; non_redundant::Bool = false)
     # we access the matrices which polymake can work with.
     VM = matrix_for_polymake(V)
     RM = isnothing(R) ? Polymake.Matrix{Polymake.Rational}(undef, 0, size(VM, 2)) : matrix_for_polymake(R)
