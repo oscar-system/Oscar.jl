@@ -1,6 +1,3 @@
-using GAP
-using CapAndHomalg
-
 include("ToricVarieties.jl")
 
 
@@ -8,114 +5,92 @@ include("ToricVarieties.jl")
 # 1: The Julia type for ToricDivisors
 ######################
 
-struct JToricDivisor
-           bar
-           GapToricDivisor
+struct toric_divisor
+           GapToricDivisor::GapObj
 end
-export JToricDivisor
+export toric_divisor
 
 ######################
 # 2: Generic constructors
 ######################
 
-function CreateDivisor( coeffs::Array{Int64,1}, v::JToricVariety )
-
+function create_divisor( coeffs::Vector{Int}, v::toric_variety )
     # create the divisor
-    gap_coeffs = CapAndHomalg.GAP.Globals.ConvertJuliaToGAP( coeffs )
-    gap_divisor = CapAndHomalg.GAP.Globals.CreateDivisor( gap_coeffs, v.GapToricVariety )
+    gap_coeffs = GapObj( coeffs )
+    gap_divisor = GAP.Globals.CreateDivisor( gap_coeffs, v.GapToricVariety )
     
     # wrap and return
-    return JToricDivisor( 1, gap_divisor )
-
+    return toric_divisor( gap_divisor )
 end
-export CreateDivisor
+export create_divisor
 
-function DivisorOfCharacter( character::Array{Int64,1}, v::JToricVariety )
-
+function divisor_of_character( character::Vector{Int}, v::toric_variety )
     # create the divisor
-    gap_character = CapAndHomalg.GAP.Globals.ConvertJuliaToGAP( character )
-    gap_divisor = CapAndHomalg.GAP.Globals.DivisorOfCharacter( gap_character, v.GapToricVariety )
+    gap_character = GapObj( character )
+    gap_divisor = GAP.Globals.DivisorOfCharacter( gap_character, v.GapToricVariety )
     
     # wrap and return
-    return JToricDivisor( 1, gap_divisor )
-
+    return toric_divisor( gap_divisor )
 end
-export DivisorOfCharacter
+export divisor_of_character
 
-# potentially duplicate of the former -> clean up the gap code!
-function DivisorOfGivenClass( v::JToricVariety, class::Array{Int64,1} )
-
+function divisor_of_class( v::toric_variety, class::Vector{Int} )
     # create the divisor
-    gap_class = CapAndHomalg.GAP.Globals.ConvertJuliaToGAP( class )
-    gap_divisor = CapAndHomalg.GAP.Globals.DivisorOfGivenClass( v.GapToricVariety, gap_class )
+    gap_class = GapObj( class )
+    gap_divisor = GAP.Globals.DivisorOfGivenClass( v.GapToricVariety, gap_class )
     
     # wrap and return
-    return JToricDivisor( 1, gap_divisor )
-
+    return toric_divisor( gap_divisor )
 end
-export DivisorOfGivenClass
+export divisor_of_class
 
 
 ######################
 # 3: Properties
 ######################
 
-function IsCartier( d::JToricDivisor )
-    
-    return GAP.Globals.GAPToJulia( CapAndHomalg.GAP.Globals.IsCartier( d.GapToricDivisor ) )
-    
+function is_cartier( d::toric_divisor )
+    return GAP.Globals.IsCartier( d.GapToricDivisor )::Bool
 end
-export IsCartier
+export is_cartier
 
 
-function IsPrincipal( d::JToricDivisor )
-    
-    return GAP.Globals.GAPToJulia( CapAndHomalg.GAP.Globals.IsPrincipal( d.GapToricDivisor ) )
-    
+function is_principal( d::toric_divisor )
+    return GAP.Globals.IsPrincipal( d.GapToricDivisor )::Bool
 end
-export IsPrincipal
+export is_principal
 
 
-function IsPrimedivisor( d::JToricDivisor )
-    
-    return GAP.Globals.GAPToJulia( CapAndHomalg.GAP.Globals.IsPrimedivisor( d.GapToricDivisor ) )
-    
+function is_primedivisor( d::toric_divisor )
+    return GAP.Globals.IsPrimedivisor( d.GapToricDivisor )::Bool
 end
-export IsPrimedivisor
+export is_primedivisor
 
 
-function IsBasepointFree( d::JToricDivisor )
-    
-    return GAP.Globals.GAPToJulia( CapAndHomalg.GAP.Globals.IsBasepointFree( d.GapToricDivisor ) )
-    
+function is_basepoint_free( d::toric_divisor )
+    return GAP.Globals.IsBasepointFree( d.GapToricDivisor )::Bool
 end
-export IsBasepointFree
+export is_basepoint_free
 
 
-function IsAmple( d::JToricDivisor )
-    
-    return GAP.Globals.GAPToJulia( CapAndHomalg.GAP.Globals.IsAmple( d.GapToricDivisor ) )
-    
+function is_ample( d::toric_divisor )
+    return GAP.Globals.IsAmple( d.GapToricDivisor )::Bool
 end
-export IsAmple
+export is_ample
 
 
-function IsVeryAmple( d::JToricDivisor )
-    
-    if ! IsAmple( d )
+function is_very_ample( d::toric_divisor )
+    if ! is_ample( d )
         @warn "Can (current) only tell for ample toric divisors if they are very ample."
         return "fail"
     end
     
-    return GAP.Globals.GAPToJulia( CapAndHomalg.GAP.Globals.IsVeryAmple( d.GapToricDivisor ) )
-    
+    return GAP.Globals.IsVeryAmple( d.GapToricDivisor )::Bool
 end
-export IsVeryAmple
+export is_very_ample
 
 
-function IsNumericallyEffective( d::JToricDivisor )
-    
-    return GAP.Globals.GAPToJulia( CapAndHomalg.GAP.Globals.IsNumericallyEffective( d.GapToricDivisor ) )
-    
+function is_numerically_effective( d::toric_divisor )
+    return GAP.Globals.IsNumericallyEffective( d.GapToricDivisor )::Bool
 end
-export IsNumericallyEffective
+export is_numerically_effective

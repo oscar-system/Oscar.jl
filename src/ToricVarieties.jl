@@ -1,150 +1,109 @@
-using GAP
-using CapAndHomalg
-
-
 ######################
 # 1: The Julia type for ToricVarieties
 ######################
 
-struct JToricVariety
-           bar
-           GapToricVariety
+struct toric_variety
+           GapToricVariety::GapObj
 end
-export JToricVariety
+export toric_variety
 
 
 ######################
 # 2: Generic constructors
 ######################
 
-function JToricVariety( rays::Array{Array{Int64,1},1}, cones::Array{Array{Int64,1},1} )
-    
-    # load necessary gap packages
-    CapAndHomalg.LoadPackage( "JuliaInterface" )
-    CapAndHomalg.LoadPackage( "JConvex" )
-    CapAndHomalg.LoadPackage( "ToricV" )
-    
+function toric_variety( rays::Vector{Vector{Int}}, cones::Vector{Vector{Int}} )
     # construct the toric variety in GAP
-    gap_rays = CapAndHomalg.GAP.Globals.ConvertJuliaToGAP( rays )
-    gap_cones = CapAndHomalg.GAP.Globals.ConvertJuliaToGAP( cones )
-    fan = CapAndHomalg.GAP.Globals.Fan( gap_rays, gap_cones )
-    variety = CapAndHomalg.GAP.Globals.ToricVariety( fan )
+    gap_rays = GapObj( rays, recursive = true )
+    gap_cones = GapObj( cones, recursive = true )
+    fan = GAP.Globals.Fan( gap_rays, gap_cones )
+    variety = GAP.Globals.ToricVariety( fan )
     
     # wrap it into a struct and return
-    return JToricVariety( 1, variety )
-
+    return toric_variety( variety )
 end
-export JToricVariety
+export toric_variety
 
 
 ######################
 # 3: Special constructors
 ######################
 
-function ProjectiveSpace( x )
-    
-    # load necessary gap packages
-    CapAndHomalg.LoadPackage( "JuliaInterface" )
-    CapAndHomalg.LoadPackage( "JConvex" )
-    CapAndHomalg.LoadPackage( "ToricV" )
-
+function projective_space( x )
     # construct the projective space in gap
-    variety = CapAndHomalg.GAP.Globals.ProjectiveSpace( x )
+    variety = GAP.Globals.ProjectiveSpace( x )
     
     # wrap it and return
-    return JToricVariety(  1, variety )
-    
+    return toric_variety(  variety )
 end
-export ProjectiveSpace
+export projective_space
 
 
 ######################
 # 4: Properties
 ######################
 
-function IsNormalVariety( v::JToricVariety )
-    
-    return GAP.Globals.GAPToJulia( CapAndHomalg.GAP.Globals.IsNormalVariety( v.GapToricVariety ) )
-    
+function is_normal_variety( v::toric_variety )
+    return true
 end
-export IsNormalVariety
+export is_normal_variety
 
 
-function IsAffine( v::JToricVariety )
-    
-    return GAP.Globals.GAPToJulia( CapAndHomalg.GAP.Globals.IsAffine( v.GapToricVariety ) )
-    
+function is_affine( v::toric_variety )
+    return GAP.Globals.IsAffine(v.GapToricVariety)::Bool
 end
-export IsAffine
+export is_affine
 
 
-function IsProjective( v::JToricVariety )
-    
-    return GAP.Globals.GAPToJulia( CapAndHomalg.GAP.Globals.IsProjective( v.GapToricVariety ) )
-    
+function is_projective( v::toric_variety )
+    return GAP.Globals.IsProjective( v.GapToricVariety )::Bool
 end
-export IsProjective
+export is_projective
 
 
-function IsSmooth( v::JToricVariety )
-    
-    return GAP.Globals.GAPToJulia( CapAndHomalg.GAP.Globals.IsSmooth( v.GapToricVariety ) )
-    
+function is_smooth( v::toric_variety )
+    return GAP.Globals.IsSmooth( v.GapToricVariety )::Bool
 end
-export IsSmooth
+export is_smooth
 
 
-function IsComplete( v::JToricVariety )
-    
-    return GAP.Globals.GAPToJulia( CapAndHomalg.GAP.Globals.IsComplete( v.GapToricVariety ) )
-    
+function is_complete( v::toric_variety )
+    return GAP.Globals.IsComplete( v.GapToricVariety )::Bool
 end
-export IsComplete
+export is_complete
 
 
-function HasTorusfactor( v::JToricVariety )
-    
-    return GAP.Globals.GAPToJulia( CapAndHomalg.GAP.Globals.HasTorusfactor( v.GapToricVariety ) )
-    
+function has_torusfactor( v::toric_variety )
+    return GAP.Globals.HasTorusfactor( v.GapToricVariety )::Bool
 end
-export HasTorusfactor
+export has_torusfactor
 
 
-function HasNoTorusfactor( v::JToricVariety )
-    
-    return GAP.Globals.GAPToJulia( CapAndHomalg.GAP.Globals.HasNoTorusfactor( v.GapToricVariety ) )
-    
+function has_no_torusfactor( v::toric_variety )
+    return GAP.Globals.HasNoTorusfactor( v.GapToricVariety )::Bool
 end
-export HasNoTorusfactor
+export has_no_torusfactor
 
 
-function IsOrbifold( v::JToricVariety )
-    
-    return GAP.Globals.GAPToJulia( CapAndHomalg.GAP.Globals.IsOrbifold( v.GapToricVariety ) )
-    
+function is_orbifold( v::toric_variety )
+    return GAP.Globals.IsOrbifold( v.GapToricVariety )::Bool
 end
-export IsOrbifold
+export is_orbifold
 
 
-function IsSimplicial( v::JToricVariety )
-    
-    return GAP.Globals.GAPToJulia( CapAndHomalg.GAP.Globals.IsSimplicial( v.GapToricVariety ) )
-    
+function is_simplicial( v::toric_variety )
+    return GAP.Globals.IsSimplicial( v.GapToricVariety )::Bool
 end
-export IsSimplicial
+export is_simplicial
 
 
-function IsIsomorphicToProjectiveSpace( v::JToricVariety )
-    
-    return GAP.Globals.GAPToJulia( CapAndHomalg.GAP.Globals.IsIsomorphicToProjectiveSpace( v.GapToricVariety ) )
-    
+function is_isomorphic_to_projective_space( v::toric_variety )
+    return GAP.Globals.IsIsomorphicToProjectiveSpace( v.GapToricVariety )::Bool
 end
-export IsIsomorphicToProjectiveSpace
+export is_isomorphic_to_projective_space
 
 
-function IsDirectProductOfPNs( v::JToricVariety )
-    
-    return GAP.Globals.GAPToJulia( CapAndHomalg.GAP.Globals.IsDirectProductOfPNs( v.GapToricVariety ) )
-    
+function is_direct_product_of_projective_spaces( v::toric_variety )
+    return GAP.Globals.IsDirectProductOfPNs( v.GapToricVariety )::Bool
 end
-export IsDirectProductOfPNs
+export is_direct_product_of_projective_spaces

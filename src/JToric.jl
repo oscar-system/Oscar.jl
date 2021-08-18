@@ -1,16 +1,10 @@
 module JToric
 
 
-# load and export CapAndHomalg
-import CapAndHomalg
-export CapAndHomalg
-
-# load and export GAP
-import GAP
-export GAP
-
-# use packages
+# use other Julia packages
 using Pkg
+using GAP
+using CapAndHomalg
 using JToric
 
 """
@@ -18,18 +12,15 @@ Initializing function for 'JToric'.
 """
 # initialization
 function __init__()
-    
     # load necessary gap packages
-    CapAndHomalg.LoadPackage( "JuliaInterface" )
-    CapAndHomalg.LoadPackage( "JConvex" )
-    CapAndHomalg.LoadPackage( "ToricV" )
+    GAP.Globals.LoadPackage( GapObj( "JConvex" ) )
+    GAP.Globals.LoadPackage( GapObj( "ToricVarieties" ) )
     
     # inform that JToric has been loaded
     print("Welcome to JToric ")
     printstyled("$version\n", color = :green)
     println("Enjoy this software to perform computations on toric geometry!")
     #println("Type: ?JToric for more information")
-    
 end
 
 
