@@ -63,15 +63,16 @@ end
 mutable struct SpecPrincipalOpen{S,T,U} <: AffineScheme{S,T,U}
   parent::AffineScheme{S,T,U}
   denom::U  # element of the "ambient" polynomial ring of the root
+  	    # which has been localized in the parent to get this scheme.
 
   # Fields for caching. These provide the data as a Spec for this 
   # affine scheme
-  k::S  
-  R::T
-  I::MPolyIdeal{U} 
+  k::S  # the ground field
+  R::T	# the ambient polynomial ring
+  I::MPolyIdeal{U} # the defining ideal
   pullbackFromParent::AlgHom
   pullbackFromRoot::AlgHom
-  u::U # The inverse of denom in R
+  u::U # The inverse of denom in R/I (one of the variables)
   
   function SpecPrincipalOpen(parent::Union{Spec{S,T,U},SpecPrincipalOpen{S,T,U}}, denom::U) where {S <: Ring, T<:MPolyRing, U<:MPolyElem}
     x = new{S,T,U}() 
@@ -180,8 +181,8 @@ function defining_ideal(D::SpecPrincipalOpen)
   ϕ = pullback_from_parent(D)
   I = defining_ideal(parent(D))
   R = ambient_ring(D)
-  J = ideal( J, [ ϕ(f) for f in gens( I ) ])
-  J = J + ideal( J, [ 1-u*denom ] )
+  J = ideal( R, [ ϕ(f) for f in gens( I ) ])
+  J = J + ideal( R, [ 1-u*denom ] )
   return ( J )
 end
 
