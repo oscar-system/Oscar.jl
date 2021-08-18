@@ -183,16 +183,16 @@ export cox_variety
 
 struct fan
            gap_fan::GapObj
-           rays::Vector{Vector{Int64}}
-           cones::Vector{Vector{Int64}}
+           rays::Vector{Vector{Int}}
+           cones::Vector{Vector{Int}}
 end
 export fan
 
 function fan_of_variety( v::toric_variety )
     # collect data
     gap_fan = GAP.Globals.FanOfVariety( v.GapToricVariety )
-    rays = Vector{Vector{Int64}}( GAP.Globals.RayGenerators( gap_fan ) )
-    cones = Vector{Vector{Int64}}( GAP.Globals.RaysInMaximalCones( gap_fan ) )
+    rays = Vector{Vector{Int}}( GAP.Globals.RayGenerators( gap_fan ) )
+    cones = Vector{Vector{Int}}( GAP.Globals.RaysInMaximalCones( gap_fan ) )
     cones = [ findall( x -> x == 1, c ) for c in cones ]
     
     # return the fan

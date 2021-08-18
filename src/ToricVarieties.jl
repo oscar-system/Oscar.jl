@@ -16,7 +16,7 @@ export toric_variety
 # 2: Generic constructors
 ######################
 
-function toric_variety( rays::Vector{Vector{Int64}}, cones::Vector{Vector{Int64}} )
+function toric_variety( rays::Vector{Vector{Int}}, cones::Vector{Vector{Int}} )
     # load necessary gap packages
     CapAndHomalg.LoadPackage( "JuliaInterface" )
     CapAndHomalg.LoadPackage( "JConvex" )
