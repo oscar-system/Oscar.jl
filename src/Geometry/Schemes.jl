@@ -102,7 +102,7 @@ function parent(D::SpecPrincipalOpen)
 end 
 
 function root(D::SpecPrincipalOpen)
-  return parent(parent(D))
+  return root(parent(D))
 end
 
 root(A::Spec) = A
