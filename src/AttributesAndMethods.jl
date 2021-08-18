@@ -88,7 +88,7 @@ export dimension
 
 
 function dimension_of_torusfactor( v::toric_variety )
-    return UInt64( GAP.Globals.DimensionOfTorusfactor( v.GapToricVariety ) )
+    return GAP.Globals.DimensionOfTorusfactor( v.GapToricVariety )::Int
 end
 export dimension_of_torusfactor
 
@@ -273,7 +273,7 @@ export cotangent_sheaf
 
 
 function euler_characteristic( v::toric_variety )
-    return Int64( GAP.Globals.EulerCharacteristic( v.GapToricVariety ) )
+    return GAP.Globals.EulerCharacteristic( v.GapToricVariety )::Int
 end
 export euler_characteristic
 
