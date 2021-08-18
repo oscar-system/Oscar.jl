@@ -1,6 +1,3 @@
-using GAP
-using CapAndHomalg
-
 include("ToricVarieties.jl")
 
 

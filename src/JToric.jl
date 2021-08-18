@@ -1,12 +1,10 @@
 module JToric
 
 
-# load GAP and CapAndHomalg
-import CapAndHomalg
-import GAP
-
-# use packages
+# use other Julia packages
 using Pkg
+using GAP
+using CapAndHomalg
 using JToric
 
 """

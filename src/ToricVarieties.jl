@@ -1,7 +1,3 @@
-using GAP
-using CapAndHomalg
-
-
 ######################
 # 1: The Julia type for ToricVarieties
 ######################
