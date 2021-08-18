@@ -4,7 +4,6 @@ using Test
 @testset "JToric.jl" begin
     # load necessary gap-packages
     using CapAndHomalg
-    CapAndHomalg.LoadPackage( "JuliaInterface" )
     CapAndHomalg.LoadPackage( "JConvex" )
     CapAndHomalg.LoadPackage( "ToricV" )
     

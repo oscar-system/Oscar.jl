@@ -18,7 +18,6 @@ export toric_variety
 
 function toric_variety( rays::Vector{Vector{Int}}, cones::Vector{Vector{Int}} )
     # load necessary gap packages
-    CapAndHomalg.LoadPackage( "JuliaInterface" )
     CapAndHomalg.LoadPackage( "JConvex" )
     CapAndHomalg.LoadPackage( "ToricV" )
     
@@ -40,7 +39,6 @@ export toric_variety
 
 function projective_space( x )
     # load necessary gap packages
-    CapAndHomalg.LoadPackage( "JuliaInterface" )
     CapAndHomalg.LoadPackage( "JConvex" )
     CapAndHomalg.LoadPackage( "ToricV" )
 
