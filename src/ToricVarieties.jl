@@ -64,7 +64,7 @@ export is_normal_variety
 
 
 function is_affine( v::toric_variety )
-    return Bool( GAP.Globals.IsAffine( v.GapToricVariety ) )
+    return GAP.Globals.IsAffine(v.GapToricVariety)::Bool
 end
 export is_affine
 
