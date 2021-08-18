@@ -95,13 +95,12 @@ if VERSION < v"1.4"
 else
    import Base.pkgdir
 end
-pkgproject(m::Core.Module) = Pkg.Operations.read_project(Pkg.Types.projectfile_path(pkgdir(m)))
-pkgversion(m::Core.Module) = pkgproject(m).version
-const VERSION_NUMBER = pkgversion(@__MODULE__)
+const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
+const VERSION_NUMBER = VersionNumber(PROJECT_TOML["version"])
 
-const is_dev = (function(m)
+const is_dev = (function()
         if VERSION >= v"1.4"
-          uuid = pkgproject(m).uuid
+          uuid = PROJECT_TOML["uuid"]
           deps = Pkg.dependencies()
           if Base.haskey(deps, uuid)
             if deps[uuid].is_tracking_path
@@ -110,7 +109,7 @@ const is_dev = (function(m)
           end
         end
         return occursin("-dev", lowercase(string(VERSION_NUMBER)))
-    end)(@__MODULE__)
+    end)()
 
 const IJuliaMime = Union{MIME"text/latex", MIME"text/html"}
 
