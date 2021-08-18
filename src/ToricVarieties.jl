@@ -23,8 +23,8 @@ function toric_variety( rays::Vector{Vector{Int64}}, cones::Vector{Vector{Int64}
     CapAndHomalg.LoadPackage( "ToricV" )
     
     # construct the toric variety in GAP
-    gap_rays = GAP.Globals.ConvertJuliaToGAP( rays )
-    gap_cones = GAP.Globals.ConvertJuliaToGAP( cones )
+    gap_rays = GapObj( rays, recursive = true )
+    gap_cones = GapObj( cones, recursive = true )
     fan = GAP.Globals.Fan( gap_rays, gap_cones )
     variety = GAP.Globals.ToricVariety( fan )
     
