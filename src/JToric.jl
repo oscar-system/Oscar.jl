@@ -15,7 +15,6 @@ Initializing function for 'JToric'.
 # initialization
 function __init__()
     # load necessary gap packages
-    CapAndHomalg.LoadPackage( "JuliaInterface" )
     CapAndHomalg.LoadPackage( "JConvex" )
     CapAndHomalg.LoadPackage( "ToricV" )
     
