@@ -53,31 +53,31 @@ export divisor_of_class
 ######################
 
 function is_cartier( d::toric_divisor )
-    return Bool( GAP.Globals.IsCartier( d.GapToricDivisor ) )
+    return GAP.Globals.IsCartier( d.GapToricDivisor )::Bool
 end
 export is_cartier
 
 
 function is_principal( d::toric_divisor )
-    return Bool( GAP.Globals.IsPrincipal( d.GapToricDivisor ) )
+    return GAP.Globals.IsPrincipal( d.GapToricDivisor )::Bool
 end
 export is_principal
 
 
 function is_primedivisor( d::toric_divisor )
-    return Bool( GAP.Globals.IsPrimedivisor( d.GapToricDivisor ) )
+    return GAP.Globals.IsPrimedivisor( d.GapToricDivisor )::Bool
 end
 export is_primedivisor
 
 
 function is_basepoint_free( d::toric_divisor )
-    return Bool( GAP.Globals.IsBasepointFree( d.GapToricDivisor ) )
+    return GAP.Globals.IsBasepointFree( d.GapToricDivisor )::Bool
 end
 export is_basepoint_free
 
 
 function is_ample( d::toric_divisor )
-    return Bool( GAP.Globals.IsAmple( d.GapToricDivisor ) )
+    return GAP.Globals.IsAmple( d.GapToricDivisor )::Bool
 end
 export is_ample
 
@@ -88,12 +88,12 @@ function is_very_ample( d::toric_divisor )
         return "fail"
     end
     
-    return Bool( GAP.Globals.IsVeryAmple( d.GapToricDivisor ) )
+    return GAP.Globals.IsVeryAmple( d.GapToricDivisor )::Bool
 end
 export is_very_ample
 
 
 function is_numerically_effective( d::toric_divisor )
-    return Bool( GAP.Globals.IsNumericallyEffective( d.GapToricDivisor ) )
+    return GAP.Globals.IsNumericallyEffective( d.GapToricDivisor )::Bool
 end
 export is_numerically_effective

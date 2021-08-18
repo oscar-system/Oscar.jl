@@ -70,54 +70,54 @@ export is_affine
 
 
 function is_projective( v::toric_variety )
-    return Bool( GAP.Globals.IsProjective( v.GapToricVariety ) )
+    return GAP.Globals.IsProjective( v.GapToricVariety )::Bool
 end
 export is_projective
 
 
 function is_smooth( v::toric_variety )
-    return Bool( GAP.Globals.IsSmooth( v.GapToricVariety ) )
+    return GAP.Globals.IsSmooth( v.GapToricVariety )::Bool
 end
 export is_smooth
 
 
 function is_complete( v::toric_variety )
-    return Bool( GAP.Globals.IsComplete( v.GapToricVariety ) )
+    return GAP.Globals.IsComplete( v.GapToricVariety )::Bool
 end
 export is_complete
 
 
 function has_torusfactor( v::toric_variety )
-    return Bool( GAP.Globals.HasTorusfactor( v.GapToricVariety ) )
+    return GAP.Globals.HasTorusfactor( v.GapToricVariety )::Bool
 end
 export has_torusfactor
 
 
 function has_no_torusfactor( v::toric_variety )
-    return Bool( GAP.Globals.HasNoTorusfactor( v.GapToricVariety ) )
+    return GAP.Globals.HasNoTorusfactor( v.GapToricVariety )::Bool
 end
 export has_no_torusfactor
 
 
 function is_orbifold( v::toric_variety )
-    return Bool( GAP.Globals.IsOrbifold( v.GapToricVariety ) )
+    return GAP.Globals.IsOrbifold( v.GapToricVariety )::Bool
 end
 export is_orbifold
 
 
 function is_simplicial( v::toric_variety )
-    return Bool( GAP.Globals.IsSimplicial( v.GapToricVariety ) )
+    return GAP.Globals.IsSimplicial( v.GapToricVariety )::Bool
 end
 export is_simplicial
 
 
 function is_isomorphic_to_projective_space( v::toric_variety )
-    return Bool( GAP.Globals.IsIsomorphicToProjectiveSpace( v.GapToricVariety ) )
+    return GAP.Globals.IsIsomorphicToProjectiveSpace( v.GapToricVariety )::Bool
 end
 export is_isomorphic_to_projective_space
 
 
 function is_direct_product_of_projective_spaces( v::toric_variety )
-    return Bool( GAP.Globals.IsDirectProductOfPNs( v.GapToricVariety ) )
+    return GAP.Globals.IsDirectProductOfPNs( v.GapToricVariety )::Bool
 end
 export is_direct_product_of_projective_spaces
