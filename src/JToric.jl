@@ -13,8 +13,8 @@ Initializing function for 'JToric'.
 # initialization
 function __init__()
     # load necessary gap packages
-    CapAndHomalg.LoadPackage( "JConvex" )
-    CapAndHomalg.LoadPackage( "ToricV" )
+    GAP.Globals.LoadPackage( GapObj( "JConvex" ) )
+    GAP.Globals.LoadPackage( GapObj( "ToricVarieties" ) )
     
     # inform that JToric has been loaded
     print("Welcome to JToric ")

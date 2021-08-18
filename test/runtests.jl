@@ -4,8 +4,8 @@ using Test
 @testset "JToric.jl" begin
     # load necessary gap-packages
     using CapAndHomalg
-    CapAndHomalg.LoadPackage( "JConvex" )
-    CapAndHomalg.LoadPackage( "ToricV" )
+    GAP.Globals.LoadPackage( GapObj( "JConvex" ) )
+    CapAndHomalg.LoadPackage( "ToricVarieties" )
     
     # Compute properties of toric varieties on the example of a Hirzebruch surface
     Rays = [[-1,5],[0,1],[1,0],[0,-1]]
