@@ -89,7 +89,7 @@ end
 
 import Base.isfinite
 
-@gapattribute isfinite(G::GAPGroup) = GAP.Globals.IsFinite(G.X)
+@gapattribute isfinite(G::GAPGroup) = GAP.Globals.IsFinite(G.X)::Bool
 """
     isfinite(G::GAPGroup) -> Bool
 
@@ -125,7 +125,7 @@ false
 
 ```
 """
-isfinite_order(x::GAPGroupElem) = GAP.Globals.IsInt(GAP.Globals.Order(x.X))
+isfinite_order(x::GAPGroupElem) = GAP.Globals.IsInt(GAP.Globals.Order(x.X))::Bool
 
 """
     degree(G::PermGroup) -> Int
@@ -1096,14 +1096,14 @@ an exception is thrown if `G` is not solvable.
 #
 ################################################################################
 
-@gapattribute isperfect(G::GAPGroup) = GAP.Globals.IsPerfectGroup(G.X)
+@gapattribute isperfect(G::GAPGroup) = GAP.Globals.IsPerfectGroup(G.X)::Bool
 """
     isperfect(G)
 
 Return whether `G` is a perfect group, i.e., equal to its derived subgroup.
 """ isperfect
 
-@gapattribute issimple(G::GAPGroup) = GAP.Globals.IsSimpleGroup(G.X)
+@gapattribute issimple(G::GAPGroup) = GAP.Globals.IsSimpleGroup(G.X)::Bool
 """
     issimple(G)
 
@@ -1111,7 +1111,7 @@ Return whether `G` is a simple group, i.e.,
 `G` is not trivial and has no non-trivial normal subgroups.
 """ issimple
 
-@gapattribute isalmostsimple(G::GAPGroup) = GAP.Globals.IsAlmostSimpleGroup(G.X)
+@gapattribute isalmostsimple(G::GAPGroup) = GAP.Globals.IsAlmostSimpleGroup(G.X)::Bool
 @doc Markdown.doc"""
     isalmostsimple(G)
 
