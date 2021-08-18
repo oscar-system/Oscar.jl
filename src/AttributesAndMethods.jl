@@ -82,7 +82,7 @@ export map_from_weil_divisors_to_class_group
 
 
 function dimension( v::toric_variety )
-    return UInt64( GAP.Globals.Dimension( v.GapToricVariety ) )
+    return GAP.Globals.Dimension(v.GapToricVariety)::Int
 end
 export dimension
 
