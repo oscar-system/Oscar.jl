@@ -1,3 +1,5 @@
+module Schemes
+#using Main.Misc
 
 import AbstractAlgebra.Ring, Oscar.AlgHom, Oscar.compose, AbstractAlgebra.Generic.Frac
 import Base: ∘
@@ -144,7 +146,6 @@ function ambient_ring(D::SpecPrincipalOpen)
   #names = ["denom$i" for i in 1:length(denoms(D))]
   n = length( denoms( D )) + 1
   R = ambient_ring(parent(D))
-  names = vcat( names, String.( symbols( R)) )
   S, ϕ, u = add_variables( R, ["denom$n"] )
   D.R = S
   D.u = u
@@ -182,7 +183,7 @@ function defining_ideal(D::SpecPrincipalOpen)
   I = defining_ideal(parent(D))
   R = ambient_ring(D)
   J = ideal( R, [ ϕ(f) for f in gens( I ) ])
-  J = J + ideal( R, [ 1-u*denom ] )
+  J = J + ideal( R, [ one(R)-D.u*denom ] )
   return ( J )
 end
 
@@ -234,6 +235,13 @@ function Base.show( io::Base.IO, X::SpecPrincipalOpen)
   Base.print( io,  denoms(X))
 end
 
+@doc Markdown.doc"""
+    mutable struct AffSchMorphism{S,Tdom, Udom, Tcod, Ucod}
+
+Morphisms of affine
+
+
+"""
 ############################################################################
 # Morphisms of affine schemes.
 #
@@ -483,3 +491,4 @@ mutable struct AffineCycle{ CoefficientType <: Ring } <: ChowCycle
 end
 
 =#
+end
