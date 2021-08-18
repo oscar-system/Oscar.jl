@@ -17,10 +17,6 @@ export toric_variety
 ######################
 
 function toric_variety( rays::Vector{Vector{Int}}, cones::Vector{Vector{Int}} )
-    # load necessary gap packages
-    CapAndHomalg.LoadPackage( "JConvex" )
-    CapAndHomalg.LoadPackage( "ToricV" )
-    
     # construct the toric variety in GAP
     gap_rays = GapObj( rays, recursive = true )
     gap_cones = GapObj( cones, recursive = true )
@@ -38,10 +34,6 @@ export toric_variety
 ######################
 
 function projective_space( x )
-    # load necessary gap packages
-    CapAndHomalg.LoadPackage( "JConvex" )
-    CapAndHomalg.LoadPackage( "ToricV" )
-
     # construct the projective space in gap
     variety = GAP.Globals.ProjectiveSpace( x )
     
