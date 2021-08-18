@@ -91,7 +91,7 @@ function orbit_polytope(V::AbstractVector, G::PermGroup)
 end
 
 @doc Markdown.doc"""
-   cube(d::Int , [l::Rational = -1, u::Rational = 1])
+    cube(d::Int , [l::Rational = -1, u::Rational = 1])
 
 Construct the $[l,u]$-cube in dimension $d$.
 
