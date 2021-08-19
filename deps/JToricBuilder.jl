@@ -15,55 +15,27 @@ Obtain a development version of NConvex.
 """
 function InstallDevelopmentVersionNConvex()
 
-    # find gap-location
-    gap_location = GAP.GAPROOT
-    
     # add pkg to this path
-    p = splitpath( gap_location )
-    p = replace.( p, "/"=>"")
-    install_path = join( push!( p, "pkg" ), "/" )
-    NConvex_path = join( push!( p, "NConvex" ), "/" )
+    install_path = GAP.Packages.DEFAULT_PKGDIR
+    NConvex_path = joinpath(install_path, "NConvex")
 
     # inform what we are doing
-    @info "Install development version of NConvex to \"" * NConvex_path * "\""
-    
+    @info "Install development version of NConvex to \"$(NConvex_path)\""
+
     # if this directory does exist, delete it
     if isdir( NConvex_path )
-
         # delete existing directory
-        @info "DeleteExistingDirectory \"" * NConvex_path * "\""
+        @info "DeleteExistingDirectory \"$(NConvex_path)\""
         rm( NConvex_path, recursive=true )
-        
     end
-            
+
     # inform
-    @info "Obtaining development version of NConvex into \"" * NConvex_path * "\""
-        
-    # prepare git operations
-    res = GAP.Globals.LoadPackage(julia_to_gap("PackageManager"), false)
-    @assert res
-    git = julia_to_gap("git")
-        
+    @info "Obtaining development version of NConvex into \"$(NConvex_path)\""
+
     # clone
-    command = julia_to_gap( "clone https://github.com/HereAround/NConvex.git" )
-    operation = GAP.Globals.PKGMAN_Exec(julia_to_gap( install_path ), git, command, julia_to_gap(""))
-    if operation.code != 0
-        @warn "Cloning of NConvex failed"
-        return false
-    end
-    @info gap_to_julia(operation.output)
-    
-    # fetch development version
-    command = julia_to_gap( "fetch origin martindevel:martindevel && git checkout martindevel" )
-    operation = GAP.Globals.PKGMAN_Exec(julia_to_gap( NConvex_path ), git, command, julia_to_gap(""))
-    if operation.code != 0
-        @warn "Fetching of development version failed"
-        return false
-    end
-    @info gap_to_julia(operation.output)
-    
+    run(`git clone -b martindevel https://github.com/HereAround/NConvex.git $NConvex_path`)
+
     # signal success
     return true
-    
 end
 export InstallDevelopmentVersionNConvex

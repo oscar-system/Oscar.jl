@@ -30,16 +30,14 @@ As mentioned above, `JToric` crucially depends on `NConvex`.  A quick way to sat
 Explicitly, you can reproduce the build process by following the following steps:
 
 1. Start `Julia`
-2. Issue the tollowing two lines of code:
+2. Issue the following code:
 
-    `using GAP`
-    `gap_location = GAP.GAPROOT`
+        using GAP; gap_location = GAP.GAPROOT
 
-2. Remember this path gap_location.
+2. Remember this path `gap_location`.
 3. Exit julia.
 4. `cd $(gap_location)/pkg`
-5. `git clone https://github.com/HereAround/NConvex.git`
-6. `git fetch origin martindevel:martindevel`
+5. `git clone -b martindevel https://github.com/HereAround/NConvex.git`
 
 In `$(gap_location)/pkg` you should now have the development version of `NConvex` which does not depend on `CddInterface` and `NormalizInterface`. Since its version is higher than the distributed `NConvex`, this version should be used by `gap` in `julia`.
 
