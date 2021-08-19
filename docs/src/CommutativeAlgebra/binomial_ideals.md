@@ -86,7 +86,7 @@ cellular_decomposition(I::MPolyIdeal)
 ## Primary Decomposition of Cellular Ideals
 
 ```@docs
-cellular_hull(I::MPolyIdeal{fmpq_mpoly})
+cellular_hull(I::MPolyIdeal)
 ```
 
 ```@docs
