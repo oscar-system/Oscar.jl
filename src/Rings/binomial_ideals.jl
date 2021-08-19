@@ -567,7 +567,7 @@ function witness_monomials(I::MPolyIdeal)
 end
 
 @doc Markdown.doc"""
-    cellular_hull(I::MPolyIdeal{fmpq_mpoly})
+    cellular_hull(I::MPolyIdeal)
 
 Given a cellular binomial ideal `I`, return the intersection 
 of the minimal primary components of `I`.
@@ -587,7 +587,7 @@ julia> cellular_hull(I)
 ideal(x[1]*x[5] - x[2]*x[5], x[3]*x[6] - x[4]*x[6], x[5]^2, x[6]^2, x[5]*x[6], x[5], x[6])
 ```
 """
-function cellular_hull(I::MPolyIdeal{fmpq_mpoly})
+function cellular_hull(I::MPolyIdeal)
   #by theorems we know that Hull(I)=M_emb(I)+I
   cell = iscellular(I)
   if !cell[1]
