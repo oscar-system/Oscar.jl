@@ -192,7 +192,7 @@ pm::Matrix<pm::Integer>
 """
 function hilbert_basis(C::Cone)
    if ispointed(C)
-      return VectorIterator{PointVector, Int64}(pm_cone(C).HILBERT_BASIS_GENERATORS[1])
+      return VectorIterator{PointVector, Polymake.to_cxx_type(Int64)}(pm_cone(C).HILBERT_BASIS_GENERATORS[1])
    else
       throw(ArgumentError("Cone not pointed."))
    end

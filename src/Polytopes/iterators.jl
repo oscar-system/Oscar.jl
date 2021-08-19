@@ -25,9 +25,9 @@ end
 
 Base.IndexStyle(::Type{<:PointVector}) = IndexLinear()
 
-Base.getindex(po::PointVector, i::Int64) = po.p[i]
+Base.getindex(po::PointVector, i::Base.Integer) = po.p[i]
 
-function Base.setindex!(po::PointVector{U}, val::U, i::Int64) where U
+function Base.setindex!(po::PointVector{U}, val::U, i::Base.Integer) where U
     @boundscheck checkbounds(po.p, i)
     po.p[i] = val
     return val
@@ -57,9 +57,9 @@ end
 
 Base.IndexStyle(::Type{<:RayVector}) = IndexLinear()
 
-Base.getindex(po::RayVector, i::Int64) = po.p[i]
+Base.getindex(po::RayVector, i::Base.Integer) = po.p[i]
 
-function Base.setindex!(po::RayVector{U}, val::U, i::Int64) where U
+function Base.setindex!(po::RayVector{U}, val::U, i::Base.Integer) where U
     @boundscheck checkbounds(po.p, i)
     po.p[i] = val
     return val
@@ -111,21 +111,21 @@ end
 
 struct PolyhedronOrConeIterator{T} <: AbstractArray{T, 1}
     vertices::Polymake.Matrix{Polymake.Rational}
-    faces::Polymake.Array{Polymake.Set{Int64}}
+    faces::Polymake.Array{Polymake.Set{Polymake.to_cxx_type(Int64)}}
     lineality::Polymake.Matrix{Polymake.Rational}
 end
 
-function Base.getindex(iter::PolyhedronOrConeIterator{Polyhedron}, i::Int64)
+function Base.getindex(iter::PolyhedronOrConeIterator{Polyhedron}, i::Base.Integer)
     @boundscheck checkbounds(iter.faces, i)
     return Polyhedron(Polymake.polytope.Polytope(VERTICES=iter.vertices[[f for f in iter.faces[i]],:],LINEALITY_SPACE = iter.lineality))
 end
 
-function Base.getindex(iter::PolyhedronOrConeIterator{Cone}, i::Int64)
+function Base.getindex(iter::PolyhedronOrConeIterator{Cone}, i::Base.Integer)
     @boundscheck checkbounds(iter.faces, i)
     return Cone(Polymake.polytope.Cone(RAYS=iter.vertices[[f for f in iter.faces[i]],:],LINEALITY_SPACE = iter.lineality))
 end
 
-function Base.setindex!(iter::PolyhedronOrConeIterator, val::Polymake.Set{Polymake.to_cxx_type(Int64)}, i::Int64)
+function Base.setindex!(iter::PolyhedronOrConeIterator, val::Polymake.Set{Polymake.to_cxx_type(Int64)}, i::Base.Integer)
     @boundscheck checkbounds(iter.faces, i)
     iter.faces[i, :] = Polymake.spzeros(size(iter.faces, 2))
     for j in val
@@ -151,12 +151,12 @@ end
 
 Base.IndexStyle(::Type{<:HalfspaceIterator}) = IndexLinear()
 
-function Base.getindex(iter::HalfspaceIterator{T}, i::Int64) where T
+function Base.getindex(iter::HalfspaceIterator{T}, i::Base.Integer) where T
     @boundscheck checkbounds(iter.b, i)
     return T(reshape(iter.A[i, :], 1, :), iter.b[i])
 end
 
-function Base.setindex!(iter::HalfspaceIterator, val::Halfspace, i::Int64)
+function Base.setindex!(iter::HalfspaceIterator, val::Halfspace, i::Base.Integer)
     @boundscheck checkbounds(iter.b, i)
     iter.A[i, :] = val.a
     iter.b[i] = val.b
@@ -186,12 +186,12 @@ end
 
 Base.IndexStyle(::Type{<:VectorIterator}) = IndexLinear()
 
-function Base.getindex(iter::VectorIterator{T, U}, i::Int64) where {T, U}
+function Base.getindex(iter::VectorIterator{T, U}, i::Base.Integer) where {T, U}
     @boundscheck checkbounds(iter.m, i, 1)
     return T{U}(iter.m[i, :])
 end
 
-function Base.setindex!(iter::VectorIterator{T}, val::T, i::Int64) where T
+function Base.setindex!(iter::VectorIterator{T}, val::T, i::Base.Integer) where T
     @boundscheck checkbounds(iter.m, i, 1)
     iter.m[i, :] = val.p
     return val

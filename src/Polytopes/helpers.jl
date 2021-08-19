@@ -8,7 +8,7 @@ function remove_zero_rows(A::Union{Oscar.MatElem,AbstractMatrix})
 end
 
 function remove_redundant_rows(A::Union{Oscar.MatElem,AbstractMatrix})
-    rindices = Polymake.Set{Int64}(1:size(A, 1))
+    rindices = Polymake.Set{Polymake.to_cxx_type(Int64)}(1:size(A, 1))
     for i in rindices
         for j in rindices
             if i == j
