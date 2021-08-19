@@ -1,6 +1,3 @@
-module Schemes
-#using Main.Misc
-
 import AbstractAlgebra.Ring, Oscar.AlgHom, Oscar.compose, AbstractAlgebra.Generic.Frac
 import Base: ∘
 import Oscar: base_ring
@@ -144,27 +141,31 @@ function ambient_ring(D::SpecPrincipalOpen)
     return D.R
   end
   #names = ["denom$i" for i in 1:length(denoms(D))]
-  n = length( denoms( D )) + 1
+  n = length( denoms( D ))
   R = ambient_ring(parent(D))
-  S, ϕ, u = add_variables( R, ["denom$n"] )
+  S, ϕ, u = add_variables( R, ["u$n"] )
   D.R = S
-  D.u = u
+  D.u = u[1]
   D.pullbackFromParent = ϕ
-  D.pullbackFromRoot = compose( ϕ, pullbackFromRoot( parent( D )))
+  if typeof(parent(D)) <: Spec 
+    D.pullbackFromRoot = D.pullbackFromParent
+  else 
+    D.pullbackFromRoot = compose( pullback_from_root( parent( D )), ϕ )
+  end
   return S
 end 
 
 function pullback_from_root( D::SpecPrincipalOpen )
-  if isdef( D, :pullbackFromRoot )
-    return D.pullback_from_root
+  if isdefined( D, :pullbackFromRoot )
+    return D.pullbackFromRoot
   end
   ambient_ring( D ) # This also stores the homomorphism
   return D.pullbackFromRoot
 end
 
 function pullback_from_parent( D::SpecPrincipalOpen )
-  if isdef( D, :pullbackFromParent )
-    return D.pullback_from_parent
+  if isdefined( D, :pullbackFromParent )
+    return D.pullbackFromParent
   end
   ambient_ring( D ) # This also stores the homomorphism
   return D.pullbackFromParent
@@ -180,10 +181,11 @@ end
 
 function defining_ideal(D::SpecPrincipalOpen)
   ϕ = pullback_from_parent(D)
+  ψ = pullback_from_root(D)
   I = defining_ideal(parent(D))
   R = ambient_ring(D)
   J = ideal( R, [ ϕ(f) for f in gens( I ) ])
-  J = J + ideal( R, [ one(R)-D.u*denom ] )
+  J = J + ideal( R, [ one(R)-D.u*ψ(D.denom) ] )
   return ( J )
 end
 
@@ -235,13 +237,6 @@ function Base.show( io::Base.IO, X::SpecPrincipalOpen)
   Base.print( io,  denoms(X))
 end
 
-@doc Markdown.doc"""
-    mutable struct AffSchMorphism{S,Tdom, Udom, Tcod, Ucod}
-
-Morphisms of affine
-
-
-"""
 ############################################################################
 # Morphisms of affine schemes.
 #
@@ -491,4 +486,22 @@ mutable struct AffineCycle{ CoefficientType <: Ring } <: ChowCycle
 end
 
 =#
+
+####################################################################
+#  
+#  Miscalleneous routines used in the above 
+#
+####################################################################
+
+
+function add_variables( R::MPolyRing, new_vars::Vector{String} )
+  k = base_ring(R)
+  old_vars = String.( symbols(R) )
+  n = length( old_vars )
+  vars = vcat( old_vars, new_vars )
+  S, v = PolynomialRing( k, vars )
+  @show S, v
+  phi = AlgebraHomomorphism( R, S, gens(S)[1:n] )
+  y = v[n+1:length(v)]
+  return S, phi, y
 end
