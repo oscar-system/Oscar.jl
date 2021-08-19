@@ -6,7 +6,7 @@
 
 ## What is JToric about?
 
-This package aims to make the functionality of the `ToricVarieties_project` (see https://github.com/homalg-project/ToricVarieties_project) available in `Julia`.
+This package aims to make the functionality of the `ToricVarieties_project` (see <https://github.com/homalg-project/ToricVarieties_project>) available in `Julia`.
 
 
 ## Crucial dependency
@@ -16,22 +16,11 @@ This crucially hings on a functional Gap4-package `NConvex`. Unfortuantely, the 
 
 ## Installation
 
-First, install the `Julia` packages `Singular.jl`, `Polymake.jl`, `Oscar.jl` and `CapAndHomalg.jl`:
+First, instal `Julia` on your computer. Next, this development version of `JToric` should be placed outside of the `.julia` folder of your home folder. If not done yet, please move it to such a location now and register it in `julia` and build it, via:
 
-1. Start julia
-2. `using Pkg`
-3. `Pkg.add( "Singular" )`
-4. `Pkg.add( Polymake )`
-5. `Pkg.add( Oscar )`
-6. `Pkg.add( CapAndHomalg )`
-
-Next, remember that this development version of `JToric` should be placed outside of the `.julia` folder of your home folder. If not done yet, please move it to such a location now and register it in `julia` via:
-
-7. `Pkg.develop( path = "path/to/your/JToric" )`
-
-Finally build, the package:
-
-8. `Pkg.build( "JToric" )`
+    using Pkg
+    Pkg.develop( path = "path/to/your/JToric" )
+    Pkg.build( "JToric" )
 
 
 ## Details of the build step
