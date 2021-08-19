@@ -594,7 +594,7 @@ InstallMethod( Polymake_V_Rep_command_string,
         
         # prepare rays (always non-zero) for command string
         rays := List( [ 1 .. Length( rays ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( rays[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
-        command_string := Concatenation( "ConeByGAP4PackageConvex", " = Julia.Polymake.polytope.Cone( INPUT_RAYS = [ ", JoinStringsWithSeparator( rays, "; " ), "] " );
+        command_string := Concatenation( "ConeByGAP4PackageConvex", " = Polymake.polytope.Cone( INPUT_RAYS = [ ", JoinStringsWithSeparator( rays, "; " ), "] " );
         
         # if we also have lineality, add them
         lin := cone!.lineality;
@@ -630,7 +630,7 @@ InstallMethod( Polymake_H_Rep_command_string,
         
         # prepare inequalities (always non-zero) for command string
         ineqs := List( [ 1 .. Length( ineqs ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( ineqs[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
-        command_string := Concatenation( "ConeByGAP4PackageConvex", " = Julia.Polymake.polytope.Cone( INEQUALITIES = [ ", JoinStringsWithSeparator( ineqs, "; " ), " ] " );
+        command_string := Concatenation( "ConeByGAP4PackageConvex", " = Polymake.polytope.Cone( INEQUALITIES = [ ", JoinStringsWithSeparator( ineqs, "; " ), " ] " );
         
         # if we have non-zero equalities, add them
         eqs := cone!.equalities;

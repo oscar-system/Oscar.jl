@@ -550,7 +550,7 @@ InstallMethod( Polymake_V_Rep_command_string,
         
         # prepare string with vertices -- as polymake considers them affine, we have to add a 1 at the beginning
         new_vertices := List( [ 1 .. Length( new_vertices ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( new_vertices[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
-        command_string := Concatenation( "PolytopeByGAP4PackageConvex", " = Julia.Polymake.polytope.Polytope( POINTS = [ ", JoinStringsWithSeparator( new_vertices, "; " ), "] " );
+        command_string := Concatenation( "PolytopeByGAP4PackageConvex", " = Polymake.polytope.Polytope( POINTS = [ ", JoinStringsWithSeparator( new_vertices, "; " ), "] " );
         
         # see if we need lineality
         if ( Length( new_lin ) > 0 ) then
@@ -585,7 +585,7 @@ InstallMethod( Polymake_H_Rep_command_string,
         
         # prepare string with inequalities
         ineqs := List( [ 1 .. Length( ineqs ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( ineqs[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
-        command_string := Concatenation( "PolytopeByGAP4PackageConvex", " = Julia.Polymake.polytope.Polytope( INEQUALITIES = [ ", JoinStringsWithSeparator( ineqs, "; " ), " ] " );
+        command_string := Concatenation( "PolytopeByGAP4PackageConvex", " = Polymake.polytope.Polytope( INEQUALITIES = [ ", JoinStringsWithSeparator( ineqs, "; " ), " ] " );
         
         # check if we also need equalities
         if ( Length( eqs ) > 0 ) then
