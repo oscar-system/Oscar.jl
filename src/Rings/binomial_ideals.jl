@@ -628,7 +628,7 @@ julia> cellular_associated_primes(I)
  ideal(x3 - x4, x5, x6)
 ```
 """
-function cellular_associated_primes(I::MPolyIdeal{fmpq_mpoly}, RQab::MPolyRing = PolynomialRing(abelian_closure(QQ)[1], nvars(base_ring(I)))[1])
+function cellular_associated_primes(I::MPolyIdeal{fmpq_mpoly}, RQab::MPolyRing = PolynomialRing(abelian_closure(QQ)[1], symbols(base_ring(I)))[1])
   #input: cellular binomial ideal
   #output: the set of associated primes of I
 
@@ -714,7 +714,7 @@ function cellular_minimal_associated_primes(I::MPolyIdeal{fmpq_mpoly})
   R = base_ring(I)
   P = partial_character_from_ideal(I, R)
   Qabcl, = abelian_closure(QQ)
-  RQab = PolynomialRing(Qabcl, nvars(R))[1]
+  RQab = PolynomialRing(Qabcl, symbols(R))[1]
   PSat = QabModule.saturations(P)
   minimal_associated = Vector{MPolyIdeal{Generic.MPoly{QabElem}}}() #this will hold the set of minimal associated primes
 
@@ -774,7 +774,7 @@ julia> cellular_primary_decomposition(I)
  (ideal(x1*x5 - x2*x5, x3*x6 - x4*x6, x5^2, x6^2, x5*x6, x3 - x4, x5), ideal(x3 - x4, x5, x6))
 ```
 """
-function cellular_primary_decomposition(I::MPolyIdeal{fmpq_mpoly}, RQab::MPolyRing = PolynomialRing(abelian_closure(QQ)[1], nvars(base_ring(I)))[1])
+function cellular_primary_decomposition(I::MPolyIdeal{fmpq_mpoly}, RQab::MPolyRing = PolynomialRing(abelian_closure(QQ)[1], symbols(base_ring(I)))[1])
   #algorithm from macaulay2
   #input: unital cellular binomial ideal in k[x]
   #output: binomial primary ideals which form a minimal primary decomposition of I 
@@ -851,7 +851,7 @@ function binomial_primary_decomposition(I::MPolyIdeal{fmpq_mpoly})
   res = Vector{Tuple{T, T}}() #This will hold the set of primary components
   #now compute a primary decomposition of each cellular component
   Qab, = abelian_closure(QQ)
-  RQab = PolynomialRing(Qab, nvars(base_ring(I)))[1]
+  RQab = PolynomialRing(Qab, symbols(base_ring(I)))[1]
   for J in cell_comps
     resJ = cellular_primary_decomposition(J, RQab)
     append!(res, resJ)
