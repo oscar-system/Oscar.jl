@@ -16,7 +16,7 @@ This crucially hings on a functional Gap4-package `NConvex`. Unfortuantely, the 
 
 ## Installation
 
-First, instal `Julia` on your computer. Next, this development version of `JToric` should be placed outside of the `.julia` folder of your home folder. If not done yet, please move it to such a location now and register it in `julia` and build it, via:
+First, install `Julia` on your computer. Next, this development version of `JToric` should be placed outside of the `.julia` folder of your home folder. If not done yet, please move it to such a location now and register it in `julia` and build it, via:
 
     using Pkg
     Pkg.develop( path = "path/to/your/JToric" )
