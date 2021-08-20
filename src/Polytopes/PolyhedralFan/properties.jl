@@ -211,10 +211,10 @@ julia> rays(PF)
 
 julia> maximal_cones_as_incidence_matrix(PF)
 4×4 IncidenceMatrix
-(1) - 1, 3
-(2) - 2, 3
-(3) - 1, 4
-(4) - 2, 4
+[1, 3]
+[2, 3]
+[1, 4]
+[2, 4]
 ```
 """
 function maximal_cones_as_incidence_matrix(PF::PolyhedralFan)
