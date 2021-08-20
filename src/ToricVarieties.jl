@@ -79,12 +79,6 @@ end
 export has_torusfactor
 
 
-function has_no_torusfactor( v::toric_variety )
-    return GAP.Globals.HasNoTorusfactor( v.GapToricVariety )::Bool
-end
-export has_no_torusfactor
-
-
 function is_orbifold( v::toric_variety )
     return GAP.Globals.IsOrbifold( v.GapToricVariety )::Bool
 end

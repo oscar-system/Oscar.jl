@@ -12,7 +12,6 @@ using Test
     @test JToric.is_smooth( H5 ) == true
     @test JToric.is_complete( H5 ) == true
     @test JToric.has_torusfactor( H5 ) == false
-    @test JToric.has_no_torusfactor( H5 ) == true
     @test JToric.is_orbifold( H5 ) == true
     @test JToric.is_simplicial( H5 ) == true
     @test JToric.is_isomorphic_to_projective_space( H5 ) == false
@@ -26,7 +25,6 @@ using Test
     @test JToric.is_smooth( P2 ) == true
     @test JToric.is_complete( P2 ) == true
     @test JToric.has_torusfactor( P2 ) == false
-    @test JToric.has_no_torusfactor( P2 ) == true
     @test JToric.is_orbifold( P2 ) == true
     @test JToric.is_simplicial( P2 ) == true
     @test JToric.is_isomorphic_to_projective_space( P2 ) == true
@@ -105,7 +103,6 @@ using Test
     @test JToric.is_smooth( v ) == true
     @test JToric.is_complete( v ) == true
     @test JToric.has_torusfactor( v ) == false
-    @test JToric.has_no_torusfactor( v ) == true
     @test JToric.is_orbifold( v ) == true
     @test JToric.is_simplicial( v ) == true
     @test JToric.is_isomorphic_to_projective_space( v ) == false
