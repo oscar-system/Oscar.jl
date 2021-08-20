@@ -2,12 +2,23 @@ import AbstractAlgebra.Ring, Oscar.AlgHom, Oscar.compose, AbstractAlgebra.Generi
 import Base: ∘
 import Oscar: base_ring
 
+include( "./Multiindices.jl" )
+using Oscar.Multiindices
+
 export AffineScheme, PrincipalSubScheme,Spec, SpecPrincipalOpen, affine_space
-export AffSchMorphism, base_ring,ambient_ring,defining_ideal, pullback
+export AffSchMorphism, base_ring,ambient_ring,defining_ideal, pullback, pullback_from_parent, pullback_from_root, inclusion_in_parent, inclusion_in_root, set_name
 export localize
 
-abstract type Scheme end
-abstract type AffineScheme{S <: Ring, T <: MPolyRing, U <: MPolyElem} <: Scheme end
+export Glueing
+export first_patch, second_patch
+
+export Covering
+export get_patches, get_glueings, add_patch
+
+export CoveredScheme
+
+abstract type Scheme{ S <: Ring }end
+abstract type AffineScheme{S, T <: MPolyRing, U <: MPolyElem} <: Scheme{S} end
 abstract type SchemeMorphism end
 
 ####################################################################################
@@ -18,6 +29,9 @@ mutable struct Spec{S,T,U} <: AffineScheme{S,T,U}
   k::S			# the base ring (usually a field) of definition for the scheme
   R::T		  	# the ambient polynomial ring to model this affine scheme
   I::MPolyIdeal{U}	# The ideal in R defining the scheme
+
+  # fields for caching
+  name::String # the name of this scheme for printing
 
   function Spec(k::S, R::T, I::MPolyIdeal{U} ) where{
 			S <: Ring, T <:MPolyRing , U <: MPolyElem}
@@ -72,6 +86,10 @@ mutable struct SpecPrincipalOpen{S,T,U} <: AffineScheme{S,T,U}
   pullbackFromParent::AlgHom
   pullbackFromRoot::AlgHom
   u::U # The inverse of denom in R/I (one of the variables)
+  name::String
+  #inclusionInParent::AffSchMorphism
+  #inclusionInRoot::AffSchMorphism
+
   
   function SpecPrincipalOpen(parent::Union{Spec{S,T,U},SpecPrincipalOpen{S,T,U}}, denom::U) where {S <: Ring, T<:MPolyRing, U<:MPolyElem}
     x = new{S,T,U}() 
@@ -114,6 +132,12 @@ function base_ring(D::SpecPrincipalOpen)
   k = base_ring(root(D))
   D.k = k
   return k
+end
+
+# Setter functions
+
+function set_name( X::AffineScheme, name::String )
+  X.name = name
 end
 
 # Collect the denominators from this localization up to the root. 
@@ -163,6 +187,10 @@ function pullback_from_root( D::SpecPrincipalOpen )
   return D.pullbackFromRoot
 end
 
+pullback_from_root( X::Spec ) = AlgebraHomomorphism( X.R, X.R, gens(X.R) )
+pullback_from_parent( X::Spec ) = AlgebraHomomorphism( X.R, X.R, gens(X.R) )
+
+
 function pullback_from_parent( D::SpecPrincipalOpen )
   if isdefined( D, :pullbackFromParent )
     return D.pullbackFromParent
@@ -189,6 +217,13 @@ function defining_ideal(D::SpecPrincipalOpen)
   return ( J )
 end
 
+function inclusion_in_parent( D::SpecPrincipalOpen )
+  return AffSchMorphism( D, parent(D), pullback_from_parent(D) )
+end
+
+function inclusion_in_root( D::SpecPrincipalOpen )
+  return AffSchMorphism( D, root(D), pullback_from_root(D) )
+end
 
 # outer constructors
 function Spec( k::S, R::T ) where{S <: Ring, T <:MPolyRing}
@@ -219,6 +254,10 @@ function affine_space( k::Ring, n::Int, name::String="x" )
 end
 
 function Base.show( io::Base.IO, X::AffineScheme )
+  if isdefined( X, :name )
+    Base.print( io, X.name )
+    return
+  end
   Base.print( io, "Affine scheme over " )
   Base.print( io, base_ring(X) )
   Base.print( io, "\n" ) 
@@ -233,7 +272,7 @@ function Base.show( io::Base.IO, X::SpecPrincipalOpen)
   Base.print( io, "Principal open subscheme of \n" )
   Base.print( io, root(X) )
   Base.print( io, "\n" )
-  Base.print( io, "defined by\n" )
+  Base.print( io, "localized at\n" )
   Base.print( io,  denoms(X))
 end
 
@@ -249,6 +288,13 @@ end
 mutable struct AffSchMorphism{S,Tdom, Udom, Tcod, Ucod}
   domain::AffineScheme{S, Tdom, Udom}
   codomain::AffineScheme{S, Tcod, Ucod}
+
+  # Variables for caching 
+  #
+  # The morphism must be given either in terms of an algebra homomorphism 
+  # or in terms of fractions. Here we exploit the fact that to give a morphism 
+  # of localized schemes, it is only necessary to prescribe the images of 
+  # the generators of the ambient polynomial ring of the root.
   pullback::AlgHom
   imgs_frac::Vector{Frac{Ucod}}
 
@@ -267,12 +313,13 @@ mutable struct AffSchMorphism{S,Tdom, Udom, Tcod, Ucod}
     x.domain = domain
     x.codomain = codomain
     x.pullback = pullback
+    # TODO: Implement the checks for the homomorphism to be well defined (on demand).
     return x
 
   end
 
   function AffSchMorphism( domain::AffineScheme{S,Td,Ud},
-                           codomain::AffineScheme{S,Tc,Uc}, imgs_frac::Frac{Uc}
+      codomain::AffineScheme{S,Tc,Uc}, imgs_frac::Vector{Frac{Uc}}
                            ) where {S,Td,Ud,Tc,Uc}
     if base_ring(domain) != base_ring(codomain)
       error( "the base rings of the domain and the codomain do not coincide!" )
@@ -285,6 +332,7 @@ mutable struct AffSchMorphism{S,Tdom, Udom, Tcod, Ucod}
     x.domain = domain
     x.codomain = codomain
     x.imgs_frac = imgs_frac
+    # TODO: Implement the checks for the homomorphism to be well defined (on demand).
     return x
   end
 end
@@ -301,9 +349,25 @@ function pullback(f::AffSchMorphism)
   if !isdefined(f, :imgs_frac )
     error( "Neither the fractional representation, nor the pullback is defined for this morphism." )
   end
-  R = base_ring(codomain(f))
-  S = base_ring(domain(f))
-  # TODO reconstruct the ring homomorphism R -> S from the fractional representation.
+  S = ambient_ring(codomain(f))
+  T = ambient_ring(domain(f))
+  R = ambient_ring(root(codomain(f)))
+  # TODO reconstruct the ring homomorphism S -> T from the fractional representation 
+  # and describe it in terms of R -> T with R = ambient_ring(root(codomain(f)))
+
+  n = length( f.imgs_frac )
+  if n != length( gens( R ))
+    error( "Number of variables in the ambient ring of the root does not coincide with the number of images provided for the homomorphism." )
+  end
+  for i in (1:n)
+    p = numerator( f.imgs_frac[i] )
+    q = denominator( f.imgs_frac[i] )
+    u = prod( denoms( domain(f)))
+    (k,a) = coeffs_in_radical( q, u )
+    
+  end
+  #TODO: Finish this once we know how to deal with the radical membership in Oscar.
+
 end
 
 # Construct the fractional representation of the morphism 
@@ -342,6 +406,157 @@ function imgs_frac(f::AffSchMorphism)
   return imgs_frac
 end
 
+function compose( f::AffSchMorphism, g::AffSchMorphism ) 
+  if codomain(f) != domain(f) 
+    error( "morphisms can not be composed" )
+  end
+  ϕ = pullback(f)
+  γ = pullback(g)
+  return AffSchMorphism( domain(g), codomain(f), compose( γ, ϕ ) )
+end
+
+mutable struct Glueing
+  firstPatch::AffineScheme
+  secondPatch::AffineScheme
+  inclusionFirstPatch::AffSchMorphism
+  inclusionSecondPatch::AffSchMorphism
+  glueingIsomorphism::AffSchMorphism
+
+  function Glueing( 
+      inclusionFirstPatch, 
+      inclusionSecondPatch, 
+      glueingIsomorphism 
+    )
+    if domain( inclusionFirstPatch ) != domain( glueingIsomorphism ) 
+      error( "Morphisms can not be composed for glueing." )
+    end
+    if codomain( glueingIsomorphism ) != domain( inclusionSecondPatch ) 
+      error( "Morphisms can not be composed for glueing." )
+    end
+    Γ = new()
+    Γ.firstPatch = codomain( inclusionFirstPatch )
+    Γ.secondPatch = codomain( inclusionSecondPatch )
+    Γ.inclusionFirstPatch = inclusionFirstPatch
+    Γ.inclusionSecondPatch = inclusionSecondPatch
+    Γ.glueingIsomorphism = glueingIsomorphism
+    return Γ
+  end
+end
+
+first_patch( Γ::Glueing ) = Γ.firstPatch
+second_patch( Γ::Glueing ) = Γ.secondPatch
+overlap(Γ::Glueing) = codomain(Γ.inclusionFirstPatch)
+
+function Base.show( io::Base.IO, Γ::Glueing )
+  Base.print( io, "Glueing of\n" )
+  Base.print( io, Γ.firstPatch )
+  Base.print( io, "\nand\n" )
+  Base.print( io, Γ.secondPatch )
+  Base.print( "\nalong\n" )
+  Base.print( io, domain(Γ.inclusionFirstPatch) )
+  return
+end
+
+mutable struct Covering
+  patches::Vector{AffineScheme}	# A list of open patches for this scheme
+  glueings::Array{Union{Glueing,Nothing},2}     # A list of glueings between the patches 
+  						# listed above
+  function Covering( X::AffineScheme ) 
+    C = new()
+    C.patches = [X]
+    C.glueings = Array{Nothing,2}(nothing,1,1)  # no glueing on the diagonal.
+    return C
+  end
+end
+
+function get_patches( C::Covering )
+  if isdefined( C, :patches )
+    return C.patches
+  else 
+    return nothing 
+  end 
+end
+
+function get_glueings( C::Covering )
+  if isdefined( C, :glueings )
+    return C.glueings
+  else
+    return nothing
+  end
+end
+
+mutable struct CoveredMorphism 
+end
+
+function add_patch( C::Covering, X::AffineScheme, glueings::Vector{Glueing} )
+  push!( C.patches, X )
+  n = length(glueings)
+  @show n
+  @show length( get_patches(C))
+  if n != length(get_patches(C))-1
+    error( "the number of glueings does not coincide with the number of patches so far." )
+  end
+  for i in n
+    if first_patch( glueings[i] ) != get_patches(C)[i] 
+      error( "Domain of the glueing does not coincide with the patch." )
+    end
+    if second_patch( glueings[i] ) != X
+      error( "Codomain of the glueing does not coincide with the new patch." )
+    end
+  end
+  println( "hutohsateugcrghst" )
+  @show C.glueings
+  println( "hutohsateugcrghst" )
+  @show glueings
+  println( "hutohsateugcrghst" )
+  @show Array{Nothing,2}(nothing,1,n+1)
+  C.glueings = vcat( hcat( C.glueings, glueings ), Array{Nothing,2}(nothing,1,n+1) )
+  return C
+end
+
+mutable struct CoveringMorphism
+  domain::Covering
+  codomain::Covering
+  restrictions::Vector{AffSchMorphism}
+
+  function CoveringMorphism( domain::Covering, codomain::Covering, restrictions::Vector{AffSchMorphism} )
+    C = new()
+    C.domain = domain
+    C.codomain = codomain
+    C.restrictions = restrictions
+    return C
+  end
+end
+
+mutable struct CoveredScheme
+  coverings::Vector{Covering}
+
+  function CoveredScheme( C::Covering ) where{ S <: Ring }
+    X = new()
+    X.coverings = [C]
+    #=
+    if length( get_patches(C) ) == 0 
+      error( "empty covering. Cannot determine base ring." )
+      return
+    end
+    X.base_ring = base_ring( get_patches(C)[1] )
+    =#
+    return X
+  end
+
+end
+
+function Base.show( io::Base.IO, X::CoveredScheme )
+  Base.print( io, "Covered Scheme with $(length(X.coverings)) covering." )
+end
+
+
+
+
+abstract type Point end
+abstract type Sheaf end
+abstract type CoherentSheaf <: Sheaf end
+mutable struct IdealSheaf <: CoherentSheaf end
 
 # Todo adapt the code below to the new data structure
 
@@ -504,4 +719,31 @@ function add_variables( R::MPolyRing, new_vars::Vector{String} )
   phi = AlgebraHomomorphism( R, S, gens(S)[1:n] )
   y = v[n+1:length(v)]
   return S, phi, y
+end
+
+##################################################################
+#
+# Checks whether some power of u is contained in the principal ideal 
+# generated by g and returns the elements (k,a) of the equation 
+#    u^k = a*g
+# If no such equation holds, it returns nothing.
+function coeffs_in_radical( g::MPolyElem, u::MPolyElem )
+  k = Int(0);
+  R = parent(g)
+  if parent(g) != parent(u) 
+    error( "elements are not contained in the same ring!" )
+  end
+  if !radical_membership( u, ideal( parent(g), g ) )
+    return nothing
+  end
+  success=true
+  a=zero(R)
+  for k in (1:100) # Todo: replace by some infinite range eventually
+    (success, a) = divides( g, u )
+    if success
+      break
+    end
+    u = u*u
+  end
+  return (2^k, a)
 end
