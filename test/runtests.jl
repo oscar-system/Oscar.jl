@@ -2,11 +2,6 @@ using JToric
 using Test
 
 @testset "JToric.jl" begin
-    # load necessary gap-packages
-    using CapAndHomalg
-    GAP.Globals.LoadPackage( GapObj( "JConvex" ) )
-    CapAndHomalg.LoadPackage( "ToricVarieties" )
-    
     # Compute properties of toric varieties on the example of a Hirzebruch surface
     Rays = [[-1,5],[0,1],[1,0],[0,-1]]
     Cones = [[1,2],[2,3],[3,4],[4,1]]
