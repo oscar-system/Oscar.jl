@@ -179,7 +179,7 @@ A subdivision of points in ambient dimension 3
 
 julia> maximal_cells_as_incidence_matrix(SOP)
 1×6 IncidenceMatrix
-(1) - 1, 2, 3, 4, 5, 6
+[1, 2, 3, 4, 5, 6]
 ```
 """
 function maximal_cells_as_incidence_matrix(SOP::SubdivisionOfPoints)
