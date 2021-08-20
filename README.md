@@ -66,4 +66,4 @@ This should provide a functional `CddInterface`.
 
 ## Towards a functional NormalizInterface
 
- Even after having a functional `CddInterface`, you cannot load `NConvex` unless you also establish a functional `NormalizInterface`. It an be anticipated that steps similar to the ones performed for `CddInterface` will achieve this. However, this has not yet been tested.
+ Even after having a functional `CddInterface`, you cannot load the distributed version of `NConvex` (but yes, the above development version can) unless you also establish a functional `NormalizInterface`. It can be anticipated that steps similar to the ones performed for `CddInterface` will achieve this. However, this has not yet been tested.
