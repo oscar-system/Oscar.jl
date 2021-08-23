@@ -623,12 +623,12 @@ ideal(x[1]*x[5] - x[2]*x[5], x[3]*x[6] - x[4]*x[6], x[5]^2, x[6]^2, x[5]*x[6])
 
 julia> cellular_associated_primes(I)
 3-element Vector{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}}}:
- ideal(x5, x6)
- ideal(x1 - x2, x5, x6)
- ideal(x3 - x4, x5, x6)
+ ideal(x[5], x[6])
+ ideal(x[1] - x[2], x[5], x[6])
+ ideal(x[3] - x[4], x[5], x[6])
 ```
 """
-function cellular_associated_primes(I::MPolyIdeal{fmpq_mpoly}, RQab::MPolyRing = PolynomialRing(abelian_closure(QQ)[1], nvars(base_ring(I)))[1])
+function cellular_associated_primes(I::MPolyIdeal{fmpq_mpoly}, RQab::MPolyRing = PolynomialRing(abelian_closure(QQ)[1], symbols(base_ring(I)))[1])
   #input: cellular binomial ideal
   #output: the set of associated primes of I
 
@@ -697,7 +697,7 @@ ideal(x[1]*x[5] - x[2]*x[5], x[3]*x[6] - x[4]*x[6], x[5]^2, x[6]^2, x[5]*x[6])
 
 julia> cellular_minimal_associated_primes(I)
 1-element Vector{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}}}:
- ideal(x5, x6)
+ ideal(x[5], x[6])
 ```
 """
 function cellular_minimal_associated_primes(I::MPolyIdeal{fmpq_mpoly})
@@ -714,7 +714,7 @@ function cellular_minimal_associated_primes(I::MPolyIdeal{fmpq_mpoly})
   R = base_ring(I)
   P = partial_character_from_ideal(I, R)
   Qabcl, = abelian_closure(QQ)
-  RQab = PolynomialRing(Qabcl, nvars(R))[1]
+  RQab = PolynomialRing(Qabcl, symbols(R))[1]
   PSat = QabModule.saturations(P)
   minimal_associated = Vector{MPolyIdeal{Generic.MPoly{QabElem}}}() #this will hold the set of minimal associated primes
 
@@ -769,12 +769,12 @@ ideal(x[1]*x[5] - x[2]*x[5], x[3]*x[6] - x[4]*x[6], x[5]^2, x[6]^2, x[5]*x[6])
 
 julia> cellular_primary_decomposition(I)
 3-element Vector{Tuple{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}}, MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}}}}:
- (ideal(x1*x5 - x2*x5, x3*x6 - x4*x6, x5^2, x6^2, x5*x6, x5, x6), ideal(x5, x6))
- (ideal(x1*x5 - x2*x5, x3*x6 - x4*x6, x5^2, x6^2, x5*x6, x1 - x2, x6), ideal(x1 - x2, x5, x6))
- (ideal(x1*x5 - x2*x5, x3*x6 - x4*x6, x5^2, x6^2, x5*x6, x3 - x4, x5), ideal(x3 - x4, x5, x6))
+ (ideal(x[1]*x[5] - x[2]*x[5], x[3]*x[6] - x[4]*x[6], x[5]^2, x[6]^2, x[5]*x[6], x[5], x[6]), ideal(x[5], x[6]))
+ (ideal(x[1]*x[5] - x[2]*x[5], x[3]*x[6] - x[4]*x[6], x[5]^2, x[6]^2, x[5]*x[6], x[1] - x[2], x[6]), ideal(x[1] - x[2], x[5], x[6]))
+ (ideal(x[1]*x[5] - x[2]*x[5], x[3]*x[6] - x[4]*x[6], x[5]^2, x[6]^2, x[5]*x[6], x[3] - x[4], x[5]), ideal(x[3] - x[4], x[5], x[6]))
 ```
 """
-function cellular_primary_decomposition(I::MPolyIdeal{fmpq_mpoly}, RQab::MPolyRing = PolynomialRing(abelian_closure(QQ)[1], nvars(base_ring(I)))[1])
+function cellular_primary_decomposition(I::MPolyIdeal{fmpq_mpoly}, RQab::MPolyRing = PolynomialRing(abelian_closure(QQ)[1], symbols(base_ring(I)))[1])
   #algorithm from macaulay2
   #input: unital cellular binomial ideal in k[x]
   #output: binomial primary ideals which form a minimal primary decomposition of I 
@@ -832,9 +832,9 @@ ideal(x - y, x^3 - 1, y^2*z - z)
 
 julia> binomial_primary_decomposition(I)
 3-element Vector{Tuple{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}}, MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}}}}:
- (ideal(x1 - x2, x1^3 - 1, x2^2*x3 - x3, x3, x2 - z(3), x1 - z(3)), ideal(x1*x2^2 - 1, x2 - z(3), x3))
- (ideal(x1 - x2, x1^3 - 1, x2^2*x3 - x3, x3, x2 + z(3) + 1, x1 + z(3) + 1), ideal(x1*x2^2 - 1, x2 + z(3) + 1, x3))
- (ideal(x2 - 1, x1 - 1, x1*x2 - 1), ideal(x2 - 1, x1 - 1, x1*x2 - 1))
+ (ideal(x - y, x^3 - 1, y^2*z - z, z, y - z(3), x - z(3)), ideal(x*y^2 - 1, y - z(3), z))
+ (ideal(x - y, x^3 - 1, y^2*z - z, z, y + z(3) + 1, x + z(3) + 1), ideal(x*y^2 - 1, y + z(3) + 1, z))
+ (ideal(y - 1, x - 1, x*y - 1), ideal(y - 1, x - 1, x*y - 1))
 ```
 """
 function binomial_primary_decomposition(I::MPolyIdeal{fmpq_mpoly})
@@ -851,7 +851,7 @@ function binomial_primary_decomposition(I::MPolyIdeal{fmpq_mpoly})
   res = Vector{Tuple{T, T}}() #This will hold the set of primary components
   #now compute a primary decomposition of each cellular component
   Qab, = abelian_closure(QQ)
-  RQab = PolynomialRing(Qab, nvars(base_ring(I)))[1]
+  RQab = PolynomialRing(Qab, symbols(base_ring(I)))[1]
   for J in cell_comps
     resJ = cellular_primary_decomposition(J, RQab)
     append!(res, resJ)
