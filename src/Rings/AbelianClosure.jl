@@ -50,7 +50,7 @@ mutable struct QabField <: Nemo.Field # union of cyclotomic fields
   fields::Dict{Int, AnticNumberField} # Cache for the cyclotomic fields
 end
 
-const _Qab = QabField("z", Dict{Int, AnticNumberField}())
+const _Qab = QabField("ζ", Dict{Int, AnticNumberField}())
 
 mutable struct QabElem <: Nemo.FieldElem
   data::nf_elem                       # Element in cyclotomic field

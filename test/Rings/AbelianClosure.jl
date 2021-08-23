@@ -50,18 +50,18 @@
   @testset "Printing" begin
     K, z = abelian_closure(QQ)
     @test sprint(show, "text/plain", K) == "Abelian closure of Q"
-    @test get_variable(K) == "z"
+    @test get_variable(K) == "ζ"
     s = sprint(show, "text/plain", z)
 
     a = z(1)
     sprint(show, "text/plain", a) == "1"
     a = z(4)
-    sprint(show, "text/plain", a) == "z(4)"
-
-    t = set_variable!(K, "ζ")
-    @test t == "z"
-    @test get_variable(K) == "ζ"
     sprint(show, "text/plain", a) == "ζ(4)"
+
+    t = set_variable!(K, "z")
+    @test t == "ζ"
+    @test get_variable(K) == "z"
+    sprint(show, "text/plain", a) == "z(4)"
 
     zz = gen(K, "ω")
     @test get_variable(K) == "ω"
