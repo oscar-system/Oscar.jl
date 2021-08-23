@@ -21,6 +21,10 @@ abstract type Scheme{ S <: Ring }end
 abstract type AffineScheme{S, T <: MPolyRing, U <: MPolyElem} <: Scheme{S} end
 abstract type SchemeMorphism end
 
+abstract type SchematicPoint end
+abstract type Sheaf end
+abstract type CoherentSheaf <: Sheaf end
+
 ####################################################################################
 # The classical affine scheme, explicitly given as the quotient 
 # ring of a polynomial algebra.
@@ -406,6 +410,11 @@ function imgs_frac(f::AffSchMorphism)
   return imgs_frac
 end
 
+#####################################################################
+# Composition of affine scheme morphisms. 
+# Consists basically of composition of the associated pullback 
+# homomorphisms.
+#
 function compose( f::AffSchMorphism, g::AffSchMorphism ) 
   if codomain(f) != domain(f) 
     error( "morphisms can not be composed" )
@@ -415,6 +424,12 @@ function compose( f::AffSchMorphism, g::AffSchMorphism )
   return AffSchMorphism( domain(g), codomain(f), compose( γ, ϕ ) )
 end
 
+#####################################################################
+# Glueing of two affine schemes X and Y along an open subset 
+# U ⊂ X and V ⊂ Y via an isomorphism Φ : U ≅ V. 
+# A glueing consists of a diagram X ↩ U ≅ V ↪ Y with the outer maps 
+# the open embeddings of principal open subsets. 
+#
 mutable struct Glueing
   firstPatch::AffineScheme
   secondPatch::AffineScheme
@@ -457,6 +472,14 @@ function Base.show( io::Base.IO, Γ::Glueing )
   return
 end
 
+################################################################################
+# Covering of a scheme.
+# It consists of a list of affine patches together with their glueings.
+# The glueings are stored in an array (which is usually half empty, since 
+# glueings need only be provided for ordered pairs of indices). 
+# The get_index methods for double arrays have been overloaded so that 
+# OrderedMultiindex can be used to address them.
+#
 mutable struct Covering
   patches::Vector{AffineScheme}	# A list of open patches for this scheme
   glueings::Array{Union{Glueing,Nothing},2}     # A list of glueings between the patches 
@@ -485,8 +508,12 @@ function get_glueings( C::Covering )
   end
 end
 
-mutable struct CoveredMorphism 
-end
+########################################################################
+# add one affine patch X to an existing covering C.
+# To this end, the glueings along all the affine patches Y
+# in the covering C to X need to be provided. They are 
+# passed on as a vector using the same indices as the 
+# list of patches in the covering C.
 
 function add_patch( C::Covering, X::AffineScheme, glueings::Vector{Glueing} )
   push!( C.patches, X )
@@ -528,6 +555,18 @@ mutable struct CoveringMorphism
   end
 end
 
+######################################################################
+# A scheme explicitly described by providing a covering 
+# with glueings. 
+#
+# In general, a scheme might have different coverings since, 
+# for example, different vector bundles might be given by means of 
+# different local trivializations. 
+#
+# In practice, however, we usually expect to have a graph of coverings 
+# ordered by refinements and with a single root accounting for the covering 
+# originally used to describe our scheme in the first place. 
+#
 mutable struct CoveredScheme
   coverings::Vector{Covering}
 
@@ -551,12 +590,9 @@ function Base.show( io::Base.IO, X::CoveredScheme )
 end
 
 
-
-
-abstract type Point end
-abstract type Sheaf end
-abstract type CoherentSheaf <: Sheaf end
 mutable struct IdealSheaf <: CoherentSheaf end
+
+
 
 # Todo adapt the code below to the new data structure
 
