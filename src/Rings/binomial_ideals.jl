@@ -636,7 +636,6 @@ julia> I = ideal(R, [x[5]*(x[1]^3-x[2]^3), x[6]*(x[3]-x[4]), x[5]^2, x[6]^2, x[5
 ideal(x[1]^3*x[5] - x[2]^3*x[5], x[3]*x[6] - x[4]*x[6], x[5]^2, x[6]^2, x[5]*x[6])
 
 julia> cellular_associated_primes(I)
-
 5-element Vector{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}}}:
  ideal(x[5], x[6])
  ideal(x[1] - x[2], x[5], x[6])
