@@ -1,6 +1,7 @@
 import Oscar.Singular.lib4ti2_jll
 export isbinomial, iscellular, isunital, binomial_primary_decomposition, 
        cellular_decomposition, cellular_associated_primes, cellular_minimal_associated_primes, cellular_hull, cellular_primary_decomposition
+
 @doc Markdown.doc"""
     isbinomial(f::MPolyElem)
 
@@ -31,7 +32,7 @@ end
 @doc Markdown.doc"""
     iscellular(I::MPolyIdeal)
 
-Given a binomial ideal `I`, return `true` together with the indices of the cellular variables if `I` is cellular.
+Given a binomial ideal `I`, return `true` together with the indices of the cell variables if `I` is cellular.
 Return `false` together with the index of a variable which is a zerodivisor but not nilpotent modulo `I`, otherwise.
 
 # Examples
@@ -39,8 +40,8 @@ Return `false` together with the index of a variable which is a zerodivisor but 
 julia> R, x = PolynomialRing(QQ, "x" => 1:6)
 (Multivariate Polynomial Ring in 6 variables x[1], x[2], x[3], x[4], ..., x[6] over Rational Field, fmpq_mpoly[x[1], x[2], x[3], x[4], x[5], x[6]])
 
-julia> I = ideal(R, [x[5]*(x[1]-x[2]), x[6]*(x[3]-x[4]), x[5]^2, x[6]^2, x[5]*x[6]])
-ideal(x[1]*x[5] - x[2]*x[5], x[3]*x[6] - x[4]*x[6], x[5]^2, x[6]^2, x[5]*x[6])
+julia> I = ideal(R, [x[5]*(x[1]^3-x[2]^3), x[6]*(x[3]-x[4]), x[5]^2, x[6]^2, x[5]*x[6]])
+ideal(x[1]^3*x[5] - x[2]^3*x[5], x[3]*x[6] - x[4]*x[6], x[5]^2, x[6]^2, x[5]*x[6])
 
 julia> iscellular(I)
 (true, [1, 2, 3, 4])
@@ -56,10 +57,15 @@ julia> iscellular(I)
 ```
 """
 function iscellular(I::MPolyIdeal)
+  if iszero(I)
+    return false, Int[-1]
+  elseif isone(I)
+    return false, Int[-1]
+  end
   if isbinomial(I) 
     return _iscellular(I)
   else
-    error("Not yet implemented")
+    error("Only implemented for binomial ideals")
   end
 end
 
@@ -68,11 +74,6 @@ function _iscellular(I::MPolyIdeal)
   #output: the decision true/false whether I is cellular or not
   #if it is cellular, return true and the cellular variables, otherwise return the
   #index of a variable which is a zerodivisor but not nilpotent modulo I
-  if iszero(I)
-    return false, Int[-1]
-  elseif isone(I)
-    return false, Int[-1]
-  end
   Delta = Int64[]
   Rxy = base_ring(I)
   variables = gens(Rxy)
@@ -129,9 +130,12 @@ function cellular_decomposition(I::MPolyIdeal)
   #with less redundancies
   #input: binomial ideal I
   #output: a cellular decomposition of I
-  #@assert !iszero(I) && !isone(I)
+  @assert !iszero(I) && !isone(I)
   @assert isbinomial(I)
+  return _cellular_decomposition(I)
+end
 
+function _cellular_decomposition(I::MPolyIdeal)
   fl, v = _iscellular(I)
   if fl
     return typeof(I)[I]
@@ -147,8 +151,8 @@ function cellular_decomposition(I::MPolyIdeal)
   decomp = typeof(I)[]
   I2 = I+ideal(Rxy, variables[v[1]]^ksat)
 
-  DecompI1 = cellular_decomposition(I1)
-  DecompI2 = cellular_decomposition(I2)
+  DecompI1 = _cellular_decomposition(I1)
+  DecompI2 = _cellular_decomposition(I2)
 
   #now check for redundancies
   redTest = ideal(Rxy, one(Rxy))
@@ -567,7 +571,7 @@ function witness_monomials(I::MPolyIdeal)
 end
 
 @doc Markdown.doc"""
-    cellular_hull(I::MPolyIdeal)
+    cellular_hull(I::MPolyIdeal{fmpq_mpoly})
 
 Given a cellular binomial ideal `I`, return the intersection 
 of the minimal primary components of `I`.
@@ -577,29 +581,37 @@ of the minimal primary components of `I`.
 julia> R, x = PolynomialRing(QQ, "x" => 1:6)
 (Multivariate Polynomial Ring in 6 variables x[1], x[2], x[3], x[4], ..., x[6] over Rational Field, fmpq_mpoly[x[1], x[2], x[3], x[4], x[5], x[6]])
 
-julia> I = ideal(R, [x[5]*(x[1]-x[2]), x[6]*(x[3]-x[4]), x[5]^2, x[6]^2, x[5]*x[6]])
-ideal(x[1]*x[5] - x[2]*x[5], x[3]*x[6] - x[4]*x[6], x[5]^2, x[6]^2, x[5]*x[6])
+julia> I = ideal(R, [x[5]*(x[1]^3-x[2]^3), x[6]*(x[3]-x[4]), x[5]^2, x[6]^2, x[5]*x[6]])
+ideal(x[1]^3*x[5] - x[2]^3*x[5], x[3]*x[6] - x[4]*x[6], x[5]^2, x[6]^2, x[5]*x[6])
 
 julia> iscellular(I)
 (true, [1, 2, 3, 4])
 
 julia> cellular_hull(I)
-ideal(x[1]*x[5] - x[2]*x[5], x[3]*x[6] - x[4]*x[6], x[5]^2, x[6]^2, x[5]*x[6], x[5], x[6])
+ideal(x[6], x[5])
 ```
 """
-function cellular_hull(I::MPolyIdeal)
+function cellular_hull(I::MPolyIdeal{fmpq_mpoly})
   #by theorems we know that Hull(I)=M_emb(I)+I
+  return _cellular_hull(I)
+end
+
+function _cellular_hull(I::MPolyIdeal)
   cell = iscellular(I)
   if !cell[1]
     error("input ideal is not cellular")
   end
+  return __cellular_hull(I)
+end
+
+function __cellular_hull(I::MPolyIdeal)
   #now construct the ideal M_emb with the above algorithm witnessMonomials
   R = base_ring(I)
   M = witness_monomials(I)
   if isempty(M)
     return I
   end
-  return I + ideal(R, M)
+  return ideal(R, groebner_basis(I + ideal(R, M), complete_reduction = true))
 end
 
 ###################################################################################
@@ -613,18 +625,22 @@ end
 
 Given a cellular binomial ideal `I`, return the associated primes of `I`.
 
+The result is defined over the abelian closure of $\mathbb Q$. In the output, if needed, the generator for roots of unities is denoted by `ζ`. So `ζ(3)`, for example, stands for a primitive third root of unity.
+
 # Examples
 ```jldoctest
 julia> R, x = PolynomialRing(QQ, "x" => 1:6)
 (Multivariate Polynomial Ring in 6 variables x[1], x[2], x[3], x[4], ..., x[6] over Rational Field, fmpq_mpoly[x[1], x[2], x[3], x[4], x[5], x[6]])
 
-julia> I = ideal(R, [x[5]*(x[1]-x[2]), x[6]*(x[3]-x[4]), x[5]^2, x[6]^2, x[5]*x[6]])
-ideal(x[1]*x[5] - x[2]*x[5], x[3]*x[6] - x[4]*x[6], x[5]^2, x[6]^2, x[5]*x[6])
+julia> I = ideal(R, [x[5]*(x[1]^3-x[2]^3), x[6]*(x[3]-x[4]), x[5]^2, x[6]^2, x[5]*x[6]])
+ideal(x[1]^3*x[5] - x[2]^3*x[5], x[3]*x[6] - x[4]*x[6], x[5]^2, x[6]^2, x[5]*x[6])
 
 julia> cellular_associated_primes(I)
-3-element Vector{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}}}:
+5-element Array{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}},1}:
  ideal(x[5], x[6])
  ideal(x[1] - x[2], x[5], x[6])
+ ideal(x[1] - ζ(3)*x[2], x[5], x[6])
+ ideal(x[1] + (ζ(3) + 1)*x[2], x[5], x[6])
  ideal(x[3] - x[4], x[5], x[6])
 ```
 """
@@ -633,7 +649,7 @@ function cellular_associated_primes(I::MPolyIdeal{fmpq_mpoly}, RQab::MPolyRing =
   #output: the set of associated primes of I
 
   if !isunital(I)
-    error("Input ideal has to be a unital ideal")
+    error("Input ideal is not a unital ideal")
   end
   cell = iscellular(I)
   if !cell[1]
@@ -687,16 +703,18 @@ end
 
 Given a cellular binomial ideal `I`, return the minimal associated primes of `I`.
 
+The result is defined over the abelian closure of $\mathbb Q$. In the output, if needed, the generator for roots of unities is denoted by `ζ`. So `ζ(3)`, for example, stands for a primitive third root of unity.
+
 # Examples
 ```jldoctest
 julia> R, x = PolynomialRing(QQ, "x" => 1:6)
 (Multivariate Polynomial Ring in 6 variables x[1], x[2], x[3], x[4], ..., x[6] over Rational Field, fmpq_mpoly[x[1], x[2], x[3], x[4], x[5], x[6]])
 
-julia> I = ideal(R, [x[5]*(x[1]-x[2]), x[6]*(x[3]-x[4]), x[5]^2, x[6]^2, x[5]*x[6]])
-ideal(x[1]*x[5] - x[2]*x[5], x[3]*x[6] - x[4]*x[6], x[5]^2, x[6]^2, x[5]*x[6])
+julia> I = ideal(R, [x[5]*(x[1]^3-x[2]^3), x[6]*(x[3]-x[4]), x[5]^2, x[6]^2, x[5]*x[6]])
+ideal(x[1]^3*x[5] - x[2]^3*x[5], x[3]*x[6] - x[4]*x[6], x[5]^2, x[6]^2, x[5]*x[6])
 
-julia> cellular_minimal_associated_primes(I)
-1-element Vector{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}}}:
+julia> cellular_minimal_associated_primes(I::MPolyIdeal{fmpq_mpoly})
+1-element Array{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}},1}:
  ideal(x[5], x[6])
 ```
 """
@@ -759,19 +777,23 @@ end
 
 Given a cellular binomial ideal `I`, return a binomial primary decomposition of `I`.
 
+The result is defined over the abelian closure of $\mathbb Q$. In the output, if needed, the generator for roots of unities is denoted by `ζ`. So `ζ(3)`, for example, stands for a primitive third root of unity.
+
 # Examples
 ```jldoctest
 julia> R, x = PolynomialRing(QQ, "x" => 1:6)
 (Multivariate Polynomial Ring in 6 variables x[1], x[2], x[3], x[4], ..., x[6] over Rational Field, fmpq_mpoly[x[1], x[2], x[3], x[4], x[5], x[6]])
 
-julia> I = ideal(R, [x[5]*(x[1]-x[2]), x[6]*(x[3]-x[4]), x[5]^2, x[6]^2, x[5]*x[6]])
-ideal(x[1]*x[5] - x[2]*x[5], x[3]*x[6] - x[4]*x[6], x[5]^2, x[6]^2, x[5]*x[6])
+julia> I = ideal(R, [x[5]*(x[1]^3-x[2]^3), x[6]*(x[3]-x[4]), x[5]^2, x[6]^2, x[5]*x[6]])
+ideal(x[1]^3*x[5] - x[2]^3*x[5], x[3]*x[6] - x[4]*x[6], x[5]^2, x[6]^2, x[5]*x[6])
 
 julia> cellular_primary_decomposition(I)
-3-element Vector{Tuple{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}}, MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}}}}:
- (ideal(x[1]*x[5] - x[2]*x[5], x[3]*x[6] - x[4]*x[6], x[5]^2, x[6]^2, x[5]*x[6], x[5], x[6]), ideal(x[5], x[6]))
- (ideal(x[1]*x[5] - x[2]*x[5], x[3]*x[6] - x[4]*x[6], x[5]^2, x[6]^2, x[5]*x[6], x[1] - x[2], x[6]), ideal(x[1] - x[2], x[5], x[6]))
- (ideal(x[1]*x[5] - x[2]*x[5], x[3]*x[6] - x[4]*x[6], x[5]^2, x[6]^2, x[5]*x[6], x[3] - x[4], x[5]), ideal(x[3] - x[4], x[5], x[6]))
+5-element Array{Tuple{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}},MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}}},1}:
+ (ideal(x[6], x[5]), ideal(x[5], x[6]))
+ (ideal(x[6], x[1] - x[2], x[5]^2), ideal(x[1] - x[2], x[5], x[6]))
+ (ideal(x[6], x[1] - ζ(3)*x[2], x[5]^2), ideal(x[1] - ζ(3)*x[2], x[5], x[6]))
+ (ideal(x[6], x[1] + (ζ(3) + 1)*x[2], x[5]^2), ideal(x[1] + (ζ(3) + 1)*x[2], x[5], x[6]))
+ (ideal(x[5], x[3] - x[4], x[6]^2), ideal(x[3] - x[4], x[5], x[6]))
 ```
 """
 function cellular_primary_decomposition(I::MPolyIdeal{fmpq_mpoly}, RQab::MPolyRing = PolynomialRing(abelian_closure(QQ)[1], symbols(base_ring(I)))[1])
@@ -780,16 +802,14 @@ function cellular_primary_decomposition(I::MPolyIdeal{fmpq_mpoly}, RQab::MPolyRi
   #output: binomial primary ideals which form a minimal primary decomposition of I 
   #        and the corresponding associated primes in a second array
 
+  #compute associated primes
   if !isunital(I)
     error("Input ideal is not a unital ideal")
   end
-
   cell = iscellular(I)
   if !cell[1]
     error("Input ideal is not cellular")
   end
-
-  #compute associated primes
   cell_ass = cellular_associated_primes(I, RQab)
 
   Qab = base_ring(RQab)
@@ -812,7 +832,7 @@ function cellular_primary_decomposition(I::MPolyIdeal{fmpq_mpoly}, RQab::MPolyRi
     end
     #now saturate the ideal with respect to the cellular variables
     helpIdeal = saturation(helpIdeal, J)
-    push!(res, (cellular_hull(helpIdeal), P))
+    push!(res, (__cellular_hull(helpIdeal), P))
   end
   return res
 end
@@ -821,6 +841,9 @@ end
     binomial_primary_decomposition(I::MPolyIdeal{fmpq_mpoly})
 
 Given a binomial ideal `I`, return a binomial primary decomposition of `I`.
+
+The result is defined over the abelian closure of $\mathbb Q$. In the output, if needed, the generator for roots of unities is denoted by `ζ`. So `ζ(3)`, for example, stands for a primitive third root of unity.
+
 
 # Examples
 ```jldoctest
