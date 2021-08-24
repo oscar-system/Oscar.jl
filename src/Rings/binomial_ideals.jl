@@ -636,7 +636,8 @@ julia> I = ideal(R, [x[5]*(x[1]^3-x[2]^3), x[6]*(x[3]-x[4]), x[5]^2, x[6]^2, x[5
 ideal(x[1]^3*x[5] - x[2]^3*x[5], x[3]*x[6] - x[4]*x[6], x[5]^2, x[6]^2, x[5]*x[6])
 
 julia> cellular_associated_primes(I)
-5-element Array{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}},1}:
+
+5-element Vector{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}}}:
  ideal(x[5], x[6])
  ideal(x[1] - x[2], x[5], x[6])
  ideal(x[1] - ζ(3)*x[2], x[5], x[6])
@@ -714,7 +715,7 @@ julia> I = ideal(R, [x[5]*(x[1]^3-x[2]^3), x[6]*(x[3]-x[4]), x[5]^2, x[6]^2, x[5
 ideal(x[1]^3*x[5] - x[2]^3*x[5], x[3]*x[6] - x[4]*x[6], x[5]^2, x[6]^2, x[5]*x[6])
 
 julia> cellular_minimal_associated_primes(I::MPolyIdeal{fmpq_mpoly})
-1-element Array{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}},1}:
+1-element Vector{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}}}:
  ideal(x[5], x[6])
 ```
 """
@@ -788,7 +789,7 @@ julia> I = ideal(R, [x[5]*(x[1]^3-x[2]^3), x[6]*(x[3]-x[4]), x[5]^2, x[6]^2, x[5
 ideal(x[1]^3*x[5] - x[2]^3*x[5], x[3]*x[6] - x[4]*x[6], x[5]^2, x[6]^2, x[5]*x[6])
 
 julia> cellular_primary_decomposition(I)
-5-element Array{Tuple{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}},MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}}},1}:
+5-element Vector{Tuple{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}}, MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}}}}:
  (ideal(x[6], x[5]), ideal(x[5], x[6]))
  (ideal(x[6], x[1] - x[2], x[5]^2), ideal(x[1] - x[2], x[5], x[6]))
  (ideal(x[6], x[1] - ζ(3)*x[2], x[5]^2), ideal(x[1] - ζ(3)*x[2], x[5], x[6]))
