@@ -832,8 +832,8 @@ ideal(x - y, x^3 - 1, y^2*z - z)
 
 julia> binomial_primary_decomposition(I)
 3-element Vector{Tuple{MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}}, MPolyIdeal{AbstractAlgebra.Generic.MPoly{QabElem}}}}:
- (ideal(x - y, x^3 - 1, y^2*z - z, z, y - z(3), x - z(3)), ideal(x*y^2 - 1, y - z(3), z))
- (ideal(x - y, x^3 - 1, y^2*z - z, z, y + z(3) + 1, x + z(3) + 1), ideal(x*y^2 - 1, y + z(3) + 1, z))
+ (ideal(x - y, x^3 - 1, y^2*z - z, z, y - ζ(3), x - ζ(3)), ideal(x*y^2 - 1, y - ζ(3), z))
+ (ideal(x - y, x^3 - 1, y^2*z - z, z, y + ζ(3) + 1, x + ζ(3) + 1), ideal(x*y^2 - 1, y + ζ(3) + 1, z))
  (ideal(y - 1, x - 1, x*y - 1), ideal(y - 1, x - 1, x*y - 1))
 ```
 """
