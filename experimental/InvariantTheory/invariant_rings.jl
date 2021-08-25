@@ -3,50 +3,50 @@ export invariant_ring, primary_invariants, secondary_invariants
 ###############################################
 
 mutable struct InvRing{FldT, GrpT, PolyElemT, PolyRingT, ActionT, SingularActionT}
-   field::FldT
-   poly_ring::PolyRingT
+  field::FldT
+  poly_ring::PolyRingT
 
-   group::GrpT
-   action::Vector{ActionT}
-   action_singular::Vector{SingularActionT}
+  group::GrpT
+  action::Vector{ActionT}
+  action_singular::Vector{SingularActionT}
 
-   modular::Bool
+  modular::Bool
 
-   primary::Vector{PolyElemT}
-   secondary::Vector{PolyElemT}
-   irreducible_secondary::Vector{PolyElemT}
-   fundamental::Vector{PolyElemT}
+  primary::Vector{PolyElemT}
+  secondary::Vector{PolyElemT}
+  irreducible_secondary::Vector{PolyElemT}
+  fundamental::Vector{PolyElemT}
 
-   # Cache some stuff on the Singular side
-   # (possibly removed at some point)
-   reynolds_singular::Singular.smatrix
-   molien_singular::Singular.smatrix
-   primary_singular # the type is different depending on the characteristic...
+  # Cache some stuff on the Singular side
+  # (possibly removed at some point)
+  reynolds_singular::Singular.smatrix
+  molien_singular::Singular.smatrix
+  primary_singular # the type is different depending on the characteristic...
 
-   function InvRing(K::FldT, G::GrpT, action::Vector{ActionT}) where {FldT <: Field, GrpT <: AbstractAlgebra.Group, ActionT}
-     n = degree(G)
-     R, = PolynomialRing(K, "x" => 1:n, cached = false)
-     R_sing = singular_ring(R)
-     action_singular = identity.([change_base_ring(R_sing, g) for g in action])
-     PolyRingT = typeof(R)
-     PolyElemT = elem_type(R)
-     SingularActionT = eltype(action_singular)
-     z = new{FldT, GrpT, PolyElemT, PolyRingT, ActionT, SingularActionT}()
-     z.field = K
-     z.poly_ring = R
-     z.group = G
-     z.action = action
-     z.action_singular = action_singular
-     z.modular = true
-     if iszero(characteristic(K))
-       z.modular = false
-     else
-       if !iszero(mod(order(G), characteristic(K)))
-         z.modular = false
-       end
-     end
-     return z
-   end
+  function InvRing(K::FldT, G::GrpT, action::Vector{ActionT}) where {FldT <: Field, GrpT <: AbstractAlgebra.Group, ActionT}
+    n = degree(G)
+    R, = PolynomialRing(K, "x" => 1:n, cached = false)
+    R_sing = singular_ring(R)
+    action_singular = identity.([change_base_ring(R_sing, g) for g in action])
+    PolyRingT = typeof(R)
+    PolyElemT = elem_type(R)
+    SingularActionT = eltype(action_singular)
+    z = new{FldT, GrpT, PolyElemT, PolyRingT, ActionT, SingularActionT}()
+    z.field = K
+    z.poly_ring = R
+    z.group = G
+    z.action = action
+    z.action_singular = action_singular
+    z.modular = true
+    if iszero(characteristic(K))
+      z.modular = false
+    else
+      if !iszero(mod(order(G), characteristic(K)))
+        z.modular = false
+      end
+    end
+    return z
+  end
 end
 
 ################################################################################
@@ -183,16 +183,16 @@ function molien_series_via_singular(IR::InvRing{T}) where {T <: Union{FlintRatio
 end
 
 function molien_series(IR::InvRing{T}) where {T <: Union{FlintRationalField, AnticNumberField}}
-   mol = molien_series_via_singular(IR)
-   # Singular does not build a new polynomial ring for the univariate Hilbert series
-   # (how could it after all), but uses the first variable of the given ring.
+  mol = molien_series_via_singular(IR)
+  # Singular does not build a new polynomial ring for the univariate Hilbert series
+  # (how could it after all), but uses the first variable of the given ring.
 
-   R = polynomial_ring(IR)
-   K = coefficient_ring(IR)
-   S, t = PolynomialRing(K, "t", cached = false)
-   # Need an extra coercion here while waiting for https://github.com/Nemocas/AbstractAlgebra.jl/pull/1009
-   #return to_univariate(S, R(mol[1, 1]))//to_univariate(S, R(mol[1, 2]))
-   return S(to_univariate(S, R(mol[1, 1])))//S(to_univariate(S, R(mol[1, 2])))
+  R = polynomial_ring(IR)
+  K = coefficient_ring(IR)
+  S, t = PolynomialRing(K, "t", cached = false)
+  # Need an extra coercion here while waiting for https://github.com/Nemocas/AbstractAlgebra.jl/pull/1009
+  #return to_univariate(S, R(mol[1, 1]))//to_univariate(S, R(mol[1, 2]))
+  return S(to_univariate(S, R(mol[1, 1])))//S(to_univariate(S, R(mol[1, 2])))
 end
 
 function molien_series(IR::InvRing{T}) where {T <: Union{Nemo.GaloisField, Nemo.GaloisFmpzField}}
@@ -205,45 +205,45 @@ function molien_series(IR::InvRing{T}) where {T <: Union{Nemo.GaloisField, Nemo.
   R, y = PolynomialRing(K, ["y"], cached = false)
   S, t = PolynomialRing(K, "t", cached = false)
 
-   # Need an extra coercion here while waiting for https://github.com/Nemocas/AbstractAlgebra.jl/pull/1009
-   #return to_univariate(S, R(mol[1, 1]))//to_univariate(S, R(mol[1, 2]))
-   return S(to_univariate(S, R(mol[1, 1])))//S(to_univariate(S, R(mol[1, 2])))
+  # Need an extra coercion here while waiting for https://github.com/Nemocas/AbstractAlgebra.jl/pull/1009
+  #return to_univariate(S, R(mol[1, 1]))//to_univariate(S, R(mol[1, 2]))
+  return S(to_univariate(S, R(mol[1, 1])))//S(to_univariate(S, R(mol[1, 2])))
 end
 
 function invariant_basis(IR::InvRing, d::Int)
-   @assert d >= 0 "Dimension must be non-negative"
-   R = polynomial_ring(IR)
-   if d == 0
-      return elem_type(R)[ one(R) ]
-   end
+  @assert d >= 0 "Dimension must be non-negative"
+  R = polynomial_ring(IR)
+  if d == 0
+    return elem_type(R)[ one(R) ]
+  end
 
-   rey = reynolds_via_singular(IR)
-   basisSing = Singular.LibFinvar.invariant_basis_reynolds(rey, d)
-   res = Vector{elem_type(R)}()
-   # I prefer to return an empty array if the vector space is zero dimensional
-   # (and not [ 0 ]), so that the length of the result is always the dimension
-   # of the vector space.
-   if length(gens(basisSing)) == 1 && iszero(gens(basisSing)[1])
-      return res
-   end
-   for f in gens(basisSing)
-      push!(res, R(f))
-   end
-   return res
+  rey = reynolds_via_singular(IR)
+  basisSing = Singular.LibFinvar.invariant_basis_reynolds(rey, d)
+  res = Vector{elem_type(R)}()
+  # I prefer to return an empty array if the vector space is zero dimensional
+  # (and not [ 0 ]), so that the length of the result is always the dimension
+  # of the vector space.
+  if length(gens(basisSing)) == 1 && iszero(gens(basisSing)[1])
+    return res
+  end
+  for f in gens(basisSing)
+    push!(res, R(f))
+  end
+  return res
 end
 
 function primary_invariants_via_singular(IR::InvRing)
-   if !isdefined(IR, :primary_singular)
-      IR.primary_singular = Singular.LibFinvar.primary_invariants(_action_singular(IR)...)
-      P = IR.primary_singular[1]
-      R = polynomial_ring(IR)
-      p = Vector{elem_type(R)}()
-      for i = 1:ncols(P)
-        push!(p, R(P[1, i]))
-      end
-      IR.primary = p
-   end
-   return IR.primary
+  if !isdefined(IR, :primary_singular)
+    IR.primary_singular = Singular.LibFinvar.primary_invariants(_action_singular(IR)...)
+    P = IR.primary_singular[1]
+    R = polynomial_ring(IR)
+    p = Vector{elem_type(R)}()
+    for i = 1:ncols(P)
+      push!(p, R(P[1, i]))
+    end
+    IR.primary = p
+  end
+  return IR.primary
 end
 
 #######################################################
@@ -290,35 +290,35 @@ julia> primary_invariants(IR)
 ```
 """    
 function primary_invariants(IR::InvRing)
-   if !isdefined(IR, :primary)
-      primary_invariants_via_singular(IR)
-   end
-   return copy(IR.primary)
+  if !isdefined(IR, :primary)
+    primary_invariants_via_singular(IR)
+  end
+  return copy(IR.primary)
 end
 
 function secondary_invariants_via_singular(IR::InvRing)
-   if !isdefined(IR, :secondary)
-      rey, mol = reynolds_molien_via_singular(IR)
-      primary_invariants_via_singular(IR)
-      P = IR.primary_singular
-      if iszero(characteristic(coefficient_ring(IR)))
-        S, IS = Singular.LibFinvar.secondary_char0(P[1], rey, mol)
-      else
-        S, IS = Singular.LibFinvar.secondary_charp(P...)
-      end
-      R = polynomial_ring(IR)
-      s = Vector{elem_type(R)}()
-      for i = 1:ncols(S)
-         push!(s, R(S[1, i]))
-      end
-      is = Vector{elem_type(R)}()
-      for i = 1:ncols(IS)
-         push!(is, R(IS[1, i]))
-      end
-      IR.secondary = s
-      IR.irreducible_secondary = is
-   end
-   return IR.secondary
+  if !isdefined(IR, :secondary)
+    rey, mol = reynolds_molien_via_singular(IR)
+    primary_invariants_via_singular(IR)
+    P = IR.primary_singular
+    if iszero(characteristic(coefficient_ring(IR)))
+      S, IS = Singular.LibFinvar.secondary_char0(P[1], rey, mol)
+    else
+      S, IS = Singular.LibFinvar.secondary_charp(P...)
+    end
+    R = polynomial_ring(IR)
+    s = Vector{elem_type(R)}()
+    for i = 1:ncols(S)
+      push!(s, R(S[1, i]))
+    end
+    is = Vector{elem_type(R)}()
+    for i = 1:ncols(IS)
+      push!(is, R(IS[1, i]))
+    end
+    IR.secondary = s
+    IR.irreducible_secondary = is
+  end
+  return IR.secondary
 end
 
 #######################################################
@@ -365,33 +365,33 @@ julia> secondary_invariants(IR)
 ```
 """    
 function secondary_invariants(IR::InvRing)
-   if !isdefined(IR, :secondary)
-      secondary_invariants_via_singular(IR)
-   end
-   return copy(IR.secondary)
+  if !isdefined(IR, :secondary)
+    secondary_invariants_via_singular(IR)
+  end
+  return copy(IR.secondary)
 end
 
 function irreducible_secondary_invariants(IR::InvRing)
-   if !isdefined(IR, :irreducible_secondary)
-      secondary_invariants_via_singular(IR)
-   end
-   return copy(IR.irreducible_secondary)
+  if !isdefined(IR, :irreducible_secondary)
+    secondary_invariants_via_singular(IR)
+  end
+  return copy(IR.irreducible_secondary)
 end
 
 # Doesn't belong here...
 # Matrices act from the left here!
 function heisenberg_group(n::Int)
-   K, a = CyclotomicField(n, "a")
-   M1 = zero_matrix(K, n, n)
-   M1[1, n] = one(K)
-   for i = 2:n
-      M1[i, i - 1] = one(K)
-   end
+  K, a = CyclotomicField(n, "a")
+  M1 = zero_matrix(K, n, n)
+  M1[1, n] = one(K)
+  for i = 2:n
+    M1[i, i - 1] = one(K)
+  end
 
-   M2 = zero_matrix(K, n, n)
-   M2[1, 1] = one(K)
-   for i = 2:n
-      M2[i, i] = M2[i - 1, i - 1]*a
-   end
-   return MatrixGroup(n, K, [ M1, M2 ])
+  M2 = zero_matrix(K, n, n)
+  M2[1, 1] = one(K)
+  for i = 2:n
+    M2[i, i] = M2[i - 1, i - 1]*a
+  end
+  return MatrixGroup(n, K, [ M1, M2 ])
 end

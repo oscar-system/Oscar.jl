@@ -66,6 +66,4 @@
   for f in irrs
     @test Oscar.reynolds_operator(RG, f) == f
   end
-
-
 end
