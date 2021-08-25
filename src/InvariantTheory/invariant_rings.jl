@@ -126,27 +126,51 @@ function Base.show(io::IO, IR::InvRing)
   print(io, action(IR))
 end
 
-function reynolds_molien_via_singular(IR::InvRing)
-   @assert !ismodular(IR)
-   if !isdefined(IR, :reynolds_singular) || !isdefined(IR, :molien_singular)
-      R = polynomial_ring(IR)
-      singular_matrices = _action_singular(IR)
+function reynolds_molien_via_singular(IR::InvRing{T}) where {T <: Union{FlintRationalField, AnticNumberField}}
+  if !isdefined(IR, :reynolds_singular) || !isdefined(IR, :molien_singular)
+    singular_matrices = _action_singular(IR)
 
-      if iszero(characteristic(coefficient_ring(IR)))
-         rey, mol = Singular.LibFinvar.reynolds_molien(singular_matrices...)
-      else
-         error("Not implemented yet") # See https://github.com/oscar-system/Singular.jl/issues/486
-      end
-      IR.reynolds_singular = rey
-      IR.molien_singular = mol
-   end
-   return IR.reynolds_singular, IR.molien_singular
+    rey, mol = Singular.LibFinvar.reynolds_molien(singular_matrices...)
+    IR.reynolds_singular = rey
+    IR.molien_singular = mol
+  end
+  return IR.reynolds_singular, IR.molien_singular
+end
+
+function reynolds_molien_via_singular(IR::InvRing{T}) where {T <: Union{Nemo.GaloisField, Nemo.GaloisFmpzField}}
+  @assert !ismodular(IR)
+  if !isdefined(IR, :reynolds_singular) || !isdefined(IR, :molien_singular)
+    singular_matrices = _action_singular(IR)
+
+    rey = Singular.LibFinvar.reynolds_molien(singular_matrices..., "")
+    mol = Singular.lookup_library_symbol("Finvar", "newring")[2][:M]
+    IR.reynolds_singular = rey
+    IR.molien_singular = mol
+  end
+  return IR.reynolds_singular, IR.molien_singular
+end
+
+function reynolds_via_singular(IR::InvRing{T}) where {T <: Union{FlintRationalField, AnticNumberField, Nemo.GaloisField, Nemo.GaloisFmpzField}}
+  return reynolds_molien_via_singular(IR)[1]
+end
+
+# Singular.LibFinvar.reynolds_molien does not work for finite fields which are
+# not prime fields.
+function reynolds_via_singular(IR::InvRing{T}) where {T <: Union{FqNmodFiniteField, FqFiniteField}}
+  @assert !ismodular(IR)
+  if !isdefined(IR, :reynolds_singular)
+    singular_matrices = _action_singular(IR)
+
+    rey = Singular.LibFinvar.group_reynolds(singular_matrices...)[1]
+    IR.reynolds_singular = rey
+  end
+  return IR.reynolds_singular
 end
 
 function reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyElem}
    @assert parent(f) === polynomial_ring(IR)
 
-   rey, _ = reynolds_molien_via_singular(IR)
+   rey = reynolds_via_singular(IR)
    fSing = singular_ring(polynomial_ring(IR))(f)
    fReySing = Singular.LibFinvar.evaluate_reynolds(rey, fSing)
    # fReySing is an ideal...
@@ -154,31 +178,37 @@ function reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, 
    return polynomial_ring(IR)(gens(fReySing)[1])
 end
 
-function molien_series(IR::InvRing)
-   @assert !ismodular(IR)
-   _, mol = reynolds_molien_via_singular(IR)
+function molien_series_via_singular(IR::InvRing{T}) where {T <: Union{FlintRationalField, AnticNumberField, Nemo.GaloisField, Nemo.GaloisFmpzField}}
+  return reynolds_molien_via_singular(IR)[2]
+end
+
+function molien_series(IR::InvRing{T}) where {T <: Union{FlintRationalField, AnticNumberField}}
+   mol = molien_series_via_singular(IR)
    # Singular does not build a new polynomial ring for the univariate Hilbert series
    # (how could it after all), but uses the first variable of the given ring.
 
    R = polynomial_ring(IR)
    K = coefficient_ring(IR)
-   f1 = R(mol[1, 1])
-   g1 = R(mol[1, 2])
-
    S, t = PolynomialRing(K, "t", cached = false)
-   cs = zeros(K, degree(f1, 1) + 1)
-   for (c, e) in zip(coefficients(f1), exponent_vectors(f1))
-      cs[e[1] + 1] = K(c)
-   end
-   f2 = S(cs)
-   cs = zeros(K, degree(g1, 1) + 1)
-   for (c, e) in zip(coefficients(g1), exponent_vectors(g1))
-      cs[e[1] + 1] = K(c)
-   end
-   g2 = S(cs)
-   return f2//g2
+   # Need an extra coercion here while waiting for https://github.com/Nemocas/AbstractAlgebra.jl/pull/1009
+   #return to_univariate(S, R(mol[1, 1]))//to_univariate(S, R(mol[1, 2]))
+   return S(to_univariate(S, R(mol[1, 1])))//S(to_univariate(S, R(mol[1, 2])))
 end
 
+function molien_series(IR::InvRing{T}) where {T <: Union{Nemo.GaloisField, Nemo.GaloisFmpzField}}
+  @assert !ismodular(IR)
+  mol = molien_series_via_singular(IR)
+
+  # TODO: Write a conversion from Singular number fields to Nemo ones
+  Qx, x = PolynomialRing(FlintQQ, "x", cached = false)
+  K, a = number_field(Qx(Singular.n_transExt_to_spoly(Singular.modulus(coefficient_ring(parent(mol[1, 1]))))), "a", cached = false)
+  R, y = PolynomialRing(K, ["y"], cached = false)
+  S, t = PolynomialRing(K, "t", cached = false)
+
+   # Need an extra coercion here while waiting for https://github.com/Nemocas/AbstractAlgebra.jl/pull/1009
+   #return to_univariate(S, R(mol[1, 1]))//to_univariate(S, R(mol[1, 2]))
+   return S(to_univariate(S, R(mol[1, 1])))//S(to_univariate(S, R(mol[1, 2])))
+end
 
 function invariant_basis(IR::InvRing, d::Int)
    @assert d >= 0 "Dimension must be non-negative"
@@ -187,7 +217,7 @@ function invariant_basis(IR::InvRing, d::Int)
       return elem_type(R)[ one(R) ]
    end
 
-   rey, _ = reynolds_molien_via_singular(IR)
+   rey = reynolds_via_singular(IR)
    basisSing = Singular.LibFinvar.invariant_basis_reynolds(rey, d)
    res = Vector{elem_type(R)}()
    # I prefer to return an empty array if the vector space is zero dimensional
