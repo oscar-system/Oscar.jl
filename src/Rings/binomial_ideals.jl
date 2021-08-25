@@ -57,9 +57,7 @@ julia> iscellular(I)
 ```
 """
 function iscellular(I::MPolyIdeal)
-  if iszero(I)
-    return false, Int[-1]
-  elseif isone(I)
+  if isone(I)
     return false, Int[-1]
   end
   if isbinomial(I) 
@@ -76,6 +74,12 @@ function _iscellular(I::MPolyIdeal)
   #index of a variable which is a zerodivisor but not nilpotent modulo I
   Delta = Int64[]
   Rxy = base_ring(I)
+  if iszero(I)
+     for i = 1:ngens(Rxy)
+        push!(Delta, i)
+     end
+     return true, Delta
+  end
   variables = gens(Rxy)
   helpideal = ideal(Rxy, zero(Rxy))
 

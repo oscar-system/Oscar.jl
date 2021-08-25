@@ -1118,6 +1118,9 @@ true
 """
 function isone(I::MPolyIdeal)
   R = base_ring(I)
+  if iszero(I)
+      return false
+  end
   if any(x -> (isconstant(x) && isunit(first(coefficients(x)))), gens(I))
     return true
   end
