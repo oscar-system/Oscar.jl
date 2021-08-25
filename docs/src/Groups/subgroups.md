@@ -46,7 +46,6 @@ The following functions are available in Oscar to obtain standard subgroups of a
 trivial_subgroup
 centre
 sylow_subgroup(G::GAPGroup, p::Int64)
-hall_subgroup(G::GAPGroup, P::AbstractVector{<:Base.Integer})
 derived_subgroup
 fitting_subgroup
 frattini_subgroup
@@ -56,7 +55,7 @@ pcore(G::GAPGroup, p::Int64)
 intersect(V::T...) where T<:GAPGroup
 ```
 
-The following functions return a list of subgroups.
+The following functions return a vector of subgroups.
 
 ```@docs
 subgroups(G::GAPGroup)
@@ -67,12 +66,17 @@ minimal_normal_subgroups
 characteristic_subgroups
 derived_series
 sylow_system
+hall_subgroups_representatives(G::GAPGroup, P::AbstractVector{<:Base.Integer})
 hall_system
 complement_system
 ```
 
 !!! note
-    When a function returns a list of subgroups, the output consists in the subgroups only; the embeddings are not returned as well. To get the embedding homomorphism of the subgroup `H` in `G`, one has to type `embedding(G,H)`
+    When a function returns a vector of subgroups,
+    the output consists in the subgroups only;
+    the embeddings are not returned as well.
+    To get the embedding homomorphism of the subgroup `H` in `G`,
+    one can type `embedding(G,H)`.
 
 
 ## Conjugation action of elements and subgroups
@@ -119,6 +123,6 @@ left_acting_group(C::GroupDoubleCoset)
 right_acting_group(C::GroupDoubleCoset)
 representative(C::GroupDoubleCoset)
 order(C::Union{GroupCoset,GroupDoubleCoset})
-rand(C::Union{GroupCoset,GroupDoubleCoset})
+Base.rand(C::Union{GroupCoset,GroupDoubleCoset})
 intersect(V::AbstractVector{Union{T, GroupCoset, GroupDoubleCoset}}) where T <: GAPGroup
 ```

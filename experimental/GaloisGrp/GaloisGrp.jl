@@ -90,7 +90,7 @@ end
 Normal ring
 """
 function add_ring()
-  return BoundRing{fmpz}( (x,y) -> x*y, (x,y) -> x+y, (x,y) -> x^y, x->x, "add-ring")
+  return BoundRing{fmpz}( (x,y) -> x*y, (x,y) -> x+y, (x,y) -> x^y, x->abs(x), "add-ring")
 end
 
 #roots rt are power series sum a_n x^n

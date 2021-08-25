@@ -202,10 +202,15 @@ function Base.show(io::IO, G::DirectProductGroup)
 end
 
 # if a subgroup of a direct product of groups is also a direct product of groups
-"""
+@doc Markdown.doc"""
     write_as_full(G::DirectProductGroup)
 
-If `G` is a subgroup of the direct product `G_1 x ... x G_n` such that `G = H_1 x ... x H_n` for `H_i` subgroup of `G_i`, return `G` as full direct product of the `H_i`. If such `H_i` do not exist, an ERROR is returned.
+If `G` is a subgroup of the direct product
+$G_1 \times G_2 \times \cdots \times G_n$ such that `G` has the form
+$H_1 \times H_2 \times \cdots \times H_n$, for subgroups $H_i$ of $G_i$,
+return this full direct product of the $H_i$.
+
+An exception is thrown if such $H_i$ do not exist.
 """
 function write_as_full(G::DirectProductGroup)
    if G.isfull
@@ -238,7 +243,8 @@ Base.:^(H::DirectProductGroup, y::GAPGroupElem) = sub([h^y for h in gens(H)]...)
 """
     semidirect_product(N::S, f::GAPGroupHomomorphism, H::T)
 
-Return the semidirect product of `N` and `H`, of type ``SemidirectProductGroup{S,T}``, where `f` is a homomorphism from `H` to `Aut`(`N`).
+Return the semidirect product of `N` and `H`, of type `SemidirectProductGroup{S,T}`,
+where `f` is a group homomorphism from `H` to the automorphism group of `N`.
 """
 function semidirect_product(N::S, f::GAPGroupHomomorphism{T,AutomorphismGroup{S}}, H::T) where S <: GAPGroup where T <: GAPGroup
    sdp=GAP.Globals.SemidirectProduct(H.X,f.map,N.X)
@@ -303,7 +309,7 @@ function embedding(G::SemidirectProductGroup{S,T}, n::Base.Integer) where S wher
 end
 
 """
-    projection(G::SemidirectProductGroup, n::Integer)
+    projection(G::SemidirectProductGroup)
 
 Return the projection of `G` into the second component of `G`.
 """
@@ -409,7 +415,7 @@ isfull_wreath_product(G::WreathProductGroup) = G.isfull
 """
     projection(G::WreathProductGroup)
 
-Return the projection of `wreath_product(G,H)` into the permutation group `H`.
+Return the projection of `wreath_product(G,H)` onto the permutation group `H`.
 """
 function projection(W::WreathProductGroup)
   # @assert W.isfull "Projection not defined for proper subgroups of wreath products"

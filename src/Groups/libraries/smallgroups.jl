@@ -13,10 +13,13 @@ export
 """
     small_group(n::Int, i::Int)
 
-Return the `i`-th group of order `n` in the catalogue of the GAP Small Groups Library. The group is given of type ``PcGroup`` if the group is solvable, ``PermGroup`` otherwise.
+Return the `i`-th group of order `n` in the catalogue of GAP's
+Small Groups Library.
+The group is given of type `PcGroup` if the group is solvable,
+`PermGroup` otherwise.
 """
 function small_group(n::Int, m::Int)
-  @assert m<= number_small_groups(n) "There are less than $m groups of order $n."
+  @assert m<= number_small_groups(n) "There are less than $m groups of order $n, up to isomorphism."
   G = GAP.Globals.SmallGroup(n, m)
   T = _get_type(G)
   return T(G)
@@ -25,7 +28,7 @@ end
 """
     small_group_identification(G::Group)
 
-Return (`n`, `m`), where `G` = small_group(`n`,`m`).
+Return `(n, m)`, where `G` is isomorphic with `small_group(n, m)`.
 """
 function small_group_identification(G::GAPGroup)
   r = GAP.Globals.IdGroup(G.X)
@@ -36,7 +39,7 @@ end
 """
     number_small_groups(n::Int)
 
-Return the number of small groups of order `n`.
+Return the number of groups of order `n`, up to isomorphism.
 """
 number_small_groups(n::Int) = GAP.Globals.NumberSmallGroups(n)
 
@@ -52,7 +55,7 @@ julia> all_small_groups(12, cyclic, false, isabelian)
 ```
 returns the list of all abelian non-cyclic groups of order 12.
 
-The type of the groups is ``PcGroup`` if the group is solvable, ``PermGroup`` otherwise.
+The type of the groups is `PcGroup` if the group is solvable, `PermGroup` otherwise.
 """
 function all_small_groups(n::Int, L...)
    @assert CheckValidType(L)[1] "Wrong type inserted"
@@ -71,6 +74,12 @@ function all_small_groups(n::Int, L...)
    K = GAP.Globals.CallFuncList(GAP.Globals.AllSmallGroups,L1)
    return [_get_type(K[i])(K[i]) for i in 1:length(K)]          # GAP.julia_to_gap(K) does not work
 end
+#T what does this comment mean?
 
+#T problem:
 
+#T all_small_groups( 60, issimple ) -> Array{PermGroup,1}
+#T all_small_groups( 60 )  -> Array{Oscar.GAPGroup,1}
+#T all_small_groups( 59 )  -> Array{PcGroup,1}
 
+#T Do we want this???
