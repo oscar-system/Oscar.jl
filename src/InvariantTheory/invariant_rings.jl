@@ -21,7 +21,7 @@ mutable struct InvRing{FldT, GrpT, PolyElemT, PolyRingT, ActionT, SingularAction
    # (possibly removed at some point)
    reynolds_singular::Singular.smatrix
    molien_singular::Singular.smatrix
-   primary_singular::Singular.smatrix
+   primary_singular # the type is different depending on the characteristic...
 
    function InvRing(K::FldT, G::GrpT, action::Vector{ActionT}) where {FldT <: Field, GrpT <: AbstractAlgebra.Group, ActionT}
      n = degree(G)
@@ -71,6 +71,8 @@ function invariant_ring(M::Vector{<: MatrixElem})
   return invariant_ring(base_ring(M[1]), M)
 end
 
+invariant_ring(matrices::MatrixElem{T}...) where {T} = invariant_ring(collect(matrices))
+
 function invariant_ring(K::Field, M::Vector{<: MatrixElem})
   return invariant_ring(matrix_group([change_base_ring(K, g) for g in M]))
 end
@@ -116,8 +118,6 @@ function invariant_ring(G::MatrixGroup)
 end
 
 #######################################################
-
-invariant_ring(matrices::MatrixElem{T}...) where {T} = invariant_ring(collect(matrices))
 
 function Base.show(io::IO, IR::InvRing)
   print(io, "Invariant ring of\n")
@@ -234,26 +234,14 @@ end
 
 function primary_invariants_via_singular(IR::InvRing)
    if !isdefined(IR, :primary_singular)
-      if iszero(characteristic(coefficient_ring(IR)))
-         rey, mol = reynolds_molien_via_singular(IR)
-         P = Singular.LibFinvar.primary_char0(rey, mol)
-         R = polynomial_ring(IR)
-         p = Vector{elem_type(R)}()
-         for i = 1:ncols(P)
-            push!(p, R(P[1, i]))
-         end
-         IR.primary_singular = P
-         IR.primary = p
-      else
-         P = Singular.LibFinvar.primary_invariants(_action_singular(IR)...)[1]
-         R = polynomial_ring(IR)
-         p = Vector{elem_type(R)}()
-         for i = 1:ncols(P)
-           push!(p, R(P[1, i]))
-         end
-         IR.primary_singular = P
-         IR.primary = p
+      IR.primary_singular = Singular.LibFinvar.primary_invariants(_action_singular(IR)...)
+      P = IR.primary_singular[1]
+      R = polynomial_ring(IR)
+      p = Vector{elem_type(R)}()
+      for i = 1:ncols(P)
+        push!(p, R(P[1, i]))
       end
+      IR.primary = p
    end
    return IR.primary
 end
@@ -313,7 +301,11 @@ function secondary_invariants_via_singular(IR::InvRing)
       rey, mol = reynolds_molien_via_singular(IR)
       primary_invariants_via_singular(IR)
       P = IR.primary_singular
-      S, IS = Singular.LibFinvar.secondary_char0(P, rey, mol)
+      if iszero(characteristic(coefficient_ring(IR)))
+        S, IS = Singular.LibFinvar.secondary_char0(P[1], rey, mol)
+      else
+        S, IS = Singular.LibFinvar.secondary_charp(P...)
+      end
       R = polynomial_ring(IR)
       s = Vector{elem_type(R)}()
       for i = 1:ncols(S)

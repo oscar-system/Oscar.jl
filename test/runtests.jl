@@ -34,3 +34,5 @@ include("Examples/ModStdNF-test.jl")
 
 include("Modules/FreeModules-graded-test.jl")
 include("Modules/GradedModules.jl")
+
+include("InvariantTheory/invariant_rings-test.jl")
