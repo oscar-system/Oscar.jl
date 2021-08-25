@@ -3,9 +3,9 @@ using Test
 
 @testset "JToric.jl" begin
     # Compute properties of toric varieties on the example of a Hirzebruch surface
-    Rays = [[-1,5],[0,1],[1,0],[0,-1]]
+    Rays = [-1 5; 0 1; 1 0; 0 -1]
     Cones = [[1,2],[2,3],[3,4],[4,1]]
-    H5 = toric_variety( Rays, Cones )
+    H5 = NormalToricVariety( Rays, Cones )
     @test JToric.is_normal_variety( H5 ) == true
     @test JToric.is_affine( H5 ) == false
     @test JToric.is_projective( H5 ) == true

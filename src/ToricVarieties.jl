@@ -2,27 +2,36 @@
 # 1: The Julia type for ToricVarieties
 ######################
 
-struct toric_variety
-           GapToricVariety::GapObj
+struct NormalToricVariety
+           GapNTV::GapObj
+           polymakeNTV::Polymake.BigObject
 end
-export toric_variety
+export NormalToricVariety
 
 
 ######################
 # 2: Generic constructors
 ######################
 
-function toric_variety( rays::Vector{Vector{Int}}, cones::Vector{Vector{Int}} )
+function NormalToricVariety( rays::Matrix{Int}, cones::Vector{Vector{Int}} )
     # construct the toric variety in GAP
     gap_rays = GapObj( rays, recursive = true )
     gap_cones = GapObj( cones, recursive = true )
     fan = GAP.Globals.Fan( gap_rays, gap_cones )
     variety = GAP.Globals.ToricVariety( fan )
-    
+
+    Incidence = Oscar.IncidenceMatrix(cones)
+    arr = @Polymake.convert_to Array{Set{Int}} Polymake.common.rows(Incidence.pm_incidencematrix)
+
+    pmntv = Polymake.fulton.NormalToricVariety(
+        INPUT_RAYS = Oscar.matrix_for_polymake(rays),
+        INPUT_CONES = arr,
+    )
+
     # wrap it into a struct and return
-    return toric_variety( variety )
+    return NormalToricVariety( variety, pmntv )
 end
-export toric_variety
+export NormalToricVariety
 
 
 ######################
@@ -34,7 +43,7 @@ function projective_space( x )
     variety = GAP.Globals.ProjectiveSpace( x )
     
     # wrap it and return
-    return toric_variety(  variety )
+    return NormalToricVariety(  variety )
 end
 export projective_space
 
@@ -43,61 +52,61 @@ export projective_space
 # 4: Properties
 ######################
 
-function is_normal_variety( v::toric_variety )
+function is_normal_variety( v::NormalToricVariety )
     return true
 end
 export is_normal_variety
 
 
-function is_affine( v::toric_variety )
-    return GAP.Globals.IsAffine(v.GapToricVariety)::Bool
+function is_affine( v::NormalToricVariety )
+    return v.polymakeNTV.AFFINE
 end
 export is_affine
 
 
-function is_projective( v::toric_variety )
-    return GAP.Globals.IsProjective( v.GapToricVariety )::Bool
+function is_projective( v::NormalToricVariety )
+    return v.polymakeNTV.PROJECTIVE
 end
 export is_projective
 
 
-function is_smooth( v::toric_variety )
-    return GAP.Globals.IsSmooth( v.GapToricVariety )::Bool
+function is_smooth( v::NormalToricVariety )
+    return v.polymakeNTV.SMOOTH
 end
 export is_smooth
 
 
-function is_complete( v::toric_variety )
-    return GAP.Globals.IsComplete( v.GapToricVariety )::Bool
+function is_complete( v::NormalToricVariety )
+    return GAP.Globals.IsComplete( v.GapNTV )::Bool
 end
 export is_complete
 
 
-function has_torusfactor( v::toric_variety )
-    return GAP.Globals.HasTorusfactor( v.GapToricVariety )::Bool
+function has_torusfactor( v::NormalToricVariety )
+    return GAP.Globals.HasTorusfactor( v.GapNTV )::Bool
 end
 export has_torusfactor
 
 
-function is_orbifold( v::toric_variety )
-    return GAP.Globals.IsOrbifold( v.GapToricVariety )::Bool
+function is_orbifold( v::NormalToricVariety )
+    return GAP.Globals.IsOrbifold( v.GapNTV )::Bool
 end
 export is_orbifold
 
 
-function is_simplicial( v::toric_variety )
-    return GAP.Globals.IsSimplicial( v.GapToricVariety )::Bool
+function is_simplicial( v::NormalToricVariety )
+    return GAP.Globals.IsSimplicial( v.GapNTV )::Bool
 end
 export is_simplicial
 
 
-function is_isomorphic_to_projective_space( v::toric_variety )
-    return GAP.Globals.IsIsomorphicToProjectiveSpace( v.GapToricVariety )::Bool
+function is_isomorphic_to_projective_space( v::NormalToricVariety )
+    return GAP.Globals.IsIsomorphicToProjectiveSpace( v.GapNTV )::Bool
 end
 export is_isomorphic_to_projective_space
 
 
-function is_direct_product_of_projective_spaces( v::toric_variety )
-    return GAP.Globals.IsDirectProductOfPNs( v.GapToricVariety )::Bool
+function is_direct_product_of_projective_spaces( v::NormalToricVariety )
+    return GAP.Globals.IsDirectProductOfPNs( v.GapNTV )::Bool
 end
 export is_direct_product_of_projective_spaces
