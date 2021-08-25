@@ -90,17 +90,27 @@
    @test GAP.Globals.Order(G.mat_iso(diagonal_matrix([z,z,one(F)])))==4
 
    M = matrix(QQ, [ 0 1 0; -1 0 0; 0 0 -1 ])
-   G = Oscar.isomorphic_group_over_finite_field([ M ])
+   G, g = Oscar.isomorphic_group_over_finite_field(matrix_group([ M ]))
+   for i in 1:10
+     x, y = rand(G), rand(G)
+     @test (g\x) * (g\y) == g\(x * y)
+     @test g(g\x) == x
+   end
    H = GAP.Globals.Group(GAP.julia_to_gap([ 0 1 0; -1 0 0; 0 0 -1 ]))
    f = GAP.Globals.GroupHomomorphismByImages(G.X, H)
    @test GAP.Globals.IsBijective(f)
 
    M = matrix(QQ, [ 2 0; 0 2 ])
-   @test_throws ErrorException Oscar.isomorphic_group_over_finite_field([ M ])
+   @test_throws ErrorException Oscar.isomorphic_group_over_finite_field(matrix_group([M]))
 
    K, a = CyclotomicField(5, "a")
    M = matrix(K, [ a 0; 0 a ])
-   G = Oscar.isomorphic_group_over_finite_field([ M ])
+   G, g = Oscar.isomorphic_group_over_finite_field(matrix_group([M]))
+   for i in 1:10
+     x, y = rand(G), rand(G)
+     @test (g\x) * (g\y) == g\(x * y)
+     @test g(g\x) == x
+   end
    H = GAP.Globals.Group(GAP.julia_to_gap([ GAP.Globals.E(5) 0; 0 GAP.Globals.E(5) ]))
    f = GAP.Globals.GroupHomomorphismByImages(G.X, H)
    @test GAP.Globals.IsBijective(f)
