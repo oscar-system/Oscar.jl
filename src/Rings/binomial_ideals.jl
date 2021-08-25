@@ -1,7 +1,7 @@
 import Oscar.Singular.lib4ti2_jll
 export isbinomial, iscellular, isunital, binomial_primary_decomposition, 
        cellular_decomposition, cellular_associated_primes, cellular_minimal_associated_primes, cellular_hull, cellular_primary_decomposition
-
+export cellular_decomposition_macaulay
 @doc Markdown.doc"""
     isbinomial(f::MPolyElem)
 
@@ -130,7 +130,10 @@ function cellular_decomposition(I::MPolyIdeal)
   #with less redundancies
   #input: binomial ideal I
   #output: a cellular decomposition of I
-  @assert !iszero(I) && !isone(I)
+  if iszero(I)
+     return [I]
+  end
+  @assert !isone(I)
   @assert isbinomial(I)
   return _cellular_decomposition(I)
 end
@@ -263,7 +266,15 @@ end
 function cellular_decomposition_macaulay(I::MPolyIdeal)
   #algorithm after Macaulay2 implementation for computing a cellular decomposition of a binomial ideal
   #seems to be faster than cellularDecomp, but there are still examples which are really slow
+  if iszero(I)
+     return [I]
+  end
+  @assert !isone(I)
+  @assert isbinomial(I)
+  return _cellular_decomposition(I)
+end
 
+function _cellular_decomposition_macaulay(I::MPolyIdeal)
   if !isbinomial(I)
     error("Input ideal is not binomial")
   end
@@ -866,9 +877,15 @@ function binomial_primary_decomposition(I::MPolyIdeal{fmpq_mpoly})
   #output: binomial primary ideals which form a not necessarily
   #         minimal primary decomposition of I, together with its corresponding associated primes 
   #         in the same order as the primary components
-
+  if iszero(I)
+     Qab, = abelian_closure(QQ)
+     RQab = PolynomialRing(Qab, symbols(base_ring(I)))[1]
+     return [(ideal(RQab, [zero(RQab)]), ideal(RQab, [zero(RQab)]))]
+  end
+  @assert !isone(I)
+  @assert isbinomial(I)
   #first compute a cellular decomposition of I
-  cell_comps = cellular_decomposition_macaulay(I)
+  cell_comps = _cellular_decomposition_macaulay(I)
 
   T = MPolyIdeal{Generic.MPoly{QabElem}}
   res = Vector{Tuple{T, T}}() #This will hold the set of primary components
