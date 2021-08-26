@@ -20,7 +20,7 @@ function add_variables( R::MPolyRing, new_vars::Vector{String} )
   # localizations, they're eliminated first.
   #vars = vcat( new_vars, old_vars )
   S, v = PolynomialRing( k, vars )
-  @show S, v
+  # @show S, v
   phi = AlgebraHomomorphism( R, S, gens(S)[1:n] )
   y = v[n+1:length(v)]
   return S, phi, y
