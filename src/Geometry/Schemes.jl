@@ -22,6 +22,8 @@ export first_patch, second_patch, overlap, first_inclusion, second_inclusion, gl
 export Covering
 export get_patches, get_glueings, add_patch
 
+export Refinement
+
 export CoveredScheme
 export get_coverings
 
@@ -29,6 +31,9 @@ export AbstractCoherentSheaf
 
 export IdealSheaf
 export parent, covering, ideals
+
+export CoherentSheaf
+export parent, covering, modules
 
 abstract type Scheme{ S <: Ring }end
 abstract type AffineScheme{S, T <: MPolyRing, U <: MPolyElem} <: Scheme{S} end
@@ -579,8 +584,8 @@ end
 function add_patch( C::Covering, X::AffineScheme, glueings::Vector{Glueing} )
   push!( C.patches, X )
   n = length(glueings)
-  @show n
-  @show length( get_patches(C))
+  #@show n
+  #@show length( get_patches(C))
   if n != length(get_patches(C))-1
     error( "the number of glueings does not coincide with the number of patches so far." )
   end
@@ -706,18 +711,18 @@ function projective_space( k::Ring, n::Int )
     println("Glueing in the following new patch:")
     Y = affine_space( k, n )
     set_name(Y,"IA^$(n)_$(j)")
-    @show Y
+    #@show Y
     # come up with the glueings
     G = Vector{Glueing}()
     println("New glueings for this step so far:") 
-    @show G
-    @show typeof( G )
+    #@show G
+    #@show typeof( G )
     for i in (0:j-1)
       println("Variable of the inner loop i = $i")
       # The patch for x_i ≠ 0 with i < j
       X = get_patches(C)[i+1]
       println( "first patch" )
-      @show X
+      #@show X
       R = ambient_ring( Y ) 
       V = localize( Y, gens(R)[i+1] )
       S = ambient_ring( X ) 
@@ -737,12 +742,12 @@ function projective_space( k::Ring, n::Int )
 			      )
 
       f = AffSchMorphism( U, V, Φ )
-      @show f
+      #@show f
       glueing = Glueing( inclusion_in_parent(U), inclusion_in_parent(V), f )
-      @show glueing
+      #@show glueing
       push!( G, glueing )
-      @show G
-      @show typeof( G )
+      #@show G
+      #@show typeof( G )
     end
     add_patch( C, Y, G )
   end
@@ -777,6 +782,16 @@ parent( I::IdealSheaf ) = I.parent
 covering( I::IdealSheaf ) = I.covering
 ideals( I::IdealSheaf ) = I.ideals
 
+# Take a homogeneous ideal I in a graded homogeneous 
+# ring S and turn it into an ideal sheaf on the 
+# corresponding projective space
+function to_ideal_sheaf( I::MPolyIdeal )
+  # TODO: Implement this based on graded modules in 
+  # Oscar. The routine is supposed to recognize automatically 
+  # from the parent how to construct the associated projective 
+  # space and return the ideal sheaf on it. 
+end
+
 #########################################################
 #
 # A sheaf of modules on a CoveredScheme X
@@ -791,9 +806,34 @@ mutable struct CoherentSheaf <: AbstractCoherentSheaf
   modules::Vector{FPModule{MPolyElem}}
 end
 
-parent( I::IdealSheaf ) = I.parent
-covering( I::IdealSheaf ) = I.covering
-modules( I::IdealSheaf ) = I.modules
+parent( I::CoherentSheaf ) = I.parent
+covering( I::CoherentSheaf ) = I.covering
+modules( I::CoherentSheaf ) = I.modules
+
+########################################################
+# 
+# A line bundle on a CoveredScheme X
+#
+# Again, this refers to a specific covering C of X 
+# which has to be fine enough so that the line bundle is 
+# trivialized on the patches. Then, the bundle itself 
+# is described by an "antisymmetric" matrix of transition 
+# functions. 
+#
+# Note that not every line bundle on an affine 
+# scheme is necessarily trivial! But in general one will 
+# need to even cover an affine scheme by finer patches 
+# in order to represent it as a line bundle of this form.
+#
+mutable struct LineBundle <: AbstractCoherentSheaf
+  parent::CoveredScheme
+  covering::Covering
+  transitions::Array{MPolyElem,2}
+end
+
+parent( L::LineBundle ) = L.parent
+covering( L::LineBundle ) = L.covering
+transitions( L::LineBundle ) = L.transitions
 
 
 # Todo adapt the code below to the new data structure
