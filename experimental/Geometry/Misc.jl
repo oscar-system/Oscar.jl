@@ -15,10 +15,10 @@ function add_variables( R::MPolyRing, new_vars::Vector{String} )
   k = base_ring(R)
   old_vars = String.( symbols(R) )
   n = length( old_vars )
-  #vars = vcat( old_vars, new_vars )
+  vars = vcat( old_vars, new_vars )
   # place the new variables up front so that when they're used in 
   # localizations, they're eliminated first.
-  vars = vcat( new_vars, old_vars )
+  #vars = vcat( new_vars, old_vars )
   S, v = PolynomialRing( k, vars )
   @show S, v
   phi = AlgebraHomomorphism( R, S, gens(S)[1:n] )
