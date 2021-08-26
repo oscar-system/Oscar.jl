@@ -1,6 +1,7 @@
 import AbstractAlgebra.Ring, Oscar.AlgHom, Oscar.compose, AbstractAlgebra.Generic.Frac
 import Base: ∘
 import Oscar: base_ring
+import AbstractAlgebra: FPModule, FPModuleElem
 
 include( "./Multiindices.jl" )
 using Oscar.Multiindices
@@ -12,13 +13,22 @@ export AffineScheme, PrincipalSubScheme,Spec, SpecPrincipalOpen, affine_space
 export AffSchMorphism, base_ring,ambient_ring,defining_ideal, pullback, pullback_from_parent, pullback_from_root, inclusion_in_parent, inclusion_in_root, set_name
 export localize
 
+export AffSchMorphism
+export domain, codomain, pullback
+
 export Glueing
-export first_patch, second_patch
+export first_patch, second_patch, overlap, first_inclusion, second_inclusion, glueing_isomorphism
 
 export Covering
 export get_patches, get_glueings, add_patch
 
 export CoveredScheme
+export get_coverings
+
+export AbstractCoherentSheaf
+
+export IdealSheaf
+export parent, covering, ideals
 
 abstract type Scheme{ S <: Ring }end
 abstract type AffineScheme{S, T <: MPolyRing, U <: MPolyElem} <: Scheme{S} end
@@ -26,7 +36,7 @@ abstract type SchemeMorphism end
 
 abstract type SchematicPoint end
 abstract type Sheaf end
-abstract type CoherentSheaf <: Sheaf end
+abstract type AbstractCoherentSheaf <: Sheaf end
 
 ####################################################################################
 # The classical affine scheme, explicitly given as the quotient 
@@ -494,6 +504,9 @@ end
 first_patch( Γ::Glueing ) = Γ.firstPatch
 second_patch( Γ::Glueing ) = Γ.secondPatch
 overlap(Γ::Glueing) = codomain(Γ.inclusionFirstPatch)
+first_inclusion( Γ::Glueing ) = Γ.inclusionFirstPatch
+second_inclusion( Γ::Glueing ) = Γ.inclusionSecondPatch
+glueing_isomorphism( Γ::Glueing ) = Γ.glueingIsomorphism
 
 function Base.show( io::Base.IO, Γ::Glueing )
   Base.print( io, "Glueing of\n" )
@@ -629,21 +642,6 @@ function get_inclusions( ρ::Refinement )
 end
 
 
-
-mutable struct CoveringMorphism
-  domain::Covering
-  codomain::Covering
-  restrictions::Vector{AffSchMorphism}
-
-  function CoveringMorphism( domain::Covering, codomain::Covering, restrictions::Vector{AffSchMorphism} )
-    C = new()
-    C.domain = domain
-    C.codomain = codomain
-    C.restrictions = restrictions
-    return C
-  end
-end
-
 ######################################################################
 # A scheme explicitly described by providing a covering 
 # with glueings. 
@@ -752,9 +750,50 @@ function projective_space( k::Ring, n::Int )
   return IP
 end
 
+##########################################################
+# 
+# A sheaf of ideals on a CoveredScheme X
+#
+# Just as every coherent sheaf, a sheaf of ideals 
+# needs to refer to an explicit covering C of X which 
+# has to be listed in the stored coverings for X. 
+# The second datum necessary is a list of ideals 
+# I_k ⊂ R_k for all affine schemes Spec R_k in C. 
+# Note that, for simplicity, we simply store the 
+# preimages of the ideals in the chosen ambient 
+# rings of the affine patches. 
+#
+# We refrain from implementing this explicitly for 
+# affine schemes since there ideal sheaves are just 
+# in 1:1 correspondence with actual ideals.
+#
+mutable struct IdealSheaf <: AbstractCoherentSheaf 
+  parent::CoveredScheme
+  covering::Covering
+  ideals::Vector{MPolyIdeal}
+end
 
-mutable struct IdealSheaf <: CoherentSheaf end
+parent( I::IdealSheaf ) = I.parent
+covering( I::IdealSheaf ) = I.covering
+ideals( I::IdealSheaf ) = I.ideals
 
+#########################################################
+#
+# A sheaf of modules on a CoveredScheme X
+#
+# Everything is similar to the ideal sheaf above, 
+# only that instead of ideals we store modules over 
+# the chosen ambient rings of the patches
+#
+mutable struct CoherentSheaf <: AbstractCoherentSheaf 
+  parent::CoveredScheme
+  covering::Covering
+  modules::Vector{FPModule{MPolyElem}}
+end
+
+parent( I::IdealSheaf ) = I.parent
+covering( I::IdealSheaf ) = I.covering
+modules( I::IdealSheaf ) = I.modules
 
 
 # Todo adapt the code below to the new data structure
