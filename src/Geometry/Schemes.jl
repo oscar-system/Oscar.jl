@@ -141,10 +141,40 @@ function base_ring(D::SpecPrincipalOpen)
   return k
 end
 
+# Returns the unit that has last been adjoint to the 
+# coordinate ring, i.e. the inverse of the inverted element
+function get_unit(D::SpecPrincipalOpen)
+  if isdefined( D, :u )
+    return D.u
+  end
+  base_ring(D)
+  return D.u
+end
+
+# Return a vector containing the variables of the root's ambient 
+# ring, but as elements of the new ambient ring.
+function get_root_variables( D::SpecPrincipalOpen )
+  ϕ = pullback_from_root(D)
+  return [ ϕ(x) for x in gens(ambient_ring(root(D))) ]
+end
+  
+
+
 # Setter functions
 
 function set_name( X::AffineScheme, name::String )
   X.name = name
+end
+
+##################################################################
+# 
+# Localize an affine scheme at an element f from its root
+#
+function hypersurface_complement( X::AffineScheme, f::MPolyElem )
+  if parent( f ) != ambient_ring( root( X ))
+    error( "The polynomial is not an element of the root ambient ring of the given affine scheme." )
+  end
+  #TODO: Complete this. Maybe it's redundant with the localize routine above, though.
 end
 
 # Collect the denominators from this localization up to the root. 
@@ -429,8 +459,8 @@ end
 
 #####################################################################
 # Glueing of two affine schemes X and Y along an open subset 
-# U ⊂ X and V ⊂ Y via an isomorphism Φ : U ≅ V. 
-# A glueing consists of a diagram X ↩ U ≅ V ↪ Y with the outer maps 
+# U ⊂ X and V ⊂ Y via an isomorphism Φ : U → V. 
+# A glueing consists of a diagram X ↩ U → V ↪ Y with the outer maps 
 # the open embeddings of principal open subsets. 
 #
 mutable struct Glueing
@@ -487,6 +517,13 @@ mutable struct Covering
   patches::Vector{AffineScheme}	# A list of open patches for this scheme
   glueings::Array{Union{Glueing,Nothing},2}     # A list of glueings between the patches 
   						# listed above
+  function Covering()
+    C = new()
+    C.patches = []
+    C.glueings = []
+    return C
+  end
+
   function Covering( X::AffineScheme ) 
     C = new()
     C.patches = [X]
@@ -501,6 +538,14 @@ function get_patches( C::Covering )
   else 
     return nothing 
   end 
+end
+
+function get_patch( C::Covering, i::Int )
+  if isdefined( C, :patches )
+    return( C.patches[i] )
+  else
+    return nothing
+  end
 end
 
 function get_glueings( C::Covering )
@@ -534,15 +579,56 @@ function add_patch( C::Covering, X::AffineScheme, glueings::Vector{Glueing} )
       error( "Codomain of the glueing does not coincide with the new patch." )
     end
   end
-  println( "hutohsateugcrghst" )
-  @show C.glueings
-  println( "hutohsateugcrghst" )
-  @show glueings
-  println( "hutohsateugcrghst" )
-  @show Array{Nothing,2}(nothing,1,n+1)
+ # println( "hutohsateugcrghst" )
+ # @show C.glueings
+ # println( "hutohsateugcrghst" )
+ # @show glueings
+ # println( "hutohsateugcrghst" )
+ # @show Array{Nothing,2}(nothing,1,n+1)
   C.glueings = vcat( hcat( C.glueings, glueings ), Array{Nothing,2}(nothing,1,n+1) )
   return C
 end
+
+#######################################################################
+#
+# Refinement of a covering C by another covering D.
+# Let I and J be the index sets for the patches of the coverings 
+# C and D, respectively. Then a refinement consists of 
+# a function 
+#   n : J → I 
+# such that for every patch Y_j in D there exists a patch X_i in C with 
+# i = n(j) such that X_i contains Y_j. 
+# The datum of the refinement stored here is then the respective collection 
+# of morphisms of affine schemes given by these containments. 
+#
+mutable struct Refinement
+  original_cover::Covering
+  refined_cover::Covering
+  inclusions::Vector{AffSchMorphism}
+end
+
+function get_original_cover( ρ::Refinement )
+  if isdefined( ρ, :original_cover )
+    return ρ.original_cover
+  end
+  return nothing
+end
+
+function get_refined_cover( ρ::Refinement )
+  if isdefined( ρ, :refined_cover )
+    return ρ.refined_cover
+  end
+  return nothing
+end
+
+function get_inclusions( ρ::Refinement )
+  if isdefined( ρ, :inclusions ) 
+    return ρ.inclusions
+  end
+  return nothing
+end
+
+
 
 mutable struct CoveringMorphism
   domain::Covering
@@ -572,6 +658,14 @@ end
 #
 mutable struct CoveredScheme
   coverings::Vector{Covering}
+  refinements::Array{Refinement,2}
+
+  function CoveredScheme()
+    X = new()
+    coverings = Vector{Covering}[]
+    refinements
+    return X 
+  end
 
   function CoveredScheme( C::Covering ) where{ S <: Ring }
     X = new()
@@ -588,8 +682,74 @@ mutable struct CoveredScheme
 
 end
 
+function get_coverings( X::CoveredScheme )
+  return X.coverings
+end
+
 function Base.show( io::Base.IO, X::CoveredScheme )
   Base.print( io, "Covered Scheme with $(length(X.coverings)) covering." )
+end
+
+####################################################################
+#
+# Construct projective space IP^n_k over the ring k as a covered 
+# scheme with its standard open cover
+#
+function projective_space( k::Ring, n::Int )
+  # Start the standard covering with the first patch for x_0 ≠ 0.
+  println( "assembling $n-dimensional projective space over $k." )
+  X0 = affine_space(k,n)
+  set_name( X0, "IA^$(n)_0" )
+  C = Covering(X0)
+  # Add the other patches successively
+  for j in (1:n) 
+    println("Variable in the outer loop j = $j")
+    # The patch for x_j ≠ 0
+    println("Glueing in the following new patch:")
+    Y = affine_space( k, n )
+    set_name(Y,"IA^$(n)_$(j)")
+    @show Y
+    # come up with the glueings
+    G = Vector{Glueing}()
+    println("New glueings for this step so far:") 
+    @show G
+    @show typeof( G )
+    for i in (0:j-1)
+      println("Variable of the inner loop i = $i")
+      # The patch for x_i ≠ 0 with i < j
+      X = get_patches(C)[i+1]
+      println( "first patch" )
+      @show X
+      R = ambient_ring( Y ) 
+      V = localize( Y, gens(R)[i+1] )
+      S = ambient_ring( X ) 
+      U = localize( X, gens(S)[j] )
+      R_loc = ambient_ring( V )
+      S_loc = ambient_ring( U )
+      R_vars = get_root_variables(V)
+      S_vars = get_root_variables(U)
+      R_unit = get_unit(V)
+      S_unit = get_unit(U)
+      Φ = AlgebraHomomorphism( R_loc, S_loc, 
+			      vcat( [ S_vars[k]*S_unit for k in (1:i) ], # the first i-1 variables have the same indices
+				   [S_unit], # this is inverted to pass to the other patch
+				   [ S_vars[k-1]*S_unit for k in (i+2:j) ], # fill up with intermediate variables
+				   [ S_vars[k]*S_unit for k in (j+1:n) ], # skip the j-th variable
+				   [ S_vars[j] ] ) # map the unit to the appropriate coordinate
+			      )
+
+      f = AffSchMorphism( U, V, Φ )
+      @show f
+      glueing = Glueing( inclusion_in_parent(U), inclusion_in_parent(V), f )
+      @show glueing
+      push!( G, glueing )
+      @show G
+      @show typeof( G )
+    end
+    add_patch( C, Y, G )
+  end
+  IP = CoveredScheme( C )
+  return IP
 end
 
 
