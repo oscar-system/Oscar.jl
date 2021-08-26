@@ -220,9 +220,7 @@ function invariant_basis(IR::InvRing, d::Int)
   rey = reynolds_via_singular(IR)
   basisSing = Singular.LibFinvar.invariant_basis_reynolds(rey, d)
   res = Vector{elem_type(R)}()
-  # I prefer to return an empty array if the vector space is zero dimensional
-  # (and not [ 0 ]), so that the length of the result is always the dimension
-  # of the vector space.
+  # [ 0 ] is not a basis, let's return [ ]
   if length(gens(basisSing)) == 1 && iszero(gens(basisSing)[1])
     return res
   end
