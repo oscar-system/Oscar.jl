@@ -210,8 +210,9 @@ function molien_series(IR::InvRing{T}) where {T <: Union{Nemo.GaloisField, Nemo.
   return S(to_univariate(S, R(mol[1, 1])))//S(to_univariate(S, R(mol[1, 2])))
 end
 
-function invariant_basis(IR::InvRing, d::Int)
+function invariant_basis_via_reynolds(IR::InvRing, d::Int)
   @assert d >= 0 "Dimension must be non-negative"
+  @assert !ismodular(IR)
   R = polynomial_ring(IR)
   if d == 0
     return elem_type(R)[ one(R) ]
@@ -228,6 +229,35 @@ function invariant_basis(IR::InvRing, d::Int)
     push!(res, R(f))
   end
   return res
+end
+
+function invariant_basis_via_linear_algebra(IR::InvRing, d::Int)
+  @assert d >= 0 "Dimension must be non-negative"
+  R = polynomial_ring(IR)
+  if d == 0
+    return elem_type(R)[ one(R) ]
+  end
+
+  basisSing = Singular.LibFinvar.invariant_basis(d, _action_singular(IR)...)
+  res = Vector{elem_type(R)}()
+  # [ 0 ] is not a basis, let's return [ ]
+  if length(gens(basisSing)) == 1 && iszero(gens(basisSing)[1])
+    return res
+  end
+  for f in gens(basisSing)
+    push!(res, R(f))
+  end
+  return res
+end
+
+function invariant_basis(IR::InvRing, d::Int)
+  # TODO: Fine tune this: Depending on d and the group order it is better
+  # to use "via_linear_algebra" also in the non-modular case.
+  if ismodular(IR)
+    return invariant_basis_via_linear_algebra(IR, d)
+  else
+    return invariant_basis_reynolds(IR, d)
+  end
 end
 
 function primary_invariants_via_singular(IR::InvRing)
