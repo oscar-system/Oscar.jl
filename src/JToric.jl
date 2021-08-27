@@ -3,7 +3,7 @@ module JToric
 
 # use other Julia packages
 using Pkg
-using GAP
+using Oscar
 using CapAndHomalg
 using JToric
 
