@@ -270,6 +270,7 @@ include("Rings/AbelianClosure.jl")
 include("Modules/FreeModules-graded.jl")
 
 include("Geometry/basics.jl")
+include("../experimental/Geometry/Schemes.jl")
 
 include("Polymake/Ineq.jl")
 include("Polymake/NmbThy.jl")
