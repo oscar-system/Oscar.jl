@@ -256,7 +256,7 @@ function invariant_basis(IR::InvRing, d::Int)
   if ismodular(IR)
     return invariant_basis_via_linear_algebra(IR, d)
   else
-    return invariant_basis_reynolds(IR, d)
+    return invariant_basis_via_reynolds(IR, d)
   end
 end
 
