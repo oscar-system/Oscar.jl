@@ -190,19 +190,19 @@ julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
 [0   0   -a - 1]
 
 julia> G = MatrixGroup(3, K, [ M1, M2 ])
-Matrix group of degree 3 over K
+Matrix group of degree 3 over Cyclotomic field of order 3
 
 julia> IR = invariant_ring(G)
 Invariant ring of
-Matrix group of degree 3 over K
+Matrix group of degree 3 over Cyclotomic field of order 3
 with generators
 AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
 
 julia> R = polynomial_ring(IR)
-Multivariate Polynomial Ring in x[1], x[2], x[3] over K
+Multivariate Polynomial Ring in x[1], x[2], x[3] over Cyclotomic field of order 3
 
 julia> x=gens(R)
-3-element Array{AbstractAlgebra.Generic.MPoly{nf_elem},1}:
+3-element Vector{AbstractAlgebra.Generic.MPoly{nf_elem}}:
  x[1]
  x[2]
  x[3]
@@ -232,7 +232,7 @@ julia> R = polynomial_ring(IR)
 Multivariate Polynomial Ring in x[1], x[2], x[3] over Galois field with characteristic 3
 
 julia> x=gens(R)
-3-element Array{gfp_mpoly,1}:
+3-element Vector{gfp_mpoly}:
  x[1]
  x[2]
  x[3]
@@ -288,11 +288,11 @@ julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
 [0   0   -a - 1]
 
 julia> G = MatrixGroup(3, K, [ M1, M2 ])
-Matrix group of degree 3 over K
+Matrix group of degree 3 over Cyclotomic field of order 3
 
 julia> IR = invariant_ring(G)
 Invariant ring of
-Matrix group of degree 3 over K
+Matrix group of degree 3 over Cyclotomic field of order 3
 with generators
 AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
 
@@ -388,16 +388,16 @@ julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
 [0   0   -a - 1]
 
 julia> G = MatrixGroup(3, K, [ M1, M2 ])
-Matrix group of degree 3 over K
+Matrix group of degree 3 over Cyclotomic field of order 3
 
 julia> IR = invariant_ring(G)
 Invariant ring of
-Matrix group of degree 3 over K
+Matrix group of degree 3 over Cyclotomic field of order 3
 with generators
 AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
 
 julia> invariant_basis(IR, 6)
-4-element Array{AbstractAlgebra.Generic.MPoly{nf_elem},1}:
+4-element Vector{AbstractAlgebra.Generic.MPoly{nf_elem}}:
  x[1]^2*x[2]^2*x[3]^2
  x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
  x[1]^4*x[2]*x[3] + x[1]*x[2]^4*x[3] + x[1]*x[2]*x[3]^4
@@ -419,12 +419,12 @@ with generators
 gfp_mat[[0 1 0; 2 0 0; 0 0 2]]
 
 julia> invariant_basis(IR, 2)
-2-element Array{gfp_mpoly,1}:
+2-element Vector{gfp_mpoly}:
  x[3]^2
  x[1]^2 + x[2]^2
 
 julia> invariant_basis(IR, 3)
-2-element Array{gfp_mpoly,1}:
+2-element Vector{gfp_mpoly}:
  x[1]*x[2]*x[3]
  x[1]^2*x[3] + 2*x[2]^2*x[3]
 ```
