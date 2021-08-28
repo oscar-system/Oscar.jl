@@ -2352,9 +2352,9 @@ Return a subquotient $S$ such that $\text{Hom}(M,N) \cong S$ along with a functi
 that converts elements from $S$ into morphisms $M \to N$.
 """
 function hom(M::ModuleFP, N::ModuleFP)
-  if typeof(M) <: SubQuo && typeof(N) <: SubQuo
-    return hom2(M,N,false),nothing
-  end
+  #if typeof(M) <: SubQuo && typeof(N) <: SubQuo
+  #  return hom2(M,N,false),nothing
+  #end
   p1 = presentation(M)
   p2 = presentation(N)
   k, mk = kernel(map(p2, 1))
@@ -2379,7 +2379,7 @@ function hom(M::ModuleFP, N::ModuleFP)
 
   rho = hom(E, D, [emb[1](preimage(mH_s0_t0, mH_s0_t1(pr[1](g))*map(p2, 1))) + 
                    emb[2](preimage(mH_s1_t1, map(p1, 1)*mH_s0_t1(pr[1](g)) - mH_s1_t2(pr[2](g))*g2)) for g = gens(E)])
-  #need quo(kern(delta), image(rho))                 
+  #need quo(kern(delta), image(rho))
  
   kDelta = kernel(delta)
 
