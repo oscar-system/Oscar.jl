@@ -603,28 +603,5 @@ function heisenberg_group(n::Int)
   return MatrixGroup(n, K, [ M1, M2 ])
 end
 
-@doc Markdown.doc"""
-    fundamental_invariants(IR::InvRing)
-
-Return a system of fundamental invariants for `IR`.
-
-If a system of fundamental invariants is already cached, return the cached system. 
-Otherwise, compute and cache such a system first.
-
-NOTE: The fundamental invariants are sorted by increasing degree.
-
-# Examples
-```jldoctest
-```
-
-"""
-function fundamental_invariants(IR::InvRing)
-  if !isdefined(IR, :fundamental)
-     V = primary_invariants(IR)
-     append!(V, irreducible_secondary_invariants(IR))
-     IR.fundamental = minimal_subalgebra_generators(V)
-  end
-  return IR.fundamental
-end
 
 
