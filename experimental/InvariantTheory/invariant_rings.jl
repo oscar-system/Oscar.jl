@@ -268,7 +268,7 @@ end
 @doc Markdown.doc"""
      molien_series(IR::InvRing{T}) where {T <: Union{FlintRationalField, AnticNumberField}}
 
-     molien_series(IR::InvRing{T}) where {T <: Union{Nemo.GaloisField, Nemo.GaloisFmpzField}}v
+     molien_series(IR::InvRing{T}) where {T <: Union{Nemo.GaloisField, Nemo.GaloisFmpzField}}
 
 In the non-modular case, return the Molien series of `IR` as a rational function.
 
