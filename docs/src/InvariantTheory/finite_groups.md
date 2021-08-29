@@ -115,6 +115,10 @@ primary_invariants(IR::InvRing)
 secondary_invariants(IR::InvRing)
 ```
 
+```@docs
+irreducible_secondary_invariants(IR::InvRing)
+```
+
 ## Fundamental Systems of Invariants
 
 

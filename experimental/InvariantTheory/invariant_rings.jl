@@ -1,4 +1,4 @@
-export invariant_ring, primary_invariants, secondary_invariants
+export invariant_ring, primary_invariants, secondary_invariants, irreducible_secondary_invariants
 export coefficient_ring, polynomial_ring, action, group
 export ismodular
 export reynolds_operator, invariant_basis, molien_series
@@ -268,7 +268,7 @@ end
 @doc Markdown.doc"""
      molien_series(IR::InvRing{T}) where {T <: Union{FlintRationalField, AnticNumberField}}
 
-     molien_series(IR::InvRing{T}) where {T <: Union{Nemo.GaloisField, Nemo.GaloisFmpzField}}v
+     molien_series(IR::InvRing{T}) where {T <: Union{Nemo.GaloisField, Nemo.GaloisFmpzField}}
 
 In the non-modular case, return the Molien series of `IR` as a rational function.
 
@@ -578,6 +578,61 @@ function secondary_invariants(IR::InvRing)
   return copy(IR.secondary)
 end
 
+@doc Markdown.doc"""
+    irreducible_secondary_invariants(IR::InvRing)
+
+From among a system of secondary invariants for `IR` (with respect to the currently cached system of primary invariants for `IR`), return the irrreducible secondary invariants.
+
+If a system of secondary invariants is already cached, return the irreducible ones from that system. 
+Otherwise, compute and cache a system of secondary invariants first.
+
+NOTE: A secondary invariant is *irreducible* if it cannot be written as a polynomial expession in the primary invariants and the other secondary invariants. The multiplicative unit 1 is not irreducible: It is considered to be the empty power product.
+
+# Examples
+```jldoctest
+julia> M = matrix(QQ, [0 -1 0 0 0; 1 -1 0 0 0; 0 0 0 0 1; 0 0 1 0 0; 0 0 0 1 0])
+[0   -1   0   0   0]
+[1   -1   0   0   0]
+[0    0   0   0   1]
+[0    0   1   0   0]
+[0    0   0   1   0]
+
+julia> G = MatrixGroup(5, QQ, [M])
+Matrix group of degree 5 over Rational Field
+
+julia> IR = invariant_ring(G)
+Invariant ring of
+Matrix group of degree 5 over Rational Field
+with generators
+fmpq_mat[[0 -1 0 0 0; 1 -1 0 0 0; 0 0 0 0 1; 0 0 1 0 0; 0 0 0 1 0]]
+
+julia> secondary_invariants(IR)
+12-element Array{fmpq_mpoly,1}:
+ 1
+ x[1]*x[3] - x[1]*x[5] - x[2]*x[3] + x[2]*x[4]
+ x[1]^2 - x[1]*x[2] + x[2]^2
+ x[3]^2*x[5] + x[3]*x[4]^2 + x[4]*x[5]^2
+ x[3]^3 + x[4]^3 + x[5]^3
+ x[1]*x[3]*x[4] - x[1]*x[3]*x[5] - x[2]*x[3]*x[4] + x[2]*x[4]*x[5]
+ x[1]*x[3]^2 - x[1]*x[4]^2 + x[2]*x[4]^2 - x[2]*x[5]^2
+ x[1]^2*x[3] + x[1]^2*x[5] - 2*x[1]*x[2]*x[3] + x[2]^2*x[3] + x[2]^2*x[4]
+ x[1]^2*x[3] - x[1]*x[2]*x[3] - x[1]*x[2]*x[4] + x[1]*x[2]*x[5] + x[2]^2*x[4]
+ x[1]^3*x[3] - x[1]^3*x[5] - 2*x[1]^2*x[2]*x[3] + x[1]^2*x[2]*x[4] + x[1]^2*x[2]*x[5] + 2*x[1]*x[2]^2*x[3] - x[1]*x[2]^2*x[4] - x[1]*x[2]^2*x[5] - x[2]^3*x[3] + x[2]^3*x[4]
+ x[1]^4 - 2*x[1]^3*x[2] + 3*x[1]^2*x[2]^2 - 2*x[1]*x[2]^3 + x[2]^4
+ x[1]^5*x[3] - x[1]^5*x[5] - 3*x[1]^4*x[2]*x[3] + x[1]^4*x[2]*x[4] + 2*x[1]^4*x[2]*x[5] + 5*x[1]^3*x[2]^2*x[3] - 2*x[1]^3*x[2]^2*x[4] - 3*x[1]^3*x[2]^2*x[5] - 5*x[1]^2*x[2]^3*x[3] + 3*x[1]^2*x[2]^3*x[4] + 2*x[1]^2*x[2]^3*x[5] + 3*x[1]*x[2]^4*x[3] - 2*x[1]*x[2]^4*x[4] - x[1]*x[2]^4*x[5] - x[2]^5*x[3] + x[2]^5*x[4]
+
+irreducible_secondary_invariants(IR)
+8-element Array{fmpq_mpoly,1}:
+ x[1]*x[3] - x[1]*x[5] - x[2]*x[3] + x[2]*x[4]
+ x[1]^2 - x[1]*x[2] + x[2]^2
+ x[3]^2*x[5] + x[3]*x[4]^2 + x[4]*x[5]^2
+ x[3]^3 + x[4]^3 + x[5]^3
+ x[1]*x[3]*x[4] - x[1]*x[3]*x[5] - x[2]*x[3]*x[4] + x[2]*x[4]*x[5]
+ x[1]*x[3]^2 - x[1]*x[4]^2 + x[2]*x[4]^2 - x[2]*x[5]^2
+ x[1]^2*x[3] + x[1]^2*x[5] - 2*x[1]*x[2]*x[3] + x[2]^2*x[3] + x[2]^2*x[4]
+ x[1]^2*x[3] - x[1]*x[2]*x[3] - x[1]*x[2]*x[4] + x[1]*x[2]*x[5] + x[2]^2*x[4]
+```
+"""
 function irreducible_secondary_invariants(IR::InvRing)
   if !isdefined(IR, :irreducible_secondary)
     secondary_invariants_via_singular(IR)
