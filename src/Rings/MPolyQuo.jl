@@ -964,8 +964,7 @@ NOTE: The conditions on `V` and `R` are automatically checked.
 # Examples
 ```jldoctest
 julia> R, (x,y,z) =  GradedPolynomialRing(QQ, ["x", "y", "z"])
-
-(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
   z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
