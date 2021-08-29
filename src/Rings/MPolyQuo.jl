@@ -971,13 +971,13 @@ julia> R, (x,y,z) =  GradedPolynomialRing(QQ, ["x", "y", "z"])
   z -> [1], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
 
 julia> V = [x,y,x^2+y^2]
-3-element Vector{MPolyElem_dec{fmpq,fmpq_mpoly}}:
+3-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
  x
  y
  x^2 + y^2
 
 julia> minimal_subalgebra_generators(V)
-2-element Vector{MPolyElem_dec{fmpq,fmpq_mpoly}}:
+2-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
  x
  y
 ```
