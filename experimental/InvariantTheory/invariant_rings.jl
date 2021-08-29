@@ -607,7 +607,7 @@ with generators
 fmpq_mat[[0 -1 0 0 0; 1 -1 0 0 0; 0 0 0 0 1; 0 0 1 0 0; 0 0 0 1 0]]
 
 julia> secondary_invariants(IR)
-12-element Array{fmpq_mpoly,1}:
+12-element Vector{fmpq_mpoly}:
  1
  x[1]*x[3] - x[1]*x[5] - x[2]*x[3] + x[2]*x[4]
  x[1]^2 - x[1]*x[2] + x[2]^2
@@ -621,8 +621,8 @@ julia> secondary_invariants(IR)
  x[1]^4 - 2*x[1]^3*x[2] + 3*x[1]^2*x[2]^2 - 2*x[1]*x[2]^3 + x[2]^4
  x[1]^5*x[3] - x[1]^5*x[5] - 3*x[1]^4*x[2]*x[3] + x[1]^4*x[2]*x[4] + 2*x[1]^4*x[2]*x[5] + 5*x[1]^3*x[2]^2*x[3] - 2*x[1]^3*x[2]^2*x[4] - 3*x[1]^3*x[2]^2*x[5] - 5*x[1]^2*x[2]^3*x[3] + 3*x[1]^2*x[2]^3*x[4] + 2*x[1]^2*x[2]^3*x[5] + 3*x[1]*x[2]^4*x[3] - 2*x[1]*x[2]^4*x[4] - x[1]*x[2]^4*x[5] - x[2]^5*x[3] + x[2]^5*x[4]
 
-irreducible_secondary_invariants(IR)
-8-element Array{fmpq_mpoly,1}:
+julia> irreducible_secondary_invariants(IR)
+8-element Vector{fmpq_mpoly}:
  x[1]*x[3] - x[1]*x[5] - x[2]*x[3] + x[2]*x[4]
  x[1]^2 - x[1]*x[2] + x[2]^2
  x[3]^2*x[5] + x[3]*x[4]^2 + x[4]*x[5]^2
