@@ -968,7 +968,7 @@ julia> R, (x,y,z) =  GradedPolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
   x -> [1]
   y -> [1]
-  z -> [1], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
+  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
 
 julia> V = [x,y,x^2+y^2]
 3-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
@@ -978,8 +978,8 @@ julia> V = [x,y,x^2+y^2]
 
 julia> minimal_subalgebra_generators(V)
 2-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
- x
  y
+ x
 ```
 """
 function minimal_subalgebra_generators(V::Vector{S}) where S <: Union{MPolyElem{U}, MPolyQuoElem{U}} where U
