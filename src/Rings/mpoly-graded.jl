@@ -2,7 +2,8 @@ export weight, decorate, ishomogeneous, homogeneous_components, filtrate,
 grade, GradedPolynomialRing, homogeneous_component, jacobi_matrix, jacobi_ideal,
 HilbertData, hilbert_series, hilbert_series_reduced, hilbert_series_expanded, hilbert_function, hilbert_polynomial, grading,
 homogenization, dehomogenization
-export MPolyRing_dec, MPolyElem_dec
+export MPolyRing_dec, MPolyElem_dec, ishomogeneous, isgraded
+export minimal_subalgebra_generators
 mutable struct MPolyRing_dec{T, S} <: AbstractAlgebra.MPolyRing{T}
   R::S
   D::GrpAbFinGen
@@ -28,7 +29,9 @@ end
 
 grading_group(W::MPolyRing_dec) = W.D
 
-isgraded(W::MPolyRing_dec) = !isdefined(W, :lt)
+function isgraded(W::MPolyRing_dec)
+   return !isdefined(W, :lt)
+end
 isfiltered(W::MPolyRing_dec) = isdefined(W, :lt)
 
 function show(io::IO, W::MPolyRing_dec)
@@ -390,12 +393,19 @@ function degree(a::MPolyElem_dec)
   return w
 end
 
-function ishomogeneous(a::MPolyElem_dec)
-  D = parent(a).D
-  d = parent(a).d
+@doc Markdown.doc"""
+    ishomogeneous(F::MPolyElem_dec)
+
+Return `true` if `F` is homogeneous, `false` otherwise.
+
+Return the homogenization of `f`, `V`, or `I` in a graded ring with additional variable `var` at position `pos`.
+"""
+function ishomogeneous(F::MPolyElem_dec)
+  D = parent(F).D
+  d = parent(F).d
   S = Set{elem_type(D)}()
-  for c = MPolyExponentVectors(a.f)
-    u = parent(a).D[0]
+  for c = MPolyExponentVectors(F.f)
+    u = parent(F).D[0]
     for i=1:length(c)
       u += c[i]*d[i]
     end
@@ -406,6 +416,7 @@ function ishomogeneous(a::MPolyElem_dec)
   end
   return true
 end
+
 
 function homogeneous_components(a::MPolyElem_dec{T, S}) where {T, S}
   D = parent(a).D
@@ -822,3 +833,4 @@ end
 ################################################################################
 
 (f::MPolyElem_dec)(x...) = evaluate(f, collect(x))
+
