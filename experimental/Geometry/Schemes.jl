@@ -140,6 +140,27 @@ function parent(S::AffineScheme)
   return S
 end
 
+# Check whether X is a parent of U and return the inclusion morphism 
+# if true. Otherwise, return nothing.
+function is_parent_of( X::AffineScheme, U::SpecPrincipalOpen )
+  ι = get_identity(U)
+  if X == U
+    return ι
+  end
+  V = U
+  while typeof(V)<:SpecPrincipalOpen
+    W = parent(V)
+    ι = compose( inclusion_in_parent(V), ι )
+    if W == X 
+      return ι
+    end
+    V = W
+  end
+  return nothing
+end
+    
+
+
 function parent(D::SpecPrincipalOpen)
   return D.parent
 end 
@@ -470,14 +491,14 @@ function imgs_frac(f::AffSchMorphism)
   return imgs_frac
 end
 
-function identity( X::Spec )
+function get_identity( X::Spec )
   R = ambient_ring(X)
   ϕ = AlgebraHomomorphism( R, R, gens(R) )
   f = AffSchMorphism(X,X,ϕ)
   return f 
 end
 
-function identity( D::SpecPrincipalOpen )
+function get_identity( D::SpecPrincipalOpen )
   R = ambient_ring(D)
   ϕ = AlgebraHomomorphism( R, R, gens(R) )
   f = AffSchMorphism(D,D,ϕ)
@@ -639,7 +660,7 @@ function intersect( X::AffineScheme, Y::AffineScheme, C::Covering )
     error( "Y is not a patch in the covering C!" )
   end
   if X == Y 
-    return ( X, identity(X), identity(X) )
+    return ( X, get_identity(X), get_identity(X) )
   end
   i = indexin( X, get_patches(C) )[1]
   j = indexin( Y, get_patches(C) )[1]
@@ -652,6 +673,21 @@ function intersect( X::AffineScheme, Y::AffineScheme, C::Covering )
     G = get_glueings(C)[j,i]
     return (overlap(G),second_inclusion(G),first_inclusion(G))
   end
+end
+
+###############################################################
+# Restriction of a morphism to open inclusions:
+#    f
+#  X → Y
+# i↑   ↑j
+#  U → V
+#    f'
+# When f, i, and j are given where X and Y are affine schemes 
+# and i and j are inclusions of principal open subsets with 
+# f(U) ⊂  V, we would like to explicitly infer the restriction 
+# f' of f to U.
+function restrict( f::AffSchMorphism, U::SpecPrincipalOpen, V::SpecPrincipalOpen )
+  # TODO: implement this.
 end
 
 ##############################################################
