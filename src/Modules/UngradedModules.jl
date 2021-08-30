@@ -130,8 +130,8 @@ ngens(F::FreeMod) = dim(F)
 Equality check between `F` and `G`. `F` and `G` are equal iff their 
 base rings, ranks and (basis) element names are equal.
 """
-# two free modules are equal if the rank and the ring are
 function Base.:(==)(F::FreeMod, G::FreeMod)
+  # two free modules are equal if the rank and the ring are
   # TODO it this enough or e.g. stored morphisms also be considered?
   return F.R == G.R && rank(F) == rank(G) && F.S == G.S
 end
@@ -244,6 +244,7 @@ function basis(F::FreeMod)
   end
   return bas
 end
+
 @doc Markdown.doc"""
     gens(F::FreeMod)
 
@@ -405,8 +406,8 @@ ModuleGens(F::FreeMod{S}, s::Singular.smodule) where {S} = ModuleGens{S}(F, s)
 Construct `ModuleGens` from an array of Oscar free module elements.
 Note: The array must not be empty.
 """
-# TODO Empty generating set
 function ModuleGens(O::Vector{<:FreeModElem})
+  # TODO Empty generating set
   @assert length(O) > 0
   SF = singular_module(parent(O[1]))
   return ModuleGens(O, SF)
@@ -599,7 +600,6 @@ Data structure for morphisms where the domain is a free module (`FreeMod`).
 When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
 (in case there exists one) (via `inv()`) are cached.
 """
-# data structure for homomorphisms of free modules
 mutable struct FreeModuleHom{T1, T2} <: ModuleMap{T1, T2} 
   matrix::MatElem
   header::MapHeader
