@@ -250,7 +250,7 @@ function ischaracteristic(G::T, H::T) where T <: GAPGroup
   return GAP.Globals.IsCharacteristicSubgroup(G.X, H.X)
 end
 
-@gapattribute issolvable(G::GAPGroup) = GAP.Globals.IsSolvableGroup(G.X)
+@gapattribute issolvable(G::GAPGroup) = GAP.Globals.IsSolvableGroup(G.X)::Bool
 """
     issolvable(G::GAPGroup)
 
@@ -259,7 +259,7 @@ i. e., whether [`derived_series`](@ref)(`G`)
 reaches the trivial subgroup in a finite number of steps.
 """ issolvable
 
-@gapattribute isnilpotent(G::GAPGroup) = GAP.Globals.IsNilpotentGroup(G.X)
+@gapattribute isnilpotent(G::GAPGroup) = GAP.Globals.IsNilpotentGroup(G.X)::Bool
 """
     isnilpotent(G::GAPGroup)
 
@@ -268,7 +268,7 @@ i. e., whether the lower central series of `G` reaches the trivial subgroup
 in a finite number of steps.
 """ isnilpotent
 
-@gapattribute issupersolvable(G::GAPGroup) = GAP.Globals.IsSupersolvableGroup(G.X)
+@gapattribute issupersolvable(G::GAPGroup) = GAP.Globals.IsSupersolvableGroup(G.X)::Bool
 """
     issupersolvable(G::GAPGroup)
 

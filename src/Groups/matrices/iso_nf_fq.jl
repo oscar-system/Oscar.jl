@@ -1,6 +1,6 @@
 # Detinko, Flannery, O'Brien "Recognizing finite matrix groups over infinite
 # fields", Section 4.2
-function isomorphic_group_over_finite_field(matrices::Vector{T}) where T <: MatrixElem{<: Union{fmpq, nf_elem}}
+function _isomorphic_group_over_finite_field(matrices::Vector{T}) where T <: MatrixElem{<: Union{fmpq, nf_elem}}
    @assert !isempty(matrices)
 
    # One should probably check whether all matrices are n by n (and invertible
@@ -9,7 +9,7 @@ function isomorphic_group_over_finite_field(matrices::Vector{T}) where T <: Matr
    K = base_ring(matrices[1])
    n = nrows(matrices[1])
 
-   Fq, matrices_Fq = good_reduction(matrices, 2)
+   Fq, matrices_Fq, OtoFq = good_reduction(matrices, 2)
 
    G = MatrixGroup(n, Fq, matrices_Fq)
    N = order(G)
@@ -27,15 +27,46 @@ function isomorphic_group_over_finite_field(matrices::Vector{T}) where T <: Matr
          error("Group is not finite")
       end
    end
-   return G
+   return G, G_to_fin_pres, F, OtoFq
 end
 
 function good_reduction(matrices::Vector{T}, p::Int = 2) where T <: MatrixElem{<: Union{fmpq, nf_elem}}
    while true
       p = next_prime(p)
-      b, Fq, matrices_Fq = test_modulus(matrices, p)
-      b && return Fq, matrices_Fq
+      b, Fq, matrices_Fq, OtoFq = test_modulus(matrices, p)
+      b && return Fq, matrices_Fq, OtoFq
    end
+end
+
+# Small helper function to make the reduction call uniform
+function _reduce(M::MatrixElem{nf_elem}, OtoFq::Hecke.NfOrdToFqMor)
+  O = domain(OtoFq)
+  Fq = codomain(OtoFq)
+  return matrix(Fq, [ OtoFq(O(numerator(a)))//OtoFq(O(denominator(a))) for a in M])
+end
+
+function _reduce(M::MatrixElem{fmpq}, Fp)
+  return map_entries(Fp, M)
+end
+
+function isomorphic_group_over_finite_field(G::MatrixGroup{T}) where T <: Union{fmpq, nf_elem}
+   matrices = map(x -> x.elm, gens(G))
+
+   Gp, GptoF, F, OtoFq = _isomorphic_group_over_finite_field(matrices)
+
+   img = function(x)
+     return Gp(_reduce(x.elm, OtoFq))
+   end
+
+   gen = gens(G)
+
+   preimg = function(y)
+     return GAP.Globals.MappedWord(GAP.Globals.UnderlyingElement(GAP.Globals.Image(GptoF, Gp.mat_iso(y.elm))),
+                                   GAP.Globals.FreeGeneratorsOfFpGroup(F),
+                                   GAP.GapObj(gen))
+   end
+
+   return Gp, MapFromFunc(img, preimg, G, Gp)
 end
 
 # Detinko, Flannery, O'Brien "Recognizing finite matrix  groups over infinite
@@ -47,7 +78,7 @@ function test_modulus(matrices::Vector{T}, p::Int) where T <: MatrixElem{fmpq}
    Fp = GF(p)
    matrices_Fp = Vector{AbstractAlgebra.MatElem{elem_type(Fp)}}(undef, length(matrices))
    if p == 2
-      return false, Fp, matrices_Fp
+      return false, Fp, matrices_Fp, Fp
    end
 
    for M in matrices
@@ -58,7 +89,7 @@ function test_modulus(matrices::Vector{T}, p::Int) where T <: MatrixElem{fmpq}
             end
 
             if mod(denominator(M[i, j]), p) == 0
-               return false, Fp, matrices_Fp
+               return false, Fp, matrices_Fp, Fp
             end
          end
       end
@@ -68,11 +99,11 @@ function test_modulus(matrices::Vector{T}, p::Int) where T <: MatrixElem{fmpq}
    for i = 1:length(matrices)
       matrices_Fp[i] = map_entries(Fp, matrices[i])
       if rank(matrices_Fp[i]) != nrows(matrices_Fp[i])
-         return false, Fp, matrices_Fp
+         return false, Fp, matrices_Fp, Fp
       end
    end
 
-   return true, Fp, matrices_Fp
+   return true, Fp, matrices_Fp, Fp
 end
 
 # Detinko, Flannery, O'Brien "Recognizing finite matrix  groups over infinite
@@ -86,11 +117,11 @@ function test_modulus(matrices::Vector{T}, p::Int) where T <: MatrixElem{nf_elem
    K = base_ring(matrices[1])
    matrices_Fq = Vector{fq_mat}(undef, length(matrices))
    if p == 2
-      return false, FiniteField(fmpz(p), 1, "a")[1], matrices_Fq
+      return false, FiniteField(fmpz(p), 1, "a")[1], matrices_Fq, Hecke.NfOrdToFqMor()
    end
    O = EquationOrder(K)
    if mod(discriminant(O), p) == 0
-      return false, FiniteField(fmpz(p), 1, "a")[1], matrices_Fq
+      return false, FiniteField(fmpz(p), 1, "a")[1], matrices_Fq, Hecke.NfOrdToFqMor()
    end
    for M in matrices
       for i = 1:nrows(M)
@@ -100,7 +131,7 @@ function test_modulus(matrices::Vector{T}, p::Int) where T <: MatrixElem{nf_elem
             end
 
             if mod(denominator(M[i, j]), p) == 0
-               return false, FiniteField(fmpz(p), 1, "a")[1], matrices_Fq
+               return false, FiniteField(fmpz(p), 1, "a")[1], matrices_Fq, Hecke.NfOrdToFqMor()
             end
          end
       end
@@ -115,11 +146,11 @@ function test_modulus(matrices::Vector{T}, p::Int) where T <: MatrixElem{nf_elem
    for i = 1:length(matrices)
       matrices_Fq[i] = matrix(Fq, [ OtoFq(O(numerator(a)))//OtoFq(O(denominator(a))) for a in matrices[i] ])
       if rank(matrices_Fq[i]) != nrows(matrices_Fq[i])
-         return false, Fq, matrices_Fq
+         return false, Fq, matrices_Fq, Hecke.NfOrdToFqMor()
       end
    end
 
-   return true, Fq, matrices_Fq
+   return true, Fq, matrices_Fq, OtoFq
 end
 
 # Returns the largest possible order of a finite subgroup of GL(n, QQ) (equivalently:

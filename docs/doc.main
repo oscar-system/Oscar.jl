@@ -87,33 +87,33 @@
      "NumberTheory/abelian_closure.md",
   ],
     "Polyhedral Geometry" => [
-       "PolyhedralGeometry/pg.md",
+       "PolyhedralGeometry/intro.md",
        "Polyhedra"=> [
-         "PolyhedralGeometry/Polyhedra/pg_polyhedra_intro.md",
-         "PolyhedralGeometry/Polyhedra/pg_polyhedra_constructions.md",
-         "PolyhedralGeometry/Polyhedra/pg_polyhedra_polymake.md",
-         "PolyhedralGeometry/Polyhedra/pg_polyhedra_serialization.md"
+         "PolyhedralGeometry/Polyhedra/intro.md",
+         "PolyhedralGeometry/Polyhedra/constructions.md",
+         "PolyhedralGeometry/Polyhedra/polymake.md",
+         "PolyhedralGeometry/Polyhedra/serialization.md"
        ],
-        "PolyhedralGeometry/pg_cones.md",
-        "PolyhedralGeometry/pg_fans.md",
-        "PolyhedralGeometry/pg_linear_programs.md",
-        "PolyhedralGeometry/pg_subdivisions_of_points.md"
+        "PolyhedralGeometry/cones.md",
+        "PolyhedralGeometry/fans.md",
+        "PolyhedralGeometry/linear_programs.md",
+        "PolyhedralGeometry/subdivisions_of_points.md"
     ],
 
   "Commutative Algebra" => [
-     "CommutativeAlgebra/ca.md",
-     "CommutativeAlgebra/ca_rings.md",
-     "CommutativeAlgebra/ca_ideals.md",
-     "CommutativeAlgebra/ca_modules.md",
-     "CommutativeAlgebra/ca_quotient_rings.md",
-     "CommutativeAlgebra/ca_affine_algebras.md",
-     "CommutativeAlgebra/ca_binomial_ideals.md",
+     "CommutativeAlgebra/intro.md",
+     "CommutativeAlgebra/rings.md",
+     "CommutativeAlgebra/ideals.md",
+     "CommutativeAlgebra/modules.md",
+     "CommutativeAlgebra/quotient_rings.md",
+     "CommutativeAlgebra/affine_algebras.md",
+     "CommutativeAlgebra/binomial_ideals.md",
   ],
 
   "Invariant Theory" => [
-     "InvariantTheory/it.md",
-     "InvariantTheory/it_fg.md",
-     "InvariantTheory/it_lrg.md",
+     "InvariantTheory/intro.md",
+     "InvariantTheory/finite_groups.md",
+     "InvariantTheory/reductive_groups.md",
   ],
 
   "References" => "references.md",

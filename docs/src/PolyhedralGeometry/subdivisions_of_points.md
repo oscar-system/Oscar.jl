@@ -43,6 +43,10 @@ SubdivisionOfPoints(Points::Union{Oscar.MatElem,AbstractMatrix}, Incidence::Inci
 SubdivisionOfPoints(Points::Union{Oscar.MatElem,AbstractMatrix}, Weights::AbstractVector)
 ```
 
+From a subdivision of points one can construct the
+[`secondary_cone(SOP::SubdivisionOfPoints) `](@ref), i.e. the cone that is the
+closure of the set of all weight vectors realizing that subdivision.
+
 ## Saving and loading
 
 Objects of type `SubdivisionsOfPoints` can be saved to a file and loaded from a

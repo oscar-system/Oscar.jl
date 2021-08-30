@@ -49,12 +49,13 @@ end
 ==(C0::Cone, C1::Cone) = Polymake.polytope.equal_polyhedra(pm_cone(C0), pm_cone(C1))
 
 
-"""
+@doc Markdown.doc"""
     positive_hull(R::Union{Oscar.MatElem,AbstractMatrix})
 
 A polyhedral cone, not necessarily pointed, defined by the positive hull of the
 rows of the matrix `R`. This means the cone consists of all positive linear
-combinations of the rows of `R`.
+combinations of the rows of `R`. This is an interior description, analogous to
+the $V$-representation of a polytope.
 
 Redundant rays are allowed.
 
