@@ -15,8 +15,8 @@
   t = gens(base_ring(F))[1]
   @test mol == (-t^6 - t^3 - 1)//(t^12 - 2t^9 + 2t^3 - 1)
 
-  @test length(Oscar.invariant_basis(RG, 1)) == 0
-  @test length(Oscar.invariant_basis(RG, 3)) == 3
+  @test length(basis(RG, 1)) == 0
+  @test length(basis(RG, 3)) == 3
 
   primaries = primary_invariants(RG)
   @test dim(ideal(R, primaries)) == 0
@@ -49,8 +49,8 @@
   t = gens(base_ring(F))[1]
   @test mol == (-t^4 - 1)//(t^8 - 2t^6 + 2t^2 - 1)
 
-  @test length(Oscar.invariant_basis(RG, 1)) == 0
-  @test length(Oscar.invariant_basis(RG, 2)) == 2
+  @test length(basis(RG, 1)) == 0
+  @test length(basis(RG, 2)) == 2
 
   primaries = primary_invariants(RG)
   @test dim(ideal(R, primaries)) == 0
@@ -66,4 +66,33 @@
   for f in irrs
     @test Oscar.reynolds_operator(RG, f) == f
   end
+
+  # S4
+  G = matrix_group(matrix(QQ, [-1 1 0 0;
+                               -1 0 1 0;
+                               -1 0 0 1;
+                               -1 0 0 0]),
+                   matrix(QQ, [0 1 0 0;
+                               1 0 0 0;
+                               0 0 1 0;
+                               0 0 0 1]))
+  I = invariant_ring(G)
+  S, t = QQ["t"]
+  m = @inferred molien_series(S, I)
+  @test m == 1//((1 - t^2)*(1 - t^3)*(1 - t^4)*(1 - t^5))
+  @test m == Oscar._molien_series_via_singular(S, I)
+
+  gl = general_linear_group(4, 5)
+  gapmats = [GAP.Globals.PermutationMat(elm.X, 4, GAP.Globals.GF(5))
+             for elm in gens(symmetric_group(4))]
+  s4 = sub(gl, [MatrixGroupElem(gl, preimage(gl.mat_iso, x), x) for x in gapmats])[1]
+  I = invariant_ring(s4)
+  m = @inferred molien_series(S, I)
+  @test m == 1//((1 - t)*(1 - t^2)*(1 - t^3)*(1 - t^4))
+
+  F = GF(3)
+  I = invariant_ring(-identity_matrix(F, 2))
+  m = @inferred molien_series(S, I)
+  @test m == (t^2 + 1)//(t^4 - 2*t^2 + 1)
+  @test m == Oscar._molien_series_via_singular(S, I)
 end

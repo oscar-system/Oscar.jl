@@ -2,6 +2,7 @@ export invariant_ring, primary_invariants, secondary_invariants, irreducible_sec
 export coefficient_ring, polynomial_ring, action, group
 export ismodular
 export reynolds_operator, invariant_basis, molien_series
+
 ###############################################
 
 mutable struct InvRing{FldT, GrpT, PolyElemT, PolyRingT, ActionT, SingularActionT}
@@ -90,21 +91,13 @@ CAVEAT: The creation of invariant rings is lazy in the sense that no explicit co
 
 # Examples
 ```jldoctest
-julia> K, a = CyclotomicField(3, "a")
-(Cyclotomic field of order 3, a)
+julia> K, a = CyclotomicField(3, "a");
 
-julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0])
-[0   0   1]
-[1   0   0]
-[0   1   0]
+julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
 
-julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
-[1   0        0]
-[0   a        0]
-[0   0   -a - 1]
+julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1]);
 
-julia> G = MatrixGroup(3, K, [ M1, M2 ])
-Matrix group of degree 3 over Cyclotomic field of order 3
+julia> G = MatrixGroup(3, K, [M1, M2]);
 
 julia> IR = invariant_ring(G)
 Invariant ring of
@@ -261,73 +254,7 @@ function reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, 
    return polynomial_ring(IR)(gens(fReySing)[1])
 end
 
-function molien_series_via_singular(IR::InvRing{T}) where {T <: Union{FlintRationalField, AnticNumberField, Nemo.GaloisField, Nemo.GaloisFmpzField}}
-  return reynolds_molien_via_singular(IR)[2]
-end
-
-@doc Markdown.doc"""
-     molien_series(IR::InvRing{T}) where {T <: Union{FlintRationalField, AnticNumberField}}
-
-     molien_series(IR::InvRing{T}) where {T <: Union{Nemo.GaloisField, Nemo.GaloisFmpzField}}
-
-In the non-modular case, return the Molien series of `IR` as a rational function.
-
-# Examples
-```jldoctest
-julia> K, a = CyclotomicField(3, "a")
-(Cyclotomic field of order 3, a)
-
-julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0])
-[0   0   1]
-[1   0   0]
-[0   1   0]
-
-julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
-[1   0        0]
-[0   a        0]
-[0   0   -a - 1]
-
-julia> G = MatrixGroup(3, K, [ M1, M2 ])
-Matrix group of degree 3 over Cyclotomic field of order 3
-
-julia> IR = invariant_ring(G)
-Invariant ring of
-Matrix group of degree 3 over Cyclotomic field of order 3
-with generators
-AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
-
-julia> molien_series(IR)
-(-t^6 + t^3 - 1)//(t^9 - 3*t^6 + 3*t^3 - 1)
-```
-"""
-function molien_series(IR::InvRing{T}) where {T <: Union{FlintRationalField, AnticNumberField}}
-  mol = molien_series_via_singular(IR)
-  # Singular does not build a new polynomial ring for the univariate Hilbert series
-  # (how could it after all), but uses the first variable of the given ring.
-
-  R = polynomial_ring(IR)
-  K = coefficient_ring(IR)
-  S, t = PolynomialRing(K, "t", cached = false)
-  # Need an extra coercion here while waiting for https://github.com/Nemocas/AbstractAlgebra.jl/pull/1009
-  #return to_univariate(S, R(mol[1, 1]))//to_univariate(S, R(mol[1, 2]))
-  return S(to_univariate(S, R(mol[1, 1])))//S(to_univariate(S, R(mol[1, 2])))
-end
-function molien_series(IR::InvRing{T}) where {T <: Union{Nemo.GaloisField, Nemo.GaloisFmpzField}}
-  @assert !ismodular(IR)
-  mol = molien_series_via_singular(IR)
-
-  # TODO: Write a conversion from Singular number fields to Nemo ones
-  Qx, x = PolynomialRing(FlintQQ, "x", cached = false)
-  K, a = number_field(Qx(Singular.n_transExt_to_spoly(Singular.modulus(coefficient_ring(parent(mol[1, 1]))))), "a", cached = false)
-  R, y = PolynomialRing(K, ["y"], cached = false)
-  S, t = PolynomialRing(K, "t", cached = false)
-
-  # Need an extra coercion here while waiting for https://github.com/Nemocas/AbstractAlgebra.jl/pull/1009
-  #return to_univariate(S, R(mol[1, 1]))//to_univariate(S, R(mol[1, 2]))
-  return S(to_univariate(S, R(mol[1, 1])))//S(to_univariate(S, R(mol[1, 2])))
-end
-
-function invariant_basis_via_reynolds(IR::InvRing, d::Int)
+function basis_via_reynolds(IR::InvRing, d::Int)
   @assert d >= 0 "Dimension must be non-negative"
   @assert !ismodular(IR)
   R = polynomial_ring(IR)
@@ -348,7 +275,7 @@ function invariant_basis_via_reynolds(IR::InvRing, d::Int)
   return res
 end
 
-function invariant_basis_via_linear_algebra(IR::InvRing, d::Int)
+function basis_via_linear_algebra(IR::InvRing, d::Int)
   @assert d >= 0 "Dimension must be non-negative"
   R = polynomial_ring(IR)
   if d == 0
@@ -368,7 +295,7 @@ function invariant_basis_via_linear_algebra(IR::InvRing, d::Int)
 end
 
 @doc Markdown.doc"""
-     invariant_basis(IR::InvRing, d::Int)
+     basis(IR::InvRing, d::Int)
 
 Given an invariant ring `IR` and an integer `d`, return a basis for the invariants in degree `d`.
 
@@ -396,7 +323,7 @@ Matrix group of degree 3 over Cyclotomic field of order 3
 with generators
 AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
 
-julia> invariant_basis(IR, 6)
+julia> basis(IR, 6)
 4-element Vector{AbstractAlgebra.Generic.MPoly{nf_elem}}:
  x[1]^2*x[2]^2*x[3]^2
  x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
@@ -418,24 +345,24 @@ Matrix group of degree 3 over Galois field with characteristic 3
 with generators
 gfp_mat[[0 1 0; 2 0 0; 0 0 2]]
 
-julia> invariant_basis(IR, 2)
+julia> basis(IR, 2)
 2-element Vector{gfp_mpoly}:
  x[3]^2
  x[1]^2 + x[2]^2
 
-julia> invariant_basis(IR, 3)
+julia> basis(IR, 3)
 2-element Vector{gfp_mpoly}:
  x[1]*x[2]*x[3]
  x[1]^2*x[3] + 2*x[2]^2*x[3]
 ```
 """
-function invariant_basis(IR::InvRing, d::Int)
+function basis(IR::InvRing, d::Int)
   # TODO: Fine tune this: Depending on d and the group order it is better
   # to use "via_linear_algebra" also in the non-modular case.
   if ismodular(IR)
-    return invariant_basis_via_linear_algebra(IR, d)
+    return basis_via_linear_algebra(IR, d)
   else
-    return invariant_basis_via_reynolds(IR, d)
+    return basis_via_reynolds(IR, d)
   end
 end
 
@@ -467,27 +394,15 @@ NOTE: The primary invariants are sorted by increasing degree.
 
 # Examples
 ```jldoctest
-julia> K, a = CyclotomicField(3, "a")
-(Cyclotomic field of order 3, a)
+julia> K, a = CyclotomicField(3, "a");
 
-julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0])
-[0   0   1]
-[1   0   0]
-[0   1   0]
+julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
 
-julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
-[1   0        0]
-[0   a        0]
-[0   0   -a - 1]
+julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1]);
 
-julia> G = MatrixGroup(3, K, [ M1, M2 ])
-Matrix group of degree 3 over Cyclotomic field of order 3
+julia> G = MatrixGroup(3, K, [M1, M2]);
 
-julia> IR = invariant_ring(G)
-Invariant ring of
-Matrix group of degree 3 over Cyclotomic field of order 3
-with generators
-AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+julia> IR = invariant_ring(G);
 
 julia> primary_invariants(IR)
 3-element Vector{AbstractAlgebra.Generic.MPoly{nf_elem}}:
@@ -543,27 +458,15 @@ NOTE: The secondary invariants are sorted by increasing degree.
 
 # Examples
 ```jldoctest
-julia> K, a = CyclotomicField(3, "a")
-(Cyclotomic field of order 3, a)
+julia> K, a = CyclotomicField(3, "a");
 
-julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0])
-[0   0   1]
-[1   0   0]
-[0   1   0]
+julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
 
-julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
-[1   0        0]
-[0   a        0]
-[0   0   -a - 1]
+julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1]);
 
-julia> G = MatrixGroup(3, K, [ M1, M2 ])
-Matrix group of degree 3 over Cyclotomic field of order 3
+julia> G = MatrixGroup(3, K, [M1, M2]);
 
-julia> IR = invariant_ring(G)
-Invariant ring of
-Matrix group of degree 3 over Cyclotomic field of order 3
-with generators
-AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+julia> IR = invariant_ring(G);
 
 julia> secondary_invariants(IR)
 2-element Vector{AbstractAlgebra.Generic.MPoly{nf_elem}}:
@@ -590,21 +493,11 @@ NOTE: A secondary invariant is *irreducible* if it cannot be written as a polyno
 
 # Examples
 ```jldoctest
-julia> M = matrix(QQ, [0 -1 0 0 0; 1 -1 0 0 0; 0 0 0 0 1; 0 0 1 0 0; 0 0 0 1 0])
-[0   -1   0   0   0]
-[1   -1   0   0   0]
-[0    0   0   0   1]
-[0    0   1   0   0]
-[0    0   0   1   0]
+julia> M = matrix(QQ, [0 -1 0 0 0; 1 -1 0 0 0; 0 0 0 0 1; 0 0 1 0 0; 0 0 0 1 0]);
 
-julia> G = MatrixGroup(5, QQ, [M])
-Matrix group of degree 5 over Rational Field
+julia> G = MatrixGroup(5, QQ, [M]);
 
-julia> IR = invariant_ring(G)
-Invariant ring of
-Matrix group of degree 5 over Rational Field
-with generators
-fmpq_mat[[0 -1 0 0 0; 1 -1 0 0 0; 0 0 0 0 1; 0 0 1 0 0; 0 0 0 1 0]]
+julia> IR = invariant_ring(G);
 
 julia> secondary_invariants(IR)
 12-element Vector{fmpq_mpoly}:
@@ -658,5 +551,119 @@ function heisenberg_group(n::Int)
   return MatrixGroup(n, K, [ M1, M2 ])
 end
 
+################################################################################
+#
+#  Molien series
+#
+################################################################################
 
+# Some functionality via Singular
+function __molien_series_via_singular(IR::InvRing{T}) where {T <: Union{FlintRationalField, AnticNumberField, Nemo.GaloisField, Nemo.GaloisFmpzField}}
+  return reynolds_molien_via_singular(IR)[2]
+end
 
+function _molien_series_via_singular(S::PolyRing, IR::InvRing{T}) where {T <: Union{FlintRationalField, AnticNumberField}}
+  mol = __molien_series_via_singular(IR)
+  # Singular does not build a new polynomial ring for the univariate Hilbert series
+  # (how could it after all), but uses the first variable of the given ring.
+
+  R = polynomial_ring(IR)
+  K = coefficient_ring(IR)
+  Kx, _ = PolynomialRing(K, "x", cached = false)
+  # Need an extra coercion here while waiting for https://github.com/Nemocas/AbstractAlgebra.jl/pull/1009
+  #return to_univariate(S, R(mol[1, 1]))//to_univariate(S, R(mol[1, 2]))
+  _num = Kx(to_univariate(Kx, R(mol[1, 1])))
+  _den = Kx(to_univariate(Kx, R(mol[1, 2])))
+  num = change_coefficient_ring(coefficient_ring(S), _num, parent = S)
+  den = change_coefficient_ring(coefficient_ring(S), _den, parent = S)
+  return num//den
+end
+
+function _molien_series_via_singular(S::PolyRing, IR::InvRing{T}) where {T <: Union{Nemo.GaloisField, Nemo.GaloisFmpzField}}
+  @assert !ismodular(IR)
+  mol = __molien_series_via_singular(IR)
+
+  # TODO: Write a conversion from Singular number fields to Nemo ones
+  Qx, x = PolynomialRing(FlintQQ, "x", cached = false)
+  K, a = number_field(Qx(Singular.n_transExt_to_spoly(Singular.modulus(coefficient_ring(parent(mol[1, 1]))))), "a", cached = false)
+  R, y = PolynomialRing(K, ["y"], cached = false)
+  Kx, _ = PolynomialRing(K, "x", cached = false)
+  _num = to_univariate(Kx, R(mol[1, 1]))
+  _den = to_univariate(Kx, R(mol[1, 2]))
+  num = change_coefficient_ring(coefficient_ring(S), _num, parent = S)
+  den = change_coefficient_ring(coefficient_ring(S), _den, parent = S)
+  return num//den
+end
+
+function _molien_series_char0(S::PolyRing, I::InvRing)
+  G = group(I)
+  n = degree(G)
+  Gp, GtoGp = isomorphic_group_over_finite_field(G)
+  K = coefficient_ring(I)
+  Kt, _ = PolynomialRing(K, "t", cached = false)
+  C = conjugacy_classes(Gp)
+  res = zero(FractionField(Kt))
+  for c in C
+    g = (GtoGp\(representative(c)))::elem_type(G)
+    f = charpoly(Kt, g.elm)
+    res = res + length(c)::Int * 1//reverse(f)
+  end
+  res = divexact(res, order(Gp)::fmpz)
+  num = change_coefficient_ring(coefficient_ring(S),
+                                numerator(res), parent = S)
+  den = change_coefficient_ring(coefficient_ring(S),
+                                denominator(res), parent = S)
+  return num//den
+end
+
+function _molien_series_charp_nonmodular_via_gap(S::PolyRing, I::InvRing)
+  G = group(I)
+  @assert G isa MatrixGroup
+  t = GAP.Globals.CharacterTable(G.X)
+  chi = [GAP.Globals.BrauerCharacterValue(GAP.Globals.Representative(c))
+         for c in GAP.Globals.ConjugacyClasses(t)]
+  info = GAP.Globals.MolienSeriesInfo(GAP.Globals.MolienSeries(t,
+                                                               GAP.GapObj(chi)))
+  num = S(Vector{fmpz}(GAP.Globals.CoefficientsOfUnivariatePolynomial(info.numer))::Vector{fmpz})
+  den = S(Vector{fmpz}(GAP.Globals.CoefficientsOfUnivariatePolynomial(info.denom))::Vector{fmpz})
+  return num//den
+end
+
+function molien_series(S::PolyRing, I::InvRing)
+  if characteristic(coefficient_ring(I)) == 0
+    return _molien_series_char0(S, I)
+  else
+    if !ismodular(I)
+      return _molien_series_charp_nonmodular_via_gap(S, I)
+    else
+      throw(NotImplemented())
+    end
+  end
+end
+
+@doc doc"""
+    molien_series([S::PolyRing], I::InvRing)
+
+Return the Molien series of `I` as a rational function. The invariant ring must
+be non-modular.
+
+# Examples
+```jldoctest
+julia> K, a = CyclotomicField(3, "a");
+
+julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
+
+julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1]);
+
+julia> G = MatrixGroup(3, K, [M1, M2]);
+
+julia> IR = invariant_ring(G);
+
+julia> molien_series(IR)
+(-t^6 + t^3 - 1)//(t^9 - 3*t^6 + 3*t^3 - 1)
+```
+"""
+function molien_series(I::InvRing)
+  S, t = PolynomialRing(QQ, "t", cached = false)
+  return molien_series(S, I)
+end

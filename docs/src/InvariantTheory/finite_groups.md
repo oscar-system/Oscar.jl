@@ -94,13 +94,13 @@ reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPol
 ## Invariants of a Given Degree
 
 ```@docs
-invariant_basis(IR::InvRing, d::Int)
+basis(IR::InvRing, d::Int)
 ```
 
 ## The Molien Series
 
 ```@docs
-molien_series(IR::InvRing{T}) where {T <: Union{FlintRationalField, AnticNumberField}}
+molien_series(IR::InvRing)
 ```
 
 ## Primary Invariants
