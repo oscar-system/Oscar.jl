@@ -108,9 +108,7 @@ mutable struct HomogMultiindex
 
 
   function HomogMultiindex( n::Int, d::Int, a::Vector{Int}, i::OrderedMultiindex )
-    if n <= 0 
-      error( "invalid number of variables" )
-    end
+    n > 0 || error("number of variables must be positive")
     if d < 0
       error( "invalid degree." )
     end
