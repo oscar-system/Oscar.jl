@@ -190,7 +190,7 @@ end
 
 # Use Ordered multiindices for indexing 2-dimensional arrays
 
-function Base.getindex( v::Array{Any,2}, α::OrderedMultiindex )
+function Base.getindex( v::Matrix, α::OrderedMultiindex )
   if α.p < 2 
     error( "Multiindex does not have sufficient length" )
   end
