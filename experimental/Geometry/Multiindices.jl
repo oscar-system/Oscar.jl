@@ -181,11 +181,7 @@ function power( x::Vector, alpha::HomogMultiindex )
   if n != alpha.n
     error( "number of variables not compatible." )
   end
-  result = 1
-  for k in (1:n)
-    result = result * x[k]^(alpha.a[k])
-  end
-  return result
+  return prod(k -> x[k]^alpha.a[k], 1:n)
 end
 
 function linear_index( alpha::HomogMultiindex ) 
