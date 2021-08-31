@@ -26,8 +26,8 @@ end
 
 function Base.show( io::Base.TTY, i::OrderedMultiindex ) 
   outstr= "0"
-  for k in 1:length(i.index) 
-    outstr = outstr * " < " * string(i.index[k]) 
+  for k in i.index
+    outstr *= " < $k"
   end
   outstr = outstr * " <= " * string( i.n ) * "\n"
   #Base.show( io, "n = " * string(i.n) * "; p = " * string(i.p) * "; index = " * string( i.index ) )
