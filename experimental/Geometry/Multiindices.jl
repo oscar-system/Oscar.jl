@@ -140,7 +140,7 @@ function extract_exponent( alpha::HomogMultiindex )
   #@show alpha.i.index, alpha.i.p
   if alpha.i.p > 0
     a = [ alpha.i.index[1] - 1 ]
-    a = vcat( a, [ alpha.i.index[k+1] - alpha.i.index[k] - 1 for k in (1:alpha.i.p-1) ] )
+    append!( a, [ alpha.i.index[k+1] - alpha.i.index[k] - 1 for k in 1:alpha.i.p-1 ] )
     a = vcat( a, [ alpha.i.n - alpha.i.index[alpha.i.p] ])
   else
     a = [ alpha.d ]
