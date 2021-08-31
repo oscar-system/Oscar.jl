@@ -149,7 +149,7 @@ compose(F::AlgHom{T}, G::AlgHom{T}) where T
 ### Subalgebra Membership
 
 ```@docs
-subalgebra_membership(f::S, v::Vector{S}) where S <: Union{MPolyElem{U}, MPolyQuoElem{U}} where U
+subalgebra_membership(f::S, v::Vector{S}) where S <: Union{MPolyElem, MPolyQuoElem}
 ```
 ```@repl oscar 
 R, x = PolynomialRing(QQ, :x => 1:3)
@@ -161,7 +161,7 @@ subalgebra_membership(f,v)
 ### Minimal Subalgebra Generators
 
 ```@docs
-minimal_subalgebra_generators(V::Vector{S}) where S <: Union{MPolyElem{U}, MPolyQuoElem{U}} where U
+minimal_subalgebra_generators(V::Vector{S}) where S <: Union{MPolyElem, MPolyQuoElem}
 ```
 
 ## Noether Normalization
