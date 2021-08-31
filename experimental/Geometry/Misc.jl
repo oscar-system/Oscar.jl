@@ -6,7 +6,7 @@ export add_variables, coeffs_in_radical
 
 ####################################################################
 #  
-#  Miscalleneous routines used in the above 
+#  Miscellaneous routines used in the above 
 #
 ####################################################################
 
