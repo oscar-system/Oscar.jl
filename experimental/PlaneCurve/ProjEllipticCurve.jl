@@ -165,7 +165,6 @@ julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(-1), QQ(1), QQ(0)])
 julia> E1 = Oscar.ProjEllipticCurve(F, P)
 Projective elliptic curve defined by -x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3
 
-
 julia> E2 = Oscar.ProjEllipticCurve(T(y^2*z - x^3 - x*z^2))
 Projective elliptic curve defined by -x^3 - x*z^2 + y^2*z
 ```
@@ -239,9 +238,9 @@ end
 
 function Base.show(io::IO, C::ProjEllipticCurve)
   if !get(io, :compact, false)
-     println(io, "Projective elliptic curve defined by ", C.eq)
+     print(io, "Projective elliptic curve defined by ", C.eq)
   else
-     println(io, C.eq)
+     print(io, C.eq)
   end
 end
 
@@ -284,7 +283,6 @@ julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(-1), QQ(1), QQ(0)])
 
 julia> E = Oscar.ProjEllipticCurve(F, P)
 Projective elliptic curve defined by -x^3 - 3*x^2*y - 3*x*y^2 - x*z^2 - y^3 + y^2*z - y*z^2 - 4*z^3
-
 
 julia> Oscar.weierstrass_form(E)
 -x^3 - x*z^2 + y^2*z - 4*z^3
@@ -395,7 +393,7 @@ struct Point_EllCurve{S <: RingElem}
 end
 
 function Base.show(io::IO, P::Point_EllCurve)
-   println(io, P.Pt)
+   print(io, P.Pt)
 end
 
 ################################################################################
@@ -575,7 +573,6 @@ julia> Q = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(-1), QQ(1), QQ(0)])
 
 julia> D = Oscar.ProjPlaneCurve(T(-x^3 - 3*x^2*y + 2*x^2*z - 3*x*y^2 + 3*x*y*z - 4*x*z^2 - y^3 - y*z^2 + 6*z^3))
 Projective plane curve defined by -x^3 - 3*x^2*y + 2*x^2*z - 3*x*y^2 + 3*x*y*z - 4*x*z^2 - y^3 - y*z^2 + 6*z^3
-
 
 julia> Oscar.toweierstrass(D, Q)
 -x^3 - 2*x^2*z + x*y*z - 4*x*z^2 + y^2*z + 3*y*z^2 - 6*z^3

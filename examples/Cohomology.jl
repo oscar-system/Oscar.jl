@@ -25,7 +25,7 @@ mutable struct CohomologyModule{gT,mT}
 end
 
 function Base.show(io::IO, C::CohomologyModule)
-  println(io, C.G, " acting on ", C.M, "\nvia: ", C.ac)
+  print(io, C.G, " acting on ", C.M, "\nvia: ", C.ac)
 end
 
 """
