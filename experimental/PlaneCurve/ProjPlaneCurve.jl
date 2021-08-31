@@ -31,7 +31,6 @@ julia> T, _ = grade(S)
 julia> C = Oscar.ProjPlaneCurve(x^2*(x+y)*(y^3-x^2*z))
 Projective plane curve defined by -x^5*z - x^4*y*z + x^3*y^3 + x^2*y^4
 
-
 julia> PP = projective_space(QQ, 2)
 (Projective space of dim 2 over Rational Field
 , MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2]])
@@ -80,7 +79,6 @@ julia> PP = projective_space(QQ, 2)
 
 julia> C = Oscar.ProjPlaneCurve(x^2*(x+y)*(y^3-x^2*z))
 Projective plane curve defined by -x^5*z - x^4*y*z + x^3*y^3 + x^2*y^4
-
 
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(2), QQ(-2), QQ(1)])
 (2 : -2 : 1)
@@ -163,10 +161,8 @@ julia> PP = projective_space(QQ, 2)
 julia> C = Oscar.ProjPlaneCurve(T(x+y+z))
 Projective plane curve defined by x + y + z
 
-
 julia> D = Oscar.ProjPlaneCurve(T(z))
 Projective plane curve defined by z
-
 
 julia> Oscar.curve_intersect(PP[1], C, D)
 2-element Vector{Vector{Any}}:
@@ -462,11 +458,10 @@ julia> T, _ = grade(S)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
   x -> [1]
   y -> [1]
-  z -> [1], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z])
+  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
 
 julia> C = Oscar.ProjPlaneCurve(T(y^2 * z - x^3 - x * z^2))
 Projective plane curve defined by -x^3 - x*z^2 + y^2*z
-
 
 julia> Oscar.arithmetic_genus(C)
 1
