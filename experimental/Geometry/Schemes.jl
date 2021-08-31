@@ -61,7 +61,7 @@ mutable struct Spec{S,T,U} <: AffineScheme{S,T,U}
   function Spec(k::S, R::T, I::MPolyIdeal{U} ) where{
 			S <: Ring, T <:MPolyRing , U <: MPolyElem}
     if k != coefficient_ring(R)
-      error( "Base ring of the affine scheme does not coincide with the base ring of the associated algebra." )
+      error("Base ring of the affine scheme does not coincide with the base ring of the associated algebra")
     end
     # TODO: Implement further plausibility checks to be performed at runtime.
     return new{S, T, U}(k, R, I )
