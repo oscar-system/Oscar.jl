@@ -979,8 +979,8 @@ julia> V = [x,y,x^2+y^2]
 
 julia> minimal_subalgebra_generators(V)
 2-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
- y
  x
+ y
 ```
 """
 function minimal_subalgebra_generators(V::Vector{S}) where S <: Union{MPolyElem, MPolyQuoElem}
