@@ -61,10 +61,8 @@ julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 julia> C = Oscar.AffinePlaneCurve(x^2*(x+y)*(y^3-x^2))
 Affine plane curve defined by -x^5 - x^4*y + x^3*y^3 + x^2*y^4
 
-
 julia> P2 = Oscar.Point([QQ(2), QQ(-2)])
 Point with coordinates fmpq[2, -2]
-
 
 julia> Oscar.tangent(C, P2)
 Affine plane curve defined by -48*x - 48*y
@@ -102,10 +100,8 @@ julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 julia> C = Oscar.AffinePlaneCurve(x*(x+y)*(x^2 + x + 1))
 Affine plane curve defined by x^4 + x^3*y + x^3 + x^2*y + x^2 + x*y
 
-
 julia> D = Oscar.AffinePlaneCurve(x*(x+y)*(x-y))
 Affine plane curve defined by x^3 - x*y^2
-
 
 julia> Oscar.common_components(C, D)
 1-element Vector{Oscar.PlaneCurveModule.AffinePlaneCurve{fmpq}}:
@@ -140,17 +136,13 @@ julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 julia> C = Oscar.AffinePlaneCurve(x*(x+y))
 Affine plane curve defined by x^2 + x*y
 
-
 julia> D = Oscar.AffinePlaneCurve((x-y)*(x-2))
 Affine plane curve defined by x^2 - x*y - 2*x + 2*y
-
 
 julia> Oscar.curve_intersect(C, D)
 2-element Vector{Vector{T} where T}:
  Oscar.PlaneCurveModule.AffinePlaneCurve[]
- Oscar.PlaneCurveModule.Point{fmpq}[Point with coordinates fmpq[0, 0]
-, Point with coordinates fmpq[2, -2]
-]
+ Oscar.PlaneCurveModule.Point{fmpq}[Point with coordinates fmpq[0, 0], Point with coordinates fmpq[2, -2]]
 ```
 """
 function curve_intersect(C::AffinePlaneCurve{S}, D::AffinePlaneCurve{S}) where S <: FieldElem
@@ -237,14 +229,10 @@ julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 julia> C = Oscar.AffinePlaneCurve(x^2*(x+y)*(y^3-x^2))
 Affine plane curve defined by -x^5 - x^4*y + x^3*y^3 + x^2*y^4
 
-
 julia> Oscar.curve_singular_locus(C)
 2-element Vector{Vector{T} where T}:
- Oscar.PlaneCurveModule.AffinePlaneCurve[Affine plane curve defined by x
-]
- Oscar.PlaneCurveModule.Point[Point with coordinates fmpq[-1, 1]
-, Point with coordinates fmpq[0, 0]
-]
+ Oscar.PlaneCurveModule.AffinePlaneCurve[Affine plane curve defined by x]
+ Oscar.PlaneCurveModule.Point[Point with coordinates fmpq[-1, 1], Point with coordinates fmpq[0, 0]]
 ```
 """
 function curve_singular_locus(C::AffinePlaneCurve)
@@ -327,10 +315,8 @@ julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 julia> C = Oscar.AffinePlaneCurve(x^2*(x+y)*(y^3-x^2))
 Affine plane curve defined by -x^5 - x^4*y + x^3*y^3 + x^2*y^4
 
-
 julia> P = Oscar.Point([QQ(2), QQ(-2)])
 Point with coordinates fmpq[2, -2]
-
 
 julia> Oscar.multiplicity(C, P)
 1
@@ -365,15 +351,13 @@ julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 julia> C = Oscar.AffinePlaneCurve(x^2*(x+y)*(y^3-x^2))
 Affine plane curve defined by -x^5 - x^4*y + x^3*y^3 + x^2*y^4
 
-
 julia> P = Oscar.Point([QQ(0), QQ(0)])
 Point with coordinates fmpq[0, 0]
 
-
 julia> Oscar.tangent_lines(C, P)
 Dict{Oscar.PlaneCurveModule.AffinePlaneCurve{fmpq}, Int64} with 2 entries:
-  x…     => 4
-  x + y… => 1
+  x     => 4
+  x + y => 1
 ```
 """
 function tangent_lines(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
@@ -432,14 +416,11 @@ julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 julia> C = Oscar.AffinePlaneCurve((x^2+y^2)*(x^2 + y^2 + 2*y))
 Affine plane curve defined by x^4 + 2*x^2*y^2 + 2*x^2*y + y^4 + 2*y^3
 
-
 julia> D = Oscar.AffinePlaneCurve((x^2+y^2)*(y^3*x^6 - y^6*x^2))
 Affine plane curve defined by x^8*y^3 + x^6*y^5 - x^4*y^6 - x^2*y^8
 
-
 julia> Q = Oscar.Point([QQ(0), QQ(-2)])
 Point with coordinates fmpq[0, -2]
-
 
 julia> Oscar.intersection_multiplicity(C, D, Q)
 2
@@ -471,18 +452,14 @@ julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 julia> C = Oscar.AffinePlaneCurve(x*(x+y))
 Affine plane curve defined by x^2 + x*y
 
-
 julia> D = Oscar.AffinePlaneCurve((x-y)*(x-2))
 Affine plane curve defined by x^2 - x*y - 2*x + 2*y
-
 
 julia> P = Oscar.Point([QQ(0), QQ(0)])
 Point with coordinates fmpq[0, 0]
 
-
 julia> Q = Oscar.Point([QQ(2), QQ(-2)])
 Point with coordinates fmpq[2, -2]
-
 
 julia> Oscar.aretransverse(C, D, P)
 false
@@ -555,7 +532,6 @@ julia> R, (x, y) = PolynomialRing(GF(7), ["x", "y"])
 
 julia> C = Oscar.AffinePlaneCurve(y^9 - x^2*(x-1)^9)
 Affine plane curve defined by 6*x^11 + 2*x^10 + 6*x^9 + x^4 + 5*x^3 + x^2 + y^9
-
 
 julia> Oscar.geometric_genus(C)
 0
