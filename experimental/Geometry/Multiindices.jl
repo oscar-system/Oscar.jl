@@ -183,7 +183,10 @@ function power( x::Vector, alpha::HomogMultiindex )
   if n != alpha.n
     error( "number of variables not compatible." )
   end
-  result = 1
+  if n == 0 
+    return Int(1)
+  end
+  result = one(parent(x[1]))
   for k in (1:n)
     result = result * x[k]^(alpha.a[k])
   end
