@@ -24,7 +24,7 @@ using Documenter, DocumenterMarkdown, DocumenterCitations
 # Remove the module prefix
 Base.print(io::IO, b::Base.Docs.Binding) = print(io, b.var)
 
-function doit(Oscar::Module; strict::Bool = true, local_build::Bool = false, doctest::Bool = true)
+function doit(Oscar::Module; strict::Bool = true, local_build::Bool = false, doctest::Union{Bool,Symbol} = true)
 
   # include the list of pages, performing substitutions
   s = read(joinpath(Oscar.oscardir, "docs", "doc.main"), String)
