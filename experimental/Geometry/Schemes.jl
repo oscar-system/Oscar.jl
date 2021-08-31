@@ -9,7 +9,7 @@ using Oscar.Multiindices
 include( "./Misc.jl" )
 using Oscar.Misc
 
-export AffineScheme, PrincipalSubScheme,Spec, SpecPrincipalOpen, affine_space
+export AffineScheme, Spec, SpecPrincipalOpen, affine_space
 export AffSchMorphism, base_ring,ambient_ring,defining_ideal, pullback, pullback_from_parent, pullback_from_root, inclusion_in_parent, inclusion_in_root, set_name!
 export localize, get_unit
 
@@ -61,7 +61,7 @@ mutable struct Spec{S,T,U} <: AffineScheme{S,T,U}
   function Spec(k::S, R::T, I::MPolyIdeal{U} ) where{
 			S <: Ring, T <:MPolyRing , U <: MPolyElem}
     if k != coefficient_ring(R)
-      error( "Base ring of the affine scheme does not coincide with the base ring of the associated algebra." )
+      error("Base ring of the affine scheme does not coincide with the base ring of the associated algebra")
     end
     # TODO: Implement further plausibility checks to be performed at runtime.
     return new{S, T, U}(k, R, I )
@@ -127,10 +127,6 @@ end
 
 ###############################################################################
 # Getter functions
-
-function PrincipalSubScheme(parent, denom)
-  return SpecPrincipalOpen(parent, denom)
-end
 
 function localize(parent, denom)
   return SpecPrincipalOpen(parent, denom)
@@ -218,7 +214,7 @@ end
 #
 function hypersurface_complement( X::AffineScheme, f::MPolyElem )
   if parent( f ) != ambient_ring( root( X ))
-    error( "The polynomial is not an element of the root ambient ring of the given affine scheme." )
+    error( "The polynomial is not an element of the root ambient ring of the given affine scheme" )
   end
   #TODO: Complete this. Maybe it's redundant with the localize routine above, though.
 end
@@ -388,7 +384,7 @@ mutable struct AffSchMorphism{S,Tdom, Udom, Tcod, Ucod}
                            ) where {S,Td,Ud,Tc,Uc}
 
    if base_ring(domain) != base_ring(codomain)
-      error( "the base rings of the domain and the codomain do not coincide!" )
+      error( "the base rings of the domain and the codomain do not coincide" )
     end
     k = base_ring(domain)
     #if domain(pullback) != ambient_ring(R) || codomain(pullback) != domain.R
@@ -407,7 +403,7 @@ mutable struct AffSchMorphism{S,Tdom, Udom, Tcod, Ucod}
       codomain::AffineScheme{S,Tc,Uc}, imgs_frac::Vector{Frac{Uc}}
                            ) where {S,Td,Ud,Tc,Uc}
     if base_ring(domain) != base_ring(codomain)
-      error( "the base rings of the domain and the codomain do not coincide!" )
+      error( "the base rings of the domain and the codomain do not coincide" )
     end
     k = base_ring(domain)
     #if domain(pullback) != codomain.R || codomain(pullback) != domain.R
@@ -432,7 +428,7 @@ function pullback(f::AffSchMorphism)
     return f.pullback
   end
   if !isdefined(f, :imgs_frac )
-    error( "Neither the fractional representation, nor the pullback is defined for this morphism." )
+    error( "Neither the fractional representation, nor the pullback is defined for this morphism" )
   end
   S = ambient_ring(codomain(f))
   T = ambient_ring(domain(f))
@@ -442,7 +438,7 @@ function pullback(f::AffSchMorphism)
 
   n = length( f.imgs_frac )
   if n != length( gens( R ))
-    error( "Number of variables in the ambient ring of the root does not coincide with the number of images provided for the homomorphism." )
+    error( "Number of variables in the ambient ring of the root does not coincide with the number of images provided for the homomorphism" )
   end
   for i in (1:n)
     p = numerator( f.imgs_frac[i] )
@@ -464,7 +460,7 @@ function imgs_frac(f::AffSchMorphism)
   end
   # if both forms of the morphisms are not to be found, it is not defined at all.
   if !isdefined( f, :pullback )
-    error( "Neither the fractional representation, nor the pullback is defined for this morphism." )
+    error( "Neither the fractional representation, nor the pullback is defined for this morphism" )
   end
 
   # start reconstructing the fraction representation from 
@@ -538,10 +534,10 @@ mutable struct Glueing
       glueingIsomorphism 
     )
     if domain( inclusionFirstPatch ) != domain( glueingIsomorphism ) 
-      error( "Morphisms can not be composed for glueing." )
+      error( "Morphisms can not be composed for glueing" )
     end
     if codomain( glueingIsomorphism ) != domain( inclusionSecondPatch ) 
-      error( "Morphisms can not be composed for glueing." )
+      error( "Morphisms can not be composed for glueing" )
     end
     Γ = new()
     Γ.firstPatch = codomain( inclusionFirstPatch )
@@ -561,12 +557,12 @@ second_inclusion( Γ::Glueing ) = Γ.inclusionSecondPatch
 glueing_isomorphism( Γ::Glueing ) = Γ.glueingIsomorphism
 
 function Base.show( io::Base.IO, Γ::Glueing )
-  Base.print( io, "Glueing of\n" )
-  Base.print( io, Γ.firstPatch )
-  Base.print( io, "\nand\n" )
-  Base.print( io, Γ.secondPatch )
-  Base.print( "\nalong\n" )
-  Base.print( io, domain(Γ.inclusionFirstPatch) )
+  Base.println( io, "Glueing of" )
+  Base.println( io, Γ.firstPatch )
+  Base.println( io, "and" )
+  Base.println( io, Γ.secondPatch )
+  Base.println( io, "along" )
+  Base.println( io, domain(Γ.inclusionFirstPatch) )
   return
 end
 
@@ -580,7 +576,7 @@ end
 #
 mutable struct Covering
   patches::Vector{AffineScheme}	# A list of open patches for this scheme
-  glueings::Array{Union{Glueing,Nothing},2}     # A list of glueings between the patches 
+  glueings::Matrix{Union{Glueing,Nothing}}     # A list of glueings between the patches 
   						# listed above
   function Covering()
     C = new()
@@ -634,14 +630,14 @@ function add_patch( C::Covering, X::AffineScheme, glueings::Vector{Glueing} )
   #@show n
   #@show length( get_patches(C))
   if n != length(get_patches(C))-1
-    error( "the number of glueings does not coincide with the number of patches so far." )
+    error( "the number of glueings does not coincide with the number of patches so far" )
   end
   for i in n
     if first_patch( glueings[i] ) != get_patches(C)[i] 
-      error( "Domain of the glueing does not coincide with the patch." )
+      error( "Domain of the glueing does not coincide with the patch" )
     end
     if second_patch( glueings[i] ) != X
-      error( "Codomain of the glueing does not coincide with the new patch." )
+      error( "Codomain of the glueing does not coincide with the new patch" )
     end
   end
   C.glueings = vcat( hcat( C.glueings, glueings ), Array{Nothing,2}(nothing,1,n+1) )
@@ -654,10 +650,10 @@ end
 # together with the two open inclusions.
 function intersect( X::AffineScheme, Y::AffineScheme, C::Covering )
   if !(X in get_patches(C)) 
-    error( "X is not a patch in the covering C!" )
+    error( "X is not a patch in the covering C" )
   end
   if !(Y in get_patches(C)) 
-    error( "Y is not a patch in the covering C!" )
+    error( "Y is not a patch in the covering C" )
   end
   if X == Y 
     return ( X, get_identity(X), get_identity(X) )
@@ -1047,7 +1043,7 @@ transitions( L::VectorBundle ) = L.transitions
 # pullback of a line bundle along a refinement
 function pullback( L::LineBundle, ρ::Refinement )
   if covering(L) != original_cover(ρ) 
-    error( "The line bundle is defined on a different cover than the one being refined!" )
+    error( "The line bundle is defined on a different cover than the one being refined" )
   end
   m = length( get_patches( get_covering( L )))
   n = length( get_patches( get_original_cover( ρ )))

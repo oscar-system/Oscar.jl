@@ -31,9 +31,7 @@ end
 function coeffs_in_radical( g::MPolyElem, u::MPolyElem )
   k = Int(0);
   R = parent(g)
-  if parent(g) != parent(u) 
-    error( "elements are not contained in the same ring!" )
-  end
+  parent(g) == parent(u) || error( "elements are not contained in the same ring!" )
   if !radical_membership( u, ideal( parent(g), g ) )
     return nothing
   end

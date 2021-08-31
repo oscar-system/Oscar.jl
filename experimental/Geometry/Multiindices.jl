@@ -184,11 +184,7 @@ function power( x::Vector, alpha::HomogMultiindex )
   if n == 0 
     return Int(1)
   end
-  result = one(parent(x[1]))
-  for k in (1:n)
-    result = result * x[k]^(alpha.a[k])
-  end
-  return result
+  return prod(k -> x[k]^(alpha.a[k]), 1:n)
 end
 
 function linear_index( alpha::HomogMultiindex ) 
@@ -197,7 +193,7 @@ end
 
 # Use Ordered multiindices for indexing 2-dimensional arrays
 
-function Base.getindex( v::Array{Any,2}, α::OrderedMultiindex )
+function Base.getindex( v::Matrix, α::OrderedMultiindex )
   if α.p < 2 
     error( "Multiindex does not have sufficient length" )
   end
