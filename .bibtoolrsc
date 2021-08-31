@@ -7,7 +7,7 @@ sort = on
 
 print.align.key = 0
 preserve.key.case = on
-
+sort.cased = off
 print.use.tab = off
 
 delete.field = { hal_id }
@@ -20,3 +20,18 @@ delete.field = { mrnumber }
 delete.field = { mrreviewer }
 delete.field = { msc2010 }
 delete.field = { zbl }
+
+fmt.name.name = { }
+fmt.inter.name = { x }
+
+key.format =
+{
+    %s(bibkey)
+ #
+    %.1#n(author)
+    { %1.3n(author) }
+    { %2d(year) }
+ #
+    { %+8.1n(author) }
+    { %2d(year) }
+}
