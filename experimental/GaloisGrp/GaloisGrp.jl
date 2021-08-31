@@ -1538,7 +1538,10 @@ function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
     push!(ps, isinteger(GC, B, sum(d))[2])
   end
 
-  return number_field(Hecke.power_sums_to_polynomial(ps), check = false, cached = false)[1]
+  k = number_field(Hecke.power_sums_to_polynomial(ps), check = false, cached = false)[1]
+  @assert all(x->isone(denominator(x)), coefficients(k.pol))
+  @assert ismonic(k.pol)
+  return k
 end
 
 #based on 
@@ -1709,4 +1712,4 @@ end
 
 using .GaloisGrp
 export galois_group, transitive_group_identification, slpoly_ring, elementary_symmetric,
-       power_sum, to_elementary_symmetric, cauchy_ideal, galois_ideal, fixed_field
+       power_sum, to_elementary_symmetric, cauchy_ideal, galois_ideal, fixed_field, maximal_subgroup_reps
