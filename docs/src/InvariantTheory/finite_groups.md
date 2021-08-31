@@ -32,7 +32,7 @@ In this section, with notation as in the introduction to this chapter, $G$ will 
     In the non-modular case, using  Emmy Noether's result and the Reynolds operator, it is not too difficult to show that $K[V]^G$ is a free module over any of its graded Noether normalizations. That is, $K[V]^G$ is Cohen-Macaulay.
 
 !!! note
-    In the non-modular case, the Hilbert series of $K[V]^G$ can be precomputed via Molien's theorem. See [DK15](@cite) and [DJ98](@cite) for explicit formulas.
+    In the non-modular case, the Hilbert series of $K[V]^G$ can be precomputed as its Molien series. See [DK15](@cite) and [DJ98](@cite) for explicit formulas.
 
 Having means to compute a $K$-basis for the invariants of each given degree, the algorithms for computing generators of invariant rings of finite groups proceed in two steps:
 
@@ -61,11 +61,47 @@ invariant_ring(G::MatrixGroup)
 
 ## Basic Data Associated to Invariant Rings
 
+If `IR` is the invariant ring $K[x_1,..., x_n]^G$ of a finite matrix group $G$, then
+
+- `group(IR)` refers to $G$,
+- `coefficient_ring(IR)` to $K$, and
+- `polynomial_ring(IR)` to $K[x_1,..., x_n]$.
+
+Moreover, `ismodular(IR)` returns `true` in the modular case, and
+`false` otherwise.
+
+###### Examples
+
+```@repl oscar
+K, a = CyclotomicField(3, "a")
+M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0])
+M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
+G = MatrixGroup(3, K, [ M1, M2 ])
+IR = invariant_ring(G)
+group(IR)
+coefficient_ring(IR)
+R = polynomial_ring(IR)
+x=gens(R)
+ismodular(IR)
+```
+
 ## The Reynolds Operator
+
+```@docs
+reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyElem}
+```
 
 ## Invariants of a Given Degree
 
+```@docs
+invariant_basis(IR::InvRing, d::Int)
+```
+
 ## The Molien Series
+
+```@docs
+molien_series(IR::InvRing{T}) where {T <: Union{FlintRationalField, AnticNumberField}}
+```
 
 ## Primary Invariants
 
@@ -79,6 +115,11 @@ primary_invariants(IR::InvRing)
 secondary_invariants(IR::InvRing)
 ```
 
+```@docs
+irreducible_secondary_invariants(IR::InvRing)
+```
+
 ## Fundamental Systems of Invariants
+
 
 ## Invariant Rings as Affine Algebras

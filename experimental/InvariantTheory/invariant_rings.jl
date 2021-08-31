@@ -1,5 +1,7 @@
-export invariant_ring, primary_invariants, secondary_invariants
-
+export invariant_ring, primary_invariants, secondary_invariants, irreducible_secondary_invariants
+export coefficient_ring, polynomial_ring, action, group
+export ismodular
+export reynolds_operator, invariant_basis, molien_series
 ###############################################
 
 mutable struct InvRing{FldT, GrpT, PolyElemT, PolyRingT, ActionT, SingularActionT}
@@ -167,6 +169,87 @@ function reynolds_via_singular(IR::InvRing{T}) where {T <: Union{FqNmodFiniteFie
   return IR.reynolds_singular
 end
 
+@doc Markdown.doc"""
+     reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyElem}
+
+In the non-modular case, return the image of `f` under the Reynolds operator projecting onto `IR`.
+
+# Examples
+```jldoctest
+julia> K, a = CyclotomicField(3, "a")
+(Cyclotomic field of order 3, a)
+
+julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0])
+[0   0   1]
+[1   0   0]
+[0   1   0]
+
+julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
+[1   0        0]
+[0   a        0]
+[0   0   -a - 1]
+
+julia> G = MatrixGroup(3, K, [ M1, M2 ])
+Matrix group of degree 3 over Cyclotomic field of order 3
+
+julia> IR = invariant_ring(G)
+Invariant ring of
+Matrix group of degree 3 over Cyclotomic field of order 3
+with generators
+AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+
+julia> R = polynomial_ring(IR)
+Multivariate Polynomial Ring in x[1], x[2], x[3] over Cyclotomic field of order 3
+
+julia> x=gens(R)
+3-element Vector{AbstractAlgebra.Generic.MPoly{nf_elem}}:
+ x[1]
+ x[2]
+ x[3]
+
+julia> f = x[1]^3
+x[1]^3
+
+julia> reynolds_operator(IR, f)
+1//3*x[1]^3 + 1//3*x[2]^3 + 1//3*x[3]^3
+```
+```jldoctest
+julia> M = matrix(GF(3), [0 1 0; -1 0 0; 0 0 -1])
+[0   1   0]
+[2   0   0]
+[0   0   2]
+
+julia> G = MatrixGroup(3, GF(3), [M])
+Matrix group of degree 3 over Galois field with characteristic 3
+
+julia> IR = invariant_ring(G)
+Invariant ring of
+Matrix group of degree 3 over Galois field with characteristic 3
+with generators
+gfp_mat[[0 1 0; 2 0 0; 0 0 2]]
+
+julia> R = polynomial_ring(IR)
+Multivariate Polynomial Ring in x[1], x[2], x[3] over Galois field with characteristic 3
+
+julia> x=gens(R)
+3-element Vector{gfp_mpoly}:
+ x[1]
+ x[2]
+ x[3]
+
+julia> f = x[1]^2
+x[1]^2
+
+julia> reynolds_operator(IR, f)
+2*x[1]^2 + 2*x[2]^2
+
+julia> f = x[1]^3
+x[1]^3
+
+julia> reynolds_operator(IR, f)
+0
+```
+"""
 function reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyElem}
    @assert parent(f) === polynomial_ring(IR)
 
@@ -182,6 +265,41 @@ function molien_series_via_singular(IR::InvRing{T}) where {T <: Union{FlintRatio
   return reynolds_molien_via_singular(IR)[2]
 end
 
+@doc Markdown.doc"""
+     molien_series(IR::InvRing{T}) where {T <: Union{FlintRationalField, AnticNumberField}}
+
+     molien_series(IR::InvRing{T}) where {T <: Union{Nemo.GaloisField, Nemo.GaloisFmpzField}}
+
+In the non-modular case, return the Molien series of `IR` as a rational function.
+
+# Examples
+```jldoctest
+julia> K, a = CyclotomicField(3, "a")
+(Cyclotomic field of order 3, a)
+
+julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0])
+[0   0   1]
+[1   0   0]
+[0   1   0]
+
+julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
+[1   0        0]
+[0   a        0]
+[0   0   -a - 1]
+
+julia> G = MatrixGroup(3, K, [ M1, M2 ])
+Matrix group of degree 3 over Cyclotomic field of order 3
+
+julia> IR = invariant_ring(G)
+Invariant ring of
+Matrix group of degree 3 over Cyclotomic field of order 3
+with generators
+AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+
+julia> molien_series(IR)
+(-t^6 + t^3 - 1)//(t^9 - 3*t^6 + 3*t^3 - 1)
+```
+"""
 function molien_series(IR::InvRing{T}) where {T <: Union{FlintRationalField, AnticNumberField}}
   mol = molien_series_via_singular(IR)
   # Singular does not build a new polynomial ring for the univariate Hilbert series
@@ -194,7 +312,6 @@ function molien_series(IR::InvRing{T}) where {T <: Union{FlintRationalField, Ant
   #return to_univariate(S, R(mol[1, 1]))//to_univariate(S, R(mol[1, 2]))
   return S(to_univariate(S, R(mol[1, 1])))//S(to_univariate(S, R(mol[1, 2])))
 end
-
 function molien_series(IR::InvRing{T}) where {T <: Union{Nemo.GaloisField, Nemo.GaloisFmpzField}}
   @assert !ismodular(IR)
   mol = molien_series_via_singular(IR)
@@ -250,6 +367,68 @@ function invariant_basis_via_linear_algebra(IR::InvRing, d::Int)
   return res
 end
 
+@doc Markdown.doc"""
+     invariant_basis(IR::InvRing, d::Int)
+
+Given an invariant ring `IR` and an integer `d`, return a basis for the invariants in degree `d`.
+
+# Examples
+```jldoctest
+julia> K, a = CyclotomicField(3, "a")
+(Cyclotomic field of order 3, a)
+
+julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0])
+[0   0   1]
+[1   0   0]
+[0   1   0]
+
+julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
+[1   0        0]
+[0   a        0]
+[0   0   -a - 1]
+
+julia> G = MatrixGroup(3, K, [ M1, M2 ])
+Matrix group of degree 3 over Cyclotomic field of order 3
+
+julia> IR = invariant_ring(G)
+Invariant ring of
+Matrix group of degree 3 over Cyclotomic field of order 3
+with generators
+AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+
+julia> invariant_basis(IR, 6)
+4-element Vector{AbstractAlgebra.Generic.MPoly{nf_elem}}:
+ x[1]^2*x[2]^2*x[3]^2
+ x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
+ x[1]^4*x[2]*x[3] + x[1]*x[2]^4*x[3] + x[1]*x[2]*x[3]^4
+ x[1]^6 + x[2]^6 + x[3]^6
+```
+```jldoctest
+julia> M = matrix(GF(3), [0 1 0; -1 0 0; 0 0 -1])
+[0   1   0]
+[2   0   0]
+[0   0   2]
+
+julia> G = MatrixGroup(3, GF(3), [M])
+Matrix group of degree 3 over Galois field with characteristic 3
+
+julia> IR = invariant_ring(G)
+Invariant ring of
+Matrix group of degree 3 over Galois field with characteristic 3
+with generators
+gfp_mat[[0 1 0; 2 0 0; 0 0 2]]
+
+julia> invariant_basis(IR, 2)
+2-element Vector{gfp_mpoly}:
+ x[3]^2
+ x[1]^2 + x[2]^2
+
+julia> invariant_basis(IR, 3)
+2-element Vector{gfp_mpoly}:
+ x[1]*x[2]*x[3]
+ x[1]^2*x[3] + 2*x[2]^2*x[3]
+```
+"""
 function invariant_basis(IR::InvRing, d::Int)
   # TODO: Fine tune this: Depending on d and the group order it is better
   # to use "via_linear_algebra" also in the non-modular case.
@@ -279,9 +458,9 @@ end
 @doc Markdown.doc"""
     primary_invariants(IR::InvRing)
 
-Return a system of primary invariants of `IR`.
+Return a system of primary invariants for `IR`.
 
-If a system of primary invariants of `IR` is already cached, return the cached system. 
+If a system of primary invariants for `IR` is already cached, return the cached system. 
 Otherwise, compute and cache such a system first.
 
 NOTE: The primary invariants are sorted by increasing degree.
@@ -354,8 +533,8 @@ end
 @doc Markdown.doc"""
     secondary_invariants(IR::InvRing)
 
-Return a system of secondary invariants of `IR` with respect to the currently cached system of primary invariants of `IR`
-(if no system of primary invariants of `IR` is cached, compute and cache such a system first).
+Return a system of secondary invariants for `IR` with respect to the currently cached system of primary invariants for `IR`
+(if no system of primary invariants for `IR` is cached, compute and cache such a system first).
 
 If a system of secondary invariants is already cached, return the cached system. 
 Otherwise, compute and cache such a system first.
@@ -399,6 +578,61 @@ function secondary_invariants(IR::InvRing)
   return copy(IR.secondary)
 end
 
+@doc Markdown.doc"""
+    irreducible_secondary_invariants(IR::InvRing)
+
+From among a system of secondary invariants for `IR` (with respect to the currently cached system of primary invariants for `IR`), return the irrreducible secondary invariants.
+
+If a system of secondary invariants is already cached, return the irreducible ones from that system. 
+Otherwise, compute and cache a system of secondary invariants first.
+
+NOTE: A secondary invariant is *irreducible* if it cannot be written as a polynomial expession in the primary invariants and the other secondary invariants. The multiplicative unit 1 is not irreducible: It is considered to be the empty power product.
+
+# Examples
+```jldoctest
+julia> M = matrix(QQ, [0 -1 0 0 0; 1 -1 0 0 0; 0 0 0 0 1; 0 0 1 0 0; 0 0 0 1 0])
+[0   -1   0   0   0]
+[1   -1   0   0   0]
+[0    0   0   0   1]
+[0    0   1   0   0]
+[0    0   0   1   0]
+
+julia> G = MatrixGroup(5, QQ, [M])
+Matrix group of degree 5 over Rational Field
+
+julia> IR = invariant_ring(G)
+Invariant ring of
+Matrix group of degree 5 over Rational Field
+with generators
+fmpq_mat[[0 -1 0 0 0; 1 -1 0 0 0; 0 0 0 0 1; 0 0 1 0 0; 0 0 0 1 0]]
+
+julia> secondary_invariants(IR)
+12-element Vector{fmpq_mpoly}:
+ 1
+ x[1]*x[3] - x[1]*x[5] - x[2]*x[3] + x[2]*x[4]
+ x[1]^2 - x[1]*x[2] + x[2]^2
+ x[3]^2*x[5] + x[3]*x[4]^2 + x[4]*x[5]^2
+ x[3]^3 + x[4]^3 + x[5]^3
+ x[1]*x[3]*x[4] - x[1]*x[3]*x[5] - x[2]*x[3]*x[4] + x[2]*x[4]*x[5]
+ x[1]*x[3]^2 - x[1]*x[4]^2 + x[2]*x[4]^2 - x[2]*x[5]^2
+ x[1]^2*x[3] + x[1]^2*x[5] - 2*x[1]*x[2]*x[3] + x[2]^2*x[3] + x[2]^2*x[4]
+ x[1]^2*x[3] - x[1]*x[2]*x[3] - x[1]*x[2]*x[4] + x[1]*x[2]*x[5] + x[2]^2*x[4]
+ x[1]^3*x[3] - x[1]^3*x[5] - 2*x[1]^2*x[2]*x[3] + x[1]^2*x[2]*x[4] + x[1]^2*x[2]*x[5] + 2*x[1]*x[2]^2*x[3] - x[1]*x[2]^2*x[4] - x[1]*x[2]^2*x[5] - x[2]^3*x[3] + x[2]^3*x[4]
+ x[1]^4 - 2*x[1]^3*x[2] + 3*x[1]^2*x[2]^2 - 2*x[1]*x[2]^3 + x[2]^4
+ x[1]^5*x[3] - x[1]^5*x[5] - 3*x[1]^4*x[2]*x[3] + x[1]^4*x[2]*x[4] + 2*x[1]^4*x[2]*x[5] + 5*x[1]^3*x[2]^2*x[3] - 2*x[1]^3*x[2]^2*x[4] - 3*x[1]^3*x[2]^2*x[5] - 5*x[1]^2*x[2]^3*x[3] + 3*x[1]^2*x[2]^3*x[4] + 2*x[1]^2*x[2]^3*x[5] + 3*x[1]*x[2]^4*x[3] - 2*x[1]*x[2]^4*x[4] - x[1]*x[2]^4*x[5] - x[2]^5*x[3] + x[2]^5*x[4]
+
+julia> irreducible_secondary_invariants(IR)
+8-element Vector{fmpq_mpoly}:
+ x[1]*x[3] - x[1]*x[5] - x[2]*x[3] + x[2]*x[4]
+ x[1]^2 - x[1]*x[2] + x[2]^2
+ x[3]^2*x[5] + x[3]*x[4]^2 + x[4]*x[5]^2
+ x[3]^3 + x[4]^3 + x[5]^3
+ x[1]*x[3]*x[4] - x[1]*x[3]*x[5] - x[2]*x[3]*x[4] + x[2]*x[4]*x[5]
+ x[1]*x[3]^2 - x[1]*x[4]^2 + x[2]*x[4]^2 - x[2]*x[5]^2
+ x[1]^2*x[3] + x[1]^2*x[5] - 2*x[1]*x[2]*x[3] + x[2]^2*x[3] + x[2]^2*x[4]
+ x[1]^2*x[3] - x[1]*x[2]*x[3] - x[1]*x[2]*x[4] + x[1]*x[2]*x[5] + x[2]^2*x[4]
+```
+"""
 function irreducible_secondary_invariants(IR::InvRing)
   if !isdefined(IR, :irreducible_secondary)
     secondary_invariants_via_singular(IR)
@@ -423,3 +657,6 @@ function heisenberg_group(n::Int)
   end
   return MatrixGroup(n, K, [ M1, M2 ])
 end
+
+
+
