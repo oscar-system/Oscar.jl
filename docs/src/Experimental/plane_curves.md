@@ -13,11 +13,16 @@ Pages = ["plane_curves.md"]
 
 # Affine and Projective Plane Curves
 
-We consider two kinds of plane curves : affine and projective. An affine plane curve is defined by a polynomial in two variables, whereas a projective plane curve is defined by an homogeneous polynomial belonging to a graded polynomial ring in three variables. 
+We consider two kinds of plane curves: affine and projective. An affine plane
+curve is defined by a polynomial in two variables, whereas a projective plane
+curve is defined by a homogeneous polynomial belonging to a graded polynomial
+ring in three variables.
 
 ## Affine Plane Curves
 
-An affine plane curve is defined as the class of a two-variables polynomial ``F`` over a field ``K``, modulo the equivalence relation ``F \sim G \iff \exists \lambda \in K\backslash \{0\}, F = \lambda \cdot G``.
+An affine plane curve is defined as the class of a two-variables polynomial
+$F$ over a field $K$, modulo the equivalence relation $F \sim G \iff
+\exists \lambda \in K\backslash \{0\}, F = \lambda \cdot G$.
 
 ### Example
 
@@ -27,17 +32,27 @@ AffinePlaneCurve
 
 ## Projective Plane Curves
 
-Similarly, a projective plane curve is defined as the class of a three-variables homogeneous polynomial ``F`` over a field ``K``, modulo the equivalence relation ``F\sim G \iff \exists \lambda \in K\backslash \{0\}, F = \lambda \cdot G``. The defining equation is supposed to belong to a graded ring.
+Similarly, a projective plane curve is defined as the class of a
+three-variables homogeneous polynomial $F$ over a field $K$, modulo the
+equivalence relation $F\sim G \iff \exists \lambda \in K\backslash \{0\}, F =
+\lambda \cdot G$. The defining equation is supposed to belong to a graded
+ring.
 
 ```@docs
 ProjPlaneCurve
 ```
 
-A particular kind of projective curves is the case of elliptic curves, see the corresponding section for more information. The types `ProjPlaneCurve` and `ProjEllipticCurve` are subtypes of the abstract type `ProjectivePlaneCurve`. In addition, the types `AffinePlaneCurve` and `ProjectivePlaneCurve` are subtypes of the abstract type `PlaneCurve`.
+A particular kind of projective curves is the case of elliptic curves, see the
+corresponding section for more information. The types `ProjPlaneCurve` and
+`ProjEllipticCurve` are subtypes of the abstract type `ProjectivePlaneCurve`.
+In addition, the types `AffinePlaneCurve` and `ProjectivePlaneCurve` are
+subtypes of the abstract type `PlaneCurve`.
 
 ## Points
 
-When considering curves, it is natural to have a look at points on the curve. We describe in this section how to deal with points, both in the affine and projective settings.
+When considering curves, it is natural to have a look at points on the curve.
+We describe in this section how to deal with points, both in the affine and
+projective settings.
 
 ### Point in the affine space
 
@@ -59,7 +74,8 @@ in(P::Point{S}, C::AffinePlaneCurve{S}) where S <: FieldElem
 
 ### Point in the projective space
 
-In order to define a point in the projective plane, one needs first to define the projective plane as follows, where `K` is the base ring:
+In order to define a point in the projective plane, one needs first to define
+the projective plane as follows, where `K` is the base ring:
 
 #### Example
 ```@repl oscar
