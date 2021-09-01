@@ -10,8 +10,10 @@ if (haskey(ENV, "GITHUB_ACTIONS"))
     Polymake.shell_execute(raw"$Verbose::cpp=3;")
 end
 
+include("iterators.jl")
 include("Cone.jl")
 include("Group.jl")
 include("Polyhedron.jl")
 include("PolyhedralFan.jl")
+include("SubdivisionOfPoints.jl")
 include("extended.jl")

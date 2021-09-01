@@ -106,6 +106,11 @@ struct Halfspace
     b::Polymake.Rational
 end
 
+Halfspace(a::AbstractVector, b) = reshape(a, 1, :)
+
+# TODO: abstract notion of equality
+Base.:(==)(x::Halfspace, y::Halfspace) = x.a == y.a && x.b == y.b
+
 struct Cones
 end
 
@@ -137,6 +142,8 @@ end
 Base.firstindex(::PolyhedronOrConeIterator) = 1
 Base.lastindex(iter::PolyhedronOrConeIterator) = length(iter)
 Base.size(iter::PolyhedronOrConeIterator) = (length(iter.faces),)
+
+# TODO: function incidence_matrix(::PolyhedronOrConeIterator) after merge of combine-incidencematrix
 
 function Base.show(io::IO, I::PolyhedronOrConeIterator{T}) where T
     print(io, "A collection of $T objects as `$T`")
@@ -171,7 +178,7 @@ halfspace_matrix_pair(iter::HalfspaceIterator) = (A = iter.A, b = iter.b)
 
 function point_matrix(iter::HalfspaceIterator)
     if !iszero(iter.b)
-        throw(ArgumentError("Half-spaces have to be affine in order for point_matrix to be definded"))
+        throw(ArgumentError("Half-spaces have to be affine in order for point_matrix to be defined"))
     end
     return iter.A
 end
@@ -183,6 +190,8 @@ HalfspaceIterator(x...) = HalfspaceIterator{Halfspace}(x...)
 struct VectorIterator{T, U} <: AbstractArray{T, 1}
     m::Polymake.Matrix{U}
 end
+
+Base.eltype(::VectorIterator{T, U}) where {T, U} = T{U}
 
 Base.IndexStyle(::Type{<:VectorIterator}) = IndexLinear()
 
