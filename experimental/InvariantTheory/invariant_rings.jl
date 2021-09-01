@@ -28,7 +28,7 @@ mutable struct InvRing{FldT, GrpT, PolyElemT, PolyRingT, ActionT, SingularAction
 
   function InvRing(K::FldT, G::GrpT, action::Vector{ActionT}) where {FldT <: Field, GrpT <: AbstractAlgebra.Group, ActionT}
     n = degree(G)
-    R, = PolynomialRing(K, "x" => 1:n, cached = false)
+    R, = grade(PolynomialRing(K, "x" => 1:n, cached = false)[1], ones(Int, n))
     R_sing = singular_ring(R)
     action_singular = identity.([change_base_ring(R_sing, g) for g in action])
     PolyRingT = typeof(R)
@@ -192,10 +192,13 @@ with generators
 AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
 
 julia> R = polynomial_ring(IR)
-Multivariate Polynomial Ring in x[1], x[2], x[3] over Cyclotomic field of order 3
+Multivariate Polynomial Ring in x[1], x[2], x[3] over Cyclotomic field of order 3 graded by
+  x[1] -> [1]
+  x[2] -> [1]
+  x[3] -> [1]
 
-julia> x=gens(R)
-3-element Vector{AbstractAlgebra.Generic.MPoly{nf_elem}}:
+julia> x = gens(R)
+3-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
  x[1]
  x[2]
  x[3]
@@ -222,10 +225,13 @@ with generators
 gfp_mat[[0 1 0; 2 0 0; 0 0 2]]
 
 julia> R = polynomial_ring(IR)
-Multivariate Polynomial Ring in x[1], x[2], x[3] over Galois field with characteristic 3
+Multivariate Polynomial Ring in x[1], x[2], x[3] over Galois field with characteristic 3 graded by
+  x[1] -> [1]
+  x[2] -> [1]
+  x[3] -> [1]
 
-julia> x=gens(R)
-3-element Vector{gfp_mpoly}:
+julia> x = gens(R)
+3-element Vector{MPolyElem_dec{gfp_elem, gfp_mpoly}}:
  x[1]
  x[2]
  x[3]
@@ -252,6 +258,11 @@ function reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, 
    # fReySing is an ideal...
    @assert length(gens(fReySing)) == 1
    return polynomial_ring(IR)(gens(fReySing)[1])
+end
+
+function reynolds_operator(IR::InvRing, f::MPolyElem)
+  @assert parent(f) === polynomial_ring(IR).R
+  return reynolds_operator(IR, polynomial_ring(IR)(f))
 end
 
 function basis_via_reynolds(IR::InvRing, d::Int)
@@ -324,7 +335,7 @@ with generators
 AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
 
 julia> basis(IR, 6)
-4-element Vector{AbstractAlgebra.Generic.MPoly{nf_elem}}:
+4-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
  x[1]^2*x[2]^2*x[3]^2
  x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
  x[1]^4*x[2]*x[3] + x[1]*x[2]^4*x[3] + x[1]*x[2]*x[3]^4
@@ -346,12 +357,12 @@ with generators
 gfp_mat[[0 1 0; 2 0 0; 0 0 2]]
 
 julia> basis(IR, 2)
-2-element Vector{gfp_mpoly}:
+2-element Vector{MPolyElem_dec{gfp_elem, gfp_mpoly}}:
  x[3]^2
  x[1]^2 + x[2]^2
 
 julia> basis(IR, 3)
-2-element Vector{gfp_mpoly}:
+2-element Vector{MPolyElem_dec{gfp_elem, gfp_mpoly}}:
  x[1]*x[2]*x[3]
  x[1]^2*x[3] + 2*x[2]^2*x[3]
 ```
@@ -405,7 +416,7 @@ julia> G = MatrixGroup(3, K, [M1, M2]);
 julia> IR = invariant_ring(G);
 
 julia> primary_invariants(IR)
-3-element Vector{AbstractAlgebra.Generic.MPoly{nf_elem}}:
+3-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
  x[1]*x[2]*x[3]
  x[1]^3 + x[2]^3 + x[3]^3
  x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
@@ -469,7 +480,7 @@ julia> G = MatrixGroup(3, K, [M1, M2]);
 julia> IR = invariant_ring(G);
 
 julia> secondary_invariants(IR)
-2-element Vector{AbstractAlgebra.Generic.MPoly{nf_elem}}:
+2-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
  1
  x[1]^6*x[3]^3 + x[1]^3*x[2]^6 + x[2]^3*x[3]^6
 ```
@@ -500,7 +511,7 @@ julia> G = MatrixGroup(5, QQ, [M]);
 julia> IR = invariant_ring(G);
 
 julia> secondary_invariants(IR)
-12-element Vector{fmpq_mpoly}:
+12-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
  1
  x[1]*x[3] - x[1]*x[5] - x[2]*x[3] + x[2]*x[4]
  x[1]^2 - x[1]*x[2] + x[2]^2
@@ -515,7 +526,7 @@ julia> secondary_invariants(IR)
  x[1]^5*x[3] - x[1]^5*x[5] - 3*x[1]^4*x[2]*x[3] + x[1]^4*x[2]*x[4] + 2*x[1]^4*x[2]*x[5] + 5*x[1]^3*x[2]^2*x[3] - 2*x[1]^3*x[2]^2*x[4] - 3*x[1]^3*x[2]^2*x[5] - 5*x[1]^2*x[2]^3*x[3] + 3*x[1]^2*x[2]^3*x[4] + 2*x[1]^2*x[2]^3*x[5] + 3*x[1]*x[2]^4*x[3] - 2*x[1]*x[2]^4*x[4] - x[1]*x[2]^4*x[5] - x[2]^5*x[3] + x[2]^5*x[4]
 
 julia> irreducible_secondary_invariants(IR)
-8-element Vector{fmpq_mpoly}:
+8-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
  x[1]*x[3] - x[1]*x[5] - x[2]*x[3] + x[2]*x[4]
  x[1]^2 - x[1]*x[2] + x[2]^2
  x[3]^2*x[5] + x[3]*x[4]^2 + x[4]*x[5]^2
