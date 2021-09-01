@@ -15,12 +15,7 @@ mutable struct OrderedMultiindex <: Multiindex
   p::Int
   index::Vector{Int}
   function OrderedMultiindex(n::Int, p::Int)
-    v = Vector{Int}(undef,p) 
-    for i in 1:p
-      v[i] = i
-    end
-    #@show n, p, v
-    return new( n, p, v )
+    return new( n, p, collect(1:p) )
   end
 end
 
