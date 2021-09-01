@@ -196,8 +196,8 @@ end
 # Return a vector containing the variables of the root's ambient 
 # ring, but as elements of the new ambient ring.
 function get_root_variables( D::SpecPrincipalOpen )
-  ϕ = pullback_from_root(D)
-  return [ ϕ(x) for x in gens(ambient_ring(root(D))) ]
+  phi = pullback_from_root(D)
+  return [ phi(x) for x in gens(ambient_ring(root(D))) ]
 end
   
 
@@ -246,14 +246,14 @@ function ambient_ring(D::SpecPrincipalOpen)
   #names = ["denom$i" for i in 1:length(denoms(D))]
   n = length( denoms( D ))
   R = ambient_ring(parent(D))
-  S, ϕ, u = add_variables( R, ["u$n"] )
+  S, phi, u = add_variables( R, ["u$n"] )
   D.R = S
   D.u = u[1]
-  D.pullbackFromParent = ϕ
+  D.pullbackFromParent = phi
   if typeof(parent(D)) <: Spec 
     D.pullbackFromRoot = D.pullbackFromParent
   else 
-    D.pullbackFromRoot = compose( pullback_from_root( parent( D )), ϕ )
+    D.pullbackFromRoot = compose( pullback_from_root( parent( D )), phi )
   end
   return S
 end 
@@ -287,11 +287,11 @@ end
 #end
 
 function defining_ideal(D::SpecPrincipalOpen)
-  ϕ = pullback_from_parent(D)
+  phi = pullback_from_parent(D)
   ψ = pullback_from_root(D)
   I = defining_ideal(parent(D))
   R = ambient_ring(D)
-  J = ideal( R, [ ϕ(f) for f in gens( I ) ])
+  J = ideal( R, [ phi(f) for f in gens( I ) ])
   J = J + ideal( R, [ one(R)-D.u*ψ(D.denom) ] )
   return ( J )
 end
@@ -442,7 +442,8 @@ function pullback(f::AffSchMorphism)
     p = numerator( f.imgs_frac[i] )
     q = denominator( f.imgs_frac[i] )
     u = prod( denoms( domain(f)))
-    (k,a) = coeffs_in_radical( q, u )
+    Q, phi = quo( R, defining_ideal(root(codomain(f))) )
+    (k,a) = divides_power( phi(q), phi(u) )
     
   end
   #TODO: Finish this once we know how to deal with the radical membership in Oscar.
@@ -463,8 +464,8 @@ function imgs_frac(f::AffSchMorphism)
 
   # start reconstructing the fraction representation from 
   # the explicit ring homomorphism
-  ϕ = pullback(f)
-  # Set up the codomain of a lift of the pullback ϕ to the ambient ring of 
+  phi = pullback(f)
+  # Set up the codomain of a lift of the pullback phi to the ambient ring of 
   # the domain of f. This is a localization of a *free* polynomial ring, 
   # considered as a subalgebra of the fraction field. 
   P = ambient_ring(root(domain(f)))
@@ -478,7 +479,7 @@ function imgs_frac(f::AffSchMorphism)
   R = ambient_ring(root(codomain(f)))
   imgs_frac = elem_type(F)[]
   for g in gens(R)
-    h = compose( ϕ, pullback_from_root(codomain(f)) )
+    h = compose( phi, pullback_from_root(codomain(f)) )
     push!(imgs_frac,evaluate(h(g), fracs))
   end
   f.imgs_frac = imgs_frac
@@ -487,15 +488,15 @@ end
 
 function identity_morphism( X::Spec )
   R = ambient_ring(X)
-  ϕ = AlgebraHomomorphism( R, R, gens(R) )
-  f = AffSchMorphism(X,X,ϕ)
+  phi = AlgebraHomomorphism( R, R, gens(R) )
+  f = AffSchMorphism(X,X,phi)
   return f 
 end
 
 function identity_morphism( D::SpecPrincipalOpen )
   R = ambient_ring(D)
-  ϕ = AlgebraHomomorphism( R, R, gens(R) )
-  f = AffSchMorphism(D,D,ϕ)
+  phi = AlgebraHomomorphism( R, R, gens(R) )
+  f = AffSchMorphism(D,D,phi)
   return f
 end
 
@@ -508,14 +509,14 @@ function compose( f::AffSchMorphism, g::AffSchMorphism )
   if codomain(f) != domain(f) 
     error( "morphisms can not be composed" )
   end
-  ϕ = pullback(f)
-  γ = pullback(g)
-  return AffSchMorphism( domain(g), codomain(f), compose( γ, ϕ ) )
+  phi = pullback(f)
+  gamma = pullback(g)
+  return AffSchMorphism( domain(g), codomain(f), compose( gamma, phi ) )
 end
 
 #####################################################################
 # Glueing of two affine schemes X and Y along an open subset 
-# U ⊂ X and V ⊂ Y via an isomorphism Φ : U → V. 
+# U ⊂ X and V ⊂ Y via an isomorphism Phi : U → V. 
 # A glueing consists of a diagram X ↩ U → V ↪ Y with the outer maps 
 # the open embeddings of principal open subsets. 
 #
@@ -537,30 +538,30 @@ mutable struct Glueing
     if codomain( glueingIsomorphism ) != domain( inclusionSecondPatch ) 
       error( "Morphisms can not be composed for glueing" )
     end
-    Γ = new()
-    Γ.firstPatch = codomain( inclusionFirstPatch )
-    Γ.secondPatch = codomain( inclusionSecondPatch )
-    Γ.inclusionFirstPatch = inclusionFirstPatch
-    Γ.inclusionSecondPatch = inclusionSecondPatch
-    Γ.glueingIsomorphism = glueingIsomorphism
-    return Γ
+    G = new()
+    G.firstPatch = codomain( inclusionFirstPatch )
+    G.secondPatch = codomain( inclusionSecondPatch )
+    G.inclusionFirstPatch = inclusionFirstPatch
+    G.inclusionSecondPatch = inclusionSecondPatch
+    G.glueingIsomorphism = glueingIsomorphism
+    return G
   end
 end
 
-first_patch( Γ::Glueing ) = Γ.firstPatch
-second_patch( Γ::Glueing ) = Γ.secondPatch
-overlap(Γ::Glueing) = domain(Γ.inclusionFirstPatch)
-first_inclusion( Γ::Glueing ) = Γ.inclusionFirstPatch
-second_inclusion( Γ::Glueing ) = Γ.inclusionSecondPatch
-glueing_isomorphism( Γ::Glueing ) = Γ.glueingIsomorphism
+first_patch( G::Glueing ) = G.firstPatch
+second_patch( G::Glueing ) = G.secondPatch
+overlap(G::Glueing) = domain(G.inclusionFirstPatch)
+first_inclusion( G::Glueing ) = G.inclusionFirstPatch
+second_inclusion( G::Glueing ) = G.inclusionSecondPatch
+glueing_isomorphism( G::Glueing ) = G.glueingIsomorphism
 
-function Base.show( io::Base.IO, Γ::Glueing )
+function Base.show( io::Base.IO, G::Glueing )
   Base.println( io, "Glueing of" )
-  Base.println( io, Γ.firstPatch )
+  Base.println( io, G.firstPatch )
   Base.println( io, "and" )
-  Base.println( io, Γ.secondPatch )
+  Base.println( io, G.secondPatch )
   Base.println( io, "along" )
-  Base.println( io, domain(Γ.inclusionFirstPatch) )
+  Base.println( io, domain(G.inclusionFirstPatch) )
   return
 end
 
@@ -842,7 +843,7 @@ function projective_space( k::Ring, n::Int )
       S_vars = get_root_variables(U)
       R_unit = inverted_element(V)
       S_unit = inverted_element(U)
-      Φ = AlgebraHomomorphism( R_loc, S_loc, 
+      Phi = AlgebraHomomorphism( R_loc, S_loc, 
 			      vcat( [ S_vars[k]*S_unit for k in (1:i) ], # the first i-1 variables have the same indices
 				   [S_unit], # this is inverted to pass to the other patch
 				   [ S_vars[k-1]*S_unit for k in (i+2:j) ], # fill up with intermediate variables
@@ -850,7 +851,7 @@ function projective_space( k::Ring, n::Int )
 				   [ S_vars[j] ] ) # map the unit to the appropriate coordinate
 			      )
 
-      f = AffSchMorphism( U, V, Φ )
+      f = AffSchMorphism( U, V, Phi )
       #@show f
       glueing = Glueing( inclusion_in_parent(U), inclusion_in_parent(V), f )
       #@show glueing
@@ -1053,11 +1054,11 @@ function pullback( L::LineBundle, ρ::Refinement )
     for j in (i+1:n)
       if i != j
 	f_i = inclusions[i] # the inclusion of X_i into Y_{n(i)}
-	ϕ_i = pullback(f_i) # the associated pullback on the level of rings
-	S = codomain( ϕ_i )
+	phi_i = pullback(f_i) # the associated pullback on the level of rings
+	S = codomain( phi_i )
 	S_loc = ambient_ring(overlap(glueings_refined[i,j])) 
 	f_j = inclusions[j] # the inclusion of X_j into Y_{n(j)}
-	ϕ_j = pullback(f_j) # the associated pullback on the level of rings
+	phi_j = pullback(f_j) # the associated pullback on the level of rings
 	# We need to extract the pullback on the overlap 
 	# X_i ∩ X_j ↪ Y_{n(i)} ∩ Y_{n(j)} in order to pull back the transition 
 	# function. The order of i and j determines whether the intersection 
@@ -1076,9 +1077,9 @@ function pullback( L::LineBundle, ρ::Refinement )
 	  # the next best case. Here, the overlap of Y_{n(i)} ∩ Y_{n(j)} 
 	  # is realized via a localization of Y_{n(i)} and hence the 
 	  # pullback can be inferred from X_i → Y_{n(i)}.
-	  R = domain(ϕ) 
+	  R = domain(phi) 
 	  R_loc = ambient_ring(overlap(glueings_original[n_i,n_j]))
-	  # ϕ_loc = 
+	  # phi_loc = 
 	else
 	  # In this last case, one needs to explicitly invert one 
 	  # of the glueing isomorphisms.
@@ -1190,7 +1191,7 @@ end
 
 # A struct for glueing of two affine schemes X = Spec A and Y = Spec B along a common 
 # principal open subset U. Then U is given as both, Spec A_f and Spec B_g for 
-# elements f ∈  A and g ∈  B, and there is an isomorphism ϕ : A_f →  B_g. The 
+# elements f ∈  A and g ∈  B, and there is an isomorphism phi : A_f →  B_g. The 
 # Glueing maintains this information, together with the two inclusions of 
 # open sets i : U ↪  X and j : U ↪  Y given by A →  A_f, and B →  B_f, respectively.
 mutable struct Glueing
@@ -1198,7 +1199,7 @@ mutable struct Glueing
   Y::AffineScheme
   i::SchemeMorphism
   j::SchemeMorphism
-  ϕ::Isomorphism
+  phi::Isomorphism
 
 end
 
