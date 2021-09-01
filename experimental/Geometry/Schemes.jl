@@ -9,9 +9,9 @@ using Oscar.Multiindices
 include( "./Misc.jl" )
 using Oscar.Misc
 
-export AffineScheme, Spec, SpecPrincipalOpen, affine_space
-export AffSchMorphism, base_ring,ambient_ring,defining_ideal, pullback, pullback_from_parent, pullback_from_root, inclusion_in_parent, inclusion_in_root, set_name!
-export localize, get_unit
+export AffineScheme, Spec, SpecPrincipalOpen
+export base_ring, ambient_ring, defining_ideal, pullback, pullback_from_parent, pullback_from_root, inclusion_in_parent, inclusion_in_root, set_name!, inverted_element, identity_morphism, denom
+export affine_space, localize
 
 export AffSchMorphism
 export domain, codomain, pullback
@@ -20,12 +20,12 @@ export Glueing
 export first_patch, second_patch, overlap, first_inclusion, second_inclusion, glueing_isomorphism
 
 export Covering
-export get_patches, get_glueings, add_patch
+export patches, glueings, add_patch
 
 export Refinement
 
 export CoveredScheme
-export get_coverings
+export coverings
 
 export AbstractCoherentSheaf
 
@@ -139,7 +139,7 @@ end
 # Check whether X is a parent of U and return the inclusion morphism 
 # if true. Otherwise, return nothing.
 function is_parent_of( X::AffineScheme, U::SpecPrincipalOpen )
-  ι = get_identity(U)
+  ι = identity_morphism(U)
   if X == U
     return ι
   end
@@ -178,7 +178,7 @@ end
 
 # Returns the unit that has last been adjoint to the 
 # coordinate ring, i.e. the inverse of the inverted element
-function get_unit(D::SpecPrincipalOpen)
+function inverted_element(D::SpecPrincipalOpen)
   if isdefined( D, :u )
     return D.u
   end
@@ -186,7 +186,7 @@ function get_unit(D::SpecPrincipalOpen)
   return D.u
 end
 
-function get_denom(D::SpecPrincipalOpen)
+function denom(D::SpecPrincipalOpen)
   if isdefined( D, :denom )
     return D.denom
   end
@@ -485,14 +485,14 @@ function imgs_frac(f::AffSchMorphism)
   return imgs_frac
 end
 
-function get_identity( X::Spec )
+function identity_morphism( X::Spec )
   R = ambient_ring(X)
   ϕ = AlgebraHomomorphism( R, R, gens(R) )
   f = AffSchMorphism(X,X,ϕ)
   return f 
 end
 
-function get_identity( D::SpecPrincipalOpen )
+function identity_morphism( D::SpecPrincipalOpen )
   R = ambient_ring(D)
   ϕ = AlgebraHomomorphism( R, R, gens(R) )
   f = AffSchMorphism(D,D,ϕ)
@@ -591,7 +591,7 @@ mutable struct Covering
   end
 end
 
-function get_patches( C::Covering )
+function patches( C::Covering )
   if isdefined( C, :patches )
     return C.patches
   else 
@@ -607,7 +607,7 @@ function get_patch( C::Covering, i::Int )
   end
 end
 
-function get_glueings( C::Covering )
+function glueings( C::Covering )
   if isdefined( C, :glueings )
     return C.glueings
   else
@@ -626,12 +626,12 @@ function add_patch( C::Covering, X::AffineScheme, glueings::Vector{Glueing} )
   push!( C.patches, X )
   n = length(glueings)
   #@show n
-  #@show length( get_patches(C))
-  if n != length(get_patches(C))-1
+  #@show length( patches(C))
+  if n != length(patches(C))-1
     error( "the number of glueings does not coincide with the number of patches so far" )
   end
   for i in n
-    if first_patch( glueings[i] ) != get_patches(C)[i] 
+    if first_patch( glueings[i] ) != patches(C)[i] 
       error( "Domain of the glueing does not coincide with the patch" )
     end
     if second_patch( glueings[i] ) != X
@@ -647,24 +647,24 @@ end
 # Returns the intersection as an affine scheme 
 # together with the two open inclusions.
 function intersect( X::AffineScheme, Y::AffineScheme, C::Covering )
-  if !(X in get_patches(C)) 
+  if !(X in patches(C)) 
     error( "X is not a patch in the covering C" )
   end
-  if !(Y in get_patches(C)) 
+  if !(Y in patches(C)) 
     error( "Y is not a patch in the covering C" )
   end
   if X == Y 
-    return ( X, get_identity(X), get_identity(X) )
+    return ( X, identity_morphism(X), identity_morphism(X) )
   end
-  i = indexin( X, get_patches(C) )[1]
-  j = indexin( Y, get_patches(C) )[1]
+  i = indexin( X, patches(C) )[1]
+  j = indexin( Y, patches(C) )[1]
   # Keep in mind that the glueing is realized 
   # in a directed way. Thus, we need to make a distinction.
   if i < j
-    G = get_glueings(C)[i,j]
+    G = glueings(C)[i,j]
     return (overlap(G),first_inclusion(G),second_inclusion(G))
   else
-    G = get_glueings(C)[j,i]
+    G = glueings(C)[j,i]
     return (overlap(G),second_inclusion(G),first_inclusion(G))
   end
 end
@@ -766,18 +766,18 @@ mutable struct CoveredScheme
     X = new()
     X.coverings = [C]
     #=
-    if length( get_patches(C) ) == 0 
+    if length( patches(C) ) == 0 
       error( "empty covering. Cannot determine base ring." )
       return
     end
-    X.base_ring = base_ring( get_patches(C)[1] )
+    X.base_ring = base_ring( patches(C)[1] )
     =#
     return X
   end
 
 end
 
-function get_coverings( X::CoveredScheme )
+function coverings( X::CoveredScheme )
   return X.coverings
 end
 
@@ -829,7 +829,7 @@ function projective_space( k::Ring, n::Int )
     for i in (0:j-1)
       # println("Variable of the inner loop i = $i")
       # The patch for x_i ≠ 0 with i < j
-      X = get_patches(C)[i+1]
+      X = patches(C)[i+1]
       # println( "first patch" )
       #@show X
       R = ambient_ring( Y ) 
@@ -840,8 +840,8 @@ function projective_space( k::Ring, n::Int )
       S_loc = ambient_ring( U )
       R_vars = get_root_variables(V)
       S_vars = get_root_variables(U)
-      R_unit = get_unit(V)
-      S_unit = get_unit(U)
+      R_unit = inverted_element(V)
+      S_unit = inverted_element(U)
       Φ = AlgebraHomomorphism( R_loc, S_loc, 
 			      vcat( [ S_vars[k]*S_unit for k in (1:i) ], # the first i-1 variables have the same indices
 				   [S_unit], # this is inverted to pass to the other patch
@@ -959,24 +959,24 @@ transitions( L::LineBundle ) = L.transitions
 # The tautological bundle on projective space
 function OO( k::Ring, n::Int, d::Int )
   IPn = projective_space( k, n )
-  C = get_coverings( IPn )[1]
-  patches = get_patches(C)
-  glueings = get_glueings(C)
+  C = coverings( IPn )[1]
+  patches = patches(C)
+  glueings = glueings(C)
   transitions = Array{MPolyElem,2}(undef,n+1,n+1)
   if d >= 0
     for i in OrderedMultiindex(n+1,2)
-      a = get_unit(overlap(glueings[getindex(i,1),getindex(i,2)]))
+      a = inverted_element(overlap(glueings[getindex(i,1),getindex(i,2)]))
       transitions[getindex(i,1), getindex(i,2)] = a^d
-      #transitions[getindex(i,1), getindex(i,2)] = (get_unit(overlap(glueings[i])))^d
-      transitions[i[2],i[1]] = (get_denom(overlap(glueings[i[1],i[2]])))^d
+      #transitions[getindex(i,1), getindex(i,2)] = (inverted_element(overlap(glueings[i])))^d
+      transitions[i[2],i[1]] = (denom(overlap(glueings[i[1],i[2]])))^d
     end
   else
     d = -d
     for i in OrderedMultiindex(n+1,2)
-      a = get_unit(overlap(glueings[getindex(i,1),getindex(i,2)]))
+      a = inverted_element(overlap(glueings[getindex(i,1),getindex(i,2)]))
       transitions[getindex(i,2), getindex(i,1)] = a^d
-      #transitions[getindex(i,1), getindex(i,2)] = (get_unit(overlap(glueings[i])))^d
-      transitions[i[1],i[2]] = (get_denom(overlap(glueings[getindex(i,1),getindex(i,2)])))^d
+      #transitions[getindex(i,1), getindex(i,2)] = (inverted_element(overlap(glueings[i])))^d
+      transitions[i[1],i[2]] = (denom(overlap(glueings[getindex(i,1),getindex(i,2)])))^d
     end
   end
   L = LineBundle( IPn, C, transitions )
@@ -991,7 +991,7 @@ function Base.show( io::Base.IO, L::LineBundle )
   #Base.print( io, " with respect to the covering " )
   #Base.print( io, L.covering )
   Base.print( io, " given by the transition functions\n" )
-  n = length( get_patches(L.covering) )
+  n = length( patches(L.covering) )
   for i in (1:n)
     for j in (1:n)
       if i == j 
@@ -1043,12 +1043,12 @@ function pullback( L::LineBundle, ρ::Refinement )
   if covering(L) != original_cover(ρ) 
     error( "The line bundle is defined on a different cover than the one being refined" )
   end
-  m = length( get_patches( get_covering( L )))
-  n = length( get_patches( get_original_cover( ρ )))
+  m = length( patches( get_covering( L )))
+  n = length( patches( get_original_cover( ρ )))
   inclusions = get_inclusions( ρ )
   new_transitions = Array{MPolyElem,2}(undef,n,n)
-  glueings_original = get_glueings(domain(ρ))
-  glueings_refined = get_glueings(codomain(ρ))
+  glueings_original = glueings(domain(ρ))
+  glueings_refined = glueings(codomain(ρ))
   for i in (1:n-1)
     for j in (i+1:n)
       if i != j
