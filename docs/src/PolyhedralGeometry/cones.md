@@ -55,3 +55,16 @@ both polymake and Oscar.
 save_cone(C::Cone, filename::String)
 load_cone(filename::String)
 ```
+
+## Auxiliary functions
+```@docs
+ambient_dim(C::Cone)
+hilbert_basis(C::Cone)
+codim(C::Cone)
+dim(C::Cone)
+ispointed(C::Cone)
+isfulldimensional(C::Cone)
+lineality_space(C::Cone)
+nrays(C::Cone)
+rays(C::Cone)
+```

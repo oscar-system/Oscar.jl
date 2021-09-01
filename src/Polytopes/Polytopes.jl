@@ -4,7 +4,9 @@ import Base: ==
 
 const AnyVecOrMat = Union{MatElem, AbstractVecOrMat}
 
+
 export Cone,
+    Graphs,
     Points,
     PolyhedralFan,
     Polyhedra,
@@ -57,6 +59,7 @@ export Cone,
     minimal_vertex,
     min_weights,
     minkowski_sum,
+    ne,
     newton_polytope,
     normalized_volume,
     normal_fan,
@@ -65,6 +68,7 @@ export Cone,
     nmaximal_cones,
     nmaximal_cells,
     nrays,
+    nv,
     nvertices,
     objective_function,
     orbit_polytope,
@@ -104,4 +108,5 @@ include("SubdivisionOfPoints/properties.jl")
 include("SubdivisionOfPoints/functions.jl")
 include("LinearProgram.jl")
 include("Groups.jl")
+include("Graphs.jl")
 include("Serialization.jl")
