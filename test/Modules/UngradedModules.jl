@@ -480,7 +480,28 @@ end
 	end
 end=#
 
-# TODO testing lift
+@testset "Coordinates (lift)" begin
+	Z3, a = FiniteField(3,1,"a")
+	R, (x,y) = PolynomialRing(Z3, ["x", "y"])
+	coeffs = [Z3(i) for i=0:1]
+
+	A = R[x*y x^2+y^2; y^2 x*y;x^2+1 1]
+	B = R[2*x^2 x+y; x^2+y^2-1 x^2+2*x*y]
+	F = FreeMod(R,2)
+	M = SubQuo(F,A,B)
+
+	monomials = [x,y]
+	coeff_generator = ([c1,c2] for c1 in coeffs for c2 in coeffs)
+	for coefficients in ([c1,c2,c3] for c1 in coeff_generator for c2 in coeff_generator for c3 in coeff_generator)
+		v = sparse_row(R, [(i,sum(coefficients[i][j]*monomials[j] for j=1:2)) for i=1:3])
+		v_as_FreeModElem = sum([v[i]*repres(M[i]) for i=1:ngens(M)])
+
+		elem1 = SubQuoElem(v_as_FreeModElem,M) 
+		elem2 = SubQuoElem(v,M)
+
+		@test elem1 == elem2
+	end
+end
 
 @testset "module homomorphisms" begin
 	# This test doesn't terminate due to a bug in syz
