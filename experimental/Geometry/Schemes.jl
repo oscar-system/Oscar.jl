@@ -10,7 +10,7 @@ include( "./Misc.jl" )
 using Oscar.Misc
 
 export AffineScheme, Spec, SpecPrincipalOpen
-export base_ring, ambient_ring, defining_ideal, pullback, pullback_from_parent, pullback_from_root, inclusion_in_parent, inclusion_in_root, set_name!, inverted_element, identity_morphism, denom
+export base_ring, ambient_ring, defining_ideal, pullback, pullback_from_parent, pullback_from_root, inclusion_in_parent, inclusion_in_root, set_name!, inverted_element, identity_morphism, denoms, inverses
 export affine_space, localize
 
 export AffSchMorphism
@@ -231,6 +231,22 @@ function denoms(D::SpecPrincipalOpen{S,T,U}) where {S <: Ring, T <: MPolyRing, U
   return result
 end 
 
+# Collect the inverses for this localization up to the root.
+
+function inverses(D::SpecPrincipalOpen{S,T,U}) where {S <: Ring, T <: MPolyRing, U<:MPolyElem}
+  result = [inverted_element(D)]
+  R = ambient_ring(D)
+  phi = pullback_from_parent(D)
+  P = parent(D)
+  while typeof(P) <: SpecPrincipalOpen
+    push!(result, phi(inverted_element(P)))
+    phi = compose( pullback_from_parent(P), phi )
+    P = parent(P)
+  end
+  return result
+end 
+
+
 # Set up an ambient ring for this localization. 
 #
 # The current implementation adds a variable 'denom$i' for 
@@ -421,33 +437,108 @@ codomain(f::AffSchMorphism) = f.codomain
 
 # Construct the pullback on the level of coordinate rings 
 # from the fractional representation 
-function pullback(f::AffSchMorphism)
-  if isdefined(f, :pullback)
-    return f.pullback
+function pullback(h::AffSchMorphism)
+  if isdefined(h, :pullback)
+    return h.pullback
   end
-  if !isdefined(f, :imgs_frac )
+  if !isdefined(h, :imgs_frac )
     error( "Neither the fractional representation, nor the pullback is defined for this morphism" )
   end
-  S = ambient_ring(codomain(f))
-  T = ambient_ring(domain(f))
-  R = ambient_ring(root(codomain(f)))
-  # TODO reconstruct the ring homomorphism S -> T from the fractional representation 
-  # and describe it in terms of R -> T with R = ambient_ring(root(codomain(f)))
+  # Assume we have a diagram as follows 
+  #    h
+  #  U → V
+  #  ∩   ∩
+  #  X   Y
+  # with both U ⊂ X and V ⊂ Y inclusions of principal 
+  # open subsets. Then associated to that there is a diagram 
+  # of ring homomorphisms 
+  #                       h*
+  #    Q_loc := Q[g^{-1}] ← P[f^{-1}] =: P_loc
+  #                 ↑          ↑
+  #                 Q          P
+  # where both P = R/I and Q = S/J are both quotients of 
+  # polynomial rings and the sets of elements g = g_1,...,g_ν, 
+  # g_j ∈ Q and f = f_1,...,f_μ, f_i ∈ P have 
+  # been inverted to arrive at the open sets U and V.
+  # The ring P_loc is realized as a quotient of a polynomial 
+  # ring as indicated in the diagram 
+  #      R[s_1,...,s_μ] 
+  #            ↓        ↘ π 
+  #      P[s_1,...,s_μ] → P_loc, s_i ↦ 1/f_i
+  # and similar for Q_loc.
+  U = domain(h)
+  V = codomain(h)
+  X = root(U)
+  Y = root(V)
+  R_s = ambient_ring(V)
+  S_t = ambient_ring(U)
+  R = ambient_ring(Y)
+  S = ambient_ring(X)
+  # Let x_1,...,x_n be the variables of R.
+  # Now the fractional representation of the morphism, i.e. 
+  # the elements in imgs_frac, describe the images of these 
+  # variables in Q_loc: 
+  #            p_i
+  #   x_i ↦  -------          
+  #          b^{k_i}
+  # for some polynomials p_i and non-negative integers k_i.
+  # We need to describe the homomorphism 
+  #
+  #  ϕ : R[s_1,...,s_μ] → S[t_1,...,t_ν]
+  # 
+  # lifting the map h*. The information we have so far 
+  # suffices to determine the map 
+  #
+  #  ϕ' : R → S[t_1,...,t_ν], x_i ↦ p_i ⋅ t_i^{k_i},
+  #
+  # but we also need to determine the images of the 
+  # variables s_i. Theoretically we find 
+  #
+  #  π∘ϕ( s_i ) = 1/π∘ϕ'(f_i) 
+  #
+  # but the right hand side does not yet have an admissible 
+  # denominator (i.e. a product of powers of the g_j).
+  # But according to the assumption that h(U) ⊂ V, 
+  # or equivalently h^{-1}(Y∖ V) ⊂ X ∖ U, we necessarily 
+  # have a relation 
+  # 
+  #  π(a_i) ⋅ π∘ϕ'(f_i) = π(g)^{k_i}
+  # 
+  # for some polynomials a_i and integers k_i. Here, g is 
+  # the product of all the g_j's and all relevant projections 
+  # to the quotients are denoted by π. With the help of these 
+  # relations we can extend the above equalities towards 
+  #
+  #  π∘ϕ( s_i ) = 1/π∘ϕ'(f_i) = π(a_i)/π(g^{k_i}) = π(a_i)⋅t^{k_i}
+  #
+  # with, again, t the product of variables t_j.
 
-  n = length( f.imgs_frac )
+  n = length( h.imgs_frac )
   if n != length( gens( R ))
     error( "Number of variables in the ambient ring of the root does not coincide with the number of images provided for the homomorphism" )
   end
+  images = Vector{MPolyElem}()
+  den = denoms(U)
+  inv = inverses(U)
+  Q, proj = quo( S, defining_ideal(X) )
   for i in (1:n)
-    p = numerator( f.imgs_frac[i] )
-    q = denominator( f.imgs_frac[i] )
-    u = prod( denoms( domain(f)))
-    Q, phi = quo( R, defining_ideal(root(codomain(f))) )
-    (k,a) = divides_power( phi(q), phi(u) )
-    
+    @show i
+    p = numerator( h.imgs_frac[i] )
+    @show p
+    q = denominator( h.imgs_frac[i] )
+    @show q
+    g = prod( den )
+    @show g
+    t = prod( inv )
+    @show t
+    (k,a) = divides_power( proj(q), proj(g) )
+    if k == -1
+      error( "the homomorphism is not well defined" )
+    end
+    push!( images, p*pullback_from_root(U)(lift(a))*t^k )
   end
-  #TODO: Finish this once we know how to deal with the radical membership in Oscar.
-
+  h.pullback = AlgebraHomomorphism( R_s, S_t, images )
+  return h.pullback
 end
 
 # Construct the fractional representation of the morphism 
