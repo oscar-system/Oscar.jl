@@ -390,10 +390,8 @@ mutable struct AffSchMorphism{S,Tdom, Udom, Tcod, Ucod}
     #if domain(pullback) != ambient_ring(R) || codomain(pullback) != domain.R
       #error( "the domain and codomain of the given ring homomorphism is not compatible with the affine schemes." )
     #end
-    x = new{S,Td,Ud,Tc,Uc}()
-    x.domain = domain
-    x.codomain = codomain
-    x.pullback = pullback
+    x = new{S,Td,Ud,Tc,Uc}(domain,codomain) # These first two are the only mandatory arguments
+    x.pullback = pullback # This is a cached variable, so it gets it's own line
     # TODO: Implement the checks for the homomorphism to be well defined (on demand).
     return x
 
@@ -455,7 +453,7 @@ end
 # from the explicit algebra homomorphism. 
 function imgs_frac(f::AffSchMorphism)
   # first check if this variable is already cached
-  if isdefined(f, Symbol("imgs_frac"))
+  if isdefined(f, :imgs_frac)
     return f.imgs_frac
   end
   # if both forms of the morphisms are not to be found, it is not defined at all.
