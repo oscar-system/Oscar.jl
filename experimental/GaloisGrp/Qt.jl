@@ -154,7 +154,7 @@ function _subfields(FF::Generic.FunctionField, f::fmpz_mpoly)
   @assert evaluate(ff, [gen(Zx), zero(Zx)]) == g
 
   @vprint :Subfields  1  "using prime $p and degree $d\n"
-  C = GaloisCtx(f, p, d)
+  C = GaloisCtx(ff, p, d)
 
   @vprint :Subfields, 2, "obtaining roots with minimal prec $prec\n"
   @vtime :Subfields  2  R = roots(C, (2, 1))
@@ -349,14 +349,19 @@ function _subfields(FF::Generic.FunctionField, f::fmpz_mpoly)
         return nothing
       end
       #if I read Florian's thesis correct, then f should be Z-integral in the
-      #Kronnecker presentation
+      #Kronecker presentation
       # it is given here as a poly over the function field
       # step 1: poly over poly{Q}
-      fff = map_coefficients(x->numerator(x)(gen(F)), defining_polynomial(FF), parent = parent(ff))
-      # step 2: move to Kronnecker, so that we get poly over poly{Z}
+      fff = map_coefficients(x->numerator(x)(gen(F)+t), defining_polynomial(FF), parent = parent(ff))
+      # step 2: move to Kronecker, so that we get poly over poly{Z}
       ff = (ff*derivative(fff)) % fff
       # step 3: lift (and put the denominator back in)
-      emb = map_coefficients(x->isinteger(C, prec, x)[2](gen(Nemo.base_ring(FF))), ff, parent = parent(defining_polynomial(FF)))(gen(FF)) // derivative(defining_polynomial(FF))(gen(FF))
+      em = map(x->isinteger(C, prec, x), coefficients(ff))
+      if any(x->!x[1], em)
+        return nothing
+      end
+      emb = parent(defining_polynomial(FF))([x[2](gen(Nemo.base_ring(FF))-t) for x in em])(gen(FF)) // derivative(defining_polynomial(FF))(gen(FF))
+#      emb = map_coefficients(x->isinteger(C, prec, x)[2](gen(Nemo.base_ring(FF))), ff, parent = parent(defining_polynomial(FF)))(gen(FF)) // derivative(defining_polynomial(FF))(gen(FF))
       return emb
     end
 
