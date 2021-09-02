@@ -1,7 +1,7 @@
 export invariant_ring, primary_invariants, secondary_invariants, irreducible_secondary_invariants
 export coefficient_ring, polynomial_ring, action, group
 export ismodular
-export reynolds_operator, invariant_basis, molien_series
+export reynolds_operator, molien_series
 
 ###############################################
 
