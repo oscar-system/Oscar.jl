@@ -44,7 +44,7 @@ function _root_exact(a::fmpz, p::Val{2})
   dd = d
 
   b = d
-  for i=1:7
+  for i=1:6
     _d = d
     d = d*(1+(div((1-b*d*d), 2)))
   end
@@ -62,8 +62,8 @@ function _root_exact(a::fmpz, p::Val{2})
   B = mod(a, fmpz(2)^(s+3))
   D = fmpz(d)
 
-  M = fmpz(2)^(63)
-  i = 63 
+  M = fmpz(2)^(64)
+  i = 64 
   one = fmpz(1)
   #TODO; better chain of exponents, use mpn? more inline?
   #TODO: better mod 2^n, use mullow?
@@ -82,12 +82,14 @@ function _root_exact(a::fmpz, p::Val{2})
 
     i = 2*i-2
   end
+  M = fmpz(2)^(s+2)
 
   Nemo.mul!(D, D, a)
   Hecke.mod!(D, D, M)
-  if nbits(D) < s
+  if nbits(D) <= s
     return fmpz(D)
   end
+  
   Nemo.mul!(D, D, -1) # in case the iteration found the negative root
   Nemo.add!(D, D, M)
   if nbits(D) > s
