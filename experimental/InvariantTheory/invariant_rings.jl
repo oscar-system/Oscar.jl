@@ -311,7 +311,7 @@ end
 Given an invariant ring `IR` and an integer `d`, return a basis for the invariants in degree `d`.
 
 # Examples
-```jldoctest
+```
 julia> K, a = CyclotomicField(3, "a")
 (Cyclotomic field of order 3, a)
 
@@ -341,7 +341,7 @@ julia> basis(IR, 6)
  x[1]^4*x[2]*x[3] + x[1]*x[2]^4*x[3] + x[1]*x[2]*x[3]^4
  x[1]^6 + x[2]^6 + x[3]^6
 ```
-```jldoctest
+```
 julia> M = matrix(GF(3), [0 1 0; -1 0 0; 0 0 -1])
 [0   1   0]
 [2   0   0]
@@ -503,7 +503,7 @@ Otherwise, compute and cache a system of secondary invariants first.
 NOTE: A secondary invariant is *irreducible* if it cannot be written as a polynomial expession in the primary invariants and the other secondary invariants. The multiplicative unit 1 is not irreducible: It is considered to be the empty power product.
 
 # Examples
-```jldoctest
+```
 julia> M = matrix(QQ, [0 -1 0 0 0; 1 -1 0 0 0; 0 0 0 0 1; 0 0 1 0 0; 0 0 0 1 0]);
 
 julia> G = MatrixGroup(5, QQ, [M]);
