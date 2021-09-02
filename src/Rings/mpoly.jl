@@ -796,6 +796,9 @@ function oscar_assure(I::MPolyIdeal)
   if !isdefined(I.gens, :O)
     I.gens.O = [I.gens.Ox(x) for x = gens(I.gens.S)]
   end
+  if isdefined(I, :gb)
+    I.gb.O = [I.gb.Ox(x) for x = gens(I.gb.S)]
+  end
 end
 
 function Base.copy(f::MPolyElem)

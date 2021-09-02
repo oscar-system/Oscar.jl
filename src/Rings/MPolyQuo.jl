@@ -680,13 +680,14 @@ function isinvertible_with_inverse(a::MPolyQuoElem)
   Q = parent(a)
   I = Q.I
   if isdefined(I, :gb)
+    oscar_assure(I)
     J = I.gb.O
   else
     J = gens(I)
   end
   J = vcat(J, [a.f])
-  H, T = groebner_basis_with_transform(ideal(J))
-  if 1 in H
+  j, T = groebner_basis_with_transformation_matrix(ideal(J))
+  if 1 in j
     @assert nrows(T) == 1
     return true, Q(T[1, end])
   end
@@ -780,6 +781,7 @@ function divides(a::MPolyQuoElem, b::MPolyQuoElem)
   Q = parent(a)
   I = Q.I
   if isdefined(I, :gb)
+    oscar_assure(I)
     J = I.gb.O
   else
     J = gens(I)
