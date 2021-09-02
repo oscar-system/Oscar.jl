@@ -517,28 +517,47 @@ function pullback(h::AffSchMorphism)
   if n != length( gens( R ))
     error( "Number of variables in the ambient ring of the root does not coincide with the number of images provided for the homomorphism" )
   end
-  images = Vector{MPolyElem}()
-  den = denoms(U)
-  inv = inverses(U)
+  images = Vector{elem_type(S_t)}()
+  den_U = denoms(U)
+  inv_U = inverses(U)
   Q, proj = quo( S, defining_ideal(X) )
+  g = prod( den_U )
+  t = prod( inv_U )
+  # Work out the images of the variables in R first, i.e. 
+  # establish ϕ'.
   for i in (1:n)
-    @show i
     p = numerator( h.imgs_frac[i] )
-    @show p
     q = denominator( h.imgs_frac[i] )
-    @show q
-    g = prod( den )
-    @show g
-    t = prod( inv )
-    @show t
+    # We need to replace the given denominators by 
+    # powers of the functions which have been inverted 
+    # in S to arrive at S_loc.
     (k,a) = divides_power( proj(q), proj(g) )
     if k == -1
       error( "the homomorphism is not well defined" )
     end
-    push!( images, p*pullback_from_root(U)(lift(a))*t^k )
+    push!( images, pullback_from_root(U)(p)*pullback_from_root(U)(lift(a))*t^k )
   end
-  h.pullback = AlgebraHomomorphism( R_s, S_t, images )
-  return h.pullback
+  phi_prime = AlgebraHomomorphism( R, S_t, images )
+  # Now assemble the images for the remaining variables s_i 
+  # of R_loc along the same pattern.
+  den_V = denoms(V)
+  inv_V = inverses(V)
+  mu = length(inv_V)
+  Q_loc, proj_loc = quo( S_t, defining_ideal(U))
+  for i in (1:mu) 
+    q = phi_prime(den_V[i])
+    # TODO: This necessarily computes a Groebner basis for the localized 
+    # ideal. We probably don't want that by default, but look for a computationally 
+    # less expensive way to solve this problem.
+    (k,a) = divides_power( proj_loc(q), proj_loc(pullback_from_root(U)(g)) )
+    if k == -1
+      error( "the homomorphism is not well defined" )
+    end
+    push!( images, lift(a)*t^k )
+  end
+  phi = AlgebraHomomorphism( R_s, S_t, images )
+  h.pullback = phi
+  return phi
 end
 
 # Construct the fractional representation of the morphism 

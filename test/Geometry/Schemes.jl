@@ -24,4 +24,34 @@
   @test root(D21) == A
   @test D12 != D21
   I = defining_ideal(D12)
+
+  # Check whether the fractional representation of homomorphisms work
+  IA2 = affine_space( QQ, 2 )
+  R = ambient_ring( IA2 )
+  vars = gens(R)
+  x = vars[1]
+  y = vars[2]
+  IA2x = localize( IA2, x^3 )
+  IA2y = localize( IA2, y )
+  IA2xy = localize( IA2x, y^4 )
+  Q = FractionField(R)
+  h = AffSchMorphism( IA2xy, IA2y, [Q(x), Q(y)] )
+  @test pullback(h)
 end
+
+@testset "Misc routines" begin
+  using Oscar
+  using Oscar.Misc
+  R,vars = PolynomialRing( QQ, [:x,:y] )
+  x = vars[1]
+  y = vars[2]
+  f = (x^2+y^2+1)
+  I = ideal( R, [f^6] )
+  P, projection = quo( R, I )
+  Q, phi, t = add_variables( P, ["t"] )
+  g2 = projection(y)
+  g = projection(x)
+  h = lift( g )
+  @test radical_membership( g*projection(y), g^4*projection(y) )
+end
+
