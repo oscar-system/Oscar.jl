@@ -86,6 +86,15 @@ function defining_ideal(A::Spec)
   return A.I
 end
 
+function add_ideal( X::Spec, J::MPolyIdeal ) 
+  if parent(J) != X.R 
+    error( "Ideal does not belong to the ambient ring of the variety" )
+  end
+  Y = Spec( X.k, X.R, X.I )
+  Y.I = Y.I + J
+  return Y
+end
+
 ##################################################################################
 # Affine scheme that arises as the localization of a Spec at a specific 
 # element 'denom' of the coordinate ring, i.e. a principal open subset. 
@@ -124,6 +133,35 @@ mutable struct SpecPrincipalOpen{S,T,U} <: AffineScheme{S,T,U}
     x.denom = denom
     return x 
   end 
+
+  function SpecPrincipalOpen( k::S, R::T, I::MPolyIdeal{U} ) where {S <: Ring, T<:MPolyRing, U<:MPolyElem}
+    if k != base_ring(R) 
+      error( "basering not compatible with ambient ring" )
+    end
+    if base_ring(I) != R
+      error( "ideal does not live in the given ambient ring" )
+    end
+    X = new{S,T,U}(k,R,I)
+    return X
+  end
+end
+
+# Copy constructor
+function SpecPrincipalOpen( X::SpecPrincipalOpen )
+  Y = SpecPrincipalOpen( X.k, X.R, X.I )
+  if isdefined( X, :denom )
+    Y.denom = X.denom
+  end
+  if isdefined( X, :pullbackFromParent )
+    Y.pullbackFromParent = X.pullbackFromParent
+  end
+  if isdefined( X, :pullbackFromRoot )
+    Y.pullbackFromRoot = X.pullbackFromRoot
+  end
+  if isdefined( X, :u )
+    Y.u = X.u
+  end
+  return Y
 end
 
 ###############################################################################
@@ -207,6 +245,16 @@ end
 
 function set_name!( X::AffineScheme, name::String )
   X.name = name
+end
+
+# Obtain a closed subscheme
+function add_ideal( X::SpecPrincipalOpen{S,T,U}, J::MPolyIdeal{U} ) where{ S<:Ring, T<:MPolyRing, U<:MPolyElem }
+  if parent(J) != X.R 
+    error( "Ideal does not belong to the ambient ring of the variety" )
+  end
+  Y = SpecPrincipalOpen( X )
+  Y.I = Y.I + J
+  return Y
 end
 
 # Collect the denominators from this localization up to the root. 
@@ -713,6 +761,10 @@ mutable struct Covering
   patches::Vector{AffineScheme}	# A list of open patches for this scheme
   glueings::Matrix{Union{Glueing,Nothing}}     # A list of glueings between the patches 
   						# listed above
+  function Covering( patches::Vector{AffineScheme}, glueings::Matrix{Union{Glueing,Nothing}} )
+    return new( patches, glueings )
+  end
+
   function Covering()
     C = new()
     C.patches = []
@@ -1003,7 +1055,7 @@ end
 # I_k ⊂ R_k for all affine schemes Spec R_k in C. 
 # Note that, for simplicity, we simply store the 
 # preimages of the ideals in the chosen ambient 
-# rings of the affine patches. 
+# rings of (the roots of) the affine patches. 
 #
 # We refrain from implementing this explicitly for 
 # affine schemes since there ideal sheaves are just 
@@ -1013,6 +1065,22 @@ mutable struct IdealSheaf <: AbstractCoherentSheaf
   parent::CoveredScheme
   covering::Covering
   ideals::Vector{MPolyIdeal}
+
+  function IdealSheaf( X::CoveredScheme, C::Covering, I::Vector{MPolyIdeal} )
+    if !( C in coverings(X) ) 
+      error( "covering does not belong to the variety" )
+    end
+    n = length(patches(C))
+    if n != length(I) 
+      error( "number of ideals provided does not coincide with the number of patches in the covering" )
+    end
+    for i in (1:n)
+      if base_ring(I[i]) != ambient_ring(root(get_patch(C,i)))
+	error( "ideal number $i does not live in the base ring of the $i-th patch" )
+      end
+    end
+    return new( X, C, I )
+  end
 end
 
 parent( I::IdealSheaf ) = I.parent
@@ -1023,6 +1091,7 @@ ideals( I::IdealSheaf ) = I.ideals
 # ring S and turn it into an ideal sheaf on the 
 # corresponding projective space
 function to_ideal_sheaf( I::MPolyIdeal )
+  error( "not implemented yet" )
   # TODO: Implement this based on graded modules in 
   # Oscar. The routine is supposed to recognize automatically 
   # from the parent how to construct the associated projective 
@@ -1069,12 +1138,8 @@ mutable struct LineBundle <: AbstractCoherentSheaf
   transitions::Array{MPolyElem,2}
 
   function LineBundle( parent::CoveredScheme, covering::Covering, transitions::Array{MPolyElem,2} )
-    L = new()
-    L.parent = parent
-    L.covering = covering
-    L.transitions = transitions
     # TODO: Implement cheap plausibility checks.
-    return L
+    return new( parent, covering, transitions )
   end
 end
 
@@ -1217,6 +1282,51 @@ function pullback( L::LineBundle, ρ::Refinement )
   M = LineBundle( parent(L), get_refined_cover(ρ), new_transitions )
   return M
 end
+
+
+##########################################################
+#
+# Section in a vector bundle
+#
+mutable struct VectorBundleSection 
+  parent::VectorBundle
+  sections::Vector{Vector{MPolyElem}}
+
+  function VectorBundleSection( E::VectorBundle, sections::Vector{Vector{MPolyElem}} )
+    C = covering(E)
+    n = length(patches(C))
+    if n != length(sections)
+      error( "The number of local sections does not coincide with the number of patches of the covering" )
+    end
+    for i in (1:n)
+      if parent(sections[i]) != ambient_ring(patches(C)[i])
+	error( "The $i-th local section is not an element of the ambient ring of the patch" )
+      end
+    end
+    return new( E, sections )
+  end
+end
+
+sections(s::VectorBundleSection) = s.sections
+parent(s::VectorBundleSection) = s.parent
+
+function zero_locus( s::VectorBundleSection )
+  error( "not implemented yet" )
+  n = length(sections(s))
+  E = parent(s)
+  C = covering(E)
+  if rank(E) == 0 
+    return parent(C)
+  end
+  U = patches(C)
+  D = Covering()
+  for i in (1:n)
+    X = add_ideal( U[i], ideal( ambient_ring(U[i]), s[i] ) )
+    add_patch( D, X, glueings(C)[i,(1:i-1)] )
+  end
+end
+  
+    
 
 
 # Todo adapt the code below to the new data structure
