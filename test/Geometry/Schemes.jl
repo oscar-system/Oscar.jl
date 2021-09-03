@@ -37,6 +37,17 @@
   Q = FractionField(R)
   h = AffSchMorphism( IA2xy, IA2y, [Q(x), Q(y)] )
   @test pullback(h)
+  
+  # Check whether the localization at elements which are already units 
+  # also works.
+  IA2 = affine_space( QQ, 2 )
+  R = ambient_ring( IA2 )
+  vars = gens(R)
+  x = vars[1]
+  y = vars[2]
+  IA2xy = localize( IA2, x*y )
+  @test U = localize( IA2xy, x )
+  @test defining_ideal(U)
 end
 
 @testset "Misc routines" begin

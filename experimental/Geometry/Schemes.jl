@@ -110,7 +110,8 @@ mutable struct SpecPrincipalOpen{S,T,U} <: AffineScheme{S,T,U}
   I::MPolyIdeal{U} # the defining ideal
   pullbackFromParent::AlgHom
   pullbackFromRoot::AlgHom
-  u::U # The inverse of denom in R/I (one of the variables)
+  u::U # The inverse of denom in R/I (usually one of the variables, unless 
+       # denom was already a unit)
   name::String
   #inclusionInParent::AffSchMorphism
   #inclusionInRoot::AffSchMorphism
@@ -177,12 +178,12 @@ function base_ring(D::SpecPrincipalOpen)
 end
 
 # Returns the unit that has last been adjoint to the 
-# coordinate ring, i.e. the inverse of the inverted element
+# coordinate ring, i.e. the inverse of denom
 function inverted_element(D::SpecPrincipalOpen)
   if isdefined( D, :u )
     return D.u
   end
-  base_ring(D)
+  ambient_ring(D)
   return D.u
 end
 
@@ -206,17 +207,6 @@ end
 
 function set_name!( X::AffineScheme, name::String )
   X.name = name
-end
-
-##################################################################
-# 
-# Localize an affine scheme at an element f from its root
-#
-function hypersurface_complement( X::AffineScheme, f::MPolyElem )
-  if parent( f ) != ambient_ring( root( X ))
-    error( "The polynomial is not an element of the root ambient ring of the given affine scheme" )
-  end
-  #TODO: Complete this. Maybe it's redundant with the localize routine above, though.
 end
 
 # Collect the denominators from this localization up to the root. 
@@ -259,9 +249,25 @@ function ambient_ring(D::SpecPrincipalOpen)
   if isdefined( D, :R )
     return D.R
   end
-  #names = ["denom$i" for i in 1:length(denoms(D))]
   n = length( denoms( D ))
   R = ambient_ring(parent(D))
+  # Check whether denom is already a unit in the ambient 
+  # ring of the parent.
+  f = pullback_from_root(parent(D))(D.denom)
+  J = ideal( R, push!( gens(defining_ideal(parent(D))), f ))
+  G, A = groebner_basis_with_transformation_matrix(J,complete_reduction=true)
+  if length(G)==1 && G[1] == one(R)
+    D.R = R
+    @show last(A)
+    D.u = last(A)
+    D.I = defining_ideal(parent(D))
+    D.pullbackFromParent = AlgebraHomomorphism( R, R, gens(R) )
+    @show D.pullbackFromParent
+    D.pullbackFromRoot = compose( pullback_from_root(parent(D)), D.pullbackFromParent )
+    return D.R
+  end
+
+  # denom is not a unit in R. Hence, it needs to be added. 
   S, phi, u = add_variables( R, ["u$n"] )
   D.R = S
   D.u = u[1]
@@ -288,6 +294,7 @@ pullback_from_parent( X::Spec ) = AlgebraHomomorphism( X.R, X.R, gens(X.R) )
 
 function pullback_from_parent( D::SpecPrincipalOpen )
   if isdefined( D, :pullbackFromParent )
+    println( "Whaddup" )
     return D.pullbackFromParent
   end
   ambient_ring( D ) # This also stores the homomorphism
@@ -303,13 +310,22 @@ end
 #end
 
 function defining_ideal(D::SpecPrincipalOpen)
+  if isdefined( D, :I )
+    return D.I
+  end
   phi = pullback_from_parent(D)
-  ψ = pullback_from_root(D)
   I = defining_ideal(parent(D))
   R = ambient_ring(D)
   J = ideal( R, [ phi(f) for f in gens( I ) ])
-  J = J + ideal( R, [ one(R)-D.u*ψ(D.denom) ] )
-  return ( J )
+  # Check whether or not an extra variable was added for 
+  # the inversion of D.denom
+  if length(gens(ambient_ring(parent(D)))) == length(gens(R))
+    D.I = J
+    return J
+  end
+  J = J + ideal( R, [ one(R)-D.u*pullback_from_root(D)(D.denom) ] )
+  D.I = J 
+  return J
 end
 
 function inclusion_in_parent( D::SpecPrincipalOpen )
