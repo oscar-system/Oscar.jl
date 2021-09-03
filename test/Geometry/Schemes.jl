@@ -36,7 +36,7 @@
   IA2xy = localize( IA2x, y^4 )
   Q = FractionField(R)
   h = AffSchMorphism( IA2xy, IA2y, [Q(x), Q(y)] )
-  @test pullback(h)
+  pullback(h)
   
   # Check whether the localization at elements which are already units 
   # also works.
@@ -46,8 +46,12 @@
   x = vars[1]
   y = vars[2]
   IA2xy = localize( IA2, x*y )
-  @test U = localize( IA2xy, x )
-  @test defining_ideal(U)
+  U = localize( IA2xy, x )
+  defining_ideal(U)
+  i = inclusion_in_root(U)
+  j = inclusion_in_parent(U)
+  f = pullback(i)
+  g = pullback(j)
 end
 
 @testset "Misc routines" begin

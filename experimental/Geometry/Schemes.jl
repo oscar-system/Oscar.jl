@@ -258,11 +258,9 @@ function ambient_ring(D::SpecPrincipalOpen)
   G, A = groebner_basis_with_transformation_matrix(J,complete_reduction=true)
   if length(G)==1 && G[1] == one(R)
     D.R = R
-    @show last(A)
     D.u = last(A)
     D.I = defining_ideal(parent(D))
     D.pullbackFromParent = AlgebraHomomorphism( R, R, gens(R) )
-    @show D.pullbackFromParent
     D.pullbackFromRoot = compose( pullback_from_root(parent(D)), D.pullbackFromParent )
     return D.R
   end
@@ -294,7 +292,6 @@ pullback_from_parent( X::Spec ) = AlgebraHomomorphism( X.R, X.R, gens(X.R) )
 
 function pullback_from_parent( D::SpecPrincipalOpen )
   if isdefined( D, :pullbackFromParent )
-    println( "Whaddup" )
     return D.pullbackFromParent
   end
   ambient_ring( D ) # This also stores the homomorphism
@@ -329,11 +326,15 @@ function defining_ideal(D::SpecPrincipalOpen)
 end
 
 function inclusion_in_parent( D::SpecPrincipalOpen )
-  return AffSchMorphism( D, parent(D), pullback_from_parent(D) )
+  # return AffSchMorphism( D, parent(D), pullback_from_parent(D) )
+  F = FractionField(ambient_ring(root(D)))
+  return AffSchMorphism( D, parent(D), [ F(x) for x in gens(ambient_ring(root(D))) ] )
 end
 
 function inclusion_in_root( D::SpecPrincipalOpen )
-  return AffSchMorphism( D, root(D), pullback_from_root(D) )
+  # return AffSchMorphism( D, root(D), pullback_from_root(D) )
+  F = FractionField(ambient_ring(root(D)))
+  return AffSchMorphism( D, root(D), [ F(x) for x in gens(ambient_ring(root(D))) ] )
 end
 
 # outer constructors
@@ -530,6 +531,8 @@ function pullback(h::AffSchMorphism)
   # with, again, t the product of variables t_j.
 
   n = length( h.imgs_frac )
+  @show h.imgs_frac
+  @show gens(R)
   if n != length( gens( R ))
     error( "Number of variables in the ambient ring of the root does not coincide with the number of images provided for the homomorphism" )
   end
@@ -554,6 +557,13 @@ function pullback(h::AffSchMorphism)
     push!( images, pullback_from_root(U)(p)*pullback_from_root(U)(lift(a))*t^k )
   end
   phi_prime = AlgebraHomomorphism( R, S_t, images )
+
+  # In case Y = V we are done
+  if typeof(V)<:Spec 
+    h.pullback = phi_prime
+    return phi_prime
+  end
+  
   # Now assemble the images for the remaining variables s_i 
   # of R_loc along the same pattern.
   den_V = denoms(V)
@@ -752,8 +762,6 @@ end
 function add_patch( C::Covering, X::AffineScheme, glueings::Vector{Glueing} )
   push!( C.patches, X )
   n = length(glueings)
-  #@show n
-  #@show length( patches(C))
   if n != length(patches(C))-1
     error( "the number of glueings does not coincide with the number of patches so far" )
   end
@@ -947,18 +955,14 @@ function projective_space( k::Ring, n::Int )
     # println("Glueing in the following new patch:")
     Y = affine_space( k, n )
     set_name!(Y,"IA^$(n)_$(j)")
-    #@show Y
     # come up with the glueings
     G = Vector{Glueing}()
     # println("New glueings for this step so far:") 
-    #@show G
-    #@show typeof( G )
     for i in (0:j-1)
       # println("Variable of the inner loop i = $i")
       # The patch for x_i ≠ 0 with i < j
       X = patches(C)[i+1]
       # println( "first patch" )
-      #@show X
       R = ambient_ring( Y ) 
       V = localize( Y, gens(R)[i+1] )
       S = ambient_ring( X ) 
@@ -978,12 +982,8 @@ function projective_space( k::Ring, n::Int )
 			      )
 
       f = AffSchMorphism( U, V, Phi )
-      #@show f
       glueing = Glueing( inclusion_in_parent(U), inclusion_in_parent(V), f )
-      #@show glueing
       push!( G, glueing )
-      #@show G
-      #@show typeof( G )
     end
     add_patch( C, Y, G )
   end
