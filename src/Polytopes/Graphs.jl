@@ -14,6 +14,7 @@ export
     add_vertex!,
     add_vertices!,
     all_neighbors,
+    automorphisms,
     complete_graph,
     complete_bipartite_graph,
     dst,
@@ -523,6 +524,27 @@ function all_neighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undire
 end
 
 
+@doc Markdown.doc"""
+    automorphisms(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+
+Return generators of the automorphism group of the graph `g`.
+
+# Examples
+```jldoctest
+julia> g = complete_graph(4);
+
+julia> Graphs.automorphisms(g)
+3-element Vector{Vector{Int64}}:
+ [1, 2, 4, 3]
+ [1, 3, 2, 4]
+ [2, 1, 3, 4]
+```
+"""
+function automorphisms(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+    pmg = g.pm_graph;
+    result = Polymake.graph.automorphisms(pmg)
+    return [[x+1 for x in a] for a in result]
+end
 ################################################################################
 ################################################################################
 ##  Standard constructions
