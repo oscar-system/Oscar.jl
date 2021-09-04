@@ -128,5 +128,5 @@ fundamental_invariants(IR::InvRing)
 ## Invariant Rings as Affine Algebras
 
 ```@docs
-representation_as_affine_algebra(IR::InvRing)
+affine_algebra(IR::InvRing)
 ```
