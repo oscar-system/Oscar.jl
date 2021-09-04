@@ -347,11 +347,19 @@ function blowup_on_ith_minimal_torus_orbit( v::NormalToricVariety, i::Int )
 end
 export blowup_on_ith_minimal_torus_orbit
 
-#= 
 
-#! @Description
-#!
-DeclareGlobalFunction( "ZariskiCotangentSheafViaEulerSequence" );
+struct zariski_cotangent_sheaf_via_euler_sequence
+           GapZariskiCotangentSheafViaEulerSequence::GapObj
+end
+export zariski_cotangent_sheaf_via_euler_sequence
+
+function zariski_cotangent_sheaf_via_euler_sequence( v::NormalToricVariety )
+    gap_ZariskiCotangentSheafViaEulerSequence = GAP.Globals.ZariskiCotangentSheafViaEulerSequence( v.GapNTV )
+    return zariski_cotangent_sheaf_via_euler_sequence( gap_ZariskiCotangentSheafViaEulerSequence )
+end
+export zariski_cotangent_sheaf_via_euler_sequence
+
+#= 
 
 #! @Description
 #!
