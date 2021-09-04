@@ -285,8 +285,6 @@ include("Rings/slpolys.jl")
 include("../experimental/Experimental.jl")
 include("Rings/binomial_ideals.jl")
 
-include("InvariantTheory/InvariantTheory.jl")
-
 if is_dev
 #  include("../examples/ModStdNF.jl")
 #  include("../examples/ModStdQ.jl")

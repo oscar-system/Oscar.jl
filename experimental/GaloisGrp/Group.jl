@@ -45,7 +45,8 @@ function isconjugate_subgroup(G::Oscar.PermGroup, U::Oscar.PermGroup, V::Oscar.P
   return false, one(U)
 end
 
-function maximal_subgroup_reps(G::PermGroup)
+export maximal_subgroup_reps
+function maximal_subgroup_reps(G::Oscar.GAPGroup)
   return Oscar._as_subgroups(G, GAP.Globals.MaximalSubgroupClassReps(G.X))
 end
 

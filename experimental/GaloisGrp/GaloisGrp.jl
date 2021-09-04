@@ -12,8 +12,7 @@ import Hecke: orbit, fixed_field
 
 
 function __init__()
-  GAP.Packages.install("ferret"; interactive=false, quiet=true)
-  GAP.Packages.load("ferret")
+  GAP.Packages.load("ferret"; install=true)
 
   Hecke.add_verbose_scope(:GaloisGroup)
   Hecke.add_verbose_scope(:GaloisInvariant)
@@ -265,6 +264,7 @@ Compute the polynomial with roots sums of `m` roots of `f` using
 resultants.
 """
 function msum_poly(f::PolyElem, m::Int)
+  f = divexact(f, leading_coefficient(f))
   N = binomial(degree(f), m)
   p = Hecke.polynomial_to_power_sums(f, N)
   p = vcat([degree(f)*one(base_ring(f))], p)
@@ -317,7 +317,7 @@ mutable struct GaloisCtx{T}
     r = new{Hecke.qAdicRootCtx}()
     r.f = f
     r.C = Hecke.qAdicRootCtx(f, p, splitting_field = true)
-    r.B = add_ring()(roots_upper_bound(f))
+    r.B = add_ring()(leading_coefficient(f)*roots_upper_bound(f))
     r.chn = Tuple{PermGroup, SLPoly, fmpz_poly, Vector{PermGroupElem}}[]
     return r
   end
@@ -418,12 +418,20 @@ end
 The roots of the polynomial used to define the Galois-context in the fixed order
 used in the algorithm. The roots are returned up to a precision of `pr`
 p-adic digits, thus they are correct modulo ``p^pr``
+
+For non-monic polynomials they roots are scaled by the leading coefficient.
+The bound in the `GaloisCtx` is also adjusted.
 """
-function Hecke.roots(G::GaloisCtx{Hecke.qAdicRootCtx}, pr::Int)
+function Hecke.roots(G::GaloisCtx{Hecke.qAdicRootCtx}, pr::Int; raw::Bool = false)
   a = Hecke.roots(G.C, pr)::Vector{qadic}
-  return Hecke.expand(a, all = true, flat = false, degs = Hecke.degrees(G.C.H))::Vector{qadic}
+  if raw
+    return Hecke.expand(a, all = true, flat = false, degs = Hecke.degrees(G.C.H))::Vector{qadic}
+  else
+    return leading_coefficient(G.f) .* Hecke.expand(a, all = true, flat = false, degs = Hecke.degrees(G.C.H))::Vector{qadic}
+  end
 end
-function Hecke.roots(G::GaloisCtx{<:Hecke.MPolyFact.HenselCtxFqRelSeries}, pr)
+
+function Hecke.roots(G::GaloisCtx{<:Hecke.MPolyFact.HenselCtxFqRelSeries}, pr; raw::Bool = false)
   C = G.C
   while precision(C)[1] < pr[1]
     Hecke.MPolyFact.lift_q(C)
@@ -1001,7 +1009,7 @@ Returns a triple:
  - a permutation representing the operation of the Frobenius automorphism
 """
 function starting_group(GC::GaloisCtx, K::AnticNumberField; useSubfields::Bool = true)
-  c = roots(GC, 5)
+  c = roots(GC, 5, raw = true)
 
   @vprint :GaloisGroup 1 "computing starting group (upper bound for Galois group)\n"
 
@@ -1538,7 +1546,10 @@ function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
     push!(ps, isinteger(GC, B, sum(d))[2])
   end
 
-  return number_field(Hecke.power_sums_to_polynomial(ps), check = false, cached = false)[1]
+  k = number_field(Hecke.power_sums_to_polynomial(ps), check = false, cached = false)[1]
+  @assert all(x->isone(denominator(x)), coefficients(k.pol))
+  @assert ismonic(k.pol)
+  return k
 end
 
 #based on 
@@ -1709,4 +1720,4 @@ end
 
 using .GaloisGrp
 export galois_group, transitive_group_identification, slpoly_ring, elementary_symmetric,
-       power_sum, to_elementary_symmetric, cauchy_ideal, galois_ideal, fixed_field
+       power_sum, to_elementary_symmetric, cauchy_ideal, galois_ideal, fixed_field, maximal_subgroup_reps
