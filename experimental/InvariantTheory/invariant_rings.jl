@@ -715,7 +715,7 @@ with generators
 AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
 
 julia> fundamental_invariants(IR)
-4-element Vector{MPolyElem_dec{nf_elem,AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+4-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
  x[1]*x[2]*x[3]
  x[1]^3 + x[2]^3 + x[3]^3
  x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
@@ -786,7 +786,7 @@ codomain: Multivariate Polynomial Ring in x[1], x[2], x[3] over Cyclotomic field
   x[2] -> [1]
   x[3] -> [1]
 
-defining images of generators: MPolyElem_dec{nf_elem,AbstractAlgebra.Generic.MPoly{nf_elem}}[x[1]*x[2]*x[3], x[1]^3 + x[2]^3 + x[3]^3, x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3, x[1]^6*x[3]^3 + x[1]^3*x[2]^6 + x[2]^3*x[3]^6]
+defining images of generators: MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}[x[1]*x[2]*x[3], x[1]^3 + x[2]^3 + x[3]^3, x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3, x[1]^6*x[3]^3 + x[1]^3*x[2]^6 + x[2]^3*x[3]^6]
 )
 ```
 """
