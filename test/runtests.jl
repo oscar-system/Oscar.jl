@@ -2,7 +2,7 @@ using JToric
 using Test
 
 @testset "JToric.jl" begin
-    # Compute properties of toric varieties on the example of a Hirzebruch surface
+    # Perform tests for Hirzebruch surface
     Rays = [-1 5; 0 1; 1 0; 0 -1]
     Cones = [[1,2],[2,3],[3,4],[4,1]]
     H5 = NormalToricVariety( Rays, Cones )
@@ -16,54 +16,10 @@ using Test
     @test JToric.is_simplicial( H5 ) == true
     @test JToric.is_isomorphic_to_projective_space( H5 ) == false
     @test JToric.is_direct_product_of_projective_spaces( H5 ) == false
-    
-    # Compute properties of toric varieties on the example of a projective space
-    P2 = JToric.projective_space( 2 )
-    @test JToric.is_normal_variety( P2 ) == true
-    @test JToric.is_affine( P2 ) == false
-    @test JToric.is_projective( P2 ) == true
-    @test JToric.is_smooth( P2 ) == true
-    @test JToric.is_complete( P2 ) == true
-    @test JToric.has_torusfactor( P2 ) == false
-    @test JToric.is_orbifold( P2 ) == true
-    @test JToric.is_simplicial( P2 ) == true
-    @test JToric.is_isomorphic_to_projective_space( P2 ) == true
-    @test JToric.is_direct_product_of_projective_spaces( P2 ) == true
-
-    # compute properties of toric divisors on the example of the trivial divisor
-    D=create_divisor( [ 0,0,0,0 ], H5 )
-    @test JToric.is_cartier( D ) == true
-    @test JToric.is_principal( D ) == true
-    @test JToric.is_primedivisor( D ) == false
-    @test JToric.is_basepoint_free( D ) == true
-    @test JToric.is_ample( D ) == false
-    @test JToric.is_very_ample( D ) == "fail"
-    @test JToric.is_numerically_effective( D ) == true
-
-    # compute properties of toric divisors on the example of a non-trivial divisor
-    D2 = divisor_of_character( [ 1,2 ], H5 )
-    @test JToric.is_cartier( D2 ) == true
-    @test JToric.is_principal( D2 ) == true
-    @test JToric.is_primedivisor( D2 ) == false
-    @test JToric.is_basepoint_free( D2 ) == true
-    @test JToric.is_ample( D2 ) == false
-    @test JToric.is_very_ample( D2 ) == "fail"
-    @test JToric.is_numerically_effective( D2 ) == true
-    
-    # compute properties of toric divisors on the example of another non-trivial divisor
-    D3 = divisor_of_class( H5, [ 1,2 ] )
-    @test JToric.is_cartier( D3 ) == true
-    @test JToric.is_principal( D3 ) == false
-    @test JToric.is_primedivisor( D3 ) == false
-    @test JToric.is_basepoint_free( D3 ) == true
-    @test JToric.is_ample( D3 ) == true
-    @test JToric.is_very_ample( D3 ) == true
-    @test JToric.is_numerically_effective( D3 ) == true
-    
-    # compute attributes of toric varieties on the example of the Hirzebruch surface H5 defined above
-    cover = affine_open_covering( H5 )
-    @test size( cover )[ 1 ] == 4
+    @test size( affine_open_covering( H5 ) )[ 1 ] == 4
     cox_ring( H5 )
+    cox_ring( H5, "u" )
+    coordinate_ring_of_torus( H5, [ "u", "v", "w", "z" ] )
     @test size( list_of_variables_of_cox_ring( H5 ) )[ 1 ] == 4
     class_group( H5 )
     torus_invariant_divisor_group( H5 )
@@ -93,7 +49,7 @@ using Test
     @test euler_characteristic( H5 ) == 0
     # UnderlyingSheaf( H5 ) <- Error in gap
     character_to_rational_function( [1,2,3,4], H5 )
-    @test size( weil_divisors_of_variety( H5 ) )[ 1 ] == 8
+    @test size( weil_divisors_of_variety( H5 ) )[ 1 ] == 4
     @test size( factors( H5 ) )[ 1 ] == 1
     zariski_cotangent_sheaf_via_euler_sequence( H5 )
     zariski_cotangent_sheaf_via_poincare_residue_map( H5 )
@@ -103,16 +59,43 @@ using Test
     @test ith_betti_number( H5, 4 ) == 1
     @test nr_of_q_rational_points( H5, 1 ) == 4
     
-    # compute Betti numbers of projective space
+    # Perform tests for projective space
+    P2 = JToric.projective_space( 2 )
+    @test JToric.is_normal_variety( P2 ) == true
+    @test JToric.is_affine( P2 ) == false
+    @test JToric.is_projective( P2 ) == true
+    @test JToric.is_smooth( P2 ) == true
+    @test JToric.is_complete( P2 ) == true
+    @test JToric.has_torusfactor( P2 ) == false
+    @test JToric.is_orbifold( P2 ) == true
+    @test JToric.is_simplicial( P2 ) == true
+    @test JToric.is_isomorphic_to_projective_space( P2 ) == true
+    @test JToric.is_direct_product_of_projective_spaces( P2 ) == true
     @test ith_betti_number( P2, 1 ) == 0
     @test ith_betti_number( P2, 2 ) == 1
     @test ith_betti_number( P2, 3 ) == 0
     @test ith_betti_number( P2, 4 ) == 1
     @test nr_of_q_rational_points( P2, 2 ) == 4
+
+    # Perform tests for blowup of projective space
+    blowup_variety = blowup_on_ith_minimal_torus_orbit( P2, 1 )
+    @test JToric.is_normal_variety( blowup_variety ) == true
+    @test JToric.is_affine( blowup_variety ) == false
+    @test JToric.is_projective( blowup_variety ) == true
+    @test JToric.is_smooth( blowup_variety ) == true
+    @test JToric.is_complete( blowup_variety ) == true
+    @test JToric.has_torusfactor( blowup_variety ) == false
+    @test JToric.is_orbifold( blowup_variety ) == true
+    @test JToric.is_simplicial( blowup_variety ) == true
+    @test JToric.is_isomorphic_to_projective_space( blowup_variety ) == false
+    @test JToric.is_direct_product_of_projective_spaces( blowup_variety ) == false
+    @test ith_betti_number( blowup_variety, 1 ) == 0
+    @test ith_betti_number( blowup_variety, 2 ) == 2
+    @test ith_betti_number( blowup_variety, 3 ) == 0
+    @test ith_betti_number( blowup_variety, 4 ) == 1
+    @test nr_of_q_rational_points( blowup_variety, 4 ) == 13
     
-    # apply methods to toric varieties on the example of the Hirzebruch surface H5 and projective space P2 defined above
-    coordinate_ring_of_torus( H5, [ "u", "v", "w", "z" ] )
-    cox_ring( H5, "u" )
+    # Perform tests for direct product of Hirzebruch surface and projective space
     v = H5 * P2;
     @test JToric.is_normal_variety( v ) == true
     @test JToric.is_affine( v ) == false
@@ -135,21 +118,29 @@ using Test
     @test ith_betti_number( v, 8 ) == 1
     @test nr_of_q_rational_points( v, 3 ) == 106
     
-    # perform tests on blowup on i-th torus orbit of P2
-    dP1 = blowup_on_ith_minimal_torus_orbit( P2, 1 )
-    @test JToric.is_normal_variety( dP1 ) == true
-    @test JToric.is_affine( dP1 ) == false
-    @test JToric.is_projective( dP1 ) == true
-    @test JToric.is_smooth( dP1 ) == true
-    @test JToric.is_complete( dP1 ) == true
-    @test JToric.has_torusfactor( dP1 ) == false
-    @test JToric.is_orbifold( dP1 ) == true
-    @test JToric.is_simplicial( dP1 ) == true
-    @test JToric.is_isomorphic_to_projective_space( dP1 ) == false
-    @test JToric.is_direct_product_of_projective_spaces( dP1 ) == false
-    @test ith_betti_number( dP1, 1 ) == 0
-    @test ith_betti_number( dP1, 2 ) == 2
-    @test ith_betti_number( dP1, 3 ) == 0
-    @test ith_betti_number( dP1, 4 ) == 1
-    @test nr_of_q_rational_points( dP1, 4 ) == 13
+    # Compute properties of toric divisors on Hirzebruch surface
+    D=create_divisor( [ 0,0,0,0 ], H5 )
+    @test JToric.is_cartier( D ) == true
+    @test JToric.is_principal( D ) == true
+    @test JToric.is_primedivisor( D ) == false
+    @test JToric.is_basepoint_free( D ) == true
+    @test JToric.is_ample( D ) == false
+    @test JToric.is_very_ample( D ) == "fail"
+    @test JToric.is_numerically_effective( D ) == true
+    D2 = divisor_of_character( [ 1,2 ], H5 )
+    @test JToric.is_cartier( D2 ) == true
+    @test JToric.is_principal( D2 ) == true
+    @test JToric.is_primedivisor( D2 ) == false
+    @test JToric.is_basepoint_free( D2 ) == true
+    @test JToric.is_ample( D2 ) == false
+    @test JToric.is_very_ample( D2 ) == "fail"
+    @test JToric.is_numerically_effective( D2 ) == true
+    D3 = divisor_of_class( H5, [ 1,2 ] )
+    @test JToric.is_cartier( D3 ) == true
+    @test JToric.is_principal( D3 ) == false
+    @test JToric.is_primedivisor( D3 ) == false
+    @test JToric.is_basepoint_free( D3 ) == true
+    @test JToric.is_ample( D3 ) == true
+    @test JToric.is_very_ample( D3 ) == true
+    @test JToric.is_numerically_effective( D3 ) == true
 end
