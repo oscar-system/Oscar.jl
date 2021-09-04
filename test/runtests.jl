@@ -96,6 +96,7 @@ using Test
     @test size( weil_divisors_of_variety( H5 ) )[ 1 ] == 8
     @test size( factors( H5 ) )[ 1 ] == 1
     zariski_cotangent_sheaf_via_euler_sequence( H5 )
+    zariski_cotangent_sheaf_via_poincare_residue_map( H5 )
     
     # apply methods to toric varieties on the example of the Hirzebruch surface H5 and projective space P2 defined above
     coordinate_ring_of_torus( H5, [ "u", "v", "w", "z" ] )

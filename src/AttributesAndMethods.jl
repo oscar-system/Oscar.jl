@@ -359,11 +359,19 @@ function zariski_cotangent_sheaf_via_euler_sequence( v::NormalToricVariety )
 end
 export zariski_cotangent_sheaf_via_euler_sequence
 
-#= 
 
-#! @Description
-#!
-DeclareGlobalFunction( "ZariskiCotangentSheafViaPoincareResidueMap" );
+struct zariski_cotangent_sheaf_via_poincare_residue_map
+           GapZariskiCotangentSheafViaPoincareResidueMap::GapObj
+end
+export zariski_cotangent_sheaf_via_poincare_residue_map
+
+function zariski_cotangent_sheaf_via_poincare_residue_map( v::NormalToricVariety )
+    gap_ZariskiCotangentSheafViaPoincareResidueMap = GAP.Globals.ZariskiCotangentSheafViaPoincareResidueMap( v.GapNTV )
+    return zariski_cotangent_sheaf_via_poincare_residue_map( gap_ZariskiCotangentSheafViaPoincareResidueMap )
+end
+export zariski_cotangent_sheaf_via_poincare_residue_map
+
+#= 
 
 #! @Description
 #!  
