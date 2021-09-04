@@ -22,6 +22,11 @@ end
 
 @testset "MpolyQuo.manipulation" begin
   R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+  I = ideal(R, [zero(R)])
+  Q, q = quo(R,I)
+  f = q(x*y)
+  @test divides(one(Q), f) == (false, one(Q))
+
   A, _ = quo(R, 2*x^2-5*y^3)
   (x, y) = (A(x), A(y))
 
@@ -32,6 +37,7 @@ end
   @test !divides(x, y)[1]
   @test divides(x, x) == (true, one(A))
   @test divides(zero(A), x) == (true, zero(A))
+
 end
 
 @testset "MPolyQuo.ideals" begin

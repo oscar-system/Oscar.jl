@@ -24,10 +24,10 @@ julia> Oscar.groebner_assure(I)
 3-element Vector{fmpq_mpoly}:
  x*y - 3*x
  y^3 - 6*x^2
- x^3 - 9//2*x
+ 2*x^3 - 9*x
 
 julia> I.gb
-Oscar.BiPolyArray{fmpq_mpoly}(fmpq_mpoly[x*y - 3*x, y^3 - 6*x^2, x^3 - 9//2*x], Singular Ideal over Singular Polynomial Ring (QQ),(x,y),(dp(2),C) with generators (x*y - 3*x, y^3 - 6*x^2, x^3 - 9//2*x), Multivariate Polynomial Ring in x, y over Rational Field, Singular Polynomial Ring (QQ),(x,y),(dp(2),C), false, #undef)
+Oscar.BiPolyArray{fmpq_mpoly}(fmpq_mpoly[x*y - 3*x, y^3 - 6*x^2, 2*x^3 - 9*x], Singular Ideal over Singular Polynomial Ring (QQ),(x,y),(dp(2),C) with generators (x*y - 3*x, y^3 - 6*x^2, 2*x^3 - 9*x), Multivariate Polynomial Ring in x, y over Rational Field, Singular Polynomial Ring (QQ),(x,y),(dp(2),C), true, #undef)
 ```
 """
 function groebner_assure(I::MPolyIdeal; complete_reduction::Bool = false)
@@ -41,6 +41,7 @@ function groebner_assure(I::MPolyIdeal; complete_reduction::Bool = false)
       I.gb = BiPolyArray(base_ring(I), Singular.std(I.gens.S))
     end
   end
+  I.gb.O = [I.gb.Ox(x) for x = gens(I.gb.S)]
 end
 
 @doc Markdown.doc"""
@@ -297,7 +298,7 @@ function leading_ideal(I::MPolyIdeal)
   singular_assure(I)
   groebner_assure(I)
   singular_assure(I.gb)
-  return MPolyIdeal(base_ring(I), Singular.lead(I.gb.S))
+  return MPolyIdeal(base_ring(I), Singular.Ideal(I.gb.Sx, [Singular.leading_monomial(g) for g in gens(I.gb.S)]))
 end
 
 @doc Markdown.doc"""
