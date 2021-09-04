@@ -121,5 +121,12 @@ irreducible_secondary_invariants(IR::InvRing)
 
 ## Fundamental Systems of Invariants
 
+```@docs
+fundamental_invariants(IR::InvRing)
+```
 
 ## Invariant Rings as Affine Algebras
+
+```@docs
+representation_as_affine_algebra(IR::InvRing)
+```
