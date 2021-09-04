@@ -314,17 +314,19 @@ function Base.:*( v::NormalToricVariety, w::NormalToricVariety )
 end
 export *
 
-#= 
 
-#! @Description
-#!  Computes the rational function corresponding to the character grid element <A>elem</A> or to the list of 
-#!  integers <A>elem</A>. This computation needs to know the coordinate ring of the torus of the variety <A>vari</A>. By
-#!  default this ring is introduced with variables <A>x1</A> to <A>xn</A> where <A>n</A> is the dimension of the variety. If
-#!  different variables should be used, then <A>CoordinateRingOfTorus</A> has to be set accordingly before calling this method.
-#! @Returns a homalg element
-#! @Arguments elem, vari
-DeclareOperation( "CharacterToRationalFunction",
-                  [ IsList, IsNormalToricVariety ] );
+struct character_to_rational_function
+           gap_CharacterToRationalFunction::GapObj
+end
+export character_to_rational_function
+
+function character_to_rational_function( l::Vector{Int}, v::NormalToricVariety )
+    gap_CharacterToRationalFunction = GAP.Globals.CharacterToRationalFunction( GapObj( l ), v.GapNTV )
+    return character_to_rational_function( gap_CharacterToRationalFunction )
+end
+export character_to_rational_function
+
+#= 
 
 #! @Description
 #!  Returns a list of the currently defined Divisors of the toric variety.
