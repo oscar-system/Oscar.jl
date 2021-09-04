@@ -3,9 +3,9 @@
     @testset "VectorIterator" begin
         vecmat = [1 0 0; 0 1 0; 0 0 1; 1 1 1]
         for (T, U) in Base.product([PointVector, RayVector], [Polymake.Rational, Polymake.Integer])
-            vi = VectorIterator{T, U}(vecmat)
+            vi = VectorIterator{T{U}}(vecmat)
             @test vi isa VectorIterator
-            @test vi isa VectorIterator{T, U}
+            @test vi isa VectorIterator{T{U}}
             @test eltype(vi) == T{U}
             @test size(vi) == (4,)
             @test length(vi) == 4
@@ -15,12 +15,11 @@
                 @test vi[i] isa T{U}
                 @test vi[i] == vecmat[i, :]
             end
-            @test point_matrix(vi) isa Polymake.Matrix{U}
+            @test point_matrix(vi) isa Polymake.Matrix
             @test point_matrix(vi) == vecmat
             @test Oscar.matrix_for_polymake(vi) == vecmat
         end
-        @test VectorIterator{RayVector}(vecmat) isa VectorIterator{RayVector, Polymake.Rational}
-        @test VectorIterator(vecmat) isa VectorIterator{PointVector, Polymake.Rational}
+        @test VectorIterator(vecmat) isa VectorIterator{PointVector{Polymake.Rational}}
     end
 
     @testset "HalfspaceIterator" begin

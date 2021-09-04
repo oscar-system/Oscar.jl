@@ -19,19 +19,19 @@ julia> square = cube(2)
 A polyhedron in ambient dimension 2
 
 julia> vertices(square)
-4-element VectorIterator{PointVector, Polymake.Rational}:
- Polymake.Rational[-1, -1]
- Polymake.Rational[1, -1]
- Polymake.Rational[-1, 1]
- Polymake.Rational[1, 1]
+4-element VectorIterator{PointVector{Polymake.Rational}}:
+ [-1, -1]
+ [1, -1]
+ [-1, 1]
+ [1, 1]
 
 julia> nc = normal_cone(square, 1)
 A polyhedral cone in ambient dimension 2
 
 julia> rays(nc)
-2-element VectorIterator{RayVector, Polymake.Rational}:
- Polymake.Rational[1, 0]
- Polymake.Rational[0, 1]
+2-element VectorIterator{RayVector{Polymake.Rational}}:
+ [1, 0]
+ [0, 1]
 ```
 """
 function normal_cone(P::Polyhedron, i::Int64)
@@ -60,13 +60,13 @@ julia> P = orbit_polytope(V, G)
 A polyhedron in ambient dimension 3
 
 julia> vertices(P)
-6-element VectorIterator{PointVector, Polymake.Rational}:
- Polymake.Rational[1, 2, 3]
- Polymake.Rational[1, 3, 2]
- Polymake.Rational[2, 1, 3]
- Polymake.Rational[2, 3, 1]
- Polymake.Rational[3, 1, 2]
- Polymake.Rational[3, 2, 1]
+6-element VectorIterator{PointVector{Polymake.Rational}}:
+ [1, 2, 3]
+ [1, 3, 2]
+ [2, 1, 3]
+ [2, 3, 1]
+ [3, 1, 2]
+ [3, 2, 1]
 ```
 """
 function orbit_polytope(V::AbstractMatrix, G::PermGroup)
@@ -119,10 +119,10 @@ julia> NP = newton_polytope(f)
 A polyhedron in ambient dimension 2
 
 julia> vertices(NP)
-3-element VectorIterator{PointVector, Polymake.Rational}:
- Polymake.Rational[3, 1]
- Polymake.Rational[1, 2]
- Polymake.Rational[0, 0]
+3-element VectorIterator{PointVector{Polymake.Rational}}:
+ [3, 1]
+ [1, 2]
+ [0, 0]
 ```
 """
 function newton_polytope(f)
@@ -150,9 +150,9 @@ julia> PO = intersect(UH1, UH2)
 A polyhedron in ambient dimension 2
 
 julia> rays(PO)
-2-element VectorIterator{RayVector, Polymake.Rational}:
- Polymake.Rational[1, 0]
- Polymake.Rational[0, 1]
+2-element VectorIterator{RayVector{Polymake.Rational}}:
+ [1, 0]
+ [0, 1]
 ```
 """
 function intersect(P::Polyhedron, Q::Polyhedron)
@@ -354,11 +354,11 @@ julia> S = P + v
 A polyhedron in ambient dimension 3
 
 julia> vertices(S)
-4-element VectorIterator{PointVector, Polymake.Rational}:
- Polymake.Rational[0, 0, 0]
- Polymake.Rational[1, 0, 0]
- Polymake.Rational[0, 1, 0]
- Polymake.Rational[0, 0, 1]
+4-element VectorIterator{PointVector{Polymake.Rational}}:
+ [0, 0, 0]
+ [1, 0, 0]
+ [0, 1, 0]
+ [0, 0, 1]
 ```
 """
 function +(P::Polyhedron,v::AbstractVector)
@@ -389,11 +389,11 @@ julia> S = v + P
 A polyhedron in ambient dimension 3
 
 julia> vertices(S)
-4-element VectorIterator{PointVector, Polymake.Rational}:
- Polymake.Rational[0, 0, 0]
- Polymake.Rational[1, 0, 0]
- Polymake.Rational[0, 1, 0]
- Polymake.Rational[0, 0, 1]
+4-element VectorIterator{PointVector{Polymake.Rational}}:
+ [0, 0, 0]
+ [1, 0, 0]
+ [0, 1, 0]
+ [0, 0, 1]
 ```
 """
 +(v::AbstractVector,P::Polyhedron) = P+v

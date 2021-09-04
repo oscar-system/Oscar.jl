@@ -176,6 +176,10 @@ Base.size(iter::HalfspaceIterator) = (length(iter.b),)
 
 halfspace_matrix_pair(iter::HalfspaceIterator) = (A = iter.A, b = iter.b)
 
+# Affine Halfspaces
+
+HalfspaceIterator{T}(A::Polymake.Matrix{Polymake.Rational}) where T = HalfspaceIterator{T}(A, zeros(size(A, 1)))
+
 function point_matrix(iter::HalfspaceIterator)
     if !iszero(iter.b)
         throw(ArgumentError("Half-spaces have to be affine in order for point_matrix to be defined"))
@@ -187,17 +191,15 @@ HalfspaceIterator(x...) = HalfspaceIterator{Halfspace}(x...)
 
 ###############################
 
-struct VectorIterator{T, U} <: AbstractArray{T, 1}
-    m::Polymake.Matrix{U}
+struct VectorIterator{T} <: AbstractArray{T, 1}
+    m::Polymake.Matrix
 end
-
-Base.eltype(::VectorIterator{T, U}) where {T, U} = T{U}
 
 Base.IndexStyle(::Type{<:VectorIterator}) = IndexLinear()
 
-function Base.getindex(iter::VectorIterator{T, U}, i::Base.Integer) where {T, U}
+function Base.getindex(iter::VectorIterator{T}, i::Base.Integer) where T
     @boundscheck checkbounds(iter.m, i, 1)
-    return T{U}(iter.m[i, :])
+    return T(iter.m[i, :])
 end
 
 function Base.setindex!(iter::VectorIterator{T}, val::T, i::Base.Integer) where T
@@ -212,11 +214,10 @@ Base.size(iter::VectorIterator) = (size(iter.m, 1),)
 
 point_matrix(iter::VectorIterator) = iter.m
 
-VectorIterator{T, U}(vertices::Union{Oscar.fmpz_mat,AbstractMatrix{Oscar.fmpz}, Oscar.fmpq_mat,AbstractMatrix{Oscar.fmpq}}) where {T, U} = VectorIterator{T, U}(matrix_for_polymake(vertices))
-VectorIterator{T, U}(vertices::Array{V, 1}) where {T, U, V<:Union{AbstractVector, T}} = VectorIterator{T, U}(cat((v' for v in vertices)...; dims = 1))
+VectorIterator{T}(vertices::Union{Oscar.fmpz_mat,AbstractMatrix{Oscar.fmpz}, Oscar.fmpq_mat,AbstractMatrix{Oscar.fmpq}}) where T = VectorIterator{T}(matrix_for_polymake(vertices))
+VectorIterator{T}(vertices::Array{V, 1}) where {T, V<:Union{AbstractVector, T}} = VectorIterator{T}(cat((v' for v in vertices)...; dims = 1))
 
-VectorIterator{T}(x...) where T = VectorIterator{T, Polymake.Rational}(x...)
-VectorIterator(x...) = VectorIterator{PointVector}(x...)
+VectorIterator(x...) = VectorIterator{PointVector{Polymake.Rational}}(x...)
 
 ####################
 
@@ -226,8 +227,8 @@ const _hspaceTypes = Union{Halfspace, Halfspaces}
 const _polyhedronTypes = Union{Polyhedron, Polyhedra}
 const _coneTypes = Union{Cone, Cones}
 
-AsTypeIdentities(as::Type{T}) where T<:_pointTypes = PointVector
-AsTypeIdentities(as::Type{T}) where T<:_rayTypes = RayVector
+AsTypeIdentities(as::Type{T}) where T<:_pointTypes = PointVector{Polymake.Rational}
+AsTypeIdentities(as::Type{T}) where T<:_rayTypes = RayVector{Polymake.Rational}
 AsTypeIdentities(as::Type{T}) where T<:_hspaceTypes = Halfspace
 AsTypeIdentities(as::Type{T}) where T<:_polyhedronTypes = Polyhedron
 AsTypeIdentities(as::Type{T}) where T<:Pair = Pair{Polymake.Matrix, Polymake.Rational}
