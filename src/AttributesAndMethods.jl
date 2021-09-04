@@ -334,13 +334,13 @@ end
 export weil_divisors_of_variety
 
 
-#= 
+function factors( v::NormalToricVariety )
+    gap_factors = GAP.Globals.Factors( v.GapNTV )
+    return [ NormalToricVariety( f ) for f in gap_factors ]
+end
+export factors
 
-#! @Description
-#!  
-#! @Arguments vari
-DeclareOperation( "Factors",
-                  [ IsNormalToricVariety ] );
+#= 
 
 #! @Description
 #!  
