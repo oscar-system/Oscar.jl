@@ -326,14 +326,15 @@ function character_to_rational_function( l::Vector{Int}, v::NormalToricVariety )
 end
 export character_to_rational_function
 
-#= 
 
-#! @Description
-#!  Returns a list of the currently defined Divisors of the toric variety.
-#! @Returns a list
-#! @Arguments vari
-DeclareOperation( "WeilDivisorsOfVariety",
-                  [ IsNormalToricVariety ] );
+function weil_divisors_of_variety( v::NormalToricVariety )
+    gap_divisors = GAP.Globals.WeilDivisorsOfVariety( v.GapNTV )
+    return [ toric_divisor( d ) for d in gap_divisors ]
+end
+export weil_divisors_of_variety
+
+
+#= 
 
 #! @Description
 #!  
