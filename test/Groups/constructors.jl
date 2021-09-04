@@ -3,31 +3,59 @@
   for n = 5:8
     G = @inferred symmetric_group(n)
     A = @inferred alternating_group(n)
+
     @test degree(G) isa Integer
     @test degree(G) == n
     @test degree(A) == n
+
+    @test length(moved_points(G)) == n
+    nmp = number_moved_points(G)
+    @test nmp == n
+    @test nmp isa fmpz
+    nmp = number_moved_points(Int64, G)
+    @test nmp == n
+    @test nmp isa Int64
+
     @test isfinite(G)
+
     @test order(G) isa fmpz
-    @test exponent(G) isa Integer
-    @test exponent(A) isa Integer
-    @test exponent(G) == lcm(1:n)
-    if n < 13 
-      @test order(Int32, G) isa Int32 
-    end
     @test order(G) == factorial(n)
-    @test order(A) == factorial(n)/2
-    @testset "order with type" for T in [Int, BigInt, fmpz]
+    @test 2 * order(A) == factorial(n)
+    @testset "order with type" begin
+      for T in [Int, BigInt, fmpz]
         @test order(T, G) == factorial(n)
         @test order(T, G) isa T
+      end
+      if n < 13
+        @test order(Int32, G) isa Int32
+      end
     end
+
+    @test exponent(G) isa fmpz
+    for T in [Int, BigInt, fmpz]
+      @test exponent(T, A) isa T
+    end
+    @test exponent(G) == lcm(1:n)
+
     @test gens(G) isa Vector{PermGroupElem}
     @test gens(A) isa Vector{PermGroupElem}
     @test ngens(G) == length(gens(G))
   end
+
   @test_throws ArgumentError symmetric_group(0)
   @test_throws ArgumentError alternating_group(-1)
-  @test isalternating_group(omega_group(3,3))
-  @test issymmetric_group(symmetric_group(PcGroup,4))
+
+  @test isnatural_alternating_group(alternating_group(4))
+  @test ! isnatural_alternating_group(omega_group(3,3))
+  @test isisomorphic_with_alternating_group(alternating_group(4))
+  @test isisomorphic_with_alternating_group(omega_group(3,3))
+  @test !isisomorphic_with_alternating_group(symmetric_group(4))
+
+  @test isnatural_symmetric_group(symmetric_group(4))
+  @test ! isnatural_symmetric_group(symmetric_group(PcGroup,4))
+  @test isisomorphic_with_symmetric_group(symmetric_group(4))
+  @test isisomorphic_with_symmetric_group(symmetric_group(PcGroup,4))
+  @test !isisomorphic_with_symmetric_group(alternating_group(4))
 end
 
 @testset "Special Constructors" begin
@@ -42,8 +70,7 @@ end
   @test isa(alternating_group(PcGroup,3), PcGroup)
   @test isa(symmetric_group(PcGroup,3), PcGroup)
   @test isisomorphic(symmetric_group(4), symmetric_group(PcGroup,4))[1]
-  
-  
+
   @test isquaternion_group(small_group(8, 4))
   @test small_group_identification(small_group(8, 4)) == (8, 4)
   @test isa(small_group(8, 4), PcGroup)
@@ -72,6 +99,9 @@ end
 
   F = free_group("x","y")
   @test F isa FPGroup
+  @test_throws ErrorException order(F)
+  @test_throws ErrorException index(F, trivial_subgroup(F)[1])
+  @test_throws MethodError degree(F)
   @test !isfinite(F)
   @test !isabelian(F)
 

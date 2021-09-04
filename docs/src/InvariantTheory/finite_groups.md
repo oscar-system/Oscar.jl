@@ -23,7 +23,7 @@ In this section, with notation as in the introduction to this chapter, $G$ will 
 		   
     - If the group order $|G|$ is invertible in $K$, then we have the explicit Reynolds operator
 
-       $\mathcal R: K[V] \to K[V], f\to \frac{1}{|G|}\sum_{\pi\in G}(\pi \;\!  . \;\! f).$
+       $\mathcal R: K[V] \to K[V], f\mapsto \frac{1}{|G|}\sum_{\pi\in G}(\pi \;\!  . \;\! f).$
 
 !!! note
     We speak of *non-modular* invariant theory if $|G|$ is invertible in $K$, and of *modular* invariant theory otherwise.

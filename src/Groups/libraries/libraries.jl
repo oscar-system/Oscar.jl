@@ -1,11 +1,3 @@
-export
-    moved_points,
-    number_moved_points
-
-moved_points(x::PermGroupElem) = [y for y in GAP.gap_to_julia(GAP.Globals.MovedPoints(x.X))]
-moved_points(G::PermGroup) = [y for y in GAP.gap_to_julia(GAP.Globals.MovedPoints(G.X))]
-number_moved_points(x::Union{PermGroupElem,PermGroup}) = GAP.Globals.MovedPoints(G.X)
-
 include("perfectgroups.jl")
 include("primitivegroups.jl")
 include("smallgroups.jl")

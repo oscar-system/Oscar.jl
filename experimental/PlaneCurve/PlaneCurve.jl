@@ -413,7 +413,7 @@ end
 # Union of two plane curves of the same type (with multiplicity)
 
 @doc Markdown.doc"""
-   union(C::T, D::T) where T <: PlaneCurve
+    union(C::T, D::T) where T <: PlaneCurve
 
 Return the union of `C` and `D` (with multiplicity).
 

@@ -20,16 +20,13 @@ Base.eltype(::Type{ConeRayIterator}) = Polymake.Vector{Polymake.Rational}
 Base.length(iter::ConeRayIterator) = nrays(iter.cone)
 
 """
-    rays(C)
+    rays(C::Cone)
 
-Return the rays of a cone.
-
-# Arguments
-- `C::Cone`: A cone.
+Return the rays of `C`.
 
 # Examples
 Here a cone is constructed from three rays. Calling `rays` reveals that one of these was redundant:
-```julia-repl
+```jldoctest
 julia> R = [1 0; 0 1; 0 2];
 
 julia> PO = positive_hull(R);
@@ -55,16 +52,13 @@ rays(C::Cone) = ConeRayIterator(C)
 ###############################################################################
 
 """
-    nrays(C)
+    nrays(C::Cone)
 
-Return the number of rays of the cone `C`.
-
-# Arguments
-- `C::Cone`: A cone.
+Return the number of rays of `C`.
 
 # Examples
 Here a cone is constructed from three rays. Calling `nrays` reveals that one of these was redundant:
-```julia-repl
+```jldoctest
 julia> R = [1 0; 0 1; 0 2];
 
 julia> PO = positive_hull(R);
@@ -76,16 +70,13 @@ julia> nrays(PO)
 nrays(C::Cone) = pm_cone(C).N_RAYS
 
 """
-    dim(C)
+    dim(C::Cone)
 
-Return the dimension of a cone.
-
-# Arguments
-- `C::Cone`: A cone.
+Return the dimension of `C`.
 
 # Examples
 The cone `C` in this example is 2-dimensional within a 3-dimensional ambient space.
-```julia-repl
+```jldoctest
 julia> C = Cone([1 0 0; 1 1 0; 0 1 0]);
 
 julia> dim(C)
@@ -95,16 +86,13 @@ julia> dim(C)
 dim(C::Cone) = pm_cone(C).CONE_DIM
 
 """
-    ambient_dim(C)
+    ambient_dim(C::Cone)
 
-Return the ambient dimension of a cone.
-
-# Arguments
-- `C::Cone`: A cone.
+Return the ambient dimension of `C`.
 
 # Examples
 The cone `C` in this example is 2-dimensional within a 3-dimensional ambient space.
-```julia-repl
+```jldoctest
 julia> C = Cone([1 0 0; 1 1 0; 0 1 0]);
 
 julia> ambient_dim(C)
@@ -114,16 +102,13 @@ julia> ambient_dim(C)
 ambient_dim(C::Cone) = pm_cone(C).CONE_AMBIENT_DIM
 
 """
-    codim(C)
+    codim(C::Cone)
 
-Returns the codimension of a cone.
-
-# Arguments
-- `C::Cone`: A cone.
+Return the codimension of `C`.
 
 # Examples
 The cone `C` in this example is 2-dimensional within a 3-dimensional ambient space.
-```julia-repl
+```jldoctest
 julia> C = Cone([1 0 0; 1 1 0; 0 1 0]);
 
 julia> codim(C)
@@ -136,16 +121,13 @@ codim(C::Cone) = ambient_dim(C)-dim(C)
 ## Boolean properties
 ###############################################################################
 """
-    ispointed(C)
+    ispointed(C::Cone)
 
-Determine whether the cone is pointed, i.e. whether 0 is a face of the cone.
-
-# Arguments
-- `C::Cone`: A cone.
+Determine whether `C` is pointed, i.e. whether the origin is a face of `C`.
 
 # Examples
 A cone with lineality is not pointed, but a cone only consisting of a single ray is.
-```julia-repl
+```jldoctest
 julia> C = Cone([1 0], [0 1]);
 
 julia> ispointed(C)
@@ -160,16 +142,13 @@ true
 ispointed(C::Cone) = pm_cone(C).POINTED
 
 """
-    isfulldimensional(C)
+    isfulldimensional(C::Cone)
 
-Determine whether the cone is full dimensional
-
-# Arguments
-- `C::Cone`: A cone.
+Determine whether `C` is full-dimensional.
 
 # Examples
 The cone `C` in this example is 2-dimensional within a 3-dimensional ambient space.
-```julia-repl
+```jldoctest
 julia> C = Cone([1 0 0; 1 1 0; 0 1 0]);
 
 julia> isfulldimensional(C)
@@ -183,16 +162,13 @@ isfulldimensional(C::Cone) = pm_cone(C).FULL_DIM
 ###############################################################################
 
 """
-    rays_as_point_matrix(C)
+    rays_as_point_matrix(C::Cone)
 
-Return the rays of a cone as rows in a matrix.
-
-# Arguments
-- `C::Cone`: A cone.
+Return the rays of `C` as rows in a matrix.
 
 # Examples
 Here a cone is constructed from three rays. Calling `rays_as_point_matrix` reveals that one of these was redundant:
-```julia-repl
+```jldoctest
 julia> R = [1 0; 0 1; 0 2];
 
 julia> PO = positive_hull(R);
@@ -209,16 +185,13 @@ end
 
 
 """
-    facets_as_point_matrix(C)
+    facets_as_point_matrix(C::Cone)
 
-Return the facets of a cone as rows of a matrix.
-
-# Arguments
-- `C::Cone`: A cone.
+Return the facets of `C` as rows of a matrix.
 
 # Examples
 From this little example it is easy to see that the facets are displayed as their inside-pointing (w.r.t. the cone) normals.
-```julia-repl
+```jldoctest
 julia> R = [1 0; 1 1];
 
 julia> C = positive_hull(R);
@@ -233,17 +206,14 @@ facets_as_point_matrix(C::Cone) = pm_cone(C).FACETS
 
 
 """
-    lineality_space(C)
+    lineality_space(C::Cone)
 
-Return a basis of the lineality space of a cone.
-
-# Arguments
-- `C::Cone`: A cone.
+Return a basis of the lineality space of `C`.
 
 # Examples
 Three rays are used here to construct the upper half-plane. Actually, two of these rays point in opposite directions.
 This gives us a 1-dimensional lineality.
-```julia-repl
+```jldoctest
 julia> UH = Cone([1 0; 0 1; -1 0]);
 
 julia> lineality_space(UH)
@@ -254,16 +224,13 @@ pm::Matrix<pm::Rational>
 lineality_space(C::Cone) = pm_cone(C).LINEALITY_SPACE
 
 """
-    hilbert_basis(C)
+    hilbert_basis(C::Cone)
 
-Return the Hilbert basis of a pointed cone as the rows of a matrix.
-
-# Arguments
-- `C::Cone`: A cone.
+Return the Hilbert basis of a pointed cone `C` as the rows of a matrix.
 
 # Examples
 This (non-smooth) cone in the plane has a hilbert basis with three elements.
-```julia-repl
+```jldoctest; filter = r".*"
 julia> C = Cone([1 0; 1 2])
 A polyhedral cone in ambient dimension 2
 

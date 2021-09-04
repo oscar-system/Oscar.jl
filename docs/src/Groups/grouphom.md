@@ -23,13 +23,15 @@ A homomorphism from `G` to `H` can be defined in two ways.
 ```julia
 f = hom(G,H,[x1,x2,...],[y1,y2,...])
 ```
-Here, `[x1,x2,...]` must be a generating set for `G` (not necessarily minimal) and `[y1,y2,...]` is a vector of elements of `H` of the same length of `[x1,x2,...]`. This assigns to `f` the value of the group homomorphism sending `x_i` into `y_i`. If such a homomorphism does not exist, an error is returned.
+Here, `[x1,x2,...]` must be a generating set for `G` (not necessarily minimal) and `[y1,y2,...]` is a vector of elements of `H` of the same length of `[x1,x2,...]`. This assigns to `f` the value of the group homomorphism sending `x_i` into `y_i`.
+
+An exception is thrown if such a homomorphism does not exist.
 
 * Taking an existing function `g` satisfying the group homomorphism properties:
 ```julia
 f = hom(G,H,g)
 ```
-If the function `g` does not satisfy the group homomorphism properties, an error is returned.
+An exception is thrown if the function `g` does not define a group homomorphism.
 
   **Example:**
 The following procedures define the same homomorphism (conjugation by `x`) in the two ways explained above.
@@ -111,8 +113,11 @@ isisomorphic(G::GAPGroup, H::GAPGroup)
 
 Oscar supports the following operations on homomorphisms.
 
-* `inv(f)` = the inverse of `f`. An error is returned if `f` is not bijective.
-* `f^n` = the homomorphism `f` composed `n` times with itself. An error is returned if the domain and the codomain of `f` do not coincide (unless `n=1`). If `n` is negative, the result is the inverse of `f` composed `n` times with itself.
+* `inv(f)` = the inverse of `f`.
+  An exception is thrown if `f` is not bijective.
+* `f^n` = the homomorphism `f` composed `n` times with itself.
+  An exception is thrown if the domain and the codomain of `f` do not coincide
+  (unless `n=1`). If `n` is negative, the result is the inverse of `f` composed `n` times with itself.
 * `compose(g,f)` = composition of `g` and `f`. This works only if the codomain of `g` coincide with the domain of `f`. Shorter equivalent expressions are `g*f` and `f(g)`.
 
   **Example:**
@@ -138,8 +143,8 @@ true
 Oscar implements the following attributes of homomorphisms.
 
 ```@docs
-domain
-codomain
+domain(f::GAPGroupHomomorphism)
+codomain(f::GAPGroupHomomorphism)
 isinjective(f::GAPGroupHomomorphism)
 issurjective(f::GAPGroupHomomorphism)
 isbijective(f::GAPGroupHomomorphism)
