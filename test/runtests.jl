@@ -111,4 +111,17 @@ using Test
     @test JToric.is_isomorphic_to_projective_space( v ) == false
     @test JToric.is_direct_product_of_projective_spaces( v ) == false
     @test size( factors( v ) )[ 1 ] == 2
+    
+    # perform tests on blowup on i-th torus orbit of P2
+    dP1 = blowup_on_ith_minimal_torus_orbit( P2, 1 )
+    @test JToric.is_normal_variety( dP1 ) == true
+    @test JToric.is_affine( dP1 ) == false
+    @test JToric.is_projective( dP1 ) == true
+    @test JToric.is_smooth( dP1 ) == true
+    @test JToric.is_complete( dP1 ) == true
+    @test JToric.has_torusfactor( dP1 ) == false
+    @test JToric.is_orbifold( dP1 ) == true
+    @test JToric.is_simplicial( dP1 ) == true
+    @test JToric.is_isomorphic_to_projective_space( dP1 ) == false
+    @test JToric.is_direct_product_of_projective_spaces( dP1 ) == false    
 end

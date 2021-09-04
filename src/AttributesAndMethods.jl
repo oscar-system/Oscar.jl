@@ -340,13 +340,14 @@ function factors( v::NormalToricVariety )
 end
 export factors
 
-#= 
 
-#! @Description
-#!  
-#! @Arguments vari, p
-DeclareOperation( "BlowUpOnIthMinimalTorusOrbit",
-                  [ IsNormalToricVariety, IsInt ] );
+function blowup_on_ith_minimal_torus_orbit( v::NormalToricVariety, i::Int )
+    gap_blowup_variety = GAP.Globals.BlowUpOnIthMinimalTorusOrbit( v.GapNTV, GapObj( i ) )
+    return NormalToricVariety( gap_blowup_variety )
+end
+export blowup_on_ith_minimal_torus_orbit
+
+#= 
 
 #! @Description
 #!
