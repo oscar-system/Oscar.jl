@@ -13,6 +13,9 @@ Initializing function for 'JToric'.
 # initialization
 function __init__()
     # load necessary gap packages
+    if ( ! GAP.Packages.load( "NConvex", "2021.04-24", install = false ) )
+             warn("Could not load desired version of GAP package NConvex. JToric may not be fully functional.")
+    end
     if ( ! GAP.Packages.load( "JConvex", "2021.08.12", install = false ) )
              warn("Could not load GAP package JConvex. JToric may not be fully functional.")
     end
