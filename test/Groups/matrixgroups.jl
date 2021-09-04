@@ -114,6 +114,17 @@
    H = GAP.Globals.Group(GAP.julia_to_gap([ GAP.Globals.E(5) 0; 0 GAP.Globals.E(5) ]))
    f = GAP.Globals.GroupHomomorphismByImages(G.X, H)
    @test GAP.Globals.IsBijective(f)
+
+   K, a = CyclotomicField(3, "a")
+   M1 = matrix(K, 2, 2, [ a, 0, -a - 1, 1 ])
+   M2 = matrix(K, 2, 2, [ 1, a + 1, 0, a ])
+   G, g = Oscar.isomorphic_group_over_finite_field(matrix_group([ M1, M2 ]))
+   @test order(G) == 24
+   for i in 1:10
+     x, y = rand(G), rand(G)
+     @test (g\x) * (g\y) == g\(x * y)
+     @test g(g\x) == x
+   end
 end
 
 @testset "Type operations" begin
