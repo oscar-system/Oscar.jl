@@ -97,6 +97,16 @@ using Test
     @test size( factors( H5 ) )[ 1 ] == 1
     zariski_cotangent_sheaf_via_euler_sequence( H5 )
     zariski_cotangent_sheaf_via_poincare_residue_map( H5 )
+    @test ith_betti_number( H5, 1 ) == 0
+    @test ith_betti_number( H5, 2 ) == 2
+    @test ith_betti_number( H5, 3 ) == 0
+    @test ith_betti_number( H5, 4 ) == 1
+
+    # compute Betti numbers of projective space
+    @test ith_betti_number( P2, 1 ) == 0
+    @test ith_betti_number( P2, 2 ) == 1
+    @test ith_betti_number( P2, 3 ) == 0
+    @test ith_betti_number( P2, 4 ) == 1
     
     # apply methods to toric varieties on the example of the Hirzebruch surface H5 and projective space P2 defined above
     coordinate_ring_of_torus( H5, [ "u", "v", "w", "z" ] )
@@ -113,6 +123,14 @@ using Test
     @test JToric.is_isomorphic_to_projective_space( v ) == false
     @test JToric.is_direct_product_of_projective_spaces( v ) == false
     @test size( factors( v ) )[ 1 ] == 2
+    @test ith_betti_number( v, 1 ) == 0
+    @test ith_betti_number( v, 2 ) == 3
+    @test ith_betti_number( v, 3 ) == 0
+    @test ith_betti_number( v, 4 ) == 4
+    @test ith_betti_number( v, 5 ) == 0
+    @test ith_betti_number( v, 6 ) == 3
+    @test ith_betti_number( v, 7 ) == 0
+    @test ith_betti_number( v, 8 ) == 1
     
     # perform tests on blowup on i-th torus orbit of P2
     dP1 = blowup_on_ith_minimal_torus_orbit( P2, 1 )
@@ -125,5 +143,9 @@ using Test
     @test JToric.is_orbifold( dP1 ) == true
     @test JToric.is_simplicial( dP1 ) == true
     @test JToric.is_isomorphic_to_projective_space( dP1 ) == false
-    @test JToric.is_direct_product_of_projective_spaces( dP1 ) == false    
+    @test JToric.is_direct_product_of_projective_spaces( dP1 ) == false
+    @test ith_betti_number( dP1, 1 ) == 0
+    @test ith_betti_number( dP1, 2 ) == 2
+    @test ith_betti_number( dP1, 3 ) == 0
+    @test ith_betti_number( dP1, 4 ) == 1
 end

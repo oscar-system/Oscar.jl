@@ -371,13 +371,13 @@ function zariski_cotangent_sheaf_via_poincare_residue_map( v::NormalToricVariety
 end
 export zariski_cotangent_sheaf_via_poincare_residue_map
 
-#= 
 
-#! @Description
-#!  
-#! @Arguments vari, p
-DeclareOperation( "ithBettiNumber",
-                  [ IsNormalToricVariety, IsInt ] );
+function ith_betti_number( v::NormalToricVariety, i::Int )
+    return GAP.Globals.ithBettiNumber( v.GapNTV, GapObj( i ) )::Int
+end
+export ith_betti_number
+
+#= 
 
 #! @Description
 #!  
