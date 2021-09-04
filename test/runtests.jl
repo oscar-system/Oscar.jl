@@ -101,12 +101,14 @@ using Test
     @test ith_betti_number( H5, 2 ) == 2
     @test ith_betti_number( H5, 3 ) == 0
     @test ith_betti_number( H5, 4 ) == 1
-
+    @test nr_of_q_rational_points( H5, 1 ) == 4
+    
     # compute Betti numbers of projective space
     @test ith_betti_number( P2, 1 ) == 0
     @test ith_betti_number( P2, 2 ) == 1
     @test ith_betti_number( P2, 3 ) == 0
     @test ith_betti_number( P2, 4 ) == 1
+    @test nr_of_q_rational_points( P2, 2 ) == 4
     
     # apply methods to toric varieties on the example of the Hirzebruch surface H5 and projective space P2 defined above
     coordinate_ring_of_torus( H5, [ "u", "v", "w", "z" ] )
@@ -131,6 +133,7 @@ using Test
     @test ith_betti_number( v, 6 ) == 3
     @test ith_betti_number( v, 7 ) == 0
     @test ith_betti_number( v, 8 ) == 1
+    @test nr_of_q_rational_points( v, 3 ) == 106
     
     # perform tests on blowup on i-th torus orbit of P2
     dP1 = blowup_on_ith_minimal_torus_orbit( P2, 1 )
@@ -148,4 +151,5 @@ using Test
     @test ith_betti_number( dP1, 2 ) == 2
     @test ith_betti_number( dP1, 3 ) == 0
     @test ith_betti_number( dP1, 4 ) == 1
+    @test nr_of_q_rational_points( dP1, 4 ) == 13
 end

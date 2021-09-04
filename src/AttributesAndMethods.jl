@@ -377,12 +377,8 @@ function ith_betti_number( v::NormalToricVariety, i::Int )
 end
 export ith_betti_number
 
-#= 
 
-#! @Description
-#!  
-#! @Arguments vari, p
-DeclareOperation( "NrOfqRationalPoints",
-                  [ IsNormalToricVariety, IsInt ] );
-
-=#
+function nr_of_q_rational_points( v::NormalToricVariety, i::Int )
+    return GAP.Globals.NrOfqRationalPoints( v.GapNTV, GapObj( i ) )::Int
+end
+export nr_of_q_rational_points
