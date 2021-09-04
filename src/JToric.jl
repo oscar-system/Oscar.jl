@@ -13,8 +13,12 @@ Initializing function for 'JToric'.
 # initialization
 function __init__()
     # load necessary gap packages
-    GAP.Globals.LoadPackage( GapObj( "JConvex" ) )
-    GAP.Globals.LoadPackage( GapObj( "ToricVarieties" ) )
+    if ( ! GAP.Packages.load( "JConvex", "2021.08.12", install = false ) )
+             warn("Could not load GAP package JConvex. JToric may not be fully functional.")
+    end
+    if ( ! GAP.Packages.load( "ToricVarieties", "2021.08.12", install = true ) )
+             warn("Could not load nor install GAP package ToricVarieties. JToric may not be fully functional.")
+    end
     
     # inform that JToric has been loaded
     print("Welcome to JToric ")
