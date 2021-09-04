@@ -34,7 +34,7 @@ end
 """
     JToric.version
 
-The version number of the loaded `CapAndHomalg`.
+The version number of the loaded `JToric`.
 Please mention this number in any bug report.
 """
 global version = 0
