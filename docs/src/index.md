@@ -51,3 +51,26 @@ is_simplicial
 is_isomorphic_to_projective_space
 is_direct_product_of_projective_spaces
 ```
+
+
+## Toric Divisors
+
+### Constructors
+
+```@docs
+create_divisor
+divisor_of_character
+divisor_of_class
+```
+
+### Properties of toric divisors
+
+```@docs
+is_cartier
+is_principal
+is_primedivisor
+is_basepoint_free
+is_ample
+is_very_ample
+is_numerically_effective
+```
