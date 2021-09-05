@@ -1,4 +1,4 @@
-# Documentation of the Julia package JToric.jl
+# JToric -- toric geometry in Julia
 
 ```@contents
 ```
@@ -16,4 +16,38 @@ The goal of the package `JToric` is to make computations on toric geometry acces
 
 ```@docs
 version
+```
+
+## Toric Varieties
+
+### Constructors
+
+```@docs
+NormalToricVariety
+```
+
+```@docs
+projective_space
+```
+
+### Conversion among GAP and Polymake toric varieties
+
+```@docs
+ntv_gap2polymake
+ntv_polymake2gap
+```
+
+### Properties of toric varieties
+
+```@docs
+is_normal_variety
+is_affine
+is_projective
+is_smooth
+is_complete
+has_torusfactor
+is_orbifold
+is_simplicial
+is_isomorphic_to_projective_space
+is_direct_product_of_projective_spaces
 ```
