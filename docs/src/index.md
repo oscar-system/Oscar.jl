@@ -49,6 +49,55 @@ is_isomorphic_to_projective_space
 is_direct_product_of_projective_spaces
 ```
 
+### Attributes of toric varieties
+
+```@docs
+affine_open_covering
+cox_ring
+list_of_variables_of_cox_ring
+class_group
+torus_invariant_divisor_group
+map_from_character_to_principal_divisor
+map_from_weil_divisors_to_class_group
+dimension
+dimension_of_torusfactor
+coordinate_ring_of_torus
+list_of_variables_of_coordinate_ring_of_torus
+is_product_of
+factors
+character_lattice
+torus_invariant_prime_divisors
+irrelevant_ideal
+stanley_reisner_ideal
+morphism_from_cox_variety
+cox_variety
+fan_of_variety
+fan
+cartier_torus_invariant_divisor_group
+picard_group
+name_of_variety
+zariski_cotangent_sheaf
+cotangent_sheaf
+euler_characteristic
+weil_divisors_of_variety
+zariski_cotangent_sheaf_via_euler_sequence
+zariski_cotangent_sheaf_via_poincare_residue_map
+```
+
+
+### Methods of toric varieties
+
+```@docs
+set_name_of_variety
+coordinate_ring_of_torus( v::NormalToricVariety, names::Vector{String} )
+cox_ring( v::NormalToricVariety, name::String )
+Base.:*( v::NormalToricVariety, w::NormalToricVariety )
+character_to_rational_function( l::Vector{Int}, v::NormalToricVariety )
+blowup_on_ith_minimal_torus_orbit( v::NormalToricVariety, i::Int )
+ith_betti_number( v::NormalToricVariety, i::Int )
+nr_of_q_rational_points( v::NormalToricVariety, i::Int )
+```
+
 
 ## Toric Divisors
 
