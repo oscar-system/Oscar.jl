@@ -24,9 +24,6 @@ version
 
 ```@docs
 NormalToricVariety
-```
-
-```@docs
 projective_space
 ```
 
