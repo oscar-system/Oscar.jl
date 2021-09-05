@@ -31,11 +31,13 @@ function NormalToricVariety( rays::Matrix{Int}, cones::Vector{Vector{Int}} )
     # wrap it into a struct and return
     return NormalToricVariety( variety, pmntv )
 end
+export NormalToricVariety
 
 function NormalToricVariety(GapNTV::GapObj)
    pmNTV = ntv_gap2polymake(GapNTV)
    return NormalToricVariety(GapNTV, pmNTV)
 end
+export NormalToricVariety
 
 function ntv_gap2polymake(GapNTV::GapObj)
     ff = GAP.Globals.Fan(GapNTV)
