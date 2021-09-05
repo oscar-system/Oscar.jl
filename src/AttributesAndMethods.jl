@@ -3,13 +3,13 @@
 ######################
 
 """
-    affine_open_covering( v )
+    affine_open_covering( v::NormalToricVariety )
 
 Computes an affine open cover of the normal toric variety `v`, i.e. returns a list of affine toric varieties.
 """
 function affine_open_covering( v::NormalToricVariety )
     gap_cover = GAP.Globals.AffineOpenCovering( v.GapNTV )
-    return [ NormalToricVariety( v ) for v in gap_cover ]
+    return [ NormalToricVariety( v::NormalToricVariety ) for v in gap_cover ]
 end
 export affine_open_covering
 
@@ -21,7 +21,7 @@ export cox_ring
 
 
 """
-    cox_ring( v )
+    cox_ring( v::NormalToricVariety )
 
 Computes the Cox ring of the normal toric variety `v`.
 """
@@ -33,7 +33,7 @@ export cox_ring
 
 
 """
-    list_of_variables_of_cox_ring( v )
+    list_of_variables_of_cox_ring( v::NormalToricVariety )
 
 Computes the list of homogeneous variables of the Cox ring of the normal toric variety `v`.
 """
@@ -51,7 +51,7 @@ export class_group
 
 
 """
-    class_group( v )
+    class_group( v::NormalToricVariety )
 
 Computes the class group of the normal toric variety `v`.
 """
@@ -69,7 +69,7 @@ export torus_invariant_divisor_group
 
 
 """
-    torus_invariant_divisor_group( v )
+    torus_invariant_divisor_group( v::NormalToricVariety )
 
 Computes the torus invariant divisor class group of the normal toric variety `v`.
 """
@@ -87,7 +87,7 @@ export map_from_character_to_principal_divisor
 
 
 """
-    map_from_character_to_principal_divisor( v )
+    map_from_character_to_principal_divisor( v::NormalToricVariety )
 
 Computes the map from the character lattice to the principal divisors of the normal toric variety `v`.
 """
@@ -105,7 +105,7 @@ export map_from_weil_divisors_to_class_group
 
 
 """
-    map_from_weil_divisors_to_class_group( v )
+    map_from_weil_divisors_to_class_group( v::NormalToricVariety )
 
 Computes the map from the Weil divisors to the Class group of the normal toric variety `v`.
 """
@@ -117,7 +117,7 @@ export map_from_weil_divisors_to_class_group
 
 
 """
-    dimension( v )
+    dimension( v::NormalToricVariety )
 
 Computes the dimension of the normal toric variety `v`.
 """
@@ -128,7 +128,7 @@ export dimension
 
 
 """
-    dimension_of_torusfactor( v )
+    dimension_of_torusfactor( v::NormalToricVariety )
 
 Computes the dimension of the torus factor of the normal toric variety `v`.
 """
@@ -145,7 +145,7 @@ export coordinate_ring_of_torus
 
 
 """
-    coordinate_ring_of_torus( v )
+    coordinate_ring_of_torus( v::NormalToricVariety )
 
 Computes the coordinate ring of the torus of the normal toric variety `v`.
 """
@@ -157,7 +157,7 @@ export coordinate_ring_of_torus
 
 
 """
-    list_of_variables_of_coordinate_ring_of_torus( v )
+    list_of_variables_of_coordinate_ring_of_torus( v::NormalToricVariety )
 
 Computes the list of homogeneous coordinates of the coordinate ring of the torus of the normal toric variety `v`.
 """
@@ -169,7 +169,7 @@ export list_of_variables_of_coordinate_ring_of_torus
 
 
 """
-    is_product_of( v )
+    is_product_of( v::NormalToricVariety )
 
 Identifies the factors from which the normal toric variety `v` has been constructed in GAP.
 """
@@ -181,7 +181,7 @@ export is_product_of
 
 
 """
-    factors( v )
+    factors( v::NormalToricVariety )
 
 Identifies the factors from which the normal toric variety `v` has been constructed in GAP.
 """
@@ -199,7 +199,7 @@ export character_lattice
 
 
 """
-    character_lattice( v )
+    character_lattice( v::NormalToricVariety )
 
 Computes the character lattice of the normal toric variety `v`.
 """
@@ -211,7 +211,7 @@ export character_lattice
 
 
 """
-    torus_invariant_prime_divisors( v )
+    torus_invariant_prime_divisors( v::NormalToricVariety )
 
 Computes the torus invariant prime divisors of the normal toric variety `v`.
 """
@@ -229,7 +229,7 @@ export irrelevant_ideal
 
 
 """
-    irrelevant_ideal( v )
+    irrelevant_ideal( v::NormalToricVariety )
 
 Computes the irrelevant ideal of the normal toric variety `v`.
 """
@@ -247,7 +247,7 @@ export stanley_reisner_ideal
 
 
 """
-    stanley_reisner_ideal( v )
+    stanley_reisner_ideal( v::NormalToricVariety )
 
 Computes the Stanley-Reisner ideal of the normal toric variety `v`.
 """
@@ -265,7 +265,7 @@ export morphism_from_cox_variety
 
 
 """
-    morphism_from_cox_variety( v )
+    morphism_from_cox_variety( v::NormalToricVariety )
 
 Computes the morphism from the Cox variety of the normal toric variety `v`.
 """
@@ -277,7 +277,7 @@ export morphism_from_cox_variety
 
 
 """
-    cox_variety( v )
+    cox_variety( v::NormalToricVariety )
 
 Computes the Cox variety of the normal toric variety `v`.
 """
@@ -297,7 +297,7 @@ export fan
 
 
 """
-    fan_of_variety( v )
+    fan_of_variety( v::NormalToricVariety )
 
 Computes the fan of the normal toric variety `v`.
 """
@@ -315,12 +315,12 @@ export fan_of_variety
 
 
 """
-    fan( v )
+    fan( v::NormalToricVariety )
 
-A convenience method for `fan_of_variety( v )`.
+A convenience method for `fan_of_variety( v::NormalToricVariety )`.
 """
 function fan( v::NormalToricVariety )
-    return fan_of_variety( v )
+    return fan_of_variety( v::NormalToricVariety )
 end
 export fan
 
@@ -332,7 +332,7 @@ export cartier_torus_invariant_divisor_group
 
 
 """
-    cartier_torus_invariant_divisor_group( v )
+    cartier_torus_invariant_divisor_group( v::NormalToricVariety )
 
 Computes the group of Cartier and torus invariant divisors of the normal toric variety `v`.
 """
@@ -350,7 +350,7 @@ export picard_group
 
 
 """
-    picard_group( v )
+    picard_group( v::NormalToricVariety )
 
 Computes the Picard group of the normal toric variety `v`.
 """
@@ -362,7 +362,7 @@ export picard_group
 
 
 """
-    name_of_variety( v )
+    name_of_variety( v::NormalToricVariety )
 
 Returns the name of the normal toric variety `v`, if set. Otherwise returns "No name set for this variety".
 """
@@ -383,7 +383,7 @@ export zariski_cotangent_sheaf
 
 
 """
-    zariski_cotangent_sheaf( v )
+    zariski_cotangent_sheaf( v::NormalToricVariety )
 
 Returns the Zariski cotangent sheaf of the normal toric variety `v`.
 """
@@ -401,7 +401,7 @@ export cotangent_sheaf
 
 
 """
-    cotangent_sheaf( v )
+    cotangent_sheaf( v::NormalToricVariety )
 
 Returns the cotangent sheaf of the normal toric variety `v`.
 """
@@ -413,7 +413,7 @@ export cotangent_sheaf
 
 
 """
-    euler_characteristic( v )
+    euler_characteristic( v::NormalToricVariety )
 
 Computes the Euler characteristic of the normal toric variety `v`.
 """
@@ -488,7 +488,7 @@ export zariski_cotangent_sheaf_via_poincare_residue_map
 ######################
 
 """
-    set_name_of_variety( v, name::string )
+    set_name_of_variety( v::NormalToricVariety, name::String )
 
 Sets the name of the normal toric variety `v` to `name`.
 """
