@@ -14,7 +14,7 @@ export NormalToricVariety
 ######################
 
 """
-    NormalToricVariety( r, c )
+    NormalToricVariety( r::Matrix{Int}, c::Vector{Vector{Int}} )
 
 Construct the normal toric variety whose fan has ray generators `r` and maximal cones `c`.
 
@@ -45,7 +45,7 @@ end
 export NormalToricVariety
 
 """
-    NormalToricVariety( v )
+    NormalToricVariety( v::GapObj )
 
 Construct the Julia wrapper for a `GAP` toric variety `v`.
 """
@@ -56,7 +56,7 @@ end
 export NormalToricVariety
 
 """
-    ntv_gap2polymake( v )
+    ntv_gap2polymake( v::GapObj )
 
 Convert a `GAP` toric variety `v` into a `Polymake` toric variety.
 """
@@ -77,7 +77,7 @@ end
 export ntv_gap2polymake
 
 """
-    ntv_polymake2gap( v )
+    ntv_polymake2gap( v::Polymake.BigObject )
 
 Convert a `Polymake` toric variety `v` into a `GAP` toric variety.
 """
@@ -98,7 +98,7 @@ export ntv_polymake2gap
 ######################
 
 """
-    projective_space( d )
+    projective_space( d::Int )
 
 Construct the projective space of dimension `d`.
 
@@ -108,10 +108,10 @@ julia> projective_space(  2 )
 NormalToricVariety(GAP: <A projective toric variety of dimension 2>, Polymake.BigObjectAllocated(Ptr{Nothing} @0x0000562fbcc21b70))
 ```
 """
-function projective_space( x )
+function projective_space( d::Int )
     # construct the projective space in gap
-    variety = GAP.Globals.ProjectiveSpace( x )
-    f = Polymake.fan.normal_fan(Polymake.polytope.simplex(x))
+    variety = GAP.Globals.ProjectiveSpace( d )
+    f = Polymake.fan.normal_fan(Polymake.polytope.simplex(d))
     pmntv = Polymake.fulton.NormalToricVariety(f)
     
     # wrap it and return
@@ -126,7 +126,7 @@ export projective_space
 
 
 """
-    is_normal_variety( v )
+    is_normal_variety( v::NormalToricVariety )
 
 Checks if the normal toric variety `v` is normal. (This function is somewhat tautological at this point.)
 
@@ -143,7 +143,7 @@ export is_normal_variety
 
 
 """
-    is_affine( v )
+    is_affine( v::NormalToricVariety )
 
 Checks if the normal toric variety `v` is affine.
 
@@ -160,7 +160,7 @@ export is_affine
 
 
 """
-    is_projective( v )
+    is_projective( v::NormalToricVariety )
 
 Checks if the normal toric variety `v` is projective, i.e. if the fan of `v` is the the normal fan of a polytope.
 
@@ -177,7 +177,7 @@ export is_projective
 
 
 """
-    is_smooth( v )
+    is_smooth( v::NormalToricVariety )
 
 Checks if the normal toric variety `v` is smooth.
 
@@ -194,7 +194,7 @@ export is_smooth
 
 
 """
-    is_complete( v )
+    is_complete( v::NormalToricVariety )
 
 Checks if the normal toric variety `v` is complete.
 
@@ -211,7 +211,7 @@ export is_complete
 
 
 """
-    has_torusfactor( v )
+    has_torusfactor( v::NormalToricVariety )
 
 Checks if the normal toric variety `v` has a torus factor.
 
@@ -228,7 +228,7 @@ export has_torusfactor
 
 
 """
-    is_orbifold( v )
+    is_orbifold( v::NormalToricVariety )
 
 Checks if the normal toric variety `v` is an orbifold.
 
@@ -245,7 +245,7 @@ export is_orbifold
 
 
 """
-    is_simplicial( v )
+    is_simplicial( v::NormalToricVariety )
 
 Checks if the normal toric variety `v` is simplicial. Hence, this function works just as `is_orbifold`. It is implemented for user convenience.
 
@@ -262,7 +262,7 @@ export is_simplicial
 
 
 """
-    is_isomorphic_to_projective_space( v )
+    is_isomorphic_to_projective_space( v::NormalToricVariety )
 
 Checks if the normal toric variety `v` is isomorphic to projective space.
 
@@ -279,7 +279,7 @@ export is_isomorphic_to_projective_space
 
 
 """
-    is_direct_product_of_projective_spaces( v )
+    is_direct_product_of_projective_spaces( v::NormalToricVariety )
 
 Checks if the normal toric variety `v` is isomorphic to a direct product of projective space.
 
