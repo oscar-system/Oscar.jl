@@ -12,7 +12,7 @@ export toric_divisor
 ######################
 
 """
-    create_divisor( c, v )
+    create_divisor( c::Vector{Int}, v::NormalToricVariety )
 
 Construct the torus invariant divisor on the normal toric variety `v` as linear combination of the torus invariant prime divisors of `v`. The coefficients of thi linear combination are passed as list of integers as first argument.
 
@@ -33,7 +33,7 @@ end
 export create_divisor
 
 """
-    divisor_of_character( c, v )
+    divisor_of_character( c::Vector{Int}, v::NormalToricVariety )
 
 Construct the torus invariant divisor on the normal toric variety `v` corresponding to the character `c`.
 
@@ -54,7 +54,7 @@ end
 export divisor_of_character
 
 """
-    divisor_of_class( c, v )
+    divisor_of_class( v::NormalToricVariety, c::Vector{Int} )
 
 Construct a torus invariant divisor on the normal toric variety `v` corresponding to the divisor class `c`.
 
@@ -80,7 +80,7 @@ export divisor_of_class
 ######################
 
 """
-    is_cartier( d )
+    is_cartier( d::toric_divisor )
 
 Checks if the divisor `d` is Cartier.
 """
@@ -91,7 +91,7 @@ export is_cartier
 
 
 """
-    is_principal( d )
+    is_principal( d::toric_divisor )
 
 Checks if the divisor `d` is principal.
 """
@@ -102,7 +102,7 @@ export is_principal
 
 
 """
-    is_primedivisor( d )
+    is_primedivisor( d::toric_divisor )
 
 Checks if the divisor `d` is prime.
 """
@@ -113,7 +113,7 @@ export is_primedivisor
 
 
 """
-    is_basepoint_free( d )
+    is_basepoint_free( d::toric_divisor )
 
 Checks if the divisor `d` is basepoint free.
 """
@@ -124,7 +124,7 @@ export is_basepoint_free
 
 
 """
-    is_ample( d )
+    is_ample( d::toric_divisor )
 
 Checks if the divisor `d` is ample.
 """
@@ -135,7 +135,7 @@ export is_ample
 
 
 """
-    is_very_ample( d )
+    is_very_ample( d::toric_divisor )
 
 For ample divisors `d`, this method checks if `d` is very ample.
 """
@@ -151,7 +151,7 @@ export is_very_ample
 
 
 """
-    is_numerically_effective( d )
+    is_numerically_effective( d::toric_divisor )
 
 Checks if the divisor `d` is numerically effective.
 """
