@@ -1,5 +1,3 @@
-#include("ToricDivisors.jl")
-
 ######################
 # 1: Attributes of ToricVarieties
 ######################

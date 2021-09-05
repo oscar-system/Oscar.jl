@@ -1,6 +1,3 @@
-#include("ToricVarieties.jl")
-
-
 ######################
 # 1: The Julia type for ToricDivisors
 ######################
