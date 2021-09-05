@@ -32,7 +32,7 @@ end
 
 
 """
-    JToric.version
+    version
 
 The version number of the loaded `JToric`.
 Please mention this number in any bug report.
@@ -54,6 +54,8 @@ if VERSION >= v"1.4"
 end
 
 # include files
+include("ToricVarieties.jl")
+include("ToricDivisors.jl")
 include("AttributesAndMethods.jl")
 
 end
