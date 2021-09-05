@@ -9,7 +9,7 @@ Computes an affine open cover of the normal toric variety `v`, i.e. returns a li
 """
 function affine_open_covering( v::NormalToricVariety )
     gap_cover = GAP.Globals.AffineOpenCovering( v.GapNTV )
-    return [ NormalToricVariety( v::NormalToricVariety ) for v in gap_cover ]
+    return [ NormalToricVariety( v ) for v in gap_cover ]
 end
 export affine_open_covering
 
