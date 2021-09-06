@@ -263,7 +263,9 @@ function denoms(D::SpecPrincipalOpen{S,T,U}) where {S <: Ring, T <: MPolyRing, U
   result = U[]
   P = D
   while typeof(P) <: SpecPrincipalOpen
-    push!(result, P.denom)
+    # Make sure that the denominators are collected in the same manner 
+    # as the variables for the inverses appear.
+    pushfirst!( result, P.denom )
     P = parent(P)
   end
   return result
@@ -277,7 +279,7 @@ function inverses(D::SpecPrincipalOpen{S,T,U}) where {S <: Ring, T <: MPolyRing,
   phi = pullback_from_parent(D)
   P = parent(D)
   while typeof(P) <: SpecPrincipalOpen
-    push!(result, phi(inverted_element(P)))
+    pushfirst!(result, phi(inverted_element(P)))
     phi = compose( pullback_from_parent(P), phi )
     P = parent(P)
   end
@@ -479,7 +481,7 @@ mutable struct AffSchMorphism{S,Tdom, Udom, Tcod, Ucod}
   end
 
   function AffSchMorphism( domain::AffineScheme{S,Td,Ud},
-      codomain::AffineScheme{S,Tc,Uc}, imgs_frac::Vector{Frac{Uc}}
+      codomain::AffineScheme{S,Tc,Uc}, imgs_frac::Vector{Frac{Ud}}
                            ) where {S,Td,Ud,Tc,Uc}
     if base_ring(domain) != base_ring(codomain)
       error( "the base rings of the domain and the codomain do not coincide" )
@@ -494,6 +496,17 @@ mutable struct AffSchMorphism{S,Tdom, Udom, Tcod, Ucod}
     x.imgs_frac = imgs_frac
     # TODO: Implement the checks for the homomorphism to be well defined (on demand).
     return x
+  end
+
+  # Shortcut for the above to avoid conversion
+  function AffSchMorphism( domain::AffineScheme{S,Td,Ud},
+      codomain::AffineScheme{S,Tc,Uc}, 
+      imgs_frac::Union{Vector{Union{Uc,Frac{Uc}}},Vector{Uc}}
+    ) where {S,Td,Ud,Tc,Uc}
+    R = ambient_ring(root(domain))
+    Q = FractionField(R)
+    new_imgs = [ Q(x) for x in imgs_frac ]
+    return AffSchMorphism( domain, codomain, [ Q(x) for x in imgs_frac ] )
   end
 end
 
@@ -579,8 +592,6 @@ function pullback(h::AffSchMorphism)
   # with, again, t the product of variables t_j.
 
   n = length( h.imgs_frac )
-  @show h.imgs_frac
-  @show gens(R)
   if n != length( gens( R ))
     error( "Number of variables in the ambient ring of the root does not coincide with the number of images provided for the homomorphism" )
   end
@@ -604,7 +615,9 @@ function pullback(h::AffSchMorphism)
     end
     push!( images, pullback_from_root(U)(p)*pullback_from_root(U)(lift(a))*t^k )
   end
-  phi_prime = AlgebraHomomorphism( R, S_t, images )
+  #phi_prime = AlgebraHomomorphism( R, S_t, images )
+  # TODO: go back to the old line, once the bug is fixed.
+  phi_prime = AlgebraHomomorphism( R, S_t, copy(images) )
 
   # In case Y = V we are done
   if typeof(V)<:Spec 
@@ -949,7 +962,7 @@ mutable struct CoveredScheme
     return X 
   end
 
-  function CoveredScheme( C::Covering ) where{ S <: Ring }
+  function CoveredScheme( C::Covering )
     X = new()
     X.coverings = [C]
     #=
@@ -1324,6 +1337,7 @@ function zero_locus( s::VectorBundleSection )
     X = add_ideal( U[i], ideal( ambient_ring(U[i]), s[i] ) )
     add_patch( D, X, glueings(C)[i,(1:i-1)] )
   end
+  Y = CoveredScheme( D )
 end
   
     

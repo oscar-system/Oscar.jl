@@ -52,6 +52,19 @@
   j = inclusion_in_parent(U)
   f = pullback(i)
   g = pullback(j)
+  
+  # Check whether glueing via fractional representation works.
+  IA2 = affine_space( QQ, 2 )
+  R = ambient_ring( IA2 )
+  vars = gens(R)
+  x = vars[1]
+  y = vars[2]
+  IA2x = localize( IA2, x )
+  IA2y = localize( IA2, y )
+  IA2xy = localize( IA2x, y )
+  IA2yx = localize( IA2y, x )
+  g = AffSchMorphism( IA2xy, IA2yx, gens(ambient_ring(IA2)) )
+  pullback(g)
 end
 
 @testset "Misc routines" begin
