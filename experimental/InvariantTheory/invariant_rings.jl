@@ -793,7 +793,7 @@ defining images of generators: MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MP
 function affine_algebra(IR::InvRing)
     C = polynomial_ring(IR)
     V = fundamental_invariants(IR)
-    d = Int64[]
+    d = Int[]
     for i = 1:length(V)
         push!(d, degree(V[i])[1])
     end
