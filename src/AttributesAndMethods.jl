@@ -367,7 +367,7 @@ export picard_group
 Returns the name of the normal toric variety `v`, if set. Otherwise returns "No name set for this variety".
 """
 function name_of_variety( v::NormalToricVariety )
-    if ! ( Bool( GAP.Globals.HasNameOfVariety( v.GapNTV ) ) )
+    if ! GAP.Globals.HasNameOfVariety( v.GapNTV )
             return "No name set for this variety"
     end
     
