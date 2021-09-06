@@ -38,6 +38,9 @@ export parent, covering, modules
 export LineBundle
 export parent, covering, transitions, OO
 
+export VectorBundleSection, LineBundleSection
+export tautological_sections
+
 abstract type Scheme{ S <: Ring }end
 abstract type AffineScheme{S, T <: MPolyRing, U <: MPolyElem} <: Scheme{S} end
 abstract type SchemeMorphism end
@@ -431,6 +434,10 @@ end
 
 
 function Base.show( io::Base.IO, X::SpecPrincipalOpen)
+  if isdefined( X, :name )
+    Base.print( io, X.name )
+    return
+  end
   Base.print( io, "Principal open subscheme of \n" )
   Base.print( io, root(X) )
   Base.print( io, "\n" )
@@ -461,6 +468,9 @@ mutable struct AffSchMorphism{S,Tdom, Udom, Tcod, Ucod}
   imgs_frac::Vector{Frac{Ucod}}
   inverse::AffSchMorphism{S,Tdom,Udom,Tcod,Ucod} # optional field in case this is indeed an isomorphism
   sections::Vector{AffSchMorphism{S,Tdom,Udom,Tcod,Ucod}} # optional field for storing sections
+
+  # optional variables used for caching
+  name::String
 
   function AffSchMorphism( domain::AffineScheme{S,Td,Ud},
                            codomain::AffineScheme{S,Tc,Uc}, pullback::AlgHom
@@ -753,6 +763,10 @@ second_inclusion( G::Glueing ) = G.inclusionSecondPatch
 glueing_isomorphism( G::Glueing ) = G.glueingIsomorphism
 
 function Base.show( io::Base.IO, G::Glueing )
+  if isdefined( G, :name )
+    Base.print( io, G.name )
+    return
+  end
   Base.println( io, "Glueing of" )
   Base.println( io, G.firstPatch )
   Base.println( io, "and" )
@@ -773,6 +787,9 @@ end
 mutable struct Covering
   patches::Vector{AffineScheme}	# A list of open patches for this scheme
   glueings::Matrix{Union{Glueing,Nothing}}     # A list of glueings between the patches 
+
+  # Variables for caching
+  name::String
   						# listed above
   function Covering( patches::Vector{AffineScheme}, glueings::Matrix{Union{Glueing,Nothing}} )
     return new( patches, glueings )
@@ -815,6 +832,14 @@ function glueings( C::Covering )
   else
     return nothing
   end
+end
+
+function Base.show( io::Base.IO, C::Covering )
+  if isdefined( C, :name )
+    Base.print( io, C.name )
+    return
+  end
+  # TODO: Implement another way to print it.
 end
 
 ########################################################################
@@ -1052,6 +1077,7 @@ function projective_space( k::Ring, n::Int )
     end
     add_patch( C, Y, G )
   end
+  C.name = "standard cover"
   IP = CoveredScheme( C )
   set_name!( IP, "IP^$n" )
   return IP
@@ -1078,6 +1104,9 @@ mutable struct IdealSheaf <: AbstractCoherentSheaf
   parent::CoveredScheme
   covering::Covering
   ideals::Vector{MPolyIdeal}
+
+  # optional variables used for caching
+  name::String
 
   function IdealSheaf( X::CoveredScheme, C::Covering, I::Vector{MPolyIdeal} )
     if !( C in coverings(X) ) 
@@ -1123,6 +1152,9 @@ mutable struct CoherentSheaf <: AbstractCoherentSheaf
   parent::CoveredScheme
   covering::Covering
   modules::Vector{FPModule{MPolyElem}}
+
+  # optional variables used for caching
+  name::String
 end
 
 parent( I::CoherentSheaf ) = I.parent
@@ -1150,6 +1182,9 @@ mutable struct LineBundle <: AbstractCoherentSheaf
   covering::Covering
   transitions::Array{MPolyElem,2}
 
+  # optional variables used for caching
+  name::String
+
   function LineBundle( parent::CoveredScheme, covering::Covering, transitions::Array{MPolyElem,2} )
     # TODO: Implement cheap plausibility checks.
     return new( parent, covering, transitions )
@@ -1165,32 +1200,35 @@ transitions( L::LineBundle ) = L.transitions
 function OO( k::Ring, n::Int, d::Int )
   IPn = projective_space( k, n )
   C = coverings( IPn )[1]
-  patches = patches(C)
-  glueings = glueings(C)
   transitions = Array{MPolyElem,2}(undef,n+1,n+1)
   if d >= 0
     for i in OrderedMultiindex(n+1,2)
-      a = inverted_element(overlap(glueings[getindex(i,1),getindex(i,2)]))
+      a = inverted_element(overlap(glueings(C)[getindex(i,1),getindex(i,2)]))
       transitions[getindex(i,1), getindex(i,2)] = a^d
       #transitions[getindex(i,1), getindex(i,2)] = (inverted_element(overlap(glueings[i])))^d
-      transitions[i[2],i[1]] = (denom(overlap(glueings[i[1],i[2]])))^d
+      transitions[i[2],i[1]] = (denom(overlap(glueings(C)[i[1],i[2]])))^d
     end
   else
     d = -d
     for i in OrderedMultiindex(n+1,2)
-      a = inverted_element(overlap(glueings[getindex(i,1),getindex(i,2)]))
+      a = inverted_element(overlap(glueings(C)[getindex(i,1),getindex(i,2)]))
       transitions[getindex(i,2), getindex(i,1)] = a^d
-      #transitions[getindex(i,1), getindex(i,2)] = (inverted_element(overlap(glueings[i])))^d
-      transitions[i[1],i[2]] = (denom(overlap(glueings[getindex(i,1),getindex(i,2)])))^d
+      #transitions[getindex(i,1), getindex(i,2)] = (inverted_element(overlap(glueings(C)[i])))^d
+      transitions[i[1],i[2]] = (denom(overlap(glueings(C)[getindex(i,1),getindex(i,2)])))^d
     end
   end
   L = LineBundle( IPn, C, transitions )
+  L.name = "OO($n,$d)"
   return L
 end
 
 OO( n::Int, d::Int ) = OO( QQ, n, d )
 
 function Base.show( io::Base.IO, L::LineBundle )
+  if isdefined( L, :name )
+    Base.print( io, L.name )
+    return
+  end
   Base.print( io, "Line bundle on " )
   Base.print( io, L.parent )
   #Base.print( io, " with respect to the covering " )
@@ -1221,6 +1259,9 @@ mutable struct VectorBundle <: AbstractCoherentSheaf
   parent::CoveredScheme
   covering::Covering
   transitions::Array{MatrixElem{MPolyElem},2}
+  
+  # optional variables used for caching
+  name::String
 
   function VectorBundle( 
       rank::Int,
@@ -1303,29 +1344,28 @@ end
 #
 mutable struct VectorBundleSection 
   parent::VectorBundle
-  sections::Vector{Vector{MPolyElem}}
+  loc_sections::Vector{Vector{MPolyElem}}
+  
+  # optional variables used for caching
+  name::String
 
-  function VectorBundleSection( E::VectorBundle, sections::Vector{Vector{MPolyElem}} )
+  function VectorBundleSection( E::VectorBundle, loc_sections::Vector{Vector{MPolyElem}} )
     C = covering(E)
     n = length(patches(C))
-    if n != length(sections)
-      error( "The number of local sections does not coincide with the number of patches of the covering" )
-    end
+    n == length(loc_sections) || error( "The number of local sections does not coincide with the number of patches of the covering" )
     for i in (1:n)
-      if parent(sections[i]) != ambient_ring(patches(C)[i])
-	error( "The $i-th local section is not an element of the ambient ring of the patch" )
-      end
+      parent(loc_sections[i]) == ambient_ring(patches(C)[i]) || error( "The $i-th local section is not an element of the ambient ring of the patch" )
     end
-    return new( E, sections )
+    return new( E, loc_sections )
   end
 end
 
-sections(s::VectorBundleSection) = s.sections
+loc_sections(s::VectorBundleSection) = s.loc_sections
 parent(s::VectorBundleSection) = s.parent
 
 function zero_locus( s::VectorBundleSection )
   error( "not implemented yet" )
-  n = length(sections(s))
+  n = length(loc_sections(s))
   E = parent(s)
   C = covering(E)
   if rank(E) == 0 
@@ -1334,156 +1374,90 @@ function zero_locus( s::VectorBundleSection )
   U = patches(C)
   D = Covering()
   for i in (1:n)
-    X = add_ideal( U[i], ideal( ambient_ring(U[i]), s[i] ) )
+    X = add_ideal( U[i], ideal( ambient_ring(U[i]), s.loc_sections[i] ) )
     add_patch( D, X, glueings(C)[i,(1:i-1)] )
   end
   Y = CoveredScheme( D )
 end
+
+##########################################################
+#
+# Section in a line bundle
+#
+mutable struct LineBundleSection 
+  parent::LineBundle
+  loc_sections::Vector{MPolyElem}
+  
+  # optional variables used for caching
+  name::String
+
+  function LineBundleSection( E::LineBundle, loc_sections::Vector{MPolyElem} )
+    C = covering(E)
+    n = length(patches(C))
+    n == length(loc_sections) || error( "The number of local sections does not coincide with the number of patches of the covering" )
+    for i in (1:n)
+      parent(loc_sections[i]) == ambient_ring(patches(C)[i]) || error( "The $i-th local section is not an element of the ambient ring of the patch" )
+    end
+    return new( E, loc_sections )
+  end
+end
+
+loc_sections(s::LineBundleSection) = s.loc_sections
+parent(s::LineBundleSection) = s.parent
+
+function Base.show( io::Base.IO, s::LineBundleSection )
+  if isdefined( s, :name )
+    Base.print( s.name )
+    return
+  end
+  Base.println( io, "Section in the line bundle $(parent(s)) on the scheme $(parent(parent(s)))" )
+  Base.println( io, "given in the covering $(covering(parent(s))) with local sections" )
+  Base.println( io, loc_sections(s))
+end
+
+
+function zero_locus( s::LineBundleSection )
+  error( "not implemented yet" )
+  n = length(loc_sections(s))
+  E = parent(s)
+  C = covering(E)
+  if rank(E) == 0 
+    return parent(C)
+  end
+  U = patches(C)
+  D = Covering()
+  for i in (1:n)
+    X = add_ideal( U[i], ideal( ambient_ring(U[i]), s.loc_sections[i] ) )
+    add_patch( D, X, glueings(C)[i,(1:i-1)] )
+  end
+  Y = CoveredScheme( D )
+end
+
+# The global sections of the dual of the tautological bundle 
+# on IP^n which correspond to the homogeneous coordinates.
+function tautological_sections( k::Ring, n::Int )
+  L = OO( k, n, 1 )
+  IP = parent( L )
+  C = covering(L)
+  U = patches(C)
+  result = LineBundleSection[]
+  for i in (1:n+1)
+    loc_sections = MPolyElem[]
+    for j in (1:i-1)
+      push!( loc_sections, gens(ambient_ring(U[j]))[i-1] )
+    end
+    push!( loc_sections, one(ambient_ring(U[i])) )
+    for j in (i+1:n+1)
+      push!( loc_sections, gens(ambient_ring(U[j]))[i] )
+    end
+    println( "This section is being added:" )
+    x = LineBundleSection( L, loc_sections )
+    #x.name = "x$(i-1)"
+    push!( result, x )
+  end
+  return result
+end
+
   
     
-
-
-# Todo adapt the code below to the new data structure
-
-#=
-@doc Markdown.doc"""
-    struct Glueing( domain::AffineScheme, codomain::AffineScheme, pullback::AlgHom )
-
-    Maintains the data for the glueing of two affine varieties.
-    In practice, domain and codomain will be distinguished open subsets
-    of different affine algebras and then pullback will specify
-    a concrete isomorphism between them.
-
-    Compared to AffSchMorphism, this structure has an additional field
-    in which the inverse morphism can be stored.
-"""
-mutable struct Isomorphism{
-    Sdom <: Ring, Tdom <: MPolyRing, Udom <: MPolyElem,
-    Scod <: Ring, Tcod <: MPolyRing, Ucod <: MPolyElem
-  } <: SchemeMorphism
-  domain::Spec{ Sdom, Tdom, Udom }
-  codomain::Spec{ Scod, Tcod, Ucod }
-  pullback::AlgHom
-  inverse::AlgHom
-
-  function Isomorphism( domain::AffineScheme, codomain::AffineScheme, pullback::AlgHom, inverse::AlgHom )
-    if coefficient_ring( domain.R ) != coefficient_ring( codomain.R )
-      error( "the base rings of the domain and the codomain do not coincide!" )
-    end
-    #if domain(pullback) != codomain.R || codomain(pullback) != domain.R
-      #error( "the domain and codomain of the given ring homomorphism is not compatible with the affine schemes." )
-    #end
-    return new{
-      typeof(coefficient_ring(domain.R)), typeof(domain.R), elem_type(domain.R),
-      typeof(coefficient_ring(codomain.R)), typeof(codomain.R), elem_type(codomain.R)
-    }( domain, codomain, pullback, inverse )
-  end
-
-  function Isomorphism( domain::AffineScheme, codomain::AffineScheme, pullback::AlgHom )
-    if coefficient_ring( domain.R ) != coefficient_ring( codomain.R )
-      error( "the base rings of the domain and the codomain do not coincide!" )
-    end
-    inv_list = [ preimage( pullback, g )[1] for g in gens( codomain( pullback ))]
-    inverse = AlgebraHomomorphism( pullback.codomain, pullback.domain, inv_list )
-    return new{
-      typeof(coefficient_ring(domain.R)), typeof(domain.R), elem_type(domain.R),
-      typeof(coefficient_ring(codomain.R)), typeof(codomain.R), elem_type(codomain.R)
-    }( domain, codomain, pullback, inverse )
-  end
-end
-
-# The inclusion of open subsets. 
-# Note that this struct can only instantiate open inclusions which 
-# are determined by an explicit ring homomorphism. Not all open 
-# inclusions (not even of affine schemes) can be described this way!
-mutable struct OpenInclusion{
-    Sdom <: Ring, Tdom <: MPolyRing, Udom <: MPolyElem, 
-    Scod <: Ring, Tcod <: MPolyRing, Ucod <: MPolyElem 
-  } <: SchemeMorphism
-  domain::Spec{ Sdom, Tdom, Udom }
-  codomain::Spec{ Scod, Tcod, Ucod }
-  pullback::AlgHom
-end
-
-function Oscar.compose( phi::AffSchMorphism, psi::AffSchMorphism )
-  if psi.codomain != phi.domain 
-    error( "Morphisms of schemes can not be composed." )
-  end
-  return AffSchMorphism( phi.domain, psi.codomain, compose( psi.pullback, phi.pullback ))
-end
-
-function Oscar.compose( phi::Isomorphism, psi::AffSchMorphism )
-  if psi.codomain != phi.domain 
-    error( "Morphisms of schemes can not be composed." )
-  end
-  return AffSchMorphism( phi.domain, psi.codomain, compose( psi.pullback, phi.pullback ))
-end
-
-function Oscar.compose( phi::AffSchMorphism, psi::Isomorphism )
-  if psi.codomain != phi.domain 
-    error( "Morphisms of schemes can not be composed." )
-  end
-  return AffSchMorphism( phi.domain, psi.codomain, compose( psi.pullback, phi.pullback ))
-end
-
-function Oscar.compose( phi::Isomorphism, psi::Isomorphism )
-  if psi.codomain != phi.domain 
-    error( "Morphisms of schemes can not be composed." )
-  end
-  return Isomorphism( phi.domain, psi.codomain, 
-		 compose( psi.pullback, phi.pullback ),
-		 compose( phi.inverse, psi.inverse) )
-end
-
-function ∘( phi::SchemeMorphism, psi::SchemeMorphism )
-  return compose( phi, psi )
-end
-
-# A struct for glueing of two affine schemes X = Spec A and Y = Spec B along a common 
-# principal open subset U. Then U is given as both, Spec A_f and Spec B_g for 
-# elements f ∈  A and g ∈  B, and there is an isomorphism phi : A_f →  B_g. The 
-# Glueing maintains this information, together with the two inclusions of 
-# open sets i : U ↪  X and j : U ↪  Y given by A →  A_f, and B →  B_f, respectively.
-mutable struct Glueing
-  X::AffineScheme
-  Y::AffineScheme
-  i::SchemeMorphism
-  j::SchemeMorphism
-  phi::Isomorphism
-
-end
-
-# A struct maintaining the information for a covering 
-# of a scheme. A scheme itself can have multiple coverings 
-# with a partial order given by refinement. Any object relying 
-# on a covering such as, for instance, a vector bundle given by 
-# transition functions, can refer to such a covering. 
-#
-# TODO: Simon argued that such a struct should not be mutable, 
-# because the objects depending on it can not keep track 
-# of such changes. Technically, however, that means all data 
-# for the covering has to be computed before the actual instantiation 
-# of the covering. That will involve a lot of temporary variables 
-# resembling the final struct and seems a bit tedious. Therefore, 
-# I make it mutable for now. 
-mutable struct Covering 
-  charts::Vector{AffineScheme} 
-  glueings::Vector{Glueing}
-end
-
-mutable struct CoveredScheme <: Scheme
-  coverings::Vector{Covering}
-end
-
-abstract type ChowCycle end
-
-# This is the data structure for a cycle in an affine 
-# scheme given by a list of coefficients and prime ideals
-# TODO: Parametrize by types.
-mutable struct AffineCycle{ CoefficientType <: Ring } <: ChowCycle
-  parent::AffineScheme
-  summands::Tuple{CoefficientType, AbstractAlgebra.Ideal}
-end
-
-=#
 
