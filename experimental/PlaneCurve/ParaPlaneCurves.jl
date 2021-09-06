@@ -34,8 +34,8 @@ end
 @doc Markdown.doc"""
     parametrization_plane_curve(C::ProjPlaneCurve{fmpq}, s::String = "local")
 
-Return an ideal `P` in a new ring `R` consisting of a rational parametrization
-of the rational plane curve `C`. The generators of `P` parametrize the three
+Return a vector `V` of polynomials in a new ring `R` consisting of a rational parametrization
+of the rational plane curve `C`. The entries of `V` parametrize the three
 coordinates of the rational curve. The ground field of `R` is either QQ or some
 algebraic extension QQ(a). The optional string can be "normal", to compute the
 integral basis via normalization, or local (default), to make local analysis of
@@ -83,8 +83,8 @@ end
 @doc Markdown.doc"""
     parametrization_conic(C::ProjPlaneCurve{fmpq})
 
-Given a conic `C`, return an ideal `I` in a new ring which should be
-considered as the homogeneous coordinate ring of `PP^1`. The ideal `I` defines a
+Given a conic `C`, return a vector `V` of polynomials in a new ring which should be
+considered as the homogeneous coordinate ring of `PP^1`. The vector `V` defines a
 rational parametrization `PP^1 --> C2 = {q=0}`.
 """
 function parametrization_conic(C::ProjPlaneCurve{fmpq})
@@ -93,7 +93,7 @@ function parametrization_conic(C::ProjPlaneCurve{fmpq})
     R = L[1]
     J = [L[2][i] for i in keys(L[2])][1]
     S = _fromsingular_ring(R)
-    return ideal(S, J)
+    return gens(ideal(S, J))
 end
 
 @doc Markdown.doc"""
@@ -115,21 +115,21 @@ end
 @doc Markdown.doc"""
     rat_normal_curve_anticanonical_map(C::ProjCurve)
 
-Return an ideal defining the anticanonical map `C --> PP^(n-2)`. Note that the
-entries of the ideal should be considered as representatives of elements in R/I,
+Return a vector `V` defining the anticanonical map `C --> PP^(n-2)`. Note that the
+entries of `V` should be considered as representatives of elements in R/I,
 where R is the basering.
 """
 function rat_normal_curve_anticanonical_map(C::ProjCurve)
     R = base_ring(C.I)
     I = _tosingular_ideal(C)
     J = Singular.LibParaplanecurves.rncAntiCanonicalMap(I)
-    return ideal(R, J)
+    return gens(ideal(R, J))
 end
 
 @doc Markdown.doc"""
     rat_normal_curve_It_Proj_Odd(C::ProjCurve)
 
-Return an ideal `PHI` defining an isomorphic projection of `C` to `PP^1`.
+Return a vector `PHI` defining an isomorphic projection of `C` to `PP^1`.
 Note that the entries of `PHI` should be considered as
 representatives of elements in `R/I`, where `R` is the basering.
 """
@@ -137,7 +137,7 @@ function rat_normal_curve_It_Proj_Odd(C::ProjCurve)
     R = base_ring(C.I)
     I = _tosingular_ideal(C)
     J = Singular.LibParaplanecurves.rncItProjOdd(I)
-    return ideal(R, J)
+    return gens(ideal(R, J))
 end
 
 function rat_normal_curve_It_Proj_Even(C::ProjCurve)
