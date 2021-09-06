@@ -47,24 +47,21 @@ function parametrization_plane_curve(C::ProjPlaneCurve{fmpq}, s::String = "local
     R = L[1]
     J = [L[2][i] for i in keys(L[2])][1]
     S = _fromsingular_ring(R)
-    return ideal(S, J)
+    return gens(ideal(S, J))
 end
 
 @doc Markdown.doc"""
-    adjoint_ideal(C::ProjPlaneCurve{fmpq}, n::Int = 2, s::String= "")
+    adjoint_ideal(C::ProjPlaneCurve{fmpq}, n::Int = 2)
 
 Return the adjoint ideal of the curve `C`. If n = 1, the computation is done via
 normalization, if n = 2 (default value), the local analysis of singularities is
 made first and then the normalization is applied separately, if n = 3 (resp
-n = 4), it uses normalization via (resp local) ideal quotient, and if n = 4.
-If the optional string "rattestyes" is used, it causes error message if the
-curve is not raional, and the string "firstchecksdone" prevents that check of
-assumptions will be done more than once.
+n = 4), it uses normalization via (resp local) ideal quotient.
 """
-function adjoint_ideal(C::ProjPlaneCurve{fmpq}, n::Int = 2, s::String= "")
+function adjoint_ideal(C::ProjPlaneCurve{fmpq}, n::Int = 2)
     F = _tosingular(C)
     R = parent(C.eq)
-    I = Singular.LibParaplanecurves.adjointIdeal(F, n, s)
+    I = Singular.LibParaplanecurves.adjointIdeal(F, n)
     return ideal(R, I)
 end
 
