@@ -20,7 +20,7 @@ export Glueing
 export first_patch, second_patch, overlap, first_inclusion, second_inclusion, glueing_isomorphism
 
 export Covering
-export patches, glueings, add_patch
+export patches, glueings, _add_patch!
 
 export Refinement
 
@@ -181,16 +181,16 @@ end
 # Check whether X is a parent of U and return the inclusion morphism 
 # if true. Otherwise, return nothing.
 function is_parent_of( X::AffineScheme, U::SpecPrincipalOpen )
-  ι = identity_morphism(U)
+  i = identity_morphism(U)
   if X == U
-    return ι
+    return i
   end
   V = U
   while typeof(V)<:SpecPrincipalOpen
     W = parent(V)
-    ι = compose( inclusion_in_parent(V), ι )
+    i = compose( inclusion_in_parent(V), i )
     if W == X 
-      return ι
+      return i
     end
     V = W
   end
@@ -237,7 +237,7 @@ end
 
 # Return a vector containing the variables of the root's ambient 
 # ring, but as elements of the new ambient ring.
-function get_root_variables( D::SpecPrincipalOpen )
+function root_variables( D::SpecPrincipalOpen )
   phi = pullback_from_root(D)
   return [ phi(x) for x in gens(ambient_ring(root(D))) ]
 end
@@ -351,7 +351,7 @@ function pullback_from_parent( D::SpecPrincipalOpen )
   return D.pullbackFromParent
 end
 
-#function get_ring_hom(D::SpecPrincipalOpen)
+#function ring_hom(D::SpecPrincipalOpen)
 #  R = ambient_ring(root(D))
 #  S = ambient_ring(D)
 #  d = length(denoms(D))
@@ -781,7 +781,7 @@ end
 # It consists of a list of affine patches together with their glueings.
 # The glueings are stored in an array (which is usually half empty, since 
 # glueings need only be provided for ordered pairs of indices). 
-# The get_index methods for double arrays have been overloaded so that 
+# The index methods for double arrays have been overloaded so that 
 # OrderedMultiindex can be used to address them.
 #
 mutable struct Covering
@@ -818,7 +818,7 @@ function patches( C::Covering )
   end 
 end
 
-function get_patch( C::Covering, i::Int )
+function patch( C::Covering, i::Int )
   if isdefined( C, :patches )
     return( C.patches[i] )
   else
@@ -849,7 +849,7 @@ end
 # passed on as a vector using the same indices as the 
 # list of patches in the covering C.
 
-function add_patch( C::Covering, X::AffineScheme, glueings::Vector{Glueing} )
+function _add_patch!( C::Covering, X::AffineScheme, glueings::Vector{Glueing} )
   push!( C.patches, X )
   n = length(glueings)
   if n != length(patches(C))-1
@@ -935,14 +935,14 @@ mutable struct Refinement
   inclusions::Vector{AffSchMorphism}
 end
 
-function get_original_cover( ρ::Refinement )
+function original_cover( ρ::Refinement )
   if isdefined( ρ, :original_cover )
     return ρ.original_cover
   end
   return nothing
 end
 
-function get_refined_cover( ρ::Refinement )
+function refined_cover( ρ::Refinement )
   if isdefined( ρ, :refined_cover )
     return ρ.refined_cover
   end
@@ -953,7 +953,7 @@ function map_index( ρ::Refinement, i::Int )
   return ρ.index_map[i]
 end
 
-function get_inclusions( ρ::Refinement )
+function inclusions( ρ::Refinement )
   if isdefined( ρ, :inclusions ) 
     return ρ.inclusions
   end
@@ -1011,7 +1011,7 @@ function set_name!( X::CoveredScheme, name::String )
   return name
 end
 
-function get_name( X::CoveredScheme ) 
+function name( X::CoveredScheme ) 
   if isdefined( X, :name )
     return X.name
   end
@@ -1059,8 +1059,8 @@ function projective_space( k::Ring, n::Int )
       U = localize( X, gens(S)[j] )
       R_loc = ambient_ring( V )
       S_loc = ambient_ring( U )
-      R_vars = get_root_variables(V)
-      S_vars = get_root_variables(U)
+      R_vars = root_variables(V)
+      S_vars = root_variables(U)
       R_unit = inverted_element(V)
       S_unit = inverted_element(U)
       Phi = AlgebraHomomorphism( R_loc, S_loc, 
@@ -1075,7 +1075,7 @@ function projective_space( k::Ring, n::Int )
       glueing = Glueing( inclusion_in_parent(U), inclusion_in_parent(V), f )
       push!( G, glueing )
     end
-    add_patch( C, Y, G )
+    _add_patch!( C, Y, G )
   end
   C.name = "standard cover"
   IP = CoveredScheme( C )
@@ -1117,7 +1117,7 @@ mutable struct IdealSheaf <: AbstractCoherentSheaf
       error( "number of ideals provided does not coincide with the number of patches in the covering" )
     end
     for i in (1:n)
-      if base_ring(I[i]) != ambient_ring(root(get_patch(C,i)))
+      if base_ring(I[i]) != ambient_ring(root(patch(C,i)))
 	error( "ideal number $i does not live in the base ring of the $i-th patch" )
       end
     end
@@ -1289,9 +1289,9 @@ function pullback( L::LineBundle, ρ::Refinement )
   if covering(L) != original_cover(ρ) 
     error( "The line bundle is defined on a different cover than the one being refined" )
   end
-  m = length( patches( get_covering( L )))
-  n = length( patches( get_original_cover( ρ )))
-  inclusions = get_inclusions( ρ )
+  m = length( patches( covering( L )))
+  n = length( patches( original_cover( ρ )))
+  inclusions = inclusions( ρ )
   new_transitions = Array{MPolyElem,2}(undef,n,n)
   glueings_original = glueings(domain(ρ))
   glueings_refined = glueings(codomain(ρ))
@@ -1333,7 +1333,7 @@ function pullback( L::LineBundle, ρ::Refinement )
       end
     end
   end
-  M = LineBundle( parent(L), get_refined_cover(ρ), new_transitions )
+  M = LineBundle( parent(L), refined_cover(ρ), new_transitions )
   return M
 end
 
@@ -1375,7 +1375,7 @@ function zero_locus( s::VectorBundleSection )
   D = Covering()
   for i in (1:n)
     X = add_ideal( U[i], ideal( ambient_ring(U[i]), s.loc_sections[i] ) )
-    add_patch( D, X, glueings(C)[i,(1:i-1)] )
+    _add_patch!( D, X, glueings(C)[i,(1:i-1)] )
   end
   Y = CoveredScheme( D )
 end
@@ -1428,7 +1428,7 @@ function zero_locus( s::LineBundleSection )
   D = Covering()
   for i in (1:n)
     X = add_ideal( U[i], ideal( ambient_ring(U[i]), s.loc_sections[i] ) )
-    add_patch( D, X, glueings(C)[i,(1:i-1)] )
+    _add_patch!( D, X, glueings(C)[i,(1:i-1)] )
   end
   Y = CoveredScheme( D )
 end
