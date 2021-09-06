@@ -59,7 +59,7 @@ class_group
 torus_invariant_divisor_group
 map_from_character_to_principal_divisor
 map_from_weil_divisors_to_class_group
-dimension
+dim
 dimension_of_torusfactor
 coordinate_ring_of_torus
 list_of_variables_of_coordinate_ring_of_torus

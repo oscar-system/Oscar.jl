@@ -117,14 +117,14 @@ export map_from_weil_divisors_to_class_group
 
 
 """
-    dimension( v::NormalToricVariety )
+    dim( v::NormalToricVariety )
 
 Computes the dimension of the normal toric variety `v`.
 """
-function dimension( v::NormalToricVariety )
+function dim( v::NormalToricVariety )
     return GAP.Globals.Dimension(v.GapNTV)::Int
 end
-export dimension
+export dim
 
 
 """
