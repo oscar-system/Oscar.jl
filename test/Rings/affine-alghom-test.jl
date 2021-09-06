@@ -57,3 +57,12 @@ end
   @test t[1] == true
   @test t[2] == gen(T, 1)^2-gen(T, 2)^2+gen(T, 2) 
 end
+
+@testset "#655" begin
+  R, vars = QQ["x","y"]
+  x = vars[1]
+  y = vars[2]
+  f = AlgebraHomomorphism(R, R, vars)
+  push!(vars, x)
+  @test f(x) == x
+end
