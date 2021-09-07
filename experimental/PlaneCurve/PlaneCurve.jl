@@ -470,6 +470,8 @@ include("ProjPlaneCurve.jl")
 include("DivisorCurve.jl")
 include("ProjEllipticCurve.jl")
 include("EllCurveZnZ.jl")
+include("ProjCurve.jl")
+include("ParaPlaneCurves.jl")
 
 ################################################################################
 end
