@@ -429,22 +429,22 @@ end
     C1 = Oscar.ProjPlaneCurve(T(1//2*x^5+x^2*y*z^2+x^3*y*z+1//2*x*y^2*z^2-2*x*y^3*z+y^5))
     I1 = Oscar.parametrization_plane_curve(C1)
     I2 = Oscar.adjoint_ideal(C1)
-    R1 = base_ring(I1)
+    R1 = parent(I1[1])
     s, t = gens(R1)
-    @test gens(I1) == [-4*s^4*t + 2*s^3*t^2, 2*s^2*t^3 - s*t^4, 4*s^5 - t^5]
+    @test I1 == [-4*s^4*t + 2*s^3*t^2, 2*s^2*t^3 - s*t^4, 4*s^5 - t^5]
     @test gens(I2) == [T(-x*y*z + y^3), T(-x^2*z + x*y^2), T(x^2*y + y^2*z), T(x^3 + x*y*z)]
     C2 = Oscar.ProjPlaneCurve(T(y^2 - x*z))
     P = Oscar.rational_point_conic(C2)
     I3 = Oscar.parametrization_conic(C2)
-    R2 = base_ring(I3)
+    R2 = parent(I3[1])
     s1, t1 = gens(R2)
     @test iszero(evaluate(C2.eq, P))
-    @test gens(I3) == [s1^2,  s1*t1, t1^2]
+    @test I3 == [s1^2,  s1*t1, t1^2]
     C3 = Oscar.ProjPlaneCurve(T(y^8-x^3*(z+x)^5))
     D = Oscar.map_to_rational_normal_curve(C3)
     I4 = Oscar.rat_normal_curve_anticanonical_map(D)
-    Y = gens(base_ring(I4))
-    @test gens(I4) == [Y[1], -Y[2], -Y[5], -Y[4], -Y[7]]
+    Y = gens(parent(I4[1]))
+    @test I4 == [Y[1], -Y[2], -Y[5], -Y[4], -Y[7]]
     C4 = Oscar.rat_normal_curve_It_Proj_Even(D)
     R3 = parent(C4.eq)
     U = gens(R3)
@@ -456,7 +456,19 @@ end
     11*y^4*z^3))
     D2 = Oscar.map_to_rational_normal_curve(C5)
     I5 = Oscar.rat_normal_curve_It_Proj_Odd(D2)
-    R4 = base_ring(I5)
+    R4 = parent(I5[1])
     V = gens(R4)
-    @test gens(I5) == [121*V[3] + 77*V[4], -11*V[5] - 7*V[6]]
+    @test I5 == [121*V[3] + 77*V[4], -11*V[5] - 7*V[6]]
+    C6 = Oscar.ProjPlaneCurve(T(y^8 - x^3*(z+x)^5))
+    I = Oscar.adjoint_ideal(C6)
+    BM = Oscar.invert_birational_map(gens(I), C6)
+    R5 = parent(BM["image"][1])
+    W = gens(R5)
+    @test BM["image"] == [-W[4]*W[7] + W[5]*W[6], -W[3]*W[7] + W[4]*W[6],
+ -W[1]*W[7] + W[2]*W[6], -W[2]*W[7] + W[4]*W[5], -W[1]*W[7] + W[3]*W[5],
+ W[1]*W[5] - W[7]^2, -W[1]*W[7] + W[4]^2, -W[1]*W[6] + W[3]*W[4],
+ W[2]*W[4] - W[7]^2, W[1]*W[4] - W[6]*W[7], W[2]*W[3] - W[6]*W[7],
+ W[1]*W[3] - W[6]^2, W[2]^2 - W[5]*W[7], W[1]*W[2] - W[4]*W[7],
+ W[1]^2 - W[3]*W[7], W[1]*W[6]^2 - W[3]^2*W[7], -W[3]^3*W[7] + W[6]^4]
+    @test BM["inverse"] == [-W[6]^2, -W[4]*W[7], -W[5]*W[7] + W[6]^2]
 end

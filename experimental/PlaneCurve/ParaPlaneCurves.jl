@@ -1,7 +1,7 @@
 export parametrization_plane_curve, adjoint_ideal, rational_point_conic,
        parametrization_conic, map_to_rational_normal_curve,
        rat_normal_curve_anticanonical_map, rat_normal_curve_It_Proj_Odd,
-       rat_normal_curve_It_Proj_Even
+       rat_normal_curve_It_Proj_Even, invert_birational_map
 
 
 ################################################################################
@@ -146,4 +146,25 @@ function rat_normal_curve_It_Proj_Even(C::ProjCurve)
     S = _fromsingular_ring(L[1])
     f = [L[2][i] for i in keys(L[2])][1]
     return ProjPlaneCurve(S(f))
+end
+
+@doc Markdown.doc"""
+    invert_birational_map(phi::Vector{T}, C::ProjPlaneCurve) where {T <: MPolyElem}
+
+Return a dictionary where `image` represents the image of the birational map
+given by `phi`, and `inverse` represents its inverse, where `phi` is a
+birational map of the projective plane curve `C` to its image in the projective
+space of dimension `size(phi) - 1`.
+Note that the entries of `inverse` should be considered as
+representatives of elements in `R/image`, where `R` is the basering.
+"""
+function invert_birational_map(phi::Vector{T}, C::ProjPlaneCurve) where {T <: MPolyElem}
+    S = parent(phi[1])
+    I = ideal(S, phi)
+    singular_assure(I)
+    L = Singular.LibParaplanecurves.invertBirMap(I.gens.S, _tosingular(C))
+    R = _fromsingular_ring(L[1])
+    J = L[2][:J]
+    psi = L[2][:psi]
+    return Dict([("image", gens(ideal(R, J))), ("inverse", gens(ideal(R, psi)))])
 end
