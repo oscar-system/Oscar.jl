@@ -47,7 +47,7 @@ struct BoundRingElem{T} <: AbstractAlgebra.RingElem
 end
 
 function Base.show(io::IO, b::BoundRingElem)
-  print(io, "x <= $(b.val)")
+  print(io, "(x <= $(b.val))")
 end
 
 function check_parent(a::BoundRingElem, b::BoundRingElem)
@@ -55,6 +55,7 @@ function check_parent(a::BoundRingElem, b::BoundRingElem)
   return true
 end
 
+==(a::BoundRingElem, b::BoundRingElem) = check_parent(a, b) && a.val == b.val
 +(a::BoundRingElem, b::BoundRingElem) = check_parent(a, b) && BoundRingElem(a.p.add(a.val, b.val), a.p)
 -(a::BoundRingElem, b::BoundRingElem) = check_parent(a, b) && BoundRingElem(a.p.add(a.val, b.val), a.p)
 *(a::BoundRingElem, b::BoundRingElem) = check_parent(a, b) && BoundRingElem(a.p.mul(a.val, b.val), a.p)
@@ -66,8 +67,14 @@ Oscar.parent(a::BoundRingElem) = a.p
 value(a::BoundRingElem) = a.val
 Base.isless(a::BoundRingElem, b::BoundRingElem) = check_parent(a, b) && isless(value(a), value(b))
 
+Oscar.parent_type(::BoundRingElem{T}) where T = BoundRing{T}
+Oscar.elem_type(::BoundRing{T}) where T = BoundRingElem{T}
+Oscar.parent_type(::Type{BoundRingElem{T}}) where T = BoundRing{T}
+Oscar.elem_type(::Type{BoundRing{T}}) where T = BoundRingElem{T}
+
 (R::BoundRing)(a::fmpz) = BoundRingElem(R.map(abs(a)), R)
 (R::BoundRing)(a::Integer) = BoundRingElem(fmpz(a), R)
+(R::BoundRing)() = BoundRingElem(fmpz(0), R)
 (R::BoundRing)(a::BoundRingElem) = a
 Oscar.one(R::BoundRing) = R(1)
 Oscar.zero(R::BoundRing) = R(0)
