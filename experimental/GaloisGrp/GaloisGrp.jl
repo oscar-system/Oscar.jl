@@ -55,7 +55,7 @@ function check_parent(a::BoundRingElem, b::BoundRingElem)
   return true
 end
 
-==(a::BoundRingElem, b::BoundRingElem) = check_parent(a, b) && a.val == b.val
+Base.:(==)(a::BoundRingElem, b::BoundRingElem) = check_parent(a, b) && a.val == b.val
 +(a::BoundRingElem, b::BoundRingElem) = check_parent(a, b) && BoundRingElem(a.p.add(a.val, b.val), a.p)
 -(a::BoundRingElem, b::BoundRingElem) = check_parent(a, b) && BoundRingElem(a.p.add(a.val, b.val), a.p)
 *(a::BoundRingElem, b::BoundRingElem) = check_parent(a, b) && BoundRingElem(a.p.mul(a.val, b.val), a.p)
