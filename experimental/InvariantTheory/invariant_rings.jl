@@ -20,6 +20,8 @@ mutable struct InvRing{FldT, GrpT, PolyElemT, PolyRingT, ActionT, SingularAction
   irreducible_secondary::Vector{PolyElemT}
   fundamental::Vector{PolyElemT}
 
+  reynolds_operator::MapFromFunc{PolyRingT, PolyRingT}
+
   # Cache some stuff on the Singular side
   # (possibly removed at some point)
   reynolds_singular::Singular.smatrix
@@ -121,6 +123,32 @@ function Base.show(io::IO, IR::InvRing)
   print(io, action(IR))
 end
 
+# Returns a map performing the right action of M on the ring R
+function right_action(R::MPolyRing{T}, M::MatrixElem{T}) where T
+  @assert nvars(R) == ncols(M)
+  @assert nrows(M) == ncols(M)
+  n = nvars(R)
+
+  vars = zeros(R, n)
+  x = gens(R)
+  for i = 1:n
+    for j = 1:n
+      if iszero(M[i, j])
+        continue
+      end
+      vars[i] = addeq!(vars[i], M[i, j]*x[j])
+    end
+  end
+
+  right_action_by_M(f::MPolyElem{T}) = evaluate(f, vars)
+
+  return MapFromFunc(right_action_by_M, R, R)
+end
+
+right_action(R::MPolyRing{T}, M::MatrixGroupElem{T}) where T = right_action(R, M.elm)
+right_action(f::MPolyElem{T}, M::MatrixElem{T}) where T = right_action(parent(f), M)(f)
+right_action(f::MPolyElem{T}, M::MatrixGroupElem{T}) where T = right_action(f, M.elm)
+
 function reynolds_molien_via_singular(IR::InvRing{T}) where {T <: Union{FlintRationalField, AnticNumberField}}
   if !isdefined(IR, :reynolds_singular) || !isdefined(IR, :molien_singular)
     singular_matrices = _action_singular(IR)
@@ -160,6 +188,69 @@ function reynolds_via_singular(IR::InvRing{T}) where {T <: Union{FqNmodFiniteFie
     IR.reynolds_singular = rey
   end
   return IR.reynolds_singular
+end
+
+# Need a special function for char 0 at the moment
+# TODO: Remove this function once we can iterate over and call `order` on char 0
+# matrix groups
+function _prepare_reynolds_operator(IR::InvRing{FldT, GrpT, T}) where {FldT <: Union{FlintRationalField, AnticNumberField}, GrpT <: MatrixGroup, T}
+  if isdefined(IR, :reynolds_operator)
+    return nothing
+  end
+
+  H, GtoH = Oscar.isomorphic_group_over_finite_field(group(IR))
+  elements_of_G = [ preimage(GtoH, h) for h in H ]
+  actions = [ right_action(polynomial_ring(IR), g) for g in elements_of_G ]
+  function reynolds(f::T)
+    g = parent(f)()
+    for action in actions
+      g = addeq!(g, action(f))
+    end
+    return g*base_ring(f)(1//order(H))
+  end
+
+  IR.reynolds_operator = MapFromFunc(reynolds, polynomial_ring(IR), polynomial_ring(IR))
+  return nothing
+end
+
+function _prepare_reynolds_operator(IR::InvRing{FldT, GrpT, PolyElemT}) where {FldT, GrpT, PolyElemT}
+  @assert !ismodular(IR)
+
+  if isdefined(IR, :reynolds_operator)
+    return nothing
+  end
+
+  actions = [ right_action(polynomial_ring(IR), g) for g in group(IR) ]
+  function reynolds(f::PolyElemT)
+    g = parent(f)()
+    for action in actions
+      g = addeq!(g, action(f))
+    end
+    return g*base_ring(f)(1//order(group(IR)))
+  end
+
+  IR.reynolds_operator = MapFromFunc(reynolds, polynomial_ring(IR), polynomial_ring(IR))
+  return nothing
+end
+
+function reynolds_operator_via_oscar(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyElem}
+  @assert !ismodular(IR)
+
+  if !isdefined(IR, :reynolds_operator)
+    _prepare_reynolds_operator(IR)
+  end
+  return IR.reynolds_operator(f)
+end
+
+function reynolds_operator_via_singular(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyElem}
+   @assert parent(f) === polynomial_ring(IR)
+
+   rey = reynolds_via_singular(IR)
+   fSing = singular_ring(polynomial_ring(IR))(f)
+   fReySing = Singular.LibFinvar.evaluate_reynolds(rey, fSing)
+   # fReySing is an ideal...
+   @assert length(gens(fReySing)) == 1
+   return polynomial_ring(IR)(gens(fReySing)[1])
 end
 
 @doc Markdown.doc"""
@@ -249,16 +340,7 @@ julia> reynolds_operator(IR, f)
 0
 ```
 """
-function reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyElem}
-   @assert parent(f) === polynomial_ring(IR)
-
-   rey = reynolds_via_singular(IR)
-   fSing = singular_ring(polynomial_ring(IR))(f)
-   fReySing = Singular.LibFinvar.evaluate_reynolds(rey, fSing)
-   # fReySing is an ideal...
-   @assert length(gens(fReySing)) == 1
-   return polynomial_ring(IR)(gens(fReySing)[1])
-end
+reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyElem} = reynolds_operator_via_oscar(IR, f)
 
 function reynolds_operator(IR::InvRing, f::MPolyElem)
   @assert parent(f) === polynomial_ring(IR).R
