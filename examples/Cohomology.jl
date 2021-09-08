@@ -730,7 +730,7 @@ function fp_group(c::CoChain{2})
 end
 
 
-function Oscar.automorphism_group(::Type{PermGroup}, k::AnticNumberField)
+function Oscar.automorphism_group(::Type{PermGroup}, k::NumField)
   G, mG = automorphism_group(k)
   H = symmetric_group(degree(k))
   gens(G) #to make sure gens are actually there...

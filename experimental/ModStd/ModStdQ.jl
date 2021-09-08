@@ -28,7 +28,7 @@ end
 #  crt in parallel
 #  use walk, tracing, ...
 
-function exp_groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevlex; use_hilbert::Bool = false, Proof::Bool = true)
+function Oscar.groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevlex; use_hilbert::Bool = false, Proof::Bool = true)
   if isdefined(I, :gb) && ord == :degrevlex
     return collect(I.gb)
   end
@@ -113,6 +113,12 @@ function exp_groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevlex
 end
 
 function Oscar.groebner_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}; ordering::Symbol = :degrevlex, complete_reduction::Bool = true, use_hilbert::Bool = false)
+
+  if iszero(I)
+    I.gb = BiPolyArray(base_ring(I), fmpq_mpoly[], isGB = true)
+    singular_assure(I.gb)
+    return fmpq_mpoly[], matrix(base_ring(I), ngens(I), 0, fmpq_mpoly[])
+  end
     
   ps = Hecke.PrimesSet(Hecke.p_start, -1)
   ps = Hecke.PrimesSet(2^28+2^20, -1)

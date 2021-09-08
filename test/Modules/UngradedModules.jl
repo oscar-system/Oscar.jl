@@ -98,18 +98,19 @@ end
 end
 
 
-#=@testset "Test kernel" begin
-	# This test doesn't terminate due to a bug in syz
+@testset "Test kernel" begin
+	# The outcommented tests don't terminate due to a bug in syz
 
 	# over Integers
 	R, (x,y,z) = PolynomialRing(ZZ, ["x", "y", "z"])
 	matrices = [R[x^2+x y^2+y; x^2+y y^2; x y], R[5*x^5+x*y^2 4*x*y+y^2+R(1); 4*x^2*y 2*x^2+3*y^2-R(5)]]
 	kernels = [R[x^2-x*y+y -x^2+x*y -x^2+x*y-y^2-y], R[R(0) R(0)]]
 	for (A,Ker) in zip(matrices, kernels)
-		K,emb = kernel(matrix_to_map(A))
+		F1 = FreeMod(R, nrows(A))
+		F2 = FreeMod(R, ncols(A))
+		K,emb = kernel(FreeModuleHom(F1,F2,A))
     	@test K == image(emb)[1]
-		#@test image(K) == image(Ker)
-    	@test image(emb)[1] == image(matrix_to_map(Ker))[1]
+    	@test image(emb)[1] == image(matrix_to_map(F1,Ker))[1]
 	end
 	#=for k=1:3
 		A = array_to_matrix([randpoly(R,0:15,2,2) for i=1:3,j=1:2])
@@ -120,22 +121,37 @@ end
 
 	# over Rationals
 	R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
-	matrices = [R[x^2+x y^2+y; x^2+y y^2; x y], R[5*x^5+x*y^2 4*x*y+y^2+R(1); 4*x^2*y 2*x^2+3*y^2-R(5)]]
-	kernels = [R[x^2-x*y+y -x^2+x*y -x^2+x*y-y^2-y], R[R(0) R(0)]]
+	matrices = [R[x^2+x y^2+y; x^2+y y^2; x y], R[5*x^5+x*y^2 4*x*y+y^2+R(1); 4*x^2*y 2*x^2+3*y^2-R(5)],
+				#=R[8*x^2*y^2*z^2+13*x*y*z^2  12*x^2+7*y^2*z;
+				13*x*y^2+12*y*z^2  4*x^2*y^2*z+8*x*y*z;
+				9*x*y^2+4*z  12*x^2*y*z^2+9*x*y^2*z]=#]
+	kernels = [R[x^2-x*y+y -x^2+x*y -x^2+x*y-y^2-y], R[R(0) R(0)], 
+			   #=R[-36*x^3*y^4*z+156*x^3*y^3*z^2+144*x^2*y^2*z^4+117*x^2*y^4*z+108*x*y^3*z^3-72*x^2*y^3*z-16*x^2*y^2*z^2-32*x*y*z^2
+			   -96*x^4*y^3*z^4-72*x^3*y^4*z^3-156*x^3*y^2*z^4-117*x^2*y^3*z^3+63*x*y^4*z+108*x^3*y^2+28*y^2*z^2+48*x^2*z
+			   32*x^4*y^4*z^3+116*x^3*y^3*z^3+104*x^2*y^2*z^3-91*x*y^4*z-84*y^3*z^3-156*x^3*y^2-144*x^2*y*z^2]=#]
+	#=ring R=0,(x,y,z),dp;
+	matrix A[3][2]=8*x^2*y^2*z^2 + 13*x*y*z^2 , 12*x^2 + 7*y^2*z,
+	              13*x*y^2 + 12*y*z^2  , 4*x^2*y^2*z + 8*x*y*z,
+	              9*x*y^2 + 4*z , 12*x^2*y*z^2 + 9*x*y^2*z;
+	print(syz(transpose(A)));
+	-36x3y4z+156x3y3z2+144x2y2z4+117x2y4z+108xy3z3-72x2y3z-16x2y2z2-32xyz2,
+	-96x4y3z4-72x3y4z3-156x3y2z4-117x2y3z3+63xy4z+108x3y2+28y2z2+48x2z,
+	32x4y4z3+116x3y3z3+104x2y2z3-91xy4z-84y3z3-156x3y2-144x2yz2 =#
 	for (A,Ker) in zip(matrices, kernels)
-		K,emb = kernel(matrix_to_map(A))
+		F1 = FreeMod(R, nrows(A))
+		F2 = FreeMod(R, ncols(A))
+		K,emb = kernel(FreeModuleHom(F1,F2,A))
     	@test K == image(emb)[1]
-    	@test image(emb)[1] == image(matrix_to_map(Ker))[1]
+    	@test image(emb)[1] == image(matrix_to_map(F1,Ker))[1]
 	end
-	for k=1:3
+	#=for k=1:3
 		A = array_to_matrix([randpoly(R,0:15,2,2) for i=1:3,j=1:2])
-    	display(A)
     	A = matrix_to_map(A)
 		K,emb = kernel(A)
     	@test image(emb)[1] == K
 		@test iszero(emb*A)
-	end
-end=#
+	end=#
+end
 
 @testset "iszero(SubQuo)" begin
 	R, (x,y) = PolynomialRing(QQ, ["x", "y"])
@@ -317,8 +333,8 @@ end
 		for m=1:5
 			M=free_module_SQ(R,n)
 			N=free_module_SQ(R,m)
-			#SQ = hom(M,N)[1] # it's weird that it fails without simplifying (nevertheless it's mathematically not wrong)
-			SQ = simplify(hom(M,N)[1])[1]
+			SQ = hom(M,N)[1]
+			#SQ = simplify(hom(M,N)[1])[1]
 			@test SQ == free_module_SQ(free_module(SQ))
 		end
 	end
