@@ -1070,7 +1070,7 @@ julia> F = FreeMod(R,2)
 Free module of rank 2 over Multivariate Polynomial Ring in x, y over Rational Field
 
 julia> O = [x*F[1]+F[2],y*F[2]]
-2-element Vector{Oscar.FreeModElem{fmpq_mpoly}}:
+2-element Vector{FreeModElem{fmpq_mpoly}}:
  (x)*e[1] + (1)*e[2]
  (y)*e[2]
 
@@ -1135,7 +1135,7 @@ function show(io::IO, SQ::SubQuo)
   else
     #println(io, "Subquotient by ", SQ.sub)
     println(io, SQ.sub)
-    println("represented as subquotient with no relations.")
+    println(io, "represented as subquotient with no relations.")
   end
 end
 
