@@ -1,7 +1,7 @@
 module GaloisGrp
 
 using Oscar, Markdown
-import Base: ^, +, -, *
+import Base: ^, +, -, *, ==
 import Oscar: Hecke, AbstractAlgebra, GAP
 using Oscar: SLPolyRing, SLPoly, SLPolynomialRing
 
@@ -179,9 +179,6 @@ end
 
 Oscar.mul!(a::BoundRingElem, b::BoundRingElem, c::BoundRingElem) = b*c
 Oscar.addeq!(a::BoundRingElem, b::BoundRingElem) = a+b
-
-Oscar.parent_type(::BoundRingElem) = BoundRing
-Oscar.elem_type(::BoundRing) = BoundRingElem
 
 #my 1st invariant!!!
 @doc Markdown.doc"""
