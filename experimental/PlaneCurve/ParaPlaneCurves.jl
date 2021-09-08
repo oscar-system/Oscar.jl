@@ -17,7 +17,7 @@ function _fromsingular_ring(R::Singular.PolyRing)
     if typeof(Kx) == Singular.N_AlgExtField
         FF, t = RationalFunctionField(QQ, "t")
         f = numerator(FF(Kx.minpoly))
-        K, _ = NumberField(f, "i")
+        K, _ = NumberField(f, "a")
     else
         K = QQ
     end
