@@ -189,7 +189,7 @@ julia> length(moved_points(gen(s, 1)))
 ```
 """ moved_points
 
-@gapattribute number_moved_points(x::Union{PermGroupElem,PermGroup}) = fmpz(GAP.Globals.NrMovedPoints(x.X))
+@gapattribute number_moved_points(x::Union{PermGroupElem,PermGroup}) = fmpz(GAP.Globals.NrMovedPoints(x.X))::fmpz
 """
     number_moved_points(::Type{T} = fmpz, x::PermGroupElem) where T <: Union{Integer, fmpz}
     number_moved_points(::Type{T} = fmpz, G::PermGroup) where T <: Union{Integer, fmpz}
@@ -214,7 +214,7 @@ julia> number_moved_points(gen(s, 1))
 ```
 """ number_moved_points
 
-number_moved_points(::Type{T}, x::Union{PermGroupElem,PermGroup}) where T <: Union{Base.Integer, fmpz} = T(GAP.Globals.NrMovedPoints(x.X))
+number_moved_points(::Type{T}, x::Union{PermGroupElem,PermGroup}) where T <: Union{Base.Integer, fmpz} = T(GAP.Globals.NrMovedPoints(x.X))::T
 
 
 """
