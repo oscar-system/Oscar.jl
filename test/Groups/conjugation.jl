@@ -26,6 +26,9 @@
   @test !representative_action(G,x,z)[1]
 
 
+  @inferred fmpz number_conjugacy_classes(symmetric_group(4))
+  @inferred fmpz number_conjugacy_classes(symmetric_group(40))
+
 # something in smaller dimension
   @test number_conjugacy_classes(symmetric_group(4)) == 5
   G = symmetric_group(4)
