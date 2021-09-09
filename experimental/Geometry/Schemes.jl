@@ -2,6 +2,7 @@ import AbstractAlgebra.Ring, Oscar.AlgHom, Oscar.compose, AbstractAlgebra.Generi
 import Base: ∘
 import Oscar: base_ring
 import AbstractAlgebra: FPModule, FPModuleElem
+import Base.copy
 
 include( "./Multiindices.jl" )
 using Oscar.Multiindices
@@ -70,6 +71,26 @@ mutable struct Spec{S,T,U} <: AffineScheme{S,T,U}
     return new{S, T, U}(k, R, I )
   end
 end
+
+# The copy constructors.
+# In this case, it's easy, since non of the used data structures 
+# can be modified from the outside with "Fernwirkung" affecting 
+# our instance of Spec. 
+#
+# To explain what I mean by "Fernwirkung": Say, your struct stores 
+# a vector v as a member variable and v is passed on to the constructor. 
+# Simply storing v is wrong, because it is an object that could potentially
+# also be accessed from other parts of the program. If v is altered, then 
+# also the member variable of our Spec is altered! Thus in this case, 
+# we would really need to copy v before storing it in the Spec.
+#
+# Such behaviour is not expected for instances of rings or ideals. 
+# As far as I understand, these objects are supposed to behave like 
+# static ones to the user. But we should watch out for exceptions and 
+# bugs here.
+Spec( X::Spec ) = Spec( X.k, X.R, X.I )
+
+Base.copy( X::Spec ) = Spec(X)
 
 ###################################################################################
 # Getter functions
@@ -153,19 +174,25 @@ end
 function SpecPrincipalOpen( X::SpecPrincipalOpen )
   Y = SpecPrincipalOpen( X.k, X.R, X.I )
   if isdefined( X, :denom )
-    Y.denom = X.denom
+    Y.denom = X.denom # this is safe to copy. It's excempt from "Fernwirkung" (tested).
   end
-  if isdefined( X, :pullbackFromParent )
-    Y.pullbackFromParent = X.pullbackFromParent
-  end
-  if isdefined( X, :pullbackFromRoot )
-    Y.pullbackFromRoot = X.pullbackFromRoot
-  end
+  # The following two variables are being cached. So we probably don't want 
+  # to copy them, because the need to be build on the new instance and not 
+  # accidentally refer to the member-variables of the original instance. 
+  # We should talk about this. 
+#  if isdefined( X, :pullbackFromParent )
+#    Y.pullbackFromParent = X.pullbackFromParent 
+#  end
+#  if isdefined( X, :pullbackFromRoot )
+#    Y.pullbackFromRoot = X.pullbackFromRoot
+#  end
   if isdefined( X, :u )
     Y.u = X.u
   end
   return Y
 end
+
+Base.copy( X::SpecPrincipalOpen ) = SpecPrincipalOpen( X )
 
 ###############################################################################
 # Getter functions
@@ -523,6 +550,19 @@ end
 domain(f::AffSchMorphism) = f.domain
 codomain(f::AffSchMorphism) = f.codomain
 
+# The copy constructor
+function AffSchMorphism( f::AffSchMorphism ) 
+  if isdefined( f, :pullback )
+    return AffSchMorphism( f.domain, f.codomain, f.pullback )
+  end
+  if isdefined( f, :imgs_frac ) 
+    return AffSchMorphism( f.domain, f.codomain, f.imgs_frac )
+  end
+  error( "neither the pullback nor its fractional representation are defined" )
+end
+
+Base.copy( f::AffSchMorphism ) = AffSchMorphism( f ) 
+
 # Construct the pullback on the level of coordinate rings 
 # from the fractional representation 
 function pullback(h::AffSchMorphism)
@@ -562,13 +602,13 @@ function pullback(h::AffSchMorphism)
   S_t = ambient_ring(U)
   R = ambient_ring(Y)
   S = ambient_ring(X)
-  # Let x_1,...,x_n be the variables of R.
+  # Let x₁,...,xₙ be the variables of R.
   # Now the fractional representation of the morphism, i.e. 
   # the elements in imgs_frac, describe the images of these 
   # variables in Q_loc: 
-  #            p_i
-  #   x_i ↦  -------          
-  #          b^{k_i}
+  #            pᵢ
+  #   xᵢ ↦  -------          
+  #          b^{kᵢ}
   # for some polynomials p_i and non-negative integers k_i.
   # We need to describe the homomorphism 
   #
@@ -776,6 +816,10 @@ function Base.show( io::Base.IO, G::Glueing )
   return
 end
 
+function Base.copy( G::Glueing )
+  return Glueing( G.inclusionFirstPatch, G.inclusionSecondPatch, G.glueingIsomorphism )
+end
+
 ################################################################################
 # Covering of a scheme.
 # It consists of a list of affine patches together with their glueings.
@@ -808,6 +852,12 @@ mutable struct Covering
     C.glueings = Array{Nothing,2}(nothing,1,1)  # no glueing on the diagonal.
     return C
   end
+end
+
+function Base.copy( C::Covering )
+  # I'm afraid we need a copy here. Otherwise an alteration 
+  # of the original covering will also affect the new one.
+  return Covering( copy(C.patches), copy(C.glueings) )
 end
 
 function patches( C::Covering )
@@ -933,6 +983,8 @@ mutable struct Refinement
   refined_cover::Covering
   index_map::Vector{Int}
   inclusions::Vector{AffSchMorphism}
+
+  # TODO: Implement the constructors.
 end
 
 function original_cover( ρ::Refinement )
@@ -1000,6 +1052,17 @@ mutable struct CoveredScheme
     return X
   end
 
+end
+
+# The copy constructor
+function CoveredScheme( X::CoveredScheme )
+  # Only copy the default covering for now. Maybe 
+  # we also want to copy the other cached data.
+  return CoveredScheme( copy(coverings(X)[1]) )
+end
+
+function Base.copy( X::CoveredScheme )
+  return CoveredScheme( X ) 
 end
 
 function coverings( X::CoveredScheme )
@@ -1125,6 +1188,13 @@ mutable struct IdealSheaf <: AbstractCoherentSheaf
   end
 end
 
+# The copy constructor.
+# Refer to the same Scheme and covering, but copy the 
+# ideals.
+function IdealSheaf( I::IdealSheaf )
+  return IdealSheaf( I.parent, I.covering, copy(I.ideals) )
+end
+
 parent( I::IdealSheaf ) = I.parent
 covering( I::IdealSheaf ) = I.covering
 ideals( I::IdealSheaf ) = I.ideals
@@ -1155,6 +1225,8 @@ mutable struct CoherentSheaf <: AbstractCoherentSheaf
 
   # optional variables used for caching
   name::String
+  
+  # TODO: Implement the constructors.
 end
 
 parent( I::CoherentSheaf ) = I.parent
@@ -1189,6 +1261,14 @@ mutable struct LineBundle <: AbstractCoherentSheaf
     # TODO: Implement cheap plausibility checks.
     return new( parent, covering, transitions )
   end
+end
+
+function LineBundle( L::LineBundle )
+  return LineBundle( L.parent, L.covering, copy(L.transitions) )
+end
+
+function Base.copy( L::LineBundle )
+  return LineBundle( L )
 end
 
 parent( L::LineBundle ) = L.parent
@@ -1278,6 +1358,14 @@ mutable struct VectorBundle <: AbstractCoherentSheaf
   end
 end
 
+function VectorBundle( E::VectorBundle )
+  return VectorBundle( E.rank, E.parent, E.covering, copy(E.transitions) )
+end
+
+function Base.copy( E::VectorBundle )
+  return VectorBundle( E )
+end
+
 parent( L::VectorBundle ) = L.parent
 covering( L::VectorBundle ) = L.covering
 transitions( L::VectorBundle ) = L.transitions
@@ -1360,6 +1448,14 @@ mutable struct VectorBundleSection
   end
 end
 
+function VectorBundleSection( s::VectorBundleSection )
+  return VectorBundleSection( s.parent, copy(s.loc_sections) )
+end
+
+function Base.copy( s::VectorBundleSection )
+  return VectorBundleSection( s )
+end
+
 loc_sections(s::VectorBundleSection) = s.loc_sections
 parent(s::VectorBundleSection) = s.parent
 
@@ -1400,6 +1496,14 @@ mutable struct LineBundleSection
     end
     return new( E, loc_sections )
   end
+end
+
+function LineBundleSection( s::LineBundleSection )
+  return LineBundleSection( s.parent, copy(s.loc_sections) )
+end
+
+function Base.copy( s::LineBundleSection )
+  return LineBundleSection( s )
 end
 
 loc_sections(s::LineBundleSection) = s.loc_sections
@@ -1450,9 +1554,8 @@ function tautological_sections( k::Ring, n::Int )
     for j in (i+1:n+1)
       push!( loc_sections, gens(ambient_ring(U[j]))[i] )
     end
-    println( "This section is being added:" )
     x = LineBundleSection( L, loc_sections )
-    #x.name = "x$(i-1)"
+    x.name = "x$(i-1)"
     push!( result, x )
   end
   return result
