@@ -588,9 +588,9 @@ end
    @test primorial(ZZ(1)) == 1
    @test primorial(ZZ(0)) == 1
 
-   @test primorial(ZZ(0)) isa Oscar.Integer
-   @test primorial(ZZ(1)) isa Oscar.Integer
-   @test primorial(ZZ(2)) isa Oscar.Integer
+   @test primorial(ZZ(0)) isa fmpz
+   @test primorial(ZZ(1)) isa fmpz
+   @test primorial(ZZ(2)) isa fmpz
 
    @test_throws DomainError primorial(ZZ(-1))
 
