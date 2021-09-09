@@ -54,6 +54,11 @@ import Base: ==, parent, show
 
 import GAP.GapObj
 
+# GAP functions returning an integer (or infinity or -infinity) in GAP
+# will in Julia return either an Int or an GapObj; the following union
+# type captures that
+const GapInt = Union{Int,GapObj}
+
 export
     AutomorphismGroup,
     DirectProductGroup,
@@ -121,7 +126,7 @@ mutable struct PermGroup <: GAPGroup
    
    function PermGroup(G::GapObj)
      @assert GAP.Globals.IsPermGroup(G)
-     n = GAP.gap_to_julia(Int64, GAP.Globals.LargestMovedPoint(G))
+     n = GAP.Globals.LargestMovedPoint(G)::Int
      z = new(G, n)
      return z
    end
