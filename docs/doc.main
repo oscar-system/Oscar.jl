@@ -15,7 +15,8 @@
      "Groups/grouphom.md",
      "Groups/autgroup.md",
      "Groups/grouplib.md",
-     "Hecke/abelian/introduction.md"
+     "Hecke/abelian/introduction.md",
+     "Groups/group_characters.md",
   ],
 
   "Rings" => [

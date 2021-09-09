@@ -200,7 +200,7 @@ function labelled_matrix_formatted(io::IO, mat::Matrix{String})
     n1 = size(labels_row, 2)
     corner = get(io, :corner, fill("", m1, n1))
     if length(size(corner)) == 1
-      corner = reshape(corner, 1, length(corner))
+      corner = reshape(corner, length(corner), 1)
     end
 
     @assert size(corner, 1) == m1 "row numbers in corner and column labels differ"
