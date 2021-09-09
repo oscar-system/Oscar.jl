@@ -92,6 +92,7 @@
          "PolyhedralGeometry/Polyhedra/intro.md",
          "PolyhedralGeometry/Polyhedra/constructions.md",
          "PolyhedralGeometry/Polyhedra/polymake.md",
+         "PolyhedralGeometry/Polyhedra/auxiliary.md",
          "PolyhedralGeometry/Polyhedra/serialization.md"
        ],
         "PolyhedralGeometry/cones.md",
