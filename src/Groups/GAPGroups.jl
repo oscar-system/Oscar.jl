@@ -73,7 +73,7 @@ export
 group_element(G::T, x::GapObj) where T <: GAPGroup = BasicGAPGroupElem{T}(G, x)
 
 function elements(G::T) where T <: GAPGroup
-  els = GAP.gap_to_julia(Vector{GapObj},GAP.Globals.Elements(G.X))
+  els = Vector{GapObj}(GAP.Globals.Elements(G.X))
   elems = Vector{elem_type(G)}(undef, length(els))
   i = 1
   for x in els
@@ -394,7 +394,7 @@ Base.in(g::GAPGroupElem, G::GAPGroup) = GAP.Globals.in(g.X, G.X)
 
 # FIXME: clashes with AbstractAlgebra.perm method
 #function perm(L::AbstractVector{<:Base.Integer})
-#   return PermGroupElem(symmetric_group(length(L)), GAP.Globals.PermList(GAP.julia_to_gap(L)))
+#   return PermGroupElem(symmetric_group(length(L)), GAP.Globals.PermList(GAP.GapObj(L;recursive=true)))
 #end
 # FIXME: use name gap_perm for now
 @doc Markdown.doc"""
@@ -412,11 +412,9 @@ julia> gap_perm([2,4,6,1,3,5])
 (1,2,4)(3,6,5)
 ```
 """
-function gap_perm(L::AbstractVector{<:Base.Integer})
-  return PermGroupElem(symmetric_group(length(L)), GAP.Globals.PermList(GAP.GapObj(L)))
+function gap_perm(L::AbstractVector{<:Union{fmpz, Base.Integer}})
+  return PermGroupElem(symmetric_group(length(L)), GAP.Globals.PermList(GAP.GapObj(L;recursive=true)))
 end
-
-gap_perm(L::AbstractVector{<:fmpz}) = gap_perm([Int(y) for y in L])
 
 @doc Markdown.doc"""
     perm(G::PermGroup, L::AbstractVector{<:Integer})
@@ -438,7 +436,7 @@ julia> perm(symmetric_group(6),[2,4,6,1,3,5])
 ```
 """
 function perm(g::PermGroup, L::AbstractVector{<:Base.Integer})
-   x = GAP.Globals.PermList(GAP.julia_to_gap(L))
+   x = GAP.Globals.PermList(GAP.GapObj(L;recursive=true))
    if length(L) <= degree(g) && GAP.Globals.IN(x,g.X) 
      return PermGroupElem(g, x)
    end
@@ -448,8 +446,8 @@ end
 perm(g::PermGroup, L::AbstractVector{<:fmpz}) = perm(g, [Int(y) for y in L])
 
 function (g::PermGroup)(L::AbstractVector{<:Base.Integer})
-   x = GAP.Globals.PermList(GAP.julia_to_gap(L))
-   if length(L) <= degree(g) && GAP.Globals.IN(x,g.X) 
+   x = GAP.Globals.PermList(GAP.GapObj(L;recursive=true))
+   if length(L) <= degree(g) && GAP.Globals.IN(x,g.X)
      return PermGroupElem(g, x)
    end
    throw(ArgumentError("the element does not embed in the group"))
