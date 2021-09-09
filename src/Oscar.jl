@@ -86,6 +86,7 @@ function __init__()
         (GAP.Globals.IsMatrixGroup, MatrixGroup),
         (GAP.Globals.IsFpGroup, FPGroup),
     ])
+    GAP.Packages.load("ctbllib")
     GAP.Packages.load("forms")
 end
 
@@ -257,6 +258,8 @@ include("Rings/FinField.jl")
 include("Rings/NumberField.jl")
 include("Rings/FunctionField.jl")
 include("Rings/AbelianClosure.jl")
+
+include("Groups/GroupCharacters.jl")
 
 include("Modules/UngradedModules.jl")
 include("Modules/FreeModules-graded.jl")
