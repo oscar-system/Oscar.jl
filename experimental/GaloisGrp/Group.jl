@@ -139,35 +139,34 @@ Base.isodd(G::PermGroup) = sign(G) == -1
 Base.iseven(n::PermGroup) = !isodd(n)
 
 @doc Markdown.doc"""
-    short_right_transversal(G::PermGroup, H::PermGroup, s) ->
+    short_right_transversal(G::PermGroup, H::PermGroup, s::PermGroupElem) ->
 
 Determines representatives `g` for all right-cosets of `G` modulo `H`
   such that `H^g` contains the element `s`.
 """
-function short_right_transversal(G::PermGroup, H::PermGroup, s)
-  C = GAP.Globals.ConjugacyClasses(H.X)
+function short_right_transversal(G::PermGroup, H::PermGroup, s::PermGroupElem)
+  C = conjugacy_classes(H)
   cs = GAP.Globals.CycleStructurePerm(s.X)
-  can = []
-  for i=1:length(C)
-    c = C[i]
-    r = GAP.Globals.Representative(c)
-    if cs == GAP.Globals.CycleStructurePerm(r)
+  can = [] # FIXME: type unstable
+  for c in C
+    r = representative(c)
+    if cs == GAP.Globals.CycleStructurePerm(r.X)
       push!(can, r)
     end
   end
 
-  R = []
-  for c = can
-    d = GAP.Globals.RepresentativeAction(G.X, c, s.X)
-    if d != GAP.Globals.fail
-      push!(R, Oscar.group_element(G, d))
-      @assert Oscar.group_element(G, c)^R[end] == s
+  R = [] # FIXME: type unstable
+  for c in can
+    success, d = representative_action(G, c, s)
+    if success
+      push!(R, d)
+      @assert c^R[end] == s
     end
   end
 
-  S = []
+  S = [] # FIXME: type unstable
   C = centralizer(G, s)[1]
-  for r = R
+  for r in R
     CH = centralizer(H^r, s)[1]
     for t = right_transversal(C, CH)
       push!(S, r*t)
