@@ -147,7 +147,7 @@ Determines representatives `g` for all right-cosets of `G` modulo `H`
 function short_right_transversal(G::PermGroup, H::PermGroup, s::PermGroupElem)
   C = conjugacy_classes(H)
   cs = GAP.Globals.CycleStructurePerm(s.X)
-  can = [] # FIXME: type unstable
+  can = PermGroupElem[]
   for c in C
     r = representative(c)
     if cs == GAP.Globals.CycleStructurePerm(r.X)
@@ -155,7 +155,7 @@ function short_right_transversal(G::PermGroup, H::PermGroup, s::PermGroupElem)
     end
   end
 
-  R = [] # FIXME: type unstable
+  R = PermGroupElem[]
   for c in can
     success, d = representative_action(G, c, s)
     if success
@@ -164,7 +164,7 @@ function short_right_transversal(G::PermGroup, H::PermGroup, s::PermGroupElem)
     end
   end
 
-  S = [] # FIXME: type unstable
+  S = PermGroupElem[]
   C = centralizer(G, s)[1]
   for r in R
     CH = centralizer(H^r, s)[1]

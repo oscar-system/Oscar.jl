@@ -73,12 +73,10 @@ export
 group_element(G::T, x::GapObj) where T <: GAPGroup = BasicGAPGroupElem{T}(G, x)
 
 function elements(G::T) where T <: GAPGroup
-  els = Vector{GapObj}(GAP.Globals.Elements(G.X))
+  els = Vector{GapObj}(GAP.Globals.Elements(G.X))::Vector{GapObj}
   elems = Vector{elem_type(G)}(undef, length(els))
-  i = 1
-  for x in els
-    elems[i] = group_element(G, x)
-    i += 1
+  for i in 1:length(els)
+    elems[i] = group_element(G, els[i])
   end
   return elems
 end
@@ -230,7 +228,7 @@ An exception is thrown if the order of `x` is infinite,
 use [`isfinite`](@ref) in order to check for finiteness.
 """
 function order(::Type{T}, x::Union{GAPGroupElem, GAPGroup}) where T <: Union{Base.Integer, fmpz}
-   ord = GAP.Globals.Order(x.X)
+   ord = GAP.Globals.Order(x.X)::GapInt
    if ord === GAP.Globals.infinity
       error("order() not supported for infinite groups, use isfinite()")
    end
@@ -329,7 +327,7 @@ one!(x::GAPGroupElem) = one(parent(x))
 Base.show(io::IO, x::GAPGroupElem) = print(io, String(GAP.Globals.StringViewObj(x.X)))
 Base.show(io::IO, x::GAPGroup) = print(io, String(GAP.Globals.StringViewObj(x.X)))
 
-Base.isone(x::GAPGroupElem) = GAP.Globals.IsOne(x.X)
+Base.isone(x::GAPGroupElem) = GAP.Globals.IsOne(x.X)::Bool
 
 Base.inv(x::GAPGroupElem) = group_element(parent(x), GAP.Globals.Inverse(x.X))
 
@@ -390,7 +388,7 @@ Base.length(x::GAPGroup)::Int = order(x)
 Return whether `g` is an element of `G`.
 The parent of `g` need not be equal to `G`.
 """
-Base.in(g::GAPGroupElem, G::GAPGroup) = GAP.Globals.in(g.X, G.X)
+Base.in(g::GAPGroupElem, G::GAPGroup) = GAP.Globals.in(g.X, G.X)::Bool
 
 # FIXME: clashes with AbstractAlgebra.perm method
 #function perm(L::AbstractVector{<:Base.Integer})
@@ -622,7 +620,7 @@ Return the length of the vector [`gens`](@ref)`(G)`.
 ngens(G::GAPGroup) = length(GAP.Globals.GeneratorsOfGroup(G.X))
 
 
-Base.sign(x::PermGroupElem) = GAP.Globals.SignPerm(x.X)
+Base.sign(x::PermGroupElem) = GAP.Globals.SignPerm(x.X)::Int
 
 Base.isless(x::PermGroupElem, y::PermGroupElem) = x<y
 
@@ -681,11 +679,11 @@ end
 
 ==(a::GroupConjClass{T, S}, b::GroupConjClass{T, S}) where S where T = a.CC == b.CC 
 
-Base.length(C::GroupConjClass) = GAP.Globals.Size(C.CC)
+Base.length(C::GroupConjClass) = fmpz(GAP.Globals.Size(C.CC)::GapInt) # TODO: allow specifying return type, default fmpz
 
 representative(C::GroupConjClass) = C.repr
 
-@gapattribute number_conjugacy_classes(G::GAPGroup) = GAP.Globals.NrConjugacyClasses(G.X)
+@gapattribute number_conjugacy_classes(G::GAPGroup) = fmpz(GAP.Globals.NrConjugacyClasses(G.X)::GapInt) # TODO: allow specifying return type, default fmpz
 
 # START elements conjugation
 
@@ -727,7 +725,7 @@ Base.:^(x::T, y::T) where T <: GAPGroupElem = group_element(_maxgroup(parent(x),
 Return whether `x` and `y` are conjugate elements in `G`,
 i. e., there is an element $z$ in `G` such that `x^`$z$ equals `y`.
 """
-isconjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem) = GAP.Globals.IsConjugate(G.X,x.X,y.X)
+isconjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem) = GAP.Globals.IsConjugate(G.X,x.X,y.X)::Bool
 
 """
     representative_action(G::Group, x::GAPGroupElem, y::GAPGroupElem)
@@ -795,7 +793,7 @@ end
 
 Return whether `H` and `K` are conjugate subgroups in `G`.
 """
-isconjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup) = GAP.Globals.IsConjugate(G.X,H.X,K.X)
+isconjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup) = GAP.Globals.IsConjugate(G.X,H.X,K.X)::Bool
 
 """
     representative_action(G::Group, H::Group, K::Group)
@@ -1132,7 +1130,7 @@ function ispgroup(G::GAPGroup)
    if GAP.Globals.IsPGroup(G.X)
       p = GAP.Globals.PrimePGroup(G.X)
       if p != GAP.Globals.fail
-         return true, p
+         return true, fmpz(p)  # TODO: allow specifying the type used for the prime
       else
          return true, nothing
       end
@@ -1155,7 +1153,7 @@ end
 
 @gapattribute function nilpotency_class(G::GAPGroup)
    @assert isnilpotent(G) "The group is not nilpotent."
-   return GAP.Globals.NilpotencyClassOfGroup(G.X)
+   return GAP.Globals.NilpotencyClassOfGroup(G.X)::Int
 end
 
 @doc Markdown.doc"""

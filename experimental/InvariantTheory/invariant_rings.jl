@@ -617,7 +617,7 @@ function _molien_series_char0(S::PolyRing, I::InvRing)
   for c in C
     g = (GtoGp\(representative(c)))::elem_type(G)
     f = charpoly(Kt, g.elm)
-    res = res + length(c)::Int * 1//reverse(f)
+    res = res + length(c)::fmpz * 1//reverse(f)
   end
   res = divexact(res, order(Gp)::fmpz)
   num = change_coefficient_ring(coefficient_ring(S),
