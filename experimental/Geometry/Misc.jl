@@ -141,15 +141,13 @@ end
 # TODO: Up to now, this is merely a copy of the above routine. 
 # At this point, 'divide' seems to have a bug that causes 
 # the routine to break sometimes.
-function divides_power( g::T, u::T ) where{ T<:MPolyQuoElem }
+function divides_power( g::T, u::T, check_radical_membership::Bool=false ) where{ T<:MPolyQuoElem }
   # println( "Check whether some power of $u is divisible by $g" )
   R = parent(g)
   parent(g) == parent(u) || error( "elements are not contained in the same ring" )
 
   # Test for radical membership in the first place.
-  if !radical_membership( u, g )
-    return (-1, zero(R))
-  end
+  !check_radical_membership || ( radical_membership( lift(u), modulus(parent(g)) + ideal( parent(lift(g)), lift(g) )) || return (-1, zero(R)))
   # println( "Test for radical membership was positive." )
 
   # Check successivly higher powers of u for containment in ⟨g⟩. 
@@ -160,6 +158,7 @@ function divides_power( g::T, u::T ) where{ T<:MPolyQuoElem }
   a = zero(R)
   while true
     # println( "looking at the $(2^(length(powers)-1))-th power..." )
+    global crash = ( last(powers), g )
     check, a = divides( last(powers), g )
     if check
       break

@@ -143,6 +143,7 @@ mutable struct SpecPrincipalOpen{S,T,U} <: AffineScheme{S,T,U}
   parent::AffineScheme{S,T,U}
   denom::U  # element of the "ambient" polynomial ring of the root
   	    # which has been localized in the parent to get this scheme.
+  d::U # the element that really had to be inverted given the previous localizations.
 
   # Fields for caching. These provide the data as a Spec for this 
   # affine scheme
@@ -316,11 +317,29 @@ function denoms(D::SpecPrincipalOpen{S,T,U}) where {S <: Ring, T <: MPolyRing, U
   while typeof(P) <: SpecPrincipalOpen
     # Make sure that the denominators are collected in the same manner 
     # as the variables for the inverses appear.
-    pushfirst!( result, P.denom )
+    push!( result, P.denom )
     P = parent(P)
   end
   return result
 end 
+
+# Collects the divided denominators up to the root
+
+function div_denoms(D::SpecPrincipalOpen{S,T,U}) where {S <: Ring, T <: MPolyRing, U<:MPolyElem}
+  result = U[]
+  P = D
+  while typeof(P) <: SpecPrincipalOpen
+    # Make sure that the denominators are collected in the same manner 
+    # as the variables for the inverses appear.
+    ambient_ring(P)
+    push!( result, P.d )
+    P = parent(P)
+  end
+  return result
+end 
+
+
+
 
 # Collect the inverses for this localization up to the root.
 
@@ -330,7 +349,7 @@ function inverses(D::SpecPrincipalOpen{S,T,U}) where {S <: Ring, T <: MPolyRing,
   phi = pullback_from_parent(D)
   P = parent(D)
   while typeof(P) <: SpecPrincipalOpen
-    pushfirst!(result, phi(inverted_element(P)))
+    push!(result, phi(inverted_element(P)))
     phi = compose( pullback_from_parent(P), phi )
     P = parent(P)
   end
@@ -359,6 +378,7 @@ function ambient_ring(D::SpecPrincipalOpen)
     D.pullbackFromRoot = phi
     I = ideal( R, [ phi(g) for g in gens(I0) ] ) + ideal( R, [ one(R) - t[1]*phi(D.denom) ] )
     D.u = t[1]
+    D.d = D.denom
     D.I = I
   else
     R0 = ambient_ring(root(D))
@@ -386,22 +406,32 @@ function ambient_ring(D::SpecPrincipalOpen)
     #   1/f = t⋅d₁'⋅…⋅dᵣ'.
     # By induction we can assume that neither of the dᵢs have 
     # pairwise common factors.
-    d = denoms(D)
-    r = length(d)
     f = copy(D.denom)
     u = last(gens(R))
     phi = parent(D).pullbackFromRoot # We can recycle that since there's no t involved.
-    for d in denoms(D)
+    for d in div_denoms(parent(D))
       g = gcd(f,d)
       u *= phi(div(d,g))
-      f = div(f,g) # TODO: Replace by the in-place call div! once it's there.
+      # this code could be used to also cancel higher powers. However, 
+      # u needs to be adjusted for that in an inconvenient way, so 
+      # I leave it in the standard way for now.
+     # while true
+     #   h = div(f,g)
+     #   if h != zero(parent(h))
+     #     f = h
+     #   else
+     #     break
+     #   end
+     # end
+      f = div(f,g)
     end
-    I = ideal( R, [ phi(g) for g in gens(root(D).I) ] ) + ideal( R, [ one(R) - last(gens(R))*phi(prod(d)*f) ] )
+    D.I = ideal( R, [ phi(g) for g in gens(root(D).I) ] ) + ideal( R, [ one(R) - last(gens(R))*phi(prod(div_denoms(parent(D)))*f) ] )
     images = copy(gens(R))
     push!( images, pop!(images)*phi(f) )
     D.pullbackFromParent = AlgebraHomomorphism( R, R, images )
     D.pullbackFromRoot = phi
     D.u = u
+    D.d = f
   end
   return R
 end
@@ -617,25 +647,25 @@ function pullback(h::AffSchMorphism)
   # with both U ⊂ X and V ⊂ Y inclusions of principal 
   # open subsets. Then associated to that there is a diagram 
   # of ring homomorphisms 
-  #                       h*
-  #    Q_loc := Q[g^{-1}] ← P[f^{-1}] =: P_loc
-  #                 ↑          ↑
-  #                 Q          P
+  #                  h*
+  #    Q' := Q[g⁻¹] ← P[f⁻¹] =: P'
+  #           ↑        ↑
+  #           Q        P
   # where both P = R/I and Q = S/J are both quotients of 
-  # polynomial rings and the sets of elements g = g_1,...,g_ν, 
-  # g_j ∈ Q and f = f_1,...,f_μ, f_i ∈ P have 
-  # been inverted to arrive at the open sets U and V.
+  # polynomial rings and the sets of elements g = g₁⋅…⋅gᵣ, 
+  # gⱼ ∈ Q and f = f₁⋅…⋅fₛ, fᵢ∈ P have been inverted to 
+  # arrive at the open sets U and V.
   # The ring P_loc is realized as a quotient of a polynomial 
   # ring as indicated in the diagram 
-  #      R[s_1,...,s_μ] 
-  #            ↓        ↘ π 
-  #      P[s_1,...,s_μ] → P_loc, s_i ↦ 1/f_i
-  # and similar for Q_loc.
+  #      R[t] 
+  #       ↓  ↘ π 
+  #      P[t] → P', t ↦ 1/f
+  # and similar for Q'
   U = domain(h)
   V = codomain(h)
   X = root(U)
   Y = root(V)
-  R_s = ambient_ring(V)
+  R_t = ambient_ring(V)
   S_t = ambient_ring(U)
   R = ambient_ring(Y)
   S = ambient_ring(X)
@@ -643,48 +673,34 @@ function pullback(h::AffSchMorphism)
   @show V
   @show X
   @show Y
-  @show R_s
+  @show R_t
   @show S_t
   @show R
   @show S
   # Let x₁,...,xₙ be the variables of R.
   # Now the fractional representation of the morphism, i.e. 
-  # the elements in imgs_frac, describe the images of these 
-  # variables in Q_loc: 
+  # the elements in imgs_frac, describes the images of these 
+  # variables in Q' 
   #            pᵢ
   #   xᵢ ↦  -------          
-  #          b^{kᵢ}
-  # for some polynomials p_i and non-negative integers k_i.
+  #            qᵢ
+  # for some polynomials pᵢand qᵢin Q.
   # We need to describe the homomorphism 
   #
-  #  ϕ : R[s_1,...,s_μ] → S[t_1,...,t_ν]
+  #  ϕ' : R → S[t]
   # 
-  # lifting the map h*. The information we have so far 
-  # suffices to determine the map 
-  #
-  #  ϕ' : R → S[t_1,...,t_ν], x_i ↦ p_i ⋅ t_i^{k_i},
-  #
-  # but we also need to determine the images of the 
-  # variables s_i. Theoretically we find 
-  #
-  #  π∘ϕ( s_i ) = 1/π∘ϕ'(f_i) 
-  #
-  # but the right hand side does not yet have an admissible 
-  # denominator (i.e. a product of powers of the g_j).
-  # But according to the assumption that h(U) ⊂ V, 
-  # or equivalently h^{-1}(Y∖ V) ⊂ X ∖ U, we necessarily 
+  # lifting the map h*. To do this, we need to bring the 
+  # fractions above to a form which has a power of g in 
+  # the denominator and write 
+  #   pᵢ/ qᵢ = pᵢ⋅aᵢ/ gᵏ⁽ⁱ⁾ ≡ pᵢ⋅aᵢ⋅tᵏ⁽ⁱ⁾, aᵢ∈ S
+  # so that the image of each variable becomes a polynomial
+  # in t. According to the assumption that h(U) ⊂ V, 
+  # or equivalently h⁻¹(Y∖ V) ⊂ X ∖ U, we necessarily 
   # have a relation 
   # 
-  #  π(a_i) ⋅ π∘ϕ'(f_i) = π(g)^{k_i}
+  #  π(aᵢ) ⋅ π∘ϕ'(qᵢ) = π(g)ᵏ⁽ⁱ⁾
   # 
-  # for some polynomials a_i and integers k_i. Here, g is 
-  # the product of all the g_j's and all relevant projections 
-  # to the quotients are denoted by π. With the help of these 
-  # relations we can extend the above equalities towards 
-  #
-  #  π∘ϕ( s_i ) = 1/π∘ϕ'(f_i) = π(a_i)/π(g^{k_i}) = π(a_i)⋅t^{k_i}
-  #
-  # with, again, t the product of variables t_j.
+  # for some polynomials aᵢ∈ S and integers k(i), as desired. 
 
   println( "Call to pullback" )
   @show R
@@ -697,23 +713,27 @@ function pullback(h::AffSchMorphism)
     error( "Number of variables in the ambient ring of the root does not coincide with the number of images provided for the homomorphism" )
   end
   images = Vector{elem_type(S_t)}()
-  den_U = denoms(U)
-  inv_U = inverses(U)
+  den_U = div_denoms(U)
+  g = length(den_U)==0 ? one(S) : prod(den_U)
   Q, proj = quo( S, defining_ideal(X) )
-  g = prod( den_U )
-  t = prod( inv_U )
+  t = last(gens(S_t))
   # Work out the images of the variables in R first, i.e. 
   # establish ϕ'.
   for i in (1:n)
+    @show "working out the $i-th generator"
     p = numerator( h.imgs_frac[i] )
+    @show p
     q = denominator( h.imgs_frac[i] )
+    @show q
     # We need to replace the given denominators by 
     # powers of the functions which have been inverted 
     # in S to arrive at S_loc.
     (k,a) = divides_power( proj(q), proj(g) )
+    @show (k,a)
     if k == -1
       error( "the homomorphism is not well defined" )
     end
+    @show pullback_from_root(U)(p)*pullback_from_root(U)(lift(a))*t^k
     push!( images, pullback_from_root(U)(p)*pullback_from_root(U)(lift(a))*t^k )
   end
   #phi_prime = AlgebraHomomorphism( R, S_t, images )
@@ -726,28 +746,25 @@ function pullback(h::AffSchMorphism)
     return phi_prime
   end
   
-  # Now assemble the images for the remaining variables s_i 
-  # of R_loc along the same pattern.
-  den_V = denoms(V)
-  inv_V = inverses(V)
-  mu = length(inv_V) # Problem: Das ist nicht notwendigerweise die Anzahl 
-  # der notwendigen Variablen! TODO: Fix it!
+  # Now we need to extend the morphism ϕ' from above from 
+  # the ring R to a map
+  #   ϕ : R[t] → S[t]
+  # in a way that lifts h*.
+  # To this end, we need to compute the image of t. 
+  # Theoretically, we find that 
+  #   ϕ(t) = ϕ(1/f) = 1/ϕ'(f),
+  # so we are in the same position as for the qᵢ
+  # before.
+  den_V = div_denoms(V)
+  f = length(den_V)==0 ? one(R) : prod(den_V)
   Q_loc, proj_loc = quo( S_t, defining_ideal(U))
-  for i in (1:mu) 
-    q = phi_prime(den_V[i])
-    # TODO: This necessarily computes a Groebner basis for the localized 
-    # ideal. We probably don't want that by default, but look for a computationally 
-    # less expensive way to solve this problem.
-    (k,a) = divides_power( proj_loc(q), proj_loc(pullback_from_root(U)(g)) )
-    if k == -1
-      error( "the homomorphism is not well defined" )
-    end
-    push!( images, lift(a)*t^k )
-  end
-  @show R_s
+  (k,a) = divides_power( proj_loc(f), proj_loc(pullback_from_root(U)(g)) )
+  phi_of_f = lift(a)*t^k
+  @show R_t
   @show S_t
   @show images
-  phi = AlgebraHomomorphism( R_s, S_t, images )
+  push!( images, phi_of_f )
+  phi = AlgebraHomomorphism( R_t, S_t, images )
   h.pullback = phi
   return phi
 end
