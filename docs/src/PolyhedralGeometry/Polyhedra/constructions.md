@@ -45,7 +45,6 @@ facets_as_halfspace_matrix_pair(T)
 
 
 ## Named polyhedra
-For some commonly used types of polyhedra, dedicated constructors are provided:
 
 ```@docs
 simplex
@@ -73,9 +72,8 @@ convex_hull(::Polyhedron,::Polyhedron)
 
 
 
-## Polyhedra from other objects
+## Polyhedra from other mathematical objects
 
-Polyhedra can also be constructed from other mathematical objects:
 
 ```@docs
 orbit_polytope
