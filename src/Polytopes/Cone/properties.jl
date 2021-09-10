@@ -19,7 +19,7 @@ end
 Base.eltype(::Type{ConeRayIterator}) = Polymake.Vector{Polymake.Rational}
 Base.length(iter::ConeRayIterator) = nrays(iter.cone)
 
-"""
+@doc Markdown.doc"""
     rays(C::Cone)
 
 Return the rays of `C`.
@@ -51,7 +51,7 @@ rays(C::Cone) = ConeRayIterator(C)
 ## Scalar properties
 ###############################################################################
 
-"""
+@doc Markdown.doc"""
     nrays(C::Cone)
 
 Return the number of rays of `C`.
@@ -69,7 +69,7 @@ julia> nrays(PO)
 """
 nrays(C::Cone) = pm_cone(C).N_RAYS
 
-"""
+@doc Markdown.doc"""
     dim(C::Cone)
 
 Return the dimension of `C`.
@@ -85,7 +85,7 @@ julia> dim(C)
 """
 dim(C::Cone) = pm_cone(C).CONE_DIM
 
-"""
+@doc Markdown.doc"""
     ambient_dim(C::Cone)
 
 Return the ambient dimension of `C`.
@@ -101,7 +101,7 @@ julia> ambient_dim(C)
 """
 ambient_dim(C::Cone) = pm_cone(C).CONE_AMBIENT_DIM
 
-"""
+@doc Markdown.doc"""
     codim(C::Cone)
 
 Return the codimension of `C`.
@@ -120,7 +120,7 @@ codim(C::Cone) = ambient_dim(C)-dim(C)
 ###############################################################################
 ## Boolean properties
 ###############################################################################
-"""
+@doc Markdown.doc"""
     ispointed(C::Cone)
 
 Determine whether `C` is pointed, i.e. whether the origin is a face of `C`.
@@ -141,7 +141,7 @@ true
 """
 ispointed(C::Cone) = pm_cone(C).POINTED
 
-"""
+@doc Markdown.doc"""
     isfulldimensional(C::Cone)
 
 Determine whether `C` is full-dimensional.
@@ -161,7 +161,7 @@ isfulldimensional(C::Cone) = pm_cone(C).FULL_DIM
 ## Points properties
 ###############################################################################
 
-"""
+@doc Markdown.doc"""
     rays_as_point_matrix(C::Cone)
 
 Return the rays of `C` as rows in a matrix.
@@ -184,7 +184,7 @@ function rays_as_point_matrix(C::Cone)
 end
 
 
-"""
+@doc Markdown.doc"""
     facets_as_point_matrix(C::Cone)
 
 Return the facets of `C` as rows of a matrix.
@@ -205,7 +205,7 @@ pm::Matrix<pm::Rational>
 facets_as_point_matrix(C::Cone) = pm_cone(C).FACETS
 
 
-"""
+@doc Markdown.doc"""
     lineality_space(C::Cone)
 
 Return a basis of the lineality space of `C`.
@@ -223,7 +223,7 @@ pm::Matrix<pm::Rational>
 """
 lineality_space(C::Cone) = pm_cone(C).LINEALITY_SPACE
 
-"""
+@doc Markdown.doc"""
     hilbert_basis(C::Cone)
 
 Return the Hilbert basis of a pointed cone `C` as the rows of a matrix.
