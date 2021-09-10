@@ -151,8 +151,7 @@ mutable struct SpecPrincipalOpen{S,T,U} <: AffineScheme{S,T,U}
   I::MPolyIdeal{U} # the defining ideal
   pullbackFromParent::AlgHom
   pullbackFromRoot::AlgHom
-  u::U # The inverse of denom in R/I (usually one of the variables, unless 
-       # denom was already a unit)
+  u::U # The inverse of denom in R
   name::String
   #inclusionInParent::AffSchMorphism
   #inclusionInRoot::AffSchMorphism
@@ -351,36 +350,61 @@ function ambient_ring(D::SpecPrincipalOpen)
   if isdefined( D, :R )
     return D.R
   end
-  n = length( denoms( D ))
-  R = ambient_ring(parent(D))
-  # Check whether denom is already a unit in the ambient 
-  # ring of the parent.
-  # TODO: Disabled for the moment because it causes other parts of the 
-  # code to break
-# f = pullback_from_root(parent(D))(D.denom)
-# J = ideal( R, push!( gens(defining_ideal(parent(D))), f ))
-# G, A = groebner_basis_with_transformation_matrix(J,complete_reduction=true)
-# if length(G)==1 && G[1] == one(R)
-#   D.R = R
-#   D.u = last(A)
-#   D.I = defining_ideal(parent(D))
-#   D.pullbackFromParent = AlgebraHomomorphism( R, R, gens(R) )
-#   D.pullbackFromRoot = compose( pullback_from_root(parent(D)), D.pullbackFromParent )
-#   return D.R
-# end
-
-  # denom is not a unit in R. Hence, it needs to be added. 
-  S, phi, u = add_variables( R, ["u$n"] )
-  D.R = S
-  D.u = u[1]
-  D.pullbackFromParent = phi
-  if typeof(parent(D)) <: Spec 
-    D.pullbackFromRoot = D.pullbackFromParent
-  else 
-    D.pullbackFromRoot = compose( pullback_from_root( parent( D )), phi )
+  if typeof(parent(D))<:Spec 
+    R0 = ambient_ring(parent(D))
+    I0 = defining_ideal(parent(D))
+    R, phi, t = add_variables( R0, ["t"] ) 
+    D.R = R
+    D.pullbackFromParent = phi
+    D.pullbackFromRoot = phi
+    I = ideal( R, [ phi(g) for g in gens(I0) ] ) + ideal( R, [ one(R) - t[1]*phi(D.denom) ] )
+    D.u = t[1]
+    D.I = I
+  else
+    R0 = ambient_ring(root(D))
+    R = ambient_ring(parent(D)) # Since we have only one localization variable, the ring stays the same.
+    # We have to modify the last entry t from this list. 
+    # To this end, we compute the gcd of the new denominator 
+    # with the previous ones in order to throw out the obvious 
+    # superfluous factors. Note, however, that this might not 
+    # catch all of them, since we're not calculating this modulo 
+    # the defining ideal. Doing the latter would be algorithmically 
+    # too expensive, so that we decided for this tradeoff at this 
+    # point.
+    #
+    # Say we have already localized in elements d₁,…,dᵣand we now 
+    # want to also localize in f. Then we would naively do this by 
+    # adding the relation 1 - t⋅d₁⋅…⋅dᵣ⋅f to the original ideal. 
+    # Then the pullback in the t-variable is given by sending 
+    #   t ↦ t⋅f.
+    # However, the polynomial f and the dᵢmight have common factors. 
+    # We look for them using the gcd( f, dᵢ) =: gᵢ. If we found 
+    # any such factor, then f = fᵢ'⋅gᵢ and dᵢ = dᵢ' ⋅gᵢ. We can 
+    # then use the relation 1 - t⋅d₁⋅…⋅dᵣ⋅f' and the pullback 
+    # becomes t ↦ t⋅f' where f' is the product of the fᵢ's.
+    # In this case, the inverse of f is represented by the element
+    #   1/f = t⋅d₁'⋅…⋅dᵣ'.
+    # By induction we can assume that neither of the dᵢs have 
+    # pairwise common factors.
+    d = denoms(D)
+    r = length(d)
+    f = copy(D.denom)
+    u = last(gens(R))
+    phi = parent(D).pullbackFromRoot # We can recycle that since there's no t involved.
+    for d in denoms(D)
+      g = gcd(f,d)
+      u *= phi(div(d,g))
+      f = div(f,g) # TODO: Replace by the in-place call div! once it's there.
+    end
+    I = ideal( R, [ phi(g) for g in gens(root(D).I) ] ) + ideal( R, [ one(R) - last(gens(R))*phi(prod(d)*f) ] )
+    images = copy(gens(R))
+    push!( images, pop!(images)*phi(f) )
+    D.pullbackFromParent = AlgebraHomomorphism( R, R, images )
+    D.pullbackFromRoot = phi
+    D.u = u
   end
-  return S
-end 
+  return R
+end
 
 function pullback_from_root( D::SpecPrincipalOpen )
   if isdefined( D, :pullbackFromRoot )
@@ -414,19 +438,8 @@ function defining_ideal(D::SpecPrincipalOpen)
   if isdefined( D, :I )
     return D.I
   end
-  phi = pullback_from_parent(D)
-  I = defining_ideal(parent(D))
-  R = ambient_ring(D)
-  J = ideal( R, [ phi(f) for f in gens( I ) ])
-  # Check whether or not an extra variable was added for 
-  # the inversion of D.denom
-  if length(gens(ambient_ring(parent(D)))) == length(gens(R))
-    D.I = J
-    return J
-  end
-  J = J + ideal( R, [ one(R)-D.u*pullback_from_root(D)(D.denom) ] )
-  D.I = J 
-  return J
+  ambient_ring(D) # This now also prepares the ideal.
+  return D.I
 end
 
 function inclusion_in_parent( D::SpecPrincipalOpen )
