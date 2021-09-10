@@ -12,7 +12,7 @@ using Oscar.Misc
 
 export AffineScheme, Spec, SpecPrincipalOpen
 export base_ring, ambient_ring, defining_ideal, pullback, pullback_from_parent, pullback_from_root, inclusion_in_parent, inclusion_in_root, set_name!, inverted_element, identity_morphism, denoms, inverses
-export affine_space, localize
+export affine_space, localize, subscheme
 
 export AffSchMorphism
 export domain, codomain, pullback
@@ -110,13 +110,21 @@ function defining_ideal(A::Spec)
   return A.I
 end
 
-function add_ideal( X::Spec, J::MPolyIdeal ) 
-  if parent(J) != X.R 
+function denoms(A::Spec)
+  return typeof(A.R)[]
+end
+
+function subscheme( X::Spec, J::MPolyIdeal ) 
+  if base_ring(J) != X.R 
     error( "Ideal does not belong to the ambient ring of the variety" )
   end
   Y = Spec( X.k, X.R, X.I )
   Y.I = Y.I + J
   return Y
+end
+
+function subscheme( X::Spec, f::MPolyElem )
+  return subscheme( X, ideal( ambient_ring(X), f ))
 end
 
 ##################################################################################
@@ -278,13 +286,27 @@ function set_name!( X::AffineScheme, name::String )
 end
 
 # Obtain a closed subscheme
-function add_ideal( X::SpecPrincipalOpen{S,T,U}, J::MPolyIdeal{U} ) where{ S<:Ring, T<:MPolyRing, U<:MPolyElem }
-  if parent(J) != X.R 
+function subscheme( 
+    X::SpecPrincipalOpen{S,T,U}, 
+    J::MPolyIdeal{U} 
+  ) where{ S<:Ring, T<:MPolyRing, U<:MPolyElem }
+  if base_ring(J) != ambient_ring(root(X))
     error( "Ideal does not belong to the ambient ring of the variety" )
   end
-  Y = SpecPrincipalOpen( X )
-  Y.I = Y.I + J
+  Y_root = subscheme( root(X), J )
+  v = denoms(X)
+  Y = Y_root
+  for f in v
+    Y = localize( Y, f )
+  end
   return Y
+end
+
+function subscheme( 
+    X::SpecPrincipalOpen{S,T,U}, 
+    f::U
+  ) where{ S<:Ring, T<:MPolyRing, U<:MPolyElem }
+  return subscheme( X, ideal( ambient_ring(root(X)), f ))
 end
 
 # Collect the denominators from this localization up to the root. 
@@ -333,17 +355,19 @@ function ambient_ring(D::SpecPrincipalOpen)
   R = ambient_ring(parent(D))
   # Check whether denom is already a unit in the ambient 
   # ring of the parent.
-  f = pullback_from_root(parent(D))(D.denom)
-  J = ideal( R, push!( gens(defining_ideal(parent(D))), f ))
-  G, A = groebner_basis_with_transformation_matrix(J,complete_reduction=true)
-  if length(G)==1 && G[1] == one(R)
-    D.R = R
-    D.u = last(A)
-    D.I = defining_ideal(parent(D))
-    D.pullbackFromParent = AlgebraHomomorphism( R, R, gens(R) )
-    D.pullbackFromRoot = compose( pullback_from_root(parent(D)), D.pullbackFromParent )
-    return D.R
-  end
+  # TODO: Disabled for the moment because it causes other parts of the 
+  # code to break
+# f = pullback_from_root(parent(D))(D.denom)
+# J = ideal( R, push!( gens(defining_ideal(parent(D))), f ))
+# G, A = groebner_basis_with_transformation_matrix(J,complete_reduction=true)
+# if length(G)==1 && G[1] == one(R)
+#   D.R = R
+#   D.u = last(A)
+#   D.I = defining_ideal(parent(D))
+#   D.pullbackFromParent = AlgebraHomomorphism( R, R, gens(R) )
+#   D.pullbackFromRoot = compose( pullback_from_root(parent(D)), D.pullbackFromParent )
+#   return D.R
+# end
 
   # denom is not a unit in R. Hence, it needs to be added. 
   S, phi, u = add_variables( R, ["u$n"] )
@@ -602,6 +626,14 @@ function pullback(h::AffSchMorphism)
   S_t = ambient_ring(U)
   R = ambient_ring(Y)
   S = ambient_ring(X)
+  @show U
+  @show V
+  @show X
+  @show Y
+  @show R_s
+  @show S_t
+  @show R
+  @show S
   # Let x₁,...,xₙ be the variables of R.
   # Now the fractional representation of the morphism, i.e. 
   # the elements in imgs_frac, describe the images of these 
@@ -641,6 +673,12 @@ function pullback(h::AffSchMorphism)
   #
   # with, again, t the product of variables t_j.
 
+  println( "Call to pullback" )
+  @show R
+  @show S
+  for f in h.imgs_frac
+    @show f
+  end
   n = length( h.imgs_frac )
   if n != length( gens( R ))
     error( "Number of variables in the ambient ring of the root does not coincide with the number of images provided for the homomorphism" )
@@ -679,7 +717,8 @@ function pullback(h::AffSchMorphism)
   # of R_loc along the same pattern.
   den_V = denoms(V)
   inv_V = inverses(V)
-  mu = length(inv_V)
+  mu = length(inv_V) # Problem: Das ist nicht notwendigerweise die Anzahl 
+  # der notwendigen Variablen! TODO: Fix it!
   Q_loc, proj_loc = quo( S_t, defining_ideal(U))
   for i in (1:mu) 
     q = phi_prime(den_V[i])
@@ -692,6 +731,9 @@ function pullback(h::AffSchMorphism)
     end
     push!( images, lift(a)*t^k )
   end
+  @show R_s
+  @show S_t
+  @show images
   phi = AlgebraHomomorphism( R_s, S_t, images )
   h.pullback = phi
   return phi
@@ -753,12 +795,14 @@ end
 # homomorphisms.
 #
 function compose( f::AffSchMorphism, g::AffSchMorphism ) 
-  if codomain(f) != domain(f) 
+  if codomain(g) != domain(f) 
     error( "morphisms can not be composed" )
   end
+  # TODO: Extend functionality to also work for the fractional 
+  # representations of morphisms.
   phi = pullback(f)
   gamma = pullback(g)
-  return AffSchMorphism( domain(g), codomain(f), compose( gamma, phi ) )
+  return AffSchMorphism( domain(g), codomain(f), compose( phi, gamma ) )
 end
 
 #####################################################################
@@ -794,6 +838,23 @@ mutable struct Glueing
     return G
   end
 end
+
+# Glueing for two principal open subsets of a common root scheme X
+# along their intersection in X
+function Glueing( U::SpecPrincipalOpen, V::SpecPrincipalOpen )
+  root(U) == root(V) || error( "schemes do not belong to the same root" )
+  X = root(U)
+  R = ambient_ring(X)
+  den_U = denoms(U)
+  den_V = denoms(V)
+  f = prod(den_U)
+  g = prod(den_V)
+  U_loc = localize(U,g)
+  V_loc = localize(V,f)
+  iso = AffSchMorphism( U_loc, V_loc, gens(R) )
+  return Glueing( inclusion_in_parent(U_loc), inclusion_in_parent(V_loc), iso )
+end
+
 
 first_patch( G::Glueing ) = G.firstPatch
 second_patch( G::Glueing ) = G.secondPatch
@@ -943,6 +1004,21 @@ function intersect( X::AffineScheme, Y::AffineScheme, C::Covering )
     return (overlap(G),second_inclusion(G),first_inclusion(G))
   end
 end
+
+function intersect( U::AffineScheme, V::AffineScheme )
+  root(U) == root(V) || error( "schemes do not have the same root" )
+  R = ambient_ring(root(U))
+  den_U = denoms(U)
+  den_V = denoms(V)
+  # A missing implementation for rings forces us to do a weird workaround here:
+  f = length(den_U) == 0 ? one(R) : prod(den_U)
+  g = length(den_V) == 0 ? one(R) : prod(den_V)
+  U_loc = localize(U,g)
+  V_loc = localize(V,f)
+  iso = AffSchMorphism( U_loc, V_loc, gens(R) )
+  return (U_loc, inclusion_in_parent(U_loc), compose( inclusion_in_parent(V_loc), iso ))
+end
+
 
 ###############################################################
 # Restriction of a morphism to open inclusions:
@@ -1470,7 +1546,7 @@ function zero_locus( s::VectorBundleSection )
   U = patches(C)
   D = Covering()
   for i in (1:n)
-    X = add_ideal( U[i], ideal( ambient_ring(U[i]), s.loc_sections[i] ) )
+    X = subscheme( U[i], ideal( ambient_ring(U[i]), s.loc_sections[i] ) )
     _add_patch!( D, X, glueings(C)[i,(1:i-1)] )
   end
   Y = CoveredScheme( D )
@@ -1531,7 +1607,7 @@ function zero_locus( s::LineBundleSection )
   U = patches(C)
   D = Covering()
   for i in (1:n)
-    X = add_ideal( U[i], ideal( ambient_ring(U[i]), s.loc_sections[i] ) )
+    X = subscheme( U[i], s.loc_sections[i] )
     _add_patch!( D, X, glueings(C)[i,(1:i-1)] )
   end
   Y = CoveredScheme( D )
