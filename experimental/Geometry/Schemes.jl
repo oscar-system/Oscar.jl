@@ -758,9 +758,9 @@ function pullback(h::AffSchMorphism)
   den_V = div_denoms(V)
   f = length(den_V)==0 ? one(R) : prod(den_V)
   Q_loc, proj_loc = quo( S_t, defining_ideal(U))
-  @assert parent(f) === S_t
+  @assert parent(pullback_from_root(U)(f)) === S_t
   @assert parent(pullback_from_root(U)(g)) === S_t
-  (k,a) = divides_power( proj_loc(f), proj_loc(pullback_from_root(U)(g)) )
+  (k,a) = divides_power( proj_loc(pullback_from_root(U)(f)), proj_loc(pullback_from_root(U)(g)) )
   phi_of_f = lift(a)*t^k
   @show R_t
   @show S_t
