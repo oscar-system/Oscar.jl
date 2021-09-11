@@ -15,7 +15,7 @@ mutable struct MPolyQuo{S} <: AbstractAlgebra.Ring
   AbstractAlgebra.@declare_other
 
   function MPolyQuo(R, I) where S
-    @assert base_ring(I) == R
+    @assert base_ring(I) === R
     r = new{elem_type(R)}()
     r.R = R
     r.I = I
@@ -48,6 +48,11 @@ modulus(W::MPolyQuo) = W.I
 mutable struct MPolyQuoElem{S} <: RingElem
   f::S
   P::MPolyQuo{S}
+
+  function MPolyQuoElem(f::S, P::MPolyQuo{S}) where {S}
+    @assert parent(f) === P.R
+    return new{S}(f, P)
+  end
 end
 
 @enable_all_show_via_expressify MPolyQuoElem
