@@ -46,13 +46,14 @@ using Test
     @test name_of_variety( H5 ) == "Hirzebruch surface"
     zariski_cotangent_sheaf( H5 )
     cotangent_sheaf( H5 )
-    @test euler_characteristic( H5 ) == 0
+    @test euler_characteristic( H5 ) == 4
     # UnderlyingSheaf( H5 ) <- Error in gap
     character_to_rational_function( [1,2,3,4], H5 )
     @test size( weil_divisors_of_variety( H5 ) )[ 1 ] == 4
     @test size( factors( H5 ) )[ 1 ] == 1
     zariski_cotangent_sheaf_via_euler_sequence( H5 )
     zariski_cotangent_sheaf_via_poincare_residue_map( H5 )
+    @test ith_betti_number( H5, 0 ) == 1
     @test ith_betti_number( H5, 1 ) == 0
     @test ith_betti_number( H5, 2 ) == 2
     @test ith_betti_number( H5, 3 ) == 0
@@ -71,6 +72,7 @@ using Test
     @test JToric.is_simplicial( P2 ) == true
     @test JToric.is_isomorphic_to_projective_space( P2 ) == true
     @test JToric.is_direct_product_of_projective_spaces( P2 ) == true
+    @test ith_betti_number( P2, 0 ) == 1
     @test ith_betti_number( P2, 1 ) == 0
     @test ith_betti_number( P2, 2 ) == 1
     @test ith_betti_number( P2, 3 ) == 0
@@ -89,6 +91,7 @@ using Test
     @test JToric.is_simplicial( blowup_variety ) == true
     @test JToric.is_isomorphic_to_projective_space( blowup_variety ) == false
     @test JToric.is_direct_product_of_projective_spaces( blowup_variety ) == false
+    @test ith_betti_number( blowup_variety, 0 ) == 1
     @test ith_betti_number( blowup_variety, 1 ) == 0
     @test ith_betti_number( blowup_variety, 2 ) == 2
     @test ith_betti_number( blowup_variety, 3 ) == 0
@@ -108,6 +111,7 @@ using Test
     @test JToric.is_isomorphic_to_projective_space( v ) == false
     @test JToric.is_direct_product_of_projective_spaces( v ) == false
     @test size( factors( v ) )[ 1 ] == 2
+    @test ith_betti_number( v, 0 ) == 1
     @test ith_betti_number( v, 1 ) == 0
     @test ith_betti_number( v, 2 ) == 3
     @test ith_betti_number( v, 3 ) == 0
