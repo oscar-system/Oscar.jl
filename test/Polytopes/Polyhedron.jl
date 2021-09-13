@@ -43,9 +43,9 @@
         @test size(faces(square, 1).lineality) == (0, 3)
         @test isnothing(faces(square, -1))
         @test point_matrix(vertices(minkowski_sum(Q0, square))) == [2 -1; 2 1; -1 -1; -1 2; 1 2]
-        @test facets(Halfspace, Pos, 2) isa HalfspaceIterator{Halfspace}
-        @test facets(Pair, Pos, 2) .== 
-        @test facets(Pos, 2) isa HalfspaceIterator{Halfspace}
+        @test facets(Halfspace, Pos) isa HalfspaceIterator{Halfspace}
+        @test facets(Pair, Pos) isa HalfspaceIterator{Pair{Polymake.Matrix{Polymake.Rational}, Polymake.Rational}}
+        @test facets(Pos) isa HalfspaceIterator{Halfspace}
     end
 
     @testset "linear programs" begin

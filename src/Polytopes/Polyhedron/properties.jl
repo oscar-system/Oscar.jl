@@ -13,7 +13,7 @@ Return the faces of `P` of dimension `face_dim` as an iterator over the type of
 object given by `as`.
 
 Optional arguments for `as` include
-* `Polyhedron`/`Polyhedra`.
+* `Polyhedron`.
 
 # Examples
 A `Vector` containing the six sides of the 3-dimensional cube can be obtained
@@ -29,7 +29,7 @@ julia> F = faces(Polyhedron, cube(3), 2)
  A polyhedron in ambient dimension 3
 ```
 """
-function faces(as::Type{T}, P::Polyhedron, face_dim::Int) where T<:Union{Polyhedron, Polyhedra}
+function faces(as::Type{T}, P::Polyhedron, face_dim::Int) where T<:Polyhedron
     face_dim < 0 && return nothing
     pfaces = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(pm_polytope(P),face_dim-length(lineality_space(P))))
     nfaces = length(pfaces)
@@ -49,7 +49,7 @@ function faces(as::Type{T}, P::Polyhedron, face_dim::Int) where T<:Union{Polyhed
             push!(rfaces, index)
         end
     end
-    return PolyhedronOrConeIterator{AsTypeIdentities(as)}(P.pm_polytope.VERTICES,pfaces[rfaces], P.pm_polytope.LINEALITY_SPACE)
+    return PolyhedronOrConeIterator{as}(P.pm_polytope.VERTICES,pfaces[rfaces], P.pm_polytope.LINEALITY_SPACE)
 end
 """
     faces(P::Polyhedron, face_dim::Int)
@@ -96,7 +96,7 @@ julia> vertices(PointVector, P)
  [1, 2]
 ```
 """
-function vertices(as::Type{T}, P::Polyhedron) where T<:_pointTypes
+function vertices(as::Type{PointVector{T}}, P::Polyhedron) where T
     vertices = pm_polytope(P).VERTICES
     rvertices = Vector{Int64}()
     sizehint!(rvertices, size(vertices, 1))
@@ -105,8 +105,10 @@ function vertices(as::Type{T}, P::Polyhedron) where T<:_pointTypes
             push!(rvertices, index)
         end
     end
-    return VectorIterator{AsTypeIdentities(as)}(vertices[rvertices, 2:end])
+    return VectorIterator{as}(vertices[rvertices, 2:end])
 end
+
+vertices(::Type{PointVector}, P::Polyhedron) = vertices(PointVector{Polymake.Rational}, P)
 
 """
     vertices(P::Polyhedron)
@@ -189,7 +191,7 @@ julia> rays(RayVector, PO)
  [0, 1]
 ```
 """
-function rays(as::Type{T}, P::Polyhedron) where T<:_rayTypes
+function rays(as::Type{RayVector{T}}, P::Polyhedron) where T
     vertices = pm_polytope(P).VERTICES
     rrays = Vector{Int64}()
     sizehint!(rrays, size(vertices, 1))
@@ -198,8 +200,10 @@ function rays(as::Type{T}, P::Polyhedron) where T<:_rayTypes
             push!(rrays, index)
         end
     end
-    return VectorIterator{AsTypeIdentities(as)}(vertices[rrays, 2:end])
+    return VectorIterator{as}(vertices[rrays, 2:end])
 end
+
+rays(::Type{RayVector}, P::Polyhedron) = rays(RayVector{Polymake.Rational}, P)
 
 @doc Markdown.doc"""
     rays(P::Polyhedron)
@@ -262,7 +266,7 @@ julia> facets(Polyhedron, C)
  A polyhedron in ambient dimension 3
  A polyhedron in ambient dimension 3
 
-julia> facets(Halfspaces, C)
+julia> facets(Halfspace, C)
 6-element HalfspaceIterator{Halfspace}:
  The Halfspace of R^3 described by
 1: -x₁ ≦ 1
@@ -283,7 +287,9 @@ julia> facets(Halfspaces, C)
 1: x₃ ≦ 1
 ```
 """
-facets(as::Type{T}, P::Polyhedron) where T<:Union{Halfspace, Halfspaces, Pair, Polyhedron, Polyhedra} = HalfspaceIterator{AsTypeIdentities(as)}(decompose_hdata(pm_polytope(P).FACETS)...)
+facets(as::Type{T}, P::Polyhedron) where {R, S, T<:Union{Halfspace, Pair{R, S}, Polyhedron}} = HalfspaceIterator{as}(decompose_hdata(pm_polytope(P).FACETS)...)
+
+facets(::Type{Pair}, P::Polyhedron) = facets(Pair{Polymake.Matrix{Polymake.Rational}, Polymake.Rational}, P)
 
 @doc Markdown.doc"""
     facets(P::Polyhedron)

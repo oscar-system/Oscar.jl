@@ -16,9 +16,6 @@ struct Cone #a real polymake polyhedron
     pm_cone::Polymake.BigObject
 end
 
-struct Polyhedra
-end
-
 struct PointVector{U} <: AbstractVector{U}
     p::Polymake.Vector{U}
 end
@@ -81,13 +78,6 @@ Base.BroadcastStyle(::Type{<:RayVector}) = Broadcast.ArrayStyle{RayVector}()
 
 function Base.similar(bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{RayVector}}, ::Type{ElType}) where ElType
     return RayVector{Polymake.promote_to_pm_type(Vector, ElType)}(axes(bc)...)
-end
-
-struct Points
-end
-struct Ray
-end
-struct Rays
 end
 
 @doc Markdown.doc"""
@@ -165,7 +155,7 @@ function Base.getindex(iter::HalfspaceIterator{T}, i::Base.Integer) where T
     return T(reshape(iter.A[i, :], 1, :), iter.b[i])
 end
 
-# TODO: include when there is `ConeFromInequality` 
+# TODO: include when there is `ConeFromInequality`
 # function Base.getindex(iter::HalfspaceIterator{Cone}, i::Base.Integer)
 #     @boundscheck checkbounds(iter.b, i)
 #     return ConeFromInequality(iter.A[i, :])
@@ -226,21 +216,6 @@ VectorIterator{T}(vertices::Union{Oscar.fmpz_mat,AbstractMatrix{Oscar.fmpz}, Osc
 VectorIterator{T}(vertices::Array{V, 1}) where {T, V<:Union{AbstractVector, T}} = VectorIterator{T}(cat((v' for v in vertices)...; dims = 1))
 
 VectorIterator(x...) = VectorIterator{PointVector{Polymake.Rational}}(x...)
-
-####################
-
-const _pointTypes = Union{Points, PointVector}
-const _rayTypes = Union{Ray, Rays, RayVector}
-const _hspaceTypes = Union{Halfspace, Halfspaces}
-const _polyhedronTypes = Union{Polyhedron, Polyhedra}
-const _coneTypes = Union{Cone, Cones}
-
-AsTypeIdentities(as::Type{T}) where T<:_pointTypes = PointVector{Polymake.Rational}
-AsTypeIdentities(as::Type{T}) where T<:_rayTypes = RayVector{Polymake.Rational}
-AsTypeIdentities(as::Type{T}) where T<:_hspaceTypes = Halfspace
-AsTypeIdentities(as::Type{T}) where T<:_polyhedronTypes = Polyhedron
-AsTypeIdentities(as::Type{T}) where T<:Pair = Pair{Polymake.Matrix, Polymake.Rational}
-AsTypeIdentities(as::Type{T}) where T<:_coneTypes = Cone
 
 ####################
 

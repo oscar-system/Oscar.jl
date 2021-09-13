@@ -4,7 +4,9 @@
 ###############################################################################
 ###############################################################################
 
-rays(as::Type{T}, C::Cone) where T<:Union{Ray, Rays, RayVector} = VectorIterator{AsTypeIdentities(as)}(C.pm_cone.RAYS)
+rays(as::Type{RayVector{T}}, C::Cone) where T = VectorIterator{as}(C.pm_cone.RAYS)
+
+rays(::Type{RayVector}, C::Cone) = rays(RayVector{Polymake.Rational}, C)
 
 """
     rays(C::Cone)
@@ -26,13 +28,13 @@ julia> rays(PO)
 """
 rays(C::Cone) = rays(RayVector{Polymake.Rational}, C)
 
-function faces(as::Type{T}, C::Cone, face_dim::Int) where T<:Union{Cone, Cones}
+function faces(as::Type{T}, C::Cone, face_dim::Int) where T<:Cone
    n = face_dim-length(lineality_space(C))
    if n < 1
       return nothing
    end
    cfaces = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(C.pm_cone, n))
-   return PolyhedronOrConeIterator{AsTypeIdentities(as)}(C.pm_cone.RAYS,cfaces, C.pm_cone.LINEALITY_SPACE)
+   return PolyhedronOrConeIterator{as}(C.pm_cone.RAYS,cfaces, C.pm_cone.LINEALITY_SPACE)
 end
 
 faces(C::Cone, face_dim::Int) = faces(Cone, C, face_dim)
@@ -158,7 +160,7 @@ isfulldimensional(C::Cone) = pm_cone(C).FULL_DIM
 ###############################################################################
 
 # TODO: allow T = Cone when iterator can access `Cone(inequalities)``
-facets(as::Type{T}, C::Cone) where T<:Union{Halfspace, Halfspaces} = HalfspaceIterator{AsTypeIdentities(as)}(pm_cone(C).FACETS)
+facets(as::Type{T}, C::Cone) where T<:Union{Halfspace} = HalfspaceIterator{as}(pm_cone(C).FACETS)
 
 facets(C::Cone) = facets(Halfspace, C)
 

@@ -25,7 +25,7 @@
     @testset "HalfspaceIterator" begin
         A = [-1 0 0; 0 -1 0; 0 0 -1; 1 1 1]
         b = [0, 1, 2, 4]
-        for T in [Halfspace, Polyhedron]
+        for T in [Halfspace, Polyhedron, Pair{Polymake.Matrix{Polymake.Rational}, Polymake.Rational}]
             hi = HalfspaceIterator{T}(A, b)
             @test hi isa HalfspaceIterator
             @test hi isa HalfspaceIterator{T}
