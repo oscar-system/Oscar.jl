@@ -13,14 +13,14 @@ projective variety of dimension `1`.
 # Example
 ```jldoctest
 julia> S, (x, y, z, t) = PolynomialRing(QQ, ["x", "y", "z", "t"])
-T(Multivariate Polynomial Ring in x, y, z, t over Rational Field, fmpq_mpoly[^[[Ax, y, z, t])
+(Multivariate Polynomial Ring in x, y, z, t over Rational Field, fmpq_mpoly[x, y, z, t])
 
 julia> T, _ = grade(S)
 (Multivariate Polynomial Ring in x, y, z, t over Rational Field graded by
   x -> [1]
   y -> [1]
   z -> [1]
-  t -> [1], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z, t])
+  t -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z, t])
 
 julia> I = ideal(T, [x^2, y^2*z, z^2])
 ideal(x^2, y^2*z, z^2)
@@ -81,7 +81,7 @@ julia> T, _ = grade(S)
   x -> [1]
   y -> [1]
   z -> [1]
-  t -> [1], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z, t])
+  t -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z, t])
 
 julia> I = ideal(T, [x^2, y^2*z, z^2])
 ideal(x^2, y^2*z, z^2)
@@ -92,7 +92,7 @@ Projective curve defined by the ideal(x^2, y^2*z, z^2)
 
 julia> PP = projective_space(QQ, 3)
 (Projective space of dim 3 over Rational Field
-, MPolyElem_dec{fmpq,fmpq_mpoly}[x[0], x[1], x[2], x[3]])
+, MPolyElem_dec{fmpq, fmpq_mpoly}[x[0], x[1], x[2], x[3]])
 
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(2), QQ(0), QQ(5)])
 (0 : 2 : 0 : 5)
@@ -121,32 +121,6 @@ end
 
 Return a dictionary containing the irreducible components of `C` and the
 corresponding reduced curve.
-
-# Example
-```jldoctest
-julia> S, (x, y, z, t) = PolynomialRing(QQ, ["x", "y", "z", "t"])
-(Multivariate Polynomial Ring in x, y, z, t over Rational Field, fmpq_mpoly[x, y, z, t])
-
-julia> T, _ = grade(S)
-(Multivariate Polynomial Ring in x, y, z, t over Rational Field graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]
-  t -> [1], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z, t])
-
-julia> I = ideal(T, [x^2*z^2 - y*z^2*t, x^2*y*z - y^2*z*t, x^3*z + z^2*t^2, x^3*y + x^2*z*t, x^4 - x^2*y*t, x*z^2*t^2 + y^2*z*t^2, x*y*z^2*t + z^3*t^2, x*y^2*z*t + y*z^2*t^2, x^2*y^2*t - z^2*t^3])
-ideal(x^2*z^2 - y*z^2*t, x^2*y*z - y^2*z*t, x^3*z + z^2*t^2, x^3*y + x^2*z*t, x^4 - x^2*y*t, x*z^2*t^2 + y^2*z*t^2, x*y*z^2*t + z^3*t^2, x*y^2*z*t + y*z^2*t^2, x^2*y^2*t - z^2*t^3)
-
-julia> C = Oscar.ProjCurve(I)
-Projective curve defined by the ideal(x^2*z^2 - y*z^2*t, x^2*y*z - y^2*z*t, x^3*z + z^2*t^2, x^3*y + x^2*z*t, x^4 - x^2*y*t, x*z^2*t^2 + y^2*z*t^2, x*y*z^2*t + z^3*t^2, x*y^2*z*t + y*z^2*t^2, x^2*y^2*t - z^2*t^3)
-
-
-julia> Oscar.curve_components(C)
-Dict{Oscar.PlaneCurveModule.ProjCurve,Oscar.PlaneCurveModule.ProjCurve} with 3 entries:
-  ideal(y^3 - z^2*t, x*z + y^2, x*y + z*t, x^2 - y*t)… => ideal(y^3 - z^2*t, x*z + y^2, x*y + z*t, x^2 - y*t)…
-  ideal(z, x^2)…                                       => ideal(z, x)…
-  ideal(t^2, x*t, x^2 - y*t)…                          => ideal(t, x)…
-```
 """
 function curve_components(C::ProjCurve)
     if isempty(C.components)
@@ -174,14 +148,14 @@ Return `true` if `C` is irreducible, and `false` otherwise.
 # Example
 ```jldoctest
 julia> S, (x, y, z, t) = PolynomialRing(QQ, ["x", "y", "z", "t"])
-T(Multivariate Polynomial Ring in x, y, z, t over Rational Field, fmpq_mpoly[^[[Ax, y, z, t])
+(Multivariate Polynomial Ring in x, y, z, t over Rational Field, fmpq_mpoly[x, y, z, t])
 
 julia> T, _ = grade(S)
 (Multivariate Polynomial Ring in x, y, z, t over Rational Field graded by
   x -> [1]
   y -> [1]
   z -> [1]
-  t -> [1], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z, t])
+  t -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z, t])
 
 julia> I = ideal(T, [x^2, y^2*z, z^2])
 ideal(x^2, y^2*z, z^2)
@@ -208,14 +182,14 @@ Return the projective curve defined by the radical of the defining ideal of `C`.
 # Example
 ```jldoctest
 julia> S, (x, y, z, t) = PolynomialRing(QQ, ["x", "y", "z", "t"])
-T(Multivariate Polynomial Ring in x, y, z, t over Rational Field, fmpq_mpoly[^[[Ax, y, z, t])
+(Multivariate Polynomial Ring in x, y, z, t over Rational Field, fmpq_mpoly[x, y, z, t])
 
 julia> T, _ = grade(S)
 (Multivariate Polynomial Ring in x, y, z, t over Rational Field graded by
   x -> [1]
   y -> [1]
   z -> [1]
-  t -> [1], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z, t])
+  t -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z, t])
 
 julia> I = ideal(T, [x^2, y^2*z, z^2])
 ideal(x^2, y^2*z, z^2)
@@ -242,14 +216,14 @@ Return the jacobian ideal of the defining ideal of `C`.
 # Example
 ```jldoctest
 julia> S, (x, y, z, t) = PolynomialRing(QQ, ["x", "y", "z", "t"])
-T(Multivariate Polynomial Ring in x, y, z, t over Rational Field, fmpq_mpoly[^[[Ax, y, z, t])
+(Multivariate Polynomial Ring in x, y, z, t over Rational Field, fmpq_mpoly[x, y, z, t])
 
 julia> T, _ = grade(S)
 (Multivariate Polynomial Ring in x, y, z, t over Rational Field graded by
   x -> [1]
   y -> [1]
   z -> [1]
-  t -> [1], MPolyElem_dec{fmpq,fmpq_mpoly}[x, y, z, t])
+  t -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z, t])
 
 julia> I = ideal(T, [x^2, y^2*z, z^2])
 ideal(x^2, y^2*z, z^2)
