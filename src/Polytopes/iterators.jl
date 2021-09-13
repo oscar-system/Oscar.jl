@@ -27,7 +27,7 @@ Base.IndexStyle(::Type{<:PointVector}) = IndexLinear()
 
 Base.getindex(po::PointVector, i::Base.Integer) = po.p[i]
 
-function Base.setindex!(po::PointVector{U}, val::U, i::Base.Integer) where U
+function Base.setindex!(po::PointVector{U}, val, i::Base.Integer) where U
     @boundscheck checkbounds(po.p, i)
     po.p[i] = val
     return val
@@ -59,7 +59,7 @@ Base.IndexStyle(::Type{<:RayVector}) = IndexLinear()
 
 Base.getindex(po::RayVector, i::Base.Integer) = po.p[i]
 
-function Base.setindex!(po::RayVector{U}, val::U, i::Base.Integer) where U
+function Base.setindex!(po::RayVector{U}, val, i::Base.Integer) where U
     @boundscheck checkbounds(po.p, i)
     po.p[i] = val
     return val
@@ -106,7 +106,9 @@ struct Halfspace
     b::Polymake.Rational
 end
 
-Halfspace(a::AbstractVector, b) = reshape(a, 1, :)
+Halfspace(a::AbstractVector, b) = Halfspace(reshape(a, 1, :), b)
+
+Halfspace(a) = Halfspace(a, 0)
 
 # TODO: abstract notion of equality
 Base.:(==)(x::Halfspace, y::Halfspace) = x.a == y.a && x.b == y.b
@@ -146,7 +148,7 @@ Base.size(iter::PolyhedronOrConeIterator) = (length(iter.faces),)
 # TODO: function incidence_matrix(::PolyhedronOrConeIterator) after merge of combine-incidencematrix
 
 function Base.show(io::IO, I::PolyhedronOrConeIterator{T}) where T
-    print(io, "A collection of $T objects as `$T`")
+    print(io, "A collection of `$T` objects")
 end
 
 #####################################
@@ -162,6 +164,12 @@ function Base.getindex(iter::HalfspaceIterator{T}, i::Base.Integer) where T
     @boundscheck checkbounds(iter.b, i)
     return T(reshape(iter.A[i, :], 1, :), iter.b[i])
 end
+
+# TODO: include when there is `ConeFromInequality` 
+# function Base.getindex(iter::HalfspaceIterator{Cone}, i::Base.Integer)
+#     @boundscheck checkbounds(iter.b, i)
+#     return ConeFromInequality(iter.A[i, :])
+# end
 
 function Base.setindex!(iter::HalfspaceIterator, val::Halfspace, i::Base.Integer)
     @boundscheck checkbounds(iter.b, i)

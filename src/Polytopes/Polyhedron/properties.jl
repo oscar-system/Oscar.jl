@@ -244,10 +244,9 @@ nfacets(P::Polyhedron) = pm_polytope(P).N_FACETS
 Return the facets of `P` in the format defined by `as`.
 
 The allowed values for `as` are
-* `Halfspaces`,
-* `Polyhedron`/`Polyhedra`.
-
-See also `facets_as_halfspace_matrix_pair`.
+* `Halfspace`/`Halfspaces`,
+* `Polyhedron`/`Polyhedra`,
+* `Pair`.
 
 # Examples
 We can retrieve the six facets of the 3-dimensional cube this way:
@@ -265,24 +264,23 @@ julia> facets(Polyhedron, C)
 
 julia> facets(Halfspaces, C)
 6-element HalfspaceIterator{Halfspace}:
- Halfspace(pm::Matrix<pm::Rational>
--1 0 0
-, 1)
- Halfspace(pm::Matrix<pm::Rational>
-1 0 0
-, 1)
- Halfspace(pm::Matrix<pm::Rational>
-0 -1 0
-, 1)
- Halfspace(pm::Matrix<pm::Rational>
-0 1 0
-, 1)
- Halfspace(pm::Matrix<pm::Rational>
-0 0 -1
-, 1)
- Halfspace(pm::Matrix<pm::Rational>
-0 0 1
-, 1)
+ The Halfspace of R^3 described by
+1: -x₁ ≦ 1
+
+ The Halfspace of R^3 described by
+1: x₁ ≦ 1
+
+ The Halfspace of R^3 described by
+1: -x₂ ≦ 1
+
+ The Halfspace of R^3 described by
+1: x₂ ≦ 1
+
+ The Halfspace of R^3 described by
+1: -x₃ ≦ 1
+
+ The Halfspace of R^3 described by
+1: x₃ ≦ 1
 ```
 """
 facets(as::Type{T}, P::Polyhedron) where T<:Union{Halfspace, Halfspaces, Pair, Polyhedron, Polyhedra} = HalfspaceIterator{AsTypeIdentities(as)}(decompose_hdata(pm_polytope(P).FACETS)...)
@@ -292,8 +290,6 @@ facets(as::Type{T}, P::Polyhedron) where T<:Union{Halfspace, Halfspaces, Pair, P
 
 Return the facets of `P` as halfspaces.
 
-See also `facets_as_halfspace_matrix_pair`.
-
 # Examples
 We can retrieve the six facets of the 3-dimensional cube this way:
 ```jldoctest
@@ -301,24 +297,23 @@ julia> C = cube(3);
 
 julia> facets(C)
 6-element HalfspaceIterator{Halfspace}:
- Halfspace(pm::Matrix<pm::Rational>
--1 0 0
-, 1)
- Halfspace(pm::Matrix<pm::Rational>
-1 0 0
-, 1)
- Halfspace(pm::Matrix<pm::Rational>
-0 -1 0
-, 1)
- Halfspace(pm::Matrix<pm::Rational>
-0 1 0
-, 1)
- Halfspace(pm::Matrix<pm::Rational>
-0 0 -1
-, 1)
- Halfspace(pm::Matrix<pm::Rational>
-0 0 1
-, 1)
+ The Halfspace of R^3 described by
+1: -x₁ ≦ 1
+
+ The Halfspace of R^3 described by
+1: x₁ ≦ 1
+
+ The Halfspace of R^3 described by
+1: -x₂ ≦ 1
+
+ The Halfspace of R^3 described by
+1: x₂ ≦ 1
+
+ The Halfspace of R^3 described by
+1: -x₃ ≦ 1
+
+ The Halfspace of R^3 described by
+1: x₃ ≦ 1
 ```
 """
 facets(P::Polyhedron) = facets(Halfspace, P)
@@ -685,7 +680,7 @@ julia> print_constraints([-1 0 4 5; 4 4 4 3; 1 0 0 0; 0 0 0 0; 0 0 0 0; 9 9 9 9]
 6: 9*x₁ + 9*x₂ + 9*x₃ + 9*x₄ ≦ 5
 ```
 """
-function print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = false)
+function print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = false, io::IO = stdout)
     for i in 1:length(b)
         terms = Vector{String}(undef, size(A)[2])
         first = true
@@ -709,7 +704,7 @@ function print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = fa
             end
             terms[1] = "0"
         end
-        println(string(i, ": ", terms..., " ≦ ", b[i]))
+        println(io, string(i, ": ", terms..., " ≦ ", b[i]))
     end
 end
 
@@ -733,4 +728,16 @@ julia> print_constraints(cube(3))
 6: x₃ ≦ 1
 ```
 """
-print_constraints(P::Polyhedron; trivial::Bool = false) = print_constraints(halfspace_matrix_pair(facets(P))...; trivial = trivial)
+print_constraints(P::Polyhedron; trivial::Bool = false, io::IO = stdout) = print_constraints(halfspace_matrix_pair(facets(P))...; trivial = trivial, io = io)
+
+print_constraints(H::Halfspace; trivial::Bool = false, io::IO = stdout) = print_constraints(H.a, [H.b]; trivial = trivial, io = io)
+
+function Base.show(io::IO, H::Halfspace)
+    n = length(H.a)
+    if iszero(H.a) && H.b >= 0
+        print(io, "The trivial Halfspace, R^$n")
+    else
+        print(io, "The Halfspace of R^$n described by\n")
+        print_constraints(H; io)
+    end
+end

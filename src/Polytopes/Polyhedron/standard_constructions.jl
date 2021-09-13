@@ -413,60 +413,58 @@ A polyhedron in ambient dimension 7
 
 julia> facets(s)
 8-element HalfspaceIterator{Halfspace}:
- Halfspace(pm::Matrix<pm::Rational>
--1 0 0 0 0 0 0
-, 0)
- Halfspace(pm::Matrix<pm::Rational>
-0 -1 0 0 0 0 0
-, 0)
- Halfspace(pm::Matrix<pm::Rational>
-0 0 -1 0 0 0 0
-, 0)
- Halfspace(pm::Matrix<pm::Rational>
-0 0 0 -1 0 0 0
-, 0)
- Halfspace(pm::Matrix<pm::Rational>
-0 0 0 0 -1 0 0
-, 0)
- Halfspace(pm::Matrix<pm::Rational>
-0 0 0 0 0 -1 0
-, 0)
- Halfspace(pm::Matrix<pm::Rational>
-0 0 0 0 0 0 -1
-, 0)
- Halfspace(pm::Matrix<pm::Rational>
-1 1 1 1 1 1 1
-, 1)
+ The Halfspace of R^7 described by
+1: -x₁ ≦ 0
+
+ The Halfspace of R^7 described by
+1: -x₂ ≦ 0
+
+ The Halfspace of R^7 described by
+1: -x₃ ≦ 0
+
+ The Halfspace of R^7 described by
+1: -x₄ ≦ 0
+
+ The Halfspace of R^7 described by
+1: -x₅ ≦ 0
+
+ The Halfspace of R^7 described by
+1: -x₆ ≦ 0
+
+ The Halfspace of R^7 described by
+1: -x₇ ≦ 0
+
+ The Halfspace of R^7 described by
+1: x₁ + x₂ + x₃ + x₄ + x₅ + x₆ + x₇ ≦ 1
 
 julia> t = simplex(7, 5)
 A polyhedron in ambient dimension 7
 
 julia> facets(t)
 8-element HalfspaceIterator{Halfspace}:
- Halfspace(pm::Matrix<pm::Rational>
--1 0 0 0 0 0 0
-, 0)
- Halfspace(pm::Matrix<pm::Rational>
-0 -1 0 0 0 0 0
-, 0)
- Halfspace(pm::Matrix<pm::Rational>
-0 0 -1 0 0 0 0
-, 0)
- Halfspace(pm::Matrix<pm::Rational>
-0 0 0 -1 0 0 0
-, 0)
- Halfspace(pm::Matrix<pm::Rational>
-0 0 0 0 -1 0 0
-, 0)
- Halfspace(pm::Matrix<pm::Rational>
-0 0 0 0 0 -1 0
-, 0)
- Halfspace(pm::Matrix<pm::Rational>
-0 0 0 0 0 0 -1
-, 0)
- Halfspace(pm::Matrix<pm::Rational>
-1 1 1 1 1 1 1
-, 5)
+ The Halfspace of R^7 described by
+1: -x₁ ≦ 0
+
+ The Halfspace of R^7 described by
+1: -x₂ ≦ 0
+
+ The Halfspace of R^7 described by
+1: -x₃ ≦ 0
+
+ The Halfspace of R^7 described by
+1: -x₄ ≦ 0
+
+ The Halfspace of R^7 described by
+1: -x₅ ≦ 0
+
+ The Halfspace of R^7 described by
+1: -x₆ ≦ 0
+
+ The Halfspace of R^7 described by
+1: -x₇ ≦ 0
+
+ The Halfspace of R^7 described by
+1: x₁ + x₂ + x₃ + x₄ + x₅ + x₆ + x₇ ≦ 5
 ```
 """
 simplex(d::Int64,n) = Polyhedron(Polymake.polytope.simplex(d,n))
@@ -489,60 +487,58 @@ A polyhedron in ambient dimension 3
 
 julia> facets(C)
 8-element HalfspaceIterator{Halfspace}:
- Halfspace(pm::Matrix<pm::Rational>
-1 1 1
-, 1)
- Halfspace(pm::Matrix<pm::Rational>
--1 1 1
-, 1)
- Halfspace(pm::Matrix<pm::Rational>
-1 -1 1
-, 1)
- Halfspace(pm::Matrix<pm::Rational>
--1 -1 1
-, 1)
- Halfspace(pm::Matrix<pm::Rational>
-1 1 -1
-, 1)
- Halfspace(pm::Matrix<pm::Rational>
--1 1 -1
-, 1)
- Halfspace(pm::Matrix<pm::Rational>
-1 -1 -1
-, 1)
- Halfspace(pm::Matrix<pm::Rational>
--1 -1 -1
-, 1)
+ The Halfspace of R^3 described by
+1: x₁ + x₂ + x₃ ≦ 1
+
+ The Halfspace of R^3 described by
+1: -x₁ + x₂ + x₃ ≦ 1
+
+ The Halfspace of R^3 described by
+1: x₁ - x₂ + x₃ ≦ 1
+
+ The Halfspace of R^3 described by
+1: -x₁ - x₂ + x₃ ≦ 1
+
+ The Halfspace of R^3 described by
+1: x₁ + x₂ - x₃ ≦ 1
+
+ The Halfspace of R^3 described by
+1: -x₁ + x₂ - x₃ ≦ 1
+
+ The Halfspace of R^3 described by
+1: x₁ - x₂ - x₃ ≦ 1
+
+ The Halfspace of R^3 described by
+1: -x₁ - x₂ - x₃ ≦ 1
 
 julia> D = cross(3, 2)
 A polyhedron in ambient dimension 3
 
 julia> facets(D)
 8-element HalfspaceIterator{Halfspace}:
- Halfspace(pm::Matrix<pm::Rational>
-1 1 1
-, 2)
- Halfspace(pm::Matrix<pm::Rational>
--1 1 1
-, 2)
- Halfspace(pm::Matrix<pm::Rational>
-1 -1 1
-, 2)
- Halfspace(pm::Matrix<pm::Rational>
--1 -1 1
-, 2)
- Halfspace(pm::Matrix<pm::Rational>
-1 1 -1
-, 2)
- Halfspace(pm::Matrix<pm::Rational>
--1 1 -1
-, 2)
- Halfspace(pm::Matrix<pm::Rational>
-1 -1 -1
-, 2)
- Halfspace(pm::Matrix<pm::Rational>
--1 -1 -1
-, 2)
+ The Halfspace of R^3 described by
+1: x₁ + x₂ + x₃ ≦ 2
+
+ The Halfspace of R^3 described by
+1: -x₁ + x₂ + x₃ ≦ 2
+
+ The Halfspace of R^3 described by
+1: x₁ - x₂ + x₃ ≦ 2
+
+ The Halfspace of R^3 described by
+1: -x₁ - x₂ + x₃ ≦ 2
+
+ The Halfspace of R^3 described by
+1: x₁ + x₂ - x₃ ≦ 2
+
+ The Halfspace of R^3 described by
+1: -x₁ + x₂ - x₃ ≦ 2
+
+ The Halfspace of R^3 described by
+1: x₁ - x₂ - x₃ ≦ 2
+
+ The Halfspace of R^3 described by
+1: -x₁ - x₂ - x₃ ≦ 2
 ```
 """
 cross(d::Int64,n) = Polyhedron(Polymake.polytope.cross(d,n))

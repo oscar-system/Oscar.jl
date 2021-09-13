@@ -4,6 +4,8 @@
 ###############################################################################
 ###############################################################################
 
+rays(as::Type{T}, C::Cone) where T<:Union{Ray, Rays, RayVector} = VectorIterator{AsTypeIdentities(as)}(C.pm_cone.RAYS)
+
 """
     rays(C::Cone)
 
@@ -22,15 +24,18 @@ julia> rays(PO)
  [0, 1]
 ```
 """
-rays(C::Cone) = VectorIterator{RayVector{Polymake.Rational}}(pm_cone(C).RAYS)
+rays(C::Cone) = rays(RayVector{Polymake.Rational}, C)
 
 function faces(as::Type{T}, C::Cone, face_dim::Int) where T<:Union{Cone, Cones}
-    if face_dim < 0
-        return nothing
-    end
-    cfaces = Polymake.polytope.faces_of_dim(C.pm_cone,face_dim-length(lineality_space(C)))
-    return PolyhedronOrConeIterator{AsTypeIdentities(as)}(C.pm_cone.RAYS,cfaces, C.pm_cone.LINEALITY_SPACE)
+   n = face_dim-length(lineality_space(C))
+   if n < 1
+      return nothing
+   end
+   cfaces = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(C.pm_cone, n))
+   return PolyhedronOrConeIterator{AsTypeIdentities(as)}(C.pm_cone.RAYS,cfaces, C.pm_cone.LINEALITY_SPACE)
 end
+
+faces(C::Cone, face_dim::Int) = faces(Cone, C, face_dim)
 
 ###############################################################################
 ###############################################################################
@@ -152,7 +157,10 @@ isfulldimensional(C::Cone) = pm_cone(C).FULL_DIM
 ## Points properties
 ###############################################################################
 
-facets(C::Cone) = HalfspaceIterator{Halfspace}(pm_cone(C).FACETS)
+# TODO: allow T = Cone when iterator can access `Cone(inequalities)``
+facets(as::Type{T}, C::Cone) where T<:Union{Halfspace, Halfspaces} = HalfspaceIterator{AsTypeIdentities(as)}(pm_cone(C).FACETS)
+
+facets(C::Cone) = facets(Halfspace, C)
 
 """
     lineality_space(C::Cone)
@@ -192,7 +200,7 @@ pm::Matrix<pm::Integer>
 """
 function hilbert_basis(C::Cone)
    if ispointed(C)
-      return VectorIterator{PointVector{Polymake.to_cxx_type(Int64)}}(pm_cone(C).HILBERT_BASIS_GENERATORS[1])
+      return VectorIterator{PointVector{Polymake.Integer}}(pm_cone(C).HILBERT_BASIS_GENERATORS[1])
    else
       throw(ArgumentError("Cone not pointed."))
    end

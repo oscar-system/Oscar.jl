@@ -8,14 +8,16 @@
     Q2 = convex_hull(pts, [1 1], [1 1])
     square = cube(2)
     C1 = cube(2, 0, 1)
-    Pos=Polyhedron([-1 0 0; 0 -1 0; 0 0 -1],[0,0,0])
+    Pos = Polyhedron([-1 0 0; 0 -1 0; 0 0 -1], [0,0,0])
+    L = Polyhedron([-1 0 0; 0 -1 0], [0,0])
     point = convex_hull([0 1 0])
     s = simplex(2)
 
     @testset "core functionality" begin
         @test nvertices(Q0) == 3
         @test nvertices.(faces(Q0,1)) == [2,2,2]
-        @test length.(lattice_points(Q0)) == [2;2;2]
+        @test lattice_points(Q0) isa VectorIterator{PointVector{Polymake.Integer}}
+        @test point_matrix(lattice_points(Q0)) == [0 0; 0 1; 1 0]
         @test isfeasible(Q0)
         @test issmooth(Q0)
         @test isnormal(Q0)
@@ -29,9 +31,21 @@
         @test codim(point) == 3
         @test !isfulldimensional(point)
         @test nrays(recession_cone(Pos)) == 3
+        @test vertices(point) isa VectorIterator{PointVector{Polymake.Rational}}
         @test point_matrix(vertices(2*point)) == [0 2 0]
         @test point_matrix(vertices([0,1,0] + point)) == [0 2 0]
-        @test length(collect(rays(Pos))) == 3
+        @test rays(Pos) isa VectorIterator{RayVector{Polymake.Rational}}
+        @test point_matrix(rays(Pos)) == [1 0 0; 0 1 0; 0 0 1]
+        @test lineality_space(L) isa VectorIterator{RayVector{Polymake.Rational}}
+        @test point_matrix(lineality_space(L)) == [0 0 1]
+        @test faces(square, 1) isa PolyhedronOrConeIterator{Polyhedron}
+        @test length(faces(square, 1)) == 4
+        @test size(faces(square, 1).lineality) == (0, 3)
+        @test isnothing(faces(square, -1))
+        @test point_matrix(vertices(minkowski_sum(Q0, square))) == [2 -1; 2 1; -1 -1; -1 2; 1 2]
+        @test facets(Halfspace, Pos, 2) isa HalfspaceIterator{Halfspace}
+        @test facets(Pair, Pos, 2) .== 
+        @test facets(Pos, 2) isa HalfspaceIterator{Halfspace}
     end
 
     @testset "linear programs" begin

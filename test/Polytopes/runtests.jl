@@ -10,6 +10,7 @@ if (haskey(ENV, "GITHUB_ACTIONS"))
     Polymake.shell_execute(raw"$Verbose::cpp=3;")
 end
 
+include("types.jl")
 include("iterators.jl")
 include("Cone.jl")
 include("Group.jl")
