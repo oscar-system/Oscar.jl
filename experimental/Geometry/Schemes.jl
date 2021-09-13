@@ -736,9 +736,7 @@ function pullback(h::AffSchMorphism)
     @show pullback_from_root(U)(p)*pullback_from_root(U)(lift(a))*t^k
     push!( images, pullback_from_root(U)(p)*pullback_from_root(U)(lift(a))*t^k )
   end
-  #phi_prime = AlgebraHomomorphism( R, S_t, images )
-  # TODO: go back to the old line, once the bug is fixed.
-  phi_prime = AlgebraHomomorphism( R, S_t, copy(images) )
+  phi_prime = AlgebraHomomorphism( R, S_t, images )
 
   # In case Y = V we are done
   if typeof(V)<:Spec 
@@ -754,17 +752,16 @@ function pullback(h::AffSchMorphism)
   # Theoretically, we find that 
   #   ϕ(t) = ϕ(1/f) = 1/ϕ'(f),
   # so we are in the same position as for the qᵢ
-  # before.
+  # before. Note that, even though we do know a factorization 
+  # for f, this can not effectively be exploited in the computation. 
+  # The reason is that the representatives of the inverses of the 
+  # factors 1/ϕ'(fᵢ) do have big numerators since they're using powers 
+  # of g as a denominator. 
   den_V = div_denoms(V)
   f = length(den_V)==0 ? one(R) : prod(den_V)
   Q_loc, proj_loc = quo( S_t, defining_ideal(U))
-  @assert parent(pullback_from_root(U)(f)) === S_t
-  @assert parent(pullback_from_root(U)(g)) === S_t
   (k,a) = divides_power( proj_loc(pullback_from_root(U)(f)), proj_loc(pullback_from_root(U)(g)) )
   phi_of_f = lift(a)*t^k
-  @show R_t
-  @show S_t
-  @show images
   push!( images, phi_of_f )
   phi = AlgebraHomomorphism( R_t, S_t, images )
   h.pullback = phi
