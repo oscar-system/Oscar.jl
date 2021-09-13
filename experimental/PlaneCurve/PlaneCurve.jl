@@ -40,7 +40,7 @@ mutable struct Point{S <: FieldElem}
 end
 
 function Base.show(io::IO, P::Point)
-  println(io, "Point with coordinates ", P.coord)
+  print(io, "Point with coordinates ", P.coord)
 end
 
 ################################################################################
@@ -118,9 +118,9 @@ AffinePlaneCurve(eq::Oscar.MPolyElem{S}) where {S <: FieldElem} = AffinePlaneCur
 
 function Base.show(io::IO, C::AffinePlaneCurve)
   if !get(io, :compact, false)
-     println(io, "Affine plane curve defined by ", C.eq)
+     print(io, "Affine plane curve defined by ", C.eq)
   else
-     println(io, C.eq)
+     print(io, C.eq)
   end
 end
 
@@ -170,9 +170,9 @@ end
 
 function Base.show(io::IO, C::ProjPlaneCurve)
   if !get(io, :compact, false)
-     println(io, "Projective plane curve defined by ", C.eq)
+     print(io, "Projective plane curve defined by ", C.eq)
   else
-     println(io, C.eq)
+     print(io, C.eq)
   end
 end
 
@@ -184,9 +184,7 @@ end
 defining_equation(C::PlaneCurve) = C.eq
 defining_equation(C::ProjectivePlaneCurve) = C.eq.f
 
-
 Oscar.dim(::PlaneCurve) = 1 # since C is a plane curve, the dimension is always 1
-
 
 ################################################################################
 # hash function
@@ -256,7 +254,6 @@ julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 julia> C = Oscar.AffinePlaneCurve(y^3*x^6 - y^6*x^2)
 Affine plane curve defined by x^6*y^3 - x^2*y^6
 
-
 julia> Oscar.jacobi_ideal(C)
 ideal(6*x^5*y^3 - 2*x*y^6, 3*x^6*y^2 - 6*x^2*y^5)
 ```
@@ -281,12 +278,11 @@ julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 julia> C = Oscar.AffinePlaneCurve(y^3*x^6 - y^6*x^2)
 Affine plane curve defined by x^6*y^3 - x^2*y^6
 
-
 julia> Oscar.curve_components(C)
 Dict{Oscar.PlaneCurveModule.AffinePlaneCurve{fmpq}, Int64} with 3 entries:
-  x^4 - y^3… => 1
-  y…         => 3
-  x…         => 2
+  x^4 - y^3 => 1
+  y         => 3
+  x         => 2
 ```
 """
 function curve_components(C::PlaneCurve{S}) where S <: FieldElem
@@ -300,7 +296,6 @@ end
 
 ################################################################################
 # Check irreducibility.
-# TODO: change for a direct irreducibility check when available.
 
 @doc Markdown.doc"""
     isirreducible(C::PlaneCurve{S}) where S <: FieldElem
@@ -326,8 +321,7 @@ false
 ```
 """
 function Oscar.isirreducible(C::PlaneCurve{S}) where S <: FieldElem
-   comp = curve_components(C)
-   return length(comp) == 1 && all(isone, values(comp))
+   return isirreducible(defining_equation(C))
 end
 
 ################################################################################
@@ -367,10 +361,10 @@ end
 
 ################################################################################
 # Compute squarefree equation.
-# TODO: change for a direct squarefree computation when available.
 
 @doc Markdown.doc"""
-    reduction(C::PlaneCurve{S}) where S <: FieldElem
+    reduction(C::AffinePlaneCurve{S}) where S <: FieldElem
+    reduction(C::ProjPlaneCurve{S}) where S <: FieldElem
 
 Return the plane curve defined by the squarefree part of the equation of `C`.
 
@@ -381,7 +375,6 @@ julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 
 julia> C = Oscar.AffinePlaneCurve(y^3*x^6 - y^6*x^2)
 Affine plane curve defined by x^6*y^3 - x^2*y^6
-
 
 julia> Oscar.reduction(C)
 Affine plane curve defined by x^5*y - x*y^4
@@ -450,7 +443,6 @@ julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 julia> C = Oscar.AffinePlaneCurve(y^2+x-x^3)
 Affine plane curve defined by -x^3 + x + y^2
 
-
 julia> Oscar.ring(C)
 (Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(-x^3 + x + y^2), Map from
 Multivariate Polynomial Ring in x, y over Rational Field to Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(-x^3 + x + y^2) defined by a julia-function with inverse
@@ -470,6 +462,8 @@ include("ProjPlaneCurve.jl")
 include("DivisorCurve.jl")
 include("ProjEllipticCurve.jl")
 include("EllCurveZnZ.jl")
+include("ProjCurve.jl")
+include("ParaPlaneCurves.jl")
 
 ################################################################################
 end
