@@ -102,4 +102,10 @@ end
     val = GAP.evalstr("(1,2,3)(4,5)")
     @test GAP.GapObj(g) == val
     @test convert(GAP.GapObj, g) == val
+
+    # test implicit conversion
+    V = GAP.GapObj[]
+    push!(V, G) # convert GAPGroup to GapObj implicitly
+    push!(V, g) # convert GAPGroupElem to GapObj implicitly
+    @test V == [GAP.GapObj(G), GAP.GapObj(g)]
 end
