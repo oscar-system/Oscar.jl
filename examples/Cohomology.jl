@@ -165,7 +165,7 @@ function H_zero(C::CohomologyModule)
   for i=2:length(ac)
     k = intersect(k, kernel(id - ac[i])[1])
   end
-  return k, MapFromFunc(x->CoChain{0,elem_type(G),elem_type(M)}(C, Dict(() => x)), y->y(), k, AllCoChains{0}())
+  return k, MapFromFunc(x->CoChain{0,elem_type(G),elem_type(M)}(C, Dict(() => x)), y->y(), k, AllCoChains{0,elem_type(G),elem_type(M)}())
 end
 
 function H_one(C::CohomologyModule)
@@ -200,9 +200,9 @@ function H_one(C::CohomologyModule)
     for w in W
       if w < 0
         g = g*iac[-w]
-        P -= g*pro[-w]
+        P -= pro[-w]*g
       else
-        P += g*pro[w]
+        P += pro[w]*g
         g = g*ac[w]
       end
     end
