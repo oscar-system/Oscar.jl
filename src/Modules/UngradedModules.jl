@@ -2,11 +2,11 @@ export FreeMod, presentation, FreeModElem, coords, coeffs, repres,
       FreeModuleHom, SubQuo, cokernel, SubQuoElem, index_of_gen, sub,
       quo, presentation, present_as_cokernel, is_equal_with_morphism, 
       SubQuoHom, show_morphism, hom_tensor, hom_prod_prod, coordinates, 
-      represents_element, free_resolution, homomorphism, homomorphism_to_module_elem, 
+      represents_element, free_resolution, homomorphism, module_elem, 
       restrict_codomain, restrict_domain, direct_product, tensor_product, 
       free_module, tor, lift_homomorphism_contravariant, lift_homomorphism_covariant, 
       ext, map_canonically, all_canonical_maps, register_morphism!, dense_row, 
-      matrix_kernel, simplify, matrix_to_map, isinjective, issurjective, isbijective, iswelldefined
+      matrix_kernel, simplify, map, isinjective, issurjective, isbijective, iswelldefined
 
 # TODO replace asserts by error messages?
 
@@ -1178,7 +1178,7 @@ end
 Let $F = R^m$ and $A$ an $n \times m$-matrix. Return the subquotient $F / \im(A)$.
 """
 function cokernel(F::FreeMod{R}, A::MatElem{R}) where R
-  return cokernel(matrix_to_map(F,A))
+  return cokernel(map(F,A))
 end
 
 @doc Markdown.doc"""
@@ -1190,7 +1190,7 @@ free modules $R^m$ that are defined by the user or other functions. If you need 
 use `cokernel(F::FreeMod{R}, A::MatElem{R})`.
 """
 function cokernel(A::MatElem)
-  return cokernel(matrix_to_map(A))
+  return cokernel(map(A))
 end
 
 @doc Markdown.doc"""
@@ -2428,12 +2428,12 @@ function homomorphism(f::Union{SubQuoElem,FreeModElem})
 end
 
 @doc Markdown.doc"""
-    homomorphism_to_module_elem(H::ModuleFP, phi::ModuleMap)
+    module_elem(H::ModuleFP, phi::ModuleMap)
 
 Let `H` be created via `hom(M,N)` for some `M` and `N`. Return 
 the element in `H` corresponding to `phi`.
 """
-function homomorphism_to_module_elem(H::ModuleFP, phi::ModuleMap)
+function module_elem(H::ModuleFP, phi::ModuleMap)
   to_hom_map = get_special(H, :module_to_hom_map)
   to_hom_map === nothing && error("module must be a hom module")
   map_to_hom = to_hom_map.g
@@ -2931,7 +2931,7 @@ function lift_homomorphism_contravariant(Hom_MP::ModuleFP, Hom_NP::ModuleFP, phi
   @assert domain(phi) === N
   @assert codomain(phi) === M
   
-  phi_lifted = hom(Hom_MP, Hom_NP, [homomorphism_to_module_elem(Hom_NP, phi*homomorphism(f)) for f in gens(Hom_MP)])
+  phi_lifted = hom(Hom_MP, Hom_NP, [module_elem(Hom_NP, phi*homomorphism(f)) for f in gens(Hom_MP)])
   return phi_lifted
 end
 
@@ -2957,7 +2957,7 @@ function lift_homomorphism_covariant(Hom_PM::ModuleFP, Hom_PN::ModuleFP, phi::Mo
   if iszero(Hom_PN)
     return hom(Hom_PM, Hom_PN, [zero(Hom_PN) for _=1:ngens(Hom_PM)])
   end
-  phi_lifted = hom(Hom_PM, Hom_PN, [homomorphism_to_module_elem(Hom_PN, homomorphism(f)*phi) for f in gens(Hom_PM)])
+  phi_lifted = hom(Hom_PM, Hom_PN, [module_elem(Hom_PN, homomorphism(f)*phi) for f in gens(Hom_PM)])
   return phi_lifted
 end
 
@@ -3456,12 +3456,12 @@ end
 # Not only for testing
 ######################################
 @doc Markdown.doc"""
-    matrix_to_map(F::FreeMod{T}, A::MatElem{T}) where T
+    map(F::FreeMod{T}, A::MatElem{T}) where T
 
 Converts a given $n \times m$-matrix into the corresponding morphism $A : R^n \to F$, 
 with `rank(F) == m`.
 """
-function matrix_to_map(F::FreeMod{T}, A::MatElem{T}) where T
+function map(F::FreeMod{T}, A::MatElem{T}) where T
   R = base_ring(F)
   F_domain = FreeMod(R, nrows(A))
 
@@ -3470,14 +3470,14 @@ function matrix_to_map(F::FreeMod{T}, A::MatElem{T}) where T
 end
 
 @doc Markdown.doc"""
-    matrix_to_map(A::MatElem)
+    map(A::MatElem)
 
 Converts a given $n \times m$-matrix into the corresponding morphism $A : R^n \to R^m$.
 """
-function matrix_to_map(A::MatElem)
+function map(A::MatElem)
   R = base_ring(A)
   F_codomain = FreeMod(R, ncols(A))
-  return matrix_to_map(F_codomain,A)
+  return map(F_codomain,A)
 end
 
 @doc Markdown.doc"""
