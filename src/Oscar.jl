@@ -227,8 +227,6 @@ end
 
 function weights end
 
-include("OscarTypes.jl")
-
 include("Groups/types.jl")
 
 include("Rings/Hecke.jl") #does all the importing from Hecke - to define names
