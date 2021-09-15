@@ -706,8 +706,11 @@ julia> molien_series(IR)
 ```
 """
 function molien_series(I::InvRing)
-  S, t = PolynomialRing(QQ, "t", cached = false)
-  return molien_series(S, I)
+  if !isdefined(I, :molien_series)
+    S, t = PolynomialRing(QQ, "t", cached = false)
+    I.molien_series = molien_series(S, I)
+  end
+  return I.molien_series
 end
 
 

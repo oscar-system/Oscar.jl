@@ -48,3 +48,27 @@ mutable struct InvRing{FldT, GrpT, PolyElemT, PolyRingT, ActionT, SingularAction
     return z
   end
 end
+
+struct WeightedIntegerVectors{T}
+  n::T
+  d::T
+
+  function WeightedIntegerVectors{T}(n::T, d::T) where {T <: Union{Integer, fmpz}}
+    @assert n >= 0 && d >= 0
+    return new{T}(n, d)
+  end
+end
+
+struct InvRingBasisIterator{FldT, GrpT, PolyElemT, PolyRingT, ActionT, SingularActionT, IteratorT}
+  R::InvRing{FldT, GrpT, PolyElemT, PolyRingT, ActionT, SingularActionT}
+  degree::Int
+  dim::Int
+  reynolds::Bool
+  monomials::IteratorT
+end
+
+struct InvRingBasisIteratorState{MatrixT, PolyElemT, MonIterStateT}
+  M::MatrixT
+  monomial_to_basis::Dict{PolyElemT, Int}
+  monomial_iter_state::MonIterStateT
+end
