@@ -3,57 +3,6 @@ export coefficient_ring, polynomial_ring, action, group
 export ismodular
 export reynolds_operator, molien_series
 
-###############################################
-
-mutable struct InvRing{FldT, GrpT, PolyElemT, PolyRingT, ActionT, SingularActionT}
-  field::FldT
-  poly_ring::PolyRingT
-
-  group::GrpT
-  action::Vector{ActionT}
-  action_singular::Vector{SingularActionT}
-
-  modular::Bool
-
-  primary::Vector{PolyElemT}
-  secondary::Vector{PolyElemT}
-  irreducible_secondary::Vector{PolyElemT}
-  fundamental::Vector{PolyElemT}
-
-  reynolds_operator::MapFromFunc{PolyRingT, PolyRingT}
-
-  # Cache some stuff on the Singular side
-  # (possibly removed at some point)
-  reynolds_singular::Singular.smatrix
-  molien_singular::Singular.smatrix
-  primary_singular # the type is different depending on the characteristic...
-
-  function InvRing(K::FldT, G::GrpT, action::Vector{ActionT}) where {FldT <: Field, GrpT <: AbstractAlgebra.Group, ActionT}
-    n = degree(G)
-    R, = grade(PolynomialRing(K, "x" => 1:n, cached = false)[1], ones(Int, n))
-    R_sing = singular_ring(R)
-    action_singular = identity.([change_base_ring(R_sing, g) for g in action])
-    PolyRingT = typeof(R)
-    PolyElemT = elem_type(R)
-    SingularActionT = eltype(action_singular)
-    z = new{FldT, GrpT, PolyElemT, PolyRingT, ActionT, SingularActionT}()
-    z.field = K
-    z.poly_ring = R
-    z.group = G
-    z.action = action
-    z.action_singular = action_singular
-    z.modular = true
-    if iszero(characteristic(K))
-      z.modular = false
-    else
-      if !iszero(mod(order(G), characteristic(K)))
-        z.modular = false
-      end
-    end
-    return z
-  end
-end
-
 ################################################################################
 #
 #  Field access
@@ -348,7 +297,7 @@ function reynolds_operator(IR::InvRing, f::MPolyElem)
 end
 
 function basis_via_reynolds(IR::InvRing, d::Int)
-  @assert d >= 0 "Dimension must be non-negative"
+  @assert d >= 0 "Degree must be non-negative"
   @assert !ismodular(IR)
   R = polynomial_ring(IR)
   if d == 0
@@ -369,7 +318,7 @@ function basis_via_reynolds(IR::InvRing, d::Int)
 end
 
 function basis_via_linear_algebra(IR::InvRing, d::Int)
-  @assert d >= 0 "Dimension must be non-negative"
+  @assert d >= 0 "Degree must be non-negative"
   R = polynomial_ring(IR)
   if d == 0
     return elem_type(R)[ one(R) ]
