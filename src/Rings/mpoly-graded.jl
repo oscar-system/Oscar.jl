@@ -199,12 +199,8 @@ function (W::MPolyRing_dec)(f::MPolyElem)
   return MPolyElem_dec(f, W)
 end
 
-function (W::MPolyRing_dec)(a)
-  return W(W.R(a))
-end
-
-function (W::MPolyRing_dec)(a, b)
-  return W(W.R(a, b))
+function (W::MPolyRing_dec)(a...)
+  return W(W.R(a...))
 end
 
 (W::MPolyRing_dec)(g::MPolyElem_dec) = MPolyElem_dec(g.f, W)
