@@ -36,7 +36,7 @@ export parent, covering, ideals
 export CoherentSheaf
 export parent, covering, modules
 
-export LineBundle
+export LineBundle, VectorBundle
 export parent, covering, transitions, OO
 
 export VectorBundleSection, LineBundleSection
@@ -50,9 +50,17 @@ abstract type SchematicPoint end
 abstract type Sheaf end
 abstract type AbstractCoherentSheaf <: Sheaf end
 
-####################################################################################
-# The classical affine scheme, explicitly given as the quotient 
-# ring of a polynomial algebra.
+@doc Markdown.doc"""
+    mutable struct Spec{S,T,U} <: AffineScheme{S,T,U}
+
+The basic struct for an affine scheme X = Spec R/I with R = k[x₁,…,xₙ] a free 
+polynomial algebra over a base ring k and I ⊂ R a finitely generated ideal.
+The type parameters are: 
+
+ * S: The type of the base ring k
+ * T: The type of the ambient polynomial ring R
+ * U: The type of the elements in R
+"""
 mutable struct Spec{S,T,U} <: AffineScheme{S,T,U}
   # the basic fields 
   k::S			# the base ring (usually a field) of definition for the scheme
@@ -88,6 +96,11 @@ end
 # As far as I understand, these objects are supposed to behave like 
 # static ones to the user. But we should watch out for exceptions and 
 # bugs here.
+@Markdown.doc """
+    Spec( X::Spec ) -> Spec
+
+Returns a copy of the affine scheme X.
+"""
 Spec( X::Spec ) = Spec( X.k, X.R, X.I )
 
 Base.copy( X::Spec ) = Spec(X)
@@ -98,22 +111,47 @@ Base.copy( X::Spec ) = Spec(X)
 # No caching is needed in this case, since all these variables need to be assigned 
 # at instantiation
 #
+@Markdown.doc """
+    base_ring(A::Spec)
+
+Returns the base ring k over which the affine scheme A is defined.
+"""
 function base_ring(A::Spec)
   return A.k
 end
 
+@Markdown.doc """
+    ambient_ring(A::Spec)
+
+Returns the "ambient ring" R of the affine scheme A, where A = Spec R/I.
+"""
 function ambient_ring(A::Spec)
   return A.R
 end
 
+@Markdown.doc """
+     defining_ideal(A::Spec)
+Returns the "defining ideal" I of the affine scheme A, where A = Spec R/I.
+"""
 function defining_ideal(A::Spec)
   return A.I
 end
 
+@Markdown.doc """
+    denoms(A::Spec)
+
+This function simply extends the denoms(D::SpecPrincipalOpen) so that it 
+can conveniently be used on all of AffineScheme. It returns an empty list.
+"""
 function denoms(A::Spec)
   return typeof(A.R)[]
 end
 
+@Markdown.doc """
+    subscheme( X::Spec, J::MPolyIdeal ) 
+
+Returns the subscheme of X = Spec R/I defined by the ideal I + J in the ring R.
+"""
 function subscheme( X::Spec, J::MPolyIdeal ) 
   if base_ring(J) != X.R 
     error( "Ideal does not belong to the ambient ring of the variety" )
@@ -123,6 +161,11 @@ function subscheme( X::Spec, J::MPolyIdeal )
   return Y
 end
 
+@Markdown.doc """
+    subscheme( X::Spec, f::MPolyElem )
+
+Returns the subscheme of X = Spec R/I defined by the ideal I + ⟨f⟩ in the ring R.
+"""
 function subscheme( X::Spec, f::MPolyElem )
   return subscheme( X, ideal( ambient_ring(X), f ))
 end
@@ -139,6 +182,29 @@ end
 # root. Currently, the implementation only allows localizations at elements 
 # denom from the coordinate ring of this root. 
 #
+@Markdown.doc """
+    mutable struct SpecPrincipalOpen{S,T,U} <: AffineScheme{S,T,U}
+
+A principal open subset D ⊂ X of an affine scheme X = Spec R/I over a base 
+ring k, arising as the complement of the zero locus of a polynomial f ∈ R on X.
+
+The principal open subsets are implemented in a recursive way where each instance 
+D has a parent D' such that D = D' ∖ Z(f) for some polynomial f on D'. This ancestry 
+forms a tree which necessarily has an original X = Spec R/I at its root and, 
+without loss of generality, we may assume that all the elements fᵢthat have been 
+inverted to arrive at some D in the tree, are elements of the original ring R.
+
+The implementation is lazy in the sense that a priori, each instance D of SpecPrincipalOpen 
+merely stores the information about its parent D' and the element f ∈ R that has been inverted 
+on D compared to D'. Whenever the user asks for it, an explicit algebra 
+D = R[t]/(I + ⟨1 - t⋅∏ᵢ fᵢ⟩) 
+can be constructed, where the fᵢ∈ R are the elements which have been inverted from the root.
+
+The type parameters are: 
+ * S: The type of the base ring k
+ * T: The type of the ambient polynomial ring R
+ * U: The type of the elements in R
+"""
 mutable struct SpecPrincipalOpen{S,T,U} <: AffineScheme{S,T,U}
   parent::AffineScheme{S,T,U}
   denom::U  # element of the "ambient" polynomial ring of the root
@@ -179,6 +245,11 @@ mutable struct SpecPrincipalOpen{S,T,U} <: AffineScheme{S,T,U}
 end
 
 # Copy constructor
+@Markdown.doc """
+    SpecPrincipalOpen( X::SpecPrincipalOpen )
+
+Returns a copy of X
+"""
 function SpecPrincipalOpen( X::SpecPrincipalOpen )
   Y = SpecPrincipalOpen( X.k, X.R, X.I )
   if isdefined( X, :denom )
@@ -202,19 +273,45 @@ end
 
 Base.copy( X::SpecPrincipalOpen ) = SpecPrincipalOpen( X )
 
+@Markdown.doc """
+    Spec( D::SpecPrincipalOpen ) 
+    
+Returns an instance of Spec isomorphic to D. This uses 
+the Rabinowitsch version for the localizations and forgets 
+about the inheritance.
+"""
+function Spec( D::SpecPrincipalOpen ) 
+  return Spec( base_ring(D), ambient_ring(D), defining_ideal(D) )
+end
 ###############################################################################
 # Getter functions
 
-function localize(parent, denom)
-  return SpecPrincipalOpen(parent, denom)
+@Markdown.doc """
+    localize(X::AffineScheme{S,T,U}, f::U) where {S,T,U}
+
+Returns an instance D of SpecPrincipalOpen where D = X ∖ Z(f).
+"""
+function localize(X::AffineScheme{S,T,U}, f::U) where {S,T,U}
+  return SpecPrincipalOpen(X, f)
 end
 
+@Markdown.doc """
+    function parent(S::AffineScheme)
+
+Return the parent of S in the tree structure for Spec and SpecPrincipalOpen.
+"""
 function parent(S::AffineScheme)
   return S
 end
 
 # Check whether X is a parent of U and return the inclusion morphism 
 # if true. Otherwise, return nothing.
+@Markdown.doc """
+    function is_parent_of( X::AffineScheme, U::SpecPrincipalOpen )
+
+Returns true whenever X occurs as a parent of U in the tree structure 
+for Spec and SpecPrincipalOpen.
+"""
 function is_parent_of( X::AffineScheme, U::SpecPrincipalOpen )
   i = identity_morphism(U)
   if X == U
@@ -233,17 +330,37 @@ function is_parent_of( X::AffineScheme, U::SpecPrincipalOpen )
 end
     
 
+@Markdown.doc """
+    function parent(D::SpecPrincipalOpen)
 
+Returns the parent of D in the localization tree.
+"""
 function parent(D::SpecPrincipalOpen)
   return D.parent
 end 
 
+@Markdown.doc """
+    function root(D::SpecPrincipalOpen)
+
+Returns the root of D in the localization tree.
+"""
 function root(D::SpecPrincipalOpen)
   return root(parent(D))
 end
 
+@Markdown.doc """
+    root(A::Spec)
+
+Returns A itself since this is necessarily the root in the localization tree.
+"""
 root(A::Spec) = A
 
+@Markdown.doc """
+    function base_ring(D::SpecPrincipalOpen)
+
+Returns the base ring k of D where D = Spec (R/I)[(f₁)⁻¹,…,(fᵣ)⁻¹] with 
+R a free polynomial ring over k.
+"""
 function base_ring(D::SpecPrincipalOpen)
   if isdefined(D,:k)
     return D.k
@@ -253,8 +370,13 @@ function base_ring(D::SpecPrincipalOpen)
   return k
 end
 
-# Returns the unit that has last been adjoint to the 
-# coordinate ring, i.e. the inverse of denom
+@Markdown.doc """
+    function inverted_element(D::SpecPrincipalOpen)
+
+Returns a representative u of the inverse 1/f in the 
+ambient ring R[t] of D where f is the element of R that 
+has last been inverted in the localization tree.
+"""
 function inverted_element(D::SpecPrincipalOpen)
   if isdefined( D, :u )
     return D.u
@@ -263,6 +385,13 @@ function inverted_element(D::SpecPrincipalOpen)
   return D.u
 end
 
+@Markdown.doc """
+    function denom(D::SpecPrincipalOpen)
+
+Returns the element f of the ambient ring of the root 
+of D in the localization tree that has last been inverted.
+This is the inverse element of denom(D).
+"""
 function denom(D::SpecPrincipalOpen)
   if isdefined( D, :denom )
     return D.denom
@@ -270,8 +399,13 @@ function denom(D::SpecPrincipalOpen)
   return nothing
 end
 
-# Return a vector containing the variables of the root's ambient 
-# ring, but as elements of the new ambient ring.
+@Markdown.doc """
+    function root_variables( D::SpecPrincipalOpen )
+
+Returns a vector containing the images of the variables of the 
+ambient ring R of the root of D in the localization tree as 
+elements in the ambient ring R[t] of D.
+"""
 function root_variables( D::SpecPrincipalOpen )
   phi = pullback_from_root(D)
   return [ phi(x) for x in gens(ambient_ring(root(D))) ]
@@ -281,11 +415,24 @@ end
 
 # Setter functions
 
+@Markdown.doc """
+    function set_name!( X::AffineScheme, name::String )
+
+Each affine scheme X can be assigned an optional 'name'. 
+This will then be used for printing, once the field is set.
+"""
 function set_name!( X::AffineScheme, name::String )
   X.name = name
 end
 
-# Obtain a closed subscheme
+@Markdown.doc """
+    function subscheme( 
+        X::SpecPrincipalOpen{S,T,U}, 
+        J::MPolyIdeal{U} 
+      ) where{ S<:Ring, T<:MPolyRing, U<:MPolyElem }
+
+Returns the subscheme of X = Spec (R/I)[f⁻¹] defined by the ideal I + J.
+"""
 function subscheme( 
     X::SpecPrincipalOpen{S,T,U}, 
     J::MPolyIdeal{U} 
@@ -302,6 +449,14 @@ function subscheme(
   return Y
 end
 
+@Markdown.doc """
+    function subscheme( 
+        X::SpecPrincipalOpen{S,T,U}, 
+        f::U
+      ) where{ S<:Ring, T<:MPolyRing, U<:MPolyElem }
+
+Returns the subscheme of X = Spec (R/I)[f⁻¹] defined by the ideal I + ⟨f⟩.
+"""
 function subscheme( 
     X::SpecPrincipalOpen{S,T,U}, 
     f::U
@@ -309,8 +464,12 @@ function subscheme(
   return subscheme( X, ideal( ambient_ring(root(X)), f ))
 end
 
-# Collect the denominators from this localization up to the root. 
+@Markdown.doc """
+    function denoms(D::SpecPrincipalOpen{S,T,U}) where {S <: Ring, T <: MPolyRing, U<:MPolyElem}
 
+Returns a collection of all the elements fᵢ that have been inverted along the 
+path in the localization tree from D up to its root.
+"""
 function denoms(D::SpecPrincipalOpen{S,T,U}) where {S <: Ring, T <: MPolyRing, U<:MPolyElem}
   result = U[]
   P = D
@@ -323,8 +482,13 @@ function denoms(D::SpecPrincipalOpen{S,T,U}) where {S <: Ring, T <: MPolyRing, U
   return result
 end 
 
-# Collects the divided denominators up to the root
+@Markdown.doc """
+    function div_denoms(D::SpecPrincipalOpen{S,T,U}) where {S <: Ring, T <: MPolyRing, U<:MPolyElem}
 
+When localizing, we internally do a cheap check for obvious redundance: When inverting f = u ⋅ f' 
+where u is already a unit, we may replace f by f' in the localization process. 
+This routine returns the actual values for the f's.
+"""
 function div_denoms(D::SpecPrincipalOpen{S,T,U}) where {S <: Ring, T <: MPolyRing, U<:MPolyElem}
   result = U[]
   P = D
@@ -338,11 +502,12 @@ function div_denoms(D::SpecPrincipalOpen{S,T,U}) where {S <: Ring, T <: MPolyRin
   return result
 end 
 
+@Markdown.doc """
+    function inverses(D::SpecPrincipalOpen{S,T,U}) where {S <: Ring, T <: MPolyRing, U<:MPolyElem}
 
-
-
-# Collect the inverses for this localization up to the root.
-
+Returns the inverses uᵢ= 1/fᵢof the elements that have been localized along the path 
+in the localization tree from D up to its root.
+"""
 function inverses(D::SpecPrincipalOpen{S,T,U}) where {S <: Ring, T <: MPolyRing, U<:MPolyElem}
   result = [inverted_element(D)]
   R = ambient_ring(D)
@@ -355,16 +520,13 @@ function inverses(D::SpecPrincipalOpen{S,T,U}) where {S <: Ring, T <: MPolyRing,
   end
   return result
 end 
-
-
-# Set up an ambient ring for this localization. 
-#
-# The current implementation adds a variable 'denom$i' for 
-# every element whose inverse has been added to the 
-# coordinate ring of the root. Again, the implementation is 
-# recursive, but flattened in the sense that all variables
-# are on the same level over the base ring.
  
+@Markdown.doc """
+    function ambient_ring(D::SpecPrincipalOpen)
+
+Returns the ambient ring R[t] of D where D = Spec (R/I)[(f₁)⁻¹,…,(fᵣ)⁻¹] with 
+R a free polynomial ring and t projecting to the element 1/∏ᵢfᵢ.
+"""
 function ambient_ring(D::SpecPrincipalOpen)
   if isdefined( D, :R )
     return D.R
@@ -436,6 +598,13 @@ function ambient_ring(D::SpecPrincipalOpen)
   return R
 end
 
+@Markdown.doc """
+    function pullback_from_root( D::SpecPrincipalOpen )
+
+Returns the algebra homomorphism R → R[t] of the ambient 
+rings of D and its root X lifting the pullback of functions 
+for the open inclusion D ↪ X.
+"""
 function pullback_from_root( D::SpecPrincipalOpen )
   if isdefined( D, :pullbackFromRoot )
     return D.pullbackFromRoot
@@ -444,10 +613,28 @@ function pullback_from_root( D::SpecPrincipalOpen )
   return D.pullbackFromRoot
 end
 
+@Markdown.doc """
+    pullback_from_root( X::Spec ) = AlgebraHomomorphism( X.R, X.R, gens(X.R) )
+
+Returns the identity of the ambient ring of X in order to be able to complete 
+inductive implementations on the localization tree conveniently.
+"""
 pullback_from_root( X::Spec ) = AlgebraHomomorphism( X.R, X.R, gens(X.R) )
+
+@Markdown.doc """
+    pullback_from_parent( X::Spec ) = AlgebraHomomorphism( X.R, X.R, gens(X.R) )
+
+Returns the identity of the ambient ring of X in order to be able to complete 
+inductive implementations on the localization tree conveniently.
+"""
 pullback_from_parent( X::Spec ) = AlgebraHomomorphism( X.R, X.R, gens(X.R) )
 
-
+@Markdown.doc """
+    function pullback_from_parent( D::SpecPrincipalOpen )
+    
+Returns the ring homomorphism of the ambient rings D' = parent(D) 
+and D lifting the pullback of functions for the inclusion D ↪ D'.
+"""
 function pullback_from_parent( D::SpecPrincipalOpen )
   if isdefined( D, :pullbackFromParent )
     return D.pullbackFromParent
@@ -456,14 +643,13 @@ function pullback_from_parent( D::SpecPrincipalOpen )
   return D.pullbackFromParent
 end
 
-#function ring_hom(D::SpecPrincipalOpen)
-#  R = ambient_ring(root(D))
-#  S = ambient_ring(D)
-#  d = length(denoms(D))
-#  n = length(gens(R))
-#  return AlgebraHomomorphism(R,S, gens(S)[d+1:n+d])
-#end
+@Markdown.doc """
+    function defining_ideal(D::SpecPrincipalOpen)
 
+Returns the ideal I + ⟨1-t⋅∏ᵢfᵢ⟩ of the ambient ring R[t] of D 
+where D = Spec (R/I)[(f₁)⁻¹,…,(fᵣ)⁻¹] with 
+R a free polynomial ring and t projecting to the element 1/∏ᵢfᵢ.
+"""
 function defining_ideal(D::SpecPrincipalOpen)
   if isdefined( D, :I )
     return D.I
@@ -472,12 +658,23 @@ function defining_ideal(D::SpecPrincipalOpen)
   return D.I
 end
 
+@Markdown.doc """
+    function inclusion_in_parent( D::SpecPrincipalOpen ) -> AffSchMorphism
+
+Return the inclusion D ↪ D' of a principal open subscheme D into its parent D'.
+"""
 function inclusion_in_parent( D::SpecPrincipalOpen )
   # return AffSchMorphism( D, parent(D), pullback_from_parent(D) )
   F = FractionField(ambient_ring(root(D)))
   return AffSchMorphism( D, parent(D), [ F(x) for x in gens(ambient_ring(root(D))) ] )
 end
 
+@Markdown.doc """
+    function inclusion_in_parent( D::SpecPrincipalOpen ) -> AffSchMorphism
+
+Return the inclusion D ↪ X of a principal open subscheme D into its root X in 
+the localization tree.
+"""
 function inclusion_in_root( D::SpecPrincipalOpen )
   # return AffSchMorphism( D, root(D), pullback_from_root(D) )
   F = FractionField(ambient_ring(root(D)))
@@ -485,6 +682,12 @@ function inclusion_in_root( D::SpecPrincipalOpen )
 end
 
 # outer constructors
+
+@Markdown.doc """
+    function Spec( k::S, R::T ) where{S <: Ring, T <:MPolyRing} -> Spec
+
+Returns the scheme X = Spec R with R an instance of MPolyRing over k.
+"""
 function Spec( k::S, R::T ) where{S <: Ring, T <:MPolyRing}
   I = ideal(R, zero(R))
   return Spec(k, R, I )
@@ -501,17 +704,35 @@ function Spec( R::T ) where{T <: MPolyRing}
   return Spec(k, R, I )
 end
 
+@doc Markdown.doc"""
+    Spec(R::MPolyRing) -> Spec
+
+Return the affine scheme corresponding to the ring $R/I$.
+"""
 function Spec( R::T, I::MPolyIdeal{U} ) where{ T <: MPolyRing, U <: MPolyElem }
   k = coefficient_ring(R)
   return Spec(k, R, I )
 end
 
 # Construct affine n-space over the ring k.
+@Markdown.doc """
+    function affine_space( k::Ring, n::Int, name::String="x" )
+
+Return the Affine scheme 𝔸ⁿ over the base ring k. An optional argument can be 
+passed on to determine how the variables will be printed.
+"""
 function affine_space( k::Ring, n::Int, name::String="x" )
   R, x = PolynomialRing( k, name => (1:n))
   return Spec( R )
 end
 
+@Markdown.doc """
+    function Base.show( io::Base.IO, X::AffineScheme )
+
+This prints the information of X to the stream io. Whenever 
+the field X.name is set, the output will be abbreviated to 
+just the given name of X.
+"""
 function Base.show( io::Base.IO, X::AffineScheme )
   if isdefined( X, :name )
     Base.print( io, X.name )
@@ -527,6 +748,13 @@ function Base.show( io::Base.IO, X::AffineScheme )
 end
 
 
+@Markdown.doc """
+    function Base.show( io::Base.IO, X::SpecPrincipalOpen )
+
+This prints the information of X to the stream io. Whenever 
+the field X.name is set, the output will be abbreviated to 
+just the given name of X.
+"""
 function Base.show( io::Base.IO, X::SpecPrincipalOpen)
   if isdefined( X, :name )
     Base.print( io, X.name )
@@ -548,6 +776,25 @@ end
 # associated specs, or as a list of rational functions, the images of 
 # the variables. 
 
+@Markdown.doc """
+   mutable struct AffSchMorphism{S,Tdom, Udom, Tcod, Ucod}
+
+A morphism of affine schemes f : X → Y. In case both X = Spec S/J and 
+Y = Spec R/I are given explicitly as quotients of polynomial rings, 
+this is uniquely determined by an algebra homomorphism ϕ : R → S, lifting 
+the pullback f* : R/I → S/J and hence by storing the images of the 
+generators xᵢ of R = k[x₁,…,xₙ]. 
+
+For principal open subsets Spec (S/J)[g⁻¹] = U ⊂ X = Spec S/J the situation 
+is similar. In this case, a morphism of schemes f : U → V = Spec (R/I)[h⁻¹] 
+is completely determined by prescribing the images of the generators of R:
+
+   xᵢ ↦ pᵢ/qᵢ= pᵢ'/gᵏ⁽ⁱ⁾
+
+Hence, one can determine such a morphism either by storing these fractions 
+(in imgs_frac), or the algebra homomorphism f* on explicit realizations 
+of the localized rings. 
+"""
 mutable struct AffSchMorphism{S,Tdom, Udom, Tcod, Ucod}
   domain::AffineScheme{S, Tdom, Udom}
   codomain::AffineScheme{S, Tcod, Ucod}
@@ -613,11 +860,25 @@ mutable struct AffSchMorphism{S,Tdom, Udom, Tcod, Ucod}
     return AffSchMorphism( domain, codomain, [ Q(x) for x in imgs_frac ] )
   end
 end
+@Markdown.doc """
+    domain(f::AffSchMorphism) = f.domain
 
+Returns the domain of definition X of f : X → Y.
+"""
 domain(f::AffSchMorphism) = f.domain
+@Markdown.doc """
+    domain(f::AffSchMorphism) = f.domain
+
+Returns the codomain Y of f : X → Y.
+"""
 codomain(f::AffSchMorphism) = f.codomain
 
 # The copy constructor
+@Markdown.doc """
+    function AffSchMorphism( f::AffSchMorphism ) 
+
+Returns a copy of f.
+"""
 function AffSchMorphism( f::AffSchMorphism ) 
   if isdefined( f, :pullback )
     return AffSchMorphism( f.domain, f.codomain, f.pullback )
@@ -632,6 +893,14 @@ Base.copy( f::AffSchMorphism ) = AffSchMorphism( f )
 
 # Construct the pullback on the level of coordinate rings 
 # from the fractional representation 
+@Markdown.doc """
+    function pullback(h::AffSchMorphism)
+
+Returns the pullback of functions h* associated to h : U → V.
+Whenever U and V are principal open subsets of honest affine schemes, 
+this involves first realizing the rings of both U and V as 
+finitely generated algebras using Rabinowitsch's trick.
+"""
 function pullback(h::AffSchMorphism)
   if isdefined(h, :pullback)
     return h.pullback
@@ -752,16 +1021,21 @@ function pullback(h::AffSchMorphism)
   # Theoretically, we find that 
   #   ϕ(t) = ϕ(1/f) = 1/ϕ'(f),
   # so we are in the same position as for the qᵢ
-  # before. Note that, even though we do know a factorization 
-  # for f, this can not effectively be exploited in the computation. 
-  # The reason is that the representatives of the inverses of the 
-  # factors 1/ϕ'(fᵢ) do have big numerators since they're using powers 
-  # of g as a denominator. 
+  # before. We compute each one of the factors fᵢby 
+  # itself. This will produce a huge overhead for the 
+  # numerators aᵢwhich appear, but it will hopefully 
+  # be faster than performing the divides routine on big 
+  # polynomials. 
+  #
+  # TODO: check this in practice.
   den_V = div_denoms(V)
-  f = length(den_V)==0 ? one(R) : prod(den_V)
+  #f = length(den_V)==0 ? one(R) : prod(den_V)
   Q_loc, proj_loc = quo( S_t, defining_ideal(U))
-  (k,a) = divides_power( proj_loc(pullback_from_root(U)(f)), proj_loc(pullback_from_root(U)(g)) )
-  phi_of_f = lift(a)*t^k
+  phi_of_f = one(S_t)
+  for f_i in den_V
+    (k,a) = divides_power( proj_loc(pullback_from_root(U)(f_i)), proj_loc(pullback_from_root(U)(g)) )
+    phi_of_f *= lift(a)*t^k
+  end
   push!( images, phi_of_f )
   phi = AlgebraHomomorphism( R_t, S_t, images )
   h.pullback = phi
@@ -770,6 +1044,12 @@ end
 
 # Construct the fractional representation of the morphism 
 # from the explicit algebra homomorphism. 
+@Markdown.doc """
+    function imgs_frac(f::AffSchMorphism)
+
+Returns the images xᵢ of the generators of the ambient ring R of the root Y 
+of the codomain V of f : U → V in their fractional representation. 
+"""
 function imgs_frac(f::AffSchMorphism)
   # first check if this variable is already cached
   if isdefined(f, :imgs_frac)
@@ -804,6 +1084,11 @@ function imgs_frac(f::AffSchMorphism)
   return imgs_frac
 end
 
+@Markdown.doc """
+    function identity_morphism( X::Spec ) -> AffSchMorphism
+
+Returns the identity morphism of a Spec.
+"""
 function identity_morphism( X::Spec )
   R = ambient_ring(X)
   phi = AlgebraHomomorphism( R, R, gens(R) )
@@ -811,6 +1096,11 @@ function identity_morphism( X::Spec )
   return f 
 end
 
+@Markdown.doc """
+    function identity_morphism( D::SpecPrincipalOpen ) -> AffSchMorphism 
+
+Returns the identity morphism of a SpecPrincipalOpen.
+"""
 function identity_morphism( D::SpecPrincipalOpen )
   R = ambient_ring(D)
   phi = AlgebraHomomorphism( R, R, gens(R) )
@@ -823,6 +1113,13 @@ end
 # Consists basically of composition of the associated pullback 
 # homomorphisms.
 #
+@Markdown.doc """
+    function compose( f::AffSchMorphism, g::AffSchMorphism ) 
+
+Returns the composition f ∘ g of two morphisms of affine schemes. 
+NOTE: The ordering of the arguments follows the mathematical convention, 
+unlike other functions for composition in Oscar! 
+"""
 function compose( f::AffSchMorphism, g::AffSchMorphism ) 
   if codomain(g) != domain(f) 
     error( "morphisms can not be composed" )
@@ -834,12 +1131,14 @@ function compose( f::AffSchMorphism, g::AffSchMorphism )
   return AffSchMorphism( domain(g), codomain(f), compose( phi, gamma ) )
 end
 
-#####################################################################
-# Glueing of two affine schemes X and Y along an open subset 
-# U ⊂ X and V ⊂ Y via an isomorphism Phi : U → V. 
-# A glueing consists of a diagram X ↩ U → V ↪ Y with the outer maps 
-# the open embeddings of principal open subsets. 
-#
+@Markdown.doc """
+    mutable struct Glueing
+
+Glueing of two affine schemes X and Y along principal open subsets 
+U ⊂ X and V ⊂ Y via an isomorphism Φ : U → V. 
+A glueing consists of a diagram X ↩ U → V ↪ Y with the outer maps 
+the open embeddings of principal open subsets. 
+"""
 mutable struct Glueing
   firstPatch::AffineScheme
   secondPatch::AffineScheme
@@ -870,6 +1169,14 @@ end
 
 # Glueing for two principal open subsets of a common root scheme X
 # along their intersection in X
+@Markdown.doc """
+    function Glueing( U::SpecPrincipalOpen, V::SpecPrincipalOpen )
+
+Provides the glueing between two principal open subsets U and V of 
+some common parent X in their localization trees. If no such common 
+parent is found, this necessarily returns an error. Otherwise, the 
+intersection U ∩ V ⊂ X is computed and the glueing returned. 
+"""
 function Glueing( U::SpecPrincipalOpen, V::SpecPrincipalOpen )
   root(U) == root(V) || error( "schemes do not belong to the same root" )
   X = root(U)
@@ -884,14 +1191,55 @@ function Glueing( U::SpecPrincipalOpen, V::SpecPrincipalOpen )
   return Glueing( inclusion_in_parent(U_loc), inclusion_in_parent(V_loc), iso )
 end
 
+@Markdown.doc """
+    first_patch( G::Glueing ) = G.firstPatch
 
+Returns the first patch for the glueing G.
+"""
 first_patch( G::Glueing ) = G.firstPatch
+@Markdown.doc """
+    second_patch( G::Glueing ) = G.secondPatch
+
+Returns the second patch for the glueing G.
+"""
 second_patch( G::Glueing ) = G.secondPatch
+@Markdown.doc """
+    overlap(G::Glueing) = domain(G.inclusionFirstPatch)
+
+Returns the overlap U ∩ V of the two patches U and V of the glueing G.
+Note, that one naturally has two realizations of this overlap as 
+the Spec of affine algebras, one as a localization of U and another one 
+as a localization of V. By convention, it is always the first realization 
+of the overlap that is being returned. 
+"""
 overlap(G::Glueing) = domain(G.inclusionFirstPatch)
+@Markdown.doc """
+    first_inclusion( G::Glueing ) = G.inclusionFirstPatch
+
+Returns the inclusion of the overlap U ∩ V ↪ U into the first patch of the glueing G.
+"""
 first_inclusion( G::Glueing ) = G.inclusionFirstPatch
+@Markdown.doc """
+    second_inclusion( G::Glueing ) = G.inclusionSecondPatch
+
+Returns the inclusion of the overlap U ∩ V ↪ V into the second patch of the glueing G.
+"""
 second_inclusion( G::Glueing ) = G.inclusionSecondPatch
+@Markdown.doc """
+    glueing_isomorphism( G::Glueing ) = G.glueingIsomorphism
+
+Returns the glueing isomorphism for the two realizations of the overlap U ∩ V 
+of the two patches. These two realizations come from considering U ∩ V as a 
+localization of both either U and of V.
+"""
 glueing_isomorphism( G::Glueing ) = G.glueingIsomorphism
 
+@Markdown.doc """
+    function Base.show( io::Base.IO, G::Glueing )
+
+Print the glueing G to io. If the field G.name is set, then the 
+print will be abbreviated to the output of this name.
+"""
 function Base.show( io::Base.IO, G::Glueing )
   if isdefined( G, :name )
     Base.print( io, G.name )
@@ -918,6 +1266,20 @@ end
 # The index methods for double arrays have been overloaded so that 
 # OrderedMultiindex can be used to address them.
 #
+@Markdown.doc """
+    mutable struct Covering
+
+Structure for storing a covering of a CoveredScheme X by affine 
+patches Uᵢ, i = 1,…,N. The necessary data consists of these affine 
+patches and the information on how to glue them pairwise via 
+glueins Gᵢⱼ: Uᵢ↩ Uᵢ∩ Uⱼ ↪ Uⱼ. 
+
+Once created, a covering must not be altered, since in general several 
+other objects, like e.g. vector bundles and morphisms of schemes, will 
+refer to such coverings and they need to rely on them to not change. 
+If one needs another covering derived from the given one, then a 
+new covering needs to be set up and stored. 
+"""
 mutable struct Covering
   patches::Vector{AffineScheme}	# A list of open patches for this scheme
   glueings::Matrix{Union{Glueing,Nothing}}     # A list of glueings between the patches 
@@ -931,8 +1293,8 @@ mutable struct Covering
 
   function Covering()
     C = new()
-    C.patches = []
-    C.glueings = []
+    C.patches = AffineScheme[]
+    #C.glueings = Matrix{Union{Nothing,Glueing}}
     return C
   end
 
@@ -950,6 +1312,11 @@ function Base.copy( C::Covering )
   return Covering( copy(C.patches), copy(C.glueings) )
 end
 
+@Markdown.doc """
+    function patches( C::Covering ) -> Vector{AffineScheme}
+
+Returns the patches of the covering.
+"""
 function patches( C::Covering )
   if isdefined( C, :patches )
     return C.patches
@@ -958,6 +1325,11 @@ function patches( C::Covering )
   end 
 end
 
+@Markdown.doc """
+    function patch( C::Covering, i::Int )
+    
+Returns the i-th patch in the list of patches for the covering C.
+"""
 function patch( C::Covering, i::Int )
   if isdefined( C, :patches )
     return( C.patches[i] )
@@ -966,6 +1338,12 @@ function patch( C::Covering, i::Int )
   end
 end
 
+@Markdown.doc """
+    function glueings( C::Covering ) -> Matrix{Union{Glueing,Nothing}}
+
+Returns the matrix of glueings for the given covering. Note that 
+some entries (such as the diagonal ones) do not need to be assigned. 
+"""
 function glueings( C::Covering )
   if isdefined( C, :glueings )
     return C.glueings
@@ -982,13 +1360,16 @@ function Base.show( io::Base.IO, C::Covering )
   # TODO: Implement another way to print it.
 end
 
-########################################################################
-# add one affine patch X to an existing covering C.
-# To this end, the glueings along all the affine patches Y
-# in the covering C to X need to be provided. They are 
-# passed on as a vector using the same indices as the 
-# list of patches in the covering C.
+@Markdown.doc """
+    function _add_patch!( C::Covering, X::AffineScheme, glueings::Vector{Glueing} )
+    
+**WARNING: This is an internal function. The user is not supposed to use this since 
+it changes the covering.**
 
+Add a patch X to the given covering C. To do this, one needs to not only provide 
+the new patch, but also how it glues to those patches Uᵢin C that are already there. 
+Thus one needs to also provide a vector (G₁,…,Gₙ) of glueings Gᵢ: Uᵢ↩ Uᵢ∩ X ↪ X.
+"""
 function _add_patch!( C::Covering, X::AffineScheme, glueings::Vector{Glueing} )
   push!( C.patches, X )
   n = length(glueings)
@@ -1007,10 +1388,14 @@ function _add_patch!( C::Covering, X::AffineScheme, glueings::Vector{Glueing} )
   return C
 end
 
-#####################################################################
-# intersection of two patches X and Y in a given covering.
-# Returns the intersection as an affine scheme 
-# together with the two open inclusions.
+@Markdown.doc """
+    function intersect( X::AffineScheme, Y::AffineScheme, C::Covering )
+
+Intersection of two patches X and Y in a given covering.
+Assumes that both X and Y are patches of the given covering.
+Returns the intersection as an affine scheme 
+together with the two open inclusions.
+"""
 function intersect( X::AffineScheme, Y::AffineScheme, C::Covering )
   if !(X in patches(C)) 
     error( "X is not a patch in the covering C" )
@@ -1034,6 +1419,12 @@ function intersect( X::AffineScheme, Y::AffineScheme, C::Covering )
   end
 end
 
+@Markdown.doc """
+    function intersect( U::AffineScheme, V::AffineScheme )
+
+Returns the intersection of two principal open sets U and V in some common affine 
+ambient scheme X in their localization trees.
+"""
 function intersect( U::AffineScheme, V::AffineScheme )
   root(U) == root(V) || error( "schemes do not have the same root" )
   R = ambient_ring(root(U))
@@ -1048,41 +1439,86 @@ function intersect( U::AffineScheme, V::AffineScheme )
   return (U_loc, inclusion_in_parent(U_loc), compose( inclusion_in_parent(V_loc), iso ))
 end
 
+@Markdown.doc """
+    function union_of_schemes( U::AffineScheme, V::AffineScheme ) -> CoveredScheme
 
-###############################################################
-# Restriction of a morphism to open inclusions:
-#    f
-#  X → Y
-# i↑   ↑j
-#  U → V
-#    f'
-# When f, i, and j are given where X and Y are affine schemes 
-# and i and j are inclusions of principal open subsets with 
-# f(U) ⊂  V, we would like to explicitly infer the restriction 
-# f' of f to U.
-function restrict( f::AffSchMorphism, U::SpecPrincipalOpen, V::SpecPrincipalOpen )
-  # TODO: implement this.
+Returns the union of two schemes U and V as a CoveredScheme W = U ∪ V, 
+provided that both U and V have a common parent X in their localization tree. 
+"""
+function union_of_schemes( U::AffineScheme, V::AffineScheme )
+  root(U) == root(V) || error( "schemes do not have the same root" )
+  C = Covering(U)
+  _add_patch!( C, V, [Glueing(U,V)] )
+  return CoveredScheme(C)
 end
 
-##############################################################
-# Take the union of two affine patches in a given covering.
-function union( X::AffineScheme, Y::AffineScheme, C::Covering )
+@Markdown.doc """
+    function union_of_schemes( C::Covering, V::AffineScheme ) -> CoveredScheme
+
+Returns the union of a subscheme U ↪ X of some affine scheme X = Spec R/I 
+provided by means of an explicit covering C of U with some further subscheme 
+V ⊂ X of the same parent in the localization tree.
+"""
+function union_of_schemes( C::Covering, V::AffineScheme )
+  U = patches(C)
+  l = length(U)
+  G = Glueing[] # empty vector for additional glueings
+  for i in (1:l) 
+    # Compute the glueing of U[i] with V 
+    root(U[i]) == root(V) || error( "the $i-th patch of the covering does not have the same root as the new patch" )
+    push!( G, Glueing( U[i], V ))
+  end
+  D = copy(C)
+  _add_patch!(D,V,G)
+  return CoveredScheme( D )
+end
+
+@Markdown.doc """
+    function restrict( f::AffSchMorphism, U::SpecPrincipalOpen, V::SpecPrincipalOpen )
+
+Return the restriction of a morphism of affine schemes f : X → Y to principal 
+open subsets U ⊂ X and V ⊂ Y. 
+
+**Caution: No plausibility check as to whether or not f(U) ⊂ V is being performed!**
+"""
+function restrict( f::AffSchMorphism, U::SpecPrincipalOpen, V::SpecPrincipalOpen )
+  i = inclusion_in_root(U)
+  j = inclusion_in_root(V)
+  domain(f) == codomain(i) || error( "the given map is not compatible with the open subsets" )
+  codomain(f) == codomain(j) || error( "the given map is not compatible with the open subsets" )
+  g = compose( f, i )
+  return AffSchMorphism( U, V, imgs_frac(g) )
+end
+
+@Markdown.doc """
+    function union_of_schemes( X::AffineScheme, Y::AffineScheme, C::Covering )
+    
+Provide the intersection of two affine patches X and Y in a covering C. This 
+assumes that both X and Y can be found in the list of patches of C.
+
+**Warning: This has not yet been implemented!**
+"""
+function union_of_schemes( X::AffineScheme, Y::AffineScheme, C::Covering )
+  error( "Not implemented yet." )
   # TODO: This is not functional yet. We first need a struct 
   # for morphisms of CoveredScheme.
 end
 
-#######################################################################
-#
-# Refinement of a covering C by another covering D.
-# Let I and J be the index sets for the patches of the coverings 
-# C and D, respectively. Then a refinement consists of 
-# a function 
-#   n : J → I 
-# such that for every patch Y_j in D there exists a patch X_i in C with 
-# i = n(j) such that X_i contains Y_j. 
-# The datum of the refinement stored here is then the respective collection 
-# of morphisms of affine schemes given by these containments. 
-#
+@Markdown.doc """
+    mutable struct Refinement
+    
+Structure for a refinement of a covering. 
+
+Say C = { Uᵢ}ᵢ₌₁ᴹ and D = { Vⱼ}ⱼ₌₁ᴺ are two coverings of a CoveredScheme X. Then D is a refinement 
+of C if there exists a map of the index ranges 
+
+  n : {1,…,N} → {1,…,M}, j ↦  i = n(j)
+
+such that there is an inclusion ρⱼ: Vⱼ↪ Uₙ₍ⱼ₎. 
+This is the datum being stored. 
+
+**WARNING: This has not been fully implemented, yet!**
+"""
 mutable struct Refinement
   original_cover::Covering
   refined_cover::Covering
@@ -1092,6 +1528,11 @@ mutable struct Refinement
   # TODO: Implement the constructors.
 end
 
+@Markdown.doc """
+    function original_cover( ρ::Refinement ) -> Covering
+
+Returns the original cover of the refinement.
+"""
 function original_cover( ρ::Refinement )
   if isdefined( ρ, :original_cover )
     return ρ.original_cover
@@ -1099,6 +1540,11 @@ function original_cover( ρ::Refinement )
   return nothing
 end
 
+@Markdown.doc """
+    function refined_cover( ρ::Refinement ) -> Covering
+
+Returns the refined cover of the refinement.
+"""
 function refined_cover( ρ::Refinement )
   if isdefined( ρ, :refined_cover )
     return ρ.refined_cover
@@ -1106,10 +1552,27 @@ function refined_cover( ρ::Refinement )
   return nothing
 end
 
+@Markdown.doc """
+    function map_index( ρ::Refinement, i::Int ) -> Int
+
+The map 
+
+  n : {1,…,N} → {1,…,M}, j ↦  i = n(j)
+
+of the index sets for the original covering C = { Uᵢ}ᵢ₌₁ᴹ and its 
+refinement D = { Vⱼ}ⱼ₌₁ᴺ such that ρⱼ: Vⱼ↪ Uₙ₍ⱼ₎ are the open 
+inclusions for the refinements.
+"""
 function map_index( ρ::Refinement, i::Int )
   return ρ.index_map[i]
 end
 
+@Markdown.doc """
+    function inclusions( ρ::Refinement ) -> Vector{AffSchMorphism}
+
+Returns the vector of inclusion morphisms ρⱼ: Vⱼ↪ Uₙ₍ⱼ₎ 
+for the refined covering D = { Vⱼ}ⱼ₌₁ᴺ of C = { Uᵢ}ᵢ₌₁ᴹ.
+"""
 function inclusions( ρ::Refinement )
   if isdefined( ρ, :inclusions ) 
     return ρ.inclusions
@@ -1117,19 +1580,19 @@ function inclusions( ρ::Refinement )
   return nothing
 end
 
+@Markdown.doc """
+mutable struct CoveredScheme
 
-######################################################################
-# A scheme explicitly described by providing a covering 
-# with glueings. 
-#
-# In general, a scheme might have different coverings since, 
-# for example, different vector bundles might be given by means of 
-# different local trivializations. 
-#
-# In practice, however, we usually expect to have a graph of coverings 
-# ordered by refinements and with a single root accounting for the covering 
-# originally used to describe our scheme in the first place. 
-#
+Struct for a covered scheme X = ⋃ᵢ₌₁ᴺ Uᵢobtained by glueing of affine 
+schemes Uᵢ.
+
+This stores a list of coverings for X where at least one original covering needs 
+to be given. Within the life span of X there will most likely be the need to 
+also have refinements of this covering (e.g. for the description of vector bundles 
+that can not be trivialized on the original patches), so more coverings can be added. 
+To also maintain the information of their interplay, there is a second field to store 
+a matrix of refinements for these coverings.
+"""
 mutable struct CoveredScheme
   coverings::Vector{Covering}
   refinements::Array{Refinement,2}
@@ -1138,10 +1601,7 @@ mutable struct CoveredScheme
   name::String
 
   function CoveredScheme()
-    X = new()
-    coverings = Vector{Covering}[]
-    refinements
-    return X 
+    return CoveredScheme( Covering() )
   end
 
   function CoveredScheme( C::Covering )
@@ -1170,15 +1630,39 @@ function Base.copy( X::CoveredScheme )
   return CoveredScheme( X ) 
 end
 
+@Markdown.doc """
+    function CoveredScheme( U::AffineScheme ) -> CoveredScheme
+
+Turn the affine scheme U into a CoveredScheme with a one-patch-cover.
+"""
+function CoveredScheme( U::AffineScheme )
+  return CoveredScheme(Covering(U))
+end
+
+@Markdown.doc """
+    function coverings( X::CoveredScheme )
+
+Return the available coverings of X.
+"""
 function coverings( X::CoveredScheme )
   return X.coverings
 end
 
+@Markdown.doc """
+    function set_name!( X::CoveredScheme, name::String )
+
+Give the CoveredScheme X a name that will then be used for printing.
+"""
 function set_name!( X::CoveredScheme, name::String )
   X.name = name
   return name
 end
 
+@Markdown.doc """
+    function name( X::CoveredScheme ) 
+
+Return the given name of X whenever the field X.name is set.
+"""
 function name( X::CoveredScheme ) 
   if isdefined( X, :name )
     return X.name
@@ -1186,7 +1670,12 @@ function name( X::CoveredScheme )
   return nothing
 end
 
+@Markdown.doc """
+    function Base.show( io::Base.IO, X::CoveredScheme )
 
+Print X to the stream io. Only the given name of X will be 
+used once the field X.name is being set. 
+"""
 function Base.show( io::Base.IO, X::CoveredScheme )
   if isdefined( X, :name )
     Base.print( io, X.name )
@@ -1195,16 +1684,17 @@ function Base.show( io::Base.IO, X::CoveredScheme )
   Base.print( io, "Covered Scheme with $(length(X.coverings)) covering." )
 end
 
-####################################################################
-#
-# Construct projective space IP^n_k over the ring k as a covered 
-# scheme with its standard open cover
-#
+@Markdown.doc """
+    function projective_space( k::Ring, n::Int )
+
+Construct projective space ℙₖⁿ over the ring k as a covered 
+scheme with its standard open cover.
+"""
 function projective_space( k::Ring, n::Int )
   # Start the standard covering with the first patch for x_0 ≠ 0.
   # println( "assembling $n-dimensional projective space over $k." )
   X0 = affine_space(k,n)
-  set_name!( X0, "IA^$(n)_0" )
+  set_name!( X0, "𝔸^$(n)_0" )
   C = Covering(X0)
   # Add the other patches successively
   for j in (1:n) 
@@ -1212,7 +1702,7 @@ function projective_space( k::Ring, n::Int )
     # The patch for x_j ≠ 0
     # println("Glueing in the following new patch:")
     Y = affine_space( k, n )
-    set_name!(Y,"IA^$(n)_$(j)")
+    set_name!(Y,"𝔸^$(n)_$(j)")
     # come up with the glueings
     G = Vector{Glueing}()
     # println("New glueings for this step so far:") 
@@ -1247,7 +1737,7 @@ function projective_space( k::Ring, n::Int )
   end
   C.name = "standard cover"
   IP = CoveredScheme( C )
-  set_name!( IP, "IP^$n" )
+  set_name!( IP, "ℙ^$n" )
   return IP
 end
 
@@ -1268,6 +1758,24 @@ end
 # affine schemes since there ideal sheaves are just 
 # in 1:1 correspondence with actual ideals.
 #
+@Markdown.doc """
+    mutable struct IdealSheaf <: AbstractCoherentSheaf 
+
+A sheaf of ideals on a CoveredScheme X
+
+Just as every coherent sheaf, a sheaf of ideals 
+needs to refer to an explicit covering C of X which 
+has to be listed in the stored coverings for X. 
+The second datum necessary is a list of ideals 
+Iₖ ⊂ Rₖ for all affine schemes Uₖ = Spec Rₖ in C. 
+Note that, for simplicity, we simply store the 
+preimages of the ideals in the chosen ambient 
+rings of (the roots of) the affine patches. 
+
+We refrain from implementing this explicitly for 
+affine schemes since there ideal sheaves are just 
+in 1:1 correspondence with actual ideals.
+"""
 mutable struct IdealSheaf <: AbstractCoherentSheaf 
   parent::CoveredScheme
   covering::Covering
@@ -1293,20 +1801,44 @@ mutable struct IdealSheaf <: AbstractCoherentSheaf
   end
 end
 
-# The copy constructor.
-# Refer to the same Scheme and covering, but copy the 
-# ideals.
+@Markdown.doc """
+    function IdealSheaf( I::IdealSheaf )
+
+The copy constructor. Returns a copy of I.
+"""
 function IdealSheaf( I::IdealSheaf )
   return IdealSheaf( I.parent, I.covering, copy(I.ideals) )
 end
 
+@Markdown.doc """
+    parent( I::IdealSheaf ) -> CoveredScheme
+
+Returns the CoveredScheme X on which the IdealSheaf I is defined.
+"""
 parent( I::IdealSheaf ) = I.parent
+@Markdown.doc """
+    covering( I::IdealSheaf ) -> Covering
+
+Returns the covering C of the CoveredSchem X with respect to which the 
+ideal sheaf I is defined. 
+"""
 covering( I::IdealSheaf ) = I.covering
+@Markdown.doc """
+    ideals( I::IdealSheaf ) -> Vector{MPolyIdeal}
+
+Return the vector of ideals representing I locally on the patches. 
+"""
 ideals( I::IdealSheaf ) = I.ideals
 
-# Take a homogeneous ideal I in a graded homogeneous 
-# ring S and turn it into an ideal sheaf on the 
-# corresponding projective space
+@Markdown.doc """
+    function to_ideal_sheaf( I::MPolyIdeal )
+
+Take a homogeneous ideal I in a graded homogeneous 
+ring S and turn it into an ideal sheaf on the 
+corresponding projective space.
+
+**WARNING: This has not been implemented, yet!**
+"""
 function to_ideal_sheaf( I::MPolyIdeal )
   error( "not implemented yet" )
   # TODO: Implement this based on graded modules in 
@@ -1315,14 +1847,15 @@ function to_ideal_sheaf( I::MPolyIdeal )
   # space and return the ideal sheaf on it. 
 end
 
-#########################################################
-#
-# A sheaf of modules on a CoveredScheme X
-#
-# Everything is similar to the ideal sheaf above, 
-# only that instead of ideals we store modules over 
-# the chosen ambient rings of the patches
-#
+@Markdown.doc """
+    mutable struct CoherentSheaf <: AbstractCoherentSheaf 
+
+A sheaf of modules on a CoveredScheme X
+
+Everything is similar to the IdealSheaf,
+only that instead of ideals we store modules over 
+the chosen ambient rings of the patches.
+"""
 mutable struct CoherentSheaf <: AbstractCoherentSheaf 
   parent::CoveredScheme
   covering::Covering
@@ -1334,26 +1867,44 @@ mutable struct CoherentSheaf <: AbstractCoherentSheaf
   # TODO: Implement the constructors.
 end
 
+@Markdown.doc """
+    parent( I::CoherentSheaf ) -> CoveredScheme
+
+Returns the CoveredScheme on which the CoherentSheaf I is defined.
+"""
 parent( I::CoherentSheaf ) = I.parent
+@Markdown.doc """
+    covering( I::CoherentSheaf ) -> Covering
+
+Return the covering C of the CoveredScheme X on which the CoherentSheaf
+I is defined.
+"""
 covering( I::CoherentSheaf ) = I.covering
+@Markdown.doc """
+    modules( I::CoherentSheaf ) -> Vector{FPModule{MPolyElem}}
+
+Returns the vector of finitely generated modules on the 
+patches of the CoveredScheme X on which I is defined. 
+"""
 modules( I::CoherentSheaf ) = I.modules
 
 
-########################################################
-# 
-# A line bundle on a CoveredScheme X
-#
-# Again, this refers to a specific covering C of X 
-# which has to be fine enough so that the line bundle is 
-# trivialized on the patches. Then, the bundle itself 
-# is described by an "antisymmetric" matrix of transition 
-# functions. 
-#
-# Note that not every line bundle on an affine 
-# scheme is necessarily trivial! But in general one will 
-# need to even cover an affine scheme by finer patches 
-# in order to represent it as a line bundle of this form.
-#
+@Markdown.doc """
+    mutable struct LineBundle <: AbstractCoherentSheaf
+
+Struct for a line bundle on a CoveredScheme X.
+
+This refers to a specific Covering C of X 
+which has to be fine enough so that the line bundle is 
+trivialized on the patches. Then, the bundle itself 
+is described by an "antisymmetric" matrix of transition 
+functions. 
+
+Note that not every line bundle on an affine 
+scheme is necessarily trivial! But in general one will 
+need to even cover an affine scheme by finer patches 
+in order to represent it as a line bundle of this form.
+"""
 mutable struct LineBundle <: AbstractCoherentSheaf
   parent::CoveredScheme
   covering::Covering
@@ -1368,6 +1919,11 @@ mutable struct LineBundle <: AbstractCoherentSheaf
   end
 end
 
+@Markdown.doc """
+    function LineBundle( L::LineBundle )
+
+Returns a copy of L.
+"""
 function LineBundle( L::LineBundle )
   return LineBundle( L.parent, L.covering, copy(L.transitions) )
 end
@@ -1376,12 +1932,33 @@ function Base.copy( L::LineBundle )
   return LineBundle( L )
 end
 
+@Markdown.doc """
+    parent( L::LineBundle ) -> CoveredScheme
+
+Returns the CoveredScheme X on which L is defined.
+"""
 parent( L::LineBundle ) = L.parent
+@Markdown.doc """
+    covering( L::LineBundle ) -> Covering
+
+Returns the Covering C of the CoveredScheme X on which L is defined.
+"""
 covering( L::LineBundle ) = L.covering
+@Markdown.doc """
+    transitions( L::LineBundle ) -> Matrix{MPolyElem}
+
+Returns the matrix of transition functions for L for 
+pairs of affine patches in the Covering C of the 
+CoveredScheme X on which L is defined. 
+"""
 transitions( L::LineBundle ) = L.transitions
 
-########################################################
-# The tautological bundle on projective space
+@Markdown.doc """
+    function OO( k::Ring, n::Int, d::Int ) -> LineBundle
+
+Returns Serre's twisting sheaf 𝒪(d) on ℙₖⁿ, trivialized in 
+the canonical covering.
+"""
 function OO( k::Ring, n::Int, d::Int )
   IPn = projective_space( k, n )
   C = coverings( IPn )[1]
@@ -1407,8 +1984,18 @@ function OO( k::Ring, n::Int, d::Int )
   return L
 end
 
+@Markdown.doc """
+    OO( n::Int, d::Int ) = OO( QQ, n, d )
+"""
 OO( n::Int, d::Int ) = OO( QQ, n, d )
 
+@Markdown.doc """
+    function Base.show( io::Base.IO, L::LineBundle )
+
+Print the LineBundle L to the stream io. Whenever the 
+field L.name is set, this output is abbreviated to printing 
+that name. 
+"""
 function Base.show( io::Base.IO, L::LineBundle )
   if isdefined( L, :name )
     Base.print( io, L.name )
@@ -1431,14 +2018,15 @@ function Base.show( io::Base.IO, L::LineBundle )
   end
 end
 
-#######################################################
-# 
-# An algebraic vector bundle on a CoveredScheme X
-#
-# Basically the same as LineBundle above. Only the transition 
-# functions are now taking values in the space of invertible 
-# matrices.
-#
+@Markdown.doc """
+    mutable struct VectorBundle <: AbstractCoherentSheaf
+
+An algebraic vector bundle on a CoveredScheme X
+
+Basically the same as LineBundle. Only the transition 
+functions are now taking values in the space of invertible 
+matrices.
+"""
 mutable struct VectorBundle <: AbstractCoherentSheaf
   rank::Int
   parent::CoveredScheme
@@ -1463,6 +2051,11 @@ mutable struct VectorBundle <: AbstractCoherentSheaf
   end
 end
 
+@Markdown.doc """
+    function VectorBundle( E::VectorBundle ) -> VectorBundle
+
+Returns a copy of E.
+"""
 function VectorBundle( E::VectorBundle )
   return VectorBundle( E.rank, E.parent, E.covering, copy(E.transitions) )
 end
@@ -1471,13 +2064,34 @@ function Base.copy( E::VectorBundle )
   return VectorBundle( E )
 end
 
-parent( L::VectorBundle ) = L.parent
-covering( L::VectorBundle ) = L.covering
-transitions( L::VectorBundle ) = L.transitions
+@Markdown.doc """
+    parent( E::VectorBundle ) -> Covering
+
+Returns the CoveredScheme X on which E is defined.
+"""
+parent( E::VectorBundle ) = E.parent
+@Markdown.doc """
+    covering( E::VectorBundle ) -> Covering
+
+Returns the Covering C of the CoveredScheme X on which E is defined.
+"""
+covering( E::VectorBundle ) = E.covering
+
+@Markdown.doc """
+transitions( E::VectorBundle ) -> Matrix{MatrixElem{MPolyElem}}
+
+Returns the matrix of transition matrices for E.
+"""
+transitions( E::VectorBundle ) = E.transitions
 
 
-#########################################################
-# pullback of a line bundle along a refinement
+@Markdown.doc """
+    function pullback( L::LineBundle, ρ::Refinement ) -> LineBundle
+
+Pullback of a line bundle along a refinement. 
+This returns an isomorphic line bundle but defined on a refinement 
+of the original covering. 
+"""
 function pullback( L::LineBundle, ρ::Refinement )
   if covering(L) != original_cover(ρ) 
     error( "The line bundle is defined on a different cover than the one being refined" )
@@ -1531,10 +2145,13 @@ function pullback( L::LineBundle, ρ::Refinement )
 end
 
 
-##########################################################
-#
-# Section in a vector bundle
-#
+@Markdown.doc """
+    mutable struct VectorBundleSection 
+
+Struct for a section in a VectorBundle. This will store a list of 
+local sections in the distinct patches of the covering with respect 
+to which the VectorBundle is defined. 
+"""
 mutable struct VectorBundleSection 
   parent::VectorBundle
   loc_sections::Vector{Vector{MPolyElem}}
@@ -1553,6 +2170,11 @@ mutable struct VectorBundleSection
   end
 end
 
+@Markdown.doc """
+    function VectorBundleSection( s::VectorBundleSection )
+
+Returns a copy of s.
+"""
 function VectorBundleSection( s::VectorBundleSection )
   return VectorBundleSection( s.parent, copy(s.loc_sections) )
 end
@@ -1561,9 +2183,28 @@ function Base.copy( s::VectorBundleSection )
   return VectorBundleSection( s )
 end
 
+@Markdown.doc """
+loc_sections(s::VectorBundleSection) -> Vector{Vector{MPolyElem}}
+
+Returns a list of local sections of s on the distinct patches in 
+the covering with respect to which the underlying vector bundle is 
+defined.
+"""
 loc_sections(s::VectorBundleSection) = s.loc_sections
+@Markdown.doc """
+    parent(s::VectorBundleSection) -> VectorBundle
+
+Returns the VectorBundle E of which s is a section.
+"""
 parent(s::VectorBundleSection) = s.parent
 
+@Markdown.doc """
+    function zero_locus( s::VectorBundleSection ) -> CoveredScheme
+
+Returns the CoveredScheme Y obtained as the zero locus of the section s.
+
+**WARNING: This is not implemented, yet!**
+"""
 function zero_locus( s::VectorBundleSection )
   error( "not implemented yet" )
   n = length(loc_sections(s))
@@ -1585,6 +2226,13 @@ end
 #
 # Section in a line bundle
 #
+@Markdown.doc """
+    mutable struct LineBundleSection 
+
+Struct for a section in a LineBundle. This will store a list of 
+local sections in the distinct patches of the covering with respect 
+to which the LineBundle is defined. 
+"""
 mutable struct LineBundleSection 
   parent::LineBundle
   loc_sections::Vector{MPolyElem}
@@ -1603,6 +2251,11 @@ mutable struct LineBundleSection
   end
 end
 
+@Markdown.doc """
+    function LineBundleSection( s::LineBundleSection )
+
+Returns a copy of s.
+"""
 function LineBundleSection( s::LineBundleSection )
   return LineBundleSection( s.parent, copy(s.loc_sections) )
 end
@@ -1611,7 +2264,20 @@ function Base.copy( s::LineBundleSection )
   return LineBundleSection( s )
 end
 
+@Markdown.doc """
+loc_sections(s::VectorBundleSection) -> Vector{MPolyElem}
+
+Returns a list of local sections of s on the distinct patches in 
+the covering with respect to which the underlying vector bundle is 
+defined.
+"""
 loc_sections(s::LineBundleSection) = s.loc_sections
+
+@Markdown.doc """
+    parent(s::LineBundleSection) -> LineBundle
+
+Returns the LineBundle E of which s is a section.
+"""
 parent(s::LineBundleSection) = s.parent
 
 function Base.show( io::Base.IO, s::LineBundleSection )
@@ -1625,6 +2291,13 @@ function Base.show( io::Base.IO, s::LineBundleSection )
 end
 
 
+@Markdown.doc """
+    function zero_locus( s::LineBundleSection ) -> CoveredScheme
+
+Returns the CoveredScheme Y obtained as the zero locus of the section s.
+
+**WARNING: This is not implemented, yet!**
+"""
 function zero_locus( s::LineBundleSection )
   error( "not implemented yet" )
   n = length(loc_sections(s))
@@ -1642,8 +2315,15 @@ function zero_locus( s::LineBundleSection )
   Y = CoveredScheme( D )
 end
 
-# The global sections of the dual of the tautological bundle 
-# on IP^n which correspond to the homogeneous coordinates.
+@Markdown.doc """
+    function tautological_sections( k::Ring, n::Int ) -> Vector{LineBundleSection}
+
+Returns a vector with the canonical sections of 𝒪(1) on ℙⁿ corresponding 
+to the homogeneous coordinates x₀,…xₙ in the ring 
+S = k[x₀,…,xₙ] ≅ ⨁ ₖ H⁰(ℙⁿ, 𝒪(k)) of ℙⁿ.
+
+**WARNING: The returned elements are not elements of any ring at this point!**
+"""
 function tautological_sections( k::Ring, n::Int )
   L = OO( k, n, 1 )
   IP = parent( L )
