@@ -77,7 +77,7 @@ end
 
 export disc_log, generator
 
-end
+end # module DiscLog
 
 export generator, disc_log
 
