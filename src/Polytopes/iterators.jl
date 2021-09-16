@@ -50,7 +50,8 @@ function Base.similar(bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{PointVector
 end
 
 struct RayVector{U} <: AbstractVector{U}
-    p::Polymake.Vector{U}
+    p::Polymake.Vector
+    RayVector{U}(p) where U = new(Polymake.Vector{Polymake.to_cxx_type(U)}(p))
 end
 
 Base.IndexStyle(::Type{<:RayVector}) = IndexLinear()

@@ -19,6 +19,8 @@
 
                     A = T{U}(a)
 
+                    @test A.p isa Polymake.Vector{Polymake.to_cxx_type(U)}
+
                     @test A[1] isa U
                     @test A[2] == 2
                     @test A[begin] == 1
@@ -38,7 +40,7 @@
 
                         for op in [+, -]
                             @test op(A, B) isa T
-                            @test op(A, B) isa T{<:Union{Polymake.to_cxx_type(U), Polymake.to_cxx_type(V)}}
+                            @test op(A, B) isa T{promote_type(U, V)}
 
                             @test op(A, B) == op(a, b)
                         end
