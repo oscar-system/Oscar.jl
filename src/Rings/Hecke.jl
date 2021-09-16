@@ -7,3 +7,12 @@ for i in names(Hecke)
   eval(Expr(:export, i))
 end
 
+# TODO: remove the following once Hecke or Nemo have IntegerUnion
+# (and the version adding it is required in Project.toml)
+if isdefined(Hecke, :IntegerUnion)
+  import Hecke.IntegerUnion
+elseif isdefined(Nemo, :IntegerUnion)
+  import Nemo.IntegerUnion
+else
+  const IntegerUnion = Union{Integer, fmpz}
+end
