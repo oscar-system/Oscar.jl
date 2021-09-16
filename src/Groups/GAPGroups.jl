@@ -189,8 +189,8 @@ julia> length(moved_points(gen(s, 1)))
 
 @gapattribute number_moved_points(x::Union{PermGroupElem,PermGroup}) = fmpz(GAP.Globals.NrMovedPoints(x.X))::fmpz
 """
-    number_moved_points(::Type{T} = fmpz, x::PermGroupElem) where T <: Union{Integer, fmpz}
-    number_moved_points(::Type{T} = fmpz, G::PermGroup) where T <: Union{Integer, fmpz}
+    number_moved_points(::Type{T} = fmpz, x::PermGroupElem) where T <: IntegerUnion
+    number_moved_points(::Type{T} = fmpz, G::PermGroup) where T <: IntegerUnion
 
 Return the number of those points in `1:degree(x)` or `1:degree(G)`,
 respectively, that are not mapped to themselves under the action `^`,
@@ -212,11 +212,11 @@ julia> number_moved_points(gen(s, 1))
 ```
 """ number_moved_points
 
-number_moved_points(::Type{T}, x::Union{PermGroupElem,PermGroup}) where T <: Union{Base.Integer, fmpz} = T(GAP.Globals.NrMovedPoints(x.X))::T
+number_moved_points(::Type{T}, x::Union{PermGroupElem,PermGroup}) where T <: IntegerUnion = T(GAP.Globals.NrMovedPoints(x.X))::T
 
 
 """
-    order(::Type{T} = fmpz, x::Union{GAPGroupElem, GAPGroup}) where T <: Union{Integer, fmpz}
+    order(::Type{T} = fmpz, x::Union{GAPGroupElem, GAPGroup}) where T <: IntegerUnion
 
 Return the order of `x`, as an instance of `T`.
 
@@ -227,7 +227,7 @@ For a group `x`, the order of `x` is the number of elements in `x`.
 An exception is thrown if the order of `x` is infinite,
 use [`isfinite`](@ref) in order to check for finiteness.
 """
-function order(::Type{T}, x::Union{GAPGroupElem, GAPGroup}) where T <: Union{Base.Integer, fmpz}
+function order(::Type{T}, x::Union{GAPGroupElem, GAPGroup}) where T <: IntegerUnion
    ord = GAP.Globals.Order(x.X)::GapInt
    if ord === GAP.Globals.infinity
       error("order() not supported for infinite groups, use isfinite()")
@@ -238,20 +238,20 @@ end
 order(x::Union{GAPGroupElem, GAPGroup}) = order(fmpz, x)
 
 @gapwrap hasorder(G::GAPGroup) = GAP.Globals.HasSize(G.X)
-@gapwrap setorder(G::GAPGroup, val::T) where T<:Union{Base.Integer,fmpz} = GAP.Globals.SetSize(G.X, GapObj(val))
+@gapwrap setorder(G::GAPGroup, val::T) where T<:IntegerUnion = GAP.Globals.SetSize(G.X, GapObj(val))
 
 import Base.exponent
 
 @gapattribute exponent(x::GAPGroup) = fmpz(GAP.Globals.Exponent(x.X))
 @doc Markdown.doc"""
-    exponent(::Type{T} = fmpz, G::GAPGroup) where T <: Union{Integer, fmpz}
+    exponent(::Type{T} = fmpz, G::GAPGroup) where T <: IntegerUnion
 
 Return the exponent of `G`, as an instance of `T`,
 i. e., the smallest positive integer $e$ such that
 $g^e$ is the identity of `G` for every $g$ in `G`.
 """ exponent(x::GAPGroup)
 
-Base.exponent(::Type{T}, G::GAPGroup) where T <: Union{Base.Integer, fmpz} = T(GAP.Globals.Exponent(G.X))
+Base.exponent(::Type{T}, G::GAPGroup) where T <: IntegerUnion = T(GAP.Globals.Exponent(G.X))
 
 """
     rand(rng::Random.AbstractRNG = Random.GLOBAL_RNG, G::Group)
@@ -410,7 +410,7 @@ julia> gap_perm([2,4,6,1,3,5])
 (1,2,4)(3,6,5)
 ```
 """
-function gap_perm(L::AbstractVector{<:Union{fmpz, Base.Integer}})
+function gap_perm(L::AbstractVector{<:IntegerUnion})
   return PermGroupElem(symmetric_group(length(L)), GAP.Globals.PermList(GAP.GapObj(L;recursive=true)))
 end
 
@@ -456,7 +456,7 @@ end
 # cperm stays for "cycle permutation", but we can change name if we want
 # takes as input a list of vectors (not necessarly disjoint)
 @doc Markdown.doc"""
-    cperm(L::AbstractVector{<:T}...) where T <: Union{Integer, fmpz}
+    cperm(L::AbstractVector{<:T}...) where T <: IntegerUnion
     cperm(G::PermGroup, L::AbstractVector{<:T}...)
 
 For given lists $[a_1, a_2, \ldots, a_n], [b_1, b_2, \ldots , b_m], \ldots$
@@ -499,7 +499,7 @@ At the moment, the input vectors of the function `cperm` need not be disjoint.
     `GAPGroupElem{PermGroup}` without specifying a parent,
     one has to use the function `gap_perm`.
 """
-function cperm(L::AbstractVector{T}...) where T <: Union{Base.Integer, fmpz}
+function cperm(L::AbstractVector{T}...) where T <: IntegerUnion
    if length(L)==0
       return one(symmetric_group(1))
    else
@@ -511,7 +511,7 @@ end
 # cperm stays for "cycle permutation", but we can change name if we want
 # takes as input a list of vectors (not necessarly disjoint)
 # WARNING: we allow e.g. PermList([2,3,1,4,5,6]) in Sym(3)
-function cperm(g::PermGroup,L::AbstractVector{T}...) where T <: Union{Base.Integer, fmpz}
+function cperm(g::PermGroup,L::AbstractVector{T}...) where T <: IntegerUnion
    if length(L)==0
       return one(g)
    else
@@ -527,7 +527,7 @@ end
 @deprecate listperm(x::PermGroupElem) Vector(x)
 
 """
-    Vector{T}(x::PermGroupElem, n::Int = x.parent.deg) where T <: Union{Integer, fmpz}
+    Vector{T}(x::PermGroupElem, n::Int = x.parent.deg) where T <: IntegerUnion
     Vector(x::PermGroupElem, n::Int = x.parent.deg)
 
 Return the list of length `n` that contains `x(i)` at position `i`. If not specified, `T` is set as `Int`.
@@ -558,7 +558,7 @@ julia> Vector{fmpz}(pi, 2)
 
 ```
 """
-Base.Vector{T}(x::PermGroupElem, n::Int = x.parent.deg) where T <: Union{Base.Integer, fmpz} = T[x(i) for i in 1:n]
+Base.Vector{T}(x::PermGroupElem, n::Int = x.parent.deg) where T <: IntegerUnion = T[x(i) for i in 1:n]
 Base.Vector(x::PermGroupElem, n::Int = x.parent.deg) = Vector{Int}(x,n)
 
 """
@@ -633,13 +633,13 @@ function (G::PermGroup)(x::PermGroupElem)
 end
 
 #evaluation function
-function (x::PermGroupElem)(n::T) where T <: Union{Base.Integer,fmpz}
+function (x::PermGroupElem)(n::T) where T <: IntegerUnion
    return T(GAP.Globals.OnPoints(GAP.GapObj(n), x.X))
 end
 
 (x::PermGroupElem)(n::Int) = GAP.Globals.OnPoints(n,x.X)
 
-^(n::T, x::PermGroupElem) where T <: Union{Base.Integer,fmpz} = T(GAP.Globals.OnPoints(GAP.GapObj(n), x.X))
+^(n::T, x::PermGroupElem) where T <: IntegerUnion = T(GAP.Globals.OnPoints(GAP.GapObj(n), x.X))
 
 ^(n::Int, x::PermGroupElem) = GAP.Globals.OnPoints(n,x.X)
 
