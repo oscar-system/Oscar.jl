@@ -3,6 +3,7 @@ import Base: ∘
 import Oscar: base_ring
 import AbstractAlgebra: FPModule, FPModuleElem
 import Base.copy
+import AbstractAlgebra.Generic.MatSpaceElem
 
 include( "./Multiindices.jl" )
 using Oscar.Multiindices
@@ -37,7 +38,7 @@ export CoherentSheaf
 export parent, covering, modules
 
 export LineBundle, VectorBundle
-export parent, covering, transitions, OO
+export parent, covering, transitions, rank, OO
 
 export VectorBundleSection, LineBundleSection
 export tautological_sections
@@ -2031,7 +2032,7 @@ mutable struct VectorBundle <: AbstractCoherentSheaf
   rank::Int
   parent::CoveredScheme
   covering::Covering
-  transitions::Array{MatrixElem{MPolyElem},2}
+  transitions::Array{MatSpaceElem,2}
   
   # optional variables used for caching
   name::String
@@ -2040,7 +2041,8 @@ mutable struct VectorBundle <: AbstractCoherentSheaf
       rank::Int,
       parent::CoveredScheme, 
       covering::Covering, 
-      transitions::Array{MatrixElem{MPolyElem},2} )
+      transitions::Matrix{MatSpaceElem} 
+    )
     E = new()
     E.rank = rank
     E.parent = parent
@@ -2065,6 +2067,15 @@ function Base.copy( E::VectorBundle )
 end
 
 @Markdown.doc """
+    function rank( E::VectorBundle ) -> Int
+
+Returns the rank of the VectorBundle E.
+"""
+function rank( E::VectorBundle )
+  return E.rank
+end
+
+@Markdown.doc """
     parent( E::VectorBundle ) -> Covering
 
 Returns the CoveredScheme X on which E is defined.
@@ -2078,7 +2089,7 @@ Returns the Covering C of the CoveredScheme X on which E is defined.
 covering( E::VectorBundle ) = E.covering
 
 @Markdown.doc """
-transitions( E::VectorBundle ) -> Matrix{MatrixElem{MPolyElem}}
+transitions( E::VectorBundle ) -> Matrix{MatSpaceElem}
 
 Returns the matrix of transition matrices for E.
 """
@@ -2316,6 +2327,31 @@ function zero_locus( s::LineBundleSection )
 end
 
 @Markdown.doc """
+    function VectorBundle( L::LineBundle )
+
+Turns a LineBundle L into an object of type VectorBundle.
+"""
+function VectorBundle( L::LineBundle )
+  C = covering(L)
+  U = patches(C)
+  n = length(U)
+  transitions = Matrix{MatSpaceElem}(undef,n,n)
+  for i in (1:n)
+    for j in (1:n) 
+      if i == j
+        continue
+      end
+      a = L.transitions[i,j]
+      M = MatrixSpace(parent(a),1,1)
+      A = zero(M)
+      A[1,1] = a
+      transitions[i,j] = A
+    end
+  end
+  return VectorBundle( 1, parent(L), covering(L), transitions )
+end
+
+@Markdown.doc """
     function tautological_sections( k::Ring, n::Int ) -> Vector{LineBundleSection}
 
 Returns a vector with the canonical sections of 𝒪(1) on ℙⁿ corresponding 
@@ -2347,5 +2383,33 @@ function tautological_sections( k::Ring, n::Int )
 end
 
   
-    
+@Markdown.doc """
+    function direct_sum( E::VectorBundle, F::VectorBundle )    
+
+Return the direct sum E ⊕ F of the vector bundles E and F.
+
+**WARNING: This is only implemented for vector bundles which 
+are trivialized on the patches of the *same* covering.**
+
+"""
+function direct_sum( E::VectorBundle, F::VectorBundle )    
+  covering(E) == covering(F) || error( "Direct sums of vector bundles on different coverings are not implemented, yet" )
+  C = covering(E)
+  r = rank(E)
+  s = rank(F)
+  U = patches(C)
+  n = length(U)
+  # Initialize an empty matrix for the transitions.
+  G_transitions = Matrix{MatSpaceElem}(undef,n,n)
+  for i in (1:n)
+    for j in (1:n)
+      if i == j 
+	continue
+      end
+      G_transitions[i,j] = diag( [transitions(E)[i,j], transitions(F)[i,j]] )
+    end
+  end
+  return VectorBundle( rank(E)+rank(F), parent(E), C, G_transitions )
+end
+
 

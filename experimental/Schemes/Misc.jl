@@ -5,8 +5,11 @@ import Oscar: radical_membership
 
 module Misc
 using Oscar
+using Markdown
+import AbstractAlgebra.Ring
+import AbstractAlgebra.Generic.MatSpaceElem
 
-export add_variables, divides_power
+export add_variables, divides_power, diag
 
 ####################################################################
 #  
@@ -210,6 +213,37 @@ function divides_power( f::T, g::T, check_radical_membership::Bool=false ) where
     end
   end
   return (k, a)
+end
+
+
+@Markdown.doc """
+    function diag( d::Vector{MatSpaceElem} )
+
+Writes the matrices in the list d as blocks on the 'diagonal' of 
+a new matrix D and returns D. 
+"""
+function diag( d::Vector )
+  if length(d) == 0
+    error( "Cannot return a matrix of unspecified type" )
+  end
+  r = [ ncols(A) for A in d ]
+  s = [ ncols(A) for A in d ]
+  m = sum(r)
+  n = sum(s)
+  M = MatrixSpace(base_ring(d[1]),m,n)
+  D = zero(M)
+  offset_r = 0
+  offset_s = 0
+  for k in (1:length(d))
+    for i in (1:r[k])
+      for j in (1:s[k])
+	D[offset_r + i, offset_s + j] = d[k][i,j]
+      end
+    end
+    offset_r += r[k]
+    offset_s += s[k]
+  end
+  return D
 end
 
 end # of module
