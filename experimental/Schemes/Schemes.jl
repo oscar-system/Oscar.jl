@@ -2406,7 +2406,7 @@ function direct_sum( E::VectorBundle, F::VectorBundle )
       if i == j 
 	continue
       end
-      G_transitions[i,j] = diag( [transitions(E)[i,j], transitions(F)[i,j]] )
+      G_transitions[i,j] = diagonal_matrix( [transitions(E)[i,j], transitions(F)[i,j]] )
     end
   end
   return VectorBundle( rank(E)+rank(F), parent(E), C, G_transitions )
