@@ -46,7 +46,7 @@
                         end
 
                         @test *(V(3), A) isa T
-                        @test *(V(3), A) isa T{<:Union{Polymake.to_cxx_type(U), Polymake.to_cxx_type(V)}}
+                        @test *(V(3), A) isa T{promote_type(U, V)}
 
                         @test *(V(3), A) == *(V(3), A)
 
