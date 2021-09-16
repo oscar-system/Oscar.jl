@@ -15,8 +15,9 @@
                 @test vi[i] isa T{U}
                 @test vi[i] == vecmat[i, :]
             end
-            @test point_matrix(vi) isa Polymake.Matrix
-            @test point_matrix(vi) == vecmat
+            @test vi.m isa Polymake.Matrix{U}
+            @test matrix(vi) isa (U == Polymake.Rational ? fmpq_mat : fmpz_mat)
+            @test matrix(vi) == matrix(QQ, vecmat)
             @test Oscar.matrix_for_polymake(vi) == vecmat
         end
         @test VectorIterator(vecmat) isa VectorIterator{PointVector{Polymake.Rational}}
@@ -39,9 +40,9 @@
                 @test hi[i] == T(reshape(A[i, :], 1, :), b[i])
             end
             @test halfspace_matrix_pair(hi) isa NamedTuple
-            @test halfspace_matrix_pair(hi).A == A
+            @test halfspace_matrix_pair(hi).A == matrix(QQ, A)
             @test halfspace_matrix_pair(hi).b == b
-            @test_throws ArgumentError point_matrix(hi)
+            @test_throws ArgumentError matrix(hi)
         end
         @test HalfspaceIterator(A, b) isa HalfspaceIterator{Halfspace}
     end

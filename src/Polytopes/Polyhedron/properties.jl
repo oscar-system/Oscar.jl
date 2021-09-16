@@ -248,8 +248,8 @@ nfacets(P::Polyhedron) = pm_polytope(P).N_FACETS
 Return the facets of `P` in the format defined by `as`.
 
 The allowed values for `as` are
-* `Halfspace`/`Halfspaces`,
-* `Polyhedron`/`Polyhedra`,
+* `Halfspace`,
+* `Polyhedron`,
 * `Pair`.
 
 # Examples

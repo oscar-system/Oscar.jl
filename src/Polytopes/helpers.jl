@@ -143,3 +143,7 @@ end
 function Base.show(io::IO, I::IncidenceMatrix)
     show(io,"text/plain", (Matrix{Bool}(I.pm_incidencematrix)))
 end
+
+import Base: convert
+
+Base.convert(::Type{fmpq}, q::Polymake.Rational) = fmpq(Polymake.numerator(q), Polymake.denominator(q))

@@ -17,7 +17,7 @@
         @test nvertices(Q0) == 3
         @test nvertices.(faces(Q0,1)) == [2,2,2]
         @test lattice_points(Q0) isa VectorIterator{PointVector{Polymake.Integer}}
-        @test point_matrix(lattice_points(Q0)) == [0 0; 0 1; 1 0]
+        @test lattice_points(Q0).m == [0 0; 0 1; 1 0]
         @test isfeasible(Q0)
         @test issmooth(Q0)
         @test isnormal(Q0)
@@ -32,17 +32,17 @@
         @test !isfulldimensional(point)
         @test nrays(recession_cone(Pos)) == 3
         @test vertices(point) isa VectorIterator{PointVector{Polymake.Rational}}
-        @test point_matrix(vertices(2*point)) == [0 2 0]
-        @test point_matrix(vertices([0,1,0] + point)) == [0 2 0]
+        @test vertices(2*point).m == [0 2 0]
+        @test vertices([0,1,0] + point).m == [0 2 0]
         @test rays(Pos) isa VectorIterator{RayVector{Polymake.Rational}}
-        @test point_matrix(rays(Pos)) == [1 0 0; 0 1 0; 0 0 1]
+        @test rays(Pos).m == [1 0 0; 0 1 0; 0 0 1]
         @test lineality_space(L) isa VectorIterator{RayVector{Polymake.Rational}}
-        @test point_matrix(lineality_space(L)) == [0 0 1]
+        @test lineality_space(L).m == [0 0 1]
         @test faces(square, 1) isa PolyhedronOrConeIterator{Polyhedron}
         @test length(faces(square, 1)) == 4
         @test size(faces(square, 1).lineality) == (0, 3)
         @test isnothing(faces(square, -1))
-        @test point_matrix(vertices(minkowski_sum(Q0, square))) == [2 -1; 2 1; -1 -1; -1 2; 1 2]
+        @test vertices(minkowski_sum(Q0, square)).m == [2 -1; 2 1; -1 -1; -1 2; 1 2]
         @test facets(Halfspace, Pos) isa HalfspaceIterator{Halfspace}
         @test facets(Pair, Pos) isa HalfspaceIterator{Pair{Polymake.Matrix{Polymake.Rational}, Polymake.Rational}}
         @test facets(Pos) isa HalfspaceIterator{Halfspace}
@@ -76,7 +76,7 @@
             @test count(F -> nvertices(F) == 3, faces(C, 2)) == 12
         end
         nc = normal_cone(square, 1)
-        @test point_matrix(rays(nc)) == [1 0; 0 1]
+        @test rays(nc).m == [1 0; 0 1]
     end
 
 end

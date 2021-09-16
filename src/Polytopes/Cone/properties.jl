@@ -159,9 +159,62 @@ isfulldimensional(C::Cone) = pm_cone(C).FULL_DIM
 ## Points properties
 ###############################################################################
 
-# TODO: allow T = Cone when iterator can access `Cone(inequalities)``
-facets(as::Type{T}, C::Cone) where T<:Union{Halfspace} = HalfspaceIterator{as}(pm_cone(C).FACETS)
+# TODO: allow T = Cone when iterator can access `Cone(inequalities)`
+# TODO: facets as `Vector`? or `Matrix`?
+@doc Markdown.doc"""
+    facets(as::Type{T} = Halfspace, C::Cone)
 
+Return the facets of `C` in the format defined by `as`.
+
+The allowed values for `as` are
+* `Halfspace`,
+* `Cone.
+
+# Examples
+```jldoctest
+julia> c = positive_hull([1 0 0; 0 1 0; 1 1 1])
+A polyhedral cone in ambient dimension 3
+
+julia> f = facets(Halfspace, c)
+3-element HalfspaceIterator{Halfspace}:
+ The Halfspace of R^3 described by
+1: -x₃ ≦ 0
+
+ The Halfspace of R^3 described by
+1: -x₁ + x₃ ≦ 0
+
+ The Halfspace of R^3 described by
+1: -x₂ + x₃ ≦ 0
+```
+"""
+facets(as::Type{T}, C::Cone) where T<:Union{Halfspace} = HalfspaceIterator{as}(-pm_cone(C).FACETS)
+
+@doc Markdown.doc"""
+    facets(as::Type{T} = Halfspace, C::Cone)
+
+Return the facets of `C` in the format defined by `as`.
+
+The allowed values for `as` are
+* `Halfspace`,
+* `Cone.
+
+# Examples
+```jldoctest
+julia> c = positive_hull([1 0 0; 0 1 0; 1 1 1])
+A polyhedral cone in ambient dimension 3
+
+julia> f = facets(c)
+3-element HalfspaceIterator{Halfspace}:
+ The Halfspace of R^3 described by
+1: -x₃ ≦ 0
+
+ The Halfspace of R^3 described by
+1: -x₁ + x₃ ≦ 0
+
+ The Halfspace of R^3 described by
+1: -x₂ + x₃ ≦ 0
+```
+"""
 facets(C::Cone) = facets(Halfspace, C)
 
 """

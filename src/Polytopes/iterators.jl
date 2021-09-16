@@ -17,7 +17,8 @@ struct Cone #a real polymake polyhedron
 end
 
 struct PointVector{U} <: AbstractVector{U}
-    p::Polymake.Vector{U}
+    p::Polymake.Vector
+    PointVector{U}(p) where U = new(Polymake.Vector{Polymake.to_cxx_type(U)}(p))
 end
 
 Base.IndexStyle(::Type{<:PointVector}) = IndexLinear()
@@ -172,17 +173,17 @@ Base.firstindex(::HalfspaceIterator) = 1
 Base.lastindex(iter::HalfspaceIterator) = length(iter)
 Base.size(iter::HalfspaceIterator) = (length(iter.b),)
 
-halfspace_matrix_pair(iter::HalfspaceIterator) = (A = iter.A, b = iter.b)
+halfspace_matrix_pair(iter::HalfspaceIterator) = (A = matrix(QQ, Matrix{fmpq}(iter.A)), b = Vector{fmpq}(iter.b))
 
 # Affine Halfspaces
 
 HalfspaceIterator{T}(A::Polymake.Matrix{Polymake.Rational}) where T = HalfspaceIterator{T}(A, zeros(size(A, 1)))
 
-function point_matrix(iter::HalfspaceIterator)
+function matrix(iter::HalfspaceIterator)
     if !iszero(iter.b)
-        throw(ArgumentError("Half-spaces have to be affine in order for point_matrix to be defined"))
+        throw(ArgumentError("Half-spaces have to be affine in order for `matrix` to be defined"))
     end
-    return iter.A
+    return matrix(QQ, Matrix{fmpq}(iter.A))
 end
 
 HalfspaceIterator(x...) = HalfspaceIterator{Halfspace}(x...)
@@ -190,7 +191,9 @@ HalfspaceIterator(x...) = HalfspaceIterator{Halfspace}(x...)
 ###############################
 
 struct VectorIterator{T} <: AbstractArray{T, 1}
-    m::Polymake.Matrix
+    m::AbstractMatrix
+    VectorIterator{PointVector{U}}(m) where U = new(Polymake.Matrix{Polymake.to_cxx_type(U)}(m))
+    VectorIterator{RayVector{U}}(m) where U = new(Polymake.Matrix{Polymake.to_cxx_type(U)}(m))
 end
 
 Base.IndexStyle(::Type{<:VectorIterator}) = IndexLinear()
@@ -210,7 +213,9 @@ Base.firstindex(::VectorIterator) = 1
 Base.lastindex(iter::VectorIterator) = length(iter)
 Base.size(iter::VectorIterator) = (size(iter.m, 1),)
 
-point_matrix(iter::VectorIterator) = iter.m
+matrix(iter::VectorIterator{T}) where {S<:Base.Integer,T<:Union{PointVector{S}, RayVector{S}}} = matrix(ZZ, iter.m)
+
+matrix(iter::VectorIterator{T}) where {S,T<:Union{PointVector{S}, RayVector{S}}} = matrix(QQ, Matrix{fmpq}(iter.m))
 
 VectorIterator{T}(vertices::Union{Oscar.fmpz_mat,AbstractMatrix{Oscar.fmpz}, Oscar.fmpq_mat,AbstractMatrix{Oscar.fmpq}}) where T = VectorIterator{T}(matrix_for_polymake(vertices))
 VectorIterator{T}(vertices::Array{V, 1}) where {T, V<:Union{AbstractVector, T}} = VectorIterator{T}(cat((v' for v in vertices)...; dims = 1))
