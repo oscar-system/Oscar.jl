@@ -183,18 +183,6 @@ function subscheme( X::Spec, f::MPolyElem )
   return subscheme( X, ideal( ambient_ring(X), f ))
 end
 
-##################################################################################
-# Affine scheme that arises as the localization of a Spec at a specific 
-# element 'denom' of the coordinate ring, i.e. a principal open subset. 
-#
-# These are implemented in a recursive fashion meaning there is a parent 
-# which is either a classical Spec or another principal open subset, from 
-# which this instance is derived by inverting an element 'denom'. 
-#
-# Such parent structures form a tree which necessarily has a Spec at its 
-# root. Currently, the implementation only allows localizations at elements 
-# denom from the coordinate ring of this root. 
-#
 @Markdown.doc """
     mutable struct SpecPrincipalOpen{S,T,U} <: AffineScheme{S,T,U}
 
@@ -231,26 +219,28 @@ mutable struct SpecPrincipalOpen{S,T,U} <: AffineScheme{S,T,U}
   pullbackFromRoot::AlgHom
   u::U # The inverse of denom in R
   name::String
+  loc_var_name::String
   #inclusionInParent::AffSchMorphism
   #inclusionInRoot::AffSchMorphism
 
   
-  function SpecPrincipalOpen(parent::Union{Spec{S,T,U},SpecPrincipalOpen{S,T,U}}, denom::U) where {S <: Ring, T<:MPolyRing, U<:MPolyElem}
+  function SpecPrincipalOpen(parent::Union{Spec{S,T,U},SpecPrincipalOpen{S,T,U}}, denom::U; loc_var_name="t" ) where {S <: Ring, T<:MPolyRing, U<:MPolyElem}
     x = new{S,T,U}() 
     x.parent = parent
     # TODO: Implement a plausibility check: Does denom belong to the coordinate ring of the root?
     x.denom = denom
+    x.loc_var_name=loc_var_name
     return x 
   end 
 
-  function SpecPrincipalOpen( k::S, R::T, I::MPolyIdeal{U} ) where {S <: Ring, T<:MPolyRing, U<:MPolyElem}
+  function SpecPrincipalOpen( k::S, R::T, I::MPolyIdeal{U}; loc_var_name="t" ) where {S <: Ring, T<:MPolyRing, U<:MPolyElem}
     if k != base_ring(R) 
       error( "basering not compatible with ambient ring" )
     end
     if base_ring(I) != R
       error( "ideal does not live in the given ambient ring" )
     end
-    X = new{S,T,U}(k,R,I)
+    X = new{S,T,U}(k,R,I,loc_var_name)
     return X
   end
 end
@@ -298,12 +288,15 @@ end
 # Getter functions
 
 @Markdown.doc """
-    localize(X::AffineScheme{S,T,U}, f::U) where {S,T,U}
+    localize(X::AffineScheme{S,T,U}, f::U; loc_var_name="t" ) where {S,T,U}
 
 Returns an instance D of SpecPrincipalOpen where D = X ∖ Z(f).
+The optional argument `loc_var_name` can be used to specify a name 
+for printing the additional variable used in Rabinowitsch's trick 
+for localizations.
 """
-function localize(X::AffineScheme{S,T,U}, f::U) where {S,T,U}
-  return SpecPrincipalOpen(X, f)
+function localize(X::AffineScheme{S,T,U}, f::U; loc_var_name="t" ) where {S,T,U}
+  return SpecPrincipalOpen(X, f; loc_var_name )
 end
 
 @Markdown.doc """
@@ -545,7 +538,7 @@ function ambient_ring(D::SpecPrincipalOpen)
   if typeof(parent(D))<:Spec 
     R0 = ambient_ring(parent(D))
     I0 = defining_ideal(parent(D))
-    R, phi, t = add_variables( R0, ["t"] ) 
+    R, phi, t = add_variables( R0, [(isdefined( D, :loc_var_name) ? D.loc_var_name : "t" )] ) 
     D.R = R
     D.pullbackFromParent = phi
     D.pullbackFromRoot = phi
