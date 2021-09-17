@@ -29,6 +29,8 @@ export Refinement
 export CoveredScheme
 export coverings
 
+export CovSchMorphism
+
 export AbstractCoherentSheaf
 
 export IdealSheaf
@@ -38,12 +40,26 @@ export CoherentSheaf
 export parent, covering, modules
 
 export LineBundle, VectorBundle
-export parent, covering, transitions, rank, OO
+export parent, covering, transitions, rank, OO, direct_sum
 
 export VectorBundleSection, LineBundleSection
 export tautological_sections
 
+export projectivize
+
+@Markdown.doc """
+    abstract type Scheme{ S <: Ring }
+
+The type parameter S is the type of the base ring k over which the Scheme is defined.
+"""
 abstract type Scheme{ S <: Ring }end
+@doc Markdown.doc"""
+    abstract type AffineScheme{S, T <: MPolyRing, U <: MPolyElem} <: Scheme{S}
+
+The type parameters are: 
+ * T: The type of the ambient polynomial ring R
+ * U: The type of the elements in R
+"""
 abstract type AffineScheme{S, T <: MPolyRing, U <: MPolyElem} <: Scheme{S} end
 abstract type SchemeMorphism end
 
@@ -54,13 +70,9 @@ abstract type AbstractCoherentSheaf <: Sheaf end
 @doc Markdown.doc"""
     mutable struct Spec{S,T,U} <: AffineScheme{S,T,U}
 
-The basic struct for an affine scheme X = Spec R/I with R = k[x₁,…,xₙ] a free 
-polynomial algebra over a base ring k and I ⊂ R a finitely generated ideal.
-The type parameters are: 
-
- * S: The type of the base ring k
- * T: The type of the ambient polynomial ring R
- * U: The type of the elements in R
+Models an affine scheme X = Spec R/I with R = k[x₁,…,xₙ] a free 
+polynomial algebra of type T over a base ring k of type S and I ⊂ R a finitely generated ideal 
+with elements of type U.
 """
 mutable struct Spec{S,T,U} <: AffineScheme{S,T,U}
   # the basic fields 
@@ -186,25 +198,23 @@ end
 @Markdown.doc """
     mutable struct SpecPrincipalOpen{S,T,U} <: AffineScheme{S,T,U}
 
-A principal open subset D ⊂ X of an affine scheme X = Spec R/I over a base 
-ring k, arising as the complement of the zero locus of a polynomial f ∈ R on X.
+A principal open subset D ⊂ X of an affine scheme X = Spec R/I (with R of type T) over a base 
+ring k (of type S), arising as the complement of the zero locus of a polynomial in R (of type U). 
 
-The principal open subsets are implemented in a recursive way where each instance 
-D has a parent D' such that D = D' ∖ Z(f) for some polynomial f on D'. This ancestry 
-forms a tree which necessarily has an original X = Spec R/I at its root and, 
-without loss of generality, we may assume that all the elements fᵢthat have been 
-inverted to arrive at some D in the tree, are elements of the original ring R.
+The principal open subsets are implemented in a recursive way: Each instance 
+D has a parent D' which is either again of type SpecPrincipalOpen, or of type Spec. 
+This ancestry relation forms a tree structure, the so-called *localization tree*,
+with a unique instance X = Spec R/I of type Spec at 
+its root. Then D is obtained from D' as the complement of the zero locus of some 
+function f in the ambient ring R of the root X. At each such 'localization'-step, 
+this function f is stored in the field D.denom. 
 
 The implementation is lazy in the sense that a priori, each instance D of SpecPrincipalOpen 
 merely stores the information about its parent D' and the element f ∈ R that has been inverted 
-on D compared to D'. Whenever the user asks for it, an explicit algebra 
+on D compared to its parent D'. Whenever the user asks for it, an explicit algebra 
 D = R[t]/(I + ⟨1 - t⋅∏ᵢ fᵢ⟩) 
-can be constructed, where the fᵢ∈ R are the elements which have been inverted from the root.
-
-The type parameters are: 
- * S: The type of the base ring k
- * T: The type of the ambient polynomial ring R
- * U: The type of the elements in R
+can be constructed, where the fᵢ∈ R are the elements which have been inverted along the 
+path from D to the root X in the localization tree. 
 """
 mutable struct SpecPrincipalOpen{S,T,U} <: AffineScheme{S,T,U}
   parent::AffineScheme{S,T,U}
@@ -279,7 +289,7 @@ Base.copy( X::SpecPrincipalOpen ) = SpecPrincipalOpen( X )
     
 Returns an instance of Spec isomorphic to D. This uses 
 the Rabinowitsch version for the localizations and forgets 
-about the inheritance.
+about the ancestry in the localization tree.
 """
 function Spec( D::SpecPrincipalOpen ) 
   return Spec( base_ring(D), ambient_ring(D), defining_ideal(D) )
@@ -790,11 +800,12 @@ For principal open subsets Spec (S/J)[g⁻¹] = U ⊂ X = Spec S/J the situation
 is similar. In this case, a morphism of schemes f : U → V = Spec (R/I)[h⁻¹] 
 is completely determined by prescribing the images of the generators of R:
 
-   xᵢ ↦ pᵢ/qᵢ= pᵢ'/gᵏ⁽ⁱ⁾
+    xᵢ ↦ pᵢ/qᵢ= pᵢ'/gᵏ⁽ⁱ⁾∈ S[g⁻¹],
 
+again for some lift of the pullback f* .
 Hence, one can determine such a morphism either by storing these fractions 
-(in imgs_frac), or the algebra homomorphism f* on explicit realizations 
-of the localized rings. 
+(in the field f.imgs_frac), or the algebra homomorphism f* on explicit realizations 
+of the localized rings (in the field f.pullback). 
 """
 mutable struct AffSchMorphism{S,Tdom, Udom, Tcod, Ucod}
   domain::AffineScheme{S, Tdom, Udom}
@@ -862,13 +873,13 @@ mutable struct AffSchMorphism{S,Tdom, Udom, Tcod, Ucod}
   end
 end
 @Markdown.doc """
-    domain(f::AffSchMorphism) = f.domain
+    domain(f::AffSchMorphism) -> AffineScheme
 
 Returns the domain of definition X of f : X → Y.
 """
 domain(f::AffSchMorphism) = f.domain
 @Markdown.doc """
-    domain(f::AffSchMorphism) = f.domain
+    codomain(f::AffSchMorphism) -> AffineScheme
 
 Returns the codomain Y of f : X → Y.
 """
@@ -939,14 +950,6 @@ function pullback(h::AffSchMorphism)
   S_t = ambient_ring(U)
   R = ambient_ring(Y)
   S = ambient_ring(X)
-  @show U
-  @show V
-  @show X
-  @show Y
-  @show R_t
-  @show S_t
-  @show R
-  @show S
   # Let x₁,...,xₙ be the variables of R.
   # Now the fractional representation of the morphism, i.e. 
   # the elements in imgs_frac, describes the images of these 
@@ -972,12 +975,6 @@ function pullback(h::AffSchMorphism)
   # 
   # for some polynomials aᵢ∈ S and integers k(i), as desired. 
 
-  println( "Call to pullback" )
-  @show R
-  @show S
-  for f in h.imgs_frac
-    @show f
-  end
   n = length( h.imgs_frac )
   if n != length( gens( R ))
     error( "Number of variables in the ambient ring of the root does not coincide with the number of images provided for the homomorphism" )
@@ -990,20 +987,15 @@ function pullback(h::AffSchMorphism)
   # Work out the images of the variables in R first, i.e. 
   # establish ϕ'.
   for i in (1:n)
-    @show "working out the $i-th generator"
     p = numerator( h.imgs_frac[i] )
-    @show p
     q = denominator( h.imgs_frac[i] )
-    @show q
     # We need to replace the given denominators by 
     # powers of the functions which have been inverted 
     # in S to arrive at S_loc.
     (k,a) = divides_power( proj(q), proj(g) )
-    @show (k,a)
     if k == -1
       error( "the homomorphism is not well defined" )
     end
-    @show pullback_from_root(U)(p)*pullback_from_root(U)(lift(a))*t^k
     push!( images, pullback_from_root(U)(p)*pullback_from_root(U)(lift(a))*t^k )
   end
   phi_prime = AlgebraHomomorphism( R, S_t, images )
@@ -1582,9 +1574,9 @@ function inclusions( ρ::Refinement )
 end
 
 @Markdown.doc """
-mutable struct CoveredScheme
+    mutable struct CoveredScheme
 
-Struct for a covered scheme X = ⋃ᵢ₌₁ᴺ Uᵢobtained by glueing of affine 
+Models a covered scheme X = ⋃ᵢ₌₁ᴺ Uᵢ obtained by glueing of affine 
 schemes Uᵢ.
 
 This stores a list of coverings for X where at least one original covering needs 
@@ -1683,6 +1675,26 @@ function Base.show( io::Base.IO, X::CoveredScheme )
     return
   end
   Base.print( io, "Covered Scheme with $(length(X.coverings)) covering." )
+end
+
+@Markdown.doc """
+    mutable struct CovSchMorphism
+
+A morphism f : X → Y of CoveredSchemes.
+This needs to be described in affine coverings X = ⋃ᵢ₌₁ᴹ Uᵢand Y = ⋃ⱼ₌₁ᴺ Vⱼ
+which have to be chosen in such a way that for every j ∈ {1,…,N} 
+the preimage f⁻¹(Vⱼ) is a *union* of patches Uᵢ for some subset 
+N(j) ⊂ {1,…,M}. Then for every i ∈ N(j) the restrictions 
+f : Uᵢ→ Vⱼ can be stored as an instance of AffSchMorphism, 
+subject to the obvious compatibility requirements.
+"""
+mutable struct CovSchMorphism
+  domain::CoveredScheme
+  codomain::CoveredScheme
+  dom_covering::Covering
+  cod_covering::Covering
+  N::Vector{Set} 
+  restrictions::Vector{Vector{AffSchMorphism}}
 end
 
 @Markdown.doc """
@@ -1893,18 +1905,8 @@ modules( I::CoherentSheaf ) = I.modules
 @Markdown.doc """
     mutable struct LineBundle <: AbstractCoherentSheaf
 
-Struct for a line bundle on a CoveredScheme X.
-
-This refers to a specific Covering C of X 
-which has to be fine enough so that the line bundle is 
-trivialized on the patches. Then, the bundle itself 
-is described by an "antisymmetric" matrix of transition 
-functions. 
-
-Note that not every line bundle on an affine 
-scheme is necessarily trivial! But in general one will 
-need to even cover an affine scheme by finer patches 
-in order to represent it as a line bundle of this form.
+A line bundle on a CoveredScheme X, given by its 
+local trivializations on the patches of a specific Covering C.
 """
 mutable struct LineBundle <: AbstractCoherentSheaf
   parent::CoveredScheme
@@ -2022,11 +2024,8 @@ end
 @Markdown.doc """
     mutable struct VectorBundle <: AbstractCoherentSheaf
 
-An algebraic vector bundle on a CoveredScheme X
-
-Basically the same as LineBundle. Only the transition 
-functions are now taking values in the space of invertible 
-matrices.
+An algebraic vector bundle on a CoveredScheme X trivialized 
+on a specific Covering C.
 """
 mutable struct VectorBundle <: AbstractCoherentSheaf
   rank::Int
@@ -2390,7 +2389,6 @@ Return the direct sum E ⊕ F of the vector bundles E and F.
 
 **WARNING: This is only implemented for vector bundles which 
 are trivialized on the patches of the *same* covering.**
-
 """
 function direct_sum( E::VectorBundle, F::VectorBundle )    
   covering(E) == covering(F) || error( "Direct sums of vector bundles on different coverings are not implemented, yet" )
@@ -2412,4 +2410,17 @@ function direct_sum( E::VectorBundle, F::VectorBundle )
   return VectorBundle( rank(E)+rank(F), parent(E), C, G_transitions )
 end
 
+direct_sum( L::LineBundle, E::VectorBundle ) = direct_sum( VectorBundle(L), E )
+direct_sum( E::VectorBundle, L::LineBundle )  = direct_sum( E, VectorBundle(L) )
+direct_sum( L::LineBundle, M::LineBundle) = direct_sum( VectorBundle(L), VectorBundle(M) )
 
+@Markdown.doc """
+    function projectivize( E::VectorBundle ) -> ( Y::CoveredScheme, p::CovSchMorphism, L::LineBundle )
+
+Constructs the projectivization Y = ℙ(E) of the VectorBundle E over X together 
+with its projection p : ℙ(E) → X and the (relative) tautological bundle L = 𝒪(1) on 
+ℙ(E).
+"""
+function projectivize( E::VectorBundle )
+  error( "Not implemented, yet" )
+end

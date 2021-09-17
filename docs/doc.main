@@ -123,6 +123,9 @@
         "Experimental/divisors.md",
         "Experimental/elliptic_curves.md",
      ],
+     "Schemes" => [
+         "Experimental/schemes.md",
+     ],
   ],
 
   "References" => "references.md",
