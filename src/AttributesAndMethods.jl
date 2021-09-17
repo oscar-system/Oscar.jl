@@ -128,14 +128,14 @@ export dim
 
 
 """
-    dimension_of_torusfactor( v::NormalToricVariety )
+    dim_of_torusfactor( v::NormalToricVariety )
 
 Computes the dimension of the torus factor of the normal toric variety `v`.
 """
-function dimension_of_torusfactor( v::NormalToricVariety )
+function dim_of_torusfactor( v::NormalToricVariety )
     return GAP.Globals.DimensionOfTorusfactor( v.GapNTV )::Int
 end
-export dimension_of_torusfactor
+export dim_of_torusfactor
 
 
 struct coordinate_ring_of_torus

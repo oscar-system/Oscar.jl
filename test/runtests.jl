@@ -26,7 +26,7 @@ using Test
     map_from_character_to_principal_divisor( H5 )
     map_from_weil_divisors_to_class_group( H5 )
     @test dim( H5 ) == 2
-    @test dimension_of_torusfactor( H5 ) == 0
+    @test dim_of_torusfactor( H5 ) == 0
     coordinate_ring_of_torus( H5 )
     @test size( list_of_variables_of_coordinate_ring_of_torus( H5 ) )[ 1 ] == 4
     @test size( is_product_of( H5 ) )[ 1 ] == 1
