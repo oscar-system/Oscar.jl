@@ -463,12 +463,6 @@ InstallMethod( Polymake_RaysInFaces,
   function( cone )
     local dim, help_cone, rays, rays_in_faces, i, generators, additional_rays, j, converted_additional_rays, pos, pos2, k, help_list;
     
-InstallMethod( Polymake_RaysInFaces,
-              " returns the incident matrix of the rays in the faces",
-            [ IsPolymakeCone ],
-  function( cone )
-    local dim, help_cone, rays, rays_in_faces, i, generators, additional_rays, j, converted_additional_rays, pos, pos2, k, help_list;
-    
     # check degenerate case
     dim := Polymake_Dimension( cone );
     if ( dim = 2 ) then
