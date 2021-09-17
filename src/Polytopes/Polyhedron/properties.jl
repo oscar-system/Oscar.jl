@@ -744,6 +744,6 @@ function Base.show(io::IO, H::Halfspace)
         print(io, "The trivial Halfspace, R^$n")
     else
         print(io, "The Halfspace of R^$n described by\n")
-        print_constraints(H; io)
+        print_constraints(H; io=io)
     end
 end
