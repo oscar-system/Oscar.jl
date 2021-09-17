@@ -483,12 +483,12 @@ end
     @test P in C
     @test Oscar.isirreducible(C)
     J = Oscar.jacobi_ideal(C)
-    L = J.gens.O
+    L = gens(J)
     @test length(L) == 4
-    @test length(findall(a -> a == 4*x*y*z, L)) == 1
-    @test length(findall(a -> a == 2*x*y^2, L)) == 1
-    @test length(findall(a -> a == 4*x*z, L)) == 1
-    @test length(findall(a -> a == 4*y*z^2, L)) == 1
+    @test length(findall(a -> a == T(4*x*y*z), L)) == 1
+    @test length(findall(a -> a == T(2*x*y^2), L)) == 1
+    @test length(findall(a -> a == T(4*x*z), L)) == 1
+    @test length(findall(a -> a == T(4*y*z^2), L)) == 1
     C2 = Oscar.reduction(C)
     I2 = Oscar.defining_ideal(C2)
     @test I2 == ideal(T, [x, z])

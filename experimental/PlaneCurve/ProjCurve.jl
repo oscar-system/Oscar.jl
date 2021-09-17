@@ -1,6 +1,7 @@
 export ProjCurve, defining_ideal, curve_components, reduction, isirreducible,
        jacobi_ideal
 
+import Oscar.defining_ideal
 ################################################################################
 abstract type ProjectiveCurve end
 ################################################################################
@@ -55,16 +56,17 @@ end
 
 Return the defining ideal of the projective curve `C`.
 """
-function Oscar.defining_ideal(C::ProjCurve)
+function defining_ideal(C::ProjCurve)
     return C.I
 end
 
 ################################################################################
 
 function Base.hash(C::ProjCurve, h::UInt)
-  I = Oscar.defining_ideal(C)
+  I = defining_ideal(C)
   return hash(I, h)
 end
+
 ################################################################################
 @doc Markdown.doc"""
     in(P::Oscar.Geometry.ProjSpcElem, C::ProjCurve)
@@ -102,17 +104,9 @@ true
 ```
 """
 function Base.in(P::Oscar.Geometry.ProjSpcElem, C::ProjCurve)
-    I = Oscar.defining_ideal(C)
-    V = I.gens.O
-    s = length(V)
-    i = 1
-    while i <= s
-        if !iszero(evaluate(V[i], P.v))
-            return false
-        end
-        i = i + 1
-    end
-    return true
+    I = defining_ideal(C)
+    V = gens(I)
+    return all(f -> iszero(evaluate(f, P.v)), V)
 end
 
 ################################################################################
@@ -124,15 +118,9 @@ corresponding reduced curve.
 """
 function curve_components(C::ProjCurve)
     if isempty(C.components)
-        I = Oscar.defining_ideal(C)
+        I = defining_ideal(C)
         L = primary_decomposition(I)
-        s = length(L)
-        D = Dict{ProjCurve, ProjCurve}()
-        for i in 1:s
-            if dim(L[i][1]) == 2
-                D[ProjCurve(L[i][1])] = ProjCurve(L[i][2])
-            end
-        end
+        D = Dict(ProjCurve(q) => ProjCurve(p) for (q, p) in L if dim(q) == 2)
         C.components = D
     end
     return C.components
@@ -202,7 +190,7 @@ Projective curve defined by the ideal(z, x)
 ```
 """
 function reduction(C::ProjCurve)
-    J = radical(Oscar.defining_ideal(C))
+    J = radical(defining_ideal(C))
     return ProjCurve(J)
 end
 
@@ -211,7 +199,7 @@ end
 @doc Markdown.doc"""
     jacobi_ideal(C::ProjCurve)
 
-Return the jacobian ideal of the defining ideal of `C`.
+Return the Jacobian ideal of the defining ideal of `C`.
 
 # Example
 ```jldoctest
@@ -236,10 +224,10 @@ ideal(4*x*y*z, 2*x*y^2, 4*x*z, 4*y*z^2)
 ```
 """
 function Oscar.jacobi_ideal(C::ProjCurve)
-    I = Oscar.defining_ideal(C)
+    I = defining_ideal(C)
     R = base_ring(I)
     k = C.ambiant_dim - 1
-    M = jacobi_matrix(I.gens.O)
+    M = jacobi_matrix(gens(I))
     V = minors(M, k)
     filter!(!iszero, V)
     return ideal(R, V)
@@ -267,5 +255,5 @@ function invert_birational_map(phi::Vector{T}, C::ProjCurve) where {T <: MPolyEl
     R = _fromsingular_ring(L[1])
     J = L[2][:J]
     psi = L[2][:psi]
-    return Dict([("image", gens(ideal(R, J))), ("inverse", gens(ideal(R, psi)))])
+    return Dict(:image => gens(ideal(R, J)), :inverse => gens(ideal(R, psi)))
 end
