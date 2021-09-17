@@ -22,7 +22,7 @@ $(\pi \;\!  . \;\! f) \;\! (x_1, \dots, x_n)  = f(\rho(\pi^{-1}) \cdot (x_1, \do
     - By Hilbert's celebrated finiteness theorem, $K[V]^G$ is finitely generated as a $K$-algebra.
     - By a result of Hochster and Roberts, $K[V]^G$ is Cohen-Macaulay. 
 
-In cases where the Reynold's operator can be explicitly handled, generators of invariant rings of linearly reductive groups can be found in two steps using Derksen's algorithm, see [derksen99](@cite) :
+In cases where the Reynold's operator can be explicitly handled, generators of invariant rings of linearly reductive groups can be found in two steps using Derksen's algorithm, see [Der99](@cite) :
 
 - First, compute generators of Hilbert's null-cone ideal.
 - Then, apply the Reynold's operator to these generators.

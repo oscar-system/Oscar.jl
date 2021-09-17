@@ -490,14 +490,21 @@ mutable struct BiPolyArray{S}
   Sx # Singular Poly Ring, poss. with different ordering
   isGB::Bool #if the Singular side (the sideal) will be a GB
   ord :: Orderings.AbsOrdering #for this ordering
+
   function BiPolyArray(a::Vector{T}; keep_ordering::Bool = true, isGB::Bool = false) where {T <: MPolyElem}
+    return BiPolyArray(parent(a[1]), a; keep_ordering = keep_ordering,
+                                        isGB = isGB)
+  end
+
+  function BiPolyArray(R::MPolyRing, a::Vector{T}; keep_ordering::Bool = true, isGB::Bool = false) where {T <: MPolyElem}
     r = new{T}()
     r.O = a
-    r.Ox = parent(a[1])
+    r.Ox = R
     r.isGB = isGB
     r.Sx = singular_ring(r.Ox, keep_ordering = keep_ordering)
     return r
   end
+
   function BiPolyArray(Ox::T, b::Singular.sideal) where {T <: MPolyRing}
     r = new{elem_type(T)}()
     r.S = b
@@ -785,7 +792,7 @@ end
 
 function singular_assure(I::BiPolyArray)
   if !isdefined(I, :S)
-    I.S = Singular.Ideal(I.Sx, [I.Sx(x) for x = I.O])
+    I.S = Singular.Ideal(I.Sx, elem_type(I.Sx)[I.Sx(x) for x = I.O])
     if I.isGB
       I.S.isGB = true
     end
@@ -795,6 +802,9 @@ end
 function oscar_assure(I::MPolyIdeal)
   if !isdefined(I.gens, :O)
     I.gens.O = [I.gens.Ox(x) for x = gens(I.gens.S)]
+  end
+  if isdefined(I, :gb)
+    I.gb.O = [I.gb.Ox(x) for x = gens(I.gb.S)]
   end
 end
 

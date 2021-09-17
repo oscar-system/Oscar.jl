@@ -41,6 +41,7 @@ function groebner_assure(I::MPolyIdeal; complete_reduction::Bool = false)
       I.gb = BiPolyArray(base_ring(I), Singular.std(I.gens.S))
     end
   end
+  I.gb.O = [I.gb.Ox(x) for x = gens(I.gb.S)]
 end
 
 @doc Markdown.doc"""
@@ -297,7 +298,7 @@ function leading_ideal(I::MPolyIdeal)
   singular_assure(I)
   groebner_assure(I)
   singular_assure(I.gb)
-  return MPolyIdeal(base_ring(I), Singular.lead(I.gb.S))
+  return MPolyIdeal(base_ring(I), Singular.Ideal(I.gb.Sx, [Singular.leading_monomial(g) for g in gens(I.gb.S)]))
 end
 
 @doc Markdown.doc"""

@@ -24,8 +24,8 @@ various kinds of fields:
 - finite fields
 
 General textbooks offering details on theory and algorithms include:
-- [Cohen1](@cite)
-- [Cohen2](@cite)
+- [Coh93](@cite)
+- [Coh00](@cite)
 - [LN97](@cite)
-- [Marcus](@cite)
-- [PoZa](@cite)
+- [Mar18](@cite)
+- [PZ97](@cite)

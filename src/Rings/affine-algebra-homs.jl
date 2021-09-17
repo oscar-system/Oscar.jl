@@ -215,7 +215,7 @@ function AlgebraHomomorphism(D::U, C::W, V::Vector{X}) where
     X <: Union{S, MPolyQuoElem{S}}}
    n = length(V)
    @assert n == ngens(D)
-   return AlgHom{T}(D, C, V)
+   return AlgHom{T}(D, C, copy(V))
 end
 
 hom(D::U, C::W, V::Vector{X}) where {T, S <: MPolyElem{T},

@@ -1,7 +1,7 @@
 module GaloisGrp
 
 using Oscar, Markdown
-import Base: ^, +, -, *
+import Base: ^, +, -, *, ==
 import Oscar: Hecke, AbstractAlgebra, GAP
 using Oscar: SLPolyRing, SLPoly, SLPolynomialRing
 
@@ -12,8 +12,7 @@ import Hecke: orbit, fixed_field
 
 
 function __init__()
-  GAP.Packages.install("ferret"; interactive=false, quiet=true)
-  GAP.Packages.load("ferret")
+  GAP.Packages.load("ferret"; install=true)
 
   Hecke.add_verbose_scope(:GaloisGroup)
   Hecke.add_verbose_scope(:GaloisInvariant)
@@ -48,7 +47,7 @@ struct BoundRingElem{T} <: AbstractAlgebra.RingElem
 end
 
 function Base.show(io::IO, b::BoundRingElem)
-  print(io, "x <= $(b.val)")
+  print(io, "(x <= $(b.val))")
 end
 
 function check_parent(a::BoundRingElem, b::BoundRingElem)
@@ -56,6 +55,7 @@ function check_parent(a::BoundRingElem, b::BoundRingElem)
   return true
 end
 
+Base.:(==)(a::BoundRingElem, b::BoundRingElem) = check_parent(a, b) && a.val == b.val
 +(a::BoundRingElem, b::BoundRingElem) = check_parent(a, b) && BoundRingElem(a.p.add(a.val, b.val), a.p)
 -(a::BoundRingElem, b::BoundRingElem) = check_parent(a, b) && BoundRingElem(a.p.add(a.val, b.val), a.p)
 *(a::BoundRingElem, b::BoundRingElem) = check_parent(a, b) && BoundRingElem(a.p.mul(a.val, b.val), a.p)
@@ -67,8 +67,14 @@ Oscar.parent(a::BoundRingElem) = a.p
 value(a::BoundRingElem) = a.val
 Base.isless(a::BoundRingElem, b::BoundRingElem) = check_parent(a, b) && isless(value(a), value(b))
 
+Oscar.parent_type(::BoundRingElem{T}) where T = BoundRing{T}
+Oscar.elem_type(::BoundRing{T}) where T = BoundRingElem{T}
+Oscar.parent_type(::Type{BoundRingElem{T}}) where T = BoundRing{T}
+Oscar.elem_type(::Type{BoundRing{T}}) where T = BoundRingElem{T}
+
 (R::BoundRing)(a::fmpz) = BoundRingElem(R.map(abs(a)), R)
 (R::BoundRing)(a::Integer) = BoundRingElem(fmpz(a), R)
+(R::BoundRing)() = BoundRingElem(fmpz(0), R)
 (R::BoundRing)(a::BoundRingElem) = a
 Oscar.one(R::BoundRing) = R(1)
 Oscar.zero(R::BoundRing) = R(0)
@@ -83,7 +89,7 @@ Operations are:
  - `ab  := a+b`
 """
 function max_ring()
-  return BoundRing( (x,y) -> x+y, (x,y) -> max(x, y), (x,y) -> y*x, x->x, "max-ring")
+  return BoundRing{fmpz}( (x,y) -> x+y, (x,y) -> max(x, y), (x,y) -> y*x, x->x, "max-ring")
 end
 
 """
@@ -174,9 +180,6 @@ end
 Oscar.mul!(a::BoundRingElem, b::BoundRingElem, c::BoundRingElem) = b*c
 Oscar.addeq!(a::BoundRingElem, b::BoundRingElem) = a+b
 
-Oscar.parent_type(::BoundRingElem) = BoundRing
-Oscar.elem_type(::BoundRing) = BoundRingElem
-
 #my 1st invariant!!!
 @doc Markdown.doc"""
     sqrt_disc(a::Vector{<:Any})
@@ -265,6 +268,7 @@ Compute the polynomial with roots sums of `m` roots of `f` using
 resultants.
 """
 function msum_poly(f::PolyElem, m::Int)
+  f = divexact(f, leading_coefficient(f))
   N = binomial(degree(f), m)
   p = Hecke.polynomial_to_power_sums(f, N)
   p = vcat([degree(f)*one(base_ring(f))], p)
@@ -317,7 +321,7 @@ mutable struct GaloisCtx{T}
     r = new{Hecke.qAdicRootCtx}()
     r.f = f
     r.C = Hecke.qAdicRootCtx(f, p, splitting_field = true)
-    r.B = add_ring()(roots_upper_bound(f))
+    r.B = add_ring()(leading_coefficient(f)*roots_upper_bound(f))
     r.chn = Tuple{PermGroup, SLPoly, fmpz_poly, Vector{PermGroupElem}}[]
     return r
   end
@@ -418,12 +422,20 @@ end
 The roots of the polynomial used to define the Galois-context in the fixed order
 used in the algorithm. The roots are returned up to a precision of `pr`
 p-adic digits, thus they are correct modulo ``p^pr``
+
+For non-monic polynomials they roots are scaled by the leading coefficient.
+The bound in the `GaloisCtx` is also adjusted.
 """
-function Hecke.roots(G::GaloisCtx{Hecke.qAdicRootCtx}, pr::Int)
+function Hecke.roots(G::GaloisCtx{Hecke.qAdicRootCtx}, pr::Int; raw::Bool = false)
   a = Hecke.roots(G.C, pr)::Vector{qadic}
-  return Hecke.expand(a, all = true, flat = false, degs = Hecke.degrees(G.C.H))::Vector{qadic}
+  if raw
+    return Hecke.expand(a, all = true, flat = false, degs = Hecke.degrees(G.C.H))::Vector{qadic}
+  else
+    return leading_coefficient(G.f) .* Hecke.expand(a, all = true, flat = false, degs = Hecke.degrees(G.C.H))::Vector{qadic}
+  end
 end
-function Hecke.roots(G::GaloisCtx{<:Hecke.MPolyFact.HenselCtxFqRelSeries}, pr)
+
+function Hecke.roots(G::GaloisCtx{<:Hecke.MPolyFact.HenselCtxFqRelSeries}, pr; raw::Bool = false)
   C = G.C
   while precision(C)[1] < pr[1]
     Hecke.MPolyFact.lift_q(C)
@@ -792,27 +804,28 @@ function invariant(G::PermGroup, H::PermGroup)
       y = [sum(g[b]) for b = B]
       d = [sqrt_disc(g[b]) for b = B]
       D = sqrt_disc(y)
+
       I = D
       if all(p->isprobably_invariant(I, p), H) &&
-         any(p->!isprobably_invariant(I, p), G)
+         any(p->!isprobably_invariant(I, p), G) #TODO: this can be decided theoretically
         @vprint :GaloisInvariant 3 "using D-invar for $BB\n"
         return I
       end
       I = elementary_symmetric(d, 1)
       if all(p->isprobably_invariant(I, p), H) &&
-         any(p->!isprobably_invariant(I, p), G)
+         any(p->!isprobably_invariant(I, p), G) #TODO: this can be decided theoretically
         @vprint :GaloisInvariant 3 "using s1-invar for $BB\n"
         return I
       end
       I = elementary_symmetric(d, m)
       if all(p->isprobably_invariant(I, p), H) &&
-         any(p->!isprobably_invariant(I, p), G)
+         any(p->!isprobably_invariant(I, p), G) #TODO: this can decided theroetically
         @vprint :GaloisInvariant 3 "using sm-invar for $BB\n"
         return I
       end
       I = elementary_symmetric(d, 2)
       if all(p->isprobably_invariant(I, p), H) &&
-         any(p->!isprobably_invariant(I, p), G)
+         any(p->!isprobably_invariant(I, p), G) #TODO
         @vprint :GaloisInvariant 3 "using s2-invar for $BB\n"
         return I
       end
@@ -1001,7 +1014,7 @@ Returns a triple:
  - a permutation representing the operation of the Frobenius automorphism
 """
 function starting_group(GC::GaloisCtx, K::AnticNumberField; useSubfields::Bool = true)
-  c = roots(GC, 5)
+  c = roots(GC, 5, raw = true)
 
   @vprint :GaloisGroup 1 "computing starting group (upper bound for Galois group)\n"
 
@@ -1124,7 +1137,7 @@ function starting_group(GC::GaloisCtx, K::AnticNumberField; useSubfields::Bool =
 
     @vprint :GaloisGroup 1 "have everything, now getting the 2-sum poly\n"
     if gen(Hecke.Globals.Zx) == ts
-      @vtime :GaloisGroup 2 g = msum_poly(K.pol, 2)
+      @vtime :GaloisGroup 2 g = msum_poly(K.pol, 2) #if f has roots a_i, then g has roots a_i+a_j, if G is 2-transitive, this is pointless.
     else
       @vtime :GaloisGroup 2 g = msum_poly(minpoly(ts(gen(K))), 2)
     end
@@ -1188,7 +1201,7 @@ function find_prime(f::fmpq_poly, extra::Int = 5; pStart::Int = 2*degree(f))
       continue
     end
     no_p +=1 
-    push!(ct, sort(map(degree, collect(keys(lf.fac)))))
+    push!(ct, sort(map(degree, collect(keys(lf.fac))))) # ct = cycle types as vector of cycle lengths
     d = lcm([degree(x) for x = keys(lf.fac)])
     if d <= d_max 
       if d >= d_min
@@ -1252,9 +1265,15 @@ function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = 
 
   p, ct = find_prime(K.pol, pStart = pStart)
 
+  # TODO: detect A_n/S_n here, handle separately
+
+  # TODO: otherwise, try to detect here if we are primitive or even 2-transitive
+
   GC = GaloisCtx(Hecke.Globals.Zx(K.pol), p)
 
   G, F, si = starting_group(GC, K, useSubfields = useSubfields)
+
+  # TODO: here we know that we are primitive; can we detect 2-transitive (inside starting_group)?
 
   return descent(GC, G, F, si, extra = extra)
 
@@ -1538,7 +1557,10 @@ function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
     push!(ps, isinteger(GC, B, sum(d))[2])
   end
 
-  return number_field(Hecke.power_sums_to_polynomial(ps), check = false, cached = false)[1]
+  k = number_field(Hecke.power_sums_to_polynomial(ps), check = false, cached = false)[1]
+  @assert all(x->isone(denominator(x)), coefficients(k.pol))
+  @assert ismonic(k.pol)
+  return k
 end
 
 #based on 
@@ -1709,4 +1731,20 @@ end
 
 using .GaloisGrp
 export galois_group, transitive_group_identification, slpoly_ring, elementary_symmetric,
-       power_sum, to_elementary_symmetric, cauchy_ideal, galois_ideal, fixed_field
+       power_sum, to_elementary_symmetric, cauchy_ideal, galois_ideal, fixed_field, 
+       maximal_subgroup_reps
+       
+#=
+       M12: 2-transitive, hence msum is a waste
+x^12 - 4*x^11 + 4*x^10 + 12*x^9 - 72*x^8 + 168*x^7 - 132*x^6 - 324*x^5 + 1197*x^4 - 1752*x^3 + 1500*x^2 - 672*x + 207 
+
+several index 2 groups, uses generic invar
+x^16 + 209*x^14 + 102*x^13 + 18138*x^12 + 13232*x^11 + 814855*x^10 + 673869*x^9 + 19699456*x^8 + 17373605*x^7 + 258261711*x^6 + 283233089*x^5 + 2368948579*x^4 + 2075376015*x^3 + 13009666150*x^2 + 14279830429*x + 37222748001
+
+
+primitive, 2-transitive
+x^10 - 2*x^9 - 263*x^8 + 1136*x^7 + 18636*x^6 - 120264*x^5 - 81916*x^4 + 1314656*x^3 - 290197*x^2 - 3135542*x + 2052019
+
+needs the group theory test for isinvar in line 805 and related
+x^16 + 4*x^15 + 20*x^14 + 44*x^13 + 106*x^12 + 120*x^11 + 180*x^10 + 44*x^9 + 134*x^8 - 120*x^7 + 172*x^6 - 32*x^5 + 598*x^4 + 312*x^3 + 616*x^2 + 147
+=#

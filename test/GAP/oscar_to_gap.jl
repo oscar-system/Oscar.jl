@@ -89,3 +89,23 @@ end
     @test convert(GAP.GapObj, x) == val
     @test GAP.GapObj(x) == val
 end
+
+@testset "GapGroup and GapGroupElem" begin
+    # `GapGroup` to GAP group, Perm
+    G = symmetric_group(5)
+    val = GAP.evalstr("SymmetricGroup(5)")
+    @test GAP.GapObj(G) == val
+    @test convert(GAP.GapObj, G) == val
+
+    # `GapGroupElem` to GAP group element, Perm
+    g = perm(G, [2,3,1,5,4])
+    val = GAP.evalstr("(1,2,3)(4,5)")
+    @test GAP.GapObj(g) == val
+    @test convert(GAP.GapObj, g) == val
+
+    # test implicit conversion
+    V = GAP.GapObj[]
+    push!(V, G) # convert GAPGroup to GapObj implicitly
+    push!(V, g) # convert GAPGroupElem to GapObj implicitly
+    @test V == [GAP.GapObj(G), GAP.GapObj(g)]
+end

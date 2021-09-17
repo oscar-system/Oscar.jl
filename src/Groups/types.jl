@@ -54,6 +54,11 @@ import Base: ==, parent, show
 
 import GAP.GapObj
 
+# GAP functions returning an integer (or infinity or -infinity) in GAP
+# will in Julia return either an Int or an GapObj; the following union
+# type captures that
+const GapInt = Union{Int,GapObj}
+
 export
     AutomorphismGroup,
     DirectProductGroup,
@@ -72,21 +77,35 @@ export
 @doc Markdown.doc"""
     GAPGroup <: AbstractAlgebra.Group
 
-The idea is that each object of the abstract type `GAPGroup` stores
-a group object from the GAP system,
-and thus can delegate questions about this group to GAP.
+Each object of the abstract type `GAPGroup` stores a group object from
+the GAP system,
+and thus can delegate questions about this object to GAP.
+
+For expert usage, you can extract the underlying GAP object via `GapObj`,
+i.e., if `G` is a `GAPGroup`, then `GapObj(G)` is the `GapObj` underlying `G`.
 
 Concrete subtypes of `GAPGroup` are `PermGroup`, `FPGroup`, `PcGroup`,
 and `MatrixGroup`.
 """
 abstract type GAPGroup <: AbstractAlgebra.Group end
+
+@doc Markdown.doc"""
+    GAPGroupElem <: AbstractAlgebra.GroupElem
+
+Each object of the abstract type `GAPGroupElem` stores a group element
+object from the GAP system,
+and thus can delegate questions about this object to GAP.
+
+For expert usage, you can extract the underlying GAP object via `GapObj`,
+i.e., if `g` is a `GAPGroupElem`, then `GapObj(g)` is the `GapObj` underlying `g`.
+"""
 abstract type GAPGroupElem{T<:GAPGroup} <: AbstractAlgebra.GroupElem end
 
 @doc Markdown.doc"""
-    BasicGAPGroupElem{T<:GAPGroup}
+    BasicGAPGroupElem{T<:GAPGroup} <: GAPGroupElem{T}
 
 The type `BasicGAPGroupElem` gathers all types of group elements
-described only by an underlying GAP object.
+described *only* by an underlying GAP object.
 
 If $x$ is an element of the group `G` of type `T`,
 then the type of $x$ is `BasicGAPGroupElem{T}`.
@@ -121,7 +140,7 @@ mutable struct PermGroup <: GAPGroup
    
    function PermGroup(G::GapObj)
      @assert GAP.Globals.IsPermGroup(G)
-     n = GAP.gap_to_julia(Int64, GAP.Globals.LargestMovedPoint(G))
+     n = GAP.Globals.LargestMovedPoint(G)::Int
      z = new(G, n)
      return z
    end
