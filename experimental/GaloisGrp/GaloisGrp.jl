@@ -92,10 +92,11 @@ Oscar.elem_type(::BoundRing{T}) where T = BoundRingElem{T}
 Oscar.parent_type(::Type{BoundRingElem{T}}) where T = BoundRing{T}
 Oscar.elem_type(::Type{BoundRing{T}}) where T = BoundRingElem{T}
 
-(R::BoundRing)(a::fmpz) = BoundRingElem(R.map(abs(a)), R)
-(R::BoundRing)(a::Integer) = BoundRingElem(fmpz(a), R)
-(R::BoundRing)() = BoundRingElem(fmpz(0), R)
-(R::BoundRing)(a::BoundRingElem) = a
+(R::BoundRing{T})(a::fmpz) where T = BoundRingElem{T}(R.map(abs(a)), R)
+(R::BoundRing{T})(a::Integer) where T = BoundRingElem{T}(fmpz(a), R)
+(R::BoundRing{T})() where T = BoundRingElem{T}(fmpz(0), R)
+(R::BoundRing{T})(a::T) where T = BoundRingElem{T}(a, R)
+(R::BoundRing{T})(a::BoundRingElem{T}) where T = a
 Oscar.one(R::BoundRing) = R(1)
 Oscar.zero(R::BoundRing) = R(0)
 
@@ -115,8 +116,8 @@ end
 """
 Normal ring
 """
-function add_ring()
-  return BoundRing{fmpz}( (x,y) -> x*y, (x,y) -> x+y, (x,y) -> x^y, x->abs(x), "add-ring")
+function add_ring(;type::Type=fmpz)
+  return BoundRing{type}( (x,y) -> x*y, (x,y) -> x+y, (x,y) -> x^y, x->abs(x), "add-ring")
 end
 
 #roots rt are power series sum a_n x^n
@@ -407,7 +408,7 @@ function bound_to_precision(G::GaloisCtx{T}, B::BoundRingElem{Tuple{fmpz, Int, f
       b = max(C*(c+1)^k//r^c, C*(c+2)^k//r^(c+1))
     end
   end
-  b = max(b, fmpz(1))
+  @show b = max(b, fmpz(1))
   return (clog(floor(fmpz, b), prime(G)), Int(n))
 end
 
@@ -1019,6 +1020,59 @@ function Base.pop!(D::DescentEnv, i::Int)
   D.l[i] = 1
 end
 
+function sum_orbits(K, Qt_to_G, r)
+  @vprint :GaloisGroup 1 "group is primitive (no subfields), trying operations on pairs\n"
+
+  #starting group as the stabilizer of the factorisation of the 2-sum poly,
+  #the polynomial with roots r_i + r_j, i<j
+  #we need this square-free, so we compute this over the finite field
+  #actually, we only check that the roots over the finite field are distinct.
+  #if not: transform (using ts) and try again.
+  
+  k = parent(r[1])
+  m = Dict{typeof(r[1]), Tuple{Int, Int}}()
+  local ts = gen(Hecke.Globals.Zx)
+  c = r
+  while true
+    for i=1:length(r)-1
+      for j=i+1:length(r)
+        m[c[i]+c[j]] = (i,j)
+      end
+    end
+    if length(keys(m)) < binomial(degree(K), 2)
+      @vprint :GaloisGroup 2 " 2-sum: found duplicate, transforming...\n"
+      while true
+        ts = rand(Hecke.Globals.Zx, 2:degree(K), -4:4)
+        if degree(ts) > 1
+          break
+        end
+      end
+      c = map(ts, r)
+      empty!(m)
+    else
+      break
+    end
+  end
+
+  @vprint :GaloisGroup 1 "have everything, now getting the 2-sum poly\n"
+  if gen(Hecke.Globals.Zx) == ts
+    @vtime :GaloisGroup 2 g = msum_poly(defining_polynomial(K), 2) #if f has roots a_i, then g has roots a_i+a_j, if G is 2-transitive, this is pointless.
+  else
+    @vtime :GaloisGroup 2 g = msum_poly(minpoly(ts(gen(K))), 2)
+  end
+  @vprint :GaloisGroup 1 "... factoring...\n"
+  @vtime :GaloisGroup 2 fg  = factor(g)
+  @assert all(isone, values(fg.fac))
+
+  O = []
+  for f = keys(fg.fac)
+    r = roots(map_coefficients(Qt_to_G, f))
+    push!(O, [m[x] for x = r])
+  end
+  @vprint :GaloisGroup 2 "partitions: $O\n"
+  return O
+end
+
 @doc Markdown.doc"""
     starting_group(GC::GaloisCtx, K::AnticNumberField) 
 
@@ -1124,62 +1178,14 @@ function starting_group(GC::GaloisCtx, K::AnticNumberField; useSubfields::Bool =
 
   if length(bs) == 0 #primitive case: no subfields, no blocks, primitive group!
     push!(F, isprimitive)
-    @vprint :GaloisGroup 1 "group is primitive (no subfields), trying operations on pairs\n"
-
-    #starting group as the stabilizer of the factorisation of the 2-sum poly,
-    #the polynomial with roots r_i + r_j, i<j
-    #we need this square-free, so we compute this over the finite field
-    #actually, we only check that the roots over the finite field are distinct.
-    #if not: transform (using ts) and try again.
-    
     k, mk = ResidueField(parent(c[1]))
-    m = Dict{fq_nmod, Tuple{Int, Int}}()
-    local ts = gen(Hecke.Globals.Zx)
-    while true
-      cc = map(mk, c)
-      for i=1:length(c)-1
-        for j=i+1:length(c)
-          m[cc[i]+cc[j]] = (i,j)
-        end
-      end
-      if length(keys(m)) < binomial(degree(K), 2)
-        @vprint :GaloisGroup 2 " m-sum: found duplicate, transforming...\n"
-        while true
-          ts = rand(Hecke.Globals.Zx, 2:degree(K), -4:4)
-          if degree(ts) > 1
-            break
-          end
-        end
-        c = map(ts, roots(GC, 5))
-        empty!(m)
-      else
-        break
-      end
-    end
-
-    @vprint :GaloisGroup 1 "have everything, now getting the 2-sum poly\n"
-    if gen(Hecke.Globals.Zx) == ts
-      @vtime :GaloisGroup 2 g = msum_poly(K.pol, 2) #if f has roots a_i, then g has roots a_i+a_j, if G is 2-transitive, this is pointless.
-    else
-      @vtime :GaloisGroup 2 g = msum_poly(minpoly(ts(gen(K))), 2)
-    end
-    @vprint :GaloisGroup 1 "... factoring...\n"
-    @vtime :GaloisGroup 2 fg  = factor(g)
-    if length(fg) > 1
-      error("ASDS")
-    end
-    @assert all(isone, values(fg.fac))
-
-    O = []
-    for f = keys(fg.fac)
-      r = roots(f, k)
-      push!(O, [m[x] for x = r])
-    end
+    O = sum_orbits(K, k, map(mk, c))
+    GC.data = O
+    
     #the factors define a partitioning of pairs, the stabiliser of this
     #partition is the largest possible group...
     #code from Max...
 
-    @vprint :GaloisGroup 2 "partitions: $O\n"
     #TODO: wrap this properly
     G = Oscar._as_subgroup(G, GAP.Globals.Solve(GAP.julia_to_gap(vcat(GAP.Globals.ConInGroup(G.X), [GAP.Globals.ConStabilize(GAP.julia_to_gap(sort(o), Val(true)), GAP.Globals.OnSetsSets) for o in O]))))[1]
     #@show G = intersect([stabilizer(G, GAP.julia_to_gap(sort(o), Val(true)), GAP.Globals.OnSetsSets)[1] for o=O]...)[1]
@@ -1520,7 +1526,7 @@ function find_transformation(r, I::SLPoly, T::Vector{PermGroupElem})
       return ts
     end
     while true
-      ts = rand(Zx, 2:length(r), -4:4)
+      ts = rand(Zx, 2:rand(2:max(2, length(r))), -4:4) #TODO: try smaller degrees stronger
       if degree(ts) > 0
         break
       end

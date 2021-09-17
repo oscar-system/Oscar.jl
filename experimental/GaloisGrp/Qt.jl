@@ -131,7 +131,7 @@ function _subfields(FF::Generic.FunctionField, f::fmpz_mpoly; tStart::Int = -1)
   while true
     t += 1
     g = evaluate(f, [gen(Zx), Zx(t)])
-    if Hecke.lower_bound(minimum([abs(x-t) for x = rt]), fmpz) >= 1 && isirreducible(g)
+    if Hecke.lower_bound(minimum([abs(x-t) for x = rt]), fmpz) >= 2 && isirreducible(g)
       break
     end
     if t > 10
@@ -159,16 +159,22 @@ end
 function galois_group(FF::Generic.FunctionField{fmpq})
   tStart = -1
   while true
+    if tStart > 5
+      error("not plausible")
+    end
     C, K, p = _galois_init(FF, tStart = tStart)
     if issquare(discriminant(K)) != issquare(discriminant(FF))
+      @vprint :GaloisGroup 2 "bad evaluation point: parity changed\n"
       tStart += 1
       continue
     end
 
     f = C.C.f
+    tStart = Int(C.data[2]) # fragile...
+    @vprint :GaloisGroup 1 "specialising at t = $tStart, computing over Q\n"
     Gal, S = galois_group(K, prime = p)
 
-    @show "locally", transitive_group_identification(Gal)
+    @vprint :GaloisGroup 1 "after specialisation, group is: $(transitive_group_identification(Gal))\n"
 
     #need to map the ordering of the roots in C to the one in S
     #the roots in C should be power-series over the field used in S
@@ -177,6 +183,7 @@ function galois_group(FF::Generic.FunctionField{fmpq})
 
     F, mF = ResidueField(parent(rC[1]))
     G, mG = ResidueField(F)
+    Qt_to_G = x->G(numerator(x)(tStart))//G(denominator(x)(tStart))
 
     H, mH = ResidueField(parent(rS[1]))
 
@@ -187,17 +194,24 @@ function galois_group(FF::Generic.FunctionField{fmpq})
     prm = [findfirst(x->x == y, _rS) for y = _rC]
     pr = symmetric_group(length(prm))(prm)
 
-    if isdefined(S, :start)
+    if isdefined(S, :start) && length(S.start) > 0
       if !all(x->issubfield(FF, C, [[inv(pr)(i) for i = y] for y = x]) !== nothing, S.start)
-        tStart += 1
-        if tStart > 5
-          error("not plausible")
-        end
+        @vprint :GaloisGroup 2 "bad evaluation point: subfields don't exist\n"
         continue
       end
       C.start = [[[inv(pr)(i) for i = y] for y = x] for x = S.start]
     else
-      error("strating group cannot be verified")
+      @assert isa(S.data[1][1], Tuple)
+        
+      if length(S.data) == 1 #msum was irreducible over Q, so also over Qt
+        @vprint :GaloisGroup 1 "msum irreducible over Q, starting with Sn/An\n"
+      else
+        O = sum_orbits(FF, Qt_to_G, map(x->mG(mF(x)), rC))
+        if sort(map(length, O)) != sort(map(length, S.data))
+          @vprint :GaloisGroup 2 "bad evaluation point: 2-sum polynomial has wrong factorisation\n"
+          continue
+        end
+      end
     end
 
     # need to verify the starting group
@@ -208,19 +222,19 @@ function galois_group(FF::Generic.FunctionField{fmpq})
     C.chn = typeof(S.chn)()
     redo = false
     for (U, I, ts, cs) in S.chn
-      B = upper_bound(C, I, ts)
-      r = roots(C, bound_to_precision(C, B^2))
+      @show :verifying I, ts
+      @show B = upper_bound(C, I, ts)
+      @show prc = bound_to_precision(C, B)
+      prc = (ceil(Int, prc[1]*1.2)+1, ceil(Int, prc[2]*1.2)+1) #to have some space for failed evals
+      r = roots(C, prc)
       if ts != gen(parent(ts))
         r = map(ts, r)
       end
       for s = cs
         a = evaluate(I^(s*inv(pr)), r)
         if !isinteger(C, bound_to_precision(C, B), a)[1]
-          tStart += 1
+          @vprint :GaloisGroup 2 "bad evaluation point: invariant yields no root\n"
           redo = true
-          if tStart > 5
-            error("not plausible")
-          end
           break
         end
       end
@@ -232,7 +246,6 @@ function galois_group(FF::Generic.FunctionField{fmpq})
     return C.G, C
   end
   #if any fails, "t" was bad and I need to find a way of restarting
-
 end
 
 function Hecke.subfields(FF::Generic.FunctionField{fmpq})
@@ -335,6 +348,7 @@ function issubfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{I
   @vprint :Subfields 2 "gives a precision of $prec_poly\n"
 
   function get_poly(prec::Tuple{Int, Int})
+    @show :rootsAt, prec
     R = roots(C, prec)
     con = [evaluate(c, R) for c = conI]
     if length(Set(con)) < length(bs)
@@ -499,7 +513,6 @@ function issubfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{I
       if pr[1] >= prec_poly[1] && pr[2] >= prec_poly[2]
         @vprint :Subfields 2 "block system did not give polynomial\n"
         return nothing
-        error("not a subfield")
       end
       pr = (2*pr[1], 2*pr[2])
       continue
@@ -509,8 +522,6 @@ function issubfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{I
       if pr[1] >= prec_emb[1] && pr[2] >= prec_emb[2]
         @vprint :Subfields 2 "block system did not give (working) embedding\n"
         return nothing
-        break
-        error("not a subfield")
       end
       pr = (2*pr[1], 2*pr[2])
       continue
