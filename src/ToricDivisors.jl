@@ -151,11 +151,11 @@ export is_very_ample
 
 
 """
-    is_numerically_effective( d::toric_divisor )
+    is_nef( d::toric_divisor )
 
 Checks if the divisor `d` is numerically effective.
 """
-function is_numerically_effective( d::toric_divisor )
+function is_nef( d::toric_divisor )
     return GAP.Globals.IsNumericallyEffective( d.GapToricDivisor )::Bool
 end
-export is_numerically_effective
+export is_nef

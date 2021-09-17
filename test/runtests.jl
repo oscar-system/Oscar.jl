@@ -130,7 +130,7 @@ using Test
     @test JToric.is_basepoint_free( D ) == true
     @test JToric.is_ample( D ) == false
     @test JToric.is_very_ample( D ) == "fail"
-    @test JToric.is_numerically_effective( D ) == true
+    @test JToric.is_nef( D ) == true
     D2 = divisor_of_character( [ 1,2 ], H5 )
     @test JToric.is_cartier( D2 ) == true
     @test JToric.is_principal( D2 ) == true
@@ -138,7 +138,7 @@ using Test
     @test JToric.is_basepoint_free( D2 ) == true
     @test JToric.is_ample( D2 ) == false
     @test JToric.is_very_ample( D2 ) == "fail"
-    @test JToric.is_numerically_effective( D2 ) == true
+    @test JToric.is_nef( D2 ) == true
     D3 = divisor_of_class( H5, [ 1,2 ] )
     @test JToric.is_cartier( D3 ) == true
     @test JToric.is_principal( D3 ) == false
@@ -146,5 +146,5 @@ using Test
     @test JToric.is_basepoint_free( D3 ) == true
     @test JToric.is_ample( D3 ) == true
     @test JToric.is_very_ample( D3 ) == true
-    @test JToric.is_numerically_effective( D3 ) == true
+    @test JToric.is_nef( D3 ) == true
 end
