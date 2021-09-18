@@ -19,7 +19,7 @@ function __init__()
     if ( ! GAP.Packages.load( "NConvex", "2021.04-24", install = false ) )
              warn("Could not load desired version of GAP package NConvex. JToric may not be fully functional.")
     end
-    if ( ! GAP.Packages.load( "JConvex", "2021.08.12", install = false ) )
+    if ( ! GAP.Packages.load( "JConvex", "2021.09.21", install = false ) )
              warn("Could not load GAP package JConvex. JToric may not be fully functional.")
     end
     if ( ! GAP.Packages.load( "ToricVarieties", "2021.08.12", install = true ) )
