@@ -14,7 +14,7 @@ const pm = Polymake
         @test ispointed(Cone1)
         @test isfulldimensional(Cone1)
         @test hilbert_basis(Cone1) isa VectorIterator{PointVector{Polymake.Integer}}
-        @test hilbert_basis(Cone1).m == [1 0; 0 1]
+        @test (hilbert_basis(Cone1).m == [0 1; 1 0]) || (hilbert_basis(Cone1).m == [1 0; 0 1])
         @test nrays(Cone1) == 2
         @test rays(RayVector{Polymake.Rational}, Cone1) isa VectorIterator{RayVector{Polymake.Rational}}
         @test rays(RayVector{Polymake.Rational}, Cone1).m == [1 0; 0 1]
