@@ -1,26 +1,40 @@
 matrix_for_polymake(x::Union{Oscar.fmpz_mat,AbstractMatrix{Oscar.fmpz}}) = Matrix{BigInt}(x)
 matrix_for_polymake(x::Union{Oscar.fmpq_mat,AbstractMatrix{Oscar.fmpq}}) =
-    Matrix{Hecke.Rational{BigInt}}(x)
+    Polymake.Matrix{Polymake.Rational}(x)
 matrix_for_polymake(x) = x
+
+function Polymake.Matrix{Polymake.Rational}(x::Union{Oscar.fmpq_mat,AbstractMatrix{Oscar.fmpq}})
+    res = Polymake.Matrix{Polymake.Rational}(size(x)...)
+    for i in eachindex(x)
+        res[i] = x[i]
+    end
+    return res
+end
+
+import Base: convert
+
+Base.convert(::Type{Polymake.Integer}, x::fmpz) = Polymake.Integer(BigInt(x))
+Base.convert(::Type{Polymake.Rational}, x::fmpz) = Polymake.Rational(convert(Polymake.Integer, x), convert(Polymake.Integer, 1))
+Base.convert(::Type{Polymake.Rational}, x::fmpq) = Polymake.Rational(convert(Polymake.Integer, numerator(x)), convert(Polymake.Integer, denominator(x)))
 
 function remove_zero_rows(A::Union{Oscar.MatElem,AbstractMatrix})
     A[findall(x->!iszero(x),collect(eachrow(A))),:]
 end
 
-function remove_redundant_rows(A::Union{Oscar.MatElem,AbstractMatrix})
-    rindices = Polymake.Set{Polymake.to_cxx_type(Int64)}(1:size(A, 1))
-    for i in rindices
-        for j in rindices
-            if i == j
-                continue
-            end
-            if A[i, :] == A[j, :]
-                delete!(rindices, j)
-            end
-        end
-    end
-    return A[rindices]
-end
+# function remove_redundant_rows(A::Union{Oscar.MatElem,AbstractMatrix})
+#     rindices = Polymake.Set{Polymake.to_cxx_type(Int64)}(1:size(A, 1))
+#     for i in rindices
+#         for j in rindices
+#             if i == j
+#                 continue
+#             end
+#             if A[i, :] == A[j, :]
+#                 delete!(rindices, j)
+#             end
+#         end
+#     end
+#     return A[rindices]
+# end
 
 function augment(vec::AbstractVector, val)
     s = size(vec)

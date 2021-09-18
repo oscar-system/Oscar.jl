@@ -19,6 +19,7 @@ const pm = Polymake
         @test rays(RayVector{Polymake.Rational}, Cone1) isa VectorIterator{RayVector{Polymake.Rational}}
         @test rays(RayVector{Polymake.Rational}, Cone1).m == [1 0; 0 1]
         @test rays(Cone1) isa VectorIterator{RayVector{Polymake.Rational}}
+        @test rays(RayVector, Cone1) isa VectorIterator{RayVector{Polymake.Rational}}
         @test facets(Halfspace, Cone1) isa HalfspaceIterator{Halfspace}
         @test facets(Halfspace, Cone1).A == [-1 0; 0 -1]
         @test facets(Cone1) isa HalfspaceIterator{Halfspace}

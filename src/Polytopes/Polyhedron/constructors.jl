@@ -126,7 +126,7 @@ function convex_hull(V::Union{VectorIterator{PointVector}, AnyVecOrMat, Oscar.Ma
     # These matrices are in the right format for polymake.
     # given non_redundant can avoid unneccessary redundancy checks
     if non_redundant
-        return Polyhedron(Polymake.polytope.Polytope{Polymake.Rational}(VERTICESS = points, LINEALITY_SPACE = lineality))
+        return Polyhedron(Polymake.polytope.Polytope{Polymake.Rational}(VERTICES = points, LINEALITY_SPACE = lineality))
     else
         return Polyhedron(Polymake.polytope.Polytope{Polymake.Rational}(POINTS = points, INPUT_LINEALITY = lineality))
     end

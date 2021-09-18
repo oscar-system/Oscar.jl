@@ -39,7 +39,7 @@ PointVector(x...) = PointVector{Polymake.Rational}(x...)
 
 PointVector{U}(n::Base.Integer) where U = PointVector{U}(Polymake.Vector{U}(undef, Polymake.Integer(n)))
 
-function Base.similar(X::PointVector, ::Type{S}, dims::Dims{1}) where S <: Union{Polymake.Rational, Polymake.Integer}
+function Base.similar(X::PointVector, ::Type{S}, dims::Dims{1}) where S <: Union{Polymake.Rational, Polymake.Integer, Int64, Float64}
     return PointVector{S}(dims...)
 end
 
@@ -72,7 +72,7 @@ RayVector(x...) = RayVector{Polymake.Rational}(x...)
 
 RayVector{U}(n::Base.Integer) where U = RayVector{U}(Polymake.Vector{U}(undef, Polymake.Integer(n)))
 
-function Base.similar(X::RayVector, ::Type{S}, dims::Dims{1}) where S <: Union{Polymake.Rational, Polymake.Integer}
+function Base.similar(X::RayVector, ::Type{S}, dims::Dims{1}) where S <: Union{Polymake.Rational, Polymake.Integer, Int64, Float64}
     return RayVector{S}(dims...)
 end
 
@@ -83,7 +83,6 @@ function Base.similar(bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{RayVector}}
 end
 
 @doc Markdown.doc"""
-
     Halfspaces
 
 Dummy type used for specifying the desired output format.
@@ -178,7 +177,7 @@ halfspace_matrix_pair(iter::HalfspaceIterator) = (A = matrix(QQ, Matrix{fmpq}(it
 
 # Affine Halfspaces
 
-HalfspaceIterator{T}(A::Polymake.Matrix{Polymake.Rational}) where T = HalfspaceIterator{T}(A, zeros(size(A, 1)))
+HalfspaceIterator{T}(A::AbstractMatrix) where T = HalfspaceIterator{T}(A, zeros(size(A, 1)))
 
 function matrix(iter::HalfspaceIterator)
     if !iszero(iter.b)
@@ -204,9 +203,9 @@ function Base.getindex(iter::VectorIterator{T}, i::Base.Integer) where T
     return T(iter.m[i, :])
 end
 
-function Base.setindex!(iter::VectorIterator{T}, val::T, i::Base.Integer) where T
+function Base.setindex!(iter::VectorIterator{T}, val, i::Base.Integer) where T
     @boundscheck checkbounds(iter.m, i, 1)
-    iter.m[i, :] = val.p
+    iter.m[i, :] = val
     return val
 end
 
@@ -218,7 +217,8 @@ matrix(iter::VectorIterator{T}) where {S<:Base.Integer,T<:Union{PointVector{S}, 
 
 matrix(iter::VectorIterator{T}) where {S,T<:Union{PointVector{S}, RayVector{S}}} = matrix(QQ, Matrix{fmpq}(iter.m))
 
-VectorIterator{T}(vertices::Union{Oscar.fmpz_mat,AbstractMatrix{Oscar.fmpz}, Oscar.fmpq_mat,AbstractMatrix{Oscar.fmpq}}) where T = VectorIterator{T}(matrix_for_polymake(vertices))
+VectorIterator{RayVector{S}}(vertices::Union{Oscar.fmpz_mat,AbstractMatrix{Oscar.fmpz}, Oscar.fmpq_mat,AbstractMatrix{Oscar.fmpq}}) where S = VectorIterator{RayVector{S}}(matrix_for_polymake(vertices))
+VectorIterator{PointVector{S}}(vertices::Union{Oscar.fmpz_mat,AbstractMatrix{Oscar.fmpz}, Oscar.fmpq_mat,AbstractMatrix{Oscar.fmpq}}) where S = VectorIterator{PointVector{S}}(matrix_for_polymake(vertices))
 VectorIterator{T}(vertices::Array{V, 1}) where {T, V<:Union{AbstractVector, T}} = VectorIterator{T}(cat((v' for v in vertices)...; dims = 1))
 
 VectorIterator(x...) = VectorIterator{PointVector{Polymake.Rational}}(x...)

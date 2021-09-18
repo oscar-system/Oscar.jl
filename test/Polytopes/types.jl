@@ -7,6 +7,8 @@
 
         @testset "$T" begin
 
+            @test T(a) isa T{Polymake.Rational}
+
             for U in [Int64, Polymake.Integer, Polymake.Rational, Float64]
 
                 @testset "$T{$U}" begin
@@ -16,6 +18,8 @@
 
                     @test T{U}(a) isa T
                     @test T{U}(a) isa T{U}
+
+                    @test T{U}(7) == zeros(7)
 
                     A = T{U}(a)
 
@@ -49,6 +53,10 @@
                         @test *(V(3), A) isa T{promote_type(U, V)}
 
                         @test *(V(3), A) == *(V(3), A)
+
+                        @test [A; B] isa T
+                        @test [A; B] isa T{promote_type(U, V)}
+                        @test [A; B] == [a; b]
 
                     end
 

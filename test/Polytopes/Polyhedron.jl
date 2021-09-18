@@ -3,7 +3,9 @@
 @testset "Polyhedron" begin
 
     pts = [1 0 0; 0 0 1]'
+    @test convex_hull(pts) isa Polyhedron
     Q0 = convex_hull(pts)
+    @test convex_hull(pts; non_redundant = true) == Q0
     Q1 = convex_hull(pts, [1 1])
     Q2 = convex_hull(pts, [1 1], [1 1])
     square = cube(2)
@@ -36,6 +38,7 @@
         @test vertices([0,1,0] + point).m == [0 2 0]
         @test rays(Pos) isa VectorIterator{RayVector{Polymake.Rational}}
         @test rays(Pos).m == [1 0 0; 0 1 0; 0 0 1]
+        @test rays(RayVector, Pos) isa VectorIterator{RayVector{Polymake.Rational}}
         @test lineality_space(L) isa VectorIterator{RayVector{Polymake.Rational}}
         @test lineality_space(L).m == [0 0 1]
         @test faces(square, 1) isa PolyhedronOrConeIterator{Polyhedron}
@@ -77,6 +80,7 @@
         end
         nc = normal_cone(square, 1)
         @test rays(nc).m == [1 0; 0 1]
+        @test Polyhedron(facets(A)) == A
     end
 
 end
