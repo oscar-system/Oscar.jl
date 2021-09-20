@@ -3063,13 +3063,13 @@ function map_canonically(M::SubQuo, v::SubQuoElem)
 
   # Breadth-First Search to find path to N:
   parent_hom = IdDict{SubQuo,ModuleMap}()
-  modules = Set([M])
+  modules = [M]
   found_N = false
   for A in modules
     for H in A.incoming_morphisms
       B = domain(H)
       if B!==A # on trees "B!==A" is enough!
-        if !(B in modules)
+        if length(findall(x->x===B,modules)) == 0 #if !(B in modules) doesn't work since it uses == instead of ===
           parent_hom[B] = H
           push!(modules,B)
         end
