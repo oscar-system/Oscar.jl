@@ -46,6 +46,7 @@ export VectorBundleSection, LineBundleSection
 export tautological_sections
 
 export projectivize
+export cartesian_product
 
 @Markdown.doc """
     abstract type Scheme{ S <: Ring }
@@ -224,10 +225,11 @@ mutable struct SpecPrincipalOpen{S,T,U} <: AffineScheme{S,T,U}
   #inclusionInRoot::AffSchMorphism
 
   
-  function SpecPrincipalOpen(parent::Union{Spec{S,T,U},SpecPrincipalOpen{S,T,U}}, denom::U; loc_var_name="t" ) where {S <: Ring, T<:MPolyRing, U<:MPolyElem}
+  function SpecPrincipalOpen(orig::Union{Spec{S,T,U},SpecPrincipalOpen{S,T,U}}, denom::U; loc_var_name="t" ) where {S <: Ring, T<:MPolyRing, U<:MPolyElem}
     x = new{S,T,U}() 
-    x.parent = parent
+    x.parent = orig
     # TODO: Implement a plausibility check: Does denom belong to the coordinate ring of the root?
+    parent(denom) == ambient_ring(root(x)) || error( "denominator has the wrong ring as parent" )
     x.denom = denom
     x.loc_var_name=loc_var_name
     return x 
@@ -720,13 +722,14 @@ end
 
 # Construct affine n-space over the ring k.
 @Markdown.doc """
-    function affine_space( k::Ring, n::Int, name::String="x" )
+    function affine_space( k::Ring, n::Int; var_name::String="x" )
 
-Return the Affine scheme 𝔸ⁿ over the base ring k. An optional argument can be 
+Return the Affine scheme 𝔸ⁿ over the base ring k. An optional argument 
+`var_name` can be 
 passed on to determine how the variables will be printed.
 """
-function affine_space( k::Ring, n::Int, name::String="x" )
-  R, x = PolynomialRing( k, name => (1:n))
+function affine_space( k::Ring, n::Int; var_name::String="x" )
+  R, x = PolynomialRing( k, var_name => (1:n))
   return Spec( R )
 end
 
@@ -865,6 +868,26 @@ mutable struct AffSchMorphism{S,Tdom, Udom, Tcod, Ucod}
     return AffSchMorphism( domain, codomain, [ Q(x) for x in imgs_frac ] )
   end
 end
+
+function Base.show( io::Base.IO, f::AffSchMorphism )
+  if isdefined( f, :name ) && isdefined( domain(f), :name ) && isdefined( codomain(f), :name )
+    print( io, f.name * " : " * domain(f).name * " → " * codomain(f).name )
+    return
+  end
+
+  println( io, "Morphism of affine schemes from" )
+  println( io, domain(f) )
+  println( io, "to" )
+  println( io, codomain(f) )
+  if isdefined( f, :pullback )
+    println( io, "determined by the pullback of functions" ) 
+    println( io, pullback(f) )
+  else 
+    println( io, "determined by the pullback of functions via substitution by" ) 
+    println( io, f.imgs_frac )
+  end
+end
+
 @Markdown.doc """
     domain(f::AffSchMorphism) -> AffineScheme
 
@@ -925,7 +948,7 @@ function pullback(h::AffSchMorphism)
   #    Q' := Q[g⁻¹] ← P[f⁻¹] =: P'
   #           ↑        ↑
   #           Q        P
-  # where both P = R/I and Q = S/J are both quotients of 
+  # where both P = R/I and Q = S/J are quotients of 
   # polynomial rings and the sets of elements g = g₁⋅…⋅gᵣ, 
   # gⱼ ∈ Q and f = f₁⋅…⋅fₛ, fᵢ∈ P have been inverted to 
   # arrive at the open sets U and V.
@@ -1019,7 +1042,7 @@ function pullback(h::AffSchMorphism)
   Q_loc, proj_loc = quo( S_t, defining_ideal(U))
   phi_of_f = one(S_t)
   for f_i in den_V
-    (k,a) = divides_power( proj_loc(pullback_from_root(U)(f_i)), proj_loc(pullback_from_root(U)(g)) )
+    (k,a) = divides_power( proj_loc(phi_prime(f_i)), proj_loc(pullback_from_root(U)(g)) )
     phi_of_f *= lift(a)*t^k
   end
   push!( images, phi_of_f )
@@ -1054,16 +1077,16 @@ function imgs_frac(f::AffSchMorphism)
   # considered as a subalgebra of the fraction field. 
   P = ambient_ring(root(domain(f)))
   F = FractionField(P)
-  den = denoms(domain(f))
+  den = div_denoms(domain(f))
   d = length(den)
   n = length(gens(P))
   # prepare a list of the images of the generators 
   fracs = [ F(x) for x in gens(P) ]
-  fracs = vcat( fracs, [ 1//g for g in den ])
+  push!( fracs, prod( [ 1//g for g in den ] ))
   R = ambient_ring(root(codomain(f)))
   imgs_frac = elem_type(F)[]
+  h = compose( pullback_from_root(codomain(f)), phi )
   for g in gens(R)
-    h = compose( phi, pullback_from_root(codomain(f)) )
     push!(imgs_frac,evaluate(h(g), fracs))
   end
   f.imgs_frac = imgs_frac
@@ -1081,6 +1104,9 @@ function identity_morphism( X::Spec )
   f = AffSchMorphism(X,X,phi)
   return f 
 end
+
+inclusion_in_root( X::Spec ) = identity_morphism( X )
+inclusion_in_parent( X::Spec ) = identity_morphism( X )
 
 @Markdown.doc """
     function identity_morphism( D::SpecPrincipalOpen ) -> AffSchMorphism 
@@ -1467,13 +1493,17 @@ open subsets U ⊂ X and V ⊂ Y.
 
 **Caution: No plausibility check as to whether or not f(U) ⊂ V is being performed!**
 """
-function restrict( f::AffSchMorphism, U::SpecPrincipalOpen, V::SpecPrincipalOpen )
+function restrict( f::AffSchMorphism, U::SpecPrincipalOpen, V::AffineScheme )
   i = inclusion_in_root(U)
   j = inclusion_in_root(V)
   domain(f) == codomain(i) || error( "the given map is not compatible with the open subsets" )
   codomain(f) == codomain(j) || error( "the given map is not compatible with the open subsets" )
   g = compose( f, i )
-  return AffSchMorphism( U, V, imgs_frac(g) )
+  f_res = AffSchMorphism( U, V, imgs_frac(g) )
+  if isdefined( f, :name ) 
+    f_res.name = f.name
+  end
+  return f_res
 end
 
 @Markdown.doc """
@@ -2089,6 +2119,59 @@ transitions( E::VectorBundle ) = E.transitions
 
 
 @Markdown.doc """
+    mutable struct HomVecBundle <: AbstractCoherentSheaf
+
+Model for the vector bundle Hom(E,F) for two vector bundles E and F on the 
+same scheme X. 
+This deserves a struct of its own because of the special functionality. 
+"""
+mutable struct HomVecBundle <: AbstractCoherentSheaf
+  parent::CoveredScheme
+  covering::Covering
+  domain::VectorBundle
+  codomain::VectorBundle
+
+  function HomVecBundle( E::VectorBundle, F::VectorBundle )
+    parent(E) == parent( F ) || error( "The two input vector bundles are not defined on the same scheme" )
+    covering(E) == covering( F ) || error( "Constructor is not yet implemented for vector bundles which are defined on different coverings" )
+    return new(parent(E),covering(E),E,F)
+  end
+end
+
+@Markdown.doc """
+    function VectorBundle( H::HomVecBundle )
+
+Turns the HomVecBundle H into an honest vector bundle, forgetting 
+about its hom structure. 
+"""
+function VectorBundle( H::HomVecBundle )
+  error( "not implemented, yet" )
+end
+
+@Markdown.doc """
+    mutable struct HomBundleSection
+
+Section in a bundle Hom(E,F) for vector bundles E and F over a common base scheme X. 
+"""
+mutable struct HomBundleSection
+  parent::HomVecBundle
+  loc_sections::Vector{MatSpaceElem}
+
+  # optional fields for caching
+  name::String
+
+  function HomBundleSection( H::HomVecBundle, loc_sections::Vector{MatSpaceElem} )
+    C = covering(H)
+    n = length(patches(C))
+    n == length(loc_sections) || error( "The number of local sections does not coincide with the number of patches of the covering" )
+    for i in (1:n)
+      parent(loc_sections[i]) == ambient_ring(patches(C)[i]) || error( "The $i-th local section is not an element of the ambient ring of the patch" )
+    end
+    return new( E, loc_sections )
+  end
+end
+
+@Markdown.doc """
     function pullback( L::LineBundle, ρ::Refinement ) -> LineBundle
 
 Pullback of a line bundle along a refinement. 
@@ -2414,6 +2497,91 @@ Constructs the projectivization Y = ℙ(E) of the VectorBundle E over X together
 with its projection p : ℙ(E) → X and the (relative) tautological bundle L = 𝒪(1) on 
 ℙ(E).
 """
-function projectivize( E::VectorBundle )
+function projectivize( E::VectorBundle; fiber_var_name="u" )
+  X = parent(E)
+  C = covering(E) 
+  U = patches(C)
+  n = length(U)
+  r = rank(E)
+  A = transitions(E)
+  V = Vector{AffineScheme}()
+
+  #TODO: Finish the implementation.
+
   error( "Not implemented, yet" )
 end
+
+@Markdown.doc """
+    function cartesian_product( X::Spec, Y::Spec ) -> (::Spec, ::AffSchMorphims, ::AffSchMorphism)
+
+Returns the product X ← X × Y → Y and its two projections.
+"""
+function cartesian_product( X::Spec, Y::Spec )
+  #println( "Call to cartesian product with arguments $X and $Y" )
+  base_ring(X) == base_ring(Y) || error( "The two given schemes are not defined over the same base ring" )
+  k = base_ring(X)
+  RX = ambient_ring(X)
+  RY = ambient_ring(Y)
+  m = length(gens(RX))
+  n = length(gens(RY))
+  R, prod_var = PolynomialRing( k, vcat( String.(symbols(RX)), String.(symbols(RY) )))
+  pb_pi1 = AlgebraHomomorphism( RX, R, gens(R)[(1:m)] )
+  pb_pi2 = AlgebraHomomorphism( RY, R, gens(R)[(m+1:n+m)] )
+  IX = ideal( R, [ pb_pi1(g) for g in gens(defining_ideal(X)) ])
+  IY = ideal( R, [ pb_pi2(g) for g in gens(defining_ideal(Y)) ])
+  XxY = Spec( k, R, IX + IY )
+  if isdefined( X, :name ) && isdefined( Y, :name )
+    XxY.name = X.name * " × " * Y.name 
+  end
+  pi1 = AffSchMorphism( XxY, X, pb_pi1 )
+  pi1.name = "π₁"
+  pi2 = AffSchMorphism( XxY, Y, pb_pi2 )
+  pi2.name = "π₂"
+  return XxY, pi1, pi2
+end
+
+@Markdown.doc """
+    function cartesian_product( U::SpecPrincipalOpen, Y::AffineScheme )
+
+Returns the product U × Y and the two projections of the product of the root 
+schemes of U and Y in their respective localization trees. 
+The projections for U and Y can then be obtained by applying `restrict`.
+"""
+function cartesian_product( U::SpecPrincipalOpen, Y::AffineScheme )
+  #println( "Call to cartesian product with arguments $U and $Y" )
+  base_ring(U) == base_ring(Y) || error( "The two given schemes are not defined over the same base ring" )
+  k = base_ring(U)
+  X = parent(U)
+  XxY, pi1, pi2 = cartesian_product( X, Y ) 
+  UxY = localize( XxY, pullback(pi1)(denom(U)) )
+  if isdefined( U, :name ) && isdefined( Y, :name )
+    UxY.name = U.name * " × " * Y.name 
+  end
+  return UxY, pi1, pi2 
+end
+
+@Markdown.doc """
+    function cartesian_product( X::Spec, V::SpecPrincipalOpen )
+
+Returns the product X × V and the two projections of the product of X 
+with the root scheme of Y in its localization tree.
+The projection to V can then be obtained by applying `restrict`.
+"""
+function cartesian_product( X::Spec, V::SpecPrincipalOpen )
+  #println( "Call to cartesian product with arguments $X and $V" )
+  base_ring(X) == base_ring(V) || error( "The two given schemes are not defined over the same base ring" )
+  k = base_ring(X)
+  Y = parent(V)
+  XxY, pi1, pi2 = cartesian_product( X, Y ) 
+  XxV = localize( XxY, pullback(pi2)(denom(V)) )
+  if isdefined( X, :name ) && isdefined( V, :name )
+    XxV.name = X.name * " × " * V.name 
+  end
+  return XxV, pi1, pi2 
+end
+
+
+  
+  
+
+
