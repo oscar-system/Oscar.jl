@@ -83,15 +83,11 @@ function Base.similar(bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{RayVector}}
 end
 
 @doc Markdown.doc"""
-    Halfspaces
+    Halfspace(a, b)
 
-Dummy type used for specifying the desired output format.
 One halfspace `H(a,b)` is given by a vector `a` and a value `b` such that
 $$H(a,b) = \{ x | ax ≤ b \}.$$
 """
-struct Halfspaces
-end
-
 struct Halfspace
     a::Polymake.Matrix{Polymake.Rational}
     b::Polymake.Rational
@@ -103,9 +99,6 @@ Halfspace(a) = Halfspace(a, 0)
 
 # TODO: abstract notion of equality
 Base.:(==)(x::Halfspace, y::Halfspace) = x.a == y.a && x.b == y.b
-
-struct Cones
-end
 
 struct PolyhedronOrConeIterator{T} <: AbstractArray{T, 1}
     vertices::Polymake.Matrix{Polymake.Rational}
