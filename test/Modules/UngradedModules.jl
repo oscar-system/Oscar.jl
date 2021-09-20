@@ -57,8 +57,7 @@ end
 @testset "Presentation" begin
 
 	# over Integers
-	# Commented out due to a bug in syz (doesn't terminate)
-	#=R, (x,y,z) = PolynomialRing(ZZ, ["x", "y", "z"])
+	R, (x,y,z) = PolynomialRing(ZZ, ["x", "y", "z"])
 	generator_matrices = [R[x x^2*y; y y^2*x^2], R[x x^2*y; y y^2*x^2], R[x y; x^2*y y^2*x], R[x+R(1) x^10; x^2+y^2 y^4-x^4], R[42*x*y 7*x^2; 6*x 9*y^2]]
 	relation_matrices  = [R[x^3 y^4], R[x^3 y^4; x^2*y x*y^2], R[x*y^2 x; y^3 x*y^3], R[x x*y], R[3*x*y 7*x*y; 42 7]]
 	true_pres_matrices = [R[x^5*y-y^4 -x^5+x*y^3], R[-x^2*y-x*y-y x^2+x; x*y^4-x^3*y+y^4-x^2*y -x*y^3+x^3; -y^4+x^2*y x*y^3-x^3; x^2*y^3+x*y^3+y^3 -x^2*y^2-x*y^2], R[-x*y R(1); -x^2*y^5+x*y^3 R(0)], R[x^5-x*y^4+x^3*y+x*y^3 x^11-x^2*y-x*y; -x^5*y^7+x*y^11+2*x^5*y^6-x^3*y^8-3*x*y^10+2*x^5*y^5+2*x^3*y^7-3*x^5*y^4+2*x^3*y^6+5*x*y^8+2*x^5*y^3-3*x^3*y^5-5*x*y^7+2*x^3*y^4+2*x*y^6 -x^11*y^7+2*x^11*y^6+2*x^11*y^5-3*x^11*y^4+2*x^11*y^3+x^2*y^8-2*x^2*y^7+x*y^8-2*x^2*y^6-2*x*y^7+3*x^2*y^5-2*x*y^6-2*x^2*y^4+3*x*y^5-2*x*y^4], R[-13*y R(0); -377 -2639*x; -39 -273*x; -13*y-39 -273*x; -13 -91*x; y^2-42*x -294*x^2+21*x*y; 9*y^2-x+26*y+78 -7*x^2+189*x*y+546*x; -y^2+3*x 21*x^2-21*x*y]]
@@ -74,7 +73,7 @@ end
 		@test iswelldefined(p)
 		@test isbijective(i)
 		@test isbijective(p)
-	end=#
+	end
 
 
 	# over Rationals
@@ -99,7 +98,6 @@ end
 
 
 @testset "Test kernel" begin
-	# The outcommented tests don't terminate due to a bug in syz
 
 	# over Integers
 	R, (x,y,z) = PolynomialRing(ZZ, ["x", "y", "z"])
@@ -112,31 +110,21 @@ end
     	@test K == image(emb)[1]
     	@test image(emb)[1] == image(map(F1,Ker))[1]
 	end
-	#=for k=1:3
+	for k=1:3
 		A = matrix([randpoly(R,0:15,2,2) for i=1:3,j=1:2])
     	A = map(A)
 		K,emb = kernel(A)
 		@test iszero(emb*A)
-	end=#
+	end
 
 	# over Rationals
 	R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
 	matrices = [R[x^2+x y^2+y; x^2+y y^2; x y], R[5*x^5+x*y^2 4*x*y+y^2+R(1); 4*x^2*y 2*x^2+3*y^2-R(5)],
-				#=R[8*x^2*y^2*z^2+13*x*y*z^2  12*x^2+7*y^2*z;
+				R[8*x^2*y^2*z^2+13*x*y*z^2  12*x^2+7*y^2*z;
 				13*x*y^2+12*y*z^2  4*x^2*y^2*z+8*x*y*z;
-				9*x*y^2+4*z  12*x^2*y*z^2+9*x*y^2*z]=#]
+				9*x*y^2+4*z  12*x^2*y*z^2+9*x*y^2*z]]
 	kernels = [R[x^2-x*y+y -x^2+x*y -x^2+x*y-y^2-y], R[R(0) R(0)], 
-			   #=R[-36*x^3*y^4*z+156*x^3*y^3*z^2+144*x^2*y^2*z^4+117*x^2*y^4*z+108*x*y^3*z^3-72*x^2*y^3*z-16*x^2*y^2*z^2-32*x*y*z^2
-			   -96*x^4*y^3*z^4-72*x^3*y^4*z^3-156*x^3*y^2*z^4-117*x^2*y^3*z^3+63*x*y^4*z+108*x^3*y^2+28*y^2*z^2+48*x^2*z
-			   32*x^4*y^4*z^3+116*x^3*y^3*z^3+104*x^2*y^2*z^3-91*x*y^4*z-84*y^3*z^3-156*x^3*y^2-144*x^2*y*z^2]=#]
-	#=ring R=0,(x,y,z),dp;
-	matrix A[3][2]=8*x^2*y^2*z^2 + 13*x*y*z^2 , 12*x^2 + 7*y^2*z,
-	              13*x*y^2 + 12*y*z^2  , 4*x^2*y^2*z + 8*x*y*z,
-	              9*x*y^2 + 4*z , 12*x^2*y*z^2 + 9*x*y^2*z;
-	print(syz(transpose(A)));
-	-36x3y4z+156x3y3z2+144x2y2z4+117x2y4z+108xy3z3-72x2y3z-16x2y2z2-32xyz2,
-	-96x4y3z4-72x3y4z3-156x3y2z4-117x2y3z3+63xy4z+108x3y2+28y2z2+48x2z,
-	32x4y4z3+116x3y3z3+104x2y2z3-91xy4z-84y3z3-156x3y2-144x2yz2 =#
+			   R[-36*x^3*y^4*z+156*x^3*y^3*z^2+144*x^2*y^2*z^4+117*x^2*y^4*z+108*x*y^3*z^3-72*x^2*y^3*z-16*x^2*y^2*z^2-32*x*y*z^2 -96*x^4*y^3*z^4-72*x^3*y^4*z^3-156*x^3*y^2*z^4-117*x^2*y^3*z^3+63*x*y^4*z+108*x^3*y^2+28*y^2*z^2+48*x^2*z 32*x^4*y^4*z^3+116*x^3*y^3*z^3+104*x^2*y^2*z^3-91*x*y^4*z-84*y^3*z^3-156*x^3*y^2-144*x^2*y*z^2]]
 	for (A,Ker) in zip(matrices, kernels)
 		F1 = FreeMod(R, nrows(A))
 		F2 = FreeMod(R, ncols(A))
@@ -144,13 +132,13 @@ end
     	@test K == image(emb)[1]
     	@test image(emb)[1] == image(map(F1,Ker))[1]
 	end
-	#=for k=1:3
+	for k=1:3
 		A = matrix([randpoly(R,0:15,2,2) for i=1:3,j=1:2])
     	A = map(A)
 		K,emb = kernel(A)
     	@test image(emb)[1] == K
 		@test iszero(emb*A)
-	end=#
+	end
 end
 
 @testset "iszero(SubQuo)" begin
@@ -422,8 +410,7 @@ end
 	end
 end
 
-# Commented out due to a bug in lift (doesn't terminate)
-#=@testset "direct product" begin
+@testset "direct product" begin
 	R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
 	
 	F2 = FreeMod(R,2)
@@ -464,20 +451,22 @@ end
 		@test ngens(prod_M) == ngens(M1) + ngens(M2)
 
 		for g in gens(prod_N)
-			@test g == sum([canonical_injection(prod_N,i)(canonical_projection(prod_N,i)(g)) for i=1:2])
+			@test g == sum([Hecke.canonical_injection(prod_N,i)(Hecke.canonical_projection(prod_N,i)(g)) for i=1:2])
 		end
-		for g in gens(M1)
-			@test g == canonical_projection(prod_N,1)(canonical_injection(prod_N,1)(g))
+		for g in gens(N1)
+			@test g == Hecke.canonical_projection(prod_N,1)(Hecke.canonical_injection(prod_N,1)(g))
 		end
-		for g in gens(M2)
-			@test g == canonical_projection(prod_N,2)(canonical_injection(prod_N,2)(g))
+		for g in gens(N2)
+			@test g == Hecke.canonical_projection(prod_N,2)(Hecke.canonical_injection(prod_N,2)(g))
 		end
 
 		# testing hom_prod_prod
 
-		M1_to_N1 = SubQuoHom(M1,N1,R[x y 0; 0 x+z^2 0; 1 1 2])
-		M1_to_N2 = SubQuoHom(M1,N2,R[x*y*z^4-x 1; 3 1+x+y^2-z])
-		M2_to_N1 = SubQuoHom(M2,N1,zero_matrix(R,2,3))
+		M1_to_N1 = SubQuoHom(M1,N1,zero_matrix(R,3,3))
+		H12 = hom(M1,N2)[1]
+		H21 = hom(M2,N1)[1]
+		M1_to_N2 = iszero(H12) ? SubQuoHom(M1,N2,zero_matrix(R,3,2)) : homomorphism(H12[1])
+		M2_to_N1 = iszero(H21) ? SubQuoHom(M2,N1,zero_matrix(R,2,3)) : homomorphism(H21[1])
 		M2_to_N2 = SubQuoHom(M2,N2,R[0 0; 1 0])
 		@assert iswelldefined(M1_to_N1)
 		@assert iswelldefined(M1_to_N2)
@@ -486,15 +475,15 @@ end
 
 		phi = hom_prod_prod(prod_M,prod_N,[M1_to_N1 M1_to_N2; M2_to_N1 M2_to_N2])
 		for g in gens(M1)
-			@test M1_to_N1(g) == canonical_projection(prod_N,1)(phi(emb[1](g)))
-			@test M1_to_N2(g) == canonical_projection(prod_N,2)(phi(emb[1](g)))
+			@test M1_to_N1(g) == Hecke.canonical_projection(prod_N,1)(phi(emb[1](g)))
+			@test M1_to_N2(g) == Hecke.canonical_projection(prod_N,2)(phi(emb[1](g)))
 		end
 		for g in gens(M2)
-			@test M2_to_N1(g) == canonical_projection(prod_N,1)(phi(emb[2](g)))
-			@test M2_to_N2(g) == canonical_projection(prod_N,2)(phi(emb[2](g)))
+			@test M2_to_N1(g) == Hecke.canonical_projection(prod_N,1)(phi(emb[2](g)))
+			@test M2_to_N2(g) == Hecke.canonical_projection(prod_N,2)(phi(emb[2](g)))
 		end
 	end
-end=#
+end
 
 @testset "Coordinates (lift)" begin
 	Z3, a = FiniteField(3,1,"a")
@@ -520,7 +509,6 @@ end=#
 end
 
 @testset "module homomorphisms" begin
-	# This test doesn't terminate due to a bug in syz
 	R, (x,y) = PolynomialRing(QQ, ["x", "y"])
 
 	F3 = FreeMod(R,3)
@@ -529,7 +517,7 @@ end
 	@test iszero(preimage(phi,zero(F4)))
 	@test phi(preimage(phi,y*(F4[3]+x*F4[4]+(x+y)*F4[3]))) == y*(F4[3]+x*F4[4]+(x+y)*F4[3])
 
-	k_max = 10
+	k_max = 8
 	for k=1:k_max
 		print("\rhomomorphism testing: test ",k," out of ",k_max,"     ")
 		A1 = matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:2])
@@ -550,7 +538,6 @@ end
 
 		NmodKerH, pNmodKerH = quo(N,KerH, :store)
 		Hbar = SubQuoHom(NmodKerH,M,matrix(H))
-		#Hbar = AbstractAlgebra.Generic.ModuleHomomorphism(NmodKerH,M,matrix(H)) # induced map N/KerH --> M
 		Hbar = restrict_codomain(Hbar,ImH) # induced map N/KerH --> ImH
 
 		@test iswelldefined(Hbar)
@@ -586,7 +573,6 @@ end
 
 		NmodKerH, pNmodKerH = quo(N,KerH, :store)
 		Hbar = SubQuoHom(NmodKerH,M,matrix(H)) # induced map N/KerH --> M
-		#Hbar = AbstractAlgebra.Generic.ModuleHomomorphism(NmodKerH,M,matrix(H)) # induced map N/KerH --> M
 		Hbar = restrict_codomain(Hbar,ImH) # induced map N/KerH --> ImH
 
 		@test iswelldefined(Hbar)
@@ -606,7 +592,6 @@ end
 		# test, if H is surjective:
 		@test ImH == M
 
-#=      # Commented out due to a bug in syz (doesn't terminate)
 		#3) H:N --> M neither injective nor surjective, also: tests 'restrict_domain()'
 		MM = SubQuo(A1,B1)
 		M, iM, iSQ = sum(MM, SubQuo(A2,B1))
@@ -657,7 +642,6 @@ end
 
 		NmodKerH, pNmodKerH = quo(N,KerH, :store)
 		Hbar = SubQuoHom(NmodKerH,M,matrix(H)) # induced map N/KerH --> M
-		#Hbar = AbstractAlgebra.Generic.ModuleHomomorphism(NmodKerH,M,matrix(H)) # induced map N/KerH --> M
 		Hbar = restrict_codomain(Hbar,ImH) # induced map N/KerH --> ImH
 
 		@test iswelldefined(Hbar)
@@ -671,7 +655,7 @@ end
 
 		# test if Hbar and Hbar_inv are inverse to each other:
 		@test all([Hbar_inv(Hbar(g))==g for g in gens(NmodKerH)])
-		@test all([Hbar(Hbar_inv(g))==g for g in gens(ImH)])=#
+		@test all([Hbar(Hbar_inv(g))==g for g in gens(ImH)])
 		#######################################################################
 	end
 	print("\r                                        ")

@@ -549,7 +549,7 @@ getindex(F::ModuleGens, i::Int) = getindex(F, Val(:O), i)
 Create a Singular module from an OSCAR free module.
 """
 function singular_module(F::FreeMod)
-  Sx = singular_ring(base_ring(F))
+  Sx = singular_ring(base_ring(F), keep_ordering=false)
   return Singular.FreeModule(Sx, dim(F))
 end
 
@@ -2386,7 +2386,7 @@ function hom(M::ModuleFP, N::ModuleFP, alg::Symbol=:maps)
  
   kDelta = kernel(delta)
 
-  #psi = kDelta[2]*pro[1]
+  psi = kDelta[2]*pro[1]
   #psi = hom(kDelta[1], H_s0_t0, [psi(g) for g = gens(kDelta[1])])
 
   H = quo(sub(D, kDelta[1]), image(rho)[1])
@@ -2406,7 +2406,8 @@ function hom(M::ModuleFP, N::ModuleFP, alg::Symbol=:maps)
     g = hom(Rs0, Rt0, [preimage(map(p2, 2), f(map(p1, 2)(g))) for g = gens(Rs0)])
 
     #return H(preimage(psi, (preimage(mH_s0_t0, g))).repres)
-    return SubQuoElem(preimage(kDelta[2], emb[1](preimage(mH_s0_t0, g))).repres, H)
+    return SubQuoElem(repres(preimage(psi, (preimage(mH_s0_t0, g)))), H)
+    #return SubQuoElem(preimage(kDelta[2], emb[1](preimage(mH_s0_t0, g))).repres, H)
     #return SubQuoElem(emb[1](preimage(mH_s0_t0, g)), H) #???
   end
   to_hom_map = MapFromFunc(im, pre, H, Hecke.MapParent(M, N, "homomorphisms"))
@@ -2656,7 +2657,7 @@ function Hecke.canonical_injection(G::ModuleFP, i::Int)
     return injection_dictionary[i]
   end
   0<i<= length(H) || error("index out of bound")
-  j = i == 1 ? 0 : sum(ngens(H[l]) for l=1:i-1) -1
+  j = i == 1 ? 0 : sum(ngens(H[l]) for l=1:i-1)
   emb = hom(H[i], G, [G[l+j] for l = 1:ngens(H[i])])
   injection_dictionary[i] = emb
   return emb
