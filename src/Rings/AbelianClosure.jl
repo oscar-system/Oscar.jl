@@ -751,7 +751,7 @@ function quadratic_irrationality_info(a::QabElem)
     return (x, y, m)
 end
 
-end
+end # module AbelianClosure
 
 using .AbelianClosure
 
