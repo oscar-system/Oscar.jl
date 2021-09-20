@@ -185,11 +185,7 @@ function Oscar.evaluate(f::MPolyElem, a::ProjSpcElem)
   return evaluate(f, a.v)
 end
 
-end
+end # module Geometry
 
 using .Geometry
 export projective_space
-
-
-
-

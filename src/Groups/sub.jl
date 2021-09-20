@@ -109,13 +109,13 @@ together with its embedding morphism into `G`.
 ###############################################################################
 
 """
-    index(::Type{I} = fmpz, G::T, H::T) where I <: Union{Integer, fmpz} where T <: GAPGroup
+    index(::Type{I} = fmpz, G::T, H::T) where I <: IntegerUnion where T <: GAPGroup
 
 Return the index of `H` in `G`, as an instance of `I`.
 """
 index(G::T, H::T) where T <: GAPGroup = index(fmpz, G, H)
 
-function index(::Type{I}, G::T, H::T) where I <: Union{Base.Integer, fmpz} where T <: GAPGroup
+function index(::Type{I}, G::T, H::T) where I <: IntegerUnion where T <: GAPGroup
    i = GAP.Globals.Index(G.X, H.X)
    if i === GAP.Globals.infinity
       error("index() not supported for subgroup of infinite index, use isfinite()")

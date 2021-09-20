@@ -502,7 +502,7 @@ gen(G::MatrixGroup, i::Int) = gens(G)[i]
 
 ngens(G::MatrixGroup) = length(gens(G))
 
-function order(::Type{T}, G::MatrixGroup) where T <: Union{Integer, fmpz}
+function order(::Type{T}, G::MatrixGroup) where T <: IntegerUnion
    if get_special(G, :order) == nothing
      return T(BigInt(GAP.Globals.Order(G.X)))::T
    else

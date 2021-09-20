@@ -88,6 +88,6 @@ isalmostsimple
 ## Attributes of groups
 
 ```@docs
-order(::Type{T}, x::Union{GAPGroupElem, GAPGroup}) where T <: Union{Base.Integer, fmpz}
+order(::Type{T}, x::Union{GAPGroupElem, GAPGroup}) where T <: IntegerUnion
 exponent(x::GAPGroup)
 ```

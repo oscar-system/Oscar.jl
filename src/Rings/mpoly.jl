@@ -149,7 +149,7 @@ end
 module Orderings
 
 using Oscar, Markdown
-import Oscar: Ring, MPolyRing, MPolyElem, weights
+import Oscar: Ring, MPolyRing, MPolyElem, weights, IntegerUnion
 export anti_diagonal, lex, degrevlex, deglex, weights, MonomialOrdering, singular
 
 abstract type AbsOrdering end
@@ -371,25 +371,25 @@ function singular(ord::Symbol, v::AbstractVector{<:MPolyElem})
 end
 
 @doc Markdown.doc"""
-    singular(ord::Symbol, v::AbstractVector{<:MPolyElem}, w::AbstractMatrix{Int}) -> MonomialOrdering
+    singular(ord::Symbol, v::AbstractVector{<:MPolyElem}, w::AbstractMatrix{<:IntegerUnion}) -> MonomialOrdering
 
 Defines an ordering given in terms of Singular weight ordering (`M`) with the
 matrix given. `ord` has to be `:M` here.
 """
-function singular(ord::Symbol, v::AbstractVector{<:MPolyElem}, w::Matrix{<:Union{Integer, fmpz}})
+function singular(ord::Symbol, v::AbstractVector{<:MPolyElem}, w::AbstractMatrix{<:IntegerUnion})
   @assert ord == :M
   W = matrix(ZZ, size(w, 1), size(w, 2), w)
   return MonomialOrdering(parent(first(v)), ordering(v, Symbol("Singular($(string(ord)))"), W))
 end
 
 @doc Markdown.doc"""
-    singular(ord::Symbol, v::AbstractVector{<:MPolyElem}, w::AbstractMatrix{Int}) -> MonomialOrdering
+    singular(ord::Symbol, v::AbstractVector{<:MPolyElem}, w::AbstractVector{<:IntegerUnion}) -> MonomialOrdering
 
 Defines an ordering given in terms of Singular weight ordering (`a`) with the
 weights given. `ord` has to be `:a` here. The weights will be supplemented by
 `0`.
 """
-function singular(ord::Symbol, v::AbstractVector{<:MPolyElem}, w::Vector{<:Union{Integer, fmpz}})
+function singular(ord::Symbol, v::AbstractVector{<:MPolyElem}, w::AbstractVector{<:IntegerUnion})
   @assert ord == :a
   W = map(fmpz, w)
   while length(v) > length(W)
