@@ -76,11 +76,14 @@ end
 
 @doc Markdown.doc"""
 
-    cone_from_inequalities(A::Union{Oscar.MatElem,AbstractMatrix}, b)
+    cone_from_inequalities(A::Union{Oscar.MatElem,AbstractMatrix}, b; non_redundant::Bool = false)
 
 The (convex) cone defined by
 
 $$\{ x |  Ax ≤ 0 \}.$$
+
+Use `non_redundant = true` if the given description contains no redundant rows to
+avoid unneccessary redundancy checks.
 
 # Examples
 ```jldoctest
@@ -93,9 +96,13 @@ julia> rays(C)
  [1, 1]
 ```
 """
-cone_from_inequalities(I::Union{HalfspaceIterator, Oscar.MatElem,AbstractMatrix}) =
-    Cone(Polymake.polytope.Cone{Polymake.Rational}(FACETS = -matrix_for_polymake(I)))
-
+function cone_from_inequalities(I::Union{HalfspaceIterator, Oscar.MatElem,AbstractMatrix}; non_redundant::Bool = false)
+    if non_redundant
+        return Cone(Polymake.polytope.Cone{Polymake.Rational}(FACETS = -matrix_for_polymake(I)))
+    else
+        return Cone(Polymake.polytope.Cone{Polymake.Rational}(INEQUALITIES = -matrix_for_polymake(I)))
+    end
+end
 
 """
     pm_cone(C::Cone)

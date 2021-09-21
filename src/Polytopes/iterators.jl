@@ -100,7 +100,7 @@ Halfspace(a) = Halfspace(a, 0)
 # TODO: abstract notion of equality
 Base.:(==)(x::Halfspace, y::Halfspace) = x.a == y.a && x.b == y.b
 
-struct PolyhedronOrConeIterator{T} <: AbstractArray{T, 1}
+struct PolyhedronOrConeIterator{T} <: AbstractVector{T}
     vertices::Polymake.Matrix{Polymake.Rational}
     faces::Polymake.Array{Polymake.Set{Polymake.to_cxx_type(Int64)}}
     lineality::Polymake.Matrix{Polymake.Rational}
@@ -137,7 +137,7 @@ end
 
 #####################################
 
-struct HalfspaceIterator{T} <: AbstractArray{T, 1}
+struct HalfspaceIterator{T} <: AbstractVector{T}
     A::Polymake.Matrix{Polymake.Rational}
     b::Polymake.Vector{Polymake.Rational}
 end
@@ -189,7 +189,7 @@ HalfspaceIterator(x...) = HalfspaceIterator{Halfspace}(x...)
 
 ###############################
 
-struct VectorIterator{T} <: AbstractArray{T, 1}
+struct VectorIterator{T} <: AbstractVector{T}
     m::AbstractMatrix
     VectorIterator{PointVector{U}}(m) where U = new(Polymake.Matrix{Polymake.to_cxx_type(U)}(m))
     VectorIterator{RayVector{U}}(m) where U = new(Polymake.Matrix{Polymake.to_cxx_type(U)}(m))

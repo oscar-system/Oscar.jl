@@ -49,5 +49,6 @@ const pm = Polymake
 
     @testset "constructors" begin
         @test cone_from_inequalities([-1 0 0; 0 0 -1]) == Cone2
+        @test cone_from_inequalities([-1 0 0; 0 0 -1]; non_redundant = false) == Cone2
     end
 end
