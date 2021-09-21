@@ -1,5 +1,4 @@
 import Base.intersect
-import GAP.@gapattribute
 
 export
     centralizer,
