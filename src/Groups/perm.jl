@@ -28,7 +28,9 @@ an integer `n` that is stored in `G`, with the following meaning.
   `G` and its element acts.
 
 !!! note
-    The degree of a group of permutations is not necessarily equal to the largest moved point of the group `G`. For example, the trivial subgroup of `symmetric_group(n)` has degree `n` even though it fixes `n`.
+    The degree of a group of permutations is not necessarily equal to the
+    largest moved point of the group `G`. For example, the trivial subgroup of
+    `symmetric_group(n)` has degree `n` even though it fixes `n`.
 
 # Examples
 ```jldoctest
