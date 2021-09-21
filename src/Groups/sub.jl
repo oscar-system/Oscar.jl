@@ -67,7 +67,8 @@ end
 """
     issubgroup(G::T, H::T) where T <: GAPGroup
 
-Return (`true`,`f`) if `H` is a subgroup of `G`, where `f` is the embedding homomorphism of `H` into `G`, otherwise return (`false`,`nothing`).
+Return (`true`,`f`) if `H` is a subgroup of `G`, where `f` is the embedding
+homomorphism of `H` into `G`, otherwise return (`false`,`nothing`).
 """
 function issubgroup(G::T, H::T) where T <: GAPGroup
    if !all(h -> h in G, gens(H))
@@ -295,7 +296,9 @@ end
 """
     quo(G::T, elements::Vector{S})
 
-Return the quotient group `G/H` of type `FPGroup` (if `T`=`FPGroup`), `PcGroup` (if the quotient group is solvable) or `PermGroup` (otherwise), where `H` is the normal closure of `elements` in `G`.
+Return the quotient group `G/H` of type `FPGroup` (if `T`=`FPGroup`),
+`PcGroup` (if the quotient group is solvable) or `PermGroup` (otherwise),
+where `H` is the normal closure of `elements` in `G`.
 """
 function quo(G::T, elements::Vector{S}) where T <: GAPGroup where S <: GAPGroupElem
   @assert elem_type(G) == S
@@ -310,7 +313,9 @@ end
 """
     quo(G::T, H::T)
 
-Return the quotient group `G/H` of type `PcGroup` (if the quotient group is solvable) or `PermGroup` (otherwise), together with the projection `G` -> `G/H`.
+Return the quotient group `G/H` of type `PcGroup` (if the quotient group is
+solvable) or `PermGroup` (otherwise), together with the projection `G` ->
+`G/H`.
 """
 function quo(G::T, H::T) where T <: GAPGroup
   mp = GAP.Globals.NaturalHomomorphismByNormalSubgroup(G.X, H.X)

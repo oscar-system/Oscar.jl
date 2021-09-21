@@ -275,7 +275,8 @@ end
 """
     SemidirectProductGroup{S,T}
 
-Semidirect product of two groups of type `S` and `T` respectively, or subgroup of a semidirect product of groups.
+Semidirect product of two groups of type `S` and `T` respectively, or
+subgroup of a semidirect product of groups.
 """
 struct SemidirectProductGroup{S<:GAPGroup, T<:GAPGroup} <: GAPGroup 
   X::GapObj
@@ -289,7 +290,9 @@ end
 """
     WreathProductGroup
 
-Wreath product of a group `G` and a group of permutations `H`, or a generic group `H` together with the homomorphism `a` from `H` to a permutation group.
+Wreath product of a group `G` and a group of permutations `H`, or a generic
+group `H` together with the homomorphism `a` from `H` to a permutation
+group.
 """
 struct WreathProductGroup <: GAPGroup
   X::GapObj

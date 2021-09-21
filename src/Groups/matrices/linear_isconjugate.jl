@@ -24,7 +24,8 @@ export
 """
     multiplicative_jordan_decomposition(M::MatrixGroupElem)
 
-Return `S` and `U` in the group `G = parent(M)` such that `S` is semisimple, `U` is unipotent and  `M = SU = US`.
+Return `S` and `U` in the group `G = parent(M)` such that `S` is semisimple,
+`U` is unipotent and  `M = SU = US`.
 !!! warning "WARNING:" 
     this is *NOT*, in general, the same output returned when `M` has type `MatElem`.
 """
@@ -81,7 +82,9 @@ end
     pol_elementary_divisors(x::MatElem)
     pol_elementary_divisors(x::MatrixGroupElem)
 
-Return a list of pairs `(f_i,m_i)`, for irreducible polynomials `f_i` and positive integers `m_i`, where the `f_i^m_i` are the elementary divisors of `x`.
+Return a list of pairs `(f_i,m_i)`, for irreducible polynomials `f_i` and
+positive integers `m_i`, where the `f_i^m_i` are the elementary divisors of
+`x`.
 """
 function pol_elementary_divisors(A::MatElem{T}) where T
    a,_,c = _rational_canonical_form_setup(A)
@@ -125,7 +128,8 @@ end
 """
     generalized_jordan_form(A::MatElem{T}; with_pol=false) where T
 
-Return (`J`,`Z`), where `Z^-1*J*Z = A` and `J` is a diagonal join of Jordan blocks (corresponding to irreducible polynomials).
+Return (`J`,`Z`), where `Z^-1*J*Z = A` and `J` is a diagonal join of Jordan
+blocks (corresponding to irreducible polynomials).
 """
 function generalized_jordan_form(A::MatElem{T}; with_pol=false) where T
    V = pol_elementary_divisors(A)
