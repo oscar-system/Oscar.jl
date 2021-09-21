@@ -326,7 +326,7 @@ parent_type(::T) where T<:BasicGAPGroupElem{S} where S = S
 # Julia type such as `PermGroup`.
 #
  
-const _gap_group_types = []
+const _gap_group_types = Tuple{GAP.GapObj, Type}[]
 
 function _get_type(G::GapObj)
   for pair in _gap_group_types
@@ -336,4 +336,3 @@ function _get_type(G::GapObj)
   end
   error("Not a known type of group")
 end
-
