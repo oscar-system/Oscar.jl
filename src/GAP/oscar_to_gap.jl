@@ -25,9 +25,5 @@ GAP.julia_to_gap(obj::fmpq_mat) = GAP.julia_to_gap(Matrix(obj), recursive = true
 ## `GapGroup` to GAP group
 GAP.GapObj(obj::GAPGroup) = return obj.X
 
-convert(::Type{GAP.GapObj}, obj::GAPGroup) = GAP.GapObj(obj)
-
 ## `GapGroupElem` to GAP group element
 GAP.GapObj(obj::GAPGroupElem) = return obj.X
-
-convert(::Type{GAP.GapObj}, obj::GAPGroupElem) = GAP.GapObj(obj)
