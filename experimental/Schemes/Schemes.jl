@@ -12,7 +12,7 @@ include( "./Misc.jl" )
 using Oscar.Misc
 
 export AffineScheme, Spec, SpecPrincipalOpen
-export base_ring, ambient_ring, defining_ideal, pullback, pullback_from_parent, pullback_from_root, inclusion_in_parent, inclusion_in_root, set_name!, inverted_element, identity_morphism, denoms, inverses
+export base_ring, ambient_ring, defining_ideal, imgs_frac, pullback, pullback_from_parent, pullback_from_root, inclusion_in_parent, inclusion_in_root, set_name!, inverted_element, identity_morphism, denoms, inverses
 export affine_space, localize, subscheme
 
 export AffSchMorphism
@@ -1306,6 +1306,7 @@ mutable struct Covering
   function Covering()
     C = new()
     C.patches = AffineScheme[]
+    C.glueings = Matrix{Union{Nothing,Glueing}}(nothing,0,0)
     #C.glueings = Matrix{Union{Nothing,Glueing}}
     return C
   end
@@ -1388,7 +1389,7 @@ function _add_patch!( C::Covering, X::AffineScheme, glueings::Vector{Glueing} )
   if n != length(patches(C))-1
     error( "the number of glueings does not coincide with the number of patches so far" )
   end
-  for i in n
+  for i in (1:n)
     if first_patch( glueings[i] ) != patches(C)[i] 
       error( "Domain of the glueing does not coincide with the patch" )
     end
@@ -1505,6 +1506,17 @@ function restrict( f::AffSchMorphism, U::SpecPrincipalOpen, V::AffineScheme )
   end
   return f_res
 end
+
+restrict( f::AffSchMorphism, X::Spec, V::Spec ) = f
+
+function restrict( f::AffSchMorphism, X::Spec, V::SpecPrincipalOpen ) 
+  f_res = compose( f, inclusion_in_root(V) )
+  if isdefined( f, :name ) 
+    f_res.name = f.name
+  end
+  return f_res
+end
+
 
 @Markdown.doc """
     function union_of_schemes( X::AffineScheme, Y::AffineScheme, C::Covering )
@@ -2491,27 +2503,6 @@ direct_sum( E::VectorBundle, L::LineBundle )  = direct_sum( E, VectorBundle(L) )
 direct_sum( L::LineBundle, M::LineBundle) = direct_sum( VectorBundle(L), VectorBundle(M) )
 
 @Markdown.doc """
-    function projectivize( E::VectorBundle ) -> ( Y::CoveredScheme, p::CovSchMorphism, L::LineBundle )
-
-Constructs the projectivization Y = ℙ(E) of the VectorBundle E over X together 
-with its projection p : ℙ(E) → X and the (relative) tautological bundle L = 𝒪(1) on 
-ℙ(E).
-"""
-function projectivize( E::VectorBundle; fiber_var_name="u" )
-  X = parent(E)
-  C = covering(E) 
-  U = patches(C)
-  n = length(U)
-  r = rank(E)
-  A = transitions(E)
-  V = Vector{AffineScheme}()
-
-  #TODO: Finish the implementation.
-
-  error( "Not implemented, yet" )
-end
-
-@Markdown.doc """
     function cartesian_product( X::Spec, Y::Spec ) -> (::Spec, ::AffSchMorphims, ::AffSchMorphism)
 
 Returns the product X ← X × Y → Y and its two projections.
@@ -2580,8 +2571,79 @@ function cartesian_product( X::Spec, V::SpecPrincipalOpen )
   return XxV, pi1, pi2 
 end
 
+function cartesian_product( X::CoveredScheme, Y::CoveredScheme )
+end
 
-  
-  
+function cartesian_product( U::AffineScheme, Y::CoveredScheme )
+  C = coverings(Y)[1]
+  V = patches(C)
+  n = length(V) 
+  G = glueings(C)
+  D = Covering() # the new covering of the product
+  UxV = Vector{AffineScheme}() # the patches for the product 
+  first_projections = Vector{AffSchMorphism}() # the first projections of the patches
+  second_projections = Vector{AffSchMorphism}() # the second projections of the patches
+  G_prod = Matrix{Union{Glueing,Nothing}}(undef,0,0) # the glueings for the product
+  for j in (1:n) 
+    W, p1, p2 = cartesian_product( U, V[j] )
+    p1_res = restrict( p1, W, U )
+    p2_res = restrict( p2, W, V[j] )
+    G_new = Vector{Glueing}() # glueings for this particular patch to those already present
+    push!( UxV, W )
+    push!( first_projections, p1 )
+    push!( second_projections, p2 )
+    for i in (1:j-1)
+      g_ij = G[i,j] # the glueing of these two patches 
+      V_ij = overlap( g_ij )
+      # the next two affine schemes are the ones to be glued together
+      Wj_loc = localize( W, pullback(p2)(denom(domain(second_inclusion(g_ij)))) )
+      Wi_loc = localize( UxV[i], pullback(second_projections[i])(denom(domain(first_inclusion(g_ij)))) )
+      phi = glueing_isomorphism( g_ij )
+      glueing_images = imgs_frac(phi)
+      R = ambient_ring(root(W))
+      Q = FractionField(R)
+      imgs_U_vars = [Q(pullback(p1)(u)) for u in gens(ambient_ring(root(U)))]
+      imgs_glueing = [ pullback(second_projections[i])(numerator(v))//pullback(second_projections[i])(denominator(v)) for v in glueing_images ]
+      push!( G_new, Glueing( inclusion_in_parent(Wi_loc), 
+			    inclusion_in_parent(Wj_loc), 
+			    AffSchMorphism( Wi_loc, Wj_loc, vcat( imgs_U_vars, imgs_glueing ) )
+			    ))
+    end
+    _add_patch!( D, W, G_new )
+  end
+  XxY = CoveredScheme( D )
+  return XxY, 0, 0 # TODO: Implement that the two projections are also returned!
+end
 
+
+@Markdown.doc """
+    function projectivize( E::VectorBundle ) -> ( Y::CoveredScheme, p::CovSchMorphism, L::LineBundle )
+
+Constructs the projectivization Y = ℙ(E) of the VectorBundle E over X together 
+with its projection p : ℙ(E) → X and the (relative) tautological bundle L = 𝒪(1) on 
+ℙ(E).
+"""
+function projectivize( E::VectorBundle; fiber_var_name="u" )
+  X = parent(E)
+  k = base_ring(X)
+  C = covering(E) 
+  U = patches(C)
+  G = glueings(C)
+  n = length(U)
+  r = rank(E)
+  A = transitions(E)
+  V = Vector{AffineScheme}()
+
+# D = Covering()
+# for i in (1:n)
+#   UxIAr, p_base, p_fiber = cartesian_product( U[i], affine_space( k, r )) 
+#   T = Vector{Glueing}()
+#   for j in (1:i)
+#     g = glueing_isomorphism(G[j,i])
+#     T[j] = 
+
+  #TODO: Finish the implementation.
+
+  error( "Not implemented, yet" )
+end
 

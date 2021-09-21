@@ -83,3 +83,41 @@ end
   @test radical_membership( g*projection(y), g^4*projection(y) )
 end
 
+@testset "products of affine schemes" begin
+using Oscar
+using Oscar.Misc
+  IA = affine_space( QQ, 3 )
+  set_name!(IA, "𝔸³" )
+  R = ambient_ring(IA)
+  x = gens( R )
+  f = x[1]^2 + x[2]^2 + x[3]^2 - 1
+  X = subscheme( IA, f )
+  set_name!(X, "X" )
+  U = localize( X, x[1] )
+  set_name!(U, "U" )
+  Y = affine_space(QQ, 2, var_name="y" )
+  set_name!(Y, "Y" )
+  y = gens( ambient_ring( Y ))
+  V = localize( Y, y[2] ) 
+  set_name!(V, "V" )
+  UxV, pi1, pi2 = cartesian_product( U, V )
+  set_name!(UxV, "U × V" )
+  pi1_restr = restrict( pi1, UxV, U )
+  pi2_restr = restrict( pi2, UxV, V )
+  phi = pullback(pi1_restr)
+end
+
+@testset "products of covered schemes" begin
+using Oscar
+using Oscar.Misc
+  IA = affine_space( QQ, 3, var_name="u" )
+  set_name!(IA, "𝔸³" )
+  R = ambient_ring(IA)
+  x = gens( R )
+  f = x[1]^2 + x[2]^2 + x[3]^2 - 1
+  X = subscheme( IA, f )
+  set_name!(X, "X" )
+  IP = projective_space( QQ, 2 )
+  XxIP, p, q = cartesian_product( X, IP )
+end
+
