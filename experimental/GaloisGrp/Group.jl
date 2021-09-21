@@ -133,11 +133,6 @@ function action_on_blocks(G::PermGroup, B::Vector{Int})
   return Oscar._hom_from_gap_map(G, H, act)
 end
 
-Base.sign(G::PermGroup) = GAP.Globals.SignPermGroup(G.X)
-
-Base.isodd(G::PermGroup) = sign(G) == -1
-Base.iseven(n::PermGroup) = !isodd(n)
-
 @doc Markdown.doc"""
     short_right_transversal(G::PermGroup, H::PermGroup, s::PermGroupElem) ->
 
@@ -146,11 +141,11 @@ Determines representatives `g` for all right-cosets of `G` modulo `H`
 """
 function short_right_transversal(G::PermGroup, H::PermGroup, s::PermGroupElem)
   C = conjugacy_classes(H)
-  cs = GAP.Globals.CycleStructurePerm(s.X)
+  cs = cycle_structure(s)
   can = PermGroupElem[]
   for c in C
     r = representative(c)
-    if cs == GAP.Globals.CycleStructurePerm(r.X)
+    if cs == cycle_structure(r)
       push!(can, r)
     end
   end

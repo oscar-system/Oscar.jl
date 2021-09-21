@@ -275,8 +275,6 @@ julia> Vector{fmpz}(pi, 2)
 Base.Vector{T}(x::PermGroupElem, n::Int = x.parent.deg) where T <: IntegerUnion = T[x(i) for i in 1:n]
 Base.Vector(x::PermGroupElem, n::Int = x.parent.deg) = Vector{Int}(x,n)
 
-Base.sign(x::PermGroupElem) = GAP.Globals.SignPerm(x.X)::Int
-
 #embedding of a permutation in permutation group
 function (G::PermGroup)(x::PermGroupElem)
    if !GAP.Globals.IN(x.X,G.X)
@@ -295,3 +293,107 @@ end
 ^(n::T, x::PermGroupElem) where T <: IntegerUnion = T(GAP.Globals.OnPoints(GAP.GapObj(n), x.X))
 
 ^(n::Int, x::PermGroupElem) = GAP.Globals.OnPoints(n,x.X)
+
+
+"""
+    sign(g::PermGroupElem)
+
+Return the sign of the permutation `g`.
+
+The sign of a permutation ``g`` is defined as ``(-1)^k`` where ``k`` is the number of
+cycles of ``g`` of even length.
+
+# Examples
+```jldoctest
+julia> sign(cperm(1:2))
+-1
+
+julia> sign(cperm(1:3))
+1
+```
+"""
+Base.sign(g::PermGroupElem) = GAP.Globals.SignPerm(g.X)::Int
+
+# TODO: document the following?
+Base.sign(G::PermGroup) = GAP.Globals.SignPermGroup(G.X)
+
+
+"""
+    isodd(g::PermGroupElem)
+
+Return `true` if the permutation `g` is odd, `false` otherwise.
+
+A permutation is odd if it has an odd number of cycles of even length.
+Equivalently, a permutation is odd if it has sign ``-1``.
+
+# Examples
+```jldoctest
+julia> isodd(cperm(1:2))
+true
+
+julia> isodd(cperm(1:3))
+false
+
+julia> isodd(cperm(1:2,3:4))
+false
+```
+"""
+Base.isodd(g::PermGroupElem) = sign(g) == -1
+
+"""
+    iseven(g::PermGroupElem)
+
+Return `true` if the permutation `g` is even, `false` otherwise.
+
+A permutation is even if it has an even number of cycles of even length.
+Equivalently, a permutation is even if it has sign ``+1``.
+
+# Examples
+```jldoctest
+julia> iseven(cperm(1:2))
+false
+
+julia> iseven(cperm(1:3))
+true
+
+julia> iseven(cperm(1:2,3:4))
+true
+```
+"""
+Base.iseven(n::PermGroupElem) = !isodd(n)
+
+
+# TODO: document the following?
+Base.isodd(G::PermGroup) = sign(G) == -1
+Base.iseven(n::PermGroup) = !isodd(n)
+
+"""
+    cycle_structure(g::PermGroupElem)
+
+Return the cycle structure of the permutation `g` as a sorted vector of
+pairs. A pair `k => n` in this vector indicates that the number
+of ``k``-cycles in the cycle decomposition of `g` is equal to `n`.
+
+# Examples
+```jldoctest
+julia> g = cperm(1:3, 4:5, 6:7, 8:10, 11:15)
+(1,2,3)(4,5)(6,7)(8,9,10)(11,12,13,14,15)
+
+julia> cycle_structure(g)
+3-element Vector{Pair{Int64, Int64}}:
+ 2 => 2
+ 3 => 2
+ 5 => 1
+
+julia> cperm()
+()
+
+julia> cycle_structure(ans)
+Pair{Int64, Int64}[]
+```
+"""
+function cycle_structure(g::PermGroupElem)
+    c = GAP.Globals.CycleStructurePerm(GAP.GapObj(g))
+    # TODO: use SortedDict from DataStructures.jl ?
+    return Pair{Int,Int}[ i+1 => c[i] for i in 1:length(c) if GAP.Globals.ISB_LIST(c, i) ]
+end
