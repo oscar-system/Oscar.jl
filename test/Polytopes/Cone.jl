@@ -22,6 +22,7 @@ const pm = Polymake
         @test rays(RayVector, Cone1) isa VectorIterator{RayVector{Polymake.Rational}}
         @test facets(Halfspace, Cone1) isa HalfspaceIterator{Halfspace}
         @test facets(Halfspace, Cone1).A == [-1 0; 0 -1]
+        @test facets(Cone, Cone1) isa HalfspaceIterator{Cone}
         @test facets(Cone1) isa HalfspaceIterator{Halfspace}
 
         @test !ispointed(Cone2)
@@ -44,5 +45,9 @@ const pm = Polymake
         @test faces(Cone, Cone2, 2).lineality == [0 1 0]
         @test faces(Cone2, 2) isa PolyhedronOrConeIterator{Cone}
         @test isnothing(faces(Cone2, 1))
+    end
+
+    @testset "constructors" begin
+        @test cone_from_inequalities([-1 0 0; 0 0 -1]) == Cone2
     end
 end

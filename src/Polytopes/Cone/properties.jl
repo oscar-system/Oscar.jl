@@ -187,7 +187,7 @@ julia> f = facets(Halfspace, c)
 1: -x₂ + x₃ ≦ 0
 ```
 """
-facets(as::Type{T}, C::Cone) where T<:Union{Halfspace} = HalfspaceIterator{as}(-pm_cone(C).FACETS)
+facets(as::Type{T}, C::Cone) where T<:Union{Halfspace, Cone} = HalfspaceIterator{as}(-pm_cone(C).FACETS)
 
 @doc Markdown.doc"""
     facets(as::Type{T} = Halfspace, C::Cone)

@@ -27,9 +27,11 @@
     end
 
     @testset "HalfspaceIterator" begin
-        A = [-1 0 0; 0 -2 0; 0 0 -1; 1 1 1]
-        b = [0, 3, 2, 4]
+        A_old = [-1 0 0; 0 -2 0; 0 0 -1; 1 1 1]
+        b_old = [0, 3, 2, 4]
         for T in [Halfspace, Polyhedron, Pair{Polymake.Matrix{Polymake.Rational}, Polymake.Rational}]
+            A = A_old
+            b = b_old
             hi = HalfspaceIterator{T}(A, b)
             @test hi isa HalfspaceIterator
             @test hi isa HalfspaceIterator{T}
@@ -54,7 +56,14 @@
             @test hai.b == zeros(4)
             @test matrix(hai) == matrix(QQ, A)
         end
-        @test HalfspaceIterator(A, b) isa HalfspaceIterator{Halfspace}
+        @test HalfspaceIterator(A_old, b_old) isa HalfspaceIterator{Halfspace}
+        hai = HalfspaceIterator{Cone}(A_old)
+        @test hai isa HalfspaceIterator{Cone}
+        for i in 1:4
+            @test hai[i] isa Cone
+            @test hai[i] == cone_from_inequalities(reshape(A_old[i, :], 1, :))
+        end
+
     end
 
     @testset "PolyhedronOrConeIterator" begin

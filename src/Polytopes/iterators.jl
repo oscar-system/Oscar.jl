@@ -149,11 +149,10 @@ function Base.getindex(iter::HalfspaceIterator{T}, i::Base.Integer) where T
     return T(reshape(iter.A[i, :], 1, :), iter.b[i])
 end
 
-# TODO: include when there is `ConeFromInequality`
-# function Base.getindex(iter::HalfspaceIterator{Cone}, i::Base.Integer)
-#     @boundscheck checkbounds(iter.b, i)
-#     return ConeFromInequality(iter.A[i, :])
-# end
+function Base.getindex(iter::HalfspaceIterator{Cone}, i::Base.Integer)
+    @boundscheck checkbounds(iter.b, i)
+    return cone_from_inequalities(reshape(iter.A[i, :], 1, :))
+end
 
 function Base.setindex!(iter::HalfspaceIterator, val::Halfspace, i::Base.Integer)
     @boundscheck checkbounds(iter.b, i)
@@ -177,6 +176,13 @@ function matrix(iter::HalfspaceIterator)
         throw(ArgumentError("Half-spaces have to be affine in order for `matrix` to be defined"))
     end
     return matrix(QQ, Matrix{fmpq}(iter.A))
+end
+
+function matrix_for_polymake(iter::HalfspaceIterator)
+    if !iszero(iter.b)
+        throw(ArgumentError("Half-spaces have to be affine in order for `matrix_for_polymake` to be defined"))
+    end
+    return iter.A
 end
 
 HalfspaceIterator(x...) = HalfspaceIterator{Halfspace}(x...)

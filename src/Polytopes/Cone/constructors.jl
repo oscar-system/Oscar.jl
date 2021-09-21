@@ -67,12 +67,34 @@ julia> PO = positive_hull(R)
 A polyhedral cone in ambient dimension 2
 ```
 """
-function positive_hull(R::Union{Oscar.MatElem,AbstractMatrix})
+function positive_hull(R::Union{VectorIterator{RayVector}, Oscar.MatElem,AbstractMatrix})
     # TODO: Filter out zero rows
     C=Polymake.polytope.Cone{Polymake.Rational}(INPUT_RAYS =
       matrix_for_polymake(remove_zero_rows(R)))
     Cone(C)
 end
+
+@doc Markdown.doc"""
+
+    cone_from_inequalities(A::Union{Oscar.MatElem,AbstractMatrix}, b)
+
+The (convex) cone defined by
+
+$$\{ x |  Ax ≤ 0 \}.$$
+
+# Examples
+```jldoctest
+julia> C = cone_from_inequalities([0 -1; -1 1])
+A polyhedral cone in ambient dimension 2
+
+julia> rays(C)
+2-element VectorIterator{RayVector{Polymake.Rational}}:
+ [1, 0]
+ [1, 1]
+```
+"""
+cone_from_inequalities(I::Union{HalfspaceIterator, Oscar.MatElem,AbstractMatrix}) =
+    Cone(Polymake.polytope.Cone{Polymake.Rational}(FACETS = -matrix_for_polymake(I)))
 
 
 """
