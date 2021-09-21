@@ -17,6 +17,7 @@ export
     core,
     coset_decomposition,
     cperm,
+    cycle_structure,
     degree,
     describe,
     div_left,
