@@ -1,8 +1,8 @@
 # Oscar.jl
 
-| **Documentation**                                                 | **Build Status**                                                                                |
-|:-----------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------:|
-| [![][docs-stable-img]][docs-stable-url] [![][docs-dev-img]][docs-dev-url] | [![][ga-img]][ga-url] [![][codecov-img]][codecov-url] [![][coveralls-img]][coveralls-url] |
+| **Documentation**                                                         | **Build Status**                                      |
+|:-------------------------------------------------------------------------:|:-----------------------------------------------------:|
+| [![][docs-stable-img]][docs-stable-url] [![][docs-dev-img]][docs-dev-url] | [![][ga-img]][ga-url] [![][codecov-img]][codecov-url] |
 
 
 Welcome to the OSCAR project, a visionary new computer algebra system
