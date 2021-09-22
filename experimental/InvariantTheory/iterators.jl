@@ -1,3 +1,9 @@
+################################################################################
+#
+#  All Monomials
+#
+################################################################################
+
 # Iterate over all vectors in Z_{\geq 0}^n of weight (sum of the entries d)
 WeightedIntegerVectors(n::T, d::T) where T = WeightedIntegerVectors{T}(n, d)
 
@@ -62,26 +68,40 @@ end
 # Returns an iterator over all monomials of R of degree d
 function all_monomials(R::MPolyRing, d::Int)
   @assert d >= 0
-  oneR = elem_type(base_ring(R))[ one(base_ring(R)) ]
-  exps = Vector{Int}[ zeros(Int, nvars(R)) ]
 
-  function new_elt(w::Vector{Int})
-    exps[1] = w
-    return R(oneR, exps)
+  if d == 0
+    return ( one(R) for i = 1:1)
   end
-  return ( new_elt(w) for w in WeightedIntegerVectors(nvars(R), d))
+  return ( set_exponent_vector!(one(R), 1, w) for w in WeightedIntegerVectors(nvars(R), d) )
+end
+
+################################################################################
+#
+#  Bases of Invariant Rings
+#
+################################################################################
+
+# Returns the dimension of the graded component of degree d.
+# If we cannot compute the Molien series (so far in the modular case), we return
+# -1.
+function dimension_via_molien_series(R::InvRing, d::Int)
+  if ismodular(R)
+    return -1
+  end
+
+  Qt, t = PowerSeriesRing(QQ, d + 1, "t")
+  F = molien_series(R)
+  k = coeff(numerator(F)(t)*inv(denominator(F)(t)), d)
+  @assert isintegral(k)
+  k = Int(numerator(k))
+  return k
 end
 
 # Iterate over the basis of the degree d component of an invariant ring.
 # algo can be either :default, :reynolds or :linear_algebra.
-function InvRingBasisIterator(R::InvRing{FldT, GrpT, PolyElemT, PolyRingT, ActionT, SingularActionT}, d::Int, algo::Symbol = :default) where {FldT, GrpT, PolyElemT, PolyRingT, ActionT, SingularActionT}
+function iterate_basis(R::InvRing, d::Int, algo::Symbol = :default)
   @assert d >= 0 "Degree must be non-negativ"
 
-  Qt, t = PowerSeriesRing(QQ, d + 1, "t")
-  F = molien_series(R)
-  k = coeff(numerator(F)(t)*inv(denominator(F)(t)), d) # Dimension of the d-th component
-  @assert isintegral(k)
-  k = Int(numerator(k))
   reynolds = false
   if algo == :reynolds
     reynolds = true
@@ -89,7 +109,7 @@ function InvRingBasisIterator(R::InvRing{FldT, GrpT, PolyElemT, PolyRingT, Actio
     reynolds = false
   elseif algo == :default
     # TODO: Fine tune this: Depending on d and the group order it is better
-    # to use "via_linear_algebra" also in the non-modular case.
+    # to use "linear_algebra" also in the non-modular case.
     if ismodular(R)
       reynolds = false
     else
@@ -99,20 +119,88 @@ function InvRingBasisIterator(R::InvRing{FldT, GrpT, PolyElemT, PolyRingT, Actio
     error("Unsupported argument :$(algo) for algo.")
   end
 
-  monomials = all_monomials(polynomial_ring(R), d)
-  return InvRingBasisIterator{FldT, GrpT, PolyElemT, PolyRingT, ActionT, SingularActionT, typeof(monomials)}(R, d, k, reynolds, monomials)
+  if reynolds
+    return iterate_basis_reynolds(R, d)
+  end
+  return iterate_basis_linear_algebra(R, d)
 end
 
-Base.eltype(BI::InvRingBasisIterator{FldT, GrpT, PolyElemT}) where {FldT, GrpT, PolyElemT} = PolyElemT
+function iterate_basis_reynolds(R::InvRing, d::Int)
+  @assert d >= 0 "Degree must be non-negativ"
+
+  monomials = all_monomials(polynomial_ring(R), d)
+
+  k = dimension_via_molien_series(R, d)
+  @assert k != -1
+
+  N = zero_matrix(base_ring(polynomial_ring(R)), 0, 0)
+  return InvRingBasisIterator{typeof(R), typeof(monomials), typeof(N)}(R, d, k, true, monomials, N)
+end
+
+# Sadly, we can't really do much iteratively here.
+function iterate_basis_linear_algebra(IR::InvRing, d::Int)
+  @assert d >= 0 "Degree must be non-negativ"
+
+  R = polynomial_ring(IR)
+
+  k = dimension_via_molien_series(IR, d)
+  if k == 0
+    N = zero_matrix(base_ring(R), 0, 0)
+    mons = elem_type(R)[]
+    return InvRingBasisIterator{typeof(IR), typeof(mons), typeof(N)}(IR, d, k, false, mons, N)
+  end
+
+  mons = collect(all_monomials(R, d))
+  if d == 0
+    N = identity_matrix(base_ring(R), 1, 1)
+    return InvRingBasisIterator{typeof(IR), typeof(mons), typeof(N)}(IR, d, k, false, mons, N)
+  end
+
+  mons_to_rows = Dict{elem_type(R), Int}(mons .=> 1:length(mons))
+
+  K = base_ring(R)
+
+  group_gens = action(IR)
+  M = zero_matrix(K, length(group_gens)*length(mons), length(mons))
+  for i = 1:length(group_gens)
+    offset = (i - 1)*length(mons)
+    phi = right_action(R, group_gens[i])
+    for j = 1:length(mons)
+      f = mons[j]
+      g = phi(f) - f
+      for (c, m) in zip(coefficients(g), monomials(g))
+        M[offset + mons_to_rows[m], j] = c
+      end
+    end
+  end
+  n, N = right_kernel(M)
+
+  return InvRingBasisIterator{typeof(IR), typeof(mons), typeof(N)}(IR, d, n, false, mons, N)
+end
+
+Base.eltype(BI::InvRingBasisIterator) = elem_type(polynomial_ring(BI.R))
 
 Base.length(BI::InvRingBasisIterator) = BI.dim
 
 function Base.iterate(BI::InvRingBasisIterator)
+  if BI.reynolds
+    return iterate_reynolds(BI)
+  end
+  return iterate_linear_algebra(BI)
+end
+
+function Base.iterate(BI::InvRingBasisIterator, state::InvRingBasisIteratorState)
+  if BI.reynolds
+    return iterate_reynolds(BI, state)
+  end
+  return iterate_linear_algebra(BI, state)
+end
+
+function iterate_reynolds(BI::InvRingBasisIterator)
+  @assert BI.reynolds
   if BI.dim == 0
     return nothing
   end
-
-  @assert BI.reynolds "Not implemented (yet)"
 
   K = base_ring(polynomial_ring(BI.R))
 
@@ -144,12 +232,12 @@ function Base.iterate(BI::InvRingBasisIterator)
       M[1, i] = c
       i += 1
     end
-    return g, InvRingBasisIteratorState{typeof(M), typeof(g), typeof(state)}(M, monomial_to_basis, state)
+    return inv(leading_coefficient(g))*g, InvRingBasisIteratorState{typeof(M), typeof(g), typeof(state)}(M, monomial_to_basis, state)
   end
 end
 
-function Base.iterate(BI::InvRingBasisIterator, state::InvRingBasisIteratorState)
-  @assert BI.reynolds "Not implemented (yet)"
+function iterate_reynolds(BI::InvRingBasisIterator, state::InvRingBasisIteratorState)
+  @assert BI.reynolds
 
   if nrows(state.M) == BI.dim
     return nothing
@@ -183,10 +271,41 @@ function Base.iterate(BI::InvRingBasisIterator, state::InvRingBasisIteratorState
       N[nrows(N), col] = c
     end
     if new_basis_mon || rref!(N) == nrows(M) + 1
-      return g, InvRingBasisIteratorState{typeof(N), typeof(g), typeof(monomial_state)}(N, state.monomial_to_basis, monomial_state)
+      return inv(leading_coefficient(g))*g, InvRingBasisIteratorState{typeof(N), typeof(g), typeof(monomial_state)}(N, state.monomial_to_basis, monomial_state)
     end
   end
 end
 
-iterate_basis(IR::InvRing, d::Int, algo::Symbol = :default) = InvRingBasisIterator(IR, d, algo)
+function iterate_linear_algebra(BI::InvRingBasisIterator)
+  @assert !BI.reynolds
+  if BI.dim == 0
+    return nothing
+  end
 
+  f = polynomial_ring(BI.R)()
+  N = BI.kernel
+  for i = 1:nrows(N)
+    if iszero(N[i, 1])
+      continue
+    end
+    f += N[i, 1]*BI.monomials[i]
+  end
+  return f, InvRingBasisIteratorState{typeof(N), typeof(f), Int}(2)
+end
+
+function iterate_linear_algebra(BI::InvRingBasisIterator, state::InvRingBasisIteratorState)
+  @assert !BI.reynolds
+  if state.i > BI.dim
+    return nothing
+  end
+
+  f = polynomial_ring(BI.R)()
+  N = BI.kernel
+  for i = 1:nrows(N)
+    if iszero(N[i, state.i])
+      continue
+    end
+    f += N[i, state.i]*BI.monomials[i]
+  end
+  return f, InvRingBasisIteratorState{typeof(N), typeof(f), Int}(state.i + 1)
+end

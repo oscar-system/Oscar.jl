@@ -161,7 +161,7 @@ function grade(R::MPolyRing, v::Vector{GrpAbFinGenElem})
   return S, map(S, gens(R))
 end
 
-struct MPolyElem_dec{T, S} <: MPolyElem{T}
+mutable struct MPolyElem_dec{T, S} <: MPolyElem{T}
   f::S
   parent
   function MPolyElem_dec(f::S, p) where {S}
@@ -330,6 +330,11 @@ function push_term!(M::MPolyBuildCtx{<:MPolyElem_dec{T, S}}, c::T, expv::Vector{
   set_exponent_vector!(M.poly.f, len, expv)
   setcoeff!(M.poly.f, len, c)
   return M
+end
+
+function set_exponent_vector!(f::MPolyElem_dec, i::Int, exps::Vector{Int})
+  f.f = set_exponent_vector!(f.f, i, exps)
+  return f
 end
 
 function finish(M::MPolyBuildCtx{<:MPolyElem_dec})
