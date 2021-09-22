@@ -258,10 +258,10 @@ end
 export stanley_reisner_ideal
 
 
-struct morphism_from_cox_variety
+struct morphismFromCoxVariety
            GapMorphismFromCoxVariety::GapObj
 end
-export morphism_from_cox_variety
+export morphismFromCoxVariety
 
 
 """
@@ -271,7 +271,7 @@ Computes the morphism from the Cox variety of the normal toric variety `v`.
 """
 function morphism_from_cox_variety( v::normalToricVariety )
     gap_MorphismFromCoxVariety = GAP.Globals.MorphismFromCoxVariety( v.GapNTV )
-    return morphism_from_cox_variety( gap_MorphismFromCoxVariety )
+    return morphismFromCoxVariety( gap_MorphismFromCoxVariety )
 end
 export morphism_from_cox_variety
 
