@@ -24,7 +24,7 @@ belong to `Integer`.
 The `Int` type is for machine integers which are highly efficient, but
 can only represent integers up to a certain size, and most basic arithmetic
 operations are performed unchecked, that is, they can [silently overflow](https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/#Overflow-behavior). The
-`Int` type is the type of literal input such at `12`, and should be used for
+`Int` type is the type of literal input such as `12`, and should be used for
 loop control flow, array indices, and other situations where the overflow can
 be provably avoided.
 
