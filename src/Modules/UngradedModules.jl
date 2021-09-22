@@ -1288,24 +1288,26 @@ Compute the intersection $M \cap N$ along with the inclusion morphisms $M \cap N
 function Base.:intersect(M::SubQuo{T}, N::SubQuo{T}) where T
   #TODO allow task as argument?
   @assert free_module(M) === free_module(N)
-  n_rel = matrix(N.quo)
-  m_rel = matrix(M.quo)
+  M_quo = isdefined(M, :quo) ? M.quo : Oscar.SubModuleOfFreeModule(free_module(M), Vector{FreeModElem}())
+  N_quo = isdefined(N, :quo) ? N.quo : Oscar.SubModuleOfFreeModule(free_module(N), Vector{FreeModElem}())
+  n_rel = matrix(N_quo)
+  m_rel = matrix(M_quo)
 
-  if (m_rel == n_rel) || Set([m_rel[i,:] for i=1:size(m_rel)[1]])==Set([n_rel[j,:] for j=1:size(n_rel)[1]]) || M.quo == N.quo
+  if (m_rel == n_rel) || Set([m_rel[i,:] for i=1:size(m_rel)[1]])==Set([n_rel[j,:] for j=1:size(n_rel)[1]]) || M_quo == N_quo
     n = size(matrix(N.sub))
     m = size(matrix(M.sub))
     if n[2]!=m[2]
       throw(DimensionMismatch("Matrices have different number of columns"))
     end
 
-    global_module_matrix = vcat(matrix(M.sub), matrix(N.sub), matrix(M.quo))
+    global_module_matrix = vcat(matrix(M.sub), matrix(N.sub), matrix(M_quo))
 
     CD = matrix_kernel(global_module_matrix)
 
     C = CD[:,1:m[1]]
     D = CD[:,(m[1]+1):(m[1]+n[1])]
     new_gen = C*matrix(M.sub)
-    SQ = SubQuo(free_module(M),new_gen, m_rel)
+    SQ = length(m_rel) == 0 ? SubQuo(SubModuleOfFreeModule(free_module(M),new_gen)) : SubQuo(free_module(M),new_gen, m_rel)
 
     M_hom = SubQuoHom(SQ,M,C)
     N_hom = SubQuoHom(SQ,N,D)
@@ -1314,7 +1316,7 @@ function Base.:intersect(M::SubQuo{T}, N::SubQuo{T}) where T
 
     return SQ,M_hom,N_hom
   end
-  throw(ArgumentError("img(M.relations) != img(N.relations)"))
+  throw(ArgumentError("Relations of M and N are not equal."))
 end
 
 @doc Markdown.doc"""
@@ -3069,7 +3071,7 @@ function map_canonically(M::SubQuo, v::SubQuoElem)
     for H in A.incoming_morphisms
       B = domain(H)
       if B!==A # on trees "B!==A" is enough!
-        if length(findall(x->x===B,modules)) == 0 #if !(B in modules) doesn't work since it uses == instead of ===
+        if findfirst(x->x===B,modules) == nothing #if !(B in modules) doesn't work since it uses == instead of ===
           parent_hom[B] = H
           push!(modules,B)
         end
@@ -3101,19 +3103,19 @@ function all_canonical_maps(M::SubQuo, N::SubQuo)
 
   all_paths = []
 
-  function helper_dfs(U::SubQuo, D::SubQuo, visited::Set, path::Vector)
+  function helper_dfs!(U::SubQuo, D::SubQuo, visited::Vector{<:ModuleMap}, path::Vector)
     if U === D
       push!(all_paths, path)
       return
     end
     for neighbor_morphism in U.outgoing_morphisms
-      if !(neighbor_morphism in visited)
-        helper_dfs(codomain(neighbor_morphism), D, union(visited, Set([neighbor_morphism])), union(path, [neighbor_morphism]))
+      if findfirst(x->x===neighbor_morphism, visited) === nothing #if !(neighbor_morphism in visited) doesn't work since it uses == instead of ===
+        helper_dfs!(codomain(neighbor_morphism), D, vcat(visited, [neighbor_morphism]), union(path, [neighbor_morphism]))
       end
     end
   end
 
-  helper_dfs(N, M, Set(), [])
+  helper_dfs!(N, M, Vector{ModuleMap}(), [])
 
   morphisms = Vector{ModuleMap}()
   for path in all_paths
