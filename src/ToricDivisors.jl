@@ -12,7 +12,7 @@ export toric_divisor
 ######################
 
 """
-    create_divisor( c::Vector{Int}, v::NormalToricVariety )
+    create_divisor( c::Vector{Int}, v::normalToricVariety )
 
 Construct the torus invariant divisor on the normal toric variety `v` as linear combination of the torus invariant prime divisors of `v`. The coefficients of thi linear combination are passed as list of integers as first argument.
 
@@ -22,7 +22,7 @@ julia> create_divisor( [1,1,2], projective_space( 2 ) )
 toric_divisor(GAP: <A divisor of a toric variety with coordinates ( 1, 1, 2 )>)
 ```
 """
-function create_divisor( coeffs::Vector{Int}, v::NormalToricVariety )
+function create_divisor( coeffs::Vector{Int}, v::normalToricVariety )
     # create the divisor
     gap_coeffs = GapObj( coeffs )
     gap_divisor = GAP.Globals.CreateDivisor( gap_coeffs, v.GapNTV )
@@ -33,7 +33,7 @@ end
 export create_divisor
 
 """
-    divisor_of_character( c::Vector{Int}, v::NormalToricVariety )
+    divisor_of_character( c::Vector{Int}, v::normalToricVariety )
 
 Construct the torus invariant divisor on the normal toric variety `v` corresponding to the character `c`.
 
@@ -43,7 +43,7 @@ julia> divisor_of_character( [1,2], projective_space( 2 ) )
 toric_divisor(GAP: <A principal divisor of a toric variety with coordinates ( -3, 2, 1 )>)
 ```
 """
-function divisor_of_character( character::Vector{Int}, v::NormalToricVariety )
+function divisor_of_character( character::Vector{Int}, v::normalToricVariety )
     # create the divisor
     gap_character = GapObj( character )
     gap_divisor = GAP.Globals.DivisorOfCharacter( gap_character, v.GapNTV )
@@ -54,7 +54,7 @@ end
 export divisor_of_character
 
 """
-    divisor_of_class( v::NormalToricVariety, c::Vector{Int} )
+    divisor_of_class( v::normalToricVariety, c::Vector{Int} )
 
 Construct a torus invariant divisor on the normal toric variety `v` corresponding to the divisor class `c`.
 
@@ -64,7 +64,7 @@ julia> divisor_of_class( [1], projective_space( 2 ) )
 toric_divisor(GAP: <A divisor of a toric variety with coordinates ( 1, 0, 0 )>)
 ```
 """
-function divisor_of_class( v::NormalToricVariety, class::Vector{Int} )
+function divisor_of_class( v::normalToricVariety, class::Vector{Int} )
     # create the divisor
     gap_class = GapObj( class )
     gap_divisor = GAP.Globals.DivisorOfGivenClass( v.GapNTV, gap_class )
