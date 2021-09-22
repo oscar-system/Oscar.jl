@@ -544,10 +544,10 @@ end
 export *
 
 
-struct character_to_rational_function
+struct characterToRationalFunction
            gap_CharacterToRationalFunction::GapObj
 end
-export character_to_rational_function
+export characterToRationalFunction
 
 
 """
@@ -557,7 +557,7 @@ Turn the character `l` of the normal toric variety `v` into a rational function.
 """
 function character_to_rational_function( l::Vector{Int}, v::normalToricVariety )
     gap_CharacterToRationalFunction = GAP.Globals.CharacterToRationalFunction( GapObj( l ), v.GapNTV )
-    return character_to_rational_function( gap_CharacterToRationalFunction )
+    return characterToRationalFunction( gap_CharacterToRationalFunction )
 end
 export character_to_rational_function
 
