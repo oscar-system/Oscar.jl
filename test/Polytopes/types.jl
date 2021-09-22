@@ -3,70 +3,66 @@
     a = [1, 2, 3]
     b = [8, 6, 4]
 
-    for T in [PointVector, RayVector]
+    @testset "$T" for T in (PointVector, RayVector)
 
-        @testset "$T" begin
+        @test T(a) isa T{Polymake.Rational}
 
-            @test T(a) isa T{Polymake.Rational}
+        @testset "$T{$U}" for U in (Int64, Polymake.Integer, Polymake.Rational, Float64)
 
-            for U in [Int64, Polymake.Integer, Polymake.Rational, Float64]
+            @test T{U} <: AbstractVector
+            @test T{U} <: AbstractVector{U}
 
-                @testset "$T{$U}" begin
+            @test T{U}(a) isa T
+            @test T{U}(a) isa T{U}
 
-                    @test T{U} <: AbstractVector
-                    @test T{U} <: AbstractVector{U}
+            @test T{U}(7) == zeros(7)
 
-                    @test T{U}(a) isa T
-                    @test T{U}(a) isa T{U}
+            A = T{U}(a)
 
-                    @test T{U}(7) == zeros(7)
+            @test A.p isa Polymake.Vector{Polymake.to_cxx_type(U)}
 
-                    A = T{U}(a)
+            @test A[1] isa U
+            @test A[2] == 2
+            @test A[begin] == 1
+            @test A[end] == 3
+            A[3] = 7
+            @test A[end] == 7
+            A[3] = 3
 
-                    @test A.p isa Polymake.Vector{Polymake.to_cxx_type(U)}
+            @test size(A) == (3,)
 
-                    @test A[1] isa U
-                    @test A[2] == 2
-                    @test A[begin] == 1
-                    @test A[end] == 3
-                    A[3] = 7
-                    @test A[end] == 7
-                    A[3] = 3
+            @test_throws BoundsError A[0]
+            @test_throws BoundsError A[4]
 
-                    @test size(A) == (3,)
+            for V in [Int64, Polymake.Integer, Polymake.Rational, Float64]
 
-                    @test_throws BoundsError A[0]
-                    @test_throws BoundsError A[4]
+                B = T{V}(b)
 
-                    for V in [Int64, Polymake.Integer, Polymake.Rational, Float64]
+                for op in [+, -]
+                    @test op(A, B) isa T
+                    @test op(A, B) isa T{promote_type(U, V)}
 
-                        B = T{V}(b)
-
-                        for op in [+, -]
-                            @test op(A, B) isa T
-                            @test op(A, B) isa T{promote_type(U, V)}
-
-                            @test op(A, B) == op(a, b)
-                        end
-
-                        @test *(V(3), A) isa T
-                        @test *(V(3), A) isa T{promote_type(U, V)}
-
-                        @test *(V(3), A) == *(V(3), A)
-
-                        @test [A; B] isa T
-                        @test [A; B] isa T{promote_type(U, V)}
-                        @test [A; B] == [a; b]
-
-                    end
-
+                    @test op(A, B) == op(a, b)
                 end
+
+                @test *(V(3), A) isa T
+                @test *(V(3), A) isa T{promote_type(U, V)}
+
+                @test *(V(3), A) == *(V(3), A)
+
+                @test [A; B] isa T
+                @test [A; B] isa T{promote_type(U, V)}
+                @test [A; B] == [a; b]
 
             end
 
         end
 
     end
+
+
+
+
 
     @testset "Halfspace" begin
 

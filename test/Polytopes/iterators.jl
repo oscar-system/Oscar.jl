@@ -3,7 +3,7 @@
     @testset "VectorIterator" begin
         vecmat_old = [1 0 0; 0 1 0; 0 0 1; 1 1 1]
         vecmat = [1 0 0; 1 2 3; 0 0 1; 1 1 1]
-        for (T, U) in Base.product([PointVector, RayVector], [Polymake.Rational, Polymake.Integer])
+        @testset "VectorIterator $T{$U}" for T in (PointVector, RayVector), U in (Polymake.Rational, Polymake.Integer)
             vi = VectorIterator{T{U}}(vecmat_old)
             @test vi isa VectorIterator
             @test vi isa VectorIterator{T{U}}
@@ -29,7 +29,7 @@
     @testset "HalfspaceIterator" begin
         A_old = [-1 0 0; 0 -2 0; 0 0 -1; 1 1 1]
         b_old = [0, 3, 2, 4]
-        for T in [Halfspace, Polyhedron, Pair{Polymake.Matrix{Polymake.Rational}, Polymake.Rational}]
+        @testset "HalfspaceIterator{$T}" for T in (Halfspace, Polyhedron, Pair{Polymake.Matrix{Polymake.Rational}, Polymake.Rational})
             A = A_old
             b = b_old
             hi = HalfspaceIterator{T}(A, b)
