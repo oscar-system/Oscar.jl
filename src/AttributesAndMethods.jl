@@ -240,10 +240,10 @@ end
 export irrelevant_ideal
 
 
-struct stanley_reisner_ideal
+struct stanleyReisnerIdeal
            GapSRIdeal::GapObj
 end
-export stanley_reisner_ideal
+export stanleyReisnerIdeal
 
 
 """
@@ -253,7 +253,7 @@ Computes the Stanley-Reisner ideal of the normal toric variety `v`.
 """
 function stanley_reisner_ideal( v::normalToricVariety )
     gap_SRIdeal = GAP.Globals.SRIdeal( v.GapNTV )
-    return stanley_reisner_ideal( gap_SRIdeal )
+    return stanleyReisnerIdeal( gap_SRIdeal )
 end
 export stanley_reisner_ideal
 
