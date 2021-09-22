@@ -367,10 +367,10 @@ AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a
 
 julia> basis(IR, 6)
 4-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
- x[1]^2*x[2]^2*x[3]^2
- x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
- x[1]^4*x[2]*x[3] + x[1]*x[2]^4*x[3] + x[1]*x[2]*x[3]^4
  x[1]^6 + x[2]^6 + x[3]^6
+ x[1]^4*x[2]*x[3] + x[1]*x[2]^4*x[3] + x[1]*x[2]*x[3]^4
+ x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
+ x[1]^2*x[2]^2*x[3]^2
 ```
 ```
 julia> M = matrix(GF(3), [0 1 0; -1 0 0; 0 0 -1])
@@ -389,24 +389,16 @@ gfp_mat[[0 1 0; 2 0 0; 0 0 2]]
 
 julia> basis(IR, 2)
 2-element Vector{MPolyElem_dec{gfp_elem, gfp_mpoly}}:
- x[3]^2
  x[1]^2 + x[2]^2
+ x[3]^2
 
 julia> basis(IR, 3)
 2-element Vector{MPolyElem_dec{gfp_elem, gfp_mpoly}}:
- x[1]*x[2]*x[3]
  x[1]^2*x[3] + 2*x[2]^2*x[3]
+ x[1]*x[2]*x[3]
 ```
 """
-function basis(IR::InvRing, d::Int)
-  # TODO: Fine tune this: Depending on d and the group order it is better
-  # to use "via_linear_algebra" also in the non-modular case.
-  if ismodular(IR)
-    return basis_via_linear_algebra(IR, d)
-  else
-    return basis_via_reynolds(IR, d)
-  end
-end
+basis(IR::InvRing, d::Int, algo = :default) = collect(iterate_basis(IR, d, algo))
 
 function primary_invariants_via_singular(IR::InvRing)
   if !isdefined(IR, :primary_singular)

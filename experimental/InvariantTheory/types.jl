@@ -59,16 +59,34 @@ struct WeightedIntegerVectors{T}
   end
 end
 
-struct InvRingBasisIterator{FldT, GrpT, PolyElemT, PolyRingT, ActionT, SingularActionT, IteratorT}
-  R::InvRing{FldT, GrpT, PolyElemT, PolyRingT, ActionT, SingularActionT}
+struct InvRingBasisIterator{InvRingT, IteratorT, MatrixT}
+  R::InvRingT
   degree::Int
   dim::Int
   reynolds::Bool
+
   monomials::IteratorT
+  kernel::MatrixT # used iff reynolds == false
 end
 
-struct InvRingBasisIteratorState{MatrixT, PolyElemT, MonIterStateT}
+mutable struct InvRingBasisIteratorState{MatrixT, PolyElemT, MonIterStateT}
   M::MatrixT
   monomial_to_basis::Dict{PolyElemT, Int}
   monomial_iter_state::MonIterStateT
+
+  i::Int # used iff reynolds == false
+
+  function InvRingBasisIteratorState{MatrixT, PolyElemT, MonIterStateT}(M::MatrixT, monomial_to_basis::Dict{PolyElemT, Int}, monomial_iter_state::MonIterStateT) where {MatrixT, PolyElemT, MonIterStateT}
+    z = new{MatrixT, PolyElemT, MonIterStateT}()
+    z.M = M
+    z.monomial_to_basis = monomial_to_basis
+    z.monomial_iter_state = monomial_iter_state
+    return z
+  end
+
+  function InvRingBasisIteratorState{MatrixT, PolyElemT, MonIterStateT}(i::Int) where {MatrixT, PolyElemT, MonIterStateT}
+    z = new{MatrixT, PolyElemT, MonIterStateT}()
+    z.i = i
+    return z
+  end
 end
