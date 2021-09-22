@@ -12,9 +12,6 @@ Initializing function for 'JToric'.
 """
 # initialization
 function __init__()
-    # define variable to call polymake
-    JToric.GAP.Globals.POLYMAKE_JULIA_MODULE = Polymake
-    
     # load necessary gap packages
     if ( ! GAP.Packages.load( "NConvex", "2021.04-24", install = false ) )
              @warn("Could not load desired version of GAP package NConvex. JToric may not be fully functional.")

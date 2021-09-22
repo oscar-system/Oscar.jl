@@ -32,9 +32,9 @@ function NormalToricVariety( rays::Matrix{Int}, cones::Vector{Vector{Int}} )
     variety = GAP.Globals.ToricVariety( fan )
 
     Incidence = Oscar.IncidenceMatrix(cones)
-    arr = @Polymake.convert_to Array{Set{Int}} GAP.Globals.POLYMAKE_JULIA_MODULE.common.rows(Incidence.pm_incidencematrix)
+    arr = @Polymake.convert_to Array{Set{Int}} Polymake.common.rows(Incidence.pm_incidencematrix)
 
-    pmntv = GAP.Globals.POLYMAKE_JULIA_MODULE.fulton.NormalToricVariety(
+    pmntv = Polymake.fulton.NormalToricVariety(
         RAYS = Oscar.matrix_for_polymake(rays),
         MAXIMAL_CONES = arr,
     )
@@ -67,8 +67,8 @@ function ntv_gap2polymake(GapNTV::GapObj)
     rays = Matrix{Int}(R)
     cones = [findall(x->x!=0, vec) for vec in [[e for e in mc] for mc in MC]]
     Incidence = Oscar.IncidenceMatrix(cones)
-    arr = @Polymake.convert_to Array{Set{Int}} GAP.Globals.POLYMAKE_JULIA_MODULE.common.rows(Incidence.pm_incidencematrix)
-    pmntv = GAP.Globals.POLYMAKE_JULIA_MODULE.fulton.NormalToricVariety(
+    arr = @Polymake.convert_to Array{Set{Int}} Polymake.common.rows(Incidence.pm_incidencematrix)
+    pmntv = Polymake.fulton.NormalToricVariety(
         RAYS = Oscar.matrix_for_polymake(rays),
         MAXIMAL_CONES = arr,
     )
@@ -111,8 +111,8 @@ NormalToricVariety(GAP: <A projective toric variety of dimension 2>, Polymake.Bi
 function projective_space( d::Int )
     # construct the projective space in gap
     variety = GAP.Globals.ProjectiveSpace( d )
-    f = GAP.Globals.POLYMAKE_JULIA_MODULE.fan.normal_fan(GAP.Globals.POLYMAKE_JULIA_MODULE.polytope.simplex(d))
-    pmntv = GAP.Globals.POLYMAKE_JULIA_MODULE.fulton.NormalToricVariety(f)
+    f = Polymake.fan.normal_fan(Polymake.polytope.simplex(d))
+    pmntv = Polymake.fulton.NormalToricVariety(f)
     
     # wrap it and return
     return normalToricVariety( variety, pmntv )
