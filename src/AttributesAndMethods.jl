@@ -376,10 +376,10 @@ end
 export name_of_variety
 
 
-struct zariski_cotangent_sheaf
+struct zariskiCotangentSheaf
            GapZariskiCotangentSheaf::GapObj
 end
-export zariski_cotangent_sheaf
+export zariskiCotangentSheaf
 
 
 """
@@ -389,7 +389,7 @@ Returns the Zariski cotangent sheaf of the normal toric variety `v`.
 """
 function zariski_cotangent_sheaf( v::normalToricVariety )
     gap_ZariskiCotangentSheaf = GAP.Globals.ZariskiCotangentSheaf( v.GapNTV )
-    return zariski_cotangent_sheaf( gap_ZariskiCotangentSheaf )
+    return zariskiCotangentSheaf( gap_ZariskiCotangentSheaf )
 end
 export zariski_cotangent_sheaf
 
