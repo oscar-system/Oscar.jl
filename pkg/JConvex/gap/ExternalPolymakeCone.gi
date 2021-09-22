@@ -439,15 +439,14 @@ InstallMethod( Polymake_RaysInFacets,
     
     # process the string
     res_string := SplitString( s, '\n' );
-    res_string := List( [ 2 .. Length( res_string ) ], i -> ReplacedString( ReplacedString( ReplacedString( res_string[ i ], " ", "," ), "{", "[" ), "}", "]" ) );
-    res_string := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
+    res_string := List( [ 2 .. Length( res_string ) ], i -> EvalString( res_string[ i ] ) );
     
     # now construct list of rays -- each facets is a list number_rays entries: 0 indicates that the ray generator is not in the facet and a 1 that it is part of the facet
     ray_list := [];
     for i in [ 1 .. Length( res_string ) ] do
         dummy := List( [ 1 .. number_rays ], i -> 0 );
         for j in [ 1 .. Length( res_string[ i ] ) ] do
-            dummy[ res_string[ i ][ j ] + 1 ] := 1;
+            dummy[ res_string[ i ][ j ] ] := 1;
         od;
         Append( ray_list, [ dummy ] );
     od;
