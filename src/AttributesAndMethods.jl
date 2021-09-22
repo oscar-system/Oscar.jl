@@ -521,7 +521,7 @@ Compute the Cox ring of the normal toric variety `v`, using `name` as label for 
 function cox_ring( v::normalToricVariety, names::String )
     gap_names = GapObj( names )
     gap_CoxRing = GAP.Globals.CoxRing( v.GapNTV, gap_names )
-    return cox_ring( gap_CoxRing )
+    return coxRing( gap_CoxRing )
 end
 export cox_ring
 
