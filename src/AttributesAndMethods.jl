@@ -138,10 +138,10 @@ end
 export dim_of_torusfactor
 
 
-struct coordinate_ring_of_torus
+struct coordinateRingOfTorus
            GapCoordinateRingOfTorus::GapObj
 end
-export coordinate_ring_of_torus
+export coordinateRingOfTorus
 
 
 """
@@ -151,7 +151,7 @@ Computes the coordinate ring of the torus of the normal toric variety `v`.
 """
 function coordinate_ring_of_torus( v::normalToricVariety )
     gap_CoordinateRingOfTorus = GAP.Globals.CoordinateRingOfTorus( v.GapNTV )
-    return coordinate_ring_of_torus( gap_CoordinateRingOfTorus )
+    return coordinateRingOfTorus( gap_CoordinateRingOfTorus )
 end
 export coordinate_ring_of_torus
 
@@ -508,7 +508,7 @@ function coordinate_ring_of_torus( v::normalToricVariety, names::Vector{String} 
     gap_names = [ GapObj( names[ i ] ) for i in 1 : size(names)[1] ]
     gap_names = GapObj( gap_names )
     gap_CoordinateRingOfTorus = GAP.Globals.CoordinateRingOfTorus( v.GapNTV, gap_names )
-    return coordinate_ring_of_torus( gap_CoordinateRingOfTorus )
+    return coordinateRingOfTorus( gap_CoordinateRingOfTorus )
 end
 export coordinate_ring_of_torus
 
