@@ -222,10 +222,10 @@ end
 export torus_invariant_prime_divisors
 
 
-struct irrelevant_ideal
+struct irrelevantIdeal
            GapIrrelevantIdeal::GapObj
 end
-export irrelevant_ideal
+export irrelevantIdeal
 
 
 """
@@ -235,7 +235,7 @@ Computes the irrelevant ideal of the normal toric variety `v`.
 """
 function irrelevant_ideal( v::normalToricVariety )
     gap_IrrelevantIdeal = GAP.Globals.IrrelevantIdeal( v.GapNTV )
-    return irrelevant_ideal( gap_IrrelevantIdeal )
+    return irrelevantIdeal( gap_IrrelevantIdeal )
 end
 export irrelevant_ideal
 
