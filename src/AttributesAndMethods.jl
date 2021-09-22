@@ -435,10 +435,10 @@ end
 export weil_divisors_of_variety
 
 
-struct zariski_cotangent_sheaf_via_euler_sequence
+struct zariskiCotangentSheafViaEulerSequence
            GapZariskiCotangentSheafViaEulerSequence::GapObj
 end
-export zariski_cotangent_sheaf_via_euler_sequence
+export zariskiCotangentSheafViaEulerSequence
 
 
 """
@@ -448,7 +448,7 @@ Computes the Zariski cotangent sheaf of the normal toric variety `v` via the Eul
 """
 function zariski_cotangent_sheaf_via_euler_sequence( v::normalToricVariety )
     gap_ZariskiCotangentSheafViaEulerSequence = GAP.Globals.ZariskiCotangentSheafViaEulerSequence( v.GapNTV )
-    return zariski_cotangent_sheaf_via_euler_sequence( gap_ZariskiCotangentSheafViaEulerSequence )
+    return zariskiCotangentSheafViaEulerSequence( gap_ZariskiCotangentSheafViaEulerSequence )
 end
 export zariski_cotangent_sheaf_via_euler_sequence
 
