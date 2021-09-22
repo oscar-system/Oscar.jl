@@ -453,10 +453,10 @@ end
 export zariski_cotangent_sheaf_via_euler_sequence
 
 
-struct zariski_cotangent_sheaf_via_poincare_residue_map
+struct zariskiCotangentSheafViaPoincareResidueMap
            GapZariskiCotangentSheafViaPoincareResidueMap::GapObj
 end
-export zariski_cotangent_sheaf_via_poincare_residue_map
+export zariskiCotangentSheafViaPoincareResidueMap
 
 
 """
@@ -466,7 +466,7 @@ Computes the Zariski cotangent sheaf of the normal toric variety `v` via the Poi
 """
 function zariski_cotangent_sheaf_via_poincare_residue_map( v::normalToricVariety )
     gap_ZariskiCotangentSheafViaPoincareResidueMap = GAP.Globals.ZariskiCotangentSheafViaPoincareResidueMap( v.GapNTV )
-    return zariski_cotangent_sheaf_via_poincare_residue_map( gap_ZariskiCotangentSheafViaPoincareResidueMap )
+    return zariskiCotangentSheafViaPoincareResidueMap( gap_ZariskiCotangentSheafViaPoincareResidueMap )
 end
 export zariski_cotangent_sheaf_via_poincare_residue_map
 
