@@ -44,10 +44,10 @@ end
 export list_of_variables_of_cox_ring
 
 
-struct class_group
+struct classGroup
            GapClassGroup::GapObj
 end
-export class_group
+export classGroup
 
 
 """
@@ -57,7 +57,7 @@ Computes the class group of the normal toric variety `v`.
 """
 function class_group( v::normalToricVariety )
     gap_class_group = GAP.Globals.ClassGroup( v.GapNTV )
-    return class_group( gap_class_group )
+    return classGroup( gap_class_group )
 end
 export class_group
 
