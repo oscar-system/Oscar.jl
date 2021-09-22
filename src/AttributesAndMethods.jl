@@ -471,14 +471,14 @@ end
 export zariski_cotangent_sheaf_via_poincare_residue_map
 
 
-#struct underlying_sheaf
+#struct underlyingSheaf
 #          GapUnderlyingSheaf::GapObj
 #end
-#export underlying_sheaf
+#export underlyingSheaf
 
 #function underlying_sheaf( v::normalToricVariety )
 #   gap_Underlying = GAP.Globals.UnderlyingSheaf( v.GapNTV )
-#    return underlying_sheaf( gap_UnderlyingSheaf )
+#    return underlyingSheaf( gap_UnderlyingSheaf )
 #end
 #export underlying_sheaf
 
