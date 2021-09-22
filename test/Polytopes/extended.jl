@@ -36,17 +36,17 @@
         @test C0 == C0
         @test typeof(dim(Q0)) == Int
         @test typeof(ambient_dim(Q0)) == Int
-        @test collect(vertices(Q0)) == collect(vertices(convex_hull(vertices_as_point_matrix(Q0))))
+        @test collect(vertices(Q0)) == collect(vertices(convex_hull(vertices(Q0))))
     end
 
     @testset "convex_hull" begin
-        @test size(vertices_as_point_matrix(Q0)) == (3, 2)
-        @test size(vertices_as_point_matrix(Q1)) == (3, 2)
-        @test size(rays_as_point_matrix(Q1)) == (1, 2)
-        @test size(lineality_space(Q1)) == (0, 2)
-        @test size(vertices_as_point_matrix(Q2)) == (2, 2)
-        @test size(rays_as_point_matrix(Q2)) == (0, 2)
-        @test size(lineality_space(Q2)) == (1, 2)
+        @test size(matrix(vertices(Q0))) == (3, 2)
+        @test size(matrix(vertices(Q1))) == (3, 2)
+        @test size(matrix(rays(Q1))) == (1, 2)
+        @test size(matrix(lineality_space(Q1))) == (0, 2)
+        @test size(matrix(vertices(Q2))) == (2, 2)
+        @test size(matrix(rays(Q2))) == (0, 2)
+        @test size(matrix(lineality_space(Q2))) == (1, 2)
         @test dim(Q0) == 2
         @test dim(Q1) == 2
         @test dim(Q2) == 2
@@ -56,8 +56,8 @@
     end
 
     @testset "standard constructions" begin
-        @test size(vertices_as_point_matrix(C0)) == (4,2)
-        @test C0 == convex_hull(vertices_as_point_matrix(C0))
+        @test size(matrix(vertices(C0))) == (4,2)
+        @test C0 == convex_hull(vertices(C0))
         @test isbounded(C0)
         @test issmooth(C0)
         @test isnormal(C0)
@@ -73,17 +73,17 @@
         f = sum([x; 1])^2 + x[1]^4 * x[2] * 3
         newt = newton_polytope(f)
         @test dim(newt) == 2
-        @test vertices_as_point_matrix(newt) == [4 1; 2 0; 0 2; 0 0]
+        @test vertices(newt).m == [4 1; 2 0; 0 2; 0 0]
     end
 
     @testset "Construct from fmpq" begin
         A = zeros(Oscar.QQ, 3, 2)
         A[1, 1] = 1
         A[3, 2] = 4
-        @test vertices_as_point_matrix(convex_hull(A)) == [1 0; 0 0; 0 4]
+        @test vertices(convex_hull(A)).m == [1 0; 0 0; 0 4]
 
-        lhs, rhs = facets_as_halfspace_matrix_pair(Polyhedron(A, [1, 2, -3]))
-        @test lhs == [1 0; 0 4; 0 0]
+        lhs, rhs = halfspace_matrix_pair(facets(Polyhedron(A, [1, 2, -3])))
+        @test lhs == matrix(QQ, [1 0; 0 4; 0 0])
         @test rhs == [1, -3, 1]
     end
 
@@ -91,10 +91,10 @@
         A = zeros(Oscar.ZZ, 3, 2)
         A[1, 1] = 1
         A[3, 2] = 4
-        @test vertices_as_point_matrix(convex_hull(A)) == [1 0; 0 0; 0 4]
+        @test vertices(convex_hull(A)).m == [1 0; 0 0; 0 4]
 
-        lhs, rhs = facets_as_halfspace_matrix_pair(Polyhedron(A, [1, 2, -3]))
-        @test lhs == [1 0; 0 4; 0 0]
+        lhs, rhs = halfspace_matrix_pair(facets(Polyhedron(A, [1, 2, -3])))
+        @test lhs == matrix(QQ, [1 0; 0 4; 0 0])
         @test rhs == [1, -3, 1]
     end
 
