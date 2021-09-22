@@ -217,7 +217,7 @@ Computes the torus invariant prime divisors of the normal toric variety `v`.
 """
 function torus_invariant_prime_divisors( v::normalToricVariety )
     divisors = GAP.Globals.TorusInvariantPrimeDivisors( v.GapNTV )
-    return [ toric_divisor( d ) for d in divisors ]    
+    return [ toricDivisor( d ) for d in divisors ]    
 end
 export torus_invariant_prime_divisors
 
@@ -430,7 +430,7 @@ Compute the Weil divisors of the normal toric variety `v`.
 """
 function weil_divisors_of_variety( v::normalToricVariety )
     gap_divisors = GAP.Globals.WeilDivisorsOfVariety( v.GapNTV )
-    return [ toric_divisor( d ) for d in gap_divisors ]
+    return [ toricDivisor( d ) for d in gap_divisors ]
 end
 export weil_divisors_of_variety
 

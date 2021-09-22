@@ -2,10 +2,10 @@
 # 1: The Julia type for ToricDivisors
 ######################
 
-struct toric_divisor
+struct toricDivisor
            GapToricDivisor::GapObj
 end
-export toric_divisor
+export toricDivisor
 
 ######################
 # 2: Generic constructors
@@ -28,7 +28,7 @@ function create_divisor( coeffs::Vector{Int}, v::normalToricVariety )
     gap_divisor = GAP.Globals.CreateDivisor( gap_coeffs, v.GapNTV )
     
     # wrap and return
-    return toric_divisor( gap_divisor )
+    return toricDivisor( gap_divisor )
 end
 export create_divisor
 
@@ -49,7 +49,7 @@ function divisor_of_character( character::Vector{Int}, v::normalToricVariety )
     gap_divisor = GAP.Globals.DivisorOfCharacter( gap_character, v.GapNTV )
     
     # wrap and return
-    return toric_divisor( gap_divisor )
+    return toricDivisor( gap_divisor )
 end
 export divisor_of_character
 
@@ -70,7 +70,7 @@ function divisor_of_class( v::normalToricVariety, class::Vector{Int} )
     gap_divisor = GAP.Globals.DivisorOfGivenClass( v.GapNTV, gap_class )
     
     # wrap and return
-    return toric_divisor( gap_divisor )
+    return toricDivisor( gap_divisor )
 end
 export divisor_of_class
 
@@ -80,66 +80,66 @@ export divisor_of_class
 ######################
 
 """
-    is_cartier( d::toric_divisor )
+    is_cartier( d::toricDivisor )
 
 Checks if the divisor `d` is Cartier.
 """
-function is_cartier( d::toric_divisor )
+function is_cartier( d::toricDivisor )
     return GAP.Globals.IsCartier( d.GapToricDivisor )::Bool
 end
 export is_cartier
 
 
 """
-    is_principal( d::toric_divisor )
+    is_principal( d::toricDivisor )
 
 Checks if the divisor `d` is principal.
 """
-function is_principal( d::toric_divisor )
+function is_principal( d::toricDivisor )
     return GAP.Globals.IsPrincipal( d.GapToricDivisor )::Bool
 end
 export is_principal
 
 
 """
-    is_primedivisor( d::toric_divisor )
+    is_primedivisor( d::toricDivisor )
 
 Checks if the divisor `d` is prime.
 """
-function is_primedivisor( d::toric_divisor )
+function is_primedivisor( d::toricDivisor )
     return GAP.Globals.IsPrimedivisor( d.GapToricDivisor )::Bool
 end
 export is_primedivisor
 
 
 """
-    is_basepoint_free( d::toric_divisor )
+    is_basepoint_free( d::toricDivisor )
 
 Checks if the divisor `d` is basepoint free.
 """
-function is_basepoint_free( d::toric_divisor )
+function is_basepoint_free( d::toricDivisor )
     return GAP.Globals.IsBasepointFree( d.GapToricDivisor )::Bool
 end
 export is_basepoint_free
 
 
 """
-    is_ample( d::toric_divisor )
+    is_ample( d::toricDivisor )
 
 Checks if the divisor `d` is ample.
 """
-function is_ample( d::toric_divisor )
+function is_ample( d::toricDivisor )
     return GAP.Globals.IsAmple( d.GapToricDivisor )::Bool
 end
 export is_ample
 
 
 """
-    is_very_ample( d::toric_divisor )
+    is_very_ample( d::toricDivisor )
 
 For ample divisors `d`, this method checks if `d` is very ample.
 """
-function is_very_ample( d::toric_divisor )
+function is_very_ample( d::toricDivisor )
     if ! is_ample( d )
         @warn "Can (current) only tell for ample toric divisors if they are very ample."
         return "fail"
@@ -151,11 +151,11 @@ export is_very_ample
 
 
 """
-    is_nef( d::toric_divisor )
+    is_nef( d::toricDivisor )
 
 Checks if the divisor `d` is numerically effective.
 """
-function is_nef( d::toric_divisor )
+function is_nef( d::toricDivisor )
     return GAP.Globals.IsNumericallyEffective( d.GapToricDivisor )::Bool
 end
 export is_nef
