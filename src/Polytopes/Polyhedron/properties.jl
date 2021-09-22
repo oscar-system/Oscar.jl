@@ -227,7 +227,7 @@ julia> rays(PO)
 """
 rays(P::Polyhedron) = rays(RayVector,P)
 
-"""
+@doc Markdown.doc"""
     nfacets(P::Polyhedron)
 
 Return the number of facets of `P`.
@@ -333,7 +333,7 @@ facets(P::Polyhedron) = facets(Halfspace, P)
 ###############################################################################
 ## Scalar properties
 ###############################################################################
-"""
+@doc Markdown.doc"""
     volume(P::Polyhedron)
 
 Return the (Euclidean) volume of `P`.
@@ -363,7 +363,7 @@ julia> normalized_volume(C)
 """
 normalized_volume(P::Polyhedron) = factorial(dim(P))*(pm_polytope(P)).VOLUME
 
-"""
+@doc Markdown.doc"""
     dim(P::Polyhedron)
 
 Return the dimension of `P`.
@@ -426,7 +426,7 @@ julia> ambient_dim(P)
 """
 ambient_dim(P::Polyhedron) = Polymake.polytope.ambient_dim(pm_polytope(P))
 
-"""
+@doc Markdown.doc"""
     codim(P::Polyhedron)
 
 Return the codimension of `P`.
@@ -499,7 +499,7 @@ recession_cone(P::Polyhedron) = Cone(Polymake.polytope.recession_cone(pm_polytop
 ###############################################################################
 ## Boolean properties
 ###############################################################################
-"""
+@doc Markdown.doc"""
     isfeasible(P::Polyhedron)
 
 Check whether `P` is feasible, i.e. non-empty.
@@ -514,7 +514,7 @@ false
 """
 isfeasible(P::Polyhedron) = pm_polytope(P).FEASIBLE
 
-"""
+@doc Markdown.doc"""
     contains(P::Polyhedron, v::AbstractVector)
 
 Check whether `P` contains `v`.
@@ -533,7 +533,7 @@ false
 """
 contains(P::Polyhedron, v::AbstractVector) = Polymake.polytope.contains(pm_polytope(P), [1; v])
 
-"""
+@doc Markdown.doc"""
     issmooth(P::Polyhedron)
 
 Check whether `P` is smooth.
@@ -550,7 +550,7 @@ true
 issmooth(P::Polyhedron) = pm_polytope(P).SMOOTH
 
 
-"""
+@doc Markdown.doc"""
     isnormal(P::Polyhedron)
 
 Check whether `P` is normal.
@@ -575,7 +575,7 @@ false
 isnormal(P::Polyhedron) = pm_polytope(P).NORMAL
 
 
-"""
+@doc Markdown.doc"""
     isbounded(P::Polyhedron)
 
 Check whether `P` is bounded.
@@ -591,7 +591,7 @@ false
 isbounded(P::Polyhedron) = pm_polytope(P).BOUNDED
 
 
-"""
+@doc Markdown.doc"""
     isfulldimensional(P::Polyhedron)
 
 Check whether `P` is full-dimensional.

@@ -89,6 +89,9 @@ and `MatrixGroup`.
 """
 abstract type GAPGroup <: AbstractAlgebra.Group end
 
+## `GapGroup` to GAP group
+GAP.GapObj(obj::GAPGroup) = return obj.X
+
 @doc Markdown.doc"""
     GAPGroupElem <: AbstractAlgebra.GroupElem
 
@@ -100,6 +103,9 @@ For expert usage, you can extract the underlying GAP object via `GapObj`,
 i.e., if `g` is a `GAPGroupElem`, then `GapObj(g)` is the `GapObj` underlying `g`.
 """
 abstract type GAPGroupElem{T<:GAPGroup} <: AbstractAlgebra.GroupElem end
+
+## `GapGroupElem` to GAP group element
+GAP.GapObj(obj::GAPGroupElem) = return obj.X
 
 @doc Markdown.doc"""
     BasicGAPGroupElem{T<:GAPGroup} <: GAPGroupElem{T}
@@ -269,7 +275,8 @@ end
 """
     SemidirectProductGroup{S,T}
 
-Semidirect product of two groups of type `S` and `T` respectively, or subgroup of a semidirect product of groups.
+Semidirect product of two groups of type `S` and `T` respectively, or
+subgroup of a semidirect product of groups.
 """
 struct SemidirectProductGroup{S<:GAPGroup, T<:GAPGroup} <: GAPGroup 
   X::GapObj
@@ -283,7 +290,9 @@ end
 """
     WreathProductGroup
 
-Wreath product of a group `G` and a group of permutations `H`, or a generic group `H` together with the homomorphism `a` from `H` to a permutation group.
+Wreath product of a group `G` and a group of permutations `H`, or a generic
+group `H` together with the homomorphism `a` from `H` to a permutation
+group.
 """
 struct WreathProductGroup <: GAPGroup
   X::GapObj
@@ -320,7 +329,7 @@ parent_type(::T) where T<:BasicGAPGroupElem{S} where S = S
 # Julia type such as `PermGroup`.
 #
  
-const _gap_group_types = []
+const _gap_group_types = Tuple{GAP.GapObj, Type}[]
 
 function _get_type(G::GapObj)
   for pair in _gap_group_types
@@ -330,4 +339,3 @@ function _get_type(G::GapObj)
   end
   error("Not a known type of group")
 end
-

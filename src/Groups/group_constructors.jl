@@ -4,9 +4,6 @@
 #  
 ################################################################################
 
-import GAP.@gapattribute
-import GAP.@gapwrap
-
 export
     abelian_group,
     alternating_group,

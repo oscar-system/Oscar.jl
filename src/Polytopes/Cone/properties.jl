@@ -8,7 +8,7 @@ rays(as::Type{RayVector{T}}, C::Cone) where T = VectorIterator{as}(C.pm_cone.RAY
 
 rays(::Type{RayVector}, C::Cone) = rays(RayVector{Polymake.Rational}, C)
 
-"""
+@doc Markdown.doc"""
     rays(C::Cone)
 
 Return the rays of `C`.
@@ -49,7 +49,7 @@ faces(C::Cone, face_dim::Int) = faces(Cone, C, face_dim)
 ## Scalar properties
 ###############################################################################
 
-"""
+@doc Markdown.doc"""
     nrays(C::Cone)
 
 Return the number of rays of `C`.
@@ -67,7 +67,7 @@ julia> nrays(PO)
 """
 nrays(C::Cone) = pm_cone(C).N_RAYS
 
-"""
+@doc Markdown.doc"""
     dim(C::Cone)
 
 Return the dimension of `C`.
@@ -83,7 +83,7 @@ julia> dim(C)
 """
 dim(C::Cone) = pm_cone(C).CONE_DIM
 
-"""
+@doc Markdown.doc"""
     ambient_dim(C::Cone)
 
 Return the ambient dimension of `C`.
@@ -99,7 +99,7 @@ julia> ambient_dim(C)
 """
 ambient_dim(C::Cone) = pm_cone(C).CONE_AMBIENT_DIM
 
-"""
+@doc Markdown.doc"""
     codim(C::Cone)
 
 Return the codimension of `C`.
@@ -118,7 +118,7 @@ codim(C::Cone) = ambient_dim(C)-dim(C)
 ###############################################################################
 ## Boolean properties
 ###############################################################################
-"""
+@doc Markdown.doc"""
     ispointed(C::Cone)
 
 Determine whether `C` is pointed, i.e. whether the origin is a face of `C`.
@@ -139,7 +139,7 @@ true
 """
 ispointed(C::Cone) = pm_cone(C).POINTED
 
-"""
+@doc Markdown.doc"""
     isfulldimensional(C::Cone)
 
 Determine whether `C` is full-dimensional.
@@ -159,7 +159,6 @@ isfulldimensional(C::Cone) = pm_cone(C).FULL_DIM
 ## Points properties
 ###############################################################################
 
-# TODO: allow T = Cone when iterator can access `Cone(inequalities)`
 # TODO: facets as `Vector`? or `Matrix`?
 @doc Markdown.doc"""
     facets(as::Type{T} = Halfspace, C::Cone)
@@ -217,7 +216,7 @@ julia> f = facets(c)
 """
 facets(C::Cone) = facets(Halfspace, C)
 
-"""
+@doc Markdown.doc"""
     lineality_space(C::Cone)
 
 Return a basis of the lineality space of `C`.
@@ -235,7 +234,7 @@ julia> lineality_space(UH)
 """
 lineality_space(C::Cone) = VectorIterator{RayVector{Polymake.Rational}}(pm_cone(C).LINEALITY_SPACE)
 
-"""
+@doc Markdown.doc"""
     hilbert_basis(C::Cone)
 
 Return the Hilbert basis of a pointed cone `C` as the rows of a matrix.
