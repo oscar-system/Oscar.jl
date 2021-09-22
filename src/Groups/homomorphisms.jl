@@ -77,7 +77,8 @@ end
 """
     trivial_morphism(G::GAPGroup, H::GAPGroup)
 
-Return the homomorphism from `G` to `H` sending every element of `G` into the identity of `H`. If `H` is not specified, it is taken equal to `G`.
+Return the homomorphism from `G` to `H` sending every element of `G` into the
+identity of `H`. If `H` is not specified, it is taken equal to `G`.
 """
 function trivial_morphism(G::GAPGroup, H::GAPGroup)
   return hom(G, H, x -> one(H))
@@ -113,7 +114,8 @@ end
 """
     hom(G::GAPGroup, H::GAPGroup, gensG::Vector, imgs::Vector)
 
-Return the group homomorphism defined by `gensG`[`i`] -> `imgs`[`i`] for every `i`. In order to work, the elements of `gensG` must generate `G`.
+Return the group homomorphism defined by `gensG`[`i`] -> `imgs`[`i`] for every
+`i`. In order to work, the elements of `gensG` must generate `G`.
 """
 function hom(G::GAPGroup, H::GAPGroup, gensG::Vector, imgs::Vector)
   vgens = GAP.julia_to_gap(GapObj[x.X for x in gensG])
@@ -290,7 +292,8 @@ end
 """
     preimage(f::GAPGroupHomomorphism{S, T}, H::T) where S <: GAPGroup where T <: GAPGroup
 
-If `H` is a subgroup of the codomain of `f`, return the subgroup `f^-1(H)`, together with its embedding homomorphism into the domain of `f`.
+If `H` is a subgroup of the codomain of `f`, return the subgroup `f^-1(H)`,
+together with its embedding homomorphism into the domain of `f`.
 """
 function preimage(f::GAPGroupHomomorphism{S, T}, H::T) where S <: GAPGroup where T <: GAPGroup
   H1 = GAP.Globals.PreImage(f.map, H.X)
@@ -307,7 +310,9 @@ end
 """
     isisomorphic(G::Group, H::Group)
 
-Return (`true`,`f`) if `G` and `H` are isomorphic groups, where `f` is a group isomorphism. Otherwise, return (`false`,`f`), where `f` is the trivial homomorphism.
+Return (`true`,`f`) if `G` and `H` are isomorphic groups, where `f` is a group
+isomorphism. Otherwise, return (`false`,`f`), where `f` is the trivial
+homomorphism.
 """
 function isisomorphic(G::GAPGroup, H::GAPGroup)
   mp = GAP.Globals.IsomorphismGroups(G.X, H.X)
@@ -370,7 +375,9 @@ end
 """
     automorphism_group(G::Group) -> A::AutomorphismGroup{T}
 
-Return the full automorphism group of `G`. If `f` is an object of type `GAPGroupHomomorphism` and it is bijective from `G` to itself, then `A(f)` return the embedding of `f` in `A`.
+Return the full automorphism group of `G`. If `f` is an object of type
+`GAPGroupHomomorphism` and it is bijective from `G` to itself, then `A(f)`
+return the embedding of `f` in `A`.
 
 Elements of `A` can be multiplied with other elements of `A` or by elements
 of type `GAPGroupHomomorphism`; in this last case, the result has type
@@ -466,7 +473,10 @@ end
     induced_automorphism(f::GAPGroupHomomorphism, g::GAPGroupHomomorphism)
     induced_automorphism(f::GAPGroupHomomorphism, g::GAPGroupElem{AutomorphismGroup{T}})
 
-Return the automorphism `h` of the image of `f` such that `h`(`f`) == `f`(`g`), where `g` is an automorphism of a group `G` and `f` is a group homomorphism defined over `G` such that the kernel of `f` is invariant under `g`
+Return the automorphism `h` of the image of `f` such that `h`(`f`) ==
+`f`(`g`), where `g` is an automorphism of a group `G` and `f` is a group
+homomorphism defined over `G` such that the kernel of `f` is invariant under
+`g`
 """
 function induced_automorphism(f::GAPGroupHomomorphism, mH::GAPGroupHomomorphism)
   @assert isinvariant(mH, kernel(f)[1]) "The kernel is not invariant under g!"

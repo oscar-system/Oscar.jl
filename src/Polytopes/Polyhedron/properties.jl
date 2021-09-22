@@ -3,69 +3,8 @@
 ### Iterators
 ###############################################################################
 ###############################################################################
-"""
-    Polyhedra
-
-Empty type for selecting `Polyhedron` as return type for polyhedra.
-"""
-struct Polyhedra
-end
-
-"""
-    Points
-
-Empty type for selecting `Vector` as return type for points.
-"""
-struct Points
-end
-
-@doc Markdown.doc"""
-    Halfspaces
-
-Empty type for specifying that the return type for a halfspace `H(a,b)` should
-be a pair of a vector `a` and a value `b` such that
-$$H(a,b) = \{ x\ |\ ax ≤ b \}.$$
-"""
-struct Halfspaces
-end
 
 #TODO: take into account lineality space
-
-struct PolyhedronFacePolyhedronIterator
-    p::Polyhedron
-    face_dim::Int
-end
-
-
-#Note: the following generates the entire Hasse diagram and may be costly
-function Base.iterate(iter::PolyhedronFacePolyhedronIterator, index = 1)
-    if iter.face_dim<0
-        return nothing
-    end
-    faces = Polymake.polytope.faces_of_dim(pm_polytope(iter.p),iter.face_dim)
-    nfaces = length(faces)
-    while true
-        if index > nfaces
-            return nothing
-        end
-        isfar=true
-        for v in faces[index]
-            #Checking that the first coordinate is zero is equivalent
-            #  to being a vertex of the far face
-            if !iszero(pm_polytope(iter.p).VERTICES[1+v[1],1])
-                isfar=false
-            end
-        end
-        if isfar==true
-            index +=1
-        else
-            p = Polyhedron(Polymake.polytope.Polytope(VERTICES=pm_polytope(iter.p).VERTICES[[f+1 for f in faces[index]],:],LINEALITY_SPACE = pm_polytope(iter.p).LINEALITY_SPACE))
-            return (p,index+1)
-        end
-    end
-end
-#Note: it is impossible to know the number of faces prior to computation (and extraction of far faces)
-Base.IteratorSize(::Type{PolyhedronFacePolyhedronIterator}) = Base.SizeUnknown()
 
 """
     faces(as::Type{T} = Polyhedron, P::Polyhedron, face_dim::Int)
@@ -74,17 +13,14 @@ Return the faces of `P` of dimension `face_dim` as an iterator over the type of
 object given by `as`.
 
 Optional arguments for `as` include
-* `Polyhedron`/`Polyhedra`.
+* `Polyhedron`.
 
 # Examples
 A `Vector` containing the six sides of the 3-dimensional cube can be obtained
 via the following input:
 ```jldoctest
 julia> F = faces(Polyhedron, cube(3), 2)
-Oscar.PolyhedronFacePolyhedronIterator(A polyhedron in ambient dimension 3, 2)
-
-julia> collect(F)
-6-element Vector{Any}:
+6-element PolyhedronOrConeIterator{Polyhedron}:
  A polyhedron in ambient dimension 3
  A polyhedron in ambient dimension 3
  A polyhedron in ambient dimension 3
@@ -93,12 +29,27 @@ julia> collect(F)
  A polyhedron in ambient dimension 3
 ```
 """
-function faces(as::Type{T}, P::Polyhedron, face_dim::Int) where {T}
-    if as == Polyhedron || as == Polyhedra
-        PolyhedronFacePolyhedronIterator(P,face_dim-size(lineality_space(P),1))
-    else
-        throw(ArgumentError("Unsupported `as` argument: $(as)"))
+function faces(as::Type{T}, P::Polyhedron, face_dim::Int) where T<:Polyhedron
+    face_dim < 0 && return nothing
+    pfaces = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(pm_polytope(P),face_dim-length(lineality_space(P))))
+    nfaces = length(pfaces)
+    rfaces = Vector{Int64}()
+    sizehint!(rfaces, nfaces)
+    for index in 1:nfaces
+        isfar = true
+        for v in pfaces[index]
+            #Checking that the first coordinate is zero is equivalent
+            #  to being a vertex of the far face
+            if !iszero(pm_polytope(P).VERTICES[v[1],1])
+                isfar = false
+                break
+            end
+        end
+        if !isfar
+            push!(rfaces, index)
+        end
     end
+    return PolyhedronOrConeIterator{as}(P.pm_polytope.VERTICES,pfaces[rfaces], P.pm_polytope.LINEALITY_SPACE)
 end
 """
     faces(P::Polyhedron, face_dim::Int)
@@ -109,10 +60,7 @@ Return the faces of `P` of dimension `face_dim` as an iterator over `Polyhedron`
 A `Vector` containing the six sides of the 3-dimensional cube can be obtained via the following input:
 ```jldoctest
 julia> F = faces(cube(3),2)
-Oscar.PolyhedronFacePolyhedronIterator(A polyhedron in ambient dimension 3, 2)
-
-julia> collect(F)
-6-element Vector{Any}:
+6-element PolyhedronOrConeIterator{Polyhedron}:
  A polyhedron in ambient dimension 3
  A polyhedron in ambient dimension 3
  A polyhedron in ambient dimension 3
@@ -123,34 +71,13 @@ julia> collect(F)
 """
 faces(P::Polyhedron, face_dim::Int) = faces(Polyhedron, P, face_dim)
 
-struct VertexPointIterator
-    p::Polyhedron
-end
-
-function Base.iterate(iter::VertexPointIterator, index = 1)
-    vertices = pm_polytope(iter.p).VERTICES
-    while true
-        if size(vertices, 1) < index
-            return nothing
-        end
-
-        if iszero(vertices[index, 1])
-            index += 1
-        else
-            return (vertices[index, 2:end], index + 1)
-        end
-    end
-end
-Base.eltype(::Type{VertexPointIterator}) = Polymake.Vector{Polymake.Rational}
-Base.length(iter::VertexPointIterator) = nvertices(iter.p)
-
-@doc Markdown.doc"""
-    vertices(as::Type{T} = Points, P::Polyhedron)
+"""
+    vertices(as, P)
 
 Return an iterator over the vertices of `P` in the format defined by `as`.
 
 Optional arguments for `as` include
-* `Points`.
+* `PointVector`.
 
 See also: [`vertices_as_point_matrix`](@ref).
 
@@ -160,27 +87,28 @@ a square:
 ```jldoctest
 julia> P = simplex(2) + cube(2);
 
-julia> collect(vertices(Points, P))
-5-element Vector{Polymake.Vector{Polymake.Rational}}:
- pm::Vector<pm::Rational>
--1 -1
- pm::Vector<pm::Rational>
-2 -1
- pm::Vector<pm::Rational>
-2 1
- pm::Vector<pm::Rational>
--1 2
- pm::Vector<pm::Rational>
-1 2
+julia> vertices(PointVector, P)
+5-element VectorIterator{PointVector{Polymake.Rational}}:
+ [-1, -1]
+ [2, -1]
+ [2, 1]
+ [-1, 2]
+ [1, 2]
 ```
 """
-function vertices(as::Type{T}, P::Polyhedron) where {T}
-    if as == Points
-        VertexPointIterator(P)
-    else
-        throw(ArgumentError("Unsupported `as` argument:" * string(as)))
+function vertices(as::Type{PointVector{T}}, P::Polyhedron) where T
+    vertices = pm_polytope(P).VERTICES
+    rvertices = Vector{Int64}()
+    sizehint!(rvertices, size(vertices, 1))
+    for index in 1:size(vertices, 1)
+        if !iszero(vertices[index, 1])
+            push!(rvertices, index)
+        end
     end
+    return VectorIterator{as}(vertices[rvertices, 2:end])
 end
+
+vertices(::Type{PointVector}, P::Polyhedron) = vertices(PointVector{Polymake.Rational}, P)
 
 """
     vertices(P::Polyhedron)
@@ -195,67 +123,17 @@ a square:
 ```jldoctest
 julia> P = simplex(2) + cube(2);
 
-julia> collect(vertices(P))
-5-element Vector{Polymake.Vector{Polymake.Rational}}:
- pm::Vector<pm::Rational>
--1 -1
- pm::Vector<pm::Rational>
-2 -1
- pm::Vector<pm::Rational>
-2 1
- pm::Vector<pm::Rational>
--1 2
- pm::Vector<pm::Rational>
-1 2
-```
-# """
-vertices(P::Polyhedron) = vertices(Points, P)
-
-@doc Markdown.doc"""
-    vertices_as_point_matrix(P::Polyhedron)
-
-Return a matrix whose rows are the vertices of `P`.
-
-# Examples
-The following code computes the vertices of the Minkowski sum of a triangle and
-a square:
-```jldoctest
-julia> P = simplex(2) + cube(2);
-
-julia> vertices_as_point_matrix(P)
-pm::Matrix<pm::Rational>
--1 -1
-2 -1
-2 1
--1 2
-1 2
+julia> vertices(P)
+5-element VectorIterator{PointVector{Polymake.Rational}}:
+ [-1, -1]
+ [2, -1]
+ [2, 1]
+ [-1, 2]
+ [1, 2]
 ```
 """
-function vertices_as_point_matrix(P::Polyhedron)
-    decompose_vdata(pm_polytope(P).VERTICES).vertices
-end
+vertices(P::Polyhedron) = vertices(PointVector, P)
 
-
-struct PolyhedronRayIterator
-    p::Polyhedron
-end
-
-function Base.iterate(iter::PolyhedronRayIterator, index = 1)
-    vertices = pm_polytope(iter.p).VERTICES
-    while true
-        if size(vertices, 1) < index
-            return nothing
-        end
-
-        if !iszero(vertices[index, 1])
-            index += 1
-        else
-            return (vertices[index, 2:end], index + 1)
-        end
-    end
-end
-Base.eltype(::Type{PolyhedronRayIterator}) = Polymake.Vector{Polymake.Rational}
-Base.length(iter::PolyhedronRayIterator) = nrays(iter.p)
 
 """
     nrays(P::Polyhedron)
@@ -291,13 +169,13 @@ nvertices(P::Polyhedron) = pm_polytope(P).N_VERTICES - nrays(P)
 
 
 @doc Markdown.doc"""
-    rays(as::Type{T} = Points, P::Polyhedron)
+    rays(as::Type{T} = RayVector, P::Polyhedron)
 
 Return a minimal set of generators of the cone of unbounded directions of `P`
 (i.e. its rays) in the format defined by `as`.
 
 Optional arguments for `as` include
-* `Points`.
+* `RayVector`.
 
 See also `rays_as_point_matrix`.
 
@@ -307,21 +185,25 @@ rays in positive unit direction:
 ```jldoctest
 julia> PO = convex_hull([0 0], [1 0; 0 1]);
 
-julia> collect(rays(Points, PO))
-2-element Vector{Polymake.Vector{Polymake.Rational}}:
- pm::Vector<pm::Rational>
-1 0
- pm::Vector<pm::Rational>
-0 1
+julia> rays(RayVector, PO)
+2-element VectorIterator{RayVector{Polymake.Rational}}:
+ [1, 0]
+ [0, 1]
 ```
 """
-function rays(as::Type{T}, P::Polyhedron) where {T}
-    if as == Points
-        PolyhedronRayIterator(P)
-    else
-        throw(ArgumentError("Unsupported `as` argument :" * string(as)))
+function rays(as::Type{RayVector{T}}, P::Polyhedron) where T
+    vertices = pm_polytope(P).VERTICES
+    rrays = Vector{Int64}()
+    sizehint!(rrays, size(vertices, 1))
+    for index in 1:size(vertices, 1)
+        if iszero(vertices[index, 1])
+            push!(rrays, index)
+        end
     end
+    return VectorIterator{as}(vertices[rrays, 2:end])
 end
+
+rays(::Type{RayVector}, P::Polyhedron) = rays(RayVector{Polymake.Rational}, P)
 
 @doc Markdown.doc"""
     rays(P::Polyhedron)
@@ -337,56 +219,15 @@ rays in positive unit direction:
 ```jldoctest
 julia> PO = convex_hull([0 0], [1 0; 0 1]);
 
-julia> collect(rays(PO))
-2-element Vector{Polymake.Vector{Polymake.Rational}}:
- pm::Vector<pm::Rational>
-1 0
- pm::Vector<pm::Rational>
-0 1
+julia> rays(PO)
+2-element VectorIterator{RayVector{Polymake.Rational}}:
+ [1, 0]
+ [0, 1]
 ```
 """
-rays(P::Polyhedron) = rays(Points,P)
+rays(P::Polyhedron) = rays(RayVector,P)
 
-function rays_as_point_matrix(P::Polyhedron)
-    decompose_vdata(pm_polytope(P).VERTICES).rays
-end
-
-
-
-struct PolyhedronFacetHalfspaceIterator
-    p::Polyhedron
-end
-
-function Base.iterate(iter::PolyhedronFacetHalfspaceIterator, index = 1)
-    facets = pm_polytope(iter.p).FACETS
-    if size(facets, 1) < index
-        return nothing
-    end
-
-    return ((Polymake.Vector(-facets[index, 2:end]), facets[index, 1]), index + 1)
-end
-Base.length(iter::PolyhedronFacetHalfspaceIterator) = nfacets(iter.p)
-Base.eltype(::Type{PolyhedronFacetHalfspaceIterator}) =
-    Tuple{Polymake.Vector{Polymake.Rational},Polymake.Rational}
-
-
-struct PolyhedronFacetPolyhedronIterator
-    p::Polyhedron
-end
-
-function Base.iterate(iter::PolyhedronFacetPolyhedronIterator, index = 1)
-    n_facets = nfacets(iter.p)
-    if index > n_facets
-        return nothing
-    end
-
-    p = Polyhedron(Polymake.polytope.facet(pm_polytope(iter.p), index - 1))
-    return (p, index + 1)
-end
-Base.length(iter::PolyhedronFacetPolyhedronIterator) = nfacets(iter.p)
-Base.eltype(::Type{PolyhedronFacetPolyhedronIterator}) = Polyhedron
-
-"""
+@doc Markdown.doc"""
     nfacets(P::Polyhedron)
 
 Return the number of facets of `P`.
@@ -402,23 +243,22 @@ julia> nfacets(cross(5))
 nfacets(P::Polyhedron) = pm_polytope(P).N_FACETS
 
 @doc Markdown.doc"""
-    facets(as::Type{T} = Halfspaces, P::Polyhedron)
+    facets(as::Type{T} = Halfspace, P::Polyhedron)
 
 Return the facets of `P` in the format defined by `as`.
 
 The allowed values for `as` are
-* `Halfspaces`,
-* `Polyhedron`/`Polyhedra`.
-
-See also `facets_as_halfspace_matrix_pair`.
+* `Halfspace`,
+* `Polyhedron`,
+* `Pair`.
 
 # Examples
 We can retrieve the six facets of the 3-dimensional cube this way:
 ```jldoctest
 julia> C = cube(3);
 
-julia> collect(facets(Polyhedron, C))
-6-element Vector{Polyhedron}:
+julia> facets(Polyhedron, C)
+6-element HalfspaceIterator{Polyhedron}:
  A polyhedron in ambient dimension 3
  A polyhedron in ambient dimension 3
  A polyhedron in ambient dimension 3
@@ -426,89 +266,63 @@ julia> collect(facets(Polyhedron, C))
  A polyhedron in ambient dimension 3
  A polyhedron in ambient dimension 3
 
-julia> collect(facets(Halfspaces, C))
-6-element Vector{Tuple{Polymake.Vector{Polymake.Rational}, Polymake.Rational}}:
- (pm::Vector<pm::Rational>
--1 0 0, 1)
- (pm::Vector<pm::Rational>
-1 0 0, 1)
- (pm::Vector<pm::Rational>
-0 -1 0, 1)
- (pm::Vector<pm::Rational>
-0 1 0, 1)
- (pm::Vector<pm::Rational>
-0 0 -1, 1)
- (pm::Vector<pm::Rational>
-0 0 1, 1)
+julia> facets(Halfspace, C)
+6-element HalfspaceIterator{Halfspace}:
+ The Halfspace of R^3 described by
+1: -x₁ ≦ 1
+
+ The Halfspace of R^3 described by
+1: x₁ ≦ 1
+
+ The Halfspace of R^3 described by
+1: -x₂ ≦ 1
+
+ The Halfspace of R^3 described by
+1: x₂ ≦ 1
+
+ The Halfspace of R^3 described by
+1: -x₃ ≦ 1
+
+ The Halfspace of R^3 described by
+1: x₃ ≦ 1
 ```
 """
-function facets(as::Type{T}, P::Polyhedron) where {T}
-    if as == Halfspaces
-        PolyhedronFacetHalfspaceIterator(P)
-    elseif as == Polyhedra || as == Polyhedron
-        PolyhedronFacetPolyhedronIterator(P)
-    else
-        throw(ArgumentError("Unsupported `as` argument :" * string(as)))
-    end
-end
+facets(as::Type{T}, P::Polyhedron) where {R, S, T<:Union{Halfspace, Pair{R, S}, Polyhedron}} = HalfspaceIterator{as}(decompose_hdata(pm_polytope(P).FACETS)...)
+
+facets(::Type{Pair}, P::Polyhedron) = facets(Pair{Polymake.Matrix{Polymake.Rational}, Polymake.Rational}, P)
+
 @doc Markdown.doc"""
     facets(P::Polyhedron)
 
 Return the facets of `P` as halfspaces.
 
-See also `facets_as_halfspace_matrix_pair`.
-
 # Examples
 We can retrieve the six facets of the 3-dimensional cube this way:
 ```jldoctest
 julia> C = cube(3);
 
-julia> collect(facets(C))
-6-element Vector{Tuple{Polymake.Vector{Polymake.Rational}, Polymake.Rational}}:
- (pm::Vector<pm::Rational>
--1 0 0, 1)
- (pm::Vector<pm::Rational>
-1 0 0, 1)
- (pm::Vector<pm::Rational>
-0 -1 0, 1)
- (pm::Vector<pm::Rational>
-0 1 0, 1)
- (pm::Vector<pm::Rational>
-0 0 -1, 1)
- (pm::Vector<pm::Rational>
-0 0 1, 1)
+julia> facets(C)
+6-element HalfspaceIterator{Halfspace}:
+ The Halfspace of R^3 described by
+1: -x₁ ≦ 1
 
+ The Halfspace of R^3 described by
+1: x₁ ≦ 1
+
+ The Halfspace of R^3 described by
+1: -x₂ ≦ 1
+
+ The Halfspace of R^3 described by
+1: x₂ ≦ 1
+
+ The Halfspace of R^3 described by
+1: -x₃ ≦ 1
+
+ The Halfspace of R^3 described by
+1: x₃ ≦ 1
 ```
 """
-facets(P::Polyhedron) = facets(Halfspaces, P)
-
-#TODO: how do underscores work in markdown?
-@doc Markdown.doc"""
-    facets_as_halfspace_matrix_pair(P::Polyhedron)
-
-Return `(A,b)` such that $P=P(A,b)$ where
-$$P(A,b) = \{ x |  Ax ≤ b \}.$$
-
-# Examples
-```jldoctest
-julia> C = cube(3);
-
-julia> facets_as_halfspace_matrix_pair(C)
-(A = pm::SparseMatrix<pm::Rational, pm::NonSymmetric>
-(3) (0 -1)
-(3) (0 1)
-(3) (1 -1)
-(3) (1 1)
-(3) (2 -1)
-(3) (2 1)
-, b = pm::SparseVector<pm::Rational>
-1 1 1 1 1 1)
-```
-"""
-function facets_as_halfspace_matrix_pair(P::Polyhedron)
-    return decompose_hdata(pm_polytope(P).FACETS)
-end
-
+facets(P::Polyhedron) = facets(Halfspace, P)
 
 ###############################################################################
 ###############################################################################
@@ -519,7 +333,7 @@ end
 ###############################################################################
 ## Scalar properties
 ###############################################################################
-"""
+@doc Markdown.doc"""
     volume(P::Polyhedron)
 
 Return the (Euclidean) volume of `P`.
@@ -549,7 +363,7 @@ julia> normalized_volume(C)
 """
 normalized_volume(P::Polyhedron) = factorial(dim(P))*(pm_polytope(P)).VOLUME
 
-"""
+@doc Markdown.doc"""
     dim(P::Polyhedron)
 
 Return the dimension of `P`.
@@ -577,31 +391,23 @@ Return the integer points contained in the bounded polyhedron `P`.
 julia> S = 2 * simplex(2);
 
 julia> lattice_points(S)
-6-element Vector{Polymake.VectorAllocated{Polymake.Integer}}:
- pm::Vector<pm::Integer>
-0 0
- pm::Vector<pm::Integer>
-0 1
- pm::Vector<pm::Integer>
-0 2
- pm::Vector<pm::Integer>
-1 0
- pm::Vector<pm::Integer>
-1 1
- pm::Vector<pm::Integer>
-2 0
+6-element VectorIterator{PointVector{Polymake.Integer}}:
+ [0, 0]
+ [0, 1]
+ [0, 2]
+ [1, 0]
+ [1, 1]
+ [2, 0]
 ```
 """
 function lattice_points(P::Polyhedron)
     if pm_polytope(P).BOUNDED
         lat_pts = pm_polytope(P).LATTICE_POINTS_GENERATORS[1]
-        return ([e[2:end] for e in eachrow(lat_pts)])
+        return VectorIterator{PointVector{Polymake.Integer}}(lat_pts[:, 2:end])
     else
         throw(ArgumentError("Polyhedron not bounded"))
     end
 end
-#TODO: should this be an iterator too? If so, we should probably find a
-#      scalable way to construct these iterators for so many functions
 
 @doc Markdown.doc"""
     ambient_dim(P::Polyhedron)
@@ -620,7 +426,7 @@ julia> ambient_dim(P)
 """
 ambient_dim(P::Polyhedron) = Polymake.polytope.ambient_dim(pm_polytope(P))
 
-"""
+@doc Markdown.doc"""
     codim(P::Polyhedron)
 
 Return the codimension of `P`.
@@ -657,11 +463,11 @@ its lineality in $x$-direction is recognized:
 julia> UH = convex_hull([0 0],[0 1; 1 0; -1 0]);
 
 julia> lineality_space(UH)
-pm::Matrix<pm::Rational>
-1 0
+1-element VectorIterator{RayVector{Polymake.Rational}}:
+ [1, 0]
 ```
 """
-lineality_space(P::Polyhedron) = dehomogenize(pm_polytope(P).LINEALITY_SPACE)
+lineality_space(P::Polyhedron) = VectorIterator{RayVector{Polymake.Rational}}(dehomogenize(P.pm_polytope.LINEALITY_SPACE))
 
 
 @doc Markdown.doc"""
@@ -673,24 +479,19 @@ Return the recession cone of `P`.
 ```jldoctest
 julia> P = Polyhedron([1 -2; -1 1; -1 0; 0 -1],[2,1,1,1]);
 
-julia> collect(vertices(P))
-3-element Vector{Polymake.Vector{Polymake.Rational}}:
- pm::Vector<pm::Rational>
-0 -1
- pm::Vector<pm::Rational>
--1 0
- pm::Vector<pm::Rational>
--1 -1
+julia> vertices(P)
+3-element VectorIterator{PointVector{Polymake.Rational}}:
+ [0, -1]
+ [-1, 0]
+ [-1, -1]
 
 julia> recession_cone(P)
 A polyhedral cone in ambient dimension 2
 
-julia> collect(rays(recession_cone(P)))
-2-element Vector{Polymake.Vector{Polymake.Rational}}:
- pm::Vector<pm::Rational>
-1 1/2
- pm::Vector<pm::Rational>
-1 1
+julia> rays(recession_cone(P))
+2-element VectorIterator{RayVector{Polymake.Rational}}:
+ [1, 1/2]
+ [1, 1]
 ```
 """
 recession_cone(P::Polyhedron) = Cone(Polymake.polytope.recession_cone(pm_polytope(P)))
@@ -698,7 +499,7 @@ recession_cone(P::Polyhedron) = Cone(Polymake.polytope.recession_cone(pm_polytop
 ###############################################################################
 ## Boolean properties
 ###############################################################################
-"""
+@doc Markdown.doc"""
     isfeasible(P::Polyhedron)
 
 Check whether `P` is feasible, i.e. non-empty.
@@ -713,7 +514,7 @@ false
 """
 isfeasible(P::Polyhedron) = pm_polytope(P).FEASIBLE
 
-"""
+@doc Markdown.doc"""
     contains(P::Polyhedron, v::AbstractVector)
 
 Check whether `P` contains `v`.
@@ -732,7 +533,7 @@ false
 """
 contains(P::Polyhedron, v::AbstractVector) = Polymake.polytope.contains(pm_polytope(P), [1; v])
 
-"""
+@doc Markdown.doc"""
     issmooth(P::Polyhedron)
 
 Check whether `P` is smooth.
@@ -749,7 +550,7 @@ true
 issmooth(P::Polyhedron) = pm_polytope(P).SMOOTH
 
 
-"""
+@doc Markdown.doc"""
     isnormal(P::Polyhedron)
 
 Check whether `P` is normal.
@@ -774,7 +575,7 @@ false
 isnormal(P::Polyhedron) = pm_polytope(P).NORMAL
 
 
-"""
+@doc Markdown.doc"""
     isbounded(P::Polyhedron)
 
 Check whether `P` is bounded.
@@ -790,7 +591,7 @@ false
 isbounded(P::Polyhedron) = pm_polytope(P).BOUNDED
 
 
-"""
+@doc Markdown.doc"""
     isfulldimensional(P::Polyhedron)
 
 Check whether `P` is full-dimensional.
@@ -885,7 +686,7 @@ julia> print_constraints([-1 0 4 5; 4 4 4 3; 1 0 0 0; 0 0 0 0; 0 0 0 0; 9 9 9 9]
 6: 9*x₁ + 9*x₂ + 9*x₃ + 9*x₄ ≦ 5
 ```
 """
-function print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = false)
+function print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = false, io::IO = stdout)
     for i in 1:length(b)
         terms = Vector{String}(undef, size(A)[2])
         first = true
@@ -909,7 +710,7 @@ function print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = fa
             end
             terms[1] = "0"
         end
-        println(string(i, ": ", terms..., " ≦ ", b[i]))
+        println(io, string(i, ": ", terms..., " ≦ ", b[i]))
     end
 end
 
@@ -933,4 +734,16 @@ julia> print_constraints(cube(3))
 6: x₃ ≦ 1
 ```
 """
-print_constraints(P::Polyhedron; trivial::Bool = false) = print_constraints(facets_as_halfspace_matrix_pair(P)...; trivial = trivial)
+print_constraints(P::Polyhedron; trivial::Bool = false, io::IO = stdout) = print_constraints(halfspace_matrix_pair(facets(P))...; trivial = trivial, io = io)
+
+print_constraints(H::Halfspace; trivial::Bool = false, io::IO = stdout) = print_constraints(H.a, [H.b]; trivial = trivial, io = io)
+
+function Base.show(io::IO, H::Halfspace)
+    n = length(H.a)
+    if iszero(H.a) && H.b >= 0
+        print(io, "The trivial Halfspace, R^$n")
+    else
+        print(io, "The Halfspace of R^$n described by\n")
+        print_constraints(H; io=io)
+    end
+end

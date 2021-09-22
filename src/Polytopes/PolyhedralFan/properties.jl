@@ -4,21 +4,6 @@
 ###############################################################################
 ###############################################################################
 
-struct PolyhedralFanRayIterator
-    fan::PolyhedralFan
-end
-
-function Base.iterate(iter::PolyhedralFanRayIterator, index = 1)
-    rays = pm_fan(iter.fan).RAYS
-    if size(rays, 1) < index
-        return nothing
-    end
-
-    return (rays[index, :], index + 1)
-end
-Base.eltype(::Type{PolyhedralFanRayIterator}) = Polymake.Vector{Polymake.Rational}
-Base.length(iter::PolyhedralFanRayIterator) = nrays(iter.fan)
-
 """
     rays(PF::PolyhedralFan)
 
@@ -32,24 +17,17 @@ julia> C = cube(3);
 
 julia> NF = normal_fan(C);
 
-julia> collect(rays(NF))
-6-element Vector{Polymake.Vector{Polymake.Rational}}:
- pm::Vector<pm::Rational>
-1 0 0
- pm::Vector<pm::Rational>
--1 0 0
- pm::Vector<pm::Rational>
-0 1 0
- pm::Vector<pm::Rational>
-0 -1 0
- pm::Vector<pm::Rational>
-0 0 1
- pm::Vector<pm::Rational>
-0 0 -1
+julia> rays(NF)
+6-element VectorIterator{RayVector{Polymake.Rational}}:
+ [1, 0, 0]
+ [-1, 0, 0]
+ [0, 1, 0]
+ [0, -1, 0]
+ [0, 0, 1]
+ [0, 0, -1]
 ```
 """
-rays(PF::PolyhedralFan) = PolyhedralFanRayIterator(PF)
-
+rays(PF::PolyhedralFan) = VectorIterator{RayVector{Polymake.Rational}}(pm_fan(PF).RAYS)
 
 """
     maximal_cones(PF::PolyhedralFan)
@@ -90,14 +68,22 @@ struct MaximalConeIterator
 end
 
 function Base.iterate(iter::MaximalConeIterator, index = 1)
-    n_max_cones = nmaximal_cones(iter.PF)
-    if index > n_max_cones
+    if index > nmaximal_cones(iter.PF)
         return nothing
     end
     current_cone = Cone(Polymake.fan.cone(pm_fan(iter.PF), index - 1))
     return (current_cone, index + 1)
 end
 Base.length(iter::MaximalConeIterator) = nmaximal_cones(iter.PF)
+
+# function cones(as::Type{T}, PF::PolyhedralFan, cone_dim::Int) where {T}
+#     rtype = AsTypeIdentitiesC(as)
+#     if (cone_dim < 0)
+#         return nothing
+#     end
+#     rcones = Polymake.fan.cones_of_dim(PF.pm_fan,cone_dim-length(lineality_space(PF)))
+#     return PolyhedronOrConeIterator{rtype}(PF.pm_fan.RAYS,rcones, PF.pm_fan.LINEALITY_SPACE)
+# end
 
 ###############################################################################
 ###############################################################################
@@ -195,46 +181,11 @@ julia> PF = PolyhedralFan([1 0; 0 1; -1 0; 0 -1], IncidenceMatrix([[1, 2, 3], [3
 A polyhedral fan in ambient dimension 2
 
 julia> lineality_space(PF)
-pm::Matrix<pm::Rational>
-1 0
-
+1-element VectorIterator{RayVector{Polymake.Rational}}:
+ [1, 0]
 ```
 """
-lineality_space(PF::PolyhedralFan) = pm_fan(PF).LINEALITY_SPACE
-
-
-"""
-    rays_as_point_matrix(PF::PolyhedralFan)
-
-Return the rays of `PF` as rows of a matrix.
-
-# Examples
-The rays of a face fan (centered at the origin) point into the direction of the
-polytope's vertices; here we see this for the 3-cube.
-```jldoctest
-julia> collect(rays(face_fan(cube(3))))
-8-element Vector{Polymake.Vector{Polymake.Rational}}:
- pm::Vector<pm::Rational>
--1 -1 -1
- pm::Vector<pm::Rational>
-1 -1 -1
- pm::Vector<pm::Rational>
--1 1 -1
- pm::Vector<pm::Rational>
-1 1 -1
- pm::Vector<pm::Rational>
--1 -1 1
- pm::Vector<pm::Rational>
-1 -1 1
- pm::Vector<pm::Rational>
--1 1 1
- pm::Vector<pm::Rational>
-1 1 1
-
-```
-"""
-rays_as_point_matrix(PF::PolyhedralFan) = pm_fan(PF).RAYS
-
+lineality_space(PF::PolyhedralFan) = VectorIterator{RayVector{Polymake.Rational}}(pm_fan(PF).LINEALITY_SPACE)
 
 @doc Markdown.doc"""
     maximal_cones_as_incidence_matrix(PF::PolyhedralFan)
@@ -251,16 +202,12 @@ $e_2$ are the two unit vectors. These cones correspond to the four quadrants.
 ```jldoctest
 julia> PF = normal_fan(cube(2));
 
-julia> collect(rays(PF))
-4-element Vector{Polymake.Vector{Polymake.Rational}}:
- pm::Vector<pm::Rational>
-1 0
- pm::Vector<pm::Rational>
--1 0
- pm::Vector<pm::Rational>
-0 1
- pm::Vector<pm::Rational>
-0 -1
+julia> rays(PF)
+4-element VectorIterator{RayVector{Polymake.Rational}}:
+ [1, 0]
+ [-1, 0]
+ [0, 1]
+ [0, -1]
 
 julia> maximal_cones_as_incidence_matrix(PF)
 4×4 Matrix{Bool}:

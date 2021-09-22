@@ -34,7 +34,9 @@ export
 
 Return the direct product of the groups in the collection `L`.
 
-The parameter `morphisms` is `false` by default. If it is set `true`, then the output is a triple (`G`, `emb`, `proj`), where `emb` and `proj` are the vectors of the embeddings (resp. projections) of the direct product `G`.
+The parameter `morphisms` is `false` by default. If it is set `true`, then
+the output is a triple (`G`, `emb`, `proj`), where `emb` and `proj` are the
+vectors of the embeddings (resp. projections) of the direct product `G`.
 """
 function direct_product(L::AbstractVector{<:GAPGroup}; morphisms=false)
    X = GAP.Globals.DirectProduct(GAP.julia_to_gap([G.X for G in L]))
@@ -56,10 +58,13 @@ end
     inner_direct_product(L::AbstractVector{T}; morphisms)
     inner_direct_product(L::T...)
 
-Return a direct product of groups of the same type `T` as a group of type `T`. It works for `T` of the following types:
+Return a direct product of groups of the same type `T` as a group of type
+`T`. It works for `T` of the following types:
 - `PermGroup`, `PcGroup`, `FPGroup`.
 
-The parameter `morphisms` is `false` by default. If it is set `true`, then the output is a triple (`G`, `emb`, `proj`), where `emb` and `proj` are the vectors of the embeddings (resp. projections) of the direct product `G`.
+The parameter `morphisms` is `false` by default. If it is set `true`, then
+the output is a triple (`G`, `emb`, `proj`), where `emb` and `proj` are the
+vectors of the embeddings (resp. projections) of the direct product `G`.
 """
 function inner_direct_product(L::AbstractVector{T}; morphisms=false) where T<:Union{PcGroup,PermGroup,FPGroup}
    P = GAP.Globals.DirectProduct(GAP.julia_to_gap([G.X for G in L]))
@@ -103,7 +108,9 @@ end
 
 Return the direct product of `n` copies of `G` as group of type `T`.
 
-The parameter `morphisms` is `false` by default. If it is set `true`, then the output is a triple (`G`, `emb`, `proj`), where `emb` and `proj` are the vectors of the embeddings (resp. projections) of the direct product `G`.
+The parameter `morphisms` is `false` by default. If it is set `true`, then
+the output is a triple (`G`, `emb`, `proj`), where `emb` and `proj` are the
+vectors of the embeddings (resp. projections) of the direct product `G`.
 """
 function inner_cartesian_power(G::T, n::Base.Integer; morphisms=false) where T <: GAPGroup
    L = [G for i in 1:n]
@@ -276,7 +283,8 @@ acting_subgroup(G::SemidirectProductGroup) = G.H
 """
     homomorphism_of_semidirect_product(G::SemidirectProductGroup)
 
-Return `f,` where `G` is the semidirect product of the normal subgroup `N` and the group `H` acting on `N` via the homomorphism `h`.
+Return `f,` where `G` is the semidirect product of the normal subgroup `N` and
+the group `H` acting on `N` via the homomorphism `h`.
 """
 homomorphism_of_semidirect_product(G::SemidirectProductGroup) = G.f
 
@@ -290,7 +298,8 @@ isfull_semidirect_product(G::SemidirectProductGroup) = G.isfull
 """
     embedding(G::SemidirectProductGroup, n::Integer)
 
-Return the embedding of the `n`-th component of `G` into `G`, for `n` = 1,2. It is not defined for proper subgroups of semidirect products.
+Return the embedding of the `n`-th component of `G` into `G`, for `n` = 1,2.
+It is not defined for proper subgroups of semidirect products.
 """
 function embedding(G::SemidirectProductGroup{S,T}, n::Base.Integer) where S where T
    @assert G.isfull "Embedding not defined for proper subgroups of semidirect products"
@@ -327,7 +336,8 @@ end
 
 function Base.show(io::IO, x::SemidirectProductGroup)
    if x.isfull
-      print(io, "SemidirectProduct( ", GAP.gap_to_julia(GAP.Globals.StringViewObj(x.N.X)), " , ", GAP.gap_to_julia(GAP.Globals.StringView(x.H.X))," )")
+      print(io, "SemidirectProduct( ", GAP.gap_to_julia(GAP.Globals.StringViewObj(x.N.X)),
+                " , ", GAP.gap_to_julia(GAP.Globals.StringView(x.H.X))," )")
    else
       print(io, GAP.gap_to_julia(GAP.Globals.StringViewObj(x.X)))
    end
@@ -343,11 +353,16 @@ end
     wreath_product(G::T, H::S, a::GAPGroupHomomorphism{S,PermGroup})
     wreath_product(G::T, H::PermGroup) where T<: Group
 
-Return the wreath product of the group `G` and the group `H`, where `H` acts on `n` copies of `G` through the homomorphism `a` from `H` to a permutation group, and `n` is the number of moved points of `Image(a)`.
+Return the wreath product of the group `G` and the group `H`, where `H` acts
+on `n` copies of `G` through the homomorphism `a` from `H` to a permutation
+group, and `n` is the number of moved points of `Image(a)`.
 
-If `a` is not specified, then `H` must be a group of permutations. In this case, `n` is NOT the number of moved points, but the degree of `H`.
+If `a` is not specified, then `H` must be a group of permutations. In this
+case, `n` is NOT the number of moved points, but the degree of `H`.
 
-If `W` is a wreath product of `G` and `H`, {`g_1`, ..., `g_n`} are elements of `G` and `h` in `H`, the element `(g_1, ..., h)` of `W` can be obtained by typing
+If `W` is a wreath product of `G` and `H`, {`g_1`, ..., `g_n`} are elements of
+`G` and `h` in `H`, the element `(g_1, ..., h)` of `W` can be obtained by
+typing
 ```
     W(g_1,...,g_n, h).
 ```
@@ -401,7 +416,8 @@ acting_subgroup(W::WreathProductGroup) = W.H
 """
     homomorphism_of_wreath_product(G::WreathProductGroup)
 
-If `W` is the wreath product of `G` and `H`, then return the homomorphism `f` from `H` to `Sym(n)`, where `n` is the number of copies of `G`.
+If `W` is the wreath product of `G` and `H`, then return the homomorphism `f`
+from `H` to `Sym(n)`, where `n` is the number of copies of `G`.
 """
 homomorphism_of_wreath_product(G::WreathProductGroup) = G.a
 

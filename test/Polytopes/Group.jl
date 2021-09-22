@@ -7,7 +7,7 @@
         P = convex_hull(M)
         @test ambient_dim(P) == 4
 
-        F = facets(Polyhedra, P)
+        F = facets(Polyhedron, P)
         #@test nvertices.(F) == [6, 6, 4, 6, 4, 4, 6, 4, 6, 6, 4, 6, 6, 4]
         #Since different convex hull algorithms will result in differnt vertex orders, this test may fail.
         #Best way to handle this is to use "prefer" option in polymake, which is not available in OSCAR yet
