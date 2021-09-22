@@ -98,10 +98,10 @@ end
 export map_from_character_to_principal_divisor
 
 
-struct map_from_weil_divisors_to_class_group
+struct mapFromWeilDivisorsToClassGroup
            GapMapFromWeilDivisorsToClassGroup::GapObj
 end
-export map_from_weil_divisors_to_class_group
+export mapFromWeilDivisorsToClassGroup
 
 
 """
@@ -111,7 +111,7 @@ Computes the map from the Weil divisors to the Class group of the normal toric v
 """
 function map_from_weil_divisors_to_class_group( v::normalToricVariety )
     gap_MapFromWeilDivisorsToClassGroup = GAP.Globals.MapFromWeilDivisorsToClassGroup( v.GapNTV )
-    return map_from_weil_divisors_to_class_group( gap_MapFromWeilDivisorsToClassGroup )
+    return mapFromWeilDivisorsToClassGroup( gap_MapFromWeilDivisorsToClassGroup )
 end
 export map_from_weil_divisors_to_class_group
 
