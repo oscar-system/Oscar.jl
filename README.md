@@ -1,7 +1,7 @@
 # JToric
 
 [![CI](https://github.com/oscar-system/JToric.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/HereAround/JToric/actions/workflows/CI.yml)
-[![codecov](https://codecov.io/gh/HereAround/JToric/branch/master/graph/badge.svg?token=P0OW0QDKM8)](https://codecov.io/gh/HereAround/JToric)
+[![codecov](https://codecov.io/gh/oscar-system/JToric.jl/branch/master/graph/badge.svg?token=z9gKk5v3O6)](https://codecov.io/gh/oscar-system/JToric.jl)
 
 
 ## What is JToric about?
