@@ -166,7 +166,7 @@ Checks if the normal toric variety `v` is projective, i.e. if the fan of `v` is 
 
 # Examples
 ```julia-repl
-julia> is_projective( projective_space(  2 ) )
+julia> is_projective( projective_space( 2 ) )
 true
 ```
 """
