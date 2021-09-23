@@ -2,7 +2,10 @@ import AbstractAlgebra.Field
 import AbstractAlgebra.Generic.MatSpaceElem
 
 
-export AlgGroup, subgroup
+export AlgGroup, subgroup, base_field, ambient_ring, defining_ideal, presentation_matrix, AlgGroup_GL, AlgGroup_SL
+
+export LinearRepresentation, representation_on_sym_power, mapping_matrix, group
+
 
 @Markdown.doc """
     AlgGroup{FieldType, RingType, RingElemType, MatrixType}
@@ -23,10 +26,10 @@ mutable struct AlgGroup{FieldType, RingType, RingElemType, MatrixType}
   I::MPolyIdeal{RingElemType}	# The ideal describing the closed subgroup
   Z::MatrixType			# The matrix coordinates for the representation
 
-  function AlgGroup( k::FieldType, R::RingType, I::MPolyIdeal{RingElemType}, Z) where{FieldType<:Field, RingType<:Ring, RingElemType}
+  function AlgGroup( k::FieldType, R::RingType, I::MPolyIdeal{RingElemType}, Z::MatrixType) where{FieldType<:Field, RingType<:Ring, RingElemType, MatrixType}
     @assert typeof(Z) <: dense_matrix_type(R) "Matrix is not defined over the given ring"
-    @assert base_ring(R) === k
-    @assert typeof(Z) == dense_matrix_type(R)
+    @assert base_ring(R) === k "ambient polynomial ring is not defined over the given field" 
+    @assert MatrixType == dense_matrix_type(R) "Matrix has the wrong type"
     return new{typeof(k), typeof(R), elem_type(R), dense_matrix_type(R)}(k, R, I, Z)
   end
 end
@@ -81,18 +84,31 @@ function presentation_matrix(G::AlgGroup{FieldType, RingType, RingElemType, Matr
 end
 
 @Markdown.doc """
-    function GL( n::Int, k<:Field )
+    GL( n::Int, k::FieldType ) where{FieldType<:Field}
 
 The general linear group of invertible n×n-matrices over the field `k`.
 """
-function GL( n::Int, k::FieldType ) where{FieldType<:Field}
+function AlgGroup_GL( n::Int, k::FieldType ) where{FieldType<:Field}
   #R_t,t = PolynomialRing(QQ,"t")
-  R, z,t = PolynomialRing(k, "a" => (1:n, 1:n), "t" => (1:1))
+  R, z,t = PolynomialRing(k, "z" => (1:n, 1:n), "t" => (1:1))
   Z = matrix(z)
   t = t[1]
   I = ideal(R, [1-det(Z)*t] )
-  return AlgGroup{typeof(k), typeof(R), elem_type(R), dense_matrix_type(R)}( k, R, I, Z )
+  return AlgGroup( k, R, I, Z )
 end
+
+@Markdown.doc """
+    function SL(n::Int, k::FieldType) where{FieldType<:Field}
+
+Constructs the special linear group of rank `n` over the field `k`.
+"""
+function AlgGroup_SL(n::Int, k::FieldType) where{FieldType<:Field}
+  R, z = PolynomialRing(k, "z" => (1:n, 1:n))
+  Z = matrix(z)
+  I = ideal(R, [1-det(Z)] )
+  return AlgGroup( k, R, I, Z )
+end
+  
 
 
 function subgroup( G::AlgGroup, I::MPolyIdeal )
@@ -101,23 +117,38 @@ function subgroup( G::AlgGroup, I::MPolyIdeal )
 end
 
 @Markdown.doc """
-    LinearRepresentation
+    LinearRepresentation{FieldType, RingType, RingElemType, MatrixTypeG, MatrixTypeA}
 
-A linear representation of an algebraic group G over a field 𝕜, 
+A linear representation of an algebraic group G ⊂ GL(t,𝕜) over a field 𝕜, 
 defined on a vector space V ≅ 𝕜ʳ. 
 The information stored consists of 
-  * an instance `G` of AlgGroup which describes the group as a subscheme of GL(t,𝕜);
-  * an r×r-matrix A with entries in the polynomial ring 𝕜[zᵢⱼ| 1 ≤ i,j ≤ t] 
-    inducing the map G →  GL(r,𝕜) ≅ End(V) for the representation.
+  * an instance `G` of `AlgGroup{FieldType, RingType, RingElemType, MatrixTypeG}` 
+    which describes the group as a subscheme of GL(t,𝕜);
+  * an r×r-matrix A of type `MatrixTypeA` with entries in the polynomial ring 𝕜[zᵢⱼ| 1 ≤ i,j ≤ t],
+    whose variables are the standard coordinates on GL(t,𝕜), inducing the 
+    map G →  GL(r,𝕜) ≅ End(V) for the representation.
 """
 mutable struct LinearRepresentation{FieldType, RingType, RingElemType, MatrixTypeG, MatrixTypeA}
   G::AlgGroup{FieldType, RingType, RingElemType, MatrixTypeG}
   A::MatrixTypeA
+  pullback_morphism::Oscar.AlgHom
+  #pullback_morphism::AlgebraHomomorphism
 
   function LinearRepresentation( G::AlgGroup, A::MatSpaceElem )
     @assert G.k === base_ring(base_ring(A))
     @assert ncols(G.Z)*nrows(G.Z) == length(gens(base_ring(A)))
-    return new{typeof(G.k), typeof(G.R), elem_type(G.R), typeof(G.Z), typeof(A)}( G, A )
+    images = Vector{elem_type(ambient_ring(G))}()
+    Z = presentation_matrix(G)
+    n = ncols(Z)
+    # calling gens(base_ring(A)) reveals that the order of the 
+    # coordinates is reversed...
+    for j in (1:n)
+      for i in (1:n)
+	push!(images, Z[i,j])
+      end
+    end
+    phi = AlgebraHomomorphism(base_ring(A), ambient_ring(G), images)
+    return new{typeof(G.k), typeof(G.R), elem_type(G.R), typeof(G.Z), typeof(A)}(G, A, phi)
   end
 
 end
@@ -130,21 +161,47 @@ function LinearRepresentation( G::AlgGroup )
   return LinearRepresentation( G, A )
 end
 
+@Markdown.doc """
+    mapping_matrix( rep::LinearRepresentation )
+
+Returns the r×r-matrix A with polynomial entries in the 
+variables zᵢⱼ, 1≤i,j≤n of the group G.
+"""
+function mapping_matrix( rep::LinearRepresentation )
+  return rep.A
+end
+
+@Markdown.doc """
+    group( rep::LinearRepresentation )
+
+Returns the group G which is represented by `rep`.
+"""
+function group( rep::LinearRepresentation )
+  return rep.G
+end
+
+@Markdown.doc """
+    representation_on_sym_power( rep::LinearRepresentation, d::Int )
+
+Constructs the induced representation on the d-th symmetric power 
+Symᵈ V* of the vector space V on which `rep` is defined.
+"""
 function representation_on_sym_power( rep::LinearRepresentation, d::Int )
-  # return the representation induced on the d-th symmetric power 
-  # of the vector space V on which the representation rep is 
-  # defined.
-  n = ncols( rep.A )	# the rank of the original representation
+  n = ncols(mapping_matrix(rep))	        # the rank of the original representation
   N = binomial( n+d-1, d )	# the rank of the induced representation
+  G = group(rep)
   # A polynomial ring containing variables for the coordinates of 
   # the original representation:
-  S, y = PolynomialRing( rep.G.R, [ "y$k" for k in (1:n) ])
+  R_z = base_ring(mapping_matrix(rep))
+  S, y = PolynomialRing( R_z, [ "y$k" for k in (1:n) ])
   # An empty matrix for the induced representation
-  M = MatrixSpace( rep.G.R, N, N )
+  M = MatrixSpace( R_z, N, N )
   B = zero(M)
   # The matrix of the original representation, but promoted to the 
   # new ring S
-  A = matrix( S.(rep.A) )
+  @show mapping_matrix(rep)
+  @show S
+  A = matrix(S.(mapping_matrix(rep)))
   # images of the variables under the action of the group
   z = A*matrix(y)
   # Populate the matrix B for the induced representation...
@@ -157,5 +214,5 @@ function representation_on_sym_power( rep::LinearRepresentation, d::Int )
       B[ linear_index(j), linear_index(i) ] = coeff( f, power( y, j ))
     end
   end
-  return LinearRep( rep.G, B )
+  return LinearRepresentation( G, B )
 end
