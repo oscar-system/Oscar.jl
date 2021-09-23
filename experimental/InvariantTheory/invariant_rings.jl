@@ -6,7 +6,7 @@ export reynolds_operator, molien_series
 ###############################################
 
 @Markdown.doc """
-    mutable struct InvRing{FldT, GrpT, PolyElemT, PolyRingT, ActionT, SingularActionT}
+    InvRing{FldT, GrpT, PolyElemT, PolyRingT, ActionT, SingularActionT}
 
 Container for the invariant ring for the presentation of a finit group G 
 on a vector space V over a field 𝕜. The type parameters are 
