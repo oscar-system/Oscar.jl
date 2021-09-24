@@ -18,27 +18,23 @@ by default. This means that integers typed at the
 are [Julia integers](https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/). However, for performance reasons, Oscar has its own integer format.
 
 Julia has a number of different integer types, but the two that are most
-relevant here are `Base.Int` and `Base.BigInt`. All the Julia integer types
-belong to `Base.Integer`.
+relevant here are `Int` and `BigInt`. All the Julia integer types
+belong to `Integer`.
 
-The `Base.Int` type is for machine integers which are highly efficient, but
-can only represent integers up to a certain hardware defined size before
-wrapping around.
+The `Int` type is for machine integers which are highly efficient, but
+can only represent integers up to a certain size, and most basic arithmetic
+operations are performed unchecked, that is, they can [silently overflow](https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/#Overflow-behavior). The
+`Int` type is the type of literal input such as `12`, and should be used for
+loop control flow, array indices, and other situations where the overflow can
+be provably avoided.
 
-The `Base.BigInt` type is backed by GMP multiprecision integers and can
-represent integers whose size is usually only limited by available memory.
+The `BigInt` type is backed by GMP multiprecision integers and can represent
+integers whose size is usually only limited by available memory. While the
+`BigInt` type avoids overflow problems, it can be relatively slow in the
+`Int` range.
 
-Oscar currently only has one integer type, `Oscar.fmpz` which for performance
+Oscar currently has the integer type `fmpz`, which for performance
 reasons scales internally from machine integers to GMP multiprecision integers.
-The Oscar integer type belongs to `Oscar.Integer`.
-
-This situation is illustrated in the following diagram.
-
-![alt text](../img/IntegerTypes.svg)
-
-In the documentation below, we always use `Base.Integer` for a Julia integer
-and `Oscar.Integer` for an Oscar integer. Some functions accept only machine
-integers for certain arguments; in such cases, we refer to `Base.Int`.
 
 ## The ring of integers
 
@@ -102,25 +98,36 @@ exceed ``2^{37}`` bits.
 ## Julia integers in Oscar functions
 
 For convenience, all basic arithmetic and exact division functions in Oscar
-also accept Julia integers. For example:
+also accept Julia integers. If all of the arguments to an Oscar function are
+julia integers, the resulting integers should be julia integers. However, once
+at least one of the arguments is an `fmpz`, the function will generally behave
+as if all integer arguments were promoted to the type `fmpz`, and the integers
+in the return generally should also be of type `fmpz`. For example:
 
 ```@repl oscar
 divexact(ZZ(234), 2)
+typeof(gcd(4, 6))
+typeof(gcdx(4, 6))
+typeof(gcd(4, ZZ(6)))
+typeof(gcdx(4, ZZ(6)))
+typeof(jacobi_symbol(ZZ(2), ZZ(3)))
 ```
 
-In this example, `2` is a Julia integer but is still valid in the
-call to the Oscar function `divexact`.
+In the first example, `2` is a Julia integer but is still valid in the
+call to the Oscar function `divexact`. In the last example, the exceptional
+function `jacobi_symbol` returns an `Int` as this will always be able to hold
+the three possible return values of `-1`, `0`, or `1`.
 
 ## Predicates
 
-* `iszero(n::Oscar.Integer) -> Bool`
-* `isone(n::Oscar.Integer) -> Bool`
-* `isunit(n::Oscar.Integer) -> Bool`
-* `isodd(n::Oscar.Integer) -> Bool`
-* `iseven(n::Oscar.Integer) -> Bool`
-* `issquare(n::Oscar.Integer) -> Bool`
-* `isprime(n::Oscar.Integer) -> Bool`
-* `isprobable_prime(n::Oscar.Integer) -> Bool`
+* `iszero(n::fmpz) -> Bool`
+* `isone(n::fmpz) -> Bool`
+* `isunit(n::fmpz) -> Bool`
+* `isodd(n::fmpz) -> Bool`
+* `iseven(n::fmpz) -> Bool`
+* `issquare(n::fmpz) -> Bool`
+* `isprime(n::fmpz) -> Bool`
+* `isprobable_prime(n::fmpz) -> Bool`
 
 The `isprime` predicate will prove primality, whereas `isprobable_prime` may
 declare a composite number to be prime with very low probability.
@@ -137,7 +144,7 @@ isprobable_prime(ZZ(23))
 
 ## Properties
 
-* `sign(n::Oscar.Integer) -> Oscar.Integer`
+* `sign(n::fmpz) -> fmpz`
 
 Returns the sign of `n`, i.e. ``n/|n|`` if ``n \neq 0``, or ``0`` otherwise.
 
@@ -147,7 +154,7 @@ sign(ZZ(0))
 sign(ZZ(-1))
 ```
 
-* `abs(n::Oscar.Integer) -> Oscar.Integer`
+* `abs(n::fmpz) -> fmpz`
 
 Return the absolute value of ``n``, i.e. ``n`` if ``n \geq 0`` and ``-n``
 otherwise
@@ -183,10 +190,7 @@ These choices have been made for maximum parsimony with the Julia language.
 
 ### [Exact Division](@id integer_exact_division)
 
-* `divexact(a::Oscar.Integer, b::Oscar.Integer) -> Oscar.Integer`
-
-One or both arguments may be Julia integers, however if they both are, the
-result will be a Julia integer not an Oscar integer.
+* `divexact(a::fmpz, b::fmpz) -> fmpz`
 
 Returns the quotient of ``a`` by ``b``. The result of the exact division of two
 integers will always be another integer. Exact division raises an exception if
@@ -201,7 +205,7 @@ divexact(ZZ(6), 2)
 
 ### Powering
 
-* `^(a::Oscar.Integer, b::Base.Int) -> Oscar.Integer`
+* `^(a::fmpz, b::Int) -> fmpz`
 
 Powering can be accomplished naturally using the special caret infix
 operator:
@@ -216,9 +220,9 @@ ZZ(1)^(-2)
     raised to a negative exponent.
 
 !!! note
-    In Julia ``2^-2`` is called a literal power. The value returned is a
+    In Julia `2^-2` is called a literal power. The value returned is a
     floating point value. To get behaviour that agrees with Oscar, one can
-    write ``2^Int(-2)``.
+    write `2^Int(-2)`.
 
 The following is allowed for convenience.
 
@@ -246,12 +250,9 @@ with ``|r| < |b|``.
 
 ### Division with remainder
 
-* `divrem(a::Oscar.Integer, b::Oscar.Integer) -> (Oscar.Integer, Oscar.Integer)` : division with remainder
-* `div(a::Oscar.Integer, b::Oscar.Integer) -> Oscar.Integer` : quotient only
-* `rem(a::Oscar.Integer, b::Oscar.Integer) -> Oscar.Integer` : remainder only
-
-One or both arguments may be Julia integers, however if they both are, the
-result will be a Julia integer not an Oscar integer.
+* `divrem(a::fmpz, b::fmpz) -> (fmpz, fmpz)` : division with remainder
+* `div(a::fmpz, b::fmpz) -> fmpz` : quotient only
+* `rem(a::fmpz, b::fmpz) -> fmpz` : remainder only
 
 Both `rem` and `divrem` compute the remainder ``r`` such that when ``r \neq 0``
 the sign of ``r`` is the same as the sign of ``a``.
@@ -273,10 +274,7 @@ div(ZZ(2), ZZ(0))
 
 ### Modular reduction
 
-* `mod(a::Oscar.Integer, b::Oscar.Integer) -> Oscar.Integer` : remainder only
-
-One or both arguments may be Julia integers, however if they both are, the
-result will be a Julia integer not an Oscar integer.
+* `mod(a::fmpz, b::fmpz) -> fmpz` : remainder only
 
 The `mod` function computes a remainder ``r`` such that when ``r \neq 0`` the
 sign of ``r`` is the same as the sign of ``b``. Thus, if ``b > 0`` then
@@ -298,7 +296,7 @@ mod(ZZ(2), ZZ(0))
 
 ## [Divisibility testing](@id integer_divisibility_testing)
 
-* `divides(a::Oscar.Integer, b::Oscar.Integer) -> (Bool, Oscar.Integer)`
+* `divides(a::fmpz, b::fmpz) -> (Bool, fmpz)`
 
 In Oscar, we say that ``b`` divides ``a`` if there exists ``c`` in the same
 ring such that ``a = bc``.
@@ -323,10 +321,7 @@ divides(ZZ(0), ZZ(0))
 
 ### Greatest common divisor
 
-* `gcd(a::Oscar.Integer, b::Oscar.Integer) -> Oscar.Integer`
-
-One or both arguments may be Julia integers, however if they both are, the
-result will be a Julia integer not an Oscar integer.
+* `gcd(a::fmpz, b::fmpz) -> fmpz`
 
 Returns the greatest common divisor of its inputs, which is by definition the
 largest integer dividing the two inputs, unless both inputs are zero in which
@@ -340,25 +335,19 @@ gcd(ZZ(3), ZZ(0))
 
 ### Extended GCD
 
-* `gcdx(a::Oscar.Integer, b::Oscar.Integer) -> (Oscar.Integer, Oscar.Integer, Oscar.Integer)`
-
-One or both arguments may be Julia integers, however if they both are, the
-result will be a tuple of Julia integers not Oscar integers.
+* `gcdx(a::fmpz, b::fmpz) -> (fmpz, fmpz, fmpz)`
 
 Returns a tuple ``(g, s, t)`` such that ``g`` is the greatest common divisor of
 ``a`` and ``b`` and ``g = as + bt``. Normally ``s`` and ``t`` are chosen so
 that ``|s| < |b|/(2g)`` and ``|t| < |a|/(2g)``, where this uniquely defines
-``s`` and ``t``. But the following cases are handled specially:
+``s`` and ``t``. The following cases are handled specially:
 1. if ``|a| = |b|`` then ``t = b/|b|``
 2. if ``b = 0`` or ``|b| = 2g`` then ``s = a/|a|``
 3. if ``a = 0`` or ``|a| = 2g`` then ``t = b/|b|``
 
 ### Least common multiple
 
-* `lcm(a::Oscar.Integer, b::Oscar.Integer) -> Oscar.Integer`
-
-One or both arguments may be Julia integers, however if they both are, the
-result will be a Julia integer not an Oscar integer.
+* `lcm(a::fmpz, b::fmpz) -> fmpz`
 
 Returns the least common multiple of ``a`` and ``b``. This is the least
 positive multiple of ``a`` and ``b``, unless ``a = 0`` or ``b = 0``
@@ -368,11 +357,6 @@ which case we define the least common multiple to be zero.
 lcm(ZZ(6), ZZ(21))
 lcm(ZZ(0), ZZ(0))
 ```
-
-!!! note
-    The identity ``\gcd(m, n)\mathrm{lcm}(m, n) = mn`` does not hold for the
-    definition that Oscar uses, unless both ``m`` and ``n`` are the same sign
-    or one of them is zero.
 
 ## Roots
 
@@ -385,7 +369,7 @@ Julia and Oscar distinguish two kinds of square root:
 
 We describe only the first of these here.
 
-* `isqrt(n::Oscar.Integer) -> Oscar.Integer`
+* `isqrt(n::fmpz) -> fmpz`
 
 Returns the floor of the square root of its argument, i.e. the largest integer
 whose square does not exceed its input. An exception is raised if a negative
@@ -398,7 +382,7 @@ isqrt(ZZ(5))
 isqrt(ZZ(-3))
 ```
 
-* `isqrtrem(n::Oscar.Integer) -> (Oscar.Integer, Oscar.Integer)`
+* `isqrtrem(n::fmpz) -> (fmpz, fmpz)`
 
 Returns the tuple `(s, r)` such that ``s`` is equal to `isqrt(n)` and
 ``n = s^2 + r``.
@@ -410,7 +394,7 @@ isqrtrem(ZZ(5))
 
 ### General roots
 
-* `root(a::Oscar.Integer, n::Base.Int) -> Oscar.Integer`
+* `root(a::fmpz, n::Int) -> fmpz`
 
 Returns the value ``r`` of largest absolute value such that ``r^n \leq a``.
 When ``a`` is a perfect ``n``-th power, the return value will be an ``n``-th
@@ -430,8 +414,8 @@ root(ZZ(12), -2)
 
 ## Conversions
 
-* `Int(n::Oscar.Integer) -> Base.Int`
-* `BigInt(n::Oscar.Integer) -> Base.BigInt`
+* `Int(n::fmpz) -> Int`
+* `BigInt(n::fmpz) -> BigInt`
 
 Convert the Oscar integer to the respective Julia integer.
 
@@ -448,9 +432,9 @@ is raised.
 Int(ZZ(12348732648732648763274868732687324))
 ```
 
-* `fits(::Type{Int}, n::Oscar.Integer) -> Bool`
+* `fits(::Type{Int}, n::fmpz) -> Bool`
 
-Returns `true` if the Oscar integer will fit in a `Base.Int`.
+Returns `true` if the Oscar integer will fit in an `Int`.
 
 ```@repl oscar
 fits(Int, ZZ(123))
@@ -459,7 +443,7 @@ fits(Int, ZZ(12348732648732648763274868732687324))
 
 ## Factorisation
 
-* `factor(n::Oscar.Integer) -> Fac`
+* `factor(n::fmpz) -> Fac{fmpz}`
 
 Returns a factorisation of the given integer. The return value is a special
 factorisation struct which can be manipulated using the functions below.
@@ -469,7 +453,7 @@ factor(ZZ(-6000361807272228723606))
 factor(ZZ(0))
 ```
 
-* `unit(F::Fac) -> Oscar.Integer`
+* `unit(F::Fac) -> fmpz`
 
 ```@repl oscar
 F = factor(ZZ(-12))
@@ -500,7 +484,7 @@ One can also determine whether a given prime is in the non-unit part of a
 factorisation and if so return its exponent. If the exponent of a prime that
 is not in a factorisation is requested, an exception is raised.
 
-For convenience, a `Base.Int` can be used instead of an Oscar integer for this
+For convenience, a `Int` can be used instead of an Oscar integer for this
 functionality.
 
 ```@repl oscar
@@ -515,23 +499,20 @@ F[ZZ(7)]
 ## Combinatorial functions
 
 !!! note
-    The functions in this section that take `Base.Int` arguments will return
-    a `Base.Int`, which may overflow. Use the `Oscar.Integer` versions if this
-    is not the desired behaviour.
+    The functions in this section that take `Int` arguments will return an
+    `Int`, which may overflow or throw an error. Use the `fmpz` versions if
+    this is not the desired behaviour.
 
 ### Factorial
 
-* `factorial(n::Oscar.Integer) -> Oscar.Integer`
+* `factorial(n::fmpz) -> fmpz`
 
 Returns the factorial of ``n``, i.e. ``n!``. An exception is raised if
 ``n < 0``. We define ``0! = 1``.
 
-!!! note
-    The function `factorial` is already defined in Julia for `Base.Int`.
-
-* `rising_factorial(x::Base.Int, n::Base.Int) -> Base.Int`
-* `rising_factorial(x::Oscar.Integer, n::Base.Int) -> Oscar.Integer`
-* `rising_factorial(x::Oscar.Integer, n::Oscar.Integer) -> Oscar.Integer`
+* `rising_factorial(x::Int, n::Int) -> Int`
+* `rising_factorial(x::fmpz, n::Int) -> fmpz`
+* `rising_factorial(x::fmpz, n::fmpz) -> fmpz`
 
 Returns ``x(x + 1)(x + 2)\ldots(x + n - 1)``. An exception is raised if
 ``n < 0``. We define `rising_factorial(x, 0)` to be ``1``.
@@ -543,8 +524,8 @@ rising_factorial(ZZ(-30), 3)
 
 ### Primorial
 
-* `primorial(n::Base.Int) -> Base.Int`
-* `primorial(n::Oscar.Integer) -> Oscar.Integer`
+* `primorial(n::Int) -> Int`
+* `primorial(n::fmpz) -> fmpz`
 
 Returns the primorial ``P(n)``, i.e. the product of all primes less than or
 equal to ``n``. An exception is raised if ``n < 0``. We define
@@ -556,8 +537,8 @@ primorial(ZZ(100))
 
 ### Bell numbers
 
-* `bell(n::Base.Int) -> Base.Int`
-* `bell(n::Oscar.Integer) -> Oscar.Integer`
+* `bell(n::Int) -> Int`
+* `bell(n::fmpz) -> fmpz`
 
 Returns the ``n``-th Bell number ``B(n)``, i.e. the number of ways of
 partitioning a set of ``n`` elements. An exception is raised if ``n < 0``.
@@ -568,13 +549,14 @@ bell(ZZ(20))
 
 ### Binomial coefficients
 
-* `binomial(n::Oscar.Integer, k::Oscar.Integer) -> Oscar.Integer`
+* `binomial(n::fmpz, k::fmpz) -> fmpz`
 
 Returns the binomial coefficient ``\frac{n!}{k!(n - k)!}``. If ``n, k < 0`` or
 ``k > n`` we return zero.
 
 !!! note
-    Julia already defines the `binomial` function for `Base.Int`.
+    Julia already defines the `binomial` function for `Int`, which throws an
+    error on overflow.
 
 ```@repl oscar
 binomial(ZZ(72), ZZ(15))
@@ -582,8 +564,8 @@ binomial(ZZ(72), ZZ(15))
 
 ### Integer partitions
 
-* `number_of_partitions(n::Base.Int) -> Base.Int`
-* `number_of_partitions(n::Oscar.Integer) -> Oscar.Integer`
+* `number_of_partitions(n::Int) -> Int`
+* `number_of_partitions(n::fmpz) -> fmpz`
 
 Returns the number of integer partitions ``p(n)`` of ``n``, i.e. the number
 of distinct ways to write ``n`` as a sum of positive integers. Note that
@@ -595,8 +577,8 @@ number_of_partitions(ZZ(10^6))
 
 ### Fibonacci sequence
 
-* `fibonacci(n::Base.Int) -> Base.Int`
-* `fibonacci(n::Oscar.Integer) -> Oscar.Integer`
+* `fibonacci(n::Int) -> Int`
+* `fibonacci(n::fmpz) -> fmpz`
 
 Returns the ``n``-th Fibonacci number ``F(n)``, defined by the recurrence
 relation ``F(1) = 1``, ``F(2) = 1`` and ``F(n) = F(n - 1) + F(n - 2)`` for
@@ -611,14 +593,14 @@ fibonacci(-2)
 ## Number theoretic functionality
 
 !!! note
-    The functions in this section that take `Base.Int` arguments will return
-    a `Base.Int`, which may overflow. Use the `Oscar.Integer` versions if this
-    is not the desired behaviour.
+    The functions in this section that take `Int` arguments will return a
+    `Int`, which may overflow or throw an error. Use the `fmpz` versions if
+    this is not the desired behaviour.
 
 ### Moebius mu function
 
-* `moebius_mu(n::Base.Int) -> Base.Int`
-* `moebius_mu(n::Oscar.Integer) -> Base.Int` 
+* `moebius_mu(n::Int) -> Int`
+* `moebius_mu(n::fmpz) -> Int` 
 
 Return the Moebius function ``\mu(n)``, which is defined to be ``0`` if
 ``n`` is not squarefree and otherwise is defined to be ``+1`` or ``-1`` if
@@ -632,8 +614,8 @@ moebius_mu(30)
 
 ### Jacobi symbols
 
-* `jacobi_symbol(m::Base.Int, n::Base.Int) -> Base.Int`
-* `jacobi_symbol(m::Oscar.Integer, n::Oscar.Integer) -> Base.Int`
+* `jacobi_symbol(m::Int, n::Int) -> Int`
+* `jacobi_symbol(m::fmpz, n::fmpz) -> Int`
 
 Return the Jacobi symbol ``\left(\frac{m}{n}\right)``, which is defined for
 integers ``m`` and odd, positive integers ``n``. If the factorisation of ``n``
@@ -653,9 +635,9 @@ jacobi_symbol(3, 37)
 
 ### Sigma function
 
-* `divisor_sigma(m::Base.Int, n::Base.Int) -> Base.Int`
-* `divisor_sigma(m::Oscar.Integer, n::Base.Int) -> Oscar.Integer`
-* `divisor_sigma(m::Oscar.Integer, n::Oscar.Integer) -> Oscar.Integer`
+* `divisor_sigma(m::Int, n::Int) -> Int`
+* `divisor_sigma(m::fmpz, n::Int) -> fmpz`
+* `divisor_sigma(m::fmpz, n::fmpz) -> fmpz`
 
 Return the sum of the ``n``-th powers of the divisors of ``m``
 ```math
@@ -669,8 +651,8 @@ divisor_sigma(60, 5)
 
 ### Euler totient function
 
-* `euler_phi(n::Base.Int) -> Base.Int`
-* `euler_phi(n::Oscar.Integer) -> Oscar.Integer`
+* `euler_phi(n::Int) -> Int`
+* `euler_phi(n::fmpz) -> fmpz`
 
 Return the Euler totient function ``\varphi(n)``, i.e. the number of positive
 integers ``1 \leq x \leq n`` which are coprime to ``n``. Note that
