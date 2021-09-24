@@ -716,19 +716,40 @@ AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a
 
 julia> fundamental_invariants(IR)
 4-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
- x[1]*x[2]*x[3]
  x[1]^3 + x[2]^3 + x[3]^3
- x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
+ x[1]*x[2]*x[3]
+ x[1]^6 + x[2]^6 + x[3]^6
  x[1]^6*x[3]^3 + x[1]^3*x[2]^6 + x[2]^3*x[3]^6
 ```
 """
-function fundamental_invariants(IR::InvRing)
+function fundamental_invariants(IR::InvRing, algo::Symbol = :king)
   if !isdefined(IR, :fundamental)
-     V = primary_invariants(IR)
-     append!(V, irreducible_secondary_invariants(IR))
-     IR.fundamental = minimal_subalgebra_generators(V)
+    if algo == :king
+      IR.fundamental = fundamental_invariants_via_king(IR)
+    elseif algo == :minimal_subalgebra
+      IR.fundamental = fundamental_invariants_via_minimal_subalgebra(IR)
+    else
+      error("Unsupported argument :$(algo) for algo")
+    end
   end
   return IR.fundamental
+end
+
+function fundamental_invariants_via_minimal_subalgebra(IR::InvRing)
+  V = primary_invariants(IR)
+  append!(V, irreducible_secondary_invariants(IR))
+  return minimal_subalgebra_generators(V)
+end
+
+function fundamental_invariants_via_king(IR::InvRing)
+  rey = reynolds_via_singular(IR)
+  F = Singular.LibFinvar.invariant_algebra_reynolds(rey)::Singular.smatrix{<: Singular.spoly}
+  R = polynomial_ring(IR)
+  f = Vector{elem_type(R)}()
+  for i = 1:ncols(F)
+    push!(f, R(F[1, i]))
+  end
+  return f
 end
 
 @doc Markdown.doc"""
@@ -769,24 +790,24 @@ with generators
 AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
 
 julia> affine_algebra(IR)
-(Quotient of Multivariate Polynomial Ring in y[1], y[2], y[3], y[4] over Cyclotomic field of order 3 graded by 
+(Quotient of Multivariate Polynomial Ring in y[1], y[2], y[3], y[4] over Cyclotomic field of order 3 graded by
   y[1] -> [3]
   y[2] -> [3]
   y[3] -> [6]
-  y[4] -> [9] by ideal(9*y[1]^6 + y[1]^3*y[2]^3 - 6*y[1]^3*y[2]*y[3] + 3*y[1]^3*y[4] - y[2]*y[3]*y[4] + y[3]^3 + y[4]^2), Algebra homomorphism with
+  y[4] -> [9] by ideal(y[1]^6 - 3*y[1]^4*y[3] - 16*y[1]^3*y[2]^3 - 4*y[1]^3*y[4] + 3*y[1]^2*y[3]^2 + 24*y[1]*y[2]^3*y[3] + 4*y[1]*y[3]*y[4] + 72*y[2]^6 + 24*y[2]^3*y[4] - y[3]^3 + 8*y[4]^2), Algebra homomorphism with
 
-domain: Quotient of Multivariate Polynomial Ring in y[1], y[2], y[3], y[4] over Cyclotomic field of order 3 graded by 
+domain: Quotient of Multivariate Polynomial Ring in y[1], y[2], y[3], y[4] over Cyclotomic field of order 3 graded by
   y[1] -> [3]
   y[2] -> [3]
   y[3] -> [6]
-  y[4] -> [9] by ideal(9*y[1]^6 + y[1]^3*y[2]^3 - 6*y[1]^3*y[2]*y[3] + 3*y[1]^3*y[4] - y[2]*y[3]*y[4] + y[3]^3 + y[4]^2)
+  y[4] -> [9] by ideal(y[1]^6 - 3*y[1]^4*y[3] - 16*y[1]^3*y[2]^3 - 4*y[1]^3*y[4] + 3*y[1]^2*y[3]^2 + 24*y[1]*y[2]^3*y[3] + 4*y[1]*y[3]*y[4] + 72*y[2]^6 + 24*y[2]^3*y[4] - y[3]^3 + 8*y[4]^2)
 
-codomain: Multivariate Polynomial Ring in x[1], x[2], x[3] over Cyclotomic field of order 3 graded by 
+codomain: Multivariate Polynomial Ring in x[1], x[2], x[3] over Cyclotomic field of order 3 graded by
   x[1] -> [1]
   x[2] -> [1]
   x[3] -> [1]
 
-defining images of generators: MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}[x[1]*x[2]*x[3], x[1]^3 + x[2]^3 + x[3]^3, x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3, x[1]^6*x[3]^3 + x[1]^3*x[2]^6 + x[2]^3*x[3]^6]
+defining images of generators: MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}[x[1]^3 + x[2]^3 + x[3]^3, x[1]*x[2]*x[3], x[1]^6 + x[2]^6 + x[3]^6, x[1]^6*x[3]^3 + x[1]^3*x[2]^6 + x[2]^3*x[3]^6]
 )
 ```
 """
