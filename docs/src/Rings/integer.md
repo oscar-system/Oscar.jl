@@ -98,14 +98,25 @@ exceed ``2^{37}`` bits.
 ## Julia integers in Oscar functions
 
 For convenience, all basic arithmetic and exact division functions in Oscar
-also accept Julia integers. For example:
+also accept Julia integers. If all of the arguments to an Oscar function are
+julia integers, the resulting integers should be a julia integer. However, once
+at least one of the arguments is an `fmpz`, the function will generally behave
+as if all integer arguments were promoted to the type `fmpz`, and the integers
+in the return generally should also be of type `fmpz`. For example:
 
 ```@repl oscar
 divexact(ZZ(234), 2)
+typeof(gcd(4, 6))
+typeof(gcdx(4, 6))
+typeof(gcd(4, ZZ(6)))
+typeof(gcdx(4, ZZ(6)))
+typeof(jacobi_symbol(ZZ(2), ZZ(3)))
 ```
 
-In this example, `2` is a Julia integer but is still valid in the
-call to the Oscar function `divexact`.
+In the first example, `2` is a Julia integer but is still valid in the
+call to the Oscar function `divexact`. In the last example, the exceptional
+function `jacobi_symbol` returns an `Int` as this will always be able to hold
+the three possible return values of `-1`, `0`, or `1`.
 
 ## Predicates
 
@@ -488,7 +499,7 @@ F[ZZ(7)]
 ## Combinatorial functions
 
 !!! note
-    The functions in this section that take `Int` arguments will return a
+    The functions in this section that take `Int` arguments will return an
     `Int`, which may overflow or throw an error. Use the `fmpz` versions if
     this is not the desired behaviour.
 
