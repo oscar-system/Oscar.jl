@@ -81,6 +81,15 @@ The function `Vector{T}` works in the opposite way with respect to `perm`:
 Vector(x::PermGroupElem, n::Int = x.parent.deg)
 ```
 
+## Operations on permutations
+
+```@docs
+sign(g::PermGroupElem)
+isodd(g::PermGroupElem)
+iseven(g::PermGroupElem)
+cycle_structure(g::PermGroupElem)
+```
+
 
 ## Permutations as functions
 A permutation can be viewed as a function on the set `{1,...,n}`, hence it can be evaluated on integers.

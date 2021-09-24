@@ -502,9 +502,11 @@ gen(G::MatrixGroup, i::Int) = gens(G)[i]
 
 ngens(G::MatrixGroup) = length(gens(G))
 
-function order(::Type{T}, G::MatrixGroup) where T <: Union{Integer,fmpz}
-   if get_special(G, :order)==nothing return fmpz(BigInt(GAP.Globals.Order(G.X)))
-   else return T(get_special(G, :order))
+function order(::Type{T}, G::MatrixGroup) where T <: IntegerUnion
+   if get_special(G, :order) == nothing
+     return T(BigInt(GAP.Globals.Order(G.X)))::T
+   else
+     return T(get_special(G, :order))::T
    end
 end
 
@@ -557,7 +559,8 @@ end
     symplectic_group(n::Int, F::FqNmodFiniteField)
     Sp = symplectic_group
 
-Return the symplectic group of dimension `n` either over the field `F` or the field `GF(q)`. The dimension `n` must be even.
+Return the symplectic group of dimension `n` either over the field `F` or the
+field `GF(q)`. The dimension `n` must be even.
 """
 function symplectic_group(n::Int, F::Ring)
    iseven(n) || throw(ArgumentError("The dimension must be even"))
@@ -577,7 +580,9 @@ end
     orthogonal_group(e::Int, n::Int, q::Int)
     GO = orthogonal_group
 
-Return the orthogonal group of dimension `n` either over the field `F` or the field `GF(q)` of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0` for `n` odd. If `n` is odd, `e` can be omitted.
+Return the orthogonal group of dimension `n` either over the field `F` or the
+field `GF(q)` of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0`
+for `n` odd. If `n` is odd, `e` can be omitted.
 """
 function orthogonal_group(e::Int, n::Int, F::Ring)
    if e==1
@@ -612,7 +617,9 @@ orthogonal_group(n::Int, q::Int) = orthogonal_group(0,n,q)
     special_orthogonal_group(e::Int, n::Int, q::Int)
     SO = special_orthogonal_group
 
-Return the special orthogonal group of dimension `n` either over the field `F` or the field `GF(q)` of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0` for `n` odd. If `n` is odd, `e` can be omitted.
+Return the special orthogonal group of dimension `n` either over the field `F`
+or the field `GF(q)` of type `e`, where `e` in {`+1`,`-1`} for `n` even and
+`e`=`0` for `n` odd. If `n` is odd, `e` can be omitted.
 """
 function special_orthogonal_group(e::Int, n::Int, F::Ring)
    iseven(order(F)) && return GO(e,n,F)
@@ -647,7 +654,9 @@ special_orthogonal_group(n::Int, q::Int) = special_orthogonal_group(0,n,q)
     omega_group(e::Int, n::Int, F::Ring)
     omega_group(e::Int, n::Int, q::Int)
 
-Return the Omega group of dimension `n` over the field `GF(q)` of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0` for `n` odd. If `n` is odd, `e` can be omitted.
+Return the Omega group of dimension `n` over the field `GF(q)` of type `e`,
+where `e` in {`+1`,`-1`} for `n` even and `e`=`0` for `n` odd. If `n` is odd,
+`e` can be omitted.
 """
 function omega_group(e::Int, n::Int, F::Ring)
    n==1 && return SO(e,n,F)

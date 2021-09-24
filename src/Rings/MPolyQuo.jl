@@ -15,7 +15,7 @@ mutable struct MPolyQuo{S} <: AbstractAlgebra.Ring
   AbstractAlgebra.@declare_other
 
   function MPolyQuo(R, I) where S
-    @assert base_ring(I) == R
+    @assert base_ring(I) === R
     r = new{elem_type(R)}()
     r.R = R
     r.I = I
@@ -48,6 +48,11 @@ modulus(W::MPolyQuo) = W.I
 mutable struct MPolyQuoElem{S} <: RingElem
   f::S
   P::MPolyQuo{S}
+
+  function MPolyQuoElem(f::S, P::MPolyQuo{S}) where {S}
+    @assert parent(f) === P.R
+    return new{S}(f, P)
+  end
 end
 
 @enable_all_show_via_expressify MPolyQuoElem
@@ -85,7 +90,7 @@ mutable struct MPolyQuoIdeal{T} <: Ideal{T}
   end
 
   function MPolyQuoIdeal(Ox::MPolyQuo{T}, i::MPolyIdeal{T}) where T <: MPolyElem
-    Ox.R == base_ring(i) || error("base rings must match")
+    Ox.R === base_ring(i) || error("base rings must match")
     r = new{T}()
     r.base_ring = Ox
     r.I = i
@@ -628,6 +633,7 @@ Multivariate Polynomial Ring in x, y, z over Rational Field graded by
 function quo(R::MPolyRing, I::MPolyIdeal) 
   q = MPolyQuo(R, I)
   function im(a::MPolyElem)
+    parent(a) !== q.R && error("Element not in the domain of the map")
     return MPolyQuoElem(a, q)
   end
   function pr(a::MPolyQuoElem)
@@ -648,16 +654,17 @@ lift(a::MPolyQuoElem) = a.f
 (Q::MPolyQuo)() = MPolyQuoElem(Q.R(), Q)
 
 function (Q::MPolyQuo)(a::MPolyQuoElem)
-   @assert parent(a) == Q
+   parent(a) !== Q && error("Parent mismatch")
    return a
 end
 
-function (Q::MPolyQuo)(a::MPolyElem) 
-   if base_ring(Q) === parent(a)
-      return MPolyQuoElem(a, Q)
-   else
-      return MPolyQuoElem(Q.R(a), Q)
-   end
+function (Q::MPolyQuo{S})(a::S) where {S <: MPolyElem}
+   base_ring(Q) === parent(a) || error("Parent mismatch")
+   return MPolyQuoElem(a, Q)
+end
+
+function (Q::MPolyQuo)(a::MPolyElem)
+  return Q(Q.R(a))
 end
 
 function (Q::MPolyQuo)(a::Singular.spoly)

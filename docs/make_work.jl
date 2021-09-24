@@ -24,7 +24,7 @@ using Documenter, DocumenterMarkdown, DocumenterCitations
 # Remove the module prefix
 Base.print(io::IO, b::Base.Docs.Binding) = print(io, b.var)
 
-function doit(Oscar::Module; strict::Bool = true, local_build::Bool = false, doctest::Bool = true)
+function doit(Oscar::Module; strict::Bool = true, local_build::Bool = false, doctest::Union{Bool,Symbol} = true)
 
   # include the list of pages, performing substitutions
   s = read(joinpath(Oscar.oscardir, "docs", "doc.main"), String)
@@ -63,6 +63,7 @@ function doit(Oscar::Module; strict::Bool = true, local_build::Bool = false, doc
 
     DocMeta.setdocmeta!(Oscar, :DocTestSetup, :(using Oscar); recursive = true)
     DocMeta.setdocmeta!(Oscar.Hecke, :DocTestSetup, :(using Hecke); recursive = true)
+    DocMeta.setdocmeta!(Oscar.Graphs, :DocTestSetup, :(using Oscar; using Oscar.Graphs); recursive = true)
 
 
     makedocs(bib,

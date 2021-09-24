@@ -376,8 +376,15 @@ end
 """
     iscongruent(f::SesquilinearForm{T}, g::SesquilinearForm{T}) where T <: RingElem
 
-If `f` and `g` are sesquilinear forms, return (`true`, `C`) if there exists a matrix `C` such that `f^C = g`, or equivalently, `CBC* = A`, where `A` and `B` are the Gram matrices of `f` and `g` respectively, and `C*` is the transpose-conjugate matrix of `C`. If such `C` does not exist, then return (`false`, `nothing`).
-If `f` and `g` are quadratic forms, return (`true`, `C`) if there exists a matrix `C` such that `f^A = ag` for some scalar `a`. If such `C` does not exist, then return (`false`, `nothing`).
+If `f` and `g` are sesquilinear forms, return (`true`, `C`) if there exists a
+matrix `C` such that `f^C = g`, or equivalently, `CBC* = A`, where `A` and `B`
+are the Gram matrices of `f` and `g` respectively, and `C*` is the
+transpose-conjugate matrix of `C`. If such `C` does not exist, then return
+(`false`, `nothing`).
+
+If `f` and `g` are quadratic forms, return (`true`, `C`) if there exists a
+matrix `C` such that `f^A = ag` for some scalar `a`. If such `C` does not
+exist, then return (`false`, `nothing`).
 """
 function iscongruent(f::SesquilinearForm{T}, g::SesquilinearForm{T}) where T <: RingElem
 

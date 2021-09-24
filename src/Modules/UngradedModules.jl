@@ -2,11 +2,11 @@ export FreeMod, presentation, FreeModElem, coords, coeffs, repres,
       FreeModuleHom, SubQuo, cokernel, SubQuoElem, index_of_gen, sub,
       quo, presentation, present_as_cokernel, is_equal_with_morphism, 
       SubQuoHom, show_morphism, hom_tensor, hom_prod_prod, coordinates, 
-      represents_element, free_resolution, homomorphism, homomorphism_to_module_elem, 
+      represents_element, free_resolution, homomorphism, module_elem, 
       restrict_codomain, restrict_domain, direct_product, tensor_product, 
       free_module, tor, lift_homomorphism_contravariant, lift_homomorphism_covariant, 
       ext, map_canonically, all_canonical_maps, register_morphism!, dense_row, 
-      matrix_kernel, simplify, matrix_to_map, isinjective, issurjective, isbijective, iswelldefined,
+      matrix_kernel, simplify, map, isinjective, issurjective, isbijective, iswelldefined,
       ModuleFP, AbstractFreeMod, AbstractSubQuo, AbstractFreeModElem, AbstractSubQuoElem, ModuleMap
 
 # TODO replace asserts by error messages?
@@ -556,7 +556,7 @@ getindex(F::ModuleGens, i::Int) = getindex(F, Val(:O), i)
 Create a Singular module from an OSCAR free module.
 """
 function singular_module(F::FreeMod)
-  Sx = singular_ring(base_ring(F))
+  Sx = singular_ring(base_ring(F), keep_ordering=false)
   return Singular.FreeModule(Sx, dim(F))
 end
 
@@ -1185,7 +1185,7 @@ end
 Let $F = R^m$ and $A$ an $n \times m$-matrix. Return the subquotient $F / \im(A)$.
 """
 function cokernel(F::FreeMod{R}, A::MatElem{R}) where R
-  return cokernel(matrix_to_map(F,A))
+  return cokernel(map(F,A))
 end
 
 @doc Markdown.doc"""
@@ -1197,7 +1197,7 @@ free modules $R^m$ that are defined by the user or other functions. If you need 
 use `cokernel(F::FreeMod{R}, A::MatElem{R})`.
 """
 function cokernel(A::MatElem)
-  return cokernel(matrix_to_map(A))
+  return cokernel(map(A))
 end
 
 @doc Markdown.doc"""
@@ -1295,24 +1295,26 @@ Compute the intersection $M \cap N$ along with the inclusion morphisms $M \cap N
 function Base.:intersect(M::SubQuo{T}, N::SubQuo{T}) where T
   #TODO allow task as argument?
   @assert free_module(M) === free_module(N)
-  n_rel = matrix(N.quo)
-  m_rel = matrix(M.quo)
+  M_quo = isdefined(M, :quo) ? M.quo : Oscar.SubModuleOfFreeModule(free_module(M), Vector{FreeModElem}())
+  N_quo = isdefined(N, :quo) ? N.quo : Oscar.SubModuleOfFreeModule(free_module(N), Vector{FreeModElem}())
+  n_rel = matrix(N_quo)
+  m_rel = matrix(M_quo)
 
-  if (m_rel == n_rel) || Set([m_rel[i,:] for i=1:size(m_rel)[1]])==Set([n_rel[j,:] for j=1:size(n_rel)[1]]) || M.quo == N.quo
+  if (m_rel == n_rel) || Set([m_rel[i,:] for i=1:size(m_rel)[1]])==Set([n_rel[j,:] for j=1:size(n_rel)[1]]) || M_quo == N_quo
     n = size(matrix(N.sub))
     m = size(matrix(M.sub))
     if n[2]!=m[2]
       throw(DimensionMismatch("Matrices have different number of columns"))
     end
 
-    global_module_matrix = vcat(matrix(M.sub), matrix(N.sub), matrix(M.quo))
+    global_module_matrix = vcat(matrix(M.sub), matrix(N.sub), matrix(M_quo))
 
     CD = matrix_kernel(global_module_matrix)
 
     C = CD[:,1:m[1]]
     D = CD[:,(m[1]+1):(m[1]+n[1])]
     new_gen = C*matrix(M.sub)
-    SQ = SubQuo(free_module(M),new_gen, m_rel)
+    SQ = length(m_rel) == 0 ? SubQuo(SubModuleOfFreeModule(free_module(M),new_gen)) : SubQuo(free_module(M),new_gen, m_rel)
 
     M_hom = SubQuoHom(SQ,M,C)
     N_hom = SubQuoHom(SQ,N,D)
@@ -1321,7 +1323,7 @@ function Base.:intersect(M::SubQuo{T}, N::SubQuo{T}) where T
 
     return SQ,M_hom,N_hom
   end
-  throw(ArgumentError("img(M.relations) != img(N.relations)"))
+  throw(ArgumentError("Relations of M and N are not equal."))
 end
 
 @doc Markdown.doc"""
@@ -2393,7 +2395,7 @@ function hom(M::ModuleFP, N::ModuleFP, alg::Symbol=:maps)
  
   kDelta = kernel(delta)
 
-  #psi = kDelta[2]*pro[1]
+  psi = kDelta[2]*pro[1]
   #psi = hom(kDelta[1], H_s0_t0, [psi(g) for g = gens(kDelta[1])])
 
   H = quo(sub(D, kDelta[1]), image(rho)[1])
@@ -2413,7 +2415,8 @@ function hom(M::ModuleFP, N::ModuleFP, alg::Symbol=:maps)
     g = hom(Rs0, Rt0, [preimage(map(p2, 2), f(map(p1, 2)(g))) for g = gens(Rs0)])
 
     #return H(preimage(psi, (preimage(mH_s0_t0, g))).repres)
-    return SubQuoElem(preimage(kDelta[2], emb[1](preimage(mH_s0_t0, g))).repres, H)
+    return SubQuoElem(repres(preimage(psi, (preimage(mH_s0_t0, g)))), H)
+    #return SubQuoElem(preimage(kDelta[2], emb[1](preimage(mH_s0_t0, g))).repres, H)
     #return SubQuoElem(emb[1](preimage(mH_s0_t0, g)), H) #???
   end
   to_hom_map = MapFromFunc(im, pre, H, Hecke.MapParent(M, N, "homomorphisms"))
@@ -2435,12 +2438,12 @@ function homomorphism(f::Union{SubQuoElem,FreeModElem})
 end
 
 @doc Markdown.doc"""
-    homomorphism_to_module_elem(H::ModuleFP, phi::ModuleMap)
+    module_elem(H::ModuleFP, phi::ModuleMap)
 
 Let `H` be created via `hom(M,N)` for some `M` and `N`. Return 
 the element in `H` corresponding to `phi`.
 """
-function homomorphism_to_module_elem(H::ModuleFP, phi::ModuleMap)
+function module_elem(H::ModuleFP, phi::ModuleMap)
   to_hom_map = get_special(H, :module_to_hom_map)
   to_hom_map === nothing && error("module must be a hom module")
   map_to_hom = to_hom_map.g
@@ -2663,7 +2666,7 @@ function Hecke.canonical_injection(G::ModuleFP, i::Int)
     return injection_dictionary[i]
   end
   0<i<= length(H) || error("index out of bound")
-  j = i == 1 ? 0 : sum(ngens(H[l]) for l=1:i-1) -1
+  j = i == 1 ? 0 : sum(ngens(H[l]) for l=1:i-1)
   emb = hom(H[i], G, [G[l+j] for l = 1:ngens(H[i])])
   injection_dictionary[i] = emb
   return emb
@@ -2938,7 +2941,7 @@ function lift_homomorphism_contravariant(Hom_MP::ModuleFP, Hom_NP::ModuleFP, phi
   @assert domain(phi) === N
   @assert codomain(phi) === M
   
-  phi_lifted = hom(Hom_MP, Hom_NP, [homomorphism_to_module_elem(Hom_NP, phi*homomorphism(f)) for f in gens(Hom_MP)])
+  phi_lifted = hom(Hom_MP, Hom_NP, [module_elem(Hom_NP, phi*homomorphism(f)) for f in gens(Hom_MP)])
   return phi_lifted
 end
 
@@ -2964,7 +2967,7 @@ function lift_homomorphism_covariant(Hom_PM::ModuleFP, Hom_PN::ModuleFP, phi::Mo
   if iszero(Hom_PN)
     return hom(Hom_PM, Hom_PN, [zero(Hom_PN) for _=1:ngens(Hom_PM)])
   end
-  phi_lifted = hom(Hom_PM, Hom_PN, [homomorphism_to_module_elem(Hom_PN, homomorphism(f)*phi) for f in gens(Hom_PM)])
+  phi_lifted = hom(Hom_PM, Hom_PN, [module_elem(Hom_PN, homomorphism(f)*phi) for f in gens(Hom_PM)])
   return phi_lifted
 end
 
@@ -3069,13 +3072,13 @@ function map_canonically(M::SubQuo, v::SubQuoElem)
 
   # Breadth-First Search to find path to N:
   parent_hom = IdDict{SubQuo,ModuleMap}()
-  modules = Set([M])
+  modules = [M]
   found_N = false
   for A in modules
     for H in A.incoming_morphisms
       B = domain(H)
       if B!==A # on trees "B!==A" is enough!
-        if !(B in modules)
+        if findfirst(x->x===B,modules) == nothing #if !(B in modules) doesn't work since it uses == instead of ===
           parent_hom[B] = H
           push!(modules,B)
         end
@@ -3107,19 +3110,19 @@ function all_canonical_maps(M::SubQuo, N::SubQuo)
 
   all_paths = []
 
-  function helper_dfs(U::SubQuo, D::SubQuo, visited::Set, path::Vector)
+  function helper_dfs!(U::SubQuo, D::SubQuo, visited::Vector{<:ModuleMap}, path::Vector)
     if U === D
       push!(all_paths, path)
       return
     end
     for neighbor_morphism in U.outgoing_morphisms
-      if !(neighbor_morphism in visited)
-        helper_dfs(codomain(neighbor_morphism), D, union(visited, Set([neighbor_morphism])), union(path, [neighbor_morphism]))
+      if findfirst(x->x===neighbor_morphism, visited) === nothing #if !(neighbor_morphism in visited) doesn't work since it uses == instead of ===
+        helper_dfs!(codomain(neighbor_morphism), D, vcat(visited, [neighbor_morphism]), union(path, [neighbor_morphism]))
       end
     end
   end
 
-  helper_dfs(N, M, Set(), [])
+  helper_dfs!(N, M, Vector{ModuleMap}(), [])
 
   morphisms = Vector{ModuleMap}()
   for path in all_paths
@@ -3463,12 +3466,12 @@ end
 # Not only for testing
 ######################################
 @doc Markdown.doc"""
-    matrix_to_map(F::FreeMod{T}, A::MatElem{T}) where T
+    map(F::FreeMod{T}, A::MatElem{T}) where T
 
 Converts a given $n \times m$-matrix into the corresponding morphism $A : R^n \to F$, 
 with `rank(F) == m`.
 """
-function matrix_to_map(F::FreeMod{T}, A::MatElem{T}) where T
+function map(F::FreeMod{T}, A::MatElem{T}) where T
   R = base_ring(F)
   F_domain = FreeMod(R, nrows(A))
 
@@ -3477,14 +3480,14 @@ function matrix_to_map(F::FreeMod{T}, A::MatElem{T}) where T
 end
 
 @doc Markdown.doc"""
-    matrix_to_map(A::MatElem)
+    map(A::MatElem)
 
 Converts a given $n \times m$-matrix into the corresponding morphism $A : R^n \to R^m$.
 """
-function matrix_to_map(A::MatElem)
+function map(A::MatElem)
   R = base_ring(A)
   F_codomain = FreeMod(R, ncols(A))
-  return matrix_to_map(F_codomain,A)
+  return map(F_codomain,A)
 end
 
 @doc Markdown.doc"""

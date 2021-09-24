@@ -84,16 +84,16 @@ gset(G::T, Omega) where T<:GAPGroup = gset_by_type(G, Omega, eltype(Omega))
 
 
 ## natural action of permutations on positive integers
-gset_by_type(G::PermGroup, Omega, ::Type{T}) where T<:Union{Base.Integer,fmpz} = GSetByElements(G, ^, Omega)
+gset_by_type(G::PermGroup, Omega, ::Type{T}) where T<:IntegerUnion = GSetByElements(G, ^, Omega)
 
 ## action of permutations on sets of positive integers
-gset_by_type(G::PermGroup, Omega, ::Type{T}) where T<:Set{T2} where T2<:Union{Base.Integer,fmpz} = GSetByElements(G, on_sets, Omega)
+gset_by_type(G::PermGroup, Omega, ::Type{T}) where T<:Set{T2} where T2<:IntegerUnion = GSetByElements(G, on_sets, Omega)
 
 ## action of permutations on vectors of positive integers
-gset_by_type(G::PermGroup, Omega, ::Type{T}) where T<:Vector{T2} where T2<:Union{Base.Integer,fmpz} = GSetByElements(G, on_tuples, Omega)
+gset_by_type(G::PermGroup, Omega, ::Type{T}) where T<:Vector{T2} where T2<:IntegerUnion = GSetByElements(G, on_tuples, Omega)
 
 ## action of permutations on tuples of positive integers
-gset_by_type(G::PermGroup, Omega, ::Type{T}) where T<:Tuple{Vararg{T2}} where T2<:Union{Base.Integer,fmpz} = GSetByElements(G, on_tuples, Omega)
+gset_by_type(G::PermGroup, Omega, ::Type{T}) where T<:Tuple{Vararg{T2}} where T2<:IntegerUnion = GSetByElements(G, on_tuples, Omega)
 
 ## (add more such actions: on sets of sets, on sets of tuples, ...)
 
@@ -213,7 +213,7 @@ end
 #        `experimental/GaloisGrp/Group.jl`
 #      - Provide more convenience methods for "natural" actions",
 #        as for `gset`?
-# Hecke.orbit(G::PermGroup, pt::T) where {T<:Union{Base.Integer,fmpz}} = GSetByElements(G, [pt])
+# Hecke.orbit(G::PermGroup, pt::T) where {T<:IntegerUnion} = GSetByElements(G, [pt])
 
 
 #############################################################################

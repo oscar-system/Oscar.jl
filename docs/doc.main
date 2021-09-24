@@ -92,10 +92,12 @@
          "PolyhedralGeometry/Polyhedra/intro.md",
          "PolyhedralGeometry/Polyhedra/constructions.md",
          "PolyhedralGeometry/Polyhedra/polymake.md",
+         "PolyhedralGeometry/Polyhedra/auxiliary.md",
          "PolyhedralGeometry/Polyhedra/serialization.md"
        ],
         "PolyhedralGeometry/cones.md",
         "PolyhedralGeometry/fans.md",
+        "PolyhedralGeometry/graphs.md",
         "PolyhedralGeometry/linear_programs.md",
         "PolyhedralGeometry/subdivisions_of_points.md"
     ],
@@ -114,6 +116,15 @@
      "InvariantTheory/intro.md",
      "InvariantTheory/finite_groups.md",
      "InvariantTheory/reductive_groups.md",
+  ],
+
+  "Geometry" => [
+     "Plane Curves" => [
+        "Experimental/introduction.md",
+        "Experimental/plane_curves.md",
+        "Experimental/divisors.md",
+        "Experimental/elliptic_curves.md",
+     ],
   ],
 
   "References" => "references.md",

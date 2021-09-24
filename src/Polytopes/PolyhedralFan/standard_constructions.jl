@@ -15,20 +15,14 @@ julia> C = cube(3);
 julia> NF = normal_fan(C)
 A polyhedral fan in ambient dimension 3
 
-julia> collect(rays(NF))
-6-element Vector{Polymake.Vector{Polymake.Rational}}:
- pm::Vector<pm::Rational>
-1 0 0
- pm::Vector<pm::Rational>
--1 0 0
- pm::Vector<pm::Rational>
-0 1 0
- pm::Vector<pm::Rational>
-0 -1 0
- pm::Vector<pm::Rational>
-0 0 1
- pm::Vector<pm::Rational>
-0 0 -1
+julia> rays(NF)
+6-element VectorIterator{RayVector{Polymake.Rational}}:
+ [1, 0, 0]
+ [-1, 0, 0]
+ [0, 1, 0]
+ [0, -1, 0]
+ [0, 0, 1]
+ [0, 0, -1]
 ```
 """
 function normal_fan(P::Polyhedron)
