@@ -99,7 +99,7 @@ exceed ``2^{37}`` bits.
 
 For convenience, all basic arithmetic and exact division functions in Oscar
 also accept Julia integers. If all of the arguments to an Oscar function are
-julia integers, the resulting integers should be a julia integer. However, once
+julia integers, the resulting integers should be julia integers. However, once
 at least one of the arguments is an `fmpz`, the function will generally behave
 as if all integer arguments were promoted to the type `fmpz`, and the integers
 in the return generally should also be of type `fmpz`. For example:
