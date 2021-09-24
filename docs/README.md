@@ -17,7 +17,7 @@ recommend the following steps:
 
         Oscar.build_doc()
 
-4. To rebuild the documentation, just repeat the same command as in step 4,
+4. To rebuild the documentation, just repeat the same command as in step 3,
    without exiting Julia. Thanks to the Revise package, any runs after
    the first will be much faster.
 
