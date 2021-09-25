@@ -80,10 +80,10 @@ end
 export torus_invariant_divisor_group
 
 
-struct mapFromCharacterToPrincipalDivisor
+struct MapFromCharacterToPrincipalDivisor
            GapMapFromCharacterToPrincipalDivisor::GapObj
 end
-export mapFromCharacterToPrincipalDivisor
+export MapFromCharacterToPrincipalDivisor
 
 
 """
@@ -93,7 +93,7 @@ Computes the map from the character lattice to the principal divisors of the nor
 """
 function map_from_character_to_principal_divisor( v::NormalToricVariety )
     gap_MapFromCharacterToPrincipalDivisor = GAP.Globals.MapFromCharacterToPrincipalDivisor( v.GapNTV )
-    return mapFromCharacterToPrincipalDivisor( gap_MapFromCharacterToPrincipalDivisor )
+    return MapFromCharacterToPrincipalDivisor( gap_MapFromCharacterToPrincipalDivisor )
 end
 export map_from_character_to_principal_divisor
 
