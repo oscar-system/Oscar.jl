@@ -62,10 +62,10 @@ end
 export class_group
 
 
-struct torusInvariantDivisorGroup
+struct TorusInvariantDivisorGroup
            GapTorusInvariantDivisorGroup::GapObj
 end
-export torusInvariantDivisorGroup
+export TorusInvariantDivisorGroup
 
 
 """
@@ -75,7 +75,7 @@ Computes the torus invariant divisor class group of the normal toric variety `v`
 """
 function torus_invariant_divisor_group( v::NormalToricVariety )
     gap_TorusInvariantDivisorGroup = GAP.Globals.TorusInvariantDivisorGroup( v.GapNTV )
-    return torusInvariantDivisorGroup( gap_TorusInvariantDivisorGroup )
+    return TorusInvariantDivisorGroup( gap_TorusInvariantDivisorGroup )
 end
 export torus_invariant_divisor_group
 
