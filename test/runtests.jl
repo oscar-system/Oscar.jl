@@ -3,9 +3,7 @@ using Test
 
 @testset "JToric.jl" begin
     # Perform tests for Hirzebruch surface
-    Rays = [-1 5; 0 1; 1 0; 0 -1]
-    Cones = [[1,2],[2,3],[3,4],[4,1]]
-    H5 = NormalToricVariety( Rays, Cones )
+    H5 = hirzebruch_surface( 5 )
     ntv_polymake2gap( H5.polymakeNTV )
     @test JToric.is_normal_variety( H5 ) == true
     @test JToric.is_affine( H5 ) == false

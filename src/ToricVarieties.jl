@@ -120,6 +120,25 @@ end
 export projective_space
 
 
+"""
+    hirzebruch_surface( r::Int )
+
+Constructs the r-th Hirzebruch surface.
+
+# Examples
+```julia-repl
+julia> hirzebruch_surface( 5 )
+NormalToricVariety(GAP: <A projective toric variety of dimension 2>, Polymake.BigObjectAllocated(Ptr{Nothing} @0x0000562fbcc21b70))
+```
+"""
+function hirzebruch_surface( r::Int )
+    Rays = [ 1 0; 0 1; -1 r; 0 -1]
+    Cones = [[1,2],[2,3],[3,4],[4,1]]
+    return NormalToricVariety( Rays, Cones )
+end
+export hirzebruch_surface
+
+
 ######################
 # 4: Properties
 ######################
