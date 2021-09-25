@@ -128,7 +128,7 @@ Constructs the r-th Hirzebruch surface.
 # Examples
 ```julia-repl
 julia> hirzebruch_surface( 5 )
-NormalToricVariety(GAP: <A projective toric variety of dimension 2>, Polymake.BigObjectAllocated(Ptr{Nothing} @0x0000562fbcc21b70))
+NormalToricVariety(GAP: <A toric variety of dimension 2>, Polymake.BigObjectAllocated(Ptr{Nothing} @0x0000562fbcc21b70))
 ```
 """
 function hirzebruch_surface( r::Int )
@@ -137,6 +137,48 @@ function hirzebruch_surface( r::Int )
     return NormalToricVariety( Rays, Cones )
 end
 export hirzebruch_surface
+
+
+"""
+    delPezzo( b::Int )
+
+Constructs the delPezzo surface with b blowups for b at most 3.
+
+# Examples
+```julia-repl
+julia> del_pezzo( 3 )
+NormalToricVariety(GAP: <A toric variety of dimension 2>, Polymake.BigObjectAllocated(Ptr{Nothing} @0x0000562fbcc21b70))
+```
+"""
+function del_pezzo( b::Int )
+    if b < 0
+        @warn("Number of blowups for construction of delPezzo surfaces must be non-negative.")
+        return 0
+    end
+    if b == 0 
+        return projective_space( 2 )
+    end
+    if b == 1
+        Rays = [ 1 0; 0 1; -1 0; -1 -1 ]
+        Cones = [ [1,2],[2,3],[3,4],[4,1] ]
+        return NormalToricVariety( Rays, Cones )
+    end
+    if b == 2
+        Rays = [ 1 0; 0 1; -1 0; -1 -1; 0 -1 ]
+        Cones = [ [1,2],[2,3],[3,4],[4,5],[5,1] ]
+        return NormalToricVariety( Rays, Cones )
+    end
+    if b == 3
+        Rays = [ 1 0; 1 1; 0 1; -1 0; -1 -1; 0 -1 ]
+        Cones = [ [1,2],[2,3],[3,4],[4,5],[5,6],[6,1] ]
+        return NormalToricVariety( Rays, Cones )
+    end
+    if b > 3
+        @warn("delPezzo surfaces with more than 3 blowups are realized as subvarieties of toric ambient spaces. This is currently not supported.")
+        return 0
+    end
+end
+export del_pezzo
 
 
 ######################

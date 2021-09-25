@@ -59,6 +59,14 @@ using Test
     @test ith_betti_number( H5, 4 ) == 1
     @test nr_of_q_rational_points( H5, 1 ) == 4
     
+    # Construct delPezzo surfaces
+    del_pezzo( -1 )
+    del_pezzo( 0 )
+    del_pezzo( 1 )
+    del_pezzo( 2 )
+    del_pezzo( 3 )
+    del_pezzo( 4 )
+    
     # Perform tests for projective space
     P2 = JToric.projective_space( 2 )
     @test JToric.is_normal_variety( P2 ) == true

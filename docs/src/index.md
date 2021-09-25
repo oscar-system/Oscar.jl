@@ -26,6 +26,7 @@ version
 NormalToricVariety
 projective_space
 hirzebruch_surface
+del_pezzo
 ```
 
 ### Conversion among GAP and Polymake toric varieties
