@@ -288,12 +288,12 @@ end
 export cox_variety
 
 
-struct fan
+struct Fan
            gap_fan::GapObj
            rays::Vector{Vector{Int}}
            cones::Vector{Vector{Int}}
 end
-export fan
+export Fan
 
 
 """
@@ -309,7 +309,7 @@ function fan_of_variety( v::NormalToricVariety )
     cones = [ findall( x -> x == 1, c ) for c in cones ]
     
     # return the fan
-    return fan( gap_fan, rays, cones )
+    return Fan( gap_fan, rays, cones )
 end
 export fan_of_variety
 
