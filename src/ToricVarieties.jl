@@ -354,3 +354,21 @@ function is_direct_product_of_projective_spaces( v::NormalToricVariety )
     return GAP.Globals.IsDirectProductOfPNs( v.GapNTV )::Bool
 end
 export is_direct_product_of_projective_spaces
+
+
+"""
+    is_q_gorenstein( v::NormalToricVariety )
+
+Checks if the normal toric variety `v` is Q-Gorenstein.
+
+# Examples
+```julia-repl
+julia> is_q_gorenstein( projective_space( 2 ) )
+true
+```
+"""
+function is_q_gorenstein( v::NormalToricVariety )
+    
+    return v.polymakeNTV.Q_GORENSTEIN
+end
+export is_q_gorenstein
