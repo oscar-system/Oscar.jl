@@ -20,7 +20,7 @@ Construct the normal toric variety whose fan has ray generators `r` and maximal 
 
 # Examples
 ```julia-repl
-julia> NormalToricVariety( [-1 5; 0 1; 1 0; 0 -1], [[1,2],[2,3],[3,4],[4,1]])
+julia> NormalToricVariety( [-1 5; 0 1; 1 0; 0 -1], [[1,2],[2,3],[3,4],[4,1]] )
 NormalToricVariety(GAP: <A toric variety of dimension 2>, Polymake.BigObjectAllocated(Ptr{Nothing} @0x0000561365a4f3d0))
 ```
 """
@@ -104,7 +104,7 @@ Construct the projective space of dimension `d`.
 
 # Examples
 ```julia-repl
-julia> projective_space(  2 )
+julia> projective_space( 2 )
 NormalToricVariety(GAP: <A projective toric variety of dimension 2>, Polymake.BigObjectAllocated(Ptr{Nothing} @0x0000562fbcc21b70))
 ```
 """
@@ -193,7 +193,7 @@ Checks if the normal toric variety `v` is normal. (This function is somewhat tau
 
 # Examples
 ```julia-repl
-julia> is_normal_variety( projective_space(  2 ) )
+julia> is_normal_variety(projective_space( 2 ))
 true
 ```
 """
@@ -210,7 +210,7 @@ Checks if the normal toric variety `v` is affine.
 
 # Examples
 ```julia-repl
-julia> is_normal_variety( projective_space(  2 ) )
+julia> is_normal_variety( projective_space( 2 ) )
 false
 ```
 """
@@ -244,7 +244,7 @@ Checks if the normal toric variety `v` is smooth.
 
 # Examples
 ```julia-repl
-julia> is_smooth( projective_space(  2 ) )
+julia> is_smooth( projective_space( 2 ) )
 true
 ```
 """
@@ -261,7 +261,7 @@ Checks if the normal toric variety `v` is complete.
 
 # Examples
 ```julia-repl
-julia> is_complete( projective_space(  2 ) )
+julia> is_complete( projective_space( 2 ) )
 true
 ```
 """
@@ -278,7 +278,7 @@ Checks if the normal toric variety `v` has a torus factor.
 
 # Examples
 ```julia-repl
-julia> has_torusfactor( projective_space(  2 ) )
+julia> has_torusfactor( projective_space( 2 ) )
 false
 ```
 """
@@ -295,7 +295,7 @@ Checks if the normal toric variety `v` is an orbifold.
 
 # Examples
 ```julia-repl
-julia> is_orbifold( projective_space(  2 ) )
+julia> is_orbifold( projective_space( 2 ) )
 true
 ```
 """
@@ -312,7 +312,7 @@ Checks if the normal toric variety `v` is simplicial. Hence, this function works
 
 # Examples
 ```julia-repl
-julia> is_simplicial( projective_space(  2 ) )
+julia> is_simplicial( projective_space( 2 ) )
 true
 ```
 """
@@ -329,7 +329,7 @@ Checks if the normal toric variety `v` is isomorphic to projective space.
 
 # Examples
 ```julia-repl
-julia> is_isomorphic_to_projective_space( projective_space(  2 ) )
+julia> is_isomorphic_to_projective_space( projective_space( 2 ) )
 true
 ```
 """
@@ -346,7 +346,7 @@ Checks if the normal toric variety `v` is isomorphic to a direct product of proj
 
 # Examples
 ```julia-repl
-julia> is_direct_product_of_projective_spaces( projective_space(  2 ) )
+julia> is_direct_product_of_projective_spaces( projective_space( 2 ) )
 true
 ```
 """
