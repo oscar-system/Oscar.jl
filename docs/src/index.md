@@ -87,6 +87,7 @@ euler_characteristic
 weil_divisors_of_variety
 zariski_cotangent_sheaf_via_euler_sequence
 zariski_cotangent_sheaf_via_poincare_residue_map
+nef_cone
 ```
 
 

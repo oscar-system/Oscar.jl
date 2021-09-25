@@ -483,6 +483,22 @@ export zariski_cotangent_sheaf_via_poincare_residue_map
 #export underlying_sheaf
 
 
+struct NefCone
+           polymakeNefCone::Polymake.BigObject
+end
+export NefCone
+
+"""
+    nef_cone( v::NormalToricVariety )
+
+Computes the nef cone of the normal toric variety `v`.
+"""
+function nef_cone( v::NormalToricVariety )
+    return NefCone( v.polymakeNTV.NEF_CONE )
+end
+export nef_cone
+
+
 ######################
 # 2: Methods of ToricVarieties
 ######################
