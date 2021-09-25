@@ -343,10 +343,10 @@ end
 export cartier_torus_invariant_divisor_group
 
 
-struct picardGroup
+struct PicardGroup
            GapPicardGroup::GapObj
 end
-export picardGroup
+export PicardGroup
 
 
 """
@@ -356,7 +356,7 @@ Computes the Picard group of the normal toric variety `v`.
 """
 function picard_group( v::NormalToricVariety )
     gap_PicardGroup = GAP.Globals.PicardGroup( v.GapNTV )
-    return picardGroup( gap_PicardGroup )
+    return PicardGroup( gap_PicardGroup )
 end
 export picard_group
 
