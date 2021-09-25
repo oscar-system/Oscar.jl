@@ -390,3 +390,21 @@ function is_q_gorenstein( v::NormalToricVariety )
     return v.polymakeNTV.Q_GORENSTEIN
 end
 export is_q_gorenstein
+
+
+"""
+    is_fano( v::NormalToricVariety )
+
+Checks if the normal toric variety `v` is fano.
+
+# Examples
+```julia-repl
+julia> is_fano( projective_space( 2 ) )
+true
+```
+"""
+function is_fano( v::NormalToricVariety )
+    
+    return v.polymakeNTV.FANO
+end
+export is_fano
