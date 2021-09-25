@@ -499,6 +499,22 @@ end
 export nef_cone
 
 
+struct MoriCone
+           polymakeNefCone::Polymake.BigObject
+end
+export MoriCone
+
+"""
+    mori_cone( v::NormalToricVariety )
+
+Computes the mori cone of the normal toric variety `v`.
+"""
+function mori_cone( v::NormalToricVariety )
+    return MoriCone( v.polymakeNTV.MORI_CONE )
+end
+export mori_cone
+
+
 ######################
 # 2: Methods of ToricVarieties
 ######################

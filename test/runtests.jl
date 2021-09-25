@@ -19,6 +19,7 @@ using Test
     @test JToric.is_q_gorenstein( H5 ) == true
     @test JToric.is_fano( H5 ) == false
     nef_cone( H5 )
+    mori_cone( H5 )
     @test size( affine_open_covering( H5 ) )[ 1 ] == 4
     cox_ring( H5 )
     cox_ring( H5, "u" )
