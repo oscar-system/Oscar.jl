@@ -325,10 +325,10 @@ end
 export fan
 
 
-struct cartierTorusInvariantDivisorGroup
+struct CartierTorusInvariantDivisorGroup
            GapCartierTorusInvariantDivisorGroup::GapObj
 end
-export cartierTorusInvariantDivisorGroup
+export CartierTorusInvariantDivisorGroup
 
 
 """
@@ -338,7 +338,7 @@ Computes the group of Cartier and torus invariant divisors of the normal toric v
 """
 function cartier_torus_invariant_divisor_group( v::NormalToricVariety )
     gap_CartierTorusInvariantDivisorGroup = GAP.Globals.CartierTorusInvariantDivisorGroup( v.GapNTV )
-    return cartierTorusInvariantDivisorGroup( gap_CartierTorusInvariantDivisorGroup )
+    return CartierTorusInvariantDivisorGroup( gap_CartierTorusInvariantDivisorGroup )
 end
 export cartier_torus_invariant_divisor_group
 
