@@ -192,10 +192,10 @@ end
 export factors
 
 
-struct characterLattice
+struct CharacterLattice
            GapCharacterLattice::GapObj
 end
-export characterLattice
+export CharacterLattice
 
 
 """
@@ -205,7 +205,7 @@ Computes the character lattice of the normal toric variety `v`.
 """
 function character_lattice( v::NormalToricVariety )
     gap_CharacterLattice = GAP.Globals.CharacterLattice( v.GapNTV )
-    return characterLattice( gap_CharacterLattice )
+    return CharacterLattice( gap_CharacterLattice )
 end
 export character_lattice
 
