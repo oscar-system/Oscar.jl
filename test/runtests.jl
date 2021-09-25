@@ -15,6 +15,7 @@ using Test
     @test JToric.is_simplicial( H5 ) == true
     @test JToric.is_isomorphic_to_projective_space( H5 ) == false
     @test JToric.is_direct_product_of_projective_spaces( H5 ) == false
+    @test JToric.is_gorenstein( H5 ) == true
     @test JToric.is_q_gorenstein( H5 ) == true
     @test size( affine_open_covering( H5 ) )[ 1 ] == 4
     cox_ring( H5 )

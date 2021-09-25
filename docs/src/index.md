@@ -49,6 +49,7 @@ is_orbifold
 is_simplicial
 is_isomorphic_to_projective_space
 is_direct_product_of_projective_spaces
+is_gorenstein
 is_q_gorenstein
 ```
 
