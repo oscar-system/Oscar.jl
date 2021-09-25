@@ -14,10 +14,10 @@ end
 export affine_open_covering
 
 
-struct coxRing
+struct CoxRing
            GapCoxRing::GapObj
 end
-export coxRing
+export CoxRing
 
 
 """
@@ -27,7 +27,7 @@ Computes the Cox ring of the normal toric variety `v`.
 """
 function cox_ring( v::NormalToricVariety )
     gap_ring = GAP.Globals.CoxRing( v.GapNTV )
-    return coxRing( gap_ring )
+    return CoxRing( gap_ring )
 end
 export cox_ring
 
@@ -521,7 +521,7 @@ Compute the Cox ring of the normal toric variety `v`, using `name` as label for 
 function cox_ring( v::NormalToricVariety, names::String )
     gap_names = GapObj( names )
     gap_CoxRing = GAP.Globals.CoxRing( v.GapNTV, gap_names )
-    return coxRing( gap_CoxRing )
+    return CoxRing( gap_CoxRing )
 end
 export cox_ring
 
