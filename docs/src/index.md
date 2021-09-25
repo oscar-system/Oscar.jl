@@ -65,7 +65,7 @@ torus_invariant_divisor_group
 map_from_character_to_principal_divisor
 map_from_weil_divisors_to_class_group
 dim
-dimension_of_torusfactor
+dim_of_torusfactor
 coordinate_ring_of_torus
 list_of_variables_of_coordinate_ring_of_torus
 is_product_of
@@ -123,5 +123,5 @@ is_primedivisor
 is_basepoint_free
 is_ample
 is_very_ample
-is_numerically_effective
+is_nef
 ```
