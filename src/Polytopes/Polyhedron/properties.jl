@@ -609,7 +609,7 @@ isfulldimensional(P::Polyhedron) = pm_polytope(P).FULL_DIM
 @doc Markdown.doc"""
     f_vector(P::Polyhedron)
 
-Compute the vector $(f₁,f₂,...,f_{(dim(P)-1))$` where $f_i$ is the number of
+Compute the vector $(f₀,f₁,f₂,...,f_{(dim(P)-1))$` where $f_i$ is the number of
 faces of $P$ of dimension $i$.
 
 # Examples

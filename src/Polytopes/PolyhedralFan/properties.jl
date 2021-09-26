@@ -162,6 +162,41 @@ julia> nrays(face_fan(cube(3)))
 nrays(PF::PolyhedralFan) = pm_fan(PF).N_RAYS
 
 
+@doc Markdown.doc"""
+    f_vector(PF::PolyhedralFan)
+
+Compute the vector $(f₁,f₂,...,f_{dim(PF)-1})$` where $f_i$ is the number of
+faces of $PF$ of dimension $i$.
+
+# Examples
+The f-vector of the normal fan of a polytope is the reverse of the f-vector of
+the polytope.
+```jldoctest
+julia> c = cube(3)
+A polyhedron in ambient dimension 3
+
+julia> f_vector(c)
+3-element Vector{Int64}:
+  8
+ 12
+  6
+
+julia> nfc = normal_fan(c)
+A polyhedral fan in ambient dimension 3
+
+julia> f_vector(nfc)
+3-element Vector{Polymake.Integer}:
+  6
+ 12
+  8
+```
+"""
+function f_vector(PF::PolyhedralFan)
+    pmf = pm_fan(PF)
+    ldim = pmf.LINEALITY_DIM
+    return vcat(fill(0,ldim),pmf.F_VECTOR)
+end
+
 ###############################################################################
 ## Points properties
 ###############################################################################

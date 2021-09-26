@@ -57,3 +57,8 @@ both polymake and Oscar.
 save_polyhedralfan(PF::PolyhedralFan, filename::String)
 load_polyhedralfan(filename::String)
 ```
+
+## Auxiliary functions
+```@docs
+f_vector(PF::PolyhedralFan)
+```

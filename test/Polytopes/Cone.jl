@@ -9,6 +9,7 @@ const pm = Polymake
     Cone2 = Cone(R, L)
     Cone3 = Cone(R, L; non_redundant=true)
     Cone4 = positive_hull(R)
+    Cone5 = positive_hull([1 0 0; 1 1 0; 1 1 1; 1 0 1])
 
     @testset "core functionality" begin
         @test ispointed(Cone1)
@@ -45,6 +46,11 @@ const pm = Polymake
         @test faces(Cone, Cone2, 2).lineality == [0 1 0]
         @test faces(Cone2, 2) isa PolyhedronOrConeIterator{Cone}
         @test isnothing(faces(Cone2, 1))
+
+        @test f_vector(Cone5) == [4, 4]
+        @test f_vector(Cone2) == [0, 2]
+        @test lineality_dim(Cone5) == 0
+        @test lineality_dim(Cone2) == 1
     end
 
     @testset "constructors" begin

@@ -35,6 +35,7 @@
         FF0 = face_fan(C0)
         @test nrays(FF0) == 4
         @test !issmooth(FF0)
+        @test f_vector(NFsquare) == [4, 4]
     end
 
 end

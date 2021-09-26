@@ -59,11 +59,13 @@ load_cone(filename::String)
 ## Auxiliary functions
 ```@docs
 ambient_dim(C::Cone)
+f_vector(C::Cone)
 hilbert_basis(C::Cone)
 codim(C::Cone)
 dim(C::Cone)
 ispointed(C::Cone)
 isfulldimensional(C::Cone)
+lineality_dim(C::Cone)
 lineality_space(C::Cone)
 nrays(C::Cone)
 rays(C::Cone)
