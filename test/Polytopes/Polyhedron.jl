@@ -11,6 +11,8 @@
     square = cube(2)
     C1 = cube(2, 0, 1)
     Pos = Polyhedron([-1 0 0; 0 -1 0; 0 0 -1], [0,0,0])
+    # TODO:
+    # @test Polyhedron(([-1 0 0; 0 -1 0; 0 0 -1], [0,0,0]); non_redundant = true) == Pos
     L = Polyhedron([-1 0 0; 0 -1 0], [0,0])
     point = convex_hull([0 1 0])
     s = simplex(2)
@@ -49,6 +51,8 @@
         @test facets(Halfspace, Pos) isa HalfspaceIterator{Halfspace}
         @test facets(Pair, Pos) isa HalfspaceIterator{Pair{Polymake.Matrix{Polymake.Rational}, Polymake.Rational}}
         @test facets(Pos) isa HalfspaceIterator{Halfspace}
+        @test affine_hull(point) isa HalfspaceIterator{Hyperplane}
+        @test affine_hull(point).A == [1 0 0; 0 1 0; 0 0 1] && affine_hull(point).b == [0, 1, 0]
     end
 
     @testset "linear programs" begin

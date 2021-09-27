@@ -37,7 +37,7 @@ A polyhedral cone in ambient dimension 2
 """
 function Cone(R::Union{VectorIterator{RayVector}, Oscar.MatElem, AbstractMatrix}, L::Union{VectorIterator{RayVector}, Oscar.MatElem, AbstractMatrix, Nothing} = nothing; non_redundant::Bool = false)
     RM = matrix_for_polymake(R)
-    LM = isnothing(L) ? Polymake.Matrix{Polymake.Rational}(undef, 0, size(RM, 2)) : matrix_for_polymake(L)
+    LM = isnothing(L) || isempty(L) ? Polymake.Matrix{Polymake.Rational}(undef, 0, size(RM, 2)) : matrix_for_polymake(L)
 
     if non_redundant
         return Cone(Polymake.polytope.Cone{Polymake.Rational}(RAYS = RM, LINEALITY_SPACE = LM,))
@@ -96,11 +96,14 @@ julia> rays(C)
  [1, 1]
 ```
 """
-function cone_from_inequalities(I::Union{HalfspaceIterator, Oscar.MatElem,AbstractMatrix}; non_redundant::Bool = false)
+function cone_from_inequalities(I::Union{HalfspaceIterator, Oscar.MatElem, AbstractMatrix}, E::Union{Nothing, HalfspaceIterator, Oscar.MatElem, AbstractMatrix} = nothing; non_redundant::Bool = false)
+    IM = -matrix_for_polymake(I)
+    EM = isnothing(E) || isempty(E) ? Polymake.Matrix{Polymake.Rational}(undef, 0, size(IM, 2)) : matrix_for_polymake(E)
+
     if non_redundant
-        return Cone(Polymake.polytope.Cone{Polymake.Rational}(FACETS = -matrix_for_polymake(I)))
+        return Cone(Polymake.polytope.Cone{Polymake.Rational}(FACETS = IM, LINEAR_SPAN = EM))
     else
-        return Cone(Polymake.polytope.Cone{Polymake.Rational}(INEQUALITIES = -matrix_for_polymake(I)))
+        return Cone(Polymake.polytope.Cone{Polymake.Rational}(INEQUALITIES = -matrix_for_polymake(I), EQUATIONS = EM))
     end
 end
 

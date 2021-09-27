@@ -304,6 +304,26 @@ julia> lineality_space(UH)
 lineality_space(C::Cone) = VectorIterator{RayVector{Polymake.Rational}}(pm_cone(C).LINEALITY_SPACE)
 
 @doc Markdown.doc"""
+    linear_span(C::Cone)
+
+Return the (linear) hyperplanes generating the linear span of `C`.
+
+# Examples
+This 2-dimensional cone in $\mathbb{R}^3$ lives in exactly one hyperplane $H$, with
+$H = \{ (x_1, x_2, x_3) | x_3 = 0 \}$.
+```jldoctest
+julia> c = Cone([1 0 0; 0 1 0]);
+
+julia> linear_span(c)
+1-element HalfspaceIterator{Hyperplane}:
+ The Hyperplane of R^3 described by
+1: x₃ = 0
+
+```
+"""
+linear_span(C::Cone) = HalfspaceIterator{Hyperplane}(C.pm_cone.LINEAR_SPAN)
+
+@doc Markdown.doc"""
     hilbert_basis(C::Cone)
 
 Return the Hilbert basis of a pointed cone `C` as the rows of a matrix.
