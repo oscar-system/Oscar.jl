@@ -414,8 +414,8 @@ end
 
 Compute a weight ordering with a unique weight matrix.    
 """
-function simplify(M::MonomialOrdering)
-  ww = simplify_weight_matrix(weights(M))
+function Hecke.simplify(M::MonomialOrdering)
+  ww = simplify_weight_matrix(M.o)
   return MonomialOrdering(M.R, ordering(1:ncols(ww), ww))
 end
 
@@ -450,11 +450,11 @@ end
 
 import Base.==
 function ==(M::MonomialOrdering, N::MonomialOrdering)
-  return simplify(M).o.wgt == simplify(N).o.wgt
+  return Hecke.simplify(M).o.wgt == Hecke.simplify(N).o.wgt
 end
 
 function Base.hash(M::MonomialOrdering, u::UInt)
-  return hash(simplify(M).o.wgt, u)
+  return hash(Hecke.simplify(M).o.wgt, u)
 end
 
 end  # module Orderings
