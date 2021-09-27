@@ -376,7 +376,7 @@ mutable struct GaloisCtx{T}
     r.C = HQ
     #r.B = more complicated: needs degree (inf. val.) bound as well as coeffs
     r.chn = Tuple{PermGroup, SLPoly, fmpz_poly, Vector{PermGroupElem}}[]
-    @show f, shft
+    
     vl = roots_upper_bound(f)
     r.B = qt_ring()(vl[1])
     r.data = [vl[2], shft]
@@ -408,7 +408,7 @@ function bound_to_precision(G::GaloisCtx{T}, B::BoundRingElem{Tuple{fmpz, Int, f
       b = max(C*(c+1)^k//r^c, C*(c+2)^k//r^(c+1))
     end
   end
-  @show b = max(b, fmpz(1))
+  b = max(b, fmpz(1))
   return (clog(floor(fmpz, b), prime(G)), Int(n))
 end
 
@@ -463,7 +463,7 @@ function Hecke.roots(G::GaloisCtx{Hecke.qAdicRootCtx}, pr::Int; raw::Bool = fals
   end
 end
 function Hecke.setprecision(a::Generic.RelSeries, p::Int)
-  b = parent(a)(a.coeffs, max(length(a.coeffs), p), p+valuation(a), valuation(a))
+  b = parent(a)(a.coeffs, min(length(a.coeffs), p), p+valuation(a), valuation(a))
 end
 function Hecke.roots(G::GaloisCtx{<:Hecke.MPolyFact.HenselCtxFqRelSeries}, pr; raw::Bool = false)
   C = G.C
@@ -474,7 +474,8 @@ function Hecke.roots(G::GaloisCtx{<:Hecke.MPolyFact.HenselCtxFqRelSeries}, pr; r
     Hecke.MPolyFact.lift(C)
   end
   rt = [-coeff(x, 0) for x = C.lf[1:C.n]]
-  return map(y->map_coefficients(x->setprecision(x, pr[1]), setprecision(y, pr[2]), parent = parent(y)), rt)
+  rt = map(y->map_coefficients(x->setprecision(x, pr[1]), setprecision(y, pr[2]), parent = parent(y)), rt)
+  return rt
 end
 
 @doc Markdown.doc"""

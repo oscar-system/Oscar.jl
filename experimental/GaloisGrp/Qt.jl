@@ -145,7 +145,7 @@ function _subfields(FF::Generic.FunctionField, f::fmpz_mpoly; tStart::Int = -1)
   K, a = number_field(g, cached = false)
 
   @vprint :Subfields, 2, "now looking for a nice prime...\n"
-  p, _ = find_prime(defining_polynomial(K), pStart = 100)
+  p, _ = find_prime(defining_polynomial(K), pStart = 200)
 
   d = lcm(map(degree, collect(keys(factor(g, GF(p)).fac))))
 
@@ -158,8 +158,11 @@ end
 
 function galois_group(FF::Generic.FunctionField{fmpq})
   tStart = -1
+  tr = -1
   while true
-    if tStart > 5
+    tr += 1
+#    @show tr, tStart
+    if tr > 15
       error("not plausible")
     end
     C, K, p = _galois_init(FF, tStart = tStart)
@@ -175,6 +178,8 @@ function galois_group(FF::Generic.FunctionField{fmpq})
     Gal, S = galois_group(K, prime = p)
 
     @vprint :GaloisGroup 1 "after specialisation, group is: $(transitive_group_identification(Gal))\n"
+
+#    @show S.start, S.chn
 
     #need to map the ordering of the roots in C to the one in S
     #the roots in C should be power-series over the field used in S
@@ -220,28 +225,54 @@ function galois_group(FF::Generic.FunctionField{fmpq})
 
     #then verify the descent-chain in S
     C.chn = typeof(S.chn)()
-    redo = false
+    more_t = false
     for (U, I, ts, cs) in S.chn
-      @show :verifying I, ts
-      @show B = upper_bound(C, I, ts)
-      @show prc = bound_to_precision(C, B)
+      B = upper_bound(C, I, ts)
+      prc = bound_to_precision(C, B)
       prc = (ceil(Int, prc[1]*1.2)+1, ceil(Int, prc[2]*1.2)+1) #to have some space for failed evals
-      r = roots(C, prc)
-      if ts != gen(parent(ts))
-        r = map(ts, r)
-      end
-      for s = cs
-        a = evaluate(I^(s*inv(pr)), r)
-        if !isinteger(C, bound_to_precision(C, B), a)[1]
-          @vprint :GaloisGroup 2 "bad evaluation point: invariant yields no root\n"
-          redo = true
-          break
+      act_prc = (2,4)
+#      act_prc = prc
+      more_prec = true
+      while more_prec
+#        @show act_prc, prc
+        r = roots(C, act_prc)
+        if ts != gen(parent(ts))
+          r = map(ts, r)
         end
+        for s = cs
+          a = evaluate(I^(s*inv(pr)), r)
+
+          fl, val = isinteger(C, bound_to_precision(C, B), a)
+          if !fl
+            if act_prc[1] >= prc[1] && act_prc[2] >= prc[2]
+              @vprint :GaloisGroup -2 "bad evaluation point: invariant yields no root\n"
+              more_t = true
+              break
+            end
+            act_prc = (min(act_prc[1]*2, prc[1]), min(act_prc[2]*2, prc[2]))
+            @vprint :GaloisGroup 2 "isinteger failed, increasing precision to $act_prc\n"
+            more_prec = true
+            break
+          end
+          if act_prc[1] < prc[1] || act_prc[2] < prc[2]
+            if degree(val) > min(act_prc[2]-3, act_prc[2]*0.9) #TODO: also check on the p-adic side
+              act_prc = (min(2*act_prc[1], prc[1]), min(2*act_prc[2], prc[2]))
+              @vprint :GaloisGroup 2 "isinteger passed, but result too large, increasing precision to $act_prc\n"
+              more_prec = true
+              break
+            end
+            more_prec = false
+          else
+            more_prec = false
+          end
+        end
+        more_t && break
+        more_prec && continue
+        push!(C.chn, (U, I, ts, [s*inv(pr) for s = cs]))
       end
-      redo && break
-      push!(C.chn, (U, I, ts, [s*inv(pr) for s = cs]))
+      more_t && break
     end
-    redo && continue
+    more_t && continue
     C.G = Gal^inv(pr)
     return C.G, C
   end
@@ -343,12 +374,12 @@ function issubfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{I
 
   @vprint :Subfields 2 "now proper bounds (for subfield poly)\n"
   B = upper_bound(C, power_sum, conI, length(conI))
+  B = 5*B^2
   @vprint :Subfields 2 "coeffs $B\n"
   prec_poly = bound_to_precision(C, B)
   @vprint :Subfields 2 "gives a precision of $prec_poly\n"
 
   function get_poly(prec::Tuple{Int, Int})
-    @show :rootsAt, prec
     R = roots(C, prec)
     con = [evaluate(c, R) for c = conI]
     if length(Set(con)) < length(bs)
@@ -379,13 +410,11 @@ function issubfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{I
     try
       @vtime :Subfields 2 ps = power_sums_to_polynomial(map(x->x(gen(Qt)), tr))  #should be the subfield polynomial
     catch e
-      @show e
       throw(e)
       return nothing
     end
     if any(x->!isone(denominator(x)), coefficients(ps)) ||
        any(x->any(!isone(denominator(y)) for y = coefficients(numerator(x))), coefficients(ps))
-      @show ps
       return nothing
     end
     return ps
