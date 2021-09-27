@@ -89,7 +89,7 @@ function right_action(R::MPolyRing{T}, M::MatrixElem{T}) where T
     end
   end
 
-  right_action_by_M(f::MPolyElem{T}) = evaluate(f, vars)
+  right_action_by_M = (f::MPolyElem{T}) -> evaluate(f, vars)
 
   return MapFromFunc(right_action_by_M, R, R)
 end
