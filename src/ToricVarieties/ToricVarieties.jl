@@ -13,7 +13,6 @@ export
     isbasepoint_free,
     iscartier,
     iscomplete,
-    iseffective,
     isintegral,
     isnef,
     isnormal,

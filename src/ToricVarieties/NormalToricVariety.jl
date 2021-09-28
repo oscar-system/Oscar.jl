@@ -393,7 +393,6 @@ Construct `d`-dimensional projective space as a toric variety.
 
 # Examples
 ```jldoctest
-
 julia> P2 = toric_projective_space(2)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
