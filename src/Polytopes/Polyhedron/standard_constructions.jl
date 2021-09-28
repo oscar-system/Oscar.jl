@@ -21,15 +21,14 @@ to the resulting polytope.
 julia> b = birkhoff(3)
 A polyhedron in ambient dimension 9
 
-julia> vertices_as_point_matrix(b)
-pm::Matrix<pm::Rational>
-1 0 0 0 1 0 0 0 1
-0 1 0 1 0 0 0 0 1
-0 0 1 1 0 0 0 1 0
-1 0 0 0 0 1 0 1 0
-0 1 0 0 0 1 1 0 0
-0 0 1 0 1 0 1 0 0
-
+julia> vertices(b)
+6-element VectorIterator{PointVector{Polymake.Rational}}:
+ [1, 0, 0, 0, 1, 0, 0, 0, 1]
+ [0, 1, 0, 1, 0, 0, 0, 0, 1]
+ [0, 0, 1, 1, 0, 0, 0, 1, 0]
+ [1, 0, 0, 0, 0, 1, 0, 1, 0]
+ [0, 1, 0, 0, 0, 1, 1, 0, 0]
+ [0, 0, 1, 0, 1, 0, 1, 0, 0]
 ```
 """
 function birkhoff(n::Integer; even::Bool=false, group::Bool=false)
@@ -55,17 +54,16 @@ compute the group induced by the GROUP of `P`and leaving the apex fixed.
 
 # Example
 ```jldoctest
-julia> c = cube(2,group=true)
+julia> c = cube(2)
 A polyhedron in ambient dimension 2
 
-julia> vertices_as_point_matrix(pyramid(c,5))
-pm::Matrix<pm::Rational>
--1 -1 0
-1 -1 0
--1 1 0
-1 1 0
-0 0 5
-
+julia> vertices(pyramid(c,5))
+5-element VectorIterator{PointVector{Polymake.Rational}}:
+ [-1, -1, 0]
+ [1, -1, 0]
+ [-1, 1, 0]
+ [1, 1, 0]
+ [0, 0, 5]
 ```
 """
 function pyramid(P::Polyhedron, z::Number=1; no_coordinates::Bool=false, no_labels::Bool=false, group::Bool=false)
@@ -121,7 +119,7 @@ VERTICES_IN_FACETS
 	{0 3}
 	{1 3}
 
-julia> bipyramid(c,2,-3,no_label=true,no_coordinate=true).pm_polytope
+julia> bipyramid(c,2,-3,no_labels=true,no_coordinates=true).pm_polytope
 type: Polytope<Rational>
 description: Bipyramid over
 
@@ -133,7 +131,6 @@ VERTICES_IN_FACETS
 	{1 2}
 	{0 3}
 	{1 3}
-
 ```
 """
 function bipyramid(P::Polyhedron, z::Number=1, z_prime::Number=-z; no_coordinates::Bool=false, no_labels::Bool=false)
