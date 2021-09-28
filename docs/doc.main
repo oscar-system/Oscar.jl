@@ -127,6 +127,11 @@
      ],
   ],
 
+  "Toric Geometry" => [
+      "ToricGeometry/intro.md",
+      "ToricGeometry/NormalToricVarieties.md",
+  ],
+
   "References" => "references.md",
   "Index" => "manualindex.md",
 ]
