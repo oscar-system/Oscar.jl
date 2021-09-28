@@ -31,6 +31,8 @@ AffineNormalToricVariety(C::Cone)
 NormalToricVariety(C::Cone)
 NormalToricVariety(PF::PolyhedralFan)
 NormalToricVariety(P::Polyhedron)
+hirzebruch_surface(r::Int64)
+projective_space(d::Int64)
 ```
 
 ## Auxiliary functions
@@ -41,6 +43,7 @@ isnormal(ntv::NormalToricVarietyType)
 isprojective(ntv::NormalToricVarietyType)
 issimplicial(ntv::NormalToricVarietyType)
 issmooth(ntv::NormalToricVarietyType)
+nprime_divisors(ntv::NormalToricVarietyType)
 rays(ntv::NormalToricVarietyType)
 toric_ideal_binomial_generators(ntv::AffineNormalToricVariety)
 ```

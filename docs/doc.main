@@ -130,6 +130,7 @@
   "Toric Geometry" => [
       "ToricGeometry/intro.md",
       "ToricGeometry/NormalToricVarieties.md",
+      "ToricGeometry/ToricDivisors.md",
   ],
 
   "References" => "references.md",
