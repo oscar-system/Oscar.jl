@@ -114,7 +114,7 @@ iscartier(td::ToricDivisor) = pm_tdivisor(td).CARTIER::Bool
 
 
 @doc Markdown.doc"""
-    iseffective(td::ToricDivisor) 
+    toric_iseffective(td::ToricDivisor) 
 
 Determine whether the toric divisor `td` is effective.
 # Examples
@@ -125,11 +125,11 @@ A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 julia> td = ToricDivisor([1,0,0,0], H)
 A torus invariant divisor on a normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
-julia> iseffective(td)
+julia> toric_iseffective(td)
 true
 ```
 """
-iseffective(td::ToricDivisor) = pm_tdivisor(td).EFFECTIVE::Bool
+toric_iseffective(td::ToricDivisor) = pm_tdivisor(td).EFFECTIVE::Bool
 
 
 @doc Markdown.doc"""
