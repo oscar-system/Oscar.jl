@@ -1,3 +1,8 @@
+################################################################################
+################################################################################
+##  Structs
+################################################################################
+################################################################################
 struct ToricDivisor
     ambient_variety::NormalToricVarietyType
     polymake_divisor::Polymake.BigObject
@@ -46,7 +51,11 @@ function Base.show(io::IO, td::ToricDivisor)
 end
 
 
-
+################################################################################
+################################################################################
+##  Access properties
+################################################################################
+################################################################################
 @doc Markdown.doc"""
     isample(td::ToricDivisor) 
 
@@ -224,5 +233,48 @@ false
 ```
 """
 isvery_ample(td::ToricDivisor) = pm_tdivisor(td).VERY_AMPLE::Bool
-    
-    
+
+
+@doc Markdown.doc"""
+    polyhedron_of_divisor(td::ToricDivisor)
+
+Construct the polyhedron $P_D$ of a torus invariant divisor $D:=td$ as in 4.3.2
+of [CLS11](@cite). The lattice points of this polyhedron correspond to the
+global sections of the divisor.
+
+# Examples
+The polyhedron of the divisor with all coefficients equal to zero is a point,
+if the ambient variety is complete. Changing the coefficients corresponds to
+moving hyperplanes. One direction moves the hyperplane away from the origin,
+the other moves it across. In the latter case there are no global sections
+anymore and the polyhedron becomes empty.
+```
+julia> H = hirzebruch_surface(4)
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+
+julia> td0 = ToricDivisor([0,0,0,0], H)
+A torus invariant divisor on a normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+
+julia> isfeasible(polyhedron_of_divisor(td0))
+true
+
+julia> dim(polyhedron_of_divisor(td0))
+0
+
+julia> td1 = ToricDivisor([1,0,0,0], H)
+A torus invariant divisor on a normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+
+julia> isfeasible(polyhedron_of_divisor(td1))
+true
+
+julia> td2 = ToricDivisor([-1,0,0,0], H)
+A torus invariant divisor on a normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+
+julia> isfeasible(polyhedron_of_divisor(td2))
+false
+```
+"""
+function polyhedron_of_divisor(td::ToricDivisor)
+    pmtd = pm_tdivisor(td)
+    return Polyhedron(pmtd.SECTION_POLYTOPE)
+end

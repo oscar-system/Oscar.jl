@@ -15,6 +15,9 @@ Pages = ["tg_divisors.md"]
 
 ## Introduction
 
+Toric divisors are those divisors that are invariant under the torus action.
+They are formal sums of the codimension one orbits, and these in turn
+correspond to the rays of the underlying fan.
 
 
 ## Construction
@@ -35,4 +38,5 @@ isprincipal(td::ToricDivisor)
 isq_cartier(td::ToricDivisor)
 issemiample(td::ToricDivisor)
 isvery_ample(td::ToricDivisor)
+polyhedron_of_divisor(td::ToricDivisor)
 ```

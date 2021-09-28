@@ -25,6 +25,7 @@ export
     issmooth,
     isvery_ample,
     nprime_divisors,
+    polyhedron_of_divisor,
     projective_space,
     rays,
     toric_ideal_binomial_generators
