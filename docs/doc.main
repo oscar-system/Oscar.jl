@@ -93,13 +93,14 @@
          "PolyhedralGeometry/Polyhedra/constructions.md",
          "PolyhedralGeometry/Polyhedra/polymake.md",
          "PolyhedralGeometry/Polyhedra/auxiliary.md",
-         "PolyhedralGeometry/Polyhedra/serialization.md"
+         "PolyhedralGeometry/Polyhedra/serialization.md",
+         "PolyhedralGeometry/Polyhedra/visualization.md",
        ],
         "PolyhedralGeometry/cones.md",
         "PolyhedralGeometry/fans.md",
         "PolyhedralGeometry/graphs.md",
         "PolyhedralGeometry/linear_programs.md",
-        "PolyhedralGeometry/subdivisions_of_points.md"
+        "PolyhedralGeometry/subdivisions_of_points.md",
     ],
 
   "Commutative Algebra" => [

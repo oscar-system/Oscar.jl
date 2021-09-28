@@ -75,3 +75,8 @@ nmaximal_cones(PF::PolyhedralFan)
 nrays(PF::PolyhedralFan)
 rays(PF::PolyhedralFan)
 ```
+
+### Visualization
+```@docs
+visualize(PF::PolyhedralFan)
+```

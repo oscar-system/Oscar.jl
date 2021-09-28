@@ -101,7 +101,7 @@ export Cone,
     vertices,
     vertices_as_point_matrix,
     vf_group,
-    visual,
+    visualize,
     volume
 
 include("helpers.jl")
@@ -121,3 +121,4 @@ include("LinearProgram.jl")
 include("Groups.jl")
 include("Graphs.jl")
 include("Serialization.jl")
+include("Visualization.jl")

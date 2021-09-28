@@ -71,3 +71,8 @@ nfacets(C::Cone)
 nrays(C::Cone)
 rays(C::Cone)
 ```
+
+### Visualization
+```@docs
+visualize(C::Cone)
+```
