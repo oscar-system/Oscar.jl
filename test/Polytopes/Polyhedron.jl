@@ -53,6 +53,10 @@
         @test facets(Pos) isa HalfspaceIterator{Halfspace}
         @test affine_hull(point) isa HalfspaceIterator{Hyperplane}
         @test affine_hull(point).A == [1 0 0; 0 1 0; 0 0 1] && affine_hull(point).b == [0, 1, 0]
+        @test nfacets(square) == 4
+        @test lineality_dim(Q0) == 0
+        @test nrays(Q1) == 1
+        @test lineality_dim(Q2) == 1
     end
 
     @testset "linear programs" begin

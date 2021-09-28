@@ -67,6 +67,7 @@ ispointed(C::Cone)
 isfulldimensional(C::Cone)
 lineality_dim(C::Cone)
 lineality_space(C::Cone)
+nfacets(C::Cone)
 nrays(C::Cone)
 rays(C::Cone)
 ```

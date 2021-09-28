@@ -6,7 +6,7 @@
 
 #TODO: take into account lineality space
 
-"""
+@doc Markdown.doc"""
     faces(as::Type{T} = Polyhedron, P::Polyhedron, face_dim::Int)
 
 Return the faces of `P` of dimension `face_dim` as an iterator over the type of
@@ -51,7 +51,7 @@ function faces(as::Type{T}, P::Polyhedron, face_dim::Int) where T<:Polyhedron
     end
     return PolyhedronOrConeIterator{as}(P.pm_polytope.VERTICES,pfaces[rfaces], P.pm_polytope.LINEALITY_SPACE)
 end
-"""
+@doc Markdown.doc"""
     faces(P::Polyhedron, face_dim::Int)
 
 Return the faces of `P` of dimension `face_dim` as an iterator over `Polyhedron` objects.
@@ -71,7 +71,7 @@ julia> F = faces(cube(3),2)
 """
 faces(P::Polyhedron, face_dim::Int) = faces(Polyhedron, P, face_dim)
 
-"""
+@doc Markdown.doc"""
     vertices(as, P)
 
 Return an iterator over the vertices of `P` in the format defined by `as`.
@@ -108,7 +108,7 @@ end
 
 vertices(::Type{PointVector}, P::Polyhedron) = vertices(PointVector{Polymake.Rational}, P)
 
-"""
+@doc Markdown.doc"""
     vertices(P::Polyhedron)
 
 Return an iterator over the vertices of a polyhedron `P` as points.
@@ -131,7 +131,7 @@ julia> vertices(P)
 vertices(P::Polyhedron) = vertices(PointVector, P)
 
 
-"""
+@doc Markdown.doc"""
     nrays(P::Polyhedron)
 
 Return the number of rays of `P`.
@@ -325,6 +325,25 @@ facets(P::Polyhedron) = facets(Halfspace, P)
 ###############################################################################
 ## Scalar properties
 ###############################################################################
+@doc Markdown.doc"""
+    lineality_dim(P::Polyhedron)
+
+Return the dimension of the lineality space, i.e. the dimension of the largest
+affine subspace contained in `P`.
+
+# Examples
+Polyhedron with one lineality direction.
+```jldoctest
+julia> C = convex_hull([0 0], [1 0], [1 1])
+A polyhedron in ambient dimension 2
+
+julia> lineality_dim(C)
+1
+```
+"""
+lineality_dim(P::Polyhedron) = pm_polytope(P).LINEALITY_DIM
+
+
 @doc Markdown.doc"""
     volume(P::Polyhedron)
 

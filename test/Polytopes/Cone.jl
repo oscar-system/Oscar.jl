@@ -53,6 +53,8 @@ const pm = Polymake
         @test f_vector(Cone2) == [0, 2]
         @test lineality_dim(Cone5) == 0
         @test lineality_dim(Cone2) == 1
+
+        @test nfacets(Cone5) == 4
     end
 
     @testset "constructors" begin

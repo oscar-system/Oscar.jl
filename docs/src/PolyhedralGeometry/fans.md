@@ -60,5 +60,18 @@ load_polyhedralfan(filename::String)
 
 ## Auxiliary functions
 ```@docs
+ambient_dim(PF::PolyhedralFan)
+dim(PF::PolyhedralFan)
 f_vector(PF::PolyhedralFan)
+iscomplete(PF::PolyhedralFan)
+ispointed(PF::PolyhedralFan)
+isregular(PF::PolyhedralFan)
+issmooth(PF::PolyhedralFan)
+lineality_dim(PF::PolyhedralFan)
+lineality_space(PF::PolyhedralFan)
+maximal_cones(PF::PolyhedralFan)
+maximal_cones_as_incidence_matrix(PF::PolyhedralFan)
+nmaximal_cones(PF::PolyhedralFan)
+nrays(PF::PolyhedralFan)
+rays(PF::PolyhedralFan)
 ```

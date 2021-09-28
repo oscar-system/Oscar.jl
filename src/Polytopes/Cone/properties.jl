@@ -48,6 +48,23 @@ faces(C::Cone, face_dim::Int) = faces(Cone, C, face_dim)
 ###############################################################################
 ## Scalar properties
 ###############################################################################
+@doc Markdown.doc"""
+    nfacets(C::Cone)
+
+Return the number of facets of a cone `C`.
+
+# Examples
+The cone over a square at height one has four facets.
+```jldoctest
+julia> C = positive_hull([1 0 0; 1 1 0; 1 1 1; 1 0 1])
+A polyhedral cone in ambient dimension 3
+
+julia> nfacets(C)
+4
+```
+"""
+nfacets(C::Cone) = pm_cone(C).N_FACETS
+
 
 @doc Markdown.doc"""
     nrays(C::Cone)
@@ -177,10 +194,7 @@ julia> lineality_dim(C1)
 1
 ```
 """
-function lineality_dim(C::Cone)
-    pmc = pm_cone(C)
-    return pmc.LINEALITY_DIM
-end
+lineality_dim(C::Cone) = pm_cone(C).LINEALITY_DIM
 
 
 

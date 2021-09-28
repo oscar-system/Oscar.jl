@@ -4,7 +4,7 @@
 ###############################################################################
 ###############################################################################
 
-"""
+@doc Markdown.doc"""
     rays(PF::PolyhedralFan)
 
 Return the rays of `PF`.
@@ -29,7 +29,7 @@ julia> rays(NF)
 """
 rays(PF::PolyhedralFan) = VectorIterator{RayVector{Polymake.Rational}}(pm_fan(PF).RAYS)
 
-"""
+@doc Markdown.doc"""
     maximal_cones(PF::PolyhedralFan)
 
 Return the maximal cones of `PF`.
@@ -95,7 +95,7 @@ Base.length(iter::MaximalConeIterator) = nmaximal_cones(iter.PF)
 ## Scalar properties
 ###############################################################################
 
-"""
+@doc Markdown.doc"""
     dim(PF::PolyhedralFan)
 
 Return the dimension of `PF`.
@@ -112,7 +112,7 @@ julia> dim(PF)
 """
 dim(PF::PolyhedralFan) = pm_fan(PF).FAN_DIM
 
-"""
+@doc Markdown.doc"""
     nmaximal_cones(PF::PolyhedralFan)
 
 Return the number of maximal cones of `PF`.
@@ -129,7 +129,7 @@ julia> nmaximal_cones(PF)
 """
 nmaximal_cones(PF::PolyhedralFan) = pm_fan(PF).N_MAXIMAL_CONES
 
-"""
+@doc Markdown.doc"""
     ambient_dim(PF::PolyhedralFan)
 
 Return the ambient dimension `PF`, which is the dimension of the embedding
@@ -147,7 +147,7 @@ julia> ambient_dim(normal_fan(cube(4)))
 """
 ambient_dim(PF::PolyhedralFan) = pm_fan(PF).FAN_AMBIENT_DIM
 
-"""
+@doc Markdown.doc"""
     nrays(PF::PolyhedralFan)
 
 Return the number of rays of `PF`.
@@ -196,6 +196,34 @@ function f_vector(PF::PolyhedralFan)
     ldim = pmf.LINEALITY_DIM
     return vcat(fill(0,ldim),pmf.F_VECTOR)
 end
+
+
+@doc Markdown.doc"""
+    lineality_dim(PF::PolyhedralFan)
+
+Return the dimension of the lineality space of the polyhedral fan `PF`, i.e.
+the dimension of the largest linear subspace.
+
+# Examples
+The dimension of the lineality space is zero if and only if the fan is pointed.
+```jldoctest
+julia> C = convex_hull([0 0; 1 0])
+A polyhedron in ambient dimension 2
+
+julia> isfulldimensional(C)
+false
+
+julia> nf = normal_fan(C)
+A polyhedral fan in ambient dimension 2
+
+julia> ispointed(nf)
+false
+
+julia> lineality_dim(nf)
+1
+```
+"""
+lineality_dim(PF::PolyhedralFan) = pm_fan(PF).LINEALITY_DIM
 
 ###############################################################################
 ## Points properties
@@ -259,7 +287,34 @@ end
 ###############################################################################
 ## Boolean properties
 ###############################################################################
+@doc Markdown.doc"""
+    ispointed(PF::PolyhedralFan)
+
+Determine whether `PF` is pointed, i.e. all its cones are pointed.
+
+# Examples
+The normal fan of a non-fulldimensional polytope is not pointed.
+```jldoctest
+julia> C = convex_hull([0 0; 1 0])
+A polyhedron in ambient dimension 2
+
+julia> isfulldimensional(C)
+false
+
+julia> nf = normal_fan(C)
+A polyhedral fan in ambient dimension 2
+
+julia> ispointed(nf)
+false
+
+julia> lineality_dim(nf)
+1
+```
 """
+ispointed(PF::PolyhedralFan) = pm_fan(PF).POINTED
+
+
+@doc Markdown.doc"""
     issmooth(PF::PolyhedralFan)
 
 Determine whether `PF` is smooth.
@@ -276,7 +331,7 @@ false
 """
 issmooth(PF::PolyhedralFan) = pm_fan(PF).SMOOTH_FAN
 
-"""
+@doc Markdown.doc"""
     isregular(PF::PolyhedralFan)
 
 Determine whether `PF` is regular, i.e. the normal fan of a polytope.
@@ -292,7 +347,7 @@ false
 """
 isregular(PF::PolyhedralFan) = pm_fan(PF).REGULAR
 
-"""
+@doc Markdown.doc"""
     iscomplete(PF::PolyhedralFan)
 
 Determine whether `PF` is complete, i.e. its support, the set-theoretic union
