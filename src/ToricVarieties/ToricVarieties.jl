@@ -11,7 +11,7 @@ struct NormalToricVariety
     polymakeNTV::Polymake.BigObject
 end
 
-const NormalToricVarieties = Union{AffineNormalToricVariety, NormalToricVariety}
+const NormalToricVarietyType = Union{AffineNormalToricVariety, NormalToricVariety}
 
 
 ################################################################################
@@ -22,7 +22,7 @@ const NormalToricVarieties = Union{AffineNormalToricVariety, NormalToricVariety}
 @doc Markdown.doc"""
     NormalToricVariety(PF::PolyhedralFan)
 
-Construct the normal toric variety corresponding to a polyhedral fan `PF`.
+Construct the normal toric variety $X_{PF}$ corresponding to a polyhedral fan `PF`.
 
 # Example
 Take `PF` to be the normal fan of the square.
@@ -46,8 +46,8 @@ end
 @doc Markdown.doc"""
     NormalToricVariety(P::Polyhedron)
 
-Construct the normal toric variety corresponding to the normal fan of the given
-polyhedron `P`.
+Construct the normal toric variety $X_{\Sigma_P}$ corresponding to the normal
+fan $\Sigma_P$ of the given polyhedron `P`.
 
 Note that this only coincides with the projective variety associated to `P`, if
 `P` is normal.
@@ -71,8 +71,8 @@ end
 @doc Markdown.doc"""
     AffineNormalToricVariety(C::Cone)
 
-Construct the affine normal toric variety corresponding to a polyhedral cone
-`C`.
+Construct the affine normal toric variety $U_{C}$ corresponding to a polyhedral
+cone `C`.
 
 # Example
 Set `C` to be the positive orthant in two dimensions.
@@ -95,8 +95,8 @@ end
 @doc Markdown.doc"""
     NormalToricVariety(C::Cone)
 
-Construct the (affine) normal toric variety corresponding to a polyhedral cone
-`C`.
+Construct the (affine) normal toric variety $X_{\Sigma}$ corresponding to a
+polyhedral fan $\Sigma = C$ consisting only of the cone `C`.
 
 # Example
 Set `C` to be the positive orthant in two dimensions.
@@ -115,7 +115,7 @@ function NormalToricVariety(C::Cone)
     return NormalToricVariety(pmntv)
 end
 
-function pm_ntv(ntv::NormalToricVarieties)
+function pm_ntv(ntv::NormalToricVarietyType)
     return ntv.polymakeNTV
 end
 
@@ -124,7 +124,7 @@ end
 ### Display
 ###############################################################################
 ###############################################################################
-function Base.show(io::IO, ntv::NormalToricVarieties)
+function Base.show(io::IO, ntv::NormalToricVarietyType)
     # fan = get_polyhedral_fan(ntv)
     pmntv = pm_ntv(ntv)
     ambdim = pmntv.FAN_AMBIENT_DIM
@@ -168,7 +168,7 @@ function toric_ideal_binomial_generators(antv::AffineNormalToricVariety)
     return result
 end
 
-# function get_polyhedral_fan(ntv::NormalToricVarieties)
+# function get_polyhedral_fan(ntv::NormalToricVarietyType)
 #     pmntv = pm_ntv(ntv)
 #     fan = Polymake.fan.PolyhedralFan(pmntv)
 #     println("get_polyhedral_fan done")
@@ -177,7 +177,7 @@ end
 
 
 @doc Markdown.doc"""
-    isaffine(ntv::NormalToricVarieties)
+    isaffine(ntv::NormalToricVarietyType)
 
 Check whether a normal toric variety is affine, i.e. the associated polyhedral
 fan has exactly one maximal cone.
@@ -203,14 +203,14 @@ julia> isaffine(ntv)
 false
 ```
 """
-function isaffine(ntv::NormalToricVarieties)
+function isaffine(ntv::NormalToricVarietyType)
     pmntv = pm_ntv(ntv)
     return pmntv.AFFINE::Bool
 end
 
 
 @doc Markdown.doc"""
-    iscomplete(ntv::NormalToricVarieties)
+    iscomplete(ntv::NormalToricVarietyType)
 
 Check whether a normal toric variety is complete, i.e. the associated
 polyhedral fan covers the whole space.
@@ -236,14 +236,14 @@ julia> iscomplete(ntv)
 true
 ```
 """
-function iscomplete(ntv::NormalToricVarieties)
+function iscomplete(ntv::NormalToricVarietyType)
     pmntv = pm_ntv(ntv)
     return pmntv.COMPLETE::Bool
 end
 
 
 @doc Markdown.doc"""
-    isnormal_variety(ntv::NormalToricVarieties)
+    isnormal(ntv::NormalToricVarietyType)
 
 Check whether a normal toric variety is normal, i.e. the semigroups generated
 by the Hilbert basis of the dual cones to the maximal cones of the associated
@@ -251,24 +251,24 @@ polyhedral fan are all saturated.
 
 This is trivially true for toric varieties coming from fans or cones.
 """
-function isnormal_variety(ntv::NormalToricVarieties)
+function isnormal(ntv::NormalToricVarietyType)
     return true
 end
 
 
 @doc Markdown.doc"""
-    isprojective(ntv::NormalToricVarieties)
+    isprojective(ntv::NormalToricVarietyType)
 
 Check whether a normal toric variety is projective.
 """
-function isprojective(ntv::NormalToricVarieties)
+function isprojective(ntv::NormalToricVarietyType)
     pmntv = pm_ntv(ntv)
     return pmntv.PROJECTIVE::Bool
 end
 
 
 @doc Markdown.doc"""
-    issimplicial(ntv::NormalToricVarieties)
+    issimplicial(ntv::NormalToricVarietyType)
 
 Check whether a normal toric variety is simplicial.
 
@@ -287,14 +287,14 @@ julia> issimplicial(antv)
 false
 ```
 """
-function issimplicial(ntv::NormalToricVarieties)
+function issimplicial(ntv::NormalToricVarietyType)
     pmntv = pm_ntv(ntv)
     return pmntv.SIMPLICIAL::Bool
 end
 
 
 @doc Markdown.doc"""
-    issmooth(ntv::NormalToricVarieties)
+    issmooth(ntv::NormalToricVarietyType)
 
 Check whether a normal toric variety is smooth, i.e. whether all the maximal
 cones of the associated polyhedral fan are simplicial and generated by a
@@ -321,12 +321,36 @@ julia> issmooth(ntv)
 true
 ```
 """
-function issmooth(ntv::NormalToricVarieties)
+function issmooth(ntv::NormalToricVarietyType)
     pmntv = pm_ntv(ntv)
     return pmntv.SMOOTH::Bool
 end
 
+@doc Markdown.doc"""
+    rays(ntv::NormalToricVarietyType)
 
+Return an iterator over the rays of the fan $\Sigma$ for a normal toric variety
+$ntv=X_{\Sigma}$.
+
+# Examples
+```jldoctest
+julia> square = cube(2)
+A polyhedron in ambient dimension 2
+
+julia> ntv = NormalToricVariety(square)
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+
+julia> rays(ntv)
+4-element VectorIterator{RayVector{Polymake.Rational}}:
+ [1, 0]
+ [-1, 0]
+ [0, 1]
+ [0, -1]
+```
+"""
+function rays(ntv::NormalToricVarietyType)
+    return VectorIterator{RayVector{Polymake.Rational}}(pm_ntv(ntv).RAYS)
+end
 
 export
     AffineNormalToricVariety,
@@ -334,8 +358,9 @@ export
 #     get_polyhedral_fan,
     isaffine,
     iscomplete,
-    isnormal_variety,
+    isnormal,
     isprojective,
     issimplicial,
     issmooth,
+    rays,
     toric_ideal_binomial_generators

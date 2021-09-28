@@ -35,11 +35,12 @@ NormalToricVariety(P::Polyhedron)
 
 ## Auxiliary functions
 ```@docs
-isaffine(ntv::NormalToricVarieties)
-iscomplete(ntv::NormalToricVarieties)
-isnormal_variety(ntv::NormalToricVarieties)
-isprojective(ntv::NormalToricVarieties)
-issimplicial(ntv::NormalToricVarieties)
-issmooth(ntv::NormalToricVarieties)
+isaffine(ntv::NormalToricVarietyType)
+iscomplete(ntv::NormalToricVarietyType)
+isnormal(ntv::NormalToricVarietyType)
+isprojective(ntv::NormalToricVarietyType)
+issimplicial(ntv::NormalToricVarietyType)
+issmooth(ntv::NormalToricVarietyType)
+rays(ntv::NormalToricVarietyType)
 toric_ideal_binomial_generators(ntv::AffineNormalToricVariety)
 ```
