@@ -387,14 +387,14 @@ end
 
 
 @doc Markdown.doc"""
-    projective_space(d::Int64)
+    toric_projective_space(d::Int64)
 
 Construct `d`-dimensional projective space as a toric variety.
 
 # Examples
 ```jldoctest
 
-julia> P2 = projective_space(2)
+julia> P2 = toric_projective_space(2)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
 julia> rays(P2)
@@ -410,7 +410,7 @@ julia> isprojective(P2)
 true
 ```
 """
-function projective_space(d::Int64)
+function toric_projective_space(d::Int64)
     pmntv = Polymake.fulton.projective_space(d)
     return NormalToricVariety(pmntv)
 end

@@ -32,7 +32,7 @@ NormalToricVariety(C::Cone)
 NormalToricVariety(PF::PolyhedralFan)
 NormalToricVariety(P::Polyhedron)
 hirzebruch_surface(r::Int64)
-projective_space(d::Int64)
+toric_projective_space(d::Int64)
 ```
 
 ## Auxiliary functions

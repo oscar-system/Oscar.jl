@@ -26,6 +26,6 @@ export
     isvery_ample,
     nprime_divisors,
     polyhedron_of_divisor,
-    projective_space,
+    toric_projective_space,
     rays,
     toric_ideal_binomial_generators
