@@ -324,3 +324,14 @@ function polyhedron_of_divisor(td::ToricDivisor)
     pmtd = pm_tdivisor(td)
     return Polyhedron(pmtd.SECTION_POLYTOPE)
 end
+
+
+###############################################################################
+###############################################################################
+### Display
+###############################################################################
+###############################################################################
+function Base.show(io::IO, td::ToricDivisor)
+    print(io, "A torus invariant divisor on a normal toric variety")
+end
+

@@ -3,8 +3,11 @@ using Test
 @testset "JToric.jl" begin
     using JToric
 
+    H5 = hirzebruch_surface( 5 )
+    P2 = JToric.projective_space( 2 )
+    
+
     @testset "Hirzebruch surface" begin
-        H5 = hirzebruch_surface( 5 )
         ntv_polymake2gap( H5.polymakeNTV )
         @test JToric.isnormal( H5 ) == true
         @test JToric.isaffine( H5 ) == false
@@ -78,7 +81,6 @@ using Test
     
     @testset "Projective space" begin
         # Perform tests for projective space
-        P2 = JToric.projective_space( 2 )
         @test JToric.isnormal( P2 ) == true
         @test JToric.isaffine( P2 ) == false
         @test JToric.isprojective( P2 ) == true
