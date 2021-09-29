@@ -43,3 +43,29 @@ function GAP.gap_to_julia(::Type{fmpq_mat}, obj::GAP.GapObj)
 end
 
 fmpq_mat(obj::GAP.GAP.GapObj) = gap_to_julia(fmpq_mat, obj)
+
+## nonempty list of GAP matrices over the same cyclotomic field
+function matrices_over_cyclotomic_field(gapmats::GAP.GapObj)
+    GAP.Globals.IsList(gapmats) || throw(ArgumentError("gapmats is not a GAP list"))
+    GAP.Globals.IsEmpty(gapmats) && throw(ArgumentError("gapmats is empty"))
+    GAP.Globals.ForAll(gapmats, GAP.Globals.IsCyclotomicCollColl) ||
+      throw(ArgumentError("gapmats is not a GAP list of matrices of cyclotomics"))
+
+    gapF = GAP.Globals.FieldOfMatrixList(gapmats)
+    N = GAP.Globals.Conductor(gapF)
+    root = GAP.Globals.E(N)
+    elms = [root^i for i in 0:(euler_phi(N)-1)]
+    B = GAP.Globals.Basis(gapF, GAP.GapObj(elms))
+    F, z = CyclotomicField(N)
+
+    result = []
+    for mat in gapmats
+      m = GAP.Globals.NumberRows(mat)
+      n = GAP.Globals.NumberColumns(mat)
+      entries = [F(Vector{fmpz}(GAP.Globals.Coefficients(B, mat[i, j])))
+                 for i in 1:m for j in 1:n]
+      push!(result, matrix(F, m, n, entries))
+    end
+
+    return convert(Vector{typeof(result[1])}, result), F, z
+end
