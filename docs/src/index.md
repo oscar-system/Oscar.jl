@@ -123,11 +123,15 @@ divisor_of_class
 ### Properties of toric divisors
 
 ```@docs
-is_cartier
-is_principal
-is_primedivisor
-is_basepoint_free
-is_ample
-is_very_ample
-is_nef
+isample
+isbasepoint_free
+iscartier
+iseffective(td::ToricDivisor)
+isintegral(td::ToricDivisor) 
+isnef
+isprimedivisor
+isprincipal
+isq_cartier
+isvery_ample
+polyhedron_of_divisor(td::ToricDivisor)
 ```

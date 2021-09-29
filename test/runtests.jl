@@ -147,29 +147,29 @@ using Test
     @testset "Divisors" begin
         # Compute properties of toric divisors on Hirzebruch surface
         D=create_divisor( [ 0,0,0,0 ], H5 )
-        @test JToric.is_cartier( D ) == true
-        @test JToric.is_principal( D ) == true
+        @test JToric.iscartier( D ) == true
+        @test JToric.isprincipal( D ) == true
         @test JToric.is_primedivisor( D ) == false
-        @test JToric.is_basepoint_free( D ) == true
-        @test JToric.is_ample( D ) == false
-        @test JToric.is_very_ample( D ) == "fail"
-        @test JToric.is_nef( D ) == true
+        @test JToric.isbasepoint_free( D ) == true
+        @test JToric.isample( D ) == false
+        @test JToric.isvery_ample( D ) == "fail"
+        @test JToric.isnef( D ) == true
         D2 = divisor_of_character( [ 1,2 ], H5 )
-        @test JToric.is_cartier( D2 ) == true
-        @test JToric.is_principal( D2 ) == true
+        @test JToric.iscartier( D2 ) == true
+        @test JToric.isprincipal( D2 ) == true
         @test JToric.is_primedivisor( D2 ) == false
-        @test JToric.is_basepoint_free( D2 ) == true
-        @test JToric.is_ample( D2 ) == false
-        @test JToric.is_very_ample( D2 ) == "fail"
-        @test JToric.is_nef( D2 ) == true
+        @test JToric.isbasepoint_free( D2 ) == true
+        @test JToric.isample( D2 ) == false
+        @test JToric.isvery_ample( D2 ) == "fail"
+        @test JToric.isnef( D2 ) == true
         D3 = divisor_of_class( H5, [ 1,2 ] )
-        @test JToric.is_cartier( D3 ) == true
-        @test JToric.is_principal( D3 ) == false
+        @test JToric.iscartier( D3 ) == true
+        @test JToric.isprincipal( D3 ) == false
         @test JToric.is_primedivisor( D3 ) == false
-        @test JToric.is_basepoint_free( D3 ) == true
-        @test JToric.is_ample( D3 ) == true
-        @test JToric.is_very_ample( D3 ) == true
-        @test JToric.is_nef( D3 ) == true
+        @test JToric.isbasepoint_free( D3 ) == true
+        @test JToric.isample( D3 ) == true
+        @test JToric.isvery_ample( D3 ) == true
+        @test JToric.isnef( D3 ) == true
 
     end
 end
