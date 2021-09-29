@@ -277,7 +277,7 @@ function ideal(g::Vector{T}) where T <: MPolyElemLoc
   return MPolyIdealLoc(g)
 end
 
-function ideal(Rx::MPolyRingLoc, g::Vector{<:Any})
+function ideal(Rx::MPolyRingLoc, g::Vector)
   f = elem_type(Rx)[Rx(f) for f = g]
   return ideal(f)
 end

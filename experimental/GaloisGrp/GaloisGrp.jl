@@ -206,11 +206,11 @@ Oscar.addeq!(a::BoundRingElem, b::BoundRingElem) = a+b
 
 #my 1st invariant!!!
 @doc Markdown.doc"""
-    sqrt_disc(a::Vector{<:Any})
+    sqrt_disc(a::Vector)
 
 The product of differences ``a[i] - a[j]`` for all indices ``i<j``.    
 """
-function sqrt_disc(a::Vector{<:Any})
+function sqrt_disc(a::Vector)
   if length(a) == 1
     return one(parent(a[1]))
   end
@@ -224,7 +224,7 @@ Evaluates the `i`-th elementary symmetric polynomial at the values in `g`.
 The `i`-th elementary symmetric polynomial is the sum over all
 products of `i` distinct variables.
 """
-function elementary_symmetric(g::Vector{<:Any}, i::Int)
+function elementary_symmetric(g::Vector, i::Int)
   return sum(prod(g[i] for i = s) for s = Hecke.subsets(Set(1:length(g)), i))
 end
 
@@ -234,7 +234,7 @@ end
 Evaluates the `i`-th power sums at the values in `g`, ie. the sum
 of the `i`-th power of the values.
 """
-function power_sum(g::Vector{<:Any}, i::Int)
+function power_sum(g::Vector, i::Int)
   return sum(a^i for a = g)
 end
 
