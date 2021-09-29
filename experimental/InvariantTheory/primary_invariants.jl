@@ -10,65 +10,93 @@ mutable struct PrimaryInvarsCache{FldT, GrpT, PolyElemT, PolyRingT, ActionT, Sin
   end
 end
 
-mutable struct VectorSpaceIterator{EltT}
-  basis::Vector{EltT}
-  iters::Vector{Vector{Int}}
+mutable struct VectorSpaceIterator{IteratorT}
+  basis_iterator::IteratorT
   rand_bound::Int
 
-  function VectorSpaceIterator(basis::Vector{EltT}, bound::Int = 10^5) where {EltT}
-    VSI = new{EltT}()
-    VSI.basis = basis
-    VSI.iters = make_iterators(length(basis), length(basis))
+  function VectorSpaceIterator(basis_iterator::IteratorT, bound::Int = 10^5) where {IteratorT}
+    VSI = new{IteratorT}()
+    VSI.basis_iterator = basis_iterator
     VSI.rand_bound = bound
     return VSI
   end
 end
 
 function Base.iterate(VSI::VectorSpaceIterator)
-  if isempty(VSI.basis)
+  if isempty(VSI.basis_iterator)
     return nothing
   end
 
-  return VSI.basis[1], 2
+  b, s = iterate(VSI.basis_iterator)
+  basis_collected = typeof(b)[ b ]
+  return b, (s, Int[ length(VSI.basis_iterator) ], basis_collected, 1)
 end
 
-function Base.iterate(VSI::VectorSpaceIterator, state::Int)
-  if state > length(VSI.iters)
-    coeffs = rand(-VSI.rand_bound:VSI.rand_bound, length(VSI.basis))
-    return sum([ coeffs[i]*VSI.basis[i] for i = 1:length(VSI.basis) ]), state + 1
+# We "iterate" the vector space in 3 phases:
+# 1) iterate the basis using VSI.basis_iterator, so return one basis element at
+#    a time
+# 2) iterate all possible sums of basis elements
+# 3) return random linear combinations of the basis elements
+#
+# state is supposed to be a tuple of length 4 containing:
+# - the state of VSI.basis_iterator
+# - a Vector{Int} being the state for "phase 2"
+# - a Vector containing the (so far) collected basis
+# - an Int: the number of the phase
+function Base.iterate(VSI::VectorSpaceIterator, state)
+  phase = state[4]
+
+  if phase == 1
+    bs = iterate(VSI.basis_iterator, state[1])
+    if bs == nothing
+      phase = 2
+    else
+      b = bs[1]
+      s = bs[2]
+      push!(state[3], b)
+      return b, (s, state[2], state[3], state[4])
+    end
   end
-  return sum([ VSI.basis[i] for i in VSI.iters[state] ]), state + 1
+
+  if phase == 2
+    expand = true
+    s = state[2]
+    if s[end] < length(state[3])
+      s[end] += 1
+      expand = false
+    else
+      for i = length(s) - 1:-1:1
+        if s[i] + 1 < s[i + 1]
+          s[i] += 1
+          for j = i + 1:length(s)
+            s[j] = s[j - 1] + 1
+          end
+          expand = false
+          break
+        end
+      end
+    end
+
+    if expand
+      if length(s) < length(state[3])
+        s = collect(1:length(s) + 1)
+      else
+        phase = 3
+      end
+    end
+    if phase != 3
+      return sum([ state[3][i] for i in s ]), (state[1], s, state[3], 2)
+    end
+  end
+
+  coeffs = rand(-VSI.rand_bound:VSI.rand_bound, length(state[3]))
+  return sum([ coeffs[i]*state[3][i] for i = 1:length(state[3]) ]), (state[1], state[2], state[3], 3)
 end
 
 function basis(C::PrimaryInvarsCache, d::fmpz)
   return get!(C.bases, d) do
     basis(C.R, d)
   end
-end
-
-function make_iterators(n::Int, k::Int)
-  function fill_next_layer()
-    res2 = copy(res)
-    for v in res
-      for i = v[end] + 1:n
-        w = copy(v)
-        push!(w, i)
-        push!(res2, w)
-      end
-    end
-    res = res2
-    return res
-  end
-
-  @assert k <= n
-  res = Vector{Vector{Int}}(undef, n)
-  for i = 1:n
-    res[i] = [ i ]
-  end
-  for j = 2:k
-    res = fill_next_layer()
-  end
-  return res
 end
 
 # If d_1, ..., d_n are degrees of primary invariants, then the Hilbert series
@@ -215,16 +243,11 @@ function primary_invariants_via_optimal_hsop!(RG::InvRing{FldT, GrpT, PolyElemT}
   B = Vector{PolyElemT}()
   if length(invars) != length(degrees)
     d = degrees[length(invars) + 1]
-    @time B = basis(C, d)
+    #@time B = basis(C, d)
+    B = iterate_basis(RG, Int(d))
   end
 
-  #coeff_bound = 1
-  #for coeffs in Iterators.product([ 0:coeff_bound for i = 1:length(B) ]...)
   for f in VectorSpaceIterator(B)
-  #for i = 1:length(B)
-    #coeffs = rand(-coeff_bound:coeff_bound, length(B))
-    #f = sum([ coeffs[i]*B[i] for i = 1:length(B) ])
-    #f = B[i]
     if iszero(f) || f in invars
       continue
     end
@@ -253,9 +276,6 @@ function primary_invariants_via_optimal_hsop!(RG::InvRing{FldT, GrpT, PolyElemT}
       end
       #@info "Test succeeded"
     end
-    #if i == length(B)
-    #  @info "loop terminated"
-    #end
   end
 
   if k <= 1
