@@ -47,6 +47,54 @@ function NormalToricVariety(PF::PolyhedralFan)
 end
 
 
+@doc Markdown.doc"""
+    AffineNormalToricVariety(C::Cone)
+
+Construct the affine normal toric variety $U_{C}$ corresponding to a polyhedral
+cone `C`.
+
+# Examples
+Set `C` to be the positive orthant in two dimensions.
+```jldoctest
+julia> C = positive_hull([1 0; 0 1])
+A polyhedral cone in ambient dimension 2
+
+julia> antv = AffineNormalToricVariety(C)
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+```
+"""
+function AffineNormalToricVariety(C::Cone)
+    pmc = Oscar.pm_cone(C)
+    fan = Polymake.fan.check_fan_objects(pmc)
+    pmntv = Polymake.fulton.NormalToricVariety(fan)
+    return AffineNormalToricVariety(ntv_polymake2gap(pmntv), pmntv)
+end
+
+
+@doc Markdown.doc"""
+    NormalToricVariety(P::Polyhedron)
+
+Construct the normal toric variety $X_{\Sigma_P}$ corresponding to the normal
+fan $\Sigma_P$ of the given polyhedron `P`.
+
+Note that this only coincides with the projective variety associated to `P`, if
+`P` is normal.
+
+# Examples
+Set `P` to be a square.
+```jldoctest
+julia> square = cube(2)
+A polyhedron in ambient dimension 2
+
+julia> ntv = NormalToricVariety(square)
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+```
+"""    
+function NormalToricVariety(P::Polyhedron)
+    fan = normal_fan(P)
+    return NormalToricVariety(fan)
+end
+
 
 @doc Markdown.doc"""
     NormalToricVariety( r::Matrix{Int}, c::Vector{Vector{Int}} )
