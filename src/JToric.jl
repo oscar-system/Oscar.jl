@@ -2,10 +2,12 @@ module JToric
 
 
 # use other Julia packages
+using Markdown
 using Pkg
 using Oscar
 using CapAndHomalg
 using JToric
+export Oscar
 
 """
 Initializing function for 'JToric'.

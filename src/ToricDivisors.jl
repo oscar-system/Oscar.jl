@@ -11,7 +11,7 @@ export ToricDivisor
 # 2: Generic constructors
 ######################
 
-"""
+@doc Markdown.doc"""
     create_divisor( c::Vector{Int}, v::AbstractNormalToricVariety )
 
 Construct the torus invariant divisor on the normal toric variety `v` as linear combination of the torus invariant prime divisors of `v`. The coefficients of thi linear combination are passed as list of integers as first argument.
@@ -32,7 +32,7 @@ function create_divisor( coeffs::Vector{Int}, v::AbstractNormalToricVariety )
 end
 export create_divisor
 
-"""
+@doc Markdown.doc"""
     divisor_of_character( c::Vector{Int}, v::AbstractNormalToricVariety )
 
 Construct the torus invariant divisor on the normal toric variety `v` corresponding to the character `c`.
@@ -53,7 +53,7 @@ function divisor_of_character( character::Vector{Int}, v::AbstractNormalToricVar
 end
 export divisor_of_character
 
-"""
+@doc Markdown.doc"""
     divisor_of_class( v::AbstractNormalToricVariety, c::Vector{Int} )
 
 Construct a torus invariant divisor on the normal toric variety `v` corresponding to the divisor class `c`.
@@ -79,8 +79,8 @@ export divisor_of_class
 # 3: Properties
 ######################
 
-"""
-    is_cartier( d::ToricDivisor )
+@doc Markdown.doc"""
+    is_cartier( d::toricDivisor )
 
 Checks if the divisor `d` is Cartier.
 """
@@ -90,8 +90,8 @@ end
 export is_cartier
 
 
-"""
-    is_principal( d::ToricDivisor )
+@doc Markdown.doc"""
+    is_principal( d::toricDivisor )
 
 Checks if the divisor `d` is principal.
 """
@@ -101,8 +101,8 @@ end
 export is_principal
 
 
-"""
-    is_primedivisor( d::ToricDivisor )
+@doc Markdown.doc"""
+    is_primedivisor( d::toricDivisor )
 
 Checks if the divisor `d` is prime.
 """
@@ -112,8 +112,8 @@ end
 export is_primedivisor
 
 
-"""
-    is_basepoint_free( d::ToricDivisor )
+@doc Markdown.doc"""
+    is_basepoint_free( d::toricDivisor )
 
 Checks if the divisor `d` is basepoint free.
 """
@@ -123,8 +123,8 @@ end
 export is_basepoint_free
 
 
-"""
-    is_ample( d::ToricDivisor )
+@doc Markdown.doc"""
+    is_ample( d::toricDivisor )
 
 Checks if the divisor `d` is ample.
 """
@@ -134,8 +134,8 @@ end
 export is_ample
 
 
-"""
-    is_very_ample( d::ToricDivisor )
+@doc Markdown.doc"""
+    is_very_ample( d::toricDivisor )
 
 For ample divisors `d`, this method checks if `d` is very ample.
 """
@@ -150,8 +150,8 @@ end
 export is_very_ample
 
 
-"""
-    is_nef( d::ToricDivisor )
+@doc Markdown.doc"""
+    is_nef( d::toricDivisor )
 
 Checks if the divisor `d` is numerically effective.
 """

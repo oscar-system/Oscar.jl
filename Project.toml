@@ -9,6 +9,7 @@ GAP = "c863536a-3901-11e9-33e7-d5cd0df7b904"
 Oscar = "f1435218-dba5-11e9-1e4d-f1a5fab5fc13"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 Polymake = "d720cf60-89b5-51f5-aff5-213f193123e7"
+Markdown = "d6f4376e-aef5-505a-96c1-9c027394607a"
 
 [compat]
 CapAndHomalg = "1.1.8"

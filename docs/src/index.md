@@ -23,7 +23,8 @@ version
 ### Constructors
 
 ```@docs
-NormalToricVariety
+NormalToricVariety(PF::PolyhedralFan)
+NormalToricVariety( r::Matrix{Int}, c::Vector{Vector{Int}} )
 projective_space
 hirzebruch_surface
 del_pezzo
@@ -39,14 +40,14 @@ ntv_polymake2gap
 ### Properties of toric varieties
 
 ```@docs
-is_normal_variety
-is_affine
-is_projective
-is_smooth
-is_complete
+isnormal
+isaffine
+isprojective
+issmooth
+iscomplete
 has_torusfactor
 is_orbifold
-is_simplicial
+issimplicial
 is_isomorphic_to_projective_space
 is_direct_product_of_projective_spaces
 is_gorenstein

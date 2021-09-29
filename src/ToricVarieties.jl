@@ -15,11 +15,40 @@ struct AffineNormalToricVariety <: AbstractNormalToricVariety
 end
 export AffineNormalToricVariety
 
+
+function pm_ntv(v::AbstractNormalToricVariety)
+    return v.polymakeNTV
+end
+
 ######################
 # 2: Generic constructors
 ######################
+@doc Markdown.doc"""
+    NormalToricVariety(PF::PolyhedralFan)
 
-"""
+Construct the normal toric variety $X_{PF}$ corresponding to a polyhedral fan `PF`.
+
+# Examples
+Take `PF` to be the normal fan of the square.
+```jldoctest
+julia> square = Oscar.cube(2)
+A polyhedron in ambient dimension 2
+
+julia> nf = Oscar.normal_fan(square)
+A polyhedral fan in ambient dimension 2
+
+julia> ntv = NormalToricVariety(nf)
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+```
+"""    
+function NormalToricVariety(PF::PolyhedralFan)
+    pmntv = Polymake.fulton.NormalToricVariety(Oscar.pm_fan(PF))
+    return NormalToricVariety(ntv_polymake2gap(pmntv), pmntv)
+end
+
+
+
+@doc Markdown.doc"""
     NormalToricVariety( r::Matrix{Int}, c::Vector{Vector{Int}} )
 
 Construct the normal toric variety whose fan has ray generators `r` and maximal cones `c`.
@@ -49,7 +78,7 @@ function NormalToricVariety( rays::Matrix{Int}, cones::Vector{Vector{Int}} )
     return NormalToricVariety( variety, pmntv )
 end
 
-"""
+@doc Markdown.doc"""
     NormalToricVariety( v::GapObj )
 
 Construct the Julia wrapper for a `GAP` toric variety `v`.
@@ -60,7 +89,7 @@ function NormalToricVariety(GapNTV::GapObj)
 end
 export NormalToricVariety
 
-"""
+@doc Markdown.doc"""
     ntv_gap2polymake( v::GapObj )
 
 Convert a `GAP` toric variety `v` into a `Polymake` toric variety.
@@ -81,7 +110,7 @@ function ntv_gap2polymake(GapNTV::GapObj)
 end
 export ntv_gap2polymake
 
-"""
+@doc Markdown.doc"""
     ntv_polymake2gap( v::Polymake.BigObject )
 
 Convert a `Polymake` toric variety `v` into a `GAP` toric variety.
@@ -91,8 +120,8 @@ function ntv_polymake2gap(polymakeNTV::Polymake.BigObject)
     gap_rays = GapObj( rays, recursive = true )
     cones = [findall(x->x!=0, v) for v in eachrow(polymakeNTV.MAXIMAL_CONES)]
     gap_cones = GapObj( cones, recursive = true )
-    fan = GAP.Globals.Fan( gap_rays, gap_cones )
-    variety = GAP.Globals.ToricVariety( fan )
+    fan = Oscar.GAP.Globals.Fan( gap_rays, gap_cones )
+    variety = Oscar.GAP.Globals.ToricVariety( fan )
     return variety
 end
 export ntv_polymake2gap
@@ -102,7 +131,7 @@ export ntv_polymake2gap
 # 3: Special constructors
 ######################
 
-"""
+@doc Markdown.doc"""
     projective_space( d::Int )
 
 Construct the projective space of dimension `d`.
@@ -125,7 +154,7 @@ end
 export projective_space
 
 
-"""
+@doc Markdown.doc"""
     hirzebruch_surface( r::Int )
 
 Constructs the r-th Hirzebruch surface.
@@ -144,7 +173,7 @@ end
 export hirzebruch_surface
 
 
-"""
+@doc Markdown.doc"""
     delPezzo( b::Int )
 
 Constructs the delPezzo surface with b blowups for b at most 3.
@@ -191,7 +220,7 @@ export del_pezzo
 ######################
 
 
-"""
+@doc Markdown.doc"""
     isnormal( v::AbstractNormalToricVariety )
 
 Checks if the normal toric variety `v` is normal. (This function is somewhat tautological at this point.)
@@ -205,10 +234,10 @@ true
 function isnormal( v::AbstractNormalToricVariety )
     return true
 end
-export isnormal_variety
+export isnormal
 
 
-"""
+@doc Markdown.doc"""
     isaffine( v::AbstractNormalToricVariety )
 
 Checks if the normal toric variety `v` is affine.
@@ -220,12 +249,12 @@ false
 ```
 """
 function isaffine( v::AbstractNormalToricVariety )
-    return v.polymakeNTV.AFFINE
+    return pm_ntv(v).AFFINE
 end
 export isaffine
 
 
-"""
+@doc Markdown.doc"""
     isprojective( v::AbstractNormalToricVariety )
 
 Checks if the normal toric variety `v` is projective, i.e. if the fan of `v` is the the normal fan of a polytope.
@@ -237,12 +266,12 @@ true
 ```
 """
 function isprojective( v::AbstractNormalToricVariety )
-    return v.polymakeNTV.PROJECTIVE
+    return pm_ntv(v).PROJECTIVE
 end
 export isprojective
 
 
-"""
+@doc Markdown.doc"""
     issmooth( v::AbstractNormalToricVariety )
 
 Checks if the normal toric variety `v` is smooth.
@@ -254,12 +283,12 @@ true
 ```
 """
 function issmooth( v::AbstractNormalToricVariety )
-    return v.polymakeNTV.SMOOTH
+    return pm_ntv(v).SMOOTH
 end
 export issmooth
 
 
-"""
+@doc Markdown.doc"""
     iscomplete( v::AbstractNormalToricVariety )
 
 Checks if the normal toric variety `v` is complete.
@@ -271,12 +300,12 @@ true
 ```
 """
 function iscomplete( v::AbstractNormalToricVariety )
-    return v.polymakeNTV.COMPLETE
+    return pm_ntv(v).COMPLETE
 end
 export iscomplete
 
 
-"""
+@doc Markdown.doc"""
     has_torusfactor( v::AbstractNormalToricVariety )
 
 Checks if the normal toric variety `v` has a torus factor.
@@ -293,7 +322,7 @@ end
 export has_torusfactor
 
 
-"""
+@doc Markdown.doc"""
     is_orbifold( v::AbstractNormalToricVariety )
 
 Checks if the normal toric variety `v` is an orbifold.
@@ -310,7 +339,7 @@ end
 export is_orbifold
 
 
-"""
+@doc Markdown.doc"""
     issimplicial( v::AbstractNormalToricVariety )
 
 Checks if the normal toric variety `v` is simplicial. Hence, this function works just as `is_orbifold`. It is implemented for user convenience.
@@ -322,12 +351,12 @@ true
 ```
 """
 function issimplicial( v::AbstractNormalToricVariety )
-    return v.polymakeNTV.SIMPLICIAL
+    return pm_ntv(v).SIMPLICIAL
 end
 export issimplicial
 
 
-"""
+@doc Markdown.doc"""
     is_isomorphic_to_projective_space( v::AbstractNormalToricVariety )
 
 Checks if the normal toric variety `v` is isomorphic to projective space.
@@ -344,7 +373,7 @@ end
 export is_isomorphic_to_projective_space
 
 
-"""
+@doc Markdown.doc"""
     is_direct_product_of_projective_spaces( v::AbstractNormalToricVariety )
 
 Checks if the normal toric variety `v` is isomorphic to a direct product of projective space.
@@ -361,8 +390,8 @@ end
 export is_direct_product_of_projective_spaces
 
 
-"""
-    is_gorenstein( v::NormalToricVariety )
+@doc Markdown.doc"""
+    is_gorenstein( v::AbstractNormalToricVariety )
 
 Checks if the normal toric variety `v` is Gorenstein.
 
@@ -372,15 +401,14 @@ julia> is_gorenstein( projective_space( 2 ) )
 true
 ```
 """
-function is_gorenstein( v::NormalToricVariety )
-    
-    return v.polymakeNTV.GORENSTEIN::Bool
+function is_gorenstein( v::AbstractNormalToricVariety )
+    return pm_ntv(v).GORENSTEIN::Bool
 end
 export is_gorenstein
 
 
-"""
-    is_q_gorenstein( v::NormalToricVariety )
+@doc Markdown.doc"""
+    is_q_gorenstein( v::AbstractNormalToricVariety )
 
 Checks if the normal toric variety `v` is Q-Gorenstein.
 
@@ -390,15 +418,14 @@ julia> is_q_gorenstein( projective_space( 2 ) )
 true
 ```
 """
-function is_q_gorenstein( v::NormalToricVariety )
-    
-    return v.polymakeNTV.Q_GORENSTEIN::Bool
+function is_q_gorenstein( v::AbstractNormalToricVariety )
+    return pm_ntv(v).Q_GORENSTEIN::Bool
 end
 export is_q_gorenstein
 
 
-"""
-    is_fano( v::NormalToricVariety )
+@doc Markdown.doc"""
+    is_fano( v::AbstractNormalToricVariety )
 
 Checks if the normal toric variety `v` is fano.
 
@@ -408,8 +435,21 @@ julia> is_fano( projective_space( 2 ) )
 true
 ```
 """
-function is_fano( v::NormalToricVariety )
-    
-    return v.polymakeNTV.FANO::Bool
+function is_fano( v::AbstractNormalToricVariety )
+    return pm_ntv(v).FANO::Bool
 end
 export is_fano
+
+
+###############################################################################
+###############################################################################
+### Display
+###############################################################################
+###############################################################################
+function Base.show(io::IO, ntv::AbstractNormalToricVariety)
+    # fan = get_polyhedral_fan(ntv)
+    pmntv = pm_ntv(ntv)
+    ambdim = pmntv.FAN_AMBIENT_DIM
+    print(io, "A normal toric variety corresponding to a polyhedral fan in ambient dimension $(ambdim)")
+end
+

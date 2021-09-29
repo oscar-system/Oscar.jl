@@ -5,14 +5,14 @@ using Test
     # Perform tests for Hirzebruch surface
     H5 = hirzebruch_surface( 5 )
     ntv_polymake2gap( H5.polymakeNTV )
-    @test JToric.is_normal_variety( H5 ) == true
-    @test JToric.is_affine( H5 ) == false
-    @test JToric.is_projective( H5 ) == true
-    @test JToric.is_smooth( H5 ) == true
-    @test JToric.is_complete( H5 ) == true
+    @test JToric.isnormal( H5 ) == true
+    @test JToric.isaffine( H5 ) == false
+    @test JToric.isprojective( H5 ) == true
+    @test JToric.issmooth( H5 ) == true
+    @test JToric.iscomplete( H5 ) == true
     @test JToric.has_torusfactor( H5 ) == false
     @test JToric.is_orbifold( H5 ) == true
-    @test JToric.is_simplicial( H5 ) == true
+    @test JToric.issimplicial( H5 ) == true
     @test JToric.is_isomorphic_to_projective_space( H5 ) == false
     @test JToric.is_direct_product_of_projective_spaces( H5 ) == false
     @test JToric.is_gorenstein( H5 ) == true
@@ -74,14 +74,14 @@ using Test
     
     # Perform tests for projective space
     P2 = JToric.projective_space( 2 )
-    @test JToric.is_normal_variety( P2 ) == true
-    @test JToric.is_affine( P2 ) == false
-    @test JToric.is_projective( P2 ) == true
-    @test JToric.is_smooth( P2 ) == true
-    @test JToric.is_complete( P2 ) == true
+    @test JToric.isnormal( P2 ) == true
+    @test JToric.isaffine( P2 ) == false
+    @test JToric.isprojective( P2 ) == true
+    @test JToric.issmooth( P2 ) == true
+    @test JToric.iscomplete( P2 ) == true
     @test JToric.has_torusfactor( P2 ) == false
     @test JToric.is_orbifold( P2 ) == true
-    @test JToric.is_simplicial( P2 ) == true
+    @test JToric.issimplicial( P2 ) == true
     @test JToric.is_isomorphic_to_projective_space( P2 ) == true
     @test JToric.is_direct_product_of_projective_spaces( P2 ) == true
     @test ith_betti_number( P2, 0 ) == 1
@@ -93,14 +93,14 @@ using Test
 
     # Perform tests for blowup of projective space
     blowup_variety = blowup_on_ith_minimal_torus_orbit( P2, 1 )
-    @test JToric.is_normal_variety( blowup_variety ) == true
-    @test JToric.is_affine( blowup_variety ) == false
-    @test JToric.is_projective( blowup_variety ) == true
-    @test JToric.is_smooth( blowup_variety ) == true
-    @test JToric.is_complete( blowup_variety ) == true
+    @test JToric.isnormal( blowup_variety ) == true
+    @test JToric.isaffine( blowup_variety ) == false
+    @test JToric.isprojective( blowup_variety ) == true
+    @test JToric.issmooth( blowup_variety ) == true
+    @test JToric.iscomplete( blowup_variety ) == true
     @test JToric.has_torusfactor( blowup_variety ) == false
     @test JToric.is_orbifold( blowup_variety ) == true
-    @test JToric.is_simplicial( blowup_variety ) == true
+    @test JToric.issimplicial( blowup_variety ) == true
     @test JToric.is_isomorphic_to_projective_space( blowup_variety ) == false
     @test JToric.is_direct_product_of_projective_spaces( blowup_variety ) == false
     @test ith_betti_number( blowup_variety, 0 ) == 1
@@ -112,14 +112,14 @@ using Test
     
     # Perform tests for direct product of Hirzebruch surface and projective space
     v = H5 * P2;
-    @test JToric.is_normal_variety( v ) == true
-    @test JToric.is_affine( v ) == false
-    @test JToric.is_projective( v ) == true
-    @test JToric.is_smooth( v ) == true
-    @test JToric.is_complete( v ) == true
+    @test JToric.isnormal( v ) == true
+    @test JToric.isaffine( v ) == false
+    @test JToric.isprojective( v ) == true
+    @test JToric.issmooth( v ) == true
+    @test JToric.iscomplete( v ) == true
     @test JToric.has_torusfactor( v ) == false
     @test JToric.is_orbifold( v ) == true
-    @test JToric.is_simplicial( v ) == true
+    @test JToric.issimplicial( v ) == true
     @test JToric.is_isomorphic_to_projective_space( v ) == false
     @test JToric.is_direct_product_of_projective_spaces( v ) == false
     @test size( factors( v ) )[ 1 ] == 2

@@ -2,7 +2,7 @@
 # 1: Attributes of ToricVarieties
 ######################
 
-"""
+@doc Markdown.doc"""
     affine_open_covering( v::AbstractNormalToricVariety )
 
 Computes an affine open cover of the normal toric variety `v`, i.e. returns a list of affine toric varieties.
@@ -20,7 +20,7 @@ end
 export CoxRing
 
 
-"""
+@doc Markdown.doc"""
     cox_ring( v::AbstractNormalToricVariety )
 
 Computes the Cox ring of the normal toric variety `v`.
@@ -32,7 +32,7 @@ end
 export cox_ring
 
 
-"""
+@doc Markdown.doc"""
     list_of_variables_of_cox_ring( v::AbstractNormalToricVariety )
 
 Computes the list of homogeneous variables of the Cox ring of the normal toric variety `v`.
@@ -50,7 +50,7 @@ end
 export ClassGroup
 
 
-"""
+@doc Markdown.doc"""
     class_group( v::AbstractNormalToricVariety )
 
 Computes the class group of the normal toric variety `v`.
@@ -68,7 +68,7 @@ end
 export TorusInvariantDivisorGroup
 
 
-"""
+@doc Markdown.doc"""
     torus_invariant_divisor_group( v::AbstractNormalToricVariety )
 
 Computes the torus invariant divisor class group of the normal toric variety `v`.
@@ -86,7 +86,7 @@ end
 export MapFromCharacterToPrincipalDivisor
 
 
-"""
+@doc Markdown.doc"""
     map_from_character_to_principal_divisor( v::AbstractNormalToricVariety )
 
 Computes the map from the character lattice to the principal divisors of the normal toric variety `v`.
@@ -104,7 +104,7 @@ end
 export MapFromWeilDivisorsToClassGroup
 
 
-"""
+@doc Markdown.doc"""
     map_from_weil_divisors_to_class_group( v::AbstractNormalToricVariety )
 
 Computes the map from the Weil divisors to the Class group of the normal toric variety `v`.
@@ -116,7 +116,7 @@ end
 export map_from_weil_divisors_to_class_group
 
 
-"""
+@doc Markdown.doc"""
     dim( v::AbstractNormalToricVariety )
 
 Computes the dimension of the normal toric variety `v`.
@@ -127,7 +127,7 @@ end
 export dim
 
 
-"""
+@doc Markdown.doc"""
     dim_of_torusfactor( v::AbstractNormalToricVariety )
 
 Computes the dimension of the torus factor of the normal toric variety `v`.
@@ -144,7 +144,7 @@ end
 export CoordinateRingOfTorus
 
 
-"""
+@doc Markdown.doc"""
     coordinate_ring_of_torus( v::AbstractNormalToricVariety )
 
 Computes the coordinate ring of the torus of the normal toric variety `v`.
@@ -156,7 +156,7 @@ end
 export coordinate_ring_of_torus
 
 
-"""
+@doc Markdown.doc"""
     list_of_variables_of_coordinate_ring_of_torus( v::AbstractNormalToricVariety )
 
 Computes the list of homogeneous coordinates of the coordinate ring of the torus of the normal toric variety `v`.
@@ -168,7 +168,7 @@ end
 export list_of_variables_of_coordinate_ring_of_torus
 
 
-"""
+@doc Markdown.doc"""
     is_product_of( v::AbstractNormalToricVariety )
 
 Identifies the factors from which the normal toric variety `v` has been constructed in GAP.
@@ -180,7 +180,7 @@ end
 export is_product_of
 
 
-"""
+@doc Markdown.doc"""
     factors( v::AbstractNormalToricVariety )
 
 Identifies the factors from which the normal toric variety `v` has been constructed in GAP.
@@ -198,7 +198,7 @@ end
 export CharacterLattice
 
 
-"""
+@doc Markdown.doc"""
     character_lattice( v::AbstractNormalToricVariety )
 
 Computes the character lattice of the normal toric variety `v`.
@@ -210,7 +210,7 @@ end
 export character_lattice
 
 
-"""
+@doc Markdown.doc"""
     torus_invariant_prime_divisors( v::AbstractNormalToricVariety )
 
 Computes the torus invariant prime divisors of the normal toric variety `v`.
@@ -228,7 +228,7 @@ end
 export IrrelevantIdeal
 
 
-"""
+@doc Markdown.doc"""
     irrelevant_ideal( v::AbstractNormalToricVariety )
 
 Computes the irrelevant ideal of the normal toric variety `v`.
@@ -246,7 +246,7 @@ end
 export StanleyReisnerIdeal
 
 
-"""
+@doc Markdown.doc"""
     stanley_reisner_ideal( v::AbstractNormalToricVariety )
 
 Computes the Stanley-Reisner ideal of the normal toric variety `v`.
@@ -264,7 +264,7 @@ end
 export MorphismFromCoxVariety
 
 
-"""
+@doc Markdown.doc"""
     morphism_from_cox_variety( v::AbstractNormalToricVariety )
 
 Computes the morphism from the Cox variety of the normal toric variety `v`.
@@ -276,7 +276,7 @@ end
 export morphism_from_cox_variety
 
 
-"""
+@doc Markdown.doc"""
     cox_variety( v::AbstractNormalToricVariety )
 
 Computes the Cox variety of the normal toric variety `v`.
@@ -296,7 +296,7 @@ end
 export Fan
 
 
-"""
+@doc Markdown.doc"""
     fan_of_variety( v::AbstractNormalToricVariety )
 
 Computes the fan of the normal toric variety `v`.
@@ -314,7 +314,7 @@ end
 export fan_of_variety
 
 
-"""
+@doc Markdown.doc"""
     fan( v::AbstractNormalToricVariety )
 
 A convenience method for `fan_of_variety( v::AbstractNormalToricVariety )`.
@@ -331,7 +331,7 @@ end
 export CartierTorusInvariantDivisorGroup
 
 
-"""
+@doc Markdown.doc"""
     cartier_torus_invariant_divisor_group( v::AbstractNormalToricVariety )
 
 Computes the group of Cartier and torus invariant divisors of the normal toric variety `v`.
@@ -349,7 +349,7 @@ end
 export PicardGroup
 
 
-"""
+@doc Markdown.doc"""
     picard_group( v::AbstractNormalToricVariety )
 
 Computes the Picard group of the normal toric variety `v`.
@@ -361,7 +361,7 @@ end
 export picard_group
 
 
-"""
+@doc Markdown.doc"""
     name_of_variety( v::AbstractNormalToricVariety )
 
 Returns the name of the normal toric variety `v`, if set. Otherwise returns "No name set for this variety".
@@ -382,7 +382,7 @@ end
 export ZariskiCotangentSheaf
 
 
-"""
+@doc Markdown.doc"""
     zariski_cotangent_sheaf( v::AbstractNormalToricVariety )
 
 Returns the Zariski cotangent sheaf of the normal toric variety `v`.
@@ -400,7 +400,7 @@ end
 export CotangentSheaf
 
 
-"""
+@doc Markdown.doc"""
     cotangent_sheaf( v::AbstractNormalToricVariety )
 
 Returns the cotangent sheaf of the normal toric variety `v`.
@@ -412,7 +412,7 @@ end
 export cotangent_sheaf
 
 
-"""
+@doc Markdown.doc"""
     euler_characteristic( v::AbstractNormalToricVariety )
 
 Computes the Euler characteristic of the normal toric variety `v`.
@@ -423,7 +423,7 @@ end
 export euler_characteristic
 
 
-"""
+@doc Markdown.doc"""
     weil_divisors_of_variety( v::AbstractNormalToricVariety )
 
 Compute the Weil divisors of the normal toric variety `v`.
@@ -441,7 +441,7 @@ end
 export ZariskiCotangentSheafViaEulerSequence
 
 
-"""
+@doc Markdown.doc"""
     zariski_cotangent_sheaf_via_euler_sequence( v::AbstractNormalToricVariety )
 
 Computes the Zariski cotangent sheaf of the normal toric variety `v` via the Euler sequence.
@@ -459,7 +459,7 @@ end
 export ZariskiCotangentSheafViaPoincareResidueMap
 
 
-"""
+@doc Markdown.doc"""
     zariski_cotangent_sheaf_via_poincare_residue_map( v::AbstractNormalToricVariety )
 
 Computes the Zariski cotangent sheaf of the normal toric variety `v` via the Poincare residue map.
@@ -519,7 +519,7 @@ export mori_cone
 # 2: Methods of ToricVarieties
 ######################
 
-"""
+@doc Markdown.doc"""
     set_name_of_variety( v::AbstractNormalToricVariety, name::String )
 
 Sets the name of the normal toric variety `v` to `name`.
@@ -531,7 +531,7 @@ end
 export set_name_of_variety
 
 
-"""
+@doc Markdown.doc"""
     coordinate_ring_of_torus( v::AbstractNormalToricVariety, names::Vector{String} )
 
 Compute the coordinate ring of the torus factor of the normal toric variety `v`, using `names` as label for the homogeneous coordinates.
@@ -545,7 +545,7 @@ end
 export coordinate_ring_of_torus
 
 
-"""
+@doc Markdown.doc"""
     cox_ring( v::AbstractNormalToricVariety, name::String )
 
 Compute the Cox ring of the normal toric variety `v`, using `name` as label for the homogeneous coordinates.
@@ -558,7 +558,7 @@ end
 export cox_ring
 
 
-"""
+@doc Markdown.doc"""
     Base.:*( v::AbstractNormalToricVariety, w::AbstractNormalToricVariety )
 
 Compute the direct product of the normal toric varieties `v` and `w`.
@@ -582,7 +582,7 @@ end
 export CharacterToRationalFunction
 
 
-"""
+@doc Markdown.doc"""
     character_to_rational_function( l::Vector{Int}, v::AbstractNormalToricVariety )
 
 Turn the character `l` of the normal toric variety `v` into a rational function.
@@ -594,7 +594,7 @@ end
 export character_to_rational_function
 
 
-"""
+@doc Markdown.doc"""
     blowup_on_ith_minimal_torus_orbit( v::AbstractNormalToricVariety, i::Int )
 
 Compute the blow up of the normal toric variety `v` on the i-th minimal torus orbit.
@@ -606,7 +606,7 @@ end
 export blowup_on_ith_minimal_torus_orbit
 
 
-"""
+@doc Markdown.doc"""
     ith_betti_number( v::AbstractNormalToricVariety, i::Int )
 
 Compute the i-th Betti number of the normal toric variety `v`.
@@ -617,7 +617,7 @@ end
 export ith_betti_number
 
 
-"""
+@doc Markdown.doc"""
     nr_of_q_rational_points( v::AbstractNormalToricVariety, i::Int )
 
 Compute the number of q-rational points of the normal toric variety `v`.
