@@ -1,5 +1,5 @@
 push!(LOAD_PATH,"../src/")
-using Documenter, JToric
+using Documenter, JToric, DocumenterMarkdown
 
 # ensure JToric is loaded for the doc tests
 DocMeta.setdocmeta!(JToric, :DocTestSetup, :(using JToric, Random); recursive = true)

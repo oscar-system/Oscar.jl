@@ -60,7 +60,7 @@ function divisor_of_character( character::Vector{Int}, v::AbstractNormalToricVar
     gap_divisor = GAP.Globals.DivisorOfCharacter( gap_character, v.GapNTV )
     
     # wrap and return
-    return ToricDivisor( gap_divisor )
+    return ToricDivisor(extract_gap_divisor_coeffs(gap_divisor), v)
 end
 export divisor_of_character
 
@@ -81,7 +81,7 @@ function divisor_of_class( v::AbstractNormalToricVariety, class::Vector{Int} )
     gap_divisor = GAP.Globals.DivisorOfGivenClass( v.GapNTV, gap_class )
     
     # wrap and return
-    return ToricDivisor( gap_divisor )
+    return ToricDivisor(extract_gap_divisor_coeffs(gap_divisor), v)
 end
 export divisor_of_class
 
@@ -96,12 +96,12 @@ export divisor_of_class
 Checks if the divisor `d` is Cartier.
 
 # Examples
-```jldoctest
+```julia-repl
 julia> H = hirzebruch_surface(4)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
 julia> td = ToricDivisor([1,0,0,0], H)
-A torus invariant divisor on a normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A torus invariant divisor on a normal toric variety
 
 julia> iscartier(td)
 true
@@ -116,12 +116,12 @@ export iscartier
 
 Determine whether the toric divisor `td` is principal.
 # Examples
-```jldoctest
+```julia-repl
 julia> H = hirzebruch_surface(4)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
 julia> td = ToricDivisor([1,0,0,0], H)
-A torus invariant divisor on a normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A torus invariant divisor on a normal toric variety
 
 julia> isprincipal(td)
 false
@@ -147,12 +147,12 @@ export is_primedivisor
 
 Determine whether the toric divisor `td` is basepoint free.
 # Examples
-```jldoctest
+```julia-repl
 julia> H = hirzebruch_surface(4)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
 julia> td = ToricDivisor([1,0,0,0], H)
-A torus invariant divisor on a normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A torus invariant divisor on a normal toric variety
 
 julia> isbasepoint_free(td)
 true
@@ -167,12 +167,12 @@ export isbasepoint_free
 
 Determine whether the toric divisor `td` is effective.
 # Examples
-```jldoctest
+```julia-repl
 julia> H = hirzebruch_surface(4)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
 julia> td = ToricDivisor([1,0,0,0], H)
-A torus invariant divisor on a normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A torus invariant divisor on a normal toric variety
 
 julia> iseffective(td)
 true
@@ -187,12 +187,12 @@ export iseffective
 
 Determine whether the toric divisor `td` is integral.
 # Examples
-```jldoctest
+```julia-repl
 julia> H = hirzebruch_surface(4)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
 julia> td = ToricDivisor([1,0,0,0], H)
-A torus invariant divisor on a normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A torus invariant divisor on a normal toric variety
 
 julia> isintegral(td)
 true
@@ -207,12 +207,12 @@ export isintegral
 
 Determine whether the toric divisor `td` is ample.
 # Examples
-```jldoctest
+```julia-repl
 julia> H = hirzebruch_surface(4)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
 julia> td = ToricDivisor([1,0,0,0], H)
-A torus invariant divisor on a normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A torus invariant divisor on a normal toric variety
 
 julia> isample(td)
 false
@@ -227,12 +227,12 @@ export isample
 
 Determine whether the toric divisor `td` is very ample.
 # Examples
-```jldoctest
+```julia-repl
 julia> H = hirzebruch_surface(4)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
 julia> td = ToricDivisor([1,0,0,0], H)
-A torus invariant divisor on a normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A torus invariant divisor on a normal toric variety
 
 julia> isvery_ample(td)
 false
@@ -247,12 +247,12 @@ export isvery_ample
 
 Determine whether the toric divisor `td` is nef.
 # Examples
-```jldoctest
+```julia-repl
 julia> H = hirzebruch_surface(4)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
 julia> td = ToricDivisor([1,0,0,0], H)
-A torus invariant divisor on a normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A torus invariant divisor on a normal toric variety
 
 julia> isnef(td)
 true
@@ -267,18 +267,19 @@ export isnef
 
 Determine whether the toric divisor `td` is Q-Cartier.
 # Examples
-```jldoctest
+```julia-repl
 julia> H = hirzebruch_surface(4)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
 julia> td = ToricDivisor([1,0,0,0], H)
-A torus invariant divisor on a normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A torus invariant divisor on a normal toric variety
 
 julia> isq_cartier(td)
 true
 ```
 """
 isq_cartier(td::ToricDivisor) = pm_tdivisor(td).Q_CARTIER::Bool
+export isq_cartier
 
 
 @doc Markdown.doc"""
@@ -299,7 +300,7 @@ julia> H = hirzebruch_surface(4)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
 julia> td0 = ToricDivisor([0,0,0,0], H)
-A torus invariant divisor on a normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A torus invariant divisor on a normal toric variety
 
 julia> isfeasible(polyhedron_of_divisor(td0))
 true
@@ -308,13 +309,13 @@ julia> dim(polyhedron_of_divisor(td0))
 0
 
 julia> td1 = ToricDivisor([1,0,0,0], H)
-A torus invariant divisor on a normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A torus invariant divisor on a normal toric variety
 
 julia> isfeasible(polyhedron_of_divisor(td1))
 true
 
 julia> td2 = ToricDivisor([-1,0,0,0], H)
-A torus invariant divisor on a normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A torus invariant divisor on a normal toric variety
 
 julia> isfeasible(polyhedron_of_divisor(td2))
 false

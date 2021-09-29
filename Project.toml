@@ -15,7 +15,7 @@ Markdown = "d6f4376e-aef5-505a-96c1-9c027394607a"
 CapAndHomalg = "1.1.8"
 GAP = "0.6.2"
 Oscar = "0.6"
-Polymake = "0.5"
+Polymake = "0.5.8"
 julia = "1.4"
 
 [extras]

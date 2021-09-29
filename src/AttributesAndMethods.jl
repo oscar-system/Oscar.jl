@@ -217,7 +217,7 @@ Computes the torus invariant prime divisors of the normal toric variety `v`.
 """
 function torus_invariant_prime_divisors( v::AbstractNormalToricVariety )
     divisors = GAP.Globals.TorusInvariantPrimeDivisors( v.GapNTV )
-    return [ ToricDivisor( d ) for d in divisors ]    
+    return [ ToricDivisor(extract_gap_divisor_coeffs(d), v) for d in divisors ]    
 end
 export torus_invariant_prime_divisors
 
@@ -430,7 +430,7 @@ Compute the Weil divisors of the normal toric variety `v`.
 """
 function weil_divisors_of_variety( v::AbstractNormalToricVariety )
     gap_divisors = GAP.Globals.WeilDivisorsOfVariety( v.GapNTV )
-    return [ ToricDivisor( d ) for d in gap_divisors ]
+    return [ToricDivisor(extract_gap_divisor_coeffs(d), v) for d in gap_divisors ]
 end
 export weil_divisors_of_variety
 
@@ -637,7 +637,7 @@ associated to the affine normal toric variety `antv`.
 # Examples
 Take the cyclic quotient singularity corresponding to the pair of integers
 `(2,5)`.
-```jldoctest
+```julia-repl
 julia> C = Oscar.positive_hull([-2 5; 1 0])
 A polyhedral cone in ambient dimension 2
 
@@ -652,7 +652,7 @@ pm::Matrix<long>
 ```
 """
 function toric_ideal_binomial_generators(antv::AffineNormalToricVariety)
-    pmntv = Oscar.pm_ntv(polymakeNTV)
+    pmntv = pm_ntv(antv)
     result = pmntv.TORIC_IDEAL.BINOMIAL_GENERATORS
     return result
 end

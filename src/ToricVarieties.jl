@@ -30,7 +30,7 @@ Construct the normal toric variety $X_{PF}$ corresponding to a polyhedral fan `P
 
 # Examples
 Take `PF` to be the normal fan of the square.
-```jldoctest
+```julia-repl
 julia> square = Oscar.cube(2)
 A polyhedron in ambient dimension 2
 
@@ -55,7 +55,7 @@ cone `C`.
 
 # Examples
 Set `C` to be the positive orthant in two dimensions.
-```jldoctest
+```julia-repl
 julia> C = Oscar.positive_hull([1 0; 0 1])
 A polyhedral cone in ambient dimension 2
 
@@ -82,7 +82,7 @@ Note that this only coincides with the projective variety associated to `P`, if
 
 # Examples
 Set `P` to be a square.
-```jldoctest
+```julia-repl
 julia> square = Oscar.cube(2)
 A polyhedron in ambient dimension 2
 
@@ -104,7 +104,7 @@ polyhedral fan $\Sigma = C$ consisting only of the cone `C`.
 
 # Examples
 Set `C` to be the positive orthant in two dimensions.
-```jldoctest
+```julia-repl
 julia> C = Oscar.positive_hull([1 0; 0 1])
 A polyhedral cone in ambient dimension 2
 
@@ -113,10 +113,10 @@ A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 ```
 """
 function NormalToricVariety(C::Cone)
-    pmc = pm_cone(C)
-    fan = Polymake.fan.check_fan_objects(pmc)
-    pmntv = Polymake.fulton.NormalToricVariety(fan)
-    return NormalToricVariety(pmntv)
+    pmc = Oscar.pm_cone(C)
+    fan = Oscar.Polymake.fan.check_fan_objects(pmc)
+    pmntv = Oscar.Polymake.fulton.NormalToricVariety(fan)
+    return NormalToricVariety(ntv_polymake2gap(pmntv))
 end
 
 
@@ -138,16 +138,8 @@ function NormalToricVariety( rays::Matrix{Int}, cones::Vector{Vector{Int}} )
     fan = GAP.Globals.Fan( gap_rays, gap_cones )
     variety = GAP.Globals.ToricVariety( fan )
 
-    Incidence = Oscar.IncidenceMatrix(cones)
-    arr = @Polymake.convert_to Array{Set{Int}} Polymake.common.rows(Incidence.pm_incidencematrix)
-
-    pmntv = Polymake.fulton.NormalToricVariety(
-        RAYS = Oscar.matrix_for_polymake(rays),
-        MAXIMAL_CONES = arr,
-    )
-
     # wrap it into a struct and return
-    return NormalToricVariety( variety, pmntv )
+    return NormalToricVariety( variety, ntv_gap2polymake(variety) )
 end
 
 @doc Markdown.doc"""
@@ -181,11 +173,9 @@ NormalToricVariety(GAP: <A projective toric variety of dimension 2>, Polymake.Bi
 function projective_space( d::Int )
     # construct the projective space in gap
     variety = GAP.Globals.ProjectiveSpace( d )
-    f = Polymake.fan.normal_fan(Polymake.polytope.simplex(d))
-    pmntv = Polymake.fulton.NormalToricVariety(f)
     
     # wrap it and return
-    return NormalToricVariety( variety, pmntv )
+    return NormalToricVariety( variety, ntv_gap2polymake(variety) )
 end
 export projective_space
 
@@ -202,8 +192,9 @@ NormalToricVariety(GAP: <A toric variety of dimension 2>, Polymake.BigObjectAllo
 ```
 """
 function hirzebruch_surface( r::Int )
-    pmntv = Polymake.fulton.hirzebruch_surface(r)
-    return NormalToricVariety(ntv_polymake2gap(pmntv), pmntv)
+    Rays = [ 1 0; 0 1; -1 r; 0 -1]
+    Cones = [[1,2],[2,3],[3,4],[4,1]]
+    return NormalToricVariety( Rays, Cones )
 end
 export hirzebruch_surface
 

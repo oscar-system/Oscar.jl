@@ -32,7 +32,7 @@ export ntv_gap2polymake
 Convert a `Polymake` toric variety `v` into a `GAP` toric variety.
 """
 function ntv_polymake2gap(polymakeNTV::Polymake.BigObject)
-    rays = Matrix{Int}(polymakeNTV.RAYS)
+    rays = Matrix{Int}(Oscar.Polymake.common.primitive(polymakeNTV.RAYS))
     gap_rays = GapObj( rays, recursive = true )
     cones = [findall(x->x!=0, v) for v in eachrow(polymakeNTV.MAXIMAL_CONES)]
     gap_cones = GapObj( cones, recursive = true )
@@ -42,3 +42,7 @@ function ntv_polymake2gap(polymakeNTV::Polymake.BigObject)
 end
 export ntv_polymake2gap
 
+
+function extract_gap_divisor_coeffs(GapDivisor::GapObj)
+    return Vector{Int}(GAP.Globals.UnderlyingListOfRingElements(GAP.Globals.UnderlyingGroupElement(GapDivisor)))
+end

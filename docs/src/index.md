@@ -115,7 +115,7 @@ nr_of_q_rational_points( v::NormalToricVariety, i::Int )
 ### Constructors
 
 ```@docs
-create_divisor
+ToricDivisor
 divisor_of_character
 divisor_of_class
 ```
@@ -129,7 +129,7 @@ iscartier
 iseffective(td::ToricDivisor)
 isintegral(td::ToricDivisor) 
 isnef
-isprimedivisor
+is_primedivisor
 isprincipal
 isq_cartier
 isvery_ample
