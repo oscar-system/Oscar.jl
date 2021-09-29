@@ -158,9 +158,9 @@ function open_doc()
     end
 end
 
-function build_doc(; doctest=false, strict=false)
+function build_doc(; doctest=false, strict=false, path=mktempdir())
   if !isdefined(Main, :BuildDoc)
-    doc_init()
+    doc_init(path=path)
   end
   Pkg.activate(docsproject) do
     Base.invokelatest(Main.BuildDoc.doit, Oscar; strict=strict, local_build=true, doctest=doctest)
