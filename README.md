@@ -11,7 +11,7 @@ This package aims to make the functionality of the `ToricVarieties_project` (see
 
 ## Crucial dependency
 
-This crucially hings on a functional Gap4-package `NConvex`. Unfortuantely, the current version of this package cannot be loaded in `Julia`, as it depends on `CddInterface` and `NormalizInterface`, which each are currently not ladable in `Julia`.
+This crucially hinges on a functional Gap4-package `NConvex`. Unfortunately, the current version of this package cannot be loaded in `Julia`, as it depends on `CddInterface` and `NormalizInterface`, which each are currently not loadable in `Julia`.
 
 
 ## Installation
