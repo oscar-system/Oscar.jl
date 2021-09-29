@@ -4,48 +4,48 @@
 #
 ################################################################################
 
-# Iterate over all vectors in Z_{\geq 0}^n of weight (sum of the entries d)
-WeightedIntegerVectors(n::T, d::T) where T = WeightedIntegerVectors{T}(n, d)
+# Returns an iterator over all monomials of R of degree d
+all_monomials(R::MPolyRing, d::Int) = AllMonomials(R, d)
 
-Base.eltype(WIV::WeightedIntegerVectors{T}) where T = Vector{T}
+AllMonomials(R::MPolyRing, d::Int) = AllMonomials{typeof(R)}(R, d)
+
+Base.eltype(AM::AllMonomials) = elem_type(AM.R)
 
 # We are basically doing d-multicombinations of n here and those are "the same"
 # as d-combinations of n + d - 1 (according to Knuth).
-function Base.length(WIV::WeightedIntegerVectors{T}) where T
-  if iszero(WIV.d)
-    return 0
+Base.length(AM::AllMonomials) = binomial(nvars(AM.R) + AM.d - 1, AM.d)
+
+function Base.iterate(AM::AllMonomials, state::Nothing = nothing)
+  n = nvars(AM.R)
+  if AM.d == 0
+    s = zeros(Int, n)
+    s[n] = AM.d + 1
+    return one(AM.R), s
   end
-  return binomial(Int(WIV.n + WIV.d - 1), Int(WIV.d))
+
+  c = zeros(Int, n)
+  c[1] = AM.d
+  s = zeros(Int, n)
+  if isone(n)
+    s[1] = AM.d + 1
+    return (set_exponent_vector!(one(AM.R), 1, c), s)
+  end
+
+  s[1] = AM.d - 1
+  s[2] = 1
+  return (set_exponent_vector!(one(AM.R), 1, c), s)
 end
 
-function Base.iterate(WIV::WeightedIntegerVectors{T}, state::Nothing = nothing) where T
-  if WIV.n == 0 || WIV.d == 0
-    return nothing
-  end
-
-  c = zeros(T, WIV.n)
-  c[1] = WIV.d
-  s = zeros(T, WIV.n)
-  if isone(WIV.n)
-    s[1] = WIV.d + 1
-    return (c, s)
-  end
-
-  s[1] = WIV.d - 1
-  s[2] = T(1)
-  return (c, s)
-end
-
-function Base.iterate(WIV::WeightedIntegerVectors{T}, s::Vector{T}) where T
-  n = WIV.n
-  d = WIV.d
+function Base.iterate(AM::AllMonomials, s::Vector{Int})
+  n = nvars(AM.R)
+  d = AM.d
   if s[n] == d + 1
     return nothing
   end
   c = copy(s)
   if s[n] == d
     s[n] += 1
-    return (c, s)
+    return (set_exponent_vector!(one(AM.R), 1, c), s)
   end
 
   for i = n - 1:-1:1
@@ -60,19 +60,9 @@ function Base.iterate(WIV::WeightedIntegerVectors{T}, s::Vector{T}) where T
           s[n] = 0
         end
       end
-      return (c, s)
+      return (set_exponent_vector!(one(AM.R), 1, c), s)
     end
   end
-end
-
-# Returns an iterator over all monomials of R of degree d
-function all_monomials(R::MPolyRing, d::Int)
-  @assert d >= 0
-
-  if d == 0
-    return ( one(R) for i = 1:1)
-  end
-  return ( set_exponent_vector!(one(R), 1, w) for w in WeightedIntegerVectors(nvars(R), d) )
 end
 
 ################################################################################
@@ -134,7 +124,7 @@ function iterate_basis_reynolds(R::InvRing, d::Int)
   @assert k != -1
 
   N = zero_matrix(base_ring(polynomial_ring(R)), 0, 0)
-  return InvRingBasisIterator{typeof(R), typeof(monomials), typeof(N)}(R, d, k, true, monomials, N)
+  return InvRingBasisIterator{typeof(R), typeof(monomials), eltype(monomials), typeof(N)}(R, d, k, true, monomials, Vector{eltype(monomials)}(), N)
 end
 
 # Sadly, we can't really do much iteratively here.
@@ -147,13 +137,16 @@ function iterate_basis_linear_algebra(IR::InvRing, d::Int)
   if k == 0
     N = zero_matrix(base_ring(R), 0, 0)
     mons = elem_type(R)[]
-    return InvRingBasisIterator{typeof(IR), typeof(mons), typeof(N)}(IR, d, k, false, mons, N)
+    dummy_mons = all_monomials(R, 0)
+    return InvRingBasisIterator{typeof(IR), typeof(dummy_mons), eltype(mons), typeof(N)}(IR, d, k, false, dummy_mons, mons, N)
   end
 
-  mons = collect(all_monomials(R, d))
+  mons_iterator = all_monomials(R, d)
+  mons = collect(mons_iterator)
   if d == 0
-    N = identity_matrix(base_ring(R), 1, 1)
-    return InvRingBasisIterator{typeof(IR), typeof(mons), typeof(N)}(IR, d, k, false, mons, N)
+    N = identity_matrix(base_ring(R), 1)
+    dummy_mons = all_monomials(R, 0)
+    return InvRingBasisIterator{typeof(IR), typeof(mons_iterator), eltype(mons), typeof(N)}(IR, d, k, false, mons_iterator, mons, N)
   end
 
   mons_to_rows = Dict{elem_type(R), Int}(mons .=> 1:length(mons))
@@ -175,7 +168,7 @@ function iterate_basis_linear_algebra(IR::InvRing, d::Int)
   end
   n, N = right_kernel(M)
 
-  return InvRingBasisIterator{typeof(IR), typeof(mons), typeof(N)}(IR, d, n, false, mons, N)
+  return InvRingBasisIterator{typeof(IR), typeof(mons_iterator), eltype(mons), typeof(N)}(IR, d, n, false, mons_iterator, mons, N)
 end
 
 Base.eltype(BI::InvRingBasisIterator) = elem_type(polynomial_ring(BI.R))
@@ -189,7 +182,7 @@ function Base.iterate(BI::InvRingBasisIterator)
   return iterate_linear_algebra(BI)
 end
 
-function Base.iterate(BI::InvRingBasisIterator, state::InvRingBasisIteratorState)
+function Base.iterate(BI::InvRingBasisIterator, state)
   if BI.reynolds
     return iterate_reynolds(BI, state)
   end
@@ -207,9 +200,7 @@ function iterate_reynolds(BI::InvRingBasisIterator)
   monomial_to_basis = Dict{elem_type(polynomial_ring(BI.R)), Int}()
 
   if BI.degree == 0
-    M = zero_matrix(K, 1, 0)
-    state = 1 # Just a dummy
-    return one(polynomial_ring(BI.R)), InvRingBasisIteratorState{typeof(M), elem_type(polynomial_ring(BI.R)), Int}(M, monomial_to_basis, state)
+    return one(polynomial_ring(BI.R)), (zero_matrix(K, 1, 0), monomial_to_basis, Vector{Int}())
   end
 
   state = nothing
@@ -232,21 +223,22 @@ function iterate_reynolds(BI::InvRingBasisIterator)
       M[1, i] = c
       i += 1
     end
-    return inv(leading_coefficient(g))*g, InvRingBasisIteratorState{typeof(M), typeof(g), typeof(state)}(M, monomial_to_basis, state)
+    return inv(leading_coefficient(g))*g, (M, monomial_to_basis, state)
   end
 end
 
-function iterate_reynolds(BI::InvRingBasisIterator, state::InvRingBasisIteratorState)
+function iterate_reynolds(BI::InvRingBasisIterator, state)
   @assert BI.reynolds
 
-  if nrows(state.M) == BI.dim
+  M = state[1]
+  if nrows(M) == BI.dim
     return nothing
   end
 
   K = base_ring(polynomial_ring(BI.R))
 
-  M = state.M
-  monomial_state = state.monomial_iter_state
+  monomial_to_basis = state[2]
+  monomial_state = state[3]
   while true
     fmonomial_state = iterate(BI.monomials, monomial_state)
     if fmonomial_state === nothing
@@ -262,16 +254,16 @@ function iterate_reynolds(BI::InvRingBasisIterator, state::InvRingBasisIteratorS
     N = vcat(M, zero_matrix(K, 1, ncols(M)))
     new_basis_mon = false
     for (c, m) in zip(coefficients(g), monomials(g))
-      if !haskey(state.monomial_to_basis, m)
+      if !haskey(monomial_to_basis, m)
         new_basis_mon = true
-        state.monomial_to_basis[m] = ncols(N) + 1
+        monomial_to_basis[m] = ncols(N) + 1
         N = hcat(N, zero_matrix(K, nrows(N), 1))
       end
-      col = state.monomial_to_basis[m]
+      col = monomial_to_basis[m]
       N[nrows(N), col] = c
     end
     if new_basis_mon || rref!(N) == nrows(M) + 1
-      return inv(leading_coefficient(g))*g, InvRingBasisIteratorState{typeof(N), typeof(g), typeof(monomial_state)}(N, state.monomial_to_basis, monomial_state)
+      return inv(leading_coefficient(g))*g, (N, monomial_to_basis, monomial_state)
     end
   end
 end
@@ -288,24 +280,24 @@ function iterate_linear_algebra(BI::InvRingBasisIterator)
     if iszero(N[i, 1])
       continue
     end
-    f += N[i, 1]*BI.monomials[i]
+    f += N[i, 1]*BI.monomials_collected[i]
   end
-  return f, InvRingBasisIteratorState{typeof(N), typeof(f), Int}(2)
+  return f, 2
 end
 
-function iterate_linear_algebra(BI::InvRingBasisIterator, state::InvRingBasisIteratorState)
+function iterate_linear_algebra(BI::InvRingBasisIterator, state::Int)
   @assert !BI.reynolds
-  if state.i > BI.dim
+  if state > BI.dim
     return nothing
   end
 
   f = polynomial_ring(BI.R)()
   N = BI.kernel
   for i = 1:nrows(N)
-    if iszero(N[i, state.i])
+    if iszero(N[i, state])
       continue
     end
-    f += N[i, state.i]*BI.monomials[i]
+    f += N[i, state]*BI.monomials_collected[i]
   end
-  return f, InvRingBasisIteratorState{typeof(N), typeof(f), Int}(state.i + 1)
+  return f, state + 1
 end
