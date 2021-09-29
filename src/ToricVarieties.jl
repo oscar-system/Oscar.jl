@@ -1,13 +1,19 @@
 ######################
 # 1: The Julia type for ToricVarieties
 ######################
+abstract type AbstractNormalToricVariety end
 
-struct NormalToricVariety
+struct NormalToricVariety <: AbstractNormalToricVariety
            GapNTV::GapObj
            polymakeNTV::Polymake.BigObject
 end
 export NormalToricVariety
 
+struct AffineNormalToricVariety <: AbstractNormalToricVariety
+           GapNTV::GapObj
+           polymakeNTV::Polymake.BigObject
+end
+export AffineNormalToricVariety
 
 ######################
 # 2: Generic constructors
@@ -42,7 +48,6 @@ function NormalToricVariety( rays::Matrix{Int}, cones::Vector{Vector{Int}} )
     # wrap it into a struct and return
     return NormalToricVariety( variety, pmntv )
 end
-export NormalToricVariety
 
 """
     NormalToricVariety( v::GapObj )
@@ -187,92 +192,92 @@ export del_pezzo
 
 
 """
-    is_normal_variety( v::NormalToricVariety )
+    isnormal( v::AbstractNormalToricVariety )
 
 Checks if the normal toric variety `v` is normal. (This function is somewhat tautological at this point.)
 
 # Examples
 ```julia-repl
-julia> is_normal_variety(projective_space( 2 ))
+julia> isnormal(projective_space( 2 ))
 true
 ```
 """
-function is_normal_variety( v::NormalToricVariety )
-    return true::Bool
+function isnormal( v::AbstractNormalToricVariety )
+    return true
 end
-export is_normal_variety
+export isnormal_variety
 
 
 """
-    is_affine( v::NormalToricVariety )
+    isaffine( v::AbstractNormalToricVariety )
 
 Checks if the normal toric variety `v` is affine.
 
 # Examples
 ```julia-repl
-julia> is_normal_variety( projective_space( 2 ) )
+julia> isaffine( projective_space( 2 ) )
 false
 ```
 """
-function is_affine( v::NormalToricVariety )
-    return v.polymakeNTV.AFFINE::Bool
+function isaffine( v::AbstractNormalToricVariety )
+    return v.polymakeNTV.AFFINE
 end
-export is_affine
+export isaffine
 
 
 """
-    is_projective( v::NormalToricVariety )
+    isprojective( v::AbstractNormalToricVariety )
 
 Checks if the normal toric variety `v` is projective, i.e. if the fan of `v` is the the normal fan of a polytope.
 
 # Examples
 ```julia-repl
-julia> is_projective( projective_space( 2 ) )
+julia> isprojective( projective_space( 2 ) )
 true
 ```
 """
-function is_projective( v::NormalToricVariety )
-    return v.polymakeNTV.PROJECTIVE::Bool
+function isprojective( v::AbstractNormalToricVariety )
+    return v.polymakeNTV.PROJECTIVE
 end
-export is_projective
+export isprojective
 
 
 """
-    is_smooth( v::NormalToricVariety )
+    issmooth( v::AbstractNormalToricVariety )
 
 Checks if the normal toric variety `v` is smooth.
 
 # Examples
 ```julia-repl
-julia> is_smooth( projective_space( 2 ) )
+julia> issmooth( projective_space( 2 ) )
 true
 ```
 """
-function is_smooth( v::NormalToricVariety )
-    return v.polymakeNTV.SMOOTH::Bool
+function issmooth( v::AbstractNormalToricVariety )
+    return v.polymakeNTV.SMOOTH
 end
-export is_smooth
+export issmooth
 
 
 """
-    is_complete( v::NormalToricVariety )
+    iscomplete( v::AbstractNormalToricVariety )
 
 Checks if the normal toric variety `v` is complete.
 
 # Examples
 ```julia-repl
-julia> is_complete( projective_space( 2 ) )
+julia> iscomplete( projective_space( 2 ) )
 true
 ```
 """
-function is_complete( v::NormalToricVariety )
-    return v.polymakeNTV.COMPLETE::Bool
+function iscomplete( v::AbstractNormalToricVariety )
+    return v.polymakeNTV.COMPLETE
 end
-export is_complete
+export iscomplete
 
 
 """
-    has_torusfactor( v::NormalToricVariety )
+    has_torusfactor( v::AbstractNormalToricVariety )
 
 Checks if the normal toric variety `v` has a torus factor.
 
@@ -282,14 +287,14 @@ julia> has_torusfactor( projective_space( 2 ) )
 false
 ```
 """
-function has_torusfactor( v::NormalToricVariety )
+function has_torusfactor( v::AbstractNormalToricVariety )
     return GAP.Globals.HasTorusfactor( v.GapNTV )::Bool
 end
 export has_torusfactor
 
 
 """
-    is_orbifold( v::NormalToricVariety )
+    is_orbifold( v::AbstractNormalToricVariety )
 
 Checks if the normal toric variety `v` is an orbifold.
 
@@ -299,31 +304,31 @@ julia> is_orbifold( projective_space( 2 ) )
 true
 ```
 """
-function is_orbifold( v::NormalToricVariety )
+function is_orbifold( v::AbstractNormalToricVariety )
     return GAP.Globals.IsOrbifold( v.GapNTV )::Bool
 end
 export is_orbifold
 
 
 """
-    is_simplicial( v::NormalToricVariety )
+    issimplicial( v::AbstractNormalToricVariety )
 
 Checks if the normal toric variety `v` is simplicial. Hence, this function works just as `is_orbifold`. It is implemented for user convenience.
 
 # Examples
 ```julia-repl
-julia> is_simplicial( projective_space( 2 ) )
+julia> issimplicial( projective_space( 2 ) )
 true
 ```
 """
-function is_simplicial( v::NormalToricVariety )
-    return v.polymakeNTV.SIMPLICIAL::Bool
+function issimplicial( v::AbstractNormalToricVariety )
+    return v.polymakeNTV.SIMPLICIAL
 end
-export is_simplicial
+export issimplicial
 
 
 """
-    is_isomorphic_to_projective_space( v::NormalToricVariety )
+    is_isomorphic_to_projective_space( v::AbstractNormalToricVariety )
 
 Checks if the normal toric variety `v` is isomorphic to projective space.
 
@@ -333,14 +338,14 @@ julia> is_isomorphic_to_projective_space( projective_space( 2 ) )
 true
 ```
 """
-function is_isomorphic_to_projective_space( v::NormalToricVariety )
+function is_isomorphic_to_projective_space( v::AbstractNormalToricVariety )
     return GAP.Globals.IsIsomorphicToProjectiveSpace( v.GapNTV )::Bool
 end
 export is_isomorphic_to_projective_space
 
 
 """
-    is_direct_product_of_projective_spaces( v::NormalToricVariety )
+    is_direct_product_of_projective_spaces( v::AbstractNormalToricVariety )
 
 Checks if the normal toric variety `v` is isomorphic to a direct product of projective space.
 
@@ -350,7 +355,7 @@ julia> is_direct_product_of_projective_spaces( projective_space( 2 ) )
 true
 ```
 """
-function is_direct_product_of_projective_spaces( v::NormalToricVariety )
+function is_direct_product_of_projective_spaces( v::AbstractNormalToricVariety )
     return GAP.Globals.IsDirectProductOfPNs( v.GapNTV )::Bool
 end
 export is_direct_product_of_projective_spaces
