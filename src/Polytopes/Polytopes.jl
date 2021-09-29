@@ -30,6 +30,7 @@ export Cone,
     cross,
     cube,
     dim,
+    dual_cone,
     faces,
     facets,
     facets_as_halfspace_matrix_pair,
@@ -82,6 +83,7 @@ export Cone,
     objective_function,
     orbit_polytope,
     point_matrix,
+    polarize,
     print_constraints,
     product,
     recession_cone,
@@ -109,6 +111,7 @@ include("iterators.jl")
 include("Polyhedron/constructors.jl")
 include("Cone/constructors.jl")
 include("Cone/properties.jl")
+include("Cone/standard_constructions.jl")
 include("Polyhedron/properties.jl")
 include("Polyhedron/standard_constructions.jl")
 include("PolyhedralFan/constructors.jl")

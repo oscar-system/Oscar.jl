@@ -681,3 +681,30 @@ Essentially, one can read the
 upperbounds.
 """
 upper_bound_theorem(d::Int,n::Int) = Polyhedron(Polymake.polytope.upper_bound_theorem(d,n))
+
+
+@doc Markdown.doc"""
+    polarize(P::Polyhedron)
+
+Return the polar dual of the polyhedron `P`, consisting of all linear functions
+whose absolute value on `P` does not exceed 1.
+
+# Examples
+```jldoctest
+julia> square = cube(2)
+A polyhedron in ambient dimension 2
+
+julia> P = polarize(square)
+A polyhedron in ambient dimension 2
+
+julia> vertices(P)
+4-element VectorIterator{PointVector{Polymake.Rational}}:
+ [1, 0]
+ [-1, 0]
+ [0, 1]
+ [0, -1]
+```
+"""
+function polarize(P::Polyhedron)
+    return Polyhedron(Polymake.polytope.polarize(pm_polytope(P)))
+end
