@@ -166,9 +166,8 @@ NormalToricVariety(GAP: <A toric variety of dimension 2>, Polymake.BigObjectAllo
 ```
 """
 function hirzebruch_surface( r::Int )
-    Rays = [ 1 0; 0 1; -1 r; 0 -1]
-    Cones = [[1,2],[2,3],[3,4],[4,1]]
-    return NormalToricVariety( Rays, Cones )
+    pmntv = Polymake.fulton.hirzebruch_surface(r)
+    return NormalToricVariety(ntv_polymake2gap(pmntv), pmntv)
 end
 export hirzebruch_surface
 
@@ -186,7 +185,7 @@ NormalToricVariety(GAP: <A toric variety of dimension 2>, Polymake.BigObjectAllo
 """
 function del_pezzo( b::Int )
     if b < 0
-        @warn("Number of blowups for construction of delPezzo surfaces must be non-negative.")
+        throw(ArgumentError("Number of blowups for construction of delPezzo surfaces must be non-negative."))
         return 0
     end
     if b == 0 
@@ -208,7 +207,7 @@ function del_pezzo( b::Int )
         return NormalToricVariety( Rays, Cones )
     end
     if b > 3
-        @warn("delPezzo surfaces with more than 3 blowups are realized as subvarieties of toric ambient spaces. This is currently not supported.")
+        throw(ArgumentError("delPezzo surfaces with more than 3 blowups are realized as subvarieties of toric ambient spaces. This is currently not supported."))
         return 0
     end
 end

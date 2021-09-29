@@ -68,12 +68,12 @@ using Test
 
     @testset "delPezzo surfaces" begin
         # Construct delPezzo surfaces
-        del_pezzo( -1 )
+        @test_throws ArgumentError del_pezzo( -1 )
         del_pezzo( 0 )
         del_pezzo( 1 )
         del_pezzo( 2 )
         del_pezzo( 3 )
-        del_pezzo( 4 )
+        @test_throws ArgumentError del_pezzo( 4 )
     end
     
     @testset "Projective space" begin
