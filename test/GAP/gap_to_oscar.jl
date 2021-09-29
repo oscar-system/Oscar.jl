@@ -111,3 +111,12 @@ end
     val = GAP.evalstr( "[ [ E(4), 2 ], [ 3, 4 ] ]" )
     @test_throws GAP.ConversionError GAP.gap_to_julia(fmpq_mat, val)
 end
+
+@testset "matrices over a cyclotomic field" begin
+    g = small_group(64, 140)
+    reps = GAP.Globals.IrreducibleRepresentations(g.X)
+    gmats = GAP.Globals.GeneratorsOfGroup(GAP.Globals.Image(reps[end]))
+    omats, F, z = Oscar.matrices_over_cyclotomic_field(gmats)
+
+    @test all(isone, [x^4 for x in omats])
+end
