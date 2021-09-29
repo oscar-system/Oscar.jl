@@ -626,3 +626,34 @@ function nr_of_q_rational_points( v::AbstractNormalToricVariety, i::Int )
     return GAP.Globals.NrOfqRationalPoints( v.GapNTV, GapObj( i ) )::Int
 end
 export nr_of_q_rational_points
+
+
+@doc Markdown.doc"""
+    toric_ideal_binomial_generators(antv::AffineNormalToricVariety)
+
+Get the exponent vectors corresponding to the generators of the toric ideal
+associated to the affine normal toric variety `antv`.
+
+# Examples
+Take the cyclic quotient singularity corresponding to the pair of integers
+`(2,5)`.
+```jldoctest
+julia> C = Oscar.positive_hull([-2 5; 1 0])
+A polyhedral cone in ambient dimension 2
+
+julia> antv = AffineNormalToricVariety(C)
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+
+julia> toric_ideal_binomial_generators(antv)
+pm::Matrix<long>
+-1 -1 2 1
+-1 0 3 -1
+0 -1 -1 2
+```
+"""
+function toric_ideal_binomial_generators(antv::AffineNormalToricVariety)
+    pmntv = Oscar.pm_ntv(polymakeNTV)
+    result = pmntv.TORIC_IDEAL.BINOMIAL_GENERATORS
+    return result
+end
+export toric_ideal_binomial_generators
