@@ -56,7 +56,7 @@ cone `C`.
 # Examples
 Set `C` to be the positive orthant in two dimensions.
 ```jldoctest
-julia> C = positive_hull([1 0; 0 1])
+julia> C = Oscar.positive_hull([1 0; 0 1])
 A polyhedral cone in ambient dimension 2
 
 julia> antv = AffineNormalToricVariety(C)
@@ -83,7 +83,7 @@ Note that this only coincides with the projective variety associated to `P`, if
 # Examples
 Set `P` to be a square.
 ```jldoctest
-julia> square = cube(2)
+julia> square = Oscar.cube(2)
 A polyhedron in ambient dimension 2
 
 julia> ntv = NormalToricVariety(square)
@@ -93,6 +93,30 @@ A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 function NormalToricVariety(P::Polyhedron)
     fan = normal_fan(P)
     return NormalToricVariety(fan)
+end
+
+
+@doc Markdown.doc"""
+    NormalToricVariety(C::Cone)
+
+Construct the (affine) normal toric variety $X_{\Sigma}$ corresponding to a
+polyhedral fan $\Sigma = C$ consisting only of the cone `C`.
+
+# Examples
+Set `C` to be the positive orthant in two dimensions.
+```jldoctest
+julia> C = Oscar.positive_hull([1 0; 0 1])
+A polyhedral cone in ambient dimension 2
+
+julia> ntv = NormalToricVariety(C)
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+```
+"""
+function NormalToricVariety(C::Cone)
+    pmc = pm_cone(C)
+    fan = Polymake.fan.check_fan_objects(pmc)
+    pmntv = Polymake.fulton.NormalToricVariety(fan)
+    return NormalToricVariety(pmntv)
 end
 
 
@@ -137,42 +161,6 @@ function NormalToricVariety(GapNTV::GapObj)
 end
 export NormalToricVariety
 
-@doc Markdown.doc"""
-    ntv_gap2polymake( v::GapObj )
-
-Convert a `GAP` toric variety `v` into a `Polymake` toric variety.
-"""
-function ntv_gap2polymake(GapNTV::GapObj)
-    ff = GAP.Globals.Fan(GapNTV)
-    R = GAP.Globals.RayGenerators(ff)
-    MC = GAP.Globals.RaysInMaximalCones(ff)
-    rays = Matrix{Int}(R)
-    cones = [findall(x->x!=0, vec) for vec in [[e for e in mc] for mc in MC]]
-    Incidence = Oscar.IncidenceMatrix(cones)
-    arr = @Polymake.convert_to Array{Set{Int}} Polymake.common.rows(Incidence.pm_incidencematrix)
-    pmntv = Polymake.fulton.NormalToricVariety(
-        RAYS = Oscar.matrix_for_polymake(rays),
-        MAXIMAL_CONES = arr,
-    )
-    return pmntv
-end
-export ntv_gap2polymake
-
-@doc Markdown.doc"""
-    ntv_polymake2gap( v::Polymake.BigObject )
-
-Convert a `Polymake` toric variety `v` into a `GAP` toric variety.
-"""
-function ntv_polymake2gap(polymakeNTV::Polymake.BigObject)
-    rays = Matrix{Int}(polymakeNTV.RAYS)
-    gap_rays = GapObj( rays, recursive = true )
-    cones = [findall(x->x!=0, v) for v in eachrow(polymakeNTV.MAXIMAL_CONES)]
-    gap_cones = GapObj( cones, recursive = true )
-    fan = Oscar.GAP.Globals.Fan( gap_rays, gap_cones )
-    variety = Oscar.GAP.Globals.ToricVariety( fan )
-    return variety
-end
-export ntv_polymake2gap
 
 
 ######################

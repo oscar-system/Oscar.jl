@@ -56,6 +56,7 @@ if VERSION >= v"1.4"
 end
 
 # include files
+include("conversion.jl")
 include("ToricVarieties.jl")
 include("ToricDivisors.jl")
 include("AttributesAndMethods.jl")

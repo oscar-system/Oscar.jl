@@ -23,6 +23,8 @@ version
 ### Constructors
 
 ```@docs
+AffineNormalToricVariety(C::Cone)
+NormalToricVariety(C::Cone)
 NormalToricVariety(PF::PolyhedralFan)
 NormalToricVariety( r::Matrix{Int}, c::Vector{Vector{Int}} )
 projective_space
