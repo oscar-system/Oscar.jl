@@ -8,7 +8,7 @@ using Oscar.Graphs
 ```
 
 ```@contents
-Pages = ["pg_graphs.md"]
+Pages = ["graphs.md"]
 ```
 
 # Graphs

@@ -7,7 +7,7 @@ using Oscar
 ```
 
 ```@contents
-Pages = ["ca_quotient_rings.md"]
+Pages = ["quotient_rings.md"]
 ```
 
 # Quotient Rings of Polynomial Rings

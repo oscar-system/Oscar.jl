@@ -7,7 +7,7 @@ using Oscar
 ```
 
 ```@contents
-Pages = ["ca_affine_algebras.md"]
+Pages = ["affine_algebras.md"]
 ```
 
 # Affine Algebras

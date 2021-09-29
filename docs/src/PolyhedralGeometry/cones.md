@@ -7,7 +7,7 @@ using Oscar
 ```
 
 ```@contents
-Pages = ["pg_cones.md"]
+Pages = ["cones.md"]
 ```
 
 # Cones
