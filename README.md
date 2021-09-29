@@ -8,6 +8,9 @@
 
 This package aims to make the functionality of the `ToricVarieties_project` (see <https://github.com/homalg-project/ToricVarieties_project>) available in `Julia`.
 
+## Documentation
+
+The documentation is available at https://oscar-system.github.io/JToric.jl/dev/.
 
 ## Crucial dependency
 
