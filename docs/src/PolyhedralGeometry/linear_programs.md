@@ -7,7 +7,7 @@ using Oscar
 ```
 
 ```@contents
-Pages = ["pg_linear_programs.md"]
+Pages = ["linear_programs.md"]
 ```
 
 # Linear Programs

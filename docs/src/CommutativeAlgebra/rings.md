@@ -7,7 +7,7 @@ using Oscar
 ```
 
 ```@contents
-Pages = ["ca_rings.md"]
+Pages = ["rings.md"]
 ```
 
 # Creating Polynomial Rings

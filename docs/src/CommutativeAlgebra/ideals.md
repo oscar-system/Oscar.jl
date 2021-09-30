@@ -7,7 +7,7 @@ using Oscar
 ```
 
 ```@contents
-Pages = ["ca_ideals.md"]
+Pages = ["ideals.md"]
 ```
 
 # Ideals in Polynomial Rings
