@@ -198,7 +198,7 @@ true
 ```
 """
 function is_normal_variety( v::NormalToricVariety )
-    return true
+    return true::Bool
 end
 export is_normal_variety
 
@@ -215,7 +215,7 @@ false
 ```
 """
 function is_affine( v::NormalToricVariety )
-    return v.polymakeNTV.AFFINE
+    return v.polymakeNTV.AFFINE::Bool
 end
 export is_affine
 
@@ -232,7 +232,7 @@ true
 ```
 """
 function is_projective( v::NormalToricVariety )
-    return v.polymakeNTV.PROJECTIVE
+    return v.polymakeNTV.PROJECTIVE::Bool
 end
 export is_projective
 
@@ -249,7 +249,7 @@ true
 ```
 """
 function is_smooth( v::NormalToricVariety )
-    return v.polymakeNTV.SMOOTH
+    return v.polymakeNTV.SMOOTH::Bool
 end
 export is_smooth
 
@@ -266,7 +266,7 @@ true
 ```
 """
 function is_complete( v::NormalToricVariety )
-    return v.polymakeNTV.COMPLETE
+    return v.polymakeNTV.COMPLETE::Bool
 end
 export is_complete
 
@@ -317,7 +317,7 @@ true
 ```
 """
 function is_simplicial( v::NormalToricVariety )
-    return v.polymakeNTV.SIMPLICIAL
+    return v.polymakeNTV.SIMPLICIAL::Bool
 end
 export is_simplicial
 
@@ -369,7 +369,7 @@ true
 """
 function is_gorenstein( v::NormalToricVariety )
     
-    return v.polymakeNTV.GORENSTEIN
+    return v.polymakeNTV.GORENSTEIN::Bool
 end
 export is_gorenstein
 
@@ -387,7 +387,7 @@ true
 """
 function is_q_gorenstein( v::NormalToricVariety )
     
-    return v.polymakeNTV.Q_GORENSTEIN
+    return v.polymakeNTV.Q_GORENSTEIN::Bool
 end
 export is_q_gorenstein
 
@@ -405,6 +405,6 @@ true
 """
 function is_fano( v::NormalToricVariety )
     
-    return v.polymakeNTV.FANO
+    return v.polymakeNTV.FANO::Bool
 end
 export is_fano
