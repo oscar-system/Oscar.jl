@@ -30,7 +30,7 @@ Construct the normal toric variety $X_{PF}$ corresponding to a polyhedral fan `P
 
 # Examples
 Take `PF` to be the normal fan of the square.
-```julia-repl
+```jldoctest
 julia> square = Oscar.cube(2)
 A polyhedron in ambient dimension 2
 
@@ -55,7 +55,7 @@ cone `C`.
 
 # Examples
 Set `C` to be the positive orthant in two dimensions.
-```julia-repl
+```jldoctest
 julia> C = Oscar.positive_hull([1 0; 0 1])
 A polyhedral cone in ambient dimension 2
 
@@ -82,7 +82,7 @@ Note that this only coincides with the projective variety associated to `P`, if
 
 # Examples
 Set `P` to be a square.
-```julia-repl
+```jldoctest
 julia> square = Oscar.cube(2)
 A polyhedron in ambient dimension 2
 
@@ -104,7 +104,7 @@ polyhedral fan $\Sigma = C$ consisting only of the cone `C`.
 
 # Examples
 Set `C` to be the positive orthant in two dimensions.
-```julia-repl
+```jldoctest
 julia> C = Oscar.positive_hull([1 0; 0 1])
 A polyhedral cone in ambient dimension 2
 
@@ -126,7 +126,7 @@ end
 Construct the normal toric variety whose fan has ray generators `r` and maximal cones `c`.
 
 # Examples
-```julia-repl
+```jldoctest
 julia> NormalToricVariety( [-1 5; 0 1; 1 0; 0 -1], [[1,2],[2,3],[3,4],[4,1]] )
 NormalToricVariety(GAP: <A toric variety of dimension 2>, Polymake.BigObjectAllocated(Ptr{Nothing} @0x0000561365a4f3d0))
 ```
@@ -165,7 +165,7 @@ export NormalToricVariety
 Construct the projective space of dimension `d`.
 
 # Examples
-```julia-repl
+```jldoctest
 julia> projective_space( 2 )
 NormalToricVariety(GAP: <A projective toric variety of dimension 2>, Polymake.BigObjectAllocated(Ptr{Nothing} @0x0000562fbcc21b70))
 ```
@@ -186,7 +186,7 @@ export projective_space
 Constructs the r-th Hirzebruch surface.
 
 # Examples
-```julia-repl
+```jldoctest
 julia> hirzebruch_surface( 5 )
 NormalToricVariety(GAP: <A toric variety of dimension 2>, Polymake.BigObjectAllocated(Ptr{Nothing} @0x0000562fbcc21b70))
 ```
@@ -205,7 +205,7 @@ export hirzebruch_surface
 Constructs the delPezzo surface with b blowups for b at most 3.
 
 # Examples
-```julia-repl
+```jldoctest
 julia> del_pezzo( 3 )
 NormalToricVariety(GAP: <A toric variety of dimension 2>, Polymake.BigObjectAllocated(Ptr{Nothing} @0x0000562fbcc21b70))
 ```
@@ -252,7 +252,7 @@ export del_pezzo
 Checks if the normal toric variety `v` is normal. (This function is somewhat tautological at this point.)
 
 # Examples
-```julia-repl
+```jldoctest
 julia> isnormal(projective_space( 2 ))
 true
 ```
@@ -269,7 +269,7 @@ export isnormal
 Checks if the normal toric variety `v` is affine.
 
 # Examples
-```julia-repl
+```jldoctest
 julia> isaffine( projective_space( 2 ) )
 false
 ```
@@ -286,7 +286,7 @@ export isaffine
 Checks if the normal toric variety `v` is projective, i.e. if the fan of `v` is the the normal fan of a polytope.
 
 # Examples
-```julia-repl
+```jldoctest
 julia> isprojective( projective_space( 2 ) )
 true
 ```
@@ -303,7 +303,7 @@ export isprojective
 Checks if the normal toric variety `v` is smooth.
 
 # Examples
-```julia-repl
+```jldoctest
 julia> issmooth( projective_space( 2 ) )
 true
 ```
@@ -320,7 +320,7 @@ export issmooth
 Checks if the normal toric variety `v` is complete.
 
 # Examples
-```julia-repl
+```jldoctest
 julia> iscomplete( projective_space( 2 ) )
 true
 ```
@@ -337,7 +337,7 @@ export iscomplete
 Checks if the normal toric variety `v` has a torus factor.
 
 # Examples
-```julia-repl
+```jldoctest
 julia> has_torusfactor( projective_space( 2 ) )
 false
 ```
@@ -354,7 +354,7 @@ export has_torusfactor
 Checks if the normal toric variety `v` is an orbifold.
 
 # Examples
-```julia-repl
+```jldoctest
 julia> is_orbifold( projective_space( 2 ) )
 true
 ```
@@ -371,7 +371,7 @@ export is_orbifold
 Checks if the normal toric variety `v` is simplicial. Hence, this function works just as `is_orbifold`. It is implemented for user convenience.
 
 # Examples
-```julia-repl
+```jldoctest
 julia> issimplicial( projective_space( 2 ) )
 true
 ```
@@ -388,7 +388,7 @@ export issimplicial
 Checks if the normal toric variety `v` is isomorphic to projective space.
 
 # Examples
-```julia-repl
+```jldoctest
 julia> is_isomorphic_to_projective_space( projective_space( 2 ) )
 true
 ```
@@ -405,7 +405,7 @@ export is_isomorphic_to_projective_space
 Checks if the normal toric variety `v` is isomorphic to a direct product of projective space.
 
 # Examples
-```julia-repl
+```jldoctest
 julia> is_direct_product_of_projective_spaces( projective_space( 2 ) )
 true
 ```
@@ -422,7 +422,7 @@ export is_direct_product_of_projective_spaces
 Checks if the normal toric variety `v` is Gorenstein.
 
 # Examples
-```julia-repl
+```jldoctest
 julia> is_gorenstein( projective_space( 2 ) )
 true
 ```
@@ -439,7 +439,7 @@ export is_gorenstein
 Checks if the normal toric variety `v` is Q-Gorenstein.
 
 # Examples
-```julia-repl
+```jldoctest
 julia> is_q_gorenstein( projective_space( 2 ) )
 true
 ```
@@ -456,7 +456,7 @@ export is_q_gorenstein
 Checks if the normal toric variety `v` is fano.
 
 # Examples
-```julia-repl
+```jldoctest
 julia> is_fano( projective_space( 2 ) )
 true
 ```

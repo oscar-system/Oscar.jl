@@ -564,7 +564,7 @@ export cox_ring
 Compute the direct product of the normal toric varieties `v` and `w`.
 
 # Examples
-```julia-repl
+```jldoctest
 julia> projective_space( 2 ) * projective_space( 2 )
 NormalToricVariety(GAP: <A projective toric variety of dimension 4 which is a product of 2 toric varieties>, Polymake.BigObjectAllocated(Ptr{Nothing} @0x00005645a1a00930))
 ```
@@ -637,7 +637,7 @@ associated to the affine normal toric variety `antv`.
 # Examples
 Take the cyclic quotient singularity corresponding to the pair of integers
 `(2,5)`.
-```julia-repl
+```jldoctest
 julia> C = Oscar.positive_hull([-2 5; 1 0])
 A polyhedral cone in ambient dimension 2
 

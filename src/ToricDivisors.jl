@@ -23,7 +23,7 @@ end
 Construct the torus invariant divisor on the normal toric variety `v` as linear combination of the torus invariant prime divisors of `v`. The coefficients of thi linear combination are passed as list of integers as first argument.
 
 # Examples
-```julia-repl
+```jldoctest
 julia> ToricDivisor( [1,1,2], projective_space( 2 ) )
 toric_divisor(GAP: <A divisor of a toric variety with coordinates ( 1, 1, 2 )>)
 ```
@@ -49,7 +49,7 @@ export ToricDivisor
 Construct the torus invariant divisor on the normal toric variety `v` corresponding to the character `c`.
 
 # Examples
-```julia-repl
+```jldoctest
 julia> divisor_of_character( [1,2], projective_space( 2 ) )
 toric_divisor(GAP: <A principal divisor of a toric variety with coordinates ( -3, 2, 1 )>)
 ```
@@ -70,7 +70,7 @@ export divisor_of_character
 Construct a torus invariant divisor on the normal toric variety `v` corresponding to the divisor class `c`.
 
 # Examples
-```julia-repl
+```jldoctest
 julia> divisor_of_class( [1], projective_space( 2 ) )
 toric_divisor(GAP: <A divisor of a toric variety with coordinates ( 1, 0, 0 )>)
 ```
@@ -96,7 +96,7 @@ export divisor_of_class
 Checks if the divisor `d` is Cartier.
 
 # Examples
-```julia-repl
+```jldoctest
 julia> H = hirzebruch_surface(4)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
@@ -116,7 +116,7 @@ export iscartier
 
 Determine whether the toric divisor `td` is principal.
 # Examples
-```julia-repl
+```jldoctest
 julia> H = hirzebruch_surface(4)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
@@ -147,7 +147,7 @@ export is_primedivisor
 
 Determine whether the toric divisor `td` is basepoint free.
 # Examples
-```julia-repl
+```jldoctest
 julia> H = hirzebruch_surface(4)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
@@ -167,7 +167,7 @@ export isbasepoint_free
 
 Determine whether the toric divisor `td` is effective.
 # Examples
-```julia-repl
+```jldoctest
 julia> H = hirzebruch_surface(4)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
@@ -187,7 +187,7 @@ export iseffective
 
 Determine whether the toric divisor `td` is integral.
 # Examples
-```julia-repl
+```jldoctest
 julia> H = hirzebruch_surface(4)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
@@ -207,7 +207,7 @@ export isintegral
 
 Determine whether the toric divisor `td` is ample.
 # Examples
-```julia-repl
+```jldoctest
 julia> H = hirzebruch_surface(4)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
@@ -227,7 +227,7 @@ export isample
 
 Determine whether the toric divisor `td` is very ample.
 # Examples
-```julia-repl
+```jldoctest
 julia> H = hirzebruch_surface(4)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
@@ -247,7 +247,7 @@ export isvery_ample
 
 Determine whether the toric divisor `td` is nef.
 # Examples
-```julia-repl
+```jldoctest
 julia> H = hirzebruch_surface(4)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
@@ -267,7 +267,7 @@ export isnef
 
 Determine whether the toric divisor `td` is Q-Cartier.
 # Examples
-```julia-repl
+```jldoctest
 julia> H = hirzebruch_surface(4)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
