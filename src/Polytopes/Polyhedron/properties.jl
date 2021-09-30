@@ -480,14 +480,6 @@ julia> lineality_space(UH)
 """
 lineality_space(P::Polyhedron) = VectorIterator{RayVector{Polymake.Rational}}(dehomogenize(P.pm_polytope.LINEALITY_SPACE))
 
-# function affine_hull(P::Polyhedron)
-#     a = P.pm_polytope.AFFINE_HULL
-#     x = -a[:, 1]
-#     y = a[:, 2:end]
-#     v = sum((x[i] * y[i, :] for i in 1:length(x)))
-#     return (PointVector(v), VectorIterator{RayVector{Polymake.Rational}}(y))
-# end
-
 @doc Markdown.doc"""
     affine_hull(P::Polytope)
 
@@ -666,7 +658,8 @@ julia> f_vector(cube(5))
 ```
 """
 function f_vector(P::Polyhedron)
-    f_vec=[length(collect(faces(P,i))) for i in 0:dim(P)-1]
+    ldim = lineality_dim(P)
+    f_vec=vcat(zeros(Int64, ldim), [length(faces(P,i)) for i in ldim:dim(P)-1])
     return f_vec
 end
 

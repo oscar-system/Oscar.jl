@@ -31,6 +31,7 @@
         @test intersect(Q0, Q0) == Q0
         @test Q0+Q0 == minkowski_sum(Q0, Q0)
         @test f_vector(Pos) == [1,3,3]
+        @test f_vector(L) == [0, 1, 2]
         @test codim(square) == 0
         @test codim(point) == 3
         @test !isfulldimensional(point)
