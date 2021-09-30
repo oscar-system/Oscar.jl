@@ -390,7 +390,10 @@ function Oscar.prime(C::GaloisCtx{Hecke.MPolyFact.HenselCtxFqRelSeries{Generic.R
   return prime(base_ring(base_ring(C.C.lf[1])))
 end
 
-function bound_to_precision(G::GaloisCtx{T}, B::BoundRingElem{Tuple{fmpz, Int, fmpq}}) where {T}
+function bound_to_precision(G::GaloisCtx{T}, B::BoundRingElem{Tuple{fmpz, Int, fmpq}}, extra=(5, 2)) where {T}
+  if isa(extra, Int)
+    extra = (extra, min(2, div(extra, 3)))
+  end
   C, k, d = B.val
   r = G.data[1]
   #so power series prec need to be floor(Int, d)
@@ -409,11 +412,11 @@ function bound_to_precision(G::GaloisCtx{T}, B::BoundRingElem{Tuple{fmpz, Int, f
     end
   end
   b = max(b, fmpz(1))
-  return (clog(floor(fmpz, b), prime(G)), Int(n))
+  return (clog(floor(fmpz, b), prime(G))+extra[1], Int(n)+extra[2])
 end
 
-function bound_to_precision(G::GaloisCtx{T}, B::BoundRingElem{fmpz}) where {T}
-  return clog(B.val, G.C.p)
+function bound_to_precision(G::GaloisCtx{T}, B::BoundRingElem{fmpz}, extra::Int = 5) where {T}
+  return clog(B.val, G.C.p)+extra
 end
 
 function Nemo.roots_upper_bound(f::fmpz_mpoly, t::Int = 0)
@@ -454,7 +457,7 @@ p-adic digits, thus they are correct modulo ``p^pr``
 For non-monic polynomials they roots are scaled by the leading coefficient.
 The bound in the `GaloisCtx` is also adjusted.
 """
-function Hecke.roots(G::GaloisCtx{Hecke.qAdicRootCtx}, pr::Int; raw::Bool = false)
+function Hecke.roots(G::GaloisCtx{Hecke.qAdicRootCtx}, pr::Int=5; raw::Bool = false)
   a = Hecke.roots(G.C, pr)::Vector{qadic}
   if raw
     return Hecke.expand(a, all = true, flat = false, degs = Hecke.degrees(G.C.H))::Vector{qadic}
@@ -465,7 +468,7 @@ end
 function Hecke.setprecision(a::Generic.RelSeries, p::Int)
   b = parent(a)(a.coeffs, min(length(a.coeffs), p), p+valuation(a), valuation(a))
 end
-function Hecke.roots(G::GaloisCtx{<:Hecke.MPolyFact.HenselCtxFqRelSeries}, pr; raw::Bool = false)
+function Hecke.roots(G::GaloisCtx{<:Hecke.MPolyFact.HenselCtxFqRelSeries}, pr::Tuple{Int, Int} = (5, 2); raw::Bool = false)
   C = G.C
   while precision(C)[1] < pr[1]
     Hecke.MPolyFact.lift_q(C)
@@ -909,23 +912,27 @@ function resolvent(C::GaloisCtx, G::PermGroup, U::PermGroup, extra::Int = 5)
   I = invariant(G, U)
   t = right_transversal(G, U)
   n = length(t)
-  rt = roots(C, 5)
+  rt = roots(C)
   #make square-free (in residue field)
   k, mk = ResidueField(parent(rt[1]))
   k_rt = map(mk, rt)
   ts = find_transformation(k_rt, I, t)
 
   B = 2*n*evaluate(I, map(ts, [C.B for i = 1:ngens(parent(I))]))^n
-  rt = roots(C, clog(value(B), C.C.p)+extra)
+  rt = roots(C, bound_to_precision(C, B, extra))
   rt = map(ts, rt)
   rt = [evaluate(I^s, rt) for s = t]
   pr = copy(rt)
-  ps = fmpq[isinteger(C, B, sum(pr))[2]]
+  ps = [isinteger(C, B, sum(pr))[2]]
   while length(ps) < n
     pr .*=  rt
     push!(ps, isinteger(C, B, sum(pr))[2])
   end
-  return Hecke.power_sums_to_polynomial(ps)
+  if isa(ps[1], fmpz)
+    return Hecke.power_sums_to_polynomial(map(fmpq, ps))
+  else
+    return Hecke.power_sums_to_polynomial(ps)
+  end
 end
 
 struct GroupFilter
@@ -1477,8 +1484,7 @@ end
 =#
 
 #TODO: use above as well.
-value(a::Int) = a
-function isinteger(GC::GaloisCtx, B, e)
+function isinteger(GC::GaloisCtx, B::BoundRingElem{fmpz}, e)
   p = GC.C.p
   if e.length<2
     l = coeff(e, 0)
@@ -1500,6 +1506,9 @@ end
 # finite fields
 # rel. ext
 # ...
+function extension_field(f::fmpz_poly, n::String = "_a"; cached::Bool = true, check::Bool = true)
+  return NumberField(f, n, cached = cached, check = check)
+end
 function extension_field(f::fmpq_poly, n::String = "_a"; cached::Bool = true, check::Bool = true)
   return NumberField(f, n, cached = cached, check = check)
 end
@@ -1604,18 +1613,18 @@ function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
   m = length(T)
   B = m*B^m
 
-  @vtime :GaloisGroup 2 r = roots(GC, bound_to_precision(GC, B))
+  @vtime :GaloisGroup 2 r = roots(GC, bound_to_precision(GC, B, extra))
   compile!(a)
   @vtime :GaloisGroup 2 conj = [evaluate(a, t, r) for t = T]
 
-  fl, val = isinteger(GC, bound_to_precision(GC, B), sum(conj))
+  fl, val = isinteger(GC, B, sum(conj))
   @assert fl
   ps = [val]
   d = copy(conj)
   while length(ps) < m
 #    @show length(ps)
     @vtime :GaloisGroup 2 d .*= conj
-    fl, val = isinteger(GC, bound_to_precision(GC, B), sum(d))
+    fl, val = isinteger(GC, B, sum(d))
     @assert fl
     push!(ps, val)
   end
@@ -1678,7 +1687,7 @@ function galois_ideal(C::GaloisCtx, extra::Int = 5)
     compile!(I)
     for t = T
       e = evaluate(I, t, r)
-      fl, v = isinteger(C, bound_to_precision(C, B), e)
+      fl, v = isinteger(C, B, e)
       if fl
         push!(id, v-evaluate(I, t, map(ts, x)))
         break
@@ -1687,17 +1696,17 @@ function galois_ideal(C::GaloisCtx, extra::Int = 5)
   end
   for (_, I, ts, T) = C.chn
     B = upper_bound(C, I, ts)
-    r = roots(C, bound_to_precision(C, B))
+    r = roots(C, bound_to_precision(C, B, extra))
     r = map(ts, r)
     compile!(I)
     for t = T
       e = evaluate(I, t, r)
-      fl, v = isinteger(C, bound_to_precision(C, B), e)
+      fl, v = isinteger(C, B, e)
       @assert fl
       push!(id, v-evaluate(I, t, x))
     end
   end
-  return id
+  return ideal(id)
 end
 
 #TODO copied from MPolyFact in Hecke....

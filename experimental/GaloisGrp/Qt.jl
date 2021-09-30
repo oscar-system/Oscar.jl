@@ -242,7 +242,7 @@ function galois_group(FF::Generic.FunctionField{fmpq})
         for s = cs
           a = evaluate(I^(s*inv(pr)), r)
 
-          fl, val = isinteger(C, bound_to_precision(C, B), a)
+          fl, val = isinteger(C, B, a)
           if !fl
             if act_prc[1] >= prc[1] && act_prc[2] >= prc[2]
               @vprint :GaloisGroup -2 "bad evaluation point: invariant yields no root\n"
@@ -377,6 +377,7 @@ function issubfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{I
   B = 5*B^2
   @vprint :Subfields 2 "coeffs $B\n"
   prec_poly = bound_to_precision(C, B)
+  B_poly = B
   @vprint :Subfields 2 "gives a precision of $prec_poly\n"
 
   function get_poly(prec::Tuple{Int, Int})
@@ -390,14 +391,14 @@ function issubfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{I
     @vprint :Subfields 2 "building power sums (traces)\n"
     pow = copy(con)
     @assert length(Set(pow)) == length(bs)
-    fl, tt = isinteger(C, prec, sum(pow))
+    fl, tt = isinteger(C, B_poly, sum(pow))
     if !fl
       return nothing
     end
     tr = [tt]
     while length(tr) < length(bs)
       pow .*= con
-      fl, tt = isinteger(C, prec, sum(pow))
+      fl, tt = isinteger(C, B_poly, sum(pow))
       if !fl
         return nothing
       end
@@ -499,6 +500,7 @@ function issubfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{I
   @vprint :Subfields 2 "coeff of embedding $B\n"
   prec_emb = bound_to_precision(C, B)
   @vprint :Subfields 2 "precision of $prec_emb\n"
+  B_emb = B
 
   function get_emb(prec::Tuple{Int, Int})
     R = roots(C, prec)
@@ -520,12 +522,11 @@ function issubfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{I
     # step 2: move to Kronecker, so that we get poly over poly{Z}
     ff = (ff*derivative(fff)) % fff
     # step 3: lift (and put the denominator back in)
-    em = map(x->isinteger(C, prec, x), coefficients(ff))
+    em = map(x->isinteger(C, B_emb, x), coefficients(ff))
     if any(x->!x[1], em)
       return nothing
     end
     emb = parent(defining_polynomial(FF))([x[2](gen(Nemo.base_ring(FF))) for x in em])(gen(FF)) // derivative(defining_polynomial(FF))(gen(FF))
-#      emb = map_coefficients(x->isinteger(C, prec, x)[2](gen(Nemo.base_ring(FF))), ff, parent = parent(defining_polynomial(FF)))(gen(FF)) // derivative(defining_polynomial(FF))(gen(FF))
     return emb
   end
 
@@ -566,13 +567,16 @@ function issubfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{I
   return ps, emb
 end
 
-function isinteger(G::GaloisCtx, p::Tuple{Int, Int}, r::Generic.RelSeries{qadic})
+function isinteger(G::GaloisCtx, B::BoundRingElem{Tuple{fmpz, Int, fmpq}}, r::Generic.RelSeries{qadic})
 #  @show "testing", r, "against", p
+  p = bound_to_precision(G, B)
+  p2 = min(p[2], precision(r))
+
   Qx = parent(numerator(gen(base_ring(G.f))))
   if iszero(r) 
     return true, Qx(0)
   end
-  if r.length + r.val > p[2]
+  if r.length + r.val > p2 
     return false, Qx(0)
   end
   f = Qx()
@@ -584,7 +588,14 @@ function isinteger(G::GaloisCtx, p::Tuple{Int, Int}, r::Generic.RelSeries{qadic}
     pr = prime(parent(c))
     if c.length < 2 || all(x->iszero(coeff(c, x)), 1:c.length-1)
       cc = coeff(c, 0)
-      f += xpow* Hecke.mod_sym(lift(cc), pr^p[1])
+      l = Hecke.mod_sym(lift(cc), pr^precision(cc))
+      if abs(l) > pr^p[1]
+        return false, x
+      end
+#      if p[1] > precision(cc)
+#        return false, x
+#      end
+      f += xpow* l
     else
       return false, x
     end
