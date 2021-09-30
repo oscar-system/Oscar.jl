@@ -30,5 +30,5 @@ DeclareOperation( "CddInterfaceAvailable", [ ] );
 #! @Arguments
 #! @Returns a boolean
 #! @Description
-#! Checks if the CddInterface is available in Julia.
+#! Checks if the NormalizInterface is available in Julia.
 DeclareOperation( "NormalizInterfaceAvailable", [ ] );

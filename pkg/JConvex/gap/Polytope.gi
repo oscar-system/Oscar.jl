@@ -38,12 +38,9 @@ InstallMethod( VerticesOfPolytope,
                "for polyopes",
                [ IsPolytope ],
   function( poly )
-    
-    if PolymakeAvailable() then
-        return Set( Polymake_V_Rep( ExternalPolymakePolytope( poly ) )!.vertices );
-    fi;
-    TryNextMethod();
-    
+
+    return Set( Polymake_V_Rep( ExternalPolymakePolytope( poly ) )!.vertices );
+
 end );
 
 
@@ -52,14 +49,11 @@ InstallMethod( DefiningInequalities,
                [ IsPolytope ],
   function( poly )
     local ineqs, eqs;
-    
-    if PolymakeAvailable() then
-        ineqs := Polymake_Inequalities( ExternalPolymakePolytope( poly ) );
-        eqs := Polymake_Equalities( ExternalPolymakePolytope( poly ) );
-        return Set( Concatenation( eqs, (-1) * eqs, ineqs ) );
-    fi;
-    TryNextMethod();
-    
+
+    ineqs := Polymake_Inequalities( ExternalPolymakePolytope( poly ) );
+    eqs := Polymake_Equalities( ExternalPolymakePolytope( poly ) );
+    return Set( Concatenation( eqs, (-1) * eqs, ineqs ) );
+
 end );
 
 
@@ -67,12 +61,9 @@ InstallMethod( FacetInequalities,
                " for external polyopes",
                [ IsExternalPolytopeRep ],
   function( poly )
-    
-    if PolymakeAvailable() then
-        return Polymake_Inequalities( ExternalPolymakePolytope( poly ) );
-    fi;
-    TryNextMethod();
-    
+
+    return Polymake_Inequalities( ExternalPolymakePolytope( poly ) );
+
 end );
 
 
@@ -80,39 +71,27 @@ InstallMethod( IsBounded,
                " for external polyopes.",
                [ IsPolytope ],
     function( poly )
-    
-    if PolymakeAvailable() then
-        return Polymake_IsBounded( ExternalPolymakePolytope( poly ) );
-    fi;
-    
-    TryNextMethod();
-    
+
+    return Polymake_IsBounded( ExternalPolymakePolytope( poly ) );
+
 end );
 
 
 InstallMethod( LatticePoints,
                [ IsPolytope ],
     function( poly )
-    
-    if PolymakeAvailable() then
-        return Polymake_LatticePoints( ExternalPolymakePolytope( poly ) );
-    fi;
-    
-    TryNextMethod();
-    
+
+    return Polymake_LatticePoints( ExternalPolymakePolytope( poly ) );
+
 end );
 
 
 InstallMethod( Dimension,
                [ IsPolytope ],
     function( poly )
-    
-    if PolymakeAvailable() then
-        return Polymake_Dimension( ExternalPolymakePolytope( poly ) );
-    fi;
-    
-    TryNextMethod();
-    
+
+    return Polymake_Dimension( ExternalPolymakePolytope( poly ) );
+
 end );
 
 
@@ -124,26 +103,20 @@ InstallMethod( IntersectionOfPolytopes,
     if not Rank( ContainingGrid( poly1 ) ) = Rank( ContainingGrid( poly2 ) ) then
         Error( "polytopes are not of the same dimension" );
     fi;
-    
-    if PolymakeAvailable() then
-        
-        # compute the intersection
-        ext_polytope:= Polymake_Intersection( ExternalPolymakePolytope( poly1 ), ExternalPolymakePolytope( poly2 ) );
-        
-        # find the generating vertices of this new polytope and construct the polytope
-        # currently, this ignores the lineality space Polymake_Linealities( ext_polytope ) completely!
-        poly := Polytope( Polymake_Vertices( ext_polytope ) );
-        
-        # set properties
-        SetExternalPolymakePolytope( poly, ext_polytope );
-        SetContainingGrid( poly, ContainingGrid( poly1 ) );
-        SetAmbientSpaceDimension( poly, AmbientSpaceDimension( poly1 ) );
-        
-        # return the result
-        return poly;
-        
-    fi;
-    
-    TryNextMethod();
-    
+
+    # compute the intersection
+    ext_polytope:= Polymake_Intersection( ExternalPolymakePolytope( poly1 ), ExternalPolymakePolytope( poly2 ) );
+
+    # find the generating vertices of this new polytope and construct the polytope
+    # currently, this ignores the lineality space Polymake_Linealities( ext_polytope ) completely!
+    poly := Polytope( Polymake_Vertices( ext_polytope ) );
+
+    # set properties
+    SetExternalPolymakePolytope( poly, ext_polytope );
+    SetContainingGrid( poly, ContainingGrid( poly1 ) );
+    SetAmbientSpaceDimension( poly, AmbientSpaceDimension( poly1 ) );
+
+    # return the result
+    return poly;
+
 end );

@@ -10,7 +10,10 @@
 #############################################################################
 
 ReadPackage( "JConvex", "gap/Functions.gi" );
-ReadPackage( "JConvex", "gap/ExternalPolymakeCone.gi" );
-ReadPackage( "JConvex", "gap/Cone.gi" );
-ReadPackage( "JConvex", "gap/ExternalPolymakePolytope.gi" );
-ReadPackage( "JConvex", "gap/Polytope.gi" );
+
+if PolymakeAvailable() then
+    ReadPackage( "JConvex", "gap/ExternalPolymakeCone.gi" );
+    ReadPackage( "JConvex", "gap/Cone.gi" );
+    ReadPackage( "JConvex", "gap/ExternalPolymakePolytope.gi" );
+    ReadPackage( "JConvex", "gap/Polytope.gi" );
+fi;

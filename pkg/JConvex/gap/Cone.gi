@@ -38,39 +38,27 @@ InstallMethod( RayGenerators,
                [ IsCone ],
     function( cone )
     local rays, lin;
-    
-    if PolymakeAvailable() then
-        rays := Polymake_Rays( ExternalPolymakeCone( cone ) );
-        lin := Polymake_Lineality( ExternalPolymakeCone( cone ) );
-        return Set( Concatenation( rays, lin, (-1) * lin ) );
-    fi;
-    
-    TryNextMethod();
-    
+
+    rays := Polymake_Rays( ExternalPolymakeCone( cone ) );
+    lin := Polymake_Lineality( ExternalPolymakeCone( cone ) );
+    return Set( Concatenation( rays, lin, (-1) * lin ) );
+
 end );
 
 InstallMethod( IsPointed,
                [ IsCone ],
     function( cone )
-    
-    if PolymakeAvailable() then
-        return Polymake_IsPointed( ExternalPolymakeCone( cone ) );
-    fi;
-    
-    TryNextMethod();
-    
+
+    return Polymake_IsPointed( ExternalPolymakeCone( cone ) );
+
 end );
 
 InstallMethod( Dimension,
                [ IsCone ],
     function( cone )
-    
-    if PolymakeAvailable() then
-        return Polymake_Dimension( ExternalPolymakeCone( cone ) );
-    fi;
-    
-    TryNextMethod();
-    
+
+    return Polymake_Dimension( ExternalPolymakeCone( cone ) );
+
 end );
 
 
@@ -78,28 +66,20 @@ InstallMethod( DefiningInequalities,
                [ IsCone ],
   function( cone )
     local ineqs, eqs;
-    
-    if PolymakeAvailable() then
-        ineqs := Polymake_Inequalities( ExternalPolymakeCone( cone ) );
-        eqs := Polymake_Equalities( ExternalPolymakeCone( cone ) );
-        return Set( Concatenation( eqs, (-1) * eqs, ineqs ) );
-    fi;
-    
-    TryNextMethod();
-    
+
+    ineqs := Polymake_Inequalities( ExternalPolymakeCone( cone ) );
+    eqs := Polymake_Equalities( ExternalPolymakeCone( cone ) );
+    return Set( Concatenation( eqs, (-1) * eqs, ineqs ) );
+
 end );
 
 
 InstallMethod( LinealitySpaceGenerators,
                [ IsCone ],
   function( cone )
-    
-    if PolymakeAvailable() then
-        return Set( Polymake_Lineality( ExternalPolymakeCone( cone ) ) );
-    fi;
-    
-    TryNextMethod();
-    
+
+    return Set( Polymake_Lineality( ExternalPolymakeCone( cone ) ) );
+
 end );
 
 
@@ -107,28 +87,20 @@ end );
 InstallMethod( RaysInFacets,
                [ IsCone ],
     function( cone )
-    
-    if PolymakeAvailable() then
-        return Polymake_RaysInFacets( ExternalPolymakeCone( cone ) );
-    fi;
-    
-    TryNextMethod();
-    
+
+    return Polymake_RaysInFacets( ExternalPolymakeCone( cone ) );
+
 end );
 
 
 InstallMethod( RaysInFaces,
                " for cones",
                [ IsCone ],
-               
+
   function( cone )
-    
-    if PolymakeAvailable() then
-        return Set( Polymake_RaysInFaces( ExternalPolymakeCone( cone ) ) );
-    fi;
-    
-    TryNextMethod();
-    
+
+    return Set( Polymake_RaysInFaces( ExternalPolymakeCone( cone ) ) );
+
 end );
 
 
@@ -141,21 +113,15 @@ InstallMethod( IntersectionOfCones,
     if not Rank( ContainingGrid( cone1 ) ) = Rank( ContainingGrid( cone2 ) ) then
         Error( "cones are not from the same grid" );
     fi;
-    
-    if PolymakeAvailable() then
-        
-        # compute the intersection cone in Polymake
-        ext_cone := Polymake_Intersection( ExternalPolymakeCone( cone1 ), ExternalPolymakeCone( cone2 ) );
-        ineqs := ext_cone!.inequalities;
-        eqs := ext_cone!.equalities;
-        cone := ConeByEqualitiesAndInequalities( eqs, ineqs );
-        SetContainingGrid( cone, ContainingGrid( cone1 ) );
-        
-        # and return it
-        return cone;
-    
-    fi;
-    
-    TryNextMethod();
-    
+
+    # compute the intersection cone in Polymake
+    ext_cone := Polymake_Intersection( ExternalPolymakeCone( cone1 ), ExternalPolymakeCone( cone2 ) );
+    ineqs := ext_cone!.inequalities;
+    eqs := ext_cone!.equalities;
+    cone := ConeByEqualitiesAndInequalities( eqs, ineqs );
+    SetContainingGrid( cone, ContainingGrid( cone1 ) );
+
+    # and return it
+    return cone;
+
 end );
