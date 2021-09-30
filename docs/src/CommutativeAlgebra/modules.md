@@ -7,7 +7,7 @@ using Oscar
 ```
 
 ```@contents
-Pages = ["ca_modules.md"]
+Pages = ["modules.md"]
 ```
 
 # Modules Over Polynomial Rings

@@ -7,7 +7,7 @@ using Oscar
 ```
 
 ```@contents
-Pages = ["it_fg.md"]
+Pages = ["finite_groups.md"]
 ```
 
 # Invariants of Finite Groups

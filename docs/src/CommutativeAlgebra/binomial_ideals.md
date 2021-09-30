@@ -7,7 +7,7 @@ using Oscar
 ```
 
 ```@contents
-Pages = ["ca_binomial_ideals.md"]
+Pages = ["binomial_ideals.md"]
 ```
 
 # Binomial Primary Decomposition
