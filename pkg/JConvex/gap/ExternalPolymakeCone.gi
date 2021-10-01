@@ -26,16 +26,16 @@ BindGlobal( "TheTypeOfPolymakeCone", NewType( TheFamilyOfPolymakeCones, IsPolyma
 
 BindGlobal( "MakePolymakeConeVRep", function( rays, lineality )
     return Objectify( TheTypeOfPolymakeCone,
-            rec( rays := rays,
-                 lineality := lineality,
+            rec( rays := Immutable( rays ),
+                 lineality := Immutable( lineality ),
                  number_type := "rational",
                  rep_type := "V-rep" ) );
 end);
 
 BindGlobal( "MakePolymakeConeHRep", function( inequalities, equalities )
     return Objectify( TheTypeOfPolymakeCone,
-            rec( inequalities := inequalities,
-                 equalities := equalities,
+            rec( inequalities := Immutable( inequalities ),
+                 equalities := Immutable( equalities ),
                  number_type := "rational",
                  rep_type := "H-rep" ) );
 end);

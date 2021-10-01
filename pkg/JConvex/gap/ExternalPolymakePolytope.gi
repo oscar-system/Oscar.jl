@@ -26,16 +26,16 @@ BindGlobal( "TheTypeOfPolymakePolytope", NewType( TheFamilyOfPolymakePolytopes, 
 
 BindGlobal( "MakePolymakePolytopeVRep", function( vertices, lineality )
     return Objectify( TheTypeOfPolymakePolytope,
-            rec( vertices := vertices,
-                 lineality := lineality,
+            rec( vertices := Immutable( vertices ),
+                 lineality := Immutable( lineality ),
                  number_type := "rational",
                  rep_type := "V-rep" ) );
 end);
 
 BindGlobal( "MakePolymakePolytopeHRep", function( inequalities, equalities )
     return Objectify( TheTypeOfPolymakePolytope,
-            rec( inequalities := inequalities,
-                 equalities := equalities,
+            rec( inequalities := Immutable( inequalities ),
+                 equalities := Immutable( equalities ),
                  number_type := "rational",
                  rep_type := "H-rep" ) );
 end);
