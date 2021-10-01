@@ -18,21 +18,17 @@
 ##
 InstallMethod( PolymakeAvailable, [  ],
   function( )
-    local available;
-    available := false;
-
     # Check if Polymake and the gap-julia interface are available
-    if ( TestPackageAvailability( "JuliaInterface", ">= 0.5.2" ) <> fail ) then
-        if IsPackageMarkedForLoading( "JuliaInterface", ">= 0.5.2" ) then
-            if JuliaImportPackage("Polymake") then
-                available := true;
-                ImportJuliaModuleIntoGAP( "Polymake" );
-            fi;
+    if IsPackageMarkedForLoading( "JuliaInterface", ">= 0.5.2" ) then
+        if IsBoundGlobal("_Polymake_jl") and IsJuliaObject(ValueGlobal("_Polymake_jl")) then
+            return true;
+        fi;
+        if JuliaEvalString("try import Polymake ; return true\ncatch\n return false end") then
+            BindGlobal("_Polymake_jl", JuliaPointer(Julia.Polymake));
+            return true;
         fi;
     fi;
-
-    return available;
-
+    return false;
 end );
 
 ##
