@@ -13,8 +13,8 @@ function Polymake.Matrix{Polymake.Rational}(x::Union{Oscar.fmpq_mat,AbstractMatr
     return res
 end
 
-_isempty(x::Pair{<:Union{Oscar.MatElem, AbstractMatrix}, Any}) = isempty(x[1])
-_isempty(x) = isempty(x)
+_isempty_halfspace(x::Pair{<:Union{Oscar.MatElem, AbstractMatrix}, Any}) = isempty(x[1])
+_isempty_halfspace(x) = isempty(x)
 
 import Base: convert
 

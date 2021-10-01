@@ -687,7 +687,7 @@ upper_bound_theorem(d::Int,n::Int) = Polyhedron(Polymake.polytope.upper_bound_th
     polarize(P::Polyhedron)
 
 Return the polar dual of the polyhedron `P`, consisting of all linear functions
-whose absolute value on `P` does not exceed 1.
+whose evaluation on `P` does not exceed 1.
 
 # Examples
 ```jldoctest
