@@ -24,6 +24,22 @@ BindGlobal( "TheFamilyOfPolymakePolytopes", NewFamily( "TheFamilyOfPolymakePolyt
 
 BindGlobal( "TheTypeOfPolymakePolytope", NewType( TheFamilyOfPolymakePolytopes, IsPolymakePolytopeRep ) );
 
+BindGlobal( "MakePolymakePolytopeVRep", function( vertices, lineality )
+    return Objectify( TheTypeOfPolymakePolytope,
+            rec( vertices := vertices,
+                 lineality := lineality,
+                 number_type := "rational",
+                 rep_type := "V-rep" ) );
+end);
+
+BindGlobal( "MakePolymakePolytopeHRep", function( inequalities, equalities )
+    return Objectify( TheTypeOfPolymakePolytope,
+            rec( inequalities := inequalities,
+                 equalities := equalities,
+                 number_type := "rational",
+                 rep_type := "H-rep" ) );
+end);
+
 
 ##############################################################################################
 ##
@@ -54,11 +70,7 @@ InstallGlobalFunction( Polymake_PolytopeByGenerators,
             Error( "Wronge input: The second argument should be a Gap matrix!" );
         fi;
         
-        poly := rec( vertices := arg[ 1 ],
-                     lineality := arg[ 2 ],
-                     number_type := "rational",
-                     rep_type := "V-rep" );
-        ObjectifyWithAttributes( poly, TheTypeOfPolymakePolytope );
+        poly := MakePolymakePolytopeVRep( arg[ 1 ], arg[ 2 ] );
         return Polymake_CanonicalPolytopeByGenerators( poly );
         
     fi;
@@ -88,11 +100,7 @@ InstallGlobalFunction( Polymake_PolytopeFromInequalities,
             Error( "Wronge input: The second argument should be a Gap matrix!" );
         fi;
         
-        poly := rec( inequalities := arg[ 1 ],
-                     equalities := arg[ 2 ],
-                     number_type := "rational",
-                     rep_type := "H-rep" );
-        ObjectifyWithAttributes( poly, TheTypeOfPolymakePolytope );
+        poly := MakePolymakePolytopeHRep( arg[ 1 ], arg[ 2 ] );
         return Polymake_CanonicalPolytopeFromInequalities( poly );
         
     fi;
@@ -153,11 +161,7 @@ InstallMethod( Polymake_CanonicalPolytopeByGenerators,
         od;
         
         # construct the new poly
-        new_poly := rec( vertices := scaled_vertices,
-                         lineality := scaled_lineality,
-                         number_type := "rational",
-                         rep_type := "V-rep" );
-        ObjectifyWithAttributes( new_poly, TheTypeOfPolymakePolytope );
+        new_poly := MakePolymakePolytopeVRep( scaled_vertices, scaled_lineality );
         return new_poly;
         
     fi;
@@ -206,11 +210,7 @@ InstallMethod( Polymake_CanonicalPolytopeFromInequalities,
         od;
         
         # construct the new poly
-        new_poly := rec( inequalities := scaled_ineqs,
-                         equalities := scaled_eqs,
-                         number_type := "rational",
-                         rep_type := "H-rep" );
-        ObjectifyWithAttributes( new_poly, TheTypeOfPolymakePolytope );
+        new_poly := MakePolymakePolytopeHRep( scaled_ineqs, scaled_eqs );
         return new_poly;
         
     fi;
@@ -270,11 +270,7 @@ InstallMethod( Polymake_V_Rep,
         od;
         
         # construct the new poly
-        new_poly := rec( vertices := scaled_vertices,
-                         lineality := scaled_lineality,
-                         number_type := "rational",
-                         rep_type := "V-rep" );
-        ObjectifyWithAttributes( new_poly, TheTypeOfPolymakePolytope );
+        new_poly := MakePolymakePolytopeVRep( scaled_vertices, scaled_lineality );
         return new_poly;
         
     fi;
@@ -328,11 +324,7 @@ InstallMethod( Polymake_H_Rep,
         od;
         
         # construct the new poly
-        new_poly := rec( inequalities := scaled_ineqs,
-                         equalities := scaled_eqs,
-                         number_type := "rational",
-                         rep_type := "H-rep" );
-        ObjectifyWithAttributes( new_poly, TheTypeOfPolymakePolytope );
+        new_poly := MakePolymakePolytopeHRep( scaled_ineqs, scaled_eqs );
         return new_poly;
         
     fi;

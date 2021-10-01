@@ -24,6 +24,22 @@ BindGlobal( "TheFamilyOfPolymakeCones", NewFamily( "TheFamilyOfPolymakeCones" ) 
 
 BindGlobal( "TheTypeOfPolymakeCone", NewType( TheFamilyOfPolymakeCones, IsPolymakeConeRep ) );
 
+BindGlobal( "MakePolymakeConeVRep", function( rays, lineality )
+    return Objectify( TheTypeOfPolymakeCone,
+            rec( rays := rays,
+                 lineality := lineality,
+                 number_type := "rational",
+                 rep_type := "V-rep" ) );
+end);
+
+BindGlobal( "MakePolymakeConeHRep", function( inequalities, equalities )
+    return Objectify( TheTypeOfPolymakeCone,
+            rec( inequalities := inequalities,
+                 equalities := equalities,
+                 number_type := "rational",
+                 rep_type := "H-rep" ) );
+end);
+
 
 ##############################################################################################
 ##
@@ -50,11 +66,7 @@ InstallGlobalFunction( Polymake_ConeByGenerators,
         else
             
             # received the trivial cone
-            cone := rec( rays := [ ],
-                         lineality := [ ],
-                         number_type := "rational",
-                         rep_type := "V-rep" );
-            ObjectifyWithAttributes( cone, TheTypeOfPolymakeCone );
+            cone := MakePolymakeConeVRep( [ ], [ ] );
             return cone;
             
         fi;
@@ -71,12 +83,7 @@ InstallGlobalFunction( Polymake_ConeByGenerators,
         
         given_rays := Filtered( arg[ 1 ], row -> not IsZero( row ) );
         given_lineality := Filtered( arg[ 2 ], row -> not IsZero( row ) );
-        cone := rec( rays := given_rays,
-                     lineality := given_lineality,
-                     number_type := "rational",
-                     rep_type := "V-rep" );
-        ObjectifyWithAttributes( cone, TheTypeOfPolymakeCone );
-        
+        cone := MakePolymakeConeVRep( given_rays, given_lineality );
         return Polymake_CanonicalConeByGenerators( cone );
         
     fi;
@@ -107,12 +114,7 @@ InstallGlobalFunction( Polymake_ConeFromInequalities,
         
         given_ineqs := Filtered( arg[ 1 ], row -> not IsZero( row ) );
         given_eqs := Filtered( arg[ 2 ], row -> not IsZero( row ) );
-        cone := rec( inequalities := given_ineqs,
-                     equalities := given_eqs,
-                     number_type := "rational",
-                     rep_type := "H-rep" );
-        ObjectifyWithAttributes( cone, TheTypeOfPolymakeCone );
-        
+        cone := MakePolymakeConeHRep( given_ineqs, given_eqs );
         return Polymake_CanonicalConeFromInequalities( cone );
         
     fi;
@@ -168,11 +170,7 @@ InstallMethod( Polymake_CanonicalConeByGenerators,
         od;
         
         # construct the new cone
-        new_cone := rec( rays := scaled_rays,
-                         lineality := scaled_lineality,
-                         number_type := "rational",
-                         rep_type := "V-rep" );
-        ObjectifyWithAttributes( new_cone, TheTypeOfPolymakeCone );
+        new_cone := MakePolymakeConeVRep( scaled_rays, scaled_lineality );
         return new_cone;
         
     fi;
@@ -221,11 +219,7 @@ InstallMethod( Polymake_CanonicalConeFromInequalities,
         od;
         
         # construct the new cone
-        new_cone := rec( inequalities := scaled_ineqs,
-                         equalities := scaled_eqs,
-                         number_type := "rational",
-                         rep_type := "H-rep" );
-        ObjectifyWithAttributes( new_cone, TheTypeOfPolymakeCone );
+        new_cone := MakePolymakeConeHRep( scaled_ineqs, scaled_eqs );
         return new_cone;
         
     fi;
@@ -279,11 +273,7 @@ InstallMethod( Polymake_V_Rep,
         od;
         
         # construct the new cone
-        new_cone := rec( rays := scaled_rays,
-                         lineality := scaled_lineality,
-                         number_type := "rational",
-                         rep_type := "V-rep" );
-        ObjectifyWithAttributes( new_cone, TheTypeOfPolymakeCone );
+        new_cone := MakePolymakeConeVRep( scaled_rays, scaled_lineality );
         return new_cone;
         
     fi;
@@ -336,11 +326,7 @@ InstallMethod( Polymake_H_Rep,
         od;
         
         # construct the new cone
-        new_cone := rec( inequalities := scaled_ineqs,
-                         equalities := scaled_eqs,
-                         number_type := "rational",
-                         rep_type := "H-rep" );
-        ObjectifyWithAttributes( new_cone, TheTypeOfPolymakeCone );
+        new_cone := MakePolymakeConeHRep( scaled_ineqs, scaled_eqs );
         return new_cone;
         
     fi;
