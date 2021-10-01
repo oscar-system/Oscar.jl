@@ -184,10 +184,7 @@ InstallMethod( Polymake_CanonicalConeByGenerators,
     else
         
         # compute rays
-        s := JuliaToGAP( IsString, Julia.string( cone!.pmobj.RAYS ) );
-        res_string := SplitString( s, '\n' );
-        res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
-        rays := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
+        rays := JuliaToGAP( IsList, JuliaMatrixInt( cone!.pmobj.RAYS ) );
         
         # sometimes, Polymake returns rational rays - we turn them into integral vectors
         scaled_rays := [];
@@ -197,10 +194,7 @@ InstallMethod( Polymake_CanonicalConeByGenerators,
         od;
         
         # extract lineality
-        s := JuliaToGAP( IsString, Julia.string( cone!.pmobj.LINEALITY_SPACE ) );
-        res_string := SplitString( s, '\n' );
-        res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
-        lineality := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
+        lineality := JuliaToGAP( IsList, JuliaMatrixInt( cone!.pmobj.LINEALITY_SPACE ) );
         
         # sometimes, Polymake returns rational lineality - we turn them into integral vectors
         scaled_lineality := [];
@@ -229,10 +223,7 @@ InstallMethod( Polymake_CanonicalConeFromInequalities,
     else
         
         # compute facets
-        s := JuliaToGAP( IsString, Julia.string( cone!.pmobj.FACETS ) );
-        res_string := SplitString( s, '\n' );
-        res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
-        ineqs := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
+        ineqs := JuliaToGAP( IsList, JuliaMatrixInt( cone!.pmobj.FACETS ) );
         
         # sometimes, Polymake returns rational facets - we turn them into integral vectors
         scaled_ineqs := [];
@@ -242,10 +233,7 @@ InstallMethod( Polymake_CanonicalConeFromInequalities,
         od;
         
         # compute linear span
-        s := JuliaToGAP( IsString, Julia.string( cone!.pmobj.LINEAR_SPAN ) );
-        res_string := SplitString( s, '\n' );
-        res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
-        eqs := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
+        eqs := JuliaToGAP( IsList, JuliaMatrixInt( cone!.pmobj.LINEAR_SPAN ) );
         
         # sometimes, Polymake returns rational linear spans - we turn them into integral vectors
         scaled_eqs := [];
@@ -279,10 +267,7 @@ InstallMethod( Polymake_V_Rep,
     else
         
         # compute rays
-        s := JuliaToGAP( IsString, Julia.string( cone!.pmobj.RAYS ) );
-        res_string := SplitString( s, '\n' );
-        res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
-        rays := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
+        rays := JuliaToGAP( IsList, JuliaMatrixInt( cone!.pmobj.RAYS ) );
         
         # sometimes, Polymake returns rational rays - we turn them into integral vectors
         scaled_rays := [];
@@ -292,10 +277,7 @@ InstallMethod( Polymake_V_Rep,
         od;
         
         # extract lineality
-        s := JuliaToGAP( IsString, Julia.string( cone!.pmobj.LINEALITY_SPACE ) );
-        res_string := SplitString( s, '\n' );
-        res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
-        lineality := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
+        lineality := JuliaToGAP( IsList, JuliaMatrixInt( cone!.pmobj.LINEALITY_SPACE ) );
         
         # sometimes, Polymake returns rational lineality - we turn them into integral vectors
         scaled_lineality := [];
@@ -328,10 +310,7 @@ InstallMethod( Polymake_H_Rep,
         fi;
         
         # compute facets
-        s := JuliaToGAP( IsString, Julia.string( cone!.pmobj.FACETS ) );
-        res_string := SplitString( s, '\n' );
-        res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
-        ineqs := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
+        ineqs := JuliaToGAP( IsList, JuliaMatrixInt( cone!.pmobj.FACETS ) );
         
         # sometimes, Polymake returns rational facets - we turn them into integral vectors
         scaled_ineqs := [];
@@ -341,10 +320,7 @@ InstallMethod( Polymake_H_Rep,
         od;
         
         # compute linear span
-        s := JuliaToGAP( IsString, Julia.string( cone!.pmobj.LINEAR_SPAN ) );
-        res_string := SplitString( s, '\n' );
-        res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
-        eqs := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
+        eqs := JuliaToGAP( IsList, JuliaMatrixInt( cone!.pmobj.LINEAR_SPAN ) );
         
         # sometimes, Polymake returns rational linear spans - we turn them into integral vectors
         scaled_eqs := [];
@@ -510,7 +486,7 @@ InstallMethod( Polymake_RaysInFaces,
     fi;
     
     # all all rays, since the overall cone is also a face
-    rays_in_faces := Concatenation( rays_in_faces, [ List( [ 1 .. Length( Polymake_Rays( cone ) ) ], i -> 1 ) ] );
+    rays_in_faces := Concatenation( rays_in_faces, [ ListWithIdenticalEntries( Length( Polymake_Rays( cone ) ), 1 ) ] );
     
     # return the result
     return DuplicateFreeList( rays_in_faces );

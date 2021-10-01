@@ -182,10 +182,7 @@ InstallMethod( Polymake_CanonicalPolytopeByGenerators,
     else
         
         # compute vertices
-        s := JuliaToGAP( IsString, Julia.string( poly!.pmobj.VERTICES ) );
-        res_string := SplitString( s, '\n' );
-        res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
-        vertices := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
+        vertices := JuliaToGAP( IsList, JuliaMatrixInt( poly!.pmobj.VERTICES ) );
         
         # sometimes, Polymake returns rational vertices - we turn them into integral vectors
         # also, Polymake requires x0 = 1 in affine coordinates - we remove this 1
@@ -198,10 +195,7 @@ InstallMethod( Polymake_CanonicalPolytopeByGenerators,
         od;
         
         # extract lineality
-        s := JuliaToGAP( IsString, Julia.string( poly!.pmobj.LINEALITY_SPACE ) );
-        res_string := SplitString( s, '\n' );
-        res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
-        lineality := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
+        lineality := JuliaToGAP( IsList, JuliaMatrixInt( poly!.pmobj.LINEALITY_SPACE ) );
         
         # sometimes, Polymake returns rational lineality - we turn them into integral vectors
         scaled_lineality := [];
@@ -232,10 +226,7 @@ InstallMethod( Polymake_CanonicalPolytopeFromInequalities,
     else
         
         # compute facets
-        s := JuliaToGAP( IsString, Julia.string( poly!.pmobj.FACETS ) );
-        res_string := SplitString( s, '\n' );
-        res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
-        ineqs := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
+        ineqs := JuliaToGAP( IsList, JuliaMatrixInt( poly!.pmobj.FACETS ) );
         
         # sometimes, Polymake returns rational facets - we turn them into integral vectors
         scaled_ineqs := [];
@@ -245,10 +236,7 @@ InstallMethod( Polymake_CanonicalPolytopeFromInequalities,
         od;
         
         # compute affine hull
-        s := JuliaToGAP( IsString, Julia.string( poly!.pmobj.AFFINE_HULL ) );
-        res_string := SplitString( s, '\n' );
-        res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
-        eqs := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
+        eqs := JuliaToGAP( IsList, JuliaMatrixInt( poly!.pmobj.AFFINE_HULL ) );
         
         # sometimes, Polymake returns rational affine hulls - we turn them into integral vectors
         scaled_eqs := [];
@@ -284,10 +272,7 @@ InstallMethod( Polymake_V_Rep,
     else
         
         # compute vertices
-        s := JuliaToGAP( IsString, Julia.string( poly!.pmobj.VERTICES ) );
-        res_string := SplitString( s, '\n' );
-        res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
-        vertices := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
+        vertices := JuliaToGAP( IsList, JuliaMatrixInt( poly!.pmobj.VERTICES ) );
         
         # sometimes, Polymake returns rational vertices - we turn them into integral vectors
         scaled_vertices := [];
@@ -299,10 +284,7 @@ InstallMethod( Polymake_V_Rep,
         od;
         
         # compute lineality
-        s := JuliaToGAP( IsString, Julia.string( poly!.pmobj.LINEALITY_SPACE ) );
-        res_string := SplitString( s, '\n' );
-        res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
-        lineality := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
+        lineality := JuliaToGAP( IsList, JuliaMatrixInt( poly!.pmobj.LINEALITY_SPACE ) );
         
         # sometimes, Polymake returns rational lineality - we turn them into integral vectors
         scaled_lineality := [];
@@ -338,10 +320,7 @@ InstallMethod( Polymake_H_Rep,
         fi;
         
         # compute inequalities
-        s := JuliaToGAP( IsString, Julia.string( poly!.pmobj.FACETS ) );
-        res_string := SplitString( s, '\n' );
-        res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
-        ineqs := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
+        ineqs := JuliaToGAP( IsList, JuliaMatrixInt( poly!.pmobj.FACETS ) );
         
         # sometimes, Polymake returns rational facets - we turn them into integral vectors
         scaled_ineqs := [];
@@ -351,10 +330,7 @@ InstallMethod( Polymake_H_Rep,
         od;
         
         # compute equalities
-        s := JuliaToGAP( IsString, Julia.string( poly!.pmobj.AFFINE_HULL ) );
-        res_string := SplitString( s, '\n' );
-        res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
-        eqs := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
+        eqs := JuliaToGAP( IsList, JuliaMatrixInt( poly!.pmobj.AFFINE_HULL ) );
         
         # sometimes, Polymake returns rational affine hulls - we turn them into integral vectors
         scaled_eqs := [];
