@@ -125,7 +125,7 @@ end );
 InstallMethod( Polymake_CanonicalPolytopeByGenerators,
                [ IsPolymakePolytope ],
   function( poly )
-    local command_string, s, res_string, vertices, v_copy, scaled_vertices, i, scale, lineality, scaled_lineality, new_poly;
+    local s, res_string, vertices, v_copy, scaled_vertices, i, scale, lineality, scaled_lineality, new_poly;
     
     if poly!.rep_type = "H-rep" then
         
@@ -134,9 +134,7 @@ InstallMethod( Polymake_CanonicalPolytopeByGenerators,
     else
         
         # compute vertices
-        command_string := Concatenation( Polymake_V_Rep_command_string( poly ), ".VERTICES" );
-        JuliaEvalString( command_string );
-        s := JuliaToGAP( IsString, Julia.string( Julia.PolytopeByGAP4PackageConvex ) );
+        s := JuliaToGAP( IsString, Julia.string( poly!.pmobj.VERTICES ) );
         res_string := SplitString( s, '\n' );
         res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
         vertices := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
@@ -152,9 +150,7 @@ InstallMethod( Polymake_CanonicalPolytopeByGenerators,
         od;
         
         # extract lineality
-        command_string := Concatenation( Polymake_V_Rep_command_string( poly ), ".LINEALITY_SPACE" );
-        JuliaEvalString( command_string );
-        s := JuliaToGAP( IsString, Julia.string( Julia.PolytopeByGAP4PackageConvex ) );
+        s := JuliaToGAP( IsString, Julia.string( poly!.pmobj.LINEALITY_SPACE ) );
         res_string := SplitString( s, '\n' );
         res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
         lineality := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
@@ -179,7 +175,7 @@ end );
 InstallMethod( Polymake_CanonicalPolytopeFromInequalities,
                [ IsPolymakePolytope ],
   function( poly )
-    local command_string, s, res_string, ineqs, scaled_ineqs, i, scale, eqs, scaled_eqs, new_poly;
+    local s, res_string, ineqs, scaled_ineqs, i, scale, eqs, scaled_eqs, new_poly;
     
     if poly!.rep_type = "V-rep" then
         
@@ -188,9 +184,7 @@ InstallMethod( Polymake_CanonicalPolytopeFromInequalities,
     else
         
         # compute facets
-        command_string := Concatenation( Polymake_H_Rep_command_string( poly ), ".FACETS" );
-        JuliaEvalString( command_string );
-        s := JuliaToGAP( IsString, Julia.string( Julia.PolytopeByGAP4PackageConvex ) );
+        s := JuliaToGAP( IsString, Julia.string( poly!.pmobj.FACETS ) );
         res_string := SplitString( s, '\n' );
         res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
         ineqs := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
@@ -203,9 +197,7 @@ InstallMethod( Polymake_CanonicalPolytopeFromInequalities,
         od;
         
         # compute affine hull
-        command_string := Concatenation( Polymake_H_Rep_command_string( poly ), ".AFFINE_HULL" );
-        JuliaEvalString( command_string );
-        s := JuliaToGAP( IsString, Julia.string( Julia.PolytopeByGAP4PackageConvex ) );
+        s := JuliaToGAP( IsString, Julia.string( poly!.pmobj.AFFINE_HULL ) );
         res_string := SplitString( s, '\n' );
         res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
         eqs := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
@@ -235,7 +227,7 @@ end );
 InstallMethod( Polymake_V_Rep,
                [ IsPolymakePolytope ],
   function( poly )
-    local command_string, s, res_string, vertices, v_copy, scaled_vertices, i, scale, lineality, scaled_lineality, new_poly;
+    local s, res_string, vertices, v_copy, scaled_vertices, i, scale, lineality, scaled_lineality, new_poly;
     
     if poly!.rep_type = "V-rep" then
         
@@ -244,9 +236,7 @@ InstallMethod( Polymake_V_Rep,
     else
         
         # compute vertices
-        command_string := Concatenation( Polymake_H_Rep_command_string( poly ), ".VERTICES" );
-        JuliaEvalString( command_string );
-        s := JuliaToGAP( IsString, Julia.string( Julia.PolytopeByGAP4PackageConvex ) );
+        s := JuliaToGAP( IsString, Julia.string( poly!.pmobj.VERTICES ) );
         res_string := SplitString( s, '\n' );
         res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
         vertices := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
@@ -261,9 +251,7 @@ InstallMethod( Polymake_V_Rep,
         od;
         
         # compute lineality
-        command_string := Concatenation( Polymake_H_Rep_command_string( poly ), ".LINEALITY_SPACE" );
-        JuliaEvalString( command_string );
-        s := JuliaToGAP( IsString, Julia.string( Julia.PolytopeByGAP4PackageConvex ) );
+        s := JuliaToGAP( IsString, Julia.string( poly!.pmobj.LINEALITY_SPACE ) );
         res_string := SplitString( s, '\n' );
         res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
         lineality := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
@@ -289,7 +277,7 @@ end );
 InstallMethod( Polymake_H_Rep,
                [ IsPolymakePolytope ],
   function( poly )
-    local command_string, s, res_string, ineqs, i, scale, scaled_ineqs, eqs, scaled_eqs, new_poly;
+    local s, res_string, ineqs, i, scale, scaled_ineqs, eqs, scaled_eqs, new_poly;
     
     if poly!.rep_type = "H-rep" then
         
@@ -302,9 +290,7 @@ InstallMethod( Polymake_H_Rep,
         fi;
         
         # compute inequalities
-        command_string := Concatenation( Polymake_V_Rep_command_string( poly ), ".FACETS" );
-        JuliaEvalString( command_string );
-        s := JuliaToGAP( IsString, Julia.string( Julia.PolytopeByGAP4PackageConvex ) );
+        s := JuliaToGAP( IsString, Julia.string( poly!.pmobj.FACETS ) );
         res_string := SplitString( s, '\n' );
         res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
         ineqs := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
@@ -317,9 +303,7 @@ InstallMethod( Polymake_H_Rep,
         od;
         
         # compute equalities
-        command_string := Concatenation( Polymake_V_Rep_command_string( poly ), ".AFFINE_HULL" );
-        JuliaEvalString( command_string );
-        s := JuliaToGAP( IsString, Julia.string( Julia.PolytopeByGAP4PackageConvex ) );
+        s := JuliaToGAP( IsString, Julia.string( poly!.pmobj.AFFINE_HULL ) );
         res_string := SplitString( s, '\n' );
         res_string := List( [ 2 .. Length( res_string ) ], i -> Concatenation( "[", ReplacedString( res_string[ i ], " ", "," ), "]" ) );
         eqs := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
@@ -360,17 +344,12 @@ InstallMethod( Polymake_Dimension,
               " returns the dimension of the poly",
             [ IsPolymakePolytope ],
   function( poly )
-    local command_string, s;
     
     if Polymake_IsEmpty( poly ) then
         return -1;
     fi;
     
-    # produce command string
-    command_string := Concatenation( Polymake_V_Rep_command_string( Polymake_V_Rep( poly ) ), ".CONE_DIM" );
-    JuliaEvalString( command_string );
-    s := JuliaToGAP( IsString, Julia.string( Julia.PolytopeByGAP4PackageConvex ) );
-    return EvalString( s ) - 1;
+    return poly!.pmobj.CONE_DIM - 1;
     
 end );
 
@@ -419,14 +398,9 @@ InstallMethod( Polymake_LatticePoints,
               " return the list of the lattice points of poly",
               [ IsPolymakePolytope ],
   function( poly )
-    local command_string, s, res_string, point_list, lattice_points, i, copy;
+    local s, res_string, point_list, lattice_points, i, copy;
     
-    # produce command string
-    command_string := Concatenation( Polymake_V_Rep_command_string( Polymake_V_Rep( poly ) ), ".LATTICE_POINTS_GENERATORS" );
-    
-    # issue command in Julia and fetch result
-    JuliaEvalString( command_string );
-    s := JuliaToGAP( IsString, Julia.string( Julia.PolytopeByGAP4PackageConvex ) );
+    s := JuliaToGAP( IsString, Julia.string( poly!.pmobj.LATTICE_POINTS_GENERATORS ) );
     res_string := SplitString( s, '\n' );
     res_string := List( [ 2 .. Length( res_string ) - 3 ], i -> Concatenation( "[", ReplacedString( ReplacedString( res_string[ i ], " ", "," ), "<", "" ), "]" ) );
     point_list := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
@@ -484,12 +458,7 @@ InstallMethod( Polymake_IsPointed,
                "finding if the poly is pointed or not",
                [ IsPolymakePolytope ],
   function( poly )
-    local command_string, s;
-    
-    command_string := Concatenation( Polymake_V_Rep_command_string( Polymake_V_Rep( poly ) ), ".POINTED" );
-    JuliaEvalString( command_string );
-    s := JuliaToGAP( IsString, Julia.string( Julia.PolytopeByGAP4PackageConvex ) );
-    return EvalString( s );
+    return poly!.pmobj.POINTED;
     
 end );
 
@@ -498,12 +467,7 @@ InstallMethod( Polymake_IsBounded,
               " returns if the polytope is bounded or not",
               [ IsPolymakePolytope ],
   function( poly )
-    local command_string, s;
-    
-    command_string := Concatenation( Polymake_H_Rep_command_string( Polymake_H_Rep( poly ) ), ".BOUNDED" );
-    JuliaEvalString( command_string );
-    s := JuliaToGAP( IsString, Julia.string( Julia.PolytopeByGAP4PackageConvex ) );
-    return EvalString( s );
+    return poly!.pmobj.BOUNDED;
     
 end );
 
