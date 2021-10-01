@@ -20,7 +20,7 @@ InstallMethod( PolymakeAvailable, [  ],
   function( )
     local available;
     available := false;
-    
+
     # Check if Polymake and the gap-julia interface are available
     if ( TestPackageAvailability( "JuliaInterface", ">= 0.5.2" ) <> fail ) then
         if IsPackageMarkedForLoading( "JuliaInterface", ">= 0.5.2" ) then
@@ -30,39 +30,19 @@ InstallMethod( PolymakeAvailable, [  ],
             fi;
         fi;
     fi;
-    
+
     return available;
-    
+
 end );
 
 ##
 InstallMethod( CddInterfaceAvailable, [  ],
   function( )
-    local available;
-    available := false;
-    
-    if ( TestPackageAvailability( "CddInterface", ">= 2020.06.24" ) <> fail ) then
-        if IsPackageMarkedForLoading( "CddInterface", ">= 2020.06.24" ) then
-            available := true;
-        fi;
-    fi;
-    
-    return available;
-    
+    return IsPackageMarkedForLoading( "CddInterface", ">= 2020.06.24" );
 end );
 
 ##
 InstallMethod( NormalizInterfaceAvailable, [  ],
   function( )
-    local available;
-    available := false;
-    
-    if ( TestPackageAvailability( "NormalizInterface", ">= 1.2.0" ) <> fail ) then
-        if IsPackageMarkedForLoading( "NormalizInterface", ">= 1.2.0" ) then
-            available := true;
-        fi;
-    fi;
-    
-    return available;
-    
+    return IsPackageMarkedForLoading( "NormalizInterface", ">= 1.2.0" );
 end );
