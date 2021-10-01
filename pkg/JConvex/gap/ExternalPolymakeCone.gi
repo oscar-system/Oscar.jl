@@ -24,31 +24,63 @@ BindGlobal( "TheFamilyOfPolymakeCones", NewFamily( "TheFamilyOfPolymakeCones" ) 
 
 BindGlobal( "TheTypeOfPolymakeCone", NewType( TheFamilyOfPolymakeCones, IsPolymakeConeRep ) );
 
+BindGlobal( "JuliaMatrixInt", JuliaEvalString("Matrix{Int}") );
+
 BindGlobal( "MakePolymakeConeVRep", function( rays, lineality )
-    local cone;
+    local cone, kwargs;
     cone := Objectify( TheTypeOfPolymakeCone,
             rec( rays := Immutable( rays ),
                  lineality := Immutable( lineality ),
                  number_type := "rational",
                  rep_type := "V-rep" ) );
 
-    if Length(rays) = 0 and Length(lineality) = 0 then
-        cone!.pmobj := _Polymake_jl.polytope.Cone();
-    else
-        cone!.pmobj := JuliaEvalString( Polymake_V_Rep_command_string( cone ) );
+    kwargs := rec();
+
+    # TODO: verify that kwargs is set correctly, also if one or both lists are empty
+
+    # check for degenerate case
+    if Length( rays ) > 0 then
+        kwargs.INPUT_RAYS := JuliaMatrixInt( rays );
+
+        # if we also have lineality, add them
+        if Length( lineality ) > 0 then
+            kwargs.INPUT_LINEALITY := JuliaMatrixInt( lineality );
+        fi;
+    elif Length( lineality ) > 0 then
+        kwargs.INPUT_RAYS := JuliaMatrixInt( lineality );
+        kwargs.INPUT_LINEALITY := kwargs.INPUT_RAYS;
     fi;
+
+    cone!.pmobj := CallJuliaFunctionWithKeywordArguments( _Polymake_jl.polytope.Cone, [], kwargs );
     return cone;
 end);
 
 BindGlobal( "MakePolymakeConeHRep", function( inequalities, equalities )
-    local cone;
+    local cone, kwargs;
     cone := Objectify( TheTypeOfPolymakeCone,
             rec( inequalities := Immutable( inequalities ),
                  equalities := Immutable( equalities ),
                  number_type := "rational",
                  rep_type := "H-rep" ) );
 
-    cone!.pmobj := JuliaEvalString( Polymake_H_Rep_command_string( cone ) );
+    kwargs := rec();
+
+    # TODO: verify that kwargs is set correctly, also if one or both lists are empty
+
+    # check for degenerate case
+    if Length( inequalities ) > 0 then
+        kwargs.INEQUALITIES := JuliaMatrixInt( inequalities );
+
+        # if we have non-zero equalities, add them
+        if Length( equalities ) > 0 then
+            kwargs.EQUATIONS := JuliaMatrixInt( equalities );
+        fi;
+    elif Length( equalities ) > 0 then
+        kwargs.INEQUALITIES := JuliaMatrixInt( equalities );
+        kwargs.EQUATIONS := kwargs.INEQUALITIES;
+    fi;
+
+    cone!.pmobj := CallJuliaFunctionWithKeywordArguments( _Polymake_jl.polytope.Cone, [], kwargs );
     return cone;
 end);
 
@@ -535,83 +567,4 @@ InstallMethod( Polymake_Intersection,
     
     return Polymake_ConeFromInequalities( new_ineqs, new_equ );
     
-end );
-
-
-##############################################################################################
-##
-##  Command strings
-##
-##############################################################################################
-
-InstallMethod( Polymake_V_Rep_command_string,
-               "construct command string for V-Representation of Cone in Julia",
-               [ IsPolymakeCone ],
-  function( cone )
-    local rays, lin, command_string;
-        
-        # check if the given cone is a V-rep
-        if not ( cone!.rep_type = "V-rep" ) then
-            return "fail";
-        fi;
-        
-        # extract data
-        rays := cone!.rays;
-        lin := cone!.lineality;
-        
-        # check for degenerate case
-        if Length( rays ) = 0 then
-            rays := lin;
-        fi;
-        
-        # prepare rays (always non-zero) for command string
-        rays := List( [ 1 .. Length( rays ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( rays[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
-        command_string := Concatenation( "ConeByGAP4PackageConvex", " = Polymake.polytope.Cone( INPUT_RAYS = [ ", JoinStringsWithSeparator( rays, "; " ), "] " );
-        
-        # if we also have lineality, add them
-        lin := cone!.lineality;
-        if ( Length( lin ) > 0 ) then
-            lin := List( [ 1 .. Length( lin ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( lin[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
-            command_string := Concatenation( command_string, ", INPUT_LINEALITY = [ ", JoinStringsWithSeparator( lin, "; " ), " ] " );
-        fi;
-        
-        # return command string
-        return Concatenation( command_string, ")" );
-    
-end );
-
-InstallMethod( Polymake_H_Rep_command_string,
-               "construct command string for H-Representation of Cone in Julia",
-               [ IsPolymakeCone ],
-  function( cone )
-    local ineqs, eqs, command_string;
-    
-        # check if the given cone is a V-rep
-        if not ( cone!.rep_type = "H-rep" ) then
-            return fail;
-        fi;
-        
-        # extract data
-        ineqs := cone!.inequalities;
-        eqs := cone!.equalities;
-        
-        # check for degenerate case
-        if Length( ineqs ) = 0 then
-            ineqs := eqs;
-        fi;
-        
-        # prepare inequalities (always non-zero) for command string
-        ineqs := List( [ 1 .. Length( ineqs ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( ineqs[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
-        command_string := Concatenation( "ConeByGAP4PackageConvex", " = Polymake.polytope.Cone( INEQUALITIES = [ ", JoinStringsWithSeparator( ineqs, "; " ), " ] " );
-        
-        # if we have non-zero equalities, add them
-        eqs := cone!.equalities;
-        if ( Length( eqs ) > 0 ) then
-            eqs := List( [ 1 .. Length( eqs ) ], i -> ReplacedString( ReplacedString( ReplacedString( String( eqs[ i ] ), ",", "" ), "[ ", "" ), " ]", "" ) );
-            command_string := Concatenation( command_string, ", EQUATIONS = [ ", JoinStringsWithSeparator( eqs, "; " ), " ] " );
-        fi;
-        
-        # return command string
-        return Concatenation( command_string, ")" );
-        
 end );

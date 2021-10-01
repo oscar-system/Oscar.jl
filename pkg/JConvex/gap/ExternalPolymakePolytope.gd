@@ -148,22 +148,3 @@ DeclareProperty( "Polymake_IsBounded", IsPolymakePolytope );
 #! @Description
 #! The output is the intersection of P1 and P2.
 DeclareOperation( "Polymake_Intersection", [ IsPolymakePolytope, IsPolymakePolytope ] );
-
-
-##############################################################################################
-##
-#! @Section Command strings
-##
-##############################################################################################
-
-#! @Arguments C
-#! @Returns a string
-#! @Description
-#! Returns the string which, when executed in Julia, constructs the polytope in question as H-representation.
-DeclareOperation( "Polymake_H_Rep_command_string", [ IsPolymakePolytope ] );
-
-#! @Arguments C
-#! @Returns a string
-#! @Description
-#! Returns the string which, when executed in Julia, constructs the polytope in question as V-representation.
-DeclareOperation( "Polymake_V_Rep_command_string", [ IsPolymakePolytope ] );

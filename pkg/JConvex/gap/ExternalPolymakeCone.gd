@@ -153,22 +153,3 @@ DeclareProperty( "Polymake_IsPointed", IsPolymakeCone );
 #! @Description
 #! Returns the Polymake cone that defines the intersection of the two cones.
 DeclareOperation( "Polymake_Intersection", [ IsPolymakeCone, IsPolymakeCone ] );
-
-
-##############################################################################################
-##
-#! @Section Command strings
-##
-##############################################################################################
-
-#! @Arguments C
-#! @Returns a string
-#! @Description
-#! Returns the string which, when executed in Julia, constructs the cone in question as H-representation.
-DeclareOperation( "Polymake_H_Rep_command_string", [ IsPolymakeCone ] );
-
-#! @Arguments C
-#! @Returns a string
-#! @Description
-#! Returns the string which, when executed in Julia, constructs the cone in question as V-representation.
-DeclareOperation( "Polymake_V_Rep_command_string", [ IsPolymakeCone ] );
