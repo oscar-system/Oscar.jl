@@ -68,6 +68,8 @@ jobs:
             using Pkg
             Pkg.develop(PackageSpec(path=pwd()))
             Pkg.instantiate()'
+      - name: "Add Polymake for doctests" # FIXME: this is a workaround and should be removed eventually
+        run: julia --color=yes -e 'using Pkg ; Pkg.add(["Polymake"])'
       - name: "Run doctests"
         run: |
           julia --project=docs --color=yes test/doctest.jl
