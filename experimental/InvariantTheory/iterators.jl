@@ -66,7 +66,7 @@ function Base.iterate(AM::AllMonomials, s::Vector{Int})
 end
 
 function Base.show(io::IO, AM::AllMonomials)
-  print(io, "Iterator over the monomials of degree $(AM.d) of\n")
+  println(io, "Iterator over the monomials of degree $(AM.d) of")
   print(io, AM.R)
 end
 
@@ -181,7 +181,7 @@ Base.eltype(BI::InvRingBasisIterator) = elem_type(polynomial_ring(BI.R))
 Base.length(BI::InvRingBasisIterator) = BI.dim
 
 function Base.show(io::IO, BI::InvRingBasisIterator)
-  print(io, "Iterator over a basis of the component of degree $(BI.degree) of\n")
+  println(io, "Iterator over a basis of the component of degree $(BI.degree) of")
   print(io, BI.R)
 end
 
