@@ -9,6 +9,7 @@ const pm = Polymake
     Cone2 = Cone(R, L)
     Cone3 = Cone(R, L; non_redundant=true)
     Cone4 = positive_hull(R)
+    Cone5 = positive_hull([1 0 0; 1 1 0; 1 1 1; 1 0 1])
 
     @testset "core functionality" begin
         @test ispointed(Cone1)
@@ -24,6 +25,8 @@ const pm = Polymake
         @test facets(Halfspace, Cone1).A == [-1 0; 0 -1]
         @test facets(Cone, Cone1) isa HalfspaceIterator{Cone}
         @test facets(Cone1) isa HalfspaceIterator{Halfspace}
+        @test linear_span(Cone4) isa HalfspaceIterator{Hyperplane}
+        @test linear_span(Cone4).A == [0 1 0] && linear_span(Cone4).b == [0]
 
         @test !ispointed(Cone2)
         @test !ispointed(Cone3)
@@ -45,10 +48,19 @@ const pm = Polymake
         @test faces(Cone, Cone2, 2).lineality == [0 1 0]
         @test faces(Cone2, 2) isa PolyhedronOrConeIterator{Cone}
         @test isnothing(faces(Cone2, 1))
+
+        @test f_vector(Cone5) == [4, 4]
+        @test f_vector(Cone2) == [0, 2]
+        @test lineality_dim(Cone5) == 0
+        @test lineality_dim(Cone2) == 1
+
+        @test nfacets(Cone5) == 4
     end
 
     @testset "constructors" begin
         @test cone_from_inequalities([-1 0 0; 0 0 -1]) == Cone2
-        @test cone_from_inequalities([-1 0 0; 0 0 -1]; non_redundant = false) == Cone2
+        @test cone_from_inequalities([-1 0 0; 0 0 -1]; non_redundant = true) == Cone2
+        @test cone_from_inequalities(facets(Cone4), linear_span(Cone4)) == Cone4
+        @test cone_from_inequalities(facets(Cone4), linear_span(Cone4); non_redundant = true) == Cone4
     end
 end

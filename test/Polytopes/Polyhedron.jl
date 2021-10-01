@@ -11,6 +11,8 @@
     square = cube(2)
     C1 = cube(2, 0, 1)
     Pos = Polyhedron([-1 0 0; 0 -1 0; 0 0 -1], [0,0,0])
+    # TODO
+    # @test Polyhedron(([-1 0 0; 0 -1 0; 0 0 -1], [0,0,0]); non_redundant = true) == Pos
     L = Polyhedron([-1 0 0; 0 -1 0], [0,0])
     point = convex_hull([0 1 0])
     s = simplex(2)
@@ -29,6 +31,7 @@
         @test intersect(Q0, Q0) == Q0
         @test Q0+Q0 == minkowski_sum(Q0, Q0)
         @test f_vector(Pos) == [1,3,3]
+        @test f_vector(L) == [0, 1, 2]
         @test codim(square) == 0
         @test codim(point) == 3
         @test !isfulldimensional(point)
@@ -49,6 +52,12 @@
         @test facets(Halfspace, Pos) isa HalfspaceIterator{Halfspace}
         @test facets(Pair, Pos) isa HalfspaceIterator{Pair{Polymake.Matrix{Polymake.Rational}, Polymake.Rational}}
         @test facets(Pos) isa HalfspaceIterator{Halfspace}
+        @test affine_hull(point) isa HalfspaceIterator{Hyperplane}
+        @test affine_hull(point).A == [1 0 0; 0 1 0; 0 0 1] && affine_hull(point).b == [0, 1, 0]
+        @test nfacets(square) == 4
+        @test lineality_dim(Q0) == 0
+        @test nrays(Q1) == 1
+        @test lineality_dim(Q2) == 1
     end
 
     @testset "linear programs" begin

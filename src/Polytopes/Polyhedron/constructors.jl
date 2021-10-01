@@ -35,13 +35,18 @@ julia> Polyhedron(A,b)
 A polyhedron in ambient dimension 2
 ```
 """
-function Polyhedron(A::Union{Oscar.MatElem,AbstractMatrix}, b)
-    Polyhedron(Polymake.polytope.Polytope{Polymake.Rational}(
-        INEQUALITIES = matrix_for_polymake(remove_zero_rows([b -A])),
-    ))
-end
+Polyhedron(A::Union{Oscar.MatElem,AbstractMatrix}, b) = Polyhedron((A, b))
 
-Polyhedron(H::HalfspaceIterator) = Polyhedron(H.A, H.b)
+function Polyhedron(I::Union{HalfspaceIterator, Tuple{<:Union{Oscar.MatElem, AbstractMatrix}, Any}}, E::Union{Nothing, HalfspaceIterator, Tuple{<:Union{Oscar.MatElem, AbstractMatrix}, Any}} = nothing; non_redundant::Bool = false)
+    IM = -affine_matrix_for_polymake(I)
+    EM = isnothing(E) || _isempty_halfspace(E) ? Polymake.Matrix{Polymake.Rational}(undef, 0, size(IM, 2)) : affine_matrix_for_polymake(E)
+
+    if non_redundant
+        return Polyhedron(Polymake.polytope.Polytope{Polymake.Rational}(FACETS = IM, AFFINE_HULL = EM))
+    else
+        return Polyhedron(Polymake.polytope.Polytope{Polymake.Rational}(INEQUALITIES = IM, EQUATIONS = EM))
+    end
+end
 
 """
     pm_polytope(P::Polyhedron)
@@ -115,8 +120,8 @@ A polyhedron in ambient dimension 2
 function convex_hull(V::Union{VectorIterator{PointVector}, AnyVecOrMat, Oscar.MatElem}, R::Union{VectorIterator{RayVector}, AnyVecOrMat, Oscar.MatElem, Nothing} = nothing, L::Union{VectorIterator{RayVector}, AnyVecOrMat, Oscar.MatElem, Nothing} = nothing; non_redundant::Bool = false)
     # we access the matrices which polymake can work with.
     VM = matrix_for_polymake(V)
-    RM = isnothing(R) ? Polymake.Matrix{Polymake.Rational}(undef, 0, size(VM, 2)) : matrix_for_polymake(R)
-    LM = isnothing(L) ? Polymake.Matrix{Polymake.Rational}(undef, 0, size(VM, 2)) : matrix_for_polymake(L)
+    RM = isnothing(R) || isempty(R) ? Polymake.Matrix{Polymake.Rational}(undef, 0, size(VM, 2)) : matrix_for_polymake(R)
+    LM = isnothing(L) || isempty(L) ? Polymake.Matrix{Polymake.Rational}(undef, 0, size(VM, 2)) : matrix_for_polymake(L)
 
     # Rays and Points are homogenized and combined and
     # Lineality is homogenized
