@@ -25,19 +25,31 @@ BindGlobal( "TheFamilyOfPolymakeCones", NewFamily( "TheFamilyOfPolymakeCones" ) 
 BindGlobal( "TheTypeOfPolymakeCone", NewType( TheFamilyOfPolymakeCones, IsPolymakeConeRep ) );
 
 BindGlobal( "MakePolymakeConeVRep", function( rays, lineality )
-    return Objectify( TheTypeOfPolymakeCone,
+    local cone;
+    cone := Objectify( TheTypeOfPolymakeCone,
             rec( rays := Immutable( rays ),
                  lineality := Immutable( lineality ),
                  number_type := "rational",
                  rep_type := "V-rep" ) );
+
+    if Length(rays) = 0 and Length(lineality) = 0 then
+        cone!.pmobj := _Polymake_jl.polytope.Cone();
+    else
+        cone!.pmobj := JuliaEvalString( Polymake_V_Rep_command_string( cone ) );
+    fi;
+    return cone;
 end);
 
 BindGlobal( "MakePolymakeConeHRep", function( inequalities, equalities )
-    return Objectify( TheTypeOfPolymakeCone,
+    local cone;
+    cone := Objectify( TheTypeOfPolymakeCone,
             rec( inequalities := Immutable( inequalities ),
                  equalities := Immutable( equalities ),
                  number_type := "rational",
                  rep_type := "H-rep" ) );
+
+    cone!.pmobj := JuliaEvalString( Polymake_H_Rep_command_string( cone ) );
+    return cone;
 end);
 
 

@@ -25,19 +25,27 @@ BindGlobal( "TheFamilyOfPolymakePolytopes", NewFamily( "TheFamilyOfPolymakePolyt
 BindGlobal( "TheTypeOfPolymakePolytope", NewType( TheFamilyOfPolymakePolytopes, IsPolymakePolytopeRep ) );
 
 BindGlobal( "MakePolymakePolytopeVRep", function( vertices, lineality )
-    return Objectify( TheTypeOfPolymakePolytope,
+    local poly;
+    poly := Objectify( TheTypeOfPolymakePolytope,
             rec( vertices := Immutable( vertices ),
                  lineality := Immutable( lineality ),
                  number_type := "rational",
                  rep_type := "V-rep" ) );
+
+    poly!.pmobj := JuliaEvalString( Polymake_V_Rep_command_string( poly ) );
+    return poly;
 end);
 
 BindGlobal( "MakePolymakePolytopeHRep", function( inequalities, equalities )
-    return Objectify( TheTypeOfPolymakePolytope,
+    local poly;
+    poly := Objectify( TheTypeOfPolymakePolytope,
             rec( inequalities := Immutable( inequalities ),
                  equalities := Immutable( equalities ),
                  number_type := "rational",
                  rep_type := "H-rep" ) );
+
+    poly!.pmobj := JuliaEvalString( Polymake_H_Rep_command_string( poly ) );
+    return poly;
 end);
 
 
