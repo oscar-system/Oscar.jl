@@ -128,7 +128,7 @@ Construct the normal toric variety whose fan has ray generators `r` and maximal 
 # Examples
 ```jldoctest
 julia> NormalToricVariety( [-1 5; 0 1; 1 0; 0 -1], [[1,2],[2,3],[3,4],[4,1]] )
-NormalToricVariety(GAP: <A toric variety of dimension 2>, Polymake.BigObjectAllocated(Ptr{Nothing} @0x0000561365a4f3d0))
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 ```
 """
 function NormalToricVariety( rays::Matrix{Int}, cones::Vector{Vector{Int}} )
@@ -167,7 +167,7 @@ Construct the projective space of dimension `d`.
 # Examples
 ```jldoctest
 julia> projective_space( 2 )
-NormalToricVariety(GAP: <A projective toric variety of dimension 2>, Polymake.BigObjectAllocated(Ptr{Nothing} @0x0000562fbcc21b70))
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 ```
 """
 function projective_space( d::Int )
@@ -188,7 +188,7 @@ Constructs the r-th Hirzebruch surface.
 # Examples
 ```jldoctest
 julia> hirzebruch_surface( 5 )
-NormalToricVariety(GAP: <A toric variety of dimension 2>, Polymake.BigObjectAllocated(Ptr{Nothing} @0x0000562fbcc21b70))
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 ```
 """
 function hirzebruch_surface( r::Int )
@@ -207,7 +207,7 @@ Constructs the delPezzo surface with b blowups for b at most 3.
 # Examples
 ```jldoctest
 julia> del_pezzo( 3 )
-NormalToricVariety(GAP: <A toric variety of dimension 2>, Polymake.BigObjectAllocated(Ptr{Nothing} @0x0000562fbcc21b70))
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 ```
 """
 function del_pezzo( b::Int )

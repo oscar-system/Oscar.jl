@@ -566,7 +566,7 @@ Compute the direct product of the normal toric varieties `v` and `w`.
 # Examples
 ```jldoctest
 julia> projective_space( 2 ) * projective_space( 2 )
-NormalToricVariety(GAP: <A projective toric variety of dimension 4 which is a product of 2 toric varieties>, Polymake.BigObjectAllocated(Ptr{Nothing} @0x00005645a1a00930))
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 4
 ```
 """
 function Base.:*( v::AbstractNormalToricVariety, w::AbstractNormalToricVariety )

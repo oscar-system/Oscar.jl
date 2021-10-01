@@ -162,7 +162,7 @@ end
     @test JToric.isample( D2 ) == false
     @test JToric.isvery_ample( D2 ) == false
     @test JToric.isnef( D2 ) == true
-    D3 = divisor_of_class( H5, [ 1,2 ] )
+    D3 = divisor_of_class( [ 1,2 ], H5 )
     @test JToric.iscartier( D3 ) == true
     @test JToric.isprincipal( D3 ) == false
     @test JToric.is_primedivisor( D3 ) == false

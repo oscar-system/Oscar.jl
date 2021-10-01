@@ -25,7 +25,7 @@ Construct the torus invariant divisor on the normal toric variety `v` as linear 
 # Examples
 ```jldoctest
 julia> ToricDivisor( [1,1,2], projective_space( 2 ) )
-toric_divisor(GAP: <A divisor of a toric variety with coordinates ( 1, 1, 2 )>)
+A torus invariant divisor on a normal toric variety
 ```
 """
 function ToricDivisor( coeffs::AbstractVector, v::AbstractNormalToricVariety )
@@ -51,7 +51,7 @@ Construct the torus invariant divisor on the normal toric variety `v` correspond
 # Examples
 ```jldoctest
 julia> divisor_of_character( [1,2], projective_space( 2 ) )
-toric_divisor(GAP: <A principal divisor of a toric variety with coordinates ( -3, 2, 1 )>)
+A torus invariant divisor on a normal toric variety
 ```
 """
 function divisor_of_character( character::Vector{Int}, v::AbstractNormalToricVariety )
@@ -65,17 +65,17 @@ end
 export divisor_of_character
 
 @doc Markdown.doc"""
-    divisor_of_class( v::AbstractNormalToricVariety, c::Vector{Int} )
+    divisor_of_class(class::AbstractVector, v::AbstractNormalToricVariety)
 
 Construct a torus invariant divisor on the normal toric variety `v` corresponding to the divisor class `c`.
 
 # Examples
 ```jldoctest
 julia> divisor_of_class( [1], projective_space( 2 ) )
-toric_divisor(GAP: <A divisor of a toric variety with coordinates ( 1, 0, 0 )>)
+A torus invariant divisor on a normal toric variety
 ```
 """
-function divisor_of_class( v::AbstractNormalToricVariety, class::Vector{Int} )
+function divisor_of_class(class::AbstractVector, v::AbstractNormalToricVariety)
     # create the divisor
     gap_class = GapObj( class )
     gap_divisor = GAP.Globals.DivisorOfGivenClass( v.GapNTV, gap_class )
