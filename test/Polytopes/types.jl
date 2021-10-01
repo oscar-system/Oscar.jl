@@ -76,10 +76,10 @@
 
         @test A != B
 
-        @test A.a == a'
+        @test A.a == a
         @test A.b == 0
 
-        @test B.a == b'
+        @test B.a == b
         @test B.b == 2
 
     end

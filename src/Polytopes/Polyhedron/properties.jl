@@ -770,9 +770,9 @@ julia> print_constraints(cube(3))
 """
 print_constraints(P::Polyhedron; trivial::Bool = false, io::IO = stdout) = print_constraints(halfspace_matrix_pair(facets(P))...; trivial = trivial, io = io)
 
-print_constraints(H::Halfspace; trivial::Bool = false, io::IO = stdout) = print_constraints(H.a, [H.b]; trivial = trivial, io = io)
+print_constraints(H::Halfspace; trivial::Bool = false, io::IO = stdout) = print_constraints(vcat(H.a'), [H.b]; trivial = trivial, io = io)
 
-print_constraints(H::Hyperplane; trivial::Bool = false, io::IO = stdout) = print_constraints(H.a, [H.b]; trivial = trivial, io = io, cmp = "=")
+print_constraints(H::Hyperplane; trivial::Bool = false, io::IO = stdout) = print_constraints(vcat(H.a'), [H.b]; trivial = trivial, io = io, cmp = "=")
 
 function Base.show(io::IO, H::Halfspace)
     n = length(H.a)

@@ -89,11 +89,11 @@ One halfspace `H(a,b)` is given by a vector `a` and a value `b` such that
 $$H(a,b) = \{ x | ax ≤ b \}.$$
 """
 struct Halfspace
-    a::Polymake.Matrix{Polymake.Rational}
+    a::Polymake.Vector{Polymake.Rational}
     b::Polymake.Rational
 end
 
-Halfspace(a::AbstractVector, b) = Halfspace(reshape(a, 1, :), b)
+Halfspace(a::Union{MatElem, AbstractMatrix}, b=0) = Halfspace(vec(a), b)
 
 Halfspace(a) = Halfspace(a, 0)
 
@@ -104,11 +104,11 @@ One hyperplane `H(a,b)` is given by a vector `a` and a value `b` such that
 $$H(a,b) = \{ x | ax = b \}.$$
 """
 struct Hyperplane
-    a::Polymake.Matrix{Polymake.Rational}
+    a::Polymake.Vector{Polymake.Rational}
     b::Polymake.Rational
 end
 
-Hyperplane(a::AbstractVector, b) = Hyperplane(reshape(a, 1, :), b)
+Hyperplane(a::Union{MatElem, AbstractMatrix}, b) = Hyperplane(vec(a), b)
 
 Hyperplane(a) = Hyperplane(a, 0)
 
