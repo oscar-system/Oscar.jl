@@ -7,7 +7,7 @@ using Oscar
 ```
 
 ```@contents
-Pages = ["pg_polyhedra_polymake.md"]
+Pages = ["polymake.md"]
 ```
 
 

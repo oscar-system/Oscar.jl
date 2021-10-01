@@ -6,7 +6,8 @@ import Oscar: Hecke, AbstractAlgebra, GAP
 using Oscar: SLPolyRing, SLPoly, SLPolynomialRing
 
 export galois_group, transitive_group_identification, slpoly_ring, elementary_symmetric,
-       power_sum, to_elementary_symmetric, cauchy_ideal, galois_ideal, fixed_field
+       power_sum, to_elementary_symmetric, cauchy_ideal, galois_ideal, fixed_field,
+       extension_field
 
 import Hecke: orbit, fixed_field
 
@@ -56,11 +57,30 @@ function check_parent(a::BoundRingElem, b::BoundRingElem)
 end
 
 Base.:(==)(a::BoundRingElem, b::BoundRingElem) = check_parent(a, b) && a.val == b.val
-+(a::BoundRingElem, b::BoundRingElem) = check_parent(a, b) && BoundRingElem(a.p.add(a.val, b.val), a.p)
+function +(a::BoundRingElem, b::BoundRingElem) 
+  check_parent(a, b) 
+  c = BoundRingElem(a.p.add(a.val, b.val), a.p)
+#  @show a, "+", b, "=", c
+  return c
+end
 -(a::BoundRingElem, b::BoundRingElem) = check_parent(a, b) && BoundRingElem(a.p.add(a.val, b.val), a.p)
-*(a::BoundRingElem, b::BoundRingElem) = check_parent(a, b) && BoundRingElem(a.p.mul(a.val, b.val), a.p)
-*(a::fmpz, b::BoundRingElem) = BoundRingElem(b.p.mul(b.p.map(a), b.val), b.p)
-^(a::BoundRingElem, b::Int) = BoundRingElem(a.p.pow(a.val, b), a.p)
+function *(a::BoundRingElem, b::BoundRingElem) 
+  check_parent(a, b) 
+  c = BoundRingElem(a.p.mul(a.val, b.val), a.p)
+#  @show a, "*", b, ":=", c
+  return c
+end
+
+function *(a::fmpz, b::BoundRingElem) 
+  c = BoundRingElem(b.p.mul(b.p.map(a), b.val), b.p)
+#  @show a, ":*", b, ":=", c
+  return c
+end
+function ^(a::BoundRingElem, b::Int) 
+  c = BoundRingElem(a.p.pow(a.val, b), a.p)
+#  @show a, ":^", b, ":=", c
+  return c
+end
 -(a::BoundRingElem) = a
 
 Oscar.parent(a::BoundRingElem) = a.p
@@ -72,10 +92,11 @@ Oscar.elem_type(::BoundRing{T}) where T = BoundRingElem{T}
 Oscar.parent_type(::Type{BoundRingElem{T}}) where T = BoundRing{T}
 Oscar.elem_type(::Type{BoundRing{T}}) where T = BoundRingElem{T}
 
-(R::BoundRing)(a::fmpz) = BoundRingElem(R.map(abs(a)), R)
-(R::BoundRing)(a::Integer) = BoundRingElem(fmpz(a), R)
-(R::BoundRing)() = BoundRingElem(fmpz(0), R)
-(R::BoundRing)(a::BoundRingElem) = a
+(R::BoundRing{T})(a::fmpz) where T = BoundRingElem{T}(R.map(abs(a)), R)
+(R::BoundRing{T})(a::Integer) where T = BoundRingElem{T}(fmpz(a), R)
+(R::BoundRing{T})() where T = BoundRingElem{T}(fmpz(0), R)
+(R::BoundRing{T})(a::T) where T = BoundRingElem{T}(a, R)
+(R::BoundRing{T})(a::BoundRingElem{T}) where T = a
 Oscar.one(R::BoundRing) = R(1)
 Oscar.zero(R::BoundRing) = R(0)
 
@@ -95,8 +116,8 @@ end
 """
 Normal ring
 """
-function add_ring()
-  return BoundRing{fmpz}( (x,y) -> x*y, (x,y) -> x+y, (x,y) -> x^y, x->abs(x), "add-ring")
+function add_ring(;type::Type=fmpz)
+  return BoundRing{type}( (x,y) -> x*y, (x,y) -> x+y, (x,y) -> x^y, x->abs(x), "add-ring")
 end
 
 #roots rt are power series sum a_n x^n
@@ -109,9 +130,12 @@ function qt_ring()
                                                 x -> _coerce_qt(x), "qt-ring")
 end
 
-_coerce_qt(x::fmpz) = (x, 0, fmpq(0))
+_coerce_qt(x::fmpz) = (abs(x), 0, fmpq(0))
 _coerce_qt(x::Integer) = (fmpz(x), 0, fmpq(0))
 function _coerce_qt(x::fmpz_poly)
+  if iszero(x)
+    return (fmpz(0), 0, fmpq(0))
+  end
   return (maximum(abs, coefficients(x))*(degree(x)+1), 0, fmpq(0))
 end
 
@@ -182,11 +206,11 @@ Oscar.addeq!(a::BoundRingElem, b::BoundRingElem) = a+b
 
 #my 1st invariant!!!
 @doc Markdown.doc"""
-    sqrt_disc(a::Vector{<:Any})
+    sqrt_disc(a::Vector)
 
 The product of differences ``a[i] - a[j]`` for all indices ``i<j``.    
 """
-function sqrt_disc(a::Vector{<:Any})
+function sqrt_disc(a::Vector)
   if length(a) == 1
     return one(parent(a[1]))
   end
@@ -200,7 +224,7 @@ Evaluates the `i`-th elementary symmetric polynomial at the values in `g`.
 The `i`-th elementary symmetric polynomial is the sum over all
 products of `i` distinct variables.
 """
-function elementary_symmetric(g::Vector{<:Any}, i::Int)
+function elementary_symmetric(g::Vector, i::Int)
   return sum(prod(g[i] for i = s) for s = Hecke.subsets(Set(1:length(g)), i))
 end
 
@@ -210,7 +234,7 @@ end
 Evaluates the `i`-th power sums at the values in `g`, ie. the sum
 of the `i`-th power of the values.
 """
-function power_sum(g::Vector{<:Any}, i::Int)
+function power_sum(g::Vector, i::Int)
   return sum(a^i for a = g)
 end
 
@@ -333,7 +357,10 @@ mutable struct GaloisCtx{T}
     - needs merging in Hecke
   =#
 
-  function GaloisCtx(f::fmpz_mpoly, p::Int, d::Int)
+  function GaloisCtx(f::fmpz_mpoly, shft::Int, p::Int, d::Int)
+    f = evaluate(f, [gen(parent(f), 1), gen(parent(f), 2)+shft])
+    #f(x, T+t), the roots are power series in T over qAdic(p, d)
+    #so basically for f in Qq<<(T+t)>> 
     @assert ngens(parent(f)) == 2
     Qq, _ = QadicField(p, d, 10)
     F, mF = ResidueField(Qq)
@@ -349,9 +376,10 @@ mutable struct GaloisCtx{T}
     r.C = HQ
     #r.B = more complicated: needs degree (inf. val.) bound as well as coeffs
     r.chn = Tuple{PermGroup, SLPoly, fmpz_poly, Vector{PermGroupElem}}[]
+    
     vl = roots_upper_bound(f)
     r.B = qt_ring()(vl[1])
-    r.data = vl[2]
+    r.data = [vl[2], shft]
     return r
   end
 end
@@ -362,9 +390,12 @@ function Oscar.prime(C::GaloisCtx{Hecke.MPolyFact.HenselCtxFqRelSeries{Generic.R
   return prime(base_ring(base_ring(C.C.lf[1])))
 end
 
-function bound_to_precision(G::GaloisCtx{T}, B::BoundRingElem{Tuple{fmpz, Int, fmpq}}) where {T}
+function bound_to_precision(G::GaloisCtx{T}, B::BoundRingElem{Tuple{fmpz, Int, fmpq}}, extra=(5, 2)) where {T}
+  if isa(extra, Int)
+    extra = (extra, min(2, div(extra, 3)))
+  end
   C, k, d = B.val
-  r = G.data
+  r = G.data[1]
   #so power series prec need to be floor(Int, d)
   n = floor(fmpz, d+1)
   #padic: we ne |a_i| for i=0:n and |a_i| <= C (i+1)^k/r^i
@@ -373,19 +404,19 @@ function bound_to_precision(G::GaloisCtx{T}, B::BoundRingElem{Tuple{fmpz, Int, f
   if isone(r)
     b = C*(n+1)^k
   else
-    c = floor(Int, k/log(r)-1)
+    c = max(1, floor(Int, k/log(r)-1))
     if n<c
       b = C*(n+1)^k//r^n
     else
-      b = maximum(C*(c+1)^k//r^c, C*(c+2)^k//r^(c+1))
+      b = max(C*(c+1)^k//r^c, C*(c+2)^k//r^(c+1))
     end
   end
   b = max(b, fmpz(1))
-  return (clog(floor(fmpz, b), prime(G)), Int(n))
+  return (clog(floor(fmpz, b), prime(G))+extra[1], Int(n)+extra[2])
 end
 
-function bound_to_precision(G::GaloisCtx{T}, B::BoundRingElem{fmpz}) where {T}
-  return clog(B.val, G.C.p)
+function bound_to_precision(G::GaloisCtx{T}, B::BoundRingElem{fmpz}, extra::Int = 5) where {T}
+  return clog(B.val, G.C.p)+extra
 end
 
 function Nemo.roots_upper_bound(f::fmpz_mpoly, t::Int = 0)
@@ -426,7 +457,7 @@ p-adic digits, thus they are correct modulo ``p^pr``
 For non-monic polynomials they roots are scaled by the leading coefficient.
 The bound in the `GaloisCtx` is also adjusted.
 """
-function Hecke.roots(G::GaloisCtx{Hecke.qAdicRootCtx}, pr::Int; raw::Bool = false)
+function Hecke.roots(G::GaloisCtx{Hecke.qAdicRootCtx}, pr::Int=5; raw::Bool = false)
   a = Hecke.roots(G.C, pr)::Vector{qadic}
   if raw
     return Hecke.expand(a, all = true, flat = false, degs = Hecke.degrees(G.C.H))::Vector{qadic}
@@ -434,8 +465,10 @@ function Hecke.roots(G::GaloisCtx{Hecke.qAdicRootCtx}, pr::Int; raw::Bool = fals
     return leading_coefficient(G.f) .* Hecke.expand(a, all = true, flat = false, degs = Hecke.degrees(G.C.H))::Vector{qadic}
   end
 end
-
-function Hecke.roots(G::GaloisCtx{<:Hecke.MPolyFact.HenselCtxFqRelSeries}, pr; raw::Bool = false)
+function Hecke.setprecision(a::Generic.RelSeries, p::Int)
+  b = parent(a)(a.coeffs, min(length(a.coeffs), p), p+valuation(a), valuation(a))
+end
+function Hecke.roots(G::GaloisCtx{<:Hecke.MPolyFact.HenselCtxFqRelSeries}, pr::Tuple{Int, Int} = (5, 2); raw::Bool = false)
   C = G.C
   while precision(C)[1] < pr[1]
     Hecke.MPolyFact.lift_q(C)
@@ -443,18 +476,10 @@ function Hecke.roots(G::GaloisCtx{<:Hecke.MPolyFact.HenselCtxFqRelSeries}, pr; r
   while precision(C)[2] < pr[2]
     Hecke.MPolyFact.lift(C)
   end
-  return [-coeff(x, 0) for x = C.lf[1:C.n]]
+  rt = [-coeff(x, 0) for x = C.lf[1:C.n]]
+  rt = map(y->map_coefficients(x->setprecision(x, pr[1]), setprecision(y, pr[2]), parent = parent(y)), rt)
+  return rt
 end
-#=
-too simplistic. RootCtx computes roots in F_q[[t]], but currently not
-in Q_q[[t]]
-
-function Hecke.roots(G::GaloisCtx{Main.MPolyFact.RootCtx}, pr::Int)
-  a = Main.MPolyFact.root(G.C, 1, 1)
-  return a
-end
-=#
-
 
 @doc Markdown.doc"""
     upper_bound(G::GaloisCtx, f...)
@@ -477,6 +502,7 @@ in `G` will first be transformed.
 function upper_bound end
 
 function upper_bound(G::GaloisCtx, f)
+#  @show :eval, f, G.B, degree(G.f)
   return Oscar.evaluate(f, [G.B for i=1:degree(G.f)])
 end
 
@@ -886,23 +912,27 @@ function resolvent(C::GaloisCtx, G::PermGroup, U::PermGroup, extra::Int = 5)
   I = invariant(G, U)
   t = right_transversal(G, U)
   n = length(t)
-  rt = roots(C, 5)
+  rt = roots(C)
   #make square-free (in residue field)
   k, mk = ResidueField(parent(rt[1]))
   k_rt = map(mk, rt)
   ts = find_transformation(k_rt, I, t)
 
   B = 2*n*evaluate(I, map(ts, [C.B for i = 1:ngens(parent(I))]))^n
-  rt = roots(C, clog(value(B), C.C.p)+extra)
+  rt = roots(C, bound_to_precision(C, B, extra))
   rt = map(ts, rt)
   rt = [evaluate(I^s, rt) for s = t]
   pr = copy(rt)
-  ps = fmpq[isinteger(C, B, sum(pr))[2]]
+  ps = [isinteger(C, B, sum(pr))[2]]
   while length(ps) < n
     pr .*=  rt
     push!(ps, isinteger(C, B, sum(pr))[2])
   end
-  return Hecke.power_sums_to_polynomial(ps)
+  if isa(ps[1], fmpz)
+    return Hecke.power_sums_to_polynomial(map(fmpq, ps))
+  else
+    return Hecke.power_sums_to_polynomial(ps)
+  end
 end
 
 struct GroupFilter
@@ -998,6 +1028,59 @@ function Base.pop!(D::DescentEnv, i::Int)
   D.l[i] = 1
 end
 
+function sum_orbits(K, Qt_to_G, r)
+  @vprint :GaloisGroup 1 "group is primitive (no subfields), trying operations on pairs\n"
+
+  #starting group as the stabilizer of the factorisation of the 2-sum poly,
+  #the polynomial with roots r_i + r_j, i<j
+  #we need this square-free, so we compute this over the finite field
+  #actually, we only check that the roots over the finite field are distinct.
+  #if not: transform (using ts) and try again.
+  
+  k = parent(r[1])
+  m = Dict{typeof(r[1]), Tuple{Int, Int}}()
+  local ts = gen(Hecke.Globals.Zx)
+  c = r
+  while true
+    for i=1:length(r)-1
+      for j=i+1:length(r)
+        m[c[i]+c[j]] = (i,j)
+      end
+    end
+    if length(keys(m)) < binomial(degree(K), 2)
+      @vprint :GaloisGroup 2 " 2-sum: found duplicate, transforming...\n"
+      while true
+        ts = rand(Hecke.Globals.Zx, 2:degree(K), -4:4)
+        if degree(ts) > 1
+          break
+        end
+      end
+      c = map(ts, r)
+      empty!(m)
+    else
+      break
+    end
+  end
+
+  @vprint :GaloisGroup 1 "have everything, now getting the 2-sum poly\n"
+  if gen(Hecke.Globals.Zx) == ts
+    @vtime :GaloisGroup 2 g = msum_poly(defining_polynomial(K), 2) #if f has roots a_i, then g has roots a_i+a_j, if G is 2-transitive, this is pointless.
+  else
+    @vtime :GaloisGroup 2 g = msum_poly(minpoly(ts(gen(K))), 2)
+  end
+  @vprint :GaloisGroup 1 "... factoring...\n"
+  @vtime :GaloisGroup 2 fg  = factor(g)
+  @assert all(isone, values(fg.fac))
+
+  O = []
+  for f = keys(fg.fac)
+    r = roots(map_coefficients(Qt_to_G, f))
+    push!(O, [m[x] for x = r])
+  end
+  @vprint :GaloisGroup 2 "partitions: $O\n"
+  return O
+end
+
 @doc Markdown.doc"""
     starting_group(GC::GaloisCtx, K::AnticNumberField) 
 
@@ -1072,6 +1155,7 @@ function starting_group(GC::GaloisCtx, K::AnticNumberField; useSubfields::Bool =
     bs = minimal_elements(L)
     @vprint :GaloisGroup 1 "group will have (maximal) block systems: $([x[1] for x = bs])\n"
   end
+  GC.start = bs
 
   d = map(frobenius, c)
   si = [findfirst(y->y==x, c) for x = d]
@@ -1102,59 +1186,14 @@ function starting_group(GC::GaloisCtx, K::AnticNumberField; useSubfields::Bool =
 
   if length(bs) == 0 #primitive case: no subfields, no blocks, primitive group!
     push!(F, isprimitive)
-    @vprint :GaloisGroup 1 "group is primitive (no subfields), trying operations on pairs\n"
-
-    #starting group as the stabilizer of the factorisation of the 2-sum poly,
-    #the polynomial with roots r_i + r_j, i<j
-    #we need this square-free, so we compute this over the finite field
-    #actually, we only check that the roots over the finite field are distinct.
-    #if not: transform (using ts) and try again.
-    
     k, mk = ResidueField(parent(c[1]))
-    m = Dict{fq_nmod, Tuple{Int, Int}}()
-    local ts = gen(Hecke.Globals.Zx)
-    while true
-      cc = map(mk, c)
-      for i=1:length(c)-1
-        for j=i+1:length(c)
-          m[cc[i]+cc[j]] = (i,j)
-        end
-      end
-      if length(keys(m)) < binomial(degree(K), 2)
-        @vprint :GaloisGroup 2 " m-sum: found duplicate, transforming...\n"
-        while true
-          ts = rand(Hecke.Globals.Zx, 2:degree(K), -4:4)
-          if degree(ts) > 1
-            break
-          end
-        end
-        c = map(ts, roots(GC, 5))
-        empty!(m)
-      else
-        break
-      end
-    end
-
-    @vprint :GaloisGroup 1 "have everything, now getting the 2-sum poly\n"
-    if gen(Hecke.Globals.Zx) == ts
-      @vtime :GaloisGroup 2 g = msum_poly(K.pol, 2) #if f has roots a_i, then g has roots a_i+a_j, if G is 2-transitive, this is pointless.
-    else
-      @vtime :GaloisGroup 2 g = msum_poly(minpoly(ts(gen(K))), 2)
-    end
-    @vprint :GaloisGroup 1 "... factoring...\n"
-    @vtime :GaloisGroup 2 fg  = factor(g)
-    @assert all(isone, values(fg.fac))
-
-    O = []
-    for f = keys(fg.fac)
-      r = roots(f, k)
-      push!(O, [m[x] for x = r])
-    end
+    O = sum_orbits(K, k, map(mk, c))
+    GC.data = O
+    
     #the factors define a partitioning of pairs, the stabiliser of this
     #partition is the largest possible group...
     #code from Max...
 
-    @vprint :GaloisGroup 2 "partitions: $O\n"
     #TODO: wrap this properly
     G = Oscar._as_subgroup(G, GAP.Globals.Solve(GAP.julia_to_gap(vcat(GAP.Globals.ConInGroup(G.X), [GAP.Globals.ConStabilize(GAP.julia_to_gap(sort(o), Val(true)), GAP.Globals.OnSetsSets) for o in O]))))[1]
     #@show G = intersect([stabilizer(G, GAP.julia_to_gap(sort(o), Val(true)), GAP.Globals.OnSetsSets)[1] for o=O]...)[1]
@@ -1261,9 +1300,14 @@ The group is returned as an explicit permutation group permuting the roots as co
 in the contex object (the 2nd return value). The roots live in a suitable unramifed
 extension of the p-adics.
 """
-function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = true, pStart::Int = 2*degree(K))
+function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = true, pStart::Int = 2*degree(K), prime::Int = 0)
 
-  p, ct = find_prime(K.pol, pStart = pStart)
+  if prime != 0
+    p = prime
+    ct = Vector{Int}[]
+  else
+    p, ct = find_prime(K.pol, pStart = pStart)
+  end
 
   # TODO: detect A_n/S_n here, handle separately
 
@@ -1440,7 +1484,7 @@ end
 =#
 
 #TODO: use above as well.
-function isinteger(GC::GaloisCtx, B, e)
+function isinteger(GC::GaloisCtx, B::BoundRingElem{fmpz}, e)
   p = GC.C.p
   if e.length<2
     l = coeff(e, 0)
@@ -1455,6 +1499,26 @@ function isinteger(GC::GaloisCtx, B, e)
     return false, fmpz(0)
   end
 end
+
+#TODO: also allow for
+# p-adic, q-adic
+# all locals
+# finite fields
+# rel. ext
+# ...
+function extension_field(f::fmpz_poly, n::String = "_a"; cached::Bool = true, check::Bool = true)
+  return NumberField(f, n, cached = cached, check = check)
+end
+function extension_field(f::fmpq_poly, n::String = "_a"; cached::Bool = true, check::Bool = true)
+  return NumberField(f, n, cached = cached, check = check)
+end
+
+function extension_field(f::Generic.Poly{Generic.Rat{T}}, n::String = "_a";  cached::Bool = true, check::Bool = true) where {T}
+  return FunctionField(f, n, cached = cached)
+end
+
+Hecke.function_field(f::Generic.Poly{Generic.Rat{T}}, n::String = "_a";  cached::Bool = true, check::Bool = true) where {T} = FunctionField(f, n, cached = cached)
+
 
 @doc Markdown.doc"""
 Finds a Tschirnhausen transformation, ie a polynomial in `Zx` s.th.
@@ -1472,7 +1536,7 @@ function find_transformation(r, I::SLPoly, T::Vector{PermGroupElem})
       return ts
     end
     while true
-      ts = rand(Zx, 2:length(r), -4:4)
+      ts = rand(Zx, 2:rand(2:max(2, length(r))), -4:4) #TODO: try smaller degrees stronger
       if degree(ts) > 0
         break
       end
@@ -1501,7 +1565,7 @@ function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
   # G = cup U b, U = cup V a, so G = V a b
   ts = [gen(Hecke.Globals.Zx) for i = I]
   tv  = [right_transversal(c[i], c[i+1]) for i=1:length(c)-1]
-  r = roots(GC, 5)
+  r = roots(GC, bound_to_precision(GC, GC.B))
   k, mk = ResidueField(parent(r[1]))
   r = map(mk, r)
   mu = ones(Int, length(I))
@@ -1514,6 +1578,7 @@ function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
   else
     a = evaluate(I[1], map(ts[1], gens(parent(I[1]))))
   end
+
   for j=2:length(I)
     local nc, rt
     ts[j] = find_transformation(r, I[j], tv[j])
@@ -1536,28 +1601,36 @@ function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
       end
       mu[j] += 1
     end
-    a = mu[j]*a+b
+    if iszero(mu[j])
+      a = b
+    else
+      a = mu[j]*a+b
+    end
   end
   @vprint :GaloisGroup 2  "have primitive element via $mu \n$a\n"
 
   B = upper_bound(GC, a)
   m = length(T)
+  B = m*B^m
 
-  @vtime :GaloisGroup 2 r = roots(GC, clog(2*value(m*B^m), GC.C.p)+extra)
+  @vtime :GaloisGroup 2 r = roots(GC, bound_to_precision(GC, B, extra))
   compile!(a)
   @vtime :GaloisGroup 2 conj = [evaluate(a, t, r) for t = T]
 
-  B = 2*m*B^m
-
-  ps = fmpq[isinteger(GC, B, sum(conj))[2]]
+  fl, val = isinteger(GC, B, sum(conj))
+  @assert fl
+  ps = [val]
   d = copy(conj)
   while length(ps) < m
 #    @show length(ps)
     @vtime :GaloisGroup 2 d .*= conj
-    push!(ps, isinteger(GC, B, sum(d))[2])
+    fl, val = isinteger(GC, B, sum(d))
+    @assert fl
+    push!(ps, val)
   end
+  ps = map(base_ring(GC.f), ps)
 
-  k = number_field(Hecke.power_sums_to_polynomial(ps), check = false, cached = false)[1]
+  k = extension_field(Hecke.power_sums_to_polynomial(ps), check = false, cached = false)[1]
   @assert all(x->isone(denominator(x)), coefficients(k.pol))
   @assert ismonic(k.pol)
   return k
@@ -1573,7 +1646,7 @@ function cauchy_ideal(f::fmpz_poly; parent::MPolyRing = PolynomialRing(QQ, degre
   return cauchy_ideal(f(gen(Hecke.Globals.Qx)), parent=parent)
 end
 
-function cauchy_ideal(f::fmpq_poly; parent::MPolyRing = PolynomialRing(QQ, degree(f), cached = false)[1])
+function cauchy_ideal(f::PolyElem{<:FieldElem}; parent::MPolyRing = PolynomialRing(base_ring(f), degree(f), cached = false)[1])
   x = gens(parent)
   n = degree(f)
   f = f(x[n])
@@ -1600,7 +1673,7 @@ function galois_ideal(C::GaloisCtx, extra::Int = 5)
     c = maximal_subgroup_chain(symmetric_group(n), C.chn[1][1])
   end
 
-  r = roots(C, 5)
+  r = roots(C, bound_to_precision(C, C.B))
   k, mk = ResidueField(parent(r[1]))
   r = map(mk, r)
 
@@ -1609,7 +1682,7 @@ function galois_ideal(C::GaloisCtx, extra::Int = 5)
     T = right_transversal(c[i+1], c[i])
     ts = find_transformation(r, I, T)
     B = upper_bound(C, I, ts)
-    r = roots(C, clog(2*value(B), C.C.p)+extra)
+    r = roots(C, bound_to_precision(C, B))
     r = map(ts, r)
     compile!(I)
     for t = T
@@ -1623,7 +1696,7 @@ function galois_ideal(C::GaloisCtx, extra::Int = 5)
   end
   for (_, I, ts, T) = C.chn
     B = upper_bound(C, I, ts)
-    r = roots(C, clog(2*value(B), C.C.p)+extra)
+    r = roots(C, bound_to_precision(C, B, extra))
     r = map(ts, r)
     compile!(I)
     for t = T
@@ -1633,7 +1706,7 @@ function galois_ideal(C::GaloisCtx, extra::Int = 5)
       push!(id, v-evaluate(I, t, x))
     end
   end
-  return id
+  return ideal(id)
 end
 
 #TODO copied from MPolyFact in Hecke....
@@ -1732,7 +1805,7 @@ end
 using .GaloisGrp
 export galois_group, transitive_group_identification, slpoly_ring, elementary_symmetric,
        power_sum, to_elementary_symmetric, cauchy_ideal, galois_ideal, fixed_field, 
-       maximal_subgroup_reps
+       maximal_subgroup_reps, extension_field
        
 #=
        M12: 2-transitive, hence msum is a waste

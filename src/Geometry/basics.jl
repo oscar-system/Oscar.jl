@@ -87,7 +87,7 @@ Nemo.base_ring(P::ProjSpc) = P.R
 Base.getindex(a::ProjSpcElem, i::Int) = a.v[i+1]
 Base.setindex!(a::ProjSpcElem, v, i::Int) = a.v[i+1] = v
 
-function (P::ProjSpc)(a::Vector{<:Any})
+function (P::ProjSpc)(a::Vector)
   R = base_ring(P)
   @assert length(a) == dim(P)+1
   return ProjSpcElem(P, elem_type(R)[R(x) for x = a])

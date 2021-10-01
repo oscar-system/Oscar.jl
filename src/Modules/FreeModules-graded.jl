@@ -391,7 +391,7 @@ mutable struct FreeModuleHom_dec{T1, T2} <: Map_dec{T1, T2}
   header::MapHeader
   Hecke.@declare_other
 
-  function FreeModuleHom_dec(F::FreeModule_dec{T}, G::S, a::Vector{<:Any}) where {T, S}
+  function FreeModuleHom_dec(F::FreeModule_dec{T}, G::S, a::Vector) where {T, S}
 #    @assert isfiltered(F) || all(ishomogeneous, a) #neccessary and suffient according to Hans XXX
 #same as non-homogeneous elements are required, this too must not be enforced
     @assert all(x->parent(x) == G, a)
@@ -781,8 +781,8 @@ end
 
 mutable struct SubQuoHom_dec{T1, T2} <: Map_dec{T1, T2}
   header::Hecke.MapHeader
-  im::Vector{<:Any}
-  function SubQuoHom_dec(D::SubQuo_dec, C::ModuleFP_dec, im::Vector{<:Any})
+  im::Vector
+  function SubQuoHom_dec(D::SubQuo_dec, C::ModuleFP_dec, im::Vector)
     first = true
     @assert length(im) == ngens(D)
     @assert all(x-> parent(x) == C, im)
@@ -865,7 +865,7 @@ function coordinates(a::FreeModuleElem_dec, SQ::SubQuo_dec)
 end
 
 
-hom(D::SubQuo_dec, C::ModuleFP_dec, A::Vector{<:Any}) = SubQuoHom_dec(D, C, A)
+hom(D::SubQuo_dec, C::ModuleFP_dec, A::Vector) = SubQuoHom_dec(D, C, A)
 
 function image(f::SubQuoHom_dec, a::SubQuoElem_dec)
   i = zero(codomain(f))

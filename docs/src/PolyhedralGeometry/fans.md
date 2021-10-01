@@ -7,7 +7,7 @@ using Oscar
 ```
 
 ```@contents
-Pages = ["pg_fans.md"]
+Pages = ["fans.md"]
 ```
 
 # Polyhedral Fans
