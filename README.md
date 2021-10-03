@@ -1,7 +1,7 @@
 # JToric
 
 [![Docs](https://img.shields.io/badge/docs-latest-blue.svg)](https://oscar-system.github.io/JToric.jl/dev)
-[![CI](https://github.com/oscar-system/JToric.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/HereAround/JToric/actions/workflows/CI.yml)
+[![CI](https://github.com/oscar-system/JToric.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/oscar-system/JToric.jl/actions/workflows/CI.yml)
 [![codecov](https://codecov.io/gh/oscar-system/JToric.jl/branch/master/graph/badge.svg?token=z9gKk5v3O6)](https://codecov.io/gh/oscar-system/JToric.jl)
 
 
