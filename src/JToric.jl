@@ -41,7 +41,8 @@ Please mention this number in any bug report.
 const version = IS_DEV ? VersionNumber("$(VERSION_NUMBER)-dev") : VERSION_NUMBER
 
 # include files
-include("ToricVarieties.jl")
+include("NormalToricVarieties/constructors.jl")
+include("NormalToricVarieties/properties.jl")
 include("ToricDivisors.jl")
 include("AttributesAndMethods.jl")
 
