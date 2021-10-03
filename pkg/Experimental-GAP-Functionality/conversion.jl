@@ -15,11 +15,10 @@ function ntv_gap2polymake(GapNTV::GapObj)
     MC = GAP.Globals.RaysInMaximalCones(ff)
     rays = Matrix{Int}(R)
     cones = [findall(x->x!=0, vec) for vec in [[e for e in mc] for mc in MC]]
-    Incidence = Oscar.IncidenceMatrix(cones)
-    arr = @Polymake.convert_to Array{Set{Int}} Polymake.common.rows(Incidence.pm_incidencematrix)
+    Incidence = Polymake.IncidenceMatrix(cones)
     pmntv = Polymake.fulton.NormalToricVariety(
         RAYS = Oscar.matrix_for_polymake(rays),
-        MAXIMAL_CONES = arr,
+        MAXIMAL_CONES = Incidence,
     )
     return pmntv
 end
