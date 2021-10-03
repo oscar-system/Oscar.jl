@@ -43,35 +43,45 @@ end
 export euler_characteristic
 
 
-struct NefCone
-           polymakeNefCone::Polymake.BigObject
-end
-export NefCone
-
 """
     nef_cone( v::NormalToricVariety )
 
 Computes the nef cone of the normal toric variety `v`.
+
+# Examples
+```jldoctest
+julia> pp = projective_space(2)
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+
+julia> nef = nef_cone(pp)
+A polyhedral cone in ambient dimension 1
+
+julia> dim(nef)
+1
+```
 """
-function nef_cone( v::NormalToricVariety )
-    return NefCone( v.polymakeNTV.NEF_CONE )
-end
+nef_cone( v::NormalToricVariety ) = Cone( v.polymakeNTV.NEF_CONE )
 export nef_cone
 
-
-struct MoriCone
-           polymakeNefCone::Polymake.BigObject
-end
-export MoriCone
 
 """
     mori_cone( v::NormalToricVariety )
 
 Computes the mori cone of the normal toric variety `v`.
+
+# Examples
+```jldoctest
+julia> pp = projective_space(2)
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+
+julia> mori = mori_cone(pp)
+A polyhedral cone in ambient dimension 1
+
+julia> dim(mori)
+1
+```
 """
-function mori_cone( v::NormalToricVariety )
-    return MoriCone( v.polymakeNTV.MORI_CONE )
-end
+mori_cone( v::NormalToricVariety ) = Cone( v.polymakeNTV.MORI_CONE )
 export mori_cone
 
 

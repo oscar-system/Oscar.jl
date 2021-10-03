@@ -2,7 +2,6 @@
 # 4: Properties
 ######################
 
-
 @doc Markdown.doc"""
     isnormal( v::AbstractNormalToricVariety )
 
