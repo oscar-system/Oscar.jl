@@ -4,7 +4,7 @@
 ###############################################################################
 ###############################################################################
 @doc Markdown.doc"""
-    birkhoff(n::Integer, even::Bool=0, group::Bool=0)
+    birkhoff(n::Integer, even::Bool = false, group::Bool = false)
 
 Construct the Birkhoff polytope of dimension $n^2$.
 
@@ -31,15 +31,15 @@ julia> vertices(b)
  [0, 0, 1, 0, 1, 0, 1, 0, 0]
 ```
 """
-function birkhoff(n::Integer; even::Bool=false, group::Bool=false)
-   pm_out = Polymake.polytope.birkhoff(n, even=even, group=group)
+function birkhoff(n::Integer; even::Bool = false, group::Bool = false)
+   pm_out = Polymake.polytope.birkhoff(n, Int(even), group=group)
    return Polyhedron(pm_out)
 end
 
 
 
 @doc Markdown.doc"""
-    pyramid(P::Polyhedron, z::Number=1, no_coordinates::Bool, no_labels::Bool, group::Bool)
+    pyramid(P::Polyhedron, z::Number = 1, group::Bool = false)
 
 Make a pyramid over the given polyhedron `P`.
 
@@ -48,9 +48,8 @@ outside the affine span of `P`. For bounded polyhedra, the projection of `v` to
 the affine span of `P` coincides with the vertex barycenter of `P`. The scalar z
 is the distance between the vertex barycenter and v, its default value is 1.
 
-Use `no_coordinate = true` and `no_label = true` in order to suppress the
-computation of vertex coordinates and vertex labels. Use `group = true`, to
-compute the group induced by the GROUP of `P`and leaving the apex fixed.
+Use `group = true`, to compute the group induced by the GROUP of `P`and leaving
+the apex fixed.
 
 # Example
 ```jldoctest
@@ -66,9 +65,9 @@ julia> vertices(pyramid(c,5))
  [0, 0, 5]
 ```
 """
-function pyramid(P::Polyhedron, z::Number=1; no_coordinates::Bool=false, no_labels::Bool=false, group::Bool=false)
+function pyramid(P::Polyhedron, z::Number=1; group::Bool=false)
    pm_in = pm_polytope(P)
-   pm_out = Polymake.polytope.pyramid(pm_in, z, no_coordinates=no_coordinates, no_labels=no_labels, group=group)
+   pm_out = Polymake.polytope.pyramid(pm_in, z, group=group)
    return Polyhedron(pm_out)
 end
 #TODO For `group` option: Check if there is already a way to communicate the
@@ -77,7 +76,7 @@ end
 
 
 @doc Markdown.doc"""
-    bipyramid(P::Polyhedron, z::Number=1, z_prime::Number=-z, no_coordinates::Bool, no_labels::Bool)
+    bipyramid(P::Polyhedron, z::Number = 1, z_prime::Number = -z)
 
 Make a bipyramid over a pointed polyhedron `P`.
 
@@ -86,56 +85,25 @@ The bipyramid is the convex hull of the input polyhedron `P` and two apexes (`v`
 polyhedra, the projections of the apexes `v` to the affine span of `P` is the
 vertex barycenter of `P`.
 
-Use `no_coordinate = true` and `no_label = true` in order to suppress the
-computation of vertex coordinates and vertex labels.
-
 # Example
 ```jldoctest
-julia> c = cube(1)
-A polyhedron in ambient dimension 1
+julia> c = cube(2)
+A polyhedron in ambient dimension 2
 
-julia> bipyramid(c,3).pm_polytope
-type: Polytope<Rational>
-description: Bipyramid over
+julia> vertices(bipyramid(c,2))
+6-element VectorIterator{PointVector{Polymake.Rational}}:
+ [-1, -1, 0]
+ [1, -1, 0]
+ [-1, 1, 0]
+ [1, 1, 0]
+ [0, 0, 2]
+ [0, 0, -2]
 
-CONE_AMBIENT_DIM
-	3
-
-N_VERTICES
-	4
-
-VERTEX_LABELS
-	0 1 Apex Apex'
-
-VERTICES
-  1  -1   0
-  1   1   0
-  1   0   3
-  1   0  -3
-
-VERTICES_IN_FACETS
-	{0 2}
-	{1 2}
-	{0 3}
-	{1 3}
-
-julia> bipyramid(c,2,-3,no_labels=true,no_coordinates=true).pm_polytope
-type: Polytope<Rational>
-description: Bipyramid over
-
-N_VERTICES
-	4
-
-VERTICES_IN_FACETS
-	{0 2}
-	{1 2}
-	{0 3}
-	{1 3}
 ```
 """
-function bipyramid(P::Polyhedron, z::Number=1, z_prime::Number=-z; no_coordinates::Bool=false, no_labels::Bool=false)
+function bipyramid(P::Polyhedron, z::Number=1, z_prime::Number=-z)
    pm_in = pm_polytope(P)
-   pm_out = Polymake.polytope.bipyramid(pm_in, z, z_prime, no_coordinates=no_coordinates, no_labels=no_labels)
+   pm_out = Polymake.polytope.bipyramid(pm_in, z, z_prime)
    return Polyhedron(pm_out)
 end
 
