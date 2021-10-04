@@ -267,3 +267,43 @@ function on_indeterminates(f::Nemo.MPolyElem, s::PermGroupElem)
 end
 
 ^(f::Nemo.MPolyElem, p::PermGroupElem) = on_indeterminates(f, p)
+
+
+#############################################################################
+##
+##  natural stabilizers in permutation groups
+
+function stabilizer(G::PermGroup, pnt::T) where T <: Oscar.IntegerUnion
+    return Oscar._as_subgroup(G, GAP.Globals.Stabilizer(G.X, GAP.GapObj(pnt), GAP.Globals.OnPoints))
+end
+
+function stabilizer(G::PermGroup, pnt::Vector{T}) where T <: Oscar.IntegerUnion
+    return Oscar._as_subgroup(G, GAP.Globals.Stabilizer(G.X, GAP.GapObj(pnt), GAP.Globals.OnTuples))
+end
+
+function stabilizer(G::PermGroup, pnt::Set{T}) where T <: Oscar.IntegerUnion
+    pnt = [x for x in pnt]
+    sort!(pnt)
+    return Oscar._as_subgroup(G, GAP.Globals.Stabilizer(G.X, GAP.GapObj(pnt), GAP.Globals.OnSets))
+end
+
+
+#############################################################################
+##
+##  natural stabilizers in matrix groups
+
+function stabilizer(G::MatrixGroup{ET,MT}, pnt::AbstractAlgebra.Generic.FreeModuleElem{ET}) where {ET,MT}
+    img = GAP.GapObj(G.ring_iso.(pnt.v))[1]
+    return Oscar._as_subgroup(G, GAP.Globals.Stabilizer(G.X, img, GAP.Globals.OnRight))
+end
+
+function stabilizer(G::MatrixGroup{ET,MT}, pnt::Vector{AbstractAlgebra.Generic.FreeModuleElem{ET}}) where {ET,MT}
+    img = GAP.GapObj([GAP.GapObj(G.ring_iso.(x.v))[1] for x in pnt])
+    return Oscar._as_subgroup(G, GAP.Globals.Stabilizer(G.X, img, GAP.Globals.OnRight))
+end
+
+function stabilizer(G::MatrixGroup{ET,MT}, pnt::Set{AbstractAlgebra.Generic.FreeModuleElem{ET}}) where {ET,MT}
+    img = GAP.GapObj([GAP.GapObj(G.ring_iso.(x.v))[1] for x in pnt])
+    GAP.Globals.Sort(img)
+    return Oscar._as_subgroup(G, GAP.Globals.Stabilizer(G.X, img, GAP.Globals.OnSets))
+end
