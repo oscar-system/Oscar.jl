@@ -247,6 +247,7 @@ include("Groups/MatrixDisplay.jl")
 
 include("Rings/integer.jl")
 include("Rings/rational.jl")
+include("Rings/orderings.jl")
 include("Rings/mpoly.jl")
 include("Rings/mpoly-graded.jl")
 include("Rings/mpoly-ideals.jl")

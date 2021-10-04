@@ -74,8 +74,8 @@ end
   @test collect(monomials(f, :negdegrevlex)) == [ x*y, z^3 ]
 
   w = [ 1, 2, 1 ]
-  @test collect(monomials(f, :weightlex, w)) == [ x*y, z^3 ]
-  @test collect(monomials(f, :weightrevlex, w)) == [ x*y, z^3 ]
+  @test collect(monomials(f, :wlex, w)) == [ x*y, z^3 ]
+  @test collect(monomials(f, :wrevlex, w)) == [ x*y, z^3 ]
 
   M = [ 1 1 1; 1 0 0; 0 1 0 ]
   @test collect(monomials(f, M)) == collect(monomials(f, :deglex))
