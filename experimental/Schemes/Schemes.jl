@@ -12,7 +12,7 @@ include( "./Misc.jl" )
 using Oscar.Misc
 
 export AffineScheme, Spec, SpecPrincipalOpen
-export base_ring, ambient_ring, defining_ideal, imgs_frac, pullback, pullback_from_parent, pullback_from_root, inclusion_in_parent, inclusion_in_root, set_name!, inverted_element, identity_morphism, denoms, inverses
+export base_ring, ambient_ring, defining_ideal, imgs_frac, pullback, pullback_from_parent, pullback_from_root, inclusion_in_parent, inclusion_in_root, set_name!, inverted_element, identity_morphism, denoms, inverses, divide_by_units
 export affine_space, localize, subscheme
 
 export AffSchMorphism
@@ -302,6 +302,19 @@ function localize(X::AffineScheme{S,T,U}, f::U; loc_var_name="t" ) where {S,T,U}
 end
 
 @Markdown.doc """
+    localize(X::AffineScheme{S,T,U}, v::Vector{U}; loc_var_name="t" ) where {S,T,U}
+
+Apply `localize(X,f)` recursively to the list of functions f in v.
+"""
+function localize(X::AffineScheme{S,T,U}, v::Vector{U}; loc_var_name="t" ) where {S,T,U}
+  D = X
+  for f in v 
+    D = localize(D, f, loc_var_name)
+  end
+  return D
+end
+
+@Markdown.doc """
     function parent(S::AffineScheme)
 
 Return the parent of S in the tree structure for Spec and SpecPrincipalOpen.
@@ -417,6 +430,31 @@ function root_variables( D::SpecPrincipalOpen )
   return [ phi(x) for x in gens(ambient_ring(root(D))) ]
 end
   
+@Markdown.doc """
+    divide_by_units( h::ElemTypeAmbientRing, 
+        D::SpecPrincipalOpen{BaseRingType,AmbientRingType,ElemTypeAmbientRing}
+      ) where {
+        BaseRingType<:Ring, AmbientRingType<:Ring, ElemTypeAmbientRing
+      }
+
+Takes a multivariate polynomial h = ∑ₖ pₖ⋅uᵏ in the ambient ring R[f⁻¹] ≅ R[u]/⟨1-u⋅f⟩
+and writes it as h = uᵈ⋅p with p ∈ R for some d ∈ ℕ₀. It then returns the triple
+(f, d, p).
+"""
+function divide_by_units( h::ElemTypeAmbientRing, D::SpecPrincipalOpen{BaseRingType,AmbientRingType,ElemTypeAmbientRing}) where {BaseRingType<:Ring, AmbientRingType<:Ring, ElemTypeAmbientRing}
+  parent(h) == ambient_ring(D) || error("polynomial does not belong to the ambient ring of the scheme")
+  X = root(D)
+  R = ambient_ring(X) 
+  R_f = ambient_ring(D) 
+  vars = gens(R_f)
+  f = prod(div_denoms(D))
+  p_k = coefficients(h, length(vars)) # assume the last variable is the one used for Rabinowitsch's trick.
+  p = zero(R_f)
+  for a in p_k
+    p = p*pullback_from_root(D)(f) + a
+  end
+  return (f, length(p_k)-1, evaluate(p, push!(gens(R), zero(R))))
+end
 
 
 # Setter functions
@@ -480,6 +518,29 @@ function denoms(D::SpecPrincipalOpen{S,T,U}) where {S <: Ring, T <: MPolyRing, U
   result = U[]
   P = D
   while typeof(P) <: SpecPrincipalOpen
+    # Make sure that the denominators are collected in the same manner 
+    # as the variables for the inverses appear.
+    push!( result, P.denom )
+    P = parent(P)
+  end
+  return result
+end 
+
+@Markdown.doc """
+    denoms_up_to(D::SpecPrincipalOpen{S,T,U}, X::AffineScheme{S,T,U}) where {
+	S <: Ring, T <: MPolyRing, U<:MPolyElem}
+
+Returns the list of functions that have been localized in D compared to X, assuming 
+X is a parent of D in the localization tree. 
+"""
+function denoms_up_to(D::SpecPrincipalOpen{S,T,U}, X::AffineScheme{S,T,U}) where {
+	S <: Ring, T <: MPolyRing, U<:MPolyElem}
+  result = U[]
+  P = D
+  while D != X
+    if typeof(D)<:Spec 
+      error( "the second argument is not a parent of the first" )
+    end
     # Make sure that the denominators are collected in the same manner 
     # as the variables for the inverses appear.
     push!( result, P.denom )
@@ -1144,6 +1205,39 @@ function compose( f::AffSchMorphism, g::AffSchMorphism )
 end
 
 @Markdown.doc """
+    function inverse( f::AffSchMorphism )
+
+Computes the inverse morphism of f, assuming that f is an isomorphism 
+in the first place. 
+"""
+function inverse( f::AffSchMorphism )
+  if isdefined(f, :inverse)
+    return f.inverse
+  end
+
+  X = domain(f)
+  Y = codomain(f)
+  R = ambient_ring(X)
+  I = defining_ideal(X)
+  x_vars = gens(R)
+  S = ambient_ring(Y)
+  J = defining_ideal(Y)
+  y_vars = gens(S)
+  phi = pullback(f)
+  RmodI, proj_R = quo(R, I)
+  SmodJ, proj_S = quo(S, J)
+  phi_bar = AlgebraHomomorphism(SmodJ, RmodI, [proj_R(x) for x in phi.image])
+  @assert isinjective(phi_bar) "the associated algebra homomorphism is not injective"
+  @assert issurjective(phi_bar) "the associated algebra homomorphism is not surjective"
+  x_preim = [ preimage(phi_bar, x)[1] for x in gens(RmodI) ]
+  phi_inv = AlgebraHomomorphism( R, S, [lift(f) for f in x_preim])
+  f_inv = AffSchMorphism(Y, X, phi_inv)
+  f.inverse = f_inv
+  f_inv.inverse = f
+  return f_inv
+end
+
+@Markdown.doc """
     mutable struct Glueing
 
 Glueing of two affine schemes X and Y along principal open subsets 
@@ -1157,6 +1251,9 @@ mutable struct Glueing
   inclusionFirstPatch::AffSchMorphism
   inclusionSecondPatch::AffSchMorphism
   glueingIsomorphism::AffSchMorphism
+
+  # field used for caching
+  inverse::Glueing
 
   function Glueing( 
       inclusionFirstPatch, 
@@ -1245,6 +1342,68 @@ of the two patches. These two realizations come from considering U ∩ V as a
 localization of both either U and of V.
 """
 glueing_isomorphism( G::Glueing ) = G.glueingIsomorphism
+
+@Markdown.doc """
+    function inverse(G::Glueing)
+
+Provides the 'inverse glueing' meaning that the the inverse of the 
+glueing map on the overlap of the two patches is used. 
+The result is cached in the inverse field.
+"""
+function inverse(G::Glueing)
+  if isdefined(G, :inverse) 
+    return G.inverse
+  end
+
+  G_inv = Glueing( second_inclusion(G), first_inclusion(G), inverse(glueing_isomorphism(G)))
+  G.inverse = G_inv
+  G_inv.inverse = G
+  return G_inv
+end
+
+@Markdown.doc """
+    function restict(G::Glueing, U::AffineScheme, V::AffineScheme)
+
+For a glueing G : X ↩ X ∩ Y ↪ Y and two principal open subsets U ⊂ X and V ⊂ Y 
+this computes the induced glueing U ↩ U ∩ V ↪ V of U and V. 
+"""
+function restict(G::Glueing, U::AffineScheme, V::AffineScheme)
+  X = first_patch(G)
+  Y = first_patch(G)
+  is_parent_of(X, U) || error( "The first argument is not a principal open subset of the first patch of the glueing" )
+  is_parent_of(Y, V) || error( "The second argument is not a principal open subset of the second patch of the glueing" )
+  i = first_inclusion(G)
+  j = second_inclusion(G)
+  phi = glueing_isomorphism(G)
+  denoms_U = denoms_up_to(U, X)
+  denoms_V = denoms_up_to(V, Y) 
+  phi_inv = inverse(phi)
+  denoms_V_in_U = Vector{elem_type(ambient_ring(root(U)))}()
+  
+  U_loc = localize( U, [pullback(phi)(d) for d in denoms_V])
+  V_loc = localize( V, [pullback(phi_inv)(d) for d in denoms_U])
+  return Glueing( restrict(inclusion_in_root(U_loc), U_loc, U), 
+		 restrict(inclusion_in_root(V_loc), V_loc, V), 
+		 restriction( phi, U_loc, V_loc ) )
+end
+
+@Markdown.doc """
+    function compose(G::Glueing, H::Glueing)
+
+For two glueings G : X ↩ X ∩ Y ↪ Y and H : Y ↩ Y ∩ Z ↪ Z this computes the 
+induced glueing G ∘ H : X ∩ Y ↩ X ∩ Y ∩ Z ↪  Y ∩ Z.
+"""
+function compose(G::Glueing, H::Glueing)
+  X = first_patch(G)
+  Y = second_patch(G)
+  Y == first_patch(H) || error( "glueings can not be composed." )
+  Z = second_patch(H)
+  XnY = domain(first_inclusion(G))
+  YnZ = domain(first_inclusion(H))
+  error( "not implemented, yet" )
+end
+
+
 
 @Markdown.doc """
     function Base.show( io::Base.IO, G::Glueing )
@@ -1738,10 +1897,10 @@ end
 Construct projective space ℙₖⁿ over the ring k as a covered 
 scheme with its standard open cover.
 """
-function projective_space( k::Ring, n::Int )
+function projective_space( k::Ring, n::Int; var_name="s" )
   # Start the standard covering with the first patch for x_0 ≠ 0.
   # println( "assembling $n-dimensional projective space over $k." )
-  X0 = affine_space(k,n)
+  X0 = affine_space(k,n, var_name=var_name)
   set_name!( X0, "𝔸^$(n)_0" )
   C = Covering(X0)
   # Add the other patches successively
@@ -1749,7 +1908,7 @@ function projective_space( k::Ring, n::Int )
     # println("Variable in the outer loop j = $j")
     # The patch for x_j ≠ 0
     # println("Glueing in the following new patch:")
-    Y = affine_space( k, n )
+    Y = affine_space( k, n, var_name=var_name )
     set_name!(Y,"𝔸^$(n)_$(j)")
     # come up with the glueings
     G = Vector{Glueing}()
@@ -2647,3 +2806,60 @@ function projectivize( E::VectorBundle; fiber_var_name="u" )
   error( "Not implemented, yet" )
 end
 
+@Markdown.doc """
+    projective_bundle_on_IP1(k::FieldType, a::Vector{Int}) where {FieldType<:Field}
+
+Construct the bundle ℙ(𝒪(a₀)⊕𝒪(a₁)⊕ … ⊕ 𝒪(aᵣ)) → ℙₖ¹ as a CoveredScheme. 
+"""
+function projective_bundle_on_IP1(k::FieldType, a::Vector{Int}) where {FieldType<:Field}
+  C = Covering()
+  r = length(a)-1
+  U = cartesian_product(affine_space(k,1,var_name="s"), projective_space(k,r,var_name="x"))
+  V = cartesian_product(affine_space(k,1,var_name="t"), projective_space(k,r,var_name="x"))
+  # Collect the 'diagonal' glueings
+  diag_glueings = Vector{Glueing}()
+  for i in (1:r+1)
+    R_U = ambient_ring(U[i])
+    s = gens(R_U)[1]
+    U_loc = localize(U[i], s)
+    R_V = ambient_ring(V[i])
+    t = gens(R_V)[1]
+    V_loc = localize(V[i], s)
+    imgs_frac = [ 1//s ]
+    imgs_frac = vcat(imgs_frac, [gens(R_U)[j+1]*(a[j]-a[i]>0 ? (1//s)^(a[j]-a[i]) : 1//(1//s)^(a[i]-a[j])) for j in (1:i-1)])
+    imgs_frac = vcat(imgs_frac, [gens(R_U)[j+1]*(a[j]-a[i]>0 ? (1//s)^(a[j]-a[i]) : 1//(1//s)^(a[i]-a[j])) for j in (i+1:r)])
+    phi = AffSchMorphism(U_loc, V_loc, imgs_frac)
+    push!(diag_glueings, Glueing(inclusion_in_parent(U_loc), inclusion_in_parent(V_loc), phi))
+  end
+  # Now collect all the other glueings
+  overall_glueings = Vector{Glueing}()
+  G_U = glueings(covering(U)[1])
+  G_V = glueings(covering(V)[1])
+  for i in (1:r+1)
+    R_Ui = ambient_ring(U[i])
+    s = gens(R_Ui)[1]
+    Ui_loc = localize(U[i], s)
+    for j in (1:j-1) # in this range we have to use the inverse glueings on the other side.
+      xj = gens(R_Ui)[j+1] # +1 for the base variable.
+      Uij_loc = localize(Ui_loc, xj)
+      g_U = inverse(G_U[j,i]) # the glueing of U[i] with U[j] for i>j, as is the case here.
+      R_Vi = ambient_ring(V[i])
+      t = gens(R_Vi)[1]
+      Vi_loc = localize(V[i], t)
+      yi = gens(R_Vi)[i+1]
+      Vij_loc = localize(Vi_loc, yi)
+
+      R_Vj = ambient_ring(V[j])
+      t = gens(R_V)[1]
+      Vj_loc = localize(V[j], s)
+      y = gens(R_V)[i+1]
+      U_lloc = localize(U_loc, x)
+      V_lloc = localize(V_loc, y)
+      #phi = restrict(glueing_isomorphism(diag_glueings[i]), U_lloc, V_lloc
+      #push!(overall_glueings, Glueing( inclusion_in_root(U_lloc, V_lloc, compose(
+    end
+    push!(overall_glueings, diag_glueings[i])
+    for j in (j+1:r+1)
+    end
+  end
+end

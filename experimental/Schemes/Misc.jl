@@ -246,4 +246,30 @@ function diag( d::Vector )
   return D
 end
 
+@Markdown.doc """
+    as_polynomial_in(f::MPolyElem{BaseRingType}, u::Symbol) where {BaseRingType}
+
+Assumes that `f` is a polynomial in a free polynomial ring 𝕜[x₁,…,xₙ], with `u` being 
+one of the variables, say, u=xⱼ. It then returns f as a polynomial in 𝕜[x₁,…,xⱼ₋₁,xⱼ₊₁,…,xₙ][u].
+"""
+function as_polynomial_in(f::MPolyElem{BaseRingType}, u::MPolyElem{BaseRingType}) where {BaseRingType}
+  error( "not implemented, yet" )
+end
+
+@Markdown.doc """
+    split_polynomial_ring(R::MPolyRing{BaseRingType}, u::Vector{MPolyElem{BaseRingType}}) where {
+        BaseRingType}
+
+Assumes that the elements in `u` are generators of the free polynomial ring R over a base
+ring 𝕜 of type BaseRingType and writes R as a tower of polynomial rings R ≅ (𝕜[x₁,…,xᵣ])[u₁,…,uₙ]. 
+The involved maps are:
+  * ι : 𝕜[x₁,…,xᵣ] ↪ (𝕜[x₁,…,xᵣ])[u₁,…,uₙ]
+  * ϕ : R → (𝕜[x₁,…,xᵣ])[u₁,…,uₙ]
+  * ϕ⁻¹: (𝕜[x₁,…,xᵣ])[u₁,…,uₙ] → R
+  * π : (𝕜[x₁,…,xᵣ])[u₁,…,uₙ] → (𝕜[x₁,…,xᵣ])[u₁,…,uₙ]/⟨u₁,…,uₙ⟩ ≅ 𝕜[x₁,…,xᵣ]
+"""
+function split_polynomial_ring(R::MPolyRing{BaseRingType}, u::Vector{MPolyElem{BaseRingType}}) where {BaseRingType}
+  error( "not implemented, yet" )
+end
+
 end # of module
