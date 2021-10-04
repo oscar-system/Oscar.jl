@@ -874,5 +874,49 @@ the smallest integer $n$ such that `G` has a central series of length $n$.
 An exception is thrown if `G` is not nilpotent.
 """ nilpotency_class(G::GAPGroup)
 
-#
+@doc Markdown.doc"""
+    describe(G::GAPGroup)
+
+Return a string that describes some aspects of the structure of `G`.
+
+This works well if `G` is an abelian group or a finite simple group
+or a group in one of the following series:
+symmetric, dihedral, quasidihedral, generalized quaternion,
+general linear, special linear.
+
+For other groups, the function tries to decompose `G` as a direct product
+or a semidirect product,
+and if this is not possible as a non-splitting extension of
+a normal subgroup $N$ with the factor group `G`$/N$,
+where $N$ is the centre or the derived subgroup or the Frattini subgroup
+of `G`.
+
+Note that
+- there is in general no "nice" decomposition of `G`,
+- there may be several decompositions of `G`,
+- nonisomorphic groups may yield the same `describe` result,
+- isomorphic groups may yield different `describe` results,
+- the computations can take a long time (for example in the case of
+  large $p$-groups), and the results are still often not very helpful.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(6);
+
+julia> describe(g)
+"S6"
+
+julia> describe(sylow_subgroup(g,2)[1])
+"C2 x D8"
+
+julia> describe(sylow_subgroup(g, 3)[1])
+"C3 x C3"
+
+julia> g = symmetric_group(10);
+
+julia> describe(sylow_subgroup(g,2)[1])
+"C2 x ((((C2 x C2 x C2 x C2) : C2) : C2) : C2)"
+
+```
+"""
 describe(G::GAPGroup) = String(GAP.Globals.StructureDescription(G.X))

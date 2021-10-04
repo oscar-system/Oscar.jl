@@ -90,4 +90,5 @@ isalmostsimple
 ```@docs
 order(::Type{T}, x::Union{GAPGroupElem, GAPGroup}) where T <: IntegerUnion
 exponent(x::GAPGroup)
+describe(x::GAPGroup)
 ```
