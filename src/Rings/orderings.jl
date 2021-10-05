@@ -69,11 +69,11 @@ end
 
 #not really user facing, flattens a product of product orderings into an array 
 function flat(a::GenOrdering)
-  return [a]
+   return [a]
 end
 function flat(a::ProdOrdering)
-  return vcat(flat(a.a), flat(a.b))
-end
+   return vcat(flat(a.a), flat(a.b))
+end  
 
 @doc Markdown.doc"""
     anti_diagonal(R::Ring, n::Int)
@@ -118,17 +118,19 @@ function weights(a::AbsOrdering)
   aa = flat(a)
   m = matrix(ZZ, 0, 0, [])
   for o = aa
-    w = weights(o)
-    if maximum(o.vars) > ncols(m)
-      m = hcat(m, zero_matrix(ZZ, nrows(m), maximum(o.vars) - ncols(m)))
-    end
-    mm = zero_matrix(ZZ, nrows(w), ncols(m))
-    for r = 1:nrows(w)
-      for c = 1:length(o.vars)
-        mm[r, o.vars[c]] = w[r, c]
+    if typeof(o) <: GenOrdering
+      w = weights(o)
+      if maximum(o.vars) > ncols(m)
+        m = hcat(m, zero_matrix(ZZ, nrows(m), maximum(o.vars) - ncols(m)))
       end
+      mm = zero_matrix(ZZ, nrows(w), ncols(m))
+      for r = 1:nrows(w)
+        for c = 1:length(o.vars)
+          mm[r, o.vars[c]] = w[r, c]
+        end
+      end
+      m = vcat(m, mm)
     end
-    m = vcat(m, mm)
   end
   return m
 end
@@ -375,6 +377,28 @@ end
 function Base.:*(M::MonomialOrdering, N::ModuleOrdering)
    base_ring(N.M) == M.R || error("wrong rings")
    return ModuleOrdering(N.M, M.o*N.o)
+end
+
+function flat(a::ModOrdering)
+   return [a]
+end
+function flat(a::ModProdOrdering)
+   return vcat(flat(a.a), flat(a.b))
+end
+
+function max_used_variable(st::Int, o::GenOrdering)
+   g = o.vars
+   mi = minimum(g)
+   ma = maximum(g)
+   if mi == st && length(g) + st == ma+1
+      return ma+1
+   else
+      return 0
+   end
+end
+
+function max_used_variable(st::Int, o::ModOrdering)
+   return -1
 end
 
 end  # module Orderings

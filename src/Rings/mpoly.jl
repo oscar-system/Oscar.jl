@@ -378,6 +378,17 @@ function singular(o::Orderings.GenOrdering)
   end
 end
 
+function singular(o::Orderings.ModOrdering)
+   v = o.gens
+   if o.ord == :lex
+     return Singular.ordering_C(length(v))
+   elseif o.ord == :revlex
+     return Singular.ordering_c(length(v))
+   else
+     error("unknown module ordering")
+   end
+end
+
 function singular_ring(Rx::MPolyRing{T}, ord::Orderings.AbsOrdering) where {T <: RingElem}
   #test if it can be mapped directly to singular:
   # - consecutive, non-overlapping variables
@@ -387,13 +398,12 @@ function singular_ring(Rx::MPolyRing{T}, ord::Orderings.AbsOrdering) where {T <:
   st = 1
   iseasy = true
   for i = 1:length(f)
-    mi = minimum(f[i].vars)
-    ma = maximum(f[i].vars)
-    if mi == st && length(f[i].vars) + st == ma+1
-      st = ma+1
-    else
+    max_var = Orderings.max_used_variable(st, f[i])
+    if max_var == 0
       iseasy = false
       break
+    elseif max_var != -1
+      st = max_var
     end
   end
 
