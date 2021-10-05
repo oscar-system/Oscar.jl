@@ -80,7 +80,8 @@ end
 
 @testset "single cyclotomics" begin
     F, z = CyclotomicField(5)
-    @test GAP.GapObj(z^2+z+1) == GAP.evalstr("E(5)^2+E(5)+1")
+    e5 = GAP.Globals.E(5)
+    @test GAP.GapObj(z^2+z+1) == e5^2 + e5 + 1
 
     F, z = quadratic_field(5)
     @test_throws ArgumentError GAP.GapObj(z)
@@ -97,7 +98,7 @@ end
 @testset "GapGroup and GapGroupElem" begin
     # `GapGroup` to GAP group, Perm
     G = symmetric_group(5)
-    val = GAP.evalstr("SymmetricGroup(5)")
+    val = GAP.Globals.SymmetricGroup(5)
     @test GAP.GapObj(G) == val
 
     # `GapGroupElem` to GAP group element, Perm
