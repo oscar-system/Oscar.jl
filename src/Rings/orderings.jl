@@ -2,7 +2,8 @@ module Orderings
 
 using Oscar, Markdown
 import Oscar: Ring, MPolyRing, MPolyElem, weights, IntegerUnion
-export anti_diagonal, lex, degrevlex, deglex, weights, MonomialOrdering,
+export anti_diagonal, lex, degrevlex, deglex, revlex, negdeglex,
+       negdegrevlex, weights, MonomialOrdering,
        ModuleOrdering, singular
 
 abstract type AbsOrdering end
@@ -65,7 +66,6 @@ function ordering(a::AbstractVector{Int}, s::Symbol, w::fmpz_mat)
   end
   return GenOrdering(collect(a), w, ord = s)
 end
-
 
 #not really user facing, flattens a product of product orderings into an array 
 function flat(a::GenOrdering)
@@ -214,10 +214,34 @@ end
 @doc Markdown.doc"""
     degrevlex(v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
 
-Defines the `degreveex` ordering on the variables given.
+Defines the `degrevlex` ordering on the variables given.
 """
 function degrevlex(v::AbstractVector{<:MPolyElem})
   return MonomialOrdering(parent(first(v)), ordering(v, :degrevlex))
+end
+@doc Markdown.doc"""
+    revlex(v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
+
+Defines the `revlex` ordering on the variables given.
+"""
+function revlex(v::AbstractVector{<:MPolyElem})
+  return MonomialOrdering(parent(first(v)), ordering(v, :revlex))
+end
+@doc Markdown.doc"""
+    negdegrevlex(v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
+
+Defines the `negdegrevlex` ordering on the variables given.
+"""
+function negdegrevlex(v::AbstractVector{<:MPolyElem})
+  return MonomialOrdering(parent(first(v)), ordering(v, :negdegrevlex))
+end
+@doc Markdown.doc"""
+    negdeglex(v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
+
+Defines the `negdeglex` ordering on the variables given.
+"""
+function negdeglex(v::AbstractVector{<:MPolyElem})
+  return MonomialOrdering(parent(first(v)), ordering(v, :negdeglex))
 end
 
 @doc Markdown.doc"""

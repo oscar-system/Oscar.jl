@@ -147,7 +147,8 @@ end
 ###################################################
 
 using .Orderings
-export lex, deglex, degrevlex, weights, MonomialOrdering, singular
+export lex, deglex, degrevlex, revlex, negdeglex, negdegrevlex, weights,
+       MonomialOrdering, singular
 
 
 ##############################################################################
