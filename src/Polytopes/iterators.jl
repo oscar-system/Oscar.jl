@@ -89,16 +89,33 @@ One halfspace `H(a,b)` is given by a vector `a` and a value `b` such that
 $$H(a,b) = \{ x | ax ≤ b \}.$$
 """
 struct Halfspace
-    a::Polymake.Matrix{Polymake.Rational}
+    a::Polymake.Vector{Polymake.Rational}
     b::Polymake.Rational
 end
 
-Halfspace(a::AbstractVector, b) = Halfspace(reshape(a, 1, :), b)
+Halfspace(a::Union{MatElem, AbstractMatrix}, b=0) = Halfspace(vec(a), b)
 
 Halfspace(a) = Halfspace(a, 0)
 
+@doc Markdown.doc"""
+    Hyperplane(a, b)
+
+One hyperplane `H(a,b)` is given by a vector `a` and a value `b` such that
+$$H(a,b) = \{ x | ax = b \}.$$
+"""
+struct Hyperplane
+    a::Polymake.Vector{Polymake.Rational}
+    b::Polymake.Rational
+end
+
+Hyperplane(a::Union{MatElem, AbstractMatrix}, b) = Hyperplane(vec(a), b)
+
+Hyperplane(a) = Hyperplane(a, 0)
+
 # TODO: abstract notion of equality
 Base.:(==)(x::Halfspace, y::Halfspace) = x.a == y.a && x.b == y.b
+
+Base.:(==)(x::Hyperplane, y::Hyperplane) = x.a == y.a && x.b == y.b
 
 struct PolyhedronOrConeIterator{T} <: AbstractVector{T}
     vertices::Polymake.Matrix{Polymake.Rational}
@@ -173,17 +190,19 @@ HalfspaceIterator{T}(A::AbstractMatrix) where T = HalfspaceIterator{T}(A, zeros(
 
 function matrix(iter::HalfspaceIterator)
     if !iszero(iter.b)
-        throw(ArgumentError("Half-spaces have to be affine in order for `matrix` to be defined"))
+        throw(ArgumentError("Description has to be non-affine in order for `matrix` to be defined"))
     end
     return matrix(QQ, Matrix{fmpq}(iter.A))
 end
 
 function matrix_for_polymake(iter::HalfspaceIterator)
     if !iszero(iter.b)
-        throw(ArgumentError("Half-spaces have to be affine in order for `matrix_for_polymake` to be defined"))
+        throw(ArgumentError("Description has to be non-affine in order for `matrix_for_polymake` to be defined"))
     end
     return iter.A
 end
+
+affine_matrix_for_polymake(iter::HalfspaceIterator) = hcat(-iter.b, iter.A)
 
 HalfspaceIterator(x...) = HalfspaceIterator{Halfspace}(x...)
 

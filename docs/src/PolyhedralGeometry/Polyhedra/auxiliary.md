@@ -7,7 +7,7 @@ using Oscar
 ```
 
 ```@contents
-Pages = ["pg_polyhedra_auxiliary.md"]
+Pages = ["auxiliary.md"]
 ```
 
 
@@ -26,10 +26,12 @@ isfulldimensional(P::Polyhedron)
 isnormal(P::Polyhedron)
 issmooth(P::Polyhedron)
 lattice_points(P::Polyhedron)
+lineality_dim(P::Polyhedron)
 lineality_space(P::Polyhedron)
 nfacets(P::Polyhedron)
 normalized_volume(P::Polyhedron)
 nvertices(P::Polyhedron)
+polarize(P::Polyhedron)
 print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = false)
 print_constraints(P::Polyhedron; trivial::Bool = false)
 rays(P::Polyhedron)

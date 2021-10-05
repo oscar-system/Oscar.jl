@@ -1,7 +1,14 @@
+import Polymake: IncidenceMatrix
+
+import Base: convert
+
+
 matrix_for_polymake(x::Union{Oscar.fmpz_mat,AbstractMatrix{Oscar.fmpz}}) = Matrix{BigInt}(x)
 matrix_for_polymake(x::Union{Oscar.fmpq_mat,AbstractMatrix{Oscar.fmpq}}) =
     Polymake.Matrix{Polymake.Rational}(x)
 matrix_for_polymake(x) = x
+
+affine_matrix_for_polymake(x::Tuple) = matrix_for_polymake(hcat(-x[2], x[1]))
 
 function Polymake.Matrix{Polymake.Rational}(x::Union{Oscar.fmpq_mat,AbstractMatrix{Oscar.fmpq}})
     res = Polymake.Matrix{Polymake.Rational}(size(x)...)
@@ -11,7 +18,8 @@ function Polymake.Matrix{Polymake.Rational}(x::Union{Oscar.fmpq_mat,AbstractMatr
     return res
 end
 
-import Base: convert
+_isempty_halfspace(x::Pair{<:Union{Oscar.MatElem, AbstractMatrix}, Any}) = isempty(x[1])
+_isempty_halfspace(x) = isempty(x)
 
 Base.convert(::Type{Polymake.Integer}, x::fmpz) = Polymake.Integer(BigInt(x))
 Base.convert(::Type{Polymake.Rational}, x::fmpz) = Polymake.Rational(convert(Polymake.Integer, x), convert(Polymake.Integer, 1))
@@ -130,34 +138,7 @@ function decompose_hdata(A)
     (A = -A[:, 2:end], b = A[:, 1])
 end
 
-
-# This is a specific polymake data structure supporting fast functions
-#  for rows->sets, rows containing col_i==true, etc.
-struct IncidenceMatrix
-   pm_incidencematrix::Polymake.IncidenceMatrix
-end
-
-function IncidenceMatrix(TrueIndices::Vector{Vector{Int64}})
-   nrows = length(TrueIndices)
-   ncols = maximum([maximum(set) for set in TrueIndices])
-   IM = Polymake.IncidenceMatrix(nrows, ncols)
-   i = 1
-   for set in TrueIndices
-      for j in set
-         IM[i,j] = 1
-      end
-      i = i+1
-  end
-   return IncidenceMatrix(IM)
-end
-
-
-
-#TODO: change how incidence matrices are shown (not zero base but maybe bool?)
-function Base.show(io::IO, I::IncidenceMatrix)
-    show(io,"text/plain", (Matrix{Bool}(I.pm_incidencematrix)))
-end
-
-import Base: convert
-
 Base.convert(::Type{fmpq}, q::Polymake.Rational) = fmpq(Polymake.numerator(q), Polymake.denominator(q))
+
+# TODO: different printing within oscar? if yes, implement the following method
+# Base.show(io::IO, ::MIME"text/plain", I::IncidenceMatrix) = show(io, "text/plain", Matrix{Bool}(I))

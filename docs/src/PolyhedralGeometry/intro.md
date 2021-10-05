@@ -7,7 +7,7 @@ using Oscar
 ```
 
 ```@contents
-Pages = ["pg.md"]
+Pages = ["intro.md"]
 ```
 
 # Introduction

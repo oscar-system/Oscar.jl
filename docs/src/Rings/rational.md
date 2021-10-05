@@ -13,24 +13,15 @@ Pages = ["rational.md"]
 # Rationals
 
 Fractions are created in Julia with the double slash operator `//`. If a
-fraction is created from Julia integers, a Julia fraction results and if either
-the numerator or denominator is an Oscar integer, an Oscar fraction results.
+fraction is created from Julia integers, a Julia fraction results, and if either
+the numerator or denominator is an Oscar integer of type `fmpz`, an Oscar
+fraction of type `fmpq` results.
 
-Oscar has just a single rational fraction type `Oscar.fmpq`. The Oscar fraction
-type belongs to `Oscar.Rational`.
-
-Julia has a parameterised type `Base.Rational{T}` for its own fractions, where
-`T` is the integer type the fractions are constructed from, e.g.
-`Base.Rational{Int}` and `Base.Rational{BigInt}`.
-
-Note that conveniently, both of these Julia rational types belong to
-`Base.Rational`. Therefore in the description below we refer to
-`Oscar.Rational` for Oscar rational numbers and `Base.Rational` for any of the
-Julia rational number types.
-
-The situation is described by the following diagram.
-
-![alt text](../img/RationalTypes.svg)
+Julia has its own parameterised type `Rational{T}` for its own fractions, where
+`T` is the integer type of the numerator and denominator, e.g.
+`Rational{Int}` and `Rational{BigInt}`. Unlike with `Int`, all of the basic
+arithmetic operations on Julia's `Rational{Int}` are checked for overflow in
+the numerator and denominator.
 
 ## The field of rationals
 
@@ -86,9 +77,9 @@ one(QQ)
 
 ## Predicates
 
-* `iszero(n::Oscar.Rational) -> Bool`
-* `isone(n::Oscar.Rational) -> Bool`
-* `isunit(n::Oscar.Rational) -> Bool`
+* `iszero(n::fmpq) -> Bool`
+* `isone(n::fmpq) -> Bool`
+* `isunit(n::fmpq) -> Bool`
 
 The `isunit` function will return `true` iff ``n \neq 0``.
 
@@ -100,12 +91,12 @@ isunit(QQ(-2, 3))
 
 ## Properties
 
-* `numerator(n::Oscar.Rational) -> Oscar.Integer`
-* `denominator(n::Oscar.Rational) -> Oscar.Integer`
+* `numerator(n::fmpq) -> fmpz`
+* `denominator(n::fmpq) -> fmpz`
 
 Return the numerator and denominator respectively, of $n$.
 
-* `sign(n::Oscar.Rational) -> Oscar.Rational`
+* `sign(n::fmpq) -> fmpq`
 
 Returns the sign of `n`, i.e. ``n/|n|`` if ``n \neq 0``, or ``0`` otherwise.
 
@@ -115,7 +106,7 @@ sign(QQ())
 sign(QQ(-1))
 ```
 
-* `abs(n::Oscar.Rational) -> Oscar.Rational`
+* `abs(n::fmpq) -> fmpq`
 
 Return the absolute value of ``n``, i.e. ``n`` if ``n \geq 0`` and ``-n``
 otherwise.
@@ -125,7 +116,7 @@ otherwise.
 abs(QQ(-3, 2))
 ```
 
-* `height(n::Oscar.Rational) -> Oscar.Integer`
+* `height(n::fmpq) -> fmpz`
 
 Return the maximum of the absolute values of the numerator and denominator of
 $n$.
@@ -134,11 +125,11 @@ $n$.
 height(QQ(324987329, -8372492324))
 ```
 
-* `floor(n::Oscar.Rational) -> Oscar.Rational`
+* `floor(n::fmpq) -> fmpq`
 
 Return the greatest integer $m$ (as a rational number) such that $m \leq n$.
 
-* `ceil(n::Oscar.Rational) -> Oscar.Rational`
+* `ceil(n::fmpq) -> fmpq`
 
 Return the least integer $m$ (as a rational number) such that $m \geq n$.
 
@@ -148,19 +139,19 @@ ceil(QQ(7, 2))
 typeof(ans)
 ceil(QQ(5))
 ```
-* `floor(Oscar.Integer, n::Oscar.Rational) -> Oscar.Integer`
+* `floor(fmpz, n::fmpq) -> fmpz`
 
 Return the greatest integer $m$ such that $m \leq n$.
 
-* `ceil(Oscar.Integer, n::Oscar.Rational) -> Oscar.Integer`
+* `ceil(fmpz, n::fmpq) -> fmpz`
 
 Return the least integer $m$ such that $m \geq n$.
 
 ```@repl oscar
-floor(Oscar.Integer, QQ(-2, 3))
-ceil(Oscar.Integer, QQ(7, 2))
+floor(fmpz, QQ(-2, 3))
+ceil(fmpz, QQ(7, 2))
 typeof(ans)
-ceil(Oscar.Integer, QQ(5))
+ceil(fmpz, QQ(5))
 ```
 
 ## Basic arithmetic
@@ -171,9 +162,9 @@ Julia and Oscar rationals and integers.
 
 ### [Exact Division]
 
-* `divexact(a::Oscar.Rational, b::Oscar.Rational) -> Oscar.Rational`
-* `divexact(a::Oscar.Rational, b::Oscar.Integer) -> Oscar.Rational`
-* `divexact(a::Oscar.Integer, b::Oscar.Rational) -> Oscar.Rational`
+* `divexact(a::fmpq, b::fmpq) -> fmpq`
+* `divexact(a::fmpq, b::fmpz) -> fmpq`
+* `divexact(a::fmpz, b::fmpq) -> fmpq`
 
 In the first signature, one of the arguments may be a Julia rational and in the
 other two signatures the integers may be Julia integers.
@@ -191,7 +182,7 @@ divexact(QQ(1, 3), 5)
 
 ### Powering
 
-* `^(a::Oscar.Rational, b::Base.Int) -> Oscar.Rational`
+* `^(a::fmpq, b::Int) -> fmpq`
 
 Powering can be accomplished naturally using the special caret infix
 operator:
@@ -216,16 +207,16 @@ QQ(0)^0
 QQ(0)^-2
 ```
 
-* `ispower(a::Oscar.Rational, b::Base.Int) -> Bool, Oscar.Rational`
+* `ispower(a::fmpq, b::Int) -> Bool, fmpq`
 
 Tests if ``a`` is an ``n``-th power. If so, return ```true``` and the root,
 ```false``` and any rational otherwise.
 
-* `ispower(a::Oscar.Rational) -> Int, Oscar.Rational`
+* `ispower(a::fmpq) -> Int, fmpq`
 
 Finds the largest ``n`` such that ``a`` is an ``n``-th power. Return ``n`` and the root.
 
-* `root(a::Oscar.Rational, b::Base.Int) -> Oscar.Rational`
+* `root(a::fmpq, b::Int) -> fmpq`
 
 Computes an ``n``-th root of ``a``, raises an error if ``a`` is not an ``n``-th power.
 

@@ -48,6 +48,23 @@ faces(C::Cone, face_dim::Int) = faces(Cone, C, face_dim)
 ###############################################################################
 ## Scalar properties
 ###############################################################################
+@doc Markdown.doc"""
+    nfacets(C::Cone)
+
+Return the number of facets of a cone `C`.
+
+# Examples
+The cone over a square at height one has four facets.
+```jldoctest
+julia> C = positive_hull([1 0 0; 1 1 0; 1 1 1; 1 0 1])
+A polyhedral cone in ambient dimension 3
+
+julia> nfacets(C)
+4
+```
+"""
+nfacets(C::Cone) = pm_cone(C).N_FACETS
+
 
 @doc Markdown.doc"""
     nrays(C::Cone)
@@ -114,6 +131,72 @@ julia> codim(C)
 ```
 """
 codim(C::Cone) = ambient_dim(C)-dim(C)
+
+
+@doc Markdown.doc"""
+    f_vector(C::Cone)
+
+Compute the vector $(f₁,f₂,...,f_{(dim(C)-1))$` where $f_i$ is the number of
+faces of $C$ of dimension $i$.
+
+# Examples
+Take the cone over a square, then the f-vector of the cone is the same as of the square.
+```jldoctest
+julia> C = positive_hull([1 0 0; 1 1 0; 1 1 1; 1 0 1])
+A polyhedral cone in ambient dimension 3
+
+julia> f_vector(C)
+2-element Vector{Polymake.Integer}:
+ 4
+ 4
+
+julia> square = cube(2)
+A polyhedron in ambient dimension 2
+
+julia> f_vector(square)
+2-element Vector{Int64}:
+ 4
+ 4
+```
+"""
+function f_vector(C::Cone)
+    pmc = pm_cone(C)
+    ldim = pmc.LINEALITY_DIM
+    return vcat(fill(0,ldim),pmc.F_VECTOR)
+end
+
+
+@doc Markdown.doc"""
+    lineality_dim(C::Cone)
+
+Compute the dimension of the lineality space of $C$, i.e. the largest linear
+subspace contained in $C$.
+
+# Examples
+A cone is pointed if and only if the dimension of its lineality space is zero.
+```jldoctest
+julia> C = positive_hull([1 0 0; 1 1 0; 1 1 1; 1 0 1])
+A polyhedral cone in ambient dimension 3
+
+julia> ispointed(C)
+true
+
+julia> lineality_dim(C)
+0
+
+julia> C1 = Cone([1 0],[0 1; 0 -1])
+A polyhedral cone in ambient dimension 2
+
+julia> ispointed(C1)
+false
+
+julia> lineality_dim(C1)
+1
+```
+"""
+lineality_dim(C::Cone) = pm_cone(C).LINEALITY_DIM
+
+
 
 ###############################################################################
 ## Boolean properties
@@ -233,6 +316,26 @@ julia> lineality_space(UH)
 ```
 """
 lineality_space(C::Cone) = VectorIterator{RayVector{Polymake.Rational}}(pm_cone(C).LINEALITY_SPACE)
+
+@doc Markdown.doc"""
+    linear_span(C::Cone)
+
+Return the (linear) hyperplanes generating the linear span of `C`.
+
+# Examples
+This 2-dimensional cone in $\mathbb{R}^3$ lives in exactly one hyperplane $H$, with
+$H = \{ (x_1, x_2, x_3) | x_3 = 0 \}$.
+```jldoctest
+julia> c = Cone([1 0 0; 0 1 0]);
+
+julia> linear_span(c)
+1-element HalfspaceIterator{Hyperplane}:
+ The Hyperplane of R^3 described by
+1: x₃ = 0
+
+```
+"""
+linear_span(C::Cone) = HalfspaceIterator{Hyperplane}(C.pm_cone.LINEAR_SPAN)
 
 @doc Markdown.doc"""
     hilbert_basis(C::Cone)

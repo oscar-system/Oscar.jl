@@ -178,8 +178,8 @@ julia> SOP = SubdivisionOfPoints(moaepts, [1,1,1,1,1,1])
 A subdivision of points in ambient dimension 3
 
 julia> maximal_cells_as_incidence_matrix(SOP)
-1×6 Matrix{Bool}:
- 1  1  1  1  1  1
+1×6 IncidenceMatrix
+[1, 2, 3, 4, 5, 6]
 ```
 """
 function maximal_cells_as_incidence_matrix(SOP::SubdivisionOfPoints)
@@ -215,4 +215,3 @@ true
 ```
 """
 isregular(SOP::SubdivisionOfPoints) = pm_subdivision(SOP).REGULAR
-

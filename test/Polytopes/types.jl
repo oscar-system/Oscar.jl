@@ -64,22 +64,22 @@
 
 
 
-    @testset "Halfspace" begin
+    @testset "$T" for T in (Halfspace, Hyperplane)
 
-        @test Halfspace(a, 0) isa Halfspace
-        @test Halfspace(a', 0) isa Halfspace
+        @test T(a, 0) isa T
+        @test T(a', 0) isa T
 
-        @test Halfspace(a, 0) == Halfspace(a', 0) == Halfspace(a) == Halfspace(a')
+        @test T(a, 0) == T(a', 0) == T(a) == T(a')
 
-        A = Halfspace(a, 0)
-        B = Halfspace(b, 2)
+        A = T(a, 0)
+        B = T(b, 2)
 
         @test A != B
 
-        @test A.a == a'
+        @test A.a == a
         @test A.b == 0
 
-        @test B.a == b'
+        @test B.a == b
         @test B.b == 2
 
     end

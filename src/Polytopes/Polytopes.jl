@@ -11,6 +11,7 @@ export Cone,
     PolyhedralFan,
     Polyhedron,
     Halfspace,
+    Hyperplane,
     SubdivisionOfPoints,
     IncidenceMatrix,
     LinearProgram,
@@ -18,6 +19,7 @@ export Cone,
     PolyhedronOrConeIterator,
     HalfspaceIterator,
     VectorIterator,
+    affine_hull,
     archimedean_solid,
     ambient_dim,
     catalan_solid,
@@ -28,6 +30,7 @@ export Cone,
     cross,
     cube,
     dim,
+    dual_cone,
     faces,
     facets,
     facets_as_halfspace_matrix_pair,
@@ -47,7 +50,9 @@ export Cone,
     isregular,
     issmooth,
     lattice_points,
+    lineality_dim,
     lineality_space,
+    linear_span,
     linear_symmetries,
     load_cone,
     load_linearprogram,
@@ -78,6 +83,7 @@ export Cone,
     objective_function,
     orbit_polytope,
     point_matrix,
+    polarize,
     print_constraints,
     product,
     recession_cone,
@@ -97,7 +103,7 @@ export Cone,
     vertices,
     vertices_as_point_matrix,
     vf_group,
-    visual,
+    visualize,
     volume
 
 include("helpers.jl")
@@ -105,6 +111,7 @@ include("iterators.jl")
 include("Polyhedron/constructors.jl")
 include("Cone/constructors.jl")
 include("Cone/properties.jl")
+include("Cone/standard_constructions.jl")
 include("Polyhedron/properties.jl")
 include("Polyhedron/standard_constructions.jl")
 include("PolyhedralFan/constructors.jl")
@@ -117,3 +124,4 @@ include("LinearProgram.jl")
 include("Groups.jl")
 include("Graphs.jl")
 include("Serialization.jl")
+include("Visualization.jl")

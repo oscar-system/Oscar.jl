@@ -7,7 +7,7 @@ using Oscar
 ```
 
 ```@contents
-Pages = ["pg_subdivision_of_points.md"]
+Pages = ["subdivision_of_points.md"]
 ```
 
 # Subdivisions of Points
