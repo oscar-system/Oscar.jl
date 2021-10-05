@@ -371,6 +371,14 @@ function singular(o::Orderings.GenOrdering)
     return Singular.ordering_lp(length(v))
   elseif o.ord == :degrevlex
     return Singular.ordering_dp(length(v))
+  elseif o.ord == :deglex
+    return Singular.ordering_Dp(length(v))
+  elseif o.ord == :revlex
+    return Singular.ordering_rp(length(v))
+  elseif o.ord == :negdegrevlex
+    return Singular.ordering_ds(length(v))
+  elseif o.ord == :negdeglex
+    return Singular.ordering_Ds(length(v))
   elseif o.ord == :weights
     return Singular.ordering_M(o.wgt)
   else
