@@ -2,15 +2,21 @@ module Orderings
 
 using Oscar, Markdown
 import Oscar: Ring, MPolyRing, MPolyElem, weights, IntegerUnion
-export anti_diagonal, lex, degrevlex, deglex, weights, MonomialOrdering, singular
+export anti_diagonal, lex, degrevlex, deglex, weights, MonomialOrdering,
+       ModuleOrdering, singular
 
 abstract type AbsOrdering end
+
+abstract type AbsGenOrdering <: AbsOrdering end
+
+abstract type AbsModOrdering <: AbsOrdering end
+
 """
 Ring-free monomial ordering: just the indices of the variables are given.
 `T` can be a `UnitRange` to make Singular happy or any `Array` if the
   variables are not consequtive
 """
-mutable struct GenOrdering{T} <: AbsOrdering
+mutable struct GenOrdering{T} <: AbsGenOrdering
   vars::T
   ord::Symbol
   wgt::fmpz_mat
@@ -33,18 +39,18 @@ end
 """
 The product of `a` and `b` (`vcat` of the the matrices)
 """
-mutable struct ProdOrdering <: AbsOrdering
-  a::AbsOrdering
-  b::AbsOrdering
+mutable struct ProdOrdering <: AbsGenOrdering
+  a::AbsGenOrdering
+  b::AbsGenOrdering
 end
 
-Base.:*(a::AbsOrdering, b::AbsOrdering) = ProdOrdering(a, b)
+Base.:*(a::AbsGenOrdering, b::AbsGenOrdering) = ProdOrdering(a, b)
 
 #not really user facing
 function ordering(a::AbstractVector{Int}, s::Union{Symbol, fmpz_mat})
   i = minimum(a)
   I = maximum(a)
-  if I-i+1 == length(a) #testif variables are consecutive or not.
+  if I-i+1 == length(a) #test if variables are consecutive or not.
     return GenOrdering(i:I, s)
   end
   return GenOrdering(collect(a), s)
@@ -132,7 +138,7 @@ Orderings actually applied to polynomial rings (as opposed to variable indices)
 """
 mutable struct MonomialOrdering{S}
   R::S
-  o::AbsOrdering
+  o::AbsGenOrdering
 end
 
 #not really user facing, not exported
@@ -159,7 +165,7 @@ end
 @doc Markdown.doc"""
     :*(M::MonomialOrdering, N::MonomialOrdering)
 
-For orderings on the same ring, the product ordering obained by concatenation
+For orderings on the same ring, the product ordering obtained by concatenation
 of the weight matrix.
 """
 function Base.:*(M::MonomialOrdering, N::MonomialOrdering)
@@ -307,6 +313,68 @@ end
 
 function Base.hash(M::MonomialOrdering, u::UInt)
   return hash(Hecke.simplify(M).o.wgt, u)
+end
+
+###################################################
+
+# Module orderings (not module Orderings)
+
+mutable struct ModOrdering{T} <: AbsModOrdering
+   gens::T
+   ord::Symbol
+   function ModOrdering(u::T, s::Symbol) where {T <: AbstractVector{Int}}
+     r = new{T}()
+     r.gens = u
+     r.ord = s
+     return r
+   end
+end
+
+mutable struct ModuleOrdering{S}
+   M::S
+   o::AbsOrdering # must allow gen*mon or mon*gen product ordering
+end
+
+mutable struct ModProdOrdering <: AbsModOrdering
+   a::AbsOrdering
+   b::AbsOrdering
+ end
+
+Base.:*(a::AbsGenOrdering, b::AbsModOrdering) = ModProdOrdering(a, b)
+
+Base.:*(a::AbsModOrdering, b::AbsGenOrdering) = ModProdOrdering(a, b)
+
+function module_ordering(a::AbstractVector{Int}, s::Symbol)
+   i = minimum(a)
+   I = maximum(a)
+   if I-i+1 == length(a) #test if variables are consecutive or not.
+     return ModOrdering(i:I, s)
+   end
+   return ModOrdering(collect(a), s)
+ end
+
+function ordering(a::AbstractVector{<:AbstractAlgebra.ModuleElem}, s...)
+   R = parent(first(a))
+   g = gens(R)
+   aa = [findfirst(x -> x == y, g) for y = a]
+   if nothing in aa
+     error("only generators allowed")
+   end
+   return module_ordering(aa, s...)
+ end
+
+function lex(v::AbstractVector{<:AbstractAlgebra.ModuleElem})
+   return ModuleOrdering(parent(first(v)), ordering(v, :lex))
+end
+
+function Base.:*(M::ModuleOrdering, N::MonomialOrdering)
+   base_ring(M.M) == N.R || error("wrong rings")
+   return ModuleOrdering(M.M, M.o*N.o)
+end
+
+function Base.:*(M::MonomialOrdering, N::ModuleOrdering)
+   base_ring(N.M) == M.R || error("wrong rings")
+   return ModuleOrdering(N.M, M.o*N.o)
 end
 
 end  # module Orderings
