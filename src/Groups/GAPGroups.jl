@@ -918,5 +918,35 @@ julia> describe(sylow_subgroup(g,2)[1])
 "C2 x ((((C2 x C2 x C2 x C2) : C2) : C2) : C2)"
 
 ```
+The following notation is used in the returned string.
+
+| Description | Syntax |
+| ----------- | ----------- |
+| trivial group | 1 |
+| finite cyclic group | C<size> |
+| infinite cyclic group | Z |
+| alternating group | A<degree> |
+| symmetric group | S<degree> |
+| dihedral group | D<size> |
+| quaternion group | Q<size> |
+| quasidihedral group | QD<size> |
+| projective special linear group | PSL(<n>,<q>) |
+| special linear group | SL(<n>,<q>) |
+| general linear group | GL(<n>,<q>) |
+| proj. special unitary group | PSU(<n>,<q>) |
+| orthogonal group, type B | O(2<n>+1,<q>) |
+| orthogonal group, type D | O+(2<n>,<q>) |
+| orthogonal group, type 2D | O-(2<n>,<q>) |
+| proj. special symplectic group | PSp(2<n>,<q>) |
+| Suzuki group (type 2B) | Sz(<q>) |
+| Ree group (type 2F or 2G) | Ree(<q>) |
+| Lie group of exceptional type | E(6,<q>), E(7,<q>), E(8,<q>), 2E(6,<q>), F(4,<q>), G(2,<q>) |
+| Steinberg triality group | 3D(4,<q>) |
+| sporadic simple group | M11, M12, M22, M23, M24, J1, J2, J3, J4, Co1, Co2, Co3, Fi22, Fi23, Fi24', Suz, HS, McL, He, HN, Th, B, M, ON, Ly, Ru |
+| Tits group | 2F(4,2)' |
+| the indicated group from the library of perfect groups | PerfectGroup(<size>,<id>) |
+| direct product | A x B |
+| semidirect product | N : H |
+| non-split extension | Z(G) . G/Z(G) = G' . G/G', Phi(G) . G/Phi(G) |
 """
 describe(G::GAPGroup) = String(GAP.Globals.StructureDescription(G.X))
