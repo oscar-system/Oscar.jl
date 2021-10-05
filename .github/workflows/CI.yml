@@ -12,9 +12,6 @@ jobs:
       fail-fast: false
       matrix:
         julia-version:
-          #- '1.3'  # FIXME: disabled for now, until CxxWrap is fixed
-          - '1.4'
-          - '1.5'
           - '1.6'
           - '~1.7.0-0'
           - 'nightly'
@@ -23,12 +20,12 @@ jobs:
         os:
           - ubuntu-latest
           - macOS-latest
-        exclude:
-          # Reduce the number of macOS jobs, as fewer can be run in parallel
-          - os: macos-latest
-            julia-version: '1.3'
-          - os: macos-latest
-            julia-version: '1.4'
+        #exclude:
+        #  # Reduce the number of macOS jobs, as fewer can be run in parallel
+        #  - os: macos-latest
+        #    julia-version: '1.3'
+        #  - os: macos-latest
+        #    julia-version: '1.4'
 
     steps:
       - uses: actions/checkout@v2
