@@ -4,6 +4,7 @@ RNG = Random.MersenneTwister(42)
 
 """
 	randpoly(R::Ring,coeffs=0:9,max_exp=4,max_terms=8)
+
 > Return a random Polynomial from the Polynomial Ring `R` with coefficients in `coeffs`
 > with exponents between `0` and `max_exp` und between `0` and `max_terms` terms
 """
@@ -19,14 +20,6 @@ function randpoly(R::Oscar.Ring,coeffs=0:9,max_exp=4,max_terms=8)
 	return finish(M)
 end
 
-"""
-	matrix(A::Array,R::Ring = parent(A[1,1]))
-Return `A` as an AbstractAlgebra Matrix
-"""
-function Oscar.matrix(A::Array,R::AbstractAlgebra.Ring = parent(A[1,1]))
-	Mat = AbstractAlgebra.MatrixSpace(R,size(A)...)
-	return Mat(R.(A))
-end
 
 @testset "Intersection of modules" begin
   R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
@@ -46,12 +39,21 @@ end
   B1 = R[x^2 y^2]
   res = R[(x*y^2) (y^3-x*y+y^2); (-x*y) (-x^2*y^2+x*y^3-x^2*y+y^3-x*y)]
 
-  @test M1 == intersect(M1, M1)[1]
-  @test SubQuo(F2, res, B1) == intersect(SubQuo(F2, A1, B1), SubQuo(F2, A2, B1))[1] #macaulay2
+  P,i = intersect(M1,M1)
+  @test M1 == P
+  @test image(i)[1] == M1
+
+  P,i = intersect(SubQuo(F2, A1, B1), SubQuo(F2, A2, B1))
+  @test iswelldefined(i)
+  @test isinjective(i)
+  @test SubQuo(F2, res, B1) == P #macaulay2
 
   A1 = R[x y; x^2 y^2]
   A2 = R[x+x^2 y+y^2]
-  @test SubQuo(F2, A2, B1) == intersect(SubQuo(F2, A1,B1), SubQuo(F2, A2,B1))[1]
+  P,i = intersect(SubQuo(F2, A1,B1), SubQuo(F2, A2,B1))
+  @test iswelldefined(i)
+  @test isinjective(i)
+  @test SubQuo(F2, A2, B1) == P
 end
 
 @testset "Presentation" begin
@@ -63,7 +65,7 @@ end
 	true_pres_matrices = [R[x^5*y-y^4 -x^5+x*y^3], R[-x^2*y-x*y-y x^2+x; x*y^4-x^3*y+y^4-x^2*y -x*y^3+x^3; -y^4+x^2*y x*y^3-x^3; x^2*y^3+x*y^3+y^3 -x^2*y^2-x*y^2], R[-x*y R(1); -x^2*y^5+x*y^3 R(0)], R[x^5-x*y^4+x^3*y+x*y^3 x^11-x^2*y-x*y; -x^5*y^7+x*y^11+2*x^5*y^6-x^3*y^8-3*x*y^10+2*x^5*y^5+2*x^3*y^7-3*x^5*y^4+2*x^3*y^6+5*x*y^8+2*x^5*y^3-3*x^3*y^5-5*x*y^7+2*x^3*y^4+2*x*y^6 -x^11*y^7+2*x^11*y^6+2*x^11*y^5-3*x^11*y^4+2*x^11*y^3+x^2*y^8-2*x^2*y^7+x*y^8-2*x^2*y^6-2*x*y^7+3*x^2*y^5-2*x*y^6-2*x^2*y^4+3*x*y^5-2*x*y^4], R[-13*y R(0); -377 -2639*x; -39 -273*x; -13*y-39 -273*x; -13 -91*x; y^2-42*x -294*x^2+21*x*y; 9*y^2-x+26*y+78 -7*x^2+189*x*y+546*x; -y^2+3*x 21*x^2-21*x*y]]
 	for (A,B,true_pres_mat) in zip(generator_matrices, relation_matrices, true_pres_matrices)
 		SQ = SubQuo(A,B)
-		pres_mat = matrix(present_as_cokernel(SQ).quo)
+		pres_mat = generator_matrix(present_as_cokernel(SQ).quo)
 		F = FreeMod(R,ncols(pres_mat))
 		@test cokernel(F,pres_mat) == cokernel(F,true_pres_mat)
 
@@ -83,7 +85,7 @@ end
 	true_pres_matrices = [R[x^5*y-y^4 -x^5+x*y^3], R[-x^2*y-x*y-y x^2+x; -x^2*y^4+x^4*y x^2*y^3-x^4], R[-x*y R(1); -x^2*y^5+x*y^3 R(0)], R[-x^4+y^4-x^2-y^2 -x^10+x+R(1)], R[R(0) -x^2+y^2; -2*x^2 -x^9*y+x+1; -2*x*y^2 -x^8*y^3+y^2+x; -2*x*y^2+2*y^2 -x^8*y^3+x^7*y^3+y^2-1]]
 	for (A,B,true_pres_mat) in zip(generator_matrices, relation_matrices, true_pres_matrices)
 		SQ = SubQuo(A,B)
-		pres_mat = matrix(present_as_cokernel(SQ).quo)
+		pres_mat = generator_matrix(present_as_cokernel(SQ).quo)
 		F = FreeMod(R,ncols(pres_mat))
 		@test cokernel(F,pres_mat) == cokernel(F,true_pres_mat)
 
@@ -338,6 +340,18 @@ end
 		@test v == module_elem(SQ, homomorphism(v))
 	end
 
+	R, (x,y) = PolynomialRing(QQ, ["x", "y"])
+	A1 = R[x^2+1 x*y; x^2+y^3 x*y]
+	B1 = R[x+x^4+y^2+1 x^5; y^4-3 x*y^2-1]
+	M1 = SubQuo(A1, B1)
+	A2 = R[x;]
+	B2 = R[y^3;]
+	M2 = SubQuo(A2,B2)
+	SQ = hom(M1,M2,:matrices)[1]
+	for v in gens(SQ)
+		@test v == module_elem(SQ, homomorphism(v))
+	end
+
 	# test if hom(zero-module, ...) is zero
 	Z = FreeMod(R,0)
 	@test iszero(hom(Z,Z)[1])
@@ -359,8 +373,14 @@ end
 		N = SubQuo(A1,B1)
 		M = SubQuo(A2,B2)
 		HomNM = hom(N,M)[1]
+		HomNM_mat = hom(N,M,:matrices)[1]
 		for l=1:10
-			H = HomNM(sparse_row(matrix([randpoly(R,0:15,2,1) for _=1:1, j=1:AbstractAlgebra.ngens(HomNM)])))
+			v = sparse_row(matrix([randpoly(R,0:15,2,1) for _=1:1, j=1:AbstractAlgebra.ngens(HomNM)]))
+			H = HomNM(v)
+			H = homomorphism(H)
+			@test iswelldefined(H)
+
+			H = HomNM_mat(v)
 			H = homomorphism(H)
 			@test iswelldefined(H)
 		end
@@ -527,7 +547,8 @@ end
 
 
 		#1) H: N --> M where N is a cokernel, H should be an isomorphism
-		M = SubQuo(A1,B1)
+		F2 = FreeMod(R,2)
+		M = SubQuo(F2,A1,B1)
 		N, H = present_as_cokernel(M, :store)
 		Hinv = H.inverse_isomorphism
 		@test iswelldefined(H)
@@ -593,8 +614,8 @@ end
 		@test ImH == M
 
 		#3) H:N --> M neither injective nor surjective, also: tests 'restrict_domain()'
-		MM = SubQuo(A1,B1)
-		M, iM, iSQ = sum(MM, SubQuo(A2,B1))
+		MM = SubQuo(F2,A1,B1)
+		M, iM, iSQ = sum(MM, SubQuo(F2,A2,B1))
 		NN, p, i = direct_product(MM,SubQuo(A2,B2), task = :both)
 		i1,i2 = i[1],i[2]
 		p1,p2 = p[1],p[2]
@@ -629,8 +650,8 @@ end
 
 
 		#4) H: M --> N random map created via the hom() function
-		N = SubQuo(A1,B1)
-		M = SubQuo(A2,B2)
+		N = SubQuo(F2,A1,B1)
+		M = SubQuo(F2,A2,B2)
 		HomNM = hom(N,M)[1]
 		H = HomNM(sparse_row(matrix([randpoly(R,0:15,2,1) for _=1:1,j=1:ngens(HomNM)])))
 		H = homomorphism(H)
@@ -660,4 +681,27 @@ end
 	end
 	print("\r                                        ")
 	print("\r")
+end
+
+@testset "preimage" begin
+	R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
+
+	for _=1:5
+		A1 = matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:1])
+		A2 = matrix([randpoly(R,0:15,2,1) for i=1:2,j=1:2])
+		B1 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:1])
+		B2 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:2])
+
+		N = SubQuo(A1,B1)
+		M = SubQuo(A2,B2)
+		HomNM = hom(N,M)[1]
+		H = HomNM(sparse_row(matrix([randpoly(R,0:15,2,1) for _=1:1,j=1:ngens(HomNM)])))
+		H = homomorphism(H)
+
+		u = [SubQuoElem(sparse_row(matrix([randpoly(R) for _=1:1, _=1:ngens(N)])), N) for _=1:3]
+		image_of_u = sub(M,map(x -> H(x),u))
+		preimage_test_module = image_of_u + sub(M,[M[1]])
+		_,emb = preimage(H,preimage_test_module,:with_morphism)
+		@test issubset(sub(N,u), image(emb)[1])
+	end
 end
