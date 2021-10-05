@@ -117,17 +117,17 @@ end
     @test F(GAP.evalstr("2^64")) == F(2)^64
 
     F, z = CyclotomicField(5)
-    @test F(GAP.evalstr("Sqrt(5)")) == -2*z^3 - 2*z^2 - 1
+    @test F(GAP.Globals.Sqrt(5)) == -2*z^3 - 2*z^2 - 1
 
     F, z = CyclotomicField(15)
-    @test F(GAP.evalstr("E(5)")) == z^3
-    @test F(GAP.evalstr("E(3)")) == z^5
+    @test F(GAP.Globals.E(5)) == z^3
+    @test F(GAP.Globals.E(3)) == z^5
 
     F, z = quadratic_field(5)
-    @test_throws ArgumentError F(GAP.evalstr("Sqrt(5)"))
+    @test_throws ArgumentError F(GAP.Globals.Sqrt(5))
 
     F, z = CyclotomicField(5)
-    @test_throws ArgumentError F(GAP.evalstr("Sqrt(7)"))
+    @test_throws ArgumentError F(GAP.Globals.Sqrt(7))
 
     F, z = CyclotomicField(5)
     x = GAP.Globals.Indeterminate(GAP.Globals.Rationals)
@@ -146,7 +146,7 @@ end
     @test all(isone, [x^4 for x in omats])
     @test all(i -> omats[i] == matrix(F, gmats[i]), 1:length(gmats))
 
-    @test_throws ArgumentError Oscar.matrices_over_cyclotomic_field(GAP.evalstr("E(4)"))
+    @test_throws ArgumentError Oscar.matrices_over_cyclotomic_field(GAP.Globals.E(4))
     @test_throws ArgumentError Oscar.matrices_over_cyclotomic_field(GAP.evalstr("[]"))
     @test_throws ArgumentError Oscar.matrices_over_cyclotomic_field(GAP.evalstr("[ [ [ Z(2) ] ] ]"))
 
