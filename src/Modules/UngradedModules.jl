@@ -2,7 +2,7 @@ export FreeMod, presentation, FreeModElem, coords, coeffs, repres,
       FreeModuleHom, SubQuo, cokernel, SubQuoElem, index_of_gen, sub,
       quo, presentation, present_as_cokernel, is_equal_with_morphism, 
       SubQuoHom, show_morphism, hom_tensor, hom_prod_prod, coordinates, 
-      represents_element, free_resolution, homomorphism, module_elem, generator_matrix
+      represents_element, free_resolution, homomorphism, module_elem, generator_matrix,
       restrict_codomain, restrict_domain, direct_product, tensor_product, 
       free_module, tor, lift_homomorphism_contravariant, lift_homomorphism_covariant, 
       ext, map_canonically, all_canonical_maps, register_morphism!, dense_row, 
