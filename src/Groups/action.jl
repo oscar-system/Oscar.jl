@@ -158,7 +158,9 @@ function on_sets(set::Vector{T}, x::GAPGroupElem) where T
     return res
 end
 
-function on_sets(set::T, x::GAPGroupElem) where T <: Union{Tuple, Set}
+on_sets(set::T, x::GAPGroupElem) where T <: Set = T([pnt^x for pnt in set])
+
+function on_sets(set::T, x::GAPGroupElem) where T <: Tuple
     res = [pnt^x for pnt in set]
     sort!(res)
     return T(res)
@@ -269,41 +271,55 @@ end
 ^(f::Nemo.MPolyElem, p::PermGroupElem) = on_indeterminates(f, p)
 
 
-#############################################################################
-##
-##  natural stabilizers in permutation groups
+@doc Markdown.doc"""
+    stabilizer(G::Oscar.GAPGroup, pnt::Any[, actfun::Function])
 
-function stabilizer(G::PermGroup, pnt::T) where T <: Oscar.IntegerUnion
-    return Oscar._as_subgroup(G, GAP.Globals.Stabilizer(G.X, GAP.GapObj(pnt), GAP.Globals.OnPoints))
+Return the subgroup of `G` that consists of all those elements `g`
+that fix `pnt` under the action given by `actfun`,
+that is, `actfun(pnt, g) == pnt` holds.
+
+The default for `actfun` depends on the types of `G` and `pnt`:
+If `G` is a `PermGroup` then the default actions on integers,
+`Vector`s of  integers, and `Set`s of integers are given by
+`^`, `on_tuples`, and `on_sets`, respectively.
+If `G` is a `MatrixGroup` then the default actions on `FreeModuleElem`s,
+`Vector`s of them, and `Set`s of them are given by
+`*`, `on_tuples`, and `on_sets`, respectively.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(5);
+
+julia> S = stabilizer(G, 1);  order(S[1])
+24
+
+julia> S = stabilizer(G, [1, 2]);  order(S[1])
+6
+
+julia> S = stabilizer(G, Set([1, 2]));  order(S[1])
+12
+
+julia> S = stabilizer(G, [1,1,2,2,3], permuted);  order(S[1])
+4
+
+```
+"""
+function stabilizer(G::Oscar.GAPGroup, pnt::Any, actfun::Function)
+    return Oscar._as_subgroup(G, GAP.Globals.Stabilizer(G.X, pnt,
+        GAP.GapObj([x.X for x in gens(G)]), GAP.GapObj(gens(G)),
+        GAP.WrapJuliaFunc(actfun)))
 end
 
-function stabilizer(G::PermGroup, pnt::Vector{T}) where T <: Oscar.IntegerUnion
-    return Oscar._as_subgroup(G, GAP.Globals.Stabilizer(G.X, GAP.GapObj(pnt), GAP.Globals.OnTuples))
-end
+# natural stabilizers in permutation groups
+stabilizer(G::PermGroup, pnt::T) where T <: Oscar.IntegerUnion = stabilizer(G, pnt, ^)
 
-function stabilizer(G::PermGroup, pnt::Set{T}) where T <: Oscar.IntegerUnion
-    pnt = [x for x in pnt]
-    sort!(pnt)
-    return Oscar._as_subgroup(G, GAP.Globals.Stabilizer(G.X, GAP.GapObj(pnt), GAP.Globals.OnSets))
-end
+stabilizer(G::PermGroup, pnt::Vector{T}) where T <: Oscar.IntegerUnion = stabilizer(G, pnt, on_tuples)
 
+stabilizer(G::PermGroup, pnt::Set{T}) where T <: Oscar.IntegerUnion = stabilizer(G, pnt, on_sets)
 
-#############################################################################
-##
-##  natural stabilizers in matrix groups
+# natural stabilizers in matrix groups
+stabilizer(G::MatrixGroup{ET,MT}, pnt::AbstractAlgebra.Generic.FreeModuleElem{ET}) where {ET,MT} = stabilizer(G, pnt, *)
 
-function stabilizer(G::MatrixGroup{ET,MT}, pnt::AbstractAlgebra.Generic.FreeModuleElem{ET}) where {ET,MT}
-    img = GAP.GapObj(G.ring_iso.(pnt.v))[1]
-    return Oscar._as_subgroup(G, GAP.Globals.Stabilizer(G.X, img, GAP.Globals.OnRight))
-end
+stabilizer(G::MatrixGroup{ET,MT}, pnt::Vector{AbstractAlgebra.Generic.FreeModuleElem{ET}}) where {ET,MT} = stabilizer(G, pnt, on_tuples)
 
-function stabilizer(G::MatrixGroup{ET,MT}, pnt::Vector{AbstractAlgebra.Generic.FreeModuleElem{ET}}) where {ET,MT}
-    img = GAP.GapObj([GAP.GapObj(G.ring_iso.(x.v))[1] for x in pnt])
-    return Oscar._as_subgroup(G, GAP.Globals.Stabilizer(G.X, img, GAP.Globals.OnRight))
-end
-
-function stabilizer(G::MatrixGroup{ET,MT}, pnt::Set{AbstractAlgebra.Generic.FreeModuleElem{ET}}) where {ET,MT}
-    img = GAP.GapObj([GAP.GapObj(G.ring_iso.(x.v))[1] for x in pnt])
-    GAP.Globals.Sort(img)
-    return Oscar._as_subgroup(G, GAP.Globals.Stabilizer(G.X, img, GAP.Globals.OnSets))
-end
+stabilizer(G::MatrixGroup{ET,MT}, pnt::Set{AbstractAlgebra.Generic.FreeModuleElem{ET}}) where {ET,MT} = stabilizer(G, pnt, on_sets)
