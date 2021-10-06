@@ -7,6 +7,18 @@ using Pkg
 using Oscar
 using CapAndHomalg
 
+import Oscar:
+    class_group,
+    dim,
+    iscomplete,
+    isintegral,
+    isnormal,
+    isprincipal,
+    issmooth,
+    picard_group,
+    projective_space
+
+
 """
 Initializing function for 'JToric'.
 """
