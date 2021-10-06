@@ -372,15 +372,10 @@ end
 		B2 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:2])
 		N = SubQuo(A1,B1)
 		M = SubQuo(A2,B2)
-		HomNM = hom(N,M)[1]
-		HomNM_mat = hom(N,M,:matrices)[1]
+		HomNM = k <= 5 ? hom(N,M)[1] : hom(N,M,:matrices)[1]
 		for l=1:10
 			v = sparse_row(matrix([randpoly(R,0:15,2,1) for _=1:1, j=1:AbstractAlgebra.ngens(HomNM)]))
 			H = HomNM(v)
-			H = homomorphism(H)
-			@test iswelldefined(H)
-
-			H = HomNM_mat(v)
 			H = homomorphism(H)
 			@test iswelldefined(H)
 		end
