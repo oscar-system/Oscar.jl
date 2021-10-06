@@ -158,7 +158,9 @@ function on_sets(set::Vector{T}, x::GAPGroupElem) where T
     return res
 end
 
-function on_sets(set::T, x::GAPGroupElem) where T <: Union{Tuple, Set}
+on_sets(set::T, x::GAPGroupElem) where T <: Set = T([pnt^x for pnt in set])
+
+function on_sets(set::T, x::GAPGroupElem) where T <: Tuple
     res = [pnt^x for pnt in set]
     sort!(res)
     return T(res)
@@ -267,3 +269,60 @@ function on_indeterminates(f::Nemo.MPolyElem, s::PermGroupElem)
 end
 
 ^(f::Nemo.MPolyElem, p::PermGroupElem) = on_indeterminates(f, p)
+
+
+@doc Markdown.doc"""
+    stabilizer(G::Oscar.GAPGroup, pnt::Any[, actfun::Function])
+
+Return the subgroup of `G` that consists of all those elements `g`
+that fix `pnt` under the action given by `actfun`,
+that is, `actfun(pnt, g) == pnt` holds.
+
+The default for `actfun` depends on the types of `G` and `pnt`:
+If `G` is a `PermGroup` then the default actions on integers,
+`Vector`s of  integers, and `Set`s of integers are given by
+`^`, `on_tuples`, and `on_sets`, respectively.
+If `G` is a `MatrixGroup` then the default actions on `FreeModuleElem`s,
+`Vector`s of them, and `Set`s of them are given by
+`*`, `on_tuples`, and `on_sets`, respectively.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(5);
+
+julia> S = stabilizer(G, 1);  order(S[1])
+24
+
+julia> S = stabilizer(G, [1, 2]);  order(S[1])
+6
+
+julia> S = stabilizer(G, Set([1, 2]));  order(S[1])
+12
+
+julia> S = stabilizer(G, [1,1,2,2,3], permuted);  order(S[1])
+4
+
+```
+"""
+function stabilizer(G::Oscar.GAPGroup, pnt::Any, actfun::Function)
+    return Oscar._as_subgroup(G, GAP.Globals.Stabilizer(G.X, pnt,
+        GAP.GapObj([x.X for x in gens(G)]), GAP.GapObj(gens(G)),
+        GAP.WrapJuliaFunc(actfun)))
+end
+
+# natural stabilizers in permutation groups
+stabilizer(G::PermGroup, pnt::T) where T <: Oscar.IntegerUnion = stabilizer(G, pnt, ^)
+
+stabilizer(G::PermGroup, pnt::Vector{T}) where T <: Oscar.IntegerUnion = stabilizer(G, pnt, on_tuples)
+
+stabilizer(G::PermGroup, pnt::Set{T}) where T <: Oscar.IntegerUnion = stabilizer(G, pnt, on_sets)
+
+# natural stabilizers in matrix groups
+stabilizer(G::MatrixGroup{ET,MT}, pnt::AbstractAlgebra.Generic.FreeModuleElem{ET}) where {ET,MT} = stabilizer(G, pnt, *)
+
+stabilizer(G::MatrixGroup{ET,MT}, pnt::Vector{AbstractAlgebra.Generic.FreeModuleElem{ET}}) where {ET,MT} = stabilizer(G, pnt, on_tuples)
+
+stabilizer(G::MatrixGroup{ET,MT}, pnt::Set{AbstractAlgebra.Generic.FreeModuleElem{ET}}) where {ET,MT} = stabilizer(G, pnt, on_sets)
+
+#TODO: remove this as soon as AbstractAlgebra provides the function in question
+hash(v::AbstractAlgebra.Generic.FreeModuleElem, u::UInt) = hash(v.v, u)

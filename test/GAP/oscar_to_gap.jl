@@ -78,10 +78,27 @@ end
     @test GAP.GapObj(x) == val
 end
 
+@testset "single cyclotomics" begin
+    F, z = CyclotomicField(5)
+    e5 = GAP.Globals.E(5)
+    @test GAP.GapObj(z^2+z+1) == e5^2 + e5 + 1
+
+    F, z = quadratic_field(5)
+    @test_throws ArgumentError GAP.GapObj(z)
+end
+
+@testset "matrices over a cyclotomic field" begin
+    F, z = CyclotomicField(5)
+    @test GAP.GapObj(matrix(F, 2, 2, [z^0, z, z^2, z^3])) == GAP.evalstr("[ [ 1, E(5) ], [ E(5)^2, E(5)^3 ] ]")
+
+    F, z = quadratic_field(5)
+    @test_throws ArgumentError GAP.GapObj(matrix(F, 1, 1, [z]))
+end
+
 @testset "GapGroup and GapGroupElem" begin
     # `GapGroup` to GAP group, Perm
     G = symmetric_group(5)
-    val = GAP.evalstr("SymmetricGroup(5)")
+    val = GAP.Globals.SymmetricGroup(5)
     @test GAP.GapObj(G) == val
 
     # `GapGroupElem` to GAP group element, Perm

@@ -89,23 +89,15 @@ function __init__()
     GAP.Packages.load("forms")
 end
 
-# pkgdir was added in Julia 1.4
-if VERSION < v"1.4"
-   pkgdir(m::Core.Module) = abspath(Base.pathof(Base.moduleroot(m)), "..", "..")
-else
-   import Base.pkgdir
-end
 const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
 const VERSION_NUMBER = VersionNumber(PROJECT_TOML["version"])
 
 const is_dev = (function()
-        if VERSION >= v"1.4"
-          uuid = PROJECT_TOML["uuid"]
-          deps = Pkg.dependencies()
-          if Base.haskey(deps, uuid)
-            if deps[uuid].is_tracking_path
-              return true
-            end
+        uuid = PROJECT_TOML["uuid"]
+        deps = Pkg.dependencies()
+        if Base.haskey(deps, uuid)
+          if deps[uuid].is_tracking_path
+            return true
           end
         end
         return occursin("-dev", lowercase(string(VERSION_NUMBER)))
@@ -113,10 +105,10 @@ const is_dev = (function()
 
 const IJuliaMime = Union{MIME"text/latex", MIME"text/html"}
 
-const oscardir = pkgdir(Oscar)
-const aadir = pkgdir(AbstractAlgebra)
-const nemodir = pkgdir(Nemo)
-const heckedir = pkgdir(Hecke)
+const oscardir = Base.pkgdir(Oscar)
+const aadir = Base.pkgdir(AbstractAlgebra)
+const nemodir = Base.pkgdir(Nemo)
+const heckedir = Base.pkgdir(Hecke)
 
 
 function example(s::String)
@@ -244,9 +236,9 @@ include("Groups/cosets.jl")
 include("Groups/libraries/libraries.jl")
 include("Groups/GAPGroups.jl")
 include("Groups/directproducts.jl")
+include("Groups/matrices/matrices.jl")
 include("Groups/action.jl")
 include("Groups/gsets.jl")
-include("Groups/matrices/matrices.jl")
 include("Groups/MatrixDisplay.jl")
 
 include("Rings/integer.jl")
