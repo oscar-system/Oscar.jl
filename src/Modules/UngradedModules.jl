@@ -2346,7 +2346,7 @@ If `alg` is `:matrices` a different implementation that is using matrices instea
 """
 function hom(M::ModuleFP, N::ModuleFP, alg::Symbol=:maps)  
   if alg == :matrices && typeof(M) <: SubQuo && typeof(N) <: SubQuo
-    return hom2(M,N,false)
+    return hom_matrices(M,N,false)
   end
   p1 = presentation(M)
   p2 = presentation(N)
@@ -3312,7 +3312,11 @@ end
     simplify(M::SubQuo)
 
 Simplify the given subquotient `M` and return the simplified subquotient `N` along
-with the injection map $N \to M$ and the projection map $M \to N$.
+with the injection map $N \to M$ and the projection map $M \to N$. These maps are 
+isomorphisms. 
+The simplifcation is heuristical and includes steps like for example removing
+zero-generators or removing the i-th component of all vectors if those are 
+reduced by a relation.
 """
 function simplify(M::SubQuo)
   function unit_vector_in_relations(i::Int, M::SubQuo)
@@ -3533,7 +3537,7 @@ function copy_and_reshape(M::MatElem, n, m)
   return mat_space(julia_matrix)
 end
 
-function hom2_cokernel_matrices(f1::MatElem{T}, g1::MatElem{T}) where T
+function hom_matrices_helper(f1::MatElem{T}, g1::MatElem{T}) where T
   R = base_ring(f1)
   s1, s0 = size(f1)
   t1, t0 = size(g1)
@@ -3595,20 +3599,20 @@ function hom2_cokernel_matrices(f1::MatElem{T}, g1::MatElem{T}) where T
 end
 
 
-# Hom and Hom2 implement the same mathematical algorithm, but the implementations 
+# Hom and hom_matrices implement the same mathematical algorithm, but the implementations 
 # differ a lot e.g. in the data structures. As a result performance differs depending 
 # on the example favoring the one or the other. So it makes sense to offer both. 
-# With option :matrices in hom() hom2 is used.
+# With option :matrices in hom() hom_matrices is used.
 @doc Markdown.doc"""
-    hom2(M::SubQuo{T},N::SubQuo{T}) where T
+    hom_matrices(M::SubQuo{T},N::SubQuo{T}) where T
 
 Return a subquotient $S$ such that $\text{Hom}(M,N) \cong S$
 """
-function hom2(M::SubQuo{T},N::SubQuo{T},simplify_task=true) where T
+function hom_matrices(M::SubQuo{T},N::SubQuo{T},simplify_task=true) where T
   f1 = generator_matrix(present_as_cokernel(M).quo)
   g1 = generator_matrix(present_as_cokernel(N).quo)
   R = base_ring(M)
-  SQ, convert_to_matrix = hom2_cokernel_matrices(f1,g1)
+  SQ, convert_to_matrix = hom_matrices_helper(f1,g1)
   if simplify_task
     SQ2, i, p = simplify(SQ)
     to_homomorphism = function(elem::SubQuoElem{T})
