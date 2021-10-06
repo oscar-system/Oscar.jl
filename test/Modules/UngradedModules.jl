@@ -679,7 +679,7 @@ end
 end
 
 @testset "preimage" begin
-	R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
+	R, (x,y) = PolynomialRing(QQ, ["x", "y"])
 
 	for _=1:5
 		A1 = matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:1])
