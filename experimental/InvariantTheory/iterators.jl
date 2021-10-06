@@ -311,3 +311,159 @@ function iterate_linear_algebra(BI::InvRingBasisIterator, state::Int)
   end
   return f, state + 1
 end
+
+################################################################################
+#
+#  "Iterate" a vector space
+#
+################################################################################
+
+function vector_space_iterator(K::FieldT, basis_iterator::IteratorT) where {FieldT <: Union{Nemo.GaloisField, Nemo.GaloisFmpzField, FqNmodFiniteField, FqFiniteField}, IteratorT}
+  return VectorSpaceIteratorFiniteField(K, basis_iterator)
+end
+
+vector_space_iterator(K::FieldT, basis_iterator::IteratorT, bound::Int = 10^5) where {FieldT, IteratorT} = VectorSpaceIteratorRand(K, basis_iterator, bound)
+
+Base.eltype(VSI::VectorSpaceIterator{FieldT, IteratorT, ElemT}) where {FieldT, IteratorT, ElemT} = ElemT
+
+Base.length(VSI::VectorSpaceIteratorFiniteField) = BigInt(order(VSI.field))^length(VSI.basis_iterator) - 1
+
+# The "generic" iterate for all subtypes of VectorSpaceIterator
+function _iterate(VSI::VectorSpaceIterator)
+  if isempty(VSI.basis_iterator)
+    return nothing
+  end
+
+  if length(VSI.basis_collected) > 0
+    b = VSI.basis_collected[1]
+  else
+    b, s = iterate(VSI.basis_iterator)
+    VSI.basis_collected = typeof(b)[ b ]
+    VSI.basis_iterator_state = s
+  end
+  phase = length(VSI.basis_iterator) != 1 ? 1 : 3
+  return b, (2, Int[ 1, 2 ], phase)
+end
+
+Base.iterate(VSI::VectorSpaceIteratorRand) = _iterate(VSI)
+
+function Base.iterate(VSI::VectorSpaceIteratorFiniteField)
+  if isempty(VSI.basis_iterator)
+    return nothing
+  end
+
+  b, state = _iterate(VSI)
+  e, s = iterate(VSI.field)
+  elts = [ e for i = 1:length(VSI.basis_iterator) ]
+  states = [ deepcopy(s) for i = 1:length(VSI.basis_iterator) ]
+
+  return b, (state..., elts, states)
+end
+
+# state is supposed to be a tuple of length 3 containing:
+# - the next basis element to be returned (relevant for phase 1)
+# - a Vector{Int} being the state for phase 2
+# - an Int: the number of the phase
+function _iterate(VSI::VectorSpaceIterator, state)
+  phase = state[3]
+  @assert phase == 1 || phase == 2
+
+  if phase == 1
+    # Check whether we already computed this basis element
+    if length(VSI.basis_collected) >= state[1]
+      b = VSI.basis_collected[state[1]]
+    else
+      b, s = iterate(VSI.basis_iterator, VSI.basis_iterator_state)
+      push!(VSI.basis_collected, b)
+      VSI.basis_iterator_state = s
+    end
+    new_phase = state[1] != length(VSI.basis_iterator) ? 1 : 2
+    return b, (state[1] + 1, state[2], new_phase)
+  end
+
+  # Iterate all possible sums of basis elements
+  @assert length(VSI.basis_iterator) > 1
+  s = state[2]
+  b = sum([ VSI.basis_collected[i] for i in s ])
+
+  expand = true
+  if s[end] < length(VSI.basis_collected)
+    s[end] += 1
+    expand = false
+  else
+    for i = length(s) - 1:-1:1
+      if s[i] + 1 < s[i + 1]
+        s[i] += 1
+        for j = i + 1:length(s)
+          s[j] = s[j - 1] + 1
+        end
+        expand = false
+        break
+      end
+    end
+  end
+
+  if expand
+    if length(s) < length(VSI.basis_collected)
+      s = collect(1:length(s) + 1)
+    else
+      phase = 3
+    end
+  end
+  return b, (state[1], s, phase)
+end
+
+function Base.iterate(VSI::VectorSpaceIteratorRand, state)
+  if state[3] != 3
+    return _iterate(VSI, state)
+  end
+
+  # Phase 3: Random linear combinations
+  coeffs = rand(-VSI.rand_bound:VSI.rand_bound, length(VSI.basis_collected))
+  return sum([ coeffs[i]*VSI.basis_collected[i] for i = 1:length(VSI.basis_collected) ]), (state[1], state[2], 3)
+end
+
+function Base.iterate(VSI::VectorSpaceIteratorFiniteField, state)
+  if state[3] != 3
+    b, s = _iterate(VSI, state[1:3])
+    return b, (s..., state[4], state[5])
+  end
+
+  # Phase 3: Iterate over all possible coefficients in the field
+
+  a = state[4]
+  b = state[5]
+
+  n = length(VSI.basis_collected)
+  j = n
+  ab = iterate(VSI.field, b[j])
+  while ab == nothing
+    a[j], b[j] = iterate(VSI.field)
+    j -= 1
+    if j == 0
+      return nothing
+    end
+    ab = iterate(VSI.field, b[j])
+  end
+  a[j], b[j] = ab[1], ab[2]
+
+  if all( x -> iszero(x) || isone(x), a)
+    # We already visited this element in phase 2
+    return iterate(VSI, (state[1:3]..., a, b))
+  end
+  return dot(a, VSI.basis_collected), (state[1:3]..., a, b)
+end
+
+function collect_basis(VSI::VectorSpaceIterator)
+  while length(VSI.basis_collected) != length(VSI.basis_iterator)
+    if !isdefined(VSI, :basis_iterator_state)
+      @assert length(VSI.basis_collected) == 0
+      b, s = iterate(VSI.basis_iterator)
+    else
+      b, s = iterate(VSI.basis_iterator, VSI.basis_iterator_state)
+    end
+    push!(VSI.basis_collected, b)
+    VSI.basis_iterator_state = s
+  end
+  return VSI.basis_collected
+end
