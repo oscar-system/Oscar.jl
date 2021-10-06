@@ -1,7 +1,7 @@
 export weight, decorate, ishomogeneous, homogeneous_components, filtrate,
 grade, GradedPolynomialRing, homogeneous_component, jacobi_matrix, jacobi_ideal,
 HilbertData, hilbert_series, hilbert_series_reduced, hilbert_series_expanded, hilbert_function, hilbert_polynomial, grading,
-homogenization, dehomogenization
+homogenization, dehomogenization, grading_group
 export MPolyRing_dec, MPolyElem_dec, ishomogeneous, isgraded
 export minimal_subalgebra_generators
 mutable struct MPolyRing_dec{T, S} <: AbstractAlgebra.MPolyRing{T}
