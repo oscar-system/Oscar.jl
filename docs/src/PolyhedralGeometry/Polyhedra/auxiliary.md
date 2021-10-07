@@ -15,11 +15,13 @@ Pages = ["auxiliary.md"]
 
 ```@docs
 ambient_dim(P::Polyhedron)
+boundary_lattice_points(P::Polyhedron)
 codim(P::Polyhedron)
 contains(P::Polyhedron, v::AbstractVector)
 dim(P::Polyhedron)
 facets(P::Polyhedron)
 f_vector(P::Polyhedron)
+interior_lattice_points(P::Polyhedron)
 isbounded(P::Polyhedron)
 isfeasible(P::Polyhedron)
 isfulldimensional(P::Polyhedron)

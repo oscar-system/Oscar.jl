@@ -420,6 +420,64 @@ function lattice_points(P::Polyhedron)
     end
 end
 
+
+@doc Markdown.doc"""
+    interior_lattice_points(P::Polyhedron)
+
+Return the integer points contained in the interior of the bounded polyhedron
+`P`.
+
+# Examples
+```jldoctest
+julia> c = cube(3)
+A polyhedron in ambient dimension 3
+
+julia> interior_lattice_points(c)
+1-element VectorIterator{PointVector{Polymake.Integer}}:
+ [0, 0, 0]
+```
+"""
+function interior_lattice_points(P::Polyhedron)
+    if pm_polytope(P).BOUNDED
+        lat_pts = pm_polytope(P).INTERIOR_LATTICE_POINTS
+        return VectorIterator{PointVector{Polymake.Integer}}(lat_pts[:, 2:end])
+    else
+        throw(ArgumentError("Polyhedron not bounded"))
+    end
+end
+
+
+@doc Markdown.doc"""
+    boundary_lattice_points(P::Polyhedron)
+
+Return the integer points contained in the boundary of the bounded polyhedron
+`P`.
+
+# Examples
+```jldoctest
+julia> c = polarize(cube(3))
+A polyhedron in ambient dimension 3
+
+julia> boundary_lattice_points(c)
+6-element VectorIterator{PointVector{Polymake.Integer}}:
+ [-1, 0, 0]
+ [0, -1, 0]
+ [0, 0, -1]
+ [0, 0, 1]
+ [0, 1, 0]
+ [1, 0, 0]
+```
+"""
+function boundary_lattice_points(P::Polyhedron)
+    if pm_polytope(P).BOUNDED
+        lat_pts = pm_polytope(P).BOUNDARY_LATTICE_POINTS
+        return VectorIterator{PointVector{Polymake.Integer}}(lat_pts[:, 2:end])
+    else
+        throw(ArgumentError("Polyhedron not bounded"))
+    end
+end
+
+
 @doc Markdown.doc"""
     ambient_dim(P::Polyhedron)
 
