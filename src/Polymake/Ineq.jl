@@ -31,31 +31,25 @@ function _polytope(; A::fmpz_mat=zero_matrix(FlintZZ, 1, 1), b::fmpz_mat=zero_ma
   return p
 end
 
-function _cone(; A::fmpz_mat=zero_matrix(FlintZZ, 1, 1), b::fmpz_mat=zero_matrix(FlintZZ, ncols(A), 1), C::fmpz_mat=zero_matrix(FlintZZ, 1, 1))
-  if !iszero(A)
-    bA = Matrix{BigInt}(hcat(-b, A))
-    z = findall(i->!iszero_row(bA, i), 1:nrows(bA))
-    zbA = Matrix{BigInt}(bA[z, :])
-  else
-    zbA = Matrix{BigInt}(undef, 0, 0)
-  end
-  if !iszero(C)
-    z = findall(i->!iszero_row(C, i), 1:nrows(C))
-    zI = Matrix{BigInt}(hcat(zero_matrix(FlintZZ, nrows(C), 1), C))[z, :]
-  else
-    zI = Matrix{BigInt}(undef, 0, 0)
-  end
-  if length(zbA) == 0
-    p =  Polymake.polytope.Cone(INEQUALITIES = zI)
-  else
-    if nrows(zI) == 0
-      p = Polymake.polytope.Cone(EQUATIONS = zbA)
-    else
-      p = Polymake.polytope.Cone(EQUATIONS = zbA, INEQUALITIES = zI)
+
+function _polytope_new(; A::fmpz_mat=zero_matrix(FlintZZ, 1, 1), b::fmpz_mat=zero_matrix(FlintZZ, ncols(A), 1), C::fmpz_mat=zero_matrix(FlintZZ, 1, 1))
+    P = Polyhedron(_polytope(A=A, b=b, C=C))
+    inner = interior_lattice_points(P)
+    outer = boundary_lattice_points(P)
+
+    result = zero_matrix(FlintZZ, length(inner) + length(outer), ambient_dim(P))
+    i = 1
+    for v in inner
+        result[i, :] = Vector{BigInt}(v.p)
+        i += 1
     end
-  end
-  return p
+    for v in outer
+        result[i, :] = Vector{BigInt}(v.p)
+        i += 1
+    end
+    return result
 end
+
 
 @doc Markdown.doc"""
     solve_ineq(A::fmpz_mat, b::fmpz_mat)
@@ -63,26 +57,9 @@ end
 Solves $Ax<=b$, assumes finite set of solutions.
 """
 function solve_ineq(A::fmpz_mat, b::fmpz_mat)
-  p = _polytope(C = hcat(b, -A))
-  p.BOUNDED || error("not a bounded set")
-  inner = p.INTERIOR_LATTICE_POINTS
-  out = p.BOUNDARY_LATTICE_POINTS
-
-  res = zero_matrix(FlintZZ, nrows(inner) + nrows(out), ncols(A))
-  for i=1:nrows(out)
-    @assert out[i,1] == 1
-    for j=1:ncols(A)
-      res[i,j] = out[i, j+1]
-    end
-  end
-  for i=1:nrows(inner)
-    @assert inner[i,1] == 1
-    for j=1:ncols(A)
-      res[i+nrows(out), j] = inner[i, j+1]
-    end
-  end
-  return res
+    return _polytope_new(C = hcat(b, -A))
 end
+
 
 @doc Markdown.doc"""
     solve_non_negative(A::fmpz_mat, b::fmpz_mat)
@@ -90,26 +67,9 @@ end
 Finds all solutions to $Ax = b$, $x>=0$. Assumes a finite set of solutions.
 """
 function solve_non_negative(A::fmpz_mat, b::fmpz_mat)
-  p = _polytope(A = A, b = b, C = identity_matrix(FlintZZ, ncols(A)))
-  p.BOUNDED || error("not a bounded set")
-  inner = p.INTERIOR_LATTICE_POINTS
-  out = p.BOUNDARY_LATTICE_POINTS
-
-  res = zero_matrix(FlintZZ, nrows(inner) + nrows(out), ncols(A))
-  for i=1:nrows(out)
-    @assert out[i,1] == 1
-    for j=1:ncols(A)
-      res[i,j] = out[i, j+1]
-    end
-  end
-  for i=1:nrows(inner)
-    @assert inner[i,1] == 1
-    for j=1:ncols(A)
-      res[i+nrows(out), j] = inner[i, j+1]
-    end
-  end
-  return res
+  return _polytope_new(A = A, b = b, C = identity_matrix(FlintZZ, ncols(A)))
 end
+
 
 @doc Markdown.doc"""
     solve_mixed(A::fmpz_mat, b::fmpz_mat, C::fmpz_mat)
@@ -117,34 +77,9 @@ end
 Solves $Ax = b$ under $Cx >= 0$, assumes a finite solution set.
 """
 function solve_mixed(A::fmpz_mat, b::fmpz_mat, C::fmpz_mat)  # Ax == b && Cx >= 0
-  p = _polytope(A = A, b = b, C = C)
-  p.BOUNDED || error("not a bounded set")
-  inner = p.INTERIOR_LATTICE_POINTS
-  out = p.BOUNDARY_LATTICE_POINTS
-
-  res = zero_matrix(FlintZZ, nrows(inner) + nrows(out), ncols(A))
-  for i=1:nrows(out)
-    if out[i,1] != 1
-      println("unbounded polytope!!")
-      global last_in = (A, b, C)
-    end
-    @assert out[i,1] == 1
-    for j=1:ncols(A)
-      res[i,j] = out[i, j+1]
-    end
-  end
-  for i=1:nrows(inner)
-    if inner[i,1] != 1
-      println("unbounded polytope!!")
-      global last_in = (A, b, C)
-    end
-    @assert inner[i,1] == 1
-    for j=1:ncols(A)
-      res[i+nrows(out), j] = inner[i, j+1]
-    end
-  end
-  return res
+    return _polytope_new(A = A, b = b, C = C)
 end
+
 
 @doc Markdown.doc"""
     solve_mixed(A::fmpz_mat, b::fmpz_mat, C::fmpz_mat, d::fmpz_mat)
