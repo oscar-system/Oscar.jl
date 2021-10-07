@@ -216,7 +216,7 @@ function Base.show(io::IO, M::MonomialOrdering)
   show(io, M.R, a[end])
 end
 
-function Base.show(io::IO, R::MPolyRing, o::GenOrdering)
+function Base.show(io::IO, R::MPolyRing, o::AbsOrdering)
   if o.ord == :weight
     print(io, "weight($(gens(R)[o.vars]) via $(o.wgt))")
   elseif isweighted(o.ord)
@@ -440,7 +440,31 @@ end
 mutable struct ModProdOrdering <: AbsModOrdering
    a::AbsOrdering
    b::AbsOrdering
- end
+end
+
+function Base.show(io::IO, M::ModuleOrdering)
+   a = flat(M.o)
+   if length(a) > 1
+     print(io, "Product ordering: ")
+     for i=1:length(a)-1
+       if isa(a[i], GenOrdering)
+         show(io, base_ring(M.M), a[i])
+       else
+         show(io, M.M, a[i])
+       end
+       print(io, " \\times ")
+     end
+   end
+   if isa(a[end], GenOrdering)
+      show(io, base_ring(M.M), a[end])
+   else
+      show(io, M.M, a[end])
+   end
+end
+
+function Base.show(io::IO, R::AbstractAlgebra.Module, o::AbsOrdering)
+   print(io, "Module ordering")
+end
 
 Base.:*(a::AbsGenOrdering, b::AbsModOrdering) = ModProdOrdering(a, b)
 
