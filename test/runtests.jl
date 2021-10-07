@@ -144,9 +144,12 @@ end
     @test nr_of_q_rational_points( v, 3 ) == 106
 end
 
+D=ToricDivisor( [ 0,0,0,0 ], H5 )
+D2 = divisor_of_character( [ 1,2 ], H5 )
+D3 = divisor_of_class( [ 1,2 ], H5 )
+        
 @testset "Divisors" begin
     # Compute properties of toric divisors on Hirzebruch surface
-    D=ToricDivisor( [ 0,0,0,0 ], H5 )
     @test JToric.iscartier( D ) == true
     @test JToric.isprincipal( D ) == true
     @test JToric.is_primedivisor( D ) == false
@@ -154,7 +157,8 @@ end
     @test JToric.isample( D ) == false
     @test JToric.isvery_ample( D ) == false
     @test JToric.isnef( D ) == true
-    D2 = divisor_of_character( [ 1,2 ], H5 )
+    @test JToric.isintegral( D ) == true
+    @test JToric.isq_cartier( D ) == true
     @test JToric.iscartier( D2 ) == true
     @test JToric.isprincipal( D2 ) == true
     @test JToric.is_primedivisor( D2 ) == false
@@ -162,7 +166,8 @@ end
     @test JToric.isample( D2 ) == false
     @test JToric.isvery_ample( D2 ) == false
     @test JToric.isnef( D2 ) == true
-    D3 = divisor_of_class( [ 1,2 ], H5 )
+    @test JToric.isintegral( D2 ) == true
+    @test JToric.isq_cartier( D2 ) == true
     @test JToric.iscartier( D3 ) == true
     @test JToric.isprincipal( D3 ) == false
     @test JToric.is_primedivisor( D3 ) == false
@@ -170,4 +175,40 @@ end
     @test JToric.isample( D3 ) == true
     @test JToric.isvery_ample( D3 ) == true
     @test JToric.isnef( D3 ) == true
+    @test JToric.isintegral( D3 ) == true
+    @test JToric.isq_cartier( D3 ) == true
+end
+
+using Oscar
+
+@testset "Polytopes of divisors" begin
+    p = JToric.polyhedron_of_divisor( D )
+    @test dim( p ) == 0
+    @test ambient_dim( p ) == 2
+    p2 = JToric.polyhedron_of_divisor( D2 )
+    @test dim( p2 ) == 0
+    @test ambient_dim( p2 ) == 2
+    p3 = JToric.polyhedron_of_divisor( D3 )
+    @test dim( p3 ) == 2
+    @test ambient_dim( p3 ) == 2
+end
+
+@testset "Affine toric varieties" begin
+    C = Oscar.positive_hull([1 1; -1 1])
+    antv = AffineNormalToricVariety(C)
+    JToric.show( antv )
+    @test JToric.issmooth( antv ) == false
+    @test JToric.is_orbifold( antv ) == true
+    @test toric_ideal_binomial_generators( antv ) == [-1 -1 2]
+    ntv = NormalToricVariety(C)
+    @test JToric.isaffine( ntv ) == true
+end
+
+@testset "Toric varieties from polyhedral fans" begin
+    square = Oscar.cube(2)
+    nf = Oscar.normal_fan(square)
+    ntv = NormalToricVariety(nf)
+    @test JToric.iscomplete( ntv ) == true
+    ntv2 = NormalToricVariety(square)
+    @test JToric.iscomplete( ntv2 ) == true
 end
