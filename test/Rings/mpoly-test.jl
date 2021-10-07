@@ -64,6 +64,22 @@ end
   R, (x, y, z) = PolynomialRing(QQ, 3)
   f = x*y + 5*z^3
 
+  @test isa(lex([x, y]), MonomialOrdering)
+  @test isa(revlex([x, y, z]), MonomialOrdering)
+  @test isa(degrevlex([x, z]), MonomialOrdering)
+  @test isa(deglex([x, y, z]), MonomialOrdering)
+  @test isa(neglex([x, y, z]), MonomialOrdering)
+  @test isa(negrevlex([x, y, z]), MonomialOrdering)
+  @test isa(negdeglex([x, y, z]), MonomialOrdering)
+  @test isa(negdegrevlex([x, y, z]), MonomialOrdering)
+
+  @test isa(wdeglex([x, y], [1, 2]), MonomialOrdering)
+  @test isa(wdegrevlex([x, y], [1, 2]), MonomialOrdering)
+  @test isa(wnegdeglex([x, y], [1, 2]), MonomialOrdering)
+  @test isa(wnegdegrevlex([x, y], [1, 2]), MonomialOrdering)
+
+  @test isa(revlex([x, y])*neglex([z]), MonomialOrdering)
+
   @test collect(monomials(f, :lex)) == [ x*y, z^3 ]
   @test collect(monomials(f, :revlex)) == [ z^3, x*y ]
   @test collect(monomials(f, :deglex)) == [ z^3, x*y ]
@@ -76,6 +92,8 @@ end
   w = [ 1, 2, 1 ]
   @test collect(monomials(f, :wdeglex, w)) == [ x*y, z^3 ]
   @test collect(monomials(f, :wdegrevlex, w)) == [ x*y, z^3 ]
+  @test collect(monomials(f, :wnegdeglex, w)) == [ x*y, z^3 ]
+  @test collect(monomials(f, :wnegdegrevlex, w)) == [ x*y, z^3 ]
 
   M = [ 1 1 1; 1 0 0; 0 1 0 ]
   @test collect(monomials(f, M)) == collect(monomials(f, :deglex))
