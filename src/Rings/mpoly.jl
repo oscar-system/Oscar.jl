@@ -147,8 +147,9 @@ end
 ###################################################
 
 using .Orderings
-export lex, deglex, degrevlex, revlex, negdeglex, negdegrevlex, weights,
-       MonomialOrdering, singular
+export lex, deglex, degrevlex, revlex, neglex, negrevlex, negdeglex,
+       negdegrevlex, wdeglex, wdegrevlex, wnegdeglex, wnegdegrevlex,
+       weights, MonomialOrdering, singular
 
 
 ##############################################################################
@@ -380,7 +381,15 @@ function singular(o::Orderings.GenOrdering)
     return Singular.ordering_ds(length(v))
   elseif o.ord == :negdeglex
     return Singular.ordering_Ds(length(v))
-  elseif o.ord == :weights
+   elseif o.ord == :wdeglex
+      return Singular.ordering_Wp(o.w)
+   elseif o.ord == :wdegrevlex
+      return Singular.ordering_wp(o.w)
+   elseif o.ord == :wnegdeglex
+      return Singular.ordering_Ws(o.w)
+   elseif o.ord == :wnegdegrevlex
+      return Singular.ordering_ws(o.w)
+   elseif o.ord == :weights
     return Singular.ordering_M(o.wgt)
   else
     error("not done yet")
@@ -481,7 +490,6 @@ end
 function AbstractAlgebra.expressify(a::MPolyIdeal; context = nothing)
   return Expr(:call, :ideal, [expressify(g, context = context) for g in collect(a.gens)]...)
 end
-
 
 function ideal(g::Vector{Any})
   return ideal(typeof(g[1])[x for x = g])
@@ -739,7 +747,11 @@ for s in (:terms, :coefficients, :exponent_vectors, :monomials)
 
     function ($s)(f::MPolyElem, ord::MonomialOrdering)
       R = parent(f)
-      lt = lt_from_ordering(R, weights(ord))
+      if isa(ord.o, Oscar.Orderings.GenOrdering) && isweighted(ord.o.ord)
+        lt = lt_from_ordering(R, ord.o.ord, ord.o.w)
+      else
+        lt = lt_from_ordering(R, weights(ord))
+      end
       return ($s)(f, lt)
     end
   end
@@ -805,7 +817,6 @@ function Base.:*(f::MPolyElem, I::MPolyIdeal)
 end
 
 *(I::MPolyIdeal, f::MPolyElem) = f*I
-
 
 ################################################################################
 

@@ -3,8 +3,9 @@ module Orderings
 using Oscar, Markdown
 import Oscar: Ring, MPolyRing, MPolyElem, weights, IntegerUnion
 export anti_diagonal, lex, degrevlex, deglex, revlex, negdeglex,
-       negdegrevlex, weights, MonomialOrdering,
-       ModuleOrdering, singular
+       neglex, negrevlex, negdegrevlex, wdeglex, wdegrevlex,
+       wnegdeglex, wnegdegrevlex, weights, isweighted,
+       MonomialOrdering, ModuleOrdering, singular
 
 abstract type AbsOrdering end
 
@@ -21,6 +22,7 @@ mutable struct GenOrdering{T} <: AbsGenOrdering
   vars::T
   ord::Symbol
   wgt::fmpz_mat
+  w::Vector{Int}
   function GenOrdering(u::T, s::Symbol) where {T <: AbstractVector{Int}}
     r = new{typeof(u)}()
     r.vars = u
@@ -35,6 +37,18 @@ mutable struct GenOrdering{T} <: AbsGenOrdering
     r.wgt = m
     return r
   end
+  function GenOrdering(u::T, w::Vector{Int}; ord::Symbol) where {T <: AbstractVector{Int}}
+   r = new{typeof(u)}()
+   r.vars = u
+   r.ord = ord
+   r.w = w
+   return r
+ end
+end
+
+function isweighted(ord::Symbol)
+   return ord == :wdeglex || ord == :wdegrevlex ||
+          ord == :wnegdeglex || ord == :wnegdegrevlex
 end
 
 """
@@ -66,6 +80,18 @@ function ordering(a::AbstractVector{Int}, s::Symbol, w::fmpz_mat)
   end
   return GenOrdering(collect(a), w, ord = s)
 end
+
+#not really user facing
+function ordering(a::AbstractVector{Int}, s::Symbol, w::Vector{Int})
+   i = minimum(a)
+   I = maximum(a)
+   length(a) == length(w) || error("number of weights doesn't match number of variables")
+   if I-i+1 == length(a)
+     return GenOrdering(i:I, w, ord = s)
+   end
+   return GenOrdering(collect(a), w, ord = s)
+ end
+ 
 
 #not really user facing, flattens a product of product orderings into an array 
 function flat(a::GenOrdering)
@@ -148,9 +174,12 @@ end
     ordering(a::Vector{MPolyElem}, s::Symbol)
     ordering(a::Vector{MPolyElem}, m::fmpz_mat)
     ordering(a::Vector{MPolyElem}, s::Symbol, m::fmpz_mat)
+    ordering(a::Vector{MPolyElem}, s::Symbol, w::Vector{Int})
 
 Defines an ordering to be applied to the variables in `a`.
-In the first form the symbol `s` has to be one of `:lex`, `:deglex` or `:degrevlex`.
+In the first form the symbol `s` has to be one of `:lex`, `:deglex`,
+`:degrevlex`, `:revlex`, `:neglex`, `:negdeglex`, `:negdegrevlex`,
+`:negrevlex`, `:wdeglex`, `:wdegrevlex`, `:wnegdeglex`, `:wnegdegrevlex`.
 In the second form, a weight ordering using the given matrix is used.
 In the last version, the symbol if of the form `Singular(..)`.
 """
@@ -190,6 +219,8 @@ end
 function Base.show(io::IO, R::MPolyRing, o::GenOrdering)
   if o.ord == :weight
     print(io, "weight($(gens(R)[o.vars]) via $(o.wgt))")
+  elseif isweighted(o.ord)
+   print(io, "weight($(gens(R)[o.vars]) via $(o.w))")
   else
     print(io, "$(String(o.ord))($(gens(R)[o.vars]))")
   end
@@ -228,6 +259,22 @@ function revlex(v::AbstractVector{<:MPolyElem})
   return MonomialOrdering(parent(first(v)), ordering(v, :revlex))
 end
 @doc Markdown.doc"""
+    neglex(v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
+
+Defines the `neglex` ordering on the variables given.
+"""
+function neglex(v::AbstractVector{<:MPolyElem})
+  return MonomialOrdering(parent(first(v)), ordering(v, :neglex))
+end
+@doc Markdown.doc"""
+    negrevlex(v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
+
+Defines the `negrevlex` ordering on the variables given.
+"""
+function negrevlex(v::AbstractVector{<:MPolyElem})
+  return MonomialOrdering(parent(first(v)), ordering(v, :negrevlex))
+end
+@doc Markdown.doc"""
     negdegrevlex(v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
 
 Defines the `negdegrevlex` ordering on the variables given.
@@ -243,12 +290,43 @@ Defines the `negdeglex` ordering on the variables given.
 function negdeglex(v::AbstractVector{<:MPolyElem})
   return MonomialOrdering(parent(first(v)), ordering(v, :negdeglex))
 end
+@doc Markdown.doc"""
+    wdeglex(v::AbstractVector{<:MPolyElem}, w::Vector{Int}) -> MonomialOrdering
 
+Defines the `wdeglex` ordering on the variables given with the weights `w`.
+"""
+function wdeglex(v::AbstractVector{<:MPolyElem}, w::Vector{Int})
+  return MonomialOrdering(parent(first(v)), ordering(v, :wdeglex, w))
+end
+@doc Markdown.doc"""
+    wdegrevlex(v::AbstractVector{<:MPolyElem}, w::Vector{Int}) -> MonomialOrdering
+
+Defines the `wdegrevlex` ordering on the variables given with the weights `w`.
+"""
+function wdegrevlex(v::AbstractVector{<:MPolyElem}, w::Vector{Int})
+  return MonomialOrdering(parent(first(v)), ordering(v, :wdegrevlex, w))
+end
+@doc Markdown.doc"""
+    wnegdeglex(v::AbstractVector{<:MPolyElem}, w::Vector{Int}) -> MonomialOrdering
+
+Defines the `wnegdeglex` ordering on the variables given with the weights `w`.
+"""
+function wnegdeglex(v::AbstractVector{<:MPolyElem}, w::Vector{Int})
+  return MonomialOrdering(parent(first(v)), ordering(v, :wnegdeglex, w))
+end
+@doc Markdown.doc"""
+    wnegdegrevlex(v::AbstractVector{<:MPolyElem}, w::Vector{Int}) -> MonomialOrdering
+
+Defines the `wnegdegrevlex` ordering on the variables given with the weights `w`.
+"""
+function wnegdegrevlex(v::AbstractVector{<:MPolyElem}, w::Vector{Int})
+  return MonomialOrdering(parent(first(v)), ordering(v, :wnegdegrevlex, w))
+end
 @doc Markdown.doc"""
     singular(ord::Symbol, v::AbstractVector{<:MPolyElem}) -> MonomialOrdering
 
 Defines an ordering given in terms of Singular primitives on the variables given.
-`ord` can be one of `:lp`, `:ls`, `:dp`, `:ds`.
+`ord` can be one of `:lp`, `:rs`, `:ls`, `:dp`, `:rp`, `:ds`, `:Ds`, `:Dp`.
 """
 function singular(ord::Symbol, v::AbstractVector{<:MPolyElem})
   return MonomialOrdering(parent(first(v)), ordering(v, Symbol("Singular($(string(ord)))")))
@@ -279,9 +357,7 @@ function singular(ord::Symbol, v::AbstractVector{<:MPolyElem}, w::AbstractVector
   while length(v) > length(W)
     push!(W, 0)
   end
-
   return MonomialOrdering(parent(first(v)), ordering(v, Symbol("Singular($(string(ord)))"), matrix(ZZ, 1, length(W), W)))
-
 end
 
 @doc Markdown.doc"""
@@ -549,7 +625,7 @@ function _isless_lex(f::MPolyElem, k::Int, l::Int)
    return dot(ek, w)
  end
 
- function _isless_weightlex(f::MPolyElem, k::Int, l::Int, w::Vector{Int})
+ function _isless_weightdeglex(f::MPolyElem, k::Int, l::Int, w::Vector{Int})
    dk = weighted_degree(f, k, w)
    dl = weighted_degree(f, l, w)
    if dk < dl
@@ -560,7 +636,7 @@ function _isless_lex(f::MPolyElem, k::Int, l::Int)
    return _isless_lex(f, k, l)
  end
  
- function _isless_weightrevlex(f::MPolyElem, k::Int, l::Int, w::Vector{Int})
+ function _isless_weightdegrevlex(f::MPolyElem, k::Int, l::Int, w::Vector{Int})
    dk = weighted_degree(f, k, w)
    dl = weighted_degree(f, l, w)
    if dk < dl
@@ -571,7 +647,7 @@ function _isless_lex(f::MPolyElem, k::Int, l::Int)
    return _isless_negrevlex(f, k, l)
  end
  
- function _isless_weightneglex(f::MPolyElem, k::Int, l::Int, w::Vector{Int})
+ function _isless_weightnegdeglex(f::MPolyElem, k::Int, l::Int, w::Vector{Int})
    dk = weighted_degree(f, k, w)
    dl = weighted_degree(f, l, w)
    if dk < dl
@@ -582,7 +658,7 @@ function _isless_lex(f::MPolyElem, k::Int, l::Int)
    return _isless_lex(f, k, l)
  end
  
- function _isless_weightnegrevlex(f::MPolyElem, k::Int, l::Int, w::Vector{Int})
+ function _isless_weightnegdegrevlex(f::MPolyElem, k::Int, l::Int, w::Vector{Int})
    dk = weighted_degree(f, k, w)
    dl = weighted_degree(f, l, w)
    if dk > dl
@@ -643,18 +719,18 @@ function _isless_lex(f::MPolyElem, k::Int, l::Int)
  function lt_from_ordering(R::MPolyRing, ord::Symbol, w::Vector{Int})
    @assert length(w) == nvars(R) "Number of weights has to match number of variables"
  
-   if ord == :wlex || ord == :Wp
+   if ord == :wdeglex || ord == :Wp
      @assert all(x -> x > 0, w) "Weights have to be positive"
-     return (f, k, l) -> _isless_weightlex(f, k, l, w)
-   elseif ord == :wrevlex || ord == :wp
+     return (f, k, l) -> _isless_weightdeglex(f, k, l, w)
+   elseif ord == :wdegrevlex || ord == :wp
      @assert all(x -> x > 0, w) "Weights have to be positive"
-     return (f, k, l) -> _isless_weightrevlex(f, k, l, w)
-   elseif ord == :wneglex || ord == :Ws
+     return (f, k, l) -> _isless_weightdegrevlex(f, k, l, w)
+   elseif ord == :wnegdeglex || ord == :Ws
      @assert !iszero(w[1]) "First weight must not be 0"
-     return (f, k, l) -> _isless_weightneglex(f, k, l, w)
-   elseif ord == :wnegrevlex || ord == :ws
+     return (f, k, l) -> _isless_weightnegdeglex(f, k, l, w)
+   elseif ord == :wnegdegrevlex || ord == :ws
      @assert !iszero(w[1]) "First weight must not be 0"
-     return (f, k, l) -> _isless_weightnegrevlex(f, k, l, w)
+     return (f, k, l) -> _isless_weightnegdegrevlex(f, k, l, w)
    else
      error("Ordering $ord not available")
    end
