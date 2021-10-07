@@ -36,7 +36,7 @@ The following ones are commonly used.
 
 import Base: ^, *
 
-export on_tuples, on_sets, on_indeterminates, permuted
+export on_tuples, on_sets, on_sets_sets, on_indeterminates, permuted
 
 """
 We try to avoid introducing `on_points` and `on_right`.
@@ -167,6 +167,58 @@ function on_sets(set::T, x::GAPGroupElem) where T <: Tuple
 end
 
 ^(set::T, x::GAPGroupElem) where T <: Set = on_sets(set, x)
+
+"""
+    on_sets_sets(set::GAP.GapObj, x::GAPGroupElem)
+    on_sets_sets(set::Vector{T}, x::GAPGroupElem) where T
+    on_sets_sets(set::T, x::GAPGroupElem) where T <: Union{Tuple, Set}
+
+Return the image of `set` under `x`,
+where the action is given by applying `on_sets` to the entries
+of `set`, and then turning the result into a sorted vector/tuple or a set,
+respectively.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(3);  g[1]
+(1,2,3)
+
+julia> l = GAP.julia_to_gap([[1, 2], [3, 4]], recursive = true)
+GAP: [ [ 1, 2 ], [ 3, 4 ] ]
+
+julia> on_sets_sets(l, g[1])
+GAP: [ [ 1, 4 ], [ 2, 3 ] ]
+
+julia> on_sets_sets([[1, 2], [3, 4]], g[1])
+2-element Vector{Vector{Int64}}:
+ [1, 4]
+ [2, 3]
+
+julia> on_sets_sets(((1,2), (3,4)), g[1])
+((1, 4), (2, 3))
+
+julia> on_sets_sets(Set([[1, 2], [3, 4]]), g[1])
+Set{Vector{Int64}} with 2 elements:
+  [1, 4]
+  [2, 3]
+
+```
+"""
+on_sets_sets(set::GAP.GapObj, x::GAPGroupElem) = GAP.Globals.OnSetsSets(set, x.X)
+
+function on_sets_sets(set::Vector{T}, x::GAPGroupElem) where T
+    res = T[on_sets(pnt, x) for pnt in set]
+    sort!(res)
+    return res
+end
+
+on_sets_sets(set::T, x::GAPGroupElem) where T <: Set = T([on_sets(pnt, x) for pnt in set])
+
+function on_sets_sets(set::T, x::GAPGroupElem) where T <: Tuple
+    res = [on_sets(pnt, x) for pnt in set]
+    sort!(res)
+    return T(res)
+end
 
 
 """
