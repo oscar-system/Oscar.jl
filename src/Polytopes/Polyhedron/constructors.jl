@@ -44,7 +44,7 @@ function Polyhedron(I::Union{HalfspaceIterator, Tuple{<:Union{Oscar.MatElem, Abs
     if non_redundant
         return Polyhedron(Polymake.polytope.Polytope{Polymake.Rational}(FACETS = IM, AFFINE_HULL = EM))
     else
-        return Polyhedron(Polymake.polytope.Polytope{Polymake.Rational}(INEQUALITIES = IM, EQUATIONS = EM))
+        return Polyhedron(Polymake.polytope.Polytope{Polymake.Rational}(INEQUALITIES = remove_zero_rows(IM), EQUATIONS = remove_zero_rows(EM)))
     end
 end
 
@@ -133,7 +133,7 @@ function convex_hull(V::Union{VectorIterator{PointVector}, AnyVecOrMat, Oscar.Ma
     if non_redundant
         return Polyhedron(Polymake.polytope.Polytope{Polymake.Rational}(VERTICES = points, LINEALITY_SPACE = lineality))
     else
-        return Polyhedron(Polymake.polytope.Polytope{Polymake.Rational}(POINTS = points, INPUT_LINEALITY = lineality))
+        return Polyhedron(Polymake.polytope.Polytope{Polymake.Rational}(POINTS = remove_zero_rows(points), INPUT_LINEALITY = remove_zero_rows(lineality)))
     end
 end
 
