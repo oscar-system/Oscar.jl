@@ -174,7 +174,52 @@ m_{i-1}\alpha\ =m_{i-1}\beta,\ m_i\alpha>m_i\beta$
 
 To create matrix orderings, OSCAR allows for matrices with integer coefficients as input matrices.
 
-### Normal Forms
+#### Functions for creating orderings
+
+When computing Gröbner bases an ordering must be supplied. Standard Singular
+orderings, including block orderings, weighted orderings and local orderings
+are available.
+
+The basic orderings are `:lex`, `:revlex`, `:deglex`, `:degrevlex`,
+`:neglex`, `:negrevlex`, `:negdeglex`, `:negdegrevlex`, `:wdeglex`,
+`:wdegrevlex`, `:wnegdeglex` and `:wnegdegrevlex`.
+
+The orderings starting with `w` are weighted orderings.
+
+The following functions exist for creating orderings:
+
+```@docs
+lex(::AbstractVector{<:MPolyElem})
+revlex(::AbstractVector{<:MPolyElem})
+deglex(::AbstractVector{<:MPolyElem})
+degrevlex(::AbstractVector{<:MPolyElem})
+neglex(::AbstractVector{<:MPolyElem})
+negrevlex(::AbstractVector{<:MPolyElem})
+negdeglex(::AbstractVector{<:MPolyElem})
+negdegrevlex(::AbstractVector{<:MPolyElem})
+```
+
+```@docs
+wdeglex(::AbstractVector{<:MPolyElem}, ::Vector{Int})
+wdegrevlex(::AbstractVector{<:MPolyElem}, ::Vector{Int})
+wnegdeglex(::AbstractVector{<:MPolyElem}, ::Vector{Int})
+wnegdegrevlex(::AbstractVector{<:MPolyElem}, ::Vector{Int})
+```
+
+Block orderings can be obtained by concatening monomial orderings using the `*`
+operator.
+
+
+###### Examples
+
+```@repl oscar
+R, (x, y, s, t, u) = PolynomialRing(QQ, ["x", "y", "s", "t", "u"])
+O1 = degrevlex(gens(R))
+O2 = lex([x, y])*deglex([s, t, u])
+O3 = wdeglex(gens(R), [2, 3, 5, 7, 3])
+```
+
+## Normal Forms
 
 ```@docs
 normal_form(f::T, J::MPolyIdeal) where { T <: MPolyElem }
