@@ -5,7 +5,7 @@ import Base: ^, +, -, *, ==
 import Oscar: Hecke, AbstractAlgebra, GAP
 using Oscar: SLPolyRing, SLPoly, SLPolynomialRing
 
-export galois_group, transitive_group_identification, slpoly_ring, elementary_symmetric,
+export galois_group, slpoly_ring, elementary_symmetric,
        power_sum, to_elementary_symmetric, cauchy_ideal, galois_ideal, fixed_field,
        extension_field
 
@@ -876,8 +876,8 @@ function invariant(G::PermGroup, H::PermGroup)
         return E
       end
 
-      sG = set_stabilizer(G, BB)[1]
-      sH = set_stabilizer(H, BB)[1]
+      sG = stabilizer(G, BB, on_sets)[1]
+      sH = stabilizer(H, BB, on_sets)[1]
       hG = action_homomorphism(sG, BB)
       ssG = image(hG, sG)[1]
       ssH = image(hG, sH)[1]
@@ -1196,7 +1196,7 @@ function starting_group(GC::GaloisCtx, K::AnticNumberField; useSubfields::Bool =
 
     #TODO: wrap this properly
     G = Oscar._as_subgroup(G, GAP.Globals.Solve(GAP.julia_to_gap(vcat(GAP.Globals.ConInGroup(G.X), [GAP.Globals.ConStabilize(GAP.julia_to_gap(sort(o), Val(true)), GAP.Globals.OnSetsSets) for o in O]))))[1]
-    #@show G = intersect([stabilizer(G, GAP.julia_to_gap(sort(o), Val(true)), GAP.Globals.OnSetsSets)[1] for o=O]...)[1]
+    #@show G = intersect([stabilizer(G, sort(o), on_sets_sets)[1] for o=O]...)[1]
   end
 
   si = G(si)
@@ -1324,7 +1324,7 @@ function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = 
 end
 
 @doc Markdown.doc"""
-    descent(GC::GaloisCtx, G::PermGroup, F::GroupFilter, si::PermGroupElem; grp_id = transitive_group_identification, extra::Int = 5)
+    descent(GC::GaloisCtx, G::PermGroup, F::GroupFilter, si::PermGroupElem; grp_id = transitive_identification, extra::Int = 5)
 
 Performs a generic Stauduhar descent: starting with the group `G` that needs to be a 
 supergroup of the Galois group, operating on the roots in `GC`, the context object.
@@ -1332,7 +1332,7 @@ supergroup of the Galois group, operating on the roots in `GC`, the context obje
 The groups are filtered by `F` and the result needs to contain the permutation `si`.
 For verbose output, the groups are printed through `grp_id`.
 """
-function descent(GC::GaloisCtx, G::PermGroup, F::GroupFilter, si::PermGroupElem; grp_id = transitive_group_identification, extra::Int = 5)
+function descent(GC::GaloisCtx, G::PermGroup, F::GroupFilter, si::PermGroupElem; grp_id = transitive_identification, extra::Int = 5)
   @vprint :GaloisGroup 2 "Have starting group with id $(grp_id(G))\n"
 
   p = GC.C.p
@@ -1803,7 +1803,7 @@ include("Qt.jl")
 end
 
 using .GaloisGrp
-export galois_group, transitive_group_identification, slpoly_ring, elementary_symmetric,
+export galois_group, slpoly_ring, elementary_symmetric,
        power_sum, to_elementary_symmetric, cauchy_ideal, galois_ideal, fixed_field, 
        maximal_subgroup_reps, extension_field
        

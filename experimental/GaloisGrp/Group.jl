@@ -56,7 +56,7 @@ function low_index_subgroups(G::PermGroup, n::Int)
 end
 
 """
-An ascending chain of minimual supergroups linking `U` and `G`.
+An ascending chain of minimal supergroups linking `U` and `G`.
 Not a good algorithm, but Max' version `RefinedChain` does not produce
 minimal supergroups, ie. it fails in ``C_4``.
 """
@@ -74,35 +74,10 @@ function maximal_subgroup_chain(G::PermGroup, U::PermGroup)
   return [Oscar._as_subgroup(G, x)[1] for x = ll]
 end
 
-function transitive_group_identification(G::PermGroup)
-  if degree(G) > 31
-    return -1
-  end
-  return GAP.Globals.TransitiveIdentification(G.X)
-end
-
 # TODO: add a GSet Julia type which does something similar Magma's,
 # or also to GAP's ExternalSet (but don't use ExternalSet, to avoid the overhead)
 
-function all_blocks(G::PermGroup)
-  # TODO: this returns an array of arrays;
-  # TODO: AllBlocks assumes that we act on MovedPoints(G), which
-  # may NOT be what we want...
-  return GAP.gap_to_julia(Vector{Vector{Int}}, GAP.Globals.AllBlocks(G.X))
-end
-
-# TODO: update stabilizer to use GSet
-# TODO: allow specifying actions other than the default
-function stabilizer(G::Oscar.GAPGroup, seed, act)
-    return Oscar._as_subgroup(G, GAP.Globals.Stabilizer(G.X, GAP.julia_to_gap(seed), act))
-end
-
 # TODO: add type BlockSystem
-
-# TODO: perhaps get rid of set_stabilizer again, once we have proper Gsets
-function set_stabilizer(G::Oscar.GAPGroup, seed::Vector{Int})
-    return stabilizer(G, GAP.julia_to_gap(seed), GAP.Globals.OnSets)
-end
 
 # TODO: add lots of more orbit related stuff
 
