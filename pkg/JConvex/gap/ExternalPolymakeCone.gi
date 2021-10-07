@@ -184,7 +184,8 @@ InstallMethod( Polymake_CanonicalConeByGenerators,
     else
         
         # compute rays
-        rays := JuliaToGAP( IsList, JuliaMatrixInt( cone!.pmobj.RAYS ) );
+        rays := Julia.Polymake.common.primitive( cone!.pmobj.RAYS ); # ensure integer coeffs
+        rays := JuliaToGAP( IsList, JuliaMatrixInt( rays ) );
         
         # sometimes, Polymake returns rational rays - we turn them into integral vectors
         scaled_rays := [];
@@ -267,7 +268,8 @@ InstallMethod( Polymake_V_Rep,
     else
         
         # compute rays
-        rays := JuliaToGAP( IsList, JuliaMatrixInt( cone!.pmobj.RAYS ) );
+        rays := Julia.Polymake.common.primitive( cone!.pmobj.RAYS ); # ensure integer coeffs
+        rays := JuliaToGAP( IsList, JuliaMatrixInt( rays ) );
         
         # sometimes, Polymake returns rational rays - we turn them into integral vectors
         scaled_rays := [];
