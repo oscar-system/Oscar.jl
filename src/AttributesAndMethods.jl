@@ -86,7 +86,7 @@ export mori_cone
 Compute the i-th Betti number of the normal toric variety `v`.
 """
 function ith_betti_number( v::AbstractNormalToricVariety, i::Int )
-    if mod( i, 2 ) != 0
+    if isodd(i)
         return 0
     end
     k = i÷2
