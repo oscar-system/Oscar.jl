@@ -259,7 +259,7 @@ include("Rings/NumberField.jl")
 include("Rings/FunctionField.jl")
 include("Rings/AbelianClosure.jl")
 
-include("Groups/GroupCharacters.jl")
+include("Groups/group_characters.jl")  # needs some Rings functionality
 
 include("Modules/UngradedModules.jl")
 include("Modules/FreeModules-graded.jl")
