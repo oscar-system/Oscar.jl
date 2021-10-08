@@ -209,6 +209,13 @@ negwdegrevlex(::AbstractVector{<:MPolyElem}, ::Vector{Int})
 Block orderings can be obtained by concatening monomial orderings using the `*`
 operator.
 
+Term over position and position over term module orderings are also available.
+These are also specified byy concatenation using the `*` operator. One creates
+the requisite module ordering (`lex` or `revlex`) for the generators of the
+free module.
+
+Term over position is specified by appending the module ordering to the
+monomial ordering and position over term by prepending the module ordering.
 
 ###### Examples
 
@@ -217,6 +224,9 @@ R, (x, y, s, t, u) = PolynomialRing(QQ, ["x", "y", "s", "t", "u"])
 O1 = degrevlex(gens(R))
 O2 = lex([x, y])*deglex([s, t, u])
 O3 = wdeglex(gens(R), [2, 3, 5, 7, 3])
+
+K = FreeModule(R, 3)
+O4 = revlex(gens(K))*degrevlex(gens(R))
 ```
 
 ## Normal Forms

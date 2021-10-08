@@ -210,7 +210,7 @@ function Base.show(io::IO, M::MonomialOrdering)
     print(io, "Product ordering: ")
     for i=1:length(a)-1
       show(io, M.R, a[i])
-      print(io, " \\times ")
+      print(io, " * ")
     end
   end
   show(io, M.R, a[end])
@@ -452,7 +452,7 @@ function Base.show(io::IO, M::ModuleOrdering)
        else
          show(io, M.M, a[i])
        end
-       print(io, " \\times ")
+       print(io, " * ")
      end
    end
    if isa(a[end], GenOrdering)
@@ -463,7 +463,13 @@ function Base.show(io::IO, M::ModuleOrdering)
 end
 
 function Base.show(io::IO, R::AbstractAlgebra.Module, o::AbsOrdering)
-   print(io, "Module ordering")
+   if o.ord == :lex
+      print(io, "Module ordering (lex)")
+   elseif o.ord == :revlex
+      print(io, "Module ordering (revlex)")
+   else
+      error("module ordering unknown")
+   end
 end
 
 Base.:*(a::AbsGenOrdering, b::AbsModOrdering) = ModProdOrdering(a, b)
@@ -489,8 +495,12 @@ function ordering(a::AbstractVector{<:AbstractAlgebra.ModuleElem}, s...)
    return module_ordering(aa, s...)
  end
 
-function lex(v::AbstractVector{<:AbstractAlgebra.ModuleElem})
+ function lex(v::AbstractVector{<:AbstractAlgebra.ModuleElem})
    return ModuleOrdering(parent(first(v)), ordering(v, :lex))
+end
+
+function revlex(v::AbstractVector{<:AbstractAlgebra.ModuleElem})
+   return ModuleOrdering(parent(first(v)), ordering(v, :revlex))
 end
 
 function Base.:*(M::ModuleOrdering, N::MonomialOrdering)
