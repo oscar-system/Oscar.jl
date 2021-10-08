@@ -65,9 +65,9 @@ GAP: [ Z(3)^0, 0*Z(3) ]
 ```
 """
 
-^(pnt::GAP.GapObj, x::GAPGroupElem) = GAP.Globals.:^(pnt, x.X)
+^(pnt::GAP.Obj, x::GAPGroupElem) = GAP.Globals.:^(pnt, x.X)
 
-*(pnt::GAP.GapObj, x::GAPGroupElem) = GAP.Globals.:*(pnt, x.X)
+*(pnt::GAP.Obj, x::GAPGroupElem) = GAP.Globals.:*(pnt, x.X)
 
 
 """

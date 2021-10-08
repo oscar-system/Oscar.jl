@@ -24,10 +24,10 @@ end
 # computes the isomorphism between the Oscar field F and the corresponding GAP field
 function ring_iso_oscar_gap(F::T) where T <: Union{Nemo.GaloisField, Nemo.GaloisFmpzField}
    p = characteristic(F)
-   G = GAP.Globals.GF(GapObj(p))
+   G = GAP.Globals.GF(GAP.Obj(p))
    e = GAP.Globals.One(G)
 
-   f(x::Union{Nemo.gfp_elem, Nemo.gfp_fmpz_elem}) = GapObj(lift(x))*e
+   f(x::Union{Nemo.gfp_elem, Nemo.gfp_fmpz_elem}) = GAP.Obj(lift(x))*e
    finv(x) = F(GAP.gap_to_julia(GAP.Globals.IntFFE(x)))
 
    return MapFromFunc(f, finv, F, G)
@@ -36,18 +36,18 @@ end
 function ring_iso_oscar_gap(F::T) where T <: Union{Nemo.FqNmodFiniteField, Nemo.FqFiniteField}
    p = characteristic(F)
    d = degree(F)
-   Fp_gap = GAP.Globals.GF(GapObj(p)) # the prime field in GAP
+   Fp_gap = GAP.Globals.GF(GAP.Obj(p)) # the prime field in GAP
    e = GAP.Globals.One(Fp_gap)
 
    # prime fields are easy and efficient to deal with, handle them seperately
    if d == 1
-      f1(x::Union{Nemo.fq_nmod, Nemo.fq}) = GapObj(coeff(x, 0))*e
+      f1(x::Union{Nemo.fq_nmod, Nemo.fq}) = GAP.Obj(coeff(x, 0))*e
       finv1(x) = F(GAP.gap_to_julia(GAP.Globals.IntFFE(x)))
       return MapFromFunc(f1, finv1, F, Fp_gap)
    end
 
    # non-prime fields: convert the defining polynomial to GAP...
-   L = [ GapObj(lift(coeff(defining_polynomial(F), i)))*e for i in 0:d - 1 ]
+   L = [ GAP.Obj(lift(coeff(defining_polynomial(F), i)))*e for i in 0:d - 1 ]
    push!(L, e)
    L_gap = GapObj(L)
    f_gap = GAP.Globals.UnivariatePolynomial(Fp_gap, L_gap)
@@ -64,7 +64,7 @@ function ring_iso_oscar_gap(F::T) where T <: Union{Nemo.FqNmodFiniteField, Nemo.
    end
 
    function f(x::Union{fq_nmod, fq})
-      v = [ GapObj(coeff(x, i)) for i in 0:d - 1 ]
+      v = [ GAP.Obj(coeff(x, i)) for i in 0:d - 1 ]
       return sum([ v[i]*Basis_G[i] for i in 1:d ])
    end
 

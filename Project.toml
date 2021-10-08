@@ -21,7 +21,7 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 [compat]
 AbstractAlgebra = "0.22.1"
 DocStringExtensions = "0.8"
-GAP = "0.6"
+GAP = "0.7"
 Hecke = "0.10.23"
 Nemo = "0.27.0"
 Polymake = "0.6.0"
