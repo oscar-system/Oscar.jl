@@ -1,24 +1,20 @@
-"""
-This is a first attempt to implement group characters in Oscar.
-
-The idea is that the available GAP objects (groups, character tables,
-class functions) are used in a first step, and that access to character
-values yields `QabElem` objects.
-
-Once we agree on the functionality and the integration into Oscar,
-this setup can in a second step be replaced by one that uses
-native Julia objects for representing class functions,
-but character tables and groups still have some counterpart in GAP.
-
-In a third step, we replace the character table objects by native Julia
-objects.
-"""
+##  This is a first attempt to implement group characters in Oscar.
+##  
+##  The idea is that the available GAP objects (groups, character tables,
+##  class functions) are used in a first step, and that access to character
+##  values yields `QabElem` objects.
+##  
+##  Once we agree on the functionality and the integration into Oscar,
+##  this setup can in a second step be replaced by one that uses
+##  native Julia objects for representing class functions,
+##  but character tables and groups still have some counterpart in GAP.
+##  
+##  In a third step, we replace the character table objects by native Julia
+##  objects.
 
 # character values are elements from QabField
 
 import Base: getindex, length, mod, one, print, show, zero
-
-#import Oscar: nrows, ncols
 
 import Oscar.AbelianClosure: QabElem, QabAutomorphism
 
@@ -29,14 +25,6 @@ export
     decomposition_matrix,
     scalar_product,
     trivial_character
-
-## open items:
-## - Concerning irrational values in character tables:
-##   in `matrix_of_strings`,
-##   represent the unique Galois conjugate of `A` different from `A` by `A*`,
-##   and show both `A` and `A*` in the footer;
-##   for elements in quadratic fields, show also an expression in terms of
-##   square roots in the footer.
 
 
 #############################################################################
@@ -58,9 +46,6 @@ function QabElem(cyc::Union{GAP.GapObj,Int64})
     val = Nemo.elem_from_mat_row(F, Nemo.matrix(Nemo.ZZ, 1, dim, coeffs), 1, denom)
     return QabElem(val, n)
 end
-
-#function QabElem(cyc::GAP.GapObj, conductor::Int)
-#end
 
 function gap_cyclotomic(elm::QabElem)
     coeffs = [Nemo.coeff(elm.data, i) for i in 0:(elm.c-1)]  # fmpq
@@ -170,7 +155,7 @@ end
 # they are cached in the dictionary `character_tables_by_id`,
 # in order to achieve that fetching the same table twice yields the same
 # object.
-const character_tables_by_id = Dict{String, GAPGroupCharacterTable}()
+const character_tables_by_id = Dict{String, Union{GAPGroupCharacterTable, Nothing}}()
 
 """
     character_table(id::String, p::Int = 0)
@@ -195,25 +180,18 @@ nothing
 function character_table(id::String, p::Int = 0)
     hasproperty(GAP.Globals, :CTblLib) || error("no character table library available")
 
-# hier!
-#TODO: cache them, in order to guarantee identity if fetched twice!
+    if p == 0
+      modid = id
+    else
+      isprime(p) || error("p must be 0 or a prime integer")
+      modid = id * "mod" * string(p)
+    end
 
-    tbl = GAP.Globals.CharacterTable(GAP.julia_to_gap(id))
-    tbl == GAP.Globals.fail && return nothing
-    if GAP.Globals.UnderlyingCharacteristic(tbl) != 0
-      # `id` involves `"mod"`
-      p == GAP.Globals.UnderlyingCharacteristic(tbl) || error("name $id does not fit to given characteristic $p")
+    return get!(character_tables_by_id, modid) do
+      tbl = GAP.Globals.CharacterTable(GAP.GapObj(modid))
+      tbl == GAP.Globals.fail && return nothing
       return GAPGroupCharacterTable(tbl, p)
     end
-
-    if p != 0
-      # Create the `p`-modular table if possible.
-      isprime(p) || error("p must be 0 or a prime integer")
-      tbl = GAP.Globals.mod(tbl, GAP.GapObj(p))
-      tbl == GAP.Globals.fail && return nothing
-    end
-
-    return GAPGroupCharacterTable(tbl, p)
 end
 
 ##############################################################################
@@ -221,8 +199,8 @@ end
 # admissible names of library character tables
 
 function all_character_table_names()
-   K = GAP.Globals.CallFuncList(GAP.Globals.AllCharacterTableNames, GAP.GapObj([]))
-   return Vector{String}(K)
+    K = GAP.Globals.CallFuncList(GAP.Globals.AllCharacterTableNames, GAP.GapObj([]))
+    return Vector{String}(K)
 end
 #TODO:
 # Support function/value pairs as arguments, similar to (but more general
@@ -249,14 +227,14 @@ end
 Base.iterate(wi::WordsIterator) = length(wi.alphabet) == 0 ? nothing : (string(wi.alphabet[1]), 2)
 
 function Base.iterate(wi::WordsIterator, state::Int)
-      name = ""
-      n = state
-      ll = length(wi.alphabet)
-      while 0 < n
-        n, r = divrem(n-1, ll)
-        name = wi.alphabet[r+1] * name
-      end
-      return (name, state+1)
+    name = ""
+    n = state
+    ll = length(wi.alphabet)
+    while 0 < n
+      n, r = divrem(n-1, ll)
+      name = wi.alphabet[r+1] * name
+    end
+    return (name, state+1)
 end
 
 
@@ -266,7 +244,7 @@ end
 # If `alphabet` is nonempty then represent irrationalities by names
 # generated by iterating over `WordsIterator(alphabet)`,
 # and store the meanings of these strings in the form of pairs `value => name`
-# in the legend array that is returned..
+# in the legend array that is returned.
 function matrix_of_strings(tbl::GAPGroupCharacterTable; alphabet::String = "")
   n = nrows(tbl)
   m = Array{String}(undef, n, n)
@@ -281,7 +259,6 @@ function matrix_of_strings(tbl::GAPGroupCharacterTable; alphabet::String = "")
   # created by GAP,
   # except that relative names in the case of complex conjugation and
   # quadratic irrationalities are currently not handled here.
-#T hier!
   for j in 1:n
     for i in 1:n
       val = tbl[i,j]
@@ -304,15 +281,10 @@ function matrix_of_strings(tbl::GAPGroupCharacterTable; alphabet::String = "")
             valbar = complex_conjugate(val)
             if valbar != val
               push!(legend, valbar => "\\overline{"*name*"}")
-            else
-######
-              info = Oscar.AbelianClosure.quadratic_irrationality_info(val)
-              if info != nothing
-                # use `*` to denote the other Galois conjugate.
-                valstar = 2*info[1] - val
-                push!(legend, valstar => name*"^*")
-              end
-######
+#TODO: represent the unique Galois conjugate of `A` different from `A` by `A*`,
+#      and show both `A` and `A*` in the footer;
+#      for elements in quadratic fields, show also an expression in terms of
+#      square roots in the footer.
             end
             m[i,j] = name
           end
@@ -343,6 +315,18 @@ function Base.show(io::IO, tbl::GAPGroupCharacterTable)
     primes = [x[1] for x in collect(factor(size))]
     sort!(primes)
 
+    # Decide how to deal with irrationalities.
+    alphabet = get(io, :alphabet, "")
+    if alphabet == ""
+      with_legend = get(io, :with_legend, false)
+      if with_legend == true
+        alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+      end
+    end
+
+    # Create the strings of the values of the irreducibles.
+    mat, legend = matrix_of_strings(tbl, alphabet = alphabet)
+
     # Compute the factored centralizer orders.
     cents = GAP.gap_to_julia(GAP.Globals.SizesCentralizers(gaptbl))
     fcents = [collect(factor(x)) for x in cents]
@@ -359,7 +343,7 @@ function Base.show(io::IO, tbl::GAPGroupCharacterTable)
     pmaps = Vector{Any}(GAP.Globals.ComputedPowerMaps(gaptbl))
     power_maps_primes = []
     power_maps_strings = []
-    for i in 1:length(pmaps)
+    for i in 2:length(pmaps)
       map = pmaps[i]
       if map != nothing
         push!(power_maps_primes, string(i)*"P")
@@ -368,18 +352,6 @@ function Base.show(io::IO, tbl::GAPGroupCharacterTable)
     end
 
     empty = ["" for i in 1:n]
-
-    # Decide how to deal with irrationalities.
-    alphabet = get(io, :alphabet, "")
-    if alphabet == ""
-      with_legend = get(io, :with_legend, false)
-      if with_legend == true
-        alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-      end
-    end
-
-    # Create the strings of the values of the irreducibles.
-    mat, legend = matrix_of_strings(tbl, alphabet = alphabet)
 
     if isdefined(tbl, :GAPGroup)
       headerstring = string(tbl.GAPGroup)
@@ -448,24 +420,25 @@ Oscar.nrows(tbl::GAPGroupCharacterTable) = GAP.Globals.NrConjugacyClasses(tbl.GA
 Oscar.ncols(tbl::GAPGroupCharacterTable) = GAP.Globals.NrConjugacyClasses(tbl.GAPTable)
 
 function Base.getindex(tbl::GAPGroupCharacterTable, i::Int)
-    println( "access $i" )
-#T hier!
     return group_class_function(tbl, GAP.Globals.Irr(tbl.GAPTable)[i])
 end
-#T cache the values once they are computed!
-#T and cache the characters in the table!
+#TODO: cache the irreducibles in the table
 
 function Base.getindex(tbl::GAPGroupCharacterTable, i::Int, j::Int)
     val = GAP.Globals.Irr(tbl.GAPTable)[i, j]
     return QabElem(val)
 end
+#TODO: cache the values once they are known?
 
 Base.iterate(tbl::GAPGroupCharacterTable, state = 1) = state > nrows(tbl) ? nothing : (tbl[state], state+1)
 
 """
     mod(tbl::GAPGroupCharacterTable, p::Int)
 
-...
+Return the `p`-modular character table of `tbl`,
+or `nothing` if this table cannot be computed.
+
+An exception is thrown if `tbl` is not an ordinary character table.
 """
 function Base.mod(tbl::GAPGroupCharacterTable, p::Int)
     isprime(p) || error("p must be a prime integer")
@@ -523,10 +496,11 @@ end
 ##  class functions (and characters)
 ##
 abstract type GroupClassFunction end
+#TODO: support character rings and elements of it?
+#      if yes then there is no need to have class other functions than these
 
 struct GAPGroupClassFunction <: GroupClassFunction
     table::GAPGroupCharacterTable
-#T parent?
     values::GAP.GapObj
 end
 
@@ -568,13 +542,11 @@ Base.length(chi::GAPGroupClassFunction) = length(chi.values)
 
 Base.iterate(chi::GAPGroupClassFunction, state = 1) = state > length(chi.values) ? nothing : (chi[state], state+1)
 
+# the degree is an fmpq
+# (for general class functions, denominators can occur)
 function Nemo.degree(chi::GAPGroupClassFunction)
     val = values(chi)[1]
     return Nemo.coeff(val.data, 0)
-#TODO: make sure that the returned value is really equal to the 1st entry
-#TODO: change result from fmpq to fmpz? (and how is this safely done?)
-# -> for class function, may be any field entry!
-# -> or admit degree(chi) only if we know that chi is really a character?
 end
 
 # access character values
@@ -582,7 +554,7 @@ Base.getindex(chi::GAPGroupClassFunction, i::Int) = QabElem(GAP.Globals.ValuesOf
 
 function Base.:(==)(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
     chi.table === psi.table || error("character tables must be identical")
-#T better check_parent?
+#T check_parent?
     return chi.values == psi.values
 end
 
