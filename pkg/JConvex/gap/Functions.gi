@@ -23,10 +23,6 @@ InstallMethod( PolymakeAvailable, [  ],
         if IsBoundGlobal("_Polymake_jl") and IsJuliaObject(ValueGlobal("_Polymake_jl")) then
             return true;
         fi;
-        if JuliaEvalString("try import Polymake ; return true\ncatch\n return false end") then
-            BindGlobal("_Polymake_jl", JuliaPointer(Julia.Polymake));
-            return true;
-        fi;
     fi;
     return false;
 end );
