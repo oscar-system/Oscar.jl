@@ -1,3 +1,0 @@
-include("JToricBuilder.jl")
-
-InstallDevelopmentVersionNConvex()
