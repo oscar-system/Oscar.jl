@@ -275,7 +275,7 @@ false
 ```
 """
 function isaffine( v::AbstractNormalToricVariety )
-    return pm_ntv(v).AFFINE
+    return pm_ntv(v).AFFINE::Bool
 end
 export isaffine
 
@@ -292,7 +292,7 @@ true
 ```
 """
 function isprojective( v::AbstractNormalToricVariety )
-    return pm_ntv(v).PROJECTIVE
+    return pm_ntv(v).PROJECTIVE::Bool
 end
 export isprojective
 
@@ -309,7 +309,7 @@ true
 ```
 """
 function issmooth( v::AbstractNormalToricVariety )
-    return pm_ntv(v).SMOOTH
+    return pm_ntv(v).SMOOTH::Bool
 end
 export issmooth
 
@@ -326,7 +326,7 @@ true
 ```
 """
 function iscomplete( v::AbstractNormalToricVariety )
-    return pm_ntv(v).COMPLETE
+    return pm_ntv(v).COMPLETE::Bool
 end
 export iscomplete
 
@@ -343,7 +343,7 @@ false
 ```
 """
 function has_torusfactor( v::AbstractNormalToricVariety )
-    return GAP.Globals.HasTorusfactor( v.GapNTV )::Bool
+    return ( v.polymakeNTV.FAN_DIM < v.polymakeNTV.FAN_AMBIENT_DIM )::Bool
 end
 export has_torusfactor
 
@@ -360,7 +360,7 @@ true
 ```
 """
 function is_orbifold( v::AbstractNormalToricVariety )
-    return GAP.Globals.IsOrbifold( v.GapNTV )::Bool
+    return pm_ntv(v).SIMPLICIAL::Bool
 end
 export is_orbifold
 
@@ -377,43 +377,9 @@ true
 ```
 """
 function issimplicial( v::AbstractNormalToricVariety )
-    return pm_ntv(v).SIMPLICIAL
+    return pm_ntv(v).SIMPLICIAL::Bool
 end
 export issimplicial
-
-
-@doc Markdown.doc"""
-    is_isomorphic_to_projective_space( v::AbstractNormalToricVariety )
-
-Checks if the normal toric variety `v` is isomorphic to projective space.
-
-# Examples
-```jldoctest
-julia> is_isomorphic_to_projective_space( projective_space( 2 ) )
-true
-```
-"""
-function is_isomorphic_to_projective_space( v::AbstractNormalToricVariety )
-    return GAP.Globals.IsIsomorphicToProjectiveSpace( v.GapNTV )::Bool
-end
-export is_isomorphic_to_projective_space
-
-
-@doc Markdown.doc"""
-    is_direct_product_of_projective_spaces( v::AbstractNormalToricVariety )
-
-Checks if the normal toric variety `v` is isomorphic to a direct product of projective space.
-
-# Examples
-```jldoctest
-julia> is_direct_product_of_projective_spaces( projective_space( 2 ) )
-true
-```
-"""
-function is_direct_product_of_projective_spaces( v::AbstractNormalToricVariety )
-    return GAP.Globals.IsDirectProductOfPNs( v.GapNTV )::Bool
-end
-export is_direct_product_of_projective_spaces
 
 
 @doc Markdown.doc"""

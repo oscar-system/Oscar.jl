@@ -132,17 +132,6 @@ export isprincipal
 
 
 @doc Markdown.doc"""
-    is_primedivisor( d::ToricDivisor )
-
-Checks if the divisor `d` is prime.
-"""
-function is_primedivisor( d::ToricDivisor )
-    return GAP.Globals.IsPrimedivisor( d.GapToricDivisor )::Bool
-end
-export is_primedivisor
-
-
-@doc Markdown.doc"""
     isbasepoint_free(td::ToricDivisor) 
 
 Determine whether the toric divisor `td` is basepoint free.
