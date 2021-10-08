@@ -75,8 +75,8 @@ end
 
   @test isa(wdeglex([x, y], [1, 2]), MonomialOrdering)
   @test isa(wdegrevlex([x, y], [1, 2]), MonomialOrdering)
-  @test isa(wnegdeglex([x, y], [1, 2]), MonomialOrdering)
-  @test isa(wnegdegrevlex([x, y], [1, 2]), MonomialOrdering)
+  @test isa(negwdeglex([x, y], [1, 2]), MonomialOrdering)
+  @test isa(negwdegrevlex([x, y], [1, 2]), MonomialOrdering)
 
   @test isa(revlex([x, y])*neglex([z]), MonomialOrdering)
 
@@ -92,8 +92,8 @@ end
   w = [ 1, 2, 1 ]
   @test collect(monomials(f, :wdeglex, w)) == [ x*y, z^3 ]
   @test collect(monomials(f, :wdegrevlex, w)) == [ x*y, z^3 ]
-  @test collect(monomials(f, :wnegdeglex, w)) == [ x*y, z^3 ]
-  @test collect(monomials(f, :wnegdegrevlex, w)) == [ x*y, z^3 ]
+  @test collect(monomials(f, :negwdeglex, w)) == [ x*y, z^3 ]
+  @test collect(monomials(f, :negwdegrevlex, w)) == [ x*y, z^3 ]
 
   M = [ 1 1 1; 1 0 0; 0 1 0 ]
   @test collect(monomials(f, M)) == collect(monomials(f, :deglex))

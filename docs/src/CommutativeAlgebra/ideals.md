@@ -182,7 +182,7 @@ are available.
 
 The basic orderings are `:lex`, `:revlex`, `:deglex`, `:degrevlex`,
 `:neglex`, `:negrevlex`, `:negdeglex`, `:negdegrevlex`, `:wdeglex`,
-`:wdegrevlex`, `:wnegdeglex` and `:wnegdegrevlex`.
+`:wdegrevlex`, `:negwdeglex` and `:negwdegrevlex`.
 
 The orderings starting with `w` are weighted orderings.
 
@@ -202,8 +202,8 @@ negdegrevlex(::AbstractVector{<:MPolyElem})
 ```@docs
 wdeglex(::AbstractVector{<:MPolyElem}, ::Vector{Int})
 wdegrevlex(::AbstractVector{<:MPolyElem}, ::Vector{Int})
-wnegdeglex(::AbstractVector{<:MPolyElem}, ::Vector{Int})
-wnegdegrevlex(::AbstractVector{<:MPolyElem}, ::Vector{Int})
+negwdeglex(::AbstractVector{<:MPolyElem}, ::Vector{Int})
+negwdegrevlex(::AbstractVector{<:MPolyElem}, ::Vector{Int})
 ```
 
 Block orderings can be obtained by concatening monomial orderings using the `*`
