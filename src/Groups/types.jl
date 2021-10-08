@@ -90,7 +90,7 @@ and `MatrixGroup`.
 abstract type GAPGroup <: AbstractAlgebra.Group end
 
 ## `GapGroup` to GAP group
-GAP.GapObj(obj::GAPGroup) = return obj.X
+GAP.julia_to_gap(obj::GAPGroup) = return obj.X
 
 @doc Markdown.doc"""
     GAPGroupElem <: AbstractAlgebra.GroupElem
@@ -105,7 +105,7 @@ i.e., if `g` is a `GAPGroupElem`, then `GapObj(g)` is the `GapObj` underlying `g
 abstract type GAPGroupElem{T<:GAPGroup} <: AbstractAlgebra.GroupElem end
 
 ## `GapGroupElem` to GAP group element
-GAP.GapObj(obj::GAPGroupElem) = return obj.X
+GAP.julia_to_gap(obj::GAPGroupElem) = return obj.X
 
 @doc Markdown.doc"""
     BasicGAPGroupElem{T<:GAPGroup} <: GAPGroupElem{T}

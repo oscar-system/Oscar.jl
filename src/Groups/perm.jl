@@ -285,12 +285,12 @@ end
 
 #evaluation function
 function (x::PermGroupElem)(n::T) where T <: IntegerUnion
-   return T(GAP.Globals.OnPoints(GAP.GapObj(n), x.X))
+   return T(GAP.Globals.OnPoints(GAP.Obj(n), x.X))
 end
 
 (x::PermGroupElem)(n::Int) = GAP.Globals.OnPoints(n,x.X)
 
-^(n::T, x::PermGroupElem) where T <: IntegerUnion = T(GAP.Globals.OnPoints(GAP.GapObj(n), x.X))
+^(n::T, x::PermGroupElem) where T <: IntegerUnion = T(GAP.Globals.OnPoints(GAP.Obj(n), x.X))
 
 ^(n::Int, x::PermGroupElem) = GAP.Globals.OnPoints(n,x.X)
 
