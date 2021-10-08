@@ -76,7 +76,7 @@ end
 
 @doc Markdown.doc"""
 
-    cone_from_inequalities(A::Union{Oscar.MatElem,AbstractMatrix}, b; non_redundant::Bool = false)
+    cone_from_inequalities(A::Union{Oscar.MatElem,AbstractMatrix}; non_redundant::Bool = false)
 
 The (convex) cone defined by
 
