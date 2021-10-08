@@ -24,7 +24,12 @@ BindGlobal( "TheFamilyOfPolymakeCones", NewFamily( "TheFamilyOfPolymakeCones" ) 
 
 BindGlobal( "TheTypeOfPolymakeCone", NewType( TheFamilyOfPolymakeCones, IsPolymakeConeRep ) );
 
-BindGlobal( "JuliaMatrixInt", JuliaEvalString("Matrix{Int}") );
+BindGlobal( "JuliaMatrixInt", JuliaEvalString("Matrix{BigInt}") );
+
+BindGlobal( "PolymakeMatrixToGAP", function( mat )
+    mat := _Polymake_jl.common.primitive( mat ); # ensure integer coeffs
+    return JuliaToGAP( IsList, JuliaMatrixInt( mat ), true );
+end );
 
 BindGlobal( "MakePolymakeConeVRep", function( rays, lineality )
     local cone, kwargs;
@@ -175,7 +180,7 @@ end );
 InstallMethod( Polymake_CanonicalConeByGenerators,
                [ IsPolymakeCone ],
   function( cone )
-    local rays, scaled_rays, i, scale, lineality, scaled_lineality, new_cone;
+    local rays, lineality;
     
     if cone!.rep_type = "H-rep" then
         
@@ -184,29 +189,13 @@ InstallMethod( Polymake_CanonicalConeByGenerators,
     else
         
         # compute rays
-        rays := _Polymake_jl.common.primitive( cone!.pmobj.RAYS ); # ensure integer coeffs
-        rays := JuliaToGAP( IsList, JuliaMatrixInt( rays ) );
-        
-        # sometimes, Polymake returns rational rays - we turn them into integral vectors
-        scaled_rays := [];
-        for i in [ 1 .. Length( rays ) ] do
-            scale := Lcm( List( rays[ i ], r -> DenominatorRat( r ) ) );
-            Append( scaled_rays, [ scale * rays[ i ] ] );
-        od;
+        rays := PolymakeMatrixToGAP( cone!.pmobj.RAYS );
         
         # extract lineality
-        lineality := JuliaToGAP( IsList, JuliaMatrixInt( cone!.pmobj.LINEALITY_SPACE ) );
-        
-        # sometimes, Polymake returns rational lineality - we turn them into integral vectors
-        scaled_lineality := [];
-        for i in [ 1 .. Length( lineality ) ] do
-            scale := Lcm( List( lineality[ i ], r -> DenominatorRat( r ) ) );
-            Append( scaled_lineality, [ scale * lineality[ i ] ] );
-        od;
+        lineality := PolymakeMatrixToGAP( cone!.pmobj.LINEALITY_SPACE );
         
         # construct the new cone
-        new_cone := MakePolymakeConeVRep( scaled_rays, scaled_lineality );
-        return new_cone;
+        return MakePolymakeConeVRep( rays, lineality );
         
     fi;
     
@@ -215,7 +204,7 @@ end );
 InstallMethod( Polymake_CanonicalConeFromInequalities,
                [ IsPolymakeCone ],
   function( cone )
-    local ineqs, scaled_ineqs, i, scale, eqs, scaled_eqs, new_cone;
+    local ineqs, eqs;
     
     if cone!.rep_type = "V-rep" then
         
@@ -224,28 +213,13 @@ InstallMethod( Polymake_CanonicalConeFromInequalities,
     else
         
         # compute facets
-        ineqs := JuliaToGAP( IsList, JuliaMatrixInt( cone!.pmobj.FACETS ) );
-        
-        # sometimes, Polymake returns rational facets - we turn them into integral vectors
-        scaled_ineqs := [];
-        for i in [ 1 .. Length( ineqs ) ] do
-            scale := Lcm( List( ineqs[ i ], r -> DenominatorRat( r ) ) );
-            Append( scaled_ineqs, [ scale * ineqs[ i ] ] );
-        od;
+        ineqs := PolymakeMatrixToGAP( cone!.pmobj.FACETS );
         
         # compute linear span
-        eqs := JuliaToGAP( IsList, JuliaMatrixInt( cone!.pmobj.LINEAR_SPAN ) );
-        
-        # sometimes, Polymake returns rational linear spans - we turn them into integral vectors
-        scaled_eqs := [];
-        for i in [ 1 .. Length( eqs ) ] do
-            scale := Lcm( List( eqs[ i ], r -> DenominatorRat( r ) ) );
-            Append( scaled_eqs, [ scale * eqs[ i ] ] );
-        od;
+        eqs := PolymakeMatrixToGAP( cone!.pmobj.LINEAR_SPAN );
         
         # construct the new cone
-        new_cone := MakePolymakeConeHRep( scaled_ineqs, scaled_eqs );
-        return new_cone;
+        return MakePolymakeConeHRep( ineqs, eqs );
         
     fi;
     
@@ -261,36 +235,20 @@ end );
 InstallMethod( Polymake_V_Rep,
                [ IsPolymakeCone ],
   function( cone )
-    local rays, scaled_rays, i, scale, lineality, scaled_lineality, new_cone;
+    local rays, lineality;
     
     if cone!.rep_type = "V-rep" then
         return cone;
     else
         
         # compute rays
-        rays := _Polymake_jl.common.primitive( cone!.pmobj.RAYS ); # ensure integer coeffs
-        rays := JuliaToGAP( IsList, JuliaMatrixInt( rays ) );
-        
-        # sometimes, Polymake returns rational rays - we turn them into integral vectors
-        scaled_rays := [];
-        for i in [ 1 .. Length( rays ) ] do
-            scale := Lcm( List( rays[ i ], r -> DenominatorRat( r ) ) );
-            Append( scaled_rays, [ scale * rays[ i ] ] );
-        od;
+        rays := PolymakeMatrixToGAP( cone!.pmobj.RAYS );
         
         # extract lineality
-        lineality := JuliaToGAP( IsList, JuliaMatrixInt( cone!.pmobj.LINEALITY_SPACE ) );
-        
-        # sometimes, Polymake returns rational lineality - we turn them into integral vectors
-        scaled_lineality := [];
-        for i in [ 1 .. Length( lineality ) ] do
-            scale := Lcm( List( lineality[ i ], r -> DenominatorRat( r ) ) );
-            Append( scaled_lineality, [ scale * lineality[ i ] ] );
-        od;
+        lineality := PolymakeMatrixToGAP( cone!.pmobj.LINEALITY_SPACE );
         
         # construct the new cone
-        new_cone := MakePolymakeConeVRep( scaled_rays, scaled_lineality );
-        return new_cone;
+        return MakePolymakeConeVRep( rays, lineality );
         
     fi;
     
@@ -299,7 +257,7 @@ end );
 InstallMethod( Polymake_H_Rep,
                [ IsPolymakeCone ],
   function( cone )
-    local ineqs, scaled_ineqs, i, scale, eqs, scaled_eqs, new_cone;
+    local ineqs, eqs;
     
     if cone!.rep_type = "H-rep" then
         
@@ -312,28 +270,13 @@ InstallMethod( Polymake_H_Rep,
         fi;
         
         # compute facets
-        ineqs := JuliaToGAP( IsList, JuliaMatrixInt( cone!.pmobj.FACETS ) );
-        
-        # sometimes, Polymake returns rational facets - we turn them into integral vectors
-        scaled_ineqs := [];
-        for i in [ 1 .. Length( ineqs ) ] do
-            scale := Lcm( List( ineqs[ i ], r -> DenominatorRat( r ) ) );
-            Append( scaled_ineqs, [ scale * ineqs[ i ] ] );
-        od;
+        ineqs := PolymakeMatrixToGAP( cone!.pmobj.FACETS );
         
         # compute linear span
-        eqs := JuliaToGAP( IsList, JuliaMatrixInt( cone!.pmobj.LINEAR_SPAN ) );
-        
-        # sometimes, Polymake returns rational linear spans - we turn them into integral vectors
-        scaled_eqs := [];
-        for i in [ 1 .. Length( eqs ) ] do
-            scale := Lcm( List( eqs[ i ], r -> DenominatorRat( r ) ) );
-            Append( scaled_eqs, [ scale * eqs[ i ] ] );
-        od;
+        eqs := PolymakeMatrixToGAP( cone!.pmobj.LINEAR_SPAN );
         
         # construct the new cone
-        new_cone := MakePolymakeConeHRep( scaled_ineqs, scaled_eqs );
-        return new_cone;
+        return MakePolymakeConeHRep( ineqs, eqs );
         
     fi;
     

@@ -173,7 +173,7 @@ end );
 InstallMethod( Polymake_CanonicalPolytopeByGenerators,
                [ IsPolymakePolytope ],
   function( poly )
-    local vertices, v_copy, scaled_vertices, i, scale, lineality, scaled_lineality, new_poly;
+    local vertices, v_copy, scaled_vertices, i, scale, lineality, scaled_lineality;
     
     if poly!.rep_type = "H-rep" then
         
@@ -182,33 +182,30 @@ InstallMethod( Polymake_CanonicalPolytopeByGenerators,
     else
         
         # compute vertices
-        vertices := JuliaToGAP( IsList, JuliaMatrixInt( poly!.pmobj.VERTICES ) );
+        vertices := PolymakeMatrixToGAP( poly!.pmobj.VERTICES );
         
         # sometimes, Polymake returns rational vertices - we turn them into integral vectors
         # also, Polymake requires x0 = 1 in affine coordinates - we remove this 1
         scaled_vertices := [];
         for i in [ 1 .. Length( vertices ) ] do
-            scale := Lcm( List( vertices[ i ], r -> DenominatorRat( r ) ) );
             v_copy := ShallowCopy( vertices[ i ] );
             Remove( v_copy, 1 );
-            Append( scaled_vertices, [ scale * v_copy ] );
+            Add( scaled_vertices, v_copy );
         od;
         
         # extract lineality
-        lineality := JuliaToGAP( IsList, JuliaMatrixInt( poly!.pmobj.LINEALITY_SPACE ) );
+        lineality := PolymakeMatrixToGAP( poly!.pmobj.LINEALITY_SPACE );
         
         # sometimes, Polymake returns rational lineality - we turn them into integral vectors
         scaled_lineality := [];
         for i in [ 1 .. Length( lineality ) ] do
-            scale := Lcm( List( lineality[ i ], r -> DenominatorRat( r ) ) );
             v_copy := ShallowCopy( lineality[ i ] );
             Remove( v_copy, 1 );
-            Append( scaled_lineality, [ scale * v_copy ] );
+            Add( scaled_lineality, v_copy );
         od;
         
         # construct the new poly
-        new_poly := MakePolymakePolytopeVRep( scaled_vertices, scaled_lineality );
-        return new_poly;
+        return MakePolymakePolytopeVRep( scaled_vertices, scaled_lineality );
         
     fi;
     
@@ -217,7 +214,7 @@ end );
 InstallMethod( Polymake_CanonicalPolytopeFromInequalities,
                [ IsPolymakePolytope ],
   function( poly )
-    local ineqs, scaled_ineqs, i, scale, eqs, scaled_eqs, new_poly;
+    local ineqs, eqs;
     
     if poly!.rep_type = "V-rep" then
         
@@ -226,28 +223,13 @@ InstallMethod( Polymake_CanonicalPolytopeFromInequalities,
     else
         
         # compute facets
-        ineqs := JuliaToGAP( IsList, JuliaMatrixInt( poly!.pmobj.FACETS ) );
-        
-        # sometimes, Polymake returns rational facets - we turn them into integral vectors
-        scaled_ineqs := [];
-        for i in [ 1 .. Length( ineqs ) ] do
-            scale := Lcm( List( ineqs[ i ], r -> DenominatorRat( r ) ) );
-            Append( scaled_ineqs, [ scale * ineqs[ i ] ] );
-        od;
+        ineqs := PolymakeMatrixToGAP( poly!.pmobj.FACETS );
         
         # compute affine hull
-        eqs := JuliaToGAP( IsList, JuliaMatrixInt( poly!.pmobj.AFFINE_HULL ) );
-        
-        # sometimes, Polymake returns rational affine hulls - we turn them into integral vectors
-        scaled_eqs := [];
-        for i in [ 1 .. Length( eqs ) ] do
-            scale := Lcm( List( eqs[ i ], r -> DenominatorRat( r ) ) );
-            Append( scaled_eqs, [ scale * eqs[ i ] ] );
-        od;
+        eqs := PolymakeMatrixToGAP( poly!.pmobj.AFFINE_HULL );
         
         # construct the new poly
-        new_poly := MakePolymakePolytopeHRep( scaled_ineqs, scaled_eqs );
-        return new_poly;
+        return MakePolymakePolytopeHRep( ineqs, eqs );
         
     fi;
     
@@ -263,7 +245,7 @@ end );
 InstallMethod( Polymake_V_Rep,
                [ IsPolymakePolytope ],
   function( poly )
-    local vertices, v_copy, scaled_vertices, i, scale, lineality, scaled_lineality, new_poly;
+    local vertices, v_copy, scaled_vertices, i, lineality, scaled_lineality;
     
     if poly!.rep_type = "V-rep" then
         
@@ -272,32 +254,29 @@ InstallMethod( Polymake_V_Rep,
     else
         
         # compute vertices
-        vertices := JuliaToGAP( IsList, JuliaMatrixInt( poly!.pmobj.VERTICES ) );
+        vertices := PolymakeMatrixToGAP( poly!.pmobj.VERTICES );
         
         # sometimes, Polymake returns rational vertices - we turn them into integral vectors
         scaled_vertices := [];
         for i in [ 1 .. Length( vertices ) ] do
-            scale := Lcm( List( vertices[ i ], r -> DenominatorRat( r ) ) );
             v_copy := ShallowCopy( vertices[ i ] );
             Remove( v_copy, 1 );
-            Append( scaled_vertices, [ scale * v_copy ] );
+            Add( scaled_vertices, v_copy );
         od;
         
         # compute lineality
-        lineality := JuliaToGAP( IsList, JuliaMatrixInt( poly!.pmobj.LINEALITY_SPACE ) );
+        lineality := PolymakeMatrixToGAP( poly!.pmobj.LINEALITY_SPACE );
         
         # sometimes, Polymake returns rational lineality - we turn them into integral vectors
         scaled_lineality := [];
         for i in [ 1 .. Length( lineality ) ] do
-            scale := Lcm( List( lineality[ i ], r -> DenominatorRat( r ) ) );
             v_copy := ShallowCopy( lineality[ i ] );
             Remove( v_copy, 1 );
-            Append( scaled_lineality, [ scale * v_copy ] );
+            Add( scaled_lineality, v_copy );
         od;
         
         # construct the new poly
-        new_poly := MakePolymakePolytopeVRep( scaled_vertices, scaled_lineality );
-        return new_poly;
+        return MakePolymakePolytopeVRep( scaled_vertices, scaled_lineality );
         
     fi;
     
@@ -307,7 +286,7 @@ end );
 InstallMethod( Polymake_H_Rep,
                [ IsPolymakePolytope ],
   function( poly )
-    local ineqs, i, scale, scaled_ineqs, eqs, scaled_eqs, new_poly;
+    local ineqs, eqs;
     
     if poly!.rep_type = "H-rep" then
         
@@ -320,28 +299,13 @@ InstallMethod( Polymake_H_Rep,
         fi;
         
         # compute inequalities
-        ineqs := JuliaToGAP( IsList, JuliaMatrixInt( poly!.pmobj.FACETS ) );
-        
-        # sometimes, Polymake returns rational facets - we turn them into integral vectors
-        scaled_ineqs := [];
-        for i in [ 1 .. Length( ineqs ) ] do
-            scale := Lcm( List( ineqs[ i ], r -> DenominatorRat( r ) ) );
-            Append( scaled_ineqs, [ scale * ineqs[ i ] ] );
-        od;
+        ineqs := PolymakeMatrixToGAP( poly!.pmobj.FACETS );
         
         # compute equalities
-        eqs := JuliaToGAP( IsList, JuliaMatrixInt( poly!.pmobj.AFFINE_HULL ) );
-        
-        # sometimes, Polymake returns rational affine hulls - we turn them into integral vectors
-        scaled_eqs := [];
-        for i in [ 1 .. Length( eqs ) ] do
-            scale := Lcm( List( eqs[ i ], r -> DenominatorRat( r ) ) );
-            Append( scaled_eqs, [ scale * eqs[ i ] ] );
-        od;
+        eqs := PolymakeMatrixToGAP( poly!.pmobj.AFFINE_HULL );
         
         # construct the new poly
-        new_poly := MakePolymakePolytopeHRep( scaled_ineqs, scaled_eqs );
-        return new_poly;
+        return MakePolymakePolytopeHRep( ineqs, eqs );
         
     fi;
     
