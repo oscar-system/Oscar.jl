@@ -386,13 +386,10 @@ InstallMethod( Polymake_LatticePoints,
               " return the list of the lattice points of poly",
               [ IsPolymakePolytope ],
   function( poly )
-    local s, res_string, point_list, lattice_points, i, copy;
+    local point_list, lattice_points, i, copy;
     
-    s := JuliaToGAP( IsString, Julia.string( poly!.pmobj.LATTICE_POINTS_GENERATORS ) );
-    res_string := SplitString( s, '\n' );
-    res_string := List( [ 2 .. Length( res_string ) - 3 ], i -> Concatenation( "[", ReplacedString( ReplacedString( res_string[ i ], " ", "," ), "<", "" ), "]" ) );
-    point_list := EvalString( Concatenation( "[", JoinStringsWithSeparator( res_string, "," ), "]" ) );
-    
+    point_list := JuliaToGAP( IsList, JuliaMatrixInt( poly!.pmobj.LATTICE_POINTS_GENERATORS[1] ), true );
+
     # the point list is in affine coordinate, that is we have a 1 at position one, which should be removed
     lattice_points := [];
     for i in [ 1 .. Length( point_list ) ] do
