@@ -1,39 +1,15 @@
 export solve_non_negative, solve_mixed, solve_ineq
 
-nrows(A::Polymake.MatrixAllocated) = Int(size(A)[1])
-ncols(A::Polymake.MatrixAllocated) = Int(size(A)[2])
 
-#TODO: define polytopes and cones properly!!!
+@doc Markdown.doc"""
+    solve_mixed(A::fmpz_mat, b::fmpz_mat, C::fmpz_mat)
 
-function _polytope(; A::fmpz_mat=zero_matrix(FlintZZ, 1, 1), b::fmpz_mat=zero_matrix(FlintZZ, ncols(A), 1), C::fmpz_mat=zero_matrix(FlintZZ, 1, 1))
-  if !iszero(A)
-    bA = Matrix{BigInt}(hcat(-b, A))
-    z = findall(i->!iszero_row(bA, i), 1:nrows(bA))
-    zbA = Matrix{BigInt}(bA[z, :])
-  else
-    zbA = Matrix{BigInt}(undef, 0, 0)
-  end
-  if !iszero(C)
-    z = findall(i->!iszero_row(C, i), 1:nrows(C))
-    zI = Matrix{BigInt}(hcat(zero_matrix(FlintZZ, nrows(C), 1), C))[z, :]
-  else
-    zI = Matrix{BigInt}(undef, 0, 0)
-  end
-  if length(zbA) == 0
-    p =  Polymake.polytope.Polytope(INEQUALITIES = zI)
-  else
-    if nrows(zI) == 0
-      p = Polymake.polytope.Polytope(EQUATIONS = zbA)
-    else
-      p = Polymake.polytope.Polytope(EQUATIONS = zbA, INEQUALITIES = zI)
-    end
-  end
-  return p
-end
-
-
-function _polytope_new(; A::fmpz_mat=zero_matrix(FlintZZ, 1, 1), b::fmpz_mat=zero_matrix(FlintZZ, ncols(A), 1), C::fmpz_mat=zero_matrix(FlintZZ, 1, 1))
-    P = Polyhedron(_polytope(A=A, b=b, C=C))
+Solves $Ax = b$ under $Cx >= 0$, assumes a finite solution set.
+"""
+function solve_mixed(A::fmpz_mat, b::fmpz_mat, C::fmpz_mat)  # Ax == b && Cx >= 0
+    eq = HalfspaceIterator(Matrix{BigInt}(A), vec(Matrix{BigInt}(b)))
+    ineq = HalfspaceIterator(Matrix{BigInt}(-C), vec(Matrix{BigInt}(zero_matrix(FlintZZ, nrows(C), 1))))
+    P = Polyhedron(ineq, eq)
     inner = interior_lattice_points(P)
     outer = boundary_lattice_points(P)
 
@@ -57,7 +33,7 @@ end
 Solves $Ax<=b$, assumes finite set of solutions.
 """
 function solve_ineq(A::fmpz_mat, b::fmpz_mat)
-    return _polytope_new(C = hcat(b, -A))
+    return solve_mixed(zero_matrix(FlintZZ, 0, ncols(A)), zero_matrix(FlintZZ,0,1), hcat(b, -A))
 end
 
 
@@ -67,17 +43,7 @@ end
 Finds all solutions to $Ax = b$, $x>=0$. Assumes a finite set of solutions.
 """
 function solve_non_negative(A::fmpz_mat, b::fmpz_mat)
-  return _polytope_new(A = A, b = b, C = identity_matrix(FlintZZ, ncols(A)))
-end
-
-
-@doc Markdown.doc"""
-    solve_mixed(A::fmpz_mat, b::fmpz_mat, C::fmpz_mat)
-
-Solves $Ax = b$ under $Cx >= 0$, assumes a finite solution set.
-"""
-function solve_mixed(A::fmpz_mat, b::fmpz_mat, C::fmpz_mat)  # Ax == b && Cx >= 0
-    return _polytope_new(A = A, b = b, C = C)
+  return solve_mixed(A, b, identity_matrix(FlintZZ, ncols(A)))
 end
 
 
