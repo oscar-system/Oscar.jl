@@ -175,7 +175,7 @@ end );
 InstallMethod( Polymake_CanonicalConeByGenerators,
                [ IsPolymakeCone ],
   function( cone )
-    local s, res_string, rays, scaled_rays, i, scale, lineality, scaled_lineality, new_cone;
+    local rays, scaled_rays, i, scale, lineality, scaled_lineality, new_cone;
     
     if cone!.rep_type = "H-rep" then
         
@@ -215,7 +215,7 @@ end );
 InstallMethod( Polymake_CanonicalConeFromInequalities,
                [ IsPolymakeCone ],
   function( cone )
-    local s, res_string, ineqs, scaled_ineqs, i, scale, eqs, scaled_eqs, new_cone;
+    local ineqs, scaled_ineqs, i, scale, eqs, scaled_eqs, new_cone;
     
     if cone!.rep_type = "V-rep" then
         
@@ -261,7 +261,7 @@ end );
 InstallMethod( Polymake_V_Rep,
                [ IsPolymakeCone ],
   function( cone )
-    local s, res_string, rays, scaled_rays, i, scale, lineality, scaled_lineality, new_cone;
+    local rays, scaled_rays, i, scale, lineality, scaled_lineality, new_cone;
     
     if cone!.rep_type = "V-rep" then
         return cone;
@@ -299,7 +299,7 @@ end );
 InstallMethod( Polymake_H_Rep,
                [ IsPolymakeCone ],
   function( cone )
-    local s, res_string, ineqs, scaled_ineqs, i, scale, eqs, scaled_eqs, new_cone;
+    local ineqs, scaled_ineqs, i, scale, eqs, scaled_eqs, new_cone;
     
     if cone!.rep_type = "H-rep" then
         

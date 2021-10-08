@@ -173,7 +173,7 @@ end );
 InstallMethod( Polymake_CanonicalPolytopeByGenerators,
                [ IsPolymakePolytope ],
   function( poly )
-    local s, res_string, vertices, v_copy, scaled_vertices, i, scale, lineality, scaled_lineality, new_poly;
+    local vertices, v_copy, scaled_vertices, i, scale, lineality, scaled_lineality, new_poly;
     
     if poly!.rep_type = "H-rep" then
         
@@ -217,7 +217,7 @@ end );
 InstallMethod( Polymake_CanonicalPolytopeFromInequalities,
                [ IsPolymakePolytope ],
   function( poly )
-    local s, res_string, ineqs, scaled_ineqs, i, scale, eqs, scaled_eqs, new_poly;
+    local ineqs, scaled_ineqs, i, scale, eqs, scaled_eqs, new_poly;
     
     if poly!.rep_type = "V-rep" then
         
@@ -263,7 +263,7 @@ end );
 InstallMethod( Polymake_V_Rep,
                [ IsPolymakePolytope ],
   function( poly )
-    local s, res_string, vertices, v_copy, scaled_vertices, i, scale, lineality, scaled_lineality, new_poly;
+    local vertices, v_copy, scaled_vertices, i, scale, lineality, scaled_lineality, new_poly;
     
     if poly!.rep_type = "V-rep" then
         
@@ -307,7 +307,7 @@ end );
 InstallMethod( Polymake_H_Rep,
                [ IsPolymakePolytope ],
   function( poly )
-    local s, res_string, ineqs, i, scale, scaled_ineqs, eqs, scaled_eqs, new_poly;
+    local ineqs, i, scale, scaled_ineqs, eqs, scaled_eqs, new_poly;
     
     if poly!.rep_type = "H-rep" then
         
