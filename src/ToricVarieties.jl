@@ -332,7 +332,7 @@ false
 ```
 """
 function has_torusfactor( v::AbstractNormalToricVariety )
-    return ( v.polymakeNTV.FAN_DIM < v.polymakeNTV.FAN_AMBIENT_DIM )::Bool
+    return v.polymakeNTV.FAN_DIM < v.polymakeNTV.FAN_AMBIENT_DIM
 end
 export has_torusfactor
 
