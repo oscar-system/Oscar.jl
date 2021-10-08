@@ -598,6 +598,49 @@ export nr_of_q_rational_points
 # ToricDivisors
 
 @doc Markdown.doc"""
+    divisor_of_character( c::Vector{Int}, v::AbstractNormalToricVariety )
+
+Construct the torus invariant divisor on the normal toric variety `v` corresponding to the character `c`.
+
+# Examples
+```jldoctest
+julia> divisor_of_character( [1,2], projective_space( 2 ) )
+A torus invariant divisor on a normal toric variety
+```
+"""
+function divisor_of_character( character::Vector{Int}, v::AbstractNormalToricVariety )
+    # create the divisor
+    gap_character = GapObj( character )
+    gap_divisor = GAP.Globals.DivisorOfCharacter( gap_character, v.GapNTV )
+    
+    # wrap and return
+    return ToricDivisor(extract_gap_divisor_coeffs(gap_divisor), v)
+end
+export divisor_of_character
+
+@doc Markdown.doc"""
+    divisor_of_class(class::AbstractVector, v::AbstractNormalToricVariety)
+
+Construct a torus invariant divisor on the normal toric variety `v` corresponding to the divisor class `c`.
+
+# Examples
+```jldoctest
+julia> divisor_of_class( [1], projective_space( 2 ) )
+A torus invariant divisor on a normal toric variety
+```
+"""
+function divisor_of_class(class::AbstractVector, v::AbstractNormalToricVariety)
+    # create the divisor
+    gap_class = GapObj( class )
+    gap_divisor = GAP.Globals.DivisorOfGivenClass( v.GapNTV, gap_class )
+    
+    # wrap and return
+    return ToricDivisor(extract_gap_divisor_coeffs(gap_divisor), v)
+end
+export divisor_of_class
+
+
+@doc Markdown.doc"""
     is_primedivisor( d::ToricDivisor )
 
 Checks if the divisor `d` is prime.
@@ -708,6 +751,20 @@ end
 
 @testset "Divisors" begin
     @test JToric.is_primedivisor( D ) == false
+    D2 = divisor_of_character( [ 1,2 ], H5 )
+    @test JToric.iscartier( D2 ) == true
+    @test JToric.isprincipal( D2 ) == true
+    @test JToric.isbasepoint_free( D2 ) == true
+    @test JToric.isample( D2 ) == false
+    @test JToric.isvery_ample( D2 ) == false
+    @test JToric.isnef( D2 ) == true
+    D3 = divisor_of_class( [ 1,2 ], H5 )
+    @test JToric.iscartier( D3 ) == true
+    @test JToric.isprincipal( D3 ) == false
+    @test JToric.isbasepoint_free( D3 ) == true
+    @test JToric.isample( D3 ) == true
+    @test JToric.isvery_ample( D3 ) == true
+    @test JToric.isnef( D3 ) == true
     @test JToric.is_primedivisor( D2 ) == false
     @test JToric.is_primedivisor( D3 ) == false
 end

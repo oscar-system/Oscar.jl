@@ -3,7 +3,6 @@
 ######################
 
 struct ToricDivisor
-           GapToricDivisor::GapObj
            polymake_divisor::Polymake.BigObject
 end
 export ToricDivisor
@@ -32,58 +31,12 @@ function ToricDivisor( coeffs::AbstractVector, v::AbstractNormalToricVariety )
     if length(coeffs) != pm_ntv(v).N_RAYS
         throw(ArgumentError("Number of coefficients needs to match number of prime divisors!"))
     end
-    # create the divisor
-    gap_coeffs = GapObj( coeffs )
-    gap_divisor = GAP.Globals.CreateDivisor( gap_coeffs, v.GapNTV )
     ptd = Polymake.fulton.TDivisor(COEFFICIENTS=coeffs)
     pmntv = pm_ntv(v)
     Polymake.add(pmntv, "DIVISOR", ptd)
-    # wrap and return
-    return ToricDivisor(gap_divisor, ptd)
+    return ToricDivisor(ptd)
 end
 export ToricDivisor
-
-@doc Markdown.doc"""
-    divisor_of_character( c::Vector{Int}, v::AbstractNormalToricVariety )
-
-Construct the torus invariant divisor on the normal toric variety `v` corresponding to the character `c`.
-
-# Examples
-```jldoctest
-julia> divisor_of_character( [1,2], projective_space( 2 ) )
-A torus invariant divisor on a normal toric variety
-```
-"""
-function divisor_of_character( character::Vector{Int}, v::AbstractNormalToricVariety )
-    # create the divisor
-    gap_character = GapObj( character )
-    gap_divisor = GAP.Globals.DivisorOfCharacter( gap_character, v.GapNTV )
-    
-    # wrap and return
-    return ToricDivisor(extract_gap_divisor_coeffs(gap_divisor), v)
-end
-export divisor_of_character
-
-@doc Markdown.doc"""
-    divisor_of_class(class::AbstractVector, v::AbstractNormalToricVariety)
-
-Construct a torus invariant divisor on the normal toric variety `v` corresponding to the divisor class `c`.
-
-# Examples
-```jldoctest
-julia> divisor_of_class( [1], projective_space( 2 ) )
-A torus invariant divisor on a normal toric variety
-```
-"""
-function divisor_of_class(class::AbstractVector, v::AbstractNormalToricVariety)
-    # create the divisor
-    gap_class = GapObj( class )
-    gap_divisor = GAP.Globals.DivisorOfGivenClass( v.GapNTV, gap_class )
-    
-    # wrap and return
-    return ToricDivisor(extract_gap_divisor_coeffs(gap_divisor), v)
-end
-export divisor_of_class
 
 
 ######################

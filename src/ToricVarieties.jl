@@ -4,13 +4,11 @@
 abstract type AbstractNormalToricVariety end
 
 struct NormalToricVariety <: AbstractNormalToricVariety
-           GapNTV::GapObj
            polymakeNTV::Polymake.BigObject
 end
 export NormalToricVariety
 
 struct AffineNormalToricVariety <: AbstractNormalToricVariety
-           GapNTV::GapObj
            polymakeNTV::Polymake.BigObject
 end
 export AffineNormalToricVariety
@@ -23,6 +21,7 @@ end
 ######################
 # 2: Generic constructors
 ######################
+
 @doc Markdown.doc"""
     NormalToricVariety(PF::PolyhedralFan)
 
@@ -43,7 +42,7 @@ A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 """    
 function NormalToricVariety(PF::PolyhedralFan)
     pmntv = Polymake.fulton.NormalToricVariety(Oscar.pm_fan(PF))
-    return NormalToricVariety(ntv_polymake2gap(pmntv), pmntv)
+    return NormalToricVariety(pmntv)
 end
 
 
@@ -67,7 +66,7 @@ function AffineNormalToricVariety(C::Cone)
     pmc = Oscar.pm_cone(C)
     fan = Polymake.fan.check_fan_objects(pmc)
     pmntv = Polymake.fulton.NormalToricVariety(fan)
-    return AffineNormalToricVariety(ntv_polymake2gap(pmntv), pmntv)
+    return AffineNormalToricVariety(pmntv)
 end
 
 
@@ -116,7 +115,7 @@ function NormalToricVariety(C::Cone)
     pmc = Oscar.pm_cone(C)
     fan = Oscar.Polymake.fan.check_fan_objects(pmc)
     pmntv = Oscar.Polymake.fulton.NormalToricVariety(fan)
-    return NormalToricVariety(ntv_polymake2gap(pmntv))
+    return NormalToricVariety(pmntv)
 end
 
 
@@ -132,25 +131,15 @@ A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 ```
 """
 function NormalToricVariety( rays::Matrix{Int}, cones::Vector{Vector{Int}} )
-    # construct the toric variety in GAP
-    gap_rays = GapObj( rays, recursive = true )
-    gap_cones = GapObj( cones, recursive = true )
-    fan = GAP.Globals.Fan( gap_rays, gap_cones )
-    variety = GAP.Globals.ToricVariety( fan )
-
-    # wrap it into a struct and return
-    return NormalToricVariety( variety, ntv_gap2polymake(variety) )
+    Incidence = Oscar.IncidenceMatrix(cones)
+    arr = @Polymake.convert_to Array{Set{Int}} Polymake.common.rows(Incidence.pm_incidencematrix)
+    pmntv = Polymake.fulton.NormalToricVariety(
+        RAYS = Oscar.matrix_for_polymake(rays),
+        MAXIMAL_CONES = arr,
+    )
+    return NormalToricVariety( pmntv )
 end
 
-@doc Markdown.doc"""
-    NormalToricVariety( v::GapObj )
-
-Construct the Julia wrapper for a `GAP` toric variety `v`.
-"""
-function NormalToricVariety(GapNTV::GapObj)
-   pmNTV = ntv_gap2polymake(GapNTV)
-   return NormalToricVariety(GapNTV, pmNTV)
-end
 export NormalToricVariety
 
 
@@ -171,11 +160,9 @@ A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 ```
 """
 function projective_space( d::Int )
-    # construct the projective space in gap
-    variety = GAP.Globals.ProjectiveSpace( d )
-    
-    # wrap it and return
-    return NormalToricVariety( variety, ntv_gap2polymake(variety) )
+    f = normal_fan(Oscar.simplex(d))
+    pm_ntv = Polymake.fulton.NormalToricVariety(Oscar.pm_fan(f))
+    return NormalToricVariety(pm_ntv)
 end
 export projective_space
 

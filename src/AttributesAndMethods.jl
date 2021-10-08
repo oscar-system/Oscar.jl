@@ -26,7 +26,7 @@ function dim_of_torusfactor( v::AbstractNormalToricVariety )
     
     dimension_of_fan = v.polymakeNTV.FAN_DIM::Int
     ambient_dimension = v.polymakeNTV.FAN_AMBIENT_DIM::Int
-    return ambient_dimension - dimension_of_fan
+    return ( ambient_dimension - dimension_of_fan )::Int
 end
 export dim_of_torusfactor
 
@@ -92,9 +92,7 @@ function ith_betti_number( v::AbstractNormalToricVariety, i::Int )
     k = i÷2
     f_vector = Vector{Int}(v.polymakeNTV.F_VECTOR)
     pushfirst!(f_vector, 1)
-    d = dim( v )
-    betti_number = sum( (-1)^(i-k) * binomial(i,k) * f_vector[ d - i + 1 ] for i=k:d)
-    #betti_number := Sum( [ k .. dim ], i -> ( -1 )^( i - k ) * Binomial( i, k ) * f_vector[ dim - i + 1 ] );
+    betti_number = sum( (-1)^(i-k) * binomial(i,k) * f_vector[ dim( v ) - i + 1 ] for i=k:dim( v ))
     return betti_number
     
 end

@@ -69,22 +69,6 @@ D=ToricDivisor( [ 0,0,0,0 ], H5 )
     @test JToric.isnef( D ) == true
     @test JToric.isintegral( D ) == true
     @test JToric.isq_cartier( D ) == true
-    @test JToric.iscartier( D2 ) == true
-    @test JToric.isprincipal( D2 ) == true
-    @test JToric.isbasepoint_free( D2 ) == true
-    @test JToric.isample( D2 ) == false
-    @test JToric.isvery_ample( D2 ) == false
-    @test JToric.isnef( D2 ) == true
-    @test JToric.isintegral( D2 ) == true
-    @test JToric.isq_cartier( D2 ) == true
-    @test JToric.iscartier( D3 ) == true
-    @test JToric.isprincipal( D3 ) == false
-    @test JToric.isbasepoint_free( D3 ) == true
-    @test JToric.isample( D3 ) == true
-    @test JToric.isvery_ample( D3 ) == true
-    @test JToric.isnef( D3 ) == true
-    @test JToric.isintegral( D3 ) == true
-    @test JToric.isq_cartier( D3 ) == true
 end
 
 using Oscar
@@ -93,12 +77,6 @@ using Oscar
     p = JToric.polyhedron_of_divisor( D )
     @test dim( p ) == 0
     @test ambient_dim( p ) == 2
-    p2 = JToric.polyhedron_of_divisor( D2 )
-    @test dim( p2 ) == 0
-    @test ambient_dim( p2 ) == 2
-    p3 = JToric.polyhedron_of_divisor( D3 )
-    @test dim( p3 ) == 2
-    @test ambient_dim( p3 ) == 2
 end
 
 @testset "Affine toric varieties" begin
