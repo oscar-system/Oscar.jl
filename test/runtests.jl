@@ -6,7 +6,6 @@ H5 = hirzebruch_surface( 5 )
 P2 = JToric.projective_space( 2 )
 
 @testset "Hirzebruch surface" begin
-    ntv_polymake2gap( H5.polymakeNTV )
     @test JToric.isnormal( H5 ) == true
     @test JToric.isaffine( H5 ) == false
     @test JToric.isprojective( H5 ) == true
