@@ -131,7 +131,7 @@ A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 """
 function NormalToricVariety( rays::Matrix{Int}, cones::Vector{Vector{Int}} )
     Incidence = Oscar.IncidenceMatrix(cones)
-    arr = @Polymake.convert_to Array{Set{Int}} Polymake.common.rows(Incidence.pm_incidencematrix)
+    arr = Polymake.@convert_to Array{Set{Int}} Polymake.common.rows(Incidence.pm_incidencematrix)
     pmntv = Polymake.fulton.NormalToricVariety(
         RAYS = Oscar.matrix_for_polymake(rays),
         MAXIMAL_CONES = arr,
