@@ -22,29 +22,6 @@ end
 # 2: Generic constructors
 ######################
 
-@doc Markdown.doc"""
-    NormalToricVariety(PF::PolyhedralFan)
-
-Construct the normal toric variety $X_{PF}$ corresponding to a polyhedral fan `PF`.
-
-# Examples
-Take `PF` to be the normal fan of the square.
-```jldoctest
-julia> square = Oscar.cube(2)
-A polyhedron in ambient dimension 2
-
-julia> nf = Oscar.normal_fan(square)
-A polyhedral fan in ambient dimension 2
-
-julia> ntv = NormalToricVariety(nf)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
-```
-"""    
-function NormalToricVariety(PF::PolyhedralFan)
-    pmntv = Polymake.fulton.NormalToricVariety(Oscar.pm_fan(PF))
-    return NormalToricVariety(pmntv)
-end
-
 
 @doc Markdown.doc"""
     AffineNormalToricVariety(C::Cone)
@@ -67,6 +44,52 @@ function AffineNormalToricVariety(C::Cone)
     fan = Polymake.fan.check_fan_objects(pmc)
     pmntv = Polymake.fulton.NormalToricVariety(fan)
     return AffineNormalToricVariety(pmntv)
+end
+
+
+@doc Markdown.doc"""
+    NormalToricVariety(C::Cone)
+Construct the (affine) normal toric variety $X_{\Sigma}$ corresponding to a
+polyhedral fan $\Sigma = C$ consisting only of the cone `C`.
+# Examples
+Set `C` to be the positive orthant in two dimensions.
+```jldoctest
+julia> C = Oscar.positive_hull([1 0; 0 1])
+A polyhedral cone in ambient dimension 2
+julia> ntv = NormalToricVariety(C)
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+```
+"""
+function NormalToricVariety(C::Cone)
+    return AffineNormalToricVariety(C)
+end
+
+
+@doc Markdown.doc"""
+    NormalToricVariety(PF::PolyhedralFan)
+
+Construct the normal toric variety $X_{PF}$ corresponding to a polyhedral fan `PF`.
+
+# Examples
+Take `PF` to be the normal fan of the square.
+```jldoctest
+julia> square = Oscar.cube(2)
+A polyhedron in ambient dimension 2
+
+julia> nf = Oscar.normal_fan(square)
+A polyhedral fan in ambient dimension 2
+
+julia> ntv = NormalToricVariety(nf)
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+```
+"""    
+function NormalToricVariety(PF::PolyhedralFan)
+    fan = Oscar.pm_fan(PF)
+    pmntv = Polymake.fulton.NormalToricVariety(fan)
+    if fan.N_MAXIMAL_CONES == 1
+        return AffineNormalToricVariety( pmntv )
+    end
+    return NormalToricVariety(pmntv)
 end
 
 
@@ -96,30 +119,6 @@ end
 
 
 @doc Markdown.doc"""
-    NormalToricVariety(C::Cone)
-
-Construct the (affine) normal toric variety $X_{\Sigma}$ corresponding to a
-polyhedral fan $\Sigma = C$ consisting only of the cone `C`.
-
-# Examples
-Set `C` to be the positive orthant in two dimensions.
-```jldoctest
-julia> C = Oscar.positive_hull([1 0; 0 1])
-A polyhedral cone in ambient dimension 2
-
-julia> ntv = NormalToricVariety(C)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
-```
-"""
-function NormalToricVariety(C::Cone)
-    pmc = Oscar.pm_cone(C)
-    fan = Oscar.Polymake.fan.check_fan_objects(pmc)
-    pmntv = Oscar.Polymake.fulton.NormalToricVariety(fan)
-    return NormalToricVariety(pmntv)
-end
-
-
-@doc Markdown.doc"""
     NormalToricVariety( r::Matrix{Int}, c::Vector{Vector{Int}} )
 
 Construct the normal toric variety whose fan has ray generators `r` and maximal cones `c`.
@@ -137,6 +136,9 @@ function NormalToricVariety( rays::Matrix{Int}, cones::Vector{Vector{Int}} )
         RAYS = Oscar.matrix_for_polymake(rays),
         MAXIMAL_CONES = arr,
     )
+    if length( cones ) == 1
+        return AffineNormalToricVariety( pmntv )
+    end    
     return NormalToricVariety( pmntv )
 end
 
