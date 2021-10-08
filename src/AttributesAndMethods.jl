@@ -26,7 +26,7 @@ function dim_of_torusfactor( v::AbstractNormalToricVariety )
     
     dimension_of_fan = v.polymakeNTV.FAN_DIM::Int
     ambient_dimension = v.polymakeNTV.FAN_AMBIENT_DIM::Int
-    return ( ambient_dimension - dimension_of_fan )::Int
+    return ambient_dimension - dimension_of_fan
 end
 export dim_of_torusfactor
 
