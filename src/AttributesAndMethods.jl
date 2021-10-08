@@ -89,7 +89,7 @@ function ith_betti_number( v::AbstractNormalToricVariety, i::Int )
     if isodd(i)
         return 0
     end
-    k = i÷2
+    k = div(i, 2)
     f_vector = Vector{Int}(v.polymakeNTV.F_VECTOR)
     pushfirst!(f_vector, 1)
     betti_number = sum( (-1)^(i-k) * binomial(i,k) * f_vector[ dim( v ) - i + 1 ] for i=k:dim( v ))
