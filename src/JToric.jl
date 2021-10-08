@@ -48,6 +48,9 @@ function __init__()
     #println("Type: ?JToric for more information")
 end
 
+const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
+const VERSION_NUMBER = VersionNumber(PROJECT_TOML["version"])
+const IS_DEV = isdir(@__DIR__, "..", ".git")
 
 """
     version
@@ -55,21 +58,7 @@ end
 The version number of the loaded `JToric`.
 Please mention this number in any bug report.
 """
-global version = 0
-
-if VERSION >= v"1.4"
-    deps = Pkg.dependencies()
-    if Base.haskey(deps, Base.UUID("9bfa4af0-0a41-40a3-86ae-7e8f6cc9e7ab"))
-        ver = Pkg.dependencies()[Base.UUID("9bfa4af0-0a41-40a3-86ae-7e8f6cc9e7ab")]
-        if occursin("/dev/", ver.source)
-            version = VersionNumber("$(ver.version)-dev")
-        else
-            version = VersionNumber("$(ver.version)")
-        end
-    else
-        version = "not installed"
-    end
-end
+const version = IS_DEV ? VersionNumber("$(VERSION_NUMBER)-dev") : VERSION_NUMBER
 
 # include files
 include("conversion.jl")
