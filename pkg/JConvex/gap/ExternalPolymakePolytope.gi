@@ -110,7 +110,7 @@ InstallGlobalFunction( Polymake_PolytopeByGenerators,
     
     if Length( arg )= 0 or ForAll( arg, IsEmpty ) then
         
-        Error( "Wronge input: Please provide some input!" );
+        Error( "Wrong input: Please provide some input!" );
         
     elif Length( arg ) = 1 and IsList( arg[1] ) then
         
@@ -119,11 +119,11 @@ InstallGlobalFunction( Polymake_PolytopeByGenerators,
     elif Length( arg ) = 2 and IsList( arg[ 1 ] ) and IsList( arg[ 2 ] ) then
         
         if ( not IsEmpty( arg[ 1 ] ) ) and not ( IsMatrix( arg[ 1 ] ) ) then
-            Error( "Wronge input: The first argument should be a Gap matrix!" );
+            Error( "Wrong input: The first argument should be a Gap matrix!" );
         fi;
         
         if ( not IsEmpty( arg[ 2 ] ) ) and not ( IsMatrix( arg[ 2 ] ) ) then
-            Error( "Wronge input: The second argument should be a Gap matrix!" );
+            Error( "Wrong input: The second argument should be a Gap matrix!" );
         fi;
         
         poly := MakePolymakePolytopeVRep( arg[ 1 ], arg[ 2 ] );
@@ -140,7 +140,7 @@ InstallGlobalFunction( Polymake_PolytopeFromInequalities,
     
     if Length( arg ) = 0 or ForAll( arg, IsEmpty ) then
         
-        Error( "Wronge input: Please provide some input!" );
+        Error( "Wrong input: Please provide some input!" );
         
     elif Length( arg ) = 1 and IsList( arg[ 1 ] ) then
         
@@ -149,11 +149,11 @@ InstallGlobalFunction( Polymake_PolytopeFromInequalities,
     elif Length( arg ) = 2 and IsList( arg[ 1 ] ) and IsList( arg[ 2 ] ) then
         
         if ( not IsEmpty( arg[ 1 ] ) ) and not ( IsMatrix( arg[ 1 ] ) ) then
-            Error( "Wronge input: The first argument should be a Gap matrix!" );
+            Error( "Wrong input: The first argument should be a Gap matrix!" );
         fi;
         
         if ( not IsEmpty( arg[ 2 ] ) ) and not ( IsMatrix( arg[ 2 ] ) ) then
-            Error( "Wronge input: The second argument should be a Gap matrix!" );
+            Error( "Wrong input: The second argument should be a Gap matrix!" );
         fi;
         
         poly := MakePolymakePolytopeHRep( arg[ 1 ], arg[ 2 ] );
