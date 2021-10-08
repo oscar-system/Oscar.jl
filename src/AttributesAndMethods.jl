@@ -21,7 +21,7 @@ Computes the dimension of the torus factor of the normal toric variety `v`.
 function dim_of_torusfactor( v::AbstractNormalToricVariety )
 
     if has_torusfactor( v ) == false
-        return 0::Int
+        return 0
     end
     
     dimension_of_fan = v.polymakeNTV.FAN_DIM::Int
