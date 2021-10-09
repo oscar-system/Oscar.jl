@@ -438,12 +438,9 @@ julia> interior_lattice_points(c)
 ```
 """
 function interior_lattice_points(P::Polyhedron)
-    if pm_polytope(P).BOUNDED
-        lat_pts = pm_polytope(P).INTERIOR_LATTICE_POINTS
-        return VectorIterator{PointVector{Polymake.Integer}}(lat_pts[:, 2:end])
-    else
-        throw(ArgumentError("Polyhedron not bounded"))
-    end
+    pm_polytope(P).BOUNDED || throw(ArgumentError("Polyhedron not bounded"))
+    lat_pts = pm_polytope(P).INTERIOR_LATTICE_POINTS
+    return VectorIterator{PointVector{Polymake.Integer}}(lat_pts[:, 2:end])
 end
 
 
@@ -469,12 +466,9 @@ julia> boundary_lattice_points(c)
 ```
 """
 function boundary_lattice_points(P::Polyhedron)
-    if pm_polytope(P).BOUNDED
-        lat_pts = pm_polytope(P).BOUNDARY_LATTICE_POINTS
-        return VectorIterator{PointVector{Polymake.Integer}}(lat_pts[:, 2:end])
-    else
-        throw(ArgumentError("Polyhedron not bounded"))
-    end
+    pm_polytope(P).BOUNDED || throw(ArgumentError("Polyhedron not bounded"))
+    lat_pts = pm_polytope(P).BOUNDARY_LATTICE_POINTS
+    return VectorIterator{PointVector{Polymake.Integer}}(lat_pts[:, 2:end])
 end
 
 
