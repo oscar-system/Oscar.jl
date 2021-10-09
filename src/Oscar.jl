@@ -262,8 +262,7 @@ include("Modules/FreeModules-graded.jl")
 
 include("Geometry/basics.jl")
 
-include("Polymake/Ineq.jl")
-include("Polymake/NmbThy.jl")
+include("NumberTheory/NmbThy.jl")
 
 include("Polytopes/Polytopes.jl")
 

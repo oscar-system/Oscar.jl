@@ -22,6 +22,7 @@ export Cone,
     affine_hull,
     archimedean_solid,
     ambient_dim,
+    boundary_lattice_points,
     catalan_solid,
     codim,
     combinatorial_symmetries,
@@ -41,6 +42,7 @@ export Cone,
     halfspace_matrix_pair,
     hilbert_basis,
     intersect,
+    interior_lattice_points,
     isbounded,
     iscomplete,
     isfeasible,
@@ -125,3 +127,4 @@ include("Groups.jl")
 include("Graphs.jl")
 include("Serialization.jl")
 include("Visualization.jl")
+include("solving_integrally.jl")
