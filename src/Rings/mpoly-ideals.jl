@@ -5,6 +5,7 @@ export radical, primary_decomposition, minimal_primes, equidimensional_decomposi
 export absolute_primary_decomposition
 export iszero, isone, issubset, ideal_membership, radical_membership, isprime, isprimary
 export ngens, gens
+export save_ideal, load_ideal
 
 # constructors #######################################################
 
@@ -1126,4 +1127,73 @@ function isone(I::MPolyIdeal)
   end
   gb = groebner_basis(I, complete_reduction = true)
   return isconstant(gb[1]) && isunit(first(coefficients(gb[1])))
+end
+
+function Base.convert(::Type{Polymake.Polynomial{Polymake.Rational, Int64}}, x::fmpq_mpoly)
+  c::Vector{Polymake.Rational} = collect(coeffs(x))
+  e::Matrix{Int64} = vcat(transpose.(exponent_vectors(x))...)
+  return Polymake.Polynomial{Polymake.Rational, Int64}(c, e)
+end
+
+function to_oscar_polynomial(Ox::FmpqMPolyRing, x::Polymake.Polynomial{Polymake.Rational, Int64})
+  m = Polymake.monomials_as_matrix(x)
+  return Ox(Base.convert.(Oscar.fmpq, collect(Polymake.coefficients_as_vector(x))), [collect(m[i, :]) for i in 1:size(m, 1)])
+end
+
+function Base.convert(::Type{Polymake.Array{Polymake.Polynomial{Polymake.Rational, Int64}}}, x::Vector{fmpq_mpoly})
+  res = Polymake.Array{Polymake.Polynomial{Polymake.Rational, Int64}}(length(x))
+  for i in 1:length(x)
+    res[i] = Base.convert(Polymake.Polynomial{Polymake.Rational, Int64}, x[i])
+  end
+  return res
+end
+
+function to_bipolyarray(Ox::FmpqMPolyRing, x::Polymake.Array{Polymake.Polynomial{Polymake.Rational, Int64}})
+  # TODO: how to apply ordering for singular?
+  # for now: `keep_ordering = false`, same as for MPolyIdeal(::Vector)`
+  res = BiPolyArray([to_oscar_polynomial(Ox, x[i]) for i in 1:length(x)]; keep_ordering = false)
+  return res
+end
+
+function save_ideal(I::MPolyIdeal{fmpq_mpoly}, filename::String)
+  p_id = Polymake.ideal.Ideal()
+  p_gens = Base.convert(Polymake.Array{Polymake.Polynomial{Polymake.Rational, Int64}}, I.gens.O)
+  Polymake.attach(p_id, "gens", p_gens)
+  Polymake.attach(p_id, "dim", I.dim)
+  if isdefined(I, :gb)
+    p_gb = Base.convert(Polymake.Array{Polymake.Polynomial{Polymake.Rational, Int64}}, I.gb.O)
+    Polymake.attach(p_id, "gb", p_gb)
+  end
+  p_vars = Polymake.Array{String}(String.(symbols(I.gens.Ox)))
+  # TODO: replace when `Array{String}` is mapped correctly
+  Polymake.attach(p_id, "nvars", length(p_vars))
+  for i in 1:length(p_vars)
+    Polymake.attach(p_id, "var$i", p_vars[i])
+  end
+  # Polymake.attach(p_id, "varnames", p_vars)
+  Polymake.attach(p_id, "ordering", String(ordering(I.gens.Ox)))
+  Polymake.save_bigobject(p_id, filename)
+  return p_id
+end
+
+function load_ideal(filename::String)
+  p_id = Polymake.load_bigobject(filename)
+  typename = Polymake.type_name(p_id)
+  if typename[1:5] != "Ideal"
+    throw(ArgumentError("Loaded object is not of polymake type Ideal, it has type " * typename))
+  end
+  order = Symbol(Polymake.get_attachment(p_id, "ordering"))
+  # TODO: replace when `Array{String}` is mapped correctly
+  o_ring, vars = PolynomialRing(QQ, String.([Polymake.get_attachment(p_id, "var$i") for i in 1:Polymake.get_attachment(p_id, "nvars")]); ordering = order)
+  # o_ring, vars = PolynomialRing(QQ, Polymake.get_attachment(p_id, "varnames"); ordering = order)
+  gens = Polymake.get_attachment(p_id, "gens")
+  # res = MPolyIdeal([to_oscar_polynomial(o_ring, gens[i]) for i in 1:length(gens)])
+  res = MPolyIdeal(to_bipolyarray(o_ring, gens))
+  res.dim = Polymake.get_attachment(p_id, "dim")
+  p_gb = Polymake.get_attachment(p_id, "gb")
+  if !isnothing(p_gb)
+    res.gb = to_bipolyarray(o_ring, Polymake.get_attachment(p_id, "gb"))
+    res.gb.isGB = true
+  end
+  return res
 end

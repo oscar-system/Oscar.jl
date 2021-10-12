@@ -189,7 +189,7 @@ end
   l = equidimensional_decomposition_radical(i)
   @test length(l) == 1
   @test l[1] == ideal(R, [z^2-y, y^2*z+z^3+2*z^2+2])
-  
+
   # equidimensional_hull
   R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
   i = intersect(ideal(R, [z]), ideal(R, [x, y]),
@@ -259,4 +259,17 @@ end
     @test p == radical(q)
   end
   @test Q == I
+end
+
+@testset "Serialize ideal" begin
+  R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+  I = ideal([x*y-3*x,y^3-2*x^2*y])
+  save_ideal(I, "exam.id")
+  J = load_ideal("exam.id")
+  @test !isdefined(J, :gb)
+  @test I == J
+  save_ideal(I, "exam.id")
+  J = load_ideal("exam.id")
+  @test isdefined(J, :gb)
+  @test I == J
 end
