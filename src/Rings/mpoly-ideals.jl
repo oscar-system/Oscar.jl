@@ -1129,26 +1129,26 @@ function isone(I::MPolyIdeal)
   return isconstant(gb[1]) && isunit(first(coefficients(gb[1])))
 end
 
-function Base.convert(::Type{Polymake.Polynomial{Polymake.Rational, Int64}}, x::fmpq_mpoly)
-  c::Vector{Polymake.Rational} = collect(coeffs(x))
+function Base.convert(::Type{Polymake.Polynomial{Polymake.Rational, Polymake.to_cxx_type(Int64)}}, x::fmpq_mpoly)
+  c::Vector{Polymake.Rational} = collect(coefficients(x))
   e::Matrix{Int64} = vcat(transpose.(exponent_vectors(x))...)
-  return Polymake.Polynomial{Polymake.Rational, Int64}(c, e)
+  return Polymake.Polynomial{Polymake.Rational, Polymake.to_cxx_type(Int64)}(c, e)
 end
 
-function to_oscar_polynomial(Ox::FmpqMPolyRing, x::Polymake.Polynomial{Polymake.Rational, Int64})
+function to_oscar_polynomial(Ox::FmpqMPolyRing, x::Polymake.Polynomial{Polymake.Rational, Polymake.to_cxx_type(Int64)})
   m = Polymake.monomials_as_matrix(x)
-  return Ox(Base.convert.(Oscar.fmpq, collect(Polymake.coefficients_as_vector(x))), [collect(m[i, :]) for i in 1:size(m, 1)])
+  return Ox(Base.convert.(Oscar.fmpq, collect(Polymake.coefficients_as_vector(x))), [fmpz.(collect(m[i, :])) for i in 1:size(m, 1)])
 end
 
-function Base.convert(::Type{Polymake.Array{Polymake.Polynomial{Polymake.Rational, Int64}}}, x::Vector{fmpq_mpoly})
-  res = Polymake.Array{Polymake.Polynomial{Polymake.Rational, Int64}}(length(x))
+function Base.convert(::Type{Polymake.Array{Polymake.Polynomial{Polymake.Rational, Polymake.to_cxx_type(Int64)}}}, x::Vector{fmpq_mpoly})
+  res = Polymake.Array{Polymake.Polynomial{Polymake.Rational, Polymake.to_cxx_type(Int64)}}(length(x))
   for i in 1:length(x)
-    res[i] = Base.convert(Polymake.Polynomial{Polymake.Rational, Int64}, x[i])
+    res[i] = Base.convert(Polymake.Polynomial{Polymake.Rational, Polymake.to_cxx_type(Int64)}, x[i])
   end
   return res
 end
 
-function to_bipolyarray(Ox::FmpqMPolyRing, x::Polymake.Array{Polymake.Polynomial{Polymake.Rational, Int64}})
+function to_bipolyarray(Ox::FmpqMPolyRing, x::Polymake.Array{Polymake.Polynomial{Polymake.Rational, Polymake.to_cxx_type(Int64)}})
   # TODO: how to apply ordering for singular?
   # for now: `keep_ordering = false`, same as for MPolyIdeal(::Vector)`
   res = BiPolyArray([to_oscar_polynomial(Ox, x[i]) for i in 1:length(x)]; keep_ordering = false)
@@ -1157,14 +1157,14 @@ end
 
 function save_ideal(I::MPolyIdeal{fmpq_mpoly}, filename::String)
   p_id = Polymake.ideal.Ideal()
-  p_gens = Base.convert(Polymake.Array{Polymake.Polynomial{Polymake.Rational, Int64}}, I.gens.O)
+  p_gens = Base.convert(Polymake.Array{Polymake.Polynomial{Polymake.Rational, Polymake.to_cxx_type(Int64)}}, I.gens.O)
   Polymake.attach(p_id, "gens", p_gens)
   Polymake.attach(p_id, "dim", I.dim)
   if isdefined(I, :gb)
-    p_gb = Base.convert(Polymake.Array{Polymake.Polynomial{Polymake.Rational, Int64}}, I.gb.O)
+    p_gb = Base.convert(Polymake.Array{Polymake.Polynomial{Polymake.Rational, Polymake.to_cxx_type(Int64)}}, I.gb.O)
     Polymake.attach(p_id, "gb", p_gb)
   end
-  p_vars = Polymake.Array{String}(String.(symbols(I.gens.Ox)))
+  p_vars = Polymake.Array{Polymake.to_cxx_type(String)}(String.(symbols(I.gens.Ox)))
   # TODO: replace when `Array{String}` is mapped correctly
   Polymake.attach(p_id, "nvars", length(p_vars))
   for i in 1:length(p_vars)
