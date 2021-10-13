@@ -20,8 +20,6 @@ correspond to the rays of the underlying fan.
 
 ```@docs
 ToricDivisor
-divisor_of_character
-divisor_of_class
 ```
 
 ## Properties of toric divisors
@@ -33,7 +31,6 @@ iscartier
 iseffective(td::ToricDivisor)
 isintegral(td::ToricDivisor) 
 isnef
-is_primedivisor
 isprincipal
 isq_cartier
 isvery_ample
