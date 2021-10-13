@@ -38,7 +38,7 @@ function FreeModule(R::Ring_dec, d::Vector{GrpAbFinGenElem}, name::String = "e";
 end
 free_module(R::Ring_dec, d::Vector{GrpAbFinGenElem}, name::String = "e"; cached::Bool = false) = FreeModule(R, d, name, cached = cached)
 
-#=XXX this cannot be as it is inherently ambigous
+#=XXX this cannot be as it is inherently ambiguous
   - FreeModule(R, n)
   - direct sum of rings, ie. a ring
   - set of n-th powers of R
@@ -392,7 +392,7 @@ mutable struct FreeModuleHom_dec{T1, T2} <: Map_dec{T1, T2}
   Hecke.@declare_other
 
   function FreeModuleHom_dec(F::FreeModule_dec{T}, G::S, a::Vector) where {T, S}
-#    @assert isfiltered(F) || all(ishomogeneous, a) #neccessary and suffient according to Hans XXX
+#    @assert isfiltered(F) || all(ishomogeneous, a) #necessary and sufficient according to Hans XXX
 #same as non-homogeneous elements are required, this too must not be enforced
     @assert all(x->parent(x) == G, a)
     @assert length(a) == ngens(F)

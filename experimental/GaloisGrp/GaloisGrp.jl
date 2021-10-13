@@ -988,7 +988,7 @@ end
 
 #TODO: instead of iterating, use the cheapest invariant
 #      use invariant with a worklevel to limit costs in finding them
-#      use the V_4 (index 2) stuff when neccessary
+#      use the V_4 (index 2) stuff when necessary
 function Base.iterate(D::DescentEnv, i::Int=1)
   #r.l[i] == 1: done,  0:: nothing
   all(isone, D.l) && return nothing

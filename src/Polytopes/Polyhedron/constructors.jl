@@ -129,7 +129,7 @@ function convex_hull(V::Union{VectorIterator{PointVector}, AnyVecOrMat, Oscar.Ma
     lineality = homogenize(LM, 0)
 
     # These matrices are in the right format for polymake.
-    # given non_redundant can avoid unneccessary redundancy checks
+    # given non_redundant can avoid unnecessary redundancy checks
     if non_redundant
         return Polyhedron(Polymake.polytope.Polytope{Polymake.Rational}(VERTICES = points, LINEALITY_SPACE = lineality))
     else

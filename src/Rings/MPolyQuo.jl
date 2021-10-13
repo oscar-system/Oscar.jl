@@ -783,8 +783,8 @@ end
 
 function divides(a::MPolyQuoElem, b::MPolyQuoElem)
   check_parent(a, b)
-  simplify!(a) #not neccessary
-  simplify!(b) #not neccessary
+  simplify!(a) #not necessary
+  simplify!(b) #not necessary
   iszero(b) && error("cannot divide by zero")
 
   Q = parent(a)

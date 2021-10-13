@@ -83,7 +83,7 @@ The (convex) cone defined by
 $$\{ x |  Ax ≤ 0 \}.$$
 
 Use `non_redundant = true` if the given description contains no redundant rows to
-avoid unneccessary redundancy checks.
+avoid unnecessary redundancy checks.
 
 # Examples
 ```jldoctest
