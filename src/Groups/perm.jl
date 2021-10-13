@@ -53,10 +53,7 @@ julia> show(Vector(gen(symmetric_group(5), 2)))
 """
 degree(x::PermGroup) = x.deg
 
-@gapattribute moved_points(x::Union{PermGroupElem,PermGroup}) = [y for y in GAP.gap_to_julia(GAP.Globals.MovedPoints(x.X))]
-# This is more efficient than `Vector{Int}(GAP.Globals.MovedPoints(x.X))`.
-# (And note that `GAP.gap_to_julia(GAP.Globals.MovedPoints(G.X))` may return
-# a range.)
+@gapattribute moved_points(x::Union{PermGroupElem,PermGroup}) = Vector{Int}(GAP.Globals.MovedPoints(x.X))
 """
     moved_points(x::PermGroupElem)
     moved_points(G::PermGroup)

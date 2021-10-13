@@ -32,8 +32,7 @@ Return `(n, m)`, where `G` is isomorphic with `small_group(n, m)`.
 """
 function small_group_identification(G::GAPGroup)
   r = GAP.Globals.IdGroup(G.X)
-  res = GAP.gap_to_julia(GAP.gap_to_julia(r))
-  return (res[1], res[2])
+  return (r[1], r[2])
 end
 
 """

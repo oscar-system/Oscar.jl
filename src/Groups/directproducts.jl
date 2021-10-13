@@ -204,7 +204,7 @@ function Base.show(io::IO, G::DirectProductGroup)
       print(io, "DirectProduct of ")
       display(G.L)
    else
-      print(io, GAP.gap_to_julia(GAP.Globals.StringViewObj(G.X)))
+      print(io, String(GAP.Globals.StringViewObj(G.X)))
    end
 end
 
@@ -336,10 +336,10 @@ end
 
 function Base.show(io::IO, x::SemidirectProductGroup)
    if x.isfull
-      print(io, "SemidirectProduct( ", GAP.gap_to_julia(GAP.Globals.StringViewObj(x.N.X)),
-                " , ", GAP.gap_to_julia(GAP.Globals.StringView(x.H.X))," )")
+      print(io, "SemidirectProduct( ", String(GAP.Globals.StringViewObj(x.N.X)),
+                " , ", String(GAP.Globals.StringView(x.H.X))," )")
    else
-      print(io, GAP.gap_to_julia(GAP.Globals.StringViewObj(x.X)))
+      print(io, String(GAP.Globals.StringViewObj(x.X)))
    end
 end
 
@@ -368,7 +368,7 @@ typing
 ```
 """
 function wreath_product(G::T, H::PermGroup) where T<: GAPGroup
-   if Set{Int}(GAP.gap_to_julia(GAP.Globals.MovedPoints(H.X)))==Set(1:H.deg)
+   if Set{Int}(GAP.Globals.MovedPoints(H.X))==Set(1:H.deg)
       Wgap=GAP.Globals.WreathProduct(G.X,H.X)
       return WreathProductGroup(Wgap,G,H,id_hom(H),Wgap,true)
    else
@@ -456,7 +456,7 @@ function embedding(W::WreathProductGroup, n::Base.Integer)
    return GAPGroupHomomorphism{typeof(C),WreathProductGroup}(C,W,f)
 end
 
-Base.show(io::IO, x::WreathProductGroup) = print(io, GAP.gap_to_julia(GAP.Globals.StringView(x.X)))
+Base.show(io::IO, x::WreathProductGroup) = print(io, String(GAP.Globals.StringView(x.X)))
 
 
 #TODO : to be fixed
