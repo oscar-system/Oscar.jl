@@ -258,6 +258,7 @@ include("Rings/NumberField.jl")
 include("Rings/FunctionField.jl")
 include("Rings/AbelianClosure.jl")
 
+include("Modules/UngradedModules.jl")
 include("Modules/FreeModules-graded.jl")
 
 include("Geometry/basics.jl")

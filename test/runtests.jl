@@ -32,7 +32,6 @@ include("Examples/galois-test.jl")
 include("Examples/ModStdQt-test.jl")
 include("Examples/ModStdNF-test.jl")
 
-include("Modules/FreeModules-graded-test.jl")
-include("Modules/GradedModules.jl")
+include("Modules/UngradedModules.jl")
 
 include("InvariantTheory/invariant_rings-test.jl")

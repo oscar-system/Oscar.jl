@@ -671,7 +671,7 @@ end
 
 function quo(S::SubQuo_dec, T::SubQuo_dec)
 #  @assert !isdefined(T, :quo)
-  return quo(S, gens(T))
+  return SubQuo_dec(S, T.sum.O)
 end
 
 function quo(F::FreeModule_dec, T::SubQuo_dec)
@@ -704,6 +704,10 @@ ngens(F::SubQuo_dec) = length(F.sub)
 base_ring(SQ::SubQuo_dec) = base_ring(SQ.F)
 
 zero(SQ::SubQuo_dec) = SubQuoElem_dec(zero(SQ.F), SQ)
+
+function Base.iszero(F::SubQuo_dec)
+  return all(iszero, gens(F))
+end
 
 function Base.getindex(F::SubQuo_dec, i::Int)
   i == 0 && return zero(F)
@@ -1073,30 +1077,6 @@ function free_resolution(S::SubQuo_dec, limit::Int = -1)
   return Hecke.ChainComplex(ModuleFP_dec, mp, check = false, direction = :right)
 end
 
-function Hecke.ring(I::MPolyIdeal)
-  return parent(gen(I, 1))
-end
-
-function free_resolution(I::MPolyIdeal)
-  F = free_module(Hecke.ring(I), 1)
-  S = sub(F, [x * gen(F, 1) for x = gens(I)])
-  n = Hecke.find_name(I)
-  if n !== nothing
-    AbstractAlgebra.set_name!(S, string(n))
-  end
-  return free_resolution(S)
-end
-
-function free_resolution(Q::MPolyQuo)
-  F = free_module(Q.R, 1)
-  q = quo(F, [x * gen(F, 1) for x = gens(Q.I)])
-  n = Hecke.find_name(Q)
-  if n !== nothing
-    AbstractAlgebra.set_name!(q, String(n))
-  end
-  return free_resolution(q)
-end
-
 function iszero(f::Map_dec)
   return all(iszero, map(f, gens(domain(f))))
 end
@@ -1422,64 +1402,3 @@ function homogeneous_component(F::T, d::GrpAbFinGenElem) where {T <: Union{FreeM
   end
   return X, Hecke.MapFromFunc(im, pr, X, F)
 end
-
-
-
-#############################
-function homology(C::Hecke.ChainComplex{ModuleFP_dec})
-  H = SubQuo_dec[]
-  for i=1:length(C)-1
-    push!(H, quo(kernel(C.maps[i+1])[1], image(C.maps[i])[1])[1])
-  end
-  return H
-end
-#############################
-#TODO move to Hecke
-#  re-evaluate and use or not
-function Base.getindex(r::Hecke.SRow, R::AbstractAlgebra.Ring, u::UnitRange)
-  s = sparse_row(R)
-  shift = 1-first(u)
-  for (p,v) = r
-    if p in u
-      push!(s.pos, p+shift)
-      push!(s.values, v)
-    end
-  end
-  return s
-end
-
-function getindex(a::Hecke.SRow, b::AbstractVector{Int})
-  if length(a.pos) == 0
-    return a
-  end
-  m = minimum(b)
-  b = sparse_row(parent(a.values[1]))
-  for (k,v) = a
-    if k in b
-      push!(b.pos, k-b+1)
-      push!(b.values, v)
-    end
-  end
-  return b
-end
-
-##############################
-#should be in Singular.jl
-function Singular.intersection(a::Singular.smodule, b::Singular.smodule)
-  c = base_ring(a)
-  return Singular.Module(c, Singular.libSingular.id_Intersection(a.ptr, b.ptr, c.ptr))
-end
-
-function _reduce(a::Singular.smodule, b::Singular.smodule)
-  @assert b.isGB
-  p = Singular.libSingular.p_Reduce(a.ptr, b.ptr, base_ring(b).ptr)
-  return Singular.Module(base_ring(b), p)
-end
-
-function _reduce(a::Singular.svector, b::Singular.smodule)
-  @assert b.isGB
-  p = _reduce(Singular.Module(base_ring(b), a), b)[1]
-  return Singular.Module(base_ring(b), p)[1]
-end
-
-#TODO: tensor_product from Raul's H is broken
