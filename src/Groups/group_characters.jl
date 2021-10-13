@@ -31,7 +31,7 @@ export
 ##
 ##  conversion between Julia's QabElem and GAP's cyclotomics
 ##
-function QabElem(cyc::Union{GAP.GapObj,Int64})
+function QabElem(cyc::GapInt)
     GAP.Globals.IsCyc(cyc) || error("cyc must be a GAP cyclotomic")
     denom = GAP.Globals.DenominatorCyc(cyc)
     n = GAP.Globals.Conductor(cyc)
@@ -49,9 +49,7 @@ end
 
 function gap_cyclotomic(elm::QabElem)
     coeffs = [Nemo.coeff(elm.data, i) for i in 0:(elm.c-1)]  # fmpq
-    coeffs = [GAP.julia_to_gap(BigInt(numerator(x)) // BigInt(denominator(x)))
-              for x in coeffs]
-    return GAP.Globals.CycList(GAP.julia_to_gap(coeffs))
+    return GAP.Globals.CycList(GAP.GapObj(coeffs; recursive=true))
 end
 
 complex_conjugate(elm::QabElem) = elm^QabAutomorphism(-1)
@@ -134,20 +132,16 @@ function character_table(G::Oscar.GAPGroup, p::Int = 0)
       AbstractAlgebra.set_special(G, :character_tables => tbls)
     end
 
-    tbl = get(tbls, p, nothing)
-    if tbl == nothing
+    return get!(tbls, p) do
       gaptbl = GAP.Globals.CharacterTable(G.X)
       if p != 0
         # Create the `p`-modular table if possible.
         isprime(p) || error("p must be 0 or a prime integer")
-        gaptbl = GAP.Globals.mod(gaptbl, GAP.GapObj(p))
+        gaptbl = GAP.Globals.mod(gaptbl, GAP.Obj(p))
         gaptbl == GAP.Globals.fail && return nothing
       end
-      tbl = GAPGroupCharacterTable(G, gaptbl, p)
-      tbls[p] = tbl
+      return GAPGroupCharacterTable(G, gaptbl, p)
     end
-
-    return tbl
 end
 
 # A character table with stored group object is stored in this group.
@@ -341,8 +335,8 @@ function Base.show(io::IO, tbl::GAPGroupCharacterTable)
     # Compute display format for power maps.
     names = Vector{String}(GAP.Globals.ClassNames(gaptbl))
     pmaps = Vector{Any}(GAP.Globals.ComputedPowerMaps(gaptbl))
-    power_maps_primes = []
-    power_maps_strings = []
+    power_maps_primes = String[]
+    power_maps_strings = Vector{String}[]
     for i in 2:length(pmaps)
       map = pmaps[i]
       if map != nothing
@@ -511,7 +505,7 @@ end
 import Base.values
 
 function values(chi::GAPGroupClassFunction)
-    gapvalues = GAP.gap_to_julia(GAP.Globals.ValuesOfClassFunction(chi.values), recursive = false)
+    gapvalues = GAP.Globals.ValuesOfClassFunction(chi.values)
     return [QabElem(x) for x in gapvalues]
 end
 
@@ -521,7 +515,8 @@ function group_class_function(tbl::GAPGroupCharacterTable, values::GAP.GapObj)
 end
 
 function group_class_function(tbl::GAPGroupCharacterTable, values::Vector{QabElem})
-    return GAPGroupClassFunction(tbl, GAP.Globals.ClassFunction(tbl.GAPTable, GAP.julia_to_gap([gap_cyclotomic(x) for x in values])))
+    gapvalues = GAP.GapObj([gap_cyclotomic(x) for x in values])
+    return GAPGroupClassFunction(tbl, GAP.Globals.ClassFunction(tbl.GAPTable, gapvalues))
 end
 
 function group_class_function(G::Oscar.GAPGroup, values::Vector{QabElem})
@@ -588,11 +583,11 @@ function scalar_product(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
     return Nemo.fmpz(GAP.Globals.ScalarProduct(chi.values, psi.values))
 end
 
-function Base.:*(n::T, chi::GAPGroupClassFunction) where T <: Union{fmpz, Base.Integer}
+function Base.:*(n::IntegerUnion, chi::GAPGroupClassFunction)
     return GAPGroupClassFunction(chi.table, n * chi.values)
 end
 
-function Base.:^(chi::GAPGroupClassFunction, n::T) where T <: Union{fmpz, Base.Integer}
+function Base.:^(chi::GAPGroupClassFunction, n::IntegerUnion)
     return GAPGroupClassFunction(chi.table, chi.values ^ n)
 end
 

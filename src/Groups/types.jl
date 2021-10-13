@@ -52,12 +52,7 @@ import Hecke:
 
 import Base: ==, parent, show
 
-import GAP.GapObj
-
-# GAP functions returning an integer (or infinity or -infinity) in GAP
-# will in Julia return either an Int or an GapObj; the following union
-# type captures that
-const GapInt = Union{Int,GapObj}
+import GAP: GapObj, GapInt
 
 export
     AutomorphismGroup,
