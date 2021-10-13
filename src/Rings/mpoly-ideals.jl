@@ -1131,8 +1131,12 @@ end
 
 function Base.convert(::Type{Polymake.Polynomial{Polymake.Rational, Polymake.to_cxx_type(Int64)}}, x::fmpq_mpoly)
   c::Vector{Polymake.Rational} = collect(coefficients(x))
-  e::Matrix{Int64} = vcat(transpose.(exponent_vectors(x))...)
-  return Polymake.Polynomial{Polymake.Rational, Polymake.to_cxx_type(Int64)}(c, e)
+  if (isempty(c))
+    return Polymake.Polynomial{Polymake.Rational, Int64}(0, nvars(parent(x)))
+  else
+    e::Matrix{Int64} = reduce(vcat, transpose.(exponent_vectors(x)))
+    return Polymake.Polynomial{Polymake.Rational, Polymake.to_cxx_type(Int64)}(c, e)
+  end
 end
 
 function to_oscar_polynomial(Ox::FmpqMPolyRing, x::Polymake.Polynomial{Polymake.Rational, Polymake.to_cxx_type(Int64)})
