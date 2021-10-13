@@ -377,9 +377,9 @@ Base.eltype(::Type{GroupConjClass{T,S}}) where {T,S} = S
 Base.hash(x::GroupConjClass, h::UInt) = h # FIXME
 
 function Base.show(io::IO, x::GroupConjClass)
-  print(io, GAP.gap_to_julia(GAP.Globals.StringViewObj(x.repr.X)),
+  print(io, String(GAP.Globals.StringViewObj(x.repr.X)),
             " ^ ",
-            GAP.gap_to_julia(GAP.Globals.StringViewObj(x.X.X)))
+            String(GAP.Globals.StringViewObj(x.X.X)))
 end
 
 function _conjugacy_class(G, g, cc::GapObj)         # function for assignment

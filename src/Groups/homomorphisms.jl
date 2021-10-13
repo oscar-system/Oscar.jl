@@ -389,7 +389,7 @@ function automorphism_group(G::GAPGroup)
 end
 
 function Base.show(io::IO, A::AutomorphismGroup{T}) where T <: GAPGroup
-  print(io, "Aut( "* GAP.gap_to_julia(GAP.Globals.StringView(A.G.X)) *" )")
+  print(io, "Aut( "* String(GAP.Globals.StringView(A.G.X)) * " )")
 end
 
 """
