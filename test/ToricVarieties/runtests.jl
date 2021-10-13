@@ -1,22 +1,18 @@
-using Test
-using JToric
-import JToric: Polymake
-
 H5 = hirzebruch_surface( 5 )
-P2 = JToric.projective_space( 2 )
+P2 = projective_space( 2 )
 
 @testset "Hirzebruch surface" begin
-    @test JToric.isnormal( H5 ) == true
-    @test JToric.isaffine( H5 ) == false
-    @test JToric.isprojective( H5 ) == true
-    @test JToric.issmooth( H5 ) == true
-    @test JToric.iscomplete( H5 ) == true
-    @test JToric.has_torusfactor( H5 ) == false
-    @test JToric.is_orbifold( H5 ) == true
-    @test JToric.issimplicial( H5 ) == true
-    @test JToric.is_gorenstein( H5 ) == true
-    @test JToric.is_q_gorenstein( H5 ) == true
-    @test JToric.is_fano( H5 ) == false
+    @test isnormal( H5 ) == true
+    @test isaffine( H5 ) == false
+    @test isprojective( H5 ) == true
+    @test issmooth( H5 ) == true
+    @test iscomplete( H5 ) == true
+    @test has_torusfactor( H5 ) == false
+    @test is_orbifold( H5 ) == true
+    @test issimplicial( H5 ) == true
+    @test is_gorenstein( H5 ) == true
+    @test is_q_gorenstein( H5 ) == true
+    @test is_fano( H5 ) == false
     nef_cone( H5 )
     mori_cone( H5 )
     @test dim( H5 ) == 2
@@ -41,14 +37,14 @@ end
 
 @testset "Projective space" begin
     # Perform tests for projective space
-    @test JToric.isnormal( P2 ) == true
-    @test JToric.isaffine( P2 ) == false
-    @test JToric.isprojective( P2 ) == true
-    @test JToric.issmooth( P2 ) == true
-    @test JToric.iscomplete( P2 ) == true
-    @test JToric.has_torusfactor( P2 ) == false
-    @test JToric.is_orbifold( P2 ) == true
-    @test JToric.issimplicial( P2 ) == true
+    @test isnormal( P2 ) == true
+    @test isaffine( P2 ) == false
+    @test isprojective( P2 ) == true
+    @test issmooth( P2 ) == true
+    @test iscomplete( P2 ) == true
+    @test has_torusfactor( P2 ) == false
+    @test is_orbifold( P2 ) == true
+    @test issimplicial( P2 ) == true
     @test ith_betti_number( P2, 0 ) == 1
     @test ith_betti_number( P2, 1 ) == 0
     @test ith_betti_number( P2, 2 ) == 1
@@ -60,20 +56,18 @@ D=ToricDivisor( [ 0,0,0,0 ], H5 )
         
 @testset "Divisors" begin
     # Compute properties of toric divisors on Hirzebruch surface
-    @test JToric.iscartier( D ) == true
-    @test JToric.isprincipal( D ) == true
-    @test JToric.isbasepoint_free( D ) == true
-    @test JToric.isample( D ) == false
-    @test JToric.isvery_ample( D ) == false
-    @test JToric.isnef( D ) == true
-    @test JToric.isintegral( D ) == true
-    @test JToric.isq_cartier( D ) == true
+    @test iscartier( D ) == true
+    @test isprincipal( D ) == true
+    @test isbasepoint_free( D ) == true
+    @test isample( D ) == false
+    @test isvery_ample( D ) == false
+    @test isnef( D ) == true
+    @test isintegral( D ) == true
+    @test isq_cartier( D ) == true
 end
 
-using Oscar
-
 @testset "Polytopes of divisors" begin
-    p = JToric.polyhedron_of_divisor( D )
+    p = polyhedron_of_divisor( D )
     @test dim( p ) == 0
     @test ambient_dim( p ) == 2
 end
@@ -81,19 +75,19 @@ end
 @testset "Affine toric varieties" begin
     C = Oscar.positive_hull([1 1; -1 1])
     antv = AffineNormalToricVariety(C)
-    JToric.show( antv )
-    @test JToric.issmooth( antv ) == false
-    @test JToric.is_orbifold( antv ) == true
+    show( antv )
+    @test issmooth( antv ) == false
+    @test is_orbifold( antv ) == true
     @test toric_ideal_binomial_generators( antv ) == [-1 -1 2]
     ntv = NormalToricVariety(C)
-    @test JToric.isaffine( ntv ) == true
+    @test isaffine( ntv ) == true
 end
 
 @testset "Toric varieties from polyhedral fans" begin
     square = Oscar.cube(2)
     nf = Oscar.normal_fan(square)
     ntv = NormalToricVariety(nf)
-    @test JToric.iscomplete( ntv ) == true
+    @test iscomplete( ntv ) == true
     ntv2 = NormalToricVariety(square)
-    @test JToric.iscomplete( ntv2 ) == true
+    @test iscomplete( ntv2 ) == true
 end

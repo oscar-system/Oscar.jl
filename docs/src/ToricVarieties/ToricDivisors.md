@@ -1,5 +1,5 @@
 ```@meta
-CurrentModule = JToric
+CurrentModule = Oscar
 ```
 
 ```@contents
