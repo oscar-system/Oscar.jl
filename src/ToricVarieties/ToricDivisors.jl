@@ -44,7 +44,7 @@ export ToricDivisor
 ######################
 
 @doc Markdown.doc"""
-    is_cartier( d::ToricDivisor )
+    iscartier( d::ToricDivisor )
 
 Checks if the divisor `d` is Cartier.
 
@@ -225,7 +225,7 @@ export isq_cartier
 
 
 @doc Markdown.doc"""
-    polyhedron_of_divisor(td::ToricDivisor)
+    polyhedron(td::ToricDivisor)
 
 Construct the polyhedron $P_D$ of a torus invariant divisor $D:=td$ as in 4.3.2
 of [CLS11](@cite). The lattice points of this polyhedron correspond to the
@@ -244,30 +244,30 @@ A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 julia> td0 = ToricDivisor([0,0,0,0], H)
 A torus invariant divisor on a normal toric variety
 
-julia> isfeasible(polyhedron_of_divisor(td0))
+julia> isfeasible(polyhedron(td0))
 true
 
-julia> dim(polyhedron_of_divisor(td0))
+julia> dim(polyhedron(td0))
 0
 
 julia> td1 = ToricDivisor([1,0,0,0], H)
 A torus invariant divisor on a normal toric variety
 
-julia> isfeasible(polyhedron_of_divisor(td1))
+julia> isfeasible(polyhedron(td1))
 true
 
 julia> td2 = ToricDivisor([-1,0,0,0], H)
 A torus invariant divisor on a normal toric variety
 
-julia> isfeasible(polyhedron_of_divisor(td2))
+julia> isfeasible(polyhedron(td2))
 false
 ```
 """
-function polyhedron_of_divisor(td::ToricDivisor)
+function polyhedron(td::ToricDivisor)
     pmtd = pm_tdivisor(td)
     return Polyhedron(pmtd.SECTION_POLYTOPE)
 end
-export polyhedron_of_divisor
+export polyhedron
 
 
 ###############################################################################

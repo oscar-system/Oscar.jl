@@ -88,43 +88,43 @@ export iscomplete
 
 
 @doc Markdown.doc"""
-    has_torusfactor( v::AbstractNormalToricVariety )
+    hastorusfactor( v::AbstractNormalToricVariety )
 
 Checks if the normal toric variety `v` has a torus factor.
 
 # Examples
 ```jldoctest
-julia> has_torusfactor( projective_space( 2 ) )
+julia> hastorusfactor( projective_space( 2 ) )
 false
 ```
 """
-function has_torusfactor( v::AbstractNormalToricVariety )
+function hastorusfactor( v::AbstractNormalToricVariety )
     return v.polymakeNTV.FAN_DIM < v.polymakeNTV.FAN_AMBIENT_DIM
 end
-export has_torusfactor
+export hastorusfactor
 
 
 @doc Markdown.doc"""
-    is_orbifold( v::AbstractNormalToricVariety )
+    isorbifold( v::AbstractNormalToricVariety )
 
 Checks if the normal toric variety `v` is an orbifold.
 
 # Examples
 ```jldoctest
-julia> is_orbifold( projective_space( 2 ) )
+julia> isorbifold( projective_space( 2 ) )
 true
 ```
 """
-function is_orbifold( v::AbstractNormalToricVariety )
+function isorbifold( v::AbstractNormalToricVariety )
     return pm_ntv(v).SIMPLICIAL::Bool
 end
-export is_orbifold
+export isorbifold
 
 
 @doc Markdown.doc"""
     issimplicial( v::AbstractNormalToricVariety )
 
-Checks if the normal toric variety `v` is simplicial. Hence, this function works just as `is_orbifold`. It is implemented for user convenience.
+Checks if the normal toric variety `v` is simplicial. Hence, this function works just as `isorbifold`. It is implemented for user convenience.
 
 # Examples
 ```jldoctest
@@ -139,51 +139,51 @@ export issimplicial
 
 
 @doc Markdown.doc"""
-    is_gorenstein( v::AbstractNormalToricVariety )
+    isgorenstein( v::AbstractNormalToricVariety )
 
 Checks if the normal toric variety `v` is Gorenstein.
 
 # Examples
 ```jldoctest
-julia> is_gorenstein( projective_space( 2 ) )
+julia> isgorenstein( projective_space( 2 ) )
 true
 ```
 """
-function is_gorenstein( v::AbstractNormalToricVariety )
+function isgorenstein( v::AbstractNormalToricVariety )
     return pm_ntv(v).GORENSTEIN::Bool
 end
-export is_gorenstein
+export isgorenstein
 
 
 @doc Markdown.doc"""
-    is_q_gorenstein( v::AbstractNormalToricVariety )
+    isq_gorenstein( v::AbstractNormalToricVariety )
 
 Checks if the normal toric variety `v` is Q-Gorenstein.
 
 # Examples
 ```jldoctest
-julia> is_q_gorenstein( projective_space( 2 ) )
+julia> isq_gorenstein( projective_space( 2 ) )
 true
 ```
 """
-function is_q_gorenstein( v::AbstractNormalToricVariety )
+function isq_gorenstein( v::AbstractNormalToricVariety )
     return pm_ntv(v).Q_GORENSTEIN::Bool
 end
-export is_q_gorenstein
+export isq_gorenstein
 
 
 @doc Markdown.doc"""
-    is_fano( v::AbstractNormalToricVariety )
+    isfano( v::AbstractNormalToricVariety )
 
 Checks if the normal toric variety `v` is fano.
 
 # Examples
 ```jldoctest
-julia> is_fano( projective_space( 2 ) )
+julia> isfano( projective_space( 2 ) )
 true
 ```
 """
-function is_fano( v::AbstractNormalToricVariety )
+function isfano( v::AbstractNormalToricVariety )
     return pm_ntv(v).FANO::Bool
 end
-export is_fano
+export isfano

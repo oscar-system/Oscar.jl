@@ -7,12 +7,12 @@ P2 = projective_space( 2 )
     @test isprojective( H5 ) == true
     @test issmooth( H5 ) == true
     @test iscomplete( H5 ) == true
-    @test has_torusfactor( H5 ) == false
-    @test is_orbifold( H5 ) == true
+    @test hastorusfactor( H5 ) == false
+    @test isorbifold( H5 ) == true
     @test issimplicial( H5 ) == true
-    @test is_gorenstein( H5 ) == true
-    @test is_q_gorenstein( H5 ) == true
-    @test is_fano( H5 ) == false
+    @test isgorenstein( H5 ) == true
+    @test isq_gorenstein( H5 ) == true
+    @test isfano( H5 ) == false
     nef_cone( H5 )
     mori_cone( H5 )
     @test dim( H5 ) == 2
@@ -42,8 +42,8 @@ end
     @test isprojective( P2 ) == true
     @test issmooth( P2 ) == true
     @test iscomplete( P2 ) == true
-    @test has_torusfactor( P2 ) == false
-    @test is_orbifold( P2 ) == true
+    @test hastorusfactor( P2 ) == false
+    @test isorbifold( P2 ) == true
     @test issimplicial( P2 ) == true
     @test ith_betti_number( P2, 0 ) == 1
     @test ith_betti_number( P2, 1 ) == 0
@@ -67,7 +67,7 @@ D=ToricDivisor( [ 0,0,0,0 ], H5 )
 end
 
 @testset "Polytopes of divisors" begin
-    p = polyhedron_of_divisor( D )
+    p = polyhedron( D )
     @test dim( p ) == 0
     @test ambient_dim( p ) == 2
 end
@@ -76,7 +76,7 @@ end
     C = Oscar.positive_hull([1 1; -1 1])
     antv = AffineNormalToricVariety(C)
     @test issmooth( antv ) == false
-    @test is_orbifold( antv ) == true
+    @test isorbifold( antv ) == true
     # @test toric_ideal_binomial_generators( antv ) == [-1 -1 2]
     ntv = NormalToricVariety(C)
     @test isaffine( ntv ) == true

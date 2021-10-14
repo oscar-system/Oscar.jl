@@ -42,12 +42,12 @@ isaffine
 isprojective
 issmooth
 iscomplete
-has_torusfactor
-is_orbifold
+hastorusfactor
+isorbifold
 issimplicial
-is_gorenstein
-is_q_gorenstein
-is_fano
+isgorenstein
+isq_gorenstein
+isfano
 ```
 
 

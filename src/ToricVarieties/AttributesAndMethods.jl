@@ -20,7 +20,7 @@ Computes the dimension of the torus factor of the normal toric variety `v`.
 """
 function dim_of_torusfactor( v::AbstractNormalToricVariety )
 
-    if has_torusfactor( v ) == false
+    if hastorusfactor( v ) == false
         return 0
     end
     

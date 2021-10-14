@@ -34,6 +34,6 @@ isnef
 isprincipal
 isq_cartier
 isvery_ample
-polyhedron_of_divisor(td::ToricDivisor)
+polyhedron(td::ToricDivisor)
 ```
 
