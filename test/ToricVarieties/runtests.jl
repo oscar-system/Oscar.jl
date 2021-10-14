@@ -78,7 +78,7 @@ end
     show( antv )
     @test issmooth( antv ) == false
     @test is_orbifold( antv ) == true
-    @test toric_ideal_binomial_generators( antv ) == [-1 -1 2]
+    # @test toric_ideal_binomial_generators( antv ) == [-1 -1 2]
     ntv = NormalToricVariety(C)
     @test isaffine( ntv ) == true
 end
