@@ -1,9 +1,0 @@
-[
-   "index.md",
-
-   "Toric Geometry" => [
-      "ToricGeometry/intro.md",
-      "ToricGeometry/NormalToricVarieties.md",
-      "ToricGeometry/ToricDivisors.md",
-   ],
-]

@@ -1,6 +1,0 @@
-#!/bin/bash
-rm -f ../coverage.json
-rm -f ../performance.out
-rm -f ../stats
-rm -f ../stats.*
-rm -f JConvex*
