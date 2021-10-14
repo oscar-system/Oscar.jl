@@ -1734,7 +1734,7 @@ Return the `i`th generator of `F`.
 """
 function gen(F::SubQuo{T}, i::Int) where T
   R = base_ring(F)
-  v = sparse_row(R)
+  v::SRow{T} = sparse_row(R)
   v.pos = [i]
   v.values = [R(1)]
   return SubQuoElem{T}(v, F)
