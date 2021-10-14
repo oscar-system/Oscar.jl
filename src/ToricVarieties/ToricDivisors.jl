@@ -267,6 +267,7 @@ function polyhedron_of_divisor(td::ToricDivisor)
     pmtd = pm_tdivisor(td)
     return Polyhedron(pmtd.SECTION_POLYTOPE)
 end
+export polyhedron_of_divisor
 
 
 ###############################################################################
