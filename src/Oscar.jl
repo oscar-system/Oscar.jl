@@ -33,7 +33,8 @@ import Singular
 import Polymake
 import GAP
 import Pkg
-using Markdown, Test, Requires
+using Markdown
+using Test
 # to allow access to the cornerstones! Otherwise, not even import or using from the
 # user level will work as none of them will have been "added" by the user.
 # possibly all should add a doc string to the module?
