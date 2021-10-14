@@ -136,6 +136,12 @@
      "ToricVarieties/ToricDivisors.md",
   ],
 
+  "General" => [
+     "General/styleguide.md",
+     "General/other.md",
+     "General/faq.md",
+  ],
+
   "References" => "references.md",
   "Index" => "manualindex.md",
 ]
