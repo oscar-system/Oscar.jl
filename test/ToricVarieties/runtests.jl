@@ -75,7 +75,6 @@ end
 @testset "Affine toric varieties" begin
     C = Oscar.positive_hull([1 1; -1 1])
     antv = AffineNormalToricVariety(C)
-    show( antv )
     @test issmooth( antv ) == false
     @test is_orbifold( antv ) == true
     # @test toric_ideal_binomial_generators( antv ) == [-1 -1 2]
