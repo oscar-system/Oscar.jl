@@ -375,6 +375,3 @@ stabilizer(G::MatrixGroup{ET,MT}, pnt::AbstractAlgebra.Generic.FreeModuleElem{ET
 stabilizer(G::MatrixGroup{ET,MT}, pnt::Vector{AbstractAlgebra.Generic.FreeModuleElem{ET}}) where {ET,MT} = stabilizer(G, pnt, on_tuples)
 
 stabilizer(G::MatrixGroup{ET,MT}, pnt::Set{AbstractAlgebra.Generic.FreeModuleElem{ET}}) where {ET,MT} = stabilizer(G, pnt, on_sets)
-
-#TODO: remove this as soon as AbstractAlgebra provides the function in question
-hash(v::AbstractAlgebra.Generic.FreeModuleElem, u::UInt) = hash(v.v, u)
