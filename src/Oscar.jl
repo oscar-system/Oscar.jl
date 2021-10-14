@@ -220,6 +220,8 @@ end
 
 function weights end
 
+function iseffective end
+
 include("Rings/Hecke.jl") #does all the importing from Hecke - to define names
 
 include("printing.jl")

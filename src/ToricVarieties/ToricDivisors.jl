@@ -23,7 +23,7 @@ Construct the torus invariant divisor on the normal toric variety `v` as linear 
 
 # Examples
 ```jldoctest
-julia> show( ToricDivisor( [1,1,2], projective_space( 2 ) ) )
+julia> show( ToricDivisor( [1,1,2], toric_projective_space( 2 ) ) )
 A torus invariant divisor on a normal toric variety
 ```
 """

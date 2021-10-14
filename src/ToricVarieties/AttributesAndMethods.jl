@@ -50,7 +50,7 @@ Computes the nef cone of the normal toric variety `v`.
 
 # Examples
 ```jldoctest
-julia> pp = projective_space(2)
+julia> pp = toric_projective_space(2)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
 julia> nef = nef_cone(pp)
@@ -71,7 +71,7 @@ Computes the mori cone of the normal toric variety `v`.
 
 # Examples
 ```jldoctest
-julia> pp = projective_space(2)
+julia> pp = toric_projective_space(2)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
 julia> mori = mori_cone(pp)

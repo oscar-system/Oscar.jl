@@ -151,22 +151,22 @@ export NormalToricVariety
 ######################
 
 @doc Markdown.doc"""
-    projective_space( d::Int )
+    toric_projective_space( d::Int )
 
 Construct the projective space of dimension `d`.
 
 # Examples
 ```jldoctest
-julia> projective_space( 2 )
+julia> toric_projective_space( 2 )
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 ```
 """
-function projective_space( d::Int )
+function toric_projective_space( d::Int )
     f = normal_fan(Oscar.simplex(d))
     pm_ntv = Polymake.fulton.NormalToricVariety(Oscar.pm_fan(f))
     return NormalToricVariety(pm_ntv)
 end
-export projective_space
+export toric_projective_space
 
 
 @doc Markdown.doc"""
@@ -205,7 +205,7 @@ function del_pezzo( b::Int )
         return 0
     end
     if b == 0 
-        return projective_space( 2 )
+        return toric_projective_space( 2 )
     end
     if b == 1
         Rays = [ 1 0; 0 1; -1 0; -1 -1 ]

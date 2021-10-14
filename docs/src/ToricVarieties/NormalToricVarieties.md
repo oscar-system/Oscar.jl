@@ -28,7 +28,7 @@ NormalToricVariety(C::Cone)
 NormalToricVariety(PF::PolyhedralFan)
 NormalToricVariety(P::Polyhedron)
 NormalToricVariety( r::Matrix{Int}, c::Vector{Vector{Int}} )
-projective_space
+toric_projective_space
 hirzebruch_surface
 del_pezzo
 ```
@@ -59,5 +59,4 @@ dim_of_torusfactor
 picard_group
 nef_cone
 mori_cone
-toric_ideal_binomial_generators(antv::AffineNormalToricVariety)
 ```

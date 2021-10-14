@@ -1,5 +1,5 @@
 H5 = hirzebruch_surface( 5 )
-P2 = projective_space( 2 )
+P2 = toric_projective_space( 2 )
 
 @testset "Hirzebruch surface" begin
     @test isnormal( H5 ) == true

@@ -9,7 +9,7 @@ Checks if the normal toric variety `v` is normal. (This function is somewhat tau
 
 # Examples
 ```jldoctest
-julia> isnormal(projective_space( 2 ))
+julia> isnormal(toric_projective_space( 2 ))
 true
 ```
 """
@@ -26,7 +26,7 @@ Checks if the normal toric variety `v` is affine.
 
 # Examples
 ```jldoctest
-julia> isaffine( projective_space( 2 ) )
+julia> isaffine( toric_projective_space( 2 ) )
 false
 ```
 """
@@ -43,7 +43,7 @@ Checks if the normal toric variety `v` is projective, i.e. if the fan of `v` is 
 
 # Examples
 ```jldoctest
-julia> isprojective( projective_space( 2 ) )
+julia> isprojective( toric_projective_space( 2 ) )
 true
 ```
 """
@@ -60,7 +60,7 @@ Checks if the normal toric variety `v` is smooth.
 
 # Examples
 ```jldoctest
-julia> issmooth( projective_space( 2 ) )
+julia> issmooth( toric_projective_space( 2 ) )
 true
 ```
 """
@@ -77,7 +77,7 @@ Checks if the normal toric variety `v` is complete.
 
 # Examples
 ```jldoctest
-julia> iscomplete( projective_space( 2 ) )
+julia> iscomplete( toric_projective_space( 2 ) )
 true
 ```
 """
@@ -94,7 +94,7 @@ Checks if the normal toric variety `v` has a torus factor.
 
 # Examples
 ```jldoctest
-julia> hastorusfactor( projective_space( 2 ) )
+julia> hastorusfactor( toric_projective_space( 2 ) )
 false
 ```
 """
@@ -111,7 +111,7 @@ Checks if the normal toric variety `v` is an orbifold.
 
 # Examples
 ```jldoctest
-julia> isorbifold( projective_space( 2 ) )
+julia> isorbifold( toric_projective_space( 2 ) )
 true
 ```
 """
@@ -128,7 +128,7 @@ Checks if the normal toric variety `v` is simplicial. Hence, this function works
 
 # Examples
 ```jldoctest
-julia> issimplicial( projective_space( 2 ) )
+julia> issimplicial( toric_projective_space( 2 ) )
 true
 ```
 """
@@ -145,7 +145,7 @@ Checks if the normal toric variety `v` is Gorenstein.
 
 # Examples
 ```jldoctest
-julia> isgorenstein( projective_space( 2 ) )
+julia> isgorenstein( toric_projective_space( 2 ) )
 true
 ```
 """
@@ -162,7 +162,7 @@ Checks if the normal toric variety `v` is Q-Gorenstein.
 
 # Examples
 ```jldoctest
-julia> isq_gorenstein( projective_space( 2 ) )
+julia> isq_gorenstein( toric_projective_space( 2 ) )
 true
 ```
 """
@@ -179,7 +179,7 @@ Checks if the normal toric variety `v` is fano.
 
 # Examples
 ```jldoctest
-julia> isfano( projective_space( 2 ) )
+julia> isfano( toric_projective_space( 2 ) )
 true
 ```
 """
