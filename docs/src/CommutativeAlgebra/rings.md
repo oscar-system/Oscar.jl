@@ -24,9 +24,9 @@ The standard constructor below allows one to build multivariate polynomial rings
 PolynomialRing(C::Ring, v::Vector{String}; ordering=:lex)
 ```
 
-Its return value is a tuple, say `R, vars`, consisting of a polynomial ring `R` with coefficient ring `C` and an array `vars` of generators (variables) which print according to the strings in the supplied vector `v` .
-The input `ordering=:lex` refers to the lexicograpical monomial ordering. This is the default monomial ordering in OSCAR for storing and printing polynomials. Other choices here  are `:deglex` and `:degrevlex`.
-Gröbner bases, however, can be computed with respect to any monomial ordering. See the section on Gröbner bases.
+Its return value is a tuple, say `R, vars`, consisting of a polynomial ring `R` with coefficient ring `C` and a vector `vars` of generators (variables) which print according to the strings in the vector `v` .
+The input `ordering=:lex` refers to the lexicograpical monomial ordering which specifies the default way of storing and displaying polynomials in OSCAR  (terms are sorted in descending
+order). The other possible choices are `:deglex` and `:degrevlex`. Gröbner bases, however, can be computed with respect to any monomial ordering. See the section on Gröbner bases.
 
 !!! note
     The abstract type of multivariate polynomial rings is `MPolyRing`, while that of
@@ -48,7 +48,7 @@ typeof(x)
 
 ```@repl oscar
 R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-f = x^2+y*z
+f = x^2+y^2*z
 typeof(f)
 ```
 
