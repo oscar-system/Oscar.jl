@@ -119,7 +119,7 @@ function weights(a::GenOrdering)
   if a.ord == :lex || a.ord == Symbol("Singular(lp)")
     return identity_matrix(ZZ, length(a.vars))
   end
-  if a.ord == :deglex
+  if a.ord == :deglex || a.ord == Symbol("Singular(Dp)")
     return [matrix(ZZ, 1, length(a.vars), ones(fmpz, length(a.vars)));
             identity_matrix(ZZ, length(a.vars)-1) zero_matrix(ZZ, length(a.vars)-1, 1)]
   end
@@ -127,7 +127,40 @@ function weights(a::GenOrdering)
     return [matrix(ZZ, 1, length(a.vars), ones(fmpz, length(a.vars))) ;
             zero_matrix(ZZ, length(a.vars)-1, 1) anti_diagonal(ZZ, length(a.vars)-1)]
   end              
-  if a.ord == Symbol("Singular(ls)")
+  if a.ord == :revlex || a.ord == Symbol("Singular(rp)")
+    return anti_diagonal(ZZ, length(a.vars))
+  end              
+  if a.ord == :wdeglex || a.ord == Symbol("Singular(Wp)")
+    return [matrix(ZZ, 1, length(a.vars), a.w);
+            zero_matrix(ZZ, length(a.vars)-1, 1) identity_matrix(ZZ, length(a.vars)-1)]
+  end
+  if a.ord == :wdegrevlex || a.ord == Symbol("Singular(wp)")
+    return [matrix(ZZ, 1, length(a.vars), a.w);
+            zero_matrix(ZZ, length(a.vars)-1, 1) anti_diagonal(ZZ, length(a.vars)-1)]
+  end              
+  if a.ord == :neglex || a.ord == Symbol("Singular(ls)")
+   return -identity_matrix(ZZ, length(a.vars))
+ end
+ if a.ord == :negdeglex || a.ord == Symbol("Singular(Ds)")
+   return [-matrix(ZZ, 1, length(a.vars), ones(fmpz, length(a.vars)));
+           -identity_matrix(ZZ, length(a.vars)-1) zero_matrix(ZZ, length(a.vars)-1, 1)]
+ end
+ if a.ord == :negdegrevlex || a.ord == Symbol("Singular(ds)")
+   return [-matrix(ZZ, 1, length(a.vars), ones(fmpz, length(a.vars))) ;
+           zero_matrix(ZZ, length(a.vars)-1, 1) -anti_diagonal(ZZ, length(a.vars)-1)]
+ end              
+ if a.ord == :negrevlex || a.ord == Symbol("Singular(rs)")
+   return -anti_diagonal(ZZ, length(a.vars))
+ end              
+ if a.ord == :negwdeglex || a.ord == Symbol("Singular(Ws)")
+   return [-matrix(ZZ, 1, length(a.vars), a.w);
+           zero_matrix(ZZ, length(a.vars)-1, 1) -identity_matrix(ZZ, length(a.vars)-1)]
+ end
+ if a.ord == :negwdegrevlex || a.ord == Symbol("Singular(ws)")
+   return [-matrix(ZZ, 1, length(a.vars), a.w);
+           zero_matrix(ZZ, length(a.vars)-1, 1) -anti_diagonal(ZZ, length(a.vars)-1)]
+ end              
+ if a.ord == Symbol("Singular(ls)")
     return -identity_matrix(ZZ, length(a.vars))
   end
   if a.ord == Symbol("Singular(ds)")
