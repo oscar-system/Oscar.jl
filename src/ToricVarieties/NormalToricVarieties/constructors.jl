@@ -202,7 +202,6 @@ A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 function del_pezzo( b::Int )
     if b < 0
         throw(ArgumentError("Number of blowups for construction of delPezzo surfaces must be non-negative."))
-        return 0
     end
     if b == 0 
         return toric_projective_space( 2 )
@@ -224,7 +223,6 @@ function del_pezzo( b::Int )
     end
     if b > 3
         throw(ArgumentError("delPezzo surfaces with more than 3 blowups are realized as subvarieties of toric ambient spaces. This is currently not supported."))
-        return 0
     end
 end
 export del_pezzo
