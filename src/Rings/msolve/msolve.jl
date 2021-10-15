@@ -134,64 +134,6 @@ function solve_rational_parametrization(param::Array{Any,1}, precision::Int=67)
     return sols
 end
 
-# function msolve_file_interface(
-#         I::Singular.sideal;           # input generators
-#         hts::Int=17,                  # hash table size, default 2^17
-#         nthrds::Int=1,                # number of threads
-#         maxpairs::Int=0,              # number of pairs maximally chosen
-#                                       # in symbolic preprocessing
-#         resetht::Int=0,               # resetting global hash table
-#         laopt::Int=2,                 # linear algebra option
-#         input_file::String="/tmp/in.ms", # msolve input file
-#         output_file::String="/tmp/out.ms", # msolve output file
-#         infolevel::Int=0              # info level for print outs
-#         )
-#     if Sys.islinux()
-#         R     = I.base_ring
-#         # skip zero generators in ideal
-#         ptr = Singular.libSingular.id_Copy(I.ptr, R.ptr)
-#         J   = Singular.Ideal(R, ptr)
-#         Singular.libSingular.idSkipZeroes(J.ptr)
-#         # get number of variables
-#         nvars   = Singular.nvars(R)
-#         ngens   = Singular.ngens(J)
-#         char    = Singular.characteristic(R)
-#         vars    = Singular.gens(R)
-#
-#         if true
-#             println("At the moment the solver is only working on x86-64 Linux on CPUs supporting AVX2")
-#             global print_msolve_warning = 0
-#         end
-#
-#             # convert Singular ideal to flattened arrays of ints
-#             if 0 == char
-#             lens, cfs, exps   = convert_qq_singular_ideal_to_array(J, nvars, ngens)
-#             elseif Nemo.isprime(Nemo.FlintZZ(char))
-#             lens, cfs, exps   = convert_ff_singular_ideal_to_array(J, nvars, ngens)
-#             else
-#                 error("At the moment GroebnerBasis only supports finite fields and the rationals.")
-#             end
-#         dir = joinpath(dirname(pathof(GroebnerBasis)),"../deps/")
-#         lib = Libdl.dlopen("$dir/libmsolve.so.0.2.0")
-#         #= lib = Libdl.dlopen(libgb) =#
-#         sym = Libdl.dlsym(lib, :f4_julia)
-#         # generate msolve input file
-#         io  = open("/tmp/input.ms", "w")
-#         write(io, string(vars[1]))
-#         [write(io, ",",string(vars[i])) for i in 2:nvars]
-#         write(io, "\n")
-#         write(io, string(char),"\n")
-#         [write(io, string(J[i]),",\n") for i in 1:ngens]
-#         write(io, string(J[ngens]))
-#         close(io)
-#         dir = joinpath(dirname(pathof(GroebnerBasis)),"../deps/")
-#         cmd = `$dir/msolve-binary -v$infolevel -l$laopt -m$maxpairs -s$hts -f input.ms -o t.res`
-#         run(cmd)
-#     else
-#         error("msolve supports at the moment only x86 Linux with AVX2 support.")
-#     end
-# end
-
 """
     msolve(I[, initial_hts::Int=17, nr_thrds::Int=1, max_nr_pairs::Int=0,
             la_option::Int=1, infolevel::Int=0, input_file::String="/tmp/in.ms",
