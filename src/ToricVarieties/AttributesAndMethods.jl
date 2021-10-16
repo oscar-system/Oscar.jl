@@ -413,40 +413,6 @@ end
 export affine_open_covering
 
 
-############################
-# Toric ideal
-############################
-
-
-# @doc Markdown.doc"""
-#     toric_ideal_binomial_generators(antv::AffineNormalToricVariety)
-# 
-# Get the exponent vectors corresponding to the generators of the toric ideal
-# associated to the affine normal toric variety `antv`.
-# 
-# # Examples
-# Take the cyclic quotient singularity corresponding to the pair of integers
-# `(2,5)`.
-# ```jldoctest
-# julia> C = positive_hull([-2 5 1 0])
-# A polyhedral cone in ambient dimension 2
-# 
-# julia> antv = AffineNormalToricVariety(C)
-# A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
-# 
-# julia> toric_ideal_binomial_generators(antv)
-# pm::Matrix<long>
-# -1 -1 2 1
-# -1 0 3 -1
-# 0 -1 -1 2
-# ```
-# """
-# function toric_ideal_binomial_generators(antv::AffineNormalToricVariety)
-#     pmntv = pm_ntv(antv)
-#     result = pmntv.TORIC_IDEAL.BINOMIAL_GENERATORS
-#     return result
-# end
-# export toric_ideal_binomial_generators
 
 
 ############################
@@ -537,3 +503,67 @@ function isprojective_space(v::AbstractNormalToricVariety)
     return irrelevant_ideal(v) == ideal(gens(cox_ring(v)))
 end
 export isprojective_space
+
+
+@doc Markdown.doc"""
+    toric_ideal_binomial_generators(antv::AffineNormalToricVariety)
+
+Get the exponent vectors corresponding to the generators of the toric ideal
+associated to the affine normal toric variety `antv`.
+
+# Examples
+Take the cyclic quotient singularity corresponding to the pair of integers
+`(2,5)`.
+```jldoctest
+julia> C = Oscar.positive_hull([-2 5; 1 0])
+A polyhedral cone in ambient dimension 2
+
+julia> antv = AffineNormalToricVariety(C)
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+
+julia> toric_ideal_binomial_generators(antv)
+pm::Matrix<long>
+-1 -1 2 1
+-1 0 3 -1
+0 -1 -1 2
+```
+"""
+function toric_ideal_binomial_generators(antv::AffineNormalToricVariety)
+    pmntv = pm_ntv(antv)
+    result = pmntv.TORIC_IDEAL.BINOMIAL_GENERATORS
+    return result
+end
+export toric_ideal_binomial_generators
+toric_ideal_binomial_generators(ntv::NormalToricVariety) = toric_ideal_binomial_generators(AffineNormalToricVariety(ntv))
+
+
+
+@doc Markdown.doc"""
+    toric_ideal(antv::AffineNormalToricVariety)
+
+Return the toric ideal defining the affine normal toric variety.
+"""
+function toric_ideal(antv::AffineNormalToricVariety)
+    binoms = toric_ideal_binomial_generators(antv)
+    nvars = ncols(binoms)
+    R, x = PolynomialRing(QQ, "x" => 1:nvars)
+    terms = Vector{fmpq_mpoly}(undef, nrows(binoms))
+    for i in 1:nrows(binoms)
+        binom = binoms[i, :]
+        xpos = one(R)
+        xneg = one(R)
+        for j in 1:nvars
+            if binom[j] < 0
+                xneg = xneg * x[j]^(-binom[j])
+            elseif binom[j] > 0
+                xpos = xpos * x[j]^(binom[j])
+            end
+        end
+        terms[i] = xpos-xneg
+    end
+    ideal(terms)
+end
+export toric_ideal
+toric_ideal(ntv::NormalToricVariety) = toric_ideal(AffineNormalToricVariety(ntv))
+
+
