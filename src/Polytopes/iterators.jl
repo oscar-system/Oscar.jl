@@ -119,18 +119,34 @@ Base.:(==)(x::Hyperplane, y::Hyperplane) = x.a == y.a && x.b == y.b
 
 struct PolyhedronOrConeIterator{T} <: AbstractVector{T}
     vertices::Polymake.Matrix{Polymake.Rational}
-    faces::Polymake.Array{Polymake.Set{Polymake.to_cxx_type(Int64)}}
+    # faces::Polymake.Array{Polymake.Set{Polymake.to_cxx_type(Int64)}}
+    faces::IncidenceMatrix
     lineality::Polymake.Matrix{Polymake.Rational}
+    
+    function PolyhedronOrConeIterator{T}(v::Union{Oscar.MatElem,AbstractMatrix}, f::IncidenceMatrix, l::Union{Oscar.MatElem,AbstractMatrix}) where T<:Union{Polyhedron, Cone}
+        res = new{T}(matrix_for_polymake(v), f, matrix_for_polymake(l))
+        return res
+    end
+    
+    function PolyhedronOrConeIterator{T}(v::Union{Oscar.MatElem,AbstractMatrix}, f::AbstractVector{<:AbstractVector{<:Base.Integer}}, l::Union{Oscar.MatElem,AbstractMatrix}) where T<:Union{Polyhedron, Cone}
+        res = new{T}(matrix_for_polymake(v), IncidenceMatrix(f), matrix_for_polymake(l))
+        return res
+    end
+    
+    function PolyhedronOrConeIterator{T}(v::Union{Oscar.MatElem,AbstractMatrix}, f::AbstractVector{<:AbstractSet{<:Base.Integer}}, l::Union{Oscar.MatElem,AbstractMatrix}) where T<:Union{Polyhedron, Cone}
+        res = new{T}(matrix_for_polymake(v), IncidenceMatrix([collect(f[i]) for i in 1:length(f)]), matrix_for_polymake(l))
+        return res
+    end
 end
 
 function Base.getindex(iter::PolyhedronOrConeIterator{Polyhedron}, i::Base.Integer)
-    @boundscheck checkbounds(iter.faces, i)
-    return Polyhedron(Polymake.polytope.Polytope(VERTICES=iter.vertices[[f for f in iter.faces[i]],:],LINEALITY_SPACE = iter.lineality))
+    @boundscheck checkbounds(iter.faces, i, 1)
+    return Polyhedron(Polymake.polytope.Polytope(VERTICES=iter.vertices[collect(Polymake.row(iter.faces, i)),:],LINEALITY_SPACE = iter.lineality))
 end
 
 function Base.getindex(iter::PolyhedronOrConeIterator{Cone}, i::Base.Integer)
-    @boundscheck checkbounds(iter.faces, i)
-    return Cone(Polymake.polytope.Cone(RAYS=iter.vertices[[f for f in iter.faces[i]],:],LINEALITY_SPACE = iter.lineality))
+    @boundscheck checkbounds(iter.faces, i, 1)
+    return Cone(Polymake.polytope.Cone(RAYS=iter.vertices[collect(Polymake.row(iter.faces, i)),:],LINEALITY_SPACE = iter.lineality))
 end
 
 function Base.setindex!(iter::PolyhedronOrConeIterator, val::Polymake.Set{Polymake.to_cxx_type(Int64)}, i::Base.Integer)
@@ -144,7 +160,7 @@ end
 
 Base.firstindex(::PolyhedronOrConeIterator) = 1
 Base.lastindex(iter::PolyhedronOrConeIterator) = length(iter)
-Base.size(iter::PolyhedronOrConeIterator) = (length(iter.faces),)
+Base.size(iter::PolyhedronOrConeIterator) = (size(iter.faces, 1),)
 
 # TODO: function incidence_matrix(::PolyhedronOrConeIterator) after merge of combine-incidencematrix
 
