@@ -221,6 +221,8 @@ end
 
 function weights end
 
+function iseffective end
+
 include("Rings/Hecke.jl") #does all the importing from Hecke - to define names
 
 include("printing.jl")
@@ -277,6 +279,8 @@ include("Rings/slpolys.jl")
 
 include("../experimental/Experimental.jl")
 include("Rings/binomial_ideals.jl")
+
+include("ToricVarieties/JToric.jl")
 
 if is_dev
 #  include("../examples/ModStdNF.jl")

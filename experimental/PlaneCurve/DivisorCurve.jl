@@ -1,3 +1,4 @@
+import Oscar: iseffective
 export AffineCurveDivisor, ProjCurveDivisor, iseffective, multiplicity,
        divisor, curve, degree, divisor_ideals, global_sections,
        dimension_global_sections, islinearly_equivalent, isprincipal,
