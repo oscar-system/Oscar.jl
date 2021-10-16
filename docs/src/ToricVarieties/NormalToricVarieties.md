@@ -24,6 +24,7 @@ the affine and non-affine case:
 
 ```@docs
 AffineNormalToricVariety(C::Cone)
+CyclicQuotientSingularity(n::Int64, q::Int64)
 NormalToricVariety(C::Cone)
 NormalToricVariety(PF::PolyhedralFan)
 NormalToricVariety(P::Polyhedron)
@@ -110,4 +111,11 @@ Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety)
 
 ```@docs
 isprojective_space(v::AbstractNormalToricVariety)
+```
+
+
+## Cyclic Quotient Singularities
+```@docs
+continued_fraction(cqs::CyclicQuotientSingularity)
+dual_continued_fraction(cqs::CyclicQuotientSingularity)
 ```
