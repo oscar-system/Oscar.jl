@@ -27,7 +27,12 @@
         @test dim.(maximal_cones(F1)) == [2,2]
         @test nmaximal_cones(F1) == 2
         @test lineality_space(F2).m == L
-        @test length(collect(rays(F0))) == 3
+        @test cones(Cone, F2, 2) isa PolyhedronOrConeIterator{Cone}
+        @test size(cones(Cone, F2, 2)) == (2,)
+        @test cones(Cone, F2, 2).lineality == [0 1 0]
+        @test cones(F2, 2) isa PolyhedronOrConeIterator{Cone}
+        @test isnothing(cones(F2, 1))
+        @test length(rays(F0)) == 3
 
         II = maximal_cones_as_incidence_matrix(NFsquare)
         NF0 = PolyhedralFan(rays(NFsquare).m, II)

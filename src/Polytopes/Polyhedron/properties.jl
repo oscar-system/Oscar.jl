@@ -30,7 +30,7 @@ julia> F = faces(Polyhedron, cube(3), 2)
 ```
 """
 function faces(as::Type{T}, P::Polyhedron, face_dim::Int) where T<:Polyhedron
-    face_dim < 0 && return nothing
+    face_dim - length(lineality_space(P)) < 0 && return nothing
     pfaces = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(pm_polytope(P),face_dim-length(lineality_space(P))))
     nfaces = length(pfaces)
     rfaces = Vector{Int64}()
