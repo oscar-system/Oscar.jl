@@ -115,7 +115,17 @@ isprojective_space(v::AbstractNormalToricVariety)
 
 
 ## Cyclic Quotient Singularities
+
+Cyclic quotient singularities are quotients of $\mathbb{C}^2$ by the action of
+$\mathbb{Z}/n\mathbb{Z}$ acting via 
+$$\left(\begin{array}{cc}\xi & 0\\0 & \xi^q\end{array}\right)$$,
+where $\xi$ is a $n$-th root of unity, and $0<q<n$ are two coprime integers.
+
+For the notation we rely on [Chr91](@cite) and [Ste91](@cite).
+
 ```@docs
 continued_fraction(cqs::CyclicQuotientSingularity)
+continued_fraction_2_rational(v::Vector{Int64})
 dual_continued_fraction(cqs::CyclicQuotientSingularity)
+rational_2_continued_fraction(r::Rational)
 ```
