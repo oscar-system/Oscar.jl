@@ -48,11 +48,11 @@ end
     continued_fraction(cqs::CyclicQuotientSingularity)
 
 Return the continued fraction associated with the cyclic quotient singularity,
-i.e. the continued fraction whose evaluation is $n/q$.
+i.e. the continued fraction corresponding to $n/q$.
 
-The evaluation of a continued fraction $[c_1,c_2,/ldots,c_n]$ is
-$e([c_1,c_2,/ldots])\ =\ c_1-\frac{1}{e([c_2,\ldots,c_n])}$
-where $e([c_n]) = c_n$.
+The rational number corresponding to a continued fraction
+$[c_1,c_2,\ldots,c_n]$ is $r([c_1,c_2,\ldots,c_n])\ =\
+c_1-\frac{1}{r([c_2,\ldots,c_n])}$ where $r([c_n]) = c_n$.
 
 # Examples
 ```jldoctest
@@ -77,11 +77,11 @@ export continued_fraction
     dual_continued_fraction(cqs::CyclicQuotientSingularity)
 
 Return the dual continued fraction associated with the cyclic quotient
-singularity, i.e. the continued fraction whose evaluation is $q/(n-q)$.
+singularity, i.e. the continued fraction corresponding to $q/(n-q)$.
 
-The evaluation of a continued fraction $[c_1,c_2,/ldots,c_n]$ is
-$e([c_1,c_2,/ldots])\ =\ c_1-\frac{1}{e([c_2,\ldots,c_n])}$
-where $e([c_n]) = c_n$.
+The rational number corresponding to a continued fraction
+$[c_1,c_2,\ldots,c_n]$ is $r([c_1,c_2,\ldots,c_n])\ =\
+c_1-\frac{1}{r([c_2,\ldots,c_n])}$ where $r([c_n]) = c_n$.
 
 # Examples
 ```jldoctest
@@ -99,3 +99,72 @@ julia> edcf = dcf[1] - Rational(1,dcf[2])
 """
 dual_continued_fraction(cqs::CyclicQuotientSingularity) = Vector{Int64}(pm_ntv(cqs).DUAL_CONTINUED_FRACTION)
 export dual_continued_fraction
+
+
+@doc Markdown.doc"""
+    continued_fraction_2_rational(v::Vector{Int64})
+
+Return the rational number corresponding to a continued fraction given as a
+vector of (positive) integers.
+
+The rational number corresponding to a continued fraction
+$[c_1,c_2,\ldots,c_n]$ is $r([c_1,c_2,\ldots,c_n])\ =\
+c_1-\frac{1}{r([c_2,\ldots,c_n])}$ where $r([c_n]) = c_n$.
+
+# Examples
+```jldoctest
+julia> cqs = CyclicQuotientSingularity(7,5)
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+
+julia> v = continued_fraction(cqs)
+3-element Vector{Int64}:
+ 2
+ 2
+ 3
+
+julia> continued_fraction_2_rational(v)
+7//5
+```
+"""
+function continued_fraction_2_rational(v::Vector{Int64})
+    return Rational(Polymake.fulton.cf2rational(v))
+end
+export continued_fraction_2_rational
+
+
+@doc Markdown.doc"""
+    rational_2_continued_fraction(r::Rational)
+
+Encode a (positive) rational number as a continued fraction, i.e. find the
+continued fraction corresponding to the given rational number.
+
+The rational number corresponding to a continued fraction
+$[c_1,c_2,\ldots,c_n]$ is $r([c_1,c_2,\ldots,c_n])\ =\
+c_1-\frac{1}{r([c_2,\ldots,c_n])}$ where $r([c_n]) = c_n$.
+
+# Examples
+```jldoctest
+julia> r = Rational(2464144958, 145732115)
+2464144958//145732115
+
+julia> cf = rational_2_continued_fraction(r)
+7-element Vector{Int64}:
+ 17
+ 11
+ 23
+ 46
+ 18
+ 19
+ 37
+
+julia> continued_fraction_2_rational(cf)
+2464144958//145732115
+
+julia> r == continued_fraction_2_rational(cf)
+true
+```
+"""
+function rational_2_continued_fraction(r::Rational)
+    return Vector{Int64}(Polymake.fulton.rational2cf(r))
+end
+export rational_2_continued_fraction
