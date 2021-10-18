@@ -24,6 +24,7 @@ export
     has_edge,
     has_vertex,
     inneighbors,
+    load_graph,
     ne,
     neighbors,
     nv,
@@ -31,6 +32,7 @@ export
     rem_edge!,
     rem_vertex!,
     reverse,
+    save_graph,
     src
 
 ################################################################################
@@ -653,6 +655,40 @@ julia> collect(edges(g))
 function complete_bipartite_graph(n::Int64, m::Int64)
     bigobj = Polymake.graph.complete_bipartite(n, m)
     return Graph{Undirected}(bigobj.ADJACENCY)
+end
+
+
+################################################################################
+################################################################################
+##  Serialization
+################################################################################
+################################################################################
+@doc Markdown.doc"""
+    save_graph(g::Graph{T}, filename::String) where {T <: Union{Directed, Undirected}}
+
+Save a graph to a file in JSON format.
+"""
+function save_graph(g::Graph{T}, filename::String) where {T <: Union{Directed, Undirected}}
+    smallobject = g.pm_graph
+    Polymake.save(smallobject, filename)
+end
+
+
+@doc Markdown.doc"""
+    load_graph(filename::String)
+
+Load a graph from a file in JSON format.
+"""
+function load_graph(filename::String)
+    smallobj = Polymake.load(filename)
+    t = typeof(smallobj)
+    if t == Polymake.GraphAllocated{Polymake.Undirected}
+        return Graph{Undirected}(smallobj)
+    elseif t == Polymake.GraphAllocated{Polymake.Directed}
+        return Graph{Directed}(smallobj)
+    else
+        error("The object loaded was not a graph.")
+    end
 end
 
 
