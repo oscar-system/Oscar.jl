@@ -452,7 +452,7 @@ function groebner_assure(I::MPolyIdeal, ord::MonomialOrdering; complete_reductio
   end
 end
 
-function groebner_basis(B::BiPolyArray; ord::MonomialOrdering, complete_reduction::Bool = false)
+function groebner_basis(B::BiPolyArray, ord::MonomialOrdering; complete_reduction::Bool = false)
    singular_assure(B, ord)
    R = B.Sx
    !Oscar.Singular.has_global_ordering(R) && error("The ordering has to be a global ordering.")
@@ -461,7 +461,7 @@ function groebner_basis(B::BiPolyArray; ord::MonomialOrdering, complete_reductio
    return BiPolyArray(B.Ox, i)
 end
 
-function groebner_basis(I::MPolyIdeal; ord::MonomialOrdering, complete_reduction::Bool=false)
+function groebner_basis(I::MPolyIdeal, ord::MonomialOrdering; complete_reduction::Bool=false)
   return collect(groebner_basis(I.gens, ord))
 end
 
