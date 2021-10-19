@@ -105,7 +105,7 @@ $x^\alpha > x^\beta \;  \Leftrightarrow \; \text{wdeg}(x^\alpha) > \text{wdeg}(x
 
 ##### The Negative Lexicographical Ordering
 
-The *lnegative exicographical ordering* `neglex` is defined by setting
+The *negative lexicographical ordering* `neglex` is defined by setting
 
 $x^\alpha > x^\beta \;  \Leftrightarrow \;\exists \; 1 \leq i \leq n: \alpha_1 = \beta_1, \dots, \alpha_{i-1} = \beta_{i-1}, \alpha_i < \beta_i.$
 
@@ -223,7 +223,7 @@ element of a corresponding strong Gröbner basis.
 
 ```@repl oscar
 R, (x,y) = PolynomialRing(ZZ, ["x","y"])
-I = ideal(R, [2x,3x, 4y])
+I = ideal(R, [2x,3x,4y])
 H = groebner_basis(I)
 ```
 ### Syzygies
