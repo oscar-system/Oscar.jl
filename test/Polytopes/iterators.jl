@@ -87,7 +87,7 @@
                     @test pci[i] == T(V[[f for f in F[i]], :], L)
                 end
             end
-            # test incidence_matrix(iter)
+            @test incidence_matrix(pci) == IncidenceMatrix([1 1 1 0; 1 1 0 1; 1 0 1 1; 0 1 1 1])
         end
     end
 

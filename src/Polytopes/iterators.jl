@@ -162,7 +162,7 @@ Base.firstindex(::PolyhedronOrConeIterator) = 1
 Base.lastindex(iter::PolyhedronOrConeIterator) = length(iter)
 Base.size(iter::PolyhedronOrConeIterator) = (size(iter.faces, 1),)
 
-# TODO: function incidence_matrix(::PolyhedronOrConeIterator) after merge of combine-incidencematrix
+incidence_matrix(iter::PolyhedronOrConeIterator) = iter.faces
 
 function Base.show(io::IO, I::PolyhedronOrConeIterator{T}) where T
     print(io, "A collection of `$T` objects")
