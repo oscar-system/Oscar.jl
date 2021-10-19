@@ -512,6 +512,17 @@ function singular_assure(I::BiPolyArray)
   end
 end
 
+function singular_assure(I::BiPolyArray, O::MonomialOrdering)
+   if !isdefined(I, :ord) || I.ord != O.o
+      I.ord = O.o
+      I.Sx = singular_ring(O.R, O.o)
+      I.S = Singular.Ideal(I.Sx, elem_type(I.Sx)[I.Sx(x) for x = I.O])
+      I.isGB = false
+   else
+      singular_assure(I)
+   end
+end 
+
 function oscar_assure(I::MPolyIdeal)
   if !isdefined(I.gens, :O)
     I.gens.O = [I.gens.Ox(x) for x = gens(I.gens.S)]
