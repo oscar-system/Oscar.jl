@@ -40,17 +40,18 @@ A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 ```
 """
 function AffineNormalToricVariety(C::Cone)
-    pmc = Oscar.pm_cone(C)
-    fan = Polymake.fan.check_fan_objects(pmc)
-    pmntv = Polymake.fulton.NormalToricVariety(fan)
+    fan = PolyhedralFan(C)
+    pmntv = Polymake.fulton.NormalToricVariety(Oscar.pm_fan(fan))
     return AffineNormalToricVariety(pmntv)
 end
 
 
 @doc Markdown.doc"""
     NormalToricVariety(C::Cone)
+
 Construct the (affine) normal toric variety $X_{\Sigma}$ corresponding to a
 polyhedral fan $\Sigma = C$ consisting only of the cone `C`.
+
 # Examples
 Set `C` to be the positive orthant in two dimensions.
 ```jldoctest
@@ -61,7 +62,9 @@ A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 ```
 """
 function NormalToricVariety(C::Cone)
-    return AffineNormalToricVariety(C)
+    fan = PolyhedralFan(C)
+    pmntv = Polymake.fulton.NormalToricVariety(Oscar.pm_fan(fan))
+    return NormalToricVariety(pmntv)
 end
 
 
@@ -86,9 +89,6 @@ A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 function NormalToricVariety(PF::PolyhedralFan)
     fan = Oscar.pm_fan(PF)
     pmntv = Polymake.fulton.NormalToricVariety(fan)
-    if fan.N_MAXIMAL_CONES == 1
-        return AffineNormalToricVariety( pmntv )
-    end
     return NormalToricVariety(pmntv)
 end
 
@@ -131,18 +131,19 @@ A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 """
 function NormalToricVariety( rays::Matrix{Int}, cones::Vector{Vector{Int}} )
     Incidence = Oscar.IncidenceMatrix(cones)
-    # arr = Polymake.@convert_to Array{Set{Int}} Polymake.common.rows(Incidence.pm_incidencematrix)
     pmntv = Polymake.fulton.NormalToricVariety(
         RAYS = Oscar.matrix_for_polymake(rays),
         MAXIMAL_CONES = Incidence,
     )
-    if length( cones ) == 1
-        return AffineNormalToricVariety( pmntv )
-    end    
-    return NormalToricVariety( pmntv )
+    return NormalToricVariety(pmntv)
 end
 
 export NormalToricVariety
+
+function AffineNormalToricVariety(v::NormalToricVariety)
+    isaffine(v) || error("Cannot construct affine toric variety from non-affine input")
+    return AffineNormalToricVariety(pm_ntv(v))
+end
 
 
 

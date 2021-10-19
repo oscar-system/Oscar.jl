@@ -105,6 +105,12 @@ function PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, Incidence::Mat
    PolyhedralFan(Rays,IncidenceMatrix(Polymake.IncidenceMatrix(Incidence)))
 end
 
+
+function PolyhedralFan(C::Cone)
+    pmfan = Polymake.fan.check_fan_objects(pm_cone(C))
+    return PolyhedralFan(pmfan)
+end
+
 ###############################################################################
 ###############################################################################
 ### Display
