@@ -45,21 +45,23 @@ end
 
 
 @doc Markdown.doc"""
-    continued_fraction(cqs::CyclicQuotientSingularity)
+    continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity)
 
-Return the continued fraction associated with the cyclic quotient singularity,
-i.e. the continued fraction corresponding to $n/q$.
+Return the Hirzebruch-Jung continued fraction associated with the cyclic
+quotient singularity, i.e. the Hirzebruch-Jung continued fraction corresponding
+to $n/q$.
 
-The rational number corresponding to a continued fraction
+The rational number corresponding to a Hirzebruch-Jung continued fraction
 $[c_1,c_2,\ldots,c_n]$ is $r([c_1,c_2,\ldots,c_n])\ =\
-c_1-\frac{1}{r([c_2,\ldots,c_n])}$ where $r([c_n]) = c_n$.
+c_1-\frac{1}{r([c_2,\ldots,c_n])}$ where $r([c_n]) = c_n$.  Note that this is
+differs in sign from what is commonly known as continued fraction.
 
 # Examples
 ```jldoctest
 julia> cqs = CyclicQuotientSingularity(7,5)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
-julia> cf = continued_fraction(cqs)
+julia> cf = continued_fraction_hirzebruch_jung(cqs)
 3-element Vector{Int64}:
  2
  2
@@ -69,26 +71,28 @@ julia> ecf = cf[1]-1/(cf[2]-Rational(1,cf[3]))
 7//5
 ```
 """
-continued_fraction(cqs::CyclicQuotientSingularity) = Vector{Int64}(pm_ntv(cqs).CONTINUED_FRACTION)
-export continued_fraction
+continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity) = Vector{Int64}(pm_ntv(cqs).CONTINUED_FRACTION)
+export continued_fraction_hirzebruch_jung
 
 
 @doc Markdown.doc"""
-    dual_continued_fraction(cqs::CyclicQuotientSingularity)
+    dual_continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity)
 
-Return the dual continued fraction associated with the cyclic quotient
-singularity, i.e. the continued fraction corresponding to $q/(n-q)$.
+Return the dual Hirzebruch-Jung continued fraction associated with the cyclic
+quotient singularity, i.e. the Hirzebruch-Jung continued fraction corresponding
+to $q/(n-q)$.
 
-The rational number corresponding to a continued fraction
+The rational number corresponding to a Hirzebruch-Jung continued fraction
 $[c_1,c_2,\ldots,c_n]$ is $r([c_1,c_2,\ldots,c_n])\ =\
-c_1-\frac{1}{r([c_2,\ldots,c_n])}$ where $r([c_n]) = c_n$.
+c_1-\frac{1}{r([c_2,\ldots,c_n])}$ where $r([c_n]) = c_n$.  Note that this is
+differs in sign from what is commonly known as continued fraction.
 
 # Examples
 ```jldoctest
 julia> cqs = CyclicQuotientSingularity(7,5)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
-julia> dcf = dual_continued_fraction(cqs)
+julia> dcf = dual_continued_fraction_hirzebruch_jung(cqs)
 2-element Vector{Int64}:
  4
  2
@@ -97,57 +101,60 @@ julia> edcf = dcf[1] - Rational(1,dcf[2])
 7//2
 ```
 """
-dual_continued_fraction(cqs::CyclicQuotientSingularity) = Vector{Int64}(pm_ntv(cqs).DUAL_CONTINUED_FRACTION)
-export dual_continued_fraction
+dual_continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity) = Vector{Int64}(pm_ntv(cqs).DUAL_CONTINUED_FRACTION)
+export dual_continued_fraction_hirzebruch_jung
 
 
 @doc Markdown.doc"""
-    continued_fraction_2_rational(v::Vector{Int64})
+    continued_fraction_hirzebruch_jung_to_rational(v::Vector{Int64})
 
-Return the rational number corresponding to a continued fraction given as a
-vector of (positive) integers.
+Return the rational number corresponding to a Hirzebruch-Jung continued
+fraction given as a vector of (positive) integers.
 
-The rational number corresponding to a continued fraction
+The rational number corresponding to a Hirzebruch-Jung continued fraction
 $[c_1,c_2,\ldots,c_n]$ is $r([c_1,c_2,\ldots,c_n])\ =\
-c_1-\frac{1}{r([c_2,\ldots,c_n])}$ where $r([c_n]) = c_n$.
+c_1-\frac{1}{r([c_2,\ldots,c_n])}$ where $r([c_n]) = c_n$.  Note that this is
+differs in sign from what is commonly known as continued fraction.
 
 # Examples
 ```jldoctest
 julia> cqs = CyclicQuotientSingularity(7,5)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
-julia> v = continued_fraction(cqs)
+julia> v = continued_fraction_hirzebruch_jung(cqs)
 3-element Vector{Int64}:
  2
  2
  3
 
-julia> continued_fraction_2_rational(v)
+julia> continued_fraction_hirzebruch_jung_to_rational(v)
 7//5
 ```
 """
-function continued_fraction_2_rational(v::Vector{Int64})
+function continued_fraction_hirzebruch_jung_to_rational(v::Vector{Int64})
     return Rational(Polymake.fulton.cf2rational(v))
 end
-export continued_fraction_2_rational
+export continued_fraction_hirzebruch_jung_to_rational
 
 
 @doc Markdown.doc"""
-    rational_2_continued_fraction(r::Rational)
+    rational_to_continued_fraction_hirzebruch_jung(r::Rational)
 
-Encode a (positive) rational number as a continued fraction, i.e. find the
-continued fraction corresponding to the given rational number.
+Encode a (positive) rational number as a Hirzebruch-Jung continued fraction,
+i.e. find the Hirzebruch-Jung continued fraction corresponding to the given
+rational number.
 
-The rational number corresponding to a continued fraction
+The rational number corresponding to a Hirzebruch-Jung continued fraction
 $[c_1,c_2,\ldots,c_n]$ is $r([c_1,c_2,\ldots,c_n])\ =\
-c_1-\frac{1}{r([c_2,\ldots,c_n])}$ where $r([c_n]) = c_n$.
+c_1-\frac{1}{r([c_2,\ldots,c_n])}$ where $r([c_n]) = c_n$.  Note that this is
+differs in sign from what is commonly known as continued fraction.
 
 # Examples
 ```jldoctest
 julia> r = Rational(2464144958, 145732115)
 2464144958//145732115
 
-julia> cf = rational_2_continued_fraction(r)
+julia> cf = rational_to_continued_fraction_hirzebruch_jung(r)
 7-element Vector{Int64}:
  17
  11
@@ -157,14 +164,14 @@ julia> cf = rational_2_continued_fraction(r)
  19
  37
 
-julia> continued_fraction_2_rational(cf)
+julia> continued_fraction_hirzebruch_jung_to_rational(cf)
 2464144958//145732115
 
-julia> r == continued_fraction_2_rational(cf)
+julia> r == continued_fraction_hirzebruch_jung_to_rational(cf)
 true
 ```
 """
-function rational_2_continued_fraction(r::Rational)
+function rational_to_continued_fraction_hirzebruch_jung(r::Rational)
     return Vector{Int64}(Polymake.fulton.rational2cf(r))
 end
-export rational_2_continued_fraction
+export rational_to_continued_fraction_hirzebruch_jung

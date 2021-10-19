@@ -123,9 +123,13 @@ where $\xi$ is a $n$-th root of unity, and $0<q<n$ are two coprime integers.
 
 For the notation we rely on [Chr91](@cite) and [Ste91](@cite).
 
+!!! warning
+    Note that the notion of Hirzebruch-Jung continued fraction differs from the
+    commonly known continued fraction.
+
 ```@docs
-continued_fraction(cqs::CyclicQuotientSingularity)
-continued_fraction_2_rational(v::Vector{Int64})
-dual_continued_fraction(cqs::CyclicQuotientSingularity)
-rational_2_continued_fraction(r::Rational)
+continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity)
+continued_fraction_hirzebruch_jung_to_rational(v::Vector{Int64})
+dual_continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity)
+rational_to_continued_fraction_hirzebruch_jung(r::Rational)
 ```
