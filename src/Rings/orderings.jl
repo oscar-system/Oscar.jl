@@ -132,7 +132,7 @@ function weights(a::GenOrdering)
   end              
   if a.ord == :wdeglex || a.ord == Symbol("Singular(Wp)")
     return [matrix(ZZ, 1, length(a.vars), a.w);
-            zero_matrix(ZZ, length(a.vars)-1, 1) identity_matrix(ZZ, length(a.vars)-1)]
+            identity_matrix(ZZ, length(a.vars)-1) zero_matrix(ZZ, length(a.vars)-1, 1)]
   end
   if a.ord == :wdegrevlex || a.ord == Symbol("Singular(wp)")
     return [matrix(ZZ, 1, length(a.vars), a.w);
@@ -154,7 +154,7 @@ function weights(a::GenOrdering)
  end              
  if a.ord == :negwdeglex || a.ord == Symbol("Singular(Ws)")
    return [-matrix(ZZ, 1, length(a.vars), a.w);
-           zero_matrix(ZZ, length(a.vars)-1, 1) -identity_matrix(ZZ, length(a.vars)-1)]
+           -identity_matrix(ZZ, length(a.vars)-1) zero_matrix(ZZ, length(a.vars)-1, 1)]
  end
  if a.ord == :negwdegrevlex || a.ord == Symbol("Singular(ws)")
    return [-matrix(ZZ, 1, length(a.vars), a.w);
