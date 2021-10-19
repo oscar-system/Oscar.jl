@@ -108,8 +108,8 @@ end
 
 @doc Markdown.doc"""
     groebner_basis(I::MPolyIdeal; ordering::Symbol = :degrevlex, complete_reduction::Bool = false)
-    groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering, complete_reduction::Bool=false)
-
+    groebner_basis(I::MPolyIdeal, ord::MonomialOrdering; complete_reduction::Bool=false)
+ 
 Given an ideal `I` and optional parameters monomial ordering `ordering` and `complete_reduction`,
 compute a Groebner basis (if `complete_reduction = true` the reduced Groebner basis) of `I`
     w.r.t. the given monomial ordering `ordering` (as default `:degrevlex`).
