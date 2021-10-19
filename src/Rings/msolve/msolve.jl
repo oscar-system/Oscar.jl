@@ -172,8 +172,7 @@ function msolve(
                                               # in symbolic preprocessing
         la_option::Int=2,                     # linear algebra option
         info_level::Int=0,                    # info level for print outs
-        input_file::String="/tmp/in.ms",      # msolve input file
-        output_file::String="/tmp/out.ms",    # msolve output file
+        output_file::String="/dev/null",      # msolve output file
         precision::Int=32,                    # precision of the solution set
         get_param::Bool=false                 # return rational parametrization of
                                               # solution set
@@ -197,8 +196,6 @@ function msolve(
 
     field_char  = Singular.characteristic(R)
 
-    out_file = "/dev/null"
-
     #= add new variables and linear forms, =#
     genericity_handling = 2
 
@@ -211,13 +208,14 @@ function msolve(
     # convert Singular ideal to flattened arrays of ints
     if 0 == field_char
       lens, cfs, exps   = convert_qq_singular_ideal_to_array(J, nr_vars, nr_gens)
-    elseif Nemo.isprime(Nemo.FlintZZ(field_char))
-      lens, cfs, exps   = convert_ff_singular_ideal_to_array(J, nr_vars, nr_gens)
+    # elseif isprime(field_char)
+    #   lens, cfs, exps   = convert_ff_singular_ideal_to_array(J, nr_vars, nr_gens)
     else
-        error("At the moment GroebnerBasis only supports finite fields and the rationals.")
+        # error("At the moment GroebnerBasis only supports finite fields and the rationals.")
+        error("At the moment msolve only supports the rationala as ground field.")
     end
-    lib = Libdl.dlopen("/home/ederc/repos/master-msolve/src/msolve/.libs/libmsolve-0.1.2.so")
-    # lib = Libdl.dlopen(libmsolve)
+    # lib = Libdl.dlopen("/home/ederc/repos/master-msolve/src/msolve/.libs/libmsolve-0.1.2.so")
+    lib = Libdl.dlopen(libmsolve)
     sym = Libdl.dlsym(lib, :msolve_julia)
 
     res_ld    = ccall(:malloc, Ptr{Cint}, (Csize_t, ), sizeof(Cint))
@@ -234,7 +232,7 @@ function msolve(
          Ptr{Ptr{Cchar}}, Ptr{Cchar}, Int, Int, Int, Int,
          Int, Int, Int, Int, Int, Int, Int, Int, Int, Int),
         res_ld, res_dim, res_dquot, res_len, res_cf, nb_sols, sols_num, sols_den, lens,
-        exps, cfs, variable_names, out_file, field_char, mon_order, nr_vars,
+        exps, cfs, variable_names, output_file, field_char, mon_order, nr_vars,
         nr_gens, initial_hts, nr_thrds, max_nr_pairs, reset_ht, la_option,
         print_gb, get_param, genericity_handling, precision, info_level)
     Libdl.dlclose(lib)
@@ -247,6 +245,21 @@ function msolve(
     jl_nb_sols  = unsafe_load(nb_sols)
     jl_len      = Base.unsafe_wrap(Array, unsafe_load(res_len), jl_ld)
     nterms  = 0
+    @show jl_ld
+    @show jl_dim
+    @show jl_dquot
+    @show jl_nb_sols
+    
+    I.dim = jl_dim
+    if jl_dim > 0
+        println("Dimension is greater than zero, no solutions provided.")
+        return []
+    end
+    if jl_nb_sols == 0
+        println("System has no solution.")
+        return []
+    end
+
     [nterms += jl_len[i] for i=1:jl_ld]
     if 0 == field_char
         res_cf_conv   = unsafe_load(res_cf)
