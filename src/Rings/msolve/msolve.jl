@@ -141,6 +141,8 @@ end
 
 Compute the solution set of the given ideal I using the msolve C library. The function takes a Singular ideal as input and returns a Singular ideal. At the moment only QQ is supported as ground field..
 
+Also sets the dimension of the ideal.
+
 # Arguments
 * `I::ideal`: ideal to compute solutions for.
 * `initial_hts::Int=17`: hash table size log_2; default is 17, i.e. 2^17 as initial hash
@@ -244,19 +246,17 @@ function msolve(
 
     jl_nb_sols  = unsafe_load(nb_sols)
     jl_len      = Base.unsafe_wrap(Array, unsafe_load(res_len), jl_ld)
+
     nterms  = 0
-    @show jl_ld
-    @show jl_dim
-    @show jl_dquot
-    @show jl_nb_sols
     
+    # set dimension
     I.dim = jl_dim
     if jl_dim > 0
         println("Dimension is greater than zero, no solutions provided.")
         return []
     end
     if jl_nb_sols == 0
-        println("System has no solution.")
+        println("The system has no solution.")
         return []
     end
 
@@ -276,27 +276,12 @@ function msolve(
     end
 
     for i in 1:jl_nb_sols*nr_vars
-        println("i ", i, "total ", jl_nb_sols*nr_vars)
-        println(" // 2^",unsafe_load(jl_sols_den, i))
         tmpcf = BigInt(unsafe_load(jl_sols_num, i))
-        println(tmpcf)
     end
     solutions = Array{Array{Nemo.fmpq, 1}, 1}(undef, jl_nb_sols)
     for i in 1:jl_nb_sols
-        println("i ", i, " / ", jl_nb_sols)
-        for j in 1:nr_vars
-            println("j ", j)
-            println((i-1)*nr_vars+j)
-            println(BigInt(unsafe_load(jl_sols_num, (i-1)*nr_vars+j)))
-            println(unsafe_load(jl_sols_den, (i-1)*nr_vars+j))
-            println(BigInt(2)^unsafe_load(jl_sols_den, (i-1)*nr_vars+j))
-        end
-    end
-    for i in 1:jl_nb_sols
-        print("i ", i, " / ", jl_nb_sols)
         tmp = Array{Nemo.fmpq, 1}(undef, nr_vars)
         for j in 1:nr_vars
-            print("j ", j)
             tmp[j]  = BigInt(unsafe_load(jl_sols_num, (i-1)*nr_vars+j)) // BigInt(2)^unsafe_load(jl_sols_den, (i-1)*nr_vars+j)
         end
         solutions[i]  = tmp
