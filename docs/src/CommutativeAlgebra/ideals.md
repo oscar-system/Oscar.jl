@@ -221,11 +221,7 @@ computing strong Gröbner bases which ensure the following property:
 For any element of an ideal its leading term is divisible by a leading term of an 
 element of a corresponding strong Gröbner basis.
 
-The textbook
-
-- [AL94](@cite)
-
-provides details on theory and algorithms as well as references.
+The textbook [AL94](@cite) provides details on theory and algorithms as well as references.
 
 ```@repl oscar
 R, (x,y) = PolynomialRing(ZZ, ["x","y"])
