@@ -1,7 +1,7 @@
 export FreeMod, presentation, FreeModElem, coords, coeffs, repres, 
       FreeModuleHom, SubQuo, cokernel, SubQuoElem, index_of_gen, sub,
       quo, presentation, present_as_cokernel, is_equal_with_morphism, 
-      SubQuoHom, show_morphism, hom_tensor, hom_prod_prod, coordinates, 
+      SubQuoHom, show_morphism, show_as_vector, hom_tensor, hom_prod_prod, coordinates, 
       represents_element, free_resolution, homomorphism, module_elem, generator_matrix,
       restrict_codomain, restrict_domain, direct_product, tensor_product, 
       free_module, tor, lift_homomorphism_contravariant, lift_homomorphism_covariant, 
@@ -176,6 +176,24 @@ true
 struct FreeModElem{T} <: AbstractFreeModElem{T}
   coords::SRow{T} # also usable via coeffs()
   parent::FreeMod{T}
+
+  function FreeModElem{T}(coords::SRow{T}, parent::FreeMod{T}) where T
+    r = new{T}(coords,parent)
+    return r
+  end
+end
+
+@doc Markdown.doc"""
+    FreeModElem(coords::SRow{T}, parent::FreeMod{T}) where T
+
+Construct an element in the free module `parent`.
+"""
+FreeModElem(coords::SRow{T}, parent::FreeMod{T}) where T = FreeModElem{T}(coords, parent)
+
+function FreeModElem(coords::Vector{T}, parent::FreeMod{T}) where T
+  @assert length(coords) == rank(parent)
+  sparse_coords = sparse_row(base_ring(parent), collect(1:rank(parent)), coords)
+  return FreeModElem{T}(sparse_coords,parent)
 end
 
 function in(v::AbstractFreeModElem, M::ModuleFP)
@@ -227,6 +245,26 @@ function show(io::IO, e::FreeModElem)
     return
   end
   print(io, join(["($val)*$(e.parent.S[pos])" for (pos, val) in e.coords], " + "))
+end
+
+@doc Markdown.doc"""
+    show_as_vector(io::IO, e::FreeModElem)
+
+Shows the free module element `e` as a vector instead of a linear combination 
+of the standard basis.
+"""
+function show_as_vector(io::IO, e::FreeModElem)
+  show(io, dense_row(coords(e),rank(parent(e))))
+end
+
+@doc Markdown.doc"""
+    show_as_vector(e::FreeModElem)
+
+Print the free module element `e` as a vector instead of a linear combination 
+of the standard basis in the console (stdout).
+"""
+function show_as_vector(e::FreeModElem)
+  show_as_vector(Base.stdout,e)
 end
 
 @doc Markdown.doc"""
@@ -1402,6 +1440,27 @@ end
 
 function show(io::IO, b::SubQuoElem)
   print(io, b.repres)
+end
+
+@doc Markdown.doc"""
+    show_as_vector(io::IO, b::SubQuoElem)
+
+Show a representative of the subquotient element `b` as a vector instead of 
+a linear combination of standard basis elements of the embedding free module.
+"""
+function show_as_vector(io::IO, b::SubQuoElem)
+  show_as_vector(io, repres(b))
+end
+
+@doc Markdown.doc"""
+    show_as_vector(b::SubQuoElem)
+
+Print a representative of the subquotient element `b` as a vector instead of 
+a linear combination of standard basis elements of the embedding free module
+on the console (stdout).
+"""
+function show_as_vector(b::SubQuoElem)
+  show_as_vector(Base.stdout, b)
 end
 
 @doc Markdown.doc"""
