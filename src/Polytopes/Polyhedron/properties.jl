@@ -9,11 +9,10 @@
 @doc Markdown.doc"""
     faces(as::Type{T} = Polyhedron, P::Polyhedron, face_dim::Int)
 
-Return the faces of `P` of dimension `face_dim` as an iterator over the type of
-object given by `as`.
+Return an iterator over the faces of `P` of dimension `face_dim`.
 
-Optional arguments for `as` include
-* `Polyhedron`.
+The returned type is specified by the argument `as`, including:
+* `Polyhedron` (default).
 
 # Examples
 A `Vector` containing the six sides of the 3-dimensional cube can be obtained
