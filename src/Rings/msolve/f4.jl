@@ -1,6 +1,8 @@
 import msolve_jll: libneogb
 import Libdl: dlopen, dlsym, dlclose
 
+export f4
+
 """
     f4(I[, hts::Int=17, nthrds::Int=1, maxpairs::Int=0, resetht::Int=0,
             laopt::Int=1, reducegb::Int=0, pbmfiles::Int=0,

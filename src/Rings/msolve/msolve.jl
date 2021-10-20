@@ -1,6 +1,8 @@
 import msolve_jll: libmsolve
 import Libdl: dlopen, dlsym, dlclose
 
+export msolve
+
 function get_rational_parametrization_from_msolve_output(
         param::Array{Any, 1}
     )
