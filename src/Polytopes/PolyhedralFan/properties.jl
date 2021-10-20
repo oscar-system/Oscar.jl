@@ -79,11 +79,10 @@ Base.length(iter::MaximalConeIterator) = nmaximal_cones(iter.PF)
 @doc Markdown.doc"""
     cones(as::Type{T} = Cone, PF::PolyhedralFan, cone_dim::Int)
 
-Return the cones of `PF` of dimension `cone_dim` as an iterator over the type of
-object given by `as`.
+Return an iterator over the cones of `PF` of dimension `cone_dim`.
 
-Optional arguments for `as` include
-* `Cone`.
+The returned type is specified by the argument `as`, including:
+* `Cone` (default).
 
 # Examples
 The 12 edges of the 3-cube correspond to the 2-dimensional cones of its face fan:
