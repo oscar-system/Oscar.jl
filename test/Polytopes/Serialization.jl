@@ -64,6 +64,7 @@
             @test loaded isa SubdivisionOfPoints
             @test Base.propertynames(MOAE) == Base.propertynames(loaded)
             @test nmaximal_cells(MOAE) == nmaximal_cells(loaded)
+            @test npoints(MOAE) == npoints(loaded)
         end
     end
 

@@ -125,6 +125,24 @@ julia> ambient_dim(SOP)
 ambient_dim(SOP::SubdivisionOfPoints) = pm_subdivision(SOP).VECTOR_AMBIENT_DIM - 1
 
 
+@doc Markdown.doc"""
+    npoints(SOP::SubdivisionOfPoints)
+
+Return the number of points of a `SubdivisionOfPoints`.
+
+# Examples
+```jldoctest
+julia> moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2];
+
+julia> SOP = SubdivisionOfPoints(moaepts, [1,1,1,1,1,1]);
+
+julia> npoints(SOP)
+6
+```
+"""
+npoints(SOP::SubdivisionOfPoints) = pm_subdivision(SOP).N_POINTS
+
+
 
 ###############################################################################
 ## Points properties
