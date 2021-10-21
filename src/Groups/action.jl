@@ -36,7 +36,7 @@ The following ones are commonly used.
 
 import Base: ^, *
 
-export on_tuples, on_sets, on_indeterminates, permuted
+export on_tuples, on_sets, on_sets_sets, on_indeterminates, permuted
 
 """
 We try to avoid introducing `on_points` and `on_right`.
@@ -65,9 +65,9 @@ GAP: [ Z(3)^0, 0*Z(3) ]
 ```
 """
 
-^(pnt::GAP.GapObj, x::GAPGroupElem) = GAP.Globals.:^(pnt, x.X)
+^(pnt::GAP.Obj, x::GAPGroupElem) = GAP.Globals.:^(pnt, x.X)
 
-*(pnt::GAP.GapObj, x::GAPGroupElem) = GAP.Globals.:*(pnt, x.X)
+*(pnt::GAP.Obj, x::GAPGroupElem) = GAP.Globals.:*(pnt, x.X)
 
 
 """
@@ -158,13 +158,67 @@ function on_sets(set::Vector{T}, x::GAPGroupElem) where T
     return res
 end
 
-function on_sets(set::T, x::GAPGroupElem) where T <: Union{Tuple, Set}
+on_sets(set::T, x::GAPGroupElem) where T <: Set = T([pnt^x for pnt in set])
+
+function on_sets(set::T, x::GAPGroupElem) where T <: Tuple
     res = [pnt^x for pnt in set]
     sort!(res)
     return T(res)
 end
 
 ^(set::T, x::GAPGroupElem) where T <: Set = on_sets(set, x)
+
+"""
+    on_sets_sets(set::GAP.GapObj, x::GAPGroupElem)
+    on_sets_sets(set::Vector{T}, x::GAPGroupElem) where T
+    on_sets_sets(set::T, x::GAPGroupElem) where T <: Union{Tuple, Set}
+
+Return the image of `set` under `x`,
+where the action is given by applying `on_sets` to the entries
+of `set`, and then turning the result into a sorted vector/tuple or a set,
+respectively.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(3);  g[1]
+(1,2,3)
+
+julia> l = GAP.julia_to_gap([[1, 2], [3, 4]], recursive = true)
+GAP: [ [ 1, 2 ], [ 3, 4 ] ]
+
+julia> on_sets_sets(l, g[1])
+GAP: [ [ 1, 4 ], [ 2, 3 ] ]
+
+julia> on_sets_sets([[1, 2], [3, 4]], g[1])
+2-element Vector{Vector{Int64}}:
+ [1, 4]
+ [2, 3]
+
+julia> on_sets_sets(((1,2), (3,4)), g[1])
+((1, 4), (2, 3))
+
+julia> on_sets_sets(Set([[1, 2], [3, 4]]), g[1])
+Set{Vector{Int64}} with 2 elements:
+  [1, 4]
+  [2, 3]
+
+```
+"""
+on_sets_sets(set::GAP.GapObj, x::GAPGroupElem) = GAP.Globals.OnSetsSets(set, x.X)
+
+function on_sets_sets(set::Vector{T}, x::GAPGroupElem) where T
+    res = T[on_sets(pnt, x) for pnt in set]
+    sort!(res)
+    return res
+end
+
+on_sets_sets(set::T, x::GAPGroupElem) where T <: Set = T([on_sets(pnt, x) for pnt in set])
+
+function on_sets_sets(set::T, x::GAPGroupElem) where T <: Tuple
+    res = [on_sets(pnt, x) for pnt in set]
+    sort!(res)
+    return T(res)
+end
 
 
 """
@@ -267,3 +321,57 @@ function on_indeterminates(f::Nemo.MPolyElem, s::PermGroupElem)
 end
 
 ^(f::Nemo.MPolyElem, p::PermGroupElem) = on_indeterminates(f, p)
+
+
+@doc Markdown.doc"""
+    stabilizer(G::Oscar.GAPGroup, pnt::Any[, actfun::Function])
+
+Return the subgroup of `G` that consists of all those elements `g`
+that fix `pnt` under the action given by `actfun`,
+that is, `actfun(pnt, g) == pnt` holds.
+
+The default for `actfun` depends on the types of `G` and `pnt`:
+If `G` is a `PermGroup` then the default actions on integers,
+`Vector`s of  integers, and `Set`s of integers are given by
+`^`, `on_tuples`, and `on_sets`, respectively.
+If `G` is a `MatrixGroup` then the default actions on `FreeModuleElem`s,
+`Vector`s of them, and `Set`s of them are given by
+`*`, `on_tuples`, and `on_sets`, respectively.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(5);
+
+julia> S = stabilizer(G, 1);  order(S[1])
+24
+
+julia> S = stabilizer(G, [1, 2]);  order(S[1])
+6
+
+julia> S = stabilizer(G, Set([1, 2]));  order(S[1])
+12
+
+julia> S = stabilizer(G, [1,1,2,2,3], permuted);  order(S[1])
+4
+
+```
+"""
+function stabilizer(G::Oscar.GAPGroup, pnt::Any, actfun::Function)
+    return Oscar._as_subgroup(G, GAP.Globals.Stabilizer(G.X, pnt,
+        GAP.GapObj([x.X for x in gens(G)]), GAP.GapObj(gens(G)),
+        GAP.WrapJuliaFunc(actfun)))
+end
+
+# natural stabilizers in permutation groups
+stabilizer(G::PermGroup, pnt::T) where T <: Oscar.IntegerUnion = stabilizer(G, pnt, ^)
+
+stabilizer(G::PermGroup, pnt::Vector{T}) where T <: Oscar.IntegerUnion = stabilizer(G, pnt, on_tuples)
+
+stabilizer(G::PermGroup, pnt::Set{T}) where T <: Oscar.IntegerUnion = stabilizer(G, pnt, on_sets)
+
+# natural stabilizers in matrix groups
+stabilizer(G::MatrixGroup{ET,MT}, pnt::AbstractAlgebra.Generic.FreeModuleElem{ET}) where {ET,MT} = stabilizer(G, pnt, *)
+
+stabilizer(G::MatrixGroup{ET,MT}, pnt::Vector{AbstractAlgebra.Generic.FreeModuleElem{ET}}) where {ET,MT} = stabilizer(G, pnt, on_tuples)
+
+stabilizer(G::MatrixGroup{ET,MT}, pnt::Set{AbstractAlgebra.Generic.FreeModuleElem{ET}}) where {ET,MT} = stabilizer(G, pnt, on_sets)

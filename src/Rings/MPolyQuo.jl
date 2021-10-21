@@ -729,7 +729,8 @@ function sparse_row(R::MPolyRing, M::Singular.svector{<:Singular.spoly})
     end
     push_term!(v[i], base_ring(R)(c), e)
   end
-  sparse_row(R, Tuple{Int, elem_type(R)}[(k,finish(v)) for (k,v) = v])
+  pos_value_vector::Vector{Tuple{Int, elem_type(R)}} = [(k,finish(v)) for (k,v) = v]
+  return sparse_row(R, pos_value_vector)
 end
 
 """
@@ -745,7 +746,8 @@ function sparse_row(R::MPolyRing, M::Singular.svector{<:Singular.spoly}, U::Unit
     end
     push_term!(v[i], base_ring(R)(c), e)
   end
-  sparse_row(R, Tuple{Int, elem_type(R)}[(k,finish(v)) for (k,v) = v])
+  pos_value_vector::Vector{Tuple{Int, elem_type(R)}} = [(k,finish(v)) for (k,v) = v]
+  return sparse_row(R, pos_value_vector)
 end
 
 """
@@ -781,8 +783,8 @@ end
 
 function divides(a::MPolyQuoElem, b::MPolyQuoElem)
   check_parent(a, b)
-  simplify!(a) #not neccessary
-  simplify!(b) #not neccessary
+  simplify!(a) #not necessary
+  simplify!(b) #not necessary
   iszero(b) && error("cannot divide by zero")
 
   Q = parent(a)

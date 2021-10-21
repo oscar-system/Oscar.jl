@@ -153,7 +153,7 @@ function Base.show(io::IO, x::MatrixGroupElem)
       show(io, "text/plain", x.elm)
 #      print(io, x.elm)
    else
-      print(io, GAP.gap_to_julia(GAP.Globals.StringViewObj(x.X)))
+      print(io, String(GAP.Globals.StringViewObj(x.X)))
    end
 end
 
@@ -796,7 +796,7 @@ function Base.:^(H::MatrixGroup, y::MatrixGroupElem)
 end
 
 function conjugacy_classes_subgroups(G::MatrixGroup)
-   L=GAP.gap_to_julia(Vector{GapObj},GAP.Globals.ConjugacyClassesSubgroups(G.X))
+   L = GAP.Globals.ConjugacyClassesSubgroups(G.X)
    V = Vector{GroupConjClass{typeof(G), typeof(G)}}(undef, length(L))
    for i in 1:length(L)
       y = MatrixGroup(G.deg,G.ring)
@@ -809,7 +809,7 @@ function conjugacy_classes_subgroups(G::MatrixGroup)
 end
 
 function conjugacy_classes_maximal_subgroups(G::MatrixGroup)
-   L=GAP.gap_to_julia(Vector{GapObj},GAP.Globals.ConjugacyClassesMaximalSubgroups(G.X))
+   L = GAP.Globals.ConjugacyClassesMaximalSubgroups(G.X)
    V = Vector{GroupConjClass{typeof(G), typeof(G)}}(undef, length(L))
    for i in 1:length(L)
       y = MatrixGroup(G.deg,G.ring)

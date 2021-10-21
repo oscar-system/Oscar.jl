@@ -76,14 +76,14 @@ end
 
 @doc Markdown.doc"""
 
-    cone_from_inequalities(A::Union{Oscar.MatElem,AbstractMatrix}, b; non_redundant::Bool = false)
+    cone_from_inequalities(A::Union{Oscar.MatElem,AbstractMatrix}; non_redundant::Bool = false)
 
 The (convex) cone defined by
 
 $$\{ x |  Ax ≤ 0 \}.$$
 
 Use `non_redundant = true` if the given description contains no redundant rows to
-avoid unneccessary redundancy checks.
+avoid unnecessary redundancy checks.
 
 # Examples
 ```jldoctest

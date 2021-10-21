@@ -56,7 +56,7 @@ function low_index_subgroups(G::PermGroup, n::Int)
 end
 
 """
-An ascending chain of minimual supergroups linking `U` and `G`.
+An ascending chain of minimal supergroups linking `U` and `G`.
 Not a good algorithm, but Max' version `RefinedChain` does not produce
 minimal supergroups, ie. it fails in ``C_4``.
 """
@@ -74,58 +74,33 @@ function maximal_subgroup_chain(G::PermGroup, U::PermGroup)
   return [Oscar._as_subgroup(G, x)[1] for x = ll]
 end
 
-function transitive_group_identification(G::PermGroup)
-  if degree(G) > 31
-    return -1
-  end
-  return GAP.Globals.TransitiveIdentification(G.X)
-end
-
 # TODO: add a GSet Julia type which does something similar Magma's,
 # or also to GAP's ExternalSet (but don't use ExternalSet, to avoid the overhead)
 
-function all_blocks(G::PermGroup)
-  # TODO: this returns an array of arrays;
-  # TODO: AllBlocks assumes that we act on MovedPoints(G), which
-  # may NOT be what we want...
-  return GAP.gap_to_julia(Vector{Vector{Int}}, GAP.Globals.AllBlocks(G.X))
-end
-
-# TODO: update stabilizer to use GSet
-# TODO: allow specifying actions other than the default
-function stabilizer(G::Oscar.GAPGroup, seed, act)
-    return Oscar._as_subgroup(G, GAP.Globals.Stabilizer(G.X, GAP.julia_to_gap(seed), act))
-end
-
 # TODO: add type BlockSystem
-
-# TODO: perhaps get rid of set_stabilizer again, once we have proper Gsets
-function set_stabilizer(G::Oscar.GAPGroup, seed::Vector{Int})
-    return stabilizer(G, GAP.julia_to_gap(seed), GAP.Globals.OnSets)
-end
 
 # TODO: add lots of more orbit related stuff
 
 #provided by Thomas Breuer:
 
-Hecke.orbit(G::PermGroup, i::Int) = GAP.gap_to_julia(GAP.Globals.Orbit(G.X, GAP.julia_to_gap(i)))
+Hecke.orbit(G::PermGroup, i::Int) = Vector{Int}(GAP.Globals.Orbit(G.X, GAP.Obj(i)))
 orbits(G::PermGroup) = Vector{Vector{Int}}(GAP.Globals.Orbits(G.X, GAP.GapObj(1:degree(G))))
 
 function action_homomorphism(G::PermGroup, omega::AbstractVector{Int})
-  mp = GAP.Globals.ActionHomomorphism(G.X, GAP.julia_to_gap(omega))
+  mp = GAP.Globals.ActionHomomorphism(G.X, GAP.GapObj(omega))
   if mp == GAP.Globals.fail throw(ArgumentError("Invalid input")) end
   H = PermGroup(GAP.Globals.Range(mp))
   return GAPGroupHomomorphism{typeof(G), typeof(H)}(G, H, mp)
 end
 
 function block_system(G::PermGroup, B::Vector{Int})
-  orb = GAP.Globals.Orbit(G.X, GAP.julia_to_gap(B), GAP.Globals.OnSets)
-  GAP.gap_to_julia(Vector{Vector{Int}}, orb)
+  orb = GAP.Globals.Orbit(G.X, GAP.GapObj(B), GAP.Globals.OnSets)
+  return Vector{Vector{Int}}(orb)
 end
 
 # given a perm group G and a block B, compute a homomorphism into Sym(B^G)
 function action_on_blocks(G::PermGroup, B::Vector{Int})
-  orb = GAP.Globals.Orbit(G.X, GAP.julia_to_gap(B), GAP.Globals.OnSets)
+  orb = GAP.Globals.Orbit(G.X, GAP.GapObj(B), GAP.Globals.OnSets)
   act = GAP.Globals.ActionHomomorphism(G.X, orb, GAP.Globals.OnSets)
   H = GAP.Globals.Image(act)
   T = Oscar._get_type(H)

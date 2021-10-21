@@ -35,7 +35,7 @@ perfect_group(n::Int, m::Int) = perfect_group(FPGroup,n,m)
 
 Return `(n, m)` such that `G` is isomorphic with `perfect_group(n, m)`.
 """
-perfect_identification(G::GAPGroup) = GAP.gap_to_julia(GAP.Globals.PerfectIdentification(G.X))
+perfect_identification(G::GAPGroup) = Tuple{Int,Int}(GAP.Globals.PerfectIdentification(G.X))
 
 """
     number_perfect_groups(n::Int)

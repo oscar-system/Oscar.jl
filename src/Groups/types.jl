@@ -52,12 +52,7 @@ import Hecke:
 
 import Base: ==, parent, show
 
-import GAP.GapObj
-
-# GAP functions returning an integer (or infinity or -infinity) in GAP
-# will in Julia return either an Int or an GapObj; the following union
-# type captures that
-const GapInt = Union{Int,GapObj}
+import GAP: GapObj, GapInt
 
 export
     AutomorphismGroup,
@@ -90,7 +85,7 @@ and `MatrixGroup`.
 abstract type GAPGroup <: AbstractAlgebra.Group end
 
 ## `GapGroup` to GAP group
-GAP.GapObj(obj::GAPGroup) = return obj.X
+GAP.julia_to_gap(obj::GAPGroup) = obj.X
 
 @doc Markdown.doc"""
     GAPGroupElem <: AbstractAlgebra.GroupElem
@@ -105,7 +100,7 @@ i.e., if `g` is a `GAPGroupElem`, then `GapObj(g)` is the `GapObj` underlying `g
 abstract type GAPGroupElem{T<:GAPGroup} <: AbstractAlgebra.GroupElem end
 
 ## `GapGroupElem` to GAP group element
-GAP.GapObj(obj::GAPGroupElem) = return obj.X
+GAP.julia_to_gap(obj::GAPGroupElem) = obj.X
 
 @doc Markdown.doc"""
     BasicGAPGroupElem{T<:GAPGroup} <: GAPGroupElem{T}
