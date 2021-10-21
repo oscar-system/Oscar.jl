@@ -16,7 +16,11 @@
   @test mol == (-t^6 - t^3 - 1)//(t^12 - 2t^9 + 2t^3 - 1)
 
   @test length(basis(RG, 1)) == 0
+  @test length(basis(RG, 1, :reynolds)) == 0
+  @test length(basis(RG, 1, :linear_algebra)) == 0
   @test length(basis(RG, 3)) == 3
+  @test length(basis(RG, 3, :reynolds)) == 3
+  @test length(basis(RG, 3, :linear_algebra)) == 3
 
   primaries = primary_invariants(RG)
   @test dim(ideal(R, primaries)) == 0
@@ -50,7 +54,11 @@
   @test mol == (-t^4 - 1)//(t^8 - 2t^6 + 2t^2 - 1)
 
   @test length(basis(RG, 1)) == 0
+  @test length(basis(RG, 1, :reynolds)) == 0
+  @test length(basis(RG, 1, :linear_algebra)) == 0
   @test length(basis(RG, 2)) == 2
+  @test length(basis(RG, 2, :reynolds)) == 2
+  @test length(basis(RG, 2, :linear_algebra)) == 2
 
   primaries = primary_invariants(RG)
   @test dim(ideal(R, primaries)) == 0

@@ -23,7 +23,10 @@ export
 """
     GroupCoset{T<: Group, S <: GAPGroupElem}
 
-Type of group cosets. It is displayed as `H * x` (right cosets) or `x * H` (left cosets), where `H` is a subgroup of a group `G` and `x` is an element of `G`. Two cosets are equal if, and only if, they are both left (resp. right) and they contain the same elements.
+Type of group cosets. It is displayed as `H * x` (right cosets) or `x * H`
+(left cosets), where `H` is a subgroup of a group `G` and `x` is an element of
+`G`. Two cosets are equal if, and only if, they are both left (resp. right)
+and they contain the same elements.
 """
 struct GroupCoset{T<: GAPGroup, S <: GAPGroupElem} 
    G::T                    # big group containing the subgroup and the element
@@ -65,7 +68,8 @@ end
 
 Return the coset `gH`.
 !!! note
-    Since GAP supports right cosets only, the underlying GAP object of `left_coset(H,g)` is the right coset `H^(g^-1) * g`.
+    Since GAP supports right cosets only, the underlying GAP object of
+    `left_coset(H,g)` is the right coset `H^(g^-1) * g`.
 """
 function left_coset(H::GAPGroup, g::GAPGroupElem)
    @assert elem_type(H) == typeof(g)
@@ -76,8 +80,8 @@ function left_coset(H::GAPGroup, g::GAPGroupElem)
 end
 
 function show(io::IO, x::GroupCoset)
-   a = GAP.gap_to_julia(GAP.Globals.StringViewObj(x.H.X))
-   b = GAP.gap_to_julia(GAP.Globals.StringViewObj(x.repr.X))
+   a = String(GAP.Globals.StringViewObj(x.H.X))
+   b = String(GAP.Globals.StringViewObj(x.repr.X))
    if x.side == :right
       print(io, "Right coset   ", a, " * ", b)
    else
@@ -221,7 +225,9 @@ end
 """
     GroupDoubleCoset{T<: Group, S <: GAPGroupElem}
 
-Group double coset. It is displayed as `H * x * K`, where `H` and `K` are subgroups of a group `G` and `x` is an element of `G`. Two double cosets are equal if, and only if, they contain the same elements.
+Group double coset. It is displayed as `H * x * K`, where `H` and `K` are
+subgroups of a group `G` and `x` is an element of `G`. Two double cosets are
+equal if, and only if, they contain the same elements.
 """
 struct GroupDoubleCoset{T <: GAPGroup, S <: GAPGroupElem}
 # T=type of the group, S=type of the element
@@ -240,11 +246,11 @@ function ==(x::GroupDoubleCoset, y::GroupDoubleCoset)
 end
 
 function Base.show(io::IO, x::GroupDoubleCoset)
-  print(io, GAP.gap_to_julia(GAP.Globals.StringViewObj(x.H.X)),
+  print(io, String(GAP.Globals.StringViewObj(x.H.X)),
             " * ",
-            GAP.gap_to_julia(GAP.Globals.StringViewObj(x.repr.X)),
+            String(GAP.Globals.StringViewObj(x.repr.X)),
             " * ",
-            GAP.gap_to_julia(GAP.Globals.StringViewObj(x.K.X)))
+            String(GAP.Globals.StringViewObj(x.K.X)))
 end
 
 

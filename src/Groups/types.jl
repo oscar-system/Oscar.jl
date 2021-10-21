@@ -52,12 +52,7 @@ import Hecke:
 
 import Base: ==, parent, show
 
-import GAP.GapObj
-
-# GAP functions returning an integer (or infinity or -infinity) in GAP
-# will in Julia return either an Int or an GapObj; the following union
-# type captures that
-const GapInt = Union{Int,GapObj}
+import GAP: GapObj, GapInt
 
 export
     AutomorphismGroup,
@@ -77,21 +72,41 @@ export
 @doc Markdown.doc"""
     GAPGroup <: AbstractAlgebra.Group
 
-The idea is that each object of the abstract type `GAPGroup` stores
-a group object from the GAP system,
-and thus can delegate questions about this group to GAP.
+Each object of the abstract type `GAPGroup` stores a group object from
+the GAP system,
+and thus can delegate questions about this object to GAP.
+
+For expert usage, you can extract the underlying GAP object via `GapObj`,
+i.e., if `G` is a `GAPGroup`, then `GapObj(G)` is the `GapObj` underlying `G`.
 
 Concrete subtypes of `GAPGroup` are `PermGroup`, `FPGroup`, `PcGroup`,
 and `MatrixGroup`.
 """
 abstract type GAPGroup <: AbstractAlgebra.Group end
-abstract type GAPGroupElem{T<:GAPGroup} <: AbstractAlgebra.GroupElem end
+
+## `GapGroup` to GAP group
+GAP.julia_to_gap(obj::GAPGroup) = obj.X
 
 @doc Markdown.doc"""
-    BasicGAPGroupElem{T<:GAPGroup}
+    GAPGroupElem <: AbstractAlgebra.GroupElem
+
+Each object of the abstract type `GAPGroupElem` stores a group element
+object from the GAP system,
+and thus can delegate questions about this object to GAP.
+
+For expert usage, you can extract the underlying GAP object via `GapObj`,
+i.e., if `g` is a `GAPGroupElem`, then `GapObj(g)` is the `GapObj` underlying `g`.
+"""
+abstract type GAPGroupElem{T<:GAPGroup} <: AbstractAlgebra.GroupElem end
+
+## `GapGroupElem` to GAP group element
+GAP.julia_to_gap(obj::GAPGroupElem) = obj.X
+
+@doc Markdown.doc"""
+    BasicGAPGroupElem{T<:GAPGroup} <: GAPGroupElem{T}
 
 The type `BasicGAPGroupElem` gathers all types of group elements
-described only by an underlying GAP object.
+described *only* by an underlying GAP object.
 
 If $x$ is an element of the group `G` of type `T`,
 then the type of $x$ is `BasicGAPGroupElem{T}`.
@@ -255,7 +270,8 @@ end
 """
     SemidirectProductGroup{S,T}
 
-Semidirect product of two groups of type `S` and `T` respectively, or subgroup of a semidirect product of groups.
+Semidirect product of two groups of type `S` and `T` respectively, or
+subgroup of a semidirect product of groups.
 """
 struct SemidirectProductGroup{S<:GAPGroup, T<:GAPGroup} <: GAPGroup 
   X::GapObj
@@ -269,7 +285,9 @@ end
 """
     WreathProductGroup
 
-Wreath product of a group `G` and a group of permutations `H`, or a generic group `H` together with the homomorphism `a` from `H` to a permutation group.
+Wreath product of a group `G` and a group of permutations `H`, or a generic
+group `H` together with the homomorphism `a` from `H` to a permutation
+group.
 """
 struct WreathProductGroup <: GAPGroup
   X::GapObj
@@ -306,7 +324,7 @@ parent_type(::T) where T<:BasicGAPGroupElem{S} where S = S
 # Julia type such as `PermGroup`.
 #
  
-const _gap_group_types = []
+const _gap_group_types = Tuple{GAP.GapObj, Type}[]
 
 function _get_type(G::GapObj)
   for pair in _gap_group_types
@@ -316,4 +334,3 @@ function _get_type(G::GapObj)
   end
   error("Not a known type of group")
 end
-

@@ -18,22 +18,20 @@ Build the normal cones at the first vertex of the square (in this case [-1,-1]).
 julia> square = cube(2)
 A polyhedron in ambient dimension 2
 
-julia> vertices_as_point_matrix(square)
-pm::Matrix<pm::Rational>
--1 -1
-1 -1
--1 1
-1 1
-
+julia> vertices(square)
+4-element VectorIterator{PointVector{Polymake.Rational}}:
+ [-1, -1]
+ [1, -1]
+ [-1, 1]
+ [1, 1]
 
 julia> nc = normal_cone(square, 1)
 A polyhedral cone in ambient dimension 2
 
-julia> rays_as_point_matrix(nc)
-pm::Matrix<pm::Rational>
-1 0
-0 1
-
+julia> rays(nc)
+2-element VectorIterator{RayVector{Polymake.Rational}}:
+ [1, 0]
+ [0, 1]
 ```
 """
 function normal_cone(P::Polyhedron, i::Int64)
@@ -61,20 +59,14 @@ julia> G = symmetric_group(3);
 julia> P = orbit_polytope(V, G)
 A polyhedron in ambient dimension 3
 
-julia> collect(vertices(P))
-6-element Vector{Polymake.Vector{Polymake.Rational}}:
- pm::Vector<pm::Rational>
-1 2 3
- pm::Vector<pm::Rational>
-1 3 2
- pm::Vector<pm::Rational>
-2 1 3
- pm::Vector<pm::Rational>
-2 3 1
- pm::Vector<pm::Rational>
-3 1 2
- pm::Vector<pm::Rational>
-3 2 1
+julia> vertices(P)
+6-element VectorIterator{PointVector{Polymake.Rational}}:
+ [1, 2, 3]
+ [1, 3, 2]
+ [2, 1, 3]
+ [2, 3, 1]
+ [3, 1, 2]
+ [3, 2, 1]
 ```
 """
 function orbit_polytope(V::AbstractMatrix, G::PermGroup)
@@ -126,14 +118,11 @@ x^3*y + 3*x*y^2 + 1
 julia> NP = newton_polytope(f)
 A polyhedron in ambient dimension 2
 
-julia> collect(vertices(NP))
-3-element Vector{Polymake.Vector{Polymake.Rational}}:
- pm::Vector<pm::Rational>
-3 1
- pm::Vector<pm::Rational>
-1 2
- pm::Vector<pm::Rational>
-0 0
+julia> vertices(NP)
+3-element VectorIterator{PointVector{Polymake.Rational}}:
+ [3, 1]
+ [1, 2]
+ [0, 0]
 ```
 """
 function newton_polytope(f)
@@ -160,12 +149,10 @@ julia> UH2 = convex_hull([0 0],[0 1],[1 0]);
 julia> PO = intersect(UH1, UH2)
 A polyhedron in ambient dimension 2
 
-julia> collect(rays(PO))
-2-element Vector{Polymake.Vector{Polymake.Rational}}:
- pm::Vector<pm::Rational>
-1 0
- pm::Vector<pm::Rational>
-0 1
+julia> rays(PO)
+2-element VectorIterator{RayVector{Polymake.Rational}}:
+ [1, 0]
+ [0, 1]
 ```
 """
 function intersect(P::Polyhedron, Q::Polyhedron)
@@ -366,16 +353,12 @@ julia> v = [-100, -200, -300];
 julia> S = P + v
 A polyhedron in ambient dimension 3
 
-julia> collect(vertices(S))
-4-element Vector{Polymake.Vector{Polymake.Rational}}:
- pm::Vector<pm::Rational>
-0 0 0
- pm::Vector<pm::Rational>
-1 0 0
- pm::Vector<pm::Rational>
-0 1 0
- pm::Vector<pm::Rational>
-0 0 1
+julia> vertices(S)
+4-element VectorIterator{PointVector{Polymake.Rational}}:
+ [0, 0, 0]
+ [1, 0, 0]
+ [0, 1, 0]
+ [0, 0, 1]
 ```
 """
 function +(P::Polyhedron,v::AbstractVector)
@@ -405,16 +388,12 @@ julia> v = [-100, -200, -300];
 julia> S = v + P
 A polyhedron in ambient dimension 3
 
-julia> collect(vertices(S))
-4-element Vector{Polymake.Vector{Polymake.Rational}}:
- pm::Vector<pm::Rational>
-0 0 0
- pm::Vector<pm::Rational>
-1 0 0
- pm::Vector<pm::Rational>
-0 1 0
- pm::Vector<pm::Rational>
-0 0 1
+julia> vertices(S)
+4-element VectorIterator{PointVector{Polymake.Rational}}:
+ [0, 0, 0]
+ [1, 0, 0]
+ [0, 1, 0]
+ [0, 0, 1]
 ```
 """
 +(v::AbstractVector,P::Polyhedron) = P+v
@@ -432,46 +411,60 @@ Here we take a look at the facets of the 7-simplex and a scaled 7-simplex:
 julia> s = simplex(7)
 A polyhedron in ambient dimension 7
 
-julia> collect(facets(s))
-8-element Vector{Tuple{Polymake.Vector{Polymake.Rational}, Polymake.Rational}}:
- (pm::Vector<pm::Rational>
--1 0 0 0 0 0 0, 0)
- (pm::Vector<pm::Rational>
-0 -1 0 0 0 0 0, 0)
- (pm::Vector<pm::Rational>
-0 0 -1 0 0 0 0, 0)
- (pm::Vector<pm::Rational>
-0 0 0 -1 0 0 0, 0)
- (pm::Vector<pm::Rational>
-0 0 0 0 -1 0 0, 0)
- (pm::Vector<pm::Rational>
-0 0 0 0 0 -1 0, 0)
- (pm::Vector<pm::Rational>
-0 0 0 0 0 0 -1, 0)
- (pm::Vector<pm::Rational>
-1 1 1 1 1 1 1, 1)
+julia> facets(s)
+8-element HalfspaceIterator{Halfspace}:
+ The Halfspace of R^7 described by
+1: -x₁ ≦ 0
+
+ The Halfspace of R^7 described by
+1: -x₂ ≦ 0
+
+ The Halfspace of R^7 described by
+1: -x₃ ≦ 0
+
+ The Halfspace of R^7 described by
+1: -x₄ ≦ 0
+
+ The Halfspace of R^7 described by
+1: -x₅ ≦ 0
+
+ The Halfspace of R^7 described by
+1: -x₆ ≦ 0
+
+ The Halfspace of R^7 described by
+1: -x₇ ≦ 0
+
+ The Halfspace of R^7 described by
+1: x₁ + x₂ + x₃ + x₄ + x₅ + x₆ + x₇ ≦ 1
 
 julia> t = simplex(7, 5)
 A polyhedron in ambient dimension 7
 
-julia> collect(facets(t))
-8-element Vector{Tuple{Polymake.Vector{Polymake.Rational}, Polymake.Rational}}:
- (pm::Vector<pm::Rational>
--1 0 0 0 0 0 0, 0)
- (pm::Vector<pm::Rational>
-0 -1 0 0 0 0 0, 0)
- (pm::Vector<pm::Rational>
-0 0 -1 0 0 0 0, 0)
- (pm::Vector<pm::Rational>
-0 0 0 -1 0 0 0, 0)
- (pm::Vector<pm::Rational>
-0 0 0 0 -1 0 0, 0)
- (pm::Vector<pm::Rational>
-0 0 0 0 0 -1 0, 0)
- (pm::Vector<pm::Rational>
-0 0 0 0 0 0 -1, 0)
- (pm::Vector<pm::Rational>
-1 1 1 1 1 1 1, 5)
+julia> facets(t)
+8-element HalfspaceIterator{Halfspace}:
+ The Halfspace of R^7 described by
+1: -x₁ ≦ 0
+
+ The Halfspace of R^7 described by
+1: -x₂ ≦ 0
+
+ The Halfspace of R^7 described by
+1: -x₃ ≦ 0
+
+ The Halfspace of R^7 described by
+1: -x₄ ≦ 0
+
+ The Halfspace of R^7 described by
+1: -x₅ ≦ 0
+
+ The Halfspace of R^7 described by
+1: -x₆ ≦ 0
+
+ The Halfspace of R^7 described by
+1: -x₇ ≦ 0
+
+ The Halfspace of R^7 described by
+1: x₁ + x₂ + x₃ + x₄ + x₅ + x₆ + x₇ ≦ 5
 ```
 """
 simplex(d::Int64,n) = Polyhedron(Polymake.polytope.simplex(d,n))
@@ -492,46 +485,60 @@ polytope:
 julia> C = cross(3)
 A polyhedron in ambient dimension 3
 
-julia> collect(facets(C))
-8-element Vector{Tuple{Polymake.Vector{Polymake.Rational}, Polymake.Rational}}:
- (pm::Vector<pm::Rational>
-1 1 1, 1)
- (pm::Vector<pm::Rational>
--1 1 1, 1)
- (pm::Vector<pm::Rational>
-1 -1 1, 1)
- (pm::Vector<pm::Rational>
--1 -1 1, 1)
- (pm::Vector<pm::Rational>
-1 1 -1, 1)
- (pm::Vector<pm::Rational>
--1 1 -1, 1)
- (pm::Vector<pm::Rational>
-1 -1 -1, 1)
- (pm::Vector<pm::Rational>
--1 -1 -1, 1)
+julia> facets(C)
+8-element HalfspaceIterator{Halfspace}:
+ The Halfspace of R^3 described by
+1: x₁ + x₂ + x₃ ≦ 1
+
+ The Halfspace of R^3 described by
+1: -x₁ + x₂ + x₃ ≦ 1
+
+ The Halfspace of R^3 described by
+1: x₁ - x₂ + x₃ ≦ 1
+
+ The Halfspace of R^3 described by
+1: -x₁ - x₂ + x₃ ≦ 1
+
+ The Halfspace of R^3 described by
+1: x₁ + x₂ - x₃ ≦ 1
+
+ The Halfspace of R^3 described by
+1: -x₁ + x₂ - x₃ ≦ 1
+
+ The Halfspace of R^3 described by
+1: x₁ - x₂ - x₃ ≦ 1
+
+ The Halfspace of R^3 described by
+1: -x₁ - x₂ - x₃ ≦ 1
 
 julia> D = cross(3, 2)
 A polyhedron in ambient dimension 3
 
-julia> collect(facets(D))
-8-element Vector{Tuple{Polymake.Vector{Polymake.Rational}, Polymake.Rational}}:
- (pm::Vector<pm::Rational>
-1 1 1, 2)
- (pm::Vector<pm::Rational>
--1 1 1, 2)
- (pm::Vector<pm::Rational>
-1 -1 1, 2)
- (pm::Vector<pm::Rational>
--1 -1 1, 2)
- (pm::Vector<pm::Rational>
-1 1 -1, 2)
- (pm::Vector<pm::Rational>
--1 1 -1, 2)
- (pm::Vector<pm::Rational>
-1 -1 -1, 2)
- (pm::Vector<pm::Rational>
--1 -1 -1, 2)
+julia> facets(D)
+8-element HalfspaceIterator{Halfspace}:
+ The Halfspace of R^3 described by
+1: x₁ + x₂ + x₃ ≦ 2
+
+ The Halfspace of R^3 described by
+1: -x₁ + x₂ + x₃ ≦ 2
+
+ The Halfspace of R^3 described by
+1: x₁ - x₂ + x₃ ≦ 2
+
+ The Halfspace of R^3 described by
+1: -x₁ - x₂ + x₃ ≦ 2
+
+ The Halfspace of R^3 described by
+1: x₁ + x₂ - x₃ ≦ 2
+
+ The Halfspace of R^3 described by
+1: -x₁ + x₂ - x₃ ≦ 2
+
+ The Halfspace of R^3 described by
+1: x₁ - x₂ - x₃ ≦ 2
+
+ The Halfspace of R^3 described by
+1: -x₁ - x₂ - x₃ ≦ 2
 ```
 """
 cross(d::Int64,n) = Polyhedron(Polymake.polytope.cross(d,n))
@@ -674,3 +681,30 @@ Essentially, one can read the
 upperbounds.
 """
 upper_bound_theorem(d::Int,n::Int) = Polyhedron(Polymake.polytope.upper_bound_theorem(d,n))
+
+
+@doc Markdown.doc"""
+    polarize(P::Polyhedron)
+
+Return the polar dual of the polyhedron `P`, consisting of all linear functions
+whose evaluation on `P` does not exceed 1.
+
+# Examples
+```jldoctest
+julia> square = cube(2)
+A polyhedron in ambient dimension 2
+
+julia> P = polarize(square)
+A polyhedron in ambient dimension 2
+
+julia> vertices(P)
+4-element VectorIterator{PointVector{Polymake.Rational}}:
+ [1, 0]
+ [-1, 0]
+ [0, 1]
+ [0, -1]
+```
+"""
+function polarize(P::Polyhedron)
+    return Polyhedron(Polymake.polytope.polarize(pm_polytope(P)))
+end

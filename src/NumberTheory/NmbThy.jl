@@ -147,10 +147,10 @@ function irreducibles(S::Vector{NfAbsOrdIdl{AnticNumberField,nf_elem}})
 
   V = matrix([[valuation(ms(x), y) for y = S] for x = gens(s)])
 
-  p = _polytope(C = V)
-  z = p.HILBERT_BASIS_GENERATORS
-  @assert nrows(z[2]) == 0 #no idea....
-  res = [O(evaluate(ms(s(map(fmpz, Array(z[1][i, 2:end])))))) for i=1:nrows(z[1]) if z[1][i,1] == 0]
+  cone = cone_from_inequalities(-V)
+  @assert ispointed(cone) # otherwise the Hilbert basis is not unique
+  hb = hilbert_basis(cone)
+  res = [O(evaluate(ms(s(map(fmpz, Array(v)))))) for v in hb]
   return res
 end
 

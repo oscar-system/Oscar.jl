@@ -15,7 +15,7 @@
 
     @testset "core functionality" begin
         @test issmooth(NFsquare)
-        @test rays_as_point_matrix(NFsquare) == [1 0; -1 0; 0 1; 0 -1]
+        @test rays(NFsquare).m == [1 0; -1 0; 0 1; 0 -1]
         @test isregular(NFsquare)
         @test iscomplete(NFsquare)
         @test !iscomplete(F0)
@@ -26,15 +26,16 @@
         @test nrays(F2) == 2
         @test dim.(maximal_cones(F1)) == [2,2]
         @test nmaximal_cones(F1) == 2
-        @test lineality_space(F2) == L
+        @test lineality_space(F2).m == L
         @test length(collect(rays(F0))) == 3
-        
+
         II = maximal_cones_as_incidence_matrix(NFsquare)
-        NF0 = PolyhedralFan(rays_as_point_matrix(NFsquare), II)
+        NF0 = PolyhedralFan(rays(NFsquare).m, II)
         @test nrays(NF0) == 4
         FF0 = face_fan(C0)
         @test nrays(FF0) == 4
         @test !issmooth(FF0)
+        @test f_vector(NFsquare) == [4, 4]
     end
 
 end

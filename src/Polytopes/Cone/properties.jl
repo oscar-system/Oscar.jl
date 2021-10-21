@@ -4,22 +4,11 @@
 ###############################################################################
 ###############################################################################
 
-struct ConeRayIterator
-    cone::Cone
-end
+rays(as::Type{RayVector{T}}, C::Cone) where T = VectorIterator{as}(C.pm_cone.RAYS)
 
-function Base.iterate(iter::ConeRayIterator, index = 1)
-    rays = pm_cone(iter.cone).RAYS
-    if size(rays, 1) < index
-        return nothing
-    end
+rays(::Type{RayVector}, C::Cone) = rays(RayVector{Polymake.Rational}, C)
 
-    return (rays[index, :], index + 1)
-end
-Base.eltype(::Type{ConeRayIterator}) = Polymake.Vector{Polymake.Rational}
-Base.length(iter::ConeRayIterator) = nrays(iter.cone)
-
-"""
+@doc Markdown.doc"""
     rays(C::Cone)
 
 Return the rays of `C`.
@@ -31,15 +20,24 @@ julia> R = [1 0; 0 1; 0 2];
 
 julia> PO = positive_hull(R);
 
-julia> collect(rays(PO))
-2-element Vector{Polymake.Vector{Polymake.Rational}}:
- pm::Vector<pm::Rational>
-1 0
- pm::Vector<pm::Rational>
-0 1
+julia> rays(PO)
+2-element VectorIterator{RayVector{Polymake.Rational}}:
+ [1, 0]
+ [0, 1]
 ```
 """
-rays(C::Cone) = ConeRayIterator(C)
+rays(C::Cone) = rays(RayVector{Polymake.Rational}, C)
+
+function faces(as::Type{T}, C::Cone, face_dim::Int) where T<:Cone
+   n = face_dim-length(lineality_space(C))
+   if n < 1
+      return nothing
+   end
+   cfaces = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(C.pm_cone, n))
+   return PolyhedronOrConeIterator{as}(C.pm_cone.RAYS,cfaces, C.pm_cone.LINEALITY_SPACE)
+end
+
+faces(C::Cone, face_dim::Int) = faces(Cone, C, face_dim)
 
 ###############################################################################
 ###############################################################################
@@ -50,8 +48,25 @@ rays(C::Cone) = ConeRayIterator(C)
 ###############################################################################
 ## Scalar properties
 ###############################################################################
+@doc Markdown.doc"""
+    nfacets(C::Cone)
 
+Return the number of facets of a cone `C`.
+
+# Examples
+The cone over a square at height one has four facets.
+```jldoctest
+julia> C = positive_hull([1 0 0; 1 1 0; 1 1 1; 1 0 1])
+A polyhedral cone in ambient dimension 3
+
+julia> nfacets(C)
+4
+```
 """
+nfacets(C::Cone) = pm_cone(C).N_FACETS
+
+
+@doc Markdown.doc"""
     nrays(C::Cone)
 
 Return the number of rays of `C`.
@@ -69,7 +84,7 @@ julia> nrays(PO)
 """
 nrays(C::Cone) = pm_cone(C).N_RAYS
 
-"""
+@doc Markdown.doc"""
     dim(C::Cone)
 
 Return the dimension of `C`.
@@ -85,7 +100,7 @@ julia> dim(C)
 """
 dim(C::Cone) = pm_cone(C).CONE_DIM
 
-"""
+@doc Markdown.doc"""
     ambient_dim(C::Cone)
 
 Return the ambient dimension of `C`.
@@ -101,7 +116,7 @@ julia> ambient_dim(C)
 """
 ambient_dim(C::Cone) = pm_cone(C).CONE_AMBIENT_DIM
 
-"""
+@doc Markdown.doc"""
     codim(C::Cone)
 
 Return the codimension of `C`.
@@ -117,10 +132,76 @@ julia> codim(C)
 """
 codim(C::Cone) = ambient_dim(C)-dim(C)
 
+
+@doc Markdown.doc"""
+    f_vector(C::Cone)
+
+Compute the vector $(f₁,f₂,...,f_{(dim(C)-1))$` where $f_i$ is the number of
+faces of $C$ of dimension $i$.
+
+# Examples
+Take the cone over a square, then the f-vector of the cone is the same as of the square.
+```jldoctest
+julia> C = positive_hull([1 0 0; 1 1 0; 1 1 1; 1 0 1])
+A polyhedral cone in ambient dimension 3
+
+julia> f_vector(C)
+2-element Vector{Polymake.Integer}:
+ 4
+ 4
+
+julia> square = cube(2)
+A polyhedron in ambient dimension 2
+
+julia> f_vector(square)
+2-element Vector{Int64}:
+ 4
+ 4
+```
+"""
+function f_vector(C::Cone)
+    pmc = pm_cone(C)
+    ldim = pmc.LINEALITY_DIM
+    return vcat(fill(0,ldim),pmc.F_VECTOR)
+end
+
+
+@doc Markdown.doc"""
+    lineality_dim(C::Cone)
+
+Compute the dimension of the lineality space of $C$, i.e. the largest linear
+subspace contained in $C$.
+
+# Examples
+A cone is pointed if and only if the dimension of its lineality space is zero.
+```jldoctest
+julia> C = positive_hull([1 0 0; 1 1 0; 1 1 1; 1 0 1])
+A polyhedral cone in ambient dimension 3
+
+julia> ispointed(C)
+true
+
+julia> lineality_dim(C)
+0
+
+julia> C1 = Cone([1 0],[0 1; 0 -1])
+A polyhedral cone in ambient dimension 2
+
+julia> ispointed(C1)
+false
+
+julia> lineality_dim(C1)
+1
+```
+"""
+lineality_dim(C::Cone) = pm_cone(C).LINEALITY_DIM
+
+
+
 ###############################################################################
 ## Boolean properties
 ###############################################################################
-"""
+@doc Markdown.doc"""
     ispointed(C::Cone)
 
 Determine whether `C` is pointed, i.e. whether the origin is a face of `C`.
@@ -141,7 +222,7 @@ true
 """
 ispointed(C::Cone) = pm_cone(C).POINTED
 
-"""
+@doc Markdown.doc"""
     isfulldimensional(C::Cone)
 
 Determine whether `C` is full-dimensional.
@@ -161,51 +242,64 @@ isfulldimensional(C::Cone) = pm_cone(C).FULL_DIM
 ## Points properties
 ###############################################################################
 
-"""
-    rays_as_point_matrix(C::Cone)
+# TODO: facets as `Vector`? or `Matrix`?
+@doc Markdown.doc"""
+    facets(as::Type{T} = Halfspace, C::Cone)
 
-Return the rays of `C` as rows in a matrix.
+Return the facets of `C` in the format defined by `as`.
 
-# Examples
-Here a cone is constructed from three rays. Calling `rays_as_point_matrix` reveals that one of these was redundant:
-```jldoctest
-julia> R = [1 0; 0 1; 0 2];
-
-julia> PO = positive_hull(R);
-
-julia> rays_as_point_matrix(PO)
-pm::Matrix<pm::Rational>
-1 0
-0 1
-```
-"""
-function rays_as_point_matrix(C::Cone)
-    pm_cone(C).RAYS
-end
-
-
-"""
-    facets_as_point_matrix(C::Cone)
-
-Return the facets of `C` as rows of a matrix.
+The allowed values for `as` are
+* `Halfspace`,
+* `Cone.
 
 # Examples
-From this little example it is easy to see that the facets are displayed as their inside-pointing (w.r.t. the cone) normals.
 ```jldoctest
-julia> R = [1 0; 1 1];
+julia> c = positive_hull([1 0 0; 0 1 0; 1 1 1])
+A polyhedral cone in ambient dimension 3
 
-julia> C = positive_hull(R);
+julia> f = facets(Halfspace, c)
+3-element HalfspaceIterator{Halfspace}:
+ The Halfspace of R^3 described by
+1: -x₃ ≦ 0
 
-julia> facets_as_point_matrix(C)
-pm::Matrix<pm::Rational>
-0 1
-1 -1
+ The Halfspace of R^3 described by
+1: -x₁ + x₃ ≦ 0
+
+ The Halfspace of R^3 described by
+1: -x₂ + x₃ ≦ 0
 ```
 """
-facets_as_point_matrix(C::Cone) = pm_cone(C).FACETS
+facets(as::Type{T}, C::Cone) where T<:Union{Halfspace, Cone} = HalfspaceIterator{as}(-pm_cone(C).FACETS)
 
+@doc Markdown.doc"""
+    facets(as::Type{T} = Halfspace, C::Cone)
 
+Return the facets of `C` in the format defined by `as`.
+
+The allowed values for `as` are
+* `Halfspace`,
+* `Cone.
+
+# Examples
+```jldoctest
+julia> c = positive_hull([1 0 0; 0 1 0; 1 1 1])
+A polyhedral cone in ambient dimension 3
+
+julia> f = facets(c)
+3-element HalfspaceIterator{Halfspace}:
+ The Halfspace of R^3 described by
+1: -x₃ ≦ 0
+
+ The Halfspace of R^3 described by
+1: -x₁ + x₃ ≦ 0
+
+ The Halfspace of R^3 described by
+1: -x₂ + x₃ ≦ 0
+```
 """
+facets(C::Cone) = facets(Halfspace, C)
+
+@doc Markdown.doc"""
     lineality_space(C::Cone)
 
 Return a basis of the lineality space of `C`.
@@ -217,13 +311,33 @@ This gives us a 1-dimensional lineality.
 julia> UH = Cone([1 0; 0 1; -1 0]);
 
 julia> lineality_space(UH)
-pm::Matrix<pm::Rational>
-1 0
+1-element VectorIterator{RayVector{Polymake.Rational}}:
+ [1, 0]
 ```
 """
-lineality_space(C::Cone) = pm_cone(C).LINEALITY_SPACE
+lineality_space(C::Cone) = VectorIterator{RayVector{Polymake.Rational}}(pm_cone(C).LINEALITY_SPACE)
 
+@doc Markdown.doc"""
+    linear_span(C::Cone)
+
+Return the (linear) hyperplanes generating the linear span of `C`.
+
+# Examples
+This 2-dimensional cone in $\mathbb{R}^3$ lives in exactly one hyperplane $H$, with
+$H = \{ (x_1, x_2, x_3) | x_3 = 0 \}$.
+```jldoctest
+julia> c = Cone([1 0 0; 0 1 0]);
+
+julia> linear_span(c)
+1-element HalfspaceIterator{Hyperplane}:
+ The Hyperplane of R^3 described by
+1: x₃ = 0
+
+```
 """
+linear_span(C::Cone) = HalfspaceIterator{Hyperplane}(C.pm_cone.LINEAR_SPAN)
+
+@doc Markdown.doc"""
     hilbert_basis(C::Cone)
 
 Return the Hilbert basis of a pointed cone `C` as the rows of a matrix.
@@ -243,7 +357,7 @@ pm::Matrix<pm::Integer>
 """
 function hilbert_basis(C::Cone)
    if ispointed(C)
-      return pm_cone(C).HILBERT_BASIS_GENERATORS[1]
+      return VectorIterator{PointVector{Polymake.Integer}}(pm_cone(C).HILBERT_BASIS_GENERATORS[1])
    else
       throw(ArgumentError("Cone not pointed."))
    end

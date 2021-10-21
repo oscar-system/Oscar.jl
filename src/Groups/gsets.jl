@@ -12,6 +12,7 @@ if isdefined(Hecke, :isprimitive)
 end
 
 export
+    all_blocks,
     blocks,
     isprimitive,
     isregular,
@@ -84,16 +85,16 @@ gset(G::T, Omega) where T<:GAPGroup = gset_by_type(G, Omega, eltype(Omega))
 
 
 ## natural action of permutations on positive integers
-gset_by_type(G::PermGroup, Omega, ::Type{T}) where T<:Union{Base.Integer,fmpz} = GSetByElements(G, ^, Omega)
+gset_by_type(G::PermGroup, Omega, ::Type{T}) where T<:IntegerUnion = GSetByElements(G, ^, Omega)
 
 ## action of permutations on sets of positive integers
-gset_by_type(G::PermGroup, Omega, ::Type{T}) where T<:Set{T2} where T2<:Union{Base.Integer,fmpz} = GSetByElements(G, on_sets, Omega)
+gset_by_type(G::PermGroup, Omega, ::Type{T}) where T<:Set{T2} where T2<:IntegerUnion = GSetByElements(G, on_sets, Omega)
 
 ## action of permutations on vectors of positive integers
-gset_by_type(G::PermGroup, Omega, ::Type{T}) where T<:Vector{T2} where T2<:Union{Base.Integer,fmpz} = GSetByElements(G, on_tuples, Omega)
+gset_by_type(G::PermGroup, Omega, ::Type{T}) where T<:Vector{T2} where T2<:IntegerUnion = GSetByElements(G, on_tuples, Omega)
 
 ## action of permutations on tuples of positive integers
-gset_by_type(G::PermGroup, Omega, ::Type{T}) where T<:Tuple{Vararg{T2}} where T2<:Union{Base.Integer,fmpz} = GSetByElements(G, on_tuples, Omega)
+gset_by_type(G::PermGroup, Omega, ::Type{T}) where T<:Tuple{Vararg{T2}} where T2<:IntegerUnion = GSetByElements(G, on_tuples, Omega)
 
 ## (add more such actions: on sets of sets, on sets of tuples, ...)
 
@@ -213,7 +214,7 @@ end
 #        `experimental/GaloisGrp/Group.jl`
 #      - Provide more convenience methods for "natural" actions",
 #        as for `gset`?
-# Hecke.orbit(G::PermGroup, pt::T) where {T<:Union{Base.Integer,fmpz}} = GSetByElements(G, [pt])
+# Hecke.orbit(G::PermGroup, pt::T) where {T<:IntegerUnion} = GSetByElements(G, [pt])
 
 
 #############################################################################
@@ -389,7 +390,7 @@ acting_domain(Omega::GSet) = Omega.group
 blocks(G::GSet) = error("not implemented")
 maximal_blocks(G::GSet) = error("not implemented")
 representatives_minimal_blocks(G::GSet) = error("not implemented")
-allblocks(G::GSet) = error("not implemented")
+all_blocks(G::GSet) = error("not implemented")
 
 function istransitive(Omega::GSet)
     length(Omega.seeds) == 1 && return true
@@ -409,115 +410,108 @@ isprimitive(G::GSet) = error("not implemented")
 """
     blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
 
-Return a block system for the action of `G` over `L`, i.e. a minimal
-non-trivial partition of `L` preserved by the action of `G`. Here, `L`
-must be a subvector of [1..degree(`G`)] and it is considered only the
-action of `H` on `L`, where `H` is the subgroup of `G` that moves only
-points in `L`.
+Return a block system for the action of `G` on `L`, i.e.,
+a non-trivial partition of `L` preserved by the action of `G`.
+
+Here, `L` must be a subvector of `1:degree(G)` on which `G` acts transitively.
+`G` may move points outside `L`, in this case the restriction of the action
+of the set stabilizer of `L` in `G` to `L` is considered.
 
 An exception is thrown if this action is not transitive.
 """
-function blocks(G::PermGroup, L::AbstractVector{Int})
-   @assert istransitive(G,L) "The group action is not transitive"
-   l = GAP.gap_to_julia(GAP.Globals.Blocks(G.X, GAP.julia_to_gap(L)))
-   return [ [y for y in l1] for l1 in l]              # to return a vector of integers
+function blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
+   @assert istransitive(G, L) "The group action is not transitive"
+   return Vector{Vector{Int}}(GAP.Globals.Blocks(G.X, GAP.GapObj(L)))
 end
 
-blocks(G::PermGroup) = blocks(G,[i for i in GAP.gap_to_julia(GAP.Globals.MovedPoints(G.X))])
 
 """
     maximal_blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
 
-Return a maximal block system for the action of `G` over `L`, i.e. a
-maximal non-trivial partition of `L` preserved by the action of `G`.
-Here, `L` must be a subvector of [1..degree(`G`)] and it is considered only
-the action of `H` on `L`, where `H` is the subgroup of `G` that moves
-only points in `L`.
+Return a maximal block system for the action of `G` on `L`, i.e.,
+a maximal non-trivial partition of `L` preserved by the action of `G`.
+
+Here, `L` must be a subvector of `1:degree(G)` on which `G` acts transitively.
+`G` may move points outside `L`, in this case the restriction of the action
+of the set stabilizer of `L` in `G` to `L` is considered.
 
 An exception is thrown if this action is not transitive.
 """
-function maximal_blocks(G::PermGroup, L::AbstractVector{Int})
-   @assert istransitive(G,L) "The group action is not transitive"
-   l = GAP.gap_to_julia(GAP.Globals.MaximalBlocks(G.X, GAP.julia_to_gap(L)))
-   return [ [y for y in l1] for l1 in l]              # to return a vector of integers
+function maximal_blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
+   @assert istransitive(G, L) "The group action is not transitive"
+   return Vector{Vector{Int}}(GAP.Globals.MaximalBlocks(G.X, GAP.GapObj(L)))
 end
 
-maximal_blocks(G::PermGroup) = maximal_blocks(G,[i for i in GAP.gap_to_julia(GAP.Globals.MovedPoints(G.X))])
 
 """
     representatives_minimal_blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
 
 Return a list of block representatives for all minimal non-trivial block
-systems for the action of `G` over `L`. Here, `L` must be a subvector of
-[1..degree(`G`)] and it is considered only the action of `H` on `L`, where
-`H` is the subgroup of `G` that moves only points in `L`.
+systems for the action of `G` on `L`.
+
+Here, `L` must be a subvector of `1:degree(G)` on which `G` acts transitively.
+`G` may move points outside `L`, in this case the restriction of the action
+of the set stabilizer of `L` in `G` to `L` is considered.
 
 An exception is thrown if this action is not transitive.
 """
-function representatives_minimal_blocks(G::PermGroup, L::AbstractVector{Int})
-   @assert istransitive(G,L) "The group action is not transitive"
-   l = GAP.gap_to_julia(GAP.Globals.RepresentativesMinimalBlocks(G.X, GAP.julia_to_gap(L)))
-   return [ [y for y in l1] for l1 in l]              # to return a vector of integers
+function representatives_minimal_blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
+   @assert istransitive(G, L) "The group action is not transitive"
+   return Vector{Vector{Int}}(GAP.Globals.RepresentativesMinimalBlocks(G.X, GAP.GapObj(L)))
 end
 
-representatives_minimal_blocks(G::PermGroup) = minimal_blocks(G,[i for i in GAP.gap_to_julia(GAP.Globals.MovedPoints(G.X))])
 
 """
-    allblocks(G::PermGroup)
+    all_blocks(G::PermGroup)
 
 Return a list of representatives of all block systems for the action of
 `G` on the set of moved points of `G`.
 """
-function allblocks(G::PermGroup)
-   l = GAP.gap_to_julia(GAP.Globals.AllBlocks(G.X))
-   return [ [y for y in l1] for l1 in l]              # to return a vector of integers
-end
+all_blocks(G::PermGroup) = Vector{Vector{Int}}(GAP.Globals.AllBlocks(G.X))
+#TODO: Do we really want to act on the set of moved points?
+
 
 """
-    transitivity(G::PermGroup, L::AbstractVector{Int})
+    transitivity(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
 
-Return the maximum `k` such that the action of `G` over `L` is
-`k`-transitive. The output is `0` if `G` is not transitive. If `L` is
-not specified, then `L` is taken as [1,...,degree(`G`)].
+Return the maximum `k` such that the action of `G` on `L` is
+`k`-transitive. The output is `0` if `G` is not transitive on `L`.
 """
-transitivity(G::PermGroup, L::AbstractVector{Int}) = GAP.Globals.Transitivity(G.X, GAP.julia_to_gap(L))
-transitivity(G::PermGroup) = GAP.Globals.Transitivity(G.X, GAP.julia_to_gap(1:G.deg))
+transitivity(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAP.Globals.Transitivity(G.X, GAP.GapObj(L))
 
 """
-    istransitive(G::PermGroup, L::AbstractVector{Int})
+    istransitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
 
-Return whether the action of the group `G` on `L` is transitive. If `L`
-is not specified, then `L` is taken as [1,...,degree(`G`)].
+Return whether the action of `G` on `L` is transitive.
 """
-istransitive(G::PermGroup, L::AbstractVector{Int}) = GAP.Globals.IsTransitive(G.X, GAP.julia_to_gap(L))
-istransitive(G::PermGroup) = GAP.Globals.IsTransitive(G.X, GAP.julia_to_gap(1:G.deg))
+istransitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAP.Globals.IsTransitive(G.X, GAP.GapObj(L))
+# Note that this definition does not coincide with that of the
+# property `GAP.Globals.IsTransitive`, for which the default domain
+# of the action is the set of moved points.
 
-"""
-    isprimitive(G::PermGroup, L::AbstractVector{Int})
-
-Return whether the action of the group `G` on `L` is primitive. If `L`
-is not specified, then `L` is taken as [1,...,degree(`G`)].
-"""
-isprimitive(G::PermGroup, L::AbstractVector{Int}) = GAP.Globals.IsPrimitive(G.X, GAP.julia_to_gap(L))
-isprimitive(G::PermGroup) = GAP.Globals.IsPrimitive(G.X, GAP.julia_to_gap(1:G.deg))
 
 """
-    isregular(G::PermGroup, L::AbstractVector{Int})
+    isprimitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
 
-Return whether the action of the group `G` on `L` is regular (i.e.
-transitive and semiregular). If `L` is not specified, then `L` is taken
-as [1,...,degree(`G`)].
+Return whether the action of `G` on `L` is primitive, that is,
+the action is transitive and the point stabilizers are maximal in `G`.
 """
-isregular(G::PermGroup, L::AbstractVector{Int}) = GAP.Globals.IsRegular(G.X, GAP.julia_to_gap(L))
-isregular(G::PermGroup) = GAP.Globals.IsRegular(G.X, GAP.julia_to_gap(1:G.deg))
+isprimitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAP.Globals.IsPrimitive(G.X, GAP.GapObj(L))
+
 
 """
-    issemiregular(G::PermGroup, L::AbstractVector{Int})
+    isregular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
 
-Return whether the action of the group `G` on `L` is semiregular (i.e.
-the stabilizer of each point is the identity). If `L` is not specified,
-then `L` is taken as [1,...,degree(`G`)].
+Return whether the action of `G` on `L` is regular
+(i.e., transitive and semiregular).
 """
-issemiregular(G::PermGroup, L::AbstractVector{Int}) = GAP.Globals.IsSemiRegular(G.X, GAP.julia_to_gap(L))
-issemiregular(G::PermGroup) = GAP.Globals.IsSemiRegular(G.X, GAP.julia_to_gap(1:G.deg))
+isregular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAP.Globals.IsRegular(G.X, GAP.GapObj(L))
 
+
+"""
+    issemiregular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
+
+Return whether the action of `G` on `L` is semiregular
+(i.e., the stabilizer of each point is the identity).
+"""
+issemiregular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAP.Globals.IsSemiRegular(G.X, GAP.GapObj(L))

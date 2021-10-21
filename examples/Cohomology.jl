@@ -165,7 +165,7 @@ function H_zero(C::CohomologyModule)
   for i=2:length(ac)
     k = intersect(k, kernel(id - ac[i])[1])
   end
-  return k, MapFromFunc(x->CoChain{0,elem_type(G),elem_type(M)}(C, Dict(() => x)), y->y(), k, AllCoChains{0}())
+  return k, MapFromFunc(x->CoChain{0,elem_type(G),elem_type(M)}(C, Dict(() => x)), y->y(), k, AllCoChains{0,elem_type(G),elem_type(M)}())
 end
 
 function H_one(C::CohomologyModule)
@@ -200,9 +200,9 @@ function H_one(C::CohomologyModule)
     for w in W
       if w < 0
         g = g*iac[-w]
-        P -= g*pro[-w]
+        P -= pro[-w]*g
       else
-        P += g*pro[w]
+        P += pro[w]*g
         g = g*ac[w]
       end
     end
@@ -232,7 +232,7 @@ function confluent_fp_group(G::Oscar.GAPGroup)
   #has different generators than G! So the action will have to
   #be adjusted to those words. I do not know if a RWS (Confluent) can
   #just be changed...
-  k = C[2] #hopefully the monhom entry in 4.12 it will be the name
+  k = C.monhom #[2] #hopefully the monhom entry in 4.12 it will be the name
   M = GAP.Globals.Range(k)
   g = [GAP.Globals.PreImageElm(k, x) for x = GAP.Globals.GeneratorsOfMonoid(M)]
   g = map(GAP.Globals.UnderlyingElement, g)
@@ -249,8 +249,8 @@ function confluent_fp_group(G::Oscar.GAPGroup)
 
   #now to express the new gens as words in the old ones:
   
-  Fp = FPGroup(GAP.Globals.Range(C[1]))
-  return Fp, GAPGroupHomomorphism(Fp, G, GAP.Globals.InverseGeneralMapping(C[1])), ru
+  Fp = FPGroup(GAP.Globals.Range(C.fphom))
+  return Fp, GAPGroupHomomorphism(Fp, G, GAP.Globals.InverseGeneralMapping(C.fphom)), ru
 end
 
 function Oscar.preimage(f::GAPGroupHomomorphism, x::GAPGroupElem) 
@@ -729,8 +729,8 @@ function fp_group(c::CoChain{2})
   return extension(c)[1]
 end
 
-
-function Oscar.automorphism_group(::Type{PermGroup}, k::NumField)
+Oscar.elem_type(::Type{Hecke.NfMorSet{T}}) where {T <: Hecke.LocalField} = Hecke.LocalFieldMor{T, T}
+function Oscar.automorphism_group(::Type{PermGroup}, k)
   G, mG = automorphism_group(k)
   H = symmetric_group(degree(k))
   gens(G) #to make sure gens are actually there...

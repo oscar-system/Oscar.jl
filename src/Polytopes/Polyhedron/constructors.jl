@@ -4,11 +4,6 @@
 ###############################################################################
 ###############################################################################
 
-struct Polyhedron #a real polymake polyhedron
-    pm_polytope::Polymake.BigObject
-    boundedness::Symbol # Values: :unknown, :bounded, :unbounded
-end
-
 @doc Markdown.doc"""
 
     Polyhedron(P::Polymake.BigObject)
@@ -40,10 +35,17 @@ julia> Polyhedron(A,b)
 A polyhedron in ambient dimension 2
 ```
 """
-function Polyhedron(A::Union{Oscar.MatElem,AbstractMatrix}, b)
-    Polyhedron(Polymake.polytope.Polytope{Polymake.Rational}(
-        INEQUALITIES = matrix_for_polymake(remove_zero_rows([b -A])),
-    ))
+Polyhedron(A::Union{Oscar.MatElem,AbstractMatrix}, b) = Polyhedron((A, b))
+
+function Polyhedron(I::Union{HalfspaceIterator, Tuple{<:Union{Oscar.MatElem, AbstractMatrix}, Any}}, E::Union{Nothing, HalfspaceIterator, Tuple{<:Union{Oscar.MatElem, AbstractMatrix}, Any}} = nothing; non_redundant::Bool = false)
+    IM = -affine_matrix_for_polymake(I)
+    EM = isnothing(E) || _isempty_halfspace(E) ? Polymake.Matrix{Polymake.Rational}(undef, 0, size(IM, 2)) : affine_matrix_for_polymake(E)
+
+    if non_redundant
+        return Polyhedron(Polymake.polytope.Polytope{Polymake.Rational}(FACETS = IM, AFFINE_HULL = EM))
+    else
+        return Polyhedron(Polymake.polytope.Polytope{Polymake.Rational}(INEQUALITIES = remove_zero_rows(IM), EQUATIONS = remove_zero_rows(EM)))
+    end
 end
 
 """
@@ -107,7 +109,7 @@ To obtain the x-axis in $\mathbb{R}^2$:
 ```jldoctest
 julia> V = [0 0];
 
-julia> R = [];
+julia> R = nothing;
 
 julia> L = [1 0];
 
@@ -115,54 +117,23 @@ julia> XA = convex_hull(V, R, L)
 A polyhedron in ambient dimension 2
 ```
 """
-function convex_hull(V::AnyVecOrMat; non_redundant::Bool=false)
-    if !non_redundant
-        pm_polytope =
-            Polymake.polytope.Polytope{Polymake.Rational}(POINTS = matrix_for_polymake(homogenize(V, 1)))
-        return Polyhedron(pm_polytope)
+function convex_hull(V::Union{VectorIterator{PointVector}, AnyVecOrMat, Oscar.MatElem}, R::Union{VectorIterator{RayVector}, AnyVecOrMat, Oscar.MatElem, Nothing} = nothing, L::Union{VectorIterator{RayVector}, AnyVecOrMat, Oscar.MatElem, Nothing} = nothing; non_redundant::Bool = false)
+    # we access the matrices which polymake can work with.
+    VM = matrix_for_polymake(V)
+    RM = isnothing(R) || isempty(R) ? Polymake.Matrix{Polymake.Rational}(undef, 0, size(VM, 2)) : matrix_for_polymake(R)
+    LM = isnothing(L) || isempty(L) ? Polymake.Matrix{Polymake.Rational}(undef, 0, size(VM, 2)) : matrix_for_polymake(L)
+
+    # Rays and Points are homogenized and combined and
+    # Lineality is homogenized
+    points = stack(homogenize(VM, 1), homogenize(RM, 0))
+    lineality = homogenize(LM, 0)
+
+    # These matrices are in the right format for polymake.
+    # given non_redundant can avoid unnecessary redundancy checks
+    if non_redundant
+        return Polyhedron(Polymake.polytope.Polytope{Polymake.Rational}(VERTICES = points, LINEALITY_SPACE = lineality))
     else
-        pm_polytope =
-            Polymake.polytope.Polytope{Polymake.Rational}(VERTICES = matrix_for_polymake(homogenize(V, 1)))
-            return Polyhedron(pm_polytope)
-    end
-end
-#We want to be able to input trivial arguments. So we allow for R and L to be nothing
-#  and we check that the length (# entries) of these matrices is positive, else we
-#  call the function again with that argument = nothing
-function convex_hull(V::AnyVecOrMat, R::Union{AnyVecOrMat,Nothing}; non_redundant::Bool=false)
-    if R!=nothing && length(R) == 0
-        return convex_hull(V,nothing;non_redundant=non_redundant)
-    end
-    points = stack(homogenize(V, 1), homogenize(R, 0))
-    if !non_redundant
-        pm_polytope = Polymake.polytope.Polytope{Polymake.Rational}(POINTS = matrix_for_polymake(points))
-        return Polyhedron(pm_polytope)
-    else
-        pm_polytope = Polymake.polytope.Polytope{Polymake.Rational}(VERTICES = matrix_for_polymake(points))
-        return Polyhedron(pm_polytope)
-    end
-end
-function convex_hull(V::AnyVecOrMat, R::Union{AnyVecOrMat,Nothing}, L::AnyVecOrMat; non_redundant::Bool=false)
-    if R!=nothing && length(R) == 0
-        return convex_hull(V,nothing,L;non_redundant=non_redundant)
-    end
-    if L!=nothing && length(L) == 0
-        return convex_hull(V,R,nothing; non_redundant=non_redundant)
-    end
-    points = stack(homogenize(V, 1), homogenize(R, 0))
-    lineality = homogenize(L, 0)
-    if !non_redundant
-        pm_polytope = Polymake.polytope.Polytope{Polymake.Rational}(
-            POINTS = matrix_for_polymake(points),
-            INPUT_LINEALITY = matrix_for_polymake(lineality),
-        )
-        return Polyhedron(pm_polytope)
-    else
-        pm_polytope = Polymake.polytope.Polytope{Polymake.Rational}(
-            VERTICES = matrix_for_polymake(points),
-            LINEALITY_SPACE = matrix_for_polymake(lineality),
-        )
-        return Polyhedron(pm_polytope)
+        return Polyhedron(Polymake.polytope.Polytope{Polymake.Rational}(POINTS = remove_zero_rows(points), INPUT_LINEALITY = remove_zero_rows(lineality)))
     end
 end
 

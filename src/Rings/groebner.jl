@@ -40,8 +40,8 @@ function groebner_assure(I::MPolyIdeal; complete_reduction::Bool = false)
     else
       I.gb = BiPolyArray(base_ring(I), Singular.std(I.gens.S))
     end
+    I.gb.O = [I.gb.Ox(x) for x = gens(I.gb.S)]
   end
-  I.gb.O = [I.gb.Ox(x) for x = gens(I.gb.S)]
 end
 
 @doc Markdown.doc"""

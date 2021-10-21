@@ -1,8 +1,8 @@
 # Oscar.jl
 
-| **Documentation**                                                 | **Build Status**                                                                                |
-|:-----------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------:|
-| [![][docs-stable-img]][docs-stable-url] [![][docs-dev-img]][docs-dev-url] | [![][ga-img]][ga-url] [![][codecov-img]][codecov-url] [![][coveralls-img]][coveralls-url] |
+| **Documentation**                                                         | **Build Status**                                      |
+|:-------------------------------------------------------------------------:|:-----------------------------------------------------:|
+| [![][docs-stable-img]][docs-stable-url] [![][docs-dev-img]][docs-dev-url] | [![][ga-img]][ga-url] [![][codecov-img]][codecov-url] |
 
 
 Welcome to the OSCAR project, a visionary new computer algebra system
@@ -11,7 +11,7 @@ Polymake, Antic and Singular.
 
 ## Installation
 
-OSCAR requires Julia 1.3 or newer. In principle it can be installed and used
+OSCAR requires Julia 1.6 or newer. In principle it can be installed and used
 like any other Julia package; doing so will take a couple of minutes:
 
 ```julia

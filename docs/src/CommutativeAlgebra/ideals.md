@@ -7,7 +7,7 @@ using Oscar
 ```
 
 ```@contents
-Pages = ["ca_ideals.md"]
+Pages = ["ideals.md"]
 ```
 
 # Ideals in Polynomial Rings
@@ -24,7 +24,155 @@ ideal(g::Vector{T}) where {T <: MPolyElem}
 
 ## Gröbner Bases
 
+Algorithmic means to deal with ideals in multivariate polynomial rings are provided by
+the concept of Gröbner bases and its workhorse, Buchberger's algorithm for computing
+such bases. For both the concept and the algorithm a convenient way of ordering the monomials
+appearing in multivariate polynomials and, thus, to distinguish leading terms of such
+polynomials is needed.
+
+!!! note
+    The performance of Buchberger's algorithm and the resulting Gröbner basis depend crucially on the choice of monomial ordering.
+
+
 ### Monomial Orderings
+
+Given a ring $R$, we write $R[x]=R[x_1, \ldots, x_n]$ for the polynomial ring
+over $R$ in the set of variables $x=\{x_1, \ldots, x_n\}$. Monomials in
+$x=\{x_1, \ldots, x_n\}$ are written using multi--indices:
+If $\alpha=(\alpha_1, \ldots, \alpha_n)\in \N^n$, set
+$x^\alpha=x_1^{\alpha_1}\cdots x_n^{\alpha_n}$ and 
+
+$\text{Mon}_n(x) :=  \text{Mon}_n(x_1, \ldots, x_n) := \{x^\alpha \mid \alpha \in \N^n\}.$
+
+A *monomial ordering* on $\text{Mon}_n(x)$  is a total  ordering $>$ on $\text{Mon}_n(x)$ such that
+
+$x^\alpha > x^\beta \Longrightarrow x^\gamma x^\alpha > x^\gamma  x^\beta,
+\; \text{ for all }\; \alpha, \beta, \gamma \in \mathbb N^n.$
+
+A monomial ordering $>$ on $\text{Mon}_n(x)$ is called
+- *global* if $x^\alpha > 1$ for all $\alpha \not = (0, \dots, 0)$,
+- *local* if  $x^\alpha < 1$ for all $\alpha \not = (0, \dots, 0)$, and
+- *mixed* if it is neither global nor local.
+
+We then also say that $>$ is a *global* , *local*, or *mixed* *monomial ordering* on $R[x]$.
+
+Some monomial orderings are predefined in OSCAR.
+
+#### Predefined Global Orderings
+
+##### The Lexicographical Ordering
+
+The *lexicographical ordering* `lex` is defined by setting
+
+$x^\alpha > x^\beta \;  \Leftrightarrow \;\exists \; 1 \leq i \leq n: \alpha_1 = \beta_1, \dots, \alpha_{i-1} = \beta_{i-1}, \alpha_i > \beta_i.$
+
+##### The Degree Lexicographical Ordering
+
+The *degree lexicographical ordering* `deglex` is defined by setting $\;\deg(x^\alpha) = \alpha_1 + \cdots + \alpha_n\;$ and
+
+$x^\alpha > x^\beta \;  \Leftrightarrow \;  \deg(x^\alpha) > \deg(x^\beta)  \;\text{ or }\; \exists \; 1 \leq i \leq n: \alpha_1 = \beta_1, \dots, \alpha_{i-1} = \beta_{i-1}, \alpha_i > \beta_i.$
+
+##### The Reverse Lexicographical Ordering
+
+The *reverse lexicographical ordering* `revlex` is defined by setting
+
+$x^\alpha > x^\beta \;  \Leftrightarrow \;\exists \; 1 \leq i \leq n: \alpha_n = \beta_n, \dots, \alpha_{i+1} = \beta_{i+1}, \alpha_i  > \beta_i.$
+
+
+##### The Degree Reverse Lexicographical Ordering
+
+The *degree reverse lexicographical ordering* `degrevlex` is defined by setting $\;\deg(x^\alpha) = \alpha_1 + \cdots + \alpha_n\;$ and
+
+$x^\alpha > x^\beta \;  \Leftrightarrow \; \deg(x^\alpha) > \deg(x^\beta)  \;\text{ or }\;\exists \; 1 \leq i \leq n: \alpha_n = \beta_n, \dots, \alpha_{i+1} = \beta_{i+1}, \alpha_i < \beta_i.$
+
+
+##### Weighted Lexicographical Orderings
+
+If `W` is a vector of positive integers  $w_1, \dots, w_n$, the *weighted lexicographical ordering* `wdeglex(W)`  is defined by setting
+$\;\text{wdeg}(x^\alpha) = w_1\alpha_1 + \cdots + w_n\alpha_n\;$ and
+
+$x^\alpha > x^\beta \;  \Leftrightarrow \;  \text{wdeg}(x^\alpha) > \text{wdeg}(x^\beta)  \;\text{ or }\; \exists \; 1 \leq i \leq n: \alpha_1 = \beta_1, \dots, \alpha_{i-1} = \beta_{i-1}, \alpha_i > \beta_i.$
+
+
+##### Weighted Reverse Lexicographical Orderings
+
+If `W` is a vector of positive integers  $w_1, \dots, w_n$, the *weighted reverse lexicographical ordering* `wdegrevlex(W)`  is defined by setting
+$\;\text{wdeg}(x^\alpha) = w_1\alpha_1 + \cdots + w_n\alpha_n\;$ and
+
+$x^\alpha > x^\beta \;  \Leftrightarrow \; \text{wdeg}(x^\alpha) > \text{wdeg}(x^\beta)  \;\text{ or }\;\exists \; 1 \leq i \leq n: \alpha_n = \beta_n, \dots, \alpha_{i+1} = \beta_{i+1}, \alpha_i < \beta_i.$
+
+#### Predefined Local Orderings
+
+##### The Negative Lexicographical Ordering
+
+The *lnegative exicographical ordering* `neglex` is defined by setting
+
+$x^\alpha > x^\beta \;  \Leftrightarrow \;\exists \; 1 \leq i \leq n: \alpha_1 = \beta_1, \dots, \alpha_{i-1} = \beta_{i-1}, \alpha_i < \beta_i.$
+
+##### The Negative Degree Lexicographical Ordering
+
+The *negative degree lexicographical ordering* `negdeglex` is defined by setting $\;\deg(x^\alpha) = \alpha_1 + \cdots + \alpha_n\;$ and
+
+$x^\alpha > x^\beta \;  \Leftrightarrow \;  \deg(x^\alpha) < \deg(x^\beta)  \;\text{ or }\; \exists \; 1 \leq i \leq n: \alpha_1 = \beta_1, \dots, \alpha_{i-1} = \beta_{i-1}, \alpha_i > \beta_i.$
+
+##### The Negative Reverse Lexicographical Ordering
+
+The *negative reverse lexicographical ordering* `negrevlex` is defined by setting
+
+$x^\alpha > x^\beta \;  \Leftrightarrow \;\exists \; 1 \leq i \leq n: \alpha_n = \beta_n, \dots, \alpha_{i+1} = \beta_{i+1}, \alpha_i  < \beta_i.$
+
+
+##### The Negative Degree Reverse Lexicographical Ordering
+
+The *negative degree reverse lexicographical ordering* `negdegrevlex` is defined by setting $\;\deg(x^\alpha) = \alpha_1 + \cdots + \alpha_n\;$ and
+
+$x^\alpha > x^\beta \;  \Leftrightarrow \; \deg(x^\alpha) < \deg(x^\beta)  \;\text{ or }\;\exists \; 1 \leq i \leq n: \alpha_n = \beta_n, \dots, \alpha_{i+1} = \beta_{i+1}, \alpha_i < \beta_i.$
+
+
+
+##### Negative Weighted Lexicographical Orderings
+
+If `W` is a vector of positive integers  $w_1, \dots, w_n$, the *negative weighted lexicographical ordering* `negwdeglex(W)`  is defined by setting
+$\;\text{wdeg}(x^\alpha) = w_1\alpha_1 + \cdots + w_n\alpha_n\;$ and
+
+$x^\alpha > x^\beta \;  \Leftrightarrow \;  \text{wdeg}(x^\alpha) < \text{wdeg}(x^\beta)  \;\text{ or }\; \exists \; 1 \leq i \leq n: \alpha_1 = \beta_1, \dots, \alpha_{i-1} = \beta_{i-1}, \alpha_i > \beta_i.$
+
+
+##### Negative Weighted Reverse Lexicographical Orderings
+
+If `W` is a vector of positive integers  $w_1, \dots, w_n$, the *negative weighted reverse lexicographical ordering* `negwdegrevlex(W)`  is defined by setting
+$\;\text{wdeg}(x^\alpha) = w_1\alpha_1 + \cdots + w_n\alpha_n\;$ and
+
+$x^\alpha > x^\beta \;  \Leftrightarrow \; \text{wdeg}(x^\alpha) < \text{wdeg}(x^\beta)  \;\text{ or }\;\exists \; 1 \leq i \leq n: \alpha_n = \beta_n, \dots, \alpha_{i+1} = \beta_{i+1}, \alpha_i < \beta_i.$
+
+
+#### Creating Block Orderings
+
+The concept of block orderings allows one to construct new monomial orderings from already given ones: If $>_1$ and $>_2$ are monomial orderings on $\text{Mon}_s(x_1, \ldots, x_s)$ and $\text{Mon}_{n-s}(x_{s+1}, \ldots, x_n)$, respectively, then the *block ordering*
+$>=(>_1, >_2)$ on $\text{Mon}_n(x)=\text{Mon}_n(x_1, \ldots, x_n)$ is defined by setting
+          
+$x^\alpha>x^\beta  \;\Leftrightarrow\;  x_1^{\alpha_1}\cdots x_s^{\alpha_s} >_1 x_1^{\beta_1}\cdots x_s^{\beta_s} \;\text{ or }\;
+\bigl(x_1^{\alpha_1}\cdots x_s^{\alpha_s} = x_1^{\beta_1}\cdots x_s^{\beta_s} \text{ and }  x_{s+1}^{\alpha_{s+1}}\cdots x_n^{\alpha_n} >_2
+x_{s+1}^{\beta_{s+1}}\cdots x_n^{\beta_n}\bigr).$
+          
+Note that $>=(>_1, >_2)$ is global (local) iff $>_1$ and $>_2$ are global (local). Mixed orderings arise by choosing
+one of $>_1$ and $>_2$ global and the other one local.
+		  
+#### Creating Matrix Orderings
+
+Given a matrix $M\in \text{GL}(n,\mathbb R)$, with rows $m_1,\dots,m_n$, the *matrix ordering*
+defined by $M$ is obtained by setting
+         
+$x^\alpha>_M x^\beta  \Leftrightarrow  \;\exists\; 1\leq i\leq n:  m_1\alpha=m_1\beta,\ldots, 
+m_{i-1}\alpha\ =m_{i-1}\beta,\ m_i\alpha>m_i\beta$
+
+(here, $\alpha$ and $\beta$ are regarded as column vectors).
+
+!!! note
+    By a theorem of Robbiano, every monomial ordering arises as a matrix ordering as above.
+    
+
+To create matrix orderings, OSCAR allows for matrices with integer coefficients as input matrices.
 
 ### Normal Forms
 

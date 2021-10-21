@@ -63,14 +63,14 @@ A polyhedral fan in ambient dimension 2
 ```
 """
 function PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix)
-   arr = @Polymake.convert_to Array{Set{Int}} Polymake.common.rows(Incidence.pm_incidencematrix)
+   arr = @Polymake.convert_to Array{Set{Int}} Polymake.common.rows(Incidence)
    PolyhedralFan(Polymake.fan.PolyhedralFan{Polymake.Rational}(
       INPUT_RAYS = matrix_for_polymake(Rays),
       INPUT_CONES = arr,
    ))
 end
 function PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, LS::Union{Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix)
-   arr = @Polymake.convert_to Array{Set{Int}} Polymake.common.rows(Incidence.pm_incidencematrix)
+   arr = @Polymake.convert_to Array{Set{Int}} Polymake.common.rows(Incidence)
    PolyhedralFan(Polymake.fan.PolyhedralFan{Polymake.Rational}(
       INPUT_RAYS = matrix_for_polymake(Rays),
       INPUT_LINEALITY = matrix_for_polymake(LS),
@@ -103,6 +103,12 @@ function PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, LS::Union{Osca
 end
 function PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, Incidence::Matrix{Bool})
    PolyhedralFan(Rays,IncidenceMatrix(Polymake.IncidenceMatrix(Incidence)))
+end
+
+
+function PolyhedralFan(C::Cone)
+    pmfan = Polymake.fan.check_fan_objects(pm_cone(C))
+    return PolyhedralFan(pmfan)
 end
 
 ###############################################################################

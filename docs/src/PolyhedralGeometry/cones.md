@@ -7,7 +7,7 @@ using Oscar
 ```
 
 ```@contents
-Pages = ["pg_cones.md"]
+Pages = ["cones.md"]
 ```
 
 # Cones
@@ -54,4 +54,27 @@ both polymake and Oscar.
 ```@docs
 save_cone(C::Cone, filename::String)
 load_cone(filename::String)
+```
+
+## Auxiliary functions
+```@docs
+ambient_dim(C::Cone)
+f_vector(C::Cone)
+hilbert_basis(C::Cone)
+codim(C::Cone)
+dim(C::Cone)
+dual_cone(C::Cone)
+intersect(C0::Cone, C1::Cone)
+ispointed(C::Cone)
+isfulldimensional(C::Cone)
+lineality_dim(C::Cone)
+lineality_space(C::Cone)
+nfacets(C::Cone)
+nrays(C::Cone)
+rays(C::Cone)
+```
+
+### Visualization
+```@docs
+visualize(C::Cone)
 ```

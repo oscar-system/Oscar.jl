@@ -472,3 +472,24 @@ end
  W[1]^2 - W[3]*W[7], W[1]*W[6]^2 - W[3]^2*W[7], -W[3]^3*W[7] + W[6]^4]
     @test BM["inverse"] == [-W[6]^2, -W[4]*W[7], -W[5]*W[7] + W[6]^2]
 end
+
+@testset "NonPlaneCurve" begin
+    S, (x, y, z, t) = PolynomialRing(QQ, ["x", "y", "z", "t"])
+    T, _ = grade(S)
+    I = ideal(T, [x^2, y^2*z, z^2])
+    C = Oscar.ProjCurve(I)
+    PP = projective_space(QQ, 3)
+    P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(2), QQ(0), QQ(5)])
+    @test P in C
+    @test Oscar.isirreducible(C)
+    J = Oscar.jacobi_ideal(C)
+    L = gens(J)
+    @test length(L) == 4
+    @test length(findall(a -> a == T(4*x*y*z), L)) == 1
+    @test length(findall(a -> a == T(2*x*y^2), L)) == 1
+    @test length(findall(a -> a == T(4*x*z), L)) == 1
+    @test length(findall(a -> a == T(4*y*z^2), L)) == 1
+    C2 = Oscar.reduction(C)
+    I2 = Oscar.defining_ideal(C2)
+    @test I2 == ideal(T, [x, z])
+end

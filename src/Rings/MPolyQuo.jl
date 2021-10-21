@@ -90,7 +90,7 @@ mutable struct MPolyQuoIdeal{T} <: Ideal{T}
   end
 
   function MPolyQuoIdeal(Ox::MPolyQuo{T}, i::MPolyIdeal{T}) where T <: MPolyElem
-    Ox.R == base_ring(i) || error("base rings must match")
+    Ox.R === base_ring(i) || error("base rings must match")
     r = new{T}()
     r.base_ring = Ox
     r.I = i
@@ -633,6 +633,7 @@ Multivariate Polynomial Ring in x, y, z over Rational Field graded by
 function quo(R::MPolyRing, I::MPolyIdeal) 
   q = MPolyQuo(R, I)
   function im(a::MPolyElem)
+    parent(a) !== q.R && error("Element not in the domain of the map")
     return MPolyQuoElem(a, q)
   end
   function pr(a::MPolyQuoElem)
@@ -653,16 +654,17 @@ lift(a::MPolyQuoElem) = a.f
 (Q::MPolyQuo)() = MPolyQuoElem(Q.R(), Q)
 
 function (Q::MPolyQuo)(a::MPolyQuoElem)
-   @assert parent(a) == Q
+   parent(a) !== Q && error("Parent mismatch")
    return a
 end
 
-function (Q::MPolyQuo)(a::MPolyElem) 
-   if base_ring(Q) === parent(a)
-      return MPolyQuoElem(a, Q)
-   else
-      return MPolyQuoElem(Q.R(a), Q)
-   end
+function (Q::MPolyQuo{S})(a::S) where {S <: MPolyElem}
+   base_ring(Q) === parent(a) || error("Parent mismatch")
+   return MPolyQuoElem(a, Q)
+end
+
+function (Q::MPolyQuo)(a::MPolyElem)
+  return Q(Q.R(a))
 end
 
 function (Q::MPolyQuo)(a::Singular.spoly)
@@ -727,7 +729,8 @@ function sparse_row(R::MPolyRing, M::Singular.svector{<:Singular.spoly})
     end
     push_term!(v[i], base_ring(R)(c), e)
   end
-  sparse_row(R, Tuple{Int, elem_type(R)}[(k,finish(v)) for (k,v) = v])
+  pos_value_vector::Vector{Tuple{Int, elem_type(R)}} = [(k,finish(v)) for (k,v) = v]
+  return sparse_row(R, pos_value_vector)
 end
 
 """
@@ -743,7 +746,8 @@ function sparse_row(R::MPolyRing, M::Singular.svector{<:Singular.spoly}, U::Unit
     end
     push_term!(v[i], base_ring(R)(c), e)
   end
-  sparse_row(R, Tuple{Int, elem_type(R)}[(k,finish(v)) for (k,v) = v])
+  pos_value_vector::Vector{Tuple{Int, elem_type(R)}} = [(k,finish(v)) for (k,v) = v]
+  return sparse_row(R, pos_value_vector)
 end
 
 """
@@ -779,8 +783,8 @@ end
 
 function divides(a::MPolyQuoElem, b::MPolyQuoElem)
   check_parent(a, b)
-  simplify!(a) #not neccessary
-  simplify!(b) #not neccessary
+  simplify!(a) #not necessary
+  simplify!(b) #not necessary
   iszero(b) && error("cannot divide by zero")
 
   Q = parent(a)
