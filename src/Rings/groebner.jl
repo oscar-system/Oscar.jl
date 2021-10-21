@@ -465,4 +465,25 @@ function groebner_basis(I::MPolyIdeal, ord::MonomialOrdering; complete_reduction
   return collect(groebner_basis(I.gens, ord))
 end
 
+function groebner_basis_with_transform(B::BiPolyArray, ord::MonomialOrdering; complete_reduction::Bool = false)
+   if !isdefined(B, :ord)
+      singular_assure(B, ord)
+   elseif ord != B.ord
+     R = singular_ring(B.Ox, ord)
+     i = Singular.Ideal(R, [R(x) for x = B])
+     i, m = Singular.lift_std(i, complete_reduction = complete_reduction)
+     return BiPolyArray(B.Ox, i), map_entries(x->B.Ox(x), m)
+   end
 
+   if !isdefined(B, :S)
+     B.S = Singular.Ideal(B.Sx, [B.Sx(x) for x = B.O])
+   end
+ 
+   i, m = Singular.lift_std(B.S, complete_reduction = complete_reduction)
+   return BiPolyArray(B.Ox, i), map_entries(x->B.Ox(x), m)
+ end
+ 
+ function groebner_basis_with_transformation_matrix(I::MPolyIdeal, ord::MonomialOrdering; complete_reduction::Bool=false)
+   G, m = Oscar.groebner_basis_with_transform(I, ord; complete_reduction=complete_reduction)
+   return G, Array(m)
+ end

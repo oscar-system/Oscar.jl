@@ -515,7 +515,7 @@ end
 function singular_assure(I::BiPolyArray, O::MonomialOrdering)
    if !isdefined(I, :ord) || I.ord != O.o
       I.ord = O.o
-      I.Sx = singular_ring(O.R, O.o)
+      I.Sx = singular_ring(I.Ox, O.o)
       I.S = Singular.Ideal(I.Sx, elem_type(I.Sx)[I.Sx(x) for x = I.O])
       I.isGB = false
    else
