@@ -122,7 +122,7 @@ julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"], ordering=:degrevlex)
 julia> I = ideal([x*y-3*x,y^3-2*x^2*y])
 ideal(x*y - 3*x, -2*x^2*y + y^3)
 
-julia> H = groebner_basis(I, :lex)
+julia> H = groebner_basis(I; ordering=:lex)
 3-element Vector{fmpq_mpoly}:
  y^4 - 3*y^3
  x*y - 3*x
