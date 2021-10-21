@@ -76,7 +76,7 @@ end
 
 Returns a copy of the affine scheme ``X``.
 """
-Spec(X::Spec{BaseRingType, RingType, RingElemType}) where {BaseRingType, RingType, RingElemType} = Spec(base_ring(X), ambient_ring(X), deepcopy(defining_ideal(X)))
+Spec(X::Spec{BaseRingType, RingType, RingElemType}) where {BaseRingType, RingType, RingElemType} = Spec(base_ring(X), ambient_ring(X), defining_ideal(X))
 
 # the routine for deepcopies internally used by julia. 
 # Note that rings don't need to be deepcopied. Ideals on 
