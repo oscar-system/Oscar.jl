@@ -34,30 +34,12 @@ Oscar.BiPolyArray{fmpq_mpoly}(fmpq_mpoly[x*y - 3*x, y^3 - 6*x^2, x^3 - 9//2*x], 
 function groebner_assure(I::MPolyIdeal; complete_reduction::Bool = false)
   if !isdefined(I, :gb)
     singular_assure(I)
-#    @show "std on", I.gens.S
-    if complete_reduction
-      i = Singular.std(I.gens.S, complete_reduction = complete_reduction)
-      I.gb = BiPolyArray(base_ring(I), i)
-    else
-      I.gb = BiPolyArray(base_ring(I), Singular.std(I.gens.S))
-    end
+    i = Singular.std(I.gens.S; complete_reduction = complete_reduction)
+    I.gb = BiPolyArray(base_ring(I), i)
+    I.gb.isGB = true
     I.gb.O = [I.gb.Ox(x) for x = gens(I.gb.S)]
   end
 end
-
-function groebner_assure(I::MPolyIdeal, ord::MonomialOrdering; complete_reduction::Bool = false)
-   if !isdefined(I, :gb)
-     singular_assure(I, ord)
- #    @show "std on", I.gens.S
-     if complete_reduction
-       i = Singular.std(I.gens.S, complete_reduction = complete_reduction)
-       I.gb = BiPolyArray(base_ring(I), i)
-     else
-       I.gb = BiPolyArray(base_ring(I), Singular.std(I.gens.S))
-     end
-     I.gb.O = [I.gb.Ox(x) for x = gens(I.gb.S)]
-   end
- end
 
 @doc Markdown.doc"""
     groebner_basis(B::BiPolyArray; ordering::Symbol = :degrevlex, complete_reduction::Bool = false)
@@ -467,15 +449,14 @@ function normal_form(A::Vector{T}, J::MPolyIdeal) where { T <: MPolyElem }
 end
 
 function groebner_assure(I::MPolyIdeal, ord::MonomialOrdering; complete_reduction::Bool = false)
-  R = base_ring(I)
-  Rx = singular_ring(R, ord.o)
-
-  if !isdefined(I, :gb) || ordering(J.gb.Sx) != ordering(Rx)
-    I.gens.Sx = Rx
-    I.gens.S = Singular.Ideal(Rx, Rx.(gens(I)))
-    I.gb = BiPolyArray(I.gens.Ox, Singular.std(I.gens.S, complete_reduction = complete_reduction))
-  end
-end
+   if !isdefined(I, :gb) || ordering(I.gb.Sx) != ord
+     singular_assure(I, ord)
+     i = Singular.std(I.gens.S; complete_reduction = complete_reduction)
+     I.gb = BiPolyArray(base_ring(I), i)
+     I.gb.isGB = true
+     I.gb.O = [I.gb.Ox(x) for x = gens(I.gb.S)]
+   end
+ end
 
 function groebner_basis(B::BiPolyArray, ord::MonomialOrdering; complete_reduction::Bool = false)
    singular_assure(B, ord)

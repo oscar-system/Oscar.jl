@@ -113,9 +113,9 @@ function Oscar.groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevl
 end
 
 function groebner_basis_with_transform_inner(I::MPolyIdeal{fmpq_mpoly}, ord::MonomialOrdering; complete_reduction::Bool = true, use_hilbert::Bool = false)
-
   if iszero(I)
     I.gb = BiPolyArray(base_ring(I), fmpq_mpoly[], isGB = true)
+    I.gb.ord = ord.o
     singular_assure(I.gb, ord)
     return fmpq_mpoly[], matrix(base_ring(I), ngens(I), 0, fmpq_mpoly[])
   end
@@ -198,8 +198,8 @@ function groebner_basis_with_transform_inner(I::MPolyIdeal{fmpq_mpoly}, ord::Mon
             end
             if ord.o == I.gens.ord && !isdefined(I, :gb)
               I.gb = BiPolyArray(gd[1:length_gc], keep_ordering = false)
+              I.gb.isGB = true
               singular_assure(I.gb)
-              I.gb.S.isGB = true
             end
             return G, T
           else
