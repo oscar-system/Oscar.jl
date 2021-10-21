@@ -512,6 +512,10 @@ function singular_assure(I::BiPolyArray)
   end
 end
 
+function singular_assure(I::MPolyIdeal, O::MonomialOrdering)
+   singular_assure(I.gens, O)
+end
+
 function singular_assure(I::BiPolyArray, O::MonomialOrdering)
    if !isdefined(I, :ord) || I.ord != O.o
       I.ord = O.o

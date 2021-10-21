@@ -2,7 +2,8 @@ export  groebner_basis, groebner_basis_with_transformation_matrix, leading_ideal
 
 # groebner stuff #######################################################
 @doc Markdown.doc"""
-    groebner_assure(I::MPolyIdeal)
+    groebner_assure(I::MPolyIdeal; complete_reduction::Bool = false)
+    groebner_assure(I::MPolyIdeal, ord::MonomialOrdering; complete_reduction::Bool = false)
 
 **Note**: Internal function, subject to change, do not use.
 
@@ -43,6 +44,20 @@ function groebner_assure(I::MPolyIdeal; complete_reduction::Bool = false)
     I.gb.O = [I.gb.Ox(x) for x = gens(I.gb.S)]
   end
 end
+
+function groebner_assure(I::MPolyIdeal, ord::MonomialOrdering; complete_reduction::Bool = false)
+   if !isdefined(I, :gb)
+     singular_assure(I, ord)
+ #    @show "std on", I.gens.S
+     if complete_reduction
+       i = Singular.std(I.gens.S, complete_reduction = complete_reduction)
+       I.gb = BiPolyArray(base_ring(I), i)
+     else
+       I.gb = BiPolyArray(base_ring(I), Singular.std(I.gens.S))
+     end
+     I.gb.O = [I.gb.Ox(x) for x = gens(I.gb.S)]
+   end
+ end
 
 @doc Markdown.doc"""
     groebner_basis(B::BiPolyArray; ordering::Symbol = :degrevlex, complete_reduction::Bool = false)
@@ -138,6 +153,7 @@ end
 
 @doc Markdown.doc"""
     groebner_basis_with_transform(B::BiPolyArray; ordering::Symbol = :degrevlex, complete_reduction::Bool = false)
+    groebner_basis_with_transform(B::BiPolyArray, ord::MonomialOrdering; complete_reduction::Bool = false)
 
 **Note**: Internal function, subject to change, do not use.
 
@@ -176,6 +192,7 @@ end
 
 @doc Markdown.doc"""
     groebner_basis_with_transformation_matrix(I::MPolyIdeal; ordering::Symbol = :degrevlex, complete_reduction::Bool=false)
+    groebner_basis_with_transformation_matrix(I::MPolyIdeal, ord::MonomialOrdering; complete_reduction::Bool=false)
 
 Return a pair `G, m` where `G` is a Groebner basis of the ideal `I` with respect to the
 monomial ordering `ordering`, and `m` is a transformation matrix from `gens(I)` to `G`. If
@@ -277,6 +294,7 @@ end
 
 @doc Markdown.doc"""
     leading_ideal(I::MPolyIdeal)
+    leading_ideal(I::MPolyIdeal, ord::MonomialOrdering)
 
 Given a multivariate polynomial ideal `Ì` this function returns the
 leading ideal for `I`. This is done w.r.t. the given monomial ordering
@@ -300,7 +318,14 @@ function leading_ideal(I::MPolyIdeal)
   singular_assure(I.gb)
   return MPolyIdeal(base_ring(I), Singular.Ideal(I.gb.Sx, [Singular.leading_monomial(g) for g in gens(I.gb.S)]))
 end
-
+ 
+function leading_ideal(I::MPolyIdeal, ord::MonomialOrdering)
+  singular_assure(I, ord)
+  groebner_assure(I, ord)
+  singular_assure(I.gb, ord)
+  return MPolyIdeal(base_ring(I), Singular.Ideal(I.gb.Sx, [Singular.leading_monomial(g) for g in gens(I.gb.S)]))
+end
+ 
 @doc Markdown.doc"""
     leading_ideal(I::MPolyIdeal, ordering::Symbol)
 
