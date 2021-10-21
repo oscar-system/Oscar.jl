@@ -16,8 +16,8 @@ Compute a Groebner basis of the given ideal I w.r.t. to the degree reverse lexic
 - `nr_thrds::Int=1`: number of threads for parallel linear algebra.
 - `max_nr_pairs::Int=0`: maximal number of pairs per matrix, only bounded by minimal degree if `0`.
 - `la_option::Int=2`: linear algebra option: exact sparse-dense (`1`), exact sparse (`2`, default), probabilistic sparse-dense (`42`), probabilistic sparse(`44`).
-- reduce_gb::Int=1`: compute a reduced Gröbner basis for `I`
-- info_level::Int=0`: info level printout: off (`0`, default), summary (`1`), detailed (`2`).
+- `reduce_gb::Int=1`: compute a reduced Gröbner basis for `I`
+- `info_level::Int=0`: info level printout: off (`0`, default), summary (`1`), detailed (`2`).
 
 # Examples
 ```jldoctest
