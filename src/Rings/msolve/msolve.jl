@@ -3,40 +3,7 @@ import Libdl: dlopen, dlsym, dlclose
 
 export msolve
 
-function get_rational_parametrization_from_msolve_output(
-        param::Array{Any, 1}
-    )
-    C, x  = Nemo.PolynomialRing(Nemo.FlintQQ,"x")
 
-    elim  = 0*x
-    ctr   = 0
-    for cf in param[4][2]
-        elim  +=  cf*x^ctr
-        ctr   +=  1
-    end
-
-    denom = 0*x
-    ctr   = 0
-    for cf in param[5][2]
-        denom +=  cf*x^ctr
-        ctr   +=  1
-    end
-
-    size  = param[2]-1
-    p = Array{Nemo.PolyElem,1}(undef, size)
-    c = Array{BigInt,1}(undef, size)
-    for i in 1:size
-        p[i]  = 0*x
-        ctr   = 0
-        for cf in param[6][i][1][2]
-            p[i]  +=  cf*x^ctr
-            ctr   +=  1
-        end
-        c[i]  = (-1) * param[6][i][2]
-    end
-
-    return [elim, denom, p, c]
-end
 
 function get_rational_parametrization(
         nr::Int32,
@@ -75,75 +42,13 @@ function get_rational_parametrization(
     return elim, denom, p, c
 end
 
-function get_real_roots_from_rational_parametrization(param::Array{Any,1}, precision::Int=67)
-
-    elim  = param[1]
-
-    #= get all solutions of elim, also complex ones,
-    = real ones are isolated =#
-    roots = []
-    #= @time =# append!(roots, convert(Array{Nemo.fmpq,1},rationalize(Int, BigFloat((Hecke._roots(elim, precision))))))
-
-    #= get real solutions =#
-    del = []
-    for i in 1:length(roots)
-        if Nemo.isreal(roots[i]) == false
-            append!(del, i)
-        end
-    end
-    #= remove non-real solutions =#
-    deleteat!(roots, del)
-
-    for r in roots
-        r = rationalize(Int, BigFloat(r))
-    end
-    return roots
-end
-
-function get_solutions(roots::Array{Nemo.fmpq,1}, param::Array{Any,1})
-
-    den   = param[2]
-    p     = param[3]
-    c     = param[4]
-
-    println("den: ", typeof(den))
-    #= generate solution set for system =#
-    variety = Array{Array{Nemo.fmpq, 1}, 1}(undef, length(roots))
-    #= @time =# for i in 1:length(roots)
-        tmp = Array{Nemo.fmpq}(undef, length(p)+1)
-        d = Nemo.evaluate(den, roots[i])
-        for j = 1:length(p)
-            tmp[j]       = Nemo.evaluate(p[j], roots[i]) // (d*c[j])
-            tmp[length(p)+1] = roots[i]
-        end
-        variety[i]  = tmp
-    end
-
-    return variety
-
-    #= for k in 1:nr_gens
-     =     for v in variety
-     =         println(BigInt(numerator(GroebnerBasis.Singular.evaluate(I[k], v)))/BigInt(denominator(GroebnerBasis.Singular.evaluate(I[k], v))))
-     =     end
-     =     println("")
-     = end =#
-end
-
-function solve_rational_parametrization(param::Array{Any,1}, precision::Int=67)
-    roots = get_real_roots_from_rational_parametrization(param, precision)
-    sols  = get_solutions(roots, param)
-
-    return sols
-end
-
 """
     msolve(I[, initial_hts::Int=17, nr_thrds::Int=1, max_nr_pairs::Int=0,
             la_option::Int=1, infolevel::Int=0, input_file::String="/tmp/in.ms",
             output_file="/tmp/out.ms", precision::Int=67, get_param::Bool=false])
 
-Compute the solution set of the given ideal I using the msolve C library. The function takes a Singular ideal as input and returns a Singular ideal. At the moment only QQ is supported as ground field..
-
-Also sets the dimension of the ideal.
+Compute the solution set of the given ideal `I` if the ideal is zero dimensional. At the moment only QQ is supported as ground field.
+Sets the dimension of the ideal. If the dimension of `I` is greater then zero the emoty array is returned.
 
 # Arguments
 * `I::ideal`: ideal to compute solutions for.
@@ -216,7 +121,7 @@ function msolve(
     #   lens, cfs, exps   = convert_ff_singular_ideal_to_array(J, nr_vars, nr_gens)
     else
         # error("At the moment GroebnerBasis only supports finite fields and the rationals.")
-        error("At the moment msolve only supports the rationala as ground field.")
+        @error "At the moment msolve only supports the rationala as ground field."
     end
     # lib = Libdl.dlopen("/home/ederc/repos/master-msolve/src/msolve/.libs/libmsolve-0.1.2.so")
     lib = Libdl.dlopen(libmsolve)
@@ -254,11 +159,11 @@ function msolve(
     # set dimension
     I.dim = jl_dim
     if jl_dim > 0
-        println("Dimension is greater than zero, no solutions provided.")
+        @info "Dimension is greater than zero, no solutions provided."
         return []
     end
     if jl_nb_sols == 0
-        println("The system has no solution.")
+        @info "The system has no solution."
         return []
     end
 
