@@ -268,10 +268,7 @@ include("Rings/AbelianClosure.jl")
 include("Modules/FreeModules-graded.jl")
 
 include("Geometry/basics.jl")
-#include("../experimental/Schemes/Schemes.jl")
-include("../experimental/Schemes/Multiindices.jl")
-include("../experimental/Schemes/Misc.jl")
-include("../experimental/Schemes/AffineSchemes.jl")
+include("Geometry/Schemes/Schemes.jl")
 
 include("Polymake/Ineq.jl")
 include("Polymake/NmbThy.jl")

@@ -1,40 +1,6 @@
-import AbstractAlgebra.Ring, Oscar.AlgHom, Oscar.compose, AbstractAlgebra.Generic.Frac
-import Base: ∘
-import Oscar: base_ring
-import AbstractAlgebra: FPModule, FPModuleElem
-import Base.copy
-
-using Oscar.Multiindices
-using Oscar.Misc
-
-export AffineScheme, Spec, SpecPrincipalOpen
-export base_ring, ambient_ring, defining_ideal, imgs_frac, pullback, pullback_from_parent, pullback_from_root, inclusion_in_parent, inclusion_in_root, set_name!, inverted_element, identity_morphism, denoms, inverses, divide_by_units
-export affine_space, localize, subscheme
-
-export AffSchMorphism
-export domain, codomain, pullback
-
-@Markdown.doc """
-    Scheme{ BaseRingType <: Ring }
-
-A scheme over a ring ``k`` of type `BaseRingType`.
-"""
-abstract type Scheme{ S <: Ring } end
-
-@doc Markdown.doc"""
-    AffineScheme{BaseRingType, RingType <: MPolyRing, RingElemType <: MPolyElem} <: Scheme{BaseRingType}
-
-An affine scheme over a base ring ``k`` of type `BaseRingType`, given by a ring ``R/I`` with 
-``R`` a polynomial ring of type `RingType` and elements of type `RingElemType`.
-"""
-abstract type AffineScheme{BaseRingType, RingType <: MPolyRing, RingElemType <: MPolyElem} <: Scheme{BaseRingType} end
-
-@Markdown.doc """
-    SchemeMorphism{BaseRingType <: Ring}
-
-Morphism of Schemes over a ring ``k`` of type `BaseRingType`.
-"""
-abstract type SchemeMorphism{BaseRingType <: Ring} end
+########################################################################
+# Spectra of polynomial algebras                                       #
+########################################################################
 
 @doc Markdown.doc"""
     Spec{BaseRingType, RingType, RingElemType} <: AffineScheme{BaseRingType, RingType, RingElemType}
@@ -61,12 +27,9 @@ mutable struct Spec{BaseRingType, RingType, RingElemType} <: AffineScheme{BaseRi
   end
 end
 
-###################################################################################
-# Getter functions
-#
-# No caching is needed in this case, since all these variables need to be assigned 
-# at instantiation
-#
+
+### Getter functions ###################################################
+
 @Markdown.doc """
     base_ring(A::Spec{BaseRingType, RingType, RingElemType}) where {BaseRingType, RingType, RingElemType}
 
@@ -75,6 +38,7 @@ Returns the base ring ``k`` over which the affine scheme ``A`` is defined.
 function base_ring(A::Spec{BaseRingType, RingType, RingElemType}) where {BaseRingType, RingType, RingElemType}
   return A.k
 end
+
 
 @Markdown.doc """
     ambient_ring(A::Spec{BaseRingType, RingType, RingElemType}) where {BaseRingType, RingType, RingElemType}
@@ -93,6 +57,7 @@ function defining_ideal(A::Spec{BaseRingType, RingType, RingElemType}) where {Ba
   return A.I
 end
 
+
 @Markdown.doc """
     denoms(A::Spec{BaseRingType, RingType, RingElemType}) where {BaseRingType, RingType, RingElemType}
 
@@ -103,6 +68,8 @@ function denoms(A::Spec{BaseRingType, RingType, RingElemType}) where {BaseRingTy
   return typeof(A.R)[]
 end
 
+
+### outer constructors ################################################
 
 @Markdown.doc """
     Spec( X::Spec{BaseRingType, RingType, RingElemType} ) where {BaseRingType, RingType, RingElemType}
@@ -116,6 +83,71 @@ Spec(X::Spec{BaseRingType, RingType, RingElemType}) where {BaseRingType, RingTyp
 # the other hand, posess information that can be altered. 
 Base.deepcopy_internal(X::Spec{BaseRingType, RingType, RingElemType}, dict::IdDict) where {BaseRingType, RingType, RingElemType} = Spec(X)
 
+
+@Markdown.doc """
+    Spec( k::BaseRingType, R::RingType ) where{BaseRingType <: Ring, RingType <:MPolyRing}
+
+Returns the scheme X = Spec R with R an instance of MPolyRing over k.
+"""
+function Spec( k::BaseRingType, R::RingType ) where{BaseRingType <: Ring, RingType <:MPolyRing}
+  I = ideal(R, zero(R))
+  return Spec(k, R, I )
+end
+
+
+@doc Markdown.doc"""
+    Spec(R::RingType) where{RingType <: MPolyRing}
+
+Return the affine scheme corresponding to the ring ``R/⟨0⟩``.
+"""
+function Spec(R::RingType) where{RingType <: MPolyRing}
+  I = ideal(R, zero(R))
+  k = coefficient_ring(R)
+  return Spec(k, R, I)
+end
+
+
+@doc Markdown.doc"""
+    Spec(R::RingType, I::MPolyIdeal{RingElemType}) where{ RingType <: MPolyRing, RingElemType <: MPolyElem }
+
+Return the affine scheme corresponding to the ring ``R/I``.
+"""
+function Spec(R::RingType, I::MPolyIdeal{RingElemType}) where{ RingType <: MPolyRing, RingElemType <: MPolyElem }
+  k = coefficient_ring(R)
+  return Spec(k, R, I)
+end
+
+
+function Spec(I::MPolyIdeal{RingElemType}) where {RingElemType <: MPolyElem}
+  R = base_ring(I)
+  k = coefficient_ring(R)
+  return Spec(k, R, I)
+end
+
+
+function Spec(Q::MPolyQuo{RingElemType}) where {RingElemType <: MPolyElem}
+  R = base_ring(Q)
+  k = coefficient_ring(R)
+  I = modulus(Q)
+  return Spec(k, R, I)
+end
+
+
+### other constructors ################################################
+
+@Markdown.doc """
+    function affine_space( k::Ring, n::Int; var_name::String="x" )
+
+Return the Affine scheme 𝔸ⁿ over the base ring k. An optional argument 
+`var_name` can be 
+passed on to determine how the variables will be printed.
+"""
+function affine_space( k::BaseRingType, n::Int; var_name::String="x" ) where {BaseRingType <: Ring}
+  R, x = PolynomialRing( k, var_name => (1:n))
+  return Spec(R)
+end
+
+
 @Markdown.doc """
     subscheme(X::Spec{BaseRingType, RingType, RingElemType}, J::MPolyIdeal{RingElemType}) where {BaseRingType, RingType, RingElemType}
 
@@ -126,6 +158,7 @@ function subscheme(X::Spec{BaseRingType, RingType, RingElemType}, J::MPolyIdeal{
   return Spec(base_ring(X), ambient_ring(X), defining_ideal(X) + J)
 end
 
+
 @Markdown.doc """
     subscheme(X::Spec{BaseRingType, RingType, RingElemType}, f::RingElemType) where {BaseRingType, RingType, RingElemType}
 
@@ -134,4 +167,44 @@ Returns the subscheme of ``X = Spec R/I`` defined by the ideal`` I + ⟨f⟩`` i
 function subscheme(X::Spec{BaseRingType, RingType, RingElemType}, f::RingElemType) where {BaseRingType, RingType, RingElemType}
   return subscheme(X, ideal(ambient_ring(X), f))
 end
+
+
+### routines for printing #############################################
+
+@Markdown.doc """
+    Base.show(io::Base.IO, X::AffineScheme)
+
+This prints the information of X to the stream io. Whenever 
+the field X.name is set, the output will be abbreviated to 
+just the given name of X.
+"""
+function Base.show( io::Base.IO, X::AffineScheme )
+  if isdefined( X, :name )
+    Base.print( io, X.name )
+    return
+  end
+  Base.print( io, "Affine scheme over " )
+  Base.print( io, base_ring(X) )
+  Base.print( io, "\n" ) 
+  Base.print( io, "given as the quotient of the polynomial ring \n" )
+  Base.print( io, ambient_ring(X) )
+  Base.print( io, "\nby the ideal \n" )
+  Base.print( io, defining_ideal(X) )
+end
+
+@Markdown.doc """
+    set_name!(X::AffineScheme, name::String)
+
+Each affine scheme `X` can be assigned an optional `name`. 
+This will then be used for printing, once the field is set.
+"""
+function set_name!( X::AffineScheme, name::String )
+  X.name = name
+end
+
+
+#######################################################################
+# Morphisms of Spectra                                                #
+#######################################################################
+
 
