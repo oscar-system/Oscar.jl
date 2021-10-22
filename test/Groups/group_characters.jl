@@ -12,7 +12,7 @@
   @test String(take!(io)) == "Alt( [ 1 .. 4 ] )\n\n 2  2  2       .       .\n 3  1  .       1       1\n                        \n   1a 2a      3a      3b\n2P 1a 1a      3b      3a\n3P 1a 2a      1a      1a\n                        \nχ₁  1  1       1       1\nχ₂  1  1 -ζ₃ - 1      ζ₃\nχ₃  1  1      ζ₃ -ζ₃ - 1\nχ₄  3 -1       .       .\n"
 
   # LaTeX format
-  show(io, MIME("text/html"), t_a4)
+  show(io, MIME("text/latex"), t_a4)
   @test String(take!(io)) == "\$Alt( [ 1 .. 4 ] )\n\n\\begin{array}{rrrrr}\n2 & 2 & 2 & . & . \\\\\n3 & 1 & . & 1 & 1 \\\\\n &  &  &  &  \\\\\n & 1a & 2a & 3a & 3b \\\\\n2P & 1a & 1a & 3b & 3a \\\\\n3P & 1a & 2a & 1a & 1a \\\\\n &  &  &  &  \\\\\n\\chi_{1} & 1 & 1 & 1 & 1 \\\\\n\\chi_{2} & 1 & 1 & -\\zeta_{3} - 1 & \\zeta_{3} \\\\\n\\chi_{3} & 1 & 1 & \\zeta_{3} & -\\zeta_{3} - 1 \\\\\n\\chi_{4} & 3 & -1 & . & . \\\\\n\\end{array}\n\$"
 
   # show a legend of irrationalities instead of self-explanatory values,
@@ -21,12 +21,12 @@
   @test String(take!(io)) == "Alt( [ 1 .. 4 ] )\n\n 2  2  2  .  .\n 3  1  .  1  1\n              \n   1a 2a 3a 3b\n2P 1a 1a 3b 3a\n3P 1a 2a 1a 1a\n              \nχ₁  1  1  1  1\nχ₂  1  1  A  A̅\nχ₃  1  1  A̅  A\nχ₄  3 -1  .  .\n\nA = -ζ₃ - 1\nA̅ = ζ₃\n"
 
   # ... and in LaTeX format
-  show(IOContext(io, :with_legend => true), MIME("text/html"), t_a4)
+  show(IOContext(io, :with_legend => true), MIME("text/latex"), t_a4)
   @test String(take!(io)) == "\$Alt( [ 1 .. 4 ] )\n\n\\begin{array}{rrrrr}\n2 & 2 & 2 & . & . \\\\\n3 & 1 & . & 1 & 1 \\\\\n &  &  &  &  \\\\\n & 1a & 2a & 3a & 3b \\\\\n2P & 1a & 1a & 3b & 3a \\\\\n3P & 1a & 2a & 1a & 1a \\\\\n &  &  &  &  \\\\\n\\chi_{1} & 1 & 1 & 1 & 1 \\\\\n\\chi_{2} & 1 & 1 & A & \\overline{A} \\\\\n\\chi_{3} & 1 & 1 & \\overline{A} & A \\\\\n\\chi_{4} & 3 & -1 & . & . \\\\\n\\end{array}\n\nA = -\\zeta_{3} - 1\n\\overline{A} = \\zeta_{3}\n\$"
 
   # show the screen format for a table with real and non-real irrationalities
   show(IOContext(io, :with_legend => true), character_table("L2(11)"))
-  @test String(take!(io)) == "L2(11)\n\n  2  2  2  1  .  .  1   .   .\n  3  1  1  1  .  .  1   .   .\n  5  1  .  .  1  1  .   .   .\n 11  1  .  .  .  .  .   1   1\n                             \n    1a 2a 3a 5a 5b 6a 11a 11b\n 2P 1a 1a 3a 5b 5a 3a 11b 11a\n 3P 1a 2a 1a 5b 5a 2a 11a 11b\n 5P 1a 2a 3a 1a 1a 6a 11a 11b\n11P 1a 2a 3a 5a 5b 6a  1a  1a\n                             \n χ₁  1  1  1  1  1  1   1   1\n χ₂  5  1 -1  .  .  1   C   C̅\n χ₃  5  1 -1  .  .  1   C̅   C\n χ₄ 10 -2  1  .  .  1  -1  -1\n χ₅ 10  2  1  .  . -1  -1  -1\n χ₆ 11 -1 -1  1  1 -1   .   .\n χ₇ 12  .  .  A  B  .   1   1\n χ₈ 12  .  .  B  A  .   1   1\n\nA = -ζ₅³ - ζ₅² - 1\nB = ζ₅³ + ζ₅²\nC = ζ₁₁⁹ + ζ₁₁⁵ + ζ₁₁⁴ + ζ₁₁³ + ζ₁₁\nC̅ = -ζ₁₁⁹ - ζ₁₁⁵ - ζ₁₁⁴ - ζ₁₁³ - ζ₁₁ - 1\n"
+  @test String(take!(io)) == "L2(11)\n\n  2  2  2  1  .  .  1   .   .\n  3  1  1  1  .  .  1   .   .\n  5  1  .  .  1  1  .   .   .\n 11  1  .  .  .  .  .   1   1\n                             \n    1a 2a 3a 5a 5b 6a 11a 11b\n 2P 1a 1a 3a 5b 5a 3a 11b 11a\n 3P 1a 2a 1a 5b 5a 2a 11a 11b\n 5P 1a 2a 3a 1a 1a 6a 11a 11b\n11P 1a 2a 3a 5a 5b 6a  1a  1a\n                             \n χ₁  1  1  1  1  1  1   1   1\n χ₂  5  1 -1  .  .  1   B   B̅\n χ₃  5  1 -1  .  .  1   B̅   B\n χ₄ 10 -2  1  .  .  1  -1  -1\n χ₅ 10  2  1  .  . -1  -1  -1\n χ₆ 11 -1 -1  1  1 -1   .   .\n χ₇ 12  .  .  A A*  .   1   1\n χ₈ 12  .  . A*  A  .   1   1\n\nA = -ζ₅³ - ζ₅² - 1\nA* = ζ₅³ + ζ₅²\nB = ζ₁₁⁹ + ζ₁₁⁵ + ζ₁₁⁴ + ζ₁₁³ + ζ₁₁\nB̅ = -ζ₁₁⁹ - ζ₁₁⁵ - ζ₁₁⁴ - ζ₁₁³ - ζ₁₁ - 1\n"
 
   # show some separating lines, in the screen format ...
   show(IOContext(io, :separators_col => [0,5],
@@ -36,7 +36,7 @@
   # ... and in LaTeX format
   show(IOContext(io, :separators_col => [0,5],
                      :separators_row => [0,5]),
-                     MIME("text/html"), t_a5)
+                     MIME("text/latex"), t_a5)
   @test String(take!(io)) == "\$A5\n\n\\begin{array}{r|rrrrr|}\n2 & 2 & 2 & . & . & . \\\\\n3 & 1 & . & 1 & . & . \\\\\n5 & 1 & . & . & 1 & 1 \\\\\n &  &  &  &  &  \\\\\n & 1a & 2a & 3a & 5a & 5b \\\\\n2P & 1a & 1a & 3a & 5b & 5a \\\\\n3P & 1a & 2a & 1a & 5b & 5a \\\\\n5P & 1a & 2a & 3a & 1a & 1a \\\\\n &  &  &  &  &  \\\\\n\\hline\n\\chi_{1} & 1 & 1 & 1 & 1 & 1 \\\\\n\\chi_{2} & 3 & -1 & . & \\zeta_{5}^{3} + \\zeta_{5}^{2} + 1 & -\\zeta_{5}^{3} - \\zeta_{5}^{2} \\\\\n\\chi_{3} & 3 & -1 & . & -\\zeta_{5}^{3} - \\zeta_{5}^{2} & \\zeta_{5}^{3} + \\zeta_{5}^{2} + 1 \\\\\n\\chi_{4} & 4 & . & 1 & -1 & -1 \\\\\n\\chi_{5} & 5 & 1 & -1 & . & . \\\\\n\\hline\n\\end{array}\n\$"
 
   # distribute the table into column portions, in the screen format ...
@@ -48,7 +48,7 @@
   # ... and in LaTeX format
   show(IOContext(io, :separators_col => [0],
                      :separators_row => [0],
-                     :portions_col => [2,3]), MIME("text/html"), t_a5)
+                     :portions_col => [2,3]), MIME("text/latex"), t_a5)
   @test String(take!(io)) == "\$A5\n\n\\begin{array}{r|rr}\n2 & 2 & 2 \\\\\n3 & 1 & . \\\\\n5 & 1 & . \\\\\n &  &  \\\\\n & 1a & 2a \\\\\n2P & 1a & 1a \\\\\n3P & 1a & 2a \\\\\n5P & 1a & 2a \\\\\n &  &  \\\\\n\\hline\n\\chi_{1} & 1 & 1 \\\\\n\\chi_{2} & 3 & -1 \\\\\n\\chi_{3} & 3 & -1 \\\\\n\\chi_{4} & 4 & . \\\\\n\\chi_{5} & 5 & 1 \\\\\n\\end{array}\n\n\\begin{array}{r|rrr}\n2 & . & . & . \\\\\n3 & 1 & . & . \\\\\n5 & . & 1 & 1 \\\\\n &  &  &  \\\\\n & 3a & 5a & 5b \\\\\n2P & 3a & 5b & 5a \\\\\n3P & 1a & 5b & 5a \\\\\n5P & 3a & 1a & 1a \\\\\n &  &  &  \\\\\n\\hline\n\\chi_{1} & 1 & 1 & 1 \\\\\n\\chi_{2} & . & \\zeta_{5}^{3} + \\zeta_{5}^{2} + 1 & -\\zeta_{5}^{3} - \\zeta_{5}^{2} \\\\\n\\chi_{3} & . & -\\zeta_{5}^{3} - \\zeta_{5}^{2} & \\zeta_{5}^{3} + \\zeta_{5}^{2} + 1 \\\\\n\\chi_{4} & 1 & -1 & -1 \\\\\n\\chi_{5} & -1 & . & . \\\\\n\\end{array}\n\$"
 
   # distribute the table into row portions,
@@ -61,7 +61,7 @@
   # ... and in LaTeX format (may be interesting)
   show(IOContext(io, :separators_col => [0],
                      :separators_row => [0],
-                     :portions_row => [2,3]), MIME("text/html"), t_a5)
+                     :portions_row => [2,3]), MIME("text/latex"), t_a5)
   @test String(take!(io)) == "\$A5\n\n\\begin{array}{r|rrrrr}\n2 & 2 & 2 & . & . & . \\\\\n3 & 1 & . & 1 & . & . \\\\\n5 & 1 & . & . & 1 & 1 \\\\\n &  &  &  &  &  \\\\\n & 1a & 2a & 3a & 5a & 5b \\\\\n2P & 1a & 1a & 3a & 5b & 5a \\\\\n3P & 1a & 2a & 1a & 5b & 5a \\\\\n5P & 1a & 2a & 3a & 1a & 1a \\\\\n &  &  &  &  &  \\\\\n\\hline\n\\chi_{1} & 1 & 1 & 1 & 1 & 1 \\\\\n\\chi_{2} & 3 & -1 & . & \\zeta_{5}^{3} + \\zeta_{5}^{2} + 1 & -\\zeta_{5}^{3} - \\zeta_{5}^{2} \\\\\n\\end{array}\n\n\\begin{array}{r|rrrrr}\n2 & 2 & 2 & . & . & . \\\\\n3 & 1 & . & 1 & . & . \\\\\n5 & 1 & . & . & 1 & 1 \\\\\n &  &  &  &  &  \\\\\n & 1a & 2a & 3a & 5a & 5b \\\\\n2P & 1a & 1a & 3a & 5b & 5a \\\\\n3P & 1a & 2a & 1a & 5b & 5a \\\\\n5P & 1a & 2a & 3a & 1a & 1a \\\\\n &  &  &  &  &  \\\\\n\\hline\n\\chi_{3} & 3 & -1 & . & -\\zeta_{5}^{3} - \\zeta_{5}^{2} & \\zeta_{5}^{3} + \\zeta_{5}^{2} + 1 \\\\\n\\chi_{4} & 4 & . & 1 & -1 & -1 \\\\\n\\chi_{5} & 5 & 1 & -1 & . & . \\\\\n\\end{array}\n\$"
 end
 
