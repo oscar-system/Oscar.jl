@@ -3,14 +3,19 @@ import Libdl: dlopen, dlsym, dlclose
 
 export msolve
 
+@doc Markdown.doc"""
+    function get_rational_parametrization(nr::Int32, lens::Array{Int32,1}, cfs::Ptr{BigInt})
 
+Construct the rational parametrization of the solution set computed via msolve.
 
+**Note**: This is an internal function and should only be used inside `msolve()`.
+"""
 function get_rational_parametrization(
         nr::Int32,
         lens::Array{Int32,1},
         cfs::Ptr{BigInt}
     )
-    C, x  = Nemo.PolynomialRing(Nemo.FlintQQ,"x")
+    C, x  = PolynomialRing(QQ,"x")
     ctr   = 0
 
     elim  = 0*x
@@ -26,7 +31,7 @@ function get_rational_parametrization(
     ctr +=  lens[2]
 
     size  = nr-2
-    p = Array{Nemo.PolyElem,1}(undef, size)
+    p = Array{PolyElem,1}(undef, size)
     c = Array{BigInt,1}(undef, size)
     k = 1
     for i in 3:nr
