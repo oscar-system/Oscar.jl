@@ -47,36 +47,43 @@ function get_rational_parametrization(
     return elim, denom, p, c
 end
 
-"""
-    msolve(I[, initial_hts::Int=17, nr_thrds::Int=1, max_nr_pairs::Int=0,
-            la_option::Int=1, infolevel::Int=0, input_file::String="/tmp/in.ms",
-            output_file="/tmp/out.ms", precision::Int=67, get_param::Bool=false])
+@doc Markdown.doc"""
+    msolve(I, <keyword arguments>)
 
-Compute the solution set of the given ideal `I` if the ideal is zero dimensional. At the moment only QQ is supported as ground field.
-Sets the dimension of the ideal. If the dimension of `I` is greater then zero the emoty array is returned.
+Compute the solution set of the given ideal `I` if the ideal is zero dimensional.
+See [BES21](@cite) for more information.
+
+**Note**: At the moment only QQ is supported as ground field. If the dimension of `I`
+is greater then zero an empty array is returned.
 
 # Arguments
-* `I::ideal`: ideal to compute solutions for.
-* `initial_hts::Int=17`: hash table size log_2; default is 17, i.e. 2^17 as initial hash
-                table size.
-* `nr_thrds::Int=1`:  number of threads; default is 1. (not completely supported yet)
-* `max_nr_pairs::Int=0`:  maximal number of pairs selected for one F4 matrix; default is
-                      0, i.e. no restriction. If matrices get too big or consume
-                      too much memory this is a good parameter to play with.
-* `la_option::Int=2`: option for linear algebra to be used in F4. there are different linear algebra routines implemented:
-    -  `1`: exact sparse-dense computation,
-    -  `2`: exact sparse computation, (default)
-    - `42`: probabilistic sparse-dense computation,
-    - `43`: exact sparse then probabilistic dense computation,
-    - `44`: probabilistic sparse computation.
-* `info_level::Int=0`: info level for printout:
-    - `0`: no printout (default),
-    - `1`:  a summary of the computational data is printed at the beginning and the end of the computation,
-    - `2`: also dynamical information for each round resp. matrix is printed.
-* `input_file::String="/tmp/in.ms"`: input file name for msolve binary; default: /tmp/in.ms.
-* `output_file::String="/tmp/in.ms"`: output file name for msolve binary; default: /tmp/out.ms.
-* `precision::Int=67`: precision for computing solutions; default is 32.
-* `get_param::Bool=false`: get rational parametrization of solution set; default is false.
+- `Ì::MPolyIdeal`: input ideal.
+- `initial_hts::Int=17`: initial hash table size `log_2`.
+- `nr_thrds::Int=1`: number of threads for parallel linear algebra.
+- `max_nr_pairs::Int=0`: maximal number of pairs per matrix, only bounded by minimal degree if `0`.
+- `la_option::Int=2`: linear algebra option: exact sparse-dense (`1`), exact sparse (`2`, default), probabilistic sparse-dense (`42`), probabilistic sparse(`44`).
+- `info_level::Int=0`: info level printout: off (`0`, default), summary (`1`), detailed (`2`).
+- `precision::Int=32`: bit precision for the computed solutions.
+- `get_param::Bool=false`: return not only solution set but also corresponding rational parametrization.
+
+# Examples
+```jldoctest
+julia> R,(x1,x2,x3) = PolynomialRing(QQ, ["x1","x2","x3"])
+(Multivariate Polynomial Ring in x1, x2, x3 over Rational Field, fmpq_mpoly[x1, x2, x3])
+
+julia> I = ideal(R, [x1+2*x2+2*x3-1, x1^2+2*x2^2+2*x3^2-x1, 2*x1*x2+2*x2*x3-x2])
+ideal(x1 + 2*x2 + 2*x3 - 1, x1^2 - x1 + 2*x2^2 + 2*x3^2, 2*x1*x2 + 2*x2*x3 - x2)
+
+julia> msolve(I)
+4-element Vector{Vector{fmpq}}:
+ [3197531698215911246794018079661//5070602400912917605986812821504, 1598765849107955623397009039829//5070602400912917605986812821504, -662230497759452443800611668909//5070602400912917605986812821504]
+ [1, 0, 0]
+ [143587366392252266220763399489//633825300114114700748351602688, 71793683196126133110381699745//633825300114114700748351602688, 173325283664805084153412401855//633825300114114700748351602688]
+ [52818775009509558395695966891//158456325028528675187087900672, 3//2535301200456458802993406410752, 845100400152152934331135470251//2535301200456458802993406410752]
+
+julia> msolve(I, get_param=true)
+((84*x^4 - 40*x^3 + x^2 + x, 336*x^3 - 120*x^2 + 2*x + 1, PolyElem[-184*x^3 + 80*x^2 - 4*x - 1, -36*x^3 + 18*x^2 - 2*x], BigInt[-1, -1]), Vector{fmpq}[[3197531698215911246794018079661//5070602400912917605986812821504, 1598765849107955623397009039829//5070602400912917605986812821504, -662230497759452443800611668909//5070602400912917605986812821504], [1, 0, 0], [143587366392252266220763399489//633825300114114700748351602688, 71793683196126133110381699745//633825300114114700748351602688, 173325283664805084153412401855//633825300114114700748351602688], [52818775009509558395695966891//158456325028528675187087900672, 3//2535301200456458802993406410752, 845100400152152934331135470251//2535301200456458802993406410752]])
+```
 """
 function msolve(
         I::MPolyIdeal;                        # input generators
@@ -86,7 +93,6 @@ function msolve(
                                               # in symbolic preprocessing
         la_option::Int=2,                     # linear algebra option
         info_level::Int=0,                    # info level for print outs
-        output_file::String="/dev/null",      # msolve output file
         precision::Int=32,                    # precision of the solution set
         get_param::Bool=false                 # return rational parametrization of
                                               # solution set
@@ -146,7 +152,7 @@ function msolve(
          Ptr{Ptr{Cchar}}, Ptr{Cchar}, Int, Int, Int, Int,
          Int, Int, Int, Int, Int, Int, Int, Int, Int, Int),
         res_ld, res_dim, res_dquot, res_len, res_cf, nb_sols, sols_num, sols_den, lens,
-        exps, cfs, variable_names, output_file, field_char, mon_order, nr_vars,
+        exps, cfs, variable_names, "/dev/null", field_char, mon_order, nr_vars,
         nr_gens, initial_hts, nr_thrds, max_nr_pairs, reset_ht, la_option,
         print_gb, get_param, genericity_handling, precision, info_level)
     Libdl.dlclose(lib)
@@ -173,24 +179,24 @@ function msolve(
     end
 
     [nterms += jl_len[i] for i=1:jl_ld]
-    if 0 == field_char
+    # if 0 == field_char
         res_cf_conv   = unsafe_load(res_cf)
         jl_cf         = reinterpret(Ptr{BigInt}, res_cf_conv)
         sols_num_conv = unsafe_load(sols_num)
         jl_sols_num   = reinterpret(Ptr{BigInt}, sols_num_conv)
         sols_den_conv = unsafe_load(sols_den)
         jl_sols_den   = reinterpret(Ptr{Int32}, sols_den_conv)
-    elseif Nemo.isprime(Nemo.FlintZZ(field_char))
-        res_cf_conv = unsafe_load(res_cf)
-        jl_cf       = reinterpret(Ptr{Int32}, res_cf_conv)
-        sols_num_conv = unsafe_load(sols_num)
-        jl_sols_num   = reinterpret(Ptr{Int32}, sols_num_conv)
-    end
+    # elseif isprime(field_char)
+    #     res_cf_conv = unsafe_load(res_cf)
+    #     jl_cf       = reinterpret(Ptr{Int32}, res_cf_conv)
+    #     sols_num_conv = unsafe_load(sols_num)
+    #     jl_sols_num   = reinterpret(Ptr{Int32}, sols_num_conv)
+    # end
 
     for i in 1:jl_nb_sols*nr_vars
         tmpcf = BigInt(unsafe_load(jl_sols_num, i))
     end
-    solutions = Array{Array{Nemo.fmpq, 1}, 1}(undef, jl_nb_sols)
+    solutions = Array{Array{fmpq, 1}, 1}(undef, jl_nb_sols)
     for i in 1:jl_nb_sols
         tmp = Array{Nemo.fmpq, 1}(undef, nr_vars)
         for j in 1:nr_vars
