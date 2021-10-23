@@ -243,6 +243,30 @@ function class_group( v::NormalToricVariety )
 end
 export class_group
 
+@doc Markdown.doc"""
+    map_from_principal_divisors_to_class_group( v::NormalToricVariety )
+
+Computes the map from the group of principal divisors to the class of group of a normal toric variety `v`.
+
+# Examples
+```jdoctest
+julia> map_from_principal_divisors_to_class_group( p2 )
+Map with following data
+Domain:
+=======
+Abelian group with structure: Z^3
+Codomain:
+=========
+(General) abelian group with relation matrix
+[0 0 0; 0 0 0; 0 0 0; 1 0 -1; 0 1 -1]
+with structure of Abelian group with structure: Z
+```
+"""
+function map_from_principal_divisors_to_class_group( v::NormalToricVariety )
+    return cokernel(map_from_character_to_principal_divisors(v))[2]
+end
+export map_from_principal_divisors_to_class_group
+
 
 ######################
 # 2: Methods of ToricVarieties
