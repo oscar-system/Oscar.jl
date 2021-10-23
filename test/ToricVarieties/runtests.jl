@@ -1,8 +1,43 @@
 using Oscar
 using Test
 
+C = Oscar.positive_hull([1 1; -1 1])
+antv = AffineNormalToricVariety(C)
+
+@testset "Affine toric varieties" begin
+    @test issmooth( antv ) == false
+    @test isorbifold( antv ) == true
+    @test length( affine_open_covering( antv ) ) == 1
+    # @test toric_ideal_binomial_generators( antv ) == [-1 -1 2]
+    @test rank(torusinvariant_divisor_group( antv )) == 2
+    @test rank(character_lattice( antv )) == 2
+    map = map_from_character_to_principal_divisors( antv )
+    @test rank(domain(map)) == 2
+    @test rank(codomain(map)) == 2
+    @test length(gens(codomain(map_from_principal_divisors_to_class_group(antv)))) == 2
+    @test length(gens(class_group(antv))) == 2
+    @test ngens(cox_ring(antv)) == 2
+end
+
+ntv = NormalToricVariety(C)
+
+@testset "Affine toric varieties created as general normal toric varieties" begin
+    @test isaffine( ntv ) == true
+    associated_affine_variety = AffineNormalToricVariety( ntv )
+    @test length( affine_open_covering( associated_affine_variety ) ) == 1
+end
+
+square = Oscar.cube(2)
+nf = Oscar.normal_fan(square)
+ntv = NormalToricVariety(nf)
+ntv2 = NormalToricVariety(square)
+
+@testset "Toric varieties from polyhedral fans" begin
+    @test iscomplete( ntv ) == true
+    @test iscomplete( ntv2 ) == true
+end
+
 H5 = hirzebruch_surface( 5 )
-P2 = toric_projective_space( 2 )
 
 @testset "Hirzebruch surface" begin
     @test isnormal( H5 ) == true
@@ -38,7 +73,6 @@ P2 = toric_projective_space( 2 )
 end
 
 @testset "delPezzo surfaces" begin
-    # Construct delPezzo surfaces
     @test_throws ArgumentError del_pezzo( -1 )
     del_pezzo( 0 )
     del_pezzo( 1 )
@@ -47,8 +81,9 @@ end
     @test_throws ArgumentError del_pezzo( 4 )
 end
 
+P2 = toric_projective_space( 2 )
+
 @testset "Projective space" begin
-    # Perform tests for projective space
     @test isnormal( P2 ) == true
     @test isaffine( P2 ) == false
     @test isprojective( P2 ) == true
@@ -62,12 +97,13 @@ end
     @test ith_betti_number( P2, 2 ) == 1
     @test ith_betti_number( P2, 3 ) == 0
     @test ith_betti_number( P2, 4 ) == 1
+    S = cox_ring( P2 )
+    @test ngens( S ) == 3
 end
 
 D=ToricDivisor( [ 0,0,0,0 ], H5 )
         
 @testset "Divisors" begin
-    # Compute properties of toric divisors on Hirzebruch surface
     @test iscartier( D ) == true
     @test isprincipal( D ) == true
     @test isbasepoint_free( D ) == true
@@ -82,25 +118,4 @@ end
     p = polyhedron( D )
     @test dim( p ) == 0
     @test ambient_dim( p ) == 2
-end
-
-@testset "Affine toric varieties" begin
-    C = Oscar.positive_hull([1 1; -1 1])
-    antv = AffineNormalToricVariety(C)
-    @test issmooth( antv ) == false
-    @test isorbifold( antv ) == true
-    @test length( affine_open_covering( antv ) ) == 1
-    # @test toric_ideal_binomial_generators( antv ) == [-1 -1 2]
-    ntv = NormalToricVariety(C)
-    @test isaffine( ntv ) == true
-    @test length( affine_open_covering( ntv ) ) == 1
-end
-
-@testset "Toric varieties from polyhedral fans" begin
-    square = Oscar.cube(2)
-    nf = Oscar.normal_fan(square)
-    ntv = NormalToricVariety(nf)
-    @test iscomplete( ntv ) == true
-    ntv2 = NormalToricVariety(square)
-    @test iscomplete( ntv2 ) == true
 end

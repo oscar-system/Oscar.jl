@@ -169,14 +169,14 @@ julia> torusinvariant_divisor_group( p2 )
 GrpAb: Z^3
 ```
 """
-function torusinvariant_divisor_group( v::NormalToricVariety )
+function torusinvariant_divisor_group( v::AbstractNormalToricVariety )
     return abelian_group([0 for i in 1:pm_ntv( v ).N_RAYS])
 end
 export torusinvariant_divisor_group
 
 
 @doc Markdown.doc"""
-    character_lattice( v::NormalToricVariety )
+    character_lattice( v::AbstractNormalToricVariety )
 
 Computes the character lattice of a normal toric variety `v`.
 
@@ -189,14 +189,14 @@ julia> character_lattice( p2 )
 GrpAb: Z^2
 ```
 """
-function character_lattice( v::NormalToricVariety )
+function character_lattice( v::AbstractNormalToricVariety )
     return abelian_group([0 for i in 1:pm_ntv( v ).FAN_DIM])
 end
 export character_lattice
 
 
 @doc Markdown.doc"""
-    map_from_character_to_principal_divisors( v::NormalToricVariety )
+    map_from_character_to_principal_divisors( v::AbstractNormalToricVariety )
 
 Computes the map from the character lattice to the group of principal divisors of a normal toric variety `v`.
 
@@ -215,7 +215,7 @@ Codomain:
 Abelian group with structure: Z^3
 ```
 """
-function map_from_character_to_principal_divisors(v::NormalToricVariety)
+function map_from_character_to_principal_divisors(v::AbstractNormalToricVariety)
     matrix = Matrix{Int}(Oscar.Polymake.common.primitive(pm_ntv(v).RAYS))
     abstract_matrix = AbstractAlgebra.matrix(ZZ, size(matrix,2), size(matrix,1), vec(matrix))
     return hom(character_lattice(v), torusinvariant_divisor_group(v), abstract_matrix)
@@ -224,7 +224,7 @@ export map_from_character_to_principal_divisors
 
 
 @doc Markdown.doc"""
-    class_group( v::NormalToricVariety )
+    class_group( v::AbstractNormalToricVariety )
 
 Computes the class group of the normal toric variety `v`.
 
@@ -238,13 +238,13 @@ julia> class_group( p2 )
 [1 0 -1; 0 1 -1]
 ```
 """
-function class_group( v::NormalToricVariety )
+function class_group( v::AbstractNormalToricVariety )
     return cokernel(map_from_character_to_principal_divisors(v))[1]
 end
 export class_group
 
 @doc Markdown.doc"""
-    map_from_principal_divisors_to_class_group( v::NormalToricVariety )
+    map_from_principal_divisors_to_class_group( v::AbstractNormalToricVariety )
 
 Computes the map from the group of principal divisors to the class of group of a normal toric variety `v`.
 
@@ -262,10 +262,34 @@ Codomain:
 with structure of Abelian group with structure: Z
 ```
 """
-function map_from_principal_divisors_to_class_group( v::NormalToricVariety )
+function map_from_principal_divisors_to_class_group( v::AbstractNormalToricVariety )
     return cokernel(map_from_character_to_principal_divisors(v))[2]
 end
 export map_from_principal_divisors_to_class_group
+
+
+@doc Markdown.doc"""
+    cox_ring( v::AbstractNormalToricVariety )
+
+Computes the Cox ring of the normal toric variety `v`.
+
+# Examples
+```jdoctest
+julia> p2 = toric_projective_space( 2 )
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+
+julia> cox_ring( p2 )
+(Multivariate Polynomial Ring in x[1], x[2], x[3] over Rational Field graded by 
+  x[1] -> [0 0 1]
+  x[2] -> [0 0 1]
+  x[3] -> [0 0 1], MPolyElem_dec{fmpq, fmpq_mpoly}[x[1], x[2], x[3]])
+```
+"""
+function cox_ring( v::AbstractNormalToricVariety )
+    Qx, x = PolynomialRing(QQ, :x=>1:pm_ntv(v).N_RAYS)
+    return grade(Qx,gens(class_group(v)))[1]
+end
+export cox_ring
 
 
 ######################
