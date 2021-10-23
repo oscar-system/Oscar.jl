@@ -68,4 +68,5 @@ map_from_character_to_principal_divisors
 map_from_principal_divisors_to_class_group
 class_group
 cox_ring
+list_of_variables_of_cox_ring
 ```

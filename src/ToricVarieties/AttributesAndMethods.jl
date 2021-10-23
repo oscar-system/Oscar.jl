@@ -292,6 +292,29 @@ end
 export cox_ring
 
 
+@doc Markdown.doc"""
+    list_of_variables_of_cox_ring( v::NormalToricVariety )
+
+Lists the names of the indeterminates of the Cox ring of a normal toric variety `v`.
+
+# Examples
+```jdoctest
+julia> p2 = toric_projective_space( 2 )
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+
+julia> list_of_variables_of_cox_ring( p2 )
+3-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+ x1
+ x2
+ x3
+```
+"""
+function list_of_variables_of_cox_ring( v::AbstractNormalToricVariety )
+    return gens( cox_ring( v ) )
+end
+export list_of_variables_of_cox_ring
+
+
 ######################
 # 2: Methods of ToricVarieties
 ######################

@@ -25,6 +25,7 @@ ntv = NormalToricVariety(C)
     @test isaffine( ntv ) == true
     associated_affine_variety = AffineNormalToricVariety( ntv )
     @test length( affine_open_covering( associated_affine_variety ) ) == 1
+    @test length( list_of_variables_of_cox_ring( associated_affine_variety ) ) == 2
 end
 
 square = Oscar.cube(2)
@@ -70,6 +71,7 @@ H5 = hirzebruch_surface( 5 )
     @test rank(codomain(map)) == 4
     @test rank(class_group( H5 )) == 2
     @test rank(codomain(map_from_principal_divisors_to_class_group(H5))) == 2
+    @test length( list_of_variables_of_cox_ring( H5 ) ) == 4
 end
 
 @testset "delPezzo surfaces" begin
