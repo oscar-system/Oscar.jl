@@ -29,6 +29,7 @@ P2 = toric_projective_space( 2 )
     @test length( affine_open_covering( H5 ) ) == 4
     @test fan_of_variety( H5 ).pm_fan.FAN_DIM == 2
     torusinvariant_divisor_group( H5 )
+    character_lattice( H5 )
 end
 
 @testset "delPezzo surfaces" begin

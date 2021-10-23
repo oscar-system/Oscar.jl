@@ -175,6 +175,26 @@ end
 export torusinvariant_divisor_group
 
 
+@doc Markdown.doc"""
+    character_lattice( v::NormalToricVariety )
+
+Computes the character lattice of a normal toric variety `v`.
+
+# Examples
+```jdoctest
+julia> p2 = toric_projective_space( 2 )
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+
+julia> character_lattice( p2 )
+GrpAb: Z^2
+```
+"""
+function character_lattice( v::NormalToricVariety )
+    return abelian_group([0 for i in 1:pm_ntv( v ).FAN_DIM])
+end
+export character_lattice
+
+
 ######################
 # 2: Methods of ToricVarieties
 ######################
