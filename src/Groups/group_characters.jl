@@ -250,7 +250,7 @@ function as_sum_of_roots(val::nf_elem, root::String)
     # and without curly brackets for subscripts and superscripts.
     str = string(val)
     str = replace(str, "*" => "")
-    str = replace(str, string(F.S) => root*"_{"*string(N)*"}")
+    str = replace(str, string(F.S) => "$(root)_{$N}")
     str = replace(str, r"\^([0-9]*)" => s"^{\1}")
     return str
 end
@@ -320,7 +320,7 @@ function matrix_of_strings(tbl::GAPGroupCharacterTable; alphabet::String = "", r
               # The complex conjugate of a known name is shown relative to
               # that name.
               disp = as_sum_of_roots(valbar.data, root)
-              push!(legend, (valbar, "\\overline{"*name*"}", disp))
+              push!(legend, (valbar, "\\overline{$name}", disp))
             else
               info = Oscar.AbelianClosure.quadratic_irrationality_info(val)
               if info != nothing
