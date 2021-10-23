@@ -59,4 +59,7 @@ dim_of_torusfactor
 picard_group
 nef_cone
 mori_cone
+affine_open_covering( v::AffineNormalToricVariety )
+affine_open_covering( v::NormalToricVariety )
+fan_of_variety
 ```
