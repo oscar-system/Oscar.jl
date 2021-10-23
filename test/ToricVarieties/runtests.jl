@@ -23,6 +23,7 @@ P2 = toric_projective_space( 2 )
     @test ith_betti_number( H5, 2 ) == 2
     @test ith_betti_number( H5, 3 ) == 0
     @test ith_betti_number( H5, 4 ) == 1
+    @test length( affine_open_covering( H5 ) ) == 4
 end
 
 @testset "delPezzo surfaces" begin
@@ -77,9 +78,11 @@ end
     antv = AffineNormalToricVariety(C)
     @test issmooth( antv ) == false
     @test isorbifold( antv ) == true
+    @test length( affine_open_covering( antv ) ) == 1
     # @test toric_ideal_binomial_generators( antv ) == [-1 -1 2]
     ntv = NormalToricVariety(C)
     @test isaffine( ntv ) == true
+    @test length( affine_open_covering( ntv ) ) == 1
 end
 
 @testset "Toric varieties from polyhedral fans" begin
