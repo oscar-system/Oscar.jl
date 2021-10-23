@@ -8,7 +8,7 @@
 Computes the dimension of the normal toric variety `v`.
 """
 function dim( v::AbstractNormalToricVariety )
-    return v.polymakeNTV.FAN_DIM::Int
+    return pm_ntv( v ).FAN_DIM::Int
 end
 export dim
 
@@ -24,8 +24,8 @@ function dim_of_torusfactor( v::AbstractNormalToricVariety )
         return 0
     end
     
-    dimension_of_fan = v.polymakeNTV.FAN_DIM::Int
-    ambient_dimension = v.polymakeNTV.FAN_AMBIENT_DIM::Int
+    dimension_of_fan = pm_ntv( v ).FAN_DIM::Int
+    ambient_dimension = pm_ntv( v ).FAN_AMBIENT_DIM::Int
     return ambient_dimension - dimension_of_fan
 end
 export dim_of_torusfactor
@@ -37,7 +37,7 @@ export dim_of_torusfactor
 Computes the Euler characteristic of the normal toric variety `v`.
 """
 function euler_characteristic( v::AbstractNormalToricVariety )
-    f_vector = Vector{Int}(v.polymakeNTV.F_VECTOR)
+    f_vector = Vector{Int}(pm_ntv( v ).F_VECTOR)
     return f_vector[ dim( v ) ]
 end
 export euler_characteristic
@@ -60,7 +60,7 @@ julia> dim(nef)
 1
 ```
 """
-nef_cone( v::NormalToricVariety ) = Cone( v.polymakeNTV.NEF_CONE )
+nef_cone( v::NormalToricVariety ) = Cone( pm_ntv( v ).NEF_CONE )
 export nef_cone
 
 
@@ -81,7 +81,7 @@ julia> dim(mori)
 1
 ```
 """
-mori_cone( v::NormalToricVariety ) = Cone( v.polymakeNTV.MORI_CONE )
+mori_cone( v::NormalToricVariety ) = Cone( pm_ntv( v ).MORI_CONE )
 export mori_cone
 
 
@@ -103,9 +103,9 @@ julia> affine_open_covering( p2 )
 ```
 """
 function affine_open_covering( v::NormalToricVariety )
-    charts = Vector{AffineNormalToricVariety}(undef, v.polymakeNTV.N_MAXIMAL_CONES)
-    for i in 1:v.polymakeNTV.N_MAXIMAL_CONES
-        charts[ i ] = AffineNormalToricVariety(Cone(Polymake.fan.cone(v.polymakeNTV, i-1)))
+    charts = Vector{AffineNormalToricVariety}(undef, pm_ntv( v ).N_MAXIMAL_CONES)
+    for i in 1:pm_ntv( v ).N_MAXIMAL_CONES
+        charts[ i ] = AffineNormalToricVariety(Cone(Polymake.fan.cone(pm_ntv( v ), i-1)))
     end
     return charts
 end
@@ -150,7 +150,7 @@ function ith_betti_number( v::AbstractNormalToricVariety, i::Int )
         return 0
     end
     k = div(i, 2)
-    f_vector = Vector{Int}(v.polymakeNTV.F_VECTOR)
+    f_vector = Vector{Int}(pm_ntv( v ).F_VECTOR)
     pushfirst!(f_vector, 1)
     betti_number = sum( (-1)^(i-k) * binomial(i,k) * f_vector[ dim( v ) - i + 1 ] for i=k:dim( v ))
     return betti_number

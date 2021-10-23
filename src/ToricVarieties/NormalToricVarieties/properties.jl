@@ -99,7 +99,7 @@ false
 ```
 """
 function hastorusfactor( v::AbstractNormalToricVariety )
-    return v.polymakeNTV.FAN_DIM < v.polymakeNTV.FAN_AMBIENT_DIM
+    return pm_ntv(v).FAN_DIM < pm_ntv(v).FAN_AMBIENT_DIM
 end
 export hastorusfactor
 
