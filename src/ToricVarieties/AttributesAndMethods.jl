@@ -195,6 +195,34 @@ end
 export character_lattice
 
 
+@doc Markdown.doc"""
+    map_from_character_to_principal_divisors( v::NormalToricVariety )
+
+Computes the map from the character lattice to the group of principal divisors of a normal toric variety `v`.
+
+# Examples
+```jdoctest
+julia> p2 = toric_projective_space( 2 )
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+
+julia> map_from_character_to_principal_divisors( p2 )
+Map with following data
+Domain:
+=======
+Abelian group with structure: Z^2
+Codomain:
+=========
+Abelian group with structure: Z^3
+```
+"""
+function map_from_character_to_principal_divisors(v::NormalToricVariety)
+    matrix = Matrix{Int}(Oscar.Polymake.common.primitive(pm_ntv(v).RAYS))
+    abstract_matrix = AbstractAlgebra.matrix(ZZ, size(matrix,2), size(matrix,1), vec(matrix))
+    return hom(character_lattice(v), torusinvariant_divisor_group(v), abstract_matrix)
+end
+export map_from_character_to_principal_divisors
+
+
 ######################
 # 2: Methods of ToricVarieties
 ######################

@@ -28,8 +28,11 @@ P2 = toric_projective_space( 2 )
     @test ith_betti_number( H5, 4 ) == 1
     @test length( affine_open_covering( H5 ) ) == 4
     @test fan_of_variety( H5 ).pm_fan.FAN_DIM == 2
-    torusinvariant_divisor_group( H5 )
-    character_lattice( H5 )
+    @test rank(torusinvariant_divisor_group(H5)) == 4
+    @test rank(character_lattice(H5)) == 2
+    map = map_from_character_to_principal_divisors( H5 )
+    @test rank(domain(map)) == 2
+    @test rank(codomain(map)) == 4
 end
 
 @testset "delPezzo surfaces" begin
