@@ -223,6 +223,27 @@ end
 export map_from_character_to_principal_divisors
 
 
+@doc Markdown.doc"""
+    class_group( v::NormalToricVariety )
+
+Computes the class group of the normal toric variety `v`.
+
+# Examples
+```jdoctest
+julia> p2 = toric_projective_space( 2 )
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+
+julia> class_group( p2 )
+(General) abelian group with relation matrix
+[1 0 -1; 0 1 -1]
+```
+"""
+function class_group( v::NormalToricVariety )
+    return cokernel(map_from_character_to_principal_divisors(v))[1]
+end
+export class_group
+
+
 ######################
 # 2: Methods of ToricVarieties
 ######################

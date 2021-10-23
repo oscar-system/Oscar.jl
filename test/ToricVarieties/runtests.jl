@@ -33,6 +33,7 @@ P2 = toric_projective_space( 2 )
     map = map_from_character_to_principal_divisors( H5 )
     @test rank(domain(map)) == 2
     @test rank(codomain(map)) == 4
+    @test rank(class_group( H5 )) == 2
 end
 
 @testset "delPezzo surfaces" begin

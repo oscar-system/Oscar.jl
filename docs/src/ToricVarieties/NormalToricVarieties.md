@@ -65,4 +65,9 @@ fan_of_variety
 torusinvariant_divisor_group
 character_lattice
 map_from_character_to_principal_divisors
+<<<<<<< HEAD
+=======
+map_from_principal_divisors_to_class_group
+class_group
+>>>>>>> 70e9ef4e7... Add class_group for normal toric varieties
 ```
