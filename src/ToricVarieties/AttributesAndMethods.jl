@@ -155,6 +155,26 @@ end
 export fan_of_variety
 
 
+@doc Markdown.doc"""
+    torusinvariant_divisor_group( v::NormalToricVariety )
+
+Computes the torusinvariant divisor group of a normal toric variety `v`.
+
+# Examples
+```jdoctest
+julia> p2 = toric_projective_space( 2 )
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+
+julia> torusinvariant_divisor_group( p2 )
+GrpAb: Z^3
+```
+"""
+function torusinvariant_divisor_group( v::NormalToricVariety )
+    return abelian_group([0 for i in 1:pm_ntv( v ).N_RAYS])
+end
+export torusinvariant_divisor_group
+
+
 ######################
 # 2: Methods of ToricVarieties
 ######################
