@@ -135,6 +135,26 @@ end
 export affine_open_covering
 
 
+@doc Markdown.doc"""
+    fan_of_variety( v::NormalToricVariety )
+
+Computes the fan of a normal toric variety `v`.
+
+# Examples
+```jdoctest
+julia> p2 = toric_projective_space( 2 )
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+
+julia> fan_of_variety( p2 )
+A polyhedral fan in ambient dimension 2
+```
+"""
+function fan_of_variety( v::NormalToricVariety )
+    return PolyhedralFan( pm_ntv( v ) )
+end
+export fan_of_variety
+
+
 ######################
 # 2: Methods of ToricVarieties
 ######################

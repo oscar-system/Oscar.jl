@@ -27,6 +27,7 @@ P2 = toric_projective_space( 2 )
     @test ith_betti_number( H5, 3 ) == 0
     @test ith_betti_number( H5, 4 ) == 1
     @test length( affine_open_covering( H5 ) ) == 4
+    @test fan_of_variety( H5 ).pm_fan.FAN_DIM == 2
 end
 
 @testset "delPezzo surfaces" begin
