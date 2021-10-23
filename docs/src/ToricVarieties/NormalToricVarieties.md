@@ -69,4 +69,7 @@ map_from_weil_divisors_to_class_group
 class_group
 cox_ring
 list_of_variables_of_cox_ring
+primitive_collections
+stanley_reisner_ideal
+irrelevant_ideal
 ```

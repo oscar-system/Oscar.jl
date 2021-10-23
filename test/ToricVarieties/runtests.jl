@@ -72,6 +72,8 @@ H5 = hirzebruch_surface( 5 )
     @test rank(class_group( H5 )) == 2
     @test rank(codomain(map_from_weil_divisors_to_class_group(H5))) == 2
     @test length( list_of_variables_of_cox_ring( H5 ) ) == 4
+    @test length( stanley_reisner_ideal( H5 ).gens ) == 2
+    @test length( irrelevant_ideal( H5 ).gens ) == 4
 end
 
 @testset "delPezzo surfaces" begin
@@ -101,6 +103,8 @@ P2 = toric_projective_space( 2 )
     @test ith_betti_number( P2, 4 ) == 1
     S = cox_ring( P2 )
     @test ngens( S ) == 3
+    @test length( stanley_reisner_ideal( P2 ).gens ) == 1
+    @test length( irrelevant_ideal( P2 ).gens ) == 3
 end
 
 D=ToricDivisor( [ 0,0,0,0 ], H5 )

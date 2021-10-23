@@ -316,6 +316,79 @@ end
 export list_of_variables_of_cox_ring
 
 
+@doc Markdown.doc"""
+    stanley_reisner_ideal( v::NormalToricVariety )
+
+Computes the Stanley-Reisner ideal of a normal toric variety `v`.
+
+# Examples
+```jdoctest
+julia> p2 = toric_projective_space( 2 )
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+
+julia> length( stanley_reisner_ideal( P2 ).gens )
+1
+```
+"""
+function stanley_reisner_ideal( v::AbstractNormalToricVariety )
+    collections = primitive_collections(fan_of_variety(v))
+    SR_generators = []
+    vars = list_of_variables_of_cox_ring( v )
+    for I in collections
+        buffer = vars[ I[ 1 ] ]
+        for k in 2 : length( I )
+           buffer = buffer * vars[ I[ k ] ]
+        end
+        push!( SR_generators, buffer )
+    end
+    return ideal( SR_generators )
+end
+export stanley_reisner_ideal
+
+
+@doc Markdown.doc"""
+    irrelevant_ideal( v::NormalToricVariety )
+
+Computes the irrelevant ideal of a normal toric variety `v`.
+
+# Examples
+```jdoctest
+julia> p2 = toric_projective_space( 2 )
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+
+julia> length( irrelevant_ideal( p2 ).gens )
+1
+```
+"""
+function irrelevant_ideal( v::NormalToricVariety )
+    # prepare maximal cone presentation
+    max_cones = [findall(x->x!=0, l) for l in eachrow(pm_ntv(v).MAXIMAL_CONES)]
+    n_ray = size( pm_ntv(v).RAYS, 1 )
+    maximal_cones = []
+    for c in max_cones
+        buffer = Vector{Int}( undef, n_ray )
+        buffer = fill( 0, n_ray )
+        for k in c
+            buffer[ k ] = 1
+        end
+        push!( maximal_cones, buffer )
+    end
+    # compute generators
+    indeterminates = list_of_variables_of_cox_ring( v )
+    gens = [];
+    for i in 1 : length( maximal_cones )
+        monom = 1
+        for j in 1 : length( maximal_cones[ i ] )
+            monom = monom * indeterminates[ j ]^( 1 - maximal_cones[ i ][ j ] )
+        end
+        push!( gens, monom )
+    end
+    # return the ideal
+    return ideal( gens )
+end
+export irrelevant_ideal
+
+
 ######################
 # 2: Methods of ToricVarieties
 ######################
