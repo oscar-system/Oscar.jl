@@ -32,10 +32,14 @@ iscartier
 iseffective(td::ToricDivisor)
 isintegral(td::ToricDivisor) 
 isnef
+isprime_divisor
 isprincipal
 isq_cartier
 isvery_ample
-isprime_divisor
-polyhedron(td::ToricDivisor)
 ```
 
+## Operations for toric divisors
+
+```@docs
+polyhedron(td::ToricDivisor)
+```
