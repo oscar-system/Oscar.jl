@@ -113,6 +113,24 @@ end
     @test_throws ArgumentError del_pezzo(4)
 end
 
+@testset "Blowup of projective space" begin
+    blowup_variety = blowup_on_ith_minimal_torus_orbit(P2, 1)
+    @test isnormal(blowup_variety) == true
+    @test isaffine(blowup_variety) == false
+    @test isprojective(blowup_variety) == true
+    @test issmooth(blowup_variety) == true
+    @test iscomplete(blowup_variety) == true
+    @test hastorusfactor(blowup_variety) == false
+    @test isorbifold(blowup_variety) == true
+    @test issimplicial(blowup_variety) == true
+    @test ith_betti_number(blowup_variety, 0) == 1
+    @test ith_betti_number(blowup_variety, 1) == 0
+    @test ith_betti_number(blowup_variety, 2) == 2
+    @test ith_betti_number(blowup_variety, 3) == 0
+    @test ith_betti_number(blowup_variety, 4) == 1
+    @test euler_characteristic(blowup_variety) == 4
+end
+
 D=ToricDivisor(H5, [0,0,0,0])
 D2 = DivisorOfCharacter(H5, [1,2])
 

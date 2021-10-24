@@ -500,3 +500,27 @@ export affine_open_covering
 #     return result
 # end
 # export toric_ideal_binomial_generators
+
+
+############################
+# Blowups
+############################
+
+@doc Markdown.doc"""
+    blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int)
+
+Computes the blowup of the normal toric variety `v` on its i-th minimal torus orbit.
+
+# Examples
+```jldoctest
+julia> P2 = toric_projective_space(2)
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+
+julia> blowup_on_ith_minimal_torus_orbit(P2,1)
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+```
+"""
+function blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int)
+    return NormalToricVariety( starsubdivision( fan_of_variety( v ), n ) )
+end
+export blowup_on_ith_minimal_torus_orbit

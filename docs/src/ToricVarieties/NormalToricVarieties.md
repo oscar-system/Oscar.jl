@@ -101,3 +101,9 @@ affine_open_covering( v::AffineNormalToricVariety )
 ### Toric ideal
 
 To come very soon.
+
+### Blowups
+
+```@docs
+blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int)
+```
