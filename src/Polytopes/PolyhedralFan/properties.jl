@@ -377,7 +377,7 @@ Computes the primitive collections of a polyhedral fan.
 julia> primitive_collections(normal_fan(Oscar.simplex(3)))
 1-element Vector{Vector{Int64}}:
  [1, 2, 3, 4]
-``` 
+```
 """
 function primitive_collections(PF::PolyhedralFan)
     # collect data
@@ -427,7 +427,7 @@ Computes the star subdivision of a polyhedral fan at its n-th maximal torus orbi
 ```jldoctest
 julia> starsubdivision(normal_fan(Oscar.simplex(3)), 1)
 A polyhedral fan in ambient dimension 3
-``` 
+```
 """
 function starsubdivision(PF::PolyhedralFan, n::Int)
     # extract defining information on the fan
@@ -468,7 +468,7 @@ function starsubdivision(PF::PolyhedralFan, n::Int)
     
     # identify all maximal cones in the new fan
     indices = [i for i in maxcones[n]]
-    push!(indices, newindex )
+    push!(indices, newindex)
     d = dim(cone)
     test_cones = Oscar.Hecke.subsets(indices,d)
     newmaxcones = Vector{Int}[];
@@ -486,5 +486,60 @@ function starsubdivision(PF::PolyhedralFan, n::Int)
     
     # return the new fan
     return PolyhedralFan(newrays, newmaxcones)
+    
+end
+
+###############################################################################
+## Cartesian/Direct product
+###############################################################################
+
+@doc Markdown.doc"""
+    *(PF1::PolyhedralFan, PF2::PolyhedralFan)
+
+Computes the Cartesian/direct product of two polyhedral fans.
+
+# Examples
+```jldoctest
+julia> normal_fan(Oscar.simplex(2))*normal_fan(Oscar.simplex(3))
+A polyhedral fan in ambient dimension 5
+```
+"""
+function Base.:*(PF1::PolyhedralFan, PF2::PolyhedralFan)
+    # extract dimensions of the fans
+    d1 = dim(PF1)
+    d2 = dim(PF2)
+    
+    # construct rays of the new fan
+    rays1 = [[Int(i) for i in r] for r in eachrow(Oscar.Polymake.common.primitive(pm_fan(PF1).RAYS))]
+    rays2 = [[Int(i) for i in r] for r in eachrow(Oscar.Polymake.common.primitive(pm_fan(PF2).RAYS))]
+    newrays = zeros(Int64,length(rays1)+length(rays2),d1+d2)
+    for i in 1 : length(rays1)
+        for j in 1:length(rays1[i])
+            newrays[i,j] = rays1[i][j]
+        end
+    end
+    for i in 1 : length(rays2)
+        for j in 1:length(rays2[i])
+            newrays[i+length(rays1),j+d1] = rays2[i][j]
+        end
+    end
+
+    # construct max cones of the new fan
+    maxcones = Vector{Int}[];
+    maxcones1 = [findall(x->x!=0, l) for l in eachrow(pm_fan(PF1).MAXIMAL_CONES)]
+    maxcones2 = [findall(x->x!=0, l) for l in eachrow(pm_fan(PF2).MAXIMAL_CONES)]
+    maxcones2 = [[k +  pm_fan(PF1).N_MAXIMAL_CONES for k in c] for c in maxcones2]
+    for i in 1 : length(maxcones1)
+        for j in 1 : length(maxcones2)
+            newcone = [c for c in maxcones1[i]]
+            for k in 1 : length(maxcones2[j])
+                push!(newcone, maxcones2[j][k])
+            end
+            push!(maxcones,newcone)
+        end
+    end
+    
+    # return the new fan
+    return PolyhedralFan(newrays, IncidenceMatrix(maxcones))
     
 end

@@ -76,6 +76,7 @@ nrays(PF::PolyhedralFan)
 rays(PF::PolyhedralFan)
 primitive_collections(PF::PolyhedralFan)
 starsubdivision(PF::PolyhedralFan, n::Int)
+*(PF1::PolyhedralFan, PF2::PolyhedralFan)
 ```
 
 ### Visualization

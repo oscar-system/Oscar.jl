@@ -106,7 +106,8 @@ export Cone,
     vertices,
     vf_group,
     visualize,
-    volume
+    volume,
+    *
 
 include("helpers.jl")
 include("iterators.jl")
