@@ -17,17 +17,17 @@ end
 ######################
 
 @doc Markdown.doc"""
-    ToricDivisor(coeffs::AbstractVector, v::AbstractNormalToricVariety )
+    ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{Int})
 
 Construct the torus invariant divisor on the normal toric variety `v` as linear combination of the torus invariant prime divisors of `v`. The coefficients of thi linear combination are passed as list of integers as first argument.
 
 # Examples
 ```jldoctest
-julia> show( ToricDivisor( [1,1,2], toric_projective_space( 2 ) ) )
+julia> show(ToricDivisor(toric_projective_space(2), [1,1,2]))
 A torus invariant divisor on a normal toric variety
 ```
 """
-function ToricDivisor( coeffs::AbstractVector, v::AbstractNormalToricVariety )
+function ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{Int})
     if length(coeffs) != pm_ntv(v).N_RAYS
         throw(ArgumentError("Number of coefficients needs to match number of prime divisors!"))
     end
@@ -39,34 +39,31 @@ end
 export ToricDivisor
 
 
-
 ######################
 # 3: Special constructors
 ######################
 
 @doc Markdown.doc"""
-    DivisorOfCharacter( v::AbstractNormalToricVariety, character::Vector{Int} )
+    DivisorOfCharacter(v::AbstractNormalToricVariety, character::Vector{Int})
 
 Construct the torus invariant divisor associated to a character of the normal toric variety `v`.
 
 # Examples
 ```jldoctest
-julia> show( DivisorOfCharacter( toric_projective_space( 2 ), [ 1,2 ] ) )
+julia> show(DivisorOfCharacter(toric_projective_space(2), [1,2]))
 A torus invariant divisor on a normal toric variety
 ```
 """
-function DivisorOfCharacter( v::AbstractNormalToricVariety, character::Vector{Int} )
+function DivisorOfCharacter(v::AbstractNormalToricVariety, character::Vector{Int})
     if length(character) != rank(character_lattice(v))
-        throw(ArgumentError("Character must consist of " * string( rank(character_lattice(v)) ) * " integers!"))
+        throw(ArgumentError("Character must consist of " * string(rank(character_lattice(v))) * " integers!"))
     end
     f = map_from_character_to_principal_divisors(v)
     char = sum([character[i] * gens(domain(f))[i] for i in 1:length(gens(domain(f)))])
     coeffs = [Int(x) for x in transpose(f(char).coeff)][:,1]
-    return ToricDivisor(coeffs, v)
+    return ToricDivisor(v, coeffs)
 end
 export DivisorOfCharacter
-
-
 
 
 ######################
@@ -74,7 +71,7 @@ export DivisorOfCharacter
 ######################
 
 @doc Markdown.doc"""
-    iscartier( d::ToricDivisor )
+    iscartier(d::ToricDivisor)
 
 Checks if the divisor `d` is Cartier.
 
@@ -83,7 +80,7 @@ Checks if the divisor `d` is Cartier.
 julia> H = hirzebruch_surface(4)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
-julia> td = ToricDivisor([1,0,0,0], H)
+julia> td = ToricDivisor(H, [1,0,0,0])
 A torus invariant divisor on a normal toric variety
 
 julia> iscartier(td)
@@ -103,7 +100,7 @@ Determine whether the toric divisor `td` is principal.
 julia> H = hirzebruch_surface(4)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
-julia> td = ToricDivisor([1,0,0,0], H)
+julia> td = ToricDivisor(H, [1,0,0,0])
 A torus invariant divisor on a normal toric variety
 
 julia> isprincipal(td)
@@ -123,7 +120,7 @@ Determine whether the toric divisor `td` is basepoint free.
 julia> H = hirzebruch_surface(4)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
-julia> td = ToricDivisor([1,0,0,0], H)
+julia> td = ToricDivisor(H, [1,0,0,0])
 A torus invariant divisor on a normal toric variety
 
 julia> isbasepoint_free(td)
@@ -143,7 +140,7 @@ Determine whether the toric divisor `td` is effective.
 julia> H = hirzebruch_surface(4)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
-julia> td = ToricDivisor([1,0,0,0], H)
+julia> td = ToricDivisor(H, [1,0,0,0])
 A torus invariant divisor on a normal toric variety
 
 julia> iseffective(td)
@@ -163,7 +160,7 @@ Determine whether the toric divisor `td` is integral.
 julia> H = hirzebruch_surface(4)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
-julia> td = ToricDivisor([1,0,0,0], H)
+julia> td = ToricDivisor(H, [1,0,0,0])
 A torus invariant divisor on a normal toric variety
 
 julia> isintegral(td)
@@ -183,7 +180,7 @@ Determine whether the toric divisor `td` is ample.
 julia> H = hirzebruch_surface(4)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
-julia> td = ToricDivisor([1,0,0,0], H)
+julia> td = ToricDivisor(H, [1,0,0,0])
 A torus invariant divisor on a normal toric variety
 
 julia> isample(td)
@@ -203,7 +200,7 @@ Determine whether the toric divisor `td` is very ample.
 julia> H = hirzebruch_surface(4)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
-julia> td = ToricDivisor([1,0,0,0], H)
+julia> td = ToricDivisor(H, [1,0,0,0])
 A torus invariant divisor on a normal toric variety
 
 julia> isvery_ample(td)
@@ -223,7 +220,7 @@ Determine whether the toric divisor `td` is nef.
 julia> H = hirzebruch_surface(4)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
-julia> td = ToricDivisor([1,0,0,0], H)
+julia> td = ToricDivisor(H, [1,0,0,0])
 A torus invariant divisor on a normal toric variety
 
 julia> isnef(td)
@@ -243,7 +240,7 @@ Determine whether the toric divisor `td` is Q-Cartier.
 julia> H = hirzebruch_surface(4)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
-julia> td = ToricDivisor([1,0,0,0], H)
+julia> td = ToricDivisor(H, [1,0,0,0])
 A torus invariant divisor on a normal toric variety
 
 julia> isq_cartier(td)
@@ -253,6 +250,41 @@ true
 isq_cartier(td::ToricDivisor) = pm_tdivisor(td).Q_CARTIER::Bool
 export isq_cartier
 
+
+@doc Markdown.doc"""
+    isprime_divisor(td::ToricDivisor) 
+
+Determine whether the toric divisor `td` is a prime divisor.
+
+# Examples
+```jldoctest
+julia> H = hirzebruch_surface(4)
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+
+julia> td = ToricDivisor(H, [1,0,0,0])
+A torus invariant divisor on a normal toric variety
+
+julia> isprime_divisor(td)
+true
+```
+"""
+function isprime_divisor(td::ToricDivisor)
+    pm_divisor = td.polymake_divisor
+    coeffs = [Int(c) for c in Oscar.Polymake.common.primitive(pm_divisor.COEFFICIENTS)]
+    if (sum(coeffs) != 1)
+        return false
+    end
+    if (all(y -> (y == 1 || y == 0), coeffs) == false)
+        return false
+    end
+    return true
+end
+export isprime_divisor
+
+
+######################
+# 5: Attributes
+######################
 
 @doc Markdown.doc"""
     polyhedron(td::ToricDivisor)
@@ -271,7 +303,7 @@ anymore and the polyhedron becomes empty.
 julia> H = hirzebruch_surface(4)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
-julia> td0 = ToricDivisor([0,0,0,0], H)
+julia> td0 = ToricDivisor(H, [0,0,0,0])
 A torus invariant divisor on a normal toric variety
 
 julia> isfeasible(polyhedron(td0))
@@ -280,13 +312,13 @@ true
 julia> dim(polyhedron(td0))
 0
 
-julia> td1 = ToricDivisor([1,0,0,0], H)
+julia> td1 = ToricDivisor(H, [1,0,0,0])
 A torus invariant divisor on a normal toric variety
 
 julia> isfeasible(polyhedron(td1))
 true
 
-julia> td2 = ToricDivisor([-1,0,0,0], H)
+julia> td2 = ToricDivisor(H, [-1,0,0,0])
 A torus invariant divisor on a normal toric variety
 
 julia> isfeasible(polyhedron(td2))
@@ -302,7 +334,7 @@ export polyhedron
 
 ###############################################################################
 ###############################################################################
-### Display
+### 6: Display
 ###############################################################################
 ###############################################################################
 function Base.show(io::IO, td::ToricDivisor)

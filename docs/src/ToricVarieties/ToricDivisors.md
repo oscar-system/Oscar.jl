@@ -19,7 +19,7 @@ correspond to the rays of the underlying fan.
 ## Constructors
 
 ```@docs
-ToricDivisor
+ToricDivisor( v::AbstractNormalToricVariety, coeffs::Vector{Int} )
 DivisorOfCharacter( v::AbstractNormalToricVariety, character::Vector{Int} )
 ```
 
@@ -35,6 +35,7 @@ isnef
 isprincipal
 isq_cartier
 isvery_ample
+isprime_divisor
 polyhedron(td::ToricDivisor)
 ```
 
