@@ -165,3 +165,5 @@ GradedPolynomialRing(C::Ring, V::Vector{String}, W::Vector{Int}; ordering=:lex)
     The return types of the constructors above are all subtypes of `MPolyRing`.
 
 ## Homomorphisms of Polynomial Rings
+
+Functionality for dealing with homomorphisms of multivariate polynomial rings is described in the more general context of affine algebras.

@@ -110,7 +110,6 @@
      "CommutativeAlgebra/rings.md",
      "CommutativeAlgebra/ideals.md",
      "CommutativeAlgebra/modules.md",
-     "CommutativeAlgebra/quotient_rings.md",
      "CommutativeAlgebra/affine_algebras.md",
      "CommutativeAlgebra/binomial_ideals.md",
   ],
