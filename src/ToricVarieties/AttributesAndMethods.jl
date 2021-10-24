@@ -156,6 +156,17 @@ export fan_of_variety
 
 
 @doc Markdown.doc"""
+    fan( v::NormalToricVariety )
+
+A convenience method for fan_of_variety of a normal toric variety `v`.
+"""
+function fan( v::NormalToricVariety )
+    return fan_of_variety( v )
+end
+export fan
+
+
+@doc Markdown.doc"""
     torusinvariant_divisor_group( v::NormalToricVariety )
 
 Computes the torusinvariant divisor group of a normal toric variety `v`.
