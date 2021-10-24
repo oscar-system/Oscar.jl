@@ -75,6 +75,7 @@ nmaximal_cones(PF::PolyhedralFan)
 nrays(PF::PolyhedralFan)
 rays(PF::PolyhedralFan)
 primitive_collections(PF::PolyhedralFan)
+starsubdivision(PF::PolyhedralFan, n::Int)
 ```
 
 ### Visualization

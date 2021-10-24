@@ -374,7 +374,7 @@ Computes the primitive collections of a polyhedral fan.
 
 # Examples
 ```jldoctest
-julia> primitive_collections( normal_fan(Oscar.simplex(3)) )
+julia> primitive_collections(normal_fan(Oscar.simplex(3)))
 1-element Vector{Vector{Int64}}:
  [1, 2, 3, 4]
 ``` 
@@ -411,4 +411,80 @@ function primitive_collections(PF::PolyhedralFan)
     end
     # return the computed primitive collections
     return collections;
+end
+
+
+###############################################################################
+## Star subdivision
+###############################################################################
+
+@doc Markdown.doc"""
+    starsubdivision(PF::PolyhedralFan, n::Int)
+
+Computes the star subdivision of a polyhedral fan at its n-th maximal torus orbit.
+
+# Examples
+```jldoctest
+julia> starsubdivision(normal_fan(Oscar.simplex(3)), 1)
+A polyhedral fan in ambient dimension 3
+``` 
+"""
+function starsubdivision(PF::PolyhedralFan, n::Int)
+    # extract defining information on the fan
+    maxcones = [findall(x->x!=0, l) for l in eachrow(pm_fan(PF).MAXIMAL_CONES)]
+    rays = [[Int(i) for i in r] for r in eachrow(Oscar.Polymake.common.primitive(pm_fan(PF).RAYS))]
+    
+    # check if n-th maximal cone does exist
+    if length(maxcones) < n
+        throw(ArgumentError("Cannot subdivide maximal cone " * string(n) * " as it does not exist!"))
+    end
+    
+    # construct this cone and check if it is smooth
+    gens = zeros(Int64,length(maxcones[n]),length(rays[1]))
+    for i in 1 : length(maxcones[n])
+        for j in 1:length(rays[1])
+            gens[i,j] = rays[maxcones[n][i]][j]
+        end
+    end
+    cone = Oscar.positive_hull(gens)
+    if issmooth(PolyhedralFan(cone)) == false
+        throw(ArgumentError("Cannot subdivide maximal cone " * string(n) * " as it is not smooth!"))
+    end
+    
+    # compute new rays to be added from star subdivision
+    newindex = size(rays,1) + 1
+    newray = [sum(gens[:,i]) for i in 1 : size(gens,2)]
+    
+    # add this ray to form list of the new rays
+    newrays = zeros(Int64,length(rays)+1,length(rays[1]))
+    for i in 1 : length(rays)
+        for j in 1:length(rays[i])
+            newrays[i,j] = rays[i][j]
+        end
+    end
+    for j in 1:length(newray)
+        newrays[length(rays)+1,j] = newray[j]
+    end
+    
+    # identify all maximal cones in the new fan
+    indices = [i for i in maxcones[n]]
+    push!(indices, newindex )
+    d = dim(cone)
+    test_cones = Oscar.Hecke.subsets(indices,d)
+    newmaxcones = Vector{Int}[];
+    for i in 1 : length(maxcones)
+        if i != n
+            push!(newmaxcones,maxcones[i])
+        end
+    end
+    for i in 1 : length(test_cones)
+        if test_cones[i] != maxcones[n]
+            push!(newmaxcones, [Int(k) for k in test_cones[i]])
+        end
+    end
+    newmaxcones = IncidenceMatrix(newmaxcones)
+    
+    # return the new fan
+    return PolyhedralFan(newrays, newmaxcones)
+    
 end
