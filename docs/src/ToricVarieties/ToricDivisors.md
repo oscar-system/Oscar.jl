@@ -42,4 +42,5 @@ isvery_ample
 
 ```@docs
 polyhedron(td::ToricDivisor)
+coefficients(td::ToricDivisor)
 ```

@@ -166,6 +166,7 @@ D2 = DivisorOfCharacter(H5, [1,2])
     @test isnef(D) == true
     @test isintegral(D) == true
     @test isq_cartier(D) == true
+    @test coefficients(D) == [0,0,0,0]
     @test isprime_divisor(D2) == false
     @test iscartier(D2) == true
     @test isprincipal(D2) == true
@@ -175,6 +176,8 @@ D2 = DivisorOfCharacter(H5, [1,2])
     @test isnef(D2) == true
     @test isintegral(D2) == true
     @test isq_cartier(D2) == true
+    @test isprime_divisor(D2) == false
+    @test coefficients(D2) == [2,3,4,5]
 end
 
 p = polyhedron(D)

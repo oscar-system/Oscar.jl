@@ -332,6 +332,33 @@ end
 export polyhedron
 
 
+@doc Markdown.doc"""
+    coefficients(td::ToricDivisor)
+
+Identify the coefficients of a toric divisor in the group of torus invariant Weil divisors.
+
+# Examples
+```
+julia> H = hirzebruch_surface(4)
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+
+julia> D = ToricDivisor(H, [1,2,3,4])
+A torus invariant divisor on a normal toric variety
+
+julia> coefficients(D)
+4-element Vector{Int64}:
+ 1
+ 2
+ 3
+ 4
+```
+"""
+function coefficients(td::ToricDivisor)
+    return Vector{Int}(Oscar.Polymake.common.primitive(pm_tdivisor(td).COEFFICIENTS))
+end
+export coefficients
+
+
 ###############################################################################
 ###############################################################################
 ### 6: Display
