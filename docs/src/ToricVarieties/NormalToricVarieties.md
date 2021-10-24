@@ -37,41 +37,67 @@ del_pezzo
 ## Properties of toric varieties
 
 ```@docs
-isnormal
-isaffine
-isprojective
-issmooth
-iscomplete
 hastorusfactor
-isorbifold
-issimplicial
-isgorenstein
-isq_gorenstein
+isaffine
+iscomplete
 isfano
+isgorenstein
+issimplicial
+issmooth
+isnormal
+isorbifold
+isprojective
+isq_gorenstein
 ```
 
 
-## Attributes of toric varieties
+## Operations for toric varieties
+
+### Dimensions
 
 ```@docs
 dim
 dim_of_torusfactor
-picard_group
-nef_cone
-mori_cone
-affine_open_covering( v::AffineNormalToricVariety )
-affine_open_covering( v::NormalToricVariety )
-fan_of_variety
-fan
-torusinvariant_divisor_group
-torusinvariant_prime_divisors
-character_lattice
-map_from_character_to_principal_divisors
-map_from_weil_divisors_to_class_group
-class_group
+ith_betti_number(v::AbstractNormalToricVariety, i::Int)
+euler_characteristic
+```
+
+### Rings and ideals
+
+```@docs
 cox_ring
 list_of_variables_of_cox_ring
-primitive_collections
 stanley_reisner_ideal
 irrelevant_ideal
 ```
+
+### Characters, Weil divisor and the class group
+
+```@docs
+character_lattice
+torusinvariant_divisor_group
+class_group
+map_from_character_to_principal_divisors
+map_from_weil_divisors_to_class_group
+torusinvariant_prime_divisors
+```
+
+### Cones and fans
+
+```@docs
+fan_of_variety
+fan
+nef_cone
+mori_cone
+```
+
+### Affine covering
+
+```@docs
+affine_open_covering( v::NormalToricVariety )
+affine_open_covering( v::AffineNormalToricVariety )
+```
+
+### Toric ideal
+
+To come very soon.
