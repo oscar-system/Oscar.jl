@@ -74,6 +74,7 @@ maximal_cones_as_incidence_matrix(PF::PolyhedralFan)
 nmaximal_cones(PF::PolyhedralFan)
 nrays(PF::PolyhedralFan)
 rays(PF::PolyhedralFan)
+primitive_collections(PF::PolyhedralFan)
 ```
 
 ### Visualization

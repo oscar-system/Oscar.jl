@@ -361,3 +361,54 @@ true
 ```
 """
 iscomplete(PF::PolyhedralFan) = pm_object(PF).COMPLETE
+
+
+###############################################################################
+## Primitive collections
+###############################################################################
+
+@doc Markdown.doc"""
+    primitive_collections(PF::PolyhedralFan)
+
+Computes the primitive collections of a polyhedral fan.
+
+# Examples
+```jldoctest
+julia> primitive_collections( normal_fan(Oscar.simplex(3)) )
+1-element Vector{Vector{Int64}}:
+ [1, 2, 3, 4]
+``` 
+"""
+function primitive_collections(PF::PolyhedralFan)
+    # collect data
+    cones = [findall(x->x!=0, l) for l in eachrow(pm_fan(PF).MAXIMAL_CONES)]
+    all_points = [i for i in 1 : pm_fan(PF).N_RAYS]
+    d_max = maximum([length(i) for i in cones]) + 1
+    # identify and return the primitive collections
+    collections = Vector{Int}[];
+    for d in 1 : d_max
+        checked  = Vector{Int}[];
+        for cone in cones
+            if d <= length(cone)
+                for I_minus_j in Oscar.Hecke.subsets(cone, d)
+                    scanner = setdiff(all_points, I_minus_j)
+                    for j in scanner
+                        I = vcat(I_minus_j, [j])
+                        if (I in checked) == false
+                            push!(checked, I)
+                            # (1) I is contained in the primitive collections iff it is not contained in any cone
+                            if !(0 in [!issubset(Set(I), Set(test_cone)) for test_cone in cones])
+                                # (2) I is generator of the primitive collections iff primitive_collections does not contain a "smaller" generator
+                                if !(0 in [!issubset(Set(prim), Set(I)) for prim in collections])
+                                    push!(collections, I) # add new generator
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+    # return the computed primitive collections
+    return collections;
+end
