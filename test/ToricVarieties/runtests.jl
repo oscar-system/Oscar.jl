@@ -131,6 +131,28 @@ end
     @test euler_characteristic(blowup_variety) == 4
 end
 
+v = H5 * P2;
+
+@testset "Direct products" begin
+    @test isnormal(v) == true
+    @test isaffine(v) == false
+    @test isprojective(v) == true
+    @test issmooth(v) == true
+    @test iscomplete(v) == true
+    @test hastorusfactor(v) == false
+    @test isorbifold(v) == true
+    @test issimplicial(v) == true
+    @test ith_betti_number(v, 0) == 1
+    @test ith_betti_number(v, 1) == 0
+    @test ith_betti_number(v, 2) == 3
+    @test ith_betti_number(v, 3) == 0
+    @test ith_betti_number(v, 4) == 4
+    @test ith_betti_number(v, 5) == 0
+    @test ith_betti_number(v, 6) == 3
+    @test ith_betti_number(v, 7) == 0
+    @test ith_betti_number(v, 8) == 1
+end
+
 D=ToricDivisor(H5, [0,0,0,0])
 D2 = DivisorOfCharacter(H5, [1,2])
 

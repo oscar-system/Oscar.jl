@@ -102,8 +102,9 @@ affine_open_covering( v::AffineNormalToricVariety )
 
 To come very soon.
 
-### Blowups
+### Advanced constructions
 
 ```@docs
 blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int)
+Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety)
 ```

@@ -503,7 +503,7 @@ export affine_open_covering
 
 
 ############################
-# Blowups
+# Advanced constructions
 ############################
 
 @doc Markdown.doc"""
@@ -524,3 +524,23 @@ function blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int
     return NormalToricVariety( starsubdivision( fan_of_variety( v ), n ) )
 end
 export blowup_on_ith_minimal_torus_orbit
+
+
+@doc Markdown.doc"""
+    Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety)
+
+Computes the Cartesian/direct product of two normal toric varieties `v` and `w`.
+
+# Examples
+```jldoctest
+julia> P2 = toric_projective_space(2)
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+
+julia> P2 * P2
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 4
+```
+"""
+function Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety)
+    return NormalToricVariety(fan_of_variety(v)*fan_of_variety(w))
+end
+export *
