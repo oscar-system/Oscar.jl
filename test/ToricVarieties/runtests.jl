@@ -113,8 +113,9 @@ end
     @test_throws ArgumentError del_pezzo(4)
 end
 
+blowup_variety = blowup_on_ith_minimal_torus_orbit(P2, 1)
+
 @testset "Blowup of projective space" begin
-    blowup_variety = blowup_on_ith_minimal_torus_orbit(P2, 1)
     @test isnormal(blowup_variety) == true
     @test isaffine(blowup_variety) == false
     @test isprojective(blowup_variety) == true
@@ -153,6 +154,15 @@ v = H5 * P2;
     @test ith_betti_number(v, 8) == 1
 end
 
+@testset "ComparisonWithProjectiveSpace" begin
+    @test isprojective_space(H5) == false
+    @test isprojective_space(P2) == true
+    @test isprojective_space(blowup_variety) == false
+    @test isprojective_space(v) == false
+    @test isprojective_space(ntv) == false
+    @test isprojective_space(ntv2) == false
+end
+
 D=ToricDivisor(H5, [0,0,0,0])
 D2 = DivisorOfCharacter(H5, [1,2])
 
@@ -177,7 +187,7 @@ D2 = DivisorOfCharacter(H5, [1,2])
     @test isintegral(D2) == true
     @test isq_cartier(D2) == true
     @test isprime_divisor(D2) == false
-    @test coefficients(D2) == [2,3,4,5]
+    @test coefficients(D2) == [1, 2, 9, -2]
 end
 
 p = polyhedron(D)

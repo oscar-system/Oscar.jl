@@ -544,3 +544,54 @@ function Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety)
     return NormalToricVariety(fan_of_variety(v)*fan_of_variety(w))
 end
 export *
+
+
+############################
+# Comparison
+############################
+
+
+@doc Markdown.doc"""
+    isprojective_space(v::AbstractNormalToricVariety)
+
+Decides if the normal toric varieties `v` is a projective space.
+
+# Examples
+```jldoctest
+julia> H5 = hirzebruch_surface(5)
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+
+julia> isprojective_space(H5)
+false
+
+julia> isprojective_space(toric_projective_space(2))
+true
+```
+"""
+function isprojective_space(v::AbstractNormalToricVariety)
+    if issmooth(v) == false
+        return false
+    end
+    if isprojective(v) == false
+        return false
+    end
+    if rank(class_group(v)) > 1
+        return false
+    end
+    w = [[Int(x) for x in transpose(g.coeff)] for g in gens(class_group(v))]
+    for i in 1:length(w)
+        g = w[i]
+        g = g[findall(x -> x!=0, g)]
+        if length(g) > 1
+            return false
+        end
+        if g[1] != 1
+            return false
+        end
+    end
+    if irrelevant_ideal(v) != ideal(gens(cox_ring(v)))
+        return false
+    end
+    return true
+end
+export isprojective_space

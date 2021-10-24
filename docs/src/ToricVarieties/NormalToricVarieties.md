@@ -108,3 +108,9 @@ To come very soon.
 blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int)
 Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety)
 ```
+
+### Comparison
+
+```@docs
+isprojective_space(v::AbstractNormalToricVariety)
+```
