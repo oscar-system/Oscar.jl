@@ -111,7 +111,9 @@ end
 D=ToricDivisor(H5, [0,0,0,0])
 D2 = DivisorOfCharacter(H5, [1,2])
 
+
 @testset "Divisors" begin
+    @test isprime_divisor(D) == false
     @test iscartier(D) == true
     @test isprincipal(D) == true
     @test isbasepoint_free(D) == true
@@ -120,12 +122,15 @@ D2 = DivisorOfCharacter(H5, [1,2])
     @test isnef(D) == true
     @test isintegral(D) == true
     @test isq_cartier(D) == true
+    @test isprime_divisor(D2) == false
     @test iscartier(D2) == true
     @test isprincipal(D2) == true
     @test isbasepoint_free(D2) == true
     @test isample(D2) == false
     @test isvery_ample(D2) == false
     @test isnef(D2) == true
+    @test isintegral(D2) == true
+    @test isq_cartier(D2) == true
 end
 
 p = polyhedron(D)
