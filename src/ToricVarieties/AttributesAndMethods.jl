@@ -399,6 +399,33 @@ end
 export irrelevant_ideal
 
 
+@doc Markdown.doc"""
+    torusinvariant_prime_divisors(v::AbstractNormalToricVariety)
+
+Computes the list of all torus invariant prime divisors in a normal toric variety `v`.
+
+# Examples
+```jdoctest
+julia> p2 = toric_projective_space(2)
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+
+julia> torusinvariant_prime_divisors(p2)
+Free module of rank 3 over Integer Ring
+```
+"""
+function torusinvariant_prime_divisors(v::AbstractNormalToricVariety)
+    ti_divisors = torusinvariant_divisor_group(v)
+    prime_divisors = []
+    for i in 1:rank(ti_divisors)
+        coeffs = fill(0, rank(ti_divisors))
+        coeffs[i] = 1
+        push!(prime_divisors, ToricDivisor(v,coeffs))
+    end
+    return prime_divisors
+end
+export torusinvariant_prime_divisors
+
+
 ######################
 # 2: Methods of ToricVarieties
 ######################

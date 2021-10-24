@@ -64,6 +64,7 @@ affine_open_covering( v::NormalToricVariety )
 fan_of_variety
 fan
 torusinvariant_divisor_group
+torusinvariant_prime_divisors
 character_lattice
 map_from_character_to_principal_divisors
 map_from_weil_divisors_to_class_group

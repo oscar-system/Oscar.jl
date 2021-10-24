@@ -17,6 +17,7 @@ antv = AffineNormalToricVariety(C)
     @test length(gens(codomain(map_from_weil_divisors_to_class_group(antv)))) == 2
     @test length(gens(class_group(antv))) == 2
     @test ngens(cox_ring(antv)) == 2
+    @test length(torusinvariant_prime_divisors(antv)) == 2
 end
 
 ntv = NormalToricVariety(C)
@@ -101,16 +102,19 @@ end
 
 @testset "delPezzo surfaces" begin
     @test_throws ArgumentError del_pezzo(-1)
-    del_pezzo(0)
-    del_pezzo(1)
-    del_pezzo(2)
-    del_pezzo(3)
+    dP0 = del_pezzo(0)
+    @test length(torusinvariant_prime_divisors(dP0)) == 3
+    dP1 = del_pezzo(1)
+    @test length(torusinvariant_prime_divisors(dP1)) == 4
+    dP2 = del_pezzo(2)
+    @test length(torusinvariant_prime_divisors(dP2)) == 5
+    dP3 = del_pezzo(3)
+    @test length(torusinvariant_prime_divisors(dP3)) == 6
     @test_throws ArgumentError del_pezzo(4)
 end
 
 D=ToricDivisor(H5, [0,0,0,0])
 D2 = DivisorOfCharacter(H5, [1,2])
-
 
 @testset "Divisors" begin
     @test isprime_divisor(D) == false
