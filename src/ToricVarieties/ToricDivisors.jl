@@ -39,8 +39,38 @@ end
 export ToricDivisor
 
 
+
 ######################
-# 3: Properties
+# 3: Special constructors
+######################
+
+@doc Markdown.doc"""
+    DivisorOfCharacter( v::AbstractNormalToricVariety, character::Vector{Int} )
+
+Construct the torus invariant divisor associated to a character of the normal toric variety `v`.
+
+# Examples
+```jldoctest
+julia> show( DivisorOfCharacter( toric_projective_space( 2 ), [ 1,2 ] ) )
+A torus invariant divisor on a normal toric variety
+```
+"""
+function DivisorOfCharacter( v::AbstractNormalToricVariety, character::Vector{Int} )
+    if length(character) != rank(character_lattice(v))
+        throw(ArgumentError("Character must consist of " * string( rank(character_lattice(v)) ) * " integers!"))
+    end
+    f = map_from_character_to_principal_divisors(v)
+    char = sum([character[i] * gens(domain(f))[i] for i in 1:length(gens(domain(f)))])
+    coeffs = [Int(x) for x in transpose(f(char).coeff)][:,1]
+    return ToricDivisor(coeffs, v)
+end
+export DivisorOfCharacter
+
+
+
+
+######################
+# 4: Properties
 ######################
 
 @doc Markdown.doc"""

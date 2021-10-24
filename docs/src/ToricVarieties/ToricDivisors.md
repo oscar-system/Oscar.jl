@@ -20,6 +20,7 @@ correspond to the rays of the underlying fan.
 
 ```@docs
 ToricDivisor
+DivisorOfCharacter( v::AbstractNormalToricVariety, character::Vector{Int} )
 ```
 
 ## Properties of toric divisors

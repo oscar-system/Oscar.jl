@@ -109,7 +109,8 @@ P2 = toric_projective_space( 2 )
 end
 
 D=ToricDivisor( [ 0,0,0,0 ], H5 )
-        
+D2 = DivisorOfCharacter( H5, [ 1,2 ] )
+
 @testset "Divisors" begin
     @test iscartier( D ) == true
     @test isprincipal( D ) == true
@@ -119,6 +120,12 @@ D=ToricDivisor( [ 0,0,0,0 ], H5 )
     @test isnef( D ) == true
     @test isintegral( D ) == true
     @test isq_cartier( D ) == true
+    @test iscartier( D2 ) == true
+    @test isprincipal( D2 ) == true
+    @test isbasepoint_free( D2 ) == true
+    @test isample( D2 ) == false
+    @test isvery_ample( D2 ) == false
+    @test isnef( D2 ) == true
 end
 
 @testset "Polytopes of divisors" begin
