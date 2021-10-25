@@ -1,15 +1,16 @@
 @testset "Serialization" begin
     
     mktempdir() do path
-        @testset "Graph" begin
-            G = Graphs.complete_graph(4)
-            Graphs.save_graph(G, joinpath(path, "c4.graph"))
-            loaded = Graphs.load_graph(joinpath(path, "c4.graph"))
-            @test loaded isa Graphs.Graph{Graphs.Undirected}
-            @test Base.propertynames(G) == Base.propertynames(loaded)
-            @test Graphs.nv(G) == Graphs.nv(loaded)
-            @test Graphs.ne(G) == Graphs.ne(loaded)
-        end
+        # TODO: Enable the following testset, see #758
+        # @testset "Graph" begin
+        #     G = Graphs.complete_graph(4)
+        #     Graphs.save_graph(G, joinpath(path, "c4.graph"))
+        #     loaded = Graphs.load_graph(joinpath(path, "c4.graph"))
+        #     @test loaded isa Graphs.Graph{Graphs.Undirected}
+        #     @test Base.propertynames(G) == Base.propertynames(loaded)
+        #     @test Graphs.nv(G) == Graphs.nv(loaded)
+        #     @test Graphs.ne(G) == Graphs.ne(loaded)
+        # end
 
         @testset "Cone" begin
             C = positive_hull([1 0; 0 1])

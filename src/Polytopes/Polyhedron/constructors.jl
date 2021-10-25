@@ -51,7 +51,14 @@ Get the underlying polymake `Polytope`.
 """
 pm_polytope(P::Polyhedron) = P.pm_polytope
 
-==(P0::Polyhedron, P1::Polyhedron) = Polymake.polytope.equal_polyhedra(pm_polytope(P0), pm_polytope(P1))
+function ==(P0::Polyhedron, P1::Polyhedron)
+    # TODO: Remove the following 4 lines, see #758
+    facets(P0)
+    vertices(P0)
+    facets(P1)
+    vertices(P1)
+    Polymake.polytope.equal_polyhedra(pm_polytope(P0), pm_polytope(P1))
+end
 
 
 ### Construct polyhedron from V-data, as the convex hull of points, rays and lineality.
