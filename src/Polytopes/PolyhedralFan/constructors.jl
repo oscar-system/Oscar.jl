@@ -63,18 +63,16 @@ A polyhedral fan in ambient dimension 2
 ```
 """
 function PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix)
-   arr = @Polymake.convert_to Array{Set{Int}} Polymake.common.rows(Incidence)
    PolyhedralFan(Polymake.fan.PolyhedralFan{Polymake.Rational}(
       INPUT_RAYS = matrix_for_polymake(Rays),
-      INPUT_CONES = arr,
+      INPUT_CONES = Incidence,
    ))
 end
 function PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, LS::Union{Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix)
-   arr = @Polymake.convert_to Array{Set{Int}} Polymake.common.rows(Incidence)
    PolyhedralFan(Polymake.fan.PolyhedralFan{Polymake.Rational}(
       INPUT_RAYS = matrix_for_polymake(Rays),
       INPUT_LINEALITY = matrix_for_polymake(LS),
-      INPUT_CONES = arr,
+      INPUT_CONES = Incidence,
    ))
 end
 

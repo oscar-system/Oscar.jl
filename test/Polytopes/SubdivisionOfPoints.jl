@@ -22,6 +22,7 @@
         @test dim(C1) == 6
         @test dim(CMOAE) == 4
         @test moaeimnonreg0 == maximal_cells_as_incidence_matrix(MOAE)
+        @test npoints(MOAE) == 6
     end
 
 end
