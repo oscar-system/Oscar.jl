@@ -5,7 +5,7 @@ export radical, primary_decomposition, minimal_primes, equidimensional_decomposi
 export absolute_primary_decomposition
 export iszero, isone, issubset, ideal_membership, radical_membership, isprime, isprimary
 export ngens, gens
-export save_ideal, load_ideal
+export save, load
 
 # constructors #######################################################
 
@@ -1159,45 +1159,137 @@ function to_bipolyarray(Ox::FmpqMPolyRing, x::Polymake.Array{Polymake.Polynomial
   return res
 end
 
-function save_ideal(I::MPolyIdeal{fmpq_mpoly}, filename::String)
-  p_id = Polymake.ideal.Ideal()
+function _encode_attach(I::MPolyIdeal{fmpq_mpoly}, p_id::Polymake.BigObject; i::Int64 = 0)
   p_gens = Base.convert(Polymake.Array{Polymake.Polynomial{Polymake.Rational, Polymake.to_cxx_type(Int64)}}, I.gens.O)
-  Polymake.attach(p_id, "gens", p_gens)
-  Polymake.attach(p_id, "dim", I.dim)
+  Polymake.attach(p_id, "gens$i", p_gens)
+  Polymake.attach(p_id, "dim$i", I.dim)
   if isdefined(I, :gb)
     p_gb = Base.convert(Polymake.Array{Polymake.Polynomial{Polymake.Rational, Polymake.to_cxx_type(Int64)}}, I.gb.O)
-    Polymake.attach(p_id, "gb", p_gb)
+    Polymake.attach(p_id, "gb$i", p_gb)
   end
-  p_vars = Polymake.Array{Polymake.to_cxx_type(String)}(String.(symbols(I.gens.Ox)))
+end
+
+function _encode_attach(R::FmpqMPolyRing, p_id::Polymake.BigObject)
+  p_vars = Polymake.Array{Polymake.to_cxx_type(String)}(String.(symbols(R)))
   # TODO: replace when `Array{String}` is mapped correctly
   Polymake.attach(p_id, "nvars", length(p_vars))
   for i in 1:length(p_vars)
     Polymake.attach(p_id, "var$i", p_vars[i])
   end
   # Polymake.attach(p_id, "varnames", p_vars)
-  Polymake.attach(p_id, "ordering", String(ordering(I.gens.Ox)))
+  Polymake.attach(p_id, "ordering", String(ordering(R)))
+end
+
+function save(I::MPolyIdeal{fmpq_mpoly}, filename::String)
+  p_id = Polymake.ideal.Ideal()
+  _encode_attach(I, p_id)
+  Polymake.attach(p_id, "oscar_type", "MPolyIdeal{fmpq_mpoly}")
+  _encode_attach(I.gens.Ox, p_id)
   Polymake.save_bigobject(p_id, filename)
+end
+
+_parent(I::MPolyIdeal{fmpq_mpoly}) = I.gens.Ox
+
+struct SharedParentArray{T} <: AbstractVector{T}
+  a::Vector{T}
+  par::FmpqMPolyRing
+  
+  function SharedParentArray(x::AbstractVector{T}) where T
+    res = nothing
+    try
+      res = new{T}(Vector{T}(undef, length(x)), _parent(x[1]))
+    catch e
+      # return res
+      throw(e)
+    end
+    for i in 1:length(x)
+      _parent(x[i]) != res.par && throw(ArgumentError("Element $i does not have the same parent as its predecessor(s)."))
+      res.a[i] = x[i]
+    end
+    return res
+  end
+  function SharedParentArray{T}(::UndefInitializer, n::Base.Integer, R::FmpqMPolyRing) where T
+    return new{T}(Vector{T}(undef, n), R)
+  end
+end
+
+Base.getindex(spa::SharedParentArray, i::Base.Integer) = spa.a[i]
+
+function Base.setindex!(spa::SharedParentArray, val, i::Base.Integer)
+    @boundscheck checkbounds(spa.a, i)
+    _parent(val) != spa.par && throw(ArgumentError("New element does not have the same parent as the other elements."))
+    spa.a[i] = val
+    return val
+end
+
+Base.size(spa::SharedParentArray) = size(spa.a)
+Base.firstindex(::SharedParentArray) = 1
+Base.lastindex(spa::SharedParentArray) = length(spa.a)
+
+function _encode_attach(spa::SharedParentArray{T}) where T
+  for i in 1:length(spa)
+    _encode_attach(spa[i], p_id)
+  end
   return p_id
 end
 
-function load_ideal(filename::String)
-  p_id = Polymake.load_bigobject(filename)
-  typename = Polymake.type_name(p_id)
-  if typename[1:5] != "Ideal"
-    throw(ArgumentError("Loaded object is not of polymake type Ideal, it has type " * typename))
+function save(spa::SharedParentArray{T}, filename::String) where T
+  p_spa = Polymake.ideal.Ideal()
+  _encode_attach(_parent(spa[1]), p_spa)
+  n = length(spa)
+  for i in 1:n
+    _encode_attach(spa[i], p_spa; i = i)
   end
+  Polymake.attach(p_spa, "nelements", n)
+  Polymake.attach(p_spa, "oscar_type", "SharedParentArray{$T}")
+  Polymake.save_bigobject(p_spa, filename)
+end
+
+function _decode_parent_ring(p_id::Polymake.BigObject)
   order = Symbol(Polymake.get_attachment(p_id, "ordering"))
   # TODO: replace when `Array{String}` is mapped correctly
   o_ring, vars = PolynomialRing(QQ, String.([Polymake.get_attachment(p_id, "var$i") for i in 1:Polymake.get_attachment(p_id, "nvars")]); ordering = order)
   # o_ring, vars = PolynomialRing(QQ, Polymake.get_attachment(p_id, "varnames"); ordering = order)
-  gens = Polymake.get_attachment(p_id, "gens")
+  return o_ring
+end
+
+function _decode_ideal(p_id::Polymake.BigObject, o_ring::FmpqMPolyRing; i::Int64 = 0)
+  gens = Polymake.get_attachment(p_id, "gens$i")
   # res = MPolyIdeal([to_oscar_polynomial(o_ring, gens[i]) for i in 1:length(gens)])
   res::MPolyIdeal{fmpq_mpoly} = MPolyIdeal(to_bipolyarray(o_ring, gens))
-  res.dim = Polymake.get_attachment(p_id, "dim")
-  p_gb = Polymake.get_attachment(p_id, "gb")
+  res.dim = Polymake.get_attachment(p_id, "dim$i")
+  p_gb = Polymake.get_attachment(p_id, "gb$i")
   if !isnothing(p_gb)
-    res.gb = to_bipolyarray(o_ring, Polymake.get_attachment(p_id, "gb"))
+    res.gb = to_bipolyarray(o_ring, p_gb)
     res.gb.isGB = true
   end
   return res
+end
+
+function _decode_sharedparentarray(::Type{T}, p_spa::Polymake.BigObject, o_ring::FmpqMPolyRing) where T
+  n = Polymake.get_attachment(p_spa, "nelements")
+  res = SharedParentArray{T}(undef, n, o_ring)
+  for i in 1:n
+    res[i] = _decode_ideal(p_spa, o_ring; i = i)
+  end
+  return res
+end
+
+function load(::Type{MPolyIdeal{fmpq_mpoly}}, p_id::Polymake.BigObject)
+  R = _decode_parent_ring(p_id)
+  return _decode_ideal(p_id, R)
+end
+
+function load(::Type{SharedParentArray{T}}, p_spa::Polymake.BigObject) where T
+  R = _decode_parent_ring(p_spa)
+  return _decode_sharedparentarray(T, p_spa, R)
+end
+
+function load(filename::String)
+  p_obj = Polymake.load_bigobject(filename)
+  try
+    return load(eval(Meta.parse(Polymake.get_attachment(p_obj, "oscar_type"))), p_obj)
+  catch e
+    throw(ArgumentError("Can not detect type of saved object."))
+  end
 end

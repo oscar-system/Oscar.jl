@@ -264,12 +264,12 @@ end
 @testset "Serialize ideal" begin
   R, (x, y) = PolynomialRing(QQ, ["x", "y"])
   I = ideal([x*y-3*x,y^3-2*x^2*y])
-  save_ideal(I, "exam.id")
-  J = load_ideal("exam.id")
+  save(I, "exam.id")
+  J = load("exam.id")
   @test !isdefined(J, :gb)
   @test I == J
-  save_ideal(I, "exam.id")
-  J = load_ideal("exam.id")
+  save(I, "exam.id")
+  J = load("exam.id")
   @test isdefined(J, :gb)
   @test I == J
 end
