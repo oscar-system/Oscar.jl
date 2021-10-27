@@ -385,7 +385,7 @@ function primitive_collections(PF::PolyhedralFan)
     all_points = [i for i in 1 : pm_fan(PF).N_RAYS]
     d_max = maximum([length(i) for i in cones]) + 1
     # identify and return the primitive collections
-    collections = Vector{Int}[];
+    collections = Vector{Int}[]
     for d in 1 : d_max
         checked  = Vector{Int}[];
         for cone in cones
