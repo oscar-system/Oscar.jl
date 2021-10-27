@@ -389,19 +389,18 @@ function primitive_collections(PF::PolyhedralFan)
     for d in 1:d_max
         checked  = Vector{Int}[]
         for cone in cones
-            if d <= length(cone)
-                for I_minus_j in Oscar.Hecke.subsets(cone, d)
-                    scanner = setdiff(all_points, I_minus_j)
-                    for j in scanner
-                        I = vcat(I_minus_j, [j])
-                        if (I in checked) == false
-                            push!(checked, I)
-                            # (1) I is contained in the primitive collections iff it is not contained in any cone
-                            if !any(test_cone -> issubset(I, test_cone), cones)
-                                # (2) I is generator of the primitive collections iff primitive_collections does not contain a "smaller" generator
-                                if !any(prim -> issubset(prim, I), collections)
-                                    push!(collections, I) # add new generator
-                                end
+            d <= length(cone) || continue
+            for I_minus_j in Oscar.Hecke.subsets(cone, d)
+                scanner = setdiff(all_points, I_minus_j)
+                for j in scanner
+                    I = vcat(I_minus_j, [j])
+                    if (I in checked) == false
+                        push!(checked, I)
+                        # (1) I is contained in the primitive collections iff it is not contained in any cone
+                        if !any(test_cone -> issubset(I, test_cone), cones)
+                            # (2) I is generator of the primitive collections iff primitive_collections does not contain a "smaller" generator
+                            if !any(prim -> issubset(prim, I), collections)
+                                push!(collections, I) # add new generator
                             end
                         end
                     end
