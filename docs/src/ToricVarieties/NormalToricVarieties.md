@@ -27,7 +27,6 @@ AffineNormalToricVariety(C::Cone)
 NormalToricVariety(C::Cone)
 NormalToricVariety(PF::PolyhedralFan)
 NormalToricVariety(P::Polyhedron)
-NormalToricVariety( r::Matrix{Int}, c::Vector{Vector{Int}} )
 toric_projective_space
 hirzebruch_surface
 del_pezzo

@@ -117,27 +117,6 @@ function NormalToricVariety(P::Polyhedron)
     return NormalToricVariety(fan)
 end
 
-
-@doc Markdown.doc"""
-    NormalToricVariety(r::Matrix{Int}, c::Vector{Vector{Int}})
-
-Construct the normal toric variety whose fan has ray generators `r` and maximal cones `c`.
-
-# Examples
-```jldoctest
-julia> NormalToricVariety([-1 5; 0 1; 1 0; 0 -1], [[1,2],[2,3],[3,4],[4,1]])
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
-```
-"""
-function NormalToricVariety(rays::Matrix{Int}, cones::Vector{Vector{Int}})
-    Incidence = Oscar.IncidenceMatrix(cones)
-    pmntv = Polymake.fulton.NormalToricVariety(
-        RAYS = Oscar.matrix_for_polymake(rays),
-        MAXIMAL_CONES = Incidence,
-   )
-    return NormalToricVariety(pmntv)
-end
-
 export NormalToricVariety
 
 function AffineNormalToricVariety(v::NormalToricVariety)
@@ -183,8 +162,8 @@ A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 """
 function hirzebruch_surface(r::Int)
     Rays = [1 0; 0 1; -1 r; 0 -1]
-    Cones = [[1,2],[2,3],[3,4],[4,1]]
-    return NormalToricVariety(Rays, Cones)
+    Cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,1]])
+    return NormalToricVariety(PolyhedralFan(Rays, Cones))
 end
 export hirzebruch_surface
 
@@ -209,18 +188,18 @@ function del_pezzo(b::Int)
     end
     if b == 1
         Rays = [1 0; 0 1; -1 0; -1 -1]
-        Cones = [[1,2],[2,3],[3,4],[4,1]]
-        return NormalToricVariety(Rays, Cones)
+        Cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,1]])
+        return NormalToricVariety(PolyhedralFan(Rays, Cones))
     end
     if b == 2
         Rays = [1 0; 0 1; -1 0; -1 -1; 0 -1]
-        Cones = [[1,2],[2,3],[3,4],[4,5],[5,1]]
-        return NormalToricVariety(Rays, Cones)
+        Cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,5],[5,1]])
+        return NormalToricVariety(PolyhedralFan(Rays, Cones))
     end
     if b == 3
         Rays = [1 0; 1 1; 0 1; -1 0; -1 -1; 0 -1]
-        Cones = [[1,2],[2,3],[3,4],[4,5],[5,6],[6,1]]
-        return NormalToricVariety(Rays, Cones)
+        Cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,5],[5,6],[6,1]])
+        return NormalToricVariety(PolyhedralFan(Rays, Cones))
     end
     if b > 3
         throw(ArgumentError("delPezzo surfaces with more than 3 blowups are realized as subvarieties of toric ambient spaces. This is currently not supported."))
