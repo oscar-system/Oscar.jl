@@ -112,6 +112,7 @@
      "CommutativeAlgebra/modules.md",
      "CommutativeAlgebra/affine_algebras.md",
      "CommutativeAlgebra/binomial_ideals.md",
+     "CommutativeAlgebra/localizations.md",
   ],
 
   "Invariant Theory" => [

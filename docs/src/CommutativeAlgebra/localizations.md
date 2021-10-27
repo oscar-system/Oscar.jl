@@ -1,0 +1,121 @@
+```@meta
+CurrentModule = Oscar
+```
+
+```@setup oscar
+using Oscar
+```
+
+# Localizations of commutative rings
+
+Suppose ``R`` is a commutative ring with unit and ``S \subset R`` is a *multiplicatively 
+closed set* containing ``1 \in R``. Then we can form the *localization* of ``R`` at ``S``
+```math
+    R[S^{-1}] = \left\{ \frac{p}{q} : p,q \in R, \, q \in S \right\},
+```
+with its standard arithmetic for fractions. See, for instance, [Eis95] for an account on localizations.
+
+Oscar provides a general framework for such localizations, originally intended to be used 
+with multivariate polynomial rings ``R`` over some base field ``\mathbb k``, but also 
+applicable to more general commutative rings.
+
+In the case of polynomials, the localization framework provides the structure for 
+certain algorithms using standard bases. Note that, in general, localizations of 
+polynomial algebras are not finitely generated 
+as algebras over ``\mathbb k``; for instance when localizing at some maximal 
+ideal ``\mathfrak m \subset R``. However, many ideal- and module-theoretic questions in the localization 
+``R[S^{-1}]``, such as e.g. the ideal membership, can be transformed to questions on 
+ideals and modules over the original ring ``R`` and then solved using Groebner- or standard-basis 
+techniques. This makes it important to regard localizations ``R[S^{-1}]`` as rings with 
+a history of creation from the original pair ``S \subset R``. 
+
+## The localization interface
+
+The interface that needs to be implemented for any concrete 
+instance of localized rings is the following. 
+Multiplicatively closed sets are derived from the abstract type
+```@docs
+    AbsMultSet{RingType, RingElemType}
+```
+The basic functionality that has to be implemented for any concrete type derived from 
+this is to be able to check containment of elements via
+```@docs
+    in(f::RingElemType, S::AbsMultSet{RingType, RingElemType}) where {RingType, RingElemType}
+```
+This is supposed to be an extension of the methods of the function `Base.in`.
+
+A localized ring should then be derived from 
+```@docs
+    AbsLocalizedRing{RingType, RingElemType, MultSetType}
+```
+For any concrete instance of this type the following methods must be implemented:
+```@docs
+    original_ring(W::AbsLocalizedRing{RingType, RingElemType, MultSetType}) where {RingType, RingElemType, MultSetType} 
+```
+```@docs
+    inverted_set(W::AbsLocalizedRing{RingType, RingElemType, MultSetType}) where {RingType, RingElemType, MultSetType}
+```
+Also, conversion of fractions to elements of localized rings must be implemented in the form 
+`(W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(a::RingElemType) where {RingType, RingElemType, MultSetType}`, taking ``a`` to the element ``\frac{a}{1}``.
+For more general fractions one needs
+`(W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(a::RingElemType, b::RingElemType) where {RingType, RingElemType, MultSetType}`, mapping a pair ``(a, b)`` to the fraction ``\frac{a}{b}``.
+
+The *elements* of localized rings must be derived from 
+```@docs
+    AbsLocalizedRingElem{RingType, RingElemType, MultSetType}
+```
+For any concrete instance `F` of `AbsLocalizedRingElem` there must be the following 
+methods:
+```@docs
+    numerator(f::T) where {T<:AbsLocalizedRingElem} 
+    denominator(f::T) where {T<:AbsLocalizedRingElem} 
+    parent(f::T) where {T<:AbsLocalizedRingElem}
+```
+A default version of the arithmetic is implemented on the generic level using the above 
+functionality and the arithmetic for the original ring. 
+Depending on the actual concrete instance, one might wish to provide more fine-tuned methods, 
+starting e.g. by implementing 
+```@docs
+    reduce_fraction(f::T) where {T<:AbsLocalizedRingElem}
+```
+Note that this is called after *every* arithmetic operation (addition, multiplication,...), 
+so the computations carried out here should be computationally cheap.
+
+### A toy example: Localizations of the integers
+A minimal implementation of the localization interface has been implemented 
+for the Flint integers. The multiplicatively closed sets are 
+```@docs
+    FmpzPowersOfElement 
+    FmpzComplementOfPrimeIdeal 
+    FmpzComplementOfZeroIdeal 
+```
+Localizations of ``\mathbb Z`` are instances of 
+```@docs
+    FmpzLocalizedRing{MultSetType}  
+```
+and elements of localizations are instances of 
+```@docs
+    FmpzLocalizedRingElem{MultSetType}
+```
+Have a look at the source code and the documentation there to learn about 
+properly implementing the localization interface.
+
+### Another toy example: Localizations of quotient rings ``\mathbb Z/n\mathbb Z``
+Another implementation using different functionality in the backend is carried 
+out for localizations of the rings ``\mathbb Z/n\mathbb Z``. 
+The multiplicatively closed sets are 
+```@docs
+    NmodComplementOfPrimeIdeal 
+```
+Localizations of ``\mathbb Z/n\mathbb Z`` are instances of 
+```@docs
+    NmodLocalizedRing{MultSetType}  
+```
+and elements of localizations are instances of 
+```@docs
+    NmodLocalizedRingElem{MultSetType}
+```
+Have a look at the source code and the documentation there to learn about 
+properly implementing the localization interface.
+
+ 
