@@ -406,7 +406,7 @@ basis(IR::InvRing, d::Int, algo = :default) = collect(iterate_basis(IR, d, algo)
 basis(IR::InvRing, d::fmpz) = basis(IR, Int(d))
 
 function primary_invariants_via_singular(IR::InvRing)
-  #if !isdefined(IR, :primary_singular)
+  if !isdefined(IR, :primary_singular)
     IR.primary_singular = Singular.LibFinvar.primary_invariants(_action_singular(IR)...)
     P = IR.primary_singular[1]
     R = polynomial_ring(IR)
@@ -415,7 +415,7 @@ function primary_invariants_via_singular(IR::InvRing)
       push!(p, R(P[1, i]))
     end
     IR.primary = p
-  #end
+  end
   return IR.primary
 end
 

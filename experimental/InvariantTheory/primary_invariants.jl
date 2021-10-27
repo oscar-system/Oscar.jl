@@ -1,7 +1,7 @@
 # If d_1, ..., d_n are degrees of primary invariants, then the Hilbert series
 # must be f(t)/\prod_i (1 - t^{d_i}) where f is a polynomial with non-negative
 # integer coefficients (non-negativity only holds in the non-modular case!).
-# See Derksen, Kemper "Computational Invariant Theory", pp. 94, 95.
+# See DK15, pp. 94, 95.
 function test_primary_degrees_via_hilbert_series(R::InvRing, degrees::Vector{fmpz})
   @assert !ismodular(R)
 
@@ -86,7 +86,7 @@ end
 # degrees[length(invars) + 1:length(invars) + k] such that
 # RG/< invars, f_1, ..., f_k > has Krull dimension n - k, where n == length(invars).
 # If the base field is finite, the answer "true" might be wrong (for theoretical reasons).
-# See Kemper, Theorem 2.
+# See Kem99, Theorem 2.
 function check_primary_degrees(RG::InvRing{FldT, GrpT, PolyElemT}, degrees::Vector{fmpz}, invars::Vector{PolyElemT}, k::Int, iters::Dict{Int, <: VectorSpaceIterator}) where {FldT, GrpT, PolyElemT}
   R = polynomial_ring(RG)
   n = length(degrees)
@@ -103,7 +103,7 @@ function check_primary_degrees(RG::InvRing{FldT, GrpT, PolyElemT}, degrees::Vect
     end
     for e in degs
       iter = get!(iters, Int(e)) do
-        VectorSpaceIterator(coefficient_ring(RG), iterate_basis(RG, Int(e)))
+        vector_space_iterator(coefficient_ring(RG), iterate_basis(RG, Int(e)))
       end
       I = I + ideal(R, collect_basis(iter))
     end
@@ -129,7 +129,7 @@ function primary_invariants_via_optimal_hsop(RG::InvRing)
   end
 end
 
-# Kemper "An Algorithm to Calculate Optimal Homogeneous Systems of Parameters", 1999
+# Kemper "An Algorithm to Calculate Optimal Homogeneous Systems of Parameters", 1999, [Kem99]
 # Returns a bool b and an integer k.
 # b == true iff primary invariants of the given degrees exist. In this case
 # invars will contain those invariants.
@@ -143,7 +143,7 @@ function primary_invariants_via_optimal_hsop!(RG::InvRing{FldT, GrpT, PolyElemT}
     d = degrees[length(invars) + 1]
 
     iter = get!(iters, Int(d)) do
-      VectorSpaceIterator(coefficient_ring(RG), iterate_basis(RG, Int(d)))
+      vector_space_iterator(coefficient_ring(RG), iterate_basis(RG, Int(d)))
     end
 
     for f in iter
@@ -186,19 +186,3 @@ end
 
 # Shouldn't be here and shouldn't be like this
 order(G::MatrixGroup{T}) where {T <: Union{nf_elem, fmpq}} = order(isomorphic_group_over_finite_field(G)[1])
-exponent(G::MatrixGroup{T}) where {T <: Union{nf_elem, fmpq}} = exponent(isomorphic_group_over_finite_field(G)[1])
-
-function symmetric_matrix_group(n::Int)
-  @assert n >= 2
-  M = identity_matrix(FlintQQ, n)
-  matrices = Vector{typeof(M)}(undef, n - 1)
-  for i = 1:n - 1
-    M[i, i] = zero(FlintQQ)
-    M[i + 1, i + 1] = zero(FlintQQ)
-    M[i + 1, i] = one(FlintQQ)
-    M[i, i + 1] = one(FlintQQ)
-    matrices[i] = M
-    M = identity_matrix(FlintQQ, n)
-  end
-  return matrix_group(matrices)
-end
