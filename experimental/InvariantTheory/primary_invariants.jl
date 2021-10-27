@@ -47,11 +47,11 @@ function candidates_primary_degrees(R::InvRing, k::Int)
 
   # Find all possible tuples (d_1, ..., d_n), such that d_1 \cdots d_n = k*order(group(R))
   n = degree(group(R))
-  parts = Vector{Any}()
+  parts = Vector{Vector{Vector{Int}}}()
   for i = 1:n
     # Actually, we want multiset partitions here (as the factors may show
     # up more than once). But GAP doesn't have this as far as I'm aware.
-    append!(parts, GAP.gap_to_julia(GAP.Globals.PartitionsSet(GAP.Globals.Set(GAP.julia_to_gap(1:length(factors))), i)))
+    append!(parts, Vector{Vector{Vector{Int}}}(GAP.Globals.PartitionsSet(GAP.Obj(1:length(factors)), i)))
   end
 
   sorted_degrees = Vector{Tuple{fmpz, Vector{fmpz}}}()
@@ -107,7 +107,7 @@ function check_primary_degrees(RG::InvRing{FldT, GrpT, PolyElemT}, degrees::Vect
       end
       I = I + ideal(R, collect_basis(iter))
     end
-    numbersInds = sum(Int[ deg_dict[e] for e in degs ])
+    numbersInds = !isempty(degs) ? sum(deg_dict[e] for e in degs) : 0
     if dim(I) > n - length(invars) - numbersInds
       return false
     end
@@ -183,6 +183,3 @@ function primary_invariants_via_optimal_hsop!(RG::InvRing{FldT, GrpT, PolyElemT}
   end
   return false, k
 end
-
-# Shouldn't be here and shouldn't be like this
-order(G::MatrixGroup{T}) where {T <: Union{nf_elem, fmpq}} = order(isomorphic_group_over_finite_field(G)[1])

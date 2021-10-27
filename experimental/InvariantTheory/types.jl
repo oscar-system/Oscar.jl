@@ -72,7 +72,7 @@ end
 
 abstract type VectorSpaceIterator{FieldT, IteratorT, ElemT} end
 
-# This takes a basis of a vector space as an interator and then "iterates" the
+# This takes a basis of a vector space as an iterator and then "iterates" the
 # space in three "phases":
 # 1) iterate the basis using basis_iterator, so return one basis element at
 #    a time
@@ -89,7 +89,7 @@ mutable struct VectorSpaceIteratorRand{FieldT, IteratorT, ElemT} <: VectorSpaceI
   field::FieldT
   basis_iterator::IteratorT
   basis_collected::Vector{ElemT}
-  basis_iterator_state # I don't know the type of this and I don't think there
+  basis_iterator_state::Any # I don't know the type of this and I don't think there
                        # is a "type-stable" way of finding it out
   rand_bound::Int
 
@@ -110,7 +110,7 @@ mutable struct VectorSpaceIteratorFiniteField{FieldT, IteratorT, ElemT} <: Vecto
   field::FieldT
   basis_iterator::IteratorT
   basis_collected::Vector{ElemT}
-  basis_iterator_state # I don't know the type of this and I don't think there
+  basis_iterator_state::Any # I don't know the type of this and I don't think there
                        # is a "type-stable" way of finding it out
 
   function VectorSpaceIteratorFiniteField(K::FieldT, basis_iterator::IteratorT) where {FieldT <: Union{Nemo.GaloisField, Nemo.GaloisFmpzField, FqNmodFiniteField, FqFiniteField}, IteratorT}

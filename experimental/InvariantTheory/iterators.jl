@@ -338,7 +338,7 @@ function _iterate(VSI::VectorSpaceIterator)
     b = VSI.basis_collected[1]
   else
     b, s = iterate(VSI.basis_iterator)
-    VSI.basis_collected = typeof(b)[ b ]
+    VSI.basis_collected = [ b ]
     VSI.basis_iterator_state = s
   end
   phase = length(VSI.basis_iterator) != 1 ? 1 : 3
@@ -354,7 +354,7 @@ function Base.iterate(VSI::VectorSpaceIteratorFiniteField)
 
   b, state = _iterate(VSI)
   e, s = iterate(VSI.field)
-  elts = [ e for i = 1:length(VSI.basis_iterator) ]
+  elts = fill(e, length(VSI.basis_iterator))
   states = [ deepcopy(s) for i = 1:length(VSI.basis_iterator) ]
 
   return b, (state..., elts, states)
