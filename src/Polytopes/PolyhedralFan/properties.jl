@@ -469,7 +469,7 @@ function starsubdivision(PF::PolyhedralFan, n::Int)
     push!(indices, newindex)
     d = dim(cone)
     test_cones = Oscar.Hecke.subsets(indices,d)
-    newmaxcones = Vector{Int}[];
+    newmaxcones = Vector{Int}[]
     for i in 1 : length(maxcones)
         if i != n
             push!(newmaxcones,maxcones[i])
