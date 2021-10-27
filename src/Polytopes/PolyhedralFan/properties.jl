@@ -445,7 +445,7 @@ function starsubdivision(PF::PolyhedralFan, n::Int)
         gens[i,j] = rays[maxcones[n][i]][j]
     end
     cone = Oscar.positive_hull(gens)
-    if issmooth(PolyhedralFan(cone)) == false
+    if !issmooth(PolyhedralFan(cone))
         throw(ArgumentError("Cannot subdivide maximal cone " * string(n) * " as it is not smooth!"))
     end
     
