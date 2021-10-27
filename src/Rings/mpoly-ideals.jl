@@ -1245,7 +1245,7 @@ function save(spa::SharedParentArray{T}, filename::String) where T
   Polymake.save_bigobject(p_spa, filename)
 end
 
-function _decode_parent_ring(p_id::Polymake.BigObject)
+function _decode_ring(p_id::Polymake.BigObject)
   order = Symbol(Polymake.get_attachment(p_id, "ordering"))
   # TODO: replace when `Array{String}` is mapped correctly
   o_ring, vars = PolynomialRing(QQ, String.([Polymake.get_attachment(p_id, "var$i") for i in 1:Polymake.get_attachment(p_id, "nvars")]); ordering = order)
@@ -1275,21 +1275,12 @@ function _decode_sharedparentarray(::Type{T}, p_spa::Polymake.BigObject, o_ring:
   return res
 end
 
-function load(::Type{MPolyIdeal{fmpq_mpoly}}, p_id::Polymake.BigObject)
-  R = _decode_parent_ring(p_id)
+function _load(::Type{MPolyIdeal{fmpq_mpoly}}, p_id::Polymake.BigObject)
+  R = _decode_ring(p_id)
   return _decode_ideal(p_id, R)
 end
 
-function load(::Type{SharedParentArray{T}}, p_spa::Polymake.BigObject) where T
-  R = _decode_parent_ring(p_spa)
+function _load(::Type{SharedParentArray{T}}, p_spa::Polymake.BigObject) where T
+  R = _decode_ring(p_spa)
   return _decode_sharedparentarray(T, p_spa, R)
-end
-
-function load(filename::String)
-  p_obj = Polymake.load_bigobject(filename)
-  try
-    return load(eval(Meta.parse(Polymake.get_attachment(p_obj, "oscar_type"))), p_obj)
-  catch e
-    throw(ArgumentError("Can not detect type of saved object."))
-  end
 end

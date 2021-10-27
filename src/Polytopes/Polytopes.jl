@@ -56,11 +56,6 @@ export Cone,
     lineality_space,
     linear_span,
     linear_symmetries,
-    load_cone,
-    load_linearprogram,
-    load_polyhedralfan,
-    load_polyhedron,
-    load_subdivisionofpoints,
     maximal_cells,
     maximal_cells_as_incidence_matrix,
     maximal_cones,
@@ -89,11 +84,6 @@ export Cone,
     print_constraints,
     product,
     recession_cone,
-    save_cone,
-    save_linearprogram,
-    save_polyhedralfan,
-    save_polyhedron,
-    save_subdivisionofpoints,
     secondary_cone,
     simplex,
     solve_lp,
@@ -125,6 +115,5 @@ include("SubdivisionOfPoints/functions.jl")
 include("LinearProgram.jl")
 include("Groups.jl")
 include("Graphs.jl")
-include("Serialization.jl")
 include("Visualization.jl")
 include("solving_integrally.jl")
