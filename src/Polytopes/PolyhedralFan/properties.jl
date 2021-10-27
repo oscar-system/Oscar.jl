@@ -436,7 +436,7 @@ function starsubdivision(PF::PolyhedralFan, n::Int)
     
     # check if n-th maximal cone does exist
     if length(maxcones) < n
-        throw(ArgumentError("Cannot subdivide maximal cone " * string(n) * " as it does not exist!"))
+        throw(ArgumentError("Cannot subdivide maximal cone $n as it does not exist!"))
     end
     
     # construct this cone and check if it is smooth
