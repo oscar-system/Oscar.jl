@@ -410,7 +410,7 @@ function primitive_collections(PF::PolyhedralFan)
         end
     end
     # return the computed primitive collections
-    return collections;
+    return collections
 end
 
 
