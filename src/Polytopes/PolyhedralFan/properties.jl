@@ -397,9 +397,9 @@ function primitive_collections(PF::PolyhedralFan)
                         if (I in checked) == false
                             push!(checked, I)
                             # (1) I is contained in the primitive collections iff it is not contained in any cone
-                            if !(0 in [!issubset(Set(I), Set(test_cone)) for test_cone in cones])
+                            if !any(test_cone -> issubset(I, test_cone), cones)
                                 # (2) I is generator of the primitive collections iff primitive_collections does not contain a "smaller" generator
-                                if !(0 in [!issubset(Set(prim), Set(I)) for prim in collections])
+                                if !any(prim -> issubset(prim, I), collections)
                                     push!(collections, I) # add new generator
                                 end
                             end
