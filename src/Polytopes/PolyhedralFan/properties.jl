@@ -441,10 +441,8 @@ function starsubdivision(PF::PolyhedralFan, n::Int)
     
     # construct this cone and check if it is smooth
     gens = zeros(Int64,length(maxcones[n]),length(rays[1]))
-    for i in 1 : length(maxcones[n])
-        for j in 1:length(rays[1])
-            gens[i,j] = rays[maxcones[n][i]][j]
-        end
+    for i in 1:length(maxcones[n]), j in 1:length(rays[1])
+        gens[i,j] = rays[maxcones[n][i]][j]
     end
     cone = Oscar.positive_hull(gens)
     if issmooth(PolyhedralFan(cone)) == false
