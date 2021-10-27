@@ -387,7 +387,7 @@ function primitive_collections(PF::PolyhedralFan)
     # identify and return the primitive collections
     collections = Vector{Int}[]
     for d in 1:d_max
-        checked  = Vector{Int}[];
+        checked  = Vector{Int}[]
         for cone in cones
             if d <= length(cone)
                 for I_minus_j in Oscar.Hecke.subsets(cone, d)
