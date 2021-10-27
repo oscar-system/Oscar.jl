@@ -132,7 +132,7 @@ blowup_variety = blowup_on_ith_minimal_torus_orbit(P2, 1)
     @test euler_characteristic(blowup_variety) == 4
 end
 
-v = H5 * P2;
+v = H5 * P2
 
 @testset "Direct products" begin
     @test isnormal(v) == true
