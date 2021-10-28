@@ -133,13 +133,7 @@ function stanley_reisner_ideal(v::AbstractNormalToricVariety)
     collections = primitive_collections(fan_of_variety(v))
     SR_generators = []
     vars = list_of_variables_of_cox_ring(v)
-    for I in collections
-        buffer = vars[I[1]]
-        for k in 2 : length(I)
-           buffer = buffer * vars[I[k]]
-        end
-        push!(SR_generators, buffer)
-    end
+    SR_generators = [prod(vars[I]) for I in collections]
     return ideal(SR_generators)
 end
 export stanley_reisner_ideal
