@@ -395,8 +395,8 @@ mutable struct LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}
     lbpa.oscar_gens = oscar_gens
     lbpa.ordering = ordering
     # fill up the shift vector with zeroes if it is not provided in full length
-    for i in (length(shift)+1:length(gens(original_ring(oscar_ring))))
-      append!(shift, zero(oscar_ring))
+    for i in (length(shift)+1:nvars(original_ring(oscar_ring)))
+      push!(shift, zero(coefficient_ring(original_ring(oscar_ring))))
     end
     lbpa.shift = shift
     lbpa.is_groebner_basis=false
@@ -420,7 +420,7 @@ mutable struct LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}
     k = coefficient_ring(R)
     # fill up the shift vector with zeroes if it is not provided in full length
     for i in (length(shift)+1:nvars(R))
-	      append!(shift, zero(k))
+      push!(shift, zero(k))
     end
     lbpa.shift = shift
     inv_shift_hom = AlgebraHomomorphism(R, R, [gen(R, i) - R(shift[i]) for i in (1:nvars(R))])
@@ -599,11 +599,10 @@ function groebner_basis(
     return D[ordering]
   end
   # if not, set up a LocalizedBiPolyArray
-  W = parent(I)
+  W = base_ring(I)
   R = original_ring(W)
-  S = inverted_set(W)::MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}
-  a = point_coordinates(S)
-  lbpa = LocalizedBiPolyArray(W, gens(I), ordering=ordering, shift=a)
+  S = inverted_set(W)
+  lbpa = LocalizedBiPolyArray(W, gens(I), ordering=ordering)
   # compute the standard basis and cache the result
   D[ordering] = std(lbpa)
   return D[ordering]
@@ -622,7 +621,7 @@ function groebner_assure(
   if length(D) > 0 
     return
   end
-  W = parent(I)
+  W = base_ring(I)
   R = original_ring(W)
   S = inverted_set(W)
   lbpa = LocalizedBiPolyArray(W, gens(I), ordering=default_ordering(I))
@@ -660,7 +659,7 @@ function groebner_assure(
   if length(D) > 0 
     return
   end
-  W = parent(I)
+  W = base_ring(I)
   R = original_ring(W)
   S = inverted_set(W)::MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}
   a = point_coordinates(S)

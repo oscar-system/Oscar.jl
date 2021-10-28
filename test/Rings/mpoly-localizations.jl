@@ -70,4 +70,12 @@
   @test f*(x-p+4) in K
   @test !(f+2 in K)
   @test f*(x-p+9) in I_loc
+
+  K = ideal(V, [f*x, f*y])
+  lbpa = groebner_basis(K)
+  reduce(V(x), lbpa)
+  K = ideal(V, [x, y])
+  lbpa = groebner_basis(K)
+  reduce(V(x), lbpa)
+
 end
