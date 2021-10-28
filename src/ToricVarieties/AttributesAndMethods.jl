@@ -272,7 +272,7 @@ function torusinvariant_prime_divisors(v::AbstractNormalToricVariety)
     ti_divisors = torusinvariant_divisor_group(v)
     prime_divisors = ToricDivisor[]
     for i in 1:rank(ti_divisors)
-        coeffs = fill(0, rank(ti_divisors))
+        coeffs = zeros(Int, rank(ti_divisors))
         coeffs[i] = 1
         push!(prime_divisors, ToricDivisor(v,coeffs))
     end
