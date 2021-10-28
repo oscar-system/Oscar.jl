@@ -2,14 +2,11 @@
     toric_ideal_binomial_generators(pts::Matrix{Int})
 
 Get the exponent vectors corresponding to the generators of the toric ideal
-coming from the affine relations between the point `pts`.
+coming from the affine relations between the rows of `pts`.
 """
 function toric_ideal_binomial_generators(pts::AbstractMatrix)
-    eq = homogenize(transpose(pts), 0)
-    ineq = Polymake.common.zero_matrix(0,ncols(eq))
-    pmPolytope = Polymake.polytope.Polytope(INEQUALITIES=ineq, EQUATIONS=eq)
-    result = (pmPolytope.LATTICE_POINTS_GENERATORS)[3]
-    return result[:, 2:ncols(result)]
+    result = kernel(matrix(ZZ, pts), side=:left)
+    return transpose(result[2])
 end
 
 
@@ -45,7 +42,7 @@ export toric_ideal_binomial_generators
 toric_ideal_binomial_generators(ntv::NormalToricVariety) = toric_ideal_binomial_generators(AffineNormalToricVariety(ntv))
 
 
-function binomial_exponents_to_ideal(binoms::AbstractMatrix)
+function binomial_exponents_to_ideal(binoms::Union{AbstractMatrix, fmpz_mat})
     nvars = ncols(binoms)
     R, x = PolynomialRing(QQ, "x" => 1:nvars)
     terms = Vector{fmpq_mpoly}(undef, nrows(binoms))
