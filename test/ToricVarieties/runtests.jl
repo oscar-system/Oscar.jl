@@ -1,3 +1,6 @@
+using Oscar
+using Test
+
 H5 = hirzebruch_surface( 5 )
 P2 = toric_projective_space( 2 )
 
