@@ -124,7 +124,7 @@ Save a subdivision of points to a file in JSON format. The first argument is
 the subdivision of points, the second argument is the filename.
 """
 function save_subdivisionofpoints(SOP::SubdivisionOfPoints, filename::String)
-   bigobject = pm_subdivision(SOP)
+   bigobject = pm_object(SOP)
    Polymake.save_bigobject(bigobject, filename)
 end
 
