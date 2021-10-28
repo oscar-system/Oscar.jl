@@ -274,10 +274,7 @@ function isprime_divisor(td::ToricDivisor)
     if (sum(coeffs) != 1)
         return false
     end
-    if (all(y -> (y == 1 || y == 0), coeffs) == false)
-        return false
-    end
-    return true
+    return all(y -> (y == 1 || y == 0), coeffs)
 end
 export isprime_divisor
 
