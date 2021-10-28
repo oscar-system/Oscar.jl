@@ -502,12 +502,18 @@ gen(G::MatrixGroup, i::Int) = gens(G)[i]
 
 ngens(G::MatrixGroup) = length(gens(G))
 
+
+compute_order(G::GAPGroup) = fmpz(GAP.Globals.Order(G.X))
+
+compute_order(G::MatrixGroup{T}) where {T <: Union{nf_elem, fmpq}} = order(isomorphic_group_over_finite_field(G)[1])
+
 function order(::Type{T}, G::MatrixGroup) where T <: IntegerUnion
-   if get_special(G, :order) == nothing
-     return T(BigInt(GAP.Globals.Order(G.X)))::T
-   else
-     return T(get_special(G, :order))::T
+   res = get_special(G, :order)
+   if res == nothing
+     res = compute_order(G)::fmpz
+     set_special(G, :order => res)
    end
+   return T(res)::T
 end
 
 ########################################################################
