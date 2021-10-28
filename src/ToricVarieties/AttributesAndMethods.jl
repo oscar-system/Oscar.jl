@@ -117,6 +117,7 @@ export list_of_variables_of_cox_ring
 
 @doc Markdown.doc"""
     stanley_reisner_ideal(v::NormalToricVariety)
+
 Computes the Stanley-Reisner ideal of a normal toric variety `v`.
 
 # Examples
