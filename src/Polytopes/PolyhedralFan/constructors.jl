@@ -77,11 +77,11 @@ function PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, LS::Union{Osca
 end
 
 """
-    pm_fan(PF::PolyhedralFan)
+    pm_object(PF::PolyhedralFan)
 
 Get the underlying polymake object, which can be used via Polymake.jl.
 """
-pm_fan(PF::PolyhedralFan) = PF.pm_fan
+pm_object(PF::PolyhedralFan) = PF.pm_fan
 
 
 function PolyhedralFan(itr)

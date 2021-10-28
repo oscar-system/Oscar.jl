@@ -26,7 +26,7 @@ end
 Visualize a polyhedral fan.
 """
 function visualize(PF::PolyhedralFan)
-    pmF = pm_fan(PF)
+    pmF = pm_object(PF)
     Polymake.visual(pmF)
 end
 

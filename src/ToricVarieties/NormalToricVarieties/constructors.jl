@@ -41,7 +41,7 @@ A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 """
 function AffineNormalToricVariety(C::Cone)
     fan = PolyhedralFan(C)
-    pmntv = Polymake.fulton.NormalToricVariety(Oscar.pm_fan(fan))
+    pmntv = Polymake.fulton.NormalToricVariety(Oscar.pm_object(fan))
     return AffineNormalToricVariety(pmntv)
 end
 
@@ -63,7 +63,7 @@ A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 """
 function NormalToricVariety(C::Cone)
     fan = PolyhedralFan(C)
-    pmntv = Polymake.fulton.NormalToricVariety(Oscar.pm_fan(fan))
+    pmntv = Polymake.fulton.NormalToricVariety(Oscar.pm_object(fan))
     return NormalToricVariety(pmntv)
 end
 
@@ -87,7 +87,7 @@ A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 ```
 """    
 function NormalToricVariety(PF::PolyhedralFan)
-    fan = Oscar.pm_fan(PF)
+    fan = Oscar.pm_object(PF)
     pmntv = Polymake.fulton.NormalToricVariety(fan)
     return NormalToricVariety(pmntv)
 end
@@ -164,7 +164,7 @@ A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 """
 function toric_projective_space( d::Int )
     f = normal_fan(Oscar.simplex(d))
-    pm_ntv = Polymake.fulton.NormalToricVariety(Oscar.pm_fan(f))
+    pm_ntv = Polymake.fulton.NormalToricVariety(Oscar.pm_object(f))
     return NormalToricVariety(pm_ntv)
 end
 export toric_projective_space
