@@ -4,7 +4,7 @@
 Visualize a polyhedron.
 """
 function visualize(P::Polyhedron)
-    pmP = pm_polytope(P)
+    pmP = pm_object(P)
     Polymake.visual(pmP)
 end
 

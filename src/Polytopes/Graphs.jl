@@ -2,7 +2,7 @@ module Graphs
 
 
 using Markdown
-import Oscar: Polyhedron, Polymake, pm_polytope
+import Oscar: Polyhedron, Polymake, pm_object
 import Oscar.Polymake: Directed, Undirected
 
 export
@@ -581,7 +581,7 @@ julia> ne(g)
 ```
 """
 function edgegraph(p::Polyhedron)
-    pmg = pm_polytope(p).GRAPH.ADJACENCY
+    pmg = pm_object(p).GRAPH.ADJACENCY
     return Graph{Undirected}(pmg)
 end
 
@@ -612,7 +612,7 @@ julia> ne(g)
 ```
 """
 function dualgraph(p::Polyhedron)
-    pmg = pm_polytope(p).DUAL_GRAPH.ADJACENCY
+    pmg = pm_object(p).DUAL_GRAPH.ADJACENCY
     return Graph{Undirected}(pmg)
 end
 

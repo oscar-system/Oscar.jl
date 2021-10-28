@@ -32,7 +32,7 @@ Save a polyhedron to a file in JSON format. The first argument is the
 polyhedron, the second argument is the filename.
 """
 function save_polyhedron(P::Polyhedron, filename::String)
-   bigobject = pm_polytope(P)
+   bigobject = pm_object(P)
    Polymake.save_bigobject(bigobject, filename)
 end
 
@@ -85,7 +85,7 @@ Save a linear program to a file in JSON format. The first argument is the
 linear program, the second argument is the filename.
 """
 function save_linearprogram(LP::LinearProgram, filename::String)
-   bigobject = pm_polytope(feasible_region(LP))
+   bigobject = pm_object(feasible_region(LP))
    Polymake.save_bigobject(bigobject, filename)
 end
 
