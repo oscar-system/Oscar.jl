@@ -185,11 +185,13 @@ an integer i to an element i//1 ∈ W.
 (W::FmpzLocalizedRing{MultSetType})(i::Oscar.IntegerUnion) where {MultSetType} = FmpzLocalizedRingElem(W, ZZ(i), one(ZZ))
 (W::FmpzLocalizedRing{MultSetType})(a::Oscar.IntegerUnion, b::Oscar.IntegerUnion) where {MultSetType} = FmpzLocalizedRingElem(W, ZZ(a), ZZ(b))
 
-### extension of Oscar's ring interface
+### implementation of Oscar's general ring interface
 one(W::FmpzLocalizedRing{MultSetType}) where {MultSetType} = W(1)
 zero(W::FmpzLocalizedRing{MultSetType}) where {MultSetType} = W(0)
 
 elem_type(W::FmpzLocalizedRing{MultSetType}) where {MultSetType} = FmpzLocalizedRingElem{MultSetType}
 elem_type(T::Type{FmpzLocalizedRing{MultSetType}}) where {MultSetType} = FmpzLocalizedRingElem{MultSetType}
 
+parent_type(W::FmpzLocalizedRingElem{MultSetType}) where {MultSetType} = FmpzLocalizedRing{MultSetType}
+parent_type(T::Type{FmpzLocalizedRingElem{MultSetType}}) where {MultSetType} = FmpzLocalizedRing{MultSetType}
 

@@ -106,3 +106,14 @@ denominator(f::NmodLocalizedRingElem{MultSetType}) where {MultSetType} = f.denom
 ### additional conversions
 (W::NmodLocalizedRing{MultSetType})(a::Oscar.IntegerUnion, b::Oscar.IntegerUnion) where {MultSetType} = NmodLocalizedRingElem(W, original_ring(W)(a), original_ring(W)(b))
 (W::NmodLocalizedRing{MultSetType})(a::Oscar.IntegerUnion) where {MultSetType} = NmodLocalizedRingElem(W, original_ring(W)(a), one(original_ring(W)))
+
+### implementation of Oscar's general ring interface
+one(W::NmodLocalizedRing{MultSetType}) where {MultSetType} = W(1)
+zero(W::NmodLocalizedRing{MultSetType}) where {MultSetType} = W(0)
+
+elem_type(W::NmodLocalizedRing{MultSetType}) where {MultSetType} = NmodLocalizedRingElem{MultSetType}
+elem_type(T::Type{NmodLocalizedRing{MultSetType}}) where {MultSetType} = NmodLocalizedRingElem{MultSetType}
+
+parent_type(W::NmodLocalizedRingElem{MultSetType}) where {MultSetType} = NmodLocalizedRing{MultSetType}
+parent_type(T::Type{NmodLocalizedRingElem{MultSetType}}) where {MultSetType} = NmodLocalizedRing{MultSetType}
+
