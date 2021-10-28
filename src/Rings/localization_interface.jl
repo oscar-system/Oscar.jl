@@ -209,12 +209,12 @@ end
 
 ### default functionality for printing
 function Base.show(io::IO, f::T) where {T<:AbsLocalizedRingElem}
-  print(io, "$(numerator(f))//$(denominator(f))")
+  print(io, "($(numerator(f)))//($(denominator(f)))")
 end
 
 
 ########################################################################
-# Arithmetic; a dumb catchall implmentation, NOT performant!           #
+# Arithmetic; a dumb catchall implementation, NOT performant!          #
 ########################################################################
 
 @Markdown.doc """
@@ -247,6 +247,11 @@ function *(a::T, b::T) where {T<:AbsLocalizedRingElem}
   return reduce_fraction((parent(a))(numerator(a)*numerator(b), denominator(a)*denominator(b)))
 end
 
+function Base.:(//)(a::Oscar.IntegerUnion, b::T) where {T<:AbsLocalizedRingElem}
+  numerator(b) in inverted_set(parent(b)) || error("the second argument is not a unit in this local ring")
+  return reduce_fraction((parent(b))(original_ring(b)(a)*denominator(b), numerator(b)))
+end
+
 function Base.:(//)(a::T, b::T) where {T<:AbsLocalizedRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
   numerator(b) in inverted_set(parent(b)) || error("the second argument is not a unit in this local ring")
@@ -270,11 +275,86 @@ end
 @Markdown.doc """
     AbsLocalizedIdeal{RingType, RingElemType, MultSetType} <: Ideal{RingElemType}
 
-Abstract type for ideals ``IS⁻¹ ⊂ R[S⁻¹]`` in localized rings. In fact, every 
-such ideal is of this form for some ideal ``I ⊂ R`` in the original ring. 
+Abstract type for finitely generated ideals ``IS⁻¹ ⊂ R[S⁻¹]`` in localized rings. 
 """
-abstract type AbsLocalizedRingIdeal{RingType, RingElemType, MultSetType} <: Ideal{RingElemType} end
+abstract type AbsLocalizedIdeal{RingType, RingElemType, MultSetType} <: Ideal{RingElemType} end
 
+### required getter functions
+function gens(I::AbsLocalizedIdeal{RingType, RingElemType, MultSetType}) where {RingType, RingElemType, MultSetType}
+  error("`gens(I)` has not been implemented for `I` of type $(typeof(I))")
+end
+
+function base_ring(I::AbsLocalizedIdeal{RingType, RingElemType, MultSetType}) where {RingType, RingElemType, MultSetType}
+  error("`base_ring(I)` has not been implemented for `I` of type $(typeof(I))")
+end
+
+### required constructors
+function ideal(
+    W::AbsLocalizedRing{RingType, RingElemType, MultSetType}, 
+    f::AbsLocalizedRingElem{RingType, RingElemType, MultSetType} 
+  ) where {RingType, RingElemType, MultSetType}
+  error("`ideal(W, f)` has not been implemented for `W` of type $(typeof(W)) and `f` of type $(typeof(f))")
+end
+
+function ideal(
+    W::AbsLocalizedRing{RingType, RingElemType, MultSetType}, 
+    v::Vector{AbsLocalizedRingElem{RingType, RingElemType, MultSetType}}
+  ) where {RingType, RingElemType, MultSetType}
+  error("`ideal(W, v)` has not been implemented for `W` of type $(typeof(W)) and `v` of type $(typeof(v))")
+end
+
+function ideal(
+    W::AbsLocalizedRing{RingType, RingElemType, MultSetType}, 
+    f::RingElemType 
+  ) where {RingType, RingElemType, MultSetType}
+  error("`ideal(W, f)` has not been implemented for `W` of type $(typeof(W)) and `f` of type $(typeof(f))")
+end
+
+function ideal(
+    W::AbsLocalizedRing{RingType, RingElemType, MultSetType}, 
+    v::Vector{RingElemType}
+  ) where {RingType, RingElemType, MultSetType}
+  error("`ideal(W, v)` has not been implemented for `W` of type $(typeof(W)) and `v` of type $(typeof(v))")
+end
+
+### required functionality
+function Base.in(
+    f::AbsLocalizedRingElem{RingType, RingElemType, MultSetType}, 
+    I::AbsLocalizedIdeal{RingType, RingElemType, MultSetType}
+  ) where {RingType, RingElemType, MultSetType}
+  error("`in(f, I)` has not been implemented for `f` of type $(typeof(f)) and `I` of type $(typeof(I))")
+end
+
+function Base.in(
+    f::RingElemType, 
+    I::AbsLocalizedIdeal{RingType, RingElemType, MultSetType}
+  ) where {RingType, RingElemType, MultSetType}
+  error("`in(f, I)` has not been implemented for `f` of type $(typeof(f)) and `I` of type $(typeof(I))")
+end
+
+
+### A catchall implementation for the ideal arithmetic 
+function Base.:*(I::T, J::T) where {T<:AbsLocalizedIdeal}
+  W = base_ring(I) 
+  W == base_ring(J) || error("the given ideals do not belong to the same ring")
+  new_gens = Vector{elem_type(W)}()
+  for f in gens(I) 
+    for g in gens(J)
+      push!(new_gens, f*g)
+    end
+  end
+  return ideal(W, new_gens)
+end
+
+function Base.:+(I::T, J::T) where {T<:AbsLocalizedIdeal}
+  W = base_ring(I) 
+  W == base_ring(J) || error("the given ideals do not belong to the same ring")
+  return ideal(W, vcat(gens(I), gens(J)))
+end
+
+function Base.:^(I::T, j::Int) where {T<:AbsLocalizedIdeal}
+  return ideal(base_ring(I), [f^j for f in gens(I)])
+end
 
 ############################################################################
 # Finitely generated modules over localized rings                          #

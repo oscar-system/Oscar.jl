@@ -1,5 +1,7 @@
 export MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal
 
+export ambient_ring, point_coordinates
+
 export original_ring, inverted_set
 export reduce_fraction
 
@@ -8,8 +10,13 @@ export fraction, parent
 export MPolyLocalizedRing
 
 export MPolyLocalizedIdeal
+export gens, base_ring, groebner_bases, default_ordering, dim 
 
 export localize_at, ideal
+
+export LocalizedBiPolyArray
+export oscar_gens, oscar_ring, singular_ring, singular_gens, ordering, shift
+export groebner_basis, groebner_assure, reduce
 
 import AbstractAlgebra.Ring
 
@@ -24,10 +31,12 @@ import AbstractAlgebra.Ring
 
 @Markdown.doc """
     MPolyComplementOfPrimeIdeal{
-        BaseRingType, 
-        RingElemType
+	BaseRingType, 
+	BaseRingElemType,
+	RingType,
+	RingElemType
       } <: AbsMultSet{
-        MPolyRing{BaseRingType}, 
+	RingType,
         RingElemType
       }
 
@@ -146,9 +155,10 @@ function Base.in(
 end
 
 
-############################################################################
-# Localizations of polynomial rings over admissible fields at prime ideals #
-############################################################################
+########################################################################
+# Localizations of polynomial rings over admissible fields             #
+########################################################################
+
 @Markdown.doc """
     MPolyLocalizedRing{
         BaseRingType, 
@@ -297,6 +307,8 @@ fraction(
 ### additional conversions
 (W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(f::AbstractAlgebra.Generic.Frac{RingElemType}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocalizedRingElem(f, W)
 
+(W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(a::Oscar.IntegerUnion) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = W(original_ring(W)(a))
+
 ### overwriting the arithmetic using the fractions from AbstractAlgebra
 function +(a::T, b::T) where {T<:MPolyLocalizedRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
@@ -313,6 +325,10 @@ function *(a::T, b::T) where {T<:MPolyLocalizedRingElem}
   return (parent(a))(fraction(a) * fraction(b))
 end
 
+function Base.:(//)(a::Oscar.IntegerUnion, b::T) where {T<:MPolyLocalizedRingElem}
+  return (parent(b))(a//fraction(b))
+end
+
 function Base.:(//)(a::T, b::T) where {T<:MPolyLocalizedRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
   numerator(fraction(b)) in inverted_set(parent(b)) || error("the second argument is not a unit in this local ring")
@@ -325,7 +341,6 @@ function ==(a::T, b::T) where {T<:MPolyLocalizedRingElem}
 end
 
 function ^(a::T, i::Oscar.IntegerUnion) where {T<:MPolyLocalizedRingElem}
-  parent(a) == parent(b) || error("the arguments do not have the same parent ring")
   return parent(a)(fraction(a)^i)
 end
 
@@ -340,210 +355,335 @@ parent_type(W::MPolyLocalizedRingElem{BaseRingType, BaseRingElemType, RingType, 
 parent_type(T::Type{MPolyLocalizedRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
 
 
-### The main workhorse for binding to the Singular backend
+########################################################################
+# Singular functionality                                               #
+########################################################################
 @Markdown.doc """
-    LocalizedBiPolyArray{LocRingType, RingElemType}
+    LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}
 
-Main workhorse for binding of ideals in localizations ``R[S⁻¹]`` of type `LocRingType` 
-of polynomial rings ``R`` with elements of type `RingElemType` to the singular backend. 
-
-This is supposed to be used for all types of localizations, but with different 
-orderings for the polynomial ring on the singular side, depending on the 
-algorithmic implementation.
+Main workhorse for binding of ideals in localizations ``R[S⁻¹]`` of 
+multivariate polynomial rings ``R = 𝕜[x₁,…,xₙ]`` to Singular. 
 """
-mutable struct LocalizedBiPolyArray{LocRingType, RingElemType}
-  # The generators on the Oscar side, given simply as fractions
-  oscar_gens::Vector{AbstractAlgebra.Generic.Frac{RingElemType}}
+mutable struct LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}
+  # The generators on the Oscar side
+  oscar_gens::Vector{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}
   # The numerators of the above fractions as elements in the singular version 
   # of the original ring before localization.
   singular_gens::Singular.sideal
   # The localized ring on the Oscar side.
-  oscar_ring::LocRingType
-  # A polynomial ring on the singular side, mapping surjectively to the 
-  # original ring before localization. 
+  oscar_ring::MPolyLocalizedRing{BRT, BRET, RT, RET, MST}
+  # The polynomial ring on the singular side
   singular_ring::Singular.PolyRing
   # The ordering used for the above singular ring.
   ordering::Symbol
   # An optional shift vector applied to the polynomials in Oscar when 
   # translating them to the Singular ring. 
-  shift::Vector{RingElemType}
+  # This is to make local orderings useful for localizations at 𝕜-points.
+  shift::Vector{BRET}
   # Flag for caching
   is_groebner_basis::Bool
 
-  function LocalizedBiPolyArray(oscar_ring::LocRingType, 
-      oscar_gens::Vector{AbstractAlgebra.Generic.Frac{RingElemType}};
-      ordering=:degrevlex, shift=Vector{RingElemType}()
-    ) where {LocRingType <: AbsLocalizedRing, RingElemType}
-    BPA = new{LocRingType, RingElemType}()
+  function LocalizedBiPolyArray(
+      oscar_ring::MPolyLocalizedRing{BRT, BRET, RT, RET, MST},
+      oscar_gens::Vector{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}};
+      ordering::Symbol=:degrevlex, 
+      shift::Vector{BRET}=Vector{BRET}()
+    ) where {BRT, BRET, RT, RET, MST}
+    lbpa = new{BRT, BRET, RT, RET, MST}()
     # TODO: Add some sanity checks here
-    BPA.oscar_ring = oscar_ring
-    BPA.oscar_gens = oscar_gens
-    BPA.ordering = ordering
+    lbpa.oscar_ring = oscar_ring
+    lbpa.oscar_gens = oscar_gens
+    lbpa.ordering = ordering
     # fill up the shift vector with zeroes if it is not provided in full length
     for i in (length(shift)+1:length(gens(original_ring(oscar_ring))))
       append!(shift, zero(oscar_ring))
     end
-    BPA.shift = shift
-    BPA.is_groebner_basis=false
-    return BPA
+    lbpa.shift = shift
+    lbpa.is_groebner_basis=false
+    return lbpa
   end
   
-  function LocalizedBiPolyArray(oscar_ring::LocRingType, 
-      singular_gens::Singular.sideal, shift::Vector{RingElemType}
-    ) where {LocRingType <: AbsLocalizedRing, RingElemType}
-    BPA = new{LocRingType, RingElemType}()
+  function LocalizedBiPolyArray(
+      oscar_ring::MPolyLocalizedRing{BRT, BRET, RT, RET, MST},
+      singular_gens::Singular.sideal; 
+      shift::Vector{BRET}=Vector{BRET}(), 
+      is_groebner_basis::Bool=false,
+      ordering::Symbol=:degrevlex
+    ) where {BRT, BRET, RT, RET, MST}
+    lbpa = new{BRT, BRET, RT, RET, MST}()
     # TODO: Add some sanity checks here
-    BPA.oscar_ring = oscar_ring
-    BPA.singular_gens = singular_gens
-    BPA.singular_ring = base_ring(singular_gens)
+    lbpa.oscar_ring = oscar_ring
+    lbpa.singular_gens = singular_gens
+    lbpa.singular_ring = base_ring(singular_gens)
     R = original_ring(oscar_ring)
-    @show BPA.singular_ring
-    @show typeof(BPA.singular_ring)
-    BPA.ordering = Singular.ordering_as_symbol(BPA.singular_ring)
+    lbpa.ordering = Singular.ordering_as_symbol(lbpa.singular_ring)
+    k = coefficient_ring(R)
     # fill up the shift vector with zeroes if it is not provided in full length
-    for i in (length(shift)+1:length(gens(R)))
-	      append!(shift, zero(R))
+    for i in (length(shift)+1:nvars(R))
+	      append!(shift, zero(k))
     end
-    BPA.shift = shift
-    nvars(R) == length(shift) || error("the number of variables does not coincide with the number of coordinates")
-    inv_shift_hom = AlgebraHomomorphism(R, R, [gen(R, i) + shift[i] for i in (1:nvars(R))])
-    BPA.oscar_gens = [ y//one(y) for y in (inv_shift_hom.(R.([x for x in gens(singular_gens)])))]
-    BPA.is_groebner_basis=false
-    return BPA
+    lbpa.shift = shift
+    inv_shift_hom = AlgebraHomomorphism(R, R, [gen(R, i) - R(shift[i]) for i in (1:nvars(R))])
+    lbpa.oscar_gens = [ oscar_ring(y) for y in (inv_shift_hom.(R.([x for x in gens(singular_gens)])))]
+    lbpa.is_groebner_basis=is_groebner_basis
+    return lbpa
   end
 end
 
-oscar_gens(I::LocalizedBiPolyArray{LocRingType, RingElemType}) where {LocRingType, RingElemType} = I.oscar_gens
-oscar_ring(I::LocalizedBiPolyArray{LocRingType, RingElemType}) where {LocRingType, RingElemType} = I.oscar_ring
+oscar_gens(lbpa::LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = lbpa.oscar_gens
+oscar_ring(lbpa::LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = lbpa.oscar_ring
+ordering(lbpa::LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = lbpa.ordering
+shift(lbpa::LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = lbpa.shift
 
-function singular_gens(lbpa::LocalizedBiPolyArray{LocRingType, RingElemType}) where {LocRingType, RingElemType}
-  singular_assure!(lbpa)
+function singular_gens(lbpa::LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST}
+  singular_assure(lbpa)
   return lbpa.singular_gens
 end
 
-function singular_ring(lbpa::LocalizedBiPolyArray{LocRingType, RingElemType}) where {LocRingType, RingElemType} 
-  singular_assure!(lbpa)
+function singular_ring(lbpa::LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST}
+  singular_assure(lbpa)
   return lbpa.singular_ring
 end
-ordering(lbpa::LocalizedBiPolyArray{LocRingType, RingElemType}) where {LocRingType, RingElemType} = lbpa.ordering
-shift(lbpa::LocalizedBiPolyArray{LocRingType, RingElemType}) where {LocRingType, RingElemType} = lbpa.shift
 
-
-function _singular_ring(oscar_ring::MPolyMaxLocalRing{BaseRingType, RingElemType, MultSetType}; ord::Symbol = :degrevlex) where {BaseRingType, RingElemType, MultSetType}
-  return Singular.PolynomialRing(Oscar.singular_ring(base_ring(original_ring(oscar_ring))), 
-				 [string(a) for a = Nemo.symbols(original_ring(oscar_ring))], 
-				 ordering = ord, 
-				 cached = false)[1]
-end
-
-function singular_assure!(lbpa::LocalizedBiPolyArray{RingElemType, MultSetType}) where {RingElemType, MultSetType}
+function singular_assure(lbpa::LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST}
   if !isdefined(lbpa, :singular_ring)
-    lbpa.singular_ring = _singular_ring(oscar_ring(lbpa), ord=ordering(lbpa))
+    lbpa.singular_ring = Singular.PolynomialRing(
+	Oscar.singular_ring(base_ring(original_ring(oscar_ring(lbpa)))), 
+        [string(a) for a = Nemo.symbols(original_ring(oscar_ring(lbpa)))], 
+        ordering = ordering(lbpa), 
+        cached = false
+      )[1]
   end
   if !isdefined(lbpa, :singular_gens)
     shift_hom = hom(original_ring(oscar_ring(lbpa)), original_ring(oscar_ring(lbpa)), 
-        [gen(original_ring(oscar_ring(lbpa)), i) - lbpa.shift[i] for i in (1:nvars(original_ring(oscar_ring(lbpa))))])
+        [gen(original_ring(oscar_ring(lbpa)), i) + lbpa.shift[i] for i in (1:nvars(original_ring(oscar_ring(lbpa))))])
     lbpa.singular_gens = Singular.Ideal(lbpa.singular_ring,
 	[lbpa.singular_ring(shift_hom(numerator(x))) for x in oscar_gens(lbpa)])
   end
 end
 
+function std(lbpa::LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST}
+  i = Singular.std(singular_gens(lbpa))
+  return LocalizedBiPolyArray(
+             oscar_ring(lbpa), 
+	     i, 
+	     shift=shift(lbpa), 
+	     ordering=ordering(lbpa), 
+	     is_groebner_basis=true
+	   )
+end
+
+
+########################################################################
+# Ideals in localizations of multivariate polynomial rings             #
+########################################################################
 
 @Markdown.doc """
-    MPolyMaxLocalIdeal{BaseRingType, BaseRingElemType, RingElemType} <: AbsMaxLocalRingIdeal{MPolyRing{BaseRingType}, MPolyMaxLocalRing{BaseRingType, BaseRingElemType, RingElemType}, RingElemType} 
+    MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST} <: AbsLocalizedIdeal{RT, RET, MST}
 
-Ideals in localizations of polynomial rings ``R = 𝕜[x₁,…,xₙ]`` at maximal ideals 
-``𝔪 = ⟨x₁-a₁,…,xₙ-aₙ⟩`` with coefficients ``aᵢ∈ 𝕜``.
+Ideals in localizations of polynomial rings.
 """
-mutable struct MPolyMaxLocalIdeal{
-    BaseRingType, 
-    BaseRingElemType, 
-    RingElemType
-  } <: AbsLocalizedRingIdeal{
-    MPolyRing{BaseRingType}, 
-    MPolyMaxLocalRingElem{BaseRingType, BaseRingElemType, MPolyElem{BaseRingType}}, 
-    MPolyComplementOfKPointIdeal{BaseRingType, BaseRingElemType, RingElemType}
-  }
+mutable struct MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST} <: AbsLocalizedIdeal{RT, RET, MST}
   # the initial set of generators, not to be changed ever!
-  gens::LocalizedBiPolyArray{MPolyMaxLocalRing{BaseRingType, BaseRingElemType, RingElemType}, RingElemType}
+  gens::Vector{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}
   # the ambient ring for this ideal
-  R_loc::MPolyMaxLocalRing{BaseRingType, BaseRingElemType, RingElemType}
+  W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST} 
   
   # Fields for caching
-  groebner_basis::LocalizedBiPolyArray{MPolyMaxLocalRing{BaseRingType, BaseRingElemType, RingElemType}, RingElemType}
+  default_ordering::Symbol
+  groebner_bases::Dict{Symbol, LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}}
   dimension::Int
  
-
-  function MPolyMaxLocalIdeal(R_loc::MPolyMaxLocalRing{BaseRingType, BaseRingElemType, RingElemType}, f::Vector{AbstractAlgebra.Generic.Frac{RingElemType}}) where {BaseRingType, BaseRingElemType, RingElemType}
-    R = original_ring(R_loc)
+  function MPolyLocalizedIdeal(
+      W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST}, 
+      gens::Vector{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}};
+      default_ordering::Symbol=:degrevlex, 
+      check::Bool=false
+    ) where {BRT, BRET, RT, RET, MST}
+    R = original_ring(W)
     k = base_ring(R)
-    S = inverted_set(R_loc)
-    a = point_coordinates(S)
-    for x in f
-      denominator(x) in S || error("fraction is not an element of the localization")
+    S = inverted_set(W)
+    for f in gens
+      parent(f) == W || error("generator is not an element of the given ring")
+      check && (denominator(f) in S || error("fraction is not an element of the localization"))
     end
-    I = new{BaseRingType, BaseRingElemType, RingElemType}()
-    I.gens = LocalizedBiPolyArray(R_loc, f, ordering=:negdegrevlex, shift=R.(a))
-    I.R_loc = R_loc
+    I = new{BRT, BRET, RT, RET, MST}()
+    I.gens = gens
+    I.W = W
+    I.default_ordering = default_ordering
+    I.groebner_bases = Dict{Symbol, LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}}()
     return I
   end
 end
+ 
+### required getter functions
+gens(I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = I.gens
+base_ring(I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = I.W
 
-gens(I::MPolyMaxLocalIdeal{BaseRingType, BaseRingElemType, RingElemType}) where {BaseRingType, BaseRingElemType, RingElemType} = I.gens
-ambient_ring(I::MPolyMaxLocalIdeal{BaseRingType, BaseRingElemType, RingElemType}) where {BaseRingType, BaseRingElemType, RingElemType} = I.R_loc
+### additional getter functions
+groebner_bases(I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = I.groebner_bases
 
-function shift(I::MPolyMaxLocalIdeal{BaseRingType, BaseRingElemType, RingElemType}) where {BaseRingType, BaseRingElemType, RingElemType}
-  lbpa = I.gens
-  return shift(lbpa)
-end
+default_ordering(I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = I.default_ordering
 
-function dimension(I::MPolyMaxLocalIdeal{BaseRingType, BaseRingElemType, RingElemType}) where {BaseRingType, BaseRingElemType, RingElemType} 
+function dim(I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST}
+  if isdefined(I,:dimension)
+    return I.dimension
+  end
   error("not implemented")
 end
 
-function MPolyMaxLocalIdeal(R_loc::MPolyMaxLocalRing{BaseRingType, BaseRingElemType, RingElemType}, I::MPolyIdeal{RingElemType}) where {BaseRingType, BaseRingElemType, RingElemType} 
-  if length(gens(I))==0 
-    return MPolyMaxLocalIdeal(R_loc, Vector{AbstractAlgebra.Generic.Frac{RingElemType}}())
-  end
-  R = original_ring(R_loc)
-  Q = AbstractAlgebra.Generic.FractionField(R)
-  base_ring(I) == R || error("ideal does not belong to the original ring before localization")
-  return MPolyMaxLocalIdeal(R_loc, Q.(gens(I)))
+### Conversion of ideals in the original ring to localized ideals
+function (W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST})(I::MPolyIdeal{RET}) where {BRT, BRET, RT, RET, MST}
+  return MPolyLocalizedIdeal(W, W.(gens(I)))
 end
 
-function ideal(R_loc::MPolyMaxLocalRing{BaseRingType, BaseRingElemType, RingElemType}, I::MPolyIdeal{RingElemType}) where {BaseRingType, BaseRingElemType, RingElemType} 
-  return MPolyMaxLocalIdeal(R_loc, I)
+### required constructors 
+function ideal(
+    W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST}, 
+    f::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}
+  ) where {BRT, BRET, RT, RET, MST}
+  return MPolyLocalizedIdeal(W, [f])
+end
+
+function ideal(
+    W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST}, 
+    gens::Vector{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}
+  ) where {BRT, BRET, RT, RET, MST}
+  return MPolyLocalizedIdeal(W, gens)
+end
+
+function ideal(
+    W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST}, 
+    f::RET
+  ) where {BRT, BRET, RT, RET, MST}
+  return MPolyLocalizedIdeal(W, [W(f)])
+end
+
+function ideal(
+    W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST}, 
+    gens::Vector{RET}
+  ) where {BRT, BRET, RT, RET, MST}
+  return MPolyLocalizedIdeal(W, W.(gens))
+end
+
+### required functionality
+function Base.in(
+    f::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}, 
+    I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST} 
+  ) where {BRT, BRET, RT, RET, MST}
+  parent(f) == base_ring(I) || return false
+  lbpa = groebner_basis(I)
+  return reduce(f, lbpa) == base_ring(I)(0)
+end
+
+function Base.in(
+    f::RET, 
+    I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST} 
+  ) where {BRT, BRET, RT, RET, MST}
+  return base_ring(I)(f) in I
 end
 
 
-###############################################################################
-# Groebner bases                                                              #
-###############################################################################
+########################################################################
+# Groebner and standard bases                                          #
+########################################################################
 
-function groebner_assure(I::MPolyMaxLocalIdeal{BaseRingType, BaseRingElemType, RingElemType}) where {BaseRingType, BaseRingElemType, RingElemType}
-  if isdefined(I, :groebner_basis) 
-    return I.groebner_basis
+### the catchall implementation; most probably mathematically useless!
+function groebner_basis(
+    I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST}, 
+    ordering::Symbol
+  ) where {BRT, BRET, RT, RET, MST} 
+  D = groebner_bases(I)
+  # check whether a standard basis has already been computed for this ordering
+  if haskey(D, ordering)
+    return D[ordering]
   end
-  gb = Singular.std(singular_gens(gens(I)))
+  # if not, set up a LocalizedBiPolyArray
+  W = parent(I)
+  R = original_ring(W)
+  S = inverted_set(W)::MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}
+  a = point_coordinates(S)
+  lbpa = LocalizedBiPolyArray(W, gens(I), ordering=ordering, shift=a)
+  # compute the standard basis and cache the result
+  D[ordering] = std(lbpa)
+  return D[ordering]
 end
 
-function groebner_basis(I::MPolyMaxLocalIdeal{BaseRingType, BaseRingElemType, RingElemType}; ord::Symbol = :negdegrevlex) where {BaseRingType, BaseRingElemType, RingElemType}
-  if ord != ordering(gens(I))
-    B = LocalizedBiPolyArray(ambient_ring(I), oscar_gens(gens(I)), ordering = ord)
-    singular_assure!(B)
-    R = singular_ring(B)
-    !Oscar.Singular.has_local_ordering(R) && error("The ordering has to be a local ordering.")
-    gb = Singular.std(singular_gens(B))
-    return LocalizedBiPolyArray(ambient_ring(I), gb, shift(I))
-  end
-  if !isdefined(I, :groebner_basis)
-    B = LocalizedBiPolyArray(ambient_ring(I), oscar_gens(gens(I)); ordering = ord, shift = shift(I))
-    singular_assure!(B)
-    R = singular_ring(B)
-    !Oscar.Singular.has_local_ordering(R) && error("The ordering has to be a local ordering.")
-    gb = Singular.std(singular_gens(B))
-    I.groebner_basis = LocalizedBiPolyArray(ambient_ring(I), gb, shift(I))
-  end
-  return oscar_gens(I.groebner_basis)
+function groebner_basis(
+    I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST}, 
+  ) where {BRT, BRET, RT, RET, MST} 
+  return groebner_basis(I, default_ordering(I))
 end
+
+function groebner_assure(
+    I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST}
+  ) where {BRT, BRET, RT, RET, MST}
+  D = groebner_bases(I)
+  if length(D) > 0 
+    return
+  end
+  W = parent(I)
+  R = original_ring(W)
+  S = inverted_set(W)
+  lbpa = LocalizedBiPolyArray(W, gens(I), ordering=default_ordering(I))
+  D[default_ordering(I)] = std(lbpa)
+  return
+end
+
+### special routines for localizations at 𝕜-points
+function groebner_basis(
+    I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}}; 
+    ordering::Symbol=:negdegrevlex
+  ) where {BRT, BRET, RT, RET}
+  D = groebner_bases(I)
+  # check whether a standard basis has already been computed for this ordering
+  if haskey(D, ordering)
+    return D[ordering]
+  end
+  # if not, set up a LocalizedBiPolyArray
+  W = base_ring(I)
+  R = original_ring(W)
+  S = inverted_set(W)::MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}
+  a = point_coordinates(S)
+  lbpa = LocalizedBiPolyArray(W, gens(I), ordering=ordering, shift=a)
+  # Check whether this ordering is admissible
+  !Singular.has_local_ordering(singular_ring(lbpa)) && error("The ordering has to be a local ordering.")
+  # compute the standard basis and cache the result
+  D[ordering] = std(lbpa)
+  return D[ordering]
+end
+
+function groebner_assure(
+    I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}}
+  ) where {BRT, BRET, RT, RET}
+  D = groebner_bases(I)
+  if length(D) > 0 
+    return
+  end
+  W = parent(I)
+  R = original_ring(W)
+  S = inverted_set(W)::MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}
+  a = point_coordinates(S)
+  # Choose negdegrevlex as a default local ordering
+  lbpa = LocalizedBiPolyArray(W, gens(I), ordering=:negdegrevlex, shift=a)
+  D[:negdegrevlex] = std(lbpa)
+  return
+end
+  
+function reduce(
+    f::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}, 
+    lbpa::LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}
+  ) where {BRT, BRET, RT, RET, MST}
+
+  W = parent(f)
+  W == oscar_ring(lbpa) || error("element does not belong to the Oscar ring of the biPolyArray")
+  R = original_ring(W)
+  shift_hom = hom(R, R, [gen(R, i) + lbpa.shift[i] for i in (1:nvars(R))])
+  singular_n = singular_ring(lbpa)(shift_hom(numerator(f)))
+  singular_n = Singular.reduce(singular_n, singular_gens(lbpa))
+  inv_shift_hom = hom(R,R, [gen(R, i) - lbpa.shift[i] for i in (1:nvars(R))])
+  return W(inv_shift_hom(R(singular_n)), denominator(f))
+end
+
+
 
