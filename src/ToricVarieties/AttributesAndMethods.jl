@@ -125,7 +125,7 @@ Computes the Stanley-Reisner ideal of a normal toric variety `v`.
 julia> p2 = toric_projective_space(2)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
-julia> length(stanley_reisner_ideal(P2).gens)
+julia> ngens(stanley_reisner_ideal(P2))
 1
 ```
 """
