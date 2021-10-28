@@ -16,7 +16,7 @@ export localize_at, ideal
 
 export LocalizedBiPolyArray
 export oscar_gens, oscar_ring, singular_ring, singular_gens, ordering, shift
-export groebner_basis, groebner_assure, reduce
+export groebner_basis, groebner_assure
 
 import AbstractAlgebra.Ring
 
@@ -670,7 +670,7 @@ function groebner_assure(
   return
 end
   
-function reduce(
+function Base.reduce(
     f::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}, 
     lbpa::LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}
   ) where {BRT, BRET, RT, RET, MST}
