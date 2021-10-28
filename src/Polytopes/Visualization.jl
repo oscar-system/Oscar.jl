@@ -15,7 +15,7 @@ end
 Visualize a cone.
 """
 function visualize(C::Cone)
-    pmC = pm_cone(C)
+    pmC = pm_object(C)
     Polymake.visual(pmC)
 end
 

@@ -4,7 +4,7 @@
 ###############################################################################
 ###############################################################################
 
-rays(as::Type{RayVector{T}}, C::Cone) where T = VectorIterator{as}(C.pm_cone.RAYS)
+rays(as::Type{RayVector{T}}, C::Cone) where T = VectorIterator{as}(pm_object(C).RAYS)
 
 rays(::Type{RayVector}, C::Cone) = rays(RayVector{Polymake.Rational}, C)
 
@@ -56,8 +56,8 @@ function faces(as::Type{T}, C::Cone, face_dim::Int) where T<:Cone
    if n < 1
       return nothing
    end
-   cfaces = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(C.pm_cone, n))
-   return PolyhedronOrConeIterator{as}(C.pm_cone.RAYS,cfaces, C.pm_cone.LINEALITY_SPACE)
+   cfaces = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(pm_object(C), n))
+   return PolyhedronOrConeIterator{as}(pm_object(C).RAYS,cfaces, pm_object(C).LINEALITY_SPACE)
 end
 
 faces(C::Cone, face_dim::Int) = faces(Cone, C, face_dim)
@@ -86,7 +86,7 @@ julia> nfacets(C)
 4
 ```
 """
-nfacets(C::Cone) = pm_cone(C).N_FACETS
+nfacets(C::Cone) = pm_object(C).N_FACETS
 
 
 @doc Markdown.doc"""
@@ -105,7 +105,7 @@ julia> nrays(PO)
 2
 ```
 """
-nrays(C::Cone) = pm_cone(C).N_RAYS
+nrays(C::Cone) = pm_object(C).N_RAYS
 
 @doc Markdown.doc"""
     dim(C::Cone)
@@ -121,7 +121,7 @@ julia> dim(C)
 2
 ```
 """
-dim(C::Cone) = pm_cone(C).CONE_DIM
+dim(C::Cone) = pm_object(C).CONE_DIM
 
 @doc Markdown.doc"""
     ambient_dim(C::Cone)
@@ -137,7 +137,7 @@ julia> ambient_dim(C)
 3
 ```
 """
-ambient_dim(C::Cone) = pm_cone(C).CONE_AMBIENT_DIM
+ambient_dim(C::Cone) = pm_object(C).CONE_AMBIENT_DIM
 
 @doc Markdown.doc"""
     codim(C::Cone)
@@ -183,7 +183,7 @@ julia> f_vector(square)
 ```
 """
 function f_vector(C::Cone)
-    pmc = pm_cone(C)
+    pmc = pm_object(C)
     ldim = pmc.LINEALITY_DIM
     return vcat(fill(0,ldim),pmc.F_VECTOR)
 end
@@ -217,7 +217,7 @@ julia> lineality_dim(C1)
 1
 ```
 """
-lineality_dim(C::Cone) = pm_cone(C).LINEALITY_DIM
+lineality_dim(C::Cone) = pm_object(C).LINEALITY_DIM
 
 
 
@@ -243,7 +243,7 @@ julia> ispointed(C)
 true
 ```
 """
-ispointed(C::Cone) = pm_cone(C).POINTED
+ispointed(C::Cone) = pm_object(C).POINTED
 
 @doc Markdown.doc"""
     isfulldimensional(C::Cone)
@@ -259,7 +259,7 @@ julia> isfulldimensional(C)
 false
 ```
 """
-isfulldimensional(C::Cone) = pm_cone(C).FULL_DIM
+isfulldimensional(C::Cone) = pm_object(C).FULL_DIM
 
 ###############################################################################
 ## Points properties
@@ -292,7 +292,7 @@ julia> f = facets(Halfspace, c)
 1: -x₂ + x₃ ≦ 0
 ```
 """
-facets(as::Type{T}, C::Cone) where T<:Union{Halfspace, Cone} = HalfspaceIterator{as}(-pm_cone(C).FACETS)
+facets(as::Type{T}, C::Cone) where T<:Union{Halfspace, Cone} = HalfspaceIterator{as}(-pm_object(C).FACETS)
 
 @doc Markdown.doc"""
     facets(as::Type{T} = Halfspace, C::Cone)
@@ -338,7 +338,7 @@ julia> lineality_space(UH)
  [1, 0]
 ```
 """
-lineality_space(C::Cone) = VectorIterator{RayVector{Polymake.Rational}}(pm_cone(C).LINEALITY_SPACE)
+lineality_space(C::Cone) = VectorIterator{RayVector{Polymake.Rational}}(pm_object(C).LINEALITY_SPACE)
 
 @doc Markdown.doc"""
     linear_span(C::Cone)
@@ -358,7 +358,7 @@ julia> linear_span(c)
 
 ```
 """
-linear_span(C::Cone) = HalfspaceIterator{Hyperplane}(C.pm_cone.LINEAR_SPAN)
+linear_span(C::Cone) = HalfspaceIterator{Hyperplane}(pm_object(C).LINEAR_SPAN)
 
 @doc Markdown.doc"""
     hilbert_basis(C::Cone)
@@ -380,7 +380,7 @@ pm::Matrix<pm::Integer>
 """
 function hilbert_basis(C::Cone)
    if ispointed(C)
-      return VectorIterator{PointVector{Polymake.Integer}}(pm_cone(C).HILBERT_BASIS_GENERATORS[1])
+      return VectorIterator{PointVector{Polymake.Integer}}(pm_object(C).HILBERT_BASIS_GENERATORS[1])
    else
       throw(ArgumentError("Cone not pointed."))
    end

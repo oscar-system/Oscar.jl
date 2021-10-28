@@ -27,7 +27,7 @@ julia> dim(C01)
 ```
 """
 function intersect(C0::Cone, C1::Cone)
-   return Cone(Polymake.polytope.intersection(pm_cone(C0), pm_cone(C1)))
+   return Cone(Polymake.polytope.intersection(pm_object(C0), pm_object(C1)))
 end
 
 
@@ -52,5 +52,5 @@ julia> rays(Cv)
 ```
 """
 function dual_cone(C::Cone)
-    return Cone(Polymake.polytope.polarize(pm_cone(C)))
+    return Cone(Polymake.polytope.polarize(pm_object(C)))
 end

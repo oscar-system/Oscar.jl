@@ -88,7 +88,7 @@ function PolyhedralFan(itr)
    cones = collect(Cone, itr)
    BigObjectArray = Polymake.Array{Polymake.BigObject}(length(cones))
    for i in 1:length(cones)
-      BigObjectArray[i] = pm_cone(cones[i])
+      BigObjectArray[i] = pm_object(cones[i])
    end
    PolyhedralFan(Polymake.fan.check_fan_objects(BigObjectArray))
 end
@@ -105,7 +105,7 @@ end
 
 
 function PolyhedralFan(C::Cone)
-    pmfan = Polymake.fan.check_fan_objects(pm_cone(C))
+    pmfan = Polymake.fan.check_fan_objects(pm_object(C))
     return PolyhedralFan(pmfan)
 end
 
