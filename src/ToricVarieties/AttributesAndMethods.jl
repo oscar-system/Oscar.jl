@@ -583,9 +583,6 @@ function isprojective_space(v::AbstractNormalToricVariety)
             return false
         end
     end
-    if irrelevant_ideal(v) != ideal(gens(cox_ring(v)))
-        return false
-    end
-    return true
+    return irrelevant_ideal(v) == ideal(gens(cox_ring(v)))
 end
 export isprojective_space
