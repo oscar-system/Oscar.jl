@@ -1,4 +1,4 @@
-export MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal
+export MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal, MPolyPowersOfElement
 
 export ambient_ring, point_coordinates
 
@@ -150,10 +150,62 @@ function Base.in(
     f::RingElemType, 
     S::MPolyComplementOfKPointIdeal{BaseRingType, BaseRingElemType, RingType, RingElemType}
   ) where {BaseRingType, BaseRingElemType, RingType, RingElemType}
-  parent(f) == ambient_ring(S) || error("the given element does not belong to the same ring as the multiplicative set")
+  parent(f) == ambient_ring(S) || return false
   return !(evaluate(f, point_coordinates(S)) == zero(ambient_ring(S)))
 end
 
+
+########################################################################
+# Powers of elements                                                   #
+########################################################################
+
+mutable struct MPolyPowersOfElement{
+    BaseRingType,
+    BaseRingElemType, 
+    RingType,
+    RingElemType
+  } <: AbsMultSet{
+    RingType, 
+    RingElemType
+  }
+
+  R::RingType # the parent ring
+  a::Vector{RingElemType} # the list of elements whose powers belong to this set
+
+  function MPolyPowersOfElement(R::RingType, a::Vector{RingElemType}) where {RingType<:MPolyRing, RingElemType<:MPolyElem}
+    for f in a 
+      parent(f) == R || error("element does not belong to the given ring")
+    end
+    k = coefficient_ring(R)
+    return new{typeof(k), elem_type(k), RingType, RingElemType}(R, a)
+  end
+end
+
+### required getter functions
+ambient_ring(
+    S::MPolyPowersOfElement{BaseRingType, BaseRingElemType, RingType, RingElemType}
+  ) where {BaseRingType, BaseRingElemType, RingType, RingElemType} = S.R
+
+### additional functionality
+denominators(S::MPolyPowersOfElement{BaseRingType, BaseRingElemType, RingType, RingElemType}
+  ) where {BaseRingType, BaseRingElemType, RingType, RingElemType} = S.a
+
+### required functionality
+function Base.in(
+    f::RingElemType, 
+    S::MPolyPowersOfElement{BaseRingType, BaseRingElemType, RingType, RingElemType}
+  ) where {BaseRingType, BaseRingElemType, RingType, RingElemType}
+  parent(f) == ambient_ring(S) || return false
+
+  R = ambient_ring(S)
+  d = prod(denominators(S))
+  g = gcd(f, d)
+  while !(g==one(R))
+    f = divexact(f, g)
+    g = gcd(f, d)
+  end
+  return f == one(R)
+end
 
 ########################################################################
 # Localizations of polynomial rings over admissible fields             #
@@ -227,6 +279,20 @@ localize_at(
 
 localize_at(
         S::MPolyComplementOfKPointIdeal{
+	    BaseRingType,
+    	    BaseRingElemType, 
+    	    RingType, 
+    	    RingElemType
+        }
+    ) where {
+	BaseRingType,
+	BaseRingElemType, 
+	RingType, 
+	RingElemType
+    } = MPolyLocalizedRing(ambient_ring(S), S)
+
+localize_at(
+        S::MPolyPowersOfElement{
 	    BaseRingType,
     	    BaseRingElemType, 
     	    RingType, 
@@ -583,6 +649,12 @@ function Base.in(
   return base_ring(I)(f) in I
 end
 
+### Default constructors 
+# The ordering is determined from the type of the multiplicative set
+LocalizedBiPolyArray(I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}}) where {BRT, BRET, RT, RET} = LocalizedBiPolyArray(base_ring(I), gens(I), ordering=:negdegrevlex, shift=point_coordinates(inverted_set(base_ring(I)))) 
+
+LocalizedBiPolyArray(I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}) where {BRT, BRET, RT, RET} = LocalizedBiPolyArray(base_ring(I), gens(I), ordering=:degrevlex) 
+
 
 ########################################################################
 # Groebner and standard bases                                          #
@@ -624,7 +696,7 @@ function groebner_assure(
   W = base_ring(I)
   R = original_ring(W)
   S = inverted_set(W)
-  lbpa = LocalizedBiPolyArray(W, gens(I), ordering=default_ordering(I))
+  lbpa = LocalizedBiPolyArray(I)
   D[default_ordering(I)] = std(lbpa)
   return
 end
@@ -669,6 +741,35 @@ function groebner_assure(
   return
 end
   
+### special routines for localizations at powers of elements
+function groebner_basis(
+    I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}; 
+    ordering::Symbol=:degrevlex
+  ) where {BRT, BRET, RT, RET}
+  D = groebner_bases(I)
+  # check whether a standard basis has already been computed for this ordering
+  if haskey(D, ordering)
+    return D[ordering]
+  end
+  # if not, set up a LocalizedBiPolyArray
+  W = base_ring(I)
+  R = original_ring(W)
+  S = inverted_set(W)::MPolyPowersOfElement{BRT, BRET, RT, RET}
+  lbpa = LocalizedBiPolyArray(W, gens(I), ordering=ordering)
+  a = denominators(S)
+  sing_ring = singular_ring(lbpa)
+  sing_a = [sing_ring(x) for x in a]
+  sing_ideal = singular_gens(lbpa)
+  for h in sing_a
+    sing_ideal = Singular.saturation(sing_ideal, Singular.Ideal(sing_ring, [h]))[1]
+  end
+  sing_ideal = Singular.std(sing_ideal)
+  lbpa = LocalizedBiPolyArray(W, sing_ideal, ordering=ordering)
+  return lbpa
+end
+
+
+### reduction to normal form with respect to a list of elements
 function Base.reduce(
     f::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}, 
     lbpa::LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}

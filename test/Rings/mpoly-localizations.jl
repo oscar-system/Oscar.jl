@@ -77,5 +77,23 @@
   K = ideal(V, [x, y])
   lbpa = groebner_basis(K)
   reduce(V(x), lbpa)
+end
 
+@testset "mpoly-localizations PowersOfElements" begin
+  R, vars = QQ["x","y"]
+  x = vars[1]
+  y = vars[2]
+  f = x^2 + y^4-120
+  S = MPolyPowersOfElement(R, [x, y, f])
+  @test x^3*y in S
+  @test !(x^19*(x+y) in S)
+  W = localize_at(S)
+  @test x*y^2 in S
+  @test !(x*(x+y) in S)
+  @test W(1//x) == 1//W(x)
+  I = ideal(W, x*y*(x+y))
+  @test x+y in I
+  @test !(x+2*y in I)
+  J = I + ideal(W, f)
+  @test W(1) in J
 end
