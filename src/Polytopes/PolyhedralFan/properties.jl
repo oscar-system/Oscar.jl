@@ -453,10 +453,8 @@ function starsubdivision(PF::PolyhedralFan, n::Int)
     
     # add this ray to form list of the new rays
     newrays = zeros(Int64,length(rays)+1,length(rays[1]))
-    for i in 1 : length(rays)
-        for j in 1:length(rays[i])
-            newrays[i,j] = rays[i][j]
-        end
+    for i in 1:length(rays), j in 1:length(rays[i])
+        newrays[i,j] = rays[i][j]
     end
     for j in 1:length(newray)
         newrays[length(rays)+1,j] = newray[j]
