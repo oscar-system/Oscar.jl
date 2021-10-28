@@ -59,7 +59,7 @@ function DivisorOfCharacter(v::AbstractNormalToricVariety, character::Vector{Int
         throw(ArgumentError("Character must consist of " * string(rank(character_lattice(v))) * " integers!"))
     end
     f = map_from_character_to_principal_divisors(v)
-    char = sum([character[i] * gens(domain(f))[i] for i in 1:length(gens(domain(f)))])
+    char = sum(character .* gens(domain(f)))
     coeffs = [Int(x) for x in transpose(f(char).coeff)][:,1]
     return ToricDivisor(v, coeffs)
 end
