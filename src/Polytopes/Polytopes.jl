@@ -126,3 +126,9 @@ include("Graphs.jl")
 include("Serialization.jl")
 include("Visualization.jl")
 include("solving_integrally.jl")
+
+# Some temporary aliases to avoid breaking all current PRs
+pm_cone(C::Cone) = pm_object(C)
+pm_fan(PF::PolyhedralFan) = pm_object(PF)
+pm_subdivision(SOP::SubdivisionOfPoints) = pm_object(SOP)
+pm_polytope(P::Polyhedron) = pm_object(P)
