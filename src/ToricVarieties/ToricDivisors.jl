@@ -56,7 +56,7 @@ A torus invariant divisor on a normal toric variety
 """
 function DivisorOfCharacter(v::AbstractNormalToricVariety, character::Vector{Int})
     if length(character) != rank(character_lattice(v))
-        throw(ArgumentError("Character must consist of " * string(rank(character_lattice(v))) * " integers!"))
+        throw(ArgumentError("Character must consist of $(rank(character_lattice(v))) integers!"))
     end
     f = map_from_character_to_principal_divisors(v)
     char = sum(character .* gens(domain(f)))
