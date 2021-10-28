@@ -32,7 +32,7 @@ end
 
 
 @doc Markdown.doc"""
-    dual_cone(C::Cone)
+    polarize(C::Cone)
 
 Return the dual cone of `C` consisting of all those linear functions that
 evaluate positively on all of `C`.
@@ -42,7 +42,7 @@ evaluate positively on all of `C`.
 julia> C = positive_hull([1 0; -1 2])
 A polyhedral cone in ambient dimension 2
 
-julia> Cv = dual_cone(C)
+julia> Cv = polarize(C)
 A polyhedral cone in ambient dimension 2
 
 julia> rays(Cv)
@@ -51,6 +51,6 @@ julia> rays(Cv)
  [0, 1]
 ```
 """
-function dual_cone(C::Cone)
+function polarize(C::Cone)
     return Cone(Polymake.polytope.polarize(pm_object(C)))
 end
