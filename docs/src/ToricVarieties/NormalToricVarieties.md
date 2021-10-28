@@ -24,7 +24,7 @@ the affine and non-affine case:
 
 ```@docs
 AffineNormalToricVariety(C::Cone)
-CyclicQuotientSingularity(n::Int64, q::Int64)
+CyclicQuotientSingularity
 NormalToricVariety(C::Cone)
 NormalToricVariety(PF::PolyhedralFan)
 NormalToricVariety(P::Polyhedron)
@@ -129,7 +129,7 @@ For the notation we rely on [Chr91](@cite) and [Ste91](@cite).
 
 ```@docs
 continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity)
-continued_fraction_hirzebruch_jung_to_rational(v::Vector{Int64})
+continued_fraction_hirzebruch_jung_to_rational(v::Vector{fmpz})
 dual_continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity)
-rational_to_continued_fraction_hirzebruch_jung(r::Rational)
+rational_to_continued_fraction_hirzebruch_jung(r::fmpq)
 ```
