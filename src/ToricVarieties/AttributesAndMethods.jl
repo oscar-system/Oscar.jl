@@ -159,8 +159,7 @@ function irrelevant_ideal(v::NormalToricVariety)
     n_ray = size(pm_ntv(v).RAYS, 1)
     maximal_cones = []
     for c in max_cones
-        buffer = Vector{Int}(undef, n_ray)
-        buffer = fill(0, n_ray)
+        buffer = zeros(Int, n_ray)
         for k in c
             buffer[k] = 1
         end
