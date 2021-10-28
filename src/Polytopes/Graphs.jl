@@ -43,6 +43,11 @@ export
 struct Graph{T <: Union{Directed, Undirected}}
     pm_graph::Polymake.Graph{T}
 end
+function pm_object(G::Graph{T}) where {T <: Union{Directed, Undirected}}
+    return G.pm_graph
+end
+
+
 
 @doc Markdown.doc"""
     Graph{T}(nverts::Int64) where {T <: Union{Directed, Undirected}}
@@ -84,7 +89,7 @@ julia> ne(g)
 ```
 """
 function add_edge!(g::Graph{T}, source::Int64, target::Int64) where {T <: Union{Directed, Undirected}}
-    Polymake._add_edge(g.pm_graph, source-1, target-1)
+    Polymake._add_edge(pm_object(g), source-1, target-1)
 end
 
 
@@ -109,7 +114,7 @@ julia> ne(g)
 ```
 """
 function rem_edge!(g::Graph{T}, s::Int64, t::Int64) where {T <: Union{Directed, Undirected}}
-    pmg = g.pm_graph
+    pmg = pm_object(g)
     return Polymake._rem_edge(pmg, s-1, t-1)
 end
 
@@ -134,7 +139,7 @@ julia> nv(g)
 ```
 """
 function add_vertex!(g::Graph{T}) where {T <: Union{Directed, Undirected}}
-    pmg = g.pm_graph
+    pmg = pm_object(g)
     return Polymake._add_vertex(pmg) + 1
 end
 
@@ -158,7 +163,7 @@ julia> nv(g)
 ```
 """
 function rem_vertex!(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
-    pmg = g.pm_graph
+    pmg = pm_object(g)
     result = Polymake._rem_vertex(pmg, v-1)
     Polymake._squeeze(pmg)
     return result
@@ -313,7 +318,7 @@ julia> nv(g)
 ```
 """
 function nv(g::Graph{T}) where {T <: Union{Directed, Undirected}}
-    return Polymake.nv(g.pm_graph)
+    return Polymake.nv(pm_object(g))
 end
 
 @doc Markdown.doc"""
@@ -333,7 +338,7 @@ julia> ne(g)
 ```
 """
 function ne(g::Graph{T}) where {T <: Union{Directed, Undirected}}
-    return Polymake.ne(g.pm_graph)
+    return Polymake.ne(pm_object(g))
 end
 
 
@@ -357,7 +362,7 @@ julia> collect(edges(g))
 ```
 """
 function edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
-    return EdgeIterator(Polymake.edgeiterator(g.pm_graph), ne(g))
+    return EdgeIterator(Polymake.edgeiterator(pm_object(g)), ne(g))
 end
 
 
@@ -378,7 +383,7 @@ true
 ```
 """
 function has_edge(g::Graph{T}, source::Int64, target::Int64) where {T <: Union{Directed, Undirected}}
-    pmg = g.pm_graph
+    pmg = pm_object(g)
     return Polymake._has_edge(pmg, source-1, target-1)
 end
 function has_edge(g::Graph{T}, e::Edge) where {T <: Union{Directed, Undirected}}
@@ -406,7 +411,7 @@ false
 ```
 """
 function has_vertex(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
-    pmg = g.pm_graph
+    pmg = pm_object(g)
     return Polymake._has_vertex(pmg, v-1)
 end
 
@@ -431,7 +436,7 @@ julia> neighbors(g, 3)
 ```
 """
 function neighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
-    pmg = g.pm_graph;
+    pmg = pm_object(g);
     result = Polymake._outneighbors(pmg, v-1)
     return [x+1 for x in result]
 end
@@ -460,7 +465,7 @@ Int64[]
 ```
 """
 function inneighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
-    pmg = g.pm_graph;
+    pmg = pm_object(g);
     result = Polymake._inneighbors(pmg, v-1)
     return [x+1 for x in result]
 end
@@ -489,7 +494,7 @@ Int64[]
 ```
 """
 function outneighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
-    pmg = g.pm_graph;
+    pmg = pm_object(g);
     result = Polymake._outneighbors(pmg, v-1)
     return [x+1 for x in result]
 end
@@ -520,7 +525,7 @@ julia> all_neighbors(g, 4)
 ```
 """
 function all_neighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
-    pmg = g.pm_graph;
+    pmg = pm_object(g);
     result = union(Polymake._inneighbors(pmg, v-1), Polymake._outneighbors(pmg, v-1))
     return [x+1 for x in result]
 end
@@ -543,7 +548,7 @@ julia> Graphs.automorphisms(g)
 ```
 """
 function automorphisms(g::Graph{T}) where {T <: Union{Directed, Undirected}}
-    pmg = g.pm_graph;
+    pmg = pm_object(g);
     result = Polymake.graph.automorphisms(pmg)
     return [[x+1 for x in a] for a in result]
 end
@@ -669,7 +674,7 @@ end
 Save a graph to a file in JSON format.
 """
 function save_graph(g::Graph{T}, filename::String) where {T <: Union{Directed, Undirected}}
-    smallobject = g.pm_graph
+    smallobject = pm_object(g)
     Polymake.save(smallobject, filename)
 end
 

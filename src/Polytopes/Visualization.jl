@@ -37,6 +37,6 @@ end
 Visualize a graph.
 """
 function visualize(G::Graphs.Graph{T}) where {T <: Union{Polymake.Directed, Polymake.Undirected}}
-    BigGraph = Polymake.graph.Graph(ADJACENCY=G.pm_graph)
+    BigGraph = Polymake.graph.Graph(ADJACENCY=pm_object(G))
     Polymake.visual(BigGraph)
 end
