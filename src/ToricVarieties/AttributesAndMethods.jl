@@ -537,7 +537,6 @@ A normal toric variety corresponding to a polyhedral fan in ambient dimension 4
 function Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety)
     return NormalToricVariety(fan_of_variety(v)*fan_of_variety(w))
 end
-export *
 
 
 ############################
