@@ -77,18 +77,18 @@ function PolyhedralFan(Rays::Union{Oscar.MatElem,AbstractMatrix}, LS::Union{Osca
 end
 
 """
-    pm_fan(PF::PolyhedralFan)
+    pm_object(PF::PolyhedralFan)
 
 Get the underlying polymake object, which can be used via Polymake.jl.
 """
-pm_fan(PF::PolyhedralFan) = PF.pm_fan
+pm_object(PF::PolyhedralFan) = PF.pm_fan
 
 
 function PolyhedralFan(itr)
    cones = collect(Cone, itr)
    BigObjectArray = Polymake.Array{Polymake.BigObject}(length(cones))
    for i in 1:length(cones)
-      BigObjectArray[i] = pm_cone(cones[i])
+      BigObjectArray[i] = pm_object(cones[i])
    end
    PolyhedralFan(Polymake.fan.check_fan_objects(BigObjectArray))
 end
@@ -105,7 +105,7 @@ end
 
 
 function PolyhedralFan(C::Cone)
-    pmfan = Polymake.fan.check_fan_objects(pm_cone(C))
+    pmfan = Polymake.fan.check_fan_objects(pm_object(C))
     return PolyhedralFan(pmfan)
 end
 

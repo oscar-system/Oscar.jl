@@ -29,7 +29,7 @@ julia> dim(C)
 ```
 """
 function secondary_cone(SOP::SubdivisionOfPoints)
-   Cone(Polymake.fan.secondary_cone(pm_subdivision(SOP)))
+   Cone(Polymake.fan.secondary_cone(pm_object(SOP)))
 end
 
 

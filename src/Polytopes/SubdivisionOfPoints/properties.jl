@@ -73,7 +73,7 @@ function Base.iterate(iter::MaximalCellIterator, index = 1)
     if index > n_max_cells
         return nothing
     end
-    current_cell = Polymake.row(pm_subdivision(iter.SOP).MAXIMAL_CELLS, index)
+    current_cell = Polymake.row(pm_object(iter.SOP).MAXIMAL_CELLS, index)
     return (current_cell, index + 1)
 end
 Base.length(iter::MaximalCellIterator) = nmaximal_cells(iter.SOP)
@@ -103,7 +103,7 @@ julia> nmaximal_cells(SOP)
 1
 ```
 """
-nmaximal_cells(SOP::SubdivisionOfPoints) = pm_subdivision(SOP).N_MAXIMAL_CELLS
+nmaximal_cells(SOP::SubdivisionOfPoints) = pm_object(SOP).N_MAXIMAL_CELLS
 
 """
     ambient_dim(SOP::SubdivisionOfPoints)
@@ -122,7 +122,7 @@ julia> ambient_dim(SOP)
 3
 ```
 """
-ambient_dim(SOP::SubdivisionOfPoints) = pm_subdivision(SOP).VECTOR_AMBIENT_DIM - 1
+ambient_dim(SOP::SubdivisionOfPoints) = pm_object(SOP).VECTOR_AMBIENT_DIM - 1
 
 
 @doc Markdown.doc"""
@@ -140,7 +140,7 @@ julia> npoints(SOP)
 6
 ```
 """
-npoints(SOP::SubdivisionOfPoints) = pm_subdivision(SOP).N_POINTS
+npoints(SOP::SubdivisionOfPoints) = pm_object(SOP).N_POINTS
 
 
 
@@ -167,7 +167,7 @@ pm::Vector<long>
 ```
 """
 function min_weights(SOP::SubdivisionOfPoints)
-   pm_subdivision(SOP).MIN_WEIGHTS
+   pm_object(SOP).MIN_WEIGHTS
 end
 
 
@@ -201,7 +201,7 @@ julia> maximal_cells_as_incidence_matrix(SOP)
 ```
 """
 function maximal_cells_as_incidence_matrix(SOP::SubdivisionOfPoints)
-   IncidenceMatrix(pm_subdivision(SOP).MAXIMAL_CELLS)
+   IncidenceMatrix(pm_object(SOP).MAXIMAL_CELLS)
 end
 
 ###############################################################################
@@ -232,4 +232,4 @@ julia> isregular(SOP)
 true
 ```
 """
-isregular(SOP::SubdivisionOfPoints) = pm_subdivision(SOP).REGULAR
+isregular(SOP::SubdivisionOfPoints) = pm_object(SOP).REGULAR

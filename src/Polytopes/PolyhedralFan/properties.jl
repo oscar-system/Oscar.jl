@@ -27,7 +27,7 @@ julia> rays(NF)
  [0, 0, -1]
 ```
 """
-rays(PF::PolyhedralFan) = VectorIterator{RayVector{Polymake.Rational}}(pm_fan(PF).RAYS)
+rays(PF::PolyhedralFan) = VectorIterator{RayVector{Polymake.Rational}}(pm_object(PF).RAYS)
 
 @doc Markdown.doc"""
     maximal_cones(PF::PolyhedralFan)
@@ -71,7 +71,7 @@ function Base.iterate(iter::MaximalConeIterator, index = 1)
     if index > nmaximal_cones(iter.PF)
         return nothing
     end
-    current_cone = Cone(Polymake.fan.cone(pm_fan(iter.PF), index - 1))
+    current_cone = Cone(Polymake.fan.cone(pm_object(iter.PF), index - 1))
     return (current_cone, index + 1)
 end
 Base.length(iter::MaximalConeIterator) = nmaximal_cones(iter.PF)
@@ -81,8 +81,8 @@ Base.length(iter::MaximalConeIterator) = nmaximal_cones(iter.PF)
 #     if (cone_dim < 0)
 #         return nothing
 #     end
-#     rcones = Polymake.fan.cones_of_dim(PF.pm_fan,cone_dim-length(lineality_space(PF)))
-#     return PolyhedronOrConeIterator{rtype}(PF.pm_fan.RAYS,rcones, PF.pm_fan.LINEALITY_SPACE)
+#     rcones = Polymake.fan.cones_of_dim(pm_object(PF),cone_dim-length(lineality_space(PF)))
+#     return PolyhedronOrConeIterator{rtype}(pm_object(PF).RAYS,rcones, pm_object(PF).LINEALITY_SPACE)
 # end
 
 ###############################################################################
@@ -110,7 +110,7 @@ julia> dim(PF)
 2
 ```
 """
-dim(PF::PolyhedralFan) = pm_fan(PF).FAN_DIM
+dim(PF::PolyhedralFan) = pm_object(PF).FAN_DIM
 
 @doc Markdown.doc"""
     nmaximal_cones(PF::PolyhedralFan)
@@ -127,7 +127,7 @@ julia> nmaximal_cones(PF)
 2
 ```
 """
-nmaximal_cones(PF::PolyhedralFan) = pm_fan(PF).N_MAXIMAL_CONES
+nmaximal_cones(PF::PolyhedralFan) = pm_object(PF).N_MAXIMAL_CONES
 
 @doc Markdown.doc"""
     ambient_dim(PF::PolyhedralFan)
@@ -145,7 +145,7 @@ julia> ambient_dim(normal_fan(cube(4)))
 4
 ```
 """
-ambient_dim(PF::PolyhedralFan) = pm_fan(PF).FAN_AMBIENT_DIM
+ambient_dim(PF::PolyhedralFan) = pm_object(PF).FAN_AMBIENT_DIM
 
 @doc Markdown.doc"""
     nrays(PF::PolyhedralFan)
@@ -159,7 +159,7 @@ julia> nrays(face_fan(cube(3)))
 8
 ```
 """
-nrays(PF::PolyhedralFan) = pm_fan(PF).N_RAYS
+nrays(PF::PolyhedralFan) = pm_object(PF).N_RAYS
 
 
 @doc Markdown.doc"""
@@ -192,7 +192,7 @@ julia> f_vector(nfc)
 ```
 """
 function f_vector(PF::PolyhedralFan)
-    pmf = pm_fan(PF)
+    pmf = pm_object(PF)
     ldim = pmf.LINEALITY_DIM
     return vcat(fill(0,ldim),pmf.F_VECTOR)
 end
@@ -223,7 +223,7 @@ julia> lineality_dim(nf)
 1
 ```
 """
-lineality_dim(PF::PolyhedralFan) = pm_fan(PF).LINEALITY_DIM
+lineality_dim(PF::PolyhedralFan) = pm_object(PF).LINEALITY_DIM
 
 ###############################################################################
 ## Points properties
@@ -248,7 +248,7 @@ julia> lineality_space(PF)
  [1, 0]
 ```
 """
-lineality_space(PF::PolyhedralFan) = VectorIterator{RayVector{Polymake.Rational}}(pm_fan(PF).LINEALITY_SPACE)
+lineality_space(PF::PolyhedralFan) = VectorIterator{RayVector{Polymake.Rational}}(pm_object(PF).LINEALITY_SPACE)
 
 @doc Markdown.doc"""
     maximal_cones_as_incidence_matrix(PF::PolyhedralFan)
@@ -281,7 +281,7 @@ julia> maximal_cones_as_incidence_matrix(PF)
 ```
 """
 function maximal_cones_as_incidence_matrix(PF::PolyhedralFan)
-   IncidenceMatrix(pm_fan(PF).MAXIMAL_CONES)
+   IncidenceMatrix(pm_object(PF).MAXIMAL_CONES)
 end
 
 ###############################################################################
@@ -311,7 +311,7 @@ julia> lineality_dim(nf)
 1
 ```
 """
-ispointed(PF::PolyhedralFan) = pm_fan(PF).POINTED
+ispointed(PF::PolyhedralFan) = pm_object(PF).POINTED
 
 
 @doc Markdown.doc"""
@@ -329,7 +329,7 @@ julia> issmooth(PF)
 false
 ```
 """
-issmooth(PF::PolyhedralFan) = pm_fan(PF).SMOOTH_FAN
+issmooth(PF::PolyhedralFan) = pm_object(PF).SMOOTH_FAN
 
 @doc Markdown.doc"""
     isregular(PF::PolyhedralFan)
@@ -345,7 +345,7 @@ julia> isregular(PF)
 false
 ```
 """
-isregular(PF::PolyhedralFan) = pm_fan(PF).REGULAR
+isregular(PF::PolyhedralFan) = pm_object(PF).REGULAR
 
 @doc Markdown.doc"""
     iscomplete(PF::PolyhedralFan)
@@ -360,4 +360,4 @@ julia> iscomplete(normal_fan(cube(3)))
 true
 ```
 """
-iscomplete(PF::PolyhedralFan) = pm_fan(PF).COMPLETE
+iscomplete(PF::PolyhedralFan) = pm_object(PF).COMPLETE

@@ -45,11 +45,11 @@ function Polyhedron(I::Union{HalfspaceIterator, Tuple{<:Union{Oscar.MatElem, Abs
 end
 
 """
-    pm_polytope(P::Polyhedron)
+    pm_object(P::Polyhedron)
 
 Get the underlying polymake `Polytope`.
 """
-pm_polytope(P::Polyhedron) = P.pm_polytope
+pm_object(P::Polyhedron) = P.pm_polytope
 
 function ==(P0::Polyhedron, P1::Polyhedron)
     # TODO: Remove the following 4 lines, see #758
@@ -57,7 +57,7 @@ function ==(P0::Polyhedron, P1::Polyhedron)
     vertices(P0)
     facets(P1)
     vertices(P1)
-    Polymake.polytope.equal_polyhedra(pm_polytope(P0), pm_polytope(P1))
+    Polymake.polytope.equal_polyhedra(pm_object(P0), pm_object(P1))
 end
 
 
@@ -154,4 +154,4 @@ function Base.show(io::IO, P::Polyhedron)
     end
 end
 
-Polymake.visual(P::Polyhedron; opts...) = Polymake.visual(pm_polytope(P); opts...)
+Polymake.visual(P::Polyhedron; opts...) = Polymake.visual(pm_object(P); opts...)
