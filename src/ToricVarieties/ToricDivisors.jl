@@ -270,7 +270,7 @@ true
 """
 function isprime_divisor(td::ToricDivisor)
     pm_divisor = td.polymake_divisor
-    coeffs = [Int(c) for c in Oscar.Polymake.common.primitive(pm_divisor.COEFFICIENTS)]
+    coeffs = [Int(c) for c in Polymake.common.primitive(pm_divisor.COEFFICIENTS)]
     if sum(coeffs) != 1
         return false
     end
@@ -351,7 +351,7 @@ julia> coefficients(D)
 ```
 """
 function coefficients(td::ToricDivisor)
-    return Vector{Int}(Oscar.Polymake.common.primitive(pm_tdivisor(td).COEFFICIENTS))
+    return Vector{Int}(Polymake.common.primitive(pm_tdivisor(td).COEFFICIENTS))
 end
 export coefficients
 

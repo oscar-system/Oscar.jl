@@ -167,10 +167,10 @@ function irrelevant_ideal(v::NormalToricVariety)
     end
     # compute generators
     indeterminates = list_of_variables_of_cox_ring(v)
-    gens = [];
-    for i in 1 : length(maximal_cones)
+    gens = []
+    for i in 1:length(maximal_cones)
         monom = 1
-        for j in 1 : length(maximal_cones[i])
+        for j in 1:length(maximal_cones[i])
             monom = monom * indeterminates[j]^(1 - maximal_cones[i][j])
         end
         push!(gens, monom)
@@ -247,7 +247,7 @@ Abelian group with structure: Z^3
 ```
 """
 function map_from_character_to_principal_divisors(v::AbstractNormalToricVariety)
-    matrix = Matrix{Int}(Oscar.Polymake.common.primitive(pm_ntv(v).RAYS))
+    matrix = Matrix{Int}(Polymake.common.primitive(pm_ntv(v).RAYS))
     abstract_matrix = AbstractAlgebra.matrix(ZZ, size(matrix,2), size(matrix,1), vec(matrix))
     return hom(character_lattice(v), torusinvariant_divisor_group(v), abstract_matrix)
 end
@@ -293,7 +293,7 @@ A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
 julia> class_group(p2)
 (General) abelian group with relation matrix
-[1 0 -1; 0 1 -1]
+[1 0 -1 0 1 -1]
 ```
 """
 function class_group(v::AbstractNormalToricVariety)
@@ -317,7 +317,7 @@ Abelian group with structure: Z^3
 Codomain:
 =========
 (General) abelian group with relation matrix
-[0 0 0; 0 0 0; 0 0 0; 1 0 -1; 0 1 -1]
+[0 0 0 0 0 0 0 0 0 1 0 -1 0 1 -1]
 with structure of Abelian group with structure: Z
 ```
 """
@@ -443,7 +443,7 @@ Computes an affine open cover of the affine normal toric variety `v`, i.e. retur
 
 # Examples
 ```jdoctest
-julia> C = Oscar.positive_hull([1 0; 0 1])
+julia> C = positive_hull([1 0 0 1])
 A polyhedral cone in ambient dimension 2
 
 julia> antv = AffineNormalToricVariety(C)
@@ -475,7 +475,7 @@ export affine_open_covering
 # Take the cyclic quotient singularity corresponding to the pair of integers
 # `(2,5)`.
 # ```jldoctest
-# julia> C = Oscar.positive_hull([-2 5; 1 0])
+# julia> C = positive_hull([-2 5 1 0])
 # A polyhedral cone in ambient dimension 2
 # 
 # julia> antv = AffineNormalToricVariety(C)
