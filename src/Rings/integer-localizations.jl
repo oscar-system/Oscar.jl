@@ -41,10 +41,12 @@ end
 
 ### additional constructors
 FmpzPowersOfElement(d::fmpz) = FmpzPowersOfElement([d])
-FmpzPowersOfElement(d::Int) = FmpzPowersOfElement(ZZ(d))
+FmpzPowersOfElement(d::Oscar.IntegerUnion) = FmpzPowersOfElement(ZZ(d))
+FmpzPowersOfElement(d::Vector{T}) where {T<:Oscar.IntegerUnion} = FmpzPowersOfElement(ZZ.(d))
 
 ### additional functionality
 denominators(S::FmpzPowersOfElement) = S.d::Vector{fmpz}
+Base.in(a::Oscar.IntegerUnion, S::FmpzPowersOfElement) = (ZZ(a) in S)
 
 
 #################################################################################
@@ -75,7 +77,10 @@ function Base.in(b::fmpz, S::FmpzComplementOfPrimeIdeal)
 end
 
 ### additional constructors
-FmpzComplementOfPrimeIdeal(i::Int) = FmpzComplementOfPrimeIdeal(ZZ(i))
+FmpzComplementOfPrimeIdeal(i::Integer) = FmpzComplementOfPrimeIdeal(ZZ(i))
+
+### additional functionality
+Base.in(a::Oscar.IntegerUnion, S::FmpzComplementOfPrimeIdeal) = (ZZ(a) in S)
 
 
 #################################################################################
@@ -101,6 +106,9 @@ function Base.in(b::fmpz, S::FmpzComplementOfZeroIdeal)
   return !(b == zero(ZZ))
 end
 
+### additional functionality
+Base.in(b::Oscar.IntegerUnion, S::FmpzComplementOfZeroIdeal) = (ZZ(b) in S)
+
 
 #################################################################################
 # Localizations of ℤ                                                            #
@@ -112,7 +120,7 @@ end
 A minimal implementation for the localization `ℤ[S⁻¹]` of the ring of integers 
 at a multiplicatively closed set `S` of type `MultSetType`.
 """
-mutable struct FmpzLocalizedRing{MultSetType} <: AbsLocalizedRing{FlintIntegerRing, fmpz, MultSetType} 
+mutable struct FmpzLocalizedRing{MultSetType <: AbsMultSet{FlintIntegerRing, fmpz}} <: AbsLocalizedRing{FlintIntegerRing, fmpz, MultSetType} 
   S::MultSetType # The multiplicatively closed set S ⊂ R whose inverses are added to R
 
   function FmpzLocalizedRing(S::MultSetType) where {MultSetType}
@@ -161,6 +169,24 @@ end
 parent(f::FmpzLocalizedRingElem{MultSetType}) where {MultSetType} = f.R::FmpzLocalizedRing{MultSetType}
 numerator(f::FmpzLocalizedRingElem{MultSetType}) where {MultSetType} = f.numerator::fmpz
 denominator(f::FmpzLocalizedRingElem{MultSetType}) where {MultSetType} = f.denominator::fmpz
+
+### required implementation of the arithmetic
+function Base.:(//)(a::Oscar.IntegerUnion, b::FmpzLocalizedRingElem)
+  c = ZZ(a)
+  g = gcd(c, numerator(b))
+  c = divexact(c, g)
+  numerator(b) in inverted_set(parent(b)) || error("the second argument is not a unit in this local ring")
+  return reduce_fraction((parent(b))(c*denominator(b), divexact(numerator(b), g)))
+end
+
+function Base.:(//)(a::T, b::T) where {T<:FmpzLocalizedRingElem}
+  parent(a) == parent(b) || error("the arguments do not have the same parent ring")
+  g = gcd(numerator(a), numerator(b))
+  c = divexact(numerator(a), g)
+  d = divexact(numerator(b), g)
+  d in inverted_set(parent(b)) || error("the second argument is not a unit in this local ring")
+  return reduce_fraction((parent(a))(c*denominator(b), d*denominator(a)))
+end
 
 ### optional enhancement of the arithmetic
 function reduce_fraction(f::FmpzLocalizedRingElem{MultSetType}) where {MultSetType}

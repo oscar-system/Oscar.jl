@@ -55,7 +55,7 @@ generator(S::NmodComplementOfPrimeIdeal) = S.gen
 
 Localization of a ring `ℤ/nℤ` at a multiplicatively closed set of type `MultSetType`.
 """
-mutable struct NmodLocalizedRing{MultSetType} <: AbsLocalizedRing{NmodRing, nmod, MultSetType}
+mutable struct NmodLocalizedRing{MultSetType <: AbsMultSet{NmodRing, nmod}} <: AbsLocalizedRing{NmodRing, nmod, MultSetType}
   R::NmodRing # the original ring before localization
   S::MultSetType # the set at which has been localized
 

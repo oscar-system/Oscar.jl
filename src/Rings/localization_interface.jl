@@ -209,14 +209,11 @@ function *(a::T, b::T) where {T<:AbsLocalizedRingElem}
 end
 
 function Base.:(//)(a::Oscar.IntegerUnion, b::AbsLocalizedRingElem)
-  numerator(b) in inverted_set(parent(b)) || error("the second argument is not a unit in this local ring")
-  return reduce_fraction((parent(b))(original_ring(b)(a)*denominator(b), numerator(b)))
+  error("function `//` not implemented for elements of type $(typeof(b))")
 end
 
 function Base.:(//)(a::T, b::T) where {T<:AbsLocalizedRingElem}
-  parent(a) == parent(b) || error("the arguments do not have the same parent ring")
-  numerator(b) in inverted_set(parent(b)) || error("the second argument is not a unit in this local ring")
-  return reduce_fraction((parent(a))(numerator(a)*denominator(b), numerator(b)*denominator(a)))
+  error("function `//` not implemented for elements of type $(typeof(b))")
 end
 
 function ==(a::T, b::T) where {T<:AbsLocalizedRingElem}
@@ -312,11 +309,3 @@ function Base.:+(I::T, J::T) where {T<:AbsLocalizedIdeal}
   W == base_ring(J) || error("the given ideals do not belong to the same ring")
   return ideal(W, vcat(gens(I), gens(J)))
 end
-
-function Base.:^(I::AbsLocalizedIdeal, j::Int)
-  return ideal(base_ring(I), [f^j for f in gens(I)])
-end
-
-############################################################################
-# Finitely generated modules over localized rings                          #
-############################################################################
