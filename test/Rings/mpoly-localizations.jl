@@ -62,7 +62,6 @@
 
   @test I_loc + J isa MPolyLocalizedIdeal
   @test I_loc * J isa MPolyLocalizedIdeal
-  @test J^5 isa MPolyLocalizedIdeal
 
   @test reduce(W(x)//W(y-q+1), lbpa) == W(p)//W(y-q+1)
 
