@@ -92,8 +92,7 @@ mori_cone
 ### Affine covering
 
 ```@docs
-affine_open_covering( v::NormalToricVariety )
-affine_open_covering( v::AffineNormalToricVariety )
+affine_open_covering( v::AbstractNormalToricVariety )
 ```
 
 ### Toric ideal

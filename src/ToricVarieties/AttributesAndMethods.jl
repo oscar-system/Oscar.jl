@@ -387,7 +387,7 @@ export fan
 
 
 @doc Markdown.doc"""
-    affine_open_covering(v::NormalToricVariety)
+    affine_open_covering(v::AbstractNormalToricVariety)
 
 Computes an affine open cover of the normal toric variety `v`, i.e. returns a list of affine toric varieties.
 
@@ -403,35 +403,12 @@ julia> affine_open_covering(p2)
  A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 ```
 """
-function affine_open_covering(v::NormalToricVariety)
+function affine_open_covering(v::AbstractNormalToricVariety)
     charts = Vector{AffineNormalToricVariety}(undef, pm_ntv(v).N_MAXIMAL_CONES)
     for i in 1:pm_ntv(v).N_MAXIMAL_CONES
         charts[i] = AffineNormalToricVariety(Cone(Polymake.fan.cone(pm_ntv(v), i-1)))
     end
     return charts
-end
-
-
-@doc Markdown.doc"""
-    affine_open_covering(v::AffineNormalToricVariety)
-
-Computes an affine open cover of the affine normal toric variety `v`, i.e. returns this very variety.
-
-# Examples
-```jdoctest
-julia> C = positive_hull([1 0 0 1])
-A polyhedral cone in ambient dimension 2
-
-julia> antv = AffineNormalToricVariety(C)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
-
-julia> affine_open_covering(antv)
-1-element Vector{AffineNormalToricVariety}:
- A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
-```
-"""
-function affine_open_covering(v::AffineNormalToricVariety)
-    return [v]
 end
 export affine_open_covering
 
