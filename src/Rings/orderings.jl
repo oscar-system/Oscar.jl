@@ -125,7 +125,7 @@ function weights(a::GenOrdering)
   end
   if a.ord == :degrevlex || a.ord == Symbol("Singular(dp)")
     return [matrix(ZZ, 1, length(a.vars), ones(fmpz, length(a.vars))) ;
-            zero_matrix(ZZ, length(a.vars)-1, 1) anti_diagonal(ZZ, length(a.vars)-1)]
+            zero_matrix(ZZ, length(a.vars)-1, 1) -anti_diagonal(ZZ, length(a.vars)-1)]
   end              
   if a.ord == :revlex || a.ord == Symbol("Singular(rp)")
     return anti_diagonal(ZZ, length(a.vars))
