@@ -161,9 +161,9 @@ A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 ```
 """
 function hirzebruch_surface(r::Int)
-    Rays = [1 0; 0 1; -1 r; 0 -1]
-    Cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,1]])
-    return NormalToricVariety(PolyhedralFan(Rays, Cones))
+    rays = [1 0; 0 1; -1 r; 0 -1]
+    cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,1]])
+    return NormalToricVariety(PolyhedralFan(rays, cones))
 end
 export hirzebruch_surface
 
@@ -187,19 +187,19 @@ function del_pezzo(b::Int)
         return toric_projective_space(2)
     end
     if b == 1
-        Rays = [1 0; 0 1; -1 0; -1 -1]
-        Cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,1]])
-        return NormalToricVariety(PolyhedralFan(Rays, Cones))
+        rays = [1 0; 0 1; -1 0; -1 -1]
+        cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,1]])
+        return NormalToricVariety(PolyhedralFan(rays, cones))
     end
     if b == 2
-        Rays = [1 0; 0 1; -1 0; -1 -1; 0 -1]
-        Cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,5],[5,1]])
-        return NormalToricVariety(PolyhedralFan(Rays, Cones))
+        rays = [1 0; 0 1; -1 0; -1 -1; 0 -1]
+        cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,5],[5,1]])
+        return NormalToricVariety(PolyhedralFan(rays, cones))
     end
     if b == 3
-        Rays = [1 0; 1 1; 0 1; -1 0; -1 -1; 0 -1]
-        Cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,5],[5,6],[6,1]])
-        return NormalToricVariety(PolyhedralFan(Rays, Cones))
+        rays = [1 0; 1 1; 0 1; -1 0; -1 -1; 0 -1]
+        cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,5],[5,6],[6,1]])
+        return NormalToricVariety(PolyhedralFan(rays, cones))
     end
     if b > 3
         throw(ArgumentError("delPezzo surfaces with more than 3 blowups are realized as subvarieties of toric ambient spaces. This is currently not supported."))
