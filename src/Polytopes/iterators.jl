@@ -119,7 +119,6 @@ Base.:(==)(x::Hyperplane, y::Hyperplane) = x.a == y.a && x.b == y.b
 
 struct PolyhedronOrConeIterator{T} <: AbstractVector{T}
     vertices::Polymake.Matrix{Polymake.Rational}
-    # faces::Polymake.Array{Polymake.Set{Polymake.to_cxx_type(Int64)}}
     faces::IncidenceMatrix
     lineality::Polymake.Matrix{Polymake.Rational}
     
