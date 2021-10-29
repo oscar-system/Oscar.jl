@@ -423,58 +423,58 @@ Computes the star subdivision of a polyhedral fan at its n-th maximal torus orbi
 
 # Examples
 ```jldoctest
-julia> starsubdivision(normal_fan(Oscar.simplex(3)), 1)
+julia> star = starsubdivision(normal_fan(simplex(3)), 1)
 A polyhedral fan in ambient dimension 3
+
+julia> rays(star)
+5-element VectorIterator{RayVector{Polymake.Rational}}:
+ [0, 1, 0]
+ [0, 0, 1]
+ [-1, -1, -1]
+ [1, 0, 0]
+ [1, 1, 1]
+
+julia> maximal_cones_as_incidence_matrix(star)
+6×5 IncidenceMatrix
+[1, 2, 3]
+[2, 3, 4]
+[1, 3, 4]
+[2, 4, 5]
+[1, 2, 5]
+[1, 4, 5]
 ```
 """
 function starsubdivision(PF::PolyhedralFan, n::Int)
     # extract defining information on the fan
-    maxcones = [findall(x->x!=0, l) for l in eachrow(pm_fan(PF).MAXIMAL_CONES)]
-    rays = [[Int(i) for i in r] for r in eachrow(Oscar.Polymake.common.primitive(pm_fan(PF).RAYS))]
+    maxcones = IncidenceMatrix(pm_object(PF).MAXIMAL_CONES)
+    R = Polymake.common.primitive(pm_object(PF).RAYS)
     
     # check if n-th maximal cone does exist
     if length(maxcones) < n
         throw(ArgumentError("Cannot subdivide maximal cone $n as it does not exist!"))
     end
+    nthmaxcone = Polymake.row(maxcones, n)
     
     # construct this cone and check if it is smooth
-    gens = zeros(Int64,length(maxcones[n]),length(rays[1]))
-    for i in 1:length(maxcones[n]), j in 1:length(rays[1])
-        gens[i,j] = rays[maxcones[n][i]][j]
-    end
-    cone = Oscar.positive_hull(gens)
-    if !issmooth(PolyhedralFan(cone))
+    cone = Polymake.fan.cone(pm_object(PF), n-1)
+    if !cone.SMOOTH_CONE
         throw(ArgumentError("Cannot subdivide maximal cone " * string(n) * " as it is not smooth!"))
     end
     
     # compute new rays to be added from star subdivision
-    newindex = size(rays,1) + 1
-    newray = [sum(gens[:,i]) for i in 1 : size(gens,2)]
+    newindex = size(R,1) + 1
+    newray = sum([R[i,:] for i in nthmaxcone])
     
     # add this ray to form list of the new rays
-    newrays = zeros(Int64,length(rays)+1,length(rays[1]))
-    for i in 1:length(rays), j in 1:length(rays[i])
-        newrays[i,j] = rays[i][j]
-    end
-    for j in 1:length(newray)
-        newrays[length(rays)+1,j] = newray[j]
-    end
+    newrays = [R; transpose(newray)]
     
     # identify all maximal cones in the new fan
-    indices = [i for i in maxcones[n]]
-    push!(indices, newindex)
-    d = dim(cone)
-    test_cones = Oscar.Hecke.subsets(indices,d)
-    newmaxcones = Vector{Int}[]
-    for i in 1 : length(maxcones)
-        if i != n
-            push!(newmaxcones,maxcones[i])
-        end
-    end
-    for i in 1 : length(test_cones)
-        if test_cones[i] != maxcones[n]
-            push!(newmaxcones, [Int(k) for k in test_cones[i]])
-        end
+    d = Polymake.polytope.dim(cone)
+    newmaxcones = [Vector{Int64}(Polymake.row(maxcones, i)) for i in 1:(Polymake.nrows(maxcones)) if i!= n]
+    for subset in Oscar.Hecke.subsets(Vector{Int64}(nthmaxcone), d-1)
+        tmp = Vector{Int64}(subset)
+        append!(tmp, newindex)
+        push!(newmaxcones, tmp)
     end
     newmaxcones = IncidenceMatrix(newmaxcones)
     
