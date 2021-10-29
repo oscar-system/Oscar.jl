@@ -10,12 +10,12 @@ end
 
    I = ideal(R, [x + y + t + z, x^2 + y^2 + t^3])
 
-   @test leading_ideal(groebner_basis(I, lex([t, x, y, z]))) == ideal(R, [x^3, t])
-   @test leading_ideal(groebner_basis(I, degrevlex([t, x, y, z]))) == ideal(R, [t, x^3])
-   @test leading_ideal(groebner_basis(I, lex([t, x, y, z]))) == ideal(R, [x^3, t])
-   @test leading_ideal(groebner_basis(I, revlex([t, x, y, z]))) == ideal(R, [y^2, z])
-   @test leading_ideal(groebner_basis(I, wdeglex([t, x, y, z], [2, 3, 1, 4]))) == ideal(R, [t, t^3])
-   @test leading_ideal(groebner_basis(I, wdegrevlex([t, x, y, z], [2, 1, 1, 1]))) == ideal(R, [t, x^3])
+   @test leading_ideal(groebner_basis(I, lex([t, x, y, z])), lex([t, x, y, z])) == ideal(R, [x^3, t])
+   @test leading_ideal(groebner_basis(I, degrevlex([t, x, y, z])), degrevlex([t, x, y, z])) == ideal(R, [t, x^3])
+   @test leading_ideal(groebner_basis(I, lex([t, x, y, z])), lex([t, x, y, z])) == ideal(R, [x^3, t])
+   @test leading_ideal(groebner_basis(I, revlex([t, x, y, z])), revlex([t, x, y, z])) == ideal(R, [y^2, z])
+   @test leading_ideal(groebner_basis(I, wdeglex([t, x, y, z], [2, 3, 1, 4])), wdeglex([t, x, y, z], [2, 3, 1, 4])) == ideal(R, [z, t^3])
+   @test leading_ideal(groebner_basis(I, wdegrevlex([t, x, y, z], [2, 1, 1, 1])), wdegrevlex([t, x, y, z], [2, 1, 1, 1])) == ideal(R, [t, x^3])
 end
 
 @testset "groebner orderings" begin
