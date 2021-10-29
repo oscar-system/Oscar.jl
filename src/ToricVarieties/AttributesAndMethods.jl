@@ -108,7 +108,6 @@ julia> ngens(stanley_reisner_ideal(P2))
 """
 function stanley_reisner_ideal(v::AbstractNormalToricVariety)
     collections = primitive_collections(fan_of_variety(v))
-    SR_generators = []
     vars = Hecke.gens(cox_ring(v))
     SR_generators = [prod(vars[I]) for I in collections]
     return ideal(SR_generators)
@@ -134,7 +133,7 @@ function irrelevant_ideal(v::NormalToricVariety)
     # prepare maximal cone presentation
     max_cones = [findall(x->x!=0, l) for l in eachrow(pm_ntv(v).MAXIMAL_CONES)]
     n_ray = size(pm_ntv(v).RAYS, 1)
-    maximal_cones = []
+    maximal_cones = Vector{Int}[]
     for c in max_cones
         buffer = zeros(Int, n_ray)
         for k in c
@@ -144,10 +143,10 @@ function irrelevant_ideal(v::NormalToricVariety)
     end
     # compute generators
     indeterminates = Hecke.gens(cox_ring(v))
-    gens = []
+    gens = MPolyElem_dec{fmpq, fmpq_mpoly}[]
     for i in 1:length(maximal_cones)
-        monom = 1
-        for j in 1:length(maximal_cones[i])
+        monom = indeterminates[1]^(1 - maximal_cones[i][1])
+        for j in 2:length(maximal_cones[i])
             monom = monom * indeterminates[j]^(1 - maximal_cones[i][j])
         end
         push!(gens, monom)
