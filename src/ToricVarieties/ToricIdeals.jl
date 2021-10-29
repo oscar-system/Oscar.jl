@@ -83,7 +83,7 @@ ideal(x[1]^2*x[3] - x[2]^5, x[1]*x[4] - x[2]^3)
 """
 function binomial_exponents_to_ideal(binoms::Union{AbstractMatrix, fmpz_mat})
     nvars = ncols(binoms)
-    R, x = PolynomialRing(QQ, "x" => 1:nvars)
+    R::FmpqMPolyRing, x = PolynomialRing(QQ, "x" => 1:nvars, cached=false)
     terms = Vector{fmpq_mpoly}(undef, nrows(binoms))
     for i in 1:nrows(binoms)
         binom = binoms[i, :]
