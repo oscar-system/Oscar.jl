@@ -30,15 +30,15 @@ import AbstractAlgebra.Ring
 ########################################################################
 
 @Markdown.doc """
-    MPolyComplementOfPrimeIdeal{
-	BaseRingType, 
-	BaseRingElemType,
-	RingType,
-	RingElemType
-      } <: AbsMultSet{
-	RingType,
-        RingElemType
-      }
+MPolyComplementOfPrimeIdeal{
+    BaseRingType, 
+    BaseRingElemType,
+    RingType,
+    RingElemType
+  } <: AbsMultSet{
+    RingType,
+    RingElemType
+  }
 
 The complement of a prime ideal `P ⊂ 𝕜[x₁,…,xₙ]` in a multivariate polynomial ring 
 with elements of type `RingElemType` over a base ring `𝕜` of type `BaseRingType`.
@@ -70,8 +70,7 @@ end
 
 ### required getter functions
 ambient_ring(
-    S::MPolyComplementOfPrimeIdeal{BaseRingType, BaseRingElemType, RingType, RingElemType}
-  ) where {BaseRingType, BaseRingElemType, RingType, RingElemType} = S.R
+    S::MPolyComplementOfPrimeIdeal) = S.R
 
 ### required functionality
 function Base.in(
@@ -82,9 +81,7 @@ function Base.in(
 end
 
 ### additional functionality
-prime_ideal(
-    S::MPolyComplementOfPrimeIdeal{BaseRingType, BaseRingElemType, RingType, RingElemType}
-  ) where {BaseRingType, BaseRingElemType, RingType, RingElemType} = S.P
+prime_ideal(S::MPolyComplementOfPrimeIdeal) = S.P
 
 
 ########################################################################
@@ -92,15 +89,15 @@ prime_ideal(
 ########################################################################
 
 @Markdown.doc """
-    MPolyComplementOfKPointIdeal{
-        BaseRingType,
-        BaseRingElemType, 
-        RingType,
-        RingElemType
-      } <: AbsMultSet{
-        RingType, 
-        RingElemType
-      }
+MPolyComplementOfKPointIdeal{
+    BaseRingType,
+    BaseRingElemType, 
+    RingType,
+    RingElemType
+  } <: AbsMultSet{
+    RingType, 
+    RingElemType
+  }
 
 Complement of a maximal ideal ``𝔪 = ⟨x₁-a₁,…,xₙ-aₙ⟩⊂ 𝕜[x₁,…xₙ]`` with ``aᵢ∈ 𝕜``.
 """
@@ -134,16 +131,10 @@ mutable struct MPolyComplementOfKPointIdeal{
 end
 
 ### required getter functions
-ambient_ring(
-    S::MPolyComplementOfKPointIdeal{BaseRingType, BaseRingElemType, RingType, RingElemType}
-  ) where {BaseRingType, BaseRingElemType, RingType, RingElemType} = S.R
+ambient_ring(S::MPolyComplementOfKPointIdeal) = S.R
 
 ### additional getter functions 
-function point_coordinates(
-    S::MPolyComplementOfKPointIdeal{BaseRingType, BaseRingElemType, RingType, RingElemType}
-  ) where {BaseRingType, BaseRingElemType, RingType, RingElemType}
-  return S.a
-end
+point_coordinates(S::MPolyComplementOfKPointIdeal) = S.a
 
 ### required functionality
 function Base.in(
@@ -182,13 +173,10 @@ mutable struct MPolyPowersOfElement{
 end
 
 ### required getter functions
-ambient_ring(
-    S::MPolyPowersOfElement{BaseRingType, BaseRingElemType, RingType, RingElemType}
-  ) where {BaseRingType, BaseRingElemType, RingType, RingElemType} = S.R
+ambient_ring(S::MPolyPowersOfElement) = S.R
 
 ### additional functionality
-denominators(S::MPolyPowersOfElement{BaseRingType, BaseRingElemType, RingType, RingElemType}
-  ) where {BaseRingType, BaseRingElemType, RingType, RingElemType} = S.a
+denominators(S::MPolyPowersOfElement) = S.a
 
 ### required functionality
 function Base.in(
@@ -212,16 +200,17 @@ end
 ########################################################################
 
 @Markdown.doc """
-    MPolyLocalizedRing{
-        BaseRingType, 
-	BaseRingElemType,
-        RingType,
-        RingElemType
-      } <: AbsLocalizedRing{
-        RingType,
-        MPolyElem{BaseRingType}, 
-        MPolyComplementOfPrimeIdeal{BaseRingType, RingType, RingElemType}
-      }
+MPolyLocalizedRing{
+    BaseRingType,
+    BaseRingElemType,
+    RingType,
+    RingElemType,
+    MultSetType
+  } <: AbsLocalizedRing{
+    RingType,
+    RingType,
+    MultSetType
+  }
 
 The localization of a multivariate polynomial ring ``R = 𝕜[x₁,…,xₙ]`` over a 
 base field ``𝕜`` of type `BaseRingType` and with elements of type `RingElemType` 
@@ -254,56 +243,16 @@ mutable struct MPolyLocalizedRing{
 end
 
 ### required getter functions 
-original_ring(
-    W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
-  ) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = W.R
+original_ring(W::MPolyLocalizedRing) = W.R
 
-inverted_set(
-    W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
-  ) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = W.S
+inverted_set(W::MPolyLocalizedRing) = W.S
 
 ### required extension of the localization function
-localize_at(
-    S::MPolyComplementOfPrimeIdeal{
-            BaseRingType, 
-	    BaseRingElemType,
-    	    RingType, 
-	    RingElemType
-        }
-    ) where {
-	BaseRingType,
-	BaseRingElemType,
-	RingType, 
-	RingElemType
-    } = MPolyLocalizedRing(ambient_ring(S), S)
+localize_at(S::MPolyComplementOfPrimeIdeal) = MPolyLocalizedRing(ambient_ring(S), S)
 
-localize_at(
-        S::MPolyComplementOfKPointIdeal{
-	    BaseRingType,
-    	    BaseRingElemType, 
-    	    RingType, 
-    	    RingElemType
-        }
-    ) where {
-	BaseRingType,
-	BaseRingElemType, 
-	RingType, 
-	RingElemType
-    } = MPolyLocalizedRing(ambient_ring(S), S)
+localize_at(S::MPolyComplementOfKPointIdeal) = MPolyLocalizedRing(ambient_ring(S), S)
 
-localize_at(
-        S::MPolyPowersOfElement{
-	    BaseRingType,
-    	    BaseRingElemType, 
-    	    RingType, 
-    	    RingElemType
-        }
-    ) where {
-	BaseRingType,
-	BaseRingElemType, 
-	RingType, 
-	RingElemType
-    } = MPolyLocalizedRing(ambient_ring(S), S)
+localize_at(S::MPolyPowersOfElement) = MPolyLocalizedRing(ambient_ring(S), S)
 
 ### additional constructors
 MPolyLocalizedRing(R::RingType, P::MPolyIdeal{RingElemType}) where {RingType, RingElemType} = MPolyLocalizedRing(R, MPolyComplementOfPrimeIdeal(P))
@@ -314,9 +263,19 @@ MPolyLocalizedRing(R::RingType, P::MPolyIdeal{RingElemType}) where {RingType, Ri
 ########################################################################
 
 @Markdown.doc """
-    MPolyLocalizedRingElem{BaseRingType, RingElemType} <: AbsLocalizedRingElem{MPolyRing{BaseRingType}, MPolyElem{BaseRingType}, MPolyComplementOfPrimeIdeal{BaseRingType, RingElemType}} 
+MPolyLocalizedRingElem{
+    BaseRingType, 
+    BaseRingElemType,
+    RingType,
+    RingElemType, 
+    MultSetType
+  } <: AbsLocalizedRingElem{
+    RingType,
+    RingElemType, 
+    MultSetType
+  } 
 
-
+Elements of localizations of polynomial rings.
 """
 mutable struct MPolyLocalizedRingElem{
     BaseRingType, 
@@ -349,22 +308,14 @@ mutable struct MPolyLocalizedRingElem{
 end
 
 ### required getter functions 
-numerator(
-    a::MPolyLocalizedRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
-  ) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = numerator(a.frac)
+numerator(a::MPolyLocalizedRingElem) = numerator(a.frac)
 
-denominator(
-    a::MPolyLocalizedRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
-  ) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = denominator(a.frac)
+denominator(a::MPolyLocalizedRingElem) = denominator(a.frac)
 
-parent(
-    a::MPolyLocalizedRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
-  ) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = a.R_loc
+parent(a::MPolyLocalizedRingElem) = a.R_loc
 
 ### additional getter functions
-fraction(
-    a::MPolyLocalizedRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
-  ) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = a.frac
+fraction(a::MPolyLocalizedRingElem) = a.frac
 
 ### required conversions
 (W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(f::RingElemType) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocalizedRingElem((FractionField(original_ring(W)))(f), W)
@@ -406,7 +357,7 @@ function ==(a::T, b::T) where {T<:MPolyLocalizedRingElem}
   return fraction(a) == fraction(b)
 end
 
-function ^(a::T, i::Oscar.IntegerUnion) where {T<:MPolyLocalizedRingElem}
+function ^(a::MPolyLocalizedRingElem, i::Oscar.IntegerUnion)
   return parent(a)(fraction(a)^i)
 end
 
@@ -425,7 +376,7 @@ parent_type(T::Type{MPolyLocalizedRingElem{BaseRingType, BaseRingElemType, RingT
 # Singular functionality                                               #
 ########################################################################
 @Markdown.doc """
-    LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}
+LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}
 
 Main workhorse for binding of ideals in localizations ``R[S⁻¹]`` of 
 multivariate polynomial rings ``R = 𝕜[x₁,…,xₙ]`` to Singular. 
@@ -496,22 +447,22 @@ mutable struct LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}
   end
 end
 
-oscar_gens(lbpa::LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = lbpa.oscar_gens
-oscar_ring(lbpa::LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = lbpa.oscar_ring
-ordering(lbpa::LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = lbpa.ordering
-shift(lbpa::LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = lbpa.shift
+oscar_gens(lbpa::LocalizedBiPolyArray) = lbpa.oscar_gens
+oscar_ring(lbpa::LocalizedBiPolyArray) = lbpa.oscar_ring
+ordering(lbpa::LocalizedBiPolyArray) = lbpa.ordering
+shift(lbpa::LocalizedBiPolyArray) = lbpa.shift
 
-function singular_gens(lbpa::LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST}
+function singular_gens(lbpa::LocalizedBiPolyArray)
   singular_assure(lbpa)
   return lbpa.singular_gens
 end
 
-function singular_ring(lbpa::LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST}
+function singular_ring(lbpa::LocalizedBiPolyArray)
   singular_assure(lbpa)
   return lbpa.singular_ring
 end
 
-function singular_assure(lbpa::LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST}
+function singular_assure(lbpa::LocalizedBiPolyArray)
   if !isdefined(lbpa, :singular_ring)
     lbpa.singular_ring = Singular.PolynomialRing(
 	Oscar.singular_ring(base_ring(original_ring(oscar_ring(lbpa)))), 
@@ -528,7 +479,7 @@ function singular_assure(lbpa::LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}) wh
   end
 end
 
-function std(lbpa::LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST}
+function std(lbpa::LocalizedBiPolyArray)
   i = Singular.std(singular_gens(lbpa))
   return LocalizedBiPolyArray(
              oscar_ring(lbpa), 
@@ -545,7 +496,7 @@ end
 ########################################################################
 
 @Markdown.doc """
-    MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST} <: AbsLocalizedIdeal{RT, RET, MST}
+MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST} <: AbsLocalizedIdeal{RT, RET, MST}
 
 Ideals in localizations of polynomial rings.
 """
@@ -583,15 +534,15 @@ mutable struct MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST} <: AbsLocalizedIdeal
 end
  
 ### required getter functions
-gens(I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = I.gens
-base_ring(I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = I.W
+gens(I::MPolyLocalizedIdeal) = I.gens
+base_ring(I::MPolyLocalizedIdeal) = I.W
 
 ### additional getter functions
-groebner_bases(I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = I.groebner_bases
+groebner_bases(I::MPolyLocalizedIdeal) = I.groebner_bases
 
-default_ordering(I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = I.default_ordering
+default_ordering(I::MPolyLocalizedIdeal) = I.default_ordering
 
-function dim(I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST}
+function dim(I::MPolyLocalizedIdeal)
   if isdefined(I,:dimension)
     return I.dimension
   end
@@ -662,9 +613,9 @@ LocalizedBiPolyArray(I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MPolyPowersOfEle
 
 ### the catchall implementation; most probably mathematically useless!
 function groebner_basis(
-    I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST}, 
+    I::MPolyLocalizedIdeal,
     ordering::Symbol
-  ) where {BRT, BRET, RT, RET, MST} 
+  )
   D = groebner_bases(I)
   # check whether a standard basis has already been computed for this ordering
   if haskey(D, ordering)
@@ -680,15 +631,11 @@ function groebner_basis(
   return D[ordering]
 end
 
-function groebner_basis(
-    I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST}, 
-  ) where {BRT, BRET, RT, RET, MST} 
+function groebner_basis(I::MPolyLocalizedIdeal)
   return groebner_basis(I, default_ordering(I))
 end
 
-function groebner_assure(
-    I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST}
-  ) where {BRT, BRET, RT, RET, MST}
+function groebner_assure(I::MPolyLocalizedIdeal)
   D = groebner_bases(I)
   if length(D) > 0 
     return

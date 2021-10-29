@@ -51,8 +51,6 @@ A localized ring should then be derived from
 For any concrete instance of this type the following methods must be implemented:
 ```@docs
     original_ring(W::AbsLocalizedRing{RingType, RingElemType, MultSetType}) where {RingType, RingElemType, MultSetType} 
-```
-```@docs
     inverted_set(W::AbsLocalizedRing{RingType, RingElemType, MultSetType}) where {RingType, RingElemType, MultSetType}
 ```
 Also, conversion of fractions to elements of localized rings must be implemented in the form 

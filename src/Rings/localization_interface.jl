@@ -1,5 +1,4 @@
-export AbsMultSet, AbsPowersOfElement, AbsComplementOfPrimeIdeal
-
+export AbsMultSet
 export AbsLocalizedRing
 export original_ring, inverted_set
 export reduce_fraction
@@ -27,7 +26,7 @@ import AbstractAlgebra.Ring
 Abstract type for a multiplicatively closed set in a commutative (Noetherian) ring 
 R of type `RingType` with elements of type `RingElemType`.
 """
-abstract type AbsMultSet{RingType, RingElemType} end
+abstract type AbsMultSet{RingType<:Ring, RingElemType<:RingElem} end
 
 ### required getter functions
 @Markdown.doc """
@@ -51,44 +50,6 @@ execution of an error message.
 function Base.in(f::RingElemType, S::AbsMultSet{RingType, RingElemType}) where {RingType, RingElemType}
   error("method not implemented for multiplicatively closed sets of type $(typeof(S))")
 end
-
-
-#################################################################################
-# Multiplicatively closed sets given by powers of one element                   #
-#################################################################################
-
-@Markdown.doc """
-    AbsPowersOfElement{RingType, RingElemType} <: AbsMultSet{RingType, RingElemType}
-
-Abstract type for the multiplicatively closed set ``S = { fᵏ : f ∈ R, k ∈ ℕ₀ } ⊂ R`` 
-for some element ``f`` of type `RingElemType` in a ring ``R`` of type `RingType`.
-"""
-abstract type AbsPowersOfElement{RingType, RingElemType} <: AbsMultSet{RingType, RingElemType} end
-
-### suggested, optional functionality
-@Markdown.doc """
-    denominators(P::AbsPowersOfElement{RingType, RingElemType}) where {RingType, RingElemType}
-
-Returns a list of factors ``(a₁,…,aᵣ)`` of the element ``f = a₁⋅…⋅aᵣ`` defining ``P = { fᵏ : f ∈ R, k ∈ ℕ₀ }``.
-"""
-function denominators(P::AbsPowersOfElement{RingType, RingElemType}) where {RingType, RingElemType}
-  error("method `generator(P::AbsPowersOfElement{RingType, RingElemType})` not implemented for `P` of type $(typeof(P))")
-end
-
-
-#################################################################################
-# Multiplicatively closed sets given by complements of prime ideals             #
-#################################################################################
-
-@Markdown.doc """
-    AbsComplementOfPrimeIdeal{RingType, IdealType, RingElemType}
-
-Abstract type for the multiplicatively closed sets S = R \\ P for prime ideals P in a commutative ring R. 
-This is comprises both the complement of maximal ideals, as well as arbitrary prime ideals. 
-In general, one expects different algorithmic backends for each one of the two cases. This will lead to a 
-distinction of the associated concrete types.
-"""
-abstract type AbsComplementOfPrimeIdeal{RingType, IdealType, RingElemType} <:AbsMultSet{RingType, RingElemType} end
 
 
 #################################################################################
@@ -181,34 +142,34 @@ abstract type AbsLocalizedRingElem{RingType, RingElemType, MultSetType} end
 
 ### required getter functions 
 @Markdown.doc """
-    numerator(f::T) where {T<:AbsLocalizedRingElem}
+numerator(f::AbsLocalizedRingElem)
 
 Returns the numerator of `f`.
 """
-function numerator(f::T) where {T<:AbsLocalizedRingElem}
+function numerator(f::AbsLocalizedRingElem)
   error("`numerator` is not implemented for elements of type $(typeof(f))")
 end
 
 @Markdown.doc """
-    denominator(f::T) where {T<:AbsLocalizedRingElem}
+denominator(f::AbsLocalizedRingElem)
 
 Returns the denominator of `f`.
 """
-function denominator(f::T) where {T<:AbsLocalizedRingElem}
+function denominator(f::AbsLocalizedRingElem)
   error("`denominator` is not implemented for elements of type $(typeof(f))")
 end
 
 @Markdown.doc """
-    parent(f::T) where {T<:AbsLocalizedRingElem}
+parent(f::AbsLocalizedRingElem)
 
 Returns the parent ring R[S⁻¹] of `f`.
 """
-function parent(f::T) where {T<:AbsLocalizedRingElem}
+function parent(f::AbsLocalizedRingElem)
   error("`parent` is not implemented for the type $(typeof(f))")
 end
 
 ### default functionality for printing
-function Base.show(io::IO, f::T) where {T<:AbsLocalizedRingElem}
+function Base.show(io::IO, f::AbsLocalizedRingElem)
   print(io, "($(numerator(f)))//($(denominator(f)))")
 end
 
@@ -218,11 +179,11 @@ end
 ########################################################################
 
 @Markdown.doc """
-    function reduce_fraction(a::T) where {T<:AbsLocalizedRingElem}
+reduce_fraction(a::AbsLocalizedRingElem)
 
 Reduce the fraction a = p/q. **Warning**: The catchall-implementation does nothing!
 """
-function reduce_fraction(a::T) where {T<:AbsLocalizedRingElem}
+function reduce_fraction(a::AbsLocalizedRingElem)
   return a
 end
 
@@ -247,7 +208,7 @@ function *(a::T, b::T) where {T<:AbsLocalizedRingElem}
   return reduce_fraction((parent(a))(numerator(a)*numerator(b), denominator(a)*denominator(b)))
 end
 
-function Base.:(//)(a::Oscar.IntegerUnion, b::T) where {T<:AbsLocalizedRingElem}
+function Base.:(//)(a::Oscar.IntegerUnion, b::AbsLocalizedRingElem)
   numerator(b) in inverted_set(parent(b)) || error("the second argument is not a unit in this local ring")
   return reduce_fraction((parent(b))(original_ring(b)(a)*denominator(b), numerator(b)))
 end
@@ -263,9 +224,14 @@ function ==(a::T, b::T) where {T<:AbsLocalizedRingElem}
   return numerator(a)*denominator(b) == numerator(b)*denominator(a)
 end
 
-function ^(a::T, i::Oscar.IntegerUnion) where {T<:AbsLocalizedRingElem}
+function ^(a::AbsLocalizedRingElem, i::Oscar.IntegerUnion)
   return parent(a)(numerator(a)^i, denominator(a)^i)
 end
+
+isone(a::AbsLocalizedRingElem) = (numerator(a) == denominator(a))
+
+### Needs to be overwritten in case of zero divisors!
+iszero(a::AbsLocalizedRingElem) = iszero(numerator(a))
 
 
 ############################################################################
@@ -337,12 +303,7 @@ end
 function Base.:*(I::T, J::T) where {T<:AbsLocalizedIdeal}
   W = base_ring(I) 
   W == base_ring(J) || error("the given ideals do not belong to the same ring")
-  new_gens = Vector{elem_type(W)}()
-  for f in gens(I) 
-    for g in gens(J)
-      push!(new_gens, f*g)
-    end
-  end
+  new_gens = [ f*g for f in gens(I) for g in gens(J)]
   return ideal(W, new_gens)
 end
 
@@ -352,7 +313,7 @@ function Base.:+(I::T, J::T) where {T<:AbsLocalizedIdeal}
   return ideal(W, vcat(gens(I), gens(J)))
 end
 
-function Base.:^(I::T, j::Int) where {T<:AbsLocalizedIdeal}
+function Base.:^(I::AbsLocalizedIdeal, j::Int)
   return ideal(base_ring(I), [f^j for f in gens(I)])
 end
 

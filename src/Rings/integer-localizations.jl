@@ -12,12 +12,11 @@ export generator, ambient_ring, localize_at, parent, numerator, denominator
 #################################################################################
 
 @Markdown.doc """
-    FmpzPowersOfElement
+FmpzPowersOfElement
 
-A minimal implementation of `AbsPowersOfElement{RingType, RingElemType}` 
-for integers of type `fmpz`.
+The multiplicative set given by the powers of some element.
 """
-mutable struct FmpzPowersOfElement <: AbsPowersOfElement{FlintIntegerRing, fmpz}
+mutable struct FmpzPowersOfElement <: AbsMultSet{FlintIntegerRing, fmpz}
   d::Vector{fmpz} # a vector of admissible denominators. 
 
   function FmpzPowersOfElement(denominators::Vector{fmpz})
@@ -33,11 +32,11 @@ function Base.in(a::fmpz, S::FmpzPowersOfElement)
   # check whether ∃ c ∈ ℤ, k ∈ ℕ₀: c ⋅ a = (∏ᵢ dᵢ)ᵏ, where dᵢ are the admissible denominators in S.
   d = prod(denominators(S))
   g = gcd(a, d)
-  while(!(g==one(ZZ)))
+  while(!isone(g))
     a = divexact(a, g)
     g = gcd(a, d)
   end
-  return a == one(ZZ)
+  return isone(a)
 end
 
 ### additional constructors
@@ -53,11 +52,11 @@ denominators(S::FmpzPowersOfElement) = S.d::Vector{fmpz}
 #################################################################################
 
 @Markdown.doc """
-    FmpzComplementOfPrimeIdeal
+FmpzComplementOfPrimeIdeal
 
 The multiplicatively closed set `S = ℤ ∖ ⟨p⟩` of integers outside a prime ideal `⟨p⟩`.
 """
-mutable struct FmpzComplementOfPrimeIdeal <: AbsComplementOfPrimeIdeal{FlintIntegerRing, Hecke.ZZIdl, fmpz}
+mutable struct FmpzComplementOfPrimeIdeal <: AbsMultSet{FlintIntegerRing, fmpz}
   # essential fields
   p::fmpz
 
@@ -84,11 +83,11 @@ FmpzComplementOfPrimeIdeal(i::Int) = FmpzComplementOfPrimeIdeal(ZZ(i))
 #################################################################################
 
 @Markdown.doc """
-    FmpzComplementOfZeroIdeal <: AbsComplementOfPrimeIdeal{FlintIntegerRing, Hecke.ZZIdl, fmpz}
+FmpzComplementOfZeroIdeal 
 
 The complement of the zero ideal in `ℤ`.
 """
-mutable struct FmpzComplementOfZeroIdeal <: AbsComplementOfPrimeIdeal{FlintIntegerRing, Hecke.ZZIdl, fmpz}
+mutable struct FmpzComplementOfZeroIdeal <: AbsMultSet{FlintIntegerRing, fmpz}
   function FmpzComplementOfZeroIdeal() 
     return new{}()
   end
