@@ -38,6 +38,9 @@
 end
 
 @testset "Polynomial Orderings terms, monomials and coefficients" begin
+   R, (x, y, z) = PolynomialRing(QQ, 3)
+   f = x*y + 5*z^3
+ 
    @test collect(terms(f, :deglex)) == [ 5z^3, x*y ]
    @test collect(exponent_vectors(f, :deglex)) == [ [ 0, 0, 3 ], [ 1, 1, 0 ] ]
    @test collect(coefficients(f, :deglex)) == [ QQ(5), QQ(1) ]
