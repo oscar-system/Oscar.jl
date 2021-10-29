@@ -14,8 +14,8 @@ antv = AffineNormalToricVariety(C)
     map = map_from_character_to_principal_divisors(antv)
     @test rank(domain(map)) == 2
     @test rank(codomain(map)) == 2
-    @test length(gens(codomain(map_from_weil_divisors_to_class_group(antv)))) == 2
-    @test length(gens(class_group(antv))) == 2
+    @test elementary_divisors(codomain(map_from_weil_divisors_to_class_group(antv))) == [ 2 ]
+    @test elementary_divisors(class_group(antv)) == [ 2 ]
     @test ngens(cox_ring(antv)) == 2
     @test length(torusinvariant_prime_divisors(antv)) == 2
 end
