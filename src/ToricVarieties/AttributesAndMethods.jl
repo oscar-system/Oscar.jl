@@ -572,9 +572,8 @@ function isprojective_space(v::AbstractNormalToricVariety)
         return false
     end
     w = [[Int(x) for x in transpose(g.coeff)] for g in gens(class_group(v))]
-    for i in 1:length(w)
-        g = w[i]
-        g = g[findall(x -> x!=0, g)]
+    for g in gens(class_group(v))
+        g = [Int(x) for x in g.coeff if !iszero(x)]    
         if length(g) > 1
             return false
         end
