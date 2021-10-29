@@ -28,7 +28,7 @@ function perfect_group(::Type{T}, n::Int, m::Int) where T <: GAPGroup
    return G
 end
 
-perfect_group(n::Int, m::Int) = perfect_group(FPGroup,n,m)
+perfect_group(n::Int, m::Int) = perfect_group(PermGroup,n,m)
 
 """
     perfect_identification(G::GAPGroup)
