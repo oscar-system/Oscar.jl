@@ -28,4 +28,10 @@ end
    @test groebner_basis(I, degrevlex([x, y, z])*revlex([y])) == groebner_basis(I, degrevlex([x, y, z]))
    @test groebner_basis(I, deglex([z])*deglex([x])*deglex([y])) == groebner_basis(I, lex([z])*lex([x, y]))
    @test groebner_basis(I, deglex([x, y, z])) == groebner_basis(I, wdeglex([x, y, z], [1, 1, 1]))
+
+   @test groebner_basis_with_transformation_matrix(I, lex([x])*lex([y,z])) == groebner_basis_with_transformation_matrix(I, lex([x, y, z]))
+   @test groebner_basis_with_transformation_matrix(I, lex([z])*lex([y])*lex([x])) == groebner_basis_with_transformation_matrix(I, revlex([x, y, z]))
+   @test groebner_basis_with_transformation_matrix(I, degrevlex([x, y, z])*revlex([y])) == groebner_basis_with_transformation_matrix(I, degrevlex([x, y, z]))
+   @test groebner_basis_with_transformation_matrix(I, deglex([z])*deglex([x])*deglex([y])) == groebner_basis_with_transformation_matrix(I, lex([z])*lex([x, y]))
+   @test groebner_basis_with_transformation_matrix(I, deglex([x, y, z])) == groebner_basis_with_transformation_matrix(I, wdeglex([x, y, z], [1, 1, 1]))
 end
