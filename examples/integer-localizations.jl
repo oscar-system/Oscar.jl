@@ -4,7 +4,7 @@
 
 export FmpzComplementOfPrimeIdeal, FmpzPowersOfElement, FmpzComplementOfZeroIdeal
 export FmpzLocalizedRing, FmpzLocalizedRingElem
-export generator, ambient_ring, localize_at, parent, numerator, denominator
+export ambient_ring, localize_at, parent, numerator, denominator
 
 
 #################################################################################

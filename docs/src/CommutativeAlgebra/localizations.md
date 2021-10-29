@@ -79,41 +79,6 @@ starting e.g. by implementing
 Note that this is called after *every* arithmetic operation (addition, multiplication,...), 
 so the computations carried out here should be computationally cheap.
 
-### A toy example: Localizations of the integers
-A minimal implementation of the localization interface has been implemented 
-for the Flint integers. The multiplicatively closed sets are 
-```@docs
-    FmpzPowersOfElement 
-    FmpzComplementOfPrimeIdeal 
-    FmpzComplementOfZeroIdeal 
-```
-Localizations of ``\mathbb Z`` are instances of 
-```@docs
-    FmpzLocalizedRing{MultSetType}  
-```
-and elements of localizations are instances of 
-```@docs
-    FmpzLocalizedRingElem{MultSetType}
-```
-Have a look at the source code and the documentation there to learn about 
-properly implementing the localization interface.
-
-### Another toy example: Localizations of quotient rings ``\mathbb Z/n\mathbb Z``
-Another implementation using different functionality in the backend is carried 
-out for localizations of the rings ``\mathbb Z/n\mathbb Z``. 
-The multiplicatively closed sets are 
-```@docs
-    NmodComplementOfPrimeIdeal 
-```
-Localizations of ``\mathbb Z/n\mathbb Z`` are instances of 
-```@docs
-    NmodLocalizedRing{MultSetType}  
-```
-and elements of localizations are instances of 
-```@docs
-    NmodLocalizedRingElem{MultSetType}
-```
-Have a look at the source code and the documentation there to learn about 
-properly implementing the localization interface.
-
+Two toy examples for implementations of this interface can be found in 
+`examples/integer-localizations.jl` and `examples/nmod-localizations`.
  
