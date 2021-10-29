@@ -65,7 +65,6 @@ euler_characteristic
 
 ```@docs
 cox_ring
-list_of_variables_of_cox_ring
 stanley_reisner_ideal
 irrelevant_ideal
 ```

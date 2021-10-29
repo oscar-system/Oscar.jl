@@ -26,7 +26,6 @@ associated_affine_variety = AffineNormalToricVariety(ntv)
 @testset "Affine toric varieties created as general normal toric varieties" begin
     @test isaffine(ntv) == true
     @test length(affine_open_covering(associated_affine_variety)) == 1
-    @test length(list_of_variables_of_cox_ring(associated_affine_variety)) == 2
 end
 
 square = Oscar.cube(2)
@@ -95,7 +94,7 @@ H5 = hirzebruch_surface(5)
     @test rank(codomain(map)) == 4
     @test rank(class_group(H5)) == 2
     @test rank(codomain(map_from_weil_divisors_to_class_group(H5))) == 2
-    @test length(list_of_variables_of_cox_ring(H5)) == 4
+    @test ngens(cox_ring(H5)) == 4
     @test length(stanley_reisner_ideal(H5).gens) == 2
     @test length(irrelevant_ideal(H5).gens) == 4
 end

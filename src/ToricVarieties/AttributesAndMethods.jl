@@ -93,29 +93,6 @@ export cox_ring
 
 
 @doc Markdown.doc"""
-    list_of_variables_of_cox_ring(v::NormalToricVariety)
-
-Lists the names of the indeterminates of the Cox ring of a normal toric variety `v`.
-
-# Examples
-```jdoctest
-julia> p2 = toric_projective_space(2)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
-
-julia> list_of_variables_of_cox_ring(p2)
-3-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
- x1
- x2
- x3
-```
-"""
-function list_of_variables_of_cox_ring(v::AbstractNormalToricVariety)
-    return gens(cox_ring(v))
-end
-export list_of_variables_of_cox_ring
-
-
-@doc Markdown.doc"""
     stanley_reisner_ideal(v::NormalToricVariety)
 
 Computes the Stanley-Reisner ideal of a normal toric variety `v`.
@@ -132,7 +109,7 @@ julia> ngens(stanley_reisner_ideal(P2))
 function stanley_reisner_ideal(v::AbstractNormalToricVariety)
     collections = primitive_collections(fan_of_variety(v))
     SR_generators = []
-    vars = list_of_variables_of_cox_ring(v)
+    vars = Hecke.gens(cox_ring(v))
     SR_generators = [prod(vars[I]) for I in collections]
     return ideal(SR_generators)
 end
@@ -166,7 +143,7 @@ function irrelevant_ideal(v::NormalToricVariety)
         push!(maximal_cones, buffer)
     end
     # compute generators
-    indeterminates = list_of_variables_of_cox_ring(v)
+    indeterminates = Hecke.gens(cox_ring(v))
     gens = []
     for i in 1:length(maximal_cones)
         monom = 1
