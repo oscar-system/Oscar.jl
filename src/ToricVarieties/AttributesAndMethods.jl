@@ -223,9 +223,9 @@ Abelian group with structure: Z^3
 ```
 """
 function map_from_character_to_principal_divisors(v::AbstractNormalToricVariety)
-    matrix = Matrix{Int}(Polymake.common.primitive(pm_ntv(v).RAYS))
-    abstract_matrix = AbstractAlgebra.matrix(ZZ, size(matrix,2), size(matrix,1), vec(matrix))
-    return hom(character_lattice(v), torusinvariant_divisor_group(v), abstract_matrix)
+    mat = Matrix{Int}(Polymake.common.primitive(pm_ntv(v).RAYS))
+    matrix = AbstractAlgebra.matrix(ZZ, size(mat,2), size(mat,1), vec(mat))
+    return hom(character_lattice(v), torusinvariant_divisor_group(v), matrix)
 end
 export map_from_character_to_principal_divisors
 
