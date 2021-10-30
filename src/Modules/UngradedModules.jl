@@ -110,6 +110,14 @@ function (F::FreeMod)()
   return FreeModElem(sparse_row(base_ring(F)), F)
 end
 
+function (F::FreeMod{T})(coords::SRow{T}) where T
+  return FreeModElem(coords, F)
+end
+
+function (F::FreeMod{T})(coords::Vector{T}) where T
+  return FreeModElem(coords, F)
+end
+
 function show(io::IO, F::FreeMod)
   @show_name(io, F)
   @show_special(io, F)
