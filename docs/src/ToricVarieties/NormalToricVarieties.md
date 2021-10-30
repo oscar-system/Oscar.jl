@@ -24,6 +24,7 @@ the affine and non-affine case:
 
 ```@docs
 AffineNormalToricVariety(C::Cone)
+CyclicQuotientSingularity
 NormalToricVariety(C::Cone)
 NormalToricVariety(PF::PolyhedralFan)
 NormalToricVariety(P::Polyhedron)
@@ -110,4 +111,25 @@ Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety)
 
 ```@docs
 isprojective_space(v::AbstractNormalToricVariety)
+```
+
+
+## Cyclic Quotient Singularities
+
+Cyclic quotient singularities are quotients of $\mathbb{C}^2$ by the action of
+$\mathbb{Z}/n\mathbb{Z}$ acting via 
+$$\left(\begin{array}{cc}\xi & 0\\0 & \xi^q\end{array}\right)$$,
+where $\xi$ is a $n$-th root of unity, and $0<q<n$ are two coprime integers.
+
+For the notation we rely on [Chr91](@cite) and [Ste91](@cite).
+
+!!! warning
+    Note that the notion of Hirzebruch-Jung continued fraction differs from the
+    commonly known continued fraction.
+
+```@docs
+continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity)
+continued_fraction_hirzebruch_jung_to_rational(v::Vector{fmpz})
+dual_continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity)
+rational_to_continued_fraction_hirzebruch_jung(r::fmpq)
 ```
