@@ -88,6 +88,7 @@ fan_of_variety
 fan
 nef_cone
 mori_cone
+toric_ideal
 ```
 
 ### Affine covering
