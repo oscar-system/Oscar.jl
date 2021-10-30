@@ -105,7 +105,7 @@ $x^\alpha > x^\beta \;  \Leftrightarrow \; \text{wdeg}(x^\alpha) > \text{wdeg}(x
 
 ##### The Negative Lexicographical Ordering
 
-The *lnegative exicographical ordering* `neglex` is defined by setting
+The *negative lexicographical ordering* `neglex` is defined by setting
 
 $x^\alpha > x^\beta \;  \Leftrightarrow \;\exists \; 1 \leq i \leq n: \alpha_1 = \beta_1, \dots, \alpha_{i-1} = \beta_{i-1}, \alpha_i < \beta_i.$
 
@@ -214,9 +214,20 @@ leading_ideal(I::MPolyIdeal)
 
 #### Gröbner Bases over the integers
 
-#### ....
+Over the integers the coefficients of the polynomials 
+are not invertible, thus their handling when computing
+Gröbner bases and normal forms plays an important role. This is done when 
+computing strong Gröbner bases which ensure the following property: 
+For any element of an ideal its leading term is divisible by a leading term of an 
+element of a corresponding strong Gröbner basis.
 
+The textbook [AL94](@cite) provides details on theory and algorithms as well as references.
 
+```@repl oscar
+R, (x,y) = PolynomialRing(ZZ, ["x","y"])
+I = ideal(R, [2x,3x,4y])
+H = groebner_basis(I)
+```
 ### Syzygies
 
 #### Generators of syzygies

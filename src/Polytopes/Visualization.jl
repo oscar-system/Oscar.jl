@@ -4,7 +4,7 @@
 Visualize a polyhedron.
 """
 function visualize(P::Polyhedron)
-    pmP = pm_polytope(P)
+    pmP = pm_object(P)
     Polymake.visual(pmP)
 end
 
@@ -15,7 +15,7 @@ end
 Visualize a cone.
 """
 function visualize(C::Cone)
-    pmC = pm_cone(C)
+    pmC = pm_object(C)
     Polymake.visual(pmC)
 end
 
@@ -26,6 +26,17 @@ end
 Visualize a polyhedral fan.
 """
 function visualize(PF::PolyhedralFan)
-    pmF = pm_fan(PF)
+    pmF = pm_object(PF)
     Polymake.visual(pmF)
+end
+
+
+@doc Markdown.doc"""
+    visualize(G::Graphs.Graph{T}) where {T <: Union{Polymake.Directed, Polymake.Undirected}}
+
+Visualize a graph.
+"""
+function visualize(G::Graphs.Graph{T}) where {T <: Union{Polymake.Directed, Polymake.Undirected}}
+    BigGraph = Polymake.graph.Graph(ADJACENCY=pm_object(G))
+    Polymake.visual(BigGraph)
 end

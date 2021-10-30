@@ -39,8 +39,8 @@ end
    @test isperfect(G)
    @test !isperfect(symmetric_group(5))
 
-   @test perfect_group(120,1) isa FPGroup
-   @test perfect_group(PermGroup,120,1) isa PermGroup
+   @test perfect_group(120,1) isa PermGroup
+   @test perfect_group(FPGroup,120,1) isa FPGroup
    @test_throws ArgumentError perfect_group(MatrixGroup,120,1)
 
    @test isisomorphic(perfect_group(60,1),G)[1]

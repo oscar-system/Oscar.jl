@@ -38,7 +38,7 @@ end
 
 Return the invariant ring of the finite matrix group `G`.
     
-CAVEAT: The creation of invariant rings is lazy in the sense that no explicit computations are done until specifically invoked (for example by the `primary_invariants` function).
+CAVEAT: The creation of invariant rings is lazy in the sense that no explicit computations are done until specifically invoked (for example, by the `primary_invariants` function).
 
 # Examples
 ```jldoctest
@@ -518,12 +518,13 @@ end
 @doc Markdown.doc"""
     irreducible_secondary_invariants(IR::InvRing)
 
-From among a system of secondary invariants for `IR` (with respect to the currently cached system of primary invariants for `IR`), return the irrreducible secondary invariants.
+Return a system of irreducible secondary invariants for `IR` with respect to the currently cached system of primary invariants for `IR`
+(if no system of primary invariants for `IR` is cached, compute and cache such a system first).
 
-If a system of secondary invariants is already cached, return the irreducible ones from that system. 
-Otherwise, compute and cache a system of secondary invariants first.
+If a system of irreducible secondary invariants is already cached, return the cached system. 
+Otherwise, compute and cache such a system first.
 
-NOTE: A secondary invariant is *irreducible* if it cannot be written as a polynomial expession in the primary invariants and the other secondary invariants. The multiplicative unit 1 is not irreducible: It is considered to be the empty power product.
+NOTE: The irreducible secondary invariants are sorted by increasing degree.
 
 # Examples
 ```
@@ -663,23 +664,14 @@ function _molien_series_charp_nonmodular_via_gap(S::PolyRing, I::InvRing)
   return num//den
 end
 
-function molien_series(S::PolyRing, I::InvRing)
-  if characteristic(coefficient_ring(I)) == 0
-    return _molien_series_char0(S, I)
-  else
-    if !ismodular(I)
-      return _molien_series_charp_nonmodular_via_gap(S, I)
-    else
-      throw(NotImplemented())
-    end
-  end
-end
 
-@doc doc"""
+@doc Markdown.doc"""
     molien_series([S::PolyRing], I::InvRing)
 
-Return the Molien series of `I` as a rational function. The invariant ring must
-be non-modular.
+In the non-modular case, return the Molien series of `I` as a rational function. 
+
+If a univariate polynomial ring with rational coefficients is specified by the optional argument `S::PolyRing`, 
+then the Molien series is returned as an element of the fraction field of that ring.
 
 # Examples
 ```jldoctest
@@ -697,6 +689,17 @@ julia> molien_series(IR)
 (-t^6 + t^3 - 1)//(t^9 - 3*t^6 + 3*t^3 - 1)
 ```
 """
+function molien_series(S::PolyRing, I::InvRing)
+  if characteristic(coefficient_ring(I)) == 0
+    return _molien_series_char0(S, I)
+  else
+    if !ismodular(I)
+      return _molien_series_charp_nonmodular_via_gap(S, I)
+    else
+      throw(NotImplemented())
+    end
+  end
+end
 function molien_series(I::InvRing)
   if !isdefined(I, :molien_series)
     S, t = PolynomialRing(QQ, "t", cached = false)
@@ -707,12 +710,21 @@ end
 
 
 @doc Markdown.doc"""
-    fundamental_invariants(IR::InvRing)
+    fundamental_invariants(IR::InvRing, algo::Symbol = :king)
 
 Return a system of fundamental invariants for `IR`.
 
 If a system of fundamental invariants is already cached, return the cached system. 
 Otherwise, compute and cache such a system first.
+
+# Implemented Algorithms
+
+By default, the function relies on King's algorithm which finds a system of 
+fundamental invariants directly, without computing primary and secondary invariants. 
+
+Alternatively, if specified by `alg=:minimal_subalgebra`, the function computes
+fundamental invariants from a collection of primary and irreducible secondary invariants using
+the function `minimal_subalgebra_generators`.
 
 NOTE: The fundamental invariants are sorted by increasing degree.
 

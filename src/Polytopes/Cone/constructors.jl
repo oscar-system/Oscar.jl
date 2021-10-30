@@ -46,7 +46,7 @@ function Cone(R::Union{VectorIterator{RayVector}, Oscar.MatElem, AbstractMatrix}
     end
 end
 
-==(C0::Cone, C1::Cone) = Polymake.polytope.equal_polyhedra(pm_cone(C0), pm_cone(C1))
+==(C0::Cone, C1::Cone) = Polymake.polytope.equal_polyhedra(pm_object(C0), pm_object(C1))
 
 
 @doc Markdown.doc"""
@@ -108,11 +108,11 @@ function cone_from_inequalities(I::Union{HalfspaceIterator, Oscar.MatElem, Abstr
 end
 
 """
-    pm_cone(C::Cone)
+    pm_object(C::Cone)
 
 Get the underlying polymake `Cone`.
 """
-pm_cone(C::Cone) = C.pm_cone
+pm_object(C::Cone) = C.pm_cone
 
 
 ###############################################################################
@@ -125,4 +125,4 @@ function Base.show(io::IO, C::Cone)
     print(io,"A polyhedral cone in ambient dimension $(ambient_dim(C))")
 end
 
-Polymake.visual(C::Cone; opts...) = Polymake.visual(pm_cone(C); opts...)
+Polymake.visual(C::Cone; opts...) = Polymake.visual(pm_object(C); opts...)

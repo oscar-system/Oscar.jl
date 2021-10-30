@@ -74,11 +74,11 @@ function SubdivisionOfPoints(Points::Union{Oscar.MatElem,AbstractMatrix}, Weight
 end
 
 """
-    pm_subdivision(SOP::SubdivisionOfPoints)
+    pm_object(SOP::SubdivisionOfPoints)
 
 Get the underlying polymake object, which can be used via Polymake.jl.
 """
-pm_subdivision(SOP::SubdivisionOfPoints) = SOP.pm_subdivision
+pm_object(SOP::SubdivisionOfPoints) = SOP.pm_subdivision
 
 
 

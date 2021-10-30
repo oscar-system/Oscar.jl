@@ -31,7 +31,6 @@ export Cone,
     cross,
     cube,
     dim,
-    dual_cone,
     faces,
     facets,
     facets_as_halfspace_matrix_pair,
@@ -79,6 +78,7 @@ export Cone,
     nfacets,
     nmaximal_cones,
     nmaximal_cells,
+    npoints,
     nrays,
     nv,
     nvertices,
@@ -86,6 +86,7 @@ export Cone,
     orbit_polytope,
     point_matrix,
     polarize,
+    primitive_collections,
     print_constraints,
     product,
     recession_cone,
@@ -97,16 +98,16 @@ export Cone,
     secondary_cone,
     simplex,
     solve_lp,
+    starsubdivision,
     support_function,
     positive_hull,
     rays,
-    rays_as_point_matrix,
     upper_bound_theorem,
     vertices,
-    vertices_as_point_matrix,
     vf_group,
     visualize,
-    volume
+    volume,
+    *
 
 include("helpers.jl")
 include("iterators.jl")
@@ -128,3 +129,9 @@ include("Graphs.jl")
 include("Serialization.jl")
 include("Visualization.jl")
 include("solving_integrally.jl")
+
+# Some temporary aliases to avoid breaking all current PRs
+pm_cone(C::Cone) = pm_object(C)
+pm_fan(PF::PolyhedralFan) = pm_object(PF)
+pm_subdivision(SOP::SubdivisionOfPoints) = pm_object(SOP)
+pm_polytope(P::Polyhedron) = pm_object(P)

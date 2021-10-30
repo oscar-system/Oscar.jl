@@ -32,15 +32,15 @@ end
 #TODO: rename this. It is the automorphism group of the vertex facet incidence
 #also applies to tests and exports
 function vf_group(P::Polyhedron)
-    if P.pm_polytope.BOUNDED
-        pm_group_to_oscar_group(Polymake.group.automorphism_group(P.pm_polytope.VERTICES_IN_FACETS).PERMUTATION_ACTION)
+    if pm_object(P).BOUNDED
+        pm_group_to_oscar_group(Polymake.group.automorphism_group(pm_object(P).VERTICES_IN_FACETS).PERMUTATION_ACTION)
     else
         throw(ArgumentError("Symmetry groups currently supported for bounded polyhedra only"))
     end
 end
 function combinatorial_symmetries(P::Polyhedron)
-    if P.pm_polytope.BOUNDED
-        pm_group_to_oscar_group(Polymake.polytope.combinatorial_symmetries(P.pm_polytope))
+    if pm_object(P).BOUNDED
+        pm_group_to_oscar_group(Polymake.polytope.combinatorial_symmetries(pm_object(P)))
     else
         throw(ArgumentError("Symmetry groups currently supported for bounded polyhedra only"))
     end
@@ -52,8 +52,8 @@ end
 Get the group of linear symmetries on the vertices of a polyhedron.
 """
 function linear_symmetries(P::Polyhedron)
-    if P.pm_polytope.BOUNDED
-        pm_group_to_oscar_group(Polymake.polytope.linear_symmetries(P.pm_polytope.VERTICES).PERMUTATION_ACTION)
+    if pm_object(P).BOUNDED
+        pm_group_to_oscar_group(Polymake.polytope.linear_symmetries(pm_object(P).VERTICES).PERMUTATION_ACTION)
     else
         throw(ArgumentError("Symmetry groups currently supported for bounded polyhedra only"))
     end

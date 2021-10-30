@@ -27,7 +27,7 @@ julia> rays(NF)
  [0, 0, -1]
 ```
 """
-rays(PF::PolyhedralFan) = VectorIterator{RayVector{Polymake.Rational}}(pm_fan(PF).RAYS)
+rays(PF::PolyhedralFan) = VectorIterator{RayVector{Polymake.Rational}}(pm_object(PF).RAYS)
 
 @doc Markdown.doc"""
     maximal_cones(PF::PolyhedralFan)
@@ -71,7 +71,7 @@ function Base.iterate(iter::MaximalConeIterator, index = 1)
     if index > nmaximal_cones(iter.PF)
         return nothing
     end
-    current_cone = Cone(Polymake.fan.cone(pm_fan(iter.PF), index - 1))
+    current_cone = Cone(Polymake.fan.cone(pm_object(iter.PF), index - 1))
     return (current_cone, index + 1)
 end
 Base.length(iter::MaximalConeIterator) = nmaximal_cones(iter.PF)
@@ -81,8 +81,8 @@ Base.length(iter::MaximalConeIterator) = nmaximal_cones(iter.PF)
 #     if (cone_dim < 0)
 #         return nothing
 #     end
-#     rcones = Polymake.fan.cones_of_dim(PF.pm_fan,cone_dim-length(lineality_space(PF)))
-#     return PolyhedronOrConeIterator{rtype}(PF.pm_fan.RAYS,rcones, PF.pm_fan.LINEALITY_SPACE)
+#     rcones = Polymake.fan.cones_of_dim(pm_object(PF),cone_dim-length(lineality_space(PF)))
+#     return PolyhedronOrConeIterator{rtype}(pm_object(PF).RAYS,rcones, pm_object(PF).LINEALITY_SPACE)
 # end
 
 ###############################################################################
@@ -110,7 +110,7 @@ julia> dim(PF)
 2
 ```
 """
-dim(PF::PolyhedralFan) = pm_fan(PF).FAN_DIM
+dim(PF::PolyhedralFan) = pm_object(PF).FAN_DIM
 
 @doc Markdown.doc"""
     nmaximal_cones(PF::PolyhedralFan)
@@ -127,7 +127,7 @@ julia> nmaximal_cones(PF)
 2
 ```
 """
-nmaximal_cones(PF::PolyhedralFan) = pm_fan(PF).N_MAXIMAL_CONES
+nmaximal_cones(PF::PolyhedralFan) = pm_object(PF).N_MAXIMAL_CONES
 
 @doc Markdown.doc"""
     ambient_dim(PF::PolyhedralFan)
@@ -145,7 +145,7 @@ julia> ambient_dim(normal_fan(cube(4)))
 4
 ```
 """
-ambient_dim(PF::PolyhedralFan) = pm_fan(PF).FAN_AMBIENT_DIM
+ambient_dim(PF::PolyhedralFan) = pm_object(PF).FAN_AMBIENT_DIM
 
 @doc Markdown.doc"""
     nrays(PF::PolyhedralFan)
@@ -159,7 +159,7 @@ julia> nrays(face_fan(cube(3)))
 8
 ```
 """
-nrays(PF::PolyhedralFan) = pm_fan(PF).N_RAYS
+nrays(PF::PolyhedralFan) = pm_object(PF).N_RAYS
 
 
 @doc Markdown.doc"""
@@ -192,7 +192,7 @@ julia> f_vector(nfc)
 ```
 """
 function f_vector(PF::PolyhedralFan)
-    pmf = pm_fan(PF)
+    pmf = pm_object(PF)
     ldim = pmf.LINEALITY_DIM
     return vcat(fill(0,ldim),pmf.F_VECTOR)
 end
@@ -223,7 +223,7 @@ julia> lineality_dim(nf)
 1
 ```
 """
-lineality_dim(PF::PolyhedralFan) = pm_fan(PF).LINEALITY_DIM
+lineality_dim(PF::PolyhedralFan) = pm_object(PF).LINEALITY_DIM
 
 ###############################################################################
 ## Points properties
@@ -248,7 +248,7 @@ julia> lineality_space(PF)
  [1, 0]
 ```
 """
-lineality_space(PF::PolyhedralFan) = VectorIterator{RayVector{Polymake.Rational}}(pm_fan(PF).LINEALITY_SPACE)
+lineality_space(PF::PolyhedralFan) = VectorIterator{RayVector{Polymake.Rational}}(pm_object(PF).LINEALITY_SPACE)
 
 @doc Markdown.doc"""
     maximal_cones_as_incidence_matrix(PF::PolyhedralFan)
@@ -281,7 +281,7 @@ julia> maximal_cones_as_incidence_matrix(PF)
 ```
 """
 function maximal_cones_as_incidence_matrix(PF::PolyhedralFan)
-   IncidenceMatrix(pm_fan(PF).MAXIMAL_CONES)
+   IncidenceMatrix(pm_object(PF).MAXIMAL_CONES)
 end
 
 ###############################################################################
@@ -311,7 +311,7 @@ julia> lineality_dim(nf)
 1
 ```
 """
-ispointed(PF::PolyhedralFan) = pm_fan(PF).POINTED
+ispointed(PF::PolyhedralFan) = pm_object(PF).POINTED
 
 
 @doc Markdown.doc"""
@@ -329,7 +329,7 @@ julia> issmooth(PF)
 false
 ```
 """
-issmooth(PF::PolyhedralFan) = pm_fan(PF).SMOOTH_FAN
+issmooth(PF::PolyhedralFan) = pm_object(PF).SMOOTH_FAN
 
 @doc Markdown.doc"""
     isregular(PF::PolyhedralFan)
@@ -345,7 +345,7 @@ julia> isregular(PF)
 false
 ```
 """
-isregular(PF::PolyhedralFan) = pm_fan(PF).REGULAR
+isregular(PF::PolyhedralFan) = pm_object(PF).REGULAR
 
 @doc Markdown.doc"""
     iscomplete(PF::PolyhedralFan)
@@ -360,4 +360,144 @@ julia> iscomplete(normal_fan(cube(3)))
 true
 ```
 """
-iscomplete(PF::PolyhedralFan) = pm_fan(PF).COMPLETE
+iscomplete(PF::PolyhedralFan) = pm_object(PF).COMPLETE
+
+
+###############################################################################
+## Primitive collections
+###############################################################################
+
+@doc Markdown.doc"""
+    primitive_collections(PF::PolyhedralFan)
+
+Computes the primitive collections of a polyhedral fan.
+
+# Examples
+```jldoctest
+julia> primitive_collections(normal_fan(Oscar.simplex(3)))
+1-element Vector{Vector{Int64}}:
+ [1, 2, 3, 4]
+```
+"""
+function primitive_collections(PF::PolyhedralFan)
+    # collect data
+    cones = [findall(x->x!=0, l) for l in eachrow(pm_fan(PF).MAXIMAL_CONES)]
+    all_points = [i for i in 1 : pm_fan(PF).N_RAYS]
+    d_max = maximum([length(i) for i in cones]) + 1
+    # identify and return the primitive collections
+    collections = Vector{Int}[]
+    for d in 1:d_max
+        checked  = Vector{Int}[]
+        for cone in cones
+            d <= length(cone) || continue
+            for I_minus_j in Oscar.Hecke.subsets(cone, d)
+                scanner = setdiff(all_points, I_minus_j)
+                for j in scanner
+                    I = vcat(I_minus_j, [j])
+                    I in checked && continue
+                    push!(checked, I)
+                    # (1) I is contained in the primitive collections iff it is not contained in any cone
+                    if !any(test_cone -> issubset(I, test_cone), cones)
+                        # (2) I is generator of the primitive collections iff primitive_collections does not contain a "smaller" generator
+                        if !any(prim -> issubset(prim, I), collections)
+                            push!(collections, I) # add new generator
+                        end
+                    end
+                end
+            end
+        end
+    end
+    # return the computed primitive collections
+    return collections
+end
+
+
+###############################################################################
+## Star subdivision
+###############################################################################
+
+@doc Markdown.doc"""
+    starsubdivision(PF::PolyhedralFan, n::Int)
+
+Computes the star subdivision of a polyhedral fan at its n-th maximal torus orbit.
+
+# Examples
+```jldoctest
+julia> star = starsubdivision(normal_fan(simplex(3)), 1)
+A polyhedral fan in ambient dimension 3
+
+julia> rays(star)
+5-element VectorIterator{RayVector{Polymake.Rational}}:
+ [0, 1, 0]
+ [0, 0, 1]
+ [-1, -1, -1]
+ [1, 0, 0]
+ [1, 1, 1]
+
+julia> maximal_cones_as_incidence_matrix(star)
+6×5 IncidenceMatrix
+[1, 2, 3]
+[2, 3, 4]
+[1, 3, 4]
+[2, 4, 5]
+[1, 2, 5]
+[1, 4, 5]
+```
+"""
+function starsubdivision(PF::PolyhedralFan, n::Int)
+    # extract defining information on the fan
+    maxcones = IncidenceMatrix(pm_object(PF).MAXIMAL_CONES)
+    R = Polymake.common.primitive(pm_object(PF).RAYS)
+    
+    # check if n-th maximal cone does exist
+    if length(maxcones) < n
+        throw(ArgumentError("Cannot subdivide maximal cone $n as it does not exist!"))
+    end
+    nthmaxcone = Polymake.row(maxcones, n)
+    
+    # construct this cone and check if it is smooth
+    cone = Polymake.fan.cone(pm_object(PF), n-1)
+    if !cone.SMOOTH_CONE
+        throw(ArgumentError("Cannot subdivide maximal cone " * string(n) * " as it is not smooth!"))
+    end
+    
+    # compute new rays to be added from star subdivision
+    newindex = size(R,1) + 1
+    newray = sum([R[i,:] for i in nthmaxcone])
+    
+    # add this ray to form list of the new rays
+    newrays = [R; transpose(newray)]
+    
+    # identify all maximal cones in the new fan
+    d = Polymake.polytope.dim(cone)
+    newmaxcones = [Vector{Int64}(Polymake.row(maxcones, i)) for i in 1:(Polymake.nrows(maxcones)) if i!= n]
+    for subset in Oscar.Hecke.subsets(Vector{Int64}(nthmaxcone), d-1)
+        tmp = Vector{Int64}(subset)
+        append!(tmp, newindex)
+        push!(newmaxcones, tmp)
+    end
+    newmaxcones = IncidenceMatrix(newmaxcones)
+    
+    # return the new fan
+    return PolyhedralFan(newrays, newmaxcones)
+    
+end
+
+###############################################################################
+## Cartesian/Direct product
+###############################################################################
+
+@doc Markdown.doc"""
+    *(PF1::PolyhedralFan, PF2::PolyhedralFan)
+
+Computes the Cartesian/direct product of two polyhedral fans.
+
+# Examples
+```jldoctest
+julia> normal_fan(Oscar.simplex(2))*normal_fan(Oscar.simplex(3))
+A polyhedral fan in ambient dimension 5
+```
+"""
+function Base.:*(PF1::PolyhedralFan, PF2::PolyhedralFan)
+    return PolyhedralFan(Polymake.fan.product(pm_fan(PF1), pm_fan(PF2)))
+end

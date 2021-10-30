@@ -87,29 +87,29 @@
      ],
      "NumberTheory/abelian_closure.md",
   ],
-    "Polyhedral Geometry" => [
-       "PolyhedralGeometry/intro.md",
-       "Polyhedra"=> [
-         "PolyhedralGeometry/Polyhedra/intro.md",
-         "PolyhedralGeometry/Polyhedra/constructions.md",
-         "PolyhedralGeometry/Polyhedra/polymake.md",
-         "PolyhedralGeometry/Polyhedra/auxiliary.md",
-         "PolyhedralGeometry/Polyhedra/serialization.md",
-         "PolyhedralGeometry/Polyhedra/visualization.md",
-       ],
-        "PolyhedralGeometry/cones.md",
-        "PolyhedralGeometry/fans.md",
-        "PolyhedralGeometry/graphs.md",
-        "PolyhedralGeometry/linear_programs.md",
-        "PolyhedralGeometry/subdivisions_of_points.md",
-    ],
+
+  "Polyhedral Geometry" => [
+     "PolyhedralGeometry/intro.md",
+     "Polyhedra"=> [
+       "PolyhedralGeometry/Polyhedra/intro.md",
+       "PolyhedralGeometry/Polyhedra/constructions.md",
+       "PolyhedralGeometry/Polyhedra/polymake.md",
+       "PolyhedralGeometry/Polyhedra/auxiliary.md",
+       "PolyhedralGeometry/Polyhedra/serialization.md",
+       "PolyhedralGeometry/Polyhedra/visualization.md",
+     ],
+      "PolyhedralGeometry/cones.md",
+      "PolyhedralGeometry/fans.md",
+      "PolyhedralGeometry/graphs.md",
+      "PolyhedralGeometry/linear_programs.md",
+      "PolyhedralGeometry/subdivisions_of_points.md",
+  ],
 
   "Commutative Algebra" => [
      "CommutativeAlgebra/intro.md",
      "CommutativeAlgebra/rings.md",
      "CommutativeAlgebra/ideals.md",
      "CommutativeAlgebra/modules.md",
-     "CommutativeAlgebra/quotient_rings.md",
      "CommutativeAlgebra/affine_algebras.md",
      "CommutativeAlgebra/binomial_ideals.md",
   ],
@@ -120,7 +120,7 @@
      "InvariantTheory/reductive_groups.md",
   ],
 
-  "Geometry" => [
+  "Algebraic Geometry" => [
 #     "Curves" => [
 #        "Experimental/introduction.md",
 #        "Experimental/plane_curves.md",
@@ -128,6 +128,18 @@
 #        "Experimental/elliptic_curves.md",
 #        "Experimental/non_plane_curves.md",
 #     ],
+  ],
+
+  "Toric Varieties" => [
+     "ToricVarieties/intro.md",
+     "ToricVarieties/NormalToricVarieties.md",
+     "ToricVarieties/ToricDivisors.md",
+  ],
+
+  "General" => [
+     "General/styleguide.md",
+     "General/other.md",
+     "General/faq.md",
   ],
 
   "References" => "references.md",

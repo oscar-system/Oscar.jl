@@ -12,35 +12,153 @@ Pages = ["affine_algebras.md"]
 
 # Affine Algebras
 
-An affine algebra over a field $K$, or an affine $K$-algebra, or simply an affine algebra, is the quotient $A=R/I$ of a multivariate
-polynomial ring $R$ over $K$ modulo an ideal $I$ of $R$. 
+With regard to notation, we use *affine algebra* as a synonym for *quotient ring of a multivariate polynomial ring modulo an ideal*.
+More specifically, if $R$ is a multivariate polynomial ring with coefficient ring $C$, and $A=R/I$ is the quotient ring of $R$
+modulo an ideal $I$ of $R$, we refer to $A$ as an affine algebra over $C$, or an affine $C$-algebra. In this section, we discuss
+functionality for handling such algebras in OSCAR.
 
-## Constructions of Affine Algebras
+!!! note
+    As for the entire chapter on commutative algebra, most of the functions discussed here rely on Gröbner basis techniques. They are implemented for affine algebras over fields (exact fields supported by OSCAR) and, if not indicated otherwise, for affine algebras over the integers.
 
-The general constructor for quotients of multivariate polynomial rings
-modulo ideals (graded multivariate polynomial rings modulo homogeneous ideals)
-allows one to create affine algebras:
+The polynomial rings (affine algebras) considered may or may not have an assigned grading.
 
-```@julia
-quo(R::MPolyRing, I::MPolyIdeal) -> MPolyQuoRing, Map
+## Constructor
+
+```@docs
+quo(R::MPolyRing, I::MPolyIdeal)
 ```
 
-Alternatively, the ideal may be given by entering a vector of generators:
+!!! note
+    With or without an assigned grading, the return types of `quo` are  subtypes of `MPolyQuo`.
 
+!!! note
+    In Oscar, elements of quotient rings are not necessarily reduced with regard to the modulus of the quotient ring.
+    Operations involving Gröbner basis computations may lead to partial reductions. Full reductions, depending on the choice of a monomial ordering, are achieved by explicitly computing normal forms. The functions `simplify` and `simplify!` discussed in the sections below implements this.
 
-```@julia
-quo(R::MPolyRing, V::Vector{MPolyElem}) -> MPolyQuoRing, Map
-```
+## Data Associated to Affine Algebras
 
-##### Examples
+### Basic Data
+
+If `A=R/I` is the quotient ring of a multivariate polynomial ring `R` modulo an ideal `I` of `R`, then
+
+- `base_ring(A)` refers to `R`,
+- `modulus(A)` to `I`,
+- `gens(A)` to the generators of `A`, and
+- `ngens(A)` to the number of these generators.
+
+###### Examples
 
 ```@repl oscar
-R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-I = ideal(R, [y-x^2])
-A, p = quo(R, I)
-R, (x, y) = grade(R)
-V = [y^2-x^2]
-A, p = quo(R, V)
+R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+A, _ = quo(R, ideal(R, [y-x^2, x-z^3]))
+base_ring(A)
+modulus(A)
+gens(A)
+ngens(A)
+```
+
+### Dimension
+
+```@docs
+dim(A::MPolyQuo)
+```
+
+## Elements of Affine Algebras
+
+### Reducing Elements of Affine Algebras
+
+```@docs
+simplify(f::MPolyQuoElem)
+```
+
+### Tests on Elements of Affine Algebras
+
+```@docs
+ ==(f::MPolyQuoElem, g::MPolyQuoElem)
+```
+
+## Ideals in Affine Algebras
+
+### Constructors
+
+```@docs
+ideal(Q::MPolyQuo{T}, V::Vector{T}) where T <: MPolyElem
+```
+
+### Reducing Ideals in Affine Algebras
+
+```@docs
+simplify(a::MPolyQuoIdeal)
+```
+
+### Data Associated to Ideals in Affine Algebras
+
+#### Basic Data
+
+If `a` is an ideal of the affine algebra `A`, then
+
+- `base_ring(a)` refers to `A`,
+- `gens(a)` to the generators of `a`, and
+- `ngens(a)` to the number of these generators.
+
+
+#### Dimension of Ideals in Affine Algebras
+
+```@docs
+dim(a::MPolyQuoIdeal)
+```
+
+### Operations on Ideals in Affine Algebras
+
+#### Simple Ideal Operations in Affine Algebras
+
+##### Powers of Ideal
+
+```@docs
+:^(a::MPolyQuoIdeal, m::Int)
+```
+##### Sum of Ideals
+
+```@docs
+:+(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
+```
+
+##### Product of Ideals
+
+```@docs
+:*(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
+```
+
+#### Intersection of Ideals
+
+```@docs
+intersect(a::MPolyQuoIdeal, bs::MPolyQuoIdeal...)
+```
+
+#### Ideal Quotients
+
+```@docs
+quotient(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
+```
+
+### Tests on Ideals in Affine Algebras
+
+#### Basic Tests
+
+```@docs
+iszero(a::MPolyQuoIdeal)
+```
+
+#### Equality of Ideals in Affine Algebras
+
+```@docs
+:(==)(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
+```
+
+#### Containment of Ideals in Affine Algebras
+
+```@docs
+issubset(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
 ```
 
 ## Homomorphisms of Affine Algebras
@@ -99,6 +217,7 @@ steinerRomanSurface = preimage(F3, sphere)
 ```
 
 ### Tests on Homomorphisms of Affine Algebras
+
 
 ```@docs
 isinjective(F::AlgHom)
@@ -228,6 +347,11 @@ integral_basis(f, 2)
 
 ## Tests on Affine Algebras
 
+### Reducedness Test
+
+```@docs
+isreduced(Q::MPolyQuo)
+```
 
 ### Normality Test
 
