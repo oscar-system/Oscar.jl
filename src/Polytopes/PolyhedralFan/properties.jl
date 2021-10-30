@@ -361,3 +361,143 @@ true
 ```
 """
 iscomplete(PF::PolyhedralFan) = pm_object(PF).COMPLETE
+
+
+###############################################################################
+## Primitive collections
+###############################################################################
+
+@doc Markdown.doc"""
+    primitive_collections(PF::PolyhedralFan)
+
+Computes the primitive collections of a polyhedral fan.
+
+# Examples
+```jldoctest
+julia> primitive_collections(normal_fan(Oscar.simplex(3)))
+1-element Vector{Vector{Int64}}:
+ [1, 2, 3, 4]
+```
+"""
+function primitive_collections(PF::PolyhedralFan)
+    # collect data
+    cones = [findall(x->x!=0, l) for l in eachrow(pm_fan(PF).MAXIMAL_CONES)]
+    all_points = [i for i in 1 : pm_fan(PF).N_RAYS]
+    d_max = maximum([length(i) for i in cones]) + 1
+    # identify and return the primitive collections
+    collections = Vector{Int}[]
+    for d in 1:d_max
+        checked  = Vector{Int}[]
+        for cone in cones
+            d <= length(cone) || continue
+            for I_minus_j in Oscar.Hecke.subsets(cone, d)
+                scanner = setdiff(all_points, I_minus_j)
+                for j in scanner
+                    I = vcat(I_minus_j, [j])
+                    I in checked && continue
+                    push!(checked, I)
+                    # (1) I is contained in the primitive collections iff it is not contained in any cone
+                    if !any(test_cone -> issubset(I, test_cone), cones)
+                        # (2) I is generator of the primitive collections iff primitive_collections does not contain a "smaller" generator
+                        if !any(prim -> issubset(prim, I), collections)
+                            push!(collections, I) # add new generator
+                        end
+                    end
+                end
+            end
+        end
+    end
+    # return the computed primitive collections
+    return collections
+end
+
+
+###############################################################################
+## Star subdivision
+###############################################################################
+
+@doc Markdown.doc"""
+    starsubdivision(PF::PolyhedralFan, n::Int)
+
+Computes the star subdivision of a polyhedral fan at its n-th maximal torus orbit.
+
+# Examples
+```jldoctest
+julia> star = starsubdivision(normal_fan(simplex(3)), 1)
+A polyhedral fan in ambient dimension 3
+
+julia> rays(star)
+5-element VectorIterator{RayVector{Polymake.Rational}}:
+ [0, 1, 0]
+ [0, 0, 1]
+ [-1, -1, -1]
+ [1, 0, 0]
+ [1, 1, 1]
+
+julia> maximal_cones_as_incidence_matrix(star)
+6×5 IncidenceMatrix
+[1, 2, 3]
+[2, 3, 4]
+[1, 3, 4]
+[2, 4, 5]
+[1, 2, 5]
+[1, 4, 5]
+```
+"""
+function starsubdivision(PF::PolyhedralFan, n::Int)
+    # extract defining information on the fan
+    maxcones = IncidenceMatrix(pm_object(PF).MAXIMAL_CONES)
+    R = Polymake.common.primitive(pm_object(PF).RAYS)
+    
+    # check if n-th maximal cone does exist
+    if length(maxcones) < n
+        throw(ArgumentError("Cannot subdivide maximal cone $n as it does not exist!"))
+    end
+    nthmaxcone = Polymake.row(maxcones, n)
+    
+    # construct this cone and check if it is smooth
+    cone = Polymake.fan.cone(pm_object(PF), n-1)
+    if !cone.SMOOTH_CONE
+        throw(ArgumentError("Cannot subdivide maximal cone " * string(n) * " as it is not smooth!"))
+    end
+    
+    # compute new rays to be added from star subdivision
+    newindex = size(R,1) + 1
+    newray = sum([R[i,:] for i in nthmaxcone])
+    
+    # add this ray to form list of the new rays
+    newrays = [R; transpose(newray)]
+    
+    # identify all maximal cones in the new fan
+    d = Polymake.polytope.dim(cone)
+    newmaxcones = [Vector{Int64}(Polymake.row(maxcones, i)) for i in 1:(Polymake.nrows(maxcones)) if i!= n]
+    for subset in Oscar.Hecke.subsets(Vector{Int64}(nthmaxcone), d-1)
+        tmp = Vector{Int64}(subset)
+        append!(tmp, newindex)
+        push!(newmaxcones, tmp)
+    end
+    newmaxcones = IncidenceMatrix(newmaxcones)
+    
+    # return the new fan
+    return PolyhedralFan(newrays, newmaxcones)
+    
+end
+
+###############################################################################
+## Cartesian/Direct product
+###############################################################################
+
+@doc Markdown.doc"""
+    *(PF1::PolyhedralFan, PF2::PolyhedralFan)
+
+Computes the Cartesian/direct product of two polyhedral fans.
+
+# Examples
+```jldoctest
+julia> normal_fan(Oscar.simplex(2))*normal_fan(Oscar.simplex(3))
+A polyhedral fan in ambient dimension 5
+```
+"""
+function Base.:*(PF1::PolyhedralFan, PF2::PolyhedralFan)
+    return PolyhedralFan(Polymake.fan.product(pm_fan(PF1), pm_fan(PF2)))
+end

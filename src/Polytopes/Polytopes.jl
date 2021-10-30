@@ -86,6 +86,7 @@ export Cone,
     orbit_polytope,
     point_matrix,
     polarize,
+    primitive_collections,
     print_constraints,
     product,
     recession_cone,
@@ -97,6 +98,7 @@ export Cone,
     secondary_cone,
     simplex,
     solve_lp,
+    starsubdivision,
     support_function,
     positive_hull,
     rays,
@@ -104,7 +106,8 @@ export Cone,
     vertices,
     vf_group,
     visualize,
-    volume
+    volume,
+    *
 
 include("helpers.jl")
 include("iterators.jl")
