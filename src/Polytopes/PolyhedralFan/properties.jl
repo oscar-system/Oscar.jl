@@ -52,29 +52,33 @@ julia> for c in maximal_cones(PF)
 ```
 """
 
-#TODO: should the documentation mention maximal_cones_as_incidence_matrix?
-#      similarly for cone ray iterators and facet iterators?
+_maximal_cone(PF::Polymake.BigObject, i::Base.Integer) = Cone(Polymake.fan.cone(PF, i - 1))
+
 @doc Markdown.doc"""
-    maximal_cones(PF::PolyhedralFan, as = :cones)
+    maximal_cones(PF::PolyhedralFan)
 
 Return an iterator over the maximal cones of `PF`.
 """
-function maximal_cones(PF::PolyhedralFan)
-   MaximalConeIterator(PF)
-end
+maximal_cones(PF::PolyhedralFan) = SubObjectIterator{Cone}(PF.pm_fan, _maximal_cone, nmaximal_cones(PF))
+# MaximalConeIterator(PF)
 
-struct MaximalConeIterator
-    PF::PolyhedralFan
-end
+# struct MaximalConeIterator
+#     PF::PolyhedralFan
+# end
 
-function Base.iterate(iter::MaximalConeIterator, index = 1)
-    if index > nmaximal_cones(iter.PF)
-        return nothing
-    end
-    current_cone = Cone(Polymake.fan.cone(pm_object(iter.PF), index - 1))
-    return (current_cone, index + 1)
+# function Base.iterate(iter::MaximalConeIterator, index = 1)
+#     if index > nmaximal_cones(iter.PF)
+#         return nothing
+#     end
+#     current_cone = Cone(Polymake.fan.cone(pm_fan(iter.PF), index - 1))
+#     return (current_cone, index + 1)
+# end
+# Base.length(iter::MaximalConeIterator) = nmaximal_cones(iter.PF)
+
+function incidence_matrix(iter::SubObjectIterator)
+    iter.Acc != _maximal_cone && throw(ArgumentError("Iterator not defined for these sub-objects."))
+    return iter.PF.pm_fan.MAXIMAL_CONES
 end
-Base.length(iter::MaximalConeIterator) = nmaximal_cones(iter.PF)
 
 @doc Markdown.doc"""
     cones(as::Type{T} = Cone, PF::PolyhedralFan, cone_dim::Int)
