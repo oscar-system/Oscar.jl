@@ -259,3 +259,22 @@ VectorIterator(x...) = VectorIterator{PointVector{Polymake.Rational}}(x...)
 ####################
 
 matrix_for_polymake(iter::VectorIterator) = iter.m
+
+####################
+
+struct SubObjectIterator{T} <: AbstractVector{T}
+    Obj::Polymake.BigObject
+    Acc::Function
+    n::Base.Integer
+end
+
+Base.IndexStyle(::Type{<:SubObjectIterator}) = IndexLinear()
+
+function Base.getindex(iter::SubObjectIterator, i::Base.Integer)
+    # @boundscheck checkbounds(iter.m, i, 1)
+    return iter.Acc(iter.Obj, i)
+end
+
+Base.firstindex(::SubObjectIterator) = 1
+Base.lastindex(iter::SubObjectIterator) = length(iter)
+Base.size(iter::SubObjectIterator) = (iter.n,)
