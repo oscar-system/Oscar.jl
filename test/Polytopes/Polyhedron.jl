@@ -45,7 +45,7 @@
         @test faces(square, 1) isa PolyhedronOrConeIterator{Polyhedron}
         @test length(faces(square, 1)) == 4
         @test size(faces(square, 1).lineality) == (0, 3)
-        @test isnothing(faces(square, -1))
+        @test isnothing(faces(Q2, 0))
         @test vertices(minkowski_sum(Q0, square)).m == [2 -1; 2 1; -1 -1; -1 2; 1 2]
         @test facets(Halfspace, Pos) isa HalfspaceIterator{Halfspace}
         @test facets(Pair, Pos) isa HalfspaceIterator{Pair{Polymake.Matrix{Polymake.Rational}, Polymake.Rational}}

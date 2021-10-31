@@ -76,14 +76,42 @@ function Base.iterate(iter::MaximalConeIterator, index = 1)
 end
 Base.length(iter::MaximalConeIterator) = nmaximal_cones(iter.PF)
 
-# function cones(as::Type{T}, PF::PolyhedralFan, cone_dim::Int) where {T}
-#     rtype = AsTypeIdentitiesC(as)
-#     if (cone_dim < 0)
-#         return nothing
-#     end
-#     rcones = Polymake.fan.cones_of_dim(pm_object(PF),cone_dim-length(lineality_space(PF)))
-#     return PolyhedronOrConeIterator{rtype}(pm_object(PF).RAYS,rcones, pm_object(PF).LINEALITY_SPACE)
-# end
+@doc Markdown.doc"""
+    cones(as::Type{T} = Cone, PF::PolyhedralFan, cone_dim::Int)
+
+Return an iterator over the cones of `PF` of dimension `cone_dim`.
+
+The returned type is specified by the argument `as`, including:
+* `Cone` (default).
+
+# Examples
+The 12 edges of the 3-cube correspond to the 2-dimensional cones of its face fan:
+```jldoctest
+julia> PF = face_fan(cube(3));
+
+julia> cones(PF, 2)
+12-element PolyhedronOrConeIterator{Cone}:
+ A polyhedral cone in ambient dimension 3
+ A polyhedral cone in ambient dimension 3
+ A polyhedral cone in ambient dimension 3
+ A polyhedral cone in ambient dimension 3
+ A polyhedral cone in ambient dimension 3
+ A polyhedral cone in ambient dimension 3
+ A polyhedral cone in ambient dimension 3
+ A polyhedral cone in ambient dimension 3
+ A polyhedral cone in ambient dimension 3
+ A polyhedral cone in ambient dimension 3
+ A polyhedral cone in ambient dimension 3
+ A polyhedral cone in ambient dimension 3
+```
+"""
+function cones(as::Type{T}, PF::PolyhedralFan, cone_dim::Int) where {T<:Cone}
+    cone_dim  - length(lineality_space(PF)) < 1 && return nothing
+    rcones = Polymake.fan.cones_of_dim(PF.pm_fan,cone_dim - length(lineality_space(PF)))
+    return PolyhedronOrConeIterator{as}(PF.pm_fan.RAYS, rcones, PF.pm_fan.LINEALITY_SPACE)
+end
+
+cones(PF::PolyhedralFan, cone_dim::Int) = cones(Cone, PF, cone_dim)
 
 ###############################################################################
 ###############################################################################

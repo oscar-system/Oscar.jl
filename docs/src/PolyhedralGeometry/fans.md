@@ -71,6 +71,7 @@ lineality_dim(PF::PolyhedralFan)
 lineality_space(PF::PolyhedralFan)
 maximal_cones(PF::PolyhedralFan)
 maximal_cones_as_incidence_matrix(PF::PolyhedralFan)
+cones(as::Type{T}, PF::PolyhedralFan, cone_dim::Int) where {T<:Cone}
 nmaximal_cones(PF::PolyhedralFan)
 nrays(PF::PolyhedralFan)
 rays(PF::PolyhedralFan)
