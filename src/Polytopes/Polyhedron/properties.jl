@@ -9,11 +9,10 @@
 @doc Markdown.doc"""
     faces(as::Type{T} = Polyhedron, P::Polyhedron, face_dim::Int)
 
-Return the faces of `P` of dimension `face_dim` as an iterator over the type of
-object given by `as`.
+Return an iterator over the faces of `P` of dimension `face_dim`.
 
-Optional arguments for `as` include
-* `Polyhedron`.
+The returned type is specified by the argument `as`, including:
+* `Polyhedron` (default).
 
 # Examples
 A `Vector` containing the six sides of the 3-dimensional cube can be obtained
@@ -31,7 +30,7 @@ julia> F = faces(Polyhedron, cube(3), 2)
 """
 function faces(as::Type{T}, P::Polyhedron, face_dim::Int) where T<:Polyhedron
     face_dim - length(lineality_space(P)) < 0 && return nothing
-    pfaces = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(pm_polytope(P),face_dim-length(lineality_space(P))))
+    pfaces = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(pm_object(P),face_dim-length(lineality_space(P))))
     nfaces = length(pfaces)
     rfaces = Vector{Int64}()
     sizehint!(rfaces, nfaces)
@@ -40,7 +39,7 @@ function faces(as::Type{T}, P::Polyhedron, face_dim::Int) where T<:Polyhedron
         for v in pfaces[index]
             #Checking that the first coordinate is zero is equivalent
             #  to being a vertex of the far face
-            if !iszero(pm_polytope(P).VERTICES[v[1],1])
+            if !iszero(pm_object(P).VERTICES[v[1],1])
                 isfar = false
                 break
             end
@@ -49,7 +48,7 @@ function faces(as::Type{T}, P::Polyhedron, face_dim::Int) where T<:Polyhedron
             push!(rfaces, index)
         end
     end
-    return PolyhedronOrConeIterator{as}(P.pm_polytope.VERTICES,pfaces[rfaces], P.pm_polytope.LINEALITY_SPACE)
+    return PolyhedronOrConeIterator{as}(pm_object(P).VERTICES,pfaces[rfaces], pm_object(P).LINEALITY_SPACE)
 end
 @doc Markdown.doc"""
     faces(P::Polyhedron, face_dim::Int)
@@ -95,7 +94,7 @@ julia> vertices(PointVector, P)
 ```
 """
 function vertices(as::Type{PointVector{T}}, P::Polyhedron) where T
-    vertices = pm_polytope(P).VERTICES
+    vertices = pm_object(P).VERTICES
     rvertices = Vector{Int64}()
     sizehint!(rvertices, size(vertices, 1))
     for index in 1:size(vertices, 1)
@@ -145,7 +144,7 @@ julia> nrays(UH)
 1
 ```
 """
-nrays(P::Polyhedron) = length(pm_polytope(P).FAR_FACE)
+nrays(P::Polyhedron) = length(pm_object(P).FAR_FACE)
 
 @doc Markdown.doc"""
     nvertices(P::Polyhedron)
@@ -161,7 +160,7 @@ julia> nvertices(C)
 8
 ```
 """
-nvertices(P::Polyhedron) = pm_polytope(P).N_VERTICES - nrays(P)
+nvertices(P::Polyhedron) = pm_object(P).N_VERTICES - nrays(P)
 
 
 @doc Markdown.doc"""
@@ -186,7 +185,7 @@ julia> rays(RayVector, PO)
 ```
 """
 function rays(as::Type{RayVector{T}}, P::Polyhedron) where T
-    vertices = pm_polytope(P).VERTICES
+    vertices = pm_object(P).VERTICES
     rrays = Vector{Int64}()
     sizehint!(rrays, size(vertices, 1))
     for index in 1:size(vertices, 1)
@@ -232,7 +231,7 @@ julia> nfacets(cross(5))
 32
 ```
 """
-nfacets(P::Polyhedron) = pm_polytope(P).N_FACETS
+nfacets(P::Polyhedron) = pm_object(P).N_FACETS
 
 @doc Markdown.doc"""
     facets(as::Type{T} = Halfspace, P::Polyhedron)
@@ -279,7 +278,7 @@ julia> facets(Halfspace, C)
 1: x₃ ≦ 1
 ```
 """
-facets(as::Type{T}, P::Polyhedron) where {R, S, T<:Union{Halfspace, Pair{R, S}, Polyhedron}} = HalfspaceIterator{as}(decompose_hdata(pm_polytope(P).FACETS)...)
+facets(as::Type{T}, P::Polyhedron) where {R, S, T<:Union{Halfspace, Pair{R, S}, Polyhedron}} = HalfspaceIterator{as}(decompose_hdata(pm_object(P).FACETS)...)
 
 facets(::Type{Pair}, P::Polyhedron) = facets(Pair{Polymake.Matrix{Polymake.Rational}, Polymake.Rational}, P)
 
@@ -341,7 +340,7 @@ julia> lineality_dim(C)
 1
 ```
 """
-lineality_dim(P::Polyhedron) = pm_polytope(P).LINEALITY_DIM
+lineality_dim(P::Polyhedron) = pm_object(P).LINEALITY_DIM
 
 
 @doc Markdown.doc"""
@@ -357,7 +356,7 @@ julia> volume(C)
 4
 ```
 """
-volume(P::Polyhedron) = (pm_polytope(P)).VOLUME
+volume(P::Polyhedron) = (pm_object(P)).VOLUME
 
 @doc Markdown.doc"""
     normalized_volume(P::Polyhedron)
@@ -372,7 +371,7 @@ julia> normalized_volume(C)
 8
 ```
 """
-normalized_volume(P::Polyhedron) = factorial(dim(P))*(pm_polytope(P)).VOLUME
+normalized_volume(P::Polyhedron) = factorial(dim(P))*(pm_object(P)).VOLUME
 
 @doc Markdown.doc"""
     dim(P::Polyhedron)
@@ -389,7 +388,7 @@ julia> dim(P)
 2
 ```
 """
-dim(P::Polyhedron) = Polymake.polytope.dim(pm_polytope(P))
+dim(P::Polyhedron) = Polymake.polytope.dim(pm_object(P))
 
 
 @doc Markdown.doc"""
@@ -412,8 +411,8 @@ julia> lattice_points(S)
 ```
 """
 function lattice_points(P::Polyhedron)
-    if pm_polytope(P).BOUNDED
-        lat_pts = pm_polytope(P).LATTICE_POINTS_GENERATORS[1]
+    if pm_object(P).BOUNDED
+        lat_pts = pm_object(P).LATTICE_POINTS_GENERATORS[1]
         return VectorIterator{PointVector{Polymake.Integer}}(lat_pts[:, 2:end])
     else
         throw(ArgumentError("Polyhedron not bounded"))
@@ -438,8 +437,8 @@ julia> interior_lattice_points(c)
 ```
 """
 function interior_lattice_points(P::Polyhedron)
-    pm_polytope(P).BOUNDED || throw(ArgumentError("Polyhedron not bounded"))
-    lat_pts = pm_polytope(P).INTERIOR_LATTICE_POINTS
+    pm_object(P).BOUNDED || throw(ArgumentError("Polyhedron not bounded"))
+    lat_pts = pm_object(P).INTERIOR_LATTICE_POINTS
     return VectorIterator{PointVector{Polymake.Integer}}(lat_pts[:, 2:end])
 end
 
@@ -466,8 +465,8 @@ julia> boundary_lattice_points(c)
 ```
 """
 function boundary_lattice_points(P::Polyhedron)
-    pm_polytope(P).BOUNDED || throw(ArgumentError("Polyhedron not bounded"))
-    lat_pts = pm_polytope(P).BOUNDARY_LATTICE_POINTS
+    pm_object(P).BOUNDED || throw(ArgumentError("Polyhedron not bounded"))
+    lat_pts = pm_object(P).BOUNDARY_LATTICE_POINTS
     return VectorIterator{PointVector{Polymake.Integer}}(lat_pts[:, 2:end])
 end
 
@@ -487,7 +486,7 @@ julia> ambient_dim(P)
 3
 ```
 """
-ambient_dim(P::Polyhedron) = Polymake.polytope.ambient_dim(pm_polytope(P))
+ambient_dim(P::Polyhedron) = Polymake.polytope.ambient_dim(pm_object(P))
 
 @doc Markdown.doc"""
     codim(P::Polyhedron)
@@ -530,7 +529,7 @@ julia> lineality_space(UH)
  [1, 0]
 ```
 """
-lineality_space(P::Polyhedron) = VectorIterator{RayVector{Polymake.Rational}}(dehomogenize(P.pm_polytope.LINEALITY_SPACE))
+lineality_space(P::Polyhedron) = VectorIterator{RayVector{Polymake.Rational}}(dehomogenize(pm_object(P).LINEALITY_SPACE))
 
 @doc Markdown.doc"""
     affine_hull(P::Polytope)
@@ -553,7 +552,7 @@ julia> affine_hull(t)
 
 ```
 """
-affine_hull(P::Polyhedron) = HalfspaceIterator{Hyperplane}(decompose_hdata(-P.pm_polytope.AFFINE_HULL)...)
+affine_hull(P::Polyhedron) = HalfspaceIterator{Hyperplane}(decompose_hdata(-pm_object(P).AFFINE_HULL)...)
 
 @doc Markdown.doc"""
     recession_cone(P::Polyhedron)
@@ -579,7 +578,7 @@ julia> rays(recession_cone(P))
  [1, 1]
 ```
 """
-recession_cone(P::Polyhedron) = Cone(Polymake.polytope.recession_cone(pm_polytope(P)))
+recession_cone(P::Polyhedron) = Cone(Polymake.polytope.recession_cone(pm_object(P)))
 
 ###############################################################################
 ## Boolean properties
@@ -597,7 +596,7 @@ julia> isfeasible(P)
 false
 ```
 """
-isfeasible(P::Polyhedron) = pm_polytope(P).FEASIBLE
+isfeasible(P::Polyhedron) = pm_object(P).FEASIBLE
 
 @doc Markdown.doc"""
     contains(P::Polyhedron, v::AbstractVector)
@@ -616,7 +615,7 @@ julia> contains(PO, [1, -2])
 false
 ```
 """
-contains(P::Polyhedron, v::AbstractVector) = Polymake.polytope.contains(pm_polytope(P), [1; v])
+contains(P::Polyhedron, v::AbstractVector) = Polymake.polytope.contains(pm_object(P), [1; v])
 
 @doc Markdown.doc"""
     issmooth(P::Polyhedron)
@@ -632,7 +631,7 @@ julia> issmooth(C)
 true
 ```
 """
-issmooth(P::Polyhedron) = pm_polytope(P).SMOOTH
+issmooth(P::Polyhedron) = pm_object(P).SMOOTH
 
 
 @doc Markdown.doc"""
@@ -657,7 +656,7 @@ julia> isnormal(P)
 false
 ```
 """
-isnormal(P::Polyhedron) = pm_polytope(P).NORMAL
+isnormal(P::Polyhedron) = pm_object(P).NORMAL
 
 
 @doc Markdown.doc"""
@@ -673,7 +672,7 @@ julia> isbounded(P)
 false
 ```
 """
-isbounded(P::Polyhedron) = pm_polytope(P).BOUNDED
+isbounded(P::Polyhedron) = pm_object(P).BOUNDED
 
 
 @doc Markdown.doc"""
@@ -689,7 +688,7 @@ julia> isfulldimensional(convex_hull(V))
 false
 ```
 """
-isfulldimensional(P::Polyhedron) = pm_polytope(P).FULL_DIM
+isfulldimensional(P::Polyhedron) = pm_object(P).FULL_DIM
 
 @doc Markdown.doc"""
     f_vector(P::Polyhedron)

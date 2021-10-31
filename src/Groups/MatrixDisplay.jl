@@ -190,9 +190,11 @@ function labelled_matrix_formatted(io::IO, mat::Matrix{String})
     labels_row = get(io, :labels_row, fill("", m2, 0))
 
     if length(size(labels_row)) == 1
+      # one column of row labels
       labels_row = reshape(labels_row, length(labels_row), 1)
     end
     if length(size(labels_col)) == 1
+      # one row of column labels
       labels_col = reshape(labels_col, 1, length(labels_col))
     end
 
@@ -200,6 +202,7 @@ function labelled_matrix_formatted(io::IO, mat::Matrix{String})
     n1 = size(labels_row, 2)
     corner = get(io, :corner, fill("", m1, n1))
     if length(size(corner)) == 1
+      # one column of labels above the row labels
       corner = reshape(corner, length(corner), 1)
     end
 

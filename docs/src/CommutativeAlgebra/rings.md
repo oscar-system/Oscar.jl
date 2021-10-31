@@ -129,10 +129,6 @@ If `R` is  a multivariate polynomial ring `R` with coefficient ring `C`, then
 - `ngens(Q)` to the number of these generators, and
 - `gen(R, i)` as well as `R[i]` to the `i`th generator.
 
-If `f` is an element of `R`, then
-- `parent(f)` refers to `R`. 
-
-
 ###### Examples
 
 ```@repl oscar
@@ -142,9 +138,54 @@ gens(R)
 gen(R, 2)
 R[3] 
 ngens(R)
-f = x^2+y*z
+```
+
+## Elements of Polynomial Rings
+
+One way to construct elements of a multivariate  polynomial ring `R` is
+to build up polynomials from the generators (variables) of `R` using
+basic arithmetic as shown below:
+
+###### Examples
+
+```@repl oscar
+R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+f = 3*x^2+y*z
+```
+
+Alternatively, there is the following constructor:
+
+```@julia
+(R::MPolyRing{T})(c::Vector{T}, e::Vector{Vector{Int}}) where T <: RingElem
+```
+
+Its return value is the element of  `R`  whose nonzero coefficients are specified by the elements of `c`,
+with exponent vectors given by the elements of `e`.
+
+###### Examples
+
+```@repl oscar
+R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+f = R(QQ.([3, 1]), [[2, 0, 0], [0, 1, 1]])
+QQ.([3, 1]) == map(QQ, [3, 1]) 
+```
+
+If an element `f` of `R` has been constructed, then
+- `parent(f)` refers to `R`. 
+
+
+###### Examples
+
+```@repl oscar
+R, (x, y) = PolynomialRing(GF(5), ["x", "y"])
+c = map(GF(5), [1, 2, 3])
+e = [[3, 2], [1, 0], [0, 1]]
+f = R(c, e)
 parent(f)
 ```
+
+!!! note
+    An often more effective way to construct polynomials  is to use the `MPoly` build context as explained in the chapter on rings.
 
 
 ## Gradings
@@ -165,3 +206,5 @@ GradedPolynomialRing(C::Ring, V::Vector{String}, W::Vector{Int}; ordering=:lex)
     The return types of the constructors above are all subtypes of `MPolyRing`.
 
 ## Homomorphisms of Polynomial Rings
+
+Functionality for dealing with homomorphisms of multivariate polynomial rings is described in the more general context of affine algebras.

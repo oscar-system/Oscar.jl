@@ -26,7 +26,7 @@ julia> rays(NF)
 ```
 """
 function normal_fan(P::Polyhedron)
-   pmp = pm_polytope(P)
+   pmp = pm_object(P)
    pmnf = Polymake.fan.normal_fan(pmp)
    return PolyhedralFan(pmnf)
 end
@@ -51,7 +51,7 @@ true
 ```
 """
 function face_fan(P::Polyhedron)
-   pmp = pm_polytope(P)
+   pmp = pm_object(P)
    pmff = Polymake.fan.face_fan(pmp)
    return PolyhedralFan(pmff)
 end

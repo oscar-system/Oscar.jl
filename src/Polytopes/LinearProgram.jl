@@ -15,7 +15,7 @@ function LinearProgram(Q::Polyhedron, objective::AbstractVector; k = 0, conventi
    if convention != :max && convention != :min
       throw(ArgumentError("convention must be set to :min or :max."))
    end
-   P=Polyhedron(Polymake.polytope.Polytope(pm_polytope(Q)))
+   P=Polyhedron(Polymake.polytope.Polytope(pm_object(Q)))
    ambDim = ambient_dim(P)
    size(objective, 1) == ambDim || error("objective has wrong dimension.")
    lp = Polymake.polytope.LinearProgram(LINEAR_OBJECTIVE=homogenize(objective, k))
@@ -24,7 +24,7 @@ function LinearProgram(Q::Polyhedron, objective::AbstractVector; k = 0, conventi
    elseif convention == :min
       Polymake.attach(lp, "convention", "min")
    end
-   pm_polytope(P).LP = lp
+   pm_object(P).LP = lp
    LinearProgram(P, lp, convention)
 end
 

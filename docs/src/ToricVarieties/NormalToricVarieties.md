@@ -24,10 +24,10 @@ the affine and non-affine case:
 
 ```@docs
 AffineNormalToricVariety(C::Cone)
+CyclicQuotientSingularity
 NormalToricVariety(C::Cone)
 NormalToricVariety(PF::PolyhedralFan)
 NormalToricVariety(P::Polyhedron)
-NormalToricVariety( r::Matrix{Int}, c::Vector{Vector{Int}} )
 toric_projective_space
 hirzebruch_surface
 del_pezzo
@@ -37,26 +37,100 @@ del_pezzo
 ## Properties of toric varieties
 
 ```@docs
-isnormal
-isaffine
-isprojective
-issmooth
-iscomplete
 hastorusfactor
-isorbifold
-issimplicial
-isgorenstein
-isq_gorenstein
+isaffine
+iscomplete
 isfano
+isgorenstein
+issimplicial
+issmooth
+isnormal
+isorbifold
+isprojective
+isq_gorenstein
 ```
 
 
-## Attributes of toric varieties
+## Operations for toric varieties
+
+### Dimensions
 
 ```@docs
 dim
 dim_of_torusfactor
-picard_group
+ith_betti_number(v::AbstractNormalToricVariety, i::Int)
+euler_characteristic
+```
+
+### Rings and ideals
+
+```@docs
+cox_ring
+stanley_reisner_ideal
+irrelevant_ideal
+```
+
+### Characters, Weil divisor and the class group
+
+```@docs
+character_lattice
+torusinvariant_divisor_group
+class_group
+map_from_character_to_principal_divisors
+map_from_weil_divisors_to_class_group
+torusinvariant_prime_divisors
+```
+
+### Cones and fans
+
+```@docs
+fan_of_variety
+fan
 nef_cone
 mori_cone
+toric_ideal
+```
+
+### Affine covering
+
+```@docs
+affine_open_covering( v::AbstractNormalToricVariety )
+```
+
+### Toric ideal
+
+To come very soon.
+
+### Advanced constructions
+
+```@docs
+blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int)
+Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety)
+```
+
+### Comparison
+
+```@docs
+isprojective_space(v::AbstractNormalToricVariety)
+```
+
+
+## Cyclic Quotient Singularities
+
+Cyclic quotient singularities are quotients of $\mathbb{C}^2$ by the action of
+$\mathbb{Z}/n\mathbb{Z}$ acting via 
+$$\left(\begin{array}{cc}\xi & 0\\0 & \xi^q\end{array}\right)$$,
+where $\xi$ is a $n$-th root of unity, and $0<q<n$ are two coprime integers.
+
+For the notation we rely on [Chr91](@cite) and [Ste91](@cite).
+
+!!! warning
+    Note that the notion of Hirzebruch-Jung continued fraction differs from the
+    commonly known continued fraction.
+
+```@docs
+continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity)
+continued_fraction_hirzebruch_jung_to_rational(v::Vector{fmpz})
+dual_continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity)
+rational_to_continued_fraction_hirzebruch_jung(r::fmpq)
 ```

@@ -31,7 +31,6 @@ polyhedron into a high-level `Polyhedron` object.
 
 ```@docs
 Polyhedron(::Polymake.BigObject)
-pm_polytope(::Polyhedron)
 ```
 
 The following shows all the data currently known for a `Polyhedron`.

@@ -110,7 +110,6 @@
      "CommutativeAlgebra/rings.md",
      "CommutativeAlgebra/ideals.md",
      "CommutativeAlgebra/modules.md",
-     "CommutativeAlgebra/quotient_rings.md",
      "CommutativeAlgebra/affine_algebras.md",
      "CommutativeAlgebra/binomial_ideals.md",
   ],
@@ -135,6 +134,12 @@
      "ToricVarieties/intro.md",
      "ToricVarieties/NormalToricVarieties.md",
      "ToricVarieties/ToricDivisors.md",
+  ],
+
+  "General" => [
+     "General/styleguide.md",
+     "General/other.md",
+     "General/faq.md",
   ],
 
   "References" => "references.md",

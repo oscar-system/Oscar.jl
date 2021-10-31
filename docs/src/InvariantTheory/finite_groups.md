@@ -12,34 +12,43 @@ Pages = ["finite_groups.md"]
 
 # Invariants of Finite Groups
 
-In this section, with notation as in the introduction to this chapter, $G$ will always be a *finite* group.
+In this section, with notation as in the introduction to this chapter, $G$ will be a *finite* group.
 
 !!! note
+     The ssumption that $G$ is finite implies:
      - By a result of Emmy Noether, $K[V]$ is integral over $K[V]^G$. In particular,
 
-          $\dim K[V]^G = \dim K[V] = n.$
+          $\; \; \; \; \; \dim K[V]^G = \dim K[V] = n.$
          
          Moreover, $K[V]^G$ is finitely generated as a $K$-algebra.
 		   
     - If the group order $|G|$ is invertible in $K$, then we have the explicit Reynolds operator
 
-       $\mathcal R: K[V] \to K[V], f\mapsto \frac{1}{|G|}\sum_{\pi\in G}(\pi \;\!  . \;\! f).$
+       $\; \; \; \; \; \mathcal R: K[V] \to K[V], f\mapsto \frac{1}{|G|}\sum_{\pi\in G}(\pi \;\!  . \;\! f).$
 
 !!! note
     We speak of *non-modular* invariant theory if $|G|$ is invertible in $K$, and of *modular* invariant theory otherwise.
 
 !!! note
-    In the non-modular case, using  Emmy Noether's result and the Reynolds operator, it is not too difficult to show that $K[V]^G$ is a free module over any of its graded Noether normalizations. That is, $K[V]^G$ is Cohen-Macaulay.
+    In the non-modular case, using  Emmy Noether's result and the Reynolds operator, it is not too difficult to show that $K[V]^G$ is a free module over any of its graded Noether normalizations. That is, $K[V]^G$ is Cohen-Macaulay. In the modular case, $K[V]^G$ may not be Cohen-Macaulay.
 
 !!! note
     In the non-modular case, the Hilbert series of $K[V]^G$ can be precomputed as its Molien series. See [DK15](@cite) and [DJ98](@cite) for explicit formulas.
 
-Having means to compute a $K$-basis for the invariants of each given degree, the algorithms for computing generators of invariant rings of finite groups proceed in two steps:
+Knowing the Hilbert series means to know the dimension of each graded piece $K[V]^G_d$. This information can often be used to speed up algorithms for finding invariants.
+The most basic task here is to compute the invariants of  some given degree $d$, that is, to find  an explicit $K$-basis of $K[V]^G_d$. There are two different approaches:
 
-- First, compute a system of primary invariants $p_1,\dots, p_n$.
-- Then, compute a system of secondary invariants with respect to $p_1,\dots, p_n$.
+- The *Reynolds Operator Method*, available in  the non-modular case, applies the Reynolds operator to sufficiently many monomials in $K[x_1, \dots, x_n]_d\cong K[V]_d$,  and extracts a $K$-basis from the resulting generating set.
+- The *Linear Algebra Method*, available in the non-modular and the modular case, finds the elements of a $K$-basis all at once by setting up and solving an appropriate $K$-linear system of equations.
 
-In the non-modular case, the Molien series allows one to precompute the number of $K$-linearly independent invariants for each given degree,
+These methods are, in particular, crucial to the computation of primary and secondary invariants. Primary invariants and irreducible secondary invariants together generate $K[V]^G$ as a $K$-algebra. Omitting redundant generators yields a system of fundamental invariants.
+In the non-modular case, an alternative and typically more effective way to compute generators of $K[V]^G$ is King's algorithm which finds a system of fundamental invariants directly, without computing primary and secondary invariants. See [King13](@cite).
+
+We discuss the relevant OSCAR functionality below.
+
+!!! warning
+    At current state, only the non-modular case is supported by OSCAR. 
+
 
 ## Creating Invariant Rings
 
@@ -81,7 +90,7 @@ IR = invariant_ring(G)
 group(IR)
 coefficient_ring(IR)
 R = polynomial_ring(IR)
-x=gens(R)
+x = gens(R)
 ismodular(IR)
 ```
 
@@ -100,7 +109,7 @@ basis(IR::InvRing, d::Int)
 ## The Molien Series
 
 ```@docs
-molien_series(IR::InvRing)
+ molien_series([S::PolyRing], I::InvRing)
 ```
 
 ## Primary Invariants
@@ -122,7 +131,7 @@ irreducible_secondary_invariants(IR::InvRing)
 ## Fundamental Systems of Invariants
 
 ```@docs
-fundamental_invariants(IR::InvRing)
+fundamental_invariants(IR::InvRing, algo::Symbol = :king)
 ```
 
 ## Invariant Rings as Affine Algebras
