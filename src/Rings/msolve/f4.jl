@@ -113,8 +113,9 @@ function f4(
     gb_cf_conv  = Nothing
     jl_cf       = Nothing
 
-    I.gb      = BiPolyArray(base_ring(I), basis)
-    I.gb.isGB = true
+    I.gb        = BiPolyArray(base_ring(I), basis)
+    I.gb.isGB   = true
+    I.gb.S.isGB = true
     
     return I.gb
 end
