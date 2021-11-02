@@ -35,7 +35,6 @@ import GAP
 import Pkg
 using Markdown
 using Test
-import Libdl
 import msolve_jll
 # to allow access to the cornerstones! Otherwise, not even import or using from the
 # user level will work as none of them will have been "added" by the user.

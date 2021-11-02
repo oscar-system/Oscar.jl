@@ -1,5 +1,4 @@
 import msolve_jll: libneogb
-import Libdl: dlopen, dlsym, dlclose
 
 export f4
 
@@ -62,16 +61,12 @@ function f4(
     else
         error("At the moment f4 only supports finite fields.")
     end
-    #= dir = joinpath(dirname(pathof(GroebnerBasis)),"../deps")
-     = lib = Libdl.dlopen("$dir/libmsolve.so.0.2.0") =#
-    lib = Libdl.dlopen(libneogb)
-    sym = Libdl.dlsym(lib, :f4_julia)
 
     gb_ld   = ccall(:malloc, Ptr{Cint}, (Csize_t, ), sizeof(Cint))
     gb_len  = ccall(:malloc, Ptr{Ptr{Cint}}, (Csize_t, ), sizeof(Ptr{Cint}))
     gb_exp  = ccall(:malloc, Ptr{Ptr{Cint}}, (Csize_t, ), sizeof(Ptr{Cint}))
     gb_cf   = ccall(:malloc, Ptr{Ptr{Cvoid}}, (Csize_t, ), sizeof(Ptr{Cvoid}))
-    nr_terms  = ccall(sym, Int,
+    nr_terms  = ccall((:f4_julia, libneogb), Int,
         (Ptr{Cint}, Ptr{Ptr{Cint}}, Ptr{Ptr{Cint}}, Ptr{Ptr{Cvoid}},
           Ptr{Cint}, Ptr{Cint}, Ptr{Cvoid}, Int, Int, Int, Int, Int,
           Int, Int, Int, Int, Int, Int, Int),
@@ -101,8 +96,7 @@ function f4(
         basis = convert_ff_gb_array_to_singular_ideal(
           jl_ld, jl_len, jl_exp, jl_cf, R)
     # end
-    sym = Libdl.dlsym(lib, :free_julia_data)
-    ccall(sym, Nothing , (Ptr{Ptr{Cint}}, Ptr{Ptr{Cint}}, Ptr{Ptr{Cvoid}},
+    ccall((:free_julia_data, libneogb), Nothing , (Ptr{Ptr{Cint}}, Ptr{Ptr{Cint}}, Ptr{Ptr{Cvoid}},
                 Int, Int), gb_len, gb_exp, gb_cf, jl_ld, field_char)
     # free data
     ccall(:free, Nothing , (Ptr{Cint}, ), gb_ld)

@@ -1,5 +1,4 @@
 import msolve_jll: libmsolve
-import Libdl: dlopen, dlsym, dlclose
 
 export msolve
 
@@ -134,9 +133,6 @@ function msolve(
         # error("At the moment GroebnerBasis only supports finite fields and the rationals.")
         @error "At the moment msolve only supports the rationala as ground field."
     end
-    # lib = Libdl.dlopen("/home/ederc/repos/master-msolve/src/msolve/.libs/libmsolve-0.1.2.so")
-    lib = Libdl.dlopen(libmsolve)
-    sym = Libdl.dlsym(lib, :msolve_julia)
 
     res_ld    = ccall(:malloc, Ptr{Cint}, (Csize_t, ), sizeof(Cint))
     res_dim   = ccall(:malloc, Ptr{Cint}, (Csize_t, ), sizeof(Cint))
@@ -146,7 +142,7 @@ function msolve(
     nb_sols   = ccall(:malloc, Ptr{Cint}, (Csize_t, ), sizeof(Cint))
     sols_num  = ccall(:malloc, Ptr{Ptr{Cvoid}}, (Csize_t, ), sizeof(Ptr{Cvoid}))
     sols_den  = ccall(:malloc, Ptr{Ptr{Cint}}, (Csize_t, ), sizeof(Ptr{Cint}))
-    ccall(sym, Cvoid,
+    ccall((:msolve_julia, libmsolve), Cvoid,
         (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Ptr{Cint}}, Ptr{Cvoid}, Ptr{Cint},
          Ptr{Cvoid}, Ptr{Ptr{Cint}}, Ptr{Cint}, Ptr{Cint}, Ptr{Cvoid},
          Ptr{Ptr{Cchar}}, Ptr{Cchar}, Int, Int, Int, Int,
@@ -155,7 +151,6 @@ function msolve(
         exps, cfs, variable_names, "/dev/null", field_char, mon_order, nr_vars,
         nr_gens, initial_hts, nr_thrds, max_nr_pairs, reset_ht, la_option,
         print_gb, get_param, genericity_handling, precision, info_level)
-    Libdl.dlclose(lib)
     # convert to julia array, also give memory management to julia
     jl_ld       = unsafe_load(res_ld)
 
