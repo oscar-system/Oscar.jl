@@ -34,7 +34,7 @@
         @test isnothing(cones(F2, 1))
         @test length(rays(F0)) == 3
 
-        II = maximal_cones_as_incidence_matrix(NFsquare)
+        II = incidence_matrix(maximal_cones(NFsquare))
         NF0 = PolyhedralFan(rays(NFsquare).m, II)
         @test nrays(NF0) == 4
         FF0 = face_fan(C0)
