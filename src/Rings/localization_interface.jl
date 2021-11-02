@@ -1,6 +1,6 @@
 export AbsMultSet
 export AbsLocalizedRing
-export original_ring, inverted_set
+export ambient_ring, inverted_set
 export reduce_fraction
 export localize_at
 
@@ -72,12 +72,12 @@ abstract type AbsLocalizedRing{RingType, RingElemType, MultSetType} <: Ring end
 
 ### required getter functions
 @Markdown.doc """
-    original_ring(W::AbsLocalizedRing{RingType, RingElemType, MultSetType}) where {RingType, RingElemType, MultSetType} 
+    base_ring(W::AbsLocalizedRing{RingType, RingElemType, MultSetType}) where {RingType, RingElemType, MultSetType} 
 
 Returns the original ring R for a localized ring of the form W = R[S⁻¹].
 """
-function original_ring(W::AbsLocalizedRing{RingType, RingElemType, MultSetType}) where {RingType, RingElemType, MultSetType} 
-  error("`original_ring` is not implemented for localized rings of type $(typeof(W))")
+function base_ring(W::AbsLocalizedRing{RingType, RingElemType, MultSetType}) where {RingType, RingElemType, MultSetType} 
+  error("`base_ring` is not implemented for localized rings of type $(typeof(W))")
 end
 
 @Markdown.doc """
@@ -128,7 +128,7 @@ function (W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(a::RingElemT
 end
 
 ### Other conversions for the sake of convenience
-(W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(a::Oscar.IntegerUnion) where {RingType, RingElemType, MultSetType} = W(original_ring(W)(a))
+(W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(a::Oscar.IntegerUnion) where {RingType, RingElemType, MultSetType} = W(base_ring(W)(a))
 
 
 #################################################################################

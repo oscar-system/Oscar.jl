@@ -5,7 +5,7 @@
 using Oscar
 using Markdown
 
-import Oscar: original_ring, inverted_set, ambient_ring, localize_at, parent, numerator, denominator, one, zero, reduce_fraction
+import Oscar: base_ring, inverted_set, ambient_ring, localize_at, parent, numerator, denominator, one, zero, reduce_fraction
 import Oscar.AbstractAlgebra: elem_type, parent_type
 
 export FmpzComplementOfPrimeIdeal, FmpzPowersOfElement, FmpzComplementOfZeroIdeal
@@ -108,7 +108,7 @@ ambient_ring(S::FmpzComplementOfZeroIdeal) = ZZ
 
 ### required functionality
 function Base.in(b::fmpz, S::FmpzComplementOfZeroIdeal) 
-  return !(b == ZZ(0))
+  return !iszero(b)
 end
 
 ### additional functionality
@@ -139,7 +139,7 @@ mutable struct FmpzLocalizedRing{MultSetType <: AbsMultSet{FlintIntegerRing, fmp
 end
 
 ### required getter functions
-original_ring(W::FmpzLocalizedRing) = ZZ::FlintIntegerRing
+base_ring(W::FmpzLocalizedRing) = ZZ::FlintIntegerRing
 inverted_set(W::FmpzLocalizedRing{MultSetType}) where {MultSetType} = W.S::MultSetType
 
 ### required extensions of the localization function
@@ -230,7 +230,7 @@ parent_type(T::Type{FmpzLocalizedRingElem{MultSetType}}) where {MultSetType} = F
   @test 5*5*7 in S
   @test ambient_ring(S) == ZZ
   W = localize_at(S)
-  @test original_ring(W) == ambient_ring(S)
+  @test base_ring(W) == ambient_ring(S)
   @test inverted_set(W) == S
   a = W(3)
   b = W(7, 5)
@@ -247,7 +247,7 @@ parent_type(T::Type{FmpzLocalizedRingElem{MultSetType}}) where {MultSetType} = F
   @test 5783790198374098 in U
   @test ambient_ring(U) == ZZ
   W = localize_at(U)
-  @test original_ring(W) == ambient_ring(U)
+  @test base_ring(W) == ambient_ring(U)
   @test inverted_set(W) == U
   a = W(4, 17)
   b = W(4*17)
@@ -262,7 +262,7 @@ parent_type(T::Type{FmpzLocalizedRingElem{MultSetType}}) where {MultSetType} = F
   @test !(0 in O)
   @test ambient_ring(O) == ZZ
   W = localize_at(O)
-  @test original_ring(W) == ambient_ring(O)
+  @test base_ring(W) == ambient_ring(O)
   @test inverted_set(W) == O
   a = W(4, 17)
   b = W(4*17)

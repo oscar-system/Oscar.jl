@@ -6,7 +6,7 @@ using Oscar
 using Markdown
 
 import Nemo.NmodRing
-import Oscar: original_ring, inverted_set, ambient_ring, localize_at, parent, numerator, denominator, one, zero
+import Oscar: base_ring, inverted_set, ambient_ring, localize_at, parent, numerator, denominator, one, zero
 import Oscar.AbstractAlgebra: elem_type, parent_type
 
 export NmodComplementOfPrimeIdeal, NmodLocalizedRing, NmodLocalizedRingElem
@@ -71,7 +71,7 @@ mutable struct NmodLocalizedRing{MultSetType <: AbsMultSet{NmodRing, nmod}} <: A
 end
 
 ### required getter functions
-original_ring(W::NmodLocalizedRing) = W.R::NmodRing
+base_ring(W::NmodLocalizedRing) = W.R::NmodRing
 inverted_set(W::NmodLocalizedRing{MultSetType}) where {MultSetType} = W.S::MultSetType
 
 ### required extension of the localization function
@@ -94,7 +94,7 @@ mutable struct NmodLocalizedRingElem{MultSetType} <: AbsLocalizedRingElem{NmodRi
   W::NmodLocalizedRing{MultSetType} # the parent ring
 
   function NmodLocalizedRingElem(W::NmodLocalizedRing{MultSetType}, a::nmod, b::nmod) where {MultSetType} 
-    original_ring(W) == parent(a) == parent(b) || error("elements do not belong to the original ring")
+    base_ring(W) == parent(a) == parent(b) || error("elements do not belong to the original ring")
     b in inverted_set(W) || error("the given denominator is not an admissible unit in this ring")
     return new{MultSetType}(a, b, W)
   end
@@ -121,8 +121,8 @@ function Base.:(//)(a::T, b::T) where {T<:NmodLocalizedRingElem}
 end
 
 ### additional conversions
-(W::NmodLocalizedRing)(a::T, b::T) where {T<:Oscar.IntegerUnion} = W(original_ring(W)(a), original_ring(W)(b))
-(W::NmodLocalizedRing)(a::Oscar.IntegerUnion) = W(original_ring(W)(a), one(original_ring(W)))
+(W::NmodLocalizedRing)(a::T, b::T) where {T<:Oscar.IntegerUnion} = W(base_ring(W)(a), base_ring(W)(b))
+(W::NmodLocalizedRing)(a::Oscar.IntegerUnion) = W(base_ring(W)(a), one(base_ring(W)))
 (W::NmodLocalizedRing)(q::fmpq) = W(numerator(q), denominator(q))
 (W::NmodLocalizedRing)(q::Rational{T}) where {T<:Oscar.IntegerUnion} = W(numerator(q), denominator(q))
 
@@ -150,7 +150,7 @@ parent_type(T::Type{NmodLocalizedRingElem{MultSetType}}) where {MultSetType} = N
   @test 5783790198374098 in U
   @test ambient_ring(U) == R
   W = localize_at(U)
-  @test original_ring(W) == ambient_ring(U)
+  @test base_ring(W) == ambient_ring(U)
   @test inverted_set(W) == U
   a = W(4, 17)
   b = W(4*17)

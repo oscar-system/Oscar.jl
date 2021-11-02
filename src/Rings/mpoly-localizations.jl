@@ -1,8 +1,7 @@
 export MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal, MPolyPowersOfElement
 
-export ambient_ring, point_coordinates
+export ambient_ring, point_coordinates, inverted_set
 
-export original_ring, inverted_set
 export reduce_fraction
 
 export fraction, parent
@@ -243,7 +242,7 @@ mutable struct MPolyLocalizedRing{
 end
 
 ### required getter functions 
-original_ring(W::MPolyLocalizedRing) = W.R
+base_ring(W::MPolyLocalizedRing) = W.R
 
 inverted_set(W::MPolyLocalizedRing) = W.S
 
@@ -297,7 +296,7 @@ mutable struct MPolyLocalizedRingElem{
       R_loc::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
     ) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
 
-    base_ring(parent(f)) == original_ring(R_loc) || error(
+    base_ring(parent(f)) == base_ring(R_loc) || error(
 	"the numerator and denominator of the given fraction do not belong to the original ring before localization"
       )
     denominator(f) in inverted_set(R_loc) || error(
@@ -318,13 +317,13 @@ parent(a::MPolyLocalizedRingElem) = a.R_loc
 fraction(a::MPolyLocalizedRingElem) = a.frac
 
 ### required conversions
-(W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(f::RingElemType) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocalizedRingElem((FractionField(original_ring(W)))(f), W)
+(W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(f::RingElemType) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocalizedRingElem((FractionField(base_ring(W)))(f), W)
 (W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(a::RingElemType, b::RingElemType) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocalizedRingElem(a//b, W)
 
 ### additional conversions
 (W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(f::AbstractAlgebra.Generic.Frac{RingElemType}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocalizedRingElem(f, W)
 
-(W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(a::Oscar.IntegerUnion) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = W(original_ring(W)(a))
+(W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(a::Oscar.IntegerUnion) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = W(base_ring(W)(a))
 
 ### overwriting the arithmetic using the fractions from AbstractAlgebra
 function +(a::T, b::T) where {T<:MPolyLocalizedRingElem}
@@ -365,8 +364,8 @@ function ^(a::MPolyLocalizedRingElem, i::Oscar.IntegerUnion)
 end
 
 ### implementation of Oscar's general ring interface
-one(W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = W(one(original_ring(W)))
-zero(W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = W(zero(original_ring(W)))
+one(W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = W(one(base_ring(W)))
+zero(W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = W(zero(base_ring(W)))
 
 elem_type(W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocalizedRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
 elem_type(T::Type{MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocalizedRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
@@ -415,8 +414,8 @@ mutable struct LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}
     lbpa.oscar_gens = oscar_gens
     lbpa.ordering = ordering
     # fill up the shift vector with zeroes if it is not provided in full length
-    for i in (length(shift)+1:nvars(original_ring(oscar_ring)))
-      push!(shift, zero(coefficient_ring(original_ring(oscar_ring))))
+    for i in (length(shift)+1:nvars(base_ring(oscar_ring)))
+      push!(shift, zero(coefficient_ring(base_ring(oscar_ring))))
     end
     lbpa.shift = shift
     lbpa.is_groebner_basis=false
@@ -435,7 +434,7 @@ mutable struct LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}
     lbpa.oscar_ring = oscar_ring
     lbpa.singular_gens = singular_gens
     lbpa.singular_ring = base_ring(singular_gens)
-    R = original_ring(oscar_ring)
+    R = base_ring(oscar_ring)
     lbpa.ordering = Singular.ordering_as_symbol(lbpa.singular_ring)
     k = coefficient_ring(R)
     # fill up the shift vector with zeroes if it is not provided in full length
@@ -468,15 +467,15 @@ end
 function singular_assure(lbpa::LocalizedBiPolyArray)
   if !isdefined(lbpa, :singular_ring)
     lbpa.singular_ring = Singular.PolynomialRing(
-	Oscar.singular_ring(base_ring(original_ring(oscar_ring(lbpa)))), 
-        [string(a) for a = Nemo.symbols(original_ring(oscar_ring(lbpa)))], 
+	Oscar.singular_ring(base_ring(base_ring(oscar_ring(lbpa)))), 
+        [string(a) for a = Nemo.symbols(base_ring(oscar_ring(lbpa)))], 
         ordering = ordering(lbpa), 
         cached = false
       )[1]
   end
   if !isdefined(lbpa, :singular_gens)
-    shift_hom = hom(original_ring(oscar_ring(lbpa)), original_ring(oscar_ring(lbpa)), 
-        [gen(original_ring(oscar_ring(lbpa)), i) + lbpa.shift[i] for i in (1:nvars(original_ring(oscar_ring(lbpa))))])
+    shift_hom = hom(base_ring(oscar_ring(lbpa)), base_ring(oscar_ring(lbpa)), 
+        [gen(base_ring(oscar_ring(lbpa)), i) + lbpa.shift[i] for i in (1:nvars(base_ring(oscar_ring(lbpa))))])
     lbpa.singular_gens = Singular.Ideal(lbpa.singular_ring,
 	[lbpa.singular_ring(shift_hom(numerator(x))) for x in oscar_gens(lbpa)])
   end
@@ -520,7 +519,7 @@ mutable struct MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST} <: AbsLocalizedIdeal
       default_ordering::Symbol=:degrevlex, 
       check::Bool=false
     ) where {BRT, BRET, RT, RET, MST}
-    R = original_ring(W)
+    R = base_ring(W)
     k = base_ring(R)
     S = inverted_set(W)
     for f in gens
@@ -626,7 +625,7 @@ function groebner_basis(
   end
   # if not, set up a LocalizedBiPolyArray
   W = base_ring(I)
-  R = original_ring(W)
+  R = base_ring(W)
   S = inverted_set(W)
   lbpa = LocalizedBiPolyArray(W, gens(I), ordering=ordering)
   # compute the standard basis and cache the result
@@ -644,7 +643,7 @@ function groebner_assure(I::MPolyLocalizedIdeal)
     return
   end
   W = base_ring(I)
-  R = original_ring(W)
+  R = base_ring(W)
   S = inverted_set(W)
   lbpa = LocalizedBiPolyArray(I)
   D[default_ordering(I)] = std(lbpa)
@@ -663,7 +662,7 @@ function groebner_basis(
   end
   # if not, set up a LocalizedBiPolyArray
   W = base_ring(I)
-  R = original_ring(W)
+  R = base_ring(W)
   S = inverted_set(W)::MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}
   a = point_coordinates(S)
   lbpa = LocalizedBiPolyArray(W, gens(I), ordering=ordering, shift=a)
@@ -682,7 +681,7 @@ function groebner_assure(
     return
   end
   W = base_ring(I)
-  R = original_ring(W)
+  R = base_ring(W)
   S = inverted_set(W)::MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}
   a = point_coordinates(S)
   # Choose negdegrevlex as a default local ordering
@@ -703,7 +702,7 @@ function groebner_basis(
   end
   # if not, set up a LocalizedBiPolyArray
   W = base_ring(I)
-  R = original_ring(W)
+  R = base_ring(W)
   S = inverted_set(W)::MPolyPowersOfElement{BRT, BRET, RT, RET}
   lbpa = LocalizedBiPolyArray(W, gens(I), ordering=ordering)
   a = denominators(S)
@@ -727,7 +726,7 @@ function Base.reduce(
 
   W = parent(f)
   W == oscar_ring(lbpa) || error("element does not belong to the Oscar ring of the biPolyArray")
-  R = original_ring(W)
+  R = base_ring(W)
   shift_hom = hom(R, R, [gen(R, i) + lbpa.shift[i] for i in (1:nvars(R))])
   singular_n = singular_ring(lbpa)(shift_hom(numerator(f)))
   singular_n = Singular.reduce(singular_n, singular_gens(lbpa))

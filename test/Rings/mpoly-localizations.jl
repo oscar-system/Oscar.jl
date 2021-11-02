@@ -24,7 +24,7 @@
   @test !( f in S )
   @test x in S
   V = localize_at(S)
-  @test original_ring(V) == R
+  @test base_ring(V) == R
   @test inverted_set(V) == S
 
   T = MPolyComplementOfKPointIdeal(R, [k(p), k(q)])
