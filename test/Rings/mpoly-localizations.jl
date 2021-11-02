@@ -79,11 +79,23 @@
 end
 
 @testset "mpoly-localizations PowersOfElements" begin
+  R, var = ZZ["x", "y"]
+  x = var[1]
+  y = var[2] 
+  f = x^2 + y^2 -1
+  S = MPolyPowersOfElement(R, [x, y, f])
+  @test f in S
+  # 5 is not a unit in R
+  @test !(5*f in S)
+
   R, vars = QQ["x","y"]
   x = vars[1]
   y = vars[2]
   f = x^2 + y^4-120
   S = MPolyPowersOfElement(R, [x, y, f])
+  @test f in S
+  # Now 5 is a unit in R
+  @test (5*f in S)
   @test x^3*y in S
   @test !(x^19*(x+y) in S)
   W = localize_at(S)

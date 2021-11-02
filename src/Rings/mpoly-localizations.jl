@@ -197,14 +197,16 @@ function Base.in(
   ) where {BaseRingType, BaseRingElemType, RingType, RingElemType}
   parent(f) == ambient_ring(S) || return false
 
+  # TODO: This algorithm can most probably be improved!
   R = ambient_ring(S)
   d = prod(denominators(S))
   g = gcd(f, d)
-  while !(g==one(R))
+  while !isone(g)
     f = divexact(f, g)
     g = gcd(f, d)
   end
-  return f == one(R)
+  # return true iff the remaining f is a unit in R
+  return divides(one(R), f)[1]
 end
 
 ########################################################################
@@ -266,9 +268,38 @@ localize_at(S::MPolyComplementOfKPointIdeal) = MPolyLocalizedRing(ambient_ring(S
 
 localize_at(S::MPolyPowersOfElement) = MPolyLocalizedRing(ambient_ring(S), S)
 
+
 ### additional constructors
 MPolyLocalizedRing(R::RingType, P::MPolyIdeal{RingElemType}) where {RingType, RingElemType} = MPolyLocalizedRing(R, MPolyComplementOfPrimeIdeal(P))
 
+localize_at(R::MPolyRing, f::MPolyElem) = localize_at(MPolyPowersOfElement(R, [f]))
+localize_at(R::MPolyRing, v::Vector{T}) where {T<:MPolyElem} = localize_at(MPolyPowersOfElement(R, v))
+
+function localize_at(
+    W::MPolyLocalizedRing{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}, 
+    f::RET
+  ) where {BRT, BRET, RT, RET}
+  R = base_ring(W)
+  parent(f) == R || error("the given element does not belong to the correct ring")
+  S = inverted_set(W)
+  if f in S
+    return W
+  end
+  g = denominators(S)
+  h = gcd(prod(g), f)
+  return MPolyLocalizedRing(R, MPolyPowersOfElement(R, vcat(g, divexact(f, h))))
+end
+
+function localize_at(
+    W::MPolyLocalizedRing{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}, 
+    v::Vector{RET}
+  ) where {BRT, BRET, RT, RET}
+  V = W
+  for f in v
+    V = localize_at(V, f)
+  end
+  return V
+end
 
 ########################################################################
 # Elements of local polynomial rings                                   #
