@@ -270,11 +270,14 @@ end
 
 Base.IndexStyle(::Type{<:SubObjectIterator}) = IndexLinear()
 
-function Base.getindex(iter::SubObjectIterator, i::Base.Integer)
-    # @boundscheck checkbounds(iter.m, i, 1)
-    return iter.Acc(iter.Obj, i)
+function Base.getindex(iter::SubObjectIterator{T}, i::Base.Integer) where T
+    @boundscheck 1 <= i && i <= iter.n
+    return iter.Acc(T, iter.Obj, i)
 end
 
 Base.firstindex(::SubObjectIterator) = 1
 Base.lastindex(iter::SubObjectIterator) = length(iter)
 Base.size(iter::SubObjectIterator) = (iter.n,)
+
+incidence_matrix(iter::SubObjectIterator) = incidence_matrix(Val(iter.Acc), iter.Obj)
+incidence_matrix(::Any, ::Polymake.BigObject) = throw(ArgumentError("Incidence Matrix not defined in this context."))
