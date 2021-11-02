@@ -3,10 +3,10 @@
 # an int array cfs storing the coefficients of each generator
 # an int array exps storing the exponent vectors of each generator
 function convert_ff_singular_ideal_to_array(
-        id::Singular.sideal,
-        nvars::Int,
-        ngens::Int
+        id::Singular.sideal
         )
+    ngens   = Singular.ngens(id)
+    nvars   = Singular.nvars(base_ring(id))
     nterms  = 0
     lens = Array{Int32,1}(undef, ngens)
     for i = 1:ngens
@@ -33,10 +33,10 @@ function convert_ff_singular_ideal_to_array(
 end
 
 function convert_qq_singular_ideal_to_array(
-        id::Singular.sideal,
-        nvars::Int,
-        ngens::Int
+        id::Singular.sideal
         )
+    ngens   = Singular.ngens(id)
+    nvars   = Singular.nvars(base_ring(id))
     nterms  = 0
     lens = Array{Int32,1}(undef, ngens)
     for i = 1:ngens

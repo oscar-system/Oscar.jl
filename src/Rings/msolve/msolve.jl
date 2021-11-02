@@ -126,7 +126,7 @@ function msolve(
 
     # convert Singular ideal to flattened arrays of ints
     if 0 == field_char
-      lens, cfs, exps   = convert_qq_singular_ideal_to_array(J, nr_vars, nr_gens)
+      lens, cfs, exps   = convert_qq_singular_ideal_to_array(J)
     # elseif isprime(field_char)
     #   lens, cfs, exps   = convert_ff_singular_ideal_to_array(J, nr_vars, nr_gens)
     else

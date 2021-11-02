@@ -57,7 +57,7 @@ function f4(
 
     # convert Singular ideal to flattened arrays of ints
     if isprime(field_char)
-      lens, cfs, exps = convert_ff_singular_ideal_to_array(J, nr_vars, nr_gens)
+      lens, cfs, exps = convert_ff_singular_ideal_to_array(J)
     else
         error("At the moment f4 only supports finite fields.")
     end
