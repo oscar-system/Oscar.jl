@@ -49,7 +49,8 @@ end
 @doc Markdown.doc"""
     msolve(I, <keyword arguments>)
 
-Compute the solution set of the given ideal `I` if the ideal is zero dimensional.
+Compute the real roots of the ideal `I` with a given precision (default 32 bits) if the solution set over the
+complex numbers is finite.
 See [BES21](@cite) for more information.
 
 **Note**: At the moment only QQ is supported as ground field. If the dimension of `I`
@@ -63,7 +64,7 @@ is greater then zero an empty array is returned.
 - `la_option::Int=2`: linear algebra option: exact sparse-dense (`1`), exact sparse (`2`, default), probabilistic sparse-dense (`42`), probabilistic sparse(`44`).
 - `info_level::Int=0`: info level printout: off (`0`, default), summary (`1`), detailed (`2`).
 - `precision::Int=32`: bit precision for the computed solutions.
-- `get_param::Bool=false`: return not only solution set but also corresponding rational parametrization.
+- `get_param::Bool=false`: return rational parametrization of the solution set over the complex numbers.
 
 # Examples
 ```jldoctest

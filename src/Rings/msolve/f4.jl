@@ -5,7 +5,7 @@ export f4
 @doc Markdown.doc"""
     f4(I, <keyword arguments>)
 
-Compute a Groebner basis of the given ideal I w.r.t. to the degree reverse lexicographical monomial ordering using Faugère's F4 algorithm.
+Compute a Groebner basis of the given ideal `I` w.r.t. to the degree reverse lexicographical monomial ordering using Faugère's F4 algorithm.
 See [Fau99](@cite) for more information.
 
 **Note**: At the moment only ground fields of characteristic `p`, `p` prime, `p < 2^{31}` are supported.
