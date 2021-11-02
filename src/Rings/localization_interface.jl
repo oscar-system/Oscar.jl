@@ -127,6 +127,9 @@ function (W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(a::RingElemT
   error("conversion of pairs `(a, b)` of elements of type $(RingElemType) to fractions `a/b` in a ring of type $(typeof(W)) is not implemented")
 end
 
+### Other conversions for the sake of convenience
+(W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(a::Oscar.IntegerUnion) where {RingType, RingElemType, MultSetType} = W(original_ring(W)(a))
+
 
 #################################################################################
 # Elements of localized rings                                                   #
@@ -212,6 +215,12 @@ function Base.:(//)(a::Oscar.IntegerUnion, b::AbsLocalizedRingElem)
   error("function `//` not implemented for elements of type $(typeof(b))")
 end
 
+### Why are divisions not implemented on the default level?
+# Say both a = p⋅c/q and b = f⋅c/g are elements of a localized 
+# ring R[S⁻¹] such that f⋅c ∉ S, but f ∈ S. Then by cancellation 
+# a/b is an admissible element of the localization. But this 
+# cancellation can not be implemented on a generic level, but 
+# only for the specific ring R.
 function Base.:(//)(a::T, b::T) where {T<:AbsLocalizedRingElem}
   error("function `//` not implemented for elements of type $(typeof(b))")
 end

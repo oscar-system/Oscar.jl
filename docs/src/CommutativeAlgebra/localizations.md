@@ -50,8 +50,8 @@ A localized ring should then be derived from
 ```
 For any concrete instance of this type the following methods must be implemented:
 ```@docs
-    original_ring(W::AbsLocalizedRing{RingType, RingElemType, MultSetType}) where {RingType, RingElemType, MultSetType} 
-    inverted_set(W::AbsLocalizedRing{RingType, RingElemType, MultSetType}) where {RingType, RingElemType, MultSetType}
+    original_ring(W::AbsLocalizedRing) 
+    inverted_set(W::AbsLocalizedRing)
 ```
 Also, conversion of fractions to elements of localized rings must be implemented in the form 
 `(W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(a::RingElemType) where {RingType, RingElemType, MultSetType}`, taking ``a`` to the element ``\frac{a}{1}``.
@@ -65,20 +65,22 @@ The *elements* of localized rings must be derived from
 For any concrete instance `F` of `AbsLocalizedRingElem` there must be the following 
 methods:
 ```@docs
-    numerator(f::T) where {T<:AbsLocalizedRingElem} 
-    denominator(f::T) where {T<:AbsLocalizedRingElem} 
-    parent(f::T) where {T<:AbsLocalizedRingElem}
+    numerator(f::AbsLocalizedRingElem) 
+    denominator(f::AbsLocalizedRingElem) 
+    parent(f::AbsLocalizedRingElem)
 ```
 A default version of the arithmetic is implemented on the generic level using the above 
 functionality and the arithmetic for the original ring. 
 Depending on the actual concrete instance, one might wish to provide more fine-tuned methods, 
 starting e.g. by implementing 
 ```@docs
-    reduce_fraction(f::T) where {T<:AbsLocalizedRingElem}
+    reduce_fraction(f::AbsLocalizedRingElem)
 ```
 Note that this is called after *every* arithmetic operation (addition, multiplication,...), 
 so the computations carried out here should be computationally cheap.
 
-Two toy examples for implementations of this interface can be found in 
-`examples/integer-localizations.jl` and `examples/nmod-localizations`.
+Two toy examples for implementations of this interface for localizations 
+of the integers ``\mathbb Z`` and rings of the form ``\mathbb Z/n\mathbb Z`` 
+can be found in the test files 
+`test/Rings/integer-localizations.jl` and `test/Rings/nmod-localizations.jl`.
  

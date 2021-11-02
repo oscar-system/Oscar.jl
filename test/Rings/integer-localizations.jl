@@ -2,9 +2,14 @@
 # A minimal implementation of the localization interface for the ring ℤ         #
 #################################################################################
 
+using Oscar
+using Markdown
+
+import Oscar: original_ring, inverted_set, ambient_ring, localize_at, parent, numerator, denominator, one, zero, reduce_fraction
+import Oscar.AbstractAlgebra: elem_type, parent_type
+
 export FmpzComplementOfPrimeIdeal, FmpzPowersOfElement, FmpzComplementOfZeroIdeal
 export FmpzLocalizedRing, FmpzLocalizedRingElem
-export ambient_ring, localize_at, parent, numerator, denominator
 
 
 #################################################################################
@@ -103,7 +108,7 @@ ambient_ring(S::FmpzComplementOfZeroIdeal) = ZZ
 
 ### required functionality
 function Base.in(b::fmpz, S::FmpzComplementOfZeroIdeal) 
-  return !(b == zero(ZZ))
+  return !(b == ZZ(0))
 end
 
 ### additional functionality
@@ -115,7 +120,7 @@ Base.in(b::Oscar.IntegerUnion, S::FmpzComplementOfZeroIdeal) = (ZZ(b) in S)
 #################################################################################
 
 @Markdown.doc """
-    FmpzLocalizedRing{MultSetType} <: AbsLocalizedRing{FlintIntegerRing, fmpz, MultSetType} 
+FmpzLocalizedRing{MultSetType <: AbsMultSet{FlintIntegerRing, fmpz}} <: AbsLocalizedRing{FlintIntegerRing, fmpz, MultSetType} 
 
 A minimal implementation for the localization `ℤ[S⁻¹]` of the ring of integers 
 at a multiplicatively closed set `S` of type `MultSetType`.
@@ -123,7 +128,7 @@ at a multiplicatively closed set `S` of type `MultSetType`.
 mutable struct FmpzLocalizedRing{MultSetType <: AbsMultSet{FlintIntegerRing, fmpz}} <: AbsLocalizedRing{FlintIntegerRing, fmpz, MultSetType} 
   S::MultSetType # The multiplicatively closed set S ⊂ R whose inverses are added to R
 
-  function FmpzLocalizedRing(S::MultSetType) where {MultSetType}
+  function FmpzLocalizedRing(S::MultSetType) where {MultSetType <: AbsMultSet{FlintIntegerRing, fmpz}}
     # Sanity check whether the multiplicatively closed set S is compatible with the 
     # given rings
     MultSetType <: AbsMultSet{FlintIntegerRing, fmpz} || error(
@@ -134,7 +139,7 @@ mutable struct FmpzLocalizedRing{MultSetType <: AbsMultSet{FlintIntegerRing, fmp
 end
 
 ### required getter functions
-original_ring(W::FmpzLocalizedRing{MultSetType}) where {MultSetType} = ZZ::FlintIntegerRing
+original_ring(W::FmpzLocalizedRing) = ZZ::FlintIntegerRing
 inverted_set(W::FmpzLocalizedRing{MultSetType}) where {MultSetType} = W.S::MultSetType
 
 ### required extensions of the localization function
@@ -167,8 +172,8 @@ end
 
 ### required getter functions
 parent(f::FmpzLocalizedRingElem{MultSetType}) where {MultSetType} = f.R::FmpzLocalizedRing{MultSetType}
-numerator(f::FmpzLocalizedRingElem{MultSetType}) where {MultSetType} = f.numerator::fmpz
-denominator(f::FmpzLocalizedRingElem{MultSetType}) where {MultSetType} = f.denominator::fmpz
+numerator(f::FmpzLocalizedRingElem) = f.numerator::fmpz
+denominator(f::FmpzLocalizedRingElem) = f.denominator::fmpz
 
 ### required implementation of the arithmetic
 function Base.:(//)(a::Oscar.IntegerUnion, b::FmpzLocalizedRingElem)
@@ -189,30 +194,23 @@ function Base.:(//)(a::T, b::T) where {T<:FmpzLocalizedRingElem}
 end
 
 ### optional enhancement of the arithmetic
-function reduce_fraction(f::FmpzLocalizedRingElem{MultSetType}) where {MultSetType}
+function reduce_fraction(f::FmpzLocalizedRingElem) 
   g = gcd(numerator(f), denominator(f))
   return FmpzLocalizedRingElem(parent(f), divexact(numerator(f), g), divexact(denominator(f), g))
 end
 
 ### required conversions
-(W::FmpzLocalizedRing{MultSetType})(f::fmpz) where {MultSetType} = FmpzLocalizedRingElem(W, f, one(ZZ))
-(W::FmpzLocalizedRing{MultSetType})(a::fmpz, b::fmpz) where {MultSetType} = FmpzLocalizedRingElem(W, a, b)
+(W::FmpzLocalizedRing)(f::fmpz) = FmpzLocalizedRingElem(W, f, ZZ(1))
+(W::FmpzLocalizedRing)(a::fmpz, b::fmpz) = FmpzLocalizedRingElem(W, a, b)
 
 ### additional conversions
-(W::FmpzLocalizedRing{MultSetType})(q::fmpq) where {MultSetType} = FmpzLocalizedRingElem(W, numerator(q), denominator(q))
-(W::FmpzLocalizedRing{MultSetType})(q::Rational{Int}) where {MultSetType} = FmpzLocalizedRingElem(W, ZZ(numerator(q)), ZZ(denominator(q)))
-@Markdown.doc """
-    (W::FmpzLocalizedRing{MultSetType})(i::Oscar.IntegerUnion) where {MultSetType} = FmpzLocalizedRingElem(W, ZZ(i), one(ZZ))
-
-Part of the minimal interface for localized rings. This routine returns the conversion of 
-an integer i to an element i//1 ∈ W.
-"""
-(W::FmpzLocalizedRing{MultSetType})(i::Oscar.IntegerUnion) where {MultSetType} = FmpzLocalizedRingElem(W, ZZ(i), one(ZZ))
-(W::FmpzLocalizedRing{MultSetType})(a::Oscar.IntegerUnion, b::Oscar.IntegerUnion) where {MultSetType} = FmpzLocalizedRingElem(W, ZZ(a), ZZ(b))
+(W::FmpzLocalizedRing)(q::fmpq) = FmpzLocalizedRingElem(W, numerator(q), denominator(q))
+(W::FmpzLocalizedRing)(q::Rational{T}) where {T<:Oscar.IntegerUnion} = FmpzLocalizedRingElem(W, ZZ(numerator(q)), ZZ(denominator(q)))
+(W::FmpzLocalizedRing)(a::Oscar.IntegerUnion, b::Oscar.IntegerUnion) = FmpzLocalizedRingElem(W, ZZ(a), ZZ(b))
 
 ### implementation of Oscar's general ring interface
-one(W::FmpzLocalizedRing{MultSetType}) where {MultSetType} = W(1)
-zero(W::FmpzLocalizedRing{MultSetType}) where {MultSetType} = W(0)
+one(W::FmpzLocalizedRing) = W(1)
+zero(W::FmpzLocalizedRing) = W(0)
 
 elem_type(W::FmpzLocalizedRing{MultSetType}) where {MultSetType} = FmpzLocalizedRingElem{MultSetType}
 elem_type(T::Type{FmpzLocalizedRing{MultSetType}}) where {MultSetType} = FmpzLocalizedRingElem{MultSetType}
@@ -220,3 +218,57 @@ elem_type(T::Type{FmpzLocalizedRing{MultSetType}}) where {MultSetType} = FmpzLoc
 parent_type(W::FmpzLocalizedRingElem{MultSetType}) where {MultSetType} = FmpzLocalizedRing{MultSetType}
 parent_type(T::Type{FmpzLocalizedRingElem{MultSetType}}) where {MultSetType} = FmpzLocalizedRing{MultSetType}
 
+
+########################################################################
+# The actual tests for the above implementation                        #
+########################################################################
+
+@testset "integer-localizations" begin
+  S = FmpzPowersOfElement([5,14])
+  @test 25 in S
+  @test !(33 in S)
+  @test 5*5*7 in S
+  @test ambient_ring(S) == ZZ
+  W = localize_at(S)
+  @test original_ring(W) == ambient_ring(S)
+  @test inverted_set(W) == S
+  a = W(3)
+  b = W(7, 5)
+  @test a+b == W(3*5+7, 5)
+  @test a-b == W(3*5-7, 5)
+  @test 1//b == W(5,7)
+  @test b^2 == W(49, 25)
+  c = W(4, 5)
+  @test c//c == one(W)
+
+  U = FmpzComplementOfPrimeIdeal(13)
+  @test !(13^5 in U)
+  @test !(13*4289729837 in U)
+  @test 5783790198374098 in U
+  @test ambient_ring(U) == ZZ
+  W = localize_at(U)
+  @test original_ring(W) == ambient_ring(U)
+  @test inverted_set(W) == U
+  a = W(4, 17)
+  b = W(4*17)
+  b = b//W(19)
+  @test a//b == W(19//17^2)
+  @test a - b == W( 4//17 - 4*17//19 )
+  @test a + b == W( 4//17 + 4*17//19 )
+  @test a * b == W( 4//17 * 4*17//19 )
+
+  O = FmpzComplementOfZeroIdeal()
+  @test 234890 in O
+  @test !(0 in O)
+  @test ambient_ring(O) == ZZ
+  W = localize_at(O)
+  @test original_ring(W) == ambient_ring(O)
+  @test inverted_set(W) == O
+  a = W(4, 17)
+  b = W(4*17)
+  b = b//W(19)
+  @test a//b == W(19//17^2)
+  @test a - b == W( 4//17 - 4*17//19 )
+  @test a + b == W( 4//17 + 4*17//19 )
+  @test a * b == W( 4//17 * 4*17//19 )
+end
