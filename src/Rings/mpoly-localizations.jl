@@ -149,6 +149,19 @@ end
 # Powers of elements                                                   #
 ########################################################################
 
+@Markdown.doc """
+MPolyPowersOfElement{
+    BaseRingType,
+    BaseRingElemType, 
+    RingType,
+    RingElemType
+  } <: AbsMultSet{
+    RingType, 
+    RingElemType
+  }
+
+The set `S = { aᵏ : k ∈ ℕ₀ }` for some ``a ∈ R`` with ``R`` of type `BaseRingType`.
+"""
 mutable struct MPolyPowersOfElement{
     BaseRingType,
     BaseRingElemType, 

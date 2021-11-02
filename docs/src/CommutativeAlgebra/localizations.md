@@ -135,3 +135,77 @@ Base.:+(I::T, J::T) where {T<:AbsLocalizedIdeal}
 ```
 Everything else, such as e.g. intersections of ideals, has to be implemented for the specific 
 types by the user.
+
+## Localizations of multivariate polynomial rings
+
+The available types of multiplicative sets are 
+```@docs
+MPolyComplementOfPrimeIdeal{
+    BaseRingType, 
+    BaseRingElemType,
+    RingType,
+    RingElemType
+  } 
+MPolyComplementOfKPointIdeal{
+    BaseRingType,
+    BaseRingElemType, 
+    RingType,
+    RingElemType
+  } 
+MPolyPowersOfElement{
+    BaseRingType,
+    BaseRingElemType, 
+    RingType,
+    RingElemType
+  } 
+```
+Localizations of multivariate polynomial rings are of type 
+```@docs
+MPolyLocalizedRing{
+    BaseRingType,
+    BaseRingElemType,
+    RingType,
+    RingElemType,
+    MultSetType
+  } 
+```
+with elements of type
+```@docs
+MPolyLocalizedRingElem{
+    BaseRingType, 
+    BaseRingElemType,
+    RingType,
+    RingElemType, 
+    MultSetType
+  }
+```
+In order to make the `Singular` functionality available there is 
+```@docs
+LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}
+```
+which has a monomial ordering and a `Singular` ring associated to it. 
+This is also the type returned by any Groebner- or standard basis 
+computation.
+
+Ideals in localizations of multivariate polynomial rings are of the type
+```@docs
+MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST}
+```
+and can be constructed using `ideal(W::MPolyLocalizedRing, ...)`,
+either from single elements or a list of elements 
+from both the localized ring or its base ring before localization. 
+
+Groebner and standard bases of ideals can be computed for explicit 
+orderings using 
+```
+    groebner_basis(I::MPolyLocalizedIdeal, ord::Symbol)
+```
+Note that depending on the type parameters of `I`, this method 
+is dispatched differently, which will also lead to different 
+interpretations of the ordering. For instance, for multiplicative 
+sets of type `MPolyComplementOfKPointIdeal`, a shift of variables 
+taking the geometric point to the origin is applied to all polynomials 
+when passing to the singular side. 
+
+If the second argument is omitted, a default ordering 
+will be chosen, depending on the type of the multiplicative set. 
