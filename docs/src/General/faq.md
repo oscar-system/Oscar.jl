@@ -16,7 +16,55 @@ This has historical reasons. We plan to rename these types before Oscar 1.0
 
 **Q: Why do you have your own matrix types, and why do they not support the exact same commands as Julia matrices?**
 
-TODO
+Unfortunately, Julia's matrices and linear algebra cannot be made to work in
+our context due to two independent problems:
+  - in empty matrices (0 rows or columns) all that is known is the *type* of
+    the matrix entries, however for the complex types used in Oscar, this
+    information is not sufficient to create elements, hence ``zero(T)`` or
+    friends cannot work.
+  - many functions (e.g. ``det``) assume that all types used embed into the
+    real or complex numbers, in Julia ``det(ones(Int, (1,1))) == 1.0``, so the
+    fact that this is exactly the integer `1`  is lost. Furthermore, more
+    general rings cannot be embedded into the reals at all.
+  
+---
+
+**Q: Why can ``zero(T)`` for a type `T` not work?
+
+At least two reasons:
+  - the type depends on data that is not a bit-type
+  - even if it could, it is not desireable. Typical example, computations in
+    ``Z/nZ``, so modular arithmetic. If ``n`` is small, then it is tempting to
+    define a type `T` depending on `n`. We actually did this, and tried to use
+    this. 
+
+    A generic algorithmic pattern is for problems over the integers to
+    solve them by solving this for many `n`, e.g. chosen as prime numbers, and
+    then to combine them. If the type depends on `n`, then for every prime the
+    code gets compiled, thus negating any advantages from the use of modular
+    techniqes.
+
+Of course, one could make the ``n`` an additional parameter to all functions
+needing it, but then e.g. addition of matrices would have to be implemented
+spcifically for this case, negating the advantages of generic
+implementations.
+
+In Oscar, the role of the type is split between the acutal Julia-type and the ``parent``.  
+
+---
+
+**Q: What is a ``parent``?
+
+Almost element like objects in Oscar have a parent, ie. they belong to some
+larger structure. For example algebraic numbers belong to a number field,
+modular integers belong to ``Z/nZ``, permutations are elements of permutation
+groups and many more. The data common to all such elements is out-sourced to
+the parent. For a number field for example, the parent contains the polynomial
+used to define the field (plus other information).
+
+Given that a type alone is not large enough to contain the data, the parent is 
+used. Roughly, outside a function signature, a parent replaces the role of the 
+type. For example, ``zero(P)`` works.
 
 ---
 
@@ -34,7 +82,7 @@ Please follow [the install instructions on our website](https://oscar.computeral
 
 ---
 
-**Q: Why does Oscar require WSL on Windows?**
+**Q: Why does OSCAR require WSL on Windows?**
 
 Several of the OSCAR corner stones originate from Unix-like operating
 systems and have no or only limited native support for Windows.
