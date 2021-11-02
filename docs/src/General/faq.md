@@ -29,18 +29,18 @@ our context due to two independent problems:
   
 ---
 
-**Q: Why can ``zero(T)`` for a type `T` not work?**
+**Q: Why can `zero(T)` for a type `T` not work?**
 
 At least two reasons:
   - the type depends on data that is not a bit-type
   - even if it could, it is not desireable. Typical example: computations in
     ``Z/nZ``, so modular arithmetic. If ``n`` is small, then it is tempting to
-    define a type `T` depending on `n`. We actually did this, and tried to use
+    define a type `T` depending on ``n``. We actually did this, and tried to use
     this. It did not work well, for various reasons. E.g.:
 
     A generic algorithmic pattern for problems over the integers is to
-    solve them by solving them modulo `n` for many `n`, e.g. chosen as prime numbers, and
-    then to combine them. If the type depends on `n`, then for every prime the
+    solve them by solving them modulo ``n`` for many ``n``, e.g. chosen as prime numbers, and
+    then to combine them. If the type depends on ``n``, then for every prime the
     code gets compiled, thus negating any advantages from the use of modular
     techniqes.
 
@@ -64,7 +64,8 @@ used to define the field (plus other information).
 
 Given that a type alone is not large enough to contain the data, the parent is 
 used. Roughly, outside a function signature, a parent replaces the role of the 
-type. For example, ``zero(P)`` works.
+type. For example, for a ring element `elm` in Oscar `zero(parent(elm))` works,
+even if `zero(typeof(elm))` may not.
 
 ---
 
