@@ -18,9 +18,9 @@ quite some of them; but in general we strive to reduce these)
   concepts, preferably not special names from your area of speciality.
 - use Julia conventions where applicable.
 - in Julia we have multiple dispatch, so we do not need a function like
-  ``point_from_matrix`` as the from part is clear by the type of the argument.
-  It should be called ``points(::Matrix)`` in some variation.
-  Similar: ``matrix_to_points``. It is fine to use them internally, where
+  `point_from_matrix` as the from part is clear by the type of the argument.
+  It should be called `points(T::Matrix)` in some variation.
+  Similar: `matrix_to_points`. It is fine to use them internally, where
   useful, however, internally.
 - follow the mathematics. If your function needs a list of points, you should
   create a point-type and then use this. For user-facing functions, please do not
