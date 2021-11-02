@@ -26,7 +26,7 @@ quite some of them; but in general we strive to reduce these)
   create a point-type and then use this. For user-facing functions, please do not
   use re-purposed lists, arrays, matrices...
 - if already existing types in Oscar are almost what you need, consider
-  improving them over writing you own. The `Problem` is that, while it is
+  improving them instead of writing you own. While it might be
   tempting to create a new polynomial ring type for the new application because
   some feature is missing, it causes a lot of work: will the new type support
   - normal functions (gcd, factor)
