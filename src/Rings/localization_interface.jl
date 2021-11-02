@@ -30,11 +30,11 @@ abstract type AbsMultSet{RingType<:Ring, RingElemType<:RingElem} end
 
 ### required getter functions
 @Markdown.doc """
-    ambient_ring(S::AbsMultSet{RingType, RingElemType}) where {RingType, RingElemType}
+ambient_ring(S::AbsMultSet)
 
 Returns the ambient ring `R` for a multiplicatively closed set `S ⊂ R`.
 """
-function ambient_ring(S::AbsMultSet{RingType, RingElemType}) where {RingType, RingElemType}
+function ambient_ring(S::AbsMultSet)
   error("method `ambient_ring` not implemented for multiplicatively closed sets of type $(typeof(S))")
 end
 
@@ -72,30 +72,30 @@ abstract type AbsLocalizedRing{RingType, RingElemType, MultSetType} <: Ring end
 
 ### required getter functions
 @Markdown.doc """
-    base_ring(W::AbsLocalizedRing{RingType, RingElemType, MultSetType}) where {RingType, RingElemType, MultSetType} 
+base_ring(W::AbsLocalizedRing)
 
-Returns the original ring R for a localized ring of the form W = R[S⁻¹].
+Returns the base ring R for a localized ring of the form W = R[S⁻¹].
 """
-function base_ring(W::AbsLocalizedRing{RingType, RingElemType, MultSetType}) where {RingType, RingElemType, MultSetType} 
+function base_ring(W::AbsLocalizedRing)
   error("`base_ring` is not implemented for localized rings of type $(typeof(W))")
 end
 
 @Markdown.doc """
-    inverted_set(W::AbsLocalizedRing{RingType, RingElemType, MultSetType}) where {RingType, RingElemType, MultSetType}
+inverted_set(W::AbsLocalizedRing)
 
 Returns the set S of at which has been localized for a localized ring W = R[S⁻¹].
 """
-function inverted_set(W::AbsLocalizedRing{RingType, RingElemType, MultSetType}) where {RingType, RingElemType, MultSetType}
+function inverted_set(W::AbsLocalizedRing)
   error("`inverted_set` is not implemented for localized rings of type $(typeof(W))")
 end
 
 ### required functionality
 @Markdown.doc """
-    localize_at(S::AbsMultSet{RingType, RingElemType}) where {RingType, RingElemType}
+localize_at(S::AbsMultSet)
 
 Returns the localization of the `ambient_ring` of `S` at `S` itself.
 """
-function localize_at(S::AbsMultSet{RingType, RingElemType}) where {RingType, RingElemType}
+function localize_at(S::AbsMultSet)
   error("localizations at multiplicatively closed sets of type $(typeof(S)) are not implemented")
 end
 
@@ -128,7 +128,7 @@ function (W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(a::RingElemT
 end
 
 ### Other conversions for the sake of convenience
-(W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(a::Oscar.IntegerUnion) where {RingType, RingElemType, MultSetType} = W(base_ring(W)(a))
+(W::AbsLocalizedRing)(a::Oscar.IntegerUnion) = W(base_ring(W)(a))
 
 
 #################################################################################
@@ -245,18 +245,28 @@ iszero(a::AbsLocalizedRingElem) = iszero(numerator(a))
 ############################################################################
 
 @Markdown.doc """
-    AbsLocalizedIdeal{RingType, RingElemType, MultSetType} <: Ideal{RingElemType}
+AbsLocalizedIdeal{RingType, RingElemType, MultSetType}
 
-Abstract type for finitely generated ideals ``IS⁻¹ ⊂ R[S⁻¹]`` in localized rings. 
+Abstract type for finitely generated ideals ``I ⊂ R[S⁻¹]`` in localized rings. 
 """
 abstract type AbsLocalizedIdeal{RingType, RingElemType, MultSetType} <: Ideal{RingElemType} end
 
 ### required getter functions
-function gens(I::AbsLocalizedIdeal{RingType, RingElemType, MultSetType}) where {RingType, RingElemType, MultSetType}
+@Markdown.doc """
+    gens(I::AbsLocalizedIdeal)
+
+Returns a Vector of generators of `I`.
+"""
+function gens(I::AbsLocalizedIdeal)
   error("`gens(I)` has not been implemented for `I` of type $(typeof(I))")
 end
 
-function base_ring(I::AbsLocalizedIdeal{RingType, RingElemType, MultSetType}) where {RingType, RingElemType, MultSetType}
+@Markdown.doc """
+    base_ring(I::AbsLocalizedIdeal)
+
+Returns the localized ring over which `I` is defined.
+"""
+function base_ring(I::AbsLocalizedIdeal)
   error("`base_ring(I)` has not been implemented for `I` of type $(typeof(I))")
 end
 
@@ -290,6 +300,14 @@ function ideal(
 end
 
 ### required functionality
+@Markdown.doc """
+Base.in(
+    f::AbsLocalizedRingElem{RingType, RingElemType, MultSetType}, 
+    I::AbsLocalizedIdeal{RingType, RingElemType, MultSetType}
+  ) where {RingType, RingElemType, MultSetType}
+
+Checks for ideal membership of `f` in `I`.
+"""
 function Base.in(
     f::AbsLocalizedRingElem{RingType, RingElemType, MultSetType}, 
     I::AbsLocalizedIdeal{RingType, RingElemType, MultSetType}
@@ -297,6 +315,14 @@ function Base.in(
   error("`in(f, I)` has not been implemented for `f` of type $(typeof(f)) and `I` of type $(typeof(I))")
 end
 
+@Markdown.doc """
+Base.in(
+    f::RingElemType, 
+    I::AbsLocalizedIdeal{RingType, RingElemType, MultSetType}
+  ) where {RingType, RingElemType, MultSetType}
+
+Checks for ideal membership of `f` in `I`.
+"""
 function Base.in(
     f::RingElemType, 
     I::AbsLocalizedIdeal{RingType, RingElemType, MultSetType}
@@ -306,6 +332,11 @@ end
 
 
 ### A catchall implementation for the ideal arithmetic 
+@Markdown.doc """
+Base.:*(I::T, J::T) where {T<:AbsLocalizedIdeal}
+
+Returns the product of the ideals `I` and `J`.
+"""
 function Base.:*(I::T, J::T) where {T<:AbsLocalizedIdeal}
   W = base_ring(I) 
   W == base_ring(J) || error("the given ideals do not belong to the same ring")
@@ -313,6 +344,11 @@ function Base.:*(I::T, J::T) where {T<:AbsLocalizedIdeal}
   return ideal(W, new_gens)
 end
 
+@Markdown.doc """
+Base.:+(I::T, J::T) where {T<:AbsLocalizedIdeal}
+
+Returns the sum of the ideals `I` and `J`.
+"""
 function Base.:+(I::T, J::T) where {T<:AbsLocalizedIdeal}
   W = base_ring(I) 
   W == base_ring(J) || error("the given ideals do not belong to the same ring")
