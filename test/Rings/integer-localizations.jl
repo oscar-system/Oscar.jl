@@ -176,13 +176,15 @@ numerator(f::FmpzLocalizedRingElem) = f.numerator::fmpz
 denominator(f::FmpzLocalizedRingElem) = f.denominator::fmpz
 
 ### required implementation of the arithmetic
-function Base.:(//)(a::Oscar.IntegerUnion, b::FmpzLocalizedRingElem)
+function Base.:(//)(a::fmpz, b::FmpzLocalizedRingElem)
   c = ZZ(a)
   g = gcd(c, numerator(b))
   c = divexact(c, g)
   numerator(b) in inverted_set(parent(b)) || error("the second argument is not a unit in this local ring")
   return reduce_fraction((parent(b))(c*denominator(b), divexact(numerator(b), g)))
 end
+
+Base.:(//)(a::Integer, b::FmpzLocalizedRingElem) = ZZ(a)//b
 
 function Base.:(//)(a::T, b::T) where {T<:FmpzLocalizedRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")

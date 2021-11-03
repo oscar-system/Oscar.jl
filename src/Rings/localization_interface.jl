@@ -222,7 +222,7 @@ function *(a::T, b::T) where {T<:AbsLocalizedRingElem}
 end
 
 function *(a::RET, b::AbsLocalizedRingElem{RT, RET, MST}) where {RT, RET <: RingElem, MST}
-  return reduce_fraction((parent(b))(a*numerator(a), denominator(b)))
+  return reduce_fraction((parent(b))(a*numerator(b), denominator(b)))
 end
 
 function *(a::AbsLocalizedRingElem{RT, RET, MST}, b::RET) where {RT, RET <: RingElem, MST}
@@ -248,7 +248,11 @@ function ==(a::T, b::T) where {T<:AbsLocalizedRingElem}
   return numerator(a)*denominator(b) == numerator(b)*denominator(a)
 end
 
-function ^(a::AbsLocalizedRingElem, i::Oscar.IntegerUnion)
+function ^(a::AbsLocalizedRingElem, i::fmpz)
+  return parent(a)(numerator(a)^i, denominator(a)^i)
+end
+
+function ^(a::AbsLocalizedRingElem, i::Integer)
   return parent(a)(numerator(a)^i, denominator(a)^i)
 end
 

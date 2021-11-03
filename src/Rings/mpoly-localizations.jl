@@ -461,13 +461,13 @@ end
 
 # We need to manually split this into three methods, because 
 # otherwise it seems that Julia can not dispatch this method.
-function ^(a::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}, i::Int64) where {BRT, BRET, RT, RET, MST}
+function ^(a::MPolyLocalizedRingElem, i::Int64)
   return parent(a)(fraction(a)^i)
 end
-function ^(a::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}, i::Integer) where {BRT, BRET, RT, RET, MST}
+function ^(a::MPolyLocalizedRingElem, i::Integer)
   return parent(a)(fraction(a)^i)
 end
-function ^(a::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}, i::fmpz) where {BRT, BRET, RT, RET, MST}
+function ^(a::MPolyLocalizedRingElem, i::fmpz)
   return parent(a)(fraction(a)^i)
 end
 
@@ -838,8 +838,13 @@ function Base.reduce(
   shift_hom = hom(R, R, [gen(R, i) + lbpa.shift[i] for i in (1:nvars(R))])
   singular_n = singular_ring(lbpa)(shift_hom(numerator(f)))
   singular_n = Singular.reduce(singular_n, singular_gens(lbpa))
+  if iszero(singular_n) 
+    return zero(W)
+  end
+  singular_d = singular_ring(lbpa)(shift_hom(denominator(f)))
+  singular_d = Singular.reduce(singular_d, singular_gens(lbpa))
   inv_shift_hom = hom(R,R, [gen(R, i) - lbpa.shift[i] for i in (1:nvars(R))])
-  return W(inv_shift_hom(R(singular_n)), denominator(f))
+  return W(inv_shift_hom(R(singular_n)), inv_shift_hom(R(singular_d)))
 end
 
 

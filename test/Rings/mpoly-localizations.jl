@@ -63,7 +63,7 @@
   @test I_loc + J isa MPolyLocalizedIdeal
   @test I_loc * J isa MPolyLocalizedIdeal
 
-  @test reduce(W(x)//W(y-q+1), lbpa) == W(p)//W(y-q+1)
+  @test reduce(W(x)//W(y-q+1), lbpa) == W(p)//reduce(W(y-q+1), lbpa)
 
   K = ideal(W, f)
   @test f*(x-p+4) in K
