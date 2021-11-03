@@ -4,7 +4,7 @@
 ###############################################################################
 ###############################################################################
 @doc Markdown.doc"""
-    birkhoff(n::Integer, even::Bool = false, group::Bool = false)
+    birkhoff(n::Integer, even::Bool = false)
 
 Construct the Birkhoff polytope of dimension $n^2$.
 
@@ -13,8 +13,6 @@ vectors), i.e., the matrices with non-negative real entries whose row and column
 entries sum up to one. Its vertices are the permutation matrices.
 
 Use `even = true` to get the vertices only for the even permutation matrices.
-Use `group = true`, to compute the symmetry group induced by the symmetric group
-to the resulting polytope.
 
 # Example
 ```jldoctest
@@ -31,8 +29,8 @@ julia> vertices(b)
  [0, 0, 1, 0, 1, 0, 1, 0, 0]
 ```
 """
-function birkhoff(n::Integer; even::Bool = false, group::Bool = false)
-   pm_out = Polymake.polytope.birkhoff(n, Int(even), group=group)
+function birkhoff(n::Integer; even::Bool = false)
+   pm_out = Polymake.polytope.birkhoff(n, Int(even), group=true)
    return Polyhedron(pm_out)
 end
 
@@ -48,8 +46,6 @@ outside the affine span of `P`. For bounded polyhedra, the projection of `v` to
 the affine span of `P` coincides with the vertex barycenter of `P`. The scalar z
 is the distance between the vertex barycenter and v, its default value is 1.
 
-Use `group = true`, to compute the group induced by the GROUP of `P`and leaving
-the apex fixed.
 
 # Example
 ```jldoctest
@@ -65,13 +61,15 @@ julia> vertices(pyramid(c,5))
  [0, 0, 5]
 ```
 """
-function pyramid(P::Polyhedron, z::Number=1; group::Bool=false)
+function pyramid(P::Polyhedron, z::Number=1)
    pm_in = pm_polytope(P)
-   pm_out = Polymake.polytope.pyramid(pm_in, z, group=group)
-   return Polyhedron(pm_out)
+   try
+      pm_in.GROUP;
+      return Polyhedron(Polymake.polytope.pyramid(pm_in, z, group=true))
+   catch
+      return Polyhedron(Polymake.polytope.pyramid(pm_in, z))
+   end
 end
-#TODO For `group` option: Check if there is already a way to communicate the
-#Polymake groups with the Oscar groups.
 
 
 
@@ -103,9 +101,14 @@ julia> vertices(bipyramid(c,2))
 """
 function bipyramid(P::Polyhedron, z::Number=1, z_prime::Number=-z)
    pm_in = pm_polytope(P)
-   pm_out = Polymake.polytope.bipyramid(pm_in, z, z_prime)
-   return Polyhedron(pm_out)
+   try
+      pm_in.GROUP;
+      return Polyhedron(Polymake.polytope.bipyramid(pm_in, z, z_prime, group=true))
+   catch
+      return Polyhedron(Polymake.polytope.bipyramid(pm_in, z, z_prime))
+   end
 end
+
 
 
 @doc Markdown.doc"""
