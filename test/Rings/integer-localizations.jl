@@ -37,7 +37,7 @@ function Base.in(a::fmpz, S::FmpzPowersOfElement)
   # check whether ∃ c ∈ ℤ, k ∈ ℕ₀: c ⋅ a = (∏ᵢ dᵢ)ᵏ, where dᵢ are the admissible denominators in S.
   d = prod(denominators(S))
   g = gcd(a, d)
-  while(!isone(g))
+  while !isone(g)
     a = divexact(a, g)
     g = gcd(a, d)
   end

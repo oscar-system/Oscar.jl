@@ -1,12 +1,11 @@
-export MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal, MPolyPowersOfElement
-
-export ambient_ring, point_coordinates, inverted_set
-
-export reduce_fraction
-
-export fraction, parent
+export MPolyUnits, MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal, MPolyPowersOfElement
 
 export MPolyLocalizedRing
+export ambient_ring, point_coordinates, inverted_set
+
+export MPolyLocalizedRingElem
+export numerator, denominator, fraction, parent
+export reduce_fraction
 
 export MPolyLocalizedIdeal
 export gens, base_ring, groebner_bases, default_ordering, dim 
@@ -17,11 +16,46 @@ export LocalizedBiPolyArray
 export oscar_gens, oscar_ring, singular_ring, singular_gens, ordering, shift
 export groebner_basis, groebner_assure
 
-import AbstractAlgebra.Ring
+export MPolyLocalizedRingHom
+export domain, codomain, images
+
+import AbstractAlgebra: Ring, RingElem
 
 ########################################################################
 # General framework for localizations of multivariate polynomial rings #
 ########################################################################
+
+########################################################################
+# Units in polynomial rings; localization does nothing in this case    #
+########################################################################
+
+mutable struct MPolyUnits{
+    BaseRingType, 
+    BaseRingElemType,
+    RingType,
+    RingElemType
+  } <: AbsMultSet{
+    RingType,
+    RingElemType
+  }
+
+  R::RingType
+
+  function MPolyUnits(R::MPolyRing)
+    return new{typeof(coefficient_ring(R)), elem_type(coefficient_ring(R)), typeof(R), elem_type(R)}(R)
+  end
+end
+
+### required getter functions
+ambient_ring(S::MPolyUnits) = S.R
+
+### required functionality
+function Base.in(
+    f::RingElemType, 
+    S::MPolyUnits{BaseRingType, BaseRingElemType, RingType, RingElemType}
+  ) where {BaseRingType, BaseRingElemType, RingType, RingElemType}
+  return divides(one(ambient_ring(S)), f)[1]
+end
 
 
 ########################################################################
@@ -262,6 +296,8 @@ base_ring(W::MPolyLocalizedRing) = W.R
 inverted_set(W::MPolyLocalizedRing) = W.S
 
 ### required extension of the localization function
+localize_at(S::MPolyUnits) = MPolyLocalizedRing(ambient_ring(S), S)
+
 localize_at(S::MPolyComplementOfPrimeIdeal) = MPolyLocalizedRing(ambient_ring(S), S)
 
 localize_at(S::MPolyComplementOfKPointIdeal) = MPolyLocalizedRing(ambient_ring(S), S)
@@ -385,7 +421,27 @@ function *(a::T, b::T) where {T<:MPolyLocalizedRingElem}
   return (parent(a))(fraction(a) * fraction(b))
 end
 
-function Base.:(//)(a::Oscar.IntegerUnion, b::T) where {T<:MPolyLocalizedRingElem}
+function *(a::RET, b::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET <: RingElem, MST}
+  return (parent(b))(a*fraction(b))
+end
+
+function *(a::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}, b::RET) where {BRT, BRET, RT, RET <: RingElem, MST}
+  return b*a
+end
+
+function *(a::BRET, b::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET <: RingElem, RT, RET, MST}
+  return (parent(b))(a*fraction(b))
+end
+
+function *(a::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}, b::BRET) where {BRT, BRET <: RingElem, RT, RET, MST}
+  return b*a
+end
+
+function Base.:(//)(a::Integer, b::T) where {T<:MPolyLocalizedRingElem}
+  return (parent(b))(a//fraction(b))
+end
+
+function Base.:(//)(a::fmpz, b::T) where {T<:MPolyLocalizedRingElem}
   return (parent(b))(a//fraction(b))
 end
 
@@ -403,7 +459,15 @@ function ==(a::T, b::T) where {T<:MPolyLocalizedRingElem}
   return fraction(a) == fraction(b)
 end
 
-function ^(a::MPolyLocalizedRingElem, i::Oscar.IntegerUnion)
+# We need to manually split this into three methods, because 
+# otherwise it seems that Julia can not dispatch this method.
+function ^(a::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}, i::Int64) where {BRT, BRET, RT, RET, MST}
+  return parent(a)(fraction(a)^i)
+end
+function ^(a::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}, i::Integer) where {BRT, BRET, RT, RET, MST}
+  return parent(a)(fraction(a)^i)
+end
+function ^(a::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}, i::fmpz) where {BRT, BRET, RT, RET, MST}
   return parent(a)(fraction(a)^i)
 end
 
@@ -779,4 +843,96 @@ function Base.reduce(
 end
 
 
+########################################################################
+# Homomorphisms of localized polynomial rings                          #
+########################################################################
+#
+# Let P = 𝕜[x₁,…,xₘ] and Q = 𝕜[y₁,…,yₙ] be polynomial rings 
+# Any homomorphism ϕ : P[U⁻¹] → Q[V⁻¹] is completely determined 
+# by the images of the variables 
+#
+#     ϕ(xᵢ) = aᵢ(y)/ bᵢ(y)
+#
+# where bᵢ(y) ∈ V for all i. Given such a list of images, there is a 
+# one can always define the associated homomorphism ϕ' : P → Q[V⁻¹]. 
+# This extends to a well defined homomorphism ϕ as above iff
+#
+#     for all f ∈ U : ϕ'(f) is a unit in Q[V⁻¹]            (*)
+#
+# and this is easily seen to be the case iff there exists an 
+# element c ∈ V such that c⋅ϕ'(f) ∈ V
 
+mutable struct MPolyLocalizedRingHom{BaseRingType, BaseRingElemType, 
+    RingType, RingElemType, DomainMultSetType, CodomainMultSetType
+  } <: AbsLocalizedRingHom{
+    RingType, RingElemType, DomainMultSetType, CodomainMultSetType
+  }
+  # the domain of definition
+  V::MPolyLocalizedRing{BaseRingType, BaseRingElemType, 
+			RingType, RingElemType, DomainMultSetType}
+  # the codomain 
+  W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, 
+			RingType, RingElemType, CodomainMultSetType}
+  # the images of the variables
+  images::Vector{MPolyLocalizedRingElem{
+    BaseRingType, BaseRingElemType, RingType, RingElemType, 
+    CodomainMultSetType}}
+
+  function MPolyLocalizedRingHom(
+      V::MPolyLocalizedRing{BRT, BRET, RT, RET, DMST}, 
+      W::MPolyLocalizedRing{BRT, BRET, RT, RET, CMST}, 
+      a::Vector{MPolyLocalizedRingElem{BRT, BRET, RT, RET, CMST}}
+    ) where {BRT, BRET, RT, RET, CMST, DMST}
+    R = base_ring(V)
+    S = base_ring(W)
+    k = coefficient_ring(R) 
+    k == coefficient_ring(S) || error("the two polynomial rings are not defined over the same coefficient ring")
+    ngens(R) == length(a) || error("the number of images does not coincide with the number of variables")
+    parent_check = true
+    for x in a
+      parent_check = parent_check && parent(x) == W
+    end
+    parent_check || error("the images of the variables are not elements of the codomain")
+    # Check whether this homomorphism is well defined
+    # TODO: Implement that!
+    return new{typeof(k), elem_type(k), typeof(R), elem_type(R), typeof(inverted_set(V)), typeof(inverted_set(W))}(V, W, a)
+  end
+end
+  
+### additional constructors
+function MPolyLocalizedRingHom(
+      R::RT,
+      W::MPolyLocalizedRing{BRT, BRET, RT, RET, CMST}, 
+      a::Vector{MPolyLocalizedRingElem{BRT, BRET, RT, RET, CMST}}
+    ) where {BRT, BRET, RT, RET, CMST}
+  return MPolyLocalizedRingHom(localize_at(MPolyUnits(R)), W, a)
+end
+
+function MPolyLocalizedRingHom(
+      V::MPolyLocalizedRing{BRT, BRET, RT, RET, DMST}, 
+      S::RT,
+      a::Vector{RET}
+    ) where {BRT, BRET, RT, RET, DMST}
+  W = localize_at(MPolyUnits(S))
+  return MPolyLocalizedRingHom(V, W, W.(a))
+end
+
+### required getter functions
+domain(f::MPolyLocalizedRingHom) = f.V
+codomain(f::MPolyLocalizedRingHom) = f.W
+images(f::MPolyLocalizedRingHom) = f.images
+
+### required functionality
+function (f::MPolyLocalizedRingHom{BRT, BRET, RT, RET, DMST, CMST})(p::MPolyLocalizedRingElem{BRT, BRET, RT, RET, DMST}) where {BRT, BRET, RT, RET, DMST, CMST}
+  return evaluate(numerator(p), images(f))//evaluate(denominator(p), images(f))
+end
+
+### Overwriting of the generic method
+function (f::MPolyLocalizedRingHom{BRT, BRET, RT, RET, DMST, CMST})(p::RET) where {BRT, BRET, RT, RET, DMST, CMST}
+  return evaluate(p, images(f))
+end
+
+### additional functionality
+function (f::MPolyLocalizedRingHom{BRT, BRET, RT, RET, DMST, CMST})(p::BRET) where {BRT, BRET, RT, RET, DMST, CMST}
+  return codomain(f)(p)
+end

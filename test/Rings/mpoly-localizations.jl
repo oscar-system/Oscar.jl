@@ -108,3 +108,24 @@ end
   J = I + ideal(W, f)
   @test W(1) in J
 end
+
+@testset "mpoly-localization homomorphisms" begin
+  R, var = ZZ["x", "y"]
+  x = var[1]
+  y = var[2] 
+  f = x^2 + y^2 -1
+  S = MPolyPowersOfElement(R, [x, y, f])
+  @test f in S
+  @test !(5*f in S)
+
+  U = localize_at(R, f)
+  V = localize_at(U, x)
+  W = localize_at(V, 5*f)
+
+  phi = MPolyLocalizedRingHom(R, W, [W(1//x), W(y//f)])
+  @test phi(x*f) == phi(localize_at(MPolyUnits(R))(x*f))
+  @test phi(ZZ(9)) == W(ZZ(9))
+
+  psi = MPolyLocalizedRingHom(U, R, [R(0), R(0)])
+  @test psi(U(-1//f))==one(codomain(psi))
+end
