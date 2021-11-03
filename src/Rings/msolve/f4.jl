@@ -56,11 +56,11 @@ function f4(
     field_char  = Singular.characteristic(R)
 
     # convert Singular ideal to flattened arrays of ints
-    if isprime(field_char)
-      lens, cfs, exps = convert_singular_ideal_to_array(J)
-    else
+    if !(isprime(field_char))
         error("At the moment f4 only supports finite fields.")
     end
+
+    lens, cfs, exps = convert_singular_ideal_to_array(J)
 
     gb_ld   = ccall(:malloc, Ptr{Cint}, (Csize_t, ), sizeof(Cint))
     gb_len  = ccall(:malloc, Ptr{Ptr{Cint}}, (Csize_t, ), sizeof(Ptr{Cint}))
@@ -91,10 +91,10 @@ function f4(
     # construct Singular ideal
     # if 0 == char
     #     basis = convert_qq_gb_array_to_singular_ideal(
-    #       jl_ld, jl_len, jl_exp, jl_cf, R)
+    #       jl_ld, jl_len, jl_cf, jl_exp, R)
     # else
         basis = convert_ff_gb_array_to_singular_ideal(
-          jl_ld, jl_len, jl_exp, jl_cf, R)
+          jl_ld, jl_len, jl_cf, jl_exp, R)
     # end
     ccall((:free_julia_data, libneogb), Nothing , (Ptr{Ptr{Cint}}, Ptr{Ptr{Cint}}, Ptr{Ptr{Cvoid}},
                 Int, Int), gb_len, gb_exp, gb_cf, jl_ld, field_char)

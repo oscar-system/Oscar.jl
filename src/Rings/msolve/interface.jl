@@ -41,8 +41,8 @@ end
 function convert_ff_gb_array_to_singular_ideal(
         bld::Int32,
         blen::Array{Int32,1},
-        bexp::Array{Int32,1},
         bcf::Array{Int32,1},
+        bexp::Array{Int32,1},
         R::Singular.PolyRing
         )
     ngens = bld
@@ -82,50 +82,50 @@ function convert_ff_gb_array_to_singular_ideal(
     return Singular.Ideal(R, list)
 end
 
-function convert_qq_gb_array_to_singular_ideal(
-        bld::Int32,
-        blen::Array{Int32,1},
-        bexp::Array{Int32,1},
-        bcf::Ptr{T} where {T <: Signed},
-        R::Singular.PolyRing
-        )
-    ngens = bld
-
-    nvars = Singular.nvars(R)
-    basis = Singular.Ideal(R, ) # empty ideal
-    # first entry in exponent vector is module component => nvars+1
-    exp   = zeros(Cint, nvars+1)
-
-    list  = Singular.elem_type(R)[]
-    # we generate the singular polynomials low level in order
-    # to avoid overhead due to many exponent operations etc.
-    j   = ngens + 1 + 1
-    len = 1
-    for i = 1:ngens
-        # do the first term
-        p = Singular.libSingular.p_Init(R.ptr)
-        Singular.libSingular.p_SetCoeff0(p,
-                Singular.libSingular.n_InitMPZ(BigInt(unsafe_load(bcf, len)),
-                    Singular.QQ.ptr), R.ptr)
-        for k = 1:nvars
-            exp[k+1]  = bexp[(len-1) * nvars + k]
-        end
-        Singular.libSingular.p_SetExpV(p, exp, R.ptr)
-        lp  = p
-        for j = 2:blen[i]
-          pterm = Singular.libSingular.p_Init(R.ptr)
-        Singular.libSingular.p_SetCoeff0(pterm,
-                Singular.libSingular.n_InitMPZ(BigInt(unsafe_load(bcf, len+j-1)),
-                    Singular.QQ.ptr), R.ptr)
-          for k = 1:nvars
-              exp[k+1]  = bexp[(len+j-1-1) * nvars + k]
-          end
-          Singular.libSingular.p_SetExpV(pterm, exp, R.ptr)
-          Singular.libSingular.SetpNext(lp, pterm)
-          lp  = pterm
-        end
-        push!(list, R(p))
-        len += blen[i]
-    end
-    return Singular.Ideal(R, list)
-end
+# function convert_qq_gb_array_to_singular_ideal(
+#         bld::Int32,
+#         blen::Array{Int32,1},
+#         bcf::Ptr{T} where {T <: Signed},
+#         bexp::Array{Int32,1},
+#         R::Singular.PolyRing
+#         )
+#     ngens = bld
+#
+#     nvars = Singular.nvars(R)
+#     basis = Singular.Ideal(R, ) # empty ideal
+#     # first entry in exponent vector is module component => nvars+1
+#     exp   = zeros(Cint, nvars+1)
+#
+#     list  = Singular.elem_type(R)[]
+#     # we generate the singular polynomials low level in order
+#     # to avoid overhead due to many exponent operations etc.
+#     j   = ngens + 1 + 1
+#     len = 1
+#     for i = 1:ngens
+#         # do the first term
+#         p = Singular.libSingular.p_Init(R.ptr)
+#         Singular.libSingular.p_SetCoeff0(p,
+#                 Singular.libSingular.n_InitMPZ(BigInt(unsafe_load(bcf, len)),
+#                     Singular.QQ.ptr), R.ptr)
+#         for k = 1:nvars
+#             exp[k+1]  = bexp[(len-1) * nvars + k]
+#         end
+#         Singular.libSingular.p_SetExpV(p, exp, R.ptr)
+#         lp  = p
+#         for j = 2:blen[i]
+#           pterm = Singular.libSingular.p_Init(R.ptr)
+#         Singular.libSingular.p_SetCoeff0(pterm,
+#                 Singular.libSingular.n_InitMPZ(BigInt(unsafe_load(bcf, len+j-1)),
+#                     Singular.QQ.ptr), R.ptr)
+#           for k = 1:nvars
+#               exp[k+1]  = bexp[(len+j-1-1) * nvars + k]
+#           end
+#           Singular.libSingular.p_SetExpV(pterm, exp, R.ptr)
+#           Singular.libSingular.SetpNext(lp, pterm)
+#           lp  = pterm
+#         end
+#         push!(list, R(p))
+#         len += blen[i]
+#     end
+#     return Singular.Ideal(R, list)
+# end

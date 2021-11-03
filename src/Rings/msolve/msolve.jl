@@ -125,14 +125,11 @@ function msolve(
     #= monomial order defaults to zero =#
     mon_order = 0
 
-    # convert Singular ideal to flattened arrays of ints
-    if 0 == field_char
-      lens, cfs, exps   = convert_singular_ideal_to_array(J)
-    # elseif isprime(field_char)
-    #   lens, cfs, exps   = convert_ff_singular_ideal_to_array(J)
-    else
+    if field_char != 0
         error("At the moment msolve only supports the rationals as ground field.")
     end
+    # convert Singular ideal to flattened arrays of ints
+    lens, cfs, exps   = convert_singular_ideal_to_array(J)
 
     res_ld    = ccall(:malloc, Ptr{Cint}, (Csize_t, ), sizeof(Cint))
     res_dim   = ccall(:malloc, Ptr{Cint}, (Csize_t, ), sizeof(Cint))
