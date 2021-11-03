@@ -127,12 +127,11 @@ function msolve(
 
     # convert Singular ideal to flattened arrays of ints
     if 0 == field_char
-      lens, cfs, exps   = convert_qq_singular_ideal_to_array(J)
+      lens, cfs, exps   = convert_singular_ideal_to_array(J)
     # elseif isprime(field_char)
     #   lens, cfs, exps   = convert_ff_singular_ideal_to_array(J)
     else
-        # error("At the moment GroebnerBasis only supports finite fields and the rationals.")
-        @error "At the moment msolve only supports the rationals as ground field."
+        error("At the moment msolve only supports the rationals as ground field.")
     end
 
     res_ld    = ccall(:malloc, Ptr{Cint}, (Csize_t, ), sizeof(Cint))

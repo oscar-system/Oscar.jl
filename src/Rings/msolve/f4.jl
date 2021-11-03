@@ -57,10 +57,14 @@ function f4(
 
     # convert Singular ideal to flattened arrays of ints
     if isprime(field_char)
-      lens, cfs, exps = convert_ff_singular_ideal_to_array(J)
+      lens, cfs, exps = convert_singular_ideal_to_array(J)
     else
         error("At the moment f4 only supports finite fields.")
     end
+
+    @show lens
+    @show cfs
+    @show exps
 
     gb_ld   = ccall(:malloc, Ptr{Cint}, (Csize_t, ), sizeof(Cint))
     gb_len  = ccall(:malloc, Ptr{Ptr{Cint}}, (Csize_t, ), sizeof(Ptr{Cint}))

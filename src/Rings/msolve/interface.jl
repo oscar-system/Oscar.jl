@@ -2,16 +2,29 @@
 # an int array lengths storing the lengths of each generator
 # an int array cfs storing the coefficients of each generator
 # an int array exps storing the exponent vectors of each generator
-function convert_ff_singular_ideal_to_array(id::Singular.sideal)
+function convert_singular_ideal_to_array(id::Singular.sideal)
     ngens   = Singular.ngens(id)
     nvars   = Singular.nvars(base_ring(id))
-    lens = Int32[Singular.length(id[i]) for i in 1:ngens]
-    nterms = sum(lens)
-    cfs   = Array{Int32,1}(undef, nterms)
-    exps  = Array{Int32,1}(undef, nvars*nterms)
+    char    = Singular.characteristic(base_ring(id))
+    lens    = Int32[Singular.length(id[i]) for i in 1:ngens]
+    nterms  = sum(lens)
+    cfs     = Int32[]
+    exps    = Int32[]
+    if char ==  0
+        cfs = BigInt[]
+    else
+        cfs = Int32[]
+    end
     for i = 1:Singular.ngens(id)
-        for c in Singular.coeffs(id[i])
-            push!(cfs, Base.Int(c))
+        if char == 0
+            for c in Singular.coeffs(id[i])
+                push!(cfs, Singular.libSingular.n_GetMPZ(numerator(c).ptr, Singular.ZZ.ptr))
+                push!(cfs, Singular.libSingular.n_GetMPZ(denominator(c).ptr, Singular.ZZ.ptr))
+            end
+        else
+            for c in Singular.coeffs(id[i])
+                push!(cfs, Base.Int(c))
+            end
         end
         for e in Singular.exponent_vectors(id[i])
             for j = 1:nvars
@@ -20,36 +33,6 @@ function convert_ff_singular_ideal_to_array(id::Singular.sideal)
         end
     end
     return lens, cfs, exps
-end
-
-function convert_qq_singular_ideal_to_array(id::Singular.sideal)
-    ngens   = Singular.ngens(id)
-    nvars   = Singular.nvars(base_ring(id))
-    nterms  = 0
-    lens = Array{Int32,1}(undef, ngens)
-    for i = 1:ngens
-        lens[i] =   Singular.length(id[i])
-        nterms  +=  lens[i]
-    end
-    cfs   = Array{BigInt,1}(undef, 2*nterms)
-    exps  = Array{Int32,1}(undef, nvars*nterms)
-    cc = 1 # coefficient counter
-    ec = 0 # exponent vector counter
-    for i = 1:Singular.ngens(id)
-        for c in Singular.coeffs(id[i])
-            cfs[cc] = Singular.libSingular.n_GetMPZ(numerator(c).ptr, Singular.ZZ.ptr)
-            cc += 1
-            cfs[cc] = Singular.libSingular.n_GetMPZ(denominator(c).ptr, Singular.ZZ.ptr)
-            cc += 1
-        end
-        for e in Singular.exponent_vectors(id[i])
-            for j = 1:nvars
-                exps[nvars*ec+j]  =  Base.Int(e[j])
-            end
-            ec +=  1
-        end
-    end
-    lens, cfs, exps
 end
 
 # we know that the terms are already sorted and they are all different
