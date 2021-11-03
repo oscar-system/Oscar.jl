@@ -101,12 +101,6 @@ function f4(
     # free data
     ccall(:free, Nothing , (Ptr{Cint}, ), gb_ld)
 
-    # for letting the garbage collector free memory
-    jl_len      = Nothing
-    jl_exp      = Nothing
-    gb_cf_conv  = Nothing
-    jl_cf       = Nothing
-
     I.gb        = BiPolyArray(base_ring(I), basis)
     I.gb.isGB   = true
     I.gb.S.isGB = true

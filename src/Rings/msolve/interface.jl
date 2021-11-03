@@ -2,39 +2,27 @@
 # an int array lengths storing the lengths of each generator
 # an int array cfs storing the coefficients of each generator
 # an int array exps storing the exponent vectors of each generator
-function convert_ff_singular_ideal_to_array(
-        id::Singular.sideal
-        )
+function convert_ff_singular_ideal_to_array(id::Singular.sideal)
     ngens   = Singular.ngens(id)
     nvars   = Singular.nvars(base_ring(id))
-    nterms  = 0
-    lens = Array{Int32,1}(undef, ngens)
-    for i = 1:ngens
-        lens[i] =   Singular.length(id[i])
-        nterms  +=  lens[i]
-    end
+    lens = Int32[Singular.length(id[i]) for i in 1:ngens]
+    nterms = sum(lens)
     cfs   = Array{Int32,1}(undef, nterms)
     exps  = Array{Int32,1}(undef, nvars*nterms)
-    cc = 1 # coefficient counter
-    ec = 0 # exponent vector counter
     for i = 1:Singular.ngens(id)
         for c in Singular.coeffs(id[i])
-            cfs[cc] = Base.Int(c)
-            cc += 1
+            push!(cfs, Base.Int(c))
         end
         for e in Singular.exponent_vectors(id[i])
             for j = 1:nvars
-                exps[nvars*ec+j]  =  Base.Int(e[j])
+                push!(exps, Base.Int(e[j]))
             end
-            ec +=  1
         end
     end
-    lens, cfs, exps
+    return lens, cfs, exps
 end
 
-function convert_qq_singular_ideal_to_array(
-        id::Singular.sideal
-        )
+function convert_qq_singular_ideal_to_array(id::Singular.sideal)
     ngens   = Singular.ngens(id)
     nvars   = Singular.nvars(base_ring(id))
     nterms  = 0
