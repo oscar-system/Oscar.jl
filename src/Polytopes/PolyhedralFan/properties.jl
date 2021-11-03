@@ -409,7 +409,7 @@ julia> rays(star)
  [1, 0, 0]
  [1, 1, 1]
 
-julia> maximal_cones_as_incidence_matrix(star)
+julia> incidence_matrix(maximal_cones(star))
 6×5 IncidenceMatrix
 [1, 2, 3]
 [2, 3, 4]
