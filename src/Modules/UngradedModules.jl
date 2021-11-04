@@ -252,7 +252,11 @@ function show(io::IO, e::FreeModElem)
     print(io, 0)
     return
   end
-  print(io, join(["($val)*$(e.parent.S[pos])" for (pos, val) in e.coords], " + "))
+  out_string = join(["($val)*$(e.parent.S[pos])" for (pos, val) in e.coords], " + ")
+  out_string = replace(out_string, "(1)*"=>"")
+  out_string = replace(out_string, "+ (-1)*"=>"- ")
+  out_string = replace(out_string, "(-1)*"=>"-")
+  print(io, out_string)
 end
 
 @doc Markdown.doc"""
