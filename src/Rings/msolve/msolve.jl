@@ -20,22 +20,16 @@ function get_rational_parametrization(
     elim  = C([unsafe_load(cfs, i) for i in 1:lens[1]])
     ctr += lens[1]
 
-    denom = 0*x
-    for i in 1:lens[2]
-        denom +=  BigInt(unsafe_load(cfs, i+ctr))*x^(i-1)
-    end
+    denom = C([unsafe_load(cfs, i+ctr) for i in 1:lens[2]])
     ctr +=  lens[2]
 
     size  = nr-2
-    p = Array{PolyElem,1}(undef, size)
-    c = Array{BigInt,1}(undef, size)
+    p = Vector{PolyElem}(undef, size)
+    c = Vector{BigInt}(undef, size)
     k = 1
     for i in 3:nr
-        p[k]  = 0*x
-        for j in 1:lens[i]-1
-            p[k]  +=  BigInt(unsafe_load(cfs, j+ctr))*x^(j-1)
-        end
-        c[k]  =   (-1) * BigInt(unsafe_load(cfs, lens[i]+ctr))
+        p[k]  = C([unsafe_load(cfs, j+ctr) for j in 1:lens[i]-1])
+        c[k]  =   (-1) * fmpq(unsafe_load(cfs, lens[i]+ctr))
         ctr   +=  lens[i]
         k     +=  1
     end
@@ -106,7 +100,11 @@ function msolve(
     nr_gens = Singular.ngens(J)
     vars    = Singular.gens(R)
 
-    variable_names = map(string, Singular.symbols(R))
+        variable_names  = Array{String, 1}(undef, nr_vars)
+            for i in 1:nr_vars
+                        variable_names[i] = string(Singular.gens(R)[i])
+                            end
+    # variable_names = map(string, Singular.symbols(R))
 
     field_char  = Singular.characteristic(R)
 
@@ -179,12 +177,9 @@ function msolve(
     #     jl_sols_num   = reinterpret(Ptr{Int32}, sols_num_conv)
     # end
 
-    for i in 1:jl_nb_sols*nr_vars
-        tmpcf = BigInt(unsafe_load(jl_sols_num, i))
-    end
     solutions = Array{Array{fmpq, 1}, 1}(undef, jl_nb_sols)
     for i in 1:jl_nb_sols
-        tmp = Array{Nemo.fmpq, 1}(undef, nr_vars)
+        tmp = Vector{Nemo.fmpq}(undef, nr_vars)
         for j in 1:nr_vars
             tmp[j]  = fmpq(unsafe_load(jl_sols_num, (i-1)*nr_vars+j)) >> Int64(unsafe_load(jl_sols_den, (i-1)*nr_vars+j))
         end
