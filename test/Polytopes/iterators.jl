@@ -68,7 +68,7 @@
 
     @testset "PolyhedronOrConeIterator" begin
         V = [1 -1 0 0 0 0; 1 0 -1 0 0 0; 1 0 0 -1 0 0; 1 1 1 1 0 0]
-        F = Polymake.Set{Polymake.to_cxx_type(Int64)}.([[1 2 3], [1 2 4], [1 3 4], [2 3 4]])
+        F = [[1, 2, 3], [1, 2, 4], [1, 3, 4], [2, 3, 4]]
         L = [0 0 0 0 1 0; 0 0 0 0 0 1]
         for T in [Polyhedron, Cone]
             pci = PolyhedronOrConeIterator{T}(V, F, L)
@@ -87,7 +87,7 @@
                     @test pci[i] == T(V[[f for f in F[i]], :], L)
                 end
             end
-            # test incidence_matrix(iter)
+            @test incidence_matrix(pci) == IncidenceMatrix([1 1 1 0; 1 1 0 1; 1 0 1 1; 0 1 1 1])
         end
     end
 

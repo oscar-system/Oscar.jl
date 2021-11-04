@@ -88,7 +88,6 @@ fan_of_variety
 fan
 nef_cone
 mori_cone
-toric_ideal
 ```
 
 ### Affine covering
@@ -99,7 +98,12 @@ affine_open_covering( v::AbstractNormalToricVariety )
 
 ### Toric ideal
 
-To come very soon.
+```@docs
+toric_ideal_binomial_generators(pts::Union{AbstractMatrix, fmpz_mat})
+toric_ideal_binomial_generators(antv::AffineNormalToricVariety)
+toric_ideal(pts::Union{AbstractMatrix, fmpz_mat})
+toric_ideal(antv::AffineNormalToricVariety)
+```
 
 ### Advanced constructions
 
