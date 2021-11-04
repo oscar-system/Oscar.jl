@@ -108,7 +108,7 @@ julia> cones(PF, 2)
 function cones(as::Type{T}, PF::PolyhedralFan, cone_dim::Int) where {T<:Cone}
     cone_dim  - length(lineality_space(PF)) < 1 && return nothing
     rcones = Polymake.fan.cones_of_dim(pm_object(PF),cone_dim - length(lineality_space(PF)))
-    return PolyhedronOrConeIterator{as}(pm_object(PF).RAYS, rcones, pm_object(PF).LINEALITY_SPACE)
+    return PolyhedronOrConeIterator{as}(rays(PF).m, rcones, lineality_space(PF).m)
 end
 
 cones(PF::PolyhedralFan, cone_dim::Int) = cones(Cone, PF, cone_dim)
