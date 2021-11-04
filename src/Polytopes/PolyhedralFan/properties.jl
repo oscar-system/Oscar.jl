@@ -107,8 +107,8 @@ julia> cones(PF, 2)
 """
 function cones(as::Type{T}, PF::PolyhedralFan, cone_dim::Int) where {T<:Cone}
     cone_dim  - length(lineality_space(PF)) < 1 && return nothing
-    rcones = Polymake.fan.cones_of_dim(PF.pm_fan,cone_dim - length(lineality_space(PF)))
-    return PolyhedronOrConeIterator{as}(PF.pm_fan.RAYS, rcones, PF.pm_fan.LINEALITY_SPACE)
+    rcones = Polymake.fan.cones_of_dim(pm_object(PF),cone_dim - length(lineality_space(PF)))
+    return PolyhedronOrConeIterator{as}(pm_object(PF).RAYS, rcones, pm_object(PF).LINEALITY_SPACE)
 end
 
 cones(PF::PolyhedralFan, cone_dim::Int) = cones(Cone, PF, cone_dim)
@@ -409,8 +409,8 @@ julia> primitive_collections(normal_fan(Oscar.simplex(3)))
 """
 function primitive_collections(PF::PolyhedralFan)
     # collect data
-    cones = [findall(x->x!=0, l) for l in eachrow(pm_fan(PF).MAXIMAL_CONES)]
-    all_points = [i for i in 1 : pm_fan(PF).N_RAYS]
+    cones = [findall(x->x!=0, l) for l in eachrow(pm_object(PF).MAXIMAL_CONES)]
+    all_points = [i for i in 1 : pm_object(PF).N_RAYS]
     d_max = maximum([length(i) for i in cones]) + 1
     # identify and return the primitive collections
     collections = Vector{Int}[]
@@ -527,5 +527,5 @@ A polyhedral fan in ambient dimension 5
 ```
 """
 function Base.:*(PF1::PolyhedralFan, PF2::PolyhedralFan)
-    return PolyhedralFan(Polymake.fan.product(pm_fan(PF1), pm_fan(PF2)))
+    return PolyhedralFan(Polymake.fan.product(pm_object(PF1), pm_object(PF2)))
 end
