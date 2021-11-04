@@ -1,69 +1,4 @@
 @doc Markdown.doc"""
-    _toric_ideal_binomial_gens_not_saturated(pts::Union{AbstractMatrix, fmpz_mat})
-
-Get the exponent vectors corresponding to the generators of the toric ideal
-coming from the linear integer relations between the rows of `pts`. The result
-is a matrix whose rows form a lattice basis of
-$$\{x\in\mathbb{Z}^n\ |\ (pts)^T\cdot x = 0\}$$
-
-Note that these are not yet saturated.
-
-# Examples
-```jldoctest
-julia> C = positive_hull([-2 5; 1 0]);
-
-julia> H = hilbert_basis(C).m
-pm::Matrix<pm::Integer>
-1 0
-0 1
--2 5
--1 3
-
-
-julia> _toric_ideal_binomial_gens_not_saturated(H)
-[2   -5   1   0]
-[1   -3   0   1]
-```
-"""
-function _toric_ideal_binomial_gens_not_saturated(pts::Union{AbstractMatrix, fmpz_mat})
-    result = kernel(matrix(ZZ, pts), side=:left)
-    return result[2]
-end
-
-
-
-@doc Markdown.doc"""
-    _toric_ideal_binomial_gens_not_saturated(antv::AffineNormalToricVariety)
-
-Get the exponent vectors corresponding to the generators of the toric ideal
-associated to the affine normal toric variety `antv`.
-
-Note that these are not yet saturated.
-
-# Examples
-Take the cyclic quotient singularity corresponding to the pair of integers
-`(2,5)`.
-```jldoctest
-julia> C = positive_hull([-2 5; 1 0])
-A polyhedral cone in ambient dimension 2
-
-julia> antv = AffineNormalToricVariety(C)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
-
-julia> _toric_ideal_binomial_gens_not_saturated(antv)
-[-2   -1    5   0]
-[ 1    0   -3   1]
-```
-"""
-function _toric_ideal_binomial_gens_not_saturated(antv::AffineNormalToricVariety)
-    cone = Cone(pm_object(antv).WEIGHT_CONE)
-    return _toric_ideal_binomial_gens_not_saturated(hilbert_basis(cone).m)
-end
-export _toric_ideal_binomial_gens_not_saturated
-_toric_ideal_binomial_gens_not_saturated(ntv::NormalToricVariety) = _toric_ideal_binomial_gens_not_saturated(AffineNormalToricVariety(ntv))
-
-
-@doc Markdown.doc"""
     binomial_exponents_to_ideal(binoms::Union{AbstractMatrix, fmpz_mat})
 
 This function converts the rows of a matrix to binomials. Each row $r$ is
@@ -125,8 +60,9 @@ ideal(x[2]*x[3] - x[4]^2, -x[1]*x[3] + x[2]^2*x[4], -x[1]*x[4] + x[2]^3, -x[1]*x
 ```
 """
 function toric_ideal(pts::Union{AbstractMatrix, fmpz_mat})
-    binoms = _toric_ideal_binomial_gens_not_saturated(pts)
-    presat = binomial_exponents_to_ideal(binoms)
+    intkernel = kernel(matrix(ZZ, pts), side=:left)
+    intkernel = intkernel[2]
+    presat = binomial_exponents_to_ideal(intkernel)
     J = ideal([prod(gens(base_ring(presat)))])
     return saturation(presat, J)
 end
@@ -154,14 +90,11 @@ ideal(-x[1]*x[2] + x[3]*x[4])
 ```
 """
 function toric_ideal(antv::AffineNormalToricVariety)
-    binoms = _toric_ideal_binomial_gens_not_saturated(antv)
-    presat = binomial_exponents_to_ideal(binoms)
-    J = ideal([prod(gens(base_ring(presat)))])
-    return saturation(presat, J)
+    cone = Cone(pm_object(antv).WEIGHT_CONE)
+    return toric_ideal(hilbert_basis(cone).m)
 end
 export toric_ideal
 toric_ideal(ntv::NormalToricVariety) = toric_ideal(AffineNormalToricVariety(ntv))
-
 
 
 
