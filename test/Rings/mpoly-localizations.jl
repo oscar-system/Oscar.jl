@@ -63,7 +63,7 @@
   @test I_loc + J isa MPolyLocalizedIdeal
   @test I_loc * J isa MPolyLocalizedIdeal
 
-  @test reduce(W(x)//W(y-q+1), lbpa) == W(p)//reduce(W(y-q+1), lbpa)
+  @test reduce(W(x)//W(y-q+1), lbpa) == W(p)//W(y-q+1)
 
   K = ideal(W, f)
   @test f*(x-p+4) in K
@@ -130,8 +130,9 @@ end
   @test psi(U(-1//f))==one(codomain(psi))
 end
 
-@testset "Ring interface for localized polynomial rings" begin
-  R, v = QQ["x", "y"]
+  kk = QQ
+  #kk = GF(101) doesn't work at the moment because of failures of the promotion system.
+  R, v = kk["x", "y"]
   x = v[1]
   y = v[2] 
   f = x^2+y^2-1
@@ -140,14 +141,16 @@ end
   include(joinpath(pathof(AbstractAlgebra), "..", "..", "test", "Rings-conformance-tests.jl"))
 
   d = Vector{elem_type(R)}()
-  d = [rand(R, 1:3, 1:3, 1:3)::elem_type(R) for i in 0:(abs(rand(Int))%3+1)]
+  d = [rand(R, 1:3, 0:4, 1:10)::elem_type(R) for i in 0:(abs(rand(Int))%3+1)]
   S = MPolyPowersOfElement(R, d)
-  T = MPolyComplementOfKPointIdeal(R, [QQ(125), QQ(-45)])
+  T = MPolyComplementOfKPointIdeal(R, [kk(125), kk(-45)])
   U = MPolyComplementOfPrimeIdeal(I)
   function test_elem(W::MPolyLocalizedRing) 
-    f = rand(W, 1:3, 1:3, 1:3)
+    f = rand(W, 0:3, 0:4, 0:3)
     return f
   end
+
+@testset "Ring interface for localized polynomial rings" begin
   test_Ring_interface_recursive(localize_at(S))
   test_Ring_interface_recursive(localize_at(T))
   test_Ring_interface_recursive(localize_at(U))

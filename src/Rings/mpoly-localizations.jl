@@ -252,6 +252,7 @@ mutable struct MPolyPowersOfElement{
   function MPolyPowersOfElement(R::RingType, a::Vector{RingElemType}) where {RingType<:MPolyRing, RingElemType<:MPolyElem}
     for f in a 
       parent(f) == R || error("element does not belong to the given ring")
+      !iszero(f) || error("can not localize at the zero element")
     end
     k = coefficient_ring(R)
     return new{typeof(k), elem_type(k), RingType, RingElemType}(R, a)
@@ -452,7 +453,9 @@ fraction(a::MPolyLocalizedRingElem) = a.frac
 
 ### required conversions
 (W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(f::RingElemType) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocalizedRingElem((FractionField(base_ring(W)))(f), W)
-(W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(a::RingElemType, b::RingElemType) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocalizedRingElem(a//b, W)
+function (W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(a::RingElemType, b::RingElemType) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} 
+  return MPolyLocalizedRingElem(a//b, W)
+end
 
 ### additional conversions
 (W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(f::AbstractAlgebra.Generic.Frac{RingElemType}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocalizedRingElem(f, W)
@@ -571,6 +574,12 @@ parent_type(T::Type{MPolyLocalizedRingElem{BaseRingType, BaseRingElemType, RingT
 isdomain_type(T::Type{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = true 
 isexact_type(T::Type{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = true
 
+### promotion rules
+promote_rule(::Type{MPolyLocalizedRingElem{RT, RET, MST}}, ::Type{MPolyLocalizedRingElem{RT, RET, MST}}) where {RT<:Ring, RET<:RingElement, MST} = MPolyLocalizedRingElem{RT, RET, MST}
+
+function promote_rule(::Type{MPolyLocalizedRingElem{RT, RET, MST}}, ::Type{T}) where {RT<:Ring, RET<:RingElement, MST, T<:RingElement} 
+  promote_rule(RET, T) ? MPolyLocalizedRingElem{RT, RET, MST} : Union{}
+end
 
 ########################################################################
 # Singular functionality                                               #
