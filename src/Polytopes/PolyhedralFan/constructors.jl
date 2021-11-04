@@ -83,7 +83,7 @@ Get the underlying polymake object, which can be used via Polymake.jl.
 """
 pm_object(PF::PolyhedralFan) = PF.pm_fan
 
-PolyhedralFan(itr::AbstractVector{Cone}) = PolyhedralFan(Polymake.fan.check_fan_objects(Polymake.Array{Polymake.BigObject}(pm_object.(itr))))
+PolyhedralFan(itr::AbstractVector{Cone}) = PolyhedralFan(Polymake.fan.check_fan_objects(pm_object.(itr)...))
 
 #Same construction for when the user gives Matrix{Bool} as incidence matrix
 function PolyhedralFan(Rays::Union{VectorIterator{<:RayVector}, Oscar.MatElem,AbstractMatrix}, LS::Union{Oscar.MatElem,AbstractMatrix}, Incidence::Matrix{Bool})
