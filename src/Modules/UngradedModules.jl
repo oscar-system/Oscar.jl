@@ -87,15 +87,26 @@ not provide names for the generators, the standard names e_i are used for the un
 function FreeMod(R::Ring, n::Int, name::String = "e"; cached::Bool = false) # TODO cached?
   return FreeMod{elem_type(R)}(n, R, [Symbol("$name[$i]") for i=1:n])
 end
-#=@doc Markdown.doc"""
-  free_module(R::Ring, n::Int, name::String = "e"; cached::Bool = false)
 
-Construct a free module over the ring `R` with rank `n`.
-Additionally one can provide names for the generators. If one does 
-not provide names for the generators, the standard names e_i are used for the unit vectors.
+@doc Markdown.doc"""
+    free_module(R::Ring, n::Int, name::String = "e"; cached::Bool = false)
+
+Create the free module $R^n$ with its basis of unit vectors.
+The string with default "e" specifies how the basis vectors are printed. 
+
+# Examples
+```jldoctest
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia> F = FreeMod(R, 3)
+Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field
+
+julia> F[2]
+(1)*e[2]
+```
 """
-# TODO is this function necessary?
-free_module(R::Ring, n::Int, name::String = "e"; cached::Bool = false) = FreeMod(R, n, name, cached = cached)=#
+free_module(R::Ring, n::Int, name::String = "e"; cached::Bool = false) = FreeMod(R, n, name, cached = cached)
 
 #=XXX this cannot be as it is inherently ambigous
   - FreeModule(R, n)
@@ -108,14 +119,6 @@ thus the "category" needs to be set explicitly
 
 function (F::FreeMod)()
   return FreeModElem(sparse_row(base_ring(F)), F)
-end
-
-function (F::FreeMod{T})(coords::SRow{T}) where T
-  return FreeModElem(coords, F)
-end
-
-function (F::FreeMod{T})(coords::Vector{T}) where T
-  return FreeModElem(coords, F)
 end
 
 function show(io::IO, F::FreeMod)
@@ -162,23 +165,28 @@ end
     FreeModElem{T}
 
 The type of free module elements. A free module element
-is determined by a sparse row (`SRow`) which contains the coords 
-with respect to the standard basis and the parent free module.
+is given by a sparse row (`SRow`) which specifies its coordinates 
+with respect to the basis of unit vectors.
 
-# Example
+# Examples
 ```jldoctest
-julia> R, (x,y) = PolynomialRing(QQ, ["x", "y"])
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
 
-julia> F = FreeMod(R,2)
+julia> F = FreeMod(R, 3)
 Free module of rank 2 over Multivariate Polynomial Ring in x, y over Rational Field
 
-julia> v = FreeModElem(sparse_row(R, [(1,x),(2,y)]),F)
-(x)*e[1] + (y)*e[2]
+julia> f = FreeModElem(sparse_row(R, [(1,x),(3,y)]),F)
+(x)*e[1] + (y)*e[3]
 
-julia> v == x*F[1]+y*F[2]
+julia> g = (x)*F[1] + (y)*F[3]
+(x)*e[1] + (y)*e[3]
+
+julia> typeof(g)
+FreeModElem{fmpq_mpoly}
+
+julia> f == g
 true
-
 ```
 """
 struct FreeModElem{T} <: AbstractFreeModElem{T}
@@ -192,17 +200,63 @@ struct FreeModElem{T} <: AbstractFreeModElem{T}
 end
 
 @doc Markdown.doc"""
-    FreeModElem(coords::SRow{T}, parent::FreeMod{T}) where T
+    FreeModElem(c::SRow{T}, parent::FreeMod{T}) where T
 
-Construct an element in the free module `parent`.
+Return the element of  `F`  whose coefficients with respect to the basis of unit vectors
+of `F` are given by the entries of `c`.
 """
-FreeModElem(coords::SRow{T}, parent::FreeMod{T}) where T = FreeModElem{T}(coords, parent)
+FreeModElem(c::SRow{T}, parent::FreeMod{T}) where T = FreeModElem{T}(c, parent)
 
-function FreeModElem(coords::Vector{T}, parent::FreeMod{T}) where T
-  @assert length(coords) == rank(parent)
-  sparse_coords = sparse_row(base_ring(parent), collect(1:rank(parent)), coords)
+@doc Markdown.doc"""
+    FreeModElem(c::Vector{T}, parent::FreeMod{T}) where T
+    
+Return the element of  `F`  whose coefficients with respect to the basis of unit vectors
+of `F` are given by the entries of `c`.
+"""
+function FreeModElem(c::Vector{T}, parent::FreeMod{T}) where T
+  @assert length(c) == rank(parent)
+  sparse_coords = sparse_row(base_ring(parent), collect(1:rank(parent)), c)
   return FreeModElem{T}(sparse_coords,parent)
 end
+
+@doc Markdown.doc"""
+    (F::FreeMod{T})(c::SRow{T}) where T
+    
+Return the element of  `F`  whose coefficients with respect to the basis of unit vectors
+of `F` are given by the entries of `c`.
+"""
+function (F::FreeMod{T})(c::SRow{T}) where T
+  return FreeModElem(coords, F)
+end
+
+@doc Markdown.doc"""
+    (F::FreeMod{T})(c::Vector{T}) where T
+
+Return the element of  `F`  whose coefficients with respect to the basis of unit vectors
+of `F` are given by the entries of `c`.
+
+# Examples
+```jldoctest
+julia> R, (x,y) = PolynomialRing(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia> F = FreeMod(R,3)
+Free module of rank 2 over Multivariate Polynomial Ring in x, y over Rational Field
+
+julia> V = [x, zero(R), y]
+3-element Vector{fmpq_mpoly}:
+ x
+ 0
+ y
+
+julia> f = F(V)
+(x)*e[1] + (0)*e[2] + (y)*e[3]
+```
+"""
+function (F::FreeMod{T})(c::Vector{T}) where T 
+ return FreeModElem(c, F)
+end
+
 
 function in(v::AbstractFreeModElem, M::ModuleFP)
   return parent(v) === M
@@ -225,6 +279,32 @@ Return the entries (with respect to the standard basis) of `v` as a sparse row.
 function coeffs(v::AbstractFreeModElem)
   return coords(v)
 end
+
+#######################################################
+@doc Markdown.doc"""
+    coefficients(f::FreeModElem)
+
+Return the coefficients of `f` with respect to the basis of unit vectors. 
+
+The result is returned as a sparse row.
+
+# Examples
+```jldoctest
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia> F = FreeMod(R,3)
+Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field
+
+julia> f = x*gen(F,1)+y*gen(F,3)
+(x)*e[1] + (y)*e[3]
+
+julia> coefficients(f)
+
+```
+"""
+coefficients(f::FreeModElem) = coeffs(f)
+#########################################################
 
 @doc Markdown.doc"""
     repres(v::AbstractFreeModElem)
@@ -293,6 +373,7 @@ function basis(F::AbstractFreeMod)
   return bas
 end
 
+
 @doc Markdown.doc"""
     gens(F::AbstractFreeMod)
 
@@ -301,15 +382,18 @@ Return the (canonical) generators of the free module `F`.
 gens(F::AbstractFreeMod) = basis(F)
 
 @doc Markdown.doc"""
+    basis(F::AbstractFreeMod, i::Int)
+
     gen(F::AbstractFreeMod, i::Int)
 
-Return the `i`th generator of `F`, that is the `i`th unit vector.
+Return the `i`th basis vector of `F`, that is, return the `i`th unit vector.
 """
-function gen(F::AbstractFreeMod, i::Int)
+function basis(F::AbstractFreeMod, i::Int)
   @assert 0 < i <= ngens(F)
   s = Hecke.sparse_row(F.R, [(i, F.R(1))])
   return FreeModElem(s, F)
 end
+gen(F::AbstractFreeMod, i::Int) = basis(F,i)
 
 function Base.getindex(F::AbstractFreeMod, i::Int)
   i == 0 && return zero(F)
@@ -319,7 +403,7 @@ end
 @doc Markdown.doc"""
     base_ring(F::AbstractFreeMod)
 
-Return the base ring of the free module `F`.
+Return the underlying ring of `F`.
 """
 base_ring(F::AbstractFreeMod) = F.R
 
@@ -372,7 +456,7 @@ end
 @doc Markdown.doc"""
     zero(F::AbstractFreeMod)
 
-Return the zero element of the free module `F`.
+Return the zero element of  `F`.
 """
 zero(F::AbstractFreeMod) = FreeModElem(sparse_row(F.R, Tuple{Int, elem_type(F.R)}[]), F)
 
@@ -706,36 +790,37 @@ Construct the morphism $F \to G$ corresponding to the matrix `mat`.
 FreeModuleHom(F::FreeMod{T}, G::S, mat::MatElem{T}) where {T,S} = FreeModuleHom{T,S}(F, G, mat)
 
 @doc Markdown.doc"""
-    matrix(f::FreeModuleHom)
+    matrix(a::FreeModuleHom)
 
-Compute the matrix corresponding to the morphism `f`.
-The matrix is cached.
+Return the matrix corresponding to `a`.
+
+If the matrix is not yet cached, compute and cache the matrix first.
 """
-function matrix(f::FreeModuleHom)
-  if !isdefined(f, :matrix)
-    D = domain(f)
-    C = codomain(f)
+function matrix(a::FreeModuleHom)
+  if !isdefined(a, :matrix)
+    D = domain(a)
+    C = codomain(a)
     R = base_ring(D)
     matrix = zero_matrix(R, rank(D), ngens(C))
     for i=1:rank(D)
-      image_of_gen = f(D[i])
+      image_of_gen = a(D[i])
       for j=1:ngens(C)
         matrix[i,j] = image_of_gen[j]
       end
     end
-    setfield!(f, :matrix, matrix)
+    setfield!(a, :matrix, matrix)
   end
-  return f.matrix
+  return a.matrix
 end
 
 (h::FreeModuleHom)(a::FreeModElem) = image(h, a)
 
 @doc Markdown.doc"""
-    hom(F::FreeMod{T}, G, a::Union{Vector,MatElem{T}})
+    hom(F::FreeMod{T}, G, V::Union{Vector,MatElem{T}}) where {T}
 
-Return the morphism $F \to G$ where `F[i]` is mapped to `a[i]`.
+Create the homomorphism $F \to G$ defined by sending `F[i]` to `V[i]`.
 """
-hom(F::FreeMod{T}, G, a::Union{Vector,MatElem{T}}) where {T} = FreeModuleHom(F, G, a)
+hom(F::FreeMod{T}, G, V::Union{Vector,MatElem{T}}) where {T} = FreeModuleHom(F, G, V)
 
 @doc Markdown.doc"""
     identity_map(M::ModuleFP)
@@ -1150,9 +1235,9 @@ SubQuo(F::FreeMod{R}, s::Singular.smodule, t::Singular.smodule) where {R} = SubQ
 @doc Markdown.doc"""
     SubQuo(F::FreeMod{R}, A::MatElem{R}, B::MatElem{R}) where {R}
 
-Let $A$ be an $n_1 \times m$-matrix, $B$ an $n_2 \times m$-matrix over the ring $R$ and 
-$F = R^m$. Return the subquotient $(\im(A) + \im(B))/ \im(B)$, where the 
-embedding free module is $F$.
+Given matrices `A` and `B` with entries in a ring `R` representing maps 
+of free $R$-modules with the same codomain `F`, return the subquotient 
+$(\text{im } A + \text{im }  B)/\text{im }  B$.
 """
 function SubQuo(F::FreeMod{R}, A::MatElem{R}, B::MatElem{R}) where {R}
   @assert ncols(A) == ncols(B) == rank(F)
@@ -1162,11 +1247,41 @@ end
 @doc Markdown.doc"""
     SubQuo(A::MatElem{R}, B::MatElem{R}) where {R}
 
-Let $A$ be an $n_1 \times m$-matrix, $B$ an $n_2 \times m$-matrix over the ring $R$. 
-Then return the subquotient $(\im(A) + \im(B))/ \im(B)$. 
-Note: The embedding free module of the subquotient is constructed by the function and therefore
-not compatible with free modules $R^m$ that are defined by the user or other functions. 
-If you need compatibility use `SubQuo(F::FreeMod{R}, A::MatElem{R}, B::MatElem{R})`.
+Given matrices `A` and `B` with entries in a ring `R` 
+representing maps of free $R$-modules with the same codomain,
+return the subquotient $(\text{im } A + \text{im }  B)/\text{im }  B.$ 
+
+NOTE: The ambient free module of the subquotient is constructed by the function and therefore
+not compatible with free modules defined by the user or by other functions. 
+For compatibility, use `SubQuo(F::FreeMod{R}, A::MatElem{R}, B::MatElem{R})`.
+
+# Example
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> A = R[x; y]
+[x]
+[y]
+
+julia> B = R[x^2; x*y; y^2; z^4]
+[x^2]
+[x*y]
+[y^2]
+[z^4]
+
+julia> M = SubQuo(A, B)
+Subquotient of Submodule with 2 generators
+1 -> (x)*e[1]
+2 -> (y)*e[1]
+by Submodule with 4 generators
+1 -> (x^2)*e[1]
+2 -> (x*y)*e[1]
+3 -> (y^2)*e[1]
+4 -> (z^4)*e[1]
+
+
+```
 """
 function SubQuo(A::MatElem{R}, B::MatElem{R}) where {R}
   @assert ncols(A) == ncols(B)
@@ -1245,6 +1360,8 @@ end
 @doc Markdown.doc"""
     issubset(M::SubQuo{T}, N::SubQuo{T}) where {T}
 
+Return `true` if `M` is contained in `N`, and `false` otherwise.
+
 Check if `M` is a subset of `N`. For this their embedding free modules 
 must be identical (`===`), the relations must be equal and the (generators + relations)
 of `M` must be a submodule of (generators + relations) of `N`.
@@ -1267,6 +1384,8 @@ end
 
 @doc Markdown.doc"""
     ==(M::SubQuo{T}, N::SubQuo{T}) where {T}
+
+Return `true` if `M` equals `N`, and `false` otherwise.
 
 Check for equality. For two subquotients to be equal their embedding free modules 
 must be identical (`===`) and the (generators + relations) respectively the relations must 
@@ -1357,10 +1476,54 @@ end
 @doc Markdown.doc"""
     SubQuoElem{T}
 
+The type of subquotient elements. A subquotient element is given by a sparse row (`SRow`) 
+which specifies the coefficients when writing the element as a linear combination of
+the generators of the subquotient. 
+
 An element of a subquotient module $A+B / B$ is given by a sparse row (mathematically speaking just 
 a vector) $v$. The element is then just $u := \sum_i v[i]\cdot A[i]$ (where $A[i]$ are the generators of $A$).
 The representative $u$ is also stored (along with the parent module where the 
 element lives in).
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> A = R[x; y]
+[x]
+[y]
+
+julia> B = R[x^2; x*y; y^2; z^4]
+[x^2]
+[x*y]
+[y^2]
+[z^4]
+
+julia> M = SubQuo(A, B)
+Subquotient of Submodule with 2 generators
+1 -> (x)*e[1]
+2 -> (y)*e[1]
+by Submodule with 4 generators
+1 -> (x^2)*e[1]
+2 -> (x*y)*e[1]
+3 -> (y^2)*e[1]
+4 -> (z^4)*e[1]
+
+
+
+julia> f = SubQuoElem(sparse_row(R, [(1,z),(2,one(R))]),M)
+(x*z + y)*e[1]
+
+julia> g = z*M[1] + one(R)*M[2]
+(x*z + y)*e[1]
+
+julia> typeof(g)
+SubQuoElem{fmpq_mpoly}
+
+julia> f == g
+true
+```
 """
 struct SubQuoElem{T} <: AbstractSubQuoElem{T} # this needs to be redone TODO
   coeffs::SRow{T}
@@ -1790,47 +1953,47 @@ function syzygy_module(F::ModuleGens; sub = FreeMod(base_ring(F.F), length(oscar
 end
 
 @doc Markdown.doc"""
-    gens(F::SubQuo{T}) where T
+    gens(M::SubQuo{T}) where T
 
-Return the generators of `F`.
+Return the generators of `M`.
 """
-function gens(F::SubQuo{T}) where T
-  return [gen(F,i) for i=1:ngens(F)]
+function gens(M::SubQuo{T}) where T
+  return [gen(M,i) for i=1:ngens(M)]
 end
 
 @doc Markdown.doc"""
-    gen(F::SubQuo{T}, i::Int) where T
+    gen(M::SubQuo{T}, i::Int) where T
 
-Return the `i`th generator of `F`.
+Return the `i`th generator of `M`.
 """
-function gen(F::SubQuo{T}, i::Int) where T
-  R = base_ring(F)
+function gen(M::SubQuo{T}, i::Int) where T
+  R = base_ring(M)
   v::SRow{T} = sparse_row(R)
   v.pos = [i]
   v.values = [R(1)]
-  return SubQuoElem{T}(v, F)
+  return SubQuoElem{T}(v, M)
 end
 
 @doc Markdown.doc"""
-    ngens(F::SubQuo)
+    ngens(M::SubQuo)
 
-Return the number of generators of `F`.
+Return the number of generators of `M`.
 """
-ngens(F::SubQuo) = ngens(F.sub)
+ngens(M::SubQuo) = ngens(M.sub)
 
 @doc Markdown.doc"""
-    base_ring(SQ::SubQuo)
+    base_ring(M::SubQuo)
 
-Let `SQ` be an `R`-module. Return `R`.
+Given an `R`-module `M`, return `R`.
 """
-base_ring(SQ::SubQuo) = base_ring(SQ.F)
+base_ring(M::SubQuo) = base_ring(M.F)
 
 @doc Markdown.doc"""
-    zero(SQ::SubQuo)
+    zero(M::SubQuo)
 
-Return the zero element in `SQ`.
+Return the zero element of `M`.
 """
-zero(SQ::SubQuo) = SubQuoElem(zero(SQ.F), SQ)
+zero(M::SubQuo) = SubQuoElem(zero(M.F), M)
 
 @doc Markdown.doc"""
     Base.iszero(F::SubQuo)
@@ -1871,9 +2034,47 @@ function *(a::FreeModElem, b::Vector{FreeModElem})
 end
 
 @doc Markdown.doc"""
-    presentation(SQ::SubQuo)
+    presentation(M::SubQuo)
 
-Compute a free resolution of `SQ`. 
+Return a free presentation of `M`. 
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> A = R[x; y]
+[x]
+[y]
+
+julia> B = R[x^2; x*y; y^2; z^4]
+[x^2]
+[x*y]
+[y^2]
+[z^4]
+
+julia> M = SubQuo(A, B)
+Subquotient of Submodule with 2 generators
+1 -> (x)*e[1]
+2 -> (y)*e[1]
+by Submodule with 4 generators
+1 -> (x^2)*e[1]
+2 -> (x*y)*e[1]
+3 -> (y^2)*e[1]
+4 -> (z^4)*e[1]
+
+
+
+julia> presentation(M)
+C_0 ----> C_1 ----> M ----> Zero
+where:
+	C_0 = Free module of rank 6 over Multivariate Polynomial Ring in x, y, z over Rational Field
+	C_1 = Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+```
 """
 function presentation(SQ::SubQuo)
   #A+B/B is generated by A and B
@@ -1923,7 +2124,19 @@ end
 @doc Markdown.doc"""
     presentation(F::FreeMod)
 
-Return a free resolution of $F$.
+Return a free presentation of $F$.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> F = FreeMod(R, 3)
+Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia> presentation(F)
+Zero ----> F ----> F ----> Zero
+```
 """
 function presentation(F::FreeMod)
   Z = FreeMod(F.R, 0)
@@ -1940,6 +2153,49 @@ If `task` is set to `:with_morphism` or to `:both` then return also an isomorphi
 on this isomorphism is cheap.
 If `task` is set to `:store` then the isomorphism is cached.
 If `task` is set to `:morphism` then return only the isomorphism.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> A = R[x; y]
+[x]
+[y]
+
+julia> B = R[x^2; x*y; y^2; z^4]
+[x^2]
+[x*y]
+[y^2]
+[z^4]
+
+julia> M = SubQuo(A, B)
+Subquotient of Submodule with 2 generators
+1 -> (x)*e[1]
+2 -> (y)*e[1]
+by Submodule with 4 generators
+1 -> (x^2)*e[1]
+2 -> (x*y)*e[1]
+3 -> (y^2)*e[1]
+4 -> (z^4)*e[1]
+
+
+
+
+julia> present_as_cokernel(M)
+Subquotient of Submodule with 2 generators
+1 -> (1)*e[1]
+2 -> (1)*e[2]
+by Submodule with 6 generators
+1 -> (y)*e[1]
+2 -> (y)*e[2]
+3 -> (x)*e[1]
+4 -> (x)*e[2]
+5 -> (z^4)*e[1]
+6 -> (z^4)*e[2]
+
+
+```
 """
 function present_as_cokernel(SQ::SubQuo, task::Symbol = :none)
   chainComplex = presentation(SQ)
@@ -2203,9 +2459,9 @@ end
 (f::SubQuoHom)(a::SubQuoElem) = image(f, a)
 
 @doc Markdown.doc"""
-    iszero(a::SubQuoElem)
+    iszero(f::SubQuoElem)
 
-Return if the subquotient element `a` is zero.
+Return `true` if `f` is zero, `false` otherwise.
 """
 function iszero(a::SubQuoElem)
   C = parent(a)
@@ -2331,26 +2587,104 @@ end
 @doc Markdown.doc"""
     free_resolution(F::FreeMod)
 
-Compute a free resolution of the free module `F`.
+Return a free resolution of `F`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> F = FreeMod(R, 3)
+Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia> free_resolution(F)
+Zero ----> F ----> F ----> Zero
+```
 """
 function free_resolution(F::FreeMod)
   return presentation(F)
 end
 
 @doc Markdown.doc"""
-    free_resolution(S::SubQuo, limit::Int = -1)
+    free_resolution(M::SubQuo, limit::Int = -1)
 
-Compute a free resolution of `S`. If `limit != -1` the free resolution
+Return a free resolution of `M`. 
+
+If `limit != -1`, the free resolution
 is only computed up to the `limit`-th free module.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> A = R[x; y]
+[x]
+[y]
+
+julia> B = R[x^2; x*y; y^2; z^4]
+[x^2]
+[x*y]
+[y^2]
+[z^4]
+
+julia> M = SubQuo(A, B)
+Subquotient of Submodule with 2 generators
+1 -> (x)*e[1]
+2 -> (y)*e[1]
+by Submodule with 4 generators
+1 -> (x^2)*e[1]
+2 -> (x*y)*e[1]
+3 -> (y^2)*e[1]
+4 -> (z^4)*e[1]
+
+
+
+
+julia> F = free_resolution(M)
+Zero <---- M <---- F_4 <---- F_3 <---- F_2 <---- F_1 <---- Zero
+where:
+	F_1 = Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+	F_2 = Free module of rank 6 over Multivariate Polynomial Ring in x, y, z over Rational Field
+	F_3 = Free module of rank 6 over Multivariate Polynomial Ring in x, y, z over Rational Field
+	F_4 = Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+
+julia> typeof(F)
+Hecke.ChainComplex{ModuleFP}
+
+julia> F[2]
+Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia> map(F, 2)
+Map with following data
+Domain:
+=======
+Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+Codomain:
+=========
+Free module of rank 6 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+
+julia> free_resolution(M, 2)
+Zero <---- M <---- C_1 <---- C_0
+where:
+	C_0 = Free module of rank 6 over Multivariate Polynomial Ring in x, y, z over Rational Field
+	C_1 = Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+```
 """
-function free_resolution(S::SubQuo, limit::Int = -1)
-  p = presentation(S)
+function free_resolution(M::SubQuo, limit::Int = -1)
+  p = presentation(M)
   mp = [map(p, j) for j=1:length(p)]
   while true
     k, mk = kernel(mp[1])
     nz = findall(x->!iszero(x), gens(k))
     if length(nz) == 0 
-      Z = FreeMod(base_ring(S), 0)
+      Z = FreeMod(base_ring(M), 0)
       Hecke.set_special(Z, :name => "Zero")
       h = hom(Z, domain(mp[1]), FreeModElem[])
       insert!(mp, 1, h)
@@ -2358,7 +2692,7 @@ function free_resolution(S::SubQuo, limit::Int = -1)
     elseif limit != -1 && length(mp) > limit
       break
     end
-    F = FreeMod(base_ring(S), length(nz))
+    F = FreeMod(base_ring(M), length(nz))
     g = hom(F, codomain(mk), collect(k.sub.gens)[nz])
     insert!(mp, 1, g)
   end
@@ -2373,6 +2707,23 @@ end
     free_resolution(I::MPolyIdeal)
 
 Compute a free resolution of `I`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> I = ideal(R, [x, y, z])
+ideal(x, y, z)
+
+julia> free_resolution(I)
+Zero <---- I <---- C_3 <---- C_2 <---- C_1 <---- Zero
+where:
+	C_1 = Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+	C_2 = Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field
+	C_3 = Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+```
 """
 function free_resolution(I::MPolyIdeal)
   F = free_module(Hecke.ring(I), 1)
@@ -2388,6 +2739,35 @@ end
     free_resolution(Q::MPolyQuo)
 
 Compute a free resolution of `Q`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> Q, _ = quo(R, ideal(R, [y-x^2, x-z^3]))
+(Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, x - z^3), Map from
+Multivariate Polynomial Ring in x, y, z over Rational Field to Q defined by a julia-function with inverse
+)
+
+julia> free_resolution(Q)
+ERROR: elements not compatible
+Stacktrace:
+ [1] error(s::String)
+   @ Base ./error.jl:33
+ [2] *(a::fmpq_mpoly, b::FreeModElem{MPolyQuoElem{fmpq_mpoly}})
+   @ Oscar ~/.julia/dev/Oscar/src/Modules/UngradedModules.jl:379
+ [3] (::Oscar.var"#791#792"{FreeMod{MPolyQuoElem{fmpq_mpoly}}})(x::fmpq_mpoly)
+   @ Oscar ./none:0
+ [4] iterate
+   @ ./generator.jl:47 [inlined]
+ [5] collect
+   @ ./array.jl:681 [inlined]
+ [6] free_resolution(Q::MPolyQuo{fmpq_mpoly})
+   @ Oscar ~/.julia/dev/Oscar/src/Modules/UngradedModules.jl:2589
+ [7] top-level scope
+   @ REPL[23]:1
+```
 """
 function free_resolution(Q::MPolyQuo)
   F = free_module(Q, 1)
@@ -2822,12 +3202,12 @@ function free_module(F::FreeMod)
 end
 
 @doc Markdown.doc"""
-    free_module(F::SubQuo)
+    free_module(M::SubQuo)
 
-Return the embedding free module of `F`.
+Return the ambient free module of `M`.
 """
-function free_module(F::SubQuo)
-  return F.F
+function free_module(M::SubQuo)
+  return M.F
 end
 
 @doc Markdown.doc"""
@@ -2851,7 +3231,13 @@ function gens(F::SubQuo, G::FreeMod)
   return [FreeModElem(x.repres.coords, G) for x = gens(F)]
 end
 rels(F::FreeMod) = elem_type(F)[]
-rels(F::SubQuo) = isdefined(F, :quo) ? collect(F.quo.gens) : elem_type(F.F)[]
+
+@doc Markdown.doc"""
+    rels(M::SubQuo)
+
+Return the relations of `M`.
+"""
+rels(M::SubQuo) = isdefined(M, :quo) ? collect(M.quo.gens) : elem_type(M.F)[]
 
 @doc Markdown.doc"""
     tensor_product(G::ModuleFP...; task::Symbol = :none)
