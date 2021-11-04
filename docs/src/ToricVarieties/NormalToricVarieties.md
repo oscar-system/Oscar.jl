@@ -99,8 +99,7 @@ affine_open_covering( v::AbstractNormalToricVariety )
 ### Toric ideal
 
 ```@docs
-toric_ideal_binomial_generators(pts::Union{AbstractMatrix, fmpz_mat})
-toric_ideal_binomial_generators(antv::AffineNormalToricVariety)
+binomial_exponents_to_ideal(binoms::Union{AbstractMatrix, fmpz_mat})
 toric_ideal(pts::Union{AbstractMatrix, fmpz_mat})
 toric_ideal(antv::AffineNormalToricVariety)
 ```
