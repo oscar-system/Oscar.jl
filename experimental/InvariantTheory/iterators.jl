@@ -97,27 +97,37 @@ end
 function iterate_basis(R::InvRing, d::Int, algo::Symbol = :default)
   @assert d >= 0 "Degree must be non-negativ"
 
-  reynolds = false
-  if algo == :reynolds
-    reynolds = true
-  elseif algo == :linear_algebra
-    reynolds = false
-  elseif algo == :default
-    # TODO: Fine tune this: Depending on d and the group order it is better
-    # to use "linear_algebra" also in the non-modular case.
+  if algo == :default
     if ismodular(R)
-      reynolds = false
+      algo = :linear_algebra
     else
-      reynolds = true
+      # Use the estimate in KS99, Section 17.2
+      # We use the "worst case" estimate, so 2d|G|/s instead of sqrt(2d|G|/s)
+      # for the reynolds operator since we have to assume that the user really
+      # wants to iterate the whole basis.
+      # Other than that we just use the bound from the paper. It probably also
+      # depends on the type of the field etc., so one could fine-tune here...
+      # But it should be a good heuristic anyways and the users can always
+      # choose for themselves :)
+      s = length(action(R))
+      g = order(Int, group(R))
+      n = degree(group(R))
+      k = binomial(n + d - 1, n - 1)
+      if k > 2*d*g/s
+        algo = :reynolds
+      else
+        algo = :linear_algebra
+      end
     end
+  end
+
+  if algo == :reynolds
+    return iterate_basis_reynolds(R, d)
+  elseif algo == :linear_algebra
+    return iterate_basis_linear_algebra(R, d)
   else
     error("Unsupported argument :$(algo) for algo.")
   end
-
-  if reynolds
-    return iterate_basis_reynolds(R, d)
-  end
-  return iterate_basis_linear_algebra(R, d)
 end
 
 function iterate_basis_reynolds(R::InvRing, d::Int)
@@ -226,14 +236,19 @@ function iterate_reynolds(BI::InvRingBasisIterator)
     if iszero(g)
       continue
     end
-    M = zero_matrix(K, 1, length(g))
+    M = zero_matrix(K, BI.dim, length(g))
+    pivot_rows = zeros(Int, length(g))
+    g = inv(leading_coefficient(g))*g
     i = 1
     for (c, m) in zip(coefficients(g), monomials(g))
       monomial_to_basis[m] = i
       M[1, i] = c
       i += 1
     end
-    return inv(leading_coefficient(g))*g, (M, monomial_to_basis, state)
+    pivot_rows[1] = 1
+    @assert M[1, 1] == 1
+    v = zeros(K, ncols(M))
+    return g, (M, monomial_to_basis, state, pivot_rows, 1, v)
   end
 end
 
@@ -241,9 +256,13 @@ function iterate_reynolds(BI::InvRingBasisIterator, state)
   @assert BI.reynolds
 
   M = state[1]
-  if nrows(M) == BI.dim
+  r = state[5]
+  if r == BI.dim
     return nothing
   end
+
+  pivot_rows = state[4]
+  v = state[6]
 
   K = base_ring(polynomial_ring(BI.R))
 
@@ -261,19 +280,25 @@ function iterate_reynolds(BI::InvRingBasisIterator, state)
     if iszero(g)
       continue
     end
-    N = vcat(M, zero_matrix(K, 1, ncols(M)))
-    new_basis_mon = false
+
+    v = zero!.(v)
+    new_cols = 0
     for (c, m) in zip(coefficients(g), monomials(g))
       if !haskey(monomial_to_basis, m)
-        new_basis_mon = true
-        monomial_to_basis[m] = ncols(N) + 1
-        N = hcat(N, zero_matrix(K, nrows(N), 1))
+        monomial_to_basis[m] = length(v) + 1
+        new_cols += 1
+        push!(v, c)
+      else
+        col = monomial_to_basis[m]
+        v[col] = c
       end
-      col = monomial_to_basis[m]
-      N[nrows(N), col] = c
     end
-    if new_basis_mon || rref!(N) == nrows(M) + 1
-      return inv(leading_coefficient(g))*g, (N, monomial_to_basis, monomial_state)
+    if !iszero(new_cols)
+      append!(pivot_rows, zeros(Int, new_cols))
+      M = hcat(M, zero_matrix(K, nrows(M), new_cols))
+    end
+    if Hecke._add_row_to_rref!(M, v, pivot_rows, r + 1)
+      return inv(leading_coefficient(g))*g, (M, monomial_to_basis, monomial_state, pivot_rows, r + 1, v)
     end
   end
 end
