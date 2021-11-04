@@ -358,6 +358,23 @@ julia> volume(C)
 """
 volume(P::Polyhedron) = (pm_object(P)).VOLUME
 
+
+@doc Markdown.doc"""
+    lattice_volume(P::Polyhedron)
+
+Return the lattice volume of `P`.
+
+# Examples
+```jldoctest
+julia> C = cube(2);
+
+julia> lattice_volume(C)
+8
+```
+"""
+lattice_volume(P::Polyhedron) = (pm_object(P)).LATTICE_VOLUME
+
+
 @doc Markdown.doc"""
     normalized_volume(P::Polyhedron)
 
