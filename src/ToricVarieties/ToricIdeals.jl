@@ -1,5 +1,5 @@
 @doc Markdown.doc"""
-    toric_ideal_binomial_generators(pts::Matrix{Int})
+    toric_ideal_binomial_generators(pts::Union{AbstractMatrix, fmpz_mat})
 
 Get the exponent vectors corresponding to the generators of the toric ideal
 coming from the linear integer relations between the rows of `pts`. The result
@@ -23,7 +23,7 @@ julia> toric_ideal_binomial_generators(H)
 [1   -3   0   1]
 ```
 """
-function toric_ideal_binomial_generators(pts::AbstractMatrix)
+function toric_ideal_binomial_generators(pts::Union{AbstractMatrix, fmpz_mat})
     result = kernel(matrix(ZZ, pts), side=:left)
     return result[2]
 end
@@ -84,6 +84,9 @@ ideal(x[1]^2*x[3] - x[2]^5, x[1]*x[4] - x[2]^3)
 function binomial_exponents_to_ideal(binoms::Union{AbstractMatrix, fmpz_mat})
     nvars = ncols(binoms)
     R::FmpqMPolyRing, x = PolynomialRing(QQ, "x" => 1:nvars, cached=false)
+    if nrows(binoms) == 0
+        return ideal([zero(R)])
+    end
     terms = Vector{fmpq_mpoly}(undef, nrows(binoms))
     for i in 1:nrows(binoms)
         binom = binoms[i, :]

@@ -128,13 +128,13 @@
 #        "Experimental/elliptic_curves.md",
 #        "Experimental/non_plane_curves.md",
 #     ],
+     "Toric Varieties" => [
+        "ToricVarieties/intro.md",
+        "ToricVarieties/NormalToricVarieties.md",
+        "ToricVarieties/ToricDivisors.md",
+     ],
   ],
 
-  "Toric Varieties" => [
-     "ToricVarieties/intro.md",
-     "ToricVarieties/NormalToricVarieties.md",
-     "ToricVarieties/ToricDivisors.md",
-  ],
 
   "General" => [
      "General/styleguide.md",
