@@ -807,3 +807,27 @@ julia> vertices(P)
 function polarize(P::Polyhedron)
     return Polyhedron(Polymake.polytope.polarize(pm_object(P)))
 end
+
+
+@doc Markdown.doc"""
+
+    project_full(P::Polyhedron)
+
+Project the polyhedron down such that it becomes full dimensional in the new
+ambient space.
+
+```jldoctest
+julia> P = convex_hull([1 0 0; 0 0 0])
+A polyhedron in ambient dimension 3
+
+julia> isfulldimensional(P)
+false
+
+julia> p = project_full(P)
+A polyhedron in ambient dimension 1
+
+julia> isfulldimensional(p)
+true
+```
+"""
+project_full(P::Polyhedron) = Polyhedron(Polymake.polytope.project_full(pm_object(P)))
