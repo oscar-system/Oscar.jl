@@ -177,7 +177,11 @@ end
 
 ### default functionality for printing
 function Base.show(io::IO, f::AbsLocalizedRingElem)
-  print(io, "($(numerator(f)))//($(denominator(f)))")
+  if needs_parentheses(f)
+    print(io, "($(numerator(f)))//($(denominator(f)))")
+  else 
+    print(io, "$(numerator(f))//$(denominator(f))")
+  end
 end
 
 
@@ -202,18 +206,16 @@ function +(a::T, b::T) where {T<:AbsLocalizedRingElem}
   return reduce_fraction((parent(a))(numerator(a)*denominator(b) + numerator(b)*denominator(a), denominator(a)*denominator(b)))
 end
 
-# TODO: improve this method.
-function addeq!(a::T, b::T) where {T<:AbsLocalizedRingElem}
-  a = a+b
-  return a
-end
-
 function -(a::T, b::T) where {T<:AbsLocalizedRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
   if denominator(a) == denominator(b) 
     return reduce_fraction((parent(a))(numerator(a) - numerator(b), denominator(a)))
   end
   return reduce_fraction((parent(a))(numerator(a)*denominator(b) - numerator(b)*denominator(a), denominator(a)*denominator(b)))
+end
+
+function -(a::T) where {T<:AbsLocalizedRingElem}
+  return (parent(a))(-numerator(a), denominator(a))
 end
 
 function *(a::T, b::T) where {T<:AbsLocalizedRingElem}
@@ -256,7 +258,82 @@ function ^(a::AbsLocalizedRingElem, i::Integer)
   return parent(a)(numerator(a)^i, denominator(a)^i)
 end
 
+function divexact(a::T, b::T; check::Bool=false) where {T<:AbsLocalizedRingElem} 
+  error("method `divexact` not implemented for arguments of type $(typeof(a))")
+end
+
+function inv(a::AbsLocalizedRingElem) 
+  numerator(a) in inverted_set(parent(a)) || error("the given element is not a unit")
+  return parent(a)(denominator(a), numerator(a))
+end
+
+########################################################################
+# generic functions to adhere to the Oscar ring interface              #
+########################################################################
+
 isone(a::AbsLocalizedRingElem) = (numerator(a) == denominator(a))
+
+isunit(f::AbsLocalizedRingElem) = numerator(f) in inverted_set(parent(f))
+
+isdomain_type(T::Type{U}) where {U<:AbsLocalizedRingElem} = false # default set to false
+
+isexact_type(T::Type{U}) where {U<:AbsLocalizedRingElem} = false # default set to false
+
+function Base.hash(f::T, h::UInt) where {T<:AbsLocalizedRingElem} 
+  r = 0x78a97cd90
+  r = xor(r, hash(numerator(f), h))
+  return xor(r, hash(denominator(f), h))
+end
+
+Base.deepcopy_internal(f::T, dict::IdDict) where {T<:AbsLocalizedRingElem} = parent(f)(copy(numerator(f)), copy(denominator(f)))
+
+one(W::AbsLocalizedRing) = W(one(base_ring(W)))
+
+zero(W::AbsLocalizedRing) = W(zero(base_ring(W)))
+
+canonical_unit(f::LocRingElemType) where {LocRingElemType<:AbsLocalizedRingElem} = one(parent(f))
+
+characteristic(W::AbsLocalizedRing) = characteristic(base_ring(W))
+
+function Base.show(io::IO, W::AbsLocalizedRing) 
+  print(io, "localization of ") 
+  print(io, base_ring(W))
+  print(io, " at the ")
+  print(io, inverted_set(W))
+end
+
+needs_parentheses(f::AbsLocalizedRingElem) = true
+
+function zero!(a::AbsLocalizedRingElem) 
+  a = zero(parent(a))
+  return a
+end
+
+function mul!(c::T, a::T, b::T) where {T<:AbsLocalizedRingElem} 
+  c = a*b
+  return c
+end
+
+function add!(c::T, a::T, b::T) where {T<:AbsLocalizedRingElem} 
+  c = a+b
+  return c
+end
+
+function addeq!(a::T, b::T) where {T<:AbsLocalizedRingElem}
+  a = a+b
+  return a
+end
+
+### promotion rules
+promote_rule(::Type{AbsLocalizedRingElem{RT, RET, MST}}, ::Type{AbsLocalizedRingElem{RT, RET, MST}}) where {RT<:Ring, RET<:RingElement, MST} = AbsLocalizedRingElem{RT, RET, MST}
+
+function promote_rule(::Type{AbsLocalizedRingElem{RT, RET, MST}}, ::Type{T}) where {RT<:Ring, RET<:RingElement, MST, T<:RingElement} 
+  promote_rule(RET, T) ? AbsLocalizedRingElem{RT, RET, MST} : Union{}
+end
+
+
+
+
 
 ### Needs to be overwritten in case of zero divisors!
 iszero(a::AbsLocalizedRingElem) = iszero(numerator(a))

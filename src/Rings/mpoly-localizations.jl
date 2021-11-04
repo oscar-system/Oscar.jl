@@ -1,7 +1,8 @@
 export MPolyUnits, MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal, MPolyPowersOfElement
+export rand
 
 export MPolyLocalizedRing
-export ambient_ring, point_coordinates, inverted_set
+export ambient_ring, point_coordinates, inverted_set, denominators
 
 export MPolyLocalizedRingElem
 export numerator, denominator, fraction, parent
@@ -55,6 +56,17 @@ function Base.in(
     S::MPolyUnits{BaseRingType, BaseRingElemType, RingType, RingElemType}
   ) where {BaseRingType, BaseRingElemType, RingType, RingElemType}
   return divides(one(ambient_ring(S)), f)[1]
+end
+
+### printing
+function Base.show(io::IO, S::MPolyUnits)
+  print(io, "units of ")
+  print(io, ambient_ring(S))
+end
+
+### generation of random elements 
+function rand(S::MPolyUnits, v1::UnitRange{Int}, v2::UnitRange{Int}, v3::UnitRange{Int})
+  return one(ambient_ring(S))
 end
 
 
@@ -116,6 +128,20 @@ end
 ### additional functionality
 prime_ideal(S::MPolyComplementOfPrimeIdeal) = S.P
 
+### printing
+function Base.show(io::IO, S::MPolyComplementOfPrimeIdeal)
+  print(io, "complement of ")
+  print(io, prime_ideal(S))
+end
+
+### generation of random elements 
+function rand(S::MPolyComplementOfPrimeIdeal, v1::UnitRange{Int}, v2::UnitRange{Int}, v3::UnitRange{Int})
+  f = rand(ambient_ring(S), v1, v2, v3)
+  if f in prime_ideal(S)
+    return rand(S, v1, v2, v3)
+  end
+  return f
+end
 
 ########################################################################
 # Complements of maximal ideals corresponding to 𝕜-points              #
@@ -178,6 +204,20 @@ function Base.in(
   return !(evaluate(f, point_coordinates(S)) == zero(ambient_ring(S)))
 end
 
+### printing
+function Base.show(io::IO, S::MPolyComplementOfKPointIdeal)
+  print(io, "point with coordinates ")
+  print(io, point_coordinates(S))
+end
+
+### generation of random elements 
+function rand(S::MPolyComplementOfKPointIdeal, v1::UnitRange{Int}, v2::UnitRange{Int}, v3::UnitRange{Int})
+  f = rand(ambient_ring(S), v1, v2, v3)
+  if !(f in S)
+    return rand(S, v1, v2, v3)
+  end
+  return f
+end
 
 ########################################################################
 # Powers of elements                                                   #
@@ -229,18 +269,27 @@ function Base.in(
     f::RingElemType, 
     S::MPolyPowersOfElement{BaseRingType, BaseRingElemType, RingType, RingElemType}
   ) where {BaseRingType, BaseRingElemType, RingType, RingElemType}
-  parent(f) == ambient_ring(S) || return false
-
-  # TODO: This algorithm can most probably be improved!
-  R = ambient_ring(S)
-  d = prod(denominators(S))
-  g = gcd(f, d)
-  while !isone(g)
-    f = divexact(f, g)
-    g = gcd(f, d)
+  R = parent(f)
+  R == ambient_ring(S) || return false
+  if iszero(f) 
+    return false
   end
-  # return true iff the remaining f is a unit in R
-  return divides(one(R), f)[1]
+  d = prod(denominators(S))
+  # We need to check whether for some a ∈ R and k ∈ ℕ we have 
+  #   a⋅f = dᵏ.
+  (i, o) = ppio(f, d)
+  return divides(one(R), o)[1]
+end
+
+### printing
+function Base.show(io::IO, S::MPolyPowersOfElement)
+  print(io, "powers of ")
+  print(io, denominators(S))
+end
+
+### generation of random elements 
+function rand(S::MPolyPowersOfElement, v1::UnitRange{Int}, v2::UnitRange{Int}, v3::UnitRange{Int})
+  return prod([f^(abs(rand(Int))%10) for f in denominators(S)])::elem_type(ambient_ring(S))
 end
 
 ########################################################################
@@ -337,8 +386,13 @@ function localize_at(
   return V
 end
 
+### generation of random elements 
+function rand(W::MPolyLocalizedRing, v1::UnitRange{Int}, v2::UnitRange{Int}, v3::UnitRange{Int})
+  return W(rand(base_ring(W), v1, v2, v3), rand(inverted_set(W), v1, v2, v3))
+end
+
 ########################################################################
-# Elements of local polynomial rings                                   #
+# Elements of localized polynomial rings                               #
 ########################################################################
 
 @Markdown.doc """
@@ -403,8 +457,6 @@ fraction(a::MPolyLocalizedRingElem) = a.frac
 ### additional conversions
 (W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(f::AbstractAlgebra.Generic.Frac{RingElemType}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocalizedRingElem(f, W)
 
-(W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(a::Oscar.IntegerUnion) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = W(base_ring(W)(a))
-
 ### overwriting the arithmetic using the fractions from AbstractAlgebra
 function +(a::T, b::T) where {T<:MPolyLocalizedRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
@@ -414,6 +466,10 @@ end
 function -(a::T, b::T) where {T<:MPolyLocalizedRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
   return (parent(a))(fraction(a) - fraction(b))
+end
+
+function -(a::T) where {T<:MPolyLocalizedRingElem}
+  return (parent(a))((-1)*fraction(a))
 end
 
 function *(a::T, b::T) where {T<:MPolyLocalizedRingElem}
@@ -460,7 +516,7 @@ function ==(a::T, b::T) where {T<:MPolyLocalizedRingElem}
 end
 
 # We need to manually split this into three methods, because 
-# otherwise it seems that Julia can not dispatch this method.
+# otherwise it seems that Julia can not dispatch this function.
 function ^(a::MPolyLocalizedRingElem, i::Int64)
   return parent(a)(fraction(a)^i)
 end
@@ -471,15 +527,49 @@ function ^(a::MPolyLocalizedRingElem, i::fmpz)
   return parent(a)(fraction(a)^i)
 end
 
-### implementation of Oscar's general ring interface
-one(W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = W(one(base_ring(W)))
-zero(W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = W(zero(base_ring(W)))
+function divexact(p::T, q::T; check::Bool=false) where {T<:MPolyLocalizedRingElem} 
+  W = parent(p)
+  S = inverted_set(W)
+  parent(q) == W || error("incompatible rings")
+  a = numerator(p)
+  b = denominator(p)
+  c = numerator(q)
+  d = denominator(q)
+  ### a/b = (m/n)*(c/d) <=> a*d*n = c*b*m.
+  # Using the factoriality of polynomial rings, 
+  # we can cancel common factors of a*d and c*b 
+  # and read off the minimal m and n from that.
+  a = a*d
+  c = c*b
+  g = gcd(a, c)
+  m = divexact(a, g)
+  n = divexact(c, g)
+  if !(n in S) 
+    error("not an exact division")
+  end
+  return W(m, n)
+end
+
+########################################################################
+# implementation of Oscar's general ring interface                     #
+########################################################################
+
+one(W::MPolyLocalizedRing) = W(one(base_ring(W)))
+zero(W::MPolyLocalizedRing) = W(zero(base_ring(W)))
 
 elem_type(W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocalizedRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
 elem_type(T::Type{MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocalizedRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
 
-parent_type(W::MPolyLocalizedRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
+parent_type(f::MPolyLocalizedRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
 parent_type(T::Type{MPolyLocalizedRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
+
+(W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(f::MPolyLocalizedRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocalizedRingElem(fraction(f), W)
+
+(W::MPolyLocalizedRing)() = zero(W)
+(W::MPolyLocalizedRing)(a::Integer) = W(base_ring(W)(a))
+
+isdomain_type(T::Type{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = true 
+isexact_type(T::Type{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = true
 
 
 ########################################################################
@@ -841,10 +931,11 @@ function Base.reduce(
   if iszero(singular_n) 
     return zero(W)
   end
-  singular_d = singular_ring(lbpa)(shift_hom(denominator(f)))
-  singular_d = Singular.reduce(singular_d, singular_gens(lbpa))
+  #singular_d = singular_ring(lbpa)(shift_hom(denominator(f)))
+  #singular_d = Singular.reduce(singular_d, singular_gens(lbpa))
   inv_shift_hom = hom(R,R, [gen(R, i) - lbpa.shift[i] for i in (1:nvars(R))])
-  return W(inv_shift_hom(R(singular_n)), inv_shift_hom(R(singular_d)))
+  #return W(inv_shift_hom(R(singular_n)), inv_shift_hom(R(singular_d)))
+  return W(inv_shift_hom(R(singular_n)), denominator(f))
 end
 
 

@@ -129,3 +129,26 @@ end
   psi = MPolyLocalizedRingHom(U, R, [R(0), R(0)])
   @test psi(U(-1//f))==one(codomain(psi))
 end
+
+@testset "Ring interface for localized polynomial rings" begin
+  R, v = QQ["x", "y"]
+  x = v[1]
+  y = v[2] 
+  f = x^2+y^2-1
+  I = ideal(R, f)
+
+  include(joinpath(pathof(AbstractAlgebra), "..", "..", "test", "Rings-conformance-tests.jl"))
+
+  d = Vector{elem_type(R)}()
+  d = [rand(R, 1:3, 1:3, 1:3)::elem_type(R) for i in 0:(abs(rand(Int))%3+1)]
+  S = MPolyPowersOfElement(R, d)
+  T = MPolyComplementOfKPointIdeal(R, [QQ(125), QQ(-45)])
+  U = MPolyComplementOfPrimeIdeal(I)
+  function test_elem(W::MPolyLocalizedRing) 
+    f = rand(W, 1:3, 1:3, 1:3)
+    return f
+  end
+  test_Ring_interface_recursive(localize_at(S))
+  test_Ring_interface_recursive(localize_at(T))
+  test_Ring_interface_recursive(localize_at(U))
+end
