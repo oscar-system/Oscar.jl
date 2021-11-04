@@ -692,6 +692,11 @@ function _isless_lex(f::MPolyElem, k::Int, l::Int)
    return dot(ek, w)
  end
 
+ function weighted_degree(f::MPolyElem, k::Int, r::UnitRange{Int}, w::Vector{Int})
+   ek = exponent_vector(f, k)[r]
+   return dot(ek, w)
+ end
+
  function _isless_weightdeglex(f::MPolyElem, k::Int, l::Int, w::Vector{Int})
    dk = weighted_degree(f, k, w)
    dl = weighted_degree(f, l, w)
@@ -921,8 +926,8 @@ function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::Oscar.Orderings.GenOrde
          end
        end
    else
-      dk = weighted_degree(f, k, o.w)
-      dl = weighted_degree(f, l, o.w)
+      dk = weighted_degree(f, k, o.vars, o.w)
+      dl = weighted_degree(f, l, o.vars, o.w)
       if o.ord == :wdeglex
          if dk < dl
             return -1

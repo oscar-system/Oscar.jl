@@ -762,11 +762,7 @@ for s in (:terms, :coefficients, :exponent_vectors, :monomials)
 
     function ($s)(f::MPolyElem, ord::MonomialOrdering)
       R = parent(f)
-      if isa(ord.o, Oscar.Orderings.GenOrdering) && isweighted(ord.o.ord)
-        lt = lt_from_ordering(R, ord.o.ord, ord.o.w)
-      else
-        lt = lt_from_ordering(R, ord.o)
-      end
+      lt = lt_from_ordering(R, ord.o)
       return ($s)(f, lt)
     end
   end
