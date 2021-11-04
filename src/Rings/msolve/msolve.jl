@@ -25,11 +25,11 @@ function get_rational_parametrization(
 
     size  = nr-2
     p = Vector{PolyElem}(undef, size)
-    c = Vector{BigInt}(undef, size)
+    c = Vector{fmpz}(undef, size)
     k = 1
     for i in 3:nr
         p[k]  = C([unsafe_load(cfs, j+ctr) for j in 1:lens[i]-1])
-        c[k]  =   (-1) * fmpq(unsafe_load(cfs, lens[i]+ctr))
+        c[k]  =   (-1) * fmpz(unsafe_load(cfs, lens[i]+ctr))
         ctr   +=  lens[i]
         k     +=  1
     end
