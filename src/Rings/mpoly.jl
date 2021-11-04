@@ -765,7 +765,7 @@ for s in (:terms, :coefficients, :exponent_vectors, :monomials)
       if isa(ord.o, Oscar.Orderings.GenOrdering) && isweighted(ord.o.ord)
         lt = lt_from_ordering(R, ord.o.ord, ord.o.w)
       else
-        lt = lt_from_ordering(R, weights(ord))
+        lt = lt_from_ordering(R, ord.o)
       end
       return ($s)(f, lt)
     end

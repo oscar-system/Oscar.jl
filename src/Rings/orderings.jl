@@ -16,7 +16,7 @@ abstract type AbsModOrdering <: AbsOrdering end
 """
 Ring-free monomial ordering: just the indices of the variables are given.
 `T` can be a `UnitRange` to make Singular happy or any `Array` if the
-  variables are not consequtive
+variables are not consecutive
 """
 mutable struct GenOrdering{T} <: AbsGenOrdering
   vars::T
@@ -572,7 +572,7 @@ end  # module Orderings
 
 ###################################################
 
-# Some isless functions for orderings:
+# Some isless functions for orderings given by a symbol:
 # _isless_:ord(f, k, l) returns true if the k-th term is lower than the l-th
 # term of f in the ordering :ord.
 
@@ -808,3 +808,212 @@ function _isless_lex(f::MPolyElem, k::Int, l::Int)
  
    return (f, k, l) -> _isless_matrix(f, k, l, M)
  end
+
+###################################################
+
+# Comparisons for orderings given by an ordering
+# object
+
+# Return -1, 0, +1 if term k of f is <, ==, > term
+# l of f wrt ord
+# not user facing
+function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::Oscar.Orderings.GenOrdering{T}) where T <: UnitRange{Int}
+   tdk = sum(exponent(f, k, i) for i in o.vars)
+   tdl = sum(exponent(f, l, i) for i in o.vars)
+   if o.ord == :lex
+      for i in o.vars
+         ek = exponent(f, k, i)
+         el = exponent(f, l, i)
+         if ek > el
+           return 1
+         elseif ek < el
+           return -1
+         end
+       end
+   elseif o.ord == :deglex
+      if tdk > tdl
+         return 1
+      elseif tdk < tdl
+         return -1
+      end
+      for i in o.vars
+         ek = exponent(f, k, i)
+         el = exponent(f, l, i)
+         if ek > el
+           return 1
+         elseif ek < el
+           return -1
+         end
+       end
+   elseif o.ord == :revlex
+      for i in reverse(o.vars)
+         ek = exponent(f, k, i)
+         el = exponent(f, l, i)
+         if ek > el
+           return 1
+         elseif ek < el
+           return -1
+         end
+       end
+   elseif o.ord == :degrevlex
+      if tdk > tdl
+         return 1
+      elseif tdk < tdl
+         return -1
+      end
+      for i in reverse(o.vars)
+         ek = exponent(f, k, i)
+         el = exponent(f, l, i)
+         if ek > el
+           return -1
+         elseif ek < el
+           return 1
+         end
+       end
+   elseif o.ord == :neglex
+      for i in o.vars
+         ek = exponent(f, k, i)
+         el = exponent(f, l, i)
+         if ek > el
+           return -1
+         elseif ek < el
+           return 1
+         end
+       end
+   elseif o.ord == :negdeglex
+      if tdk > tdl
+         return 1
+      elseif tdk < tdl
+         return -1
+      end
+      for i in o.vars
+         ek = exponent(f, k, i)
+         el = exponent(f, l, i)
+         if ek > el
+           return 1
+         elseif ek < el
+           return -1
+         end
+       end
+   elseif o.ord == :negrevlex
+      for i in reverse(o.vars)
+         ek = exponent(f, k, i)
+         el = exponent(f, l, i)
+         if ek > el
+           return -1
+         elseif ek < el
+           return 1
+         end
+       end
+   elseif o.ord == :negdegrevlex
+      if tdk > tdl
+         return 1
+      elseif tdk < tdl
+         return -1
+      end
+      for i in reverse(o.vars)
+         ek = exponent(f, k, i)
+         el = exponent(f, l, i)
+         if ek > el
+           return -1
+         elseif ek < el
+           return 1
+         end
+       end
+   else
+      dk = weighted_degree(f, k, o.w)
+      dl = weighted_degree(f, l, o.w)
+      if o.ord == :wdeglex
+         if dk < dl
+            return -1
+          elseif dk > dl
+            return 1
+          end
+          for i in o.vars
+            ek = exponent(f, k, i)
+            el = exponent(f, l, i)
+            if ek > el
+              return 1
+            elseif ek < el
+              return -1
+            end
+          end
+      elseif o.ord == :wdegrevlex
+         if dk < dl
+            return -1
+          elseif dk > dl
+            return 1
+          end
+          for i in reverse(o.vars)
+            ek = exponent(f, k, i)
+            el = exponent(f, l, i)
+            if ek > el
+              return -1
+            elseif ek < el
+              return 1
+            end
+          end
+      elseif o.ord == :negwdeglex
+         if dk < dl
+            return -1
+          elseif dk > dl
+            return 1
+          end
+          for i in o.vars
+            ek = exponent(f, k, i)
+            el = exponent(f, l, i)
+            if ek > el
+              return 1
+            elseif ek < el
+              return -1
+            end
+          end
+      elseif o.ord == :negwdegrevlex
+         if dk > dl
+            return -1
+          elseif dk < dl
+            return 1
+          end
+          for i in o.vars
+            ek = exponent(f, k, i)
+            el = exponent(f, l, i)
+            if ek > el
+              return 1
+            elseif ek < el
+              return -1
+            end
+          end
+      else
+         error("ordering not implemented")
+      end
+   end
+   return 0 # equal wrt this (partial) ordering
+end
+
+# fallback for cases where T is not a UnitRange{Int}
+# variables may be out of order
+# just compare using weight matrix
+function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::Oscar.Orderings.GenOrdering{T}) where T
+   if _isless_matrix(f, k, l, weights(o))
+      return -1
+   elseif _isless_matrix(f, l, k, weights(o))
+      return 1
+   end
+   return 0 # equal wrt this (partial) ordering
+end
+
+function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::Oscar.Orderings.ProdOrdering)
+   V = Oscar.Orderings.flat(o)
+   for oi in V
+      cmp = _cmp_monomials(f, k, l, oi)
+      if cmp != 0
+         return cmp
+      end
+   end
+   return 0
+end
+
+function lt_from_ordering(R::MPolyRing, o::Oscar.Orderings.AbsGenOrdering)
+   return (f, k, l) -> _cmp_monomials(f, k, l, o) < 0
+end
+
