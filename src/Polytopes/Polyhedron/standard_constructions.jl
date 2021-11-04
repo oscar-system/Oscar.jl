@@ -37,7 +37,7 @@ end
 
 
 @doc Markdown.doc"""
-    pyramid(P::Polyhedron, z::Number = 1, group::Bool = false)
+    pyramid(P::Polyhedron, z::Number = 1)
 
 Make a pyramid over the given polyhedron `P`.
 
