@@ -28,11 +28,11 @@ A torus invariant divisor on a normal toric variety
 ```
 """
 function ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{Int})
-    if length(coeffs) != pm_ntv(v).N_RAYS
+    if length(coeffs) != pm_object(v).N_RAYS
         throw(ArgumentError("Number of coefficients needs to match number of prime divisors!"))
     end
     ptd = Polymake.fulton.TDivisor(COEFFICIENTS=coeffs)
-    pmntv = pm_ntv(v)
+    pmntv = pm_object(v)
     Polymake.add(pmntv, "DIVISOR", ptd)
     return ToricDivisor(ptd)
 end

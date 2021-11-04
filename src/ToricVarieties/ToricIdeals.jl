@@ -52,7 +52,7 @@ julia> toric_ideal_binomial_generators(antv)
 ```
 """
 function toric_ideal_binomial_generators(antv::AffineNormalToricVariety)
-    cone = Cone(pm_ntv(antv).WEIGHT_CONE)
+    cone = Cone(pm_object(antv).WEIGHT_CONE)
     return toric_ideal_binomial_generators(hilbert_basis(cone).m)
 end
 export toric_ideal_binomial_generators

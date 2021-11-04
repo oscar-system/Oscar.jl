@@ -72,7 +72,7 @@ julia> ecf = cf[1]-1//(cf[2]-fmpq(1,cf[3]))
 7//5
 ```
 """
-continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity) = Vector{fmpz}(pm_ntv(cqs).CONTINUED_FRACTION)
+continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity) = Vector{fmpz}(pm_object(cqs).CONTINUED_FRACTION)
 export continued_fraction_hirzebruch_jung
 
 
@@ -102,7 +102,7 @@ julia> edcf = dcf[1] - fmpq(1,dcf[2])
 7//2
 ```
 """
-dual_continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity) = Vector{fmpz}(pm_ntv(cqs).DUAL_CONTINUED_FRACTION)
+dual_continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity) = Vector{fmpz}(pm_object(cqs).DUAL_CONTINUED_FRACTION)
 export dual_continued_fraction_hirzebruch_jung
 
 
