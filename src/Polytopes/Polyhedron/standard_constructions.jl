@@ -8,8 +8,8 @@
 
 Construct the Birkhoff polytope of dimension $n^2$.
 
-This is the polytope of $n \times n$ stochastic matrices (encoded as $n^2$ row
-vectors), i.e., the matrices with non-negative real entries whose row and column
+This is the polytope of $n \times n$ stochastic matrices (encoded as row vectors of
+length $n^2$), i.e., the matrices with non-negative real entries whose row and column
 entries sum up to one. Its vertices are the permutation matrices.
 
 Use `even = true` to get the vertices only for the even permutation matrices.
@@ -62,13 +62,9 @@ julia> vertices(pyramid(c,5))
 ```
 """
 function pyramid(P::Polyhedron, z::Number=1)
-   pm_in = pm_polytope(P)
-   try
-      pm_in.GROUP;
-      return Polyhedron(Polymake.polytope.pyramid(pm_in, z, group=true))
-   catch
-      return Polyhedron(Polymake.polytope.pyramid(pm_in, z))
-   end
+   pm_in = pm_object(P)
+   has_group = Polymake.exists(pm_in, "GROUP")
+   return Polyhedron(Polymake.polytope.pyramid(pm_in, z, group=has_group))
 end
 
 
@@ -100,13 +96,9 @@ julia> vertices(bipyramid(c,2))
 ```
 """
 function bipyramid(P::Polyhedron, z::Number=1, z_prime::Number=-z)
-   pm_in = pm_polytope(P)
-   try
-      pm_in.GROUP;
-      return Polyhedron(Polymake.polytope.bipyramid(pm_in, z, z_prime, group=true))
-   catch
-      return Polyhedron(Polymake.polytope.bipyramid(pm_in, z, z_prime))
-   end
+   pm_in = pm_object(P)
+   has_group = Polymake.exists(pm_in, "GROUP")
+   return Polyhedron(Polymake.polytope.bipyramid(pm_in, z, z_prime, group=has_group))
 end
 
 
