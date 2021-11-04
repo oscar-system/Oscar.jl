@@ -186,7 +186,7 @@ function msolve(
     for i in 1:jl_nb_sols
         tmp = Array{Nemo.fmpq, 1}(undef, nr_vars)
         for j in 1:nr_vars
-            tmp[j]  = fmpq(unsafe_load(jl_sols_num, (i-1)*nr_vars+j)) >> unsafe_load(jl_sols_den, (i-1)*nr_vars+j)
+            tmp[j]  = fmpq(unsafe_load(jl_sols_num, (i-1)*nr_vars+j)) >> Int64(unsafe_load(jl_sols_den, (i-1)*nr_vars+j))
         end
         solutions[i]  = tmp
     end
