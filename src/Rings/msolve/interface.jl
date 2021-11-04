@@ -8,7 +8,6 @@ function convert_singular_ideal_to_array(id::Singular.sideal)
     char    = Singular.characteristic(base_ring(id))
     lens    = Int32[Singular.length(id[i]) for i in 1:ngens]
     nterms  = sum(lens)
-    cfs     = Int32[]
     exps    = Int32[]
     if char ==  0
         cfs = BigInt[]

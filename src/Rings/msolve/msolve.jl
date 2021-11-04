@@ -11,16 +11,13 @@ Construct the rational parametrization of the solution set computed via msolve.
 """
 function get_rational_parametrization(
         nr::Int32,
-        lens::Array{Int32,1},
+        lens::Vector{Int32},
         cfs::Ptr{BigInt}
     )
     C, x  = PolynomialRing(QQ,"x")
     ctr   = 0
 
-    elim  = 0*x
-    for i in 1:lens[1]
-        elim  +=  BigInt(unsafe_load(cfs, i))*x^(i-1)
-    end
+    elim  = C([unsafe_load(cfs, i) for i in 1:lens[1]])
     ctr += lens[1]
 
     denom = 0*x
@@ -109,10 +106,7 @@ function msolve(
     nr_gens = Singular.ngens(J)
     vars    = Singular.gens(R)
 
-    variable_names  = Array{String, 1}(undef, nr_vars)
-    for i in 1:nr_vars
-        variable_names[i] = string(Singular.gens(R)[i])
-    end
+    variable_names = map(string, Singular.symbols(R))
 
     field_char  = Singular.characteristic(R)
 
@@ -163,11 +157,11 @@ function msolve(
     I.dim = jl_dim
     if jl_dim > 0
         @info "Dimension is greater than zero, no solutions provided."
-        return []
+        return Vector{fmpq}[]
     end
     if jl_nb_sols == 0
         @info "The system has no solution."
-        return []
+        return Vector{fmpq}[]
     end
 
     [nterms += jl_len[i] for i=1:jl_ld]
@@ -192,7 +186,7 @@ function msolve(
     for i in 1:jl_nb_sols
         tmp = Array{Nemo.fmpq, 1}(undef, nr_vars)
         for j in 1:nr_vars
-            tmp[j]  = BigInt(unsafe_load(jl_sols_num, (i-1)*nr_vars+j)) // BigInt(2)^unsafe_load(jl_sols_den, (i-1)*nr_vars+j)
+            tmp[j]  = fmpq(unsafe_load(jl_sols_num, (i-1)*nr_vars+j)) >> unsafe_load(jl_sols_den, (i-1)*nr_vars+j)
         end
         solutions[i]  = tmp
     end
