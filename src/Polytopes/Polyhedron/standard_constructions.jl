@@ -29,10 +29,7 @@ julia> vertices(b)
  [0, 0, 1, 0, 1, 0, 1, 0, 0]
 ```
 """
-function birkhoff(n::Integer; even::Bool = false)
-   pm_out = Polymake.polytope.birkhoff(n, Int(even), group=true)
-   return Polyhedron(pm_out)
-end
+birkhoff(n::Integer; even::Bool = false) = Polyhedron(Polymake.polytope.birkhoff(n, Int(even), group=true))
 
 
 
@@ -43,8 +40,8 @@ Make a pyramid over the given polyhedron `P`.
 
 The pyramid is the convex hull of the input polyhedron `P` and a point `v`
 outside the affine span of `P`. For bounded polyhedra, the projection of `v` to
-the affine span of `P` coincides with the vertex barycenter of `P`. The scalar z
-is the distance between the vertex barycenter and v, its default value is 1.
+the affine span of `P` coincides with the vertex barycenter of `P`. The scalar `z`
+is the distance between the vertex barycenter and `v`.
 
 
 # Example
@@ -74,8 +71,8 @@ end
 
 Make a bipyramid over a pointed polyhedron `P`.
 
-The bipyramid is the convex hull of the input polyhedron `P` and two apexes (`v`
-, `z`), (`v`, `z_prime`) on both sides of the affine span of `P`. For bounded
+The bipyramid is the convex hull of the input polyhedron `P` and two apexes
+(`v`, `z`), (`v`, `z_prime`) on both sides of the affine span of `P`. For bounded
 polyhedra, the projections of the apexes `v` to the affine span of `P` is the
 vertex barycenter of `P`.
 
