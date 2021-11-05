@@ -241,7 +241,7 @@ julia> R, (x,y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
 
 julia> F = FreeMod(R,3)
-Free module of rank 2 over Multivariate Polynomial Ring in x, y over Rational Field
+Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field
 
 julia> V = [x, zero(R), y]
 3-element Vector{fmpq_mpoly}:
