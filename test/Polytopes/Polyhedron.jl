@@ -88,6 +88,10 @@
         nc = normal_cone(square, 1)
         @test rays(nc).m == [1 0; 0 1]
         @test Polyhedron(facets(A)) == A
+        b1 = birkhoff(3)
+        b2 = birkhoff(3, even = true)
+        @test nvertices(pyramid(b1)) + 1 == nvertices(bipyramid(b1))
+        @test nvertices(b1) == nvertices(b2) * 2
     end
 
 end

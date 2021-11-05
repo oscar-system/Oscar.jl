@@ -31,7 +31,7 @@ false
 ```
 """
 function isaffine(v::AbstractNormalToricVariety)
-    return pm_ntv(v).AFFINE::Bool
+    return pm_object(v).AFFINE::Bool
 end
 export isaffine
 
@@ -48,7 +48,7 @@ true
 ```
 """
 function isprojective(v::AbstractNormalToricVariety)
-    return pm_ntv(v).PROJECTIVE::Bool
+    return pm_object(v).PROJECTIVE::Bool
 end
 export isprojective
 
@@ -65,7 +65,7 @@ true
 ```
 """
 function issmooth(v::AbstractNormalToricVariety)
-    return pm_ntv(v).SMOOTH::Bool
+    return pm_object(v).SMOOTH::Bool
 end
 export issmooth
 
@@ -82,7 +82,7 @@ true
 ```
 """
 function iscomplete(v::AbstractNormalToricVariety)
-    return pm_ntv(v).COMPLETE::Bool
+    return pm_object(v).COMPLETE::Bool
 end
 export iscomplete
 
@@ -99,7 +99,7 @@ false
 ```
 """
 function hastorusfactor(v::AbstractNormalToricVariety)
-    return pm_ntv(v).FAN_DIM < pm_ntv(v).FAN_AMBIENT_DIM
+    return pm_object(v).FAN_DIM < pm_object(v).FAN_AMBIENT_DIM
 end
 export hastorusfactor
 
@@ -116,7 +116,7 @@ true
 ```
 """
 function isorbifold(v::AbstractNormalToricVariety)
-    return pm_ntv(v).SIMPLICIAL::Bool
+    return pm_object(v).SIMPLICIAL::Bool
 end
 export isorbifold
 
@@ -133,7 +133,7 @@ true
 ```
 """
 function issimplicial(v::AbstractNormalToricVariety)
-    return pm_ntv(v).SIMPLICIAL::Bool
+    return pm_object(v).SIMPLICIAL::Bool
 end
 export issimplicial
 
@@ -150,7 +150,7 @@ true
 ```
 """
 function isgorenstein(v::AbstractNormalToricVariety)
-    return pm_ntv(v).GORENSTEIN::Bool
+    return pm_object(v).GORENSTEIN::Bool
 end
 export isgorenstein
 
@@ -167,7 +167,7 @@ true
 ```
 """
 function isq_gorenstein(v::AbstractNormalToricVariety)
-    return pm_ntv(v).Q_GORENSTEIN::Bool
+    return pm_object(v).Q_GORENSTEIN::Bool
 end
 export isq_gorenstein
 
@@ -184,6 +184,6 @@ true
 ```
 """
 function isfano(v::AbstractNormalToricVariety)
-    return pm_ntv(v).FANO::Bool
+    return pm_object(v).FANO::Bool
 end
 export isfano

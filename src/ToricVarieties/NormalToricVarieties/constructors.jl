@@ -14,7 +14,7 @@ end
 export AffineNormalToricVariety
 
 
-function pm_ntv(v::AbstractNormalToricVariety)
+function pm_object(v::AbstractNormalToricVariety)
     return v.polymakeNTV
 end
 
@@ -121,7 +121,7 @@ export NormalToricVariety
 
 function AffineNormalToricVariety(v::NormalToricVariety)
     isaffine(v) || error("Cannot construct affine toric variety from non-affine input")
-    return AffineNormalToricVariety(pm_ntv(v))
+    return AffineNormalToricVariety(pm_object(v))
 end
 
 
@@ -143,8 +143,8 @@ A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 """
 function toric_projective_space(d::Int)
     f = normal_fan(Oscar.simplex(d))
-    pm_ntv = Polymake.fulton.NormalToricVariety(Oscar.pm_object(f))
-    return NormalToricVariety(pm_ntv)
+    pm_object = Polymake.fulton.NormalToricVariety(Oscar.pm_object(f))
+    return NormalToricVariety(pm_object)
 end
 export toric_projective_space
 
@@ -215,7 +215,7 @@ export del_pezzo
 ###############################################################################
 function Base.show(io::IO, ntv::AbstractNormalToricVariety)
     # fan = get_polyhedral_fan(ntv)
-    pmntv = pm_ntv(ntv)
+    pmntv = pm_object(ntv)
     ambdim = pmntv.FAN_AMBIENT_DIM
     print(io, "A normal toric variety corresponding to a polyhedral fan in ambient dimension $(ambdim)")
 end

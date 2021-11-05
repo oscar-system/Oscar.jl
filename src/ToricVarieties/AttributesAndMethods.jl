@@ -9,7 +9,7 @@
 Computes the dimension of the normal toric variety `v`.
 """
 function dim(v::AbstractNormalToricVariety)
-    return pm_ntv(v).FAN_DIM::Int
+    return pm_object(v).FAN_DIM::Int
 end
 export dim
 
@@ -25,8 +25,8 @@ function dim_of_torusfactor(v::AbstractNormalToricVariety)
         return 0
     end
     
-    dimension_of_fan = pm_ntv(v).FAN_DIM::Int
-    ambient_dimension = pm_ntv(v).FAN_AMBIENT_DIM::Int
+    dimension_of_fan = pm_object(v).FAN_DIM::Int
+    ambient_dimension = pm_object(v).FAN_AMBIENT_DIM::Int
     return ambient_dimension - dimension_of_fan
 end
 export dim_of_torusfactor
@@ -42,7 +42,7 @@ function ith_betti_number(v::AbstractNormalToricVariety, i::Int)
         return 0
     end
     k = div(i, 2)
-    f_vector = Vector{Int}(pm_ntv(v).F_VECTOR)
+    f_vector = Vector{Int}(pm_object(v).F_VECTOR)
     pushfirst!(f_vector, 1)
     betti_number = sum((-1)^(i-k) * binomial(i,k) * f_vector[dim(v) - i + 1] for i=k:dim(v))
     return betti_number
@@ -57,7 +57,7 @@ export ith_betti_number
 Computes the Euler characteristic of the normal toric variety `v`.
 """
 function euler_characteristic(v::AbstractNormalToricVariety)
-    f_vector = Vector{Int}(pm_ntv(v).F_VECTOR)
+    f_vector = Vector{Int}(pm_object(v).F_VECTOR)
     return f_vector[dim(v)]
 end
 export euler_characteristic
@@ -86,7 +86,7 @@ julia> cox_ring(p2)
 ```
 """
 function cox_ring(v::AbstractNormalToricVariety)
-    Qx, x = PolynomialRing(QQ, :x=>1:pm_ntv(v).N_RAYS)
+    Qx, x = PolynomialRing(QQ, :x=>1:pm_object(v).N_RAYS)
     return grade(Qx,gens(class_group(v)))[1]
 end
 export cox_ring
@@ -131,8 +131,8 @@ julia> length(irrelevant_ideal(p2).gens)
 """
 function irrelevant_ideal(v::NormalToricVariety)
     # prepare maximal cone presentation
-    max_cones = [findall(x->x!=0, l) for l in eachrow(pm_ntv(v).MAXIMAL_CONES)]
-    n_ray = size(pm_ntv(v).RAYS, 1)
+    max_cones = [findall(x->x!=0, l) for l in eachrow(pm_object(v).MAXIMAL_CONES)]
+    n_ray = size(pm_object(v).RAYS, 1)
     maximal_cones = Vector{Int}[]
     for c in max_cones
         buffer = zeros(Int, n_ray)
@@ -177,7 +177,7 @@ GrpAb: Z^2
 ```
 """
 function character_lattice(v::AbstractNormalToricVariety)
-    return abelian_group([0 for i in 1:pm_ntv(v).FAN_DIM])
+    return abelian_group([0 for i in 1:pm_object(v).FAN_DIM])
 end
 export character_lattice
 
@@ -197,7 +197,7 @@ GrpAb: Z^3
 ```
 """
 function torusinvariant_divisor_group(v::AbstractNormalToricVariety)
-    return abelian_group([0 for i in 1:pm_ntv(v).N_RAYS])
+    return abelian_group([0 for i in 1:pm_object(v).N_RAYS])
 end
 export torusinvariant_divisor_group
 
@@ -223,7 +223,7 @@ Abelian group with structure: Z^3
 ```
 """
 function map_from_character_to_principal_divisors(v::AbstractNormalToricVariety)
-    mat = Matrix{Int}(Polymake.common.primitive(pm_ntv(v).RAYS))
+    mat = Matrix{Int}(Polymake.common.primitive(pm_object(v).RAYS))
     matrix = AbstractAlgebra.matrix(ZZ, size(mat,2), size(mat,1), vec(mat))
     return hom(character_lattice(v), torusinvariant_divisor_group(v), matrix)
 end
@@ -325,7 +325,7 @@ julia> dim(nef)
 1
 ```
 """
-nef_cone(v::NormalToricVariety) = Cone(pm_ntv(v).NEF_CONE)
+nef_cone(v::NormalToricVariety) = Cone(pm_object(v).NEF_CONE)
 export nef_cone
 
 
@@ -346,7 +346,7 @@ julia> dim(mori)
 1
 ```
 """
-mori_cone(v::NormalToricVariety) = Cone(pm_ntv(v).MORI_CONE)
+mori_cone(v::NormalToricVariety) = Cone(pm_object(v).MORI_CONE)
 export mori_cone
 
 
@@ -365,7 +365,7 @@ A polyhedral fan in ambient dimension 2
 ```
 """
 function fan_of_variety(v::NormalToricVariety)
-    return PolyhedralFan(pm_ntv(v))
+    return PolyhedralFan(pm_object(v))
 end
 export fan_of_variety
 
@@ -404,9 +404,9 @@ julia> affine_open_covering(p2)
 ```
 """
 function affine_open_covering(v::AbstractNormalToricVariety)
-    charts = Vector{AffineNormalToricVariety}(undef, pm_ntv(v).N_MAXIMAL_CONES)
-    for i in 1:pm_ntv(v).N_MAXIMAL_CONES
-        charts[i] = AffineNormalToricVariety(Cone(Polymake.fan.cone(pm_ntv(v), i-1)))
+    charts = Vector{AffineNormalToricVariety}(undef, pm_object(v).N_MAXIMAL_CONES)
+    for i in 1:pm_object(v).N_MAXIMAL_CONES
+        charts[i] = AffineNormalToricVariety(Cone(Polymake.fan.cone(pm_object(v), i-1)))
     end
     return charts
 end

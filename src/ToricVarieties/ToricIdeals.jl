@@ -1,65 +1,4 @@
 @doc Markdown.doc"""
-    toric_ideal_binomial_generators(pts::Union{AbstractMatrix, fmpz_mat})
-
-Get the exponent vectors corresponding to the generators of the toric ideal
-coming from the linear integer relations between the rows of `pts`. The result
-is a matrix whose rows form a lattice basis of
-$$\{x\in\mathbb{Z}^n\ |\ (pts)^T\cdot x = 0\}$$
-
-# Examples
-```jldoctest
-julia> C = positive_hull([-2 5; 1 0]);
-
-julia> H = hilbert_basis(C).m
-pm::Matrix<pm::Integer>
-1 0
-0 1
--2 5
--1 3
-
-
-julia> toric_ideal_binomial_generators(H)
-[2   -5   1   0]
-[1   -3   0   1]
-```
-"""
-function toric_ideal_binomial_generators(pts::Union{AbstractMatrix, fmpz_mat})
-    result = kernel(matrix(ZZ, pts), side=:left)
-    return result[2]
-end
-
-
-
-@doc Markdown.doc"""
-    toric_ideal_binomial_generators(antv::AffineNormalToricVariety)
-
-Get the exponent vectors corresponding to the generators of the toric ideal
-associated to the affine normal toric variety `antv`.
-
-# Examples
-Take the cyclic quotient singularity corresponding to the pair of integers
-`(2,5)`.
-```jldoctest
-julia> C = positive_hull([-2 5; 1 0])
-A polyhedral cone in ambient dimension 2
-
-julia> antv = AffineNormalToricVariety(C)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
-
-julia> toric_ideal_binomial_generators(antv)
-[-2   -1    5   0]
-[ 1    0   -3   1]
-```
-"""
-function toric_ideal_binomial_generators(antv::AffineNormalToricVariety)
-    cone = Cone(pm_ntv(antv).WEIGHT_CONE)
-    return toric_ideal_binomial_generators(hilbert_basis(cone).m)
-end
-export toric_ideal_binomial_generators
-toric_ideal_binomial_generators(ntv::NormalToricVariety) = toric_ideal_binomial_generators(AffineNormalToricVariety(ntv))
-
-
-@doc Markdown.doc"""
     binomial_exponents_to_ideal(binoms::Union{AbstractMatrix, fmpz_mat})
 
 This function converts the rows of a matrix to binomials. Each row $r$ is
@@ -69,16 +8,13 @@ returned.
 
 # Examples
 ```jldoctest
-julia> C = positive_hull([-2 5; 1 0]);
+julia> A = [-1 -1 0 2; 2 3 -2 -1]
+2×4 Matrix{Int64}:
+ -1  -1   0   2
+  2   3  -2  -1
 
-julia> H = hilbert_basis(C).m;
-
-julia> B = toric_ideal_binomial_generators(H)
-[2   -5   1   0]
-[1   -3   0   1]
-
-julia> I = binomial_exponents_to_ideal(B)
-ideal(x[1]^2*x[3] - x[2]^5, x[1]*x[4] - x[2]^3)
+julia> binomial_exponents_to_ideal(A)
+ideal(-x[1]*x[2] + x[4]^2, x[1]^2*x[2]^3 - x[3]^2*x[4])
 ```
 """
 function binomial_exponents_to_ideal(binoms::Union{AbstractMatrix, fmpz_mat})
@@ -120,12 +56,15 @@ julia> C = positive_hull([-2 5; 1 0]);
 julia> H = hilbert_basis(C).m;
 
 julia> toric_ideal(H)
-ideal(x[1]^2*x[3] - x[2]^5, x[1]*x[4] - x[2]^3)
+ideal(x[2]*x[3] - x[4]^2, -x[1]*x[3] + x[2]^2*x[4], -x[1]*x[4] + x[2]^3, -x[1]*x[3]^2 + x[2]*x[4]^3, -x[1]*x[3]^3 + x[4]^5)
 ```
 """
 function toric_ideal(pts::Union{AbstractMatrix, fmpz_mat})
-    binoms = toric_ideal_binomial_generators(pts)
-    return binomial_exponents_to_ideal(binoms)
+    intkernel = kernel(matrix(ZZ, pts), side=:left)
+    intkernel = intkernel[2]
+    presat = binomial_exponents_to_ideal(intkernel)
+    J = ideal([prod(gens(base_ring(presat)))])
+    return saturation(presat, J)
 end
 
 
@@ -151,12 +90,11 @@ ideal(-x[1]*x[2] + x[3]*x[4])
 ```
 """
 function toric_ideal(antv::AffineNormalToricVariety)
-    binoms = toric_ideal_binomial_generators(antv)
-    return binomial_exponents_to_ideal(binoms)
+    cone = Cone(pm_object(antv).WEIGHT_CONE)
+    return toric_ideal(hilbert_basis(cone).m)
 end
 export toric_ideal
 toric_ideal(ntv::NormalToricVariety) = toric_ideal(AffineNormalToricVariety(ntv))
-
 
 
 

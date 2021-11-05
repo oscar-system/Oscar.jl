@@ -4,6 +4,7 @@ using Oscar
 import AbstractAlgebra: Group, Module
 import Base: parent
 
+#TODO: rename into GModule
 mutable struct CohomologyModule{gT,mT}
   G::gT
   M::mT
@@ -22,6 +23,7 @@ mutable struct CohomologyModule{gT,mT}
   mF::GAPGroupHomomorphism  # F -> G, maps F[i] to G[i]
 
   iac::Vector{Map} # the inverses of ac
+  AbstractAlgebra.@declare_other
 end
 
 function Base.show(io::IO, C::CohomologyModule)
@@ -157,6 +159,10 @@ end
 (C::CoChain{2})(g::NTuple{2, <:Oscar.BasicGAPGroupElem}) = C(g[1], g[2])
 
 function H_zero(C::CohomologyModule)
+  z = AbstractAlgebra.get_special(C, :H_zero)
+  if z !== nothing
+    return domain(z), z
+  end
   G = Group(C)
   M = Module(C)
   id = hom(M, M, gens(M))
@@ -165,10 +171,16 @@ function H_zero(C::CohomologyModule)
   for i=2:length(ac)
     k = intersect(k, kernel(id - ac[i])[1])
   end
-  return k, MapFromFunc(x->CoChain{0,elem_type(G),elem_type(M)}(C, Dict(() => x)), y->y(), k, AllCoChains{0,elem_type(G),elem_type(M)}())
+  z = MapFromFunc(x->CoChain{0,elem_type(G),elem_type(M)}(C, Dict(() => x)), y->y(), k, AllCoChains{0,elem_type(G),elem_type(M)}())
+  AbstractAlgebra.set_special(C, :H_zero => z)
+  return k, z
 end
 
 function H_one(C::CohomologyModule)
+  z = AbstractAlgebra.get_special(C, :H_one)
+  if z !== nothing
+    return domain(z), z
+  end
   #= idea, after Holt:
   H^1 = crossed homs. due to action on the right
   f(ab) = f(a)^b + f(b)
@@ -212,12 +224,16 @@ function H_one(C::CohomologyModule)
   #TODO: is kernel(g) directly faster than the method above (H_zero)
   #      where kernel(g) is computed slice by slice?
   #TODO: cache the expensive objects!!!
+
   g = sum((ac[i] - idM)*inj[i] for i=1:n)
   lf, lft = issubgroup(K, D)
   Q, mQ = quo(K, image(g)[1])
-  return Q, MapFromFunc(
+  z = MapFromFunc(
     x->CoChain{1,elem_type(G),elem_type(M)}(C, Dict([(gen(G, i),) => pro[i](lft(preimage(mQ, x))) for i=1:ngens(G)])), 
     y->mQ(preimage(lft, sum(inj[i](y(gen(G, i))) for i=1:n))), Q, AllCoChains{1, elem_type(G), elem_type(M)}())
+
+  AbstractAlgebra.set_special(C, :H_one => z)
+  return Q, z    
   #need to ALSO return the coboundary(s)
 end
 
@@ -368,6 +384,10 @@ Base.zero(G::GrpAbFinGen) = G[0]
 Base.:-(M::GrpAbFinGenMap) = hom(domain(M), codomain(M), [-M(g) for g = gens(domain(M))], check = false)
 
 function H_two(C::CohomologyModule)
+  z = AbstractAlgebra.get_special(C, :H_two)
+  if z !== nothing
+    return domain(z[1]), z[1], z[2]
+  end
   G = Group(C)
   M = Module(C)
   id = hom(M, M, gens(M), check = false)
@@ -627,9 +647,11 @@ function H_two(C::CohomologyModule)
     return true, CoChain{1,elem_type(G),elem_type(M)}(C, Dict([(gen(G, i),) => B_pro[i](b) for i=1:ngens(G)]))
   end
 
-  return H2, MapFromFunc(x->TailToCoChain(mE(preimage(mH2, x))), 
+  z = (MapFromFunc(x->TailToCoChain(mE(preimage(mH2, x))), 
                          y->mH2(preimage(mE, TailFromCoChain(y))), H2, AllCoChains{2,elem_type(G),elem_type(M)}()),
-             iscoboundary
+             iscoboundary)
+  AbstractAlgebra.set_special(C, :H_two => z)
+  return H2, z[1], z[2]
   #now the rest...
   #(g, m)*(h, n) = (gh, m^h+n+gamma(g, h)) where gamma is "the" 2-cocycle
   #using tails:
@@ -875,6 +897,9 @@ end
 export cohomology_module, word, fp_group, confluent_fp_group, relations,
        action, cohomology_group, extension, iscoboundary
 
+Oscar.dim(C::CohomologyModule) = dim(C.M)
+Oscar.base_ring(C::CohomologyModule) = base_ring(C.M)
+Oscar.group(C::CohomologyModule) = C.G
 
 #= TODO
   for Z, Z/nZ, F_p and F_q moduln -> find Fp-presentation
@@ -915,3 +940,161 @@ Sort:
 end # module GrpCoh
 
 using .GrpCoh
+export cohomology_module
+
+module GModuleFromGap
+using Oscar
+using Hecke
+
+import AbstractAlgebra: Group, Module
+import Base: parent
+
+function GAP.gap_to_julia(::Type{QabElem}, a::GAP.GapObj) #which should be a Cyclotomic
+  c = GAP.Globals.Conductor(a)
+  E = abelian_closure(QQ)[2](c)
+  z = parent(E)(0)
+  co = GAP.Globals.CoeffsCyc(a, c)
+  for i=1:c
+    if !iszero(co[i])
+      z += fmpq(co[i])*E^(i-1)
+    end
+  end
+  return z
+end
+
+(::QabField)(a::GAP.GapObj) = GAP.gap_to_julia(QabElem, a)
+
+function irreducible_modules(G::Oscar.GAPGroup)
+  im = GAP.Globals.IrreducibleRepresentations(G.X)
+  IM = Main.GrpCoh.CohomologyModule[] 
+  K = abelian_closure(QQ)[1]
+  for m in im
+    z = map(x->matrix(map(y->map(K, y), m(x.X))), gens(G))
+    F = free_module(K, nrows(z[1]))
+    push!(IM, Main.GrpCoh.cohomology_module(G, map(x->hom(F, F, x), z)))
+  end
+  return IM
+end
+
+function minimize(a::AbstractArray{nf_elem})
+  fl, c = Hecke.iscyclotomic_type(parent(a[1]))
+  @assert fl
+  for p = keys(factor(c).fac)
+    while c % p == 0
+      K, _ = cyclotomic_field(Int(div(c, p)), cached = false)
+      b = similar(a)
+      OK = true
+      for x = eachindex(a)
+        y = Hecke.force_coerce_cyclo(K, a[x], Val{false})
+        if y == false
+          OK = false
+        else
+          b[x] = y
+        end
+      end
+      if OK
+        a = b
+        c = div(c, p)
+      else
+        break
+      end
+    end
+  end
+  return a
+end
+
+function minimize(a::MatElem{nf_elem})
+  return matrix(minimize(a.entries))
+end
+
+function minimize(a::nf_elem)
+  return minimize([a])[1]
+end
+
+function Oscar.conductor(a::nf_elem)
+  return conductor(parent(minimize(a)))
+end
+
+function Oscar.conductor(a::QabElem)
+  return conductor(data(a))
+end
+
+function irreducible_modules(::Type{AnticNumberField}, G::Oscar.GAPGroup)
+  z = irreducible_modules(G)
+  Z = Main.GrpCoh.CohomologyModule[]
+  for m in z
+  end
+end
+
+function gmodule(::typeof(CyclotomicField), C::Main.GrpCoh.CohomologyModule)
+  @assert isa(base_ring(C), QabField)
+  d = dim(C)
+  l = 1
+  for g = C.ac
+    l = lcm(l, lcm(collect(map_entries(x->Hecke.iscyclotomic_type(parent(x.data))[2], mat(g)))))
+  end
+  K = cyclotomic_field(l, cached = false)[1]
+  F = free_module(K, dim(C))
+  return Main.GrpCoh.cohomology_module(group(C), [hom(F, F, map_entries(x->K(x.data), mat(x))) for x = C.ac])
+end
+
+import Base: ^
+function ^(C::Main.GrpCoh.CohomologyModule{<:Any, Generic.FreeModule{nf_elem}}, phi::Map{AnticNumberField, AnticNumberField})
+  F = free_module(codomain(phi), dim(C))
+  return Main.GrpCoh.CohomologyModule(group(C), [hom(F, F, map_entries(phi, mat(x))) for x = C.ac])
+end
+
+function ^(C::Main.GrpCoh.CohomologyModule{<:Any, Generic.FreeModule{QabElem}}, phi::Map{QabField, QabField})
+  F = free_module(codomain(phi), dim(C))
+  return Main.GrpCoh.CohomologyModule(group(C), [hom(F, F, map_entries(phi, mat(x))) for x = C.ac])
+end
+
+function gmodule(::FlintRationalField, C::Main.GrpCoh.CohomologyModule{<:Any, Generic.FreeModule{nf_elem}})
+  F = free_module(QQ, dim(C)*degree(base_ring(C)))
+  return Main.GrpCoh.CohomologyModule(group(C), [hom(F, F, hvcat(dim(C), [representation_matrix(x) for x = transpose(mat(y))]...)) for y = C.ac])
+end
+
+function gmodule(k::Nemo.GaloisField, C::Main.GrpCoh.CohomologyModule{<:Any, Generic.FreeModule{fmpq}})
+  F = free_module(k, dim(C))
+  return Main.GrpCoh.CohomologyModule(group(C), [hom(F, F, map_entries(k, mat(x))) for x=C.ac])
+end
+
+function Gap(C::Main.GrpCoh.CohomologyModule{<:Any, Generic.FreeModule{gfp_elem}})
+  z = AbstractAlgebra.get_special(C, :Gap)
+  if z !== nothing
+    return z
+  end
+  k = GAP.Globals.Z(Int(characteristic(base_ring(C))))
+  one = k^0
+  @show (GAP.julia_to_gap([GAP.julia_to_gap(map(x->Int(x)*k, Matrix(lift(mat(x))))) for x = C.ac]), k)
+  z = GAP.Globals.GModuleByMats(GAP.julia_to_gap([GAP.julia_to_gap(map(x->Int(x)*k, Matrix(lift(mat(x))))) for x = C.ac]), GAP.Globals.GF(Int(characteristic(base_ring(C)))))
+  AbstractAlgebra.set_special(C, :Gap=>z)
+  return z
+end
+
+function Oscar.isirreducible(C::Main.GrpCoh.CohomologyModule{<:Any, Generic.FreeModule{gfp_elem}})
+  G = Gap(C)
+  return GAP.Globals.MTX.IsIrreducible(G)
+end
+
+function isabsolutely_irreducible(C::Main.GrpCoh.CohomologyModule{<:Any, Generic.FreeModule{gfp_elem}})
+  G = Gap(C)
+  return GAP.Globals.MTX.IsAbsolutelyIrreducible(G)
+end
+
+function isdecomposable(C::Main.GrpCoh.CohomologyModule{<:Any, Generic.FreeModule{gfp_elem}})
+  G = Gap(C)
+  return !GAP.Globals.MTX.IsIndecomposable(G)
+end
+
+function Oscar.hom(C::T, D::T) where T <: Main.GrpCoh.CohomologyModule{<:Any, Generic.FreeModule{gfp_elem}}
+  @assert base_ring(C) == base_ring(D)
+  return GAP.Globals.MTX.BasisModuleHomomorphisms(Gap(C), Gap(D))
+end
+
+export irreducible_modules, gmodule, isabsolutely_irreducible, isdecomposable
+
+end #module GModuleFromGap
+
+using .GModuleFromGap
+
