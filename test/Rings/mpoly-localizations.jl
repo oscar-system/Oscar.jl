@@ -132,7 +132,6 @@ end
 
 function test_elem(W::MPolyLocalizedRing) 
   f = rand(W, 0:3, 0:4, 0:3)
-  @show f
   return f
 end
 
@@ -167,7 +166,10 @@ end
   I = ideal(R, f)
 
   d = Vector{elem_type(R)}()
-  d = [rand(R, 1:3, 0:3, 1:10)::elem_type(R) for i in 0:(abs(rand(Int))%3+1)]
+  for i in 0:(abs(rand(Int))%3+1)
+    f = rand(R, 1:3, 0:3, 1:10)::elem_type(R)
+    iszero(f) || push!(d, f)
+  end
   S = MPolyPowersOfElement(R, d)
   T = MPolyComplementOfKPointIdeal(R, [kk(125), kk(-45)])
   U = MPolyComplementOfPrimeIdeal(I)

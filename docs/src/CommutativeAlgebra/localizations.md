@@ -125,7 +125,7 @@ for a single and a list of generators from both the `base_ring` of `W` and from 
 
 The minimal functionality which should be implemented for ideals is the test 
 for ideal membership
-```@docs
+```
 Base.in(
     f::AbsLocalizedRingElem{RingType, RingElemType, MultSetType}, 
     I::AbsLocalizedIdeal{RingType, RingElemType, MultSetType}
@@ -134,7 +134,7 @@ Base.in(
 and again the same for elements `f` of type `RingElemType`.
 
 Basic operations on ideals which are already implemented on the generic level are 
-```@docs
+```
 Base.:*(I::T, J::T) where {T<:AbsLocalizedIdeal}
 Base.:+(I::T, J::T) where {T<:AbsLocalizedIdeal}
 ```
