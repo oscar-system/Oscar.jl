@@ -492,3 +492,115 @@ function collect_basis(VSI::VectorSpaceIterator)
   end
   return VSI.basis_collected
 end
+
+################################################################################
+#
+# MSetPartitions
+#
+################################################################################
+
+iterate_partitions(M::MSet) = MSetPartitions(M)
+
+Base.eltype(MSP::MSetPartitions{T}) where T = Vector{MSet{T}}
+
+function Base.iterate(MSP::MSetPartitions)
+  if isempty(MSP.M)
+    return nothing
+  end
+
+  return [ MSP.M ], MSetPartitionsState(MSP)
+end
+
+# This is basically Knu11, p. 429, Algorithm 7.2.1.5M
+# M2 - 6 in the  comments correspond to the steps in the pseudocode
+function Base.iterate(MSP::MSetPartitions{T}, state::MSetPartitionsState) where T
+  c = state.c
+  u = state.u
+  v = state.v
+  f = state.f
+  a = state.a
+  b = state.b
+  l = state.l
+
+  m = length(MSP.num_to_key)
+  n = length(MSP.M)
+
+  # M5
+  j = b - 1
+  while iszero(v[j])
+    j -= 1
+  end
+  while j == a && v[j] == 1
+    # M6
+    if l == 1
+      return nothing
+    end
+    l -= 1
+    b = a
+    a = f[l]
+
+    j = b - 1
+    while iszero(v[j])
+      j -= 1
+    end
+  end
+  v[j] = v[j] - 1
+  for k = j + 1:b - 1
+    v[k] = u[k]
+  end
+
+  # M2
+  range_increased = true
+  while range_increased
+    k = b
+    range_increased = false
+    v_changed = false
+    for j = a:b - 1
+      u[k] = u[j] - v[j]
+      if iszero(u[k])
+        v_changed = true
+        continue
+      end
+      c[k] = c[j]
+      if v_changed
+        v[k] = u[k]
+      else
+        v[k] = min(v[j], u[k])
+        v_changed = (u[k] < v[j])
+      end
+      k += 1
+    end
+
+    # M3
+    if k > b
+      range_increased = true
+      a = b
+      b = k
+      l += 1
+      f[l + 1] = b
+    end
+  end
+
+  # M4
+  part = Vector{typeof(MSP.M)}()
+  for j = 1:l
+    N = MSet{T}()
+    for k = f[j]:f[j + 1] - 1
+      if iszero(v[k])
+        continue
+      end
+      N.dict[MSP.num_to_key[c[k]]] = v[k]
+    end
+    push!(part, N)
+  end
+
+  state.c = c
+  state.u = u
+  state.v = v
+  state.f = f
+  state.a = a
+  state.b = b
+  state.l = l
+
+  return part, state
+end

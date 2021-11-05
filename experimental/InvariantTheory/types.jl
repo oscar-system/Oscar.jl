@@ -121,3 +121,50 @@ mutable struct VectorSpaceIteratorFiniteField{FieldT, IteratorT, ElemT} <: Vecto
     return VSI
   end
 end
+
+struct MSetPartitions{T}
+  M::MSet{T}
+  num_to_key::Vector{Int}
+  key_to_num::Dict{T, Int}
+
+  function MSetPartitions(M::MSet{T}) where T
+    num_to_key = collect(keys(M.dict))
+    key_to_num = Dict{T, Int}()
+    for i = 1:length(num_to_key)
+      key_to_num[num_to_key[i]] = i
+    end
+    return new{T}(M, num_to_key, key_to_num)
+  end
+end
+
+mutable struct MSetPartitionsState
+  f::Vector{Int}
+  c::Vector{Int}
+  u::Vector{Int}
+  v::Vector{Int}
+  a::Int
+  b::Int
+  l::Int
+
+  function MSetPartitionsState(MSP::MSetPartitions)
+    m = length(MSP.num_to_key)
+    n = length(MSP.M)
+    f = zeros(Int, n + 1)
+    c = zeros(Int, n*m + 1)
+    u = zeros(Int, n*m + 1)
+    v = zeros(Int, n*m + 1)
+
+    for j = 1:m
+      c[j] = j
+      u[j] = MSP.M.dict[MSP.num_to_key[j]]
+      v[j] = MSP.M.dict[MSP.num_to_key[j]]
+    end
+    f[1] = 1
+    f[2] = m + 1
+    a = 1
+    b = m + 1
+    l = 1
+
+    return new(f, c, u, v, a, b, l)
+  end
+end

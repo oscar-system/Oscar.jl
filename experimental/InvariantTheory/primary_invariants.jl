@@ -33,7 +33,7 @@ end
 # TODO: Possibly include checks involving earlier runs of the search, see Kemper, p. 181
 function candidates_primary_degrees(R::InvRing, k::Int)
 
-  factors = Vector{fmpz}()
+  factors = MSet{fmpz}()
   for n in [ k, order(group(R)) ]
     # If we can't factor the group order in reasonable time, we might as well
     # give up.
@@ -45,40 +45,30 @@ function candidates_primary_degrees(R::InvRing, k::Int)
     end
   end
 
-  # Find all possible tuples (d_1, ..., d_n), such that d_1 \cdots d_n = k*order(group(R))
   n = degree(group(R))
-  parts = Vector{Vector{Vector{Int}}}()
-  for i = 1:n
-    # Actually, we want multiset partitions here (as the factors may show
-    # up more than once). But GAP doesn't have this as far as I'm aware.
-    append!(parts, Vector{Vector{Vector{Int}}}(GAP.Globals.PartitionsSet(GAP.Obj(1:length(factors)), i)))
-  end
 
-  sorted_degrees = Vector{Tuple{fmpz, Vector{fmpz}}}()
-  for part in parts
-    ds = ones(fmpz, n)
-    for i = 1:length(part)
-      for j in part[i]
-       ds[i + n - length(part)] *= factors[j]
-      end
-    end
-    sort!(ds) # To avoid duplicates
-    s = sum(ds)
-    sds = (s, ds)
-    l = searchsortedfirst(sorted_degrees, sds)
-    # If we used multiset partitions there shouldn't be duplicates (I think)
-    if l <= length(sorted_degrees) && sorted_degrees[l] == sds
+  # Find all possible tuples (d_1, ..., d_n), such that d_1 \cdots d_n = k*order(group(R))
+  degrees = Vector{Vector{fmpz}}()
+  for part in iterate_partitions(factors)
+    # We actually only need the multiset partitions with at most n parts.
+    if length(part) > n
       continue
     end
-    insert!(sorted_degrees, l, sds)
-  end
+    ds = ones(fmpz, n)
+    for i = 1:length(part)
+      for (p, e) in part[i].dict
+       ds[i + n - length(part)] *= p^e
+      end
+    end
 
-  degrees = Vector{Vector{fmpz}}()
-  for (s, ds) in sorted_degrees
+    sort!(ds)
+
     if test_primary_degrees_via_hilbert_series(R, ds)
       push!(degrees, ds)
     end
   end
+
+  sort!(degrees, lt = (x, y) -> sum(x) < sum(y) || x < y)
   return degrees
 end
 
