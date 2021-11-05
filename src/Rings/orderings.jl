@@ -887,9 +887,9 @@ function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::Oscar.Orderings.GenOrde
        end
    elseif o.ord == :negdeglex
       if tdk > tdl
-         return 1
-      elseif tdk < tdl
          return -1
+      elseif tdk < tdl
+         return 1
       end
       for i in o.vars
          ek = exponent(f, k, i)
@@ -912,9 +912,9 @@ function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::Oscar.Orderings.GenOrde
        end
    elseif o.ord == :negdegrevlex
       if tdk > tdl
-         return 1
-      elseif tdk < tdl
          return -1
+      elseif tdk < tdl
+         return 1
       end
       for i in reverse(o.vars)
          ek = exponent(f, k, i)

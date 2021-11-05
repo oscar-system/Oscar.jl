@@ -70,6 +70,7 @@ end
 
  @testset "Polynomial Orderings sorting" begin
    R, (x1, x2, x3, x4) = PolynomialRing(QQ, "x".*string.(1:4))
+   
    M = [x2^3, x1*x2^2, x1^2*x2, x2^2*x4, x2^2*x3, x2^2, x1^3,
         x1*x2*x4, x1*x2*x3, x1*x2, x1^2*x4, x1^2*x3, x1^2, x2*x4^2, x2*x3*x4,
         x2*x4, x2*x3^2, x2*x3, x2, x1*x4^2, x1*x3*x4, x1*x4, x1*x3^2, x1*x3,
@@ -106,8 +107,7 @@ end
    f = sum(M)
    o = negwdeglex([x1, x2], [1, 2])*lex([x3, x4])
    @test collect(monomials(f, o)) == M
-        
-   # currently fails
+
    M = [x1^3, x1^2*x2, x1*x2^2, x2^3, x1^2, x1^2*x3, x1^2*x4, x1*x2,
         x1*x2*x3, x1*x2*x4, x2^2, x2^2*x3, x2^2*x4, x1, x1*x3, x1*x4, x1*x3^2,
         x1*x3*x4, x1*x4^2, x2, x2*x3, x2*x4, x2*x3^2, x2*x3*x4, x2*x4^2, one(R),
@@ -117,7 +117,6 @@ end
    o = deglex([x1, x2])*negdeglex([x3, x4])
    @test collect(monomials(f, o)) == M
    
-   # currently fails
    M = [one(R), x1, x2, x3, x4, x1^2, x1*x2, x2^2, x1*x3, x2*x3,
         x3^2, x1*x4, x2*x4, x3*x4, x4^2, x1^3, x1^2*x2, x1*x2^2, x2^3, x1^2*x3,
         x1*x2*x3, x2^2*x3, x1*x3^2, x2*x3^2, x3^3, x1^2*x4, x1*x2*x4, x2^2*x4,
