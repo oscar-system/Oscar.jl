@@ -31,7 +31,7 @@ import Base: +, *, -, //, ==, zero, one, ^, div, isone, iszero, deepcopy_interna
 
 import ..Oscar: addeq!, isunit, parent_type, elem_type, gen, root_of_unity,
                 root, divexact, mul!, roots, isroot_of_unity, promote_rule,
-                AbstractAlgebra
+                AbstractAlgebra, data
 
 export abelian_closure,
        QabField,
