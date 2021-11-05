@@ -275,7 +275,7 @@ function Base.in(
   if iszero(f) 
     return false
   end
-  d = prod(denominators(S))
+  d = (length(denominators(S)) == 0 ? one(R) : prod(denominators(S)))
   # We need to check whether for some a ∈ R and k ∈ ℕ we have 
   #   a⋅f = dᵏ.
   (i, o) = ppio(f, d)
