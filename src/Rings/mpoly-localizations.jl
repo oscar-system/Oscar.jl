@@ -392,9 +392,6 @@ function rand(W::MPolyLocalizedRing, v1::UnitRange{Int}, v2::UnitRange{Int}, v3:
   return W(rand(base_ring(W), v1, v2, v3), rand(inverted_set(W), v1, v2, v3))
 end
 
-### automatic conversion 
-Base.convert(::Type{LRT}, R::RT) where {LRT<:MPolyLocalizedRing, RT<:MPolyRing} = Localization(MPolyUnits(R))
-
 
 ########################################################################
 # Elements of localized polynomial rings                               #
