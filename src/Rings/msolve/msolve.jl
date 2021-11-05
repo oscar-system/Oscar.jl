@@ -144,8 +144,7 @@ function msolve(
     # set dimension
     I.dim = jl_dim
     if jl_dim > 0
-        @info "Dimension is greater than zero, no solutions provided."
-        return [], Vector{fmpq}[]
+        error("Dimension of ideal is greater than zero, no solutions provided.")
     end
     if jl_nb_sols == 0
         @info "The system has no solution."

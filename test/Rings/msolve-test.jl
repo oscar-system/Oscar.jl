@@ -42,7 +42,7 @@
     @test res[2] == sols
 
     I = ideal(R,[x1-1,x1-1])
-    @test msolve(I) == ([],[])
+    @test_throws ErrorException msolve(I)
     I = ideal(R,[x1-1,x1+1])
     @test msolve(I) == ([],[])
 end
