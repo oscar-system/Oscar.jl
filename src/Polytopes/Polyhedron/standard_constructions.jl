@@ -3,6 +3,102 @@
 ### Standard constructions
 ###############################################################################
 ###############################################################################
+@doc Markdown.doc"""
+    birkhoff(n::Integer, even::Bool = false)
+
+Construct the Birkhoff polytope of dimension $n^2$.
+
+This is the polytope of $n \times n$ stochastic matrices (encoded as row vectors of
+length $n^2$), i.e., the matrices with non-negative real entries whose row and column
+entries sum up to one. Its vertices are the permutation matrices.
+
+Use `even = true` to get the vertices only for the even permutation matrices.
+
+# Example
+```jldoctest
+julia> b = birkhoff(3)
+A polyhedron in ambient dimension 9
+
+julia> vertices(b)
+6-element VectorIterator{PointVector{Polymake.Rational}}:
+ [1, 0, 0, 0, 1, 0, 0, 0, 1]
+ [0, 1, 0, 1, 0, 0, 0, 0, 1]
+ [0, 0, 1, 1, 0, 0, 0, 1, 0]
+ [1, 0, 0, 0, 0, 1, 0, 1, 0]
+ [0, 1, 0, 0, 0, 1, 1, 0, 0]
+ [0, 0, 1, 0, 1, 0, 1, 0, 0]
+```
+"""
+birkhoff(n::Integer; even::Bool = false) = Polyhedron(Polymake.polytope.birkhoff(n, Int(even), group=true))
+
+
+
+@doc Markdown.doc"""
+    pyramid(P::Polyhedron, z::Number = 1)
+
+Make a pyramid over the given polyhedron `P`.
+
+The pyramid is the convex hull of the input polyhedron `P` and a point `v`
+outside the affine span of `P`. For bounded polyhedra, the projection of `v` to
+the affine span of `P` coincides with the vertex barycenter of `P`. The scalar `z`
+is the distance between the vertex barycenter and `v`.
+
+
+# Example
+```jldoctest
+julia> c = cube(2)
+A polyhedron in ambient dimension 2
+
+julia> vertices(pyramid(c,5))
+5-element VectorIterator{PointVector{Polymake.Rational}}:
+ [-1, -1, 0]
+ [1, -1, 0]
+ [-1, 1, 0]
+ [1, 1, 0]
+ [0, 0, 5]
+```
+"""
+function pyramid(P::Polyhedron, z::Number=1)
+   pm_in = pm_object(P)
+   has_group = Polymake.exists(pm_in, "GROUP")
+   return Polyhedron(Polymake.polytope.pyramid(pm_in, z, group=has_group))
+end
+
+
+
+@doc Markdown.doc"""
+    bipyramid(P::Polyhedron, z::Number = 1, z_prime::Number = -z)
+
+Make a bipyramid over a pointed polyhedron `P`.
+
+The bipyramid is the convex hull of the input polyhedron `P` and two apexes
+(`v`, `z`), (`v`, `z_prime`) on both sides of the affine span of `P`. For bounded
+polyhedra, the projections of the apexes `v` to the affine span of `P` is the
+vertex barycenter of `P`.
+
+# Example
+```jldoctest
+julia> c = cube(2)
+A polyhedron in ambient dimension 2
+
+julia> vertices(bipyramid(c,2))
+6-element VectorIterator{PointVector{Polymake.Rational}}:
+ [-1, -1, 0]
+ [1, -1, 0]
+ [-1, 1, 0]
+ [1, 1, 0]
+ [0, 0, 2]
+ [0, 0, -2]
+
+```
+"""
+function bipyramid(P::Polyhedron, z::Number=1, z_prime::Number=-z)
+   pm_in = pm_object(P)
+   has_group = Polymake.exists(pm_in, "GROUP")
+   return Polyhedron(Polymake.polytope.bipyramid(pm_in, z, z_prime, group=has_group))
+end
+
+
 
 @doc Markdown.doc"""
     normal_cone(P::Polyhedron, i::Int64)
