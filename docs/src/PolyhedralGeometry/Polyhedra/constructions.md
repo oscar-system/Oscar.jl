@@ -21,13 +21,11 @@ from other objects in Oscar.
 
 ### Intersecting halfspaces: $H$-representation
 
-
 ```@docs
 Polyhedron(A::Union{Oscar.MatElem,AbstractMatrix}, b)
 ```
 
 ### Computing convex hulls: $V$-representation
-
 
 ```@docs
 convex_hull(::AnyVecOrMat; non_redundant::Bool=false)
@@ -41,9 +39,6 @@ T = convex_hull([ 0 0 ; 1 0 ; 0 1; 0 1/2 ])
 halfspace_matrix_pair(facets(T))
 ```
 
-
-
-
 ## Named polyhedra
 
 ```@docs
@@ -51,6 +46,7 @@ simplex
 cube
 cross
 archimedean_solid
+birkhoff
 ```
 
 ## Operations on polyhedra
@@ -63,14 +59,14 @@ a new polyhedron.
 *(::Int, ::Polyhedron)
 intersect(::Polyhedron, ::Polyhedron)
 *(::Polyhedron, ::Polyhedron)
+pyramid
+bipyramid
 ```
 
 The convex hull of two polytopes can be computed via `convex_hull`.
 ```@docs
 convex_hull(::Polyhedron,::Polyhedron)
 ```
-
-
 
 ## Polyhedra from other mathematical objects
 
