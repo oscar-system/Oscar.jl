@@ -40,8 +40,7 @@ end
 @doc Markdown.doc"""
     msolve(I, <keyword arguments>)
 
-Compute the real roots of the ideal `I` with a given precision (default 32 bits) if the solution set over the
-complex numbers is finite.
+Given an ideal `I` with a finite solution set over the complex numbers, return a pair `p,r` where `p` is the rational parametrization of the solution set and `r` represents the real roots of `Ì`  with a given precision (default 32 bits).
 See [BES21](@cite) for more information.
 
 **Note**: At the moment only QQ is supported as ground field. If the dimension of `I`
@@ -55,7 +54,6 @@ is greater then zero an empty array is returned.
 - `la_option::Int=2`: linear algebra option: exact sparse-dense (`1`), exact sparse (`2`, default), probabilistic sparse-dense (`42`), probabilistic sparse(`44`).
 - `info_level::Int=0`: info level printout: off (`0`, default), summary (`1`), detailed (`2`).
 - `precision::Int=32`: bit precision for the computed solutions.
-- `get_param::Bool=false`: return rational parametrization of the solution set over the complex numbers.
 
 # Examples
 ```jldoctest
@@ -66,13 +64,6 @@ julia> I = ideal(R, [x1+2*x2+2*x3-1, x1^2+2*x2^2+2*x3^2-x1, 2*x1*x2+2*x2*x3-x2])
 ideal(x1 + 2*x2 + 2*x3 - 1, x1^2 - x1 + 2*x2^2 + 2*x3^2, 2*x1*x2 + 2*x2*x3 - x2)
 
 julia> msolve(I)
-4-element Vector{Vector{fmpq}}:
- [3197531698215911246794018079661//5070602400912917605986812821504, 1598765849107955623397009039829//5070602400912917605986812821504, -662230497759452443800611668909//5070602400912917605986812821504]
- [1, 0, 0]
- [143587366392252266220763399489//633825300114114700748351602688, 71793683196126133110381699745//633825300114114700748351602688, 173325283664805084153412401855//633825300114114700748351602688]
- [52818775009509558395695966891//158456325028528675187087900672, 3//2535301200456458802993406410752, 845100400152152934331135470251//2535301200456458802993406410752]
-
-julia> msolve(I, get_param=true)
 ((84*x^4 - 40*x^3 + x^2 + x, 336*x^3 - 120*x^2 + 2*x + 1, PolyElem[-184*x^3 + 80*x^2 - 4*x - 1, -36*x^3 + 18*x^2 - 2*x], fmpz[-1, -1]), Vector{fmpq}[[3197531698215911246794018079661//5070602400912917605986812821504, 1598765849107955623397009039829//5070602400912917605986812821504, -662230497759452443800611668909//5070602400912917605986812821504], [1, 0, 0], [143587366392252266220763399489//633825300114114700748351602688, 71793683196126133110381699745//633825300114114700748351602688, 173325283664805084153412401855//633825300114114700748351602688], [52818775009509558395695966891//158456325028528675187087900672, 3//2535301200456458802993406410752, 845100400152152934331135470251//2535301200456458802993406410752]])
 ```
 """
@@ -84,9 +75,7 @@ function msolve(
                                               # in symbolic preprocessing
         la_option::Int=2,                     # linear algebra option
         info_level::Int=0,                    # info level for print outs
-        precision::Int=32,                    # precision of the solution set
-        get_param::Bool=false                 # return rational parametrization of
-                                              # solution set
+        precision::Int=32                     # precision of the solution set
         )
     singular_assure(I)
     SI    = I.gens.S
@@ -113,6 +102,7 @@ function msolve(
 
     reset_ht  = 0
     print_gb  = 0
+    get_param = 1
 
     #= monomial order defaults to zero =#
     mon_order = 0
@@ -155,11 +145,11 @@ function msolve(
     I.dim = jl_dim
     if jl_dim > 0
         @info "Dimension is greater than zero, no solutions provided."
-        return Vector{fmpq}[]
+        return [], Vector{fmpq}[]
     end
     if jl_nb_sols == 0
         @info "The system has no solution."
-        return Vector{fmpq}[]
+        return [], Vector{fmpq}[]
     end
 
     [nterms += jl_len[i] for i=1:jl_ld]
@@ -185,10 +175,8 @@ function msolve(
         end
         solutions[i]  = tmp
     end
-    if get_param 
-        rat_param = get_rational_parametrization(jl_ld, jl_len, jl_cf)
-        return rat_param, solutions
-    else
-        return solutions
-    end
+
+    rat_param = get_rational_parametrization(jl_ld, jl_len, jl_cf)
+
+    return rat_param, solutions
 end
