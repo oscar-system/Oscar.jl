@@ -42,11 +42,11 @@ halfspace_matrix_pair(facets(T))
 ## Named polyhedra
 
 ```@docs
-simplex
-cube
-cross
 archimedean_solid
 birkhoff
+cross
+cube
+simplex
 ```
 
 ## Operations on polyhedra
@@ -57,10 +57,10 @@ a new polyhedron.
 ```@docs
 +(::Polyhedron, ::Polyhedron)
 *(::Int, ::Polyhedron)
-intersect(::Polyhedron, ::Polyhedron)
 *(::Polyhedron, ::Polyhedron)
-pyramid
 bipyramid
+intersect(::Polyhedron, ::Polyhedron)
+pyramid
 ```
 
 The convex hull of two polytopes can be computed via `convex_hull`.
