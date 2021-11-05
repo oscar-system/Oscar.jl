@@ -1,5 +1,6 @@
-export MPolyUnits, MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal, MPolyPowersOfElement
+export MPolyUnits, MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal, MPolyPowersOfElement, MPolyUnionOfMultSets
 export rand
+export sets
 
 export MPolyLocalizedRing
 export ambient_ring, point_coordinates, inverted_set, denominators
@@ -293,6 +294,88 @@ function rand(S::MPolyPowersOfElement, v1::UnitRange{Int}, v2::UnitRange{Int}, v
   return prod([f^(abs(rand(Int))%10) for f in denominators(S)])::elem_type(ambient_ring(S))
 end
 
+@Markdown.doc """
+MPolyUnionOfMultSets{
+    BaseRingType,
+    BaseRingElemType, 
+    RingType,
+    RingElemType
+  } <: AbsMultSet{
+    RingType, 
+    RingElemType
+  }
+
+A finite union of arbitrary other multiplicative sets.
+"""
+mutable struct MPolyUnionOfMultSets{
+    BaseRingType,
+    BaseRingElemType, 
+    RingType,
+    RingElemType
+  } <: AbsMultSet{
+    RingType, 
+    RingElemType
+  }
+  R::RingType
+  U::Vector{<:AbsMultSet{RingType, RingElemType}}
+
+  function MPolyUnionOfMultSets(R::RT, U::Vector{<:AbsMultSet{RT, RET}}) where {RT<:MPolyRing, RET<:MPolyElem}
+    for s in U
+      ambient_ring(s) == R || error("multiplicative set does not live in the given ring")
+    end
+    return new{typeof(coefficient_ring(R)), elem_type(coefficient_ring(R)), typeof(R), elem_type(R)}(R, U)
+  end
+end
+
+### required getter functions
+ambient_ring(S::MPolyUnionOfMultSets) = S.R
+
+### additional functionality
+get_index(S::MPolyUnionOfMultSets, i::Integer) = S.U[i]
+sets(S::MPolyUnionOfMultSets) = S.U
+
+### required functionality
+function Base.in(
+    f::RingElemType, 
+    S::MPolyUnionOfMultSets{BaseRingType, BaseRingElemType, RingType, RingElemType}
+  ) where {BaseRingType, BaseRingElemType, RingType, RingElemType}
+  R = ambient_ring(S)
+  divides(one(R), f)[1] && return true
+  U = sets(S)
+  for s in U
+    f in s && return true
+  end
+  # From here onwards, computations might not be cheap anymore
+  a = factor(f)
+  for fac in a
+    # check for each factor whether it belongs to one of the admissible sets
+    tmp_result = false
+    for s in U
+      if fac[1] in s 
+	tmp_result = true
+	break
+      end
+    end
+    tmp_result || return false
+  end
+  return true
+end
+
+### printing
+function Base.show(io::IO, S::MPolyUnionOfMultSets)
+  print(io, "union of the multiplicative sets ")
+  for s in sets(S)
+    print(io, s)
+    print(io, " ")
+  end
+end
+
+### generation of random elements 
+function rand(S::MPolyUnionOfMultSets, v1::UnitRange{Int}, v2::UnitRange{Int}, v3::UnitRange{Int})
+  return prod([rand(s, v1, v2, v3) for s in sets(S)])::elem_type(ambient_ring(S))
+end
+
+
 ########################################################################
 # Localizations of polynomial rings over admissible fields             #
 ########################################################################
@@ -353,6 +436,8 @@ Localization(S::MPolyComplementOfPrimeIdeal) = MPolyLocalizedRing(ambient_ring(S
 Localization(S::MPolyComplementOfKPointIdeal) = MPolyLocalizedRing(ambient_ring(S), S)
 
 Localization(S::MPolyPowersOfElement) = MPolyLocalizedRing(ambient_ring(S), S)
+
+Localization(S::MPolyUnionOfMultSets) = MPolyLocalizedRing(ambient_ring(S), S)
 
 
 ### additional constructors
