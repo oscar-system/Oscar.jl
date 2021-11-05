@@ -213,10 +213,10 @@ julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
 
 julia> S = syzygy_generators([x^3+y+2,x*y^2-13*x^2,y-14])
-3-element Vector{AbstractAlgebra.Generic.FreeModuleElem{fmpq_mpoly}}:
- (0, -y + 14, -13*x^2 + x*y^2)
- (-169*y + 2366, -13*x*y + 182*x - 196*y + 2744, 13*x^2*y^2 - 2548*x^2 + 196*x*y^2 + 169*y + 338)
- (-13*x^2 + 196*x, -x^3 - 16, x^4*y + 14*x^4 + 13*x^2 + 16*x*y + 28*x)
+3-element Vector{FreeModElem{fmpq_mpoly}}:
+ (-y + 14)*e[2] + (-13*x^2 + x*y^2)*e[3]
+ (-169*y + 2366)*e[1] + (-13*x*y + 182*x - 196*y + 2744)*e[2] + (13*x^2*y^2 - 2548*x^2 + 196*x*y^2 + 169*y + 338)*e[3]
+ (-13*x^2 + 196*x)*e[1] + (-x^3 - 16)*e[2] + (x^4*y + 14*x^4 + 13*x^2 + 16*x*y + 28*x)*e[3]
 ```
 """
 function syzygy_generators(a::Vector{<:MPolyElem})

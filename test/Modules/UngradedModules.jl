@@ -530,11 +530,10 @@ end
 	@test iszero(preimage(phi,zero(F4)))
 	@test phi(preimage(phi,y*(F4[3]+x*F4[4]+(x+y)*F4[3]))) == y*(F4[3]+x*F4[4]+(x+y)*F4[3])
 
-
-	A1 = R[7*y^2 10*x^2*y^2; 15*x^2 7*x; 1 7*x^2*y]
-	A2 = R[10*x*y 6*x^2*y; 12*x^2 10*x^2*y]
-	B1 = R[14*x^2 10*y]
-	B2 = R[1 15*x^2*y]
+	A1 = R[9*y 11*x; 0 8; 14*x*y^2 x]
+	A2 = R[4*x*y 15; 4*y^2 6*x*y]
+	B1 = R[2*x*y^2 6*x^2*y^2]
+	B2 = R[15*x*y 3*y]
 
 
 	#1) H: N --> M where N is a cokernel, H should be an isomorphism
@@ -611,7 +610,11 @@ end
 	i1,i2 = i[1],i[2]
 	p1,p2 = p[1],p[2]
 	nn = ngens(NN)
-	N,iN = sub(NN,[NN(sparse_row(R[9*y 11*x*y 6*x^2*y 14*x*y^2 0])), NN(sparse_row(R[7*x^2 5*x^2*y^2 0 y 7*y^2])), NN(sparse_row(R[12*x 15*x*y^2 6*x*y 15*x^2*y^2 5*x]))], :store)	
+	u1 = R[3*y 14*y^2 6*x*y^2 x^2*y 3*x^2*y^2]
+	u2 = R[5*x*y^2 10*y^2 4*x*y 7*x^2*y^2 7*x^2]
+	u3 = R[13*x^2*y 4*x*y 2*x 7*x^2 9*x^2]
+	N,iN = sub(NN,[NN(sparse_row(u1)), NN(sparse_row(u2)), NN(sparse_row(u3))], :store)
+	
 	H = restrict_domain(p1*iM,N)
 	@test iswelldefined(H)
 
@@ -643,7 +646,8 @@ end
 	N = SubQuo(F2,A1,B1)
 	M = SubQuo(F2,A2,B2)
 	HomNM = hom(N,M)[1]
-	H = HomNM(sparse_row(R[9*y 11*x*y 6*x^2*y 14*x*y^2]))
+	u1 = R[x^2*y^2 4*x^2*y^2 0 5*x*y^2]
+	H = HomNM(sparse_row(u1))
 	H = homomorphism(H)
 	@test iswelldefined(H)
 
