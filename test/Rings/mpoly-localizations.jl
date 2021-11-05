@@ -130,27 +130,64 @@ end
   @test psi(U(-1//f))==one(codomain(psi))
 end
 
-  kk = QQ
-  #kk = GF(101) doesn't work at the moment because of failures of the promotion system.
-  R, v = kk["x", "y"]
-  x = v[1]
-  y = v[2] 
-  f = x^2+y^2-1
-  I = ideal(R, f)
-
-  include(joinpath(pathof(AbstractAlgebra), "..", "..", "test", "Rings-conformance-tests.jl"))
-
-  d = Vector{elem_type(R)}()
-  d = [rand(R, 1:3, 0:4, 1:10)::elem_type(R) for i in 0:(abs(rand(Int))%3+1)]
-  S = MPolyPowersOfElement(R, d)
-  T = MPolyComplementOfKPointIdeal(R, [kk(125), kk(-45)])
-  U = MPolyComplementOfPrimeIdeal(I)
   function test_elem(W::MPolyLocalizedRing) 
     f = rand(W, 0:3, 0:4, 0:3)
     return f
   end
 
 @testset "Ring interface for localized polynomial rings" begin
+  include(joinpath(pathof(AbstractAlgebra), "..", "..", "test", "Rings-conformance-tests.jl"))
+
+  kk = QQ
+  R, v = kk["x", "y"]
+  x = v[1]
+  y = v[2] 
+  f = x^2+y^2-1
+  I = ideal(R, f)
+
+  d = Vector{elem_type(R)}()
+  d = [rand(R, 1:3, 0:4, 1:10)::elem_type(R) for i in 0:(abs(rand(Int))%3+1)]
+  S = MPolyPowersOfElement(R, d)
+  T = MPolyComplementOfKPointIdeal(R, [kk(125), kk(-45)])
+  U = MPolyComplementOfPrimeIdeal(I)
+
+  test_Ring_interface_recursive(localize_at(S))
+  test_Ring_interface_recursive(localize_at(T))
+  test_Ring_interface_recursive(localize_at(U))
+  
+  AbstractAlgebra.promote_rule(::Type{gfp_mpoly}, ::Type{fmpz}) = gfp_mpoly
+  AbstractAlgebra.promote_rule(::Type{gfp_elem}, ::Type{fmpz}) = gfp_elem
+
+  kk = GF(101) 
+  R, v = kk["x", "y"]
+  x = v[1]
+  y = v[2] 
+  f = x^2+y^2-1
+  I = ideal(R, f)
+
+  d = Vector{elem_type(R)}()
+  d = [rand(R, 1:3, 0:4, 1:10)::elem_type(R) for i in 0:(abs(rand(Int))%3+1)]
+  S = MPolyPowersOfElement(R, d)
+  T = MPolyComplementOfKPointIdeal(R, [kk(125), kk(-45)])
+  U = MPolyComplementOfPrimeIdeal(I)
+
+  test_Ring_interface_recursive(localize_at(S))
+  test_Ring_interface_recursive(localize_at(T))
+  test_Ring_interface_recursive(localize_at(U))
+
+  kk = ZZ
+  R, v = kk["x", "y"]
+  x = v[1]
+  y = v[2] 
+  f = x^2+y^2-1
+  I = ideal(R, f)
+
+  d = Vector{elem_type(R)}()
+  d = [rand(R, 1:3, 0:4, 1:10)::elem_type(R) for i in 0:(abs(rand(Int))%3+1)]
+  S = MPolyPowersOfElement(R, d)
+  T = MPolyComplementOfKPointIdeal(R, [kk(125), kk(-45)])
+  U = MPolyComplementOfPrimeIdeal(I)
+
   test_Ring_interface_recursive(localize_at(S))
   test_Ring_interface_recursive(localize_at(T))
   test_Ring_interface_recursive(localize_at(U))
