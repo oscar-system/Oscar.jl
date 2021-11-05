@@ -377,6 +377,8 @@ function singular(o::Orderings.GenOrdering)
     return Singular.ordering_Dp(length(v))
   elseif o.ord == :revlex
     return Singular.ordering_rp(length(v))
+  elseif o.ord == :neglex
+    return Singular.ordering_ls(length(v))
   elseif o.ord == :negdegrevlex
     return Singular.ordering_ds(length(v))
   elseif o.ord == :negdeglex

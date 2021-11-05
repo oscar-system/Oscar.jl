@@ -89,6 +89,7 @@ end
    o = negrevlex([x1, x2])*wdegrevlex([x3, x4], [1, 2])
    @test collect(monomials(f, o)) == M
      
+   # currently fails
    M = [one(R), x3, x3^2, x4, x3^3, x3*x4, x3^2*x4, x4^2, x3*x4^2,
         x4^3, x2, x2*x3, x2*x3^2, x2*x4, x2*x3*x4, x2*x4^2, x2^2, x2^2*x3,
         x2^2*x4, x2^3, x1, x1*x3, x1*x3^2, x1*x4, x1*x3*x4, x1*x4^2, x1*x2,
@@ -98,7 +99,6 @@ end
    o = neglex([x1, x2])*negwdegrevlex([x3, x4], [1, 2])
    @test collect(monomials(f, o)) == M
         
-   # currently fails
    M = [x3^3, x3^2*x4, x3^2, x3*x4^2, x3*x4, x3, x4^3, x4^2, x4,
         one(R), x1*x3^2, x1*x3*x4, x1*x3, x1*x4^2, x1*x4, x1, x1^2*x3, x1^2*x4,
         x1^2, x2*x3^2, x2*x3*x4, x2*x3, x2*x4^2, x2*x4, x2, x1^3, x1*x2*x3,

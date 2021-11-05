@@ -722,9 +722,9 @@ function _isless_lex(f::MPolyElem, k::Int, l::Int)
  function _isless_weightnegdeglex(f::MPolyElem, k::Int, l::Int, w::Vector{Int})
    dk = weighted_degree(f, k, w)
    dl = weighted_degree(f, l, w)
-   if dk < dl
+   if dk > dl
      return true
-   elseif dk > dl
+   elseif dk < dl
      return false
    end
    return _isless_lex(f, k, l)
@@ -738,7 +738,7 @@ function _isless_lex(f::MPolyElem, k::Int, l::Int)
    elseif dk < dl
      return false
    end
-   return _isless_negrevlex(f, k, l)
+   return _isless_revlex(f, k, l)
  end
  
  function _isless_matrix(f::MPolyElem, k::Int, l::Int, M::Union{ Matrix{T}, MatElem{T} }) where T
@@ -959,9 +959,9 @@ function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::Oscar.Orderings.GenOrde
             end
           end
       elseif o.ord == :negwdeglex
-         if dk < dl
+         if dk > dl
             return -1
-          elseif dk > dl
+          elseif dk < dl
             return 1
           end
           for i in o.vars
@@ -979,7 +979,7 @@ function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::Oscar.Orderings.GenOrde
           elseif dk < dl
             return 1
           end
-          for i in o.vars
+          for i in reverse(o.vars)
             ek = exponent(f, k, i)
             el = exponent(f, l, i)
             if ek > el
