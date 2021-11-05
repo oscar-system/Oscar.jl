@@ -431,72 +431,70 @@ end
 	F2 = FreeMod(R,2)
 	F3 = FreeMod(R,3)
 
-	for _=1:3
-		A1 = matrix([randpoly(R,0:15,2,2) for i=1:3,j=1:2])
-		B1 = matrix([randpoly(R,0:15,2,2) for i=1:1,j=1:2])
-		M1 = SubQuo(F2,A1,B1)
+	A1 = matrix([randpoly(R,0:15,2,2) for i=1:3,j=1:2])
+	B1 = matrix([randpoly(R,0:15,2,2) for i=1:1,j=1:2])
+	M1 = SubQuo(F2,A1,B1)
 
-		A2 = matrix([randpoly(R,0:15,2,1) for i=1:2,j=1:3])
-		B2 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:3])
-		M2 = SubQuo(F3,A2,B2)
+	A2 = matrix([randpoly(R,0:15,2,1) for i=1:2,j=1:3])
+	B2 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:3])
+	M2 = SubQuo(F3,A2,B2)
 
-		prod_M, proj, emb = direct_product(M1,M2,task=:both)
-		@test length(proj) == length(emb) == 2
-		@test ngens(prod_M) == ngens(M1) + ngens(M2)
+	prod_M, proj, emb = direct_product(M1,M2,task=:both)
+	@test length(proj) == length(emb) == 2
+	@test ngens(prod_M) == ngens(M1) + ngens(M2)
 
-		for g in gens(prod_M)
-			@test g == sum([emb[i](proj[i](g)) for i=1:length(proj)])
-		end
-		for g in gens(M1)
-			@test g == proj[1](emb[1](g))
-		end
-		for g in gens(M2)
-			@test g == proj[2](emb[2](g))
-		end
+	for g in gens(prod_M)
+		@test g == sum([emb[i](proj[i](g)) for i=1:length(proj)])
+	end
+	for g in gens(M1)
+		@test g == proj[1](emb[1](g))
+	end
+	for g in gens(M2)
+		@test g == proj[2](emb[2](g))
+	end
 
-		A1 = matrix([randpoly(R,0:15,2,2) for i=1:3,j=1:2])
-		B1 = matrix([randpoly(R,0:15,2,2) for i=1:1,j=1:2])
-		N1 = SubQuo(F2,A1,B1)
+	A1 = matrix([randpoly(R,0:15,2,2) for i=1:3,j=1:2])
+	B1 = matrix([randpoly(R,0:15,2,2) for i=1:1,j=1:2])
+	N1 = SubQuo(F2,A1,B1)
 
-		A2 = matrix([randpoly(R,0:15,2,1) for i=1:2,j=1:3])
-		B2 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:3])
-		N2 = SubQuo(F3,A2,B2)
+	A2 = matrix([randpoly(R,0:15,2,1) for i=1:2,j=1:3])
+	B2 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:3])
+	N2 = SubQuo(F3,A2,B2)
 
-		prod_N = direct_product(N1,N2)
-		@test ngens(prod_M) == ngens(M1) + ngens(M2)
+	prod_N = direct_product(N1,N2)
+	@test ngens(prod_M) == ngens(M1) + ngens(M2)
 
-		for g in gens(prod_N)
-			@test g == sum([Hecke.canonical_injection(prod_N,i)(Hecke.canonical_projection(prod_N,i)(g)) for i=1:2])
-		end
-		for g in gens(N1)
-			@test g == Hecke.canonical_projection(prod_N,1)(Hecke.canonical_injection(prod_N,1)(g))
-		end
-		for g in gens(N2)
-			@test g == Hecke.canonical_projection(prod_N,2)(Hecke.canonical_injection(prod_N,2)(g))
-		end
+	for g in gens(prod_N)
+		@test g == sum([Hecke.canonical_injection(prod_N,i)(Hecke.canonical_projection(prod_N,i)(g)) for i=1:2])
+	end
+	for g in gens(N1)
+		@test g == Hecke.canonical_projection(prod_N,1)(Hecke.canonical_injection(prod_N,1)(g))
+	end
+	for g in gens(N2)
+		@test g == Hecke.canonical_projection(prod_N,2)(Hecke.canonical_injection(prod_N,2)(g))
+	end
 
-		# testing hom_prod_prod
+	# testing hom_prod_prod
 
-		M1_to_N1 = SubQuoHom(M1,N1,zero_matrix(R,3,3))
-		H12 = hom(M1,N2)[1]
-		H21 = hom(M2,N1)[1]
-		M1_to_N2 = iszero(H12) ? SubQuoHom(M1,N2,zero_matrix(R,3,2)) : homomorphism(H12[1])
-		M2_to_N1 = iszero(H21) ? SubQuoHom(M2,N1,zero_matrix(R,2,3)) : homomorphism(H21[1])
-		M2_to_N2 = SubQuoHom(M2,N2,R[0 0; 1 0])
-		@assert iswelldefined(M1_to_N1)
-		@assert iswelldefined(M1_to_N2)
-		@assert iswelldefined(M2_to_N1)
-		@assert iswelldefined(M2_to_N2)
+	M1_to_N1 = SubQuoHom(M1,N1,zero_matrix(R,3,3))
+	H12 = hom(M1,N2)[1]
+	H21 = hom(M2,N1)[1]
+	M1_to_N2 = iszero(H12) ? SubQuoHom(M1,N2,zero_matrix(R,3,2)) : homomorphism(H12[1])
+	M2_to_N1 = iszero(H21) ? SubQuoHom(M2,N1,zero_matrix(R,2,3)) : homomorphism(H21[1])
+	M2_to_N2 = SubQuoHom(M2,N2,R[0 0; 1 0])
+	@assert iswelldefined(M1_to_N1)
+	@assert iswelldefined(M1_to_N2)
+	@assert iswelldefined(M2_to_N1)
+	@assert iswelldefined(M2_to_N2)
 
-		phi = hom_prod_prod(prod_M,prod_N,[M1_to_N1 M1_to_N2; M2_to_N1 M2_to_N2])
-		for g in gens(M1)
-			@test M1_to_N1(g) == Hecke.canonical_projection(prod_N,1)(phi(emb[1](g)))
-			@test M1_to_N2(g) == Hecke.canonical_projection(prod_N,2)(phi(emb[1](g)))
-		end
-		for g in gens(M2)
-			@test M2_to_N1(g) == Hecke.canonical_projection(prod_N,1)(phi(emb[2](g)))
-			@test M2_to_N2(g) == Hecke.canonical_projection(prod_N,2)(phi(emb[2](g)))
-		end
+	phi = hom_prod_prod(prod_M,prod_N,[M1_to_N1 M1_to_N2; M2_to_N1 M2_to_N2])
+	for g in gens(M1)
+		@test M1_to_N1(g) == Hecke.canonical_projection(prod_N,1)(phi(emb[1](g)))
+		@test M1_to_N2(g) == Hecke.canonical_projection(prod_N,2)(phi(emb[1](g)))
+	end
+	for g in gens(M2)
+		@test M2_to_N1(g) == Hecke.canonical_projection(prod_N,1)(phi(emb[2](g)))
+		@test M2_to_N2(g) == Hecke.canonical_projection(prod_N,2)(phi(emb[2](g)))
 	end
 end
 
@@ -532,150 +530,143 @@ end
 	@test iszero(preimage(phi,zero(F4)))
 	@test phi(preimage(phi,y*(F4[3]+x*F4[4]+(x+y)*F4[3]))) == y*(F4[3]+x*F4[4]+(x+y)*F4[3])
 
-	k_max = 8
-	for k=1:k_max
-		print("\rhomomorphism testing: test ",k," out of ",k_max,"     ")
-		A1 = matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:2])
-		A2 = matrix([randpoly(R,0:15,2,1) for i=1:2,j=1:2])
-		B1 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:2])
-		B2 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:2])
+
+	A1 = R[7*y^2 10*x^2*y^2; 15*x^2 7*x; 1 7*x^2*y]
+	A2 = R[10*x*y 6*x^2*y; 12*x^2 10*x^2*y]
+	B1 = R[14*x^2 10*y]
+	B2 = R[1 15*x^2*y]
 
 
-		#1) H: N --> M where N is a cokernel, H should be an isomorphism
-		F2 = FreeMod(R,2)
-		M = SubQuo(F2,A1,B1)
-		N, H = present_as_cokernel(M, :store)
-		Hinv = H.inverse_isomorphism
-		@test iswelldefined(H)
+	#1) H: N --> M where N is a cokernel, H should be an isomorphism
+	F2 = FreeMod(R,2)
+	M = SubQuo(F2,A1,B1)
+	N, H = present_as_cokernel(M, :store)
+	Hinv = H.inverse_isomorphism
+	@test iswelldefined(H)
 
-		## testing the homomorphism theorem: #################################
-		KerH,iKerH = kernel(H)
-		ImH,iImH = image(H)
+	## testing the homomorphism theorem: #################################
+	KerH,iKerH = kernel(H)
+	ImH,iImH = image(H)
 
-		NmodKerH, pNmodKerH = quo(N,KerH, :store)
-		Hbar = SubQuoHom(NmodKerH,M,matrix(H))
-		Hbar = restrict_codomain(Hbar,ImH) # induced map N/KerH --> ImH
+	NmodKerH, pNmodKerH = quo(N,KerH, :store)
+	Hbar = SubQuoHom(NmodKerH,M,matrix(H))
+	Hbar = restrict_codomain(Hbar,ImH) # induced map N/KerH --> ImH
 
-		@test iswelldefined(Hbar)
-		@test isbijective(Hbar)
+	@test iswelldefined(Hbar)
+	@test isbijective(Hbar)
 
-		Hbar_inv = inv(Hbar)
+	Hbar_inv = inv(Hbar)
 
-		# test, if caching of inverse maps works:
-		@test Hbar_inv === Hbar.inverse_isomorphism
-		@test Hbar === Hbar_inv.inverse_isomorphism
+	# test, if caching of inverse maps works:
+	@test Hbar_inv === Hbar.inverse_isomorphism
+	@test Hbar === Hbar_inv.inverse_isomorphism
 
-		# test if Hbar and Hbar_inv are inverse to each other:
-		@test all([Hbar_inv(Hbar(g))==g for g in gens(NmodKerH)])
-		@test all([Hbar(Hbar_inv(g))==g for g in gens(ImH)])
-		#######################################################################
+	# test if Hbar and Hbar_inv are inverse to each other:
+	@test all([Hbar_inv(Hbar(g))==g for g in gens(NmodKerH)])
+	@test all([Hbar(Hbar_inv(g))==g for g in gens(ImH)])
+	#######################################################################
 
-		# test, if H is bijective with inverse Hinv:
-		@test isbijective(H)
-		@test all([inv(H)(H(g))==g for g in gens(N)])
-		@test all([H(inv(H)(g))==g for g in gens(M)])
-		@test inv(H) === Hinv
-		@test ImH == M
-		@test iszero(KerH)
+	# test, if H is bijective with inverse Hinv:
+	@test isbijective(H)
+	@test all([inv(H)(H(g))==g for g in gens(N)])
+	@test all([H(inv(H)(g))==g for g in gens(M)])
+	@test inv(H) === Hinv
+	@test ImH == M
+	@test iszero(KerH)
 
 
-		#2) H: N --> M = N/(submodule of N) canonical projection
-		M,H = quo(N,[N(sparse_row(R[1 x^2-1 x*y^2])),N(sparse_row(R[y^3 y*x^2 x^3]))],:store)
-		@test iswelldefined(H)
+	#2) H: N --> M = N/(submodule of N) canonical projection
+	M,H = quo(N,[N(sparse_row(R[1 x^2-1 x*y^2])),N(sparse_row(R[y^3 y*x^2 x^3]))],:store)
+	@test iswelldefined(H)
 
-		## testing the homomorphism theorem: #################################
-		KerH,iKerH = kernel(H)
-		ImH,iImH = image(H)
+	## testing the homomorphism theorem: #################################
+	KerH,iKerH = kernel(H)
+	ImH,iImH = image(H)
 
-		NmodKerH, pNmodKerH = quo(N,KerH, :store)
-		Hbar = SubQuoHom(NmodKerH,M,matrix(H)) # induced map N/KerH --> M
-		Hbar = restrict_codomain(Hbar,ImH) # induced map N/KerH --> ImH
+	NmodKerH, pNmodKerH = quo(N,KerH, :store)
+	Hbar = SubQuoHom(NmodKerH,M,matrix(H)) # induced map N/KerH --> M
+	Hbar = restrict_codomain(Hbar,ImH) # induced map N/KerH --> ImH
 
-		@test iswelldefined(Hbar)
-		@test isbijective(Hbar)
+	@test iswelldefined(Hbar)
+	@test isbijective(Hbar)
 
-		Hbar_inv = inv(Hbar)
+	Hbar_inv = inv(Hbar)
 
-		# test, if caching of inverse maps works:
-		@test Hbar_inv === Hbar.inverse_isomorphism
-		@test Hbar === Hbar_inv.inverse_isomorphism
+	# test, if caching of inverse maps works:
+	@test Hbar_inv === Hbar.inverse_isomorphism
+	@test Hbar === Hbar_inv.inverse_isomorphism
 
-		# test if Hbar and Hbar_inv are inverse to each other:
-		@test all([Hbar_inv(Hbar(g))==g for g in gens(NmodKerH)])
-		@test all([Hbar(Hbar_inv(g))==g for g in gens(ImH)])
-		#######################################################################
+	# test if Hbar and Hbar_inv are inverse to each other:
+	@test all([Hbar_inv(Hbar(g))==g for g in gens(NmodKerH)])
+	@test all([Hbar(Hbar_inv(g))==g for g in gens(ImH)])
+	#######################################################################
 
-		# test, if H is surjective:
-		@test ImH == M
+	# test, if H is surjective:
+	@test ImH == M
 
-		#3) H:N --> M neither injective nor surjective, also: tests 'restrict_domain()'
-		MM = SubQuo(F2,A1,B1)
-		M, iM, iSQ = sum(MM, SubQuo(F2,A2,B1))
-		NN, p, i = direct_product(MM,SubQuo(A2,B2), task = :both)
-		i1,i2 = i[1],i[2]
-		p1,p2 = p[1],p[2]
-		nn = ngens(NN)
-		N,iN = sub(NN,[NN(sparse_row(matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:nn]))), NN(sparse_row(matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:nn]))), NN(sparse_row(matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:nn])))], :store)
-		
-		H = restrict_domain(p1*iM,N)
-		@test iswelldefined(H)
+	#3) H:N --> M neither injective nor surjective, also: tests 'restrict_domain()'
+	MM = SubQuo(F2,A1,B1)
+	M, iM, iSQ = sum(MM, SubQuo(F2,A2,B1))
+	NN, p, i = direct_product(MM,SubQuo(A2,B2), task = :both)
+	i1,i2 = i[1],i[2]
+	p1,p2 = p[1],p[2]
+	nn = ngens(NN)
+	N,iN = sub(NN,[NN(sparse_row(R[9*y 11*x*y 6*x^2*y 14*x*y^2 0])), NN(sparse_row(R[7*x^2 5*x^2*y^2 0 y 7*y^2])), NN(sparse_row(R[12*x 15*x*y^2 6*x*y 15*x^2*y^2 5*x]))], :store)	
+	H = restrict_domain(p1*iM,N)
+	@test iswelldefined(H)
 
-		## testing the homomorphism theorem: #################################
-		KerH,iKerH = kernel(H)
-		ImH,iImH = image(H)
+	## testing the homomorphism theorem: #################################
+	KerH,iKerH = kernel(H)
+	ImH,iImH = image(H)
 
-		NmodKerH, pNmodKerH = quo(N,KerH, :store)
-		Hbar = SubQuoHom(NmodKerH,M,matrix(H)) # induced map N/KerH --> M
-		Hbar = restrict_codomain(Hbar,ImH) # induced map N/KerH --> ImH
+	NmodKerH, pNmodKerH = quo(N,KerH, :store)
+	Hbar = SubQuoHom(NmodKerH,M,matrix(H)) # induced map N/KerH --> M
+	Hbar = restrict_codomain(Hbar,ImH) # induced map N/KerH --> ImH
 
-		@test iswelldefined(Hbar)
-		@test isbijective(Hbar)
+	@test iswelldefined(Hbar)
+	@test isbijective(Hbar)
 
-		Hbar_inv = inv(Hbar)
+	Hbar_inv = inv(Hbar)
 
-		# test, if caching of inverse maps works:
-		@test Hbar_inv === Hbar.inverse_isomorphism
-		@test Hbar === Hbar_inv.inverse_isomorphism
+	# test, if caching of inverse maps works:
+	@test Hbar_inv === Hbar.inverse_isomorphism
+	@test Hbar === Hbar_inv.inverse_isomorphism
 
-		# test if Hbar and Hbar_inv are inverse to each other:
-		@test all([Hbar_inv(Hbar(g))==g for g in gens(NmodKerH)])
-		@test all([Hbar(Hbar_inv(g))==g for g in gens(ImH)])
-		#######################################################################
+	# test if Hbar and Hbar_inv are inverse to each other:
+	@test all([Hbar_inv(Hbar(g))==g for g in gens(NmodKerH)])
+	@test all([Hbar(Hbar_inv(g))==g for g in gens(ImH)])
+	#######################################################################
 
 
 
-		#4) H: M --> N random map created via the hom() function
-		N = SubQuo(F2,A1,B1)
-		M = SubQuo(F2,A2,B2)
-		HomNM = hom(N,M)[1]
-		H = HomNM(sparse_row(matrix([randpoly(R,0:15,2,1) for _=1:1,j=1:ngens(HomNM)])))
-		H = homomorphism(H)
-		@test iswelldefined(H)
+	#4) H: M --> N random map created via the hom() function
+	N = SubQuo(F2,A1,B1)
+	M = SubQuo(F2,A2,B2)
+	HomNM = hom(N,M)[1]
+	H = HomNM(sparse_row(R[9*y 11*x*y 6*x^2*y 14*x*y^2]))
+	H = homomorphism(H)
+	@test iswelldefined(H)
 
-		## testing the homomorphism theorem: #################################
-		KerH,iKerH = kernel(H)
-		ImH,iImH = image(H)
+	## testing the homomorphism theorem: #################################
+	KerH,iKerH = kernel(H)
+	ImH,iImH = image(H)
 
-		NmodKerH, pNmodKerH = quo(N,KerH, :store)
-		Hbar = SubQuoHom(NmodKerH,M,matrix(H)) # induced map N/KerH --> M
-		Hbar = restrict_codomain(Hbar,ImH) # induced map N/KerH --> ImH
+	NmodKerH, pNmodKerH = quo(N,KerH, :store)
+	Hbar = SubQuoHom(NmodKerH,M,matrix(H)) # induced map N/KerH --> M
+	Hbar = restrict_codomain(Hbar,ImH) # induced map N/KerH --> ImH
 
-		@test iswelldefined(Hbar)
-		@test isbijective(Hbar)
+	@test iswelldefined(Hbar)
+	@test isbijective(Hbar)
 
-		Hbar_inv = inv(Hbar)
+	Hbar_inv = inv(Hbar)
 
-		# test, if caching of inverse maps works:
-		@test Hbar_inv === Hbar.inverse_isomorphism
-		@test Hbar === Hbar_inv.inverse_isomorphism
+	# test, if caching of inverse maps works:
+	@test Hbar_inv === Hbar.inverse_isomorphism
+	@test Hbar === Hbar_inv.inverse_isomorphism
 
-		# test if Hbar and Hbar_inv are inverse to each other:
-		@test all([Hbar_inv(Hbar(g))==g for g in gens(NmodKerH)])
-		@test all([Hbar(Hbar_inv(g))==g for g in gens(ImH)])
-		#######################################################################
-	end
-	print("\r                                        ")
-	print("\r")
+	# test if Hbar and Hbar_inv are inverse to each other:
+	@test all([Hbar_inv(Hbar(g))==g for g in gens(NmodKerH)])
+	@test all([Hbar(Hbar_inv(g))==g for g in gens(ImH)])
 end
 
 @testset "preimage" begin

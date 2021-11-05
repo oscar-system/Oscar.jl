@@ -103,7 +103,7 @@ julia> F = FreeMod(R, 3)
 Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field
 
 julia> F[2]
-(1)*e[2]
+e[2]
 ```
 """
 free_module(R::Ring, n::Int, name::String = "e"; cached::Bool = false) = FreeMod(R, n, name, cached = cached)
@@ -174,7 +174,7 @@ julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
 
 julia> F = FreeMod(R, 3)
-Free module of rank 2 over Multivariate Polynomial Ring in x, y over Rational Field
+Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field
 
 julia> f = FreeModElem(sparse_row(R, [(1,x),(3,y)]),F)
 (x)*e[1] + (y)*e[3]
@@ -300,7 +300,7 @@ julia> f = x*gen(F,1)+y*gen(F,3)
 (x)*e[1] + (y)*e[3]
 
 julia> coefficients(f)
-
+Sparse row with positions [1, 3] and values fmpq_mpoly[x, y]
 ```
 """
 coefficients(f::FreeModElem) = coeffs(f)
@@ -1205,12 +1205,12 @@ Free module of rank 2 over Multivariate Polynomial Ring in x, y over Rational Fi
 
 julia> O = [x*F[1]+F[2],y*F[2]]
 2-element Vector{FreeModElem{fmpq_mpoly}}:
- (x)*e[1] + (1)*e[2]
+ (x)*e[1] + e[2]
  (y)*e[2]
 
 julia> M = SubQuo(F, O)
 Submodule with 2 generators
-1 -> (x)*e[1] + (1)*e[2]
+1 -> (x)*e[1] + e[2]
 2 -> (y)*e[2]
 
 represented as subquotient with no relations.
@@ -2040,40 +2040,6 @@ Return a free presentation of `M`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
-
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
-
-julia> A = R[x; y]
-[x]
-[y]
-
-julia> B = R[x^2; x*y; y^2; z^4]
-[x^2]
-[x*y]
-[y^2]
-[z^4]
-
-julia> M = SubQuo(A, B)
-Subquotient of Submodule with 2 generators
-1 -> (x)*e[1]
-2 -> (y)*e[1]
-by Submodule with 4 generators
-1 -> (x^2)*e[1]
-2 -> (x*y)*e[1]
-3 -> (y^2)*e[1]
-4 -> (z^4)*e[1]
-
-
-
-julia> presentation(M)
-C_0 ----> C_1 ----> M ----> Zero
-where:
-	C_0 = Free module of rank 6 over Multivariate Polynomial Ring in x, y, z over Rational Field
-	C_1 = Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
-
 ```
 """
 function presentation(SQ::SubQuo)
@@ -2128,14 +2094,6 @@ Return a free presentation of $F$.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
-
-julia> F = FreeMod(R, 3)
-Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field
-
-julia> presentation(F)
-Zero ----> F ----> F ----> Zero
 ```
 """
 function presentation(F::FreeMod)
@@ -2156,45 +2114,6 @@ If `task` is set to `:morphism` then return only the isomorphism.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
-
-julia> A = R[x; y]
-[x]
-[y]
-
-julia> B = R[x^2; x*y; y^2; z^4]
-[x^2]
-[x*y]
-[y^2]
-[z^4]
-
-julia> M = SubQuo(A, B)
-Subquotient of Submodule with 2 generators
-1 -> (x)*e[1]
-2 -> (y)*e[1]
-by Submodule with 4 generators
-1 -> (x^2)*e[1]
-2 -> (x*y)*e[1]
-3 -> (y^2)*e[1]
-4 -> (z^4)*e[1]
-
-
-
-
-julia> present_as_cokernel(M)
-Subquotient of Submodule with 2 generators
-1 -> (1)*e[1]
-2 -> (1)*e[2]
-by Submodule with 6 generators
-1 -> (y)*e[1]
-2 -> (y)*e[2]
-3 -> (x)*e[1]
-4 -> (x)*e[2]
-5 -> (z^4)*e[1]
-6 -> (z^4)*e[2]
-
-
 ```
 """
 function present_as_cokernel(SQ::SubQuo, task::Symbol = :none)
@@ -2591,14 +2510,6 @@ Return a free resolution of `F`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
-
-julia> F = FreeMod(R, 3)
-Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field
-
-julia> free_resolution(F)
-Zero ----> F ----> F ----> Zero
 ```
 """
 function free_resolution(F::FreeMod)
@@ -2615,66 +2526,6 @@ is only computed up to the `limit`-th free module.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
-
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
-
-julia> A = R[x; y]
-[x]
-[y]
-
-julia> B = R[x^2; x*y; y^2; z^4]
-[x^2]
-[x*y]
-[y^2]
-[z^4]
-
-julia> M = SubQuo(A, B)
-Subquotient of Submodule with 2 generators
-1 -> (x)*e[1]
-2 -> (y)*e[1]
-by Submodule with 4 generators
-1 -> (x^2)*e[1]
-2 -> (x*y)*e[1]
-3 -> (y^2)*e[1]
-4 -> (z^4)*e[1]
-
-
-
-
-julia> F = free_resolution(M)
-Zero <---- M <---- F_4 <---- F_3 <---- F_2 <---- F_1 <---- Zero
-where:
-	F_1 = Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
-	F_2 = Free module of rank 6 over Multivariate Polynomial Ring in x, y, z over Rational Field
-	F_3 = Free module of rank 6 over Multivariate Polynomial Ring in x, y, z over Rational Field
-	F_4 = Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
-
-
-julia> typeof(F)
-Hecke.ChainComplex{ModuleFP}
-
-julia> F[2]
-Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
-
-julia> map(F, 2)
-Map with following data
-Domain:
-=======
-Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
-Codomain:
-=========
-Free module of rank 6 over Multivariate Polynomial Ring in x, y, z over Rational Field
-
-
-julia> free_resolution(M, 2)
-Zero <---- M <---- C_1 <---- C_0
-where:
-	C_0 = Free module of rank 6 over Multivariate Polynomial Ring in x, y, z over Rational Field
-	C_1 = Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field
-
 ```
 """
 function free_resolution(M::SubQuo, limit::Int = -1)
@@ -2710,19 +2561,6 @@ Compute a free resolution of `I`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
-
-julia> I = ideal(R, [x, y, z])
-ideal(x, y, z)
-
-julia> free_resolution(I)
-Zero <---- I <---- C_3 <---- C_2 <---- C_1 <---- Zero
-where:
-	C_1 = Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
-	C_2 = Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field
-	C_3 = Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field
-
 ```
 """
 function free_resolution(I::MPolyIdeal)
@@ -2742,31 +2580,6 @@ Compute a free resolution of `Q`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
-
-julia> Q, _ = quo(R, ideal(R, [y-x^2, x-z^3]))
-(Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, x - z^3), Map from
-Multivariate Polynomial Ring in x, y, z over Rational Field to Q defined by a julia-function with inverse
-)
-
-julia> free_resolution(Q)
-ERROR: elements not compatible
-Stacktrace:
- [1] error(s::String)
-   @ Base ./error.jl:33
- [2] *(a::fmpq_mpoly, b::FreeModElem{MPolyQuoElem{fmpq_mpoly}})
-   @ Oscar ~/.julia/dev/Oscar/src/Modules/UngradedModules.jl:379
- [3] (::Oscar.var"#791#792"{FreeMod{MPolyQuoElem{fmpq_mpoly}}})(x::fmpq_mpoly)
-   @ Oscar ./none:0
- [4] iterate
-   @ ./generator.jl:47 [inlined]
- [5] collect
-   @ ./array.jl:681 [inlined]
- [6] free_resolution(Q::MPolyQuo{fmpq_mpoly})
-   @ Oscar ~/.julia/dev/Oscar/src/Modules/UngradedModules.jl:2589
- [7] top-level scope
-   @ REPL[23]:1
 ```
 """
 function free_resolution(Q::MPolyQuo)
@@ -2952,20 +2765,34 @@ function Base.inv(H::ModuleMap)
 end
 
 ##################################################
+# direct sum
+##################################################
+@doc Markdown.doc"""
+    direct_sum(F::FreeMod{T}...; task::Symbol = :none) where T
+
+Given free modules $F_1\dots F_n$, say, return the direct sum $\bigoplus_{i=1}^n F_i$,
+together with
+- a vector containing the canonical injections  $F_i\rightarrow\bigoplus_{i=1}^n F_i$ if `task` is set to ":sum",
+- a vector containing the canonical projections  $\bigoplus_{i=1}^n F_i\rightarrow F_i$ if `task` is set to ":prod",
+- both vectors above, with injections first, if `task` is set to ":both".
+"""
+function direct_sum(F::FreeMod{T}...; task::Symbol = :none) where {T}
+  return direct_product(F, task)
+end
+
+##################################################
 # direct product
 ##################################################
 @doc Markdown.doc"""
-    direct_product(F::FreeMod{T}...; task::Symbol = :sum)
+    direct_product(F::FreeMod{T}...; task::Symbol = :none) where T
 
-Given free modules $F_i$ compute the direct product $P := F_1\oplus \cdots \oplus F_n$.
-If `task` is set to ":prod", an array of maps $\phi_1, \cdot, \phi_n$ is returned such
-that $\phi_i$ is the canonical projection $P \to F_i$.
-If `task` is set to ":sum", an array of maps $\psi_1, \cdot, \psi_n$ is returned such 
-that $\psi_i$ is the canonical injection $F_i \to P$.
-If `task` is set to ":both", both, the array of projections and the array of injections,
-are returned (with projections first).
+Given free modules $F_1\dots F_n$, say, return the direct sum $\bigoplus_{i=1}^n F_i$,
+together with
+- a vector containing the canonical projections  $\bigoplus_{i=1}^n F_i\rightarrow F_i$ if `task` is set to ":prod",
+- a vector containing the canonical injections  $F_i\rightarrow\bigoplus_{i=1}^n F_i$ if `task` is set to ":sum",
+- both vectors above, with projections first, if `task` is set to ":both".
 """
-function direct_product(F::FreeMod{T}...; task::Symbol = :sum) where {T}
+function direct_product(F::FreeMod{T}...; task::Symbol = :none) where {T}
   R = base_ring(F[1])
   G = FreeMod(R, Base.sum([rank(f) for f = F]))
   G.S = []
