@@ -392,6 +392,10 @@ function rand(W::MPolyLocalizedRing, v1::UnitRange{Int}, v2::UnitRange{Int}, v3:
   return W(rand(base_ring(W), v1, v2, v3), rand(inverted_set(W), v1, v2, v3))
 end
 
+### automatic conversion 
+Base.convert(::Type{LRT}, R::RT) where {LRT<:MPolyLocalizedRing, RT<:MPolyRing} = localize_at(MPolyUnits(R))
+
+
 ########################################################################
 # Elements of localized polynomial rings                               #
 ########################################################################
@@ -459,6 +463,15 @@ end
 
 ### additional conversions
 (W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(f::AbstractAlgebra.Generic.Frac{RingElemType}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocalizedRingElem(f, W)
+
+### additional promotions 
+AbstractAlgebra.promote_rule(::Type{RET}, ::Type{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT<:Ring, RET<:RingElement, MST} = MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}
+
+AbstractAlgebra.promote_rule(::Type{BRET}, ::Type{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}) where {BRT<:Ring, BRET<:RingElement, RT<:Ring, RET<:RingElement, MST} = MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}
+
+AbstractAlgebra.promote_rule(::Type{Integer}, ::Type{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}) where {BRT<:Ring, BRET<:RingElement, RT<:Ring, RET<:RingElement, MST} = MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}
+
+AbstractAlgebra.promote_rule(::Type{fmpz}, ::Type{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}) where {BRT<:Ring, BRET<:RingElement, RT<:Ring, RET<:RingElement, MST} = MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}
 
 ### overwriting the arithmetic using the fractions from AbstractAlgebra
 function +(a::T, b::T) where {T<:MPolyLocalizedRingElem}
@@ -997,6 +1010,7 @@ mutable struct MPolyLocalizedRingHom{BaseRingType, BaseRingElemType,
     parent_check = true
     for x in a
       parent_check = parent_check && parent(x) == W
+      denominator(x) in inverted_set(W) || error("the homomorphism is not well defined")
     end
     parent_check || error("the images of the variables are not elements of the codomain")
     # Check whether this homomorphism is well defined
@@ -1033,12 +1047,28 @@ function (f::MPolyLocalizedRingHom{BRT, BRET, RT, RET, DMST, CMST})(p::MPolyLoca
   return evaluate(numerator(p), images(f))//evaluate(denominator(p), images(f))
 end
 
-### Overwriting of the generic method
+### overwriting of the generic method
 function (f::MPolyLocalizedRingHom{BRT, BRET, RT, RET, DMST, CMST})(p::RET) where {BRT, BRET, RT, RET, DMST, CMST}
   return evaluate(p, images(f))
 end
 
-### additional functionality
+### provide an extra method for elements of the base ring
 function (f::MPolyLocalizedRingHom{BRT, BRET, RT, RET, DMST, CMST})(p::BRET) where {BRT, BRET, RT, RET, DMST, CMST}
   return codomain(f)(p)
 end
+
+### remove the ambiguity of methods in case the base ring is ZZ
+function (f::MPolyLocalizedRingHom)(p::fmpz) 
+  return codomain(f)(p)
+end
+
+### implementing the Oscar map interface
+identity_map(W::T) where {T<:MPolyLocalizedRing} = MPolyLocalizedRingHom(W, W, W.(gens(base_ring(W))))
+function compose(
+    f::MPolyLocalizedRingHom{BRT, BRET, RT, RET, MST1, MST2}, 
+    g::MPolyLocalizedRingHom{BRT, BRET, RT, RET, MST2, MST3}
+  ) where {BRT, BRET, RT, RET, MST1, MST2, MST3}
+  codomain(f) == domain(g) || error("maps are not compatible")
+  return MPolyLocalizedRingHom(domain(f), codomain(g), g.(images(f)))
+end
+
