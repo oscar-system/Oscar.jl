@@ -53,7 +53,7 @@ A localized ring should then be derived from
 The basic way to construct localized rings is to first 
 specify a multiplicative set `S` and then call 
 ```@docs
-    localize_at(S::AbsMultSet)
+    Localization(S::AbsMultSet)
 ```
 This method must be implemented with a dispatch depending on 
 the concrete type of `S`.
@@ -95,6 +95,11 @@ Two toy examples for implementations of this interface for localizations
 of the integers ``\mathbb Z`` and rings of the form ``\mathbb Z/n\mathbb Z`` 
 can be found in the test files 
 `test/Rings/integer-localizations.jl` and `test/Rings/nmod-localizations.jl`.
+
+**Note:** Any concrete type for localized rings is also required to implement 
+the general [Ring Interface](@ref) of Oscar! This has not been done to a full extent 
+for the previous two examples, but for ```MPolyLocalizedRing```; see below.
+
  
 ### Ideals in localized rings
 

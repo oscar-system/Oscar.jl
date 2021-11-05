@@ -6,12 +6,12 @@ using Oscar
 using Markdown
 
 import Nemo.NmodRing
-import Oscar: base_ring, inverted_set, ambient_ring, localize_at, parent, numerator, denominator, one, zero
+import Oscar: base_ring, inverted_set, ambient_ring, Localization, parent, numerator, denominator, one, zero
 import Oscar.AbstractAlgebra: elem_type, parent_type
 
 export NmodComplementOfPrimeIdeal, NmodLocalizedRing, NmodLocalizedRingElem
 
-export generator, ambient_ring, localize_at, parent, numerator, denominator
+export generator, ambient_ring, Localization, parent, numerator, denominator
 
 
 #######################################################################
@@ -75,7 +75,7 @@ base_ring(W::NmodLocalizedRing) = W.R::NmodRing
 inverted_set(W::NmodLocalizedRing{MultSetType}) where {MultSetType} = W.S::MultSetType
 
 ### required extension of the localization function
-localize_at(S::NmodComplementOfPrimeIdeal) = NmodLocalizedRing(S)
+Localization(S::NmodComplementOfPrimeIdeal) = NmodLocalizedRing(S)
 
 
 #######################################################################
@@ -149,7 +149,7 @@ parent_type(T::Type{NmodLocalizedRingElem{MultSetType}}) where {MultSetType} = N
   @test !(13*4289729837 in U)
   @test 5783790198374098 in U
   @test ambient_ring(U) == R
-  W = localize_at(U)
+  W = Localization(U)
   @test base_ring(W) == ambient_ring(U)
   @test inverted_set(W) == U
   a = W(4, 17)

@@ -11,7 +11,7 @@ export reduce_fraction
 export MPolyLocalizedIdeal
 export gens, base_ring, groebner_bases, default_ordering, dim 
 
-export localize_at, ideal
+export Localization, ideal
 
 export LocalizedBiPolyArray
 export oscar_gens, oscar_ring, singular_ring, singular_gens, ordering, shift
@@ -346,25 +346,25 @@ base_ring(W::MPolyLocalizedRing) = W.R
 inverted_set(W::MPolyLocalizedRing) = W.S
 
 ### required extension of the localization function
-localize_at(S::MPolyUnits) = MPolyLocalizedRing(ambient_ring(S), S)
+Localization(S::MPolyUnits) = MPolyLocalizedRing(ambient_ring(S), S)
 
-localize_at(S::MPolyComplementOfPrimeIdeal) = MPolyLocalizedRing(ambient_ring(S), S)
+Localization(S::MPolyComplementOfPrimeIdeal) = MPolyLocalizedRing(ambient_ring(S), S)
 
-localize_at(S::MPolyComplementOfKPointIdeal) = MPolyLocalizedRing(ambient_ring(S), S)
+Localization(S::MPolyComplementOfKPointIdeal) = MPolyLocalizedRing(ambient_ring(S), S)
 
-localize_at(S::MPolyPowersOfElement) = MPolyLocalizedRing(ambient_ring(S), S)
+Localization(S::MPolyPowersOfElement) = MPolyLocalizedRing(ambient_ring(S), S)
 
 
 ### additional constructors
 MPolyLocalizedRing(R::RingType, P::MPolyIdeal{RingElemType}) where {RingType, RingElemType} = MPolyLocalizedRing(R, MPolyComplementOfPrimeIdeal(P))
 
-localize_at(R::MPolyRing, f::MPolyElem) = localize_at(MPolyPowersOfElement(R, [f]))
-localize_at(R::MPolyRing, v::Vector{T}) where {T<:MPolyElem} = localize_at(MPolyPowersOfElement(R, v))
+Localization(R::MPolyRing, f::MPolyElem) = Localization(MPolyPowersOfElement(R, [f]))
+Localization(R::MPolyRing, v::Vector{T}) where {T<:MPolyElem} = Localization(MPolyPowersOfElement(R, v))
 
-function localize_at(
+function Localization(
     W::MPolyLocalizedRing{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}, 
     f::RET
-  ) where {BRT, BRET, RT, RET}
+  ) where {BRT, BRET, RT, RET<:RingElement}
   R = base_ring(W)
   parent(f) == R || error("the given element does not belong to the correct ring")
   S = inverted_set(W)
@@ -376,13 +376,13 @@ function localize_at(
   return MPolyLocalizedRing(R, MPolyPowersOfElement(R, vcat(g, divexact(f, h))))
 end
 
-function localize_at(
+function Localization(
     W::MPolyLocalizedRing{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}, 
     v::Vector{RET}
   ) where {BRT, BRET, RT, RET}
   V = W
   for f in v
-    V = localize_at(V, f)
+    V = Localization(V, f)
   end
   return V
 end
@@ -393,7 +393,7 @@ function rand(W::MPolyLocalizedRing, v1::UnitRange{Int}, v2::UnitRange{Int}, v3:
 end
 
 ### automatic conversion 
-Base.convert(::Type{LRT}, R::RT) where {LRT<:MPolyLocalizedRing, RT<:MPolyRing} = localize_at(MPolyUnits(R))
+Base.convert(::Type{LRT}, R::RT) where {LRT<:MPolyLocalizedRing, RT<:MPolyRing} = Localization(MPolyUnits(R))
 
 
 ########################################################################
@@ -1025,7 +1025,7 @@ function MPolyLocalizedRingHom(
       W::MPolyLocalizedRing{BRT, BRET, RT, RET, CMST}, 
       a::Vector{MPolyLocalizedRingElem{BRT, BRET, RT, RET, CMST}}
     ) where {BRT, BRET, RT, RET, CMST}
-  return MPolyLocalizedRingHom(localize_at(MPolyUnits(R)), W, a)
+  return MPolyLocalizedRingHom(Localization(MPolyUnits(R)), W, a)
 end
 
 function MPolyLocalizedRingHom(
@@ -1033,7 +1033,7 @@ function MPolyLocalizedRingHom(
       S::RT,
       a::Vector{RET}
     ) where {BRT, BRET, RT, RET, DMST}
-  W = localize_at(MPolyUnits(S))
+  W = Localization(MPolyUnits(S))
   return MPolyLocalizedRingHom(V, W, W.(a))
 end
 

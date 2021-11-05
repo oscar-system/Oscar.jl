@@ -2,7 +2,7 @@ import AbstractAlgebra: Ring, RingElem, Generic.Frac
 
 export MPolyQuoLocalizedRing
 export parent, inverted_set, base_ring, loc_poly_ring, modulus
-export localize_at
+export Localization
 
 export MPolyQuoLocalizedRingElem
 export numerator, denominator, parent, lift
@@ -20,15 +20,34 @@ export numerator, denominator, parent, lift
 #
 #         R    →  Q = R/I
 #         ↓       ↓
-#   W = R[S⁻¹] → Q[S⁻¹]
+#   W = R[S⁻¹] → Q[S⁻¹].
 #
-# and for every multiplicative set T ⊂ Q the preimage S of T in R 
-# is also a multiplicative set. 
+# Observe that, moreover, for every multiplicative set 
+# T ⊂ Q the preimage S of T in R is also a multiplicative set. 
 #
 # We may therefore treat localizations of polynomial algebras 
 # as localizations of modules over free polynomial rings and 
 # exclusively use the types of multiplicative sets which are 
 # available for the latter.
+#
+# Note the following differences compared to the standard usage 
+# of the localization interface:
+#
+#  * The `base_ring` returns neither Q, nor W, but R.
+#  * The `BaseRingType` is the type of R and similar for 
+#    the other ring-based type parameters.
+#
+# This is to make the data structure most accessible for 
+# the computational backends.
+#
+#  * The type returned by `numerator` and `denominator` 
+#    on an element of type `MPolyQuoLocalizedRingElem` is 
+#    not `RingElemType`, but the type of `Q`. 
+#
+# This is to comply with the purely mathematical viewpoint
+# where elements of localized rings are fractions of 
+# residue classes rather than residue classes of fractions. 
+#
 
 mutable struct MPolyQuoLocalizedRing{
     BaseRingType,
@@ -98,8 +117,8 @@ function quo(
   return MPolyQuoLocalizedRing(R, J, S, quo(R, J), W)
 end
 
-function localize_at(Q::MPolyQuo{RET}, S::MultSetType) where {RET <: RingElem, MultSetType <: AbsMultSet}
-  return MPolyQuoLocalizedRing(base_ring(Q), modulus(Q), S, Q, localize_at(S))
+function Localization(Q::MPolyQuo{RET}, S::MultSetType) where {RET <: RingElem, MultSetType <: AbsMultSet}
+  return MPolyQuoLocalizedRing(base_ring(Q), modulus(Q), S, Q, Localization(S))
 end
 
 
@@ -171,6 +190,7 @@ end
 ### additional functionality
 lift(f::MPolyQuoLocalizedRingElem) = localized_ring(f)(lifted_numerator(f), lifted_denominator(f))
 
+
 ### arithmetic #########################################################
 function +(a::T, b::T) where {T<:MPolyQuoLocalizedRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
@@ -215,6 +235,27 @@ function *(a::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}, b::BRET) where
   return b*a
 end
 
+### Why are the `//`-methods not implemented?
+# Since a quotient ring Q = R/I of a polynomial ring R is not necessarily 
+# factorial, it is difficult to decide, whether or not a and b have a 
+# common factor g that can be cancelled so that b'= b/g ∈  Q belongs 
+# to the multiplicative set. Moreover, this would be the case if any 
+# lift of b' belonged to S + I where S ⊂ R is the original multiplicative 
+# set. Such containment can not easily be checked based only on the 
+# functionality provided for S: Depending on the concrete type of 
+# S, this task is algorithmically difficult, if not impossible.
+#
+# To remedy for this, we pursue the following pattern: 
+#
+# * Creation of elements [a]/[b] ∈ Q[S⁻¹] is possible only from 
+#   representatives a/b ∈ R[S⁻¹] with b ∈ S.
+# * The ring arithmetic attempts to cancel fractions which includes 
+#   reduction modulo I of both the numerator and the denominator. 
+#   This leads to representatives which would not be admissible 
+#   for creation of elements in Q[S⁻¹].
+# * Division routines can be used for the ring R[S⁻¹] with subsequent
+#   conversion. 
+
 function Base.:(//)(a::Oscar.IntegerUnion, b::MPolyQuoLocalizedRingElem)
   error("function `//` not implemented for elements of type $(typeof(b))")
 end
@@ -253,4 +294,16 @@ function reduce_fraction(f::MPolyQuoLocalizedRingElem)
   h = parent(h)(divexact(numerator(h), g), divexact(denominator(h), g))
   return parent(f)(h)
 end
+
+
+### implementation of Oscar's general ring interface
+one(W::MPolyQuoLocalizedRing) = W(one(base_ring(W)))
+zero(W::MPolyQuoLocalizedRing)= W(zero(base_ring(W)))
+
+elem_type(W::MPolyQuoLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyQuoLocalizedRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
+elem_type(T::Type{MPolyQuoLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyQuoLocalizedRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
+
+parent_type(W::MPolyQuoLocalizedRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyQuoLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
+parent_type(T::Type{MPolyQuoLocalizedRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyQuoLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
+
 

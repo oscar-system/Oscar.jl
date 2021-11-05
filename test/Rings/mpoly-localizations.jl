@@ -6,9 +6,9 @@
   m = ideal(R, [x, y])
   I = ideal(R, f)
   S = MPolyComplementOfPrimeIdeal(I)
-  V = localize_at(S)
+  V = Localization(S)
   T = MPolyComplementOfKPointIdeal(R, [ZZ(1), ZZ(0)])
-  W = localize_at(T)
+  W = Localization(T)
   
   k = QQ
   R, var = k["x", "y"]
@@ -23,7 +23,7 @@
   @test ambient_ring(S) == R
   @test !( f in S )
   @test x in S
-  V = localize_at(S)
+  V = Localization(S)
   @test base_ring(V) == R
   @test inverted_set(V) == S
 
@@ -32,7 +32,7 @@
   @test typeof(point_coordinates(T)) == Vector{elem_type(k)}
   @test x in T
   @test !(x-p in T)
-  W = localize_at(T)
+  W = Localization(T)
 
   a = W(R(1))
   b = W(2)
@@ -98,7 +98,7 @@ end
   @test (5*f in S)
   @test x^3*y in S
   @test !(x^19*(x+y) in S)
-  W = localize_at(S)
+  W = Localization(S)
   @test x*y^2 in S
   @test !(x*(x+y) in S)
   @test W(1//x) == 1//W(x)
@@ -118,12 +118,12 @@ end
   @test f in S
   @test !(5*f in S)
 
-  U = localize_at(R, f)
-  V = localize_at(U, x)
-  W = localize_at(V, 5*f)
+  U = Localization(R, f)
+  V = Localization(U, x)
+  W = Localization(V, 5*f)
 
   phi = MPolyLocalizedRingHom(R, W, [W(1//x), W(y//f)])
-  @test phi(x*f) == phi(localize_at(MPolyUnits(R))(x*f))
+  @test phi(x*f) == phi(Localization(MPolyUnits(R))(x*f))
   @test phi(ZZ(9)) == W(ZZ(9))
 
   psi = MPolyLocalizedRingHom(U, R, [R(0), R(0)])
@@ -132,33 +132,34 @@ end
 
 function test_elem(W::MPolyLocalizedRing) 
   f = rand(W, 0:3, 0:4, 0:3)
+  @show f
   return f
 end
 
 @testset "Ring interface for localized polynomial rings" begin
   include(joinpath(pathof(AbstractAlgebra), "..", "..", "test", "Rings-conformance-tests.jl"))
-
-  kk = QQ
-  R, v = kk["x", "y"]
-  x = v[1]
-  y = v[2] 
-  f = x^2+y^2-1
-  I = ideal(R, f)
-
-  d = Vector{elem_type(R)}()
-  d = [rand(R, 1:3, 0:4, 1:10)::elem_type(R) for i in 0:(abs(rand(Int))%3+1)]
-  S = MPolyPowersOfElement(R, d)
-  T = MPolyComplementOfKPointIdeal(R, [kk(125), kk(-45)])
-  U = MPolyComplementOfPrimeIdeal(I)
-
-  test_Ring_interface_recursive(localize_at(S))
-  test_Ring_interface_recursive(localize_at(T))
-  test_Ring_interface_recursive(localize_at(U))
+#
+# kk = QQ
+# R, v = kk["x", "y"]
+# x = v[1]
+# y = v[2] 
+# f = x^2+y^2-1
+# I = ideal(R, f)
+#
+# d = Vector{elem_type(R)}()
+# d = [rand(R, 1:3, 0:4, 1:10)::elem_type(R) for i in 0:(abs(rand(Int))%3+1)]
+# S = MPolyPowersOfElement(R, d)
+# T = MPolyComplementOfKPointIdeal(R, [kk(125), kk(-45)])
+# U = MPolyComplementOfPrimeIdeal(I)
+#
+# test_Ring_interface_recursive(Localization(S))
+# test_Ring_interface_recursive(Localization(T))
+# test_Ring_interface_recursive(Localization(U))
   
   AbstractAlgebra.promote_rule(::Type{gfp_mpoly}, ::Type{fmpz}) = gfp_mpoly
   AbstractAlgebra.promote_rule(::Type{gfp_elem}, ::Type{fmpz}) = gfp_elem
 
-  kk = GF(101) 
+  kk = GF(7) 
   R, v = kk["x", "y"]
   x = v[1]
   y = v[2] 
@@ -166,29 +167,29 @@ end
   I = ideal(R, f)
 
   d = Vector{elem_type(R)}()
-  d = [rand(R, 1:3, 0:4, 1:10)::elem_type(R) for i in 0:(abs(rand(Int))%3+1)]
+  d = [rand(R, 1:3, 0:3, 1:10)::elem_type(R) for i in 0:(abs(rand(Int))%3+1)]
   S = MPolyPowersOfElement(R, d)
   T = MPolyComplementOfKPointIdeal(R, [kk(125), kk(-45)])
   U = MPolyComplementOfPrimeIdeal(I)
 
-  test_Ring_interface_recursive(localize_at(S))
-  test_Ring_interface_recursive(localize_at(T))
-  test_Ring_interface_recursive(localize_at(U))
+  test_Ring_interface_recursive(Localization(S))
+  test_Ring_interface_recursive(Localization(T))
+  test_Ring_interface_recursive(Localization(U))
 
-  kk = ZZ
-  R, v = kk["x", "y"]
-  x = v[1]
-  y = v[2] 
-  f = x^2+y^2-1
-  I = ideal(R, f)
-
-  d = Vector{elem_type(R)}()
-  d = [rand(R, 1:3, 0:4, 1:10)::elem_type(R) for i in 0:(abs(rand(Int))%3+1)]
-  S = MPolyPowersOfElement(R, d)
-  T = MPolyComplementOfKPointIdeal(R, [kk(125), kk(-45)])
-  U = MPolyComplementOfPrimeIdeal(I)
-
-  test_Ring_interface_recursive(localize_at(S))
-  test_Ring_interface_recursive(localize_at(T))
-  test_Ring_interface_recursive(localize_at(U))
+# kk = ZZ
+# R, v = kk["x", "y"]
+# x = v[1]
+# y = v[2] 
+# f = x^2+y^2-1
+# I = ideal(R, f)
+#
+# d = Vector{elem_type(R)}()
+# d = [rand(R, 1:3, 0:4, 1:10)::elem_type(R) for i in 0:(abs(rand(Int))%3+1)]
+# S = MPolyPowersOfElement(R, d)
+# T = MPolyComplementOfKPointIdeal(R, [kk(125), kk(-45)])
+# U = MPolyComplementOfPrimeIdeal(I)
+#
+# test_Ring_interface_recursive(Localization(S))
+# test_Ring_interface_recursive(Localization(T))
+# test_Ring_interface_recursive(Localization(U))
 end

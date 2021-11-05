@@ -5,7 +5,7 @@
 using Oscar
 using Markdown
 
-import Oscar: base_ring, inverted_set, ambient_ring, localize_at, parent, numerator, denominator, one, zero, reduce_fraction
+import Oscar: base_ring, inverted_set, ambient_ring, Localization, parent, numerator, denominator, one, zero, reduce_fraction
 import Oscar.AbstractAlgebra: elem_type, parent_type
 
 export FmpzComplementOfPrimeIdeal, FmpzPowersOfElement, FmpzComplementOfZeroIdeal
@@ -143,9 +143,9 @@ base_ring(W::FmpzLocalizedRing) = ZZ::FlintIntegerRing
 inverted_set(W::FmpzLocalizedRing{MultSetType}) where {MultSetType} = W.S::MultSetType
 
 ### required extensions of the localization function
-localize_at(S::FmpzComplementOfPrimeIdeal) = FmpzLocalizedRing(S)
-localize_at(S::FmpzComplementOfZeroIdeal) = FmpzLocalizedRing(S)
-localize_at(S::FmpzPowersOfElement) = FmpzLocalizedRing(S)
+Localization(S::FmpzComplementOfPrimeIdeal) = FmpzLocalizedRing(S)
+Localization(S::FmpzComplementOfZeroIdeal) = FmpzLocalizedRing(S)
+Localization(S::FmpzPowersOfElement) = FmpzLocalizedRing(S)
 
 
 #######################################################################
@@ -231,7 +231,7 @@ parent_type(T::Type{FmpzLocalizedRingElem{MultSetType}}) where {MultSetType} = F
   @test !(33 in S)
   @test 5*5*7 in S
   @test ambient_ring(S) == ZZ
-  W = localize_at(S)
+  W = Localization(S)
   @test base_ring(W) == ambient_ring(S)
   @test inverted_set(W) == S
   a = W(3)
@@ -248,7 +248,7 @@ parent_type(T::Type{FmpzLocalizedRingElem{MultSetType}}) where {MultSetType} = F
   @test !(13*4289729837 in U)
   @test 5783790198374098 in U
   @test ambient_ring(U) == ZZ
-  W = localize_at(U)
+  W = Localization(U)
   @test base_ring(W) == ambient_ring(U)
   @test inverted_set(W) == U
   a = W(4, 17)
@@ -263,7 +263,7 @@ parent_type(T::Type{FmpzLocalizedRingElem{MultSetType}}) where {MultSetType} = F
   @test 234890 in O
   @test !(0 in O)
   @test ambient_ring(O) == ZZ
-  W = localize_at(O)
+  W = Localization(O)
   @test base_ring(W) == ambient_ring(O)
   @test inverted_set(W) == O
   a = W(4, 17)
