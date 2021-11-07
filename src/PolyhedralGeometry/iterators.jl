@@ -266,18 +266,21 @@ struct SubObjectIterator{T} <: AbstractVector{T}
     Obj::Polymake.BigObject
     Acc::Function
     n::Base.Integer
+    options::NamedTuple
 end
+
+SubObjectIterator{T}(Obj::Polymake.BigObject, Acc::Function, n::Base.Integer) where T = SubObjectIterator{T}(Obj, Acc, n, NamedTuple())
 
 Base.IndexStyle(::Type{<:SubObjectIterator}) = IndexLinear()
 
 function Base.getindex(iter::SubObjectIterator{T}, i::Base.Integer) where T
     @boundscheck 1 <= i && i <= iter.n
-    return iter.Acc(T, iter.Obj, i)
+    return iter.Acc(T, iter.Obj, i; iter.options...)
 end
 
 Base.firstindex(::SubObjectIterator) = 1
 Base.lastindex(iter::SubObjectIterator) = length(iter)
 Base.size(iter::SubObjectIterator) = (iter.n,)
 
-incidence_matrix(iter::SubObjectIterator) = incidence_matrix(Val(iter.Acc), iter.Obj)
-incidence_matrix(::Any, ::Polymake.BigObject) = throw(ArgumentError("Incidence Matrix not defined in this context."))
+ray_incidences(iter::SubObjectIterator) = _ray_incidences(Val(iter.Acc), iter.Obj; iter.options...)
+ray_incidences(::Any, ::Polymake.BigObject) = throw(ArgumentError("Incidence Matrix resp. rays not defined in this context."))

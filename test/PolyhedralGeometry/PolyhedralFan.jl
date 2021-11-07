@@ -26,17 +26,18 @@
         @test nrays(F2) == 2
         @test maximal_cones(F1) isa SubObjectIterator{Cone}
         @test dim.(maximal_cones(F1)) == [2,2]
-        @test incidence_matrix(maximal_cones(F1)) == incidence1
+        @test ray_incidences(maximal_cones(F1)) == incidence1
         @test nmaximal_cones(F1) == 2
         @test lineality_space(F2).m == L
-        @test cones(Cone, F2, 2) isa PolyhedronOrConeIterator{Cone}
-        @test size(cones(Cone, F2, 2)) == (2,)
-        @test cones(Cone, F2, 2).lineality == [0 1 0]
-        @test cones(F2, 2) isa PolyhedronOrConeIterator{Cone}
+        @test cones(F2, 2) isa SubObjectIterator{Cone}
+        @test size(cones(F2, 2)) == (2,)
+        @test lineality_space(cones(F2, 2)[1]).m == [0 1 0]
+        @test rays(cones(F2, 2)[1]).m == [1 0 0]
+        @test rays(cones(F2, 2)[2]).m == [0 0 1]
         @test isnothing(cones(F2, 1))
-        @test length(rays(F0)) == 3
+        @test ray_incidences(cones(F1, 2)) == incidence1
 
-        II = incidence_matrix(maximal_cones(NFsquare))
+        II = ray_incidences(maximal_cones(NFsquare))
         NF0 = PolyhedralFan(rays(NFsquare).m, II)
         @test nrays(NF0) == 4
         FF0 = face_fan(C0)
