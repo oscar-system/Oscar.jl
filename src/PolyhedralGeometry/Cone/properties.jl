@@ -64,6 +64,7 @@ end
 function _ray_incidences(::Val{_face_cone}, C::Polymake.BigObject; f_dim::Int = 0)
    f = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(C, f_dim))
    return IncidenceMatrix([collect(f[i]) for i in 1:length(f)])
+end
 
 ###############################################################################
 ###############################################################################
