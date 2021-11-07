@@ -51,16 +51,19 @@ RayVector{Polymake.Rational}[[1, 0, 0], [0, 0, 1]]
 RayVector{Polymake.Rational}[[1, 0, 0], [0, 1, 0]]
 ```
 """
-function faces(as::Type{T}, C::Cone, face_dim::Int) where T<:Cone
-   n = face_dim-length(lineality_space(C))
-   if n < 1
-      return nothing
-   end
-   cfaces = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(pm_object(C), n))
-   return PolyhedronOrConeIterator{as}(pm_object(C).RAYS,cfaces, pm_object(C).LINEALITY_SPACE)
+function faces(C::Cone, face_dim::Int)
+   n = face_dim - length(lineality_space(C))
+   n < 1 && return nothing
+   return SubObjectIterator{Cone}(C.pm_cone, _face_cone, size(Polymake.polytope.faces_of_dim(pm_object(C), n), 1), (f_dim = n,))
 end
 
-faces(C::Cone, face_dim::Int) = faces(Cone, C, face_dim)
+function _face_cone(::Type{Cone}, C::Polymake.BigObject, i::Base.Integer; f_dim::Int = 0)
+   return Cone(Polymake.polytope.Cone(RAYS = C.RAYS[collect(Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(C, f_dim)[i])), :], LINEALITY_SPACE = C.LINEALITY_SPACE))
+end
+
+function _ray_incidences(::Val{_face_cone}, C::Polymake.BigObject; f_dim::Int = 0)
+   f = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(C, f_dim))
+   return IncidenceMatrix([collect(f[i]) for i in 1:length(f)])
 
 ###############################################################################
 ###############################################################################

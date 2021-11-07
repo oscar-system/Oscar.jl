@@ -43,11 +43,13 @@ const pm = Polymake
         @test rays(Cone4).m == R
         @test codim(Cone4) == 1
         @test codim(Cone3) == 0
-        @test faces(Cone, Cone2, 2) isa PolyhedronOrConeIterator{Cone}
-        @test size(faces(Cone, Cone2, 2)) == (2,)
-        @test faces(Cone, Cone2, 2).lineality == [0 1 0]
-        @test faces(Cone2, 2) isa PolyhedronOrConeIterator{Cone}
+        @test faces(Cone2, 2) isa SubObjectIterator{Cone}
+        @test size(faces(Cone2, 2)) == (2,)
+        @test lineality_space(faces(Cone2, 2)[1]).m == [0 1 0]
+        @test rays(faces(Cone2, 2)[1]).m == [1 0 0]
+        @test rays(faces(Cone2, 2)[2]).m == [0 0 1]
         @test isnothing(faces(Cone2, 1))
+        @test ray_incidences(faces(Cone2, 2)) == IncidenceMatrix([[1], [2]])
 
         @test f_vector(Cone5) == [4, 4]
         @test f_vector(Cone2) == [0, 2]
