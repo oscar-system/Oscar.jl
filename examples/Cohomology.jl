@@ -1066,7 +1066,6 @@ function Gap(C::Main.GrpCoh.CohomologyModule{<:Any, Generic.FreeModule{gfp_elem}
   end
   k = GAP.Globals.Z(Int(characteristic(base_ring(C))))
   one = k^0
-  @show (GAP.julia_to_gap([GAP.julia_to_gap(map(x->Int(x)*k, Matrix(lift(mat(x))))) for x = C.ac]), k)
   z = GAP.Globals.GModuleByMats(GAP.julia_to_gap([GAP.julia_to_gap(map(x->Int(x)*k, Matrix(lift(mat(x))))) for x = C.ac]), GAP.Globals.GF(Int(characteristic(base_ring(C)))))
   AbstractAlgebra.set_special(C, :Gap=>z)
   return z
