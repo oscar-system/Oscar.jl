@@ -1054,7 +1054,7 @@ end
 #
 #     ϕ(xᵢ) = aᵢ(y)/ bᵢ(y)
 #
-# where bᵢ(y) ∈ V for all i. Given such a list of images, there is a 
+# where bᵢ(y) ∈ V for all i. Given such a list of images
 # one can always define the associated homomorphism ϕ' : P → Q[V⁻¹]. 
 # This extends to a well defined homomorphism ϕ as above iff
 #
