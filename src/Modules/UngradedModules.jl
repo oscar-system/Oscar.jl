@@ -193,6 +193,11 @@ true
 struct FreeModElem{T} <: AbstractFreeModElem{T}
   coords::SRow{T} # also usable via coeffs()
   parent::FreeMod{T}
+
+  function FreeModElem{T}(coords::SRow{T}, parent::FreeMod{T}) where T
+    r = new{T}(coords,parent)
+    return r
+  end
 end
 
 @doc Markdown.doc"""
@@ -829,11 +834,11 @@ Create the homomorphism $F \to G$ defined by sending `F[i]` to `V[i]`.
 hom(F::FreeMod, G, V::Vector) = FreeModuleHom(F, G, V)
 
 @doc Markdown.doc"""
-    hom(F::FreeMod{T}, G::Union{FreeMod{T},SubQuo{T}}, V::MatElem{T}) where {T}
+    hom(F::FreeMod{T}, G::ModuleFP{T}, V::MatElem{T}) where {T}
 
 Create the homomorphism $F \to G$ defined by sending `F[i]` to $\sum_j G[j]*A[i][j]$.
 """
-hom(F::FreeMod{T}, G::Union{FreeMod{T},SubQuo{T}}, A::MatElem{T}) where {T} = FreeModuleHom(F, G, A)
+hom(F::FreeMod{T}, G::ModuleFP{T}, A::MatElem{T}) where {T} = FreeModuleHom(F, G, A)
 
 @doc Markdown.doc"""
     identity_map(M::ModuleFP)
