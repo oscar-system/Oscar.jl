@@ -327,17 +327,15 @@ parent_type(::Type{FreeModElem{T}}) where {T} = FreeMod{T}
 elem_type(::FreeMod{T}) where {T} = FreeModElem{T}
 parent_type(::FreeModElem{T}) where {T} = FreeMod{T}
 
-function show(io::IO, e::FreeModElem)
-  if length(e.coords) == 0
-    print(io, 0)
-    return
+function expressify(e::FreeModElem; context = nothing)
+  sum = Expr(:call, :+)
+  for (pos, val) in e.coords
+     # assuming e.parent.S is an array of strings/symbols
+     push!(sum.args, Expr(:call, :*, expressify(val, context = context), e.parent.S[pos]))
   end
-  out_string = join(["($val)*$(e.parent.S[pos])" for (pos, val) in e.coords], " + ")
-  out_string = replace(out_string, "(1)*"=>"")
-  out_string = replace(out_string, "+ (-1)*"=>"- ")
-  out_string = replace(out_string, "(-1)*"=>"-")
-  print(io, out_string)
+  return sum
 end
+@enable_all_show_via_expressify FreeModElem
 
 @doc Markdown.doc"""
     show_as_vector(io::IO, e::FreeModElem)
