@@ -119,7 +119,6 @@ Base.:(==)(x::Hyperplane, y::Hyperplane) = x.a == y.a && x.b == y.b
 
 struct PolyhedronOrConeIterator{T} <: AbstractVector{T}
     vertices::Polymake.Matrix{Polymake.Rational}
-    # faces::Polymake.Array{Polymake.Set{Polymake.to_cxx_type(Int64)}}
     faces::IncidenceMatrix
     lineality::Polymake.Matrix{Polymake.Rational}
     
@@ -260,3 +259,25 @@ VectorIterator(x...) = VectorIterator{PointVector{Polymake.Rational}}(x...)
 ####################
 
 matrix_for_polymake(iter::VectorIterator) = iter.m
+
+####################
+
+struct SubObjectIterator{T} <: AbstractVector{T}
+    Obj::Polymake.BigObject
+    Acc::Function
+    n::Base.Integer
+end
+
+Base.IndexStyle(::Type{<:SubObjectIterator}) = IndexLinear()
+
+function Base.getindex(iter::SubObjectIterator{T}, i::Base.Integer) where T
+    @boundscheck 1 <= i && i <= iter.n
+    return iter.Acc(T, iter.Obj, i)
+end
+
+Base.firstindex(::SubObjectIterator) = 1
+Base.lastindex(iter::SubObjectIterator) = length(iter)
+Base.size(iter::SubObjectIterator) = (iter.n,)
+
+incidence_matrix(iter::SubObjectIterator) = incidence_matrix(Val(iter.Acc), iter.Obj)
+incidence_matrix(::Any, ::Polymake.BigObject) = throw(ArgumentError("Incidence Matrix not defined in this context."))
