@@ -76,6 +76,18 @@
   K = ideal(V, [x, y])
   lbpa = groebner_basis(K)
   reduce(V(x), lbpa)
+  
+  R, v = ZZ["x", "y"]
+  x = v[1]
+  y = v[2] 
+  f = (x^2 + y^2)^2
+  S = MPolyComplementOfKPointIdeal(R, [ZZ(0), ZZ(0)])
+  T = MPolyPowersOfElement(R, [f])
+  U = MPolyUnionOfMultSets(R, [S, T])
+  @show U
+  @test f in U
+  @test (f*(x-1) in U)
+  @test !(f*x in U)
 end
 
 @testset "mpoly-localizations PowersOfElements" begin
