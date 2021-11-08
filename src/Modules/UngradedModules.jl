@@ -82,7 +82,8 @@ end
 
 Construct a free module over the ring `R` with rank `n`.
 Additionally one can provide names for the generators. If one does 
-not provide names for the generators, the standard names e_i are used for the unit vectors.
+not provide names for the generators, the standard names e_i are used for 
+the standard unit vectors.
 """
 function FreeMod(R::Ring, n::Int, name::String = "e"; cached::Bool = false) # TODO cached?
   return FreeMod{elem_type(R)}(n, R, [Symbol("$name[$i]") for i=1:n])
@@ -91,8 +92,8 @@ end
 @doc Markdown.doc"""
     free_module(R::Ring, n::Int, name::String = "e"; cached::Bool = false)
 
-Create the free module $R^n$ with its basis of unit vectors.
-The string with default "e" specifies how the basis vectors are printed. 
+Return the free module $R^n$.
+The string `name` specifies how the basis vectors are printed. 
 
 # Examples
 ```jldoctest
@@ -166,7 +167,7 @@ end
 
 The type of free module elements. A free module element
 is given by a sparse row (`SRow`) which specifies its coordinates 
-with respect to the basis of unit vectors.
+with respect to the basis of standard unit vectors.
 
 # Examples
 ```jldoctest
@@ -192,26 +193,21 @@ true
 struct FreeModElem{T} <: AbstractFreeModElem{T}
   coords::SRow{T} # also usable via coeffs()
   parent::FreeMod{T}
-
-  function FreeModElem{T}(coords::SRow{T}, parent::FreeMod{T}) where T
-    r = new{T}(coords,parent)
-    return r
-  end
 end
 
 @doc Markdown.doc"""
     FreeModElem(c::SRow{T}, parent::FreeMod{T}) where T
 
-Return the element of  `F`  whose coefficients with respect to the basis of unit vectors
-of `F` are given by the entries of `c`.
+Return the element of  `F`  whose coefficients with respect to the basis of 
+standard unit vectors of `F` are given by the entries of `c`.
 """
 FreeModElem(c::SRow{T}, parent::FreeMod{T}) where T = FreeModElem{T}(c, parent)
 
 @doc Markdown.doc"""
     FreeModElem(c::Vector{T}, parent::FreeMod{T}) where T
     
-Return the element of  `F`  whose coefficients with respect to the basis of unit vectors
-of `F` are given by the entries of `c`.
+Return the element of  `F`  whose coefficients with respect to the basis of 
+standard unit vectors of `F` are given by the entries of `c`.
 """
 function FreeModElem(c::Vector{T}, parent::FreeMod{T}) where T
   @assert length(c) == rank(parent)
@@ -222,8 +218,8 @@ end
 @doc Markdown.doc"""
     (F::FreeMod{T})(c::SRow{T}) where T
     
-Return the element of  `F`  whose coefficients with respect to the basis of unit vectors
-of `F` are given by the entries of `c`.
+Return the element of  `F`  whose coefficients with respect to the basis of 
+standard unit vectors of `F` are given by the entries of `c`.
 """
 function (F::FreeMod{T})(c::SRow{T}) where T
   return FreeModElem(coords, F)
@@ -232,8 +228,8 @@ end
 @doc Markdown.doc"""
     (F::FreeMod{T})(c::Vector{T}) where T
 
-Return the element of  `F`  whose coefficients with respect to the basis of unit vectors
-of `F` are given by the entries of `c`.
+Return the element of  `F`  whose coefficients with respect to the basis of 
+standard unit vectors of `F` are given by the entries of `c`.
 
 # Examples
 ```jldoctest
@@ -284,7 +280,7 @@ end
 @doc Markdown.doc"""
     coefficients(f::FreeModElem)
 
-Return the coefficients of `f` with respect to the basis of unit vectors. 
+Return the coefficients of `f` with respect to the basis of standard unit vectors. 
 
 The result is returned as a sparse row.
 
@@ -384,7 +380,7 @@ gens(F::AbstractFreeMod) = basis(F)
 
     gen(F::AbstractFreeMod, i::Int)
 
-Return the `i`th basis vector of `F`, that is, return the `i`th unit vector.
+Return the `i`th basis vector of `F`, that is, return the `i`th standard unit vector.
 """
 function basis(F::AbstractFreeMod, i::Int)
   @assert 0 < i <= ngens(F)
@@ -534,7 +530,10 @@ ModuleGens(F::FreeMod{S}, s::Singular.smodule) where {S} = ModuleGens{S}(F, s)
     ModuleGens(O::Vector{<:FreeModElem})
 
 Construct `ModuleGens` from an array of Oscar free module elements.
-Note: The array must not be empty.
+
+!!! note 
+    
+    The array must not be empty.
 """
 function ModuleGens(O::Vector{<:FreeModElem})
   # TODO Empty generating set
@@ -547,7 +546,10 @@ end
     ModuleGens(O::Vector{<:FreeModElem}, F::FreeMod{T}) where {T}
 
 Construct `ModuleGens` from an array of Oscar free module elements, specifying the Oscar free module.
-Note: The array might be empty.
+
+!!! note
+
+    The array might be empty.
 """
 function ModuleGens(O::Vector{<:FreeModElem}, F::FreeMod{T}) where {T}
   SF = singular_module(F)
@@ -558,7 +560,10 @@ end
     ModuleGens(O::Vector{<:FreeModElem}, SF::Singular.FreeMod)
 
 Construct `ModuleGens` from an array of Oscar free module elements, specifying the Singular free module.
-Note: The array might be empty.
+
+!!! note 
+
+    The array might be empty.
 """
 function ModuleGens(O::Vector{<:FreeModElem}, SF::Singular.FreeMod)
   return ModuleGens{elem_type(base_ring(parent(O[1])))}(O, parent(O[1]), SF)
@@ -610,7 +615,10 @@ end
     length(F::ModuleGens)
 
 Return the number of elements of the module generating set.
-Note: This is not the length in the mathematical sense!
+
+!!! note
+
+    This is not the length in the mathematical sense!
 """
 length(F::ModuleGens) = length(oscar_generators(F))
 
@@ -814,11 +822,18 @@ end
 (h::FreeModuleHom)(a::FreeModElem) = image(h, a)
 
 @doc Markdown.doc"""
-    hom(F::FreeMod{T}, G, V::Union{Vector,MatElem{T}}) where {T}
+    hom(F::FreeMod, G, V::Vector)
 
 Create the homomorphism $F \to G$ defined by sending `F[i]` to `V[i]`.
 """
-hom(F::FreeMod{T}, G, V::Union{Vector,MatElem{T}}) where {T} = FreeModuleHom(F, G, V)
+hom(F::FreeMod, G, V::Vector) = FreeModuleHom(F, G, V)
+
+@doc Markdown.doc"""
+    hom(F::FreeMod{T}, G::Union{FreeMod{T},SubQuo{T}}, V::MatElem{T}) where {T}
+
+Create the homomorphism $F \to G$ defined by sending `F[i]` to $\sum_j G[j]*A[i][j]$.
+"""
+hom(F::FreeMod{T}, G::Union{FreeMod{T},SubQuo{T}}, A::MatElem{T}) where {T} = FreeModuleHom(F, G, A)
 
 @doc Markdown.doc"""
     identity_map(M::ModuleFP)
@@ -910,9 +925,12 @@ SubModuleOfFreeModule(F::FreeMod{L}, A::MatElem{L}) where {L} = SubModuleOfFreeM
     SubModuleOfFreeModule(A::MatElem{L}) where {L} 
 
 Construct the submodule generated by the rows of `A`.
-Note: The embedding free module of the submodule is constructed by the function and therefore
-not compatible with free modules that are defined by the user or other functions. 
-If you need compatibility use `SubModuleOfFreeModule(F::FreeMod{L}, A::MatElem{L}) where {L}`.
+
+!!! note
+
+    The embedding free module of the submodule is constructed by the function and therefore
+    not compatible with free modules that are defined by the user or other functions. 
+    If you need compatibility use `SubModuleOfFreeModule(F::FreeMod{L}, A::MatElem{L}) where {L}`.
 """
 function SubModuleOfFreeModule(A::MatElem{L}) where {L} 
   R = base_ring(A)
@@ -973,11 +991,11 @@ function generator_matrix(submod::SubModuleOfFreeModule)
 end
 
 @doc Markdown.doc"""
-    isgenerated_by_unit_vectors(M::SubModuleOfFreeModule)
+    isgenerated_by_standard_unit_vectors(M::SubModuleOfFreeModule)
 
-Check if `M` is generated by the unit vectors.
+Check if `M` is generated by the standard unit vectors.
 """
-function isgenerated_by_unit_vectors(M::SubModuleOfFreeModule)
+function isgenerated_by_standard_unit_vectors(M::SubModuleOfFreeModule)
   return issubset(gens(M.F), gens(M))
 end
 
@@ -1249,9 +1267,11 @@ Given matrices `A` and `B` with entries in a ring `R`
 representing maps of free $R$-modules with the same codomain,
 return the subquotient $(\text{im } A + \text{im }  B)/\text{im }  B.$ 
 
-NOTE: The ambient free module of the subquotient is constructed by the function and therefore
-not compatible with free modules defined by the user or by other functions. 
-For compatibility, use `SubQuo(F::FreeMod{R}, A::MatElem{R}, B::MatElem{R})`.
+!!! note
+
+    The ambient free module of the subquotient is constructed by the function and therefore
+    not compatible with free modules defined by the user or by other functions. 
+    For compatibility, use `SubQuo(F::FreeMod{R}, A::MatElem{R}, B::MatElem{R})`.
 
 # Example
 ```jldoctest
@@ -1311,7 +1331,7 @@ function show_subquo(SQ::SubQuo)
   #@show_special(io, SQ)
 
   if isdefined(SQ, :quo)
-    if isgenerated_by_unit_vectors(SQ.sub)
+    if isgenerated_by_standard_unit_vectors(SQ.sub)
       println("Cokernel of ", generator_matrix(SQ.quo))
     else
       println("Subquotient with of image of")
@@ -1347,9 +1367,12 @@ end
     cokernel(A::MatElem)
 
 Let $A$ be an $n \times m$-matrix over the ring $R$. Then return the subquotient $R^m / \im(A)$. 
-Note: The free module $R^m$ is constructed by the function and therefore not compatible with 
-free modules $R^m$ that are defined by the user or other functions. If you need compatibility
-use `cokernel(F::FreeMod{R}, A::MatElem{R})`.
+
+!!! note
+
+    The free module $R^m$ is constructed by the function and therefore not compatible with 
+    free modules $R^m$ that are defined by the user or other functions. If you need compatibility
+    use `cokernel(F::FreeMod{R}, A::MatElem{R})`.
 """
 function cokernel(A::MatElem)
   return cokernel(map(A))
@@ -2044,7 +2067,7 @@ function presentation(SQ::SubQuo)
   R = base_ring(SQ)
   F = FreeMod(R, ngens(SQ.sub))
   q = elem_type(F)[]
-  if isgenerated_by_unit_vectors(SQ.sub)
+  if isgenerated_by_standard_unit_vectors(SQ.sub)
     if isdefined(SQ, :quo)
       q = [FreeModElem(coords(g), F) for g in gens(SQ.quo)]
     end
@@ -3587,12 +3610,12 @@ zero-generators or removing the i-th component of all vectors if those are
 reduced by a relation.
 """
 function simplify(M::SubQuo)
-  function unit_vector_in_relations(i::Int, M::SubQuo)
+  function standard_unit_vector_in_relations(i::Int, M::SubQuo)
     if !isdefined(M, :quo)
       return false
     end
-    reduced_unit_vector = _reduce(M.quo.gens.SF(M.F[i]), singular_generators(std_basis(M.quo)))
-    return iszero(reduced_unit_vector)
+    reduced_standard_unit_vector = _reduce(M.quo.gens.SF(M.F[i]), singular_generators(std_basis(M.quo)))
+    return iszero(reduced_standard_unit_vector)
   end
 
   function delete_rows(A::MatElem, to_delete::Vector{Int})
@@ -3656,7 +3679,7 @@ function simplify(M::SubQuo)
 
   to_delete::Vector{Int} = []
   for i=1:size(M_relations)[2]
-    if unit_vector_in_relations(i, M)
+    if standard_unit_vector_in_relations(i, M)
       push!(to_delete, i)
     end
   end
@@ -3686,9 +3709,9 @@ function simplify(M::SubQuo)
       index = findfirst(x -> x==i, to_delete)
       assign_row!(projection_matrix, R(-1)*R(inv(coeff(K_gen[corresponding_row[index],i], 1)))*delete_columns(K_gen[corresponding_row[index],:], to_delete), i)
     else
-      unit_vector_index = i-length(filter(x -> x < i, to_delete))
-      unit_vector = [j == unit_vector_index ? R(1) : R(0) for j=1:size(projection_matrix)[2]]
-      assign_row!(projection_matrix, unit_vector, i)
+      standard_unit_vector_index = i-length(filter(x -> x < i, to_delete))
+      standard_unit_vector = [j == standard_unit_vector_index ? R(1) : R(0) for j=1:size(projection_matrix)[2]]
+      assign_row!(projection_matrix, standard_unit_vector, i)
     end
   end
 
