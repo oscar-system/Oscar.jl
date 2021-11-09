@@ -53,7 +53,6 @@ julia> show(Vector(gen(symmetric_group(5), 2)))
 """
 degree(x::PermGroup) = x.deg
 
-@gapattribute moved_points(x::Union{PermGroupElem,PermGroup}) = Vector{Int}(GAP.Globals.MovedPoints(x.X))
 """
     moved_points(x::PermGroupElem)
     moved_points(G::PermGroup)
@@ -72,9 +71,9 @@ julia> length(moved_points(gen(s, 1)))
 3
 
 ```
-""" moved_points
+"""
+@gapattribute moved_points(x::Union{PermGroupElem,PermGroup}) = Vector{Int}(GAP.Globals.MovedPoints(x.X))
 
-@gapattribute number_moved_points(x::Union{PermGroupElem,PermGroup}) = fmpz(GAP.Globals.NrMovedPoints(x.X))::fmpz
 """
     number_moved_points(::Type{T} = fmpz, x::PermGroupElem) where T <: IntegerUnion
     number_moved_points(::Type{T} = fmpz, G::PermGroup) where T <: IntegerUnion
@@ -97,7 +96,8 @@ julia> number_moved_points(gen(s, 1))
 3
 
 ```
-""" number_moved_points
+"""
+@gapattribute number_moved_points(x::Union{PermGroupElem,PermGroup}) = fmpz(GAP.Globals.NrMovedPoints(x.X))::fmpz
 
 number_moved_points(::Type{T}, x::Union{PermGroupElem,PermGroup}) where T <: IntegerUnion = T(GAP.Globals.NrMovedPoints(x.X))::T
 
