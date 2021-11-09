@@ -89,11 +89,7 @@ function msolve(
     nr_gens = Singular.ngens(J)
     vars    = Singular.gens(R)
 
-        variable_names  = Array{String, 1}(undef, nr_vars)
-            for i in 1:nr_vars
-                        variable_names[i] = string(Singular.gens(R)[i])
-                            end
-    # variable_names = map(string, Singular.symbols(R))
+    variable_names = map(string, Singular.symbols(R))
 
     field_char  = Singular.characteristic(R)
 
@@ -104,8 +100,8 @@ function msolve(
     print_gb  = 0
     get_param = 1
 
-    #= monomial order defaults to zero =#
-    mon_order = 0
+    mon_order       = 0
+    elim_block_size = 0
 
     if field_char != 0
         error("At the moment msolve only supports the rationals as ground field.")
@@ -122,12 +118,13 @@ function msolve(
     sols_num  = ccall(:malloc, Ptr{Ptr{Cvoid}}, (Csize_t, ), sizeof(Ptr{Cvoid}))
     sols_den  = ccall(:malloc, Ptr{Ptr{Cint}}, (Csize_t, ), sizeof(Ptr{Cint}))
     ccall((:msolve_julia, libmsolve), Cvoid,
-        (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Ptr{Cint}}, Ptr{Cvoid}, Ptr{Cint},
+          (Ptr{Nothing}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Ptr{Cint}}, Ptr{Cvoid}, Ptr{Cint},
          Ptr{Cvoid}, Ptr{Ptr{Cint}}, Ptr{Cint}, Ptr{Cint}, Ptr{Cvoid},
-         Ptr{Ptr{Cchar}}, Ptr{Cchar}, Int, Int, Int, Int,
+         Ptr{Ptr{Cchar}}, Ptr{Cchar}, Int, Int, Int, Int, Int,
          Int, Int, Int, Int, Int, Int, Int, Int, Int, Int),
-        res_ld, res_dim, res_dquot, res_len, res_cf, nb_sols, sols_num, sols_den, lens,
-        exps, cfs, variable_names, "/dev/null", field_char, mon_order, nr_vars,
+        cglobal(:jl_malloc), res_ld, res_dim, res_dquot, res_len, res_cf,
+        nb_sols, sols_num, sols_den, lens, exps, cfs, variable_names,
+        "/dev/null", field_char, mon_order, elim_block_size, nr_vars,
         nr_gens, initial_hts, nr_thrds, max_nr_pairs, reset_ht, la_option,
         print_gb, get_param, genericity_handling, precision, info_level)
     # convert to julia array, also give memory management to julia

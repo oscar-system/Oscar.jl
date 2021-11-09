@@ -52,7 +52,8 @@ function f4(
     nr_vars = Singular.nvars(R)
     nr_gens = Singular.ngens(J)
 
-    mon_order   = 0
+    mon_order       = 0
+    elim_block_size = 0
     field_char  = Singular.characteristic(R)
 
     # convert Singular ideal to flattened arrays of ints
@@ -62,31 +63,39 @@ function f4(
 
     lens, cfs, exps = convert_singular_ideal_to_array(J)
 
-    gb_ld   = ccall(:malloc, Ptr{Cint}, (Csize_t, ), sizeof(Cint))
-    gb_len  = ccall(:malloc, Ptr{Ptr{Cint}}, (Csize_t, ), sizeof(Ptr{Cint}))
-    gb_exp  = ccall(:malloc, Ptr{Ptr{Cint}}, (Csize_t, ), sizeof(Ptr{Cint}))
-    gb_cf   = ccall(:malloc, Ptr{Ptr{Cvoid}}, (Csize_t, ), sizeof(Ptr{Cvoid}))
+    gb_ld  = Ref(Cint(0))
+    gb_len = Ref(Ptr{Cint}(0))
+    gb_exp = Ref(Ptr{Cint}(0))
+    gb_cf  = Ref(Ptr{Cvoid}(0))
+
+    # gb_ld   = ccall(:malloc, Ptr{Cint}, (Csize_t, ), sizeof(Cint))
+    # gb_len  = ccall(:malloc, Ptr{Ptr{Cint}}, (Csize_t, ), sizeof(Ptr{Cint}))
+    # gb_exp  = ccall(:malloc, Ptr{Ptr{Cint}}, (Csize_t, ), sizeof(Ptr{Cint}))
+    # gb_cf   = ccall(:malloc, Ptr{Ptr{Cvoid}}, (Csize_t, ), sizeof(Ptr{Cvoid}))
     nr_terms  = ccall((:f4_julia, libneogb), Int,
-        (Ptr{Cint}, Ptr{Ptr{Cint}}, Ptr{Ptr{Cint}}, Ptr{Ptr{Cvoid}},
-          Ptr{Cint}, Ptr{Cint}, Ptr{Cvoid}, Int, Int, Int, Int, Int,
-          Int, Int, Int, Int, Int, Int, Int),
-        gb_ld, gb_len, gb_exp, gb_cf, lens, exps, cfs, field_char, mon_order, nr_vars,
-        nr_gens, initial_hts, nr_thrds, max_nr_pairs, 0, la_option, reduce_gb, 0, info_level)
+        (Ptr{Nothing}, Ptr{Cint}, Ptr{Ptr{Cint}}, Ptr{Ptr{Cint}}, Ptr{Ptr{Cvoid}},
+        Ptr{Cint}, Ptr{Cint}, Ptr{Cvoid}, Int, Int, Int, Int, Int, Int,
+        Int, Int, Int, Int, Int, Int, Int),
+        cglobal(:jl_malloc), gb_ld, gb_len, gb_exp, gb_cf, lens, exps, cfs,
+        field_char, mon_order, elim_block_size, nr_vars, nr_gens, initial_hts,
+        nr_thrds, max_nr_pairs, 0, la_option, reduce_gb, 0, info_level)
 
     if nr_terms == 0
         error("Something went wrong in the C code of F4.")
     end
+    println("!!!!")
     # convert to julia array, also give memory management to julia
-    jl_ld   = unsafe_load(gb_ld)
-    jl_len  = Base.unsafe_wrap(Array, unsafe_load(gb_len), jl_ld)
-    jl_exp  = Base.unsafe_wrap(Array, unsafe_load(gb_exp), nr_terms*nr_vars)
-    # if 0 == char
-    #     gb_cf_conv  = unsafe_load(gb_cf)
-    #     jl_cf       = reinterpret(Ptr{BigInt}, gb_cf_conv)
-    # elseif Nemo.isprime(Nemo.FlintZZ(char))
-      gb_cf_conv  = Ptr{Ptr{Int32}}(gb_cf)
-      jl_cf       = Base.unsafe_wrap(Array, unsafe_load(gb_cf_conv), nr_terms)
-    # end
+    jl_ld   = gb_ld[]
+    jl_len  = Base.unsafe_wrap(Array, gb_len[], jl_ld)
+    jl_exp  = Base.unsafe_wrap(Array, gb_exp[], nr_terms*nr_vars)
+    if 0 == field_char
+        ptr   = reinterpret(Ptr{BigInt}, gb_cf[])
+        jl_cf = Base.unsafe_wrap(Array, ptr, nr_terms)
+    elseif isprime(field_char)
+        ptr   = reinterpret(Ptr{Int32}, gb_cf[])
+        jl_cf = Base.unsafe_wrap(Array, ptr, nr_terms)
+    end
+    println("???")
 
     # construct Singular ideal
     # if 0 == char
@@ -96,10 +105,10 @@ function f4(
         basis = convert_ff_gb_array_to_singular_ideal(
           jl_ld, jl_len, jl_cf, jl_exp, R)
     # end
-    ccall((:free_julia_data, libneogb), Nothing , (Ptr{Ptr{Cint}}, Ptr{Ptr{Cint}}, Ptr{Ptr{Cvoid}},
-                Int, Int), gb_len, gb_exp, gb_cf, jl_ld, field_char)
-    # free data
-    ccall(:free, Nothing , (Ptr{Cint}, ), gb_ld)
+    # ccall((:free_julia_data, libneogb), Nothing , (Ptr{Ptr{Cint}}, Ptr{Ptr{Cint}}, Ptr{Ptr{Cvoid}},
+    #             Int, Int), gb_len, gb_exp, gb_cf, jl_ld, field_char)
+    # # free data
+    # ccall(:free, Nothing , (Ptr{Cint}, ), gb_ld)
 
     I.gb        = BiPolyArray(base_ring(I), basis)
     I.gb.isGB   = true
