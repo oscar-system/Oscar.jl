@@ -3,7 +3,7 @@
    @testset for (p,d) in [(2,1),(5,1),(2,4),(3,3),(2,8)]
       F, _ = GF(p,d)
       f = Oscar.ring_iso_oscar_gap(F)
-      g = Oscar.mat_iso_oscar_gap(F, 4, f)
+      g = elm -> map_entries(f, elm)
       for a in F
          for b in F
             @test f(a*b)==f(a)*f(b)
@@ -25,7 +25,6 @@
    @test G.X isa GAP.GapObj
    @test isdefined(G,:X)
    @test isdefined(G, :ring_iso)
-   @test isdefined(G, :mat_iso)
    @test G.ring_iso(z) isa GAP.FFE
    Z = G.ring_iso(z)
    @test GAP.Globals.IN(Z,codomain(G.ring_iso))
@@ -46,11 +45,10 @@
 #   xg=GAP.julia_to_gap(xg)
 
    xg = GAP.GapObj([[G.ring_iso(xo[i,j]) for j in 1:3] for i in 1:3]; recursive=true)
-   @test G.mat_iso(xo) isa GAP.GapObj
-   @test G.mat_iso(xo)==xg
-   @test preimage(G.mat_iso, xg)==xo
-   @test preimage(G.mat_iso, GAP.Globals.One(GAP.Globals.GL(3,codomain(G.ring_iso))))==one(G).elm
-   @test GAP.Globals.Order(G.mat_iso(diagonal_matrix([z,z,one(F)])))==28
+   @test map_entries(G.ring_iso, xo) == xg
+   @test Oscar.preimage_matrix(G.ring_iso, xg) == xo
+   @test Oscar.preimage_matrix(G.ring_iso, GAP.Globals.One(GAP.Globals.GL(3, codomain(G.ring_iso)))) == one(G).elm
+   @test GAP.Globals.Order(map_entries(G.ring_iso, diagonal_matrix([z,z,one(F)]))) == 28
 
    T,t = PolynomialRing(GF(3),"t")
    F,z = FiniteField(t^2+1,"z")
@@ -58,7 +56,6 @@
    @test G.X isa GAP.GapObj
    @test isdefined(G,:X)
    @test isdefined(G, :ring_iso)
-   @test isdefined(G, :mat_iso)
    @test G.ring_iso(z) isa GAP.FFE
    Z = G.ring_iso(z)
    @testset for a in F
@@ -84,10 +81,10 @@
       xg[i] = GAP.julia_to_gap([G.ring_iso(xo[i,j]) for j in 1:3])
    end
    xg=GAP.julia_to_gap(xg)
-   @test G.mat_iso(xo)==xg
-   @test preimage(G.mat_iso, xg)==xo
-   @test preimage(G.mat_iso, GAP.Globals.One(GAP.Globals.GL(3,codomain(G.ring_iso))))==one(G).elm
-   @test GAP.Globals.Order(G.mat_iso(diagonal_matrix([z,z,one(F)])))==4
+   @test map_entries(G.ring_iso, xo) == xg
+   @test Oscar.preimage_matrix(G.ring_iso, xg) == xo
+   @test Oscar.preimage_matrix(G.ring_iso, GAP.Globals.One(GAP.Globals.GL(3, codomain(G.ring_iso)))) == one(G).elm
+   @test GAP.Globals.Order(map_entries(G.ring_iso, diagonal_matrix([z,z,one(F)])))==4
 end
 
 @testset "Oscar-GAP relationship for cyclotomic fields" begin
@@ -100,7 +97,7 @@ end
 
    @testset for (F, z) in fields
       f = Oscar.ring_iso_oscar_gap(F)
-      g = Oscar.mat_iso_oscar_gap(F, 3, f)
+      g = elm -> map_entries(f, elm)
       for i in 1:10
          a = my_rand_bits(F, 5)
          for j in 1:10
@@ -123,7 +120,6 @@ end
       @test G.X isa GAP.GapObj
       @test isdefined(G, :X)
       @test isdefined(G, :ring_iso)
-      @test isdefined(G, :mat_iso)
       Z = G.ring_iso(z)
       @test GAP.Globals.IN(Z, codomain(G.ring_iso))
       @test preimage(G.ring_iso, Z) == z
@@ -135,13 +131,12 @@ end
 
       xo = matrix(F, 3, 3, [0, 1, 0, 0, 1, z, 0, 0, z])
       xg = GAP.GapObj([[G.ring_iso(xo[i, j]) for j in 1:3] for i in 1:3]; recursive = true)
-      @test G.mat_iso(xo) isa GAP.GapObj
-      @test G.mat_iso(xo) == xg
-      @test preimage(G.mat_iso, xg) == xo
-      @test preimage(G.mat_iso, GAP.Globals.IdentityMat(3)) == one(G).elm
+      @test map_entries(G.ring_iso, xo) == xg
+      @test Oscar.preimage_matrix(G.ring_iso, xg) == xo
+      @test Oscar.preimage_matrix(G.ring_iso, GAP.Globals.IdentityMat(3)) == one(G).elm
       if F isa AnticNumberField
          flag, n = Hecke.iscyclotomic_type(F)
-         @test GAP.Globals.Order(G.mat_iso(diagonal_matrix([z, z, one(F)]))) == n
+         @test GAP.Globals.Order(map_entries(G.ring_iso, diagonal_matrix([z, z, one(F)]))) == n
       end
    end
 end
@@ -206,7 +201,6 @@ end
    @test !isdefined(G,:X)
    @test !isdefined(G,:gens)
    @test !isdefined(G,:ring_iso)
-   @test !isdefined(G,:mat_iso)
 
    @test order(G)==5760
    @test order(G) isa fmpz
@@ -263,11 +257,7 @@ end
    G = GL(3,F)
    x = G([1,z,0,0,z,0,0,0,z+1])
    @test order(x)==8
-   @test isdefined(G,:mat_iso)
 
-   G = GL(4,2)
-   @test G.mat_iso isa MapFromFunc
-   
    G = MatrixGroup(4,F)
    @test_throws ErrorException G.X
    setfield!(G,:descr,:GX)
@@ -503,7 +493,7 @@ end
    xg = GAP.Globals.Random(G.X)
    yg = GAP.Globals.Random(G.X)
    pg = MatrixGroupElem(G, xg*yg)
-   @test pg==MatrixGroupElem(G,preimage(G.mat_iso, xg))*MatrixGroupElem(G,preimage(G.mat_iso, yg))
+   @test pg == MatrixGroupElem(G, Oscar.preimage_matrix(G.ring_iso, xg))*MatrixGroupElem(G, Oscar.preimage_matrix(G.ring_iso, yg))
 
    O = GO(-1,2,F)
    S = SL(2,F)
@@ -530,8 +520,6 @@ end
    @test parent(f(S[1]))==G
    @test f(S[1])==G(S[1])
    @test f(S[2])==G(S[2])
-   @test isdefined(S,:mat_iso)
-   @test S.mat_iso==G.mat_iso
    O = GO(1,2,F)
    H = intersect(S,O)[1]
    @test H==SO(1,2,F)
