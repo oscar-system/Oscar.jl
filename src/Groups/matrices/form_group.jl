@@ -490,7 +490,6 @@ function preserved_quadratic_forms(G::MatrixGroup{S,T}) where {S,T}
       f = quadratic_form(preimage_matrix(G.ring_iso, GAP.Globals.GramMatrix(f_gap)))
       f.X = f_gap
       f.ring_iso = G.ring_iso
-      f.mat_iso = G.mat_iso
       push!(R,f)
    end
    return R
@@ -518,7 +517,6 @@ function preserved_sesquilinear_forms(G::MatrixGroup{S,T}) where {S,T}
          error("Invalid form")
       end
       f.X = f_gap
-      f.mat_iso = G.mat_iso
       push!(R,f)
    end
    return R

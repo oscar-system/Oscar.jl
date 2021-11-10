@@ -26,7 +26,7 @@ export
 
 # descr is always defined
 # matrix is always defined except when descr="quadratic"; in such a case, at least one of matrix and pol is defined
-# NOTE: the fields ring_iso and mat_iso are always defined if the field X is
+# NOTE: the field ring_iso is always defined if the field X is
 """
     SesquilinearForm{T<:RingElem}
 
@@ -39,7 +39,6 @@ mutable struct SesquilinearForm{T<:RingElem}
    pol::MPolyElem{T}     # only for quadratic forms
    X::GapObj
    ring_iso::MapFromFunc
-   mat_iso::MapFromFunc
 
    function SesquilinearForm{T}(B::MatElem{T},sym) where T
       if sym==:hermitian
