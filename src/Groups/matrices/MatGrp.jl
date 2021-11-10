@@ -145,13 +145,7 @@ function Base.show(io::IO, x::MatrixGroup)
    end
 end
 
-function Base.show(io::IO, x::MatrixGroupElem)
-   if isdefined(x, :elm)
-      show(io, "text/plain", x.elm)
-   else
-      print(io, String(GAP.Globals.StringViewObj(x.X)))
-   end
-end
+Base.show(io::IO, x::MatrixGroupElem) = show(io, "text/plain", x.elm)
 
 group_element(G::MatrixGroup, x::GapObj) = MatrixGroupElem(G,x)
 
