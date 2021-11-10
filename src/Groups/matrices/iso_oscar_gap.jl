@@ -39,7 +39,7 @@ function ring_iso_oscar_gap(F::T) where T <: Union{Nemo.FqNmodFiniteField, Nemo.
    Fp_gap = GAP.Globals.GF(GAP.Obj(p)) # the prime field in GAP
    e = GAP.Globals.One(Fp_gap)
 
-   # prime fields are easy and efficient to deal with, handle them seperately
+   # prime fields are easy and efficient to deal with, handle them separately
    if d == 1
       f1(x::Union{Nemo.fq_nmod, Nemo.fq}) = GAP.Obj(coeff(x, 0))*e
       finv1(x) = F(GAP.gap_to_julia(GAP.Globals.IntFFE(x)))
@@ -136,30 +136,29 @@ end
 #
 #  Matrix space isomorphism
 #
+#  Using the known ring isomorphism from an Oscar ring to a GAP ring,
+#  we can map matrices from Oscar to GAP using `map_entries`.
+#  (The generic `map_entries` method cannot be used because the concepts of
+#  `parent`and `_change_base_ring` do not fit to the situation in GAP.)
+#  For the direction from GAP to Oscar, we introduce a generic function
+#  `preimage_matrix` that takes the `ring_iso` and a GAP matrix.
+#
 ################################################################################
 
-# computes the isomorphism between the Oscar matrix space of dimension deg over
-# F and the corresponding GAP matrix space
-
-mat_iso_oscar_gap(F::Union{Nemo.GaloisField, Nemo.GaloisFmpzField, Nemo.FqNmodFiniteField, Nemo.FqFiniteField, Nemo.FlintRationalField, Nemo.AnticNumberField}, deg) = mat_iso_oscar_gap(F, deg, ring_iso_oscar_gap(F))
-
-function mat_iso_oscar_gap(F::T, deg::Int, FtoGAP::MapFromFunc{T, S}) where {T <: Union{Nemo.GaloisField, Nemo.GaloisFmpzField, Nemo.FqNmodFiniteField, Nemo.FqFiniteField, Nemo.FlintRationalField, Nemo.AnticNumberField}, S}
-   function f(x::MatElem)
-      @assert base_ring(x) === domain(FtoGAP)
-      rows = Vector{GapObj}(undef, nrows(x))
-      for i in 1:nrows(x)
-         rows[i] = GapObj([ FtoGAP(x[i, j]) for j in 1:ncols(x) ])
-      end
-      return GAP.Globals.ImmutableMatrix(codomain(FtoGAP), GapObj(rows), true)
+function AbstractAlgebra.map_entries(f::Map{T, GapObj}, a::MatElem) where T
+   isempty(a) && error("empty matrices are not supported by GAP")
+   @assert base_ring(a) === domain(f)
+   rows = Vector{GapObj}(undef, nrows(a))
+   for i in 1:nrows(a)
+      rows[i] = GapObj([f(a[i, j]) for j in 1:ncols(a)])
    end
+   return GAP.Globals.ImmutableMatrix(codomain(f), GapObj(rows), true)
+end
 
-   function finv(x::GapObj)
-      m = GAP.Globals.NrRows(x)
-      n = GAP.Globals.NrCols(x)
-      L = [ preimage(FtoGAP, x[i, j]) for i in 1:m for j in 1:n]
-      return matrix(domain(FtoGAP), m, n, L)
-   end
-
-   M = MatrixSpace(F, deg, deg)
-   return MapFromFunc(f, finv, M, GAP.Globals.MatrixAlgebra(codomain(FtoGAP), deg))
+function preimage_matrix(f::Map{T, GapObj}, a::GapObj) where T
+   isdefined(f.header, :preimage) || error("No preimage function known")
+   m = GAP.Wrappers.NumberRows(a)
+   n = GAP.Wrappers.NumberColumns(a)
+   L = [f.header.preimage(a[i, j]) for i in 1:m for j in 1:n]
+   return matrix(domain(f), m, n, L)
 end
