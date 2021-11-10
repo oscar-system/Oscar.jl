@@ -9,6 +9,7 @@ export numerator, denominator, parent, lift
 
 export MPolyQuoLocalizedRingHom
 export domain, codomain, images
+export helper_ring, helper_images, minimal_denominators, helper_eta, helper_phi, common_denominator, helper_ideal
 
 
 ########################################################################
@@ -341,8 +342,9 @@ parent_type(T::Type{MPolyQuoLocalizedRingElem{BaseRingType, BaseRingElemType, Ri
 #     P[T⁻¹]  →  Q[U⁻¹]
 #       ↑          ↑
 #     R[T⁻¹] --> S[U⁻¹]
-#       ↑          ↑
-#       R    -->   S
+#       ↑    ↗ ψ   ↑ ι
+#       R     →  S[c⁻¹]
+#             η
 #
 # a) The composition of maps R → Q[U⁻¹] completely determines φ by 
 #    the images xᵢ ↦ [aᵢ]/[bᵢ] with aᵢ ∈ S, bᵢ ∈ U.
@@ -354,18 +356,16 @@ parent_type(T::Type{MPolyQuoLocalizedRingElem{BaseRingType, BaseRingElemType, Ri
 #
 #    This is not necessarily the case as the lift of images 
 #    φ(t) ∈ Q[U⁻¹] in S[U⁻¹] need only be elements of U + J.
-# c) Choosing a common denominator c for all ψ(xᵢ) we obtain a 
-#    ring homomorphism η : R → S such that for all homogeneous 
-#    polynomials f of some degree d we have 
-#
-#       ψ(f) = η(f)/cᵈ.
-#
+# c) Choosing a common denominator c for all ψ(xᵢ), we obtain a 
+#    ring homomorphism η : R → S[c⁻¹] such that ψ = ι ∘ η.
 #
 # Upshot: In order to describe φ, we may store some homomorphism 
 #     
 #       ψ : R → S[U⁻¹] 
 #
 # lifting it and keep in mind the ambiguity of choices for such ψ.
+# The latter point c) will be useful for reducing to a homomorphism 
+# of finitely generated algebras.
 
 mutable struct MPolyQuoLocalizedRingHom{
     BaseRingType, 
@@ -380,6 +380,13 @@ mutable struct MPolyQuoLocalizedRingHom{
   domain::MPolyQuoLocalizedRing
   codomain::MPolyQuoLocalizedRing
   images::Vector{MPolyLocalizedRingElem}
+
+  # variables for caching
+  helper_ring::RingType
+  helper_images::Vector{RingElemType}
+  minimal_denominators::Vector{RingElemType}
+  eta::AlgHom{BaseRingElemType}
+  phi::AlgHom{BaseRingElemType}
 
   function MPolyQuoLocalizedRingHom(
       L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, DMST}, 
@@ -459,17 +466,108 @@ function compose(
   return MPolyQuoLocalizedRingHom(domain(f), codomain(g), g.(images(f)))
 end
 
+### helper_ring
+# Sets up the ring S[c⁻¹] from the Lemma.
+function helper_ring(f::MPolyQuoLocalizedRingHom{BRT, BRET, RT, RET, DMST, CMST}) where {BRT, BRET, RT, RET, DMST, CMST}
+  if isdefined(f, :helper_ring)
+    return f.helper_ring
+  end
+  f.minimal_denominators = Vector{RET}()
+  R = base_ring(domain(f))
+  S = base_ring(codomain(f))
+  p = one(S)
+
+  for d in [denominator(y) for y in images(f)]
+    g = gcd(d, p)
+    d_min = divexact(d, g)
+    push!(f.minimal_denominators, d)
+    p = p*d_min
+  end
+ 
+  @show _add_variables(S, ["θ"])
+  help_ring, help_phi, theta = _add_variables(S, ["θ"])
+  f.helper_ring = help_ring
+  f.phi = help_phi
+  c_inv = theta[1]
+  f.helper_images = [f.phi(numerator(y))*c_inv*f.phi(divexact(p, denominator(y))) for y in images(f)]
+  f.eta = AlgebraHomomorphism(R, help_ring, f.helper_images)
+  return f.helper_ring
+end
+
+function helper_images(
+    f::MPolyQuoLocalizedRingHom{BRT, BRET, RT, RET, DMST, CMST}
+  ) where {BRT, BRET, RT, RET, DMST, CMST} 
+  if !isdefined(f, :helper_images) 
+    helper_ring(f)
+  end
+  return f.helper_images
+end
+
+function minimal_denominators(
+    f::MPolyQuoLocalizedRingHom{BRT, BRET, RT, RET, DMST, CMST}
+  ) where {BRT, BRET, RT, RET, DMST, CMST} 
+  if !isdefined(f, :minimal_denominators) 
+    helper_ring(f)
+  end
+  return f.minimal_denominators
+end
+
+function helper_eta(
+    f::MPolyQuoLocalizedRingHom{BRT, BRET, RT, RET, DMST, CMST}
+  ) where {BRT, BRET, RT, RET, DMST, CMST} 
+  if !isdefined(f, :eta) 
+    helper_ring(f)
+  end
+  return f.eta
+end
+
+function helper_phi(
+    f::MPolyQuoLocalizedRingHom{BRT, BRET, RT, RET, DMST, CMST}
+  ) where {BRT, BRET, RT, RET, DMST, CMST} 
+  if !isdefined(f, :phi) 
+    helper_ring(f)
+  end
+  return f.phi
+end
+
+function common_denominator(
+    f::MPolyQuoLocalizedRingHom{BRT, BRET, RT, RET, DMST, CMST}
+  ) where {BRT, BRET, RT, RET, DMST, CMST} 
+  if !isdefined(f, :minimal_denominators) 
+    helper_ring(f)
+  end
+  return (length(f.minimal_denominators) == 0 ? one(base_ring(codomain(f))) : prod(f.minimal_denominators))
+end
+
+function helper_ideal(
+    f::MPolyQuoLocalizedRingHom{BRT, BRET, RT, RET, DMST, CMST}
+  ) where {BRT, BRET, RT, RET, DMST, CMST} 
+  if !isdefined(f, :helper_ring) 
+    helper_ring(f)
+  end
+  Sc = helper_ring(f)
+  return ideal(Sc, one(Sc)-last(gens(Sc))*helper_phi(f)(common_denominator(f)))
+end
+
+
+
+########################################################################
+# Functionality for maps and ideals                                    #
+########################################################################
+# 
+# The methods have to be adapted to the type of localization in the 
+# target. It needs to be assured that all components which are invisible
+# in the localization, are indeed discarded. 
+
+### adds the variables with names specified in v to the polynomial 
+# ring R and returns a triple consisting of the new ring, the embedding 
+# of the original one, and a list of the new variables. 
 function _add_variables(R::RingType, v::Vector{String}) where {RingType<:MPolyRing}
   ext_R, _ = PolynomialRing(coefficient_ring(R), vcat(symbols(R), Symbol.(v)))
   n = length(gens(R))
   phi = AlgebraHomomorphism(R, ext_R, gens(ext_R)[1:n])
   return ext_R, phi, gens(ext_R)[(length(gens(R))+1):length(gens(ext_R))]
 end
-
-
-########################################################################
-# Functionality for maps and ideals                                    #
-########################################################################
 
 function preimage(
     f::MPolyQuoLocalizedRingHom{BRT, BRET, RT, RET, DMST, CMST},
@@ -480,18 +578,20 @@ function preimage(
   base_ring(I) == localized_ring(codomain(f)) || error("the ideal does not belong to the codomain of the map")
   R = base_ring(domain(f))
   S = base_ring(codomain(f))
-  help_ring, phi, new_vars = _add_variables(S, ["θ"])
-  t = new_vars[1]
-  common_denom = one(R)
-  for y in [denominator(g) for g in images(f)]
-    g = gcd(common_denom, y)
-    common_denom = common_denom*divexact(y, g)
-  end
-  help_images = [numerator(y)*divexact(common_denom, denominator(y)) for y in images(f)]
-  help_hom = AlgebraHomomorphism(S, help_ring, [phi(x)*t for x in help_images])
-  lbpa = groebner_basis(I)
-  J = ideal(help_ring, [phi(g) for g in numerator.(oscar_gens(lbpa))]) + ideal(help_ring, one(help_ring)-t*phi(common_denom))
-  return localized_ring(domain(f))(preimage(help_hom, J))
+  Sc = helper_ring(f)
+#  help_ring, phi, new_vars = _add_variables(S, ["θ"])
+#  t = new_vars[1]
+#  common_denom = one(R)
+#  for y in [denominator(g) for g in images(f)]
+#    g = gcd(common_denom, y)
+#    common_denom = common_denom*divexact(y, g)
+#  end
+#  help_images = [numerator(y)*divexact(common_denom, denominator(y)) for y in images(f)]
+#  help_hom = AlgebraHomomorphism(S, help_ring, [phi(x)*t for x in help_images])
+  lbpa = groebner_basis(I) # saturation takes place in this computation
+  #J = ideal(help_ring, [phi(g) for g in numerator.(oscar_gens(lbpa))]) + ideal(help_ring, one(help_ring)-t*phi(common_denom))
+  J = ideal(Sc, [helper_phi(f)(g) for g in numerator.(oscar_gens(lbpa))]) + helper_ideal(f)
+  return localized_ring(domain(f))(preimage(helper_eta(f), J))
 end
 
 function preimage(
@@ -503,17 +603,11 @@ function preimage(
   base_ring(I) == localized_ring(codomain(f)) || error("the ideal does not belong to the codomain of the map")
   R = base_ring(domain(f))
   S = base_ring(codomain(f))
-  help_ring, phi, new_vars = _add_variables(S, ["θ"])
-  t = new_vars[1]
-  common_denom = one(R)
-  for y in [denominator(g) for g in images(f)]
-    g = gcd(common_denom, y)
-    common_denom = common_denom*divexact(y, g)
-  end
-  help_images = [numerator(y)*divexact(common_denom, denominator(y)) for y in images(f)]
-  help_hom = AlgebraHomomorphism(S, help_ring, [phi(x)*t for x in help_images])
+  Sc = helper_ring(f)
 
   # throw away all components of the ideal I which do not touch the origin
+  # TODO: This uses primary decomposition for now. Most probably, the 
+  # computations can be carried out more efficiently.
   lbpa = LocalizedBiPolyArray(I)
   V = base_ring(I)
   decomp = [LocalizedBiPolyArray(V, K[1], shift=shift(lbpa)) for K in Singular.LibPrimdec.primdecGTZ(singular_ring(lbpa), singular_gens(lbpa))]
@@ -526,6 +620,6 @@ function preimage(
   end
 
   # compute the preimage of the remaining ideal
-  J = ideal(help_ring, [phi(g) for g in numerator.(oscar_gens(relevant_comp))]) + ideal(help_ring, one(help_ring)-t*phi(common_denom))
-  return localized_ring(domain(f))(preimage(help_hom, J))
+  J = ideal(Sc, [helper_phi(f)(g) for g in numerator.(oscar_gens(relevant_comp))]) + helper_ideal(f)
+  return localized_ring(domain(f))(preimage(helper_phi(f), J))
 end
