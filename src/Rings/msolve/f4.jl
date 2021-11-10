@@ -68,10 +68,6 @@ function f4(
     gb_exp = Ref(Ptr{Cint}(0))
     gb_cf  = Ref(Ptr{Cvoid}(0))
 
-    # gb_ld   = ccall(:malloc, Ptr{Cint}, (Csize_t, ), sizeof(Cint))
-    # gb_len  = ccall(:malloc, Ptr{Ptr{Cint}}, (Csize_t, ), sizeof(Ptr{Cint}))
-    # gb_exp  = ccall(:malloc, Ptr{Ptr{Cint}}, (Csize_t, ), sizeof(Ptr{Cint}))
-    # gb_cf   = ccall(:malloc, Ptr{Ptr{Cvoid}}, (Csize_t, ), sizeof(Ptr{Cvoid}))
     nr_terms  = ccall((:f4_julia, libneogb), Int,
         (Ptr{Nothing}, Ptr{Cint}, Ptr{Ptr{Cint}}, Ptr{Ptr{Cint}}, Ptr{Ptr{Cvoid}},
         Ptr{Cint}, Ptr{Cint}, Ptr{Cvoid}, Int, Int, Int, Int, Int, Int,
@@ -83,7 +79,6 @@ function f4(
     if nr_terms == 0
         error("Something went wrong in the C code of F4.")
     end
-    println("!!!!")
     # convert to julia array, also give memory management to julia
     jl_ld   = gb_ld[]
     jl_len  = Base.unsafe_wrap(Array, gb_len[], jl_ld)
@@ -95,7 +90,6 @@ function f4(
         ptr   = reinterpret(Ptr{Int32}, gb_cf[])
         jl_cf = Base.unsafe_wrap(Array, ptr, nr_terms)
     end
-    println("???")
 
     # construct Singular ideal
     # if 0 == char
@@ -105,10 +99,6 @@ function f4(
         basis = convert_ff_gb_array_to_singular_ideal(
           jl_ld, jl_len, jl_cf, jl_exp, R)
     # end
-    # ccall((:free_julia_data, libneogb), Nothing , (Ptr{Ptr{Cint}}, Ptr{Ptr{Cint}}, Ptr{Ptr{Cvoid}},
-    #             Int, Int), gb_len, gb_exp, gb_cf, jl_ld, field_char)
-    # # free data
-    # ccall(:free, Nothing , (Ptr{Cint}, ), gb_ld)
 
     I.gb        = BiPolyArray(base_ring(I), basis)
     I.gb.isGB   = true

@@ -109,32 +109,33 @@ function msolve(
     # convert Singular ideal to flattened arrays of ints
     lens, cfs, exps   = convert_singular_ideal_to_array(J)
 
-    res_ld    = ccall(:malloc, Ptr{Cint}, (Csize_t, ), sizeof(Cint))
-    res_dim   = ccall(:malloc, Ptr{Cint}, (Csize_t, ), sizeof(Cint))
-    res_dquot = ccall(:malloc, Ptr{Cint}, (Csize_t, ), sizeof(Cint))
-    res_len   = ccall(:malloc, Ptr{Ptr{Cint}}, (Csize_t, ), sizeof(Ptr{Cint}))
-    res_cf    = ccall(:malloc, Ptr{Ptr{Cvoid}}, (Csize_t, ), sizeof(Ptr{Cvoid}))
-    nb_sols   = ccall(:malloc, Ptr{Cint}, (Csize_t, ), sizeof(Cint))
-    sols_num  = ccall(:malloc, Ptr{Ptr{Cvoid}}, (Csize_t, ), sizeof(Ptr{Cvoid}))
-    sols_den  = ccall(:malloc, Ptr{Ptr{Cint}}, (Csize_t, ), sizeof(Ptr{Cint}))
+    res_ld    = Ref(Cint(0))
+    res_dim   = Ref(Cint(0))
+    res_dquot = Ref(Cint(0))
+    nb_sols   = Ref(Cint(0))
+    res_len   = Ref(Ptr{Cint}(0))
+    res_cf    = Ref(Ptr{Cvoid}(0))
+    sols_num  = Ref(Ptr{Cvoid}(0))
+    sols_den  = Ref(Ptr{Cint}(0))
+
     ccall((:msolve_julia, libmsolve), Cvoid,
-          (Ptr{Nothing}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Ptr{Cint}}, Ptr{Cvoid}, Ptr{Cint},
-         Ptr{Cvoid}, Ptr{Ptr{Cint}}, Ptr{Cint}, Ptr{Cint}, Ptr{Cvoid},
-         Ptr{Ptr{Cchar}}, Ptr{Cchar}, Int, Int, Int, Int, Int,
-         Int, Int, Int, Int, Int, Int, Int, Int, Int, Int),
+        (Ptr{Nothing}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Ptr{Cint}},
+        Ptr{Cvoid}, Ptr{Cint}, Ptr{Cvoid}, Ptr{Ptr{Cint}}, Ptr{Cint},
+        Ptr{Cint}, Ptr{Cvoid}, Ptr{Ptr{Cchar}}, Ptr{Cchar}, Int, Int,
+        Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int),
         cglobal(:jl_malloc), res_ld, res_dim, res_dquot, res_len, res_cf,
         nb_sols, sols_num, sols_den, lens, exps, cfs, variable_names,
         "/dev/null", field_char, mon_order, elim_block_size, nr_vars,
         nr_gens, initial_hts, nr_thrds, max_nr_pairs, reset_ht, la_option,
         print_gb, get_param, genericity_handling, precision, info_level)
     # convert to julia array, also give memory management to julia
-    jl_ld       = unsafe_load(res_ld)
+    jl_ld       = res_ld[]
 
-    jl_dim      = unsafe_load(res_dim)
-    jl_dquot    = unsafe_load(res_dquot)
+    jl_dim      = res_dim[]
+    jl_dquot    = res_dquot[]
 
-    jl_nb_sols  = unsafe_load(nb_sols)
-    jl_len      = Base.unsafe_wrap(Array, unsafe_load(res_len), jl_ld)
+    jl_nb_sols  = nb_sols[]
+    jl_len      = Base.unsafe_wrap(Array, res_len[], jl_ld)
 
     nterms  = 0
     
@@ -150,17 +151,12 @@ function msolve(
 
     [nterms += jl_len[i] for i=1:jl_ld]
     # if 0 == field_char
-        res_cf_conv   = unsafe_load(res_cf)
-        jl_cf         = reinterpret(Ptr{BigInt}, res_cf_conv)
-        sols_num_conv = unsafe_load(sols_num)
-        jl_sols_num   = reinterpret(Ptr{BigInt}, sols_num_conv)
-        sols_den_conv = unsafe_load(sols_den)
-        jl_sols_den   = reinterpret(Ptr{Int32}, sols_den_conv)
+    jl_cf       = reinterpret(Ptr{BigInt}, res_cf[])
+    jl_sols_num = reinterpret(Ptr{BigInt}, sols_num[])
+    jl_sols_den = reinterpret(Ptr{Int32}, sols_den[])
     # elseif isprime(field_char)
-    #     res_cf_conv = unsafe_load(res_cf)
-    #     jl_cf       = reinterpret(Ptr{Int32}, res_cf_conv)
-    #     sols_num_conv = unsafe_load(sols_num)
-    #     jl_sols_num   = reinterpret(Ptr{Int32}, sols_num_conv)
+    #     jl_cf       = reinterpret(Ptr{Int32}, res_cf[])
+    #     jl_sols_num   = reinterpret(Ptr{Int32}, sols_num[])
     # end
 
     solutions = Array{Array{fmpq, 1}, 1}(undef, jl_nb_sols)
