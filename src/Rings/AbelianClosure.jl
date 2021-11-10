@@ -717,9 +717,16 @@ function quadratic_irrationality_info(a::QabElem)
         end
       end
     end
+
+    if cand == nothing
+      # The value is rational.
+      return (coeff(a.data, 0), 0, 1)
+    end
+
     for sigma in galgens
       img = cand^sigma
       if img != a && img != cand
+        # There are more than two Galois conjugates.
         return
       end
     end
@@ -751,7 +758,7 @@ function quadratic_irrationality_info(a::QabElem)
     return (x, y, m)
 end
 
-end
+end # module AbelianClosure
 
 using .AbelianClosure
 

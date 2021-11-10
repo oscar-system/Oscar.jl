@@ -7,7 +7,7 @@ using Oscar
 ```
 
 ```@contents
-Pages = ["pg_polyhedra_intro.md"]
+Pages = ["intro.md"]
 ```
 
 # Introduction

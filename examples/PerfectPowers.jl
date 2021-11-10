@@ -300,7 +300,7 @@ function ispower_bernstein(a::fmpz)
   c = collect(Set(c))
   @time c = [gcd(a, x) for x = c] #a should be a proper divisor of c[1]
   c = [x for x = c if !isone(x)]
-  #not sure still neccessary
+  #not sure still necessary
   @time c = Hecke.coprime_base(c) 
   @show length(c), length(Set(c))
   k = [valuation(a, p) for p = c]

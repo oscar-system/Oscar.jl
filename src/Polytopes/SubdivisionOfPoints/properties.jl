@@ -125,6 +125,24 @@ julia> ambient_dim(SOP)
 ambient_dim(SOP::SubdivisionOfPoints) = pm_subdivision(SOP).VECTOR_AMBIENT_DIM - 1
 
 
+@doc Markdown.doc"""
+    npoints(SOP::SubdivisionOfPoints)
+
+Return the number of points of a `SubdivisionOfPoints`.
+
+# Examples
+```jldoctest
+julia> moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2];
+
+julia> SOP = SubdivisionOfPoints(moaepts, [1,1,1,1,1,1]);
+
+julia> npoints(SOP)
+6
+```
+"""
+npoints(SOP::SubdivisionOfPoints) = pm_subdivision(SOP).N_POINTS
+
+
 
 ###############################################################################
 ## Points properties
@@ -178,8 +196,8 @@ julia> SOP = SubdivisionOfPoints(moaepts, [1,1,1,1,1,1])
 A subdivision of points in ambient dimension 3
 
 julia> maximal_cells_as_incidence_matrix(SOP)
-1×6 Matrix{Bool}:
- 1  1  1  1  1  1
+1×6 IncidenceMatrix
+[1, 2, 3, 4, 5, 6]
 ```
 """
 function maximal_cells_as_incidence_matrix(SOP::SubdivisionOfPoints)
@@ -215,4 +233,3 @@ true
 ```
 """
 isregular(SOP::SubdivisionOfPoints) = pm_subdivision(SOP).REGULAR
-

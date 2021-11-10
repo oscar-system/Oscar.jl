@@ -4,24 +4,34 @@ import Base: ==
 
 const AnyVecOrMat = Union{MatElem, AbstractVecOrMat}
 
+
 export Cone,
-    Points,
+    Graphs,
+    PointVector,
     PolyhedralFan,
-    Polyhedra,
     Polyhedron,
+    Halfspace,
+    Hyperplane,
     SubdivisionOfPoints,
-    Halfspaces,
     IncidenceMatrix,
     LinearProgram,
+    RayVector,
+    PolyhedronOrConeIterator,
+    HalfspaceIterator,
+    VectorIterator,
+    affine_hull,
     archimedean_solid,
     ambient_dim,
+    boundary_lattice_points,
     catalan_solid,
     codim,
     combinatorial_symmetries,
+    cone_from_inequalities,
     convex_hull,
     cross,
     cube,
     dim,
+    dual_cone,
     faces,
     facets,
     facets_as_halfspace_matrix_pair,
@@ -29,8 +39,10 @@ export Cone,
     face_fan,
     feasible_region,
     f_vector,
+    halfspace_matrix_pair,
     hilbert_basis,
     intersect,
+    interior_lattice_points,
     isbounded,
     iscomplete,
     isfeasible,
@@ -40,7 +52,9 @@ export Cone,
     isregular,
     issmooth,
     lattice_points,
+    lineality_dim,
     lineality_space,
+    linear_span,
     linear_symmetries,
     load_cone,
     load_linearprogram,
@@ -57,6 +71,7 @@ export Cone,
     minimal_vertex,
     min_weights,
     minkowski_sum,
+    ne,
     newton_polytope,
     normalized_volume,
     normal_fan,
@@ -64,10 +79,14 @@ export Cone,
     nfacets,
     nmaximal_cones,
     nmaximal_cells,
+    npoints,
     nrays,
+    nv,
     nvertices,
     objective_function,
     orbit_polytope,
+    point_matrix,
+    polarize,
     print_constraints,
     product,
     recession_cone,
@@ -82,18 +101,18 @@ export Cone,
     support_function,
     positive_hull,
     rays,
-    rays_as_point_matrix,
     upper_bound_theorem,
     vertices,
-    vertices_as_point_matrix,
     vf_group,
-    visual,
+    visualize,
     volume
 
 include("helpers.jl")
+include("iterators.jl")
+include("Polyhedron/constructors.jl")
 include("Cone/constructors.jl")
 include("Cone/properties.jl")
-include("Polyhedron/constructors.jl")
+include("Cone/standard_constructions.jl")
 include("Polyhedron/properties.jl")
 include("Polyhedron/standard_constructions.jl")
 include("PolyhedralFan/constructors.jl")
@@ -104,4 +123,7 @@ include("SubdivisionOfPoints/properties.jl")
 include("SubdivisionOfPoints/functions.jl")
 include("LinearProgram.jl")
 include("Groups.jl")
+include("Graphs.jl")
 include("Serialization.jl")
+include("Visualization.jl")
+include("solving_integrally.jl")

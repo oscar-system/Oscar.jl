@@ -61,7 +61,7 @@ mutable struct SesquilinearForm{T<:RingElem}
 
    function SesquilinearForm{T}(f::MPolyElem{T},sym) where T
       @assert sym==:quadratic "Only quadratic forms are described by polynomials"
-      @assert Set([total_degree(x) for x in monomials(f)])==Set(2) "The polynomials is not homoneneous of degree 2"
+      @assert Set([total_degree(x) for x in monomials(f)])==Set(2) "The polynomials is not homogeneous of degree 2"
       r = new{T}()
       r.pol = f
       r.descr = :quadratic
@@ -169,7 +169,7 @@ quadratic_form(f::MPolyElem{T}) where T <: FieldElem = SesquilinearForm(f, :quad
 
 # just to allow quadratic forms over vector fields of dimension 1, so defined over polynomials in 1 variable
 function quadratic_form(f::PolyElem{T}) where T <: FieldElem
-   @assert degree(f)==2 && coefficients(f)[0]==0 && coefficients(f)[1]==0 "The polynomials is not homoneneous of degree 2"
+   @assert degree(f)==2 && coefficients(f)[0]==0 && coefficients(f)[1]==0 "The polynomials is not homogeneous of degree 2"
    R1 = PolynomialRing(base_ring(f), [string(parent(f).S)])[1]
 
    return SesquilinearForm(R1[1]^2*coefficients(f)[2], :quadratic)
@@ -406,7 +406,8 @@ end
 """
     radical(f::SesquilinearForm{T})
 
-Return the radical of the sesquilinear form `f`, i.e. the subspace of all `v` such that `f(u,v)=0` for all `u`.
+Return the radical of the sesquilinear form `f`, i.e. the subspace of all `v`
+such that `f(u,v)=0` for all `u`.
 The radical of a quadratic form `Q` is the set of vectors `v` such that `Q(v)=0`
  and `v` lies in the radical of the corresponding bilinear form.
 """
@@ -433,7 +434,8 @@ witt_index(f::SesquilinearForm{T}) where T = GAP.Globals.WittIndex(f.X)
 """
     isdegenerate(f::SesquilinearForm{T})
 
-Return whether `f` is degenerate, i.e. `f` has nonzero radical. A quadratic form is degenerate if the corresponding bilinear form is.
+Return whether `f` is degenerate, i.e. `f` has nonzero radical. A quadratic
+form is degenerate if the corresponding bilinear form is.
 """
 function isdegenerate(f::SesquilinearForm{T}) where T
    f.descr != :quadratic && return det(gram_matrix(f))==0

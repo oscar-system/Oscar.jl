@@ -81,6 +81,14 @@ The function `Vector{T}` works in the opposite way with respect to `perm`:
 Vector(x::PermGroupElem, n::Int = x.parent.deg)
 ```
 
+## Operations on permutations
+
+```@docs
+sign(g::PermGroupElem)
+isodd(g::PermGroupElem)
+iseven(g::PermGroupElem)
+cycle_structure(g::PermGroupElem)
+```
 
 ## Permutations as functions
 A permutation can be viewed as a function on the set `{1,...,n}`, hence it can be evaluated on integers.
@@ -97,4 +105,18 @@ julia> x(2)
 
 julia> x(6)
 6
+```
+
+## Operations for permutation groups
+
+```@docs
+istransitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
+transitivity(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
+isprimitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
+isregular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
+issemiregular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
+blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
+maximal_blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
+representatives_minimal_blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
+all_blocks(G::PermGroup)
 ```

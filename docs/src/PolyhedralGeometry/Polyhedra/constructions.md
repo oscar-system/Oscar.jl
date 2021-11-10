@@ -7,7 +7,7 @@ using Oscar
 ```
 
 ```@contents
-Pages = ["pg_polyhedra_constructions.md"]
+Pages = ["constructions.md"]
 ```
 
 # Constructions
@@ -38,14 +38,13 @@ its unique minimal $H$-representation:
 
 ```@repl oscar
 T = convex_hull([ 0 0 ; 1 0 ; 0 1; 0 1/2 ])
-facets_as_halfspace_matrix_pair(T)
+halfspace_matrix_pair(facets(T))
 ```
 
 
 
 
 ## Named polyhedra
-For some commonly used types of polyhedra, dedicated constructors are provided:
 
 ```@docs
 simplex
@@ -73,9 +72,8 @@ convex_hull(::Polyhedron,::Polyhedron)
 
 
 
-## Polyhedra from other objects
+## Polyhedra from other mathematical objects
 
-Polyhedra can also be constructed from other mathematical objects:
 
 ```@docs
 orbit_polytope

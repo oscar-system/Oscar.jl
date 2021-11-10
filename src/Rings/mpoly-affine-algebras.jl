@@ -12,26 +12,26 @@ export issurjective, isinjective, isbijective, inverse, preimage, isfinite
 ##############################################################################
 
 @doc Markdown.doc"""
-    dim(Q::MPolyQuo)
+    dim(A::MPolyQuo)
 
-Return the Krull dimension of the quotient ring `Q`.
+Return the Krull dimension of `A`.
 
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
 
-julia> Q, _ = quo(R, ideal(R, [y-x^2, x-z^3]))
+julia> A, _ = quo(R, ideal(R, [y-x^2, x-z^3]))
 (Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, x - z^3), Map from
 Multivariate Polynomial Ring in x, y, z over Rational Field to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, x - z^3) defined by a julia-function with inverse
 )
 
-julia> dim(Q)
+julia> dim(A)
 1
 ```
 """
-function dim(Q::MPolyQuo) 
-  I = Q.I
+function dim(A::MPolyQuo) 
+  I = A.I
   return dim(I)
 end
 
@@ -164,10 +164,9 @@ end
 ##############################################################################
 
 @doc Markdown.doc"""
-    isreduced(Q::MPolyQuo)
+    isreduced(A::MPolyQuo)
 
-Given a quotient ring `Q = R/I`,
-return `true` if `Q` is reduced, `false` otherwise.
+Given an affine algebra `A`, return `true` if `A` is reduced, `false` otherwise.
 
 CAVEAT: The function computes the radical of `I`. This may take some time.
 
@@ -176,17 +175,17 @@ CAVEAT: The function computes the radical of `I`. This may take some time.
 julia> R, (x,) = PolynomialRing(QQ, ["x"])
 (Multivariate Polynomial Ring in x over Rational Field, fmpq_mpoly[x])
 
-julia> Q, _ = quo(R, ideal(R, [x^4]))
+julia> A, _ = quo(R, ideal(R, [x^4]))
 (Quotient of Multivariate Polynomial Ring in x over Rational Field by ideal(x^4), Map from
 Multivariate Polynomial Ring in x over Rational Field to Quotient of Multivariate Polynomial Ring in x over Rational Field by ideal(x^4) defined by a julia-function with inverse
 )
 
-julia> isreduced(Q)
+julia> isreduced(A)
 false
 ```
 """
-function isreduced(Q::MPolyQuo) 
-  I = Q.I
+function isreduced(A::MPolyQuo) 
+  I = A.I
   return I == radical(I)
 end
 

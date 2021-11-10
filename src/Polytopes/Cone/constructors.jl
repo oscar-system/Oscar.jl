@@ -35,26 +35,15 @@ julia> HS = Cone(R, L)
 A polyhedral cone in ambient dimension 2
 ```
 """
-struct Cone #a real polymake polyhedron
-    pm_cone::Polymake.BigObject
-end
-function Cone(Rays::Union{Oscar.MatElem,AbstractMatrix})
-    Cone(Polymake.polytope.Cone{Polymake.Rational}(
-        INPUT_RAYS = matrix_for_polymake(Rays),
-    ))
-end
-function Cone(Rays::Union{Oscar.MatElem,AbstractMatrix}, LS::Union{Oscar.MatElem,AbstractMatrix}; non_redundant::Bool=false)
-   if non_redundant
-       Cone(Polymake.polytope.Cone{Polymake.Rational}(
-           RAYS = matrix_for_polymake(Rays),
-           LINEALITY_SPACE = matrix_for_polymake(LS),
-       ))
-   else
-       Cone(Polymake.polytope.Cone{Polymake.Rational}(
-           INPUT_RAYS = matrix_for_polymake(Rays),
-           INPUT_LINEALITY = matrix_for_polymake(LS),
-       ))
-   end
+function Cone(R::Union{VectorIterator{RayVector}, Oscar.MatElem, AbstractMatrix}, L::Union{VectorIterator{RayVector}, Oscar.MatElem, AbstractMatrix, Nothing} = nothing; non_redundant::Bool = false)
+    RM = matrix_for_polymake(R)
+    LM = isnothing(L) || isempty(L) ? Polymake.Matrix{Polymake.Rational}(undef, 0, size(RM, 2)) : matrix_for_polymake(L)
+
+    if non_redundant
+        return Cone(Polymake.polytope.Cone{Polymake.Rational}(RAYS = RM, LINEALITY_SPACE = LM,))
+    else
+        return Cone(Polymake.polytope.Cone{Polymake.Rational}(INPUT_RAYS = RM, INPUT_LINEALITY = LM,))
+    end
 end
 
 ==(C0::Cone, C1::Cone) = Polymake.polytope.equal_polyhedra(pm_cone(C0), pm_cone(C1))
@@ -78,13 +67,45 @@ julia> PO = positive_hull(R)
 A polyhedral cone in ambient dimension 2
 ```
 """
-function positive_hull(R::Union{Oscar.MatElem,AbstractMatrix})
+function positive_hull(R::Union{VectorIterator{RayVector}, Oscar.MatElem,AbstractMatrix})
     # TODO: Filter out zero rows
     C=Polymake.polytope.Cone{Polymake.Rational}(INPUT_RAYS =
       matrix_for_polymake(remove_zero_rows(R)))
     Cone(C)
 end
 
+@doc Markdown.doc"""
+
+    cone_from_inequalities(A::Union{Oscar.MatElem,AbstractMatrix}; non_redundant::Bool = false)
+
+The (convex) cone defined by
+
+$$\{ x |  Ax ≤ 0 \}.$$
+
+Use `non_redundant = true` if the given description contains no redundant rows to
+avoid unnecessary redundancy checks.
+
+# Examples
+```jldoctest
+julia> C = cone_from_inequalities([0 -1; -1 1])
+A polyhedral cone in ambient dimension 2
+
+julia> rays(C)
+2-element VectorIterator{RayVector{Polymake.Rational}}:
+ [1, 0]
+ [1, 1]
+```
+"""
+function cone_from_inequalities(I::Union{HalfspaceIterator, Oscar.MatElem, AbstractMatrix}, E::Union{Nothing, HalfspaceIterator, Oscar.MatElem, AbstractMatrix} = nothing; non_redundant::Bool = false)
+    IM = -matrix_for_polymake(I)
+    EM = isnothing(E) || isempty(E) ? Polymake.Matrix{Polymake.Rational}(undef, 0, size(IM, 2)) : matrix_for_polymake(E)
+
+    if non_redundant
+        return Cone(Polymake.polytope.Cone{Polymake.Rational}(FACETS = IM, LINEAR_SPAN = EM))
+    else
+        return Cone(Polymake.polytope.Cone{Polymake.Rational}(INEQUALITIES = -matrix_for_polymake(I), EQUATIONS = EM))
+    end
+end
 
 """
     pm_cone(C::Cone)

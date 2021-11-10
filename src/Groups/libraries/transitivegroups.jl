@@ -29,17 +29,65 @@ end
 """
     transitive_identification(G::PermGroup)
 
-Return `(deg, m)` such that `G` is permutation isomorphic with
-`transitive_group(deg, m)`.
+Return `m` such that `G` is permutation isomorphic with
+`transitive_group(d, m)`, where `G` is transitive on `d` points,
+with `d < 32`.
+
+If `G` moves more than 31 points then `-1` is returned.
+Otherwise, if `G` is not transitive on its moved points then `0` is returned,
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(7);  m = transitive_identification(G)
+7
+
+julia> order(transitive_group(7, m)) == order(G)
+true
+
+julia> S = sub(G, [gap_perm([1, 3, 4, 5, 2])])[1]
+Group([ (2,3,4,5) ])
+
+julia> istransitive(S)
+false
+
+julia> istransitive(S, moved_points(S))
+true
+
+julia> m = transitive_identification(S)
+1
+
+julia> order(transitive_group(4, m)) == order(S)
+true
+
+julia> transitive_identification(symmetric_group(32))
+-1
+
+julia> S = sub(G, [gap_perm([1,3,4,5,2,7,6])])[1];
+
+julia> istransitive(S, moved_points(S))
+false
+
+julia> transitive_identification(S)
+0
+```
 """
-transitive_identification(G::PermGroup) = GAP.Globals.TransitiveIdentification(G.X)
+function transitive_identification(G::PermGroup)
+  moved = moved_points(G)
+  length(moved) < 32 || return -1
+  istransitive(G, moved) || return 0
+  return GAP.Globals.TransitiveIdentification(G.X)
+end
+
 
 """
     all_transitive_groups(L...)
 
 Return the list of all transitive groups (up to permutation isomorphism)
 satisfying the conditions in `L`.
-Here, `L` is a vector whose arguments are organized as `L` = [ `func1`, `arg1`, `func2`, `arg2`, ... ], and the function returns all the groups `G` satisfying the conditions `func1`(`G`) = `arg1`, `func2`(`G`) = `arg2`, etc. An argument can be omitted if it corresponds to the boolean value `true`.
+Here, `L` is a vector whose arguments are organized as `L` = [ `func1`,
+`arg1`, `func2`, `arg2`, ... ], and the function returns all the groups `G`
+satisfying the conditions `func1`(`G`) = `arg1`, `func2`(`G`) = `arg2`, etc.
+An argument can be omitted if it corresponds to the boolean value `true`.
 
 # Examples
 ```jldoctest

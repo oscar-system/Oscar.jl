@@ -213,7 +213,7 @@ function Oscar.interpolate(Val::Vals{T}, M::MPolyInterpolateCtx) where {T}
         return false, zero(M.R)
       end
       if isconstant(bm[2])
-        continue #why? but is neccessary
+        continue #why? but is necessary
       end
 
       r = roots(bm[2])
@@ -852,8 +852,8 @@ function Oscar.lift(f::PolyElem, g::PolyElem, a::nf_elem, b::nf_elem, V::Vector{
       #need to translate the denominators back in.
       B = lift(B)(gen(parent(f))*d_a)*inv(S(d_b))
       #need to re-arrange to have all lifts in the same ring
-      #(this seems to not be neccessary - there are parent checks missing)
-      #need to, if neccessary, find a primitive element...
+      #(this seems to not be necessary - there are parent checks missing)
+      #need to, if necessary, find a primitive element...
       return B
     end
     if sum(map(total_degree, red)) > 100

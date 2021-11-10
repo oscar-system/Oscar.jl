@@ -107,7 +107,7 @@ The following attributes of `io` are supported.
   the default is to have just one portion in the `:TeX` case,
   and to create portions according to the screen width otherwise,
 
-## Examples:
+## Examples
 ```jldoctest
 julia> m = 3; n = 4;  mat = Array{String}(undef, m, n);
 
@@ -190,9 +190,11 @@ function labelled_matrix_formatted(io::IO, mat::Matrix{String})
     labels_row = get(io, :labels_row, fill("", m2, 0))
 
     if length(size(labels_row)) == 1
+      # one column of row labels
       labels_row = reshape(labels_row, length(labels_row), 1)
     end
     if length(size(labels_col)) == 1
+      # one row of column labels
       labels_col = reshape(labels_col, 1, length(labels_col))
     end
 
@@ -200,7 +202,8 @@ function labelled_matrix_formatted(io::IO, mat::Matrix{String})
     n1 = size(labels_row, 2)
     corner = get(io, :corner, fill("", m1, n1))
     if length(size(corner)) == 1
-      corner = reshape(corner, 1, length(corner))
+      # one column of labels above the row labels
+      corner = reshape(corner, length(corner), 1)
     end
 
     @assert size(corner, 1) == m1 "row numbers in corner and column labels differ"

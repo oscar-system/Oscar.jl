@@ -149,7 +149,7 @@ end
 module Orderings
 
 using Oscar, Markdown
-import Oscar: Ring, MPolyRing, MPolyElem, weights
+import Oscar: Ring, MPolyRing, MPolyElem, weights, IntegerUnion
 export anti_diagonal, lex, degrevlex, deglex, weights, MonomialOrdering, singular
 
 abstract type AbsOrdering end
@@ -371,25 +371,25 @@ function singular(ord::Symbol, v::AbstractVector{<:MPolyElem})
 end
 
 @doc Markdown.doc"""
-    singular(ord::Symbol, v::AbstractVector{<:MPolyElem}, w::AbstractMatrix{Int}) -> MonomialOrdering
+    singular(ord::Symbol, v::AbstractVector{<:MPolyElem}, w::AbstractMatrix{<:IntegerUnion}) -> MonomialOrdering
 
 Defines an ordering given in terms of Singular weight ordering (`M`) with the
 matrix given. `ord` has to be `:M` here.
 """
-function singular(ord::Symbol, v::AbstractVector{<:MPolyElem}, w::Matrix{<:Union{Integer, fmpz}})
+function singular(ord::Symbol, v::AbstractVector{<:MPolyElem}, w::AbstractMatrix{<:IntegerUnion})
   @assert ord == :M
   W = matrix(ZZ, size(w, 1), size(w, 2), w)
   return MonomialOrdering(parent(first(v)), ordering(v, Symbol("Singular($(string(ord)))"), W))
 end
 
 @doc Markdown.doc"""
-    singular(ord::Symbol, v::AbstractVector{<:MPolyElem}, w::AbstractMatrix{Int}) -> MonomialOrdering
+    singular(ord::Symbol, v::AbstractVector{<:MPolyElem}, w::AbstractVector{<:IntegerUnion}) -> MonomialOrdering
 
 Defines an ordering given in terms of Singular weight ordering (`a`) with the
 weights given. `ord` has to be `:a` here. The weights will be supplemented by
 `0`.
 """
-function singular(ord::Symbol, v::AbstractVector{<:MPolyElem}, w::Vector{<:Union{Integer, fmpz}})
+function singular(ord::Symbol, v::AbstractVector{<:MPolyElem}, w::AbstractVector{<:IntegerUnion})
   @assert ord == :a
   W = map(fmpz, w)
   while length(v) > length(W)
@@ -414,8 +414,8 @@ end
 
 Compute a weight ordering with a unique weight matrix.    
 """
-function simplify(M::MonomialOrdering)
-  ww = simplify_weight_matrix(weights(M))
+function Hecke.simplify(M::MonomialOrdering)
+  ww = simplify_weight_matrix(M.o)
   return MonomialOrdering(M.R, ordering(1:ncols(ww), ww))
 end
 
@@ -450,11 +450,11 @@ end
 
 import Base.==
 function ==(M::MonomialOrdering, N::MonomialOrdering)
-  return simplify(M).o.wgt == simplify(N).o.wgt
+  return Hecke.simplify(M).o.wgt == Hecke.simplify(N).o.wgt
 end
 
 function Base.hash(M::MonomialOrdering, u::UInt)
-  return hash(simplify(M).o.wgt, u)
+  return hash(Hecke.simplify(M).o.wgt, u)
 end
 
 end  # module Orderings
@@ -743,6 +743,16 @@ end
 #
 ##############################################################################
 
+@Markdown.doc """
+    mutable struct MPolyIdeal{S} <: Ideal{S}
+
+Ideal in a multivariate polynomial ring R with elements of type `S`.
+
+Fields:
+  * `gens::BiPolyArray{S}`, a bi-list of generators of the ideal. This is not supposed to be altered ever after assignment of the ideal;
+  * `gb::BiPolyArray{S}`, a field used for caching of Groebner basis computations;
+  * `dim::Int`, a field used for caching the dimension of the ideal.
+"""
 mutable struct MPolyIdeal{S} <: Ideal{S}
   gens::BiPolyArray{S}
   gb::BiPolyArray{S}

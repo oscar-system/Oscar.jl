@@ -3,55 +3,6 @@ export coefficient_ring, polynomial_ring, action, group
 export ismodular
 export reynolds_operator, molien_series
 
-###############################################
-
-mutable struct InvRing{FldT, GrpT, PolyElemT, PolyRingT, ActionT, SingularActionT}
-  field::FldT
-  poly_ring::PolyRingT
-
-  group::GrpT
-  action::Vector{ActionT}
-  action_singular::Vector{SingularActionT}
-
-  modular::Bool
-
-  primary::Vector{PolyElemT}
-  secondary::Vector{PolyElemT}
-  irreducible_secondary::Vector{PolyElemT}
-  fundamental::Vector{PolyElemT}
-
-  # Cache some stuff on the Singular side
-  # (possibly removed at some point)
-  reynolds_singular::Singular.smatrix
-  molien_singular::Singular.smatrix
-  primary_singular # the type is different depending on the characteristic...
-
-  function InvRing(K::FldT, G::GrpT, action::Vector{ActionT}) where {FldT <: Field, GrpT <: AbstractAlgebra.Group, ActionT}
-    n = degree(G)
-    R, = grade(PolynomialRing(K, "x" => 1:n, cached = false)[1], ones(Int, n))
-    R_sing = singular_ring(R)
-    action_singular = identity.([change_base_ring(R_sing, g) for g in action])
-    PolyRingT = typeof(R)
-    PolyElemT = elem_type(R)
-    SingularActionT = eltype(action_singular)
-    z = new{FldT, GrpT, PolyElemT, PolyRingT, ActionT, SingularActionT}()
-    z.field = K
-    z.poly_ring = R
-    z.group = G
-    z.action = action
-    z.action_singular = action_singular
-    z.modular = true
-    if iszero(characteristic(K))
-      z.modular = false
-    else
-      if !iszero(mod(order(G), characteristic(K)))
-        z.modular = false
-      end
-    end
-    return z
-  end
-end
-
 ################################################################################
 #
 #  Field access
@@ -87,7 +38,7 @@ end
 
 Return the invariant ring of the finite matrix group `G`.
     
-CAVEAT: The creation of invariant rings is lazy in the sense that no explicit computations are done until specifically invoked (for example by the `primary_invariants` function).
+CAVEAT: The creation of invariant rings is lazy in the sense that no explicit computations are done until specifically invoked (for example, by the `primary_invariants` function).
 
 # Examples
 ```jldoctest
@@ -120,6 +71,32 @@ function Base.show(io::IO, IR::InvRing)
   print(io, "with generators\n")
   print(io, action(IR))
 end
+
+# Returns a map performing the right action of M on the ring R
+function right_action(R::MPolyRing{T}, M::MatrixElem{T}) where T
+  @assert nvars(R) == ncols(M)
+  @assert nrows(M) == ncols(M)
+  n = nvars(R)
+
+  vars = zeros(R, n)
+  x = gens(R)
+  for i = 1:n
+    for j = 1:n
+      if iszero(M[i, j])
+        continue
+      end
+      vars[i] = addeq!(vars[i], M[i, j]*x[j])
+    end
+  end
+
+  right_action_by_M = (f::MPolyElem{T}) -> evaluate(f, vars)
+
+  return MapFromFunc(right_action_by_M, R, R)
+end
+
+right_action(R::MPolyRing{T}, M::MatrixGroupElem{T}) where T = right_action(R, M.elm)
+right_action(f::MPolyElem{T}, M::MatrixElem{T}) where T = right_action(parent(f), M)(f)
+right_action(f::MPolyElem{T}, M::MatrixGroupElem{T}) where T = right_action(f, M.elm)
 
 function reynolds_molien_via_singular(IR::InvRing{T}) where {T <: Union{FlintRationalField, AnticNumberField}}
   if !isdefined(IR, :reynolds_singular) || !isdefined(IR, :molien_singular)
@@ -160,6 +137,69 @@ function reynolds_via_singular(IR::InvRing{T}) where {T <: Union{FqNmodFiniteFie
     IR.reynolds_singular = rey
   end
   return IR.reynolds_singular
+end
+
+# Need a special function for char 0 at the moment
+# TODO: Remove this function once we can iterate over and call `order` on char 0
+# matrix groups
+function _prepare_reynolds_operator(IR::InvRing{FldT, GrpT, T}) where {FldT <: Union{FlintRationalField, AnticNumberField}, GrpT <: MatrixGroup, T}
+  if isdefined(IR, :reynolds_operator)
+    return nothing
+  end
+
+  H, GtoH = Oscar.isomorphic_group_over_finite_field(group(IR))
+  elements_of_G = [ preimage(GtoH, h) for h in H ]
+  actions = [ right_action(polynomial_ring(IR), g) for g in elements_of_G ]
+  function reynolds(f::T)
+    g = parent(f)()
+    for action in actions
+      g = addeq!(g, action(f))
+    end
+    return g*base_ring(f)(1//order(H))
+  end
+
+  IR.reynolds_operator = MapFromFunc(reynolds, polynomial_ring(IR), polynomial_ring(IR))
+  return nothing
+end
+
+function _prepare_reynolds_operator(IR::InvRing{FldT, GrpT, PolyElemT}) where {FldT, GrpT, PolyElemT}
+  @assert !ismodular(IR)
+
+  if isdefined(IR, :reynolds_operator)
+    return nothing
+  end
+
+  actions = [ right_action(polynomial_ring(IR), g) for g in group(IR) ]
+  function reynolds(f::PolyElemT)
+    g = parent(f)()
+    for action in actions
+      g = addeq!(g, action(f))
+    end
+    return g*base_ring(f)(1//order(group(IR)))
+  end
+
+  IR.reynolds_operator = MapFromFunc(reynolds, polynomial_ring(IR), polynomial_ring(IR))
+  return nothing
+end
+
+function reynolds_operator_via_oscar(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyElem}
+  @assert !ismodular(IR)
+
+  if !isdefined(IR, :reynolds_operator)
+    _prepare_reynolds_operator(IR)
+  end
+  return IR.reynolds_operator(f)
+end
+
+function reynolds_operator_via_singular(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyElem}
+   @assert parent(f) === polynomial_ring(IR)
+
+   rey = reynolds_via_singular(IR)
+   fSing = singular_ring(polynomial_ring(IR))(f)
+   fReySing = Singular.LibFinvar.evaluate_reynolds(rey, fSing)
+   # fReySing is an ideal...
+   @assert length(gens(fReySing)) == 1
+   return polynomial_ring(IR)(gens(fReySing)[1])
 end
 
 @doc Markdown.doc"""
@@ -249,16 +289,7 @@ julia> reynolds_operator(IR, f)
 0
 ```
 """
-function reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyElem}
-   @assert parent(f) === polynomial_ring(IR)
-
-   rey = reynolds_via_singular(IR)
-   fSing = singular_ring(polynomial_ring(IR))(f)
-   fReySing = Singular.LibFinvar.evaluate_reynolds(rey, fSing)
-   # fReySing is an ideal...
-   @assert length(gens(fReySing)) == 1
-   return polynomial_ring(IR)(gens(fReySing)[1])
-end
+reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyElem} = reynolds_operator_via_oscar(IR, f)
 
 function reynolds_operator(IR::InvRing, f::MPolyElem)
   @assert parent(f) === polynomial_ring(IR).R
@@ -266,7 +297,7 @@ function reynolds_operator(IR::InvRing, f::MPolyElem)
 end
 
 function basis_via_reynolds(IR::InvRing, d::Int)
-  @assert d >= 0 "Dimension must be non-negative"
+  @assert d >= 0 "Degree must be non-negative"
   @assert !ismodular(IR)
   R = polynomial_ring(IR)
   if d == 0
@@ -287,7 +318,7 @@ function basis_via_reynolds(IR::InvRing, d::Int)
 end
 
 function basis_via_linear_algebra(IR::InvRing, d::Int)
-  @assert d >= 0 "Dimension must be non-negative"
+  @assert d >= 0 "Degree must be non-negative"
   R = polynomial_ring(IR)
   if d == 0
     return elem_type(R)[ one(R) ]
@@ -336,10 +367,10 @@ AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a
 
 julia> basis(IR, 6)
 4-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
- x[1]^2*x[2]^2*x[3]^2
- x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
- x[1]^4*x[2]*x[3] + x[1]*x[2]^4*x[3] + x[1]*x[2]*x[3]^4
  x[1]^6 + x[2]^6 + x[3]^6
+ x[1]^4*x[2]*x[3] + x[1]*x[2]^4*x[3] + x[1]*x[2]*x[3]^4
+ x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
+ x[1]^2*x[2]^2*x[3]^2
 ```
 ```
 julia> M = matrix(GF(3), [0 1 0; -1 0 0; 0 0 -1])
@@ -358,24 +389,16 @@ gfp_mat[[0 1 0; 2 0 0; 0 0 2]]
 
 julia> basis(IR, 2)
 2-element Vector{MPolyElem_dec{gfp_elem, gfp_mpoly}}:
- x[3]^2
  x[1]^2 + x[2]^2
+ x[3]^2
 
 julia> basis(IR, 3)
 2-element Vector{MPolyElem_dec{gfp_elem, gfp_mpoly}}:
- x[1]*x[2]*x[3]
  x[1]^2*x[3] + 2*x[2]^2*x[3]
+ x[1]*x[2]*x[3]
 ```
 """
-function basis(IR::InvRing, d::Int)
-  # TODO: Fine tune this: Depending on d and the group order it is better
-  # to use "via_linear_algebra" also in the non-modular case.
-  if ismodular(IR)
-    return basis_via_linear_algebra(IR, d)
-  else
-    return basis_via_reynolds(IR, d)
-  end
-end
+basis(IR::InvRing, d::Int, algo = :default) = collect(iterate_basis(IR, d, algo))
 
 function primary_invariants_via_singular(IR::InvRing)
   if !isdefined(IR, :primary_singular)
@@ -495,12 +518,13 @@ end
 @doc Markdown.doc"""
     irreducible_secondary_invariants(IR::InvRing)
 
-From among a system of secondary invariants for `IR` (with respect to the currently cached system of primary invariants for `IR`), return the irrreducible secondary invariants.
+Return a system of irreducible secondary invariants for `IR` with respect to the currently cached system of primary invariants for `IR`
+(if no system of primary invariants for `IR` is cached, compute and cache such a system first).
 
-If a system of secondary invariants is already cached, return the irreducible ones from that system. 
-Otherwise, compute and cache a system of secondary invariants first.
+If a system of irreducible secondary invariants is already cached, return the cached system. 
+Otherwise, compute and cache such a system first.
 
-NOTE: A secondary invariant is *irreducible* if it cannot be written as a polynomial expession in the primary invariants and the other secondary invariants. The multiplicative unit 1 is not irreducible: It is considered to be the empty power product.
+NOTE: The irreducible secondary invariants are sorted by increasing degree.
 
 # Examples
 ```
@@ -640,23 +664,14 @@ function _molien_series_charp_nonmodular_via_gap(S::PolyRing, I::InvRing)
   return num//den
 end
 
-function molien_series(S::PolyRing, I::InvRing)
-  if characteristic(coefficient_ring(I)) == 0
-    return _molien_series_char0(S, I)
-  else
-    if !ismodular(I)
-      return _molien_series_charp_nonmodular_via_gap(S, I)
-    else
-      throw(NotImplemented())
-    end
-  end
-end
 
-@doc doc"""
+@doc Markdown.doc"""
     molien_series([S::PolyRing], I::InvRing)
 
-Return the Molien series of `I` as a rational function. The invariant ring must
-be non-modular.
+In the non-modular case, return the Molien series of `I` as a rational function. 
+
+If a univariate polynomial ring with rational coefficients is specified by the optional argument `S::PolyRing`, 
+then the Molien series is returned as an element of the fraction field of that ring.
 
 # Examples
 ```jldoctest
@@ -674,19 +689,42 @@ julia> molien_series(IR)
 (-t^6 + t^3 - 1)//(t^9 - 3*t^6 + 3*t^3 - 1)
 ```
 """
+function molien_series(S::PolyRing, I::InvRing)
+  if characteristic(coefficient_ring(I)) == 0
+    return _molien_series_char0(S, I)
+  else
+    if !ismodular(I)
+      return _molien_series_charp_nonmodular_via_gap(S, I)
+    else
+      throw(NotImplemented())
+    end
+  end
+end
 function molien_series(I::InvRing)
-  S, t = PolynomialRing(QQ, "t", cached = false)
-  return molien_series(S, I)
+  if !isdefined(I, :molien_series)
+    S, t = PolynomialRing(QQ, "t", cached = false)
+    I.molien_series = molien_series(S, I)
+  end
+  return I.molien_series
 end
 
 
 @doc Markdown.doc"""
-    fundamental_invariants(IR::InvRing)
+    fundamental_invariants(IR::InvRing, algo::Symbol = :king)
 
 Return a system of fundamental invariants for `IR`.
 
 If a system of fundamental invariants is already cached, return the cached system. 
 Otherwise, compute and cache such a system first.
+
+# Implemented Algorithms
+
+By default, the function relies on King's algorithm which finds a system of 
+fundamental invariants directly, without computing primary and secondary invariants. 
+
+Alternatively, if specified by `alg=:minimal_subalgebra`, the function computes
+fundamental invariants from a collection of primary and irreducible secondary invariants using
+the function `minimal_subalgebra_generators`.
 
 NOTE: The fundamental invariants are sorted by increasing degree.
 
@@ -716,19 +754,40 @@ AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a
 
 julia> fundamental_invariants(IR)
 4-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
- x[1]*x[2]*x[3]
  x[1]^3 + x[2]^3 + x[3]^3
- x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
+ x[1]*x[2]*x[3]
+ x[1]^6 + x[2]^6 + x[3]^6
  x[1]^6*x[3]^3 + x[1]^3*x[2]^6 + x[2]^3*x[3]^6
 ```
 """
-function fundamental_invariants(IR::InvRing)
+function fundamental_invariants(IR::InvRing, algo::Symbol = :king)
   if !isdefined(IR, :fundamental)
-     V = primary_invariants(IR)
-     append!(V, irreducible_secondary_invariants(IR))
-     IR.fundamental = minimal_subalgebra_generators(V)
+    if algo == :king
+      IR.fundamental = fundamental_invariants_via_king(IR)
+    elseif algo == :minimal_subalgebra
+      IR.fundamental = fundamental_invariants_via_minimal_subalgebra(IR)
+    else
+      error("Unsupported argument :$(algo) for algo")
+    end
   end
   return IR.fundamental
+end
+
+function fundamental_invariants_via_minimal_subalgebra(IR::InvRing)
+  V = primary_invariants(IR)
+  append!(V, irreducible_secondary_invariants(IR))
+  return minimal_subalgebra_generators(V)
+end
+
+function fundamental_invariants_via_king(IR::InvRing)
+  rey = reynolds_via_singular(IR)
+  F = Singular.LibFinvar.invariant_algebra_reynolds(rey)::Singular.smatrix{<: Singular.spoly}
+  R = polynomial_ring(IR)
+  f = Vector{elem_type(R)}()
+  for i = 1:ncols(F)
+    push!(f, R(F[1, i]))
+  end
+  return f
 end
 
 @doc Markdown.doc"""
@@ -769,24 +828,24 @@ with generators
 AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
 
 julia> affine_algebra(IR)
-(Quotient of Multivariate Polynomial Ring in y[1], y[2], y[3], y[4] over Cyclotomic field of order 3 graded by 
+(Quotient of Multivariate Polynomial Ring in y[1], y[2], y[3], y[4] over Cyclotomic field of order 3 graded by
   y[1] -> [3]
   y[2] -> [3]
   y[3] -> [6]
-  y[4] -> [9] by ideal(9*y[1]^6 + y[1]^3*y[2]^3 - 6*y[1]^3*y[2]*y[3] + 3*y[1]^3*y[4] - y[2]*y[3]*y[4] + y[3]^3 + y[4]^2), Algebra homomorphism with
+  y[4] -> [9] by ideal(y[1]^6 - 3*y[1]^4*y[3] - 16*y[1]^3*y[2]^3 - 4*y[1]^3*y[4] + 3*y[1]^2*y[3]^2 + 24*y[1]*y[2]^3*y[3] + 4*y[1]*y[3]*y[4] + 72*y[2]^6 + 24*y[2]^3*y[4] - y[3]^3 + 8*y[4]^2), Algebra homomorphism with
 
-domain: Quotient of Multivariate Polynomial Ring in y[1], y[2], y[3], y[4] over Cyclotomic field of order 3 graded by 
+domain: Quotient of Multivariate Polynomial Ring in y[1], y[2], y[3], y[4] over Cyclotomic field of order 3 graded by
   y[1] -> [3]
   y[2] -> [3]
   y[3] -> [6]
-  y[4] -> [9] by ideal(9*y[1]^6 + y[1]^3*y[2]^3 - 6*y[1]^3*y[2]*y[3] + 3*y[1]^3*y[4] - y[2]*y[3]*y[4] + y[3]^3 + y[4]^2)
+  y[4] -> [9] by ideal(y[1]^6 - 3*y[1]^4*y[3] - 16*y[1]^3*y[2]^3 - 4*y[1]^3*y[4] + 3*y[1]^2*y[3]^2 + 24*y[1]*y[2]^3*y[3] + 4*y[1]*y[3]*y[4] + 72*y[2]^6 + 24*y[2]^3*y[4] - y[3]^3 + 8*y[4]^2)
 
-codomain: Multivariate Polynomial Ring in x[1], x[2], x[3] over Cyclotomic field of order 3 graded by 
+codomain: Multivariate Polynomial Ring in x[1], x[2], x[3] over Cyclotomic field of order 3 graded by
   x[1] -> [1]
   x[2] -> [1]
   x[3] -> [1]
 
-defining images of generators: MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}[x[1]*x[2]*x[3], x[1]^3 + x[2]^3 + x[3]^3, x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3, x[1]^6*x[3]^3 + x[1]^3*x[2]^6 + x[2]^3*x[3]^6]
+defining images of generators: MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}[x[1]^3 + x[2]^3 + x[3]^3, x[1]*x[2]*x[3], x[1]^6 + x[2]^6 + x[3]^6, x[1]^6*x[3]^3 + x[1]^3*x[2]^6 + x[2]^3*x[3]^6]
 )
 ```
 """

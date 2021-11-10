@@ -7,16 +7,18 @@ using Oscar
 ```
 
 ```@contents
-Pages = ["ca.md"]
+Pages = ["intro.md"]
 ```
 
 # Introduction
 
 The commutative algebra part of OSCAR provides functionality for handling
-- ideals and modules over multivariate polynomial rings,
-- quotient rings of such rings, with particular emphasis on affine $K$-algebras.
 
-It is under development with regard to providing both the functionality and the documentation. 
+- ideals of multivariate polynomial rings,
+- quotients of multivariate polynomial rings modulo ideals, as well as ideals of such quotients, and 
+- modules over the above rings.
+
+In describing this functionality, we will refer to quotients of multivariate polynomial rings also as *affine algebras*.
 
 !!! note
     - Most of the functions discussed here rely on Gröbner basis techniques. They are  implemented for multivariate polynomial rings over fields (exact fields supported by OSCAR) and, if not indicated otherwise, for multivariate polynomial rings over the integers.

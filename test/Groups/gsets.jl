@@ -136,3 +136,60 @@
   @test ! rep[1]
 
 end
+
+@testset "natural action of permutation groups" begin
+
+  G8 = transitive_group(8, 3)
+  S4 = symmetric_group(4)
+  @test order(G8) == 8
+
+  # all_blocks
+  bl = all_blocks(G8)
+  @test length(bl) == 14
+  @test [1, 2] in bl
+  @test length(all_blocks(S4)) == 0
+
+  # blocks
+  bl = blocks(G8)
+  @test bl == [[1, 8], [2, 3], [4, 5], [6, 7]]
+  @test bl == blocks(G8, 1:degree(G8))
+
+  # isprimitive
+  @test ! isprimitive(G8)
+  @test ! isprimitive(G8, 1:degree(G8))
+  @test isprimitive(S4)
+  @test isprimitive(S4, 1:3)
+
+  # isregular
+  @test isregular(G8)
+  @test ! isregular(G8, 1:9)
+  @test ! isregular(S4)
+
+  # issemiregular
+  @test issemiregular(G8)
+  @test ! issemiregular(G8, 1:9)
+  @test ! issemiregular(S4)
+
+  # istransitive
+  @test istransitive(G8)
+  @test ! istransitive(G8, 1:9)
+
+  # maximal_blocks
+  bl = maximal_blocks(G8)
+  @test bl == [[1, 2, 3, 8], [4, 5, 6, 7]]
+  @test bl == maximal_blocks(G8, 1:degree(G8))
+  @test maximal_blocks(S4) == [[1, 2, 3, 4]]
+
+  # representatives_minimal_blocks
+  bl = representatives_minimal_blocks(G8)
+  @test bl == [[1,i] for i in 2:8]
+  @test bl == representatives_minimal_blocks(G8, 1:degree(G8))
+  @test representatives_minimal_blocks(S4) == [[1, 2, 3, 4]]
+
+  # transitivity
+  @test transitivity(G8) == 1
+  @test transitivity(S4) == 4
+  @test transitivity(S4, 1:3) == 3
+  @test transitivity(S4, 1:5) == 0
+
+end

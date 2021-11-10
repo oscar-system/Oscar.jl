@@ -17,6 +17,7 @@ export
     core,
     coset_decomposition,
     cperm,
+    cycle_structure,
     degree,
     describe,
     div_left,
@@ -104,8 +105,6 @@ false
 ```
 """ isfinite(G::GAPGroup)
 
-Base.isfinite(G::PermGroup) = true
-
 Base.isfinite(G::PcGroup) = true
 
 """
@@ -126,97 +125,7 @@ false
 isfinite_order(x::GAPGroupElem) = GAP.Globals.IsInt(GAP.Globals.Order(x.X))::Bool
 
 """
-    degree(G::PermGroup) -> Int
-
-Return the degree of `G` as a permutation group, that is,
-an integer `n` that is stored in `G`, with the following meaning.
-
-- `G` embeds into `symmetric_group(n)`.
-- Two permutation groups of different degrees are regarded as not equal,
-  even if they contain the same permutations.
-- Subgroups constructed with `derived_subgroup`, `sylow_subgroup`, etc.,
-  get the same degree as the given group.
-- The range `1:degree(G)` is used as the default set of points on which
-  `G` and its element acts.
-
-!!! note
-    The degree of a group of permutations is not necessarily equal to the largest moved point of the group `G`. For example, the trivial subgroup of `symmetric_group(n)` has degree `n` even though it fixes `n`.
-
-# Examples
-```jldoctest
-julia> degree(symmetric_group(4))
-4
-
-julia> t4 = trivial_subgroup(symmetric_group(4))[1];
-
-julia> degree(t4)
-4
-
-julia> t4 == trivial_subgroup(symmetric_group(5))[1]
-false
-
-julia> show(Vector(gen(symmetric_group(4), 2)))
-[2, 1, 3, 4]
-julia> show(Vector(gen(symmetric_group(5), 2)))
-[2, 1, 3, 4, 5]
-```
-"""
-degree(x::PermGroup) = x.deg
-
-@gapattribute moved_points(x::Union{PermGroupElem,PermGroup}) = [y for y in GAP.gap_to_julia(GAP.Globals.MovedPoints(x.X))]
-# This is more efficient than `Vector{Int}(GAP.Globals.MovedPoints(x.X))`.
-# (And note that `GAP.gap_to_julia(GAP.Globals.MovedPoints(G.X))` may return
-# a range.)
-"""
-    moved_points(x::PermGroupElem)
-    moved_points(G::PermGroup)
-
-Return the vector of those points in `1:degree(x)` or `1:degree(G)`,
-respectively, that are not mapped to themselves under the action `^`.
-
-# Examples
-```jldoctest
-julia> g = symmetric_group(4);  s = sylow_subgroup(g, 3)[1];
-
-julia> length(moved_points(s))
-3
-
-julia> length(moved_points(gen(s, 1)))
-3
-
-```
-""" moved_points
-
-@gapattribute number_moved_points(x::Union{PermGroupElem,PermGroup}) = fmpz(GAP.Globals.NrMovedPoints(x.X))::fmpz
-"""
-    number_moved_points(::Type{T} = fmpz, x::PermGroupElem) where T <: Union{Integer, fmpz}
-    number_moved_points(::Type{T} = fmpz, G::PermGroup) where T <: Union{Integer, fmpz}
-
-Return the number of those points in `1:degree(x)` or `1:degree(G)`,
-respectively, that are not mapped to themselves under the action `^`,
-as an instance of `T`.
-
-# Examples
-```jldoctest
-julia> g = symmetric_group(4);  s = sylow_subgroup(g, 3)[1];
-
-julia> number_moved_points(s)
-3
-
-julia> number_moved_points(Int, s)
-3
-
-julia> number_moved_points(gen(s, 1))
-3
-
-```
-""" number_moved_points
-
-number_moved_points(::Type{T}, x::Union{PermGroupElem,PermGroup}) where T <: Union{Base.Integer, fmpz} = T(GAP.Globals.NrMovedPoints(x.X))::T
-
-
-"""
-    order(::Type{T} = fmpz, x::Union{GAPGroupElem, GAPGroup}) where T <: Union{Integer, fmpz}
+    order(::Type{T} = fmpz, x::Union{GAPGroupElem, GAPGroup}) where T <: IntegerUnion
 
 Return the order of `x`, as an instance of `T`.
 
@@ -227,7 +136,7 @@ For a group `x`, the order of `x` is the number of elements in `x`.
 An exception is thrown if the order of `x` is infinite,
 use [`isfinite`](@ref) in order to check for finiteness.
 """
-function order(::Type{T}, x::Union{GAPGroupElem, GAPGroup}) where T <: Union{Base.Integer, fmpz}
+function order(::Type{T}, x::Union{GAPGroupElem, GAPGroup}) where T <: IntegerUnion
    ord = GAP.Globals.Order(x.X)::GapInt
    if ord === GAP.Globals.infinity
       error("order() not supported for infinite groups, use isfinite()")
@@ -238,20 +147,20 @@ end
 order(x::Union{GAPGroupElem, GAPGroup}) = order(fmpz, x)
 
 @gapwrap hasorder(G::GAPGroup) = GAP.Globals.HasSize(G.X)
-@gapwrap setorder(G::GAPGroup, val::T) where T<:Union{Base.Integer,fmpz} = GAP.Globals.SetSize(G.X, GapObj(val))
+@gapwrap setorder(G::GAPGroup, val::T) where T<:IntegerUnion = GAP.Globals.SetSize(G.X, GapObj(val))
 
 import Base.exponent
 
 @gapattribute exponent(x::GAPGroup) = fmpz(GAP.Globals.Exponent(x.X))
 @doc Markdown.doc"""
-    exponent(::Type{T} = fmpz, G::GAPGroup) where T <: Union{Integer, fmpz}
+    exponent(::Type{T} = fmpz, G::GAPGroup) where T <: IntegerUnion
 
 Return the exponent of `G`, as an instance of `T`,
 i. e., the smallest positive integer $e$ such that
 $g^e$ is the identity of `G` for every $g$ in `G`.
 """ exponent(x::GAPGroup)
 
-Base.exponent(::Type{T}, G::GAPGroup) where T <: Union{Base.Integer, fmpz} = T(GAP.Globals.Exponent(G.X))
+Base.exponent(::Type{T}, G::GAPGroup) where T <: IntegerUnion = T(GAP.Globals.Exponent(G.X))
 
 """
     rand(rng::Random.AbstractRNG = Random.GLOBAL_RNG, G::Group)
@@ -301,11 +210,7 @@ end
 
 Base.:*(x::GAPGroupElem, y::GAPGroupElem) = _prod(x, y)
 
-==(x::PermGroup, y::PermGroup) = x.deg == y.deg && x.X == y.X
-
 ==(x::GAPGroup, y::GAPGroup) = x.X == y.X
-
-==(x::PermGroupElem, y::PermGroupElem) = degree(parent(x)) == degree(parent(y)) && x.X == y.X
 
 ==(x::T, y::T) where T <: BasicGAPGroupElem = x.X == y.X
 
@@ -336,8 +241,6 @@ inv!(out::GAPGroupElem, x::GAPGroupElem) = inv(x)  #if needed later
 Base.:^(x::GAPGroupElem, y::Int) = group_element(parent(x), x.X ^ y)
 
 Base.:^(x::GAPGroupElem, y::fmpz) = Hecke._generic_power(x, y) # TODO: perhaps  let GAP handle this; also handle arbitrary Integer subtypes?
-
-Base.:<(x::PermGroupElem, y::PermGroupElem) = x.X < y.X
 
 Base.:/(x::GAPGroupElem, y::GAPGroupElem) = x*y^-1
 
@@ -389,177 +292,6 @@ Return whether `g` is an element of `G`.
 The parent of `g` need not be equal to `G`.
 """
 Base.in(g::GAPGroupElem, G::GAPGroup) = GAP.Globals.in(g.X, G.X)::Bool
-
-# FIXME: clashes with AbstractAlgebra.perm method
-#function perm(L::AbstractVector{<:Base.Integer})
-#   return PermGroupElem(symmetric_group(length(L)), GAP.Globals.PermList(GAP.GapObj(L;recursive=true)))
-#end
-# FIXME: use name gap_perm for now
-@doc Markdown.doc"""
-    gap_perm(L::AbstractVector{<:Base.Integer})
-
-Return the permutation $x$ which maps every $i$ from `1` to $n$` = length(L)`
-to `L`$[i]$.
-The parent of $x$ is set to [`symmetric_group`](@ref)$(n)$.
-An exception is thrown if `L` does not contain every integer from 1 to $n$
-exactly once.
-
-# Examples
-```jldoctest
-julia> gap_perm([2,4,6,1,3,5])
-(1,2,4)(3,6,5)
-```
-"""
-function gap_perm(L::AbstractVector{<:Union{fmpz, Base.Integer}})
-  return PermGroupElem(symmetric_group(length(L)), GAP.Globals.PermList(GAP.GapObj(L;recursive=true)))
-end
-
-@doc Markdown.doc"""
-    perm(G::PermGroup, L::AbstractVector{<:Integer})
-    (G::PermGroup)(L::AbstractVector{<:Integer})
-
-Return the permutation $x$ which maps every `i` from 1 to $n$` = length(L)`
-to `L`$[i]$.
-The parent of $x$ is `G`.
-An exception is thrown if $x$ is not contained in `G`
-or `L` does not contain every integer from 1 to $n$ exactly once.
-
-For [`gap_perm`](@ref),
-the parent group of $x$ is set to [`symmetric_group`](@ref)$(n)$.
-
-# Examples
-```jldoctest
-julia> perm(symmetric_group(6),[2,4,6,1,3,5])
-(1,2,4)(3,6,5)
-```
-"""
-function perm(g::PermGroup, L::AbstractVector{<:Base.Integer})
-   x = GAP.Globals.PermList(GAP.GapObj(L;recursive=true))
-   if length(L) <= degree(g) && GAP.Globals.IN(x,g.X) 
-     return PermGroupElem(g, x)
-   end
-   throw(ArgumentError("the element does not embed in the group"))
-end
-
-perm(g::PermGroup, L::AbstractVector{<:fmpz}) = perm(g, [Int(y) for y in L])
-
-function (g::PermGroup)(L::AbstractVector{<:Base.Integer})
-   x = GAP.Globals.PermList(GAP.GapObj(L;recursive=true))
-   if length(L) <= degree(g) && GAP.Globals.IN(x,g.X)
-     return PermGroupElem(g, x)
-   end
-   throw(ArgumentError("the element does not embed in the group"))
-end
-
-(g::PermGroup)(L::AbstractVector{<:fmpz}) = g([Int(y) for y in L])
-
-# cperm stays for "cycle permutation", but we can change name if we want
-# takes as input a list of vectors (not necessarly disjoint)
-@doc Markdown.doc"""
-    cperm(L::AbstractVector{<:T}...) where T <: Union{Integer, fmpz}
-    cperm(G::PermGroup, L::AbstractVector{<:T}...)
-
-For given lists $[a_1, a_2, \ldots, a_n], [b_1, b_2, \ldots , b_m], \ldots$
-of positive integers, return the
-permutation $x = (a_1, a_2, \ldots, a_n) * (b_1, b_2, \ldots, b_m) * \ldots$.
-Arrays of the form `[n, n+1, ..., n+k]` can be replaced by `n:n+k`.
-
-The parent of $x$ is `G`.
-If `G` is not specified then the parent of $x$ is set to
-[`symmetric_group`](@ref)$(n)$,
-where $n$ is the largest integer that occurs in an entry of `L`.
-
-An exception is thrown if $x$ is not contained in `G`
-or one of the given vectors is empty or contains duplicates.
-
-# Examples
-```jldoctest
-julia> cperm([1,2,3],4:7)
-(1,2,3)(4,5,6,7)
-
-julia> cperm([1,2],[2,3])
-(1,3,2)
-
-julia> p = cperm([1,2,3],[7])
-(1,2,3)
-
-julia> degree(parent(p))
-7
-
-```
-
-At the moment, the input vectors of the function `cperm` need not be disjoint.
-
-!!! warning
-    If the function `perm` is evaluated in a vector of integers
-    without specifying the group `G`,
-    then the returned value is an element of the AbstractAlgebra.jl type
-    `Perm{Int}`.
-    For this reason, if one wants a permutation of type
-    `GAPGroupElem{PermGroup}` without specifying a parent,
-    one has to use the function `gap_perm`.
-"""
-function cperm(L::AbstractVector{T}...) where T <: Union{Base.Integer, fmpz}
-   if length(L)==0
-      return one(symmetric_group(1))
-   else
-      return prod([PermGroupElem(symmetric_group(maximum(y)), GAP.Globals.CycleFromList(GAP.julia_to_gap([Int(k) for k in y]))) for y in L])
-#TODO: better create the product of GAP permutations?
-   end
-end
-
-# cperm stays for "cycle permutation", but we can change name if we want
-# takes as input a list of vectors (not necessarly disjoint)
-# WARNING: we allow e.g. PermList([2,3,1,4,5,6]) in Sym(3)
-function cperm(g::PermGroup,L::AbstractVector{T}...) where T <: Union{Base.Integer, fmpz}
-   if length(L)==0
-      return one(g)
-   else
-      x=prod(y -> GAP.Globals.CycleFromList(GAP.julia_to_gap([Int(k) for k in y])), L)
-      if length(L) <= degree(g) && GAP.Globals.IN(x,g.X)
-         return PermGroupElem(g, x)
-      else
-         throw(ArgumentError("the element does not embed in the group"))
-      end
-   end
-end
-
-@deprecate listperm(x::PermGroupElem) Vector(x)
-
-"""
-    Vector{T}(x::PermGroupElem, n::Int = x.parent.deg) where T <: Union{Integer, fmpz}
-    Vector(x::PermGroupElem, n::Int = x.parent.deg)
-
-Return the list of length `n` that contains `x(i)` at position `i`. If not specified, `T` is set as `Int`.
-
-# Examples
-```jldoctest
-julia> pi = cperm(1:3)
-(1,2,3)
-julia> Vector(pi)
-3-element Vector{Int64}:
- 2
- 3
- 1
-julia> Vector(pi, 2)
-2-element Vector{Int64}:
- 2
- 3
-julia> Vector(pi, 4)
-4-element Vector{Int64}:
- 2
- 3
- 1
- 4
-julia> Vector{fmpz}(pi, 2)
-2-element Vector{fmpz}:
- 2
- 3
-
-```
-"""
-Base.Vector{T}(x::PermGroupElem, n::Int = x.parent.deg) where T <: Union{Base.Integer, fmpz} = T[x(i) for i in 1:n]
-Base.Vector(x::PermGroupElem, n::Int = x.parent.deg) = Vector{Int}(x,n)
 
 """
     gens(G::Group)
@@ -620,29 +352,6 @@ Return the length of the vector [`gens`](@ref)`(G)`.
 ngens(G::GAPGroup) = length(GAP.Globals.GeneratorsOfGroup(G.X))
 
 
-Base.sign(x::PermGroupElem) = GAP.Globals.SignPerm(x.X)::Int
-
-Base.isless(x::PermGroupElem, y::PermGroupElem) = x<y
-
-#embedding of a permutation in permutation group
-function (G::PermGroup)(x::PermGroupElem)
-   if !GAP.Globals.IN(x.X,G.X)
-      throw(ArgumentError("the element does not embed in the group"))
-   end
-   return group_element(G, x.X)
-end
-
-#evaluation function
-function (x::PermGroupElem)(n::T) where T <: Union{Base.Integer,fmpz}
-   return T(GAP.Globals.OnPoints(GAP.GapObj(n), x.X))
-end
-
-(x::PermGroupElem)(n::Int) = GAP.Globals.OnPoints(n,x.X)
-
-^(n::T, x::PermGroupElem) where T <: Union{Base.Integer,fmpz} = T(GAP.Globals.OnPoints(GAP.GapObj(n), x.X))
-
-^(n::Int, x::PermGroupElem) = GAP.Globals.OnPoints(n,x.X)
-
 ################################################################################
 #
 #   Conjugacy Classes
@@ -668,9 +377,9 @@ Base.eltype(::Type{GroupConjClass{T,S}}) where {T,S} = S
 Base.hash(x::GroupConjClass, h::UInt) = h # FIXME
 
 function Base.show(io::IO, x::GroupConjClass)
-  print(io, GAP.gap_to_julia(GAP.Globals.StringViewObj(x.repr.X)),
+  print(io, String(GAP.Globals.StringViewObj(x.repr.X)),
             " ^ ",
-            GAP.gap_to_julia(GAP.Globals.StringViewObj(x.X.X)))
+            String(GAP.Globals.StringViewObj(x.X.X)))
 end
 
 function _conjugacy_class(G, g, cc::GapObj)         # function for assignment
@@ -1165,5 +874,79 @@ the smallest integer $n$ such that `G` has a central series of length $n$.
 An exception is thrown if `G` is not nilpotent.
 """ nilpotency_class(G::GAPGroup)
 
-#
+@doc Markdown.doc"""
+    describe(G::GAPGroup)
+
+Return a string that describes some aspects of the structure of `G`.
+
+This works well if `G` is an abelian group or a finite simple group
+or a group in one of the following series:
+symmetric, dihedral, quasidihedral, generalized quaternion,
+general linear, special linear.
+
+For other groups, the function tries to decompose `G` as a direct product
+or a semidirect product,
+and if this is not possible as a non-splitting extension of
+a normal subgroup $N$ with the factor group `G`$/N$,
+where $N$ is the centre or the derived subgroup or the Frattini subgroup
+of `G`.
+
+Note that
+- there is in general no "nice" decomposition of `G`,
+- there may be several decompositions of `G`,
+- nonisomorphic groups may yield the same `describe` result,
+- isomorphic groups may yield different `describe` results,
+- the computations can take a long time (for example in the case of
+  large $p$-groups), and the results are still often not very helpful.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(6);
+
+julia> describe(g)
+"S6"
+
+julia> describe(sylow_subgroup(g,2)[1])
+"C2 x D8"
+
+julia> describe(sylow_subgroup(g, 3)[1])
+"C3 x C3"
+
+julia> g = symmetric_group(10);
+
+julia> describe(sylow_subgroup(g,2)[1])
+"C2 x ((((C2 x C2 x C2 x C2) : C2) : C2) : C2)"
+
+```
+The following notation is used in the returned string.
+
+| Description | Syntax |
+| ----------- | ----------- |
+| trivial group | 1 |
+| finite cyclic group | C<size> |
+| infinite cyclic group | Z |
+| alternating group | A<degree> |
+| symmetric group | S<degree> |
+| dihedral group | D<size> |
+| quaternion group | Q<size> |
+| quasidihedral group | QD<size> |
+| projective special linear group | PSL(<n>,<q>) |
+| special linear group | SL(<n>,<q>) |
+| general linear group | GL(<n>,<q>) |
+| proj. special unitary group | PSU(<n>,<q>) |
+| orthogonal group, type B | O(2<n>+1,<q>) |
+| orthogonal group, type D | O+(2<n>,<q>) |
+| orthogonal group, type 2D | O-(2<n>,<q>) |
+| proj. special symplectic group | PSp(2<n>,<q>) |
+| Suzuki group (type 2B) | Sz(<q>) |
+| Ree group (type 2F or 2G) | Ree(<q>) |
+| Lie group of exceptional type | E(6,<q>), E(7,<q>), E(8,<q>), 2E(6,<q>), F(4,<q>), G(2,<q>) |
+| Steinberg triality group | 3D(4,<q>) |
+| sporadic simple group | M11, M12, M22, M23, M24, J1, J2, J3, J4, Co1, Co2, Co3, Fi22, Fi23, Fi24', Suz, HS, McL, He, HN, Th, B, M, ON, Ly, Ru |
+| Tits group | 2F(4,2)' |
+| the indicated group from the library of perfect groups | PerfectGroup(<size>,<id>) |
+| direct product | A x B |
+| semidirect product | N : H |
+| non-split extension | Z(G) . G/Z(G) = G' . G/G', Phi(G) . G/Phi(G) |
+"""
 describe(G::GAPGroup) = String(GAP.Globals.StructureDescription(G.X))
