@@ -65,31 +65,6 @@
         end
 
     end
-
-    @testset "PolyhedronOrConeIterator" begin
-        V = [1 -1 0 0 0 0; 1 0 -1 0 0 0; 1 0 0 -1 0 0; 1 1 1 1 0 0]
-        F = [[1, 2, 3], [1, 2, 4], [1, 3, 4], [2, 3, 4]]
-        L = [0 0 0 0 1 0; 0 0 0 0 0 1]
-        for T in [Polyhedron, Cone]
-            pci = PolyhedronOrConeIterator{T}(V, F, L)
-            @test pci isa PolyhedronOrConeIterator
-            @test pci isa PolyhedronOrConeIterator{T}
-            @test eltype(pci) == T
-            @test size(pci) == (4,)
-            @test length(pci) == 4
-            @test firstindex(pci) == 1
-            @test lastindex(pci) == 4
-            for i in 1:4
-                @test pci[i] isa T
-                if T == Polyhedron
-                    @test pci[i] == convex_hull(V[[f for f in F[i]], 2:end], nothing, L[:,2:end])
-                else
-                    @test pci[i] == T(V[[f for f in F[i]], :], L)
-                end
-            end
-            @test incidence_matrix(pci) == IncidenceMatrix([1 1 1 0; 1 1 0 1; 1 0 1 1; 0 1 1 1])
-        end
-    end
     
     @testset "SubObjectIterator" begin
         # SubObjectIterator is flexible due to the `Function` object it stores, which is used for `getindex`.

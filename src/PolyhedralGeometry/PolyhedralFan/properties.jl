@@ -58,12 +58,9 @@ maximal_cones(PF::PolyhedralFan) = SubObjectIterator{Cone}(PF.pm_fan, _maximal_c
 _ray_incidences(::Val{_maximal_cone}, obj::Polymake.BigObject) = obj.MAXIMAL_CONES
 
 @doc Markdown.doc"""
-    cones(as::Type{T} = Cone, PF::PolyhedralFan, cone_dim::Int)
+    cones(PF::PolyhedralFan, cone_dim::Int)
 
 Return an iterator over the cones of `PF` of dimension `cone_dim`.
-
-The returned type is specified by the argument `as`, including:
-* `Cone` (default).
 
 # Examples
 The 12 edges of the 3-cube correspond to the 2-dimensional cones of its face fan:
@@ -413,7 +410,7 @@ julia> rays(star)
  [1, 0, 0]
  [1, 1, 1]
 
-julia> incidence_matrix(maximal_cones(star))
+julia> ray_incidences(maximal_cones(star))
 6×5 IncidenceMatrix
 [1, 2, 3]
 [2, 3, 4]

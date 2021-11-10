@@ -117,56 +117,6 @@ Base.:(==)(x::Halfspace, y::Halfspace) = x.a == y.a && x.b == y.b
 
 Base.:(==)(x::Hyperplane, y::Hyperplane) = x.a == y.a && x.b == y.b
 
-struct PolyhedronOrConeIterator{T} <: AbstractVector{T}
-    vertices::Polymake.Matrix{Polymake.Rational}
-    faces::IncidenceMatrix
-    lineality::Polymake.Matrix{Polymake.Rational}
-    
-    function PolyhedronOrConeIterator{T}(v::Union{Oscar.MatElem,AbstractMatrix}, f::IncidenceMatrix, l::Union{Oscar.MatElem,AbstractMatrix}) where T<:Union{Polyhedron, Cone}
-        res = new{T}(matrix_for_polymake(v), f, matrix_for_polymake(l))
-        return res
-    end
-    
-    function PolyhedronOrConeIterator{T}(v::Union{Oscar.MatElem,AbstractMatrix}, f::AbstractVector{<:AbstractVector{<:Base.Integer}}, l::Union{Oscar.MatElem,AbstractMatrix}) where T<:Union{Polyhedron, Cone}
-        res = new{T}(matrix_for_polymake(v), IncidenceMatrix(f), matrix_for_polymake(l))
-        return res
-    end
-    
-    function PolyhedronOrConeIterator{T}(v::Union{Oscar.MatElem,AbstractMatrix}, f::AbstractVector{<:AbstractSet{<:Base.Integer}}, l::Union{Oscar.MatElem,AbstractMatrix}) where T<:Union{Polyhedron, Cone}
-        res = new{T}(matrix_for_polymake(v), IncidenceMatrix([collect(f[i]) for i in 1:length(f)]), matrix_for_polymake(l))
-        return res
-    end
-end
-
-function Base.getindex(iter::PolyhedronOrConeIterator{Polyhedron}, i::Base.Integer)
-    @boundscheck checkbounds(iter.faces, i, 1)
-    return Polyhedron(Polymake.polytope.Polytope(VERTICES=iter.vertices[collect(Polymake.row(iter.faces, i)),:],LINEALITY_SPACE = iter.lineality))
-end
-
-function Base.getindex(iter::PolyhedronOrConeIterator{Cone}, i::Base.Integer)
-    @boundscheck checkbounds(iter.faces, i, 1)
-    return Cone(Polymake.polytope.Cone(RAYS=iter.vertices[collect(Polymake.row(iter.faces, i)),:],LINEALITY_SPACE = iter.lineality))
-end
-
-function Base.setindex!(iter::PolyhedronOrConeIterator, val::Polymake.Set{Polymake.to_cxx_type(Int64)}, i::Base.Integer)
-    @boundscheck checkbounds(iter.faces, i)
-    iter.faces[i, :] = Polymake.spzeros(size(iter.faces, 2))
-    for j in val
-        iter.faces[i, j] = true
-    end
-    return val
-end
-
-Base.firstindex(::PolyhedronOrConeIterator) = 1
-Base.lastindex(iter::PolyhedronOrConeIterator) = length(iter)
-Base.size(iter::PolyhedronOrConeIterator) = (size(iter.faces, 1),)
-
-incidence_matrix(iter::PolyhedronOrConeIterator) = iter.faces
-
-function Base.show(io::IO, I::PolyhedronOrConeIterator{T}) where T
-    print(io, "A collection of `$T` objects")
-end
-
 #####################################
 
 struct HalfspaceIterator{T} <: AbstractVector{T}
@@ -284,3 +234,6 @@ Base.size(iter::SubObjectIterator) = (iter.n,)
 
 ray_incidences(iter::SubObjectIterator) = _ray_incidences(Val(iter.Acc), iter.Obj; iter.options...)
 ray_incidences(::Any, ::Polymake.BigObject) = throw(ArgumentError("Incidence Matrix resp. rays not defined in this context."))
+
+vertex_incidences(iter::SubObjectIterator) = _vertex_incidences(Val(iter.Acc), iter.Obj; iter.options...)
+vertex_incidences(::Any, ::Polymake.BigObject) = throw(ArgumentError("Incidence Matrix resp. vertices not defined in this context."))

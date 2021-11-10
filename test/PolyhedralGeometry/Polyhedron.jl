@@ -42,9 +42,13 @@
         @test rays(RayVector, Pos) isa VectorIterator{RayVector{Polymake.Rational}}
         @test lineality_space(L) isa VectorIterator{RayVector{Polymake.Rational}}
         @test lineality_space(L).m == [0 0 1]
-        @test faces(square, 1) isa PolyhedronOrConeIterator{Polyhedron}
+        @test faces(square, 1) isa SubObjectIterator{Polyhedron}
         @test length(faces(square, 1)) == 4
-        @test size(faces(square, 1).lineality) == (0, 3)
+        @test faces(square, 1)[1] == convex_hull([-1 -1; -1 1])
+        @test faces(square, 1)[2] == convex_hull([1 -1; 1 1])
+        @test faces(square, 1)[3] == convex_hull([-1 -1; 1 -1])
+        @test faces(square, 1)[4] == convex_hull([-1 1; 1 1])
+        @test vertex_incidences(faces(square, 1)) == IncidenceMatrix([[1, 3], [2, 4], [1, 2], [3, 4]])
         @test isnothing(faces(Q2, 0))
         @test vertices(minkowski_sum(Q0, square)).m == [2 -1; 2 1; -1 -1; -1 2; 1 2]
         @test facets(Halfspace, Pos) isa HalfspaceIterator{Halfspace}

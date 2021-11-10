@@ -44,10 +44,9 @@ const pm = Polymake
         @test codim(Cone4) == 1
         @test codim(Cone3) == 0
         @test faces(Cone2, 2) isa SubObjectIterator{Cone}
-        @test size(faces(Cone2, 2)) == (2,)
-        @test lineality_space(faces(Cone2, 2)[1]).m == [0 1 0]
-        @test rays(faces(Cone2, 2)[1]).m == [1 0 0]
-        @test rays(faces(Cone2, 2)[2]).m == [0 0 1]
+        @test length(faces(Cone2, 2)) == 2
+        @test faces(Cone2, 2)[1] == Cone([1 0 0], [0 1 0])
+        @test faces(Cone2, 2)[2] == Cone([0 0 1], [0 1 0])
         @test isnothing(faces(Cone2, 1))
         @test ray_incidences(faces(Cone2, 2)) == IncidenceMatrix([[1], [2]])
 
