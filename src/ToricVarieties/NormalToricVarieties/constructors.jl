@@ -169,7 +169,7 @@ export hirzebruch_surface
 
 
 @doc Markdown.doc"""
-    delPezzo(b::Int)
+    del_pezzo(b::Int)
 
 Constructs the delPezzo surface with b blowups for b at most 3.
 

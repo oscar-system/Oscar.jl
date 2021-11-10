@@ -71,9 +71,9 @@ export DivisorOfCharacter
 ######################
 
 @doc Markdown.doc"""
-    iscartier(d::ToricDivisor)
+    iscartier(td::ToricDivisor)
 
-Checks if the divisor `d` is Cartier.
+Checks if the divisor `td` is Cartier.
 
 # Examples
 ```jldoctest

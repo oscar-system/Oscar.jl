@@ -22,103 +22,14 @@ the affine and non-affine case:
 
 ## Constructors
 
+### Affine toric varieties
+
 ```@docs
 AffineNormalToricVariety(C::Cone)
-CyclicQuotientSingularity
 NormalToricVariety(C::Cone)
-NormalToricVariety(PF::PolyhedralFan)
-NormalToricVariety(P::Polyhedron)
-toric_projective_space
-hirzebruch_surface
-del_pezzo
 ```
 
-
-## Properties of toric varieties
-
-```@docs
-hastorusfactor
-isaffine
-iscomplete
-isfano
-isgorenstein
-issimplicial
-issmooth
-isnormal
-isorbifold
-isprojective
-isq_gorenstein
-```
-
-
-## Operations for toric varieties
-
-### Dimensions
-
-```@docs
-dim
-dim_of_torusfactor
-ith_betti_number(v::AbstractNormalToricVariety, i::Int)
-euler_characteristic
-```
-
-### Rings and ideals
-
-```@docs
-cox_ring
-stanley_reisner_ideal
-irrelevant_ideal
-```
-
-### Characters, Weil divisor and the class group
-
-```@docs
-character_lattice
-torusinvariant_divisor_group
-class_group
-map_from_character_to_principal_divisors
-map_from_weil_divisors_to_class_group
-torusinvariant_prime_divisors
-```
-
-### Cones and fans
-
-```@docs
-fan_of_variety
-fan
-nef_cone
-mori_cone
-```
-
-### Affine covering
-
-```@docs
-affine_open_covering( v::AbstractNormalToricVariety )
-```
-
-### Toric ideal
-
-```@docs
-binomial_exponents_to_ideal(binoms::Union{AbstractMatrix, fmpz_mat})
-toric_ideal(pts::Union{AbstractMatrix, fmpz_mat})
-toric_ideal(antv::AffineNormalToricVariety)
-```
-
-### Advanced constructions
-
-```@docs
-blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int)
-Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety)
-```
-
-### Comparison
-
-```@docs
-isprojective_space(v::AbstractNormalToricVariety)
-```
-
-
-## Cyclic Quotient Singularities
+### Cyclic Quotient Singularities
 
 Cyclic quotient singularities are quotients of $\mathbb{C}^2$ by the action of
 $\mathbb{Z}/n\mathbb{Z}$ acting via 
@@ -132,8 +43,103 @@ For the notation we rely on [Chr91](@cite) and [Ste91](@cite).
     commonly known continued fraction.
 
 ```@docs
+CyclicQuotientSingularity(n::fmpz, q::fmpz)
 continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity)
 continued_fraction_hirzebruch_jung_to_rational(v::Vector{fmpz})
 dual_continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity)
 rational_to_continued_fraction_hirzebruch_jung(r::fmpq)
+```
+
+### Normal toric varieties
+
+```@docs
+NormalToricVariety(PF::PolyhedralFan)
+NormalToricVariety(P::Polyhedron)
+```
+
+### Famous toric vareties
+
+```@docs
+del_pezzo(b::Int)
+hirzebruch_surface(r::Int)
+toric_projective_space(d::Int)
+```
+
+### Further constructions
+
+```@docs
+blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int)
+Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety)
+```
+
+
+## Properties of toric varieties
+
+```@docs
+hastorusfactor(v::AbstractNormalToricVariety)
+isaffine(v::AbstractNormalToricVariety)
+iscomplete(v::AbstractNormalToricVariety)
+isfano(v::AbstractNormalToricVariety)
+isgorenstein(v::AbstractNormalToricVariety)
+issimplicial(v::AbstractNormalToricVariety)
+issmooth(v::AbstractNormalToricVariety)
+isnormal(v::AbstractNormalToricVariety)
+isorbifold(v::AbstractNormalToricVariety)
+isprojective(v::AbstractNormalToricVariety)
+isprojective_space(v::AbstractNormalToricVariety)
+isq_gorenstein(v::AbstractNormalToricVariety)
+```
+
+
+## Operations for toric varieties
+
+### Affine open covering
+
+```@docs
+affine_open_covering( v::AbstractNormalToricVariety )
+```
+
+### Characters, Weil divisors and the class group
+
+```@docs
+character_lattice(v::AbstractNormalToricVariety)
+class_group(v::AbstractNormalToricVariety)
+map_from_character_to_principal_divisors(v::AbstractNormalToricVariety)
+map_from_weil_divisors_to_class_group(v::AbstractNormalToricVariety)
+torusinvariant_divisor_group(v::AbstractNormalToricVariety)
+torusinvariant_prime_divisors(v::AbstractNormalToricVariety)
+```
+
+### Cones and fans
+
+```@docs
+fan_of_variety(v::NormalToricVariety)
+fan(v::NormalToricVariety)
+mori_cone(v::NormalToricVariety)
+nef_cone(v::NormalToricVariety)
+```
+
+### Dimensions
+
+```@docs
+dim(v::AbstractNormalToricVariety)
+dim_of_torusfactor(v::AbstractNormalToricVariety)
+euler_characteristic(v::AbstractNormalToricVariety)
+ith_betti_number(v::AbstractNormalToricVariety, i::Int)
+```
+
+### Rings and ideals
+
+```@docs
+cox_ring(v::AbstractNormalToricVariety)
+irrelevant_ideal(v::AbstractNormalToricVariety)
+stanley_reisner_ideal(v::AbstractNormalToricVariety)
+```
+
+### Toric ideals
+
+```@docs
+binomial_exponents_to_ideal(binoms::Union{AbstractMatrix, fmpz_mat})
+toric_ideal(pts::Union{AbstractMatrix, fmpz_mat})
+toric_ideal(antv::AffineNormalToricVariety)
 ```
