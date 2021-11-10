@@ -105,15 +105,16 @@ function iterate_basis(R::InvRing, d::Int, algo::Symbol = :default)
       # We use the "worst case" estimate, so 2d|G|/s instead of sqrt(2d|G|/s)
       # for the reynolds operator since we have to assume that the user really
       # wants to iterate the whole basis.
-      # Other than that we just use the bound from the paper. It probably also
-      # depends on the type of the field etc., so one could fine-tune here...
-      # But it should be a good heuristic anyways and the users can always
-      # choose for themselves :)
+      # "Experience" showed that one should drop the 2 in the bound.
+      # It probably also depends on the type of the field etc., so one could
+      # fine-tune here...
+      # But this should be a good heuristic anyways and the users can
+      # always choose for themselves :)
       s = length(action(R))
       g = order(Int, group(R))
       n = degree(group(R))
       k = binomial(n + d - 1, n - 1)
-      if k > 2*d*g/s
+      if k > d*g/s
         algo = :reynolds
       else
         algo = :linear_algebra
