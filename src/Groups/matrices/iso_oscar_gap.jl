@@ -56,7 +56,20 @@ function ring_iso_oscar_gap(F::T) where T <: Union{Nemo.FqNmodFiniteField, Nemo.
    G = GAP.Globals.GF(Fp_gap, f_gap)
 
    # compute matching bases of both fields
-   Basis_G = GAP.Globals.Basis(G)
+   if GAP.Globals.IsAlgebraicExtension(G)
+#FIXME:
+# As soon as the problem from https://github.com/gap-system/gap/issues/4694
+# is fixed, go back to `Basis_G = GAP.Globals.Basis(G)` also in this case.
+# Note that the above `GF` call delegates to `FieldExtension`,
+# and we want a basis in the filter `IsCanonicalBasisAlgebraicExtension`.
+      Basis_G = GAP.Globals.Objectify(GAP.Globals.NewType(
+                GAP.Globals.FamilyObj(G),
+                GAP.Globals.IsCanonicalBasisAlgebraicExtension),
+                GAP.NewPrecord(0))
+      GAP.Globals.SetUnderlyingLeftModule(Basis_G, G)
+   else
+      Basis_G = GAP.Globals.Basis(G)
+   end
    Basis_F = Vector{elem_type(F)}(undef, d)
    Basis_F[1] = F(1)
    for i = 2:d

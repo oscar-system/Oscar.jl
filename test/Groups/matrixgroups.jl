@@ -19,6 +19,14 @@
       end
    end
 
+   # Test a large non-prime field.
+   F, _ = GF(next_prime(10^6), 2)
+   f = Oscar.ring_iso_oscar_gap(F)
+   for x in [ F(3), gen(F) ]
+      a = f(x)
+      @test preimage(f, a) == x
+   end
+
    F = GF(29,1)[1]
    z = F(2)
    G = GL(3,F)
