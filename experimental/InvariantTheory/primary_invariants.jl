@@ -30,8 +30,7 @@ end
 
 # Returns possible degrees of primary invariants d_1, ..., d_n with
 # d_1 \cdots d_n == k*|G|, where G = group(R).
-# TODO: Possibly include checks involving earlier runs of the search, see Kemper, p. 181
-function candidates_primary_degrees(R::InvRing, k::Int)
+function candidates_primary_degrees(R::InvRing, k::Int, bad_prefixes::Vector{Vector{fmpz}} = Vector{Vector{fmpz}}())
 
   factors = MSet{fmpz}()
   for n in [ k, order(group(R)) ]
@@ -62,6 +61,15 @@ function candidates_primary_degrees(R::InvRing, k::Int)
     end
 
     sort!(ds)
+
+    skip = false
+    for prefix in bad_prefixes
+      if ds[1:length(prefix)] == prefix
+        skip = true
+        break
+      end
+    end
+    skip ? continue : nothing
 
     if test_primary_degrees_via_hilbert_series(R, ds)
       push!(degrees, ds)
@@ -110,15 +118,17 @@ end
 function primary_invariants_via_optimal_hsop(RG::InvRing)
   iters = Dict{Int, VectorSpaceIterator}()
   ideals = Dict{Set{elem_type(polynomial_ring(RG))}, Int}()
-  k = 1
+  bad_prefixes = Vector{Vector{fmpz}}()
+  l = 1
   while true
-    degrees = candidates_primary_degrees(RG, k)
+    degrees = candidates_primary_degrees(RG, l, bad_prefixes)
     for ds in degrees
       invars = elem_type(polynomial_ring(RG))[]
-      b, _ = primary_invariants_via_optimal_hsop!(RG, ds, invars, iters, ideals)
+      b, k = primary_invariants_via_optimal_hsop!(RG, ds, invars, iters, ideals)
       b && return invars
+      push!(bad_prefixes, ds[1:k])
     end
-    k += 1
+    l += 1
   end
 end
 
@@ -128,6 +138,7 @@ end
 # invars will contain those invariants.
 # k is only needed for recursive calls of the function.
 function primary_invariants_via_optimal_hsop!(RG::InvRing{FldT, GrpT, PolyElemT}, degrees::Vector{fmpz}, invars::Vector{PolyElemT}, iters::Dict{Int, <: VectorSpaceIterator}, ideals::Dict{Set{PolyElemT}, Int}, k::Int = 0) where {FldT, GrpT, PolyElemT}
+
   n = length(degrees) - length(invars)
   R = polynomial_ring(RG)
 
@@ -164,10 +175,14 @@ function primary_invariants_via_optimal_hsop!(RG::InvRing{FldT, GrpT, PolyElemT}
   end
 
   if k <= 1
-    if !isempty(invars) && dim(ideal(polynomial_ring(RG), invars)) > n
-      k = 0
-    else
-      k = 1
+    k = 1
+    if !isempty(invars) # Work around https://github.com/oscar-system/Oscar.jl/issues/784
+      dimI = get!(ideals, Set(invars)) do
+        dim(ideal(polynomial_ring(RG), invars))
+      end
+      if dimI > n
+        k = 0
+      end
     end
   end
   if iszero(n) && isone(k)
