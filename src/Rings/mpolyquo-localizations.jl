@@ -120,7 +120,29 @@ function quo(
   S = inverted_set(W)
   lbpa = groebner_basis(I) # In particular, this saturates the ideal
   J = ideal(R, numerator.(oscar_gens(lbpa))) # the preimage of I in R
-  return MPolyQuoLocalizedRing(R, J, S, quo(R, J), W)
+  return MPolyQuoLocalizedRing(R, J, S, quo(R, J)[1], W)
+end
+
+function quo(
+    L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST},
+    I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST}
+  ) where {BRT, BRET, RT, RET, MST}
+  R = base_ring(L)
+  S = inverted_set(L)
+  lbpa = groebner_basis(I) # In particular, this saturates the ideal
+  J = ideal(R, numerator.(oscar_gens(lbpa))) # the preimage of I in R
+  return MPolyQuoLocalizedRing(R, J, S, quo(R, J)[1], localized_ring(L))
+end
+
+function quo(
+    L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST},
+    J::MPolyIdeal{RET}
+  ) where {BRT, BRET, RT, RET, MST}
+  R = base_ring(L)
+  S = inverted_set(L)
+  W = localized_ring(L) 
+  J = J + modulus(L)
+  return MPolyQuoLocalizedRing(R, J, S, quo(R, J)[1], W)
 end
 
 function Localization(Q::MPolyQuo{RET}, S::MultSetType) where {RET <: RingElem, MultSetType <: AbsMultSet}
@@ -129,6 +151,30 @@ end
 
 function MPolyQuoLocalizedRing(R::RT, I::Ideal{RET}, T::MultSetType) where {RT<:MPolyRing, RET<:MPolyElem, MultSetType<:AbsMultSet} 
   return MPolyQuoLocalizedRing(R, I, T, quo(R, I)[1], Localization(T))
+end
+
+function MPolyQuoLocalizedRing(R::RT) where {RT<:MPolyRing} 
+  I = ideal(R, zero(R))
+  Q, _ = quo(R, I)
+  U = MPolyUnits(R)
+  W = Localization(U)
+  return MPolyQuoLocalizedRing(R, I, U, Q, W)
+end
+
+function MPolyQuoLocalizedRing(Q::RT) where {RT<:MPolyQuo}
+  R = base_ring(Q)
+  I = modulus(Q)
+  U = MPolyUnits(R)
+  W = Localization(U)
+  return MPolyQuoLocalizedRing(R, I, U, Q, W)
+end
+
+function MPolyQuoLocalizedRing(W::MPolyLocalizedRing)
+  R = base_ring(W)
+  I = ideal(R, zero(R))
+  Q, _ = quo(R, I)
+  U = inverted_set(W)
+  return MPolyQuoLocalizedRing(R, I, U, Q, W)
 end
 
 

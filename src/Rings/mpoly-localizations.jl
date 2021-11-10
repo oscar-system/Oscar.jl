@@ -263,8 +263,11 @@ end
 ### required getter functions
 ambient_ring(S::MPolyPowersOfElement) = S.R
 
+### additional constructors
+MPolyPowersOfElement(f::RET) where {RET<:MPolyElem} = MPolyPowersOfElement([f])
+
 ### additional functionality
-denominators(S::MPolyPowersOfElement) = S.a
+denominators(S::MPolyPowersOfElement) = copy(S.a)
 
 ### required functionality
 function Base.in(
@@ -293,6 +296,29 @@ end
 function rand(S::MPolyPowersOfElement, v1::UnitRange{Int}, v2::UnitRange{Int}, v3::UnitRange{Int})
   return prod([f^(abs(rand(Int))%10) for f in denominators(S)])::elem_type(ambient_ring(S))
 end
+
+### Taking the product of such sets
+function product(
+    T::MPolyPowersOfElement{BRT, BRET, RT, RET}, 
+    U::MPolyPowersOfElement{BRT, BRET, RT, RET}
+  ) where {BRT, BRET, RT, RET}
+  a = denominators(T)
+  for f in denominators(U)
+    for d in a
+      (_, f) = ppio(f, d) 
+    end
+    if !(divides(one(parent(f)), f)[1])
+      push!(a, f)
+    end
+  end
+  return MPolyPowersOfElement(a)
+end
+
+*(T::MPolyPowersOfElement{BRT, BRET, RT, RET}, 
+  U::MPolyPowersOfElement{BRT, BRET, RT, RET}
+ ) where {BRT, BRET, RT, RET} = product(T,U)
+
+
 
 @Markdown.doc """
 MPolyUnionOfMultSets{
@@ -439,6 +465,12 @@ Localization(S::MPolyPowersOfElement) = MPolyLocalizedRing(ambient_ring(S), S)
 
 Localization(S::MPolyUnionOfMultSets) = MPolyLocalizedRing(ambient_ring(S), S)
 
+function Localization(
+    W::MPolyLocalizedRing{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}, 
+    S::MPolyPowersOfElement{BRT, BRET, RT, RET}
+  ) where {BRT, BRET, RT, RET}
+  return Localization(S*inverted_set(W))
+end
 
 ### additional constructors
 MPolyLocalizedRing(R::RingType, P::MPolyIdeal{RingElemType}) where {RingType, RingElemType} = MPolyLocalizedRing(R, MPolyComplementOfPrimeIdeal(P))
