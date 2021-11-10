@@ -83,7 +83,7 @@
   f = (x^2 + y^2)^2
   S = MPolyComplementOfKPointIdeal(R, [ZZ(0), ZZ(0)])
   T = MPolyPowersOfElement(R, [f])
-  U = MPolyUnionOfMultSets(R, [S, T])
+  U = MPolyProductOfMultSets(R, [S, T])
   @show U
   @test f in U
   @test (f*(x-1) in U)

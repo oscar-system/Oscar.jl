@@ -1,4 +1,4 @@
-export MPolyUnits, MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal, MPolyPowersOfElement, MPolyUnionOfMultSets
+export MPolyUnits, MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal, MPolyPowersOfElement, MPolyProductOfMultSets
 export rand
 export sets
 
@@ -27,6 +27,7 @@ import AbstractAlgebra: Ring, RingElem
 # General framework for localizations of multivariate polynomial rings #
 ########################################################################
 
+abstract type AbsMPolyMultSet{BRT, BRET, RT, RET} <: AbsMultSet{RT, RET} end
 ########################################################################
 # Units in polynomial rings; localization does nothing in this case    #
 ########################################################################
@@ -36,7 +37,9 @@ mutable struct MPolyUnits{
     BaseRingElemType,
     RingType,
     RingElemType
-  } <: AbsMultSet{
+  } <: AbsMPolyMultSet{
+    BaseRingType, 
+    BaseRingElemType,
     RingType,
     RingElemType
   }
@@ -81,7 +84,9 @@ MPolyComplementOfPrimeIdeal{
     BaseRingElemType,
     RingType,
     RingElemType
-  } <: AbsMultSet{
+  } <: AbsMPolyMultSet{
+    BaseRingType, 
+    BaseRingElemType,
     RingType,
     RingElemType
   }
@@ -94,7 +99,9 @@ mutable struct MPolyComplementOfPrimeIdeal{
     BaseRingElemType,
     RingType,
     RingElemType
-  } <: AbsMultSet{
+  } <: AbsMPolyMultSet{
+    BaseRingType, 
+    BaseRingElemType,
     RingType,
     RingElemType
   }
@@ -154,7 +161,9 @@ MPolyComplementOfKPointIdeal{
     BaseRingElemType, 
     RingType,
     RingElemType
-  } <: AbsMultSet{
+  } <: AbsMPolyMultSet{
+    BaseRingType,
+    BaseRingElemType, 
     RingType, 
     RingElemType
   }
@@ -166,7 +175,9 @@ mutable struct MPolyComplementOfKPointIdeal{
     BaseRingElemType, 
     RingType,
     RingElemType
-  } <: AbsMultSet{
+  } <: AbsMPolyMultSet{
+    BaseRingType,
+    BaseRingElemType, 
     RingType, 
     RingElemType
   }
@@ -230,7 +241,9 @@ MPolyPowersOfElement{
     BaseRingElemType, 
     RingType,
     RingElemType
-  } <: AbsMultSet{
+  } <: AbsMPolyMultSet{
+    BaseRingType,
+    BaseRingElemType, 
     RingType, 
     RingElemType
   }
@@ -242,7 +255,9 @@ mutable struct MPolyPowersOfElement{
     BaseRingElemType, 
     RingType,
     RingElemType
-  } <: AbsMultSet{
+  } <: AbsMPolyMultSet{
+    BaseRingType,
+    BaseRingElemType, 
     RingType, 
     RingElemType
   }
@@ -264,7 +279,7 @@ end
 ambient_ring(S::MPolyPowersOfElement) = S.R
 
 ### additional constructors
-MPolyPowersOfElement(f::RET) where {RET<:MPolyElem} = MPolyPowersOfElement([f])
+MPolyPowersOfElement(f::RET) where {RET<:MPolyElem} = MPolyPowersOfElement(parent(f), [f])
 
 ### additional functionality
 denominators(S::MPolyPowersOfElement) = copy(S.a)
@@ -314,38 +329,37 @@ function product(
   return MPolyPowersOfElement(a)
 end
 
-*(T::MPolyPowersOfElement{BRT, BRET, RT, RET}, 
-  U::MPolyPowersOfElement{BRT, BRET, RT, RET}
- ) where {BRT, BRET, RT, RET} = product(T,U)
-
-
-
 @Markdown.doc """
-MPolyUnionOfMultSets{
+MPolyProductOfMultSets{
     BaseRingType,
     BaseRingElemType, 
     RingType,
     RingElemType
-  } <: AbsMultSet{
+  } <: AbsMPolyMultSet{
+    BaseRingType,
+    BaseRingElemType, 
     RingType, 
     RingElemType
   }
 
-A finite union of arbitrary other multiplicative sets.
+A finite product `T⋅U = { a⋅b : a ∈ T, b∈ U}` of arbitrary other 
+multiplicative sets in a multivariate polynomial ring.
 """
-mutable struct MPolyUnionOfMultSets{
+mutable struct MPolyProductOfMultSets{
     BaseRingType,
     BaseRingElemType, 
     RingType,
     RingElemType
-  } <: AbsMultSet{
+  } <: AbsMPolyMultSet{
+    BaseRingType,
+    BaseRingElemType, 
     RingType, 
     RingElemType
   }
   R::RingType
-  U::Vector{<:AbsMultSet{RingType, RingElemType}}
+  U::Vector{<:AbsMPolyMultSet{BaseRingType, BaseRingElemType, RingType, RingElemType}}
 
-  function MPolyUnionOfMultSets(R::RT, U::Vector{<:AbsMultSet{RT, RET}}) where {RT<:MPolyRing, RET<:MPolyElem}
+  function MPolyProductOfMultSets(R::RT, U::Vector{<:AbsMPolyMultSet{BRT, BRET, RT, RET}}) where {BRT<:Ring, BRET<:RingElement, RT<:MPolyRing, RET<:MPolyElem}
     for s in U
       ambient_ring(s) == R || error("multiplicative set does not live in the given ring")
     end
@@ -354,16 +368,16 @@ mutable struct MPolyUnionOfMultSets{
 end
 
 ### required getter functions
-ambient_ring(S::MPolyUnionOfMultSets) = S.R
+ambient_ring(S::MPolyProductOfMultSets) = S.R
 
 ### additional functionality
-get_index(S::MPolyUnionOfMultSets, i::Integer) = S.U[i]
-sets(S::MPolyUnionOfMultSets) = S.U
+get_index(S::MPolyProductOfMultSets, i::Integer) = S.U[i]
+sets(S::MPolyProductOfMultSets) = copy(S.U)
 
 ### required functionality
 function Base.in(
     f::RingElemType, 
-    S::MPolyUnionOfMultSets{BaseRingType, BaseRingElemType, RingType, RingElemType}
+    S::MPolyProductOfMultSets{BaseRingType, BaseRingElemType, RingType, RingElemType}
   ) where {BaseRingType, BaseRingElemType, RingType, RingElemType}
   R = ambient_ring(S)
   divides(one(R), f)[1] && return true
@@ -388,8 +402,8 @@ function Base.in(
 end
 
 ### printing
-function Base.show(io::IO, S::MPolyUnionOfMultSets)
-  print(io, "union of the multiplicative sets ")
+function Base.show(io::IO, S::MPolyProductOfMultSets)
+  print(io, "product of the multiplicative sets ")
   for s in sets(S)
     print(io, s)
     print(io, " ")
@@ -397,9 +411,75 @@ function Base.show(io::IO, S::MPolyUnionOfMultSets)
 end
 
 ### generation of random elements 
-function rand(S::MPolyUnionOfMultSets, v1::UnitRange{Int}, v2::UnitRange{Int}, v3::UnitRange{Int})
+function rand(S::MPolyProductOfMultSets, v1::UnitRange{Int}, v2::UnitRange{Int}, v3::UnitRange{Int})
   return prod([rand(s, v1, v2, v3) for s in sets(S)])::elem_type(ambient_ring(S))
 end
+
+### functionality for taking products
+*(T::AbsMPolyMultSet, U::AbsMPolyMultSet) = product(T, U)
+
+function product(T::AbsMPolyMultSet, U::AbsMPolyMultSet)
+  R = ambient_ring(T)
+  R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
+  return MPolyProductOfMultSets(R, [T, U])
+end
+
+function product(T::MST, U::MST) where {MST<:MPolyProductOfMultSets} 
+  R = ambient_ring(T)
+  R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
+  return MPolyProductOfMultSets(R, vcat(sets(T), sets(U)))
+end
+
+function product(T::MPolyProductOfMultSets{BRT, BRET, RT, RET}, U::MST) where {BRT, BRET, RT, RET, MST<:AbsMPolyMultSet{BRT, BRET, RT, RET}}
+  R = ambient_ring(T)
+  R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
+  return MPolyProductOfMultSets(R, push!(sets(T), U))
+end
+
+product(U::MST, T::MPolyProductOfMultSets{BRT, BRET, RT, RET}) where {BRT, BRET, RT, RET, MST<:AbsMPolyMultSet{BRT, BRET, RT, RET}} = product(T, U)
+
+function product(T::MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET}, U::MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}) where {BRT, BRET, RT, RET}
+  R = ambient_ring(T)
+  R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
+  P = prime_ideal(T)
+  for f in gens(P)
+    if iszero(evaluate(f, point_coordinates(U)))
+      return MPolyProductOfMultSets(R, [U, T])
+    end
+  end
+  return U
+end
+
+function product(
+    U::MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET},
+    T::MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET}
+  ) where {BRT, BRET, RT, RET}
+  return product(T, U)
+end
+
+function product(T::MST, U::MST) where {MST<:MPolyComplementOfKPointIdeal}
+  R = ambient_ring(T)
+  R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
+  a = point_coordinates(U)
+  b = point_coordinates(T)
+  for i in 1:length(a)
+    a[i] == b[i] || return MPolyProductOfMultSets(R, [U, T])
+  end
+  return T
+end
+
+function product(T::MST, U::MST) where {MST<:MPolyComplementOfPrimeIdeal}
+  R = ambient_ring(T)
+  R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
+  if issubset(prime_ideal(T), prime_ideal(U))
+    return T
+  end
+  if issubset(prime_ideal(U), prime_ideal(T))
+    return U
+  end
+  return MPolyProductOfMultSets(R, [U, T])
+end
+
 
 
 ########################################################################
@@ -428,7 +508,7 @@ mutable struct MPolyLocalizedRing{
     BaseRingElemType,
     RingType,
     RingElemType,
-    MultSetType <: AbsMultSet{RingType, RingElemType}
+    MultSetType <: AbsMPolyMultSet{BaseRingType, BaseRingElemType, RingType, RingElemType}
   } <: AbsLocalizedRing{
     RingType,
     RingType,
@@ -440,7 +520,7 @@ mutable struct MPolyLocalizedRing{
   function MPolyLocalizedRing(
       R::RingType, 
       S::MultSetType
-    ) where {RingType<:MPolyRing, MultSetType<:AbsMultSet}
+    ) where {RingType<:MPolyRing, MultSetType<:AbsMPolyMultSet}
     # TODO: Add some sanity checks here?
     ambient_ring(S) == R || error("the multiplicative set is not contained in the given ring")
     k = coefficient_ring(R)
@@ -463,7 +543,7 @@ Localization(S::MPolyComplementOfKPointIdeal) = MPolyLocalizedRing(ambient_ring(
 
 Localization(S::MPolyPowersOfElement) = MPolyLocalizedRing(ambient_ring(S), S)
 
-Localization(S::MPolyUnionOfMultSets) = MPolyLocalizedRing(ambient_ring(S), S)
+Localization(S::MPolyProductOfMultSets) = MPolyLocalizedRing(ambient_ring(S), S)
 
 function Localization(
     W::MPolyLocalizedRing{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}, 
