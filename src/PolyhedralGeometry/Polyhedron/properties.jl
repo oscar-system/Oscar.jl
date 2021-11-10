@@ -7,19 +7,16 @@
 #TODO: take into account lineality space
 
 @doc Markdown.doc"""
-    faces(as::Type{T} = Polyhedron, P::Polyhedron, face_dim::Int)
+    faces(P::Polyhedron, face_dim::Int)
 
 Return an iterator over the faces of `P` of dimension `face_dim`.
-
-The returned type is specified by the argument `as`, including:
-* `Polyhedron` (default).
 
 # Examples
 A `Vector` containing the six sides of the 3-dimensional cube can be obtained
 via the following input:
 ```jldoctest
-julia> F = faces(Polyhedron, cube(3), 2)
-6-element PolyhedronOrConeIterator{Polyhedron}:
+julia> F = faces(cube(3), 2)
+6-element SubObjectIterator{Polyhedron}:
  A polyhedron in ambient dimension 3
  A polyhedron in ambient dimension 3
  A polyhedron in ambient dimension 3
@@ -28,47 +25,58 @@ julia> F = faces(Polyhedron, cube(3), 2)
  A polyhedron in ambient dimension 3
 ```
 """
-function faces(as::Type{T}, P::Polyhedron, face_dim::Int) where T<:Polyhedron
-    face_dim - length(lineality_space(P)) < 0 && return nothing
-    pfaces = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(pm_object(P),face_dim-length(lineality_space(P))))
+function faces(P::Polyhedron, face_dim::Int)
+    n = face_dim - length(lineality_space(P))
+    n < 0 && return nothing
+    pfaces = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(pm_object(P), n))
     nfaces = length(pfaces)
-    rfaces = Vector{Int64}()
-    sizehint!(rfaces, nfaces)
+    rfaces = Vector{Int64}(undef, nfaces - binomial(nrays(P), n + 1))
+    nfarf = 0
+    farf = Polymake.to_one_based_indexing(pm_object(P).FAR_FACE)
     for index in 1:nfaces
-        isfar = true
-        for v in pfaces[index]
-            #Checking that the first coordinate is zero is equivalent
-            #  to being a vertex of the far face
-            if !iszero(pm_object(P).VERTICES[v[1],1])
-                isfar = false
-                break
-            end
-        end
-        if !isfar
-            push!(rfaces, index)
+        if pfaces[index] <= farf
+            nfarf += 1
+        else
+            rfaces[index - nfarf] = index
         end
     end
-    return PolyhedronOrConeIterator{as}(pm_object(P).VERTICES,pfaces[rfaces], pm_object(P).LINEALITY_SPACE)
+    return SubObjectIterator{Polyhedron}(pm_object(P), _face_polyhedron, length(rfaces), (f_dim = n, f_ind = rfaces))
 end
-@doc Markdown.doc"""
-    faces(P::Polyhedron, face_dim::Int)
 
-Return the faces of `P` of dimension `face_dim` as an iterator over `Polyhedron` objects.
+function _face_polyhedron(::Type{Polyhedron}, P::Polymake.BigObject, i::Base.Integer; f_dim::Int = -1, f_ind::Vector{Int64} = Vector{Int64}())
+    pface = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(P, f_dim))[f_ind[i]]
+    return Polyhedron(Polymake.polytope.Polytope(VERTICES = P.VERTICES[collect(pface),:], LINEALITY_SPACE = P.LINEALITY_SPACE))
+end
 
-# Examples
-A `Vector` containing the six sides of the 3-dimensional cube can be obtained via the following input:
-```jldoctest
-julia> F = faces(cube(3),2)
-6-element PolyhedronOrConeIterator{Polyhedron}:
- A polyhedron in ambient dimension 3
- A polyhedron in ambient dimension 3
- A polyhedron in ambient dimension 3
- A polyhedron in ambient dimension 3
- A polyhedron in ambient dimension 3
- A polyhedron in ambient dimension 3
-```
-"""
-faces(P::Polyhedron, face_dim::Int) = faces(Polyhedron, P, face_dim)
+function _vertex_incidences(::Val{_face_polyhedron}, P::Polymake.BigObject; f_dim = -1, f_ind::Vector{Int64} = Vector{Int64}())
+    return IncidenceMatrix(collect.(Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(P, f_dim))[_polymake_to_oscar_vertex_index(P, f_ind)]))
+end
+
+function _isray(P::Polyhedron, i::Base.Integer)
+    return in(i, Polymake.to_one_based_indexing(pm_object(P).FAR_FACE))
+end
+
+function _vertex_indices_(P::Polyhedron)
+    vi = Polymake.get_attachment(pm_object(P), "_vertex_indices")
+    if isnothing(vi)
+        A = pm_object(P).VERTICES
+        vi = Polymake.Vector{Polymake.to_cxx_type(Int64)}(findall(!iszero, view(A, :, 1)))
+        Polymake.attach(pm_object(P), "_vertex_indices", vi)
+    end
+    return vi
+end
+
+function _polymake_to_oscar_vertex_index(P::Polymake.BigObject, i::Base.Integer)
+    return i - sum((>).(i, P.FAR_FACE))
+end
+
+function _polymake_to_oscar_vertex_index(P::Polymake.BigObject, v::AbstractVector)
+    return [_polymake_to_oscar_vertex_index(P, v[i]) for i in 1:length(v)]
+end
+
+function _polymake_to_oscar_ray_index(P::Polymake.BigObject, i::Base.Integer)
+    return sum((<).(i, P.FAR_FACE))
+end
 
 @doc Markdown.doc"""
     vertices(as, P)
