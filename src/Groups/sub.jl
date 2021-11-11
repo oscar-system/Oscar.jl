@@ -240,7 +240,7 @@ function centralizer(G::GAPGroup, x::GAPGroupElem)
   return _as_subgroup(G, GAP.Globals.Centralizer(G.X, x.X))
 end
 
-centraliser = centralizer
+const centraliser = centralizer
 
 ################################################################################
 #
