@@ -278,11 +278,8 @@ julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 julia> C = Oscar.AffinePlaneCurve(y^3*x^6 - y^6*x^2)
 Affine plane curve defined by x^6*y^3 - x^2*y^6
 
-julia> Oscar.curve_components(C)
-Dict{Oscar.PlaneCurveModule.AffinePlaneCurve{fmpq}, Int64} with 3 entries:
-  x^4 - y^3 => 1
-  y         => 3
-  x         => 2
+julia> length(Oscar.curve_components(C))
+3
 ```
 """
 function curve_components(C::PlaneCurve{S}) where S <: FieldElem
