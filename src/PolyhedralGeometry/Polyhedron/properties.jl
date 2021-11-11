@@ -57,7 +57,7 @@ function _ray_incidences(::Val{_face_polyhedron}, P::Polymake.BigObject; f_dim =
 end
 
 function _isray(P::Polyhedron, i::Base.Integer)
-    return in(i, _ray_indices(pm_object(P))
+    return in(i, _ray_indices(pm_object(P)))
 end
 
 function _vertex_indices(P::Polymake.BigObject)
