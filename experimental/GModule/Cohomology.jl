@@ -81,21 +81,28 @@ function fp_group(C::GModule)
   return C.F, C.mF
 end
 
-function action(C::GModule, g, v)
+function action(C::GModule, g, v::Array)
   @assert parent(g) == Group(C)
-  @assert parent(v) == Module(C)
   F, mF = fp_group(C)
   ac = action(C)
   iac = inv_action(C)
-
   for i = word(preimage(mF, g))
     if i > 0
-      v = ac[i](v)
+      v = map(ac[i], v)
     else
-      v = iac[-i](v)
+      v = map(iac[-i], v)
     end
   end
   return v
+end
+
+function action(C::GModule, g, v)
+  return action(C, g, [v])
+end
+
+function action(C::GModule, g)
+  v = gens(Module(C))
+  return hom(Module(C), Module(C), action(C, g, v))
 end
 
 struct AllCoChains{N, G, M} #Int (dim), Group(elem), Module(elem)
@@ -898,7 +905,7 @@ end
 export GModule, gmodule, word, fp_group, confluent_fp_group, relations,
        action, cohomology_group, extension, iscoboundary
 
-Oscar.dim(C::GModule) = dim(C.M)
+Oscar.dim(C::GModule) = rank(C.M)
 Oscar.base_ring(C::GModule) = base_ring(C.M)
 Oscar.group(C::GModule) = C.G
 
