@@ -178,6 +178,11 @@ struct FreeModElem{T} <: AbstractFreeModElem{T}
   parent::FreeMod{T}
 end
 
+function (F::FreeMod{T})(v::FreeModElem{T}) where T
+  @assert parent(v) === F
+  return v
+end
+
 function in(v::AbstractFreeModElem, M::ModuleFP)
   return parent(v) === M
 end
@@ -2613,12 +2618,12 @@ function direct_product(G::ModuleFP...; task::Symbol = :none)
   if task == :sum || task != :prod
     if pro_quo === nothing
       for i=1:length(mF)
-        mF[i] = hom(G[i], s, [preimage(emb_sF, mF[i](typeof(G) <: FreeMod ? g : g.repres)) for g in gens(G[i])])
+        mF[i] = hom(G[i], s, [preimage(emb_sF, mF[i](repres(g))) for g in gens(G[i])])
         injection_dictionary[i] = mF[i]
       end
     else
       for i=1:length(mF)
-        mF[i] = hom(G[i], s, [pro_quo(preimage(emb_sF, mF[i](typeof(G) <: FreeMod ? g : g.repres))) for g in gens(G[i])])
+        mF[i] = hom(G[i], s, [pro_quo(preimage(emb_sF, mF[i](repres(g)))) for g in gens(G[i])])
         injection_dictionary[i] = mF[i]
       end
     end
