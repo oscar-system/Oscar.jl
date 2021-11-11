@@ -5,6 +5,10 @@ export Spec, OO
 export ⊂
 
 export is_open_embedding, is_closed_embedding, hypersurface_complement, subscheme, name_of, set_name!
+export closure 
+
+export SpecHom
+export pullback, domain, codomain, preimage
 
 HypSurfComp = Union{MPolyPowersOfElement, MPolyUnits}
 
@@ -218,6 +222,64 @@ function Base.intersect(
   L = MPolyQuoLocalizedRing(R, I, U)
   one(localized_ring(L)) in localized_modulus(L) && return EmptyScheme(coefficient_ring(R))
   return Spec(L)
+end
+
+### compute the closure of X in Y
+function closure(
+    X::Spec{BRT, BRET, RT, RET, MST1}, 
+    Y::Spec{BRT, BRET, RT, RET, MST2}
+  ) where {BRT, BRET, RT, RET, MST1<:HypSurfComp, MST2<:HypSurfComp}
+  issubset(X, Y) || error("the first argument is not a subset of the second")
+  is_closed_embedding(X, Y) && return X
+  W = Localization(inverted_set(OO(X))*inverted_set(OO(Y)))
+  I = ideal(W, W.(gens(modulus(OO(X)))))
+  lbpa = groebner_basis(I) # takes care of the saturation
+  R = base_ring(OO(Y))
+  return Spec(MPolyQuoLocalizedRing(R, ideal(R, numerator.(oscar_gens(lbpa))), inverted_set(OO(Y))))
+end
+
+
+
+########################################################################
+# Homomorphisms of affine schemes                                      #
+########################################################################
+
+mutable struct SpecHom{BRT, BRET, RT, RET, MST1, MST2}
+  domain::Spec{BRT, BRET, RT, RET, MST2}
+  codomain::Spec{BRT, BRET, RT, RET, MST1}
+  pullback::MPolyQuoLocalizedRingHom{BRT, BRET, RT, RET, MST1, MST2}
+
+  function SpecHom(
+      X::Spec{BRT, BRET, RT, RET, MST2},
+      Y::Spec{BRT, BRET, RT, RET, MST1},
+      pullback::MPolyQuoLocalizedRingHom{BRT, BRET, RT, RET, MST1, MST2}
+    ) where {BRT, BRET, RT, RET, MST1, MST2}
+    OO(X) == codomain(pullback) || error("the coordinate ring of the domain does not coincide with the codomain of the pullback")
+    OO(Y) == domain(pullback) || error("the coordinate ring of the codomain does not coincide with the domain of the pullback")
+    return new{BRT, BRET, RT, RET, MST1, MST2}(X, Y, pullback)
+  end
+end
+
+### getter functions
+pullback(phi::SpecHom) = phi.pullback
+domain(phi::SpecHom) = phi.domain
+codomain(phi::SpecHom) = phi.codomain
+
+### functionality
+function preimage(
+    phi::SpecHom{BRT, BRET, RT, RET, MST1, MST2}, 
+    Z::Spec{BRT, BRET, RT, RET, MST3}
+  ) where {BRT, BRET, RT, RET, MST1<:HypSurfComp, MST2<:HypSurfComp, MST3<:HypSurfComp}
+  X = domain(phi)
+  Y = codomain(phi)
+  issubset(Z, Y) || (Z = intersect(Y, Z))
+  IZ = modulus(OO(Z))
+  a = denominators(inverted_set(OO(Z)))
+  R = base_ring(OO(X))
+  f = pullback(phi)
+  new_units = MPolyPowersOfElement(R, [lifted_numerator(f(d)) for d in a])
+  new_gens = lifted_numerator.(f.(gens(IZ)))
+  return Spec(MPolyQuoLocalizedRing(R, ideal(R, new_gens), inverted_set(OO(X))*new_units))
 end
 
 

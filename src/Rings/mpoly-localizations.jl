@@ -67,6 +67,10 @@ function Base.in(
   return divides(one(ambient_ring(S)), f)[1]
 end
 
+### additional functionality
+# This assures compatibility with the MPolyPowersOfElement
+denominators(S::MPolyUnits) = [one(ambient_ring(S))]
+
 ### printing
 function Base.show(io::IO, S::MPolyUnits)
   print(io, "units of ")
@@ -558,6 +562,13 @@ function product(
   return U
 end
 
+function product(
+    U::MPolyPowersOfElement{BRT, BRET, RT, RET},
+    T::MPolyUnits{BRT, BRET, RT, RET}
+  ) where {BRT, BRET, RT, RET}
+  return U
+end
+
 function product(T::MST, U::MST) where {MST<:MPolyProductOfMultSets} 
   R = ambient_ring(T)
   R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
@@ -615,6 +626,7 @@ function product(T::MST, U::MST) where {MST<:MPolyComplementOfPrimeIdeal}
 end
 
 function product(T::MST, U::MST) where {MST<:MPolyPowersOfElement}
+  ambient_ring(T) == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
   a = denominators(T)
   for f in denominators(U)
     for d in a
@@ -624,7 +636,7 @@ function product(T::MST, U::MST) where {MST<:MPolyPowersOfElement}
       push!(a, f)
     end
   end
-  return MPolyPowersOfElement(a)
+  return MPolyPowersOfElement(ambient_ring(T), a)
 end
 
 function product(
@@ -788,7 +800,6 @@ mutable struct MPolyLocalizedRingElem{
       f::AbstractAlgebra.Generic.Frac{RingElemType}, 
       R_loc::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
     ) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
-
     base_ring(parent(f)) == base_ring(R_loc) || error(
 	"the numerator and denominator of the given fraction do not belong to the original ring before localization"
       )
@@ -920,7 +931,7 @@ function divexact(p::T, q::T; check::Bool=false) where {T<:MPolyLocalizedRingEle
   return W(m, n)
 end
 
-isunit(f::MPolyLocalizedRingElem) = f in inverted_set(parent(f))
+isunit(f::MPolyLocalizedRingElem) = numerator(f) in inverted_set(parent(f))
 
 
 ########################################################################

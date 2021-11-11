@@ -252,7 +252,10 @@ lifted_denominator(a::MPolyQuoLocalizedRingElem) = a.denominator
 (L::MPolyQuoLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(a::RingElemType, b::RingElemType) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyQuoLocalizedRingElem(L, a, b)
 
 ### additional conversions
-(L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST})(f::Frac{RET}) where {BRT, BRET, RT, RET, MST} = L(numerator(f), denominator(f))
+function (L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST})(f::Frac{RET}) where {BRT, BRET, RT, RET, MST}
+  R = base_ring(L)
+  return L(R(numerator(f)), R(denominator(f)))
+end
 
 function (L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST})(f::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST}
   parent(f) == localized_ring(L) || error("the given element does not belong to the correct localization")
@@ -508,12 +511,30 @@ function (f::MPolyQuoLocalizedRingHom{BRT, BRET, RT, RET, DMST, CMST})(
   return codomain(f)(evaluate(lifted_numerator(p), images(f))//evaluate(lifted_denominator(p), images(f)))
 end
 
+### additional constructors
+function MPolyQuoLocalizedRingHom(
+    L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, DMST}, 
+    M::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, CMST}, 
+    a::Vector{MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, CMST}}
+  ) where {BRT, BRET, RT, RET, CMST, DMST}
+  return MPolyQuoLocalizedRingHom(L, M, lift.(a))
+end
+
+function MPolyQuoLocalizedRingHom(
+    L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, DMST}, 
+    M::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, CMST}, 
+    a::Vector{T}
+  ) where {BRT, BRET, RT, RET, CMST, DMST, T<:RingElement}
+  return MPolyQuoLocalizedRingHom(L, M, localized_ring(M).(a))
+end
+
+
 ### additional functionality 
 function (f::MPolyQuoLocalizedRingHom{BRT, BRET, RT, RET, DMST, CMST})(
     p::MPolyLocalizedRingElem{BRT, BRET, RT, RET, DMST}
   ) where {BRT, BRET, RT, RET, DMST, CMST}
   parent(p) == localized_ring(domain(f)) || error("the given element does not belong to the domain of the map")
-  return codomain(f)(evaluate(lifted_numerator(p), images(f))//evaluate(lifted_denominator(p), images(f)))
+  return codomain(f)(evaluate(numerator(p), images(f))//evaluate(denominator(p), images(f)))
 end
 
 function (f::MPolyQuoLocalizedRingHom{BRT, BRET, RT, RET, DMST, CMST})(
@@ -643,6 +664,26 @@ end
 # The methods have to be adapted to the type of localization in the 
 # target. It needs to be assured that all components which are invisible
 # in the localization, are indeed discarded. 
+
+function (f::MPolyQuoLocalizedRingHom{BRT, BRET, RT, RET, DMST, CMST})(
+    I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, DMST}
+  ) where {BRT<:Ring, BRET<:RingElement, RT<:MPolyRing, RET<:MPolyElem, 
+    DMST<:AbsMultSet{RT, RET}, CMST<:MPolyPowersOfElement{BRT, BRET, RT, RET}
+  }
+  base_ring(I) == localized_ring(domain(f)) || error("ideal does not lay in the correct ring")
+  imgs = f.(gens(I))
+  return ideal(localized_ring(codomain(f)), lift.(imgs))
+end
+
+function (f::MPolyQuoLocalizedRingHom{BRT, BRET, RT, RET, DMST, CMST})(
+    I::MPolyIdeal{RET}
+  ) where {BRT<:Ring, BRET<:RingElement, RT<:MPolyRing, RET<:MPolyElem, 
+    DMST<:AbsMultSet{RT, RET}, CMST<:MPolyPowersOfElement{BRT, BRET, RT, RET}
+  }
+  base_ring(I) == base_ring(domain(f)) || error("ideal does not lay in the correct ring")
+  return f(domain(f)(I))
+end
+
 
 ### adds the variables with names specified in v to the polynomial 
 # ring R and returns a triple consisting of the new ring, the embedding 
