@@ -49,22 +49,28 @@ function _face_polyhedron(::Type{Polyhedron}, P::Polymake.BigObject, i::Base.Int
 end
 
 function _vertex_incidences(::Val{_face_polyhedron}, P::Polymake.BigObject; f_dim = -1, f_ind::Vector{Int64} = Vector{Int64}())
-    return IncidenceMatrix(collect.(Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(P, f_dim))[_polymake_to_oscar_vertex_index(P, f_ind)]))
+    return IncidenceMatrix(collect.(Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(P, f_dim)[f_ind])))[:, _vertex_indices(P)]
+end
+
+function _ray_incidences(::Val{_face_polyhedron}, P::Polymake.BigObject; f_dim = -1, f_ind::Vector{Int64} = Vector{Int64}())
+    return IncidenceMatrix(collect.(Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(P, f_dim)[f_ind])[:, _ray_indices(P)]))
 end
 
 function _isray(P::Polyhedron, i::Base.Integer)
-    return in(i, Polymake.to_one_based_indexing(pm_object(P).FAR_FACE))
+    return in(i, _ray_indices(pm_object(P))
 end
 
-function _vertex_indices_(P::Polyhedron)
-    vi = Polymake.get_attachment(pm_object(P), "_vertex_indices")
+function _vertex_indices(P::Polymake.BigObject)
+    vi = Polymake.get_attachment(P, "_vertex_indices")
     if isnothing(vi)
-        A = pm_object(P).VERTICES
+        A = P.VERTICES
         vi = Polymake.Vector{Polymake.to_cxx_type(Int64)}(findall(!iszero, view(A, :, 1)))
-        Polymake.attach(pm_object(P), "_vertex_indices", vi)
+        Polymake.attach(P, "_vertex_indices", vi)
     end
     return vi
 end
+
+_ray_indices(P::Polymake.BigObject) = Polymake.to_one_based_indexing(P.FAR_FACE)
 
 function _polymake_to_oscar_vertex_index(P::Polymake.BigObject, i::Base.Integer)
     return i - sum((>).(i, P.FAR_FACE))
@@ -76,6 +82,10 @@ end
 
 function _polymake_to_oscar_ray_index(P::Polymake.BigObject, i::Base.Integer)
     return sum((<).(i, P.FAR_FACE))
+end
+
+function _polymake_to_oscar_ray_index(P::Polymake.BigObject, x::Any)
+    return nothing
 end
 
 @doc Markdown.doc"""
