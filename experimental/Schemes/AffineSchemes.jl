@@ -13,7 +13,14 @@ Scheme{ BaseRingType <: Ring }
 
 A scheme over a ring ``k`` of type `BaseRingType`.
 """
-abstract type Scheme{ S <: Ring } end
+abstract type Scheme{BaseRingType<:Ring, BaseRingElemType<:RingElement} end
+
+struct EmptyScheme{BaseRingType, BaseRingElemType}<:Scheme{BaseRingType, BaseRingElemType} 
+  k::BaseRingType
+  function EmptyScheme(k::BaseRingType) where {BaseRingType<:Ring}
+    return new{BaseRingType, elem_type(k)}(k)
+  end
+end
 
 @doc Markdown.doc"""
 AffineScheme{BaseRingType<:Ring, BaseRingElemType<:RingElement, RingType<:MPolyRing, RingElemType<:MPolyElem} <: Scheme{BaseRingType} 
@@ -22,7 +29,7 @@ An affine scheme over a base ring ``k`` of type `BaseRingType` and
 elements of type `BaseRingElemType`, given by a ring ``R/I`` with ``R``
 a polynomial ring of type `RingType` and elements of type `RingElemType`.
 """
-abstract type AffineScheme{BaseRingType<:Ring, BaseRingElemType<:RingElement, RingType<:MPolyRing, RingElemType<:MPolyElem, MultSetType<:AbsMPolyMultSet} <: Scheme{BaseRingType} end
+abstract type AffineScheme{BaseRingType<:Ring, BaseRingElemType<:RingElement, RingType<:MPolyRing, RingElemType<:MPolyElem, MultSetType<:AbsMPolyMultSet} <: Scheme{BaseRingType, BaseRingElemType} end
 
 @doc Markdown.doc"""
 Spec{BRT, BRET, RT, RET} <: AffineScheme{BRT, BRET, RT, RET}
@@ -141,9 +148,11 @@ end
 
 ### testing containment
 ⊂(
-  X::Spec{BRT, BRET, RT, RET, MST1}, 
-  Y::Spec{BRT, BRET, RT, RET, MST2}
- ) where {BRT, BRET, RT, RET, MST1<:HypSurfComp, MST2<:HypSurfComp} = issubset(X, Y)
+  X::Scheme{BRT, BRET}, 
+  Y::Scheme{BRT, BRET}
+ ) where {BRT, BRET} = issubset(X, Y)
+
+issubset(X::EmptyScheme{BRT, BRET}, Y::Scheme{BRT, BRET}) where {BRT, BRET} = true
 
 function issubset(
     X::Spec{BRT, BRET, RT, RET, MST1}, 
@@ -188,6 +197,11 @@ function is_closed_embedding(
 end
 
 ### set operations
+
+intersect(E::EmptyScheme{BRT, BRET}, X::Scheme{BRT, BRET}) where {BRT, BRET} = E
+intersect(X::Scheme{BRT, BRET}, E::EmptyScheme{BRT, BRET}) where {BRT, BRET} = E
+intersect(X::EmptyScheme{BRT, BRET}, E::EmptyScheme{BRT, BRET}) where {BRT, BRET} = E
+
 function Base.intersect(
     X::Spec{BRT, BRET, RT, RET, MST1}, 
     Y::Spec{BRT, BRET, RT, RET, MST2}
@@ -201,7 +215,11 @@ function Base.intersect(
   IY = modulus(OO(Y))
   I = IX + IY
   R = base_ring(OO(X))
-  return Spec(MPolyQuoLocalizedRing(R, I, U))
+  L = MPolyQuoLocalizedRing(R, I, U)
+  for g in gens(localized_modulus(L))
+    isunit(L(g)) && return EmptyScheme(coefficient_ring(R))
+  end
+  return Spec(L)
 end
 
 
