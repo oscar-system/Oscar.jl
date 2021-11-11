@@ -1,18 +1,18 @@
 using Oscar
 using Test
 
-# include("Polytopes/runtests.jl")
-#
-# include("GAP/runtests.jl")
-#
-# include("Rings/integer-test.jl")
-# include("Rings/rational-test.jl")
-# include("Rings/mpoly-test.jl")
-# include("Rings/affine-alghom-test.jl")
-# include("Rings/mpoly-graded-test.jl")
-# include("Rings/mpoly-local-test.jl")
-# include("Rings/mpoly-nested-test.jl")
-# include("Rings/MPolyQuo_test.jl")
+include("Polytopes/runtests.jl")
+
+include("GAP/runtests.jl")
+
+include("Rings/integer-test.jl")
+include("Rings/rational-test.jl")
+include("Rings/mpoly-test.jl")
+include("Rings/affine-alghom-test.jl")
+include("Rings/mpoly-graded-test.jl")
+include("Rings/mpoly-local-test.jl")
+include("Rings/mpoly-nested-test.jl")
+include("Rings/MPolyQuo_test.jl")
 include("Rings/msolve-test.jl")
 include("Rings/FractionalIdeal-test.jl")
 include("Rings/mpoly_affine_algebras_test.jl")
