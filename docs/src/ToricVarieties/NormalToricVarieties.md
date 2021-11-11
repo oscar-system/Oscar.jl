@@ -27,6 +27,7 @@ the affine and non-affine case:
 ```@docs
 AffineNormalToricVariety(C::Cone)
 NormalToricVariety(C::Cone)
+AffineNormalToricVariety(v::NormalToricVariety)
 ```
 
 ### Cyclic Quotient Singularities

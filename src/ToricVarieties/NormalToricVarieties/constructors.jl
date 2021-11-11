@@ -119,6 +119,23 @@ end
 
 export NormalToricVariety
 
+@doc Markdown.doc"""
+    AffineNormalToricVariety(v::NormalToricVariety)
+
+For internal design, we make a strict distinction between
+normal toric varieties and affine toric varieties.
+Given an affine, normal toric variety `v`,
+this method turns it into an affine toric variety.
+
+# Examples
+```jldoctest
+julia> v = NormalToricVariety(positive_hull([1 0; 0 1]))
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+
+julia> affineVariety = AffineNormalToricVariety(v)
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+```
+"""
 function AffineNormalToricVariety(v::NormalToricVariety)
     isaffine(v) || error("Cannot construct affine toric variety from non-affine input")
     return AffineNormalToricVariety(pm_object(v))
