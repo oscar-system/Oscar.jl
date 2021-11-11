@@ -1,4 +1,5 @@
 import AbstractAlgebra: Ring, RingElem, Generic.Frac
+import Base: issubset
 
 export MPolyQuoLocalizedRing
 export parent, inverted_set, base_ring, quotient_ring, localized_ring, modulus, localized_modulus
@@ -111,6 +112,18 @@ localized_modulus(L::MPolyQuoLocalizedRing) = L.J
 quotient_ring(L::MPolyQuoLocalizedRing) = L.Q
 localized_ring(L::MPolyQuoLocalizedRing) = L.W
 
+### printing
+function Base.show(io::IO, L::MPolyQuoLocalizedRing)
+  print(io, "Localization of $(quotient_ring(L)) at the multiplicative set $(inverted_set(L))")
+end
+
+function Base.show(
+    io::IO, 
+    L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MPolyUnits{BRT, BRET, RT, RET}}
+  ) where {BRT, BRET, RT, RET}
+  print(io, quotient_ring(L))
+end
+
 ### additional constructors
 function quo(
     W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST},
@@ -147,6 +160,16 @@ end
 
 function Localization(Q::MPolyQuo{RET}, S::MultSetType) where {RET <: RingElem, MultSetType <: AbsMultSet}
   return MPolyQuoLocalizedRing(base_ring(Q), modulus(Q), S, Q, Localization(S))
+end
+
+function Localization(
+    L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}, 
+    S::AbsMPolyMultSet{BRT, BRET, RT, RET}
+  ) where {BRT, BRET, RT, RET, MST}
+  ambient_ring(S) == base_ring(L) || error("multiplicative set does not belong to the correct ring")
+  issubset(S, inverted_set(L)) && return L
+  U = inverted_set(L)*S
+  return MPolyQuoLocalizedRing(base_ring(L), modulus(L), U, quotient_ring(L), Localization(U))
 end
 
 function MPolyQuoLocalizedRing(R::RT, I::Ideal{RET}, T::MultSetType) where {RT<:MPolyRing, RET<:MPolyElem, MultSetType<:AbsMultSet} 
@@ -530,7 +553,6 @@ function helper_ring(f::MPolyQuoLocalizedRingHom{BRT, BRET, RT, RET, DMST, CMST}
     p = p*d_min
   end
  
-  @show _add_variables(S, ["θ"])
   help_ring, help_phi, theta = _add_variables(S, ["θ"])
   f.helper_ring = help_ring
   f.phi = help_phi
