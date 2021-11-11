@@ -86,7 +86,7 @@ one can also call `^` instead of `on_tuples`.
 julia> g = symmetric_group(3);  g[1]
 (1,2,3)
 
-julia> l = GAP.julia_to_gap([1, 2, 4])
+julia> l = GAP.GapObj([1, 2, 4])
 GAP: [ 1, 2, 4 ]
 
 julia> on_tuples(l, g[1])
@@ -129,7 +129,7 @@ For `Set` objects, one can also call `^` instead of `on_sets`.
 julia> g = symmetric_group(3);  g[1]
 (1,2,3)
 
-julia> l = GAP.julia_to_gap([1,3])
+julia> l = GAP.GapObj([1,3])
 GAP: [ 1, 3 ]
 
 julia> on_sets(l, g[1])
@@ -183,7 +183,7 @@ respectively.
 julia> g = symmetric_group(3);  g[1]
 (1,2,3)
 
-julia> l = GAP.julia_to_gap([[1, 2], [3, 4]], recursive = true)
+julia> l = GAP.GapObj([[1, 2], [3, 4]], recursive = true)
 GAP: [ [ 1, 2 ], [ 3, 4 ] ]
 
 julia> on_sets_sets(l, g[1])
@@ -249,7 +249,7 @@ julia> permuted(a, g[1])
 julia> permuted(("a", "b", "c"), g[1])
 ("c", "a", "b")
 
-julia> l = GAP.julia_to_gap(a, recursive = true)
+julia> l = GAP.GapObj(a, recursive = true)
 GAP: [ "a", "b", "c" ]
 
 julia> permuted(l, g[1])

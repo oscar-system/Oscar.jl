@@ -118,8 +118,8 @@ Return the group homomorphism defined by `gensG`[`i`] -> `imgs`[`i`] for every
 `i`. In order to work, the elements of `gensG` must generate `G`.
 """
 function hom(G::GAPGroup, H::GAPGroup, gensG::Vector, imgs::Vector)
-  vgens = GAP.julia_to_gap(GapObj[x.X for x in gensG])
-  vimgs = GAP.julia_to_gap(GapObj[x.X for x in imgs])
+  vgens = GapObj([x.X for x in gensG])
+  vimgs = GapObj([x.X for x in imgs])
   mp = GAP.Globals.GroupHomomorphismByImages(G.X, H.X, vgens, vimgs)
   if mp == GAP.Globals.fail throw(ArgumentError("Invalid input")) end
   return GAPGroupHomomorphism{typeof(G), typeof(H)}(G, H, mp)

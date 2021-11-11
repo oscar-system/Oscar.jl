@@ -422,7 +422,7 @@ Return the vector of all conjugacy classes of elements in G.
 It is guaranteed that the class of the identity is in the first position.
 """
 function conjugacy_classes(G::GAPGroup)
-   L=GAP.gap_to_julia(Vector{GapObj},GAP.Globals.ConjugacyClasses(G.X))
+   L=Vector{GapObj}(GAP.Globals.ConjugacyClasses(G.X))
    return GroupConjClass{typeof(G), elem_type(G)}[ _conjugacy_class(G,group_element(G,GAP.Globals.Representative(cc)),cc) for cc in L]
 end
 
@@ -477,7 +477,7 @@ end
 Return the vector of all conjugacy classes of subgroups of G.
 """
 function conjugacy_classes_subgroups(G::GAPGroup)
-   L=GAP.gap_to_julia(Vector{GapObj},GAP.Globals.ConjugacyClassesSubgroups(G.X))
+   L=Vector{GapObj}(GAP.Globals.ConjugacyClassesSubgroups(G.X))
    return GroupConjClass{typeof(G), typeof(G)}[ _conjugacy_class(G,typeof(G)(GAP.Globals.Representative(cc)),cc) for cc in L]
 end
 
@@ -487,7 +487,7 @@ end
 Return the vector of all conjugacy classes of maximal subgroups of G.
 """
 function conjugacy_classes_maximal_subgroups(G::GAPGroup)
-  L = GAP.gap_to_julia(Vector{GapObj},GAP.Globals.ConjugacyClassesMaximalSubgroups(G.X))
+  L = Vector{GapObj}(GAP.Globals.ConjugacyClassesMaximalSubgroups(G.X))
    return GroupConjClass{typeof(G), typeof(G)}[ _conjugacy_class(G,typeof(G)(GAP.Globals.Representative(cc)),cc) for cc in L]
 end
 
