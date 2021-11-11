@@ -326,7 +326,7 @@ function gens(G::GAPGroup)
 end
 
 """
-    gen(G::GAPGroup, i::Integer)
+    gen(G::GAPGroup, i::Int)
 
 Return the `i`-th element of the vector `gens(G)`.
 This is equivalent to `G[i]`, and returns `gens(G)[i]`
@@ -689,7 +689,7 @@ function sylow_subgroup(G::GAPGroup, p::Int64)
 end
 
 # no longer documented, better use `hall_subgroups_representatives`
-function hall_subgroup(G::GAPGroup, P::AbstractVector{<:Base.Integer})
+function hall_subgroup(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
    P = unique(P)
    for p in P
       if !isprime(p)
@@ -734,7 +734,7 @@ julia> h = hall_subgroups_representatives(g, [2, 7]); length(h)
 
 ```
 """
-function hall_subgroups_representatives(G::GAPGroup, P::AbstractVector{<:Base.Integer})
+function hall_subgroups_representatives(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
    P = unique(P)
    for p in P
       if !isprime(p)

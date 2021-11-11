@@ -88,7 +88,7 @@ upper_triangular_matrix(L)
 lower_triangular_matrix(L)
 conjugate_transpose(x::MatElem{T}) where T <: FinFieldElem
 complement(V::AbstractAlgebra.Generic.FreeModule{T}, W::AbstractAlgebra.Generic.Submodule{T}) where T <: FieldElem
-permutation_matrix(F::Ring, Q::AbstractVector{T}) where T <: Base.Integer
+permutation_matrix(F::Ring, Q::AbstractVector{<:IntegerUnion})
 isskewsymmetric_matrix(B::MatElem{T}) where T <: RingElem
 ishermitian_matrix(B::MatElem{T}) where T <: FinFieldElem
 ```

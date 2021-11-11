@@ -102,12 +102,12 @@ julia> number_moved_points(gen(s, 1))
 number_moved_points(::Type{T}, x::Union{PermGroupElem,PermGroup}) where T <: IntegerUnion = T(GAP.Globals.NrMovedPoints(x.X))::T
 
 # FIXME: clashes with AbstractAlgebra.perm method
-#function perm(L::AbstractVector{<:Base.Integer})
+#function perm(L::AbstractVector{<:IntegerUnion})
 #   return PermGroupElem(symmetric_group(length(L)), GAP.Globals.PermList(GAP.GapObj(L;recursive=true)))
 #end
 # FIXME: use name gap_perm for now
 @doc Markdown.doc"""
-    gap_perm(L::AbstractVector{<:Base.Integer})
+    gap_perm(L::AbstractVector{<:IntegerUnion})
 
 Return the permutation $x$ which maps every $i$ from `1` to $n$` = length(L)`
 to `L`$[i]$.
@@ -126,8 +126,8 @@ function gap_perm(L::AbstractVector{<:IntegerUnion})
 end
 
 @doc Markdown.doc"""
-    perm(G::PermGroup, L::AbstractVector{<:Integer})
-    (G::PermGroup)(L::AbstractVector{<:Integer})
+    perm(G::PermGroup, L::AbstractVector{<:IntegerUnion})
+    (G::PermGroup)(L::AbstractVector{<:IntegerUnion})
 
 Return the permutation $x$ which maps every `i` from 1 to $n$` = length(L)`
 to `L`$[i]$.
@@ -144,7 +144,7 @@ julia> perm(symmetric_group(6),[2,4,6,1,3,5])
 (1,2,4)(3,6,5)
 ```
 """
-function perm(g::PermGroup, L::AbstractVector{<:Base.Integer})
+function perm(g::PermGroup, L::AbstractVector{<:IntegerUnion})
    x = GAP.Globals.PermList(GAP.GapObj(L;recursive=true))
    if length(L) <= degree(g) && GAP.Globals.IN(x,g.X) 
      return PermGroupElem(g, x)
@@ -154,7 +154,7 @@ end
 
 perm(g::PermGroup, L::AbstractVector{<:fmpz}) = perm(g, [Int(y) for y in L])
 
-function (g::PermGroup)(L::AbstractVector{<:Base.Integer})
+function (g::PermGroup)(L::AbstractVector{<:IntegerUnion})
    x = GAP.Globals.PermList(GAP.GapObj(L;recursive=true))
    if length(L) <= degree(g) && GAP.Globals.IN(x,g.X)
      return PermGroupElem(g, x)
