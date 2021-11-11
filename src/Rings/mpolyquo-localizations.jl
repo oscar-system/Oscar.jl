@@ -6,7 +6,7 @@ export parent, inverted_set, base_ring, quotient_ring, localized_ring, modulus, 
 export Localization
 
 export MPolyQuoLocalizedRingElem
-export numerator, denominator, parent, lift
+export numerator, denominator, parent, lift, isunit
 
 export MPolyQuoLocalizedRingHom
 export domain, codomain, images
@@ -268,6 +268,23 @@ end
 
 ### additional functionality
 lift(f::MPolyQuoLocalizedRingElem) = localized_ring(f)(lifted_numerator(f), lifted_denominator(f))
+
+isunit(f::MPolyQuoLocalizedRingElem) = one(localized_ring(parent(f))) in localized_modulus(parent(f)) + ideal(localized_ring(parent(f)), lift(f))
+
+function isunit(L::MPolyQuoLocalizedRing, f::MPolyLocalizedRingElem) 
+  parent(f) == localized_ring(L) || error("element does not belong to the correct ring")
+  one(localized_ring(L)) in localized_modulus(L) + ideal(localized_ring(L), f)
+end
+
+function isunit(L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}, f::RET) where {BRT, BRET, RT, RET, MST}
+  parent(f) == base_ring(L) || error("element does not belong to the correct ring")
+  one(localized_ring(L)) in localized_modulus(L) + ideal(localized_ring(L), localized_ring(L)(f))
+end
+
+function isunit(L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}, f::MPolyQuoElem{RET}) where {BRT, BRET, RT, RET, MST}
+  parent(f) == quotient_ring(L) || error("element does not belong to the correct ring")
+  one(localized_ring(L)) in localized_modulus(L) + ideal(localized_ring(L), localized_ring(L)(f))
+end
 
 
 ### arithmetic #########################################################

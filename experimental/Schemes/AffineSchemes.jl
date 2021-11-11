@@ -140,7 +140,10 @@ end
 
 
 ### testing containment
-⊂(X::SpecType, Y::SpecType) where {SpecType<:Spec} = issubset(X,Y)
+⊂(
+  X::Spec{BRT, BRET, RT, RET, MST1}, 
+  Y::Spec{BRT, BRET, RT, RET, MST2}
+ ) where {BRT, BRET, RT, RET, MST1<:HypSurfComp, MST2<:HypSurfComp} = issubset(X, Y)
 
 function issubset(
     X::Spec{BRT, BRET, RT, RET, MST1}, 
@@ -150,7 +153,12 @@ function issubset(
   R == base_ring(OO(Y)) || return false
   UX = inverted_set(OO(X))
   UY = inverted_set(OO(Y))
-  issubset(UY, UX) || return false
+  if !issubset(UY, UX) 
+    # check whether the inverted elements in Y are units anyway
+    for a in denominators(UY)
+      isunit(OO(X)(a)) || return false
+    end
+  end
   J = localized_ring(OO(X))(modulus(OO(Y)))
   return issubset(J, localized_modulus(OO(X)))
 end

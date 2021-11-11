@@ -5,7 +5,7 @@ export MPolyLocalizedRing
 export ambient_ring, point_coordinates, inverted_set, denominators
 
 export MPolyLocalizedRingElem
-export numerator, denominator, fraction, parent
+export numerator, denominator, fraction, parent, isunit, divexact
 export reduce_fraction
 
 export MPolyLocalizedIdeal
@@ -919,6 +919,9 @@ function divexact(p::T, q::T; check::Bool=false) where {T<:MPolyLocalizedRingEle
   end
   return W(m, n)
 end
+
+isunit(f::MPolyLocalizedRingElem) = f in inverted_set(parent(f))
+
 
 ########################################################################
 # implementation of Oscar's general ring interface                     #
