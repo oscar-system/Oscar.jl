@@ -34,8 +34,9 @@ function irreducible_modules(G::Oscar.GAPGroup)
   return IM
 end
 
-function minimize(a::AbstractArray{nf_elem})
+function minimize(::typeof(CyclotomicField), a::AbstractArray{nf_elem})
   fl, c = Hecke.iscyclotomic_type(parent(a[1]))
+  @assert all(x->parent(x) == parent(a[1]), a)
   @assert fl
   for p = keys(factor(c).fac)
     while c % p == 0
@@ -61,16 +62,16 @@ function minimize(a::AbstractArray{nf_elem})
   return a
 end
 
-function minimize(a::MatElem{nf_elem})
-  return matrix(minimize(a.entries))
+function minimize(::typeof(CyclotomicField), a::MatElem{nf_elem})
+  return matrix(minimize(CyclotomicField, a.entries))
 end
 
-function minimize(a::nf_elem)
-  return minimize([a])[1]
+function minimize(::typeof(CyclotomicField), a::nf_elem)
+  return minimize(CyclotomicField, [a])[1]
 end
 
 function Oscar.conductor(a::nf_elem)
-  return conductor(parent(minimize(a)))
+  return conductor(parent(minimize(CyclotomicField, a)))
 end
 
 function Oscar.conductor(a::QabElem)
@@ -81,7 +82,16 @@ function irreducible_modules(::Type{AnticNumberField}, G::Oscar.GAPGroup)
   z = irreducible_modules(G)
   Z = GModule[]
   for m in z
+    a = gmodule(CyclotomicField, m)
+    k, mk = Hecke.subfield(base_ring(a), vec(collect(vcat(map(mat, a.ac)...))))
+    if k != base_ring(a)
+      F = free_module(k, dim(m))
+      push!(Z, gmodule(group(m), [hom(F, F, map_entries(inv(mk), mat(x))) for x = a.ac]))
+    else
+      push!(Z, a)
+    end
   end
+  return Z
 end
 
 function gmodule(::typeof(CyclotomicField), C::GModule)
@@ -165,6 +175,20 @@ function isdecomposable(C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}})
   return !GAP.Globals.MTX.IsIndecomposable(G)
 end
 
+function Oscar.hom(C::T, D::T) where T <: GModule{<:Any, <:Generic.FreeModule{<:FieldElem}}
+  b = hom_base(C, D)
+  H, mH = hom(C.M, D.M)
+  s, ms = sub(H, [H(vec(collect(x))) for x = b])
+  return GModule(group(C), [hom(s, s, [preimage(ms, H(vec(collect(inv(mat(C.ac[i]))*g*mat(D.ac[i]))))) for g = b]) for i=1:ngens(group(C))]), ms, mH
+end
+
+function Oscar.hom(F::Generic.FreeModule{T}, G::Generic.FreeModule{T}) where T
+  k = base_ring(F)
+  @assert base_ring(G) == k
+  H = free_module(k, dim(F)*dim(G))
+  return H, MapFromFunc(x->hom(F, G, matrix(k, dim(F), dim(G), vec(collect(x.v)))), y->H(vec(collect(transpose(mat(y))))), H, Hecke.MapParent(F, G, "homomorphisms"))
+end
+
 function hom_base(C::T, D::T) where T <: GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}}
   @assert base_ring(C) == base_ring(D)
   h = Oscar.ring_iso_oscar_gap(base_ring(C))
@@ -231,6 +255,70 @@ function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:Generic.FreeModule{
   end
 end
 
+function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:Generic.FreeModule{fmpq}}
+  @assert base_ring(C) == base_ring(D)
+
+  p = Hecke.p_start
+  p = 2^10
+  p = 127
+  m_in = map(mat, C.ac)
+  m_out = map(mat, D.ac)
+  local T
+  pp = fmpz(1)
+  k = base_ring(C)
+  @assert base_ring(m_in[1]) == k
+  @assert base_ring(m_in[1]) == k
+  @assert k == QQ
+  while true
+    p = next_prime(p)
+    z1 = gmodule(GF(p), C)
+    if C === D
+      z2 = z1
+    else
+      z2 = gmodule(GF(p), D)
+    end
+    
+    t = hom_base(z1, z2)
+    tt = [lift(s)  for s=t]
+    @assert base_ring(tt[1]) == ZZ
+    if isone(pp)
+      pp = fmpz(p)
+      T = tt
+    else
+      T = [induce_crt(tt[i], fmpz(p), T[i], pp)[1] for i=1:length(T)]
+      @assert base_ring(T[1]) == ZZ
+      pp *= p
+      S = []
+      for t = T
+        fl, s = induce_rational_reconstruction(t, pp)
+        fl || break
+        push!(S, s)
+      end
+      if nbits(pp) > 1000
+        error("ndw")
+      end
+      if length(S) == length(T)
+        if all(s->all(i->m_in[i]*s ==  s*m_out[i], 1:length(m_in)), S)
+          return S
+        end
+      end
+    end
+  end
+end
+
+function gmodule(::FlintRationalField, C::GModule{<:Any, <:Generic.FreeModule{fmpz}})
+  F = free_module(QQ, dim(C))
+  return GModule(group(C), [hom(F, F, map_entries(QQ, mat(x))) for x = C.ac])
+end
+
+function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:Generic.FreeModule{fmpz}}
+
+  h = hom_base(gmodule(QQ, C), gmodule(QQ, D))
+  H = vcat([integral_split(matrix(QQ, 1, dim(C)^2, vec(collect(x))), ZZ)[1] for x = h]...)
+  H = Hecke.saturate(H)
+  return [matrix(ZZ, dim(C), dim(C), vec(collect(H[i, :]))) for i=1:nrows(H)]
+end
+
 function gmodule(::FlintIntegerRing, C::GModule{<:Any, <:Generic.FreeModule{fmpq}})
   ma = map(mat, C.ac)
   M = identity_matrix(QQ, dim(C))
@@ -253,10 +341,27 @@ function Base.transpose(C::GModule{<:Any, <:Generic.FreeModule})
   return gmodule(group(C), [hom(C.M, C.M, transpose(mat(x))) for x = C.ac])
 end
 
-function invariant_form()
+function Oscar.dual(C::GModule{<:Any, <:Generic.FreeModule})
+  D = gmodule(group(C), [hom(C.M, C.M, inv(transpose(mat(x)))) for x = C.ac])
+  return D
+end
+
+#if C is abs. irr <=> hom is 1 dim => this always works
+#otherwise, this gives a basis of the symmetric matrices, stabilized
+#by the group - but possibly not pos. definite
+#
+#to always get pos. def. one needs a different algo
+# - sum over group
+# - approximate reynolds as in invar thy (for number fields and Q/ Z)
+function invariant_forms(C::GModule{<:Any, <:Generic.FreeModule})
+  D = Oscar.dual(C)
+  h = hom_base(C, D)
+  r, k = kernel(transpose(vcat([matrix(base_ring(C), 1, dim(C)^2, vec(collect(x-transpose(x)))) for x = h]...)))
+  return [sum(h[i]*k[i, j] for i=1:length(h)) for j=1:r]
 end
 
 function simplify(C::GModule{<:Any, <:Generic.FreeModule{fmpz}})
+
 end
 
 function Hecke.induce_crt(a::Generic.MatSpaceElem{nf_elem}, b::Generic.MatSpaceElem{nf_elem}, p::fmpz, q::fmpz)
@@ -284,6 +389,19 @@ function Hecke.induce_rational_reconstruction(a::Generic.MatSpaceElem{nf_elem}, 
   end
   return true, c
 end
+
+function Hecke.induce_rational_reconstruction(a::fmpz_mat, pg::fmpz)
+  c = zero_matrix(QQ, nrows(a), ncols(a))
+  for i=1:nrows(a)
+    for j=1:ncols(a)
+      fl, n, d = rational_reconstruction(a[i,j], pg)
+      fl || return fl, c
+      c[i,j] = n//d
+    end
+  end
+  return true, c
+end
+
 
 export irreducible_modules, isabsolutely_irreducible, isdecomposable
 
