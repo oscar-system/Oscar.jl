@@ -1,6 +1,5 @@
 import AbstractAlgebra: get_special, MatElem, matrix, MatSpace, parent_type, Ring, RingElem, set_special
 import Hecke: base_ring, det, fmpz, fq_nmod, FqNmodFiniteField, nrows, tr, trace
-import GAP: FFE
 
 export
     general_linear_group,
