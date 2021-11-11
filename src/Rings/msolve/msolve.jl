@@ -170,5 +170,11 @@ function msolve(
 
     rat_param = get_rational_parametrization(jl_ld, jl_len, jl_cf)
 
+    ccall((:free_msolve_julia_result_data, libmsolve), Nothing ,
+          (Ptr{Nothing}, Ptr{Ptr{Cint}}, Ptr{Ptr{Cvoid}},
+           Ptr{Ptr{Cvoid}}, Ptr{Ptr{Cint}}, Int, Int, Int),
+          cglobal(:jl_free), res_len, res_cf, sols_num, sols_den,
+          jl_ld, jl_nb_sols, field_char)
+
     return rat_param, solutions
 end

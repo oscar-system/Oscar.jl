@@ -99,6 +99,10 @@ function f4(
         basis = convert_ff_gb_array_to_singular_ideal(
           jl_ld, jl_len, jl_cf, jl_exp, R)
     # end
+    ccall((:free_f4_julia_result_data, libneogb), Nothing ,
+          (Ptr{Nothing}, Ptr{Ptr{Cint}}, Ptr{Ptr{Cint}},
+           Ptr{Ptr{Cvoid}}, Int, Int),
+          cglobal(:jl_free), gb_len, gb_exp, gb_cf, jl_ld, field_char)
 
     I.gb        = BiPolyArray(base_ring(I), basis)
     I.gb.isGB   = true
