@@ -216,9 +216,7 @@ function Base.intersect(
   I = IX + IY
   R = base_ring(OO(X))
   L = MPolyQuoLocalizedRing(R, I, U)
-  for g in gens(localized_modulus(L))
-    isunit(L(g)) && return EmptyScheme(coefficient_ring(R))
-  end
+  one(localized_ring(L)) in localized_modulus(L) && return EmptyScheme(coefficient_ring(R))
   return Spec(L)
 end
 
