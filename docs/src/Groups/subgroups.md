@@ -35,13 +35,13 @@ of the same type of `G` and `f` is the embedding homomorphism of `H` into `G`.
 ```@docs
 trivial_subgroup
 centre
-sylow_subgroup(G::GAPGroup, p::Int64)
+sylow_subgroup(G::GAPGroup, p::IntegerUnion)
 derived_subgroup
 fitting_subgroup
 frattini_subgroup
 radical_subgroup
 socle
-pcore(G::GAPGroup, p::Int64)
+pcore(G::GAPGroup, p::IntegerUnion)
 intersect(V::T...) where T<:GAPGroup
 ```
 

@@ -590,17 +590,15 @@ normal_closure(G::T, H::T) where T<:GAPGroup = _as_subgroup(G, GAP.Globals.Norma
 # but then the user should have the possibility to omit this check.)
 
 """
-    pcore(G::Group, p::Int64)
+    pcore(G::Group, p::IntegerUnion)
 
 Return `C, f`, where `C` is the `p`-core
 (i.e. the largest normal `p`-subgroup) of `G`
 and `f` is the embedding morphism of `C` into `G`.
 """
-function pcore(G::GAPGroup, p::Int64)
-   if !isprime(p)
-      throw(ArgumentError("p is not a prime"))
-   end
-   return _as_subgroup(G, GAP.Globals.PCore(G.X,p))
+function pcore(G::GAPGroup, p::IntegerUnion)
+   isprime(p) || throw(ArgumentError("p is not a prime"))
+   return _as_subgroup(G, GAP.Globals.PCore(G.X,GAP.Obj(p)))
 end
 
 
@@ -662,7 +660,7 @@ see [`minimal_normal_subgroups`](@ref).
 ################################################################################
 
 """
-    sylow_subgroup(G::Group, p::Int64)
+    sylow_subgroup(G::Group, p::IntegerUnion)
 
 Return a Sylow `p`-subgroup of the finite group `G`, for a prime `p`.
 This is a subgroup of `p`-power order in `G`
@@ -681,27 +679,21 @@ julia> s = sylow_subgroup(g, 3); order(s[1])
 
 ```
 """
-function sylow_subgroup(G::GAPGroup, p::Int64)
-   if !isprime(p)
-      throw(ArgumentError("p is not a prime"))
-   end
-   return _as_subgroup(G,GAP.Globals.SylowSubgroup(G.X,p))
+function sylow_subgroup(G::GAPGroup, p::IntegerUnion)
+   isprime(p) || throw(ArgumentError("p is not a prime"))
+   return _as_subgroup(G,GAP.Globals.SylowSubgroup(G.X,GAP.Obj(p)))
 end
 
 # no longer documented, better use `hall_subgroups_representatives`
 function hall_subgroup(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
    P = unique(P)
-   for p in P
-      if !isprime(p)
-         throw(ArgumentError("The integers must be prime"))
-      end
-   end
-   if !issolvable(G) throw(ArgumentError("The group is not solvable")) end
-   return _as_subgroup(G,GAP.Globals.HallSubgroup(G.X,GAP.julia_to_gap(P)))
+   all(isprime, P) || throw(ArgumentError("The integers must be prime"))
+   issolvable(G) || throw(ArgumentError("The group is not solvable"))
+   return _as_subgroup(G,GAP.Globals.HallSubgroup(G.X,GAP.julia_to_gap(P, recursive=true)))
 end
 
 """
-    hall_subgroups_representatives(G::Group, P::Vector{Int})
+    hall_subgroups_representatives(G::Group, P::AbstractVector{<:IntegerUnion})
 
 Return a vector that contains representatives of conjugacy classes of
 Hall `P`-subgroups of the finite group `G`, for a vector `P` of primes.
@@ -736,11 +728,7 @@ julia> h = hall_subgroups_representatives(g, [2, 7]); length(h)
 """
 function hall_subgroups_representatives(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
    P = unique(P)
-   for p in P
-      if !isprime(p)
-         throw(ArgumentError("The integers must be prime"))
-      end
-   end
+   all(isprime, P) || throw(ArgumentError("The integers must be prime"))
    res_gap = GAP.Globals.HallSubgroup(G.X, GAP.julia_to_gap(P))
    if res_gap == GAP.Globals.fail
      return typeof(G)[]
