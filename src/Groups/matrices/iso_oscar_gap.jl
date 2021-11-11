@@ -27,7 +27,7 @@ function ring_iso_oscar_gap(F::T) where T <: Union{Nemo.GaloisField, Nemo.Galois
    e = GAP.Globals.One(G)
 
    f(x::Union{Nemo.gfp_elem, Nemo.gfp_fmpz_elem}) = GAP.Obj(lift(x))*e
-   finv(x) = F(GAP.gap_to_julia(GAP.Globals.IntFFE(x)))
+   finv(x) = F(fmpz(GAP.Globals.IntFFE(x)))
 
    return MapFromFunc(f, finv, F, G)
 end
@@ -41,7 +41,7 @@ function ring_iso_oscar_gap(F::T) where T <: Union{Nemo.FqNmodFiniteField, Nemo.
    # prime fields are easy and efficient to deal with, handle them seperately
    if d == 1
       f1(x::Union{Nemo.fq_nmod, Nemo.fq}) = GAP.Obj(coeff(x, 0))*e
-      finv1(x) = F(GAP.gap_to_julia(GAP.Globals.IntFFE(x)))
+      finv1(x) = F(fmpz(GAP.Globals.IntFFE(x)))
       return MapFromFunc(f1, finv1, F, Fp_gap)
    end
 
@@ -70,7 +70,7 @@ function ring_iso_oscar_gap(F::T) where T <: Union{Nemo.FqNmodFiniteField, Nemo.
    # For "small" primes x should be an FFE, but for bigger ones it's GAP_jll.Mptr (?)
    function finv(x)
       v = GAP.Globals.Coefficients(Basis_G, x)
-      v_int = [ GAP.gap_to_julia(GAP.Globals.IntFFE(v[i])) for i = 1:length(v) ]
+      v_int = [ fmpz(GAP.Globals.IntFFE(v[i])) for i = 1:length(v) ]
       return sum([ v_int[i]*Basis_F[i] for i = 1:d ])
    end
 

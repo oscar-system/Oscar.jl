@@ -68,7 +68,7 @@ true
 """
 function sub(G::GAPGroup, gens::AbstractVector{S}) where S <: GAPGroupElem
   @assert elem_type(G) == S
-  elems_in_GAP = GAP.julia_to_gap(GapObj[x.X for x in gens])
+  elems_in_GAP = GapObj([x.X for x in gens])
   H = GAP.Globals.Subgroup(G.X,elems_in_GAP)
   return _as_subgroup(G, H)
 end
@@ -300,7 +300,7 @@ i. e., `G` is finite and has a normal series with cyclic factors.
 
 function quo(G::FPGroup, elements::Vector{S}) where T <: GAPGroup where S <: GAPGroupElem
   @assert elem_type(G) == S
-  elems_in_gap = GAP.julia_to_gap(GapObj[x.X for x in elements])
+  elems_in_gap = GapObj([x.X for x in elements])
 #T better!
   Q=FPGroup((G.X)/elems_in_gap)
   function proj(x::FPGroupElem)
@@ -318,7 +318,7 @@ where `H` is the normal closure of `elements` in `G`.
 """
 function quo(G::T, elements::Vector{S}) where T <: GAPGroup where S <: GAPGroupElem
   @assert elem_type(G) == S
-  elems_in_gap = GAP.julia_to_gap(GapObj[x.X for x in elements])
+  elems_in_gap = GapObj([x.X for x in elements])
   H = GAP.Globals.NormalClosure(G.X,GAP.Globals.Group(elems_in_gap))
   @assert GAP.Globals.IsNormal(G.X, H)
   H1 = T(H)
@@ -390,7 +390,7 @@ return the intersection $K$ of the groups $G_1, G_2, \ldots, G_n$,
 together with the embeddings of $K into $G_i$.
 """
 function intersect(V::T...) where T<:GAPGroup
-   L = GAP.julia_to_gap([G.X for G in V])
+   L = GapObj([G.X for G in V])
    K = GAP.Globals.Intersection(L)
    Embds = [_as_subgroup(G, K)[2] for G in V]
    K = _as_subgroup(V[1], K)[1]
@@ -399,7 +399,7 @@ function intersect(V::T...) where T<:GAPGroup
 end
 
 function intersect(V::AbstractVector{T}) where T<:GAPGroup
-   L = GAP.julia_to_gap([G.X for G in V])
+   L = GapObj([G.X for G in V])
    K = GAP.Globals.Intersection(L)
    Embds = [_as_subgroup(G, K)[2] for G in V]
    K = _as_subgroup(V[1], K)[1]

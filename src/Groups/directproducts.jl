@@ -39,7 +39,7 @@ the output is a triple (`G`, `emb`, `proj`), where `emb` and `proj` are the
 vectors of the embeddings (resp. projections) of the direct product `G`.
 """
 function direct_product(L::AbstractVector{<:GAPGroup}; morphisms=false)
-   X = GAP.Globals.DirectProduct(GAP.julia_to_gap([G.X for G in L]))
+   X = GAP.Globals.DirectProduct(GapObj([G.X for G in L]))
    DP = DirectProductGroup(X,L,X,true)
    if morphisms
       emb = [_hom_from_gap_map(L[i],DP,GAP.Globals.Embedding(X,i)) for i in 1:length(L)]
@@ -67,7 +67,7 @@ the output is a triple (`G`, `emb`, `proj`), where `emb` and `proj` are the
 vectors of the embeddings (resp. projections) of the direct product `G`.
 """
 function inner_direct_product(L::AbstractVector{T}; morphisms=false) where T<:Union{PcGroup,PermGroup,FPGroup}
-   P = GAP.Globals.DirectProduct(GAP.julia_to_gap([G.X for G in L]))
+   P = GAP.Globals.DirectProduct(GapObj([G.X for G in L]))
    if T==PermGroup
       DP = T(P,GAP.Globals.NrMovedPoints(P))
    else
