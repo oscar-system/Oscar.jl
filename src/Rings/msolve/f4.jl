@@ -3,7 +3,7 @@ import msolve_jll: libneogb
 export f4
 
 @doc Markdown.doc"""
-    f4(I, <keyword arguments>)
+    f4(I::MPolyIdeal, <keyword arguments>)
 
 Compute a Groebner basis of the given ideal `I` w.r.t. to the degree reverse lexicographical monomial ordering using Faugère's F4 algorithm.
 See [Fau99](@cite) for more information.
@@ -92,7 +92,7 @@ function f4(
     end
 
     # construct Singular ideal
-    # if 0 == char
+    # if 0 == field_char
     #     basis = convert_qq_gb_array_to_singular_ideal(
     #       jl_ld, jl_len, jl_cf, jl_exp, R)
     # else

@@ -38,7 +38,7 @@ function get_rational_parametrization(
 end
 
 @doc Markdown.doc"""
-    msolve(I, <keyword arguments>)
+    msolve(I::MPolyIdeal, <keyword arguments>)
 
 Given an ideal `I` with a finite solution set over the complex numbers, return a pair `p,r` where `p` is the rational parametrization of the solution set and `r` represents the real roots of `Ì`  with a given precision (default 32 bits).
 See [BES21](@cite) for more information.
