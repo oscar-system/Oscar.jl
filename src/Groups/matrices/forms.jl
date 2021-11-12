@@ -26,7 +26,7 @@ export
 
 # descr is always defined
 # matrix is always defined except when descr="quadratic"; in such a case, at least one of matrix and pol is defined
-# NOTE: the fields ring_iso and mat_iso are always defined if the field X is
+# NOTE: the field ring_iso is always defined if the field X is
 """
     SesquilinearForm{T<:RingElem}
 
@@ -39,7 +39,6 @@ mutable struct SesquilinearForm{T<:RingElem}
    pol::MPolyElem{T}     # only for quadratic forms
    X::GapObj
    ring_iso::MapFromFunc
-   mat_iso::MapFromFunc
 
    function SesquilinearForm{T}(B::MatElem{T},sym) where T
       if sym==:hermitian
@@ -310,9 +309,9 @@ end
 
 
 function assign_from_description(f::SesquilinearForm)
-   if f.descr==:quadratic f.X=GAP.Globals.QuadraticFormByMatrix(f.mat_iso(gram_matrix(f)),codomain(f.ring_iso))
-   elseif f.descr==:symmetric || f.descr==:alternating f.X=GAP.Globals.BilinearFormByMatrix(f.mat_iso(gram_matrix(f)),codomain(f.ring_iso))
-   elseif f.descr==:hermitian f.X=GAP.Globals.HermitianFormByMatrix(f.mat_iso(gram_matrix(f)),codomain(f.ring_iso))
+   if f.descr == :quadratic f.X = GAP.Globals.QuadraticFormByMatrix(map_entries(f.ring_iso, gram_matrix(f)), codomain(f.ring_iso))
+   elseif f.descr == :symmetric || f.descr == :alternating f.X = GAP.Globals.BilinearFormByMatrix(map_entries(f.ring_iso, gram_matrix(f)), codomain(f.ring_iso))
+   elseif f.descr == :hermitian f.X = GAP.Globals.HermitianFormByMatrix(map_entries(f.ring_iso, gram_matrix(f)), codomain(f.ring_iso))
    else error("unsupported description")
    end
 end
@@ -325,14 +324,8 @@ function Base.getproperty(f::SesquilinearForm, sym::Symbol)
    if sym === :ring_iso
       f.ring_iso = ring_iso_oscar_gap(base_ring(f))
 
-   elseif sym === :mat_iso
-      f.mat_iso = mat_iso_oscar_gap(base_ring(f), nrows(gram_matrix(f)), f.ring_iso)
-
    elseif sym == :X
       if !isdefined(f, :X)
-         if !isdefined(f,:mat_iso)
-            f.mat_iso = mat_iso_oscar_gap(base_ring(f), nrows(gram_matrix(f)), f.ring_iso)
-         end
          assign_from_description(f)
       end
 
