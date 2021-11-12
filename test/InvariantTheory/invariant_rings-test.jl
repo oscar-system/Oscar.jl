@@ -93,7 +93,7 @@
   gl = general_linear_group(4, 5)
   gapmats = [GAP.Globals.PermutationMat(elm.X, 4, GAP.Globals.GF(5))
              for elm in gens(symmetric_group(4))]
-  s4 = sub(gl, [MatrixGroupElem(gl, preimage(gl.mat_iso, x), x) for x in gapmats])[1]
+  s4 = sub(gl, [MatrixGroupElem(gl, x) for x in gapmats])[1]
   I = invariant_ring(s4)
   m = @inferred molien_series(S, I)
   @test m == 1//((1 - t)*(1 - t^2)*(1 - t^3)*(1 - t^4))

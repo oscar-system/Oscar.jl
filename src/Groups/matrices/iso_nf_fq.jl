@@ -65,7 +65,7 @@ function isomorphic_group_over_finite_field(G::MatrixGroup{T}) where T <: Union{
    gen = gens(G)
 
    preimg = function(y)
-     return GAP.Globals.MappedWord(GAP.Globals.UnderlyingElement(GAP.Globals.Image(GptoF, Gp.mat_iso(y.elm))),
+     return GAP.Globals.MappedWord(GAP.Globals.UnderlyingElement(GAP.Globals.Image(GptoF, map_entries(Gp.ring_iso, y.elm))),
                                    GAP.Globals.FreeGeneratorsOfFpGroup(F),
                                    GAP.GapObj(gen))
    end

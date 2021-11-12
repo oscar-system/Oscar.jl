@@ -743,6 +743,16 @@ end
 #
 ##############################################################################
 
+@Markdown.doc """
+    mutable struct MPolyIdeal{S} <: Ideal{S}
+
+Ideal in a multivariate polynomial ring R with elements of type `S`.
+
+Fields:
+  * `gens::BiPolyArray{S}`, a bi-list of generators of the ideal. This is not supposed to be altered ever after assignment of the ideal;
+  * `gb::BiPolyArray{S}`, a field used for caching of Groebner basis computations;
+  * `dim::Int`, a field used for caching the dimension of the ideal.
+"""
 mutable struct MPolyIdeal{S} <: Ideal{S}
   gens::BiPolyArray{S}
   gb::BiPolyArray{S}

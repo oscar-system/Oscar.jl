@@ -24,7 +24,6 @@
    @test f isa SesquilinearForm
    @test gram_matrix(f)==B
    @test ishermitian_form(f)
-   @test f.mat_iso isa MapFromFunc
    @test f.X isa GAP.GapObj
    @test_throws AssertionError f = symmetric_form(B)
    @test_throws AssertionError f = alternating_form(B)
