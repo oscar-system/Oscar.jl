@@ -58,7 +58,7 @@ specify a multiplicative set `S` and then call
 This method must be implemented with a dispatch depending on 
 the concrete type of `S`.
 
-For any concrete instance of type ```AbsLocalizedRing``` 
+For any concrete instance of type `AbsLocalizedRing`
 the following methods must be implemented:
 ```@docs
     base_ring(W::AbsLocalizedRing) 
