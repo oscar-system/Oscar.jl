@@ -1,12 +1,11 @@
 export MPolyUnits, MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal, MPolyPowersOfElement, MPolyProductOfMultSets
-export rand
-export sets
+export rand, sets, issubset
 
 export MPolyLocalizedRing
 export ambient_ring, point_coordinates, inverted_set, denominators
 
 export MPolyLocalizedRingElem
-export numerator, denominator, fraction, parent
+export numerator, denominator, fraction, parent, isunit, divexact
 export reduce_fraction
 
 export MPolyLocalizedIdeal
@@ -22,12 +21,18 @@ export MPolyLocalizedRingHom
 export domain, codomain, images
 
 import AbstractAlgebra: Ring, RingElem
+import Base: issubset
 
 ########################################################################
 # General framework for localizations of multivariate polynomial rings #
 ########################################################################
 
+########################################################################
+# Multiplicatively closed sets in multivariate polynomial rings        #
+########################################################################
+
 abstract type AbsMPolyMultSet{BRT, BRET, RT, RET} <: AbsMultSet{RT, RET} end
+
 ########################################################################
 # Units in polynomial rings; localization does nothing in this case    #
 ########################################################################
@@ -61,6 +66,10 @@ function Base.in(
   ) where {BaseRingType, BaseRingElemType, RingType, RingElemType}
   return divides(one(ambient_ring(S)), f)[1]
 end
+
+### additional functionality
+# This assures compatibility with the MPolyPowersOfElement
+denominators(S::MPolyUnits) = [one(ambient_ring(S))]
 
 ### printing
 function Base.show(io::IO, S::MPolyUnits)
@@ -151,6 +160,7 @@ function rand(S::MPolyComplementOfPrimeIdeal, v1::UnitRange{Int}, v2::UnitRange{
   return f
 end
 
+
 ########################################################################
 # Complements of maximal ideals corresponding to 𝕜-points              #
 ########################################################################
@@ -230,6 +240,7 @@ function rand(S::MPolyComplementOfKPointIdeal, v1::UnitRange{Int}, v2::UnitRange
   end
   return f
 end
+
 
 ########################################################################
 # Powers of elements                                                   #
@@ -311,24 +322,6 @@ end
 function rand(S::MPolyPowersOfElement, v1::UnitRange{Int}, v2::UnitRange{Int}, v3::UnitRange{Int})
   return prod([f^(abs(rand(Int))%10) for f in denominators(S)])::elem_type(ambient_ring(S))
 end
-
-### Taking the product of such sets
-function product(
-    T::MPolyPowersOfElement{BRT, BRET, RT, RET}, 
-    U::MPolyPowersOfElement{BRT, BRET, RT, RET}
-  ) where {BRT, BRET, RT, RET}
-  a = denominators(T)
-  for f in denominators(U)
-    for d in a
-      (_, f) = ppio(f, d) 
-    end
-    if !(divides(one(parent(f)), f)[1])
-      push!(a, f)
-    end
-  end
-  return MPolyPowersOfElement(a)
-end
-
 
 
 @Markdown.doc """
@@ -417,6 +410,135 @@ function rand(S::MPolyProductOfMultSets, v1::UnitRange{Int}, v2::UnitRange{Int},
   return prod([rand(s, v1, v2, v3) for s in sets(S)])::elem_type(ambient_ring(S))
 end
 
+########################################################################
+# Arithmetic of multiplicative sets                                    #
+########################################################################
+
+### containment ########################################################
+⊂(T::AbsMPolyMultSet, U::AbsMPolyMultSet) = issubset(T, U)
+
+function issubset(T::AbsMPolyMultSet, U::AbsMPolyMultSet) 
+  ambient_ring(T) == ambient_ring(U) || return false
+  error("comparison of multiplicative sets of type $(typeof(T)) and $(typeof(U)) is not implemented")
+end
+
+function ==(T::AbsMPolyMultSet, U::AbsMPolyMultSet) 
+  return (issubset(T, U) && issubset(U, T))
+end
+
+function issubset(
+    T::MPolyUnits{BRT, BRET, RT, RET}, 
+    U::AbsMPolyMultSet{BRT, BRET, RT, RET}
+  ) where {BRT, BRET, RT, RET}
+  ambient_ring(T) == ambient_ring(U) || return false
+  return true
+end
+
+function issubset(
+    T::MST,
+    U::MST
+  ) where {MST<:MPolyUnits}
+  ambient_ring(T) == ambient_ring(U) || return false
+  return true
+end
+
+function issubset(
+    U::AbsMPolyMultSet{BRT, BRET, RT, RET},
+    T::MPolyUnits{BRT, BRET, RT, RET}
+  ) where {BRT, BRET, RT, RET}
+  return false
+end
+
+function issubset(
+    U::MPolyPowersOfElement{BRT, BRET, RT, RET},
+    T::MPolyUnits{BRT, BRET, RT, RET}
+  ) where {BRT, BRET, RT, RET}
+  R = ambient_ring(T) 
+  R == ambient_ring(U) || return false
+  for a in denominators(U)
+    divides(one(R), a)[1] || return false
+  end
+  return true
+end
+
+function issubset(
+    T::MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET},
+    U::MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET}
+  ) where {BRT, BRET, RT, RET}
+  return issubset(prime_ideal(U), prime_ideal(T))
+end
+
+function issubset(
+    T::MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET},
+    U::MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}
+  ) where {BRT, BRET, RT, RET}
+  R = ambient_ring(T)
+  R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
+  a = point_coordinates(U)
+  b = point_coordinates(T)
+  for i in 1:length(a)
+    a[i] == b[i] || return false
+  end
+  return true
+end
+
+function issubset(
+    T::MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET},
+    U::MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET}
+  ) where {BRT, BRET, RT, RET}
+  R = ambient_ring(T)
+  R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
+  a = point_coordinates(T)
+  for i in 1:length(a)
+    (gens(R)[i]- R(a[i])) in prime_ideal(U) || return false
+  end
+  return true
+end
+
+function issubset(
+    T::MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET},
+    U::MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}
+  ) where {BRT, BRET, RT, RET}
+  R = ambient_ring(T)
+  R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
+  a = point_coordinates(U)
+  for f in gens(prime_ideal(T))
+    iszero(evaluate(f, a)) || return false
+  end
+  return true
+end
+
+function issubset(
+    T::MPolyPowersOfElement{BRT, BRET, RT, RET},
+    U::AbsMPolyMultSet{BRT, BRET, RT, RET}
+  ) where {BRT, BRET, RT, RET}
+  for a in denominators(T)
+    a in U || return false
+  end
+  return true
+end
+
+function issubset(
+    T::MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET},
+    U::MPolyPowersOfElement{BRT, BRET, RT, RET},
+  ) where {BRT, BRET, RT, RET}
+  return false
+end
+
+function issubset(
+    T::MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET},
+    U::MPolyPowersOfElement{BRT, BRET, RT, RET},
+  ) where {BRT, BRET, RT, RET}
+  return false
+end
+
+### intersections ######################################################
+function intersection(T::AbsMPolyMultSet, U::AbsMPolyMultSet) 
+  error("intersection of multiplicative sets of type $(typeof(T)) and $(typeof(U)) is not implemented")
+end
+
+# TODO: Implement this if necessary!
+
 ### functionality for taking products
 *(T::AbsMPolyMultSet, U::AbsMPolyMultSet) = product(T, U)
 
@@ -424,6 +546,27 @@ function product(T::AbsMPolyMultSet, U::AbsMPolyMultSet)
   R = ambient_ring(T)
   R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
   return MPolyProductOfMultSets(R, [T, U])
+end
+
+function product(
+    T::MPolyUnits{BRT, BRET, RT, RET}, 
+    U::AbsMPolyMultSet{BRT, BRET, RT, RET}
+  ) where {BRT, BRET, RT, RET}
+  return U
+end
+
+function product(
+    U::AbsMPolyMultSet{BRT, BRET, RT, RET},
+    T::MPolyUnits{BRT, BRET, RT, RET}
+  ) where {BRT, BRET, RT, RET}
+  return U
+end
+
+function product(
+    U::MPolyPowersOfElement{BRT, BRET, RT, RET},
+    T::MPolyUnits{BRT, BRET, RT, RET}
+  ) where {BRT, BRET, RT, RET}
+  return U
 end
 
 function product(T::MST, U::MST) where {MST<:MPolyProductOfMultSets} 
@@ -482,6 +625,31 @@ function product(T::MST, U::MST) where {MST<:MPolyComplementOfPrimeIdeal}
   return MPolyProductOfMultSets(R, [U, T])
 end
 
+function product(T::MST, U::MST) where {MST<:MPolyPowersOfElement}
+  ambient_ring(T) == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
+  a = denominators(T)
+  for f in denominators(U)
+    for d in a
+      (_, f) = ppio(f, d) 
+    end
+    if !(divides(one(parent(f)), f)[1])
+      push!(a, f)
+    end
+  end
+  return MPolyPowersOfElement(ambient_ring(T), a)
+end
+
+function product(
+    T::MPolyPowersOfElement{BRT, BRET, RT, RET},
+    U::AbsMPolyMultSet{BRT, BRET, RT, RET}
+  ) where {BRT, BRET, RT, RET}
+  R = ambient_ring(T)
+  R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
+  for a in denominators(T)
+    a in U || return MPolyProductOfMultSets(R, [U, T])
+  end
+  return U
+end
 
 
 ########################################################################
@@ -547,10 +715,12 @@ Localization(S::MPolyPowersOfElement) = MPolyLocalizedRing(ambient_ring(S), S)
 
 Localization(S::MPolyProductOfMultSets) = MPolyLocalizedRing(ambient_ring(S), S)
 
+### Successive localizations are handled by the dispatch for products
 function Localization(
-    W::MPolyLocalizedRing{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}, 
-    S::MPolyPowersOfElement{BRT, BRET, RT, RET}
-  ) where {BRT, BRET, RT, RET}
+    W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST}, 
+    S::AbsMPolyMultSet{BRT, BRET, RT, RET}
+  ) where {BRT, BRET, RT, RET, MST}
+  issubset(S, inverted_set(W)) && return W
   return Localization(S*inverted_set(W))
 end
 
@@ -630,7 +800,6 @@ mutable struct MPolyLocalizedRingElem{
       f::AbstractAlgebra.Generic.Frac{RingElemType}, 
       R_loc::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
     ) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
-
     base_ring(parent(f)) == base_ring(R_loc) || error(
 	"the numerator and denominator of the given fraction do not belong to the original ring before localization"
       )
@@ -761,6 +930,9 @@ function divexact(p::T, q::T; check::Bool=false) where {T<:MPolyLocalizedRingEle
   end
   return W(m, n)
 end
+
+isunit(f::MPolyLocalizedRingElem) = numerator(f) in inverted_set(parent(f))
+
 
 ########################################################################
 # implementation of Oscar's general ring interface                     #
@@ -950,7 +1122,7 @@ mutable struct MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST} <: AbsLocalizedIdeal
 end
  
 ### required getter functions
-gens(I::MPolyLocalizedIdeal) = I.gens
+gens(I::MPolyLocalizedIdeal) = copy(I.gens)
 base_ring(I::MPolyLocalizedIdeal) = I.W
 
 ### additional getter functions
@@ -1025,6 +1197,17 @@ function Base.in(
   ) where {BRT, BRET, RT, RET, MST}
   return base_ring(I)(f) in I
 end
+
+### additional functionality
+function issubset(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedIdeal}
+  base_ring(I) == base_ring(J) || error("ideals do not belong to the same ring")
+  for g in gens(I)
+    g in J || return false
+  end
+  return true
+end
+
+==(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedIdeal} = (issubset(I, J) && issubset(J, I))
 
 ### Default constructors 
 # The ordering is determined from the type of the multiplicative set

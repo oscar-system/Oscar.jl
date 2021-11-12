@@ -84,7 +84,6 @@
   S = MPolyComplementOfKPointIdeal(R, [ZZ(0), ZZ(0)])
   T = MPolyPowersOfElement(R, [f])
   U = MPolyProductOfMultSets(R, [S, T])
-  @show U
   @test f in U
   @test (f*(x-1) in U)
   @test !(f*x in U)
