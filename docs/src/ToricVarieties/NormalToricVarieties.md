@@ -40,8 +40,8 @@ where $\xi$ is a $n$-th root of unity, and $q$ and $n$ are integers, such that $
 For the notation we rely on [Chr91](@cite) and [Ste91](@cite).
 
 !!! warning
-    Note that the notion of Hirzebruch-Jung continued fraction differs from the
-    commonly known continued fraction.
+    Note that [Chr91](@cite) and [Ste91](@cite) use Hirzebruch-Jung continued fraction, which differ from the
+    commonly known continued fraction from literature and used in the rest of OSCAR.
 
 ```@docs
 CyclicQuotientSingularity(n::fmpz, q::fmpz)
