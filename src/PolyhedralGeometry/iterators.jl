@@ -128,12 +128,12 @@ Base.IndexStyle(::Type{<:HalfspaceIterator}) = IndexLinear()
 
 function Base.getindex(iter::HalfspaceIterator{T}, i::Base.Integer) where T
     @boundscheck checkbounds(iter.b, i)
-    return T(reshape(iter.A[i, :], 1, :), iter.b[i])
+    return T(iter.A[[i], :], iter.b[i])
 end
 
 function Base.getindex(iter::HalfspaceIterator{Cone}, i::Base.Integer)
     @boundscheck checkbounds(iter.b, i)
-    return cone_from_inequalities(reshape(iter.A[i, :], 1, :))
+    return cone_from_inequalities(iter.A[[i], :])
 end
 
 function Base.setindex!(iter::HalfspaceIterator, val::Halfspace, i::Base.Integer)
@@ -233,7 +233,15 @@ Base.lastindex(iter::SubObjectIterator) = length(iter)
 Base.size(iter::SubObjectIterator) = (iter.n,)
 
 ray_incidences(iter::SubObjectIterator) = _ray_incidences(Val(iter.Acc), iter.Obj; iter.options...)
-ray_incidences(::Any, ::Polymake.BigObject) = throw(ArgumentError("Incidence Matrix resp. rays not defined in this context."))
+_ray_incidences(::Any, ::Polymake.BigObject) = throw(ArgumentError("Incidence Matrix resp. rays not defined in this context."))
 
 vertex_incidences(iter::SubObjectIterator) = _vertex_incidences(Val(iter.Acc), iter.Obj; iter.options...)
-vertex_incidences(::Any, ::Polymake.BigObject) = throw(ArgumentError("Incidence Matrix resp. vertices not defined in this context."))
+_vertex_incidences(::Any, ::Polymake.BigObject) = throw(ArgumentError("Incidence Matrix resp. vertices not defined in this context."))
+
+inequality_matrix(iter::SubObjectIterator) = matrix(QQ, Matrix{fmpq}(_inequality_matrix(Val(iter.Acc), iter.Obj; iter.options...)))
+_inequality_matrix(::Any, ::Polymake.BigObject) = throw(ArgumentError("Inequality Matrix not defined in this context."))
+
+equation_matrix(iter::SubObjectIterator) = matrix(QQ, Matrix{fmpq}(_equation_matrix(Val(iter.Acc), iter.Obj; iter.options...)))
+_equation_matrix(::Any, ::Polymake.BigObject) = throw(ArgumentError("Equation Matrix not defined in this context."))
+
+matrix_for_polymake(iter::SubObjectIterator) = _matrix_for_polymake(Val(iter.Acc), iter.Obj; iter.options...)

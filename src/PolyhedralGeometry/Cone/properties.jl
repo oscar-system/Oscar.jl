@@ -296,7 +296,17 @@ julia> f = facets(Halfspace, c)
 1: -x₂ + x₃ ≦ 0
 ```
 """
-facets(as::Type{T}, C::Cone) where T<:Union{Halfspace, Cone} = HalfspaceIterator{as}(-pm_object(C).FACETS)
+facets(as::Type{T}, C::Cone) where T<:Union{Halfspace, Polyhedron, Cone} = SubObjectIterator{as}(pm_object(C), _facet_cone, size(pm_object(C).FACETS, 1))
+
+function _facet_cone(::Type{T}, C::Polymake.BigObject, i::Base.Integer) where T<:Union{Polyhedron, Halfspace}
+   return T(-C.FACETS[[i], :], 0)
+end
+
+_facet_cone(::Type{Cone}, C::Polymake.BigObject, i::Base.Integer) = cone_from_inequalities(-C.FACETS[[i], :])
+
+_inequality_matrix(::Val{_facet_cone}, C::Polymake.BigObject) = -C.FACETS
+
+_matrix_for_polymake(::Val{_facet_cone}, C::Polymake.BigObject) = -C.FACETS
 
 @doc Markdown.doc"""
     facets(as::Type{T} = Halfspace, C::Cone)
@@ -362,7 +372,15 @@ julia> linear_span(c)
 
 ```
 """
-linear_span(C::Cone) = HalfspaceIterator{Hyperplane}(pm_object(C).LINEAR_SPAN)
+linear_span(C::Cone) = SubObjectIterator{Hyperplane}(pm_object(C), _linear_span, size(pm_object(C).LINEAR_SPAN, 1))
+
+function _linear_span(::Type{Hyperplane}, C::Polymake.BigObject, i::Base.Integer)
+   return Hyperplane(C.LINEAR_SPAN[i, :], 0)
+end
+
+_equation_matrix(::Val{_linear_span}, C::Polymake.BigObject) = C.LINEAR_SPAN
+
+_matrix_for_polymake(::Val{_linear_span}, C::Polymake.BigObject) = C.LINEAR_SPAN
 
 @doc Markdown.doc"""
     hilbert_basis(C::Cone)

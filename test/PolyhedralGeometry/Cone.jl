@@ -21,12 +21,22 @@ const pm = Polymake
         @test rays(RayVector{Polymake.Rational}, Cone1).m == [1 0; 0 1]
         @test rays(Cone1) isa VectorIterator{RayVector{Polymake.Rational}}
         @test rays(RayVector, Cone1) isa VectorIterator{RayVector{Polymake.Rational}}
-        @test facets(Halfspace, Cone1) isa HalfspaceIterator{Halfspace}
-        @test facets(Halfspace, Cone1).A == [-1 0; 0 -1]
-        @test facets(Cone, Cone1) isa HalfspaceIterator{Cone}
-        @test facets(Cone1) isa HalfspaceIterator{Halfspace}
-        @test linear_span(Cone4) isa HalfspaceIterator{Hyperplane}
-        @test linear_span(Cone4).A == [0 1 0] && linear_span(Cone4).b == [0]
+        for T in [Halfspace, Cone, Polyhedron]
+            @test facets(T, Cone1) isa SubObjectIterator{T}
+            @test length(facets(T, Cone1)) == 2
+            @test inequality_matrix(facets(T, Cone1)) == matrix(QQ, Matrix{fmpq}([-1 0; 0 -1]))
+            if T == Cone
+                @test facets(T, Cone1)[1] == cone_from_inequalities([-1 0])
+                @test facets(T, Cone1)[2] == cone_from_inequalities([0 -1])
+            else
+                @test facets(T, Cone1)[1] == T([-1 0], 0)
+                @test facets(T, Cone1)[2] == T([0 -1], 0)
+            end
+        end
+        @test linear_span(Cone4) isa SubObjectIterator{Hyperplane}
+        @test length(linear_span(Cone4)) == 1
+        @test linear_span(Cone4)[] == Hyperplane([0 1 0], 0)
+        @test equation_matrix(linear_span(Cone4)) == matrix(QQ, Matrix{fmpq}([0 1 0]))
 
         @test !ispointed(Cone2)
         @test !ispointed(Cone3)
