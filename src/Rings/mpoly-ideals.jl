@@ -804,6 +804,7 @@ false
 ```
 """
 function Base.:(==)(I::MPolyIdeal, J::MPolyIdeal)
+  I === J && return true
   return issubset(I, J) && issubset(J, I)
 end
 
