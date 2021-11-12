@@ -20,12 +20,17 @@
    end
 
    # Test a large non-prime field.
-   F, _ = GF(next_prime(10^6), 2)
+   # (Oscar chooses a polynomial that is not a Conway polynomial.)
+   p = next_prime(10^6)
+   F, _ = GF(p, 2)
    f = Oscar.ring_iso_oscar_gap(F)
    for x in [ F(3), gen(F) ]
       a = f(x)
       @test preimage(f, a) == x
    end
+   @test GAP.Globals.DefiningPolynomial(codomain(f)) !=
+         GAP.Globals.ConwayPolynomial(p, 2)
+   @test GAP.Globals.IsAlgebraicExtension(codomain(f))
 
    F = GF(29,1)[1]
    z = F(2)

@@ -35,7 +35,8 @@ end
 function ring_iso_oscar_gap(F::T) where T <: Union{Nemo.FqNmodFiniteField, Nemo.FqFiniteField}
    p = characteristic(F)
    d = degree(F)
-   Fp_gap = GAP.Globals.GF(GAP.Obj(p)) # the prime field in GAP
+   p_gap = GAP.Obj(p)
+   Fp_gap = GAP.Globals.GF(p_gap) # the prime field in GAP
    e = GAP.Globals.One(Fp_gap)
 
    # prime fields are easy and efficient to deal with, handle them separately
@@ -52,7 +53,14 @@ function ring_iso_oscar_gap(F::T) where T <: Union{Nemo.FqNmodFiniteField, Nemo.
    f_gap = GAP.Globals.UnivariatePolynomial(Fp_gap, L_gap)
 
    # ... and compute a GAP field G defined via this polynomial
-   G = GAP.Globals.GF(Fp_gap, f_gap)
+   # (If the given polynomial is a Conway polynomial then we may call
+   # GAP's `GF(p, d)`, which avoids GAP's `AlgebraicExtension`.)
+   if GAP.Globals.IsCheapConwayPolynomial(p_gap, d) &&
+      f_gap == GAP.Globals.ConwayPolynomial(p_gap, d)
+      G = GAP.Globals.GF(p_gap, d)
+   else
+      G = GAP.Globals.GF(Fp_gap, f_gap)
+   end
 
    # compute matching bases of both fields
    if GAP.Globals.IsAlgebraicExtension(G)
