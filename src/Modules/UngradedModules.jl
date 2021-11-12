@@ -2587,7 +2587,7 @@ are returned (with projections first).
 function direct_product(G::ModuleFP...; task::Symbol = :none)
   F, pro, mF = direct_product([free_module(x) for x = G]..., task = :both)
   s, emb_sF = sub(F, vcat([[mF[i](y) for y = gens(G[i], free_module(G[i]))] for i=1:length(G)]...), :both)
-  q = vcat([[mF[i](y) for y = rels(G[i])] for i=1:length(G)]...)
+  q::Vector{FreeModElem} = vcat([[mF[i](y) for y = rels(G[i])] for i=1:length(G)]...)
   pro_quo = nothing
   if length(q) != 0
     s, pro_quo = quo(s, q, :both)
