@@ -178,10 +178,10 @@ julia> F = FreeMod(R, 3)
 Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field
 
 julia> f = FreeModElem(sparse_row(R, [(1,x),(3,y)]),F)
-(x)*e[1] + (y)*e[3]
+x*e[1] + y*e[3]
 
 julia> g = (x)*F[1] + (y)*F[3]
-(x)*e[1] + (y)*e[3]
+x*e[1] + y*e[3]
 
 julia> typeof(g)
 FreeModElem{fmpq_mpoly}
@@ -251,7 +251,7 @@ julia> V = [x, zero(R), y]
  y
 
 julia> f = F(V)
-(x)*e[1] + (0)*e[2] + (y)*e[3]
+x*e[1] + y*e[3]
 ```
 """
 function (F::FreeMod{T})(c::Vector{T}) where T 
@@ -298,7 +298,7 @@ julia> F = FreeMod(R,3)
 Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field
 
 julia> f = x*gen(F,1)+y*gen(F,3)
-(x)*e[1] + (y)*e[3]
+x*e[1] + y*e[3]
 
 julia> coefficients(f)
 Sparse row with positions [1, 3] and values fmpq_mpoly[x, y]
@@ -1226,13 +1226,13 @@ Free module of rank 2 over Multivariate Polynomial Ring in x, y over Rational Fi
 
 julia> O = [x*F[1]+F[2],y*F[2]]
 2-element Vector{FreeModElem{fmpq_mpoly}}:
- (x)*e[1] + e[2]
- (y)*e[2]
+ x*e[1] + e[2]
+ y*e[2]
 
 julia> M = SubQuo(F, O)
 Submodule with 2 generators
-1 -> (x)*e[1] + e[2]
-2 -> (y)*e[2]
+1 -> x*e[1] + e[2]
+2 -> y*e[2]
 
 represented as subquotient with no relations.
 
@@ -1295,13 +1295,13 @@ julia> B = R[x^2; x*y; y^2; z^4]
 
 julia> M = SubQuo(A, B)
 Subquotient of Submodule with 2 generators
-1 -> (x)*e[1]
-2 -> (y)*e[1]
+1 -> x*e[1]
+2 -> y*e[1]
 by Submodule with 4 generators
-1 -> (x^2)*e[1]
-2 -> (x*y)*e[1]
-3 -> (y^2)*e[1]
-4 -> (z^4)*e[1]
+1 -> x^2*e[1]
+2 -> x*y*e[1]
+3 -> y^2*e[1]
+4 -> z^4*e[1]
 
 
 ```
@@ -1528,13 +1528,13 @@ julia> B = R[x^2; x*y; y^2; z^4]
 
 julia> M = SubQuo(A, B)
 Subquotient of Submodule with 2 generators
-1 -> (x)*e[1]
-2 -> (y)*e[1]
+1 -> x*e[1]
+2 -> y*e[1]
 by Submodule with 4 generators
-1 -> (x^2)*e[1]
-2 -> (x*y)*e[1]
-3 -> (y^2)*e[1]
-4 -> (z^4)*e[1]
+1 -> x^2*e[1]
+2 -> x*y*e[1]
+3 -> y^2*e[1]
+4 -> z^4*e[1]
 
 
 
