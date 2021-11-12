@@ -27,8 +27,8 @@ julia> sortslices(Matrix{BigInt}(solve_mixed(A, b, C, d)), dims=1)
 ```
 """
 function solve_mixed(A::fmpz_mat, b::fmpz_mat, C::fmpz_mat, d::fmpz_mat)
-    eq = HalfspaceIterator(Matrix{BigInt}(A), vec(Matrix{BigInt}(b)))
-    ineq = HalfspaceIterator(Matrix{BigInt}(-C), vec(Matrix{BigInt}(-d)))
+    eq = (Matrix{BigInt}(A), vec(Matrix{BigInt}(b)))
+    ineq = (Matrix{BigInt}(-C), vec(Matrix{BigInt}(-d)))
     P = Polyhedron(ineq, eq)
     LP = lattice_points(P)
     return matrix(ZZ, ambient_dim(P), length(LP), hcat(LP...))'

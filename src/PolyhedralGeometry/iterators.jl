@@ -117,60 +117,6 @@ Base.:(==)(x::Halfspace, y::Halfspace) = x.a == y.a && x.b == y.b
 
 Base.:(==)(x::Hyperplane, y::Hyperplane) = x.a == y.a && x.b == y.b
 
-#####################################
-
-struct HalfspaceIterator{T} <: AbstractVector{T}
-    A::Polymake.Matrix{Polymake.Rational}
-    b::Polymake.Vector{Polymake.Rational}
-end
-
-Base.IndexStyle(::Type{<:HalfspaceIterator}) = IndexLinear()
-
-function Base.getindex(iter::HalfspaceIterator{T}, i::Base.Integer) where T
-    @boundscheck checkbounds(iter.b, i)
-    return T(iter.A[[i], :], iter.b[i])
-end
-
-function Base.getindex(iter::HalfspaceIterator{Cone}, i::Base.Integer)
-    @boundscheck checkbounds(iter.b, i)
-    return cone_from_inequalities(iter.A[[i], :])
-end
-
-function Base.setindex!(iter::HalfspaceIterator, val::Halfspace, i::Base.Integer)
-    @boundscheck checkbounds(iter.b, i)
-    iter.A[i, :] = val.a
-    iter.b[i] = val.b
-    return val
-end
-
-Base.firstindex(::HalfspaceIterator) = 1
-Base.lastindex(iter::HalfspaceIterator) = length(iter)
-Base.size(iter::HalfspaceIterator) = (length(iter.b),)
-
-halfspace_matrix_pair(iter::HalfspaceIterator) = (A = matrix(QQ, Matrix{fmpq}(iter.A)), b = Vector{fmpq}(iter.b))
-
-# Affine Halfspaces
-
-HalfspaceIterator{T}(A::AbstractMatrix) where T = HalfspaceIterator{T}(A, zeros(size(A, 1)))
-
-function matrix(iter::HalfspaceIterator)
-    if !iszero(iter.b)
-        throw(ArgumentError("Description has to be non-affine in order for `matrix` to be defined"))
-    end
-    return matrix(QQ, Matrix{fmpq}(iter.A))
-end
-
-function matrix_for_polymake(iter::HalfspaceIterator)
-    if !iszero(iter.b)
-        throw(ArgumentError("Description has to be non-affine in order for `matrix_for_polymake` to be defined"))
-    end
-    return iter.A
-end
-
-affine_matrix_for_polymake(iter::HalfspaceIterator) = hcat(-iter.b, iter.A)
-
-HalfspaceIterator(x...) = HalfspaceIterator{Halfspace}(x...)
-
 ###############################
 
 struct VectorIterator{T} <: AbstractVector{T}
