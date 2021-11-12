@@ -262,3 +262,10 @@ end
   end
   @test Q == I
 end
+
+@testset "#795" begin
+  R, = QQ["x", "y"]
+  I = ideal(R, zero(R))
+  @test issubset(I, I)
+  @test I == I
+end
