@@ -333,16 +333,15 @@ function gmodule(::FlintIntegerRing, C::GModule{<:Any, <:Generic.FreeModule{fmpq
   M = inv(M)
   h = hom(C.M, C.M, M)
   D = C^h
-  F = free_module(ZZ, dim(C))
-  return gmodule(group(C), [hom(F, F, integral_split(mat(x), ZZ)[1]) for x = D.ac])
+  return gmodule(group(C), [integral_split(x, ZZ)[1] for x = action_matrices(D)])
 end
 
 function Base.transpose(C::GModule{<:Any, <:Generic.FreeModule})
-  return gmodule(group(C), [hom(C.M, C.M, transpose(mat(x))) for x = C.ac])
+  return gmodule(group(C), [transpose(x) for x = action_matrices(C)])
 end
 
 function Oscar.dual(C::GModule{<:Any, <:Generic.FreeModule})
-  D = gmodule(group(C), [hom(C.M, C.M, inv(transpose(mat(x)))) for x = C.ac])
+  D = gmodule(group(C), [inv(transpose(x)) for x = action_matrices(C)])
   return D
 end
 
@@ -356,12 +355,60 @@ end
 function invariant_forms(C::GModule{<:Any, <:Generic.FreeModule})
   D = Oscar.dual(C)
   h = hom_base(C, D)
-  r, k = kernel(transpose(vcat([matrix(base_ring(C), 1, dim(C)^2, vec(collect(x-transpose(x)))) for x = h]...)))
+  r, k = kernel(transpose(vcat([matrix(base_ring(C), 1, dim(C)^2, vec(x-transpose(x))) for x = h]...)))
   return [sum(h[i]*k[i, j] for i=1:length(h)) for j=1:r]
 end
 
-function simplify(C::GModule{<:Any, <:Generic.FreeModule{fmpz}})
+function Oscar.gmodule(G::Oscar.GAPGroup, v::Vector{<:MatElem})
+  @assert length(v) == ngens(G)
+  R = base_ring(v[1])
+  @assert all(x->R == base_ring(x), v)
+  @assert nrows(v[1]) == ncols(v[1])
+  @assert all(x->size(v[1]) == size(x), v)
+  F = free_module(R, nrows(v[1]))
+  return gmodule(G, [hom(F, F, x) for x = v])
+end
 
+#to bypass the vec(collect(M)) which copies twice
+function Base.vec(M::Generic.Mat)
+  return vec(M.entries)
+end
+
+function Base.vec(M::MatElem)
+  r = elem_type(base_ring(M))[]
+  for j=1:ncols(M)
+    for i=1:nrows(M)
+      push!(r, M[i, j])
+    end
+  end
+  return r
+end
+
+function Oscar.simplify(C::GModule{<:Any, <:Generic.FreeModule{fmpq}})
+  return gmodule(QQ, Oscar.simplify(gmodule(ZZ, C))[1])
+end
+
+function action_matrices(C::GModule{<:Any, <:Generic.FreeModule})
+  return map(mat, action(C))
+end
+
+function Oscar.simplify(C::GModule{<:Any, <:Generic.FreeModule{fmpz}})
+ f = invariant_forms(C)[1]
+ @assert all(i->det(f[1:i, 1:i])>0, 1:nrows(f))
+ m = map(mat, C.ac)
+ S = identity_matrix(ZZ, dim(C))
+ while true
+   L, T = lll_gram_with_transform(f)
+   Ti = inv(T)
+   n = [T*x*Ti for x = m]
+   if length(string(n)) >= length(string(m))
+     return C, S
+   end
+   S = T*S
+   C = gmodule(group(C), n)
+   f = invariant_forms(C)[1]
+   M = n
+ end
 end
 
 function Hecke.induce_crt(a::Generic.MatSpaceElem{nf_elem}, b::Generic.MatSpaceElem{nf_elem}, p::fmpz, q::fmpz)
