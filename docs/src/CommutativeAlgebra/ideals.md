@@ -202,6 +202,16 @@ groebner_basis_with_transformation_matrix(I::MPolyIdeal; ordering::Symbol = :deg
 
     Hilbert-driven
 
+!!! warning "Expert functions for Gröbner bases"
+    The following functions are low-level implementations of various Gröbner
+    basis algorithms with many adjustable arguments. Only use these
+    functions directly if you know what you are doing.
+
+```@docs
+f4( I::MPolyIdeal; initial_hts::Int=17, nr_thrds::Int=1, max_nr_pairs::Int=0, la_option::Int=2, reduce_gb::Int=1, info_level::Int=0)
+```
+
+
 #### Leading Ideals
 
 ```@docs
