@@ -151,6 +151,8 @@ function orbit_cones(I::Oscar.MPolyIdeal, Q::Matrix{Int}, G::Oscar.GAPGroup = sy
             if rank(current_mat) == projected_dimension &&
                is_monomial_free(I, setdiff(1:nr_variables, i))
                 cone = Polymake.polytope.Cone(INPUT_RAYS = current_mat)
+                cone.FACETS
+                cone.RAYS
                 if ! any(j -> Polymake.polytope.equal_polyhedra(j, cone),
                       collector_cones)
                     push!(collector_cones, cone)
@@ -305,6 +307,8 @@ function orbit_cone_orbits(cones, hom)
 
     result = []
     for cone in cones
+        cone.RAYS
+        cone.FACETS
         if all(o -> all(c -> ! comp(cone, c), o), result)
             push!(result, orbit(cone, matgens, act, comp))
         end
