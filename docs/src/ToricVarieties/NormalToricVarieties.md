@@ -35,7 +35,7 @@ AffineNormalToricVariety(v::NormalToricVariety)
 Cyclic quotient singularities are quotients of $\mathbb{C}^2$ by the action of
 $\mathbb{Z}/n\mathbb{Z}$ acting via 
 $$\left(\begin{array}{cc}\xi & 0\\0 & \xi^q\end{array}\right)$$,
-where $\xi$ is a $n$-th root of unity, and $0<q<n$ are two coprime integers.
+where $\xi$ is a $n$-th root of unity, and $q$ and $n$ are integers, such that $q$ is coprime with $n$, and $0<q<n$.
 
 For the notation we rely on [Chr91](@cite) and [Ste91](@cite).
 
