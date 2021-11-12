@@ -51,11 +51,24 @@
         @test vertex_incidences(faces(square, 1)) == IncidenceMatrix([[1, 3], [2, 4], [1, 2], [3, 4]])
         @test isnothing(faces(Q2, 0))
         @test vertices(minkowski_sum(Q0, square)).m == [2 -1; 2 1; -1 -1; -1 2; 1 2]
-        @test facets(Halfspace, Pos) isa HalfspaceIterator{Halfspace}
-        @test facets(Pair, Pos) isa HalfspaceIterator{Pair{Polymake.Matrix{Polymake.Rational}, Polymake.Rational}}
-        @test facets(Pos) isa HalfspaceIterator{Halfspace}
-        @test affine_hull(point) isa HalfspaceIterator{Hyperplane}
-        @test affine_hull(point).A == [1 0 0; 0 1 0; 0 0 1] && affine_hull(point).b == [0, 1, 0]
+        for T in [Halfspace, Pair{Polymake.Matrix{Polymake.Rational}, Polymake.Rational}, Polyhedron]
+            @test facets(T, Pos) isa SubObjectIterator{T}
+            @test length(facets(T, Pos)) == 4
+            @test affine_inequality_matrix(facets(T, Pos)) == matrix(QQ, Matrix{fmpq}([0 -1 0 0; 0 0 -1 0; 0 0 0 -1; -1 0 0 0]))
+            @test halfspace_matrix_pair(facets(T, Pos)).A == matrix(QQ, Matrix{fmpq}([-1 0 0; 0 -1 0; 0 0 -1; 0 0 0])) && halfspace_matrix_pair(facets(T, Pos)).b == [0, 0, 0, 1]
+            @test facets(T, Pos)[1] == T([-1 0 0], 0)
+            @test facets(T, Pos)[2] == T([0 -1 0], 0)
+            @test facets(T, Pos)[3] == T([0 0 -1], 0)
+            @test facets(T, Pos)[4] == T([0 0 0], 1)
+        end
+        @test facets(Pair, Pos) isa SubObjectIterator{Pair{Polymake.Matrix{Polymake.Rational}, Polymake.Rational}}
+        @test facets(Pos) isa SubObjectIterator{Halfspace}
+        @test affine_hull(point) isa SubObjectIterator{Hyperplane}
+        @test affine_equation_matrix(affine_hull(point)) == matrix(QQ, Matrix{fmpq}([0 -1 0 0; 1 0 -1 0; 0 0 0 -1]))
+        @test length(affine_hull(point)) == 3
+        @test affine_hull(point)[1] == Hyperplane([-1 0 0], 0)
+        @test affine_hull(point)[2] == Hyperplane([0 -1 0], -1)
+        @test affine_hull(point)[3] == Hyperplane([0 0 -1], 0)
         @test nfacets(square) == 4
         @test lineality_dim(Q0) == 0
         @test nrays(Q1) == 1

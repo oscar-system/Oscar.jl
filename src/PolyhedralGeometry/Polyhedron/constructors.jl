@@ -55,7 +55,7 @@ julia> vertices(P)
 """
 Polyhedron(A::Union{Oscar.MatElem,AbstractMatrix}, b) = Polyhedron((A, b))
 
-function Polyhedron(I::Union{HalfspaceIterator, Tuple{<:Union{Oscar.MatElem, AbstractMatrix}, Any}}, E::Union{Nothing, HalfspaceIterator, Tuple{<:Union{Oscar.MatElem, AbstractMatrix}, Any}} = nothing)
+function Polyhedron(I::Union{SubObjectIterator, Tuple{<:Union{Oscar.MatElem, AbstractMatrix}, Any}}, E::Union{Nothing, SubObjectIterator, Tuple{<:Union{Oscar.MatElem, AbstractMatrix}, Any}} = nothing)
     IM = -affine_matrix_for_polymake(I)
     EM = isnothing(E) || _isempty_halfspace(E) ? Polymake.Matrix{Polymake.Rational}(undef, 0, size(IM, 2)) : affine_matrix_for_polymake(E)
 

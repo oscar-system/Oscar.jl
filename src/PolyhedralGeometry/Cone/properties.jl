@@ -296,11 +296,9 @@ julia> f = facets(Halfspace, c)
 1: -x₂ + x₃ ≦ 0
 ```
 """
-facets(as::Type{T}, C::Cone) where T<:Union{Halfspace, Polyhedron, Cone} = SubObjectIterator{as}(pm_object(C), _facet_cone, size(pm_object(C).FACETS, 1))
+facets(as::Type{T}, C::Cone) where T<:Union{Halfspace, Polyhedron, Cone} = SubObjectIterator{as}(pm_object(C), _facet_cone, pm_object(C).N_FACETS)
 
-function _facet_cone(::Type{T}, C::Polymake.BigObject, i::Base.Integer) where T<:Union{Polyhedron, Halfspace}
-   return T(-C.FACETS[[i], :], 0)
-end
+_facet_cone(::Type{T}, C::Polymake.BigObject, i::Base.Integer) where T<:Union{Polyhedron, Halfspace} = T(-C.FACETS[[i], :], 0)
 
 _facet_cone(::Type{Cone}, C::Polymake.BigObject, i::Base.Integer) = cone_from_inequalities(-C.FACETS[[i], :])
 
@@ -374,9 +372,7 @@ julia> linear_span(c)
 """
 linear_span(C::Cone) = SubObjectIterator{Hyperplane}(pm_object(C), _linear_span, size(pm_object(C).LINEAR_SPAN, 1))
 
-function _linear_span(::Type{Hyperplane}, C::Polymake.BigObject, i::Base.Integer)
-   return Hyperplane(C.LINEAR_SPAN[i, :], 0)
-end
+_linear_span(::Type{Hyperplane}, C::Polymake.BigObject, i::Base.Integer) = Hyperplane(C.LINEAR_SPAN[i, :], 0)
 
 _equation_matrix(::Val{_linear_span}, C::Polymake.BigObject) = C.LINEAR_SPAN
 

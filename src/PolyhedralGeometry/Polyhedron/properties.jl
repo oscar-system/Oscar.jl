@@ -296,7 +296,18 @@ julia> facets(Halfspace, C)
 1: x₃ ≦ 1
 ```
 """
-facets(as::Type{T}, P::Polyhedron) where {R, S, T<:Union{Halfspace, Pair{R, S}, Polyhedron}} = HalfspaceIterator{as}(decompose_hdata(pm_object(P).FACETS)...)
+facets(as::Type{T}, P::Polyhedron) where {R, S, T<:Union{Halfspace, Pair{R, S}, Polyhedron}} = SubObjectIterator{as}(pm_object(P), _facet_polyhedron, pm_object(P).N_FACETS)
+
+function _facet_polyhedron(::Type{T}, C::Polymake.BigObject, i::Base.Integer) where {R, S, T<:Union{Polyhedron, Halfspace, Pair{R, S}}}
+    h = decompose_hdata(C.FACETS[[i], :])
+    return T(h[1], h[2][])
+end
+
+_affine_inequality_matrix(::Val{_facet_polyhedron}, C::Polymake.BigObject) = -C.FACETS
+
+_affine_matrix_for_polymake(::Val{_facet_polyhedron}, C::Polymake.BigObject) = -C.FACETS
+
+_halfspace_matrix_pair(::Val{_facet_polyhedron}, C::Polymake.BigObject) = decompose_hdata(C.FACETS)
 
 facets(::Type{Pair}, P::Polyhedron) = facets(Pair{Polymake.Matrix{Polymake.Rational}, Polymake.Rational}, P)
 
@@ -587,7 +598,14 @@ julia> affine_hull(t)
 
 ```
 """
-affine_hull(P::Polyhedron) = HalfspaceIterator{Hyperplane}(decompose_hdata(-pm_object(P).AFFINE_HULL)...)
+affine_hull(P::Polyhedron) = SubObjectIterator{Hyperplane}(pm_object(P), _affine_hull, size(pm_object(P).AFFINE_HULL, 1))
+
+function _affine_hull(::Type{Hyperplane}, P::Polymake.BigObject, i::Base.Integer)
+    h = decompose_hdata(P.AFFINE_HULL[[i], :])
+    return Hyperplane(h[1], h[2][])
+end
+
+_affine_equation_matrix(::Val{_affine_hull}, P::Polymake.BigObject) = -P.AFFINE_HULL
 
 @doc Markdown.doc"""
     recession_cone(P::Polyhedron)
