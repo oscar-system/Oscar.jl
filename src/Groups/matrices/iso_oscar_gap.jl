@@ -1,5 +1,4 @@
 import AbstractAlgebra: MatElem
-import GAP: FFE
 
 # Basically the same as the usual image function but without a type check since
 # we don't have elem_type(C) in this case
@@ -28,7 +27,7 @@ function ring_iso_oscar_gap(F::T) where T <: Union{Nemo.GaloisField, Nemo.Galois
    e = GAP.Globals.One(G)
 
    f(x::Union{Nemo.gfp_elem, Nemo.gfp_fmpz_elem}) = GAP.Obj(lift(x))*e
-   finv(x) = F(GAP.gap_to_julia(GAP.Globals.IntFFE(x)))
+   finv(x) = F(fmpz(GAP.Globals.IntFFE(x)))
 
    return MapFromFunc(f, finv, F, G)
 end
@@ -36,13 +35,14 @@ end
 function ring_iso_oscar_gap(F::T) where T <: Union{Nemo.FqNmodFiniteField, Nemo.FqFiniteField}
    p = characteristic(F)
    d = degree(F)
-   Fp_gap = GAP.Globals.GF(GAP.Obj(p)) # the prime field in GAP
+   p_gap = GAP.Obj(p)
+   Fp_gap = GAP.Globals.GF(p_gap) # the prime field in GAP
    e = GAP.Globals.One(Fp_gap)
 
-   # prime fields are easy and efficient to deal with, handle them seperately
+   # prime fields are easy and efficient to deal with, handle them separately
    if d == 1
       f1(x::Union{Nemo.fq_nmod, Nemo.fq}) = GAP.Obj(coeff(x, 0))*e
-      finv1(x) = F(GAP.gap_to_julia(GAP.Globals.IntFFE(x)))
+      finv1(x) = F(fmpz(GAP.Globals.IntFFE(x)))
       return MapFromFunc(f1, finv1, F, Fp_gap)
    end
 
@@ -53,10 +53,30 @@ function ring_iso_oscar_gap(F::T) where T <: Union{Nemo.FqNmodFiniteField, Nemo.
    f_gap = GAP.Globals.UnivariatePolynomial(Fp_gap, L_gap)
 
    # ... and compute a GAP field G defined via this polynomial
-   G = GAP.Globals.GF(Fp_gap, f_gap)
+   # (If the given polynomial is a Conway polynomial then we may call
+   # GAP's `GF(p, d)`, which avoids GAP's `AlgebraicExtension`.)
+   if GAP.Globals.IsCheapConwayPolynomial(p_gap, d) &&
+      f_gap == GAP.Globals.ConwayPolynomial(p_gap, d)
+      G = GAP.Globals.GF(p_gap, d)
+   else
+      G = GAP.Globals.GF(Fp_gap, f_gap)
+   end
 
    # compute matching bases of both fields
-   Basis_G = GAP.Globals.Basis(G)
+   if GAP.Globals.IsAlgebraicExtension(G)
+#FIXME:
+# As soon as the problem from https://github.com/gap-system/gap/issues/4694
+# is fixed, go back to `Basis_G = GAP.Globals.Basis(G)` also in this case.
+# Note that the above `GF` call delegates to `FieldExtension`,
+# and we want a basis in the filter `IsCanonicalBasisAlgebraicExtension`.
+      Basis_G = GAP.Globals.Objectify(GAP.Globals.NewType(
+                GAP.Globals.FamilyObj(G),
+                GAP.Globals.IsCanonicalBasisAlgebraicExtension),
+                GAP.NewPrecord(0))
+      GAP.Globals.SetUnderlyingLeftModule(Basis_G, G)
+   else
+      Basis_G = GAP.Globals.Basis(G)
+   end
    Basis_F = Vector{elem_type(F)}(undef, d)
    Basis_F[1] = F(1)
    for i = 2:d
@@ -71,7 +91,7 @@ function ring_iso_oscar_gap(F::T) where T <: Union{Nemo.FqNmodFiniteField, Nemo.
    # For "small" primes x should be an FFE, but for bigger ones it's GAP_jll.Mptr (?)
    function finv(x)
       v = GAP.Globals.Coefficients(Basis_G, x)
-      v_int = [ GAP.gap_to_julia(GAP.Globals.IntFFE(v[i])) for i = 1:length(v) ]
+      v_int = [ fmpz(GAP.Globals.IntFFE(v[i])) for i = 1:length(v) ]
       return sum([ v_int[i]*Basis_F[i] for i = 1:d ])
    end
 
@@ -123,30 +143,29 @@ end
 #
 #  Matrix space isomorphism
 #
+#  Using the known ring isomorphism from an Oscar ring to a GAP ring,
+#  we can map matrices from Oscar to GAP using `map_entries`.
+#  (The generic `map_entries` method cannot be used because the concepts of
+#  `parent`and `_change_base_ring` do not fit to the situation in GAP.)
+#  For the direction from GAP to Oscar, we introduce a generic function
+#  `preimage_matrix` that takes the `ring_iso` and a GAP matrix.
+#
 ################################################################################
 
-# computes the isomorphism between the Oscar matrix space of dimension deg over
-# F and the corresponding GAP matrix space
-
-mat_iso_oscar_gap(F::Union{Nemo.GaloisField, Nemo.GaloisFmpzField, Nemo.FqNmodFiniteField, Nemo.FqFiniteField, Nemo.FlintRationalField, Nemo.AnticNumberField}, deg) = mat_iso_oscar_gap(F, deg, ring_iso_oscar_gap(F))
-
-function mat_iso_oscar_gap(F::T, deg::Int, FtoGAP::MapFromFunc{T, S}) where {T <: Union{Nemo.GaloisField, Nemo.GaloisFmpzField, Nemo.FqNmodFiniteField, Nemo.FqFiniteField, Nemo.FlintRationalField, Nemo.AnticNumberField}, S}
-   function f(x::MatElem)
-      @assert base_ring(x) === domain(FtoGAP)
-      rows = Vector{GapObj}(undef, nrows(x))
-      for i in 1:nrows(x)
-         rows[i] = GapObj([ FtoGAP(x[i, j]) for j in 1:ncols(x) ])
-      end
-      return GAP.Globals.ImmutableMatrix(codomain(FtoGAP), GapObj(rows), true)
+function AbstractAlgebra.map_entries(f::Map{T, GapObj}, a::MatElem) where T
+   isempty(a) && error("empty matrices are not supported by GAP")
+   @assert base_ring(a) === domain(f)
+   rows = Vector{GapObj}(undef, nrows(a))
+   for i in 1:nrows(a)
+      rows[i] = GapObj([f(a[i, j]) for j in 1:ncols(a)])
    end
+   return GAP.Globals.ImmutableMatrix(codomain(f), GapObj(rows), true)
+end
 
-   function finv(x::GapObj)
-      m = GAP.Globals.NrRows(x)
-      n = GAP.Globals.NrCols(x)
-      L = [ preimage(FtoGAP, x[i, j]) for i in 1:m for j in 1:n]
-      return matrix(domain(FtoGAP), m, n, L)
-   end
-
-   M = MatrixSpace(F, deg, deg)
-   return MapFromFunc(f, finv, M, GAP.Globals.MatrixAlgebra(codomain(FtoGAP), deg))
+function preimage_matrix(f::Map{T, GapObj}, a::GapObj) where T
+   isdefined(f.header, :preimage) || error("No preimage function known")
+   m = GAP.Wrappers.NumberRows(a)
+   n = GAP.Wrappers.NumberColumns(a)
+   L = [f.header.preimage(a[i, j]) for i in 1:m for j in 1:n]
+   return matrix(domain(f), m, n, L)
 end

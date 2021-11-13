@@ -359,7 +359,7 @@ end
 function Base.show(io::IO, tbl::GAPGroupCharacterTable)
     n = nrows(tbl)
     gaptbl = tbl.GAPTable
-    size = GAP.gap_to_julia(GAP.Globals.Size(gaptbl))
+    size = fmpz(GAP.Globals.Size(gaptbl))
     primes = [x[1] for x in collect(factor(size))]
     sort!(primes)
 
@@ -376,7 +376,7 @@ function Base.show(io::IO, tbl::GAPGroupCharacterTable)
     mat, legend = matrix_of_strings(tbl, alphabet = alphabet)
 
     # Compute the factored centralizer orders.
-    cents = GAP.gap_to_julia(GAP.Globals.SizesCentralizers(gaptbl))
+    cents = Vector{fmpz}(GAP.Globals.SizesCentralizers(gaptbl))
     fcents = [collect(factor(x)) for x in cents]
     d = Dict([p => fill(".", n) for p in primes]...)
     for i in 1:n

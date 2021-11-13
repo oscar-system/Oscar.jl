@@ -93,7 +93,7 @@ export cox_ring
 
 
 @doc Markdown.doc"""
-    stanley_reisner_ideal(v::NormalToricVariety)
+    stanley_reisner_ideal(v::AbstractNormalToricVariety)
 
 Computes the Stanley-Reisner ideal of a normal toric variety `v`.
 
@@ -116,7 +116,7 @@ export stanley_reisner_ideal
 
 
 @doc Markdown.doc"""
-    irrelevant_ideal(v::NormalToricVariety)
+    irrelevant_ideal(v::AbstractNormalToricVariety)
 
 Computes the irrelevant ideal of a normal toric variety `v`.
 
@@ -129,7 +129,7 @@ julia> length(irrelevant_ideal(p2).gens)
 1
 ```
 """
-function irrelevant_ideal(v::NormalToricVariety)
+function irrelevant_ideal(v::AbstractNormalToricVariety)
     # prepare maximal cone presentation
     max_cones = [findall(x->x!=0, l) for l in eachrow(pm_object(v).MAXIMAL_CONES)]
     n_ray = size(pm_object(v).RAYS, 1)
@@ -183,7 +183,7 @@ export character_lattice
 
 
 @doc Markdown.doc"""
-    torusinvariant_divisor_group(v::NormalToricVariety)
+    torusinvariant_divisor_group(v::AbstractNormalToricVariety)
 
 Computes the torusinvariant divisor group of a normal toric variety `v`.
 
