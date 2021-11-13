@@ -35,7 +35,7 @@ julia> HS = Cone(R, L)
 A polyhedral cone in ambient dimension 2
 ```
 """
-function Cone(R::Union{VectorIterator{RayVector}, Oscar.MatElem, AbstractMatrix}, L::Union{VectorIterator{RayVector}, Oscar.MatElem, AbstractMatrix, Nothing} = nothing; non_redundant::Bool = false)
+function Cone(R::Union{SubObjectIterator{RayVector}, Oscar.MatElem, AbstractMatrix}, L::Union{SubObjectIterator{RayVector}, Oscar.MatElem, AbstractMatrix, Nothing} = nothing; non_redundant::Bool = false)
     RM = matrix_for_polymake(R)
     LM = isnothing(L) || isempty(L) ? Polymake.Matrix{Polymake.Rational}(undef, 0, size(RM, 2)) : matrix_for_polymake(L)
 
@@ -74,7 +74,7 @@ julia> PO = positive_hull(R)
 A polyhedral cone in ambient dimension 2
 ```
 """
-function positive_hull(R::Union{VectorIterator{RayVector}, Oscar.MatElem,AbstractMatrix})
+function positive_hull(R::Union{SubObjectIterator{RayVector}, Oscar.MatElem,AbstractMatrix})
     # TODO: Filter out zero rows
     C=Polymake.polytope.Cone{Polymake.Rational}(INPUT_RAYS =
       matrix_for_polymake(remove_zero_rows(R)))

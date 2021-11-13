@@ -152,8 +152,6 @@ VectorIterator{T}(vertices::Array{V, 1}) where {T, V<:Union{AbstractVector, T}} 
 
 VectorIterator(x...) = VectorIterator{PointVector{Polymake.Rational}}(x...)
 
-####################
-
 matrix_for_polymake(iter::VectorIterator) = iter.m
 
 ####################
@@ -207,3 +205,9 @@ function halfspace_matrix_pair(iter::SubObjectIterator)
     return (A = matrix(QQ, Matrix{fmpq}(h[1])), b = h[2])
 end
 _halfspace_matrix_pair(::Any, ::Polymake.BigObject) = throw(ArgumentError("Halfspace Matrix Pair not defined in this context."))
+
+vector_matrix(iter::SubObjectIterator) = matrix(QQ, Matrix{fmpq}(_vector_matrix(Val(iter.Acc), iter.Obj; iter.options...)))
+_vector_matrix(::Any, ::Polymake.BigObject) = throw(ArgumentError("Vector Matrix not defined in this context."))
+
+generator_matrix(iter::SubObjectIterator) = matrix(QQ, Matrix{fmpq}(_generator_matrix(Val(iter.Acc), iter.Obj; iter.options...)))
+_generator_matrix(::Any, ::Polymake.BigObject) = throw(ArgumentError("Generator Matrix not defined in this context."))
