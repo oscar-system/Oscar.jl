@@ -4,7 +4,13 @@
 ###############################################################################
 ###############################################################################
 
-rays(as::Type{RayVector{T}}, C::Cone) where T = VectorIterator{as}(pm_object(C).RAYS)
+rays(as::Type{RayVector{T}}, C::Cone) where T = SubObjectIterator{as}(pm_object(C), _ray_cone, pm_object(C).N_RAYS)
+
+_ray_cone(::Type{T}, C::Polymake.BigObject, i::Base.Integer) where T = T(C.RAYS[i, :])
+
+_vector_matrix(::Val{_ray_cone}, C::Polymake.BigObject) = C.RAYS
+
+_matrix_for_polymake(::Val{_ray_cone}, C::Polymake.BigObject) = C.RAYS
 
 rays(::Type{RayVector}, C::Cone) = rays(RayVector{Polymake.Rational}, C)
 
@@ -350,7 +356,13 @@ julia> lineality_space(UH)
  [1, 0]
 ```
 """
-lineality_space(C::Cone) = VectorIterator{RayVector{Polymake.Rational}}(pm_object(C).LINEALITY_SPACE)
+lineality_space(C::Cone) = SubObjectIterator{RayVector{Polymake.Rational}}(pm_object(C), _lineality_cone, lineality_dim(C))
+
+_lineality_cone(::Type{RayVector{Polymake.Rational}}, C::Polymake.BigObject, i::Base.Integer) = RayVector(C.LINEALITY_SPACE[i, :])
+
+_generator_matrix(::Val{_lineality_cone}, C::Polymake.BigObject) = C.LINEALITY_SPACE
+
+_matrix_for_polymake(::Val{_lineality_cone}, C::Polymake.BigObject) = C.LINEALITY_SPACE
 
 @doc Markdown.doc"""
     linear_span(C::Cone)
@@ -398,8 +410,14 @@ pm::Matrix<pm::Integer>
 """
 function hilbert_basis(C::Cone)
    if ispointed(C)
-      return VectorIterator{PointVector{Polymake.Integer}}(pm_object(C).HILBERT_BASIS_GENERATORS[1])
+      return SubObjectIterator{PointVector{Polymake.Integer}}(pm_object(C), _hilbert_generator, size(pm_object(C).HILBERT_BASIS_GENERATORS[1], 1))
    else
       throw(ArgumentError("Cone not pointed."))
    end
 end
+
+_hilbert_generator(::Type{PointVector{Polymake.Integer}}, C::Polymake.BigObject, i::Base.Integer) = PointVector{Polymake.Integer}(C.HILBERT_BASIS_GENERATORS[1][i, :])
+
+_generator_matrix(::Val{_hilbert_generator}, C::Polymake.BigObject) = C.HILBERT_BASIS_GENERATORS[1]
+
+_matrix_for_polymake(::Val{_hilbert_generator}, C::Polymake.BigObject) = C.HILBERT_BASIS_GENERATORS[1]

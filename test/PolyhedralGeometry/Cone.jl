@@ -14,13 +14,19 @@ const pm = Polymake
     @testset "core functionality" begin
         @test ispointed(Cone1)
         @test isfulldimensional(Cone1)
-        @test hilbert_basis(Cone1) isa VectorIterator{PointVector{Polymake.Integer}}
-        @test (hilbert_basis(Cone1).m == [0 1; 1 0]) || (hilbert_basis(Cone1).m == [1 0; 0 1])
+        @test hilbert_basis(Cone1) isa SubObjectIterator{PointVector{Polymake.Integer}}
+        @test length(hilbert_basis(Cone1)) == 2
+        @test hilbert_basis(Cone1)[1] == PointVector{Polymake.Integer}([1, 0])
+        @test hilbert_basis(Cone1)[2] == PointVector{Polymake.Integer}([0, 1])
+        @test generator_matrix(hilbert_basis(Cone1)) == matrix(QQ, [1 0; 0 1])
         @test nrays(Cone1) == 2
-        @test rays(RayVector{Polymake.Rational}, Cone1) isa VectorIterator{RayVector{Polymake.Rational}}
-        @test rays(RayVector{Polymake.Rational}, Cone1).m == [1 0; 0 1]
-        @test rays(Cone1) isa VectorIterator{RayVector{Polymake.Rational}}
-        @test rays(RayVector, Cone1) isa VectorIterator{RayVector{Polymake.Rational}}
+        @test rays(RayVector{Polymake.Rational}, Cone1) isa SubObjectIterator{RayVector{Polymake.Rational}}
+        @test rays(Cone1) isa SubObjectIterator{RayVector{Polymake.Rational}}
+        @test rays(RayVector, Cone1) isa SubObjectIterator{RayVector{Polymake.Rational}}
+        @test vector_matrix(rays(Cone1)) == matrix(QQ, Matrix{fmpq}([1 0; 0 1]))
+        @test length(rays(Cone1)) == 2
+        @test rays(Cone1)[1] == RayVector([1, 0])
+        @test rays(Cone1)[2] == RayVector([0, 1])
         for T in [Halfspace, Cone, Polyhedron]
             @test facets(T, Cone1) isa SubObjectIterator{T}
             @test length(facets(T, Cone1)) == 2
@@ -42,15 +48,16 @@ const pm = Polymake
         @test !ispointed(Cone3)
         @test !isfulldimensional(Cone4)
         @test isfulldimensional(Cone2)
-        @test lineality_space(Cone2).m == [0 1 0]
         @test Cone2 == Cone3
         @test Cone4 != Cone2
         @test dim(Cone4) == 2
         @test dim(Cone2) == 3
         @test ambient_dim(Cone2) == 3
-        @test lineality_space(Cone2) isa VectorIterator{RayVector{Polymake.Rational}}
-        @test lineality_space(Cone2).m == L
-        @test rays(Cone4).m == R
+        @test lineality_space(Cone2) isa SubObjectIterator{RayVector{Polymake.Rational}}
+        @test generator_matrix(lineality_space(Cone2)) == matrix(QQ, Matrix{fmpq}(L))
+        @test length(lineality_space(Cone2)) == 1
+        @test lineality_space(Cone2)[] == RayVector(L[1, :])
+        @test vector_matrix(rays(Cone4)) == matrix(QQ, Matrix{fmpq}(R))
         @test codim(Cone4) == 1
         @test codim(Cone3) == 0
         @test faces(Cone2, 2) isa SubObjectIterator{Cone}
