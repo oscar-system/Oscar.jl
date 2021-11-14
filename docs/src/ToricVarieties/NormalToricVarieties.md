@@ -22,7 +22,7 @@ the affine and non-affine case:
 
 ## Constructors
 
-### Affine toric varieties
+### Affine Toric Varieties
 
 ```@docs
 AffineNormalToricVariety(C::Cone)
@@ -30,35 +30,14 @@ NormalToricVariety(C::Cone)
 AffineNormalToricVariety(v::NormalToricVariety)
 ```
 
-### Cyclic Quotient Singularities
-
-Cyclic quotient singularities are quotients of $\mathbb{C}^2$ by the action of
-$\mathbb{Z}/n\mathbb{Z}$ acting via 
-$$\left(\begin{array}{cc}\xi & 0\\0 & \xi^q\end{array}\right)$$,
-where $\xi$ is a $n$-th root of unity, and $q$ and $n$ are integers, such that $q$ is coprime with $n$, and $0<q<n$.
-
-For the notation we rely on [Chr91](@cite) and [Ste91](@cite).
-
-!!! warning
-    Note that [Chr91](@cite) and [Ste91](@cite) use Hirzebruch-Jung continued fraction, which differ from the
-    commonly known continued fraction from literature and used in the rest of OSCAR.
-
-```@docs
-CyclicQuotientSingularity(n::fmpz, q::fmpz)
-continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity)
-continued_fraction_hirzebruch_jung_to_rational(v::Vector{fmpz})
-dual_continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity)
-rational_to_continued_fraction_hirzebruch_jung(r::fmpq)
-```
-
-### Normal toric varieties
+### Normal Toric Varieties
 
 ```@docs
 NormalToricVariety(PF::PolyhedralFan)
 NormalToricVariety(P::Polyhedron)
 ```
 
-### Famous toric vareties
+### Famous Toric Vareties
 
 ```@docs
 del_pezzo(b::Int)
@@ -66,7 +45,7 @@ hirzebruch_surface(r::Int)
 toric_projective_space(d::Int)
 ```
 
-### Further constructions
+### Further Constructions
 
 ```@docs
 blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int)
@@ -74,7 +53,7 @@ Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety)
 ```
 
 
-## Properties of toric varieties
+## Properties of Toric Varieties
 
 ```@docs
 hastorusfactor(v::AbstractNormalToricVariety)
@@ -92,15 +71,15 @@ isq_gorenstein(v::AbstractNormalToricVariety)
 ```
 
 
-## Operations for toric varieties
+## Operations for Toric Varieties
 
-### Affine open covering
+### Affine Open Covering
 
 ```@docs
 affine_open_covering( v::AbstractNormalToricVariety )
 ```
 
-### Characters, Weil divisors and the class group
+### Characters, Weil Divisors and the Class Group
 
 ```@docs
 character_lattice(v::AbstractNormalToricVariety)
@@ -111,7 +90,7 @@ torusinvariant_divisor_group(v::AbstractNormalToricVariety)
 torusinvariant_prime_divisors(v::AbstractNormalToricVariety)
 ```
 
-### Cones and fans
+### Cones and Fans
 
 ```@docs
 fan_of_variety(v::NormalToricVariety)
@@ -135,12 +114,13 @@ ith_betti_number(v::AbstractNormalToricVariety, i::Int)
 cox_ring(v::AbstractNormalToricVariety)
 irrelevant_ideal(v::AbstractNormalToricVariety)
 stanley_reisner_ideal(v::AbstractNormalToricVariety)
+toric_ideal(antv::AffineNormalToricVariety)
 ```
 
-### Toric ideals
+
+## Auxillary Methods
 
 ```@docs
 binomial_exponents_to_ideal(binoms::Union{AbstractMatrix, fmpz_mat})
 toric_ideal(pts::Union{AbstractMatrix, fmpz_mat})
-toric_ideal(antv::AffineNormalToricVariety)
 ```
