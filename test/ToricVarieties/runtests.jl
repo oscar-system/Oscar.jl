@@ -8,7 +8,7 @@ antv = AffineNormalToricVariety(C)
     @test issmooth(antv) == false
     @test isorbifold(antv) == true
     @test length(affine_open_covering(antv)) == 1
-    # @test toric_ideal_binomial_generators(antv) == [-1 -1 2]
+    @test length(gens(toric_ideal(antv))) == 1
     @test rank(torusinvariant_divisor_group(antv)) == 2
     @test rank(character_lattice(antv)) == 2
     map = map_from_character_to_principal_divisors(antv)
@@ -26,6 +26,16 @@ associated_affine_variety = AffineNormalToricVariety(ntv)
 @testset "Affine toric varieties created as general normal toric varieties" begin
     @test isaffine(ntv) == true
     @test length(affine_open_covering(associated_affine_variety)) == 1
+end
+
+cyc = CyclicQuotientSingularity(2,1)
+
+@testset "Cyclic quotient singularities" begin
+    @test isaffine(cyc) == true
+    @test issmooth( cyc ) == false
+    @test issimplicial( cyc ) == true
+    @test continued_fraction_hirzebruch_jung( cyc )[1] == 2
+    @test dual_continued_fraction_hirzebruch_jung(cyc)[1] == 2
 end
 
 square = Oscar.cube(2)
