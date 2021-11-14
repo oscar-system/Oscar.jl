@@ -1,3 +1,7 @@
+############################
+# Computation of the toric ideal
+############################
+
 @doc Markdown.doc"""
     binomial_exponents_to_ideal(binoms::Union{AbstractMatrix, fmpz_mat})
 
@@ -66,35 +70,3 @@ function toric_ideal(pts::Union{AbstractMatrix, fmpz_mat})
     J = ideal([prod(gens(base_ring(presat)))])
     return saturation(presat, J)
 end
-
-
-@doc Markdown.doc"""
-    toric_ideal(antv::AffineNormalToricVariety)
-
-Return the toric ideal defining the affine normal toric variety.
-
-# Examples
-Take the cone over the square at height one. The resulting toric variety has
-one defining equation. In projective space this corresponds to
-$\mathbb{P}^1\times\mathbb{P}^1$. Note that this cone is self-dual, the toric
-ideal comes from the dual cone.
-```jldoctest
-julia> C = positive_hull([1 0 0; 1 1 0; 1 0 1; 1 1 1])
-A polyhedral cone in ambient dimension 3
-
-julia> antv = AffineNormalToricVariety(C)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 3
-
-julia> toric_ideal(antv)
-ideal(-x[1]*x[2] + x[3]*x[4])
-```
-"""
-function toric_ideal(antv::AffineNormalToricVariety)
-    cone = Cone(pm_object(antv).WEIGHT_CONE)
-    return toric_ideal(hilbert_basis(cone).m)
-end
-export toric_ideal
-toric_ideal(ntv::NormalToricVariety) = toric_ideal(AffineNormalToricVariety(ntv))
-
-
-

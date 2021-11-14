@@ -33,25 +33,6 @@ export dim_of_torusfactor
 
 
 @doc Markdown.doc"""
-    ith_betti_number(v::AbstractNormalToricVariety, i::Int)
-
-Compute the i-th Betti number of the normal toric variety `v`.
-"""
-function ith_betti_number(v::AbstractNormalToricVariety, i::Int)
-    if isodd(i)
-        return 0
-    end
-    k = div(i, 2)
-    f_vector = Vector{Int}(pm_object(v).F_VECTOR)
-    pushfirst!(f_vector, 1)
-    betti_number = sum((-1)^(i-k) * binomial(i,k) * f_vector[dim(v) - i + 1] for i=k:dim(v))
-    return betti_number
-    
-end
-export ith_betti_number
-
-
-@doc Markdown.doc"""
     euler_characteristic(v::AbstractNormalToricVariety)
 
 Computes the Euler characteristic of the normal toric variety `v`.
@@ -155,6 +136,35 @@ function irrelevant_ideal(v::AbstractNormalToricVariety)
     return ideal(gens)
 end
 export irrelevant_ideal
+
+
+@doc Markdown.doc"""
+    toric_ideal(antv::AffineNormalToricVariety)
+
+Return the toric ideal defining the affine normal toric variety.
+
+# Examples
+Take the cone over the square at height one. The resulting toric variety has
+one defining equation. In projective space this corresponds to
+$\mathbb{P}^1\times\mathbb{P}^1$. Note that this cone is self-dual, the toric
+ideal comes from the dual cone.
+```jldoctest
+julia> C = positive_hull([1 0 0; 1 1 0; 1 0 1; 1 1 1])
+A polyhedral cone in ambient dimension 3
+
+julia> antv = AffineNormalToricVariety(C)
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 3
+
+julia> toric_ideal(antv)
+ideal(-x[1]*x[2] + x[3]*x[4])
+```
+"""
+function toric_ideal(antv::AffineNormalToricVariety)
+    cone = Cone(pm_object(antv).WEIGHT_CONE)
+    return toric_ideal(hilbert_basis(cone).m)
+end
+export toric_ideal
+toric_ideal(ntv::NormalToricVariety) = toric_ideal(AffineNormalToricVariety(ntv))
 
 
 ############################
@@ -411,97 +421,3 @@ function affine_open_covering(v::AbstractNormalToricVariety)
     return charts
 end
 export affine_open_covering
-
-
-
-
-############################
-# Advanced constructions
-############################
-
-@doc Markdown.doc"""
-    blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int)
-
-Computes the blowup of the normal toric variety `v` on its i-th minimal torus orbit.
-
-# Examples
-```jldoctest
-julia> P2 = toric_projective_space(2)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
-
-julia> blowup_on_ith_minimal_torus_orbit(P2,1)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
-```
-"""
-function blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int)
-    return NormalToricVariety( starsubdivision( fan_of_variety( v ), n ) )
-end
-export blowup_on_ith_minimal_torus_orbit
-
-
-@doc Markdown.doc"""
-    Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety)
-
-Computes the Cartesian/direct product of two normal toric varieties `v` and `w`.
-
-# Examples
-```jldoctest
-julia> P2 = toric_projective_space(2)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
-
-julia> P2 * P2
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 4
-```
-"""
-function Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety)
-    return NormalToricVariety(fan_of_variety(v)*fan_of_variety(w))
-end
-
-
-############################
-# Comparison
-############################
-
-
-@doc Markdown.doc"""
-    isprojective_space(v::AbstractNormalToricVariety)
-
-Decides if the normal toric varieties `v` is a projective space.
-
-# Examples
-```jldoctest
-julia> H5 = hirzebruch_surface(5)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
-
-julia> isprojective_space(H5)
-false
-
-julia> isprojective_space(toric_projective_space(2))
-true
-```
-"""
-function isprojective_space(v::AbstractNormalToricVariety)
-    if issmooth(v) == false
-        return false
-    end
-    if isprojective(v) == false
-        return false
-    end
-    if rank(class_group(v)) > 1
-        return false
-    end
-    w = [[Int(x) for x in transpose(g.coeff)] for g in gens(class_group(v))]
-    for g in gens(class_group(v))
-        g = [Int(x) for x in g.coeff if !iszero(x)]    
-        if length(g) > 1
-            return false
-        end
-        if g[1] != 1
-            return false
-        end
-    end
-    return irrelevant_ideal(v) == ideal(gens(cox_ring(v)))
-end
-export isprojective_space
-
-
