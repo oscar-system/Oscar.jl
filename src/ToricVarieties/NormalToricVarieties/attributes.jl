@@ -361,9 +361,9 @@ export mori_cone
 
 
 @doc Markdown.doc"""
-    fan_of_variety(v::NormalToricVariety)
+    fan_of_variety(v::AbstractNormalToricVariety)
 
-Computes the fan of a normal toric variety `v`.
+Computes the fan of an abstract normal toric variety `v`.
 
 # Examples
 ```jdoctest
@@ -374,18 +374,18 @@ julia> fan_of_variety(p2)
 A polyhedral fan in ambient dimension 2
 ```
 """
-function fan_of_variety(v::NormalToricVariety)
+function fan_of_variety(v::AbstractNormalToricVariety)
     return PolyhedralFan(pm_object(v))
 end
 export fan_of_variety
 
 
 @doc Markdown.doc"""
-    fan(v::NormalToricVariety)
+    fan(v::AbstractNormalToricVariety)
 
-A convenience method for fan_of_variety of a normal toric variety `v`.
+A convenience method for fan_of_variety of an abstract normal toric variety `v`.
 """
-function fan(v::NormalToricVariety)
+function fan(v::AbstractNormalToricVariety)
     return fan_of_variety(v)
 end
 export fan

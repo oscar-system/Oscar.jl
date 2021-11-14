@@ -93,8 +93,8 @@ torusinvariant_prime_divisors(v::AbstractNormalToricVariety)
 ### Cones and Fans
 
 ```@docs
-fan_of_variety(v::NormalToricVariety)
-fan(v::NormalToricVariety)
+fan_of_variety(v::AbstractNormalToricVariety)
+fan(v::AbstractNormalToricVariety)
 mori_cone(v::NormalToricVariety)
 nef_cone(v::NormalToricVariety)
 ```

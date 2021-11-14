@@ -7,6 +7,7 @@ antv = AffineNormalToricVariety(C)
 @testset "Affine toric varieties" begin
     @test issmooth(antv) == false
     @test isorbifold(antv) == true
+    @test dim(fan( antv )) == 2
     @test length(affine_open_covering(antv)) == 1
     @test length(gens(toric_ideal(antv))) == 1
     @test rank(torusinvariant_divisor_group(antv)) == 2
