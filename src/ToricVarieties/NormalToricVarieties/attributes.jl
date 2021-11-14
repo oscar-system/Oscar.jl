@@ -391,6 +391,34 @@ end
 export fan
 
 
+@doc Markdown.doc"""
+    cone_of_variety(v::AffineNormalToricVariety)
+
+Returns the cone of the affine normal toric variety `v`.
+
+# Examples
+```jdoctest
+julia> cone_of_variety(AffineNormalToricVariety(Oscar.positive_hull([1 1; -1 1])))
+A polyhedral cone in ambient dimension 2
+```
+"""
+function cone_of_variety(v::AffineNormalToricVariety)
+    return maximal_cones(fan(v))[1]
+end
+export cone_of_variety
+
+
+@doc Markdown.doc"""
+    cone(v::AffineNormalToricVariety)
+
+A convenience method for cone_of_variety of an affine toric variety `v`.
+"""
+function cone(v::AffineNormalToricVariety)
+    return cone_of_variety(v)
+end
+export cone
+
+
 ############################
 # Affine covering
 ############################
