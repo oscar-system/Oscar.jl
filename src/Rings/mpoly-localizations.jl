@@ -104,10 +104,6 @@ function Base.in(
   return divides(one(R), o)[1]
 end
 
-### additional functionality
-# This assures compatibility with the MPolyPowersOfElement
-denominators(S::MPolyUnits) = [one(ambient_ring(S))]
-
 ### printing
 function Base.show(io::IO, S::MPolyPowersOfElement)
   print(io, "powers of ")
@@ -504,27 +500,6 @@ function product(T::AbsMPolyMultSet, U::AbsMPolyMultSet)
     @warn "comparison of multiplicative sets of types $(typeof(U)) and $(typeof(T)) is not implemented."
   end
   return MPolyProductOfMultSets(R, [T, U])
-end
-
-function product(
-    T::MPolyUnits{BRT, BRET, RT, RET}, 
-    U::AbsMPolyMultSet{BRT, BRET, RT, RET}
-  ) where {BRT, BRET, RT, RET}
-  return U
-end
-
-function product(
-    U::AbsMPolyMultSet{BRT, BRET, RT, RET},
-    T::MPolyUnits{BRT, BRET, RT, RET}
-  ) where {BRT, BRET, RT, RET}
-  return U
-end
-
-function product(
-    U::MPolyPowersOfElement{BRT, BRET, RT, RET},
-    T::MPolyUnits{BRT, BRET, RT, RET}
-  ) where {BRT, BRET, RT, RET}
-  return U
 end
 
 function product(T::MST, U::MST) where {MST<:MPolyProductOfMultSets} 

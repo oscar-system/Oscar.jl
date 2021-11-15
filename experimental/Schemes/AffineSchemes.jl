@@ -10,8 +10,6 @@ export closure
 export SpecHom
 export pullback, domain, codomain, preimage
 
-HypSurfComp = Union{MPolyPowersOfElement, MPolyUnits}
-
 @Markdown.doc """
 Scheme{ BaseRingType <: Ring }
 
@@ -127,7 +125,7 @@ function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, f::Vector{BRET}) where {BRT
 end
 
 ### open subschemes defined by complements of hypersurfaces
-function hypersurface_complement(X::Spec{BRT, BRET, RT, RET, MST}, f::RET) where {BRT, BRET, RT, RET, MST<:HypSurfComp}
+function hypersurface_complement(X::Spec{BRT, BRET, RT, RET, MST}, f::RET) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
   R = base_ring(OO(X))
   parent(f) == R || error("the element does not belong to the correct ring")
   return Spec(Localization(OO(X), MPolyPowersOfElement(f)))
@@ -136,15 +134,14 @@ end
 function hypersurface_complement(
     X::Spec{BRT, BRET, RT, RET, MST}, 
     f::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}
-  ) where {BRT, BRET, RT, RET, MST<:HypSurfComp}
-  parent(f) == localized_ring(OO(X)) || error("the element does not belong to the correct ring")
+  ) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
   return Spec(Localization(OO(X), MPolyPowersOfElement(numerator(f))))
 end
 
 function hypersurface_complement(
     X::Spec{BRT, BRET, RT, RET, MST}, 
     f::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}
-  ) where {BRT, BRET, RT, RET, MST<:HypSurfComp}
+  ) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
   parent(f) == OO(X) || error("the element does not belong to the correct ring")
   return Spec(Localization(OO(X), MPolyPowersOfElement(lifted_numerator(f))))
 end
@@ -161,7 +158,7 @@ issubset(X::EmptyScheme{BRT, BRET}, Y::Scheme{BRT, BRET}) where {BRT, BRET} = tr
 function issubset(
     X::Spec{BRT, BRET, RT, RET, MST1}, 
     Y::Spec{BRT, BRET, RT, RET, MST2}
-  ) where {BRT, BRET, RT, RET, MST1<:HypSurfComp, MST2<:HypSurfComp}
+  ) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
   R = base_ring(OO(X))
   R == base_ring(OO(Y)) || return false
   UX = inverted_set(OO(X))
@@ -179,7 +176,7 @@ end
 function is_open_embedding(
     X::Spec{BRT, BRET, RT, RET, MST1}, 
     Y::Spec{BRT, BRET, RT, RET, MST2}
-  ) where {BRT, BRET, RT, RET, MST1<:HypSurfComp, MST2<:HypSurfComp}
+  ) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
   R = base_ring(OO(X))
   R == base_ring(OO(Y)) || return false
   UX = inverted_set(OO(X))
@@ -192,7 +189,7 @@ end
 function is_closed_embedding(
     X::Spec{BRT, BRET, RT, RET, MST1}, 
     Y::Spec{BRT, BRET, RT, RET, MST2}
-  ) where {BRT, BRET, RT, RET, MST1<:HypSurfComp, MST2<:HypSurfComp}
+  ) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
   R = base_ring(OO(X))
   R == base_ring(OO(Y)) || return false
   inverted_set(OO(X)) == inverted_set(OO(Y)) || return false
@@ -209,7 +206,7 @@ intersect(X::EmptyScheme{BRT, BRET}, E::EmptyScheme{BRT, BRET}) where {BRT, BRET
 function Base.intersect(
     X::Spec{BRT, BRET, RT, RET, MST1}, 
     Y::Spec{BRT, BRET, RT, RET, MST2}
-  ) where {BRT, BRET, RT, RET, MST1<:HypSurfComp, MST2<:HypSurfComp}
+  ) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
   issubset(X, Y) && return X
   issubset(Y, X) && return Y
   UX = inverted_set(OO(X))
@@ -228,7 +225,7 @@ end
 function closure(
     X::Spec{BRT, BRET, RT, RET, MST1}, 
     Y::Spec{BRT, BRET, RT, RET, MST2}
-  ) where {BRT, BRET, RT, RET, MST1<:HypSurfComp, MST2<:HypSurfComp}
+  ) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
   issubset(X, Y) || error("the first argument is not a subset of the second")
   is_closed_embedding(X, Y) && return X
   W = Localization(inverted_set(OO(X))*inverted_set(OO(Y)))
@@ -269,7 +266,7 @@ codomain(phi::SpecHom) = phi.codomain
 function preimage(
     phi::SpecHom{BRT, BRET, RT, RET, MST1, MST2}, 
     Z::Spec{BRT, BRET, RT, RET, MST3}
-  ) where {BRT, BRET, RT, RET, MST1<:HypSurfComp, MST2<:HypSurfComp, MST3<:HypSurfComp}
+  ) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST3<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
   X = domain(phi)
   Y = codomain(phi)
   issubset(Z, Y) || (Z = intersect(Y, Z))
