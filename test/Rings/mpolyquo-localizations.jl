@@ -15,11 +15,12 @@
   c = L(u)
   d = L(v)
   
-  R, v = ZZ["x", "y"]
+  kk= QQ
+  R, v = kk["x", "y"]
   x = v[1]
   y = v[2] 
   f = (x^2 + y^2)
-  T = MPolyComplementOfKPointIdeal(R, [ZZ(0), ZZ(0)])
+  T = MPolyComplementOfKPointIdeal(R, [kk(0), kk(0)])
   I = ideal(R, f)
   V = MPolyQuoLocalizedRing(R, I, T)
 
@@ -28,6 +29,7 @@
   J = ideal(S, zero(S))
   W = MPolyQuoLocalizedRing(S, J, U)
 
-  h = MPolyQuoLocalizedRingHom(W, V, localized_ring(V).([x//(y-1), y//(x-5)]))
+  h = MPolyQuoLocalizedRingHom(W, V, [x//(y-1), y//(x-5)])
   reduce_fraction(h(W(f//(f-1)^9)))
+  @test preimage(h, ideal(localized_ring(V), [x*(x-1), y*(y-3)])) == ideal(localized_ring(W), [x, y])
 end 

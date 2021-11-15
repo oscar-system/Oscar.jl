@@ -10,7 +10,7 @@ export numerator, denominator, parent, lift, isunit
 
 export MPolyQuoLocalizedRingHom
 export domain, codomain, images
-export helper_ring, helper_images, minimal_denominators, helper_eta, helper_phi, common_denominator, helper_ideal
+export helper_ring, helper_images, minimal_denominators, helper_eta, helper_kappa, common_denominator, helper_ideal
 
 
 ########################################################################
@@ -426,7 +426,8 @@ parent_type(T::Type{MPolyQuoLocalizedRingElem{BaseRingType, BaseRingElemType, Ri
 #     R[T⁻¹] --> S[U⁻¹]
 #       ↑    ↗ ψ   ↑ ι
 #       R     →  S[c⁻¹]
-#             η
+#             η    ↑ κ
+#                  S
 #
 # a) The composition of maps R → Q[U⁻¹] completely determines φ by 
 #    the images xᵢ ↦ [aᵢ]/[bᵢ] with aᵢ ∈ S, bᵢ ∈ U.
@@ -468,7 +469,16 @@ mutable struct MPolyQuoLocalizedRingHom{
   helper_images::Vector{RingElemType}
   minimal_denominators::Vector{RingElemType}
   eta::AlgHom{BaseRingElemType}
-  phi::AlgHom{BaseRingElemType}
+  kappa::AlgHom{BaseRingElemType}
+  
+  inverse::MPolyQuoLocalizedRingHom{
+    BaseRingType, 
+    BaseRingElemType, 
+    RingType, 
+    RingElemType, 
+    CodomainMultSetType,
+    DomainMultSetType
+  }
 
   function MPolyQuoLocalizedRingHom(
       L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, DMST}, 
@@ -584,11 +594,11 @@ function helper_ring(f::MPolyQuoLocalizedRingHom{BRT, BRET, RT, RET, DMST, CMST}
     p = p*d_min
   end
  
-  help_ring, help_phi, theta = _add_variables(S, ["θ"])
+  help_ring, help_kappa, theta = _add_variables(S, ["θ"])
   f.helper_ring = help_ring
-  f.phi = help_phi
+  f.kappa = help_kappa
   c_inv = theta[1]
-  f.helper_images = [f.phi(numerator(y))*c_inv*f.phi(divexact(p, denominator(y))) for y in images(f)]
+  f.helper_images = [f.kappa(numerator(y))*c_inv*f.kappa(divexact(p, denominator(y))) for y in images(f)]
   f.eta = AlgebraHomomorphism(R, help_ring, f.helper_images)
   return f.helper_ring
 end
@@ -620,13 +630,13 @@ function helper_eta(
   return f.eta
 end
 
-function helper_phi(
+function helper_kappa(
     f::MPolyQuoLocalizedRingHom{BRT, BRET, RT, RET, DMST, CMST}
   ) where {BRT, BRET, RT, RET, DMST, CMST} 
-  if !isdefined(f, :phi) 
+  if !isdefined(f, :kappa) 
     helper_ring(f)
   end
-  return f.phi
+  return f.kappa
 end
 
 function common_denominator(
@@ -645,9 +655,27 @@ function helper_ideal(
     helper_ring(f)
   end
   Sc = helper_ring(f)
-  return ideal(Sc, one(Sc)-last(gens(Sc))*helper_phi(f)(common_denominator(f)))
+  return ideal(Sc, one(Sc)-last(gens(Sc))*helper_kappa(f)(common_denominator(f)))
 end
 
+function is_isomorphism(
+    phi::MPolyQuoLocalizedRingHom{BRT, BRET, RT, RET, MST, MST}
+  ) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
+  if isdefined(phi, :inverse)
+    return true
+  end
+  K = domain(phi)
+  L = codomain(phi)
+  V = localized_ring(K)
+  W = localized_ring(L)
+  R = base_ring(K)
+  S = base_ring(L)
+  T = inverted_set(K)
+  U = inverted_set(L)
+
+  Sc = helper_ring(phi)
+  error("not implemented")
+end
 
 
 ########################################################################
@@ -698,18 +726,8 @@ function preimage(
   R = base_ring(domain(f))
   S = base_ring(codomain(f))
   Sc = helper_ring(f)
-#  help_ring, phi, new_vars = _add_variables(S, ["θ"])
-#  t = new_vars[1]
-#  common_denom = one(R)
-#  for y in [denominator(g) for g in images(f)]
-#    g = gcd(common_denom, y)
-#    common_denom = common_denom*divexact(y, g)
-#  end
-#  help_images = [numerator(y)*divexact(common_denom, denominator(y)) for y in images(f)]
-#  help_hom = AlgebraHomomorphism(S, help_ring, [phi(x)*t for x in help_images])
   lbpa = groebner_basis(I) # saturation takes place in this computation
-  #J = ideal(help_ring, [phi(g) for g in numerator.(oscar_gens(lbpa))]) + ideal(help_ring, one(help_ring)-t*phi(common_denom))
-  J = ideal(Sc, [helper_phi(f)(g) for g in numerator.(oscar_gens(lbpa))]) + helper_ideal(f)
+  J = ideal(Sc, [helper_kappa(f)(g) for g in numerator.(oscar_gens(lbpa))]) + helper_ideal(f)
   return localized_ring(domain(f))(preimage(helper_eta(f), J))
 end
 
@@ -720,25 +738,6 @@ function preimage(
     DMST<:AbsMultSet{RT, RET}, CMST<:MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}
   }
   base_ring(I) == localized_ring(codomain(f)) || error("the ideal does not belong to the codomain of the map")
-  R = base_ring(domain(f))
-  S = base_ring(codomain(f))
-  Sc = helper_ring(f)
-
-  # throw away all components of the ideal I which do not touch the origin
-  # TODO: This uses primary decomposition for now. Most probably, the 
-  # computations can be carried out more efficiently.
-  lbpa = LocalizedBiPolyArray(I)
-  V = base_ring(I)
-  decomp = [LocalizedBiPolyArray(V, K[1], shift=shift(lbpa)) for K in Singular.LibPrimdec.primdecGTZ(singular_ring(lbpa), singular_gens(lbpa))]
-  if length(decomp) == 0
-    return ideal(V, zero(V))
-  end
-  relevant_comp = decomp[1]
-  for i in (2:length(decomp))
-    relevant_comp = Singular.intersection(singular_gens(relevant_comp), singular_gens(decomp[i]))
-  end
-
-  # compute the preimage of the remaining ideal
-  J = ideal(Sc, [helper_phi(f)(g) for g in numerator.(oscar_gens(relevant_comp))]) + helper_ideal(f)
-  return localized_ring(domain(f))(preimage(helper_phi(f), J))
+  J = ideal(helper_ring(f), helper_kappa(f).(gens(saturated_ideal(I)))) + helper_ideal(f)
+  return localized_ring(domain(f))(preimage(helper_eta(f), J))
 end
