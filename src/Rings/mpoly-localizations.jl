@@ -586,17 +586,27 @@ function product(T::MST, U::MST) where {MST<:MPolyComplementOfPrimeIdeal}
 end
 
 function product(T::MST, U::MST) where {MST<:MPolyPowersOfElement}
-  ambient_ring(T) == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
-  a = denominators(T)
-  for f in denominators(U)
-    for d in a
-      (_, f) = ppio(f, d) 
+  R = ambient_ring(T) 
+  R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
+  new_denoms = Vector{elem_type(R)}()
+  for f in denominators(T)
+    for g in denominators(U)
+      (_, f) = ppio(f, g)
     end
     if !(divides(one(parent(f)), f)[1])
-      push!(a, f)
+      push!(new_denoms, f)
     end
   end
-  return MPolyPowersOfElement(ambient_ring(T), a)
+  n = length(new_denoms)
+  for g in denominators(U)
+    for f in new_denoms[1:n]
+      (_, g) = ppio(g, f)
+    end
+    if !(divides(one(parent(g)), g)[1])
+      push!(new_denoms, g)
+    end
+  end
+  return (length(new_denoms) == 0 ? MPolyPowersOfElement(R, units_of(R)) : MPolyPowersOfElement(R, new_denoms))
 end
 
 function product(
