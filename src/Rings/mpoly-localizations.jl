@@ -751,20 +751,21 @@ mutable struct MPolyLocalizedRingElem{
     MultSetType
   } 
 
+  W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
   frac::AbstractAlgebra.Generic.Frac{RingElemType}
-  R_loc::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
 
   function MPolyLocalizedRingElem(
-      f::AbstractAlgebra.Generic.Frac{RingElemType}, 
-      R_loc::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
+      W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType},
+      f::AbstractAlgebra.Generic.Frac{RingElemType};
+      check::Bool=true
     ) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
-    base_ring(parent(f)) == base_ring(R_loc) || error(
+    base_ring(parent(f)) == base_ring(W) || error(
 	"the numerator and denominator of the given fraction do not belong to the original ring before localization"
       )
-    denominator(f) in inverted_set(R_loc) || error(
-	"the given denominator is not admissible for this localization"
-      )
-    return new{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}(f, R_loc)
+    if check
+      denominator(f) in inverted_set(W) || error("the given denominator is not admissible for this localization")
+    end
+    return new{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}(W, f)
   end
 end
 
@@ -773,19 +774,56 @@ numerator(a::MPolyLocalizedRingElem) = numerator(a.frac)
 
 denominator(a::MPolyLocalizedRingElem) = denominator(a.frac)
 
-parent(a::MPolyLocalizedRingElem) = a.R_loc
+parent(a::MPolyLocalizedRingElem) = a.W
 
 ### additional getter functions
 fraction(a::MPolyLocalizedRingElem) = a.frac
 
 ### required conversions
-(W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(f::RingElemType) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocalizedRingElem((FractionField(base_ring(W)))(f), W)
-function (W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(a::RingElemType, b::RingElemType) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} 
-  return MPolyLocalizedRingElem(a//b, W)
+(W::MPolyLocalizedRing{
+    BaseRingType, 
+    BaseRingElemType, 
+    RingType, 
+    RingElemType, 
+    MultSetType
+  })(f::RingElemType; check::Bool=true) where {
+    BaseRingType, 
+    BaseRingElemType, 
+    RingType, 
+    RingElemType, 
+    MultSetType
+  } = MPolyLocalizedRingElem(W, FractionField(base_ring(W))(f), check=check)
+
+function (W::MPolyLocalizedRing{
+    BaseRingType, 
+    BaseRingElemType, 
+    RingType, 
+    RingElemType, 
+    MultSetType
+  })(a::RingElemType, b::RingElemType; check::Bool=true) where {
+    BaseRingType, 
+    BaseRingElemType, 
+    RingType, 
+    RingElemType, 
+    MultSetType
+  } 
+  return MPolyLocalizedRingElem(W, a//b, check=check)
 end
 
 ### additional conversions
-(W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(f::AbstractAlgebra.Generic.Frac{RingElemType}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocalizedRingElem(f, W)
+(W::MPolyLocalizedRing{
+    BaseRingType, 
+    BaseRingElemType, 
+    RingType, 
+    RingElemType, 
+    MultSetType
+  })(f::AbstractAlgebra.Generic.Frac{RingElemType}; check::Bool=true) where {
+    BaseRingType, 
+    BaseRingElemType, 
+    RingType, 
+    RingElemType, 
+    MultSetType
+  } = MPolyLocalizedRingElem(W, f, check=check)
 
 ### additional promotions 
 AbstractAlgebra.promote_rule(::Type{RET}, ::Type{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT<:Ring, RET<:RingElement, MST} = MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}
@@ -799,25 +837,25 @@ AbstractAlgebra.promote_rule(::Type{fmpz}, ::Type{MPolyLocalizedRingElem{BRT, BR
 ### overwriting the arithmetic using the fractions from AbstractAlgebra
 function +(a::T, b::T) where {T<:MPolyLocalizedRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
-  return (parent(a))(fraction(a) + fraction(b))
+  return (parent(a))(fraction(a) + fraction(b), check=false)
 end
 
 function -(a::T, b::T) where {T<:MPolyLocalizedRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
-  return (parent(a))(fraction(a) - fraction(b))
+  return (parent(a))(fraction(a) - fraction(b), check=false)
 end
 
 function -(a::T) where {T<:MPolyLocalizedRingElem}
-  return (parent(a))((-1)*fraction(a))
+  return (parent(a))((-1)*fraction(a), check=false)
 end
 
 function *(a::T, b::T) where {T<:MPolyLocalizedRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
-  return (parent(a))(fraction(a) * fraction(b))
+  return (parent(a))(fraction(a) * fraction(b), check=false)
 end
 
 function *(a::RET, b::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET <: RingElem, MST}
-  return (parent(b))(a*fraction(b))
+  return (parent(b))(a*fraction(b), check=false)
 end
 
 function *(a::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}, b::RET) where {BRT, BRET, RT, RET <: RingElem, MST}
@@ -825,7 +863,7 @@ function *(a::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}, b::RET) where {BR
 end
 
 function *(a::BRET, b::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET <: RingElem, RT, RET, MST}
-  return (parent(b))(a*fraction(b))
+  return (parent(b))(a*fraction(b), check=false)
 end
 
 function *(a::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}, b::BRET) where {BRT, BRET <: RingElem, RT, RET, MST}
@@ -846,7 +884,7 @@ function Base.:(//)(a::T, b::T) where {T<:MPolyLocalizedRingElem}
   c = divexact(numerator(a), g)
   d = divexact(numerator(b), g)
   numerator(fraction(b)) in inverted_set(parent(b)) || error("the second argument is not a unit in this local ring")
-  return (parent(a))(fraction(a) // fraction(b))
+  return (parent(a))(fraction(a) // fraction(b), check=false)
 end
 
 function ==(a::T, b::T) where {T<:MPolyLocalizedRingElem}
@@ -857,13 +895,13 @@ end
 # We need to manually split this into three methods, because 
 # otherwise it seems that Julia can not dispatch this function.
 function ^(a::MPolyLocalizedRingElem, i::Int64)
-  return parent(a)(fraction(a)^i)
+  return parent(a)(fraction(a)^i, check=false)
 end
 function ^(a::MPolyLocalizedRingElem, i::Integer)
-  return parent(a)(fraction(a)^i)
+  return parent(a)(fraction(a)^i, check=false)
 end
 function ^(a::MPolyLocalizedRingElem, i::fmpz)
-  return parent(a)(fraction(a)^i)
+  return parent(a)(fraction(a)^i, check=false)
 end
 
 function divexact(p::T, q::T; check::Bool=false) where {T<:MPolyLocalizedRingElem} 
@@ -886,7 +924,7 @@ function divexact(p::T, q::T; check::Bool=false) where {T<:MPolyLocalizedRingEle
   if !(n in S) 
     error("not an exact division")
   end
-  return W(m, n)
+  return W(m, n, check=false)
 end
 
 isunit(f::MPolyLocalizedRingElem) = numerator(f) in inverted_set(parent(f))
@@ -905,10 +943,10 @@ elem_type(T::Type{MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, R
 parent_type(f::MPolyLocalizedRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
 parent_type(T::Type{MPolyLocalizedRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
 
-(W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(f::MPolyLocalizedRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocalizedRingElem(fraction(f), W)
+(W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(f::MPolyLocalizedRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}; check::Bool=true) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocalizedRingElem(W, fraction(f), check=check)
 
 (W::MPolyLocalizedRing)() = zero(W)
-(W::MPolyLocalizedRing)(a::Integer) = W(base_ring(W)(a))
+(W::MPolyLocalizedRing)(a::Integer; check::Bool=true) = W(base_ring(W)(a), check=check)
 
 isdomain_type(T::Type{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = true 
 isexact_type(T::Type{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = true
