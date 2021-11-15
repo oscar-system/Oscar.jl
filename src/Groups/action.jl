@@ -212,7 +212,7 @@ Set{Vector{Int64}} with 2 elements:
   [1, 4]
   [2, 3]
 
-julia> setset = Set([BitSet([1, 2]), BitSet([3, 4])])
+julia> setset = Set([BitSet([1, 2]), BitSet([3, 4])]);
 
 julia> on_sets_sets(setset, g[1])
 Set{BitSet} with 2 elements:
