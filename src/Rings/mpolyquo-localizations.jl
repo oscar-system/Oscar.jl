@@ -117,13 +117,6 @@ function Base.show(io::IO, L::MPolyQuoLocalizedRing)
   print(io, "Localization of $(quotient_ring(L)) at the multiplicative set $(inverted_set(L))")
 end
 
-function Base.show(
-    io::IO, 
-    L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MPolyUnits{BRT, BRET, RT, RET}}
-  ) where {BRT, BRET, RT, RET}
-  print(io, quotient_ring(L))
-end
-
 ### additional constructors
 function quo(
     W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST},
@@ -179,7 +172,7 @@ end
 function MPolyQuoLocalizedRing(R::RT) where {RT<:MPolyRing} 
   I = ideal(R, zero(R))
   Q, _ = quo(R, I)
-  U = MPolyUnits(R)
+  U = units_of(R)
   W = Localization(U)
   return MPolyQuoLocalizedRing(R, I, U, Q, W)
 end
@@ -187,7 +180,7 @@ end
 function MPolyQuoLocalizedRing(Q::RT) where {RT<:MPolyQuo}
   R = base_ring(Q)
   I = modulus(Q)
-  U = MPolyUnits(R)
+  U = units_of(R)
   W = Localization(U)
   return MPolyQuoLocalizedRing(R, I, U, Q, W)
 end

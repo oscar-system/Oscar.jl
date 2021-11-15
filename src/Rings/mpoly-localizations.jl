@@ -1,5 +1,5 @@
-export MPolyUnits, MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal, MPolyPowersOfElement, MPolyProductOfMultSets
-export rand, sets, issubset
+export MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal, MPolyPowersOfElement, MPolyProductOfMultSets
+export rand, sets, issubset, units_of
 
 export MPolyLocalizedRing
 export ambient_ring, point_coordinates, inverted_set, denominators
@@ -34,52 +34,85 @@ import Base: issubset
 abstract type AbsMPolyMultSet{BRT, BRET, RT, RET} <: AbsMultSet{RT, RET} end
 
 ########################################################################
-# Units in polynomial rings; localization does nothing in this case    #
+# Powers of elements                                                   #
 ########################################################################
 
-mutable struct MPolyUnits{
-    BaseRingType, 
-    BaseRingElemType,
+@Markdown.doc """
+MPolyPowersOfElement{
+    BaseRingType,
+    BaseRingElemType, 
     RingType,
     RingElemType
   } <: AbsMPolyMultSet{
-    BaseRingType, 
-    BaseRingElemType,
-    RingType,
+    BaseRingType,
+    BaseRingElemType, 
+    RingType, 
     RingElemType
   }
 
-  R::RingType
+The set `S = { aᵏ : k ∈ ℕ₀ }` for some ``a ∈ R`` with ``R`` of type `BaseRingType`.
+"""
+mutable struct MPolyPowersOfElement{
+    BaseRingType,
+    BaseRingElemType, 
+    RingType,
+    RingElemType
+  } <: AbsMPolyMultSet{
+    BaseRingType,
+    BaseRingElemType, 
+    RingType, 
+    RingElemType
+  }
 
-  function MPolyUnits(R::MPolyRing)
-    return new{typeof(coefficient_ring(R)), elem_type(coefficient_ring(R)), typeof(R), elem_type(R)}(R)
+  R::RingType # the parent ring
+  a::Vector{RingElemType} # the list of elements whose powers belong to this set
+
+  function MPolyPowersOfElement(R::RingType, a::Vector{RingElemType}) where {RingType<:MPolyRing, RingElemType<:MPolyElem}
+    for f in a 
+      parent(f) == R || error("element does not belong to the given ring")
+      !iszero(f) || error("can not localize at the zero element")
+    end
+    k = coefficient_ring(R)
+    return new{typeof(k), elem_type(k), RingType, RingElemType}(R, a)
   end
 end
 
 ### required getter functions
-ambient_ring(S::MPolyUnits) = S.R
+ambient_ring(S::MPolyPowersOfElement) = S.R
+
+### additional constructors
+MPolyPowersOfElement(f::RET) where {RET<:MPolyElem} = MPolyPowersOfElement(parent(f), [f])
+units_of(R::RT) where {RT<:MPolyRing} = MPolyPowersOfElement(R, [one(R)])
+
+### additional functionality
+denominators(S::MPolyPowersOfElement) = copy(S.a)
 
 ### required functionality
 function Base.in(
     f::RingElemType, 
-    S::MPolyUnits{BaseRingType, BaseRingElemType, RingType, RingElemType}
+    S::MPolyPowersOfElement{BaseRingType, BaseRingElemType, RingType, RingElemType}
   ) where {BaseRingType, BaseRingElemType, RingType, RingElemType}
-  return divides(one(ambient_ring(S)), f)[1]
+  R = parent(f)
+  R == ambient_ring(S) || return false
+  if iszero(f) 
+    return false
+  end
+  d = (length(denominators(S)) == 0 ? one(R) : prod(denominators(S)))
+  # We need to check whether for some a ∈ R and k ∈ ℕ we have 
+  #   a⋅f = dᵏ.
+  (i, o) = ppio(f, d)
+  return divides(one(R), o)[1]
 end
 
-### additional functionality
-# This assures compatibility with the MPolyPowersOfElement
-denominators(S::MPolyUnits) = [one(ambient_ring(S))]
-
 ### printing
-function Base.show(io::IO, S::MPolyUnits)
-  print(io, "units of ")
-  print(io, ambient_ring(S))
+function Base.show(io::IO, S::MPolyPowersOfElement)
+  print(io, "powers of ")
+  print(io, denominators(S))
 end
 
 ### generation of random elements 
-function rand(S::MPolyUnits, v1::UnitRange{Int}, v2::UnitRange{Int}, v3::UnitRange{Int})
-  return one(ambient_ring(S))
+function rand(S::MPolyPowersOfElement, v1::UnitRange{Int}, v2::UnitRange{Int}, v3::UnitRange{Int})
+  return prod([f^(abs(rand(Int))%10) for f in denominators(S)])::elem_type(ambient_ring(S))
 end
 
 
@@ -242,88 +275,6 @@ function rand(S::MPolyComplementOfKPointIdeal, v1::UnitRange{Int}, v2::UnitRange
 end
 
 
-########################################################################
-# Powers of elements                                                   #
-########################################################################
-
-@Markdown.doc """
-MPolyPowersOfElement{
-    BaseRingType,
-    BaseRingElemType, 
-    RingType,
-    RingElemType
-  } <: AbsMPolyMultSet{
-    BaseRingType,
-    BaseRingElemType, 
-    RingType, 
-    RingElemType
-  }
-
-The set `S = { aᵏ : k ∈ ℕ₀ }` for some ``a ∈ R`` with ``R`` of type `BaseRingType`.
-"""
-mutable struct MPolyPowersOfElement{
-    BaseRingType,
-    BaseRingElemType, 
-    RingType,
-    RingElemType
-  } <: AbsMPolyMultSet{
-    BaseRingType,
-    BaseRingElemType, 
-    RingType, 
-    RingElemType
-  }
-
-  R::RingType # the parent ring
-  a::Vector{RingElemType} # the list of elements whose powers belong to this set
-
-  function MPolyPowersOfElement(R::RingType, a::Vector{RingElemType}) where {RingType<:MPolyRing, RingElemType<:MPolyElem}
-    for f in a 
-      parent(f) == R || error("element does not belong to the given ring")
-      !iszero(f) || error("can not localize at the zero element")
-    end
-    k = coefficient_ring(R)
-    return new{typeof(k), elem_type(k), RingType, RingElemType}(R, a)
-  end
-end
-
-### required getter functions
-ambient_ring(S::MPolyPowersOfElement) = S.R
-
-### additional constructors
-MPolyPowersOfElement(f::RET) where {RET<:MPolyElem} = MPolyPowersOfElement(parent(f), [f])
-
-### additional functionality
-denominators(S::MPolyPowersOfElement) = copy(S.a)
-
-### required functionality
-function Base.in(
-    f::RingElemType, 
-    S::MPolyPowersOfElement{BaseRingType, BaseRingElemType, RingType, RingElemType}
-  ) where {BaseRingType, BaseRingElemType, RingType, RingElemType}
-  R = parent(f)
-  R == ambient_ring(S) || return false
-  if iszero(f) 
-    return false
-  end
-  d = (length(denominators(S)) == 0 ? one(R) : prod(denominators(S)))
-  # We need to check whether for some a ∈ R and k ∈ ℕ we have 
-  #   a⋅f = dᵏ.
-  (i, o) = ppio(f, d)
-  return divides(one(R), o)[1]
-end
-
-### printing
-function Base.show(io::IO, S::MPolyPowersOfElement)
-  print(io, "powers of ")
-  print(io, denominators(S))
-end
-
-### generation of random elements 
-function rand(S::MPolyPowersOfElement, v1::UnitRange{Int}, v2::UnitRange{Int}, v3::UnitRange{Int})
-  return prod([f^(abs(rand(Int))%10) for f in denominators(S)])::elem_type(ambient_ring(S))
-end
-
-
 @Markdown.doc """
 MPolyProductOfMultSets{
     BaseRingType,
@@ -427,41 +378,6 @@ function ==(T::AbsMPolyMultSet, U::AbsMPolyMultSet)
 end
 
 function issubset(
-    T::MPolyUnits{BRT, BRET, RT, RET}, 
-    U::AbsMPolyMultSet{BRT, BRET, RT, RET}
-  ) where {BRT, BRET, RT, RET}
-  ambient_ring(T) == ambient_ring(U) || return false
-  return true
-end
-
-function issubset(
-    T::MST,
-    U::MST
-  ) where {MST<:MPolyUnits}
-  ambient_ring(T) == ambient_ring(U) || return false
-  return true
-end
-
-function issubset(
-    U::AbsMPolyMultSet{BRT, BRET, RT, RET},
-    T::MPolyUnits{BRT, BRET, RT, RET}
-  ) where {BRT, BRET, RT, RET}
-  return false
-end
-
-function issubset(
-    U::MPolyPowersOfElement{BRT, BRET, RT, RET},
-    T::MPolyUnits{BRT, BRET, RT, RET}
-  ) where {BRT, BRET, RT, RET}
-  R = ambient_ring(T) 
-  R == ambient_ring(U) || return false
-  for a in denominators(U)
-    divides(one(R), a)[1] || return false
-  end
-  return true
-end
-
-function issubset(
     T::MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET},
     U::MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET}
   ) where {BRT, BRET, RT, RET}
@@ -540,45 +456,89 @@ end
 # TODO: Implement this if necessary!
 
 ### functionality for taking products
+#
+# Definition.
+# Let T and U be multiplicative sets in a commutative ring R. The product 
+# of T and U is defined as 
+#
+#   T⋅U = { f⋅g : f ∈ T and g ∈ U }.
+#
+# A product of multiplicative sets U = U₁⋅…⋅Uₙ is called interreduced 
+# if neither one of the factors Uᵢ is contained in one of the others Uⱼ, j≠i.
+#
+# Lemma. 
+# Any product of multiplicative sets U = U₁⋅…⋅Uₙ may be replaced by 
+# an interreduced one. 
+#
+# Remark. 
+# An interreduced factorization of a product of multiplicative sets may 
+# not be unique: Consider the ring ℤ[x] and the multiplicative sets 
+#   T  = {powers of 5x}
+#   T' = {powers of x}
+#   S  = {constant polynomials outside 7ℤ }.
+# Then 
+#   T⋅S = { a⋅xᵏ : a ∉ 7ℤ, k ∈ ℕ₀ } = T'⋅S.
+#
+# Upshot: Whenever a product is taken, some interreduced form of the 
+# entire product is returned. Besides the obvious simplification in 
+# case all factors are contained in a single one, it is difficult to 
+# determine which interreduction is the best one. 
+
 *(T::AbsMPolyMultSet, U::AbsMPolyMultSet) = product(T, U)
 
 function product(T::AbsMPolyMultSet, U::AbsMPolyMultSet)
   R = ambient_ring(T)
   R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
+  try 
+    issubset(T, U) && return U
+  catch
+    @warn "comparison of multiplicative sets of types $(typeof(T)) and $(typeof(U)) is not implemented."
+  end
+  try
+    issubset(U, T) && return T
+  catch
+    @warn "comparison of multiplicative sets of types $(typeof(U)) and $(typeof(T)) is not implemented."
+  end
   return MPolyProductOfMultSets(R, [T, U])
-end
-
-function product(
-    T::MPolyUnits{BRT, BRET, RT, RET}, 
-    U::AbsMPolyMultSet{BRT, BRET, RT, RET}
-  ) where {BRT, BRET, RT, RET}
-  return U
-end
-
-function product(
-    U::AbsMPolyMultSet{BRT, BRET, RT, RET},
-    T::MPolyUnits{BRT, BRET, RT, RET}
-  ) where {BRT, BRET, RT, RET}
-  return U
-end
-
-function product(
-    U::MPolyPowersOfElement{BRT, BRET, RT, RET},
-    T::MPolyUnits{BRT, BRET, RT, RET}
-  ) where {BRT, BRET, RT, RET}
-  return U
 end
 
 function product(T::MST, U::MST) where {MST<:MPolyProductOfMultSets} 
   R = ambient_ring(T)
   R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
-  return MPolyProductOfMultSets(R, vcat(sets(T), sets(U)))
+  new_sets = Vector{<:AbsMPolyMultSet}()
+  for S in sets(T)
+    push!(new_sets, S)
+    for V in sets(U)
+      if issubset(S, V) 
+	pop!(new_sets)
+	break
+      end
+    end
+  end
+  n = length(new_sets)
+  for V in sets(U)
+    push!(new_sets, V)
+    for U in new_sets[1:n]
+      if issubset(V, U) 
+	pop!(new_sets)
+	break
+      end
+    end
+  end
+  return MPolyProductOfMultSets(R, new_sets)
 end
 
 function product(T::MPolyProductOfMultSets{BRT, BRET, RT, RET}, U::MST) where {BRT, BRET, RT, RET, MST<:AbsMPolyMultSet{BRT, BRET, RT, RET}}
   R = ambient_ring(T)
   R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
-  return MPolyProductOfMultSets(R, push!(sets(T), U))
+  for V in sets(T)
+    issubset(U, T) && return T
+  end
+  new_sets = U
+  for V in sets(T)
+    issubset(V, U) || push!(new_sets, V)
+  end
+  return MPolyProductOfMultSets(R, new_sets)
 end
 
 product(U::MST, T::MPolyProductOfMultSets{BRT, BRET, RT, RET}) where {BRT, BRET, RT, RET, MST<:AbsMPolyMultSet{BRT, BRET, RT, RET}} = product(T, U)
@@ -705,8 +665,6 @@ base_ring(W::MPolyLocalizedRing) = W.R
 inverted_set(W::MPolyLocalizedRing) = W.S
 
 ### required extension of the localization function
-Localization(S::MPolyUnits) = MPolyLocalizedRing(ambient_ring(S), S)
-
 Localization(S::MPolyComplementOfPrimeIdeal) = MPolyLocalizedRing(ambient_ring(S), S)
 
 Localization(S::MPolyComplementOfKPointIdeal) = MPolyLocalizedRing(ambient_ring(S), S)
@@ -1419,7 +1377,7 @@ function MPolyLocalizedRingHom(
       W::MPolyLocalizedRing{BRT, BRET, RT, RET, CMST}, 
       a::Vector{MPolyLocalizedRingElem{BRT, BRET, RT, RET, CMST}}
     ) where {BRT, BRET, RT, RET, CMST}
-  return MPolyLocalizedRingHom(Localization(MPolyUnits(R)), W, a)
+  return MPolyLocalizedRingHom(Localization(units_of(R)), W, a)
 end
 
 function MPolyLocalizedRingHom(
@@ -1427,7 +1385,7 @@ function MPolyLocalizedRingHom(
       S::RT,
       a::Vector{RET}
     ) where {BRT, BRET, RT, RET, DMST}
-  W = Localization(MPolyUnits(S))
+  W = Localization(units_of(S))
   return MPolyLocalizedRingHom(V, W, W.(a))
 end
 
