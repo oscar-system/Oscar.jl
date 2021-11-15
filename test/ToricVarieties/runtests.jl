@@ -48,6 +48,8 @@ ntv3 = NormalToricVariety(square)
 @testset "Toric varieties from polyhedral fans" begin
     @test iscomplete(ntv2) == true
     @test iscomplete(ntv3) == true
+    @test rank(cartier_divisor_group(ntv2)) == 4
+    @test rank(domain(map_from_cartier_divisor_group_to_torus_invariant_divisor_group(ntv2))) == 4
 end
 
 P2 = toric_projective_space(2)
@@ -119,6 +121,7 @@ end
     dP2 = del_pezzo(2)
     @test length(torusinvariant_prime_divisors(dP2)) == 5
     dP3 = del_pezzo(3)
+    @test rank(cartier_divisor_group(dP3)) == 6
     @test length(torusinvariant_prime_divisors(dP3)) == 6
     @test_throws ArgumentError del_pezzo(4)
 end
