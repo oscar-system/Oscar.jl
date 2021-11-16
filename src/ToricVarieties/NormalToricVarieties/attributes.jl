@@ -417,6 +417,28 @@ end
 export cartier_divisor_group
 
 
+@doc Markdown.doc"""
+    picard_group(v::AbstractNormalToricVariety)
+
+Computes the Picard group of an abstract normal toric variety `v`.
+
+# Examples
+```jdoctest
+julia> p2 = toric_projective_space(2)
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+
+julia> picard_group(p2)
+GrpAb: Z
+```
+"""
+function picard_group(v::AbstractNormalToricVariety)
+    map1 = map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v)
+    map2 = map_from_weil_divisors_to_class_group(v)
+    return snf(image(hom(domain(map1), codomain(map2), map1.map * map2.map))[1])[1]
+end
+export picard_group
+
+
 ############################
 # Cones and fans
 ############################
