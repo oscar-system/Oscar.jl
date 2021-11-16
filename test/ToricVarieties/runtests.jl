@@ -97,7 +97,6 @@ H5 = hirzebruch_surface(5)
     @test ith_betti_number(H5, 3) == 0
     @test ith_betti_number(H5, 4) == 1
     @test length(affine_open_covering(H5)) == 4
-    @test fan_of_variety(H5).pm_fan.FAN_DIM == 2
     @test fan(H5).pm_fan.FAN_DIM == 2
     @test rank(torusinvariant_divisor_group(H5)) == 4
     @test rank(character_lattice(H5)) == 2

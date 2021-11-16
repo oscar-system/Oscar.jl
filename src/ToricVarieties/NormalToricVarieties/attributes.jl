@@ -88,7 +88,7 @@ julia> ngens(stanley_reisner_ideal(P2))
 ```
 """
 function stanley_reisner_ideal(v::AbstractNormalToricVariety)
-    collections = primitive_collections(fan_of_variety(v))
+    collections = primitive_collections(fan(v))
     vars = Hecke.gens(cox_ring(v))
     SR_generators = [prod(vars[I]) for I in collections]
     return ideal(SR_generators)
@@ -361,7 +361,7 @@ export mori_cone
 
 
 @doc Markdown.doc"""
-    fan_of_variety(v::AbstractNormalToricVariety)
+    fan(v::AbstractNormalToricVariety)
 
 Computes the fan of an abstract normal toric variety `v`.
 
@@ -370,51 +370,28 @@ Computes the fan of an abstract normal toric variety `v`.
 julia> p2 = toric_projective_space(2)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
-julia> fan_of_variety(p2)
+julia> fan(p2)
 A polyhedral fan in ambient dimension 2
 ```
 """
-function fan_of_variety(v::AbstractNormalToricVariety)
-    return PolyhedralFan(pm_object(v))
-end
-export fan_of_variety
-
-
-@doc Markdown.doc"""
-    fan(v::AbstractNormalToricVariety)
-
-A convenience method for fan_of_variety of an abstract normal toric variety `v`.
-"""
 function fan(v::AbstractNormalToricVariety)
-    return fan_of_variety(v)
+    return PolyhedralFan(pm_object(v))
 end
 export fan
 
 
 @doc Markdown.doc"""
-    cone_of_variety(v::AffineNormalToricVariety)
+    cone(v::AffineNormalToricVariety)
 
 Returns the cone of the affine normal toric variety `v`.
 
 # Examples
 ```jdoctest
-julia> cone_of_variety(AffineNormalToricVariety(Oscar.positive_hull([1 1; -1 1])))
+julia> cone(AffineNormalToricVariety(Oscar.positive_hull([1 1; -1 1])))
 A polyhedral cone in ambient dimension 2
-```
-"""
-function cone_of_variety(v::AffineNormalToricVariety)
-    return maximal_cones(fan(v))[1]
-end
-export cone_of_variety
-
-
-@doc Markdown.doc"""
-    cone(v::AffineNormalToricVariety)
-
-A convenience method for cone_of_variety of an affine toric variety `v`.
 """
 function cone(v::AffineNormalToricVariety)
-    return cone_of_variety(v)
+    return maximal_cones(fan(v))[1]
 end
 export cone
 
