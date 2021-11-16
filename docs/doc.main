@@ -132,6 +132,7 @@
      "Toric Varieties" => [
         "ToricVarieties/intro.md",
         "ToricVarieties/NormalToricVarieties.md",
+        "ToricVarieties/CyclicQuotientSingularities.md",
         "ToricVarieties/ToricDivisors.md",
      ],
   ],

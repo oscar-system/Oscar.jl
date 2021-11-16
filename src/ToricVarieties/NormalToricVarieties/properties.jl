@@ -54,6 +54,48 @@ export isprojective
 
 
 @doc Markdown.doc"""
+    isprojective_space(v::AbstractNormalToricVariety)
+
+Decides if the normal toric varieties `v` is a projective space.
+
+# Examples
+```jldoctest
+julia> H5 = hirzebruch_surface(5)
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+
+julia> isprojective_space(H5)
+false
+
+julia> isprojective_space(toric_projective_space(2))
+true
+```
+"""
+function isprojective_space(v::AbstractNormalToricVariety)
+    if issmooth(v) == false
+        return false
+    end
+    if isprojective(v) == false
+        return false
+    end
+    if rank(class_group(v)) > 1
+        return false
+    end
+    w = [[Int(x) for x in transpose(g.coeff)] for g in gens(class_group(v))]
+    for g in gens(class_group(v))
+        g = [Int(x) for x in g.coeff if !iszero(x)]    
+        if length(g) > 1
+            return false
+        end
+        if g[1] != 1
+            return false
+        end
+    end
+    return irrelevant_ideal(v) == ideal(gens(cox_ring(v)))
+end
+export isprojective_space
+
+
+@doc Markdown.doc"""
     issmooth(v::AbstractNormalToricVariety)
 
 Checks if the normal toric variety `v` is smooth.
