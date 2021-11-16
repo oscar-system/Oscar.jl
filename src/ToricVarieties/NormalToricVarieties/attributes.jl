@@ -233,8 +233,8 @@ Abelian group with structure: Z^3
 ```
 """
 function map_from_character_to_principal_divisors(v::AbstractNormalToricVariety)
-    mat = Matrix{Int}(Polymake.common.primitive(pm_object(v).RAYS))
-    matrix = AbstractAlgebra.matrix(ZZ, size(mat,2), size(mat,1), vec(mat))
+    mat = transpose(Matrix{Int}(Polymake.common.primitive(pm_object(v).RAYS)))
+    matrix = AbstractAlgebra.matrix(ZZ, mat)
     return hom(character_lattice(v), torusinvariant_divisor_group(v), matrix)
 end
 export map_from_character_to_principal_divisors
@@ -367,12 +367,11 @@ function map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v::Abst
     row = 1
     col = 1
     for i in 1:number_of_rays
-        for j in 1:(number_ray_is_part_of_max_cones[i]-1)
-            map_for_difference_of_elements[row,col] = 1
-            map_for_difference_of_elements[row+j,col] = -1
-            col += 1
-        end
-        row = row + number_ray_is_part_of_max_cones[i]
+        ncol = number_ray_is_part_of_max_cones[i]-1
+        map_for_difference_of_elements[row, col:(col+ncol-1)] = [fmpz(1) for c in 1:ncol]
+        map_for_difference_of_elements[(row+1):(row+ncol), col:(col+ncol-1)] = -identity_matrix(ZZ, ncol)
+        row = row + ncol + 1
+        col = col + ncol
     end
     
     # compute the matrix for mapping to torusinvariant Weil divisors
