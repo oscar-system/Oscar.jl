@@ -212,8 +212,8 @@ function Base.getproperty(G::MatrixGroup, sym::Symbol)
       if isdefined(G,:descr)
          assign_from_description(G)
       elseif isdefined(G,:gens)
-         V = GAP.julia_to_gap([g.X for g in gens(G)])
-         G.X=GAP.Globals.Group(V)
+         V = GAP.GapObj([g.X for g in gens(G)])
+         G.X = isempty(V) ? GAP.Globals.Group(V, one(G).X) : GAP.Globals.Group(V)
       else
          error("Cannot determine underlying GAP object")
       end
