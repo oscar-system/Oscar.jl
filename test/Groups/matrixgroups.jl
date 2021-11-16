@@ -266,10 +266,8 @@ end
    @test K==matrix_group(x.elm, (x^2).elm, y.elm)
    @test K==matrix_group([x.elm, (x^2).elm, y.elm])
 
-   n = nrows(x)
-   matgens = typeof(x)[]   # empty list of generators
-   G = MatrixGroup(n, F)
-   G.gens = [MatrixGroupElem(G, mat) for mat in matgens]
+   G = MatrixGroup(nrows(x), F)
+   G.gens = typeof(x)[]   # empty list of generators
    G.X
    @test one(G) == one(x)
 
