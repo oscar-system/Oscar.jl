@@ -496,6 +496,20 @@ end
 		@test M2_to_N1(g) == Hecke.canonical_projection(prod_N,1)(phi(emb[2](g)))
 		@test M2_to_N2(g) == Hecke.canonical_projection(prod_N,2)(phi(emb[2](g)))
 	end
+
+	# testing mixed typed modules
+
+	prod_FN,prod,emb = direct_product(F2,N2,task=:both)
+	@test ngens(prod_FN) == ngens(F2) + ngens(N2)
+	for g in gens(prod_FN)
+		@test g == sum([emb[i](prod[i](g)) for i=1:2])
+	end
+	for g in gens(F2)
+		@test g == prod[1](emb[1](g))
+	end
+	for g in gens(N2)
+		@test g == prod[2](emb[2](g))
+	end
 end
 
 @testset "Coordinates (lift)" begin
