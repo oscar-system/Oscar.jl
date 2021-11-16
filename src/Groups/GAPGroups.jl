@@ -270,15 +270,15 @@ Base.IteratorSize(::Type{PermGroup}) = Base.HasLength()
 
 function Base.iterate(G::GAPGroup)
   L=GAP.Globals.Iterator(G.X)
-  i = GAP.Globals.NextIterator(L)
+  i = GAPWrap.NextIterator(L)
   return group_element(G, i), L
 end
 
 function Base.iterate(G::GAPGroup, state)
-  if GAP.Globals.IsDoneIterator(state)
+  if GAPWrap.IsDoneIterator(state)
     return nothing
   end
-  i = GAP.Globals.NextIterator(state)
+  i = GAPWrap.NextIterator(state)
   return group_element(G, i), state
 end
 
@@ -529,10 +529,10 @@ Base.IteratorSize(::Type{<:GroupConjClass}) = Base.SizeUnknown()
 Base.iterate(cc::GroupConjClass) = iterate(cc, GAP.Globals.Iterator(cc.CC))
 
 function Base.iterate(cc::GroupConjClass{S,T}, state::GapObj) where {S,T}
-  if GAP.Globals.IsDoneIterator(state)
+  if GAPWrap.IsDoneIterator(state)
     return nothing
   end
-  i = GAP.Globals.NextIterator(state)
+  i = GAPWrap.NextIterator(state)
   if T <: GAPGroupElem
      return group_element(cc.X, i), state
   else

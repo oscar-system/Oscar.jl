@@ -146,7 +146,7 @@ julia> perm(symmetric_group(6),[2,4,6,1,3,5])
 """
 function perm(g::PermGroup, L::AbstractVector{<:IntegerUnion})
    x = GAP.Globals.PermList(GAP.GapObj(L;recursive=true))
-   if length(L) <= degree(g) && GAP.Globals.IN(x,g.X) 
+   if length(L) <= degree(g) && GAPWrap.IN(x,g.X) 
      return PermGroupElem(g, x)
    end
    throw(ArgumentError("the element does not embed in the group"))
@@ -156,7 +156,7 @@ perm(g::PermGroup, L::AbstractVector{<:fmpz}) = perm(g, [Int(y) for y in L])
 
 function (g::PermGroup)(L::AbstractVector{<:IntegerUnion})
    x = GAP.Globals.PermList(GAP.GapObj(L;recursive=true))
-   if length(L) <= degree(g) && GAP.Globals.IN(x,g.X)
+   if length(L) <= degree(g) && GAPWrap.IN(x,g.X)
      return PermGroupElem(g, x)
    end
    throw(ArgumentError("the element does not embed in the group"))
@@ -227,7 +227,7 @@ function cperm(g::PermGroup,L::AbstractVector{T}...) where T <: IntegerUnion
       return one(g)
    else
       x=prod(y -> GAP.Globals.CycleFromList(GAP.julia_to_gap([Int(k) for k in y])), L)
-      if length(L) <= degree(g) && GAP.Globals.IN(x,g.X)
+      if length(L) <= degree(g) && GAPWrap.IN(x,g.X)
          return PermGroupElem(g, x)
       else
          throw(ArgumentError("the element does not embed in the group"))
@@ -274,20 +274,16 @@ Base.Vector(x::PermGroupElem, n::Int = x.parent.deg) = Vector{Int}(x,n)
 
 #embedding of a permutation in permutation group
 function (G::PermGroup)(x::PermGroupElem)
-   if !GAP.Globals.IN(x.X,G.X)
+   if !GAPWrap.IN(x.X,G.X)
       throw(ArgumentError("the element does not embed in the group"))
    end
    return group_element(G, x.X)
 end
 
 #evaluation function
-function (x::PermGroupElem)(n::T) where T <: IntegerUnion
-   return T(GAP.Globals.OnPoints(GAP.Obj(n), x.X))
-end
+(x::PermGroupElem)(n::IntegerUnion) = n^x
 
-(x::PermGroupElem)(n::Int) = GAP.Globals.OnPoints(n,x.X)
-
-^(n::T, x::PermGroupElem) where T <: IntegerUnion = T(GAP.Globals.OnPoints(GAP.Obj(n), x.X))
+^(n::T, x::PermGroupElem) where T <: IntegerUnion = T(GAP.Obj(n)^x.X)
 
 ^(n::Int, x::PermGroupElem) = (n^x.X)::Int
 

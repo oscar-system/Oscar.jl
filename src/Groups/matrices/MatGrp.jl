@@ -240,16 +240,16 @@ Base.IteratorSize(::Type{<:MatrixGroup}) = Base.SizeUnknown()
 
 function Base.iterate(G::MatrixGroup)
   L=GAP.Globals.Iterator(G.X)
-  @assert ! GAP.Globals.IsDoneIterator(L)
-  i = GAP.Globals.NextIterator(L)
+  @assert ! GAPWrap.IsDoneIterator(L)
+  i = GAPWrap.NextIterator(L)
   return MatrixGroupElem(G, i), L
 end
 
 function Base.iterate(G::MatrixGroup, state::GapObj)
-  if GAP.Globals.IsDoneIterator(state)
+  if GAPWrap.IsDoneIterator(state)
     return nothing
   end
-  i = GAP.Globals.NextIterator(state)
+  i = GAPWrap.NextIterator(state)
   return MatrixGroupElem(G, i), state
 end
 
