@@ -70,8 +70,7 @@
 #   G2 = trivial_subgroup(G)[1]
 #   fanobj2 = GITFans.git_fan(a, Q, G2)
 #   @test fanobj2.F_VECTOR == [20, 110, 240, 225, 76]
-#T This fails with `ERROR: std::bad_alloc`
-#T when trying `Polymake.polytope.equal_polyhedra`.
+#T This call would fail with `Segmentation fault`.
 
 end
 
