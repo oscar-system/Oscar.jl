@@ -417,7 +417,7 @@ function apply_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, x::GAPGroupEl
   A = parent(f)
   G = parent(x)
   if check
-    @assert A.G == G || GAP.Globals.IN(x.X, A.G.X) "Not in the domain of f!"      #TODO Do we really need the IN check?
+    @assert A.G == G || GAPWrap.IN(x.X, A.G.X) "Not in the domain of f!"      #TODO Do we really need the IN check?
   end
   return typeof(x)(G, GAP.Globals.Image(f.X,x.X))
 end
