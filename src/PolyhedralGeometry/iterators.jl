@@ -206,6 +206,9 @@ function halfspace_matrix_pair(iter::SubObjectIterator)
 end
 _halfspace_matrix_pair(::Any, ::Polymake.BigObject) = throw(ArgumentError("Halfspace Matrix Pair not defined in this context."))
 
+point_matrix(iter::SubObjectIterator) = matrix(QQ, Matrix{fmpq}(_point_matrix(Val(iter.Acc), iter.Obj; iter.options...)))
+_point_matrix(::Any, ::Polymake.BigObject) = throw(ArgumentError("Point Matrix not defined in this context."))
+
 vector_matrix(iter::SubObjectIterator) = matrix(QQ, Matrix{fmpq}(_vector_matrix(Val(iter.Acc), iter.Obj; iter.options...)))
 _vector_matrix(::Any, ::Polymake.BigObject) = throw(ArgumentError("Vector Matrix not defined in this context."))
 
