@@ -266,6 +266,10 @@ end
    @test K==matrix_group(x.elm, (x^2).elm, y.elm)
    @test K==matrix_group([x.elm, (x^2).elm, y.elm])
 
+   G = MatrixGroup(nrows(x), F)
+   G.gens = typeof(x)[]   # empty list of generators
+   G.X
+   @test one(G) == one(x)
 
    G = GL(3,F)
    x = G([1,z,0,0,z,0,0,0,z+1])

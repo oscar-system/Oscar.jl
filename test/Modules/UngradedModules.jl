@@ -20,6 +20,12 @@ function randpoly(R::Oscar.Ring,coeffs=0:9,max_exp=4,max_terms=8)
 	return finish(M)
 end
 
+@testset "Modules: Constructors" begin
+	R, (x,y,z) = PolynomialRing(QQ, ["x", "y", "z"])
+	F = FreeMod(R,3)
+	v = [x, x^2*y+z^3, R(-1)]
+	@test v == Vector(F(v))
+end
 
 @testset "Intersection of modules" begin
   R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
@@ -420,7 +426,7 @@ end
 
 		phi = hom_tensor(N,M,[M3_to_M1,F4_to_M2])
 		u1 = SubQuoElem(sparse_row(matrix([randpoly(R) for _=1:1, i=1:ngens(M3)])), M3)
-		u2 = FreeModElem(sparse_row(matrix([randpoly(R) for _=1:1, i=1:ngens(F4)])), F4)
+		u2 = F4(sparse_row(matrix([randpoly(R) for _=1:1, i=1:ngens(F4)])))
 		@test phi(pure_N((u1,u2))) == pure_M((M3_to_M1(u1),F4_to_M2(u2)))
 	end
 end
@@ -439,7 +445,7 @@ end
 	B2 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:3])
 	M2 = SubQuo(F3,A2,B2)
 
-	prod_M, proj, emb = direct_product(M1,M2,task=:both)
+	prod_M, proj, emb = direct_sum(M1,M2,task=:both)
 	@test length(proj) == length(emb) == 2
 	@test ngens(prod_M) == ngens(M1) + ngens(M2)
 
@@ -495,6 +501,20 @@ end
 	for g in gens(M2)
 		@test M2_to_N1(g) == Hecke.canonical_projection(prod_N,1)(phi(emb[2](g)))
 		@test M2_to_N2(g) == Hecke.canonical_projection(prod_N,2)(phi(emb[2](g)))
+	end
+
+	# testing mixed typed modules
+
+	prod_FN,prod,emb = direct_product(F2,N2,task=:both)
+	@test ngens(prod_FN) == ngens(F2) + ngens(N2)
+	for g in gens(prod_FN)
+		@test g == sum([emb[i](prod[i](g)) for i=1:2])
+	end
+	for g in gens(F2)
+		@test g == prod[1](emb[1](g))
+	end
+	for g in gens(N2)
+		@test g == prod[2](emb[2](g))
 	end
 end
 

@@ -289,7 +289,7 @@ end
 
 ^(n::T, x::PermGroupElem) where T <: IntegerUnion = T(GAP.Globals.OnPoints(GAP.Obj(n), x.X))
 
-^(n::Int, x::PermGroupElem) = GAP.Globals.OnPoints(n,x.X)
+^(n::Int, x::PermGroupElem) = (n^x.X)::Int
 
 
 """

@@ -1,7 +1,10 @@
-# include files
+include("NormalToricVarieties/auxilliary.jl")
 include("NormalToricVarieties/constructors.jl")
 include("NormalToricVarieties/properties.jl")
-include("ToricDivisors.jl")
-include("AttributesAndMethods.jl")
-include("CyclicQuotientSingularities.jl")
-include("ToricIdeals.jl")
+include("NormalToricVarieties/attributes.jl")
+include("NormalToricVarieties/methods.jl")
+
+include("CyclicQuotientSingularities/CyclicQuotientSingularities.jl")
+
+include("ToricDivisors/constructors.jl")
+include("ToricDivisors/properties.jl")
