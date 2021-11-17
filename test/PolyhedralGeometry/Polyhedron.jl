@@ -18,8 +18,12 @@
     @testset "core functionality" begin
         @test nvertices(Q0) == 3
         @test nvertices.(faces(Q0,1)) == [2,2,2]
-        @test lattice_points(Q0) isa VectorIterator{PointVector{Polymake.Integer}}
-        @test lattice_points(Q0).m == [0 0; 0 1; 1 0]
+        @test lattice_points(Q0) isa SubObjectIterator{PointVector{Polymake.Integer}}
+        @test point_matrix(lattice_points(Q0)) == matrix(QQ, [0 0; 0 1; 1 0])
+        @test length(lattice_points(Q0)) == 3
+        @test lattice_points(Q0)[1] == PointVector{Polymake.Integer}([0, 0])
+        @test lattice_points(Q0)[2] == PointVector{Polymake.Integer}([0, 1])
+        @test lattice_points(Q0)[3] == PointVector{Polymake.Integer}([1, 0])
         @test isfeasible(Q0)
         @test issmooth(Q0)
         @test isnormal(Q0)
@@ -34,14 +38,23 @@
         @test codim(point) == 3
         @test !isfulldimensional(point)
         @test nrays(recession_cone(Pos)) == 3
-        @test vertices(point) isa VectorIterator{PointVector{Polymake.Rational}}
-        @test vertices(2*point).m == [0 2 0]
-        @test vertices([0,1,0] + point).m == [0 2 0]
-        @test rays(Pos) isa VectorIterator{RayVector{Polymake.Rational}}
-        @test rays(Pos).m == [1 0 0; 0 1 0; 0 0 1]
-        @test rays(RayVector, Pos) isa VectorIterator{RayVector{Polymake.Rational}}
-        @test lineality_space(L) isa VectorIterator{RayVector{Polymake.Rational}}
-        @test lineality_space(L).m == [0 0 1]
+        @test vertices(PointVector{Polymake.Rational}, point) isa SubObjectIterator{PointVector{Polymake.Rational}}
+        @test vertices(PointVector, point) isa SubObjectIterator{PointVector{Polymake.Rational}}
+        @test vertices(point) isa SubObjectIterator{PointVector{Polymake.Rational}}
+        @test point_matrix(vertices(2*point)) == matrix(QQ, [0 2 0])
+        @test point_matrix(vertices([0,1,0] + point)) == matrix(QQ, [0 2 0])
+        @test rays(RayVector{Polymake.Rational}, Pos) isa SubObjectIterator{RayVector{Polymake.Rational}}
+        @test rays(RayVector, Pos) isa SubObjectIterator{RayVector{Polymake.Rational}}
+        @test rays(Pos) isa SubObjectIterator{RayVector{Polymake.Rational}}
+        @test vector_matrix(rays(Pos)) == matrix(QQ, [1 0 0; 0 1 0; 0 0 1])
+        @test length(rays(Pos)) == 3
+        @test rays(Pos)[1] == RayVector([1, 0, 0])
+        @test rays(Pos)[2] == RayVector([0, 1, 0])
+        @test rays(Pos)[3] == RayVector([0, 0, 1])
+        @test lineality_space(L) isa SubObjectIterator{RayVector{Polymake.Rational}}
+        @test generator_matrix(lineality_space(L)) == matrix(QQ, [0 0 1])
+        @test length(lineality_space(L)) == 1
+        @test lineality_space(L)[] == RayVector([0, 0, 1])
         @test faces(square, 1) isa SubObjectIterator{Polyhedron}
         @test length(faces(square, 1)) == 4
         @test faces(square, 1)[1] == convex_hull([-1 -1; -1 1])
@@ -50,7 +63,14 @@
         @test faces(square, 1)[4] == convex_hull([-1 1; 1 1])
         @test vertex_incidences(faces(square, 1)) == IncidenceMatrix([[1, 3], [2, 4], [1, 2], [3, 4]])
         @test isnothing(faces(Q2, 0))
-        @test vertices(minkowski_sum(Q0, square)).m == [2 -1; 2 1; -1 -1; -1 2; 1 2]
+        v = vertices(minkowski_sum(Q0, square))
+        @test length(v) == 5
+        @test v[1] == PointVector([2, -1])
+        @test v[2] == PointVector([2, 1])
+        @test v[3] == PointVector([-1, -1])
+        @test v[4] == PointVector([-1, 2])
+        @test v[5] == PointVector([1, 2])
+        @test point_matrix(v) == matrix(QQ, [2 -1; 2 1; -1 -1; -1 2; 1 2])
         for T in [Halfspace, Pair{Polymake.Matrix{Polymake.Rational}, Polymake.Rational}, Polyhedron]
             @test facets(T, Pos) isa SubObjectIterator{T}
             @test length(facets(T, Pos)) == 4
@@ -103,7 +123,7 @@
             @test count(F -> nvertices(F) == 3, faces(C, 2)) == 12
         end
         nc = normal_cone(square, 1)
-        @test rays(nc).m == [1 0; 0 1]
+        @test vector_matrix(rays(nc)) == matrix(QQ, [1 0; 0 1])
         @test Polyhedron(facets(A)) == A
         b1 = birkhoff(3)
         b2 = birkhoff(3, even = true)

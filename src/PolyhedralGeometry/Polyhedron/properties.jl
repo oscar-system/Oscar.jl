@@ -70,7 +70,7 @@ function _vertex_indices(P::Polymake.BigObject)
     return vi
 end
 
-_ray_indices(P::Polymake.BigObject) = Polymake.to_one_based_indexing(P.FAR_FACE)
+_ray_indices(P::Polymake.BigObject) = collect(Polymake.to_one_based_indexing(P.FAR_FACE))
 
 function _polymake_to_oscar_vertex_index(P::Polymake.BigObject, i::Base.Integer)
     return i - sum((>).(i, P.FAR_FACE))
@@ -84,8 +84,8 @@ function _polymake_to_oscar_ray_index(P::Polymake.BigObject, i::Base.Integer)
     return sum((<).(i, P.FAR_FACE))
 end
 
-function _polymake_to_oscar_ray_index(P::Polymake.BigObject, x::Any)
-    return nothing
+function _polymake_to_oscar_ray_index(P::Polymake.BigObject, v::AbstractVector)
+    return [_polymake_to_oscar_ray_index(P, v[i]) for i in 1:length(v)]
 end
 
 @doc Markdown.doc"""
@@ -111,17 +111,13 @@ julia> vertices(PointVector, P)
  [1, 2]
 ```
 """
-function vertices(as::Type{PointVector{T}}, P::Polyhedron) where T
-    vertices = pm_object(P).VERTICES
-    rvertices = Vector{Int64}()
-    sizehint!(rvertices, size(vertices, 1))
-    for index in 1:size(vertices, 1)
-        if !iszero(vertices[index, 1])
-            push!(rvertices, index)
-        end
-    end
-    return VectorIterator{as}(vertices[rvertices, 2:end])
-end
+vertices(as::Type{PointVector{T}}, P::Polyhedron) where T = SubObjectIterator{as}(pm_object(P), _vertex_polyhedron, length(_vertex_indices(pm_object(P))))
+
+_vertex_polyhedron(::Type{PointVector{T}}, P::Polymake.BigObject, i::Base.Integer) where T = PointVector{T}(P.VERTICES[_vertex_indices(P)[i], 2:end])
+
+_point_matrix(::Val{_vertex_polyhedron}, P::Polymake.BigObject) = P.VERTICES[_vertex_indices(P), 2:end]
+
+_matrix_for_polymake(::Val{_vertex_polyhedron}, P::Polymake.BigObject) = P.VERTICES[_vertex_indices(P), 2:end]
 
 vertices(::Type{PointVector}, P::Polyhedron) = vertices(PointVector{Polymake.Rational}, P)
 
@@ -202,17 +198,13 @@ julia> rays(RayVector, PO)
  [0, 1]
 ```
 """
-function rays(as::Type{RayVector{T}}, P::Polyhedron) where T
-    vertices = pm_object(P).VERTICES
-    rrays = Vector{Int64}()
-    sizehint!(rrays, size(vertices, 1))
-    for index in 1:size(vertices, 1)
-        if iszero(vertices[index, 1])
-            push!(rrays, index)
-        end
-    end
-    return VectorIterator{as}(vertices[rrays, 2:end])
-end
+rays(as::Type{RayVector{T}}, P::Polyhedron) where T = SubObjectIterator{as}(pm_object(P), _ray_polyhedron, length(_ray_indices(pm_object(P))))
+
+_ray_polyhedron(::Type{RayVector{T}}, P::Polymake.BigObject, i::Base.Integer) where T = RayVector{T}(P.VERTICES[_ray_indices(P)[i], 2:end])
+
+_vector_matrix(::Val{_ray_polyhedron}, P::Polymake.BigObject) = P.VERTICES[_ray_indices(P), 2:end]
+
+_matrix_for_polymake(::Val{_ray_polyhedron}, P::Polymake.BigObject) = P.VERTICES[_ray_indices(P), 2:end]
 
 rays(::Type{RayVector}, P::Polyhedron) = rays(RayVector{Polymake.Rational}, P)
 
@@ -457,14 +449,15 @@ julia> lattice_points(S)
 ```
 """
 function lattice_points(P::Polyhedron)
-    if pm_object(P).BOUNDED
-        lat_pts = pm_object(P).LATTICE_POINTS_GENERATORS[1]
-        return VectorIterator{PointVector{Polymake.Integer}}(lat_pts[:, 2:end])
-    else
-        throw(ArgumentError("Polyhedron not bounded"))
-    end
+    pm_object(P).BOUNDED || throw(ArgumentError("Polyhedron not bounded"))
+    return SubObjectIterator{PointVector{Polymake.Integer}}(pm_object(P), _lattice_point, size(pm_object(P).LATTICE_POINTS_GENERATORS[1], 1))
 end
 
+_lattice_point(::Type{PointVector{Polymake.Integer}}, P::Polymake.BigObject, i::Base.Integer) = P.LATTICE_POINTS_GENERATORS[1][i, 2:end]
+
+_point_matrix(::Val{_lattice_point}, P::Polymake.BigObject) = P.LATTICE_POINTS_GENERATORS[1][:, 2:end]
+
+_matrix_for_polymake(::Val{_lattice_point}, P::Polymake.BigObject) = P.LATTICE_POINTS_GENERATORS[1][:, 2:end]
 
 @doc Markdown.doc"""
     interior_lattice_points(P::Polyhedron)
@@ -484,10 +477,14 @@ julia> interior_lattice_points(c)
 """
 function interior_lattice_points(P::Polyhedron)
     pm_object(P).BOUNDED || throw(ArgumentError("Polyhedron not bounded"))
-    lat_pts = pm_object(P).INTERIOR_LATTICE_POINTS
-    return VectorIterator{PointVector{Polymake.Integer}}(lat_pts[:, 2:end])
+    return SubObjectIterator{PointVector{Polymake.Integer}}(pm_object(P), _interior_lattice_point, size(pm_object(P).INTERIOR_LATTICE_POINTS, 1))
 end
 
+_interior_lattice_point(::Type{PointVector{Polymake.Integer}}, P::Polymake.BigObject, i::Base.Integer) = P.INTERIOR_LATTICE_POINTS[i, 2:end]
+
+_point_matrix(::Val{_interior_lattice_point}, P::Polymake.BigObject) = P.INTERIOR_LATTICE_POINTS[:, 2:end]
+
+_matrix_for_polymake(::Val{_interior_lattice_point}, P::Polymake.BigObject) = P.INTERIOR_LATTICE_POINTS[:, 2:end]
 
 @doc Markdown.doc"""
     boundary_lattice_points(P::Polyhedron)
@@ -512,10 +509,14 @@ julia> boundary_lattice_points(c)
 """
 function boundary_lattice_points(P::Polyhedron)
     pm_object(P).BOUNDED || throw(ArgumentError("Polyhedron not bounded"))
-    lat_pts = pm_object(P).BOUNDARY_LATTICE_POINTS
-    return VectorIterator{PointVector{Polymake.Integer}}(lat_pts[:, 2:end])
+    return SubObjectIterator{PointVector{Polymake.Integer}}(pm_object(P), _boundary_lattice_point, size(pm_object(P).BOUNDARY_LATTICE_POINTS, 1))
 end
 
+_boundary_lattice_point(::Type{PointVector{Polymake.Integer}}, P::Polymake.BigObject, i::Base.Integer) = P.BOUNDARY_LATTICE_POINTS[i, 2:end]
+
+_point_matrix(::Val{_boundary_lattice_point}, P::Polymake.BigObject) = P.BOUNDARY_LATTICE_POINTS[:, 2:end]
+
+_matrix_for_polymake(::Val{_boundary_lattice_point}, P::Polymake.BigObject) = P.BOUNDARY_LATTICE_POINTS[:, 2:end]
 
 @doc Markdown.doc"""
     ambient_dim(P::Polyhedron)
@@ -575,7 +576,13 @@ julia> lineality_space(UH)
  [1, 0]
 ```
 """
-lineality_space(P::Polyhedron) = VectorIterator{RayVector{Polymake.Rational}}(dehomogenize(pm_object(P).LINEALITY_SPACE))
+lineality_space(P::Polyhedron) = SubObjectIterator{RayVector{Polymake.Rational}}(pm_object(P), _lineality_polyhedron, lineality_dim(P))
+
+_lineality_polyhedron(::Type{RayVector{Polymake.Rational}}, P::Polymake.BigObject, i::Base.Integer) = P.LINEALITY_SPACE[i, 2:end]
+
+_generator_matrix(::Val{_lineality_polyhedron}, P::Polymake.BigObject) = P.LINEALITY_SPACE[:, 2:end]
+
+_matrix_for_polymake(::Val{_lineality_polyhedron}, P::Polymake.BigObject) = P.LINEALITY_SPACE[:, 2:end]
 
 @doc Markdown.doc"""
     affine_hull(P::Polytope)
