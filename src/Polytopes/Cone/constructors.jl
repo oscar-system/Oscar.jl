@@ -46,7 +46,14 @@ function Cone(R::Union{VectorIterator{RayVector}, Oscar.MatElem, AbstractMatrix}
     end
 end
 
-==(C0::Cone, C1::Cone) = Polymake.polytope.equal_polyhedra(pm_object(C0), pm_object(C1))
+function ==(C0::Cone, C1::Cone)
+    # TODO: Remove the following 4 lines, see #758
+    facets(C0)
+    facets(C1)
+    rays(C0)
+    rays(C1)
+    return Polymake.polytope.equal_polyhedra(pm_object(C0), pm_object(C1))
+end
 
 
 @doc Markdown.doc"""
