@@ -10,7 +10,7 @@ _ray_cone(::Type{T}, C::Polymake.BigObject, i::Base.Integer) where T = T(C.RAYS[
 
 _vector_matrix(::Val{_ray_cone}, C::Polymake.BigObject) = C.RAYS
 
-_matrix_for_polymake(::Val{_ray_cone}, C::Polymake.BigObject) = C.RAYS
+_matrix_for_polymake(::Val{_ray_cone}) = _vector_matrix
 
 rays(::Type{RayVector}, C::Cone) = rays(RayVector{Polymake.Rational}, C)
 
@@ -310,7 +310,7 @@ _facet_cone(::Type{Cone}, C::Polymake.BigObject, i::Base.Integer) = cone_from_in
 
 _inequality_matrix(::Val{_facet_cone}, C::Polymake.BigObject) = -C.FACETS
 
-_matrix_for_polymake(::Val{_facet_cone}, C::Polymake.BigObject) = -C.FACETS
+_matrix_for_polymake(::Val{_facet_cone}) = _inequality_matrix
 
 @doc Markdown.doc"""
     facets(as::Type{T} = Halfspace, C::Cone)
@@ -362,7 +362,7 @@ _lineality_cone(::Type{RayVector{Polymake.Rational}}, C::Polymake.BigObject, i::
 
 _generator_matrix(::Val{_lineality_cone}, C::Polymake.BigObject) = C.LINEALITY_SPACE
 
-_matrix_for_polymake(::Val{_lineality_cone}, C::Polymake.BigObject) = C.LINEALITY_SPACE
+_matrix_for_polymake(::Val{_lineality_cone}) = _generator_matrix
 
 @doc Markdown.doc"""
     linear_span(C::Cone)
@@ -388,7 +388,7 @@ _linear_span(::Type{Hyperplane}, C::Polymake.BigObject, i::Base.Integer) = Hyper
 
 _equation_matrix(::Val{_linear_span}, C::Polymake.BigObject) = C.LINEAR_SPAN
 
-_matrix_for_polymake(::Val{_linear_span}, C::Polymake.BigObject) = C.LINEAR_SPAN
+_matrix_for_polymake(::Val{_linear_span}) = _equation_matrix
 
 @doc Markdown.doc"""
     hilbert_basis(C::Cone)
@@ -420,4 +420,4 @@ _hilbert_generator(::Type{PointVector{Polymake.Integer}}, C::Polymake.BigObject,
 
 _generator_matrix(::Val{_hilbert_generator}, C::Polymake.BigObject) = C.HILBERT_BASIS_GENERATORS[1]
 
-_matrix_for_polymake(::Val{_hilbert_generator}, C::Polymake.BigObject) = C.HILBERT_BASIS_GENERATORS[1]
+_matrix_for_polymake(::Val{_hilbert_generator}) = _generator_matrix
