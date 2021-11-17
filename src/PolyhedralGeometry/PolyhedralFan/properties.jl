@@ -33,7 +33,7 @@ _ray_fan(::Type{RayVector{Polymake.Rational}}, PF::Polymake.BigObject, i::Base.I
 
 _vector_matrix(::Val{_ray_fan}, PF::Polymake.BigObject) = PF.RAYS
 
-_matrix_for_polymake(::Val{_ray_fan}, PF::Polymake.BigObject) = PF.RAYS
+_matrix_for_polymake(::Val{_ray_fan}) = _vector_matrix
 
 _maximal_cone(::Type{Cone}, PF::Polymake.BigObject, i::Base.Integer) = Cone(Polymake.fan.cone(PF, i - 1))
 
@@ -270,7 +270,7 @@ _lineality_fan(::Type{RayVector{Polymake.Rational}}, PF::Polymake.BigObject, i::
 
 _generator_matrix(::Val{_lineality_fan}, PF::Polymake.BigObject) = PF.LINEALITY_SPACE
 
-_matrix_for_polymake(::Val{_lineality_fan}, PF::Polymake.BigObject) = PF.LINEALITY_SPACE
+_matrix_for_polymake(::Val{_lineality_fan}) = _generator_matrix
 
 ###############################################################################
 ## Boolean properties

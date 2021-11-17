@@ -117,7 +117,7 @@ _vertex_polyhedron(::Type{PointVector{T}}, P::Polymake.BigObject, i::Base.Intege
 
 _point_matrix(::Val{_vertex_polyhedron}, P::Polymake.BigObject) = P.VERTICES[_vertex_indices(P), 2:end]
 
-_matrix_for_polymake(::Val{_vertex_polyhedron}, P::Polymake.BigObject) = P.VERTICES[_vertex_indices(P), 2:end]
+_matrix_for_polymake(::Val{_vertex_polyhedron}) = _point_matrix
 
 vertices(::Type{PointVector}, P::Polyhedron) = vertices(PointVector{Polymake.Rational}, P)
 
@@ -204,7 +204,7 @@ _ray_polyhedron(::Type{RayVector{T}}, P::Polymake.BigObject, i::Base.Integer) wh
 
 _vector_matrix(::Val{_ray_polyhedron}, P::Polymake.BigObject) = P.VERTICES[_ray_indices(P), 2:end]
 
-_matrix_for_polymake(::Val{_ray_polyhedron}, P::Polymake.BigObject) = P.VERTICES[_ray_indices(P), 2:end]
+_matrix_for_polymake(::Val{_ray_polyhedron}) = _vector_matrix
 
 rays(::Type{RayVector}, P::Polyhedron) = rays(RayVector{Polymake.Rational}, P)
 
@@ -297,7 +297,7 @@ end
 
 _affine_inequality_matrix(::Val{_facet_polyhedron}, C::Polymake.BigObject) = -C.FACETS
 
-_affine_matrix_for_polymake(::Val{_facet_polyhedron}, C::Polymake.BigObject) = -C.FACETS
+_affine_matrix_for_polymake(::Val{_facet_polyhedron}) = _affine_inequality_matrix
 
 _halfspace_matrix_pair(::Val{_facet_polyhedron}, C::Polymake.BigObject) = decompose_hdata(C.FACETS)
 
@@ -457,7 +457,7 @@ _lattice_point(::Type{PointVector{Polymake.Integer}}, P::Polymake.BigObject, i::
 
 _point_matrix(::Val{_lattice_point}, P::Polymake.BigObject) = P.LATTICE_POINTS_GENERATORS[1][:, 2:end]
 
-_matrix_for_polymake(::Val{_lattice_point}, P::Polymake.BigObject) = P.LATTICE_POINTS_GENERATORS[1][:, 2:end]
+_matrix_for_polymake(::Val{_lattice_point}) = _point_matrix
 
 @doc Markdown.doc"""
     interior_lattice_points(P::Polyhedron)
@@ -484,7 +484,7 @@ _interior_lattice_point(::Type{PointVector{Polymake.Integer}}, P::Polymake.BigOb
 
 _point_matrix(::Val{_interior_lattice_point}, P::Polymake.BigObject) = P.INTERIOR_LATTICE_POINTS[:, 2:end]
 
-_matrix_for_polymake(::Val{_interior_lattice_point}, P::Polymake.BigObject) = P.INTERIOR_LATTICE_POINTS[:, 2:end]
+_matrix_for_polymake(::Val{_interior_lattice_point}) = _point_matrix
 
 @doc Markdown.doc"""
     boundary_lattice_points(P::Polyhedron)
@@ -516,7 +516,7 @@ _boundary_lattice_point(::Type{PointVector{Polymake.Integer}}, P::Polymake.BigOb
 
 _point_matrix(::Val{_boundary_lattice_point}, P::Polymake.BigObject) = P.BOUNDARY_LATTICE_POINTS[:, 2:end]
 
-_matrix_for_polymake(::Val{_boundary_lattice_point}, P::Polymake.BigObject) = P.BOUNDARY_LATTICE_POINTS[:, 2:end]
+_matrix_for_polymake(::Val{_boundary_lattice_point}) = _point_matrix
 
 @doc Markdown.doc"""
     ambient_dim(P::Polyhedron)
@@ -582,7 +582,7 @@ _lineality_polyhedron(::Type{RayVector{Polymake.Rational}}, P::Polymake.BigObjec
 
 _generator_matrix(::Val{_lineality_polyhedron}, P::Polymake.BigObject) = P.LINEALITY_SPACE[:, 2:end]
 
-_matrix_for_polymake(::Val{_lineality_polyhedron}, P::Polymake.BigObject) = P.LINEALITY_SPACE[:, 2:end]
+_matrix_for_polymake(::Val{_lineality_polyhedron}) = _generator_matrix
 
 @doc Markdown.doc"""
     affine_hull(P::Polytope)
