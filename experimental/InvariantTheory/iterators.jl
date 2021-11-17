@@ -79,7 +79,7 @@ end
 # Returns the dimension of the graded component of degree d.
 # If we cannot compute the Molien series (so far in the modular case), we return
 # -1.
-function dimension_via_molien_series(R::InvRing, d::Int)
+function dimension_via_molien_series(::Type{T}, R::InvRing, d::Int) where T <: IntegerUnion
   if ismodular(R)
     return -1
   end
@@ -88,8 +88,7 @@ function dimension_via_molien_series(R::InvRing, d::Int)
   F = molien_series(R)
   k = coeff(numerator(F)(t)*inv(denominator(F)(t)), d)
   @assert isintegral(k)
-  k = Int(numerator(k))
-  return k
+  return T(numerator(k))::T
 end
 
 # Iterate over the basis of the degree d component of an invariant ring.
@@ -136,7 +135,7 @@ function iterate_basis_reynolds(R::InvRing, d::Int)
 
   monomials = all_monomials(polynomial_ring(R), d)
 
-  k = dimension_via_molien_series(R, d)
+  k = dimension_via_molien_series(Int, R, d)
   @assert k != -1
 
   N = zero_matrix(base_ring(polynomial_ring(R)), 0, 0)
@@ -149,7 +148,7 @@ function iterate_basis_linear_algebra(IR::InvRing, d::Int)
 
   R = polynomial_ring(IR)
 
-  k = dimension_via_molien_series(IR, d)
+  k = dimension_via_molien_series(Int, IR, d)
   if k == 0
     N = zero_matrix(base_ring(R), 0, 0)
     mons = elem_type(R)[]
