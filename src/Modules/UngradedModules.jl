@@ -258,6 +258,10 @@ function (F::FreeMod{T})(c::Vector{T}) where T
  return FreeModElem(c, F)
 end
 
+function (F::FreeMod{T})(v::FreeModElem{T}) where T
+  @assert parent(v) === F
+  return v
+end
 
 function in(v::AbstractFreeModElem, M::ModuleFP)
   return parent(v) === M
@@ -2849,7 +2853,7 @@ are returned (with projections first).
 function direct_product(G::ModuleFP...; task::Symbol = :none)
   F, pro, mF = direct_product([free_module(x) for x = G]..., task = :both)
   s, emb_sF = sub(F, vcat([[mF[i](y) for y = gens(G[i], free_module(G[i]))] for i=1:length(G)]...), :both)
-  q = vcat([[mF[i](y) for y = rels(G[i])] for i=1:length(G)]...)
+  q::Vector{FreeModElem} = vcat([[mF[i](y) for y = rels(G[i])] for i=1:length(G)]...)
   pro_quo = nothing
   if length(q) != 0
     s, pro_quo = quo(s, q, :both)
@@ -2880,12 +2884,12 @@ function direct_product(G::ModuleFP...; task::Symbol = :none)
   if task == :sum || task != :prod
     if pro_quo === nothing
       for i=1:length(mF)
-        mF[i] = hom(G[i], s, [preimage(emb_sF, mF[i](typeof(G) <: FreeMod ? g : g.repres)) for g in gens(G[i])])
+        mF[i] = hom(G[i], s, [preimage(emb_sF, mF[i](repres(g))) for g in gens(G[i])])
         injection_dictionary[i] = mF[i]
       end
     else
       for i=1:length(mF)
-        mF[i] = hom(G[i], s, [pro_quo(preimage(emb_sF, mF[i](typeof(G) <: FreeMod ? g : g.repres))) for g in gens(G[i])])
+        mF[i] = hom(G[i], s, [pro_quo(preimage(emb_sF, mF[i](repres(g)))) for g in gens(G[i])])
         injection_dictionary[i] = mF[i]
       end
     end

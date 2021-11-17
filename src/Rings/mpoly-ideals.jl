@@ -41,9 +41,15 @@ function ideal(g::Vector{T}) where {T <: MPolyElem}
   @assert all(x->parent(x) == parent(g[1]), g)
   return MPolyIdeal(g)
 end
+
+# TODO: Can we make this the default?
+# (Or maybe remove ideal(...) without a ring completely?)
 function ideal(R::MPolyRing, g::Vector)
-  f = elem_type(R)[R(f) for f = g]
-  return ideal(f)
+  h = elem_type(R)[R(f) for f = g]
+  if isempty(g)
+    push!(h, R())
+  end
+  return ideal(h)
 end
 
 function ideal(Qxy::MPolyRing{T}, x::MPolyElem{T}) where T <: RingElem 

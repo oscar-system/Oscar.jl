@@ -13,7 +13,6 @@ struct AffineNormalToricVariety <: AbstractNormalToricVariety
 end
 export AffineNormalToricVariety
 
-
 function pm_object(v::AbstractNormalToricVariety)
     return v.polymakeNTV
 end
@@ -225,9 +224,52 @@ end
 export del_pezzo
 
 
+############################
+# 4: Advanced constructions
+############################
+
+@doc Markdown.doc"""
+    blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int)
+
+Computes the blowup of the normal toric variety `v` on its i-th minimal torus orbit.
+
+# Examples
+```jldoctest
+julia> P2 = toric_projective_space(2)
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+
+julia> blowup_on_ith_minimal_torus_orbit(P2,1)
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+```
+"""
+function blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int)
+    return NormalToricVariety( starsubdivision( fan( v ), n ) )
+end
+export blowup_on_ith_minimal_torus_orbit
+
+
+@doc Markdown.doc"""
+    Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety)
+
+Computes the Cartesian/direct product of two normal toric varieties `v` and `w`.
+
+# Examples
+```jldoctest
+julia> P2 = toric_projective_space(2)
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+
+julia> P2 * P2
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 4
+```
+"""
+function Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety)
+    return NormalToricVariety(fan(v)*fan(w))
+end
+
+
 ###############################################################################
 ###############################################################################
-### Display
+### 5: Display
 ###############################################################################
 ###############################################################################
 function Base.show(io::IO, ntv::AbstractNormalToricVariety)
