@@ -227,7 +227,7 @@ Return the element of  `F`  whose coefficients with respect to the basis of
 standard unit vectors of `F` are given by the entries of `c`.
 """
 function (F::FreeMod{T})(c::SRow{T}) where T
-  return FreeModElem(coords, F)
+  return FreeModElem(c, F)
 end
 
 @doc Markdown.doc"""
@@ -348,7 +348,7 @@ end
 Return the coefficients of `e` as a Vector.
 """
 function Vector(e::FreeModElem)
-  return dense_row(coords(e),rank(parent(e)))
+  return [e[i] for i in 1:rank(parent(e))]
 end
 
 @doc Markdown.doc"""
@@ -2758,22 +2758,6 @@ function Base.inv(H::ModuleMap)
 end
 
 ##################################################
-# direct sum
-##################################################
-@doc Markdown.doc"""
-    direct_sum(F::FreeMod{T}...; task::Symbol = :none) where T
-
-Given free modules $F_1\dots F_n$, say, return the direct sum $\bigoplus_{i=1}^n F_i$,
-together with
-- a vector containing the canonical injections  $F_i\rightarrow\bigoplus_{i=1}^n F_i$ if `task` is set to ":sum",
-- a vector containing the canonical projections  $\bigoplus_{i=1}^n F_i\rightarrow F_i$ if `task` is set to ":prod",
-- both vectors above, with injections first, if `task` is set to ":both".
-"""
-function direct_sum(F::FreeMod{T}...; task::Symbol = :none) where {T}
-  return direct_product(F, task)
-end
-
-##################################################
 # direct product
 ##################################################
 @doc Markdown.doc"""
@@ -2900,6 +2884,22 @@ function direct_product(G::ModuleFP...; task::Symbol = :none)
     end
   end
 end
+##################################################
+# direct sum
+##################################################
+@doc Markdown.doc"""
+    direct_sum(M::ModuleFP{T}...; task::Symbol = :none) where T
+
+Given free modules $M_1\dots M_n$, say, return the direct sum $\bigoplus_{i=1}^n M_i$,
+together with
+- a vector containing the canonical injections  $M_i\rightarrow\bigoplus_{i=1}^n M_i$ if `task` is set to ":sum",
+- a vector containing the canonical projections  $\bigoplus_{i=1}^n M_i\rightarrow M_i$ if `task` is set to ":prod",
+- both vectors above, with injections first, if `task` is set to ":both".
+"""
+function direct_sum(M::ModuleFP{T}...; task::Symbol = :none) where {T}
+  return direct_product(M...; task)
+end
+
 ⊕(M::ModuleFP...) = direct_product(M..., task = :none)
 
 
