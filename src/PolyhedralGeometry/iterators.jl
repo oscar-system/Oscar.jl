@@ -117,43 +117,6 @@ Base.:(==)(x::Halfspace, y::Halfspace) = x.a == y.a && x.b == y.b
 
 Base.:(==)(x::Hyperplane, y::Hyperplane) = x.a == y.a && x.b == y.b
 
-###############################
-
-struct VectorIterator{T} <: AbstractVector{T}
-    m::AbstractMatrix
-    VectorIterator{PointVector{U}}(m) where U = new(Polymake.Matrix{Polymake.to_cxx_type(U)}(m))
-    VectorIterator{RayVector{U}}(m) where U = new(Polymake.Matrix{Polymake.to_cxx_type(U)}(m))
-end
-
-Base.IndexStyle(::Type{<:VectorIterator}) = IndexLinear()
-
-function Base.getindex(iter::VectorIterator{T}, i::Base.Integer) where T
-    @boundscheck checkbounds(iter.m, i, 1)
-    return T(iter.m[i, :])
-end
-
-function Base.setindex!(iter::VectorIterator{T}, val, i::Base.Integer) where T
-    @boundscheck checkbounds(iter.m, i, 1)
-    iter.m[i, :] = val
-    return val
-end
-
-Base.firstindex(::VectorIterator) = 1
-Base.lastindex(iter::VectorIterator) = length(iter)
-Base.size(iter::VectorIterator) = (size(iter.m, 1),)
-
-matrix(iter::VectorIterator{T}) where {S<:Base.Integer,T<:Union{PointVector{S}, RayVector{S}}} = matrix(ZZ, iter.m)
-
-matrix(iter::VectorIterator{T}) where {S,T<:Union{PointVector{S}, RayVector{S}}} = matrix(QQ, Matrix{fmpq}(iter.m))
-
-VectorIterator{RayVector{S}}(vertices::Union{Oscar.fmpz_mat,AbstractMatrix{Oscar.fmpz}, Oscar.fmpq_mat,AbstractMatrix{Oscar.fmpq}}) where S = VectorIterator{RayVector{S}}(matrix_for_polymake(vertices))
-VectorIterator{PointVector{S}}(vertices::Union{Oscar.fmpz_mat,AbstractMatrix{Oscar.fmpz}, Oscar.fmpq_mat,AbstractMatrix{Oscar.fmpq}}) where S = VectorIterator{PointVector{S}}(matrix_for_polymake(vertices))
-VectorIterator{T}(vertices::Array{V, 1}) where {T, V<:Union{AbstractVector, T}} = VectorIterator{T}(cat((v' for v in vertices)...; dims = 1))
-
-VectorIterator(x...) = VectorIterator{PointVector{Polymake.Rational}}(x...)
-
-matrix_for_polymake(iter::VectorIterator) = iter.m
-
 ####################
 
 struct SubObjectIterator{T} <: AbstractVector{T}
