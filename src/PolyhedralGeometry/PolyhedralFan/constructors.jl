@@ -62,13 +62,13 @@ julia> PF=PolyhedralFan(R,IM)
 A polyhedral fan in ambient dimension 2
 ```
 """
-function PolyhedralFan(Rays::Union{VectorIterator{<:RayVector}, Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix)
+function PolyhedralFan(Rays::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix)
    PolyhedralFan(Polymake.fan.PolyhedralFan{Polymake.Rational}(
       INPUT_RAYS = matrix_for_polymake(Rays),
       INPUT_CONES = Incidence,
    ))
 end
-function PolyhedralFan(Rays::Union{VectorIterator{<:RayVector}, Oscar.MatElem,AbstractMatrix}, LS::Union{Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix)
+function PolyhedralFan(Rays::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem,AbstractMatrix}, LS::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix)
    PolyhedralFan(Polymake.fan.PolyhedralFan{Polymake.Rational}(
       INPUT_RAYS = matrix_for_polymake(Rays),
       INPUT_LINEALITY = matrix_for_polymake(LS),
@@ -86,11 +86,11 @@ pm_object(PF::PolyhedralFan) = PF.pm_fan
 PolyhedralFan(itr::AbstractVector{Cone}) = PolyhedralFan(Polymake.fan.check_fan_objects(pm_object.(itr)...))
 
 #Same construction for when the user gives Matrix{Bool} as incidence matrix
-function PolyhedralFan(Rays::Union{VectorIterator{<:RayVector}, Oscar.MatElem,AbstractMatrix}, LS::Union{Oscar.MatElem,AbstractMatrix}, Incidence::Matrix{Bool})
+function PolyhedralFan(Rays::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix}, LS::Union{Oscar.MatElem, AbstractMatrix}, Incidence::Matrix{Bool})
    PolyhedralFan(Rays, LS, IncidenceMatrix(Polymake.IncidenceMatrix(Incidence)))
 end
-function PolyhedralFan(Rays::Union{VectorIterator{<:RayVector}, Oscar.MatElem,AbstractMatrix}, Incidence::Matrix{Bool})
-   PolyhedralFan(Rays,IncidenceMatrix(Polymake.IncidenceMatrix(Incidence)))
+function PolyhedralFan(Rays::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix}, Incidence::Matrix{Bool})
+   PolyhedralFan(Rays, IncidenceMatrix(Polymake.IncidenceMatrix(Incidence)))
 end
 
 
