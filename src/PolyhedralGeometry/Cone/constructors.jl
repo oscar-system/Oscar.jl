@@ -35,7 +35,7 @@ julia> HS = Cone(R, L)
 A polyhedral cone in ambient dimension 2
 ```
 """
-function Cone(R::Union{SubObjectIterator{RayVector}, Oscar.MatElem, AbstractMatrix}, L::Union{SubObjectIterator{RayVector}, Oscar.MatElem, AbstractMatrix, Nothing} = nothing; non_redundant::Bool = false)
+function Cone(R::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix}, L::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix, Nothing} = nothing; non_redundant::Bool = false)
     RM = matrix_for_polymake(R)
     LM = isnothing(L) || isempty(L) ? Polymake.Matrix{Polymake.Rational}(undef, 0, size(RM, 2)) : matrix_for_polymake(L)
 
@@ -103,7 +103,7 @@ julia> rays(C)
  [1, 1]
 ```
 """
-function cone_from_inequalities(I::Union{SubObjectIterator, Oscar.MatElem, AbstractMatrix}, E::Union{Nothing, SubObjectIterator, Oscar.MatElem, AbstractMatrix} = nothing; non_redundant::Bool = false)
+function cone_from_inequalities(I::Union{SubObjectIterator{Halfspace}, Oscar.MatElem, AbstractMatrix}, E::Union{Nothing, SubObjectIterator{Halfspace}, Oscar.MatElem, AbstractMatrix} = nothing; non_redundant::Bool = false)
     IM = -matrix_for_polymake(I)
     EM = isnothing(E) || isempty(E) ? Polymake.Matrix{Polymake.Rational}(undef, 0, size(IM, 2)) : matrix_for_polymake(E)
 

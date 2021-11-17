@@ -27,7 +27,13 @@ julia> rays(NF)
  [0, 0, -1]
 ```
 """
-rays(PF::PolyhedralFan) = VectorIterator{RayVector{Polymake.Rational}}(pm_object(PF).RAYS)
+rays(PF::PolyhedralFan) = SubObjectIterator{RayVector{Polymake.Rational}}(pm_object(PF), _ray_fan, pm_object(PF).N_RAYS)
+
+_ray_fan(::Type{RayVector{Polymake.Rational}}, PF::Polymake.BigObject, i::Base.Integer) = RayVector(PF.RAYS[i, :])
+
+_vector_matrix(::Val{_ray_fan}, PF::Polymake.BigObject) = PF.RAYS
+
+_matrix_for_polymake(::Val{_ray_fan}, PF::Polymake.BigObject) = PF.RAYS
 
 _maximal_cone(::Type{Cone}, PF::Polymake.BigObject, i::Base.Integer) = Cone(Polymake.fan.cone(PF, i - 1))
 
@@ -258,7 +264,13 @@ julia> lineality_space(PF)
  [1, 0]
 ```
 """
-lineality_space(PF::PolyhedralFan) = VectorIterator{RayVector{Polymake.Rational}}(pm_object(PF).LINEALITY_SPACE)
+lineality_space(PF::PolyhedralFan) = SubObjectIterator{RayVector{Polymake.Rational}}(pm_object(PF), _lineality_fan, lineality_dim(PF))
+
+_lineality_fan(::Type{RayVector{Polymake.Rational}}, PF::Polymake.BigObject, i::Base.Integer) = RayVector(PF.LINEALITY_SPACE[i, :])
+
+_generator_matrix(::Val{_lineality_fan}, PF::Polymake.BigObject) = PF.LINEALITY_SPACE
+
+_matrix_for_polymake(::Val{_lineality_fan}, PF::Polymake.BigObject) = PF.LINEALITY_SPACE
 
 ###############################################################################
 ## Boolean properties
