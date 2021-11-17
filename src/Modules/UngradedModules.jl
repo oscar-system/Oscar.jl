@@ -227,7 +227,7 @@ Return the element of  `F`  whose coefficients with respect to the basis of
 standard unit vectors of `F` are given by the entries of `c`.
 """
 function (F::FreeMod{T})(c::SRow{T}) where T
-  return FreeModElem(coords, F)
+  return FreeModElem(c, F)
 end
 
 @doc Markdown.doc"""
@@ -344,7 +344,7 @@ end
 Return the coefficients of `e` as a Vector.
 """
 function Vector(e::FreeModElem)
-  return dense_row(coords(e),rank(parent(e)))
+  return [e[i] for i in 1:rank(parent(e))]
 end
 
 @doc Markdown.doc"""
@@ -2766,7 +2766,7 @@ together with
 - both vectors above, with injections first, if `task` is set to ":both".
 """
 function direct_sum(F::FreeMod{T}...; task::Symbol = :none) where {T}
-  return direct_product(F, task)
+  return direct_product(F...; task)
 end
 
 ##################################################
