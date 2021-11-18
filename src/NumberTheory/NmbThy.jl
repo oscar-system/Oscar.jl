@@ -97,8 +97,8 @@ function isirreducible(a::NfAbsOrdElem{AnticNumberField,nf_elem})
     return false
   end
   s, ms = Hecke.sunit_mod_units_group_fac_elem(S)
-  V = matrix([fmpz[valuation(ms(x), y) for y = S] for x = gens(s)])
-  b = matrix([fmpz[valuation(a, y) for y = S]])
+  V = matrix(ZZ, [fmpz[valuation(ms(x), y) for y = S] for x = gens(s)])'
+  b = matrix(ZZ, [fmpz[valuation(a, y) for y = S]])'
   sol = solve(V, b)
 
   #want to write sol = x+y where
@@ -145,7 +145,7 @@ function irreducibles(S::Vector{NfAbsOrdIdl{AnticNumberField,nf_elem}})
   end
   c, mc = class_group(O)
 
-  V = matrix([[valuation(ms(x), y) for y = S] for x = gens(s)])
+  V = matrix(ZZ, [[valuation(ms(x), y) for y = S] for x = gens(s)])'
 
   cone = cone_from_inequalities(-V)
   @assert ispointed(cone) # otherwise the Hilbert basis is not unique
@@ -166,8 +166,8 @@ function factorisations(a::NfAbsOrdElem{AnticNumberField,nf_elem})
     return []
   end
   irr = irreducibles(S)
-  b = matrix([fmpz[valuation(a, y) for y = S]])
-  A = matrix([fmpz[valuation(x, y) for y = S] for x = irr])
+  b = matrix(ZZ, [fmpz[valuation(a, y) for y = S]])'
+  A = matrix(ZZ, [fmpz[valuation(x, y) for y = S] for x = irr])'
   #solving Ax = b for x >=0  and A >=0 implies that colums of A with
   #entries > those in b can never be part of a solution
   #thus we prune them
