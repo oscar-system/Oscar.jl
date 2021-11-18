@@ -230,12 +230,12 @@ mutable struct MPolyComplementOfKPointIdeal{
   # The coordinates aᵢ of the point in 𝕜ⁿ corresponding to the maximal ideal
   a::Vector{BaseRingElemType}
 
-  function MPolyComplementOfKPointIdeal(R::RingType, a::Vector{BaseRingElemType}) where {RingType<:MPolyRing, BaseRingElemType<:RingElement}
+  function MPolyComplementOfKPointIdeal(R::RingType, a::Vector{T}) where {RingType<:MPolyRing, T<:RingElement}
     length(a) == length(gens(R)) || error("the number of variables in the ring does not coincide with the number of coordinates")
     n = length(a)
-    k = coefficient_ring(R)
-    b = k.(a) # fails if the input is not compatible
-    S = new{typeof(k), BaseRingElemType, RingType, elem_type(R)}(R, b)
+    kk = coefficient_ring(R)
+    b = kk.(a) # fails if the input is not compatible
+    S = new{typeof(kk), elem_type(kk), RingType, elem_type(R)}(R, b)
     return S
   end
 end
@@ -345,11 +345,12 @@ end
 
 ### printing
 function Base.show(io::IO, S::MPolyProductOfMultSets)
-  print(io, "product of the multiplicative sets ")
+  print(io, "product of the multiplicative sets [")
   for s in sets(S)
     print(io, s)
-    print(io, " ")
+    s != last(sets(S)) && print(io, ", ")
   end
+  print(io, "]")
 end
 
 ### generation of random elements 
@@ -1146,6 +1147,32 @@ function saturated_ideal(
 end
 
 function saturated_ideal(
+    I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET}}
+  ) where {BRT, BRET, RT, RET}
+  ### saturation has to proceed via primary decomposition in this case. 
+  # We rely on the primary decomposition on the singular side which is 
+  # already implemented so that all non-relevant components are thrown 
+  # away. The remaining components are then intersected to produce 
+  # the ideal in question. 
+  lbpa = BiPolyArray(I)
+  V = base_ring(I)
+  R = base_ring(V)
+  sing_decomp = Singular.LibPrimdec.primdecGTZ(singular_ring(lbpa), singular_gens(lbpa))
+  decomp = [BiPolyArray(V, K[1]) for K in Singular.LibPrimdec.primdecGTZ(singular_ring(lbpa), singular_gens(lbpa))]
+  if length(decomp) == 0
+    return ideal(R, zero(R))
+  end
+  relevant_comp = BiPolyArray(V, [one(V)])
+  U = inverted_set(V)
+  P = prime_ideal(U)
+  for comp in decomp
+    # Check whether the given component is contained in P.
+    issubset(ideal(R, numerator.(oscar_gens(comp))), P) && (relevant_comp = BiPolyArray(V, Singular.intersection(singular_gens(relevant_comp), singular_gens(comp))))
+  end
+  return ideal(R, numerator.(oscar_gens(relevant_comp)))
+end
+
+function saturated_ideal(
     I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}}
   ) where {BRT, BRET, RT, RET}
   ### saturation has to proceed via primary decomposition in this case. 
@@ -1156,18 +1183,13 @@ function saturated_ideal(
   lbpa = BiPolyArray(I)
   V = base_ring(I)
   R = base_ring(V)
-  @show singular_ring(lbpa)
-  @show singular_gens(lbpa)
   sing_decomp = Singular.LibPrimdec.primdecGTZ(singular_ring(lbpa), singular_gens(lbpa))
-  @show sing_decomp
   decomp = [BiPolyArray(V, K[1]) for K in Singular.LibPrimdec.primdecGTZ(singular_ring(lbpa), singular_gens(lbpa))]
   if length(decomp) == 0
     return ideal(R, zero(R))
   end
   relevant_comp = decomp[1]
   for i in (2:length(decomp))
-    @show singular_gens(relevant_comp)
-    @show singular_gens(decomp[i])
     relevant_comp = BiPolyArray(V, Singular.intersection(singular_gens(relevant_comp), singular_gens(decomp[i])))
   end
   return ideal(R, numerator.(oscar_gens(relevant_comp)))
@@ -1189,6 +1211,24 @@ function saturated_ideal(
   end
   return I.saturated_ideal
 end
+
+function saturated_ideal(
+    I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MPolyProductOfMultSets{BRT, BRET, RT, RET}}
+  ) where {BRT, BRET, RT, RET}
+  if !isdefined(I, :saturated_ideal)
+    W = base_ring(I)
+    R = base_ring(W)
+    J = ideal(R, numerator.(gens(I)))
+    for U in sets(inverted_set(W))
+      L = Localization(U)
+      J = saturated_ideal(L(J))
+    end
+    I.saturated_ideal = J
+  end
+  return I.saturated_ideal
+end
+
+
 
 # TODO: Extend the above functionality for other types of localizations.
 
@@ -1285,9 +1325,21 @@ BiPolyArray(
 
 BiPolyArray(
     W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST}, 
+    g::Vector{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}};
+    ordering=:negdegrevlex
+  ) where {BRT, BRET, RT, RET, MST} = LocalizedBiPolyArray(W, g, ordering=ordering) 
+
+BiPolyArray(
+    W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST}, 
+    g::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST};
+    ordering=:negdegrevlex
+  ) where {BRT, BRET, RT, RET, MST} = ByPolyArray(W, [g], ordering=ordering)
+
+BiPolyArray(
+    W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST}, 
     I::MPolyIdeal{RET};
     ordering=:negdegrevlex
-  ) where {BRT, BRET, RT, RET, MST} = LocalizedBiPolyArray(W, W.(gens(I)), ordering=ordering, shift=point_coordinates(inverted_set(W))) 
+  ) where {BRT, BRET, RT, RET, MST} = LocalizedBiPolyArray(W, W.(gens(I)), ordering=ordering) 
 
 BiPolyArray(
     W::MPolyLocalizedRing, 
@@ -1299,6 +1351,12 @@ BiPolyArray(
     I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}};
     ordering=:negdegrevlex
   ) where {BRT, BRET, RT, RET} = LocalizedBiPolyArray(base_ring(I), gens(I), ordering=ordering, shift=point_coordinates(inverted_set(base_ring(I)))) 
+
+BiPolyArray(
+    W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST}, 
+    g::Vector{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}};
+    ordering=:negdegrevlex
+  ) where {BRT, BRET, RT, RET, MST<:MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}} = LocalizedBiPolyArray(W, g, ordering=ordering, shift=point_coordinates(inverted_set(W))) 
 
 BiPolyArray(
     W::MPolyLocalizedRing{BRT, BRET, RT, RET, MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}}, 
@@ -1341,8 +1399,18 @@ end
 ########################################################################
 # Groebner and standard bases                                          #
 ########################################################################
+#
+# A "groebner basis" for an ideal I in a localized ring W = R[S⁻¹] in 
+# is a LocalizedBiPolyArray G for which the following holds.
+#
+# G has attached to it an ordering and a singular ring. The reduction 
+# of the numerator a of an element a//b of a localized ring W = R[S⁻¹] 
+# by the elements of G with respect to that ordering has to be zero 
+# if and only if a//b belongs to the ideal. 
 
-### the catchall implementation; most probably mathematically useless!
+### The catchall implementation. 
+# This refers back to the saturated ideal procedures and ideal 
+# membership of the numerator in the base_ring.
 function groebner_basis(
     I::MPolyLocalizedIdeal,
     ordering::Symbol
@@ -1353,7 +1421,8 @@ function groebner_basis(
     return D[ordering]
   end
   # if not, set up a LocalizedBiPolyArray
-  lbpa = BiPolyArray(I, ordering=ordering)
+  W = base_ring(I)
+  lbpa = BiPolyArray(W(saturated_ideal(I)), ordering=ordering)
   # compute the standard basis and cache the result
   D[ordering] = std(lbpa)
   return D[ordering]
@@ -1372,7 +1441,8 @@ function groebner_assure(I::MPolyLocalizedIdeal)
   return
 end
 
-### special routines for localizations at 𝕜-points
+### special routines for localizations at 𝕜-points.
+# This is using local orderings.
 function groebner_basis(
     I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}}; 
     ordering::Symbol=:negdegrevlex
@@ -1392,8 +1462,26 @@ function groebner_basis(
   return D[ordering]
 end
 
+### special routine for localizations at complements of prime ideals.
+# This uses the saturated ideal computed via primary decomposition.
+function groebner_basis(
+    I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET}}; 
+    ordering::Symbol=:degrevlex
+  ) where {BRT, BRET, RT, RET}
+  D = groebner_bases(I)
+  # check whether a standard basis has already been computed for this ordering
+  if haskey(D, ordering)
+    return D[ordering]
+  end
+  # if not, set up a LocalizedBiPolyArray
+  # Note that saturation is essential here!
+  lbpa = BiPolyArray(base_ring(I), saturated_ideal(I), ordering=ordering) 
+  D[ordering] = std(lbpa)
+  return D[ordering]
+end
   
-### special routines for localizations at powers of elements
+### special routines for localizations at powers of elements.
+# This performs saturation.
 function groebner_basis(
     I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}; 
     ordering::Symbol=:degrevlex
