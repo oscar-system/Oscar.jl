@@ -71,7 +71,7 @@
         @test v[4] == PointVector([-1, 2])
         @test v[5] == PointVector([1, 2])
         @test point_matrix(v) == matrix(QQ, [2 -1; 2 1; -1 -1; -1 2; 1 2])
-        for T in [Halfspace, Pair{Polymake.Matrix{Polymake.Rational}, Polymake.Rational}, Polyhedron]
+        for T in [AffineHalfspace, Pair{Polymake.Matrix{Polymake.Rational}, Polymake.Rational}, Polyhedron]
             @test facets(T, Pos) isa SubObjectIterator{T}
             @test length(facets(T, Pos)) == 4
             @test affine_inequality_matrix(facets(T, Pos)) == matrix(QQ, Matrix{fmpq}([0 -1 0 0; 0 0 -1 0; 0 0 0 -1; -1 0 0 0]))
@@ -82,8 +82,8 @@
             @test facets(T, Pos)[4] == T([0 0 0], 1)
         end
         @test facets(Pair, Pos) isa SubObjectIterator{Pair{Polymake.Matrix{Polymake.Rational}, Polymake.Rational}}
-        @test facets(Pos) isa SubObjectIterator{Halfspace}
-        @test affine_hull(point) isa SubObjectIterator{Hyperplane}
+        @test facets(Pos) isa SubObjectIterator{AffineHalfspace}
+        @test affine_hull(point) isa SubObjectIterator{AffineHyperplane}
         @test affine_equation_matrix(affine_hull(point)) == matrix(QQ, Matrix{fmpq}([0 -1 0 0; 1 0 -1 0; 0 0 0 -1]))
         @test length(affine_hull(point)) == 3
         @test affine_hull(point)[1] == Hyperplane([-1 0 0], 0)

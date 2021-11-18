@@ -5,7 +5,9 @@ import Base: ==
 const AnyVecOrMat = Union{MatElem, AbstractVecOrMat}
 
 
-export Cone,
+export AffineHalfspace,
+    AffineHyperplane,
+    Cone,
     PointVector,
     PolyhedralFan,
     Polyhedron,
@@ -13,6 +15,8 @@ export Cone,
     Hyperplane,
     SubdivisionOfPoints,
     IncidenceMatrix,
+    LinearHalfspace,
+    LinearHyperplane,
     LinearProgram,
     RayVector,
     PolyhedronOrConeIterator,
