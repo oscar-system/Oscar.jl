@@ -288,16 +288,16 @@ julia> facets(Halfspace, C)
 1: x₃ ≦ 1
 ```
 """
-facets(as::Type{T}, P::Polyhedron) where {R, S, T<:Union{Halfspace, Pair{R, S}, Polyhedron}} = SubObjectIterator{as}(pm_object(P), _facet_polyhedron, pm_object(P).N_FACETS)
+facets(as::Type{T}, P::Polyhedron) where {R, S, T<:Union{AffineHalfspace, Pair{R, S}, Polyhedron}} = SubObjectIterator{as}(pm_object(P), _facet_polyhedron, pm_object(P).N_FACETS)
 
-function _facet_polyhedron(::Type{T}, C::Polymake.BigObject, i::Base.Integer) where {R, S, T<:Union{Polyhedron, Halfspace, Pair{R, S}}}
+function _facet_polyhedron(::Type{T}, C::Polymake.BigObject, i::Base.Integer) where {R, S, T<:Union{Polyhedron, AffineHalfspace, Pair{R, S}}}
     h = decompose_hdata(C.FACETS[[i], :])
     return T(h[1], h[2][])
 end
 
 _affine_inequality_matrix(::Val{_facet_polyhedron}, C::Polymake.BigObject) = -C.FACETS
 
-_affine_matrix_for_polymake(::Val{_facet_polyhedron}) = _affine_inequality_matrix
+_matrix_for_polymake(::Val{_facet_polyhedron}) = _affine_inequality_matrix
 
 _halfspace_matrix_pair(::Val{_facet_polyhedron}, C::Polymake.BigObject) = decompose_hdata(C.FACETS)
 
@@ -334,7 +334,9 @@ julia> facets(C)
 1: x₃ ≦ 1
 ```
 """
-facets(P::Polyhedron) = facets(Halfspace, P)
+facets(P::Polyhedron) = facets(AffineHalfspace, P)
+
+facets(::Type{Halfspace}, P::Polyhedron) = facets(AffineHalfspace, P)
 
 ###############################################################################
 ###############################################################################
@@ -605,11 +607,11 @@ julia> affine_hull(t)
 
 ```
 """
-affine_hull(P::Polyhedron) = SubObjectIterator{Hyperplane}(pm_object(P), _affine_hull, size(pm_object(P).AFFINE_HULL, 1))
+affine_hull(P::Polyhedron) = SubObjectIterator{AffineHyperplane}(pm_object(P), _affine_hull, size(pm_object(P).AFFINE_HULL, 1))
 
-function _affine_hull(::Type{Hyperplane}, P::Polymake.BigObject, i::Base.Integer)
+function _affine_hull(::Type{AffineHyperplane}, P::Polymake.BigObject, i::Base.Integer)
     h = decompose_hdata(P.AFFINE_HULL[[i], :])
-    return Hyperplane(h[1], h[2][])
+    return AffineHyperplane(h[1], h[2][])
 end
 
 _affine_equation_matrix(::Val{_affine_hull}, P::Polymake.BigObject) = -P.AFFINE_HULL
@@ -910,7 +912,7 @@ print_constraints(P::Polyhedron; trivial::Bool = false, io::IO = stdout) = print
 
 print_constraints(H::Halfspace; trivial::Bool = false, io::IO = stdout) = print_constraints(vcat(H.a'), [H.b]; trivial = trivial, io = io)
 
-print_constraints(H::Hyperplane; trivial::Bool = false, io::IO = stdout) = print_constraints(vcat(H.a'), [H.b]; trivial = trivial, io = io, cmp = "=")
+print_constraints(H::Hyperplane; trivial::Bool = false, io::IO = stdout) = print_constraints(vcat(H.a'), [negbias(H)]; trivial = trivial, io = io, cmp = "=")
 
 function Base.show(io::IO, H::Halfspace)
     n = length(H.a)
@@ -924,7 +926,8 @@ end
 
 function Base.show(io::IO, H::Hyperplane)
     n = length(H.a)
-    if iszero(H.a) && H.b == 0
+    b = negbias(H)
+    if b == 0 && iszero(H.a)
         print(io, "The trivial Hyperplane, R^$n")
     else
         print(io, "The Hyperplane of R^$n described by\n")

@@ -82,40 +82,76 @@ function Base.similar(bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{RayVector}}
     return RayVector{Polymake.promote_to_pm_type(Vector, ElType)}(axes(bc)...)
 end
 
+abstract type Halfspace end
+
 @doc Markdown.doc"""
     Halfspace(a, b)
 
 One halfspace `H(a,b)` is given by a vector `a` and a value `b` such that
 $$H(a,b) = \{ x | ax ≤ b \}.$$
 """
-struct Halfspace
+struct AffineHalfspace <: Halfspace
     a::Polymake.Vector{Polymake.Rational}
     b::Polymake.Rational
 end
 
-Halfspace(a::Union{MatElem, AbstractMatrix}, b=0) = Halfspace(vec(a), b)
+AffineHalfspace(a::Union{MatElem, AbstractMatrix}, b=0) = AffineHalfspace(vec(a), b)
 
-Halfspace(a) = Halfspace(a, 0)
+AffineHalfspace(a) = AffineHalfspace(a, 0)
+
+Halfspace(a, b) = AffineHalfspace(a, b)
+
+negbias(H::AffineHalfspace) = H.b
+
+struct LinearHalfspace <: Halfspace
+    a::Polymake.Vector{Polymake.Rational}
+end
+
+LinearHalfspace(a::Union{MatElem, AbstractMatrix}) = LinearHalfspace(vec(a))
+
+Halfspace(a) = LinearHalfspace(a)
+
+negbias(H::LinearHalfspace) = 0
+
+abstract type Hyperplane end
 
 @doc Markdown.doc"""
-    Hyperplane(a, b)
+    AffineHyperplane(a, b)
 
 One hyperplane `H(a,b)` is given by a vector `a` and a value `b` such that
 $$H(a,b) = \{ x | ax = b \}.$$
 """
-struct Hyperplane
+struct AffineHyperplane <: Hyperplane
     a::Polymake.Vector{Polymake.Rational}
     b::Polymake.Rational
 end
 
-Hyperplane(a::Union{MatElem, AbstractMatrix}, b) = Hyperplane(vec(a), b)
+AffineHyperplane(a::Union{MatElem, AbstractMatrix}, b) = AffineHyperplane(vec(a), b)
 
-Hyperplane(a) = Hyperplane(a, 0)
+AffineHyperplane(a) = AffineHyperplane(a, 0)
+
+Hyperplane(a, b) = AffineHyperplane(a, b)
+
+negbias(H::AffineHyperplane) = H.b
+
+struct LinearHyperplane <: Hyperplane
+    a::Polymake.Vector{Polymake.Rational}
+end
+
+LinearHyperplane(a::Union{MatElem, AbstractMatrix}) = LinearHyperplane(vec(a))
+
+Hyperplane(a) = LinearHyperplane(a)
+
+negbias(H::LinearHyperplane) = 0
 
 # TODO: abstract notion of equality
-Base.:(==)(x::Halfspace, y::Halfspace) = x.a == y.a && x.b == y.b
+Base.:(==)(x::AffineHalfspace, y::AffineHalfspace) = x.a == y.a && x.b == y.b
 
-Base.:(==)(x::Hyperplane, y::Hyperplane) = x.a == y.a && x.b == y.b
+Base.:(==)(x::LinearHalfspace, y::LinearHalfspace) = x.a == y.a
+
+Base.:(==)(x::AffineHyperplane, y::AffineHyperplane) = x.a == y.a && x.b == y.b
+
+Base.:(==)(x::LinearHyperplane, y::LinearHyperplane) = x.a == y.a
 
 ####################
 
@@ -159,9 +195,9 @@ _affine_equation_matrix(::Any, ::Polymake.BigObject) = throw(ArgumentError("Affi
 
 matrix_for_polymake(iter::SubObjectIterator) = _matrix_for_polymake(Val(iter.Acc))(Val(iter.Acc), iter.Obj; iter.options...)
 _matrix_for_polymake(::Any, ::Polymake.BigObject) = throw(ArgumentError("Matrix for Polymake not defined in this context."))
-
-affine_matrix_for_polymake(iter::SubObjectIterator) = _affine_matrix_for_polymake(Val(iter.Acc))(Val(iter.Acc), iter.Obj; iter.options...)
-_affine_matrix_for_polymake(::Any, ::Polymake.BigObject) = throw(ArgumentError("Affine Matrix for Polymake not defined in this context."))
+# 
+# affine_matrix_for_polymake(iter::SubObjectIterator) = _affine_matrix_for_polymake(Val(iter.Acc))(Val(iter.Acc), iter.Obj; iter.options...)
+# _affine_matrix_for_polymake(::Any, ::Polymake.BigObject) = throw(ArgumentError("Affine Matrix for Polymake not defined in this context."))
 
 function halfspace_matrix_pair(iter::SubObjectIterator)
     h = _halfspace_matrix_pair(Val(iter.Acc), iter.Obj; iter.options...)
