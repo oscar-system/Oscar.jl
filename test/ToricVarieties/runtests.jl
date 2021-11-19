@@ -213,7 +213,9 @@ p = polyhedron(D)
     @test ambient_dim(p) == 2
 end
 
+line_bundle = ToricLineBundle(dP3, [1,2,3,4])
+
 @testset "Toric line bundles" begin
-    line_bundle = ToricLineBundle(dP3, [ 1,2,3,4 ])
-    @test line_bundle.divisor_class.coeff == AbstractAlgebra.matrix(ZZ, [ 1 2 3 4 ])
+    @test divisor_class(line_bundle).coeff == AbstractAlgebra.matrix(ZZ, [1 2 3 4])
+    @test dim(variety(line_bundle)) == 2
 end

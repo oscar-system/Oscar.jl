@@ -16,3 +16,10 @@ Pages = ["ToricLineBundles.md"]
 ToricLineBundle(v::AbstractNormalToricVariety, c::Vector{fmpz})
 ToricLineBundle(v::AbstractNormalToricVariety, c::Vector{Int})
 ```
+
+## Attributes
+
+```@docs
+divisor_class(l::ToricLineBundle)
+variety(l::ToricLineBundle)
+```
