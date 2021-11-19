@@ -161,7 +161,7 @@ ideal(-x[1]*x[2] + x[3]*x[4])
 """
 function toric_ideal(antv::AffineNormalToricVariety)
     cone = Cone(pm_object(antv).WEIGHT_CONE)
-    return toric_ideal(hilbert_basis(cone).m)
+    return toric_ideal(hilbert_basis(cone))
 end
 export toric_ideal
 toric_ideal(ntv::NormalToricVariety) = toric_ideal(AffineNormalToricVariety(ntv))

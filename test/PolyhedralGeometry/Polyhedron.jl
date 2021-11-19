@@ -86,9 +86,9 @@
         @test affine_hull(point) isa SubObjectIterator{AffineHyperplane}
         @test affine_equation_matrix(affine_hull(point)) == matrix(QQ, Matrix{fmpq}([0 -1 0 0; 1 0 -1 0; 0 0 0 -1]))
         @test length(affine_hull(point)) == 3
-        @test affine_hull(point)[1] == Hyperplane([-1 0 0], 0)
-        @test affine_hull(point)[2] == Hyperplane([0 -1 0], -1)
-        @test affine_hull(point)[3] == Hyperplane([0 0 -1], 0)
+        @test affine_hull(point)[1] == Hyperplane([1 0 0], 0)
+        @test affine_hull(point)[2] == Hyperplane([0 1 0], 1)
+        @test affine_hull(point)[3] == Hyperplane([0 0 1], 0)
         @test nfacets(square) == 4
         @test lineality_dim(Q0) == 0
         @test nrays(Q1) == 1

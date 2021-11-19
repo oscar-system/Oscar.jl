@@ -8,7 +8,7 @@ matrix_for_polymake(x::Union{Oscar.fmpq_mat,AbstractMatrix{Oscar.fmpq}}) =
     Polymake.Matrix{Polymake.Rational}(x)
 matrix_for_polymake(x) = x
 
-matrix_for_polymake(x::Tuple) = matrix_for_polymake(hcat(-x[2], x[1]))
+affine_matrix_for_polymake(x::Tuple) = matrix_for_polymake(hcat(-x[2], x[1]))
 
 function Polymake.Matrix{Polymake.Rational}(x::Union{Oscar.fmpq_mat,AbstractMatrix{Oscar.fmpq}})
     res = Polymake.Matrix{Polymake.Rational}(size(x)...)

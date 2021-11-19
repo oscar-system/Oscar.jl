@@ -18,7 +18,7 @@ julia> C = cube(3);
 julia> NF = normal_fan(C);
 
 julia> rays(NF)
-6-element VectorIterator{RayVector{Polymake.Rational}}:
+6-element SubObjectIterator{RayVector{Polymake.Rational}}:
  [1, 0, 0]
  [-1, 0, 0]
  [0, 1, 0]
@@ -260,7 +260,7 @@ julia> PF = PolyhedralFan([1 0; 0 1; -1 0; 0 -1], IncidenceMatrix([[1, 2, 3], [3
 A polyhedral fan in ambient dimension 2
 
 julia> lineality_space(PF)
-1-element VectorIterator{RayVector{Polymake.Rational}}:
+1-element SubObjectIterator{RayVector{Polymake.Rational}}:
  [1, 0]
 ```
 """
@@ -415,7 +415,7 @@ julia> star = starsubdivision(normal_fan(simplex(3)), 1)
 A polyhedral fan in ambient dimension 3
 
 julia> rays(star)
-5-element VectorIterator{RayVector{Polymake.Rational}}:
+5-element SubObjectIterator{RayVector{Polymake.Rational}}:
  [0, 1, 0]
  [0, 0, 1]
  [-1, -1, -1]
