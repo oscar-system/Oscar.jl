@@ -6,7 +6,6 @@ const AnyVecOrMat = Union{MatElem, AbstractVecOrMat}
 
 
 export Cone,
-    Graphs,
     PointVector,
     PolyhedralFan,
     Polyhedron,
@@ -97,6 +96,7 @@ export Cone,
     project_full,
     pyramid,
     recession_cone,
+    relative_interior_point,
     save_cone,
     save_linearprogram,
     save_polyhedralfan,
@@ -132,7 +132,6 @@ include("SubdivisionOfPoints/properties.jl")
 include("SubdivisionOfPoints/functions.jl")
 include("LinearProgram.jl")
 include("Groups.jl")
-include("Graphs.jl")
 include("Serialization.jl")
 include("Visualization.jl")
 include("solving_integrally.jl")

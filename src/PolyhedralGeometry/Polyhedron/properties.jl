@@ -733,6 +733,33 @@ end
 
 
 @doc Markdown.doc"""
+    relative_interior_point(P::Polyhedron)
+
+Compute a point in the relative interior point of `P`, i.e. a point in `P` not
+contained in any facet.
+
+# Examples
+The square $[-1,1]^3$ has the origin as a relative interior point.
+```jldoctest
+julia> square = cube(2)
+A polyhedron in ambient dimension 2
+
+julia> relative_interior_point(square)
+2-element PointVector{Polymake.Rational}:
+ 0
+ 0
+
+julia> vertices(square)
+4-element VectorIterator{PointVector{Polymake.Rational}}:
+ [-1, -1]
+ [1, -1]
+ [-1, 1]
+ [1, 1]
+```
+"""
+relative_interior_point(P::Polyhedron) = PointVector(dehomogenize(Polymake.common.dense(pm_object(P).REL_INT_POINT)))
+
+@doc Markdown.doc"""
     support_function(P::Polyhedron; convention::Symbol = :max)
 
 Produce a function $h(ω) = max\{dot(x,ω)\ |\ x \in P\}$. $max$ may be changed

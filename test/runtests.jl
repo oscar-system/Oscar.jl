@@ -1,7 +1,7 @@
 using Oscar
 using Test
 
-include("Polytopes/runtests.jl")
+include("PolyhedralGeometry/runtests.jl")
 
 include("GAP/runtests.jl")
 
