@@ -181,14 +181,14 @@ julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 julia> F = free_module(R, 3)
 Free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field
 
-julia> f = FreeModElem(sparse_row(R, [(1,x),(3,y)]),F)
+julia> f = F(sparse_row(R, [(1,x),(3,y)]))
 x*e[1] + y*e[3]
+
+julia> typeof(f)
+FreeModElem{fmpq_mpoly}
 
 julia> g = x*F[1] + y*F[3]
 x*e[1] + y*e[3]
-
-julia> typeof(g)
-FreeModElem{fmpq_mpoly}
 
 julia> f == g
 true
@@ -231,7 +231,7 @@ Return the element of  `F`  whose coefficients with respect to the basis of
 standard unit vectors of `F` are given by the entries of `c`.
 """
 function (F::FreeMod{T})(c::SRow{T}) where T
-  return FreeModElem(coords, F)
+  return FreeModElem(c, F)
 end
 
 @doc Markdown.doc"""
@@ -352,7 +352,7 @@ end
 Return the coefficients of `e` as a Vector.
 """
 function Vector(e::FreeModElem)
-  return dense_row(coords(e),rank(parent(e)))
+    return [e[i] for i in 1:rank(parent(e))]
 end
 
 @doc Markdown.doc"""
@@ -2765,11 +2765,11 @@ Given free modules $F_1\dots F_n$, return the direct sum $\bigoplus_{i=1}^n F_i$
 
 Additionally, return a vector containing
 - the canonical injections  $F_i\rightarrow\bigoplus_{i=1}^n F_i$ if `task = :sum",
-- the canonical projections  $\bigoplus_{i=1}^n F_i\rightarrow F_i$ if `task = :product" (default),
+- the canonical projections  $\bigoplus_{i=1}^n F_i\rightarrow F_i$ if `task = :product",
 - the canonical injections and projections if `task = :both".
 """
 function direct_sum(F::FreeMod{T}...; task::Symbol = :none) where {T}
-  return direct_product(F, task)
+  return direct_product(F...; task)
 end
 
 ##################################################
@@ -2782,7 +2782,7 @@ Given free modules $F_1\dots F_n$, return the direct sum $\bigoplus_{i=1}^n F_i$
 
 Additionally, return a vector containing
 - the canonical injections  $F_i\rightarrow\bigoplus_{i=1}^n F_i$ if `task = :sum",
-- the canonical projections  $\bigoplus_{i=1}^n F_i\rightarrow F_i$ if `task = :product" (default),
+- the canonical projections  $\bigoplus_{i=1}^n F_i\rightarrow F_i$ if `task = :product",
 - the canonical injections and projections if `task = :both".
 """
 function direct_product(F::FreeMod{T}...; task::Symbol = :none) where {T}
