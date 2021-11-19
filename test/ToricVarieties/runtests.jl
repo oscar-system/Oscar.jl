@@ -112,15 +112,16 @@ H5 = hirzebruch_surface(5)
     @test length(irrelevant_ideal(H5).gens) == 4
 end
 
+dP0 = del_pezzo(0)
+dP1 = del_pezzo(1)
+dP2 = del_pezzo(2)
+dP3 = del_pezzo(3)
+
 @testset "delPezzo surfaces" begin
     @test_throws ArgumentError del_pezzo(-1)
-    dP0 = del_pezzo(0)
     @test length(torusinvariant_prime_divisors(dP0)) == 3
-    dP1 = del_pezzo(1)
     @test length(torusinvariant_prime_divisors(dP1)) == 4
-    dP2 = del_pezzo(2)
     @test length(torusinvariant_prime_divisors(dP2)) == 5
-    dP3 = del_pezzo(3)
     @test rank(cartier_divisor_group(dP3)) == 6
     @test length(torusinvariant_prime_divisors(dP3)) == 6
     @test_throws ArgumentError del_pezzo(4)
