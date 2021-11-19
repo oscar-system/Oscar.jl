@@ -8,3 +8,5 @@ include("CyclicQuotientSingularities/CyclicQuotientSingularities.jl")
 
 include("ToricDivisors/constructors.jl")
 include("ToricDivisors/properties.jl")
+
+include("LineBundles/constructors.jl")
