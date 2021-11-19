@@ -278,7 +278,7 @@ include("Geometry/basics.jl")
 
 include("NumberTheory/NmbThy.jl")
 
-include("Polytopes/Polytopes.jl")
+include("PolyhedralGeometry/Polytopes.jl")
 
 include("../StraightLinePrograms/src/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl")
