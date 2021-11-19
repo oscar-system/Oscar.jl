@@ -1,7 +1,7 @@
 ```@meta
 CurrentModule = Oscar
 DocTestSetup = quote
-  using Oscar
+   using Oscar
 end
 ```
 
