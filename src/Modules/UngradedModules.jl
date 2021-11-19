@@ -352,7 +352,7 @@ end
 Return the coefficients of `e` as a Vector.
 """
 function Vector(e::FreeModElem)
-    return [e[i] for i in 1:rank(parent(e))]
+   return [e[i] for i in 1:rank(parent(e))]
 end
 
 @doc Markdown.doc"""
@@ -2769,7 +2769,7 @@ Additionally, return a vector containing
 - the canonical injections and projections if `task = :both".
 """
 function direct_sum(F::FreeMod{T}...; task::Symbol = :none) where {T}
-  return direct_product(F...; task)
+  return direct_product(F...; task = task)
 end
 
 ##################################################
@@ -2900,6 +2900,22 @@ function direct_product(G::ModuleFP...; task::Symbol = :none)
     end
   end
 end
+##################################################
+# direct sum
+##################################################
+@doc Markdown.doc"""
+    direct_sum(M::ModuleFP{T}...; task::Symbol = :none) where T
+
+Given free modules $M_1\dots M_n$, say, return the direct sum $\bigoplus_{i=1}^n M_i$,
+together with
+- a vector containing the canonical injections  $M_i\rightarrow\bigoplus_{i=1}^n M_i$ if `task` is set to ":sum",
+- a vector containing the canonical projections  $\bigoplus_{i=1}^n M_i\rightarrow M_i$ if `task` is set to ":prod",
+- both vectors above, with injections first, if `task` is set to ":both".
+"""
+function direct_sum(M::ModuleFP{T}...; task::Symbol = :none) where {T}
+  return direct_product(M...; task)
+end
+
 ⊕(M::ModuleFP...) = direct_product(M..., task = :none)
 
 
