@@ -280,6 +280,9 @@ include("NumberTheory/NmbThy.jl")
 
 include("PolyhedralGeometry/Polytopes.jl")
 
+include("Combinatorics/Graphs.jl")
+export Graphs
+
 include("../StraightLinePrograms/src/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl")
 include("Rings/slpolys.jl")
