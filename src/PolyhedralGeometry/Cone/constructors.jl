@@ -98,7 +98,7 @@ julia> C = cone_from_inequalities([0 -1; -1 1])
 A polyhedral cone in ambient dimension 2
 
 julia> rays(C)
-2-element VectorIterator{RayVector{Polymake.Rational}}:
+2-element SubObjectIterator{RayVector{Polymake.Rational}}:
  [1, 0]
  [1, 1]
 ```

@@ -27,7 +27,7 @@ julia> R = [1 0; 0 1; 0 2];
 julia> PO = positive_hull(R);
 
 julia> rays(PO)
-2-element VectorIterator{RayVector{Polymake.Rational}}:
+2-element SubObjectIterator{RayVector{Polymake.Rational}}:
  [1, 0]
  [0, 1]
 ```
@@ -291,7 +291,7 @@ julia> c = positive_hull([1 0 0; 0 1 0; 1 1 1])
 A polyhedral cone in ambient dimension 3
 
 julia> f = facets(Halfspace, c)
-3-element HalfspaceIterator{Halfspace}:
+3-element SubObjectIterator{LinearHalfspace}:
  The Halfspace of R^3 described by
 1: -x₃ ≦ 0
 
@@ -329,7 +329,7 @@ julia> c = positive_hull([1 0 0; 0 1 0; 1 1 1])
 A polyhedral cone in ambient dimension 3
 
 julia> f = facets(c)
-3-element HalfspaceIterator{Halfspace}:
+3-element SubObjectIterator{LinearHalfspace}:
  The Halfspace of R^3 described by
 1: -x₃ ≦ 0
 
@@ -356,7 +356,7 @@ This gives us a 1-dimensional lineality.
 julia> UH = Cone([1 0; 0 1; -1 0]);
 
 julia> lineality_space(UH)
-1-element VectorIterator{RayVector{Polymake.Rational}}:
+1-element SubObjectIterator{RayVector{Polymake.Rational}}:
  [1, 0]
 ```
 """
@@ -380,7 +380,7 @@ $H = \{ (x_1, x_2, x_3) | x_3 = 0 \}$.
 julia> c = Cone([1 0 0; 0 1 0]);
 
 julia> linear_span(c)
-1-element HalfspaceIterator{Hyperplane}:
+1-element SubObjectIterator{LinearHyperplane}:
  The Hyperplane of R^3 described by
 1: x₃ = 0
 

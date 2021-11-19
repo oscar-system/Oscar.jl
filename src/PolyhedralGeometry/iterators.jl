@@ -193,11 +193,22 @@ _equation_matrix(::Any, ::Polymake.BigObject) = throw(ArgumentError("Equation Ma
 affine_equation_matrix(iter::SubObjectIterator) = matrix(QQ, Matrix{fmpq}(_affine_equation_matrix(Val(iter.Acc), iter.Obj; iter.options...)))
 _affine_equation_matrix(::Any, ::Polymake.BigObject) = throw(ArgumentError("Affine Equation Matrix not defined in this context."))
 
-matrix_for_polymake(iter::SubObjectIterator) = _matrix_for_polymake(Val(iter.Acc))(Val(iter.Acc), iter.Obj; iter.options...)
-_matrix_for_polymake(::Any, ::Polymake.BigObject) = throw(ArgumentError("Matrix for Polymake not defined in this context."))
-# 
-# affine_matrix_for_polymake(iter::SubObjectIterator) = _affine_matrix_for_polymake(Val(iter.Acc))(Val(iter.Acc), iter.Obj; iter.options...)
-# _affine_matrix_for_polymake(::Any, ::Polymake.BigObject) = throw(ArgumentError("Affine Matrix for Polymake not defined in this context."))
+function matrix_for_polymake(iter::SubObjectIterator)
+    try
+        return _matrix_for_polymake(Val(iter.Acc))(Val(iter.Acc), iter.Obj; iter.options...)
+    catch e
+        throw(ArgumentError("Matrix for Polymake not defined in this context."))
+    end
+end
+
+function affine_matrix_for_polymake(iter::SubObjectIterator)
+    if hasmethod(_affine_matrix_for_polymake, Tuple{Val{iter.Acc}})
+        return _affine_matrix_for_polymake(Val(iter.Acc))(Val(iter.Acc), iter.Obj; iter.options...)
+    elseif hasmethod(_matrix_for_polymake, Tuple{Val{iter.Acc}})
+        return homogenize(_matrix_for_polymake(Val(iter.Acc))(Val(iter.Acc), iter.Obj; iter.options...), 0)
+    end
+end
+_affine_matrix_for_polymake(::Any, ::Polymake.BigObject) = throw(ArgumentError("Affine Matrix for Polymake not defined in this context."))
 
 function halfspace_matrix_pair(iter::SubObjectIterator)
     h = _halfspace_matrix_pair(Val(iter.Acc), iter.Obj; iter.options...)
@@ -211,5 +222,6 @@ _point_matrix(::Any, ::Polymake.BigObject) = throw(ArgumentError("Point Matrix n
 vector_matrix(iter::SubObjectIterator) = matrix(QQ, Matrix{fmpq}(_vector_matrix(Val(iter.Acc), iter.Obj; iter.options...)))
 _vector_matrix(::Any, ::Polymake.BigObject) = throw(ArgumentError("Vector Matrix not defined in this context."))
 
-generator_matrix(iter::SubObjectIterator) = matrix(QQ, Matrix{fmpq}(_generator_matrix(Val(iter.Acc), iter.Obj; iter.options...)))
+generator_matrix(iter::SubObjectIterator{<:AbstractVector{Polymake.Rational}}) = matrix(QQ, Matrix{fmpq}(_generator_matrix(Val(iter.Acc), iter.Obj; iter.options...)))
+generator_matrix(iter::SubObjectIterator{<:AbstractVector{Polymake.Integer}}) = matrix(ZZ, _generator_matrix(Val(iter.Acc), iter.Obj; iter.options...))
 _generator_matrix(::Any, ::Polymake.BigObject) = throw(ArgumentError("Generator Matrix not defined in this context."))
