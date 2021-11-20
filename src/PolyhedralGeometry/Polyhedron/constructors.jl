@@ -48,7 +48,7 @@ julia> dim(P)
 1
 
 julia> vertices(P)
-2-element VectorIterator{PointVector{Polymake.Rational}}:
+2-element SubObjectIterator{PointVector{Polymake.Rational}}:
  [1, 0]
  [0, 0]
 ```

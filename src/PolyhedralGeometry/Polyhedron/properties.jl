@@ -616,6 +616,8 @@ end
 
 _affine_equation_matrix(::Val{_affine_hull}, P::Polymake.BigObject) = -P.AFFINE_HULL
 
+_affine_matrix_for_polymake(::Val{_affine_hull}) = _affine_equation_matrix
+
 @doc Markdown.doc"""
     recession_cone(P::Polyhedron)
 
@@ -795,7 +797,7 @@ julia> relative_interior_point(square)
  0
 
 julia> vertices(square)
-4-element VectorIterator{PointVector{Polymake.Rational}}:
+4-element SubObjectIterator{PointVector{Polymake.Rational}}:
  [-1, -1]
  [1, -1]
  [-1, 1]
