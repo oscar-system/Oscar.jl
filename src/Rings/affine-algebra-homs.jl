@@ -269,7 +269,7 @@ end
 @doc Markdown.doc"""
     compose(F::AlgHom{T}, G::AlgHom{T}) where T
 
-Return the algebra homomorphism $H = G\circ F: domain(F) \rightarrow codomain(G)$.
+Return the algebra homomorphism $H = G\circ F: \text{domain}(F) \rightarrow \text{codomain}(G)$.
 """
 function compose(F::AlgHom{T}, G::AlgHom{T}) where T
    check_composable(F, G)
@@ -288,7 +288,7 @@ end
 @doc Markdown.doc"""
     preimage(F::AlgHom, I::U) where U <: Union{MPolyIdeal, MPolyQuoIdeal}
 
-Return the preimage of the ideal $I$ under the algebra homomorphism $F$.
+Return the preimage of the ideal `I` under the algebra homomorphism `F`.
 """
 function preimage(F::AlgHom, I::U) where U <: Union{MPolyIdeal, MPolyQuoIdeal}
 
@@ -305,7 +305,7 @@ end
 @doc Markdown.doc"""
     kernel(F::AlgHom)
 
-Return the kernel of the algebra homomorphism $F$.
+Return the kernel of `F`.
 """
 function kernel(F::AlgHom)
    isdefined(F, :kernel) && return F.kernel

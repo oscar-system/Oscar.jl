@@ -145,6 +145,22 @@ end
 Return the generators of `a`. 
 
 # Examples
+
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]))
+(Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z), Map from
+Multivariate Polynomial Ring in x, y, z over Rational Field to A defined by a julia-function with inverse
+)
+
+julia> a = ideal(A, [x-y])
+ideal(x - y)
+
+julia> gens(a)
+1-element Vector{MPolyQuoElem{fmpq_mpoly}}:
+ x - y
 ```
 """
 function gens(a::MPolyQuoIdeal)
@@ -152,12 +168,39 @@ function gens(a::MPolyQuoIdeal)
   return map(base_ring(a), gens(a.I))
 end
 
+@doc Markdown.doc"""
+    ngens(a::MPolyQuoIdeal)
+
+Return the number of generators of `a`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]))
+(Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z), Map from
+Multivariate Polynomial Ring in x, y, z over Rational Field to A defined by a julia-function with inverse
+)
+
+julia> a = ideal(A, [x-y])
+ideal(x - y)
+
+julia> ngens(a)
+1
+```
+"""
+function ngens(a::MPolyQuoIdeal)
+  return length(gens(a))
+end
+
+
 # powers, addition and multiplication do not require the singular quotient ring
 
 @doc Markdown.doc"""
     :^(a::MPolyQuoIdeal, m::Int)
 
-Return the m-th power of `a`.  
+Return the `m`-th power of `a`.  
 """
 function Base.:^(a::MPolyQuoIdeal, m::Int)
   if !isdefined(a, :SI)
@@ -168,11 +211,11 @@ function Base.:^(a::MPolyQuoIdeal, m::Int)
 end
 
 @doc Markdown.doc"""
-    :+(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
+    :+(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 
 Return the sum of `a` and `b`.  
 """
-function Base.:+(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
+function Base.:+(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   base_ring(a) == base_ring(b) || error("base rings must match")
   if !isdefined(a, :SI) && !isdefined(b, :SI)
     return MPolyQuoIdeal(base_ring(a), a.I + b.I)
@@ -183,11 +226,11 @@ function Base.:+(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
 end
 
 @doc Markdown.doc"""
-    :*(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
+    :*(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 
 Return the product of `a` and `b`.  
 """
-function Base.:*(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
+function Base.:*(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   base_ring(a) == base_ring(b) || error("base rings must match")
   if !isdefined(a, :SI) && !isdefined(b, :SI)
     return MPolyQuoIdeal(base_ring(a), a.I*b.I)
@@ -198,19 +241,15 @@ function Base.:*(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
 end
 
 @doc Markdown.doc"""
-    intersect(a::MPolyQuoIdeal, bs::MPolyQuoIdeal...)
+    intersect(a::MPolyQuoIdeal{T}, bs::MPolyQuoIdeal{T}...) where T
 
 Return the intersection of two or more ideals.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
 
-julia> A, _ = quo(R, ideal(R, [x^2-y^3, x-y]))
-(Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - y^3, x - y), Map from
-Multivariate Polynomial Ring in x, y over Rational Field to Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - y^3, x - y) defined by a julia-function with inverse
-)
+julia> A, _ = quo(R, ideal(R, [x^2-y^3, x-y]));
 
 julia> a = ideal(A, [y^2])
 ideal(y^2)
@@ -222,7 +261,7 @@ julia> intersect(a,b)
 ideal(x*y)
 ```
 """
-function intersect(a::MPolyQuoIdeal, bs::MPolyQuoIdeal...)
+function intersect(a::MPolyQuoIdeal{T}, bs::MPolyQuoIdeal{T}...) where T
   singular_assure(a)
   si = a.SI
   for b in bs
@@ -236,7 +275,7 @@ end
 #######################################################
 
 @doc Markdown.doc"""
-    quotient(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
+    quotient(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
     
 Return the ideal quotient of `a` by `b`. Alternatively, use `a:b`. 
 
@@ -244,10 +283,7 @@ Return the ideal quotient of `a` by `b`. Alternatively, use `a:b`.
 ```jldoctest
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
 
-julia> A, _ = quo(R, ideal(R, [x^2-y^3, x-y]))
-(Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - y^3, x - y), Map from
-Multivariate Polynomial Ring in x, y over Rational Field to Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - y^3, x - y) defined by a julia-function with inverse
-)
+julia> A, _ = quo(R, ideal(R, [x^2-y^3, x-y]));
 
 julia> a = ideal(A, [y^2])
 ideal(y^2)
@@ -259,7 +295,7 @@ julia> a:b
 ideal(y)
 ```
 """
-function quotient(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
+function quotient(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   base_ring(a) == base_ring(b) || error("base rings must match")
   singular_assure(a)
   singular_assure(b)
@@ -270,7 +306,7 @@ end
 @doc Markdown.doc"""
     iszero(a::MPolyQuoIdeal)
 
-Return true if `a` is the zero ideal, false otherwise.
+Return `true` if `a` is the zero ideal, `false` otherwise.
 """
 function iszero(a::MPolyQuoIdeal)
   singular_assure(a)
@@ -288,6 +324,23 @@ create the ideal of `A` which is generated by the images of the entries of `V`.
 
 Given a (graded) quotient ring `A` and a vector `V` of (homogeneous) elements of `A`, 
 create the ideal of `A` which is generated by the entries of `V`.
+
+# Examples
+```jldoctest
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+
+julia> A, _ = quo(R, ideal(R, [x^2-y^3, x-y]));
+
+julia> I = ideal(A, [x^2-y])
+ideal(x^2 - y)
+
+julia> S, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
+
+julia> B, _ = quo(S, ideal(S, [x^2*z-y^3, x-y]));
+
+julia> J = ideal(B, [x^2-y^2])
+ideal(x^2 - y^2)
+```
 """
 function ideal(A::MPolyQuo{T}, V::Vector{T}) where T <: MPolyElem
   @assert length(V) > 0
@@ -372,11 +425,9 @@ Reduce `a` with regard to the modulus of the quotient ring.
 
 Reduce `a` with regard to the modulus of the quotient ring, and replace `a` by the reduction.
 
-CAVEAT: The implementation proceeds by computing a Groebner basis of the quotient ideal first. This may take some time.
-
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"], ordering=:degrevlex);
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
 
 julia> A, _ = quo(R, ideal(R, [x^3*y^2-y^3*x^2, x*y^4-x*y^2]));
 
@@ -426,19 +477,15 @@ function simplify!(a::MPolyQuoIdeal)
 end
 
 @doc Markdown.doc"""
-    issubset(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
+    issubset(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 
 Return `true` if `a` is contained in `b`, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"], ordering=:degrevlex)
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
 
-julia> A, _ = quo(R, ideal(R, [x^3*y^2-y^3*x^2, x*y^4-x*y^2]))
-(Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^3*y^2 - x^2*y^3, x*y^4 - x*y^2), Map from
-Multivariate Polynomial Ring in x, y over Rational Field to Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^3*y^2 - x^2*y^3, x*y^4 - x*y^2) defined by a julia-function with inverse
-)
+julia> A, _ = quo(R, ideal(R, [x^3*y^2-y^3*x^2, x*y^4-x*y^2]));
 
 julia> a = ideal(A, [x^3*y^4-x+y, x*y+y^2*x])
 ideal(x^3*y^4 - x + y, x*y^2 + x*y)
@@ -453,7 +500,7 @@ julia> issubset(b,a)
 true
 ```
 """
-function Base.issubset(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
+function Base.issubset(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   base_ring(a) == base_ring(b) || error("base rings must match")
   simplify!(a)
   if !(isdefined(b, :SI))
@@ -467,19 +514,15 @@ function Base.issubset(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
 end
 
 @doc Markdown.doc"""
-    :(==)(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
+    ==(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 
 Return `true` if `a` is equal to `b`, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"], ordering=:degrevlex)
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
 
-julia> A, _ = quo(R, ideal(R, [x^3*y^2-y^3*x^2, x*y^4-x*y^2]))
-(Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^3*y^2 - x^2*y^3, x*y^4 - x*y^2), Map from
-Multivariate Polynomial Ring in x, y over Rational Field to Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^3*y^2 - x^2*y^3, x*y^4 - x*y^2) defined by a julia-function with inverse
-)
+julia> A, _ = quo(R, ideal(R, [x^3*y^2-y^3*x^2, x*y^4-x*y^2]));
 
 julia> a = ideal(A, [x^3*y^4-x+y, x*y+y^2*x])
 ideal(x^3*y^4 - x + y, x*y^2 + x*y)
@@ -491,7 +534,7 @@ julia> a == b
 false
 ```
 """
-function Base.:(==)(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
+function Base.:(==)(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   return issubset(a, b) && issubset(b, a)
 end
 
@@ -548,7 +591,7 @@ end
 
 
 @doc Markdown.doc"""
-    ==(f::MPolyQuoElem, g::MPolyQuoElem)  
+    ==(f::MPolyQuoElem{T}, g::MPolyQuoElem{T}) where T
 
 Return `true` if `f` is equal to `g`, `false` otherwise.
 
@@ -568,7 +611,7 @@ julia> f == g
 true
 ```
 """
-function ==(f::MPolyQuoElem, g::MPolyQuoElem)
+function ==(f::MPolyQuoElem{T}, g::MPolyQuoElem{T}) where T
   check_parent(f, g)
   simplify!(f)
   simplify!(g)
@@ -587,18 +630,20 @@ As above, where $I\subset R$ is the ideal generated by the polynomials in $V$.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
 
 julia> A, _ = quo(R, ideal(R, [x^2-y^3, x-y]))
 (Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - y^3, x - y), Map from
 Multivariate Polynomial Ring in x, y over Rational Field to Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - y^3, x - y) defined by a julia-function with inverse
 )
 
+julia> typeof(A)
+MPolyQuo{fmpq_mpoly}
+
 julia> typeof(x)
 fmpq_mpoly
 
-julia> A, p = quo(R, ideal(R, [x^2-y^3, x-y]))
+julia> A, p = quo(R, ideal(R, [x^2-y^3, x-y]));
 (Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - y^3, x - y), Map from
 Multivariate Polynomial Ring in x, y over Rational Field to Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - y^3, x - y) defined by a julia-function with inverse
 )
@@ -615,7 +660,7 @@ MPolyQuoElem{fmpq_mpoly}
 
 julia> S, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
 
-julia> A, p = quo(S, ideal(S, [x^2*z-y^3, x-y]))
+julia> B, _ = quo(S, ideal(S, [x^2*z-y^3, x-y]))
 (Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
@@ -932,19 +977,15 @@ Return the Krull dimension of `a`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"], ordering=:degrevlex)
-(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
 
-julia> A, _ = quo(R, ideal(R, [x^3*y^2-y^3*x^2, x*y^4-x*y^2]))
-(Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^3*y^2 - x^2*y^3, x*y^4 - x*y^2), Map from
-Multivariate Polynomial Ring in x, y, z over Rational Field to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(x^3*y^2 - x^2*y^3, x*y^4 - x*y^2) defined by a julia-function with inverse
-)
+julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]));
 
-julia> a = ideal(A, [x^3*y^4-x+y, x*y+y^2*x])
-ideal(x^3*y^4 - x + y, x*y^2 + x*y)
+julia> a = ideal(A, [x-y])
+ideal(x - y)
 
 julia> dim(a)
-1
+0
 ```
 """
 function dim(a::MPolyQuoIdeal)
@@ -966,13 +1007,14 @@ end
 #
 ################################################################################
 @doc Markdown.doc"""
-    minimal_subalgebra_generators(V::Vector{S}) where S <: Union{MPolyElem, MPolyQuoElem}
+    minimal_subalgebra_generators(V::Vector{T}) where T <: Union{MPolyElem, MPolyQuoElem}
 
 Given a vector `V` collecting homogeneous elements of a graded multivariate polynomial ring or
-quotient ring, say `R`, return a minimal subset of these elements which still generate the
+quotient ring `R`, say, return a minimal subset of these elements which still generate the
 subalgebra of `R` generated by all elements collected in `V`.
 
-NOTE: The conditions on `V` and `R` are automatically checked.
+!!! note
+    The conditions on `V` and `R` are automatically checked.
 
 # Examples
 ```jldoctest
