@@ -152,7 +152,7 @@ julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 
 julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]))
 (Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z), Map from
-Multivariate Polynomial Ring in x, y, z over Rational Field to A defined by a julia-function with inverse
+Multivariate Polynomial Ring in x, y, z over Rational Field to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z) defined by a julia-function with inverse
 )
 
 julia> a = ideal(A, [x-y])
@@ -180,7 +180,7 @@ julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 
 julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]))
 (Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z), Map from
-Multivariate Polynomial Ring in x, y, z over Rational Field to A defined by a julia-function with inverse
+Multivariate Polynomial Ring in x, y, z over Rational Field to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z) defined by a julia-function with inverse
 )
 
 julia> a = ideal(A, [x-y])
@@ -644,9 +644,6 @@ julia> typeof(x)
 fmpq_mpoly
 
 julia> A, p = quo(R, ideal(R, [x^2-y^3, x-y]));
-(Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - y^3, x - y), Map from
-Multivariate Polynomial Ring in x, y over Rational Field to Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - y^3, x - y) defined by a julia-function with inverse
-)
 
 julia> p
 Map from
