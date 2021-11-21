@@ -78,6 +78,9 @@ julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 julia> typeof(R)
 FmpqMPolyRing
 
+julia> typeof(x)
+fmpq_mpoly
+
 julia> S, (x, y, z) = grade(R)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
@@ -86,6 +89,12 @@ julia> S, (x, y, z) = grade(R)
 
 julia> typeof(S)
 MPolyRing_dec{fmpq, FmpqMPolyRing}
+
+julia> typeof(S) <: MPolyRing
+true
+
+julia> typeof(x)
+MPolyElem_dec{fmpq, fmpq_mpoly}
 
 julia> W = [1, 2, 3];
 
@@ -752,7 +761,8 @@ end
 
 Return the homogenization of `f`, `V`, or `I` in a graded ring with additional variable `var` at position `pos`.
 
-CAVEAT: Homogenizing an ideal requires a Gröbner basis computation. This may take some time.
+!!! warning
+    Homogenizing an ideal requires a Gröbner basis computation. This may take some time.
 """
 function homogenization(f::MPolyElem, var::String, pos::Int = 1)
   R = parent(f)
