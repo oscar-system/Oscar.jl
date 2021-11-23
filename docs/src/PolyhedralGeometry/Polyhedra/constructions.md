@@ -79,7 +79,7 @@ halfspace_matrix_pair(facets(T))
 The complete $V$-representation can be retrieved using [`vertices`](@ref
 vertices), [`rays`](@ref rays) and [`lineality_space`](@ref lineality_space):
 
-```jldoctest; filter = r"^(?!polymake: +WARNING)|polymake: +WARNING:.*\n"
+```jldoctest; filter = r"^polymake: +WARNING.*\n|^"
 julia> P = convex_hull([0 0], [1 0], [0 1])
 A polyhedron in ambient dimension 2
 
