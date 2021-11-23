@@ -53,7 +53,7 @@ function _reduce(M::MatrixElem{fmpq}, Fp)
   return map_entries(Fp, M)
 end
 
-function isomorphic_group_over_finite_field(G::MatrixGroup{T}) where T <: Union{fmpq, nf_elem}
+function _isomorphic_group_over_finite_field(G::MatrixGroup{T}) where T <: Union{fmpq, nf_elem}
    matrices = map(x -> x.elm, gens(G))
 
    Gp, GptoF, F, OtoFq = _isomorphic_group_over_finite_field(matrices)
@@ -71,6 +71,15 @@ function isomorphic_group_over_finite_field(G::MatrixGroup{T}) where T <: Union{
    end
 
    return Gp, MapFromFunc(img, preimg, G, Gp)
+end
+
+function isomorphic_group_over_finite_field(G::MatrixGroup{T}) where T <: Union{fmpq, nf_elem}
+   res = get_special(G, :isomorphic_group_over_fq)
+   if res == nothing
+      res = _isomorphic_group_over_finite_field(G)
+      set_special(G, :isomorphic_group_over_fq => res)
+   end
+   return res
 end
 
 # Detinko, Flannery, O'Brien "Recognizing finite matrix  groups over infinite

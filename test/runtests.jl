@@ -38,6 +38,6 @@ include("Examples/ModStdNF-test.jl")
 
 include("Modules/UngradedModules.jl")
 
-include("InvariantTheory/invariant_rings-test.jl")
+include("InvariantTheory/runtests.jl")
 
 include("ToricVarieties/runtests.jl")
