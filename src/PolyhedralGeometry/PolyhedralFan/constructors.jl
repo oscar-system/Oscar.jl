@@ -5,7 +5,7 @@
 ###############################################################################
 
 @doc Markdown.doc"""
-    PolyhedralFan(Rays::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem,AbstractMatrix}, [LS::Union{Oscar.MatElem,AbstractMatrix},] Cones::IncidenceMatrix)
+    PolyhedralFan(Rays::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator}, [LS::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator},] Cones::IncidenceMatrix)
 
 A polyhedral fan formed from rays and cones made of these rays.
 

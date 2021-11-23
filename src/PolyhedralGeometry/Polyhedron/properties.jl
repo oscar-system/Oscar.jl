@@ -244,7 +244,7 @@ julia> nfacets(cross(5))
 nfacets(P::Polyhedron) = pm_object(P).N_FACETS
 
 @doc Markdown.doc"""
-    facets(as::Type{T} = Halfspace, P::Polyhedron)
+    facets(as::Type{T} = AffineHalfspace, P::Polyhedron)
 
 Return the facets of `P` in the format defined by `as`.
 
