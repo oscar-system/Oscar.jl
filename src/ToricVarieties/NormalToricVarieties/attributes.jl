@@ -370,8 +370,8 @@ function map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v::Abst
         ncol = number_ray_is_part_of_max_cones[i]-1
         map_for_difference_of_elements[row, col:(col+ncol-1)] = [fmpz(1) for c in 1:ncol]
         map_for_difference_of_elements[(row+1):(row+ncol), col:(col+ncol-1)] = -identity_matrix(ZZ, ncol)
-        row = row + ncol + 1
-        col = col + ncol
+        row += ncol + 1
+        col += ncol
     end
     
     # compute the matrix for mapping to torusinvariant Weil divisors
