@@ -368,7 +368,7 @@ function map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v::Abst
     col = 1
     for i in 1:number_of_rays
         ncol = number_ray_is_part_of_max_cones[i]-1
-        map_for_difference_of_elements[row, col:(col+ncol-1)] = [fmpz(1) for c in 1:ncol]
+        map_for_difference_of_elements[row, col:(col+ncol-1)] = fill(fmpz(1), ncol)
         map_for_difference_of_elements[(row+1):(row+ncol), col:(col+ncol-1)] = -identity_matrix(ZZ, ncol)
         row += ncol + 1
         col += ncol
