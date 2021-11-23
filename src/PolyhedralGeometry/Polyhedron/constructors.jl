@@ -81,15 +81,17 @@ end
 
 ### Construct polyhedron from V-data, as the convex hull of points, rays and lineality.
 @doc Markdown.doc"""
-    convex_hull(V::Matrix [, R::Matrix [, L::Matrix]]; non_redundant::Bool = false)
+    convex_hull(V [, R [, L]]; non_redundant::Bool = false)
 
 Construct the convex hull of the vertices `V`, rays `R`, and lineality `L`. If
 `R` or `L` are omitted, then they are assumed to be zero.
 
 # Arguments
-- `V::Matrix`: Points whose convex hull is to be computed; encoded as row vectors.
-- `R::Matrix`: Rays completing the set of points; encoded row-wise as representative vectors.
-- `L::Matrix`: Generators of the Lineality space; encoded as row vectors.
+- `V::Union{Matrix, SubObjectIterator}`: Points whose convex hull is to be computed.
+- `R::Union{Matrix, SubObjectIterator}`: Rays completing the set of points.
+- `L::Union{Matrix, SubObjectIterator}`: Generators of the Lineality space.
+
+If an argument is given as a matrix, its content has to be encoded row-wise.
 
 `R` can be given as an empty matrix or as `nothing` if the user wants to compute
 the convex hull only from `V` and `L`.

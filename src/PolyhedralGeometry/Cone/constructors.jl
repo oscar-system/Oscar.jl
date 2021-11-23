@@ -8,7 +8,7 @@
 #interior description?
 
 @doc Markdown.doc"""
-    Cone(R::Union{Oscar.MatElem,AbstractMatrix} [, L::Union{Oscar.MatElem,AbstractMatrix}])
+    Cone(R::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator} [, L::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator}])
 
 A polyhedral cone, not necessarily pointed, defined by the positive hull of the
 rays `R`, with lineality given by `L`.
@@ -57,7 +57,7 @@ end
 
 
 @doc Markdown.doc"""
-    positive_hull(R::Union{Oscar.MatElem,AbstractMatrix})
+    positive_hull(R::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator})
 
 A polyhedral cone, not necessarily pointed, defined by the positive hull of the
 rows of the matrix `R`. This means the cone consists of all positive linear
@@ -74,7 +74,7 @@ julia> PO = positive_hull(R)
 A polyhedral cone in ambient dimension 2
 ```
 """
-function positive_hull(R::Union{SubObjectIterator{RayVector}, Oscar.MatElem,AbstractMatrix})
+function positive_hull(R::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix})
     # TODO: Filter out zero rows
     C=Polymake.polytope.Cone{Polymake.Rational}(INPUT_RAYS =
       matrix_for_polymake(remove_zero_rows(R)))
@@ -83,11 +83,11 @@ end
 
 @doc Markdown.doc"""
 
-    cone_from_inequalities(A::Union{Oscar.MatElem,AbstractMatrix}; non_redundant::Bool = false)
+    cone_from_inequalities(I::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator} [, E::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator}]; non_redundant::Bool = false)
 
 The (convex) cone defined by
 
-$$\{ x |  Ax ≤ 0 \}.$$
+$$\{ x |  Ix ≤ 0, Ex = 0 \}.$$
 
 Use `non_redundant = true` if the given description contains no redundant rows to
 avoid unnecessary redundancy checks.
