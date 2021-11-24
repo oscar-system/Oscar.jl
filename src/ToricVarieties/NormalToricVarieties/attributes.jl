@@ -386,13 +386,12 @@ function map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v::Abst
     target = abelian_group(zeros(Int, ncols(mapping_matrix)))
     total_map = hom(source, target, mapping_matrix)
     
-    # identify the cartier_data_group and its embedding
+    # identify the embedding of the cartier_data_group
     ker = kernel(total_map)
-    cartier_data_group = snf(ker[1])[1]
-    cartier_data_group_embedding = hom(cartier_data_group, source, ker[1].snf_map.map * ker[2].map)
+    embedding = snf(ker[1])[2] * ker[2] * hom(codomain(ker[2]), torusinvariant_divisor_group(v), map_to_weil_divisors)
     
-    # construct the embedding of the Cartier divisor group into the group of torusinvariant divisors
-    return cartier_divisor_group_embedding = image(hom(cartier_data_group, torusinvariant_divisor_group(v), cartier_data_group_embedding.map * map_to_weil_divisors))[2]
+    # return the image of this embedding
+    return image(embedding)[2]
 end
 export map_from_cartier_divisor_group_to_torus_invariant_divisor_group
 
