@@ -1,5 +1,5 @@
 @testset "Definition forms" begin
-   T,t = PolynomialRing(FiniteField(3),"t")
+   T,t = PolynomialRing(GF(3),"t")
    F,z = FiniteField(t^2+1,"z")
 
    B = matrix(F,4,4,[0 1 0 0; 2 0 0 0; 0 0 0 z+2; 0 0 1-z 0])
@@ -66,7 +66,7 @@
    @test issymmetric_form(f)
    @test gram_matrix(f)==matrix(F,1,1,[-z])
 
-   T,t = PolynomialRing(FiniteField(2),"t")
+   T,t = PolynomialRing(GF(2),"t")
    F,z = FiniteField(t^2+t+1,"z")
    R = PolynomialRing(F,4)[1]
    p = R[1]*R[2]+z*R[3]*R[4]
@@ -82,7 +82,7 @@
 end
 
 @testset "Evaluating forms" begin
-   F,z=GF(3,2,"z")
+   F,z=FiniteField(3,2,"z")
    V=VectorSpace(F,6)
 
    x = matrix(F,6,6,[1,0,0,0,z+1,0,0,0,0,2,1+2*z,1,0,0,1,0,0,z,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,1])
@@ -120,7 +120,7 @@ end
 end
 
 @testset "Methods with forms" begin
-   F = GF(5,1)[1]
+   F = GF(5,1)
    V = VectorSpace(F,6)
    x = zero_matrix(F,6,6)
    f = symmetric_form(x)
@@ -142,7 +142,7 @@ end
    @test witt_index(Q)==3
    @test !isdegenerate(f)
 
-   F = GF(2,1)[1]
+   F = GF(2,1)
    x = matrix(F,2,2,[1,0,0,0])
    Q = quadratic_form(x)
    @test dim(radical(Q)[1])==1
@@ -153,7 +153,7 @@ end
 
 @testset "TransformForm" begin
    # symmetric
-   F = GF(3,1)[1]
+   F = GF(3,1)
    x = zero_matrix(F,6,6)
    x[4,5]=1; x[5,6]=1; x=x+transpose(x)
    y = zero_matrix(F,6,6)
@@ -163,7 +163,7 @@ end
    @test is_true
    @test f^z == g
 
-   F = GF(7,1)[1]
+   F = GF(7,1)
    x = diagonal_matrix(F.([1,4,2,3,6,5,4]))
    y = diagonal_matrix(F.([3,1,5,6,4,2,1]))
    f = symmetric_form(x); g = symmetric_form(y)
@@ -176,7 +176,7 @@ end
    @test !is_true
    @test z==nothing
 
-   T,t = PolynomialRing(FiniteField(3),"t")
+   T,t = PolynomialRing(GF(3),"t")
    F,a = FiniteField(t^2+1,"a")
    x = zero_matrix(F,6,6)
    x[1,2]=1+2*a; x[3,4]=a; x[5,6]=1; x=x+transpose(x)
@@ -191,7 +191,7 @@ end
    @test !is_true
 
    #alternating
-   F = GF(3,1)[1]
+   F = GF(3,1)
    x = zero_matrix(F,6,6)
    x[4,5]=1; x[5,6]=1; x=x-transpose(x)
    y = zero_matrix(F,6,6)
@@ -201,7 +201,7 @@ end
    @test is_true
    @test f^z == g
 
-   F,a = GF(2,3,"a")
+   F,a = FiniteField(2,3,"a")
    x = zero_matrix(F,6,6)
    x[1,2]=a; x[2,3]=a^2+1; x[3,4]=1; x[1,5]=a^2+a+1; x[5,6]=1; x=x-transpose(x)
    y = zero_matrix(F,6,6)
@@ -229,14 +229,14 @@ end
    g = alternating_form(y)
    @test_throws AssertionError iscongruent(f,g)
 
-   F = GF(3,1)[1]
+   F = GF(3,1)
    y = zero_matrix(F,8,8)
    y[1,3]=2;y[3,4]=1; y=y-transpose(y)
    g = alternating_form(y)
    @test_throws AssertionError iscongruent(f,g)
 
    #hermitian
-   F,a = GF(3,2,"a")
+   F,a = FiniteField(3,2,"a")
    x = zero_matrix(F,6,6)
    x[4,5]=1; x[5,6]=a-1; x=x+conjugate_transpose(x)
    y = zero_matrix(F,6,6)
@@ -253,7 +253,7 @@ end
    @test is_true
    @test f^z == g
 
-   F,a = GF(2,2,"a")
+   F,a = FiniteField(2,2,"a")
    x = zero_matrix(F,6,6)
    x[4,5]=1; x[5,6]=a+1; x=x+conjugate_transpose(x)
    y = zero_matrix(F,6,6)
@@ -271,7 +271,7 @@ end
    @test f^z == g
 
    #quadratic
-   F = GF(5,1)[1]
+   F = GF(5,1)
    R = PolynomialRing(F,6)[1]
    p1 = R[1]*R[2]
    p2 = R[4]*R[5]+3*R[4]^2
@@ -297,7 +297,7 @@ end
    is_true,z = iscongruent(Q1,Q2)
    @test !is_true
 
-   F,a = GF(2,2,"a")
+   F,a = FiniteField(2,2,"a")
    R = PolynomialRing(F,6)[1]
    p1 = R[1]*R[2]+R[3]*R[4]+R[5]^2+R[5]*R[6]+R[6]^2
    p2 = R[1]*R[6]+a*R[2]*R[5]+R[3]*R[4]
@@ -569,7 +569,7 @@ end
    @test length(invariant_quadratic_forms(G))==21
 
    # degenerate forms
-   F = GF(3,1)[1]
+   F = GF(3,1)
    B = diagonal_matrix(F.([1,1,1,0,0,0]))
    Q = quadratic_form(B)
    H = isometry_group(Q)
@@ -578,7 +578,7 @@ end
    end
    @test order(H)==order(GO(3,3))*order(GL(3,F))*3^9
 
-   F = GF(2,1)[1]
+   F = GF(2,1)
    B = zero_matrix(F,6,6)
    B[1,2]=1;B[3,4]=1;
    Q = quadratic_form(B)
@@ -588,7 +588,7 @@ end
    end
    @test order(H)==order(GO(1,4,2))*order(GL(2,F))*2^8
 
-   F = GF(3,2)[1]
+   F = GF(3,2)
    B = zero_matrix(F,4,4)
    B[3,4]=gen(F);B[4,3]=gen(F)^3
    f = hermitian_form(B)
