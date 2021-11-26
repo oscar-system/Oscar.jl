@@ -342,7 +342,7 @@ function map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v::Abst
     
     # identify rays and cones
     rays = Polymake.common.primitive(pm_object(v).RAYS)
-    max_cones = incidence_matrix(maximal_cones(fan(v)))
+    max_cones = ray_incidences(maximal_cones(fan(v)))
     number_of_rays = size(rays)[1]
     number_of_cones = size(max_cones)[1]
     
