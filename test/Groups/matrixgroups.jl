@@ -626,7 +626,7 @@ end
    x = one(G)
    @test issemisimple(x) && isunipotent(x)
 
-   F,z = GF(5,3,"z")
+   F,z = FiniteField(5,3,"z")
    G = GL(6,F)
    R,t = PolynomialRing(F,"t")
    f = t^3+t*z+1
