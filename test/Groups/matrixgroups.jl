@@ -32,7 +32,7 @@
          GAP.Globals.ConwayPolynomial(p, 2)
    @test GAP.Globals.IsAlgebraicExtension(codomain(f))
 
-   F = GF(29,1)[1]
+   F = GF(29,1)
    z = F(2)
    G = GL(3,F)
    @test G.X isa GAP.GapObj
