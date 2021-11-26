@@ -8,7 +8,7 @@ import Nemo: FlintIntegerRing, FlintRationalField, MatrixSpace, fmpz, fmpq, fmpz
 ## GAP integer to `fmpz`
 GAP.gap_to_julia(::Type{fmpz}, obj::Int64) = fmpz(obj)
 function GAP.gap_to_julia(::Type{fmpz}, obj::GAP.GapObj)
-    GAP.Globals.IsInt(obj) || throw(GAP.ConversionError(obj, fmpz))
+    GAP.GAP_IS_INT(obj) || throw(GAP.ConversionError(obj, fmpz))
     GC.@preserve obj fmpz(GAP.ADDR_OBJ(obj), div(GAP.SIZE_OBJ(obj), sizeof(Int)))
 end
 
@@ -19,7 +19,8 @@ fmpz(obj::GAP.GapObj) = gap_to_julia(fmpz, obj)
 ## large GAP rational or integer to `fmpq`
 GAP.gap_to_julia(::Type{fmpq}, obj::Int64) = fmpq(obj)
 function GAP.gap_to_julia(::Type{fmpq}, obj::GAP.GapObj)
-    GAP.Globals.IsRat(obj) || throw(GAP.ConversionError(obj, fmpq))
+    GAP.GAP_IS_INT(obj) && return fmpq(fmpz(obj))
+    GAP.GAP_IS_RAT(obj) || throw(GAP.ConversionError(obj, fmpq))
     return fmpq(fmpz(GAP.Globals.NumeratorRat(obj)), fmpz(GAP.Globals.DenominatorRat(obj)))
 end
 
@@ -67,7 +68,7 @@ end
 
 ## nonempty list of GAP matrices over the same cyclotomic field
 function matrices_over_cyclotomic_field(gapmats::GAP.GapObj)
-    GAP.Globals.IsList(gapmats) || throw(ArgumentError("gapmats is not a GAP list"))
+    GAPWrap.IsList(gapmats) || throw(ArgumentError("gapmats is not a GAP list"))
     GAP.Globals.IsEmpty(gapmats) && throw(ArgumentError("gapmats is empty"))
     GAP.Globals.ForAll(gapmats, GAP.Globals.IsCyclotomicCollColl) ||
       throw(ArgumentError("gapmats is not a GAP list of matrices of cyclotomics"))
@@ -79,8 +80,8 @@ function matrices_over_cyclotomic_field(gapmats::GAP.GapObj)
 
     result = dense_matrix_type(F)[]
     for mat in gapmats
-      m = GAP.Globals.NumberRows(mat)
-      n = GAP.Globals.NumberColumns(mat)
+      m = GAPWrap.NumberRows(mat)
+      n = GAPWrap.NumberColumns(mat)
       entries = [F(Vector{fmpz}(GAP.Globals.Coefficients(B, mat[i, j])))
                  for i in 1:m, j in 1:n]
       push!(result, matrix(F, entries))
@@ -95,8 +96,8 @@ function matrix(F::AnticNumberField, mat::GAP.GapObj)
     (GAP.Globals.IsCyclotomicCollColl(mat) && GAP.Globals.IsMatrixOrMatrixObj(mat)) || throw(ArgumentError("mat is not a GAP matrix of cyclotomics"))
     N = Oscar.get_special(F, :cyclo)
     B = default_basis_GAP_cyclotomic_field(N)
-    m = GAP.Globals.NumberRows(mat)
-    n = GAP.Globals.NumberColumns(mat)
+    m = GAPWrap.NumberRows(mat)
+    n = GAPWrap.NumberColumns(mat)
     entries = [F(Vector{fmpz}(GAP.Globals.Coefficients(B, mat[i, j])))
                for i in 1:m, j in 1:n]
     return matrix(F, entries)

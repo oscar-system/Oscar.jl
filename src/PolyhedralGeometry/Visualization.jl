@@ -30,13 +30,3 @@ function visualize(PF::PolyhedralFan)
     Polymake.visual(pmF)
 end
 
-
-@doc Markdown.doc"""
-    visualize(G::Graphs.Graph{T}) where {T <: Union{Polymake.Directed, Polymake.Undirected}}
-
-Visualize a graph.
-"""
-function visualize(G::Graphs.Graph{T}) where {T <: Union{Polymake.Directed, Polymake.Undirected}}
-    BigGraph = Polymake.graph.Graph(ADJACENCY=pm_object(G))
-    Polymake.visual(BigGraph)
-end

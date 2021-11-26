@@ -14,6 +14,7 @@ Pages = ["auxiliary.md"]
 # Auxiliary functions
 
 ```@docs
+affine_hull(P::Polyhedron)
 ambient_dim(P::Polyhedron)
 boundary_lattice_points(P::Polyhedron)
 codim(P::Polyhedron)
@@ -40,11 +41,13 @@ print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = false)
 print_constraints(P::Polyhedron; trivial::Bool = false)
 rays(P::Polyhedron)
 recession_cone(P::Polyhedron)
+relative_interior_point(P::Polyhedron)
 solve_ineq(A::fmpz_mat, b::fmpz_mat)
 solve_mixed(A::fmpz_mat, b::fmpz_mat, C::fmpz_mat, d::fmpz_mat)
 solve_mixed(A::fmpz_mat, b::fmpz_mat, C::fmpz_mat)
 solve_non_negative(A::fmpz_mat, b::fmpz_mat)
 support_function(P::Polyhedron; convention::Symbol = :max)
+vertices(P::Polyhedron)
 volume(P::Polyhedron)
 ```
 

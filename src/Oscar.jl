@@ -229,6 +229,7 @@ include("Rings/Hecke.jl") #does all the importing from Hecke - to define names
 include("printing.jl")
 
 include("GAP/GAP.jl")
+include("GAP/wrappers.jl")
 include("GAP/gap_to_oscar.jl")
 include("GAP/oscar_to_gap.jl")
 
@@ -279,7 +280,10 @@ include("Geometry/basics.jl")
 
 include("NumberTheory/NmbThy.jl")
 
-include("Polytopes/Polytopes.jl")
+include("PolyhedralGeometry/Polytopes.jl")
+
+include("Combinatorics/Graphs.jl")
+export Graphs
 
 include("../StraightLinePrograms/src/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl")

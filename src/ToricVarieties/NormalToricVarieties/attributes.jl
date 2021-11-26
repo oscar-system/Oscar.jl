@@ -233,8 +233,8 @@ Abelian group with structure: Z^3
 ```
 """
 function map_from_character_to_principal_divisors(v::AbstractNormalToricVariety)
-    mat = Matrix{Int}(Polymake.common.primitive(pm_object(v).RAYS))
-    matrix = AbstractAlgebra.matrix(ZZ, size(mat,2), size(mat,1), vec(mat))
+    mat = transpose(Matrix{Int}(Polymake.common.primitive(pm_object(v).RAYS)))
+    matrix = AbstractAlgebra.matrix(ZZ, mat)
     return hom(character_lattice(v), torusinvariant_divisor_group(v), matrix)
 end
 export map_from_character_to_principal_divisors
@@ -311,6 +311,131 @@ function map_from_weil_divisors_to_class_group(v::AbstractNormalToricVariety)
     return cokernel(map_from_character_to_principal_divisors(v))[2]
 end
 export map_from_weil_divisors_to_class_group
+
+
+@doc Markdown.doc"""
+    map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v::AbstractNormalToricVariety)
+
+Computes the embedding of the group of Cartier divisors into the group of
+torus-invariant Weil divisors of an abstract normal toric variety `v`.
+
+# Examples
+```jdoctest
+julia> p2 = toric_projective_space(2)
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+
+julia> map_from_cartier_divisor_group_to_torus_invariant_divisor_group(p2)
+Map with following data
+Domain:
+=======
+Abelian group with structure: Z^3
+Codomain:
+=========
+Abelian group with structure: Z^3
+```
+"""
+function map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v::AbstractNormalToricVariety)
+    # check input
+    if hastorusfactor(v)
+        throw(ArgumentError("Group of the torus-invariant Cartier divisors can only be computed if the variety has no torus factor."))
+    end
+    
+    # identify rays and cones
+    rays = Polymake.common.primitive(pm_object(v).RAYS)
+    max_cones = incidence_matrix(maximal_cones(fan(v)))
+    number_of_rays = size(rays)[1]
+    number_of_cones = size(max_cones)[1]
+    
+    # compute quantities needed to construct the matrices
+    rc = rank(character_lattice(v))
+    number_ray_is_part_of_max_cones = [length(max_cones[:,k].s) for k in 1:number_of_rays]
+    s = sum(number_ray_is_part_of_max_cones)
+    cones_ray_is_part_of = [filter(x -> max_cones[x,r], 1:number_of_cones) for r in 1:number_of_rays]
+    
+    # compute the matrix for the scalar products
+    map_for_scalar_products = zero_matrix(ZZ, number_of_cones * rc, s)
+    col = 1
+    for i in 1:number_of_rays
+        for j in cones_ray_is_part_of[i]
+            map_for_scalar_products[(j-1)*rc+1:j*rc, col] = [fmpz(c) for c in rays[i,:]]
+            col += 1
+        end
+    end
+    
+    # compute the matrix for differences
+    map_for_difference_of_elements = zero_matrix(ZZ, s, s-number_of_rays)
+    row = 1
+    col = 1
+    for i in 1:number_of_rays
+        ncol = number_ray_is_part_of_max_cones[i]-1
+        map_for_difference_of_elements[row, col:(col+ncol-1)] = fill(fmpz(1), ncol)
+        map_for_difference_of_elements[(row+1):(row+ncol), col:(col+ncol-1)] = -identity_matrix(ZZ, ncol)
+        row += ncol + 1
+        col += ncol
+    end
+    
+    # compute the matrix for mapping to torusinvariant Weil divisors
+    map_to_weil_divisors = zero_matrix(ZZ, number_of_cones * rc, rank(torusinvariant_divisor_group(v)))
+    for i in 1:number_of_rays
+        map_to_weil_divisors[(cones_ray_is_part_of[i][1]-1)*rc+1:cones_ray_is_part_of[i][1]*rc, i] = [fmpz(-c) for c in rays[i,:]]
+    end
+    
+    # compute the total map
+    mapping_matrix = map_for_scalar_products * map_for_difference_of_elements
+    source = abelian_group(zeros(Int, nrows(mapping_matrix)))
+    target = abelian_group(zeros(Int, ncols(mapping_matrix)))
+    total_map = hom(source, target, mapping_matrix)
+    
+    # identify the cartier_data_group and its embedding
+    ker = kernel(total_map)
+    cartier_data_group = snf(ker[1])[1]
+    cartier_data_group_embedding = hom(cartier_data_group, source, ker[1].snf_map.map * ker[2].map)
+    
+    # construct the embedding of the Cartier divisor group into the group of torusinvariant divisors
+    return cartier_divisor_group_embedding = image(hom(cartier_data_group, torusinvariant_divisor_group(v), cartier_data_group_embedding.map * map_to_weil_divisors))[2]
+end
+export map_from_cartier_divisor_group_to_torus_invariant_divisor_group
+
+@doc Markdown.doc"""
+    cartier_divisor_group(v::AbstractNormalToricVariety)
+
+Computes the Cartier divisor group of an abstract normal toric variety `v`.
+
+# Examples
+```jdoctest
+julia> p2 = toric_projective_space(2)
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+
+julia> cartier_divisor_group(p2)
+GrpAb: Z^3
+```
+"""
+function cartier_divisor_group(v::AbstractNormalToricVariety)
+    return domain(map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v))
+end
+export cartier_divisor_group
+
+
+@doc Markdown.doc"""
+    picard_group(v::AbstractNormalToricVariety)
+
+Computes the Picard group of an abstract normal toric variety `v`.
+
+# Examples
+```jdoctest
+julia> p2 = toric_projective_space(2)
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+
+julia> picard_group(p2)
+GrpAb: Z
+```
+"""
+function picard_group(v::AbstractNormalToricVariety)
+    map1 = map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v)
+    map2 = map_from_weil_divisors_to_class_group(v)
+    return snf(image(hom(domain(map1), codomain(map2), map1.map * map2.map))[1])[1]
+end
+export picard_group
 
 
 ############################

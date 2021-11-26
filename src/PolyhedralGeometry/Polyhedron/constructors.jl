@@ -34,6 +34,24 @@ julia> b = [1, 1, 0, 0];
 julia> Polyhedron(A,b)
 A polyhedron in ambient dimension 2
 ```
+
+As an example for a polyhedron constructed from both inequalities and
+equations, we construct the polytope $[0,1]\times\{0\}\subset\mathbb{R}^2$
+```jldoctest
+julia> P = Polyhedron(([-1 0; 1 0], [0,1]), ([0 1], [0]))
+A polyhedron in ambient dimension 2
+
+julia> isfeasible(P)
+true
+
+julia> dim(P)
+1
+
+julia> vertices(P)
+2-element VectorIterator{PointVector{Polymake.Rational}}:
+ [1, 0]
+ [0, 0]
+```
 """
 Polyhedron(A::Union{Oscar.MatElem,AbstractMatrix}, b) = Polyhedron((A, b))
 
