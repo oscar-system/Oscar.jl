@@ -49,4 +49,7 @@ end
     D = homogeneous_components(x[1]^2*F[1]+x[2]^2*F[2]+x[1]*x[2]^3*F[3])
     @test length(D) == 2
     @test D[g[1]+2*g[2]] == x[2]^2*F[2]
+    @test_throws ErrorException degree(x[1]*F[1]+x[2]^2*F[2]+x[2]*F[3])
+
+    #TODO: tests for filtrated case
 end

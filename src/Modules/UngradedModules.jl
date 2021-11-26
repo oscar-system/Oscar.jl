@@ -45,7 +45,7 @@ abstract type ModuleMap{T1, T2} <: Map{T1, T2, Hecke.HeckeMap, ModuleFPHom} end
 
 
 @doc Markdown.doc"""
-    FreeMod{T <: RingElem} <: ModuleFP{T}
+    FreeMod{T <: RingElem} <: AbstractFreeMod{T}
 
 The type of free modules.
 Free modules are determined by their base ring, the rank and the names of 

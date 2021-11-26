@@ -37,6 +37,7 @@ include("Examples/ModStdQt-test.jl")
 include("Examples/ModStdNF-test.jl")
 
 include("Modules/UngradedModules.jl")
+include("Modules/ModulesGraded.jl")
 
 include("InvariantTheory/runtests.jl")
 

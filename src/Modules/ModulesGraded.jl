@@ -12,6 +12,16 @@ const CRingElem_dec = Union{MPolyElem_dec, MPolyQuoElem{<:Oscar.MPolyElem_dec}}
 #TODO: other name for CRing_dec -> which?
 
 
+@doc Markdown.doc"""
+    FreeMod_dec{T <: CRingElem_dec} <: AbstractFreeMod_dec{T}
+
+The type of decorated (graded or filtrated) free modules.
+Decorated free modules are determined by their base ring, the rank,
+the grading or filtration and the names of the (standard) generators.
+Moreover, canonical incoming and outgoing morphisms are stored if the corresponding
+option is set in suitable functions.
+`FreeMod_dec{T}` is a subtype of `ModuleFP{T}`.
+"""
 mutable struct FreeMod_dec{T <: CRingElem_dec} <: AbstractFreeMod_dec{T}
   F::FreeMod{T}
   d::Vector{GrpAbFinGenElem}
@@ -26,15 +36,54 @@ mutable struct FreeMod_dec{T <: CRingElem_dec} <: AbstractFreeMod_dec{T}
   end
 end
 
+@doc Markdown.doc"""
+    FreeMod_dec(R::CRing_dec, n::Int, name::String = "e"; cached::Bool = false) 
+
+Construct a decorated (graded or filtrated) free module over the ring `R` with rank `n`
+with the standard degrees, that is the standard unit vectors have degree 0.
+Additionally one can provide names for the generators. If one does 
+not provide names for the generators, the standard names e_i are used for 
+the standard unit vectors.
+"""
 function FreeMod_dec(R::CRing_dec, n::Int, name::String = "e"; cached::Bool = false) 
   return FreeMod_dec{elem_type(R)}(R, [Symbol("$name[$i]") for i=1:n], [decoration(R)[0] for i=1:n])
 end
+
+@doc Markdown.doc"""
+    free_module_dec(R::CRing_dec, n::Int, name::String = "e"; cached::Bool = false)
+
+Create the decorated free module $R^n$ equipped with its basis of standard unit vectors
+and standard degrees, that is the standard unit vectors have degree 0.
+
+The string `name` specifies how the basis vectors are printed. 
+"""
 free_module_dec(R::CRing_dec, n::Int, name::String = "e"; cached::Bool = false) = FreeMod_dec(R, n, name, cached = cached)
 
-# if one des not provide names for the generators, the standard names e_i are used for the unit vectors
+
+@doc Markdown.doc"""
+    FreeMod_dec(R::CRing_dec, d::Vector{GrpAbFinGenElem}, name::String = "e"; cached::Bool = false) 
+
+Construct a decorated (graded or filtrated) free module over the ring `R` 
+with rank `n` where `n` is the length of `d`. `d` is the vector of degrees for the 
+components, i.e. `d[i]` is the degree of `e[i]` where `e[i]` is the `i`th standard unit
+vector of the free module.
+Additionally one can provide names for the generators. If one does 
+not provide names for the generators, the standard names e_i are used for 
+the standard unit vectors.
+"""
 function FreeMod_dec(R::CRing_dec, d::Vector{GrpAbFinGenElem}, name::String = "e"; cached::Bool = false) 
   return FreeMod_dec{elem_type(R)}(R, [Symbol("$name[$i]") for i=1:length(d)],d)
 end
+
+@doc Markdown.doc"""
+    free_module_dec(R::CRing_dec, d::Vector{GrpAbFinGenElem}, name::String = "e"; cached::Bool = false)
+
+Create the decorated free module $R^n$ (`n` is the length of `d`)
+equipped with its basis of standard unit vectors where the 
+i-th standard unit vector has degree `d[i]`.
+
+The string `name` specifies how the basis vectors are printed. 
+"""
 free_module_dec(R::CRing_dec, d::Vector{GrpAbFinGenElem}, name::String = "e"; cached::Bool = false) = FreeMod_dec(R, d, name, cached = cached)
 
 
@@ -83,23 +132,46 @@ function forget_decoration(F::FreeMod_dec)
 end
 
 @doc Markdown.doc"""
-    base_ring(F::AbstractFreeMod)
+    base_ring(F::FreeMod_dec)
 
 Return the underlying ring of `F`.
 """
 base_ring(F::FreeMod_dec) = forget_decoration(F).R
 
+@doc Markdown.doc"""
+    rank(F::FreeMod_dec)
+
+Return the rank of `F`.
+"""
 rank(F::FreeMod_dec) = rank(forget_decoration(F))
 
+@doc Markdown.doc"""
+    decoration(F::FreeMod_dec)
+
+Return the vector of degrees of the standard unit vectors.
+"""
 decoration(F::FreeMod_dec) = F.d
 decoration(R::MPolyRing_dec) = R.D
 
-# two free modules are equal if the rank and the ring are
+@doc Markdown.doc"""
+    ==(F::FreeMod_dec, G::FreeMod_dec)
+
+Return  `true` if `F` and `G` are equal, `false` otherwise.
+
+Here, `F` and `G` are equal iff their base rings, ranks, decorations 
+and names for printing the basis elements are equal.
+"""
 function Base.:(==)(F::FreeMod_dec, G::FreeMod_dec)
   return forget_decoration(F) == forget_decoration(G) && F.d == G.d
 end
 
-# elements of free modules are encoded in SRows
+@doc Markdown.doc"""
+    FreeModElem_dec{T}
+
+The type of decorated free module elements. An element of a decorated free module $F$ is 
+given by a sparse row (`SRow`) which specifies its coordinates with respect to the basis
+of standard unit vectors of $F$.
+"""
 struct FreeModElem_dec{T} <: AbstractFreeModElem_dec{T}
   coords::SRow{T} # also usable via coeffs()
   parent::FreeMod_dec{T}
@@ -110,26 +182,61 @@ struct FreeModElem_dec{T} <: AbstractFreeModElem_dec{T}
   end
 end
 
+@doc Markdown.doc"""
+    FreeModElem_dec(c::SRow{T}, parent::FreeMod_dec{T}) where T
+
+Return the element of `F` whose coefficients with respect to the basis of 
+standard unit vectors of `F` are given by the entries of `c`.
+"""
 FreeModElem_dec(c::SRow{T}, parent::FreeMod_dec{T}) where T = FreeModElem_dec{T}(c, parent)
 
+@doc Markdown.doc"""
+    FreeModElem_dec(c::Vector{T}, parent::FreeMod_dec{T}) where T
+    
+Return the element of `F` whose coefficients with respect to the basis of 
+standard unit vectors of `F` are given by the entries of `c`.
+"""
 function FreeModElem_dec(c::Vector{T}, parent::FreeMod_dec{T}) where T
   @assert length(c) == rank(parent)
   sparse_coords = sparse_row(base_ring(parent), collect(1:rank(parent)), c)
   return FreeModElem_dec{T}(sparse_coords,parent)
 end
 
+@doc Markdown.doc"""
+    (F::FreeMod_dec{T})(c::SRow{T}) where T
+    
+Return the element of `F` whose coefficients with respect to the basis of 
+standard unit vectors of `F` are given by the entries of `c`.
+"""
 function (F::FreeMod_dec{T})(c::SRow{T}) where T
   return FreeModElem_dec(c, F)
 end
 
+@doc Markdown.doc"""
+    (F::FreeMod_dec{T})(c::Vector{T}) where T
+
+Return the element of `F` whose coefficients with respect to the basis of 
+standard unit vectors of `F` are given by the entries of `c`.
+"""
 function (F::FreeMod_dec{T})(c::Vector{T}) where T 
   return FreeModElem_dec(c, F)
 end
 
+@doc Markdown.doc"""
+    (F::FreeMod_dec)()
+
+Return the zero element of `F`.
+"""
 function (F::FreeMod_dec)()
   return FreeModElem_dec(sparse_row(base_ring(F)), F)
 end
 
+@doc Markdown.doc"""
+    FreeModElem(coords::SRow{T}, parent::FreeMod_dec{T}) where T <: CRingElem_dec
+
+Return the element of `F` whose coefficients with respect to the basis of 
+standard unit vectors of `F` are given by the entries of `c`.
+"""
 function FreeModElem(coords::SRow{T}, parent::FreeMod_dec{T}) where T <: CRingElem_dec
   return FreeModElem_dec{T}(coords, parent)
 end
@@ -141,23 +248,43 @@ elem_type(::FreeMod_dec{T}) where {T} = FreeModElem_dec{T}
 parent_type(::FreeModElem_dec{T}) where {T} = FreeMod_dec{T}
 
 
+@doc Markdown.doc"""
+    generator_symbols(F::FreeMod_dec)
+
+Return the list of symbols of the standard unit vectors.
+"""
 function generator_symbols(F::FreeMod_dec)
   return generator_symbols(forget_decoration(F))
 end
 @enable_all_show_via_expressify FreeModElem_dec
 
 
+@doc Markdown.doc"""
+    degree_homogeneous_helper(u::FreeModElem_dec)
+
+Compute the degree and homogeneity of `u` (simultaneously).
+A tuple is returned: The first entry is the degree (or nothing if
+the element has no degree); the second entry is true if `u` is 
+homogeneous and false otherwise.
+"""
 function degree_homogeneous_helper(u::FreeModElem_dec)
   if iszero(u)
     return nothing, true
   end
   first = true
-  homogeneous_when_filtrated = true #this variable is only changed in the filtrated case
+  homogeneous = true #only needed in filtrated case
   F = parent(u)
   W = base_ring(F)
   ww = W.D[0]
   local w
   for (p,v) in coords(u)
+    if !ishomogeneous(v)
+      if isgraded(W)
+        return nothing,false
+      else
+        homogeneous = false
+      end
+    end
     w = degree(v)+F.d[p]
     if first
       ww = w
@@ -168,43 +295,33 @@ function degree_homogeneous_helper(u::FreeModElem_dec)
       end
     else
       if ww != w
-        homogeneous_when_filtrated = false
+        homogeneous = false
       end
       if W.lt(ww, w) 
         ww = w
       end
     end
   end
-  return w, homogeneous_when_filtrated
+  return w, homogeneous
 end
 
+@doc Markdown.doc"""
+    degree(a::FreeModElem_dec)
+
+Return the degree of `a`. If `a` has no degree an error is thrown.
+"""
 function degree(a::FreeModElem_dec)
-  if iszero(a)
-    error("zero has no degree")
-  end
-  first = true
-  F = parent(a)
-  W = base_ring(F)
-  ww = W.D[0]
-  local w
-  for (p,v) in coords(a)
-    w = degree(v)+F.d[p]
-    if first
-      ww = w
-      first = false
-    elseif isgraded(W)
-      if ww != w
-        error("elem not homogeneous")
-      end
-    else
-      if W.lt(ww, w) 
-        ww = w
-      end
-    end
-  end
-  return w
+  d,_ = degree_homogeneous_helper(a)
+  d === nothing ? error("elem has no degree") : return d
 end
 
+@doc Markdown.doc"""
+    homogeneous_components(a::FreeModElem_dec)
+
+Return the homogeneous components of `a` in a dictionary.
+The keys are those group elements for which `a` has a component
+having this element as its degree.
+"""
 function homogeneous_components(a::FreeModElem_dec)
   res = Dict{GrpAbFinGenElem, FreeModElem_dec}()
   F = parent(a)
@@ -222,6 +339,11 @@ function homogeneous_components(a::FreeModElem_dec)
   return res
 end
 
+@doc Markdown.doc"""
+    homogeneous_component(a::FreeModElem_dec, g::GrpAbFinGenElem)
+
+Return the homogeneous component of `a` which has degree `g`.
+"""
 function homogeneous_component(a::FreeModElem_dec, g::GrpAbFinGenElem)
   F = parent(a)
   x = zero(F)
@@ -231,23 +353,13 @@ function homogeneous_component(a::FreeModElem_dec, g::GrpAbFinGenElem)
   return x
 end
 
+@doc Markdown.doc"""
+    ishomogeneous(a::FreeModElem_dec)
+
+Check if `a` is homogeneous.
+"""
 function ishomogeneous(a::FreeModElem_dec)
-  if iszero(a)
-    return true
-  end
-  F = parent(a)
-  first = true
-  local d::GrpAbFinGenElem
-  for (p,v) in coords(a)
-    ishomogeneous(v) || return false
-    if first
-      d = F.d[p] + degree(v)
-      first = false
-    else
-      F.d[p] + degree(v) == d || return false
-    end
-  end
-  return true
+  return degree_homogeneous_helper(a)[2]
 end
 
 # Weight vector or function?
