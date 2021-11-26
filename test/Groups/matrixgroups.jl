@@ -22,7 +22,7 @@
    # Test a large non-prime field.
    # (Oscar chooses a polynomial that is not a Conway polynomial.)
    p = next_prime(10^6)
-   F, _ = GF(p, 2)
+   F = GF(p, 2)
    f = Oscar.ring_iso_oscar_gap(F)
    for x in [ F(3), gen(F) ]
       a = f(x)
