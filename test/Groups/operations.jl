@@ -83,7 +83,7 @@ end
    @test issymmetric(P+transpose(P))
    @test isskewsymmetric_matrix(P-transpose(P))
 
-   F,z=GF(2,2)
+   F,z=FiniteField(2,2)
    x=matrix(F,4,4,[1,z,0,0,0,1,z^2,z,z,0,0,1,0,0,z+1,0])
    y=x+transpose(x)
    @test issymmetric(y)
