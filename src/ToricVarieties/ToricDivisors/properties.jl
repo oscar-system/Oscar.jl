@@ -197,11 +197,9 @@ true
 ```
 """
 function isprime_divisor(td::ToricDivisor)
-    pm_divisor = td.polymake_divisor
-    coeffs = [Int(c) for c in Polymake.common.primitive(pm_divisor.COEFFICIENTS)]
-    if sum(coeffs) != 1
+    if sum(coefficients(td)) != 1
         return false
     end
-    return all(y -> (y == 1 || y == 0), coeffs)
+    return all(y -> (y == 1 || y == 0), coefficients(td))
 end
 export isprime_divisor
