@@ -243,7 +243,7 @@ A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 ```
 """
 function blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int)
-    return NormalToricVariety( starsubdivision( fan( v ), n ) )
+    return NormalToricVariety(starsubdivision(fan(v), n))
 end
 export blowup_on_ith_minimal_torus_orbit
 
