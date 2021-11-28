@@ -52,7 +52,7 @@ ntv3 = NormalToricVariety(square)
     @test rank(domain(map_from_cartier_divisor_group_to_torus_invariant_divisor_group(ntv2))) == 4
 end
 
-P2 = toric_projective_space(2)
+P2 = NormalToricVariety(normal_fan(Oscar.simplex(2)))
 
 @testset "Projective space" begin
     @test isnormal(P2) == true
@@ -74,7 +74,9 @@ P2 = toric_projective_space(2)
     @test length(irrelevant_ideal(P2).gens) == 3
 end
 
-H5 = hirzebruch_surface(5)
+rays = [1 0; 0 1; -1 5; 0 -1]
+cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,1]])
+H5 = NormalToricVariety(PolyhedralFan(rays, cones))
 
 @testset "Hirzebruch surface" begin
     @test isnormal(H5) == true
@@ -112,10 +114,19 @@ H5 = hirzebruch_surface(5)
     @test length(irrelevant_ideal(H5).gens) == 4
 end
 
-dP0 = del_pezzo(0)
-dP1 = del_pezzo(1)
-dP2 = del_pezzo(2)
-dP3 = del_pezzo(3)
+dP0 = NormalToricVariety(normal_fan(Oscar.simplex(2)))
+
+rays = [1 0; 0 1; -1 0; -1 -1]
+cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,1]])
+dP1 = NormalToricVariety(PolyhedralFan(rays, cones))
+
+rays = [1 0; 0 1; -1 0; -1 -1; 0 -1]
+cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,5],[5,1]])
+dP2 = NormalToricVariety(PolyhedralFan(rays, cones))
+
+rays = [1 0; 1 1; 0 1; -1 0; -1 -1; 0 -1]
+cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,5],[5,6],[6,1]])
+dP3 = NormalToricVariety(PolyhedralFan(rays, cones))
 
 @testset "delPezzo surfaces" begin
     @test_throws ArgumentError del_pezzo(-1)
