@@ -513,6 +513,7 @@ Returns the cone of the affine normal toric variety `v`.
 ```jdoctest
 julia> cone(AffineNormalToricVariety(Oscar.positive_hull([1 1; -1 1])))
 A polyhedral cone in ambient dimension 2
+```
 """
 function cone(v::AffineNormalToricVariety)
     return maximal_cones(fan(v))[1]
