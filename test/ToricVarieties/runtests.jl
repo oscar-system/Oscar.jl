@@ -112,15 +112,16 @@ H5 = hirzebruch_surface(5)
     @test length(irrelevant_ideal(H5).gens) == 4
 end
 
+dP0 = del_pezzo(0)
+dP1 = del_pezzo(1)
+dP2 = del_pezzo(2)
+dP3 = del_pezzo(3)
+
 @testset "delPezzo surfaces" begin
     @test_throws ArgumentError del_pezzo(-1)
-    dP0 = del_pezzo(0)
     @test length(torusinvariant_prime_divisors(dP0)) == 3
-    dP1 = del_pezzo(1)
     @test length(torusinvariant_prime_divisors(dP1)) == 4
-    dP2 = del_pezzo(2)
     @test length(torusinvariant_prime_divisors(dP2)) == 5
-    dP3 = del_pezzo(3)
     @test rank(cartier_divisor_group(dP3)) == 6
     @test length(torusinvariant_prime_divisors(dP3)) == 6
     @test_throws ArgumentError del_pezzo(4)
@@ -210,4 +211,11 @@ p = polyhedron(D)
 @testset "Polytopes of divisors" begin
     @test dim(p) == 0
     @test ambient_dim(p) == 2
+end
+
+line_bundle = ToricLineBundle(dP3, [1,2,3,4])
+
+@testset "Toric line bundles" begin
+    @test divisor_class(line_bundle).coeff == AbstractAlgebra.matrix(ZZ, [1 2 3 4])
+    @test dim(variety(line_bundle)) == 2
 end
