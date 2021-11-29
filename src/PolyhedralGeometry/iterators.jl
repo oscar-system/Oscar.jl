@@ -1,12 +1,3 @@
-# When asking for a property of a `Polymake.BigObject`, e.g. VERTICES, the
-# polymake kernel entirely calculates this property before we can even partially
-# access this property. Thus, these iterators are constructed with meaningful
-# input and perform no calculations themselves during iteration. While this
-# implies that the (probably time-critical) calculations have to be performed
-# before the actual construction of an iterator (which would otherwise usually
-# be executed during the first iteration), this speeds up access and allows for
-# useful abstractions and definitions.
-
 struct Polyhedron #a real polymake polyhedron
     pm_polytope::Polymake.BigObject
     boundedness::Symbol # Values: :unknown, :bounded, :unbounded
@@ -194,19 +185,32 @@ affine_equation_matrix(iter::SubObjectIterator) = matrix(QQ, Matrix{fmpq}(_affin
 _affine_equation_matrix(::Any, ::Polymake.BigObject) = throw(ArgumentError("Affine Equation Matrix not defined in this context."))
 
 function matrix_for_polymake(iter::SubObjectIterator)
-    try
+    if hasmethod(_matrix_for_polymake, Tuple{Val{iter.Acc}})
         return _matrix_for_polymake(Val(iter.Acc))(Val(iter.Acc), iter.Obj; iter.options...)
-    catch e
+    else
         throw(ArgumentError("Matrix for Polymake not defined in this context."))
     end
 end
+
+function linear_matrix_for_polymake(iter::SubObjectIterator)
+    if hasmethod(_linear_matrix_for_polymake, Tuple{Val{iter.Acc}})
+        return _linear_matrix_for_polymake(Val(iter.Acc))(Val(iter.Acc), iter.Obj; iter.options...)
+    elseif hasmethod(_affine_matrix_for_polymake, Tuple{Val{iter.Acc}})
+        res = _affine_matrix_for_polymake(Val(iter.Acc))(Val(iter.Acc), iter.Obj; iter.options...)
+        iszero(res[:, 1]) || throw(ArgumentError("Input not linear."))
+        return res[:, 2:end]
+    end
+    throw(ArgumentError("Linear Matrix for Polymake not defined in this context."))
+end
+_linear_matrix_for_polymake(::Any, ::Polymake.BigObject) = throw(ArgumentError("Linear Matrix for Polymake not defined in this context."))
 
 function affine_matrix_for_polymake(iter::SubObjectIterator)
     if hasmethod(_affine_matrix_for_polymake, Tuple{Val{iter.Acc}})
         return _affine_matrix_for_polymake(Val(iter.Acc))(Val(iter.Acc), iter.Obj; iter.options...)
     elseif hasmethod(_matrix_for_polymake, Tuple{Val{iter.Acc}})
-        return homogenize(_matrix_for_polymake(Val(iter.Acc))(Val(iter.Acc), iter.Obj; iter.options...), 0)
+        return homogenize(_linear_matrix_for_polymake(Val(iter.Acc))(Val(iter.Acc), iter.Obj; iter.options...), 0)
     end
+    throw(ArgumentError("Affine Matrix for Polymake not defined in this context."))
 end
 _affine_matrix_for_polymake(::Any, ::Polymake.BigObject) = throw(ArgumentError("Affine Matrix for Polymake not defined in this context."))
 

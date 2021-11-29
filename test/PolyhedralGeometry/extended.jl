@@ -97,5 +97,14 @@
         @test lhs == matrix(QQ, [1 0; 0 4; 0 0])
         @test rhs == [1, -3, 1]
     end
+    
+    @testset "SubObjectIterator compatibility" begin
+        Pos_poly = convex_hull([0 0 0], [1 0 0; 0 1 0; 0 0 1])
+        Pos_cone = positive_hull([1 0 0; 0 1 0; 0 0 1])
+        @test cone_from_inequalities(facets(Pos_cone)) == Pos_cone
+        @test cone_from_inequalities(facets(Pos_poly)) == Pos_cone
+        @test Polyhedron(facets(Pos_cone)) == Pos_poly
+        @test Polyhedron(facets(Pos_poly)) == Pos_poly
+    end
 
 end # of @testset "OscarPolytope"
