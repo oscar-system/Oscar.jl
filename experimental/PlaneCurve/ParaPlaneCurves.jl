@@ -178,7 +178,6 @@ where R is the basering.
 
 # Example
 ```jldoctest
-
 julia> R, (v, w, x, y, z) =  GradedPolynomialRing(QQ, ["v", "w", "x", "y", "z"])
 (Multivariate Polynomial Ring in v, w, x, y, z over Rational Field graded by 
   v -> [1]
