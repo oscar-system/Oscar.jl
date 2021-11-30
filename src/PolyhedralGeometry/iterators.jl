@@ -207,7 +207,7 @@ _linear_matrix_for_polymake(::Any, ::Polymake.BigObject) = throw(ArgumentError("
 function affine_matrix_for_polymake(iter::SubObjectIterator)
     if hasmethod(_affine_matrix_for_polymake, Tuple{Val{iter.Acc}})
         return _affine_matrix_for_polymake(Val(iter.Acc))(Val(iter.Acc), iter.Obj; iter.options...)
-    elseif hasmethod(_matrix_for_polymake, Tuple{Val{iter.Acc}})
+    elseif hasmethod(_linear_matrix_for_polymake, Tuple{Val{iter.Acc}})
         return homogenize(_linear_matrix_for_polymake(Val(iter.Acc))(Val(iter.Acc), iter.Obj; iter.options...), 0)
     end
     throw(ArgumentError("Affine Matrix for Polymake not defined in this context."))

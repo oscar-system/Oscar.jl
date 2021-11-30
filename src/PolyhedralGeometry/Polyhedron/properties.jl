@@ -241,7 +241,7 @@ julia> nfacets(cross(5))
 32
 ```
 """
-nfacets(P::Polyhedron) = pm_object(P).N_FACETS
+nfacets(P::Polyhedron) = pm_object(P).N_FACETS - (_facet_at_infinity(pm_object(P)) != pm_object(P).N_FACETS + 1)
 
 @doc Markdown.doc"""
     facets(as::Type{T} = AffineHalfspace, P::Polyhedron)
@@ -288,18 +288,18 @@ julia> facets(Halfspace, C)
 1: x₃ ≦ 1
 ```
 """
-facets(as::Type{T}, P::Polyhedron) where {R, S, T<:Union{AffineHalfspace, Pair{R, S}, Polyhedron}} = SubObjectIterator{as}(pm_object(P), _facet_polyhedron, pm_object(P).N_FACETS)
+facets(as::Type{T}, P::Polyhedron) where {R, S, T<:Union{AffineHalfspace, Pair{R, S}, Polyhedron}} = SubObjectIterator{as}(pm_object(P), _facet_polyhedron, nfacets(P))
 
-function _facet_polyhedron(::Type{T}, C::Polymake.BigObject, i::Base.Integer) where {R, S, T<:Union{Polyhedron, AffineHalfspace, Pair{R, S}}}
-    h = decompose_hdata(C.FACETS[[i], :])
+function _facet_polyhedron(::Type{T}, P::Polymake.BigObject, i::Base.Integer) where {R, S, T<:Union{Polyhedron, AffineHalfspace, Pair{R, S}}}
+    h = decompose_hdata(P.FACETS[[_facet_index(P, i)], :])
     return T(h[1], h[2][])
 end
 
-_affine_inequality_matrix(::Val{_facet_polyhedron}, C::Polymake.BigObject) = -C.FACETS
+_affine_inequality_matrix(::Val{_facet_polyhedron}, P::Polymake.BigObject) = -_remove_facet_at_infinity(P)
 
 _affine_matrix_for_polymake(::Val{_facet_polyhedron}) = _affine_inequality_matrix
 
-_halfspace_matrix_pair(::Val{_facet_polyhedron}, C::Polymake.BigObject) = decompose_hdata(C.FACETS)
+_halfspace_matrix_pair(::Val{_facet_polyhedron}, P::Polymake.BigObject) = decompose_hdata(_remove_facet_at_infinity(P))
 
 facets(::Type{Pair}, P::Polyhedron) = facets(Pair{Polymake.Matrix{Polymake.Rational}, Polymake.Rational}, P)
 
@@ -337,6 +337,26 @@ julia> facets(C)
 facets(P::Polyhedron) = facets(AffineHalfspace, P)
 
 facets(::Type{Halfspace}, P::Polyhedron) = facets(AffineHalfspace, P)
+
+function _facet_index(P::Polymake.BigObject, i::Base.Integer)
+    i < _facet_at_infinity(P) && return i
+    return i + 1
+end
+
+function _facet_at_infinity(P::Polymake.BigObject)
+    fai = Polymake.get_attachment(P, "_facet_at_infinity")
+    if isnothing(fai)
+        F = [P.FACETS[i, :] for i in 1:P.N_FACETS]
+        i = findfirst(_is_facet_at_infinity, F)
+        fai = isnothing(i) ? P.N_FACETS + 1 : i
+        Polymake.attach(P, "_facet_at_infinity", fai)
+    end
+    return fai
+end
+
+_is_facet_at_infinity(v::AbstractVector) = v[1] >= 0 && iszero(v[2:end])
+
+_remove_facet_at_infinity(P::Polymake.BigObject) = vcat(P.FACETS[1:(_facet_at_infinity(P) - 1), :], P.FACETS[(_facet_at_infinity(P) + 1):end, :])
 
 ###############################################################################
 ###############################################################################
