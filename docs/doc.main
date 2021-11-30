@@ -122,13 +122,15 @@
   ],
 
   "Algebraic Geometry" => [
-#     "Curves" => [
+     "AlgebraicGeometry/intro.md",
+     "Curves" => [
 #        "Experimental/introduction.md",
 #        "Experimental/plane_curves.md",
 #        "Experimental/divisors.md",
 #        "Experimental/elliptic_curves.md",
 #        "Experimental/non_plane_curves.md",
-#     ],
+	 "AlgebraicGeometry/para_rational_curves.md",	 
+     ],
      "Toric Varieties" => [
         "ToricVarieties/intro.md",
         "ToricVarieties/NormalToricVarieties.md",
