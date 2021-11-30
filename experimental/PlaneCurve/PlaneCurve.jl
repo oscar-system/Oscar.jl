@@ -298,7 +298,7 @@ julia> C = Oscar.AffinePlaneCurve(y^3*x^6 - y^6*x^2)
 Affine plane curve defined by x^6*y^3 - x^2*y^6
 
 julia> Oscar.curve_components(C)
-Dict{Oscar.PlaneCurveModule.AffinePlaneCurve{fmpq}, Int64} with 3 entries:
+Dict{AffinePlaneCurve{fmpq}, Int64} with 3 entries:
   y         => 3
   x         => 2
   x^4 - y^3 => 1
