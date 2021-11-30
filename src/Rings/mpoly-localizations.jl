@@ -2,7 +2,7 @@ export MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal, MPolyPowersOfE
 export rand, sets, issubset, units_of
 
 export MPolyLocalizedRing
-export ambient_ring, point_coordinates, inverted_set, denominators
+export ambient_ring, point_coordinates, inverted_set, denominators, gens
 
 export MPolyLocalizedRingElem
 export numerator, denominator, fraction, parent, isunit, divexact
@@ -668,8 +668,10 @@ end
 
 ### required getter functions 
 base_ring(W::MPolyLocalizedRing) = W.R
-
 inverted_set(W::MPolyLocalizedRing) = W.S
+
+### additional getter functions
+gens(W::MPolyLocalizedRing) = W.(gens(base_ring(W)))
 
 ### required extension of the localization function
 Localization(S::MPolyComplementOfPrimeIdeal) = MPolyLocalizedRing(ambient_ring(S), S)
