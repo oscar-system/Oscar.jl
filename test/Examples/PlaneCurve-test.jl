@@ -446,7 +446,7 @@ end
     Y = gens(parent(I4[1]))
     @test I4 == [Y[1], -Y[2], -Y[5], -Y[4], -Y[7]]
     C4 = Oscar.rat_normal_curve_It_Proj_Even(D)
-    R3 = parent(C4.eq)
+    R3 = parent(C4[2].eq)
     U = gens(R3)
     @test C4 == Oscar.ProjPlaneCurve(-U[1]*U[3] + U[2]^2)
     C5 = Oscar.ProjPlaneCurve(T(-x^7-10*x^5*y^2-10*x^4*y^3-3*x^3*y^4+8*x^2*y^5+
