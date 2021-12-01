@@ -287,15 +287,27 @@ julia> RNC = ProjCurve(I)
 Projective curve defined by the ideal(v*x - w^2, v*y - w*x, w*y - x^2, v*z - w*y, w*z - x*y, x*z - y^2)
 
 julia> rat_normal_curve_It_Proj_Even(RNC)
-Projective plane curve defined by -y(1)*y(3) + y(2)^2
+(MPolyElem_dec{fmpq, fmpq_mpoly}[x, -y, z], Projective plane curve defined by -y(1)*y(3) + y(2)^2)
 ```
 """
 function rat_normal_curve_It_Proj_Even(C::ProjCurve)
+    R = base_ring(C.I)
+    # R is the oscar version of the original polynomial ring
     I = _tosingular_ideal(C)
+    # I is a singular sideal
     L = Singular.LibParaplanecurves.rncItProjEven(I)
-    S = _fromsingular_ring(L[1])
-    f = [L[2][i] for i in keys(L[2])][1]
-    return ProjPlaneCurve(S(f))
+    # L[1] is the new ring, L[2] is its symbol table
+    Rs = base_ring(I)
+    # Rs is the singular version of R and is the original Singular Polynomial
+    # Ring into which PHI was exported
+    d = Singular.convert_ring_content(Singular.libSingular.get_ring_content(Rs.ptr), Rs)
+    # d is the symbol table of Rs
+    phi = d[:PHI]
+    # phi is now the singular sideal whose generators we want
+    O = _fromsingular_ring(L[1])
+    # O is the oscar version of the new ring
+    # we want to get the exported CONIC as well as the generators of PHI
+    return gens(ideal(R, phi)), ProjPlaneCurve(O(L[2][:CONIC]))
 end
 
 @doc Markdown.doc"""
