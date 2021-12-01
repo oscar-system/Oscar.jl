@@ -38,8 +38,7 @@ mutable struct ProjCurve <: ProjectiveCurve
         dim(I) == 2 || error("wrong dimension for a projective curve")
         n = nvars(base_ring(I)) - 1
         new(I, n, Dict{ProjCurve, ProjCurve}())
-    end
-    
+    end   
     function Base.show(io::IO, C::ProjCurve)
         if !get(io, :compact, false)
             print(io, "Projective curve defined by the ", C.I)
