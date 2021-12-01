@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
 
 jobs:
-  build:
+  deploy_docs:
     #runs-on: self-hosted
     runs-on: ubuntu-latest
     steps:
