@@ -42,9 +42,9 @@ mutable struct ProjCurve <: ProjectiveCurve
     
     function Base.show(io::IO, C::ProjCurve)
         if !get(io, :compact, false)
-            println(io, "Projective curve defined by the ", C.I)
+            print(io, "Projective curve defined by the ", C.I)
         else
-            println(io, C.I)
+            print(io, C.I)
         end
     end
 end

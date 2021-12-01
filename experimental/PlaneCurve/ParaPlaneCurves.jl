@@ -204,7 +204,6 @@ julia> I = ideal(R, V);
 julia> RNC = ProjCurve(I)
 Projective curve defined by the ideal(v*x - w^2, v*y - w*x, w*y - x^2, v*z - w*y, w*z - x*y, x*z - y^2)
 
-
 julia> rat_normal_curve_anticanonical_map(RNC)
 3-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
  x
@@ -286,7 +285,6 @@ julia> I = ideal(R, V);
 
 julia> RNC = ProjCurve(I)
 Projective curve defined by the ideal(v*x - w^2, v*y - w*x, w*y - x^2, v*z - w*y, w*z - x*y, x*z - y^2)
-
 
 julia> rat_normal_curve_It_Proj_Even(RNC)
 Projective plane curve defined by -y(1)*y(3) + y(2)^2
