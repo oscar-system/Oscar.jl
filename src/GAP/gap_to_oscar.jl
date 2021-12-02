@@ -4,6 +4,7 @@
 
 import GAP: gap_to_julia
 import Nemo: FlintIntegerRing, FlintRationalField, MatrixSpace, fmpz, fmpq, fmpz_mat, fmpq_mat
+import Oscar.AbelianClosure: QabElem
 
 ## GAP integer to `fmpz`
 GAP.gap_to_julia(::Type{fmpz}, obj::Int64) = fmpz(obj)
@@ -64,6 +65,24 @@ function (F::AnticNumberField)(obj::GAP.GapObj)
 
     B = default_basis_GAP_cyclotomic_field(N)
     return F(Vector{fmpz}(GAP.Globals.Coefficients(B, obj)))
+end
+
+## single GAP cyclotomic to `QabElem`
+function QabElem(cyc::GapInt)
+    GAP.Globals.IsCyc(cyc) || error("cyc must be a GAP cyclotomic")
+    denom = GAP.Globals.DenominatorCyc(cyc)
+    n = GAP.Globals.Conductor(cyc)
+    coeffs = GAP.Globals.ExtRepOfObj(cyc * denom)
+    cycpol = GAP.Globals.CyclotomicPol(n)
+    dim = length(cycpol)-1
+    GAP.Globals.ReduceCoeffs(coeffs, cycpol)
+    coeffs = Vector{fmpz}(coeffs)
+    coeffs = coeffs[1:dim]
+    denom = fmpz(denom)
+    FF = abelian_closure(QQ)[1]
+    F, z = Oscar.AbelianClosure.cyclotomic_field(FF, n)
+    val = Nemo.elem_from_mat_row(F, Nemo.matrix(Nemo.ZZ, 1, dim, coeffs), 1, denom)
+    return QabElem(val, n)
 end
 
 ## nonempty list of GAP matrices over the same cyclotomic field
