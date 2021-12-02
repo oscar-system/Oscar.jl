@@ -47,11 +47,10 @@ function Cone(R::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMa
 end
 
 function ==(C0::Cone, C1::Cone)
-    # TODO: Remove the following 4 lines, see #758
-    facets(C0)
-    facets(C1)
-    rays(C0)
-    rays(C1)
+    # TODO: Remove the following 3 lines, see #758
+    for pair in Iterators.product([C0, C1], ["RAYS", "FACETS"])
+        Polymake.give(pm_object(pair[1]),pair[2])
+    end
     return Polymake.polytope.equal_polyhedra(pm_object(C0), pm_object(C1))
 end
 
