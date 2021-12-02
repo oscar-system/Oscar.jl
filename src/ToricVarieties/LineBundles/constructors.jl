@@ -20,7 +20,6 @@ export ToricLineBundle
     ToricLineBundle(v::AbstractNormalToricVariety, c::Vector{fmpz})
 
 Construct the line bundle on the abstract normal toric variety `v` with class `c`.
-```
 """
 function ToricLineBundle(v::AbstractNormalToricVariety, input_class::Vector{fmpz})
     class = picard_group(v)(input_class)
