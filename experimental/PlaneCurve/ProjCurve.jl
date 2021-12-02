@@ -12,7 +12,7 @@ Given a homogeneous ideal `I` of Krull dimension 2, return the projective curve 
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) =  GradedPolynomialRing(QQ, ["w", "x", "y", "z"]);
+julia> R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"]);
 
 julia> M = matrix(R, 2, 3, [w x y; x y z])
 [w   x   y]

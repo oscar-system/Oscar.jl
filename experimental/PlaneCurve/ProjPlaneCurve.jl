@@ -486,7 +486,7 @@ Return the geometric genus of `C`.
 
 # Example
 ```jldoctest
-julia> R, (x,y,z) =  GradedPolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x,y,z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
 
 julia> C = ProjPlaneCurve(z*x^2-y^3)
 Projective plane curve defined by x^2*z - y^3

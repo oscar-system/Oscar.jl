@@ -54,7 +54,7 @@ curves only once. Its individual steps are interesting in their own right:
 	namely the homogeneous ideal formed by the defining polynomials of the adjoint curves. In OSCAR, we follow
 	the concept of Gorenstein which leads to the largest possible adjoint ideal.
 	
-See  [BoehmDiplom](@cite) and [BDLP17](@cite) for details and further references.
+See [Bhm99](@cite) and [BDLP17](@cite) for details and further references.
  
 ## Creating Projective Plane Curves
 
