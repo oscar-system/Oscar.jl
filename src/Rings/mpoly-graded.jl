@@ -605,16 +605,15 @@ end
 #########################################
 function add_relshp(R, S, h)
   #this assumes that h is essentially a canonical map from R -> S
-  if !isdefined(R, :other)
-    R.other = dict{Symbol, Any}()
+  D = get_special(R, :relshp)
+  if D === nothing
+    D = Dict{Any, Any}()
+    set_special(R, :relshp => D)
   end
-  if !haskey(R.other, :relshp)
-    R.other[:relshp] = Dict{Any, Any}()
-  end
-  if haskey(R.other[:relshp], S)
+  if haskey(D, S)
     error("try to add double")
   end
-  R.other[:relshp][S] = h
+  D[S] = h
 end
 
 function hasrelshp(R, S)
