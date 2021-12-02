@@ -70,11 +70,10 @@ Get the underlying polymake `Polytope`.
 pm_object(P::Polyhedron) = P.pm_polytope
 
 function ==(P0::Polyhedron, P1::Polyhedron)
-    # TODO: Remove the following 4 lines, see #758
-    facets(P0)
-    vertices(P0)
-    facets(P1)
-    vertices(P1)
+    # TODO: Remove the following 3 lines, see #758
+    for pair in Iterators.product([P0, P1], ["RAYS", "FACETS"])
+        Polymake.give(pm_object(pair[1]),pair[2])
+    end
     Polymake.polytope.equal_polyhedra(pm_object(P0), pm_object(P1))
 end
 
