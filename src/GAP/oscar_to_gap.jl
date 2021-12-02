@@ -33,6 +33,12 @@ function GAP.julia_to_gap(obj::nf_elem)
     return GAP.Globals.CycList(GAP.julia_to_gap(v, recursive = true))
 end
 
+## `QabElem` to GAP cyclotomic
+function GAP.julia_to_gap(elm::QabElem)
+    coeffs = [Nemo.coeff(elm.data, i) for i in 0:(elm.c-1)]  # fmpq
+    return GAP.Globals.CycList(GAP.GapObj(coeffs; recursive=true))
+end
+
 ## matrix of elements of cyclotomic field to GAP matrix of cyclotomics
 function GAP.julia_to_gap(obj::AbstractAlgebra.Generic.MatSpaceElem{nf_elem})
     F = base_ring(obj)
