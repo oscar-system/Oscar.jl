@@ -181,19 +181,8 @@ end
 ########################################################################
 
 
-function _assign_description(sym::Symbol)
-   if sym== :alternating print("Alternating")
-   elseif sym== :hermitian print("Hermitian")
-   elseif sym== :symmetric print("Symmetric")
-   elseif sym== :quadratic print("Quadratic")
-   else error("unsupported description")
-   end
-end
-
-
 function Base.show(io::IO, f::SesquilinearForm)
-   _assign_description(f.descr)
-   println(" form with Gram matrix ")
+   println(io, "$(f.descr) form with Gram matrix ")
    show(io, "text/plain", gram_matrix(f))
 end
 

@@ -758,13 +758,13 @@ end
 
 function Base.show(io::IO, x::GroupConjClass{T,S}) where T <: MatrixGroup where S <: MatrixGroupElem
   show(io, x.repr)
-  print(" ^ ")
+  print(io, " ^ ")
   show(io, x.X)
 end
 
 function Base.show(io::IO, x::GroupConjClass{T,S}) where T <: MatrixGroup where S <: MatrixGroup
   show(io, x.repr)
-  print(" ^ ")
+  print(io, " ^ ")
   show(io, x.X)
 end
 
