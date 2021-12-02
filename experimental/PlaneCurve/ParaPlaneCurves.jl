@@ -257,6 +257,20 @@ function rat_normal_curve_It_Proj_Odd(C::ProjCurve)
     return gens(ideal(R, J))
 end
 
+# lookup an ideal with name s in the symbol table
+# TODO move this to Singular.jl
+function _lookup_ideal(R::Singular.PolyRingUnion, s::Symbol)
+    for i in Singular.libSingular.get_ring_content(R.ptr)
+        if i[2] == s
+            @assert i[1] == Singular.mapping_types_reversed[:IDEAL_CMD]
+            ptr = Singular.libSingular.IDEAL_CMD_CASTER(i[3])
+            ptr = Singular.libSingular.id_Copy(ptr, R.ptr)
+            return Singular.sideal{elem_type(R)}(R, ptr)
+        end
+    end
+    error("could not find PHI")
+end
+
 @doc Markdown.doc"""
     rat_normal_curve_It_Proj_Even(C::ProjCurve)
 
@@ -292,22 +306,12 @@ julia> rat_normal_curve_It_Proj_Even(RNC)
 """
 function rat_normal_curve_It_Proj_Even(C::ProjCurve)
     R = base_ring(C.I)
-    # R is the oscar version of the original polynomial ring
     I = _tosingular_ideal(C)
-    # I is a singular sideal
     L = Singular.LibParaplanecurves.rncItProjEven(I)
-    # L[1] is the new ring, L[2] is its symbol table
-    Rs = base_ring(I)
-    # Rs is the singular version of R and is the original Singular Polynomial
-    # Ring into which PHI was exported
-    d = Singular.convert_ring_content(Singular.libSingular.get_ring_content(Rs.ptr), Rs)
-    # d is the symbol table of Rs
-    phi = d[:PHI]
-    # phi is now the singular sideal whose generators we want
-    O = _fromsingular_ring(L[1])
-    # O is the oscar version of the new ring
-    # we want to get the exported CONIC as well as the generators of PHI
-    return gens(ideal(R, phi)), ProjPlaneCurve(O(L[2][:CONIC]))
+    phi = _lookup_ideal(base_ring(I), :PHI)
+    O = _fromsingular_ring(L[1]::Singular.PolyRing)
+    conic = L[2][:CONIC]::Singular.spoly
+    return gens(ideal(R, phi)), ProjPlaneCurve(O(conic))
 end
 
 @doc Markdown.doc"""
