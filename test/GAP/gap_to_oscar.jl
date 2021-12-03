@@ -58,12 +58,14 @@ end
     val = GAP.evalstr( "[ [ 1, 2 ], [ 3, 4 ] ]" )
     @test GAP.gap_to_julia(fmpz_mat, val) == x
     @test fmpz_mat(val) == x
+    @test matrix(ZZ, val) == x
 
     # matrix containing small and large integers
     x = Nemo.ZZ[1 BigInt(2)^65; 3 4]
     val = GAP.evalstr( "[ [ 1, 2^65 ], [ 3, 4 ] ]" )
     @test GAP.gap_to_julia(fmpz_mat, val) == x
     @test fmpz_mat(val) == x
+    @test matrix(ZZ, val) == x
 
     # matrix containing non-integers
     val = GAP.evalstr( "[ [ 1/2, 2 ], [ 3, 4 ] ]" )
@@ -76,24 +78,28 @@ end
     val = GAP.evalstr( "[ [ 1, 2 ], [ 3, 4 ] ]" )
     @test GAP.gap_to_julia(fmpq_mat, val) == x
     @test fmpq_mat(val) == x
+    @test matrix(QQ, val) == x
 
     # matrix containing small and large integers
     x = Nemo.QQ[1 BigInt(2)^65; 3 4]
     val = GAP.evalstr( "[ [ 1, 2^65 ], [ 3, 4 ] ]" )
     @test GAP.gap_to_julia(fmpq_mat, val) == x
     @test fmpq_mat(val) == x
+    @test matrix(QQ, val) == x
 
     # matrix containing non-integer rationals, small numerator and denominator
     x = Nemo.QQ[fmpq(1, 2) 2; 3 4]
     val = GAP.evalstr( "[ [ 1/2, 2 ], [ 3, 4 ] ]" )
     @test GAP.gap_to_julia(fmpq_mat, val) == x
     @test fmpq_mat(val) == x
+    @test matrix(QQ, val) == x
 
     # matrix containing non-integer rationals, large numerator and denominator
     x = Nemo.QQ[fmpq(fmpz(2)^65, fmpz(3)^40) 2; 3 4]
     val = GAP.evalstr( "[ [ 2^65/3^40, 2 ], [ 3, 4 ] ]" )
     @test GAP.gap_to_julia(fmpq_mat, val) == x
     @test fmpq_mat(val) == x
+    @test matrix(QQ, val) == x
 
     # matrix containing non-rationals
     val = GAP.evalstr( "[ [ E(4), 2 ], [ 3, 4 ] ]" )
