@@ -184,6 +184,7 @@ end
 
 function reynolds_operator_via_oscar(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyElem}
   @assert !ismodular(IR)
+  @assert parent(f) === polynomial_ring(IR)
 
   if !isdefined(IR, :reynolds_operator)
     _prepare_reynolds_operator(IR)

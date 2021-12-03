@@ -317,7 +317,10 @@ function iterate_linear_algebra(BI::InvRingBasisIterator)
     end
     f += N[i, 1]*BI.monomials_collected[i]
   end
-  return f, 2
+  # Have to (should...) divide by the leading coefficient again:
+  # The matrix was in echelon form, but the columns were not necessarily sorted
+  # w.r.t. the monomial ordering.
+  return inv(leading_coefficient(f))*f, 2
 end
 
 function iterate_linear_algebra(BI::InvRingBasisIterator, state::Int)
@@ -334,7 +337,7 @@ function iterate_linear_algebra(BI::InvRingBasisIterator, state::Int)
     end
     f += N[i, state]*BI.monomials_collected[i]
   end
-  return f, state + 1
+  return inv(leading_coefficient(f))*f, state + 1
 end
 
 ################################################################################
