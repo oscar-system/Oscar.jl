@@ -27,32 +27,6 @@ export
     trivial_character
 
 
-#############################################################################
-##
-##  conversion between Julia's QabElem and GAP's cyclotomics
-##
-function QabElem(cyc::GapInt)
-    GAP.Globals.IsCyc(cyc) || error("cyc must be a GAP cyclotomic")
-    denom = GAP.Globals.DenominatorCyc(cyc)
-    n = GAP.Globals.Conductor(cyc)
-    coeffs = GAP.Globals.ExtRepOfObj(cyc * denom)
-    cycpol = GAP.Globals.CyclotomicPol(n)
-    dim = length(cycpol)-1
-    GAP.Globals.ReduceCoeffs(coeffs, cycpol)
-    coeffs = Vector{fmpz}(coeffs)
-    coeffs = coeffs[1:dim]
-    denom = fmpz(denom)
-    FF = abelian_closure(QQ)[1]
-    F, z = Oscar.AbelianClosure.cyclotomic_field(FF, n)
-    val = Nemo.elem_from_mat_row(F, Nemo.matrix(Nemo.ZZ, 1, dim, coeffs), 1, denom)
-    return QabElem(val, n)
-end
-
-function gap_cyclotomic(elm::QabElem)
-    coeffs = [Nemo.coeff(elm.data, i) for i in 0:(elm.c-1)]  # fmpq
-    return GAP.Globals.CycList(GAP.GapObj(coeffs; recursive=true))
-end
-
 complex_conjugate(elm::QabElem) = elm^QabAutomorphism(-1)
 
 
@@ -567,7 +541,7 @@ function group_class_function(tbl::GAPGroupCharacterTable, values::GAP.GapObj)
 end
 
 function group_class_function(tbl::GAPGroupCharacterTable, values::Vector{QabElem})
-    gapvalues = GAP.GapObj([gap_cyclotomic(x) for x in values])
+    gapvalues = GAP.GapObj([GAP.Obj(x) for x in values])
     return GAPGroupClassFunction(tbl, GAP.Globals.ClassFunction(tbl.GAPTable, gapvalues))
 end
 

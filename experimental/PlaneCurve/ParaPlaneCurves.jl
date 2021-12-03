@@ -32,16 +32,26 @@ function _tosingular_ideal(C::ProjCurve)
 end
 
 @doc Markdown.doc"""
-    parametrization_plane_curve(C::ProjPlaneCurve{fmpq}, s::String = "local")
+    parametrization_plane_curve(C::ProjPlaneCurve{fmpq})
 
-Return a vector `V` of polynomials in a new ring `R` consisting of a rational parametrization
-of the rational plane curve `C`. The entries of `V` parametrize the three
-coordinates of the rational curve. The ground field of `R` is either QQ or some
-algebraic extension QQ(a). The optional string can be "normal", to compute the
-integral basis via normalization, or local (default), to make local analysis of
-singularities first and apply normalization separately.
+Return a rational parametrization of  `C`. 
+
+# Example
+```jldoctest
+julia> R, (x,y,z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
+
+julia> C = ProjPlaneCurve(y^4-2*x^3*z+3*x^2*z^2-2*y^2*z^2)
+Projective plane curve defined by -2*x^3*z + 3*x^2*z^2 + y^4 - 2*y^2*z^2
+
+julia> parametrization_plane_curve(C)
+3-element Vector{fmpq_mpoly}:
+ 12*s^4 - 8*s^2*t^2 + t^4
+ -12*s^3*t + 2*s*t^3
+ 8*s^4
+```
 """
-function parametrization_plane_curve(C::ProjPlaneCurve{fmpq}, s::String = "local")
+function parametrization_plane_curve(C::ProjPlaneCurve{fmpq})
+    s = "local"
     F = _tosingular(C)
     L = Singular.LibParaplanecurves.paraPlaneCurve(F, s)
     R = L[1]
@@ -51,14 +61,23 @@ function parametrization_plane_curve(C::ProjPlaneCurve{fmpq}, s::String = "local
 end
 
 @doc Markdown.doc"""
-    adjoint_ideal(C::ProjPlaneCurve{fmpq}, n::Int = 2)
+    adjoint_ideal(C::ProjPlaneCurve{fmpq})
 
-Return the adjoint ideal of the curve `C`. If n = 1, the computation is done via
-normalization, if n = 2 (default value), the local analysis of singularities is
-made first and then the normalization is applied separately, if n = 3 (resp
-n = 4), it uses normalization via (resp local) ideal quotient.
+Return the Gorenstein adjoint ideal of `C`. 
+
+# Example
+```jldoctest
+julia> R, (x,y,z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
+
+julia> C = ProjPlaneCurve(y^4-2*x^3*z+3*x^2*z^2-2*y^2*z^2)
+Projective plane curve defined by -2*x^3*z + 3*x^2*z^2 + y^4 - 2*y^2*z^2
+
+julia> I = adjoint_ideal(C)
+ideal(-x*z + y^2, x*y - y*z, x^2 - x*z)
+```
 """
-function adjoint_ideal(C::ProjPlaneCurve{fmpq}, n::Int = 2)
+function adjoint_ideal(C::ProjPlaneCurve{fmpq})
+    n = 2
     F = _tosingular(C)
     R = parent(C.eq)
     I = Singular.LibParaplanecurves.adjointIdeal(F, n)
@@ -66,10 +85,35 @@ function adjoint_ideal(C::ProjPlaneCurve{fmpq}, n::Int = 2)
 end
 
 @doc Markdown.doc"""
-    rational_point_conic(C::ProjPlaneCurve{fmpq})
+    rational_point_conic(D::ProjPlaneCurve{fmpq})
 
-Given a conic `C`, return the coordinates of a point on it. If there is no
-rational point on the curve `C`, it creates a field extension of `QQ`.
+If the conic `D` contains a rational point, return the homogeneous coordinates of such a point.
+If no such point exists, return a point on `D` defined over a quadratic field extension of $\mathbb Q$.
+ 
+# Example
+```jldoctest
+julia> R, (x,y,z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
+
+julia> D = ProjPlaneCurve(x^2 + 2*y^2 + 5*z^2 - 4*x*y + 3*x*z + 17*y*z);
+
+julia> P = rational_point_conic(D)
+3-element Vector{AbstractAlgebra.Generic.MPoly{nf_elem}}:
+ -1//4*a
+ -1//4*a + 1//4
+ 0
+
+julia> S = parent(P[1])
+Multivariate Polynomial Ring in x, y, z over Number field over Rational Field with defining polynomial t^2 - 2
+
+julia> NF = base_ring(S)
+Number field over Rational Field with defining polynomial t^2 - 2
+
+julia> a = gen(NF)
+a
+
+julia> minpoly(a)
+t^2 - 2
+```
 """
 function rational_point_conic(C::ProjPlaneCurve{fmpq})
     F = _tosingular(C)
@@ -97,9 +141,22 @@ function parametrization_conic(C::ProjPlaneCurve{fmpq})
 end
 
 @doc Markdown.doc"""
-    map_to_rational_normal_curve(C::ProjPlaneCurve)
+    map_to_rational_normal_curve(C::ProjPlaneCurve{fmpq})
 
-Return a rational normal curve to which the curve `C` is mapped.
+Return a rational normal curve of degree $\deg C-2$ which `C` is mapped.
+
+# Example
+```jldoctest
+julia> R, (x,y,z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
+
+julia> C = ProjPlaneCurve(y^4-2*x^3*z+3*x^2*z^2-2*y^2*z^2);
+
+julia> geometric_genus(C)
+0
+
+julia> map_to_rational_normal_curve(C)
+Projective curve defined by the ideal(y(1)^2 + 2*y(1)*y(3) - 2*y(2)^2)
+```
 """
 function map_to_rational_normal_curve(C::ProjPlaneCurve{fmpq})
     F = _tosingular(C)
@@ -118,6 +175,41 @@ end
 Return a vector `V` defining the anticanonical map `C --> PP^(n-2)`. Note that the
 entries of `V` should be considered as representatives of elements in R/I,
 where R is the basering.
+
+# Example
+```jldoctest
+julia> R, (v, w, x, y, z) = GradedPolynomialRing(QQ, ["v", "w", "x", "y", "z"])
+(Multivariate Polynomial Ring in v, w, x, y, z over Rational Field graded by 
+  v -> [1]
+  w -> [1]
+  x -> [1]
+  y -> [1]
+  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[v, w, x, y, z])
+
+julia> M = matrix(R, 2, 4, [v w x y; w x y z])
+[v   w   x   y]
+[w   x   y   z]
+
+julia> V = minors(M, 2)
+6-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+ v*x - w^2
+ v*y - w*x
+ w*y - x^2
+ v*z - w*y
+ w*z - x*y
+ x*z - y^2
+
+julia> I = ideal(R, V);
+
+julia> RNC = ProjCurve(I)
+Projective curve defined by the ideal(v*x - w^2, v*y - w*x, w*y - x^2, v*z - w*y, w*z - x*y, x*z - y^2)
+
+julia> rat_normal_curve_anticanonical_map(RNC)
+3-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+ x
+ -y
+ z
+```
 """
 function rat_normal_curve_anticanonical_map(C::ProjCurve)
     R = base_ring(C.I)
@@ -132,6 +224,31 @@ end
 Return a vector `PHI` defining an isomorphic projection of `C` to `PP^1`.
 Note that the entries of `PHI` should be considered as
 representatives of elements in `R/I`, where `R` is the basering.
+
+# Example
+```jldoctest
+julia> R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"]);
+
+julia> M = matrix(R, 2, 3, [w x y; x y z])
+[w   x   y]
+[x   y   z]
+
+julia> V = minors(M, 2)
+3-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+ w*y - x^2
+ w*z - x*y
+ x*z - y^2
+
+julia> I = ideal(R, V);
+
+julia> TC = ProjCurve(I)
+Projective curve defined by the ideal(w*y - x^2, w*z - x*y, x*z - y^2)
+
+julia> rat_normal_curve_It_Proj_Odd(TC)
+2-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+ y
+ -z
+```
 """
 function rat_normal_curve_It_Proj_Odd(C::ProjCurve)
     R = base_ring(C.I)
@@ -140,12 +257,61 @@ function rat_normal_curve_It_Proj_Odd(C::ProjCurve)
     return gens(ideal(R, J))
 end
 
+# lookup an ideal with name s in the symbol table
+# TODO move this to Singular.jl
+function _lookup_ideal(R::Singular.PolyRingUnion, s::Symbol)
+    for i in Singular.libSingular.get_ring_content(R.ptr)
+        if i[2] == s
+            @assert i[1] == Singular.mapping_types_reversed[:IDEAL_CMD]
+            ptr = Singular.libSingular.IDEAL_CMD_CASTER(i[3])
+            ptr = Singular.libSingular.id_Copy(ptr, R.ptr)
+            return Singular.sideal{elem_type(R)}(R, ptr)
+        end
+    end
+    error("could not find PHI")
+end
+
+@doc Markdown.doc"""
+    rat_normal_curve_It_Proj_Even(C::ProjCurve)
+
+Return a vector `PHI` defining an isomorphic projection of `C` to `PP^1`.
+Note that the entries of `PHI` should be considered as
+representatives of elements in `R/I`, where `R` is the basering.
+
+# Example
+```jldoctest
+julia> R, (v, w, x, y, z) = GradedPolynomialRing(QQ, ["v", "w", "x", "y", "z"]);
+
+julia> M = matrix(R, 2, 4, [v w x y; w x y z])
+[v   w   x   y]
+[w   x   y   z]
+
+julia> V = minors(M, 2)
+6-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+ v*x - w^2
+ v*y - w*x
+ w*y - x^2
+ v*z - w*y
+ w*z - x*y
+ x*z - y^2
+
+julia> I = ideal(R, V);
+
+julia> RNC = ProjCurve(I)
+Projective curve defined by the ideal(v*x - w^2, v*y - w*x, w*y - x^2, v*z - w*y, w*z - x*y, x*z - y^2)
+
+julia> rat_normal_curve_It_Proj_Even(RNC)
+(MPolyElem_dec{fmpq, fmpq_mpoly}[x, -y, z], Projective plane curve defined by -y(1)*y(3) + y(2)^2)
+```
+"""
 function rat_normal_curve_It_Proj_Even(C::ProjCurve)
+    R = base_ring(C.I)
     I = _tosingular_ideal(C)
     L = Singular.LibParaplanecurves.rncItProjEven(I)
-    S = _fromsingular_ring(L[1])
-    f = [L[2][i] for i in keys(L[2])][1]
-    return ProjPlaneCurve(S(f))
+    phi = _lookup_ideal(base_ring(I), :PHI)
+    O = _fromsingular_ring(L[1]::Singular.PolyRing)
+    conic = L[2][:CONIC]::Singular.spoly
+    return gens(ideal(R, phi)), ProjPlaneCurve(O(conic))
 end
 
 @doc Markdown.doc"""

@@ -8,7 +8,7 @@
 #interior description?
 
 @doc Markdown.doc"""
-    Cone(R::Union{Oscar.MatElem,AbstractMatrix} [, L::Union{Oscar.MatElem,AbstractMatrix}])
+    Cone(R::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator} [, L::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator}])
 
 A polyhedral cone, not necessarily pointed, defined by the positive hull of the
 rays `R`, with lineality given by `L`.
@@ -35,7 +35,7 @@ julia> HS = Cone(R, L)
 A polyhedral cone in ambient dimension 2
 ```
 """
-function Cone(R::Union{VectorIterator{RayVector}, Oscar.MatElem, AbstractMatrix}, L::Union{VectorIterator{RayVector}, Oscar.MatElem, AbstractMatrix, Nothing} = nothing; non_redundant::Bool = false)
+function Cone(R::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix}, L::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix, Nothing} = nothing; non_redundant::Bool = false)
     RM = matrix_for_polymake(R)
     LM = isnothing(L) || isempty(L) ? Polymake.Matrix{Polymake.Rational}(undef, 0, size(RM, 2)) : matrix_for_polymake(L)
 
@@ -47,17 +47,16 @@ function Cone(R::Union{VectorIterator{RayVector}, Oscar.MatElem, AbstractMatrix}
 end
 
 function ==(C0::Cone, C1::Cone)
-    # TODO: Remove the following 4 lines, see #758
-    facets(C0)
-    facets(C1)
-    rays(C0)
-    rays(C1)
+    # TODO: Remove the following 3 lines, see #758
+    for pair in Iterators.product([C0, C1], ["RAYS", "FACETS"])
+        Polymake.give(pm_object(pair[1]),pair[2])
+    end
     return Polymake.polytope.equal_polyhedra(pm_object(C0), pm_object(C1))
 end
 
 
 @doc Markdown.doc"""
-    positive_hull(R::Union{Oscar.MatElem,AbstractMatrix})
+    positive_hull(R::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator})
 
 A polyhedral cone, not necessarily pointed, defined by the positive hull of the
 rows of the matrix `R`. This means the cone consists of all positive linear
@@ -74,7 +73,7 @@ julia> PO = positive_hull(R)
 A polyhedral cone in ambient dimension 2
 ```
 """
-function positive_hull(R::Union{VectorIterator{RayVector}, Oscar.MatElem,AbstractMatrix})
+function positive_hull(R::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix})
     # TODO: Filter out zero rows
     C=Polymake.polytope.Cone{Polymake.Rational}(INPUT_RAYS =
       matrix_for_polymake(remove_zero_rows(R)))
@@ -83,11 +82,11 @@ end
 
 @doc Markdown.doc"""
 
-    cone_from_inequalities(A::Union{Oscar.MatElem,AbstractMatrix}; non_redundant::Bool = false)
+    cone_from_inequalities(I::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator} [, E::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator}]; non_redundant::Bool = false)
 
 The (convex) cone defined by
 
-$$\{ x |  Ax ≤ 0 \}.$$
+$$\{ x |  Ix ≤ 0, Ex = 0 \}.$$
 
 Use `non_redundant = true` if the given description contains no redundant rows to
 avoid unnecessary redundancy checks.
@@ -98,12 +97,12 @@ julia> C = cone_from_inequalities([0 -1; -1 1])
 A polyhedral cone in ambient dimension 2
 
 julia> rays(C)
-2-element VectorIterator{RayVector{Polymake.Rational}}:
+2-element SubObjectIterator{RayVector{Polymake.Rational}}:
  [1, 0]
  [1, 1]
 ```
 """
-function cone_from_inequalities(I::Union{HalfspaceIterator, Oscar.MatElem, AbstractMatrix}, E::Union{Nothing, HalfspaceIterator, Oscar.MatElem, AbstractMatrix} = nothing; non_redundant::Bool = false)
+function cone_from_inequalities(I::Union{SubObjectIterator{<:Halfspace}, Oscar.MatElem, AbstractMatrix}, E::Union{Nothing, SubObjectIterator{<:Hyperplane}, Oscar.MatElem, AbstractMatrix} = nothing; non_redundant::Bool = false)
     IM = -matrix_for_polymake(I)
     EM = isnothing(E) || isempty(E) ? Polymake.Matrix{Polymake.Rational}(undef, 0, size(IM, 2)) : matrix_for_polymake(E)
 

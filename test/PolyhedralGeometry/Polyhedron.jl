@@ -18,8 +18,12 @@
     @testset "core functionality" begin
         @test nvertices(Q0) == 3
         @test nvertices.(faces(Q0,1)) == [2,2,2]
-        @test lattice_points(Q0) isa VectorIterator{PointVector{Polymake.Integer}}
-        @test lattice_points(Q0).m == [0 0; 0 1; 1 0]
+        @test lattice_points(Q0) isa SubObjectIterator{PointVector{Polymake.Integer}}
+        @test point_matrix(lattice_points(Q0)) == matrix(QQ, [0 0; 0 1; 1 0])
+        @test length(lattice_points(Q0)) == 3
+        @test lattice_points(Q0)[1] == PointVector{Polymake.Integer}([0, 0])
+        @test lattice_points(Q0)[2] == PointVector{Polymake.Integer}([0, 1])
+        @test lattice_points(Q0)[3] == PointVector{Polymake.Integer}([1, 0])
         @test isfeasible(Q0)
         @test issmooth(Q0)
         @test isnormal(Q0)
@@ -34,24 +38,57 @@
         @test codim(point) == 3
         @test !isfulldimensional(point)
         @test nrays(recession_cone(Pos)) == 3
-        @test vertices(point) isa VectorIterator{PointVector{Polymake.Rational}}
-        @test vertices(2*point).m == [0 2 0]
-        @test vertices([0,1,0] + point).m == [0 2 0]
-        @test rays(Pos) isa VectorIterator{RayVector{Polymake.Rational}}
-        @test rays(Pos).m == [1 0 0; 0 1 0; 0 0 1]
-        @test rays(RayVector, Pos) isa VectorIterator{RayVector{Polymake.Rational}}
-        @test lineality_space(L) isa VectorIterator{RayVector{Polymake.Rational}}
-        @test lineality_space(L).m == [0 0 1]
-        @test faces(square, 1) isa PolyhedronOrConeIterator{Polyhedron}
+        @test vertices(PointVector{Polymake.Rational}, point) isa SubObjectIterator{PointVector{Polymake.Rational}}
+        @test vertices(PointVector, point) isa SubObjectIterator{PointVector{Polymake.Rational}}
+        @test vertices(point) isa SubObjectIterator{PointVector{Polymake.Rational}}
+        @test point_matrix(vertices(2*point)) == matrix(QQ, [0 2 0])
+        @test point_matrix(vertices([0,1,0] + point)) == matrix(QQ, [0 2 0])
+        @test rays(RayVector{Polymake.Rational}, Pos) isa SubObjectIterator{RayVector{Polymake.Rational}}
+        @test rays(RayVector, Pos) isa SubObjectIterator{RayVector{Polymake.Rational}}
+        @test rays(Pos) isa SubObjectIterator{RayVector{Polymake.Rational}}
+        @test vector_matrix(rays(Pos)) == matrix(QQ, [1 0 0; 0 1 0; 0 0 1])
+        @test length(rays(Pos)) == 3
+        @test rays(Pos)[1] == RayVector([1, 0, 0])
+        @test rays(Pos)[2] == RayVector([0, 1, 0])
+        @test rays(Pos)[3] == RayVector([0, 0, 1])
+        @test lineality_space(L) isa SubObjectIterator{RayVector{Polymake.Rational}}
+        @test generator_matrix(lineality_space(L)) == matrix(QQ, [0 0 1])
+        @test length(lineality_space(L)) == 1
+        @test lineality_space(L)[] == RayVector([0, 0, 1])
+        @test faces(square, 1) isa SubObjectIterator{Polyhedron}
         @test length(faces(square, 1)) == 4
-        @test size(faces(square, 1).lineality) == (0, 3)
+        @test faces(square, 1)[1] == convex_hull([-1 -1; -1 1])
+        @test faces(square, 1)[2] == convex_hull([1 -1; 1 1])
+        @test faces(square, 1)[3] == convex_hull([-1 -1; 1 -1])
+        @test faces(square, 1)[4] == convex_hull([-1 1; 1 1])
+        @test vertex_incidences(faces(square, 1)) == IncidenceMatrix([[1, 3], [2, 4], [1, 2], [3, 4]])
         @test isnothing(faces(Q2, 0))
-        @test vertices(minkowski_sum(Q0, square)).m == [2 -1; 2 1; -1 -1; -1 2; 1 2]
-        @test facets(Halfspace, Pos) isa HalfspaceIterator{Halfspace}
-        @test facets(Pair, Pos) isa HalfspaceIterator{Pair{Polymake.Matrix{Polymake.Rational}, Polymake.Rational}}
-        @test facets(Pos) isa HalfspaceIterator{Halfspace}
-        @test affine_hull(point) isa HalfspaceIterator{Hyperplane}
-        @test affine_hull(point).A == [1 0 0; 0 1 0; 0 0 1] && affine_hull(point).b == [0, 1, 0]
+        v = vertices(minkowski_sum(Q0, square))
+        @test length(v) == 5
+        @test v[1] == PointVector([2, -1])
+        @test v[2] == PointVector([2, 1])
+        @test v[3] == PointVector([-1, -1])
+        @test v[4] == PointVector([-1, 2])
+        @test v[5] == PointVector([1, 2])
+        @test point_matrix(v) == matrix(QQ, [2 -1; 2 1; -1 -1; -1 2; 1 2])
+        for T in [AffineHalfspace, Pair{Polymake.Matrix{Polymake.Rational}, Polymake.Rational}, Polyhedron]
+            @test facets(T, Pos) isa SubObjectIterator{T}
+            @test length(facets(T, Pos)) == 4
+            @test affine_inequality_matrix(facets(T, Pos)) == matrix(QQ, Matrix{fmpq}([0 -1 0 0; 0 0 -1 0; 0 0 0 -1; -1 0 0 0]))
+            @test halfspace_matrix_pair(facets(T, Pos)).A == matrix(QQ, Matrix{fmpq}([-1 0 0; 0 -1 0; 0 0 -1; 0 0 0])) && halfspace_matrix_pair(facets(T, Pos)).b == [0, 0, 0, 1]
+            @test facets(T, Pos)[1] == T([-1 0 0], 0)
+            @test facets(T, Pos)[2] == T([0 -1 0], 0)
+            @test facets(T, Pos)[3] == T([0 0 -1], 0)
+            @test facets(T, Pos)[4] == T([0 0 0], 1)
+        end
+        @test facets(Pair, Pos) isa SubObjectIterator{Pair{Polymake.Matrix{Polymake.Rational}, Polymake.Rational}}
+        @test facets(Pos) isa SubObjectIterator{AffineHalfspace}
+        @test affine_hull(point) isa SubObjectIterator{AffineHyperplane}
+        @test affine_equation_matrix(affine_hull(point)) == matrix(QQ, Matrix{fmpq}([0 -1 0 0; 1 0 -1 0; 0 0 0 -1]))
+        @test length(affine_hull(point)) == 3
+        @test affine_hull(point)[1] == Hyperplane([1 0 0], 0)
+        @test affine_hull(point)[2] == Hyperplane([0 1 0], 1)
+        @test affine_hull(point)[3] == Hyperplane([0 0 1], 0)
         @test nfacets(square) == 4
         @test lineality_dim(Q0) == 0
         @test nrays(Q1) == 1
@@ -86,7 +123,7 @@
             @test count(F -> nvertices(F) == 3, faces(C, 2)) == 12
         end
         nc = normal_cone(square, 1)
-        @test rays(nc).m == [1 0; 0 1]
+        @test vector_matrix(rays(nc)) == matrix(QQ, [1 0; 0 1])
         @test Polyhedron(facets(A)) == A
         b1 = birkhoff(3)
         b2 = birkhoff(3, even = true)

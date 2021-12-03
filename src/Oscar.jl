@@ -230,8 +230,6 @@ include("printing.jl")
 
 include("GAP/GAP.jl")
 include("GAP/wrappers.jl")
-include("GAP/gap_to_oscar.jl")
-include("GAP/oscar_to_gap.jl")
 
 include("Groups/types.jl")
 include("Groups/perm.jl")
@@ -269,6 +267,9 @@ include("Rings/FinField.jl")
 include("Rings/NumberField.jl")
 include("Rings/FunctionField.jl")
 include("Rings/AbelianClosure.jl")
+
+include("GAP/gap_to_oscar.jl")
+include("GAP/oscar_to_gap.jl")
 
 include("Groups/group_characters.jl")  # needs some Rings functionality
 

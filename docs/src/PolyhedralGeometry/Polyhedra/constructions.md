@@ -35,7 +35,7 @@ julia> P = Polyhedron(([-1 0; 1 0], [0,1]), ([0 1], [0]))
 A polyhedron in ambient dimension 2
 
 julia> facets(P)
-2-element HalfspaceIterator{Halfspace}:
+2-element SubObjectIterator{AffineHalfspace}:
  The Halfspace of R^2 described by
 1: -x₁ ≦ 0
 
@@ -44,7 +44,7 @@ julia> facets(P)
 
 
 julia> affine_hull(P)
-1-element HalfspaceIterator{Hyperplane}:
+1-element SubObjectIterator{AffineHyperplane}:
  The Hyperplane of R^2 described by
 1: x₂ = 0
 
@@ -79,7 +79,7 @@ halfspace_matrix_pair(facets(T))
 The complete $V$-representation can be retrieved using [`vertices`](@ref
 vertices), [`rays`](@ref rays) and [`lineality_space`](@ref lineality_space):
 
-```jldoctest
+```jldoctest; filter = r"^polymake: +WARNING.*\n|^"
 julia> P = convex_hull([0 0], [1 0], [0 1])
 A polyhedron in ambient dimension 2
 

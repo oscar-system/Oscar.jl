@@ -5,6 +5,7 @@ export issmooth, tangent, common_components, curve_intersect,
        tangent_lines, intersection_multiplicity, aretransverse,
        arithmetic_genus, geometric_genus
 
+
 ################################################################################
 # Functions for ProjPlaneCurves
 ################################################################################
@@ -479,9 +480,20 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    geometric_genus(C::ProjectivePlaneCurve{S}) where S <: FieldElem
+    geometric_genus(C::ProjectivePlaneCurve{T}) where T <: FieldElem
 
 Return the geometric genus of `C`.
+
+# Example
+```jldoctest
+julia> R, (x,y,z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
+
+julia> C = ProjPlaneCurve(z*x^2-y^3)
+Projective plane curve defined by x^2*z - y^3
+
+julia> geometric_genus(C)
+0
+```
 """
 function geometric_genus(C::ProjectivePlaneCurve{S}) where S <: FieldElem
    F = defining_equation(C)

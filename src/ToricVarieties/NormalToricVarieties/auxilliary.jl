@@ -57,7 +57,7 @@ $$\{x^u-x^v\ |\ u,v\in\mathbb{Z}^n_{\ge 0}\ (pts)^T\cdot(u-v)=0\}$$
 ```jldoctest
 julia> C = positive_hull([-2 5; 1 0]);
 
-julia> H = hilbert_basis(C).m;
+julia> H = hilbert_basis(C);
 
 julia> toric_ideal(H)
 ideal(x[2]*x[3] - x[4]^2, -x[1]*x[3] + x[2]^2*x[4], -x[1]*x[4] + x[2]^3, -x[1]*x[3]^2 + x[2]*x[4]^3, -x[1]*x[3]^3 + x[4]^5)
@@ -70,3 +70,5 @@ function toric_ideal(pts::Union{AbstractMatrix, fmpz_mat})
     J = ideal([prod(gens(base_ring(presat)))])
     return saturation(presat, J)
 end
+
+toric_ideal(pts::SubObjectIterator) = toric_ideal(matrix_for_polymake(pts))

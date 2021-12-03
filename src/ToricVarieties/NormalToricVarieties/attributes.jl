@@ -161,7 +161,7 @@ ideal(-x[1]*x[2] + x[3]*x[4])
 """
 function toric_ideal(antv::AffineNormalToricVariety)
     cone = Cone(pm_object(antv).WEIGHT_CONE)
-    return toric_ideal(hilbert_basis(cone).m)
+    return toric_ideal(hilbert_basis(cone))
 end
 export toric_ideal
 toric_ideal(ntv::NormalToricVariety) = toric_ideal(AffineNormalToricVariety(ntv))
@@ -342,7 +342,7 @@ function map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v::Abst
     
     # identify rays and cones
     rays = Polymake.common.primitive(pm_object(v).RAYS)
-    max_cones = incidence_matrix(maximal_cones(fan(v)))
+    max_cones = ray_incidences(maximal_cones(fan(v)))
     number_of_rays = size(rays)[1]
     number_of_cones = size(max_cones)[1]
     
@@ -386,13 +386,12 @@ function map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v::Abst
     target = abelian_group(zeros(Int, ncols(mapping_matrix)))
     total_map = hom(source, target, mapping_matrix)
     
-    # identify the cartier_data_group and its embedding
+    # identify the embedding of the cartier_data_group
     ker = kernel(total_map)
-    cartier_data_group = snf(ker[1])[1]
-    cartier_data_group_embedding = hom(cartier_data_group, source, ker[1].snf_map.map * ker[2].map)
+    embedding = snf(ker[1])[2] * ker[2] * hom(codomain(ker[2]), torusinvariant_divisor_group(v), map_to_weil_divisors)
     
-    # construct the embedding of the Cartier divisor group into the group of torusinvariant divisors
-    return cartier_divisor_group_embedding = image(hom(cartier_data_group, torusinvariant_divisor_group(v), cartier_data_group_embedding.map * map_to_weil_divisors))[2]
+    # return the image of this embedding
+    return image(embedding)[2]
 end
 export map_from_cartier_divisor_group_to_torus_invariant_divisor_group
 
@@ -514,6 +513,7 @@ Returns the cone of the affine normal toric variety `v`.
 ```jdoctest
 julia> cone(AffineNormalToricVariety(Oscar.positive_hull([1 1; -1 1])))
 A polyhedral cone in ambient dimension 2
+```
 """
 function cone(v::AffineNormalToricVariety)
     return maximal_cones(fan(v))[1]

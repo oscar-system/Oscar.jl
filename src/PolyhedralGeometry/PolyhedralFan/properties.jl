@@ -18,7 +18,7 @@ julia> C = cube(3);
 julia> NF = normal_fan(C);
 
 julia> rays(NF)
-6-element VectorIterator{RayVector{Polymake.Rational}}:
+6-element SubObjectIterator{RayVector{Polymake.Rational}}:
  [1, 0, 0]
  [-1, 0, 0]
  [0, 1, 0]
@@ -27,7 +27,13 @@ julia> rays(NF)
  [0, 0, -1]
 ```
 """
-rays(PF::PolyhedralFan) = VectorIterator{RayVector{Polymake.Rational}}(pm_object(PF).RAYS)
+rays(PF::PolyhedralFan) = SubObjectIterator{RayVector{Polymake.Rational}}(pm_object(PF), _ray_fan, pm_object(PF).N_RAYS)
+
+_ray_fan(::Type{RayVector{Polymake.Rational}}, PF::Polymake.BigObject, i::Base.Integer) = RayVector(PF.RAYS[i, :])
+
+_vector_matrix(::Val{_ray_fan}, PF::Polymake.BigObject) = PF.RAYS
+
+_matrix_for_polymake(::Val{_ray_fan}) = _vector_matrix
 
 _maximal_cone(::Type{Cone}, PF::Polymake.BigObject, i::Base.Integer) = Cone(Polymake.fan.cone(PF, i - 1))
 
@@ -55,15 +61,12 @@ julia> for c in maximal_cones(PF)
 """
 maximal_cones(PF::PolyhedralFan) = SubObjectIterator{Cone}(PF.pm_fan, _maximal_cone, nmaximal_cones(PF))
 
-incidence_matrix(::Val{_maximal_cone}, obj::Polymake.BigObject) = obj.MAXIMAL_CONES
+_ray_incidences(::Val{_maximal_cone}, obj::Polymake.BigObject) = obj.MAXIMAL_CONES
 
 @doc Markdown.doc"""
-    cones(as::Type{T} = Cone, PF::PolyhedralFan, cone_dim::Int)
+    cones(PF::PolyhedralFan, cone_dim::Int)
 
 Return an iterator over the cones of `PF` of dimension `cone_dim`.
-
-The returned type is specified by the argument `as`, including:
-* `Cone` (default).
 
 # Examples
 The 12 edges of the 3-cube correspond to the 2-dimensional cones of its face fan:
@@ -71,7 +74,7 @@ The 12 edges of the 3-cube correspond to the 2-dimensional cones of its face fan
 julia> PF = face_fan(cube(3));
 
 julia> cones(PF, 2)
-12-element PolyhedronOrConeIterator{Cone}:
+12-element SubObjectIterator{Cone}:
  A polyhedral cone in ambient dimension 3
  A polyhedral cone in ambient dimension 3
  A polyhedral cone in ambient dimension 3
@@ -86,13 +89,17 @@ julia> cones(PF, 2)
  A polyhedral cone in ambient dimension 3
 ```
 """
-function cones(as::Type{T}, PF::PolyhedralFan, cone_dim::Int) where {T<:Cone}
-    cone_dim  - length(lineality_space(PF)) < 1 && return nothing
-    rcones = Polymake.fan.cones_of_dim(pm_object(PF),cone_dim - length(lineality_space(PF)))
-    return PolyhedronOrConeIterator{as}(rays(PF).m, rcones, lineality_space(PF).m)
+function cones(PF::PolyhedralFan, cone_dim::Int)
+    l = cone_dim  - length(lineality_space(PF))
+    l < 1 && return nothing
+    return SubObjectIterator{Cone}(PF.pm_fan, _cone_of_dim, size(Polymake.fan.cones_of_dim(PF.pm_fan, l), 1), (c_dim = l,))
 end
 
-cones(PF::PolyhedralFan, cone_dim::Int) = cones(Cone, PF, cone_dim)
+function _cone_of_dim(::Type{Cone}, PF::Polymake.BigObject, i::Base.Integer; c_dim::Int = 0)
+    return Cone(Polymake.polytope.Cone(RAYS = PF.RAYS[collect(Polymake.row(Polymake.fan.cones_of_dim(PF, c_dim), i)),:], LINEALITY_SPACE = PF.LINEALITY_SPACE))
+end
+
+_ray_incidences(::Val{_cone_of_dim}, PF::Polymake.BigObject; c_dim::Int = 0) = Polymake.fan.cones_of_dim(PF, c_dim)
 
 ###############################################################################
 ###############################################################################
@@ -253,11 +260,17 @@ julia> PF = PolyhedralFan([1 0; 0 1; -1 0; 0 -1], IncidenceMatrix([[1, 2, 3], [3
 A polyhedral fan in ambient dimension 2
 
 julia> lineality_space(PF)
-1-element VectorIterator{RayVector{Polymake.Rational}}:
+1-element SubObjectIterator{RayVector{Polymake.Rational}}:
  [1, 0]
 ```
 """
-lineality_space(PF::PolyhedralFan) = VectorIterator{RayVector{Polymake.Rational}}(pm_object(PF).LINEALITY_SPACE)
+lineality_space(PF::PolyhedralFan) = SubObjectIterator{RayVector{Polymake.Rational}}(pm_object(PF), _lineality_fan, lineality_dim(PF))
+
+_lineality_fan(::Type{RayVector{Polymake.Rational}}, PF::Polymake.BigObject, i::Base.Integer) = RayVector(PF.LINEALITY_SPACE[i, :])
+
+_generator_matrix(::Val{_lineality_fan}, PF::Polymake.BigObject) = PF.LINEALITY_SPACE
+
+_matrix_for_polymake(::Val{_lineality_fan}) = _generator_matrix
 
 ###############################################################################
 ## Boolean properties
@@ -402,14 +415,14 @@ julia> star = starsubdivision(normal_fan(simplex(3)), 1)
 A polyhedral fan in ambient dimension 3
 
 julia> rays(star)
-5-element VectorIterator{RayVector{Polymake.Rational}}:
+5-element SubObjectIterator{RayVector{Polymake.Rational}}:
  [0, 1, 0]
  [0, 0, 1]
  [-1, -1, -1]
  [1, 0, 0]
  [1, 1, 1]
 
-julia> incidence_matrix(maximal_cones(star))
+julia> ray_incidences(maximal_cones(star))
 6×5 IncidenceMatrix
 [1, 2, 3]
 [2, 3, 4]

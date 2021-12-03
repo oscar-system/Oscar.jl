@@ -48,14 +48,14 @@ julia> dim(P)
 1
 
 julia> vertices(P)
-2-element VectorIterator{PointVector{Polymake.Rational}}:
+2-element SubObjectIterator{PointVector{Polymake.Rational}}:
  [1, 0]
  [0, 0]
 ```
 """
 Polyhedron(A::Union{Oscar.MatElem,AbstractMatrix}, b) = Polyhedron((A, b))
 
-function Polyhedron(I::Union{HalfspaceIterator, Tuple{<:Union{Oscar.MatElem, AbstractMatrix}, Any}}, E::Union{Nothing, HalfspaceIterator, Tuple{<:Union{Oscar.MatElem, AbstractMatrix}, Any}} = nothing)
+function Polyhedron(I::Union{SubObjectIterator, Tuple{<:Union{Oscar.MatElem, AbstractMatrix}, Any}}, E::Union{Nothing, SubObjectIterator, Tuple{<:Union{Oscar.MatElem, AbstractMatrix}, Any}} = nothing)
     IM = -affine_matrix_for_polymake(I)
     EM = isnothing(E) || _isempty_halfspace(E) ? Polymake.Matrix{Polymake.Rational}(undef, 0, size(IM, 2)) : affine_matrix_for_polymake(E)
 
@@ -70,26 +70,27 @@ Get the underlying polymake `Polytope`.
 pm_object(P::Polyhedron) = P.pm_polytope
 
 function ==(P0::Polyhedron, P1::Polyhedron)
-    # TODO: Remove the following 4 lines, see #758
-    facets(P0)
-    vertices(P0)
-    facets(P1)
-    vertices(P1)
+    # TODO: Remove the following 3 lines, see #758
+    for pair in Iterators.product([P0, P1], ["RAYS", "FACETS"])
+        Polymake.give(pm_object(pair[1]),pair[2])
+    end
     Polymake.polytope.equal_polyhedra(pm_object(P0), pm_object(P1))
 end
 
 
 ### Construct polyhedron from V-data, as the convex hull of points, rays and lineality.
 @doc Markdown.doc"""
-    convex_hull(V::Matrix [, R::Matrix [, L::Matrix]]; non_redundant::Bool = false)
+    convex_hull(V [, R [, L]]; non_redundant::Bool = false)
 
 Construct the convex hull of the vertices `V`, rays `R`, and lineality `L`. If
 `R` or `L` are omitted, then they are assumed to be zero.
 
 # Arguments
-- `V::Matrix`: Points whose convex hull is to be computed; encoded as row vectors.
-- `R::Matrix`: Rays completing the set of points; encoded row-wise as representative vectors.
-- `L::Matrix`: Generators of the Lineality space; encoded as row vectors.
+- `V::Union{Matrix, SubObjectIterator}`: Points whose convex hull is to be computed.
+- `R::Union{Matrix, SubObjectIterator}`: Rays completing the set of points.
+- `L::Union{Matrix, SubObjectIterator}`: Generators of the Lineality space.
+
+If an argument is given as a matrix, its content has to be encoded row-wise.
 
 `R` can be given as an empty matrix or as `nothing` if the user wants to compute
 the convex hull only from `V` and `L`.
@@ -138,7 +139,7 @@ julia> XA = convex_hull(V, R, L)
 A polyhedron in ambient dimension 2
 ```
 """
-function convex_hull(V::Union{VectorIterator{PointVector}, AnyVecOrMat, Oscar.MatElem}, R::Union{VectorIterator{RayVector}, AnyVecOrMat, Oscar.MatElem, Nothing} = nothing, L::Union{VectorIterator{RayVector}, AnyVecOrMat, Oscar.MatElem, Nothing} = nothing; non_redundant::Bool = false)
+function convex_hull(V::Union{SubObjectIterator{PointVector}, AnyVecOrMat, Oscar.MatElem}, R::Union{SubObjectIterator{RayVector}, AnyVecOrMat, Oscar.MatElem, Nothing} = nothing, L::Union{SubObjectIterator{RayVector}, AnyVecOrMat, Oscar.MatElem, Nothing} = nothing; non_redundant::Bool = false)
     # we access the matrices which polymake can work with.
     VM = matrix_for_polymake(V)
     RM = isnothing(R) || isempty(R) ? Polymake.Matrix{Polymake.Rational}(undef, 0, size(VM, 2)) : matrix_for_polymake(R)

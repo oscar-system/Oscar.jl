@@ -64,7 +64,7 @@
 
 
 
-    @testset "$T" for T in (Halfspace, Hyperplane)
+    @testset "$T" for T in (AffineHalfspace, AffineHyperplane)
 
         @test T(a, 0) isa T
         @test T(a', 0) isa T

@@ -101,6 +101,7 @@ end
 end
 
 @testset "single cyclotomics" begin
+    # to cyclotomic fields
     F, z = CyclotomicField(1)
     @test F(GAP.evalstr("2^64")) == F(2)^64
 
@@ -111,6 +112,15 @@ end
     @test F(GAP.Globals.E(5)) == z^3
     @test F(GAP.Globals.E(3)) == z^5
 
+    # to `QabElem`
+    x = QabElem(GAP.evalstr("2^64"))
+    @test x == fmpz(2)^64
+
+    F, z = abelian_closure(QQ)
+    x = QabElem(GAP.evalstr("EB(5)"))
+    @test x == z(5) + z(5)^4
+
+    # not supported conversions
     F, z = quadratic_field(5)
     @test_throws ArgumentError F(GAP.Globals.Sqrt(5))
 
@@ -123,6 +133,8 @@ end
     gapF = GAP.Globals.AlgebraicExtension(GAP.Globals.Rationals, pol)
     a = GAP.Globals.PrimitiveElement(gapF)
     @test_throws ArgumentError F(a)
+
+    @test_throws ErrorException QabElem(GAP.evalstr("[ E(3) ]"))
 end
 
 @testset "matrices over a cyclotomic field" begin
