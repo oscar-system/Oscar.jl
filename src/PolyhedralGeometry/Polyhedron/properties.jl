@@ -348,7 +348,7 @@ function _facet_at_infinity(P::Polymake.BigObject)
     if isnothing(fai)
         F = [P.FACETS[i, :] for i in 1:P.N_FACETS]
         i = findfirst(_is_facet_at_infinity, F)
-        fai = isnothing(i) ? P.N_FACETS + 1 : i
+        fai = Polymake.to_cxx_type(Int64)(isnothing(i) ? P.N_FACETS + 1 : i)
         Polymake.attach(P, "_facet_at_infinity", fai)
     end
     return fai
