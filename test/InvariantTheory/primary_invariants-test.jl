@@ -17,12 +17,12 @@
   @test sort([ total_degree(f.f) for f in invars ]) == [ 3, 5, 9 ]
   @test dim(ideal(polynomial_ring(RG), invars)) == 0
 
-  # Kem99, p. 183: S_3^4
-  M1 = diagonal_matrix([ matrix(QQ, 3, 3, [ 0, 1, 0, 1, 0, 0, 0, 0, 1 ]) for i = 1:4 ])
-  M2 = diagonal_matrix([ matrix(QQ, 3, 3, [ 0, 1, 0, 0, 0, 1, 1, 0, 0 ]) for i = 1:4 ])
+  # Kem99, p. 183: S_3^3
+  M1 = diagonal_matrix([ matrix(QQ, 3, 3, [ 0, 1, 0, 1, 0, 0, 0, 0, 1 ]) for i = 1:3 ])
+  M2 = diagonal_matrix([ matrix(QQ, 3, 3, [ 0, 1, 0, 0, 0, 1, 1, 0, 0 ]) for i = 1:3 ])
   RG = invariant_ring(M1, M2)
   invars = Oscar.primary_invariants_via_optimal_hsop(RG)
-  @test length(invars) == 12
-  @test sort([ total_degree(f.f) for f in invars ]) == [ 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3 ]
+  @test length(invars) == 9
+  @test sort([ total_degree(f.f) for f in invars ]) == [ 1, 1, 1, 2, 2, 2, 3, 3, 3 ]
   @test dim(ideal(polynomial_ring(RG), invars)) == 0
 end
