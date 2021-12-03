@@ -16,12 +16,12 @@ function convert_singular_ideal_to_array(id::Singular.sideal)
     end
     for i = 1:Singular.ngens(id)
         if char == 0
-            for c in Singular.coeffs(id[i])
+            for c in Singular.coefficients(id[i])
                 push!(cfs, Singular.libSingular.n_GetMPZ(numerator(c).ptr, Singular.ZZ.ptr))
                 push!(cfs, Singular.libSingular.n_GetMPZ(denominator(c).ptr, Singular.ZZ.ptr))
             end
         else
-            for c in Singular.coeffs(id[i])
+            for c in Singular.coefficients(id[i])
                 push!(cfs, Base.Int(c))
             end
         end
