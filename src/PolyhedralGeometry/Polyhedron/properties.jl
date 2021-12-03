@@ -740,6 +740,23 @@ isbounded(P::Polyhedron) = pm_object(P).BOUNDED
 
 
 @doc Markdown.doc"""
+    issimple(P::Polyhedron)
+
+Check whether `P` is simple
+
+# Examples
+```jldoctest
+julia> c = cube(2,0,1)
+A polyhedron in ambient dimension 2
+
+julia> c.pm_polytope.SIMPLE
+true
+```
+"""
+issimple(P::Polyhedron) = pm_object(P).SIMPLE
+
+
+@doc Markdown.doc"""
     isfulldimensional(P::Polyhedron)
 
 Check whether `P` is full-dimensional.
