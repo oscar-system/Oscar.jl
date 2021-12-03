@@ -307,9 +307,9 @@ _facet_cone(::Type{LinearHalfspace}, C::Polymake.BigObject, i::Base.Integer) = L
 
 _facet_cone(::Type{Cone}, C::Polymake.BigObject, i::Base.Integer) = cone_from_inequalities(-C.FACETS[[i], :])
 
-_inequality_matrix(::Val{_facet_cone}, C::Polymake.BigObject) = -C.FACETS
+_linear_inequality_matrix(::Val{_facet_cone}, C::Polymake.BigObject) = -C.FACETS
 
-_linear_matrix_for_polymake(::Val{_facet_cone}) = _inequality_matrix
+_linear_matrix_for_polymake(::Val{_facet_cone}) = _linear_inequality_matrix
 
 facets(C::Cone) = facets(LinearHalfspace, C)
 
@@ -361,9 +361,9 @@ linear_span(C::Cone) = SubObjectIterator{LinearHyperplane}(pm_object(C), _linear
 
 _linear_span(::Type{LinearHyperplane}, C::Polymake.BigObject, i::Base.Integer) = LinearHyperplane(C.LINEAR_SPAN[i, :])
 
-_equation_matrix(::Val{_linear_span}, C::Polymake.BigObject) = C.LINEAR_SPAN
+_linear_equation_matrix(::Val{_linear_span}, C::Polymake.BigObject) = C.LINEAR_SPAN
 
-_linear_matrix_for_polymake(::Val{_linear_span}) = _equation_matrix
+_linear_matrix_for_polymake(::Val{_linear_span}) = _linear_equation_matrix
 
 @doc Markdown.doc"""
     hilbert_basis(C::Cone)

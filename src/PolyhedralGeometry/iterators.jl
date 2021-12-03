@@ -172,14 +172,14 @@ _ray_incidences(::Any, ::Polymake.BigObject) = throw(ArgumentError("Incidence Ma
 vertex_incidences(iter::SubObjectIterator{Polyhedron}) = _vertex_incidences(Val(iter.Acc), iter.Obj; iter.options...)
 _vertex_incidences(::Any, ::Polymake.BigObject) = throw(ArgumentError("Incidence Matrix resp. vertices not defined in this context."))
 
-inequality_matrix(iter::SubObjectIterator{<:Union{Cone, Polyhedron, Halfspace}}) = matrix(QQ, Matrix{fmpq}(_inequality_matrix(Val(iter.Acc), iter.Obj; iter.options...)))
-_inequality_matrix(::Any, ::Polymake.BigObject) = throw(ArgumentError("Inequality Matrix not defined in this context."))
+linear_inequality_matrix(iter::SubObjectIterator{<:Union{Cone, Polyhedron, Halfspace}}) = matrix(QQ, Matrix{fmpq}(_linear_inequality_matrix(Val(iter.Acc), iter.Obj; iter.options...)))
+_linear_inequality_matrix(::Any, ::Polymake.BigObject) = throw(ArgumentError("Linear Inequality Matrix not defined in this context."))
 
 affine_inequality_matrix(iter::SubObjectIterator{<:Union{Halfspace, Hyperplane, Pair, Polyhedron}}) = matrix(QQ, Matrix{fmpq}(_affine_inequality_matrix(Val(iter.Acc), iter.Obj; iter.options...)))
-_affine_inequality_matrix(::Any, ::Polymake.BigObject) = throw(ArgumentError("Inequality Matrix not defined in this context."))
+_affine_inequality_matrix(::Any, ::Polymake.BigObject) = throw(ArgumentError("Affine Inequality Matrix not defined in this context."))
 
-equation_matrix(iter::SubObjectIterator{<:Union{Halfspace, Hyperplane, Pair, Polyhedron}}) = matrix(QQ, Matrix{fmpq}(_equation_matrix(Val(iter.Acc), iter.Obj; iter.options...)))
-_equation_matrix(::Any, ::Polymake.BigObject) = throw(ArgumentError("Equation Matrix not defined in this context."))
+linear_equation_matrix(iter::SubObjectIterator{<:Union{Halfspace, Hyperplane, Pair, Polyhedron}}) = matrix(QQ, Matrix{fmpq}(_linear_equation_matrix(Val(iter.Acc), iter.Obj; iter.options...)))
+_linear_equation_matrix(::Any, ::Polymake.BigObject) = throw(ArgumentError("Linear Equation Matrix not defined in this context."))
 
 affine_equation_matrix(iter::SubObjectIterator{<:Union{Halfspace, Hyperplane, Pair, Polyhedron}}) = matrix(QQ, Matrix{fmpq}(_affine_equation_matrix(Val(iter.Acc), iter.Obj; iter.options...)))
 _affine_equation_matrix(::Any, ::Polymake.BigObject) = throw(ArgumentError("Affine Equation Matrix not defined in this context."))
@@ -215,7 +215,6 @@ end
 _affine_matrix_for_polymake(::Any, ::Polymake.BigObject) = throw(ArgumentError("Affine Matrix for Polymake not defined in this context."))
 
 function halfspace_matrix_pair(iter::SubObjectIterator{<:Union{Halfspace, Hyperplane, Pair, Polyhedron}})
-    # h = _halfspace_matrix_pair(Val(iter.Acc), iter.Obj; iter.options...)
     h = affine_matrix_for_polymake(iter)
     return (A = matrix(QQ, Matrix{fmpq}(h[:, 2:end])), b = -h[:, 1])
 end

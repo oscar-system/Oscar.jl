@@ -30,7 +30,7 @@ const pm = Polymake
         for T in [AffineHalfspace, LinearHalfspace, Cone, Polyhedron]
             @test facets(T, Cone1) isa SubObjectIterator{T}
             @test length(facets(T, Cone1)) == 2
-            @test inequality_matrix(facets(T, Cone1)) == matrix(QQ, Matrix{fmpq}([-1 0; 0 -1]))
+            @test linear_inequality_matrix(facets(T, Cone1)) == matrix(QQ, Matrix{fmpq}([-1 0; 0 -1]))
             if T == Cone
                 @test facets(T, Cone1)[1] == cone_from_inequalities([-1 0])
                 @test facets(T, Cone1)[2] == cone_from_inequalities([0 -1])
@@ -47,7 +47,7 @@ const pm = Polymake
         @test linear_span(Cone4) isa SubObjectIterator{LinearHyperplane}
         @test length(linear_span(Cone4)) == 1
         @test linear_span(Cone4)[] == LinearHyperplane([0 1 0])
-        @test equation_matrix(linear_span(Cone4)) == matrix(QQ, Matrix{fmpq}([0 1 0]))
+        @test linear_equation_matrix(linear_span(Cone4)) == matrix(QQ, Matrix{fmpq}([0 1 0]))
 
         @test !ispointed(Cone2)
         @test !ispointed(Cone3)
