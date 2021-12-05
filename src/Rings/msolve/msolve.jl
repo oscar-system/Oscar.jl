@@ -3,7 +3,7 @@ import msolve_jll: libmsolve
 export msolve
 
 @doc Markdown.doc"""
-    function get_rational_parametrization(nr::Int32, lens::Array{Int32,1}, cfs::Ptr{BigInt})
+    get_rational_parametrization(nr::Int32, lens::Array{Int32,1}, cfs::Ptr{BigInt})
 
 Construct the rational parametrization of the solution set computed via msolve.
 
