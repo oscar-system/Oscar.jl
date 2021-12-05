@@ -243,7 +243,7 @@ function (F::AlgHom)(p::U) where U <: Union{MPolyElem, MPolyQuoElem}
 end
 
 @doc Markdown.doc"""
-    function domain(F::AlgHom)
+    domain(F::AlgHom)
 
 Return the domain of `F`.
 """
@@ -252,7 +252,7 @@ function domain(F::AlgHom)
 end
 
 @doc Markdown.doc"""
-    function codomain(F::AlgHom)
+    codomain(F::AlgHom)
 
 Return the codomain of `F`.
 """

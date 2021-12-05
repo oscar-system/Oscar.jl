@@ -417,7 +417,7 @@ end
 # TODO: these are not exported at the moment
 
 """
-    function invariant_bilinear_form(G::MatrixGroup)
+    invariant_bilinear_form(G::MatrixGroup)
 
 Return an invariant bilinear form for the group `G`.
 An exception is thrown if the module induced by the action of `G`
@@ -433,7 +433,7 @@ function invariant_bilinear_form(G::MatrixGroup)
 end
 
 """
-    function invariant_sesquilinear_form(G::MatrixGroup)
+    invariant_sesquilinear_form(G::MatrixGroup)
 
 Return an invariant sesquilinear (non bilinear) form for the group `G`.
 An exception is thrown if the module induced by the action of `G`
@@ -449,7 +449,7 @@ function invariant_sesquilinear_form(G::MatrixGroup)
 end
 
 """
-    function invariant_quadratic_form(G::MatrixGroup)
+    invariant_quadratic_form(G::MatrixGroup)
 
 Return an invariant bilinear form for the group `G`.
 An exception is thrown if the module induced by the action of `G`
