@@ -644,6 +644,26 @@ julia> rays(recession_cone(P))
 """
 recession_cone(P::Polyhedron) = Cone(Polymake.polytope.recession_cone(pm_object(P)))
 
+
+@doc Markdown.doc"""
+    ehrhart_polynomial(P::Polyhedron)
+
+Compute the Ehrhart polynomial of `P`.
+
+# Examples
+```jldoctest
+julia> c = cube(3)
+A polyhedron in ambient dimension 3
+
+julia> ehrhart_polynomial(c)
+8*x^3 + 12*x^2 + 6*x + 1
+"""
+function ehrhart_polynomial(P::Polyhedron)
+    ep = pm_object(P).EHRHART_POLYNOMIAL
+    coeffs = Polymake.coefficients_as_vector(ep)
+    return polynomial(QQ, convert(Vector{fmpq}, coeffs))
+end
+
 ###############################################################################
 ## Boolean properties
 ###############################################################################
@@ -749,7 +769,7 @@ Check whether `P` is simple
 julia> c = cube(2,0,1)
 A polyhedron in ambient dimension 2
 
-julia> c.pm_polytope.SIMPLE
+julia> issimple(c)
 true
 ```
 """
