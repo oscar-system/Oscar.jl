@@ -253,7 +253,7 @@ const centraliser = centralizer
 Return whether the subgroup `H` is normal in `G`,
 i. e., `H` is invariant under conjugation with elements of `G`.
 """
-isnormal(G::T, H::T) where T <: GAPGroup = GAP.Globals.IsNormal(G.X, H.X)
+isnormal(G::T, H::T) where T <: GAPGroup = GAPWrap.IsNormal(G.X, H.X)
 
 """
     ischaracteristic(G::T, H::T) where T <: GAPGroup
@@ -262,7 +262,7 @@ Return whether the subgroup `H` is characteristic in `G`,
 i. e., `H` is invariant under all automorphisms of `G`.
 """
 function ischaracteristic(G::T, H::T) where T <: GAPGroup
-  return GAP.Globals.IsCharacteristicSubgroup(G.X, H.X)
+  return GAPWrap.IsCharacteristicSubgroup(G.X, H.X)
 end
 
 """
@@ -319,7 +319,7 @@ function quo(G::T, elements::Vector{S}) where T <: GAPGroup where S <: GAPGroupE
   @assert elem_type(G) == S
   elems_in_gap = GapObj([x.X for x in elements])
   H = GAP.Globals.NormalClosure(G.X,GAP.Globals.Group(elems_in_gap))
-  @assert GAP.Globals.IsNormal(G.X, H)
+  @assert GAPWrap.IsNormal(G.X, H)
   H1 = T(H)
   return quo(G, H1)
 end

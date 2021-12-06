@@ -8,7 +8,7 @@ import AbstractAlgebra: Group, Module
 import Base: parent
 
 function GAP.gap_to_julia(::Type{QabElem}, a::GAP.GapObj) #which should be a Cyclotomic
-  c = GAP.Globals.Conductor(a)
+  c = GAPWrap.Conductor(a)
   E = abelian_closure(QQ)[2](c)
   z = parent(E)(0)
   co = GAP.Globals.CoeffsCyc(a, c)

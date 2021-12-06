@@ -536,7 +536,7 @@ function values(chi::GAPGroupClassFunction)
 end
 
 function group_class_function(tbl::GAPGroupCharacterTable, values::GAP.GapObj)
-    GAP.Globals.IsClassFunction(values) || error("values must be a class function")
+    GAPWrap.IsClassFunction(values) || error("values must be a class function")
     return GAPGroupClassFunction(tbl, values)
 end
 

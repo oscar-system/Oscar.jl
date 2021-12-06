@@ -507,11 +507,11 @@ function preserved_sesquilinear_forms(G::MatrixGroup{S,T}) where {S,T}
    L = GAP.Globals.PreservedSesquilinearForms(G.X)
    R = SesquilinearForm{S}[]
    for f_gap in L
-      if GAP.Globals.IsHermitianForm(f_gap)
+      if GAPWrap.IsHermitianForm(f_gap)
          f = hermitian_form(preimage_matrix(G.ring_iso, GAP.Globals.GramMatrix(f_gap)))
-      elseif GAP.Globals.IsSymmetricForm(f_gap)
+      elseif GAPWrap.IsSymmetricForm(f_gap)
          f = symmetric_form(preimage_matrix(G.ring_iso, GAP.Globals.GramMatrix(f_gap)))
-      elseif GAP.Globals.IsAlternatingForm(f_gap)
+      elseif GAPWrap.IsAlternatingForm(f_gap)
          f = alternating_form(preimage_matrix(G.ring_iso, GAP.Globals.GramMatrix(f_gap)))
       else
          error("Invalid form")

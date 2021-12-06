@@ -140,14 +140,14 @@ mutable struct PermGroup <: GAPGroup
    AbstractAlgebra.@declare_other
    
    function PermGroup(G::GapObj)
-     @assert GAP.Globals.IsPermGroup(G)
-     n = GAP.Globals.LargestMovedPoint(G)::Int
+     @assert GAPWrap.IsPermGroup(G)
+     n = GAPWrap.LargestMovedPoint(G)::Int
      z = new(G, n)
      return z
    end
    
    function PermGroup(G::GapObj, deg::Int)
-     @assert GAP.Globals.IsPermGroup(G)
+     @assert GAPWrap.IsPermGroup(G)
      z = new(G, deg)
      return z
    end
@@ -180,7 +180,7 @@ mutable struct PcGroup <: GAPGroup
   AbstractAlgebra.@declare_other
 
   function PcGroup(G::GapObj)
-    @assert GAP.Globals.IsPcGroup(G)
+    @assert GAPWrap.IsPcGroup(G)
     z = new(G)
     return z
   end
@@ -205,7 +205,7 @@ mutable struct FPGroup <: GAPGroup
   AbstractAlgebra.@declare_other
   
   function FPGroup(G::GapObj)
-    @assert GAP.Globals.IsSubgroupFpGroup(G)
+    @assert GAPWrap.IsSubgroupFpGroup(G)
     z = new(G)
     return z
   end
@@ -241,7 +241,7 @@ mutable struct AutomorphismGroup{T} <: GAPGroup
   AbstractAlgebra.@declare_other
 
   function AutomorphismGroup{T}(G::GapObj, H::T) where T
-    @assert GAP.Globals.IsGroupOfAutomorphisms(G)
+    @assert GAPWrap.IsGroupOfAutomorphisms(G)
     z = new{T}(G, H)
     return z
   end

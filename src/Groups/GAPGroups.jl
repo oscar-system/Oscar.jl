@@ -122,7 +122,7 @@ false
 
 ```
 """
-isfinite_order(x::GAPGroupElem) = GAP.Globals.IsInt(GAP.Globals.Order(x.X))::Bool
+isfinite_order(x::GAPGroupElem) = GAPWrap.IsInt(GAP.Globals.Order(x.X))::Bool
 
 """
     order(::Type{T} = fmpz, x::Union{GAPGroupElem, GAPGroup}) where T <: IntegerUnion
@@ -193,9 +193,9 @@ function _maxgroup(x::T, y::T) where T <: GAPGroup
    # but it is not always the first choice.
    if x.X === y.X
      return x
-   elseif GAP.Globals.IsSubset(x.X, y.X)
+   elseif GAPWrap.IsSubset(x.X, y.X)
      return x
-   elseif GAP.Globals.IsSubset(y.X, x.X)
+   elseif GAPWrap.IsSubset(y.X, x.X)
      return y
    else
      error("Not yet implemented")
@@ -232,7 +232,7 @@ one!(x::GAPGroupElem) = one(parent(x))
 Base.show(io::IO, x::GAPGroupElem) = print(io, String(GAP.Globals.StringViewObj(x.X)))
 Base.show(io::IO, x::GAPGroup) = print(io, String(GAP.Globals.StringViewObj(x.X)))
 
-Base.isone(x::GAPGroupElem) = GAP.Globals.IsOne(x.X)::Bool
+Base.isone(x::GAPGroupElem) = GAPWrap.IsOne(x.X)
 
 Base.inv(x::GAPGroupElem) = group_element(parent(x), GAP.Globals.Inverse(x.X))
 
@@ -434,7 +434,7 @@ Base.:^(x::T, y::T) where T <: GAPGroupElem = group_element(_maxgroup(parent(x),
 Return whether `x` and `y` are conjugate elements in `G`,
 i. e., there is an element $z$ in `G` such that `x^`$z$ equals `y`.
 """
-isconjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem) = GAP.Globals.IsConjugate(G.X,x.X,y.X)::Bool
+isconjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem) = GAPWrap.IsConjugate(G.X,x.X,y.X)
 
 """
     representative_action(G::Group, x::GAPGroupElem, y::GAPGroupElem)
@@ -502,7 +502,7 @@ end
 
 Return whether `H` and `K` are conjugate subgroups in `G`.
 """
-isconjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup) = GAP.Globals.IsConjugate(G.X,H.X,K.X)::Bool
+isconjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup) = GAPWrap.IsConjugate(G.X,H.X,K.X)
 
 """
     representative_action(G::Group, H::Group, K::Group)
@@ -732,7 +732,7 @@ function hall_subgroups_representatives(G::GAPGroup, P::AbstractVector{<:Integer
    res_gap = GAP.Globals.HallSubgroup(G.X, GAP.julia_to_gap(P))
    if res_gap == GAP.Globals.fail
      return typeof(G)[]
-   elseif GAP.Globals.IsList(res_gap)
+   elseif GAPWrap.IsList(res_gap)
      return _as_subgroups(G, res_gap)
    else
      return [_as_subgroup_bare(G, res_gap)]
@@ -824,7 +824,7 @@ For finite groups `G`, the first return value is `true` if and only if
 the order of `G` is a prime power.
 """
 function ispgroup(G::GAPGroup)
-   if GAP.Globals.IsPGroup(G.X)
+   if GAPWrap.IsPGroup(G.X)
       p = GAP.Globals.PrimePGroup(G.X)
       if p != GAP.Globals.fail
          return true, fmpz(p)  # TODO: allow specifying the type used for the prime

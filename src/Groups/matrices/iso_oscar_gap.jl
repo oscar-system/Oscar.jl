@@ -23,11 +23,11 @@ end
 # computes the isomorphism between the Oscar field F and the corresponding GAP field
 function ring_iso_oscar_gap(F::T) where T <: Union{Nemo.GaloisField, Nemo.GaloisFmpzField}
    p = characteristic(F)
-   G = GAP.Globals.GF(GAP.Obj(p))
-   e = GAP.Globals.One(G)
+   G = GAPWrap.GF(GAP.Obj(p))
+   e = GAPWrap.One(G)
 
    f(x::Union{Nemo.gfp_elem, Nemo.gfp_fmpz_elem}) = GAP.Obj(lift(x))*e
-   finv(x) = F(fmpz(GAP.Globals.IntFFE(x)))
+   finv(x) = F(fmpz(GAPWrap.IntFFE(x)))
 
    return MapFromFunc(f, finv, F, G)
 end
@@ -36,13 +36,13 @@ function ring_iso_oscar_gap(F::T) where T <: Union{Nemo.FqNmodFiniteField, Nemo.
    p = characteristic(F)
    d = degree(F)
    p_gap = GAP.Obj(p)
-   Fp_gap = GAP.Globals.GF(p_gap) # the prime field in GAP
-   e = GAP.Globals.One(Fp_gap)
+   Fp_gap = GAPWrap.GF(p_gap) # the prime field in GAP
+   e = GAPWrap.One(Fp_gap)
 
    # prime fields are easy and efficient to deal with, handle them separately
    if d == 1
       f1(x::Union{Nemo.fq_nmod, Nemo.fq}) = GAP.Obj(coeff(x, 0))*e
-      finv1(x) = F(fmpz(GAP.Globals.IntFFE(x)))
+      finv1(x) = F(fmpz(GAPWrap.IntFFE(x)))
       return MapFromFunc(f1, finv1, F, Fp_gap)
    end
 
@@ -55,15 +55,15 @@ function ring_iso_oscar_gap(F::T) where T <: Union{Nemo.FqNmodFiniteField, Nemo.
    # ... and compute a GAP field G defined via this polynomial
    # (If the given polynomial is a Conway polynomial then we may call
    # GAP's `GF(p, d)`, which avoids GAP's `AlgebraicExtension`.)
-   if GAP.Globals.IsCheapConwayPolynomial(p_gap, d) &&
+   if GAPWrap.IsCheapConwayPolynomial(p_gap, d) &&
       f_gap == GAP.Globals.ConwayPolynomial(p_gap, d)
-      G = GAP.Globals.GF(p_gap, d)
+      G = GAPWrap.GF(p_gap, d)
    else
-      G = GAP.Globals.GF(Fp_gap, f_gap)
+      G = GAPWrap.GF(Fp_gap, f_gap)
    end
 
    # compute matching bases of both fields
-   if GAP.Globals.IsAlgebraicExtension(G)
+   if GAPWrap.IsAlgebraicExtension(G)
 #FIXME:
 # As soon as the problem from https://github.com/gap-system/gap/issues/4694
 # is fixed, go back to `Basis_G = GAP.Globals.Basis(G)` also in this case.
@@ -90,8 +90,8 @@ function ring_iso_oscar_gap(F::T) where T <: Union{Nemo.FqNmodFiniteField, Nemo.
 
    # For "small" primes x should be an FFE, but for bigger ones it's GAP_jll.Mptr (?)
    function finv(x)
-      v = GAP.Globals.Coefficients(Basis_G, x)
-      v_int = [ fmpz(GAP.Globals.IntFFE(v[i])) for i = 1:length(v) ]
+      v = GAPWrap.Coefficients(Basis_G, x)
+      v_int = [ fmpz(GAPWrap.IntFFE(v[i])) for i = 1:length(v) ]
       return sum([ v_int[i]*Basis_F[i] for i = 1:d ])
    end
 
@@ -111,17 +111,17 @@ function ring_iso_oscar_gap(F::T) where T <: AnticNumberField
    flag, N = Hecke.iscyclotomic_type(F)
    flag || error("$F is not a cyclotomic field")
 
-   G = GAP.Globals.CF(GAP.Obj(N))
+   G = GAPWrap.CF(GAP.Obj(N))
 
    function f(x::Nemo.nf_elem)
       coeffs = [Nemo.coeff(x, i) for i in 0:(N-1)]
-      return GAP.Globals.CycList(GAP.GapObj(coeffs; recursive=true))
+      return GAPWrap.CycList(GAP.GapObj(coeffs; recursive=true))
    end
 
    function finv(x)
-      GAP.Globals.IsCyc(x) || error("$x is not a GAP cyclotomic")
-      denom = GAP.Globals.DenominatorCyc(x)
-      n = GAP.Globals.Conductor(x)
+      GAPWrap.IsCyc(x) || error("$x is not a GAP cyclotomic")
+      denom = GAPWrap.DenominatorCyc(x)
+      n = GAPWrap.Conductor(x)
       mod(N, n) == 0 || error("$x does not lie in the $N-th cyclotomic field")
       coeffs = GAP.Globals.CoeffsCyc(x * denom, N)
       cycpol = GAP.Globals.CyclotomicPol(N)
@@ -164,8 +164,8 @@ end
 
 function preimage_matrix(f::Map{T, GapObj}, a::GapObj) where T
    isdefined(f.header, :preimage) || error("No preimage function known")
-   m = GAP.Wrappers.NumberRows(a)
-   n = GAP.Wrappers.NumberColumns(a)
+   m = GAPWrap.NrRows(a)
+   n = GAPWrap.NrCols(a)
    L = [f.header.preimage(a[i, j]) for i in 1:m for j in 1:n]
    return matrix(domain(f), m, n, L)
 end

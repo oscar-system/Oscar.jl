@@ -24,7 +24,7 @@ GAP.gap_to_julia(::Type{fmpz}, obj::GapInt) = fmpz(obj)
 function fmpq(obj::GapObj)
     GAP.GAP_IS_INT(obj) && return fmpq(fmpz(obj))
     GAP.GAP_IS_RAT(obj) || throw(GAP.ConversionError(obj, fmpq))
-    return fmpq(fmpz(GAP.Globals.NumeratorRat(obj)), fmpz(GAP.Globals.DenominatorRat(obj)))
+    return fmpq(fmpz(GAPWrap.NumeratorRat(obj)), fmpz(GAPWrap.DenominatorRat(obj)))
 end
 
 GAP.gap_to_julia(::Type{fmpq}, obj::GapInt) = fmpq(obj)
@@ -59,7 +59,7 @@ const default_bases_GAP_cyclotomic_fields = AbstractAlgebra.WeakValueDict{Int64,
 
 function default_basis_GAP_cyclotomic_field(N::Int64, F::GapObj = GAP.Globals.CyclotomicField(N))
     get!(default_bases_GAP_cyclotomic_fields, N) do
-      root = GAP.Globals.E(N)
+      root = GAPWrap.E(N)
       elms = [root^i for i in 0:(euler_phi(N)-1)]
       return GAP.Globals.Basis(F, GapObj(elms))
     end
@@ -68,19 +68,19 @@ end
 ## single GAP cyclotomic to element of cyclotomic field
 function (F::AnticNumberField)(obj::GapObj)
     Nemo.iscyclo_type(F) || throw(ArgumentError("F is not a cyclotomic field"))
-    GAP.Globals.IsCyclotomic(obj) || throw(ArgumentError("input is not a GAP cyclotomic"))
+    GAPWrap.IsCyclotomic(obj) || throw(ArgumentError("input is not a GAP cyclotomic"))
     N = Oscar.get_special(F, :cyclo)
-    mod(N, GAP.Globals.Conductor(obj)) == 0 || throw(ArgumentError("obj does not embed into F"))
+    mod(N, GAPWrap.Conductor(obj)) == 0 || throw(ArgumentError("obj does not embed into F"))
 
     B = default_basis_GAP_cyclotomic_field(N)
-    return F(Vector{fmpz}(GAP.Globals.Coefficients(B, obj)))
+    return F(Vector{fmpz}(GAPWrap.Coefficients(B, obj)))
 end
 
 ## single GAP cyclotomic to `QabElem`
 function QabElem(cyc::GapInt)
-    GAP.Globals.IsCyc(cyc) || error("cyc must be a GAP cyclotomic")
-    denom = GAP.Globals.DenominatorCyc(cyc)
-    n = GAP.Globals.Conductor(cyc)
+    GAPWrap.IsCyc(cyc) || error("cyc must be a GAP cyclotomic")
+    denom = GAPWrap.DenominatorCyc(cyc)
+    n = GAPWrap.Conductor(cyc)
     coeffs = GAP.Globals.ExtRepOfObj(cyc * denom)
     cycpol = GAP.Globals.CyclotomicPol(n)
     dim = length(cycpol)-1
@@ -97,20 +97,20 @@ end
 ## nonempty list of GAP matrices over the same cyclotomic field
 function matrices_over_cyclotomic_field(gapmats::GapObj)
     GAPWrap.IsList(gapmats) || throw(ArgumentError("gapmats is not a GAP list"))
-    GAP.Globals.IsEmpty(gapmats) && throw(ArgumentError("gapmats is empty"))
-    GAP.Globals.ForAll(gapmats, GAP.Globals.IsCyclotomicCollColl) ||
+    GAPWrap.IsEmpty(gapmats) && throw(ArgumentError("gapmats is empty"))
+    GAP.Globals.ForAll(gapmats, GAPWrap.IsCyclotomicCollColl) ||
       throw(ArgumentError("gapmats is not a GAP list of matrices of cyclotomics"))
 
     gapF = GAP.Globals.FieldOfMatrixList(gapmats)
-    N = GAP.Globals.Conductor(gapF)
+    N = GAPWrap.Conductor(gapF)
     B = default_basis_GAP_cyclotomic_field(N, gapF)
     F, z = CyclotomicField(N)
 
     result = dense_matrix_type(F)[]
     for mat in gapmats
-      m = GAPWrap.NumberRows(mat)
-      n = GAPWrap.NumberColumns(mat)
-      entries = [F(Vector{fmpz}(GAP.Globals.Coefficients(B, mat[i, j])))
+      m = GAPWrap.NrRows(mat)
+      n = GAPWrap.NrCols(mat)
+      entries = [F(Vector{fmpz}(GAPWrap.Coefficients(B, mat[i, j])))
                  for i in 1:m, j in 1:n]
       push!(result, matrix(F, entries))
     end
@@ -121,12 +121,12 @@ end
 ## single GAP matrix of cyclotomics
 function matrix(F::AnticNumberField, mat::GapObj)
     Nemo.iscyclo_type(F) || throw(ArgumentError("F is not a cyclotomic field"))
-    (GAP.Globals.IsCyclotomicCollColl(mat) && GAP.Globals.IsMatrixOrMatrixObj(mat)) || throw(ArgumentError("mat is not a GAP matrix of cyclotomics"))
+    (GAPWrap.IsCyclotomicCollColl(mat) && GAPWrap.IsMatrixOrMatrixObj(mat)) || throw(ArgumentError("mat is not a GAP matrix of cyclotomics"))
     N = Oscar.get_special(F, :cyclo)
     B = default_basis_GAP_cyclotomic_field(N)
-    m = GAPWrap.NumberRows(mat)
-    n = GAPWrap.NumberColumns(mat)
-    entries = [F(Vector{fmpz}(GAP.Globals.Coefficients(B, mat[i, j])))
+    m = GAPWrap.NrRows(mat)
+    n = GAPWrap.NrCols(mat)
+    entries = [F(Vector{fmpz}(GAPWrap.Coefficients(B, mat[i, j])))
                for i in 1:m, j in 1:n]
     return matrix(F, entries)
 end
