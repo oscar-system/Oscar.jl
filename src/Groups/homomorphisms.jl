@@ -125,20 +125,10 @@ function hom(G::GAPGroup, H::GAPGroup, gensG::Vector, imgs::Vector)
   return GAPGroupHomomorphism{typeof(G), typeof(H)}(G, H, mp)
 end
 
-"""
-    domain(f::GAPGroupHomomorphism)
-
-Return the domain of `f`.
-"""
 function domain(f::GAPGroupHomomorphism)
   return f.domain
 end
 
-"""
-    codomain(f::GAPGroupHomomorphism)
-
-Return the codomain of `f`.
-"""
 function codomain(f::GAPGroupHomomorphism)
   return f.codomain
 end
