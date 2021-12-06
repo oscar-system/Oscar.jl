@@ -431,6 +431,6 @@ For a quadratic form `Q`, return whether `Q` is singular, i.e. `Q` has nonzero r
 """
 function issingular(f::SesquilinearForm{T}) where T
    f.descr != :quadratic && throw(ArgumentError("The form is not quadratic"))
-   return GAP.Globals.IsSingularForm(f.X)
+   return GAPWrap.IsSingularForm(f.X)
 end
 

@@ -73,10 +73,9 @@ function all_small_groups(n::Int, L...)
          L1[i+1] = GAP.julia_to_gap(L[i])
       end
    end
-   L1 = GAP.julia_to_gap(L1)
 
-   K = GAP.Globals.CallFuncList(GAP.Globals.AllSmallGroups,L1)
-   return [_get_type(K[i])(K[i]) for i in 1:length(K)]          # GAP.julia_to_gap(K) does not work
+   K = GAP.Globals.AllSmallGroups(L1...)
+   return [_get_type(x)(x) for x in K]          # GAP.julia_to_gap(K) does not work
 end
 #T what does this comment mean?
 

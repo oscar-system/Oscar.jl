@@ -484,7 +484,7 @@ transitivity(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAP.Globals.T
 
 Return whether the action of `G` on `L` is transitive.
 """
-istransitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAP.Globals.IsTransitive(G.X, GAP.GapObj(L))
+istransitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAPWrap.IsTransitive(G.X, GAP.GapObj(L))
 # Note that this definition does not coincide with that of the
 # property `GAP.Globals.IsTransitive`, for which the default domain
 # of the action is the set of moved points.
@@ -496,7 +496,7 @@ istransitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAP.Globals.I
 Return whether the action of `G` on `L` is primitive, that is,
 the action is transitive and the point stabilizers are maximal in `G`.
 """
-isprimitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAP.Globals.IsPrimitive(G.X, GAP.GapObj(L))
+isprimitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAPWrap.IsPrimitive(G.X, GAP.GapObj(L))
 
 
 """
@@ -505,7 +505,7 @@ isprimitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAP.Globals.Is
 Return whether the action of `G` on `L` is regular
 (i.e., transitive and semiregular).
 """
-isregular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAP.Globals.IsRegular(G.X, GAP.GapObj(L))
+isregular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAPWrap.IsRegular(G.X, GAP.GapObj(L))
 
 
 """
@@ -514,4 +514,4 @@ isregular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAP.Globals.IsRe
 Return whether the action of `G` on `L` is semiregular
 (i.e., the stabilizer of each point is the identity).
 """
-issemiregular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAP.Globals.IsSemiRegular(G.X, GAP.GapObj(L))
+issemiregular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAPWrap.IsSemiRegular(G.X, GAP.GapObj(L))
