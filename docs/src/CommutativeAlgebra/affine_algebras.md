@@ -191,14 +191,8 @@ X <: Union{S, MPolyQuoElem{S}}}
 
 ### Data Associated to Homomorphisms of Affine Algebras
 
-
-```@docs
-domain(F::AlgHom)
-```
-
-```@docs
-codomain(F::AlgHom)
-```
+The usual methods for maps are supported, such
+as `domain` and `codomain`.
 
 ```@docs
 preimage(F::AlgHom, I::U) where U <: Union{MPolyIdeal, MPolyQuoIdeal}

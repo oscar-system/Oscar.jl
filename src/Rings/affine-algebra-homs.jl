@@ -242,20 +242,10 @@ function (F::AlgHom)(p::U) where U <: Union{MPolyElem, MPolyQuoElem}
    return map_poly(F, p)
 end
 
-@doc Markdown.doc"""
-    domain(F::AlgHom)
-
-Return the domain of `F`.
-"""
 function domain(F::AlgHom)
    return F.domain
 end
 
-@doc Markdown.doc"""
-    codomain(F::AlgHom)
-
-Return the codomain of `F`.
-"""
 function codomain(F::AlgHom)
    return F.codomain
 end
