@@ -446,7 +446,7 @@ function starsubdivision(PF::PolyhedralFan, n::Int)
     # construct this cone and check if it is smooth
     cone = Polymake.fan.cone(pm_object(PF), n-1)
     if !cone.SMOOTH_CONE
-        throw(ArgumentError("Cannot subdivide maximal cone " * string(n) * " as it is not smooth!"))
+        throw(ArgumentError("Cannot subdivide maximal cone $n as it is not smooth!"))
     end
     
     # compute new rays to be added from star subdivision

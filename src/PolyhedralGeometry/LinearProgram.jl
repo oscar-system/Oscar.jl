@@ -78,7 +78,7 @@ function objective_function(lp::LinearProgram; as::Symbol = :pair)
       (c,k) = objective_function(lp, as = :pair)
       return x -> sum(x.*c)+k
    else
-       throw(ArgumentError("Unsupported `as` argument :" * string(as)))
+       throw(ArgumentError("Unsupported `as` argument: $as"))
    end
 end
 
