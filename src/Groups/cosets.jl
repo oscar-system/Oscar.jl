@@ -83,9 +83,9 @@ function show(io::IO, x::GroupCoset)
    a = String(GAP.Globals.StringViewObj(x.H.X))
    b = String(GAP.Globals.StringViewObj(x.repr.X))
    if x.side == :right
-      print(io, "Right coset   ", a, " * ", b)
+      print(io, "Right coset   $a * $b")
    else
-      print(io, "Left coset   ", b, " * ", a)
+      print(io, "Left coset   $b * $a")
    end
    return nothing
 end

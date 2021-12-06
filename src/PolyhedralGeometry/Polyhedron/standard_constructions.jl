@@ -282,7 +282,7 @@ function minkowski_sum(P::Polyhedron, Q::Polyhedron; algorithm::Symbol=:standard
    elseif algorithm == :fukuda
       return Polyhedron(Polymake.polytope.minkowski_sum_fukuda(pm_object(P), pm_object(Q)))
    else
-      throw(ArgumentError("Unknown minkowski sum `algorithm` argument:" * string(algorithm)))
+      throw(ArgumentError("Unknown minkowski sum `algorithm` argument: $algorithm"))
    end
 end
 

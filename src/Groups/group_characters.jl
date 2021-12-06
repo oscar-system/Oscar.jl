@@ -153,7 +153,7 @@ function character_table(id::String, p::Int = 0)
       modid = id
     else
       isprime(p) || error("p must be 0 or a prime integer")
-      modid = id * "mod" * string(p)
+      modid = "$(id)mod$(p)"
     end
 
     return get!(character_tables_by_id, modid) do
@@ -399,7 +399,7 @@ function Base.show(io::IO, tbl::GAPGroupCharacterTable)
 
       # row labels:
       # character names (a column vector is sufficient)
-      :labels_row => ["\\chi_{" * string(i) * "}" for i in 1:n],
+      :labels_row => ["\\chi_{$i}" for i in 1:n],
 
       # corner (a column vector is sufficient):
       # primes in the centralizer rows,
@@ -424,7 +424,7 @@ function Base.print(io::IO, tbl::GAPGroupCharacterTable)
     if isdefined(tbl, :GAPGroup)
       id = string(tbl.GAPGroup)
       if tbl.characteristic != 0
-        id = id * " mod " * string(tbl.characteristic)
+        id = "$(id)mod$(tbl.characteristic)"
       end
     else
       id = "\"" * String(GAP.Globals.Identifier(gaptbl)) * "\""
@@ -507,7 +507,7 @@ julia> decomposition_matrix(t2)
 """
 function decomposition_matrix(modtbl::GAPGroupCharacterTable)
     isprime(modtbl.characteristic) || error("characteristic of tbl must be a prime integer")
-    return fmpz_mat(GAP.Globals.DecompositionMatrix(modtbl.GAPTable))
+    return matrix(ZZ, GAP.Globals.DecompositionMatrix(modtbl.GAPTable))
 end
 
 
@@ -525,7 +525,7 @@ struct GAPGroupClassFunction <: GroupClassFunction
 end
 
 function Base.show(io::IO, chi::GAPGroupClassFunction)
-    print(io, "group_class_function(" * string(chi.table) * ", " * string(values(chi)) * ")")
+    print(io, "group_class_function($(chi.table), $(values(chi)))")
 end
 
 import Base.values
