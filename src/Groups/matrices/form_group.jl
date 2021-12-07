@@ -10,7 +10,11 @@ export
     invariant_symmetric_forms,
     isometry_group,
     preserved_quadratic_forms,
-    preserved_sesquilinear_forms
+    preserved_sesquilinear_forms,
+    automorphism_group,
+    orthogonal_group,
+    unitary_group,
+    aut
 
 ########################################################################
 #
@@ -640,3 +644,34 @@ function isometry_group(f::SesquilinearForm{T}) where T
       return G^Xf
    end
 end
+
+"""
+    isometry_group(L::Hecke.AbsLat) -> MatrixGroup
+
+Return the group of isometries of the lattice `L`.
+"""
+function isometry_group(L::Hecke.AbsLat)
+   if rank(L) == 0
+      d = degree(L)
+      K = base_field(L)
+      gens = [identity_matrix(K,d)]
+   else
+      gens = Hecke.automorphism_group_generators(L)
+   end
+   G = matrix_group(gens)
+   # TODO: Cache the result.
+   # L._isometry_group = G
+   return G
+end
+
+automorphism_group(L::Hecke.AbsLat) = isometry_group(L)
+
+aut(L::Hecke.AbsLat) = isometry_group(L)
+
+orthogonal_group(L::Hecke.ZLat) = isometry_group(L)
+
+orthogonal_group(L::Hecke.QuadLat) = isometry_group(L)
+
+unitary_group(L::Hecke.HermLat) = isometry_group(L)
+
+
