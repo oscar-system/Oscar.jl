@@ -6,7 +6,7 @@ export parent, inverted_set, base_ring, quotient_ring, localized_ring, modulus, 
 export Localization
 
 export MPolyQuoLocalizedRingElem
-export numerator, denominator, parent, lift, isunit
+export numerator, denominator, parent, lift, isunit, inv
 
 export MPolyQuoLocalizedRingHom
 export domain, codomain, images
@@ -195,6 +195,18 @@ function MPolyQuoLocalizedRing(W::MPolyLocalizedRing)
   return MPolyQuoLocalizedRing(R, I, U, Q, W)
 end
 
+function Base.in(f::AbstractAlgebra.Generic.Frac{RET}, L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}) where {BRT, BRET, RT, RET}
+  R = base_ring(L)
+  R == parent(numerator(f)) || error("element does not belong to the correct ring")
+  denominator(f) in inverted_set(L) && return true
+  q = denominator(f)
+  p = numerator(f)
+  d = prod(denominators(inverted_set(L)))
+  (d_prime, q_prime) = ppio(q, d)
+  return p in ideal(R, q_prime) + modulus(L)
+end
+
+
 
 ########################################################################
 # Elements of localizations of polynomial algebras                     #
@@ -225,9 +237,58 @@ mutable struct MPolyQuoLocalizedRingElem{
     ) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
 
     S = inverted_set(L)
-    parent(a) == parent(b) == base_ring(L) || error("elements do not belong to the correct ring")
-    b in inverted_set(L) || error("the given denominator is not admissible for this localization")
+    R = base_ring(L)
+    parent(a) == parent(b) == R || error("elements do not belong to the correct ring")
+    if !(b in S)
+      # check whether we can cancel the fraction so that the denominator becomes admissible
+      l = factor(b)
+      length(l) == 0 && error("the given denominator is not admissible for this localization")
+      b_prime = one(R)
+      q = unit(l)
+      for u in l
+	if u[1] in S 
+	  b_prime *= u[1]
+	else
+	  q *= u[1]
+	end
+      end
+      Q, _ = quo(R, saturated_ideal(localized_modulus(L)))
+      (result, a_prime) = divides(Q(a), Q(q))
+      # if this is not possible, check whether the remaining factor is nevertheless a unit
+      if !result 
+	isunit(L(q)) || error("the given denominator is not admissible for this localization")
+	return L(a, b_prime)*inv(L(q))
+      end
+      a = a_prime
+      b = b_prime
+    end
     return new{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}(L, a, b)
+  end
+
+  function MPolyQuoLocalizedRingElem(
+      L::MPolyQuoLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MPolyPowersOfElement{BaseRingType, BaseRingElemType, RingType, RingElemType}}, 
+      a::RingElemType,
+      b::RingElemType
+    ) where {BaseRingType, BaseRingElemType, RingType, RingElemType}
+
+    S = inverted_set(L)
+    R = base_ring(L)
+    parent(a) == parent(b) == R || error("elements do not belong to the correct ring")
+    if !(b in inverted_set(L))
+      # check whether we can cancel the fraction so that the denominator becomes admissible
+      d = prod(denominators(S))
+      (b_prime, q) = ppio(b, d)
+      Q, _ = quo(R, saturated_ideal(localized_modulus(L)))
+      (result, a_prime) = divides(Q(a), Q(q))
+      # if this is not possible, check whether the remaining factor is nevertheless a unit
+      if !result 
+	isunit(L(q)) || error("the given denominator is not admissible for this localization")
+	return L(a, b_prime)*inv(L(q))
+      end
+      a = lift(a_prime)
+      b = b_prime
+    end
+    return new{BaseRingType, BaseRingElemType, RingType, RingElemType, MPolyPowersOfElement{BaseRingType, BaseRingElemType, RingType, RingElemType}}(L, a, b)
   end
 end
 
@@ -253,7 +314,11 @@ function (L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST})(f::Frac{RET}) where
 end
 
 function (L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST})(f::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST}
-  parent(f) == localized_ring(L) || error("the given element does not belong to the correct localization")
+  if !(parent(f) == localized_ring(L))
+    # it might still be the case that this can be transformed 
+    # to an admissible element, so call the more sophisticated routine:
+    return L(numerator(f), denominator(f))
+  end
   lbpa = groebner_basis(localized_modulus(L))
   f = reduce(f, lbpa)
   return MPolyQuoLocalizedRingElem(L, numerator(f), denominator(f))
@@ -284,14 +349,57 @@ function isunit(L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}, f::MPolyQuoEl
   one(localized_ring(L)) in localized_modulus(L) + ideal(localized_ring(L), localized_ring(L)(f))
 end
 
+# WARNING: This routine runs forever if f is not a unit in L. 
+# So this needs to be checked first!
+function inv(L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}, 
+    f::MPolyQuoElem{RET}) where {BRT, BRET, RT, RET}
+  Q = quotient_ring(L)
+  parent(f) == quotient_ring(L) || error("element does not belong to the correct ring")
+  W = localized_ring(L)
+  R = base_ring(L)
+  I = saturated_ideal(localized_modulus(L))
+  d = prod(denominators(inverted_set(W)))
+  powers_of_d = [d]
+  ### apply logarithmic bisection to find a power dᵏ ≡  c ⋅ f mod I
+  (result, coefficient) = divides(one(Q), f)
+  # check whether f is already a unit
+  result && return L(coefficient)
+  push!(powers_of_d, d)
+  abort = false
+  # find some power which works
+  while !abort
+    (abort, coefficient) = divides(Q(last(powers_of_d)), f)
+    if !abort
+      push!(powers_of_d, last(powers_of_d)^2)
+    end
+  end
+  # find the minimal power that works
+  upper = pop!(powers_of_d)
+  lower = pop!(powers_of_d)
+  while length(powers_of_d) > 0
+    middle = lower*pop!(powers_of_d)
+    (result, coefficient) = divides(Q(last(powers_of_d)), f)
+    if result 
+      upper = middle
+    else 
+      lower = middle
+    end
+  end
+  return L(lift(coefficient), upper)
+end
+
+function inv(f::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}) where {BRT, BRET, RT, RET}
+  return parent(f)(denominator(f))*inv(parent(f), numerator(f))
+end
+
 
 ### arithmetic #########################################################
 function +(a::T, b::T) where {T<:MPolyQuoLocalizedRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
   if denominator(a) == denominator(b) 
-    return reduce_fraction((parent(a))(numerator(a) + numerator(b), denominator(a)))
+    return reduce_fraction((parent(a))(lifted_numerator(a) + lifted_numerator(b), lifted_denominator(a)))
   end
-  return reduce_fraction((parent(a))(numerator(a)*denominator(b) + numerator(b)*denominator(a), denominator(a)*denominator(b)))
+  return reduce_fraction((parent(a))(lifted_numerator(a)*lifted_denominator(b) + lifted_numerator(b)*lifted_denominator(a), lifted_denominator(a)*lifted_denominator(b)))
 end
 
 # TODO: improve this method.
@@ -303,18 +411,18 @@ end
 function -(a::T, b::T) where {T<:MPolyQuoLocalizedRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
   if denominator(a) == denominator(b) 
-    return reduce_fraction((parent(a))(numerator(a) - numerator(b), denominator(a)))
+    return reduce_fraction((parent(a))(lifted_numerator(a) - lifted_numerator(b), lifted_denominator(a)))
   end
-  return reduce_fraction((parent(a))(numerator(a)*denominator(b) - numerator(b)*denominator(a), denominator(a)*denominator(b)))
+  return reduce_fraction((parent(a))(lifted_numerator(a)*lifted_denominator(b) - lifted_numerator(b)*lifted_denominator(a), lifted_denominator(a)*lifted_denominator(b)))
 end
 
 function *(a::T, b::T) where {T<:MPolyQuoLocalizedRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
-  return reduce_fraction((parent(a))(numerator(a)*numerator(b), denominator(a)*denominator(b)))
+  return reduce_fraction((parent(a))(lifted_numerator(a)*lifted_numerator(b), lifted_denominator(a)*lifted_denominator(b)))
 end
 
 function *(a::RET, b::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET <: RingElem, MST}
-  return reduce_fraction((parent(b))(a*numerator(b), denominator(b)))
+  return reduce_fraction((parent(b))(a*lifted_numerator(b), lifted_denominator(b)))
 end
 
 function *(a::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}, b::RET) where {BRT, BRET, RT, RET <: RingElem, MST}
@@ -322,7 +430,7 @@ function *(a::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}, b::RET) where 
 end
 
 function *(a::BRET, b::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET <: RingElem, MST}
-  return reduce_fraction((parent(b))(base_ring(b)(a)*numerator(b), denominator(b)))
+  return reduce_fraction((parent(b))(base_ring(b)(a)*lifted_numerator(b), lifted_denominator(b)))
 end
 
 function *(a::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}, b::BRET) where {BRT, BRET, RT, RET <: RingElem, MST}
@@ -530,7 +638,7 @@ function MPolyQuoLocalizedRingHom(
     M::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, CMST}, 
     a::Vector{T}
   ) where {BRT, BRET, RT, RET, CMST, DMST, T<:Any}
-  return MPolyQuoLocalizedRingHom(L, M, localized_ring(M).(a))
+  return MPolyQuoLocalizedRingHom(L, M, lift.(M.(a)))
 end
 
 
@@ -751,7 +859,7 @@ function is_isomorphism(
   # be realized.
   C, j1, B_vars = _add_variables_first(A, String.(symbols(B)))
   j2 = AlgebraHomomorphism(B, C, B_vars)
-  G = ideal(C, [j1(gens(A)[i]) - j2(imagesB[i]) for i in (1:length(gens(A)))]) + ideal(C, j2.(gens(J)))
+  G = ideal(C, [j1(gens(A)[i]) - j2(imagesB[i]) for i in (1:length(gens(A)))]) + ideal(C, j2.(gens(J))) + ideal(C, j1.(gens(I)))
   singC, _ = Singular.PolynomialRing(Oscar.singular_ring(base_ring(C)), 
 				  String.(symbols(C)),  
 				  ordering=Singular.ordering_dp(1)

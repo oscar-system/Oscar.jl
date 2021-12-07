@@ -9,7 +9,7 @@ export numerator, denominator, fraction, parent, isunit, divexact
 export reduce_fraction
 
 export MPolyLocalizedIdeal
-export gens, base_ring, groebner_bases, default_ordering, dim, saturated_ideal
+export gens, base_ring, groebner_bases, default_ordering, dim, saturated_ideal, intersection, quotient
 
 export Localization, ideal
 
@@ -603,7 +603,7 @@ function product(T::MST, U::MST) where {MST<:MPolyPowersOfElement}
       push!(new_denoms, g)
     end
   end
-  return (length(new_denoms) == 0 ? MPolyPowersOfElement(R, units_of(R)) : MPolyPowersOfElement(R, new_denoms))
+  return (length(new_denoms) == 0 ? units_of(R) : MPolyPowersOfElement(R, new_denoms))
 end
 
 function product(
@@ -618,6 +618,16 @@ function product(
   return U
 end
 
+### Preimages of multiplicative sets.
+# In general for a ring homomorphism f : R → S and a multiplicative 
+# set U ⊂ S the preimage V = f⁻¹(U) is a multiplicative set in R. 
+# Membership in V can easily be tested, but introducing a new type 
+# for preimages makes it necessary to extend all dispatch routines. 
+# It is not clear what is the best strategy for all this. 
+
+function preimage(f::Oscar.AlgHom, U::MST) where {MST<:AbsMPolyMultSet}
+  error("not implemented")
+end
 
 ########################################################################
 # Localizations of polynomial rings over admissible fields             #
@@ -1318,6 +1328,21 @@ end
 
 ==(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedIdeal} = (issubset(I, J) && issubset(J, I))
 
+function +(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedIdeal}
+  return ideal(base_ring(I), vcat(gens(I), gens(J)))
+end
+
+# TODO: The following method can probably be fine tuned for specific localizations.
+function intersection(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedIdeal}
+  return base_ring(I)(intersect(saturated_ideal(I), saturated_ideal(J)))
+end
+
+# TODO: The following method can probably be fine tuned for specific localizations.
+function quotient(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedIdeal}
+  return base_ring(I)(quotient(saturated_ideal(I), saturated_ideal(J)))
+end
+
+
 ### Default constructors 
 # The ordering and the shifts are determined from the type of the multiplicative set
 BiPolyArray(
@@ -1620,7 +1645,7 @@ function (f::MPolyLocalizedRingHom{BRT, BRET, RT, RET, DMST, CMST})(p::BRET) whe
   return codomain(f)(p)
 end
 
-### remove the ambiguity of methods in case the base ring is ZZ
+### remove the ambiguity of methods in case the base ring is ℤ
 function (f::MPolyLocalizedRingHom)(p::fmpz) 
   return codomain(f)(p)
 end

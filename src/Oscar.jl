@@ -275,6 +275,7 @@ include("Geometry/basics.jl")
 include("../experimental/Schemes/Multiindices.jl")
 include("../experimental/Schemes/Misc.jl")
 include("../experimental/Schemes/AffineSchemes.jl")
+include("../experimental/Schemes/CoveredSchemes.jl")
 
 include("NumberTheory/NmbThy.jl")
 
