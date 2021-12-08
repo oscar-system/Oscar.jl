@@ -668,6 +668,29 @@ end
 ## Boolean properties
 ###############################################################################
 @doc Markdown.doc"""
+    isvery_ample(P::Polyhedron)
+
+Check whether `P` is very ample.
+
+# Examples
+```jldoctest
+julia> c = cube(3)
+A polyhedron in ambient dimension 3
+
+julia> isvery_ample(c)
+true
+
+julia> P = convex_hull([0 0 0; 1 1 0; 1 0 1; 0 1 1])
+A polyhedron in ambient dimension 3
+
+julia> isvery_ample(P)
+false
+```
+"""
+isvery_ample(P::Polyhedron) = pm_object(P).VERY_AMPLE::Bool
+
+
+@doc Markdown.doc"""
     isfeasible(P::Polyhedron)
 
 Check whether `P` is feasible, i.e. non-empty.
