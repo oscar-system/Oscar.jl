@@ -196,9 +196,6 @@ as `domain` and `codomain`.
 
 ```@docs
 preimage(F::AlgHom, I::U) where U <: Union{MPolyIdeal, MPolyQuoIdeal}
-```
-
-```@docs
 kernel(F::AlgHom)
 ```
 
@@ -231,17 +228,8 @@ steinerRomanSurface = preimage(F3, sphere)
 
 ```@docs
 isinjective(F::AlgHom)
-```
-
-```@docs
 issurjective(F::AlgHom)
-```
-
-```@docs
 isbijective(F::AlgHom)
-```
-
-```@docs
 isfinite(F::AlgHom)
 ```
 
@@ -308,9 +296,6 @@ L[3]
 
 ```@docs
 normalization(A::MPolyQuo)
-```
-
-```@docs
 normalization_with_delta(A::MPolyQuo)
 ```
 
@@ -409,25 +394,10 @@ Hilbert polynomial has the form $d t^e/e!$, otherwise.
 
 ```@docs
 hilbert_series(A::MPolyQuo)
-```
-
-```@docs
 hilbert_series_reduced(A::MPolyQuo)
-```
-
-```@docs
 hilbert_series_expanded(A::MPolyQuo, d::Int)
-```
-
-```@docs
 hilbert_function(A::MPolyQuo, d::Int)
-```
-
-```@docs
 hilbert_polynomial(A::MPolyQuo)
-```
-
-```@docs
 degree(A::MPolyQuo)
 ```
 

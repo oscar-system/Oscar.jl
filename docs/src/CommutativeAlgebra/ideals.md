@@ -183,9 +183,6 @@ To create matrix orderings, OSCAR allows for matrices with integer coefficients 
 
 ```@docs
 normal_form(f::T, J::MPolyIdeal) where { T <: MPolyElem }
-```
-
-```@docs
 normal_form(A::Vector{T}, J::MPolyIdeal) where { T <: MPolyElem }
 ```
 
@@ -221,9 +218,6 @@ f4( I::MPolyIdeal; initial_hts::Int=17, nr_thrds::Int=1, max_nr_pairs::Int=0, la
 
 ```@docs
 leading_ideal(g::Vector{T}, args...) where { T <: MPolyElem }
-```
-
-```@docs
 leading_ideal(I::MPolyIdeal)
 ```
 
@@ -326,9 +320,6 @@ $I:J^{\infty} = \bigl\{ f \in R \:\big|\: f J^k \!\subset I {\text{ for some }}k
 
 ```@docs
 saturation(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
-```
-
-```@docs
 saturation_with_index(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 ```
 
@@ -344,9 +335,6 @@ eliminate(I::MPolyIdeal{T}, l::Vector{T}) where T <: Union{MPolyElem, MPolyElem_
 
 ```@docs
 iszero(I::MPolyIdeal)
-```
-
-```@docs
 isone(I::MPolyIdeal)
 ```
 
