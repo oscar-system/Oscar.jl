@@ -13,8 +13,7 @@ export
     preserved_sesquilinear_forms,
     automorphism_group,
     orthogonal_group,
-    unitary_group,
-    aut
+    unitary_group
 
 ########################################################################
 #
@@ -670,14 +669,11 @@ function isometry_group(L::Hecke.AbsLat)
    end
    G = matrix_group(gens)
    # TODO: Cache the result.
-   # L._isometry_group = G
    #set_special(L, :isometry_group => G)
    return G
 end
 
 automorphism_group(L::Hecke.AbsLat) = isometry_group(L)
-
-aut(L::Hecke.AbsLat) = isometry_group(L)
 
 orthogonal_group(L::Hecke.ZLat) = isometry_group(L)
 
