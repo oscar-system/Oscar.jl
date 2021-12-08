@@ -280,7 +280,7 @@ include("Geometry/basics.jl")
 
 include("NumberTheory/NmbThy.jl")
 
-include("PolyhedralGeometry/Polytopes.jl")
+include("PolyhedralGeometry/main.jl")
 
 include("Combinatorics/Graphs.jl")
 export Graphs
