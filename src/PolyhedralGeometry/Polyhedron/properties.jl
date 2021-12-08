@@ -1016,7 +1016,7 @@ end
 function Base.show(io::IO, H::Hyperplane)
     n = length(H.a)
     b = negbias(H)
-    if b == 0 && iszero(H.a)
+    if iszero(b) && iszero(H.a)
         print(io, "The trivial Hyperplane, R^$n")
     else
         print(io, "The Hyperplane of R^$n described by\n")
