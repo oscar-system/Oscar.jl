@@ -659,9 +659,33 @@ julia> ehrhart_polynomial(c)
 8*x^3 + 12*x^2 + 6*x + 1
 """
 function ehrhart_polynomial(P::Polyhedron)
+    R, x = PolynomialRing(QQ, ["x"])
+    return ehrhart_polynomial(R, P)
+end
+
+
+@doc Markdown.doc"""
+    ehrhart_polynomial(R::FmpqMPolyRing, P::Polyhedron)
+
+Compute the Ehrhart polynomial of `P` and return it as a polynomial in `R`.
+
+# Examples
+```jldoctest
+julia> R, x = PolynomialRing(QQ, ["x"])
+(Multivariate Polynomial Ring in x over Rational Field, fmpq_mpoly[x])
+
+julia> c = cube(3)
+A polyhedron in ambient dimension 3
+
+julia> ehrhart_polynomial(R, c)
+8*x^3 + 12*x^2 + 6*x + 1
+```
+"""
+function ehrhart_polynomial(R::FmpqMPolyRing, P::Polyhedron)
     ep = pm_object(P).EHRHART_POLYNOMIAL
     coeffs = Polymake.coefficients_as_vector(ep)
-    return polynomial(QQ, convert(Vector{fmpq}, coeffs))
+    exps = Polymake.monomials_as_vector(ep)
+    return (R)(Vector{fmpq}(coeffs), Vector{Vector{fmpz}}([[x] for x in exps]))
 end
 
 ###############################################################################
@@ -787,7 +811,7 @@ isbounded(P::Polyhedron) = pm_object(P).BOUNDED::Bool
 @doc Markdown.doc"""
     issimple(P::Polyhedron)
 
-Check whether `P` is simple
+Check whether `P` is simple.
 
 # Examples
 ```jldoctest
