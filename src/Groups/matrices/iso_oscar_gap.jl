@@ -19,7 +19,7 @@ end
 ################################################################################
 
 # computes the isomorphism between the Oscar field F and the corresponding GAP field
-function ring_iso_oscar_gap(F::T) where T <: Union{Nemo.GaloisField, Nemo.GaloisFmpzField}
+function ring_iso_oscar_gap(F::Union{Nemo.GaloisField, Nemo.GaloisFmpzField})
    p = characteristic(F)
    G = GAPWrap.GF(GAP.Obj(p))
    e = GAPWrap.One(G)
@@ -30,7 +30,7 @@ function ring_iso_oscar_gap(F::T) where T <: Union{Nemo.GaloisField, Nemo.Galois
    return MapFromFunc(f, finv, F, G)
 end
 
-function ring_iso_oscar_gap(F::T) where T <: Union{Nemo.FqNmodFiniteField, Nemo.FqFiniteField}
+function ring_iso_oscar_gap(F::Union{Nemo.FqNmodFiniteField, Nemo.FqFiniteField})
    p = characteristic(F)
    d = degree(F)
    p_gap = GAP.Obj(p)
@@ -96,7 +96,7 @@ function ring_iso_oscar_gap(F::T) where T <: Union{Nemo.FqNmodFiniteField, Nemo.
    return MapFromFunc(f, finv, F, G)
 end
 
-function ring_iso_oscar_gap(F::T) where T <: FlintRationalField
+function ring_iso_oscar_gap(F::FlintRationalField)
    return MapFromFunc(x -> GAP.Obj(x), x -> fmpq(x), F, GAP.Globals.Rationals)
 end
 
@@ -104,12 +104,14 @@ end
 # General number fields will require caching,
 # in order to achieve that Oscar matrix groups over the same number field
 # are mapped to GAP matrix groups over the same `AlgebraicExtension` field.
-function ring_iso_oscar_gap(F::T) where T <: AnticNumberField
+function ring_iso_oscar_gap(F::AnticNumberField)
 
    flag, N = Hecke.iscyclotomic_type(F)
    flag || error("$F is not a cyclotomic field")
 
    G = GAPWrap.CF(GAP.Obj(N))
+   cycpol = GAP.Globals.CyclotomicPol(N)
+   dim = length(cycpol)-1
 
    function f(x::Nemo.nf_elem)
       coeffs = [Nemo.coeff(x, i) for i in 0:(N-1)]
@@ -122,8 +124,6 @@ function ring_iso_oscar_gap(F::T) where T <: AnticNumberField
       n = GAPWrap.Conductor(x)
       mod(N, n) == 0 || error("$x does not lie in the $N-th cyclotomic field")
       coeffs = GAP.Globals.CoeffsCyc(x * denom, N)
-      cycpol = GAP.Globals.CyclotomicPol(N)
-      dim = length(cycpol)-1
       GAP.Globals.ReduceCoeffs(coeffs, cycpol)
       coeffs = Vector{fmpz}(coeffs)
       coeffs = coeffs[1:dim]
