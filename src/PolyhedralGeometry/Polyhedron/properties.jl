@@ -703,7 +703,8 @@ julia> isfeasible(P)
 false
 ```
 """
-isfeasible(P::Polyhedron) = pm_object(P).FEASIBLE
+isfeasible(P::Polyhedron) = pm_object(P).FEASIBLE::Bool
+
 
 @doc Markdown.doc"""
     contains(P::Polyhedron, v::AbstractVector)
@@ -722,7 +723,8 @@ julia> contains(PO, [1, -2])
 false
 ```
 """
-contains(P::Polyhedron, v::AbstractVector) = Polymake.polytope.contains(pm_object(P), [1; v])
+contains(P::Polyhedron, v::AbstractVector) = Polymake.polytope.contains(pm_object(P), [1; v])::Bool
+
 
 @doc Markdown.doc"""
     issmooth(P::Polyhedron)
@@ -738,7 +740,7 @@ julia> issmooth(C)
 true
 ```
 """
-issmooth(P::Polyhedron) = pm_object(P).SMOOTH
+issmooth(P::Polyhedron) = pm_object(P).SMOOTH::Bool
 
 
 @doc Markdown.doc"""
@@ -763,7 +765,7 @@ julia> isnormal(P)
 false
 ```
 """
-isnormal(P::Polyhedron) = pm_object(P).NORMAL
+isnormal(P::Polyhedron) = pm_object(P).NORMAL::Bool
 
 
 @doc Markdown.doc"""
@@ -779,7 +781,7 @@ julia> isbounded(P)
 false
 ```
 """
-isbounded(P::Polyhedron) = pm_object(P).BOUNDED
+isbounded(P::Polyhedron) = pm_object(P).BOUNDED::Bool
 
 
 @doc Markdown.doc"""
@@ -796,7 +798,7 @@ julia> issimple(c)
 true
 ```
 """
-issimple(P::Polyhedron) = pm_object(P).SIMPLE
+issimple(P::Polyhedron) = pm_object(P).SIMPLE::Bool
 
 
 @doc Markdown.doc"""
@@ -812,7 +814,8 @@ julia> isfulldimensional(convex_hull(V))
 false
 ```
 """
-isfulldimensional(P::Polyhedron) = pm_object(P).FULL_DIM
+isfulldimensional(P::Polyhedron) = pm_object(P).FULL_DIM::Bool
+
 
 @doc Markdown.doc"""
     f_vector(P::Polyhedron)
