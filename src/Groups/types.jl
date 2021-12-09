@@ -238,11 +238,20 @@ Group of automorphisms over a group of type `T`. It can be defined via the funct
 mutable struct AutomorphismGroup{T} <: GAPGroup
   X::GapObj
   G::T
+  to_gap
+  to_oscar
   AbstractAlgebra.@declare_other
+
 
   function AutomorphismGroup{T}(G::GapObj, H::T) where T
     @assert GAPWrap.IsGroupOfAutomorphisms(G)
     z = new{T}(G, H)
+    return z
+  end
+
+  function AutomorphismGroup{T}(G::GapObj, H::T, to_gap, to_oscar) where T
+    @assert GAPWrap.IsGroupOfAutomorphisms(G)
+    z = new{T}(G, H, to_gap, to_oscar)
     return z
   end
 end

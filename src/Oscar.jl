@@ -244,6 +244,7 @@ include("Groups/matrices/matrices.jl")
 include("Groups/action.jl")
 include("Groups/gsets.jl")
 include("Groups/MatrixDisplay.jl")
+include("Groups/abelian_aut.jl")
 
 include("Rings/integer.jl")
 include("Rings/rational.jl")
