@@ -331,7 +331,7 @@ end
 			N=free_module_SQ(R,m)
 			SQ = hom(M,N)[1]
 			#SQ = simplify(hom(M,N)[1])[1]
-			@test SQ == free_module_SQ(free_module(SQ))
+			@test SQ == free_module_SQ(ambient_free_module(SQ))
 		end
 	end
 	R, (x,y) = PolynomialRing(QQ, ["x", "y"])
