@@ -7,7 +7,8 @@ export FreeMod, presentation, FreeModElem, coords, coeffs, repres,
       free_module, tor, lift_homomorphism_contravariant, lift_homomorphism_covariant, 
       ext, map_canonically, all_canonical_maps, register_morphism!, dense_row, 
       matrix_kernel, simplify, map, isinjective, issurjective, isbijective, iswelldefined,
-      ModuleFP, AbstractFreeMod, AbstractSubQuo, AbstractFreeModElem, AbstractSubQuoElem, ModuleMap
+      ModuleFP, AbstractFreeMod, AbstractSubQuo, AbstractFreeModElem, AbstractSubQuoElem, ModuleMap,
+      subquotient, ambient_free_module
 
 # TODO replace asserts by error messages?
 
@@ -92,7 +93,7 @@ end
 @doc Markdown.doc"""
     free_module(R::Ring, n::Int, name::String = "e"; cached::Bool = false)
 
-Create the free module $R^n$ equipped with its basis of standard unit vectors.
+Return the free module $R^n$, created with its basis of standard unit vectors.
 
 The string `name` specifies how the basis vectors are printed. 
 
@@ -801,8 +802,6 @@ FreeModuleHom(F::FreeMod{T}, G::S, mat::MatElem{T}) where {T,S} = FreeModuleHom{
     matrix(a::FreeModuleHom)
 
 Return the matrix corresponding to `a`.
-
-If the matrix is not yet cached, compute and cache the matrix first.
 """
 function matrix(a::FreeModuleHom)
   if !isdefined(a, :matrix)
@@ -824,18 +823,20 @@ end
 (h::FreeModuleHom)(a::FreeModElem) = image(h, a)
 
 @doc Markdown.doc"""
-    hom(F::FreeMod, G, V::Vector)
+    hom(F::FreeMod, G::ModuleFP, V::Vector)
 
-Create the homomorphism $F \to G$ defined by sending `F[i]` to `V[i]`.
+Given a vector `V` of rank `F` elements of `G`, 
+return the homomorphism `F` $\to$ `G` defined by sending `F[i]` to `V[i]`.
 """
-hom(F::FreeMod, G, V::Vector) = FreeModuleHom(F, G, V)
+hom(F::FreeMod, G::ModuleFP, V::Vector) = FreeModuleHom(F, G, V)
 
 @doc Markdown.doc"""
-    hom(F::FreeMod{T}, G::ModuleFP{T}, V::MatElem{T}) where {T}
+    hom(F::FreeMod{T}, G::ModuleFP{T}, A::MatElem{T}) where T
 
-Create the homomorphism $F \to G$ defined by sending `F[i]` to $\sum_j G[j]*A[i][j]$.
+Given a matrix `A` with rank `F` rows and rank `G` columns, return the
+homomorphism `F` $\to$ `G` defined by sending `F[i]` to $\sum_j A[i,j]*G[j]$.
 """
-hom(F::FreeMod{T}, G::ModuleFP{T}, A::MatElem{T}) where {T} = FreeModuleHom(F, G, A)
+hom(F::FreeMod{T}, G::ModuleFP{T}, A::MatElem{T}) where T = FreeModuleHom(F, G, A)
 
 @doc Markdown.doc"""
     identity_map(M::ModuleFP)
@@ -1298,8 +1299,6 @@ by Submodule with 4 generators
 2 -> x*y*e[1]
 3 -> y^2*e[1]
 4 -> z^4*e[1]
-
-
 ```
 """
 function SubQuo(A::MatElem{R}, B::MatElem{R}) where {R}
@@ -1308,6 +1307,18 @@ function SubQuo(A::MatElem{R}, B::MatElem{R}) where {R}
   F = FreeMod(S, ncols(A))
   return SubQuo(SubModuleOfFreeModule(F, A), SubModuleOfFreeModule(F, B))
 end
+
+#######################################################
+function subquotient(a::FreeModuleHom{T}, b::FreeModuleHom{T}) where {T}
+  F = codomain(a)
+  @assert F == codomain(b)
+  A = matrix(a)
+  B = matrix(b)
+  return SubQuo(F, A, B)
+end
+subquotient(F::FreeMod{T}, A::MatElem{T}, B::MatElem{T}) where {T} = SubQuo(F, A, B)
+subquotient(A::MatElem{T}, B::MatElem{T}) where {T} = SubQuo(A, B)
+#######################################################
 
 function show(io::IO, SQ::SubQuo)
   @show_name(io, SQ)
@@ -1435,10 +1446,10 @@ end
 Compute $M+N$ along with the inclusion morphisms $M \to M+N$ and $N \to M+N$.
 """
 function Base.sum(M::SubQuo{T},N::SubQuo{T}) where T
-  @assert free_module(M) === free_module(N)
+  @assert ambient_free_module(M) === ambient_free_module(N)
   #TODO use SubModuleOfFreeModule instead of matrices
-  M_quo = isdefined(M, :quo) ? M.quo : SubModuleOfFreeModule(free_module(M), Vector{FreeModElem}())
-  N_quo = isdefined(N, :quo) ? N.quo : SubModuleOfFreeModule(free_module(N), Vector{FreeModElem}())
+  M_quo = isdefined(M, :quo) ? M.quo : SubModuleOfFreeModule(ambient_free_module(M), Vector{FreeModElem}())
+  N_quo = isdefined(N, :quo) ? N.quo : SubModuleOfFreeModule(ambient_free_module(N), Vector{FreeModElem}())
   
   if M_quo == N_quo
     SQ = SubQuo(sum(M.sub,N.sub),M_quo)
@@ -1469,18 +1480,18 @@ Compute the intersection $M \cap N$ along with the inclusion morphisms $M \cap N
 """
 function Base.:intersect(M::SubQuo{T}, N::SubQuo{T}) where T
   #TODO allow task as argument?
-  @assert free_module(M) === free_module(N)
-  M_quo = isdefined(M, :quo) ? M.quo : Oscar.SubModuleOfFreeModule(free_module(M), Vector{FreeModElem}())
-  N_quo = isdefined(N, :quo) ? N.quo : Oscar.SubModuleOfFreeModule(free_module(N), Vector{FreeModElem}())
+  @assert ambient_free_module(M) === ambient_free_module(N)
+  M_quo = isdefined(M, :quo) ? M.quo : Oscar.SubModuleOfFreeModule(ambient_free_module(M), Vector{FreeModElem}())
+  N_quo = isdefined(N, :quo) ? N.quo : Oscar.SubModuleOfFreeModule(ambient_free_module(N), Vector{FreeModElem}())
   R = base_ring(M)
 
   if M_quo == N_quo
 
     F1 = FreeMod(R, ngens(M.sub) + ngens(N.sub) + ngens(M_quo))
-    F2 = free_module(M)
+    F2 = ambient_free_module(M)
     phi = FreeModuleHom(F1,F2,vcat(gens(M.sub),gens(N.sub),gens(M_quo)))
     K,i = kernel(phi)
-    intersection_gens = SubModuleOfFreeModule(free_module(M),[sum([repres(k)[i]*M.sub[i] for i=1:ngens(M.sub)]) for k in gens(K)])
+    intersection_gens = SubModuleOfFreeModule(ambient_free_module(M),[sum([repres(k)[i]*M.sub[i] for i=1:ngens(M.sub)]) for k in gens(K)])
     SQ = SubQuo(intersection_gens,M_quo)
 
     m = ngens(M)
@@ -2759,16 +2770,17 @@ end
 # direct sum
 ##################################################
 @doc Markdown.doc"""
-    direct_sum(F::FreeMod{T}...; task::Symbol = :none) where T
+    direct_sum(F::FreeMod{T}...; task::Symbol = :sum) where T
 
 Given free modules $F_1\dots F_n$, return the direct sum $\bigoplus_{i=1}^n F_i$.
 
-Additionally, return a vector containing
-- the canonical injections  $F_i\rightarrow\bigoplus_{i=1}^n F_i$ if `task = :sum",
-- the canonical projections  $\bigoplus_{i=1}^n F_i\rightarrow F_i$ if `task = :product",
-- the canonical injections and projections if `task = :both".
+Additionally, return 
+- a vector containing the canonical injections  $F_i\rightarrow\bigoplus_{i=1}^n F_i$ if `task = :sum` (default),
+- a vector containing the canonical projections  $\bigoplus_{i=1}^n F_i\rightarrow F_i$ if `task = :prod`,
+- two vectors containing the canonical injections and projections, respectively, if `task = :both`,
+- none of the above if `task = :none`.
 """
-function direct_sum(F::FreeMod{T}...; task::Symbol = :none) where {T}
+function direct_sum(F::FreeMod{T}...; task::Symbol = :sum) where {T}
   return direct_product(F...; task = task)
 end
 
@@ -2776,16 +2788,17 @@ end
 # direct product
 ##################################################
 @doc Markdown.doc"""
-    direct_product(F::FreeMod{T}...; task::Symbol = :none) where T
+    direct_product(F::FreeMod{T}...; task::Symbol = :prod) where T
 
-Given free modules $F_1\dots F_n$, return the direct sum $\bigoplus_{i=1}^n F_i$.
+Given free modules $F_1\dots F_n$, return the direct product $\prod_{i=1}^n F_i$.
 
 Additionally, return a vector containing
-- the canonical injections  $F_i\rightarrow\bigoplus_{i=1}^n F_i$ if `task = :sum",
-- the canonical projections  $\bigoplus_{i=1}^n F_i\rightarrow F_i$ if `task = :product",
-- the canonical injections and projections if `task = :both".
+- a vector containing the canonical projections  $\prod_{i=1}^n F_i\rightarrow F_i$ if `task = :prod` (default),
+- a vector containing the canonical injections  $F_i\rightarrow\prod_{i=1}^n F_i$ if `task = :sum`,
+- two vectors containing the canonical projections and injections, respectively, if `task = :both`,
+- none of the above if `task = :none`.
 """
-function direct_product(F::FreeMod{T}...; task::Symbol = :none) where {T}
+function direct_product(F::FreeMod{T}...; task::Symbol = :prod) where {T}
   R = base_ring(F[1])
   G = FreeMod(R, Base.sum([rank(f) for f = F]))
   G.S = []
@@ -2851,8 +2864,8 @@ If `task` is set to ":both", both, the array of projections and the array of inj
 are returned (with projections first).
 """
 function direct_product(G::ModuleFP...; task::Symbol = :none)
-  F, pro, mF = direct_product([free_module(x) for x = G]..., task = :both)
-  s, emb_sF = sub(F, vcat([[mF[i](y) for y = gens(G[i], free_module(G[i]))] for i=1:length(G)]...), :both)
+  F, pro, mF = direct_product([ambient_free_module(x) for x = G]..., task = :both)
+  s, emb_sF = sub(F, vcat([[mF[i](y) for y = gens(G[i], ambient_free_module(G[i]))] for i=1:length(G)]...), :both)
   q::Vector{FreeModElem} = vcat([[mF[i](y) for y = rels(G[i])] for i=1:length(G)]...)
   pro_quo = nothing
   if length(q) != 0
@@ -3029,20 +3042,20 @@ end
 ⊗(G::ModuleFP...) = tensor_product(G..., task = :none)
 
 @doc Markdown.doc"""
-    free_module(F::FreeMod)
+    ambient_free_module(F::FreeMod)
 
 Just return `F`. This function exists only for compatibility reasons.
 """
-function free_module(F::FreeMod)
+function ambient_free_module(F::FreeMod)
   return F
 end
 
 @doc Markdown.doc"""
-    free_module(M::SubQuo)
+    ambient_free_module(M::SubQuo)
 
 Return the ambient free module of `M`.
 """
-function free_module(M::SubQuo)
+function ambient_free_module(M::SubQuo)
   return M.F
 end
 
@@ -3084,7 +3097,7 @@ maps tuples in $G_1 \times \cdots \times G_n$ to pure tensors
 $g_1 \otimes \cdots \otimes g_n$. The map admits a preimage as well.
 """
 function tensor_product(G::ModuleFP...; task::Symbol = :none)
-  F, mF = tensor_product([free_module(x) for x = G]..., task = :map)
+  F, mF = tensor_product([ambient_free_module(x) for x = G]..., task = :map)
   # We want to store a dict where the keys are tuples of indices and the values
   # are the corresponding pure vectors (i.e. a tuple (2,1,5) represents the 
   # 2nd, 1st and 5th generator of the 1st, 2nd and 3rd module, which we are 
@@ -3096,8 +3109,8 @@ function tensor_product(G::ModuleFP...; task::Symbol = :none)
 
   generating_tensors = map(mF, map(tuple -> map(x -> typeof(parent(x)) <: FreeMod ? x : x.repres, tuple), corresponding_tuples))
   s, emb = sub(F, generating_tensors, :with_morphism)
-  #s, emb = sub(F, vec([mF(x) for x = Base.Iterators.ProductIterator(Tuple(gens(x, free_module(x)) for x = G))]), :with_morphism)
-  q = vcat([vec([mF(x) for x = Base.Iterators.ProductIterator(Tuple(i == j ? rels(G[i]) : gens(free_module(G[i])) for i=1:length(G)))]) for j=1:length(G)]...) 
+  #s, emb = sub(F, vec([mF(x) for x = Base.Iterators.ProductIterator(Tuple(gens(x, ambient_free_module(x)) for x = G))]), :with_morphism)
+  q = vcat([vec([mF(x) for x = Base.Iterators.ProductIterator(Tuple(i == j ? rels(G[i]) : gens(ambient_free_module(G[i])) for i=1:length(G)))]) for j=1:length(G)]...) 
   local projection_map
   if length(q) != 0
     s, projection_map = quo(s, q, :with_morphism)
