@@ -146,10 +146,28 @@ Base.:(==)(x::LinearHyperplane, y::LinearHyperplane) = x.a == y.a
 
 ####################
 
+@doc Markdown.doc"""
+    SubObjectIterator(Obj, Acc, n, [options])
+
+An iterator over a designated property of `Obj::Polymake.BigObject`.
+
+`Acc::Function` will be used internally for `getindex`. Further this uniquely
+determines the context the iterator operates in, allowing to extend specific
+methods like `point_matrix`.
+
+The length of the iterator is hard set with `n::Int`. This is because it is
+fixed and to avoid redundant computations: when data has to be pre-processed
+before creating a `SubObjectIterator`, the length can usually easily be derived.
+
+Additional data required for specifying the property can be given using
+`options::NamedTuple`. A typical example for this is `dim` in the context of
+`facets`. The `NamedTuple` is passed to `Acc` (and the specific methods) as
+keyword arguments.
+"""
 struct SubObjectIterator{T} <: AbstractVector{T}
     Obj::Polymake.BigObject
     Acc::Function
-    n::Base.Integer
+    n::Int
     options::NamedTuple
 end
 
