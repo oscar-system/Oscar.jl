@@ -1,25 +1,34 @@
-export _isomorphic_gap_group
-
 function _isomorphic_gap_group(A::GrpAbFinGen; T=PcGroup)
-
-  eldiv = [Int(a) for a in elementary_divisors(A)]
-  Agap = abelian_group(T, eldiv)
-  Asnf, Asnf_to_A = snf(A)
-  A_to_Asnf = inv(Asnf_to_A)
-
-  function A_to_Agap(a)
-      return _oscar_to_gap(A_to_Asnf(a), Agap)
+  # find independent generators
+  if isdiagonal(rels(A))
+    exponents = [Int(a) for a in diagonal(rels(A))]
+    A2 = A
+    A2_to_A = identity_map(A)
+    A_to_A2 = identity_map(A)
+    else
+    exponents = [Int(a) for a in elementary_divisors(A)]
+    A2, A2_to_A = snf(A)
+    A_to_A2 = inv(A2_to_A)
   end
+  # the isomorphic gap group
+  Agap = abelian_group(T, exponents)
   G = GAP.Globals
+  # the gap IndependentGenerators may differ from
+  # the generators even if the generators are independent
   gensindep = G.IndependentGeneratorsOfAbelianGroup(Agap.X)
   Aindep = abelian_group([G.Order(g) for g in gensindep])
-  exp = [GAP.gap_to_julia(Vector{fmpz},G.IndependentGeneratorExponents(Agap.X, a.X)) for a in gens(Agap)]
-  Asnf_to_Aindep = hom(Asnf, Aindep, [Aindep(e) for e in exp])
-  Aindep_to_Asnf = inv(Asnf_to_Aindep)
-  Aindep_to_A = compose(Aindep_to_Asnf, Asnf_to_A)
+
+  imgs = [GAP.gap_to_julia(Vector{fmpz},G.IndependentGeneratorExponents(Agap.X, a.X)) for a in gens(Agap)]
+  A2_to_Aindep = hom(A2, Aindep, [Aindep(e) for e in imgs])
+  Aindep_to_A2 = inv(A2_to_Aindep)
+  Aindep_to_A = compose(Aindep_to_A2, A2_to_A)
 
   function Agap_to_A(a)
       return Aindep_to_A(_gap_to_oscar(a, Aindep))
+  end
+
+  function A_to_Agap(a)
+      return _oscar_to_gap(A_to_A2(a), Agap)
   end
 
   to_gap = Hecke.map_from_func(A_to_Agap, A, Agap)
