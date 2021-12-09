@@ -644,9 +644,76 @@ julia> rays(recession_cone(P))
 """
 recession_cone(P::Polyhedron) = Cone(Polymake.polytope.recession_cone(pm_object(P)))
 
+
+@doc Markdown.doc"""
+    ehrhart_polynomial(P::Polyhedron)
+
+Compute the Ehrhart polynomial of `P`.
+
+# Examples
+```jldoctest
+julia> c = cube(3)
+A polyhedron in ambient dimension 3
+
+julia> ehrhart_polynomial(c)
+8*x^3 + 12*x^2 + 6*x + 1
+"""
+function ehrhart_polynomial(P::Polyhedron)
+    R, x = PolynomialRing(QQ, ["x"])
+    return ehrhart_polynomial(R, P)
+end
+
+
+@doc Markdown.doc"""
+    ehrhart_polynomial(R::FmpqMPolyRing, P::Polyhedron)
+
+Compute the Ehrhart polynomial of `P` and return it as a polynomial in `R`.
+
+# Examples
+```jldoctest
+julia> R, x = PolynomialRing(QQ, ["x"])
+(Multivariate Polynomial Ring in x over Rational Field, fmpq_mpoly[x])
+
+julia> c = cube(3)
+A polyhedron in ambient dimension 3
+
+julia> ehrhart_polynomial(R, c)
+8*x^3 + 12*x^2 + 6*x + 1
+```
+"""
+function ehrhart_polynomial(R::FmpqMPolyRing, P::Polyhedron)
+    ep = pm_object(P).EHRHART_POLYNOMIAL
+    coeffs = Polymake.coefficients_as_vector(ep)
+    exps = Polymake.monomials_as_vector(ep)
+    return (R)(Vector{fmpq}(coeffs), Vector{Vector{fmpz}}([[x] for x in exps]))
+end
+
 ###############################################################################
 ## Boolean properties
 ###############################################################################
+@doc Markdown.doc"""
+    isvery_ample(P::Polyhedron)
+
+Check whether `P` is very ample.
+
+# Examples
+```jldoctest
+julia> c = cube(3)
+A polyhedron in ambient dimension 3
+
+julia> isvery_ample(c)
+true
+
+julia> P = convex_hull([0 0 0; 1 1 0; 1 0 1; 0 1 1])
+A polyhedron in ambient dimension 3
+
+julia> isvery_ample(P)
+false
+```
+"""
+isvery_ample(P::Polyhedron) = pm_object(P).VERY_AMPLE::Bool
+
+
 @doc Markdown.doc"""
     isfeasible(P::Polyhedron)
 
@@ -660,7 +727,8 @@ julia> isfeasible(P)
 false
 ```
 """
-isfeasible(P::Polyhedron) = pm_object(P).FEASIBLE
+isfeasible(P::Polyhedron) = pm_object(P).FEASIBLE::Bool
+
 
 @doc Markdown.doc"""
     contains(P::Polyhedron, v::AbstractVector)
@@ -679,7 +747,8 @@ julia> contains(PO, [1, -2])
 false
 ```
 """
-contains(P::Polyhedron, v::AbstractVector) = Polymake.polytope.contains(pm_object(P), [1; v])
+contains(P::Polyhedron, v::AbstractVector) = Polymake.polytope.contains(pm_object(P), [1; v])::Bool
+
 
 @doc Markdown.doc"""
     issmooth(P::Polyhedron)
@@ -695,7 +764,7 @@ julia> issmooth(C)
 true
 ```
 """
-issmooth(P::Polyhedron) = pm_object(P).SMOOTH
+issmooth(P::Polyhedron) = pm_object(P).SMOOTH::Bool
 
 
 @doc Markdown.doc"""
@@ -720,7 +789,7 @@ julia> isnormal(P)
 false
 ```
 """
-isnormal(P::Polyhedron) = pm_object(P).NORMAL
+isnormal(P::Polyhedron) = pm_object(P).NORMAL::Bool
 
 
 @doc Markdown.doc"""
@@ -736,7 +805,24 @@ julia> isbounded(P)
 false
 ```
 """
-isbounded(P::Polyhedron) = pm_object(P).BOUNDED
+isbounded(P::Polyhedron) = pm_object(P).BOUNDED::Bool
+
+
+@doc Markdown.doc"""
+    issimple(P::Polyhedron)
+
+Check whether `P` is simple.
+
+# Examples
+```jldoctest
+julia> c = cube(2,0,1)
+A polyhedron in ambient dimension 2
+
+julia> issimple(c)
+true
+```
+"""
+issimple(P::Polyhedron) = pm_object(P).SIMPLE::Bool
 
 
 @doc Markdown.doc"""
@@ -752,7 +838,8 @@ julia> isfulldimensional(convex_hull(V))
 false
 ```
 """
-isfulldimensional(P::Polyhedron) = pm_object(P).FULL_DIM
+isfulldimensional(P::Polyhedron) = pm_object(P).FULL_DIM::Bool
+
 
 @doc Markdown.doc"""
     f_vector(P::Polyhedron)
@@ -929,7 +1016,7 @@ end
 function Base.show(io::IO, H::Hyperplane)
     n = length(H.a)
     b = negbias(H)
-    if b == 0 && iszero(H.a)
+    if iszero(b) && iszero(H.a)
         print(io, "The trivial Hyperplane, R^$n")
     else
         print(io, "The Hyperplane of R^$n described by\n")
