@@ -248,19 +248,9 @@ mutable struct BoundedCocomplexHom{DGT, DGHT, CGT, CGHT, THT} <: ChainCocomplexH
       maps::Vector{THT};
       check::Bool=false
   ) where {DGT, DGHT, CGT, CGHT, THT}
-    @show C
-    @show D
-    @show maps
     n = length(maps)
-    @show n
     map_shift = minimum([shift(C), shift(D)])
-    @show shift(C)
-    @show shift(D)
-    @show map_shift
     for i in 1:n
-      @show i
-      @show domain(maps[i]) 
-      @show C[i-map_shift] 
       domain(maps[i]) == C[i-map_shift] || error("wrong domain")
       codomain(maps[i]) == D[i-map_shift] || error("wrong codomain")
     end
@@ -291,63 +281,10 @@ function mapping_cone(f::BoundedCocomplexHom)
   start_index = -maximum([shift(C), shift(D)])
   end_index = maximum([length(C)-shift(C), length(D)-shift(D)])
   C_shift = shift(C, 1)
-  @show start_index
-  @show end_index
   cochains_and_maps = [direct_sum([D[i], C_shift[i]]) for i in start_index:end_index]
   cochains = [b[1] for b in cochains_and_maps]
-  @show cochains
   inclusions = [b[2] for b in cochains_and_maps]
   projections = [b[3] for b in cochains_and_maps]
-  @show [matrix.(p) for p in projections]
-  @show [matrix.(i) for i in inclusions]
-  for i in start_index:end_index-1
-    @show i
-    @show compose(projections[i-start_index+1][1], differential(D, i))
-    #@show domain(compose(projections[i-start_index+1][1], differential(D, i)))
-    #@show codomain(compose(projections[i-start_index+1][1], differential(D, i)))
-
-    @show compose(projections[i-start_index+1][2], f[i+1])
-    #@show domain(compose(projections[i-start_index+1][2], f[i+1]))
-    #@show codomain(compose(projections[i-start_index+1][2], f[i+1]))
-
-    @show inclusions[i+1-start_index+1][1]
-    #@show domain(inclusions[i+1-start_index+1][1])
-    #@show codomain(inclusions[i+1-start_index+1][1])
-    
-    @show compose(
-	      compose(projections[i-start_index+1][1], differential(D, i)) + 
-	        compose(projections[i-start_index+1][2], f[i+1]), 
-	      inclusions[i+1-start_index+1][1]
-	      ) 
-
-    @show compose(projections[i-start_index+1][1], zero_morphism(D[i], C[i+2])) 
-    #@show domain(compose(projections[i-start_index+1][1], zero_morphism(D[i], C[i+2])) )
-    #@show codomain(compose(projections[i-start_index+1][1], zero_morphism(D[i], C[i+2])) )
-
-    @show compose(projections[i-start_index+1][2], -differential(C, i+1))
-    #@show domain(compose(projections[i-start_index+1][2], -differential(C, i+1)))
-    #@show codomain(compose(projections[i-start_index+1][2], -differential(C, i+1)))
-
-    @show inclusions[i+1-start_index+1][2]
-    #@show domain(inclusions[i+1-start_index+1][2])
-    #@show codomain(inclusions[i+1-start_index+1][2])
-    
-    @show compose(
-	      compose(projections[i-start_index+1][1], zero_morphism(D[i], C[i+2])) + 
-	        compose(projections[i-start_index+1][2], -differential(C, i+1)),
-	      inclusions[i+1-start_index+1][2]
-              ) 
-    @show compose(
-	      compose(projections[i-start_index+1][1], differential(D, i)) + 
-	        compose(projections[i-start_index+1][2], f[i+1]), 
-	      inclusions[i+1-start_index+1][1]
-	      ) + 
-      compose(
-	      compose(projections[i-start_index+1][1], zero_morphism(D[i], C[i+2])) + 
-	        compose(projections[i-start_index+1][2], -differential(C, i+1)),
-	      inclusions[i+1-start_index+1][2]
-              ) 
-  end
   coboundary_maps = [
       compose(
 	      compose(projections[i-start_index+1][1], differential(D, i)) + 

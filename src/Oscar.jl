@@ -295,7 +295,7 @@ include("Rings/binomial_ideals.jl")
 include("ToricVarieties/JToric.jl")
 
 include("HomologicalAlgebra/BoundedCocomplexes.jl")
-include("HomologicalAlgebra/MPolyModuleComplexes.jl")
+include("HomologicalAlgebra/MPolyModuleCocomplexes.jl")
 
 if is_dev
 #  include("../examples/ModStdNF.jl")
