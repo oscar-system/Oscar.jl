@@ -8,7 +8,7 @@ export FreeMod, presentation, FreeModElem, coords, coeffs, repres,
       ext, map_canonically, all_canonical_maps, register_morphism!, dense_row, 
       matrix_kernel, simplify, map, isinjective, issurjective, isbijective, iswelldefined,
       ModuleFP, AbstractFreeMod, AbstractSubQuo, AbstractFreeModElem, AbstractSubQuoElem, ModuleMap,
-      subquotient, ambient_free_module
+      subquotient, ambient_free_module, zero_morphism
 
 # TODO replace asserts by error messages?
 
@@ -2710,8 +2710,31 @@ function *(h::ModuleMap, g::ModuleMap)
   @assert codomain(h) === domain(g)
   return hom(domain(h), codomain(g), [g(h(x)) for x = gens(domain(h))])
 end
--(h::FreeModuleHom, g::FreeModuleHom) = hom(domain(h), codomain(h), [h(x) - g(x) for x = gens(domain(h))])
-+(h::FreeModuleHom, g::FreeModuleHom) = hom(domain(h), codomain(h), [h(x) + g(x) for x = gens(domain(h))])
+
+function zero_morphism(M::T, N::T) where {T<:FreeMod}
+  base_ring(M) == base_ring(N) || error("modules are not defined over the same ring")
+  return hom(M, N, [zero(N) for a in gens(M)])
+end
+
+function -(f::FreeModuleHom) 
+  ngens(domain(f)) == 0 && return zero_morphism(domain(f), codomain(f))
+  return hom(domain(f), codomain(f), [-f(e) for e in gens(domain(f))])
+end
+
+function +(h::T, g::T) where {T<:FreeModuleHom}
+  (ngens(domain(h)) == 0 || ngens(codomain(h)) == 0) && return zero_morphism(domain(h), codomain(h))
+  return hom(domain(h), codomain(h), [h(x) + g(x) for x = gens(domain(h))])
+end
+
+function -(h::T, g::T) where {T<:FreeModuleHom}
+  (ngens(domain(h)) == 0 || ngens(codomain(h)) == 0) && return zero_morphism(domain(h), codomain(h))
+  return hom(domain(h), codomain(h), [h(x) - g(x) for x = gens(domain(h))])
+end
+
+function compose(f::T, g::T) where {T<:FreeModuleHom} 
+  (ngens(domain(f)) == 0 || ngens(codomain(f)) == 0 || ngens(codomain(g)) == 0) && return zero_morphism(domain(f), codomain(g))
+  return hom(domain(f), codomain(g), [g(f(e)) for e in gens(domain(f))])
+end
 
 
 @doc Markdown.doc"""
