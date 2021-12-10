@@ -4,12 +4,14 @@ using LoadFlint.MPFR_jll
 using Pkg.Artifacts
 
 # TODO: use ARGS to specify custom build dir?
-function gmp_artifact_dir()
-    artifacts_toml = joinpath(dirname(dirname(Base.pathof(GMP_jll))), "StdlibArtifacts.toml")
+function jll_artifact_dir(the_jll::Module)
+    artifacts_toml = joinpath(dirname(dirname(Base.pathof(the_jll))), "StdlibArtifacts.toml")
 
     # If this file exists, it's a stdlib JLL and we must download the artifact ourselves
     if isfile(artifacts_toml)
-        meta = artifact_meta("GMP", artifacts_toml)
+        # the artifact name is always equal to the module name minus the "_jll" suffix
+        name = replace(string(nameof(the_jll)), "_jll" => "")
+        meta = artifact_meta(name, artifacts_toml)
         hash = Base.SHA1(meta["git-tree-sha1"])
         if !artifact_exists(hash)
             dl_info = first(meta["download"])
@@ -19,29 +21,11 @@ function gmp_artifact_dir()
     end
 
     # Otherwise, we can just use the artifact directory given to us by GMP_jll
-    return GMP_jll.find_artifact_dir()
+    return the_jll.find_artifact_dir()
 end
 
-function mpfr_artifact_dir()
-    artifacts_toml = joinpath(dirname(dirname(Base.pathof(MPFR_jll))), "StdlibArtifacts.toml")
-
-    # If this file exists, it's a stdlib JLL and we must download the artifact ourselves
-    if isfile(artifacts_toml)
-        meta = artifact_meta("MPFR", artifacts_toml)
-        hash = Base.SHA1(meta["git-tree-sha1"])
-        if !artifact_exists(hash)
-            dl_info = first(meta["download"])
-            download_artifact(hash, dl_info["url"], dl_info["sha256"])
-        end
-        return artifact_path(hash)
-    end
-
-    # Otherwise, we can just use the artifact directory given to us by GMP_jll
-    return MPFR_jll.find_artifact_dir()
-end
-
-const gmp_prefix = gmp_artifact_dir()
-const mpfr_prefix = mpfr_artifact_dir()
+const gmp_prefix = gmp_artifact_dir(GMP_jll)
+const mpfr_prefix = mpfr_artifact_dir(MPFR_jll)
 
 
 cd("flint2")
