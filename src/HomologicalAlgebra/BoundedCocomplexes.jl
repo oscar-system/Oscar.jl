@@ -159,27 +159,21 @@ last(C::BoundedCocomplex) = last(C.C)
 first(C::BoundedCocomplex) = C.C[1]
 shift(C::BoundedCocomplex) = C.shift
 shift(C::BoundedCocomplex, i::Int) = BoundedCocomplex(cochains(C), differentials(C), shift=shift(C)+i, check=false)
+start_index(C::BoundedCocomplex) = -shift(C)+1
+end_index(C::BoundedCocomplex) = start_index(C) + length(C) - 1
 
 cochains(C::BoundedCocomplex) = C.C
 
 function kernels(C::BoundedCocomplex)
   if !isdefined(C, :Z)
-    C.Z = Vector()
-    for i in 1:length(C)-1
-      push!(C.Z, kernel(d[i]))
-    end
-    push!(C.Z, last(C))
+    C.Z = [kernel(differential(C,i)) for i in start_index(C):end_index(C)]
   end
   return C.Z
 end
 
 function boundaries(C::BoundedCocomplex)
   if !isdefined(C, :B)
-    C.B = Vector()
-    push!(C.B, zero_object(first(C)))
-    for i in 2:length(C)
-      push!(C.B, image(d[i]))
-    end
+    C.B = [image(differential(C,i)) for i in start_index(C)-1:end_index(C)-1]
   end
   return C.B
 end
@@ -217,6 +211,94 @@ function cohomology(C::BoundedCocomplex, i::Int)
   return cohomologies(C)[i+shift(C)]
 end
 
+abstract type AbsChainCocomplexElem{CochainType, GroupType, GroupHomType} end
+
+mutable struct BoundedCocomplexElem{CochainType, GroupType, GroupHomType} <: AbsChainCocomplexElem{CochainType, GroupType, GroupHomType}
+  parent::BoundedCocomplex{GroupType, GroupHomType}
+  cochains::Vector{CochainType}
+  shift::Int
+
+  function BoundedCocomplexElem(C::BoundedCocomplex{GroupType, GroupHomType}, c::Vector{CochainType}; shift::Int=1) where {CochainType, GroupType, GroupHomType}
+    for i in 1:length(c)
+      @show shift
+      @show i
+      @show c[i]
+      @show parent(c[i])
+      @show C[i-shift]
+      parent(c[i]) == C[i-shift] || error("chain does not belong to the correct group")
+    end
+    if length(c) == 0
+      c = [zero(C[1-shift])]
+    end
+    # remove superfluous zeroes
+    while iszero(first(c)) && length(c) > 1
+      popfirst!(c)
+      shift = shift - 1
+    end
+    while iszero(last(c)) && length(c) > 1
+      pop!(c)
+    end
+    return new{CochainType, GroupType, GroupHomType}(C, c, shift)
+  end
+end
+
+(C::BoundedCocomplex)(c::Vector{CochainType}; shift::Int=1) where {CochainType} = BoundedCocomplexElem(C, c, shift=shift)
+(C::BoundedCocomplex)(c::CochainType; shift::Int=1) where {CochainType} = C([c], shift=shift)
+
+shift(c::BoundedCocomplexElem) = c.shift
+parent(c::BoundedCocomplexElem) = c.parent
+cochains(c::BoundedCocomplexElem) = c.cochains
+length(c::BoundedCocomplexElem) = length(cochains(c))
+first(c::BoundedCocomplexElem) = first(cochains(c))
+last(c::BoundedCocomplexElem) = last(cochains(c))
+start_index(c::BoundedCocomplexElem) = 1-shift(c)
+end_index(c::BoundedCocomplexElem) = start_index(c) + length(c) -1
+
+
+function getindex(c::BoundedCocomplexElem, i::Int)
+  if i<1-shift(c) 
+    return zero(parent(c)[i])
+  end
+  if i>length(c)-shift(c) 
+    return zero(parent(c)[i])
+  end
+  return cochains(c)[i+shift(c)]
+end
+
+function differential(c::BoundedCocomplexElem) 
+  C = parent(c)
+  dc = [differential(C, i)(c[i]) for i in start_index(c):end_index(c)]
+  return BoundedCocomplexElem(C, dc, shift=shift(c)-1)
+end
+
+zero(C::BoundedCocomplex) = BoundedCocomplexElem(C, [zero(C[0])])
+
+function iszero(c::BoundedCocomplexElem) 
+  for i in start_index(c):end_index(c)
+    iszero(c[i]) || return false
+  end
+  return true
+end
+
+function +(c::T, e::T) where {T<:BoundedCocomplexElem} 
+  C = parent(c)
+  C == parent(e) || error("elements do not have the same parent")
+  start_count = minimum([start_index(c), start_index(e)])
+  end_count = maximum([end_index(c), end_index(e)])
+  c_plus_e = [c[i] + e[i] for i in start_count:end_count]
+  return BoundedCocomplexElem(C, c_plus_e, shift=1-start_count)
+end
+
+function -(c::T, e::T) where {T<:BoundedCocomplexElem} 
+  C = parent(c)
+  C == parent(e) || error("elements do not have the same parent")
+  start_count = minimum([start_index(c), start_index(e)])
+  end_count = maximum([end_index(c), end_index(e)])
+  c_minus_e = [c[i] - e[i] for i in start_count:end_count]
+  return BoundedCocomplexElem(C, c_minus_e, shift=1-start_count)
+end
+
+-(c::BoundedCocomplexElem) = BoundedCocomplexElem(parent(c), [-e for e in cochains(c)], shift=shift(c))
 
 abstract type ChainCocomplexHom{DomainGroupType, DomainGroupHomType, CodomainGroupType, CodomainGroupHomType, TransitionHomType} end
 
@@ -267,12 +349,22 @@ domain(f::BoundedCocomplexHom) = f.domain
 codomain(f::BoundedCocomplexHom) = f.codomain
 maps(f::BoundedCocomplexHom) = f.maps 
 shift(f::BoundedCocomplexHom) = f.map_shift
+start_index(f::BoundedCocomplexHom) = 1-shift(f)
+length(f::BoundedCocomplexHom) = length(maps(f))
+end_index(f::BoundedCocomplexHom) = start_index(f) + length(f) - 1
 
 function getindex(f::BoundedCocomplexHom, i::Int)
   if i+shift(f) < 1 || i+shift(f) > length(maps(f)) 
     return zero_morphism(domain(f)[i], codomain(f)[i])
   end
   return maps(f)[i+shift(f)]
+end
+
+function (f::BoundedCocomplexHom{DGT, DGHT, CGT, CGHT, THT})(c::BoundedCocomplexElem{CT, DGT, DGHT}) where {CT, DGT, DGHT, CGT, CGHT, THT}
+  C = domain(f)
+  C == parent(c) || error("cochains do not lay in the domain of the map")
+  fc = [f[i](c[i]) for i in start_index(c):end_index(c)]
+  return BoundedCocomplexElem(codomain(f), fc, shift=Oscar.shift(c))
 end
 
 function mapping_cone(f::BoundedCocomplexHom)
