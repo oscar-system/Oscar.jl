@@ -76,6 +76,14 @@ function automorphism_group(G::GrpAbFinGen)
   return AutomorphismGroup{typeof(G)}(AutGAP, G, to_gap, to_oscar)
 end
 
+## the next function needs a redefinition if G is an AutomorphismGroup
+function _as_subgroup(G::AutomorphismGroup{T}, H::GapObj, ::Type{S}) where { T<:GrpAbFinGen, S }
+  function img(x::S)
+    return group_element(G, x.X)
+  end
+  H1 = AutomorphismGroup{T}(H, G.G, G.to_gap, G.to_julia)
+  return H1, hom(H1, G, img)
+end
 
 
 
