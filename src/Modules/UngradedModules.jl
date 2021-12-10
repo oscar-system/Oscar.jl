@@ -7,7 +7,8 @@ export FreeMod, presentation, FreeModElem, coords, coeffs, repres,
       free_module, tor, lift_homomorphism_contravariant, lift_homomorphism_covariant, 
       ext, map_canonically, all_canonical_maps, register_morphism!, dense_row, 
       matrix_kernel, simplify, map, isinjective, issurjective, isbijective, iswelldefined,
-      ModuleFP, AbstractFreeMod, AbstractSubQuo, AbstractFreeModElem, AbstractSubQuoElem, ModuleMap
+      ModuleFP, AbstractFreeMod, AbstractSubQuo, AbstractFreeModElem, AbstractSubQuoElem, ModuleMap,
+      zero_morphism
 
 # TODO replace asserts by error messages?
 
@@ -2699,8 +2700,31 @@ function *(h::ModuleMap, g::ModuleMap)
   @assert codomain(h) === domain(g)
   return hom(domain(h), codomain(g), [g(h(x)) for x = gens(domain(h))])
 end
--(h::FreeModuleHom, g::FreeModuleHom) = hom(domain(h), codomain(h), [h(x) - g(x) for x = gens(domain(h))])
-+(h::FreeModuleHom, g::FreeModuleHom) = hom(domain(h), codomain(h), [h(x) + g(x) for x = gens(domain(h))])
+
+function zero_morphism(M::T, N::T) where {T<:FreeMod}
+  base_ring(M) == base_ring(N) || error("modules are not defined over the same ring")
+  return hom(M, N, [zero(N) for a in gens(M)])
+end
+
+function -(f::FreeModuleHom) 
+  ngens(domain(f)) == 0 && return zero_morphism(domain(f), codomain(f))
+  return hom(domain(f), codomain(f), [-f(e) for e in gens(domain(f))])
+end
+
+function +(h::T, g::T) where {T<:FreeModuleHom}
+  (ngens(domain(h)) == 0 || ngens(codomain(h)) == 0) && return zero_morphism(domain(h), codomain(h))
+  return hom(domain(h), codomain(h), [h(x) + g(x) for x = gens(domain(h))])
+end
+
+function -(h::T, g::T) where {T<:FreeModuleHom}
+  (ngens(domain(h)) == 0 || ngens(codomain(h)) == 0) && return zero_morphism(domain(h), codomain(h))
+  return hom(domain(h), codomain(h), [h(x) - g(x) for x = gens(domain(h))])
+end
+
+function compose(f::T, g::T) where {T<:FreeModuleHom} 
+  (ngens(domain(f)) == 0 || ngens(codomain(f)) == 0 || ngens(codomain(g)) == 0) && return zero_morphism(domain(f), codomain(g))
+  return hom(domain(f), codomain(g), [g(f(e)) for e in gens(domain(f))])
+end
 
 
 @doc Markdown.doc"""
@@ -2771,6 +2795,36 @@ Additionally, return a vector containing
 function direct_sum(F::FreeMod{T}...; task::Symbol = :none) where {T}
   return direct_product(F...; task = task)
 end
+
+@Markdown.doc """
+direct_sum(M::Vector{ModuleType}) where {ModuleType<:FreeMod}
+
+For a vector c = (C₁,…,Cₙ) this returns a triple
+
+  (C₁ ⊕ … ⊕ Cₙ, (i₁,…,iₙ), (p₁,…, pₙ))
+
+consisting of the direct sum C₁ ⊕ … ⊕ Cₙ, the injections 
+
+  iₖ : Cₖ ↪ C₁ ⊕ … ⊕ Cₙ
+
+and the projections 
+
+  pₖ : C₁ ⊕ … ⊕ Cₙ → Cₖ.
+
+"""
+function direct_sum(M::Vector{ModuleType}) where {ModuleType<:FreeMod}
+  n = length(M)
+  n == 0 && error("need at least one instance of a module")
+  m = ngens.(M)
+  R = base_ring(M[1])
+  F = free_module(R, sum(m))
+  inclusions = [hom(M[i], F, [gen(F, k) for k in sum(m[1:i-1])+1:sum(m[1:i])]) for i in 1:n]
+  projections = [hom(F, M[i], vcat([zero(M[i]) for k in 1:sum(m[1:i-1])], gens(M[i]), 
+				   [zero(M[i]) for k in 1:sum(m[i+1:n])]))
+		 for i in 1:n]
+  return F, inclusions, projections
+end
+
 
 ##################################################
 # direct product
