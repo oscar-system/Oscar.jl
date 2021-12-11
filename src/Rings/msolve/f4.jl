@@ -70,8 +70,8 @@ function f4(
 
     nr_terms  = ccall((:f4_julia, libneogb), Int,
         (Ptr{Nothing}, Ptr{Cint}, Ptr{Ptr{Cint}}, Ptr{Ptr{Cint}}, Ptr{Ptr{Cvoid}},
-        Ptr{Cint}, Ptr{Cint}, Ptr{Cvoid}, Int, Int, Int, Int, Int, Int,
-        Int, Int, Int, Int, Int, Int, Int),
+        Ptr{Cint}, Ptr{Cint}, Ptr{Cvoid}, Cint, Cint, Cint, Cint, Cint, Cint,
+        Cint, Cint, Cint, Cint, Cint, Cint, Cint),
         cglobal(:jl_malloc), gb_ld, gb_len, gb_exp, gb_cf, lens, exps, cfs,
         field_char, mon_order, elim_block_size, nr_vars, nr_gens, initial_hts,
         nr_thrds, max_nr_pairs, 0, la_option, reduce_gb, 0, info_level)
