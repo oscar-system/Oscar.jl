@@ -547,6 +547,10 @@ end
 	F3 = FreeMod(R,3)
 	F4 = FreeMod(R,4)
 	phi = hom(F3,F4, [F4[1],F4[3]+x*F4[4],(x+y)*F4[4]] )
+    z = hom(F3,F4, [zero(F4) for _ in gens(F3)])
+    for v in gens(F3)
+        @test (z-phi)(v) == (-phi)(v)
+    end
 	@test iszero(preimage(phi,zero(F4)))
 	@test phi(preimage(phi,y*(F4[3]+x*F4[4]+(x+y)*F4[3]))) == y*(F4[3]+x*F4[4]+(x+y)*F4[3])
 
@@ -598,11 +602,11 @@ end
 	M,H = quo(N,[N(sparse_row(R[1 x^2-1 x*y^2])),N(sparse_row(R[y^3 y*x^2 x^3]))],:store)
 	@test iswelldefined(H)
 
-	## test additon/subtraction of morphisms
-	H_1 = H+H-H
-	for v in gens(N)
-		@test H_1(v) == H(v)
-	end
+    ## test additon/subtraction of morphisms
+    H_1 = H+H-H
+    for v in gens(N)
+        @test H_1(v) == H(v)
+    end
 
 	## testing the homomorphism theorem: #################################
 	KerH,iKerH = kernel(H)
