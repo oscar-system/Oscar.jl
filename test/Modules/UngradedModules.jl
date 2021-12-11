@@ -598,6 +598,12 @@ end
 	M,H = quo(N,[N(sparse_row(R[1 x^2-1 x*y^2])),N(sparse_row(R[y^3 y*x^2 x^3]))],:store)
 	@test iswelldefined(H)
 
+	## test additon/subtraction of morphisms
+	H_1 = H+H-H
+	for v in gens(N)
+		@test H_1(v) == H(v)
+	end
+
 	## testing the homomorphism theorem: #################################
 	KerH,iKerH = kernel(H)
 	ImH,iImH = image(H)
