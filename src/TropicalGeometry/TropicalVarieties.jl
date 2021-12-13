@@ -42,6 +42,9 @@ struct TropicalHypersurface{M,EMB} <: TropicalVarietySupertype{M,EMB}
     algebraicTV
 end
 export TropicalHypersurface
+function pm_object(v::TropicalHypersurface)
+  return v.polymakeTV
+end
 
 
 # abstract tropical curves are abstracts graphs
@@ -69,7 +72,7 @@ end
 export TropicalLinearSpace
 
 
-function pm_tv(v::TropicalVariety)
+function pm_object(v::TropicalVariety)
   return v.polymakeTV
 end
 
@@ -156,6 +159,11 @@ function TropicalHypersurface(f)
     pmhyp = Polymake.tropical.Hypersurface{convention}(POLYNOMIAL=pmpoly)
     return TropicalHypersurface{convention, true}(pmhyp, [])
 end
+
+
+vertices(as::Type{PointVector{T}}, TH::TropicalHypersurface{M, EMB}) where {T,M,EMB} = SubObjectIterator{as}(pm_object(TH), _vertex_polyhedron, length(_vertex_indices(pm_object(TH))))
+vertices(PointVector, TH::TropicalHypersurface{M, EMB}) where {T,M,EMB} = vertices(PointVector{Polymake.Rational}, TH)
+vertices(TH::TropicalHypersurface{M, EMB}) where {M,EMB} = vertices(PointVector, TH)
 
 
 ######################
