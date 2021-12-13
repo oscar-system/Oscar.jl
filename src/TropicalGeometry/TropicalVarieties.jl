@@ -148,6 +148,9 @@ TropicalHypersurface{min, true}(Polymake.BigObjectAllocated(Ptr{Nothing} @0x0000
 ```
 """
 function TropicalHypersurface(f)
+    if total_degree(f) <= 0
+        error("Tropical variety of constant polynomials not supported.")
+    end
     convention = fun(base_ring(f))
     pmpoly = Polymake.common.totropicalpolynomial(tropical_polynomial_to_polymake(f))
     pmhyp = Polymake.tropical.Hypersurface{convention}(POLYNOMIAL=pmpoly)

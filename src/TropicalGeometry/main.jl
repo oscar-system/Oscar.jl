@@ -12,9 +12,15 @@ function tropical_polynomial_to_polymake(f)
     else
         result *= "max("
     end
+    td = total_degree(f)
     for i in 1:length(f)
         result *= repr(coeff(f,i).data) 
         e = exponent_vector(f,i)
+        if td - sum(e) != 0
+            result *= "+"
+            result *= repr(td-sum(e))
+            result *= "x(0)"
+        end
         if !iszero(e)
             for j in 1:length(e)
                 if !iszero(e[j])
