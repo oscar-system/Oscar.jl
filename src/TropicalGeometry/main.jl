@@ -1,2 +1,2 @@
-import("Tropical.jl")
-import("TropicalVarieties.jl")
+include("Tropical.jl")
+include("TropicalVarieties.jl")
