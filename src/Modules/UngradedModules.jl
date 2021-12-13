@@ -91,9 +91,9 @@ function FreeMod(R::Ring, n::Int, name::String = "e"; cached::Bool = false) # TO
 end
 
 @doc Markdown.doc"""
-    free_module(R::Ring, n::Int, name::String = "e"; cached::Bool = false)
+    free_module(R::Ring, p::Int, name::String = "e"; cached::Bool = false)
 
-Return the free module $R^n$, created with its basis of standard unit vectors.
+Return the free module $R^p$, created with its basis of standard unit vectors.
 
 The string `name` specifies how the basis vectors are printed. 
 
@@ -112,7 +112,7 @@ julia> typeof(F)
 FreeMod{fmpq_mpoly}
 ```
 """
-free_module(R::Ring, n::Int, name::String = "e"; cached::Bool = false) = FreeMod(R, n, name, cached = cached)
+free_module(R::Ring, p::Int, name::String = "e"; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
 
 #=XXX this cannot be as it is inherently ambigous
   - FreeModule(R, n)
@@ -801,7 +801,7 @@ FreeModuleHom(F::FreeMod{T}, G::S, mat::MatElem{T}) where {T,S} = FreeModuleHom{
 @doc Markdown.doc"""
     matrix(a::FreeModuleHom)
 
-Return the matrix corresponding to `a`.
+Return the matrix corresponding to a.
 """
 function matrix(a::FreeModuleHom)
   if !isdefined(a, :matrix)
@@ -826,12 +826,12 @@ end
     hom(F::FreeMod, G::ModuleFP, V::Vector)
 
 Given a vector `V` of rank `F` elements of `G`, 
-return the homomorphism `F` $\to$ `G` defined by sending `F[i]` to `V[i]`.
+return the homomorphism  defined by sending `F[i]` to `V[i]`.
 """
 hom(F::FreeMod, G::ModuleFP, V::Vector) = FreeModuleHom(F, G, V)
 
 @doc Markdown.doc"""
-    hom(F::FreeMod{T}, G::ModuleFP{T}, A::MatElem{T}) where T
+    hom(F::FreeMod{T}, G::FreeMod{T}, A::MatElem{T}) where T
 
 Given a matrix `A` with rank `F` rows and rank `G` columns, return the
 homomorphism `F` $\to$ `G` defined by sending `F[i]` to $\sum_j A[i,j]*G[j]$.

@@ -114,8 +114,8 @@ iszero(F::AbstractFreeMod)
 
 ## Homomorphisms From Free Modules
 
-Homomorphisms from free modules are determined by specifying the images
-of the respective basis vectors. In OSCAR, their type is `FreeModuleHom{T1, T2}`, where
+A homomorphism from a free module `F` is determined by specifying the images
+of the basis vectors of `F`. In OSCAR, such homomorphisms have type `FreeModuleHom{T1, T2}`, where
 `T1` and `T2` are the element types of the domain and codomain, respectively. They can be
 constructed as follows:
 
@@ -123,22 +123,14 @@ constructed as follows:
 hom(F::FreeMod, G::ModuleFP, V::Vector)
 ```
 
+If both `F` and `G`  are free modules, a  homomorphism `F` $\to$ `G` can be created
+by entering the matrix representing it:
+
 ```@docs
 hom(F::FreeMod{T}, G::ModuleFP{T}, A::MatElem{T}) where T
 ```
 
-Given a homomorphism `a` between free modules,  the matrix
-representing `a` with respect to the bases of standard unit vectors
-is obtained as follows:
-
-
-```@docs
-matrix(f::FreeModuleHom)
-```
-
-If  `a`  is any homomorphism of type `FreeModuleHom`, its domain and codomain can be
-recovered by entering `domain(a)` and `codomain(a)`, respectively.
-
+The matrix of a homomorphism `a` between free modules can be recovered by entering `matrix(a)`.
 
 ##### Examples
 
@@ -150,6 +142,9 @@ V = [y*G[1], x*G[1]+y*G[2], z*G[2]]
 a = hom(F, G, V)
 A = matrix(a)
 ```
+
+If  `a`  is any homomorphism of type `FreeModuleHom`, its domain and codomain can be
+recovered by entering `domain(a)` and `codomain(a)`, respectively.
 
 ## Operations on Free Modules
 
