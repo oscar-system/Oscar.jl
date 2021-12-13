@@ -6,7 +6,7 @@ export parent, inverted_set, base_ring, quotient_ring, localized_ring, modulus, 
 export Localization
 
 export MPolyQuoLocalizedRingElem
-export numerator, denominator, parent, lift, isunit, inv
+export numerator, denominator, parent, lift, isunit, inv, convert
 
 export MPolyQuoLocalizedRingHom
 export domain, codomain, images
@@ -275,6 +275,9 @@ mutable struct MPolyQuoLocalizedRingElem{
     R = base_ring(L)
     parent(a) == parent(b) == R || error("elements do not belong to the correct ring")
     if !(b in inverted_set(L))
+      return convert(L, a//b)
+    end
+    if false
       # check whether we can cancel the fraction so that the denominator becomes admissible
       d = prod(denominators(S))
       (b_prime, q) = ppio(b, d)
@@ -341,7 +344,7 @@ end
 
 function isunit(L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}, f::RET) where {BRT, BRET, RT, RET, MST}
   parent(f) == base_ring(L) || error("element does not belong to the correct ring")
-  one(localized_ring(L)) in localized_modulus(L) + ideal(localized_ring(L), localized_ring(L)(f))
+  return one(localized_ring(L)) in localized_modulus(L) + ideal(localized_ring(L), localized_ring(L)(f))
 end
 
 function isunit(L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}, f::MPolyQuoElem{RET}) where {BRT, BRET, RT, RET, MST}
@@ -390,6 +393,50 @@ end
 
 function inv(f::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}) where {BRT, BRET, RT, RET}
   return parent(f)(denominator(f))*inv(parent(f), numerator(f))
+end
+
+### 
+# Assume that [f] = [a]//[b] is an admissible element of L = (R/I)[S⁻¹] and bring it 
+# to the form [f] = [c]//[dᵏ] with d∈ S.
+function convert(
+    L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}, 
+    f::AbstractAlgebra.Generic.Frac{RET}
+  ) where {BRT, BRET, RT, RET}
+  a = numerator(f)
+  b = denominator(f)
+  Q = quotient_ring(L)
+  parent(a) == base_ring(L) || error("element does not belong to the correct ring")
+  W = localized_ring(L)
+  R = base_ring(L)
+  I = saturated_ideal(localized_modulus(L))
+  d = prod(denominators(inverted_set(W)))
+  powers_of_d = [d]
+  ### apply logarithmic bisection to find a power a ⋅dᵏ ≡  c ⋅ b mod I
+  (result, coefficient) = divides(Q(a), Q(b))
+  # check whether f is already a unit
+  result && return L(coefficient)
+  push!(powers_of_d, d)
+  abort = false
+  # find some power which works
+  while !abort
+    (abort, coefficient) = divides(Q(a*last(powers_of_d)), Q(b))
+    if !abort
+      push!(powers_of_d, last(powers_of_d)^2)
+    end
+  end
+  # find the minimal power that works
+  upper = pop!(powers_of_d)
+  lower = pop!(powers_of_d)
+  while length(powers_of_d) > 0
+    middle = lower*pop!(powers_of_d)
+    (result, coefficient) = divides(Q(a*last(powers_of_d)), Q(b))
+    if result 
+      upper = middle
+    else 
+      lower = middle
+    end
+  end
+  return L(lift(coefficient), upper)
 end
 
 
