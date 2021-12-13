@@ -18,7 +18,7 @@ function _isomorphic_gap_group(A::GrpAbFinGen; T=PcGroup)
   gensindep = G.IndependentGeneratorsOfAbelianGroup(Agap.X)
   Aindep = abelian_group([G.Order(g) for g in gensindep])
 
-  imgs = [GAP.gap_to_julia(Vector{fmpz},G.IndependentGeneratorExponents(Agap.X, a.X)) for a in gens(Agap)]
+  imgs = [Vector{fmpz}(G.IndependentGeneratorExponents(Agap.X, a.X)) for a in gens(Agap)]
   A2_to_Aindep = hom(A2, Aindep, [Aindep(e) for e in imgs])
   Aindep_to_A2 = inv(A2_to_Aindep)
   Aindep_to_A = compose(Aindep_to_A2, A2_to_A)
