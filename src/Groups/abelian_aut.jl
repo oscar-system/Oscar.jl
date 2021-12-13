@@ -5,7 +5,7 @@ function _isomorphic_gap_group(A::GrpAbFinGen; T=PcGroup)
     A2 = A
     A2_to_A = identity_map(A)
     A_to_A2 = identity_map(A)
-    else
+  else
     exponents = [Int(a) for a in elementary_divisors(A)]
     A2, A2_to_A = snf(A)
     A_to_A2 = inv(A2_to_A)
@@ -62,27 +62,46 @@ function apply_automorphism(f::GAPGroupElem{AutomorphismGroup{GrpAbFinGen}}, x::
   if check
     @assert parent(x) == aut.G "Not in the domain of f!"
   end
-  xgap = aut.to_gap(x)
+  to_gap = get_special(aut,:to_gap)
+  to_oscar = get_special(aut,:to_oscar)
+  xgap = to_gap(x)
   A = parent(f)
   domGap = parent(xgap)
   imgap = typeof(xgap)(domGap, GAP.Globals.Image(f.X,xgap.X))
-  return aut.to_oscar(imgap)
+  return to_oscar(imgap)
 end
 
 function automorphism_group(G::GrpAbFinGen)
   Ggap, to_gap, to_oscar = _isomorphic_gap_group(G)
   AutGAP = GAP.Globals.AutomorphismGroup(Ggap.X)
-  return AutomorphismGroup{typeof(G)}(AutGAP, G, to_gap, to_oscar)
+  aut = AutomorphismGroup{typeof(G)}(AutGAP, G)
+  set_special(aut,:to_gap => to_gap)
+  set_special(aut,:to_oscar => to_oscar)
+  return aut
 end
 
-## the next function needs a redefinition if G is an AutomorphismGroup
-function _as_subgroup(G::AutomorphismGroup{T}, H::GapObj, ::Type{S}) where { T<:GrpAbFinGen, S }
+# the _as_subgroup function needs a redefinition
+# to pass on the to_gap and to_oscar attributes to the subgroup
+function _as_subgroup(aut::AutomorphismGroup{T}, subgrp::GapObj, ::Type{S}) where { T<:GrpAbFinGen, S }
   function img(x::S)
-    return group_element(G, x.X)
+    return group_element(aut, x.X)
   end
-  H1 = AutomorphismGroup{T}(H, G.G, G.to_gap, G.to_julia)
-  return H1, hom(H1, G, img)
+  to_gap = get_special(aut, :to_gap)
+  to_oscar = get_special(aut, :to_oscar)
+  subgrp1 = AutomorphismGroup{T}(subgrp, aut.G)
+  set_special(subgrp1, :to_gap => to_gap)
+  set_special(subgrp1, :to_oscar => to_oscar)
+  return subgrp1, hom(subgrp1, aut, img)
 end
 
+"""
+    hom(f::GAPGroupElem{AutomorphismGroup{T}}) where T
 
+Return the element f of type `GrpAbFinGenMap`.
+"""
+function hom(x::GAPGroupElem{AutomorphismGroup{T}}) where T <: GrpAbFinGen
+  A = parent(x).G
+  imgs = [x(a) for a in gens(A)]
+  return hom(A, A, imgs)
+end
 

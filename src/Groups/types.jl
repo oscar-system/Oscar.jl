@@ -238,8 +238,6 @@ Group of automorphisms over a group of type `T`. It can be defined via the funct
 mutable struct AutomorphismGroup{T} <: GAPGroup
   X::GapObj
   G::T
-  to_gap
-  to_oscar
   AbstractAlgebra.@declare_other
 
 
