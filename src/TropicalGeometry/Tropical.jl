@@ -1,14 +1,14 @@
-module Tropical
+# module Tropical
 
 export tropical_ring,
        @tropical,
        permanent
 
-using Reexport
+# using Reexport
 
-@reexport using Oscar
+# @reexport using Oscar
 
-import Oscar: expressify, Ring, @enable_all_show_via_expressify, zero, one, iszero, isone, PolynomialRing
+# import Oscar: expressify, Ring, @enable_all_show_via_expressify, zero, one, iszero, isone, PolynomialRing
 
 ################################################################################
 #
@@ -403,4 +403,4 @@ function _tropical_mul(x, y)
   end
 end
 
-end # module
+# end # module

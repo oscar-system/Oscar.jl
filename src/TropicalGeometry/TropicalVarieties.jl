@@ -61,7 +61,7 @@ export TropicalCurve
 # min or max should influence:
 # - Pluecker vector
 # - initial ideals for embedded tropical linear spaces (if realizable)
-struct TropicalLinearSpace{M,T} <: TropicalVariety{M,T}
+struct TropicalLinearSpace{M,T} <: TropicalVarietySupertype{M,T}
     GapTV::GapObj
     polymakeTV::Polymake.BigObject
     algebraicTV
@@ -85,27 +85,27 @@ end
 # - abstract tropical varieties from vertices and maximal cells
 ######################
 @doc Markdown.doc"""
-    TropicalVariety(...)
+    TropicalVariety()
 
 Construct the embedded tropical variety of a polynomial ideal over a (possibly trivially) valued field
 
 # Examples
 """
-function TropicalVariety(...)
+function TropicalVariety()
     # ...
     return #...
 end
 
 
 @doc Markdown.doc"""
-    TropicalVariety(...)
+    TropicalVariety()
 
 Construct the abstract tropical variety from a list of vertices and maximal cells
 
 # Examples
 """
-function TropicalVariety(...)
-  ...
+function TropicalVariety()
+    # ...
     return #...
 end
 
@@ -116,25 +116,25 @@ end
 # - embedded tropical hypersurfaces from tropical polynomials
 ######################
 @doc Markdown.doc"""
-    TropicalHypersurface(...)
+    TropicalHypersurface()
 
 Construct the tropical hypersurface of a polynomial over a valued field
 
 # Examples
 """
-function TropicalHypersurface(...)
+function TropicalHypersurface()
   return #...
 end
 
 
 @doc Markdown.doc"""
-    TropicalHypersurface(...)
+    TropicalHypersurface()
 
 Construct the tropical hypersurface of a polynomial over the tropical numbers
 
 # Examples
 """
-function TropicalHypersurface(...)
+function TropicalHypersurface()
   return #...
 end
 
@@ -145,25 +145,25 @@ end
 # - abstract tropical curves from vertices, maximal cells, edge lengths, etc.
 ######################
 @doc Markdown.doc"""
-    TropicalCurve(...)
+    TropicalCurve()
 
 Construct an abstract tropical curve from a list of edges and a vector of their lengths
 
 # Examples
 """
-function TropicalCurve(...)
+function TropicalCurve()
   return #...
 end
 
 
 @doc Markdown.doc"""
-    TropicalCurve(...)
+    TropicalCurve()
 
 Construct an abstract tropical curve from a list of edges and a vector of their lengths
 
 # Examples
 """
-function TropicalCurve(...)
+function TropicalCurve()
   return #...
 end
 
@@ -174,25 +174,25 @@ end
 # - embedded tropical linear spaces from Pluecker vectors
 ######################
 @doc Markdown.doc"""
-    TropicalLinearSpace(...)
+    TropicalLinearSpace()
 
 Construct a tropical linear space from a degree 1 polynomial ideal
 
 # Examples
 """
-function TropicalLinearSpace(...)
+function TropicalLinearSpace()
   return #...
 end
 
 
 @doc Markdown.doc"""
-    TropicalLinearSpace(...)
+    TropicalLinearSpace()
 
 Construct a tropical linear space from its Pluecker vector
 
 # Examples
 """
-function TropicalLinearSpace(...)
+function TropicalLinearSpace()
   return #...
 end
 
