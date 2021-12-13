@@ -24,7 +24,7 @@ abstract type TropicalVarietySupertype{M,EMB} end
 # min or max influences:
 # - initial ideals for embedded tropical varieties
 struct TropicalVariety{M,EMB} <: TropicalVarietySupertype{M,EMB}
-    GapTV::GapObj
+    # GapTV::GapObj
     polymakeTV::Polymake.BigObject
     algebraicTV
 end
@@ -37,7 +37,7 @@ export TropicalVariety
 # min or max should influence:
 # - tropical polynomials and their initial forms
 struct TropicalHypersurface{M,EMB} <: TropicalVarietySupertype{M,EMB}
-    GapTV::GapObj
+    # GapTV::GapObj
     polymakeTV::Polymake.BigObject
     algebraicTV
 end
@@ -49,7 +49,7 @@ export TropicalHypersurface
 # min or max should influence:
 # - initial ideals for embedded tropical curves (if realizable)
 struct TropicalCurve{M,T} <: TropicalVarietySupertype{M,T}
-    GapTV::GapObj
+    # GapTV::GapObj
     polymakeTV::Polymake.BigObject
     algebraicTV
 end
@@ -62,7 +62,7 @@ export TropicalCurve
 # - Pluecker vector
 # - initial ideals for embedded tropical linear spaces (if realizable)
 struct TropicalLinearSpace{M,T} <: TropicalVarietySupertype{M,T}
-    GapTV::GapObj
+    # GapTV::GapObj
     polymakeTV::Polymake.BigObject
     algebraicTV
 end
@@ -133,9 +133,25 @@ end
 Construct the tropical hypersurface of a polynomial over the tropical numbers
 
 # Examples
+```jldoctest
+julia> T = tropical_ring(min)
+Tropical ring (min)
+
+julia> Txy,(x,y) = T["x","y"]
+(Multivariate Polynomial Ring in x, y over Tropical ring (min), AbstractAlgebra.Generic.MPoly{Oscar.TropicalRingElem{typeof(min)}}[x, y])
+
+julia> f = x+y+1
+x + y + (1)
+
+julia> hyp = TropicalHypersurface(f)
+TropicalHypersurface{min, true}(Polymake.BigObjectAllocated(Ptr{Nothing} @0x000000001adc7d70), Any[])
+```
 """
-function TropicalHypersurface()
-  return #...
+function TropicalHypersurface(f)
+    convention = fun(base_ring(f))
+    pmpoly = Polymake.common.totropicalpolynomial(tropical_polynomial_to_polymake(f))
+    pmhyp = Polymake.tropical.Hypersurface{convention}(POLYNOMIAL=pmpoly)
+    return TropicalHypersurface{convention, true}(pmhyp, [])
 end
 
 
