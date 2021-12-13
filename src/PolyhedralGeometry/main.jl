@@ -5,6 +5,7 @@ export AffineHalfspace,
     AffineHyperplane,
     Cone,
     PointVector,
+    PolyhedralComplex,
     PolyhedralFan,
     Polyhedron,
     Halfspace,
@@ -133,6 +134,8 @@ include("Polyhedron/standard_constructions.jl")
 include("PolyhedralFan/constructors.jl")
 include("PolyhedralFan/properties.jl")
 include("PolyhedralFan/standard_constructions.jl")
+include("PolyhedralComplex/constructors.jl")
+include("PolyhedralComplex/properties.jl")
 include("SubdivisionOfPoints/constructors.jl")
 include("SubdivisionOfPoints/properties.jl")
 include("SubdivisionOfPoints/functions.jl")
