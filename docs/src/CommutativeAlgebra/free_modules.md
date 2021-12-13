@@ -55,10 +55,10 @@ rank(F)
 ## Elements of Free Modules
 
 The abstract type for elements of free modules in OSCAR is `AbstractFreeModElem{T}`. Its concrete
-descendant `FreeModElem{T}` implements the coordinate vector of an element 
-as a sparse row, that is, as an object of type `SRow{T}`. To create an element,
-simply write it as a linear combination of basis vectors as shown in the example section
-below. Alternatively, enter its coordinate vector: 
+descendant `FreeModElem{T}` implements an element $f$ of a free module $F$ as a sparse row,
+that is, as an object of type `SRow{T}`, which specifies the coordinates of $f$ with respect to
+the basis of standard unit vectors of $F$. To create an element, simply write it as a linear combination
+of basis vectors or enter its coordinates as an object of type `SRow{T}` or `Vector{T}`: 
 
 
 ```@julia

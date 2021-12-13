@@ -1309,6 +1309,50 @@ function SubQuo(A::MatElem{R}, B::MatElem{R}) where {R}
 end
 
 #######################################################
+@doc Markdown.doc"""
+    subquotient(a::FreeModuleHom{T}, b::FreeModuleHom{T}) where T
+
+Given free module homomorphisms `a` and `b` with the same codomain, return
+$(\text{im } a + \text{im } b)/\text{im } b$.
+
+    subquotient(F::FreeMod{T}, A::MatElem{T}, B::MatElem{T}) where T
+
+Given matrices `A` and `B` with rank `F` columns, return  
+$(\text{im } a + \text{im } b)/\text{im } b$,
+where `a` and `b` are the free module homomorphisms with codomain `F` represented by `A` and `B`.
+
+    subquotient(A::MatElem{T}, B::MatElem{T}) where T
+
+Given matrices `A` and `B` with the same number of columns, create a free module, `F`, whose rank 
+is that number, and return `subquotient(F, A, B)`.
+
+# Examples
+
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> A = R[x; y]
+[x]
+[y]
+
+julia> B = R[x^2; x*y; y^2; z^4]
+[x^2]
+[x*y]
+[y^2]
+[z^4]
+
+julia> M = subquotient(A, B)
+Subquotient of Submodule with 2 generators
+1 -> x*e[1]
+2 -> y*e[1]
+by Submodule with 4 generators
+1 -> x^2*e[1]
+2 -> x*y*e[1]
+3 -> y^2*e[1]
+4 -> z^4*e[1]
+```
+"""
 function subquotient(a::FreeModuleHom{T}, b::FreeModuleHom{T}) where {T}
   F = codomain(a)
   @assert F == codomain(b)
@@ -1677,12 +1721,35 @@ function (R::SubQuo)(a::FreeModElem; check::Bool = true)
 end
 
 @doc Markdown.doc"""
-    (R::SubQuo)(a::SRow)
+    (M::SubQuo{T})(c::SRow{T}) where T   
 
-Return the subquotient element $\sum_i R[i] \cdot a[i] \in R$.
+Return the subquotient element $\sum_i a[i] \cdot M[i]\in M$.
 """
 function (R::SubQuo)(a::SRow)
   return SubQuoElem(a, R)
+end
+
+@doc Markdown.doc"""
+    SubQuoElem(c::Vector{T}, parent::SubQuo{T}) where T
+    
+Return the element of  `parent`  defined as a linear combination
+of the generators of $parent$ with coefficients given by the entries of `c`.
+"""
+function SubQuoElem(c::Vector{T}, parent::SubQuo{T}) where T
+  @assert length(c) == ngens(parent)
+  sparse_coords = sparse_row(base_ring(parent), collect(1:ngens(parent)), c)
+  return SubQuoElem{T}(sparse_coords,parent)
+end
+
+
+@doc Markdown.doc"""
+    (M::SubQuo{T})(c::Vector{T}) where T
+
+Return the element of `M` defined as a linear combination
+of the generators of $M$ with coefficients given by the entries of `c`.
+"""
+function (M::SubQuo{T})(c::Vector{T}) where T
+ return SubQuoElem(c, M)
 end
 
 @doc Markdown.doc"""
