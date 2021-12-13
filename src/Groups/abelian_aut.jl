@@ -50,8 +50,7 @@ end
 
 function _gap_to_oscar(a::Oscar.BasicGAPGroupElem, B::GrpAbFinGen)
   A = parent(a)
-  G = GAP.Globals
-  exp = GAP.gap_to_julia(Vector{fmpz},G.IndependentGeneratorExponents(A.X, a.X))
+  exp = Vector{fmpz}(GAP.Globals.IndependentGeneratorExponents(A.X, a.X))
   return B(exp)
 end
 
