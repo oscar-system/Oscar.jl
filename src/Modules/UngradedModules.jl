@@ -1631,7 +1631,7 @@ SubQuoElem(v::SRow{R}, SQ::SubQuo) where {R} = SubQuoElem{R}(v, SQ)
 
 Construct an element $v \in SQ$ that is represented by $a$.
 """
-SubQuoElem(a::FreeModElem{R}, SQ::SubQuo) where {R} = SubQuoElem{R}(a, SQ)
+SubQuoElem(a::FreeModElem{R}, SQ::SubQuo) where {R} = SubQuoElem{R}(a, SQ) 
 
 elem_type(::SubQuo{T}) where {T} = SubQuoElem{T}
 parent_type(::SubQuoElem{T}) where {T} = SubQuo{T}
@@ -1663,6 +1663,44 @@ function coeffs(v::SubQuoElem)
   return v.coeffs
 end
 
+#######################################################
+@doc Markdown.doc"""
+    coefficients(m::SubQuoElem)
+
+Given an element `m` of a subquotient $M$ over a ring $R$, say,
+return the coefficients of an $R$-linear combination of the generators of $M$
+which gives $m$.
+
+Return the coefficients of `m` with respect to the basis of standard unit vectors. 
+
+The result is returned as a sparse row.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+
+julia> A = R[x; y]
+[x]
+[y]
+
+julia> B = R[x^2; x*y; y^2; z^4]
+[x^2]
+[x*y]
+[y^2]
+[z^4]
+
+julia> M = SubQuo(A, B);
+
+julia> m = z*M[1] + M[2]
+(x*z + y)*e[1]
+
+julia> coefficients(m)
+Sparse row with positions [1, 2] and values fmpq_mpoly[z, 1]
+```
+"""
+coefficients(m::SubQuoElem) = coeffs(m)
+#########################################################
+
 @doc Markdown.doc"""
     repres(v::SubQuoElem)
 
@@ -1671,6 +1709,48 @@ Return a free module element that is a representative of `v`.
 function repres(v::SubQuoElem)
   return v.repres
 end
+
+#######################################################
+@doc Markdown.doc"""
+    representation(m::SubQuoElem)
+
+Given an element `m` of a subquotient $M$, say, return an element 
+of the ambient free module of $M$ which represents `m`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+
+julia> A = R[x; y]
+[x]
+[y]
+
+julia> B = R[x^2; x*y; y^2; z^4]
+[x^2]
+[x*y]
+[y^2]
+[z^4]
+
+julia> M = SubQuo(A, B);
+
+julia> m = z*M[1] + M[2]
+(x*z + y)*e[1]
+
+julia> typeof(m)
+SubQuoElem{fmpq_mpoly}
+
+julia> fm = repres(m)
+(x*z + y)*e[1]
+
+julia> typeof(fm)
+FreeModElem{fmpq_mpoly}
+
+julia> parent(fm) == ambient_free_module(M)
+true
+```
+"""
+representation(m::SubQuoElem) = repres(m)
+#######################################################
 
 @doc Markdown.doc"""
     Vector(v::SubQuoElem)
@@ -1684,7 +1764,7 @@ end
 @doc Markdown.doc"""
     groebner_basis(F::ModuleGens)
 
-Return a Gröbner basis of `F` as an object of type `ModuleGens`.
+Return a Gröbner basis of `F` as an object of type `ModuleGens.
 """
 function groebner_basis(F::ModuleGens)
   singular_assure(F)
@@ -2079,12 +2159,12 @@ Return the zero element of `M`.
 zero(M::SubQuo) = SubQuoElem(zero(M.F), M)
 
 @doc Markdown.doc"""
-    Base.iszero(F::SubQuo)
+    Base.iszero(M::SubQuo)
 
-Check if `F` is the zero module.
+Return `true` if `M` is the zero module, `false` otherwise.
 """
-function Base.iszero(F::SubQuo)
-  return all(iszero, gens(F))
+function Base.iszero(M::SubQuo)
+  return all(iszero, gens(M))
 end
 
 @doc Markdown.doc"""
@@ -2455,9 +2535,42 @@ end
 (f::SubQuoHom)(a::SubQuoElem) = image(f, a)
 
 @doc Markdown.doc"""
-    iszero(f::SubQuoElem)
+    iszero(m::SubQuoElem)
 
-Return `true` if `f` is zero, `false` otherwise.
+Return `true` if `m` is zero, `false` otherwise.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+
+julia> A = R[x; y]
+[x]
+[y]
+
+julia> B = R[x^2; x*y; y^2; z^4]
+[x^2]
+[x*y]
+[y^2]
+[z^4]
+
+julia> M = SubQuo(A, B)
+Subquotient of Submodule with 2 generators
+1 -> x*e[1]
+2 -> y*e[1]
+by Submodule with 4 generators
+1 -> x^2*e[1]
+2 -> x*y*e[1]
+3 -> y^2*e[1]
+4 -> z^4*e[1]
+
+
+
+julia> iszero(M[1])
+false
+
+julia> iszero(x*M[1])
+true
+```
 """
 function iszero(a::SubQuoElem)
   C = parent(a)

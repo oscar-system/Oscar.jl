@@ -14,7 +14,7 @@ Pages = ["free_modules.md"]
 
 In this section, the expression *free module*  refers to a free module of finite rank
 over a commutative ring. More concretely, given a commutative ring $R$, 
-we consider free $R$-modules of type $R^n$, where we think of $R^n$ as a
+the free $R$-modules we consider are of type $R^p$, where we think of $R^p$ as a
 free module with a given basis, namely the basis of standard unit vectors.
 Accordingly, elements of free modules are represented by coordinate vectors,
 and homomorphisms between free modules by matrices.
@@ -56,9 +56,9 @@ rank(F)
 
 The abstract type for elements of free modules in OSCAR is `AbstractFreeModElem{T}`. Its concrete
 descendant `FreeModElem{T}` implements an element $f$ of a free module $F$ as a sparse row,
-that is, as an object of type `SRow{T}`, which specifies the coordinates of $f$ with respect to
-the basis of standard unit vectors of $F$. To create an element, simply write it as a linear combination
-of basis vectors or enter its coordinates as an object of type `SRow{T}` or `Vector{T}`: 
+that is, as an object of type `SRow{T}`. This object specifies the coordinates of $f$ with respect to
+the basis of standard unit vectors of $F$. To create an element, enter its coordinates as an object
+of type `SRow{T}` or `Vector{T}`: 
 
 
 ```@julia
@@ -69,20 +69,22 @@ of basis vectors or enter its coordinates as an object of type `SRow{T}` or `Vec
 (F::FreeMod{T})(c::Vector{T}) where T
 ```
 
+Alternatively, directly write the element as a linear combination of basis vectors of $F$:
+ 
 ##### Examples
 
 ```@repl oscar
 R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 F = free_module(R, 3)
-f = x*F[1] + y*F[3]
-g = F(sparse_row(R, [(1,x),(3,y)]))
-h = F( [x, zero(R), y])
+f = F(sparse_row(R, [(1,x),(3,y)]))
+g = F( [x, zero(R), y])
+h = x*F[1] + y*F[3]
 f == g == h
 ```
 
 Given an element `f`  of a free module `F`,
 - `parent(f)` refers to `F`, and
-- `coefficients(f)` to the coordinate vector of `f`, returned as an object of type `SRow`.
+- `coefficients(f)` to the coordinate vector of `f`, returned as an object of type `SRow{T}`.
 
 ##### Examples
 
