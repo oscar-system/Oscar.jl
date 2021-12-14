@@ -144,6 +144,9 @@
      "Schemes" => [
         "AlgebraicGeometry/AffineSchemes.md",
      ],
+     "Tropical Geometry" => [
+         "TropicalGeometry/intro.md",
+     ]
   ],
 
   "Combinatorics" => [
