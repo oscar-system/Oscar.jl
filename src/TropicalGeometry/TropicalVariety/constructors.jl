@@ -152,7 +152,7 @@ julia> f = x+y+1
 x + y + (1)
 
 julia> hyp = TropicalHypersurface(f)
-TropicalHypersurface{min, true}(Polymake.BigObjectAllocated(Ptr{Nothing} @0x000000001adc7d70), Any[])
+A min tropical hypersurface embedded in 2-dimensional Euclidian space
 ```
 """
 function TropicalHypersurface(f)
