@@ -7,7 +7,7 @@ export FreeMod, presentation, FreeModElem, coords, coeffs, repres,
       free_module, tor, lift_homomorphism_contravariant, lift_homomorphism_covariant, 
       ext, map_canonically, all_canonical_maps, register_morphism!, dense_row, 
       matrix_kernel, simplify, map, isinjective, issurjective, isbijective, iswelldefined,
-      ModuleFP, AbstractFreeMod, AbstractSubQuo, AbstractFreeModElem, AbstractSubQuoElem, ModuleMap,
+      ModuleFP, ModuleFPElem, AbstractFreeMod, AbstractSubQuo, AbstractFreeModElem, AbstractSubQuoElem, ModuleMap,
       subquotient, ambient_free_module, ambient_representative
 
 # TODO replace asserts by error messages?
@@ -23,8 +23,15 @@ abstract type ModuleFP{T} end
 abstract type AbstractFreeMod{T} <: ModuleFP{T} end
 abstract type AbstractSubQuo{T} <: ModuleFP{T} end
 
-abstract type AbstractFreeModElem{T} end
-abstract type AbstractSubQuoElem{T} end
+@doc Markdown.doc"""
+    ModuleFPElem{T}
+
+The abstract supertype of all elements of finitely presented modules.
+"""
+abstract type ModuleFPElem{T} end
+
+abstract type AbstractFreeModElem{T} <: ModuleFPElem{T} end
+abstract type AbstractSubQuoElem{T} <: ModuleFPElem{T} end
 
 #TODO: "fix" to allow QuoElem s as well...
 # this requires
@@ -801,7 +808,10 @@ FreeModuleHom(F::FreeMod{T}, G::S, mat::MatElem{T}) where {T,S} = FreeModuleHom{
 @doc Markdown.doc"""
     matrix(a::FreeModuleHom)
 
-Return the matrix corresponding to a.
+Given a homomorphism `a: F` $\to$ `G`, where `typeof(F) <: FreeMod`
+and `typeof(G) <: ModuleFP`, return a matrix `A` with `rank(F)` rows and 
+`ngens(G)` columns such that `a == hom(F, G, A)`.
+
 """
 function matrix(a::FreeModuleHom)
   if !isdefined(a, :matrix)
@@ -823,19 +833,20 @@ end
 (h::FreeModuleHom)(a::FreeModElem) = image(h, a)
 
 @doc Markdown.doc"""
-    hom(F::FreeMod, G::ModuleFP, V::Vector)
+    hom(F::FreeMod{T}, G::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T 
 
-Given a vector `V` of rank `F` elements of `G`, 
-return the homomorphism which sends `F[i]` to `V[i]`.
+Given a vector `V` of `rank(F)` elements of `G`, 
+return the homomorphism which sends the `i`-th
+basis vector of `F` to the `i`-th entry of `V`,
+for all `i`.
+
+    hom(F::FreeMod{T}, G::ModuleFP{T}, A::MatElem{T}) where T
+
+Given a matrix `A` with `rank(F)` rows and `ngens(G)` columns, return the
+homomorphism `F` $\to$ `G` which sends the `i`-th basis vector of `F` to 
+$\sum_j A[i,j]*G[j]$, for all `i`. Here, the `G[j]` are the given generators of `G`.
 """
-hom(F::FreeMod, G::ModuleFP, V::Vector) = FreeModuleHom(F, G, V)
-
-@doc Markdown.doc"""
-    hom(F::FreeMod{T}, G::FreeMod{T}, A::MatElem{T}) where T
-
-Given a matrix `A` with rank `F` rows and rank `G` columns, return the
-homomorphism `F` $\to$ `G` which sends `F[i]` to $\sum_j A[i,j]*G[j]$.
-"""
+hom(F::FreeMod{T}, G::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T = FreeModuleHom(F, G, V)
 hom(F::FreeMod{T}, G::ModuleFP{T}, A::MatElem{T}) where T = FreeModuleHom(F, G, A)
 
 @doc Markdown.doc"""

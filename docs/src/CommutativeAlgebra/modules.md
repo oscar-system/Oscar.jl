@@ -42,9 +42,9 @@ $a$ and $b$, respectively.
 
 ## Types
 
-For subquotients, OSCAR provides the abstract type `AbstractSubQuo{T}` and its concrete
-descendant `SubQuo{T}`. The abstract supertype for all finitely presented modules over
-commutative rings is `ModuleFP{T}`.
+The abstract supertype for all finitely presented modules over commutative rings in OSCAR is `ModuleFP{T}`.
+For subquotients, OSCAR provides the abstract type `AbstractSubQuo{T} <: ModuleFP{T}` and its concrete
+descendant `SubQuo{T}`. 
 
 ## Constructors
 
@@ -60,7 +60,7 @@ If `M` is a subquotient with ambient free `R`-module `F`, then
 - `ambient_free_module(M)` to `F`,
 - `gens(M)` to the generators of `M`, 
 - `ngens(M)` to the number of these generators, 
-- `gen(M, i)` to the `i`th such generator, and
+- `M[i]`, `gen(M, i)` to the `i`th such generator, and
 - `rels(M)` to the relations of `M`.
 
 ##### Examples
@@ -80,7 +80,8 @@ rels(M)
 
 ## Elements of Subqotients
 
-The abstract type for elements of subquotients in OSCAR is `AbstractSubQuoElem{T}`.
+The abstract supertype for all elements of finitely presented modules over commutative rings in OSCAR is `ModuleFPElem{T}`.
+The abstract type for elements of subquotients is `AbstractSubQuoElem{T} <: ModuleFPElem{T}`.
 Its concrete descendant `SubQuoElem{T}` implements an element $m$ of a subquotient
 $M$ over the ring $R$ as a sparse row, that is, as an object of type `SRow{T}`.
 This object specifies the coefficients of an $R$-linear combination of the generators of $M$
