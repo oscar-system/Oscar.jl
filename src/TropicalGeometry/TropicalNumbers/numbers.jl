@@ -19,14 +19,14 @@ export tropical_numbers,
 
 # We use T to record whether we are in the min/max case
 # T is either typeof(min) or typeof(max)
-mutable struct TropicalNumbers{T} <: Ring
+mutable struct TropicalNumbers{T} <: Field
 end
 
 # We use the flag isinf to denote +/- infinity
 # todo: should this be called TropicalNumber instead?
 #   I have no preference, except that it should be consistent with the other libraries,
 #   e.g. what are elements of p-adic number rings called?
-mutable struct TropicalNumbersElem{T} <: RingElem
+mutable struct TropicalNumbersElem{T} <: FieldElem
   parent::TropicalNumbers{T}
   isinf::Bool
   data::fmpq
@@ -213,6 +213,39 @@ end
 
 ################################################################################
 #
+#  Division / Inversion
+#
+################################################################################
+
+function divexact(a::TropicalNumbersElem{T}, b::TropicalNumbersElem{T}) where T <: FieldElement
+    if iszero(b)
+        error("dividing by (tropical) zero")
+    end
+    if iszero(a)
+        return a
+    end
+    return parent(a)(data(a)-data(b))
+end
+
+function inv(a::TropicalNumbersElem{T}) where T <: FieldElem
+    if iszero(a)
+        error("inverting (tropical zero")
+    end
+    return parent(a)(-data(a))
+end
+
+function Base.:(//)(x::TropicalNumbersElem{T}, y::TropicalNumbersElem{T}) where {T}
+    if iszero(b)
+        error("dividing by (tropical) zero")
+    end
+    if iszero(a)
+        return a
+    end
+    return parent(a)(data(a)-data(b))
+end
+
+################################################################################
+#
 #  Powering
 #
 ################################################################################
@@ -249,7 +282,7 @@ Oscar.addeq!(y::TropicalNumbersElem, z::TropicalNumbersElem) = y + z
 
 # todo: maybe this should be called tropical determinant
 #   lest it might crash with the non-tropical notion of determinant
-function determinant(x)
+function determinant(x::AbstractAlgebra.Generic.MatSpaceElem{Oscar.TropicalNumbersElem{T}}) where {T}
   R = base_ring(x)
   S = AbstractAlgebra.SymmetricGroup(nrows(x))
   res = zero(R)
@@ -263,7 +296,7 @@ function determinant(x)
   return res
 end
 
-function permanent(x)
+function permanent(x::AbstractAlgebra.Generic.MatSpaceElem{Oscar.TropicalNumbersElem{T}}) where {T}
   return determinant(x)
 end
 
