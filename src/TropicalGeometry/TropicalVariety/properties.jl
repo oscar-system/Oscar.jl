@@ -21,13 +21,13 @@ julia> ambient_dim(tropicalLine)
 # todo: add examples for varieties, curves and linear spaces
 ```
 """
-function ambient_dim(TV::TropicalVarietySupertype{M,EMB}) where {M,EMB}
-    if !EMB
-        error("ambient_dim: tropical variety not embedded")
-    end
+# function ambient_dim(TV::TropicalVarietySupertype{M,EMB}) where {M,EMB}
+#     if !EMB
+#         error("ambient_dim: tropical variety not embedded")
+#     end
 
-    return pm_object(TV).FAN_AMBIENT_DIM-2 # todo: is this really the property to use?
-end
+#     return pm_object(TV).FAN_AMBIENT_DIM-2 # todo: is this the property to use?
+# end
 
 
 
@@ -54,7 +54,38 @@ julia> dim(tropicalLine)
 # todo: add examples for varieties, curves and linear spaces
 ```
 """
-dim(TV::TropicalHypersurface) = pm_object(TV).DIM
+dim(TV::TropicalVarietySupertype{M,EMB}) where {M, EMB} = pm_object(TV).DIM
+
+
+
+@doc Markdown.doc"""
+    dual_subdivision(TH::TropicalHypersurface{M, EMB})
+
+Returns the dual subdivision of `TH` if it is embedded. Returns error otherwise
+
+# Examples
+A tropical hypersurface in RR^n is always of dimension n-1
+```jldoctest
+julia> T = tropical_numbers(min);
+
+julia> Txy,(x,y) = T["x","y"];
+
+julia> f = x+y+1;
+
+julia> tropicalLine = TropicalHypersurface(f);
+
+julia> dual_subdivision(tropicalLine)
+# todo: add examples for varieties, curves and linear spaces
+```
+"""
+function dual_subdivision(TH::TropicalHypersurface{M,EMB}) where {M,EMB}
+    # not sure whether it makes sense to support abstract tropical hypersurfaces, but it can't hurt to check
+    if !EMB
+        error("tropical hypersurface not embedded")
+    end
+
+    return SubdivisionOfPoints(pm_object(TH).DUAL_SUBDIVISION)
+end
 
 
 
@@ -151,7 +182,7 @@ function lineality_space(TV::TropicalVarietySupertype{M,EMB}) where {M,EMB}
     end
 
     return SubObjectIterator{RayVector{Polymake.Rational}}(pm_object(TV), _lineality_fan, lineality_dim(TV))
-end # TODO!!!
+end # todo: this returns the wrong answer (no lineality in the example above)
 
 
 
