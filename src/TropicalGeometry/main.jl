@@ -42,6 +42,8 @@ function tropical_polynomial_to_polymake(f)
     return result
 end
 
+
+
 include("TropicalVariety/constructors.jl")
 include("TropicalVariety/properties.jl")
 include("TropicalVariety/standard_constructions.jl")
