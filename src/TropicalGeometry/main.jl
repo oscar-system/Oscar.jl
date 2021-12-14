@@ -39,5 +39,54 @@ function tropical_polynomial_to_polymake(f)
     result *= ")"
 end
 
+
+function +(a::AbstractAlgebra.Generic.MPoly{T}, b::AbstractAlgebra.Generic.MPoly{T}) where {T <: RingElement}
+   N = size(a.exps, 1)
+   par = parent(a)
+   r = par()
+   fit!(r, length(a) + length(b))
+   i = 1
+   j = 1
+   k = 1
+   while i <= length(a) && j <= length(b)
+      cmpexp = AbstractAlgebra.Generic.monomial_cmp(a.exps, i, b.exps, j, N, par, UInt(0))
+      if cmpexp > 0
+         r.coeffs[k] = a.coeffs[i]
+         monomial_set!(r.exps, k, a.exps, i, N)
+         i += 1
+      elseif cmpexp == 0
+         c = a.coeffs[i] + b.coeffs[j]
+         if !iszero(c)
+            r.coeffs[k] = c
+            AbstractAlgebra.Generic.monomial_set!(r.exps, k, a.exps, i, N)
+         else
+            k -= 1
+         end
+         i += 1
+         j += 1
+      else
+         r.coeffs[k] = b.coeffs[j]
+         AbstractAlgebra.Generic.monomial_set!(r.exps, k, b.exps, j, N)
+         j += 1
+      end
+      k += 1
+   end
+   while i <= length(a)
+      r.coeffs[k] = a.coeffs[i]
+      AbstractAlgebra.Generic.monomial_set!(r.exps, k, a.exps, i, N)
+      i += 1
+      k += 1
+   end
+   while j <= length(b)
+      r.coeffs[k] = b.coeffs[j]
+      AbstractAlgebra.Generic.monomial_set!(r.exps, k, b.exps, j, N)
+      j += 1
+      k += 1
+   end
+   r.length = k - 1
+   return r
+end
+
+
 include("TropicalVariety/constructors.jl")
 include("TropicalVariety/properties.jl")
