@@ -54,7 +54,7 @@ julia> dim(tropicalLine)
 # todo: add examples for varieties, curves and linear spaces
 ```
 """
-dim(TV::TropicalHypersurface) = pm_object(TH).DIM
+dim(TV::TropicalHypersurface) = pm_object(TV).DIM
 
 
 
@@ -150,7 +150,7 @@ function lineality_space(TV::TropicalVarietySupertype{M,EMB}) where {M,EMB}
         error("lineality_space: tropical variety not embedded")
     end
 
-    return SubObjectIterator{RayVector{Polymake.Rational}}(pm_object(PF), _lineality_fan, lineality_dim(PF))
+    return SubObjectIterator{RayVector{Polymake.Rational}}(pm_object(TV), _lineality_fan, lineality_dim(TV))
 end # TODO!!!
 
 
@@ -368,7 +368,7 @@ end
     vertices(TV::TropicalHypersurface{M, EMB})
     vertices(TV::TropicalLinearSpace{M, EMB})
 
-Returns the vertices of `TV`, which are points in euclidean space if TH is embedded or elements in an ordered set otherwise.
+Returns the vertices of `TV`, which are points in euclidean space if TV is embedded or elements in an ordered set otherwise.
 
 # Examples
 The vertices of a plane tropical line, plane tropical honeycomb quadric, and plane tropical honeycomb cubic
@@ -401,9 +401,9 @@ function vertices(as::Type{PointVector{T}}, TV::TropicalVarietySupertype{M,EMB})
     return SubObjectIterator{as}(pmtv, _vertex_polyhedron, length(_vertex_indices(pmtv)))
 end
 
-vertices(TV::TropicalVarietySupertype{M, EMB}) where {M,EMB} = vertices(PointVector, TH)
+vertices(TV::TropicalVarietySupertype{M, EMB}) where {M,EMB} = vertices(PointVector, TV)
 
-vertices(PointVector, TV::TropicalVarietySupertype{M, EMB}) where {T,M,EMB} = vertices(PointVector{Polymake.Rational}, TH)
+vertices(PointVector, TV::TropicalVarietySupertype{M, EMB}) where {T,M,EMB} = vertices(PointVector{Polymake.Rational}, TV)
 
 
 
