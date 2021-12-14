@@ -19,6 +19,9 @@
 @attributes mutable struct TropicalHypersurface{M,EMB} <: TropicalVarietySupertype{M,EMB}
     # GapTV::GapObj
     polymakeTV::Polymake.BigObject
+    function TropicalHypersurface{M,EMB}(pm::Polymake.BigObject) where {M,EMB}
+        return new{M,EMB}(pm)
+    end
 end
 export TropicalHypersurface
 
