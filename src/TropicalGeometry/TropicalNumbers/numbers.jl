@@ -1,7 +1,8 @@
 # module Tropical
 
-export tropical_ring,
+export tropical_numbers,
        @tropical,
+       determinant,
        permanent
 
 # using Reexport
@@ -18,16 +19,19 @@ export tropical_ring,
 
 # We use T to record whether we are in the min/max case
 # T is either typeof(min) or typeof(max)
-mutable struct TropicalRing{T} <: Ring
+mutable struct TropicalNumbers{T} <: Ring
 end
 
 # We use the flag isinf to denote +/- infinity
-mutable struct TropicalRingElem{T} <: RingElem
-  parent::TropicalRing{T}
+# todo: should this be called TropicalNumber instead?
+#   I have no preference, except that it should be consistent with the other libraries,
+#   e.g. what are elements of p-adic number rings called?
+mutable struct TropicalNumbersElem{T} <: RingElem
+  parent::TropicalNumbers{T}
   isinf::Bool
   data::fmpq
 
-  function TropicalRingElem(R::TropicalRing{T}, isinf::Bool) where {T}
+  function TropicalNumbersElem(R::TropicalNumbers{T}, isinf::Bool) where {T}
     @assert isinf
     z = new{T}()
     z.isinf = true
@@ -35,16 +39,16 @@ mutable struct TropicalRingElem{T} <: RingElem
     return z
   end
 
-  function TropicalRingElem(R::TropicalRing{T}, x::RingElem) where {T}
+  function TropicalNumbersElem(R::TropicalNumbers{T}, x::RingElem) where {T}
     return new{T}(R, false, x)
   end
 end
 
 # Type gymnastics
 
-Oscar.elem_type(::Type{TropicalRing{T}}) where {T} = TropicalRingElem{T}
+Oscar.elem_type(::Type{TropicalNumbers{T}}) where {T} = TropicalNumbersElem{T}
 
-Oscar.parent_type(::Type{TropicalRingElem{T}}) where {T} = TropicalRing{T}
+Oscar.parent_type(::Type{TropicalNumbersElem{T}}) where {T} = TropicalNumbers{T}
 
 ################################################################################
 #
@@ -52,11 +56,11 @@ Oscar.parent_type(::Type{TropicalRingElem{T}}) where {T} = TropicalRing{T}
 #
 ################################################################################
 
-# Invoke via tropical_ring(max)
-tropical_ring(::typeof(max)) = TropicalRing{typeof(max)}()
+# Invoke via tropical_numbers(max)
+tropical_numbers(::typeof(max)) = TropicalNumbers{typeof(max)}()
 
-# Invoke via tropical_ring(min)
-tropical_ring(::typeof(min)) = TropicalRing{typeof(min)}()
+# Invoke via tropical_numbers(min)
+tropical_numbers(::typeof(min)) = TropicalNumbers{typeof(min)}()
 
 ################################################################################
 #
@@ -64,30 +68,30 @@ tropical_ring(::typeof(min)) = TropicalRing{typeof(min)}()
 #
 ################################################################################
 
-function (R::TropicalRing)(u::TropicalRingElem)
+function (R::TropicalNumbers)(u::TropicalNumbersElem)
   @assert parent(u) === R
   return u
 end
 
-function (R::TropicalRing)(u::RingElem)
+function (R::TropicalNumbers)(u::RingElem)
   v = QQ(u)
   @assert parent(v) === QQ
-  return TropicalRingElem(R, v)
+  return TropicalNumbersElem(R, v)
 end
 
-function (R::TropicalRing)(u::Union{Integer, Rational})
-  return TropicalRingElem(R, QQ(u))
+function (R::TropicalNumbers)(u::Union{Integer, Rational})
+  return TropicalNumbersElem(R, QQ(u))
 end
 
-inf(R::TropicalRing) = TropicalRingElem(R, true)
+inf(R::TropicalNumbers) = TropicalNumbersElem(R, true)
 
-Oscar.zero(T::TropicalRing) = inf(T)
+Oscar.zero(T::TropicalNumbers) = inf(T)
 
-Oscar.one(R::TropicalRing) = R(zero(QQ))
+Oscar.one(R::TropicalNumbers) = R(zero(QQ))
 
-Oscar.zero(x::TropicalRingElem) = zero(parent(x))
+Oscar.zero(x::TropicalNumbersElem) = zero(parent(x))
 
-(R::TropicalRing)() = zero(R)
+(R::TropicalNumbers)() = zero(R)
 
 ################################################################################
 #
@@ -96,17 +100,17 @@ Oscar.zero(x::TropicalRingElem) = zero(parent(x))
 ################################################################################
 
 # The underlying rational number. This is undefined for inf.
-data(x::TropicalRingElem) = x.data
+data(x::TropicalNumbersElem) = x.data
 
 # Test if something is inf.
-isinf(x::TropicalRingElem) = x.isinf
+isinf(x::TropicalNumbersElem) = x.isinf
 
-Oscar.parent(x::TropicalRingElem) = x.parent
+Oscar.parent(x::TropicalNumbersElem) = x.parent
 
 # get the underlyling min/max function
-fun(x::TropicalRing{typeof(min)}) = min
+fun(x::TropicalNumbers{typeof(min)}) = min
 
-fun(x::TropicalRing{typeof(max)}) = max
+fun(x::TropicalNumbers{typeof(max)}) = max
 
 ################################################################################
 #
@@ -117,20 +121,20 @@ fun(x::TropicalRing{typeof(max)}) = max
 # Hook into the fancy printing
 
 # We use (x) for finite values and ±∞ for infinity.
-function AbstractAlgebra.expressify(x::TropicalRingElem{T}; context = nothing) where {T}
-  if isinf(x) 
+function AbstractAlgebra.expressify(x::TropicalNumbersElem{T}; context = nothing) where {T}
+  if isinf(x)
     return T === typeof(min) ? "∞" : "-∞"
   end
   return Expr(:call, "", expressify(data(x), context = context))
 end
 
-AbstractAlgebra.expressify(R::TropicalRing{typeof(min)}; context = nothing) = "Tropical ring (min)"
+AbstractAlgebra.expressify(R::TropicalNumbers{typeof(min)}; context = nothing) = "Tropical ring (min)"
 
-AbstractAlgebra.expressify(R::TropicalRing{typeof(max)}; context = nothing) = "Tropical ring (max)"
+AbstractAlgebra.expressify(R::TropicalNumbers{typeof(max)}; context = nothing) = "Tropical ring (max)"
 
-@enable_all_show_via_expressify TropicalRingElem
+@enable_all_show_via_expressify TropicalNumbersElem
 
-@enable_all_show_via_expressify TropicalRing
+@enable_all_show_via_expressify TropicalNumbers
 
 
 ################################################################################
@@ -139,9 +143,9 @@ AbstractAlgebra.expressify(R::TropicalRing{typeof(max)}; context = nothing) = "T
 #
 ################################################################################
 
-Oscar.iszero(x::TropicalRingElem) = isinf(x)
+Oscar.iszero(x::TropicalNumbersElem) = isinf(x)
 
-Oscar.isone(x::TropicalRingElem) = !isinf(x) && iszero(data(x))
+Oscar.isone(x::TropicalNumbersElem) = !isinf(x) && iszero(data(x))
 
 ################################################################################
 #
@@ -149,7 +153,7 @@ Oscar.isone(x::TropicalRingElem) = !isinf(x) && iszero(data(x))
 #
 ################################################################################
 
-function Base.:(==)(x::TropicalRingElem, y::TropicalRingElem)
+function Base.:(==)(x::TropicalNumbersElem, y::TropicalNumbersElem)
   (isinf(x) && isinf(y)) && return true
   ((isinf(x) && !isinf(y)) || (!isinf(x) && isinf(y))) && return false
   return data(x) == data(y)
@@ -161,11 +165,11 @@ end
 #
 ################################################################################
 
-Base.copy(a::TropicalRingElem) = a
+Base.copy(a::TropicalNumbersElem) = a
 
-function Base.deepcopy_internal(x::TropicalRingElem, dict::IdDict)
+function Base.deepcopy_internal(x::TropicalNumbersElem, dict::IdDict)
   if !isinf(x)
-    return TropicalRingElem(x.parent, Base.deepcopy_internal(data(x), dict))
+    return TropicalNumbersElem(x.parent, Base.deepcopy_internal(data(x), dict))
   else
     return inf(parent(x))
   end
@@ -177,7 +181,7 @@ end
 #
 ################################################################################
 
-function Base.:(+)(x::TropicalRingElem{T}, y::TropicalRingElem{T}) where {T}
+function Base.:(+)(x::TropicalNumbersElem{T}, y::TropicalNumbersElem{T}) where {T}
   if isinf(x)
     return deepcopy(y)
   else
@@ -195,7 +199,7 @@ end
 #
 ################################################################################
 
-function Base.:(*)(x::TropicalRingElem{T}, y::TropicalRingElem{T}) where {T}
+function Base.:(*)(x::TropicalNumbersElem{T}, y::TropicalNumbersElem{T}) where {T}
   if isinf(x)
     return x
   else
@@ -213,7 +217,7 @@ end
 #
 ################################################################################
 
-function Base.:(^)(a::TropicalRingElem, n::Int)
+function Base.:(^)(a::TropicalNumbersElem, n::Int)
   return Base.power_by_squaring(a, n)
 end
 
@@ -223,7 +227,7 @@ end
 #
 ################################################################################
 
-function Base.:(-)(x::TropicalRingElem, y::TropicalRingElem...)
+function Base.:(-)(x::TropicalNumbersElem, y::TropicalNumbersElem...)
   error("Computer says no!")
 end
 
@@ -233,9 +237,9 @@ end
 #
 ################################################################################
 
-Oscar.mul!(x::TropicalRingElem, y::TropicalRingElem, z::TropicalRingElem) = y * z
+Oscar.mul!(x::TropicalNumbersElem, y::TropicalNumbersElem, z::TropicalNumbersElem) = y * z
 
-Oscar.addeq!(y::TropicalRingElem, z::TropicalRingElem) = y + z
+Oscar.addeq!(y::TropicalNumbersElem, z::TropicalNumbersElem) = y + z
 
 ################################################################################
 #
@@ -243,7 +247,9 @@ Oscar.addeq!(y::TropicalRingElem, z::TropicalRingElem) = y + z
 #
 ################################################################################
 
-function permanent(x)
+# todo: maybe this should be called tropical determinant
+#   lest it might crash with the non-tropical notion of determinant
+function determinant(x)
   R = base_ring(x)
   S = AbstractAlgebra.SymmetricGroup(nrows(x))
   res = zero(R)
@@ -257,6 +263,10 @@ function permanent(x)
   return res
 end
 
+function permanent(x)
+  return determinant(x)
+end
+
 ################################################################################
 #
 #  Polynomials
@@ -264,11 +274,11 @@ end
 ################################################################################
 
 # The generic functions use R(1) and R(0), which is bad.
-one(R::AbstractAlgebra.Generic.PolyRing{<:TropicalRingElem}) = R(one(base_ring(R)))
+one(R::AbstractAlgebra.Generic.PolyRing{<:TropicalNumbersElem}) = R(one(base_ring(R)))
 
-zero(R::AbstractAlgebra.Generic.PolyRing{TropicalRingElem{S}}) where {S} = R(zero(base_ring(R)))
+zero(R::AbstractAlgebra.Generic.PolyRing{TropicalNumbersElem{S}}) where {S} = R(zero(base_ring(R)))
 
-function Oscar.PolynomialRing(R::TropicalRing, s::Symbol; cached::Bool = true)
+function Oscar.PolynomialRing(R::TropicalNumbers, s::Symbol; cached::Bool = true)
    T = elem_type(R)
    parent_obj = Oscar.Generic.PolyRing{T}(R, s, cached)
 
@@ -277,7 +287,7 @@ end
 
 # Oscar will print zero sums as 0, which we do not want.
 # So we have to adjust the printing code for polynomials
-function AbstractAlgebra.expressify(@nospecialize(a::PolyElem{<:TropicalRingElem}),
+function AbstractAlgebra.expressify(@nospecialize(a::PolyElem{<:TropicalNumbersElem}),
                                     x = var(parent(a)); context = nothing)
   if iszero(a)
     return expressify(zero(base_ring(a)), context = context)
@@ -298,7 +308,7 @@ function AbstractAlgebra.expressify(@nospecialize(a::PolyElem{<:TropicalRingElem
 end
 
 # As above, now for multivariate polynomials
-function AbstractAlgebra.expressify(a::MPolyElem{<:TropicalRingElem}, x = symbols(parent(a)); context = nothing)
+function AbstractAlgebra.expressify(a::MPolyElem{<:TropicalNumbersElem}, x = symbols(parent(a)); context = nothing)
   if iszero(a)
     return expressify(zero(base_ring(a)), context = context)
   end
@@ -325,9 +335,9 @@ function AbstractAlgebra.expressify(a::MPolyElem{<:TropicalRingElem}, x = symbol
   return sum
 end
 
-one(R::AbstractAlgebra.Generic.MPolyRing{<:TropicalRingElem}) = R(one(base_ring(R)))
+one(R::AbstractAlgebra.Generic.MPolyRing{<:TropicalNumbersElem}) = R(one(base_ring(R)))
 
-zero(R::AbstractAlgebra.Generic.MPolyRing{<:TropicalRingElem}) = R(zero(base_ring(R)))
+zero(R::AbstractAlgebra.Generic.MPolyRing{<:TropicalNumbersElem}) = R(zero(base_ring(R)))
 
 ################################################################################
 #
@@ -343,7 +353,7 @@ Translates the expression in the tropical world.
 # Examples
 
 ```jlexample
-julia> T = tropical_ring(min);
+julia> T = tropical_numbers(min);
 
 julia> Tx, x = Tropical.PolynomialRing(T, "x" => 1:3);
 

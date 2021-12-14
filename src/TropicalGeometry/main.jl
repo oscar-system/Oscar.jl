@@ -1,4 +1,4 @@
-include("Tropical.jl")
+include("TropicalNumbers/numbers.jl")
 
 # Temporarily we will turn tropical polynomials into strings. This will be
 # removed once Polymake.jl wraps its tropical polynomials and tropical numbers
@@ -14,7 +14,7 @@ function tropical_polynomial_to_polymake(f)
     end
     td = total_degree(f)
     for i in 1:length(f)
-        result *= repr(coeff(f,i).data) 
+        result *= repr(coeff(f,i).data)
         e = exponent_vector(f,i)
         if td - sum(e) != 0
             result *= "+"
@@ -39,4 +39,5 @@ function tropical_polynomial_to_polymake(f)
     result *= ")"
 end
 
-include("TropicalVarieties.jl")
+include("TropicalVariety/constructors.jl")
+include("TropicalVariety/properties.jl")

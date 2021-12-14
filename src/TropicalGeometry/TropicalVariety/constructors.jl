@@ -29,6 +29,9 @@ struct TropicalVariety{M,EMB} <: TropicalVarietySupertype{M,EMB}
     algebraicTV
 end
 export TropicalVariety
+function pm_object(v::TropicalVariety)
+  return v.polymakeTV
+end
 
 
 # abstract tropical hypersurfaces do not make any concrete sense to me,
@@ -57,6 +60,9 @@ struct TropicalCurve{M,T} <: TropicalVarietySupertype{M,T}
     algebraicTV
 end
 export TropicalCurve
+function pm_object(v::TropicalCurve)
+  return v.polymakeTV
+end
 
 
 # abstract tropical linear spaces are valuated matroids (?)
@@ -113,6 +119,7 @@ function TropicalVariety()
 end
 
 
+
 ######################
 # 2.2: Generic constructors for tropical hypersurfaces
 # - embedded tropical hypersurfaces from polynomials
@@ -161,9 +168,6 @@ function TropicalHypersurface(f)
 end
 
 
-vertices(as::Type{PointVector{T}}, TH::TropicalHypersurface{M, EMB}) where {T,M,EMB} = SubObjectIterator{as}(pm_object(TH), _vertex_polyhedron, length(_vertex_indices(pm_object(TH))))
-vertices(PointVector, TH::TropicalHypersurface{M, EMB}) where {T,M,EMB} = vertices(PointVector{Polymake.Rational}, TH)
-vertices(TH::TropicalHypersurface{M, EMB}) where {M,EMB} = vertices(PointVector, TH)
 
 
 ######################
@@ -193,6 +197,7 @@ Construct an abstract tropical curve from a list of edges and a vector of their 
 function TropicalCurve()
   return #...
 end
+
 
 
 ######################
@@ -253,21 +258,22 @@ end
 ######################
 
 
-@doc Markdown.doc"""
-    isnormal( v::AbstractNormalToricVariety )
+# @doc Markdown.doc"""
+#     isnormal( v::AbstractNormalToricVariety )
 
-Checks if the normal toric variety `v` is normal. (This function is somewhat tautological at this point.)
+# Checks if the normal toric variety `v` is normal. (This function is somewhat tautological at this point.)
 
-# Examples
-```julia-repl
-julia> isnormal(projective_space( 2 ))
-true
-```
-"""
-function isnormal( v::AbstractNormalToricVariety )
-  return true
-end
-export isnormal
+# # Examples
+# ```julia-repl
+# julia> isnormal(projective_space( 2 ))
+# true
+# ```
+# """
+# function isnormal( v::AbstractNormalToricVariety )
+#   return true
+# end
+# export isnormal
+
 
 
 
@@ -276,9 +282,9 @@ export isnormal
 ### Display
 ###############################################################################
 ###############################################################################
-function Base.show(io::IO, ntv::AbstractNormalToricVariety)
-  # fan = get_polyhedral_fan(ntv)
-  pmntv = pm_ntv(ntv)
-  ambdim = pmntv.FAN_AMBIENT_DIM
-  print(io, "A normal toric variety corresponding to a polyhedral fan in ambient dimension $(ambdim)")
-end
+# function Base.show(io::IO, ntv::AbstractNormalToricVariety)
+#   # fan = get_polyhedral_fan(ntv)
+#   pmntv = pm_ntv(ntv)
+#   ambdim = pmntv.FAN_AMBIENT_DIM
+#   print(io, "A normal toric variety corresponding to a polyhedral fan in ambient dimension $(ambdim)")
+# end
