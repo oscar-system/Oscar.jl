@@ -1,7 +1,7 @@
 function _isomorphic_gap_group(A::GrpAbFinGen; T=PcGroup)
   # find independent generators
   if isdiagonal(rels(A))
-    exponents = [Int(a) for a in diagonal(rels(A))]
+    exponents = diagonal(rels(A))
     A2 = A
     A2_to_A = identity_map(A)
     A_to_A2 = identity_map(A)
