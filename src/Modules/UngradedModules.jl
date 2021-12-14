@@ -8,7 +8,7 @@ export FreeMod, presentation, FreeModElem, coords, coeffs, repres,
       ext, map_canonically, all_canonical_maps, register_morphism!, dense_row, 
       matrix_kernel, simplify, map, isinjective, issurjective, isbijective, iswelldefined,
       ModuleFP, AbstractFreeMod, AbstractSubQuo, AbstractFreeModElem, AbstractSubQuoElem, ModuleMap,
-      subquotient, ambient_free_module
+      subquotient, ambient_free_module, ambient_representative
 
 # TODO replace asserts by error messages?
 
@@ -465,11 +465,11 @@ Return the free module where `a` lives in.
 parent(a::AbstractFreeModElem) = a.parent
 
 @doc Markdown.doc"""
-    iszero(a::AbstractFreeModElem)
+    iszero(f::AbstractFreeModElem)
 
-Check whether the free module element `a` is zero.
+Return `true` if `f` is zero, `false` otherwise.
 """
-iszero(a::AbstractFreeModElem) = iszero(coords(a))
+iszero(f::AbstractFreeModElem) = iszero(coords(f))
 
 # data structure for a generating systems for submodules
 # contains structures for the generators, the corresponding module on the Singular side, 
@@ -826,7 +826,7 @@ end
     hom(F::FreeMod, G::ModuleFP, V::Vector)
 
 Given a vector `V` of rank `F` elements of `G`, 
-return the homomorphism  defined by sending `F[i]` to `V[i]`.
+return the homomorphism which sends `F[i]` to `V[i]`.
 """
 hom(F::FreeMod, G::ModuleFP, V::Vector) = FreeModuleHom(F, G, V)
 
@@ -834,7 +834,7 @@ hom(F::FreeMod, G::ModuleFP, V::Vector) = FreeModuleHom(F, G, V)
     hom(F::FreeMod{T}, G::FreeMod{T}, A::MatElem{T}) where T
 
 Given a matrix `A` with rank `F` rows and rank `G` columns, return the
-homomorphism `F` $\to$ `G` defined by sending `F[i]` to $\sum_j A[i,j]*G[j]$.
+homomorphism `F` $\to$ `G` which sends `F[i]` to $\sum_j A[i,j]*G[j]$.
 """
 hom(F::FreeMod{T}, G::ModuleFP{T}, A::MatElem{T}) where T = FreeModuleHom(F, G, A)
 
@@ -1712,10 +1712,9 @@ end
 
 #######################################################
 @doc Markdown.doc"""
-    representation(m::SubQuoElem)
+    ambient_representative(m::SubQuoElem)
 
-Given an element `m` of a subquotient $M$, say, return an element 
-of the ambient free module of $M$ which represents `m`.
+Given an element `m` of a subquotient $M$, say, return 
 
 # Examples
 ```jldoctest
@@ -1739,7 +1738,7 @@ julia> m = z*M[1] + M[2]
 julia> typeof(m)
 SubQuoElem{fmpq_mpoly}
 
-julia> fm = repres(m)
+julia> fm = ambient_representative(m)
 (x*z + y)*e[1]
 
 julia> typeof(fm)
@@ -1749,7 +1748,7 @@ julia> parent(fm) == ambient_free_module(M)
 true
 ```
 """
-representation(m::SubQuoElem) = repres(m)
+ambient_representative(m::SubQuoElem) = repres(m)
 #######################################################
 
 @doc Markdown.doc"""
@@ -1786,18 +1785,19 @@ Let $b \in M$. Return $M$.
 parent(b::SubQuoElem) = b.parent
 
 @doc Markdown.doc"""
-    (R::SubQuo)(a::FreeModElem; check::Bool = true)
+    (M::SubQuo{T})(f::FreeModElem{T}; check::Bool = true) where T
 
-Return `a` as an element of `R`. If `check == true` (default) it is checked that `a` represents
-indeed an element of `R`.
+Given an element `f` of the ambient free module of `M` which represents an element of `M`, 
+return the represented element. If `check == true` (default) it is checked that `f` represents
+indeed an element of `M`.
 """
-function (R::SubQuo)(a::FreeModElem; check::Bool = true)
+function (M::SubQuo{T})(f::FreeModElem{T}; check::Bool = true) where T
   if check
-    b = R.sum.gens.SF(a)
-    c = _reduce(b, singular_generators(std_basis(R.sum)))
+    b = M.sum.gens.SF(f)
+    c = _reduce(b, singular_generators(std_basis(M.sum)))
     iszero(c) || error("not in the module")
   end
-  return SubQuoElem(a, R)
+  return SubQuoElem(f, M)
 end
 
 @doc Markdown.doc"""
@@ -2572,12 +2572,12 @@ julia> iszero(x*M[1])
 true
 ```
 """
-function iszero(a::SubQuoElem)
-  C = parent(a)
+function iszero(m::SubQuoElem)
+  C = parent(m)
   if !isdefined(C, :quo)
-    return iszero(a.repres)
+    return iszero(m.repres)
   end
-  x = _reduce(C.quo.gens.SF(a.repres), singular_generators(std_basis(C.quo)))
+  x = _reduce(C.quo.gens.SF(m.repres), singular_generators(std_basis(C.quo)))
   return iszero(x)
 end
 

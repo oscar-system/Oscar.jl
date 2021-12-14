@@ -110,8 +110,19 @@ m == n == o
 ```
 
 Given an element `m`  of a subquotient `M`,
-- `parent(m)` refers to `M`, and
-- `coefficients(m)` to  an object of type `SRow{T}` specifying the coefficients of an $R$-linear combination of the generators of $M$ which gives $m$. 
+- `parent(m)` refers to `M`, 
+- `coefficients(m)` to  an object of type `SRow{T}` specifying the coefficients of an $R$-linear combination of the generators of $M$ which gives $m$, and
+- `ambient_representative(m)` to an element of the ambient free module of `M` which represents `m`.
+
+Given an element `f` of the ambient free module of a subquotient `M` such that `f` represents an element of `M`,
+the function below creates the represented element:
+
+```@julia
+(M::SubQuo{T})(f::FreeModElem{T}; check::Bool = true) where T
+```
+
+By default (`check = true`), it is tested whether `f` indeed represents an element of `M`.
+If this is already clear, it may be convenient to omit the test (`check = false`).
 
 ##### Examples
 
@@ -123,6 +134,15 @@ M = SubQuo(A, B);
 m = z*M[1] + M[2]
 parent(m)
 coefficients(m)
+fm = ambient_representative(m)
+typeof(m)
+typeof(fm)
+parent(fm) == ambient_free_module(M)
+F = ambient_free_module(M)
+f = x*F[1]
+M(f)
+typeof(f)
+typeof(M(f))
 ```
 
 The zero element of a subquotient is obtained as follows:

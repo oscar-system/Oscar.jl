@@ -102,6 +102,12 @@ The zero element of a free module is obtained as follows:
 zero(F::AbstractFreeMod)
 ```
 
+Whether a given element of a free module is zero can be tested as follows:
+
+```@docs
+iszero(f::AbstractFreeModElem)
+```
+
 ## Tests on Free Modules
 
 ```@docs
@@ -114,8 +120,8 @@ iszero(F::AbstractFreeMod)
 
 ## Homomorphisms From Free Modules
 
-A homomorphism from a free module `F` is determined by specifying the images
-of the basis vectors of `F`. In OSCAR, such homomorphisms have type `FreeModuleHom{T1, T2}`, where
+A homomorphism from a free module $F$ is determined by specifying the images
+of the basis vectors of $F$. In OSCAR, such homomorphisms have type `FreeModuleHom{T1, T2}`, where
 `T1` and `T2` are the element types of the domain and codomain, respectively. They can be
 constructed as follows:
 
@@ -130,7 +136,7 @@ by entering the matrix representing it:
 hom(F::FreeMod{T}, G::ModuleFP{T}, A::MatElem{T}) where T
 ```
 
-The matrix of a homomorphism `a` between free modules can be recovered by entering `matrix(a)`.
+Vice versa, the matrix of a homomorphism `a` between free modules can be recovered by entering `matrix(a)`.
 
 ##### Examples
 
