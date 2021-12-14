@@ -20,7 +20,6 @@ export groebner_basis, groebner_assure
 export MPolyLocalizedRingHom
 export domain, codomain, images
 
-import AbstractAlgebra: Ring, RingElem
 
 ########################################################################
 # General framework for localizations of multivariate polynomial rings #

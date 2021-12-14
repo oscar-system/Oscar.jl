@@ -33,12 +33,6 @@ import ..Oscar: addeq!, isunit, parent_type, elem_type, gen, root_of_unity,
                 root, divexact, mul!, roots, isroot_of_unity, promote_rule,
                 AbstractAlgebra, data
 
-export abelian_closure,
-       QabField,
-       QabElem,
-       set_variable!,
-       get_variable
-
 ################################################################################
 #
 #  Types
@@ -760,11 +754,17 @@ end
 
 end # module AbelianClosure
 
-using .AbelianClosure
-
-export abelian_closure,
+import .AbelianClosure:
+       abelian_closure,
+       QabAutomorphism,
        QabField,
        QabElem,
        set_variable!,
        get_variable
 
+export abelian_closure,
+       QabAutomorphism,
+       QabField,
+       QabElem,
+       set_variable!,
+       get_variable

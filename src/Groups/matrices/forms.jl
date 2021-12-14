@@ -1,11 +1,6 @@
 # TODO: in this file are used many methods TEMPORARILY defined in files matrix_manipulation.jl and stuff_field_gen.jl
 # once methods in those files will be deleted / replaced / modified, this file need to be modified too
 
-
-
-import AbstractAlgebra: FieldElem, PolyElem, MPolyElem
-import Hecke: base_ring, defining_polynomial, gram_matrix, radical
-
 export
     alternating_form,
     corresponding_bilinear_form,

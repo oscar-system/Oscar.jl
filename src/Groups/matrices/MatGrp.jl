@@ -1,6 +1,3 @@
-import AbstractAlgebra: MatElem, matrix, MatSpace, parent_type, Ring, RingElem
-import Hecke: base_ring, det, fmpz, fq_nmod, FqNmodFiniteField, nrows, tr, trace
-
 export
     general_linear_group,
     mat_elem_type,

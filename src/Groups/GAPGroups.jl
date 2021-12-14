@@ -1,9 +1,3 @@
-# further possible functions: similar, literal_pow
-
-import Base: ^, Base.Vector
-
-using Random
-
 export GroupConjClass
 
 export
@@ -86,8 +80,6 @@ function parent(x::GAPGroupElem)
   return x.parent
 end
 
-import Base.isfinite
-
 """
     isfinite(G::GAPGroup) -> Bool
 
@@ -148,8 +140,6 @@ order(x::Union{GAPGroupElem, GAPGroup}) = order(fmpz, x)
 
 @gapwrap hasorder(G::GAPGroup) = GAP.Globals.HasSize(G.X)
 @gapwrap setorder(G::GAPGroup, val::T) where T<:IntegerUnion = GAP.Globals.SetSize(G.X, GapObj(val))
-
-import Base.exponent
 
 @doc Markdown.doc"""
     exponent(::Type{T} = fmpz, G::GAPGroup) where T <: IntegerUnion
