@@ -281,9 +281,18 @@ end
 ### Display
 ###############################################################################
 ###############################################################################
-# function Base.show(io::IO, ntv::AbstractNormalToricVariety)
-#   # fan = get_polyhedral_fan(ntv)
-#   pmntv = pm_ntv(ntv)
-#   ambdim = pmntv.FAN_AMBIENT_DIM
-#   print(io, "A normal toric variety corresponding to a polyhedral fan in ambient dimension $(ambdim)")
-# end
+function Base.show(io::IO, tv::TropicalVariety{M, EMB}) where {M, EMB}
+    if EMB
+        print(io, "A $(repr(M)) tropical variety of dimension $(dim(tv)) embedded in $(ambient_dim(tv))-dimensional Euclidian space")
+    else
+        print(io, "An abstract $(repr(M)) tropical variety of dimension $(dim(tv))")
+    end
+end
+
+function Base.show(io::IO, th::TropicalHypersurface{M, EMB}) where {M, EMB}
+    if EMB
+        print(io, "A $(repr(M)) tropical hypersurface embedded in $(ambient_dim(th))-dimensional Euclidian space")
+    else
+        print(io, "An abstract $(repr(M)) tropical hypersurface of dimension $(dim(th))")
+    end
+end
