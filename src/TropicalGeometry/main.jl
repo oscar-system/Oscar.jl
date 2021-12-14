@@ -43,6 +43,7 @@ function tropical_polynomial_to_polymake(f)
 end
 
 
+# Workaround for addition issue in AbstractAlgebra.jl
 function +(a::AbstractAlgebra.Generic.MPoly{T}, b::AbstractAlgebra.Generic.MPoly{T}) where {T <: RingElement}
    N = size(a.exps, 1)
    par = parent(a)
@@ -59,6 +60,9 @@ function +(a::AbstractAlgebra.Generic.MPoly{T}, b::AbstractAlgebra.Generic.MPoly
          i += 1
       elseif cmpexp == 0
          c = a.coeffs[i] + b.coeffs[j]
+         # The following line has the only real change, it was
+         # if c != 0
+         # before
          if !iszero(c)
             r.coeffs[k] = c
             AbstractAlgebra.Generic.monomial_set!(r.exps, k, a.exps, i, N)
