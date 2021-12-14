@@ -15,6 +15,9 @@
 # We use EMB to record whether the variety is embedded or abstract
 # EMB is either true or false
 abstract type TropicalVarietySupertype{M,EMB} end
+function pm_object(v::TropicalVarietySupertype)
+  return v.polymakeTV
+end
 
 
 # abstract tropical varieties are hypergraphs,
@@ -28,9 +31,6 @@ struct TropicalVariety{M,EMB} <: TropicalVarietySupertype{M,EMB}
     polymakeTV::Polymake.BigObject
 end
 export TropicalVariety
-function pm_object(v::TropicalVariety)
-  return v.polymakeTV
-end
 
 
 # abstract tropical hypersurfaces do not make any concrete sense to me,
@@ -43,9 +43,6 @@ struct TropicalHypersurface{M,EMB} <: TropicalVarietySupertype{M,EMB}
     polymakeTV::Polymake.BigObject
 end
 export TropicalHypersurface
-function pm_object(v::TropicalHypersurface)
-  return v.polymakeTV
-end
 
 
 # abstract tropical curves are abstracts graphs
@@ -76,10 +73,6 @@ end
 export TropicalLinearSpace
 
 
-function pm_object(v::TropicalVariety)
-  return v.polymakeTV
-end
-
 
 ######################
 # 2: Generic constructors
@@ -105,15 +98,18 @@ end
 
 
 @doc Markdown.doc"""
-    TropicalVariety()
+    TropicalVariety{M,EMB}()
 
 Construct the abstract tropical variety from a list of vertices and maximal cells
 
 # Examples
 """
-function TropicalVariety()
-    # ...
-    return #...
+function TropicalVariety{M, EMB}(pf::PolyhedralFan) where {M, EMB}
+    if EMB
+        return TropicalVariety{M, EMB}(polyhedral_complex_workaround(pm_object(pf)))
+    else
+        return TropicalVariety{M, EMB}(Polymake.fan.PolyhedralComplex(pm_object(pf)))
+    end
 end
 
 
@@ -175,28 +171,20 @@ end
 # - abstract tropical curves from vertices, maximal cells, edge lengths, etc.
 ######################
 @doc Markdown.doc"""
-    TropicalCurve()
+    TropicalCurve{M, EMB}()
 
-Construct an abstract tropical curve from a list of edges and a vector of their lengths
-
-# Examples
-"""
-function TropicalCurve()
-  return #...
-end
-
-
-@doc Markdown.doc"""
-    TropicalCurve()
-
-Construct an abstract tropical curve from a list of edges and a vector of their lengths
+Construct an abstract of embedded tropical curve from a list of edges and a
+vector of their lengths.
 
 # Examples
 """
-function TropicalCurve()
-  return #...
+function TropicalCurve{M, EMB}() where {M, EMB}
+    if EMB
+        return #...
+    else
+        return #...
+    end
 end
-
 
 
 ######################
@@ -211,7 +199,7 @@ Construct a tropical linear space from a degree 1 polynomial ideal
 
 # Examples
 """
-function TropicalLinearSpace()
+function TropicalLinearSpace(ideal::MPolyIdeal{fmpq_poly})
   return #...
 end
 
@@ -223,7 +211,7 @@ Construct a tropical linear space from its Pluecker vector
 
 # Examples
 """
-function TropicalLinearSpace()
+function TropicalLinearSpace(plv::Vector)
   return #...
 end
 
