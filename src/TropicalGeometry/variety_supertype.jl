@@ -1,3 +1,93 @@
+###
+# Tropical variety supertype in Oscar (not for public use)
+# ===================================
+###
+
+
+###
+# 0. Definition
+# -------------
+# M = typeof(min) or typeof(max):
+#   min or max convention
+# EMB = true or false:
+#   embedded or abstract
+# see also: variety.jl, hypersurface.jl, curve.jl, linear_space.jl
+###
+
+abstract type TropicalVarietySupertype{M,EMB} end
+function pm_object(v::TropicalVarietySupertype)
+  return v.polymakeTV
+end
+
+
+###
+# 1. Basic constructions
+# ----------------------
+###
+
+@doc Markdown.doc"""
+    intersect(TV1, TV2)
+
+Intersect two tropical varieties.
+
+# Examples
+```jldoctest
+julia> T = tropical_numbers(min)
+Tropical ring (min)
+
+julia> Txy,(x,y) = T["x","y"]
+(Multivariate Polynomial Ring in x, y over Tropical ring (min), AbstractAlgebra.Generic.MPoly{Oscar.TropicalNumbersElem{typeof(min)}}[x, y])
+
+julia> f1 = x+y+1
+x + y + (1)
+
+julia> f2 = x^2+y^2+T(-6)
+x^2 + y^2 + (-6)
+
+julia> hyp1 = TropicalHypersurface(f1)
+A min tropical hypersurface embedded in 2-dimensional Euclidian space
+
+julia> hyp2 = TropicalHypersurface(f2)
+A min tropical hypersurface embedded in 2-dimensional Euclidian space
+
+julia> tv12 = intersect(hyp1, hyp2)
+A min tropical variety of dimension 1 embedded in 2-dimensional Euclidian space
+```
+"""
+function intersect(TV1::TropicalVarietySupertype{M, EMB}, TV2::TropicalVarietySupertype{M, EMB}) where {M, EMB}
+    pm_tv1 = pm_object(TV1)
+    pm_tv2 = pm_object(TV2)
+    result = Polymake.fan.PolyhedralComplex(Polymake.fan.common_refinement(pm_tv1, pm_tv2))
+    result = polyhedral_complex_workaround(result)
+    return TropicalVariety{M, EMB}(result)
+end
+
+
+@doc Markdown.doc"""
+    stably_intersect(TV1, TV2)
+
+# Examples
+```jldoctest
+```
+"""
+function stably_intersect(TV1::TropicalVarietySupertype{M, EMB}, TV2::TropicalVarietySupertype{M, EMB}) where {M, EMB}
+    pm_tv1 = pm_object(TV1)
+    pm_tv2 = pm_object(TV2)
+    result = Polymake.fan.common_refinement(pm_tv1, pm_tv2)
+    k = dim(TV1) + dim(TV2) - ambient_dim(TV1)
+    result = Polymake.fan.PolyhedralComplex(Polymake.fan.k_skeleton(result, k+1))
+    result = polyhedral_complex_workaround(result)
+    return TropicalVariety{M, EMB}(result)
+end
+export stably_intersect
+
+
+
+###
+# 2. Basic properties
+# -------------------
+###
+
 @doc Markdown.doc"""
     ambient_dim(TV::TropicalVariety{M, EMB})
     ambient_dim(TV::TropicalCurve{M, EMB})
@@ -55,38 +145,6 @@ julia> dim(tropicalLine)
 ```
 """
 dim(TV::TropicalVarietySupertype{M,EMB}) where {M, EMB} = pm_object(TV).FAN_DIM-1
-
-
-
-@doc Markdown.doc"""
-    dual_subdivision(TH::TropicalHypersurface{M, EMB})
-
-Returns the dual subdivision of `TH` if it is embedded. Returns error otherwise
-
-# Examples
-A tropical hypersurface in RR^n is always of dimension n-1
-```jldoctest
-julia> T = tropical_numbers(min);
-
-julia> Txy,(x,y) = T["x","y"];
-
-julia> f = x+y+1;
-
-julia> tropicalLine = TropicalHypersurface(f);
-
-julia> dual_subdivision(tropicalLine)
-# todo: add examples for varieties, curves and linear spaces
-```
-"""
-function dual_subdivision(TH::TropicalHypersurface{M,EMB}) where {M,EMB}
-    # not sure whether it makes sense to support abstract tropical hypersurfaces, but it can't hurt to check
-    if !EMB
-        error("tropical hypersurface not embedded")
-    end
-
-    return SubdivisionOfPoints(pm_object(TH).DUAL_SUBDIVISION)
-end
-export dual_subdivision
 
 
 
