@@ -26,7 +26,6 @@ abstract type TropicalVarietySupertype{M,EMB} end
 struct TropicalVariety{M,EMB} <: TropicalVarietySupertype{M,EMB}
     # GapTV::GapObj
     polymakeTV::Polymake.BigObject
-    algebraicTV
 end
 export TropicalVariety
 function pm_object(v::TropicalVariety)
@@ -42,10 +41,6 @@ end
 struct TropicalHypersurface{M,EMB} <: TropicalVarietySupertype{M,EMB}
     # GapTV::GapObj
     polymakeTV::Polymake.BigObject
-    tropicalPolynomial
-    tropicalInitials
-    algebraicPolynomial
-    algebraicInitials
 end
 export TropicalHypersurface
 function pm_object(v::TropicalHypersurface)
@@ -168,7 +163,7 @@ function TropicalHypersurface(f)
     fstr = Tuple(tropical_polynomial_to_polymake(f))
     pmpoly = Polymake.common.totropicalpolynomial(fstr...)
     pmhyp = Polymake.tropical.Hypersurface{convention}(POLYNOMIAL=pmpoly)
-    return TropicalHypersurface{convention, true}(pmhyp, [])
+    return TropicalHypersurface{convention, true}(pmhyp)
 end
 
 
