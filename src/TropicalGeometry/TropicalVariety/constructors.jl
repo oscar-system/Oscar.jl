@@ -162,7 +162,8 @@ function TropicalHypersurface(f)
         error("Tropical variety of constant polynomials not supported.")
     end
     convention = fun(base_ring(f))
-    pmpoly = Polymake.common.totropicalpolynomial(tropical_polynomial_to_polymake(f))
+    fstr = Tuple(tropical_polynomial_to_polymake(f))
+    pmpoly = Polymake.common.totropicalpolynomial(fstr...)
     pmhyp = Polymake.tropical.Hypersurface{convention}(POLYNOMIAL=pmpoly)
     return TropicalHypersurface{convention, true}(pmhyp, [])
 end
