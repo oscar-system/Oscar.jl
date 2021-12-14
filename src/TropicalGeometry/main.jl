@@ -1,4 +1,4 @@
-include("TropicalNumbers/numbers.jl")
+include("numbers.jl")
 
 
 # Temporarily we will turn tropical polynomials into strings. This will be
@@ -44,6 +44,8 @@ end
 
 
 
-include("TropicalVariety/constructors.jl")
-include("TropicalVariety/properties.jl")
-include("TropicalVariety/standard_constructions.jl")
+include("variety_supertype.jl")
+include("variety.jl")
+include("hypersurface.jl")
+include("curve.jl")
+include("linear_space.jl")
