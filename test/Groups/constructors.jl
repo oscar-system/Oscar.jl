@@ -86,6 +86,7 @@ end
   @test iscyclic(G)
   G1 = abelian_group(PermGroup, [2, 3])
   @test isisomorphic(G, G1)[1]
+  G = abelian_group(PcGroup, [ZZ(2)^70])
 
 # FIXME: a function `free_abelian_group` is not defined in GAPGroups, since it is already defined in Hecke
 #=

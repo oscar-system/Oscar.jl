@@ -1,6 +1,7 @@
 using Oscar
 using Test
 
+include("abelian_aut.jl")
 include("testing.jl")
 include("constructors.jl")
 include("operations.jl")
