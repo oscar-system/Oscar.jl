@@ -19,7 +19,7 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 msolve_jll = "6d01cc9a-e8f6-580e-8c54-544227e08205"
 
 [compat]
-AbstractAlgebra = "0.22.2"
+AbstractAlgebra = "= 0.22.2"
 DocStringExtensions = "0.8"
 GAP = "0.7.2"
 Hecke = "0.10.25"
