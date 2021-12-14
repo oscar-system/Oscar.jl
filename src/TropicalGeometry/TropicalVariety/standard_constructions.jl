@@ -30,6 +30,26 @@ A min tropical variety of dimension 1 embedded in 2-dimensional Euclidian space
 function intersect(TV1::TropicalVarietySupertype{M, EMB}, TV2::TropicalVarietySupertype{M, EMB}) where {M, EMB}
     pm_tv1 = pm_object(TV1)
     pm_tv2 = pm_object(TV2)
-    pm_cr = Polymake.fan.PolyhedralComplex(Polymake.fan.common_refinement(pm_tv1, pm_tv2))
-    return TropicalVariety{M, EMB}(pm_cr)
+    result = Polymake.fan.PolyhedralComplex(Polymake.fan.common_refinement(pm_tv1, pm_tv2))
+    result = polyhedral_complex_workaround(result)
+    return TropicalVariety{M, EMB}(result)
 end
+
+
+@doc Markdown.doc"""
+    stably_intersect(TV1, TV2)
+
+# Examples
+```jldoctest
+```
+"""
+function stably_intersect(TV1::TropicalVarietySupertype{M, EMB}, TV2::TropicalVarietySupertype{M, EMB}) where {M, EMB}
+    pm_tv1 = pm_object(TV1)
+    pm_tv2 = pm_object(TV2)
+    result = Polymake.fan.common_refinement(pm_tv1, pm_tv2)
+    k = dim(TV1) + dim(TV2) - ambient_dim(TV1)
+    result = Polymake.fan.PolyhedralComplex(Polymake.fan.k_skeleton(result, k+1))
+    result = polyhedral_complex_workaround(result)
+    return TropicalVariety{M, EMB}(result)
+end
+export stably_intersect
