@@ -60,7 +60,7 @@ end
 
 
 @doc Markdown.doc"""
-    TropicalHypersurface()
+    TropicalHypersurface(f)
 
 Construct the tropical hypersurface of a polynomial over the tropical numbers
 
