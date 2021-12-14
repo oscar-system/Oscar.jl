@@ -42,7 +42,10 @@ end
 struct TropicalHypersurface{M,EMB} <: TropicalVarietySupertype{M,EMB}
     # GapTV::GapObj
     polymakeTV::Polymake.BigObject
-    algebraicTV
+    tropicalPolynomial
+    tropicalInitials
+    algebraicPolynomial
+    algebraicInitials
 end
 export TropicalHypersurface
 function pm_object(v::TropicalHypersurface)

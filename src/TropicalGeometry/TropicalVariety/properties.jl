@@ -21,13 +21,13 @@ julia> ambient_dim(tropicalLine)
 # todo: add examples for varieties, curves and linear spaces
 ```
 """
-# function ambient_dim(TV::TropicalVarietySupertype{M,EMB}) where {M,EMB}
-#     if !EMB
-#         error("ambient_dim: tropical variety not embedded")
-#     end
+function ambient_dim(TV::TropicalVarietySupertype{M,EMB}) where {M,EMB}
+    if !EMB
+        error("ambient_dim: tropical variety not embedded")
+    end
 
-#     return pm_object(TV).FAN_AMBIENT_DIM-2 # todo: is this the property to use?
-# end
+    return pm_object(TV).FAN_AMBIENT_DIM-2 # todo: is this the property to use?
+end
 
 
 
@@ -54,7 +54,7 @@ julia> dim(tropicalLine)
 # todo: add examples for varieties, curves and linear spaces
 ```
 """
-dim(TV::TropicalVarietySupertype{M,EMB}) where {M, EMB} = pm_object(TV).DIM
+dim(TV::TropicalVarietySupertype{M,EMB}) where {M, EMB} = pm_object(TV).FAN_DIM-1
 
 
 
@@ -86,6 +86,7 @@ function dual_subdivision(TH::TropicalHypersurface{M,EMB}) where {M,EMB}
 
     return SubdivisionOfPoints(pm_object(TH).DUAL_SUBDIVISION)
 end
+export dual_subdivision
 
 
 
