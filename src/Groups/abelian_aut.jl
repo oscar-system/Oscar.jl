@@ -6,7 +6,7 @@ function _isomorphic_gap_group(A::GrpAbFinGen; T=PcGroup)
     A2_to_A = identity_map(A)
     A_to_A2 = identity_map(A)
   else
-    exponents = [Int(a) for a in elementary_divisors(A)]
+    exponents = elementary_divisors(A)
     A2, A2_to_A = snf(A)
     A_to_A2 = inv(A2_to_A)
   end
