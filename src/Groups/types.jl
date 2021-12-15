@@ -56,6 +56,7 @@ import GAP: GapObj, GapInt
 
 export
     AutomorphismGroup,
+    AutomorphismGroupElem,
     DirectProductGroup,
     DirectProductOfElem,
     FPGroup,
@@ -253,6 +254,31 @@ mutable struct AutomorphismGroup{T} <: GAPGroup
     return z
   end
 end
+
+mutable struct AutomorphismGroupElem{T} <: GAPGroupElem{AutomorphismGroup{T}}
+  X::GapObj
+  parent::AutomorphismGroup{T}
+  map::fmpz_mat
+  AbstractAlgebra.@declare_other
+ 
+  function AutomorphismGroupElem{T}(F::GapObj, Aut::AutomorphismGroup{T}) where T
+    @assert F in Aut.X
+    z = new{T}(F,Aut,matrix(fmpz[]))
+    z.map =  hom(z).map
+    return z
+  end
+
+  
+end
+
+elem_type(Aut::AutomorphismGroup{T}) where T = AutomorphismGroupElem{T}
+
+group_element(Aut::AutomorphismGroup{T}, x::GapObj) where T = AutomorphismGroupElem{T}(x,Aut)
+
+function Base.show(io::IO, AGE::AutomorphismGroupElem{T}) where T
+    println(io, "Automorphism of ", typeof(AGE.parent.G), " with matrix representation ", AGE.map)
+end
+
 
 ################################################################################
 #
