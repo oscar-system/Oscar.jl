@@ -1150,7 +1150,7 @@ function to_oscar_side(
   )
   W = oscar_ring(lbpa)
   R = base_ring(W)
-  psi = inv_shift_hom
+  psi = inv_shift_hom(lbpa)
   return psi(R(f))
 end
   
@@ -1160,7 +1160,7 @@ function to_oscar_side(
   )
   W = oscar_ring(lbpa)
   R = base_ring(W)
-  psi = inv_shift_hom
+  psi = inv_shift_hom(lbpa)
   return [psi(R(a)) for a in f]
 end
 
@@ -1170,7 +1170,7 @@ function to_oscar_side(
   )
   W = oscar_ring(lbpa)
   R = base_ring(W)
-  psi = inv_shift_hom
+  psi = inv_shift_hom(lbpa)
   return psi(R(numerator(f)))//psi(R(denominator(f)))
 end
   
@@ -1180,7 +1180,7 @@ function to_oscar_side(
   )
   W = oscar_ring(lbpa)
   R = base_ring(W)
-  psi = inv_shift_hom
+  psi = inv_shift_hom(lbpa)
   return [psi(R(numerator(a)))//psi(R(denominator(a))) for a in f]
 end
 
@@ -1335,16 +1335,18 @@ end
 groebner_bases(I::MPolyLocalizedIdeal) = I.groebner_bases
 
 # the default ordering; probably mathematically useless
-default_ordering(I::MPolyLocalizedIdeal) = :degrevlex
+default_ordering(W::MPolyLocalizedRing) = :degrevlex
 
 # specific default orderings for other cases
 default_ordering(
-    I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}
+    W::MPolyLocalizedRing{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}
   ) where {BRT, BRET, RT, RET} = :degrevlex
 
 default_ordering(
-    I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}}
+    W::MPolyLocalizedRing{BRT, BRET, RT, RET, MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}}
   ) where {BRT, BRET, RT, RET} = :negdegrevlex
+
+default_ordering(I::MPolyLocalizedIdeal) = default_ordering(base_ring(I))
 
 function dim(I::MPolyLocalizedIdeal)
   if isdefined(I,:dimension)
@@ -1433,27 +1435,23 @@ end
 ### Default constructors 
 # The ordering and the shifts are determined from the type of the multiplicative set
 BiPolyArray(
-    I::MPolyLocalizedIdeal;
-    ordering=:negdegrevlex
-  ) = LocalizedBiPolyArray(base_ring(I), gens(I), ordering=ordering) 
+    I::MPolyLocalizedIdeal
+  ) = LocalizedBiPolyArray(base_ring(I), gens(I), ordering=default_ordering(I)) 
 
 BiPolyArray(
     W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST}, 
-    g::Vector{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}};
-    ordering=:negdegrevlex
-  ) where {BRT, BRET, RT, RET, MST} = LocalizedBiPolyArray(W, g, ordering=ordering) 
+    g::Vector{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}
+  ) where {BRT, BRET, RT, RET, MST} = LocalizedBiPolyArray(W, g, ordering=default_ordering(W)) 
 
 BiPolyArray(
     W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST}, 
-    g::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST};
-    ordering=:negdegrevlex
-  ) where {BRT, BRET, RT, RET, MST} = BiPolyArray(W, [g], ordering=ordering)
+    g::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}
+  ) where {BRT, BRET, RT, RET, MST} = BiPolyArray(W, [g], ordering=default_ordering(W))
 
 BiPolyArray(
     W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST}, 
-    I::MPolyIdeal{RET};
-    ordering=:negdegrevlex
-  ) where {BRT, BRET, RT, RET, MST} = LocalizedBiPolyArray(W, W.(gens(I)), ordering=ordering) 
+    I::MPolyIdeal{RET}
+  ) where {BRT, BRET, RT, RET, MST} = LocalizedBiPolyArray(W, W.(gens(I)), ordering=default_ordering(W))
 
 BiPolyArray(
     W::MPolyLocalizedRing, 
@@ -1462,21 +1460,18 @@ BiPolyArray(
   ) = LocalizedBiPolyArray(W, I, ordering=Singular.ordering_as_symbol(base_ring(I)), is_groebner_basis=is_groebner_basis) 
 
 BiPolyArray(
-    I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}};
-    ordering=:negdegrevlex
-  ) where {BRT, BRET, RT, RET} = LocalizedBiPolyArray(base_ring(I), gens(I), ordering=ordering, shift=point_coordinates(inverted_set(base_ring(I)))) 
+    I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}}
+  ) where {BRT, BRET, RT, RET} = LocalizedBiPolyArray(base_ring(I), gens(I), ordering=default_ordering(I), shift=point_coordinates(inverted_set(base_ring(I)))) 
 
 BiPolyArray(
     W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST}, 
-    g::Vector{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}};
-    ordering=:negdegrevlex
-  ) where {BRT, BRET, RT, RET, MST<:MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}} = LocalizedBiPolyArray(W, g, ordering=ordering, shift=point_coordinates(inverted_set(W))) 
+    g::Vector{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}
+   ) where {BRT, BRET, RT, RET, MST<:MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}} = LocalizedBiPolyArray(W, g, ordering=default_ordering(W), shift=point_coordinates(inverted_set(W))) 
 
 BiPolyArray(
     W::MPolyLocalizedRing{BRT, BRET, RT, RET, MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}}, 
-    I::MPolyIdeal{RET};
-    ordering=:negdegrevlex
-  ) where {BRT, BRET, RT, RET} = LocalizedBiPolyArray(W, W.(gens(I)), ordering=ordering, shift=point_coordinates(inverted_set(W))) 
+    I::MPolyIdeal{RET}
+  ) where {BRT, BRET, RT, RET} = LocalizedBiPolyArray(W, W.(gens(I)), ordering=default_ordering(W), shift=point_coordinates(inverted_set(W))) 
 
 BiPolyArray(
     W::MPolyLocalizedRing{BRT, BRET, RT, RET, MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}}, 
@@ -1486,14 +1481,12 @@ BiPolyArray(
 
 BiPolyArray(
     W::MPolyLocalizedRing{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}},
-    I::MPolyIdeal{RET};
-    ordering=:degrevlex
-  ) where {BRT, BRET, RT, RET} = LocalizedBiPolyArray(W, W.(gens(I)), ordering=ordering) 
+    I::MPolyIdeal{RET}
+  ) where {BRT, BRET, RT, RET} = LocalizedBiPolyArray(W, W.(gens(I)), ordering=default_ordering(W))
 
 BiPolyArray(
-    I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}};
-    ordering=:degrevlex
-  ) where {BRT, BRET, RT, RET} = LocalizedBiPolyArray(base_ring(I), gens(I), ordering=ordering) 
+    I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}
+   ) where {BRT, BRET, RT, RET} = LocalizedBiPolyArray(base_ring(I), gens(I), ordering=default_ordering(I)) 
 
 BiPolyArray(
     W::MPolyLocalizedRing{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}},
@@ -1650,33 +1643,46 @@ function bring_to_common_denominator(f::Vector{AbstractAlgebra.Generic.Frac{RET}
   end
   d = one(R)
   a = Vector{elem_type(R)}()
-  for den in f
+  for den in denominator.(f)
     b = gcd(d, den)
     c = divexact(den, b)
     e = divexact(d, b)
     d = d*c
-    a = e*a
-    push!(a, c)
+    a = [c*k for k in a]
+    push!(a, e)
   end
   return d, a
 end
 
 write_as_linear_combination(f::MPolyLocalizedRingElem, g::Vector) = write_as_linear_combination(f, parent(f).(g))
 
+@Markdown.doc """
+function write_as_linear_combination(f::T, g::Vector{T}) where {T<:MPolyLocalizedRingElem} 
+
+Write f = ∑ᵢ λᵢ⋅gᵢ for some λᵢ and return the vector [λ₁,…,λₙ].
+"""
 function write_as_linear_combination(f::T, g::Vector{T}) where {T<:MPolyLocalizedRingElem} 
   n = length(g)
   W = parent(f)
   for a in g 
-    parent(g) == W || error("elements do not belong to the same ring")
+    parent(a) == W || error("elements do not belong to the same ring")
   end
-  (d, a) = bring_to_common_denominator(vcat([f], g))
-  h = [a[i+1]*g[i] for i in 1:n]
-  lbpa = BiPolyArray(W, h)
-  p = a[1]*f
+  (d, a) = bring_to_common_denominator(fraction.(vcat([f], g)))
+  h = [a[i+1]*numerator(g[i]) for i in 1:n]
+  lbpa = BiPolyArray(W, W.(h))
+  p = a[1]*numerator(f)
   p_sing = to_singular_side(lbpa, p)
   S = singular_ring(lbpa)
-  l_sing = Singular.lift(singular_ideal(lbpa), Singular.Ideal(S, p_sing))
-  #TODO: finish this once I understand how to use the `lift`-command.
+  
+  M, N, U = Singular.lift(
+                          Singular.Module(S, [Singular.vector(S, g) for g in gens(singular_gens(lbpa))]...),
+			  Singular.Module(S, Singular.vector(S, p_sing)),
+			  false, false, false)
+  A = Singular.Matrix(M)
+  iszero(N) || error("the first argument is not contained in the span of the second")
+  u = 1//W(to_oscar_side(lbpa, U[1,1]))
+  lambda = [W(to_oscar_side(lbpa, A[i, 1]))*u for i in 1:nrows(A)]
+  return lambda
 end
 
 
