@@ -18,7 +18,6 @@
 
 @attributes mutable struct TropicalCurve{M,T} <: TropicalVarietySupertype{M,T}
     polymakeTV::Polymake.BigObject
-    algebraicTV
 end
 export TropicalCurve
 function pm_object(v::TropicalCurve)
@@ -35,13 +34,16 @@ end
 @doc Markdown.doc"""
     TropicalCurve{M, EMB}()
 
-Construct an abstract of embedded tropical curve from a list of edges and a
-vector of their lengths.
+Construct a tropical curve from a list of edges and a vector of their lengths.
+If the curve is embedded, vertices must be points in $\mathbb R^n$.
+If the curve is abstract, vertices must be 1, ..., n.
 
 # Examples
+
 """
-function TropicalCurve{M, EMB}() where {M, EMB}
+function TropicalCurve{M, EMB}(Vertices::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix}, LS::Union{Oscar.MatElem, AbstractMatrix}, Incidence::Matrix{Bool}) where {M, EMB}
     if EMB
+        # tropicalCurve = TropicalCurve(PolyhedralComplex(Vertices, LS, IncidenceMatrix(Polymake.IncidenceMatrix(Incidence))))
         return #...
     else
         return #...
