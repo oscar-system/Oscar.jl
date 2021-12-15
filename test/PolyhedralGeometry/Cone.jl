@@ -23,14 +23,15 @@ const pm = Polymake
         @test rays(RayVector{Polymake.Rational}, Cone1) isa SubObjectIterator{RayVector{Polymake.Rational}}
         @test rays(Cone1) isa SubObjectIterator{RayVector{Polymake.Rational}}
         @test rays(RayVector, Cone1) isa SubObjectIterator{RayVector{Polymake.Rational}}
-        @test vector_matrix(rays(Cone1)) == matrix(QQ, Matrix{fmpq}([1 0; 0 1]))
+        @test vector_matrix(rays(Cone1)) == matrix(QQ, [1 0; 0 1])
+        @test Oscar.matrix_for_polymake(rays(Cone1)) == [1 0; 0 1]
         @test length(rays(Cone1)) == 2
         @test rays(Cone1)[1] == RayVector([1, 0])
         @test rays(Cone1)[2] == RayVector([0, 1])
         for T in [AffineHalfspace, LinearHalfspace, Cone, Polyhedron]
             @test facets(T, Cone1) isa SubObjectIterator{T}
             @test length(facets(T, Cone1)) == 2
-            @test linear_inequality_matrix(facets(T, Cone1)) == matrix(QQ, Matrix{fmpq}([-1 0; 0 -1]))
+            @test linear_inequality_matrix(facets(T, Cone1)) == matrix(QQ, [-1 0; 0 -1])
             if T == Cone
                 @test facets(T, Cone1)[1] == cone_from_inequalities([-1 0])
                 @test facets(T, Cone1)[2] == cone_from_inequalities([0 -1])
@@ -47,7 +48,7 @@ const pm = Polymake
         @test linear_span(Cone4) isa SubObjectIterator{LinearHyperplane}
         @test length(linear_span(Cone4)) == 1
         @test linear_span(Cone4)[] == LinearHyperplane([0 1 0])
-        @test linear_equation_matrix(linear_span(Cone4)) == matrix(QQ, Matrix{fmpq}([0 1 0]))
+        @test linear_equation_matrix(linear_span(Cone4)) == matrix(QQ, [0 1 0])
 
         @test !ispointed(Cone2)
         @test !ispointed(Cone3)
@@ -59,10 +60,11 @@ const pm = Polymake
         @test dim(Cone2) == 3
         @test ambient_dim(Cone2) == 3
         @test lineality_space(Cone2) isa SubObjectIterator{RayVector{Polymake.Rational}}
-        @test generator_matrix(lineality_space(Cone2)) == matrix(QQ, Matrix{fmpq}(L))
+        @test generator_matrix(lineality_space(Cone2)) == matrix(QQ, L)
+        @test Oscar.matrix_for_polymake(lineality_space(Cone2)) == L
         @test length(lineality_space(Cone2)) == 1
         @test lineality_space(Cone2)[] == RayVector(L[1, :])
-        @test vector_matrix(rays(Cone4)) == matrix(QQ, Matrix{fmpq}(R))
+        @test vector_matrix(rays(Cone4)) == matrix(QQ, R)
         @test codim(Cone4) == 1
         @test codim(Cone3) == 0
         @test faces(Cone2, 2) isa SubObjectIterator{Cone}

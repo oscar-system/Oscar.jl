@@ -189,7 +189,7 @@ for (sym, name) in (("ray_incidences", "Incidence Matrix resp. rays"), ("vertex_
     M = Symbol(sym)
     _M = Symbol(string("_", sym))
     @eval begin
-        $M(iter::SubObjectIterator{<:Union{Cone, Polyhedron}}) = $_M(Val(iter.Acc), iter.Obj; iter.options...)
+        $M(iter::SubObjectIterator) = $_M(Val(iter.Acc), iter.Obj; iter.options...)
         $_M(::Any, ::Polymake.BigObject) = throw(ArgumentError(string($name, " not defined in this context.")))
     end
 end
@@ -199,7 +199,7 @@ for (sym, name) in (("linear_inequality_matrix", "Linear Inequality Matrix"), ("
     M = Symbol(sym)
     _M = Symbol(string("_", sym))
     @eval begin
-        $M(iter::SubObjectIterator{<:Union{Cone, Polyhedron, Halfspace, Pair, Hyperplane}}) = matrix(QQ, Matrix{fmpq}($_M(Val(iter.Acc), iter.Obj; iter.options...)))
+        $M(iter::SubObjectIterator) = matrix(QQ, Matrix{fmpq}($_M(Val(iter.Acc), iter.Obj; iter.options...)))
         $_M(::Any, ::Polymake.BigObject) = throw(ArgumentError(string($name, " not defined in this context.")))
     end
 end
@@ -223,7 +223,7 @@ function matrix_for_polymake(iter::SubObjectIterator)
     end
 end
 
-function linear_matrix_for_polymake(iter::SubObjectIterator{<:Union{Halfspace, Hyperplane, Pair, Polyhedron}})
+function linear_matrix_for_polymake(iter::SubObjectIterator)
     if hasmethod(_linear_matrix_for_polymake, Tuple{Val{iter.Acc}})
         return _linear_matrix_for_polymake(Val(iter.Acc))(Val(iter.Acc), iter.Obj; iter.options...)
     elseif hasmethod(_affine_matrix_for_polymake, Tuple{Val{iter.Acc}})
@@ -234,7 +234,7 @@ function linear_matrix_for_polymake(iter::SubObjectIterator{<:Union{Halfspace, H
     throw(ArgumentError("Linear Matrix for Polymake not defined in this context."))
 end
 
-function affine_matrix_for_polymake(iter::SubObjectIterator{<:Union{Halfspace, Hyperplane, Pair, Polyhedron}})
+function affine_matrix_for_polymake(iter::SubObjectIterator)
     if hasmethod(_affine_matrix_for_polymake, Tuple{Val{iter.Acc}})
         return _affine_matrix_for_polymake(Val(iter.Acc))(Val(iter.Acc), iter.Obj; iter.options...)
     elseif hasmethod(_linear_matrix_for_polymake, Tuple{Val{iter.Acc}})
@@ -243,7 +243,7 @@ function affine_matrix_for_polymake(iter::SubObjectIterator{<:Union{Halfspace, H
     throw(ArgumentError("Affine Matrix for Polymake not defined in this context."))
 end
 
-function halfspace_matrix_pair(iter::SubObjectIterator{<:Union{Halfspace, Hyperplane, Pair, Polyhedron}})
+function halfspace_matrix_pair(iter::SubObjectIterator)
     try
         h = affine_matrix_for_polymake(iter)
         return (A = matrix(QQ, Matrix{fmpq}(h[:, 2:end])), b = -h[:, 1])

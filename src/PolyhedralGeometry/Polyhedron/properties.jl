@@ -299,8 +299,6 @@ _affine_inequality_matrix(::Val{_facet_polyhedron}, P::Polymake.BigObject) = -_r
 
 _affine_matrix_for_polymake(::Val{_facet_polyhedron}) = _affine_inequality_matrix
 
-_halfspace_matrix_pair(::Val{_facet_polyhedron}, P::Polymake.BigObject) = decompose_hdata(_remove_facet_at_infinity(P))
-
 facets(::Type{Pair}, P::Polyhedron) = facets(Pair{Polymake.Matrix{Polymake.Rational}, Polymake.Rational}, P)
 
 @doc Markdown.doc"""
