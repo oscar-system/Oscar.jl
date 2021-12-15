@@ -36,6 +36,20 @@ Return an iterator over the vertices of `PC` in the format defined by `as`.
 Optional arguments for `as` include
 * `PointVector`.
 
+# Examples
+The following code computes the vertices of the Minkowski sum of a triangle and
+a square:
+```jldoctest
+julia> P = simplex(2) + cube(2);
+
+julia> vertices(PointVector, P)
+5-element SubObjectIterator{PointVector{Polymake.Rational}}:
+ [-1, -1]
+ [2, -1]
+ [2, 1]
+ [-1, 2]
+ [1, 2]
+```
 """
 vertices(as::Type{PointVector{T}}, PC::PolyhedralComplex) where T = SubObjectIterator{as}(pm_object(PC), _vertex_polyhedron, length(_vertex_indices(pm_object(PC))))
 
