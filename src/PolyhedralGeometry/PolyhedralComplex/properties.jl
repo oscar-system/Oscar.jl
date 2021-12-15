@@ -144,3 +144,64 @@ julia> nmaximal_polytopes(PC)
 nmaximal_polytopes(PC::PolyhedralComplex) = pm_object(PC).N_MAXIMAL_POLYTOPES
 
 
+@doc Markdown.doc"""
+    issimplicial(PC::PolyhedralComplex)
+
+Determine whether the polyhedral complex is simplicial.
+
+# Examples
+```jldoctest
+julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
+
+julia> VR = [0 0; 1 0; 1 1; 0 1];
+
+julia> PC = PolyhedralComplex(IM, VR)
+A polyhedral complex in ambient dimension 2
+
+julia> issimplicial(PC)
+true
+```
+"""
+issimplicial(PC::PolyhedralComplex) = pm_object(PC).SIMPLICIAL::Bool
+
+
+@doc Markdown.doc"""
+    ispure(PC::PolyhedralComplex)
+
+Determine whether the polyhedral complex is pure.
+
+# Examples
+```jldoctest
+julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
+
+julia> VR = [0 0; 1 0; 1 1; 0 1];
+
+julia> PC = PolyhedralComplex(IM, VR)
+A polyhedral complex in ambient dimension 2
+
+julia> ispure(PC)
+true
+```
+"""
+ispure(PC::PolyhedralComplex) = pm_object(PC).PURE::Bool
+
+
+@doc Markdown.doc"""
+    dim(PC::PolyhedralComplex)
+
+Compute the dimension of the polyhedral complex.
+
+# Examples
+```jldoctest
+julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
+
+julia> VR = [0 0; 1 0; 1 1; 0 1];
+
+julia> PC = PolyhedralComplex(IM, VR)
+A polyhedral complex in ambient dimension 2
+
+julia> dim(PC)
+2
+```
+"""
+dim(PC::PolyhedralComplex) = Polymake.fan.dim(pm_object(PC))
