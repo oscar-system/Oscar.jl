@@ -523,3 +523,45 @@ julia> weights(tropicalLine)
 function weights(TV::TropicalVarietySupertype{M,EMB}) where {M,EMB}
     # Question: should this return a vector or an iterator?
 end # TODO!!!
+
+@doc Markdown.doc"""
+    PolyhedralComplex(TV::TropicalVarietySupertype)
+
+Return the underlying polyhedral complex.
+
+# Examples
+```jldoctest
+julia> T = tropical_numbers(min)
+Tropical ring (min)
+
+julia> Txy,(x,y) = T["x","y"]
+(Multivariate Polynomial Ring in x, y over Tropical ring (min), AbstractAlgebra.Generic.MPoly{Oscar.TropicalNumbersElem{typeof(min)}}[x, y])
+
+julia> f = x+y+1
+x + y + (1)
+
+julia> hyp = TropicalHypersurface(f)
+A min tropical hypersurface embedded in 2-dimensional Euclidian space
+
+julia> pc = PolyhedralComplex(hyp)
+A polyhedral complex in ambient dimension 3
+
+julia> vertices(pc)
+4-element SubObjectIterator{Union{PointVector{Polymake.Rational}, RayVector{Polymake.Rational}}}:
+ [0, -1, -1]
+ [0, 1, 0]
+ [0, 0, 1]
+ [0, 1, 1]
+
+julia> for v in vertices(pc)
+       println(typeof(v))
+       end
+RayVector{Polymake.Rational}
+RayVector{Polymake.Rational}
+RayVector{Polymake.Rational}
+PointVector{Polymake.Rational}
+```
+"""
+function PolyhedralComplex(TV::TropicalVarietySupertype{M, EMB}) where {M,EMB}
+    return PolyhedralComplex(pm_object(TV))
+end
