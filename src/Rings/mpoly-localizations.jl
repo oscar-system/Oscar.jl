@@ -12,13 +12,15 @@ export MPolyLocalizedIdeal
 export gens, base_ring, groebner_bases, default_ordering, dim, saturated_ideal, intersection, quotient
 
 export Localization, ideal
+export bring_to_common_denominator, write_as_linear_combination
 
 export LocalizedBiPolyArray, BiPolyArray
-export oscar_gens, oscar_ring, singular_ring, singular_gens, ordering, shift
+export oscar_gens, oscar_ring, singular_ring, singular_gens, ordering, shift, shift_hom, inv_shift_hom, to_singular_side, to_oscar_side
 export groebner_basis, groebner_assure
 
 export MPolyLocalizedRingHom
 export domain, codomain, images
+
 
 import AbstractAlgebra: Ring, RingElem
 import Base: issubset
@@ -1096,6 +1098,91 @@ function std(lbpa::LocalizedBiPolyArray)
 	   )
 end
 
+function shift_hom(lbpa::LocalizedBiPolyArray) 
+  return hom(base_ring(oscar_ring(lbpa)), base_ring(oscar_ring(lbpa)), 
+	     [gen(base_ring(oscar_ring(lbpa)), i) + shift(lbpa)[i] for i in (1:nvars(base_ring(oscar_ring(lbpa))))])
+end
+
+function inv_shift_hom(lbpa::LocalizedBiPolyArray) 
+  R = base_ring(oscar_ring(lbpa))
+  return AlgebraHomomorphism(R, R, [gen(R, i) - R(shift(lbpa)[i]) for i in (1:nvars(R))])
+end
+
+function to_singular_side(
+    lbpa::LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}, 
+    f::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}
+  ) where {BRT, BRET, RT, RET, MST}
+  S = singular_ring(lbpa)
+  phi = shift_hom(lbpa)
+  return S(phi(numerator(f)))//S(phi(denominator(f)))
+end
+  
+function to_singular_side(
+    lbpa::LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}, 
+    f::Vector{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}
+  ) where {BRT, BRET, RT, RET, MST}
+  S = singular_ring(lbpa)
+  phi = shift_hom(lbpa)
+  return [S(phi(numerator(a)))//S(phi(denominator(a))) for a in f]
+end
+  
+function to_singular_side(
+    lbpa::LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}, 
+    f::RET
+  ) where {BRT, BRET, RT, RET, MST}
+  S = singular_ring(lbpa)
+  phi = shift_hom(lbpa)
+  return S(phi(f))
+end
+  
+function to_singular_side(
+    lbpa::LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}, 
+    f::Vector{RET}
+  ) where {BRT, BRET, RT, RET, MST}
+  S = singular_ring(lbpa)
+  phi = shift_hom(lbpa)
+  return [S(phi(a)) for a in f]
+end
+
+function to_oscar_side(
+    lbpa::LocalizedBiPolyArray,
+    f::Singular.spoly
+  )
+  W = oscar_ring(lbpa)
+  R = base_ring(W)
+  psi = inv_shift_hom
+  return psi(R(f))
+end
+  
+function to_oscar_side(
+    lbpa::LocalizedBiPolyArray,
+    f::Vector{Singular.spoly}
+  )
+  W = oscar_ring(lbpa)
+  R = base_ring(W)
+  psi = inv_shift_hom
+  return [psi(R(a)) for a in f]
+end
+
+function to_oscar_side(
+    lbpa::LocalizedBiPolyArray,
+    f::AbstractAlgebra.Generic.Frac{Singular.spoly}
+  )
+  W = oscar_ring(lbpa)
+  R = base_ring(W)
+  psi = inv_shift_hom
+  return psi(R(numerator(f)))//psi(R(denominator(f)))
+end
+  
+function to_oscar_side(
+    lbpa::LocalizedBiPolyArray,
+    f::Vector{AbstractAlgebra.Generic.Frac{Singular.spoly}}
+  )
+  W = oscar_ring(lbpa)
+  R = base_ring(W)
+  psi = inv_shift_hom
+  return [psi(R(numerator(a)))//psi(R(denominator(a))) for a in f]
+end
 
 ########################################################################
 # Ideals in localizations of multivariate polynomial rings             #
@@ -1360,7 +1447,7 @@ BiPolyArray(
     W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST}, 
     g::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST};
     ordering=:negdegrevlex
-  ) where {BRT, BRET, RT, RET, MST} = ByPolyArray(W, [g], ordering=ordering)
+  ) where {BRT, BRET, RT, RET, MST} = BiPolyArray(W, [g], ordering=ordering)
 
 BiPolyArray(
     W::MPolyLocalizedRing{BRT, BRET, RT, RET, MST}, 
@@ -1544,6 +1631,52 @@ function Base.reduce(
   end
   inv_shift_hom = hom(R,R, [gen(R, i) - lbpa.shift[i] for i in (1:nvars(R))])
   return W(inv_shift_hom(R(singular_n)), denominator(f))
+end
+
+bring_to_common_denominator(f::Vector{MPolyLocalizedRingElem}) = bring_to_common_denominator(fraction.(f))
+
+@Markdown.doc """
+bring_to_common_denominator(f::Vector{AbstractAlgebra.Generic.Frac{RET}}) where {RET<:RingElement}
+
+Given a vector of fractions [a₁//b₁,…,aₙ//bₙ] return a pair 
+(d, λ) consisting of a common denominator d and a vector 
+λ = [λ₁,…,λₙ] such that aᵢ//bᵢ = λᵢ⋅aᵢ//d
+"""
+function bring_to_common_denominator(f::Vector{AbstractAlgebra.Generic.Frac{RET}}) where {RET<:RingElement}
+  length(f) == 0 && error("need at least one argument to determine the return type")
+  R = base_ring(parent(f[1]))
+  for a in f
+    R == base_ring(parent(a)) || error("elements do not belong to the same ring")
+  end
+  d = one(R)
+  a = Vector{elem_type(R)}()
+  for den in f
+    b = gcd(d, den)
+    c = divexact(den, b)
+    e = divexact(d, b)
+    d = d*c
+    a = e*a
+    push!(a, c)
+  end
+  return d, a
+end
+
+write_as_linear_combination(f::MPolyLocalizedRingElem, g::Vector) = write_as_linear_combination(f, parent(f).(g))
+
+function write_as_linear_combination(f::T, g::Vector{T}) where {T<:MPolyLocalizedRingElem} 
+  n = length(g)
+  W = parent(f)
+  for a in g 
+    parent(g) == W || error("elements do not belong to the same ring")
+  end
+  (d, a) = bring_to_common_denominator(vcat([f], g))
+  h = [a[i+1]*g[i] for i in 1:n]
+  lbpa = BiPolyArray(W, h)
+  p = a[1]*f
+  p_sing = to_singular_side(lbpa, p)
+  S = singular_ring(lbpa)
+  l_sing = Singular.lift(singular_ideal(lbpa), Singular.Ideal(S, p_sing))
+  #TODO: finish this once I understand how to use the `lift`-command.
 end
 
 

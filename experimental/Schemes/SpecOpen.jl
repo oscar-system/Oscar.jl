@@ -4,6 +4,8 @@ export StructureSheafRing, variety, domain, OO
 
 export StructureSheafElem, domain, representatives, patches, npatches, restrict
 
+export SpecOpenMor, maps_on_patches, restriction
+
 mutable struct SpecOpen{BRT, BRET, RT, RET, MST} <: Scheme{BRT, BRET}
   X::Spec{BRT, BRET, RT, RET, MST} # the ambient scheme
   gens::Vector{RET} # a list of functions defining the complement of the open subset
@@ -29,6 +31,7 @@ end
 
 parent(U::SpecOpen) = U.X
 gens(U::SpecOpen) = U.gens
+
 function Base.show(io::IO, U::SpecOpen)
   if isdefined(U, :name) 
     print(io, name(U))
@@ -161,6 +164,13 @@ function ==(
   return issubset(U, Y) && issubset(Y, U)
 end
 
+function ==(
+    Y::Spec{BRT, BRET, RT, RET, MST},
+    U::SpecOpen{BRT, BRET, RT, RET, MST}
+  ) where {BRT, BRET, RT, RET, MST}
+  return U == Y
+end
+
 function closure(
     U::SpecOpen{BRT, BRET, RT, RET, MST},
     Y::Spec{BRT, BRET, RT, RET, MST} 
@@ -169,6 +179,12 @@ function closure(
 end
 
 
+@Markdown.doc """
+StructureSheafRing{BRT, BRET, RT, RET, MST}
+
+The ring of regular functions 𝒪(X, U) on an open subset U of an 
+affine scheme X.
+"""
 mutable struct StructureSheafRing{BRT, BRET, RT, RET, MST}
   variety::Spec{BRT, BRET, RT, RET, MST}
   domain::SpecOpen{BRT, BRET, RT, RET, MST}
@@ -196,6 +212,12 @@ end
 
 elem_type(R::StructureSheafRing{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST}= Type{StructureSheafElem{BRT, BRET, RT, RET, MST}}
 
+@Markdown.doc """
+StructureSheafElem{BRT, BRET, RT, RET, MST}
+
+An element f ∈ 𝒪(X, U) of the ring of regular functions on 
+an open set U of an affine variety X.
+"""
 mutable struct StructureSheafElem{BRT, BRET, RT, RET, MST}
   domain::SpecOpen{BRT, BRET, RT, RET, MST}
   representatives::Vector{MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}}
@@ -239,6 +261,16 @@ function restrict(
   error("not implemented")
 end
 
+@Markdown.doc """
+maximal_extension(
+  X::Spec{BRT, BRET, RT, RET, MST}, 
+  f::AbstractAlgebra.Generic.Frac{RET}
+) where {BRT, BRET, RT, RET, MST}
+
+Returns the maximal extension of the restriction of f 
+to a rational function on X on a maximal domain of 
+definition U ⊂ X. 
+"""
 function maximal_extension(
     X::Spec{BRT, BRET, RT, RET, MST}, 
     f::AbstractAlgebra.Generic.Frac{RET}
@@ -251,3 +283,124 @@ function maximal_extension(
   g = [OO(V)(f) for V in patches(U)]
   return StructureSheafElem(U, g)
 end
+
+@Markdown.doc """
+maximal_extension(
+  X::Spec{BRT, BRET, RT, RET, MST}, 
+  f::Vector{AbstractAlgebra.Generic.Frac{RET}}
+) where {BRT, BRET, RT, RET, MST}
+
+Returns the extension of the restriction of the fᵢ as a 
+set of rational functions on X to a common maximal domain of 
+definition U ⊂ X.
+"""
+function maximal_extension(
+    X::Spec{BRT, BRET, RT, RET, MST}, 
+    f::Vector{AbstractAlgebra.Generic.Frac{RET}}
+  ) where {BRT, BRET, RT, RET, MST}
+  if length(f) == 0
+    return SpecOpen(X), Vector{StructureSheafElem{BRT, BRET, RT, RET, MST}}()
+  end
+  a = numerator.(f)
+  b = denominator.(f)
+  W = localized_ring(OO(X))
+  I = ideal(W, one(W))
+  for p in f
+    I = intersection(quotient(ideal(W, denominator(p)) + localized_modulus(OO(X)), ideal(W, numerator(p))), I)
+  end
+  U = SpecOpen(X, I)
+  return U, [StructureSheafElem(U, [OO(V)(a) for V in patches(U)]) for a in f]
+end
+
+@Markdown.doc """
+SpecOpenMor{BRT, BRET, RT, RET, MST1, MST2}
+
+Morphisms f : U → V of open sets U ⊂ X and V ⊂ Y of affine schemes.
+These are stored as morphisms fᵢ: Uᵢ→ Y on the affine patches 
+Uᵢ of U.
+"""
+mutable struct SpecOpenMor{BRT, BRET, RT, RET, MST1, MST2}
+  domain::SpecOpen{BRT, BRET, RT, RET, MST1}
+  codomain::SpecOpen{BRT, BRET, RT, RET, MST2}
+  maps_on_patches::Vector{SpecMor{BRT, BRET, RT, RET, MST1, MST2}}
+
+  # fields used for caching
+  inverse::SpecOpenMor{BRT, BRET, RT, RET, MST2, MST1}
+
+  function SpecOpenMor(
+      U::SpecOpen{BRT, BRET, RT, RET, MST1},
+      V::SpecOpen{BRT, BRET, RT, RET, MST2},
+      f::Vector{SpecMor{BRT, BRET, RT, RET, MST1, MST2}};
+      check::Bool=true
+    ) where {BRT, BRET, RT, RET, MST1, MST2}
+    Y = parent(V)
+    n = length(f)
+    n == length(patches(U)) || error("number of patches does not coincide with the number of maps")
+    if check
+      for i in 1:n
+	domain(f[i]) == patches(U)[i] || error("domain of definition of the map does not coincide with the patch")
+	codomain(f[i]) == Y || error("codomain is not compatible")
+      end
+      for i in 1:n-1
+	for j in i+1:n
+	  A = intersect(domain(f[i]), domain(f[j]))
+	  restrict(f[i], A, Y) == restrict(f[j], A, Y) || error("maps don't glue")
+	end
+      end
+      I = ideal(localized_ring(OO(Y)), gens(V))
+      for g in f
+	one(localized_ring(OO(domain(g)))) in pullback(g)(I) + localized_modulus(OO(domain(g))) || error("image is not contained in the codomain")
+      end
+    end
+    return new{BRT, BRET, RT, RET, MST1, MST2}(U, V, f)
+  end
+end
+
+domain(f::SpecOpenMor) = f.domain
+codomain(f::SpecOpenMor) = f.codomain
+maps_on_patches(f::SpecOpenMor) = f.maps_on_patches
+getindex(f::SpecOpenMor, i::Int) = maps_on_patches(f)[i]
+
+@Markdown.doc """
+maximal_extension(
+  X::Spec{BRT, BRET, RT, RET, MST}, 
+  Y::Spec{BRT, BRET, RT, RET, MST}, 
+  f::AbstractAlgebra.Generic.Frac{RET}
+) where {BRT, BRET, RT, RET, MST}
+
+Given a rational map ϕ : X ---> Y ⊂ Spec 𝕜[y₁,…,yₙ] of affine schemes 
+determined by ϕ*yⱼ = fⱼ = aⱼ//bⱼ, find the maximal open subset U⊂ X 
+to which ϕ can be extended to a regular map g : U → Y and return g.
+"""
+function maximal_extension(
+    X::Spec{BRT, BRET, RT, RET, MST}, 
+    Y::Spec{BRT, BRET, RT, RET, MST}, 
+    f::Vector{AbstractAlgebra.Generic.Frac{RET}}
+  ) where {BRT, BRET, RT, RET, MST}
+  U, g = maximal_extension(X, f)
+  n = length(patches(U))
+  maps = Vector{SpecMor{BRT, BRET, RT, RET, MST, MST}}()
+  for i in 1:n
+    push!(maps, SpecMor(patches(U)[i], Y, [representatives(a)[i] for a in g]))
+  end
+  return SpecOpenMor(U, SpecOpen(Y), maps)
+end
+
+function maximal_extension(
+    X::Spec{BRT, BRET, RT, RET, MST}, 
+    Y::Spec{BRT, BRET, RT, RET, MST}, 
+    f::Vector
+  ) where {BRT, BRET, RT, RET, MST}
+  return maximal_extension(X, Y, FractionField(base_ring(OO(X))).(f))
+end
+
+function restriction(
+    f::SpecOpenMor{BRT, BRET, RT, RET, MST1, MST2},
+    U::SpecOpen{BRT, BRET, RT, RET, MST1},
+    V::SpecOpen{BRT, BRET, RT, RET, MST2}
+  ) where {BRT, BRET, RT, RET, MST1, MST2}
+  U == domain(f) || error("restriction not implemented")
+  issubset(V, codomain(f))
+  return SpecOpenMor(U, V, maps_on_patches(f))
+end
+

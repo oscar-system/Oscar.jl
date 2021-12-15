@@ -16,4 +16,10 @@ U = SpecOpen(Y, [x^5, y-7*x^7])
 
 f = maximal_extension(Y, x//z)
 
+S, (u, v) = PolynomialRing(QQ, ["u", "v"])
 
+Z = Spec(S)
+
+g = maximal_extension(Y, Z, [x//z, y])
+
+g = restriction(g, domain(g), SpecOpen(Z, [v]))

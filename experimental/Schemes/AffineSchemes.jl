@@ -298,6 +298,12 @@ function compose(f::SpecMorType, g::SpecMorType) where {SpecMorType<:SpecMor}
   return SpecMor(domain(f), codomain(g), compose(pullback(g), pullback(f)))
 end
 
+function ==(f::SpecMorType, g::SpecMorType) where {SpecMorType<:SpecMor}
+  domain(f) == domain(g) || return false
+  codomain(f) == codomain(g) || return false
+  pullback(f) == pullback(g) || return false
+  return true
+end
 
 ### functionality
 function preimage(
@@ -369,3 +375,10 @@ function graph(f::SpecMor{BRT, BRET, RT, RET, MST, MST}) where {BRT, BRET, RT, R
   G = subscheme(XxY, I)
   return G, restrict(prX, G, X), restrict(prY, G, Y)
 end
+
+function partition_of_unity(X::Spec{BRT, BRET, RT, RET, MST},
+    f::Vector{RET}
+  ) where {BRT, BRET, RT, RET, MST}
+  error("not implemented")
+end
+

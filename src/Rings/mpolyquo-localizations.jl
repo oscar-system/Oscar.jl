@@ -6,7 +6,7 @@ export parent, inverted_set, base_ring, quotient_ring, localized_ring, modulus, 
 export Localization
 
 export MPolyQuoLocalizedRingElem
-export numerator, denominator, parent, lift, isunit, inv, convert
+export numerator, denominator, parent, lift, isunit, inv, convert, lifted_numerator, lifted_denominator, fraction
 
 export MPolyQuoLocalizedRingHom
 export domain, codomain, images
@@ -305,6 +305,7 @@ quotient_ring(a::MPolyQuoLocalizedRingElem) = quotient_ring(parent(a))
 localized_ring(a::MPolyQuoLocalizedRingElem) = localized_ring(parent(a))
 lifted_numerator(a::MPolyQuoLocalizedRingElem) = a.numerator
 lifted_denominator(a::MPolyQuoLocalizedRingElem) = a.denominator
+fraction(a::MPolyQuoLocalizedRingElem) = lifted_numerator(a)//lifted_denominator(a)
 
 ### required conversions
 (L::MPolyQuoLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(f::RingElemType) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyQuoLocalizedRingElem(L, f, one(f))
