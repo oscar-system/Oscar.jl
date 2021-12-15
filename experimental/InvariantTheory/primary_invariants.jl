@@ -141,7 +141,7 @@ The product of the degrees $d_1,\dots, d_n$ of the returned primary invariants i
 The following keyword agruments can be used to speed up the computation.
 If degrees $d_1,\dots, d_n$ of primary invariants are known, those can be specified by `primary_degrees = [d_1, ..., d_n]`. Note that an error is raised if in fact no primary invariants of the given degrees exist.
 If a number $l \geq 1$ with $d_1\cdots d_n \geq l |G|$, where $G$ is the underlying group, is known, this can be specified by `degree_bound = l`. The default value is `degree_bound = 1`.
-In some situations the runtime of the algorithm might be improved by assigning `ensure_minimality` a positive integer. This leads to an early cancellation of loops in the algorithm and the described minimality of the degrees is not guaranteed anymore. The default value is `ensure_minimality = 0` corresponding to no cancellation.
+In some situations the runtime of the algorithm might be improved by assigning `ensure_minimality` a positive integer. This leads to an early cancellation of loops in the algorithm and the described minimality of the degrees is not guaranteed anymore. A smaller (positive) value of `ensure_minimality` corresponds to an earlier cancellation. However, the default value `ensure_minimality = 0` corresponds to no cancellation.
 
 # Examples
 ```jldoctest
