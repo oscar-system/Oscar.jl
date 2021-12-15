@@ -1,4 +1,9 @@
-function _isomorphic_gap_group(A::GrpAbFinGen; T=PcGroup)
+export
+    automorphism_group,
+    isautomorphism
+
+
+function _isomorphic_gap_group(A::GrpAbFinGen, T = PcGroup)
   # find independent generators
   if isdiagonal(rels(A))
     exponents = diagonal(rels(A))
@@ -54,10 +59,21 @@ function _gap_to_oscar(a::Oscar.BasicGAPGroupElem, B::GrpAbFinGen)
   return B(exp)
 end
 
-(f::GAPGroupElem{AutomorphismGroup{GrpAbFinGen}})(x::GrpAbFinGenElem)  = apply_automorphism(f, x, true)
-Base.:^(x::GrpAbFinGenElem,f::GAPGroupElem{AutomorphismGroup{GrpAbFinGen}}) = apply_automorphism(f, x, true)
+"""
+    automorphism_group(G::GrpAbFinGen) -> AutomorphismGroup{T} where T <: GrpAbFinGen
 
-function apply_automorphism(f::GAPGroupElem{AutomorphismGroup{GrpAbFinGen}}, x::GrpAbFinGenElem, check=true)
+Return the automorphism group of `G`.
+"""
+function automorphism_group(G::GrpAbFinGen)
+  Ggap, to_gap, to_oscar = _isomorphic_gap_group(G)
+  AutGAP = GAP.Globals.AutomorphismGroup(Ggap.X)
+  aut = AutomorphismGroup{typeof(G)}(AutGAP, G)
+  set_special(aut,:to_gap => to_gap)
+  set_special(aut,:to_oscar => to_oscar)
+  return aut
+end
+
+function apply_automorphism(f::AutomorphismGroupElem{GrpAbFinGen}, x::GrpAbFinGenElem, check=true)
   aut = parent(f)
   if check
     @assert parent(x) == aut.G "Not in the domain of f!"
@@ -70,15 +86,9 @@ function apply_automorphism(f::GAPGroupElem{AutomorphismGroup{GrpAbFinGen}}, x::
   imgap = typeof(xgap)(domGap, GAP.Globals.Image(f.X,xgap.X))
   return to_oscar(imgap)
 end
-
-function automorphism_group(G::GrpAbFinGen)
-  Ggap, to_gap, to_oscar = _isomorphic_gap_group(G)
-  AutGAP = GAP.Globals.AutomorphismGroup(Ggap.X)
-  aut = AutomorphismGroup{typeof(G)}(AutGAP, G)
-  set_special(aut,:to_gap => to_gap)
-  set_special(aut,:to_oscar => to_oscar)
-  return aut
-end
+ 
+(f::AutomorphismGroupElem{GrpAbFinGen})(x::GrpAbFinGenElem)  = apply_automorphism(f, x, true)
+Base.:^(x::GrpAbFinGenElem,f::AutomorphismGroupElem{GrpAbFinGen}) = apply_automorphism(f, x, true)
 
 # the _as_subgroup function needs a redefinition
 # to pass on the to_gap and to_oscar attributes to the subgroup
@@ -95,13 +105,61 @@ function _as_subgroup(aut::AutomorphismGroup{T}, subgrp::GapObj, ::Type{S}) wher
 end
 
 """
-    hom(f::GAPGroupElem{AutomorphismGroup{T}}) where T
+    hom(f::AutomorphismGroupElem{T}) where T
 
-Return the element f of type `GrpAbFinGenMap`.
+Return the element `f` of type `GrpAbFinGenMap`.
 """
-function hom(x::GAPGroupElem{AutomorphismGroup{T}}) where T <: GrpAbFinGen
-  A = parent(x).G
-  imgs = [x(a) for a in gens(A)]
+function hom(f::AutomorphismGroupElem{T}) where T <: GrpAbFinGen
+  A = parent(f).G
+  imgs = [f(a) for a in gens(A)]
   return hom(A, A, imgs)
 end
 
+
+function (aut::AutomorphismGroup{T})(f::GrpAbFinGenMap) where T
+  @assert isautomorphism(aut.G,f.map) "Map doesn't define an element of AutomorphismGroup"
+  to_gap = get_special(aut, :to_gap)
+  to_oscar = get_special(aut, :to_oscar)
+  Agap = domain(to_oscar)
+  AA = Agap.X
+  function img_gap(x)
+    a = to_oscar(group_element(Agap,x))
+    b = to_gap(f(a))
+    return b.X 
+  end
+  gene = GAP.Globals.GeneratorsOfGroup(AA)
+  img = GAP.julia_to_gap([img_gap(a) for a in gene])
+  fgap = GAP.Globals.GroupHomomorphismByImagesNC(AA,AA,img)
+  return AutomorphismGroupElem{T}(fgap,aut)
+end
+
+
+function (aut::AutomorphismGroup{T})(M::fmpz_mat) where T
+  @assert isautomorphism(aut.G,M) "Matrix doesn't define an element of Automorphism Group"
+  return aut(hom(aut.G,aut.G,M))
+end
+
+"""
+    matrix(f::AutomorphismGroupElem{T}) where T -> fmpz_mat
+
+Return the underlying matrix of `f` as a module homormorphism.
+"""
+matrix(f::AutomorphismGroupElem{T}) where T <: GrpAbFinGen = f.map
+
+
+"""
+    isautomorphism(G::GrpAbFinGen, M::fmpz_mat) -> Bool
+
+If `M` defines an endomorphism of `G`, return `true` if `M` defines an automorphism of `G`, else `false`.
+""" 
+isautomorphism(G::GrpAbFinGen, M::fmpz_mat) = isbijective(hom(G,G,M))
+
+
+"""
+    isinner_automorphism(f::AutomorphismGroupElem{T}) where T -> Bool
+
+If `f` an automorphism of its domain, return `true` if `f` is inner, else `false`.
+"""
+isinner_automorphism(f::AutomorphismGroupElem{T}) where T = GAP.Globals.IsInnerAutomorphism(f.X)
+
+==(f::AutomorphismGroupElem{T},g::AutomorphismGroupElem{T}) where T = f.X == g.X
