@@ -67,7 +67,8 @@ julia> Tf = TropicalHypersurface(f)
 A min tropical hypersurface embedded in 2-dimensional Euclidian space
 ```
 """
-function TropicalHypersurface(f::AbstractAlgebra.Generic.MPoly{Oscar.TropicalNumbersElem{Union{typeof(min),typeof(max)}}})
+function TropicalHypersurface(f::Union{AbstractAlgebra.Generic.MPoly{Oscar.TropicalNumbersElem{typeof(min)}},
+                                       AbstractAlgebra.Generic.MPoly{Oscar.TropicalNumbersElem{typeof(max)}}})
     if total_degree(f) <= 0
         error("Tropical hypersurfaces of constant polynomials not supported.")
     end
@@ -81,7 +82,8 @@ function TropicalHypersurface(f::AbstractAlgebra.Generic.MPoly{Oscar.TropicalNum
 end
 
 @doc Markdown.doc"""
-    tropical_variety(f::AbstractAlgebra.Generic.MPoly{Oscar.TropicalNumbersElem{Union{typeof(min),typeof(max)}}})
+    tropical_variety(f::Union{AbstractAlgebra.Generic.MPoly{Oscar.TropicalNumbersElem{typeof(min)}},
+                              AbstractAlgebra.Generic.MPoly{Oscar.TropicalNumbersElem{typeof(max)}}})
 
 Returns the tropical variety of a tropical polynomial in form of a TropicalHypersurface
 
@@ -100,13 +102,15 @@ julia> Tf = TropicalHypersurface(f)
 A min tropical hypersurface embedded in 2-dimensional Euclidian space
 ```
 """
-function tropical_variety(f::AbstractAlgebra.Generic.MPoly{Oscar.TropicalNumbersElem{Union{typeof(min),typeof(max)}}})
+function tropical_variety(f::Union{AbstractAlgebra.Generic.MPoly{Oscar.TropicalNumbersElem{typeof(min)}},
+                                   AbstractAlgebra.Generic.MPoly{Oscar.TropicalNumbersElem{typeof(max)}}})
     return TropicalHypersurface(f)
 end
 
 
 @doc Markdown.doc"""
-    TropicalHypersurface{M}(f::AbstractAlgebra.Generic.MPoly{<:RingElement})
+    TropicalHypersurface{M}(f::Union{AbstractAlgebra.Generic.MPoly{Oscar.TropicalNumbersElem{typeof(min)}},
+                                     AbstractAlgebra.Generic.MPoly{Oscar.TropicalNumbersElem{typeof(max)}}})
 
 Returns the tropical hypersurface of an algebraic polynomial.
 If M=min, the tropical hypersurface will obey the min-convention.
@@ -115,10 +119,17 @@ If coefficient ring has a valuation, the tropical hypersurface will be construct
 If coefficient ring has no valuation, the tropical hypersurface will be constructed with respect to the trivial valuation.
 
 # Examples
+julia> K = PadicField(7, 2);
 
+julia> Kxy, (x,y) = K["x", "y"];
+
+julia> f = 7*x+y+49;
+
+julia> TropicalHypersurface{min}(f)
 """
 function TropicalHypersurface{M}(f::AbstractAlgebra.Generic.MPoly{<:RingElement}) where {M}
-    Tf = TropicalHypersurface{M}(tropical_polynomial(f,M))
+    tropf = tropical_polynomial(f,M)
+    Tf = TropicalHypersurface(tropf)
     set_attribute!(Tf,:algebraic_polynomial,f)
     set_attribute!(Tf,:tropical_polynomial,tropf)
   return Tf
