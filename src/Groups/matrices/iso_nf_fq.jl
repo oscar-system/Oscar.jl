@@ -74,10 +74,10 @@ function _isomorphic_group_over_finite_field(G::MatrixGroup{T}) where T <: Union
 end
 
 function isomorphic_group_over_finite_field(G::MatrixGroup{T}) where T <: Union{fmpq, nf_elem}
-   res = get_special(G, :isomorphic_group_over_fq)
+   res = get_attribute(G, :isomorphic_group_over_fq)
    if res == nothing
       res = _isomorphic_group_over_finite_field(G)
-      set_special(G, :isomorphic_group_over_fq => res)
+      set_attribute!(G, :isomorphic_group_over_fq => res)
    end
    return res
 end

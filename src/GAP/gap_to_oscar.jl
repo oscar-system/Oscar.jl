@@ -69,7 +69,7 @@ end
 function (F::AnticNumberField)(obj::GapObj)
     Nemo.iscyclo_type(F) || throw(ArgumentError("F is not a cyclotomic field"))
     GAPWrap.IsCyclotomic(obj) || throw(ArgumentError("input is not a GAP cyclotomic"))
-    N = Oscar.get_special(F, :cyclo)
+    N = get_attribute(F, :cyclo)
     mod(N, GAPWrap.Conductor(obj)) == 0 || throw(ArgumentError("obj does not embed into F"))
 
     B = default_basis_GAP_cyclotomic_field(N)
@@ -122,7 +122,7 @@ end
 function matrix(F::AnticNumberField, mat::GapObj)
     Nemo.iscyclo_type(F) || throw(ArgumentError("F is not a cyclotomic field"))
     (GAPWrap.IsCyclotomicCollColl(mat) && GAPWrap.IsMatrixOrMatrixObj(mat)) || throw(ArgumentError("mat is not a GAP matrix of cyclotomics"))
-    N = Oscar.get_special(F, :cyclo)
+    N = get_attribute(F, :cyclo)
     B = default_basis_GAP_cyclotomic_field(N)
     m = GAPWrap.NrRows(mat)
     n = GAPWrap.NrCols(mat)
