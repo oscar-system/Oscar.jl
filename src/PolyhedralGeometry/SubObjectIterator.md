@@ -169,7 +169,9 @@ used in the context of linear and affine halfspaces/hyperplanes. Defining this
 functionality in a context works the same way as for `matrix_for_polymake`; you
 can create a new method of `_linear_matrix_for_polymake` or
 `_affine_matrix_for_polymake`. It suffices to define the most relevant of these
-two; the other one will be derived, if possible.
+two; the other one will be derived, if possible. Also, `halfspace_matrix_pair`
+is defined in terms of `affine_matrix_for_polymake`, so this does not need
+another implementation.
 
 The example code for `rays(C::Cone)` has covered every line of the
 implementation by now, but we had different code in between, so let us summarize
