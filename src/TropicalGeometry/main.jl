@@ -1,4 +1,5 @@
 include("numbers.jl")
+include("poly.jl")
 
 
 # Temporarily we will turn tropical polynomials into strings. This will be
