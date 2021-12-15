@@ -119,13 +119,15 @@ If coefficient ring has a valuation, the tropical hypersurface will be construct
 If coefficient ring has no valuation, the tropical hypersurface will be constructed with respect to the trivial valuation.
 
 # Examples
-julia> K = PadicField(7, 2);
+julia> K = PadicField(7, 2)
 
-julia> Kxy, (x,y) = K["x", "y"];
+julia> Kxy, (x,y) = K["x", "y"]
 
-julia> f = 7*x+y+49;
+julia> f = 7*x+y+49
 
 julia> TropicalHypersurface{min}(f)
+
+julia> TropicalHypersurface{max}(f)
 """
 function TropicalHypersurface{M}(f::AbstractAlgebra.Generic.MPoly{<:RingElement}) where {M}
     tropf = tropical_polynomial(f,M)
@@ -147,6 +149,15 @@ If coefficient ring has no valuation, the tropical hypersurface will be construc
 The function is the same as TropicalHypersurface{M}(f).
 
 # Examples
+julia> K = PadicField(7, 2)
+
+julia> Kxy, (x,y) = K["x", "y"]
+
+julia> f = 7*x+y+49
+
+julia> tropical_variety(f,min)
+
+julia> tropical_variety(f,max)
 """
 function tropical_variety(f::AbstractAlgebra.Generic.MPoly{<:RingElement}, M::Union{typeof(min),typeof(max)})
     return TropicalHypersurface{M}(f)
