@@ -86,6 +86,30 @@ _maximal_polytope(::Type{Polyhedron}, PC::Polymake.BigObject, i::Base.Integer) =
     maximal_polytopes(PC::PolyhedralComplex)
 
 Return the maximal polytopes of `PC`
+
+# Examples
+```jldoctest
+julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]])
+2×4 IncidenceMatrix
+[1, 2, 3]
+[1, 3, 4]
+
+
+julia> VR = [0 0; 1 0; 1 1; 0 1]
+4×2 Matrix{Int64}:
+ 0  0
+ 1  0
+ 1  1
+ 0  1
+
+julia> PC = PolyhedralComplex(IM, VR, [2])
+A polyhedral complex in ambient dimension 2
+
+julia> maximal_polytopes(PC)
+2-element SubObjectIterator{Polyhedron}:
+ A polyhedron in ambient dimension 2
+ A polyhedron in ambient dimension 2
+```
 """
 maximal_polytopes(PC::PolyhedralComplex) = SubObjectIterator{Polyhedron}(pm_object(PC), _maximal_polytope, nmaximal_polytopes(PC))
 
@@ -94,6 +118,28 @@ maximal_polytopes(PC::PolyhedralComplex) = SubObjectIterator{Polyhedron}(pm_obje
     nmaximal_polytopes(PC::PolyhedralComplex)
 
 Return the number of maximal polytopes of `PC`
+
+# Examples
+```jldoctest
+julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]])
+2×4 IncidenceMatrix
+[1, 2, 3]
+[1, 3, 4]
+
+
+julia> VR = [0 0; 1 0; 1 1; 0 1]
+4×2 Matrix{Int64}:
+ 0  0
+ 1  0
+ 1  1
+ 0  1
+
+julia> PC = PolyhedralComplex(IM, VR, [2])
+A polyhedral complex in ambient dimension 2
+
+julia> nmaximal_polytopes(PC)
+2
+```
 """
 nmaximal_polytopes(PC::PolyhedralComplex) = pm_object(PC).N_MAXIMAL_POLYTOPES
 
