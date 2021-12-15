@@ -161,27 +161,6 @@ function _prepare_reynolds_operator(IR::InvRing{FldT, GrpT, PolyElemT}) where {F
   return nothing
 end
 
-function reynolds_operator_via_oscar(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyElem}
-  @assert !ismodular(IR)
-  @assert parent(f) === polynomial_ring(IR)
-
-  if !isdefined(IR, :reynolds_operator)
-    _prepare_reynolds_operator(IR)
-  end
-  return IR.reynolds_operator(f)
-end
-
-function reynolds_operator_via_singular(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyElem}
-   @assert parent(f) === polynomial_ring(IR)
-
-   rey = reynolds_via_singular(IR)
-   fSing = singular_ring(polynomial_ring(IR))(f)
-   fReySing = Singular.LibFinvar.evaluate_reynolds(rey, fSing)
-   # fReySing is an ideal...
-   @assert length(gens(fReySing)) == 1
-   return polynomial_ring(IR)(gens(fReySing)[1])
-end
-
 @doc Markdown.doc"""
      reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyElem}
 
@@ -269,7 +248,15 @@ julia> reynolds_operator(IR, f)
 0
 ```
 """
-reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyElem} = reynolds_operator_via_oscar(IR, f)
+function reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyElem}
+  @assert !ismodular(IR)
+  @assert parent(f) === polynomial_ring(IR)
+
+  if !isdefined(IR, :reynolds_operator)
+    _prepare_reynolds_operator(IR)
+  end
+  return IR.reynolds_operator(f)
+end
 
 function reynolds_operator(IR::InvRing, f::MPolyElem)
   @assert parent(f) === polynomial_ring(IR).R
@@ -281,47 +268,6 @@ end
 #  Bases
 #
 ################################################################################
-
-
-function basis_via_reynolds(IR::InvRing, d::Int)
-  @assert d >= 0 "Degree must be non-negative"
-  @assert !ismodular(IR)
-  R = polynomial_ring(IR)
-  if d == 0
-    return elem_type(R)[ one(R) ]
-  end
-
-  rey = reynolds_via_singular(IR)
-  basisSing = Singular.LibFinvar.invariant_basis_reynolds(rey, d)
-  res = Vector{elem_type(R)}()
-  # [ 0 ] is not a basis, let's return [ ]
-  if length(gens(basisSing)) == 1 && iszero(gens(basisSing)[1])
-    return res
-  end
-  for f in gens(basisSing)
-    push!(res, R(f))
-  end
-  return res
-end
-
-function basis_via_linear_algebra(IR::InvRing, d::Int)
-  @assert d >= 0 "Degree must be non-negative"
-  R = polynomial_ring(IR)
-  if d == 0
-    return elem_type(R)[ one(R) ]
-  end
-
-  basisSing = Singular.LibFinvar.invariant_basis(d, _action_singular(IR)...)
-  res = Vector{elem_type(R)}()
-  # [ 0 ] is not a basis, let's return [ ]
-  if length(gens(basisSing)) == 1 && iszero(gens(basisSing)[1])
-    return res
-  end
-  for f in gens(basisSing)
-    push!(res, R(f))
-  end
-  return res
-end
 
 @doc Markdown.doc"""
      basis(IR::InvRing, d::Int, algo::Symbol = :default)
@@ -523,42 +469,6 @@ end
 #  Molien series
 #
 ################################################################################
-
-# Some functionality via Singular
-function __molien_series_via_singular(IR::InvRing{T}) where {T <: Union{FlintRationalField, AnticNumberField, Nemo.GaloisField, Nemo.GaloisFmpzField}}
-  return reynolds_molien_via_singular(IR)[2]
-end
-
-function _molien_series_via_singular(S::PolyRing, IR::InvRing{T}) where {T <: Union{FlintRationalField, AnticNumberField}}
-  mol = __molien_series_via_singular(IR)
-  # Singular does not build a new polynomial ring for the univariate Hilbert series
-  # (how could it after all), but uses the first variable of the given ring.
-
-  R = polynomial_ring(IR)
-  K = coefficient_ring(IR)
-  Kx, _ = PolynomialRing(K, "x", cached = false)
-  _num = Kx(to_univariate(Kx, R(mol[1, 1])))
-  _den = Kx(to_univariate(Kx, R(mol[1, 2])))
-  num = change_coefficient_ring(coefficient_ring(S), _num, parent = S)
-  den = change_coefficient_ring(coefficient_ring(S), _den, parent = S)
-  return num//den
-end
-
-function _molien_series_via_singular(S::PolyRing, IR::InvRing{T}) where {T <: Union{Nemo.GaloisField, Nemo.GaloisFmpzField}}
-  @assert !ismodular(IR)
-  mol = __molien_series_via_singular(IR)
-
-  # TODO: Write a conversion from Singular number fields to Nemo ones
-  Qx, x = PolynomialRing(FlintQQ, "x", cached = false)
-  K, a = number_field(Qx(Singular.n_transExt_to_spoly(Singular.modulus(coefficient_ring(parent(mol[1, 1]))))), "a", cached = false)
-  R, y = PolynomialRing(K, ["y"], cached = false)
-  Kx, _ = PolynomialRing(K, "x", cached = false)
-  _num = to_univariate(Kx, R(mol[1, 1]))
-  _den = to_univariate(Kx, R(mol[1, 2]))
-  num = change_coefficient_ring(coefficient_ring(S), _num, parent = S)
-  den = change_coefficient_ring(coefficient_ring(S), _den, parent = S)
-  return num//den
-end
 
 function _molien_series_char0(S::PolyRing, I::InvRing)
   G = group(I)

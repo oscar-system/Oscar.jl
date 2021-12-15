@@ -110,7 +110,6 @@
   S, t = QQ["t"]
   m = @inferred molien_series(S, I)
   @test m == 1//((1 - t^2)*(1 - t^3)*(1 - t^4)*(1 - t^5))
-  @test m == Oscar._molien_series_via_singular(S, I)
 
   gl = general_linear_group(4, 5)
   gapmats = [GAP.Globals.PermutationMat(elm.X, 4, GAP.Globals.GF(5))
@@ -124,5 +123,4 @@
   I = invariant_ring(-identity_matrix(F, 2))
   m = @inferred molien_series(S, I)
   @test m == (t^2 + 1)//(t^4 - 2*t^2 + 1)
-  @test m == Oscar._molien_series_via_singular(S, I)
 end
