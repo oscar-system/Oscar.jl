@@ -846,7 +846,7 @@ Given a matrix `A` with `rank(F)` rows and `ngens(G)` columns, return the
 homomorphism `F` $\to$ `G` which sends the `i`-th basis vector of `F` to 
 $\sum_j A[i,j]*G[j]$, for all `i`. Here, the `G[j]` are the given generators of `G`.
 """
-hom(F::FreeMod{T}, G::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T = FreeModuleHom(F, G, V)
+hom(F::FreeMod{T}, G::ModuleFP{T}, V::Vector{<:ModuleFPElem}) where T = FreeModuleHom(F, G, V) 
 hom(F::FreeMod{T}, G::ModuleFP{T}, A::MatElem{T}) where T = FreeModuleHom(F, G, A)
 
 @doc Markdown.doc"""
@@ -2827,8 +2827,8 @@ function hom(M::ModuleFP, N::ModuleFP, alg::Symbol=:maps)
 
   E, pr = direct_product(H_s0_t1, H_s1_t2, task = :prod)
 
-  rho = hom(E, D, [emb[1](preimage(mH_s0_t0, mH_s0_t1(pr[1](g))*map(p2, 1))) + 
-                   emb[2](preimage(mH_s1_t1, map(p1, 1)*mH_s0_t1(pr[1](g)) - mH_s1_t2(pr[2](g))*g2)) for g = gens(E)])
+  rho = hom(E, D, Vector{ModuleFPElem}([emb[1](preimage(mH_s0_t0, mH_s0_t1(pr[1](g))*map(p2, 1))) + 
+                  emb[2](preimage(mH_s1_t1, map(p1, 1)*mH_s0_t1(pr[1](g)) - mH_s1_t2(pr[2](g))*g2)) for g = gens(E)]))
   #need quo(kern(delta), image(rho))
  
   kDelta = kernel(delta)
