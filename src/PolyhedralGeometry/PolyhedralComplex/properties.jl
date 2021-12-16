@@ -79,13 +79,13 @@ vertices(::Type{Union{RayVector, PointVector}}, PC::PolyhedralComplex) = vertice
 
 vertices(PC::PolyhedralComplex) = vertices(Union{PointVector, RayVector}, PC)
 
-_maximal_polytope(::Type{Polyhedron}, PC::Polymake.BigObject, i::Base.Integer) = Polyhedron(Polymake.fan.polytope(PC, i-1))
+_maximal_polyhedron(::Type{Polyhedron}, PC::Polymake.BigObject, i::Base.Integer) = Polyhedron(Polymake.fan.polytope(PC, i-1))
 
 
 @doc Markdown.doc"""
-    maximal_polytopes(PC::PolyhedralComplex)
+    maximal_polyhedra(PC::PolyhedralComplex)
 
-Return the maximal polytopes of `PC`
+Return the maximal polyhedra of `PC`
 
 # Examples
 ```jldoctest
@@ -105,19 +105,19 @@ julia> VR = [0 0; 1 0; 1 1; 0 1]
 julia> PC = PolyhedralComplex(IM, VR, [2])
 A polyhedral complex in ambient dimension 2
 
-julia> maximal_polytopes(PC)
+julia> maximal_polyhedra(PC)
 2-element SubObjectIterator{Polyhedron}:
  A polyhedron in ambient dimension 2
  A polyhedron in ambient dimension 2
 ```
 """
-maximal_polytopes(PC::PolyhedralComplex) = SubObjectIterator{Polyhedron}(pm_object(PC), _maximal_polytope, nmaximal_polytopes(PC))
+maximal_polyhedra(PC::PolyhedralComplex) = SubObjectIterator{Polyhedron}(pm_object(PC), _maximal_polyhedron, nmaximal_polyhedra(PC))
 
 
 @doc Markdown.doc"""
-    nmaximal_polytopes(PC::PolyhedralComplex)
+    nmaximal_polyhedra(PC::PolyhedralComplex)
 
-Return the number of maximal polytopes of `PC`
+Return the number of maximal polyhedra of `PC`
 
 # Examples
 ```jldoctest
@@ -137,11 +137,11 @@ julia> VR = [0 0; 1 0; 1 1; 0 1]
 julia> PC = PolyhedralComplex(IM, VR, [2])
 A polyhedral complex in ambient dimension 2
 
-julia> nmaximal_polytopes(PC)
+julia> nmaximal_polyhedra(PC)
 2
 ```
 """
-nmaximal_polytopes(PC::PolyhedralComplex) = pm_object(PC).N_MAXIMAL_POLYTOPES
+nmaximal_polyhedra(PC::PolyhedralComplex) = pm_object(PC).N_MAXIMAL_POLYTOPES
 
 
 @doc Markdown.doc"""
@@ -205,3 +205,62 @@ julia> dim(PC)
 ```
 """
 dim(PC::PolyhedralComplex) = Polymake.fan.dim(pm_object(PC))
+
+@doc Markdown.doc"""
+    polyhedra_of_dim(PC::PolyhedralComplex, polyhedron_dim::Int)
+
+Return the polyhedra of a given dimension in the polyhedral complex `PC`.
+
+# Examples
+```jldoctest
+julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
+
+julia> VR = [0 0; 1 0; 1 1; 0 1];
+
+julia> PC = PolyhedralComplex(IM, VR);
+
+julia> P1s = polyhedra_of_dim(PC,1)
+5-element SubObjectIterator{Polyhedron}:
+ A polyhedron in ambient dimension 2
+ A polyhedron in ambient dimension 2
+ A polyhedron in ambient dimension 2
+ A polyhedron in ambient dimension 2
+ A polyhedron in ambient dimension 2
+
+julia> for p in P1s
+       println(dim(p))
+       end
+1
+1
+1
+1
+1
+```
+"""
+function polyhedra_of_dim(PC::PolyhedralComplex, polyhedron_dim::Int)
+    n = polyhedron_dim - lineality_dim(PC) + 1
+    n < 0 && return nothing
+    pfaces = Polymake.fan.cones_of_dim(pm_object(PC), n)
+    nfaces = Polymake.nrows(pfaces)
+    rfaces = Vector{Int64}()
+    nfarf = 0
+    farf = Polymake.to_one_based_indexing(pm_object(PC).FAR_VERTICES)
+    for index in 1:nfaces
+        face = Polymake.row(pfaces, index)
+        if face <= farf
+            nfarf += 1
+        else
+            append!(rfaces, index)
+        end
+    end
+    return SubObjectIterator{Polyhedron}(pm_object(PC), _ith_polyhedron, length(rfaces), (f_dim = n, f_ind = rfaces))
+end
+
+function _ith_polyhedron(::Type{Polyhedron}, PC::Polymake.BigObject, i::Base.Integer; f_dim::Int = -1, f_ind::Vector{Int64} = Vector{Int64}())
+    pface = Polymake.row(Polymake.fan.cones_of_dim(PC, f_dim), f_ind[i])
+    return Polyhedron(Polymake.polytope.Polytope(VERTICES = PC.VERTICES[collect(pface),:], LINEALITY_SPACE = PC.LINEALITY_SPACE))
+end
+
+lineality_space(PC::PolyhedralComplex) = SubObjectIterator{RayVector{Polymake.Rational}}(pm_object(PC), _lineality_polyhedron, lineality_dim(PC))
+
+lineality_dim(PC::PolyhedralComplex) = pm_object(PC).LINEALITY_DIM
