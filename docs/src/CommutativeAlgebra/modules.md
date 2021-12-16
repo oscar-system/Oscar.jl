@@ -163,7 +163,7 @@ iszero(m::SubQuoElem)
 ## Tests on Subqotients
 
 
-## Basic Operations on Subqotients
+## Basic Operations on Subquotients
 
 
 ## Submodules and Quotients
