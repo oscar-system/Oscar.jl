@@ -382,3 +382,29 @@ julia> codim(PC)
 ```
 """
 codim(PC::PolyhedralComplex) = ambient_dim(PC)-dim(PC)
+
+
+@doc Markdown.doc"""
+    isembedded(PC::PolyhedralComplex)
+
+Returns true if `PC` is embedded, i.e. if its vertices can be computed as a
+subset of some $\mathbb{R}^n$.
+
+# Examples
+```jldoctest
+julia> VR = [0 0; 1 0; -1 0; 0 1];
+
+julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4]]);
+
+julia> PC = PolyhedralComplex(IM, VR, far_vertices)
+A polyhedral complex in ambient dimension 2
+
+julia> isembedded(PC)
+true
+```
+"""
+function isembedded(PC::PolyhedralComplex)
+    pmo = pm_object(PC)
+    schedule = Polymake.call_method(pmo,:get_schedule,"VERTICES")
+    return schedule != nothing
+end
