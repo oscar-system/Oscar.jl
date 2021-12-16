@@ -18,6 +18,12 @@
 
 @attributes mutable struct TropicalCurve{M,EMB} <: TropicalVarietySupertype{M,EMB}
     polyhedralComplex::PolyhedralComplex
+    function TropicalCurve{M,EMB}(Sigma::PolyhedralComplex) where {M,EMB}
+        if dim(Sigma)!=1
+            error("TropicalCurve: input polyhedral complex not one-dimensional")
+        end
+        return new{M,EMB}(Sigma)
+    end
 end
 export TropicalCurve
 
