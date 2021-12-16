@@ -39,6 +39,7 @@ PolyhedralComplex
 ## Auxiliary functions
 ```@docs
 ambient_dim(PC::PolyhedralComplex)
+codim(PC::PolyhedralComplex)
 dim(PC::PolyhedralComplex)
 f_vector(PC::PolyhedralComplex)
 maximal_polyhedra(PC::PolyhedralComplex)

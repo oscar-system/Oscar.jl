@@ -360,3 +360,25 @@ julia> npolyhedra(PC)
 ```
 """
 npolyhedra(PC::PolyhedralComplex) = sum(f_vector(PC))
+
+@doc Markdown.doc"""
+    codim(PC::PolyhedralComplex)
+
+Compute the codimension of a polyhedral complex.
+
+# Examples
+```
+julia> VR = [0 0; 1 0; -1 0; 0 1];
+
+julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4]]);
+
+julia> far_vertices = [2,3,4];
+
+julia> PC = PolyhedralComplex(IM, VR, far_vertices)
+A polyhedral complex in ambient dimension 2
+
+julia> codim(PC)
+1
+```
+"""
+codim(PC::PolyhedralComplex) = ambient_dim(PC)-dim(PC)
