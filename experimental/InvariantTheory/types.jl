@@ -1,3 +1,14 @@
+mutable struct PrimaryInvarsCache{T}
+  invars::Vector{T}
+  ideal::MPolyIdeal{T}
+
+  function PrimaryInvarsCache{T}() where {T <: MPolyElem}
+    z = new{T}()
+    z.invars = T[]
+    return z
+  end
+end
+
 mutable struct InvRing{FldT, GrpT, PolyElemT, PolyRingT, ActionT, SingularActionT}
   field::FldT
   poly_ring::PolyRingT
@@ -8,7 +19,7 @@ mutable struct InvRing{FldT, GrpT, PolyElemT, PolyRingT, ActionT, SingularAction
 
   modular::Bool
 
-  primary::Vector{PolyElemT}
+  primary::PrimaryInvarsCache{PolyElemT}
   secondary::Vector{PolyElemT}
   irreducible_secondary::Vector{PolyElemT}
   fundamental::Vector{PolyElemT}
