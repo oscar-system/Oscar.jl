@@ -303,8 +303,8 @@ end
 
 @testset "Hom module" begin
 	R, (x0,x1,x2,x3,x4,x5) = PolynomialRing(QQ, ["x0", "x1", "x2", "x3", "x4", "x5"])
-	f1=R[-x2*x3 -x4*x5 0; x0*x1 0 -x4*x5; 0 x0*x1 -x2*x3]'
-	g1=R[x0*x1 x2*x3 x4*x5]'
+	f1= transpose(R[-x2*x3 -x4*x5 0; x0*x1 0 -x4*x5; 0 x0*x1 -x2*x3])
+	g1 = transpose(R[x0*x1 x2*x3 x4*x5])
 	M = cokernel(f1)
 	N = cokernel(g1)
 	SQ = hom(M,N)[1]

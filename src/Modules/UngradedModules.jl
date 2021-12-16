@@ -3824,7 +3824,7 @@ function simplify(M::SubQuo)
     return Mat
   end
   function delete_columns(A::MatElem, to_delete::Vector{Int})
-    return delete_rows(A', to_delete)'
+    return transpose(delete_rows(transpose(A), to_delete))
   end
 
   function assign_row!(A::MatElem, v::Vector, row_index::Int)
@@ -3888,7 +3888,7 @@ function simplify(M::SubQuo)
   new_generators = delete_columns(M_generators, to_delete)
   new_relations = delete_columns(M_relations, to_delete)
 
-  to_delete,_,_ = rows_to_delete(vcat(new_generators, new_relations)',size(new_relations)[2])
+  to_delete,_,_ = rows_to_delete(transpose(vcat(new_generators, new_relations)),size(new_relations)[2])
 
   new_generators = delete_columns(new_generators, to_delete)
   new_relations = delete_columns(new_relations, to_delete)
