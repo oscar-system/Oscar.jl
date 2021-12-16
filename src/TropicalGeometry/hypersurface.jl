@@ -17,13 +17,19 @@
 ###
 
 @attributes mutable struct TropicalHypersurface{M,EMB} <: TropicalVarietySupertype{M,EMB}
-    # GapTV::GapObj
-    polymakeTV::Polymake.BigObject
-    function TropicalHypersurface{M,EMB}(pm::Polymake.BigObject) where {M,EMB}
-        return new{M,EMB}(pm)
+    polyhedralComplex::PolyhedralComplex
+    function TropicalHypersurface{M,EMB}(Sigma::PolyhedralComplex) where {M,EMB}
+        return new{M,EMB}(Sigma)
     end
 end
 export TropicalHypersurface
+
+function pm_object(T::TropicalHypersurface)
+    if has_attribute(T,:polymake_bigobject)
+        return get_attribute(T,:polymake_bigobject)
+    end
+    error("pm_object(T::TropicalHypersurface): no polymake bigobject attributed")
+end
 
 
 
@@ -73,10 +79,13 @@ function TropicalHypersurface(f::Union{AbstractAlgebra.Generic.MPoly{Oscar.Tropi
         error("Tropical hypersurfaces of constant polynomials not supported.")
     end
     convention = fun(base_ring(f))
+
     fstr = Tuple(tropical_polynomial_to_polymake(f))
     pmpoly = Polymake.common.totropicalpolynomial(fstr...)
     pmhyp = Polymake.tropical.Hypersurface{convention}(POLYNOMIAL=pmpoly)
-    Vf = TropicalHypersurface{convention, true}(pmhyp)
+
+    Vf = TropicalHypersurface{convention, true}(PolyhedralComplex(pmhyp))
+    set_attribute!(Vf,:polymake_bigobject,pmhyp)
     set_attribute!(Vf,:tropical_polynomial,f)
     return Vf
 end

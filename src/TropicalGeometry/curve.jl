@@ -16,14 +16,17 @@
 #   abstract tropical variety = graph with enumerated vertices with weighted edges and vertices
 ###
 
-@attributes mutable struct TropicalCurve{M,T} <: TropicalVarietySupertype{M,T}
-    polymakeTV::Polymake.BigObject
+@attributes mutable struct TropicalCurve{M,EMB} <: TropicalVarietySupertype{M,EMB}
+    polyhedralComplex::PolyhedralComplex
 end
 export TropicalCurve
-function pm_object(v::TropicalCurve)
-  return v.polymakeTV
-end
 
+function pm_object(T::TropicalCurve)
+    if has_attribute(T,:polymake_bigobject)
+        return get_attribute(T,:polymake_bigobject)
+    end
+    error("pm_object(T::TropicalCurve): no polymake bigobject attributed")
+end
 
 
 ###

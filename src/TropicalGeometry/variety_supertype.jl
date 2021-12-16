@@ -26,16 +26,16 @@ end
 ###
 
 @doc Markdown.doc"""
-    intersect(TV1, TV2)
+    intersect(T1, T2)
 
 Intersect two tropical varieties.
 
 # Examples
 ```jldoctest
-julia> T = tropical_numbers(min)
+julia> RR = tropical_numbers(min)
 Tropical ring (min)
 
-julia> Txy,(x,y) = T["x","y"]
+julia> S,(x,y) = RR["x","y"]
 (Multivariate Polynomial Ring in x, y over Tropical ring (min), AbstractAlgebra.Generic.MPoly{Oscar.TropicalNumbersElem{typeof(min)}}[x, y])
 
 julia> f1 = x+y+1
@@ -54,32 +54,22 @@ julia> tv12 = intersect(hyp1, hyp2)
 A min tropical variety of dimension 1 embedded in 2-dimensional Euclidian space
 ```
 """
-function intersect(TV1::TropicalVarietySupertype{M, EMB}, TV2::TropicalVarietySupertype{M, EMB}) where {M, EMB}
-    pm_tv1 = pm_object(TV1)
-    pm_tv2 = pm_object(TV2)
-    result = Polymake.fan.PolyhedralComplex(Polymake.fan.common_refinement(pm_tv1, pm_tv2))
-    result = polyhedral_complex_workaround(result)
-    return TropicalVariety{M, EMB}(result)
+function intersect(T1::TropicalVarietySupertype{M, EMB}, T2::TropicalVarietySupertype{M, EMB}) where {M, EMB}
+    return TropicalVariety{M, EMB}(intersect(T1.polyhedralComplex,T2.polyhedralComplex))
 end
 
 
 @doc Markdown.doc"""
-    stably_intersect(TV1, TV2)
+    intersect_stably(T1, T2)
 
 # Examples
 ```jldoctest
 ```
 """
-function stably_intersect(TV1::TropicalVarietySupertype{M, EMB}, TV2::TropicalVarietySupertype{M, EMB}) where {M, EMB}
-    pm_tv1 = pm_object(TV1)
-    pm_tv2 = pm_object(TV2)
-    result = Polymake.fan.common_refinement(pm_tv1, pm_tv2)
-    k = dim(TV1) + dim(TV2) - ambient_dim(TV1)
-    result = Polymake.fan.PolyhedralComplex(Polymake.fan.k_skeleton(result, k+1))
-    result = polyhedral_complex_workaround(result)
-    return TropicalVariety{M, EMB}(result)
+function stably_intersect(T1::TropicalVarietySupertype{M, EMB}, T2::TropicalVarietySupertype{M, EMB}) where {M, EMB}
+    return TropicalVariety{M, EMB}(intersect_stably(T1.polyhedralComplex,T2.polyhedralComplex))
 end
-export stably_intersect
+export intersect_stably
 
 
 
@@ -89,19 +79,19 @@ export stably_intersect
 ###
 
 @doc Markdown.doc"""
-    ambient_dim(TV::TropicalVariety{M, EMB})
-    ambient_dim(TV::TropicalCurve{M, EMB})
-    ambient_dim(TV::TropicalHypersurface{M, EMB})
-    ambient_dim(TV::TropicalLinearSpace{M, EMB})
+    ambient_dim(T::TropicalVariety{M, EMB})
+    ambient_dim(T::TropicalCurve{M, EMB})
+    ambient_dim(T::TropicalHypersurface{M, EMB})
+    ambient_dim(T::TropicalLinearSpace{M, EMB})
 
-Returns the ambient dimension of `TV` if it is embedded. Returns an error otherwise.
+Returns the ambient dimension of `T` if it is embedded. Returns an error otherwise.
 
 # Examples
 A tropical hypersurface in RR^n is of ambient dimension n
 ```jldoctest
-julia> T = tropical_numbers(min);
+julia> RR = tropical_numbers(min);
 
-julia> Txy,(x,y) = T["x","y"];
+julia> S,(x,y) = RR["x","y"];
 
 julia> f = x+y+1;
 
@@ -111,30 +101,30 @@ julia> ambient_dim(tropicalLine)
 # todo: add examples for varieties, curves and linear spaces
 ```
 """
-function ambient_dim(TV::TropicalVarietySupertype{M,EMB}) where {M,EMB}
+function ambient_dim(T::TropicalVarietySupertype{M,EMB}) where {M,EMB}
     if !EMB
         error("ambient_dim: tropical variety not embedded")
     end
 
-    return pm_object(TV).FAN_AMBIENT_DIM-2 # todo: is this the property to use?
+    return ambient_dim(T.polyhedralComplex)
 end
 
 
 
 @doc Markdown.doc"""
-    dim(TV::TropicalVariety{M, EMB})
-    dim(TV::TropicalCurve{M, EMB})
-    dim(TV::TropicalHypersurface{M, EMB})
-    dim(TV::TropicalLinearSpace{M, EMB})
+    dim(T::TropicalVariety{M, EMB})
+    dim(T::TropicalCurve{M, EMB})
+    dim(T::TropicalHypersurface{M, EMB})
+    dim(T::TropicalLinearSpace{M, EMB})
 
-Returns the dimension of `TV`.
+Returns the dimension of `T`.
 
 # Examples
 A tropical hypersurface in RR^n is always of dimension n-1
 ```jldoctest
-julia> T = tropical_numbers(min);
+julia> RR = tropical_numbers(min);
 
-julia> Txy,(x,y) = T["x","y"];
+julia> S,(x,y) = RR["x","y"];
 
 julia> f = x+y+1;
 
@@ -144,24 +134,26 @@ julia> dim(tropicalLine)
 # todo: add examples for varieties, curves and linear spaces
 ```
 """
-dim(TV::TropicalVarietySupertype{M,EMB}) where {M, EMB} = pm_object(TV).FAN_DIM-1
+function dim(T::TropicalVarietySupertype{M,EMB}) where {M,EMB}
+    return dim(T.polyhedralComplex)
+end
 
 
 
 @doc Markdown.doc"""
-    f_vector(TV::TropicalVariety{M, EMB})
-    f_vector(TV::TropicalCurve{M, EMB})
-    f_vector(TV::TropicalHypersurface{M, EMB})
-    f_vector(TV::TropicalLinearSpace{M, EMB})
+    f_vector(T::TropicalVariety{M, EMB})
+    f_vector(T::TropicalCurve{M, EMB})
+    f_vector(T::TropicalHypersurface{M, EMB})
+    f_vector(T::TropicalLinearSpace{M, EMB})
 
-Returns the f-Vector of `TV`.
+Returns the f-Vector of `T`.
 
 # Examples
 A tropical hypersurface in RR^n is of lineality dimension n
 ```jldoctest
-julia> T = tropical_numbers(min);
+julia> RR = tropical_numbers(min);
 
-julia> Txy,(x,y) = T["x","y"];
+julia> S,(x,y) = RR["x","y"];
 
 julia> f = x+y+1;
 
@@ -171,28 +163,26 @@ julia> f_vector(tropicalLine)
 # todo: add examples for varieties, curves and linear spaces
 ```
 """
-function f_vector(TV::TropicalVarietySupertype{M,EMB}) where {M,EMB}
-    pmtv = pm_object(TV)
-    ldim = pmtv.LINEALITY_DIM
-    return vcat(fill(0,ldim),pmtv.F_VECTOR)
+function f_vector(T::TropicalVarietySupertype{M,EMB}) where {M,EMB}
+    return f_vector(T.polyhedralComplex)
 end
 
 
 
 @doc Markdown.doc"""
-    lineality_dim(TV::TropicalVariety{M, EMB})
-    lineality_dim(TV::TropicalCurve{M, EMB})
-    lineality_dim(TV::TropicalHypersurface{M, EMB})
-    lineality_dim(TV::TropicalLinearSpace{M, EMB})
+    lineality_dim(T::TropicalVariety{M, EMB})
+    lineality_dim(T::TropicalCurve{M, EMB})
+    lineality_dim(T::TropicalHypersurface{M, EMB})
+    lineality_dim(T::TropicalLinearSpace{M, EMB})
 
-Returns the dimension of the lineality space of `TV` if it is embedded. Returns an error otherwise.
+Returns the dimension of the lineality space of `T` if it is embedded. Returns an error otherwise.
 
 # Examples
 A tropical hypersurface in RR^n is of lineality dimension n
 ```jldoctest
-julia> T = tropical_numbers(min);
+julia> RR = tropical_numbers(min);
 
-julia> Txy,(x,y) = T["x","y"];
+julia> S,(x,y) = RR["x","y"];
 
 julia> f = x+y;
 
@@ -202,30 +192,30 @@ julia> lineality_dim(tropicalAndAffineLine)
 # todo: add examples for varieties, curves and linear spaces
 ```
 """
-function lineality_dim(TV::TropicalVarietySupertype{M,EMB}) where {M,EMB}
+function lineality_dim(T::TropicalVarietySupertype{M,EMB}) where {M,EMB}
     if !EMB
         error("lineality_dim: tropical variety not embedded")
     end
 
-    return pm_object(TV).LINEALITY_DIM
+    return lineality_dim(T.polyhedralComplex)
 end
 
 
 
 @doc Markdown.doc"""
-    lineality_space(TV::TropicalVariety{M, EMB})
-    lineality_space(TV::TropicalCurve{M, EMB})
-    lineality_space(TV::TropicalHypersurface{M, EMB})
-    lineality_space(TV::TropicalLinearSpace{M, EMB})
+    lineality_space(T::TropicalVariety{M, EMB})
+    lineality_space(T::TropicalCurve{M, EMB})
+    lineality_space(T::TropicalHypersurface{M, EMB})
+    lineality_space(T::TropicalLinearSpace{M, EMB})
 
-Returns the lineality space of `TV` if it is embedded. Returns an error otherwise.
+Returns the lineality space of `T` if it is embedded. Returns an error otherwise.
 
 # Examples
 A tropical hypersurface in RR^n is of lineality spaceension n
 ```jldoctest
-julia> T = tropical_numbers(min);
+julia> RR = tropical_numbers(min);
 
-julia> Txy,(x,y) = T["x","y"];
+julia> S,(x,y) = RR["x","y"];
 
 julia> f = x+y;
 
@@ -235,30 +225,30 @@ julia> lineality_space(tropicalAndAffineLine)
 # todo: add examples for varieties, curves and linear spaces
 ```
 """
-function lineality_space(TV::TropicalVarietySupertype{M,EMB}) where {M,EMB}
+function lineality_space(T::TropicalVarietySupertype{M,EMB}) where {M,EMB}
     if !EMB
         error("lineality_space: tropical variety not embedded")
     end
 
-    return SubObjectIterator{RayVector{Polymake.Rational}}(pm_object(TV), _lineality_fan, lineality_dim(TV))
-end # todo: this returns the wrong answer (no lineality in the example above)
+    return lineality_space(T.polyhedralComplex)
+end
 
 
 
 @doc Markdown.doc"""
-    maximal_polyhedra(TV::TropicalVariety{M, EMB})
-    maximal_polyhedra(TV::TropicalCurve{M, EMB})
-    maximal_polyhedra(TV::TropicalHypersurface{M, EMB})
-    maximal_polyhedra(TV::TropicalLinearSpace{M, EMB})
+    maximal_polyhedra(T::TropicalVariety{M, EMB})
+    maximal_polyhedra(T::TropicalCurve{M, EMB})
+    maximal_polyhedra(T::TropicalHypersurface{M, EMB})
+    maximal_polyhedra(T::TropicalLinearSpace{M, EMB})
 
-Returns the maximal polyhedra of `TV`.
+Returns the maximal polyhedra of `T`.
 
 # Examples
 A tropical hypersurface in RR^n is of lineality dimension n
 ```jldoctest
-julia> T = tropical_numbers(min);
+julia> RR = tropical_numbers(min);
 
-julia> Txy,(x,y) = T["x","y"];
+julia> S,(x,y) = RR["x","y"];
 
 julia> f = x+y+1;
 
@@ -268,26 +258,26 @@ julia> maximal_polyhedra(tropicalLine)
 # todo: add examples for varieties, curves and linear spaces
 ```
 """
-function maximal_polyhedra(TV::TropicalVarietySupertype{M,EMB}) where {M,EMB}
-    # TODO!!!
+function maximal_polyhedra(T::TropicalVarietySupertype{M,EMB}) where {M,EMB}
+    return maximal_polyhedra(T.polyhedralComplex)
 end
 
 
 
 @doc Markdown.doc"""
-    n_maximal_polyhedra(TV::TropicalVariety{M, EMB})
-    n_maximal_polyhedra(TV::TropicalCurve{M, EMB})
-    n_maximal_polyhedra(TV::TropicalHypersurface{M, EMB})
-    n_maximal_polyhedra(TV::TropicalLinearSpace{M, EMB})
+    n_maximal_polyhedra(T::TropicalVariety{M, EMB})
+    n_maximal_polyhedra(T::TropicalCurve{M, EMB})
+    n_maximal_polyhedra(T::TropicalHypersurface{M, EMB})
+    n_maximal_polyhedra(T::TropicalLinearSpace{M, EMB})
 
-Returns the number of maximal polyhedra of `TV`.
+Returns the number of maximal polyhedra of `T`.
 
 # Examples
 A tropical hypersurface in RR^n is of lineality dimension n
 ```jldoctest
-julia> T = tropical_numbers(min);
+julia> RR = tropical_numbers(min);
 
-julia> Txy,(x,y) = T["x","y"];
+julia> S,(x,y) = RR["x","y"];
 
 julia> f = x+y+1;
 
@@ -298,26 +288,26 @@ julia> n_maximal_polyhedra(tropicalLine)
 # todo: do maximal polyhedra at infinity count?
 ```
 """
-function n_maximal_polyhedra(TV::TropicalVarietySupertype{M,EMB}) where {M,EMB}
-    return pm_object(TV).N_MAXIMAL_POLYTOPES
+function n_maximal_polyhedra(T::TropicalVarietySupertype{M,EMB}) where {M,EMB}
+    return n_maximal_polyhedra(T.polyhedralComplex)
 end
 
 
 
 @doc Markdown.doc"""
-    n_polyhedra(TV::TropicalVariety{M, EMB})
-    n_polyhedra(TV::TropicalCurve{M, EMB})
-    n_polyhedra(TV::TropicalHypersurface{M, EMB})
-    n_polyhedra(TV::TropicalLinearSpace{M, EMB})
+    n_polyhedra(T::TropicalVariety{M, EMB})
+    n_polyhedra(T::TropicalCurve{M, EMB})
+    n_polyhedra(T::TropicalHypersurface{M, EMB})
+    n_polyhedra(T::TropicalLinearSpace{M, EMB})
 
-Returns the number of polyhedra of `TV`.
+Returns the number of polyhedra of `T`.
 
 # Examples
 A tropical hypersurface in RR^n is of lineality dimension n
 ```jldoctest
-julia> T = tropical_numbers(min);
+julia> RR = tropical_numbers(min);
 
-julia> Txy,(x,y) = T["x","y"];
+julia> S,(x,y) = RR["x","y"];
 
 julia> f = x+y+1;
 
@@ -328,26 +318,26 @@ julia> n_polyhedra(tropicalLine)
 # todo: do polyhedra at infinity count?
 ```
 """
-function n_polyhedra(TV::TropicalVarietySupertype{M,EMB}) where {M,EMB}
-    return pm_object(TV).N_POLYTOPES
+function n_polyhedra(T::TropicalVarietySupertype{M,EMB}) where {M,EMB}
+    return polyhedra(T.polyhedralComplex)
 end
 
 
 
 @doc Markdown.doc"""
-    n_vertices(TV::TropicalVariety{M, EMB})
-    n_vertices(TV::TropicalCurve{M, EMB})
-    n_vertices(TV::TropicalHypersurface{M, EMB})
-    n_vertices(TV::TropicalLinearSpace{M, EMB})
+    n_vertices(T::TropicalVariety{M, EMB})
+    n_vertices(T::TropicalCurve{M, EMB})
+    n_vertices(T::TropicalHypersurface{M, EMB})
+    n_vertices(T::TropicalLinearSpace{M, EMB})
 
-Returns the number of vertices of `TV`.
+Returns the number of vertices of `T`.
 
 # Examples
 A tropical hypersurface in RR^n is of lineality dimension n
 ```jldoctest
-julia> T = tropical_numbers(min);
+julia> RR = tropical_numbers(min);
 
-julia> Txy,(x,y) = T["x","y"];
+julia> S,(x,y) = RR["x","y"];
 
 julia> f = x+y+1;
 
@@ -358,26 +348,26 @@ julia> n_vertices(tropicalLine)
 # todo: do vertices at infinity count?
 ```
 """
-function n_vertices(TV::TropicalVarietySupertype{M,EMB}) where {M,EMB}
-    return pm_object(TV).N_VERTICES
+function n_vertices(T::TropicalVarietySupertype{M,EMB}) where {M,EMB}
+    return n_vertices(T.polyhedralComplex)
 end
 
 
 
 @doc Markdown.doc"""
-    polyhedra(TV::TropicalVariety{M, EMB})
-    polyhedra(TV::TropicalCurve{M, EMB})
-    polyhedra(TV::TropicalHypersurface{M, EMB})
-    polyhedra(TV::TropicalLinearSpace{M, EMB})
+    polyhedra(T::TropicalVariety{M, EMB})
+    polyhedra(T::TropicalCurve{M, EMB})
+    polyhedra(T::TropicalHypersurface{M, EMB})
+    polyhedra(T::TropicalLinearSpace{M, EMB})
 
-Returns the polyhedra of `TV`.
+Returns the polyhedra of `T`.
 
 # Examples
 A tropical hypersurface in RR^n is of lineality dimension n
 ```jldoctest
-julia> T = tropical_numbers(min);
+julia> RR = tropical_numbers(min);
 
-julia> Txy,(x,y) = T["x","y"];
+julia> S,(x,y) = RR["x","y"];
 
 julia> f = x+y+1;
 
@@ -388,26 +378,26 @@ julia> polyhedra(tropicalLine)
 # todo: do vertices at infinity count?
 ```
 """
-function polyhedra(TV::TropicalVarietySupertype{M,EMB}) where {M,EMB}
-    # TODO!!!
+function polyhedra(T::TropicalVarietySupertype{M,EMB}) where {M,EMB}
+    return polyhedra(T.polyhedralComplex)
 end
 
 
 
 @doc Markdown.doc"""
-    pure(TV::TropicalVariety{M, EMB})
-    pure(TV::TropicalCurve{M, EMB})
-    pure(TV::TropicalHypersurface{M, EMB})
-    pure(TV::TropicalLinearSpace{M, EMB})
+    pure(T::TropicalVariety{M, EMB})
+    pure(T::TropicalCurve{M, EMB})
+    pure(T::TropicalHypersurface{M, EMB})
+    pure(T::TropicalLinearSpace{M, EMB})
 
-Return true if `TV` is a pure polyhedral complex, false otherwise.
+Return true if `T` is a pure polyhedral complex, false otherwise.
 
 # Examples
 A tropical hypersurface in RR^n is of lineality dimension n
 ```jldoctest
-julia> T = tropical_numbers(min);
+julia> RR = tropical_numbers(min);
 
-julia> Txy,(x,y) = T["x","y"];
+julia> S,(x,y) = RR["x","y"];
 
 julia> f = x+y+1;
 
@@ -417,26 +407,26 @@ julia> pure(tropicalLine)
 # todo: add examples for varieties, curves and linear spaces
 ```
 """
-function pure(TV::TropicalVarietySupertype{M,EMB}) where {M,EMB}
-    return pm_object(TV).PURE
+function pure(T::TropicalVarietySupertype{M,EMB}) where {M,EMB}
+    return pure(T.polyhedralComplex)
 end
 
 
 
 @doc Markdown.doc"""
-    simplicial(TV::TropicalVariety{M, EMB})
-    simplicial(TV::TropicalCurve{M, EMB})
-    simplicial(TV::TropicalHypersurface{M, EMB})
-    simplicial(TV::TropicalLinearSpace{M, EMB})
+    simplicial(T::TropicalVariety{M, EMB})
+    simplicial(T::TropicalCurve{M, EMB})
+    simplicial(T::TropicalHypersurface{M, EMB})
+    simplicial(T::TropicalLinearSpace{M, EMB})
 
-Returns true if `TV` is a simplicial polyhedral complex, false otherwise.
+Returns true if `T` is a simplicial polyhedral complex, false otherwise.
 
 # Examples
 A tropical hypersurface in RR^n is of lineality dimension n
 ```jldoctest
-julia> T = tropical_numbers(min);
+julia> RR = tropical_numbers(min);
 
-julia> Txy,(x,y) = T["x","y"];
+julia> S,(x,y) = RR["x","y"];
 
 julia> f = x+y+1;
 
@@ -446,26 +436,26 @@ julia> simplicial(tropicalLine)
 # todo: add examples for varieties, curves and linear spaces
 ```
 """
-function simplicial(TV::TropicalVarietySupertype{M,EMB}) where {M,EMB}
-    return pm_object(TV).SIMPLICIAL
+function simplicial(T::TropicalVarietySupertype{M,EMB}) where {M,EMB}
+    return simplicial(T.polyhedralComplex)
 end
 
 
 
 @doc Markdown.doc"""
-    vertices(TV::TropicalVariety{M, EMB})
-    vertices(TV::TropicalCurve{M, EMB})
-    vertices(TV::TropicalHypersurface{M, EMB})
-    vertices(TV::TropicalLinearSpace{M, EMB})
+    vertices(T::TropicalVariety{M, EMB})
+    vertices(T::TropicalCurve{M, EMB})
+    vertices(T::TropicalHypersurface{M, EMB})
+    vertices(T::TropicalLinearSpace{M, EMB})
 
-Returns the vertices of `TV`, which are points in euclidean space if TV is embedded or elements in an ordered set otherwise.
+Returns the vertices of `T`, which are points in euclidean space if T is embedded or elements in an ordered set otherwise.
 
 # Examples
 The vertices of a plane tropical line, plane tropical honeycomb quadric, and plane tropical honeycomb cubic
 ```jldoctest
-julia> T = tropical_numbers(min);
+julia> RR = tropical_numbers(min);
 
-julia> Txy,(x,y) = T["x","y"];
+julia> S,(x,y) = RR["x","y"];
 
 julia> f1 = x+y+1;
 
@@ -486,31 +476,30 @@ julia> tropicalCubic = TropicalHypersurface(f3);
 julia> vertices(tropicalCubic)
 ```
 """
-function vertices(as::Type{PointVector{T}}, TV::TropicalVarietySupertype{M,EMB}) where {T,M,EMB}
-    pmtv = pm_object(TV)
-    return SubObjectIterator{as}(pmtv, _vertex_polyhedron, length(_vertex_indices(pmtv)))
+function vertices(as::Type{PointVector{T}}, T::TropicalVarietySupertype{M,EMB}) where {T,M,EMB}
+    return vertices(as,T.polyhedralComplex)
 end
 
-vertices(TV::TropicalVarietySupertype{M, EMB}) where {M,EMB} = vertices(PointVector, TV)
-
-vertices(PointVector, TV::TropicalVarietySupertype{M, EMB}) where {T,M,EMB} = vertices(PointVector{Polymake.Rational}, TV)
+function vertices(T::TropicalVarietySupertype{M, EMB}) where {M,EMB}
+    return vertices(T.polyhedralComplex)
+end
 
 
 
 @doc Markdown.doc"""
-    weights(TV::TropicalVariety{M, EMB})
-    weights(TV::TropicalCurve{M, EMB})
-    weights(TV::TropicalHypersurface{M, EMB})
-    weights(TV::TropicalLinearSpace{M, EMB})
+    weights(T::TropicalVariety{M, EMB})
+    weights(T::TropicalCurve{M, EMB})
+    weights(T::TropicalHypersurface{M, EMB})
+    weights(T::TropicalLinearSpace{M, EMB})
 
-Returns the weights of `TV`.
+Returns the weights of `T`.
 
 # Examples
 A tropical hypersurface in RR^n is of lineality dimension n
 ```jldoctest
-julia> T = tropical_numbers(min);
+julia> RR = tropical_numbers(min);
 
-julia> Txy,(x,y) = T["x","y"];
+julia> S,(x,y) = RR["x","y"];
 
 julia> f = x+y+1;
 
@@ -520,48 +509,53 @@ julia> weights(tropicalLine)
 # todo: add examples for varieties, curves and linear spaces
 ```
 """
-function weights(TV::TropicalVarietySupertype{M,EMB}) where {M,EMB}
-    # Question: should this return a vector or an iterator?
-end # TODO!!!
-
-@doc Markdown.doc"""
-    PolyhedralComplex(TV::TropicalVarietySupertype)
-
-Return the underlying polyhedral complex.
-
-# Examples
-```jldoctest
-julia> T = tropical_numbers(min)
-Tropical ring (min)
-
-julia> Txy,(x,y) = T["x","y"]
-(Multivariate Polynomial Ring in x, y over Tropical ring (min), AbstractAlgebra.Generic.MPoly{Oscar.TropicalNumbersElem{typeof(min)}}[x, y])
-
-julia> f = x+y+1
-x + y + (1)
-
-julia> hyp = TropicalHypersurface(f)
-A min tropical hypersurface embedded in 2-dimensional Euclidian space
-
-julia> pc = PolyhedralComplex(hyp)
-A polyhedral complex in ambient dimension 3
-
-julia> vertices(pc)
-4-element SubObjectIterator{Union{PointVector{Polymake.Rational}, RayVector{Polymake.Rational}}}:
- [0, -1, -1]
- [0, 1, 0]
- [0, 0, 1]
- [0, 1, 1]
-
-julia> for v in vertices(pc)
-       println(typeof(v))
-       end
-RayVector{Polymake.Rational}
-RayVector{Polymake.Rational}
-RayVector{Polymake.Rational}
-PointVector{Polymake.Rational}
-```
-"""
-function PolyhedralComplex(TV::TropicalVarietySupertype{M, EMB}) where {M,EMB}
-    return PolyhedralComplex(pm_object(TV))
+function weights(T::TropicalVarietySupertype{M,EMB}) where {M,EMB}
+    if !has_attribute(T,:weights)
+        error("weights: no weights attributed")
+    end
+    return get_attribute(T,:weights)
 end
+
+
+
+# @doc Markdown.doc"""
+#     PolyhedralComplex(TV::TropicalVarietySupertype)
+
+# Return the underlying polyhedral complex.
+
+# # Examples
+# ```jldoctest
+# julia> RR = tropical_numbers(min)
+# Tropical ring (min)
+
+# julia> S,(x,y) = RR["x","y"]
+# (Multivariate Polynomial Ring in x, y over Tropical ring (min), AbstractAlgebra.Generic.MPoly{Oscar.TropicalNumbersElem{typeof(min)}}[x, y])
+
+# julia> f = x+y+1
+# x + y + (1)
+
+# julia> hyp = TropicalHypersurface(f)
+# A min tropical hypersurface embedded in 2-dimensional Euclidian space
+
+# julia> pc = PolyhedralComplex(hyp)
+# A polyhedral complex in ambient dimension 3
+
+# julia> vertices(pc)
+# 4-element SubObjectIterator{Union{PointVector{Polymake.Rational}, RayVector{Polymake.Rational}}}:
+#  [0, -1, -1]
+#  [0, 1, 0]
+#  [0, 0, 1]
+#  [0, 1, 1]
+
+# julia> for v in vertices(pc)
+#        println(typeof(v))
+#        end
+# RayVector{Polymake.Rational}
+# RayVector{Polymake.Rational}
+# RayVector{Polymake.Rational}
+# PointVector{Polymake.Rational}
+# ```
+# """
+# function PolyhedralComplex(TV::TropicalVarietySupertype{M, EMB}) where {M,EMB}
+#     return PolyhedralComplex(pm_object(TV))
+# end
