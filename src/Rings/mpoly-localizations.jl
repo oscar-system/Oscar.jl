@@ -1661,7 +1661,10 @@ function write_as_linear_combination(f::T, g::Vector{T}) where {T<:MPolyLocalize
 
 Write f = ∑ᵢ λᵢ⋅gᵢ for some λᵢ and return the vector [λ₁,…,λₙ].
 """
-function write_as_linear_combination(f::T, g::Vector{T}) where {T<:MPolyLocalizedRingElem} 
+function write_as_linear_combination(
+    f::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}},
+    g::Vector{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}}}
+  ) where {BRT, BRET, RT, RET}
   n = length(g)
   W = parent(f)
   for a in g 
@@ -1683,6 +1686,51 @@ function write_as_linear_combination(f::T, g::Vector{T}) where {T<:MPolyLocalize
   u = 1//W(to_oscar_side(lbpa, U[1,1]))
   lambda = [W(to_oscar_side(lbpa, A[i, 1]))*u for i in 1:nrows(A)]
   return lambda
+end
+
+function write_as_linear_combination(
+    f::MPolyLocalizedRingElem{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}},
+    g::Vector{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}}
+  ) where {BRT, BRET, RT, RET}
+  n = length(g)
+  W = parent(f)
+  for a in g 
+    parent(a) == W || error("elements do not belong to the same ring")
+  end
+  (d, a) = bring_to_common_denominator(fraction.(vcat([f], g)))
+  hg = [a[i+1]*numerator(g[i]) for i in 1:n]
+  hf = numerator(f)*a[1]
+  A, I, q, phi, theta = as_affine_algebra(W)
+  SA, _ = Singular.PolynomialRing(Oscar.singular_ring(base_ring(A)), 
+				  String.(symbols(A)),  
+				  ordering=Singular.ordering_dp(1)
+				  *Singular.ordering_dp(nvars(A)-1))
+  SI = Singular.Ideal(SA, SA.(gens(I)))
+  Shg = Singular.Ideal(SA, SA.(phi.(hg)))
+  Shg_ext = Shg + SI
+  M, N, U = Singular.lift(
+                          Singular.Module(SA, [Singular.vector(SA, g) for g in gens(Shg_ext)]...),
+			  Singular.Module(SA, Singular.vector(SA, SA(phi(hf)))),
+			  false, false, false)
+  iszero(N) || error("the first argument is not contained in the span of the second")
+  evaluation_list = vcat([1//W(q)], gens(W))
+  l = [Singular.Matrix(M)[i, 1] for i in 1:n]
+  lambda = [evaluate(A(a), evaluation_list) for a in l]
+  return lambda
+end
+
+# return the localized ring as a quotient of a polynomial ring using Rabinowitsch's trick.
+function as_affine_algebra(
+    L::MPolyLocalizedRing{BRT, BRET, RT, RET, 
+			     MPolyPowersOfElement{BRT, BRET, RT, RET}}; 
+    inverse_name::String="θ"
+  ) where {BRT, BRET, RT, RET}
+  R = base_ring(L)
+  A, phi, t = _add_variables_first(R, [inverse_name])
+  theta = t[1]
+  f = prod(denominators(inverted_set(L)))
+  I = ideal(A, [one(A)-theta*phi(f)])
+  return A, I, f, phi, theta
 end
 
 
