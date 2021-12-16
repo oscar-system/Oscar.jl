@@ -519,7 +519,7 @@ function homogeneous_component(W::MPolyRing_dec, d::GrpAbFinGenElem)
   #Ax = b, Cx >= 0
   C = identity_matrix(FlintZZ, ngens(W))
   A = vcat([x.coeff for x = W.d])
-  k = solve_mixed(A', d.coeff', C)
+  k = solve_mixed(transpose(A), transpose(d.coeff), C)
   B = elem_type(W)[]
   for ee = 1:nrows(k)
     e = k[ee, :]

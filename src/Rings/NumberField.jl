@@ -678,7 +678,7 @@ function minpoly(a::NfNSGenElem)
   Qt, _ = PolynomialRing(k, "t", cached = false)
   while true
     if n % (i-1) == 0 && rank(M) < i
-      N = nullspace(sub(M, 1:i, 1:ncols(M))')
+      N = nullspace(transpose(sub(M, 1:i, 1:ncols(M))))
       @assert N[1] == 1
       v = Vector{elem_type(k)}(undef, i)
       for j in 1:i
