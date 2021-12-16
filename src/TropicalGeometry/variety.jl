@@ -17,10 +17,16 @@
 ###
 
 @attributes mutable struct TropicalVariety{M,EMB} <: TropicalVarietySupertype{M,EMB}
-    # GapTV::GapObj
-    polymakeTV::Polymake.BigObject
+    polyhedralComplex::PolyhedralComplex
 end
 export TropicalVariety
+
+function pm_object(T::TropicalVariety)
+    if has_attribute(T,:polymake_bigobject)
+        return get_attribute(T,:polymake_bigobject)
+    end
+    error("pm_object(T::TropicalVariety): no polymake bigobject attributed")
+end
 
 
 
