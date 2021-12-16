@@ -698,7 +698,7 @@ julia> c = cube(3)
 A polyhedron in ambient dimension 3
 
 julia> h_star_polynomial(c)
-8*x^3 + 12*x^2 + 6*x + 1
+x^3 + 23*x^2 + 23*x + 1
 """
 function h_star_polynomial(P::Polyhedron)
     R, x = PolynomialRing(QQ, "x")
@@ -720,7 +720,7 @@ julia> c = cube(3)
 A polyhedron in ambient dimension 3
 
 julia> h_star_polynomial(R, c)
-8*x^3 + 12*x^2 + 6*x + 1
+x^3 + 23*x^2 + 23*x + 1
 ```
 """
 function h_star_polynomial(R::FmpqPolyRing, P::Polyhedron)
