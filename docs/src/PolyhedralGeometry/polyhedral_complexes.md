@@ -39,8 +39,14 @@ PolyhedralComplex
 ## Auxiliary functions
 ```@docs
 ambient_dim(PC::PolyhedralComplex)
-maximal_cones(PC::PolyhedralComplex)
-nmaximal_cones(PC::PolyhedralComplex)
+dim(PC::PolyhedralComplex)
+f_vector(PC::PolyhedralComplex)
+maximal_polyhedra(PC::PolyhedralComplex)
+nmaximal_polyhedra(PC::PolyhedralComplex)
+npolyhedra(PC::PolyhedralComplex)
+nrays(PC::PolyhedralComplex)
+nvertices(PC::PolyhedralComplex)
+polyhedra_of_dim
 vertices(PC::PolyhedralComplex)
 ```
 

@@ -264,3 +264,99 @@ end
 lineality_space(PC::PolyhedralComplex) = SubObjectIterator{RayVector{Polymake.Rational}}(pm_object(PC), _lineality_polyhedron, lineality_dim(PC))
 
 lineality_dim(PC::PolyhedralComplex) = pm_object(PC).LINEALITY_DIM
+
+
+@doc Markdown.doc"""
+    f_vector(PC::PolyhedralComplex)
+
+Compute the vector $(f₀,f₁,f₂,...,f_{dim(PC))$` where $f_i$ is the number of
+faces of $PC$ of dimension $i$.
+
+# Examples
+```jldoctest
+julia> VR = [0 0; 1 0; -1 0; 0 1];
+
+julia> IM = IncidenceMatrix([[1,2,4],[1,3,4]]);
+
+julia> far_vertices = [2,3,4];
+
+julia> PC = PolyhedralComplex(IM, VR, far_vertices);
+
+julia> f_vector(PC)
+3-element Vector{Int64}:
+ 1
+ 3
+ 2
+```
+"""
+function f_vector(PC::PolyhedralComplex)
+    ldim = lineality_dim(PC)
+    f_vec=vcat(zeros(Int64, ldim), [length(polyhedra_of_dim(PC,i)) for i in ldim:dim(PC)])
+    return f_vec
+end
+
+
+@doc Markdown.doc"""
+    nrays(PC::PolyhedralComplex)
+
+Return the number of rays of `PC`.
+
+# Examples
+```jldoctest
+julia> VR = [0 0; 1 0; -1 0; 0 1];
+
+julia> IM = IncidenceMatrix([[1,2,4],[1,3,4]]);
+
+julia> far_vertices = [2,3,4];
+
+julia> PC = PolyhedralComplex(IM, VR, far_vertices);
+
+julia> nvertices(PC)
+1
+```
+"""
+nrays(PC::PolyhedralComplex) = length(pm_object(PC).FAR_VERTICES)
+
+
+@doc Markdown.doc"""
+    nvertices(PC::PolyhedralComplex)
+
+Return the number of vertices of `PC`.
+
+# Examples
+```jldoctest
+julia> VR = [0 0; 1 0; -1 0; 0 1];
+
+julia> IM = IncidenceMatrix([[1,2,4],[1,3,4]]);
+
+julia> far_vertices = [2,3,4];
+
+julia> PC = PolyhedralComplex(IM, VR, far_vertices);
+
+julia> nrays(PC)
+3
+```
+"""
+nvertices(PC::PolyhedralComplex) = pm_object(PC).N_VERTICES - nrays(PC)
+
+
+@doc Markdown.doc"""
+    npolyhedra(PC::PolyhedralComplex)
+
+Return the total number of polyhedra in the polyhedral complex `PC`.
+
+# Examples
+```jldoctest
+julia> VR = [0 0; 1 0; -1 0; 0 1];
+
+julia> IM = IncidenceMatrix([[1,2,4],[1,3,4]]);
+
+julia> far_vertices = [2,3,4];
+
+julia> PC = PolyhedralComplex(IM, VR, far_vertices);
+
+julia> npolyhedra(PC)
+6
+```
+"""
+npolyhedra(PC::PolyhedralComplex) = sum(f_vector(PC))
