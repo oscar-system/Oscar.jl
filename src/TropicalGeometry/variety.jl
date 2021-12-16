@@ -18,6 +18,9 @@
 
 @attributes mutable struct TropicalVariety{M,EMB} <: TropicalVarietySupertype{M,EMB}
     polyhedralComplex::PolyhedralComplex
+    function TropicalVariety{M,EMB}(Sigma::PolyhedralComplex) where {M,EMB}
+        return new{M,EMB}(Sigma)
+    end
 end
 export TropicalVariety
 
@@ -57,27 +60,31 @@ Construct the embedded tropical variety of a polynomial ideal over a (possibly t
 
 # Examples
 """
-function TropicalVariety()
-    # todo: Dartmouth
-    return #...
-end
+# todo: Dartmouth
+# function TropicalVariety()
+#
+#     return #...
+# end
+
 
 
 @doc Markdown.doc"""
-    TropicalVariety{M,EMB}()
+    TropicalVariety{M,EMB}(Sigma::PolyhedralComplex)
 
-Construct the abstract tropical variety from a list of vertices and maximal cells
+Construct the abstract tropical variety from a polyhedral complex
 
 # Examples
-"""
-function TropicalVariety{M, EMB}(pf::PolyhedralFan) where {M, EMB}
-    if EMB
-        return TropicalVariety{M, EMB}(polyhedral_complex_workaround(pm_object(pf)))
-    else
-        return TropicalVariety{M, EMB}(Polymake.fan.PolyhedralComplex(pm_object(pf)))
-    end
-end
+```jldoctest
+julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4]]);
 
+julia> VR = [0 0; 1 0; 0 1; -1 -1];
+
+julia> far_vertices = [2,3,4];
+
+julia> Sigma = PolyhedralComplex(IM, VR, far_vertices);
+
+julia> tropicalLine = TropicalVariety{min,true}(Sigma)
+"""
 
 
 ###

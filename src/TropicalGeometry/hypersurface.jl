@@ -19,6 +19,9 @@
 @attributes mutable struct TropicalHypersurface{M,EMB} <: TropicalVarietySupertype{M,EMB}
     polyhedralComplex::PolyhedralComplex
     function TropicalHypersurface{M,EMB}(Sigma::PolyhedralComplex) where {M,EMB}
+        if codim(Sigma)!=1
+            error("TropicalHypersurface: input polyhedral complex not one-codimensional")
+        end
         return new{M,EMB}(Sigma)
     end
 end
@@ -82,10 +85,11 @@ function TropicalHypersurface(f::Union{AbstractAlgebra.Generic.MPoly{Oscar.Tropi
 
     fstr = Tuple(tropical_polynomial_to_polymake(f))
     pmpoly = Polymake.common.totropicalpolynomial(fstr...)
-    pmhyp = Polymake.tropical.Hypersurface{convention}(POLYNOMIAL=pmpoly)
+    pmhypproj = Polymake.tropical.Hypersurface{convention}(POLYNOMIAL=pmpoly)
+    pmhyp = Polymake.tropical.affine_chart(pmhypproj)
 
     Vf = TropicalHypersurface{convention, true}(PolyhedralComplex(pmhyp))
-    set_attribute!(Vf,:polymake_bigobject,pmhyp)
+    set_attribute!(Vf,:polymake_bigobject,pmhypproj)
     set_attribute!(Vf,:tropical_polynomial,f)
     return Vf
 end

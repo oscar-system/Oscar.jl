@@ -112,6 +112,35 @@ end
 
 
 @doc Markdown.doc"""
+    codim(T::TropicalVariety{M, EMB})
+    codim(T::TropicalCurve{M, EMB})
+    codim(T::TropicalHypersurface{M, EMB})
+    codim(T::TropicalLinearSpace{M, EMB})
+
+Returns the codimension of `T`.
+
+# Examples
+A tropical hypersurface in RR^n is always of dimension n-1
+```jldoctest
+julia> RR = tropical_numbers(min);
+
+julia> S,(x,y) = RR["x","y"];
+
+julia> f = x+y+1;
+
+julia> tropicalLine = TropicalHypersurface(f);
+
+julia> codim(tropicalLine)
+# todo: add examples for varieties, curves and linear spaces
+```
+"""
+function codim(T::TropicalVarietySupertype{M,EMB}) where {M,EMB}
+    return codim(T.polyhedralComplex)
+end
+
+
+
+@doc Markdown.doc"""
     dim(T::TropicalVariety{M, EMB})
     dim(T::TropicalCurve{M, EMB})
     dim(T::TropicalHypersurface{M, EMB})
@@ -265,10 +294,10 @@ end
 
 
 @doc Markdown.doc"""
-    n_maximal_polyhedra(T::TropicalVariety{M, EMB})
-    n_maximal_polyhedra(T::TropicalCurve{M, EMB})
-    n_maximal_polyhedra(T::TropicalHypersurface{M, EMB})
-    n_maximal_polyhedra(T::TropicalLinearSpace{M, EMB})
+    nmaximal_polyhedra(T::TropicalVariety{M, EMB})
+    nmaximal_polyhedra(T::TropicalCurve{M, EMB})
+    nmaximal_polyhedra(T::TropicalHypersurface{M, EMB})
+    nmaximal_polyhedra(T::TropicalLinearSpace{M, EMB})
 
 Returns the number of maximal polyhedra of `T`.
 
@@ -283,22 +312,22 @@ julia> f = x+y+1;
 
 julia> tropicalLine = TropicalHypersurface(f);
 
-julia> n_maximal_polyhedra(tropicalLine)
+julia> nmaximal_polyhedra(tropicalLine)
 # todo: add examples for varieties, curves and linear spaces
 # todo: do maximal polyhedra at infinity count?
 ```
 """
-function n_maximal_polyhedra(T::TropicalVarietySupertype{M,EMB}) where {M,EMB}
-    return n_maximal_polyhedra(T.polyhedralComplex)
+function nmaximal_polyhedra(T::TropicalVarietySupertype{M,EMB}) where {M,EMB}
+    return nmaximal_polyhedra(T.polyhedralComplex)
 end
 
 
 
 @doc Markdown.doc"""
-    n_polyhedra(T::TropicalVariety{M, EMB})
-    n_polyhedra(T::TropicalCurve{M, EMB})
-    n_polyhedra(T::TropicalHypersurface{M, EMB})
-    n_polyhedra(T::TropicalLinearSpace{M, EMB})
+    npolyhedra(T::TropicalVariety{M, EMB})
+    npolyhedra(T::TropicalCurve{M, EMB})
+    npolyhedra(T::TropicalHypersurface{M, EMB})
+    npolyhedra(T::TropicalLinearSpace{M, EMB})
 
 Returns the number of polyhedra of `T`.
 
@@ -313,22 +342,22 @@ julia> f = x+y+1;
 
 julia> tropicalLine = TropicalHypersurface(f);
 
-julia> n_polyhedra(tropicalLine)
+julia> npolyhedra(tropicalLine)
 # todo: add examples for varieties, curves and linear spaces
 # todo: do polyhedra at infinity count?
 ```
 """
-function n_polyhedra(T::TropicalVarietySupertype{M,EMB}) where {M,EMB}
-    return polyhedra(T.polyhedralComplex)
+function npolyhedra(T::TropicalVarietySupertype{M,EMB}) where {M,EMB}
+    return npolyhedra(T.polyhedralComplex)
 end
 
 
 
 @doc Markdown.doc"""
-    n_vertices(T::TropicalVariety{M, EMB})
-    n_vertices(T::TropicalCurve{M, EMB})
-    n_vertices(T::TropicalHypersurface{M, EMB})
-    n_vertices(T::TropicalLinearSpace{M, EMB})
+    nvertices(T::TropicalVariety{M, EMB})
+    nvertices(T::TropicalCurve{M, EMB})
+    nvertices(T::TropicalHypersurface{M, EMB})
+    nvertices(T::TropicalLinearSpace{M, EMB})
 
 Returns the number of vertices of `T`.
 
@@ -343,13 +372,13 @@ julia> f = x+y+1;
 
 julia> tropicalLine = TropicalHypersurface(f);
 
-julia> n_vertices(tropicalLine)
+julia> nvertices(tropicalLine)
 # todo: add examples for varieties, curves and linear spaces
 # todo: do vertices at infinity count?
 ```
 """
-function n_vertices(T::TropicalVarietySupertype{M,EMB}) where {M,EMB}
-    return n_vertices(T.polyhedralComplex)
+function nvertices(T::TropicalVarietySupertype{M,EMB}) where {M,EMB}
+    return nvertices(T.polyhedralComplex)
 end
 
 
@@ -385,10 +414,10 @@ end
 
 
 @doc Markdown.doc"""
-    pure(T::TropicalVariety{M, EMB})
-    pure(T::TropicalCurve{M, EMB})
-    pure(T::TropicalHypersurface{M, EMB})
-    pure(T::TropicalLinearSpace{M, EMB})
+    ispure(T::TropicalVariety{M, EMB})
+    ispure(T::TropicalCurve{M, EMB})
+    ispure(T::TropicalHypersurface{M, EMB})
+    ispure(T::TropicalLinearSpace{M, EMB})
 
 Return true if `T` is a pure polyhedral complex, false otherwise.
 
@@ -403,21 +432,21 @@ julia> f = x+y+1;
 
 julia> tropicalLine = TropicalHypersurface(f);
 
-julia> pure(tropicalLine)
+julia> ispure(tropicalLine)
 # todo: add examples for varieties, curves and linear spaces
 ```
 """
-function pure(T::TropicalVarietySupertype{M,EMB}) where {M,EMB}
-    return pure(T.polyhedralComplex)
+function ispure(T::TropicalVarietySupertype{M,EMB}) where {M,EMB}
+    return ispure(T.polyhedralComplex)
 end
 
 
 
 @doc Markdown.doc"""
-    simplicial(T::TropicalVariety{M, EMB})
-    simplicial(T::TropicalCurve{M, EMB})
-    simplicial(T::TropicalHypersurface{M, EMB})
-    simplicial(T::TropicalLinearSpace{M, EMB})
+    issimplicial(T::TropicalVariety{M, EMB})
+    issimplicial(T::TropicalCurve{M, EMB})
+    issimplicial(T::TropicalHypersurface{M, EMB})
+    issimplicial(T::TropicalLinearSpace{M, EMB})
 
 Returns true if `T` is a simplicial polyhedral complex, false otherwise.
 
@@ -432,12 +461,12 @@ julia> f = x+y+1;
 
 julia> tropicalLine = TropicalHypersurface(f);
 
-julia> simplicial(tropicalLine)
+julia> issimplicial(tropicalLine)
 # todo: add examples for varieties, curves and linear spaces
 ```
 """
-function simplicial(T::TropicalVarietySupertype{M,EMB}) where {M,EMB}
-    return simplicial(T.polyhedralComplex)
+function issimplicial(T::TropicalVarietySupertype{M,EMB}) where {M,EMB}
+    return issimplicial(T.polyhedralComplex)
 end
 
 
@@ -476,7 +505,7 @@ julia> tropicalCubic = TropicalHypersurface(f3);
 julia> vertices(tropicalCubic)
 ```
 """
-function vertices(as::Type{PointVector{T}}, T::TropicalVarietySupertype{M,EMB}) where {T,M,EMB}
+function vertices(as::Type{PointVector{S}}, T::TropicalVarietySupertype{M,EMB}) where {S,M,EMB}
     return vertices(as,T.polyhedralComplex)
 end
 
