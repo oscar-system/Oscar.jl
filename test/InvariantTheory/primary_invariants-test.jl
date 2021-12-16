@@ -13,7 +13,7 @@
   RGm = invariant_ring(N3) # char p, modular
 
   for RG in [ RG0, RGp ]
-    for algo in [ :optimal_hsop, :radical_containment ]
+    for algo in [ :optimal_hsop, :successive_algo ]
       invars = primary_invariants(RG, algo)
       @test dim(ideal(polynomial_ring(RG), invars)) == 0
       for f in invars
@@ -22,7 +22,7 @@
     end
   end
 
-  for algo in [ :optimal_hsop, :radical_containment ]
+  for algo in [ :optimal_hsop, :successive_algo ]
     invars = primary_invariants(RGm, algo)
     @test dim(ideal(polynomial_ring(RGm), invars)) == 0
     actionN3 = Oscar.right_action(polynomial_ring(RGm), N3)

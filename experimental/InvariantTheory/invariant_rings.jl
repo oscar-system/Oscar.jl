@@ -353,7 +353,7 @@ basis(IR::InvRing, d::Int, algo = :default) = collect(iterate_basis(IR, d, algo)
 function secondary_invariants_via_singular(IR::InvRing)
   if !isdefined(IR, :secondary)
     rey, mol = reynolds_molien_via_singular(IR)
-    primary_invariants_via_radical_containment(IR)
+    primary_invariants_via_successive_algo(IR)
     P = IR.primary_singular
     if iszero(characteristic(coefficient_ring(IR)))
       S, IS = Singular.LibFinvar.secondary_char0(P[1], rey, mol)

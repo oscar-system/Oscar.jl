@@ -1,4 +1,4 @@
-export primary_invariants, primary_invariants_via_optimal_hsop, primary_invariants_via_radical_containment
+export primary_invariants, primary_invariants_via_optimal_hsop, primary_invariants_via_successive_algo
 
 # If d_1, ..., d_n are degrees of primary invariants, then the Hilbert series
 # must be f(t)/\prod_i (1 - t^{d_i}) where f is a polynomial with integer
@@ -260,9 +260,9 @@ function primary_invariants_via_optimal_hsop!(RG::InvRing{FldT, GrpT, PolyElemT}
 end
 
 @doc Markdown.doc"""
-    primary_invariants_via_radical_containment(IR::InvRing)
+    primary_invariants_via_successive_algo(IR::InvRing)
 
-Return a system of primary invariants for `IR` using the algorithm in Stu93.
+Return a system of primary invariants for `IR` using the algorithm in DHS98.
 
 # Examples
 ```jldoctest
@@ -276,14 +276,14 @@ julia> G = MatrixGroup(3, K, [M1, M2]);
 
 julia> IR = invariant_ring(G);
 
-julia> primary_invariants_via_radical_containment(IR)
+julia> primary_invariants_via_successive_algo(IR)
 3-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
  x[1]*x[2]*x[3]
  x[1]^3 + x[2]^3 + x[3]^3
  x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
 ```
 """
-function primary_invariants_via_radical_containment(IR::InvRing)
+function primary_invariants_via_successive_algo(IR::InvRing)
   IR.primary_singular = Singular.LibFinvar.primary_invariants(_action_singular(IR)...)
   if ismodular(IR)
     P = IR.primary_singular
@@ -308,12 +308,12 @@ If a system of primary invariants for `IR` is already cached, return the cached 
 Otherwise, compute and cache such a system first.
 
 The used algorithm can be specified with the optional argument `algo`. Possible values
-are `:optimal_hsop` which uses the algorithm in Kem99 or `:radical_containment` which uses the algorithm from Stu93.
+are `:optimal_hsop` which uses the algorithm in Kem99 or `:successive_algo` which uses the algorithm from DHS98.
 The default option is `:optimal_hsop` which is in general expected to be the faster algorithm.
 
 NOTE: The primary invariants are sorted by increasing degree.
 
-See also `primary_invariants_via_optimal_hsop` and `primary_invariants_via_radical_containment` for more options.
+See also `primary_invariants_via_optimal_hsop` and `primary_invariants_via_successive_algo` for more options.
 
 # Examples
 ```jldoctest
@@ -338,8 +338,8 @@ function primary_invariants(IR::InvRing, algo::Symbol = :optimal_hsop)
   if !isdefined(IR, :primary)
     if algo == :optimal_hsop
       IR.primary = primary_invariants_via_optimal_hsop(IR)
-    elseif algo == :radical_containment
-      IR.primary = primary_invariants_via_radical_containment(IR)
+    elseif algo == :successive_algo
+      IR.primary = primary_invariants_via_successive_algo(IR)
     else
       error("Unsupported argument :$(algo) for algo.")
     end
