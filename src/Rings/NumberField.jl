@@ -23,13 +23,12 @@ using Random, RandomExtensions
 
 # We are tagging T to record the element type of the base field. This is needed
 # in Hecke to distinguish between relative and absolute fields.
-mutable struct NfNSGen{T, S} <: Hecke.NonSimpleNumField{T}
+@attributes mutable struct NfNSGen{T, S} <: Hecke.NonSimpleNumField{T}
   I::MPolyIdeal{S}
   S::Vector{Symbol}
   degree::Int
   basis
   auxilliary_data::Vector{Any}
-  AbstractAlgebra.@declare_other
 
   function NfNSGen{U, V}(I, S::Vector{Symbol}) where {U, V}
     Kx = base_ring(I)::parent_type(V)

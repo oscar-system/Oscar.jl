@@ -42,6 +42,7 @@ import msolve_jll
 export Nemo, Hecke, Singular, Polymake, AbstractAlgebra, GAP
 
 import AbstractAlgebra: @show_name, @show_special, elem_type, force_coerce, force_op,
+                        get_attribute, get_attribute!, set_attribute!,
                         parent_type, expressify, canonical_unit
 
 import Hecke: @req

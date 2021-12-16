@@ -36,11 +36,10 @@ complex_conjugate(elm::QabElem) = elm^QabAutomorphism(-1)
 ##
 abstract type GroupCharacterTable end
 
-mutable struct GAPGroupCharacterTable <: GroupCharacterTable
+@attributes mutable struct GAPGroupCharacterTable <: GroupCharacterTable
     GAPGroup::GAPGroup    # the underlying group, if any
     GAPTable::GAP.GapObj  # the character table object
     characteristic::Int
-    AbstractAlgebra.@declare_other
 
     function GAPGroupCharacterTable(G::GAPGroup, tab::GAP.GapObj, char::Int)
       ct = new()
@@ -101,10 +100,10 @@ Sym( [ 1 .. 3 ] )
 ```
 """
 function character_table(G::GAPGroup, p::Int = 0)
-    tbls = AbstractAlgebra.get_special(G, :character_tables)
+    tbls = get_attribute(G, :character_tables)
     if tbls == nothing
       tbls = Dict()
-      AbstractAlgebra.set_special(G, :character_tables => tbls)
+      set_attribute!(G, :character_tables => tbls)
     end
 
     return get!(tbls, p) do
@@ -464,10 +463,10 @@ function Base.mod(tbl::GAPGroupCharacterTable, p::Int)
     isprime(p) || error("p must be a prime integer")
     tbl.characteristic == 0 || error("tbl mod p only for ordinary table tbl")
 
-    modtbls = AbstractAlgebra.get_special(tbl, :brauer_tables)
+    modtbls = get_attribute(tbl, :brauer_tables)
     if modtbls == nothing
       modtbls = Dict{Int,Any}()
-      AbstractAlgebra.set_special(tbl, :brauer_tables => modtbls)
+      set_attribute!(tbl, :brauer_tables => modtbls)
     end
     if ! haskey(modtbls, p)
       modtblgap = mod(tbl.GAPTable, p)
