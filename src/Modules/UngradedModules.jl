@@ -8,7 +8,7 @@ export FreeMod, presentation, FreeModElem, coords, coeffs, repres,
       ext, map_canonically, all_canonical_maps, register_morphism!, dense_row, 
       matrix_kernel, simplify, map, isinjective, issurjective, isbijective, iswelldefined,
       ModuleFP, ModuleFPElem, AbstractFreeMod, AbstractSubQuo, AbstractFreeModElem, AbstractSubQuoElem, ModuleMap,
-      subquotient, ambient_free_module, ambient_representative
+      subquotient, ambient_free_module, ambient_representative, ambient_representatives_generators, relations
 
 # TODO replace asserts by error messages?
 
@@ -156,7 +156,7 @@ ngens(F::AbstractFreeMod) = dim(F)
 
 Return  `true` if `F` and `G` are equal, `false` otherwise.
 
-Here, `F` and `G` are equal iff their base rings, ranks and names for printing the basis elements are equal.
+Here, `F` and `G` are equal iff their base rings, ranks, and names for printing the basis elements are equal.
 """
 function Base.:(==)(F::FreeMod, G::FreeMod)
   # two free modules are equal if the rank and the ring are
@@ -805,10 +805,9 @@ FreeModuleHom(F::FreeMod{T}, G::S, mat::MatElem{T}) where {T,S} = FreeModuleHom{
 @doc Markdown.doc"""
     matrix(a::FreeModuleHom)
 
-Given a homomorphism `a: F` $\to$ `G`, where `typeof(F) <: FreeMod`
-and `typeof(G) <: ModuleFP`, return a matrix `A` with `rank(F)` rows and 
-`ngens(G)` columns such that `a == hom(F, G, A)`.
-
+Given a homomorphism `a` of type  `FreeModuleHom` with domain `F`
+and codomain `M`, return a matrix `A` with `rank(F)` rows and 
+`ngens(M)` columns such that `a == hom(F, M, A)`.
 """
 function matrix(a::FreeModuleHom)
   if !isdefined(a, :matrix)
@@ -830,18 +829,17 @@ end
 (h::FreeModuleHom)(a::FreeModElem) = image(h, a)
 
 @doc Markdown.doc"""
-    hom(F::FreeMod{T}, G::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T 
+    hom(F::FreeMod{T}, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T 
 
-Given a vector `V` of `rank(F)` elements of `G`, 
-return the homomorphism which sends the `i`-th
-basis vector of `F` to the `i`-th entry of `V`,
-for all `i`.
+Given a vector `V` of `rank(F)` elements of `M`, 
+return the homomorphism `F` $\to$ `M` which sends the `i`-th
+basis vector of `F` to the `i`-th entry of `V`.
 
-    hom(F::FreeMod{T}, G::ModuleFP{T}, A::MatElem{T}) where T
+    hom(F::FreeMod{T}, M::ModuleFP{T}, A::MatElem{T}) where T
 
-Given a matrix `A` with `rank(F)` rows and `ngens(G)` columns, return the
-homomorphism `F` $\to$ `G` which sends the `i`-th basis vector of `F` to 
-$\sum_j A[i,j]*G[j]$, for all `i`. Here, the `G[j]` are the given generators of `G`.
+Given a matrix `A` with `rank(F)` rows and `ngens(M)` columns, return the
+homomorphism `F` $\to$ `M` which sends the `i`-th basis vector of `F` to 
+the linear combination $\sum_j A[i,j]*M[j]$ of the generators `M[j]` of `M`.
 """
 hom(F::FreeMod{T}, G::ModuleFP{T}, V::Vector{<:ModuleFPElem}) where T = FreeModuleHom(F, G, V) 
 hom(F::FreeMod{T}, G::ModuleFP{T}, A::MatElem{T}) where T = FreeModuleHom(F, G, A)
@@ -1342,21 +1340,19 @@ julia> A = R[x; y]
 [x]
 [y]
 
-julia> B = R[x^2; x*y; y^2; z^4]
+julia> B = R[x^2; y^3; z^4]
 [x^2]
-[x*y]
-[y^2]
+[y^3]
 [z^4]
 
-julia> M = subquotient(A, B)
+julia> M = SubQuo(A, B)
 Subquotient of Submodule with 2 generators
 1 -> x*e[1]
 2 -> y*e[1]
-by Submodule with 4 generators
+by Submodule with 3 generators
 1 -> x^2*e[1]
-2 -> x*y*e[1]
-3 -> y^2*e[1]
-4 -> z^4*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
 ```
 """
 function subquotient(a::FreeModuleHom{T}, b::FreeModuleHom{T}) where {T}
@@ -2383,11 +2379,110 @@ function SubQuoHom(D::SubQuo, C::ModuleFP, mat::MatElem)
   end
 end
 
-@doc Markdown.doc"""
-    matrix(f::SubQuoHom)
+###################################################################
 
-Return the matrix corresponding to `f`. 
-The matrix is cached.
+@doc Markdown.doc"""
+    hom(M::SubQuo{T}, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T
+
+Given a vector `V` of `ngens(M)` elements of `N`, 
+return the homomorphism `M` $\to$ `N` which sends the `i`-th
+generator `M[i]` of `M` to the `i`-th entry of `V`.
+
+    hom(M::SubQuo{T}, N::ModuleFP{T},  A::MatElem{T})) where T
+
+Given a matrix `A` with `ngens(M)` rows and `ngens(N)` columns, return the
+homomorphism `M` $\to$ `N` which sends the `i`-th generator `M[i]` of `M` to 
+the linear combination $\sum_j A[i,j]*N[j]$ of the generators `N[j]` of `N`.
+
+!!! warning
+    The functions do not check whether the resulting homomorphism is well-defined,
+    that is, whether it sends the relations of `M` into the relations of `N`. 
+
+If you are uncertain with regard to well-definedness, use the function below.
+Note, however, that the check performed by the function requires a Gröbner basis computation. This may take some time.
+
+    iswelldefined(a::ModuleMap)
+
+Return `true` if `a` is well-defined, and `false` otherwise.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+
+julia> A = R[x; y]
+[x]
+[y]
+
+julia> B = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia> M = SubQuo(A, B);
+
+julia> N = M;
+
+julia> V = [y^2*N[1], x*N[2]]
+2-element Vector{SubQuoElem{fmpq_mpoly}}:
+ x*y^2*e[1]
+ x*y*e[1]
+
+julia> a = hom(M, N, V)
+Map with following data
+Domain:
+=======
+M
+Codomain:
+=========
+M
+
+julia> iswelldefined(a)
+true
+
+julia> W = [y*N[1], x*N[2]]
+2-element Vector{SubQuoElem{fmpq_mpoly}}:
+ x*y*e[1]
+ x*y*e[1]
+
+julia> b = hom(M, N, W)
+Map with following data
+Domain:
+=======
+M
+Codomain:
+=========
+M
+
+julia> iswelldefined(b)
+false
+```
+"""
+hom(M::SubQuo{T}, N::ModuleFP{T}, V::Vector{<:ModuleFPElem}) where T = SubQuoHom(M, N, V) 
+hom(M::SubQuo{T}, N::ModuleFP{T},  A::MatElem{T}) where T = SubQuoHom(M, N, A)
+function iswelldefined(H::ModuleMap)
+  if typeof(H) <: FreeModuleHom
+    return true
+  end
+  M = domain(H)
+  C = present_as_cokernel(M).quo
+  n = ngens(C)
+  m = rank(C.F)
+  ImH = map(x -> H(x), gens(M))
+  for i=1:n
+    if !iszero(Base.sum([C[i][j]*ImH[j] for j=1:m]))
+      return false
+    end
+  end
+  return true
+end
+###################################################################
+
+@doc Markdown.doc"""
+    matrix(a::SubQuoHom)
+
+Given a homomorphism `a` of type  `SubQuoHom` with domain `M`
+and codomain `N`, return a matrix `A` with `ngens(M)` rows and 
+`ngens(N)` columns such that `a == hom(M, N, A)`.
 """
 function matrix(f::SubQuoHom)
   if !isdefined(f, :matrix)
@@ -2497,9 +2592,9 @@ end
 hom(D::SubQuo, C::ModuleFP, A::Vector) = SubQuoHom(D, C, A)
 
 @doc Markdown.doc"""
-    image(f::SubQuoHom, a::SubQuoElem)
+    image(a::SubQuoHom, m::SubQuoElem)
 
-Return $f(a)$.
+Return the image $a(m)$.
 """
 function image(f::SubQuoHom, a::SubQuoElem)
   # TODO matrix vector multiplication
@@ -2547,27 +2642,26 @@ Return `true` if `m` is zero, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
 
 julia> A = R[x; y]
 [x]
 [y]
 
-julia> B = R[x^2; x*y; y^2; z^4]
+julia> B = R[x^2; y^3; z^4]
 [x^2]
-[x*y]
-[y^2]
+[y^3]
 [z^4]
 
 julia> M = SubQuo(A, B)
 Subquotient of Submodule with 2 generators
 1 -> x*e[1]
 2 -> y*e[1]
-by Submodule with 4 generators
+by Submodule with 3 generators
 1 -> x^2*e[1]
-2 -> x*y*e[1]
-3 -> y^2*e[1]
-4 -> z^4*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
 
 
 
@@ -3268,11 +3362,25 @@ end
 rels(F::FreeMod) = elem_type(F)[]
 
 @doc Markdown.doc"""
+    ambient_representatives_generators(M::SubQuo)
+
+Return elements of the ambient free module of `M` which represent the generators of `M`.
+"""
+ambient_representatives_generators(M::SubQuo) = gens(M, ambient_free_module(M))
+
+@doc Markdown.doc"""
     rels(M::SubQuo)
 
 Return the relations of `M`.
 """
 rels(M::SubQuo) = isdefined(M, :quo) ? collect(M.quo.gens) : elem_type(M.F)[]
+
+@doc Markdown.doc"""
+    relations(M::SubQuo)
+
+Return the relations of `M`.
+"""
+relations(M::SubQuo) = rels(M)
 
 @doc Markdown.doc"""
     tensor_product(G::ModuleFP...; task::Symbol = :none)
@@ -3802,7 +3910,7 @@ end
 
 @doc Markdown.doc"""
     simplify(M::SubQuo)
-
+r
 Simplify the given subquotient `M` and return the simplified subquotient `N` along
 with the injection map $N \to M$ and the projection map $M \to N$. These maps are 
 isomorphisms. 
@@ -3992,27 +4100,6 @@ function isbijective(f::ModuleMap)
   return isinjective(f) && issurjective(f)
 end
 
-@doc Markdown.doc"""
-    iswelldefined(H::ModuleMap)
-
-Test if `H` is well-defined.
-"""
-function iswelldefined(H::ModuleMap)
-  if typeof(H) <: FreeModuleHom
-    return true
-  end
-  M = domain(H)
-  C = present_as_cokernel(M).quo
-  n = ngens(C)
-  m = rank(C.F)
-  ImH = map(x -> H(x), gens(M))
-  for i=1:n
-    if !iszero(Base.sum([C[i][j]*ImH[j] for j=1:m]))
-      return false
-    end
-  end
-  return true
-end
 
 #############################################
 # Test hom
