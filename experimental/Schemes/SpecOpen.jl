@@ -4,7 +4,7 @@ export StructureSheafRing, variety, domain, OO
 
 export StructureSheafElem, domain, representatives, patches, npatches, restrict
 
-export SpecOpenMor, maps_on_patches, restriction
+export SpecOpenMor, maps_on_patches, restriction, identity_map
 
 mutable struct SpecOpen{BRT, BRET, RT, RET, MST} <: Scheme{BRT, BRET}
   X::Spec{BRT, BRET, RT, RET, MST} # the ambient scheme
@@ -31,6 +31,7 @@ end
 
 parent(U::SpecOpen) = U.X
 gens(U::SpecOpen) = U.gens
+getindex(U::SpecOpen, i::Int) = patches(U)[i]
 
 function Base.show(io::IO, U::SpecOpen)
   if isdefined(U, :name) 
@@ -150,7 +151,7 @@ function issubset(
 end
 
 function issubset(U::T, V::T) where {T<:SpecOpen}
-  return issubset(complement(U), complement(intersect(V, parent(U))))
+  return issubset(complement(intersect(V, parent(U))), complement(U))
 end
 
 function ==(U::T, V::T) where {T<:SpecOpen}
@@ -362,6 +363,73 @@ maps_on_patches(f::SpecOpenMor) = f.maps_on_patches
 getindex(f::SpecOpenMor, i::Int) = maps_on_patches(f)[i]
 
 @Markdown.doc """
+compose(f::T, g::T) where {T<:SpecOpenMor}
+
+computes the composition of two morphisms 
+
+    f    g
+  U →  V →  W
+  ∩    ∩    ∩
+  X    Y    Z
+
+of open sets of affine varieties.
+"""
+function compose(f::T, g::T) where {T<:SpecOpenMor}
+  U = domain(f)
+  Cf = codomain(f)
+  V = domain(g)
+  issubset(Cf, V) || error("maps are not compatible")
+  W = codomain(g)
+  X = parent(U)
+  Y = parent(V)
+  Z = parent(W)
+  g_maps = maps_on_patches(g)
+  f_maps = maps_on_patches(f)
+  #####################################################################
+  # The method proceeds as follows.
+  # We extract the affine open sets 
+  #   Uᵢⱼ = Uᵢ∩ f⁻¹(Vⱼ)  
+  # where Uᵢ are the patches of U and Vⱼ those of V.
+  # Then we can pass to the restrictions 
+  #   fᵢⱼ : Uᵢⱼ → Vⱼ 
+  # and the compositions 
+  #   gᵢⱼ :=  gⱼ ∘ fᵢⱼ: Uᵢⱼ → Z.
+  # For any variable z for Z we can write the pullbacks gᵢⱼ*z ∈ 𝒪(Uᵢⱼ). 
+  # These functions necessarily coincide on the overlaps of the Uᵢⱼ in 
+  # Uᵢ, so we can extend them to a global function on Uᵢ. 
+  # From these global functions, we can then assemble a morphism 
+  # on each one of the affine schemes Uᵢ which glue together to a 
+  # SpecOpenMor over these patches.
+  #####################################################################
+  m = length(gens(U))
+  n = length(gens(V))
+  result_maps = Vector{typeof(f_maps[1])}()
+  for i in 1:m
+    U_i = patches(U)[i]
+    f_i = f_maps[i]
+    z_i = Vector{elem_type(OO(U_i))}() # the pullbacks of the coordinate functions of Z on Uᵢ
+    z_ij = Vector{Vector{elem_type(OO(U_i))}}()
+    for j in 1:n
+      V_j = patches(V)[j]
+      g_j = g_maps[j]
+      U_ij = intersect(U_i, preimage(f_i, V_j))
+      g_ij = compose(restrict(f_i, U_ij, V_j), g_j)
+      push!(z_ij, [pullback(g_ij)(z) for z in gens(OO(Z))])
+      ### This is using the well known trick that if aᵢ// dᵢ coincide pairwise
+      # wherever dᵢ and dⱼ are defined, and 1 = ∑ᵢ λᵢ⋅ dᵢ, then 
+      # ∑ᵢλᵢ⋅ aᵢ = aᵢ// dᵢ on all open sets {dᵢ≠ 0}. 
+    end
+    for k in 1:length(gens(OO(Z)))
+      l = write_as_linear_combination(one(OO(U_i)), lifted_denominator.([z_ij[j][k] for j in 1:n]))
+      push!(z_i, dot(l, OO(U_i).(lifted_numerator.([z_ij[j][k] for j in 1:n]))))
+    end
+    push!(result_maps, SpecMor(U_i, Z, MPolyQuoLocalizedRingHom(OO(Z), OO(U_i), z_i)))
+    #push!(result_maps, SpecMor(U_i, Z, z_i))
+  end
+  return SpecOpenMor(U, W, result_maps)
+end
+
+@Markdown.doc """
 maximal_extension(
   X::Spec{BRT, BRET, RT, RET, MST}, 
   Y::Spec{BRT, BRET, RT, RET, MST}, 
@@ -369,7 +437,7 @@ maximal_extension(
 ) where {BRT, BRET, RT, RET, MST}
 
 Given a rational map ϕ : X ---> Y ⊂ Spec 𝕜[y₁,…,yₙ] of affine schemes 
-determined by ϕ*yⱼ = fⱼ = aⱼ//bⱼ, find the maximal open subset U⊂ X 
+determined by ϕ*(yⱼ) = fⱼ = aⱼ//bⱼ, find the maximal open subset U⊂ X 
 to which ϕ can be extended to a regular map g : U → Y and return g.
 """
 function maximal_extension(
@@ -399,8 +467,24 @@ function restriction(
     U::SpecOpen{BRT, BRET, RT, RET, MST1},
     V::SpecOpen{BRT, BRET, RT, RET, MST2}
   ) where {BRT, BRET, RT, RET, MST1, MST2}
-  U == domain(f) || error("restriction not implemented")
-  issubset(V, codomain(f))
-  return SpecOpenMor(U, V, maps_on_patches(f))
+  inc = SpecOpenMor(U, domain(f), [SpecMor(W, parent(domain(f)), gens(localized_ring(OO(W)))) for W in patches(U)])
+  help_map = compose(inc, f)
+  return SpecOpenMor(U, V, maps_on_patches(help_map))
 end
 
+identity_map(U::SpecOpen) = SpecOpenMor(U, U, [SpecMor(V, parent(U), gens(localized_ring(OO(V)))) for V in patches(U)])
+
+function ==(f::T, g::T) where {T<:SpecOpenMor} 
+  domain(f) == domain(g) || return false
+  codomain(f) == codomain(g) || return false
+  Y = parent(codomain(f))
+  m = length(patches(domain(f)))
+  n = length(patches(domain(g)))
+  for i in 1:m
+    for j in 1:n
+      restrict(f[i], intersect(domain(f)[i], domain(g)[i]), Y) == 
+      restrict(g[i], intersect(domain(f)[i], domain(g)[i]), Y) || return false
+    end
+  end
+  return true
+end

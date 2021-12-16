@@ -1600,7 +1600,8 @@ function groebner_basis(
   end
   # if not, set up a LocalizedBiPolyArray
   # Note that saturation is essential here!
-  lbpa = BiPolyArray(base_ring(I), saturated_ideal(I), ordering=ordering) 
+  W = base_ring(I)
+  lbpa = LocalizedBiPolyArray(W, W.(gens(saturated_ideal(I))), ordering=ordering) 
   D[ordering] = std(lbpa)
   return D[ordering]
 end

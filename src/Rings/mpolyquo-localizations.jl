@@ -382,7 +382,7 @@ function inv(L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MPolyPowersOfElement{B
   lower = pop!(powers_of_d)
   while length(powers_of_d) > 0
     middle = lower*pop!(powers_of_d)
-    (result, coefficient) = divides(Q(last(powers_of_d)), f)
+    (result, coefficient) = divides(Q(middle), f)
     if result 
       upper = middle
     else 
@@ -558,6 +558,73 @@ parent_type(W::MPolyQuoLocalizedRingElem{BaseRingType, BaseRingElemType, RingTyp
 parent_type(T::Type{MPolyQuoLocalizedRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyQuoLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
 
 
+write_as_linear_combination(f::MPolyQuoLocalizedRingElem, g::Vector) = write_as_linear_combination(f, parent(f).(g))
+
+@Markdown.doc """
+function write_as_linear_combination(f::T, g::Vector{T}) where {T<:MPolyLocalizedRingElem} 
+
+Write f = ∑ᵢ λᵢ⋅gᵢ for some λᵢ and return the vector [λ₁,…,λₙ].
+"""
+function write_as_linear_combination(
+    f::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}},
+    g::Vector{MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}}}
+  ) where {BRT, BRET, RT, RET}
+  n = length(g)
+  W = parent(f)
+  for a in g 
+    parent(a) == W || error("elements do not belong to the same ring")
+  end
+  (d, a) = bring_to_common_denominator(fraction.(vcat([f], g)))
+  h = [a[i+1]*lifted_numerator(g[i]) for i in 1:n]
+  lbpa = BiPolyArray(W, W.(h))
+  p = a[1]*lifted_numerator(f)
+  p_sing = to_singular_side(lbpa, p)
+  S = singular_ring(lbpa)
+  I = modulus(W)
+  SI = to_singular_side(lbpa, gens(I))
+  
+  M, N, U = Singular.lift(
+			  Singular.Module(S, vcat([Singular.vector(S, g) for g in gens(singular_gens(lbpa))], [Singular.vector(S, g) for g in SI])...),
+			  Singular.Module(S, Singular.vector(S, p_sing)),
+			  false, false, false)
+  A = Singular.Matrix(M)
+  iszero(N) || error("the first argument is not contained in the span of the second")
+  u = 1//W(to_oscar_side(lbpa, U[1,1]))
+  lambda = [W(to_oscar_side(lbpa, A[i, 1]))*u for i in 1:n]
+  return lambda
+end
+
+function write_as_linear_combination(
+    f::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}},
+    g::Vector{MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}}
+  ) where {BRT, BRET, RT, RET}
+  n = length(g)
+  L = parent(f)
+  for a in g 
+    parent(a) == L || error("elements do not belong to the same ring")
+  end
+  (d, a) = bring_to_common_denominator(fraction.(vcat([f], g)))
+  hg = [a[i+1]*lifted_numerator(g[i]) for i in 1:n]
+  hf = lifted_numerator(f)*a[1]
+  A, I, q, phi, theta = as_affine_algebra(L)
+  SA, _ = Singular.PolynomialRing(Oscar.singular_ring(base_ring(A)), 
+				  String.(symbols(A)),  
+				  ordering=Singular.ordering_dp(1)
+				  *Singular.ordering_dp(nvars(A)-1))
+  Shg_ext = Singular.Ideal(SA, SA.(vcat(phi.(hg), gens(I))))
+  M, N, U = Singular.lift(
+                          Singular.Module(SA, [Singular.vector(SA, g) for g in gens(Shg_ext)]...),
+			  Singular.Module(SA, Singular.vector(SA, SA(phi(hf)))),
+			  false, false, false)
+  iszero(N) || error("the first argument is not contained in the span of the second")
+  W = localized_ring(L)
+  evaluation_list = vcat([W(one(base_ring(L)), q)], gens(W))
+  l = [Singular.Matrix(M)[i, 1] for i in 1:n]
+  lambda = L.([evaluate(A(a), evaluation_list) for a in l])
+  return lambda
+end
+
+
 ########################################################################
 # Homomorphisms of quotients of localized polynomial algebras          #
 ########################################################################
@@ -695,7 +762,7 @@ function (f::MPolyQuoLocalizedRingHom{BRT, BRET, RT, RET, DMST, CMST})(
     p::MPolyLocalizedRingElem{BRT, BRET, RT, RET, DMST}
   ) where {BRT, BRET, RT, RET, DMST, CMST}
   parent(p) == localized_ring(domain(f)) || error("the given element does not belong to the domain of the map")
-  return codomain(f)(evaluate(numerator(p), images(f))//evaluate(denominator(p), images(f)))
+  return codomain(f)(evaluate(numerator(p), images(f)))*inv(codomain(f)(evaluate(denominator(p), images(f))))
 end
 
 function (f::MPolyQuoLocalizedRingHom{BRT, BRET, RT, RET, DMST, CMST})(

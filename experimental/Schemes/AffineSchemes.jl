@@ -299,9 +299,10 @@ function compose(f::SpecMorType, g::SpecMorType) where {SpecMorType<:SpecMor}
 end
 
 function ==(f::SpecMorType, g::SpecMorType) where {SpecMorType<:SpecMor}
-  domain(f) == domain(g) || return false
+  X = domain(f)
+  X == domain(g) || return false
   codomain(f) == codomain(g) || return false
-  pullback(f) == pullback(g) || return false
+  OO(X).(images(pullback(f))) == OO(X).(images(pullback(g))) || return false
   return true
 end
 
