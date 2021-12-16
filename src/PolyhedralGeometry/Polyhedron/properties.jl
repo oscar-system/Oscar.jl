@@ -686,6 +686,48 @@ function ehrhart_polynomial(R::FmpqPolyRing, P::Polyhedron)
     return (R)(Vector{fmpq}(coeffs))
 end
 
+
+@doc Markdown.doc"""
+    h_star_polynomial(P::Polyhedron)
+
+Compute the $h^*$ polynomial of `P`.
+
+# Examples
+```jldoctest
+julia> c = cube(3)
+A polyhedron in ambient dimension 3
+
+julia> h_star_polynomial(c)
+8*x^3 + 12*x^2 + 6*x + 1
+"""
+function h_star_polynomial(P::Polyhedron)
+    R, x = PolynomialRing(QQ, "x")
+    return h_star_polynomial(R, P)
+end
+
+
+@doc Markdown.doc"""
+    h_star_polynomial(R::FmpqMPolyRing, P::Polyhedron)
+
+Compute the $h^*$ polynomial of `P` and return it as a polynomial in `R`.
+
+# Examples
+```jldoctest
+julia> R, x = PolynomialRing(QQ, "x")
+(Univariate Polynomial Ring in x over Rational Field, x)
+
+julia> c = cube(3)
+A polyhedron in ambient dimension 3
+
+julia> h_star_polynomial(R, c)
+8*x^3 + 12*x^2 + 6*x + 1
+```
+"""
+function h_star_polynomial(R::FmpqPolyRing, P::Polyhedron)
+    coeffs = pm_object(P).H_STAR_VECTOR
+    return (R)(Vector{fmpq}(coeffs))
+end
+
 ###############################################################################
 ## Boolean properties
 ###############################################################################
