@@ -68,8 +68,8 @@ function automorphism_group(G::GrpAbFinGen)
   Ggap, to_gap, to_oscar = _isomorphic_gap_group(G)
   AutGAP = GAP.Globals.AutomorphismGroup(Ggap.X)
   aut = AutomorphismGroup{typeof(G)}(AutGAP, G)
-  set_special(aut,:to_gap => to_gap)
-  set_special(aut,:to_oscar => to_oscar)
+  set_attribute(aut,:to_gap => to_gap)
+  set_attribute(aut,:to_oscar => to_oscar)
   return aut
 end
 
@@ -78,8 +78,8 @@ function apply_automorphism(f::AutomorphismGroupElem{GrpAbFinGen}, x::GrpAbFinGe
   if check
     @assert parent(x) == aut.G "Not in the domain of f!"
   end
-  to_gap = get_special(aut,:to_gap)
-  to_oscar = get_special(aut,:to_oscar)
+  to_gap = get_attribute(aut,:to_gap)
+  to_oscar = get_attribute(aut,:to_oscar)
   xgap = to_gap(x)
   A = parent(f)
   domGap = parent(xgap)
@@ -96,11 +96,11 @@ function _as_subgroup(aut::AutomorphismGroup{T}, subgrp::GapObj, ::Type{S}) wher
   function img(x::S)
     return group_element(aut, x.X)
   end
-  to_gap = get_special(aut, :to_gap)
-  to_oscar = get_special(aut, :to_oscar)
+  to_gap = get_attribute(aut, :to_gap)
+  to_oscar = get_attribute(aut, :to_oscar)
   subgrp1 = AutomorphismGroup{T}(subgrp, aut.G)
-  set_special(subgrp1, :to_gap => to_gap)
-  set_special(subgrp1, :to_oscar => to_oscar)
+  set_attribute(subgrp1, :to_gap => to_gap)
+  set_attribute(subgrp1, :to_oscar => to_oscar)
   return subgrp1, hom(subgrp1, aut, img)
 end
 
@@ -118,8 +118,8 @@ end
 
 function (aut::AutomorphismGroup{T})(f::GrpAbFinGenMap) where T
   @assert isautomorphism(aut.G,f.map) "Map doesn't define an element of AutomorphismGroup"
-  to_gap = get_special(aut, :to_gap)
-  to_oscar = get_special(aut, :to_oscar)
+  to_gap = get_attribute(aut, :to_gap)
+  to_oscar = get_attribute(aut, :to_oscar)
   Agap = domain(to_oscar)
   AA = Agap.X
   function img_gap(x)
