@@ -36,11 +36,10 @@ complex_conjugate(elm::QabElem) = elm^QabAutomorphism(-1)
 ##
 abstract type GroupCharacterTable end
 
-mutable struct GAPGroupCharacterTable <: GroupCharacterTable
+@attributes mutable struct GAPGroupCharacterTable <: GroupCharacterTable
     GAPGroup::GAPGroup    # the underlying group, if any
     GAPTable::GAP.GapObj  # the character table object
     characteristic::Int
-    AbstractAlgebra.@declare_other
 
     function GAPGroupCharacterTable(G::GAPGroup, tab::GAP.GapObj, char::Int)
       ct = new()
@@ -101,10 +100,10 @@ Sym( [ 1 .. 3 ] )
 ```
 """
 function character_table(G::GAPGroup, p::Int = 0)
-    tbls = AbstractAlgebra.get_special(G, :character_tables)
+    tbls = get_attribute(G, :character_tables)
     if tbls == nothing
       tbls = Dict()
-      AbstractAlgebra.set_special(G, :character_tables => tbls)
+      set_attribute!(G, :character_tables => tbls)
     end
 
     return get!(tbls, p) do
@@ -153,7 +152,7 @@ function character_table(id::String, p::Int = 0)
       modid = id
     else
       isprime(p) || error("p must be 0 or a prime integer")
-      modid = id * "mod" * string(p)
+      modid = "$(id)mod$(p)"
     end
 
     return get!(character_tables_by_id, modid) do
@@ -399,7 +398,7 @@ function Base.show(io::IO, tbl::GAPGroupCharacterTable)
 
       # row labels:
       # character names (a column vector is sufficient)
-      :labels_row => ["\\chi_{" * string(i) * "}" for i in 1:n],
+      :labels_row => ["\\chi_{$i}" for i in 1:n],
 
       # corner (a column vector is sufficient):
       # primes in the centralizer rows,
@@ -424,7 +423,7 @@ function Base.print(io::IO, tbl::GAPGroupCharacterTable)
     if isdefined(tbl, :GAPGroup)
       id = string(tbl.GAPGroup)
       if tbl.characteristic != 0
-        id = id * " mod " * string(tbl.characteristic)
+        id = "$(id)mod$(tbl.characteristic)"
       end
     else
       id = "\"" * String(GAP.Globals.Identifier(gaptbl)) * "\""
@@ -464,10 +463,10 @@ function Base.mod(tbl::GAPGroupCharacterTable, p::Int)
     isprime(p) || error("p must be a prime integer")
     tbl.characteristic == 0 || error("tbl mod p only for ordinary table tbl")
 
-    modtbls = AbstractAlgebra.get_special(tbl, :brauer_tables)
+    modtbls = get_attribute(tbl, :brauer_tables)
     if modtbls == nothing
       modtbls = Dict{Int,Any}()
-      AbstractAlgebra.set_special(tbl, :brauer_tables => modtbls)
+      set_attribute!(tbl, :brauer_tables => modtbls)
     end
     if ! haskey(modtbls, p)
       modtblgap = mod(tbl.GAPTable, p)
@@ -507,7 +506,7 @@ julia> decomposition_matrix(t2)
 """
 function decomposition_matrix(modtbl::GAPGroupCharacterTable)
     isprime(modtbl.characteristic) || error("characteristic of tbl must be a prime integer")
-    return fmpz_mat(GAP.Globals.DecompositionMatrix(modtbl.GAPTable))
+    return matrix(ZZ, GAP.Globals.DecompositionMatrix(modtbl.GAPTable))
 end
 
 
@@ -525,7 +524,7 @@ struct GAPGroupClassFunction <: GroupClassFunction
 end
 
 function Base.show(io::IO, chi::GAPGroupClassFunction)
-    print(io, "group_class_function(" * string(chi.table) * ", " * string(values(chi)) * ")")
+    print(io, "group_class_function($(chi.table), $(values(chi)))")
 end
 
 import Base.values
@@ -536,7 +535,7 @@ function values(chi::GAPGroupClassFunction)
 end
 
 function group_class_function(tbl::GAPGroupCharacterTable, values::GAP.GapObj)
-    GAP.Globals.IsClassFunction(values) || error("values must be a class function")
+    GAPWrap.IsClassFunction(values) || error("values must be a class function")
     return GAPGroupClassFunction(tbl, values)
 end
 

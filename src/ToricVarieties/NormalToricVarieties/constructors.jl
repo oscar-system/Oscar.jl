@@ -98,8 +98,8 @@ end
 Construct the normal toric variety $X_{\Sigma_P}$ corresponding to the normal
 fan $\Sigma_P$ of the given polyhedron `P`.
 
-Note that this only coincides with the projective variety associated to `P`, if
-`P` is normal.
+Note that this only coincides with the projective variety associated to `P`
+from the affine relations of the lattice points in `P`, if `P` is very ample.
 
 # Examples
 Set `P` to be a square.

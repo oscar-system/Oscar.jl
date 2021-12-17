@@ -181,19 +181,8 @@ end
 ########################################################################
 
 
-function _assign_description(sym::Symbol)
-   if sym== :alternating print("Alternating")
-   elseif sym== :hermitian print("Hermitian")
-   elseif sym== :symmetric print("Symmetric")
-   elseif sym== :quadratic print("Quadratic")
-   else error("unsupported description")
-   end
-end
-
-
 function Base.show(io::IO, f::SesquilinearForm)
-   _assign_description(f.descr)
-   println(" form with Gram matrix ")
+   println(io, "$(f.descr) form with Gram matrix ")
    show(io, "text/plain", gram_matrix(f))
 end
 
@@ -442,6 +431,6 @@ For a quadratic form `Q`, return whether `Q` is singular, i.e. `Q` has nonzero r
 """
 function issingular(f::SesquilinearForm{T}) where T
    f.descr != :quadratic && throw(ArgumentError("The form is not quadratic"))
-   return GAP.Globals.IsSingularForm(f.X)
+   return GAPWrap.IsSingularForm(f.X)
 end
 

@@ -10,7 +10,10 @@ export
     invariant_symmetric_forms,
     isometry_group,
     preserved_quadratic_forms,
-    preserved_sesquilinear_forms
+    preserved_sesquilinear_forms,
+    automorphism_group,
+    orthogonal_group,
+    unitary_group
 
 ########################################################################
 #
@@ -417,7 +420,7 @@ end
 # TODO: these are not exported at the moment
 
 """
-    function invariant_bilinear_form(G::MatrixGroup)
+    invariant_bilinear_form(G::MatrixGroup)
 
 Return an invariant bilinear form for the group `G`.
 An exception is thrown if the module induced by the action of `G`
@@ -433,7 +436,7 @@ function invariant_bilinear_form(G::MatrixGroup)
 end
 
 """
-    function invariant_sesquilinear_form(G::MatrixGroup)
+    invariant_sesquilinear_form(G::MatrixGroup)
 
 Return an invariant sesquilinear (non bilinear) form for the group `G`.
 An exception is thrown if the module induced by the action of `G`
@@ -449,7 +452,7 @@ function invariant_sesquilinear_form(G::MatrixGroup)
 end
 
 """
-    function invariant_quadratic_form(G::MatrixGroup)
+    invariant_quadratic_form(G::MatrixGroup)
 
 Return an invariant bilinear form for the group `G`.
 An exception is thrown if the module induced by the action of `G`
@@ -507,11 +510,11 @@ function preserved_sesquilinear_forms(G::MatrixGroup{S,T}) where {S,T}
    L = GAP.Globals.PreservedSesquilinearForms(G.X)
    R = SesquilinearForm{S}[]
    for f_gap in L
-      if GAP.Globals.IsHermitianForm(f_gap)
+      if GAPWrap.IsHermitianForm(f_gap)
          f = hermitian_form(preimage_matrix(G.ring_iso, GAP.Globals.GramMatrix(f_gap)))
-      elseif GAP.Globals.IsSymmetricForm(f_gap)
+      elseif GAPWrap.IsSymmetricForm(f_gap)
          f = symmetric_form(preimage_matrix(G.ring_iso, GAP.Globals.GramMatrix(f_gap)))
-      elseif GAP.Globals.IsAlternatingForm(f_gap)
+      elseif GAPWrap.IsAlternatingForm(f_gap)
          f = alternating_form(preimage_matrix(G.ring_iso, GAP.Globals.GramMatrix(f_gap)))
       else
          error("Invalid form")
@@ -640,3 +643,42 @@ function isometry_group(f::SesquilinearForm{T}) where T
       return G^Xf
    end
 end
+
+"""
+    isometry_group(L::AbsLat) -> MatrixGroup
+
+Return the group of isometries of the lattice `L`.
+
+The transformations are represented with respect to the ambient space of `L`.
+"""
+function isometry_group(L::Hecke.AbsLat)
+   # The caching needs Hecke >= 0.10.26
+   #z = get_attribute(L, :isometry_group)
+   #if z !== nothing
+   #  T = elem_type(base_field(L))
+   #  return z::MatrixGroup{T, dense_matrix_type(T)}
+   #end
+
+   if rank(L) == 0
+      # The following can be removed once we have Hecke >= 0.10.26
+      d = degree(L)
+      K = base_field(L)
+      gens = [identity_matrix(K,d)]
+   else
+      gens = Hecke.automorphism_group_generators(L)
+   end
+   G = matrix_group(gens)
+   # TODO: Cache the result.
+   #set_attribute!(L, :isometry_group => G)
+   return G
+end
+
+automorphism_group(L::Hecke.AbsLat) = isometry_group(L)
+
+orthogonal_group(L::Hecke.ZLat) = isometry_group(L)
+
+orthogonal_group(L::Hecke.QuadLat) = isometry_group(L)
+
+unitary_group(L::Hecke.HermLat) = isometry_group(L)
+
+

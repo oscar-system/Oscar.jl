@@ -6,7 +6,7 @@ import AbstractAlgebra: Group, Module
 import Base: parent
 
 #TODO: rename into GModule
-mutable struct GModule{gT,mT}
+@attributes mutable struct GModule{gT,mT}
   G::gT
   M::mT
   ac::Vector{Map} # automorphisms of M, one for each generator of G
@@ -24,7 +24,6 @@ mutable struct GModule{gT,mT}
   mF::GAPGroupHomomorphism  # F -> G, maps F[i] to G[i]
 
   iac::Vector{Map} # the inverses of ac
-  AbstractAlgebra.@declare_other
 end
 
 function Base.show(io::IO, C::GModule)
@@ -167,7 +166,7 @@ end
 (C::CoChain{2})(g::NTuple{2, <:Oscar.BasicGAPGroupElem}) = C(g[1], g[2])
 
 function H_zero(C::GModule)
-  z = AbstractAlgebra.get_special(C, :H_zero)
+  z = get_attribute(C, :H_zero)
   if z !== nothing
     return domain(z), z
   end
@@ -180,12 +179,12 @@ function H_zero(C::GModule)
     k = intersect(k, kernel(id - ac[i])[1])
   end
   z = MapFromFunc(x->CoChain{0,elem_type(G),elem_type(M)}(C, Dict(() => x)), y->y(), k, AllCoChains{0,elem_type(G),elem_type(M)}())
-  AbstractAlgebra.set_special(C, :H_zero => z)
+  set_attribute!(C, :H_zero => z)
   return k, z
 end
 
 function H_one(C::GModule)
-  z = AbstractAlgebra.get_special(C, :H_one)
+  z = get_attribute(C, :H_one)
   if z !== nothing
     return domain(z), z
   end
@@ -240,7 +239,7 @@ function H_one(C::GModule)
     x->CoChain{1,elem_type(G),elem_type(M)}(C, Dict([(gen(G, i),) => pro[i](lft(preimage(mQ, x))) for i=1:ngens(G)])), 
     y->mQ(preimage(lft, sum(inj[i](y(gen(G, i))) for i=1:n))), Q, AllCoChains{1, elem_type(G), elem_type(M)}())
 
-  AbstractAlgebra.set_special(C, :H_one => z)
+  set_attribute!(C, :H_one => z)
   return Q, z    
   #need to ALSO return the coboundary(s)
 end
@@ -392,7 +391,7 @@ Base.zero(G::GrpAbFinGen) = G[0]
 Base.:-(M::GrpAbFinGenMap) = hom(domain(M), codomain(M), [-M(g) for g = gens(domain(M))], check = false)
 
 function H_two(C::GModule)
-  z = AbstractAlgebra.get_special(C, :H_two)
+  z = get_attribute(C, :H_two)
   if z !== nothing
     return domain(z[1]), z[1], z[2]
   end
@@ -658,7 +657,7 @@ function H_two(C::GModule)
   z = (MapFromFunc(x->TailToCoChain(mE(preimage(mH2, x))), 
                          y->mH2(preimage(mE, TailFromCoChain(y))), H2, AllCoChains{2,elem_type(G),elem_type(M)}()),
              iscoboundary)
-  AbstractAlgebra.set_special(C, :H_two => z)
+  set_attribute!(C, :H_two => z)
   return H2, z[1], z[2]
   #now the rest...
   #(g, m)*(h, n) = (gh, m^h+n+gamma(g, h)) where gamma is "the" 2-cocycle

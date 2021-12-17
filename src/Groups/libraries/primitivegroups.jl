@@ -68,8 +68,7 @@ function all_primitive_groups(L...)
    pos+=1
    end
    if isargument L1[length(L1)]=true end
-   L1 = GAP.julia_to_gap(L1)
 
-   K = GAP.Globals.CallFuncList(GAP.Globals.AllPrimitiveGroups,L1)
-   return [PermGroup(K[i]) for i in 1:length(K)]          # GAP.julia_to_gap(K) does not work
+   K = GAP.Globals.AllPrimitiveGroups(L1...)
+   return [PermGroup(x) for x in K]          # GAP.julia_to_gap(K) does not work
 end

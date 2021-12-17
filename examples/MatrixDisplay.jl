@@ -47,7 +47,7 @@ function replace_TeX(str::String)
 end
 
 """
-    function labelled_matrix_formatted(io::IO, mat::Matrix{String})
+    labelled_matrix_formatted(io::IO, mat::Matrix{String})
 
 Output a formatted version of `mat` to `io`.
 The following attributes of `io` are supported.

@@ -8,7 +8,7 @@ import AbstractAlgebra: Group, Module
 import Base: parent
 
 function GAP.gap_to_julia(::Type{QabElem}, a::GAP.GapObj) #which should be a Cyclotomic
-  c = GAP.Globals.Conductor(a)
+  c = GAPWrap.Conductor(a)
   E = abelian_closure(QQ)[2](c)
   z = parent(E)(0)
   co = GAP.Globals.CoeffsCyc(a, c)
@@ -151,12 +151,12 @@ function Hecke.modular_proj(C::GModule{T, Generic.FreeModule{nf_elem}}, me::Heck
 end
 
 function Gap(C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}}, h=Oscar.ring_iso_oscar_gap(base_ring(C)))
-  z = AbstractAlgebra.get_special(C, :Gap)
+  z = get_attribute(C, :Gap)
   if z !== nothing
     return z
   end
   z = GAP.Globals.GModuleByMats(GAP.julia_to_gap([GAP.julia_to_gap(map(h, Matrix(mat(x)))) for x = C.ac]), codomain(h))
-  AbstractAlgebra.set_special(C, :Gap=>z)
+  set_attribute!(C, :Gap=>z)
   return z
 end
 

@@ -122,9 +122,8 @@ function all_transitive_groups(L...)
    pos+=1
    end
    if isargument L1[length(L1)]=true end
-   L1 = GAP.julia_to_gap(L1)
 
-   K = GAP.Globals.CallFuncList(GAP.Globals.AllTransitiveGroups,L1)
-   return [PermGroup(K[i]) for i in 1:length(K)]          # GAP.julia_to_gap(K) does not work
+   K = GAP.Globals.AllTransitiveGroups(L1...)
+   return [PermGroup(x) for x in K]          # GAP.julia_to_gap(K) does not work
 end
 

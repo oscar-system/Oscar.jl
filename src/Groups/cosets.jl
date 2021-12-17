@@ -56,7 +56,7 @@ Return the coset `Hg`.
 """
 function right_coset(H::GAPGroup, g::GAPGroupElem)
    @assert elem_type(H) == typeof(g)
-   if !GAP.Globals.IsSubset(parent(g).X, H.X)
+   if !GAPWrap.IsSubset(parent(g).X, H.X)
       throw(ArgumentError("H is not a subgroup of parent(g)"))
    end
    return _group_coset(parent(g), H, g, :right, GAP.Globals.RightCoset(H.X,g.X))
@@ -73,7 +73,7 @@ Return the coset `gH`.
 """
 function left_coset(H::GAPGroup, g::GAPGroupElem)
    @assert elem_type(H) == typeof(g)
-   if !GAP.Globals.IsSubset(parent(g).X, H.X)
+   if !GAPWrap.IsSubset(parent(g).X, H.X)
       throw(ArgumentError("H is not a subgroup of parent(g)"))
    end
    return _group_coset(parent(g), H, g, :left, GAP.Globals.RightCoset(GAP.Globals.ConjugateSubgroup(H.X,GAP.Globals.Inverse(g.X)),g.X))
@@ -83,9 +83,9 @@ function show(io::IO, x::GroupCoset)
    a = String(GAP.Globals.StringViewObj(x.H.X))
    b = String(GAP.Globals.StringViewObj(x.repr.X))
    if x.side == :right
-      print(io, "Right coset   ", a, " * ", b)
+      print(io, "Right coset   $a * $b")
    else
-      print(io, "Left coset   ", b, " * ", a)
+      print(io, "Left coset   $b * $a")
    end
    return nothing
 end
@@ -153,7 +153,7 @@ representative(C::GroupCoset) = C.repr
 
 Return whether `C` is simultaneously a right coset and a left coset for the same subgroup `H`.
 """
-isbicoset(C::GroupCoset) = GAP.Globals.IsBiCoset(C.X)
+isbicoset(C::GroupCoset) = GAPWrap.IsBiCoset(C.X)
 
 """
     right_cosets(G::Group, H::Group)
@@ -263,10 +263,10 @@ returns the double coset `HxK`.
 function double_coset(G::T, g::GAPGroupElem{T}, H::T) where T<: GAPGroup
    # TODO: enforce that G, H have same type
    # TODO: enforce that G, H have common overgroup
-   if !GAP.Globals.IsSubset(parent(g).X,G.X)
+   if !GAPWrap.IsSubset(parent(g).X,G.X)
       throw(ArgumentError("G is not a subgroup of parent(g)"))
    end
-   if !GAP.Globals.IsSubset(parent(g).X,H.X)
+   if !GAPWrap.IsSubset(parent(g).X,H.X)
       throw(ArgumentError("H is not a subgroup of parent(g)"))
    end
    return GroupDoubleCoset(parent(g),G,H,g,GAP.Globals.DoubleCoset(G.X,g.X,H.X))
