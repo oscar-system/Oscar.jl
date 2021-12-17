@@ -2896,8 +2896,18 @@ function *(h::ModuleMap, g::ModuleMap)
   @assert codomain(h) === domain(g)
   return hom(domain(h), codomain(g), [g(h(x)) for x = gens(domain(h))])
 end
--(h::FreeModuleHom, g::FreeModuleHom) = hom(domain(h), codomain(h), [h(x) - g(x) for x = gens(domain(h))])
-+(h::FreeModuleHom, g::FreeModuleHom) = hom(domain(h), codomain(h), [h(x) + g(x) for x = gens(domain(h))])
+
+-(h::ModuleMap) = hom(domain(h), codomain(h), [-h(x) for x in gens(domain(h))])
+function -(h::ModuleMap, g::ModuleMap)
+  @assert domain(h) === domain(g)
+  @assert codomain(h) === codomain(g)
+  return hom(domain(h), codomain(h), [h(x) - g(x) for x = gens(domain(h))])
+end
+function +(h::ModuleMap, g::ModuleMap)
+  @assert domain(h) === domain(g)
+  @assert codomain(h) === codomain(g)
+  return hom(domain(h), codomain(h), [h(x) + g(x) for x = gens(domain(h))])
+end
 
 
 @doc Markdown.doc"""
