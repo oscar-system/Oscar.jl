@@ -339,7 +339,7 @@ function iterate_reynolds(BI::InvRingBasisIterator, state)
       continue
     end
 
-    if inspan!(B, g)
+    if add_to_basis!(B, g)
       return inv(leading_coefficient(g))*g, (B, monomial_state)
     end
   end

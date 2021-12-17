@@ -138,7 +138,7 @@ end
 # Adds f to the span of the polynomials in BasisOfPolynomials.
 # Returns true iff the rank of the span increased, i.e. if f were not an element
 # of the span.
-function inspan!(B::BasisOfPolynomials{T}, f::T) where {T <: MPolyElem}
+function add_to_basis!(B::BasisOfPolynomials{T}, f::T) where {T <: MPolyElem}
   @assert B.R === parent(f)
 
   zero!.(B.v)
@@ -193,12 +193,50 @@ function secondary_invariants_modular(RG::InvRing)
 
     for f in iterate_basis(RG, d)
       f = f.f
-      if inspan!(B, f)
+      if add_to_basis!(B, f)
         push!(s_invars, f)
       end
     end
   end
   return [ Rgraded(f) for f in s_invars ]
+end
+
+function irreducible_secondary_invariants_modular(RG::InvRing)
+  Rgraded = polynomial_ring(RG)
+  R = Rgraded.R
+  K = coefficient_ring(R)
+
+  s_invars = elem_type(R)[ f.f for f in secondary_invariants_modular(RG) ]
+  maxd = maximum(total_degree(f) for f in s_invars)
+  s_invars_sorted = Vector{Vector{elem_type(R)}}(undef, maxd)
+  for i = 1:maxd
+    s_invars_sorted[i] = elem_type(R)[]
+  end
+  for f in s_invars
+    d = total_degree(f)
+    if d == 0
+      continue
+    end
+    push!(s_invars_sorted[d], f)
+  end
+
+  # secondary invariants of degree 1 are irreducible
+  is_invars = s_invars_sorted[1]
+  p_and_is_invars = append!(elem_type(R)[ f.f for f in primary_invariants(RG) ], is_invars)
+  database = Dict{Int, Tuple{Vector{elem_type(R)}, Vector{Vector{Int}}, Vector{Int}}}()
+  for d = 2:maxd
+    basis_d = all_power_products_of_degree!(R, p_and_is_invars, d, database, false)
+    B = BasisOfPolynomials(R, basis_d)
+    for f in s_invars_sorted[d]
+      if add_to_basis!(B, f)
+        push!(is_invars, f)
+        push!(p_and_is_invars, f)
+        push!(database[d][1], f)
+        push!(database[d][3], length(p_and_is_invars))
+      end
+    end
+  end
+  return is_invars
 end
 
 ################################################################################
@@ -248,7 +286,7 @@ function secondary_invariants_nonmodular(RG::InvRing)
     invars = all_power_products_of_degree!(R, is_invars, d, database, false)
     for f in invars
       nf = normal_form(f, I).f
-      if inspan!(B, nf)
+      if add_to_basis!(B, nf)
         push!(s_invars, inv(leading_coefficient(f))*f)
         invars_found += 1
         invars_found == k && break
@@ -277,7 +315,7 @@ function secondary_invariants_nonmodular(RG::InvRing)
         continue
       end
       nf = normal_form(f, I).f
-      if inspan!(B, nf)
+      if add_to_basis!(B, nf)
         f = inv(leading_coefficient(f))*f
         push!(s_invars, f)
         push!(is_invars, f)
