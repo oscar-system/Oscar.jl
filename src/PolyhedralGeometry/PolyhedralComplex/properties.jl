@@ -396,7 +396,7 @@ julia> VR = [0 0; 1 0; -1 0; 0 1];
 
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4]]);
 
-julia> PC = PolyhedralComplex(IM, VR, far_vertices)
+julia> PC = PolyhedralComplex(IM, VR)
 A polyhedral complex in ambient dimension 2
 
 julia> isembedded(PC)
