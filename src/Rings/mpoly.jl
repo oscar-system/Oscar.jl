@@ -929,7 +929,6 @@ abstract type OscarMap <: SetMap end
 
 mutable struct MPolyHom_vars{T1, T2}  <: Map{T1, T2, Hecke.HeckeMap, MPolyHom_vars}
   header::Hecke.MapHeader
-  Hecke.@declare_other
   i::Vector{Int}
 
   function MPolyHom_vars{T1, T2}(R::T1, S::T2, i::Vector{Int}) where {T1 <: MPolyRing, T2 <: MPolyRing}

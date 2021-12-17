@@ -303,8 +303,8 @@ end
 
 @testset "Hom module" begin
 	R, (x0,x1,x2,x3,x4,x5) = PolynomialRing(QQ, ["x0", "x1", "x2", "x3", "x4", "x5"])
-	f1=R[-x2*x3 -x4*x5 0; x0*x1 0 -x4*x5; 0 x0*x1 -x2*x3]'
-	g1=R[x0*x1 x2*x3 x4*x5]'
+	f1= transpose(R[-x2*x3 -x4*x5 0; x0*x1 0 -x4*x5; 0 x0*x1 -x2*x3])
+	g1 = transpose(R[x0*x1 x2*x3 x4*x5])
 	M = cokernel(f1)
 	N = cokernel(g1)
 	SQ = hom(M,N)[1]
@@ -331,7 +331,7 @@ end
 			N=free_module_SQ(R,m)
 			SQ = hom(M,N)[1]
 			#SQ = simplify(hom(M,N)[1])[1]
-			@test SQ == free_module_SQ(free_module(SQ))
+			@test SQ == free_module_SQ(ambient_free_module(SQ))
 		end
 	end
 	R, (x,y) = PolynomialRing(QQ, ["x", "y"])
@@ -547,6 +547,10 @@ end
 	F3 = FreeMod(R,3)
 	F4 = FreeMod(R,4)
 	phi = hom(F3,F4, [F4[1],F4[3]+x*F4[4],(x+y)*F4[4]] )
+    z = hom(F3,F4, [zero(F4) for _ in gens(F3)])
+    for v in gens(F3)
+        @test (z-phi)(v) == (-phi)(v)
+    end
 	@test iszero(preimage(phi,zero(F4)))
 	@test phi(preimage(phi,y*(F4[3]+x*F4[4]+(x+y)*F4[3]))) == y*(F4[3]+x*F4[4]+(x+y)*F4[3])
 
@@ -597,6 +601,12 @@ end
 	#2) H: N --> M = N/(submodule of N) canonical projection
 	M,H = quo(N,[N(sparse_row(R[1 x^2-1 x*y^2])),N(sparse_row(R[y^3 y*x^2 x^3]))],:store)
 	@test iswelldefined(H)
+
+    ## test additon/subtraction of morphisms
+    H_1 = H+H-H
+    for v in gens(N)
+        @test H_1(v) == H(v)
+    end
 
 	## testing the homomorphism theorem: #################################
 	KerH,iKerH = kernel(H)

@@ -92,7 +92,7 @@ function saturations(L::PartialCharacter{QabElem})
   end
 
   #now not trivial case
-  H = hnf(L.A')
+  H = hnf(transpose(L.A))
   H = view(H, 1:ncols(H), 1:ncols(H))
   i, d = pseudo_inv(H)  #iH = d I_n
   #so, saturation is i' * H // d

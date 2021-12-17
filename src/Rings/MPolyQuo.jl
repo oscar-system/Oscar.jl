@@ -8,11 +8,10 @@ export issubset
 #
 ##############################################################################
 
-mutable struct MPolyQuo{S} <: AbstractAlgebra.Ring
+@attributes mutable struct MPolyQuo{S} <: AbstractAlgebra.Ring
   R::MPolyRing
   I::MPolyIdeal{S}
   SQR::Singular.PolyRing  # expensive qring R/I, set and retrived by singular_ring()
-  AbstractAlgebra.@declare_other
 
   function MPolyQuo(R, I) where S
     @assert base_ring(I) === R
@@ -152,8 +151,7 @@ julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 
 julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]))
 (Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z), Map from
-Multivariate Polynomial Ring in x, y, z over Rational Field to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z) defined by a julia-function with inverse
-)
+Multivariate Polynomial Ring in x, y, z over Rational Field to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z) defined by a julia-function with inverse)
 
 julia> a = ideal(A, [x-y])
 ideal(x - y)
@@ -180,8 +178,7 @@ julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 
 julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]))
 (Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z), Map from
-Multivariate Polynomial Ring in x, y, z over Rational Field to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z) defined by a julia-function with inverse
-)
+Multivariate Polynomial Ring in x, y, z over Rational Field to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z) defined by a julia-function with inverse)
 
 julia> a = ideal(A, [x-y])
 ideal(x - y)
@@ -634,8 +631,7 @@ julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
 
 julia> A, _ = quo(R, ideal(R, [x^2-y^3, x-y]))
 (Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - y^3, x - y), Map from
-Multivariate Polynomial Ring in x, y over Rational Field to Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - y^3, x - y) defined by a julia-function with inverse
-)
+Multivariate Polynomial Ring in x, y over Rational Field to Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x^2 - y^3, x - y) defined by a julia-function with inverse)
 
 julia> typeof(A)
 MPolyQuo{fmpq_mpoly}
@@ -668,8 +664,7 @@ Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   z -> [1] to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
-  z -> [1] by ideal(x^2*z - y^3, x - y) defined by a julia-function with inverse
-)
+  z -> [1] by ideal(x^2*z - y^3, x - y) defined by a julia-function with inverse)
 ```
 """
 function quo(R::MPolyRing, I::MPolyIdeal) 
@@ -963,7 +958,7 @@ function homogeneous_component(W::MPolyQuo{<:MPolyElem_dec}, d::GrpAbFinGenElem)
   B = [x for x = B]
 
   M, h = vector_space(base_ring(R), B, target = W)
-  Hecke.set_special(M, :show => show_homo_comp, :data => (W, d))
+  set_attribute!(M, :show => show_homo_comp, :data => (W, d))
   return M, h
 end
 

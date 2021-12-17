@@ -38,6 +38,7 @@
         @test generator_matrix(lineality_space(F2)) == matrix(QQ, L)
         @test length(lineality_space(F2)) == 1
         @test lineality_space(F2)[] == RayVector(L[:])
+        @test Oscar.matrix_for_polymake(lineality_space(F2)) == L
         @test cones(F2, 2) isa SubObjectIterator{Cone}
         @test size(cones(F2, 2)) == (2,)
         @test generator_matrix(lineality_space(cones(F2, 2)[1])) == matrix(QQ, [0 1 0])

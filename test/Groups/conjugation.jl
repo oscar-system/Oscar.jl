@@ -64,9 +64,10 @@
 
   CC = conjugacy_classes_subgroups(G)
   @test length(CC)==11
-  @testset for i in 1:length(CC)
-     @test CC[i] == conjugacy_class(G,representative(CC[i]))
-     @test length(CC[i]) == index(G, normalizer(G,representative(CC[i]))[1])
+  @testset for C in CC
+     @test C == conjugacy_class(G, representative(C))
+     @test length(C) == index(G, normalizer(G, representative(C))[1])
+     @test degree(representative(C)) == degree(G)
   end
   H=rand(subgroups(G))
   @test sum([length(c) for c in CC]) == length(subgroups(G))
@@ -91,6 +92,10 @@
   x = G(cperm([1,2,3,4]))
   H = sub(G,[x])[1]
   @test normalizer(G,H)==normalizer(G,x)
+
+  G = symmetric_group(5)
+  CC = conjugacy_classes_maximal_subgroups(G)
+  all(H -> degree(H) == degree(G), map(representative, CC))
 
   G = symmetric_group(10)
   x = rand(G)

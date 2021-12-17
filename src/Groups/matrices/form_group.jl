@@ -420,7 +420,7 @@ end
 # TODO: these are not exported at the moment
 
 """
-    function invariant_bilinear_form(G::MatrixGroup)
+    invariant_bilinear_form(G::MatrixGroup)
 
 Return an invariant bilinear form for the group `G`.
 An exception is thrown if the module induced by the action of `G`
@@ -436,7 +436,7 @@ function invariant_bilinear_form(G::MatrixGroup)
 end
 
 """
-    function invariant_sesquilinear_form(G::MatrixGroup)
+    invariant_sesquilinear_form(G::MatrixGroup)
 
 Return an invariant sesquilinear (non bilinear) form for the group `G`.
 An exception is thrown if the module induced by the action of `G`
@@ -452,7 +452,7 @@ function invariant_sesquilinear_form(G::MatrixGroup)
 end
 
 """
-    function invariant_quadratic_form(G::MatrixGroup)
+    invariant_quadratic_form(G::MatrixGroup)
 
 Return an invariant bilinear form for the group `G`.
 An exception is thrown if the module induced by the action of `G`
@@ -653,7 +653,7 @@ The transformations are represented with respect to the ambient space of `L`.
 """
 function isometry_group(L::Hecke.AbsLat)
    # The caching needs Hecke >= 0.10.26
-   #z = get_special(L, :isometry_group)
+   #z = get_attribute(L, :isometry_group)
    #if z !== nothing
    #  T = elem_type(base_field(L))
    #  return z::MatrixGroup{T, dense_matrix_type(T)}
@@ -669,7 +669,7 @@ function isometry_group(L::Hecke.AbsLat)
    end
    G = matrix_group(gens)
    # TODO: Cache the result.
-   #set_special(L, :isometry_group => G)
+   #set_attribute!(L, :isometry_group => G)
    return G
 end
 

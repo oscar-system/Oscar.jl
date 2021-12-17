@@ -134,14 +134,19 @@ Every group of this type is the subgroup of Sym(n) for some n.
   the dihedral group of order `n` as a group of permutations.
   Same holds replacing `dihedral_group` by `quaternion_group`
 """
-mutable struct PermGroup <: GAPGroup
+@attributes mutable struct PermGroup <: GAPGroup
    X::GapObj
    deg::Int64       # G < Sym(deg)
-   AbstractAlgebra.@declare_other
    
    function PermGroup(G::GapObj)
      @assert GAPWrap.IsPermGroup(G)
      n = GAPWrap.LargestMovedPoint(G)::Int
+     if n == 0
+       # We support only positive degrees.
+       # (`symmetric_group(0)` yields an error,
+       # and `symmetric_group(1)` yields a GAP group with `n == 0`.)
+       n = 1
+     end
      z = new(G, n)
      return z
    end
@@ -175,9 +180,8 @@ Polycyclic group
   direct product of cyclic groups of the orders
   `v[1]`, `v[2]`, ..., `v[length(v)]`
 """
-mutable struct PcGroup <: GAPGroup
+@attributes mutable struct PcGroup <: GAPGroup
   X::GapObj
-  AbstractAlgebra.@declare_other
 
   function PcGroup(G::GapObj)
     @assert GAPWrap.IsPcGroup(G)
@@ -200,9 +204,8 @@ Finitely presented group.
 Such groups can be constructed a factors of free groups,
 see [`free_group`](@ref).
 """
-mutable struct FPGroup <: GAPGroup
+@attributes mutable struct FPGroup <: GAPGroup
   X::GapObj
-  AbstractAlgebra.@declare_other
   
   function FPGroup(G::GapObj)
     @assert GAPWrap.IsSubgroupFpGroup(G)
@@ -235,10 +238,9 @@ end
 
 Group of automorphisms over a group of type `T`. It can be defined via the function `automorphism_group`.
 """
-mutable struct AutomorphismGroup{T} <: GAPGroup
+@attributes mutable struct AutomorphismGroup{T} <: GAPGroup
   X::GapObj
   G::T
-  AbstractAlgebra.@declare_other
 
 
   function AutomorphismGroup{T}(G::GapObj, H::T) where T

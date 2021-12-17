@@ -31,7 +31,7 @@ function solve_mixed(A::fmpz_mat, b::fmpz_mat, C::fmpz_mat, d::fmpz_mat)
     ineq = (Matrix{BigInt}(-C), vec(Matrix{BigInt}(-d)))
     P = Polyhedron(ineq, eq)
     LP = lattice_points(P)
-    return matrix(ZZ, ambient_dim(P), length(LP), hcat(LP...))'
+    return transpose(matrix(ZZ, ambient_dim(P), length(LP), hcat(LP...)))
 end
 
 

@@ -7,7 +7,8 @@ export FreeMod, presentation, FreeModElem, coords, coeffs, repres,
       free_module, tor, lift_homomorphism_contravariant, lift_homomorphism_covariant, 
       ext, map_canonically, all_canonical_maps, register_morphism!, dense_row, 
       matrix_kernel, simplify, map, isinjective, issurjective, isbijective, iswelldefined,
-      ModuleFP, AbstractFreeMod, AbstractSubQuo, AbstractFreeModElem, AbstractSubQuoElem, ModuleMap
+      ModuleFP, ModuleFPElem, AbstractFreeMod, AbstractSubQuo, AbstractFreeModElem, AbstractSubQuoElem, ModuleMap,
+      subquotient, ambient_free_module, ambient_representative
 
 # TODO replace asserts by error messages?
 
@@ -22,8 +23,15 @@ abstract type ModuleFP{T} end
 abstract type AbstractFreeMod{T} <: ModuleFP{T} end
 abstract type AbstractSubQuo{T} <: ModuleFP{T} end
 
-abstract type AbstractFreeModElem{T} end
-abstract type AbstractSubQuoElem{T} end
+@doc Markdown.doc"""
+    ModuleFPElem{T}
+
+The abstract supertype of all elements of finitely presented modules.
+"""
+abstract type ModuleFPElem{T} end
+
+abstract type AbstractFreeModElem{T} <: ModuleFPElem{T} end
+abstract type AbstractSubQuoElem{T} <: ModuleFPElem{T} end
 
 #TODO: "fix" to allow QuoElem s as well...
 # this requires
@@ -54,15 +62,13 @@ Moreover, canonical incoming and outgoing morphisms are stored if the correspond
 option is set in suitable functions.
 `FreeMod{T}` is a subtype of `ModuleFP{T}`.
 """
-mutable struct FreeMod{T <: RingElem} <: AbstractFreeMod{T}
+@attributes mutable struct FreeMod{T <: RingElem} <: AbstractFreeMod{T}
   R::Ring
   n::Int
   S::Vector{Symbol}
 
   incoming_morphisms::Vector{<:ModuleMap}
   outgoing_morphisms::Vector{<:ModuleMap}
-
-  AbstractAlgebra.@declare_other
 
   function FreeMod{T}(n::Int,R::Ring,S::Vector{Symbol}) where T <: RingElem
     r = new{elem_type(R)}()
@@ -90,9 +96,9 @@ function FreeMod(R::Ring, n::Int, name::String = "e"; cached::Bool = false) # TO
 end
 
 @doc Markdown.doc"""
-    free_module(R::Ring, n::Int, name::String = "e"; cached::Bool = false)
+    free_module(R::Ring, p::Int, name::String = "e"; cached::Bool = false)
 
-Create the free module $R^n$ equipped with its basis of standard unit vectors.
+Return the free module $R^p$, created with its basis of standard unit vectors.
 
 The string `name` specifies how the basis vectors are printed. 
 
@@ -111,7 +117,7 @@ julia> typeof(F)
 FreeMod{fmpq_mpoly}
 ```
 """
-free_module(R::Ring, n::Int, name::String = "e"; cached::Bool = false) = FreeMod(R, n, name, cached = cached)
+free_module(R::Ring, p::Int, name::String = "e"; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
 
 #=XXX this cannot be as it is inherently ambigous
   - FreeModule(R, n)
@@ -464,11 +470,11 @@ Return the free module where `a` lives in.
 parent(a::AbstractFreeModElem) = a.parent
 
 @doc Markdown.doc"""
-    iszero(a::AbstractFreeModElem)
+    iszero(f::AbstractFreeModElem)
 
-Check whether the free module element `a` is zero.
+Return `true` if `f` is zero, `false` otherwise.
 """
-iszero(a::AbstractFreeModElem) = iszero(coords(a))
+iszero(f::AbstractFreeModElem) = iszero(coords(f))
 
 # data structure for a generating systems for submodules
 # contains structures for the generators, the corresponding module on the Singular side, 
@@ -740,11 +746,10 @@ Data structure for morphisms where the domain is a free module (`FreeMod`).
 When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
 (in case there exists one) (via `inv()`) are cached.
 """
-mutable struct FreeModuleHom{T1, T2} <: ModuleMap{T1, T2} 
+@attributes mutable struct FreeModuleHom{T1, T2} <: ModuleMap{T1, T2} 
   matrix::MatElem
   header::MapHeader
   inverse_isomorphism::ModuleMap
-  Hecke.@declare_other
 
   # generate homomorphism of free modules from F to G where the vector a contains the images of
   # the generators of F
@@ -800,9 +805,10 @@ FreeModuleHom(F::FreeMod{T}, G::S, mat::MatElem{T}) where {T,S} = FreeModuleHom{
 @doc Markdown.doc"""
     matrix(a::FreeModuleHom)
 
-Return the matrix corresponding to `a`.
+Given a homomorphism `a: F` $\to$ `G`, where `typeof(F) <: FreeMod`
+and `typeof(G) <: ModuleFP`, return a matrix `A` with `rank(F)` rows and 
+`ngens(G)` columns such that `a == hom(F, G, A)`.
 
-If the matrix is not yet cached, compute and cache the matrix first.
 """
 function matrix(a::FreeModuleHom)
   if !isdefined(a, :matrix)
@@ -824,18 +830,21 @@ end
 (h::FreeModuleHom)(a::FreeModElem) = image(h, a)
 
 @doc Markdown.doc"""
-    hom(F::FreeMod, G, V::Vector)
+    hom(F::FreeMod{T}, G::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T 
 
-Create the homomorphism $F \to G$ defined by sending `F[i]` to `V[i]`.
+Given a vector `V` of `rank(F)` elements of `G`, 
+return the homomorphism which sends the `i`-th
+basis vector of `F` to the `i`-th entry of `V`,
+for all `i`.
+
+    hom(F::FreeMod{T}, G::ModuleFP{T}, A::MatElem{T}) where T
+
+Given a matrix `A` with `rank(F)` rows and `ngens(G)` columns, return the
+homomorphism `F` $\to$ `G` which sends the `i`-th basis vector of `F` to 
+$\sum_j A[i,j]*G[j]$, for all `i`. Here, the `G[j]` are the given generators of `G`.
 """
-hom(F::FreeMod, G, V::Vector) = FreeModuleHom(F, G, V)
-
-@doc Markdown.doc"""
-    hom(F::FreeMod{T}, G::ModuleFP{T}, V::MatElem{T}) where {T}
-
-Create the homomorphism $F \to G$ defined by sending `F[i]` to $\sum_j G[j]*A[i][j]$.
-"""
-hom(F::FreeMod{T}, G::ModuleFP{T}, A::MatElem{T}) where {T} = FreeModuleHom(F, G, A)
+hom(F::FreeMod{T}, G::ModuleFP{T}, V::Vector{<:ModuleFPElem}) where T = FreeModuleHom(F, G, V) 
+hom(F::FreeMod{T}, G::ModuleFP{T}, A::MatElem{T}) where T = FreeModuleHom(F, G, A)
 
 @doc Markdown.doc"""
     identity_map(M::ModuleFP)
@@ -1099,7 +1108,7 @@ Moreover, canonical incoming and outgoing morphisms are stored if the correspond
 option is set in suitable functions.
 `SubQuo{T}` is a subtype of `ModuleFP{T}`.
 """
-mutable struct SubQuo{T} <: AbstractSubQuo{T}
+@attributes mutable struct SubQuo{T} <: AbstractSubQuo{T}
   #meant to represent sub+ quo mod quo - as lazy as possible
   F::FreeMod{T}
   sub::SubModuleOfFreeModule
@@ -1108,8 +1117,6 @@ mutable struct SubQuo{T} <: AbstractSubQuo{T}
 
   incoming_morphisms::Vector{<:ModuleMap}
   outgoing_morphisms::Vector{<:ModuleMap} # TODO is it possible to make ModuleMap to SubQuoHom?
-
-  AbstractAlgebra.@declare_other
 
   function SubQuo{R}(sub::SubModuleOfFreeModule{R}) where {R}
     r = new{R}()
@@ -1298,8 +1305,6 @@ by Submodule with 4 generators
 2 -> x*y*e[1]
 3 -> y^2*e[1]
 4 -> z^4*e[1]
-
-
 ```
 """
 function SubQuo(A::MatElem{R}, B::MatElem{R}) where {R}
@@ -1308,6 +1313,62 @@ function SubQuo(A::MatElem{R}, B::MatElem{R}) where {R}
   F = FreeMod(S, ncols(A))
   return SubQuo(SubModuleOfFreeModule(F, A), SubModuleOfFreeModule(F, B))
 end
+
+#######################################################
+@doc Markdown.doc"""
+    subquotient(a::FreeModuleHom{T}, b::FreeModuleHom{T}) where T
+
+Given free module homomorphisms `a` and `b` with the same codomain, return
+$(\text{im } a + \text{im } b)/\text{im } b$.
+
+    subquotient(F::FreeMod{T}, A::MatElem{T}, B::MatElem{T}) where T
+
+Given matrices `A` and `B` with rank `F` columns, return  
+$(\text{im } a + \text{im } b)/\text{im } b$,
+where `a` and `b` are the free module homomorphisms with codomain `F` represented by `A` and `B`.
+
+    subquotient(A::MatElem{T}, B::MatElem{T}) where T
+
+Given matrices `A` and `B` with the same number of columns, create a free module, `F`, whose rank 
+is that number, and return `subquotient(F, A, B)`.
+
+# Examples
+
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> A = R[x; y]
+[x]
+[y]
+
+julia> B = R[x^2; x*y; y^2; z^4]
+[x^2]
+[x*y]
+[y^2]
+[z^4]
+
+julia> M = subquotient(A, B)
+Subquotient of Submodule with 2 generators
+1 -> x*e[1]
+2 -> y*e[1]
+by Submodule with 4 generators
+1 -> x^2*e[1]
+2 -> x*y*e[1]
+3 -> y^2*e[1]
+4 -> z^4*e[1]
+```
+"""
+function subquotient(a::FreeModuleHom{T}, b::FreeModuleHom{T}) where {T}
+  F = codomain(a)
+  @assert F == codomain(b)
+  A = matrix(a)
+  B = matrix(b)
+  return SubQuo(F, A, B)
+end
+subquotient(F::FreeMod{T}, A::MatElem{T}, B::MatElem{T}) where {T} = SubQuo(F, A, B)
+subquotient(A::MatElem{T}, B::MatElem{T}) where {T} = SubQuo(A, B)
+#######################################################
 
 function show(io::IO, SQ::SubQuo)
   @show_name(io, SQ)
@@ -1435,10 +1496,10 @@ end
 Compute $M+N$ along with the inclusion morphisms $M \to M+N$ and $N \to M+N$.
 """
 function Base.sum(M::SubQuo{T},N::SubQuo{T}) where T
-  @assert free_module(M) === free_module(N)
+  @assert ambient_free_module(M) === ambient_free_module(N)
   #TODO use SubModuleOfFreeModule instead of matrices
-  M_quo = isdefined(M, :quo) ? M.quo : SubModuleOfFreeModule(free_module(M), Vector{FreeModElem}())
-  N_quo = isdefined(N, :quo) ? N.quo : SubModuleOfFreeModule(free_module(N), Vector{FreeModElem}())
+  M_quo = isdefined(M, :quo) ? M.quo : SubModuleOfFreeModule(ambient_free_module(M), Vector{FreeModElem}())
+  N_quo = isdefined(N, :quo) ? N.quo : SubModuleOfFreeModule(ambient_free_module(N), Vector{FreeModElem}())
   
   if M_quo == N_quo
     SQ = SubQuo(sum(M.sub,N.sub),M_quo)
@@ -1469,18 +1530,18 @@ Compute the intersection $M \cap N$ along with the inclusion morphisms $M \cap N
 """
 function Base.:intersect(M::SubQuo{T}, N::SubQuo{T}) where T
   #TODO allow task as argument?
-  @assert free_module(M) === free_module(N)
-  M_quo = isdefined(M, :quo) ? M.quo : Oscar.SubModuleOfFreeModule(free_module(M), Vector{FreeModElem}())
-  N_quo = isdefined(N, :quo) ? N.quo : Oscar.SubModuleOfFreeModule(free_module(N), Vector{FreeModElem}())
+  @assert ambient_free_module(M) === ambient_free_module(N)
+  M_quo = isdefined(M, :quo) ? M.quo : Oscar.SubModuleOfFreeModule(ambient_free_module(M), Vector{FreeModElem}())
+  N_quo = isdefined(N, :quo) ? N.quo : Oscar.SubModuleOfFreeModule(ambient_free_module(N), Vector{FreeModElem}())
   R = base_ring(M)
 
   if M_quo == N_quo
 
     F1 = FreeMod(R, ngens(M.sub) + ngens(N.sub) + ngens(M_quo))
-    F2 = free_module(M)
+    F2 = ambient_free_module(M)
     phi = FreeModuleHom(F1,F2,vcat(gens(M.sub),gens(N.sub),gens(M_quo)))
     K,i = kernel(phi)
-    intersection_gens = SubModuleOfFreeModule(free_module(M),[sum([repres(k)[i]*M.sub[i] for i=1:ngens(M.sub)]) for k in gens(K)])
+    intersection_gens = SubModuleOfFreeModule(ambient_free_module(M),[sum([repres(k)[i]*M.sub[i] for i=1:ngens(M.sub)]) for k in gens(K)])
     SQ = SubQuo(intersection_gens,M_quo)
 
     m = ngens(M)
@@ -1576,7 +1637,7 @@ SubQuoElem(v::SRow{R}, SQ::SubQuo) where {R} = SubQuoElem{R}(v, SQ)
 
 Construct an element $v \in SQ$ that is represented by $a$.
 """
-SubQuoElem(a::FreeModElem{R}, SQ::SubQuo) where {R} = SubQuoElem{R}(a, SQ)
+SubQuoElem(a::FreeModElem{R}, SQ::SubQuo) where {R} = SubQuoElem{R}(a, SQ) 
 
 elem_type(::SubQuo{T}) where {T} = SubQuoElem{T}
 parent_type(::SubQuoElem{T}) where {T} = SubQuo{T}
@@ -1608,6 +1669,44 @@ function coeffs(v::SubQuoElem)
   return v.coeffs
 end
 
+#######################################################
+@doc Markdown.doc"""
+    coefficients(m::SubQuoElem)
+
+Given an element `m` of a subquotient $M$ over a ring $R$, say,
+return the coefficients of an $R$-linear combination of the generators of $M$
+which gives $m$.
+
+Return the coefficients of `m` with respect to the basis of standard unit vectors. 
+
+The result is returned as a sparse row.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+
+julia> A = R[x; y]
+[x]
+[y]
+
+julia> B = R[x^2; x*y; y^2; z^4]
+[x^2]
+[x*y]
+[y^2]
+[z^4]
+
+julia> M = SubQuo(A, B);
+
+julia> m = z*M[1] + M[2]
+(x*z + y)*e[1]
+
+julia> coefficients(m)
+Sparse row with positions [1, 2] and values fmpq_mpoly[z, 1]
+```
+"""
+coefficients(m::SubQuoElem) = coeffs(m)
+#########################################################
+
 @doc Markdown.doc"""
     repres(v::SubQuoElem)
 
@@ -1616,6 +1715,47 @@ Return a free module element that is a representative of `v`.
 function repres(v::SubQuoElem)
   return v.repres
 end
+
+#######################################################
+@doc Markdown.doc"""
+    ambient_representative(m::SubQuoElem)
+
+Given an element `m` of a subquotient $M$, say, return 
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+
+julia> A = R[x; y]
+[x]
+[y]
+
+julia> B = R[x^2; x*y; y^2; z^4]
+[x^2]
+[x*y]
+[y^2]
+[z^4]
+
+julia> M = SubQuo(A, B);
+
+julia> m = z*M[1] + M[2]
+(x*z + y)*e[1]
+
+julia> typeof(m)
+SubQuoElem{fmpq_mpoly}
+
+julia> fm = ambient_representative(m)
+(x*z + y)*e[1]
+
+julia> typeof(fm)
+FreeModElem{fmpq_mpoly}
+
+julia> parent(fm) == ambient_free_module(M)
+true
+```
+"""
+ambient_representative(m::SubQuoElem) = repres(m)
+#######################################################
 
 @doc Markdown.doc"""
     Vector(v::SubQuoElem)
@@ -1629,7 +1769,7 @@ end
 @doc Markdown.doc"""
     groebner_basis(F::ModuleGens)
 
-Return a Gröbner basis of `F` as an object of type `ModuleGens`.
+Return a Gröbner basis of `F` as an object of type `ModuleGens.
 """
 function groebner_basis(F::ModuleGens)
   singular_assure(F)
@@ -1651,27 +1791,51 @@ Let $b \in M$. Return $M$.
 parent(b::SubQuoElem) = b.parent
 
 @doc Markdown.doc"""
-    (R::SubQuo)(a::FreeModElem; check::Bool = true)
+    (M::SubQuo{T})(f::FreeModElem{T}; check::Bool = true) where T
 
-Return `a` as an element of `R`. If `check == true` (default) it is checked that `a` represents
-indeed an element of `R`.
+Given an element `f` of the ambient free module of `M` which represents an element of `M`, 
+return the represented element. If `check == true` (default) it is checked that `f` represents
+indeed an element of `M`.
 """
-function (R::SubQuo)(a::FreeModElem; check::Bool = true)
+function (M::SubQuo{T})(f::FreeModElem{T}; check::Bool = true) where T
   if check
-    b = R.sum.gens.SF(a)
-    c = _reduce(b, singular_generators(std_basis(R.sum)))
+    b = M.sum.gens.SF(f)
+    c = _reduce(b, singular_generators(std_basis(M.sum)))
     iszero(c) || error("not in the module")
   end
+  return SubQuoElem(f, M)
+end
+
+@doc Markdown.doc"""
+    (M::SubQuo{T})(c::SRow{T}) where T   
+
+Return the subquotient element $\sum_i a[i] \cdot M[i]\in M$.
+"""
+function (R::SubQuo)(a::SRow)
   return SubQuoElem(a, R)
 end
 
 @doc Markdown.doc"""
-    (R::SubQuo)(a::SRow)
-
-Return the subquotient element $\sum_i R[i] \cdot a[i] \in R$.
+    SubQuoElem(c::Vector{T}, parent::SubQuo{T}) where T
+    
+Return the element of  `parent`  defined as a linear combination
+of the generators of $parent$ with coefficients given by the entries of `c`.
 """
-function (R::SubQuo)(a::SRow)
-  return SubQuoElem(a, R)
+function SubQuoElem(c::Vector{T}, parent::SubQuo{T}) where T
+  @assert length(c) == ngens(parent)
+  sparse_coords = sparse_row(base_ring(parent), collect(1:ngens(parent)), c)
+  return SubQuoElem{T}(sparse_coords,parent)
+end
+
+
+@doc Markdown.doc"""
+    (M::SubQuo{T})(c::Vector{T}) where T
+
+Return the element of `M` defined as a linear combination
+of the generators of $M$ with coefficients given by the entries of `c`.
+"""
+function (M::SubQuo{T})(c::Vector{T}) where T
+ return SubQuoElem(c, M)
 end
 
 @doc Markdown.doc"""
@@ -1751,7 +1915,7 @@ If `task` is set to `:morphism` return only the morphism.
 function sub(F::FreeMod, O::Vector{<:FreeModElem}, task::Symbol = :none)
   s = SubQuo(F, O)
   emb = hom(s, F, O)
-  Hecke.set_special(s, :canonical_inclusion => emb)
+  set_attribute!(s, :canonical_inclusion => emb)
   (task == :none || task == :module) && return s
   task == :store && register_morphism!(emb)
   task == :morphism && return emb
@@ -1791,7 +1955,7 @@ function sub(F::FreeMod, s::SubQuo, task::Symbol = :none)
   @assert s.F === F
   emb = hom(s, F, [repres(x) for x in gens(s)])
   #emb = hom(s, F, [FreeModElem(x.repres.coords, F) for x in gens(s)])
-  Hecke.set_special(s, :canonical_inclusion => emb)
+  set_attribute!(s, :canonical_inclusion => emb)
   (task == :none || task == :module) && return s
   task == :store && register_morphism!(emb)
   task == :morphism && return emb 
@@ -1821,7 +1985,7 @@ function sub(S::SubQuo, O::Vector{<:SubQuoElem}, task::Symbol = :none, check = t
     t.sum = sum(t.sub, t.quo)
   end
   emb = hom(t, S, O)
-  Hecke.set_special(t, :canonical_inclusion => emb)
+  set_attribute!(t, :canonical_inclusion => emb)
   (task == :none || task == :module) && return t
   task == :store && register_morphism!(emb)
   task == :morphism && return emb 
@@ -2001,12 +2165,12 @@ Return the zero element of `M`.
 zero(M::SubQuo) = SubQuoElem(zero(M.F), M)
 
 @doc Markdown.doc"""
-    Base.iszero(F::SubQuo)
+    Base.iszero(M::SubQuo)
 
-Check if `F` is the zero module.
+Return `true` if `M` is the zero module, `false` otherwise.
 """
-function Base.iszero(F::SubQuo)
-  return all(iszero, gens(F))
+function Base.iszero(M::SubQuo)
+  return all(iszero, gens(M))
 end
 
 @doc Markdown.doc"""
@@ -2085,7 +2249,7 @@ function presentation(SQ::SubQuo)
   h_F_SQ = hom(F, SQ, gens(SQ)) # DO NOT CHANGE THIS LINE, see present and preimage
 
   Z = FreeMod(F.R, 0)
-  Hecke.set_special(Z, :name => "Zero")
+  set_attribute!(Z, :name => "Zero")
   h_SQ_Z = hom(SQ, Z, [zero(Z) for i=1:ngens(SQ)])
   return Hecke.ChainComplex(Oscar.ModuleFP, Oscar.ModuleMap[h_G_F, h_F_SQ, h_SQ_Z], check = false)
 end
@@ -2099,7 +2263,7 @@ Return a free presentation of $F$.
 """
 function presentation(F::FreeMod)
   Z = FreeMod(F.R, 0)
-  Hecke.set_special(Z, :name => "Zero")
+  set_attribute!(Z, :name => "Zero")
   return Hecke.ChainComplex(ModuleFP, ModuleMap[hom(Z, F, FreeModElem[]), hom(F, F, gens(F)), hom(F, Z, [zero(Z) for i=1:ngens(F)])], check = false)
 end
 
@@ -2250,9 +2414,9 @@ Let $G = G_1 \otimes \cdot \otimes G_n$, $H = H_1 \otimes \cdot \otimes H_n$ and
 $f_1, \cdot, f_n$ with $f_i : G_i \to H_i$. Return then $f_1 \otimes \cdot \otimes f_n$.
 """
 function hom_tensor(G::ModuleFP, H::ModuleFP, A::Vector{ <: ModuleMap})
-  tG = get_special(G, :tensor_product)
+  tG = get_attribute(G, :tensor_product)
   tG === nothing && error("both modules must be tensor products")
-  tH = get_special(H, :tensor_product)
+  tH = get_attribute(H, :tensor_product)
   tH === nothing && error("both modules must be tensor products")
   @assert length(tG) == length(tH) == length(A)
   @assert all(i-> domain(A[i]) === tG[i] && codomain(A[i]) === tH[i], 1:length(A))
@@ -2261,8 +2425,8 @@ function hom_tensor(G::ModuleFP, H::ModuleFP, A::Vector{ <: ModuleMap})
   #thus need the pure map - and re-create the careful ordering of the generators as in the 
   # constructor
   #store the maps? and possibly more data, like the ordeing
-  decompose_G = get_special(G, :tensor_generator_decompose_function)
-  pure_H = get_special(H, :tensor_pure_function)
+  decompose_G = get_attribute(G, :tensor_generator_decompose_function)
+  pure_H = get_attribute(H, :tensor_pure_function)
   function map_gen(g) # Is there something that generalizes FreeModElem and SubQuoElem?
     g_decomposed = decompose_G(g)
     image_as_tuple = Tuple(f(x) for (f,x) in zip(A,g_decomposed))
@@ -2279,9 +2443,9 @@ Let $G = G_1 \oplus \cdot \oplus G_n$, $H = H_1 \oplus \cdot \oplus H_m$ and $A 
 $f_{ij} : G_i \to H_j$ morphisms. Return the morphism $f : G \to H$ corresponding to $A$.
 """
 function hom_prod_prod(G::ModuleFP, H::ModuleFP, A::Matrix{<:ModuleMap})
-  tG = get_special(G, :direct_product)
+  tG = get_attribute(G, :direct_product)
   tG === nothing && error("both modules must be direct products")
-  tH = get_special(H, :direct_product)
+  tH = get_attribute(H, :direct_product)
   tH === nothing && error("both modules must be direct products")
   @assert length(tG) == size(A, 1) && length(tH) == size(A, 2)
   @assert all(ij -> domain(A[ij[1],ij[2]]) === tG[ij[1]] && codomain(A[ij[1],ij[2]]) === tH[ij[2]], Base.Iterators.ProductIterator((1:size(A, 1), 1:size(A, 2))))
@@ -2377,16 +2541,49 @@ end
 (f::SubQuoHom)(a::SubQuoElem) = image(f, a)
 
 @doc Markdown.doc"""
-    iszero(f::SubQuoElem)
+    iszero(m::SubQuoElem)
 
-Return `true` if `f` is zero, `false` otherwise.
+Return `true` if `m` is zero, `false` otherwise.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+
+julia> A = R[x; y]
+[x]
+[y]
+
+julia> B = R[x^2; x*y; y^2; z^4]
+[x^2]
+[x*y]
+[y^2]
+[z^4]
+
+julia> M = SubQuo(A, B)
+Subquotient of Submodule with 2 generators
+1 -> x*e[1]
+2 -> y*e[1]
+by Submodule with 4 generators
+1 -> x^2*e[1]
+2 -> x*y*e[1]
+3 -> y^2*e[1]
+4 -> z^4*e[1]
+
+
+
+julia> iszero(M[1])
+false
+
+julia> iszero(x*M[1])
+true
+```
 """
-function iszero(a::SubQuoElem)
-  C = parent(a)
+function iszero(m::SubQuoElem)
+  C = parent(m)
   if !isdefined(C, :quo)
-    return iszero(a.repres)
+    return iszero(m.repres)
   end
-  x = _reduce(C.quo.gens.SF(a.repres), singular_generators(std_basis(C.quo)))
+  x = _reduce(C.quo.gens.SF(m.repres), singular_generators(std_basis(C.quo)))
   return iszero(x)
 end
 
@@ -2422,7 +2619,7 @@ function hom(F::FreeMod, G::FreeMod)
     return FreeModElem(s, GH)
   end
   to_hom_map = Hecke.MapFromFunc(im, pre, GH, X)
-  Hecke.set_special(GH, :show => Hecke.show_hom, :hom => (F, G), :module_to_hom_map => to_hom_map)
+  set_attribute!(GH, :show => Hecke.show_hom, :hom => (F, G), :module_to_hom_map => to_hom_map)
   return GH, to_hom_map
 end
 
@@ -2531,7 +2728,7 @@ function free_resolution(M::SubQuo, limit::Int = -1)
     nz = findall(x->!iszero(x), gens(k))
     if length(nz) == 0 
       Z = FreeMod(base_ring(M), 0)
-      Hecke.set_special(Z, :name => "Zero")
+      set_attribute!(Z, :name => "Zero")
       h = hom(Z, domain(mp[1]), FreeModElem[])
       insert!(mp, 1, h)
       break
@@ -2625,8 +2822,8 @@ function hom(M::ModuleFP, N::ModuleFP, alg::Symbol=:maps)
 
   E, pr = direct_product(H_s0_t1, H_s1_t2, task = :prod)
 
-  rho = hom(E, D, [emb[1](preimage(mH_s0_t0, mH_s0_t1(pr[1](g))*map(p2, 1))) + 
-                   emb[2](preimage(mH_s1_t1, map(p1, 1)*mH_s0_t1(pr[1](g)) - mH_s1_t2(pr[2](g))*g2)) for g = gens(E)])
+  rho = hom(E, D, Vector{ModuleFPElem}([emb[1](preimage(mH_s0_t0, mH_s0_t1(pr[1](g))*map(p2, 1))) + 
+                  emb[2](preimage(mH_s1_t1, map(p1, 1)*mH_s0_t1(pr[1](g)) - mH_s1_t2(pr[2](g))*g2)) for g = gens(E)]))
   #need quo(kern(delta), image(rho))
  
   kDelta = kernel(delta)
@@ -2656,7 +2853,7 @@ function hom(M::ModuleFP, N::ModuleFP, alg::Symbol=:maps)
     #return SubQuoElem(emb[1](preimage(mH_s0_t0, g)), H) #???
   end
   to_hom_map = MapFromFunc(im, pre, H, Hecke.MapParent(M, N, "homomorphisms"))
-  Hecke.set_special(H, :show => Hecke.show_hom, :hom => (M, N), :module_to_hom_map => to_hom_map)
+  set_attribute!(H, :show => Hecke.show_hom, :hom => (M, N), :module_to_hom_map => to_hom_map)
   return H, to_hom_map
 end
 
@@ -2668,7 +2865,7 @@ return the morphism $\phi : M \to N$ that corresponds to `f`.
 """
 function homomorphism(f::Union{SubQuoElem,FreeModElem})
   H = f.parent
-  to_hom_map = get_special(H, :module_to_hom_map)
+  to_hom_map = get_attribute(H, :module_to_hom_map)
   to_hom_map === nothing && error("element doesn't live in a hom module")  
   return to_hom_map(f)
 end
@@ -2680,7 +2877,7 @@ Let `H` be created via `hom(M,N)` for some `M` and `N`. Return
 the element in `H` corresponding to `phi`.
 """
 function module_elem(H::ModuleFP, phi::ModuleMap)
-  to_hom_map = get_special(H, :module_to_hom_map)
+  to_hom_map = get_attribute(H, :module_to_hom_map)
   to_hom_map === nothing && error("module must be a hom module")
   map_to_hom = to_hom_map.g
   return map_to_hom(phi)
@@ -2699,8 +2896,18 @@ function *(h::ModuleMap, g::ModuleMap)
   @assert codomain(h) === domain(g)
   return hom(domain(h), codomain(g), [g(h(x)) for x = gens(domain(h))])
 end
--(h::FreeModuleHom, g::FreeModuleHom) = hom(domain(h), codomain(h), [h(x) - g(x) for x = gens(domain(h))])
-+(h::FreeModuleHom, g::FreeModuleHom) = hom(domain(h), codomain(h), [h(x) + g(x) for x = gens(domain(h))])
+
+-(h::ModuleMap) = hom(domain(h), codomain(h), [-h(x) for x in gens(domain(h))])
+function -(h::ModuleMap, g::ModuleMap)
+  @assert domain(h) === domain(g)
+  @assert codomain(h) === codomain(g)
+  return hom(domain(h), codomain(h), [h(x) - g(x) for x = gens(domain(h))])
+end
+function +(h::ModuleMap, g::ModuleMap)
+  @assert domain(h) === domain(g)
+  @assert codomain(h) === codomain(g)
+  return hom(domain(h), codomain(h), [h(x) + g(x) for x = gens(domain(h))])
+end
 
 
 @doc Markdown.doc"""
@@ -2759,16 +2966,17 @@ end
 # direct sum
 ##################################################
 @doc Markdown.doc"""
-    direct_sum(F::FreeMod{T}...; task::Symbol = :none) where T
+    direct_sum(F::FreeMod{T}...; task::Symbol = :sum) where T
 
 Given free modules $F_1\dots F_n$, return the direct sum $\bigoplus_{i=1}^n F_i$.
 
-Additionally, return a vector containing
-- the canonical injections  $F_i\rightarrow\bigoplus_{i=1}^n F_i$ if `task = :sum",
-- the canonical projections  $\bigoplus_{i=1}^n F_i\rightarrow F_i$ if `task = :product",
-- the canonical injections and projections if `task = :both".
+Additionally, return 
+- a vector containing the canonical injections  $F_i\rightarrow\bigoplus_{i=1}^n F_i$ if `task = :sum` (default),
+- a vector containing the canonical projections  $\bigoplus_{i=1}^n F_i\rightarrow F_i$ if `task = :prod`,
+- two vectors containing the canonical injections and projections, respectively, if `task = :both`,
+- none of the above if `task = :none`.
 """
-function direct_sum(F::FreeMod{T}...; task::Symbol = :none) where {T}
+function direct_sum(F::FreeMod{T}...; task::Symbol = :sum) where {T}
   return direct_product(F...; task = task)
 end
 
@@ -2776,16 +2984,17 @@ end
 # direct product
 ##################################################
 @doc Markdown.doc"""
-    direct_product(F::FreeMod{T}...; task::Symbol = :none) where T
+    direct_product(F::FreeMod{T}...; task::Symbol = :prod) where T
 
-Given free modules $F_1\dots F_n$, return the direct sum $\bigoplus_{i=1}^n F_i$.
+Given free modules $F_1\dots F_n$, return the direct product $\prod_{i=1}^n F_i$.
 
 Additionally, return a vector containing
-- the canonical injections  $F_i\rightarrow\bigoplus_{i=1}^n F_i$ if `task = :sum",
-- the canonical projections  $\bigoplus_{i=1}^n F_i\rightarrow F_i$ if `task = :product",
-- the canonical injections and projections if `task = :both".
+- a vector containing the canonical projections  $\prod_{i=1}^n F_i\rightarrow F_i$ if `task = :prod` (default),
+- a vector containing the canonical injections  $F_i\rightarrow\prod_{i=1}^n F_i$ if `task = :sum`,
+- two vectors containing the canonical projections and injections, respectively, if `task = :both`,
+- none of the above if `task = :none`.
 """
-function direct_product(F::FreeMod{T}...; task::Symbol = :none) where {T}
+function direct_product(F::FreeMod{T}...; task::Symbol = :prod) where {T}
   R = base_ring(F[1])
   G = FreeMod(R, Base.sum([rank(f) for f = F]))
   G.S = []
@@ -2810,12 +3019,12 @@ function direct_product(F::FreeMod{T}...; task::Symbol = :none) where {T}
       push!(G.S, Symbol(s*string(t)*e))
     end
   end
-  Hecke.set_special(G, :show => Hecke.show_direct_product, :direct_product => F)
+  set_attribute!(G, :show => Hecke.show_direct_product, :direct_product => F)
   emb = []
   pro = []
   projection_dictionary = IdDict{Int,ModuleMap}()
   injection_dictionary = IdDict{Int,ModuleMap}()
-  Hecke.set_special(G, :projection_morphisms => projection_dictionary, :injection_morphisms => injection_dictionary)
+  set_attribute!(G, :projection_morphisms => projection_dictionary, :injection_morphisms => injection_dictionary)
   i = 0
   for f = F
     if task in [:sum, :both]
@@ -2851,17 +3060,17 @@ If `task` is set to ":both", both, the array of projections and the array of inj
 are returned (with projections first).
 """
 function direct_product(G::ModuleFP...; task::Symbol = :none)
-  F, pro, mF = direct_product([free_module(x) for x = G]..., task = :both)
-  s, emb_sF = sub(F, vcat([[mF[i](y) for y = gens(G[i], free_module(G[i]))] for i=1:length(G)]...), :both)
+  F, pro, mF = direct_product([ambient_free_module(x) for x = G]..., task = :both)
+  s, emb_sF = sub(F, vcat([[mF[i](y) for y = gens(G[i], ambient_free_module(G[i]))] for i=1:length(G)]...), :both)
   q::Vector{FreeModElem} = vcat([[mF[i](y) for y = rels(G[i])] for i=1:length(G)]...)
   pro_quo = nothing
   if length(q) != 0
     s, pro_quo = quo(s, q, :both)
   end
-  Hecke.set_special(s, :show => Hecke.show_direct_product, :direct_product => G)
+  set_attribute!(s, :show => Hecke.show_direct_product, :direct_product => G)
   projection_dictionary = IdDict{Int,ModuleMap}()
   injection_dictionary = IdDict{Int,ModuleMap}()
-  Hecke.set_special(s, :projection_morphisms => projection_dictionary, :injection_morphisms => injection_dictionary)
+  set_attribute!(s, :projection_morphisms => projection_dictionary, :injection_morphisms => injection_dictionary)
   if task == :none
     return s
   end
@@ -2925,11 +3134,11 @@ end
 Return the canonical injection $G_i \to G$ where $G = G_1 \oplus \cdot \oplus G_n$.
 """
 function Hecke.canonical_injection(G::ModuleFP, i::Int)
-  H = Hecke.get_special(G, :direct_product)
+  H = get_attribute(G, :direct_product)
   if H === nothing
     error("module not a direct product")
   end
-  injection_dictionary = Hecke.get_special(G, :injection_morphisms)
+  injection_dictionary = get_attribute(G, :injection_morphisms)
   if haskey(injection_dictionary, i)
     return injection_dictionary[i]
   end
@@ -2946,11 +3155,11 @@ end
 Return the canonical projection $G \to G_i$ where $G = G_1 \oplus \cdot \oplus G_n$.
 """
 function Hecke.canonical_projection(G::ModuleFP, i::Int)
-  H = Hecke.get_special(G, :direct_product)
+  H = get_attribute(G, :direct_product)
   if H === nothing
     error("module not a direct product")
   end
-  projection_dictionary = Hecke.get_special(G, :projection_morphisms)
+  projection_dictionary = get_attribute(G, :projection_morphisms)
   if haskey(projection_dictionary, i)
     return projection_dictionary[i]
   end
@@ -2983,7 +3192,7 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
 
   F = FreeMod(G[1].R, prod([rank(g) for g in G]))
   F.S = s
-  Hecke.set_special(F, :show => Hecke.show_tensor_product, :tensor_product => G)
+  set_attribute!(F, :show => Hecke.show_tensor_product, :tensor_product => G)
 
   function pure(g::FreeModElem...)
     @assert length(g) == length(G)
@@ -3017,7 +3226,7 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
     return Tuple(gen(G[i], t[e.coords.pos[1]][i]) for i = 1:length(G))
   end
 
-  Hecke.set_special(F, :tensor_pure_function => pure, :tensor_generator_decompose_function => inv_pure)
+  set_attribute!(F, :tensor_pure_function => pure, :tensor_generator_decompose_function => inv_pure)
 
   if task == :none
     return F
@@ -3029,20 +3238,20 @@ end
 ⊗(G::ModuleFP...) = tensor_product(G..., task = :none)
 
 @doc Markdown.doc"""
-    free_module(F::FreeMod)
+    ambient_free_module(F::FreeMod)
 
 Just return `F`. This function exists only for compatibility reasons.
 """
-function free_module(F::FreeMod)
+function ambient_free_module(F::FreeMod)
   return F
 end
 
 @doc Markdown.doc"""
-    free_module(M::SubQuo)
+    ambient_free_module(M::SubQuo)
 
 Return the ambient free module of `M`.
 """
-function free_module(M::SubQuo)
+function ambient_free_module(M::SubQuo)
   return M.F
 end
 
@@ -3084,7 +3293,7 @@ maps tuples in $G_1 \times \cdots \times G_n$ to pure tensors
 $g_1 \otimes \cdots \otimes g_n$. The map admits a preimage as well.
 """
 function tensor_product(G::ModuleFP...; task::Symbol = :none)
-  F, mF = tensor_product([free_module(x) for x = G]..., task = :map)
+  F, mF = tensor_product([ambient_free_module(x) for x = G]..., task = :map)
   # We want to store a dict where the keys are tuples of indices and the values
   # are the corresponding pure vectors (i.e. a tuple (2,1,5) represents the 
   # 2nd, 1st and 5th generator of the 1st, 2nd and 3rd module, which we are 
@@ -3096,15 +3305,15 @@ function tensor_product(G::ModuleFP...; task::Symbol = :none)
 
   generating_tensors = map(mF, map(tuple -> map(x -> typeof(parent(x)) <: FreeMod ? x : x.repres, tuple), corresponding_tuples))
   s, emb = sub(F, generating_tensors, :with_morphism)
-  #s, emb = sub(F, vec([mF(x) for x = Base.Iterators.ProductIterator(Tuple(gens(x, free_module(x)) for x = G))]), :with_morphism)
-  q = vcat([vec([mF(x) for x = Base.Iterators.ProductIterator(Tuple(i == j ? rels(G[i]) : gens(free_module(G[i])) for i=1:length(G)))]) for j=1:length(G)]...) 
+  #s, emb = sub(F, vec([mF(x) for x = Base.Iterators.ProductIterator(Tuple(gens(x, ambient_free_module(x)) for x = G))]), :with_morphism)
+  q = vcat([vec([mF(x) for x = Base.Iterators.ProductIterator(Tuple(i == j ? rels(G[i]) : gens(ambient_free_module(G[i])) for i=1:length(G)))]) for j=1:length(G)]...) 
   local projection_map
   if length(q) != 0
     s, projection_map = quo(s, q, :with_morphism)
   end
 
   tuples_pure_tensors_dict = IdDict(zip(corresponding_tuples_as_indices, gens(s)))
-  Hecke.set_special(s, :show => Hecke.show_tensor_product, :tensor_product => G)
+  set_attribute!(s, :show => Hecke.show_tensor_product, :tensor_product => G)
 
   
   function pure(tuple_elems::Union{SubQuoElem,FreeModElem}...)
@@ -3126,7 +3335,7 @@ function tensor_product(G::ModuleFP...; task::Symbol = :none)
     return corresponding_tuples[i]
   end
 
-  Hecke.set_special(s, :tensor_pure_function => pure, :tensor_generator_decompose_function => decompose_generator)
+  set_attribute!(s, :tensor_pure_function => pure, :tensor_generator_decompose_function => decompose_generator)
 
   if task == :none
     return s
@@ -3204,9 +3413,9 @@ Compute $\phi^{\ast} : \text{Hom}(M,P) \to \text{Hom}(N,P)$.
 """
 function lift_homomorphism_contravariant(Hom_MP::ModuleFP, Hom_NP::ModuleFP, phi::ModuleMap)
   # phi : N -> M
-  M_P = get_special(Hom_MP, :hom)
+  M_P = get_attribute(Hom_MP, :hom)
   M_P === nothing && error("Both modules must be hom modules")
-  N_P = get_special(Hom_NP, :hom)
+  N_P = get_attribute(Hom_NP, :hom)
   N_P === nothing && error("Both modules must be hom modules")
   
   @assert M_P[2] === N_P[2]
@@ -3227,9 +3436,9 @@ Compute $\phi_{\ast} : \text{Hom}(P,M) \to \text{Hom}(P,N)$.
 """
 function lift_homomorphism_covariant(Hom_PM::ModuleFP, Hom_PN::ModuleFP, phi::ModuleMap)
   # phi : M -> N
-  P_M = get_special(Hom_PM, :hom)
+  P_M = get_attribute(Hom_PM, :hom)
   P_M === nothing && error("Both modules must be hom modules")
-  P_N = get_special(Hom_PN, :hom)
+  P_N = get_attribute(Hom_PN, :hom)
   P_N === nothing && error("Both modules must be hom modules")
 
   @assert P_M[1] === P_N[1]
@@ -3547,7 +3756,7 @@ Return the preimage of the submodule `N` under the morphism `H`
 as a subquotient, as well as the injection homomorphism into the domain of $H$.
 """
 function preimage(H::SubQuoHom,N::SubQuo{T}, task::Symbol = :none) where {T}
-  inclusion = get_special(N, :canonical_inclusion)
+  inclusion = get_attribute(N, :canonical_inclusion)
   if inclusion != nothing && codomain(inclusion) === codomain(H)
     elems = [inclusion(v) for v in gens(N)]
   else
@@ -3625,7 +3834,7 @@ function simplify(M::SubQuo)
     return Mat
   end
   function delete_columns(A::MatElem, to_delete::Vector{Int})
-    return delete_rows(A', to_delete)'
+    return transpose(delete_rows(transpose(A), to_delete))
   end
 
   function assign_row!(A::MatElem, v::Vector, row_index::Int)
@@ -3689,7 +3898,7 @@ function simplify(M::SubQuo)
   new_generators = delete_columns(M_generators, to_delete)
   new_relations = delete_columns(M_relations, to_delete)
 
-  to_delete,_,_ = rows_to_delete(vcat(new_generators, new_relations)',size(new_relations)[2])
+  to_delete,_,_ = rows_to_delete(transpose(vcat(new_generators, new_relations)),size(new_relations)[2])
 
   new_generators = delete_columns(new_generators, to_delete)
   new_relations = delete_columns(new_relations, to_delete)
@@ -3923,7 +4132,7 @@ function hom_matrices(M::SubQuo{T},N::SubQuo{T},simplify_task=true) where T
     end
 
     to_hom_map = MapFromFunc(to_homomorphism, to_subquotient_elem, SQ2, Hecke.MapParent(M, N, "homomorphisms"))
-    Hecke.set_special(SQ2, :hom => (M, N), :module_to_hom_map => to_hom_map)
+    set_attribute!(SQ2, :hom => (M, N), :module_to_hom_map => to_hom_map)
 
     return SQ2, to_hom_map
   else
@@ -3941,7 +4150,7 @@ function hom_matrices(M::SubQuo{T},N::SubQuo{T},simplify_task=true) where T
     end
 
     to_hom_map = MapFromFunc(to_homomorphism, to_subquotient_elem, SQ, Hecke.MapParent(M, N, "homomorphisms"))
-    Hecke.set_special(SQ, :hom => (M, N), :module_to_hom_map => to_hom_map)
+    set_attribute!(SQ, :hom => (M, N), :module_to_hom_map => to_hom_map)
 
     return SQ, to_hom_map
   end
