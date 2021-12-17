@@ -447,6 +447,46 @@ function issubset(
   return false
 end
 
+function issubset(
+    T::MPolyProductOfMultSets{BRT, BRET, RT, RET},
+    U::MPolyProductOfMultSets{BRT, BRET, RT, RET}
+  ) where {BRT, BRET, RT, RET}
+  for V in sets(T)
+    issubset(V, U) || return false
+  end
+  return true
+end
+
+function issubset(
+    T::MPolyProductOfMultSets{BRT, BRET, RT, RET},
+    U::AbsMPolyMultSet{BRT, BRET, RT, RET}
+  ) where {BRT, BRET, RT, RET}
+  for V in sets(T)
+    issubset(V, U) || return false
+  end
+  return true
+end
+
+function issubset(
+    T::AbsMPolyMultSet{BRT, BRET, RT, RET},
+    U::MPolyProductOfMultSets{BRT, BRET, RT, RET}
+  ) where {BRT, BRET, RT, RET}
+  for V in sets(U)
+    issubset(T, V) && return true
+  end
+  error("containment can not be checked")
+end
+
+function issubset(
+    T::MPolyPowersOfElement{BRT, BRET, RT, RET},
+    U::MPolyProductOfMultSets{BRT, BRET, RT, RET}
+  ) where {BRT, BRET, RT, RET}
+  for d in denominators(T)
+    d in U || return false
+  end
+  return true
+end
+
 ### intersections ######################################################
 function intersection(T::AbsMPolyMultSet, U::AbsMPolyMultSet) 
   error("intersection of multiplicative sets of type $(typeof(T)) and $(typeof(U)) is not implemented")
@@ -1283,7 +1323,7 @@ function saturated_ideal(
   sing_decomp = Singular.LibPrimdec.primdecGTZ(singular_ring(lbpa), singular_gens(lbpa))
   decomp = [LocalizedBiPolyArray(V, K[1]) for K in Singular.LibPrimdec.primdecGTZ(singular_ring(lbpa), singular_gens(lbpa))]
   if length(decomp) == 0
-    return ideal(R, zero(R))
+    return ideal(R, one(R))
   end
   relevant_comp = decomp[1]
   for i in (2:length(decomp))
@@ -1348,10 +1388,10 @@ default_ordering(I::MPolyLocalizedIdeal) = default_ordering(base_ring(I))
 
 # the default shift for translation to the singular side in LocalizedBiPolyArrays
 default_shift(I::MPolyLocalizedIdeal) = default_shift(base_ring(I))
-default_shift(W::MPolyLocalizedRing) = [zero(base_ring(base_ring(W))) for i in 1:ngens(base_ring(W))]
-default_shift(W::MPolyLocalizedRing{BRT, BRET, RT, RET, 
-				    MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}}
-	      ) where {BRT, BRET, RT, RET} = point_coordinates(inverted_set(W))
+default_shift(W::MPolyLocalizedRing) = default_shift(inverted_set(W))
+default_shift(S::AbsMPolyMultSet) = [zero(coefficient_ring(ambient_ring(S))) for i in 1:ngens(ambient_ring(S))]
+default_shift(S::MPolyComplementOfKPointIdeal) = point_coordinates(S)
+default_shift(S::MPolyProductOfMultSets) = sum([default_shift(U) for U in sets(S)])
 
 function dim(I::MPolyLocalizedIdeal)
   if isdefined(I,:dimension)
@@ -1400,8 +1440,9 @@ function Base.in(
     I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST} 
   ) where {BRT, BRET, RT, RET, MST}
   parent(f) == base_ring(I) || return false
-  lbpa = groebner_basis(I)
-  return iszero(reduce(f, lbpa))
+  #lbpa = groebner_basis(I)
+  #return iszero(reduce(f, lbpa))
+  return numerator(f) in saturated_ideal(I)
 end
 
 function Base.in(
@@ -1504,7 +1545,7 @@ function groebner_basis(
   end
   # if not, set up a LocalizedBiPolyArray
   W = base_ring(I)
-  lbpa = LocalizedBiPolyArray(W(saturated_ideal(I)), ordering=ordering)
+  lbpa = LocalizedBiPolyArray(W, W.(gens(saturated_ideal(I))), default_shift(W), ordering)
   # compute the standard basis and cache the result
   D[ordering] = std(lbpa)
   return D[ordering]
