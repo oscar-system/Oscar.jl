@@ -36,26 +36,12 @@ Return an iterator over the vertices of `PC` in the format defined by `as`.
 Optional arguments for `as` include
 * `PointVector`.
 
-# Examples
-The following code computes the vertices of the Minkowski sum of a triangle and
-a square:
-```jldoctest
-julia> P = simplex(2) + cube(2);
-
-julia> vertices(PointVector, P)
-5-element SubObjectIterator{PointVector{Polymake.Rational}}:
- [-1, -1]
- [2, -1]
- [2, 1]
- [-1, 2]
- [1, 2]
-```
 """
 vertices(as::Type{PointVector{T}}, PC::PolyhedralComplex) where T = SubObjectIterator{as}(pm_object(PC), _vertex_polyhedron, length(_vertex_indices(pm_object(PC))))
 
 
 function _all_vertex_indices(P::Polymake.BigObject)
-    vi = Polymake.get_attachment(P, "_vertex_indices")
+    vi = Polymake.get_attachment(P, "_all_vertex_indices")
     if isnothing(vi)
         A = P.VERTICES
         vi = Polymake.Vector{Polymake.to_cxx_type(Int64)}(Vector(1:Polymake.nrows(A)))
@@ -77,7 +63,21 @@ vertices(as::Type{Union{RayVector{T}, PointVector{T}}}, PC::PolyhedralComplex) w
 
 vertices(::Type{Union{RayVector, PointVector}}, PC::PolyhedralComplex) = vertices(Union{RayVector{Polymake.Rational}, PointVector{Polymake.Rational}}, PC)
 
-vertices(PC::PolyhedralComplex) = vertices(Union{PointVector, RayVector}, PC)
+vertices_and_rays(PC::PolyhedralComplex) = vertices(Union{PointVector, RayVector}, PC)
+
+vertices(::Type{PointVector}, PC::PolyhedralComplex) = vertices(PointVector{Polymake.Rational}, PC)
+
+vertices(PC::PolyhedralComplex) = vertices(PointVector, PC)
+
+rays(as::Type{RayVector{T}}, PC::PolyhedralComplex) where T = SubObjectIterator{as}(pm_object(PC), _ray_polyhedral_complex, length(_ray_indices_polyhedral_complex(pm_object(PC))))
+
+rays(::Type{RayVector}, PC::PolyhedralComplex) = rays(RayVector{Polymake.Rational}, PC)
+
+rays(PC::PolyhedralComplex) = rays(RayVector,PC)
+
+_ray_indices_polyhedral_complex(PC::Polymake.BigObject) = collect(Polymake.to_one_based_indexing(PC.FAR_VERTICES))
+
+_ray_polyhedral_complex(::Type{RayVector{T}}, PC::Polymake.BigObject, i::Base.Integer) where T = RayVector{T}(PC.VERTICES[_ray_indices_polyhedral_complex(PC)[i], 2:end])
 
 _maximal_polyhedron(::Type{Polyhedron}, PC::Polymake.BigObject, i::Base.Integer) = Polyhedron(Polymake.fan.polytope(PC, i-1))
 
