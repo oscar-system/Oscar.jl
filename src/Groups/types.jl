@@ -141,6 +141,12 @@ Every group of this type is the subgroup of Sym(n) for some n.
    function PermGroup(G::GapObj)
      @assert GAPWrap.IsPermGroup(G)
      n = GAPWrap.LargestMovedPoint(G)::Int
+     if n == 0
+       # We support only positive degrees.
+       # (`symmetric_group(0)` yields an error,
+       # and `symmetric_group(1)` yields a GAP group with `n == 0`.)
+       n = 1
+     end
      z = new(G, n)
      return z
    end
