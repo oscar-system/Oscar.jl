@@ -605,11 +605,7 @@ end
 #########################################
 function add_relshp(R, S, h)
   #this assumes that h is essentially a canonical map from R -> S
-  D = get_attribute(R, :relshp)
-  if D === nothing
-    D = Dict{Any, Any}()
-    set_attribute!(R, :relshp => D)
-  end
+  D = get_attribute!(() -> Dict{Any, Any}(), R, :relshp)::Dict{Any, Any}
   if haskey(D, S)
     error("try to add double")
   end

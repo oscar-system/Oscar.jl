@@ -101,12 +101,7 @@ Sym( [ 1 .. 3 ] )
 ```
 """
 function character_table(G::GAPGroup, p::Int = 0)
-    tbls = get_attribute(G, :character_tables)
-    if tbls == nothing
-      tbls = Dict()
-      set_attribute!(G, :character_tables => tbls)
-    end
-
+    tbls = get_attribute!(() -> Dict{Int,Any}(), G, :character_tables)
     return get!(tbls, p) do
       gaptbl = GAP.Globals.CharacterTable(G.X)
       if p != 0
@@ -464,11 +459,7 @@ function Base.mod(tbl::GAPGroupCharacterTable, p::Int)
     isprime(p) || error("p must be a prime integer")
     tbl.characteristic == 0 || error("tbl mod p only for ordinary table tbl")
 
-    modtbls = get_attribute(tbl, :brauer_tables)
-    if modtbls == nothing
-      modtbls = Dict{Int,Any}()
-      set_attribute!(tbl, :brauer_tables => modtbls)
-    end
+    modtbls = get_attribute!(() -> Dict{Int,Any}(), tbl, :brauer_tables)
     if ! haskey(modtbls, p)
       modtblgap = mod(tbl.GAPTable, p)
       if modtblgap == GAP.Globals.fail
