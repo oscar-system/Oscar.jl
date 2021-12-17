@@ -74,12 +74,9 @@ function _isomorphic_group_over_finite_field(G::MatrixGroup{T}) where T <: Union
 end
 
 function isomorphic_group_over_finite_field(G::MatrixGroup{T}) where T <: Union{fmpq, nf_elem}
-   res = get_attribute(G, :isomorphic_group_over_fq)
-   if res == nothing
-      res = _isomorphic_group_over_finite_field(G)
-      set_attribute!(G, :isomorphic_group_over_fq => res)
+   return get_attribute!(G, :isomorphic_group_over_fq) do
+      return _isomorphic_group_over_finite_field(G)
    end
-   return res
 end
 
 # Detinko, Flannery, O'Brien "Recognizing finite matrix  groups over infinite
