@@ -15,20 +15,29 @@
 # The value corresponding to a key d consists of:
 # * a vector of polynomials: all power products of the polynomials of degree d.
 # * a vector of vectors of integers: the representation of the products in the vector
-#   of polynomials as an exponent vector.
+#   of polynomials as an exponent vector. This is optional and only filled with
+#   meaningful content if remember_coords == true.
 # * a vector of integers: The first non-zero index of the exponent vector of the
 #   corresponding element.
 # If the key d in database exists, it is assumed that the value is correctly
 # computed!
-function all_power_products_of_degree!(polys::Vector{T}, d::Int, database::Dict{Int, Tuple{Vector{T}, Vector{Vector{Int}}, Vector{Int}}}) where {T <: MPolyElem}
+function all_power_products_of_degree!(R::MPolyRing, polys::Vector{T}, d::Int, database::Dict{Int, Tuple{Vector{T}, Vector{Vector{Int}}, Vector{Int}}}, remember_coords::Bool = false) where {T <: MPolyElem}
   @assert all(!iszero, polys)
   # Degree d has already been computed?
   if haskey(database, d)
     return database[d][1]
   end
 
-  coords = zeros(Int, length(polys))
+  coords = remember_coords ? zeros(Int, length(polys)) : nothing
   database[d] = (T[], Vector{Int}[], Int[])
+
+  if d == 0
+    push!(database[d][1], one(R))
+    remember_coords ? push!(database[d][2], coords) : nothing
+    push!(database[d][3], 0)
+    return database[d][1]
+  end
+
   for i = 1:length(polys)
     di = total_degree(polys[i])
 
@@ -40,16 +49,18 @@ function all_power_products_of_degree!(polys::Vector{T}, d::Int, database::Dict{
     # Exactly matching degree
     if di == d
       push!(database[d][1], polys[i])
-      coords[i] = 1;
-      push!(database[d][2], copy(coords))
-      coords[i] = 0;
+      if remember_coords
+        coords[i] = 1;
+        push!(database[d][2], copy(coords))
+        coords[i] = 0;
+      end
       push!(database[d][3], i)
       continue
     end
 
     # Build all products with elements of degree d - total_degree(polys[i])
     dd = d - di
-    all_power_products_of_degree!(polys, dd, database)
+    all_power_products_of_degree!(R, polys, dd, database, remember_coords)
     for j = 1:length(database[dd][1])
       # We only need the products for which the second factor (of degree dd) does
       # not involve any factor of index < i. Otherwise we will get duplicates.
@@ -58,8 +69,10 @@ function all_power_products_of_degree!(polys::Vector{T}, d::Int, database::Dict{
       end
 
       push!(database[d][1], database[dd][1][j]*polys[i])
-      push!(database[d][2], copy(database[dd][2][j]))
-      database[d][2][end][i] += 1
+      if remember_coords
+        push!(database[d][2], copy(database[dd][2][j]))
+        database[d][2][end][i] += 1
+      end
       push!(database[d][3], i)
     end
   end
@@ -75,18 +88,19 @@ end
 # Returns
 # * the generating set as a vector of polynomials
 # * a vector of vectors of integers giving the representation of the polynomials
-#   as products of the algebra_gens and module_gens
+#   as products of the algebra_gens and module_gens. This is optional and only
+#   filled with meaningful content if remember_coords == true.
 # The returned generating set should in general be a vector space basis, however,
 # if e.g. the algebra_gens and module_gens are not disjoint, it might contain
 # duplicates.
-function generators_for_given_degree!(algebra_gens::Vector{T}, module_gens::Vector{T}, d::Int, database::Dict{Int, Tuple{Vector{T}, Vector{Vector{Int}}, Vector{Int}}}) where {T <: MPolyElem}
+function generators_for_given_degree!(R::MPolyRing, algebra_gens::Vector{T}, module_gens::Vector{T}, d::Int, database::Dict{Int, Tuple{Vector{T}, Vector{Vector{Int}}, Vector{Int}}}, remember_coords::Bool = false) where {T <: MPolyElem}
   @assert !isempty(algebra_gens) && !isempty(module_gens)
   @assert all(!iszero, algebra_gens) && all(!iszero, module_gens)
 
   R = parent(algebra_gens[1])
   generators = elem_type(R)[]
   exps = Vector{Int}[]
-  coords = zeros(Int, length(algebra_gens) + length(module_gens))
+  remember_coords ? coords = zeros(Int, length(algebra_gens) + length(module_gens)) : nothing
 
   for i = 1:length(module_gens)
     di = total_degree(module_gens[i])
@@ -94,24 +108,28 @@ function generators_for_given_degree!(algebra_gens::Vector{T}, module_gens::Vect
       continue
     end
     if di == d
-      for j = 1:length(algebra_gens)
-        coords[j] = 0
-      end
       push!(generators, module_gens[i])
-      coords[length(algebra_gens) + i] = 1
-      push!(exps, copy(coords))
-      coords[length(algebra_gens) + i] = 0
+      if remember_coords
+        for j = 1:length(algebra_gens)
+          coords[j] = 0
+        end
+        coords[length(algebra_gens) + i] = 1
+        push!(exps, copy(coords))
+        coords[length(algebra_gens) + i] = 0
+      end
       continue
     end
     dd = d - di
-    _ = all_power_products_of_degree!(algebra_gens, dd, database)
+    _ = all_power_products_of_degree!(R, algebra_gens, dd, database, remember_coords)
     for j = 1:length(database[dd][1])
       push!(generators, database[dd][1][j]*module_gens[i])
 
-      coords[1:length(algebra_gens)] = database[dd][2][j]
-      coords[length(algebra_gens) + i] = 1;
-      push!(exps, copy(coords))
-      coords[length(algebra_gens) + i] = 0;
+      if remember_coords
+        coords[1:length(algebra_gens)] = database[dd][2][j]
+        coords[length(algebra_gens) + i] = 1;
+        push!(exps, copy(coords))
+        coords[length(algebra_gens) + i] = 0;
+      end
     end
   end
   return generators, exps
@@ -169,7 +187,7 @@ function secondary_invariants_modular(RG::InvRing)
 
   database = Dict{Int, Tuple{Vector{elem_type(R)}, Vector{Vector{Int}}, Vector{Int}}}()
   for d = 1:sum( total_degree(f) - 1 for f in p_invars )
-    Md = generators_for_given_degree!(p_invars, s_invars, d, database)[1]
+    Md = generators_for_given_degree!(R, p_invars, s_invars, d, database)[1]
 
     B = BasisOfPolynomials(R, Md)
 
@@ -194,6 +212,7 @@ function secondary_invariants_nonmodular(RG::InvRing)
   @assert !ismodular(RG)
   p_invars = primary_invariants(RG)
   I = ideal_of_primary_invariants(RG)
+  LI = leading_ideal(I)
 
   fg = molien_series(RG)
   f = numerator(fg)
@@ -206,12 +225,19 @@ function secondary_invariants_nonmodular(RG::InvRing)
   h = div(f, g)
   @assert g*h == f
 
-  R = polynomial_ring(RG)
+  Rgraded = polynomial_ring(RG)
+  R = Rgraded.R
   K = coefficient_ring(R)
   s_invars = elem_type(R)[ one(R) ] # secondary invariants
+  is_invars = elem_type(R)[] # irreducible secondary invariants
 
   # sum(coefficients(h)) is the number of secondary invariants we need in total.
   B = BasisOfPolynomials(R, [ one(R) ], Int(numerator(sum(coefficients(h)))))
+
+  # We try to construct as many invariants as possible as power products from
+  # already computed ones using all_power_products_of_degree! .
+  # We have to keep the database up to date by hand, however.
+  database = Dict{Int, Tuple{Vector{elem_type(R)}, Vector{Vector{Int}}, Vector{Int}}}()
   for d = 1:degree(h)
     k = coeff(h, d) # number of invariants we need in degree d
     if iszero(k)
@@ -219,22 +245,50 @@ function secondary_invariants_nonmodular(RG::InvRing)
     end
     invars_found = 0
 
-    mons = all_monomials(polynomial_ring(RG), d)
-    for m in mons
-      f = reynolds_operator(RG, m)
-      if iszero(f)
-        continue
-      end
-      nf = normal_form(f, I)
-
+    invars = all_power_products_of_degree!(R, is_invars, d, database, false)
+    for f in invars
+      nf = normal_form(f, I).f
       if inspan!(B, nf)
         push!(s_invars, inv(leading_coefficient(f))*f)
         invars_found += 1
         invars_found == k && break
       end
     end
+
+    invars_found == k && continue
+
+    # We have to find more invariants of this degree not coming from power products
+    # of smaller degree ones.
+    mons = all_monomials(Rgraded, d)
+    for m in mons
+
+      # Can exclude some monomials, see DK15, Remark 3.7.3 (b)
+      skip = false
+      for g in gens(LI)
+        if mod(m.f, g.f) == 0
+          skip = true
+          break
+        end
+      end
+      skip && continue
+
+      f = reynolds_operator(RG, m).f
+      if iszero(f)
+        continue
+      end
+      nf = normal_form(f, I).f
+      if inspan!(B, nf)
+        f = inv(leading_coefficient(f))*f
+        push!(s_invars, f)
+        push!(is_invars, f)
+        push!(database[d][1], f)
+        push!(database[d][3], length(is_invars))
+        invars_found += 1
+        invars_found == k && break
+      end
+    end
   end
-  return s_invars
+  return [ Rgraded(f) for f in s_invars], [ Rgraded(f) for f in is_invars ]
 end
 
 ################################################################################
