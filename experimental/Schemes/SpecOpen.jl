@@ -4,7 +4,7 @@ export StructureSheafRing, variety, domain, OO
 
 export StructureSheafElem, domain, representatives, patches, npatches, restrict
 
-export SpecOpenMor, maps_on_patches, restriction, identity_map
+export SpecOpenMor, maps_on_patches, restriction, identity_map, preimage
 
 mutable struct SpecOpen{BRT, BRET, RT, RET, MST} <: Scheme{BRT, BRET}
   X::Spec{BRT, BRET, RT, RET, MST} # the ambient scheme
@@ -126,6 +126,14 @@ function intersect(
     Y::Spec{BRT, BRET, RT, RET, MST}
   ) where {BRT, BRET, RT, RET, MST}
   return intersect(Y, U)
+end
+
+function intersect(
+    U::SpecOpen{BRT, BRET, RT, RET, MST},
+    V::SpecOpen{BRT, BRET, RT, RET, MST}
+  ) where {BRT, BRET, RT, RET, MST}
+  Z = intersect(parent(U), parent(V))
+  return SpecOpen(Z, [a*b for a in gens(U) for b in gens(V)])
 end
 
 function union(U::T, V::T) where {T<:SpecOpen}
@@ -254,12 +262,10 @@ function restrict(
     end
   end
   issubset(V, domain(f)) || error("the set is not contained in the domain of definition of the function")
-  if !is_open_embedding(V, parent(domain(f)))
-    W = intersect(V, domain(f))
-    g = StructureSheafElem(W, [OO(patches(W)[i])(f[i]) for i in 1:npatches(f)])
-    return restrict(g, V)
-  end
-  error("not implemented")
+  VU = [intersect(V, U) for U in patches(domain(f))]
+  g = [OO(VU[i])(f[i]) for i in 1:length(VU)]
+  l = write_as_linear_combination(one(OO(V)), OO(V).(lifted_denominator.(g)))
+  return dot(l, OO(V).(lifted_numerator.(g)))
 end
 
 @Markdown.doc """
@@ -488,3 +494,19 @@ function ==(f::T, g::T) where {T<:SpecOpenMor}
   end
   return true
 end
+
+function preimage(f::SpecOpenMor{BRT, BRET, RT, RET, MST1, MST2},
+    Z::Spec{BRT, BRET, RT, RET, MST2}
+  ) where {BRT, BRET, RT, RET, MST1, MST2}
+  U = domain(f) 
+  X = parent(U)
+  n = length(patches(U))
+  W = localized_ring(OO(X))
+  I = ideal(W, one(W))
+  for i in 1:n 
+    I = intersect(I, localized_modulus(closure(preimage(f[i], Z), X)))
+  end
+  fZbar = subscheme(X, I)
+  return SpecMorOpen(fZbar, gens(U))
+end
+
