@@ -28,6 +28,7 @@ export AffineHalfspace,
     catalan_solid,
     codim,
     combinatorial_symmetries,
+    common_refinement,
     cone_from_inequalities,
     cones,
     convex_hull,
@@ -59,6 +60,7 @@ export AffineHalfspace,
     issimple,
     issmooth,
     isvery_ample,
+    k_skeleton,
     lattice_points,
     lattice_volume,
     lineality_dim,
@@ -140,6 +142,7 @@ include("PolyhedralFan/properties.jl")
 include("PolyhedralFan/standard_constructions.jl")
 include("PolyhedralComplex/constructors.jl")
 include("PolyhedralComplex/properties.jl")
+include("PolyhedralComplex/standard_constructions.jl")
 include("SubdivisionOfPoints/constructors.jl")
 include("SubdivisionOfPoints/properties.jl")
 include("SubdivisionOfPoints/functions.jl")
