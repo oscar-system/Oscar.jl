@@ -179,3 +179,91 @@ mutable struct MSetPartitionsState
     return new(f, c, u, v, a, b, l)
   end
 end
+
+# Handle vector spaces of multivariate polynomials by writing them in the basis
+# of the monomials.
+mutable struct BasisOfPolynomials{PolyElemT, PolyRingT, FieldElemT, MatElemT}
+  R::PolyRingT
+
+  # Number the basis monomials
+  monomial_to_column::Dict{PolyElemT, Int}
+
+  # Write the polynomials coefficient-wise in the rows of a matrix. The column i
+  # contains the coefficients corresponding to the monomial m with
+  # monomial_to_column[m] == i.
+  # M is supposed to be in "almost" rref, that is, of the shape
+  #     (0 1 * 0 *)
+  #     (1 0 * 0 *)
+  # M = (0 0 0 1 *)
+  #     (0 0 0 0 0)
+  #     (0 0 0 0 0),
+  # so reduced, but the rows do not have to be sorted.
+  M::MatElemT
+
+  # For a column c of M pivot_rows[c] is the row with the pivot or 0.
+  # We require this to be able to use _add_row_to_rref! when adding a polynomial.
+  pivot_rows::Vector{Int}
+
+  # Cache used when adding a new polynomial
+  v::Vector{FieldElemT}
+
+  # Rank of M
+  r::Int
+
+  function BasisOfPolynomials(R::MPolyRing, dim::Int = 0)
+    K = coefficient_ring(R)
+    B = new{elem_type(R), typeof(R), elem_type(K), dense_matrix_type(K)}()
+    B.R = R
+    B.monomial_to_column = Dict{elem_type(R), Int}()
+    B.M = zero_matrix(K, dim, 0)
+    B.pivot_rows = Int[]
+    B.v = elem_type(K)[]
+    B.r = 0
+    return B
+  end
+
+  function BasisOfPolynomials(R::PolyRingT, polys::Vector{PolyElemT}, dim::Int = 0) where {PolyRingT <: MPolyRing, PolyElemT <: MPolyElem}
+    if isempty(polys)
+      return BasisOfPolynomials(R, dim)
+    end
+
+    K = coefficient_ring(R)
+    B = new{elem_type(R), typeof(R), elem_type(K), dense_matrix_type(K)}()
+    B.R = R
+
+    monomial_to_column = Dict{elem_type(R), Int}()
+    c = 0
+    for f in polys
+      for m in monomials(f)
+        if !haskey(monomial_to_column, m)
+          c += 1
+          monomial_to_column[m] = c
+        end
+      end
+    end
+    B.monomial_to_column = monomial_to_column
+
+    M = zero_matrix(K, max(length(polys), dim), c)
+    for i = 1:length(polys)
+      for (a, m) in zip(coefficients(polys[i]), monomials(polys[i]))
+        M[i, monomial_to_column[m]] = deepcopy(a)
+      end
+    end
+    r = rref!(M)
+    B.M = M
+    B.r = r
+
+    pivot_rows = zeros(Int, c)
+    for i = 1:r
+      for j = 1:c
+        if !iszero(M[i, j])
+          pivot_rows[j] = i
+          break
+        end
+      end
+    end
+    B.pivot_rows = pivot_rows
+    B.v = zeros(K, c)
+    return B
+  end
+end

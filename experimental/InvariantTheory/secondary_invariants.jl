@@ -117,6 +117,37 @@ function generators_for_given_degree!(algebra_gens::Vector{T}, module_gens::Vect
   return generators, exps
 end
 
+# Adds f to the span of the polynomials in BasisOfPolynomials.
+# Returns true iff the rank of the span increased, i.e. if f were not an element
+# of the span.
+function inspan!(B::BasisOfPolynomials{T}, f::T) where {T <: MPolyElem}
+  @assert B.R === parent(f)
+
+  zero!.(B.v)
+  c = ncols(B.M)
+  for (a, m) in zip(coefficients(f), monomials(f))
+    if !haskey(B.monomial_to_column, m)
+      c += 1
+      B.monomial_to_column[m] = c
+      push!(B.v, deepcopy(a))
+    else
+      col = B.monomial_to_column[m]
+      B.v[col] = deepcopy(a)
+    end
+  end
+  new_cols = c - ncols(B.M)
+  if !iszero(new_cols)
+    append!(B.pivot_rows, zeros(Int, new_cols))
+    B.M = hcat(B.M, zero_matrix(base_ring(B.M), nrows(B.M), new_cols))
+  end
+  if B.r == nrows(B.M)
+    B.M = vcat(B.M, zero_matrix(base_ring(B.M), 1, ncols(B.M)))
+  end
+  b = Hecke._add_row_to_rref!(B.M, B.v, B.pivot_rows, B.r + 1)
+  b && (B.r += 1)
+  return b
+end
+
 ################################################################################
 #
 #  Modular case
@@ -140,60 +171,12 @@ function secondary_invariants_modular(RG::InvRing)
   for d = 1:sum( total_degree(f) - 1 for f in p_invars )
     Md = generators_for_given_degree!(p_invars, s_invars, d, database)[1]
 
-    monomial_to_column = Dict{elem_type(R), Int}()
-    k = 0
-    for f in Md
-      for m in monomials(f)
-        if !haskey(monomial_to_column, m)
-          k += 1
-          monomial_to_column[m] = k
-        end
-      end
-    end
+    B = BasisOfPolynomials(R, Md)
 
-    N = zero_matrix(K, length(Md), k)
-    for i = 1:length(Md)
-      for (c, m) in zip(coefficients(Md[i]), monomials(Md[i]))
-        N[i, monomial_to_column[m]] = c
-      end
-    end
-    r = rref!(N)
-    pivot_rows = zeros(Int, k)
-    for i = 1:r
-      for j = 1:k
-        if !iszero(N[i, j])
-          pivot_rows[j] = i
-          break
-        end
-       end
-    end
-
-    v = zeros(K, ncols(N))
     for f in iterate_basis(RG, d)
       f = f.f
-      zero!.(v)
-      new_cols = 0
-      for (c, m) in zip(coefficients(f), monomials(f))
-        if !haskey(monomial_to_column, m)
-          k += 1
-          monomial_to_column[m] = k
-          new_cols += 1
-          push!(v, deepcopy(c))
-        else
-          col = monomial_to_column[m]
-          v[col] = deepcopy(c)
-        end
-      end
-      if !iszero(new_cols)
-        append!(pivot_rows, zeros(Int, new_cols))
-        N = hcat(N, zero_matrix(K, nrows(N), new_cols))
-      end
-      if r == nrows(N)
-        N = vcat(N, zero_matrix(K, 1, ncols(N)))
-      end
-      if Hecke._add_row_to_rref!(N, v, pivot_rows, r + 1)
+      if inspan!(B, f)
         push!(s_invars, f)
-        r += 1
       end
     end
   end
@@ -225,23 +208,18 @@ function secondary_invariants_nonmodular(RG::InvRing)
 
   R = polynomial_ring(RG)
   K = coefficient_ring(R)
-  s_invars = elem_type(R)[]
-  nfs = elem_type(R)[] # normal forms
+  s_invars = elem_type(R)[ one(R) ] # secondary invariants
 
-  monomial_to_column = Dict{elem_type(R), Int}()
-  N = zero_matrix(K, 0, 0)
-  r = 0
-  c = 0
-  pivot_rows = Int[]
-  v = elem_type(K)[]
-  for d = 0:degree(h)
+  # sum(coefficients(h)) is the number of secondary invariants we need in total.
+  B = BasisOfPolynomials(R, [ one(R) ], Int(numerator(sum(coefficients(h)))))
+  for d = 1:degree(h)
     k = coeff(h, d) # number of invariants we need in degree d
     if iszero(k)
       continue
     end
+    invars_found = 0
 
     mons = all_monomials(polynomial_ring(RG), d)
-    invars_found = 0
     for m in mons
       f = reynolds_operator(RG, m)
       if iszero(f)
@@ -249,33 +227,10 @@ function secondary_invariants_nonmodular(RG::InvRing)
       end
       nf = normal_form(f, I)
 
-      zero!.(v)
-      new_cols = 0
-      for (a, m) in zip(coefficients(nf), monomials(nf))
-        if !haskey(monomial_to_column, m)
-          c += 1
-          monomial_to_column[m] = c
-          new_cols += 1
-          push!(v, deepcopy(a))
-        else
-          col = monomial_to_column[m]
-          v[col] = deepcopy(a)
-        end
-      end
-      if !iszero(new_cols)
-        append!(pivot_rows, zeros(Int, new_cols))
-        N = hcat(N, zero_matrix(K, nrows(N), new_cols))
-      end
-      if r == nrows(N)
-        N = vcat(N, zero_matrix(K, 1, ncols(N)))
-      end
-      if Hecke._add_row_to_rref!(N, v, pivot_rows, r + 1)
+      if inspan!(B, nf)
         push!(s_invars, inv(leading_coefficient(f))*f)
-        r += 1
         invars_found += 1
-        if invars_found == k
-          break
-        end
+        invars_found == k && break
       end
     end
   end
