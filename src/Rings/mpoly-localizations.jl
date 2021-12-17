@@ -528,16 +528,8 @@ end
 function product(T::AbsMPolyMultSet, U::AbsMPolyMultSet)
   R = ambient_ring(T)
   R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
-  try 
-    issubset(T, U) && return U
-  catch
-    @warn "comparison of multiplicative sets of types $(typeof(T)) and $(typeof(U)) is not implemented."
-  end
-  try
-    issubset(U, T) && return T
-  catch
-    @warn "comparison of multiplicative sets of types $(typeof(U)) and $(typeof(T)) is not implemented."
-  end
+  issubset(T, U) && return U
+  issubset(U, T) && return T
   return MPolyProductOfMultSets(R, [T, U])
 end
 
