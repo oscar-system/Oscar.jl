@@ -35,8 +35,10 @@ end
     invariant_ring(G::MatrixGroup)
 
 Return the invariant ring of the finite matrix group `G`.
-    
-CAVEAT: The creation of invariant rings is lazy in the sense that no explicit computations are done until specifically invoked (for example, by the `primary_invariants` function).
+
+CAVEAT: The creation of invariant rings is lazy in the sense that no explicit
+computations are done until specifically invoked (for example, by the
+`primary_invariants` function).
 
 # Examples
 ```jldoctest
@@ -164,7 +166,8 @@ end
 @doc Markdown.doc"""
      reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyElem}
 
-In the non-modular case, return the image of `f` under the Reynolds operator projecting onto `IR`.
+In the non-modular case, return the image of `f` under the Reynolds operator
+projecting onto `IR`.
 
 # Examples
 ```jldoctest
@@ -207,8 +210,7 @@ x[1]^3
 
 julia> reynolds_operator(IR, f)
 1//3*x[1]^3 + 1//3*x[2]^3 + 1//3*x[3]^3
-```
-```jldoctest
+
 julia> M = matrix(GF(3), [0 1 0; -1 0 0; 0 0 -1])
 [0   1   0]
 [2   0   0]
@@ -272,13 +274,17 @@ end
 @doc Markdown.doc"""
      basis(IR::InvRing, d::Int, algo::Symbol = :default)
 
-Given an invariant ring `IR` and an integer `d`, return a basis for the invariants in degree `d`.
-The used algorithm can be specified using the optional argument `algo`. Possible values are `:reynolds` which uses the reynolds operator to construct the basis (only available in the non-modular case) and `:linear_algebra` which uses plain linear algebra. With the default value `:default` the heuristically best algorithm is selected.
+Given an invariant ring `IR` and an integer `d`, return a basis for the invariants
+in degree `d`. The used algorithm can be specified using the optional argument
+`algo`. Possible values are `:reynolds` which uses the reynolds operator to
+construct the basis (only available in the non-modular case) and `:linear_algebra`
+which uses plain linear algebra. With the default value `:default` the
+heuristically best algorithm is selected.
 
-See also `iterate_basis`.
+See also [`iterate_basis`](@ref).
 
 # Examples
-```
+```jldoctest
 julia> K, a = CyclotomicField(3, "a")
 (Cyclotomic field of order 3, a)
 
@@ -303,12 +309,11 @@ AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a
 
 julia> basis(IR, 6)
 4-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
- x[1]^6 + x[2]^6 + x[3]^6
+ x[1]^2*x[2]^2*x[3]^2
  x[1]^4*x[2]*x[3] + x[1]*x[2]^4*x[3] + x[1]*x[2]*x[3]^4
  x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
- x[1]^2*x[2]^2*x[3]^2
-```
-```
+ x[1]^6 + x[2]^6 + x[3]^6
+
 julia> M = matrix(GF(3), [0 1 0; -1 0 0; 0 0 -1])
 [0   1   0]
 [2   0   0]
@@ -330,8 +335,8 @@ julia> basis(IR, 2)
 
 julia> basis(IR, 3)
 2-element Vector{MPolyElem_dec{gfp_elem, gfp_mpoly}}:
- x[1]^2*x[3] + 2*x[2]^2*x[3]
  x[1]*x[2]*x[3]
+ x[1]^2*x[3] + 2*x[2]^2*x[3]
 ```
 """
 basis(IR::InvRing, d::Int, algo = :default) = collect(iterate_basis(IR, d, algo))
@@ -378,10 +383,11 @@ end
 @doc Markdown.doc"""
     secondary_invariants(IR::InvRing)
 
-Return a system of secondary invariants for `IR` with respect to the currently cached system of primary invariants for `IR`
-(if no system of primary invariants for `IR` is cached, compute and cache such a system first).
+Return a system of secondary invariants for `IR` with respect to the currently
+cached system of primary invariants for `IR` (if no system of primary invariants
+for `IR` is cached, compute and cache such a system first).
 
-If a system of secondary invariants is already cached, return the cached system. 
+If a system of secondary invariants is already cached, return the cached system.
 Otherwise, compute and cache such a system first.
 
 NOTE: The secondary invariants are sorted by increasing degree.
@@ -403,7 +409,7 @@ julia> secondary_invariants(IR)
  1
  x[1]^6*x[3]^3 + x[1]^3*x[2]^6 + x[2]^3*x[3]^6
 ```
-"""    
+"""
 function secondary_invariants(IR::InvRing)
   if !isdefined(IR, :secondary)
     secondary_invariants_via_singular(IR)
@@ -414,16 +420,18 @@ end
 @doc Markdown.doc"""
     irreducible_secondary_invariants(IR::InvRing)
 
-Return a system of irreducible secondary invariants for `IR` with respect to the currently cached system of primary invariants for `IR`
-(if no system of primary invariants for `IR` is cached, compute and cache such a system first).
+Return a system of irreducible secondary invariants for `IR` with respect to the
+currently cached system of primary invariants for `IR` (if no system of primary
+invariants for `IR` is cached, compute and cache such a system first).
 
-If a system of irreducible secondary invariants is already cached, return the cached system. 
+If a system of irreducible secondary invariants is already cached, return the
+cached system.
 Otherwise, compute and cache such a system first.
 
 NOTE: The irreducible secondary invariants are sorted by increasing degree.
 
 # Examples
-```
+```jldoctest
 julia> M = matrix(QQ, [0 -1 0 0 0; 1 -1 0 0 0; 0 0 0 0 1; 0 0 1 0 0; 0 0 0 1 0]);
 
 julia> G = MatrixGroup(5, QQ, [M]);
@@ -437,7 +445,7 @@ julia> secondary_invariants(IR)
  x[1]^2 - x[1]*x[2] + x[2]^2
  x[3]^2*x[5] + x[3]*x[4]^2 + x[4]*x[5]^2
  x[3]^3 + x[4]^3 + x[5]^3
- x[1]*x[3]*x[4] - x[1]*x[3]*x[5] - x[2]*x[3]*x[4] + x[2]*x[4]*x[5]
+ x[1]*x[3]^2 - x[1]*x[5]^2 - x[2]*x[3]^2 + x[2]*x[4]^2
  x[1]*x[3]^2 - x[1]*x[4]^2 + x[2]*x[4]^2 - x[2]*x[5]^2
  x[1]^2*x[3] + x[1]^2*x[5] - 2*x[1]*x[2]*x[3] + x[2]^2*x[3] + x[2]^2*x[4]
  x[1]^2*x[3] - x[1]*x[2]*x[3] - x[1]*x[2]*x[4] + x[1]*x[2]*x[5] + x[2]^2*x[4]
@@ -451,7 +459,7 @@ julia> irreducible_secondary_invariants(IR)
  x[1]^2 - x[1]*x[2] + x[2]^2
  x[3]^2*x[5] + x[3]*x[4]^2 + x[4]*x[5]^2
  x[3]^3 + x[4]^3 + x[5]^3
- x[1]*x[3]*x[4] - x[1]*x[3]*x[5] - x[2]*x[3]*x[4] + x[2]*x[4]*x[5]
+ x[1]*x[3]^2 - x[1]*x[5]^2 - x[2]*x[3]^2 + x[2]*x[4]^2
  x[1]*x[3]^2 - x[1]*x[4]^2 + x[2]*x[4]^2 - x[2]*x[5]^2
  x[1]^2*x[3] + x[1]^2*x[5] - 2*x[1]*x[2]*x[3] + x[2]^2*x[3] + x[2]^2*x[4]
  x[1]^2*x[3] - x[1]*x[2]*x[3] - x[1]*x[2]*x[4] + x[1]*x[2]*x[5] + x[2]^2*x[4]
@@ -507,10 +515,11 @@ end
 @doc Markdown.doc"""
     molien_series([S::PolyRing], I::InvRing)
 
-In the non-modular case, return the Molien series of `I` as a rational function. 
+In the non-modular case, return the Molien series of `I` as a rational function.
 
-If a univariate polynomial ring with rational coefficients is specified by the optional argument `S::PolyRing`, 
-then the Molien series is returned as an element of the fraction field of that ring.
+If a univariate polynomial ring with rational coefficients is specified by the
+optional argument `S::PolyRing`, then the Molien series is returned as an element
+of the fraction field of that ring.
 
 # Examples
 ```jldoctest
@@ -573,17 +582,17 @@ ismolien_series_implemented(I::InvRing) = !ismodular(I)
 
 Return a system of fundamental invariants for `IR`.
 
-If a system of fundamental invariants is already cached, return the cached system. 
+If a system of fundamental invariants is already cached, return the cached system.
 Otherwise, compute and cache such a system first.
 
 # Implemented Algorithms
 
-By default, the function relies on King's algorithm which finds a system of 
-fundamental invariants directly, without computing primary and secondary invariants. 
+By default, the function relies on King's algorithm which finds a system of
+fundamental invariants directly, without computing primary and secondary invariants.
 
 Alternatively, if specified by `algo = :minimal_subalgebra`, the function computes
-fundamental invariants from a collection of primary and irreducible secondary invariants using
-the function `minimal_subalgebra_generators`.
+fundamental invariants from a collection of primary and irreducible secondary
+invariants using the function `minimal_subalgebra_generators`.
 
 NOTE: The fundamental invariants are sorted by increasing degree.
 
@@ -653,17 +662,18 @@ end
     affine_algebra(IR::InvRing)
 
 Given an invariant ring `IR` with underlying graded polynomial ring, say `R`,
-return a graded affine algebra, say `A`, together with a graded algebra homomomorphism 
-$A\rightarrow R$ which maps `A` isomorphically onto `IR`.
+return a graded affine algebra, say `A`, together with a graded algebra
+homomomorphism $A\rightarrow R$ which maps `A` isomorphically onto `IR`.
 
-NOTE: If a system of fundamental invariants for `IR` is already cached, the function makes use of that system. 
-Otherwise, such a system is computed and cached first. The algebra `A` is graded according to the 
-degrees of the fundamental invariants, the modulus of `A` is generated by the algebra relations
-on these invariants, and the algebra homomomorphism $A\rightarrow R$ is defined by sending the
-$i$th generator of `A` to the $i$th fundamental invariant.
+NOTE: If a system of fundamental invariants for `IR` is already cached, the
+function makes use of that system. Otherwise, such a system is computed and
+cached first. The algebra `A` is graded according to the degrees of the
+fundamental invariants, the modulus of `A` is generated by the algebra relations
+on these invariants, and the algebra homomomorphism $A\rightarrow R$ is defined
+by sending the $i$th generator of `A` to the $i$th fundamental invariant.
 
-# Examples 
-```jldoctest 
+# Examples
+```jldoctest
 julia> K, a = CyclotomicField(3, "a")
 (Cyclotomic field of order 3, a)
 

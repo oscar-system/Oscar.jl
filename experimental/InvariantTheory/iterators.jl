@@ -96,11 +96,19 @@ end
 @doc Markdown.doc"""
      iterate_basis(IR::InvRing, d::Int, algo::Symbol = :default)
 
-Given an invariant ring `IR` and an integer `d`, return an iterator over a basis for the invariants in degree `d`.
-The used algorithm can be specified using the optional argument `algo`. Possible values are `:reynolds` which uses the reynolds operator to construct the basis (only available in the non-modular case) and `:linear_algebra` which uses plain linear algebra. With the default value `:default` the heuristically best algorithm is selected.
-When using the reynolds operator the basis is constructed element-by-element. With linear algebra this is not possible and the whole basis will be constructed directly when calling the function.
+Given an invariant ring `IR` and an integer `d`, return an iterator over a basis
+for the invariants in degree `d`.
+The used algorithm can be specified using the optional argument `algo`. Possible
+values are `:reynolds` which uses the reynolds operator to construct the basis
+(only available in the non-modular case) and `:linear_algebra` which uses plain
+linear algebra. With the default value `:default` the heuristically best algorithm
+is selected.
 
-See also `basis`.
+When using the reynolds operator the basis is constructed element-by-element.
+With linear algebra this is not possible and the whole basis will be constructed
+directly when calling the function.
+
+See also [`basis`](@ref).
 
 # Examples
 ```
@@ -139,8 +147,7 @@ julia> collect(B)
  x[1]^4*x[2]*x[3] + x[1]*x[2]^4*x[3] + x[1]*x[2]*x[3]^4
  x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
  x[1]^6 + x[2]^6 + x[3]^6
-```
-```
+
 julia> M = matrix(GF(3), [0 1 0; -1 0 0; 0 0 -1])
 [0   1   0]
 [2   0   0]
