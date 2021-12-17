@@ -3941,7 +3941,7 @@ end
 
 @doc Markdown.doc"""
     simplify(M::SubQuo)
-r
+
 Simplify the given subquotient `M` and return the simplified subquotient `N` along
 with the injection map $N \to M$ and the projection map $M \to N$. These maps are 
 isomorphisms. 
