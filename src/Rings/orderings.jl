@@ -983,9 +983,9 @@ function _cmp_monomials(f::MPolyElem, k::Int, l::Int, o::Oscar.Orderings.GenOrde
             ek = exponent(f, k, i)
             el = exponent(f, l, i)
             if ek > el
-              return 1
-            elseif ek < el
               return -1
+            elseif ek < el
+              return 1
             end
           end
       else
