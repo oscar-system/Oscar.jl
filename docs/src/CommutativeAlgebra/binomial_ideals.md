@@ -88,17 +88,8 @@ cellular_decomposition(I::MPolyIdeal)
 
 ```@docs
 cellular_hull(I::MPolyIdeal{fmpq_mpoly})
-```
-
-```@docs
 cellular_associated_primes(I::MPolyIdeal{fmpq_mpoly})
-```
-
-```@docs
 cellular_minimal_associated_primes(I::MPolyIdeal{fmpq_mpoly})
-```
-
-```@docs
 cellular_primary_decomposition(I::MPolyIdeal{fmpq_mpoly})
 ```
 

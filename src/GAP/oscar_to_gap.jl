@@ -26,7 +26,7 @@ GAP.julia_to_gap(obj::fmpq_mat) = GAP.julia_to_gap(Matrix(obj), recursive = true
 function GAP.julia_to_gap(obj::nf_elem)
     F = parent(obj)
     Nemo.iscyclo_type(F) || throw(ArgumentError("the element does not lie in a cyclotomic field"))
-    N = Oscar.get_special(F, :cyclo)
+    N = get_attribute(F, :cyclo)
     v = zeros(fmpq, N)
     coeffs = coefficients(obj)
     v[1:length(coeffs)] = coeffs
