@@ -68,13 +68,8 @@ function automorphism_group(G::GrpAbFinGen)
   Ggap, to_gap, to_oscar = _isomorphic_gap_group(G)
   AutGAP = GAP.Globals.AutomorphismGroup(Ggap.X)
   aut = AutomorphismGroup{typeof(G)}(AutGAP, G)
-<<<<<<< HEAD
   set_attribute!(aut,:to_gap => to_gap)
   set_attribute!(aut,:to_oscar => to_oscar)
-=======
-  set_attribute(aut,:to_gap => to_gap)
-  set_attribute(aut,:to_oscar => to_oscar)
->>>>>>> 2beb01d0375488050a6a572df395b045a34310a2
   return aut
 end
 
@@ -104,13 +99,8 @@ function _as_subgroup(aut::AutomorphismGroup{T}, subgrp::GapObj, ::Type{S}) wher
   to_gap = get_attribute(aut, :to_gap)
   to_oscar = get_attribute(aut, :to_oscar)
   subgrp1 = AutomorphismGroup{T}(subgrp, aut.G)
-<<<<<<< HEAD
   set_attribute!(subgrp1, :to_gap => to_gap)
   set_attribute!(subgrp1, :to_oscar => to_oscar)
-=======
-  set_attribute(subgrp1, :to_gap => to_gap)
-  set_attribute(subgrp1, :to_oscar => to_oscar)
->>>>>>> 2beb01d0375488050a6a572df395b045a34310a2
   return subgrp1, hom(subgrp1, aut, img)
 end
 
