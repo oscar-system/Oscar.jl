@@ -1,7 +1,6 @@
 ###
 # Valuations over exact fields for tropical geometry
 # ==================================================
-# (temporary, to be replaced once this is officially supported)
 ###
 
 struct ValuationMap{typeofValuedField,typeofUniformizer}
@@ -10,7 +9,7 @@ struct ValuationMap{typeofValuedField,typeofUniformizer}
   residue_field
   residue_map
 end
-
+export ValuationMap
 
 
 ###
