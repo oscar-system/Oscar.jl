@@ -1,3 +1,8 @@
+###
+# Tropical polynomial computations in Oscar
+# =========================================
+###
+
 @doc Markdown.doc"""
     tropical_polynomial{M}(f::AbstractAlgebra.Generic.MPoly{Any})
 

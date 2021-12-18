@@ -1,5 +1,17 @@
+_whyohwhy1 = AbstractAlgebra.Generic.MPolyRing{padic}
+@attributes _whyohwhy1
+
+_whyohwhy2 = FmpqMPolyRing
+@attributes _whyohwhy2
+
+_whyohwhy3 = FlintRationalField
+@attributes _whyohwhy3
+
+
 include("numbers.jl")
+include("valuation.jl")
 include("poly.jl")
+include("initial.jl")
 
 
 # Temporarily we will turn tropical polynomials into strings. This will be
