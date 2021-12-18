@@ -286,6 +286,7 @@ include("PolyhedralGeometry/main.jl")
 
 include("Combinatorics/Graphs.jl")
 export Graphs
+include("Combinatorics/SimplicialComplexes.jl")
 
 include("../StraightLinePrograms/src/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl")
