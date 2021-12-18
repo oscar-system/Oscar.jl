@@ -15,7 +15,7 @@ const CRingElem_dec = Union{MPolyElem_dec, MPolyQuoElem{<:Oscar.MPolyElem_dec}}
 @doc Markdown.doc"""
     FreeMod_dec{T <: CRingElem_dec} <: AbstractFreeMod_dec{T}
 
-The type of decorated (graded or filtrated) free modules.
+The type of decorated (graded or filtered) free modules.
 Decorated free modules are determined by their base ring, the rank,
 the grading or filtration and the names of the (standard) generators.
 Moreover, canonical incoming and outgoing morphisms are stored if the corresponding
@@ -28,6 +28,12 @@ mutable struct FreeMod_dec{T <: CRingElem_dec} <: AbstractFreeMod_dec{T}
 
   AbstractAlgebra.@declare_other
 
+  function FreeMod_dec{T}(F::FreeMod, d::Vector{GrpAbFinGenElem}) where T <: CRingElem_dec
+    @assert length(d) == rank(F)
+    r = new{elem_type(base_ring(F))}(F, d)
+    return r
+  end
+
   function FreeMod_dec{T}(R::CRing_dec,S::Vector{Symbol},d::Vector{GrpAbFinGenElem}) where T <: CRingElem_dec
     r = new{elem_type(R)}()
     r.F = FreeMod{T}(length(d),R,S)
@@ -39,7 +45,7 @@ end
 @doc Markdown.doc"""
     FreeMod_dec(R::CRing_dec, n::Int, name::String = "e"; cached::Bool = false) 
 
-Construct a decorated (graded or filtrated) free module over the ring `R` with rank `n`
+Construct a decorated (graded or filtered) free module over the ring `R` with rank `n`
 with the standard degrees, that is the standard unit vectors have degree 0.
 Additionally one can provide names for the generators. If one does 
 not provide names for the generators, the standard names e_i are used for 
@@ -63,7 +69,7 @@ free_module_dec(R::CRing_dec, n::Int, name::String = "e"; cached::Bool = false) 
 @doc Markdown.doc"""
     FreeMod_dec(R::CRing_dec, d::Vector{GrpAbFinGenElem}, name::String = "e"; cached::Bool = false) 
 
-Construct a decorated (graded or filtrated) free module over the ring `R` 
+Construct a decorated (graded or filtered) free module over the ring `R` 
 with rank `n` where `n` is the length of `d`. `d` is the vector of degrees for the 
 components, i.e. `d[i]` is the degree of `e[i]` where `e[i]` is the `i`th standard unit
 vector of the free module.
@@ -85,6 +91,11 @@ i-th standard unit vector has degree `d[i]`.
 The string `name` specifies how the basis vectors are printed. 
 """
 free_module_dec(R::CRing_dec, d::Vector{GrpAbFinGenElem}, name::String = "e"; cached::Bool = false) = FreeMod_dec(R, d, name, cached = cached)
+
+
+function FreeMod_dec(F::FreeMod, d::Vector{GrpAbFinGenElem})
+  return FreeMod_dec{elem_type(base_ring(F))}(F, d)
+end
 
 
 function AbstractAlgebra.extra_name(F::FreeMod_dec)
@@ -109,7 +120,7 @@ function show(io::IO, F::FreeMod_dec)
   @show_special(io, F)
 
   print(io, "Decorated free module of rank $(rank(F)) over ")
-  print(IOContext(io, :compact =>true), forget_decoration(F).R)
+  print(IOContext(io, :compact =>true), base_ring(F))
 
   i = 1
   while i < dim(F)
@@ -118,7 +129,7 @@ function show(io::IO, F::FreeMod_dec)
     while i+j <= dim(F) && d == F.d[i+j]
       j += 1
     end
-    print(IOContext(io, :compact => true), forget_decoration(F).R, "^$j")
+    print(IOContext(io, :compact => true), base_ring(F), "^$j")
     print(IOContext(io, :compact => true), "(", -d, ")")
     if i+j < dim(F)
       print(io, " + ")
@@ -152,6 +163,22 @@ Return the vector of degrees of the standard unit vectors.
 """
 decoration(F::FreeMod_dec) = F.d
 decoration(R::MPolyRing_dec) = R.D
+
+@doc Markdown.doc"""
+    isgraded(F::FreeMod_dec)
+
+Check if `F` is graded.
+"""
+isgraded(F::FreeMod_dec) = isgraded(base_ring(F))
+
+@doc Markdown.doc"""
+    isfiltered(F::FreeMod_dec)
+
+Check if `F` is filtered.
+"""
+isfiltered(F::FreeMod_dec) = isfiltered(base_ring(F))
+
+isdecorated(F::FreeMod_dec) = true
 
 @doc Markdown.doc"""
     ==(F::FreeMod_dec, G::FreeMod_dec)
@@ -241,11 +268,27 @@ function FreeModElem(coords::SRow{T}, parent::FreeMod_dec{T}) where T <: CRingEl
   return FreeModElem_dec{T}(coords, parent)
 end
 
+@doc Markdown.doc"""
+    FreeModElem_dec(v::FreeModElem, parent::FreeMod_dec{T}) where T <: CRingElem_dec
+
+Lift `v` to the decorated module `parent`.
+"""
+function FreeModElem_dec(v::FreeModElem{T}, p::FreeMod_dec{T}) where T <: CRingElem_dec
+  @assert forget_decoration(p) === parent(v)
+  return FreeModElem_dec(coords(v), p)
+end
+
 
 elem_type(::Type{FreeMod_dec{T}}) where {T} = FreeModElem_dec{T}
 parent_type(::Type{FreeModElem_dec{T}}) where {T} = FreeMod_dec{T}
 elem_type(::FreeMod_dec{T}) where {T} = FreeModElem_dec{T}
 parent_type(::FreeModElem_dec{T}) where {T} = FreeMod_dec{T}
+
+@doc Markdown.doc"""
+"""
+function forget_decoration(v::FreeModElem_dec)
+  return FreeModElem(coords(v),forget_decoration(parent(v)))
+end
 
 
 @doc Markdown.doc"""
@@ -272,7 +315,7 @@ function degree_homogeneous_helper(u::FreeModElem_dec)
     return nothing, true
   end
   first = true
-  homogeneous = true #only needed in filtrated case
+  homogeneous = true #only needed in filtered case
   F = parent(u)
   W = base_ring(F)
   ww = W.D[0]
@@ -367,3 +410,28 @@ end
 # Should it be possible to construct ungraded SubQuo with graded elements? (I.e. should the constructors
 # accept AbstractFreeMod and AbstractFreeModElem instead of FreeMod and FreeModElem?)
 # proceed with FreeModHom_dec?
+
+
+
+function tensor_product(G::FreeMod_dec...; task::Symbol = :none)
+  undecorated_tensor_product, tuple_to_pure = tensor_product(map(forget_decoration, G)...; task=:map)
+  pure_to_tuple = inv(tuple_to_pure)
+  d = [sum(map(degree, [FreeModElem_dec(elem,parent) for (elem,parent) in zip(pure_to_tuple(v),G)])) for v in gens(undecorated_tensor_product)]
+  F = FreeMod_dec(undecorated_tensor_product, d)
+
+  function pure(T::Tuple)
+    return FreeModElem_dec(tuple_to_pure(map(forget_decoration, T)), F)
+  end
+
+  function inv_pure(e::FreeModElem_dec)
+    a = pure_to_tuple(forget_decoration(e))
+    return Tuple(FreeModElem_dec(elem,parent) for (elem,parent) in zip(a,G))
+  end
+
+  set_attribute!(F, :tensor_pure_function => pure, :tensor_generator_decompose_function => inv_pure)
+
+  if task == :none
+    return F
+  end
+  return F, MapFromFunc(pure, inv_pure, Hecke.TupleParent(Tuple([g[0] for g = G])), F)
+end
