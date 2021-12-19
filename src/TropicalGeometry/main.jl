@@ -56,22 +56,22 @@ function tropical_polynomial_to_polymake(f)
 end
 
 
-# Workaround for turning a PolyhedralFan of polymake into a proper PolyhedralComplex
-function polyhedral_complex_workaround(pm::Polymake.BigObject)
-    pc = pm
-    typename = Polymake.type_name(pm)
-    if typename[1:13] == "PolyhedralFan"
-        pc = Polymake.fan.PolyhedralComplex(pm)
-    end
-    typename = Polymake.type_name(pc)
-    if typename[1:17] != "PolyhedralComplex"
-        error("Input object is not of type PolyhedralFan or PolyhedralComplex")
-    end
-    fv = Polymake.to_one_based_indexing(pc.FAR_VERTICES)
-    mc = pc.MAXIMAL_POLYTOPES
-    feasibles = [Polymake.to_zero_based_indexing(Polymake.row(mc, i)) for i in 1:Polymake.nrows(mc) if Polymake.incl(Polymake.row(mc, i), fv)>0]
-    return Polymake.fan.PolyhedralComplex(POINTS=pc.VERTICES, INPUT_LINEALITY=pc.LINEALITY_SPACE, INPUT_POLYTOPES=feasibles)
-end
+# # Workaround for turning a PolyhedralFan of polymake into a proper PolyhedralComplex
+# function polyhedral_complex_workaround(pm::Polymake.BigObject)
+#     pc = pm
+#     typename = Polymake.type_name(pm)
+#     if typename[1:13] == "PolyhedralFan"
+#         pc = Polymake.fan.PolyhedralComplex(pm)
+#     end
+#     typename = Polymake.type_name(pc)
+#     if typename[1:17] != "PolyhedralComplex"
+#         error("Input object is not of type PolyhedralFan or PolyhedralComplex")
+#     end
+#     fv = Polymake.to_one_based_indexing(pc.FAR_VERTICES)
+#     mc = pc.MAXIMAL_POLYTOPES
+#     feasibles = [Polymake.to_zero_based_indexing(Polymake.row(mc, i)) for i in 1:Polymake.nrows(mc) if Polymake.incl(Polymake.row(mc, i), fv)>0]
+#     return Polymake.fan.PolyhedralComplex(POINTS=pc.VERTICES, INPUT_LINEALITY=pc.LINEALITY_SPACE, INPUT_POLYTOPES=feasibles)
+# end
 
 
 include("variety_supertype.jl")
