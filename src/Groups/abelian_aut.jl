@@ -3,7 +3,7 @@ export
     isautomorphism
 
 
-function _isomorphic_gap_group(A::GrpAbFinGen, T = PcGroup)
+function _isomorphic_gap_group(A::GrpAbFinGen; T = PcGroup)
   # find independent generators
   if isdiagonal(rels(A))
     exponents = diagonal(rels(A))
@@ -135,7 +135,7 @@ end
 
 
 function (aut::AutomorphismGroup{T})(M::fmpz_mat) where T
-  @assert isautomorphism(aut.G,M) "Matrix doesn't define an element of Automorphism Group"
+  @assert isautomorphism(aut.G,M) "Matrix doesn't define an element of AutomorphismGroup"
   return aut(hom(aut.G,aut.G,M))
 end
 
@@ -158,7 +158,7 @@ isautomorphism(G::GrpAbFinGen, M::fmpz_mat) = isbijective(hom(G,G,M))
 """
     isinner_automorphism(f::AutomorphismGroupElem{T}) where T -> Bool
 
-If `f` an automorphism of its domain, return `true` if `f` is inner, else `false`.
+If `f` is an automorphism of its domain, return `true` if `f` is inner, else `false`.
 """
 isinner_automorphism(f::AutomorphismGroupElem{T}) where T = GAP.Globals.IsInnerAutomorphism(f.X)
 

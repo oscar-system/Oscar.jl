@@ -63,6 +63,7 @@ export
     FPGroupElem,
     GAPGroupElem,
     GAPGroupHomomorphism,
+    group_element,
     PcGroup,
     PcGroupElem,
     PermGroup,
