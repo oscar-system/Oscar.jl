@@ -142,7 +142,7 @@ end
 """
     matrix(f::AutomorphismGroupElem{T}) where T -> fmpz_mat
 
-Return the underlying matrix of `f` as a module homormorphism.
+Return the underlying matrix of `f` as a module homomorphism.
 """
 matrix(f::AutomorphismGroupElem{T}) where T <: GrpAbFinGen = f.map
 
