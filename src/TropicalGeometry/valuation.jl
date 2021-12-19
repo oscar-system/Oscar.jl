@@ -13,14 +13,30 @@ export ValuationMap
 
 
 ###
+# trivial valuation
+###
+
+# Constructor:
+function ValuationMap(K)
+  residue_map(c) = return c
+  return ValuationMap{typeof(K),Nothing}(K,nothing,K,residue_map)
+end
+
+# Evaluation:
+(val::ValuationMap{K,Nothing} where {K})(c) = return 0
+
+
+
+###
 # p-adic valuation on QQ
 ###
 
 # Constructor:
 function ValuationMap(Q::FlintRationalField,p::fmpz)
-    residue_map(c) = FiniteField(p)(c)
-    return ValuationMap{typeof(Q),typeof(p)}(Q,p,FiniteField(p),residue_map)
+  residue_map(c) = FiniteField(p)(c)
+  return ValuationMap{typeof(Q),typeof(p)}(Q,p,FiniteField(p),residue_map)
 end
+
 ValuationMap(Q::FlintRationalField,p) = ValuationMap(Q,ZZ(p)) # for other types of `p` such as `Int`
 
 # Evaluation:
@@ -33,7 +49,7 @@ ValuationMap(Q::FlintRationalField,p) = ValuationMap(Q,ZZ(p)) # for other types 
 ###
 
 # Constructor:
-function t_adic_valuation(t::AbstractAlgebra.Generic.Rat,c)
+function t_adic_valuation(c,t::AbstractAlgebra.Generic.Rat)
     num = numerator(c)
     nom = denominator(c)
     valnum = first(i for i in 0:degree(num) if !iszero(coeff(num, i)))
@@ -43,7 +59,7 @@ end
 
 function ValuationMap(Kt::AbstractAlgebra.Generic.RationalFunctionField,t::AbstractAlgebra.Generic.Rat)
     function residue_map(c)
-        valc = t_adic_valuation(t,c)
+        valc = t_adic_valuation(c,t)
         if (valc<0)
             error("residue_map: input has negative valuation, not in valuation ring")
         end
