@@ -5,7 +5,7 @@ export
     SimplicialComplex,
     bettinumbers,
     dim,
-    euler_characteristic,
+    eulercharacteristic,
     f_vector,
     h_vector,
     nvertices,
@@ -56,7 +56,7 @@ function bettinumbers(K::SimplicialComplex)
     return Polymake.topaz.betti_numbers(pm_object(K))
 end
 
-function euler_characteristic(K::SimplicialComplex)
+function eulercharacteristic(K::SimplicialComplex)
     return pm_object(K).EULER_CHARACTERISTIC
 end
 
