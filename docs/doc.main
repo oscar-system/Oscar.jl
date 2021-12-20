@@ -147,12 +147,20 @@
 
 
   "General" => [
-     "General/styleguide.md",
      "General/other.md",
      "General/faq.md",
-     "General/SubObjectIterator.md"
   ],
 
   "References" => "references.md",
   "Index" => "manualindex.md",
+  "Developers Corner" => [
+		"DevelopersCorner/intro.md",
+		"General" => [
+			"DevelopersCorner/styleguide.md",
+			"DevelopersCorner/build_documentation.md"
+		],
+		"Polyhedral Geometry" => [
+			"DevelopersCorner/SubObjectIterator.md",
+		],
+	],
 ]
