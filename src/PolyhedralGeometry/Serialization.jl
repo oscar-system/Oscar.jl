@@ -141,3 +141,30 @@ function load_subdivisionofpoints(filename::String)
    end
    return SubdivisionOfPoints(bigobject)
 end
+
+
+##############################################################################
+"""
+    save_polyhedralcomplex(PolyhedralComplex, String)
+
+Save a polyhedral complex to a file in JSON format. The first argument is the
+polyhedral complex, the second argument is the filename.
+"""
+function save_polyhedralcomplex(PC::PolyhedralComplex, filename::String)
+   bigobject = pm_object(PC)
+   Polymake.save_bigobject(bigobject, filename)
+end
+
+"""
+    load_polyhedralcomplex(String)
+
+Load a polyhedral complex stored in JSON format, given the filename as input.
+"""
+function load_polyhedralcomplex(filename::String)
+   bigobject = Polymake.load_bigobject(filename)
+   typename = Polymake.type_name(bigobject)
+   if typename[1:17] != "PolyhedralComplex"
+      throw(ArgumentError("Loaded object is not of polymake type PolyhedralComplex, it has type " * typename))
+   end
+   return PolyhedralComplex(bigobject)
+end
