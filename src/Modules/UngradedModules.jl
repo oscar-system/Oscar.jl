@@ -432,15 +432,10 @@ end
 
 # Equality of free module elements
 function Base.:(==)(a::AbstractFreeModElem, b::AbstractFreeModElem) 
-<<<<<<< HEAD
-    check_parent(a,b)
-    return coords(a) == coords(b)
-=======
   if parent(a) !== parent(b)
     return false
   end
   return a.coords == b.coords
->>>>>>> master
 end
 
 # scalar multiplication with polynomials, integers
