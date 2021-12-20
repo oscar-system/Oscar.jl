@@ -42,3 +42,5 @@ include("Modules/UngradedModules.jl")
 include("InvariantTheory/runtests.jl")
 
 include("ToricVarieties/runtests.jl")
+
+include("Schemes/AffineSchemes_jl")
