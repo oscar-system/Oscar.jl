@@ -43,4 +43,4 @@ include("InvariantTheory/runtests.jl")
 
 include("ToricVarieties/runtests.jl")
 
-include("Schemes/AffineSchemes_jl")
+include("Schemes/AffineSchemes.jl")
