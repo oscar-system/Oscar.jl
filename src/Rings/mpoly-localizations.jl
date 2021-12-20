@@ -9,7 +9,7 @@ export numerator, denominator, fraction, parent, isunit, divexact
 export reduce_fraction
 
 export MPolyLocalizedIdeal
-export gens, base_ring, groebner_bases, default_ordering, default_shift, dim, saturated_ideal, intersection, quotient
+export gens, base_ring, groebner_bases, default_ordering, default_shift, dim, saturated_ideal, intersect, quotient
 
 export Localization, ideal
 export bring_to_common_denominator, write_as_linear_combination
@@ -315,7 +315,7 @@ end
 ambient_ring(S::MPolyProductOfMultSets) = S.R
 
 ### additional functionality
-get_index(S::MPolyProductOfMultSets, i::Integer) = S.U[i]
+getindex(S::MPolyProductOfMultSets, i::Integer) = S.U[i]
 sets(S::MPolyProductOfMultSets) = copy(S.U)
 
 ### required functionality
@@ -488,7 +488,7 @@ function issubset(
 end
 
 ### intersections ######################################################
-function intersection(T::AbsMPolyMultSet, U::AbsMPolyMultSet) 
+function intersect(T::AbsMPolyMultSet, U::AbsMPolyMultSet) 
   error("intersection of multiplicative sets of type $(typeof(T)) and $(typeof(U)) is not implemented")
 end
 
@@ -541,7 +541,7 @@ end
 function product(T::MST, U::MST) where {MST<:MPolyProductOfMultSets} 
   R = ambient_ring(T)
   R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
-  new_sets = Vector{<:AbsMPolyMultSet}()
+  new_sets = Vector()
   for S in sets(T)
     push!(new_sets, S)
     for V in sets(U)
@@ -561,7 +561,7 @@ function product(T::MST, U::MST) where {MST<:MPolyProductOfMultSets}
       end
     end
   end
-  return MPolyProductOfMultSets(R, new_sets)
+  return MPolyProductOfMultSets(R, [x for x in new_sets])
 end
 
 function product(T::MPolyProductOfMultSets{BRT, BRET, RT, RET}, U::MST) where {BRT, BRET, RT, RET, MST<:AbsMPolyMultSet{BRT, BRET, RT, RET}}
@@ -655,6 +655,26 @@ function product(
     a in U || return MPolyProductOfMultSets(R, [U, T])
   end
   return U
+end
+
+function product(
+    T::MPolyPowersOfElement{BRT, BRET, RT, RET},
+    U::MPolyProductOfMultSets{BRT, BRET, RT, RET}
+  ) where {BRT, BRET, RT, RET}
+  R = ambient_ring(T)
+  R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
+  keep_denom = Vector{RET}()
+  for a in denominators(T)
+    a in U || (push!(keep_denom, a))
+  end
+  length(keep_denom) == 0 && return U
+  return MPolyProductOfMultSets(vcat(sets(U), MPolyPowersOfElement(keep_denom)))
+end
+function product(
+    U::MPolyProductOfMultSets{BRT, BRET, RT, RET},
+    T::MPolyPowersOfElement{BRT, BRET, RT, RET}
+  ) where {BRT, BRET, RT, RET} 
+  return T*U
 end
 
 ### Preimages of multiplicative sets.
@@ -1306,7 +1326,7 @@ function saturated_ideal(
   sing_decomp = Singular.LibPrimdec.primdecGTZ(singular_ring(lbpa), singular_gens(lbpa))
   decomp = [LocalizedBiPolyArray(V, K[1]) for K in Singular.LibPrimdec.primdecGTZ(singular_ring(lbpa), singular_gens(lbpa))]
   if length(decomp) == 0
-    return ideal(R, zero(R))
+    return ideal(R, one(R))
   end
   relevant_comp = LocalizedBiPolyArray([one(V)])
   U = inverted_set(V)
@@ -1477,7 +1497,7 @@ function +(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedIdeal}
 end
 
 # TODO: The following method can probably be fine tuned for specific localizations.
-function intersection(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedIdeal}
+function intersect(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedIdeal}
   return base_ring(I)(intersect(saturated_ideal(I), saturated_ideal(J)))
 end
 
@@ -1663,16 +1683,14 @@ function Base.reduce(
   return W(inv_shift_hom(R(singular_n)), denominator(f))
 end
 
-bring_to_common_denominator(f::Vector{MPolyLocalizedRingElem}) = bring_to_common_denominator(fraction.(f))
-
 @Markdown.doc """
-bring_to_common_denominator(f::Vector{AbstractAlgebra.Generic.Frac{RET}}) where {RET<:RingElement}
+bring_to_common_denominator(f::Vector{T}) where {T<:MPolyLocalizedRingElem}
 
 Given a vector of fractions [a₁//b₁,…,aₙ//bₙ] return a pair 
 (d, λ) consisting of a common denominator d and a vector 
 λ = [λ₁,…,λₙ] such that aᵢ//bᵢ = λᵢ⋅aᵢ//d
 """
-function bring_to_common_denominator(f::Vector{AbstractAlgebra.Generic.Frac{RET}}) where {RET<:RingElement}
+function bring_to_common_denominator(f::Vector{T}) where {T<:MPolyLocalizedRingElem}
   length(f) == 0 && error("need at least one argument to determine the return type")
   R = base_ring(parent(f[1]))
   for a in f
@@ -1707,7 +1725,7 @@ function write_as_linear_combination(
   for a in g 
     parent(a) == W || error("elements do not belong to the same ring")
   end
-  (d, a) = bring_to_common_denominator(fraction.(vcat([f], g)))
+  (d, a) = bring_to_common_denominator(vcat([f], g))
   h = [a[i+1]*numerator(g[i]) for i in 1:n]
   lbpa = LocalizedBiPolyArray(W.(h))
   p = a[1]*numerator(f)

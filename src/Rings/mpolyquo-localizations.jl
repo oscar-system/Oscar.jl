@@ -649,6 +649,31 @@ end
 
 ideal(L::MPolyQuoLocalizedRing, g::T) where {T<:RingElement} = ideal(L, [g])
 
+@Markdown.doc """
+bring_to_common_denominator(f::Vector{T}) where {T<:MPolyQuoLocalizedRingElem}
+
+Given a vector of fractions [a₁//b₁,…,aₙ//bₙ] return a pair 
+(d, λ) consisting of a common denominator d and a vector 
+λ = [λ₁,…,λₙ] such that aᵢ//bᵢ = λᵢ⋅aᵢ//d
+"""
+function bring_to_common_denominator(f::Vector{T}) where {T<:MPolyQuoLocalizedRingElem}
+  length(f) == 0 && error("need at least one argument to determine the return type")
+  R = base_ring(parent(f[1]))
+  for a in f
+    R == base_ring(parent(a)) || error("elements do not belong to the same ring")
+  end
+  d = one(R)
+  a = Vector{elem_type(R)}()
+  for den in lifted_denominator.(f)
+    b = gcd(d, den)
+    c = divexact(den, b)
+    e = divexact(d, b)
+    d = d*c
+    a = [c*k for k in a]
+    push!(a, e)
+  end
+  return d, a
+end
 
 @Markdown.doc """
 write_as_linear_combination(f::T, g::Vector{T}) where {T<:MPolyLocalizedRingElem} 
@@ -665,7 +690,7 @@ function write_as_linear_combination(
   for a in g 
     parent(a) == L || error("elements do not belong to the same ring")
   end
-  (d, a) = bring_to_common_denominator(fraction.(vcat([f], g)))
+  (d, a) = bring_to_common_denominator(vcat([f], g))
   h = [a[i+1]*lifted_numerator(g[i]) for i in 1:n]
   lbpa = LocalizedBiPolyArray(W.(h))
   p = a[1]*lifted_numerator(f)
@@ -694,7 +719,7 @@ function write_as_linear_combination(
   for a in g 
     parent(a) == L || error("elements do not belong to the same ring")
   end
-  (d, a) = bring_to_common_denominator(fraction.(vcat([f], g)))
+  (d, a) = bring_to_common_denominator(vcat([f], g))
   hg = [a[i+1]*lifted_numerator(g[i]) for i in 1:n]
   hf = lifted_numerator(f)*a[1]
   A, I, q, phi, theta = as_affine_algebra(L)
