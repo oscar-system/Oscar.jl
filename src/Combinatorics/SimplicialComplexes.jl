@@ -57,11 +57,19 @@ function _vertexindices(K::Polymake.BigObject)
     if Polymake.exists(K,"VERTEX_INDICES")
         return Vector{Int}(K.VERTEX_INDICES)
     else
-        return range(1, stop=K.N_VERTICES)
+        return Vector{Int}(1:K.N_VERTICES)
     end
 end
 
 _reindexset(M::Set{Int},ind::Vector{Int}) = [ ind[x+1] for x in M ]
+
+function _characteristicvector(M::Vector{Int},n::Int)
+    chi = Vector{Int}(fill(0,n))
+    for x in M
+        chi[x] = 1
+    end
+    return chi
+end
 
 ################################################################################
 ##  Properties
