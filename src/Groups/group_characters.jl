@@ -21,6 +21,7 @@ import Oscar.AbelianClosure: QabElem, QabAutomorphism
 import Nemo: degree
 
 export
+    character_field,
     character_table,
     decomposition_matrix,
     scalar_product,
@@ -626,4 +627,69 @@ function(chi::GAPGroupClassFunction)(g::BasicGAPGroupElem)
       end
     end
     error("$g is not an element in the underlying group")
+end
+
+@doc Markdown.doc"""
+    character_field(chi::GAPGroupClassFunction)
+
+Return the pair `(F, phi)` where `F` is a number field that is generated
+by the character values of `chi`, and `phi` is the embedding of `F` into
+`abelian_closure(QQ)`.
+"""
+function character_field(chi::GAPGroupClassFunction)
+    values = chi.values  # a list of GAP cyclotomics
+    gapfield = GAP.Globals.Field(values)
+    N = GAP.Globals.Conductor(gapfield)
+    FF, = abelian_closure(QQ)
+    if GAP.Globals.IsCyclotomicField(gapfield)
+      # In this case, the want to return a field that knows to be cyclotomic
+      # (and the embedding is easy).
+      F, z = Oscar.AbelianClosure.cyclotomic_field(FF, N)
+      f = x::nf_elem -> QabElem(x, N)
+      finv = function(x::QabElem)
+        g = gcd(x.c, N)
+        K, = Oscar.AbelianClosure.cyclotomic_field(FF, g)
+        x = Hecke.force_coerce_cyclo(K, x.data)
+        x = Hecke.force_coerce_cyclo(F, x)
+        return x
+      end
+    else
+      # In the general case, we have to work for the embedding.
+      gapgens = GAP.Globals.GeneratorsOfField(gapfield)
+      @assert length(gapgens) == 1
+      gappol = GAP.Globals.MinimalPolynomial(GAP.Globals.Rationals, gapgens[1])
+      gapcoeffs = GAP.Globals.CoefficientsOfUnivariatePolynomial(gappol)
+      coeffscyc = Vector{fmpq}(GAP.Globals.COEFFS_CYC(gapgens[1]))
+      v = Vector{fmpq}(gapcoeffs)
+      R, = PolynomialRing(QQ, "x")
+      f = R(v)
+      F, z = NumberField(f, "z"; cached = true, check = false)
+      K, zz = Oscar.AbelianClosure.cyclotomic_field(FF, N)
+
+      nfelm = QabElem(gapgens[1]).data
+
+      # Compute the expression of powers of `z` as sums of roots of unity (once).
+      powers = [coefficients(Hecke.force_coerce_cyclo(K, nfelm^i)) for i in 0:length(v)-2]
+      c = matrix(QQ, powers)'
+
+      f = function(x::nf_elem)
+        return QabElem(evaluate(R(x), nfelm), N)
+      end
+
+      finv = function(x::QabElem)
+        # Write `x` w.r.t. the N-th cyclotomic field ...
+        g = gcd(x.c, N)
+        Kg, = Oscar.AbelianClosure.cyclotomic_field(FF, g)
+        x = Hecke.force_coerce_cyclo(Kg, x.data)
+        x = Hecke.force_coerce_cyclo(K, x)
+
+        # ... and then w.r.t. `F`
+        a = coefficients(x)
+        b = solve(c, matrix(QQ,length(a),1,a))'
+        b = [b[i] for i in 1:length(b)]
+        return F(b)
+      end
+    end
+
+    return F, MapFromFunc(f, finv, F, FF)
 end
