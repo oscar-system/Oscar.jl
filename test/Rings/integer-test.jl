@@ -621,8 +621,6 @@ end
    @test binomial(ZZ(1), ZZ(0)) == 1
    @test binomial(ZZ(1), ZZ(1)) == 1
 
-   @test binomial(ZZ(-3), ZZ(2)) == 0
-   @test binomial(ZZ(-3), ZZ(0)) == 0
    @test binomial(ZZ(2), ZZ(-3)) == 0
    @test binomial(ZZ(0), ZZ(-3)) == 0
    @test binomial(ZZ(-1), ZZ(-1)) == 0
