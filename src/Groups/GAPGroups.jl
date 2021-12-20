@@ -498,6 +498,18 @@ function conjugate_subgroup(G::T, x::GAPGroupElem) where T<:GAPGroup
   return T(GAP.Globals.ConjugateSubgroup(G.X,x.X))
 end
 
+# We want to preserve the degree of the permutation action.
+# (Analogous methods are needed for other group types.
+# The above generic methods are not correct,
+# but for the moment we have no better solution.)
+Base.:^(G::PermGroup, x::PermGroupElem) = conjugate_subgroup(G, x)
+
+function conjugate_subgroup(G::PermGroup, x::PermGroupElem)
+  P = parent(x)
+  H = degree(P) <= degree(G) ? G : P
+  return _as_subgroup_bare(P, GAP.Globals.ConjugateSubgroup(G.X,x.X))
+end
+
 """
     isconjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup)
 
