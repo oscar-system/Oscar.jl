@@ -156,7 +156,7 @@ perm(g::PermGroup, L::AbstractVector{<:fmpz}) = perm(g, [Int(y) for y in L])
 
 function (g::PermGroup)(L::AbstractVector{<:IntegerUnion})
    x = GAP.Globals.PermList(GAP.GapObj(L;recursive=true))
-   if length(L) <= degree(g) && GAPWrap.IN(x,g.X)
+   if GAP.Globals.LargestMovedPoint(x) <= degree(g) && GAPWrap.IN(x, g.X)
      return PermGroupElem(g, x)
    end
    throw(ArgumentError("the element does not embed in the group"))
