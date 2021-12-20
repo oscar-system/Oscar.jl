@@ -8,6 +8,7 @@ export
     eulercharacteristic,
     f_vector,
     h_vector,
+    minimalnonfaces,
     nvertices,
     load_simplicialcomplex,
     save_simplicialcomplex,
@@ -38,38 +39,60 @@ julia> K = SimplicialComplex([[1,2,3],[2,3,4]])
 Abstract simplicial complex of dimension 2 on 4 vertices
 ```
 """
+function SimplicialComplex(generators::Vector{Set{Int}})
+    K = Polymake.topaz.SimplicialComplex(INPUT_FACES=generators)
+    SimplicialComplex(K)
+end
+
 function SimplicialComplex(generators::Vector{Vector{Int}})
     K = Polymake.topaz.SimplicialComplex(INPUT_FACES=generators)
     SimplicialComplex(K)
 end
 
+################################################################################
+##  Auxiliary
+################################################################################
+
+function _vertexindices(K::Polymake.BigObject)
+    if Polymake.exists(K,"VERTEX_INDICES")
+        return Vector{Int}(K.VERTEX_INDICES)
+    else
+        return range(1, stop=K.N_VERTICES)
+    end
+end
+
+_reindexset(M::Set{Int},ind::Vector{Int}) = [ ind[x+1] for x in M ]
 
 ################################################################################
 ##  Properties
 ################################################################################
 
-function dim(K::SimplicialComplex)
-    return pm_object(K).DIM
-end
+dim(K::SimplicialComplex) = pm_object(K).DIM
+nvertices(K::SimplicialComplex) = pm_object(K).N_VERTICES
+f_vector(K::SimplicialComplex) = Vector{Int}(pm_object(K).F_VECTOR)
+h_vector(K::SimplicialComplex) = Vector{Int}(pm_object(K).H_VECTOR)
+bettinumbers(K::SimplicialComplex) = Polymake.topaz.betti_numbers(pm_object(K))
+eulercharacteristic(K::SimplicialComplex) = pm_object(K).EULER_CHARACTERISTIC
 
-function bettinumbers(K::SimplicialComplex)
-    return Polymake.topaz.betti_numbers(pm_object(K))
-end
+@doc Markdown.doc"""
+    minimalnonfaces(K::SimplicialComplex)
 
-function eulercharacteristic(K::SimplicialComplex)
-    return pm_object(K).EULER_CHARACTERISTIC
-end
+Compute the minimal non-faces of K.
 
-function f_vector(K::SimplicialComplex)
-    return Vector{Int}(pm_object(K).F_VECTOR)
-end
+# Example
+```jldoctest
+julia> K = SimplicialComplex([[1,2,3],[2,3,4]]);
 
-function h_vector(K::SimplicialComplex)
-    return Vector{Int}(pm_object(K).H_VECTOR)
-end
-
-function nvertices(K::SimplicialComplex)
-    return pm_object(K).N_VERTICES
+julia> minimalnonfaces(K)
+1-element Vector{Vector{Int64}}:
+ [1, 4]
+```
+"""
+function minimalnonfaces(K::SimplicialComplex)
+    bigobject = pm_object(K)
+    mnf = Vector{Set{Int}}(bigobject.MINIMAL_NON_FACES)
+    ind = _vertexindices(bigobject)
+    return [ _reindexset(nonface,ind) for nonface in mnf ]
 end
 
 ################################################################################
