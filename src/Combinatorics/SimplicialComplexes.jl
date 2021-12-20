@@ -11,8 +11,10 @@ export
     nvertices,
     load_simplicialcomplex,
     save_simplicialcomplex,
-    torus, # requires a distinction from, e.g., an algebraic group
-    kleinbottle
+    complexprojectiveplane,
+    realprojectiveplane,
+    kleinbottle,
+    torus # requires a distinction from, e.g., an algebraic group
 
 ################################################################################
 ##  Constructing
@@ -74,13 +76,10 @@ end
 ##  Standard examples
 ################################################################################
 
-function torus()
-    return SimplicialComplex(Polymake.topaz.torus())
-end
-
-function kleinbottle()
-    return SimplicialComplex(Polymake.topaz.klein_bottle())
-end
+torus() = SimplicialComplex(Polymake.topaz.torus())
+kleinbottle() = SimplicialComplex(Polymake.topaz.klein_bottle())
+realprojectiveplane() = SimplicialComplex(Polymake.topaz.real_projective_plane())
+complexprojectiveplane() = SimplicialComplex(Polymake.topaz.complex_projective_plane())
 
 ###############################################################################
 ### Display
