@@ -344,7 +344,7 @@ For `A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]` this returns a representative
 lifted_numerator(a::MPolyQuoLocalizedRingElem) = a.numerator
 
 @Markdown.doc """
-lifted_numerator(a::MPolyQuoLocalizedRingElem)
+lifted_denominator(a::MPolyQuoLocalizedRingElem)
 
 For `A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]` this returns a representative 
 `b ∈  𝕜[x₁,…,xₙ]` of the denominator.
@@ -352,7 +352,7 @@ For `A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]` this returns a representative
 lifted_denominator(a::MPolyQuoLocalizedRingElem) = a.denominator
 
 @Markdown.doc """
-lifted_numerator(a::MPolyQuoLocalizedRingElem)
+fraction(a::MPolyQuoLocalizedRingElem)
 
 For `A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]` this returns a representative 
 `a//b ∈ Quot(𝕜[x₁,…,xₙ])` of the fraction. 

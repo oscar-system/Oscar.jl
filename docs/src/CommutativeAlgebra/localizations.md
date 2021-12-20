@@ -143,7 +143,7 @@ types by the user.
 
 ## Localizations of multivariate polynomial rings
 
-The available types of multiplicative sets are 
+Various primitive types of multiplicative sets are available, such as 
 ```@docs
 MPolyComplementOfPrimeIdeal{
     BaseRingType, 
@@ -164,7 +164,56 @@ MPolyPowersOfElement{
     RingElemType
   } 
 ```
+Moreover, such types can be combined to products: 
+
+**Definition (Products of multiplicative sets):**
+Let ``T`` and ``U`` be multiplicative sets in a commutative ring ``R``. The product 
+of ``T`` and ``U`` is defined as 
+```math
+  T\cdot U = \left\{ f\cdot g : f \in T \textnormal{ and }g \in U \right\}.
+```
+A product of multiplicative sets ``U = U_1 \cdot \dots \cdot U_r`` is called *interreduced* 
+if neither one of the factors ``U_i`` is contained in one of the others ``U_j, j \neq i``.
+
+Note that any product of multiplicative sets may be replaced by 
+an interreduced one. However, such an interreduced multiplicative set is 
+not unique as the following example shows:
+
+**Example (interreduction of products of multiplicative sets):**
+An interreduced factorization of a product of multiplicative sets may 
+not be unique: Consider the ring ``\mathbb Z[x]`` and the multiplicative sets 
+```math
+  T  = \left\{(5x)^k : k \in \mathbb N_0\right\}, \quad
+  T' = \left\{ x^k : k \in \mathbb N_0\right\},\quad
+  S  = \left\{ c_0 \cdot x^0 : c_0 \notin 7 \mathbb Z\right\}.
+```
+Then ``T\cdot S = \left\{ a⋅x^k : a \notin 7\mathbb Z, k \in \mathbb N_0 \right\} = T'\cdot S``.
+
+**Upshot:** Whenever a product is taken, some interreduced form of the 
+entire product is returned. Besides the obvious simplification in 
+case all factors are contained in a single one, it is difficult to 
+determine which interreduction is the best one. 
 Localizations of multivariate polynomial rings are of type 
+
+The type for storing general products is 
+```@docs
+MPolyProductOfMultSets{
+  BaseRingType,
+  BaseRingElemType, 
+  RingType,
+  RingElemType
+}
+```
+and products can be taken using the usual arithmetic
+```@docs
+product(T::AbsMPolyMultSet, U::AbsMPolyMultSet)
+```
+**Note:** The methods of this function naturally attempt 
+to return a primitive type of multiplicative sets whenever possible. 
+Hence, they are not type-stable. 
+
+
+Localizations of polynomial rings are of type
 ```@docs
 MPolyLocalizedRing{
     BaseRingType,
@@ -184,21 +233,65 @@ MPolyLocalizedRingElem{
     MultSetType
   }
 ```
-In order to make the `Singular` functionality available there is 
+
+Ideals in localized polynomial rings are of type 
+```@docs
+MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST}
+```
+Recall (see e.g. [Eis95]) that 
+if ``\mathbb k`` is a Noetherian ring, any localization ``W = R[U^{-1}]`` of a 
+multivariate polynomial ring ``R = \mathbb k[x_1,\dots,x_n]`` is again Noetherian and 
+any ideal ``I \subset W`` is of the form ``I = I'\cdot W`` for some ideal ``I' \subset R``. 
+This correspondence is not 1:1 but for any ideal ``I \subset W`` we always 
+have that 
+```math
+  J = \left\{ x\in R : \exists u \in U : u\cdot x \in I \right\}
+```
+is the unique element which is maximal among all ideals ``I'`` in ``R`` for 
+which ``I = I'\cdot W``. We call this the `saturated ideal` of the localization 
+and it can be obtained using 
+```@docs
+saturated_ideal(I::MPolyLocalizedIdeal)
+```
+Groebner bases for the saturated ideal can be used to bring the numerators 
+of any fraction ``\frac{a}{b} \in R[S^{-1}]`` into normal form and check for 
+ideal membership and/or equality of elements modulo ideals in ``R[S^{-1}]``.
+But for some cases, e.g. when using local orderings for localizations at 
+``\mathbb k``-points, it is desirable, to have the groebner- and standard 
+basis functionality available directly in the localized ring.  
+To this end we have 
 ```@docs
 LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}
 ```
 which has a monomial ordering and a `Singular` ring associated to it. 
-This is also the type returned by any Groebner- or standard basis 
-computation.
 
-Ideals in localizations of multivariate polynomial rings are of the type
-```@docs
-MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST}
-```
-and can be constructed using `ideal(W::MPolyLocalizedRing, ...)`,
-either from single elements or a list of elements 
-from both the localized ring or its base ring before localization. 
+**Note:** Transfering an element ``\frac{a}{b} \in R[S^{-1}]`` of a localized 
+ring to the `Singular`-side drops all denominators and only 
+the numerators appear as polynomials in `Singular`! 
+Hence, a `LocalizedBiPolyArray` is not really a 1:1-correspondence 
+of elements and in particular, the `Oscar` fractions can not be recovered 
+from the `Singular` side. 
+
+This is also the type returned by any Groebner- or standard basis 
+computation. We make the following convention: 
+
+**Definition:** Let ``\mathbb k[x_1,\dots,x_n][S^{-1}]`` be 
+a localized polynomial ring with ``R = \mathbb k[x_1,\dots,x_n]``. 
+A monomial ordering ``\geq`` is *compatible* with the localization, if 
+every unit in the localization ``R_{\geq}`` is also a unit in ``R[S^{-1}]``. 
+
+For an ideal ``I \subset R[S^{-1}]`` and a compatible monomial ordering ``\geq`` 
+we say that a set of elements ``\frac{g_1}{1},\dots,\frac{g_r}{1} \in R[S^{-1}]`` is a 
+groebner/standard basis for ``I`` if the elements ``g_1,\dots,g_r`` are 
+a standard basis for the saturated ideal ``J`` of ``I`` in ``R``. 
+
+
+**Note:** When localizing at ``\mathbb k``-points ``a = (a_1,\dots,a_n) \in \mathbb k^n``
+outside the origin, the transfer of polynomials from the `Oscar` to the 
+`Singular` side in `LocalizedBiPolyArray` shifts the coordinates such that 
+``a`` becomes zero. A monomial ordering is always considered after application 
+of such shifts. 
+
 
 Groebner and standard bases of ideals can be computed for explicit 
 orderings using 
@@ -214,3 +307,165 @@ when passing to the singular side.
 
 If the second argument is omitted, a default ordering 
 will be chosen, depending on the type of the multiplicative set. 
+
+**Remark:** Why bother introducing Groebner and standard basis for 
+localized ideals in the first place and not only work with the 
+saturated ideal? The main reason is that for localizations at 
+``\mathbb k``-points, the computation of the saturated ideal is 
+quite expensive: It involves a primary decomposition using a 
+global ordering and discarding components outside the point 
+at which has been localized. Using local orderings, on the other hand, 
+we can decide ideal membership or equality of elements without 
+computing the saturated ideal explicitly.
+
+The following method might be of practical interest: 
+```@docs
+as_affine_algebra(
+  L::MPolyLocalizedRing{BRT, BRET, RT, RET, 
+  MPolyPowersOfElement{BRT, BRET, RT, RET}}; 
+  inverse_name::String="θ"
+) where {BRT, BRET, RT, RET}
+```
+
+## Localizations of affine algebras
+
+Let ``R = 𝕜[x₁,…,xₘ]`` be a polynomial ring, ``I ⊂ R`` some ideal 
+and ``P = R/I`` its quotient. Then ``P`` is naturally an ``R``-module 
+and localization of ``P`` as a ring coincides with localization 
+as an ``R``-module in the sense that for every multiplicative 
+set ``T ⊂ R`` there is a commutative diagram 
+```math
+\begin{matrix}
+        R   & → & P = R/I\\
+        ↓ & &       ↓ \\
+  W = R[T⁻¹] & → & P[T⁻¹].
+\end{matrix}
+```
+Observe that, moreover, for every multiplicative set 
+``T' ⊂ P`` the preimage ``T`` of ``T'`` in ``R`` is also a multiplicative set. 
+
+We may therefore treat localizations of polynomial algebras 
+as localizations of modules over free polynomial rings:
+and apply the following 
+
+**Convention:** For localizations of affine algebras 
+``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` 
+
+  * ideals in ``L`` are given by ideals in ``W = 𝕜[x₁,…,xₙ][S⁻¹]`` containing ``I\cdot S^{-1}``.
+  * the available multiplicative sets for ``L`` are exclusively those for ``𝕜[x₁,…,xₙ]``.
+
+Note that this leads to the following differences compared to the 
+standard usage of the localization interface:
+
+ * The `base_ring` returns neither ``P``, nor ``W``, but ``R``.
+ * The `BaseRingType` is the type of ``R`` and similar for 
+   the other ring-based type parameters.
+
+This is to make the data structure most accessible for 
+the computational backends.
+
+ * The type returned by `numerator` and `denominator` 
+   on an element of type `MPolyQuoLocalizedRingElem` is 
+   not `RingElemType`, but the type of ``P``. 
+
+This is to comply with the purely mathematical viewpoint
+where elements of localized rings are fractions of 
+residue classes rather than residue classes of fractions. 
+
+
+Localizations of affine algebras are realized by 
+```@docs
+MPolyQuoLocalizedRing{
+  BaseRingType,
+  BaseRingElemType,
+  RingType,
+  RingElemType,
+  MultSetType <: AbsMultSet{RingType, RingElemType}
+}
+```
+which have the additional methods 
+```@docs
+quotient_ring(L::MPolyQuoLocalizedRing)
+localized_ring(L::MPolyQuoLocalizedRing)
+```
+returning the other two computationally important rings in its construction.
+
+Elements of such rings are of the form 
+```@docs
+MPolyQuoLocalizedRingElem{
+  BaseRingType, 
+  BaseRingElemType,
+  RingType,
+  RingElemType, 
+  MultSetType
+}
+```
+In contrast to ordinary elements of a localized ring, they 
+have the additional methods 
+```@docs
+lifted_numerator(a::MPolyQuoLocalizedRingElem)
+lifted_denominator(a::MPolyQuoLocalizedRingElem)
+fraction(a::MPolyQuoLocalizedRingElem)
+```
+
+## Homomorphisms of localized affine algebras 
+Suppose we are given two localizations of polynomial algebras 
+by means of commutative diagrams 
+```math
+\begin{matrix}
+      R &  →    & P = R/I\\
+      ↓  & &       ↓ \\
+V = R[T⁻¹] & →  & P[T⁻¹]
+\end{matrix}
+```
+and 
+```math
+\begin{matrix}
+      S   & →   & Q = S/J\\
+      ↓ & &        ↓ \\
+W = S[U⁻¹] & →  & Q[U⁻¹].
+\end{matrix}
+```
+
+**Lemma:**
+For any homomorphism ``φ : P[T⁻¹] → Q[U⁻¹]`` the following holds. 
+```math
+\begin{matrix}
+            &φ& \\
+    P[T⁻¹]  & →  & Q[U⁻¹]\\
+      ↑      & &     ↑\\
+    R[T⁻¹] & \dashrightarrow & S[U⁻¹]\\
+      ↑    & ↗ ψ   &↑ ι\\
+      R     &→  &S[c⁻¹]\\
+            & η   & ↑ κ\\
+             & &     S 
+\end{matrix}
+```
+  1) The composition of maps ``R → Q[U⁻¹]`` completely determines ``φ`` by the images ``xᵢ ↦ [aᵢ]/[bᵢ]`` with ``aᵢ ∈ S``, ``bᵢ ∈ U``.
+
+  2) Let ``ψ : R → S[U⁻¹]`` be the map determined by some choice of the images ``xᵢ↦ aᵢ/b``ᵢ as above. Then ``ψ`` extends to a map ``R[T⁻¹] → S[U⁻¹]`` if and only if for all ``t ∈ T : ψ(t) ∈ U``. This is not necessarily the case as the lift of images ``φ(t) ∈ Q[U⁻¹]`` in ``S[U⁻¹]`` need only be elements of ``U + J``.
+
+  3) Choosing a common denominator ``c`` for all ``ψ(xᵢ)``, we obtain a ring homomorphism ``η : R → S[c⁻¹]`` such that ``ψ = ι ∘ η``.
+
+Upshot: In order to describe ``φ``, we may store some homomorphism 
+```math ψ : R → S[U⁻¹]```
+lifting it and keep in mind the ambiguity of choices for such ``ψ``.
+The latter point 3) will be useful for reducing to a homomorphism 
+of finitely generated algebras.
+
+
+A homomorphism of localized affine algebras is stored in 
+```@docs
+MPolyQuoLocalizedRingHom{
+  BaseRingType, 
+  BaseRingElemType, 
+  RingType, 
+  RingElemType, 
+  DomainMultSetType, 
+  CodomainMultSetType
+}
+```
+An additional getter method is 
+```@docs
+images(f::MPolyQuoLocalizedRingHom)
+```
