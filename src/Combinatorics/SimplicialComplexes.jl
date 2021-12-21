@@ -64,10 +64,8 @@ end
 _reindexset(M::Set{Int},ind::Vector{Int}) = [ ind[x+1] for x in M ]
 
 function _characteristicvector(M::Vector{Int},n::Int)
-    chi = Vector{Int}(fill(0,n))
-    for x in M
-        chi[x] = 1
-    end
+    chi = zeros(Int, n)
+    chi[M] .= 1
     return chi
 end
 
