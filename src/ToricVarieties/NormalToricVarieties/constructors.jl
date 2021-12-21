@@ -223,6 +223,12 @@ function toric_projective_space(d::Int)
     set_attribute!(variety, :euler_characteristic, d+1)
     set_attribute!(variety, :character_lattice, abelian_group([0 for i in 1:d]))
     set_attribute!(variety, :torusinvariant_divisor_group, abelian_group([0 for i in 1:d+1]))
+    set_attribute!(variety, :map_from_cartier_divisor_group_to_torus_invariant_divisor_group, Hecke.identity_map(torusinvariant_divisor_group(variety)))
+    set_attribute!(variety, :map_from_cartier_divisor_group_to_picard_group, map_from_weil_divisors_to_class_group(variety))
+    set_attribute!(variety, :stanley_reisner_ideal, ideal([prod(Hecke.gens(cox_ring(variety)))]))
+    set_attribute!(variety, :irrelevant_ideal, ideal(Hecke.gens(cox_ring(variety))))
+    betti_numbers = [if iseven(i) fmpz(1) else fmpz(0) end for i in 0:2*d]
+    set_attribute!(variety, :betti_number, betti_numbers)
     
     # return the variety
     return variety
