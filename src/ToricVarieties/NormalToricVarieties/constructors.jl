@@ -3,12 +3,12 @@
 ######################
 abstract type AbstractNormalToricVariety end
 
-struct NormalToricVariety <: AbstractNormalToricVariety
+@attributes mutable struct NormalToricVariety <: AbstractNormalToricVariety
            polymakeNTV::Polymake.BigObject
 end
 export NormalToricVariety
 
-struct AffineNormalToricVariety <: AbstractNormalToricVariety
+@attributes mutable struct AffineNormalToricVariety <: AbstractNormalToricVariety
            polymakeNTV::Polymake.BigObject
 end
 export AffineNormalToricVariety
@@ -41,7 +41,7 @@ A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 function AffineNormalToricVariety(C::Cone)
     fan = PolyhedralFan(C)
     pmntv = Polymake.fulton.NormalToricVariety(Oscar.pm_object(fan))
-    return AffineNormalToricVariety(pmntv)
+    return AffineNormalToricVariety(pmntv, Dict())
 end
 
 
@@ -63,7 +63,7 @@ A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 function NormalToricVariety(C::Cone)
     fan = PolyhedralFan(C)
     pmntv = Polymake.fulton.NormalToricVariety(Oscar.pm_object(fan))
-    return NormalToricVariety(pmntv)
+    return NormalToricVariety(pmntv, Dict())
 end
 
 
@@ -88,7 +88,7 @@ A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 function NormalToricVariety(PF::PolyhedralFan)
     fan = Oscar.pm_object(PF)
     pmntv = Polymake.fulton.NormalToricVariety(fan)
-    return NormalToricVariety(pmntv)
+    return NormalToricVariety(pmntv, Dict())
 end
 
 
@@ -137,7 +137,7 @@ A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 """
 function AffineNormalToricVariety(v::NormalToricVariety)
     isaffine(v) || error("Cannot construct affine toric variety from non-affine input")
-    return AffineNormalToricVariety(pm_object(v))
+    return AffineNormalToricVariety(pm_object(v), Dict())
 end
 
 
@@ -160,7 +160,7 @@ A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 function toric_projective_space(d::Int)
     f = normal_fan(Oscar.simplex(d))
     pm_object = Polymake.fulton.NormalToricVariety(Oscar.pm_object(f))
-    return NormalToricVariety(pm_object)
+    return NormalToricVariety(pm_object, Dict())
 end
 export toric_projective_space
 

@@ -4,7 +4,7 @@
 ################################################################################
 ################################################################################
 
-struct CyclicQuotientSingularity <: AbstractNormalToricVariety
+@attributes mutable struct CyclicQuotientSingularity <: AbstractNormalToricVariety
     polymakeNTV::Polymake.BigObject
 end
 export CyclicQuotientSingularity
@@ -40,7 +40,7 @@ function CyclicQuotientSingularity(n::fmpz, q::fmpz)
     q < n || error("q must be smaller than n (q=$(q) >= n=$(n))")
     gcd(n,q)==1 || error("n and q must be coprime (gcd=$(gcd(n,q)))")
     pmntv = Polymake.fulton.CyclicQuotient(N=convert(Polymake.Integer, n), Q=convert(Polymake.Integer, q))
-    return CyclicQuotientSingularity(pmntv)
+    return CyclicQuotientSingularity(pmntv, Dict())
 end
 CyclicQuotientSingularity(n::Int64, q::Int64) = CyclicQuotientSingularity(fmpz(n), fmpz(q))
 
