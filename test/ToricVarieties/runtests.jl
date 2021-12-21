@@ -63,11 +63,11 @@ P2 = toric_projective_space(2)
     @test hastorusfactor(P2) == false
     @test isorbifold(P2) == true
     @test issimplicial(P2) == true
-    @test ith_betti_number(P2, 0) == 1
-    @test ith_betti_number(P2, 1) == 0
-    @test ith_betti_number(P2, 2) == 1
-    @test ith_betti_number(P2, 3) == 0
-    @test ith_betti_number(P2, 4) == 1
+    @test betti_number(P2, 0) == 1
+    @test betti_number(P2, 1) == 0
+    @test betti_number(P2, 2) == 1
+    @test betti_number(P2, 3) == 0
+    @test betti_number(P2, 4) == 1
     S = cox_ring(P2)
     @test ngens(S) == 3
     @test length(stanley_reisner_ideal(P2).gens) == 1
@@ -93,11 +93,11 @@ H5 = hirzebruch_surface(5)
     @test dim(H5) == 2
     @test dim_of_torusfactor(H5) == 0
     @test euler_characteristic(H5) == 4
-    @test ith_betti_number(H5, 0) == 1
-    @test ith_betti_number(H5, 1) == 0
-    @test ith_betti_number(H5, 2) == 2
-    @test ith_betti_number(H5, 3) == 0
-    @test ith_betti_number(H5, 4) == 1
+    @test betti_number(H5, 0) == 1
+    @test betti_number(H5, 1) == 0
+    @test betti_number(H5, 2) == 2
+    @test betti_number(H5, 3) == 0
+    @test betti_number(H5, 4) == 1
     @test length(affine_open_covering(H5)) == 4
     @test fan(H5).pm_fan.FAN_DIM == 2
     @test rank(torusinvariant_divisor_group(H5)) == 4
@@ -139,11 +139,11 @@ blowup_variety = blowup_on_ith_minimal_torus_orbit(P2, 1)
     @test hastorusfactor(blowup_variety) == false
     @test isorbifold(blowup_variety) == true
     @test issimplicial(blowup_variety) == true
-    @test ith_betti_number(blowup_variety, 0) == 1
-    @test ith_betti_number(blowup_variety, 1) == 0
-    @test ith_betti_number(blowup_variety, 2) == 2
-    @test ith_betti_number(blowup_variety, 3) == 0
-    @test ith_betti_number(blowup_variety, 4) == 1
+    @test betti_number(blowup_variety, 0) == 1
+    @test betti_number(blowup_variety, 1) == 0
+    @test betti_number(blowup_variety, 2) == 2
+    @test betti_number(blowup_variety, 3) == 0
+    @test betti_number(blowup_variety, 4) == 1
     @test euler_characteristic(blowup_variety) == 4
     @test rank(picard_group(blowup_variety)) == 2
 end
@@ -159,15 +159,15 @@ v = H5 * P2
     @test hastorusfactor(v) == false
     @test isorbifold(v) == true
     @test issimplicial(v) == true
-    @test ith_betti_number(v, 0) == 1
-    @test ith_betti_number(v, 1) == 0
-    @test ith_betti_number(v, 2) == 3
-    @test ith_betti_number(v, 3) == 0
-    @test ith_betti_number(v, 4) == 4
-    @test ith_betti_number(v, 5) == 0
-    @test ith_betti_number(v, 6) == 3
-    @test ith_betti_number(v, 7) == 0
-    @test ith_betti_number(v, 8) == 1
+    @test betti_number(v, 0) == 1
+    @test betti_number(v, 1) == 0
+    @test betti_number(v, 2) == 3
+    @test betti_number(v, 3) == 0
+    @test betti_number(v, 4) == 4
+    @test betti_number(v, 5) == 0
+    @test betti_number(v, 6) == 3
+    @test betti_number(v, 7) == 0
+    @test betti_number(v, 8) == 1
 end
 
 @testset "ComparisonWithProjectiveSpace" begin

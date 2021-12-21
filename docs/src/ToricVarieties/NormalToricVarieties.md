@@ -108,7 +108,7 @@ nef_cone(v::NormalToricVariety)
 dim(v::AbstractNormalToricVariety)
 dim_of_torusfactor(v::AbstractNormalToricVariety)
 euler_characteristic(v::AbstractNormalToricVariety)
-ith_betti_number(v::AbstractNormalToricVariety, i::Int)
+betti_number(v::AbstractNormalToricVariety, i::Int)
 ```
 
 ### Rings and ideals
