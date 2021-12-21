@@ -43,6 +43,7 @@ julia> K = SimplicialComplex([[1,2,3],[2,3,4]])
 Abstract simplicial complex of dimension 2 on 4 vertices
 ```
 # Example with relabeling
+The original vertices can be recovered later.
 ```jldoctest
 julia> L = SimplicialComplex([[0,2,17],[2,17,90]]);
 
@@ -50,9 +51,7 @@ julia> facets(L)
 2-element Vector{Vector{Int64}}:
  [1, 3, 2]
  [3, 4, 2]
-```
-The original vertices can be recovered as follows:
-```jldoctest
+
 julia> Oscar._vertexindices(Oscar.pm_object(L))
 4-element Vector{Int64}:
   0
