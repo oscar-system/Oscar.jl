@@ -39,9 +39,21 @@ A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 ```
 """
 function AffineNormalToricVariety(C::Cone)
+    # construct the variety
     fan = PolyhedralFan(C)
     pmntv = Polymake.fulton.NormalToricVariety(Oscar.pm_object(fan))
-    return AffineNormalToricVariety(pmntv, Dict())
+    variety = AffineNormalToricVariety(pmntv, Dict())
+    
+    # set known attributes
+    set_attribute!(variety, :cone, C)
+    set_attribute!(variety, :fan, fan)
+    set_attribute!(variety, :isaffine, true)
+    set_attribute!(variety, :iscomplete, false)
+    set_attribute!(variety, :isprojective, false)
+    set_attribute!(variety, :isprojective_space, false)
+    
+    # return
+    return variety
 end
 
 
@@ -61,9 +73,20 @@ A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 ```
 """
 function NormalToricVariety(C::Cone)
+    # construct the variety
     fan = PolyhedralFan(C)
     pmntv = Polymake.fulton.NormalToricVariety(Oscar.pm_object(fan))
-    return NormalToricVariety(pmntv, Dict())
+    variety = NormalToricVariety(pmntv, Dict())
+    
+    # set known attributes
+    set_attribute!(variety, :fan, fan)
+    set_attribute!(variety, :isaffine, true)
+    set_attribute!(variety, :iscomplete, false)
+    set_attribute!(variety, :isprojective, false)
+    set_attribute!(variety, :isprojective_space, false)
+    
+    # return
+    return variety
 end
 
 
@@ -86,9 +109,16 @@ A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 ```
 """    
 function NormalToricVariety(PF::PolyhedralFan)
+    # construct the variety    
     fan = Oscar.pm_object(PF)
     pmntv = Polymake.fulton.NormalToricVariety(fan)
-    return NormalToricVariety(pmntv, Dict())
+    variety = NormalToricVariety(pmntv, Dict())
+    
+    # set attributes
+    set_attribute!(variety, :fan, PF)
+    
+    # return
+    return variety
 end
 
 
@@ -136,10 +166,21 @@ A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 ```
 """
 function AffineNormalToricVariety(v::NormalToricVariety)
+    # check input
     isaffine(v) || error("Cannot construct affine toric variety from non-affine input")
-    return AffineNormalToricVariety(pm_object(v), Dict())
+    
+    # set variety
+    variety = AffineNormalToricVariety(pm_object(v), Dict())
+    
+    # set properties
+    set_attribute!(variety, :isaffine, true)
+    set_attribute!(variety, :iscomplete, false)
+    set_attribute!(variety, :isprojective, false)
+    set_attribute!(variety, :isprojective_space, false)    
+    
+    # construct the affine variety and copy all cached information from v
+    return variety
 end
-
 
 
 ######################
