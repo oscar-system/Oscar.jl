@@ -6,12 +6,13 @@ export
     betti_numbers,
     dim,
     euler_characteristic,
+    facets,
     f_vector,
     h_vector,
     minimalnonfaces,
+    nvertices,
     stanley_reisner_ideal,
     stanley_reisner_ring,
-    nvertices,
     load_simplicialcomplex,
     save_simplicialcomplex,
     complexprojectiveplane,
@@ -34,11 +35,30 @@ pm_object(K::SimplicialComplex) = K.pm_simplicialcomplex
     SimplicialComplex(generators::Vector{Vector{Int}})
 
 Construct an abstract simplicial complex from a set of faces.
+While arbitrary nonnegative integers are allowed as vertices, they will be relabeled to consecutive integers starting at 1.
 
 # Example
 ```jldoctest
 julia> K = SimplicialComplex([[1,2,3],[2,3,4]])
 Abstract simplicial complex of dimension 2 on 4 vertices
+```
+# Example with relabeling
+```jldoctest
+julia> L = SimplicialComplex([[0,2,17],[2,17,90]]);
+
+julia> facets(L)
+2-element Vector{Vector{Int64}}:
+ [1, 3, 2]
+ [3, 4, 2]
+```
+The original vertices can be recovered as follows:
+```jldoctest
+julia> Oscar._vertexindices(Oscar.pm_object(L))
+4-element Vector{Int64}:
+  0
+  2
+ 17
+ 90
 ```
 """
 function SimplicialComplex(generators::Vector{Vector{Int}})
@@ -63,9 +83,9 @@ function _vertexindices(K::Polymake.BigObject)
     end
 end
 
-_reindexset(M::Set{Int},ind::Vector{Int}) = [ ind[x+1] for x in M ]
+_reindexset(M::Set{Int}, ind::Vector{Int}) = [ ind[x+1] for x in M ]
 
-function _characteristicvector(M::Vector{Int},n::Int)
+function _characteristicvector(M::Vector{Int}, n::Int)
     chi = zeros(Int, n)
     chi[M] .= 1
     return chi
@@ -81,6 +101,17 @@ end
 Number of vertices of the abstract simplicial complex `K`.
 """
 nvertices(K::SimplicialComplex) = pm_object(K).N_VERTICES
+
+@doc Markdown.doc"""
+    facets(K::SimplicialComplex)
+
+Maximal (by inclusion) faces of the abstract simplicial complex `K`.
+"""
+function facets(K::SimplicialComplex)
+    bigobject = pm_object(K)
+    the_facets = Vector{Set{Int}}(bigobject.FACETS)
+    return [ [x+1 for x in sigma] for sigma in the_facets ] # shift polymake indices by one
+end
 
 @doc Markdown.doc"""
     dim(K::SimplicialComplex)
@@ -134,8 +165,7 @@ julia> minimalnonfaces(K)
 function minimalnonfaces(K::SimplicialComplex)
     bigobject = pm_object(K)
     mnf = Vector{Set{Int}}(bigobject.MINIMAL_NON_FACES)
-    ind = _vertexindices(bigobject)
-    return [ _reindexset(nonface,ind) for nonface in mnf ]
+    return [ [x+1 for x in f] for f in mnf ] # shift polymake indices by one
 end
 
 @doc Markdown.doc"""
