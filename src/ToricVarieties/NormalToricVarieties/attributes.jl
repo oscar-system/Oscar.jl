@@ -464,6 +464,49 @@ export cartier_divisor_group
 
 
 @doc Markdown.doc"""
+    map_from_cartier_divisor_group_to_picard_group(v::AbstractNormalToricVariety)
+
+Computes the map from the Cartier divisors to the Picard group 
+of an abstract normal toric variety `v`.
+
+# Examples
+```jdoctest
+julia> p2 = toric_projective_space(2)
+A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+
+julia> map_from_cartier_divisor_group_to_picard_group(p2)
+Map with following data
+Domain:
+=======
+Abelian group with structure: Z^3
+Codomain:
+=========
+Abelian group with structure: Z
+```
+"""
+function map_from_cartier_divisor_group_to_picard_group(v::AbstractNormalToricVariety)
+    if !has_attribute(v, :map_from_cartier_divisor_group_to_picard_group)
+        
+        # check input
+        if hastorusfactor(v)
+            throw(ArgumentError("Group of the torus-invariant Cartier divisors can only be computed if the variety has no torus factor."))
+        end
+        
+        # compute the mappings
+        map1 = map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v)
+        map2 = map_from_weil_divisors_to_class_group(v)
+        map3 = inv(image(map1*map2)[2])
+        map4 = snf(codomain(map3))[2]
+        
+        # return the composed map
+        set_attribute!(v, :map_from_cartier_divisor_group_to_picard_group, map1*map2*map3*map4)
+    end
+    return get_attribute(v, :map_from_cartier_divisor_group_to_picard_group)
+end
+export map_from_cartier_divisor_group_to_picard_group
+
+
+@doc Markdown.doc"""
     picard_group(v::AbstractNormalToricVariety)
 
 Computes the Picard group of an abstract normal toric variety `v`.
@@ -479,9 +522,7 @@ GrpAb: Z
 """
 function picard_group(v::AbstractNormalToricVariety)
     if !has_attribute(v, :picard_group)
-        map1 = map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v)
-        map2 = map_from_weil_divisors_to_class_group(v)
-        set_attribute!(v, :picard_group, snf(image(map1*map2)[1])[1])
+        set_attribute!(v, :picard_group, codomain(map_from_cartier_divisor_group_to_picard_group(v)))
     end
     return get_attribute(v, :picard_group)
 end
