@@ -1482,6 +1482,8 @@ function Base.in(
 end
 
 ### additional functionality
+⊂(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedIdeal} = issubset(I, J)
+
 function issubset(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedIdeal}
   base_ring(I) == base_ring(J) || error("ideals do not belong to the same ring")
   for g in gens(I)
@@ -1490,7 +1492,9 @@ function issubset(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedId
   return true
 end
 
-==(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedIdeal} = (issubset(I, J) && issubset(J, I))
+function ==(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedIdeal}
+  return (issubset(I, J) && issubset(J, I))
+end
 
 function +(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedIdeal}
   return ideal(base_ring(I), vcat(gens(I), gens(J)))

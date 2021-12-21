@@ -181,7 +181,7 @@ function issubset(
     Y::Spec{BRT, BRET, RT, RET, MST2}
   ) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
   R = base_ring(OO(X))
-  R == base_ring(OO(Y)) || return false
+  R == base_ring(OO(Y)) || error("schemes can not be compared")
   UX = inverted_set(OO(X))
   UY = inverted_set(OO(Y))
   if !issubset(UY, UX) 
@@ -198,6 +198,7 @@ function ==(
     X::Spec{BRT, BRET, RT, RET, MST1}, 
     Y::Spec{BRT, BRET, RT, RET, MST2}
   ) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
+  base_ring(OO(X)) == base_ring(OO(Y)) || return false
   return issubset(X, Y) && issubset(Y, X)
 end
 
@@ -251,6 +252,7 @@ function Base.intersect(
     X::Spec{BRT, BRET, RT, RET, MST1}, 
     Y::Spec{BRT, BRET, RT, RET, MST2}
   ) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
+  base_ring(OO(X)) == base_ring(OO(Y)) || error("schemes can not be intersected")
   issubset(X, Y) && return X
   issubset(Y, X) && return Y
   UX = inverted_set(OO(X))

@@ -278,12 +278,9 @@ include("Modules/UngradedModules.jl")
 include("Modules/FreeModules-graded.jl")
 
 include("Geometry/basics.jl")
-#include("../experimental/Schemes/Schemes.jl")
-include("../experimental/Schemes/Multiindices.jl")
-include("../experimental/Schemes/Misc.jl")
 include("../experimental/Schemes/AffineSchemes.jl")
-include("../experimental/Schemes/CoveredSchemes.jl")
 include("../experimental/Schemes/SpecOpen.jl")
+include("../experimental/Schemes/CoveredSchemes.jl")
 
 include("NumberTheory/NmbThy.jl")
 
@@ -301,7 +298,6 @@ include("Rings/binomial_ideals.jl")
 
 include("ToricVarieties/JToric.jl")
 
-include("../experimental/Schemes/AffineSchemes.jl")
 
 if is_dev
 #  include("../examples/ModStdNF.jl")

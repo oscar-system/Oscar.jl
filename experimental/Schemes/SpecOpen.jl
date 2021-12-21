@@ -1,10 +1,10 @@
-export SpecOpen, parent, gens, complement, patches, intersections, name, intersect, union, issubset, closure
+export SpecOpen, parent, gens, complement, npatches, patches, intersections, name, intersect, union, issubset, closure, find_non_zero_divisor, is_non_zero_divisor, is_dense
 
 export StructureSheafRing, variety, domain, OO
 
-export StructureSheafElem, domain, representatives, patches, npatches, restrict
+export StructureSheafElem, domain, representatives, patches, restrict, npatches
 
-export SpecOpenMor, maps_on_patches, restriction, identity_map, preimage
+export SpecOpenMor, maps_on_patches, restriction, identity_map, preimage, generic_fractions, pullback
 
 mutable struct SpecOpen{BRT, BRET, RT, RET, MST} <: Scheme{BRT, BRET}
   X::Spec{BRT, BRET, RT, RET, MST} # the ambient scheme
@@ -30,6 +30,7 @@ mutable struct SpecOpen{BRT, BRET, RT, RET, MST} <: Scheme{BRT, BRET}
 end
 
 parent(U::SpecOpen) = U.X
+npatches(U::SpecOpen) = length(U.gens)
 gens(U::SpecOpen) = U.gens
 getindex(U::SpecOpen, i::Int) = patches(U)[i]
 
@@ -132,8 +133,9 @@ function intersect(
     U::SpecOpen{BRT, BRET, RT, RET, MST},
     V::SpecOpen{BRT, BRET, RT, RET, MST}
   ) where {BRT, BRET, RT, RET, MST}
-  Z = intersect(parent(U), parent(V))
-  return SpecOpen(Z, [a*b for a in gens(U) for b in gens(V)])
+  X = parent(U) 
+  X == parent(V) || error("method not implemented")
+  return SpecOpen(X, [a*b for a in gens(U) for b in gens(V)])
 end
 
 function union(U::T, V::T) where {T<:SpecOpen}
@@ -145,7 +147,7 @@ function issubset(
     Y::Spec{BRT, BRET, RT, RET, MST}, 
     U::SpecOpen{BRT, BRET, RT, RET, MST}
   ) where {BRT, BRET, RT, RET, MST}
-  return one(OO(Y)) in ideal(OO(Y), gens(U))
+  return one(localized_ring(OO(Y))) in ideal(OO(Y), gens(U))
 end
 
 function issubset(
@@ -159,6 +161,7 @@ function issubset(
 end
 
 function issubset(U::T, V::T) where {T<:SpecOpen}
+  base_ring(OO(parent(U))) == base_ring(OO(parent(V))) || return false
   return issubset(complement(intersect(V, parent(U))), complement(U))
 end
 
@@ -308,12 +311,17 @@ function maximal_extension(
   if length(f) == 0
     return SpecOpen(X), Vector{StructureSheafElem{BRT, BRET, RT, RET, MST}}()
   end
+  R = base_ring(parent(f[1]))
+  for a in f
+    R == base_ring(parent(a)) || error("fractions do not belong to the same ring")
+  end
+  R == base_ring(OO(X)) || error("fractions do not belong to the base ring of the scheme")
   a = numerator.(f)
   b = denominator.(f)
   W = localized_ring(OO(X))
   I = ideal(W, one(W))
   for p in f
-    I = intersection(quotient(ideal(W, denominator(p)) + localized_modulus(OO(X)), ideal(W, numerator(p))), I)
+    I = intersect(quotient(ideal(W, denominator(p)) + localized_modulus(OO(X)), ideal(W, numerator(p))), I)
   end
   U = SpecOpen(X, I)
   return U, [StructureSheafElem(U, [OO(V)(a) for V in patches(U)]) for a in f]
@@ -367,6 +375,18 @@ domain(f::SpecOpenMor) = f.domain
 codomain(f::SpecOpenMor) = f.codomain
 maps_on_patches(f::SpecOpenMor) = f.maps_on_patches
 getindex(f::SpecOpenMor, i::Int) = maps_on_patches(f)[i]
+
+function SpecOpenMor(U::SpecOpenType, V::SpecOpenType, f::Vector) where {SpecOpenType<:SpecOpen}
+  Y = parent(V)
+  return SpecOpenMor(U, V, [SpecMor(W, Y, f) for W in patches(U)]) 
+end
+
+function inclusion_morphism(U::SpecOpenType, V::SpecOpenType) where {SpecOpenType<:SpecOpen}
+  X = parent(U)
+  parent(V) == X || error("method not implemented")
+  return SpecOpenMor(U, V, gens(base_ring(OO(X))))
+end
+
 
 @Markdown.doc """
 compose(f::T, g::T) where {T<:SpecOpenMor}
@@ -433,6 +453,26 @@ function compose(f::T, g::T) where {T<:SpecOpenMor}
     #push!(result_maps, SpecMor(U_i, Z, z_i))
   end
   return SpecOpenMor(U, W, result_maps)
+end
+
+#function restriction(
+#   f::SpecOpenMor{BRT, BRET, RT, RET, MST1, MST2}, 
+#   U::SpecOpen{BRT, BRET, RT, RET, MST1},
+#   V::SpecOpen{BRT, BRET, RT, RET, MST2}
+# ) where {BRT, BRET, RT, RET, MST1, MST2}
+# g = compose(inclusion_morphism(U, domain(f)), f)
+# return SpecOpenMor(U, V, maps_on_patches(g))
+#end
+
+function pullback(f::SpecOpenMor{BRT, BRET, RT, RET, MST1, MST2}, a::RET) where {BRT, BRET, RT, RET, MST1, MST2}
+  U = domain(f)
+  X = parent(U)
+  V = codomain(f)
+  Y = parent(V)
+  R = base_ring(OO(Y))
+  parent(a) == R || error("element does not belong to the correct ring")
+  pb_a = [pullback(f[i])(a) for i in 1:npatches(U)]
+  return StructureSheafElem(U, pb_a)
 end
 
 @Markdown.doc """
@@ -504,9 +544,60 @@ function preimage(f::SpecOpenMor{BRT, BRET, RT, RET, MST1, MST2},
   W = localized_ring(OO(X))
   I = ideal(W, one(W))
   for i in 1:n 
-    I = intersect(I, localized_modulus(closure(preimage(f[i], Z), X)))
+    I = intersect(I, localized_modulus(OO(closure(preimage(f[i], Z), X))))
   end
   fZbar = subscheme(X, I)
-  return SpecMorOpen(fZbar, gens(U))
+  return SpecOpen(fZbar, gens(U))
 end
 
+function preimage(f::SpecOpenMor{BRT, BRET, RT, RET, MST1, MST2},
+    V::SpecOpen{BRT, BRET, RT, RET, MST2}
+  ) where {BRT, BRET, RT, RET, MST1, MST2}
+  U = domain(f)
+  X = parent(U)
+  R = base_ring(OO(X))
+  I = ideal(R, one(R))
+  for i in 1:npatches(U)
+    I = intersect(I, saturated_ideal(ideal(OO(U[i]), pullback(f[i]).(gens(V)))))
+  end
+  return intersect(U, SpecOpen(X, gens(I)))
+end
+
+function is_non_zero_divisor(f::RET, U::SpecOpen{BRT, BRET, RT, RET}) where {BRT, BRET, RT, RET}
+  for V in patches(U)
+    zero_ideal = ideal(OO(V), [zero(OO(V))])
+    zero_ideal == quotient(zero_ideal, ideal(OO(V), [f])) || return false
+  end
+  return true
+end
+
+function find_non_zero_divisor(U::SpecOpen)
+  n = length(gens(U))
+  X = parent(U)
+  kk = coefficient_ring(base_ring(OO(X)))
+  d = dot([rand(kk, 0:100) for i in 1:n], gens(U))
+  while !is_non_zero_divisor(d, U)
+    d = dot([rand(kk, 0:100) for i in 1:n], gens(U))
+  end
+  return d
+end
+
+function generic_fractions(f::SpecOpenMor)
+  U = domain(f)
+  X = parent(U)
+  V = codomain(f)
+  Y = parent(V)
+  d = find_non_zero_divisor(U)
+  V = hypersurface_complement(X, d)
+  result = fraction.([restrict(pullback(f, y), V) for y in gens(base_ring(OO(Y)))])
+end
+
+function is_dense(U::SpecOpen)
+  X = parent(U)
+  I = [localized_modulus(OO(closure(V, X))) for V in patches(U)]
+  J = ideal(OO(X), [one(OO(X))])
+  for i in I
+    J = intersect(J, i)
+  end
+  return J == localized_modulus(OO(X))
+end
