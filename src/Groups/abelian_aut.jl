@@ -159,3 +159,4 @@ matrix(f::AutomorphismGroupElem{GrpAbFinGen}) = hom(f).map
 If `M` defines an endomorphism of `G`, return `true` if `M` defines an automorphism of `G`, else `false`.
 """ 
 defines_automorphism(G::GrpAbFinGen, M::fmpz_mat) = isbijective(hom(G,G,M))
+
