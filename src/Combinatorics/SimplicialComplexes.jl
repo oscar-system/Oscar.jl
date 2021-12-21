@@ -41,12 +41,12 @@ julia> K = SimplicialComplex([[1,2,3],[2,3,4]])
 Abstract simplicial complex of dimension 2 on 4 vertices
 ```
 """
-function SimplicialComplex(generators::Vector{Set{Int}})
+function SimplicialComplex(generators::Vector{Vector{Int}})
     K = Polymake.topaz.SimplicialComplex(INPUT_FACES=generators)
     SimplicialComplex(K)
 end
 
-function SimplicialComplex(generators::Vector{Vector{Int}})
+function SimplicialComplex(generators::Vector{Set{Int}})
     K = Polymake.topaz.SimplicialComplex(INPUT_FACES=generators)
     SimplicialComplex(K)
 end
@@ -76,51 +76,51 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    dim(SimplicialComplex)
+    nvertices(K::SimplicialComplex)
 
-Dimension of an abstract simplicial complex.
-"""
-dim(K::SimplicialComplex) = pm_object(K).DIM
-
-@doc Markdown.doc"""
-    nvertices(SimplicialComplex)
-
-Number of vertices of an abstract simplicial complex.
+Number of vertices of the abstract simplicial complex `K`.
 """
 nvertices(K::SimplicialComplex) = pm_object(K).N_VERTICES
 
 @doc Markdown.doc"""
-    f_vector(SimplicialComplex)
+    dim(K::SimplicialComplex)
 
-Face vector (number of faces per dimension) of an abstract simplicial complex.
+Dimension of the abstract simplicial complex `K`.
+"""
+dim(K::SimplicialComplex) = pm_object(K).DIM
+
+@doc Markdown.doc"""
+    f_vector(K::SimplicialComplex)
+
+Face vector (number of faces per dimension) of the abstract simplicial complex `K`.
 """
 f_vector(K::SimplicialComplex) = Vector{Int}(pm_object(K).F_VECTOR)
 
 @doc Markdown.doc"""
-    f_vector(SimplicialComplex)
+    f_vector(K::SimplicialComplex)
 
-H-vector of an abstract simplicial complex.
+H-vector of the abstract simplicial complex `K`.
 """
 h_vector(K::SimplicialComplex) = Vector{Int}(pm_object(K).H_VECTOR)
 
 @doc Markdown.doc"""
-    betti_numbers(SimplicialComplex)
+    betti_numbers(K::SimplicialComplex)
 
-Rational Betti numbers of an abstract simplicial complex.
+Rational Betti numbers of the abstract simplicial complex `K`.
 """
 betti_numbers(K::SimplicialComplex) = Polymake.topaz.betti_numbers(pm_object(K))
 
 @doc Markdown.doc"""
-    euler_characteristic(SimplicialComplex)
+    euler_characteristic(K::SimplicialComplex)
 
-Euler characteristic of an abstract simplicial complex.
+Euler characteristic of the abstract simplicial complex `K`.
 """
 euler_characteristic(K::SimplicialComplex) = pm_object(K).EULER_CHARACTERISTIC
 
 @doc Markdown.doc"""
-    minimalnonfaces(SimplicialComplex)
+    minimalnonfaces(K::SimplicialComplex)
 
-Minimal non-faces of an abstract simplicial complex.
+Minimal non-faces of the abstract simplicial complex `K`.
 
 # Example
 ```jldoctest
@@ -139,9 +139,9 @@ function minimalnonfaces(K::SimplicialComplex)
 end
 
 @doc Markdown.doc"""
-    stanley_reisner_ideal(SimplicialComplex)
+    stanley_reisner_ideal(K::SimplicialComplex)
 
-Stanley-Reisner ideal of an abstract simplicial complex.
+Stanley-Reisner ideal of the abstract simplicial complex `K`.
 
 # Example
 ```jldoctest
@@ -156,9 +156,9 @@ function stanley_reisner_ideal(K::SimplicialComplex)
 end
 
 @doc Markdown.doc"""
-    stanley_reisner_ring(SimplicialComplex)
+    stanley_reisner_ring(K::SimplicialComplex)
 
-Stanley-Reisner ring of an abstract simplicial complex.
+Stanley-Reisner ring of the abstract simplicial complex `K`.
 
 # Example
 ```jldoctest
@@ -167,6 +167,7 @@ julia> K = SimplicialComplex([[1,2,3],[2,3,4]]);
 julia> stanley_reisner_ring(K)
 (Quotient of Multivariate Polynomial Ring in x1, x2, x3, x4 over Integer Ring by ideal(x1*x4), Map from
 Multivariate Polynomial Ring in x1, x2, x3, x4 over Integer Ring to Quotient of Multivariate Polynomial Ring in x1, x2, x3, x4 over Integer Ring by ideal(x1*x4) defined by a julia-function with inverse)
+```
 """
 function stanley_reisner_ring(K::SimplicialComplex)
     I = stanley_reisner_ideal(K)
@@ -178,28 +179,28 @@ end
 ##  Standard examples
 ################################################################################
 
-@doc Markdown.doc"""
+"""
     torus()
 
 Császár's 7-vertex triangulation of the torus (surface).
 """
 torus() = SimplicialComplex(Polymake.topaz.torus())
 
-@doc Markdown.doc"""
+"""
     klein_bottle()
 
 9-vertex triangulation of the Klein bottle.
 """
 klein_bottle() = SimplicialComplex(Polymake.topaz.klein_bottle())
 
-@doc Markdown.doc"""
+"""
     realprojectiveplane()
 
 6-vertex triangulation of the real projective plane.
 """
 realprojectiveplane() = SimplicialComplex(Polymake.topaz.real_projective_plane())
 
-@doc Markdown.doc"""
+"""
     complexprojectiveplane()
 
 9-vertex triangulation of the complex projective plane.
@@ -221,7 +222,7 @@ end
 ###############################################################################
 
 """
-    save_simplicialcomplex(SimplicialComplex, String)
+    save_simplicialcomplex(K::SimplicialComplex, filename::String)
 
 Save a SimplicialComplex to a file in JSON format.
 """
@@ -231,7 +232,7 @@ function save_simplicialcomplex(K::SimplicialComplex, filename::String)
 end
 
 """
-    load_simplicialcomplex(String)
+    load_simplicialcomplex(filename::String)
 
 Load a SimplicialComplex stored in JSON format, given the filename as input.
 """
