@@ -199,9 +199,33 @@ A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 ```
 """
 function toric_projective_space(d::Int)
+    # construct the variety
     f = normal_fan(Oscar.simplex(d))
     pm_object = Polymake.fulton.NormalToricVariety(Oscar.pm_object(f))
-    return NormalToricVariety(pm_object, Dict())
+    variety = NormalToricVariety(pm_object, Dict())
+    
+    # set properties
+    set_attribute!(variety, :isaffine, false)
+    set_attribute!(variety, :isprojective, true)
+    set_attribute!(variety, :isprojective_space, true)
+    set_attribute!(variety, :issmooth, true)
+    set_attribute!(variety, :iscomplete, true)
+    set_attribute!(variety, :hastorusfactor, false)
+    set_attribute!(variety, :isorbifold, true)
+    set_attribute!(variety, :issimplicial, true)
+    set_attribute!(variety, :isgorenstein, true)
+    set_attribute!(variety, :isq_gorenstein, true)
+    set_attribute!(variety, :isfano, true)
+    
+    # set attributes
+    set_attribute!(variety, :dim, d)
+    set_attribute!(variety, :dim_of_torusfactor, 0)
+    set_attribute!(variety, :euler_characteristic, d+1)
+    set_attribute!(variety, :character_lattice, abelian_group([0 for i in 1:d]))
+    set_attribute!(variety, :torusinvariant_divisor_group, abelian_group([0 for i in 1:d+1]))
+    
+    # return the variety
+    return variety
 end
 export toric_projective_space
 
