@@ -19,20 +19,10 @@
   @test all(to_gap(a+b)==to_gap(a)*to_gap(b) for a in gens(A) for b in gens(A))
 
   autA = automorphism_group(A)
-<<<<<<< HEAD
   @test A[1]^(autA[2]*autA[3]) == (A[1]^autA[2])^autA[3]
-  @test all(typeof(f) == elem_type(autA) for f in gens(autA))
-  @test all(group_element(autA,f.X) == f for f in gens(autA))
   @test all(autA(hom(f)) == f for f in gens(autA))
-  @test all(autA(f.map) == f for f in gens(autA))
-  @test all(isautomorphism(autA.G,f.map) for f in gens(autA))
-  @test all(inv(f) in autA for f in gens(autA))
-  @test all(typeof(f*g) == elem_type(autA) for f in gens(autA) for g in gens(autA))
-=======
-  autA[1](A[1])
-  @test A[1]^(autA[2]*autA[3]) == (A[1]^autA[2])^autA[3]
-  A[1]^autA[1]
->>>>>>> 5db4abfde96a33f401986a368026321b7239735e
+  @test all(autA(matrix(f)) == f for f in gens(autA))
+  @test all(defines_automorphism(group(autA),matrix(f)) for f in gens(autA))
 
   A,_ = sub(A,[A[1],A[3],A[3]+A[2],A[2]-A[3]])
   Agap,to_gap,to_oscar = oscar._isomorphic_gap_group(A)
@@ -55,5 +45,8 @@
 
   autA = automorphism_group(A)
   @test autA[1](A[1]) ==  oscar.apply_automorphism(autA[1],A[1]) ==  A[1]^autA[1]
+  @test all(autA(hom(f)) == f for f in gens(autA))
+  @test all(autA(matrix(f)) == f for f in gens(autA))
+  @test all(defines_automorphism(group(autA),matrix(f)) for f in gens(autA))
 
 end
