@@ -113,7 +113,7 @@ betti_numbers(K::SimplicialComplex) = Polymake.topaz.betti_numbers(pm_object(K))
 @doc Markdown.doc"""
     euler_characteristic(K::SimplicialComplex)
 
-Euler characteristic of the abstract simplicial complex `K`.
+Reduced Euler characteristic of the abstract simplicial complex `K`.
 """
 euler_characteristic(K::SimplicialComplex) = pm_object(K).EULER_CHARACTERISTIC
 

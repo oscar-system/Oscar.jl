@@ -23,22 +23,28 @@ Here $V$ is usually $[n] = \{1,2,\dots,n\}$ for some $n\geq 0$.
 General textbooks offering details on the theory include:
 - [Koz08](@cite)
 
-
 ## Construction
 
 ```@docs
 SimplicialComplex(K::Vector{Vector{Int}})
 ```
 
-### Examples
+### Surface examples
+
 ```@docs
 torus()
 klein_bottle()
 realprojectiveplane()
+```
+
+### Other examples
+
+```@docs
 complexprojectiveplane()
 ```
 
 ## Basic properties
+
 ```@docs
 nvertices(K::SimplicialComplex)
 dim(K::SimplicialComplex)
@@ -47,6 +53,11 @@ h_vector(K::SimplicialComplex)
 ```
 
 ## Connection to commutative algebra
+
+Let $K$ be a simplicial complex on $n$ vertices.
+The minimal non-faces of $K$ generate a square-free monomial ideal, known as the *Stanley-Reisner ideal* of $K$.
+The quotient of the polynomial ring (in $n$ variables, with integer coefficients) modulo that ideal is the *Stanley-Reisner ring*.
+For details see Chapter 5 of [BH09](@cite).
 ```@docs
 minimalnonfaces(K::SimplicialComplex)
 stanley_reisner_ideal(K::SimplicialComplex)
@@ -62,4 +73,3 @@ load_simplicialcomplex(filename::String)
 ```
 The file is in JSON format and contains the underlying polymake object.
 In particular, such a file can be read by both polymake and Oscar.
-
