@@ -63,7 +63,6 @@ export
     FPGroupElem,
     GAPGroupElem,
     GAPGroupHomomorphism,
-    group_element,
     PcGroup,
     PcGroupElem,
     PermGroup,
@@ -244,7 +243,6 @@ Group of automorphisms over a group of type `T`. It can be defined via the funct
   X::GapObj
   G::T
 
-
   function AutomorphismGroup{T}(G::GapObj, H::T) where T
     @assert GAPWrap.IsGroupOfAutomorphisms(G)
     z = new{T}(G, H)
@@ -256,33 +254,14 @@ Group of automorphisms over a group of type `T`. It can be defined via the funct
     z = new{T}(G, H, to_gap, to_oscar)
     return z
   end
-<<<<<<< HEAD
 end
 
-mutable struct AutomorphismGroupElem{T} <: GAPGroupElem{AutomorphismGroup{T}}
-  X::GapObj
-  parent::AutomorphismGroup{T}
-  map::fmpz_mat
-  AbstractAlgebra.@declare_other
- 
-  function AutomorphismGroupElem{T}(F::GapObj, Aut::AutomorphismGroup{T}) where T
-    @assert F in Aut.X
-    z = new{T}(F,Aut,matrix(fmpz[]))
-    z.map =  hom(z).map
-    return z
-  end
+(aut::AutomorphismGroup{T} where T)(x::GapObj) = group_element(aut,x)
 
-  
-=======
->>>>>>> 5db4abfde96a33f401986a368026321b7239735e
-end
+const AutomorphismGroupElem{GrpAbFinGen} = BasicGAPGroupElem{AutomorphismGroup{GrpAbFinGen}}
 
-elem_type(Aut::AutomorphismGroup{T}) where T = AutomorphismGroupElem{T}
-
-group_element(Aut::AutomorphismGroup{T}, x::GapObj) where T = AutomorphismGroupElem{T}(x,Aut)
-
-function Base.show(io::IO, AGE::AutomorphismGroupElem{T}) where T
-    println(io, "Automorphism of ", typeof(AGE.parent.G), " with matrix representation ", AGE.map)
+function Base.show(io::IO, AGE::AutomorphismGroupElem{GrpAbFinGen}) 
+    println(io, "Automorphism of ", GrpAbFinGen, " with matrix representation ", matrix(AGE))
 end
 
 
