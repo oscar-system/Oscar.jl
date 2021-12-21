@@ -123,7 +123,7 @@ end
 
 
 function (aut::AutomorphismGroup{GrpAbFinGen})(f::GrpAbFinGenMap)
-  defines_automorphism(group(aut),matrix(f)) || error("Map does not define an automorphism of the abelian group.")
+  (domain(f) === codomain(f) && domain(f) === group(aut) && isbijective(f)) || error("Map does not define an automorphism of the abelian group.")
   to_gap = get_attribute(aut, :to_gap)
   to_oscar = get_attribute(aut, :to_oscar)
   Agap = domain(to_oscar)
