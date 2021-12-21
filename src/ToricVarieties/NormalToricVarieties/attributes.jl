@@ -75,8 +75,9 @@ julia> cox_ring(p2)
 """
 function cox_ring(v::AbstractNormalToricVariety)
     if !has_attribute(v, :cox_ring)
-        Qx, x = PolynomialRing(QQ, :x=>1:pm_object(v).N_RAYS)
-        set_attribute!(v, :cox_ring, grade(Qx,gens(class_group(v)))[1])
+        Qx, x = PolynomialRing(QQ, :x=>1:rank(torusinvariant_divisor_group(v)))
+        weights = [map_from_weil_divisors_to_class_group(v)(x) for x in gens(torusinvariant_divisor_group(v))]
+        set_attribute!(v, :cox_ring, grade(Qx,weights)[1])
     end
     return get_attribute(v, :cox_ring)
 end
@@ -313,13 +314,12 @@ julia> p2 = toric_projective_space(2)
 A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 
 julia> class_group(p2)
-(General) abelian group with relation matrix
-[1 0 -1 0 1 -1]
+Abelian group with structure: Z
 ```
 """
 function class_group(v::AbstractNormalToricVariety)
     if !has_attribute(v, :class_group)
-        set_attribute!(v, :class_group, cokernel(map_from_character_to_principal_divisors(v))[1])
+        set_attribute!(v, :class_group, codomain(map_from_weil_divisors_to_class_group(v)))
     end
     return get_attribute(v, :class_group)
 end
@@ -340,14 +340,14 @@ Domain:
 Abelian group with structure: Z^3
 Codomain:
 =========
-(General) abelian group with relation matrix
-[0 0 0 0 0 0 0 0 0 1 0 -1 0 1 -1]
-with structure of Abelian group with structure: Z
+Abelian group with structure: Z
 ```
 """
 function map_from_weil_divisors_to_class_group(v::AbstractNormalToricVariety)
     if !has_attribute(v, :map_from_weil_divisors_to_class_group)
-        set_attribute!(v, :map_from_weil_divisors_to_class_group, cokernel(map_from_character_to_principal_divisors(v))[2])
+        map1 = cokernel(map_from_character_to_principal_divisors(v))[2]
+        map2 = inv(snf(codomain(map1))[2])
+        set_attribute!(v, :map_from_weil_divisors_to_class_group, map1*map2)
     end
     return get_attribute(v, :map_from_weil_divisors_to_class_group)
 end
@@ -481,7 +481,7 @@ function picard_group(v::AbstractNormalToricVariety)
     if !has_attribute(v, :picard_group)
         map1 = map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v)
         map2 = map_from_weil_divisors_to_class_group(v)
-        set_attribute!(v, :picard_group, snf(image(hom(domain(map1), codomain(map2), map1.map * map2.map))[1])[1])
+        set_attribute!(v, :picard_group, snf(image(map1*map2)[1])[1])
     end
     return get_attribute(v, :picard_group)
 end
