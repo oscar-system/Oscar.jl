@@ -9,6 +9,7 @@ export
     f_vector,
     h_vector,
     minimalnonfaces,
+    stanleyreisnerideal,
     nvertices,
     load_simplicialcomplex,
     save_simplicialcomplex,
@@ -99,6 +100,24 @@ function minimalnonfaces(K::SimplicialComplex)
     mnf = Vector{Set{Int}}(bigobject.MINIMAL_NON_FACES)
     ind = _vertexindices(bigobject)
     return [ _reindexset(nonface,ind) for nonface in mnf ]
+end
+
+@doc Markdown.doc"""
+    stanleyreisnerideal(K::SimplicialComplex)
+
+Compute the Stanley-Reisner ideal of K.
+
+# Example
+```jldoctest
+julia> stanleyreisnerideal(realprojectiveplane())
+ideal(x1*x2*x3, x1*x2*x4, x1*x5*x6, x2*x5*x6, x1*x3*x6, x1*x4*x5, x3*x4*x5, x3*x4*x6, x2*x3*x5, x2*x4*x6)
+```
+"""
+function stanleyreisnerideal(K::SimplicialComplex)
+    n = nvertices(K)
+    R, () = PolynomialRing(ZZ, n)
+    SR = [ R([ZZ(1)], [_characteristicvector(f,n)]) for f in minimalnonfaces(K) ]
+    return ideal(SR)
 end
 
 ################################################################################
