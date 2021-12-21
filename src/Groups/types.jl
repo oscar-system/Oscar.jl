@@ -256,6 +256,7 @@ Group of automorphisms over a group of type `T`. It can be defined via the funct
     z = new{T}(G, H, to_gap, to_oscar)
     return z
   end
+<<<<<<< HEAD
 end
 
 mutable struct AutomorphismGroupElem{T} <: GAPGroupElem{AutomorphismGroup{T}}
@@ -272,6 +273,8 @@ mutable struct AutomorphismGroupElem{T} <: GAPGroupElem{AutomorphismGroup{T}}
   end
 
   
+=======
+>>>>>>> 5db4abfde96a33f401986a368026321b7239735e
 end
 
 elem_type(Aut::AutomorphismGroup{T}) where T = AutomorphismGroupElem{T}

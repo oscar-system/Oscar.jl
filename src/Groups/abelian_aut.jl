@@ -1,9 +1,13 @@
+<<<<<<< HEAD
 export
     automorphism_group,
     isautomorphism
 
 
 function _isomorphic_gap_group(A::GrpAbFinGen; T = PcGroup)
+=======
+function _isomorphic_gap_group(A::GrpAbFinGen; T=PcGroup)
+>>>>>>> 5db4abfde96a33f401986a368026321b7239735e
   # find independent generators
   if isdiagonal(rels(A))
     exponents = diagonal(rels(A))
@@ -59,6 +63,7 @@ function _gap_to_oscar(a::Oscar.BasicGAPGroupElem, B::GrpAbFinGen)
   return B(exp)
 end
 
+<<<<<<< HEAD
 """
     automorphism_group(G::GrpAbFinGen) -> AutomorphismGroup{T} where T <: GrpAbFinGen
 
@@ -74,6 +79,12 @@ function automorphism_group(G::GrpAbFinGen)
 end
 
 function apply_automorphism(f::AutomorphismGroupElem{GrpAbFinGen}, x::GrpAbFinGenElem, check=true)
+=======
+(f::GAPGroupElem{AutomorphismGroup{GrpAbFinGen}})(x::GrpAbFinGenElem)  = apply_automorphism(f, x, true)
+Base.:^(x::GrpAbFinGenElem,f::GAPGroupElem{AutomorphismGroup{GrpAbFinGen}}) = apply_automorphism(f, x, true)
+
+function apply_automorphism(f::GAPGroupElem{AutomorphismGroup{GrpAbFinGen}}, x::GrpAbFinGenElem, check=true)
+>>>>>>> 5db4abfde96a33f401986a368026321b7239735e
   aut = parent(f)
   if check
     @assert parent(x) == aut.G "Not in the domain of f!"
@@ -86,9 +97,21 @@ function apply_automorphism(f::AutomorphismGroupElem{GrpAbFinGen}, x::GrpAbFinGe
   imgap = typeof(xgap)(domGap, GAP.Globals.Image(f.X,xgap.X))
   return to_oscar(imgap)
 end
+<<<<<<< HEAD
  
 (f::AutomorphismGroupElem{GrpAbFinGen})(x::GrpAbFinGenElem)  = apply_automorphism(f, x, true)
 Base.:^(x::GrpAbFinGenElem,f::AutomorphismGroupElem{GrpAbFinGen}) = apply_automorphism(f, x, true)
+=======
+
+function automorphism_group(G::GrpAbFinGen)
+  Ggap, to_gap, to_oscar = _isomorphic_gap_group(G)
+  AutGAP = GAP.Globals.AutomorphismGroup(Ggap.X)
+  aut = AutomorphismGroup{typeof(G)}(AutGAP, G)
+  set_attribute!(aut,:to_gap => to_gap)
+  set_attribute!(aut,:to_oscar => to_oscar)
+  return aut
+end
+>>>>>>> 5db4abfde96a33f401986a368026321b7239735e
 
 # the _as_subgroup function needs a redefinition
 # to pass on the to_gap and to_oscar attributes to the subgroup
@@ -105,6 +128,7 @@ function _as_subgroup(aut::AutomorphismGroup{T}, subgrp::GapObj, ::Type{S}) wher
 end
 
 """
+<<<<<<< HEAD
     hom(f::AutomorphismGroupElem{T}) where T
 
 Return the element `f` of type `GrpAbFinGenMap`.
@@ -163,3 +187,15 @@ If `f` is an automorphism of its domain, return `true` if `f` is inner, else `fa
 isinner_automorphism(f::AutomorphismGroupElem{T}) where T = GAP.Globals.IsInnerAutomorphism(f.X)
 
 ==(f::AutomorphismGroupElem{T},g::AutomorphismGroupElem{T}) where T = f.X == g.X
+=======
+    hom(f::GAPGroupElem{AutomorphismGroup{T}}) where T
+
+Return the element f of type `GrpAbFinGenMap`.
+"""
+function hom(x::GAPGroupElem{AutomorphismGroup{T}}) where T <: GrpAbFinGen
+  A = parent(x).G
+  imgs = [x(a) for a in gens(A)]
+  return hom(A, A, imgs)
+end
+
+>>>>>>> 5db4abfde96a33f401986a368026321b7239735e
