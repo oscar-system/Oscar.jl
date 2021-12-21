@@ -70,10 +70,13 @@ issmooth(PF::PolyhedralFan)
 lineality_dim(PF::PolyhedralFan)
 lineality_space(PF::PolyhedralFan)
 maximal_cones(PF::PolyhedralFan)
-maximal_cones_as_incidence_matrix(PF::PolyhedralFan)
+cones(PF::PolyhedralFan, cone_dim::Int)
 nmaximal_cones(PF::PolyhedralFan)
 nrays(PF::PolyhedralFan)
 rays(PF::PolyhedralFan)
+primitive_collections(PF::PolyhedralFan)
+starsubdivision(PF::PolyhedralFan, n::Int)
+*(PF1::PolyhedralFan, PF2::PolyhedralFan)
 ```
 
 ### Visualization

@@ -88,7 +88,6 @@ end
 
 import Base.isfinite
 
-@gapattribute isfinite(G::GAPGroup) = GAP.Globals.IsFinite(G.X)::Bool
 """
     isfinite(G::GAPGroup) -> Bool
 
@@ -103,7 +102,8 @@ julia> isfinite(free_group(2))
 false
 
 ```
-""" isfinite(G::GAPGroup)
+"""
+@gapattribute isfinite(G::GAPGroup) = GAP.Globals.IsFinite(G.X)::Bool
 
 Base.isfinite(G::PcGroup) = true
 
@@ -122,7 +122,7 @@ false
 
 ```
 """
-isfinite_order(x::GAPGroupElem) = GAP.Globals.IsInt(GAP.Globals.Order(x.X))::Bool
+isfinite_order(x::GAPGroupElem) = GAPWrap.IsInt(GAP.Globals.Order(x.X))::Bool
 
 """
     order(::Type{T} = fmpz, x::Union{GAPGroupElem, GAPGroup}) where T <: IntegerUnion
@@ -151,14 +151,14 @@ order(x::Union{GAPGroupElem, GAPGroup}) = order(fmpz, x)
 
 import Base.exponent
 
-@gapattribute exponent(x::GAPGroup) = fmpz(GAP.Globals.Exponent(x.X))
 @doc Markdown.doc"""
     exponent(::Type{T} = fmpz, G::GAPGroup) where T <: IntegerUnion
 
 Return the exponent of `G`, as an instance of `T`,
 i. e., the smallest positive integer $e$ such that
 $g^e$ is the identity of `G` for every $g$ in `G`.
-""" exponent(x::GAPGroup)
+"""
+@gapattribute exponent(x::GAPGroup) = fmpz(GAP.Globals.Exponent(x.X))
 
 Base.exponent(::Type{T}, G::GAPGroup) where T <: IntegerUnion = T(GAP.Globals.Exponent(G.X))
 
@@ -193,9 +193,9 @@ function _maxgroup(x::T, y::T) where T <: GAPGroup
    # but it is not always the first choice.
    if x.X === y.X
      return x
-   elseif GAP.Globals.IsSubset(x.X, y.X)
+   elseif GAPWrap.IsSubset(x.X, y.X)
      return x
-   elseif GAP.Globals.IsSubset(y.X, x.X)
+   elseif GAPWrap.IsSubset(y.X, x.X)
      return y
    else
      error("Not yet implemented")
@@ -232,7 +232,7 @@ one!(x::GAPGroupElem) = one(parent(x))
 Base.show(io::IO, x::GAPGroupElem) = print(io, String(GAP.Globals.StringViewObj(x.X)))
 Base.show(io::IO, x::GAPGroup) = print(io, String(GAP.Globals.StringViewObj(x.X)))
 
-Base.isone(x::GAPGroupElem) = GAP.Globals.IsOne(x.X)::Bool
+Base.isone(x::GAPGroupElem) = GAPWrap.IsOne(x.X)
 
 Base.inv(x::GAPGroupElem) = group_element(parent(x), GAP.Globals.Inverse(x.X))
 
@@ -270,15 +270,15 @@ Base.IteratorSize(::Type{PermGroup}) = Base.HasLength()
 
 function Base.iterate(G::GAPGroup)
   L=GAP.Globals.Iterator(G.X)
-  i = GAP.Globals.NextIterator(L)
+  i = GAPWrap.NextIterator(L)
   return group_element(G, i), L
 end
 
 function Base.iterate(G::GAPGroup, state)
-  if GAP.Globals.IsDoneIterator(state)
+  if GAPWrap.IsDoneIterator(state)
     return nothing
   end
-  i = GAP.Globals.NextIterator(state)
+  i = GAPWrap.NextIterator(state)
   return group_element(G, i), state
 end
 
@@ -326,7 +326,7 @@ function gens(G::GAPGroup)
 end
 
 """
-    gen(G::GAPGroup, i::Integer)
+    gen(G::GAPGroup, i::Int)
 
 Return the `i`-th element of the vector `gens(G)`.
 This is equivalent to `G[i]`, and returns `gens(G)[i]`
@@ -422,7 +422,7 @@ Return the vector of all conjugacy classes of elements in G.
 It is guaranteed that the class of the identity is in the first position.
 """
 function conjugacy_classes(G::GAPGroup)
-   L=GAP.gap_to_julia(Vector{GapObj},GAP.Globals.ConjugacyClasses(G.X))
+   L=Vector{GapObj}(GAP.Globals.ConjugacyClasses(G.X))
    return GroupConjClass{typeof(G), elem_type(G)}[ _conjugacy_class(G,group_element(G,GAP.Globals.Representative(cc)),cc) for cc in L]
 end
 
@@ -434,7 +434,7 @@ Base.:^(x::T, y::T) where T <: GAPGroupElem = group_element(_maxgroup(parent(x),
 Return whether `x` and `y` are conjugate elements in `G`,
 i. e., there is an element $z$ in `G` such that `x^`$z$ equals `y`.
 """
-isconjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem) = GAP.Globals.IsConjugate(G.X,x.X,y.X)::Bool
+isconjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem) = GAPWrap.IsConjugate(G.X,x.X,y.X)
 
 """
     representative_action(G::Group, x::GAPGroupElem, y::GAPGroupElem)
@@ -477,7 +477,7 @@ end
 Return the vector of all conjugacy classes of subgroups of G.
 """
 function conjugacy_classes_subgroups(G::GAPGroup)
-   L=GAP.gap_to_julia(Vector{GapObj},GAP.Globals.ConjugacyClassesSubgroups(G.X))
+   L=Vector{GapObj}(GAP.Globals.ConjugacyClassesSubgroups(G.X))
    return GroupConjClass{typeof(G), typeof(G)}[ _conjugacy_class(G,typeof(G)(GAP.Globals.Representative(cc)),cc) for cc in L]
 end
 
@@ -487,7 +487,7 @@ end
 Return the vector of all conjugacy classes of maximal subgroups of G.
 """
 function conjugacy_classes_maximal_subgroups(G::GAPGroup)
-  L = GAP.gap_to_julia(Vector{GapObj},GAP.Globals.ConjugacyClassesMaximalSubgroups(G.X))
+  L = Vector{GapObj}(GAP.Globals.ConjugacyClassesMaximalSubgroups(G.X))
    return GroupConjClass{typeof(G), typeof(G)}[ _conjugacy_class(G,typeof(G)(GAP.Globals.Representative(cc)),cc) for cc in L]
 end
 
@@ -502,7 +502,7 @@ end
 
 Return whether `H` and `K` are conjugate subgroups in `G`.
 """
-isconjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup) = GAP.Globals.IsConjugate(G.X,H.X,K.X)::Bool
+isconjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup) = GAPWrap.IsConjugate(G.X,H.X,K.X)
 
 """
     representative_action(G::Group, H::Group, K::Group)
@@ -529,10 +529,10 @@ Base.IteratorSize(::Type{<:GroupConjClass}) = Base.SizeUnknown()
 Base.iterate(cc::GroupConjClass) = iterate(cc, GAP.Globals.Iterator(cc.CC))
 
 function Base.iterate(cc::GroupConjClass{S,T}, state::GapObj) where {S,T}
-  if GAP.Globals.IsDoneIterator(state)
+  if GAPWrap.IsDoneIterator(state)
     return nothing
   end
-  i = GAP.Globals.NextIterator(state)
+  i = GAPWrap.NextIterator(state)
   if T <: GAPGroupElem
      return group_element(cc.X, i), state
   else
@@ -590,17 +590,15 @@ normal_closure(G::T, H::T) where T<:GAPGroup = _as_subgroup(G, GAP.Globals.Norma
 # but then the user should have the possibility to omit this check.)
 
 """
-    pcore(G::Group, p::Int64)
+    pcore(G::Group, p::IntegerUnion)
 
 Return `C, f`, where `C` is the `p`-core
 (i.e. the largest normal `p`-subgroup) of `G`
 and `f` is the embedding morphism of `C` into `G`.
 """
-function pcore(G::GAPGroup, p::Int64)
-   if !isprime(p)
-      throw(ArgumentError("p is not a prime"))
-   end
-   return _as_subgroup(G, GAP.Globals.PCore(G.X,p))
+function pcore(G::GAPGroup, p::IntegerUnion)
+   isprime(p) || throw(ArgumentError("p is not a prime"))
+   return _as_subgroup(G, GAP.Globals.PCore(G.X,GAP.Obj(p)))
 end
 
 
@@ -620,39 +618,39 @@ end
 # Is this function useful at all?
 # (The name `Commutator*Subgroup*` is irritating, isn't it?)
 
-@gapattribute fitting_subgroup(G::GAPGroup) = _as_subgroup(G, GAP.Globals.FittingSubgroup(G.X))
 """
     fitting_subgroup(G::GAPGroup)
 
 Return the Fitting subgroup of `G`, i.e.,
 the largest nilpotent normal subgroup of `G`.
-""" fitting_subgroup
+"""
+@gapattribute fitting_subgroup(G::GAPGroup) = _as_subgroup(G, GAP.Globals.FittingSubgroup(G.X))
 
-@gapattribute frattini_subgroup(G::GAPGroup) = _as_subgroup(G, GAP.Globals.FrattiniSubgroup(G.X))
 """
     frattini_subgroup(G::GAPGroup)
 
 Return the Frattini subgroup of `G`, i.e.,
 the intersection of all maximal subgroups of `G`.
-""" frattini_subgroup
+"""
+@gapattribute frattini_subgroup(G::GAPGroup) = _as_subgroup(G, GAP.Globals.FrattiniSubgroup(G.X))
 
-@gapattribute radical_subgroup(G::GAPGroup) = _as_subgroup(G, GAP.Globals.RadicalGroup(G.X))
 """
     radical_subgroup(G::GAPGroup)
 
 Return the solvable radical of `G`, i.e.,
 the largest solvable normal subgroup of `G`.
-""" radical_subgroup
+"""
+@gapattribute radical_subgroup(G::GAPGroup) = _as_subgroup(G, GAP.Globals.RadicalGroup(G.X))
 #T wrong name, already in GAP!
 
-@gapattribute socle(G::GAPGroup) = _as_subgroup(G, GAP.Globals.Socle(G.X))
 """
     socle(G::GAPGroup)
 
 Return the socle of `G`, i.e.,
 the subgroup generated by all minimal normal subgroups of `G`,
 see [`minimal_normal_subgroups`](@ref).
-""" socle
+"""
+@gapattribute socle(G::GAPGroup) = _as_subgroup(G, GAP.Globals.Socle(G.X))
 
 
 ################################################################################
@@ -662,7 +660,7 @@ see [`minimal_normal_subgroups`](@ref).
 ################################################################################
 
 """
-    sylow_subgroup(G::Group, p::Int64)
+    sylow_subgroup(G::Group, p::IntegerUnion)
 
 Return a Sylow `p`-subgroup of the finite group `G`, for a prime `p`.
 This is a subgroup of `p`-power order in `G`
@@ -681,27 +679,21 @@ julia> s = sylow_subgroup(g, 3); order(s[1])
 
 ```
 """
-function sylow_subgroup(G::GAPGroup, p::Int64)
-   if !isprime(p)
-      throw(ArgumentError("p is not a prime"))
-   end
-   return _as_subgroup(G,GAP.Globals.SylowSubgroup(G.X,p))
+function sylow_subgroup(G::GAPGroup, p::IntegerUnion)
+   isprime(p) || throw(ArgumentError("p is not a prime"))
+   return _as_subgroup(G,GAP.Globals.SylowSubgroup(G.X,GAP.Obj(p)))
 end
 
 # no longer documented, better use `hall_subgroups_representatives`
-function hall_subgroup(G::GAPGroup, P::AbstractVector{<:Base.Integer})
+function hall_subgroup(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
    P = unique(P)
-   for p in P
-      if !isprime(p)
-         throw(ArgumentError("The integers must be prime"))
-      end
-   end
-   if !issolvable(G) throw(ArgumentError("The group is not solvable")) end
-   return _as_subgroup(G,GAP.Globals.HallSubgroup(G.X,GAP.julia_to_gap(P)))
+   all(isprime, P) || throw(ArgumentError("The integers must be prime"))
+   issolvable(G) || throw(ArgumentError("The group is not solvable"))
+   return _as_subgroup(G,GAP.Globals.HallSubgroup(G.X,GAP.julia_to_gap(P, recursive=true)))
 end
 
 """
-    hall_subgroups_representatives(G::Group, P::Vector{Int})
+    hall_subgroups_representatives(G::Group, P::AbstractVector{<:IntegerUnion})
 
 Return a vector that contains representatives of conjugacy classes of
 Hall `P`-subgroups of the finite group `G`, for a vector `P` of primes.
@@ -734,27 +726,19 @@ julia> h = hall_subgroups_representatives(g, [2, 7]); length(h)
 
 ```
 """
-function hall_subgroups_representatives(G::GAPGroup, P::AbstractVector{<:Base.Integer})
+function hall_subgroups_representatives(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
    P = unique(P)
-   for p in P
-      if !isprime(p)
-         throw(ArgumentError("The integers must be prime"))
-      end
-   end
+   all(isprime, P) || throw(ArgumentError("The integers must be prime"))
    res_gap = GAP.Globals.HallSubgroup(G.X, GAP.julia_to_gap(P))
    if res_gap == GAP.Globals.fail
      return typeof(G)[]
-   elseif GAP.Globals.IsList(res_gap)
+   elseif GAPWrap.IsList(res_gap)
      return _as_subgroups(G, res_gap)
    else
      return [_as_subgroup_bare(G, res_gap)]
    end
 end
 
-@gapattribute function sylow_system(G::GAPGroup)
-   if !issolvable(G) throw(ArgumentError("The group is not solvable")) end
-   return _as_subgroups(G, GAP.Globals.SylowSystem(G.X))
-end
 @doc Markdown.doc"""
     sylow_system(G::Group)
 
@@ -764,12 +748,12 @@ such that every two such subgroups commute with each other (as subgroups).
 
 Sylow systems exist only for solvable groups,
 an exception is thrown if `G` is not solvable.
-""" sylow_system
-
-@gapattribute function complement_system(G::GAPGroup)
+"""
+@gapattribute function sylow_system(G::GAPGroup)
    if !issolvable(G) throw(ArgumentError("The group is not solvable")) end
-   return _as_subgroups(G, GAP.Globals.ComplementSystem(G.X))
+   return _as_subgroups(G, GAP.Globals.SylowSystem(G.X))
 end
+
 @doc Markdown.doc"""
     complement_system(G::Group)
 
@@ -778,12 +762,12 @@ where $p$ runs over the prime factors of the order of `G`.
 
 Complement systems exist only for solvable groups,
 an exception is thrown if `G` is not solvable.
-""" complement_system
-
-@gapattribute function hall_system(G::GAPGroup)
+"""
+@gapattribute function complement_system(G::GAPGroup)
    if !issolvable(G) throw(ArgumentError("The group is not solvable")) end
-   return _as_subgroups(G, GAP.Globals.HallSystem(G.X))
+   return _as_subgroups(G, GAP.Globals.ComplementSystem(G.X))
 end
+
 @doc Markdown.doc"""
     hall_system(G::Group)
 
@@ -792,7 +776,11 @@ where $P$ runs over the subsets of prime factors of the order of `G`.
 
 Hall systems exist only for solvable groups,
 an exception is thrown if `G` is not solvable.
-""" hall_system
+"""
+@gapattribute function hall_system(G::GAPGroup)
+   if !issolvable(G) throw(ArgumentError("The group is not solvable")) end
+   return _as_subgroups(G, GAP.Globals.HallSystem(G.X))
+end
 
 
 ################################################################################
@@ -801,29 +789,29 @@ an exception is thrown if `G` is not solvable.
 #
 ################################################################################
 
-@gapattribute isperfect(G::GAPGroup) = GAP.Globals.IsPerfectGroup(G.X)::Bool
 """
     isperfect(G)
 
 Return whether `G` is a perfect group, i.e., equal to its derived subgroup.
-""" isperfect
+"""
+@gapattribute isperfect(G::GAPGroup) = GAP.Globals.IsPerfectGroup(G.X)::Bool
 
-@gapattribute issimple(G::GAPGroup) = GAP.Globals.IsSimpleGroup(G.X)::Bool
 """
     issimple(G)
 
 Return whether `G` is a simple group, i.e.,
 `G` is not trivial and has no non-trivial normal subgroups.
-""" issimple
+"""
+@gapattribute issimple(G::GAPGroup) = GAP.Globals.IsSimpleGroup(G.X)::Bool
 
-@gapattribute isalmostsimple(G::GAPGroup) = GAP.Globals.IsAlmostSimpleGroup(G.X)::Bool
 @doc Markdown.doc"""
     isalmostsimple(G)
 
 Return whether `G` is an almost simple group,
 i. e., `G` is isomorphic to a group $H$ with the property
 $S \leq H \leq Aut(S)$, for some non-abelian simple group $S$.
-""" isalmostsimple
+"""
+@gapattribute isalmostsimple(G::GAPGroup) = GAP.Globals.IsAlmostSimpleGroup(G.X)::Bool
 
 """
     ispgroup(G)
@@ -836,7 +824,7 @@ For finite groups `G`, the first return value is `true` if and only if
 the order of `G` is a prime power.
 """
 function ispgroup(G::GAPGroup)
-   if GAP.Globals.IsPGroup(G.X)
+   if GAPWrap.IsPGroup(G.X)
       p = GAP.Globals.PrimePGroup(G.X)
       if p != GAP.Globals.fail
          return true, fmpz(p)  # TODO: allow specifying the type used for the prime
@@ -860,11 +848,6 @@ function relators(G::FPGroup)
    return [group_element(F,L[i]) for i in 1:length(L)]
 end
 
-@gapattribute function nilpotency_class(G::GAPGroup)
-   @assert isnilpotent(G) "The group is not nilpotent."
-   return GAP.Globals.NilpotencyClassOfGroup(G.X)::Int
-end
-
 @doc Markdown.doc"""
     nilpotency_class(G::GAPGroup) -> Int
 
@@ -872,7 +855,11 @@ Return the nilpotency class of `G`, i.e.,
 the smallest integer $n$ such that `G` has a central series of length $n$.
 
 An exception is thrown if `G` is not nilpotent.
-""" nilpotency_class(G::GAPGroup)
+"""
+@gapattribute function nilpotency_class(G::GAPGroup)
+   @assert isnilpotent(G) "The group is not nilpotent."
+   return GAP.Globals.NilpotencyClassOfGroup(G.X)::Int
+end
 
 @doc Markdown.doc"""
     describe(G::GAPGroup)

@@ -27,32 +27,6 @@ export
     trivial_character
 
 
-#############################################################################
-##
-##  conversion between Julia's QabElem and GAP's cyclotomics
-##
-function QabElem(cyc::GapInt)
-    GAP.Globals.IsCyc(cyc) || error("cyc must be a GAP cyclotomic")
-    denom = GAP.Globals.DenominatorCyc(cyc)
-    n = GAP.Globals.Conductor(cyc)
-    coeffs = GAP.Globals.ExtRepOfObj(cyc * denom)
-    cycpol = GAP.Globals.CyclotomicPol(n)
-    dim = length(cycpol)-1
-    GAP.Globals.ReduceCoeffs(coeffs, cycpol)
-    coeffs = Vector{fmpz}(coeffs)
-    coeffs = coeffs[1:dim]
-    denom = fmpz(denom)
-    FF = abelian_closure(QQ)[1]
-    F, z = Oscar.AbelianClosure.cyclotomic_field(FF, n)
-    val = Nemo.elem_from_mat_row(F, Nemo.matrix(Nemo.ZZ, 1, dim, coeffs), 1, denom)
-    return QabElem(val, n)
-end
-
-function gap_cyclotomic(elm::QabElem)
-    coeffs = [Nemo.coeff(elm.data, i) for i in 0:(elm.c-1)]  # fmpq
-    return GAP.Globals.CycList(GAP.GapObj(coeffs; recursive=true))
-end
-
 complex_conjugate(elm::QabElem) = elm^QabAutomorphism(-1)
 
 
@@ -62,11 +36,10 @@ complex_conjugate(elm::QabElem) = elm^QabAutomorphism(-1)
 ##
 abstract type GroupCharacterTable end
 
-mutable struct GAPGroupCharacterTable <: GroupCharacterTable
+@attributes mutable struct GAPGroupCharacterTable <: GroupCharacterTable
     GAPGroup::GAPGroup    # the underlying group, if any
     GAPTable::GAP.GapObj  # the character table object
     characteristic::Int
-    AbstractAlgebra.@declare_other
 
     function GAPGroupCharacterTable(G::GAPGroup, tab::GAP.GapObj, char::Int)
       ct = new()
@@ -127,10 +100,10 @@ Sym( [ 1 .. 3 ] )
 ```
 """
 function character_table(G::GAPGroup, p::Int = 0)
-    tbls = AbstractAlgebra.get_special(G, :character_tables)
+    tbls = get_attribute(G, :character_tables)
     if tbls == nothing
       tbls = Dict()
-      AbstractAlgebra.set_special(G, :character_tables => tbls)
+      set_attribute!(G, :character_tables => tbls)
     end
 
     return get!(tbls, p) do
@@ -179,7 +152,7 @@ function character_table(id::String, p::Int = 0)
       modid = id
     else
       isprime(p) || error("p must be 0 or a prime integer")
-      modid = id * "mod" * string(p)
+      modid = "$(id)mod$(p)"
     end
 
     return get!(character_tables_by_id, modid) do
@@ -359,7 +332,7 @@ end
 function Base.show(io::IO, tbl::GAPGroupCharacterTable)
     n = nrows(tbl)
     gaptbl = tbl.GAPTable
-    size = GAP.gap_to_julia(GAP.Globals.Size(gaptbl))
+    size = fmpz(GAP.Globals.Size(gaptbl))
     primes = [x[1] for x in collect(factor(size))]
     sort!(primes)
 
@@ -376,7 +349,7 @@ function Base.show(io::IO, tbl::GAPGroupCharacterTable)
     mat, legend = matrix_of_strings(tbl, alphabet = alphabet)
 
     # Compute the factored centralizer orders.
-    cents = GAP.gap_to_julia(GAP.Globals.SizesCentralizers(gaptbl))
+    cents = Vector{fmpz}(GAP.Globals.SizesCentralizers(gaptbl))
     fcents = [collect(factor(x)) for x in cents]
     d = Dict([p => fill(".", n) for p in primes]...)
     for i in 1:n
@@ -425,7 +398,7 @@ function Base.show(io::IO, tbl::GAPGroupCharacterTable)
 
       # row labels:
       # character names (a column vector is sufficient)
-      :labels_row => ["\\chi_{" * string(i) * "}" for i in 1:n],
+      :labels_row => ["\\chi_{$i}" for i in 1:n],
 
       # corner (a column vector is sufficient):
       # primes in the centralizer rows,
@@ -450,7 +423,7 @@ function Base.print(io::IO, tbl::GAPGroupCharacterTable)
     if isdefined(tbl, :GAPGroup)
       id = string(tbl.GAPGroup)
       if tbl.characteristic != 0
-        id = id * " mod " * string(tbl.characteristic)
+        id = "$(id)mod$(tbl.characteristic)"
       end
     else
       id = "\"" * String(GAP.Globals.Identifier(gaptbl)) * "\""
@@ -490,10 +463,10 @@ function Base.mod(tbl::GAPGroupCharacterTable, p::Int)
     isprime(p) || error("p must be a prime integer")
     tbl.characteristic == 0 || error("tbl mod p only for ordinary table tbl")
 
-    modtbls = AbstractAlgebra.get_special(tbl, :brauer_tables)
+    modtbls = get_attribute(tbl, :brauer_tables)
     if modtbls == nothing
       modtbls = Dict{Int,Any}()
-      AbstractAlgebra.set_special(tbl, :brauer_tables => modtbls)
+      set_attribute!(tbl, :brauer_tables => modtbls)
     end
     if ! haskey(modtbls, p)
       modtblgap = mod(tbl.GAPTable, p)
@@ -533,7 +506,7 @@ julia> decomposition_matrix(t2)
 """
 function decomposition_matrix(modtbl::GAPGroupCharacterTable)
     isprime(modtbl.characteristic) || error("characteristic of tbl must be a prime integer")
-    return fmpz_mat(GAP.Globals.DecompositionMatrix(modtbl.GAPTable))
+    return matrix(ZZ, GAP.Globals.DecompositionMatrix(modtbl.GAPTable))
 end
 
 
@@ -551,7 +524,7 @@ struct GAPGroupClassFunction <: GroupClassFunction
 end
 
 function Base.show(io::IO, chi::GAPGroupClassFunction)
-    print(io, "group_class_function(" * string(chi.table) * ", " * string(values(chi)) * ")")
+    print(io, "group_class_function($(chi.table), $(values(chi)))")
 end
 
 import Base.values
@@ -562,12 +535,12 @@ function values(chi::GAPGroupClassFunction)
 end
 
 function group_class_function(tbl::GAPGroupCharacterTable, values::GAP.GapObj)
-    GAP.Globals.IsClassFunction(values) || error("values must be a class function")
+    GAPWrap.IsClassFunction(values) || error("values must be a class function")
     return GAPGroupClassFunction(tbl, values)
 end
 
 function group_class_function(tbl::GAPGroupCharacterTable, values::Vector{QabElem})
-    gapvalues = GAP.GapObj([gap_cyclotomic(x) for x in values])
+    gapvalues = GAP.GapObj([GAP.Obj(x) for x in values])
     return GAPGroupClassFunction(tbl, GAP.Globals.ClassFunction(tbl.GAPTable, gapvalues))
 end
 

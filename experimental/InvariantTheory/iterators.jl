@@ -79,7 +79,7 @@ end
 # Returns the dimension of the graded component of degree d.
 # If we cannot compute the Molien series (so far in the modular case), we return
 # -1.
-function dimension_via_molien_series(R::InvRing, d::Int)
+function dimension_via_molien_series(::Type{T}, R::InvRing, d::Int) where T <: IntegerUnion
   if ismodular(R)
     return -1
   end
@@ -88,8 +88,7 @@ function dimension_via_molien_series(R::InvRing, d::Int)
   F = molien_series(R)
   k = coeff(numerator(F)(t)*inv(denominator(F)(t)), d)
   @assert isintegral(k)
-  k = Int(numerator(k))
-  return k
+  return T(numerator(k))::T
 end
 
 # Iterate over the basis of the degree d component of an invariant ring.
@@ -97,27 +96,38 @@ end
 function iterate_basis(R::InvRing, d::Int, algo::Symbol = :default)
   @assert d >= 0 "Degree must be non-negativ"
 
-  reynolds = false
-  if algo == :reynolds
-    reynolds = true
-  elseif algo == :linear_algebra
-    reynolds = false
-  elseif algo == :default
-    # TODO: Fine tune this: Depending on d and the group order it is better
-    # to use "linear_algebra" also in the non-modular case.
+  if algo == :default
     if ismodular(R)
-      reynolds = false
+      algo = :linear_algebra
     else
-      reynolds = true
+      # Use the estimate in KS99, Section 17.2
+      # We use the "worst case" estimate, so 2d|G|/s instead of sqrt(2d|G|/s)
+      # for the reynolds operator since we have to assume that the user really
+      # wants to iterate the whole basis.
+      # "Experience" showed that one should drop the 2 in the bound.
+      # It probably also depends on the type of the field etc., so one could
+      # fine-tune here...
+      # But this should be a good heuristic anyways and the users can
+      # always choose for themselves :)
+      s = length(action(R))
+      g = order(Int, group(R))
+      n = degree(group(R))
+      k = binomial(n + d - 1, n - 1)
+      if k > d*g/s
+        algo = :reynolds
+      else
+        algo = :linear_algebra
+      end
     end
+  end
+
+  if algo == :reynolds
+    return iterate_basis_reynolds(R, d)
+  elseif algo == :linear_algebra
+    return iterate_basis_linear_algebra(R, d)
   else
     error("Unsupported argument :$(algo) for algo.")
   end
-
-  if reynolds
-    return iterate_basis_reynolds(R, d)
-  end
-  return iterate_basis_linear_algebra(R, d)
 end
 
 function iterate_basis_reynolds(R::InvRing, d::Int)
@@ -125,7 +135,7 @@ function iterate_basis_reynolds(R::InvRing, d::Int)
 
   monomials = all_monomials(polynomial_ring(R), d)
 
-  k = dimension_via_molien_series(R, d)
+  k = dimension_via_molien_series(Int, R, d)
   @assert k != -1
 
   N = zero_matrix(base_ring(polynomial_ring(R)), 0, 0)
@@ -138,7 +148,7 @@ function iterate_basis_linear_algebra(IR::InvRing, d::Int)
 
   R = polynomial_ring(IR)
 
-  k = dimension_via_molien_series(IR, d)
+  k = dimension_via_molien_series(Int, IR, d)
   if k == 0
     N = zero_matrix(base_ring(R), 0, 0)
     mons = elem_type(R)[]
@@ -226,14 +236,19 @@ function iterate_reynolds(BI::InvRingBasisIterator)
     if iszero(g)
       continue
     end
-    M = zero_matrix(K, 1, length(g))
+    M = zero_matrix(K, BI.dim, length(g))
+    pivot_rows = zeros(Int, length(g))
+    g = inv(leading_coefficient(g))*g
     i = 1
     for (c, m) in zip(coefficients(g), monomials(g))
       monomial_to_basis[m] = i
       M[1, i] = c
       i += 1
     end
-    return inv(leading_coefficient(g))*g, (M, monomial_to_basis, state)
+    pivot_rows[1] = 1
+    @assert M[1, 1] == 1
+    v = zeros(K, ncols(M))
+    return g, (M, monomial_to_basis, state, pivot_rows, 1, v)
   end
 end
 
@@ -241,9 +256,13 @@ function iterate_reynolds(BI::InvRingBasisIterator, state)
   @assert BI.reynolds
 
   M = state[1]
-  if nrows(M) == BI.dim
+  r = state[5]
+  if r == BI.dim
     return nothing
   end
+
+  pivot_rows = state[4]
+  v = state[6]
 
   K = base_ring(polynomial_ring(BI.R))
 
@@ -261,19 +280,25 @@ function iterate_reynolds(BI::InvRingBasisIterator, state)
     if iszero(g)
       continue
     end
-    N = vcat(M, zero_matrix(K, 1, ncols(M)))
-    new_basis_mon = false
+
+    v = zero!.(v)
+    new_cols = 0
     for (c, m) in zip(coefficients(g), monomials(g))
       if !haskey(monomial_to_basis, m)
-        new_basis_mon = true
-        monomial_to_basis[m] = ncols(N) + 1
-        N = hcat(N, zero_matrix(K, nrows(N), 1))
+        monomial_to_basis[m] = length(v) + 1
+        new_cols += 1
+        push!(v, c)
+      else
+        col = monomial_to_basis[m]
+        v[col] = c
       end
-      col = monomial_to_basis[m]
-      N[nrows(N), col] = c
     end
-    if new_basis_mon || rref!(N) == nrows(M) + 1
-      return inv(leading_coefficient(g))*g, (N, monomial_to_basis, monomial_state)
+    if !iszero(new_cols)
+      append!(pivot_rows, zeros(Int, new_cols))
+      M = hcat(M, zero_matrix(K, nrows(M), new_cols))
+    end
+    if Hecke._add_row_to_rref!(M, v, pivot_rows, r + 1)
+      return inv(leading_coefficient(g))*g, (M, monomial_to_basis, monomial_state, pivot_rows, r + 1, v)
     end
   end
 end
@@ -292,7 +317,10 @@ function iterate_linear_algebra(BI::InvRingBasisIterator)
     end
     f += N[i, 1]*BI.monomials_collected[i]
   end
-  return f, 2
+  # Have to (should...) divide by the leading coefficient again:
+  # The matrix was in echelon form, but the columns were not necessarily sorted
+  # w.r.t. the monomial ordering.
+  return inv(leading_coefficient(f))*f, 2
 end
 
 function iterate_linear_algebra(BI::InvRingBasisIterator, state::Int)
@@ -309,5 +337,273 @@ function iterate_linear_algebra(BI::InvRingBasisIterator, state::Int)
     end
     f += N[i, state]*BI.monomials_collected[i]
   end
-  return f, state + 1
+  return inv(leading_coefficient(f))*f, state + 1
+end
+
+################################################################################
+#
+#  "Iterate" a vector space
+#
+################################################################################
+
+function vector_space_iterator(K::FieldT, basis_iterator::IteratorT) where {FieldT <: Union{Nemo.GaloisField, Nemo.GaloisFmpzField, FqNmodFiniteField, FqFiniteField}, IteratorT}
+  return VectorSpaceIteratorFiniteField(K, basis_iterator)
+end
+
+vector_space_iterator(K::FieldT, basis_iterator::IteratorT, bound::Int = 10^5) where {FieldT, IteratorT} = VectorSpaceIteratorRand(K, basis_iterator, bound)
+
+Base.eltype(VSI::VectorSpaceIterator{FieldT, IteratorT, ElemT}) where {FieldT, IteratorT, ElemT} = ElemT
+
+Base.length(VSI::VectorSpaceIteratorFiniteField) = BigInt(order(VSI.field))^length(VSI.basis_iterator) - 1
+
+# The "generic" iterate for all subtypes of VectorSpaceIterator
+function _iterate(VSI::VectorSpaceIterator)
+  if isempty(VSI.basis_iterator)
+    return nothing
+  end
+
+  if length(VSI.basis_collected) > 0
+    b = VSI.basis_collected[1]
+  else
+    b, s = iterate(VSI.basis_iterator)
+    VSI.basis_collected = [ b ]
+    VSI.basis_iterator_state = s
+  end
+  phase = length(VSI.basis_iterator) != 1 ? 1 : 3
+  return b, (2, Int[ 1, 2 ], phase)
+end
+
+Base.iterate(VSI::VectorSpaceIteratorRand) = _iterate(VSI)
+
+function Base.iterate(VSI::VectorSpaceIteratorFiniteField)
+  if isempty(VSI.basis_iterator)
+    return nothing
+  end
+
+  b, state = _iterate(VSI)
+  e, s = iterate(VSI.field)
+  elts = fill(e, length(VSI.basis_iterator))
+  states = [ deepcopy(s) for i = 1:length(VSI.basis_iterator) ]
+
+  return b, (state..., elts, states)
+end
+
+# state is supposed to be a tuple of length 3 containing:
+# - the next basis element to be returned (relevant for phase 1)
+# - a Vector{Int} being the state for phase 2
+# - an Int: the number of the phase
+function _iterate(VSI::VectorSpaceIterator, state)
+  phase = state[3]
+  @assert phase == 1 || phase == 2
+
+  if phase == 1
+    # Check whether we already computed this basis element
+    if length(VSI.basis_collected) >= state[1]
+      b = VSI.basis_collected[state[1]]
+    else
+      b, s = iterate(VSI.basis_iterator, VSI.basis_iterator_state)
+      push!(VSI.basis_collected, b)
+      VSI.basis_iterator_state = s
+    end
+    new_phase = state[1] != length(VSI.basis_iterator) ? 1 : 2
+    return b, (state[1] + 1, state[2], new_phase)
+  end
+
+  # Iterate all possible sums of basis elements
+  @assert length(VSI.basis_iterator) > 1
+  s = state[2]
+  b = sum([ VSI.basis_collected[i] for i in s ])
+
+  expand = true
+  if s[end] < length(VSI.basis_collected)
+    s[end] += 1
+    expand = false
+  else
+    for i = length(s) - 1:-1:1
+      if s[i] + 1 < s[i + 1]
+        s[i] += 1
+        for j = i + 1:length(s)
+          s[j] = s[j - 1] + 1
+        end
+        expand = false
+        break
+      end
+    end
+  end
+
+  if expand
+    if length(s) < length(VSI.basis_collected)
+      s = collect(1:length(s) + 1)
+    else
+      phase = 3
+    end
+  end
+  return b, (state[1], s, phase)
+end
+
+function Base.iterate(VSI::VectorSpaceIteratorRand, state)
+  if state[3] != 3
+    return _iterate(VSI, state)
+  end
+
+  # Phase 3: Random linear combinations
+  coeffs = rand(-VSI.rand_bound:VSI.rand_bound, length(VSI.basis_collected))
+  return sum([ coeffs[i]*VSI.basis_collected[i] for i = 1:length(VSI.basis_collected) ]), (state[1], state[2], 3)
+end
+
+function Base.iterate(VSI::VectorSpaceIteratorFiniteField, state)
+  if state[3] != 3
+    b, s = _iterate(VSI, state[1:3])
+    return b, (s..., state[4], state[5])
+  end
+
+  # Phase 3: Iterate over all possible coefficients in the field
+
+  a = state[4]
+  b = state[5]
+
+  n = length(VSI.basis_collected)
+  j = n
+  ab = iterate(VSI.field, b[j])
+  while ab == nothing
+    a[j], b[j] = iterate(VSI.field)
+    j -= 1
+    if j == 0
+      return nothing
+    end
+    ab = iterate(VSI.field, b[j])
+  end
+  a[j], b[j] = ab[1], ab[2]
+
+  if all( x -> iszero(x) || isone(x), a)
+    # We already visited this element in phase 2
+    return iterate(VSI, (state[1:3]..., a, b))
+  end
+  return dot(a, VSI.basis_collected), (state[1:3]..., a, b)
+end
+
+function collect_basis(VSI::VectorSpaceIterator)
+  while length(VSI.basis_collected) != length(VSI.basis_iterator)
+    if !isdefined(VSI, :basis_iterator_state)
+      @assert length(VSI.basis_collected) == 0
+      b, s = iterate(VSI.basis_iterator)
+    else
+      b, s = iterate(VSI.basis_iterator, VSI.basis_iterator_state)
+    end
+    push!(VSI.basis_collected, b)
+    VSI.basis_iterator_state = s
+  end
+  return VSI.basis_collected
+end
+
+################################################################################
+#
+# MSetPartitions
+#
+################################################################################
+
+iterate_partitions(M::MSet) = MSetPartitions(M)
+
+Base.eltype(MSP::MSetPartitions{T}) where T = Vector{MSet{T}}
+
+function Base.iterate(MSP::MSetPartitions)
+  if isempty(MSP.M)
+    return nothing
+  end
+
+  return [ MSP.M ], MSetPartitionsState(MSP)
+end
+
+# This is basically Knu11, p. 429, Algorithm 7.2.1.5M
+# M2 - 6 in the  comments correspond to the steps in the pseudocode
+function Base.iterate(MSP::MSetPartitions{T}, state::MSetPartitionsState) where T
+  c = state.c
+  u = state.u
+  v = state.v
+  f = state.f
+  a = state.a
+  b = state.b
+  l = state.l
+
+  m = length(MSP.num_to_key)
+  n = length(MSP.M)
+
+  # M5
+  j = b - 1
+  while iszero(v[j])
+    j -= 1
+  end
+  while j == a && v[j] == 1
+    # M6
+    if l == 1
+      return nothing
+    end
+    l -= 1
+    b = a
+    a = f[l]
+
+    j = b - 1
+    while iszero(v[j])
+      j -= 1
+    end
+  end
+  v[j] = v[j] - 1
+  for k = j + 1:b - 1
+    v[k] = u[k]
+  end
+
+  # M2
+  range_increased = true
+  while range_increased
+    k = b
+    range_increased = false
+    v_changed = false
+    for j = a:b - 1
+      u[k] = u[j] - v[j]
+      if iszero(u[k])
+        v_changed = true
+        continue
+      end
+      c[k] = c[j]
+      if v_changed
+        v[k] = u[k]
+      else
+        v[k] = min(v[j], u[k])
+        v_changed = (u[k] < v[j])
+      end
+      k += 1
+    end
+
+    # M3
+    if k > b
+      range_increased = true
+      a = b
+      b = k
+      l += 1
+      f[l + 1] = b
+    end
+  end
+
+  # M4
+  part = Vector{typeof(MSP.M)}()
+  for j = 1:l
+    N = MSet{T}()
+    for k = f[j]:f[j + 1] - 1
+      if iszero(v[k])
+        continue
+      end
+      N.dict[MSP.num_to_key[c[k]]] = v[k]
+    end
+    push!(part, N)
+  end
+
+  state.c = c
+  state.u = u
+  state.v = v
+  state.f = f
+  state.a = a
+  state.b = b
+  state.l = l
+
+  return part, state
 end

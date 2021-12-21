@@ -4,12 +4,12 @@ HilbertData, hilbert_series, hilbert_series_reduced, hilbert_series_expanded, hi
 homogenization, dehomogenization, grading_group
 export MPolyRing_dec, MPolyElem_dec, ishomogeneous, isgraded
 export minimal_subalgebra_generators
-mutable struct MPolyRing_dec{T, S} <: AbstractAlgebra.MPolyRing{T}
+
+@attributes mutable struct MPolyRing_dec{T, S} <: AbstractAlgebra.MPolyRing{T}
   R::S
   D::GrpAbFinGen
   d::Vector{GrpAbFinGenElem}
   lt
-  Hecke.@declare_other
   function MPolyRing_dec(R::S, d::Vector{GrpAbFinGenElem}) where {S}
     r = new{elem_type(base_ring(R)), S}()
     r.R = R
@@ -78,6 +78,9 @@ julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 julia> typeof(R)
 FmpqMPolyRing
 
+julia> typeof(x)
+fmpq_mpoly
+
 julia> S, (x, y, z) = grade(R)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
@@ -86,6 +89,12 @@ julia> S, (x, y, z) = grade(R)
 
 julia> typeof(S)
 MPolyRing_dec{fmpq, FmpqMPolyRing}
+
+julia> typeof(S) <: MPolyRing
+true
+
+julia> typeof(x)
+MPolyElem_dec{fmpq, fmpq_mpoly}
 
 julia> W = [1, 2, 3];
 
@@ -98,7 +107,7 @@ julia> T, (x, y, z) = grade(R, W)
 """
 function grade(R::MPolyRing, W::Vector{Int})
   A = abelian_group([0])
-  Hecke.set_special(A, :show_elem => show_special_elem_grad) 
+  set_attribute!(A, :show_elem => show_special_elem_grad) 
   S = MPolyRing_dec(R, [i*A[1] for i = W])
   return S, map(S, gens(R))
 end
@@ -146,7 +155,7 @@ end
 
 function filtrate(R::MPolyRing, v::Vector{Int})
   A = abelian_group([0])
-  Hecke.set_special(A, :show_elem => show_special_elem_grad) 
+  set_attribute!(A, :show_elem => show_special_elem_grad) 
   S = MPolyRing_dec(R, [i*A[1] for i = v], (x,y) -> x[1] < y[1])
   return S, map(S, gens(R))
 end
@@ -481,7 +490,6 @@ end
 
 base_ring(W::MPolyRing_dec) = base_ring(W.R)
 Nemo.ngens(W::MPolyRing_dec) = Nemo.ngens(W.R)
-Nemo.ngens(R::MPolyRing) = Nemo.nvars(R)
 Nemo.gens(W::MPolyRing_dec) = map(W, gens(W.R))
 Nemo.gen(W::MPolyRing_dec, i::Int) = W(gen(W.R, i))
 Base.getindex(W::MPolyRing_dec, i::Int) = W(W.R[i])
@@ -489,8 +497,8 @@ Base.getindex(W::MPolyRing_dec, i::Int) = W(W.R[i])
 base_ring(f::MPolyElem_dec) = base_ring(f.f)
 
 function show_homo_comp(io::IO, M)
-  (W, d) = Hecke.get_special(M, :data)
-  n = Hecke.get_special(W, :name)
+  (W, d) = get_attribute(M, :data)
+  n = get_attribute(W, :name)
   if n != nothing
     print(io, "$(n)_$(d.coeff) of dim $(dim(M))")
   else
@@ -511,7 +519,7 @@ function homogeneous_component(W::MPolyRing_dec, d::GrpAbFinGenElem)
   #Ax = b, Cx >= 0
   C = identity_matrix(FlintZZ, ngens(W))
   A = vcat([x.coeff for x = W.d])
-  k = solve_mixed(A', d.coeff', C)
+  k = solve_mixed(transpose(A), transpose(d.coeff), C)
   B = elem_type(W)[]
   for ee = 1:nrows(k)
     e = k[ee, :]
@@ -520,7 +528,7 @@ function homogeneous_component(W::MPolyRing_dec, d::GrpAbFinGenElem)
     push!(B, W(finish(a)))
   end
   M, h = vector_space(R, B, target = W)
-  Hecke.set_special(M, :show => show_homo_comp, :data => (W, d))
+  set_attribute!(M, :show => show_homo_comp, :data => (W, d))
   add_relshp(M, W, x -> sum(x[i] * B[i] for i=1:length(B)))
 #  add_relshp(W, M, g)
   return M, h
@@ -597,20 +605,19 @@ end
 #########################################
 function add_relshp(R, S, h)
   #this assumes that h is essentially a canonical map from R -> S
-  if !isdefined(R, :other)
-    R.other = dict{Symbol, Any}()
+  D = get_attribute(R, :relshp)
+  if D === nothing
+    D = Dict{Any, Any}()
+    set_attribute!(R, :relshp => D)
   end
-  if !haskey(R.other, :relshp)
-    R.other[:relshp] = Dict{Any, Any}()
-  end
-  if haskey(R.other[:relshp], S)
+  if haskey(D, S)
     error("try to add double")
   end
-  R.other[:relshp][S] = h
+  D[S] = h
 end
 
 function hasrelshp(R, S)
-  r = Hecke.get_special(R, :relshp)
+  r = get_attribute(R, :relshp)
   if r === nothing
     return r
   end
@@ -753,7 +760,8 @@ end
 
 Return the homogenization of `f`, `V`, or `I` in a graded ring with additional variable `var` at position `pos`.
 
-CAVEAT: Homogenizing an ideal requires a Gröbner basis computation. This may take some time.
+!!! warning
+    Homogenizing an ideal requires a Gröbner basis computation. This may take some time.
 """
 function homogenization(f::MPolyElem, var::String, pos::Int = 1)
   R = parent(f)

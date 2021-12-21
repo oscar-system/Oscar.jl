@@ -35,12 +35,14 @@ import GAP
 import Pkg
 using Markdown
 using Test
+import msolve_jll
 # to allow access to the cornerstones! Otherwise, not even import or using from the
 # user level will work as none of them will have been "added" by the user.
 # possibly all should add a doc string to the module?
 export Nemo, Hecke, Singular, Polymake, AbstractAlgebra, GAP
 
 import AbstractAlgebra: @show_name, @show_special, elem_type, force_coerce, force_op,
+                        get_attribute, get_attribute!, set_attribute!,
                         parent_type, expressify, canonical_unit
 
 import Hecke: @req
@@ -228,8 +230,7 @@ include("Rings/Hecke.jl") #does all the importing from Hecke - to define names
 include("printing.jl")
 
 include("GAP/GAP.jl")
-include("GAP/gap_to_oscar.jl")
-include("GAP/oscar_to_gap.jl")
+include("GAP/wrappers.jl")
 
 include("Groups/types.jl")
 include("Groups/perm.jl")
@@ -250,6 +251,9 @@ include("Rings/rational.jl")
 include("Rings/mpoly.jl")
 include("Rings/mpoly-graded.jl")
 include("Rings/mpoly-ideals.jl")
+include("Rings/msolve/interface.jl")
+include("Rings/msolve/f4.jl")
+include("Rings/msolve/msolve.jl")
 include("Rings/groebner.jl")
 include("Rings/MPolyQuo.jl")
 include("Rings/mpoly-nested.jl")
@@ -264,6 +268,9 @@ include("Rings/FinField.jl")
 include("Rings/NumberField.jl")
 include("Rings/FunctionField.jl")
 include("Rings/AbelianClosure.jl")
+
+include("GAP/gap_to_oscar.jl")
+include("GAP/oscar_to_gap.jl")
 
 include("Groups/group_characters.jl")  # needs some Rings functionality
 
@@ -280,7 +287,10 @@ include("../experimental/Schemes/SpecOpen.jl")
 
 include("NumberTheory/NmbThy.jl")
 
-include("Polytopes/Polytopes.jl")
+include("PolyhedralGeometry/main.jl")
+
+include("Combinatorics/Graphs.jl")
+export Graphs
 
 include("../StraightLinePrograms/src/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl")
@@ -290,6 +300,8 @@ include("../experimental/Experimental.jl")
 include("Rings/binomial_ideals.jl")
 
 include("ToricVarieties/JToric.jl")
+
+include("../experimental/Schemes/AffineSchemes.jl")
 
 if is_dev
 #  include("../examples/ModStdNF.jl")

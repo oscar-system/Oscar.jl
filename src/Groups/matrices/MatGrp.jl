@@ -1,6 +1,5 @@
-import AbstractAlgebra: get_special, MatElem, matrix, MatSpace, parent_type, Ring, RingElem, set_special
+import AbstractAlgebra: MatElem, matrix, MatSpace, parent_type, Ring, RingElem
 import Hecke: base_ring, det, fmpz, fq_nmod, FqNmodFiniteField, nrows, tr, trace
-import GAP: FFE
 
 export
     general_linear_group,
@@ -23,23 +22,19 @@ export
 abstract type AbstractMatrixGroupElem <: GAPGroupElem{GAPGroup} end
 
 # NOTE: always defined are deg, ring and at least one between { X, gens, descr }
-# NOTE: the field mat_iso are always defined if the field X is
 """
     MatrixGroup{RE<:RingElem, T<:MatElem{RE}} <: GAPGroup
 Type of groups `G` of `n x n` matrices over the ring `R`, where `n = degree(G)` and `R = base_ring(G)`.
 
 At the moment, only rings of type `FqNmodFiniteField` are supported.
 """
-mutable struct MatrixGroup{RE<:RingElem, T<:MatElem{RE}} <: GAPGroup
+@attributes mutable struct MatrixGroup{RE<:RingElem, T<:MatElem{RE}} <: GAPGroup
    deg::Int
    ring::Ring
    X::GapObj
    gens::Vector{<:AbstractMatrixGroupElem}
    descr::Symbol                       # e.g. GL, SL, symbols for isometry groups
    ring_iso::MapFromFunc # Isomorphism from the Oscar base ring to the GAP base ring
-   mat_iso::MapFromFunc # Isomorphism from the Oscar matrix space to the GAP one
-#   order::fmpz
-   AbstractAlgebra.@declare_other
 
    MatrixGroup{RE,T}(m::Int, F::Ring) where {RE,T} = new{RE,T}(m,F)
 
@@ -91,7 +86,7 @@ Elements of a group of type `MatrixGroup{RE<:RingElem, T<:MatElem{RE}}`
 mutable struct MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: AbstractMatrixGroupElem
    parent::MatrixGroup{RE, T}
    elm::T                         # Oscar matrix
-   X::GapObj                     # GAP matrix. If x isa MatrixGroupElem, then x.X = x.parent.mat_iso(x.elm)
+   X::GapObj                     # GAP matrix. If x isa MatrixGroupElem, then x.X = map_entries(x.parent.ring_iso, x.elm)
 
    # full constructor
    MatrixGroupElem{RE,T}(G::MatrixGroup{RE,T}, x::T, x_gap::GapObj) where {RE, T} = new{RE,T}(G, x, x_gap)
@@ -148,14 +143,8 @@ function Base.show(io::IO, x::MatrixGroup)
    end
 end
 
-function Base.show(io::IO, x::MatrixGroupElem)
-   if isdefined(x, :elm)
-      show(io, "text/plain", x.elm)
-#      print(io, x.elm)
-   else
-      print(io, String(GAP.Globals.StringViewObj(x.X)))
-   end
-end
+Base.show(io::IO, x::MatrixGroupElem) = show(io, x.elm)
+Base.show(io::IO, mi::MIME"text/plain", x::MatrixGroupElem) = show(io, mi, x.elm)
 
 group_element(G::MatrixGroup, x::GapObj) = MatrixGroupElem(G,x)
 
@@ -210,7 +199,6 @@ function assign_from_description(G::MatrixGroup)
 end
 
 # return the G.sym if isdefined(G, :sym); otherwise, the field :sym is computed and set using information from other defined fields
-# NOTE: if G.X has to be set, then also the field G.mat_iso is set
 function Base.getproperty(G::MatrixGroup, sym::Symbol)
 
    isdefined(G,sym) && return getfield(G,sym)
@@ -218,21 +206,12 @@ function Base.getproperty(G::MatrixGroup, sym::Symbol)
    if sym === :ring_iso
       G.ring_iso = ring_iso_oscar_gap(G.ring)
 
-   elseif sym === :mat_iso
-      G.mat_iso = mat_iso_oscar_gap(G.ring, G.deg, G.ring_iso)
-
    elseif sym === :X
       if isdefined(G,:descr)
-         if !isdefined(G,:mat_iso)
-            G.mat_iso = mat_iso_oscar_gap(G.ring, G.deg, G.ring_iso)
-         end
          assign_from_description(G)
       elseif isdefined(G,:gens)
-         if !isdefined(G,:mat_iso)
-            G.mat_iso = mat_iso_oscar_gap(G.ring, G.deg, G.ring_iso)
-         end
-         V = GAP.julia_to_gap([g.X for g in gens(G)])
-         G.X=GAP.Globals.Group(V)
+         V = GAP.GapObj([g.X for g in gens(G)])
+         G.X = isempty(V) ? GAP.Globals.Group(V, one(G).X) : GAP.Globals.Group(V)
       else
          error("Cannot determine underlying GAP object")
       end
@@ -248,9 +227,9 @@ function Base.getproperty(x::MatrixGroupElem, sym::Symbol)
    isdefined(x,sym) && return getfield(x,sym)
 
    if sym === :X
-      x.X = x.parent.mat_iso(x.elm)
+      x.X = map_entries(x.parent.ring_iso, x.elm)
    elseif sym == :elm
-      x.elm = preimage(x.parent.mat_iso, x.X)
+      x.elm = preimage_matrix(x.parent.ring_iso, x.X)
    end
    return getfield(x,sym)
 end
@@ -259,17 +238,17 @@ Base.IteratorSize(::Type{<:MatrixGroup}) = Base.SizeUnknown()
 
 function Base.iterate(G::MatrixGroup)
   L=GAP.Globals.Iterator(G.X)
-  @assert ! GAP.Globals.IsDoneIterator(L)
-  i = GAP.Globals.NextIterator(L)
-  return MatrixGroupElem(G, preimage(G.mat_iso, i),i), L
+  @assert ! GAPWrap.IsDoneIterator(L)
+  i = GAPWrap.NextIterator(L)
+  return MatrixGroupElem(G, i), L
 end
 
 function Base.iterate(G::MatrixGroup, state::GapObj)
-  if GAP.Globals.IsDoneIterator(state)
+  if GAPWrap.IsDoneIterator(state)
     return nothing
   end
-  i = GAP.Globals.NextIterator(state)
-  return MatrixGroupElem(G, preimage(G.mat_iso, i),i), state
+  i = GAPWrap.NextIterator(state)
+  return MatrixGroupElem(G, i), state
 end
 
 ########################################################################
@@ -309,8 +288,8 @@ function lies_in(x::MatElem, G::MatrixGroup, x_gap)
    elseif isdefined(G,:descr) && G.descr==:SL
       return det(x)==1, x_gap
    else
-      if x_gap==nothing x_gap = G.mat_iso(x) end
-     # x_gap !=nothing || x_gap = G.mat_iso(x)
+      if x_gap==nothing x_gap = map_entries(G.ring_iso, x) end
+     # x_gap !=nothing || x_gap = map_entries(G.ring_iso, x)
       return GAP.Globals.in(x_gap,G.X), x_gap
    end
 end
@@ -486,14 +465,13 @@ Base.one(G::MatrixGroup) = MatrixGroupElem(G, identity_matrix(G.ring, G.deg))
 
 function Base.rand(rng::Random.AbstractRNG, G::MatrixGroup)
    x_gap = GAP.Globals.Random(GAP.wrap_rng(rng), G.X)
-   x_oscar = preimage(G.mat_iso, x_gap)
-   return MatrixGroupElem(G,x_oscar,x_gap)
+   return MatrixGroupElem(G, x_gap)
 end
 
 function gens(G::MatrixGroup)
    if !isdefined(G,:gens)
       L = GAP.Globals.GeneratorsOfGroup(G.X)
-      G.gens=[MatrixGroupElem(G,preimage(G.mat_iso, a),a) for a in L]
+      G.gens = [MatrixGroupElem(G, a) for a in L]
    end
    return G.gens
 end
@@ -508,10 +486,10 @@ compute_order(G::GAPGroup) = fmpz(GAP.Globals.Order(G.X))
 compute_order(G::MatrixGroup{T}) where {T <: Union{nf_elem, fmpq}} = order(isomorphic_group_over_finite_field(G)[1])
 
 function order(::Type{T}, G::MatrixGroup) where T <: IntegerUnion
-   res = get_special(G, :order)
+   res = get_attribute(G, :order)
    if res == nothing
      res = compute_order(G)::fmpz
-     set_special(G, :order => res)
+     set_attribute!(G, :order => res)
    end
    return T(res)::T
 end
@@ -778,13 +756,13 @@ end
 
 function Base.show(io::IO, x::GroupConjClass{T,S}) where T <: MatrixGroup where S <: MatrixGroupElem
   show(io, x.repr)
-  print(" ^ ")
+  print(io, " ^ ")
   show(io, x.X)
 end
 
 function Base.show(io::IO, x::GroupConjClass{T,S}) where T <: MatrixGroup where S <: MatrixGroup
   show(io, x.repr)
-  print(" ^ ")
+  print(io, " ^ ")
   show(io, x.X)
 end
 
@@ -806,7 +784,6 @@ function conjugacy_classes_subgroups(G::MatrixGroup)
    V = Vector{GroupConjClass{typeof(G), typeof(G)}}(undef, length(L))
    for i in 1:length(L)
       y = MatrixGroup(G.deg,G.ring)
-      y.mat_iso = G.mat_iso
       y.X = GAP.Globals.Representative(L[i])
       V[i] = _conjugacy_class(G,y,L[i])
    end
@@ -819,7 +796,6 @@ function conjugacy_classes_maximal_subgroups(G::MatrixGroup)
    V = Vector{GroupConjClass{typeof(G), typeof(G)}}(undef, length(L))
    for i in 1:length(L)
       y = MatrixGroup(G.deg,G.ring)
-      y.mat_iso = G.mat_iso
       y.X = GAP.Globals.Representative(L[i])
       V[i] = _conjugacy_class(G,y,L[i])
    end
@@ -829,7 +805,6 @@ end
 
 function Base.rand(rng::Random.AbstractRNG, C::GroupConjClass{S,T}) where S<:MatrixGroup where T<:MatrixGroup
    H = MatrixGroup(C.X.deg,C.X.ring)
-   H.mat_iso = C.X.mat_iso
    H.X = GAP.Globals.Random(GAP.wrap_rng(rng), C.CC)
    return H
 end

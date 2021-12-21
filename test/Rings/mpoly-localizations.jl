@@ -56,10 +56,8 @@
   @test oscar_gens(lbpa)[1] == W(1)
 
   J = ideal(W, [f, y-q])
-  @show gens(J)
   lbpa = groebner_basis(J)
   @test ordering(lbpa) == :negdegrevlex
-  @show oscar_gens(lbpa) 
   @test oscar_gens(lbpa) == W.([x-p, y-q])
 
   @test I_loc + J isa MPolyLocalizedIdeal

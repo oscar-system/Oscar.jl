@@ -263,7 +263,6 @@ function divexact(a::T, b::T; check::Bool=false) where {T<:AbsLocalizedRingElem}
 end
 
 function inv(a::AbsLocalizedRingElem) 
-  numerator(a) in inverted_set(parent(a)) || error("the given element is not a unit")
   return parent(a)(denominator(a), numerator(a))
 end
 

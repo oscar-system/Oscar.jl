@@ -4,7 +4,7 @@ import Base.==
 
 export Point, ideal_point, AffinePlaneCurve, ProjPlaneCurve, hash, degree,
        jacobi_ideal, curve_components, isirreducible, isreduced, reduction,
-       union, defining_equation, ring
+       union, defining_equation, ring, ProjectivePlaneCurve
 
 ################################################################################
 
@@ -163,6 +163,25 @@ mutable struct ProjPlaneCurve{S} <: ProjectivePlaneCurve{S}
 end
 
 ProjPlaneCurve(eq::Oscar.MPolyElem_dec{S}) where {S <: FieldElem} = ProjPlaneCurve{S}(eq)
+
+@doc Markdown.doc"""
+    ProjPlaneCurve(f::MPolyElem{T}) where {T <: FieldElem}
+
+Given a homogeneous polynomial `f` in three variables with coefficients in a field,
+create the projective plane curve defined by `f`.
+
+# Examples
+```jldoctest
+julia> R, (x,y,z) = GradedPolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
+  x -> [1]
+  y -> [1]
+  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+
+julia> C = ProjPlaneCurve(z*x^2-y^3)
+Projective plane curve defined by x^2*z - y^3
+```
+"""
 function ProjPlaneCurve(eq::Oscar.MPolyElem{S}) where {S <: FieldElem}
   R, _ = grade(parent(eq))
   return ProjPlaneCurve{S}(R(eq))
@@ -279,10 +298,10 @@ julia> C = Oscar.AffinePlaneCurve(y^3*x^6 - y^6*x^2)
 Affine plane curve defined by x^6*y^3 - x^2*y^6
 
 julia> Oscar.curve_components(C)
-Dict{Oscar.PlaneCurveModule.AffinePlaneCurve{fmpq}, Int64} with 3 entries:
-  x^4 - y^3 => 1
+Dict{AffinePlaneCurve{fmpq}, Int64} with 3 entries:
   y         => 3
   x         => 2
+  x^4 - y^3 => 1
 ```
 """
 function curve_components(C::PlaneCurve{S}) where S <: FieldElem
@@ -445,8 +464,7 @@ Affine plane curve defined by -x^3 + x + y^2
 
 julia> Oscar.ring(C)
 (Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(-x^3 + x + y^2), Map from
-Multivariate Polynomial Ring in x, y over Rational Field to Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(-x^3 + x + y^2) defined by a julia-function with inverse
-)
+Multivariate Polynomial Ring in x, y over Rational Field to Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(-x^3 + x + y^2) defined by a julia-function with inverse)
 ```
 """
 function ring(C::PlaneCurve)
@@ -468,3 +486,21 @@ include("ParaPlaneCurves.jl")
 ################################################################################
 end
 using .PlaneCurveModule
+
+export Point, ideal_point, AffinePlaneCurve, ProjPlaneCurve, hash, degree,
+       jacobi_ideal, curve_components, isirreducible, isreduced, reduction,
+       union, defining_equation, ring, ProjectivePlaneCurve
+
+export issmooth, tangent, common_components, curve_intersect,
+       curve_singular_locus, issmooth_curve, multiplicity,
+       tangent_lines, intersection_multiplicity, aretransverse,
+       arithmetic_genus, geometric_genus
+
+export ProjCurve, defining_ideal, curve_components, reduction, isirreducible,
+       jacobi_ideal
+       
+export parametrization_plane_curve, adjoint_ideal, rational_point_conic,
+       parametrization_conic, map_to_rational_normal_curve,
+       rat_normal_curve_anticanonical_map, rat_normal_curve_It_Proj_Odd,
+       rat_normal_curve_It_Proj_Even, invert_birational_map
+

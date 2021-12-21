@@ -58,12 +58,14 @@ end
     val = GAP.evalstr( "[ [ 1, 2 ], [ 3, 4 ] ]" )
     @test GAP.gap_to_julia(fmpz_mat, val) == x
     @test fmpz_mat(val) == x
+    @test matrix(ZZ, val) == x
 
     # matrix containing small and large integers
     x = Nemo.ZZ[1 BigInt(2)^65; 3 4]
     val = GAP.evalstr( "[ [ 1, 2^65 ], [ 3, 4 ] ]" )
     @test GAP.gap_to_julia(fmpz_mat, val) == x
     @test fmpz_mat(val) == x
+    @test matrix(ZZ, val) == x
 
     # matrix containing non-integers
     val = GAP.evalstr( "[ [ 1/2, 2 ], [ 3, 4 ] ]" )
@@ -76,24 +78,28 @@ end
     val = GAP.evalstr( "[ [ 1, 2 ], [ 3, 4 ] ]" )
     @test GAP.gap_to_julia(fmpq_mat, val) == x
     @test fmpq_mat(val) == x
+    @test matrix(QQ, val) == x
 
     # matrix containing small and large integers
     x = Nemo.QQ[1 BigInt(2)^65; 3 4]
     val = GAP.evalstr( "[ [ 1, 2^65 ], [ 3, 4 ] ]" )
     @test GAP.gap_to_julia(fmpq_mat, val) == x
     @test fmpq_mat(val) == x
+    @test matrix(QQ, val) == x
 
     # matrix containing non-integer rationals, small numerator and denominator
     x = Nemo.QQ[fmpq(1, 2) 2; 3 4]
     val = GAP.evalstr( "[ [ 1/2, 2 ], [ 3, 4 ] ]" )
     @test GAP.gap_to_julia(fmpq_mat, val) == x
     @test fmpq_mat(val) == x
+    @test matrix(QQ, val) == x
 
     # matrix containing non-integer rationals, large numerator and denominator
     x = Nemo.QQ[fmpq(fmpz(2)^65, fmpz(3)^40) 2; 3 4]
     val = GAP.evalstr( "[ [ 2^65/3^40, 2 ], [ 3, 4 ] ]" )
     @test GAP.gap_to_julia(fmpq_mat, val) == x
     @test fmpq_mat(val) == x
+    @test matrix(QQ, val) == x
 
     # matrix containing non-rationals
     val = GAP.evalstr( "[ [ E(4), 2 ], [ 3, 4 ] ]" )
@@ -101,6 +107,7 @@ end
 end
 
 @testset "single cyclotomics" begin
+    # to cyclotomic fields
     F, z = CyclotomicField(1)
     @test F(GAP.evalstr("2^64")) == F(2)^64
 
@@ -111,6 +118,15 @@ end
     @test F(GAP.Globals.E(5)) == z^3
     @test F(GAP.Globals.E(3)) == z^5
 
+    # to `QabElem`
+    x = QabElem(GAP.evalstr("2^64"))
+    @test x == fmpz(2)^64
+
+    F, z = abelian_closure(QQ)
+    x = QabElem(GAP.evalstr("EB(5)"))
+    @test x == z(5) + z(5)^4
+
+    # not supported conversions
     F, z = quadratic_field(5)
     @test_throws ArgumentError F(GAP.Globals.Sqrt(5))
 
@@ -123,6 +139,8 @@ end
     gapF = GAP.Globals.AlgebraicExtension(GAP.Globals.Rationals, pol)
     a = GAP.Globals.PrimitiveElement(gapF)
     @test_throws ArgumentError F(a)
+
+    @test_throws ErrorException QabElem(GAP.evalstr("[ E(3) ]"))
 end
 
 @testset "matrices over a cyclotomic field" begin

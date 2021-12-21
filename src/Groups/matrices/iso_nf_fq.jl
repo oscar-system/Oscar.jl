@@ -53,7 +53,7 @@ function _reduce(M::MatrixElem{fmpq}, Fp)
   return map_entries(Fp, M)
 end
 
-function isomorphic_group_over_finite_field(G::MatrixGroup{T}) where T <: Union{fmpq, nf_elem}
+function _isomorphic_group_over_finite_field(G::MatrixGroup{T}) where T <: Union{fmpq, nf_elem}
    matrices = map(x -> x.elm, gens(G))
 
    Gp, GptoF, F, OtoFq = _isomorphic_group_over_finite_field(matrices)
@@ -65,12 +65,21 @@ function isomorphic_group_over_finite_field(G::MatrixGroup{T}) where T <: Union{
    gen = gens(G)
 
    preimg = function(y)
-     return GAP.Globals.MappedWord(GAP.Globals.UnderlyingElement(GAP.Globals.Image(GptoF, Gp.mat_iso(y.elm))),
+     return GAP.Globals.MappedWord(GAP.Globals.UnderlyingElement(GAP.Globals.Image(GptoF, map_entries(Gp.ring_iso, y.elm))),
                                    GAP.Globals.FreeGeneratorsOfFpGroup(F),
                                    GAP.GapObj(gen))
    end
 
    return Gp, MapFromFunc(img, preimg, G, Gp)
+end
+
+function isomorphic_group_over_finite_field(G::MatrixGroup{T}) where T <: Union{fmpq, nf_elem}
+   res = get_attribute(G, :isomorphic_group_over_fq)
+   if res == nothing
+      res = _isomorphic_group_over_finite_field(G)
+      set_attribute!(G, :isomorphic_group_over_fq => res)
+   end
+   return res
 end
 
 # Detinko, Flannery, O'Brien "Recognizing finite matrix  groups over infinite

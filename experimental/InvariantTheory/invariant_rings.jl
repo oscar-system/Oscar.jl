@@ -184,6 +184,7 @@ end
 
 function reynolds_operator_via_oscar(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyElem}
   @assert !ismodular(IR)
+  @assert parent(f) === polynomial_ring(IR)
 
   if !isdefined(IR, :reynolds_operator)
     _prepare_reynolds_operator(IR)
@@ -399,6 +400,11 @@ julia> basis(IR, 3)
 ```
 """
 basis(IR::InvRing, d::Int, algo = :default) = collect(iterate_basis(IR, d, algo))
+
+# It's nice to have this for fmpz too (I think), but Singular can't handle them.
+# Not that it were a good idea to call this function with something that does not
+# fit into an Int.
+basis(IR::InvRing, d::fmpz) = basis(IR, Int(d))
 
 function primary_invariants_via_singular(IR::InvRing)
   if !isdefined(IR, :primary_singular)

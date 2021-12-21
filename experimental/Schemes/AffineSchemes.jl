@@ -11,9 +11,10 @@ export SpecMor
 export pullback, domain, codomain, preimage, restrict, graph
 
 @Markdown.doc """
-Scheme{ BaseRingType <: Ring }
+Scheme{BaseRingType<:Ring, BaseRingElemType<:RingElement} 
 
-A scheme over a ring ``k`` of type `BaseRingType`.
+A scheme over a ring ``𝕜`` of type `BaseRingType` with elements 
+of type `BaseRingElemType`.
 """
 abstract type Scheme{BaseRingType<:Ring, BaseRingElemType<:RingElement} end
 
@@ -25,23 +26,15 @@ struct EmptyScheme{BaseRingType, BaseRingElemType}<:Scheme{BaseRingType, BaseRin
 end
 
 @doc Markdown.doc"""
-AffineScheme{BaseRingType<:Ring, BaseRingElemType<:RingElement, RingType<:MPolyRing, RingElemType<:MPolyElem} <: Scheme{BaseRingType} 
+Spec{BRT, BRET, RT, RET, MST} <: Scheme{BRT, BRET}
 
-An affine scheme over a base ring ``k`` of type `BaseRingType` and
-elements of type `BaseRingElemType`, given by a ring ``R/I`` with ``R``
-a polynomial ring of type `RingType` and elements of type `RingElemType`.
-"""
-abstract type AffineScheme{BaseRingType<:Ring, BaseRingElemType<:RingElement, RingType<:MPolyRing, RingElemType<:MPolyElem, MultSetType<:AbsMPolyMultSet} <: Scheme{BaseRingType, BaseRingElemType} end
-
-@doc Markdown.doc"""
-Spec{BRT, BRET, RT, RET} <: AffineScheme{BRT, BRET, RT, RET}
-
-An affine scheme ``X = Spec (R/I)[S⁻¹]`` with ``R = k[x₁,…,xₙ]`` a free 
+An affine scheme ``X = Spec ((R/I)[S⁻¹])`` with ``R = k[x₁,…,xₙ]`` a free 
 polynomial algebra of type `RT` over a base ring ``k`` of type 
-`BRT` and ``I ⊂ R`` a finitely generated ideal 
-with elements of type `RET`.
+`BRT`, ``I ⊂ R`` a finitely generated ideal 
+with elements of type `RET`, and ``S`` a multiplicative set in ``R`` of 
+type `MST`.
 """
-mutable struct Spec{BRT, BRET, RT, RET, MST} <: AffineScheme{BRT, BRET, RT, RET, MST}
+mutable struct Spec{BRT, BRET, RT, RET, MST} <: Scheme{BRT, BRET}
   # the basic fields 
   OO::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}
   # fields for caching
@@ -55,6 +48,11 @@ end
 
 ### Getter functions
 
+@Markdown.doc """
+OO(X::Spec)
+
+For ``X = Spec ((𝕜[x₁,…,xₙ]/I)[S⁻¹])`` this returns ``(𝕜[x₁,…,xₙ]/I)[S⁻¹]``.
+"""
 OO(X::Spec) = X.OO
 
 function name_of(X::Spec) 
@@ -102,6 +100,12 @@ function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, I::MPolyIdeal{RET}) where {
   return Spec(quo(OO(X), I))
 end
   
+@Markdown.doc """
+subscheme(X::Spec{BRT, BRET, RT, RET, MST}, f::RET) where {BRT, BRET, RT, RET, MST}
+
+For a scheme ``X = Spec ((𝕜[x₁,…,xₙ]/I)[S⁻¹])`` and an element ``f ∈ 𝕜[x₁,…,xₙ]`` 
+this returns the closed subscheme defined by the ideal ``I' = I + ⟨f⟩``.
+"""
 function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, f::RET) where {BRT, BRET, RT, RET, MST}
   R = base_ring(OO(X))
   I = ideal(R, f)
@@ -127,6 +131,13 @@ function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, f::Vector{BRET}) where {BRT
 end
 
 ### open subschemes defined by complements of hypersurfaces
+@Markdown.doc """
+hypersurface_complement(X::Spec{BRT, BRET, RT, RET, MST}, f::RET) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
+
+For a scheme ``X = Spec ((𝕜[x₁,…,xₙ]/I)[S⁻¹])`` and an element ``f ∈ 𝕜[x₁,…,xₙ]`` 
+this returns the open subscheme ``U = X ∖ V(f)`` defined by the complement of the vanishing 
+locus of ``f``.
+"""
 function hypersurface_complement(X::Spec{BRT, BRET, RT, RET, MST}, f::RET) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
   R = base_ring(OO(X))
   parent(f) == R || error("the element does not belong to the correct ring")
@@ -157,6 +168,14 @@ end
 
 issubset(X::EmptyScheme{BRT, BRET}, Y::Scheme{BRT, BRET}) where {BRT, BRET} = true
 
+@Markdown.doc """
+issubset(
+  X::Spec{BRT, BRET, RT, RET, MST1}, 
+  Y::Spec{BRT, BRET, RT, RET, MST2}
+) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
+
+Checks whether ``X`` is a subset of ``Y`` based on the comparison of their coordinate rings.
+"""
 function issubset(
     X::Spec{BRT, BRET, RT, RET, MST1}, 
     Y::Spec{BRT, BRET, RT, RET, MST2}
@@ -182,6 +201,14 @@ function ==(
   return issubset(X, Y) && issubset(Y, X)
 end
 
+@Markdown.doc """
+is_open_embedding(
+  X::Spec{BRT, BRET, RT, RET, MST1}, 
+  Y::Spec{BRT, BRET, RT, RET, MST2}
+) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
+
+Checks whether ``X`` is openly embedded in ``Y``.
+"""
 function is_open_embedding(
     X::Spec{BRT, BRET, RT, RET, MST1}, 
     Y::Spec{BRT, BRET, RT, RET, MST2}
@@ -195,6 +222,14 @@ function is_open_embedding(
   return localized_modulus(OO(X)) == J 
 end
 
+@Markdown.doc """
+is_closed_embedding(
+  X::Spec{BRT, BRET, RT, RET, MST1}, 
+  Y::Spec{BRT, BRET, RT, RET, MST2}
+) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
+
+Checks whether ``X`` is closed embedded in ``Y``.
+"""
 function is_closed_embedding(
     X::Spec{BRT, BRET, RT, RET, MST1}, 
     Y::Spec{BRT, BRET, RT, RET, MST2}
@@ -231,6 +266,14 @@ function Base.intersect(
 end
 
 ### compute the closure of X in Y
+@Markdown.doc """
+closure(
+  X::Spec{BRT, BRET, RT, RET, MST1}, 
+  Y::Spec{BRT, BRET, RT, RET, MST2}
+) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
+
+Returns the closure of ``X`` in ``Y``.
+"""
 function closure(
     X::Spec{BRT, BRET, RT, RET, MST1}, 
     Y::Spec{BRT, BRET, RT, RET, MST2}
@@ -337,6 +380,12 @@ function inverse(f::SpecMor{BRT, BRET, RT, RET, MST1, MST2}) where {BRT, BRET, R
   return f.inverse
 end
 
+@Markdown.doc """
+product(X::Spec{BRT, BRET, RT, RET, MST}, Y::Spec{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement}
+
+Returns a triple ``(X×Y, p₁, p₂)`` consisting of the product ``X×Y`` and the two projections 
+``p₁ : X×Y → X`` and ``p₂ : X×Y → Y``.
+"""
 function product(X::Spec{BRT, BRET, RT, RET, MST}, Y::Spec{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement}
   K = OO(X)
   L = OO(Y) 

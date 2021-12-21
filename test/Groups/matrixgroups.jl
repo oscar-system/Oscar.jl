@@ -1,9 +1,9 @@
-@testset "Oscar-GAP relationship" begin
+@testset "Oscar-GAP relationship for finite fields" begin
 
    @testset for (p,d) in [(2,1),(5,1),(2,4),(3,3),(2,8)]
       F, _ = GF(p,d)
       f = Oscar.ring_iso_oscar_gap(F)
-      g = Oscar.mat_iso_oscar_gap(F, 4, f)
+      g = elm -> map_entries(f, elm)
       for a in F
          for b in F
             @test f(a*b)==f(a)*f(b)
@@ -19,13 +19,25 @@
       end
    end
 
+   # Test a large non-prime field.
+   # (Oscar chooses a polynomial that is not a Conway polynomial.)
+   p = next_prime(10^6)
+   F, _ = GF(p, 2)
+   f = Oscar.ring_iso_oscar_gap(F)
+   for x in [ F(3), gen(F) ]
+      a = f(x)
+      @test preimage(f, a) == x
+   end
+   @test GAP.Globals.DefiningPolynomial(codomain(f)) !=
+         GAP.Globals.ConwayPolynomial(p, 2)
+   @test GAP.Globals.IsAlgebraicExtension(codomain(f))
+
    F = GF(29,1)[1]
    z = F(2)
    G = GL(3,F)
    @test G.X isa GAP.GapObj
    @test isdefined(G,:X)
    @test isdefined(G, :ring_iso)
-   @test isdefined(G, :mat_iso)
    @test G.ring_iso(z) isa GAP.FFE
    Z = G.ring_iso(z)
    @test GAP.Globals.IN(Z,codomain(G.ring_iso))
@@ -46,11 +58,10 @@
 #   xg=GAP.julia_to_gap(xg)
 
    xg = GAP.GapObj([[G.ring_iso(xo[i,j]) for j in 1:3] for i in 1:3]; recursive=true)
-   @test G.mat_iso(xo) isa GAP.GapObj
-   @test G.mat_iso(xo)==xg
-   @test preimage(G.mat_iso, xg)==xo
-   @test preimage(G.mat_iso, GAP.Globals.One(GAP.Globals.GL(3,codomain(G.ring_iso))))==one(G).elm
-   @test GAP.Globals.Order(G.mat_iso(diagonal_matrix([z,z,one(F)])))==28
+   @test map_entries(G.ring_iso, xo) == xg
+   @test Oscar.preimage_matrix(G.ring_iso, xg) == xo
+   @test Oscar.preimage_matrix(G.ring_iso, GAP.Globals.One(GAP.Globals.GL(3, codomain(G.ring_iso)))) == one(G).elm
+   @test GAP.Globals.Order(map_entries(G.ring_iso, diagonal_matrix([z,z,one(F)]))) == 28
 
    T,t = PolynomialRing(GF(3),"t")
    F,z = FiniteField(t^2+1,"z")
@@ -58,7 +69,6 @@
    @test G.X isa GAP.GapObj
    @test isdefined(G,:X)
    @test isdefined(G, :ring_iso)
-   @test isdefined(G, :mat_iso)
    @test G.ring_iso(z) isa GAP.FFE
    Z = G.ring_iso(z)
    @testset for a in F
@@ -84,11 +94,67 @@
       xg[i] = GAP.julia_to_gap([G.ring_iso(xo[i,j]) for j in 1:3])
    end
    xg=GAP.julia_to_gap(xg)
-   @test G.mat_iso(xo)==xg
-   @test preimage(G.mat_iso, xg)==xo
-   @test preimage(G.mat_iso, GAP.Globals.One(GAP.Globals.GL(3,codomain(G.ring_iso))))==one(G).elm
-   @test GAP.Globals.Order(G.mat_iso(diagonal_matrix([z,z,one(F)])))==4
+   @test map_entries(G.ring_iso, xo) == xg
+   @test Oscar.preimage_matrix(G.ring_iso, xg) == xo
+   @test Oscar.preimage_matrix(G.ring_iso, GAP.Globals.One(GAP.Globals.GL(3, codomain(G.ring_iso)))) == one(G).elm
+   @test GAP.Globals.Order(map_entries(G.ring_iso, diagonal_matrix([z,z,one(F)])))==4
+end
 
+@testset "Oscar-GAP relationship for cyclotomic fields" begin
+   # for computing random elements of the fields in question
+   my_rand_bits(F::FlintRationalField, b::Int) = rand_bits(F, b)
+   my_rand_bits(F::AnticNumberField, b::Int) = F([rand_bits(QQ, b) for i in 1:degree(F)])
+
+   fields = Any[CyclotomicField(n) for n in [1, 3, 4, 5, 8, 15, 45]]
+   push!(fields, (QQ, 1))
+
+   @testset for (F, z) in fields
+      f = Oscar.ring_iso_oscar_gap(F)
+      g = elm -> map_entries(f, elm)
+      for i in 1:10
+         a = my_rand_bits(F, 5)
+         for j in 1:10
+            b = my_rand_bits(F, 5)
+            @test f(a*b) == f(a)*f(b)
+            @test f(a - b) == f(a) - f(b)
+         end
+      end
+      G = MatrixGroup(3, F)
+      mats = [matrix(F, [0 z 0; 0 0 1; 1 0 0]),
+              matrix(F, [0 1 0; 1 0 0; 0 0 1])]
+      G.gens = [MatrixGroupElem(G, m) for m in mats]
+      for a in gens(G)
+         for b in gens(G)
+            @test g(a.elm*b.elm) == g(a.elm)*g(b.elm)
+            @test g(a.elm - b.elm) == g(a.elm) - g(b.elm)
+         end
+      end
+      @test G.ring_iso(z) isa GAP.Obj
+      @test G.X isa GAP.GapObj
+      @test isdefined(G, :X)
+      @test isdefined(G, :ring_iso)
+      Z = G.ring_iso(z)
+      @test GAP.Globals.IN(Z, codomain(G.ring_iso))
+      @test preimage(G.ring_iso, Z) == z
+      @test domain(G.ring_iso) == F
+      @test GAP.Globals.IsField(codomain(G.ring_iso))
+      @test iszero(preimage(G.ring_iso, GAP.Globals.Zero(codomain(G.ring_iso))))
+      @test GAP.Globals.IsOne(G.ring_iso(one(F)))
+      @test isone(preimage(G.ring_iso, GAP.Globals.One(codomain(G.ring_iso))))
+
+      xo = matrix(F, 3, 3, [0, 1, 0, 0, 1, z, 0, 0, z])
+      xg = GAP.GapObj([[G.ring_iso(xo[i, j]) for j in 1:3] for i in 1:3]; recursive = true)
+      @test map_entries(G.ring_iso, xo) == xg
+      @test Oscar.preimage_matrix(G.ring_iso, xg) == xo
+      @test Oscar.preimage_matrix(G.ring_iso, GAP.Globals.IdentityMat(3)) == one(G).elm
+      if F isa AnticNumberField
+         flag, n = Hecke.iscyclotomic_type(F)
+         @test GAP.Globals.Order(map_entries(G.ring_iso, diagonal_matrix([z, z, one(F)]))) == n
+      end
+   end
+end
+
+@testset "faithful reduction from char. zero to finite fields" begin
    M = matrix(QQ, [ 0 1 0; -1 0 0; 0 0 -1 ])
    G, g = Oscar.isomorphic_group_over_finite_field(matrix_group([ M ]))
    for i in 1:10
@@ -148,7 +214,6 @@ end
    @test !isdefined(G,:X)
    @test !isdefined(G,:gens)
    @test !isdefined(G,:ring_iso)
-   @test !isdefined(G,:mat_iso)
 
    @test order(G)==5760
    @test order(G) isa fmpz
@@ -201,15 +266,15 @@ end
    @test K==matrix_group(x.elm, (x^2).elm, y.elm)
    @test K==matrix_group([x.elm, (x^2).elm, y.elm])
 
+   G = MatrixGroup(nrows(x), F)
+   G.gens = typeof(x)[]   # empty list of generators
+   G.X
+   @test one(G) == one(x)
 
    G = GL(3,F)
    x = G([1,z,0,0,z,0,0,0,z+1])
    @test order(x)==8
-   @test isdefined(G,:mat_iso)
 
-   G = GL(4,2)
-   @test G.mat_iso isa MapFromFunc
-   
    G = MatrixGroup(4,F)
    @test_throws ErrorException G.X
    setfield!(G,:descr,:GX)
@@ -445,7 +510,7 @@ end
    xg = GAP.Globals.Random(G.X)
    yg = GAP.Globals.Random(G.X)
    pg = MatrixGroupElem(G, xg*yg)
-   @test pg==MatrixGroupElem(G,preimage(G.mat_iso, xg))*MatrixGroupElem(G,preimage(G.mat_iso, yg))
+   @test pg == MatrixGroupElem(G, Oscar.preimage_matrix(G.ring_iso, xg))*MatrixGroupElem(G, Oscar.preimage_matrix(G.ring_iso, yg))
 
    O = GO(-1,2,F)
    S = SL(2,F)
@@ -472,8 +537,6 @@ end
    @test parent(f(S[1]))==G
    @test f(S[1])==G(S[1])
    @test f(S[2])==G(S[2])
-   @test isdefined(S,:mat_iso)
-   @test S.mat_iso==G.mat_iso
    O = GO(1,2,F)
    H = intersect(S,O)[1]
    @test H==SO(1,2,F)
@@ -611,4 +674,24 @@ end
       end
       @test c==order(GL(3,9))*order(GL(2,9))*8*BigInt(9)^32
    end
+end
+
+@testset "isometry group" begin
+   q = quadratic_space(QQ,QQ[2 1; 1 2])
+   L = lattice(q, QQ[1 0; 0 1])
+   G = isometry_group(L)
+   @test order(G) == 12
+   @test isometry_group(L) == orthogonal_group(L)
+   # L = lattice(q, QQ[0 0; 0 0], isbasis=false)
+   # @test order(isometry_group(L)) == 1
+
+   Qx, x = PolynomialRing(FlintQQ, "x", cached = false)
+   f = x^2-2;
+   K, a = number_field(f)
+   D = matrix(K, 3, 3, [2, 0, 0, 0, 1, 0, 0, 0, 7436]);
+   gens = [[13, 0, 0], [156*a+143, 0, 0], [3//2*a+5, 1, 0], [3//2*a+5, 1, 0], [21//2*a, 0, 1//26], [21//2*a, 0, 1//26]]
+   L = quadratic_lattice(K, generators = gens, gram_ambient_space = D)
+   G = orthogonal_group(L)
+   g = -identity_matrix(K, 3)
+   @test g in G
 end

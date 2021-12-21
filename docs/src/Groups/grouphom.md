@@ -140,11 +140,10 @@ true
 
 ## Properties of homomorphisms
 
-Oscar implements the following attributes of homomorphisms.
+Oscar implements the following attributes of homomorphisms,
+in addition to the usual `domain` and `codomain`.
 
 ```@docs
-domain(f::GAPGroupHomomorphism)
-codomain(f::GAPGroupHomomorphism)
 isinjective(f::GAPGroupHomomorphism)
 issurjective(f::GAPGroupHomomorphism)
 isbijective(f::GAPGroupHomomorphism)

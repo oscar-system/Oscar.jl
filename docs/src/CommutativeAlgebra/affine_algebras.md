@@ -18,22 +18,27 @@ modulo an ideal $I$ of $R$, we refer to $A$ as an affine algebra over $C$, or an
 functionality for handling such algebras in OSCAR.
 
 !!! note
+    If $R$ is graded, the modulus $I$ is required to be homogeneous, so that $R/I$ inherits the grading. 
+
+!!! note
     As for the entire chapter on commutative algebra, most of the functions discussed here rely on Gröbner basis techniques. They are implemented for affine algebras over fields (exact fields supported by OSCAR) and, if not indicated otherwise, for affine algebras over the integers.
 
-The polynomial rings (affine algebras) considered may or may not have an assigned grading.
+!!! note
+    In Oscar, elements of quotient rings are not necessarily reduced with regard to the modulus of the quotient ring.
+    Operations involving Gröbner basis computations may lead to partial reductions. Full reductions, depending on the choice of a monomial ordering, are achieved by explicitly computing normal forms. The functions `simplify` and `simplify!` discussed in this section implements this.
 
-## Constructor
+
+## Types
+
+!!! note
+    All types for quotient rings of  multivariate polynomial rings belong to the abstract type `MPolyQuo{T}`,
+    irrespective of whether they are graded or not.
+    
+## Constructors
 
 ```@docs
 quo(R::MPolyRing, I::MPolyIdeal)
 ```
-
-!!! note
-    With or without an assigned grading, the return types of `quo` are  subtypes of `MPolyQuo`.
-
-!!! note
-    In Oscar, elements of quotient rings are not necessarily reduced with regard to the modulus of the quotient ring.
-    Operations involving Gröbner basis computations may lead to partial reductions. Full reductions, depending on the choice of a monomial ordering, are achieved by explicitly computing normal forms. The functions `simplify` and `simplify!` discussed in the sections below implements this.
 
 ## Data Associated to Affine Algebras
 
@@ -50,7 +55,7 @@ If `A=R/I` is the quotient ring of a multivariate polynomial ring `R` modulo an 
 
 ```@repl oscar
 R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-A, _ = quo(R, ideal(R, [y-x^2, x-z^3]))
+A, _ = quo(R, ideal(R, [y-x^2, z-x^3]))
 base_ring(A)
 modulus(A)
 gens(A)
@@ -74,7 +79,7 @@ simplify(f::MPolyQuoElem)
 ### Tests on Elements of Affine Algebras
 
 ```@docs
- ==(f::MPolyQuoElem, g::MPolyQuoElem)
+==(f::MPolyQuoElem{T}, g::MPolyQuoElem{T}) where T
 ```
 
 ## Ideals in Affine Algebras
@@ -101,6 +106,17 @@ If `a` is an ideal of the affine algebra `A`, then
 - `gens(a)` to the generators of `a`, and
 - `ngens(a)` to the number of these generators.
 
+###### Examples
+
+```@repl oscar
+R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+A, _ = quo(R, ideal(R, [y-x^2, z-x^3]));
+a = ideal(A, [x-y])
+base_ring(a)
+gens(a)
+ngens(a)
+```
+
 
 #### Dimension of Ideals in Affine Algebras
 
@@ -120,25 +136,25 @@ dim(a::MPolyQuoIdeal)
 ##### Sum of Ideals
 
 ```@docs
-:+(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
+:+(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 ```
 
 ##### Product of Ideals
 
 ```@docs
-:*(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
+:*(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 ```
 
 #### Intersection of Ideals
 
 ```@docs
-intersect(a::MPolyQuoIdeal, bs::MPolyQuoIdeal...)
+intersect(a::MPolyQuoIdeal{T}, bs::MPolyQuoIdeal{T}...) where T
 ```
 
 #### Ideal Quotients
 
 ```@docs
-quotient(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
+quotient(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 ```
 
 ### Tests on Ideals in Affine Algebras
@@ -152,13 +168,13 @@ iszero(a::MPolyQuoIdeal)
 #### Equality of Ideals in Affine Algebras
 
 ```@docs
-:(==)(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
+==(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 ```
 
 #### Containment of Ideals in Affine Algebras
 
 ```@docs
-issubset(a::MPolyQuoIdeal, b::MPolyQuoIdeal)
+issubset(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
 ```
 
 ## Homomorphisms of Affine Algebras
@@ -175,20 +191,11 @@ X <: Union{S, MPolyQuoElem{S}}}
 
 ### Data Associated to Homomorphisms of Affine Algebras
 
-
-```@docs
-domain(F::AlgHom)
-```
-
-```@docs
-codomain(F::AlgHom)
-```
+The usual methods for maps are supported, such
+as `domain` and `codomain`.
 
 ```@docs
 preimage(F::AlgHom, I::U) where U <: Union{MPolyIdeal, MPolyQuoIdeal}
-```
-
-```@docs
 kernel(F::AlgHom)
 ```
 
@@ -221,17 +228,8 @@ steinerRomanSurface = preimage(F3, sphere)
 
 ```@docs
 isinjective(F::AlgHom)
-```
-
-```@docs
 issurjective(F::AlgHom)
-```
-
-```@docs
 isbijective(F::AlgHom)
-```
-
-```@docs
 isfinite(F::AlgHom)
 ```
 
@@ -268,19 +266,13 @@ compose(F::AlgHom{T}, G::AlgHom{T}) where T
 ### Subalgebra Membership
 
 ```@docs
-subalgebra_membership(f::S, v::Vector{S}) where S <: Union{MPolyElem, MPolyQuoElem}
-```
-```@repl oscar 
-R, x = PolynomialRing(QQ, :x => 1:3)
-f = x[1]^6*x[2]^6-x[1]^6*x[3]^6;
-v = [x[1]^3*x[2]^3-x[1]^3*x[3]^3, x[1]^3*x[2]^3+x[1]^3*x[3]^3]
-subalgebra_membership(f,v)
+subalgebra_membership(f::T, v::Vector{T}) where T <: Union{MPolyElem, MPolyQuoElem}
 ```
 
 ### Minimal Subalgebra Generators
 
 ```@docs
-minimal_subalgebra_generators(V::Vector{S}) where S <: Union{MPolyElem, MPolyQuoElem}
+minimal_subalgebra_generators(V::Vector{T}) where T <: Union{MPolyElem, MPolyQuoElem}
 ```
 
 ## Noether Normalization
@@ -292,8 +284,8 @@ noether_normalization(A::MPolyQuo)
 ###### Example
 
 ```@repl oscar
-R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-A, _ = quo(R, ideal(R, [x*y, x*z]))
+R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+A, _ = quo(R, ideal(R, [x*y, x*z]));
 L = noether_normalization(A);
 L[1]
 L[2]
@@ -304,9 +296,6 @@ L[3]
 
 ```@docs
 normalization(A::MPolyQuo)
-```
-
-```@docs
 normalization_with_delta(A::MPolyQuo)
 ```
 
@@ -400,36 +389,22 @@ Furthermore, the *degree* of $A$ is defined as the dimension of $A$ over $K$ if 
 is finite, and as the integer $d$ such that the leading term of the
 Hilbert polynomial has the form $d t^e/e!$, otherwise.
 
-CAVEAT: Currently only implemented in the case where the weights on the variables are all 1.
+!!! warning
+    Currently, all functions described below are only implemented in the case where the weights on the variables are all 1.
 
 ```@docs
 hilbert_series(A::MPolyQuo)
-```
-
-```@docs
 hilbert_series_reduced(A::MPolyQuo)
-```
-
-```@docs
 hilbert_series_expanded(A::MPolyQuo, d::Int)
-```
-
-```@docs
 hilbert_function(A::MPolyQuo, d::Int)
-```
-
-```@docs
 hilbert_polynomial(A::MPolyQuo)
-```
-
-```@docs
 degree(A::MPolyQuo)
 ```
 
 ###### Examples
 
 ```@repl oscar
-R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"])
+R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"]);
 A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 hilbert_series(A)
 hilbert_series_reduced(A)
