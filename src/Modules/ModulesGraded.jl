@@ -345,7 +345,7 @@ function degree_homogeneous_helper(u::FreeModElem_dec)
       end
     end
   end
-  return w, homogeneous
+  return ww, homogeneous
 end
 
 @doc Markdown.doc"""
@@ -413,10 +413,20 @@ end
 
 
 
+@doc Markdown.doc"""
+    tensor_product(G::FreeMod_dec...; task::Symbol = :none)
+
+Given decorated free modules $G_i$ compute the decorated tensor product 
+$G_1\otimes \cdots \otimes G_n$.
+If `task` is set to ":map", a map $\phi$ is returned that
+maps tuples in $G_1 \times \cdots \times G_n$ to pure tensors
+$g_1 \otimes \cdots \otimes g_n$. The map admits a preimage as well.
+"""
 function tensor_product(G::FreeMod_dec...; task::Symbol = :none)
   undecorated_tensor_product, tuple_to_pure = tensor_product(map(forget_decoration, G)...; task=:map)
   pure_to_tuple = inv(tuple_to_pure)
-  d = [sum(map(degree, [FreeModElem_dec(elem,parent) for (elem,parent) in zip(pure_to_tuple(v),G)])) for v in gens(undecorated_tensor_product)]
+  d = [sum(map(degree, [FreeModElem_dec(elem,parent) for (elem,parent) in zip(pure_to_tuple(v),G)])) 
+                                                    for v in gens(undecorated_tensor_product)]
   F = FreeMod_dec(undecorated_tensor_product, d)
 
   function pure(T::Tuple)
@@ -435,3 +445,4 @@ function tensor_product(G::FreeMod_dec...; task::Symbol = :none)
   end
   return F, MapFromFunc(pure, inv_pure, Hecke.TupleParent(Tuple([g[0] for g = G])), F)
 end
+
