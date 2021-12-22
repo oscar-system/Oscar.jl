@@ -84,9 +84,11 @@ end
 
 _reindexset(M::Set{Int}, ind::Vector{Int}) = [ ind[x+1] for x in M ]
 
-function _characteristicvector(M::Vector{Int}, n::Int)
+function _characteristicvector(M::Set{Int}, n::Int)
     chi = zeros(Int, n)
-    chi[M] .= 1
+    for x in M
+        chi[x] = 1
+    end
     return chi
 end
 
@@ -109,7 +111,7 @@ Maximal (by inclusion) faces of the abstract simplicial complex `K`.
 function facets(K::SimplicialComplex)
     bigobject = pm_object(K)
     the_facets = Vector{Set{Int}}(bigobject.FACETS)
-    return [ [x+1 for x in sigma] for sigma in the_facets ] # shift polymake indices by one
+    return Polymake.to_one_based_indexing(the_facets)
 end
 
 @doc Markdown.doc"""
@@ -161,11 +163,7 @@ julia> minimalnonfaces(K)
  [1, 4]
 ```
 """
-function minimalnonfaces(K::SimplicialComplex)
-    bigobject = pm_object(K)
-    mnf = Vector{Set{Int}}(bigobject.MINIMAL_NON_FACES)
-    return [ [x+1 for x in f] for f in mnf ] # shift polymake indices by one
-end
+minimalnonfaces(K::SimplicialComplex) = Vector{Set{Int}}(Polymake.to_one_based_indexing(pm_object(K).MINIMAL_NON_FACES))
 
 @doc Markdown.doc"""
     stanley_reisner_ideal(K::SimplicialComplex)
@@ -181,7 +179,25 @@ ideal(x1*x2*x3, x1*x2*x4, x1*x5*x6, x2*x5*x6, x1*x3*x6, x1*x4*x5, x3*x4*x5, x3*x
 function stanley_reisner_ideal(K::SimplicialComplex)
     n = nvertices(K)
     R, () = PolynomialRing(ZZ, n)
-    return ideal([ R([ZZ(1)], [_characteristicvector(f,n)]) for f in minimalnonfaces(K) ])
+    return stanley_reisner_ideal(R, K)
+end
+
+@doc Markdown.doc"""
+    stanley_reisner_ideal(R::FmpzMPolyRing, K::SimplicialComplex)
+
+Stanley-Reisner ideal of the abstract simplicial complex `K`, in the given ring `R`.
+
+# Example
+```jldoctest
+julia> R, () = ZZ["y1","y2","y3","y4","y5","y6"];
+
+julia> stanley_reisner_ideal(R, realprojectiveplane())
+ideal(y1*y2*y3, y1*y2*y4, y1*y5*y6, y2*y5*y6, y1*y3*y6, y1*y4*y5, y3*y4*y5, y3*y4*y6, y2*y3*y5, y2*y4*y6)
+```
+"""
+function stanley_reisner_ideal(R::FmpzMPolyRing, K::SimplicialComplex)
+    n = nvertices(K)
+    return ideal([ R([1], [_characteristicvector(f,n)]) for f in minimalnonfaces(K) ])
 end
 
 @doc Markdown.doc"""
@@ -268,7 +284,7 @@ Load a SimplicialComplex stored in JSON format, given the filename as input.
 function load_simplicialcomplex(filename::String)
    bigobject = Polymake.load_bigobject(filename)
    typename = Polymake.type_name(bigobject)
-   if typename[1:4] != "SimplicialComplex"
+   if typename[1:17] != "SimplicialComplex"
       throw(ArgumentError("Loaded object is not of type SimplicialComplex but rather " * typename))
    end
    return SimplicialComplex(bigobject)
