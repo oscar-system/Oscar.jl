@@ -42,8 +42,13 @@ While arbitrary nonnegative integers are allowed as vertices, they will be relab
 julia> K = SimplicialComplex([[1,2,3],[2,3,4]])
 Abstract simplicial complex of dimension 2 on 4 vertices
 ```
+# Simplicial complex comprising the empty set only
+```jldoctest
+julia> empty = SimplicialComplex(Vector{Set{Int}}([]))
+Abstract simplicial complex of dimension -1 on 0 vertices
+```
 # Example with relabeling
-The original vertices can be recovered later.
+The original vertices can be recovered.
 ```jldoctest
 julia> L = SimplicialComplex([[0,2,17],[2,17,90]]);
 
