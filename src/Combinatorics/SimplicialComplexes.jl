@@ -160,7 +160,7 @@ julia> K = SimplicialComplex([[1,2,3],[2,3,4]]);
 
 julia> minimal_nonfaces(K)
 1-element Vector{Vector{Int64}}:
- [1, 4]
+ Set([4, 1])
 ```
 """
 minimal_nonfaces(K::SimplicialComplex) = Vector{Set{Int}}(Polymake.to_one_based_indexing(pm_object(K).MINIMAL_NON_FACES))
