@@ -9,7 +9,7 @@ julia> H = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> td = ToricDivisor(H, [1,0,0,0])
-A torus invariant divisor on a normal toric variety
+A torus-invariant, prime divisor on a normal toric variety
 
 julia> iscartier(td)
 true
@@ -34,7 +34,7 @@ julia> H = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> td = ToricDivisor(H, [1,0,0,0])
-A torus invariant divisor on a normal toric variety
+A torus-invariant, prime divisor on a normal toric variety
 
 julia> isprincipal(td)
 false
@@ -59,7 +59,7 @@ julia> H = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> td = ToricDivisor(H, [1,0,0,0])
-A torus invariant divisor on a normal toric variety
+A torus-invariant, prime divisor on a normal toric variety
 
 julia> isbasepoint_free(td)
 true
@@ -84,7 +84,7 @@ julia> H = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> td = ToricDivisor(H, [1,0,0,0])
-A torus invariant divisor on a normal toric variety
+A torus-invariant, prime divisor on a normal toric variety
 
 julia> iseffective(td)
 true
@@ -109,7 +109,7 @@ julia> H = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> td = ToricDivisor(H, [1,0,0,0])
-A torus invariant divisor on a normal toric variety
+A torus-invariant, prime divisor on a normal toric variety
 
 julia> isintegral(td)
 true
@@ -134,7 +134,7 @@ julia> H = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> td = ToricDivisor(H, [1,0,0,0])
-A torus invariant divisor on a normal toric variety
+A torus-invariant, prime divisor on a normal toric variety
 
 julia> isample(td)
 false
@@ -159,7 +159,7 @@ julia> H = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> td = ToricDivisor(H, [1,0,0,0])
-A torus invariant divisor on a normal toric variety
+A torus-invariant, prime divisor on a normal toric variety
 
 julia> isvery_ample(td)
 false
@@ -184,7 +184,7 @@ julia> H = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> td = ToricDivisor(H, [1,0,0,0])
-A torus invariant divisor on a normal toric variety
+A torus-invariant, prime divisor on a normal toric variety
 
 julia> isnef(td)
 true
@@ -209,7 +209,7 @@ julia> H = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> td = ToricDivisor(H, [1,0,0,0])
-A torus invariant divisor on a normal toric variety
+A torus-invariant, prime divisor on a normal toric variety
 
 julia> isq_cartier(td)
 true
@@ -235,7 +235,7 @@ julia> H = hirzebruch_surface(4)
 A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> td = ToricDivisor(H, [1,0,0,0])
-A torus invariant divisor on a normal toric variety
+A torus-invariant, prime divisor on a normal toric variety
 
 julia> isprime_divisor(td)
 true

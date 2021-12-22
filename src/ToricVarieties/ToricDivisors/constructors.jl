@@ -23,8 +23,8 @@ Construct the torus invariant divisor on the normal toric variety `v` as linear 
 
 # Examples
 ```jldoctest
-julia> show(ToricDivisor(toric_projective_space(2), [1,1,2]))
-A torus invariant divisor on a normal toric variety
+julia> ToricDivisor(toric_projective_space(2), [1,1,2])
+A torus-invariant, non-prime divisor on a normal toric variety
 ```
 """
 function ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{Int})
@@ -40,6 +40,7 @@ function ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{Int})
     
     # set attributes
     set_attribute!(td, :coefficients, coeffs)
+    set_attribute!(td, :toricvariety, v)
     if sum(coeffs) != 1
         set_attribute!(td, :isprime_divisor, false)
     else
@@ -63,8 +64,8 @@ Construct the torus invariant divisor associated to a character of the normal to
 
 # Examples
 ```jldoctest
-julia> show(DivisorOfCharacter(toric_projective_space(2), [1,2]))
-A torus invariant divisor on a normal toric variety
+julia> DivisorOfCharacter(toric_projective_space(2), [1,2])
+A torus-invariant, non-prime divisor on a normal toric variety
 ```
 """
 function DivisorOfCharacter(v::AbstractNormalToricVariety, character::Vector{Int})
@@ -79,11 +80,103 @@ end
 export DivisorOfCharacter
 
 
-###############################################################################
-###############################################################################
+######################
 ### 4: Display
-###############################################################################
-###############################################################################
+######################s
+
 function Base.show(io::IO, td::ToricDivisor)
-    print(io, "A torus invariant divisor on a normal toric variety")
+    # initiate properties string
+    properties_string = ["A torus-invariant"]
+    
+    # cartier?
+    if has_attribute(td, :iscartier)
+        if get_attribute(td, :iscartier)
+            push!(properties_string, "cartier")
+        else
+            if has_attribute(td, :isq_cartier)
+                if get_attribute(td, :isq_cartier)
+                    push!(properties_string, "q-cartier")
+                else
+                    push!(properties_string, "non-q-cartier")
+                end
+            else
+                push!(properties_string, "non-cartier")
+            end
+        end
+    end
+    
+    # principal?
+    if has_attribute(td, :isprincipal)
+        if get_attribute(td, :isprincipal)
+            push!(properties_string, "principal")
+        else
+            push!(properties_string, "non-principal")
+        end
+    end
+    
+    # basepoint free?
+    if has_attribute(td, :isbasepoint_free)
+        if get_attribute(td, :isbasepoint_free)
+            push!(properties_string, "basepoint-free")
+        else
+            push!(properties_string, "non-basepoint-free")
+        end
+    end
+    
+    # effective?
+    if has_attribute(td, :iseffective)
+        if get_attribute(td, :iseffective)
+            push!(properties_string, "effective")
+        else
+            push!(properties_string, "non-effective")
+        end
+    end
+    
+    # integral?
+    if has_attribute(td, :isintegral)
+        if get_attribute(td, :isintegral)
+            push!(properties_string, "integral")
+        else
+            push!(properties_string, "non-integral")
+        end
+    end
+    
+    # (very) ample?
+    if has_attribute(td, :isample)
+        if get_attribute(td, :isample)
+            push!(properties_string, "ample")
+        else
+            if has_attribute(td, :isvery_ample)
+                if get_attribute(td, :isvery_ample)
+                    push!(properties_string, "very-ample")
+                else
+                    push!(properties_string, "non-very-ample")
+                end
+            else
+                push!(properties_string, "non-ample")
+            end
+        end
+    end
+    
+    # nef?
+    if has_attribute(td, :isnef)
+        if get_attribute(td, :isnef)
+            push!(properties_string, "nef")
+        else
+            push!(properties_string, "non-nef")
+        end
+    end
+    
+    # prime divisor?
+    if has_attribute(td, :isprime_divisor)
+        if get_attribute(td, :isprime_divisor)
+            push!(properties_string, "prime")
+        else
+            push!(properties_string, "non-prime")
+        end
+    end
+    
+    # print
+    push!(properties_string, "divisor on a normal toric variety")
+    join(io, properties_string, ", ", " ")
 end
