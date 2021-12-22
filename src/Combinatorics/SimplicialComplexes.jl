@@ -9,7 +9,7 @@ export
     facets,
     f_vector,
     h_vector,
-    minimalnonfaces,
+    minimal_nonfaces,
     nvertices,
     stanley_reisner_ideal,
     stanley_reisner_ring,
@@ -84,7 +84,7 @@ end
 
 _reindexset(M::Set{Int}, ind::Vector{Int}) = [ ind[x+1] for x in M ]
 
-function _characteristicvector(M::Set{Int}, n::Int)
+function _characteristic_vector(M::Set{Int}, n::Int)
     chi = zeros(Int, n)
     for x in M
         chi[x] = 1
@@ -150,7 +150,7 @@ Reduced Euler characteristic of the abstract simplicial complex `K`.
 euler_characteristic(K::SimplicialComplex) = pm_object(K).EULER_CHARACTERISTIC
 
 @doc Markdown.doc"""
-    minimalnonfaces(K::SimplicialComplex)
+    minimal_nonfaces(K::SimplicialComplex)
 
 Minimal non-faces of the abstract simplicial complex `K`.
 
@@ -158,12 +158,12 @@ Minimal non-faces of the abstract simplicial complex `K`.
 ```jldoctest
 julia> K = SimplicialComplex([[1,2,3],[2,3,4]]);
 
-julia> minimalnonfaces(K)
+julia> minimal_nonfaces(K)
 1-element Vector{Vector{Int64}}:
  [1, 4]
 ```
 """
-minimalnonfaces(K::SimplicialComplex) = Vector{Set{Int}}(Polymake.to_one_based_indexing(pm_object(K).MINIMAL_NON_FACES))
+minimal_nonfaces(K::SimplicialComplex) = Vector{Set{Int}}(Polymake.to_one_based_indexing(pm_object(K).MINIMAL_NON_FACES))
 
 @doc Markdown.doc"""
     stanley_reisner_ideal(K::SimplicialComplex)
@@ -189,15 +189,15 @@ Stanley-Reisner ideal of the abstract simplicial complex `K`, in the given ring 
 
 # Example
 ```jldoctest
-julia> R, () = ZZ["y1","y2","y3","y4","y5","y6"];
+julia> R, () = ZZ["a","b","c","d","e","f"];
 
 julia> stanley_reisner_ideal(R, realprojectiveplane())
-ideal(y1*y2*y3, y1*y2*y4, y1*y5*y6, y2*y5*y6, y1*y3*y6, y1*y4*y5, y3*y4*y5, y3*y4*y6, y2*y3*y5, y2*y4*y6)
+ideal(a*b*c, a*b*d, a*e*f, b*e*f, a*c*f, a*d*e, c*d*e, c*d*f, b*c*e, b*d*f)
 ```
 """
 function stanley_reisner_ideal(R::FmpzMPolyRing, K::SimplicialComplex)
     n = nvertices(K)
-    return ideal([ R([1], [_characteristicvector(f,n)]) for f in minimalnonfaces(K) ])
+    return ideal([ R([1], [_characteristic_vector(f,n)]) for f in minimal_nonfaces(K) ])
 end
 
 @doc Markdown.doc"""
@@ -215,10 +215,26 @@ Multivariate Polynomial Ring in x1, x2, x3, x4 over Integer Ring to Quotient of 
 ```
 """
 function stanley_reisner_ring(K::SimplicialComplex)
-    I = stanley_reisner_ideal(K)
-    return quo(base_ring(I),I)
+    n = nvertices(K)
+    R, () = PolynomialRing(ZZ, n)
+    return stanley_reisner_ring(R, K)
 end
 
+@doc Markdown.doc"""
+    stanley_reisner_ring(R::FmpzMPolyRing, K::SimplicialComplex)
+
+Stanley-Reisner ring of the abstract simplicial complex `K`, as a quotient of a given ring `R`.
+
+# Example
+```jldoctest
+julia>  R, () = ZZ["a","b","c","d","e","f"];
+
+julia> stanley_reisner_ring(R, realprojectiveplane())
+(Quotient of Multivariate Polynomial Ring in 6 variables a, b, c, d, ..., f over Integer Ring by ideal(a*b*c, a*b*d, a*e*f, b*e*f, a*c*f, a*d*e, c*d*e, c*d*f, b*c*e, b*d*f), Map from
+Multivariate Polynomial Ring in 6 variables a, b, c, d, ..., f over Integer Ring to Quotient of Multivariate Polynomial Ring in 6 variables a, b, c, d, ..., f over Integer Ring by ideal(a*b*c, a*b*d, a*e*f, b*e*f, a*c*f, a*d*e, c*d*e, c*d*f, b*c*e, b*d*f) defined by a julia-function with inverse)
+```
+"""
+stanley_reisner_ring(R::FmpzMPolyRing, K::SimplicialComplex) = quo(R, stanley_reisner_ideal(R, K))
 
 ################################################################################
 ##  Standard examples
