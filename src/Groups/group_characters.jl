@@ -670,7 +670,7 @@ function character_field(chi::GAPGroupClassFunction)
 
       # Compute the expression of powers of `z` as sums of roots of unity (once).
       powers = [coefficients(Hecke.force_coerce_cyclo(K, nfelm^i)) for i in 0:length(v)-2]
-      c = matrix(QQ, powers)'
+      c = transpose(matrix(QQ, powers))
 
       f = function(x::nf_elem)
         return QabElem(evaluate(R(x), nfelm), N)
@@ -685,7 +685,7 @@ function character_field(chi::GAPGroupClassFunction)
 
         # ... and then w.r.t. `F`
         a = coefficients(x)
-        b = solve(c, matrix(QQ,length(a),1,a))'
+        b = transpose(solve(c, matrix(QQ,length(a),1,a)))
         b = [b[i] for i in 1:length(b)]
         return F(b)
       end
