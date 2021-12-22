@@ -248,9 +248,43 @@ A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
 ```
 """
 function hirzebruch_surface(r::Int)
+    # construct the variety
     rays = [1 0; 0 1; -1 r; 0 -1]
     cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,1]])
-    return NormalToricVariety(PolyhedralFan(rays, cones))
+    variety = NormalToricVariety(PolyhedralFan(rays, cones))
+    
+    # set properties
+    set_attribute!(variety, :isaffine, false)
+    set_attribute!(variety, :isprojective, true)
+    set_attribute!(variety, :isprojective_space, false)
+    set_attribute!(variety, :issmooth, true)
+    set_attribute!(variety, :iscomplete, true)
+    set_attribute!(variety, :hastorusfactor, false)
+    set_attribute!(variety, :isorbifold, true)
+    set_attribute!(variety, :issimplicial, true)
+    set_attribute!(variety, :isgorenstein, true)
+    set_attribute!(variety, :isq_gorenstein, true)
+    if abs(r) <= 1
+        set_attribute!(variety, :isfano, true)
+    else
+        set_attribute!(variety, :isfano, false)
+    end
+    
+    # set attributes
+    set_attribute!(variety, :dim, 2)
+    set_attribute!(variety, :dim_of_torusfactor, 0)
+    set_attribute!(variety, :euler_characteristic, 4)
+    set_attribute!(variety, :character_lattice, free_abelian_group(2))
+    set_attribute!(variety, :torusinvariant_divisor_group, free_abelian_group(4))
+    set_attribute!(variety, :map_from_cartier_divisor_group_to_torus_invariant_divisor_group, Hecke.identity_map(torusinvariant_divisor_group(variety)))
+    set_attribute!(variety, :map_from_cartier_divisor_group_to_picard_group, map_from_weil_divisors_to_class_group(variety))
+    gens = Hecke.gens(cox_ring(variety))
+    set_attribute!(variety, :stanley_reisner_ideal, ideal([gens[1]*gens[3],gens[2]*gens[4]]))
+    set_attribute!(variety, :irrelevant_ideal, ideal([gens[1]*gens[2], gens[3]*gens[2], gens[1]*gens[4], gens[3]*gens[4]]))
+    set_attribute!(variety, :betti_number, [fmpz(1),fmpz(0),fmpz(2),fmpz(0),fmpz(1)])
+    
+    # return the result
+    return variety
 end
 export hirzebruch_surface
 
