@@ -18,6 +18,7 @@ function symbols(Kt::AbstractAlgebra.Generic.RationalFunctionField{K} where {K})
 end
 
 
+
 #=======
 function which coerces a polynomial in QQ(t)[x_1,...,x_n] into ZZ[t,x_1,...,x_n]
 Example:
@@ -52,6 +53,8 @@ function tropical_change_base_ring(Rtx::FmpqMPolyRing,f::AbstractAlgebra.Generic
   return fRtx
 end
 
+
+
 #=======
 function which coerces a polynomial in QQ[x_1,...,x_n] into ZZ[t,x_1,...,x_n]
 Example:
@@ -61,6 +64,8 @@ Rtx,(t,y1,y2,y3) = PolynomialRing(ZZ,4)
 tropical_change_base_ring(Rtx,f)
 =======#
 function tropical_change_base_ring(Rtx::FmpzMPolyRing,f::fmpq_mpoly)
+
+  # todo: rewrite to use MPolyBuildCtx
 
   R = coefficient_ring(Rtx)
   fRtx = zero(Rtx)
@@ -85,7 +90,7 @@ export tropical_change_base_ring
 
 
 #=======
-function which, given an ideal I in variables x1, ..., xn over a field with valuation,
+functions which, given an ideal I in variables x1, ..., xn over a field with valuation,
 returns an ideal vvI in variables t, x1, ..., xn such that tropical Groebner bases of I w.r.t. w
 correspond to standard bases of I w.r.t. (-1,w)
 =======#
@@ -106,7 +111,8 @@ function simulate_valuation(I,val_p::ValuationMap{FlintRationalField, fmpz})
   K = coefficient_ring(Kx)
 
   Rtx = PolynomialRing(ZZ,vcat([:t],symbols(Kx)))
-  vvI = tropical_change_base_ring(Rtx[1],I)
+  vvI = ideal([val_p.uniformizer-Rtx[2][1]])
+  vvI = vvI+tropical_change_base_ring(Rtx[1],I)
 
   return vvI
 end
@@ -142,6 +148,7 @@ function tropical_is_homogeneous(I::MPolyIdeal{K} where {K})
 end
 
 
+
 #=======
 tropical Groebner basis
 todo: proper documentation
@@ -153,17 +160,15 @@ I = ideal([x+2*y,y+2*z])
 tropical_groebner_basis(I,val,w)
 =======#
 function tropical_groebner_basis(I,val,w)
-  # 1: construct a valuation simulating ring
   vvI = simulate_valuation(I,val)
   w = vcat([-1],w)
 
   Rtx = base_ring(vvI)
-  println(gens(Rtx))
-  println(w)
-  o = Oscar.Orderings.singular(:a, gens(Rtx), w)*Oscar.Orderings.singular(:dp, gens(Rtx))
-  @warn "groebner_basis: work in progress, not fully functional yet"
+  # todo: replace with groebner_bases in OSCAR once more orderings are supported
+  S, _ = Singular.PolynomialRing(singular_ring(base_ring(Rtx)), map(string, Nemo.symbols(Rtx)), ordering = Singular.ordering_a(w)*Singular.ordering_dp())
+  SI = Singular.Ideal(S, [S(g) for g in gens(vvI)])
 
-  vvGB = groebner_basis(vvI,ordering=o) # this does not work yet
-  return vvGB
+  vvGB = Singular.std(SI)
+  return [Rtx(p) for p in Singular.gens(vvGB)]
 end
 export tropical_groebner_basis
