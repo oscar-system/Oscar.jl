@@ -34,13 +34,13 @@ SimplicialComplex(K::Vector{Vector{Int}})
 ```@docs
 torus()
 klein_bottle()
-realprojectiveplane()
+real_projective_plane()
 ```
 
 ### Other examples
 
 ```@docs
-complexprojectiveplane()
+complex_projective_plane()
 ```
 
 ## Basic properties
@@ -50,6 +50,8 @@ nvertices(K::SimplicialComplex)
 dim(K::SimplicialComplex)
 f_vector(K::SimplicialComplex)
 h_vector(K::SimplicialComplex)
+euler_characteristic(K::SimplicialComplex)
+betti_numbers(K::SimplicialComplex)
 ```
 
 ## Connection to commutative algebra
@@ -59,9 +61,11 @@ The minimal non-faces of $K$ generate a square-free monomial ideal, known as the
 The quotient of the polynomial ring (in $n$ variables, with integer coefficients) modulo that ideal is the *Stanley-Reisner ring*.
 For details see Chapter 5 of [BH09](@cite).
 ```@docs
-minimalnonfaces(K::SimplicialComplex)
+minimal_nonfaces(K::SimplicialComplex)
 stanley_reisner_ideal(K::SimplicialComplex)
 stanley_reisner_ring(K::SimplicialComplex)
+stanley_reisner_ideal(R::FmpzMPolyRing, K::SimplicialComplex)
+stanley_reisner_ring(R::FmpzMPolyRing, K::SimplicialComplex)
 ```
 
 ## Saving and loading

@@ -15,8 +15,8 @@ export
     stanley_reisner_ring,
     load_simplicialcomplex,
     save_simplicialcomplex,
-    complexprojectiveplane,
-    realprojectiveplane,
+    complex_projective_plane,
+    real_projective_plane,
     klein_bottle,
     torus # requires a distinction from, e.g., an algebraic group
 
@@ -82,6 +82,7 @@ function _vertexindices(K::Polymake.BigObject)
     end
 end
 
+# currently unused
 _reindexset(M::Set{Int}, ind::Vector{Int}) = [ ind[x+1] for x in M ]
 
 function _characteristic_vector(M::Set{Int}, n::Int)
@@ -100,6 +101,12 @@ end
     nvertices(K::SimplicialComplex)
 
 Number of vertices of the abstract simplicial complex `K`.
+
+# Example
+```jldoctest
+julia> nvertices(torus())
+7
+```
 """
 nvertices(K::SimplicialComplex) = pm_object(K).N_VERTICES
 
@@ -125,27 +132,61 @@ dim(K::SimplicialComplex) = pm_object(K).DIM
     f_vector(K::SimplicialComplex)
 
 Face vector (number of faces per dimension) of the abstract simplicial complex `K`.
+
+# Example
+```jldoctest
+julia> f_vector(torus())
+3-element Vector{Int64}:
+  7
+ 21
+ 14
+```
 """
 f_vector(K::SimplicialComplex) = Vector{Int}(pm_object(K).F_VECTOR)
 
 @doc Markdown.doc"""
-    f_vector(K::SimplicialComplex)
+    h_vector(K::SimplicialComplex)
 
 H-vector of the abstract simplicial complex `K`.
+
+# Example
+```jldoctest
+julia> h_vector(torus())
+4-element Vector{Int64}:
+  1
+  4
+ 10
+ -1
+```
 """
 h_vector(K::SimplicialComplex) = Vector{Int}(pm_object(K).H_VECTOR)
 
 @doc Markdown.doc"""
     betti_numbers(K::SimplicialComplex)
 
-Rational Betti numbers of the abstract simplicial complex `K`.
+Reduced rational Betti numbers of the abstract simplicial complex `K`.
+
+# Example
+```jldoctest
+julia> betti_numbers(klein_bottle())
+3-element Vector{Int64}:
+ 0
+ 1
+ 0
+```
 """
-betti_numbers(K::SimplicialComplex) = Polymake.topaz.betti_numbers(pm_object(K))
+betti_numbers(K::SimplicialComplex) = Vector{Int}(Polymake.topaz.betti_numbers(pm_object(K)))
 
 @doc Markdown.doc"""
     euler_characteristic(K::SimplicialComplex)
 
 Reduced Euler characteristic of the abstract simplicial complex `K`.
+
+# Example
+```jldoctest
+julia> euler_characteristic(complex_projective_plane())
+2
+```
 """
 euler_characteristic(K::SimplicialComplex) = pm_object(K).EULER_CHARACTERISTIC
 
@@ -172,7 +213,7 @@ Stanley-Reisner ideal of the abstract simplicial complex `K`.
 
 # Example
 ```jldoctest
-julia> stanley_reisner_ideal(realprojectiveplane())
+julia> stanley_reisner_ideal(real_projective_plane())
 ideal(x1*x2*x3, x1*x2*x4, x1*x5*x6, x2*x5*x6, x1*x3*x6, x1*x4*x5, x3*x4*x5, x3*x4*x6, x2*x3*x5, x2*x4*x6)
 ```
 """
@@ -191,7 +232,7 @@ Stanley-Reisner ideal of the abstract simplicial complex `K`, in the given ring 
 ```jldoctest
 julia> R, () = ZZ["a","b","c","d","e","f"];
 
-julia> stanley_reisner_ideal(R, realprojectiveplane())
+julia> stanley_reisner_ideal(R, real_projective_plane())
 ideal(a*b*c, a*b*d, a*e*f, b*e*f, a*c*f, a*d*e, c*d*e, c*d*f, b*c*e, b*d*f)
 ```
 """
@@ -229,7 +270,7 @@ Stanley-Reisner ring of the abstract simplicial complex `K`, as a quotient of a 
 ```jldoctest
 julia>  R, () = ZZ["a","b","c","d","e","f"];
 
-julia> stanley_reisner_ring(R, realprojectiveplane())
+julia> stanley_reisner_ring(R, real_projective_plane())
 (Quotient of Multivariate Polynomial Ring in 6 variables a, b, c, d, ..., f over Integer Ring by ideal(a*b*c, a*b*d, a*e*f, b*e*f, a*c*f, a*d*e, c*d*e, c*d*f, b*c*e, b*d*f), Map from
 Multivariate Polynomial Ring in 6 variables a, b, c, d, ..., f over Integer Ring to Quotient of Multivariate Polynomial Ring in 6 variables a, b, c, d, ..., f over Integer Ring by ideal(a*b*c, a*b*d, a*e*f, b*e*f, a*c*f, a*d*e, c*d*e, c*d*f, b*c*e, b*d*f) defined by a julia-function with inverse)
 ```
@@ -255,18 +296,18 @@ torus() = SimplicialComplex(Polymake.topaz.torus())
 klein_bottle() = SimplicialComplex(Polymake.topaz.klein_bottle())
 
 """
-    realprojectiveplane()
+    real_projective_plane()
 
 6-vertex triangulation of the real projective plane.
 """
-realprojectiveplane() = SimplicialComplex(Polymake.topaz.real_projective_plane())
+real_projective_plane() = SimplicialComplex(Polymake.topaz.real_projective_plane())
 
 """
-    complexprojectiveplane()
+    complex_projective_plane()
 
 9-vertex triangulation of the complex projective plane.
 """
-complexprojectiveplane() = SimplicialComplex(Polymake.topaz.complex_projective_plane())
+complex_projective_plane() = SimplicialComplex(Polymake.topaz.complex_projective_plane())
 
 ###############################################################################
 ### Display
