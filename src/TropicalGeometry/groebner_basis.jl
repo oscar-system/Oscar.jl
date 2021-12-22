@@ -1,12 +1,11 @@
 ###
-# Computing tropical Groebner bases in Oscar
-# ==========================================
+# Computing (tropical) Groebner bases in Oscar
+# ============================================
 #
 # For a definition of tropical Groebner basis see Section 2.4 in:
 #   D. Maclagan, B. Sturmfels: Introduction to tropical geometry
 # To see how they can be computed using standard bases see:
 #   T. Markwig, Y. Ren: Computing tropical varieties over fields with valuation
-#
 ###
 
 
