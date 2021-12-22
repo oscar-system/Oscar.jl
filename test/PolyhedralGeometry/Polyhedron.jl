@@ -80,8 +80,8 @@
         @test faces(square, 1)[2] == convex_hull([1 -1; 1 1])
         @test faces(square, 1)[3] == convex_hull([-1 -1; 1 -1])
         @test faces(square, 1)[4] == convex_hull([-1 1; 1 1])
-        @test vertex_incidences(faces(square, 1)) == IncidenceMatrix([[1, 3], [2, 4], [1, 2], [3, 4]])
-        @test ray_incidences(faces(square, 1)) == IncidenceMatrix(4, 0)
+        @test vertex_indices(faces(square, 1)) == IncidenceMatrix([[1, 3], [2, 4], [1, 2], [3, 4]])
+        @test ray_indices(faces(square, 1)) == IncidenceMatrix(4, 0)
         @test isnothing(faces(Q2, 0))
         v = vertices(minkowski_sum(Q0, square))
         @test length(v) == 5

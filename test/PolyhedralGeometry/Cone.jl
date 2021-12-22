@@ -72,7 +72,7 @@ const pm = Polymake
         @test faces(Cone2, 2)[1] == Cone([1 0 0], [0 1 0])
         @test faces(Cone2, 2)[2] == Cone([0 0 1], [0 1 0])
         @test isnothing(faces(Cone2, 1))
-        @test ray_incidences(faces(Cone2, 2)) == IncidenceMatrix([[1], [2]])
+        @test ray_indices(faces(Cone2, 2)) == IncidenceMatrix([[1], [2]])
 
         @test f_vector(Cone5) == [4, 4]
         @test f_vector(Cone2) == [0, 2]
