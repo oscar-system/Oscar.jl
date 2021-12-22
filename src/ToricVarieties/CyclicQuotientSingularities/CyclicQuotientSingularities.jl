@@ -25,7 +25,7 @@ $0<q<n$ and $q,n$ coprime.
 # Examples
 ```jldoctest
 julia> cqs = CyclicQuotientSingularity(7,5)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal toric variety
 
 julia> isaffine(cqs)
 true
@@ -60,7 +60,7 @@ differs in sign from what is commonly known as continued fraction.
 # Examples
 ```jldoctest
 julia> cqs = CyclicQuotientSingularity(7,5)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal toric variety
 
 julia> cf = continued_fraction_hirzebruch_jung(cqs)
 3-element Vector{fmpz}:
@@ -96,7 +96,7 @@ differs in sign from what is commonly known as continued fraction.
 # Examples
 ```jldoctest
 julia> cqs = CyclicQuotientSingularity(7,5)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal toric variety
 
 julia> dcf = dual_continued_fraction_hirzebruch_jung(cqs)
 2-element Vector{fmpz}:
@@ -130,7 +130,7 @@ differs in sign from what is commonly known as continued fraction.
 # Examples
 ```jldoctest
 julia> cqs = CyclicQuotientSingularity(7,5)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal toric variety
 
 julia> v = continued_fraction_hirzebruch_jung(cqs)
 3-element Vector{fmpz}:

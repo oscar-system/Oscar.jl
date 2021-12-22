@@ -64,7 +64,7 @@ Computes the Cox ring of the normal toric variety `v`.
 # Examples
 ```jdoctest
 julia> p2 = toric_projective_space(2)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> cox_ring(p2)
 (Multivariate Polynomial Ring in x[1], x[2], x[3] over Rational Field graded by 
@@ -92,7 +92,7 @@ Computes the Stanley-Reisner ideal of a normal toric variety `v`.
 # Examples
 ```jdoctest
 julia> p2 = toric_projective_space(2)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> ngens(stanley_reisner_ideal(P2))
 1
@@ -118,7 +118,7 @@ Computes the irrelevant ideal of a normal toric variety `v`.
 # Examples
 ```jdoctest
 julia> p2 = toric_projective_space(2)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> length(irrelevant_ideal(p2).gens)
 1
@@ -174,7 +174,7 @@ julia> C = positive_hull([1 0 0; 1 1 0; 1 0 1; 1 1 1])
 A polyhedral cone in ambient dimension 3
 
 julia> antv = AffineNormalToricVariety(C)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 3
+A normal, affine, non-complete toric variety
 
 julia> toric_ideal(antv)
 ideal(-x[1]*x[2] + x[3]*x[4])
@@ -204,7 +204,7 @@ Computes the character lattice of a normal toric variety `v`.
 # Examples
 ```jdoctest
 julia> p2 = toric_projective_space(2)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> character_lattice(p2)
 GrpAb: Z^2
@@ -227,7 +227,7 @@ Computes the torusinvariant divisor group of a normal toric variety `v`.
 # Examples
 ```jdoctest
 julia> p2 = toric_projective_space(2)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> torusinvariant_divisor_group(p2)
 GrpAb: Z^3
@@ -250,7 +250,7 @@ Computes the map from the character lattice to the group of principal divisors o
 # Examples
 ```jdoctest
 julia> p2 = toric_projective_space(2)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> map_from_character_to_principal_divisors(p2)
 Map with following data
@@ -281,7 +281,7 @@ Computes the list of all torus invariant prime divisors in a normal toric variet
 # Examples
 ```jdoctest
 julia> p2 = toric_projective_space(2)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> torusinvariant_prime_divisors(p2)
 Free module of rank 3 over Integer Ring
@@ -311,7 +311,7 @@ Computes the class group of the normal toric variety `v`.
 # Examples
 ```jdoctest
 julia> p2 = toric_projective_space(2)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> class_group(p2)
 Abelian group with structure: Z
@@ -363,7 +363,7 @@ torus-invariant Weil divisors of an abstract normal toric variety `v`.
 # Examples
 ```jdoctest
 julia> p2 = toric_projective_space(2)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> map_from_cartier_divisor_group_to_torus_invariant_divisor_group(p2)
 Map with following data
@@ -448,7 +448,7 @@ Computes the Cartier divisor group of an abstract normal toric variety `v`.
 # Examples
 ```jdoctest
 julia> p2 = toric_projective_space(2)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> cartier_divisor_group(p2)
 GrpAb: Z^3
@@ -472,7 +472,7 @@ of an abstract normal toric variety `v`.
 # Examples
 ```jdoctest
 julia> p2 = toric_projective_space(2)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> map_from_cartier_divisor_group_to_picard_group(p2)
 Map with following data
@@ -514,7 +514,7 @@ Computes the Picard group of an abstract normal toric variety `v`.
 # Examples
 ```jdoctest
 julia> p2 = toric_projective_space(2)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> picard_group(p2)
 GrpAb: Z
@@ -542,7 +542,7 @@ Computes the nef cone of the normal toric variety `v`.
 # Examples
 ```jldoctest
 julia> pp = toric_projective_space(2)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> nef = nef_cone(pp)
 A polyhedral cone in ambient dimension 1
@@ -568,7 +568,7 @@ Computes the mori cone of the normal toric variety `v`.
 # Examples
 ```jldoctest
 julia> pp = toric_projective_space(2)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> mori = mori_cone(pp)
 A polyhedral cone in ambient dimension 1
@@ -594,7 +594,7 @@ Computes the fan of an abstract normal toric variety `v`.
 # Examples
 ```jdoctest
 julia> p2 = toric_projective_space(2)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> fan(p2)
 A polyhedral fan in ambient dimension 2
@@ -642,13 +642,13 @@ Computes an affine open cover of the normal toric variety `v`, i.e. returns a li
 # Examples
 ```jldoctest
 julia> p2 = toric_projective_space(2)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> affine_open_covering(p2)
 3-element Vector{AffineNormalToricVariety}:
- A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
- A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
- A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+ A normal, affine, non-complete toric variety
+ A normal, affine, non-complete toric variety
+ A normal, affine, non-complete toric variety
 ```
 """
 function affine_open_covering(v::AbstractNormalToricVariety)

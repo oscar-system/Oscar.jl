@@ -1,5 +1,5 @@
-include("NormalToricVarieties/auxilliary.jl")
 include("NormalToricVarieties/constructors.jl")
+include("NormalToricVarieties/auxilliary.jl")
 include("NormalToricVarieties/properties.jl")
 include("NormalToricVarieties/attributes.jl")
 include("NormalToricVarieties/methods.jl")

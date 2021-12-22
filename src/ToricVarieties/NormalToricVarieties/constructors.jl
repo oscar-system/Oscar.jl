@@ -35,7 +35,7 @@ julia> C = positive_hull([1 0; 0 1])
 A polyhedral cone in ambient dimension 2
 
 julia> antv = AffineNormalToricVariety(C)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal, affine, non-complete toric variety
 ```
 """
 function AffineNormalToricVariety(C::Cone)
@@ -69,7 +69,7 @@ Set `C` to be the positive orthant in two dimensions.
 julia> C = positive_hull([1 0; 0 1])
 A polyhedral cone in ambient dimension 2
 julia> ntv = NormalToricVariety(C)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal, affine, non-complete toric variety
 ```
 """
 function NormalToricVariety(C::Cone)
@@ -105,7 +105,7 @@ julia> nf = normal_fan(square)
 A polyhedral fan in ambient dimension 2
 
 julia> ntv = NormalToricVariety(nf)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal toric variety
 ```
 """    
 function NormalToricVariety(PF::PolyhedralFan)
@@ -138,7 +138,7 @@ julia> square = cube(2)
 A polyhedron in ambient dimension 2
 
 julia> ntv = NormalToricVariety(square)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal toric variety
 ```
 """    
 function NormalToricVariety(P::Polyhedron)
@@ -159,10 +159,10 @@ this method turns it into an affine toric variety.
 # Examples
 ```jldoctest
 julia> v = NormalToricVariety(positive_hull([1 0; 0 1]))
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal, affine, non-complete toric variety
 
 julia> affineVariety = AffineNormalToricVariety(v)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal, affine, non-complete toric variety
 ```
 """
 function AffineNormalToricVariety(v::NormalToricVariety)
@@ -195,7 +195,7 @@ Construct the projective space of dimension `d`.
 # Examples
 ```jldoctest
 julia> toric_projective_space(2)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, fano, 2-dimensional toric variety without torusfactor
 ```
 """
 function toric_projective_space(d::Int)
@@ -244,7 +244,7 @@ Constructs the r-th Hirzebruch surface.
 # Examples
 ```jldoctest
 julia> hirzebruch_surface(5)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 ```
 """
 function hirzebruch_surface(r::Int)
@@ -297,7 +297,7 @@ Constructs the delPezzo surface with b blowups for b at most 3.
 # Examples
 ```jldoctest
 julia> del_pezzo(3)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, fano, 2-dimensional toric variety without torusfactor
 ```
 """
 function del_pezzo(b::Int)
@@ -407,10 +407,10 @@ Computes the blowup of the normal toric variety `v` on its i-th minimal torus or
 # Examples
 ```jldoctest
 julia> P2 = toric_projective_space(2)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> blowup_on_ith_minimal_torus_orbit(P2,1)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal toric variety
 ```
 """
 function blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int)
@@ -427,10 +427,10 @@ Computes the Cartesian/direct product of two normal toric varieties `v` and `w`.
 # Examples
 ```jldoctest
 julia> P2 = toric_projective_space(2)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> P2 * P2
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 4
+A normal toric variety
 ```
 """
 function Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety)
@@ -438,14 +438,95 @@ function Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety)
 end
 
 
-###############################################################################
-###############################################################################
+############################
 ### 5: Display
-###############################################################################
-###############################################################################
-function Base.show(io::IO, ntv::AbstractNormalToricVariety)
-    # fan = get_polyhedral_fan(ntv)
-    pmntv = pm_object(ntv)
-    ambdim = pmntv.FAN_AMBIENT_DIM
-    print(io, "A normal toric variety corresponding to a polyhedral fan in ambient dimension $(ambdim)")
+############################
+function Base.show(io::IO, v::AbstractNormalToricVariety)
+    # initiate properties string
+    properties_string = ["A normal"]
+
+    # affine?
+    if has_attribute(v, :isaffine)
+        if get_attribute(v, :isaffine)
+            push!(properties_string, "affine")
+        else
+            push!(properties_string, "non-affine")
+        end
+    end
+    
+    # smooth/simplicial?
+    if has_attribute(v, :issmooth)
+        if get_attribute(v, :issmooth)
+            push!(properties_string, "smooth")
+        else
+            if has_attribute(v, :issimplicial)
+                if get_attribute(v, :issimplicial)
+                    push!(properties_string, "simplicial")
+                else
+                    push!(properties_string, "non-smooth")
+                end
+            end
+        end
+    end
+    
+    # complete/projective?
+    if has_attribute(v, :iscomplete)
+        if get_attribute(v, :iscomplete)
+            if has_attribute(v, :isprojective)
+                if get_attribute(v, :isprojective)
+                    push!(properties_string, "projective")
+                end
+            else
+                push!(properties_string, "complete")
+            end
+        else
+            push!(properties_string, "non-complete")
+        end
+    end
+    
+    # gorenstein?
+    if has_attribute(v, :isgorenstein)
+        if get_attribute(v, :isgorenstein)
+            push!(properties_string, "gorenstein")
+        else
+            push!(properties_string, "non-gorenstein")
+        end
+    end
+    
+    # q-gorenstein?
+    if has_attribute(v, :isq_gorenstein)
+        if get_attribute(v, :isq_gorenstein)
+            push!(properties_string, "q-gorenstein")
+        else
+            push!(properties_string, "non-q-gorenstein")
+        end
+    end
+    
+    # fano?
+    if has_attribute(v, :isfano)
+        if get_attribute(v, :isfano)
+            push!(properties_string, "fano")
+        else
+            push!(properties_string, "non-fano")
+        end
+    end
+    
+    # dimension?
+    if has_attribute(v, :dim)
+        push!(properties_string, string(dim(v))*"-dimensional")
+    end
+    
+    # torusfactor?
+    if has_attribute(v, :hastorusfactor)
+        if get_attribute(v, :hastorusfactor)
+            push!(properties_string, "toric variety with torusfactor")
+        else
+            push!(properties_string, "toric variety without torusfactor")
+        end
+    else
+        push!(properties_string, "toric variety")
+    end
+    
+    # print the information
+    join(io, properties_string, ", ", " ")
 end
