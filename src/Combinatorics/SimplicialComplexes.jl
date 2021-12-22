@@ -159,7 +159,7 @@ Minimal non-faces of the abstract simplicial complex `K`.
 julia> K = SimplicialComplex([[1,2,3],[2,3,4]]);
 
 julia> minimal_nonfaces(K)
-1-element Vector{Vector{Int64}}:
+1-element Vector{Set{Int64}}:
  Set([4, 1])
 ```
 """
