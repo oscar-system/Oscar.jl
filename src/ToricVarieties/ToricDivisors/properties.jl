@@ -15,7 +15,12 @@ julia> iscartier(td)
 true
 ```
 """
-iscartier(td::ToricDivisor) = pm_tdivisor(td).CARTIER::Bool
+function iscartier(td::ToricDivisor)
+    if !has_attribute(td, :iscartier)
+        set_attribute!(td, :iscartier, pm_tdivisor(td).CARTIER::Bool)
+    end
+    return get_attribute(td, :iscartier)
+end
 export iscartier
 
 
@@ -35,7 +40,12 @@ julia> isprincipal(td)
 false
 ```
 """
-isprincipal(td::ToricDivisor) = pm_tdivisor(td).PRINCIPAL::Bool
+function isprincipal(td::ToricDivisor)
+    if !has_attribute(td, :isprincipal)
+        set_attribute!(td, :isprincipal, pm_tdivisor(td).PRINCIPAL::Bool)
+    end
+    return get_attribute(td, :isprincipal)
+end
 export isprincipal
 
 
@@ -55,7 +65,12 @@ julia> isbasepoint_free(td)
 true
 ```
 """
-isbasepoint_free(td::ToricDivisor) = pm_tdivisor(td).BASEPOINT_FREE::Bool
+function isbasepoint_free(td::ToricDivisor)
+    if !has_attribute(td, :isbasepoint_free)
+        set_attribute!(td, :isbasepoint_free, pm_tdivisor(td).BASEPOINT_FREE::Bool)
+    end
+    return get_attribute(td, :isbasepoint_free)
+end
 export isbasepoint_free
 
 
@@ -75,7 +90,12 @@ julia> iseffective(td)
 true
 ```
 """
-iseffective(td::ToricDivisor) = pm_tdivisor(td).EFFECTIVE::Bool
+function iseffective(td::ToricDivisor)
+    if !has_attribute(td, :iseffective)
+        set_attribute!(td, :iseffective, pm_tdivisor(td).EFFECTIVE::Bool)
+    end
+    return get_attribute(td, :iseffective)
+end
 export iseffective
 
 
@@ -95,7 +115,12 @@ julia> isintegral(td)
 true
 ```
 """
-isintegral(td::ToricDivisor) = pm_tdivisor(td).INTEGRAL::Bool
+function isintegral(td::ToricDivisor)
+    if !has_attribute(td, :isintegral)
+        set_attribute!(td, :isintegral, pm_tdivisor(td).INTEGRAL::Bool)
+    end
+    return get_attribute(td, :isintegral)
+end
 export isintegral
 
 
@@ -115,7 +140,12 @@ julia> isample(td)
 false
 ```
 """
-isample(td::ToricDivisor) = pm_tdivisor(td).AMPLE::Bool
+function isample(td::ToricDivisor)
+    if !has_attribute(td, :isample)
+        set_attribute!(td, :isample, pm_tdivisor(td).AMPLE::Bool)
+    end
+    return get_attribute(td, :isample)
+end
 export isample
 
 
@@ -135,7 +165,12 @@ julia> isvery_ample(td)
 false
 ```
 """
-isvery_ample(td::ToricDivisor) = pm_tdivisor(td).VERY_AMPLE::Bool
+function isvery_ample(td::ToricDivisor)
+    if !has_attribute(td, :isvery_ample)
+        set_attribute!(td, :isvery_ample, pm_tdivisor(td).VERY_AMPLE::Bool)
+    end
+    return get_attribute(td, :isvery_ample)
+end
 export isvery_ample
 
 
@@ -155,7 +190,12 @@ julia> isnef(td)
 true
 ```
 """
-isnef(td::ToricDivisor) = pm_tdivisor(td).NEF::Bool
+function isnef(td::ToricDivisor)
+    if !has_attribute(td, :isnef)
+        set_attribute!(td, :isnef, pm_tdivisor(td).NEF::Bool)
+    end
+    return get_attribute(td, :isnef)
+end
 export isnef
 
 
@@ -175,7 +215,12 @@ julia> isq_cartier(td)
 true
 ```
 """
-isq_cartier(td::ToricDivisor) = pm_tdivisor(td).Q_CARTIER::Bool
+function isq_cartier(td::ToricDivisor)
+    if !has_attribute(td, :isq_cartier)
+        set_attribute!(td, :isq_cartier, pm_tdivisor(td).Q_CARTIER::Bool)
+    end
+    return get_attribute(td, :isq_cartier)
+end
 export isq_cartier
 
 
@@ -197,9 +242,13 @@ true
 ```
 """
 function isprime_divisor(td::ToricDivisor)
-    if sum(coefficients(td)) != 1
-        return false
+    if !has_attribute(td, :isprime_divisor)
+        if sum(coefficients(td)) != 1
+            set_attribute!(td, :isprime_divisor, false)
+        else
+            set_attribute!(td, :isprime_divisor, all(y -> (y == 1 || y == 0), coefficients(td)))
+        end
     end
-    return all(y -> (y == 1 || y == 0), coefficients(td))
+    return get_attribute(td, :isprime_divisor)
 end
 export isprime_divisor

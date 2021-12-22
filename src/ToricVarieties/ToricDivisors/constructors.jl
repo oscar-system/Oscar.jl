@@ -2,7 +2,7 @@
 # 1: The Julia type for ToricDivisors
 ######################
 
-struct ToricDivisor
+@attributes mutable struct ToricDivisor
            polymake_divisor::Polymake.BigObject
 end
 export ToricDivisor
@@ -28,13 +28,26 @@ A torus invariant divisor on a normal toric variety
 ```
 """
 function ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{Int})
+    # check input
     if length(coeffs) != pm_object(v).N_RAYS
         throw(ArgumentError("Number of coefficients needs to match number of prime divisors!"))
     end
+    
+    # construct the divisor
     ptd = Polymake.fulton.TDivisor(COEFFICIENTS=coeffs)
-    pmntv = pm_object(v)
-    Polymake.add(pmntv, "DIVISOR", ptd)
-    return ToricDivisor(ptd)
+    Polymake.add(pm_object(v), "DIVISOR", ptd)
+    td = ToricDivisor(ptd, Dict())
+    
+    # set attributes
+    set_attribute!(td, :coefficients, coeffs)
+    if sum(coeffs) != 1
+        set_attribute!(td, :isprime_divisor, false)
+    else
+        set_attribute!(td, :isprime_divisor, all(y -> (y == 1 || y == 0), coeffs))
+    end
+    
+    # return the result
+    return td
 end
 export ToricDivisor
 
