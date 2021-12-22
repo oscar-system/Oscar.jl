@@ -53,7 +53,7 @@ function _vertex_incidences(::Val{_face_polyhedron}, P::Polymake.BigObject; f_di
 end
 
 function _ray_incidences(::Val{_face_polyhedron}, P::Polymake.BigObject; f_dim = -1, f_ind::Vector{Int64} = Vector{Int64}())
-    return IncidenceMatrix(collect.(Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(P, f_dim)[f_ind])[:, _ray_indices(P)]))
+    return IncidenceMatrix(collect.(Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(P, f_dim)[f_ind])))[:, _ray_indices(P)]
 end
 
 function _isray(P::Polyhedron, i::Base.Integer)
