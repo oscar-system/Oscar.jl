@@ -25,9 +25,9 @@ Kt,t = RationalFunctionField(QQ,"t")
 Ktx,(x1,x2,x3) = PolynomialRing(Kt,["x1","x2","x3"])
 f = x1+(1+t)*x2+(1//2+1//3*t+1//5*t^2)*x3
 Rtx,(t,y1,y2,y3) = PolynomialRing(QQ,["t","x1","x2","x3"])
-tropical_change_base_ring(Rtx,f)
+pseudo_change_base_ring(Rtx,f)
 =======#
-function tropical_change_base_ring(Rtx::FmpqMPolyRing,f::AbstractAlgebra.Generic.MPoly{Kt} where {Kt})
+function pseudo_change_base_ring(Rtx::FmpqMPolyRing,f::AbstractAlgebra.Generic.MPoly{Kt} where {Kt})
 
   R = coefficient_ring(Rtx)
   fRtx = zero(Rtx)
@@ -51,6 +51,9 @@ function tropical_change_base_ring(Rtx::FmpqMPolyRing,f::AbstractAlgebra.Generic
 
   return fRtx
 end
+function pseudo_change_base_ring(Rtx::FmpqMPolyRing,I::MPolyIdeal{AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.Rat{K}}} where {K})
+  return ideal([pseudo_change_base_ring(Rtx,f) for f in gens(I)])
+end
 
 
 
@@ -60,13 +63,11 @@ Example:
 Kx,(x1,x2,x3) = PolynomialRing(QQ,3)
 f = x1+(1+2)*x2+(1+3*2+5*2^2)*x3
 Rtx,(t,y1,y2,y3) = PolynomialRing(ZZ,4)
-tropical_change_base_ring(Rtx,f)
+pseudo_change_base_ring(Rtx,f)
 =======#
-function tropical_change_base_ring(Rtx::FmpzMPolyRing,f::fmpq_mpoly)
+function pseudo_change_base_ring(Rtx::FmpzMPolyRing,f::fmpq_mpoly)
 
   # todo: rewrite to use MPolyBuildCtx
-
-  R = coefficient_ring(Rtx)
   fRtx = zero(Rtx)
 
   for i in 1:length(f)
@@ -81,11 +82,10 @@ function tropical_change_base_ring(Rtx::FmpzMPolyRing,f::fmpq_mpoly)
 
   return fRtx
 end
-function tropical_change_base_ring(Rtx::FmpzMPolyRing,I::MPolyIdeal{Ktx} where {Ktx})
-  return ideal([tropical_change_base_ring(Rtx,f) for f in gens(I)])
+function pseudo_change_base_ring(Rtx::FmpzMPolyRing,I::MPolyIdeal{Ktx} where {Ktx})
+  return ideal([pseudo_change_base_ring(Rtx,f) for f in gens(I)])
 end
-export tropical_change_base_ring
-
+export pseudo_change_base_ring
 
 
 #=======
@@ -99,8 +99,10 @@ function simulate_valuation(I,val_t::ValuationMap{AbstractAlgebra.Generic.Ration
   Kt = base_ring(Ktx)
   K = base_ring(Kt)
 
-  Rtx = PolynomialRing(K,vcat(symbols(Kt),symbols(Ktx)));
-  vvI = tropical_change_base_ring(Rtx,I)
+  @assert K==QQ "simulate_valuation: only function fields over QQ supported for now"
+
+  Rtx,_ = PolynomialRing(QQ,vcat(symbols(Kt),symbols(Ktx)));
+  vvI = pseudo_change_base_ring(Rtx,I)
 
   return vvI
 end
@@ -111,7 +113,7 @@ function simulate_valuation(I,val_p::ValuationMap{FlintRationalField, fmpz})
 
   Rtx = PolynomialRing(ZZ,vcat([:t],symbols(Kx)))
   vvI = ideal([val_p.uniformizer-Rtx[2][1]])
-  vvI = vvI+tropical_change_base_ring(Rtx[1],I)
+  vvI = vvI+pseudo_change_base_ring(Rtx[1],I)
 
   return vvI
 end
@@ -123,7 +125,7 @@ export simulate_valuation
 return true if f is homogeneous (w.r.t. total degree)
 return false otherwise
 =======#
-function tropical_is_homogeneous(f::Union{AbstractAlgebra.Generic.MPoly{K},fmpq_mpoly,fmpz_mpoly} where {K})
+function is_homogeneous(f::Union{AbstractAlgebra.Generic.MPoly{K},fmpq_mpoly,fmpz_mpoly} where {K})
   d = sum(exponent_vector(f,1))
   for i in 2:length(f)
     if d!=sum(exponent_vector(f,i))
@@ -132,14 +134,14 @@ function tropical_is_homogeneous(f::Union{AbstractAlgebra.Generic.MPoly{K},fmpq_
   end
   return true
 end
-export tropical_is_homogeneous
+export is_homogeneous
 
-function tropical_is_homogeneous(I::MPolyIdeal{K} where {K})
+function is_homogeneous(I::MPolyIdeal{K} where {K})
   # todo: test whether generators are interreduced
-  @warn "tropical_is_homogeneous: merely checking whether given generators are homogeneous, can result in false negative"
+  @warn "is_homogeneous: merely checking whether given generators are homogeneous, can result in false negative"
 
   for f in gens(I)
-    if !tropical_is_homogeneous(f)
+    if !is_homogeneous(f)
       return false
     end
   end
@@ -152,22 +154,29 @@ end
 tropical Groebner basis
 todo: proper documentation
 Example:
-val = ValuationMap(QQ,2)
+
+val_2 = ValuationMap(QQ,2)
 Kx,(x,y,z) = PolynomialRing(QQ,3)
 w = [0,0,0]
 I = ideal([x+2*y,y+2*z])
-tropical_groebner_basis(I,val,w)
+groebner_basis(I,val_2,w)
+
+Kt,t = RationalFunctionField(QQ,"t")
+val_t = ValuationMap(Kt,t)
+Ktx,(x,y,z) = PolynomialRing(Kt,3)
+w = [0,0,0]
+I = ideal([x+t*y,y+t*z])
+groebner_basis(I,val_t,w)
 =======#
-function tropical_groebner_basis(I,val,w)
+function groebner_basis(I,val::ValuationMap{valuedField,uniformizer} where{valuedField,uniformizer},w::Vector{Int})
   vvI = simulate_valuation(I,val)
   w = vcat([-1],w)
 
   Rtx = base_ring(vvI)
   # todo: replace with groebner_bases in OSCAR once more orderings are supported
-  S, _ = Singular.PolynomialRing(singular_ring(base_ring(Rtx)), map(string, Nemo.symbols(Rtx)), ordering = Singular.ordering_a(w)*Singular.ordering_dp())
+  S,_ = Singular.PolynomialRing(singular_ring(base_ring(Rtx)), map(string, Nemo.symbols(Rtx)), ordering = Singular.ordering_a(w)*Singular.ordering_dp())
   SI = Singular.Ideal(S, [S(g) for g in gens(vvI)])
 
   vvGB = Singular.std(SI)
   return [Rtx(p) for p in Singular.gens(vvGB)]
 end
-export tropical_groebner_basis
