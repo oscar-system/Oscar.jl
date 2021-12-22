@@ -393,7 +393,7 @@ function del_pezzo(b::Int)
     if b == 1
         set_attribute!(variety, :euler_characteristic, 4)
         set_attribute!(variety, :torusinvariant_divisor_group, free_abelian_group(4))    
-        ring = PolynomialRing(QQ, :x=>1:2, :e=>1, :x=>3)[1]
+        ring = PolynomialRing(QQ, ["x1", "x2", "e1", "x3"])[1]
         weights = [map_from_weil_divisors_to_class_group(variety)(x) for x in Hecke.gens(torusinvariant_divisor_group(variety))]
         gens = Hecke.gens(cox_ring(variety))
         set_attribute!(variety, :cox_ring, grade(ring,weights)[1])
@@ -404,7 +404,7 @@ function del_pezzo(b::Int)
     if b == 2
         set_attribute!(variety, :euler_characteristic, 5)
         set_attribute!(variety, :torusinvariant_divisor_group, free_abelian_group(5))
-        ring = PolynomialRing(QQ, :x=>1:2, :e=>1, :x=>3, :e=>2)[1]
+        ring = PolynomialRing(QQ, ["x1", "x2", "e1", "x3", "e2"])[1]
         weights = [map_from_weil_divisors_to_class_group(variety)(x) for x in Hecke.gens(torusinvariant_divisor_group(variety))]
         gens = Hecke.gens(cox_ring(variety))
         set_attribute!(variety, :cox_ring, grade(ring,weights)[1])
@@ -417,7 +417,7 @@ function del_pezzo(b::Int)
     if b == 3
         set_attribute!(variety, :euler_characteristic, 6)
         set_attribute!(variety, :torusinvariant_divisor_group, free_abelian_group(6))
-        ring = PolynomialRing(QQ, :x=>1, :e=>3, :x=>2, :e=>1, :x=>3, :e=>2)[1]
+        ring = PolynomialRing(QQ, ["x1", "e3", "x2", "e1", "x3", "e2"])[1]
         weights = [map_from_weil_divisors_to_class_group(variety)(x) for x in Hecke.gens(torusinvariant_divisor_group(variety))]
         gens = Hecke.gens(cox_ring(variety))
         set_attribute!(variety, :cox_ring, grade(ring,weights)[1])

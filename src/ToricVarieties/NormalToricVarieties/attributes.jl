@@ -64,15 +64,15 @@ Note that [CLS11](@cite) refers to this ring as the "total coordinate ring".
 julia> p2 = projective_space(NormalToricVariety, 2);
 
 julia> cox_ring(p2)
-Multivariate Polynomial Ring in x[1], x[2], x[3] over Rational Field graded by
-  x[1] -> [1]
-  x[2] -> [1]
-  x[3] -> [1]
+Multivariate Polynomial Ring in x1, x2, x3 over Rational Field graded by 
+  x1 -> [1]
+  x2 -> [1]
+  x3 -> [1]
 ```
 """
 function cox_ring(v::AbstractNormalToricVariety)
     return get_attribute!(v, :cox_ring) do
-        Qx, x = PolynomialRing(QQ, :x=>1:rank(torusinvariant_divisor_group(v)))
+        Qx, x = PolynomialRing(QQ, [ "x" * string(i) for i in 1:rank(torusinvariant_divisor_group(v))])
         weights = [map_from_weil_divisors_to_class_group(v)(x) for x in gens(torusinvariant_divisor_group(v))]
         return grade(Qx,weights)[1]
     end
@@ -167,7 +167,7 @@ julia> antv = AffineNormalToricVariety(C)
 A normal, affine toric variety
 
 julia> toric_ideal(antv)
-ideal(-x[1]*x[2] + x[3]*x[4])
+ideal(-x1*x2 + x3*x4)
 ```
 """
 function toric_ideal(antv::AffineNormalToricVariety)

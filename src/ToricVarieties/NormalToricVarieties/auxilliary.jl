@@ -18,12 +18,12 @@ julia> A = [-1 -1 0 2; 2 3 -2 -1]
   2   3  -2  -1
 
 julia> binomial_exponents_to_ideal(A)
-ideal(-x[1]*x[2] + x[4]^2, x[1]^2*x[2]^3 - x[3]^2*x[4])
+ideal(-x1*x2 + x4^2, x1^2*x2^3 - x3^2*x4)
 ```
 """
 function binomial_exponents_to_ideal(binoms::Union{AbstractMatrix, fmpz_mat})
     nvars = ncols(binoms)
-    R::FmpqMPolyRing, x = PolynomialRing(QQ, "x" => 1:nvars, cached=false)
+    R::FmpqMPolyRing, x = PolynomialRing(QQ, ["x" * string(i) for i in 1:nvars], cached=false)
     if nrows(binoms) == 0
         return ideal([zero(R)])
     end
@@ -60,7 +60,7 @@ julia> C = positive_hull([-2 5; 1 0]);
 julia> H = hilbert_basis(C);
 
 julia> toric_ideal(H)
-ideal(x[2]*x[3] - x[4]^2, -x[1]*x[3] + x[2]^2*x[4], -x[1]*x[4] + x[2]^3, -x[1]*x[3]^2 + x[2]*x[4]^3, -x[1]*x[3]^3 + x[4]^5)
+ideal(x2*x3 - x4^2, -x1*x3 + x2^2*x4, -x1*x4 + x2^3, -x1*x3^2 + x2*x4^3, -x1*x3^3 + x4^5)
 ```
 """
 function toric_ideal(pts::fmpz_mat)
