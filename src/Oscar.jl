@@ -278,9 +278,6 @@ include("Modules/UngradedModules.jl")
 include("Modules/FreeModules-graded.jl")
 
 include("Geometry/basics.jl")
-include("../experimental/Schemes/AffineSchemes.jl")
-include("../experimental/Schemes/SpecOpen.jl")
-include("../experimental/Schemes/CoveredSchemes.jl")
 
 include("NumberTheory/NmbThy.jl")
 
@@ -288,6 +285,10 @@ include("PolyhedralGeometry/main.jl")
 
 include("Combinatorics/Graphs.jl")
 export Graphs
+
+include("../experimental/Schemes/AffineSchemes.jl")
+include("../experimental/Schemes/SpecOpen.jl")
+include("../experimental/Schemes/CoveredSchemes.jl")
 
 include("../StraightLinePrograms/src/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl")
