@@ -9,10 +9,9 @@
 Computes the dimension of the normal toric variety `v`.
 """
 function dim(v::AbstractNormalToricVariety)
-    if !has_attribute(v, :dim)
-        set_attribute!(v, :dim, pm_object(v).FAN_DIM::Int)
+    return get_attribute!(v, :dim) do
+        return pm_object(v).FAN_DIM::Int
     end
-    return get_attribute(v, :dim)
 end
 export dim
 
@@ -23,15 +22,14 @@ export dim
 Computes the dimension of the torus factor of the normal toric variety `v`.
 """
 function dim_of_torusfactor(v::AbstractNormalToricVariety)
-    if !has_attribute(v, :dim_of_torusfactor)
+    return get_attribute!(v, :dim_of_torusfactor) do
         if hastorusfactor(v) == false
-            set_attribute!(v, :dim_of_torusfactor, 0)
+            return 0
         end
         dimension_of_fan = pm_object(v).FAN_DIM::Int
         ambient_dimension = pm_object(v).FAN_AMBIENT_DIM::Int
-        set_attribute!(v, :dim_of_torusfactor, ambient_dimension - dimension_of_fan)
+        return ambient_dimension - dimension_of_fan
     end
-    return get_attribute(v, :dim_of_torusfactor)
 end
 export dim_of_torusfactor
 
@@ -42,11 +40,10 @@ export dim_of_torusfactor
 Computes the Euler characteristic of the normal toric variety `v`.
 """
 function euler_characteristic(v::AbstractNormalToricVariety)
-    if !has_attribute(v, :euler_characteristic)
+    return get_attribute!(v, :euler_characteristic) do
         f_vector = Vector{Int}(pm_object(v).F_VECTOR)
-        set_attribute!(v, :euler_characteristic, f_vector[dim(v)])
+        return f_vector[dim(v)]
     end
-    return get_attribute(v, :euler_characteristic)
 end
 export euler_characteristic
 
@@ -74,12 +71,11 @@ julia> cox_ring(p2)
 ```
 """
 function cox_ring(v::AbstractNormalToricVariety)
-    if !has_attribute(v, :cox_ring)
+    return get_attribute!(v, :cox_ring) do
         Qx, x = PolynomialRing(QQ, :x=>1:rank(torusinvariant_divisor_group(v)))
         weights = [map_from_weil_divisors_to_class_group(v)(x) for x in gens(torusinvariant_divisor_group(v))]
-        set_attribute!(v, :cox_ring, grade(Qx,weights)[1])
+        return grade(Qx,weights)[1]
     end
-    return get_attribute(v, :cox_ring)
 end
 export cox_ring
 
@@ -99,13 +95,12 @@ julia> ngens(stanley_reisner_ideal(P2))
 ```
 """
 function stanley_reisner_ideal(v::AbstractNormalToricVariety)
-    if !has_attribute(v, :stanley_reisner_ideal)
+    return get_attribute!(v, :stanley_reisner_ideal) do
         collections = primitive_collections(fan(v))
         vars = Hecke.gens(cox_ring(v))
         SR_generators = [prod(vars[I]) for I in collections]
-        set_attribute!(v, :stanley_reisner_ideal, ideal(SR_generators))
+        return ideal(SR_generators)
     end
-    return get_attribute(v, :stanley_reisner_ideal)
 end
 export stanley_reisner_ideal
 
@@ -125,8 +120,7 @@ julia> length(irrelevant_ideal(p2).gens)
 ```
 """
 function irrelevant_ideal(v::AbstractNormalToricVariety)
-    if !has_attribute(v, :irrelevant_ideal)
-        
+    return get_attribute!(v, :irrelevant_ideal) do
         # prepare maximal cones
         max_cones = [findall(x->x!=0, l) for l in eachrow(pm_object(v).MAXIMAL_CONES)]
         n_ray = size(pm_object(v).RAYS, 1)
@@ -150,11 +144,9 @@ function irrelevant_ideal(v::AbstractNormalToricVariety)
             push!(gens, monom)
         end
         
-        # save the ideal
-        set_attribute!(v, :irrelevant_ideal, ideal(gens))
+        # return the ideal
+        return ideal(gens)
     end
-    return get_attribute(v, :irrelevant_ideal)
-    
 end
 export irrelevant_ideal
 
@@ -181,11 +173,10 @@ ideal(-x[1]*x[2] + x[3]*x[4])
 ```
 """
 function toric_ideal(antv::AffineNormalToricVariety)
-    if !has_attribute(antv, :toric_ideal)
+    return get_attribute!(antv, :toric_ideal) do
         cone = Cone(pm_object(antv).WEIGHT_CONE)
-        set_attribute!(antv, :toric_ideal, toric_ideal(hilbert_basis(cone)))
+        return toric_ideal(hilbert_basis(cone))
     end
-    return get_attribute(antv, :toric_ideal)
 end
 export toric_ideal
 toric_ideal(ntv::NormalToricVariety) = toric_ideal(AffineNormalToricVariety(ntv))
@@ -211,10 +202,9 @@ GrpAb: Z^2
 ```
 """
 function character_lattice(v::AbstractNormalToricVariety)
-    if !has_attribute(v, :character_lattice)
-        set_attribute!(v, :character_lattice, abelian_group([0 for i in 1:pm_object(v).FAN_DIM]))
+    return get_attribute!(v, :character_lattice) do
+        return abelian_group([0 for i in 1:pm_object(v).FAN_DIM])
     end
-    return get_attribute(v, :character_lattice)
 end
 export character_lattice
 
@@ -234,10 +224,9 @@ GrpAb: Z^3
 ```
 """
 function torusinvariant_divisor_group(v::AbstractNormalToricVariety)
-    if !has_attribute(v, :torusinvariant_divisor_group)
-        set_attribute!(v, :torusinvariant_divisor_group, abelian_group([0 for i in 1:pm_object(v).N_RAYS]))
+    return get_attribute!(v, :torusinvariant_divisor_group) do
+        return abelian_group([0 for i in 1:pm_object(v).N_RAYS])
     end
-    return get_attribute(v, :torusinvariant_divisor_group)
 end
 export torusinvariant_divisor_group
 
@@ -263,12 +252,11 @@ Abelian group with structure: Z^3
 ```
 """
 function map_from_character_to_principal_divisors(v::AbstractNormalToricVariety)
-    if !has_attribute(v, :map_from_character_to_principal_divisors)
+    return get_attribute!(v, :map_from_character_to_principal_divisors) do
         mat = transpose(Matrix{Int}(Polymake.common.primitive(pm_object(v).RAYS)))
         matrix = AbstractAlgebra.matrix(ZZ, mat)
-        set_attribute!(v, :map_from_character_to_principal_divisors, hom(character_lattice(v), torusinvariant_divisor_group(v), matrix))
+        return hom(character_lattice(v), torusinvariant_divisor_group(v), matrix)
     end
-    return get_attribute(v, :map_from_character_to_principal_divisors)
 end
 export map_from_character_to_principal_divisors
 
@@ -288,7 +276,7 @@ Free module of rank 3 over Integer Ring
 ```
 """
 function torusinvariant_prime_divisors(v::AbstractNormalToricVariety)
-    if !has_attribute(v, :torusinvariant_prime_divisors)
+    return get_attribute!(v, :torusinvariant_prime_divisors) do
         ti_divisors = torusinvariant_divisor_group(v)
         prime_divisors = ToricDivisor[]
         for i in 1:rank(ti_divisors)
@@ -296,9 +284,8 @@ function torusinvariant_prime_divisors(v::AbstractNormalToricVariety)
             coeffs[i] = 1
             push!(prime_divisors, ToricDivisor(v,coeffs))
         end
-        set_attribute!(v, :torusinvariant_prime_divisors, prime_divisors)
+        return prime_divisors
     end
-    return get_attribute(v, :torusinvariant_prime_divisors)
 end
 export torusinvariant_prime_divisors
 
@@ -318,10 +305,9 @@ Abelian group with structure: Z
 ```
 """
 function class_group(v::AbstractNormalToricVariety)
-    if !has_attribute(v, :class_group)
-        set_attribute!(v, :class_group, codomain(map_from_weil_divisors_to_class_group(v)))
+    return get_attribute!(v, :class_group) do
+        return codomain(map_from_weil_divisors_to_class_group(v))
     end
-    return get_attribute(v, :class_group)
 end
 export class_group
 
@@ -344,12 +330,11 @@ Abelian group with structure: Z
 ```
 """
 function map_from_weil_divisors_to_class_group(v::AbstractNormalToricVariety)
-    if !has_attribute(v, :map_from_weil_divisors_to_class_group)
+    return get_attribute!(v, :map_from_weil_divisors_to_class_group) do
         map1 = cokernel(map_from_character_to_principal_divisors(v))[2]
         map2 = inv(snf(codomain(map1))[2])
-        set_attribute!(v, :map_from_weil_divisors_to_class_group, map1*map2)
-    end
-    return get_attribute(v, :map_from_weil_divisors_to_class_group)
+        return map1*map2
+    end        
 end
 export map_from_weil_divisors_to_class_group
 
@@ -376,8 +361,7 @@ Abelian group with structure: Z^3
 ```
 """
 function map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v::AbstractNormalToricVariety)
-    if !has_attribute(v, :map_from_cartier_divisor_group_to_torus_invariant_divisor_group)
-        
+    return get_attribute!(v, :map_from_cartier_divisor_group_to_torus_invariant_divisor_group) do
         # check input
         if hastorusfactor(v)
             throw(ArgumentError("Group of the torus-invariant Cartier divisors can only be computed if the variety has no torus factor."))
@@ -433,10 +417,9 @@ function map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v::Abst
         ker = kernel(total_map)
         embedding = snf(ker[1])[2] * ker[2] * hom(codomain(ker[2]), torusinvariant_divisor_group(v), map_to_weil_divisors)
         
-        # save the image of this embedding
-        set_attribute!(v, :map_from_cartier_divisor_group_to_torus_invariant_divisor_group, image(embedding)[2])
+        # return the image of this embedding
+        return image(embedding)[2]
     end
-    return get_attribute(v, :map_from_cartier_divisor_group_to_torus_invariant_divisor_group)
 end
 export map_from_cartier_divisor_group_to_torus_invariant_divisor_group
 
@@ -455,10 +438,9 @@ GrpAb: Z^3
 ```
 """
 function cartier_divisor_group(v::AbstractNormalToricVariety)
-    if !has_attribute(v, :cartier_divisor_group)
-        set_attribute!(v, :cartier_divisor_group, domain(map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v)))
+    return get_attribute!(v, :cartier_divisor_group) do
+        return domain(map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v))
     end
-    return get_attribute(v, :cartier_divisor_group)
 end
 export cartier_divisor_group
 
@@ -485,8 +467,7 @@ Abelian group with structure: Z
 ```
 """
 function map_from_cartier_divisor_group_to_picard_group(v::AbstractNormalToricVariety)
-    if !has_attribute(v, :map_from_cartier_divisor_group_to_picard_group)
-        
+    return get_attribute!(v, :map_from_cartier_divisor_group_to_picard_group) do
         # check input
         if hastorusfactor(v)
             throw(ArgumentError("Group of the torus-invariant Cartier divisors can only be computed if the variety has no torus factor."))
@@ -499,9 +480,8 @@ function map_from_cartier_divisor_group_to_picard_group(v::AbstractNormalToricVa
         map4 = snf(codomain(map3))[2]
         
         # return the composed map
-        set_attribute!(v, :map_from_cartier_divisor_group_to_picard_group, map1*map2*map3*map4)
+        return map1*map2*map3*map4
     end
-    return get_attribute(v, :map_from_cartier_divisor_group_to_picard_group)
 end
 export map_from_cartier_divisor_group_to_picard_group
 
@@ -521,10 +501,9 @@ GrpAb: Z
 ```
 """
 function picard_group(v::AbstractNormalToricVariety)
-    if !has_attribute(v, :picard_group)
-        set_attribute!(v, :picard_group, codomain(map_from_cartier_divisor_group_to_picard_group(v)))
+    return get_attribute!(v, :picard_group) do
+        return codomain(map_from_cartier_divisor_group_to_picard_group(v))
     end
-    return get_attribute(v, :picard_group)
 end
 export picard_group
 
@@ -552,10 +531,9 @@ julia> dim(nef)
 ```
 """
 function nef_cone(v::NormalToricVariety)
-    if !has_attribute(v, :nef_cone)
-        set_attribute!(v, :nef_cone, Cone(pm_object(v).NEF_CONE))
+    return get_attribute!(v, :nef_cone) do
+        return Cone(pm_object(v).NEF_CONE)
     end
-    return get_attribute(v, :nef_cone)
 end
 export nef_cone
 
@@ -578,10 +556,9 @@ julia> dim(mori)
 ```
 """
 function mori_cone(v::NormalToricVariety)
-    if !has_attribute(v, :mori_cone)
-        set_attribute!(v, :mori_cone, Cone(pm_object(v).MORI_CONE))
+    return get_attribute!(v, :mori_cone) do
+        return Cone(pm_object(v).MORI_CONE)
     end
-    return get_attribute(v, :mori_cone)
 end
 export mori_cone
 
@@ -601,10 +578,9 @@ A polyhedral fan in ambient dimension 2
 ```
 """
 function fan(v::AbstractNormalToricVariety)
-    if !has_attribute(v, :fan)
-        set_attribute!(v, :fan, PolyhedralFan(pm_object(v)))
+    return get_attribute!(v, :fan) do
+        return PolyhedralFan(pm_object(v))
     end
-    return get_attribute(v, :fan)
 end
 export fan
 
@@ -621,10 +597,9 @@ A polyhedral cone in ambient dimension 2
 ```
 """
 function cone(v::AffineNormalToricVariety)
-    if !has_attribute(v, :cone)
-        set_attribute!(v, :cone, maximal_cones(fan(v))[1])
+    return get_attribute!(v, :cone) do
+        return maximal_cones(fan(v))[1]
     end
-    return get_attribute(v, :cone)
 end
 export cone
 
@@ -652,13 +627,12 @@ julia> affine_open_covering(p2)
 ```
 """
 function affine_open_covering(v::AbstractNormalToricVariety)
-    if !has_attribute(v, :affine_open_covering)
+    return get_attribute!(v, :affine_open_covering) do
         charts = Vector{AffineNormalToricVariety}(undef, pm_object(v).N_MAXIMAL_CONES)
         for i in 1:pm_object(v).N_MAXIMAL_CONES
             charts[i] = AffineNormalToricVariety(Cone(Polymake.fan.cone(pm_object(v), i-1)))
         end
-        set_attribute!(v, :affine_open_covering, charts)
-    end
-    return get_attribute(v, :affine_open_covering)
+        return charts
+    end    
 end
 export affine_open_covering

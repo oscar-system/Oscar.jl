@@ -38,10 +38,9 @@ false
 ```
 """
 function polyhedron(td::ToricDivisor)
-    if !has_attribute(td, :polyhedron)
-        set_attribute!(td, :polyhedron, Polyhedron(pm_tdivisor(td).SECTION_POLYTOPE))
+    return get_attribute!(td, :polyhedron) do
+        return Polyhedron(pm_tdivisor(td).SECTION_POLYTOPE)
     end
-    return get_attribute(td, :polyhedron)
 end
 export polyhedron
 
@@ -68,10 +67,9 @@ julia> coefficients(D)
 ```
 """
 function coefficients(td::ToricDivisor)
-    if !has_attribute(td, :coefficients)
-        set_attribute!(td, :coefficients, Vector{Int}(Polymake.common.primitive(pm_tdivisor(td).COEFFICIENTS)))
+    return get_attribute!(td, :coefficients) do
+        return Vector{Int}(Polymake.common.primitive(pm_tdivisor(td).COEFFICIENTS))
     end
-    return get_attribute(td, :coefficients)
 end
 export coefficients
 

@@ -16,10 +16,9 @@ true
 ```
 """
 function iscartier(td::ToricDivisor)
-    if !has_attribute(td, :iscartier)
-        set_attribute!(td, :iscartier, pm_tdivisor(td).CARTIER::Bool)
+    return get_attribute!(td, :iscartier) do
+        return pm_tdivisor(td).CARTIER::Bool
     end
-    return get_attribute(td, :iscartier)
 end
 export iscartier
 
@@ -41,10 +40,9 @@ false
 ```
 """
 function isprincipal(td::ToricDivisor)
-    if !has_attribute(td, :isprincipal)
-        set_attribute!(td, :isprincipal, pm_tdivisor(td).PRINCIPAL::Bool)
+    return get_attribute!(td, :isprincipal) do
+        return pm_tdivisor(td).PRINCIPAL::Bool
     end
-    return get_attribute(td, :isprincipal)
 end
 export isprincipal
 
@@ -66,10 +64,9 @@ true
 ```
 """
 function isbasepoint_free(td::ToricDivisor)
-    if !has_attribute(td, :isbasepoint_free)
-        set_attribute!(td, :isbasepoint_free, pm_tdivisor(td).BASEPOINT_FREE::Bool)
+    return get_attribute!(td, :isbasepoint_free) do
+        return pm_tdivisor(td).BASEPOINT_FREE::Bool
     end
-    return get_attribute(td, :isbasepoint_free)
 end
 export isbasepoint_free
 
@@ -91,10 +88,9 @@ true
 ```
 """
 function iseffective(td::ToricDivisor)
-    if !has_attribute(td, :iseffective)
-        set_attribute!(td, :iseffective, pm_tdivisor(td).EFFECTIVE::Bool)
+    return get_attribute!(td, :iseffective) do
+        return pm_tdivisor(td).EFFECTIVE::Bool
     end
-    return get_attribute(td, :iseffective)
 end
 export iseffective
 
@@ -116,10 +112,9 @@ true
 ```
 """
 function isintegral(td::ToricDivisor)
-    if !has_attribute(td, :isintegral)
-        set_attribute!(td, :isintegral, pm_tdivisor(td).INTEGRAL::Bool)
+    return get_attribute!(td, :isintegral) do
+        return pm_tdivisor(td).INTEGRAL::Bool
     end
-    return get_attribute(td, :isintegral)
 end
 export isintegral
 
@@ -141,10 +136,9 @@ false
 ```
 """
 function isample(td::ToricDivisor)
-    if !has_attribute(td, :isample)
-        set_attribute!(td, :isample, pm_tdivisor(td).AMPLE::Bool)
+    return get_attribute!(td, :isample) do
+        return pm_tdivisor(td).AMPLE::Bool
     end
-    return get_attribute(td, :isample)
 end
 export isample
 
@@ -166,10 +160,9 @@ false
 ```
 """
 function isvery_ample(td::ToricDivisor)
-    if !has_attribute(td, :isvery_ample)
-        set_attribute!(td, :isvery_ample, pm_tdivisor(td).VERY_AMPLE::Bool)
+    return get_attribute!(td, :isvery_ample) do
+        return pm_tdivisor(td).VERY_AMPLE::Bool
     end
-    return get_attribute(td, :isvery_ample)
 end
 export isvery_ample
 
@@ -191,10 +184,9 @@ true
 ```
 """
 function isnef(td::ToricDivisor)
-    if !has_attribute(td, :isnef)
-        set_attribute!(td, :isnef, pm_tdivisor(td).NEF::Bool)
+    return get_attribute!(td, :isnef) do
+        return pm_tdivisor(td).NEF::Bool
     end
-    return get_attribute(td, :isnef)
 end
 export isnef
 
@@ -216,10 +208,9 @@ true
 ```
 """
 function isq_cartier(td::ToricDivisor)
-    if !has_attribute(td, :isq_cartier)
-        set_attribute!(td, :isq_cartier, pm_tdivisor(td).Q_CARTIER::Bool)
+    return get_attribute!(td, :isq_cartier) do
+        return pm_tdivisor(td).Q_CARTIER::Bool
     end
-    return get_attribute(td, :isq_cartier)
 end
 export isq_cartier
 
@@ -242,13 +233,12 @@ true
 ```
 """
 function isprime_divisor(td::ToricDivisor)
-    if !has_attribute(td, :isprime_divisor)
+    return get_attribute!(td, :isprime_divisor) do    
         if sum(coefficients(td)) != 1
-            set_attribute!(td, :isprime_divisor, false)
+            return false
         else
-            set_attribute!(td, :isprime_divisor, all(y -> (y == 1 || y == 0), coefficients(td)))
+            return all(y -> (y == 1 || y == 0), coefficients(td))
         end
-    end
-    return get_attribute(td, :isprime_divisor)
+    end    
 end
 export isprime_divisor
