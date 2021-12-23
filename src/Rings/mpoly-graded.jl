@@ -395,11 +395,11 @@ function degree(a::MPolyElem_dec)
     for i=1:length(c)
       u += c[i]*d[i]
     end
-    if isfiltered(W)
-      w = W.lt(w, u) ? u : w
-    elseif first
+    if first
       first = false
       w = u
+    elseif isfiltered(W)
+      w = W.lt(w, u) ? u : w
     else
       w == u || error("element not homogeneous")
     end
