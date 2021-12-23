@@ -296,6 +296,7 @@ include("Rings/binomial_ideals.jl")
 include("ToricVarieties/JToric.jl")
 
 include("HomologicalAlgebra/BoundedCocomplexes.jl")
+include("HomologicalAlgebra/InfiniteDirectSums.jl")
 include("../experimental/Schemes/AffineSchemes.jl")
 
 if is_dev
