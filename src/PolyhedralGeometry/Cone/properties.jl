@@ -311,6 +311,8 @@ _linear_inequality_matrix(::Val{_facet_cone}, C::Polymake.BigObject) = -C.FACETS
 
 _linear_matrix_for_polymake(::Val{_facet_cone}) = _linear_inequality_matrix
 
+_ray_indices(::Val{_facet_cone}, P::Polymake.BigObject) = P.RAYS_IN_FACETS
+
 facets(C::Cone) = facets(LinearHalfspace, C)
 
 facets(::Type{Halfspace}, C::Cone) = facets(LinearHalfspace, C)

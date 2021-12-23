@@ -96,6 +96,8 @@
             @test length(facets(T, Pos)) == 3
             @test affine_inequality_matrix(facets(T, Pos)) == matrix(QQ, Matrix{fmpq}([0 -1 0 0; 0 0 -1 0; 0 0 0 -1]))
             @test halfspace_matrix_pair(facets(T, Pos)).A == matrix(QQ, Matrix{fmpq}([-1 0 0; 0 -1 0; 0 0 -1])) && halfspace_matrix_pair(facets(T, Pos)).b == [0, 0, 0]
+            @test vertex_indices(facets(T, Pos)) == IncidenceMatrix([[1], [1], [1]])
+            @test ray_indices(facets(T, Pos)) == IncidenceMatrix([[2, 3], [1, 3], [1, 2]])
             @test facets(T, Pos)[1] == T([-1 0 0], 0)
             @test facets(T, Pos)[2] == T([0 -1 0], 0)
             @test facets(T, Pos)[3] == T([0 0 -1], 0)

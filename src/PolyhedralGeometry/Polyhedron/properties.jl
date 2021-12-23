@@ -299,6 +299,10 @@ _affine_inequality_matrix(::Val{_facet_polyhedron}, P::Polymake.BigObject) = -_r
 
 _affine_matrix_for_polymake(::Val{_facet_polyhedron}) = _affine_inequality_matrix
 
+_vertex_indices(::Val{_facet_polyhedron}, P::Polymake.BigObject) = vcat(P.VERTICES_IN_FACETS[1:(_facet_at_infinity(P) - 1), _vertex_indices(P)], P.VERTICES_IN_FACETS[(_facet_at_infinity(P) + 1):end, _vertex_indices(P)])
+
+_ray_indices(::Val{_facet_polyhedron}, P::Polymake.BigObject) = vcat(P.VERTICES_IN_FACETS[1:(_facet_at_infinity(P) - 1), _ray_indices(P)], P.VERTICES_IN_FACETS[(_facet_at_infinity(P) + 1):end, _ray_indices(P)])
+
 facets(::Type{Pair}, P::Polyhedron) = facets(Pair{Polymake.Matrix{Polymake.Rational}, Polymake.Rational}, P)
 
 @doc Markdown.doc"""
