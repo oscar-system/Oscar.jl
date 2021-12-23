@@ -675,3 +675,23 @@ end
       @test c==order(GL(3,9))*order(GL(2,9))*8*BigInt(9)^32
    end
 end
+
+@testset "isometry group" begin
+   q = quadratic_space(QQ,QQ[2 1; 1 2])
+   L = lattice(q, QQ[1 0; 0 1])
+   G = isometry_group(L)
+   @test order(G) == 12
+   @test isometry_group(L) == orthogonal_group(L)
+   # L = lattice(q, QQ[0 0; 0 0], isbasis=false)
+   # @test order(isometry_group(L)) == 1
+
+   Qx, x = PolynomialRing(FlintQQ, "x", cached = false)
+   f = x^2-2;
+   K, a = number_field(f)
+   D = matrix(K, 3, 3, [2, 0, 0, 0, 1, 0, 0, 0, 7436]);
+   gens = [[13, 0, 0], [156*a+143, 0, 0], [3//2*a+5, 1, 0], [3//2*a+5, 1, 0], [21//2*a, 0, 1//26], [21//2*a, 0, 1//26]]
+   L = quadratic_lattice(K, generators = gens, gram_ambient_space = D)
+   G = orthogonal_group(L)
+   g = -identity_matrix(K, 3)
+   @test g in G
+end

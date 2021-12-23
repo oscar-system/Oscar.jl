@@ -303,8 +303,8 @@ end
 
 @testset "Hom module" begin
 	R, (x0,x1,x2,x3,x4,x5) = PolynomialRing(QQ, ["x0", "x1", "x2", "x3", "x4", "x5"])
-	f1=R[-x2*x3 -x4*x5 0; x0*x1 0 -x4*x5; 0 x0*x1 -x2*x3]'
-	g1=R[x0*x1 x2*x3 x4*x5]'
+	f1= transpose(R[-x2*x3 -x4*x5 0; x0*x1 0 -x4*x5; 0 x0*x1 -x2*x3])
+	g1 = transpose(R[x0*x1 x2*x3 x4*x5])
 	M = cokernel(f1)
 	N = cokernel(g1)
 	SQ = hom(M,N)[1]
@@ -331,7 +331,7 @@ end
 			N=free_module_SQ(R,m)
 			SQ = hom(M,N)[1]
 			#SQ = simplify(hom(M,N)[1])[1]
-			@test SQ == free_module_SQ(free_module(SQ))
+			@test SQ == free_module_SQ(ambient_free_module(SQ))
 		end
 	end
 	R, (x,y) = PolynomialRing(QQ, ["x", "y"])

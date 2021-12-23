@@ -1,4 +1,4 @@
-import AbstractAlgebra: get_special, MatElem, matrix, MatSpace, parent_type, Ring, RingElem, set_special
+import AbstractAlgebra: MatElem, matrix, MatSpace, parent_type, Ring, RingElem
 import Hecke: base_ring, det, fmpz, fq_nmod, FqNmodFiniteField, nrows, tr, trace
 
 export
@@ -28,15 +28,13 @@ Type of groups `G` of `n x n` matrices over the ring `R`, where `n = degree(G)` 
 
 At the moment, only rings of type `FqNmodFiniteField` are supported.
 """
-mutable struct MatrixGroup{RE<:RingElem, T<:MatElem{RE}} <: GAPGroup
+@attributes mutable struct MatrixGroup{RE<:RingElem, T<:MatElem{RE}} <: GAPGroup
    deg::Int
    ring::Ring
    X::GapObj
    gens::Vector{<:AbstractMatrixGroupElem}
    descr::Symbol                       # e.g. GL, SL, symbols for isometry groups
    ring_iso::MapFromFunc # Isomorphism from the Oscar base ring to the GAP base ring
-#   order::fmpz
-   AbstractAlgebra.@declare_other
 
    MatrixGroup{RE,T}(m::Int, F::Ring) where {RE,T} = new{RE,T}(m,F)
 
@@ -488,10 +486,10 @@ compute_order(G::GAPGroup) = fmpz(GAP.Globals.Order(G.X))
 compute_order(G::MatrixGroup{T}) where {T <: Union{nf_elem, fmpq}} = order(isomorphic_group_over_finite_field(G)[1])
 
 function order(::Type{T}, G::MatrixGroup) where T <: IntegerUnion
-   res = get_special(G, :order)
+   res = get_attribute(G, :order)
    if res == nothing
      res = compute_order(G)::fmpz
-     set_special(G, :order => res)
+     set_attribute!(G, :order => res)
    end
    return T(res)::T
 end

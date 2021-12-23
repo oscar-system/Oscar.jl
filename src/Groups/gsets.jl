@@ -52,11 +52,10 @@ abstract type GSet{T} end
 ##  - the seeds (something iterable) whose closure under the action is the G-set
 ##  - the dictionary used to store attributes (orbits, elements, ...)
 
-mutable struct GSetByElements{T} <: GSet{T}
+@attributes mutable struct GSetByElements{T} <: GSet{T}
     group::T
     action_function::Function
     seeds
-    AbstractAlgebra.@declare_other
 
     function GSetByElements(G::T, fun::Function, seeds) where T<:GAPGroup
         @assert ! isempty(seeds)
@@ -101,7 +100,7 @@ gset_by_type(G::PermGroup, Omega, ::Type{T}) where T<:Tuple{Vararg{T2}} where T2
 ## natural action of a permutation group on the integers 1, ..., degree
 function gset(G::PermGroup)
     omega = gset(G, 1:G.deg)
-    AbstractAlgebra.set_special(omega, :elements => omega.seeds)
+    set_attribute!(omega, :elements => omega.seeds)
     return omega
 end
 
@@ -123,7 +122,7 @@ end
 
 function as_gset(G::T, fun::Function, Omega) where T<:GAPGroup
     omega = GSetByElements(G, fun, Omega)
-    AbstractAlgebra.set_special(omega, :elements => omega.seeds)
+    set_attribute!(omega, :elements => omega.seeds)
     return omega
 end
 
@@ -182,7 +181,7 @@ function Hecke.orbit(Omega::GSetByElements{<:GAPGroup}, omega)
 
     res = as_gset(Omega.group, Omega.action_function, orb)
     # We know that this G-set is transitive.
-    AbstractAlgebra.set_special(res, :orbits => [orb])
+    set_attribute!(res, :orbits => [orb])
     return res
 end
 
@@ -205,7 +204,7 @@ function orbit_via_Julia(Omega::GSetByElements{<:GAPGroup}, omega)
 
     res = as_gset(Omega.group, Omega.action_function, orbarray)
     # We know that this G-set is transitive.
-    AbstractAlgebra.set_special(res, :orbits => [orbarray])
+    set_attribute!(res, :orbits => [orbarray])
     return res
 end
 
@@ -222,7 +221,7 @@ end
 ##  `:orbits` a vector of G-sets
 
 function orbits(Omega::GSetByElements{<:GAPGroup})
-    orbs = AbstractAlgebra.get_special(Omega, :orbits)
+    orbs = get_attribute(Omega, :orbits)
     if orbs == nothing
       G = Omega.group
       orbs = []
@@ -231,7 +230,7 @@ function orbits(Omega::GSetByElements{<:GAPGroup})
           push!(orbs, Hecke.orbit(Omega, p))
         end
       end
-      AbstractAlgebra.set_special(Omega, :orbits => orbs)
+      set_attribute!(Omega, :orbits => orbs)
     end
     return orbs
 end
@@ -242,11 +241,11 @@ end
 ##  `:elements` a vector of points
 
 function elements(Omega::GSetByElements)
-    elms = AbstractAlgebra.get_special(Omega, :elements)
+    elms = get_attribute(Omega, :elements)
     if elms == nothing
       orbs = orbits(Omega)
       elms = union(map(elements, orbs)...)
-      AbstractAlgebra.set_special(Omega, :elements => elms)
+      set_attribute!(Omega, :elements => elms)
     end
     return elms
 end
@@ -264,10 +263,10 @@ function permutation(Omega::GSetByElements{T}, g::BasicGAPGroupElem{T}) where T<
     # whether the given group element 'g' is a group element.
     pi = GAP.Globals.PermutationOp(g, omega_list, gfun)
 
-    sym = AbstractAlgebra.get_special(Omega, :action_range)
+    sym = get_attribute(Omega, :action_range)
     if sym == nothing
       sym = symmetric_group(length(Omega))
-      AbstractAlgebra.set_special(Omega, :action_range => sym )
+      set_attribute!(Omega, :action_range => sym )
     end
     return group_element(sym, pi)
 end
@@ -295,7 +294,7 @@ end );
 end
 
 function action_homomorphism(Omega::GSetByElements{T}) where T<:GAPGroup
-    acthom = AbstractAlgebra.get_special(Omega, :action_homomorphism)
+    acthom = get_attribute(Omega, :action_homomorphism)
     if acthom == nothing
       G = Omega.group
       omega_list = GAP.julia_to_gap(elements(Omega))
@@ -323,13 +322,13 @@ function action_homomorphism(Omega::GSetByElements{T}) where T<:GAPGroup
       __init_JuliaData()
       GAP.Globals.SetJuliaData(acthom, GAP.julia_to_gap([Omega, G]))
 
-      sym = AbstractAlgebra.get_special(Omega, :action_range)
+      sym = get_attribute(Omega, :action_range)
       if sym == nothing
         sym = symmetric_group(length(Omega))
-        AbstractAlgebra.set_special(Omega, :action_range => sym )
+        set_attribute!(Omega, :action_range => sym )
       end
       acthom = GAPGroupHomomorphism{T,PermGroup}(G, sym, acthom)
-      AbstractAlgebra.set_special(Omega, :action_homomorphism => acthom )
+      set_attribute!(Omega, :action_homomorphism => acthom )
     end
     return acthom
 end

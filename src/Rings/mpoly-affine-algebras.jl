@@ -23,8 +23,7 @@ julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 
 julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]))
 (Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z), Map from
-Multivariate Polynomial Ring in x, y, z over Rational Field to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z) defined by a julia-function with inverse
-)
+Multivariate Polynomial Ring in x, y, z over Rational Field to Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by ideal(-x^2 + y, -x^3 + z) defined by a julia-function with inverse)
 
 julia> dim(A)
 1
@@ -178,8 +177,7 @@ julia> R, (x,) = PolynomialRing(QQ, ["x"])
 
 julia> A, _ = quo(R, ideal(R, [x^4]))
 (Quotient of Multivariate Polynomial Ring in x over Rational Field by ideal(x^4), Map from
-Multivariate Polynomial Ring in x over Rational Field to Quotient of Multivariate Polynomial Ring in x over Rational Field by ideal(x^4) defined by a julia-function with inverse
-)
+Multivariate Polynomial Ring in x over Rational Field to Quotient of Multivariate Polynomial Ring in x over Rational Field by ideal(x^4) defined by a julia-function with inverse)
 
 julia> isreduced(A)
 false
