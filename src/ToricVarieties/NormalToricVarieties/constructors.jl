@@ -249,9 +249,9 @@ A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, non-fano, 2-
 """
 function hirzebruch_surface(r::Int)
     # construct the variety
-    rays = [1 0; 0 1; -1 r; 0 -1]
+    fan_rays = [1 0; 0 1; -1 r; 0 -1]
     cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,1]])
-    variety = NormalToricVariety(PolyhedralFan(rays, cones))
+    variety = NormalToricVariety(PolyhedralFan(fan_rays, cones))
     
     # set properties
     set_attribute!(variety, :isaffine, false)
@@ -316,18 +316,18 @@ function del_pezzo(b::Int)
     
     # construct the "true" toric del Pezzo surfaces
     if b == 1
-        rays = [1 0; 0 1; -1 0; -1 -1]
+        fan_rays = [1 0; 0 1; -1 0; -1 -1]
         cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,1]])
     end
     if b == 2
-        rays = [1 0; 0 1; -1 0; -1 -1; 0 -1]
+        fan_rays = [1 0; 0 1; -1 0; -1 -1; 0 -1]
         cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,5],[5,1]])
     end
     if b == 3
-        rays = [1 0; 1 1; 0 1; -1 0; -1 -1; 0 -1]
+        fan_rays = [1 0; 1 1; 0 1; -1 0; -1 -1; 0 -1]
         cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,5],[5,6],[6,1]])
     end
-    variety = NormalToricVariety(PolyhedralFan(rays, cones))
+    variety = NormalToricVariety(PolyhedralFan(fan_rays, cones))
     
     # set properties
     set_attribute!(variety, :isaffine, false)

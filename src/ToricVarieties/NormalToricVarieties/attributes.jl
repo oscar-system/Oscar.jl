@@ -367,10 +367,10 @@ function map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v::Abst
             throw(ArgumentError("Group of the torus-invariant Cartier divisors can only be computed if the variety has no torus factor."))
         end
         
-        # identify rays and cones
-        rays = Polymake.common.primitive(pm_object(v).RAYS)
+        # identify fan_rays and cones
+        fan_rays = Polymake.common.primitive(pm_object(v).RAYS)
         max_cones = ray_incidences(maximal_cones(fan(v)))
-        number_of_rays = size(rays)[1]
+        number_of_rays = size(fan_rays)[1]
         number_of_cones = size(max_cones)[1]
         
         # compute quantities needed to construct the matrices
@@ -384,7 +384,7 @@ function map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v::Abst
         col = 1
         for i in 1:number_of_rays
             for j in cones_ray_is_part_of[i]
-                map_for_scalar_products[(j-1)*rc+1:j*rc, col] = [fmpz(c) for c in rays[i,:]]
+                map_for_scalar_products[(j-1)*rc+1:j*rc, col] = [fmpz(c) for c in fan_rays[i,:]]
                 col += 1
             end
         end
@@ -404,7 +404,7 @@ function map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v::Abst
         # compute the matrix for mapping to torusinvariant Weil divisors
         map_to_weil_divisors = zero_matrix(ZZ, number_of_cones * rc, rank(torusinvariant_divisor_group(v)))
         for i in 1:number_of_rays
-            map_to_weil_divisors[(cones_ray_is_part_of[i][1]-1)*rc+1:cones_ray_is_part_of[i][1]*rc, i] = [fmpz(-c) for c in rays[i,:]]
+            map_to_weil_divisors[(cones_ray_is_part_of[i][1]-1)*rc+1:cones_ray_is_part_of[i][1]*rc, i] = [fmpz(-c) for c in fan_rays[i,:]]
         end
         
         # compute the total map

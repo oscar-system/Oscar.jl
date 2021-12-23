@@ -74,9 +74,9 @@ P2 = NormalToricVariety(normal_fan(Oscar.simplex(2)))
     @test length(irrelevant_ideal(P2).gens) == 3
 end
 
-rays = [1 0; 0 1; -1 5; 0 -1]
-cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,1]])
-H5 = NormalToricVariety(PolyhedralFan(rays, cones))
+fan_rays = [1 0; 0 1; -1 5; 0 -1]
+fan_cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,1]])
+H5 = NormalToricVariety(PolyhedralFan(fan_rays, fan_cones))
 
 @testset "Hirzebruch surface" begin
     @test isnormal(H5) == true
@@ -116,17 +116,17 @@ end
 
 dP0 = NormalToricVariety(normal_fan(Oscar.simplex(2)))
 
-rays = [1 0; 0 1; -1 0; -1 -1]
-cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,1]])
-dP1 = NormalToricVariety(PolyhedralFan(rays, cones))
+fan_rays = [1 0; 0 1; -1 0; -1 -1]
+fan_cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,1]])
+dP1 = NormalToricVariety(PolyhedralFan(fan_rays, fan_cones))
 
-rays = [1 0; 0 1; -1 0; -1 -1; 0 -1]
-cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,5],[5,1]])
-dP2 = NormalToricVariety(PolyhedralFan(rays, cones))
+fan_rays = [1 0; 0 1; -1 0; -1 -1; 0 -1]
+fan_cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,5],[5,1]])
+dP2 = NormalToricVariety(PolyhedralFan(fan_rays, fan_cones))
 
-rays = [1 0; 1 1; 0 1; -1 0; -1 -1; 0 -1]
-cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,5],[5,6],[6,1]])
-dP3 = NormalToricVariety(PolyhedralFan(rays, cones))
+fan_rays = [1 0; 1 1; 0 1; -1 0; -1 -1; 0 -1]
+fan_cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,5],[5,6],[6,1]])
+dP3 = NormalToricVariety(PolyhedralFan(fan_rays, fan_cones))
 
 @testset "delPezzo surfaces" begin
     @test_throws ArgumentError del_pezzo(-1)
