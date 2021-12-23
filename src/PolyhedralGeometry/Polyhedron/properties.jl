@@ -26,6 +26,7 @@ julia> F = faces(cube(3), 2)
 ```
 """
 function faces(P::Polyhedron, face_dim::Int)
+    face_dim == dim(P) - 1 && return SubObjectIterator{Polyhedron}(pm_object(P), _face_polyhedron_facet, nfacets(P))
     n = face_dim - length(lineality_space(P))
     n < 0 && return nothing
     pfaces = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(pm_object(P), n))
@@ -55,6 +56,15 @@ end
 function _ray_indices(::Val{_face_polyhedron}, P::Polymake.BigObject; f_dim = -1, f_ind::Vector{Int64} = Vector{Int64}())
     return IncidenceMatrix(collect.(Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(P, f_dim)[f_ind])))[:, _ray_indices(P)]
 end
+
+function _face_polyhedron_facet(::Type{Polyhedron}, P::Polymake.BigObject, i::Base.Integer)
+    pface = P.VERTICES_IN_FACETS[_facet_index(P, i), :]
+    return Polyhedron(Polymake.polytope.Polytope(VERTICES = P.VERTICES[collect(pface),:], LINEALITY_SPACE = P.LINEALITY_SPACE))
+end
+
+_vertex_indices(::Val{_face_polyhedron_facet}, P::Polymake.BigObject) = vcat(P.VERTICES_IN_FACETS[1:(_facet_at_infinity(P) - 1), _vertex_indices(P)], P.VERTICES_IN_FACETS[(_facet_at_infinity(P) + 1):end, _vertex_indices(P)])
+
+_ray_indices(::Val{_face_polyhedron_facet}, P::Polymake.BigObject) = vcat(P.VERTICES_IN_FACETS[1:(_facet_at_infinity(P) - 1), _ray_indices(P)], P.VERTICES_IN_FACETS[(_facet_at_infinity(P) + 1):end, _ray_indices(P)])
 
 function _isray(P::Polyhedron, i::Base.Integer)
     return in(i, _ray_indices(pm_object(P)))

@@ -55,6 +55,7 @@ RayVector{Polymake.Rational}[[1, 0, 0], [0, 1, 0]]
 ```
 """
 function faces(C::Cone, face_dim::Int)
+   face_dim == dim(C) - 1 && return SubObjectIterator{Cone}(pm_object(C), _face_cone_facet, nfacets(C))
    n = face_dim - length(lineality_space(C))
    n < 1 && return nothing
    return SubObjectIterator{Cone}(C.pm_cone, _face_cone, size(Polymake.polytope.faces_of_dim(pm_object(C), n), 1), (f_dim = n,))
@@ -68,6 +69,12 @@ function _ray_indices(::Val{_face_cone}, C::Polymake.BigObject; f_dim::Int = 0)
    f = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(C, f_dim))
    return IncidenceMatrix([collect(f[i]) for i in 1:length(f)])
 end
+
+function _face_cone_facet(::Type{Cone}, C::Polymake.BigObject, i::Base.Integer)
+   return Cone(Polymake.polytope.Cone(RAYS = C.RAYS[collect(C.RAYS_IN_FACETS[i, :]), :], LINEALITY_SPACE = C.LINEALITY_SPACE))
+end
+
+_ray_indices(::Val{_face_cone_facet}, C::Polymake.BigObject) = C.RAYS_IN_FACETS
 
 ###############################################################################
 ###############################################################################
@@ -311,7 +318,7 @@ _linear_inequality_matrix(::Val{_facet_cone}, C::Polymake.BigObject) = -C.FACETS
 
 _linear_matrix_for_polymake(::Val{_facet_cone}) = _linear_inequality_matrix
 
-_ray_indices(::Val{_facet_cone}, P::Polymake.BigObject) = P.RAYS_IN_FACETS
+_ray_indices(::Val{_facet_cone}, C::Polymake.BigObject) = C.RAYS_IN_FACETS
 
 facets(C::Cone) = facets(LinearHalfspace, C)
 
