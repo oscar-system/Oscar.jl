@@ -56,6 +56,7 @@ import GAP: GapObj, GapInt
 
 export
     AutomorphismGroup,
+    AutomorphismGroupElem,
     DirectProductGroup,
     DirectProductOfElem,
     FPGroup,
@@ -242,7 +243,6 @@ Group of automorphisms over a group of type `T`. It can be defined via the funct
   X::GapObj
   G::T
 
-
   function AutomorphismGroup{T}(G::GapObj, H::T) where T
     @assert GAPWrap.IsGroupOfAutomorphisms(G)
     z = new{T}(G, H)
@@ -255,6 +255,15 @@ Group of automorphisms over a group of type `T`. It can be defined via the funct
     return z
   end
 end
+
+(aut::AutomorphismGroup{T} where T)(x::GapObj) = group_element(aut,x)
+
+const AutomorphismGroupElem{T} = BasicGAPGroupElem{AutomorphismGroup{T}} where T
+
+function Base.show(io::IO, AGE::AutomorphismGroupElem{GrpAbFinGen}) 
+    println(io, "Automorphism of ", GrpAbFinGen, " with matrix representation ", matrix(AGE))
+end
+
 
 ################################################################################
 #
