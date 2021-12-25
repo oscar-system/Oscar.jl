@@ -168,7 +168,7 @@ w = [0,0,0]
 I = ideal([x+t*y,y+t*z])
 groebner_basis(I,val_t,w)
 =======#
-function groebner_basis(I,val::ValuationMap{valuedField,uniformizer} where{valuedField,uniformizer},w::Vector{Int})
+function groebner_basis(I,val::ValuationMap{valuedField,uniformizer} where{valuedField,uniformizer},w::Vector{Int}; complete_reduction::Bool=false)
   vvI = simulate_valuation(I,val)
   w = vcat([-1],w)
 
@@ -177,6 +177,6 @@ function groebner_basis(I,val::ValuationMap{valuedField,uniformizer} where{value
   S,_ = Singular.PolynomialRing(singular_ring(base_ring(Rtx)), map(string, Nemo.symbols(Rtx)), ordering = Singular.ordering_a(w)*Singular.ordering_dp())
   SI = Singular.Ideal(S, [S(g) for g in gens(vvI)])
 
-  vvGB = Singular.std(SI)
+  vvGB = Singular.std(SI,complete_reduction=complete_reduction)
   return [Rtx(p) for p in Singular.gens(vvGB)]
 end
