@@ -66,21 +66,14 @@ Rtx,(t,y1,y2,y3) = PolynomialRing(ZZ,4)
 pseudo_change_base_ring(Rtx,f)
 =======#
 function pseudo_change_base_ring(Rtx::FmpzMPolyRing,f::fmpq_mpoly)
-
-  # todo: rewrite to use MPolyBuildCtx
-  fRtx = zero(Rtx)
-
-  for i in 1:length(f)
-    expvKx = exponent_vector(f,i) # exponent vector in K[x1,...,xn]
-    expvRtx = vcat([0],expvKx)    # exponent vector in R[t,x1,...,xn]
-    cK = coeff(f,i)               # coefficient in K
-    @assert isone(denominator(cK)) "change_base_ring: coefficient denominators need to be 1"
-
+  fRtx = MPolyBuildCtx(Rtx)
+  for (cK, expvKx) = Base.Iterators.zip(Singular.coefficients(f), Singular.exponent_vectors(f))
     cR = numerator(cK)            # coefficient in R
-    fRtx += cR*monomial(Rtx,expvRtx)
+    expvRtx = vcat([0],expvKx)    # exponent vector in R[t,x1,...,xn]
+    @assert isone(denominator(cK)) "change_base_ring: coefficient denominators need to be 1"
+    push_term!(fRtx,cR,expvRtx)
   end
-
-  return fRtx
+  return finish(fRtx)
 end
 function pseudo_change_base_ring(Rtx::FmpzMPolyRing,I::MPolyIdeal{Ktx} where {Ktx})
   return ideal([pseudo_change_base_ring(Rtx,f) for f in gens(I)])
