@@ -85,6 +85,17 @@ export pseudo_change_base_ring
 functions which, given an ideal I in variables x1, ..., xn over a field with valuation,
 returns an ideal vvI in variables t, x1, ..., xn such that tropical Groebner bases of I w.r.t. w
 correspond to standard bases of I w.r.t. (-1,w)
+Example:
+Kt,t = RationalFunctionField(QQ,"t")
+val_t = ValuationMap(Kt,t)
+Ktx,(x,y,z) = PolynomialRing(Kt,3)
+I = ideal([x+t*y,y+t*z])
+simulate_valuation(I,val_t)
+
+val_2 = ValuationMap(QQ,2)
+Kx,(x,y,z) = PolynomialRing(QQ,3)
+I = ideal([x+2*y,y+2*z])
+simulate_valuation(I,val_2)
 =======#
 function simulate_valuation(I,val_t::ValuationMap{AbstractAlgebra.Generic.RationalFunctionField{K}, AbstractAlgebra.Generic.Rat{K}} where {K})
 
@@ -111,6 +122,73 @@ function simulate_valuation(I,val_p::ValuationMap{FlintRationalField, fmpz})
   return vvI
 end
 export simulate_valuation
+
+
+#=======
+functions which, given an ideal I in variables x1, ..., xn over a field with valuation,
+returns an ideal vvI in variables t, x1, ..., xn such that tropical Groebner bases of I w.r.t. w
+correspond to standard bases of I w.r.t. (-1,w)
+Example:
+val_2 = ValuationMap(QQ,2)
+Kx,(x,y,z) = PolynomialRing(QQ,3)
+I = ideal([x+2*y,y+2*z])
+vvI = simulate_valuation(I,val_2)
+desimulate_valuation(vvI,val_2)
+=======#
+function desimulate_valuation(vvI,val_p::ValuationMap{FlintRationalField, fmpz})
+  Rtx = base_ring(vvI)
+  x = copy(symbols(Rtx))
+  popfirst!(x)
+  K = val_p.valued_field
+  Kx,_ = PolynomialRing(K,x)
+
+  vvG = [evaluate(g,[1],[val_p.uniformizer]) for g in gens(vvI)]
+  G = []
+  for vvg in vvG
+    if !iszero(vvg) # vvI contained p-t, so one entry of vvG is 0
+      g = MPolyBuildCtx(Kx)
+      for (c, expvRtx) = Base.Iterators.zip(Singular.coefficients(vvg), Singular.exponent_vectors(vvg))
+        expvKx = copy(expvRtx) # exponent vector in R[t,x1,...,xn]
+        popfirst!(expvKx)      # exponent vector in K[x1,...,xn]
+        push_term!(g,c,expvKx)
+      end
+      push!(G,finish(g))
+    end
+  end
+
+  return ideal(Kx,G)
+end
+#=======
+Example:
+Kt,t = RationalFunctionField(QQ,"t")
+val_t = ValuationMap(Kt,t)
+Ktx,(x,y,z) = PolynomialRing(Kt,3)
+I = ideal([x+t*y,y+t*z])
+vvI = simulate_valuation(I,val_t)
+desimulate_valuation(vvI,val_t)
+=======#
+function desimulate_valuation(vvI,val_t::ValuationMap{AbstractAlgebra.Generic.RationalFunctionField{K}, AbstractAlgebra.Generic.Rat{K}} where {K})
+  Rtx = base_ring(vvI)
+  x = copy(symbols(Rtx))
+  popfirst!(x)
+  Kt = val_t.valued_field
+  t = val_t.uniformizer
+  Ktx,_ = PolynomialRing(Kt,x)
+
+  G = []
+  for vvg in gens(vvI)
+    g = MPolyBuildCtx(Ktx)
+    for (c, expvRtx) = Base.Iterators.zip(Singular.coefficients(vvg), Singular.exponent_vectors(vvg))
+      expvKtx = copy(expvRtx) # exponent vector in R[t,x1,...,xn]
+      d = popfirst!(expvKtx)  # exponent vector in K(t)[x1,...,xn]
+      push_term!(g,Kt(c)*t^d,expvKtx)
+    end
+    push!(G,finish(g))
+  end
+
+  return ideal(Ktx,G)
+end
+export desimulate_valuation
 
 
 
@@ -171,5 +249,8 @@ function groebner_basis(I,val::ValuationMap{valuedField,uniformizer} where{value
   SI = Singular.Ideal(S, [S(g) for g in gens(vvI)])
 
   vvGB = Singular.std(SI,complete_reduction=complete_reduction)
-  return [Rtx(p) for p in Singular.gens(vvGB)]
+  vvIGB = ideal(Rtx,Singular.gens(vvGB))
+
+  IGB = desimulate_valuation(vvIGB,val)
+  return gens(IGB)
 end
