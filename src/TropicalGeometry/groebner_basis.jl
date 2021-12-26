@@ -55,9 +55,9 @@ val_t = ValuationMap(Kt,t)
 Ktx,(x,y,z) = PolynomialRing(Kt,3)
 w = [0,0,0]
 I = ideal([x+t*y,y+t*z])
-groebner_basis(I,val_t,w)
+groebner_basis(I,val_t,w,return_lead=true)
 =======#
-function groebner_basis(I,val::ValuationMap{valuedField,uniformizer} where{valuedField,uniformizer},w::Vector{Int}; complete_reduction::Bool=false)
+function groebner_basis(I,val::ValuationMap{valuedField,uniformizer} where{valuedField,uniformizer},w::Vector{Int}; complete_reduction::Bool=false, return_lead::Bool=false)
   vvI = simulate_valuation(I,val)
   w = vcat([-1],w)
 
@@ -67,8 +67,13 @@ function groebner_basis(I,val::ValuationMap{valuedField,uniformizer} where{value
   SI = Singular.Ideal(S, [S(g) for g in gens(vvI)])
 
   vvGB = Singular.std(SI,complete_reduction=complete_reduction)
-  vvIGB = ideal(Rtx,Singular.gens(vvGB))
+  GB = desimulate_valuation(ideal(Rtx,Singular.gens(vvGB)),val)
 
-  IGB = desimulate_valuation(vvIGB,val)
-  return gens(IGB)
+  if return_lead
+    vvLI = Singular.lead(vvGB)
+    LI = desimulate_valuation(ideal(Rtx,Singular.gens(vvLI)),val)
+    return gens(GB),gens(LI)
+  end
+
+  return gens(GB)
 end
