@@ -33,9 +33,10 @@ function groebner_polyhedron(I,val::ValuationMap{K,p} where {K,p},w::Vector{Int}
   A = zeros(Int,0,length(w))
   b = zeros(Int,0)
   for (f,lf) in zip(GB,LI)
-    leadexpv = exponent_vector(lf,1)
-    leadval = val(coeff(lf,1))
-    for (tailcoeff,tailexpv) in zip(coefficients(f),exponent_vectors(f))
+    leadcoeff,tailcoeffs = Iterators.peel(coefficients(f))
+    leadexpv,tailexpvs = Iterators.peel(exponent_vectors(f))
+    leadval = val(leadcoeff)
+    for (tailcoeff,tailexpv) in zip(tailcoeffs,tailexpvs)
       tailval = val(tailcoeff)
       A = vcat(A,transpose(tailexpv-leadexpv)) # todo: is there a better way of doing this line?
       push!(b,tailval-leadval)
@@ -63,8 +64,8 @@ function homogeneity_space(I)
   A = zeros(Int,0,n)
   b = zeros(Int,0)
   for f in GB
-    leadexpv, exponent_vectors_f = Iterators.peel(exponent_vectors(f))
-    for tailexpv in exponent_vectors_f
+    leadexpv, tailexpvs = Iterators.peel(exponent_vectors(f))
+    for tailexpv in tailexpvs
       A = vcat(A,transpose(tailexpv-leadexpv)) # todo: is there a better way of doing this line?
       push!(b,0)
     end

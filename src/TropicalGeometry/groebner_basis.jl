@@ -15,9 +15,10 @@ return true if f is homogeneous (w.r.t. total degree)
 return false otherwise
 =======#
 function is_homogeneous(f::Union{AbstractAlgebra.Generic.MPoly{K},fmpq_mpoly,fmpz_mpoly} where {K})
-  d = sum(exponent_vector(f,1))
-  for i in 2:length(f)
-    if d!=sum(exponent_vector(f,i))
+  leadexpv,tailexpvs = Iterators.peel(exponent_vectors(f))
+  d = sum(leadexpv)
+  for tailexpv in tailexpvs
+    if d!=sum(tailexpv)
       return false
     end
   end
