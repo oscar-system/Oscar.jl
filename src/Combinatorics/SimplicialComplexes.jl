@@ -103,7 +103,7 @@ end
 @doc Markdown.doc"""
     nvertices(K::SimplicialComplex)
 
-Number of vertices of the abstract simplicial complex `K`.
+Return the number of vertices of the abstract simplicial complex `K`.
 
 # Example
 ```jldoctest
@@ -111,12 +111,12 @@ julia> nvertices(torus())
 7
 ```
 """
-nvertices(K::SimplicialComplex)::Int = pm_object(K).N_VERTICES
+nvertices(K::SimplicialComplex) = pm_object(K).N_VERTICES::Int
 
 @doc Markdown.doc"""
     facets(K::SimplicialComplex)
 
-Maximal (by inclusion) faces of the abstract simplicial complex `K`.
+Return the maximal (by inclusion) faces of the abstract simplicial complex `K`.
 """
 function facets(K::SimplicialComplex)
     bigobject = pm_object(K)
@@ -127,14 +127,14 @@ end
 @doc Markdown.doc"""
     dim(K::SimplicialComplex)
 
-Dimension of the abstract simplicial complex `K`.
+Return the dimension of the abstract simplicial complex `K`.
 """
-dim(K::SimplicialComplex)::Int = pm_object(K).DIM
+dim(K::SimplicialComplex) = pm_object(K).DIM::Int
 
 @doc Markdown.doc"""
     f_vector(K::SimplicialComplex)
 
-Face vector (number of faces per dimension) of the abstract simplicial complex `K`.
+Return the face vector (number of faces per dimension) of the abstract simplicial complex `K`.
 
 # Example
 ```jldoctest
@@ -150,7 +150,7 @@ f_vector(K::SimplicialComplex) = Vector{Int}(pm_object(K).F_VECTOR)
 @doc Markdown.doc"""
     h_vector(K::SimplicialComplex)
 
-H-vector of the abstract simplicial complex `K`.
+Return the h-vector of the abstract simplicial complex `K`.
 
 # Example
 ```jldoctest
@@ -167,7 +167,7 @@ h_vector(K::SimplicialComplex) = Vector{Int}(pm_object(K).H_VECTOR)
 @doc Markdown.doc"""
     betti_numbers(K::SimplicialComplex)
 
-Reduced rational Betti numbers of the abstract simplicial complex `K`.
+Return the reduced rational Betti numbers of the abstract simplicial complex `K`.
 
 # Example
 ```jldoctest
@@ -183,7 +183,7 @@ betti_numbers(K::SimplicialComplex) = Vector{Int}(Polymake.topaz.betti_numbers(p
 @doc Markdown.doc"""
     euler_characteristic(K::SimplicialComplex)
 
-Reduced Euler characteristic of the abstract simplicial complex `K`.
+Return the reduced Euler characteristic of the abstract simplicial complex `K`.
 
 # Example
 ```jldoctest
@@ -191,12 +191,12 @@ julia> euler_characteristic(complex_projective_plane())
 2
 ```
 """
-euler_characteristic(K::SimplicialComplex)::Int = pm_object(K).EULER_CHARACTERISTIC
+euler_characteristic(K::SimplicialComplex) = pm_object(K).EULER_CHARACTERISTIC::Int
 
 @doc Markdown.doc"""
     minimal_nonfaces(K::SimplicialComplex)
 
-Minimal non-faces of the abstract simplicial complex `K`.
+Return the minimal non-faces of the abstract simplicial complex `K`.
 
 # Example
 ```jldoctest
@@ -212,7 +212,7 @@ minimal_nonfaces(K::SimplicialComplex) = Vector{Set{Int}}(Polymake.to_one_based_
 @doc Markdown.doc"""
     stanley_reisner_ideal(K::SimplicialComplex)
 
-Stanley-Reisner ideal of the abstract simplicial complex `K`.
+Return the Stanley-Reisner ideal of the abstract simplicial complex `K`.
 
 # Example
 ```jldoctest
@@ -229,7 +229,7 @@ end
 @doc Markdown.doc"""
     stanley_reisner_ideal(R::FmpzMPolyRing, K::SimplicialComplex)
 
-Stanley-Reisner ideal of the abstract simplicial complex `K`, in the given ring `R`.
+Return the Stanley-Reisner ideal of the abstract simplicial complex `K`, in the given ring `R`.
 
 # Example
 ```jldoctest
@@ -247,7 +247,7 @@ end
 @doc Markdown.doc"""
     stanley_reisner_ring(K::SimplicialComplex)
 
-Stanley-Reisner ring of the abstract simplicial complex `K`.
+Return the Stanley-Reisner ring of the abstract simplicial complex `K`.
 
 # Example
 ```jldoctest
@@ -267,7 +267,7 @@ end
 @doc Markdown.doc"""
     stanley_reisner_ring(R::FmpzMPolyRing, K::SimplicialComplex)
 
-Stanley-Reisner ring of the abstract simplicial complex `K`, as a quotient of a given ring `R`.
+Return the Stanley-Reisner ring of the abstract simplicial complex `K`, as a quotient of a given ring `R`.
 
 # Example
 ```jldoctest
@@ -287,28 +287,28 @@ stanley_reisner_ring(R::FmpzMPolyRing, K::SimplicialComplex) = quo(R, stanley_re
 """
     torus()
 
-Császár's 7-vertex triangulation of the torus (surface).
+Construct Császár's (vertex-minimal) 7-vertex triangulation of the torus (surface).
 """
 torus() = SimplicialComplex(Polymake.topaz.torus())
 
 """
     klein_bottle()
 
-9-vertex triangulation of the Klein bottle.
+Construct a 9-vertex triangulation of the Klein bottle.
 """
 klein_bottle() = SimplicialComplex(Polymake.topaz.klein_bottle())
 
 """
     real_projective_plane()
 
-6-vertex triangulation of the real projective plane.
+Construct the (vertex-minimal) 6-vertex triangulation of the real projective plane.
 """
 real_projective_plane() = SimplicialComplex(Polymake.topaz.real_projective_plane())
 
 """
     complex_projective_plane()
 
-9-vertex triangulation of the complex projective plane.
+Construct the (vertex-minimal) 9-vertex triangulation of the complex projective plane.
 """
 complex_projective_plane() = SimplicialComplex(Polymake.topaz.complex_projective_plane())
 
