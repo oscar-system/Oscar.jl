@@ -2,11 +2,6 @@
 ## (extends the conversions from GAP.jl's `src/gap_to_julia.jl` and
 ## `src/constructors.jl`, where low level Julia objects are treated)
 
-import GAP: gap_to_julia
-import GAP: GapObj, GapInt
-import Nemo: FlintIntegerRing, FlintRationalField, MatrixSpace, fmpz, fmpq, fmpz_mat, fmpq_mat
-import Oscar.AbelianClosure: QabElem
-
 ##
 ## GAP integer to `fmpz`
 ##
@@ -16,7 +11,7 @@ function fmpz(obj::GapObj)
 end
 
 GAP.gap_to_julia(::Type{fmpz}, obj::GapInt) = fmpz(obj)
-(::FlintIntegerRing)(obj::GapObj) = gap_to_julia(fmpz, obj)
+(::FlintIntegerRing)(obj::GapObj) = fmpz(obj)
 
 ##
 ## large GAP rational or integer to `fmpq`
@@ -28,7 +23,7 @@ function fmpq(obj::GapObj)
 end
 
 GAP.gap_to_julia(::Type{fmpq}, obj::GapInt) = fmpq(obj)
-(::FlintRationalField)(obj::GapObj) = gap_to_julia(fmpq, obj)
+(::FlintRationalField)(obj::GapObj) = fmpq(obj)
 
 ##
 ## matrix of GAP integers to `fmpz_mat`

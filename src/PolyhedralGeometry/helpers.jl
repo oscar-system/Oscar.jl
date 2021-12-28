@@ -1,8 +1,5 @@
 import Polymake: IncidenceMatrix
 
-import Base: convert
-
-
 matrix_for_polymake(x::Union{Oscar.fmpz_mat,AbstractMatrix{Oscar.fmpz}}) = Matrix{BigInt}(x)
 matrix_for_polymake(x::Union{Oscar.fmpq_mat,AbstractMatrix{Oscar.fmpq}}) =
     Polymake.Matrix{Polymake.Rational}(x)

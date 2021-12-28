@@ -4,10 +4,6 @@
 #
 ################################################################################
 
-import Hecke: @req
-
-using Random, RandomExtensions
-
 # We represent number fields as quotients of the form K[x]/I where I is a zero-
 # dimensional irreducible ideal of a multivaraite polynomial ring over the
 # rationals or any number field.
