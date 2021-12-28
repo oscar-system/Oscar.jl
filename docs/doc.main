@@ -142,6 +142,7 @@
 
   "Combinatorics" => [
       "Combinatorics/graphs.md",
+      "Combinatorics/simplicialcomplexes.md",
   ],
 
 
@@ -149,7 +150,7 @@
      "General/styleguide.md",
      "General/other.md",
      "General/faq.md",
-		 "General/SubObjectIterator.md"
+     "General/SubObjectIterator.md"
   ],
 
   "References" => "references.md",
