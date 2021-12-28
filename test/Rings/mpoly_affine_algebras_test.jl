@@ -62,3 +62,10 @@ end
   R, (x, y) = PolynomialRing(GF(2), ["x", "y"])
   @test_throws ArgumentError integral_basis(x*y^5-x^3*(x+1)^4, 2)
 end
+
+@testset "Noether normalization" begin
+  R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+  A, _ = quo(R, ideal(R, [x*y, x*z]))
+  L = noether_normalization(A)
+  @test length(L) == 3 # just a smoke test
+end

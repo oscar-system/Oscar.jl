@@ -4,13 +4,13 @@
     singular_assure(I)
     res = Int32[2, 3], BigInt[1, 1, 13, 1, 1, 1, -12, 5, -1, 1], Int32[1, 0, 0, 1, 2, 1, 0, 2, 1, 0]
     @test Oscar.convert_singular_ideal_to_array(I.gens.S) == res
-    R,(x,y) = PolynomialRing(FiniteField(32003), ["x","y"])
+    R,(x,y) = PolynomialRing(GF(32003), ["x","y"])
     I = ideal(R,[x+13*y,x^2*y-12*y^2-x])
     singular_assure(I)
     res = Int32[2, 3], Int32[1, 13, 1, 31991, 32002], Int32[1, 0, 0, 1, 2, 1, 0, 2, 1, 0]
     @test Oscar.convert_singular_ideal_to_array(I.gens.S) == res
     @test Singular.equal(I.gens.S, Oscar.convert_ff_gb_array_to_singular_ideal(Int32(2), res[1], res[2], res[3], base_ring(I.gens.S)))
-    R, (x1,x2,x3,x4) = PolynomialRing(FiniteField(next_prime(2^28)), ["x1", "x2", "x3", "x4"])
+    R, (x1,x2,x3,x4) = PolynomialRing(GF(next_prime(2^28)), ["x1", "x2", "x3", "x4"])
     I = ideal(R,[x1+2*x2+2*x3+2*x4-1,
             x1^2+2*x2^2+2*x3^2+2*x4^2-x1,
             2*x1*x2+2*x2*x3+2*x3*x4-x2,

@@ -103,7 +103,11 @@ reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPol
 ## Invariants of a Given Degree
 
 ```@docs
-basis(IR::InvRing, d::Int)
+basis(IR::InvRing, d::Int, algo::Symbol = :default)
+```
+
+```@docs
+iterate_basis(IR::InvRing, d::Int, algo::Symbol = :default)
 ```
 
 ## The Molien Series
@@ -115,7 +119,15 @@ basis(IR::InvRing, d::Int)
 ## Primary Invariants
 
 ```@docs
-primary_invariants(IR::InvRing)
+primary_invariants(IR::InvRing, algo::Symbol = :optimal_hsop)
+```
+
+```@docs
+primary_invariants_via_optimal_hsop(IR::InvRing)
+```
+
+```@docs
+primary_invariants_via_successive_algo(IR::InvRing)
 ```
 
 ## Secondary Invariants

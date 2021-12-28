@@ -21,7 +21,7 @@ See [Fau99](@cite) for more information.
 
 # Examples
 ```jldoctest
-julia> R,(x,y,z) = PolynomialRing(FiniteField(101), ["x","y","z"])
+julia> R,(x,y,z) = PolynomialRing(GF(101), ["x","y","z"])
 (Multivariate Polynomial Ring in x, y, z over Galois field with characteristic 101, gfp_mpoly[x, y, z])
 
 julia> I = ideal(R, [x+2*y+2*z-1, x^2+2*y^2+2*z^2-x, 2*x*y+2*y*z-y])
