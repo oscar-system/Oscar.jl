@@ -111,7 +111,7 @@ julia> nvertices(torus())
 7
 ```
 """
-nvertices(K::SimplicialComplex) = pm_object(K).N_VERTICES
+nvertices(K::SimplicialComplex)::Int = pm_object(K).N_VERTICES
 
 @doc Markdown.doc"""
     facets(K::SimplicialComplex)
@@ -129,7 +129,7 @@ end
 
 Dimension of the abstract simplicial complex `K`.
 """
-dim(K::SimplicialComplex) = pm_object(K).DIM
+dim(K::SimplicialComplex)::Int = pm_object(K).DIM
 
 @doc Markdown.doc"""
     f_vector(K::SimplicialComplex)
@@ -191,7 +191,7 @@ julia> euler_characteristic(complex_projective_plane())
 2
 ```
 """
-euler_characteristic(K::SimplicialComplex) = pm_object(K).EULER_CHARACTERISTIC
+euler_characteristic(K::SimplicialComplex)::Int = pm_object(K).EULER_CHARACTERISTIC
 
 @doc Markdown.doc"""
     minimal_nonfaces(K::SimplicialComplex)
@@ -222,7 +222,7 @@ ideal(x1*x2*x3, x1*x2*x4, x1*x5*x6, x2*x5*x6, x1*x3*x6, x1*x4*x5, x3*x4*x5, x3*x
 """
 function stanley_reisner_ideal(K::SimplicialComplex)
     n = nvertices(K)
-    R, () = PolynomialRing(ZZ, n)
+    R, _ = PolynomialRing(ZZ, n)
     return stanley_reisner_ideal(R, K)
 end
 
@@ -233,7 +233,7 @@ Stanley-Reisner ideal of the abstract simplicial complex `K`, in the given ring 
 
 # Example
 ```jldoctest
-julia> R, () = ZZ["a","b","c","d","e","f"];
+julia> R, _ = ZZ["a","b","c","d","e","f"];
 
 julia> stanley_reisner_ideal(R, real_projective_plane())
 ideal(a*b*c, a*b*d, a*e*f, b*e*f, a*c*f, a*d*e, c*d*e, c*d*f, b*c*e, b*d*f)
@@ -260,7 +260,7 @@ Multivariate Polynomial Ring in x1, x2, x3, x4 over Integer Ring to Quotient of 
 """
 function stanley_reisner_ring(K::SimplicialComplex)
     n = nvertices(K)
-    R, () = PolynomialRing(ZZ, n)
+    R, _ = PolynomialRing(ZZ, n)
     return stanley_reisner_ring(R, K)
 end
 
@@ -271,7 +271,7 @@ Stanley-Reisner ring of the abstract simplicial complex `K`, as a quotient of a 
 
 # Example
 ```jldoctest
-julia>  R, () = ZZ["a","b","c","d","e","f"];
+julia>  R, _ = ZZ["a","b","c","d","e","f"];
 
 julia> stanley_reisner_ring(R, real_projective_plane())
 (Quotient of Multivariate Polynomial Ring in 6 variables a, b, c, d, ..., f over Integer Ring by ideal(a*b*c, a*b*d, a*e*f, b*e*f, a*c*f, a*d*e, c*d*e, c*d*f, b*c*e, b*d*f), Map from
