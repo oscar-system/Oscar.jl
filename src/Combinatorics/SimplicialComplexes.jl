@@ -11,6 +11,7 @@ export
     h_vector,
     minimal_nonfaces,
     nvertices,
+    vertexindices,
     stanley_reisner_ideal,
     stanley_reisner_ring,
     load_simplicialcomplex,
@@ -32,7 +33,7 @@ pm_object(K::SimplicialComplex) = K.pm_simplicialcomplex
 
 
 @doc Markdown.doc"""
-    SimplicialComplex(generators::Vector{Vector{Int}})
+    SimplicialComplex(generators::Union{Vector{Vector{Int}}, Vector{Set{Int}}})
 
 Construct an abstract simplicial complex from a set of faces.
 While arbitrary nonnegative integers are allowed as vertices, they will be relabeled to consecutive integers starting at 1.
@@ -57,7 +58,7 @@ julia> facets(L)
  [1, 3, 2]
  [3, 4, 2]
 
-julia> Oscar._vertexindices(Oscar.pm_object(L))
+julia> vertexindices(L)
 4-element Vector{Int64}:
   0
   2
@@ -65,12 +66,7 @@ julia> Oscar._vertexindices(Oscar.pm_object(L))
  90
 ```
 """
-function SimplicialComplex(generators::Vector{Vector{Int}})
-    K = Polymake.topaz.SimplicialComplex(INPUT_FACES=generators)
-    SimplicialComplex(K)
-end
-
-function SimplicialComplex(generators::Vector{Set{Int}})
+function SimplicialComplex(generators::Union{Vector{Vector{Int}}, Vector{Set{Int}}})
     K = Polymake.topaz.SimplicialComplex(INPUT_FACES=generators)
     SimplicialComplex(K)
 end
@@ -86,6 +82,8 @@ function _vertexindices(K::Polymake.BigObject)
         return Vector{Int}(1:K.N_VERTICES)
     end
 end
+
+vertexindices(L::SimplicialComplex) = _vertexindices(pm_object(L))
 
 # currently unused
 _reindexset(M::Set{Int}, ind::Vector{Int}) = [ ind[x+1] for x in M ]
