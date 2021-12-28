@@ -14,7 +14,7 @@ include("poly.jl")
 include("initial.jl")
 include("groebner_basis.jl")
 include("groebner_polyhedron.jl")
-
+include("points.jl")
 
 # Temporarily we will turn tropical polynomials into strings. This will be
 # removed once Polymake.jl wraps its tropical polynomials and tropical numbers
