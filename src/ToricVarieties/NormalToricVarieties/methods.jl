@@ -34,6 +34,6 @@ function betti_number(v::AbstractNormalToricVariety, i::Int)
     end
     
     # return result
-    return get_attribute(v, :betti_number)[i+1]
+    return betti_numbers[i+1]
 end
 export betti_number
