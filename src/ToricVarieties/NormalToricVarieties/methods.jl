@@ -17,7 +17,7 @@ function betti_number(v::AbstractNormalToricVariety, i::Int)
     if !has_attribute(v, :betti_number)
         betti_numbers = fill(fmpz(-1),2*dim(v)+1)
     else
-        betti_numbers = get_attribute(v, :betti_number)
+        betti_numbers = get_attribute(v, :betti_number)::Vector{fmpz}
     end
     
     # compute the Betti number if needed
