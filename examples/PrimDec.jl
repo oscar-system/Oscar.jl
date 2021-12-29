@@ -23,7 +23,9 @@ include("ZeroDec.jl")
 #           basering has a global ordering
 #           basering has characteristic 0
 #OUTPUT:    Primary decomposition of I with associated primes in a list 
-@doc Markdown.doc""" decomp(I::Oscar.ideal; usefglm::Bool)
+@doc Markdown.doc"""
+    decomp(I::Oscar.ideal; usefglm::Bool)
+
 Computes the primary decomposition of an Ideal $I$ over a basefield of characteristig 0 that has a global ordering,
 via GTZ. Returns the primary decomposition with associated primes in a list. If the additional boolean 'usefglm' is
 set to 'true' then the FGLM - algorithm is used in zero-dimensional computations.

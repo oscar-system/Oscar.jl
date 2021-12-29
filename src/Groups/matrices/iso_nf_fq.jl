@@ -166,7 +166,7 @@ function test_modulus(matrices::Vector{T}, p::Int) where T <: MatrixElem{nf_elem
    return true, Fq, matrices_Fq, OtoFq
 end
 
-# Returns the largest possible order of a finite subgroup of GL(n, QQ) (equivalently:
+# Return the largest possible order of a finite subgroup of GL(n, QQ) (equivalently:
 # of GL(n, ZZ), as any finite subgroup of GL(n, QQ) is conjugate to a subgroup of GL(n, ZZ)).
 # Always return a fmpz, only the orders for n <= 16 would fit into an Int64.
 #

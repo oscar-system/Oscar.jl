@@ -5,7 +5,7 @@
 @doc Markdown.doc"""
     divisor_class(l::ToricLineBundle)
 
-Returns the divisor class which defines the toric line bundle `l`.
+Return the divisor class which defines the toric line bundle `l`.
 """
 function divisor_class(l::ToricLineBundle)
     return l.divisor_class
@@ -15,7 +15,7 @@ export divisor_class
 @doc Markdown.doc"""
     variety(l::ToricLineBundle)
 
-Returns the toric variety over which the toric line bundle `l` is defined.
+Return the toric variety over which the toric line bundle `l` is defined.
 """
 function variety(l::ToricLineBundle)
     return l.variety

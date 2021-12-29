@@ -6,7 +6,7 @@ export iterate_basis
 #
 ################################################################################
 
-# Returns an iterator over all monomials of R of degree d
+# Return an iterator over all monomials of R of degree d
 all_monomials(R::MPolyRing, d::Int) = AllMonomials(R, d)
 
 AllMonomials(R::MPolyRing, d::Int) = AllMonomials{typeof(R)}(R, d)
@@ -78,7 +78,7 @@ end
 #
 ################################################################################
 
-# Returns the dimension of the graded component of degree d.
+# Return the dimension of the graded component of degree d.
 # If we cannot compute the Molien series (so far in the modular case), we return
 # -1.
 function dimension_via_molien_series(::Type{T}, R::InvRing, d::Int) where T <: IntegerUnion

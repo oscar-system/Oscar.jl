@@ -126,7 +126,7 @@ end
 @doc Markdown.doc"""
     irreducibles(S::Vector{NfAbsOrdIdl{AnticNumberField,nf_elem}}) -> Vector{NfAbsOrdElem}
 
-Computes all irreducibles whose support is contained in $S$.
+Return all irreducibles whose support is contained in $S$.
 """
 function irreducibles(S::Vector{NfAbsOrdIdl{AnticNumberField,nf_elem}})
   if length(S) == 0
@@ -157,7 +157,7 @@ end
 @doc Markdown.doc"""
     factorisations(a::NfAbsOrdElem{AnticNumberField,nf_elem}) -> Vector{Fac{OrdElem}}
 
-Computes all factorisations of $a$ into irreducibles.
+Return all factorisations of $a$ into irreducibles.
 """
 function factorisations(a::NfAbsOrdElem{AnticNumberField,nf_elem})
   O = parent(a)

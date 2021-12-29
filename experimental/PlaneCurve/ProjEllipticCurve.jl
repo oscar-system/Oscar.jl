@@ -709,7 +709,7 @@ end
 @doc Markdown.doc"""
     order(P::Point_EllCurve{fmpq})
 
-Returns the order of the point `P` or `0` if the order is infinite.
+Return the order of the point `P` or `0` if the order is infinite.
 """
 function Oscar.order(P::Point_EllCurve{fmpq})
    return Hecke.order(P.Hecke_Pt)
@@ -720,7 +720,7 @@ end
 @doc Markdown.doc"""
     istorsion_point(P::Point_EllCurve{fmpq})
 
-Returns whether the point `P` is a torsion point.
+Return whether the point `P` is a torsion point.
 """
 function Oscar.istorsion_point(P::Point_EllCurve{fmpq})
    return Hecke.istorsion_point(P.Hecke_Pt)
@@ -730,7 +730,7 @@ end
 @doc Markdown.doc"""
     torsion_points_lutz_nagell(E::ProjEllipticCurve{fmpq})
 
-Computes the rational torsion points of the elliptic curve `E` using the
+Return the rational torsion points of the elliptic curve `E` using the
 Lutz-Nagell theorem.
 """
 function Oscar.torsion_points_lutz_nagell(E::ProjEllipticCurve{fmpq})
@@ -745,7 +745,7 @@ end
 @doc Markdown.doc"""
     torsion_points_division_poly(E::ProjEllipticCurve{fmpq})
 
-Computes the rational torsion points of a rational elliptic curve `E` using
+Return the rational torsion points of a rational elliptic curve `E` using
 division polynomials.
 """
 function Oscar.torsion_points_division_poly(E::ProjEllipticCurve{fmpq})
