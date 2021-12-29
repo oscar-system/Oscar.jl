@@ -14,12 +14,6 @@
 
 # character values are elements from QabField
 
-import Base: getindex, length, mod, one, print, show, zero
-
-import Oscar.AbelianClosure: QabElem, QabAutomorphism
-
-import Nemo: degree
-
 export
     character_field,
     character_table,
@@ -527,8 +521,6 @@ end
 function Base.show(io::IO, chi::GAPGroupClassFunction)
     print(io, "group_class_function($(chi.table), $(values(chi)))")
 end
-
-import Base.values
 
 function values(chi::GAPGroupClassFunction)
     gapvalues = GAP.Globals.ValuesOfClassFunction(chi.values)

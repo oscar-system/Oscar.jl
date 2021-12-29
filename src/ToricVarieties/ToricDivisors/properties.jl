@@ -6,16 +6,20 @@ Checks if the divisor `td` is Cartier.
 # Examples
 ```jldoctest
 julia> H = hirzebruch_surface(4)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> td = ToricDivisor(H, [1,0,0,0])
-A torus invariant divisor on a normal toric variety
+A torus-invariant, prime divisor on a normal toric variety
 
 julia> iscartier(td)
 true
 ```
 """
-iscartier(td::ToricDivisor) = pm_tdivisor(td).CARTIER::Bool
+function iscartier(td::ToricDivisor)
+    return get_attribute!(td, :iscartier) do
+        return pm_tdivisor(td).CARTIER::Bool
+    end
+end
 export iscartier
 
 
@@ -26,16 +30,20 @@ Determine whether the toric divisor `td` is principal.
 # Examples
 ```jldoctest
 julia> H = hirzebruch_surface(4)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> td = ToricDivisor(H, [1,0,0,0])
-A torus invariant divisor on a normal toric variety
+A torus-invariant, prime divisor on a normal toric variety
 
 julia> isprincipal(td)
 false
 ```
 """
-isprincipal(td::ToricDivisor) = pm_tdivisor(td).PRINCIPAL::Bool
+function isprincipal(td::ToricDivisor)
+    return get_attribute!(td, :isprincipal) do
+        return pm_tdivisor(td).PRINCIPAL::Bool
+    end
+end
 export isprincipal
 
 
@@ -46,16 +54,20 @@ Determine whether the toric divisor `td` is basepoint free.
 # Examples
 ```jldoctest
 julia> H = hirzebruch_surface(4)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> td = ToricDivisor(H, [1,0,0,0])
-A torus invariant divisor on a normal toric variety
+A torus-invariant, prime divisor on a normal toric variety
 
 julia> isbasepoint_free(td)
 true
 ```
 """
-isbasepoint_free(td::ToricDivisor) = pm_tdivisor(td).BASEPOINT_FREE::Bool
+function isbasepoint_free(td::ToricDivisor)
+    return get_attribute!(td, :isbasepoint_free) do
+        return pm_tdivisor(td).BASEPOINT_FREE::Bool
+    end
+end
 export isbasepoint_free
 
 
@@ -66,16 +78,20 @@ Determine whether the toric divisor `td` is effective.
 # Examples
 ```jldoctest
 julia> H = hirzebruch_surface(4)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> td = ToricDivisor(H, [1,0,0,0])
-A torus invariant divisor on a normal toric variety
+A torus-invariant, prime divisor on a normal toric variety
 
 julia> iseffective(td)
 true
 ```
 """
-iseffective(td::ToricDivisor) = pm_tdivisor(td).EFFECTIVE::Bool
+function iseffective(td::ToricDivisor)
+    return get_attribute!(td, :iseffective) do
+        return pm_tdivisor(td).EFFECTIVE::Bool
+    end
+end
 export iseffective
 
 
@@ -86,16 +102,20 @@ Determine whether the toric divisor `td` is integral.
 # Examples
 ```jldoctest
 julia> H = hirzebruch_surface(4)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> td = ToricDivisor(H, [1,0,0,0])
-A torus invariant divisor on a normal toric variety
+A torus-invariant, prime divisor on a normal toric variety
 
 julia> isintegral(td)
 true
 ```
 """
-isintegral(td::ToricDivisor) = pm_tdivisor(td).INTEGRAL::Bool
+function isintegral(td::ToricDivisor)
+    return get_attribute!(td, :isintegral) do
+        return pm_tdivisor(td).INTEGRAL::Bool
+    end
+end
 export isintegral
 
 
@@ -106,16 +126,20 @@ Determine whether the toric divisor `td` is ample.
 # Examples
 ```jldoctest
 julia> H = hirzebruch_surface(4)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> td = ToricDivisor(H, [1,0,0,0])
-A torus invariant divisor on a normal toric variety
+A torus-invariant, prime divisor on a normal toric variety
 
 julia> isample(td)
 false
 ```
 """
-isample(td::ToricDivisor) = pm_tdivisor(td).AMPLE::Bool
+function isample(td::ToricDivisor)
+    return get_attribute!(td, :isample) do
+        return pm_tdivisor(td).AMPLE::Bool
+    end
+end
 export isample
 
 
@@ -126,16 +150,20 @@ Determine whether the toric divisor `td` is very ample.
 # Examples
 ```jldoctest
 julia> H = hirzebruch_surface(4)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> td = ToricDivisor(H, [1,0,0,0])
-A torus invariant divisor on a normal toric variety
+A torus-invariant, prime divisor on a normal toric variety
 
 julia> isvery_ample(td)
 false
 ```
 """
-isvery_ample(td::ToricDivisor) = pm_tdivisor(td).VERY_AMPLE::Bool
+function isvery_ample(td::ToricDivisor)
+    return get_attribute!(td, :isvery_ample) do
+        return pm_tdivisor(td).VERY_AMPLE::Bool
+    end
+end
 export isvery_ample
 
 
@@ -146,16 +174,20 @@ Determine whether the toric divisor `td` is nef.
 # Examples
 ```jldoctest
 julia> H = hirzebruch_surface(4)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> td = ToricDivisor(H, [1,0,0,0])
-A torus invariant divisor on a normal toric variety
+A torus-invariant, prime divisor on a normal toric variety
 
 julia> isnef(td)
 true
 ```
 """
-isnef(td::ToricDivisor) = pm_tdivisor(td).NEF::Bool
+function isnef(td::ToricDivisor)
+    return get_attribute!(td, :isnef) do
+        return pm_tdivisor(td).NEF::Bool
+    end
+end
 export isnef
 
 
@@ -166,16 +198,20 @@ Determine whether the toric divisor `td` is Q-Cartier.
 # Examples
 ```jldoctest
 julia> H = hirzebruch_surface(4)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> td = ToricDivisor(H, [1,0,0,0])
-A torus invariant divisor on a normal toric variety
+A torus-invariant, prime divisor on a normal toric variety
 
 julia> isq_cartier(td)
 true
 ```
 """
-isq_cartier(td::ToricDivisor) = pm_tdivisor(td).Q_CARTIER::Bool
+function isq_cartier(td::ToricDivisor)
+    return get_attribute!(td, :isq_cartier) do
+        return pm_tdivisor(td).Q_CARTIER::Bool
+    end
+end
 export isq_cartier
 
 
@@ -187,21 +223,22 @@ Determine whether the toric divisor `td` is a prime divisor.
 # Examples
 ```jldoctest
 julia> H = hirzebruch_surface(4)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> td = ToricDivisor(H, [1,0,0,0])
-A torus invariant divisor on a normal toric variety
+A torus-invariant, prime divisor on a normal toric variety
 
 julia> isprime_divisor(td)
 true
 ```
 """
 function isprime_divisor(td::ToricDivisor)
-    pm_divisor = td.polymake_divisor
-    coeffs = [Int(c) for c in Polymake.common.primitive(pm_divisor.COEFFICIENTS)]
-    if sum(coeffs) != 1
-        return false
-    end
-    return all(y -> (y == 1 || y == 0), coeffs)
+    return get_attribute!(td, :isprime_divisor) do    
+        if sum(coefficients(td)) != 1
+            return false
+        else
+            return all(y -> (y == 1 || y == 0), coefficients(td))
+        end
+    end    
 end
 export isprime_divisor

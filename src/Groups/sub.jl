@@ -1,5 +1,3 @@
-import Base.intersect
-
 export
     centralizer,
     centre, hascentre, setcentre,
