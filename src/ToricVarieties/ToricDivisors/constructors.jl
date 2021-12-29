@@ -4,6 +4,8 @@
 
 @attributes mutable struct ToricDivisor
            polymake_divisor::Polymake.BigObject
+           toricvariety::AbstractNormalToricVariety
+           coeffs::Vector{Int}
 end
 export ToricDivisor
 
@@ -36,11 +38,9 @@ function ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{Int})
     # construct the divisor
     ptd = Polymake.fulton.TDivisor(COEFFICIENTS=coeffs)
     Polymake.add(pm_object(v), "DIVISOR", ptd)
-    td = ToricDivisor(ptd, Dict())
+    td = ToricDivisor(ptd, v, coeffs, Dict())
     
     # set attributes
-    set_attribute!(td, :coefficients, coeffs)
-    set_attribute!(td, :toricvariety, v)
     if sum(coeffs) != 1
         set_attribute!(td, :isprime_divisor, false)
     else
