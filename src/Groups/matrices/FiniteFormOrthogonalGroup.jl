@@ -1,5 +1,5 @@
 import Hecke: _block_indices_vals, _solve_X_ker,_jordan_odd_adic,
-_two_adic_normal_forms,_jordan_2_adic, _normalize, _val, _min_val, hensel_qf,_normalize
+_two_adic_normal_forms,_jordan_2_adic, _normalize, _val, _min_val, hensel_qf,TorQuadMod,gram_matrix_quadratic
 
 
 #Generators of the orthogonal group of a torsion quadratic form.
@@ -114,6 +114,9 @@ function _normal(G::Union{fmpz_mod_mat, nmod_mat}, p)
   end
 end
 
+function lift(x::AbstractAlgebra.Generic.MatSpaceElem{gfp_fmpz_elem})
+  return map_entries(lift , x)
+end
 
 #     Return generators of the orthogonal group modulo `p` for odd `p`.
 #
@@ -751,94 +754,90 @@ end
 #     [  3   1], [2 0], [1 0]
 #     ]
 # """
-#=
-function _compute_gens(T, deg=true):
-    T = normal_form(T)  #remove?
-    # corner case
-    invs = invariants(T)
-    if length(invs) == 0
-        return []
+function _compute_gens(T::TorQuadMod, deg=true)
+  T.isnormal || error("T must be normal")
+
+  # corner case
+  invs = elementary_divisors(T)
+  if length(invs) == 0
+    return fmpz_mat[]
+  end
+  #=
+  TODO
+  # a well behaved degenerate case
+  if deg && isdegenerate(T) && isprime(invs[1])
+    p = invs[1]
+    n = length(invs)
+    N = _normalize(T, p)
+    q = gram_matrix_quadratic(N)
+    k = count(i -> q[:,i]==0, 1:n)
+    r = n - k
+    Idk = identity_matrix(ZZ, k)
+    Idr = identity_matrix(ZZ, r)
+    NR, i = sub(N, gens(N)[k:end])
+    gensNR = _compute_gens(NR,deg=false)
+    if k > 0
+      gensG = [diagonal_matrix([Idk,g]) for g in gensNR]
+      append!(gensG, [diagonal_matrix([matrix(g), Idr]) for g in gens(GL(k,p))])
+    else
+      gensG = gensNR
     end
-    # a well behaved degenerate case
-    if deg && is_degenerate(T) && isprime(invariants(T)[end])
-        p = invariants(T)[end]
-        n = length(invariants(T))
-        N = _normalize(T)
-        q = gram_matrix_quadratic(N)
-        k = count(i -> q[:,i]==0, 1:n)
-        r = n - k
-        Idk = identity_matrix(ZZ, k)
-        Idr = identity_matrix(ZZ, r)
-        NR = submodule_with_gens(N, gens(N)[k:])
-        gensNR = [NR._to_smith()*g*NR._to_gens() for g in _compute_gens(NR,deg=false)]
-        if k > 0
-            gens = [diagonal_matrix([Idk,g]) for g in gensNR]
-            gens += [diagonal_matrix([matrix(g),Idr]) for g in GL(k,p).gens()]
-        else:
-            gens = gensNR
+    if k>0 && r>0
+      h = identity_matrix(ZZ, n)
+      for i in 1:r
+        for j in 1:k
+          g = deepcopy(h)
+          g[k+i,j] = 1
+          push!(gensG, g)
         end
-        if k>0 && r>0
-            h = identity_matrix(ZZ, n)
-            for g in gens(MatrixSpace(GF(p),r,k))
-                h[k:,:k] = g
-                push!(gens,h)
-                push!(gens,deepcopy(h))
-            end
-        end
-        return [N._to_gens() * g * N._to_smith() for g in gens]
-    elseif deg && is_degenerate(T)
-        return _isom_fqf(T)
+      end
     end
+    return [N._to_gens() * g * N._to_smith() for g in gensG]
+  elseif deg && isdegenerate(T)
+    return _isom_fqf(T)
+  end
+  =#
 
-    # normal form gens for the different primes
-    blocks = []
-    gensT_orders = [order(t) for t in gens(T)]
-    n = length(gens(T))
-    P = annihilator(T).gen().prime_divisors()
-    for p in P:
-        indices = []
-        for k in range(length(gensT_orders)):
-            if mod(gensT_orders[k], p) == 0:
-                indices.append(k)
-            end
-        end
-        blocks.append([p, tuple(indices)])
-    end
-
-    to_smith = T.to_smith()
-    to_normal = T.to_gens()
-
-    # compute generators of the orthogonal groups
-    gens = []
-    for bl in blocks:
-        # compute the generators of the p-primary part
-        # the whole group is the direct product of the p-primary parts
-        p = bl[0]
-        indices = bl[1]
-        q_p = T.gram_matrix_quadratic()[indices, indices]
-        b = invs[end].valuation(p)
-        G_p = q_p * p^b
-        if p != 2:
-            # make sure each homogeneous block of G_p stays in normal form
-            G_p = G_p/2
-        end
-
-        R = Zp(p, type='fixed-mod', prec=b+5, show_prec=false)
-        G_p = G_p.change_ring(R)
-
-        # the generators in matrix form
-        gens_mat = _gens(G_p, b)
-
-        # extend as identity on the orthogonal complement
-        E1 = identity_matrix(indices[0])
-        E2 = identity_matrix(n - indices[end] - 1)
-        for g in gens_mat:
-            g = g.change_ring(ZZ)
-            g = matrix.block_diagonal([E1,g,E2])
-            g = to_normal * g * to_smith
-            gens.append(g)
+  # normal form gens for the different primes
+  blocks = []
+  gensT_orders = [order(t) for t in gens(T)]
+  n = length(gens(T))
+  P = prime_divisors(exponent(T))
+  for p in P
+    indices = Int[]
+    for k in 1:length(gensT_orders)
+        if mod(gensT_orders[k], p) == 0
+            push!(indices, k)
         end
     end
-    return gens
+    push!(blocks, [p, indices])
+  end
+
+  # compute generators of the orthogonal groups
+  gensG = fmpz_mat[]
+  for (p, indices) in blocks
+    # compute the generators of the p-primary part
+    # the whole group is the direct product of the p-primary parts
+    q_p = gram_matrix_quadratic(T)[indices, indices]
+    b = valuation(invs[end], p)
+    R = ResidueRing(ZZ,fmpz(p)^(b+5))
+    G_p = change_base_ring(ZZ, q_p*p^b)
+    G_p = change_base_ring(R, G_p)
+    if p != 2
+      # make sure each homogeneous block of G_p stays in normal form
+      r = divexact(G_p, R(2))
+    end
+
+    # the generators in matrix form
+    gens_mat = _gens(G_p, b, p)
+    # extend as identity on the orthogonal complement
+    E1 = identity_matrix(ZZ, indices[1]-1)
+    E2 = identity_matrix(ZZ, n - indices[end])
+    for g in gens_mat
+      g = change_base_ring(ZZ, g)
+      g = block_diagonal_matrix([E1, g, E2])
+      push!(gensG, g)
+    end
+  end
+  return gensG
 end
-=#
