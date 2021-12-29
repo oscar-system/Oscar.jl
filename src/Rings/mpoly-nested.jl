@@ -145,7 +145,7 @@ end
 @doc Markdown.doc"""
     denest(R::Union{PolyRing, MPolyRing})
 
-Returns a multivariate polynomial ring resulting from denesting an iterated
+Return a multivariate polynomial ring resulting from denesting an iterated
 polynomial ring `R`.
 """
 function denest(R::Union{PolyRing, MPolyRing})
@@ -184,7 +184,7 @@ end
 @doc Markdown.doc"""
     denest(S::MPolyRing, f::Union{PolyElem, MPolyElem})
 
-Returns an element of `S` resulting from denesting a element `f` of an
+Return an element of `S` resulting from denesting a element `f` of an
 iterated polynomial ring. The ring `S` should have the same base ring and
 number of variables as `denest(parent(f))`.
 """
@@ -247,7 +247,7 @@ end
 @doc Markdown.doc"""
     renest(R::Union{PolyRing, MPolyRing}, g::MPolyElem)
 
-Returns an element of iterated polynomial ring `R` from its denested
+Return an element of iterated polynomial ring `R` from its denested
 counterpart. The return satisfies `f == renest(R, denest(denest(R), f))`.
 """
 function renest(R::Union{PolyRing, MPolyRing}, g::MPolyElem)

@@ -1097,7 +1097,7 @@ function _isless_negdegrevlex(f::MPolyElem, k::Int, l::Int)
   return _isless_negrevlex(f, k, l)
 end
 
-# Returns the degree of the k-th term of f weighted by w,
+# Return the degree of the k-th term of f weighted by w,
 # that is deg(x^a) = w_1a_1 + ... + w_na_n.
 # No sanity checks are performed!
 function weighted_degree(f::MPolyElem, k::Int, w::Vector{Int})
