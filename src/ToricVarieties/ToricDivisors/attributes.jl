@@ -67,9 +67,7 @@ julia> coefficients(D)
 ```
 """
 function coefficients(td::ToricDivisor)
-    return get_attribute!(td, :coefficients) do
-        return Vector{Int}(Polymake.common.primitive(pm_tdivisor(td).COEFFICIENTS))
-    end
+    return td.coeffs
 end
 export coefficients
 
@@ -80,6 +78,6 @@ export coefficients
 Return the toric variety of a torus-invariant Weil divisor.
 """
 function toricvariety(td::ToricDivisor)
-    return get_attribute(td, :toricvariety)
+    return td.toricvariety
 end
 export toricvariety
