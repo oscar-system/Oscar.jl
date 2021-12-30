@@ -146,8 +146,8 @@ function Base.show(io::IO, td::ToricDivisor)
         if get_attribute(td, :isample)
             push!(properties_string, "ample")
         else
-            if has_attribute(td, :isvery_ample)
-                if get_attribute(td, :isvery_ample)
+            if has_attribute(td, :is_very_ample)
+                if get_attribute(td, :is_very_ample)
                     push!(properties_string, "very-ample")
                 else
                     push!(properties_string, "non-very-ample")

@@ -35,7 +35,7 @@ isnef(td::ToricDivisor)
 isprime_divisor(td::ToricDivisor)
 isprincipal(td::ToricDivisor)
 isq_cartier(td::ToricDivisor)
-isvery_ample(td::ToricDivisor)
+is_very_ample(td::ToricDivisor)
 ```
 
 ## Operations for toric divisors

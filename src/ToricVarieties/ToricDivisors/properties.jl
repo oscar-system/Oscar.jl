@@ -144,7 +144,7 @@ export isample
 
 
 @doc Markdown.doc"""
-    isvery_ample(td::ToricDivisor) 
+    is_very_ample(td::ToricDivisor) 
 
 Determine whether the toric divisor `td` is very ample.
 # Examples
@@ -155,16 +155,16 @@ A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, non-fano, 2-
 julia> td = ToricDivisor(H, [1,0,0,0])
 A torus-invariant, prime divisor on a normal toric variety
 
-julia> isvery_ample(td)
+julia> is_very_ample(td)
 false
 ```
 """
-function isvery_ample(td::ToricDivisor)
-    return get_attribute!(td, :isvery_ample) do
-        return pm_tdivisor(td).VERY_AMPLE
-    end::Bool
+function is_very_ample(td::ToricDivisor)
+    return get_attribute!(td, :is_very_ample) do
+        return pm_tdivisor(td).VERY_AMPLE::Bool
+    end
 end
-export isvery_ample
+export is_very_ample
 
 
 @doc Markdown.doc"""

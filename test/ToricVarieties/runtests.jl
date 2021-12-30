@@ -201,7 +201,7 @@ D2 = DivisorOfCharacter(H5, [1,2])
     @test isprincipal(D) == true
     @test isbasepoint_free(D) == true
     @test isample(D) == false
-    @test isvery_ample(D) == false
+    @test is_very_ample(D) == false
     @test isnef(D) == true
     @test isintegral(D) == true
     @test isq_cartier(D) == true
@@ -211,7 +211,7 @@ D2 = DivisorOfCharacter(H5, [1,2])
     @test isprincipal(D2) == true
     @test isbasepoint_free(D2) == true
     @test isample(D2) == false
-    @test isvery_ample(D2) == false
+    @test is_very_ample(D2) == false
     @test isnef(D2) == true
     @test isintegral(D2) == true
     @test isq_cartier(D2) == true
