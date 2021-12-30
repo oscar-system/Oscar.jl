@@ -216,7 +216,7 @@ export isq_cartier
 
 
 @doc Markdown.doc"""
-    isprime_divisor(td::ToricDivisor) 
+    is_prime_divisor(td::ToricDivisor) 
 
 Determine whether the toric divisor `td` is a prime divisor.
 
@@ -228,12 +228,12 @@ A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, non-fano, 2-
 julia> td = ToricDivisor(H, [1,0,0,0])
 A torus-invariant, prime divisor on a normal toric variety
 
-julia> isprime_divisor(td)
+julia> is_prime_divisor(td)
 true
 ```
 """
-function isprime_divisor(td::ToricDivisor)
-    return get_attribute!(td, :isprime_divisor) do    
+function is_prime_divisor(td::ToricDivisor)
+    return get_attribute!(td, :is_prime_divisor) do    
         if sum(coefficients(td)) != 1
             return false
         else
@@ -241,4 +241,4 @@ function isprime_divisor(td::ToricDivisor)
         end
     end::Bool
 end
-export isprime_divisor
+export is_prime_divisor

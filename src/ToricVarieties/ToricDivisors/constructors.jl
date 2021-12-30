@@ -42,9 +42,9 @@ function ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{Int})
     
     # set attributes
     if sum(coeffs) != 1
-        set_attribute!(td, :isprime_divisor, false)
+        set_attribute!(td, :is_prime_divisor, false)
     else
-        set_attribute!(td, :isprime_divisor, all(y -> (y == 1 || y == 0), coeffs))
+        set_attribute!(td, :is_prime_divisor, all(y -> (y == 1 || y == 0), coeffs))
     end
     
     # return the result
@@ -168,8 +168,8 @@ function Base.show(io::IO, td::ToricDivisor)
     end
     
     # prime divisor?
-    if has_attribute(td, :isprime_divisor)
-        if get_attribute(td, :isprime_divisor)
+    if has_attribute(td, :is_prime_divisor)
+        if get_attribute(td, :is_prime_divisor)
             push!(properties_string, "prime")
         else
             push!(properties_string, "non-prime")
