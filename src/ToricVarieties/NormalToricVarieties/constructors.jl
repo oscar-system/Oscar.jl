@@ -255,7 +255,7 @@ function toric_projective_space(d::Int)
     set_attribute!(variety, :isorbifold, true)
     set_attribute!(variety, :issimplicial, true)
     set_attribute!(variety, :isgorenstein, true)
-    set_attribute!(variety, :isq_gorenstein, true)
+    set_attribute!(variety, :is_q_gorenstein, true)
     set_attribute!(variety, :isfano, true)
     
     # set attributes
@@ -304,7 +304,7 @@ function hirzebruch_surface(r::Int)
     set_attribute!(variety, :isorbifold, true)
     set_attribute!(variety, :issimplicial, true)
     set_attribute!(variety, :isgorenstein, true)
-    set_attribute!(variety, :isq_gorenstein, true)
+    set_attribute!(variety, :is_q_gorenstein, true)
     if abs(r) <= 1
         set_attribute!(variety, :isfano, true)
     else
@@ -380,7 +380,7 @@ function del_pezzo(b::Int)
     set_attribute!(variety, :isorbifold, true)
     set_attribute!(variety, :issimplicial, true)
     set_attribute!(variety, :isgorenstein, true)
-    set_attribute!(variety, :isq_gorenstein, true)
+    set_attribute!(variety, :is_q_gorenstein, true)
     set_attribute!(variety, :isfano, true)
     
     # set attributes that depend on b
@@ -535,8 +535,8 @@ function Base.show(io::IO, v::AbstractNormalToricVariety)
     end
     
     # q-gorenstein?
-    if has_attribute(v, :isq_gorenstein)
-        if get_attribute(v, :isq_gorenstein)
+    if has_attribute(v, :is_q_gorenstein)
+        if get_attribute(v, :is_q_gorenstein)
             push!(properties_string, "q-gorenstein")
         else
             push!(properties_string, "non-q-gorenstein")

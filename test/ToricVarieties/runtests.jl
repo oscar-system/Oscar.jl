@@ -88,7 +88,7 @@ H5 = NormalToricVariety(PolyhedralFan(fan_rays, fan_cones))
     @test isorbifold(H5) == true
     @test issimplicial(H5) == true
     @test isgorenstein(H5) == true
-    @test isq_gorenstein(H5) == true
+    @test is_q_gorenstein(H5) == true
     @test isfano(H5) == false
     nef_cone(H5)
     mori_cone(H5)

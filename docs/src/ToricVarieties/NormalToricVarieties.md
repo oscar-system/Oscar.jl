@@ -68,7 +68,7 @@ isnormal(v::AbstractNormalToricVariety)
 isorbifold(v::AbstractNormalToricVariety)
 isprojective(v::AbstractNormalToricVariety)
 is_projective_space(v::AbstractNormalToricVariety)
-isq_gorenstein(v::AbstractNormalToricVariety)
+is_q_gorenstein(v::AbstractNormalToricVariety)
 ```
 
 

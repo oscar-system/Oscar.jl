@@ -214,22 +214,22 @@ export isgorenstein
 
 
 @doc Markdown.doc"""
-    isq_gorenstein(v::AbstractNormalToricVariety)
+    is_q_gorenstein(v::AbstractNormalToricVariety)
 
 Checks if the normal toric variety `v` is Q-Gorenstein.
 
 # Examples
 ```jldoctest
-julia> isq_gorenstein(toric_projective_space(2))
+julia> is_q_gorenstein(toric_projective_space(2))
 true
 ```
 """
-function isq_gorenstein(v::AbstractNormalToricVariety)
-    return get_attribute!(v, :isq_gorenstein) do
-        return pm_object(v).Q_GORENSTEIN
-    end::Bool
+function is_q_gorenstein(v::AbstractNormalToricVariety)
+    return get_attribute!(v, :is_q_gorenstein) do
+        return pm_object(v).Q_GORENSTEIN::Bool
+    end
 end
-export isq_gorenstein
+export is_q_gorenstein
 
 
 @doc Markdown.doc"""
