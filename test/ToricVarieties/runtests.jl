@@ -183,12 +183,12 @@ v = H5 * P2
 end
 
 @testset "ComparisonWithProjectiveSpace" begin
-    @test isprojective_space(H5) == false
-    @test isprojective_space(P2) == true
-    @test isprojective_space(blowup_variety) == false
-    @test isprojective_space(v) == false
-    @test isprojective_space(ntv) == false
-    @test isprojective_space(ntv2) == false
+    @test is_projective_space(H5) == false
+    @test is_projective_space(P2) == true
+    @test is_projective_space(blowup_variety) == false
+    @test is_projective_space(v) == false
+    @test is_projective_space(ntv) == false
+    @test is_projective_space(ntv2) == false
 end
 
 D=ToricDivisor(H5, [0,0,0,0])

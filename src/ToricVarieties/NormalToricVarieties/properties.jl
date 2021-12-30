@@ -58,7 +58,7 @@ export isprojective
 
 
 @doc Markdown.doc"""
-    isprojective_space(v::AbstractNormalToricVariety)
+    is_projective_space(v::AbstractNormalToricVariety)
 
 Decides if the normal toric varieties `v` is a projective space.
 
@@ -67,15 +67,15 @@ Decides if the normal toric varieties `v` is a projective space.
 julia> H5 = hirzebruch_surface(5)
 A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
-julia> isprojective_space(H5)
+julia> is_projective_space(H5)
 false
 
-julia> isprojective_space(toric_projective_space(2))
+julia> is_projective_space(toric_projective_space(2))
 true
 ```
 """
-function isprojective_space(v::AbstractNormalToricVariety)
-    return get_attribute!(v, :isprojective_space) do
+function is_projective_space(v::AbstractNormalToricVariety)
+    return get_attribute!(v, :is_projective_space) do
         if issmooth(v) == false
             return false
         end
@@ -98,7 +98,7 @@ function isprojective_space(v::AbstractNormalToricVariety)
         return irrelevant_ideal(v) == ideal(gens(cox_ring(v)))
     end::Bool
 end
-export isprojective_space
+export is_projective_space
 
 
 @doc Markdown.doc"""

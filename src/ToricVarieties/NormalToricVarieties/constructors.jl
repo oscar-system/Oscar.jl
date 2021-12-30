@@ -50,7 +50,7 @@ function AffineNormalToricVariety(C::Cone)
     set_attribute!(variety, :isaffine, true)
     set_attribute!(variety, :iscomplete, false)
     set_attribute!(variety, :isprojective, false)
-    set_attribute!(variety, :isprojective_space, false)
+    set_attribute!(variety, :is_projective_space, false)
     
     # return
     return variety
@@ -83,7 +83,7 @@ function NormalToricVariety(C::Cone)
     set_attribute!(variety, :isaffine, true)
     set_attribute!(variety, :iscomplete, false)
     set_attribute!(variety, :isprojective, false)
-    set_attribute!(variety, :isprojective_space, false)
+    set_attribute!(variety, :is_projective_space, false)
     
     # return
     return variety
@@ -176,7 +176,7 @@ function AffineNormalToricVariety(v::NormalToricVariety)
     set_attribute!(variety, :isaffine, true)
     set_attribute!(variety, :iscomplete, false)
     set_attribute!(variety, :isprojective, false)
-    set_attribute!(variety, :isprojective_space, false)    
+    set_attribute!(variety, :is_projective_space, false)    
     
     # construct the affine variety and copy all cached information from v
     return variety
@@ -248,7 +248,7 @@ function toric_projective_space(d::Int)
     # set properties
     set_attribute!(variety, :isaffine, false)
     set_attribute!(variety, :isprojective, true)
-    set_attribute!(variety, :isprojective_space, true)
+    set_attribute!(variety, :is_projective_space, true)
     set_attribute!(variety, :issmooth, true)
     set_attribute!(variety, :iscomplete, true)
     set_attribute!(variety, :hastorusfactor, false)
@@ -297,7 +297,7 @@ function hirzebruch_surface(r::Int)
     # set properties
     set_attribute!(variety, :isaffine, false)
     set_attribute!(variety, :isprojective, true)
-    set_attribute!(variety, :isprojective_space, false)
+    set_attribute!(variety, :is_projective_space, false)
     set_attribute!(variety, :issmooth, true)
     set_attribute!(variety, :iscomplete, true)
     set_attribute!(variety, :hastorusfactor, false)
@@ -373,7 +373,7 @@ function del_pezzo(b::Int)
     # set properties
     set_attribute!(variety, :isaffine, false)
     set_attribute!(variety, :isprojective, true)
-    set_attribute!(variety, :isprojective_space, false)
+    set_attribute!(variety, :is_projective_space, false)
     set_attribute!(variety, :issmooth, true)
     set_attribute!(variety, :iscomplete, true)
     set_attribute!(variety, :hastorusfactor, false)
