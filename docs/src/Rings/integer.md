@@ -551,8 +551,8 @@ bell(ZZ(20))
 
 * `binomial(n::fmpz, k::fmpz) -> fmpz`
 
-Returns the binomial coefficient ``\frac{n!}{k!(n - k)!}``. If ``n, k < 0`` or
-``k > n`` we return zero.
+Returns the binomial coefficient ``\frac{n (n-1) \cdots (n-k+1)}{k!}`` for
+``k \ge 0`` and returns `0` for `k < 0`.
 
 !!! note
     Julia already defines the `binomial` function for `Int`, which throws an

@@ -210,7 +210,7 @@ function invariant_hermitian_forms(G::MatrixGroup{S,T}) where {S,T}
    d = degree(F)
    iseven(d) || return M
 
-   F0 = GF(Int(p), div(d,2))[1]
+   F0 = GF(Int(p), div(d,2))
    q = p^div(d,2)
    e = embed(F0,F)
    em = preimage_map(F0,F)

@@ -4,13 +4,6 @@
 # but that local replacements by pure Julia code (independent of GAP)
 # are welcome.
 
-if isdefined(Hecke, :isregular)
-    import Hecke: isregular
-end
-if isdefined(Hecke, :isprimitive)
-    import Hecke: isprimitive
-end
-
 export
     all_blocks,
     blocks,

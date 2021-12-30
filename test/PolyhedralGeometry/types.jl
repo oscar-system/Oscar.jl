@@ -77,11 +77,14 @@
         @test A != B
 
         @test A.a == a
-        @test A.b == 0
+        @test A.b == Oscar.negbias(A) == 0
 
         @test B.a == b
-        @test B.b == 2
+        @test B.b == Oscar.negbias(B) == 2
 
     end
+    
+    @test Halfspace(a) isa LinearHalfspace
+    @test Hyperplane(a) isa LinearHyperplane
 
 end

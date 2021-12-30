@@ -185,6 +185,10 @@ end
 @testset "Degree" begin
   R, (x,y) = grade(PolynomialRing(QQ, ["x", "y"])[1]);
   @test_throws ArgumentError degree(zero(R))
+
+  Z = abelian_group(0)
+  R, (x,y) = filtrate(PolynomialRing(QQ, ["x", "y"])[1], [Z[1], Z[1]], (x,y) -> x[1] > y[1])
+  @test degree(x+y^3) == 1*Z[1]
 end
 
 @testset "Grading" begin
