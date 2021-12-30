@@ -204,7 +204,7 @@ D2 = DivisorOfCharacter(H5, [1,2])
     @test is_very_ample(D) == false
     @test isnef(D) == true
     @test isintegral(D) == true
-    @test isq_cartier(D) == true
+    @test is_q_cartier(D) == true
     @test coefficients(D) == [0,0,0,0]
     @test is_prime_divisor(D2) == false
     @test iscartier(D2) == true
@@ -214,7 +214,7 @@ D2 = DivisorOfCharacter(H5, [1,2])
     @test is_very_ample(D2) == false
     @test isnef(D2) == true
     @test isintegral(D2) == true
-    @test isq_cartier(D2) == true
+    @test is_q_cartier(D2) == true
     @test is_prime_divisor(D2) == false
     @test coefficients(D2) == [1, 2, 9, -2]
 end

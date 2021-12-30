@@ -93,8 +93,8 @@ function Base.show(io::IO, td::ToricDivisor)
         if get_attribute(td, :iscartier)
             push!(properties_string, "cartier")
         else
-            if has_attribute(td, :isq_cartier)
-                if get_attribute(td, :isq_cartier)
+            if has_attribute(td, :is_q_cartier)
+                if get_attribute(td, :is_q_cartier)
                     push!(properties_string, "q-cartier")
                 else
                     push!(properties_string, "non-q-cartier")

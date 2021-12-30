@@ -192,7 +192,7 @@ export isnef
 
 
 @doc Markdown.doc"""
-    isq_cartier(td::ToricDivisor) 
+    is_q_cartier(td::ToricDivisor) 
 
 Determine whether the toric divisor `td` is Q-Cartier.
 # Examples
@@ -203,16 +203,16 @@ A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, non-fano, 2-
 julia> td = ToricDivisor(H, [1,0,0,0])
 A torus-invariant, prime divisor on a normal toric variety
 
-julia> isq_cartier(td)
+julia> is_q_cartier(td)
 true
 ```
 """
-function isq_cartier(td::ToricDivisor)
-    return get_attribute!(td, :isq_cartier) do
-        return pm_tdivisor(td).Q_CARTIER
-    end::Bool
+function is_q_cartier(td::ToricDivisor)
+    return get_attribute!(td, :is_q_cartier) do
+        return pm_tdivisor(td).Q_CARTIER::Bool
+    end
 end
-export isq_cartier
+export is_q_cartier
 
 
 @doc Markdown.doc"""
