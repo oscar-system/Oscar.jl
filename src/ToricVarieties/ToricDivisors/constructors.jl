@@ -115,8 +115,8 @@ function Base.show(io::IO, td::ToricDivisor)
     end
     
     # basepoint free?
-    if has_attribute(td, :isbasepoint_free)
-        if get_attribute(td, :isbasepoint_free)
+    if has_attribute(td, :is_basepoint_free)
+        if get_attribute(td, :is_basepoint_free)
             push!(properties_string, "basepoint-free")
         else
             push!(properties_string, "non-basepoint-free")

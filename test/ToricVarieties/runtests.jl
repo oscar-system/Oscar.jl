@@ -199,7 +199,7 @@ D2 = DivisorOfCharacter(H5, [1,2])
     @test is_prime_divisor(D) == false
     @test iscartier(D) == true
     @test isprincipal(D) == true
-    @test isbasepoint_free(D) == true
+    @test is_basepoint_free(D) == true
     @test isample(D) == false
     @test is_very_ample(D) == false
     @test isnef(D) == true
@@ -209,7 +209,7 @@ D2 = DivisorOfCharacter(H5, [1,2])
     @test is_prime_divisor(D2) == false
     @test iscartier(D2) == true
     @test isprincipal(D2) == true
-    @test isbasepoint_free(D2) == true
+    @test is_basepoint_free(D2) == true
     @test isample(D2) == false
     @test is_very_ample(D2) == false
     @test isnef(D2) == true

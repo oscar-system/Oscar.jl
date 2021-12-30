@@ -48,7 +48,7 @@ export isprincipal
 
 
 @doc Markdown.doc"""
-    isbasepoint_free(td::ToricDivisor) 
+    is_basepoint_free(td::ToricDivisor) 
 
 Determine whether the toric divisor `td` is basepoint free.
 # Examples
@@ -59,16 +59,16 @@ A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, non-fano, 2-
 julia> td = ToricDivisor(H, [1,0,0,0])
 A torus-invariant, prime divisor on a normal toric variety
 
-julia> isbasepoint_free(td)
+julia> is_basepoint_free(td)
 true
 ```
 """
-function isbasepoint_free(td::ToricDivisor)
-    return get_attribute!(td, :isbasepoint_free) do
-        return pm_tdivisor(td).BASEPOINT_FREE
-    end::Bool
+function is_basepoint_free(td::ToricDivisor)
+    return get_attribute!(td, :is_basepoint_free) do
+        return pm_tdivisor(td).BASEPOINT_FREE::Bool
+    end
 end
-export isbasepoint_free
+export is_basepoint_free
 
 
 @doc Markdown.doc"""

@@ -27,7 +27,7 @@ ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{Int})
 
 ```@docs
 isample(td::ToricDivisor)
-isbasepoint_free(td::ToricDivisor)
+is_basepoint_free(td::ToricDivisor)
 iscartier(td::ToricDivisor)
 iseffective(td::ToricDivisor)
 isintegral(td::ToricDivisor)
