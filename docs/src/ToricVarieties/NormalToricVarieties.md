@@ -86,6 +86,7 @@ cartier_divisor_group(v::AbstractNormalToricVariety)
 character_lattice(v::AbstractNormalToricVariety)
 class_group(v::AbstractNormalToricVariety)
 map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v::AbstractNormalToricVariety)
+map_from_cartier_divisor_group_to_picard_group(v::AbstractNormalToricVariety)
 map_from_character_to_principal_divisors(v::AbstractNormalToricVariety)
 map_from_weil_divisors_to_class_group(v::AbstractNormalToricVariety)
 picard_group(v::AbstractNormalToricVariety)
@@ -108,7 +109,7 @@ nef_cone(v::NormalToricVariety)
 dim(v::AbstractNormalToricVariety)
 dim_of_torusfactor(v::AbstractNormalToricVariety)
 euler_characteristic(v::AbstractNormalToricVariety)
-ith_betti_number(v::AbstractNormalToricVariety, i::Int)
+betti_number(v::AbstractNormalToricVariety, i::Int)
 ```
 
 ### Rings and ideals

@@ -4,7 +4,7 @@
 ################################################################################
 ################################################################################
 
-struct CyclicQuotientSingularity <: AbstractNormalToricVariety
+@attributes mutable struct CyclicQuotientSingularity <: AbstractNormalToricVariety
     polymakeNTV::Polymake.BigObject
 end
 export CyclicQuotientSingularity
@@ -25,7 +25,7 @@ $0<q<n$ and $q,n$ coprime.
 # Examples
 ```jldoctest
 julia> cqs = CyclicQuotientSingularity(7,5)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal toric variety
 
 julia> isaffine(cqs)
 true
@@ -40,7 +40,7 @@ function CyclicQuotientSingularity(n::fmpz, q::fmpz)
     q < n || error("q must be smaller than n (q=$(q) >= n=$(n))")
     gcd(n,q)==1 || error("n and q must be coprime (gcd=$(gcd(n,q)))")
     pmntv = Polymake.fulton.CyclicQuotient(N=convert(Polymake.Integer, n), Q=convert(Polymake.Integer, q))
-    return CyclicQuotientSingularity(pmntv)
+    return CyclicQuotientSingularity(pmntv, Dict())
 end
 CyclicQuotientSingularity(n::Int64, q::Int64) = CyclicQuotientSingularity(fmpz(n), fmpz(q))
 
@@ -60,7 +60,7 @@ differs in sign from what is commonly known as continued fraction.
 # Examples
 ```jldoctest
 julia> cqs = CyclicQuotientSingularity(7,5)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal toric variety
 
 julia> cf = continued_fraction_hirzebruch_jung(cqs)
 3-element Vector{fmpz}:
@@ -72,7 +72,11 @@ julia> ecf = cf[1]-1//(cf[2]-fmpq(1,cf[3]))
 7//5
 ```
 """
-continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity) = Vector{fmpz}(pm_object(cqs).CONTINUED_FRACTION)
+function continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity)
+    return get_attribute!(cqs, :continued_fraction_hirzebruch_jung) do
+        return Vector{fmpz}(pm_object(cqs).CONTINUED_FRACTION)
+    end
+end
 export continued_fraction_hirzebruch_jung
 
 
@@ -91,7 +95,7 @@ differs in sign from what is commonly known as continued fraction.
 # Examples
 ```jldoctest
 julia> cqs = CyclicQuotientSingularity(7,5)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal toric variety
 
 julia> dcf = dual_continued_fraction_hirzebruch_jung(cqs)
 2-element Vector{fmpz}:
@@ -102,7 +106,11 @@ julia> edcf = dcf[1] - fmpq(1,dcf[2])
 7//2
 ```
 """
-dual_continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity) = Vector{fmpz}(pm_object(cqs).DUAL_CONTINUED_FRACTION)
+function dual_continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity)
+    return get_attribute!(cqs, :dual_continued_fraction_hirzebruch_jung) do
+        return Vector{fmpz}(pm_object(cqs).DUAL_CONTINUED_FRACTION)
+    end
+end
 export dual_continued_fraction_hirzebruch_jung
 
 
@@ -120,7 +128,7 @@ differs in sign from what is commonly known as continued fraction.
 # Examples
 ```jldoctest
 julia> cqs = CyclicQuotientSingularity(7,5)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A normal toric variety
 
 julia> v = continued_fraction_hirzebruch_jung(cqs)
 3-element Vector{fmpz}:

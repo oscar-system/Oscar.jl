@@ -1,7 +1,3 @@
-
-import Markdown
-import Base: ==
-
 const AnyVecOrMat = Union{MatElem, AbstractVecOrMat}
 
 
