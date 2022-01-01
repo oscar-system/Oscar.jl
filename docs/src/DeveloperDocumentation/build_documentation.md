@@ -1,4 +1,4 @@
-# OSCAR documentation
+# Building the OSCAR documentation
 
 To build the OSCAR documentation (especially when editing it, which
 usually requires rebuilding it several times to test the outcome), we

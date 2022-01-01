@@ -129,7 +129,7 @@
 #        "Experimental/divisors.md",
 #        "Experimental/elliptic_curves.md",
 #        "Experimental/non_plane_curves.md",
-	 "AlgebraicGeometry/para_rational_curves.md",	 
+         "AlgebraicGeometry/para_rational_curves.md",
      ],
      "Toric Varieties" => [
         "ToricVarieties/intro.md",
@@ -153,14 +153,11 @@
 
   "References" => "references.md",
   "Index" => "manualindex.md",
-  "Developers Corner" => [
-		"DevelopersCorner/intro.md",
-		"General" => [
-			"DevelopersCorner/styleguide.md",
-			"DevelopersCorner/build_documentation.md"
-		],
-		"Polyhedral Geometry" => [
-			"DevelopersCorner/SubObjectIterator.md",
-		],
-	],
+  "Developer Documentation" => [
+    "DeveloperDocumentation/styleguide.md",
+    "DeveloperDocumentation/build_documentation.md",
+    "Polyhedral Geometry" => [
+        "DeveloperDocumentation/SubObjectIterator.md",
+    ],
+  ],
 ]
