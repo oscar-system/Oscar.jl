@@ -30,9 +30,8 @@ functionality for handling such algebras in OSCAR.
 
 ## Types
 
-!!! note
-    All types for quotient rings of  multivariate polynomial rings belong to the abstract type `MPolyQuo{T}`,
-    irrespective of whether they are graded or not.
+The OSCAR type for quotient rings of  a multivariate polynomial ring -- decorated or not -- is of parametrized form `MPolyQuo{T}`,
+where `T` is the element type of the polynomial ring. In turn, the type for elements of quotient rings is of parametrized form `MPolyQuoElem{T}`.
     
 ## Constructors
 

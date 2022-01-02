@@ -133,6 +133,12 @@ julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"], [1, 2, 3])
   x -> [1]
   y -> [2]
   z -> [3], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+
+julia> S, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
+  x -> [1]
+  y -> [1]
+  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
 ```
 """
 function GradedPolynomialRing(C::Ring, V::Vector{String}, W::Vector{Int}; ordering=:lex)
@@ -411,8 +417,6 @@ end
     ishomogeneous(F::MPolyElem_dec)
 
 Return `true` if `F` is homogeneous, `false` otherwise.
-
-Return the homogenization of `f`, `V`, or `I` in a graded ring with additional variable `var` at position `pos`.
 """
 function ishomogeneous(F::MPolyElem_dec)
   D = parent(F).D
@@ -758,7 +762,8 @@ end
 
     homogenization(I::MPolyIdeal{T}, var::String, pos::Int = 1; ordering::Symbol = :degrevlex) where {T <: MPolyElem}
 
-Return the homogenization of `f`, `V`, or `I` in a graded ring with additional variable `var` at position `pos`.
+Homogenize `f`, `V`, or `I` using an additional variable printing as `var`.
+Return the result as an element of a graded polynomial ring with an additional variable at position `pos` printing as `var`.
 
 !!! warning
     Homogenizing an ideal requires a Gröbner basis computation. This may take some time.
@@ -809,7 +814,8 @@ end
 
     dehomogenization(I::MPolyIdeal{T}, pos::Int) where {T <: MPolyElem_dec}
 
-Return the dehomogenization of `F`, `V`, or `I` in a ring not depending on the variable at position `pos`.
+Dehomogenize `F`, `V`, or `I` using the variable at position `pos`. 
+Return the result as an element of a polynomial ring not depending on the variable at position `pos`.
 """
 function dehomogenization(F::MPolyElem_dec, pos::Int)
   S = parent(F)
