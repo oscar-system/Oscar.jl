@@ -262,7 +262,7 @@ function saturation_with_index(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 
 # elimination #######################################################
 @doc Markdown.doc"""
-    eliminate(I::MPolyIdeal{T}, l::Vector{T}) where T
+    eliminate(I::MPolyIdeal{T}, l::Vector{T}) where T <: MPolyElem
 
 Given a vector `l` of polynomials which are variables, these variables are eliminated from `I`. 
 That is, return the ideal of all polynomials in `I` which only depend on the remaining variables.
@@ -296,7 +296,7 @@ julia> TC = eliminate(I, A)
 ideal(-x*z + y^2, x*y - z, x^2 - y)
 ```
 """
-function eliminate(I::MPolyIdeal, l::Vector{T}) where T
+function eliminate(I::MPolyIdeal, l::Vector{T}) where T <: MPolyElem
   singular_assure(I)
   B = BiPolyArray(l)
   S = base_ring(I.gens.S)
