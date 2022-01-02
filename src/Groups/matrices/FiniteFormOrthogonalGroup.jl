@@ -149,7 +149,7 @@ function _gens_qf(G::Union{fmpz_mod_mat, nmod_mat}, p)
       Gq[i,i] = divexact(Gq[i,i],2)
     end
   end
-  gensOq =  _gens_form(Gq::Union{fmpz_mod_mat, nmod_mat}, quadratic_form, p)
+  gensOq =  _gens_form(Gq, quadratic_form, p)
   return gensOq
 end
 
