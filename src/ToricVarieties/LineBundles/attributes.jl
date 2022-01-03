@@ -12,6 +12,7 @@ function divisor_class(l::ToricLineBundle)
 end
 export divisor_class
 
+
 @doc Markdown.doc"""
     variety(l::ToricLineBundle)
 
@@ -21,3 +22,23 @@ function variety(l::ToricLineBundle)
     return l.variety
 end
 export variety
+
+
+@doc Markdown.doc"""
+    toric_divisor(l::ToricLineBundle)
+
+Returns a divisor corresponding to the toric line bundle `l`.
+"""
+function toric_divisor(l::ToricLineBundle)
+    return get_attribute!(l, :toric_divisor) do
+        class = divisor_class(l)
+        map1 = map_from_cartier_divisor_group_to_picard_group(variety(l))
+        map2 = map = map_from_cartier_divisor_group_to_torus_invariant_divisor_group(variety(l))
+        image = map2(preimage(map1, class)).coeff
+        coeffs = vec([fmpz(x) for x in image])
+        td = ToricDivisor(variety(l), coeffs)
+        set_attribute!(td, :iscartier, true)
+        return td
+    end
+end
+export divisor
