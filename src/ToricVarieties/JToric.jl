@@ -11,4 +11,6 @@ include("ToricDivisors/properties.jl")
 include("ToricDivisors/attributes.jl")
 
 include("LineBundles/constructors.jl")
+include("LineBundles/properties.jl")
 include("LineBundles/attributes.jl")
+

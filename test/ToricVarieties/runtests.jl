@@ -232,4 +232,8 @@ line_bundle = ToricLineBundle(dP3, [1,2,3,4])
     @test degree(line_bundle) == 10
     @test divisor_class(line_bundle).coeff == AbstractAlgebra.matrix(ZZ, [1 2 3 4])
     @test dim(variety(line_bundle)) == 2
+    @test istrivial(line_bundle) == false
+    @test is_basepoint_free(line_bundle) == false
+    @test isample(line_bundle) == false
+    @test is_very_ample(line_bundle) == false
 end
