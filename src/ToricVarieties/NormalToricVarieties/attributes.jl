@@ -180,7 +180,12 @@ function toric_ideal(antv::AffineNormalToricVariety)
     end
 end
 export toric_ideal
-toric_ideal(ntv::NormalToricVariety) = toric_ideal(AffineNormalToricVariety(ntv))
+
+function toric_ideal(ntv::NormalToricVariety)
+    isaffine(ntv) || error("Cannot construct affine toric variety from non-affine input")    
+    return get_attribute!(() -> toric_ideal(AffineNormalToricVariety(ntv)), ntv, :toric_ideal)
+end
+export toric_ideal
 
 
 ############################

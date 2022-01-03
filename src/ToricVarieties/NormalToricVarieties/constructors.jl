@@ -172,7 +172,7 @@ function AffineNormalToricVariety(v::NormalToricVariety)
     # set variety
     variety = AffineNormalToricVariety(pm_object(v), Dict())
     
-    # set properties
+    # set properties of variety
     set_attribute!(variety, :isaffine, true)
     set_attribute!(variety, :iscomplete, false)
     set_attribute!(variety, :isprojective, false)
