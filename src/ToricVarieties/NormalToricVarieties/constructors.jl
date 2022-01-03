@@ -150,7 +150,9 @@ A normal toric variety
 """    
 function NormalToricVariety(P::Polyhedron)
     fan = normal_fan(P)
-    return NormalToricVariety(fan)
+    variety = NormalToricVariety(fan)
+    set_attribute!(variety, :polyhedron, P)
+    return variety
 end
 
 export NormalToricVariety
