@@ -1,6 +1,6 @@
 export defines_automorphism
 
-@attributes TorQuadMod   # remove as soon as Hecke is patched
+@attributes TorQuadMod   # TODO: remove as soon as Hecke is patched
 
 AutGrpAbTor = Union{AutomorphismGroup{GrpAbFinGen},AutomorphismGroup{TorQuadMod}}
 AutGrpAbTorElem = Union{AutomorphismGroupElem{GrpAbFinGen},AutomorphismGroupElem{TorQuadMod}}
