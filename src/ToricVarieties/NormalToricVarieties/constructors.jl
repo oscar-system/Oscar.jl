@@ -188,6 +188,47 @@ end
 ######################
 
 @doc Markdown.doc"""
+    toric_affine_space(d::Int)
+
+Constructs the (toric) affine space of dimension `d`.
+
+# Examples
+```jldoctest
+julia> toric_affine_space(2)
+A normal, affine, non-complete, 2-dimensional toric variety
+```
+"""
+function toric_affine_space(d::Int)
+    # construct the cone of the variety
+    m = zeros(Int, d, d)
+    for i in 1:d
+        m[i,i] = 1
+    end
+    C = positive_hull(m)
+    
+    # construct the variety
+    fan = PolyhedralFan(C)
+    pmntv = Polymake.fulton.NormalToricVariety(Oscar.pm_object(fan))
+    variety = NormalToricVariety(pmntv, Dict())
+    
+    # set known properties´
+    set_attribute!(variety, :isaffine, true)
+    set_attribute!(variety, :iscomplete, false)
+    set_attribute!(variety, :isprojective, false)
+    set_attribute!(variety, :isprojective_space, false)
+    
+    # set attributes
+    set_attribute!(variety, :fan, fan)
+    set_attribute!(variety, :dim, d)
+    set_attribute!(variety, :dim_of_torusfactor, 0)
+    
+    # return the variety
+    return variety
+end
+export toric_affine_space
+
+
+@doc Markdown.doc"""
     toric_projective_space(d::Int)
 
 Construct the projective space of dimension `d`.
