@@ -390,7 +390,7 @@ Return the domain of this group of automorphisms.
 domain(A::AutomorphismGroup) = A.G
 
 """
-  domain(f::AutomorphismGroupElem) -> Group
+    domain(f::AutomorphismGroupElem) -> Group
 
 Return the domain of this automorphism.
 """
