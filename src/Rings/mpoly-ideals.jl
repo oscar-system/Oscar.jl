@@ -28,7 +28,7 @@ In the decorated case, assure that the entries of `g` are homogeneous if the bas
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
 
-julia> I = ideal([x*y-3*x,y^3-2*x^2*y])
+julia> I = ideal(R, [x*y-3*x,y^3-2*x^2*y])
 ideal(x*y - 3*x, -2*x^2*y + y^3)
 
 julia> typeof(I)
@@ -66,6 +66,7 @@ function ideal(Qxy::MPolyRing{T}, x::MPolyElem{T}) where T <: RingElem
   return ideal(Qxy, [x])
 end
 
+
 # elementary operations #######################################################
 @doc Markdown.doc"""
     :^(I::MPolyIdeal, m::Int)
@@ -92,7 +93,7 @@ end
 @doc Markdown.doc"""
     :+(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 
-Return the sum of `I` and `J`. Alternatively, use `I+J`.
+Return the sum of `I` and `J`.
 
 # Examples
 ```jldoctest
@@ -119,7 +120,7 @@ Base.:-(I::MPolyIdeal, J::MPolyIdeal) = I+J
 @doc Markdown.doc"""
     :*(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 
-Return the product of `I` and `J`. Alternatively, use `I*J`.
+Return the product of `I` and `J`.
 
 # Examples
 ```jldoctest
@@ -184,10 +185,10 @@ julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 julia> I = ideal(R, [x^4+x^2*y*z+y^3*z, y^4+x^3*z+x*y^2*z, x^3*y+x*y^3])
 ideal(x^4 + x^2*y*z + y^3*z, x^3*z + x*y^2*z + y^4, x^3*y + x*y^3)
 
-julia> J = ideal(R,[x,y,z])^2
+julia> J = ideal(R, [x, y, z])^2
 ideal(x^2, x*y, x*z, y^2, y*z, z^2)
 
-julia> L = quotient(I,J)
+julia> L = quotient(I, J)
 ideal(x^3*z + x*y^2*z + y^4, x^3*y + x*y^3, x^4 + x^2*y*z + y^3*z, x^3*z^2 - x^2*y*z^2 + x*y^2*z^2 - y^3*z^2, x^2*y^2*z - x^2*y*z^2 - y^3*z^2, x^3*z^2 + x^2*y^3 - x^2*y^2*z + x*y^2*z^2)
 
 julia> I:J
@@ -218,10 +219,10 @@ julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 julia> I = ideal(R, [z^3, y*z^2, x*z^2, y^2*z, x*y*z, x^2*z, x*y^2, x^2*y])
 ideal(z^3, y*z^2, x*z^2, y^2*z, x*y*z, x^2*z, x*y^2, x^2*y)
 
-julia> J = ideal(R, [x,y,z])
+julia> J = ideal(R, [x, y, z])
 ideal(x, y, z)
 
-julia> K = saturation(I,J)
+julia> K = saturation(I, J)
 ideal(z, x*y)
 ```
 """
@@ -245,7 +246,7 @@ julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 julia> I = ideal(R, [z^3, y*z^2, x*z^2, y^2*z, x*y*z, x^2*z, x*y^2, x^2*y])
 ideal(z^3, y*z^2, x*z^2, y^2*z, x*y*z, x^2*z, x*y^2, x^2*y)
 
-julia> J = ideal(R, [x,y,z])
+julia> J = ideal(R, [x, y, z])
 ideal(x, y, z)
 
 julia> K, m = saturation_with_index(I, J)
@@ -284,14 +285,14 @@ julia> A = [t]
 1-element Vector{fmpq_mpoly}:
  t
 
-julia> TC = eliminate(I,A)
+julia> TC = eliminate(I, A)
 ideal(-x*z + y^2, x*y - z, x^2 - y)
 
 julia> A = [1]
 1-element Vector{Int64}:
  1
 
-julia> TC = eliminate(I,A)
+julia> TC = eliminate(I, A)
 ideal(-x*z + y^2, x*y - z, x^2 - y)
 ```
 """
@@ -385,12 +386,12 @@ end
 Return a minimal primary decomposition of `I`. If `I` is the unit ideal, return `[ideal(1)]`.
 
 The decomposition is returned as a vector of tuples $(Q_1, P_1), \dots, (Q_t, P_t)$, say,
-where each $Q_i$ is a primary ideal with associated prime $P_i$, and the intersection of 
+where each $Q_i$ is a primary ideal with associated prime $P_i$, and where the intersection of 
 the $Q_i$ is `I`. 
 
 # Implemented Algorithms
 
-If the base ring of `I` is a polynomial ring over a field, the algorithm of Gianni, Trager and Zacharias 
+If the base ring of `I` is a polynomial ring over a field, the algorithm of Gianni, Trager, and Zacharias 
 is used by default (`alg = :GTZ`). Alternatively, the algorithm by Shimoyama and Yokoyama can be used 
 by specifying `alg = :SY`.  For polynomial rings over the integers, the algorithm proceeds as suggested by 
 Pfister, Sadiq, and Steidel. See [GTZ88](@cite), [SY96](@cite), and [PSS11](@cite).
@@ -468,12 +469,12 @@ If `I` is an ideal in a multivariate polynomial ring over the rationals, return 
 
 The decomposition is returned as a vector of tuples $(Q_i, P_i, P_{ij}, d_{ij})$, say, 
 where $(Q_i, P_i)$ is a (primary, prime) tuple as returned by `primary_decomposition(I)`, 
-and `P_{ij}` represents a corresponding class of conjugated absolute primes defined over 
+and `P_{ij}` represents a corresponding class of conjugated absolute associated primes defined over 
 an algebraic extension of the rationals of degree $d_{ij}$.
 
 # Implemented Algorithms
 
-The implementation combines the algorithm of Gianni, Trager and Zacharias for primary
+The implementation combines the algorithm of Gianni, Trager, and Zacharias for primary
 decomposition with absolute polynomial factorization.
 
 # Examples
@@ -571,7 +572,7 @@ If `I` is the unit ideal, return `[ideal(1)]`.
 # Implemented Algorithms
 
 If the base ring of `I` is a polynomial ring over a field, the algorithm of
-Gianni-Trager-Zacharias is used by default (`alg = :GTZ`). Alternatively, characteristic sets may be
+Gianni, Trager, and Zacharias is used by default (`alg = :GTZ`). Alternatively, characteristic sets can be
 used by specifying `alg = :charSets`. For polynomial rings over the integers, 
 the algorithm proceeds as suggested by Pfister, Sadiq, and Steidel.
 See [GTZ88](@cite) and [PSS11](@cite).
@@ -872,7 +873,7 @@ end
 #######################################################
 
 @doc Markdown.doc"""
-    ideal_membership(f::T, I::MPolyIdeal{T}) where T <: MPolyElem
+    ideal_membership(f::T, I::MPolyIdeal{T}) where T
 
 Return `true` if `f` is contained in `I`, `false` otherwise. Alternatively, use `f in I`. 
 
@@ -897,7 +898,7 @@ julia> g in I
 false
 ```
 """
-function ideal_membership(f::T, I::MPolyIdeal{T}) where T <: MPolyElem
+function ideal_membership(f::T, I::MPolyIdeal{T}) where T
   groebner_assure(I)
   singular_assure(I.gb)
   Sx = base_ring(I.gb.S)
@@ -906,7 +907,7 @@ end
 Base.:in(f::MPolyElem, I::MPolyIdeal) = ideal_membership(f,I)
 #######################################################
 @doc Markdown.doc"""
-    radical_membership(f::T, I::MPolyIdeal{T}) where T <: MPolyElem
+    radical_membership(f::T, I::MPolyIdeal{T}) where T
    
 Return `true` if `f` is contained in the radical of `I`, `false` otherwise.
 Alternatively, use `inradical(f, I)`.
@@ -932,7 +933,7 @@ julia> inradical(g, I)
 false
 ```
 """
-function radical_membership(f::T, I::MPolyIdeal{T}) where T <: MPolyElem
+function radical_membership(f::T, I::MPolyIdeal{T}) where T
   singular_assure(I)                                                                                    
   Sx = base_ring(I.gens.S)                                                                                    
   return Singular.LibPolylib.rad_con(Sx(f), I.gens.S) == 1                                                    
@@ -942,7 +943,7 @@ inradical(f::MPolyElem, I::MPolyIdeal) = radical_membership(f,I)
 @doc Markdown.doc"""
     isprime(I::MPolyIdeal)
 
-Return `true` if the ideal `I` is prime, `false` otherwise. 
+Return `true` if `I` is prime, `false` otherwise. 
 
 !!! warning
     The function computes the minimal asscociated primes of `I`. This may take some time.
@@ -968,7 +969,7 @@ end
 @doc Markdown.doc"""
     isprimary(I::MPolyIdeal)
 
-Return `true` if the ideal `I` is primary, `false` otherwise. 
+Return `true` if `I` is primary, `false` otherwise. 
 
 !!! warning
     The function computes a primary decomposition of `I`. This may take some time.
@@ -1038,7 +1039,7 @@ end
 @doc Markdown.doc"""
     gens(I::MPolyIdeal)
 
-Return the generators of `I` as an array of multivariate polynomials.
+Return the generators of `I`.
 
 # Examples
 ```jldoctest

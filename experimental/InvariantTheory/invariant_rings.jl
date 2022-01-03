@@ -70,7 +70,7 @@ function Base.show(io::IO, IR::InvRing)
   print(io, action(IR))
 end
 
-# Returns a map performing the right action of M on the ring R
+# Return a map performing the right action of M on the ring R
 function right_action(R::MPolyRing{T}, M::MatrixElem{T}) where T
   @assert nvars(R) == ncols(M)
   @assert nrows(M) == ncols(M)

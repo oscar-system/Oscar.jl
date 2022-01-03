@@ -74,12 +74,9 @@ function _isomorphic_group_over_finite_field(G::MatrixGroup{T}) where T <: Union
 end
 
 function isomorphic_group_over_finite_field(G::MatrixGroup{T}) where T <: Union{fmpq, nf_elem}
-   res = get_attribute(G, :isomorphic_group_over_fq)
-   if res == nothing
-      res = _isomorphic_group_over_finite_field(G)
-      set_attribute!(G, :isomorphic_group_over_fq => res)
+   return get_attribute!(G, :isomorphic_group_over_fq) do
+      return _isomorphic_group_over_finite_field(G)
    end
-   return res
 end
 
 # Detinko, Flannery, O'Brien "Recognizing finite matrix  groups over infinite
@@ -166,7 +163,7 @@ function test_modulus(matrices::Vector{T}, p::Int) where T <: MatrixElem{nf_elem
    return true, Fq, matrices_Fq, OtoFq
 end
 
-# Returns the largest possible order of a finite subgroup of GL(n, QQ) (equivalently:
+# Return the largest possible order of a finite subgroup of GL(n, QQ) (equivalently:
 # of GL(n, ZZ), as any finite subgroup of GL(n, QQ) is conjugate to a subgroup of GL(n, ZZ)).
 # Always return a fmpz, only the orders for n <= 16 would fit into an Int64.
 #

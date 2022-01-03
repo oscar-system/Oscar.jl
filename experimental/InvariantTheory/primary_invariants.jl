@@ -28,7 +28,7 @@ function test_primary_degrees_via_hilbert_series(R::InvRing, degrees::Vector{Int
   return true
 end
 
-# Returns possible degrees of primary invariants d_1, ..., d_n with
+# Return possible degrees of primary invariants d_1, ..., d_n with
 # d_1 \cdots d_n == k*|G|, where G = group(R).
 # (Note that |G| must divide d_1 \cdots d_n, see DK15, Prop. 3.5.5.)
 function candidates_primary_degrees(R::InvRing, k::Int, bad_prefixes::Vector{Vector{Int}} = Vector{Vector{Int}}())
@@ -209,7 +209,7 @@ function primary_invariants_via_optimal_hsop(RG::InvRing; ensure_minimality::Int
 end
 
 # Kemper "An Algorithm to Calculate Optimal Homogeneous Systems of Parameters", 1999, [Kem99]
-# Returns a bool b and an integer k.
+# Return a bool b and an integer k.
 # b == true iff primary invariants of the given degrees exist. In this case
 # invars will contain those invariants.
 # k is only needed for recursive calls of the function.

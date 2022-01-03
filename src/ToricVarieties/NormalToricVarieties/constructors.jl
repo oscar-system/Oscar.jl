@@ -402,7 +402,7 @@ export del_pezzo
 @doc Markdown.doc"""
     blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int)
 
-Computes the blowup of the normal toric variety `v` on its i-th minimal torus orbit.
+Return the blowup of the normal toric variety `v` on its i-th minimal torus orbit.
 
 # Examples
 ```jldoctest
@@ -422,7 +422,7 @@ export blowup_on_ith_minimal_torus_orbit
 @doc Markdown.doc"""
     Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety)
 
-Computes the Cartesian/direct product of two normal toric varieties `v` and `w`.
+Return the Cartesian/direct product of two normal toric varieties `v` and `w`.
 
 # Examples
 ```jldoctest

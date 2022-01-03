@@ -93,8 +93,7 @@ julia> nfacets(C)
 4
 ```
 """
-nfacets(C::Cone) = pm_object(C).N_FACETS
-
+nfacets(C::Cone) = pm_object(C).N_FACETS::Int
 
 @doc Markdown.doc"""
     nrays(C::Cone)
@@ -112,7 +111,7 @@ julia> nrays(PO)
 2
 ```
 """
-nrays(C::Cone) = pm_object(C).N_RAYS
+nrays(C::Cone) = pm_object(C).N_RAYS::Int
 
 @doc Markdown.doc"""
     dim(C::Cone)
@@ -128,7 +127,7 @@ julia> dim(C)
 2
 ```
 """
-dim(C::Cone) = pm_object(C).CONE_DIM
+dim(C::Cone) = pm_object(C).CONE_DIM::Int
 
 @doc Markdown.doc"""
     ambient_dim(C::Cone)
@@ -144,7 +143,7 @@ julia> ambient_dim(C)
 3
 ```
 """
-ambient_dim(C::Cone) = pm_object(C).CONE_AMBIENT_DIM
+ambient_dim(C::Cone) = pm_object(C).CONE_AMBIENT_DIM::Int
 
 @doc Markdown.doc"""
     codim(C::Cone)
@@ -224,7 +223,7 @@ julia> lineality_dim(C1)
 1
 ```
 """
-lineality_dim(C::Cone) = pm_object(C).LINEALITY_DIM
+lineality_dim(C::Cone) = pm_object(C).LINEALITY_DIM::Int
 
 
 
@@ -250,7 +249,7 @@ julia> ispointed(C)
 true
 ```
 """
-ispointed(C::Cone) = pm_object(C).POINTED
+ispointed(C::Cone) = pm_object(C).POINTED::Bool
 
 @doc Markdown.doc"""
     isfulldimensional(C::Cone)
@@ -266,7 +265,7 @@ julia> isfulldimensional(C)
 false
 ```
 """
-isfulldimensional(C::Cone) = pm_object(C).FULL_DIM
+isfulldimensional(C::Cone) = pm_object(C).FULL_DIM::Bool
 
 ###############################################################################
 ## Points properties
