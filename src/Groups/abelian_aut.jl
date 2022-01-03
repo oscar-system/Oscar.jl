@@ -3,9 +3,9 @@ import Hecke: TorQuadMod, TorQuadModElem, TorQuadModMor
 export defines_automorphism
 
 
-AutGrpAbFinGen = Union{AutomorphismGroup{GrpAbFinGen},AutomorphismGroup{TorQuadMod}}
-AutGrpAbFinGenElem = Union{AutomorphismGroupElem{GrpAbFinGen},AutomorphismGroupElem{TorQuadMod}}
-DomElem = Union{GrpAbFinGenElem,TorQuadModElem}
+AutGrpAbTor = Union{AutomorphismGroup{GrpAbFinGen},AutomorphismGroup{TorQuadMod}}
+AutGrpAbTorElem = Union{AutomorphismGroupElem{GrpAbFinGen},AutomorphismGroupElem{TorQuadMod}}
+AbTorElem = Union{GrpAbFinGenElem,TorQuadModElem}
 
 function _isomorphic_gap_group(A::GrpAbFinGen; T=PcGroup)
   # find independent generators
@@ -78,7 +78,7 @@ function automorphism_group(G::GrpAbFinGen)
 end
 
 
-function apply_automorphism(f::AutGrpAbFinGenElem, x::DomElem, check=true)
+function apply_automorphism(f::AutGrpAbTorElem, x::AbTorElem, check=true)
   aut = parent(f)
   if check
     @assert parent(x) == aut.G "Not in the domain of f!"
@@ -92,12 +92,12 @@ function apply_automorphism(f::AutGrpAbFinGenElem, x::DomElem, check=true)
   return to_oscar(imgap)
 end
  
-(f::AutGrpAbFinGenElem)(x::DomElem)  = apply_automorphism(f, x, true)
-Base.:^(x::DomElem,f::AutGrpAbFinGenElem) = apply_automorphism(f, x, true)
+(f::AutGrpAbTorElem)(x::AbTorElem)  = apply_automorphism(f, x, true)
+Base.:^(x::AbTorElem,f::AutGrpAbTorElem) = apply_automorphism(f, x, true)
 
 # the _as_subgroup function needs a redefinition
 # to pass on the to_gap and to_oscar attributes to the subgroup
-function _as_subgroup(aut::AutGrpAbFinGen, subgrp::GapObj, ::Type{S}) where S
+function _as_subgroup(aut::AutGrpAbTor, subgrp::GapObj, ::Type{S}) where S
   function img(x::S)
     return group_element(aut, x.X)
   end
@@ -114,14 +114,14 @@ end
 
 Return the element `f` of type `GrpAbFinGenMap`.
 """
-function hom(f::AutGrpAbFinGenElem)
+function hom(f::AutGrpAbTorElem)
   A = domain(f)
   imgs = [f(a) for a in gens(A)]
   return hom(A, A, imgs)
 end
 
 
-function (aut::AutGrpAbFinGen)(f::Union{GrpAbFinGenMap,TorQuadModMor};check=false)
+function (aut::AutGrpAbTor)(f::Union{GrpAbFinGenMap,TorQuadModMor};check=false)
   !check || (domain(f) === codomain(f) === domain(aut) && isbijective(f)) || error("Map does not define an automorphism of the abelian group.")
   to_gap = get_attribute(aut, :to_gap)
   to_oscar = get_attribute(aut, :to_oscar)
@@ -139,7 +139,7 @@ function (aut::AutGrpAbFinGen)(f::Union{GrpAbFinGenMap,TorQuadModMor};check=fals
 end
 
 
-function (aut::AutGrpAbFinGen)(M::fmpz_mat; check=false)
+function (aut::AutGrpAbTor)(M::fmpz_mat; check=false)
   !check || defines_automorphism(domain(aut),M) || error("Matrix does not define an automorphism of the abelian group.")
   return aut(hom(domain(aut),domain(aut),M); check=check)
 end
@@ -243,33 +243,31 @@ function defines_automorphism(G::TorQuadMod, M::fmpz_mat)
   return true
 end
 
-function Base.show(io::IO, f::AutomorphismGroupElem{T}) where T<:TorQuadMod
-  if get(io, :compact, false)
-    print(io, matrix(f)) #somehow does not work
-  else
-    D = domain(parent(f))
-    print(io, "isometry ", D, " -> ", s,": ", matrix(f))
-  end
+function Base.show(io::IO, ::MIME"text/plain", f::AutomorphismGroupElem{T}) where T<:TorQuadMod
+  D = domain(parent(f))
+  print(IOContext(io, :compact => true), "Isometry of ", D, "\n")
+  print(io, "defined by")
+  print(io, matrix(f))
 end
+
+function Base.show(io::IO, f::AutomorphismGroupElem{T}) where T<:TorQuadMod
+  print(io, matrix(f))
+end
+
 
 """
     orthogonal_group(T::TorQuadMod)  -> AutomorphismGroup{TorQuadMod}
 
 Return the full orthogonal group of this torsion quadratic module.
-
-May fail if T is too degenerate.
 """
 function orthogonal_group(T::TorQuadMod)
-  OT = get_attribute(T, :orthogonal_group)
-  if !(OT isa Nothing)
-    return OT
+  !isdegenerate(T) || error("T must be non-degenerate to compute the full orthogonal group")
+  return get_attribute!(T, :orthogonal_group) do
+    N,i = normal_form(T)
+    j = inv(i)
+    gensOT = _compute_gens(N)
+    gensOT = [hom(N, N, g) for g in gensOT]
+    gensOT = [compose(compose(j,g),i).map_ab.map for g in gensOT]
+    return orthogonal_group(T, gensOT, check=false)
   end
-  N,i = normal_form(T)
-  j = inv(i)
-  gensOT = _compute_gens(N)
-  gensOT = [hom(N, N, g) for g in gensOT]
-  gensOT = [compose(compose(j,g),i).map_ab.map for g in gensOT]
-  OT = orthogonal_group(T, gensOT, check=false)
-  set_attribute!(T, :orthogonal_group => OT)
-  return OT
 end
