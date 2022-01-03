@@ -209,7 +209,7 @@ GrpAb: Z^2
 """
 function character_lattice(v::AbstractNormalToricVariety)
     return get_attribute!(v, :character_lattice) do
-        return abelian_group([0 for i in 1:pm_object(v).FAN_DIM])
+        return free_abelian_group(dim(fan(v)))
     end
 end
 export character_lattice
@@ -231,7 +231,7 @@ GrpAb: Z^3
 """
 function torusinvariant_divisor_group(v::AbstractNormalToricVariety)
     return get_attribute!(v, :torusinvariant_divisor_group) do
-        return abelian_group([0 for i in 1:pm_object(v).N_RAYS])
+        return free_abelian_group(nrays(fan(v)))
     end
 end
 export torusinvariant_divisor_group
@@ -415,8 +415,8 @@ function map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v::Abst
         
         # compute the total map
         mapping_matrix = map_for_scalar_products * map_for_difference_of_elements
-        source = abelian_group(zeros(Int, nrows(mapping_matrix)))
-        target = abelian_group(zeros(Int, ncols(mapping_matrix)))
+        source = free_abelian_group(nrows(mapping_matrix))
+        target = free_abelian_group(ncols(mapping_matrix))
         total_map = hom(source, target, mapping_matrix)
         
         # identify the embedding of the cartier_data_group
