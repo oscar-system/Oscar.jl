@@ -4,7 +4,7 @@
 
 abstract type ToricCoherentSheaf end
 
-struct ToricLineBundle <: ToricCoherentSheaf
+@attributes mutable struct ToricLineBundle <: ToricCoherentSheaf
     variety::AbstractNormalToricVariety
     divisor_class::GrpAbFinGenElem
 end
@@ -23,7 +23,7 @@ Construct the line bundle on the abstract normal toric variety `v` with class `c
 """
 function ToricLineBundle(v::AbstractNormalToricVariety, input_class::Vector{fmpz})
     class = picard_group(v)(input_class)
-    return ToricLineBundle(v, class)
+    return ToricLineBundle(v, class, Dict())
 end
 
 @doc Markdown.doc"""
@@ -42,7 +42,7 @@ A line bundle on a normal toric variety corresponding to a polyhedral fan in amb
 """
 function ToricLineBundle(v::AbstractNormalToricVariety, input_class::Vector{Int})
     class = picard_group(v)(input_class)
-    return ToricLineBundle(v, class)
+    return ToricLineBundle(v, class, Dict())
 end
 
 
