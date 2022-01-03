@@ -447,7 +447,7 @@ export del_pezzo
 ############################
 
 @doc Markdown.doc"""
-    blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int)
+    blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int, coordinate_name::String)
 
 Return the blowup of the normal toric variety `v` on its i-th minimal torus orbit.
 
@@ -456,12 +456,41 @@ Return the blowup of the normal toric variety `v` on its i-th minimal torus orbi
 julia> P2 = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> blowup_on_ith_minimal_torus_orbit(P2,1)
+julia> bP2 = blowup_on_ith_minimal_torus_orbit(P2,1,"e")
 A normal toric variety
+
+julia> cox_ring(bP2)
+Multivariate Polynomial Ring in x2, x3, x1, e over Rational Field graded by 
+  x2 -> [1 0]
+  x3 -> [0 1]
+  x1 -> [1 0]
+  e -> [-1 1]
 ```
 """
-function blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int)
-    return NormalToricVariety(starsubdivision(fan(v), n))
+function blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int, coordinate_name::String)
+    # compute the blow-up variety
+    new_fan = starsubdivision(fan(v), n)
+    new_variety = NormalToricVariety(new_fan)
+    
+    # extract the old and new rays
+    # the new cones are in general given by first (in general) permuting the old rays and then adding a new ray (not necessarily at the last position)
+    old_rays = rays(fan(v))
+    new_rays = rays(new_fan)
+    
+    # check for name clash with variable name chosen for blowup
+    old_vars = [string(x) for x in Hecke.gens(cox_ring(v))]
+    if length(findall(x->occursin(coordinate_name, x), old_vars)) > 0
+        throw(ArgumentError("The provided name for the blowup coordinate is already taken as homogeneous coordinate of the provided toric variety."))
+    end
+    
+    # set up Cox ring of new variety
+    new_vars = [if new_rays[i] in old_rays old_vars[findfirst(x->x==new_rays[i], old_rays)] else coordinate_name end for i in 1:length(new_rays)]
+    Qx = PolynomialRing(QQ, new_vars)[1]
+    weights = [map_from_weil_divisors_to_class_group(new_variety)(x) for x in gens(torusinvariant_divisor_group(new_variety))]
+    set_attribute!(new_variety, :cox_ring, grade(Qx,weights)[1])
+    
+    # return variety
+    return new_variety
 end
 export blowup_on_ith_minimal_torus_orbit
 

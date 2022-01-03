@@ -148,7 +148,7 @@ dP3 = NormalToricVariety(PolyhedralFan(fan_rays, fan_cones))
     @test picard_group(dP3) == codomain(map_from_cartier_divisor_group_to_picard_group(dP3))
 end
 
-blowup_variety = blowup_on_ith_minimal_torus_orbit(P2, 1)
+blowup_variety = blowup_on_ith_minimal_torus_orbit(P2, 1, "e")
 
 @testset "Blowup of projective space" begin
     @test isnormal(blowup_variety) == true

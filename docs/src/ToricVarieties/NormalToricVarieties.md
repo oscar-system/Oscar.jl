@@ -49,7 +49,7 @@ projective_space(::Type{NormalToricVariety}, d::Int)
 ### Further Constructions
 
 ```@docs
-blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int)
+blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int, coordinate_name::String)
 Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety)
 ```
 
