@@ -363,16 +363,16 @@ function del_pezzo(b::Int)
     
     # construct the "true" toric del Pezzo surfaces
     if b == 1
-        fan_rays = [1 0; 0 1; -1 0; -1 -1]
-        cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,1]])
+        fan_rays = [1 0; 0 1; -1 -1; -1 0]
+        cones = IncidenceMatrix([[1,2],[2,4],[4,3],[3,1]])
     end
     if b == 2
-        fan_rays = [1 0; 0 1; -1 0; -1 -1; 0 -1]
-        cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,5],[5,1]])
+        fan_rays = [1 0; 0 1; -1 -1; -1 0; 0 -1]
+        cones = IncidenceMatrix([[1,2],[2,4],[4,3],[3,5],[5,1]])
     end
     if b == 3
-        fan_rays = [1 0; 1 1; 0 1; -1 0; -1 -1; 0 -1]
-        cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,5],[5,6],[6,1]])
+        fan_rays = [1 0; 0 1; -1 -1; -1 0; 0 -1; 1 1]
+        cones = IncidenceMatrix([[1,6],[6,2],[2,4],[4,3],[3,5],[5,1]])
     end
     variety = NormalToricVariety(PolyhedralFan(fan_rays, cones))
     
@@ -393,10 +393,10 @@ function del_pezzo(b::Int)
     if b == 1
         set_attribute!(variety, :euler_characteristic, 4)
         set_attribute!(variety, :torusinvariant_divisor_group, free_abelian_group(4))    
-        ring = PolynomialRing(QQ, ["x1", "x2", "e1", "x3"])[1]
+        ring = PolynomialRing(QQ, ["x1", "x2", "x3", "e1"])[1]
         weights = [map_from_weil_divisors_to_class_group(variety)(x) for x in Hecke.gens(torusinvariant_divisor_group(variety))]
-        gens = Hecke.gens(cox_ring(variety))
         set_attribute!(variety, :cox_ring, grade(ring,weights)[1])
+        gens = Hecke.gens(ring)
         set_attribute!(variety, :stanley_reisner_ideal, ideal([gens[1]*gens[3], gens[2]*gens[4]]))
         set_attribute!(variety, :irrelevant_ideal, ideal([gens[3]*gens[4], gens[1]*gens[4], gens[1]*gens[2], gens[3]*gens[2]]))
         set_attribute!(variety, :betti_number, [fmpz(1),fmpz(2),fmpz(1)])
@@ -404,10 +404,10 @@ function del_pezzo(b::Int)
     if b == 2
         set_attribute!(variety, :euler_characteristic, 5)
         set_attribute!(variety, :torusinvariant_divisor_group, free_abelian_group(5))
-        ring = PolynomialRing(QQ, ["x1", "x2", "e1", "x3", "e2"])[1]
+        ring = PolynomialRing(QQ, ["x1", "x2", "x3", "e1", "e2"])[1]
         weights = [map_from_weil_divisors_to_class_group(variety)(x) for x in Hecke.gens(torusinvariant_divisor_group(variety))]
-        gens = Hecke.gens(cox_ring(variety))
         set_attribute!(variety, :cox_ring, grade(ring,weights)[1])
+        gens = Hecke.gens(ring)
         set_attribute!(variety, :stanley_reisner_ideal, ideal([gens[1]*gens[3], gens[1]*gens[4], 
                                                                                           gens[2]*gens[4], gens[2]*gens[5], gens[3]*gens[5]]))
         set_attribute!(variety, :irrelevant_ideal, ideal([gens[3]*gens[4]*gens[5], gens[1]*gens[4]*gens[5], 
@@ -417,10 +417,10 @@ function del_pezzo(b::Int)
     if b == 3
         set_attribute!(variety, :euler_characteristic, 6)
         set_attribute!(variety, :torusinvariant_divisor_group, free_abelian_group(6))
-        ring = PolynomialRing(QQ, ["x1", "e3", "x2", "e1", "x3", "e2"])[1]
+        ring = PolynomialRing(QQ, ["x1", "x2", "x3", "e1", "e2", "e3"])[1]
         weights = [map_from_weil_divisors_to_class_group(variety)(x) for x in Hecke.gens(torusinvariant_divisor_group(variety))]
-        gens = Hecke.gens(cox_ring(variety))
         set_attribute!(variety, :cox_ring, grade(ring,weights)[1])
+        gens = Hecke.gens(ring)
         set_attribute!(variety, :stanley_reisner_ideal, ideal([gens[1]*gens[3], gens[1]*gens[4], gens[1]*gens[5], gens[2]*gens[4], 
                                                                                           gens[2]*gens[5], gens[2]*gens[6], gens[3]*gens[5], gens[3]*gens[6], gens[4]*gens[6]]))
         set_attribute!(variety, :irrelevant_ideal, ideal([gens[3]*gens[4] *gens[5]*gens[6], gens[1]*gens[4] *gens[5]*gens[6],
