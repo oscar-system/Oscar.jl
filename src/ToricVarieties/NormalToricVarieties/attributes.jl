@@ -207,10 +207,9 @@ function irrelevant_ideal(v::AbstractNormalToricVariety)
     return get_attribute!(v, :irrelevant_ideal) do
         # prepare maximal cones
         max_cones = [findall(x->x!=0, l) for l in eachrow(pm_object(v).MAXIMAL_CONES)]
-        n_ray = size(pm_object(v).RAYS, 1)
         maximal_cones = Vector{Int}[]
         for c in max_cones
-            buffer = zeros(Int, n_ray)
+            buffer = zeros(Int, nrays(fan(v)))
             for k in c
                 buffer[k] = 1
             end
@@ -345,9 +344,8 @@ Abelian group with structure: Z^3
 """
 function map_from_character_to_principal_divisors(v::AbstractNormalToricVariety)
     return get_attribute!(v, :map_from_character_to_principal_divisors) do
-        mat = transpose(Matrix{Int}(Polymake.common.primitive(pm_object(v).RAYS)))
-        matrix = AbstractAlgebra.matrix(ZZ, mat)
-        return hom(character_lattice(v), torusinvariant_divisor_group(v), matrix)
+        mat = transpose(matrix(ZZ, rays(fan(v))))
+        return hom(character_lattice(v), torusinvariant_divisor_group(v), mat)
     end
 end
 export map_from_character_to_principal_divisors
@@ -462,9 +460,9 @@ function map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v::Abst
         end
         
         # identify fan_rays and cones
-        fan_rays = Polymake.common.primitive(pm_object(v).RAYS)
+        fan_rays = transpose(matrix(ZZ, rays(fan(v))))
         max_cones = ray_indices(maximal_cones(fan(v)))
-        number_of_rays = size(fan_rays)[1]
+        number_of_rays = ncols(fan_rays)
         number_of_cones = size(max_cones)[1]
         
         # compute quantities needed to construct the matrices
@@ -478,7 +476,7 @@ function map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v::Abst
         col = 1
         for i in 1:number_of_rays
             for j in cones_ray_is_part_of[i]
-                map_for_scalar_products[(j-1)*rc+1:j*rc, col] = [fmpz(c) for c in fan_rays[i,:]]
+                map_for_scalar_products[(j-1)*rc+1:j*rc, col] = [fmpz(c) for c in fan_rays[:,i]]
                 col += 1
             end
         end
@@ -498,7 +496,7 @@ function map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v::Abst
         # compute the matrix for mapping to torusinvariant Weil divisors
         map_to_weil_divisors = zero_matrix(ZZ, number_of_cones * rc, rank(torusinvariant_divisor_group(v)))
         for i in 1:number_of_rays
-            map_to_weil_divisors[(cones_ray_is_part_of[i][1]-1)*rc+1:cones_ray_is_part_of[i][1]*rc, i] = [fmpz(-c) for c in fan_rays[i,:]]
+            map_to_weil_divisors[(cones_ray_is_part_of[i][1]-1)*rc+1:cones_ray_is_part_of[i][1]*rc, i] = [fmpz(-c) for c in fan_rays[:,i]]
         end
         
         # compute the total map
