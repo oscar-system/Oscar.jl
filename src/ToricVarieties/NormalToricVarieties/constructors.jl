@@ -227,7 +227,7 @@ function toric_projective_space(d::Int)
     set_attribute!(variety, :map_from_cartier_divisor_group_to_picard_group, map_from_weil_divisors_to_class_group(variety))
     set_attribute!(variety, :stanley_reisner_ideal, ideal([prod(Hecke.gens(cox_ring(variety)))]))
     set_attribute!(variety, :irrelevant_ideal, ideal(Hecke.gens(cox_ring(variety))))
-    betti_numbers = [if iseven(i) fmpz(1) else fmpz(0) end for i in 0:2*d]
+    betti_numbers = [fmpz(1) for i in 0:d]
     set_attribute!(variety, :betti_number, betti_numbers)
     
     # return the variety
@@ -281,7 +281,7 @@ function hirzebruch_surface(r::Int)
     gens = Hecke.gens(cox_ring(variety))
     set_attribute!(variety, :stanley_reisner_ideal, ideal([gens[1]*gens[3],gens[2]*gens[4]]))
     set_attribute!(variety, :irrelevant_ideal, ideal([gens[1]*gens[2], gens[3]*gens[2], gens[1]*gens[4], gens[3]*gens[4]]))
-    set_attribute!(variety, :betti_number, [fmpz(1),fmpz(0),fmpz(2),fmpz(0),fmpz(1)])
+    set_attribute!(variety, :betti_number, [fmpz(1),fmpz(2),fmpz(1)])
     
     # return the result
     return variety
@@ -352,7 +352,7 @@ function del_pezzo(b::Int)
         set_attribute!(variety, :cox_ring, grade(ring,weights)[1])
         set_attribute!(variety, :stanley_reisner_ideal, ideal([gens[1]*gens[3], gens[2]*gens[4]]))
         set_attribute!(variety, :irrelevant_ideal, ideal([gens[3]*gens[4], gens[1]*gens[4], gens[1]*gens[2], gens[3]*gens[2]]))
-        set_attribute!(variety, :betti_number, [fmpz(1),fmpz(0),fmpz(2),fmpz(0),fmpz(1)])
+        set_attribute!(variety, :betti_number, [fmpz(1),fmpz(2),fmpz(1)])
     end
     if b == 2
         set_attribute!(variety, :euler_characteristic, 5)
@@ -365,7 +365,7 @@ function del_pezzo(b::Int)
                                                                                           gens[2]*gens[4], gens[2]*gens[5], gens[3]*gens[5]]))
         set_attribute!(variety, :irrelevant_ideal, ideal([gens[3]*gens[4]*gens[5], gens[1]*gens[4]*gens[5], 
                                                                                  gens[1]*gens[2]*gens[5], gens[1]*gens[2]*gens[3], gens[2]*gens[3]*gens[4]]))
-        set_attribute!(variety, :betti_number, [fmpz(1),fmpz(0),fmpz(3),fmpz(0),fmpz(1)])
+        set_attribute!(variety, :betti_number, [fmpz(1),fmpz(3),fmpz(1)])
     end
     if b == 3
         set_attribute!(variety, :euler_characteristic, 6)
@@ -379,7 +379,7 @@ function del_pezzo(b::Int)
         set_attribute!(variety, :irrelevant_ideal, ideal([gens[3]*gens[4] *gens[5]*gens[6], gens[1]*gens[4] *gens[5]*gens[6],
                                                                                  gens[1]*gens[2] *gens[5]*gens[6], gens[1]*gens[2] *gens[3]*gens[6],
                                                                                  gens[1]*gens[2] *gens[3]*gens[4], gens[2]*gens[3] *gens[4]*gens[5]]))
-        set_attribute!(variety, :betti_number, [fmpz(1),fmpz(0),fmpz(4),fmpz(0),fmpz(1)])
+        set_attribute!(variety, :betti_number, [fmpz(1),fmpz(4),fmpz(1)])
     end
     
     # set further attributes
