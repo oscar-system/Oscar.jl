@@ -138,6 +138,17 @@ end
 
 import Hecke:
     _rational_canonical_form_setup,
+    _block_indices_vals,
+    _solve_X_ker,
+    _jordan_odd_adic,
+    _two_adic_normal_forms,
+    _jordan_2_adic,
+    _normalize,
+    _val,
+    _min_val,
+    hensel_qf,
+    TorQuadMod,
+    gram_matrix_quadratic,
     @req,
     abelian_group,
     automorphism_group,
@@ -197,5 +208,8 @@ import Hecke:
     small_group,
     sub,
     subgroups,
+    TorQuadMod,
+    TorQuadModElem,
+    TorQuadModMor,
     tr,
     trace

@@ -1,8 +1,4 @@
-import Hecke: _block_indices_vals, _solve_X_ker,_jordan_odd_adic,
-_two_adic_normal_forms,_jordan_2_adic, _normalize, _val, _min_val, hensel_qf,TorQuadMod,gram_matrix_quadratic
-
-
-#Generators of the orthogonal group of a torsion quadratic form.
+# Generators of the orthogonal group of a torsion quadratic form.
 
 
 #     r"""
@@ -754,7 +750,7 @@ end
 #     [  3   1], [2 0], [1 0]
 #     ]
 # """
-function _compute_gens(T::TorQuadMod, deg=true)
+function _compute_gens(T::TorQuadMod)
   T.isnormal || error("T must be normal")
 
   # corner case
@@ -762,41 +758,6 @@ function _compute_gens(T::TorQuadMod, deg=true)
   if length(invs) == 0
     return fmpz_mat[]
   end
-  #=
-  TODO
-  # a well behaved degenerate case
-  if deg && isdegenerate(T) && isprime(invs[1])
-    p = invs[1]
-    n = length(invs)
-    N = _normalize(T, p)
-    q = gram_matrix_quadratic(N)
-    k = count(i -> q[:,i]==0, 1:n)
-    r = n - k
-    Idk = identity_matrix(ZZ, k)
-    Idr = identity_matrix(ZZ, r)
-    NR, i = sub(N, gens(N)[k:end])
-    gensNR = _compute_gens(NR,deg=false)
-    if k > 0
-      gensG = [diagonal_matrix([Idk,g]) for g in gensNR]
-      append!(gensG, [diagonal_matrix([matrix(g), Idr]) for g in gens(GL(k,p))])
-    else
-      gensG = gensNR
-    end
-    if k>0 && r>0
-      h = identity_matrix(ZZ, n)
-      for i in 1:r
-        for j in 1:k
-          g = deepcopy(h)
-          g[k+i,j] = 1
-          push!(gensG, g)
-        end
-      end
-    end
-    return [N._to_gens() * g * N._to_smith() for g in gensG]
-  elseif deg && isdegenerate(T)
-    return _isom_fqf(T)
-  end
-  =#
 
   # normal form gens for the different primes
   blocks = []
@@ -827,7 +788,6 @@ function _compute_gens(T::TorQuadMod, deg=true)
       # make sure each homogeneous block of G_p stays in normal form
       r = divexact(G_p, R(2))
     end
-
     # the generators in matrix form
     gens_mat = _gens(G_p, b, p)
     # extend as identity on the orthogonal complement
@@ -841,3 +801,39 @@ function _compute_gens(T::TorQuadMod, deg=true)
   end
   return gensG
 end
+
+#=
+TODO
+function _compute_gens_degenerate_p(T::TorQuadMod, p)
+  invs = elementary_divisors(T)
+  p = invs[1]
+  (isdegenerate(T) && isprime(p)) || error("")
+  n = length(invs)
+  q = gram_matrix_quadratic(N)
+  k = count(i -> q[:,i]==0, 1:n)
+  r = n - k
+  Idk = identity_matrix(ZZ, k)
+  Idr = identity_matrix(ZZ, r)
+  NR, i = sub(N, gens(N)[k:end])
+  gensG = fmpz_mat[]
+  for g in _compute_gens(NR)
+    push!(gensG, diagonal_matrix([Idk, g]))
+  end
+  if k > 0
+    for g in gens(GL(k,p))
+      push!(gensG, diagonal_matrix([matrix(g), Idr]))
+    end
+  end
+  if k>0 && r>0
+    h = identity_matrix(ZZ, n)
+    for i in 1:r
+      for j in 1:k
+        g = deepcopy(h)
+        g[k+i,j] = 1
+        push!(gensG, g)
+      end
+    end
+  end
+  return gensG
+end
+=#
