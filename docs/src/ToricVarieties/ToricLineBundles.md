@@ -20,6 +20,7 @@ ToricLineBundle(v::AbstractNormalToricVariety, c::Vector{Int})
 ## Attributes
 
 ```@docs
+toric_divisor(l::ToricLineBundle)
 divisor_class(l::ToricLineBundle)
 variety(l::ToricLineBundle)
 ```
