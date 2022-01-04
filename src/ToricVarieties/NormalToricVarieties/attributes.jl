@@ -57,7 +57,7 @@ export euler_characteristic
     cox_ring(v::AbstractNormalToricVariety)
 
 Computes the Cox ring of the normal toric variety `v`.
-Note that [CLS11](@cite) refers to this ring as the `total coordinate ring`.
+Note that [CLS11](@cite) refers to this ring as the "total coordinate ring".
 
 # Examples
 ```jdoctest
