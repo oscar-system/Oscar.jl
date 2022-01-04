@@ -50,3 +50,4 @@ include("ToricLineBundles/constructors.jl")
 include("ToricLineBundles/properties.jl")
 include("ToricLineBundles/attributes.jl")
 
+include("cohomCalg.jl")
