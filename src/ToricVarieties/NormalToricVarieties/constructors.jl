@@ -172,7 +172,7 @@ function AffineNormalToricVariety(v::NormalToricVariety)
     # set variety
     variety = AffineNormalToricVariety(pm_object(v), Dict())
     
-    # set properties
+    # set properties of variety
     set_attribute!(variety, :isaffine, true)
     set_attribute!(variety, :iscomplete, false)
     set_attribute!(variety, :isprojective, false)
@@ -186,6 +186,47 @@ end
 ######################
 # 3: Special constructors
 ######################
+
+@doc Markdown.doc"""
+    toric_affine_space(d::Int)
+
+Constructs the (toric) affine space of dimension `d`.
+
+# Examples
+```jldoctest
+julia> toric_affine_space(2)
+A normal, affine, non-complete, 2-dimensional toric variety
+```
+"""
+function toric_affine_space(d::Int)
+    # construct the cone of the variety
+    m = zeros(Int, d, d)
+    for i in 1:d
+        m[i,i] = 1
+    end
+    C = positive_hull(m)
+    
+    # construct the variety
+    fan = PolyhedralFan(C)
+    pmntv = Polymake.fulton.NormalToricVariety(Oscar.pm_object(fan))
+    variety = NormalToricVariety(pmntv, Dict())
+    
+    # set known properties
+    set_attribute!(variety, :isaffine, true)
+    set_attribute!(variety, :iscomplete, false)
+    set_attribute!(variety, :isprojective, false)
+    set_attribute!(variety, :isprojective_space, false)
+    
+    # set attributes
+    set_attribute!(variety, :fan, fan)
+    set_attribute!(variety, :dim, d)
+    set_attribute!(variety, :dim_of_torusfactor, 0)
+    
+    # return the variety
+    return variety
+end
+export toric_affine_space
+
 
 @doc Markdown.doc"""
     toric_projective_space(d::Int)
@@ -221,13 +262,13 @@ function toric_projective_space(d::Int)
     set_attribute!(variety, :dim, d)
     set_attribute!(variety, :dim_of_torusfactor, 0)
     set_attribute!(variety, :euler_characteristic, d+1)
-    set_attribute!(variety, :character_lattice, abelian_group([0 for i in 1:d]))
-    set_attribute!(variety, :torusinvariant_divisor_group, abelian_group([0 for i in 1:d+1]))
+    set_attribute!(variety, :character_lattice, free_abelian_group(d))
+    set_attribute!(variety, :torusinvariant_divisor_group, free_abelian_group(d+1))
     set_attribute!(variety, :map_from_cartier_divisor_group_to_torus_invariant_divisor_group, Hecke.identity_map(torusinvariant_divisor_group(variety)))
     set_attribute!(variety, :map_from_cartier_divisor_group_to_picard_group, map_from_weil_divisors_to_class_group(variety))
     set_attribute!(variety, :stanley_reisner_ideal, ideal([prod(Hecke.gens(cox_ring(variety)))]))
     set_attribute!(variety, :irrelevant_ideal, ideal(Hecke.gens(cox_ring(variety))))
-    betti_numbers = [fmpz(1) for i in 0:d]
+    betti_numbers = fill(fmpz(1), d+1)
     set_attribute!(variety, :betti_number, betti_numbers)
     
     # return the variety

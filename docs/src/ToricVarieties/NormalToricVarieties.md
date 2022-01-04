@@ -40,6 +40,7 @@ NormalToricVariety(P::Polyhedron)
 ### Famous Toric Vareties
 
 ```@docs
+toric_affine_space(d::Int)
 del_pezzo(b::Int)
 hirzebruch_surface(r::Int)
 toric_projective_space(d::Int)
