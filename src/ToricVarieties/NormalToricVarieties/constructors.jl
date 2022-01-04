@@ -268,7 +268,7 @@ function toric_projective_space(d::Int)
     set_attribute!(variety, :map_from_cartier_divisor_group_to_picard_group, map_from_weil_divisors_to_class_group(variety))
     set_attribute!(variety, :stanley_reisner_ideal, ideal([prod(Hecke.gens(cox_ring(variety)))]))
     set_attribute!(variety, :irrelevant_ideal, ideal(Hecke.gens(cox_ring(variety))))
-    betti_numbers = [fmpz(1) for i in 0:d]
+    betti_numbers = fill(fmpz(1), d+1)
     set_attribute!(variety, :betti_number, betti_numbers)
     
     # return the variety
