@@ -211,7 +211,7 @@ function toric_affine_space(d::Int)
     pmntv = Polymake.fulton.NormalToricVariety(Oscar.pm_object(fan))
     variety = NormalToricVariety(pmntv, Dict())
     
-    # set known properties´
+    # set known properties
     set_attribute!(variety, :isaffine, true)
     set_attribute!(variety, :iscomplete, false)
     set_attribute!(variety, :isprojective, false)
