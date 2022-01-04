@@ -214,8 +214,8 @@ function (W::MPolyRing_dec)(f::MPolyElem)
   return MPolyElem_dec(f, W)
 end
 
-function (W::MPolyRing_dec)(a...)
-  return W(W.R(a...))
+function (W::MPolyRing_dec{T})(c::Vector{T}, e::Vector{Vector{Int}}) where T
+  return W(W.R(c, e))
 end
 
 (W::MPolyRing_dec)(g::MPolyElem_dec) = MPolyElem_dec(g.f, W)
@@ -283,7 +283,7 @@ end
 
 ################################################################################
 #
-#  Equality
+#  Factoring, division, ...
 #
 ################################################################################
 
@@ -313,6 +313,11 @@ function div(x::Oscar.MPolyElem_dec, y::Oscar.MPolyElem_dec)
   return R(div(x.f, y.f))
 end
 
+################################################################################
+#
+#  Equality
+#
+################################################################################
 
 ==(a::MPolyElem_dec, b::MPolyElem_dec) = a.f == b.f
 
@@ -329,6 +334,8 @@ end
 length(a::MPolyElem_dec) = length(a.f)
 monomial(a::MPolyElem_dec, i::Int) = parent(a)(monomial(a.f, i))
 coeff(a::MPolyElem_dec, i::Int) = coeff(a.f, i)
+term(a::MPolyElem_dec, i::Int) = parent(a)(term(a.f, i))
+exponent_vector(a::MPolyElem_dec, i::Int) = exponent_vector(a.f, i)
 
 function singular_ring(R::MPolyRing_dec; keep_ordering::Bool = false)
   return singular_ring(R.R, keep_ordering = keep_ordering)
