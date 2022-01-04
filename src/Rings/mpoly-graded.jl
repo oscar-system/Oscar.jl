@@ -1,7 +1,7 @@
 export weight, decorate, ishomogeneous, homogeneous_components, filtrate,
 grade, GradedPolynomialRing, homogeneous_component, jacobi_matrix, jacobi_ideal,
 HilbertData, hilbert_series, hilbert_series_reduced, hilbert_series_expanded, hilbert_function, hilbert_polynomial, grading,
-homogenization, dehomogenization, grading_group
+homogenization, dehomogenization, grading_group, is_z_graded, ismulti_graded
 export MPolyRing_dec, MPolyElem_dec, ishomogeneous, isgraded
 export minimal_subalgebra_generators
 
@@ -11,6 +11,7 @@ export minimal_subalgebra_generators
   d::Vector{GrpAbFinGenElem}
   lt
   function MPolyRing_dec(R::S, d::Vector{GrpAbFinGenElem}) where {S}
+    @assert length(d) == ngens(R)
     r = new{elem_type(base_ring(R)), S}()
     r.R = R
     r.D = parent(d[1])
@@ -18,6 +19,7 @@ export minimal_subalgebra_generators
     return r
   end
   function MPolyRing_dec(R::S, d::Vector{GrpAbFinGenElem}, lt) where {S}
+    @assert length(d) == ngens(R)
     r = new{elem_type(base_ring(R)), S}()
     r.R = R
     r.D = parent(d[1])
@@ -105,16 +107,49 @@ julia> T, (x, y, z) = grade(R, W)
   z -> [3], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
 ```
 """
-function grade(R::MPolyRing, W::Vector{Int})
+function grade(R::MPolyRing, W::Vector{<:Union{Integer, fmpz}})
+  @assert length(W) == ngens(R)
   A = abelian_group([0])
   set_attribute!(A, :show_elem => show_special_elem_grad) 
   S = MPolyRing_dec(R, [i*A[1] for i = W])
   return S, map(S, gens(R))
 end
+
+function grade(R::MPolyRing, W::Union{fmpz_mat, Matrix{<:Union{Integer, fmpz}}})
+  @assert size(W, 2) == ngens(R)
+  A = abelian_group(zeros(Int, size(W, 1)))
+  set_attribute!(A, :show_elem => show_special_elem_grad) 
+  S = MPolyRing_dec(R, [A(view(W, :, i)) for i = 1:size(W, 2)])
+  return S, map(S, gens(R))
+end
+
+function grade(R::MPolyRing, W::Vector{<:Vector{<:Union{Integer, fmpz}}})
+  @assert length(W) == ngens(R)
+  n = length(W[1])
+  @assert all(x->length(x) == n, W)
+
+  A = abelian_group(zeros(Int, n))
+  set_attribute!(A, :show_elem => show_special_elem_grad) 
+  S = MPolyRing_dec(R, [A(w) for w = W])
+  return S, map(S, gens(R))
+end
+
 function grade(R::MPolyRing)
   A = abelian_group([0])
   S = MPolyRing_dec(R, [1*A[1] for i = 1: ngens(R)])
   return S, map(S, gens(R))
+end
+
+function is_z_graded(R::MPolyRing_dec)
+  isgraded(R) || return false
+  A = grading_group(R)
+  return ngens(A) == 1 && rank(A) == 1 && isfree(A)
+end
+
+function ismulti_graded(R::MPolyRing_dec)
+  isgraded(R) || return false
+  A = grading_group(R)
+  return isfree(A) && ngens(A) == rank(A)
 end
 
 @doc Markdown.doc"""
@@ -141,7 +176,7 @@ julia> S, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"])
   z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
 ```
 """
-function GradedPolynomialRing(C::Ring, V::Vector{String}, W::Vector{Int}; ordering=:lex)
+function GradedPolynomialRing(C::Ring, V::Vector{String}, W; ordering=:lex)
    return grade(PolynomialRing(C, V; ordering = ordering)[1], W)
 end
 function GradedPolynomialRing(C::Ring, V::Vector{String}; ordering=:lex)
@@ -420,6 +455,17 @@ function degree(a::MPolyElem_dec)
   return w
 end
 
+function degree(::Type{Int}, a::MPolyElem_dec)
+  @assert is_z_graded(parent(a))
+  return Int(degree(a)[1])
+end
+
+function degree(::Type{Vector{Int}}, a::MPolyElem_dec)
+  @assert ismulti_graded(parent(a))
+  d = degree(a)
+  return Int[d[i] for i=1:ngens(parent(d))]
+end
+
 @doc Markdown.doc"""
     ishomogeneous(F::MPolyElem_dec)
 
@@ -499,6 +545,16 @@ function homogeneous_component(a::MPolyElem_dec, g::GrpAbFinGenElem)
   return parent(a)(r)
 end
 
+function homogeneous_component(a::MPolyElem_dec, g::Union{fmpz, Integer})
+  @assert is_z_graded(parent(a))
+  return homogeneous_component(a, grading_group(parent(a))([g]))
+end
+
+function homogeneous_component(a::MPolyElem_dec, g::Vector{<:Union{fmpz, Integer}})
+  @assert ismulti_graded(parent(a))
+  return homogeneous_component(a, grading_group(parent(a))(g))
+end
+
 base_ring(W::MPolyRing_dec) = base_ring(W.R)
 Nemo.ngens(W::MPolyRing_dec) = Nemo.ngens(W.R)
 Nemo.gens(W::MPolyRing_dec) = map(W, gens(W.R))
@@ -520,6 +576,8 @@ end
 function homogeneous_component(W::MPolyRing_dec, d::GrpAbFinGenElem)
   #TODO: lazy: ie. no enumeration of points
   #      aparently it is possible to get the number of points faster than the points
+  #TODO: in the presence of torsion, this is wrong. The component
+  #      would be a module over the deg-0-sub ring.
   D = W.D
   h = hom(free_abelian_group(ngens(W)), W.d)
   fl, p = haspreimage(h, d)
