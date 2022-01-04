@@ -42,3 +42,16 @@ function toric_divisor(l::ToricLineBundle)
     end
 end
 export divisor
+
+
+@doc Markdown.doc"""
+    degree(l::ToricLineBundle)
+
+Returns the degree of the toric line bundle `l`.
+"""
+function degree(l::ToricLineBundle)
+    return get_attribute!(l, :degree) do
+        return sum(coefficients(toric_divisor(l)))::fmpz
+    end
+end
+export degree
