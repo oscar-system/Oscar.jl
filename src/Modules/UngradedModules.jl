@@ -1499,7 +1499,7 @@ Subquotient of Submodule with 2 generators
 1 -> x*e[1]
 2 -> y*e[1]
 by Submodule with 3 generators
-1 -> x^2*e[1]
+1 -> (x^2 + y^4)*e[1]
 2 -> y^3*e[1]
 3 -> z^4*e[1]
 
@@ -1579,7 +1579,7 @@ Subquotient of Submodule with 2 generators
 1 -> x*e[1]
 2 -> y*e[1]
 by Submodule with 3 generators
-1 -> x^2*e[1]
+1 -> (x^2 + y^4)*e[1]
 2 -> y^3*e[1]
 3 -> z^4*e[1]
 
