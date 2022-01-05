@@ -60,8 +60,8 @@ rank(F)
 ## Elements of Free Modules
 
 All OSCAR types for elements of finitely presented modules over commutative rings belong to the abstract type `ModuleElemFP{T}`.
-For elements of free modules, there is the abstract subtype `AbstractFreeModElem{T} <: ModuleFPElem{T}`. Its concrete
-descendant `FreeModElem{T}` implements an element $f$ of a free module $F$ as a sparse row,
+For elements of free modules, there are the abstract subtype `AbstractFreeModElem{T} <: ModuleFPElem{T}` and its concrete
+descendant `FreeModElem{T}` which implements an element $f$ of a free module $F$ as a sparse row,
 that is, as an object of type `SRow{T}`. This object specifies the coordinates of $f$ with respect to
 the basis of standard unit vectors of $F$. To create an element, enter its coordinates as a sparse row or a vector: 
 
