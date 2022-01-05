@@ -31,7 +31,7 @@ rays(PF::PolyhedralFan) = SubObjectIterator{RayVector{Polymake.Rational}}(pm_obj
 
 _ray_fan(::Type{RayVector{Polymake.Rational}}, PF::Polymake.BigObject, i::Base.Integer) = RayVector(PF.RAYS[i, :])
 
-_vector_matrix(::Val{_ray_fan}, PF::Polymake.BigObject) = PF.RAYS
+_vector_matrix(::Val{_ray_fan}, PF::Polymake.BigObject; homogenized=false) = PF.RAYS
 
 _matrix_for_polymake(::Val{_ray_fan}) = _vector_matrix
 
@@ -268,7 +268,7 @@ lineality_space(PF::PolyhedralFan) = SubObjectIterator{RayVector{Polymake.Ration
 
 _lineality_fan(::Type{RayVector{Polymake.Rational}}, PF::Polymake.BigObject, i::Base.Integer) = RayVector(PF.LINEALITY_SPACE[i, :])
 
-_generator_matrix(::Val{_lineality_fan}, PF::Polymake.BigObject) = PF.LINEALITY_SPACE
+_generator_matrix(::Val{_lineality_fan}, PF::Polymake.BigObject; homogenized=false) = PF.LINEALITY_SPACE
 
 _matrix_for_polymake(::Val{_lineality_fan}) = _generator_matrix
 

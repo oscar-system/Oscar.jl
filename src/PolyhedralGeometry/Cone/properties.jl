@@ -8,7 +8,7 @@ rays(as::Type{RayVector{T}}, C::Cone) where T = SubObjectIterator{as}(pm_object(
 
 _ray_cone(::Type{T}, C::Polymake.BigObject, i::Base.Integer) where T = T(C.RAYS[i, :])
 
-_vector_matrix(::Val{_ray_cone}, C::Polymake.BigObject) = C.RAYS
+_vector_matrix(::Val{_ray_cone}, C::Polymake.BigObject; homogenized=false) = C.RAYS
 
 _matrix_for_polymake(::Val{_ray_cone}) = _vector_matrix
 
@@ -334,7 +334,7 @@ lineality_space(C::Cone) = SubObjectIterator{RayVector{Polymake.Rational}}(pm_ob
 
 _lineality_cone(::Type{RayVector{Polymake.Rational}}, C::Polymake.BigObject, i::Base.Integer) = RayVector(C.LINEALITY_SPACE[i, :])
 
-_generator_matrix(::Val{_lineality_cone}, C::Polymake.BigObject) = C.LINEALITY_SPACE
+_generator_matrix(::Val{_lineality_cone}, C::Polymake.BigObject; homogenized=false) = C.LINEALITY_SPACE
 
 _matrix_for_polymake(::Val{_lineality_cone}) = _generator_matrix
 
@@ -392,6 +392,6 @@ end
 
 _hilbert_generator(::Type{PointVector{Polymake.Integer}}, C::Polymake.BigObject, i::Base.Integer) = PointVector{Polymake.Integer}(C.HILBERT_BASIS_GENERATORS[1][i, :])
 
-_generator_matrix(::Val{_hilbert_generator}, C::Polymake.BigObject) = C.HILBERT_BASIS_GENERATORS[1]
+_generator_matrix(::Val{_hilbert_generator}, C::Polymake.BigObject; homogenized=false) = C.HILBERT_BASIS_GENERATORS[1]
 
 _matrix_for_polymake(::Val{_hilbert_generator}) = _generator_matrix

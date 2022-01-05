@@ -115,7 +115,7 @@ vertices(as::Type{PointVector{T}}, P::Polyhedron) where T = SubObjectIterator{as
 
 _vertex_polyhedron(::Type{PointVector{T}}, P::Polymake.BigObject, i::Base.Integer) where T = PointVector{T}(P.VERTICES[_vertex_indices(P)[i], 2:end])
 
-_point_matrix(::Val{_vertex_polyhedron}, P::Polymake.BigObject) = P.VERTICES[_vertex_indices(P), 2:end]
+_point_matrix(::Val{_vertex_polyhedron}, P::Polymake.BigObject; homogenized=false) = P.VERTICES[_vertex_indices(P), (homogenized ? 1 : 2):end]
 
 _matrix_for_polymake(::Val{_vertex_polyhedron}) = _point_matrix
 
@@ -202,7 +202,7 @@ rays(as::Type{RayVector{T}}, P::Polyhedron) where T = SubObjectIterator{as}(pm_o
 
 _ray_polyhedron(::Type{RayVector{T}}, P::Polymake.BigObject, i::Base.Integer) where T = RayVector{T}(P.VERTICES[_ray_indices(P)[i], 2:end])
 
-_vector_matrix(::Val{_ray_polyhedron}, P::Polymake.BigObject) = P.VERTICES[_ray_indices(P), 2:end]
+_vector_matrix(::Val{_ray_polyhedron}, P::Polymake.BigObject; homogenized=false) = P.VERTICES[_ray_indices(P), (homogenized ? 1 : 2):end]
 
 _matrix_for_polymake(::Val{_ray_polyhedron}) = _vector_matrix
 
@@ -478,7 +478,7 @@ end
 
 _lattice_point(::Type{PointVector{Polymake.Integer}}, P::Polymake.BigObject, i::Base.Integer) = PointVector{Polymake.Integer}(P.LATTICE_POINTS_GENERATORS[1][i, 2:end])
 
-_point_matrix(::Val{_lattice_point}, P::Polymake.BigObject) = P.LATTICE_POINTS_GENERATORS[1][:, 2:end]
+_point_matrix(::Val{_lattice_point}, P::Polymake.BigObject; homogenized=false) = P.LATTICE_POINTS_GENERATORS[1][:, (homogenized ? 1 : 2):end]
 
 _matrix_for_polymake(::Val{_lattice_point}) = _point_matrix
 
@@ -505,7 +505,7 @@ end
 
 _interior_lattice_point(::Type{PointVector{Polymake.Integer}}, P::Polymake.BigObject, i::Base.Integer) = PointVector{Polymake.Integer}(P.INTERIOR_LATTICE_POINTS[i, 2:end])
 
-_point_matrix(::Val{_interior_lattice_point}, P::Polymake.BigObject) = P.INTERIOR_LATTICE_POINTS[:, 2:end]
+_point_matrix(::Val{_interior_lattice_point}, P::Polymake.BigObject; homogenized=false) = P.INTERIOR_LATTICE_POINTS[:, (homogenized ? 1 : 2):end]
 
 _matrix_for_polymake(::Val{_interior_lattice_point}) = _point_matrix
 
@@ -537,7 +537,7 @@ end
 
 _boundary_lattice_point(::Type{PointVector{Polymake.Integer}}, P::Polymake.BigObject, i::Base.Integer) = PointVector{Polymake.Integer}(P.BOUNDARY_LATTICE_POINTS[i, 2:end])
 
-_point_matrix(::Val{_boundary_lattice_point}, P::Polymake.BigObject) = P.BOUNDARY_LATTICE_POINTS[:, 2:end]
+_point_matrix(::Val{_boundary_lattice_point}, P::Polymake.BigObject; homogenized=false) = P.BOUNDARY_LATTICE_POINTS[:, (homogenized ? 1 : 2):end]
 
 _matrix_for_polymake(::Val{_boundary_lattice_point}) = _point_matrix
 
@@ -603,7 +603,7 @@ lineality_space(P::Polyhedron) = SubObjectIterator{RayVector{Polymake.Rational}}
 
 _lineality_polyhedron(::Type{RayVector{Polymake.Rational}}, P::Polymake.BigObject, i::Base.Integer) = RayVector(P.LINEALITY_SPACE[i, 2:end])
 
-_generator_matrix(::Val{_lineality_polyhedron}, P::Polymake.BigObject) = P.LINEALITY_SPACE[:, 2:end]
+_generator_matrix(::Val{_lineality_polyhedron}, P::Polymake.BigObject; homogenized=false) = P.LINEALITY_SPACE[:, (homogenized ? 1 : 2):end]
 
 _matrix_for_polymake(::Val{_lineality_polyhedron}) = _generator_matrix
 
