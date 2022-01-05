@@ -107,7 +107,7 @@ julia> T, (x, y, z) = grade(R, W)
   z -> [3], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
 ```
 """
-function grade(R::MPolyRing, W::Vector{<:Union{Integer, fmpz}})
+function grade(R::MPolyRing, W::Vector{<:IntegerUnion})
   @assert length(W) == ngens(R)
   A = abelian_group([0])
   set_attribute!(A, :show_elem => show_special_elem_grad) 
@@ -115,7 +115,7 @@ function grade(R::MPolyRing, W::Vector{<:Union{Integer, fmpz}})
   return S, map(S, gens(R))
 end
 
-function grade(R::MPolyRing, W::Union{fmpz_mat, Matrix{<:Union{Integer, fmpz}}})
+function grade(R::MPolyRing, W::Union{fmpz_mat, Matrix{<:IntegerUnion}})
   @assert size(W, 2) == ngens(R)
   A = abelian_group(zeros(Int, size(W, 1)))
   set_attribute!(A, :show_elem => show_special_elem_grad) 
@@ -123,7 +123,7 @@ function grade(R::MPolyRing, W::Union{fmpz_mat, Matrix{<:Union{Integer, fmpz}}})
   return S, map(S, gens(R))
 end
 
-function grade(R::MPolyRing, W::Vector{<:Vector{<:Union{Integer, fmpz}}})
+function grade(R::MPolyRing, W::Vector{<:Vector{<:IntegerUnion}})
   @assert length(W) == ngens(R)
   n = length(W[1])
   @assert all(x->length(x) == n, W)
@@ -545,12 +545,12 @@ function homogeneous_component(a::MPolyElem_dec, g::GrpAbFinGenElem)
   return parent(a)(r)
 end
 
-function homogeneous_component(a::MPolyElem_dec, g::Union{fmpz, Integer})
+function homogeneous_component(a::MPolyElem_dec, g::IntegerUnion)
   @assert is_z_graded(parent(a))
   return homogeneous_component(a, grading_group(parent(a))([g]))
 end
 
-function homogeneous_component(a::MPolyElem_dec, g::Vector{<:Union{fmpz, Integer}})
+function homogeneous_component(a::MPolyElem_dec, g::Vector{<:IntegerUnion})
   @assert ismulti_graded(parent(a))
   return homogeneous_component(a, grading_group(parent(a))(g))
 end
