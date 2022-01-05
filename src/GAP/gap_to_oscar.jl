@@ -7,7 +7,9 @@
 ##
 function fmpz(obj::GapObj)
     GAP.GAP_IS_INT(obj) || throw(GAP.ConversionError(obj, fmpz))
-    GC.@preserve obj fmpz(GAP.ADDR_OBJ(obj), div(GAP.SIZE_OBJ(obj), sizeof(Int)))
+    result = GC.@preserve obj fmpz(GAP.ADDR_OBJ(obj), div(GAP.SIZE_OBJ(obj), sizeof(Int)))
+    obj < 0 && Nemo.neg!(result, result)
+    return result
 end
 
 GAP.gap_to_julia(::Type{fmpz}, obj::GapInt) = fmpz(obj)
