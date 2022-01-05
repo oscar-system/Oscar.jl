@@ -11,6 +11,7 @@ export AbsLocalizedIdeal
 export ideal
 
 import AbstractAlgebra.Ring
+import AbstractAlgebra: expressify, show_via_expressify
 
 #################################################################################
 # General framework for localizations of rings; to be used with affine algebras #
@@ -176,13 +177,22 @@ function parent(f::AbsLocalizedRingElem)
 end
 
 ### default functionality for printing
-function Base.show(io::IO, f::AbsLocalizedRingElem)
-  if needs_parentheses(f)
-    print(io, "($(numerator(f)))//($(denominator(f)))")
-  else 
-    print(io, "$(numerator(f))//$(denominator(f))")
-  end
-end
+#function Base.show(io::IO, f::AbsLocalizedRingElem)
+#  show_via_expressify(io, mi, f)
+#end
+#function Base.show(io::IO, mi::MIME"text/plain", f::AbsLocalizedRingElem)
+#  show_via_expressify(io, mi, f)
+#end
+#function Base.show(io::IO, mi::MIME"text/latex", f::AbsLocalizedRingElem)
+#  show_via_expressify(io, mi, f)
+#end
+#function Base.show(io::IO, mi::MIME"text/html", f::AbsLocalizedRingElem)
+#  show_via_expressify(io, mi, f)
+#end
+
+expressify(f::AbsLocalizedRingElem; context=nothing) = Expr(:call, ://, expressify(numerator(f)), expressify(denominator(f)))
+
+@enable_all_show_via_expressify AbsLocalizedRingElem
 
 
 ########################################################################
@@ -301,8 +311,6 @@ function Base.show(io::IO, W::AbsLocalizedRing)
   print(io, " at the ")
   print(io, inverted_set(W))
 end
-
-needs_parentheses(f::AbsLocalizedRingElem) = true
 
 function zero!(a::AbsLocalizedRingElem) 
   a = zero(parent(a))
