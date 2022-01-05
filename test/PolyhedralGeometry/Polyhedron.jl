@@ -20,19 +20,18 @@
         @test nvertices.(faces(Q0,1)) == [2,2,2]
         @test lattice_points(Q0) isa SubObjectIterator{PointVector{Polymake.Integer}}
         @test point_matrix(lattice_points(Q0)) == matrix(QQ, [0 0; 0 1; 1 0])
-        @test Oscar.matrix_for_polymake(lattice_points(Q0)) == [0 0; 0 1; 1 0]
+        @test matrix(ZZ, lattice_points(Q0)) == matrix(ZZ, [0 0; 0 1; 1 0])
         @test length(lattice_points(Q0)) == 3
         @test lattice_points(Q0)[1] == PointVector{Polymake.Integer}([0, 0])
         @test lattice_points(Q0)[2] == PointVector{Polymake.Integer}([0, 1])
         @test lattice_points(Q0)[3] == PointVector{Polymake.Integer}([1, 0])
         @test interior_lattice_points(square) isa SubObjectIterator{PointVector{Polymake.Integer}}
-        @test point_matrix(interior_lattice_points(square)) == matrix(QQ, [0 0])
-        @test Oscar.matrix_for_polymake(interior_lattice_points(square)) == [0 0]
+        @test point_matrix(interior_lattice_points(square)) == matrix(ZZ, [0 0])
+        @test matrix(ZZ, interior_lattice_points(square)) == matrix(ZZ,[0 0])
         @test length(interior_lattice_points(square)) == 1
         @test interior_lattice_points(square)[] == PointVector{Polymake.Integer}([0, 0])
         @test boundary_lattice_points(square) isa SubObjectIterator{PointVector{Polymake.Integer}}
-        @test point_matrix(boundary_lattice_points(square)) == matrix(QQ, [-1 -1; -1 0; -1 1; 0 -1; 0 1; 1 -1; 1 0; 1 1])
-        @test Oscar.matrix_for_polymake(boundary_lattice_points(square)) == [-1 -1; -1 0; -1 1; 0 -1; 0 1; 1 -1; 1 0; 1 1]
+        @test point_matrix(boundary_lattice_points(square)) == matrix(ZZ, [-1 -1; -1 0; -1 1; 0 -1; 0 1; 1 -1; 1 0; 1 1])
         @test length(boundary_lattice_points(square)) == 8
         @test boundary_lattice_points(square)[1] == PointVector{Polymake.Integer}([-1, -1])
         @test boundary_lattice_points(square)[2] == PointVector{Polymake.Integer}([-1, 0])
@@ -71,7 +70,7 @@
         @test rays(Pos)[3] == RayVector([0, 0, 1])
         @test lineality_space(L) isa SubObjectIterator{RayVector{Polymake.Rational}}
         @test generator_matrix(lineality_space(L)) == matrix(QQ, [0 0 1])
-        @test Oscar.matrix_for_polymake(lineality_space(L)) == [0 0 1]
+        @test matrix(ZZ, lineality_space(L)) == matrix(ZZ, [0 0 1])
         @test length(lineality_space(L)) == 1
         @test lineality_space(L)[] == RayVector([0, 0, 1])
         @test faces(square, 1) isa SubObjectIterator{Polyhedron}
