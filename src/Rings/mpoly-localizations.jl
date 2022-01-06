@@ -40,17 +40,17 @@ abstract type AbsMPolyMultSet{BRT, BRET, RT, RET} <: AbsMultSet{RT, RET} end
 ########################################################################
 
 @Markdown.doc """
-MPolyPowersOfElement{
-    BaseRingType,
-    BaseRingElemType, 
-    RingType,
-    RingElemType
-  } <: AbsMPolyMultSet{
-    BaseRingType,
-    BaseRingElemType, 
-    RingType, 
-    RingElemType
-  }
+    MPolyPowersOfElement{
+        BaseRingType,
+        BaseRingElemType, 
+        RingType,
+        RingElemType
+      } <: AbsMPolyMultSet{
+        BaseRingType,
+        BaseRingElemType, 
+        RingType, 
+        RingElemType
+      }
 
 The set `S = { aᵏ : k ∈ ℕ₀ }` for some ``a ∈ R`` with ``R`` of type `BaseRingType`.
 """
@@ -123,20 +123,20 @@ end
 ########################################################################
 
 @Markdown.doc """
-MPolyComplementOfPrimeIdeal{
-    BaseRingType, 
-    BaseRingElemType,
-    RingType,
-    RingElemType
-  } <: AbsMPolyMultSet{
-    BaseRingType, 
-    BaseRingElemType,
-    RingType,
-    RingElemType
-  }
+    MPolyComplementOfPrimeIdeal{
+        BaseRingType, 
+        BaseRingElemType,
+        RingType,
+        RingElemType
+      } <: AbsMPolyMultSet{
+        BaseRingType, 
+        BaseRingElemType,
+        RingType,
+        RingElemType
+      }
 
-The complement of a prime ideal `P ⊂ 𝕜[x₁,…,xₙ]` in a multivariate polynomial ring 
-with elements of type `RingElemType` over a base ring `𝕜` of type `BaseRingType`.
+The complement of a prime ideal ``P ⊂ 𝕜[x₁,…,xₙ]`` in a multivariate polynomial ring 
+with elements of type `RingElemType` over a base ring ``𝕜`` of type `BaseRingType`.
 """
 mutable struct MPolyComplementOfPrimeIdeal{
     BaseRingType, 
@@ -201,17 +201,17 @@ end
 ########################################################################
 
 @Markdown.doc """
-MPolyComplementOfKPointIdeal{
-    BaseRingType,
-    BaseRingElemType, 
-    RingType,
-    RingElemType
-  } <: AbsMPolyMultSet{
-    BaseRingType,
-    BaseRingElemType, 
-    RingType, 
-    RingElemType
-  }
+    MPolyComplementOfKPointIdeal{
+        BaseRingType,
+        BaseRingElemType, 
+        RingType,
+        RingElemType
+      } <: AbsMPolyMultSet{
+        BaseRingType,
+        BaseRingElemType, 
+        RingType, 
+        RingElemType
+      }
 
 Complement of a maximal ideal ``𝔪 = ⟨x₁-a₁,…,xₙ-aₙ⟩⊂ 𝕜[x₁,…xₙ]`` with ``aᵢ∈ 𝕜``.
 """
@@ -274,17 +274,17 @@ end
 
 
 @Markdown.doc """
-MPolyProductOfMultSets{
-    BaseRingType,
-    BaseRingElemType, 
-    RingType,
-    RingElemType
-  } <: AbsMPolyMultSet{
-    BaseRingType,
-    BaseRingElemType, 
-    RingType, 
-    RingElemType
-  }
+    MPolyProductOfMultSets{
+        BaseRingType,
+        BaseRingElemType, 
+        RingType,
+        RingElemType
+      } <: AbsMPolyMultSet{
+        BaseRingType,
+        BaseRingElemType, 
+        RingType, 
+        RingElemType
+      }
 
 A finite product `T⋅U = { a⋅b : a ∈ T, b∈ U}` of arbitrary other 
 multiplicative sets in a multivariate polynomial ring.
@@ -526,7 +526,7 @@ end
 *(T::AbsMPolyMultSet, U::AbsMPolyMultSet) = product(T, U)
 
 @Markdown.doc """
-product(T::AbsMPolyMultSet, U::AbsMPolyMultSet)
+    product(T::AbsMPolyMultSet, U::AbsMPolyMultSet)
 
 Returns the product of the multiplicative sets `T` and `U`. 
 """
@@ -693,17 +693,17 @@ end
 ########################################################################
 
 @Markdown.doc """
-MPolyLocalizedRing{
-    BaseRingType,
-    BaseRingElemType,
-    RingType,
-    RingElemType,
-    MultSetType
-  } <: AbsLocalizedRing{
-    RingType,
-    RingType,
-    MultSetType
-  }
+    MPolyLocalizedRing{
+        BaseRingType,
+        BaseRingElemType,
+        RingType,
+        RingElemType,
+        MultSetType
+      } <: AbsLocalizedRing{
+        RingType,
+        RingType,
+        MultSetType
+      }
 
 The localization of a multivariate polynomial ring ``R = 𝕜[x₁,…,xₙ]`` over a 
 base field ``𝕜`` of type `BaseRingType` and with elements of type `RingElemType` 
@@ -803,17 +803,17 @@ end
 ########################################################################
 
 @Markdown.doc """
-MPolyLocalizedRingElem{
-    BaseRingType, 
-    BaseRingElemType,
-    RingType,
-    RingElemType, 
-    MultSetType
-  } <: AbsLocalizedRingElem{
-    RingType,
-    RingElemType, 
-    MultSetType
-  } 
+    MPolyLocalizedRingElem{
+        BaseRingType, 
+        BaseRingElemType,
+        RingType,
+        RingElemType, 
+        MultSetType
+      } <: AbsLocalizedRingElem{
+        RingType,
+        RingElemType, 
+        MultSetType
+      } 
 
 Elements of localizations of polynomial rings.
 """
@@ -1041,7 +1041,7 @@ end
 # Singular functionality                                               #
 ########################################################################
 @Markdown.doc """
-LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}
+    LocalizedBiPolyArray{BRT, BRET, RT, RET, MST}
 
 Main workhorse for binding of ideals in localizations ``R[S⁻¹]`` of 
 multivariate polynomial rings ``R = 𝕜[x₁,…,xₙ]`` to Singular. 
@@ -1262,7 +1262,7 @@ end
 # which I = I'⋅W. We call this the `saturated ideal` of the localization.
 
 @Markdown.doc """
-MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST} <: AbsLocalizedIdeal{RT, RET, MST}
+    MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST} <: AbsLocalizedIdeal{RT, RET, MST}
 
 Ideals in localizations of polynomial rings.
 """
@@ -1302,11 +1302,11 @@ gens(I::MPolyLocalizedIdeal) = copy(I.gens)
 base_ring(I::MPolyLocalizedIdeal) = I.W
 
 @Markdown.doc """
-saturated_ideal(I::MPolyLocalizedIdeal)
+    saturated_ideal(I::MPolyLocalizedIdeal)
 
-For an ideal `I ⊂ R[S⁻¹]` in a localized polynomial ring this returns 
-the unique ideal `J ⊂ R` which is maximal among all those ideals 
-`I' ⊂ R` for which `I' ⋅ S⁻¹ = I`.
+For an ideal ``I ⊂ R[S⁻¹]`` in a localized polynomial ring this returns 
+the unique ideal ``J ⊂ R`` which is maximal among all those ideals 
+``I' ⊂ R`` for which ``I' ⋅ S⁻¹ = I``.
 """
 function saturated_ideal(I::MPolyLocalizedIdeal)
   error("method `saturated_ideal` is not implemented for multiplicative sets of type $(typeof(inverted_set(base_ring(I))))")
@@ -1564,10 +1564,10 @@ end
 # This refers back to the saturated ideal procedures and ideal 
 # membership of the numerator in the base_ring.
 @Markdown.doc """
-groebner_basis(
-    I::MPolyLocalizedIdeal,
-    ordering::Symbol
-  )
+    groebner_basis(
+        I::MPolyLocalizedIdeal,
+        ordering::Symbol
+      )
 
 For an ideal ``I ⊂ R[S⁻¹]`` in a localized polynomial ring generated 
 by fractions ``a₁//b₁,…, aₘ//bₘ``, this returns a groebner basis 
@@ -1684,7 +1684,7 @@ function Base.reduce(
 end
 
 @Markdown.doc """
-bring_to_common_denominator(f::Vector{T}) where {T<:MPolyLocalizedRingElem}
+    bring_to_common_denominator(f::Vector{T}) where {T<:MPolyLocalizedRingElem}
 
 Given a vector of fractions [a₁//b₁,…,aₙ//bₙ] return a pair 
 (d, λ) consisting of a common denominator d and a vector 
@@ -1712,7 +1712,7 @@ end
 write_as_linear_combination(f::MPolyLocalizedRingElem, g::Vector) = write_as_linear_combination(f, parent(f).(g))
 
 @Markdown.doc """
-function write_as_linear_combination(f::T, g::Vector{T}) where {T<:MPolyLocalizedRingElem} 
+    function write_as_linear_combination(f::T, g::Vector{T}) where {T<:MPolyLocalizedRingElem} 
 
 Write f = ∑ᵢ λᵢ⋅gᵢ for some λᵢ and return the vector [λ₁,…,λₙ].
 """
@@ -1776,11 +1776,11 @@ end
 
 # return the localized ring as a quotient of a polynomial ring using Rabinowitsch's trick.
 @Markdown.doc """
-as_affine_algebra(
-  L::MPolyLocalizedRing{BRT, BRET, RT, RET, 
-  MPolyPowersOfElement{BRT, BRET, RT, RET}}; 
-  inverse_name::String="θ"
-) where {BRT, BRET, RT, RET}
+    as_affine_algebra(
+      L::MPolyLocalizedRing{BRT, BRET, RT, RET, 
+      MPolyPowersOfElement{BRT, BRET, RT, RET}}; 
+      inverse_name::String="θ"
+    ) where {BRT, BRET, RT, RET}
 
 For a localized polynomial ring ``L = 𝕜[x₁,…,xₙ][f⁻¹]`` this returns a 
 quintuple ``(A, I, d, ϕ, θ)`` consisting of 

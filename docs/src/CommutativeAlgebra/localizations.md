@@ -98,7 +98,7 @@ can be found in the test files
 
 **Note:** Any concrete type for localized rings is also required to implement 
 the general [Ring Interface](@ref) of Oscar! This has not been done to a full extent 
-for the previous two examples, but for ```MPolyLocalizedRing```; see below.
+for the previous two examples, but for `MPolyLocalizedRing`; see below.
 
  
 ### Ideals in localized rings
@@ -116,10 +116,10 @@ The required getter methods are
 ```
 The constructors to be implemented are
 ```
-   ideal(W::AbsLocalizedRing{RingType, RingElemType, MultSetType}, f::AbsLocalizedRingElem{RingType, RingElemType, MultSetType})
-   ideal(W::AbsLocalizedRing{RingType, RingElemType, MultSetType}, f::RingElemType)
-   ideal(W::AbsLocalizedRing{RingType, RingElemType, MultSetType}, v::Vector{AbsLocalizedRingElem{RingType, RingElemType, MultSetType}})
-   ideal(W::AbsLocalizedRing{RingType, RingElemType, MultSetType}, v::Vector{RingElemType})
+   ideal(W::AbsLocalizedRing{RingType, RingElemType, MultSetType}, f::AbsLocalizedRingElem{RingType, RingElemType, MultSetType}) where {RingType, RingElemType, MultSetType}
+   ideal(W::AbsLocalizedRing{RingType, RingElemType, MultSetType}, f::RingElemType) where {RingType, RingElemType, MultSetType}
+   ideal(W::AbsLocalizedRing{RingType, RingElemType, MultSetType}, v::Vector{AbsLocalizedRingElem{RingType, RingElemType, MultSetType}}) where {RingType, RingElemType, MultSetType}
+   ideal(W::AbsLocalizedRing{RingType, RingElemType, MultSetType}, v::Vector{RingElemType}) where {RingType, RingElemType, MultSetType}
 ```
 for a single and a list of generators from both the `base_ring` of `W` and from `W` itself.
 
@@ -248,7 +248,7 @@ have that
   J = \left\{ x\in R : \exists u \in U : u\cdot x \in I \right\}
 ```
 is the unique element which is maximal among all ideals ``I'`` in ``R`` for 
-which ``I = I'\cdot W``. We call this the `saturated ideal` of the localization 
+which ``I = I'\cdot W``. We call this the *saturated ideal* of the localization 
 and it can be obtained using 
 ```@docs
 saturated_ideal(I::MPolyLocalizedIdeal)
@@ -448,7 +448,7 @@ For any homomorphism ``φ : P[T⁻¹] → Q[U⁻¹]`` the following holds.
   3) Choosing a common denominator ``c`` for all ``ψ(xᵢ)``, we obtain a ring homomorphism ``η : R → S[c⁻¹]`` such that ``ψ = ι ∘ η``.
 
 Upshot: In order to describe ``φ``, we may store some homomorphism 
-```math ψ : R → S[U⁻¹]```
+``ψ : R → S[U⁻¹]``
 lifting it and keep in mind the ambiguity of choices for such ``ψ``.
 The latter point 3) will be useful for reducing to a homomorphism 
 of finitely generated algebras.

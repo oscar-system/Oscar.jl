@@ -56,22 +56,22 @@ export is_isomorphism, inverse
 #
 
 @Markdown.doc """
-MPolyQuoLocalizedRing{
-    BaseRingType,
-    BaseRingElemType,
-    RingType,
-    RingElemType,
-    MultSetType <: AbsMultSet{RingType, RingElemType}
-  } <: AbsLocalizedRing{
-    RingType,
-    RingElemType,
-    MultSetType
-  }
-
-Localization `L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]` of a quotient
-`𝕜[x₁,…,xₙ]/I` of a polynomial ring `P = 𝕜[x₁,…,xₙ]`
-of type `RingType` over a base ring `𝕜` of type `BaseRingType` at a
-multiplicative set `S ⊂ P` of type `MultSetType`.
+    MPolyQuoLocalizedRing{
+        BaseRingType,
+        BaseRingElemType,
+        RingType,
+        RingElemType,
+        MultSetType <: AbsMultSet{RingType, RingElemType}
+      } <: AbsLocalizedRing{
+        RingType,
+        RingElemType,
+        MultSetType
+      }
+    
+Localization ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` of a quotient
+``𝕜[x₁,…,xₙ]/I`` of a polynomial ring ``P = 𝕜[x₁,…,xₙ]``
+of type `RingType` over a base ring ``𝕜`` of type `BaseRingType` at a
+multiplicative set ``S ⊂ P`` of type `MultSetType`.
 """
 mutable struct MPolyQuoLocalizedRing{
     BaseRingType,
@@ -127,37 +127,37 @@ inverted_set(L::MPolyQuoLocalizedRing) = L.S
 
 ### additional getter functions
 @Markdown.doc """
-modulus(L::MPolyQuoLocalizedRing)
+    modulus(L::MPolyQuoLocalizedRing)
 
-For `L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]` this returns `I`.
+For ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns ``I``.
 """
 modulus(L::MPolyQuoLocalizedRing) = L.I
 
 @Markdown.doc """
-localized_modulus(L::MPolyQuoLocalizedRing)
+    localized_modulus(L::MPolyQuoLocalizedRing)
 
-For `L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]` this returns `IS⁻¹`.
+For ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns ``IS⁻¹``.
 """
 localized_modulus(L::MPolyQuoLocalizedRing) = L.J
 
 @Markdown.doc """
-quotient_ring(L::MPolyQuoLocalizedRing)
+    quotient_ring(L::MPolyQuoLocalizedRing)
 
-For `L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]` this returns `𝕜[x₁,…,xₙ]/I`.
+For ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns ``𝕜[x₁,…,xₙ]/I``.
 """
 quotient_ring(L::MPolyQuoLocalizedRing) = L.Q
 
 @Markdown.doc """
-localized_ring(L::MPolyQuoLocalizedRing)
+    localized_ring(L::MPolyQuoLocalizedRing)
 
-For `L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]` this returns `𝕜[x₁,…,xₙ][S⁻¹]`.
+For ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns ``𝕜[x₁,…,xₙ][S⁻¹]``.
 """
 localized_ring(L::MPolyQuoLocalizedRing) = L.W
 
 @Markdown.doc """
-gens(L::MPolyQuoLocalizedRing)
+    gens(L::MPolyQuoLocalizedRing)
 
-For `L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]` this returns the vector `[x₁//1,…,xₙ//1]∈ Lⁿ`.
+For ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns the vector ``[x₁//1,…,xₙ//1]∈ Lⁿ``.
 """
 gens(L::MPolyQuoLocalizedRing) = L.(gens(base_ring(L)))
 
@@ -260,19 +260,19 @@ end
 ########################################################################
 
 @Markdown.doc """
-MPolyQuoLocalizedRingElem{
-  BaseRingType, 
-  BaseRingElemType,
-  RingType,
-  RingElemType, 
-  MultSetType
-} <: AbsLocalizedRingElem{
-  RingType,
-  RingElemType, 
-  MultSetType
-} 
+    MPolyQuoLocalizedRingElem{
+      BaseRingType, 
+      BaseRingElemType,
+      RingType,
+      RingElemType, 
+      MultSetType
+    } <: AbsLocalizedRingElem{
+      RingType,
+      RingElemType, 
+      MultSetType
+    } 
 
-Elements `a//b` of localizations `L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]` of type 
+Elements ``a//b`` of localizations ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` of type 
 `MPolyQuoLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}`.
 """
 mutable struct MPolyQuoLocalizedRingElem{
@@ -336,26 +336,26 @@ quotient_ring(a::MPolyQuoLocalizedRingElem) = quotient_ring(parent(a))
 localized_ring(a::MPolyQuoLocalizedRingElem) = localized_ring(parent(a))
 
 @Markdown.doc """
-lifted_numerator(a::MPolyQuoLocalizedRingElem)
+    lifted_numerator(a::MPolyQuoLocalizedRingElem)
 
-For `A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]` this returns a representative 
-`a ∈ 𝕜[x₁,…,xₙ]` of the numerator. 
+For ``A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns a representative 
+``a ∈ 𝕜[x₁,…,xₙ]`` of the numerator. 
 """
 lifted_numerator(a::MPolyQuoLocalizedRingElem) = a.numerator
 
 @Markdown.doc """
-lifted_denominator(a::MPolyQuoLocalizedRingElem)
+    lifted_denominator(a::MPolyQuoLocalizedRingElem)
 
-For `A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]` this returns a representative 
-`b ∈  𝕜[x₁,…,xₙ]` of the denominator.
+For ``A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns a representative 
+``b ∈  𝕜[x₁,…,xₙ]`` of the denominator.
 """
 lifted_denominator(a::MPolyQuoLocalizedRingElem) = a.denominator
 
 @Markdown.doc """
-fraction(a::MPolyQuoLocalizedRingElem)
+    fraction(a::MPolyQuoLocalizedRingElem)
 
-For `A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]` this returns a representative 
-`a//b ∈ Quot(𝕜[x₁,…,xₙ])` of the fraction. 
+For ``A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns a representative 
+``a//b ∈ Quot(𝕜[x₁,…,xₙ])`` of the fraction. 
 """
 fraction(a::MPolyQuoLocalizedRingElem) = lifted_numerator(a)//lifted_denominator(a)
 
@@ -398,10 +398,10 @@ end
 
 ### additional functionality
 @Markdown.doc """
-lift(f::MPolyQuoLocalizedRingElem)
+    lift(f::MPolyQuoLocalizedRingElem)
 
-For `f = A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]` this returns a representative 
-`a//b ∈  𝕜[x₁,…,xₙ][S⁻¹]` of the fraction. 
+For ``f = A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns a representative 
+``a//b ∈  𝕜[x₁,…,xₙ][S⁻¹]`` of the fraction. 
 """
 lift(f::MPolyQuoLocalizedRingElem) = localized_ring(f)(lifted_numerator(f), lifted_denominator(f))
 
@@ -650,11 +650,11 @@ end
 ideal(L::MPolyQuoLocalizedRing, g::T) where {T<:RingElement} = ideal(L, [g])
 
 @Markdown.doc """
-bring_to_common_denominator(f::Vector{T}) where {T<:MPolyQuoLocalizedRingElem}
+    bring_to_common_denominator(f::Vector{T}) where {T<:MPolyQuoLocalizedRingElem}
 
-Given a vector of fractions [a₁//b₁,…,aₙ//bₙ] return a pair 
-(d, λ) consisting of a common denominator d and a vector 
-λ = [λ₁,…,λₙ] such that aᵢ//bᵢ = λᵢ⋅aᵢ//d
+Given a vector of fractions ``[a₁//b₁,…,aₙ//bₙ]`` return a pair 
+``(d, λ)`` consisting of a common denominator ``d`` and a vector 
+``λ = [λ₁,…,λₙ]`` such that ``aᵢ//bᵢ = λᵢ⋅aᵢ//d``.
 """
 function bring_to_common_denominator(f::Vector{T}) where {T<:MPolyQuoLocalizedRingElem}
   length(f) == 0 && error("need at least one argument to determine the return type")
@@ -676,9 +676,9 @@ function bring_to_common_denominator(f::Vector{T}) where {T<:MPolyQuoLocalizedRi
 end
 
 @Markdown.doc """
-write_as_linear_combination(f::T, g::Vector{T}) where {T<:MPolyLocalizedRingElem} 
+    write_as_linear_combination(f::T, g::Vector{T}) where {T<:MPolyLocalizedRingElem} 
 
-Write f = ∑ᵢ λᵢ⋅gᵢ for some λᵢ and return the vector [λ₁,…,λₙ].
+Write ``f = ∑ᵢ λᵢ⋅gᵢ`` for some ``λᵢ`` and return the vector ``[λ₁,…,λₙ]``.
 """
 function write_as_linear_combination(
     f::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}},
@@ -814,26 +814,26 @@ end
 # of finitely generated algebras.
 
 @Markdown.doc """
-MPolyQuoLocalizedRingHom{
-  BaseRingType, 
-  BaseRingElemType, 
-  RingType, 
-  RingElemType, 
-  DomainMultSetType, 
-  CodomainMultSetType
-} <: AbsLocalizedRingHom{
-  RingType, RingElemType, DomainMultSetType, CodomainMultSetType
-}
+    MPolyQuoLocalizedRingHom{
+      BaseRingType, 
+      BaseRingElemType, 
+      RingType, 
+      RingElemType, 
+      DomainMultSetType, 
+      CodomainMultSetType
+    } <: AbsLocalizedRingHom{
+      RingType, RingElemType, DomainMultSetType, CodomainMultSetType
+    }
 
 Homomorphisms of localizations of affine algebras 
 
-  `ϕ : (𝕜[x₁,…,xₘ]/I)[S⁻¹] → (𝕜[y₁,…,yₙ]/J)[T⁻¹]`
+  ``ϕ : (𝕜[x₁,…,xₘ]/I)[S⁻¹] → (𝕜[y₁,…,yₙ]/J)[T⁻¹]``
 
 of types `MPolyQuoLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, DomainMultSetType}` and `MPolyQuoLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, CodomainMultSetType}`.
 These are completely determined by the images of the 
-variables `ϕ(xᵢ) ∈ (𝕜[y₁,…,yₙ]/J)[T⁻¹]` so that the 
+variables ``ϕ(xᵢ) ∈ (𝕜[y₁,…,yₙ]/J)[T⁻¹]`` so that the 
 constructor takes as input the triple 
-`((𝕜[x₁,…,xₘ]/I)[S⁻¹], (𝕜[y₁,…,yₙ]/J)[T⁻¹], [ϕ(x₁),…,ϕ(xₘ)])`.
+``((𝕜[x₁,…,xₘ]/I)[S⁻¹], (𝕜[y₁,…,yₙ]/J)[T⁻¹], [ϕ(x₁),…,ϕ(xₘ)])``.
 """
 mutable struct MPolyQuoLocalizedRingHom{
     BaseRingType, 
@@ -890,10 +890,10 @@ end
 domain(f::MPolyQuoLocalizedRingHom) = f.domain
 codomain(f::MPolyQuoLocalizedRingHom) = f.codomain
 @Markdown.doc """
-images(f::MPolyQuoLocalizedRingHom)
+    images(f::MPolyQuoLocalizedRingHom)
 
-For a homomorphism `ϕ : (𝕜[x₁,…,xₘ]/I)[S⁻¹] → (𝕜[y₁,…,yₙ]/J)[T⁻¹]` 
-this returns the vector `[ϕ(x₁),…,ϕ(xₘ)]`.
+For a homomorphism ``ϕ : (𝕜[x₁,…,xₘ]/I)[S⁻¹] → (𝕜[y₁,…,yₙ]/J)[T⁻¹]`` 
+this returns the vector ``[ϕ(x₁),…,ϕ(xₘ)]``.
 """
 images(f::MPolyQuoLocalizedRingHom) = f.images
 
