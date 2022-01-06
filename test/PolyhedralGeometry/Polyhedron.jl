@@ -80,8 +80,15 @@
         @test faces(square, 1)[2] == convex_hull([1 -1; 1 1])
         @test faces(square, 1)[3] == convex_hull([-1 -1; 1 -1])
         @test faces(square, 1)[4] == convex_hull([-1 1; 1 1])
-        @test vertex_incidences(faces(square, 1)) == IncidenceMatrix([[1, 3], [2, 4], [1, 2], [3, 4]])
-        @test ray_incidences(faces(square, 1)) == IncidenceMatrix(4, 0)
+        @test vertex_indices(faces(square, 1)) == IncidenceMatrix([[1, 3], [2, 4], [1, 2], [3, 4]])
+        @test ray_indices(faces(square, 1)) == IncidenceMatrix(4, 0)
+        @test faces(Pos, 1) isa SubObjectIterator{Polyhedron}
+        @test length(faces(Pos, 1)) == 3
+        @test faces(Pos, 1)[1] == convex_hull([0 0 0], [1 0 0])
+        @test faces(Pos, 1)[2] == convex_hull([0 0 0], [0 1 0])
+        @test faces(Pos, 1)[3] == convex_hull([0 0 0], [0 0 1])
+        @test vertex_indices(faces(Pos, 1)) == IncidenceMatrix([[1], [1], [1]])
+        @test ray_indices(faces(Pos, 1)) == IncidenceMatrix([[1], [2], [3]])
         @test isnothing(faces(Q2, 0))
         v = vertices(minkowski_sum(Q0, square))
         @test length(v) == 5
@@ -96,6 +103,8 @@
             @test length(facets(T, Pos)) == 3
             @test affine_inequality_matrix(facets(T, Pos)) == matrix(QQ, Matrix{fmpq}([0 -1 0 0; 0 0 -1 0; 0 0 0 -1]))
             @test halfspace_matrix_pair(facets(T, Pos)).A == matrix(QQ, Matrix{fmpq}([-1 0 0; 0 -1 0; 0 0 -1])) && halfspace_matrix_pair(facets(T, Pos)).b == [0, 0, 0]
+            @test vertex_indices(facets(T, Pos)) == IncidenceMatrix([[1], [1], [1]])
+            @test ray_indices(facets(T, Pos)) == IncidenceMatrix([[2, 3], [1, 3], [1, 2]])
             @test facets(T, Pos)[1] == T([-1 0 0], 0)
             @test facets(T, Pos)[2] == T([0 -1 0], 0)
             @test facets(T, Pos)[3] == T([0 0 -1], 0)

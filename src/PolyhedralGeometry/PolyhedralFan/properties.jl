@@ -61,7 +61,7 @@ julia> for c in maximal_cones(PF)
 """
 maximal_cones(PF::PolyhedralFan) = SubObjectIterator{Cone}(PF.pm_fan, _maximal_cone, nmaximal_cones(PF))
 
-_ray_incidences(::Val{_maximal_cone}, obj::Polymake.BigObject) = obj.MAXIMAL_CONES
+_ray_indices(::Val{_maximal_cone}, obj::Polymake.BigObject) = obj.MAXIMAL_CONES
 
 @doc Markdown.doc"""
     cones(PF::PolyhedralFan, cone_dim::Int)
@@ -99,7 +99,7 @@ function _cone_of_dim(::Type{Cone}, PF::Polymake.BigObject, i::Base.Integer; c_d
     return Cone(Polymake.polytope.Cone(RAYS = PF.RAYS[collect(Polymake.row(Polymake.fan.cones_of_dim(PF, c_dim), i)),:], LINEALITY_SPACE = PF.LINEALITY_SPACE))
 end
 
-_ray_incidences(::Val{_cone_of_dim}, PF::Polymake.BigObject; c_dim::Int = 0) = Polymake.fan.cones_of_dim(PF, c_dim)
+_ray_indices(::Val{_cone_of_dim}, PF::Polymake.BigObject; c_dim::Int = 0) = Polymake.fan.cones_of_dim(PF, c_dim)
 
 ###############################################################################
 ###############################################################################
@@ -422,7 +422,7 @@ julia> rays(star)
  [1, 0, 0]
  [1, 1, 1]
 
-julia> ray_incidences(maximal_cones(star))
+julia> ray_indices(maximal_cones(star))
 6×5 IncidenceMatrix
 [1, 2, 3]
 [2, 3, 4]

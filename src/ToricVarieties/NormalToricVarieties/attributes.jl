@@ -367,6 +367,7 @@ Abelian group with structure: Z^3
 ```
 """
 function map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v::AbstractNormalToricVariety)
+
     return get_attribute!(v, :map_from_cartier_divisor_group_to_torus_invariant_divisor_group) do
         # check input
         if hastorusfactor(v)
@@ -375,7 +376,7 @@ function map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v::Abst
         
         # identify fan_rays and cones
         fan_rays = Polymake.common.primitive(pm_object(v).RAYS)
-        max_cones = ray_incidences(maximal_cones(fan(v)))
+        max_cones = ray_indices(maximal_cones(fan(v)))
         number_of_rays = size(fan_rays)[1]
         number_of_cones = size(max_cones)[1]
         

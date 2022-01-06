@@ -23,7 +23,7 @@
             a, b = Oscar.decompose_hdata(Oscar.pm_object(c).FACETS)
             @test p[2] == Halfspace(a[i, :], b[i])
         end
-        @test_throws ArgumentError ray_incidences(soi)
+        @test_throws ArgumentError ray_indices(soi)
         @test_throws ArgumentError linear_inequality_matrix(soi)
         @test_throws ArgumentError halfspace_matrix_pair(soi)
         @test_throws ArgumentError Oscar.linear_matrix_for_polymake(soi)

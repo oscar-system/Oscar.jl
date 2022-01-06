@@ -216,7 +216,7 @@ function _face_cone(::Type{Cone}, C::Polymake.BigObject, i::Base.Integer; f_dim:
    return Cone(Polymake.polytope.Cone(RAYS = C.RAYS[collect(Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(C, f_dim)[i])), :], LINEALITY_SPACE = C.LINEALITY_SPACE))
 end
 
-function _ray_incidences(::Val{_face_cone}, C::Polymake.BigObject; f_dim::Int = 0)
+function _ray_indices(::Val{_face_cone}, C::Polymake.BigObject; f_dim::Int = 0)
    f = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(C, f_dim))
    return IncidenceMatrix([collect(f[i]) for i in 1:length(f)])
 end
