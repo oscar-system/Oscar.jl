@@ -42,9 +42,14 @@ $a$ and $b$, respectively.
 
 ## Types
 
-The abstract supertype for all finitely presented modules over commutative rings in OSCAR is `ModuleFP{T}`.
-For subquotients, OSCAR provides the abstract type `AbstractSubQuo{T} <: ModuleFP{T}` and its concrete
-descendant `SubQuo{T}`. 
+All OSCAR types for finitely presented modules over commutative rings belong to the abstract type `ModuleFP{T}`.
+For subquotients, OSCAR provides the abstract subtype `AbstractSubQuo{T} <: ModuleFP{T}` and its concrete
+descendant `SubQuo{T}`.
+
+!!! note
+    The `SubQuo` type is designed so that it allows for the caching of incoming
+     and outgoing homomorphisms when executing functions. The `tensor_product` function discussed
+    in this section provides an example.
 
 ## Constructors
 
@@ -68,11 +73,12 @@ If `M` is a subquotient with ambient free `R`-module `F`, then
 
 ```@repl oscar
 R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+F = free_module(R, 1)
 A = R[x; y]
 B = R[x^2; y^3; z^4]
-M = SubQuo(A, B)
+M = SubQuo(F, A, B)
 base_ring(M)
-ambient_free_module(M)
+F === ambient_free_module(M)
 gens(M)
 ngens(M)
 gen(M, 2)
@@ -82,12 +88,12 @@ relations(M)
 
 ## Elements of Subqotients
 
-The abstract supertype for all elements of finitely presented modules over commutative rings in OSCAR is `ModuleFPElem{T}`.
-The abstract type for elements of subquotients is `AbstractSubQuoElem{T} <: ModuleFPElem{T}`.
-Its concrete descendant `SubQuoElem{T}` implements an element $m$ of a subquotient
-$M$ over the ring $R$ as a sparse row, that is, as an object of type `SRow{T}`.
+All OSCAR types for elements of finitely presented modules over commutative rings belong to the abstract type `ModuleElemFP{T}`.
+For elements of subquotients, there  are the abstract subtype `AbstractSubQuoElem{T} <: ModuleFPElem{T}`
+and its concrete descendant `SubQuoElem{T}` which implements an element $m$ of a subquotient
+$M$ over a ring $R$ as a sparse row, that is, as an object of type `SRow{T}`.
 This object specifies the coefficients of an $R$-linear combination of the generators of $M$
-which gives $m$. To create an element, enter the coefficients as an object of type `SRow{T}` or `Vector{T}`: 
+giving $m$. To create an element, enter the coefficients as a sparse row or a vector: 
 
 ```@julia
 (M::SubQuo{T})(c::SRow{T}) where T
@@ -103,9 +109,10 @@ Alternatively, directly write the element as an $R$-linear combination of genera
 
 ```@repl oscar
 R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+F = free_module(R, 1)
 A = R[x; y]
 B = R[x^2; y^3; z^4]
-M = SubQuo(A, B)
+M = SubQuo(F, A, B)
 m = M(sparse_row(R, [(1,z),(2,one(R))]))
 n = M([z, one(R)])
 o = z*M[1] + M[2]
@@ -130,17 +137,18 @@ If this is already clear, it may be convenient to omit the test (`check = false`
 ##### Examples
 
 ```@repl oscar
-R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+F = free_module(R, 1)
 A = R[x; y]
 B = R[x^2; y^3; z^4]
-M = SubQuo(A, B);
+M = SubQuo(F, A, B)
 m = z*M[1] + M[2]
 parent(m)
 coefficients(m)
 fm = ambient_representative(m)
 typeof(m)
 typeof(fm)
-parent(fm) == ambient_free_module(M)
+parent(fm) === ambient_free_module(M)
 F = ambient_free_module(M)
 f = x*F[1]
 M(f)
@@ -162,12 +170,22 @@ iszero(m::SubQuoElem)
 
 ## Tests on Subqotients
 
+```@docs
+issubset(M::SubQuo{T}, N::SubQuo{T}) where T
+```
+
+```@docs
+==(M::SubQuo{T}, N::SubQuo{T}) where T
+```
+
+```@docs
+iszero(M::SubQuo)
+```
 
 ## Basic Operations on Subquotients
 
 
 ## Submodules and Quotients
-
 
 
 ## Homomorphisms From Subqotients
@@ -185,20 +203,6 @@ recovered by the following function:
 
 ```@docs
 matrix(a::SubQuoHom)
-```
-
-##### Examples
-
-```@repl oscar
-R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-A = R[x; y]
-B = R[x^2; y^3; z^4]
-M = SubQuo(A, B)
-N = M;
-V = [y^2*N[1], x*N[2]]
-a = hom(M, N, V)
-A = matrix(a)
-a(M[1])
 ```
 
 The domain and codomain of a homomorphism `a`  of type `SubQuoHom` can be
@@ -239,10 +243,3 @@ recovered by entering `domain(a)` and `codomain(a)`, respectively.
 
 
 ## Tensorproduct and Tor
-
-
-
-
-
-
-
