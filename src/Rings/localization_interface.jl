@@ -176,20 +176,6 @@ function parent(f::AbsLocalizedRingElem)
   error("`parent` is not implemented for the type $(typeof(f))")
 end
 
-### default functionality for printing
-#function Base.show(io::IO, f::AbsLocalizedRingElem)
-#  show_via_expressify(io, mi, f)
-#end
-#function Base.show(io::IO, mi::MIME"text/plain", f::AbsLocalizedRingElem)
-#  show_via_expressify(io, mi, f)
-#end
-#function Base.show(io::IO, mi::MIME"text/latex", f::AbsLocalizedRingElem)
-#  show_via_expressify(io, mi, f)
-#end
-#function Base.show(io::IO, mi::MIME"text/html", f::AbsLocalizedRingElem)
-#  show_via_expressify(io, mi, f)
-#end
-
 expressify(f::AbsLocalizedRingElem; context=nothing) = Expr(:call, ://, expressify(numerator(f)), expressify(denominator(f)))
 
 @enable_all_show_via_expressify AbsLocalizedRingElem
