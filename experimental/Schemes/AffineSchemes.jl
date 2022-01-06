@@ -25,7 +25,7 @@ struct EmptyScheme{BaseRingType, BaseRingElemType}<:Scheme{BaseRingType, BaseRin
   end
 end
 
-@Markdown.doc"""
+@Markdown.doc """
     Spec{BRT, BRET, RT, RET, MST} <: Scheme{BRT, BRET}
 
 An affine scheme ``X = Spec ((R/I)[S⁻¹])`` with ``R = k[x₁,…,xₙ]`` a free 
