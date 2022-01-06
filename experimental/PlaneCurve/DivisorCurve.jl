@@ -129,7 +129,7 @@ end
 function AbstractAlgebra.expressify(@nospecialize(a::AffineCurveDivisor); context = nothing)
    prod = Expr(:call, :+)
    for (P, m) in a.divisor
-      ep = sprint(print, P.coord; context = context)::String
+      ep = AbstractAlgebra.expressify(P.coord; context = context)::String
       push!(prod.args, Expr(:call, :*, m, ep))
    end
    return prod
@@ -138,7 +138,7 @@ end
 function AbstractAlgebra.expressify(@nospecialize(a::ProjCurveDivisor); context = nothing)
    prod = Expr(:call, :+)
    for (P, m) in a.divisor
-      ep = sprint(print, P; context = context)::String
+      ep = AbstractAlgebra.expressify(P; context = context)
       push!(prod.args, Expr(:call, :*, m, ep))
    end
    return prod
