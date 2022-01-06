@@ -570,7 +570,7 @@ function noether_normalization(A::MPolyQuo)
  i2 = [R(x) for x = gens(l[2])]
  m = matrix([[coeff(x, y) for y = gens(R)] for x = i1])
  mi = inv(m)
- mi_arr = [collect(matrix([gens(R)])'*map_entries(R, mi))[i] for i in 1:ngens(R)]
+ mi_arr = [collect(matrix([gens(R)])*map_entries(R, mi))[i] for i in 1:ngens(R)]
  h1 = AlgebraHomomorphism(A, A, map(A, i1))
  h2 = AlgebraHomomorphism(A, A, map(A, mi_arr))
  return map(x->h2(A(x)), i2), h1, h2

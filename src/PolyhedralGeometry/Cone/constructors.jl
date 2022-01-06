@@ -103,13 +103,13 @@ julia> rays(C)
 ```
 """
 function cone_from_inequalities(I::Union{SubObjectIterator{<:Halfspace}, Oscar.MatElem, AbstractMatrix}, E::Union{Nothing, SubObjectIterator{<:Hyperplane}, Oscar.MatElem, AbstractMatrix} = nothing; non_redundant::Bool = false)
-    IM = -matrix_for_polymake(I)
-    EM = isnothing(E) || isempty(E) ? Polymake.Matrix{Polymake.Rational}(undef, 0, size(IM, 2)) : matrix_for_polymake(E)
+    IM = -linear_matrix_for_polymake(I)
+    EM = isnothing(E) || isempty(E) ? Polymake.Matrix{Polymake.Rational}(undef, 0, size(IM, 2)) : linear_matrix_for_polymake(E)
 
     if non_redundant
         return Cone(Polymake.polytope.Cone{Polymake.Rational}(FACETS = IM, LINEAR_SPAN = EM))
     else
-        return Cone(Polymake.polytope.Cone{Polymake.Rational}(INEQUALITIES = -matrix_for_polymake(I), EQUATIONS = EM))
+        return Cone(Polymake.polytope.Cone{Polymake.Rational}(INEQUALITIES = IM, EQUATIONS = EM))
     end
 end
 

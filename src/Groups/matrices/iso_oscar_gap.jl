@@ -1,5 +1,3 @@
-import AbstractAlgebra: MatElem
-
 # Basically the same as the usual image function but without a type check since
 # we don't have elem_type(C) in this case
 function image(M::Map{D, C}, a) where {D, C <: GapObj}

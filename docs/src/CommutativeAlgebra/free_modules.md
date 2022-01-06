@@ -130,7 +130,8 @@ by using one of the following constructors:
 hom(F::FreeMod{T}, G::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T
 ```
 
-Vice versa, given a homomorphism `a: F` $\to$ `G`, a matrix `A` as above is recovered by the function below:
+Given a homomorphism of type `FreeModuleHom`, a matrix `A` as above is
+recovered by the following function:
 
 ```@docs
 matrix(a::FreeModuleHom)
@@ -145,10 +146,12 @@ G = free_module(R, 2)
 V = [y*G[1], x*G[1]+y*G[2], z*G[2]]
 a = hom(F, G, V)
 A = matrix(a)
+a(F[2])
 ```
 
-If  `a`  is any homomorphism of type `FreeModuleHom`, its domain and codomain can be
+The domain and codomain of a homomorphism `a`  of type `FreeModuleHom` can be
 recovered by entering `domain(a)` and `codomain(a)`, respectively.
+
 
 ## Operations on Free Modules
 

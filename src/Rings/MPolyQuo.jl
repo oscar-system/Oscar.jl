@@ -1,4 +1,3 @@
-import Base: ==
 export singular_ring, MPolyQuo, MPolyQuoElem, MPolyQuoIdeal
 export quo, base_ring, modulus, gens, ngens, dim, simplify!
 export issubset
