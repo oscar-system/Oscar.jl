@@ -6,7 +6,7 @@
 @doc Markdown.doc"""
     dim(v::AbstractNormalToricVariety)
 
-Computes the dimension of the normal toric variety `v`.
+Return the dimension of the normal toric variety `v`.
 """
 function dim(v::AbstractNormalToricVariety)
     return get_attribute!(v, :dim) do
@@ -19,7 +19,7 @@ export dim
 @doc Markdown.doc"""
     dim_of_torusfactor(v::AbstractNormalToricVariety)
 
-Computes the dimension of the torus factor of the normal toric variety `v`.
+Return the dimension of the torus factor of the normal toric variety `v`.
 """
 function dim_of_torusfactor(v::AbstractNormalToricVariety)
     return get_attribute!(v, :dim_of_torusfactor) do
@@ -37,7 +37,7 @@ export dim_of_torusfactor
 @doc Markdown.doc"""
     euler_characteristic(v::AbstractNormalToricVariety)
 
-Computes the Euler characteristic of the normal toric variety `v`.
+Return the Euler characteristic of the normal toric variety `v`.
 """
 function euler_characteristic(v::AbstractNormalToricVariety)
     return get_attribute!(v, :euler_characteristic) do
@@ -57,6 +57,7 @@ export euler_characteristic
     cox_ring(v::AbstractNormalToricVariety)
 
 Computes the Cox ring of the normal toric variety `v`.
+Note that [CLS11](@cite) refers to this ring as the "total coordinate ring".
 
 # Examples
 ```jdoctest
@@ -83,7 +84,7 @@ export cox_ring
 @doc Markdown.doc"""
     stanley_reisner_ideal(v::AbstractNormalToricVariety)
 
-Computes the Stanley-Reisner ideal of a normal toric variety `v`.
+Return the Stanley-Reisner ideal of a normal toric variety `v`.
 
 # Examples
 ```jdoctest
@@ -108,7 +109,7 @@ export stanley_reisner_ideal
 @doc Markdown.doc"""
     irrelevant_ideal(v::AbstractNormalToricVariety)
 
-Computes the irrelevant ideal of a normal toric variety `v`.
+Return the irrelevant ideal of a normal toric variety `v`.
 
 # Examples
 ```jdoctest
@@ -179,7 +180,12 @@ function toric_ideal(antv::AffineNormalToricVariety)
     end
 end
 export toric_ideal
-toric_ideal(ntv::NormalToricVariety) = toric_ideal(AffineNormalToricVariety(ntv))
+
+function toric_ideal(ntv::NormalToricVariety)
+    isaffine(ntv) || error("Cannot construct affine toric variety from non-affine input")    
+    return get_attribute!(() -> toric_ideal(AffineNormalToricVariety(ntv)), ntv, :toric_ideal)
+end
+export toric_ideal
 
 
 ############################
@@ -190,7 +196,7 @@ toric_ideal(ntv::NormalToricVariety) = toric_ideal(AffineNormalToricVariety(ntv)
 @doc Markdown.doc"""
     character_lattice(v::AbstractNormalToricVariety)
 
-Computes the character lattice of a normal toric variety `v`.
+Return the character lattice of a normal toric variety `v`.
 
 # Examples
 ```jdoctest
@@ -203,7 +209,7 @@ GrpAb: Z^2
 """
 function character_lattice(v::AbstractNormalToricVariety)
     return get_attribute!(v, :character_lattice) do
-        return abelian_group([0 for i in 1:pm_object(v).FAN_DIM])
+        return free_abelian_group(dim(fan(v)))
     end
 end
 export character_lattice
@@ -212,7 +218,7 @@ export character_lattice
 @doc Markdown.doc"""
     torusinvariant_divisor_group(v::AbstractNormalToricVariety)
 
-Computes the torusinvariant divisor group of a normal toric variety `v`.
+Return the torusinvariant divisor group of a normal toric variety `v`.
 
 # Examples
 ```jdoctest
@@ -225,7 +231,7 @@ GrpAb: Z^3
 """
 function torusinvariant_divisor_group(v::AbstractNormalToricVariety)
     return get_attribute!(v, :torusinvariant_divisor_group) do
-        return abelian_group([0 for i in 1:pm_object(v).N_RAYS])
+        return free_abelian_group(nrays(fan(v)))
     end
 end
 export torusinvariant_divisor_group
@@ -234,7 +240,7 @@ export torusinvariant_divisor_group
 @doc Markdown.doc"""
     map_from_character_to_principal_divisors(v::AbstractNormalToricVariety)
 
-Computes the map from the character lattice to the group of principal divisors of a normal toric variety `v`.
+Return the map from the character lattice to the group of principal divisors of a normal toric variety `v`.
 
 # Examples
 ```jdoctest
@@ -264,7 +270,7 @@ export map_from_character_to_principal_divisors
 @doc Markdown.doc"""
     torusinvariant_prime_divisors(v::AbstractNormalToricVariety)
 
-Computes the list of all torus invariant prime divisors in a normal toric variety `v`.
+Return the list of all torus invariant prime divisors in a normal toric variety `v`.
 
 # Examples
 ```jdoctest
@@ -293,7 +299,7 @@ export torusinvariant_prime_divisors
 @doc Markdown.doc"""
     class_group(v::AbstractNormalToricVariety)
 
-Computes the class group of the normal toric variety `v`.
+Return the class group of the normal toric variety `v`.
 
 # Examples
 ```jdoctest
@@ -315,7 +321,7 @@ export class_group
 @doc Markdown.doc"""
     map_from_weil_divisors_to_class_group(v::AbstractNormalToricVariety)
 
-Computes the map from the group of Weil divisors to the class of group of a normal toric variety `v`.
+Return the map from the group of Weil divisors to the class of group of a normal toric variety `v`.
 
 # Examples
 ```jdoctest
@@ -342,7 +348,7 @@ export map_from_weil_divisors_to_class_group
 @doc Markdown.doc"""
     map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v::AbstractNormalToricVariety)
 
-Computes the embedding of the group of Cartier divisors into the group of
+Return the embedding of the group of Cartier divisors into the group of
 torus-invariant Weil divisors of an abstract normal toric variety `v`.
 
 # Examples
@@ -410,8 +416,8 @@ function map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v::Abst
         
         # compute the total map
         mapping_matrix = map_for_scalar_products * map_for_difference_of_elements
-        source = abelian_group(zeros(Int, nrows(mapping_matrix)))
-        target = abelian_group(zeros(Int, ncols(mapping_matrix)))
+        source = free_abelian_group(nrows(mapping_matrix))
+        target = free_abelian_group(ncols(mapping_matrix))
         total_map = hom(source, target, mapping_matrix)
         
         # identify the embedding of the cartier_data_group
@@ -427,7 +433,7 @@ export map_from_cartier_divisor_group_to_torus_invariant_divisor_group
 @doc Markdown.doc"""
     cartier_divisor_group(v::AbstractNormalToricVariety)
 
-Computes the Cartier divisor group of an abstract normal toric variety `v`.
+Return the Cartier divisor group of an abstract normal toric variety `v`.
 
 # Examples
 ```jdoctest
@@ -449,7 +455,7 @@ export cartier_divisor_group
 @doc Markdown.doc"""
     map_from_cartier_divisor_group_to_picard_group(v::AbstractNormalToricVariety)
 
-Computes the map from the Cartier divisors to the Picard group 
+Return the map from the Cartier divisors to the Picard group 
 of an abstract normal toric variety `v`.
 
 # Examples
@@ -490,7 +496,7 @@ export map_from_cartier_divisor_group_to_picard_group
 @doc Markdown.doc"""
     picard_group(v::AbstractNormalToricVariety)
 
-Computes the Picard group of an abstract normal toric variety `v`.
+Return the Picard group of an abstract normal toric variety `v`.
 
 # Examples
 ```jdoctest
@@ -517,7 +523,7 @@ export picard_group
 """
     nef_cone(v::NormalToricVariety)
 
-Computes the nef cone of the normal toric variety `v`.
+Return the nef cone of the normal toric variety `v`.
 
 # Examples
 ```jldoctest
@@ -542,7 +548,7 @@ export nef_cone
 """
     mori_cone(v::NormalToricVariety)
 
-Computes the mori cone of the normal toric variety `v`.
+Return the mori cone of the normal toric variety `v`.
 
 # Examples
 ```jldoctest
@@ -567,7 +573,7 @@ export mori_cone
 @doc Markdown.doc"""
     fan(v::AbstractNormalToricVariety)
 
-Computes the fan of an abstract normal toric variety `v`.
+Return the fan of an abstract normal toric variety `v`.
 
 # Examples
 ```jdoctest
@@ -589,7 +595,7 @@ export fan
 @doc Markdown.doc"""
     cone(v::AffineNormalToricVariety)
 
-Returns the cone of the affine normal toric variety `v`.
+Return the cone of the affine normal toric variety `v`.
 
 # Examples
 ```jdoctest
@@ -613,7 +619,7 @@ export cone
 @doc Markdown.doc"""
     affine_open_covering(v::AbstractNormalToricVariety)
 
-Computes an affine open cover of the normal toric variety `v`, i.e. returns a list of affine toric varieties.
+Compute an affine open cover of the normal toric variety `v`, i.e. returns a list of affine toric varieties.
 
 # Examples
 ```jldoctest

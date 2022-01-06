@@ -172,7 +172,7 @@ function AffineNormalToricVariety(v::NormalToricVariety)
     # set variety
     variety = AffineNormalToricVariety(pm_object(v), Dict())
     
-    # set properties
+    # set properties of variety
     set_attribute!(variety, :isaffine, true)
     set_attribute!(variety, :iscomplete, false)
     set_attribute!(variety, :isprojective, false)
@@ -186,6 +186,47 @@ end
 ######################
 # 3: Special constructors
 ######################
+
+@doc Markdown.doc"""
+    toric_affine_space(d::Int)
+
+Constructs the (toric) affine space of dimension `d`.
+
+# Examples
+```jldoctest
+julia> toric_affine_space(2)
+A normal, affine, non-complete, 2-dimensional toric variety
+```
+"""
+function toric_affine_space(d::Int)
+    # construct the cone of the variety
+    m = zeros(Int, d, d)
+    for i in 1:d
+        m[i,i] = 1
+    end
+    C = positive_hull(m)
+    
+    # construct the variety
+    fan = PolyhedralFan(C)
+    pmntv = Polymake.fulton.NormalToricVariety(Oscar.pm_object(fan))
+    variety = NormalToricVariety(pmntv, Dict())
+    
+    # set known properties
+    set_attribute!(variety, :isaffine, true)
+    set_attribute!(variety, :iscomplete, false)
+    set_attribute!(variety, :isprojective, false)
+    set_attribute!(variety, :isprojective_space, false)
+    
+    # set attributes
+    set_attribute!(variety, :fan, fan)
+    set_attribute!(variety, :dim, d)
+    set_attribute!(variety, :dim_of_torusfactor, 0)
+    
+    # return the variety
+    return variety
+end
+export toric_affine_space
+
 
 @doc Markdown.doc"""
     toric_projective_space(d::Int)
@@ -221,13 +262,13 @@ function toric_projective_space(d::Int)
     set_attribute!(variety, :dim, d)
     set_attribute!(variety, :dim_of_torusfactor, 0)
     set_attribute!(variety, :euler_characteristic, d+1)
-    set_attribute!(variety, :character_lattice, abelian_group([0 for i in 1:d]))
-    set_attribute!(variety, :torusinvariant_divisor_group, abelian_group([0 for i in 1:d+1]))
+    set_attribute!(variety, :character_lattice, free_abelian_group(d))
+    set_attribute!(variety, :torusinvariant_divisor_group, free_abelian_group(d+1))
     set_attribute!(variety, :map_from_cartier_divisor_group_to_torus_invariant_divisor_group, Hecke.identity_map(torusinvariant_divisor_group(variety)))
     set_attribute!(variety, :map_from_cartier_divisor_group_to_picard_group, map_from_weil_divisors_to_class_group(variety))
     set_attribute!(variety, :stanley_reisner_ideal, ideal([prod(Hecke.gens(cox_ring(variety)))]))
     set_attribute!(variety, :irrelevant_ideal, ideal(Hecke.gens(cox_ring(variety))))
-    betti_numbers = [if iseven(i) fmpz(1) else fmpz(0) end for i in 0:2*d]
+    betti_numbers = fill(fmpz(1), d+1)
     set_attribute!(variety, :betti_number, betti_numbers)
     
     # return the variety
@@ -281,7 +322,7 @@ function hirzebruch_surface(r::Int)
     gens = Hecke.gens(cox_ring(variety))
     set_attribute!(variety, :stanley_reisner_ideal, ideal([gens[1]*gens[3],gens[2]*gens[4]]))
     set_attribute!(variety, :irrelevant_ideal, ideal([gens[1]*gens[2], gens[3]*gens[2], gens[1]*gens[4], gens[3]*gens[4]]))
-    set_attribute!(variety, :betti_number, [fmpz(1),fmpz(0),fmpz(2),fmpz(0),fmpz(1)])
+    set_attribute!(variety, :betti_number, [fmpz(1),fmpz(2),fmpz(1)])
     
     # return the result
     return variety
@@ -352,7 +393,7 @@ function del_pezzo(b::Int)
         set_attribute!(variety, :cox_ring, grade(ring,weights)[1])
         set_attribute!(variety, :stanley_reisner_ideal, ideal([gens[1]*gens[3], gens[2]*gens[4]]))
         set_attribute!(variety, :irrelevant_ideal, ideal([gens[3]*gens[4], gens[1]*gens[4], gens[1]*gens[2], gens[3]*gens[2]]))
-        set_attribute!(variety, :betti_number, [fmpz(1),fmpz(0),fmpz(2),fmpz(0),fmpz(1)])
+        set_attribute!(variety, :betti_number, [fmpz(1),fmpz(2),fmpz(1)])
     end
     if b == 2
         set_attribute!(variety, :euler_characteristic, 5)
@@ -365,7 +406,7 @@ function del_pezzo(b::Int)
                                                                                           gens[2]*gens[4], gens[2]*gens[5], gens[3]*gens[5]]))
         set_attribute!(variety, :irrelevant_ideal, ideal([gens[3]*gens[4]*gens[5], gens[1]*gens[4]*gens[5], 
                                                                                  gens[1]*gens[2]*gens[5], gens[1]*gens[2]*gens[3], gens[2]*gens[3]*gens[4]]))
-        set_attribute!(variety, :betti_number, [fmpz(1),fmpz(0),fmpz(3),fmpz(0),fmpz(1)])
+        set_attribute!(variety, :betti_number, [fmpz(1),fmpz(3),fmpz(1)])
     end
     if b == 3
         set_attribute!(variety, :euler_characteristic, 6)
@@ -379,7 +420,7 @@ function del_pezzo(b::Int)
         set_attribute!(variety, :irrelevant_ideal, ideal([gens[3]*gens[4] *gens[5]*gens[6], gens[1]*gens[4] *gens[5]*gens[6],
                                                                                  gens[1]*gens[2] *gens[5]*gens[6], gens[1]*gens[2] *gens[3]*gens[6],
                                                                                  gens[1]*gens[2] *gens[3]*gens[4], gens[2]*gens[3] *gens[4]*gens[5]]))
-        set_attribute!(variety, :betti_number, [fmpz(1),fmpz(0),fmpz(4),fmpz(0),fmpz(1)])
+        set_attribute!(variety, :betti_number, [fmpz(1),fmpz(4),fmpz(1)])
     end
     
     # set further attributes
@@ -402,7 +443,7 @@ export del_pezzo
 @doc Markdown.doc"""
     blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int)
 
-Computes the blowup of the normal toric variety `v` on its i-th minimal torus orbit.
+Return the blowup of the normal toric variety `v` on its i-th minimal torus orbit.
 
 # Examples
 ```jldoctest
@@ -422,7 +463,7 @@ export blowup_on_ith_minimal_torus_orbit
 @doc Markdown.doc"""
     Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety)
 
-Computes the Cartesian/direct product of two normal toric varieties `v` and `w`.
+Return the Cartesian/direct product of two normal toric varieties `v` and `w`.
 
 # Examples
 ```jldoctest

@@ -57,10 +57,10 @@ end
 From this call we can see that the access function's signature needs to satisfy
 certain requirements for the `SubObjectIterator` to work. The arguments are:
 
-    1) `T`: The return type.
-    2) `iter.Obj`: The `Polymake.BigObject` whose property is to be accessed.
-    3) `i`: The index.
-    4) `iter.options`: Additional arguments. Will be explained later.
+1. `T`: The return type.
+2. `iter.Obj`: The `Polymake.BigObject` whose property is to be accessed.
+3. `i`: The index.
+4. `iter.options`: Additional arguments. Will be explained later.
 
 Let us look at an example how we can utilize this interface. The following is
 the implementation to access the rays of a `Cone`:
@@ -98,9 +98,8 @@ _facet_cone(::Type{Cone}, C::Polymake.BigObject, i::Base.Integer) = cone_from_in
 The `SubObjectIterator` can moreover be understood as a mathematical collection
 the sense that one can
 
-    1) ask for specific information encoded in the data or
-    2) use this collection as an argument for construction another mathematical
-    object.
+1. ask for specific information encoded in the data or
+2. use this collection as an argument for construction another mathematical object.
 
 The first case is covered by adding methods to specific internal functions.
 Remember implementation of `rays` discussed above. It makes sense to define
@@ -116,12 +115,12 @@ _vector_matrix(::Any, ::Polymake.BigObject) = throw(ArgumentError("Vector Matrix
 
 Two functionalities are defined this way:
 
-    1) The call of `vector_matrix(iter)` is redirected to
-    `_vector_matrix(Val(iter.Acc), iter.Obj)`. If that method is not defined
-    for the value type of the access function, it falls back to throwing an
-    error.
-    2) The matrix received from step 1 is converted from `Polymake.jl` format
-    to `Oscar` format.
+1. The call of `vector_matrix(iter)` is redirected to
+   `_vector_matrix(Val(iter.Acc), iter.Obj)`. If that method is not defined
+   for the value type of the access function, it falls back to throwing an
+   error.
+2. The matrix received from step 1 is converted from `Polymake.jl` format
+   to `Oscar` format.
 
 So by defining the following we have a fully functional `vector_matrix` method
 in the context of `rays`:
@@ -195,7 +194,7 @@ the corresponding functions as keyword arguments.
 
 A good example how to use this is `faces(C::Cone, face_dim::Int)`. It is not
 enough to know that our `SubObjectIterator` is set in the context of faces of
-cones; `face_dim` will be relevant for any type of access occuring in the future.
+cones; `face_dim` will be relevant for any type of access occurring in the future.
 
 ```julia
 function faces(C::Cone, face_dim::Int)

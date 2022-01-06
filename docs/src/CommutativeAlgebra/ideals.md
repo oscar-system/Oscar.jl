@@ -10,16 +10,13 @@ using Oscar
 Pages = ["ideals.md"]
 ```
 
-# Ideals in Polynomial Rings
-
-In this section, we describe functionality for  handling ideals in multivariate polynomial rings.
+# Ideals in Multivariate Rings
 
 ## Types
 
-!!! note
-    Irrespective of whether the rings are graded or not, all types for ideals in multivariate polynomial rings
-    belong to the abstract type `MPolyIdeal{T}` which, in turn,  is a subtype of `Ideal{T}`.
-
+The OSCAR type for ideals in multivariate polynomial rings -- decorated or not --
+is of parametrized form `MPolyIdeal{T}`, where `T` is the element type of the
+polynomial ring.
 
 ## Constructors
 
@@ -30,8 +27,8 @@ ideal(g::Vector{T}) where {T <: MPolyElem}
 ## Gröbner Bases
 
 Algorithmic means to deal with ideals in multivariate polynomial rings are provided by
-the concept of Gröbner bases and its workhorse, Buchberger's algorithm for computing
-such bases. For both the concept and the algorithm a convenient way of ordering the monomials
+the concept of Gröbner bases and the workhorse of this concept, Buchberger's algorithm for computing
+Gröbner bases. For both the concept and the algorithm a convenient way of ordering the monomials
 appearing in multivariate polynomials and, thus, to distinguish leading terms of such
 polynomials is needed.
 
@@ -326,7 +323,7 @@ saturation_with_index(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 ### Elimination
 
 ```@docs
-eliminate(I::MPolyIdeal{T}, l::Vector{T}) where T <: Union{MPolyElem, MPolyElem_dec}
+eliminate(I::MPolyIdeal{T}, l::Vector{T}) where T <: MPolyElem
 ```
 
 ## Tests on Ideals
@@ -353,13 +350,13 @@ issubset(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 ### Ideal Membership
 
 ```@docs
-ideal_membership(f::T, I::MPolyIdeal{T}) where T <: Union{MPolyElem, MPolyElem_dec}
+ideal_membership(f::T, I::MPolyIdeal{T}) where T
 ```
 
 ### Radical Membership
 
 ```@docs
-radical_membership(f::T, I::MPolyIdeal{T}) where T <: Union{MPolyElem, MPolyElem_dec}
+radical_membership(f::T, I::MPolyIdeal{T}) where T
 ```
 
 ### Primality Test

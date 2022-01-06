@@ -184,7 +184,7 @@ julia> nvertices(C)
 8
 ```
 """
-nvertices(P::Polyhedron) = pm_object(P).N_VERTICES - nrays(P)
+nvertices(P::Polyhedron) = pm_object(P).N_VERTICES::Int - nrays(P)
 
 
 @doc Markdown.doc"""
@@ -251,7 +251,10 @@ julia> nfacets(cross(5))
 32
 ```
 """
-nfacets(P::Polyhedron) = pm_object(P).N_FACETS - (_facet_at_infinity(pm_object(P)) != pm_object(P).N_FACETS + 1)
+function nfacets(P::Polyhedron)
+    n = pm_object(P).N_FACETS::Int
+    return n - (_facet_at_infinity(pm_object(P)) != n + 1)
+end
 
 @doc Markdown.doc"""
     facets(as::Type{T} = AffineHalfspace, P::Polyhedron)
@@ -363,7 +366,7 @@ function _facet_at_infinity(P::Polymake.BigObject)
         fai = Int64(isnothing(i) ? P.N_FACETS + 1 : i)
         Polymake.attach(P, "_facet_at_infinity", fai)
     end
-    return fai
+    return fai::Int64
 end
 
 _is_facet_at_infinity(v::AbstractVector) = v[1] >= 0 && iszero(v[2:end])
@@ -395,7 +398,7 @@ julia> lineality_dim(C)
 1
 ```
 """
-lineality_dim(P::Polyhedron) = pm_object(P).LINEALITY_DIM
+lineality_dim(P::Polyhedron) = pm_object(P).LINEALITY_DIM::Int
 
 
 @doc Markdown.doc"""
@@ -427,7 +430,7 @@ julia> lattice_volume(C)
 8
 ```
 """
-lattice_volume(P::Polyhedron) = (pm_object(P)).LATTICE_VOLUME
+lattice_volume(P::Polyhedron)::fmpz = (pm_object(P)).LATTICE_VOLUME
 
 
 @doc Markdown.doc"""
@@ -460,7 +463,7 @@ julia> dim(P)
 2
 ```
 """
-dim(P::Polyhedron) = Polymake.polytope.dim(pm_object(P))
+dim(P::Polyhedron) = Polymake.polytope.dim(pm_object(P))::Int
 
 
 @doc Markdown.doc"""
@@ -567,7 +570,7 @@ julia> ambient_dim(P)
 3
 ```
 """
-ambient_dim(P::Polyhedron) = Polymake.polytope.ambient_dim(pm_object(P))
+ambient_dim(P::Polyhedron) = Polymake.polytope.ambient_dim(pm_object(P))::Int
 
 @doc Markdown.doc"""
     codim(P::Polyhedron)

@@ -358,7 +358,7 @@ iscomplete(PF::PolyhedralFan) = pm_object(PF).COMPLETE
 @doc Markdown.doc"""
     primitive_collections(PF::PolyhedralFan)
 
-Computes the primitive collections of a polyhedral fan.
+Return the primitive collections of a polyhedral fan.
 
 # Examples
 ```jldoctest
@@ -407,7 +407,7 @@ end
 @doc Markdown.doc"""
     starsubdivision(PF::PolyhedralFan, n::Int)
 
-Computes the star subdivision of a polyhedral fan at its n-th maximal torus orbit.
+Return the star subdivision of a polyhedral fan at its n-th maximal torus orbit.
 
 # Examples
 ```jldoctest
@@ -478,7 +478,7 @@ end
 @doc Markdown.doc"""
     *(PF1::PolyhedralFan, PF2::PolyhedralFan)
 
-Computes the Cartesian/direct product of two polyhedral fans.
+Return the Cartesian/direct product of two polyhedral fans.
 
 # Examples
 ```jldoctest
