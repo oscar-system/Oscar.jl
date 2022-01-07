@@ -224,12 +224,12 @@ function matrix_for_polymake(iter::SubObjectIterator; homogenized=false)
 end
 
 # primitive generators only for ray based iterators
-matrix(::FlintIntegerRing, iter::SubObjectIterator{RayVector{Polymake.Rational}}) =
-    matrix(ZZ, Polymake.common.primitive(matrix_for_polymake(iter)))
-matrix(::FlintIntegerRing, iter::SubObjectIterator{<:Union{RayVector{Polymake.Integer},PointVector{Polymake.Integer}}}) =
-    matrix(ZZ, matrix_for_polymake(iter))
-matrix(::FlintRationalField, iter::SubObjectIterator{<:Union{RayVector,PointVector}}) =
-    matrix(QQ, Matrix{fmpq}(matrix_for_polymake(iter)))
+matrix(R::FlintIntegerRing, iter::SubObjectIterator{RayVector{Polymake.Rational}}) =
+    matrix(R, Polymake.common.primitive(matrix_for_polymake(iter)))
+matrix(R::FlintIntegerRing, iter::SubObjectIterator{<:Union{RayVector{Polymake.Integer},PointVector{Polymake.Integer}}}) =
+    matrix(R, matrix_for_polymake(iter))
+matrix(R::FlintRationalField, iter::SubObjectIterator{<:Union{RayVector,PointVector}}) =
+    matrix(R, Matrix{fmpq}(matrix_for_polymake(iter)))
 
 function linear_matrix_for_polymake(iter::SubObjectIterator)
     if hasmethod(_linear_matrix_for_polymake, Tuple{Val{iter.Acc}})
