@@ -1,3 +1,5 @@
+export secondary_invariants, irreducible_secondary_invariants
+
 ################################################################################
 #
 #  Helpers
@@ -228,7 +230,9 @@ function irreducible_secondary_invariants_modular(RG::InvRing)
   R = Rgraded.R
   K = coefficient_ring(R)
 
-  s_invars = elem_type(R)[ f.f for f in secondary_invariants_modular(RG) ]
+  s_invars = elem_type(R)[ f.f for f in secondary_invariants(RG) ]
+
+  # Sort the secondary invariants by degree
   maxd = maximum(total_degree(f) for f in s_invars)
   s_invars_sorted = Vector{Vector{elem_type(R)}}(undef, maxd)
   for i = 1:maxd
@@ -373,17 +377,24 @@ function secondary_invariants_via_singular(IR::InvRing)
   return s, is
 end
 
+################################################################################
+#
+#  User functions
+#
+################################################################################
+
 @doc Markdown.doc"""
     secondary_invariants(IR::InvRing)
 
-Return a system of secondary invariants for `IR` with respect to the currently
+Return a system of secondary invariants for `IR` as a `Vector` sorted by
+increasing degree. The result is cached, so calling this function again will be
+fast and give the same result.
+Note that the secondary invariants are defined with respect to the currently
 cached system of primary invariants for `IR` (if no system of primary invariants
 for `IR` is cached, compute and cache such a system first).
 
-If a system of secondary invariants is already cached, return the cached system.
-Otherwise, compute and cache such a system first.
-
-NOTE: The secondary invariants are sorted by increasing degree.
+The implemented algorithms are [DK15, Algorithm 3.7.5] for the modular case and
+[DK15, Algorithm 3.7.2] for the non-modular case.
 
 # Examples
 ```jldoctest
@@ -405,9 +416,11 @@ julia> secondary_invariants(IR)
 """
 function secondary_invariants(IR::InvRing)
   if !isdefined(IR, :secondary)
-    s, is = secondary_invariants_via_singular(IR)
-    IR.secondary = s
-    IR.irreducible_secondary = is
+    if ismodular(IR)
+      IR.secondary = secondary_invariants_modular(IR)
+    else
+      IR.secondary, IR.irreducible_secondary = secondary_invariants_nonmodular(IR)
+    end
   end
   return copy(IR.secondary)
 end
@@ -415,15 +428,17 @@ end
 @doc Markdown.doc"""
     irreducible_secondary_invariants(IR::InvRing)
 
-Return a system of irreducible secondary invariants for `IR` with respect to the
-currently cached system of primary invariants for `IR` (if no system of primary
-invariants for `IR` is cached, compute and cache such a system first).
+Return a system of irreducible secondary invariants for `IR` as a `Vector` sorted
+by increasing degree. The result is cached, so calling this function again will
+be fast and give the same result.
+Here, a secondary invariant is called irreducible, if it cannot be written as a
+polynomial expression in the primary invariants and the other secondary
+invariants.
 
-If a system of irreducible secondary invariants is already cached, return the
-cached system.
-Otherwise, compute and cache such a system first.
-
-NOTE: The irreducible secondary invariants are sorted by increasing degree.
+Note that the secondary invariants and hence the irreducible secondary invariants
+are defined with respect to the currently cached system of primary invariants for
+`IR` (if no system of primary invariants for `IR` is cached, compute and cache
+such a system first).
 
 # Examples
 ```jldoctest
@@ -437,34 +452,40 @@ julia> secondary_invariants(IR)
 12-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
  1
  x[1]*x[3] - x[1]*x[5] - x[2]*x[3] + x[2]*x[4]
- x[1]^2 - x[1]*x[2] + x[2]^2
- x[3]^2*x[5] + x[3]*x[4]^2 + x[4]*x[5]^2
- x[3]^3 + x[4]^3 + x[5]^3
- x[1]*x[3]*x[4] - x[1]*x[3]*x[5] - x[2]*x[3]*x[4] + x[2]*x[4]*x[5]
- x[1]*x[3]^2 - x[1]*x[4]^2 + x[2]*x[4]^2 - x[2]*x[5]^2
- x[1]^2*x[3] + x[1]^2*x[5] - 2*x[1]*x[2]*x[3] + x[2]^2*x[3] + x[2]^2*x[4]
+ x[3]^2 + x[4]^2 + x[5]^2
+ x[1]^3 - 3*x[1]*x[2]^2 + x[2]^3
  x[1]^2*x[3] - x[1]*x[2]*x[3] - x[1]*x[2]*x[4] + x[1]*x[2]*x[5] + x[2]^2*x[4]
- x[1]^3*x[3] - x[1]^3*x[5] - 2*x[1]^2*x[2]*x[3] + x[1]^2*x[2]*x[4] + x[1]^2*x[2]*x[5] + 2*x[1]*x[2]^2*x[3] - x[1]*x[2]^2*x[4] - x[1]*x[2]^2*x[5] - x[2]^3*x[3] + x[2]^3*x[4]
- x[1]^4 - 2*x[1]^3*x[2] + 3*x[1]^2*x[2]^2 - 2*x[1]*x[2]^3 + x[2]^4
- x[1]^5*x[3] - x[1]^5*x[5] - 3*x[1]^4*x[2]*x[3] + x[1]^4*x[2]*x[4] + 2*x[1]^4*x[2]*x[5] + 5*x[1]^3*x[2]^2*x[3] - 2*x[1]^3*x[2]^2*x[4] - 3*x[1]^3*x[2]^2*x[5] - 5*x[1]^2*x[2]^3*x[3] + 3*x[1]^2*x[2]^3*x[4] + 2*x[1]^2*x[2]^3*x[5] + 3*x[1]*x[2]^4*x[3] - 2*x[1]*x[2]^4*x[4] - x[1]*x[2]^4*x[5] - x[2]^5*x[3] + x[2]^5*x[4]
+ x[1]*x[3]^2 - x[1]*x[5]^2 - x[2]*x[3]^2 + x[2]*x[4]^2
+ x[1]^2*x[3] + x[1]^2*x[4] - 2*x[1]*x[2]*x[4] + x[2]^2*x[4] + x[2]^2*x[5]
+ x[1]*x[3]*x[4] - x[1]*x[3]*x[5] - x[2]*x[3]*x[4] + x[2]*x[4]*x[5]
+ x[3]^2*x[5] + x[3]*x[4]^2 + x[4]*x[5]^2
+ x[1]*x[3]^3 - x[1]*x[3]^2*x[5] + x[1]*x[3]*x[4]^2 + x[1]*x[3]*x[5]^2 - x[1]*x[4]^2*x[5] - x[1]*x[5]^3 - x[2]*x[3]^3 + x[2]*x[3]^2*x[4] - x[2]*x[3]*x[4]^2 - x[2]*x[3]*x[5]^2 + x[2]*x[4]^3 + x[2]*x[4]*x[5]^2
+ x[3]^4 + 2*x[3]^2*x[4]^2 + 2*x[3]^2*x[5]^2 + x[4]^4 + 2*x[4]^2*x[5]^2 + x[5]^4
+ x[1]*x[3]^5 - x[1]*x[3]^4*x[5] + 2*x[1]*x[3]^3*x[4]^2 + 2*x[1]*x[3]^3*x[5]^2 - 2*x[1]*x[3]^2*x[4]^2*x[5] - 2*x[1]*x[3]^2*x[5]^3 + x[1]*x[3]*x[4]^4 + 2*x[1]*x[3]*x[4]^2*x[5]^2 + x[1]*x[3]*x[5]^4 - x[1]*x[4]^4*x[5] - 2*x[1]*x[4]^2*x[5]^3 - x[1]*x[5]^5 - x[2]*x[3]^5 + x[2]*x[3]^4*x[4] - 2*x[2]*x[3]^3*x[4]^2 - 2*x[2]*x[3]^3*x[5]^2 + 2*x[2]*x[3]^2*x[4]^3 + 2*x[2]*x[3]^2*x[4]*x[5]^2 - x[2]*x[3]*x[4]^4 - 2*x[2]*x[3]*x[4]^2*x[5]^2 - x[2]*x[3]*x[5]^4 + x[2]*x[4]^5 + 2*x[2]*x[4]^3*x[5]^2 + x[2]*x[4]*x[5]^4
 
 julia> irreducible_secondary_invariants(IR)
 8-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
  x[1]*x[3] - x[1]*x[5] - x[2]*x[3] + x[2]*x[4]
- x[1]^2 - x[1]*x[2] + x[2]^2
- x[3]^2*x[5] + x[3]*x[4]^2 + x[4]*x[5]^2
- x[3]^3 + x[4]^3 + x[5]^3
- x[1]*x[3]*x[4] - x[1]*x[3]*x[5] - x[2]*x[3]*x[4] + x[2]*x[4]*x[5]
- x[1]*x[3]^2 - x[1]*x[4]^2 + x[2]*x[4]^2 - x[2]*x[5]^2
- x[1]^2*x[3] + x[1]^2*x[5] - 2*x[1]*x[2]*x[3] + x[2]^2*x[3] + x[2]^2*x[4]
+ x[3]^2 + x[4]^2 + x[5]^2
+ x[1]^3 - 3*x[1]*x[2]^2 + x[2]^3
  x[1]^2*x[3] - x[1]*x[2]*x[3] - x[1]*x[2]*x[4] + x[1]*x[2]*x[5] + x[2]^2*x[4]
+ x[1]*x[3]^2 - x[1]*x[5]^2 - x[2]*x[3]^2 + x[2]*x[4]^2
+ x[1]^2*x[3] + x[1]^2*x[4] - 2*x[1]*x[2]*x[4] + x[2]^2*x[4] + x[2]^2*x[5]
+ x[1]*x[3]*x[4] - x[1]*x[3]*x[5] - x[2]*x[3]*x[4] + x[2]*x[4]*x[5]
+ x[3]^2*x[5] + x[3]*x[4]^2 + x[4]*x[5]^2
 ```
 """
 function irreducible_secondary_invariants(IR::InvRing)
   if !isdefined(IR, :irreducible_secondary)
-    s, is = secondary_invariants_via_singular(IR)
-    IR.secondary = s
-    IR.irreducible_secondary = is
+    # If we are not in the modular case and the irreducible secondary invariants
+    # are not computed, there shouldn't be any secondary invariants cached.
+    # But if the user somehow managed to get them in here, I think we should not
+    # overwrite them.
+    if ismodular(IR) || isdefined(IR, :secondary)
+      IR.irreducible_secondary = irreducible_secondary_invariants_modular(IR)
+    else
+      IR.secondary, IR.irreducible_secondary = secondary_invariants_nonmodular(IR)
+    end
   end
   return copy(IR.irreducible_secondary)
 end

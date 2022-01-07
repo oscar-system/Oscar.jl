@@ -1,4 +1,4 @@
-export invariant_ring, secondary_invariants, irreducible_secondary_invariants, fundamental_invariants, affine_algebra
+export invariant_ring, fundamental_invariants, affine_algebra
 export coefficient_ring, polynomial_ring, action, group
 export ismodular
 export reynolds_operator, molien_series
