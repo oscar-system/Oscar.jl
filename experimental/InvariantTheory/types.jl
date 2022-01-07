@@ -32,7 +32,6 @@ mutable struct InvRing{FldT, GrpT, PolyElemT, PolyRingT, ActionT, SingularAction
   # (possibly removed at some point)
   reynolds_singular::Singular.smatrix
   molien_singular::Singular.smatrix
-  primary_singular # the type is different depending on the characteristic...
 
   function InvRing(K::FldT, G::GrpT, action::Vector{ActionT}) where {FldT <: Field, GrpT <: AbstractAlgebra.Group, ActionT}
     n = degree(G)

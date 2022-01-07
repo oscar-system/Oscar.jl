@@ -357,33 +357,6 @@ end
 
 ################################################################################
 #
-#  Singular
-#
-################################################################################
-
-function secondary_invariants_via_singular(IR::InvRing)
-  rey, mol = reynolds_molien_via_singular(IR)
-  primary_invariants_via_successive_algo(IR)
-  P = IR.primary_singular
-  if iszero(characteristic(coefficient_ring(IR)))
-    S, IS = Singular.LibFinvar.secondary_char0(P[1], rey, mol)
-  else
-    S, IS = Singular.LibFinvar.secondary_charp(P...)
-  end
-  R = polynomial_ring(IR)
-  s = Vector{elem_type(R)}()
-  for i = 1:ncols(S)
-    push!(s, R(S[1, i]))
-  end
-  is = Vector{elem_type(R)}()
-  for i = 1:ncols(IS)
-    push!(is, R(IS[1, i]))
-  end
-  return s, is
-end
-
-################################################################################
-#
 #  User functions
 #
 ################################################################################

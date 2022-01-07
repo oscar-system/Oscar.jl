@@ -307,11 +307,9 @@ function primary_invariants_via_successive_algo(IR::InvRing)
 end
 
 function _primary_invariants_via_successive_algo(IR::InvRing)
-  IR.primary_singular = Singular.LibFinvar.primary_invariants(_action_singular(IR)...)
-  if ismodular(IR)
-    P = IR.primary_singular
-  else
-    P = IR.primary_singular[1]
+  P = Singular.LibFinvar.primary_invariants(_action_singular(IR)...)
+  if !ismodular(IR)
+    P = P[1]
   end
   R = polynomial_ring(IR)
   p = Vector{elem_type(R)}()
