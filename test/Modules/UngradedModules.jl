@@ -60,6 +60,18 @@ end
   @test iswelldefined(i)
   @test isinjective(i)
   @test SubQuo(F2, A2, B1) == P
+
+  #Test that no obvious zeros are in the generator set
+  AM = R[x;]
+  BM = R[x^2; y^3; z^4]
+  M = SubQuo(F, AM, BM)
+  AN = R[y;]
+  BN = R[x^2; y^3; z^4]
+  N = SubQuo(F, AN, BN)
+  P,_ = intersect(M, N)
+  for g in gens(P)
+	@test !iszero(ambient_representative(g))
+  end
 end
 
 @testset "Presentation" begin
