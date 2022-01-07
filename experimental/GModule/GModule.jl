@@ -2,7 +2,7 @@ module GModuleFromGap
 using Oscar
 using Hecke
 
-import Oscar:gmodule
+import Oscar:gmodule, GAPWrap
 
 import AbstractAlgebra: Group, Module
 import Base: parent
@@ -90,6 +90,26 @@ function irreducible_modules(::Type{AnticNumberField}, G::Oscar.GAPGroup)
     else
       push!(Z, a)
     end
+  end
+  return Z
+end
+
+function irreducible_modules(::FlintRationalField, G::Oscar.GAPGroup)
+  z = irreducible_modules(G)
+  Z = GModule[]
+  for m in z
+    a = gmodule(CyclotomicField, m)
+    push!(Z, gmodule(QQ, a))
+  end
+  return Z
+end
+
+function irreducible_modules(::FlintIntegerRing, G::Oscar.GAPGroup)
+  z = irreducible_modules(G)
+  Z = GModule[]
+  for m in z
+    a = gmodule(CyclotomicField, m)
+    push!(Z, gmodule(ZZ, gmodule(QQ, a)))
   end
   return Z
 end
@@ -367,6 +387,12 @@ function Oscar.gmodule(G::Oscar.GAPGroup, v::Vector{<:MatElem})
   @assert all(x->size(v[1]) == size(x), v)
   F = free_module(R, nrows(v[1]))
   return gmodule(G, [hom(F, F, x) for x = v])
+end
+
+
+function Oscar.gmodule(::Type{GrpAbFinGen}, C::GModule{T, Generic.FreeModule{fmpz}}) where {T <: Oscar.GAPGroup}
+  A = free_abelian_group(rank(C.M))
+  return Oscar.gmodule(Group(C), [hom(A, A, mat(x)) for x = C.ac])
 end
 
 #to bypass the vec(collect(M)) which copies twice
