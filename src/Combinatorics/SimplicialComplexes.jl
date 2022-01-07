@@ -3,12 +3,13 @@ import Oscar: Polymake, pm_object
 
 export
     SimplicialComplex,
-    betti_numbers,
-    dim,
-    euler_characteristic,
     facets,
     f_vector,
     h_vector,
+    dim,
+    betti_numbers,
+    euler_characteristic,
+    homology,
     minimal_nonfaces,
     nvertices,
     vertexindices,
@@ -192,6 +193,30 @@ julia> euler_characteristic(complex_projective_plane())
 ```
 """
 euler_characteristic(K::SimplicialComplex) = pm_object(K).EULER_CHARACTERISTIC::Int
+
+@doc Markdown.doc"""
+    homology(K::SimplicialComplex, i::Int)
+
+Return `i`-th reduced integral homology group of `K`.
+
+# Example
+```jldoctest
+julia> [ homology(real_projective_plane(), i) for i in [0,1,2] ]
+3-element Vector{GrpAbFinGen}:
+ GrpAb: Z/1
+ GrpAb: Z/2
+ GrpAb: Z/1
+```
+"""
+function homology(K::SimplicialComplex, i::Int)
+    H_i = pm_object(K).HOMOLOGY[i+1] # index shift
+    vec = ones(Int, Polymake.betti_number(H_i))
+    torsion_i = Polymake.torsion(H_i)
+    for (p,k) in torsion_i
+        append!(vec, fill(p,k))
+    end
+    return abelian_group(vec)
+end
 
 @doc Markdown.doc"""
     minimal_nonfaces(K::SimplicialComplex)
