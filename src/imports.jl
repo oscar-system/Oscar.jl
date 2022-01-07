@@ -15,20 +15,26 @@ import Singular
 
 # import stuff from Base for which we want to provide extra methods
 import Base:
+    +,
     *,
     ^,
     ==,
     convert,
+    eltype,
     exponent,
     getindex,
     intersect,
+    inv,
     isfinite,
+    issubset,
+    iterate,
     length,
     mod,
     one,
     parent,
     print,
     show,
+    sum,
     values,
     Vector,
     zero

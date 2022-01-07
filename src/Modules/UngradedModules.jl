@@ -158,7 +158,7 @@ Return  `true` if `F` and `G` are equal, `false` otherwise.
 
 Here, `F` and `G` are equal iff their base rings, ranks, and names for printing the basis elements are equal.
 """
-function Base.:(==)(F::FreeMod, G::FreeMod)
+function (==)(F::FreeMod, G::FreeMod)
   # two free modules are equal if the rank and the ring are
   # TODO it this enough or e.g. stored morphisms also be considered?
   return F.R == G.R && rank(F) == rank(G) && F.S == G.S
@@ -397,7 +397,7 @@ function basis(F::AbstractFreeMod, i::Int)
 end
 gen(F::AbstractFreeMod, i::Int) = basis(F,i)
 
-function Base.getindex(F::AbstractFreeMod, i::Int)
+function getindex(F::AbstractFreeMod, i::Int)
   i == 0 && return zero(F)
   return gen(F, i)
 end
@@ -427,7 +427,7 @@ function -(a::AbstractFreeModElem, b::AbstractFreeModElem)
 end
 
 # Equality of free module elements
-function Base.:(==)(a::AbstractFreeModElem, b::AbstractFreeModElem) 
+function (==)(a::AbstractFreeModElem, b::AbstractFreeModElem) 
   if parent(a) !== parent(b)
     return false
   end
@@ -948,7 +948,7 @@ function SubModuleOfFreeModule(A::MatElem{L}) where {L}
   return SubModuleOfFreeModule{L}(F, A)
 end
 
-function Base.getindex(M::SubModuleOfFreeModule, i::Int)
+function getindex(M::SubModuleOfFreeModule, i::Int)
   return oscar_generators(M.gens)[i]
 end
 
@@ -1062,7 +1062,7 @@ end
 
 Compute $M+N$.
 """
-function Base.sum(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
+function sum(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
   @assert M.F === N.F
   return SubModuleOfFreeModule(M.F, vcat(collect(M.gens), collect(N.gens)))
 end
@@ -1073,7 +1073,7 @@ end
 Check if `M` is a subset of `N`. For this their embedding free modules must be 
 identical (`===`).
 """
-function Base.issubset(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
+function issubset(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
   if M.F !== N.F
     return false
   end
@@ -1087,7 +1087,7 @@ end
 Check for equality. For two submodules of free modules to be equal their embedding 
 free modules must be identical (`===`) and the generators must generate equal submodules.
 """
-function Base.:(==)(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
+function (==)(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
   if M.F !== N.F
     return false
   end
@@ -1509,7 +1509,7 @@ julia> issubset(M, N)
 true
 ```
 """
-function Base.issubset(M::SubQuo{T}, N::SubQuo{T}) where T
+function issubset(M::SubQuo{T}, N::SubQuo{T}) where T
   if !isdefined(M, :quo) 
     if !isdefined(N, :quo)
       return issubset(M.sub, N.sub)
@@ -1588,7 +1588,7 @@ julia> M == N
 false
 ```
 """
-function Base.:(==)(M::SubQuo{T}, N::SubQuo{T}) where {T} # TODO replace implementation by two inclusion checks?
+function (==)(M::SubQuo{T}, N::SubQuo{T}) where {T} # TODO replace implementation by two inclusion checks?
   if !isdefined(M, :quo) 
     if !isdefined(N, :quo)
       return M.sub == N.sub
@@ -1609,7 +1609,7 @@ end
 
 Compute $M+N$ along with the inclusion morphisms $M \to M+N$ and $N \to M+N$.
 """
-function Base.sum(M::SubQuo{T},N::SubQuo{T}) where T
+function sum(M::SubQuo{T},N::SubQuo{T}) where T
   @assert ambient_free_module(M) === ambient_free_module(N)
   #TODO use SubModuleOfFreeModule instead of matrices
   M_quo = isdefined(M, :quo) ? M.quo : SubModuleOfFreeModule(ambient_free_module(M), Vector{FreeModElem}())
@@ -1629,20 +1629,20 @@ function Base.sum(M::SubQuo{T},N::SubQuo{T}) where T
 end
 
 @doc Markdown.doc"""
-    Base.:+(M::SubQuo{T},N::SubQuo{T}) where T
+    +(M::SubQuo{T},N::SubQuo{T}) where T
 
 Compute $M+N$.
 """
-function Base.:+(M::SubQuo{T},N::SubQuo{T}) where T
+function +(M::SubQuo{T},N::SubQuo{T}) where T
   return sum(M,N)[1]
 end
 
 @doc Markdown.doc"""
-    Base.:intersect(M::SubQuo{T}, N::SubQuo{T}) where T
+    intersect(M::SubQuo{T}, N::SubQuo{T}) where T
 
 Compute the intersection $M \cap N$ along with the inclusion morphisms $M \cap N \to M$ and $M \cap N \to N$.
 """
-function Base.:intersect(M::SubQuo{T}, N::SubQuo{T}) where T
+function intersect(M::SubQuo{T}, N::SubQuo{T}) where T
   #TODO allow task as argument?
   @assert ambient_free_module(M) === ambient_free_module(N)
   M_quo = isdefined(M, :quo) ? M.quo : Oscar.SubModuleOfFreeModule(ambient_free_module(M), Vector{FreeModElem}())
@@ -1728,7 +1728,7 @@ struct SubQuoElem{T} <: AbstractSubQuoElem{T} # this needs to be redone TODO
       r = new{R}(v, zero(SQ.F), SQ)
       return r
     end
-    r = new{R}(v, Base.sum([v[i]*SQ.sub[i] for i=1:ngens(SQ.sub)]), SQ)
+    r = new{R}(v, sum([v[i]*SQ.sub[i] for i=1:ngens(SQ.sub)]), SQ)
     return r
   end
 
@@ -2012,7 +2012,7 @@ end
 *(a::Int, b::SubQuoElem) = SubQuoElem(a*coeffs(b), b.parent)
 *(a::Integer, b::SubQuoElem) = SubQuoElem(a*coeffs(b), b.parent)
 *(a::fmpq, b::SubQuoElem) = SubQuoElem(a*coeffs(b), b.parent)
-function Base.:(==)(a::SubQuoElem, b::SubQuoElem) 
+function (==)(a::SubQuoElem, b::SubQuoElem) 
   if parent(a) !== parent(b)
     return false
   end
@@ -2284,7 +2284,7 @@ Return the zero element of `M`.
 zero(M::SubQuo) = SubQuoElem(zero(M.F), M)
 
 @doc Markdown.doc"""
-    Base.iszero(M::SubQuo)
+    iszero(M::SubQuo)
 
 Return `true` if `M` is the zero module, `false` otherwise.
 
@@ -2318,28 +2318,28 @@ julia> iszero(M)
 false
 ```
 """
-function Base.iszero(M::SubQuo)
+function iszero(M::SubQuo)
   return all(iszero, gens(M))
 end
 
 @doc Markdown.doc"""
-    Base.getindex(F::SubQuo, i::Int)
+    getindex(F::SubQuo, i::Int)
 
 Return the `i`th generator of `F`.
 """
-function Base.getindex(F::SubQuo, i::Int)
+function getindex(F::SubQuo, i::Int)
   i == 0 && return zero(F)
   return gen(F, i)
 end
 
-function Base.iterate(F::ModuleGens, i::Int = 1)
+function iterate(F::ModuleGens, i::Int = 1)
   if i>length(F)
     return nothing
   else
     return F[i], i+1
   end
 end
-Base.eltype(::ModuleGens{T}) where {T} = FreeModElem{T} 
+eltype(::ModuleGens{T}) where {T} = FreeModElem{T} 
 
 #??? A scalar product....
 function *(a::FreeModElem, b::Vector{FreeModElem})
@@ -2666,7 +2666,7 @@ function iswelldefined(H::ModuleMap)
   m = rank(C.F)
   ImH = map(x -> H(x), gens(M))
   for i=1:n
-    if !iszero(Base.sum([C[i][j]*ImH[j] for j=1:m]))
+    if !iszero(sum([C[i][j]*ImH[j] for j=1:m]))
       return false
     end
   end
@@ -2809,7 +2809,7 @@ function hom_prod_prod(G::ModuleFP, H::ModuleFP, A::Matrix{<:ModuleMap})
   @assert length(tG) == size(A, 1) && length(tH) == size(A, 2)
   @assert all(ij -> domain(A[ij[1],ij[2]]) === tG[ij[1]] && codomain(A[ij[1],ij[2]]) === tH[ij[2]], Base.Iterators.ProductIterator((1:size(A, 1), 1:size(A, 2))))
   #need the canonical maps..., maybe store them as well?
-  return hom(G,H,Vector{ModuleFPElem}([Base.sum([Hecke.canonical_injection(H,j)(Base.sum([A[i,j](Hecke.canonical_projection(G,i)(g)) for i=1:length(tG)])) for j=1:length(tH)]) for g in gens(G)]))
+  return hom(G,H,Vector{ModuleFPElem}([sum([Hecke.canonical_injection(H,j)(sum([A[i,j](Hecke.canonical_projection(G,i)(g)) for i=1:length(tG)])) for j=1:length(tH)]) for g in gens(G)]))
 end
 # hom(prod -> X), hom(x -> prod)
 # if too much time: improve the hom(A, B) in case of A and/or B are products - or maybe not...
@@ -3304,11 +3304,11 @@ function restrict_domain(H::SubQuoHom, M::SubQuo)
 end
 
 @doc Markdown.doc"""
-    Base.inv(H::ModuleMap)
+    inv(H::ModuleMap)
 
 Compute $H^{-1}$. `H` must be bijective.
 """
-function Base.inv(H::ModuleMap)
+function inv(H::ModuleMap)
   if isdefined(H, :inverse_isomorphism)
     return H.inverse_isomorphism
   end
@@ -3357,7 +3357,7 @@ Additionally, return a vector containing
 """
 function direct_product(F::FreeMod{T}...; task::Symbol = :prod) where {T}
   R = base_ring(F[1])
-  G = FreeMod(R, Base.sum([rank(f) for f = F]))
+  G = FreeMod(R, sum([rank(f) for f = F]))
   G.S = []
   for i = 1:length(F)
     s = "("
@@ -4013,9 +4013,9 @@ function module_in_complex(c::Hecke.ChainComplex, i::Int)
   return obj(c,length(c)-i)
 end
 
-Base.getindex(c::Hecke.ChainComplex, i::Int) = module_in_complex(c,i)
+getindex(c::Hecke.ChainComplex, i::Int) = module_in_complex(c,i)
 
-function Base.getindex(r::Hecke.SRow, u::UnitRange)
+function getindex(r::Hecke.SRow, u::UnitRange)
   R = base_ring(r)
   s = sparse_row(R)
   shift = 1-first(u)
@@ -4028,7 +4028,7 @@ function Base.getindex(r::Hecke.SRow, u::UnitRange)
   return s
 end
 
-function Base.getindex(r::Hecke.SRow, R::AbstractAlgebra.Ring, u::UnitRange)
+function getindex(r::Hecke.SRow, R::AbstractAlgebra.Ring, u::UnitRange)
   s = sparse_row(R)
   shift = 1-first(u)
   for (p,v) = r
@@ -4040,7 +4040,7 @@ function Base.getindex(r::Hecke.SRow, R::AbstractAlgebra.Ring, u::UnitRange)
   return s
 end
 
-function Base.getindex(a::Hecke.SRow, b::AbstractVector{Int})
+function getindex(a::Hecke.SRow, b::AbstractVector{Int})
   if length(a.pos) == 0
     return a
   end
