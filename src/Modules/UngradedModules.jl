@@ -610,14 +610,11 @@ end
 
 # TODO remove output saying defined on the Singular side?
 function show(io::IO, F::ModuleGens)
-  println(io, "Array of length ", length(F))
+  print(io, "Array of length ", length(F))
   for i=1:length(F)
     if isassigned(F.O, i)
-      println(io, i, " -> ", F.O[i])
+      print(io, "\n", i, " -> ", F.O[i])
     end
-  end
-  if isdefined(F, :S)
-    println(io, "defined on the Singular side")
   end
 end
 
@@ -1011,17 +1008,14 @@ end
 
 function show(io::IO, M::SubModuleOfFreeModule)
   if ngens(M) == 1
-    println(io, "Submodule with ", ngens(M), " generator")
+    print(io, "Submodule with ", ngens(M), " generator")
   else
-    println(io, "Submodule with ", ngens(M), " generators")
+    print(io, "Submodule with ", ngens(M), " generators")
   end
   for i=1:ngens(M)
     if isassigned(M.gens.O, i)
-      println(io, i, " -> ", M[i])
+      print(io, "\n", i, " -> ", M[i])
     end
-  end
-  if isdefined(M.gens, :S)
-    println(io, "defined on the Singular side")
   end
 end
 
@@ -1380,11 +1374,11 @@ function show(io::IO, SQ::SubQuo)
   @show_special(io, SQ)
 
   if isdefined(SQ, :quo)
-    println(io, "Subquotient of ", SQ.sub, "by ", SQ.quo)
+    print(io, "Subquotient of ", SQ.sub, "\nby ", SQ.quo)
   else
     #println(io, "Subquotient by ", SQ.sub)
-    println(io, SQ.sub)
-    println(io, "represented as subquotient with no relations.")
+    print(io, SQ.sub, "\n")
+    print(io, "represented as subquotient with no relations.")
   end
 end
 
