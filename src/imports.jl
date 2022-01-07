@@ -137,7 +137,15 @@ for i in names(Hecke)
 end
 
 import Hecke:
+    _two_adic_normal_forms,
+    _block_indices_vals,
+    _jordan_2_adic,
+    _jordan_odd_adic,
+    _min_val,
+    _normalize,
     _rational_canonical_form_setup,
+    _solve_X_ker,
+    _val,
     @req,
     abelian_group,
     automorphism_group,
@@ -155,7 +163,9 @@ import Hecke:
     FqNmodFiniteField,
     free_abelian_group,
     gram_matrix,
+    gram_matrix_quadratic,
     haspreimage,
+    hensel_qf,
     hom,
     id_hom,
     image,
@@ -197,5 +207,8 @@ import Hecke:
     small_group,
     sub,
     subgroups,
+    TorQuadMod,
+    TorQuadModElem,
+    TorQuadModMor,
     tr,
     trace
