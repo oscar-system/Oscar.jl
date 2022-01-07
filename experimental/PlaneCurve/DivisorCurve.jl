@@ -124,30 +124,21 @@ function ProjCurveDivisor(C::ProjPlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}
 end
 
 ################################################################################
-# To get a nice output for the divisors. The needs_parentheses is needed since
-# expressify wants to know if parentheses are needed.
-
-function AbstractAlgebra.needs_parentheses(A::Vector{T}) where T <: RingElem
-    return false
-end
+# To get a nice output for the divisors.
 
 function AbstractAlgebra.expressify(@nospecialize(a::AffineCurveDivisor); context = nothing)
    prod = Expr(:call, :+)
    for (P, m) in a.divisor
-      ep = AbstractAlgebra.expressify(P.coord, context = context)
+      ep = AbstractAlgebra.expressify(P.coord; context = context)::String
       push!(prod.args, Expr(:call, :*, m, ep))
    end
    return prod
 end
 
-function AbstractAlgebra.needs_parentheses(A::Oscar.Geometry.ProjSpcElem{T}) where T <: RingElem
-    return false
-end
-
 function AbstractAlgebra.expressify(@nospecialize(a::ProjCurveDivisor); context = nothing)
    prod = Expr(:call, :+)
    for (P, m) in a.divisor
-      ep = AbstractAlgebra.expressify(P, context = context)
+      ep = AbstractAlgebra.expressify(P; context = context)
       push!(prod.args, Expr(:call, :*, m, ep))
    end
    return prod
