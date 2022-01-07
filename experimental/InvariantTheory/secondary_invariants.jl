@@ -4,103 +4,124 @@
 #
 ################################################################################
 
-# Computes all power products of elements of polys of total degree exactly d.
+# Add a base element to the cache.
+function add_base_element!(C::PowerProductCache{S, T}, f::T, remember_exponents::Bool = true) where {S, T}
+  @assert !iszero(f)
+
+  push!(C.base, f)
+  if remember_exponents
+    for (g, exps) in C.exponent_vectors
+      push!(exps, 0)
+    end
+  end
+  for d in sort!(collect(keys(C.power_products)))
+    extend!(C, d, length(C.base), remember_exponents)
+  end
+  return nothing
+end
+
+# Extend the already computed power products by powers of C.base[i].
+# Only used internally.
+function extend!(C::PowerProductCache{S, T}, d::Int, i::Int, remember_exponents::Bool = true) where {S, T <: MPolyElem}
+  @assert d >= 0
+  @assert 1 <= i && i <= length(C.base)
+
+  if d <= 0
+    return nothing
+  end
+
+  exps = zeros(Int, length(C.base))
+
+  di = total_degree(C.base[i])
+
+  # Larger degree, ignore
+  if di > d
+    return nothing
+  end
+
+  # Exactly matching degree
+  if di == d
+    push!(C.power_products[d], C.base[i])
+    if remember_exponents
+      exps[i] = 1
+      C.exponent_vectors[C.base[i]] = copy(exps)
+      exps[i] = 0
+    end
+    C.last_factor[C.base[i]] = i
+    return nothing
+  end
+
+  # Build all products with elements of degree d - total_degree(C.base[i])
+  dd = d - di
+  all_power_products_of_degree!(C, dd, remember_exponents)
+  for j = 1:length(C.power_products[dd])
+    # We only need the products for which the second factor (of degree dd) does
+    # not involve any factor of index > i. Otherwise we will get duplicates.
+    if C.last_factor[C.power_products[dd][j]] > i
+      continue
+    end
+
+    f = C.power_products[dd][j]*C.base[i]
+    push!(C.power_products[d], f)
+    if remember_exponents
+      C.exponent_vectors[f] = copy(C.exponent_vectors[C.power_products[dd][j]])
+      C.exponent_vectors[f][i] += 1
+    end
+    C.last_factor[f] = i
+  end
+  return nothing
+end
+
+# Computes all power products of elements of C.base of total degree exactly d.
 # This function is meant to be used in the case where one needs the result for
-# different degrees d as results for lower degrees are reused.
+# different degrees d as results for lower degrees are reused (and cached in C).
 # If one is only interested in all monomials of a certain degree, one should use
 # all_monomials. Note that however also for a single degree d a naive evaluation
-# of the result of all_monomials at the elements of polys is in general slower.
-#
-# database is a dictionary containing the already computed degree components.
-# The value corresponding to a key d consists of:
-# * a vector of polynomials: all power products of the polynomials of degree d.
-# * a vector of vectors of integers: the representation of the products in the vector
-#   of polynomials as an exponent vector. This is optional and only filled with
-#   meaningful content if remember_coords == true.
-# * a vector of integers: The first non-zero index of the exponent vector of the
-#   corresponding element.
-# If the key d in database exists, it is assumed that the value is correctly
-# computed!
-function all_power_products_of_degree!(R::MPolyRing, polys::Vector{T}, d::Int, database::Dict{Int, Tuple{Vector{T}, Vector{Vector{Int}}, Vector{Int}}}, remember_coords::Bool = false) where {T <: MPolyElem}
-  @assert all(!iszero, polys)
+# of the result of all_monomials at the elements of C.base is in general slower.
+# If remember_exponents is true, the exponent vectors of the computed power
+# products will be stored in the dictionary C.exponent_vectors, that is, if
+# C.base = [ f_1, ..., f_k ] and we compute f = f_1^e_1 \cdots f_k^e_k, then
+# C.exponent_vectors[f] = [ e_1, ..., e_k ].
+function all_power_products_of_degree!(C::PowerProductCache{S, T}, d::Int, remember_exponents::Bool = true) where {S, T <: MPolyElem}
+  @assert d >= 0
+
   # Degree d has already been computed?
-  if haskey(database, d)
-    return database[d][1]
+  if haskey(C.power_products, d) && (C.exponent_vectors_known[d] || !remember_exponents)
+    return C.power_products[d]
   end
 
-  coords = remember_coords ? zeros(Int, length(polys)) : nothing
-  database[d] = (T[], Vector{Int}[], Int[])
+  C.power_products[d] = Vector{T}()
 
   if d == 0
-    push!(database[d][1], one(R))
-    remember_coords ? push!(database[d][2], coords) : nothing
-    push!(database[d][3], 0)
-    return database[d][1]
+    push!(C.power_products[d], one(C.ring))
+    remember_exponents ? C.exponent_vectors[one(C.ring)] = zeros(Int, length(C.base)) : nothing
+    C.last_factor[one(C.ring)] = 0
+    return C.power_products[d]
   end
 
-  for i = 1:length(polys)
-    di = total_degree(polys[i])
-
-    # Larger degree, ignore
-    if di > d
-      continue
-    end
-
-    # Exactly matching degree
-    if di == d
-      push!(database[d][1], polys[i])
-      if remember_coords
-        coords[i] = 1;
-        push!(database[d][2], copy(coords))
-        coords[i] = 0;
-      end
-      push!(database[d][3], i)
-      continue
-    end
-
-    # Build all products with elements of degree d - total_degree(polys[i])
-    dd = d - di
-    all_power_products_of_degree!(R, polys, dd, database, remember_coords)
-    for j = 1:length(database[dd][1])
-      # We only need the products for which the second factor (of degree dd) does
-      # not involve any factor of index < i. Otherwise we will get duplicates.
-      if database[dd][3][j] < i
-        continue
-      end
-
-      push!(database[d][1], database[dd][1][j]*polys[i])
-      if remember_coords
-        push!(database[d][2], copy(database[dd][2][j]))
-        database[d][2][end][i] += 1
-      end
-      push!(database[d][3], i)
-    end
+  for i = 1:length(C.base)
+    extend!(C, d, i, remember_exponents)
   end
-  return database[d][1]
+  C.exponent_vectors_known[d] = remember_exponents
+  return C.power_products[d]
 end
 
 # Returns a generating set for the degree d component of a module
-# \oplus_k K[f_1,\dots, f_n]*g_k.
-# * algebra_gens is the list of the f_i
-# * module_gens is the list of the g_k
-# * database is a helper dictionary (possibly empty); see documentation for
-#   all_power_products_of_degree!
-# Returns
-# * the generating set as a vector of polynomials
-# * a vector of vectors of integers giving the representation of the polynomials
-#   as products of the algebra_gens and module_gens. This is optional and only
-#   filled with meaningful content if remember_coords == true.
-# The returned generating set should in general be a vector space basis, however,
-# if e.g. the algebra_gens and module_gens are not disjoint, it might contain
-# duplicates.
-function generators_for_given_degree!(R::MPolyRing, algebra_gens::Vector{T}, module_gens::Vector{T}, d::Int, database::Dict{Int, Tuple{Vector{T}, Vector{Vector{Int}}, Vector{Int}}}, remember_coords::Bool = false) where {T <: MPolyElem}
-  @assert !isempty(algebra_gens) && !isempty(module_gens)
-  @assert all(!iszero, algebra_gens) && all(!iszero, module_gens)
+# \oplus_k K[f_1,\dots, f_n]*g_k where the f_i are given by the entries of C.base
+# and module_gens is the list of the g_k.
+# If remember_exponents is true, the second return value is a dictionary D
+# containing the exponent vectors of the computed elements, that is, if
+# f = f_1^e_1 \cdots f_n^e_k \cdot g_1^e_{k + 1} \cdots g_m^{e_{k + m}} was
+# computed, then D[f] = [ e_1, ..., e_{k + m} ] where e_l in { 0, 1 } for l > k.
+# (If remember_exponents is false, the dictionary is empty.)
+function generators_for_given_degree!(C::PowerProductCache{S, T}, module_gens::Vector{T}, d::Int, remember_exponents) where {S, T <: MPolyElem}
+  @assert !isempty(module_gens)
+  @assert all(!iszero, module_gens)
 
-  R = parent(algebra_gens[1])
+  R = C.ring
   generators = elem_type(R)[]
-  exps = Vector{Int}[]
-  remember_coords ? coords = zeros(Int, length(algebra_gens) + length(module_gens)) : nothing
+  exps = Dict{T, Vector{Int}}()
+  coords = zeros(Int, length(C.base) + length(module_gens))
 
   for i = 1:length(module_gens)
     di = total_degree(module_gens[i])
@@ -109,26 +130,27 @@ function generators_for_given_degree!(R::MPolyRing, algebra_gens::Vector{T}, mod
     end
     if di == d
       push!(generators, module_gens[i])
-      if remember_coords
-        for j = 1:length(algebra_gens)
+      if remember_exponents
+        for j = 1:length(C.base)
           coords[j] = 0
         end
-        coords[length(algebra_gens) + i] = 1
-        push!(exps, copy(coords))
-        coords[length(algebra_gens) + i] = 0
+        coords[length(C.base) + i] = 1
+        exps[module_gens[i]] = copy(coords)
+        coords[length(C.base) + i] = 0
       end
       continue
     end
     dd = d - di
-    _ = all_power_products_of_degree!(R, algebra_gens, dd, database, remember_coords)
-    for j = 1:length(database[dd][1])
-      push!(generators, database[dd][1][j]*module_gens[i])
+    all_power_products_of_degree!(C, dd, remember_exponents)
+    for j = 1:length(C.power_products[dd])
+      f = C.power_products[dd][j]*module_gens[i]
+      push!(generators, f)
 
-      if remember_coords
-        coords[1:length(algebra_gens)] = database[dd][2][j]
-        coords[length(algebra_gens) + i] = 1;
-        push!(exps, copy(coords))
-        coords[length(algebra_gens) + i] = 0;
+      if remember_exponents
+        coords[1:length(C.base)] = copy(C.exponent_vectors[C.power_products[dd][j]])
+        coords[length(C.base) + i] = 1
+        exps[f] = copy(coords)
+        coords[length(C.base) + i] = 0
       end
     end
   end
@@ -185,9 +207,9 @@ function secondary_invariants_modular(RG::InvRing)
 
   s_invars = elem_type(R)[ one(R) ]
 
-  database = Dict{Int, Tuple{Vector{elem_type(R)}, Vector{Vector{Int}}, Vector{Int}}}()
+  C = PowerProductCache(R, p_invars)
   for d = 1:sum( total_degree(f) - 1 for f in p_invars )
-    Md = generators_for_given_degree!(R, p_invars, s_invars, d, database)[1]
+    Md = generators_for_given_degree!(C, s_invars, d, false)[1]
 
     B = BasisOfPolynomials(R, Md)
 
@@ -222,17 +244,14 @@ function irreducible_secondary_invariants_modular(RG::InvRing)
 
   # secondary invariants of degree 1 are irreducible
   is_invars = s_invars_sorted[1]
-  p_and_is_invars = append!(elem_type(R)[ f.f for f in primary_invariants(RG) ], is_invars)
-  database = Dict{Int, Tuple{Vector{elem_type(R)}, Vector{Vector{Int}}, Vector{Int}}}()
+  C = PowerProductCache(R, append!(elem_type(R)[ f.f for f in primary_invariants(RG) ], is_invars))
   for d = 2:maxd
-    basis_d = all_power_products_of_degree!(R, p_and_is_invars, d, database, false)
+    basis_d = all_power_products_of_degree!(C, d, false)
     B = BasisOfPolynomials(R, basis_d)
     for f in s_invars_sorted[d]
       if add_to_basis!(B, f)
         push!(is_invars, f)
-        push!(p_and_is_invars, f)
-        push!(database[d][1], f)
-        push!(database[d][3], length(p_and_is_invars))
+        add_base_element!(C, f, false)
       end
     end
   end
@@ -274,8 +293,7 @@ function secondary_invariants_nonmodular(RG::InvRing)
 
   # We try to construct as many invariants as possible as power products from
   # already computed ones using all_power_products_of_degree! .
-  # We have to keep the database up to date by hand, however.
-  database = Dict{Int, Tuple{Vector{elem_type(R)}, Vector{Vector{Int}}, Vector{Int}}}()
+  C = PowerProductCache(R, is_invars)
   for d = 1:degree(h)
     k = coeff(h, d) # number of invariants we need in degree d
     if iszero(k)
@@ -283,7 +301,7 @@ function secondary_invariants_nonmodular(RG::InvRing)
     end
     invars_found = 0
 
-    invars = all_power_products_of_degree!(R, is_invars, d, database, false)
+    invars = all_power_products_of_degree!(C, d, false)
     for f in invars
       nf = normal_form(f, I).f
       if add_to_basis!(B, nf)
@@ -319,8 +337,7 @@ function secondary_invariants_nonmodular(RG::InvRing)
         f = inv(leading_coefficient(f))*f
         push!(s_invars, f)
         push!(is_invars, f)
-        push!(database[d][1], f)
-        push!(database[d][3], length(is_invars))
+        add_base_element!(C, f, false)
         invars_found += 1
         invars_found == k && break
       end

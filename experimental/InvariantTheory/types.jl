@@ -267,3 +267,31 @@ mutable struct BasisOfPolynomials{PolyElemT, PolyRingT, FieldElemT, MatElemT}
     return B
   end
 end
+
+# Cache power products (= monomials) of elements in `base` of certain degrees.
+mutable struct PowerProductCache{RingType, T}
+  # The base ring (needed for empty `base`)
+  ring::RingType
+
+  base::Vector{T}
+
+  # Store all power products of degree d
+  power_products::Dict{Int, Vector{T}}
+
+  # The exponent vector of a power product w.r.t. `base`
+  exponent_vectors::Dict{T, Vector{Int}}
+
+  # Whether the exponent vectors for a certain degree were computed
+  exponent_vectors_known::Dict{Int, Bool}
+
+  # The last entry of `base` involved in the power product
+  last_factor::Dict{T, Int}
+
+  function PowerProductCache(R::S, base::Vector{T}) where {S <: Ring, T <: RingElem}
+    power_products = Dict{Int, Vector{T}}()
+    exponent_vectors = Dict{T, Vector{Int}}()
+    exponent_vectors_known = Dict{Int, Bool}()
+    last_factor = Dict{T, Int}()
+    return new{typeof(R), T}(R, copy(base), power_products, exponent_vectors, exponent_vectors_known, last_factor)
+  end
+end
