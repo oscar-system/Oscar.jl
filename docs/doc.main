@@ -138,6 +138,9 @@
         "ToricVarieties/ToricDivisors.md",
         "ToricVarieties/ToricLineBundles.md",
      ],
+     "Schemes" => [
+        "AlgebraicGeometry/AffineSchemes.md",
+     ],
   ],
 
   "Combinatorics" => [
