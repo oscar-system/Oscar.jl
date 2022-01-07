@@ -22,11 +22,9 @@ Moreover, canonical incoming and outgoing morphisms are stored if the correspond
 option is set in suitable functions.
 `FreeMod_dec{T}` is a subtype of `ModuleFP{T}`.
 """
-mutable struct FreeMod_dec{T <: CRingElem_dec} <: AbstractFreeMod_dec{T}
+@attributes mutable struct FreeMod_dec{T <: CRingElem_dec} <: AbstractFreeMod_dec{T}
   F::FreeMod{T}
   d::Vector{GrpAbFinGenElem}
-
-  AbstractAlgebra.@declare_other
 
   function FreeMod_dec{T}(F::FreeMod, d::Vector{GrpAbFinGenElem}) where T <: CRingElem_dec
     @assert length(d) == rank(F)
