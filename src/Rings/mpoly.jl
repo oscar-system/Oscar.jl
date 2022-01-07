@@ -1,19 +1,5 @@
 #module MPolyModule
 
-import AbstractAlgebra: PolyRing, PolynomialRing, total_degree, degree, Ideal,
-                        MPolyElem, Generic.MPolyExponentVectors, Generic.MPolyCoeffs,
-                        Generic.MPolyBuildCtx, Generic.push_term!, Generic.finish, MPolyRing,
-                        base_ring, ngens, gens, dim, ordering, SetMap, Map
-import Nemo
-import Nemo: fmpz, fmpq
-
-import Singular
-
-import Hecke
-import Hecke: MapHeader, math_html
-
-
-
 export PolynomialRing, total_degree, degree,  MPolyIdeal, MPolyElem, ideal, coordinates,
        jacobi_matrix, jacobi_ideal,  normalize, divrem, isprimary, isprime
 
@@ -150,6 +136,7 @@ module Orderings
 
 using Oscar, Markdown
 import Oscar: Ring, MPolyRing, MPolyElem, weights, IntegerUnion
+import Base.==
 export anti_diagonal, lex, degrevlex, deglex, weights, MonomialOrdering, singular
 
 abstract type AbsOrdering end
@@ -448,7 +435,6 @@ function simplify_weight_matrix(M::AbsOrdering)
   return ww
 end
 
-import Base.==
 function ==(M::MonomialOrdering, N::MonomialOrdering)
   return Hecke.simplify(M).o.wgt == Hecke.simplify(N).o.wgt
 end
@@ -1111,7 +1097,7 @@ function _isless_negdegrevlex(f::MPolyElem, k::Int, l::Int)
   return _isless_negrevlex(f, k, l)
 end
 
-# Returns the degree of the k-th term of f weighted by w,
+# Return the degree of the k-th term of f weighted by w,
 # that is deg(x^a) = w_1a_1 + ... + w_na_n.
 # No sanity checks are performed!
 function weighted_degree(f::MPolyElem, k::Int, w::Vector{Int})

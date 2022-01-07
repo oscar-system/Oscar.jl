@@ -98,7 +98,7 @@ Return the numerator and denominator respectively, of $n$.
 
 * `sign(n::fmpq) -> fmpq`
 
-Returns the sign of `n`, i.e. ``n/|n|`` if ``n \neq 0``, or ``0`` otherwise.
+Return the sign of `n`, i.e. ``n/|n|`` if ``n \neq 0``, or ``0`` otherwise.
 
 ```@repl oscar
 sign(QQ(2, 3))
@@ -163,13 +163,10 @@ Julia and Oscar rationals and integers.
 ### [Exact Division]
 
 * `divexact(a::fmpq, b::fmpq) -> fmpq`
-* `divexact(a::fmpq, b::fmpz) -> fmpq`
-* `divexact(a::fmpz, b::fmpq) -> fmpq`
+* `divexact(a::fmpq, b::Union{fmpz,Base.Integer,Base.Rational}) -> fmpq`
+* `divexact(a::Union{fmpz,Base.Integer,Base.Rational}, b::fmpq) -> fmpq`
 
-In the first signature, one of the arguments may be a Julia rational and in the
-other two signatures the integers may be Julia integers.
-
-Returns the quotient of ``a`` by ``b``. Exact division raises an exception if
+Return the quotient of ``a`` by ``b``. Exact division raises an exception if
 division by zero is attempted.
 
 ```@repl oscar
@@ -184,8 +181,7 @@ divexact(QQ(1, 3), 5)
 
 * `^(a::fmpq, b::Int) -> fmpq`
 
-Powering can be accomplished naturally using the special caret infix
-operator:
+Return the result of powering ``a`` by ``b``.
 
 ```@repl oscar
 QQ(5, 7)^32
@@ -209,16 +205,16 @@ QQ(0)^-2
 
 * `ispower(a::fmpq, b::Int) -> Bool, fmpq`
 
-Tests if ``a`` is an ``n``-th power. If so, return ```true``` and the root,
+Test if ``a`` is an ``n``-th power. If so, return ```true``` and the root,
 ```false``` and any rational otherwise.
 
 * `ispower(a::fmpq) -> Int, fmpq`
 
-Finds the largest ``n`` such that ``a`` is an ``n``-th power. Return ``n`` and the root.
+Find the largest ``n`` such that ``a`` is an ``n``-th power. Return ``n`` and the root.
 
 * `root(a::fmpq, b::Int) -> fmpq`
 
-Computes an ``n``-th root of ``a``, raises an error if ``a`` is not an ``n``-th power.
+Compute an ``n``-th root of ``a``, raises an error if ``a`` is not an ``n``-th power.
 
 ```@repl oscar
 ispower(QQ(8), 3)

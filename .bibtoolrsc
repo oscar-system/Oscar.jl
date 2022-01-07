@@ -16,10 +16,8 @@ delete.field = { isbn }
 delete.field = { issn }
 delete.field = { keywords }
 delete.field = { mrclass }
-delete.field = { mrnumber }
 delete.field = { mrreviewer }
 delete.field = { msc2010 }
-delete.field = { zbl }
 
 fmt.name.name = { }
 fmt.inter.name = { x }

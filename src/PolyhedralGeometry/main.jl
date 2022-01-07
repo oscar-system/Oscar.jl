@@ -1,7 +1,3 @@
-
-import Markdown
-import Base: ==
-
 const AnyVecOrMat = Union{MatElem, AbstractVecOrMat}
 
 
@@ -117,12 +113,12 @@ export AffineHalfspace,
     starsubdivision,
     support_function,
     positive_hull,
-    ray_incidences,
+    ray_indices,
     rays,
     upper_bound_theorem,
     vector_matrix,
     vertices,
-    vertex_incidences,
+    vertex_indices,
     vf_group,
     visualize,
     volume,

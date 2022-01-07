@@ -1,61 +1,6 @@
-import Hecke:
-    abelian_group,
-    automorphism_group,
-    center,
-    codomain,
-    cokernel,
-    compose,
-    degree,
-    derived_series,
-    direct_product,
-    domain,
-    elem_type,
-    elements,
-    free_abelian_group,
-    gen,
-    gens,
-    haspreimage,
-    hom,
-    id_hom,
-    image,
-    index,
-    inv!,
-    isabelian,
-    isbijective,
-    ischaracteristic,
-    isconjugate,
-    iscyclic,
-    isinjective,
-    isinvertible,
-    isisomorphic,
-    isnormal,
-    issimple,
-    issubgroup,
-    issurjective,
-    kernel,
-    Map,
-    mul,
-    mul!,
-    ngens,
-    normal_closure,
-    one!,
-    order,
-    parent_type,
-    perm,
-    preimage,
-    quo,
-    representative,
-    SetMap,
-    small_group,
-    sub,
-    subgroups
-
-import Base: ==, parent, show
-
-import GAP: GapObj, GapInt
-
 export
     AutomorphismGroup,
+    AutomorphismGroupElem,
     DirectProductGroup,
     DirectProductOfElem,
     FPGroup,
@@ -242,7 +187,6 @@ Group of automorphisms over a group of type `T`. It can be defined via the funct
   X::GapObj
   G::T
 
-
   function AutomorphismGroup{T}(G::GapObj, H::T) where T
     @assert GAPWrap.IsGroupOfAutomorphisms(G)
     z = new{T}(G, H)
@@ -255,6 +199,15 @@ Group of automorphisms over a group of type `T`. It can be defined via the funct
     return z
   end
 end
+
+(aut::AutomorphismGroup{T} where T)(x::GapObj) = group_element(aut,x)
+
+const AutomorphismGroupElem{T} = BasicGAPGroupElem{AutomorphismGroup{T}} where T
+
+function Base.show(io::IO, AGE::AutomorphismGroupElem{GrpAbFinGen}) 
+    println(io, "Automorphism of ", GrpAbFinGen, " with matrix representation ", matrix(AGE))
+end
+
 
 ################################################################################
 #

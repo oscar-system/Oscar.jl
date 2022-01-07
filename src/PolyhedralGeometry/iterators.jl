@@ -185,7 +185,7 @@ Base.lastindex(iter::SubObjectIterator) = length(iter)
 Base.size(iter::SubObjectIterator) = (iter.n,)
 
 # Incidence matrices
-for (sym, name) in (("ray_incidences", "Incidence Matrix resp. rays"), ("vertex_incidences", "Incidence Matrix resp. vertices"))
+for (sym, name) in (("ray_indices", "Incidence Matrix resp. rays"), ("vertex_indices", "Incidence Matrix resp. vertices"))
     M = Symbol(sym)
     _M = Symbol(string("_", sym))
     @eval begin

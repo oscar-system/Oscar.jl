@@ -1,10 +1,12 @@
+export iterate_basis
+
 ################################################################################
 #
 #  All Monomials
 #
 ################################################################################
 
-# Returns an iterator over all monomials of R of degree d
+# Return an iterator over all monomials of R of degree d
 all_monomials(R::MPolyRing, d::Int) = AllMonomials(R, d)
 
 AllMonomials(R::MPolyRing, d::Int) = AllMonomials{typeof(R)}(R, d)
@@ -76,11 +78,11 @@ end
 #
 ################################################################################
 
-# Returns the dimension of the graded component of degree d.
+# Return the dimension of the graded component of degree d.
 # If we cannot compute the Molien series (so far in the modular case), we return
 # -1.
 function dimension_via_molien_series(::Type{T}, R::InvRing, d::Int) where T <: IntegerUnion
-  if ismodular(R)
+  if !ismolien_series_implemented(R)
     return -1
   end
 
@@ -91,8 +93,88 @@ function dimension_via_molien_series(::Type{T}, R::InvRing, d::Int) where T <: I
   return T(numerator(k))::T
 end
 
-# Iterate over the basis of the degree d component of an invariant ring.
-# algo can be either :default, :reynolds or :linear_algebra.
+@doc Markdown.doc"""
+     iterate_basis(IR::InvRing, d::Int, algo::Symbol = :default)
+
+Given an invariant ring `IR` and an integer `d`, return an iterator over a basis
+for the invariants in degree `d`.
+The used algorithm can be specified using the optional argument `algo`. Possible
+values are `:reynolds` which uses the reynolds operator to construct the basis
+(only available in the non-modular case) and `:linear_algebra` which uses plain
+linear algebra. With the default value `:default` the heuristically best algorithm
+is selected.
+
+When using the reynolds operator the basis is constructed element-by-element.
+With linear algebra this is not possible and the whole basis will be constructed
+directly when calling the function.
+
+See also [`basis`](@ref).
+
+# Examples
+```
+julia> K, a = CyclotomicField(3, "a")
+(Cyclotomic field of order 3, a)
+
+julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0])
+[0   0   1]
+[1   0   0]
+[0   1   0]
+
+julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
+[1   0        0]
+[0   a        0]
+[0   0   -a - 1]
+
+julia> G = MatrixGroup(3, K, [ M1, M2 ])
+Matrix group of degree 3 over Cyclotomic field of order 3
+
+julia> IR = invariant_ring(G)
+Invariant ring of
+Matrix group of degree 3 over Cyclotomic field of order 3
+with generators
+AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+
+julia> B = iterate_basis(IR, 6)
+Iterator over a basis of the component of degree 6 of
+Invariant ring of
+Matrix group of degree 3 over Cyclotomic field of order 3
+with generators
+AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+
+julia> collect(B)
+4-element Vector{MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+ x[1]^2*x[2]^2*x[3]^2
+ x[1]^4*x[2]*x[3] + x[1]*x[2]^4*x[3] + x[1]*x[2]*x[3]^4
+ x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
+ x[1]^6 + x[2]^6 + x[3]^6
+
+julia> M = matrix(GF(3), [0 1 0; -1 0 0; 0 0 -1])
+[0   1   0]
+[2   0   0]
+[0   0   2]
+
+julia> G = MatrixGroup(3, GF(3), [M])
+Matrix group of degree 3 over Galois field with characteristic 3
+
+julia> IR = invariant_ring(G)
+Invariant ring of
+Matrix group of degree 3 over Galois field with characteristic 3
+with generators
+gfp_mat[[0 1 0; 2 0 0; 0 0 2]]
+
+julia> B = iterate_basis(IR, 2)
+Iterator over a basis of the component of degree 2 of
+Invariant ring of
+Matrix group of degree 3 over Galois field with characteristic 3
+with generators
+gfp_mat[[0 1 0; 2 0 0; 0 0 2]]
+
+julia> collect(B)
+2-element Vector{MPolyElem_dec{gfp_elem, gfp_mpoly}}:
+ x[1]^2 + x[2]^2
+ x[3]^2
+```
+"""
 function iterate_basis(R::InvRing, d::Int, algo::Symbol = :default)
   @assert d >= 0 "Degree must be non-negativ"
 
@@ -131,6 +213,7 @@ function iterate_basis(R::InvRing, d::Int, algo::Symbol = :default)
 end
 
 function iterate_basis_reynolds(R::InvRing, d::Int)
+  @assert !ismodular(R)
   @assert d >= 0 "Degree must be non-negativ"
 
   monomials = all_monomials(polynomial_ring(R), d)

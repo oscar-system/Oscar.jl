@@ -32,6 +32,8 @@ const pm = Polymake
             @test facets(T, Cone1) isa SubObjectIterator{T}
             @test length(facets(T, Cone1)) == 2
             @test linear_inequality_matrix(facets(T, Cone1)) == matrix(QQ, [-1 0; 0 -1])
+            @test Oscar.linear_matrix_for_polymake(facets(T, Cone1)) == [-1 0; 0 -1]
+            @test ray_indices(facets(T, Cone1)) == IncidenceMatrix([[2], [1]])
             if T == Cone
                 @test facets(T, Cone1)[1] == cone_from_inequalities([-1 0])
                 @test facets(T, Cone1)[2] == cone_from_inequalities([0 -1])
@@ -69,10 +71,15 @@ const pm = Polymake
         @test codim(Cone3) == 0
         @test faces(Cone2, 2) isa SubObjectIterator{Cone}
         @test length(faces(Cone2, 2)) == 2
-        @test faces(Cone2, 2)[1] == Cone([1 0 0], [0 1 0])
-        @test faces(Cone2, 2)[2] == Cone([0 0 1], [0 1 0])
+        @test faces(Cone2, 2)[1] == Cone([0 0 1], [0 1 0])
+        @test faces(Cone2, 2)[2] == Cone([1 0 0], [0 1 0])
         @test isnothing(faces(Cone2, 1))
-        @test ray_incidences(faces(Cone2, 2)) == IncidenceMatrix([[1], [2]])
+        @test ray_indices(faces(Cone2, 2)) == IncidenceMatrix([[2], [1]])
+        @test faces(Cone4, 1) isa SubObjectIterator{Cone}
+        @test length(faces(Cone4, 1)) == 2
+        @test faces(Cone4, 1)[1] == Cone([0 0 1])
+        @test faces(Cone4, 1)[2] == Cone([1 0 0])
+        @test ray_indices(faces(Cone4, 1)) == IncidenceMatrix([[2], [1]])
 
         @test f_vector(Cone5) == [4, 4]
         @test f_vector(Cone2) == [0, 2]

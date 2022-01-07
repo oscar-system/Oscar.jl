@@ -2,8 +2,10 @@
 # 1: The Julia type for ToricDivisors
 ######################
 
-struct ToricDivisor
+@attributes mutable struct ToricDivisor
            polymake_divisor::Polymake.BigObject
+           toricvariety::AbstractNormalToricVariety
+           coeffs::Vector{Int}
 end
 export ToricDivisor
 
@@ -23,18 +25,30 @@ Construct the torus invariant divisor on the normal toric variety `v` as linear 
 
 # Examples
 ```jldoctest
-julia> show(ToricDivisor(toric_projective_space(2), [1,1,2]))
-A torus invariant divisor on a normal toric variety
+julia> ToricDivisor(toric_projective_space(2), [1,1,2])
+A torus-invariant, non-prime divisor on a normal toric variety
 ```
 """
 function ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{Int})
+    # check input
     if length(coeffs) != pm_object(v).N_RAYS
         throw(ArgumentError("Number of coefficients needs to match number of prime divisors!"))
     end
+    
+    # construct the divisor
     ptd = Polymake.fulton.TDivisor(COEFFICIENTS=coeffs)
-    pmntv = pm_object(v)
-    Polymake.add(pmntv, "DIVISOR", ptd)
-    return ToricDivisor(ptd)
+    Polymake.add(pm_object(v), "DIVISOR", ptd)
+    td = ToricDivisor(ptd, v, coeffs, Dict())
+    
+    # set attributes
+    if sum(coeffs) != 1
+        set_attribute!(td, :isprime_divisor, false)
+    else
+        set_attribute!(td, :isprime_divisor, all(y -> (y == 1 || y == 0), coeffs))
+    end
+    
+    # return the result
+    return td
 end
 export ToricDivisor
 
@@ -50,8 +64,8 @@ Construct the torus invariant divisor associated to a character of the normal to
 
 # Examples
 ```jldoctest
-julia> show(DivisorOfCharacter(toric_projective_space(2), [1,2]))
-A torus invariant divisor on a normal toric variety
+julia> DivisorOfCharacter(toric_projective_space(2), [1,2])
+A torus-invariant, non-prime divisor on a normal toric variety
 ```
 """
 function DivisorOfCharacter(v::AbstractNormalToricVariety, character::Vector{Int})
@@ -67,88 +81,102 @@ export DivisorOfCharacter
 
 
 ######################
-# 5: Attributes
-######################
+### 4: Display
+######################s
 
-@doc Markdown.doc"""
-    polyhedron(td::ToricDivisor)
-
-Construct the polyhedron $P_D$ of a torus invariant divisor $D:=td$ as in 4.3.2
-of [CLS11](@cite). The lattice points of this polyhedron correspond to the
-global sections of the divisor.
-
-# Examples
-The polyhedron of the divisor with all coefficients equal to zero is a point,
-if the ambient variety is complete. Changing the coefficients corresponds to
-moving hyperplanes. One direction moves the hyperplane away from the origin,
-the other moves it across. In the latter case there are no global sections
-anymore and the polyhedron becomes empty.
-```
-julia> H = hirzebruch_surface(4)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
-
-julia> td0 = ToricDivisor(H, [0,0,0,0])
-A torus invariant divisor on a normal toric variety
-
-julia> isfeasible(polyhedron(td0))
-true
-
-julia> dim(polyhedron(td0))
-0
-
-julia> td1 = ToricDivisor(H, [1,0,0,0])
-A torus invariant divisor on a normal toric variety
-
-julia> isfeasible(polyhedron(td1))
-true
-
-julia> td2 = ToricDivisor(H, [-1,0,0,0])
-A torus invariant divisor on a normal toric variety
-
-julia> isfeasible(polyhedron(td2))
-false
-```
-"""
-function polyhedron(td::ToricDivisor)
-    pmtd = pm_tdivisor(td)
-    return Polyhedron(pmtd.SECTION_POLYTOPE)
-end
-export polyhedron
-
-
-@doc Markdown.doc"""
-    coefficients(td::ToricDivisor)
-
-Identify the coefficients of a toric divisor in the group of torus invariant Weil divisors.
-
-# Examples
-```
-julia> H = hirzebruch_surface(4)
-A normal toric variety corresponding to a polyhedral fan in ambient dimension 2
-
-julia> D = ToricDivisor(H, [1,2,3,4])
-A torus invariant divisor on a normal toric variety
-
-julia> coefficients(D)
-4-element Vector{Int64}:
- 1
- 2
- 3
- 4
-```
-"""
-function coefficients(td::ToricDivisor)
-    return Vector{Int}(Polymake.common.primitive(pm_tdivisor(td).COEFFICIENTS))
-end
-export coefficients
-
-
-###############################################################################
-###############################################################################
-### 5: Display
-###############################################################################
-###############################################################################
 function Base.show(io::IO, td::ToricDivisor)
-    print(io, "A torus invariant divisor on a normal toric variety")
+    # initiate properties string
+    properties_string = ["A torus-invariant"]
+    
+    # cartier?
+    if has_attribute(td, :iscartier)
+        if get_attribute(td, :iscartier)
+            push!(properties_string, "cartier")
+        else
+            if has_attribute(td, :isq_cartier)
+                if get_attribute(td, :isq_cartier)
+                    push!(properties_string, "q-cartier")
+                else
+                    push!(properties_string, "non-q-cartier")
+                end
+            else
+                push!(properties_string, "non-cartier")
+            end
+        end
+    end
+    
+    # principal?
+    if has_attribute(td, :isprincipal)
+        if get_attribute(td, :isprincipal)
+            push!(properties_string, "principal")
+        else
+            push!(properties_string, "non-principal")
+        end
+    end
+    
+    # basepoint free?
+    if has_attribute(td, :isbasepoint_free)
+        if get_attribute(td, :isbasepoint_free)
+            push!(properties_string, "basepoint-free")
+        else
+            push!(properties_string, "non-basepoint-free")
+        end
+    end
+    
+    # effective?
+    if has_attribute(td, :iseffective)
+        if get_attribute(td, :iseffective)
+            push!(properties_string, "effective")
+        else
+            push!(properties_string, "non-effective")
+        end
+    end
+    
+    # integral?
+    if has_attribute(td, :isintegral)
+        if get_attribute(td, :isintegral)
+            push!(properties_string, "integral")
+        else
+            push!(properties_string, "non-integral")
+        end
+    end
+    
+    # (very) ample?
+    if has_attribute(td, :isample)
+        if get_attribute(td, :isample)
+            push!(properties_string, "ample")
+        else
+            if has_attribute(td, :isvery_ample)
+                if get_attribute(td, :isvery_ample)
+                    push!(properties_string, "very-ample")
+                else
+                    push!(properties_string, "non-very-ample")
+                end
+            else
+                push!(properties_string, "non-ample")
+            end
+        end
+    end
+    
+    # nef?
+    if has_attribute(td, :isnef)
+        if get_attribute(td, :isnef)
+            push!(properties_string, "nef")
+        else
+            push!(properties_string, "non-nef")
+        end
+    end
+    
+    # prime divisor?
+    if has_attribute(td, :isprime_divisor)
+        if get_attribute(td, :isprime_divisor)
+            push!(properties_string, "prime")
+        else
+            push!(properties_string, "non-prime")
+        end
+    end
+    
+    # print
+    push!(properties_string, "divisor on a normal toric variety")
+    join(io, properties_string, ", ", " ")
 end
-

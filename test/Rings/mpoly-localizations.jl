@@ -123,7 +123,7 @@ end
   W = Localization(V, 5*f)
 
   phi = MPolyLocalizedRingHom(R, W, [W(1//x), W(y//f)])
-  @test phi(x*f) == phi(Localization(MPolyUnits(R))(x*f))
+  @test phi(x*f) == phi(domain(phi)(x*f))
   @test phi(ZZ(9)) == W(ZZ(9))
 
   psi = MPolyLocalizedRingHom(U, R, [R(0), R(0)])

@@ -21,7 +21,7 @@ quite some of them; but in general we strive to reduce these)
   `point_from_matrix` as the from part is clear by the type of the argument.
   It should be called `points(T::Matrix)` in some variation.
   Similar: `matrix_to_points`. It is fine to use them internally, where
-  useful, however, internally.
+  useful.
 - follow the mathematics. If your function needs a list of points, you should
   create a point-type and then use this. For user-facing functions, please do not
   use re-purposed lists, arrays, matrices...
@@ -117,11 +117,11 @@ end
 
 - Functions should not have too many arguments.
   If you need a bunch arguments, chances are that introducing a new object
-  makes it more readable)
+  makes it more readable.
 
 - Functions should not be too long; very long functions are in general harder
   to understand; it is also more difficult to see all the code at once. Consider
-  splitting the function into multiple, if it is sensibly possible.
+  splitting the function into multiple ones, if it is sensibly possible.
 
 However, as always, rules sometimes should be broken.
 

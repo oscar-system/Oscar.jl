@@ -26,6 +26,7 @@ julia> F = faces(cube(3), 2)
 ```
 """
 function faces(P::Polyhedron, face_dim::Int)
+    face_dim == dim(P) - 1 && return SubObjectIterator{Polyhedron}(pm_object(P), _face_polyhedron_facet, nfacets(P))
     n = face_dim - length(lineality_space(P))
     n < 0 && return nothing
     pfaces = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(pm_object(P), n))
@@ -48,13 +49,22 @@ function _face_polyhedron(::Type{Polyhedron}, P::Polymake.BigObject, i::Base.Int
     return Polyhedron(Polymake.polytope.Polytope(VERTICES = P.VERTICES[collect(pface),:], LINEALITY_SPACE = P.LINEALITY_SPACE))
 end
 
-function _vertex_incidences(::Val{_face_polyhedron}, P::Polymake.BigObject; f_dim = -1, f_ind::Vector{Int64} = Vector{Int64}())
+function _vertex_indices(::Val{_face_polyhedron}, P::Polymake.BigObject; f_dim = -1, f_ind::Vector{Int64} = Vector{Int64}())
     return IncidenceMatrix(collect.(Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(P, f_dim)[f_ind])))[:, _vertex_indices(P)]
 end
 
-function _ray_incidences(::Val{_face_polyhedron}, P::Polymake.BigObject; f_dim = -1, f_ind::Vector{Int64} = Vector{Int64}())
-    return IncidenceMatrix(collect.(Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(P, f_dim)[f_ind])[:, _ray_indices(P)]))
+function _ray_indices(::Val{_face_polyhedron}, P::Polymake.BigObject; f_dim = -1, f_ind::Vector{Int64} = Vector{Int64}())
+    return IncidenceMatrix(collect.(Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(P, f_dim)[f_ind])))[:, _ray_indices(P)]
 end
+
+function _face_polyhedron_facet(::Type{Polyhedron}, P::Polymake.BigObject, i::Base.Integer)
+    pface = P.VERTICES_IN_FACETS[_facet_index(P, i), :]
+    return Polyhedron(Polymake.polytope.Polytope(VERTICES = P.VERTICES[collect(pface),:], LINEALITY_SPACE = P.LINEALITY_SPACE))
+end
+
+_vertex_indices(::Val{_face_polyhedron_facet}, P::Polymake.BigObject) = vcat(P.VERTICES_IN_FACETS[1:(_facet_at_infinity(P) - 1), _vertex_indices(P)], P.VERTICES_IN_FACETS[(_facet_at_infinity(P) + 1):end, _vertex_indices(P)])
+
+_ray_indices(::Val{_face_polyhedron_facet}, P::Polymake.BigObject) = vcat(P.VERTICES_IN_FACETS[1:(_facet_at_infinity(P) - 1), _ray_indices(P)], P.VERTICES_IN_FACETS[(_facet_at_infinity(P) + 1):end, _ray_indices(P)])
 
 function _isray(P::Polyhedron, i::Base.Integer)
     return in(i, _ray_indices(pm_object(P)))
@@ -174,7 +184,7 @@ julia> nvertices(C)
 8
 ```
 """
-nvertices(P::Polyhedron) = pm_object(P).N_VERTICES - nrays(P)
+nvertices(P::Polyhedron) = pm_object(P).N_VERTICES::Int - nrays(P)
 
 
 @doc Markdown.doc"""
@@ -241,7 +251,10 @@ julia> nfacets(cross(5))
 32
 ```
 """
-nfacets(P::Polyhedron) = pm_object(P).N_FACETS - (_facet_at_infinity(pm_object(P)) != pm_object(P).N_FACETS + 1)
+function nfacets(P::Polyhedron)
+    n = pm_object(P).N_FACETS::Int
+    return n - (_facet_at_infinity(pm_object(P)) != n + 1)
+end
 
 @doc Markdown.doc"""
     facets(as::Type{T} = AffineHalfspace, P::Polyhedron)
@@ -299,6 +312,10 @@ _affine_inequality_matrix(::Val{_facet_polyhedron}, P::Polymake.BigObject) = -_r
 
 _affine_matrix_for_polymake(::Val{_facet_polyhedron}) = _affine_inequality_matrix
 
+_vertex_indices(::Val{_facet_polyhedron}, P::Polymake.BigObject) = vcat(P.VERTICES_IN_FACETS[1:(_facet_at_infinity(P) - 1), _vertex_indices(P)], P.VERTICES_IN_FACETS[(_facet_at_infinity(P) + 1):end, _vertex_indices(P)])
+
+_ray_indices(::Val{_facet_polyhedron}, P::Polymake.BigObject) = vcat(P.VERTICES_IN_FACETS[1:(_facet_at_infinity(P) - 1), _ray_indices(P)], P.VERTICES_IN_FACETS[(_facet_at_infinity(P) + 1):end, _ray_indices(P)])
+
 facets(::Type{Pair}, P::Polyhedron) = facets(Pair{Polymake.Matrix{Polymake.Rational}, Polymake.Rational}, P)
 
 @doc Markdown.doc"""
@@ -349,7 +366,7 @@ function _facet_at_infinity(P::Polymake.BigObject)
         fai = Int64(isnothing(i) ? P.N_FACETS + 1 : i)
         Polymake.attach(P, "_facet_at_infinity", fai)
     end
-    return fai
+    return fai::Int64
 end
 
 _is_facet_at_infinity(v::AbstractVector) = v[1] >= 0 && iszero(v[2:end])
@@ -381,7 +398,7 @@ julia> lineality_dim(C)
 1
 ```
 """
-lineality_dim(P::Polyhedron) = pm_object(P).LINEALITY_DIM
+lineality_dim(P::Polyhedron) = pm_object(P).LINEALITY_DIM::Int
 
 
 @doc Markdown.doc"""
@@ -413,7 +430,7 @@ julia> lattice_volume(C)
 8
 ```
 """
-lattice_volume(P::Polyhedron) = (pm_object(P)).LATTICE_VOLUME
+lattice_volume(P::Polyhedron)::fmpz = (pm_object(P)).LATTICE_VOLUME
 
 
 @doc Markdown.doc"""
@@ -446,7 +463,7 @@ julia> dim(P)
 2
 ```
 """
-dim(P::Polyhedron) = Polymake.polytope.dim(pm_object(P))
+dim(P::Polyhedron) = Polymake.polytope.dim(pm_object(P))::Int
 
 
 @doc Markdown.doc"""
@@ -553,7 +570,7 @@ julia> ambient_dim(P)
 3
 ```
 """
-ambient_dim(P::Polyhedron) = Polymake.polytope.ambient_dim(pm_object(P))
+ambient_dim(P::Polyhedron) = Polymake.polytope.ambient_dim(pm_object(P))::Int
 
 @doc Markdown.doc"""
     codim(P::Polyhedron)

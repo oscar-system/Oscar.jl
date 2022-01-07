@@ -1346,6 +1346,9 @@ is that number, and return `subquotient(F, A, B)`.
 julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
 
+julia> F = free_module(R, 1)
+Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
 julia> A = R[x; y]
 [x]
 [y]
@@ -1355,7 +1358,7 @@ julia> B = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubQuo(A, B)
+julia> M = SubQuo(F, A, B)
 Subquotient of Submodule with 2 generators
 1 -> x*e[1]
 2 -> y*e[1]
@@ -1447,15 +1450,70 @@ function cokernel(A::MatElem)
 end
 
 @doc Markdown.doc"""
-    issubset(M::SubQuo{T}, N::SubQuo{T}) where {T}
+    issubset(M::SubQuo{T}, N::SubQuo{T}) where T
 
 Return `true` if `M` is contained in `N`, and `false` otherwise.
 
-Check if `M` is a subset of `N`. For this their embedding free modules 
-must be identical (`===`), the relations must be equal and the (generators + relations)
-of `M` must be a submodule of (generators + relations) of `N`.
+The basic requirements for `true` are that `ambient_free_module(M) === ambient_free_module(N)`,
+and that the relations of `M` and `N` generate the same submodule of this free module. 
+If, say, 
+
+$M = (\text{im } a_M + \text{im } b_M)/\text{im } b_M \text{ and } N = (\text{im } a_N + \text{im } b_N)/\text{im } b_N, \text{ with } \text{im } b_M = \text{im } b_N,$ 
+
+it is moreover checked whether $\text{im } a_M + \text{im } b_M$ is contained in $\text{im } a_N + \text{im } b_N$.
+
+# Examples
+
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> F = free_module(R, 1)
+Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia> AM = R[x;]
+[x]
+
+julia> BM = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia> M = SubQuo(F, AM, BM)
+Subquotient of Submodule with 1 generator
+1 -> x*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+
+
+julia> AN = R[x; y]
+[x]
+[y]
+
+julia> BN = R[x^2+y^4; y^3; z^4]
+[x^2 + y^4]
+[      y^3]
+[      z^4]
+
+julia> N = SubQuo(F, AN, BN)
+Subquotient of Submodule with 2 generators
+1 -> x*e[1]
+2 -> y*e[1]
+by Submodule with 3 generators
+1 -> (x^2 + y^4)*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+
+
+julia> issubset(M, N)
+true
+```
 """
-function Base.issubset(M::SubQuo{T}, N::SubQuo{T}) where {T}
+function Base.issubset(M::SubQuo{T}, N::SubQuo{T}) where T
   if !isdefined(M, :quo) 
     if !isdefined(N, :quo)
       return issubset(M.sub, N.sub)
@@ -1476,9 +1534,63 @@ end
 
 Return `true` if `M` equals `N`, and `false` otherwise.
 
-Check for equality. For two subquotients to be equal their embedding free modules 
-must be identical (`===`) and the (generators + relations) respectively the relations must 
-generate equal submodules.
+The basic requirements for `true` are that `ambient_free_module(M) === ambient_free_module(N)`,
+and that the relations of `M` and `N` generate the same submodule of this free module. 
+If, say, 
+
+$M = (\text{im } a_M + \text{im } b_M)/\text{im } b_M \text{ and } N = (\text{im } a_N + \text{im } b_N)/\text{im } b_N, \text{ with } \text{im } b_M = \text{im } b_N,$ 
+
+it is moreover checked whether $\text{im } a_M + \text{im } b_M$ equals $\text{im } a_N + \text{im } b_N$.
+
+# Examples
+
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> F = free_module(R, 1)
+Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia> AM = R[x;]
+[x]
+
+julia> BM = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia> M = SubQuo(F, AM, BM)
+Subquotient of Submodule with 1 generator
+1 -> x*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+
+
+julia> AN = R[x; y]
+[x]
+[y]
+
+julia> BN = R[x^2+y^4; y^3; z^4]
+[x^2 + y^4]
+[      y^3]
+[      z^4]
+
+julia> N = SubQuo(F, AN, BN)
+Subquotient of Submodule with 2 generators
+1 -> x*e[1]
+2 -> y*e[1]
+by Submodule with 3 generators
+1 -> (x^2 + y^4)*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+
+julia> M == N
+false
+```
 """
 function Base.:(==)(M::SubQuo{T}, N::SubQuo{T}) where {T} # TODO replace implementation by two inclusion checks?
   if !isdefined(M, :quo) 
@@ -2179,6 +2291,36 @@ zero(M::SubQuo) = SubQuoElem(zero(M.F), M)
     Base.iszero(M::SubQuo)
 
 Return `true` if `M` is the zero module, `false` otherwise.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> F = free_module(R, 1)
+Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia> A = R[x^2+y^2;]
+[x^2 + y^2]
+
+julia> B = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia> M = SubQuo(F, A, B)
+Subquotient of Submodule with 1 generator
+1 -> (x^2 + y^2)*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+
+
+julia> iszero(M)
+false
+```
 """
 function Base.iszero(M::SubQuo)
   return all(iszero, gens(M))
@@ -2422,7 +2564,11 @@ Return `true` if `a` is well-defined, and `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> F = free_module(R, 1)
+Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
 
 julia> A = R[x; y]
 [x]
@@ -2433,7 +2579,16 @@ julia> B = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubQuo(A, B);
+julia> M = SubQuo(F, A, B)
+Subquotient of Submodule with 2 generators
+1 -> x*e[1]
+2 -> y*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+
 
 julia> N = M;
 
@@ -2529,6 +2684,73 @@ end
 Given a homomorphism `a` of type  `SubQuoHom` with domain `M`
 and codomain `N`, return a matrix `A` with `ngens(M)` rows and 
 `ngens(N)` columns such that `a == hom(M, N, A)`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> F = free_module(R, 1)
+Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
+julia> A = R[x; y]
+[x]
+[y]
+
+julia> B = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia> M = SubQuo(F, A, B)
+Subquotient of Submodule with 2 generators
+1 -> x*e[1]
+2 -> y*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+
+
+julia> N = M;
+
+julia> V = [y^2*N[1], x*N[2]]
+2-element Vector{SubQuoElem{fmpq_mpoly}}:
+ x*y^2*e[1]
+ x*y*e[1]
+
+julia> a = hom(M, N, V)
+Map with following data
+Domain:
+=======
+Subquotient of Submodule with 2 generators
+1 -> x*e[1]
+2 -> y*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+
+Codomain:
+=========
+Subquotient of Submodule with 2 generators
+1 -> x*e[1]
+2 -> y*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+
+julia> A = matrix(a)
+[y^2   0]
+[  0   x]
+
+julia> a(M[1])
+x*y^2*e[1]
+```
 """
 function matrix(f::SubQuoHom)
   if !isdefined(f, :matrix)
@@ -2691,6 +2913,9 @@ Return `true` if `m` is zero, `false` otherwise.
 julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 (Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
 
+julia> F = free_module(R, 1)
+Free module of rank 1 over Multivariate Polynomial Ring in x, y, z over Rational Field
+
 julia> A = R[x; y]
 [x]
 [y]
@@ -2700,7 +2925,7 @@ julia> B = R[x^2; y^3; z^4]
 [y^3]
 [z^4]
 
-julia> M = SubQuo(A, B)
+julia> M = SubQuo(F, A, B)
 Subquotient of Submodule with 2 generators
 1 -> x*e[1]
 2 -> y*e[1]

@@ -10,36 +10,50 @@ using Oscar
 Pages = ["rings.md"]
 ```
 
-# Creating Polynomial Rings
+# Creating Multivariate Rings
 
-Referring to the corrresponding section of the ring chapter for details, we recall how to create
-multivariate polynomial rings and their elements. We also show how to assign gradings to these rings.
-Homomorphisms of multivariate polynomial rings are described in a more general context in the section on affine algebras. 
+Referring to the rings and fields chapters for more details, our focus in this section is on examples
+which illustrate how to create multivariate polynomial rings and their elements. Of particular
+interest to us is the introduction of decorated ring types which allow one to implement multivariate
+polynomial rings with gradings and/or filtrations.
 
 ## Types
 
-!!! note
-    All types for multivariate polynomial rings belong to the abstract type
-    `MPolyRing{T}`, irrespective of whether they are graded or not. In contrast, the types for univariate polynomial rings belong to `PolyRing{T}`.
-	The elements of these rings are stored in a sparse and dense format,  respectively.
+OSCAR provides types for dense univariate and sparse multivariate polynomials. The univariate
+ring types belong to the abstract type `PolyRing{T}`, their elements have abstract type
+`PolyRingElem{T}`. The multivariate ring types belong to the abstract type `MPolyRing{T}`,
+their elements have abstract type `MPolyRingElem{T}`. Here, `T` is the element type
+of the coefficient ring of the polynomial ring.
+
+Multivariate rings with gradings and/or filtrations are modelled by objects of type
+`MPolyRing_dec{T, S}  :< MPolyRing{T}`, with elements of type
+`MPolyRingElem_dec{T, S}  :< MPolyRingElem{T}`. Here, `S` is the element type of the
+multivariate ring, and  `T` is the element type of its coefficient ring as above.
 	
 ## Constructors
 
-The standard constructor below allows one to build multivariate polynomial rings:
+The basic constructor below allows one to build multivariate polynomial rings:
 
 ```@julia
-PolynomialRing(C::Ring, v::Vector{String}; ordering=:lex)
+PolynomialRing(C::Ring, v::Vector{String}; ordering=:lex, cached = true)
 ```
 
 Its return value is a tuple, say `R, vars`, consisting of a polynomial ring `R` with coefficient ring `C` and a vector `vars` of generators (variables) which print according to the strings in the vector `v` .
 The input `ordering=:lex` refers to the lexicograpical monomial ordering which specifies the default way of storing and displaying polynomials in OSCAR  (terms are sorted in descending
 order). The other possible choices are `:deglex` and `:degrevlex`. Gröbner bases, however, can be computed with respect to any monomial ordering. See the section on Gröbner bases.
 
-
-
+!!! note
+    Caching is used to ensure that a given ring constructed from given parameters is unique in the system. For example, there is only one ring of multivariate polynomials over  $\mathbb{Z}$ in the variables x, y, z with `ordering=:lex`.
 
 ###### Examples
 
+```@repl oscar
+R, (x, y, z) = PolynomialRing(ZZ, ["x", "y", "z"])
+typeof(R)
+typeof(x)
+S, (x, y, z) = PolynomialRing(ZZ, ["x", "y", "z"])
+R === S
+```
 
 ```@repl oscar
 R1, x = PolynomialRing(QQ, ["x"])
@@ -47,12 +61,6 @@ typeof(x)
 R2, (x,) = PolynomialRing(QQ, ["x"])
 typeof(x)
 R3, x = PolynomialRing(QQ, "x")
-typeof(x)
-```
-
-```@repl oscar
-R, (x, y, z) = PolynomialRing(ZZ, ["x", "y", "z"])
-typeof(R)
 typeof(x)
 ```
 
@@ -120,14 +128,29 @@ QT = FractionField(T)
 ZZ
 ```
 
-## Data Associated to Polynomial Rings
+## Gradings and Filtrations
 
-If `R` is  a multivariate polynomial ring `R` with coefficient ring `C`, then
+The following functions implement multivariate polynomial rings decorated with $\mathbb Z$-gradings by (weighted) degree:
+
+```@docs
+grade(R::MPolyRing, W::Vector{Int})
+```
+
+```@docs
+GradedPolynomialRing(C::Ring, V::Vector{String}, W::Vector{Int}; ordering=:lex)
+```
+
+!!! note
+    OSCAR functionality for working with gradings by arbitrary abelian groups and for working with filtrations is currently under development.
+
+## Data Associated to Multivariate Rings
+
+If `R` is  a multivariate polynomial ring with coefficient ring `C`, then
 
 - `base_ring(R)` refers to `C`,
 - `gens(R)` to the generators (variables) of `R`,
 - `ngens(R)` to the number of these generators, and
-- `gen(R, i)` as well as `R[i]` to the `i`th generator.
+- `gen(R, i)` as well as `R[i]` to the `i`-th generator.
 
 ###### Examples
 
@@ -140,12 +163,9 @@ R[3]
 ngens(R)
 ```
 
-## Elements of Polynomial Rings
+## Elements of Multivariate Rings
 
-!!! note
-    The types for multivariate polynomials belong to the abstract type `MPolyElem{T}`.
-
-One way to construct elements of a multivariate  polynomial ring `R` is
+One way to create elements of a multivariate  polynomial ring, `R`, is
 to build up polynomials from the generators (variables) of `R` using
 basic arithmetic as shown below:
 
@@ -153,6 +173,12 @@ basic arithmetic as shown below:
 
 ```@repl oscar
 R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+f = 3*x^2+y*z
+typeof(f)
+```
+
+```@repl oscar
+R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"])
 f = 3*x^2+y*z
 typeof(f)
 ```
@@ -170,11 +196,15 @@ with exponent vectors given by the elements of `e`.
 
 ```@repl oscar
 R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-f = R(QQ.([3, 1]), [[2, 0, 0], [0, 1, 1]])
-QQ.([3, 1]) == map(QQ, [3, 1]) 
+f = 3*x^2+y*z
+g = R(QQ.([3, 1]), [[2, 0, 0], [0, 1, 1]])
+f == g
 ```
 
-If an element `f` of `R` has been constructed, then
+!!! note
+    An often more effective way to create polynomials is to use the `MPoly` build context, see the chapter on rings.
+
+Given an element `f` of a multivariate polynomial ring `R`,
 - `parent(f)` refers to `R`,
 - `monomial(f, i)` to the `i`-th monomial of `f`, 
 - `term(f, i)` to the `i`-th term of `f`,
@@ -196,28 +226,7 @@ monomial(f, 2)
 term(f, 2)
 ```
 
-!!! note
-    An often more effective way to construct polynomials  is to use the `MPoly` build context as explained in the chapter on rings.
+## Homomorphisms of Multivariate Rings
 
-
-## Gradings
-
-The following functions allow one to assign gradings to multivariate polynomial rings:
-
-```@docs
-grade(R::MPolyRing, W::Vector{Int})
-```
-
-More directly, graded polynomial rings can be constructed as follows:
-
-```@docs
-GradedPolynomialRing(C::Ring, V::Vector{String}, W::Vector{Int}; ordering=:lex)
-```
-
-!!! note
-    OSCAR functionality for working with gradings by arbitrary abelian groups is currently under development.
-
-## Homomorphisms of Polynomial Rings
-
-How to handle homomorphisms of multivariate polynomial rings is described in
+How to handle homomorphisms of multivariate polynomial rings and their decorated types is described in
 a more general context in the section on affine algebras. 

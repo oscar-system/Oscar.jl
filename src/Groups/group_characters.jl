@@ -14,12 +14,6 @@
 
 # character values are elements from QabField
 
-import Base: getindex, length, mod, one, print, show, zero
-
-import Oscar.AbelianClosure: QabElem, QabAutomorphism
-
-import Nemo: degree
-
 export
     character_field,
     character_table,
@@ -101,12 +95,7 @@ Sym( [ 1 .. 3 ] )
 ```
 """
 function character_table(G::GAPGroup, p::Int = 0)
-    tbls = get_attribute(G, :character_tables)
-    if tbls == nothing
-      tbls = Dict()
-      set_attribute!(G, :character_tables => tbls)
-    end
-
+    tbls = get_attribute!(() -> Dict{Int,Any}(), G, :character_tables)
     return get!(tbls, p) do
       gaptbl = GAP.Globals.CharacterTable(G.X)
       if p != 0
@@ -464,11 +453,7 @@ function Base.mod(tbl::GAPGroupCharacterTable, p::Int)
     isprime(p) || error("p must be a prime integer")
     tbl.characteristic == 0 || error("tbl mod p only for ordinary table tbl")
 
-    modtbls = get_attribute(tbl, :brauer_tables)
-    if modtbls == nothing
-      modtbls = Dict{Int,Any}()
-      set_attribute!(tbl, :brauer_tables => modtbls)
-    end
+    modtbls = get_attribute!(() -> Dict{Int,Any}(), tbl, :brauer_tables)
     if ! haskey(modtbls, p)
       modtblgap = mod(tbl.GAPTable, p)
       if modtblgap == GAP.Globals.fail
@@ -527,8 +512,6 @@ end
 function Base.show(io::IO, chi::GAPGroupClassFunction)
     print(io, "group_class_function($(chi.table), $(values(chi)))")
 end
-
-import Base.values
 
 function values(chi::GAPGroupClassFunction)
     gapvalues = GAP.Globals.ValuesOfClassFunction(chi.values)
@@ -670,7 +653,7 @@ function character_field(chi::GAPGroupClassFunction)
 
       # Compute the expression of powers of `z` as sums of roots of unity (once).
       powers = [coefficients(Hecke.force_coerce_cyclo(K, nfelm^i)) for i in 0:length(v)-2]
-      c = matrix(QQ, powers)'
+      c = transpose(matrix(QQ, powers))
 
       f = function(x::nf_elem)
         return QabElem(evaluate(R(x), nfelm), N)
@@ -685,7 +668,7 @@ function character_field(chi::GAPGroupClassFunction)
 
         # ... and then w.r.t. `F`
         a = coefficients(x)
-        b = solve(c, matrix(QQ,length(a),1,a))'
+        b = transpose(solve(c, matrix(QQ,length(a),1,a)))
         b = [b[i] for i in 1:length(b)]
         return F(b)
       end

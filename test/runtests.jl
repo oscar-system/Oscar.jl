@@ -12,6 +12,7 @@ include("Rings/affine-alghom-test.jl")
 include("Rings/mpoly-graded-test.jl")
 include("Rings/mpoly-local-test.jl")
 include("Rings/mpoly-localizations.jl")
+include("Rings/mpolyquo-localizations.jl")
 include("Rings/integer-localizations.jl")
 include("Rings/nmod-localizations.jl")
 include("Rings/mpoly-nested-test.jl")
@@ -42,3 +43,5 @@ include("Modules/ModulesGraded.jl")
 include("InvariantTheory/runtests.jl")
 
 include("ToricVarieties/runtests.jl")
+
+include("Schemes/AffineSchemes.jl")

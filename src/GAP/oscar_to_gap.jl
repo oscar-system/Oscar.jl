@@ -2,8 +2,6 @@
 ## (extends the conversions from GAP.jl's `src/julia_to_gap.jl`,
 ## where low level Julia objects are treated)
 
-import GAP: julia_to_gap
-
 ## `fmpz` to GAP integer
 function GAP.julia_to_gap(obj::fmpz)
   Nemo._fmpz_is_small(obj) && return GAP.julia_to_gap(Int(obj))

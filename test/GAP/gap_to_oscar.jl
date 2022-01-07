@@ -6,9 +6,16 @@
     @test fmpz(val) == x
     @test ZZ(val) == x
 
-    # large GAP integer
+    # large positive GAP integer
     x = fmpz(2)^65
     val = GAP.evalstr("2^65")
+    @test GAP.gap_to_julia(fmpz, val) == x
+    @test fmpz(val) == x
+    @test ZZ(val) == x
+
+    # large negative GAP integer
+    x = -fmpz(2)^65
+    val = GAP.evalstr("-2^65")
     @test GAP.gap_to_julia(fmpz, val) == x
     @test fmpz(val) == x
     @test ZZ(val) == x
@@ -26,26 +33,28 @@ end
     @test fmpq(val) == x
     @test QQ(val) == x
 
-    # large GAP integer
+    # large positive GAP integer
     x = fmpq(2)^65
     val = GAP.evalstr("2^65")
     @test GAP.gap_to_julia(fmpq, val) == x
     @test fmpq(val) == x
     @test QQ(val) == x
 
-    # non-integer rational, small numerator and denominator
-    x = fmpq(2, 3)
-    val = GAP.evalstr("2/3")
+    # large negative GAP integer
+    x = -fmpq(2)^65
+    val = GAP.evalstr("-2^65")
     @test GAP.gap_to_julia(fmpq, val) == x
     @test fmpq(val) == x
     @test QQ(val) == x
 
-    # non-integer rational, large numerator and denominator
-    x = fmpq(fmpz(2)^65, fmpz(3)^40)
-    val = GAP.evalstr("2^65/3^40")
-    @test GAP.gap_to_julia(fmpq, val) == x
-    @test fmpq(val) == x
-    @test QQ(val) == x
+    # s "proper" rationals with large and small numerators and denominators
+    @testset "fmpq $a / $b" for a in [2, -2, fmpz(2^65), -fmpz(2^65)], b in [3, -3, fmpz(3^40), -fmpz(3^50)]
+        x = fmpq(a, b)
+        val = GAP.evalstr("$a/$b")
+        @test GAP.gap_to_julia(fmpq, val) == x
+        @test fmpq(val) == x
+        @test QQ(val) == x
+    end
 
     # non-rational
     val = GAP.evalstr("()")

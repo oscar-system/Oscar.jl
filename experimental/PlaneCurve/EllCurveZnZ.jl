@@ -103,7 +103,7 @@ function _rand_list(A::Nemo.FmpzModRing, N::Int)
 end
 
 ################################################################################
-# Returns the coordinates of m*P and ZZ(1) when the computation is possible, and
+# Return the coordinates of m*P and ZZ(1) when the computation is possible, and
 # returns (0, 0, 0) and the gcd otherwise.
 
 function _scalar_mult(P::Vector{Nemo.fmpz_mod}, E::Vector{Nemo.fmpz_mod}, m::fmpz)
@@ -134,7 +134,7 @@ function _scalar_mult(P::Vector{Nemo.fmpz_mod}, E::Vector{Nemo.fmpz_mod}, m::fmp
 end
 
 ################################################################################
-# Returns the elliptic plane curve corresponding to the array.
+# Return the elliptic plane curve corresponding to the array.
 
 function _toProjEllipticCurve(R::MPolyRing{S}, E::Vector{S}) where {S<:Nemo.fmpz_mod}
     length(E) == 2 || error("array of size 2 required")

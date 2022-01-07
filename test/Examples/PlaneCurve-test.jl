@@ -371,7 +371,7 @@ end
 end
 
 @testset "Counting Points on Elliptic Curves" begin
-    K = GF(5, 7)[1]
+    K = GF(5, 7)
     S, (x, y, z) = PolynomialRing(K, ["x", "y", "z"])
     T, _ = grade(S)
     F = T(-x^3 - 3 * x^2 * y - 3 * x * y^2 - x * z^2 - y^3 + y^2 * z - y * z^2 - 4 * z^3)

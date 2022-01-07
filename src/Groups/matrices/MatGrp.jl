@@ -1,6 +1,3 @@
-import AbstractAlgebra: MatElem, matrix, MatSpace, parent_type, Ring, RingElem
-import Hecke: base_ring, det, fmpz, fq_nmod, FqNmodFiniteField, nrows, tr, trace
-
 export
     general_linear_group,
     mat_elem_type,
@@ -486,10 +483,8 @@ compute_order(G::GAPGroup) = fmpz(GAP.Globals.Order(G.X))
 compute_order(G::MatrixGroup{T}) where {T <: Union{nf_elem, fmpq}} = order(isomorphic_group_over_finite_field(G)[1])
 
 function order(::Type{T}, G::MatrixGroup) where T <: IntegerUnion
-   res = get_attribute(G, :order)
-   if res == nothing
-     res = compute_order(G)::fmpz
-     set_attribute!(G, :order => res)
+   res = get_attribute!(G, :order) do
+     return compute_order(G)::fmpz
    end
    return T(res)::T
 end
@@ -516,7 +511,7 @@ end
 function general_linear_group(n::Int, q::Int)
    (a,b) = ispower(q)
    isprime(b) || throw(ArgumentError("The field size must be a prime power"))
-   return general_linear_group(n, GF(b,a)[1])
+   return general_linear_group(n, GF(b, a))
 end
 
 """
@@ -535,7 +530,7 @@ end
 function special_linear_group(n::Int, q::Int)
    (a,b) = ispower(q)
    isprime(b) || throw(ArgumentError("The field size must be a prime power"))
-   return special_linear_group(n, GF(b,a)[1])
+   return special_linear_group(n, GF(b, a))
 end
 
 """
@@ -556,7 +551,7 @@ end
 function symplectic_group(n::Int, q::Int)
    (a,b) = ispower(q)
    isprime(b) || throw(ArgumentError("The field size must be a prime power"))
-   return symplectic_group(n, GF(b,a)[1])
+   return symplectic_group(n, GF(b, a))
 end
 
 """
@@ -590,7 +585,7 @@ end
 function orthogonal_group(e::Int, n::Int, q::Int)
    (a,b) = ispower(q)
    isprime(b) || throw(ArgumentError("The field size must be a prime power"))
-   return orthogonal_group(e, n, GF(b,a)[1])
+   return orthogonal_group(e, n, GF(b, a))
 end
 
 orthogonal_group(n::Int, F::Ring) = orthogonal_group(0,n,F)
@@ -628,7 +623,7 @@ end
 function special_orthogonal_group(e::Int, n::Int, q::Int)
    (a,b) = ispower(q)
    isprime(b) || throw(ArgumentError("The field size must be a prime power"))
-   return special_orthogonal_group(e, n, GF(b,a)[1])
+   return special_orthogonal_group(e, n, GF(b, a))
 end
 
 special_orthogonal_group(n::Int, F::Ring) = special_orthogonal_group(0,n,F)
@@ -665,7 +660,7 @@ end
 function omega_group(e::Int, n::Int, q::Int)
    (a,b) = ispower(q)
    isprime(b) || throw(ArgumentError("The field size must be a prime power"))
-   return omega_group(e, n, GF(b,a)[1])
+   return omega_group(e, n, GF(b, a))
 end
 
 omega_group(n::Int, q::Int) = omega_group(0,n,q)
@@ -680,7 +675,7 @@ Return the unitary group of dimension `n` over the field `GF(q^2)`.
 function unitary_group(n::Int, q::Int)
    (a,b) = ispower(q)
    isprime(b) || throw(ArgumentError("The field size must be a prime power"))
-   G = MatrixGroup(n,GF(b,2*a)[1])
+   G = MatrixGroup(n,GF(b, 2*a))
    G.descr = :GU
    return G
 end
@@ -694,7 +689,7 @@ Return the special unitary group of dimension `n` over the field `GF(q^2)`.
 function special_unitary_group(n::Int, q::Int)
    (a,b) = ispower(q)
    isprime(b) || throw(ArgumentError("The field size must be a prime power"))
-   G = MatrixGroup(n,GF(b,2*a)[1])
+   G = MatrixGroup(n,GF(b, 2*a))
    G.descr = :SU
    return G
 end
