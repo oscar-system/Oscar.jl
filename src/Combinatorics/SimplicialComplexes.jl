@@ -247,24 +247,24 @@ ideal(x1*x2*x3, x1*x2*x4, x1*x5*x6, x2*x5*x6, x1*x3*x6, x1*x4*x5, x3*x4*x5, x3*x
 """
 function stanley_reisner_ideal(K::SimplicialComplex)
     n = nvertices(K)
-    R, _ = PolynomialRing(ZZ, n)
+    R, _ = PolynomialRing(QQ, n) #, cache=false)
     return stanley_reisner_ideal(R, K)
 end
 
 @doc Markdown.doc"""
-    stanley_reisner_ideal(R::FmpzMPolyRing, K::SimplicialComplex)
+    stanley_reisner_ideal(R::MPolyRing, K::SimplicialComplex)
 
 Return the Stanley-Reisner ideal of the abstract simplicial complex `K`, in the given ring `R`.
 
 # Example
 ```jldoctest
-julia> R, _ = ZZ["a","b","c","d","e","f"];
+julia> R, _ = QQ["a","b","c","d","e","f"];
 
 julia> stanley_reisner_ideal(R, real_projective_plane())
 ideal(a*b*c, a*b*d, a*e*f, b*e*f, a*c*f, a*d*e, c*d*e, c*d*f, b*c*e, b*d*f)
 ```
 """
-function stanley_reisner_ideal(R::FmpzMPolyRing, K::SimplicialComplex)
+function stanley_reisner_ideal(R::MPolyRing, K::SimplicialComplex)
     n = nvertices(K)
     return ideal([ R([1], [_characteristic_vector(f,n)]) for f in minimal_nonfaces(K) ])
 end
@@ -279,18 +279,18 @@ Return the Stanley-Reisner ring of the abstract simplicial complex `K`.
 julia> K = SimplicialComplex([[1,2,3],[2,3,4]]);
 
 julia> stanley_reisner_ring(K)
-(Quotient of Multivariate Polynomial Ring in x1, x2, x3, x4 over Integer Ring by ideal(x1*x4), Map from
-Multivariate Polynomial Ring in x1, x2, x3, x4 over Integer Ring to Quotient of Multivariate Polynomial Ring in x1, x2, x3, x4 over Integer Ring by ideal(x1*x4) defined by a julia-function with inverse)
+(Quotient of Multivariate Polynomial Ring in x1, x2, x3, x4 over Rational Field by ideal(x1*x4), Map from
+Multivariate Polynomial Ring in x1, x2, x3, x4 over Rational Field to Quotient of Multivariate Polynomial Ring in x1, x2, x3, x4 over Rational Field by ideal(x1*x4) defined by a julia-function with inverse)
 ```
 """
 function stanley_reisner_ring(K::SimplicialComplex)
     n = nvertices(K)
-    R, _ = PolynomialRing(ZZ, n)
+    R, _ = PolynomialRing(QQ, n) #, cache=false)
     return stanley_reisner_ring(R, K)
 end
 
 @doc Markdown.doc"""
-    stanley_reisner_ring(R::FmpzMPolyRing, K::SimplicialComplex)
+    stanley_reisner_ring(R::MPolyRing, K::SimplicialComplex)
 
 Return the Stanley-Reisner ring of the abstract simplicial complex `K`, as a quotient of a given ring `R`.
 
@@ -303,7 +303,7 @@ julia> stanley_reisner_ring(R, real_projective_plane())
 Multivariate Polynomial Ring in 6 variables a, b, c, d, ..., f over Integer Ring to Quotient of Multivariate Polynomial Ring in 6 variables a, b, c, d, ..., f over Integer Ring by ideal(a*b*c, a*b*d, a*e*f, b*e*f, a*c*f, a*d*e, c*d*e, c*d*f, b*c*e, b*d*f) defined by a julia-function with inverse)
 ```
 """
-stanley_reisner_ring(R::FmpzMPolyRing, K::SimplicialComplex) = quo(R, stanley_reisner_ideal(R, K))
+stanley_reisner_ring(R::MPolyRing, K::SimplicialComplex) = quo(R, stanley_reisner_ideal(R, K))
 
 ################################################################################
 ##  Standard examples
@@ -312,7 +312,7 @@ stanley_reisner_ring(R::FmpzMPolyRing, K::SimplicialComplex) = quo(R, stanley_re
 """
     torus()
 
-Construct Császár's (vertex-minimal) 7-vertex triangulation of the torus (surface).
+Construct Möbius' (vertex-minimal) 7-vertex triangulation of the torus (surface).
 """
 torus() = SimplicialComplex(Polymake.topaz.torus())
 
