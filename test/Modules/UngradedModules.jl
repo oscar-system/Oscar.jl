@@ -62,6 +62,7 @@ end
   @test SubQuo(F2, A2, B1) == P
 
   #Test that no obvious zeros are in the generator set
+  F = free_module(R,1)
   AM = R[x;]
   BM = R[x^2; y^3; z^4]
   M = SubQuo(F, AM, BM)
