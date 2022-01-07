@@ -94,24 +94,19 @@ function irreducible_modules(::Type{AnticNumberField}, G::Oscar.GAPGroup)
   return Z
 end
 
-function irreducible_modules(::FlintRationalField, G::Oscar.GAPGroup)
+function irreducible_modules(::typeof(CyclotomicField), G::Oscar.GAPGroup)
   z = irreducible_modules(G)
-  Z = GModule[]
-  for m in z
-    a = gmodule(CyclotomicField, m)
-    push!(Z, gmodule(QQ, a))
-  end
-  return Z
+  return [gmodule(CyclotomicField, m) for m in z]
+end
+
+function irreducible_modules(::FlintRationalField, G::Oscar.GAPGroup)
+  z = irreducible_modules(CyclotomicField, G)
+  return [gmodule(QQ, m) for m in z]
 end
 
 function irreducible_modules(::FlintIntegerRing, G::Oscar.GAPGroup)
-  z = irreducible_modules(G)
-  Z = GModule[]
-  for m in z
-    a = gmodule(CyclotomicField, m)
-    push!(Z, gmodule(ZZ, gmodule(QQ, a)))
-  end
-  return Z
+  z = irreducible_modules(QQ, G)
+  return [gmodule(ZZ, m) for m in z]
 end
 
 function gmodule(::typeof(CyclotomicField), C::GModule)
