@@ -234,6 +234,11 @@ function irreducible_secondary_invariants_modular(RG::InvRing)
 
   # Sort the secondary invariants by degree
   maxd = maximum(total_degree(f) for f in s_invars)
+
+  if maxd == 0
+    return elem_type(Rgraded)[]
+  end
+
   s_invars_sorted = Vector{Vector{elem_type(R)}}(undef, maxd)
   for i = 1:maxd
     s_invars_sorted[i] = elem_type(R)[]
@@ -259,7 +264,7 @@ function irreducible_secondary_invariants_modular(RG::InvRing)
       end
     end
   end
-  return is_invars
+  return [ Rgraded(f) for f in is_invars ]
 end
 
 ################################################################################
