@@ -608,7 +608,6 @@ function iszero(M::ModuleGens)
   return iszero(singular_generators(M))
 end
 
-# TODO remove output saying defined on the Singular side?
 function show(io::IO, F::ModuleGens)
   print(io, "Array of length ", length(F))
   for i=1:length(F)
@@ -1237,7 +1236,6 @@ Submodule with 2 generators
 
 represented as subquotient with no relations.
 
-
 ```
 """
 SubQuo(F::FreeMod{R}, O::Vector{<:FreeModElem}) where {R} = SubQuo{R}(F, O)
@@ -1477,8 +1475,6 @@ by Submodule with 3 generators
 2 -> y^3*e[1]
 3 -> z^4*e[1]
 
-
-
 julia> AN = R[x; y]
 [x]
 [y]
@@ -1496,8 +1492,6 @@ by Submodule with 3 generators
 1 -> (x^2 + y^4)*e[1]
 2 -> y^3*e[1]
 3 -> z^4*e[1]
-
-
 
 julia> issubset(M, N)
 true
@@ -1557,8 +1551,6 @@ by Submodule with 3 generators
 2 -> y^3*e[1]
 3 -> z^4*e[1]
 
-
-
 julia> AN = R[x; y]
 [x]
 [y]
@@ -1576,7 +1568,6 @@ by Submodule with 3 generators
 1 -> (x^2 + y^4)*e[1]
 2 -> y^3*e[1]
 3 -> z^4*e[1]
-
 
 julia> M == N
 false
@@ -1695,8 +1686,6 @@ by Submodule with 4 generators
 2 -> x*y*e[1]
 3 -> y^2*e[1]
 4 -> z^4*e[1]
-
-
 
 julia> f = SubQuoElem(sparse_row(R, [(1,z),(2,one(R))]),M)
 (x*z + y)*e[1]
@@ -2306,8 +2295,6 @@ by Submodule with 3 generators
 2 -> y^3*e[1]
 3 -> z^4*e[1]
 
-
-
 julia> iszero(M)
 false
 ```
@@ -2578,8 +2565,6 @@ by Submodule with 3 generators
 2 -> y^3*e[1]
 3 -> z^4*e[1]
 
-
-
 julia> N = M;
 
 julia> V = [y^2*N[1], x*N[2]]
@@ -2598,7 +2583,6 @@ by Submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
 3 -> z^4*e[1]
-
 
 Codomain:
 =========
@@ -2629,8 +2613,6 @@ by Submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
 3 -> z^4*e[1]
-defined on the Singular side
-
 
 Codomain:
 =========
@@ -2641,8 +2623,6 @@ by Submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
 3 -> z^4*e[1]
-defined on the Singular side
-
 
 julia> iswelldefined(b)
 false
@@ -2701,8 +2681,6 @@ by Submodule with 3 generators
 2 -> y^3*e[1]
 3 -> z^4*e[1]
 
-
-
 julia> N = M;
 
 julia> V = [y^2*N[1], x*N[2]]
@@ -2722,7 +2700,6 @@ by Submodule with 3 generators
 2 -> y^3*e[1]
 3 -> z^4*e[1]
 
-
 Codomain:
 =========
 Subquotient of Submodule with 2 generators
@@ -2732,7 +2709,6 @@ by Submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
 3 -> z^4*e[1]
-
 
 julia> A = matrix(a)
 [y^2   0]
@@ -2923,8 +2899,6 @@ by Submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
 3 -> z^4*e[1]
-
-
 
 julia> iszero(M[1])
 false
