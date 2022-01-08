@@ -2336,7 +2336,7 @@ function sub(F::FreeMod, V::Vector{<:FreeModElem}, task::Symbol = :none)
   set_attribute!(s, :canonical_inclusion => emb)
   (task == :none || task == :module) && return s
   task == :cache_morphism && register_morphism!(emb)
-  task == :morphism && return emb
+  task == :only_morphism && return emb
   (task == :cache_morphism || task == :both || task == :with_morphism) && return s, emb
   error("No valid option for task.")
 end
@@ -2350,7 +2350,7 @@ If `task` is set to `:none` (default option) or to `:module` return only `S`.
 If `task` is set to `:with_morphism` or to `:both` return also the canonical injection morphism
 $S \to F$.
 If `task` is set to `:cache_morphism` the morphism is also cached.
-If `task` is set to `:morphism` return only the morphism.
+If `task` is set to `:only_morphism` return only the morphism.
 """
 function sub(F::FreeMod, O::Vector{<:SubQuoElem}, task::Symbol = :none)
   s = SubQuo(F, [x.repres for x = O])
@@ -2366,7 +2366,7 @@ If `task` is set to `:none` (default option) or to `:module` return only `s`.
 If `task` is set to `:with_morphism` or to `:both` return also the canonical injection morphism
 $s \to F$.
 If `task` is set to `:cache_morphism` the morphism is also cached.
-If `task` is set to `:morphism` return only the morphism.
+If `task` is set to `:only_morphism` return only the morphism.
 """
 function sub(F::FreeMod, s::SubQuo, task::Symbol = :none)
   @assert !isdefined(s, :quo)
@@ -2376,7 +2376,7 @@ function sub(F::FreeMod, s::SubQuo, task::Symbol = :none)
   set_attribute!(s, :canonical_inclusion => emb)
   (task == :none || task == :module) && return s
   task == :cache_morphism && register_morphism!(emb)
-  task == :morphism && return emb 
+  task == :only_morphism && return emb 
   (task == :cache_morphism || task == :both || task == :with_morphism) && return s, emb
   error("No valid option for task.")
 end
@@ -2409,7 +2409,7 @@ function sub(M::SubQuo, V::Vector{<:SubQuoElem}, task::Symbol = :none, check = t
   set_attribute!(t, :canonical_inclusion => emb)
   (task == :none || task == :module) && return t
   task == :cache_morphism && register_morphism!(emb)
-  task == :morphism && return emb 
+  task == :only_morphism && return emb 
   (task == :cache_morphism || task == :both || task == :with_morphism) && return t, emb
   error("No valid option for task.")
 end
@@ -2442,7 +2442,7 @@ The embedding free module of the parent of the elements of `O` must be `F`.
 If `task` is set to `:with_morphism` or to `:both` return also the canonical projection morphism
 $F \to F/T$.
 If `task` is set to `:cache_morphism` the morphism is also cached.
-If `task` is set to `:morphism` return only the morphism.
+If `task` is set to `:only_morphism` return only the morphism.
 """
 function quo(F::FreeMod{T}, O::Vector{<:SubQuoElem{T}}, task::Symbol = :none) where T
   S = SubQuo(F, basis(F))
@@ -2459,7 +2459,7 @@ The elements of `O` must be elements of the embedding free module of `S`.
 If `task` is set to `:with_morphism` or to `:both` return also the canonical projection morphism
 $F \to F/T$.
 If `task` is set to `:cache_morphism` the morphism is also cached.
-If `task` is set to `:morphism` return only the morphism.
+If `task` is set to `:only_morphism` return only the morphism.
 """
 function quo(F::SubQuo, O::Vector{<:FreeModElem}, task::Symbol = :none)
   if length(O) > 0
@@ -2499,7 +2499,7 @@ Compute $S / T$.
 If `task` is set to `:with_morphism` or to `:both` return also the canonical projection morphism
 $S \to S/T$.
 If `task` is set to `:cache_morphism` the morphism is also cached.
-If `task` is set to `:morphism` return only the morphism.
+If `task` is set to `:only_morphism` return only the morphism.
 """
 function quo(S::SubQuo, T::SubQuo, task::Symbol = :none)
 #  @assert !isdefined(T, :quo)
@@ -2515,7 +2515,7 @@ Compute $F / T$.
 If `task` is set to `:with_morphism` or to `:both` return also the canonical projection morphism
 $F \to F/T$.
 If `task` is set to `:cache_morphism` the morphism is also cached.
-If `task` is set to `:morphism` return only the morphism.
+If `task` is set to `:only_morphism` return only the morphism.
 """
 function quo(F::FreeMod{R}, T::SubQuo{R}, task::Symbol = :none) where R
   @assert !isdefined(T, :quo)
@@ -2535,7 +2535,7 @@ function return_quo_wrt_task(M::ModuleFP, Q::ModuleFP, task)
   else
     pro = hom(M, Q, gens(Q))
     task == :cache_morphism && register_morphism!(pro)
-    task == :morphism && return pro
+    task == :only_morphism && return pro
     return Q, pro
   end
 end
@@ -2733,7 +2733,7 @@ $M \cong SQ$.
 If `task` is set to `:with_morphism` or to `:both` then return also an isomorphism $M \to SQ$. Calling `inv()`
 on this isomorphism is cheap.
 If `task` is set to `:cache_morphism` then the isomorphism is cached.
-If `task` is set to `:morphism` then return only the isomorphism.
+If `task` is set to `:only_morphism` then return only the isomorphism.
 
 # Examples
 """
@@ -2757,7 +2757,7 @@ function present_as_cokernel(SQ::SubQuo, task::Symbol = :none)
     register_morphism!(isomorphism)
     register_morphism!(inverse_isomorphism)
   end
-  task == :morphism && return isomorphism
+  task == :only_morphism && return isomorphism
   
   return presentation_module, isomorphism
 end
