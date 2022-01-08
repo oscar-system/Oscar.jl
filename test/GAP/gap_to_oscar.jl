@@ -115,6 +115,30 @@ end
     @test_throws GAP.ConversionError GAP.gap_to_julia(fmpq_mat, val)
 end
 
+@testset "finite field matrix" begin
+  @testset "with characteristic $p" for p in [ 5, fmpz(5), 65537, fmpz(65537) ]
+    @testset "with finite field $F" for F in [ GF(p), FiniteField(p,1,"a")[1], FiniteField(p,2,"a")[1] ]
+        x = F[1 2; 3 4]
+
+        # matrix of small (GAP) integers
+        val = GAP.evalstr( "[ [ 1, 2 ], [ 3, 4 ] ]" )
+        @test matrix(F, val) == x
+
+        # matrix containing small and large integers
+        val = GAP.evalstr( "[ [ 1, 2+$p*2^65 ], [ 3, 4 ] ]" )
+        @test matrix(F, val) == x
+
+        # matrix of finite field elements
+        val = GAP.evalstr( "Z($p)^0 * [ [ 1, 2 ], [ 3, 4 ] ]" )
+        @test matrix(F, val) == x
+
+        # possible compressed matrix of finite field elements
+        GAP.Globals.ConvertToMatrixRep(val)
+        @test matrix(F, val) == x
+    end
+  end
+end
+
 @testset "single cyclotomics" begin
     # to cyclotomic fields
     F, z = CyclotomicField(1)

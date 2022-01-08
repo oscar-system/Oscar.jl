@@ -14,6 +14,7 @@ using GAP
 
 GAP.@wrap CF(x::Any, y::Any)::GapObj
 GAP.@wrap CF(x::Any)::GapObj
+GAP.@wrap CHAR_FFE_DEFAULT(x::Any)::GapInt
 GAP.@wrap Characteristic(x::Any)::GapInt
 GAP.@wrap Coefficients(x::Any, y::Any)::GapObj
 GAP.@wrap Conductor(x::Any)::GapInt
