@@ -63,16 +63,17 @@ The string `name` specifies how the basis vectors are printed.
 
 # Examples
 ```jldoctest
-julia> R, (x,y) = PolynomialRing(QQ, ["x", "y"])
-(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
-
-julia> R, (x,y) = grade(R)
+julia> R, (x,y) = grade(PolynomialRing(QQ, ["x", "y"])[1])
 (Multivariate Polynomial Ring in x, y over Rational Field graded by 
   x -> [1]
   y -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y])
 
-julia> free_module_dec(R, 3)
-Decorated free module of rank 3 over RR^3([0])
+julia> free_module_dec(R,3)
+Decorated free module of rank 3 over Multivariate Polynomial Ring in x, y over Rational Field graded by 
+  x -> [1]
+  y -> [1]Multivariate Polynomial Ring in x, y over Rational Field graded by 
+  x -> [1]
+  y -> [1]^3([0])
 
 ```
 """
