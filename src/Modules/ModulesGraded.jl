@@ -1,4 +1,4 @@
-export FreeMod_dec, FreeModElem_dec, decoration
+export FreeMod_dec, FreeModElem_dec, decoration, free_module_dec
 
 abstract type ModuleFP_dec{T} <: ModuleFP{T} end
 abstract type AbstractFreeMod_dec{T} <: AbstractFreeMod{T} end
@@ -60,6 +60,21 @@ Create the decorated free module $R^n$ equipped with its basis of standard unit 
 and standard degrees, that is the standard unit vectors have degree 0.
 
 The string `name` specifies how the basis vectors are printed. 
+
+# Examples
+```jldoctest
+julia> R, (x,y) = PolynomialRing(QQ, ["x", "y"])
+(Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
+
+julia> R, (x,y) = grade(R)
+(Multivariate Polynomial Ring in x, y over Rational Field graded by 
+  x -> [1]
+  y -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y])
+
+julia> free_module_dec(R, 3)
+Decorated free module of rank 3 over RR^3([0])
+
+```
 """
 free_module_dec(R::CRing_dec, n::Int, name::String = "e"; cached::Bool = false) = FreeMod_dec(R, n, name, cached = cached)
 
@@ -97,15 +112,15 @@ end
 
 
 function AbstractAlgebra.extra_name(F::FreeMod_dec)
-  t = Hecke.get_special(F, :twist)
+  t = Hecke.get_attribute(F, :twist)
   if t !== nothing
-    n = Hecke.get_special(t[1], :name)
+    n = Hecke.get_attribute(t[1], :name)
     if n !== nothing
       return "$n($(t[2]))"
     end
   end
   if length(Set(F.d)) == 1
-    n = Hecke.get_special(forget_decoration(F).R, :name)
+    n = Hecke.get_attribute(forget_decoration(F).R, :name)
     if n !== nothing
       return "$n^$(ngens(F))($(-F.d[1]))"
     end
