@@ -1233,7 +1233,6 @@ julia> M = SubQuo(F, O)
 Submodule with 2 generators
 1 -> x*e[1] + e[2]
 2 -> y*e[2]
-
 represented as subquotient with no relations.
 
 ```
