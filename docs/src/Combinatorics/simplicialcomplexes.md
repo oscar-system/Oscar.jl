@@ -29,6 +29,13 @@ General textbooks offering details on the theory include:
 SimplicialComplex(K::Vector{Vector{Int}})
 ```
 
+### Subcomplexes
+
+```@docs
+star_subcomplex(K::SimplicialComplex, sigma::Union{Vector{Int}, Set{Int}})
+link_subcomplex(K::SimplicialComplex, sigma::Union{Vector{Int}, Set{Int}})
+```
+
 ### Surface examples
 
 ```@docs

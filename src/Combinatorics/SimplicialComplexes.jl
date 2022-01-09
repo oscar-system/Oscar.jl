@@ -3,24 +3,16 @@ import Oscar: Polymake, pm_object
 
 export
     SimplicialComplex,
-    facets,
-    f_vector,
-    h_vector,
-    dim,
-    betti_numbers,
-    euler_characteristic,
-    homology,
-    minimal_nonfaces,
-    nvertices,
+    facets, nvertices,
     vertexindices,
-    stanley_reisner_ideal,
-    stanley_reisner_ring,
-    load_simplicialcomplex,
-    save_simplicialcomplex,
+    f_vector, h_vector,
+    dim,
+    betti_numbers, euler_characteristic, homology,
+    minimal_nonfaces, stanley_reisner_ideal, stanley_reisner_ring,
+    load_simplicialcomplex, save_simplicialcomplex,
     complex_projective_plane,
-    real_projective_plane,
-    klein_bottle,
-    torus # requires a distinction from, e.g., an algebraic group
+    real_projective_plane, klein_bottle, torus, # requires a distinction from, e.g., an algebraic group
+    star_subcomplex, link_subcomplex
 
 ################################################################################
 ##  Constructing
@@ -198,6 +190,7 @@ euler_characteristic(K::SimplicialComplex) = pm_object(K).EULER_CHARACTERISTIC::
     homology(K::SimplicialComplex, i::Int)
 
 Return `i`-th reduced integral homology group of `K`.
+Recall that the 0-th homology group is trivial if and only if `K` is connected.
 
 # Example
 ```jldoctest
@@ -306,7 +299,7 @@ Multivariate Polynomial Ring in 6 variables a, b, c, d, ..., f over Integer Ring
 stanley_reisner_ring(R::MPolyRing, K::SimplicialComplex) = quo(R, stanley_reisner_ideal(R, K))
 
 ################################################################################
-##  Standard examples
+###  Surface examples
 ################################################################################
 
 """
@@ -330,12 +323,52 @@ Construct the (vertex-minimal) 6-vertex triangulation of the real projective pla
 """
 real_projective_plane() = SimplicialComplex(Polymake.topaz.real_projective_plane())
 
+################################################################################
+###  Other examples
+################################################################################
+
 """
     complex_projective_plane()
 
 Construct the (vertex-minimal) 9-vertex triangulation of the complex projective plane.
 """
 complex_projective_plane() = SimplicialComplex(Polymake.topaz.complex_projective_plane())
+
+################################################################################
+###  Subcomplexes
+################################################################################
+
+@doc Markdown.doc"""
+    star_complex(K::SimplicialComplex, sigma::Union{Vector{Int}, Set{Int}})
+
+Return the star of the face `sigma` in the abstract simplicial complex `K`.
+
+# Example
+```jldoctest
+julia> K = SimplicialComplex([[1,2,3],[2,3,4]]);
+
+julia> star_subcomplex(K,[1])
+Abstract simplicial complex of dimension 2 on 3 vertices
+```
+"""
+star_subcomplex(K::SimplicialComplex, sigma::Union{Vector{Int}, Set{Int}}) = SimplicialComplex(Polymake.topaz.star(pm_object(K), Polymake.to_zero_based_indexing(sigma)))
+# in polymake 4.6 functions will be renamed as link_complex->link_subcomplex, star->star_subcomplex
+
+@doc Markdown.doc"""
+    link_complex(K::SimplicialComplex, sigma::Union{Vector{Int}, Set{Int}})
+
+Return the link of the face `sigma` in the abstract simplicial complex `K`.
+
+# Example
+```jldoctest
+julia> K = SimplicialComplex([[1,2,3],[2,3,4]]);
+
+julia> link_subcomplex(K,[2,3])
+Abstract simplicial complex of dimension 0 on 2 vertices
+```
+"""
+link_subcomplex(K::SimplicialComplex, sigma::Union{Vector{Int}, Set{Int}}) = SimplicialComplex(Polymake.topaz.link_complex(pm_object(K), Polymake.to_zero_based_indexing(sigma)))
+# in polymake 4.6 functions will be renamed as link_complex->link_subcomplex, star->star_subcomplex
 
 ###############################################################################
 ### Display
@@ -348,7 +381,7 @@ function Base.show(io::IO, K::SimplicialComplex)
 end
 
 ###############################################################################
-### Serialization
+## Serialization
 ###############################################################################
 
 """
