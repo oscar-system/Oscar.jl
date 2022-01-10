@@ -434,3 +434,8 @@ function partition_of_unity(X::Spec{BRT, BRET, RT, RET, MST},
   error("not implemented")
 end
 
+function hash(X::Spec, u::UInt)
+  r = 0x753087204385757820349592852
+  return xor(r, hash(OO(X), u))
+end
+  

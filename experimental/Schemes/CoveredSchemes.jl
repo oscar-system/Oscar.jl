@@ -109,28 +109,28 @@ end
 
 mutable struct CoveredScheme{BRT, BRET, RT, RET} <:Scheme{BRT, BRET}
   patches::Vector{Spec{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}}
-  glueings::Dict{Tuple{Int64, Int64}, Glueing{BRT, BRET, RT, RET}}
+  glueings::Dict{Tuple{Spec{BRT, BRET, RT, RET}, Spec{BRT, BRET, RT, RET}}, Glueing{BRT, BRET, RT, RET}}
 
   # fields for caching
   glueing_graph::Graph{Directed}
 
   function CoveredScheme(
-      X::Vector{Spec{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}},
-      glueings::Dict{Tuple{Int64, Int64}, Glueing{BRT, BRET, RT, RET}}
+      patches::Vector{Spec{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}},
+      glueings::Dict{Tuple{Spec{BRT, BRET, RT, RET}, Spec{BRT, BRET, RT, RET}}, Glueing{BRT, BRET, RT, RET}}
     ) where {BRT, BRET, RT, RET}
-    n = length(X)
+    n = length(patches)
     n > 0 || error("can not glue the empty scheme")
-    kk = coefficient_ring(base_ring(OO(X[1])))
+    kk = coefficient_ring(base_ring(OO(patches[1])))
     for i in 2:n
-      kk == coefficient_ring(base_ring(OO(X[i]))) || error("schemes are not defined over the same base ring")
+      kk == coefficient_ring(base_ring(OO(patches[i]))) || error("schemes are not defined over the same base ring")
     end
-    for (i,j) in keys(glueings)
-      (U, V) = patches(g[(i,j)])
-      (U == X[i] && V == X[j]) || error("glueings are not compatible with the patches")
-      if haskey(g, (j,i))
-	inverse(g[(i,j)]) == g[(j,i)] || error("glueings are not inverse of each other")
+    for (X, Y) in keys(glueings)
+      X in patches || error("glueings are not compatible with the patches")
+      Y in patches || error("glueings are not compatible with the patches")
+      if haskey(g, (Y, X))
+	inverse(g[(X, Y)]) == g[(Y, X)] || error("glueings are not inverse of each other")
       else
-	g[(j,i)] = inverse(g[(i,j)])
+	g[(Y, X)] = inverse(g[(X, Y)])
       end
     end
     return new{BRT, BRET, RT, RET}(X, glueings)
