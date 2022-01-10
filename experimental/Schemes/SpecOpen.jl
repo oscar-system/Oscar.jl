@@ -4,7 +4,7 @@ export StructureSheafRing, variety, domain, OO
 
 export StructureSheafElem, domain, representatives, patches, restrict, npatches
 
-export SpecOpenMor, maps_on_patches, restriction, identity_map, preimage, generic_fractions, pullback
+export SpecOpenMor, maps_on_patches, restriction, identity_map, preimage, generic_fractions, pullback, maximal_extension
 
 @Markdown.doc """
     SpecOpen{BRT, BRET, RT, RET, MST} <: Scheme{BRT, BRET}
