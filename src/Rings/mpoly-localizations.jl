@@ -1,5 +1,5 @@
 export MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal, MPolyPowersOfElement, MPolyProductOfMultSets
-export rand, sets, issubset, units_of
+export rand, sets, issubset, units_of, simplify!
 
 export MPolyLocalizedRing
 export ambient_ring, point_coordinates, inverted_set, denominators, gens
@@ -115,6 +115,20 @@ end
 ### generation of random elements 
 function rand(S::MPolyPowersOfElement, v1::UnitRange{Int}, v2::UnitRange{Int}, v3::UnitRange{Int})
   return prod([f^(abs(rand(Int))%10) for f in denominators(S)])::elem_type(ambient_ring(S))
+end
+
+### simplification. 
+# Replaces each element d by its list of square free prime divisors.
+function simplify!(S::MPolyPowersOfElement)
+  R = ambient_ring(S)
+  new_denom = Vector{elem_type(R)}()
+  for d in denominators(S)
+    for a in factor(d)
+      push!(new_denom, a[1])
+    end
+  end
+  S.a = new_denom
+  return S
 end
 
 
@@ -871,6 +885,20 @@ fraction(a::MPolyLocalizedRingElem) = a.frac
     RingElemType, 
     MultSetType
   } = MPolyLocalizedRingElem(W, FractionField(base_ring(W))(f), check=check)
+
+(W::MPolyLocalizedRing{
+    BaseRingType, 
+    BaseRingElemType, 
+    RingType, 
+    RingElemType, 
+    MultSetType
+  })(f::BaseRingElemType) where {
+    BaseRingType, 
+    BaseRingElemType, 
+    RingType, 
+    RingElemType, 
+    MultSetType
+  } = MPolyLocalizedRingElem(W, FractionField(base_ring(W))(base_ring(W)(f)), check=false)
 
 function (W::MPolyLocalizedRing{
     BaseRingType, 

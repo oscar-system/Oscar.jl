@@ -1,4 +1,4 @@
-export SpecOpen, parent, gens, complement, npatches, patches, intersections, name, intersect, union, issubset, closure, find_non_zero_divisor, is_non_zero_divisor, is_dense
+export SpecOpen, ambient, gens, complement, npatches, patches, intersections, name, intersect, issubset, closure, find_non_zero_divisor, is_non_zero_divisor, is_dense
 
 export StructureSheafRing, variety, domain, OO
 
@@ -6,6 +6,15 @@ export StructureSheafElem, domain, representatives, patches, restrict, npatches
 
 export SpecOpenMor, maps_on_patches, restriction, identity_map, preimage, generic_fractions, pullback
 
+@Markdown.doc """
+    SpecOpen{BRT, BRET, RT, RET, MST} <: Scheme{BRT, BRET}
+
+Zariski open subset ``U`` of an affine scheme ``X = Spec(R)``. 
+This stores a list of generators ``f₁,…,fᵣ`` of an ideal 
+``I`` defining the complement ``Z = X ∖ U``. 
+The variety ``X`` is referred to as the *ambient variety* and 
+the list ``f₁,…,fᵣ`` as the *generators* for ``U``.
+"""
 mutable struct SpecOpen{BRT, BRET, RT, RET, MST} <: Scheme{BRT, BRET}
   X::Spec{BRT, BRET, RT, RET, MST} # the ambient scheme
   gens::Vector{RET} # a list of functions defining the complement of the open subset
@@ -29,9 +38,36 @@ mutable struct SpecOpen{BRT, BRET, RT, RET, MST} <: Scheme{BRT, BRET}
   end
 end
 
-parent(U::SpecOpen) = U.X
+@Markdown.doc """
+    ambient(U::SpecOpen)
+
+Returns the ambient scheme ``X`` of a Zariski open subset ``U ⊂ X``.
+"""
+ambient(U::SpecOpen) = U.X
+
+@Markdown.doc """
+    npatches(U::SpecOpen)
+
+Returns the number of generators stored for describing the complement of ``U``.
+"""
 npatches(U::SpecOpen) = length(U.gens)
+
+@Markdown.doc """
+    gens(U::SpecOpen) = U.gens
+
+Returns the generators ``[f₁,…,fᵣ]`` stored for the description 
+of the complement of ``U``.
+"""
 gens(U::SpecOpen) = U.gens
+
+@Markdown.doc """
+    getindex(U::SpecOpen, i::Int) = patches(U)[i]
+
+Returns the hypersurface complement of ``fᵢ`` in the 
+ambient scheme ``X`` of ``U`` where ``f₁,…,fᵣ`` are 
+the generators stored for the description of the complement 
+of ``U``.
+"""
 getindex(U::SpecOpen, i::Int) = patches(U)[i]
 
 function Base.show(io::IO, U::SpecOpen)
@@ -39,9 +75,17 @@ function Base.show(io::IO, U::SpecOpen)
     print(io, name(U))
     return
   end
-  print(io, "complement of zero locus of $(gens(U)) in $(parent(U))")
+  print(io, "complement of zero locus of $(gens(U)) in $(ambient(U))")
 end
 
+@Markdown.doc """
+    function SpecOpen(
+      X::Spec{BRT, BRET, RT, RET, MST},
+      I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST}
+    ) where {BRT, BRET, RT, RET, MST}
+
+Returns the complement of the zero locus of ``I`` in ``X``.
+"""
 function SpecOpen(
     X::Spec{BRT, BRET, RT, RET, MST},
     I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST}
@@ -73,15 +117,20 @@ SpecOpen(X::Spec) = SpecOpen(X, [one(base_ring(OO(X)))])
 
 function complement(U::SpecOpen) 
   if !isdefined(U, :complement)
-    I = radical(saturated_ideal(ideal(localized_ring(OO(parent(U))), gens(U))))
-    U.complement = subscheme(parent(U), I)
+    I = radical(saturated_ideal(ideal(localized_ring(OO(ambient(U))), gens(U))))
+    U.complement = subscheme(ambient(U), I)
   end
   return U.complement
 end
 
+@Markdown.doc """
+    patches(U::SpecOpen)
+
+Returns a list of principal affine open subschemes covering ``U``.
+"""
 function patches(U::SpecOpen)
   if !isdefined(U, :patches)
-    X = parent(U)
+    X = ambient(U)
     V = Vector{typeof(X)}()
     for f in gens(U)
       push!(V, hypersurface_complement(X, f))
@@ -91,9 +140,15 @@ function patches(U::SpecOpen)
   return U.patches
 end
 
+@Markdown.doc """
+    intersections(U::SpecOpen)
+
+Returns a list of pairwise intersections of the 
+principal open subschemes covering ``U``.
+"""
 function intersections(U::SpecOpen)
   if !isdefined(U, :intersections)
-    X = parent(U)
+    X = ambient(U)
     V = patches(U)
     for i in 2:length(V)
       for j in 1:i-1
@@ -108,14 +163,14 @@ function name(U::SpecOpen)
   if isdefined(U, :name)
     return U.name
   end
-  return "open subset of $(parent(U))"
+  return "open subset of $(ambient(U))"
 end
 
 function intersect(
     Y::Spec{BRT, BRET, RT, RET, MST}, 
     U::SpecOpen{BRT, BRET, RT, RET, MST}
   ) where {BRT, BRET, RT, RET, MST}
-  X = parent(U)
+  X = ambient(U)
   if !issubset(Y, X)
     Y = intersect(Y, X)
   end
@@ -133,14 +188,14 @@ function intersect(
     U::SpecOpen{BRT, BRET, RT, RET, MST},
     V::SpecOpen{BRT, BRET, RT, RET, MST}
   ) where {BRT, BRET, RT, RET, MST}
-  X = parent(U) 
-  X == parent(V) || error("method not implemented")
+  X = ambient(U) 
+  X == ambient(V) || error("method not implemented")
   return SpecOpen(X, [a*b for a in gens(U) for b in gens(V)])
 end
 
-function union(U::T, V::T) where {T<:SpecOpen}
-  parent(U) == parent(V) || error("the two open sets do not lay in the same ambient variety")
-  return SpecOpen(parent(U), vcat(gens(U), gens(V)))
+function Base.union(U::T, V::T) where {T<:SpecOpen}
+  ambient(U) == ambient(V) || error("the two open sets do not lay in the same ambient variety")
+  return SpecOpen(ambient(U), vcat(gens(U), gens(V)))
 end
 
 function issubset(
@@ -161,8 +216,8 @@ function issubset(
 end
 
 function issubset(U::T, V::T) where {T<:SpecOpen}
-  base_ring(OO(parent(U))) == base_ring(OO(parent(V))) || return false
-  return issubset(complement(intersect(V, parent(U))), complement(U))
+  base_ring(OO(ambient(U))) == base_ring(OO(ambient(V))) || return false
+  return issubset(complement(intersect(V, ambient(U))), complement(U))
 end
 
 function ==(U::T, V::T) where {T<:SpecOpen}
@@ -183,19 +238,43 @@ function ==(
   return U == Y
 end
 
+@Markdown.doc """
+    closure(U::SpecOpen)
+
+Computes the Zariski closure of an open set ``U ⊂ X`` 
+with ``X`` is the affine ambient scheme of ``U``.
+"""
+function closure(U::SpecOpen)
+  X = ambient(U)
+  R = base_ring(OO(X))
+  I = saturated_ideal(localized_modulus(OO(X)))
+  I = saturation(I, ideal(R, gens(U)))
+  return subscheme(X, I)
+end
+
+@Markdown.doc """
+    closure(
+      U::SpecOpen{BRT, BRET, RT, RET, MST},
+      Y::Spec{BRT, BRET, RT, RET, MST} 
+    ) where {BRT, BRET, RT, RET, MST}
+
+Computes the closure of ``U ⊂ Y``.
+"""
 function closure(
     U::SpecOpen{BRT, BRET, RT, RET, MST},
     Y::Spec{BRT, BRET, RT, RET, MST} 
   ) where {BRT, BRET, RT, RET, MST}
-  error("not implemented")
+  issubset(U, Y) || error("the first set is not contained in the second")
+  X = closure(U)
+  return intersect(X, Y)
 end
 
 
 @Markdown.doc """
 StructureSheafRing{BRT, BRET, RT, RET, MST}
 
-The ring of regular functions 𝒪(X, U) on an open subset U of an 
-affine scheme X.
+The ring of regular functions ``𝒪(X, U)`` on an open subset ``U`` of an 
+affine scheme ``X``.
 """
 mutable struct StructureSheafRing{BRT, BRET, RT, RET, MST}
   variety::Spec{BRT, BRET, RT, RET, MST}
@@ -210,10 +289,22 @@ mutable struct StructureSheafRing{BRT, BRET, RT, RET, MST}
   end
 end
 
+@Markdown.doc """
+    variety(R::StructureSheafRing)
+
+The ring ``R = 𝒪(X, U)`` belongs to a sheaf of rings ``𝒪(X, -)`` and this returns 
+the variety ``X`` on which ``𝒪`` is defined.
+"""
 variety(R::StructureSheafRing) = R.variety
+
+@Markdown.doc """
+    domain(R::StructureSheafRing)
+
+For a ring ``R = 𝒪(X, U)`` this returns ``U``.
+"""
 domain(R::StructureSheafRing) = R.domain
 
-OO(U::SpecOpen) = StructureSheafRing(parent(U), U)
+OO(U::SpecOpen) = StructureSheafRing(ambient(U), U)
 OO(X::Spec{BRT, BRET, RT, RET, MST}, U::SpecOpen{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = StructureSheafRing(X, U)
 
 function ==(R::T, S::T) where {T<:StructureSheafRing} 
@@ -227,8 +318,8 @@ elem_type(R::StructureSheafRing{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, 
 @Markdown.doc """
 StructureSheafElem{BRT, BRET, RT, RET, MST}
 
-An element f ∈ 𝒪(X, U) of the ring of regular functions on 
-an open set U of an affine variety X.
+An element ``f ∈ 𝒪(X, U)`` of the ring of regular functions on 
+an open set ``U`` of an affine variety ``X``.
 """
 mutable struct StructureSheafElem{BRT, BRET, RT, RET, MST}
   domain::SpecOpen{BRT, BRET, RT, RET, MST}
@@ -247,13 +338,13 @@ mutable struct StructureSheafElem{BRT, BRET, RT, RET, MST}
   end
 end
 
-variety(f::StructureSheafElem) = parent(domain(f))
+variety(f::StructureSheafElem) = ambient(domain(f))
 domain(f::StructureSheafElem) = f.domain
 representatives(f::StructureSheafElem) = f.representatives
 patches(f::StructureSheafElem) = patches(domain(f))
 npatches(f::StructureSheafElem) = length(f.representatives)
 getindex(f::StructureSheafElem, i::Int) = getindex(representatives(f), i)
-parent(f::StructureSheafElem) = OO(variety(f), domain(f))
+ambient(f::StructureSheafElem) = OO(variety(f), domain(f))
 
 function restrict(
     f::StructureSheafElem{BRT, BRET, RT, RET, MST}, 
@@ -272,14 +363,14 @@ function restrict(
 end
 
 @Markdown.doc """
-maximal_extension(
-  X::Spec{BRT, BRET, RT, RET, MST}, 
-  f::AbstractAlgebra.Generic.Frac{RET}
-) where {BRT, BRET, RT, RET, MST}
+    maximal_extension(
+      X::Spec{BRT, BRET, RT, RET, MST}, 
+      f::AbstractAlgebra.Generic.Frac{RET}
+    ) where {BRT, BRET, RT, RET, MST}
 
-Returns the maximal extension of the restriction of f 
-to a rational function on X on a maximal domain of 
-definition U ⊂ X. 
+Returns the maximal extension of the restriction of ``f`` 
+to a rational function on ``X`` on a maximal domain of 
+definition ``U ⊂ X``. 
 """
 function maximal_extension(
     X::Spec{BRT, BRET, RT, RET, MST}, 
@@ -295,14 +386,14 @@ function maximal_extension(
 end
 
 @Markdown.doc """
-maximal_extension(
-  X::Spec{BRT, BRET, RT, RET, MST}, 
-  f::Vector{AbstractAlgebra.Generic.Frac{RET}}
-) where {BRT, BRET, RT, RET, MST}
+    maximal_extension(
+      X::Spec{BRT, BRET, RT, RET, MST}, 
+      f::Vector{AbstractAlgebra.Generic.Frac{RET}}
+    ) where {BRT, BRET, RT, RET, MST}
 
-Returns the extension of the restriction of the fᵢ as a 
-set of rational functions on X to a common maximal domain of 
-definition U ⊂ X.
+Returns the extension of the restriction of the ``fᵢ`` as a 
+set of rational functions on ``X`` as *regular* functions to a 
+common maximal domain of definition ``U ⊂ X``.
 """
 function maximal_extension(
     X::Spec{BRT, BRET, RT, RET, MST}, 
@@ -328,11 +419,11 @@ function maximal_extension(
 end
 
 @Markdown.doc """
-SpecOpenMor{BRT, BRET, RT, RET, MST1, MST2}
+    SpecOpenMor{BRT, BRET, RT, RET, MST1, MST2}
 
-Morphisms f : U → V of open sets U ⊂ X and V ⊂ Y of affine schemes.
-These are stored as morphisms fᵢ: Uᵢ→ Y on the affine patches 
-Uᵢ of U.
+Morphisms ``f : U → V`` of open sets ``U ⊂ X`` and ``V ⊂ Y`` of affine schemes.
+These are stored as morphisms ``fᵢ: Uᵢ→ Y`` on the affine patches 
+``Uᵢ`` of ``U``.
 """
 mutable struct SpecOpenMor{BRT, BRET, RT, RET, MST1, MST2}
   domain::SpecOpen{BRT, BRET, RT, RET, MST1}
@@ -348,7 +439,7 @@ mutable struct SpecOpenMor{BRT, BRET, RT, RET, MST1, MST2}
       f::Vector{SpecMor{BRT, BRET, RT, RET, MST1, MST2}};
       check::Bool=true
     ) where {BRT, BRET, RT, RET, MST1, MST2}
-    Y = parent(V)
+    Y = ambient(V)
     n = length(f)
     n == length(patches(U)) || error("number of patches does not coincide with the number of maps")
     if check
@@ -377,26 +468,26 @@ maps_on_patches(f::SpecOpenMor) = f.maps_on_patches
 getindex(f::SpecOpenMor, i::Int) = maps_on_patches(f)[i]
 
 function SpecOpenMor(U::SpecOpenType, V::SpecOpenType, f::Vector) where {SpecOpenType<:SpecOpen}
-  Y = parent(V)
+  Y = ambient(V)
   return SpecOpenMor(U, V, [SpecMor(W, Y, f) for W in patches(U)]) 
 end
 
 function inclusion_morphism(U::SpecOpenType, V::SpecOpenType) where {SpecOpenType<:SpecOpen}
-  X = parent(U)
-  parent(V) == X || error("method not implemented")
+  X = ambient(U)
+  ambient(V) == X || error("method not implemented")
   return SpecOpenMor(U, V, gens(base_ring(OO(X))))
 end
 
 
 @Markdown.doc """
-compose(f::T, g::T) where {T<:SpecOpenMor}
+    compose(f::T, g::T) where {T<:SpecOpenMor}
 
 computes the composition of two morphisms 
 
-    f    g
-  U →  V →  W
-  ∩    ∩    ∩
-  X    Y    Z
+      f    g
+    U →  V →  W
+    ∩    ∩    ∩
+    X    Y    Z
 
 of open sets of affine varieties.
 """
@@ -406,9 +497,9 @@ function compose(f::T, g::T) where {T<:SpecOpenMor}
   V = domain(g)
   issubset(Cf, V) || error("maps are not compatible")
   W = codomain(g)
-  X = parent(U)
-  Y = parent(V)
-  Z = parent(W)
+  X = ambient(U)
+  Y = ambient(V)
+  Z = ambient(W)
   g_maps = maps_on_patches(g)
   f_maps = maps_on_patches(f)
   #####################################################################
@@ -466,9 +557,9 @@ end
 
 function pullback(f::SpecOpenMor{BRT, BRET, RT, RET, MST1, MST2}, a::RET) where {BRT, BRET, RT, RET, MST1, MST2}
   U = domain(f)
-  X = parent(U)
+  X = ambient(U)
   V = codomain(f)
-  Y = parent(V)
+  Y = ambient(V)
   R = base_ring(OO(Y))
   parent(a) == R || error("element does not belong to the correct ring")
   pb_a = [pullback(f[i])(a) for i in 1:npatches(U)]
@@ -476,15 +567,15 @@ function pullback(f::SpecOpenMor{BRT, BRET, RT, RET, MST1, MST2}, a::RET) where 
 end
 
 @Markdown.doc """
-maximal_extension(
-  X::Spec{BRT, BRET, RT, RET, MST}, 
-  Y::Spec{BRT, BRET, RT, RET, MST}, 
-  f::AbstractAlgebra.Generic.Frac{RET}
-) where {BRT, BRET, RT, RET, MST}
+    maximal_extension(
+      X::Spec{BRT, BRET, RT, RET, MST}, 
+      Y::Spec{BRT, BRET, RT, RET, MST}, 
+      f::AbstractAlgebra.Generic.Frac{RET}
+    ) where {BRT, BRET, RT, RET, MST}
 
-Given a rational map ϕ : X ---> Y ⊂ Spec 𝕜[y₁,…,yₙ] of affine schemes 
-determined by ϕ*(yⱼ) = fⱼ = aⱼ//bⱼ, find the maximal open subset U⊂ X 
-to which ϕ can be extended to a regular map g : U → Y and return g.
+Given a rational map ``ϕ : X ---> Y ⊂ Spec 𝕜[y₁,…,yₙ]`` of affine schemes 
+determined by ``ϕ*(yⱼ) = fⱼ = aⱼ/bⱼ``, find the maximal open subset ``U⊂ X`` 
+to which ``ϕ`` can be extended to a regular map ``g : U → Y`` and return ``g``.
 """
 function maximal_extension(
     X::Spec{BRT, BRET, RT, RET, MST}, 
@@ -513,17 +604,17 @@ function restriction(
     U::SpecOpen{BRT, BRET, RT, RET, MST1},
     V::SpecOpen{BRT, BRET, RT, RET, MST2}
   ) where {BRT, BRET, RT, RET, MST1, MST2}
-  inc = SpecOpenMor(U, domain(f), [SpecMor(W, parent(domain(f)), gens(localized_ring(OO(W)))) for W in patches(U)])
+  inc = SpecOpenMor(U, domain(f), [SpecMor(W, ambient(domain(f)), gens(localized_ring(OO(W)))) for W in patches(U)])
   help_map = compose(inc, f)
   return SpecOpenMor(U, V, maps_on_patches(help_map))
 end
 
-identity_map(U::SpecOpen) = SpecOpenMor(U, U, [SpecMor(V, parent(U), gens(localized_ring(OO(V)))) for V in patches(U)])
+identity_map(U::SpecOpen) = SpecOpenMor(U, U, [SpecMor(V, ambient(U), gens(localized_ring(OO(V)))) for V in patches(U)])
 
 function ==(f::T, g::T) where {T<:SpecOpenMor} 
   domain(f) == domain(g) || return false
   codomain(f) == codomain(g) || return false
-  Y = parent(codomain(f))
+  Y = ambient(codomain(f))
   m = length(patches(domain(f)))
   n = length(patches(domain(g)))
   for i in 1:m
@@ -539,7 +630,7 @@ function preimage(f::SpecOpenMor{BRT, BRET, RT, RET, MST1, MST2},
     Z::Spec{BRT, BRET, RT, RET, MST2}
   ) where {BRT, BRET, RT, RET, MST1, MST2}
   U = domain(f) 
-  X = parent(U)
+  X = ambient(U)
   n = length(patches(U))
   W = localized_ring(OO(X))
   I = ideal(W, one(W))
@@ -554,7 +645,7 @@ function preimage(f::SpecOpenMor{BRT, BRET, RT, RET, MST1, MST2},
     V::SpecOpen{BRT, BRET, RT, RET, MST2}
   ) where {BRT, BRET, RT, RET, MST1, MST2}
   U = domain(f)
-  X = parent(U)
+  X = ambient(U)
   R = base_ring(OO(X))
   I = ideal(R, one(R))
   for i in 1:npatches(U)
@@ -573,7 +664,7 @@ end
 
 function find_non_zero_divisor(U::SpecOpen)
   n = length(gens(U))
-  X = parent(U)
+  X = ambient(U)
   kk = coefficient_ring(base_ring(OO(X)))
   d = dot([rand(kk, 0:100) for i in 1:n], gens(U))
   while !is_non_zero_divisor(d, U)
@@ -584,16 +675,16 @@ end
 
 function generic_fractions(f::SpecOpenMor)
   U = domain(f)
-  X = parent(U)
+  X = ambient(U)
   V = codomain(f)
-  Y = parent(V)
+  Y = ambient(V)
   d = find_non_zero_divisor(U)
   V = hypersurface_complement(X, d)
   result = fraction.([restrict(pullback(f, y), V) for y in gens(base_ring(OO(Y)))])
 end
 
 function is_dense(U::SpecOpen)
-  X = parent(U)
+  X = ambient(U)
   I = [localized_modulus(OO(closure(V, X))) for V in patches(U)]
   J = ideal(OO(X), [one(OO(X))])
   for i in I

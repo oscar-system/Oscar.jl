@@ -10,6 +10,10 @@ export closure, product
 export SpecMor
 export pullback, domain, codomain, preimage, restrict, graph
 
+AbstractAlgebra.promote_rule(::Type{gfp_mpoly}, ::Type{fmpz}) = gfp_mpoly
+AbstractAlgebra.promote_rule(::Type{gfp_elem}, ::Type{fmpz}) = gfp_elem
+AbstractAlgebra.promote_rule(::Type{gfp_elem}, ::Type{AbstractAlgebra.Generic.Frac{gfp_mpoly}}) = AbstractAlgebra.Generic.Frac{gfp_mpoly}
+
 @Markdown.doc """
     Scheme{BaseRingType<:Ring, BaseRingElemType<:RingElement} 
 
