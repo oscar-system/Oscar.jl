@@ -141,6 +141,11 @@ function abelian_group(::Type{T}, v::Vector{Int}) where T <: GAPGroup
   return T(GAP.Globals.AbelianGroup(_gap_filter(T), GAP.GapObj(v)))
 end
 
+function abelian_group(::Type{T}, v::Vector{fmpz}) where T <: GAPGroup
+  vgap = GAP.julia_to_gap(v, recursive=true)
+  return T(GAP.Globals.AbelianGroup(_gap_filter(T), vgap))
+end
+
 @doc Markdown.doc"""
     isabelian(G::Group)
 

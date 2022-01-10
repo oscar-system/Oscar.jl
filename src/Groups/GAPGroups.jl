@@ -1,9 +1,3 @@
-# further possible functions: similar, literal_pow
-
-import Base: ^, Base.Vector
-
-using Random
-
 export GroupConjClass
 
 export
@@ -86,8 +80,6 @@ function parent(x::GAPGroupElem)
   return x.parent
 end
 
-import Base.isfinite
-
 """
     isfinite(G::GAPGroup) -> Bool
 
@@ -148,8 +140,6 @@ order(x::Union{GAPGroupElem, GAPGroup}) = order(fmpz, x)
 
 @gapwrap hasorder(G::GAPGroup) = GAP.Globals.HasSize(G.X)
 @gapwrap setorder(G::GAPGroup, val::T) where T<:IntegerUnion = GAP.Globals.SetSize(G.X, GapObj(val))
-
-import Base.exponent
 
 @doc Markdown.doc"""
     exponent(::Type{T} = fmpz, G::GAPGroup) where T <: IntegerUnion
@@ -478,7 +468,8 @@ Return the vector of all conjugacy classes of subgroups of G.
 """
 function conjugacy_classes_subgroups(G::GAPGroup)
    L=Vector{GapObj}(GAP.Globals.ConjugacyClassesSubgroups(G.X))
-   return GroupConjClass{typeof(G), typeof(G)}[ _conjugacy_class(G,typeof(G)(GAP.Globals.Representative(cc)),cc) for cc in L]
+   return GroupConjClass{typeof(G), typeof(G)}[_conjugacy_class(G, _as_subgroup_bare(G, GAP.Globals.Representative(cc)),cc) for cc in L]
+
 end
 
 """
@@ -488,7 +479,7 @@ Return the vector of all conjugacy classes of maximal subgroups of G.
 """
 function conjugacy_classes_maximal_subgroups(G::GAPGroup)
   L = Vector{GapObj}(GAP.Globals.ConjugacyClassesMaximalSubgroups(G.X))
-   return GroupConjClass{typeof(G), typeof(G)}[ _conjugacy_class(G,typeof(G)(GAP.Globals.Representative(cc)),cc) for cc in L]
+   return GroupConjClass{typeof(G), typeof(G)}[_conjugacy_class(G, _as_subgroup_bare(G, GAP.Globals.Representative(cc)),cc) for cc in L]
 end
 
 Base.:^(H::GAPGroup, y::GAPGroupElem) = typeof(H)(H.X ^ y.X)

@@ -19,33 +19,12 @@ Oscar is licensed under the GPL v3+ (see LICENSE.md).
 """
 module Oscar
 
-#=
-  We currently only import packages which:
-    * are registered
-    * have BinaryBuilder or build in a few minutes
-    * support Linux and OSX
-=#
+include("imports.jl")
 
-import AbstractAlgebra
-import Nemo
-import Hecke
-import Singular
-import Polymake
-import GAP
-import Pkg
-using Markdown
-using Test
-import msolve_jll
 # to allow access to the cornerstones! Otherwise, not even import or using from the
 # user level will work as none of them will have been "added" by the user.
 # possibly all should add a doc string to the module?
 export Nemo, Hecke, Singular, Polymake, AbstractAlgebra, GAP
-
-import AbstractAlgebra: @show_name, @show_special, elem_type, force_coerce, force_op,
-                        get_attribute, get_attribute!, set_attribute!,
-                        parent_type, expressify, canonical_unit
-
-import Hecke: @req
 
 # More helpful error message for users on Windows.
 windows_error() = error("""
@@ -225,11 +204,8 @@ function weights end
 
 function iseffective end
 
-include("Rings/Hecke.jl") #does all the importing from Hecke - to define names
-
 include("printing.jl")
 
-include("GAP/GAP.jl")
 include("GAP/wrappers.jl")
 
 include("Groups/types.jl")
@@ -245,6 +221,7 @@ include("Groups/matrices/matrices.jl")
 include("Groups/action.jl")
 include("Groups/gsets.jl")
 include("Groups/MatrixDisplay.jl")
+include("Groups/abelian_aut.jl")
 
 include("Rings/integer.jl")
 include("Rings/rational.jl")
@@ -285,6 +262,7 @@ include("PolyhedralGeometry/main.jl")
 
 include("Combinatorics/Graphs.jl")
 export Graphs
+include("Combinatorics/SimplicialComplexes.jl")
 
 include("../experimental/Schemes/AffineSchemes.jl")
 include("../experimental/Schemes/SpecOpen.jl")

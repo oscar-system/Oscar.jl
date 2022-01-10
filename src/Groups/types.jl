@@ -1,61 +1,6 @@
-import Hecke:
-    abelian_group,
-    automorphism_group,
-    center,
-    codomain,
-    cokernel,
-    compose,
-    degree,
-    derived_series,
-    direct_product,
-    domain,
-    elem_type,
-    elements,
-    free_abelian_group,
-    gen,
-    gens,
-    haspreimage,
-    hom,
-    id_hom,
-    image,
-    index,
-    inv!,
-    isabelian,
-    isbijective,
-    ischaracteristic,
-    isconjugate,
-    iscyclic,
-    isinjective,
-    isinvertible,
-    isisomorphic,
-    isnormal,
-    issimple,
-    issubgroup,
-    issurjective,
-    kernel,
-    Map,
-    mul,
-    mul!,
-    ngens,
-    normal_closure,
-    one!,
-    order,
-    parent_type,
-    perm,
-    preimage,
-    quo,
-    representative,
-    SetMap,
-    small_group,
-    sub,
-    subgroups
-
-import Base: ==, parent, show
-
-import GAP: GapObj, GapInt
-
 export
     AutomorphismGroup,
+    AutomorphismGroupElem,
     DirectProductGroup,
     DirectProductOfElem,
     FPGroup,
@@ -141,6 +86,12 @@ Every group of this type is the subgroup of Sym(n) for some n.
    function PermGroup(G::GapObj)
      @assert GAPWrap.IsPermGroup(G)
      n = GAPWrap.LargestMovedPoint(G)::Int
+     if n == 0
+       # We support only positive degrees.
+       # (`symmetric_group(0)` yields an error,
+       # and `symmetric_group(1)` yields a GAP group with `n == 0`.)
+       n = 1
+     end
      z = new(G, n)
      return z
    end
@@ -241,7 +192,22 @@ Group of automorphisms over a group of type `T`. It can be defined via the funct
     z = new{T}(G, H)
     return z
   end
+
+  function AutomorphismGroup{T}(G::GapObj, H::T, to_gap, to_oscar) where T
+    @assert GAPWrap.IsGroupOfAutomorphisms(G)
+    z = new{T}(G, H, to_gap, to_oscar)
+    return z
+  end
 end
+
+(aut::AutomorphismGroup{T} where T)(x::GapObj) = group_element(aut,x)
+
+const AutomorphismGroupElem{T} = BasicGAPGroupElem{AutomorphismGroup{T}} where T
+
+function Base.show(io::IO, AGE::AutomorphismGroupElem{GrpAbFinGen}) 
+    println(io, "Automorphism of ", GrpAbFinGen, " with matrix representation ", matrix(AGE))
+end
+
 
 ################################################################################
 #

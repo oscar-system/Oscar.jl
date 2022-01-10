@@ -1,7 +1,3 @@
-
-import Markdown
-import Base: ==
-
 const AnyVecOrMat = Union{MatElem, AbstractVecOrMat}
 
 
@@ -38,7 +34,6 @@ export AffineHalfspace,
     cube,
     dim,
     ehrhart_polynomial,
-    equation_matrix,
     faces,
     facets,
     facets_as_halfspace_matrix_pair,
@@ -50,7 +45,6 @@ export AffineHalfspace,
     hilbert_basis,
     h_star_polynomial,
     incidence_matrix,
-    inequality_matrix,
     intersect,
     interior_lattice_points,
     isbounded,
@@ -67,6 +61,8 @@ export AffineHalfspace,
     lattice_volume,
     lineality_dim,
     lineality_space,
+    linear_equation_matrix,
+    linear_inequality_matrix,
     linear_span,
     linear_symmetries,
     load_cone,

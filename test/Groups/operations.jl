@@ -53,7 +53,7 @@
 end
 
 @testset "Matrix manipulation" begin
-   F = GF(5,1)[1]
+   F = GF(5, 1)
    
    I = identity_matrix(F,6)
    x = matrix(F,2,2,[2,3,4,0])
@@ -83,7 +83,7 @@ end
    @test issymmetric(P+transpose(P))
    @test isskewsymmetric_matrix(P-transpose(P))
 
-   F,z=GF(2,2)
+   F,z = FiniteField(2,2)
    x=matrix(F,4,4,[1,z,0,0,0,1,z^2,z,z,0,0,1,0,0,z+1,0])
    y=x+transpose(x)
    @test issymmetric(y)
@@ -96,7 +96,7 @@ end
 end
 
 @testset "Operations with vector spaces" begin
-   F=GF(7,1)[1]
+   F= GF(7, 1)
    V=VectorSpace(F,5)
 
    @test V([1,0,2,0,6])==V[1]+2*V[3]-V[5]
@@ -131,7 +131,7 @@ end
    f = t^2+1
    f1 = Oscar._change_type(f)
    @test collect(coefficients(f1))==collect(coefficients(f))
-   F1 = GF(3,1)[1]
+   F1 = GF(3, 1)
    @test base_ring(f1)==F1
    x = Oscar._centralizer(f1)(companion_matrix(f1))
    @test order(GL(2,F1)(x))==8
@@ -139,7 +139,7 @@ end
    @test z^4==1
    @test (change_base_ring(K,Oscar._centralizer(f1))(z))^4 !=1
 
-   F = GF(17,1)[1]
+   F = GF(17, 1)
    a = F(3)
    b = F(13)
    @test a^Oscar._disc_log(a,b)==b

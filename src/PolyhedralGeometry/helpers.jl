@@ -1,14 +1,13 @@
 import Polymake: IncidenceMatrix
 
-import Base: convert
-
-
 matrix_for_polymake(x::Union{Oscar.fmpz_mat,AbstractMatrix{Oscar.fmpz}}) = Matrix{BigInt}(x)
 matrix_for_polymake(x::Union{Oscar.fmpq_mat,AbstractMatrix{Oscar.fmpq}}) =
     Polymake.Matrix{Polymake.Rational}(x)
 matrix_for_polymake(x) = x
 
 affine_matrix_for_polymake(x::Tuple) = matrix_for_polymake(hcat(-x[2], x[1]))
+
+linear_matrix_for_polymake(x::Union{Oscar.fmpz_mat, Oscar.fmpq_mat, AbstractMatrix}) = matrix_for_polymake(x)
 
 function Polymake.Matrix{Polymake.Rational}(x::Union{Oscar.fmpq_mat,AbstractMatrix{Oscar.fmpq}})
     res = Polymake.Matrix{Polymake.Rational}(size(x)...)

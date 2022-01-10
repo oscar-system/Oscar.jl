@@ -1,5 +1,3 @@
-using Random
-
 export
     acting_domain,
     double_coset,
