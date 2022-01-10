@@ -58,7 +58,14 @@ dim(K::SimplicialComplex)
 f_vector(K::SimplicialComplex)
 h_vector(K::SimplicialComplex)
 euler_characteristic(K::SimplicialComplex)
+```
+
+## Homology and cohomology
+
+```@docs
+homology(K::SimplicialComplex, i::Int)
 betti_numbers(K::SimplicialComplex)
+cohomology(K::SimplicialComplex, i::Int)
 ```
 
 ## Connection to commutative algebra

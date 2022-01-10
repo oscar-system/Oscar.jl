@@ -7,7 +7,7 @@ export
     vertexindices,
     f_vector, h_vector,
     dim,
-    betti_numbers, euler_characteristic, homology,
+    betti_numbers, euler_characteristic, homology, cohomology,
     minimal_nonfaces, alexander_dual, stanley_reisner_ideal, stanley_reisner_ring,
     load_simplicialcomplex, save_simplicialcomplex,
     complex_projective_plane,
@@ -94,6 +94,15 @@ function _characteristic_vector(M::Set{Int}, n::Int)
         chi[x] = 1
     end
     return chi
+end
+
+function _convert_finitely_generated_abelian_group(A::Polymake.HomologyGroupAllocated{Polymake.Integer})
+    vec = ones(Int, Polymake.betti_number(A))
+    torsion_i = Polymake.torsion(A)
+    for (p,k) in torsion_i
+        append!(vec, fill(p,k))
+    end
+    return vec
 end
 
 ################################################################################
@@ -208,15 +217,23 @@ julia> [ homology(real_projective_plane(), i) for i in [0,1,2] ]
  GrpAb: Z/1
 ```
 """
-function homology(K::SimplicialComplex, i::Int)
-    H_i = pm_object(K).HOMOLOGY[i+1] # index shift
-    vec = ones(Int, Polymake.betti_number(H_i))
-    torsion_i = Polymake.torsion(H_i)
-    for (p,k) in torsion_i
-        append!(vec, fill(p,k))
-    end
-    return abelian_group(vec)
-end
+homology(K::SimplicialComplex, i::Int) = abelian_group(_convert_finitely_generated_abelian_group(pm_object(K).HOMOLOGY[i+1])) # index shift
+
+@doc Markdown.doc"""
+    cohomology(K::SimplicialComplex, i::Int)
+
+Return `i`-th reduced integral cohomology group of `K`.
+
+# Example
+```jldoctest
+julia> K = SimplicialComplex([[0,1],[1,2],[0,2]]);
+
+julia> cohomology(K,1)
+(General) abelian group with relation matrix
+[1]
+```
+"""
+cohomology(K::SimplicialComplex, i::Int) = abelian_group(_convert_finitely_generated_abelian_group(pm_object(K).COHOMOLOGY[i+1])) # index shift
 
 @doc Markdown.doc"""
     minimal_nonfaces(K::SimplicialComplex)
