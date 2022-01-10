@@ -8,7 +8,7 @@ export
     f_vector, h_vector,
     dim,
     betti_numbers, euler_characteristic, homology,
-    minimal_nonfaces, stanley_reisner_ideal, stanley_reisner_ring,
+    minimal_nonfaces, alexander_dual, stanley_reisner_ideal, stanley_reisner_ring,
     load_simplicialcomplex, save_simplicialcomplex,
     complex_projective_plane,
     real_projective_plane, klein_bottle, torus, # requires a distinction from, e.g., an algebraic group
@@ -64,6 +64,13 @@ function SimplicialComplex(generators::Union{Vector{Vector{Int}}, Vector{Set{Int
     SimplicialComplex(K)
 end
 
+# more efficient UNEXPORTED+UNDOCUMENTED version, which requires consecutive vertices, and facets as generators;
+# will produce errors / segfaults or worse if used improperly
+function _SimplicialComplex(generators::Union{Vector{Vector{Int}}, Vector{Set{Int}}})
+    K = Polymake.topaz.SimplicialComplex(FACETS=generators)
+    SimplicialComplex(K)
+end
+
 ################################################################################
 ##  Auxiliary
 ################################################################################
@@ -76,10 +83,10 @@ function _vertexindices(K::Polymake.BigObject)
     end
 end
 
-vertexindices(L::SimplicialComplex) = _vertexindices(pm_object(L))
+vertexindices(K::SimplicialComplex) = _vertexindices(pm_object(K))
 
 # currently unused
-_reindexset(M::Set{Int}, ind::Vector{Int}) = [ ind[x+1] for x in M ]
+_reindexset(M::Set{Int}, ind::Vector{Int}) = [ ind[x] for x in M ]
 
 function _characteristic_vector(M::Set{Int}, n::Int)
     chi = zeros(Int, n)
@@ -226,6 +233,21 @@ julia> minimal_nonfaces(K)
 ```
 """
 minimal_nonfaces(K::SimplicialComplex) = Vector{Set{Int}}(Polymake.to_one_based_indexing(pm_object(K).MINIMAL_NON_FACES))
+
+@doc Markdown.doc"""
+    alexander_dual(K::SimplicialComplex)
+
+Return the Alexander dual of the abstract simplicial complex `K`.
+
+# Example
+```jldoctest
+julia> K = SimplicialComplex([[1,2,3],[2,3,4]]);
+
+julia> alexander_dual(K)
+Abstract simplicial complex of dimension 1 on 2 vertices
+```
+"""
+alexander_dual(K::SimplicialComplex) = SimplicialComplex(Polymake.topaz.alexander_dual(pm_object(K)))
 
 @doc Markdown.doc"""
     stanley_reisner_ideal(K::SimplicialComplex)
