@@ -253,7 +253,8 @@ include("GAP/oscar_to_gap.jl")
 include("Groups/group_characters.jl")  # needs some Rings functionality
 
 include("Modules/UngradedModules.jl")
-include("Modules/FreeModules-graded.jl")
+#include("Modules/FreeModules-graded.jl")
+include("Modules/ModulesGraded.jl")
 
 include("Geometry/basics.jl")
 
