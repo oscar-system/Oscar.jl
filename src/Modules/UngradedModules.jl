@@ -3281,7 +3281,6 @@ Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational
 julia> kernel(a)
 (Submodule with 1 generator
 1 -> x*z*e[1] - y*z*e[2] + y^2*e[3]
-
 represented as subquotient with no relations.
 , Map with following data
 Domain:
