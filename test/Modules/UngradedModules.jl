@@ -25,6 +25,14 @@ end
 	F = FreeMod(R,3)
 	v = [x, x^2*y+z^3, R(-1)]
 	@test v == Vector(F(v))
+
+	M = sub(F, [F(v), F([z, R(1), R(0)])])
+	N = quo(M, [SubQuoElem([x+y^2, y^3*z^2+1], M)])
+	AN, ai = ambient_module(N, :with_morphism)
+	@test AN.quo === N.quo
+	for i=1:ngens(N)
+		@test AN(repres(N[i])) == ai(N[i])
+	end
 end
 
 @testset "Intersection of modules" begin
