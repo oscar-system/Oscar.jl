@@ -113,15 +113,15 @@ end
 
 
 function AbstractAlgebra.extra_name(F::FreeMod_dec)
-  t = Hecke.get_attribute(F, :twist)
+  t = get_attribute(F, :twist)
   if t !== nothing
-    n = Hecke.get_attribute(t[1], :name)
+    n = get_attribute(t[1], :name)
     if n !== nothing
       return "$n($(t[2]))"
     end
   end
   if length(Set(F.d)) == 1
-    n = Hecke.get_attribute(forget_decoration(F).R, :name)
+    n = get_attribute(forget_decoration(F).R, :name)
     if n !== nothing
       return "$n^$(ngens(F))($(-F.d[1]))"
     end
