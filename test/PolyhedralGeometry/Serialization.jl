@@ -41,7 +41,7 @@
             @test loaded isa PolyhedralFan
             @test Base.propertynames(nfsquare) == Base.propertynames(loaded)
             @test nrays(nfsquare) == nrays(loaded)
-            @test nmaximal_cones(nfsquare) == nmaximal_cones(loaded)
+            @test n_maximal_cones(nfsquare) == n_maximal_cones(loaded)
             @test dim(nfsquare) == dim(loaded)
         end
         
