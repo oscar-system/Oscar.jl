@@ -28,8 +28,14 @@ function irreducible_modules(G::Oscar.GAPGroup)
   K = abelian_closure(QQ)[1]
   for m in im
     z = map(x->matrix(map(y->map(K, y), m(x.X))), gens(G))
-    F = free_module(K, nrows(z[1]))
-    push!(IM, gmodule(G, map(x->hom(F, F, x), z)))
+    if ngens(G) == 0
+      F = free_module(K, 0)
+      zz = typeof(hom(F, F, elem_type(F)[]))[]
+    else
+      F = free_module(K, nrows(z[1]))
+      zz = map(x->hom(F, F, x), z)
+    end
+    push!(IM, gmodule(F, G, zz))
   end
   return IM
 end
@@ -116,9 +122,13 @@ function gmodule(::typeof(CyclotomicField), C::GModule)
   for g = C.ac
     l = lcm(l, lcm(collect(map_entries(x->Hecke.iscyclotomic_type(parent(x.data))[2], mat(g)))))
   end
-  K = cyclotomic_field(l, cached = false)[1]
+  K = cyclotomic_field(base_ring(C), l)[1]
   F = free_module(K, dim(C))
-  return gmodule(group(C), [hom(F, F, map_entries(x->K(x.data), mat(x))) for x = C.ac])
+  if d == 0 
+    h = hom(F, F, elem_type(F)[])
+    return gmodule(F, group(C), typeof(h)[hom(F, F, map_entries(x->K(x.data), mat(x))) for x = C.ac])
+  end
+  return gmodule(F, group(C), [hom(F, F, map_entries(x->K(x.data), mat(x))) for x = C.ac])
 end
 
 import Base: ^
@@ -133,12 +143,12 @@ end
 
 function ^(C::GModule{<:Any, Generic.FreeModule{QabElem}}, phi::Map{QabField, QabField})
   F = free_module(codomain(phi), dim(C))
-  return GModule(group(C), [hom(F, F, map_entries(phi, mat(x))) for x = C.ac])
+  return GModule(F, group(C), [hom(F, F, map_entries(phi, mat(x))) for x = C.ac])
 end
 
 function gmodule(::FlintRationalField, C::GModule{<:Any, Generic.FreeModule{nf_elem}})
   F = free_module(QQ, dim(C)*degree(base_ring(C)))
-  return GModule(group(C), [hom(F, F, hvcat(dim(C), [representation_matrix(x) for x = transpose(mat(y))]...)) for y = C.ac])
+  return GModule(F, group(C), [hom(F, F, hvcat(dim(C), [representation_matrix(x) for x = transpose(mat(y))]...)) for y = C.ac])
 end
 
 function gmodule(k::Nemo.GaloisField, C::GModule{<:Any, Generic.FreeModule{fmpq}})
@@ -245,6 +255,9 @@ function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:Generic.FreeModule{
       push!(t, hom_base(z1[i], z2[i]))
     end
     tt = [Hecke.modular_lift([t[i][j] for i=1:length(z1)], me) for j=1:length(t[1])]
+    if length(tt) == 0
+      return []
+    end
     @assert base_ring(tt[1]) == k
     if isone(pp)
       pp = fmpz(p)
@@ -319,6 +332,39 @@ function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:Generic.FreeModule{
       end
     end
   end
+end
+
+function gmodule(K::AnticNumberField, M::GModule{<:Any, <:Generic.FreeModule{nf_elem}})
+  F = free_module(K, dim(M))
+  return gmodule(F, group(M), [hom(F, F, map_entries(K, mat(x))) for x = M.ac])
+end
+
+function (K::QabField)(a::nf_elem)
+  fl, f = Hecke.iscyclotomic_type(parent(a))
+  @assert fl
+  return QabElem(a, f)
+end
+
+function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:Generic.FreeModule{QabElem}}
+  C1 = gmodule(CyclotomicField, C)
+  D1 = gmodule(CyclotomicField, D)
+  fl, Cf = Hecke.iscyclotomic_type(base_ring(C1))
+  @assert fl
+  fl, Df = Hecke.iscyclotomic_type(base_ring(D1))
+  @assert fl
+  l = lcm(Cf, Df)
+  K, _ = cyclotomic_field(base_ring(C), l)
+  if l != Cf
+    C1 = gmodule(K, C1)
+  end
+  if l != Df
+    D1 = gmodule(K, D1)
+  end
+  h = hom_base(C1, D1)
+  if length(h) == 0
+    return h
+  end
+  return map(x->map_entries(base_ring(C), x), h)
 end
 
 function gmodule(::FlintRationalField, C::GModule{<:Any, <:Generic.FreeModule{fmpz}})
@@ -518,3 +564,96 @@ end #module GModuleFromGap
 using .GModuleFromGap
 
 export irreducible_modules, isabsolutely_irreducible, isdecomposable
+
+module RepPc
+using Oscar
+
+Base.pairs(M::MatElem) = Base.pairs(IndexCartesian(), M)
+Base.pairs(::IndexCartesian, M::MatElem) = Base.Pairs(M, CartesianIndices(axes(M)))
+
+function Hecke.roots(a::fq_nmod, i::Int)
+  kx, x = PolynomialRing(parent(a), cached = false)
+  return roots(x^i-a)
+end
+
+#=TODO
+ - construct characters along the way as well?
+ - compare characters rather than the hom_base
+ - maybe reason from theory what reps are going to be new?
+ - conjugate to smallest field?
+ - allow trivial stuff
+=# 
+
+function reps(K, G::PcGroup)
+  s, ms = sub(G, [gens(G)[end]])
+  o = Int(order(s))
+  @assert isprime(o)
+  z = roots(K(1), o)
+  F = free_module(K, 1)
+  R = [gmodule(F, s, [hom(F, F, [r*F[1]])]) for r = z]
+
+  for i=ngens(G)-1:-1:1
+    h = G[i]
+    ns, mns = sub(G, gens(G)[i:end])
+    p = Int(divexact(order(ns), order(s)))
+    @assert isprime(p)
+    new_R = []
+    for r = R
+      F = r.M
+      rh = gmodule(group(r), [action(r, preimage(ms, x^h)) for x = gens(s)])
+      l = Oscar.GModuleFromGap.hom_base(r, rh)
+      @assert length(l) <= 1
+      nr = []
+      Y = mat(action(r, preimage(ms, h^p)))
+      if length(l) == 1
+        X = l[1]
+        Xp = X^p
+        #Brueckner: C*Xp == Y for some scalar C
+        i = findfirst(x->!iszero(x), Xp)
+        @assert !iszero(Y[i])
+        C = divexact(Y[i], Xp[i])
+        @assert C*Xp == Y
+        # I think they should always be roots of one here.
+        rt = roots(C, p)
+        Y = r.ac
+        for x = rt
+          nw = gmodule(F, ns,  vcat([hom(F, F, x*X)], Y))
+          push!(nr, nw)
+        end
+      else #need to extend dim
+        n = dim(r)
+        F = free_module(K, dim(r)*p)
+        z = zero_matrix(K, dim(F), dim(F))
+        z[(p-1)*n+1:end, 1:n] = Y
+        for i=1:p-1
+          z[(i-1)*n+1:i*n, i*n+1:(i+1)*n] = identity_matrix(K, n)
+        end
+        md = [hom(F, F, z)]
+        for g = gens(s)
+          z = zero_matrix(K, dim(F), dim(F))
+          for j=1:p
+            Y = action(r, g)
+            z[(j-1)*n+1:j*n, (j-1)*n+1:j*n] = mat(Y)
+            g = preimage(ms, g^h)
+          end
+          push!(md, hom(F, F, z))
+        end
+        push!(nr, gmodule(F, ns, md))
+      end
+      for nw = nr
+        if any(x->length(Oscar.GModuleFromGap.hom_base(x, nw))>0, new_R)
+          continue
+        else
+          push!(new_R, nw)
+        end
+      end
+    end
+    s, ms = ns, mns
+    R = new_R
+  end
+  return R
+end
+
+end #module RepPc
+
+using .RepPc
