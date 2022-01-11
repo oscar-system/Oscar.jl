@@ -270,12 +270,12 @@ include("../StraightLinePrograms/src/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl")
 include("Rings/slpolys.jl")
 
-include("../experimental/Experimental.jl")
+include("experimental/Experimental.jl")
 include("Rings/binomial_ideals.jl")
 
 include("ToricVarieties/JToric.jl")
 
-include("../experimental/Schemes/AffineSchemes.jl")
+include("experimental/Schemes/AffineSchemes.jl")
 
 if is_dev
 #  include("../examples/ModStdNF.jl")
