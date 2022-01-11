@@ -1846,60 +1846,50 @@ by Submodule with 3 generators
 3 -> z^4*e[1]
 
 julia> intersect(M, N)
-(Subquotient of Submodule with 9 generators
+(Subquotient of Submodule with 3 generators
 1 -> x^2*e[1]
 2 -> -x*y*e[1]
-3 -> 0
-4 -> x*y^3*e[1]
-5 -> 0
-6 -> x*z^4*e[1]
-7 -> 0
-8 -> 0
-9 -> 0
+3 -> x*z^4*e[1]
 by Submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
-3 -> z^4*e[1]
-
-, Map with following data
+3 -> z^4*e[1], Map with following data
 Domain:
 =======
-Subquotient of Submodule with 9 generators
+Subquotient of Submodule with 3 generators
 1 -> x^2*e[1]
 2 -> -x*y*e[1]
-3 -> 0
-4 -> x*y^3*e[1]
-5 -> 0
-6 -> x*z^4*e[1]
-7 -> 0
-8 -> 0
-9 -> 0
+3 -> x*z^4*e[1]
 by Submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
 3 -> z^4*e[1]
 Codomain:
 =========
-M, Map with following data
+Subquotient of Submodule with 1 generator
+1 -> x*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1], Map with following data
 Domain:
 =======
-Subquotient of Submodule with 9 generators
+Subquotient of Submodule with 3 generators
 1 -> x^2*e[1]
 2 -> -x*y*e[1]
-3 -> 0
-4 -> x*y^3*e[1]
-5 -> 0
-6 -> x*z^4*e[1]
-7 -> 0
-8 -> 0
-9 -> 0
+3 -> x*z^4*e[1]
 by Submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
 3 -> z^4*e[1]
 Codomain:
 =========
-N)
+Subquotient of Submodule with 1 generator
+1 -> y*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1])
 ```
 """
 function intersect(M::SubQuo{T}, N::SubQuo{T}) where T
