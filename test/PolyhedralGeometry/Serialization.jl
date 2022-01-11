@@ -64,7 +64,7 @@
             loaded = load_subdivisionofpoints(joinpath(path, "moae.sop"))
             @test loaded isa SubdivisionOfPoints
             @test Base.propertynames(MOAE) == Base.propertynames(loaded)
-            @test nmaximal_cells(MOAE) == nmaximal_cells(loaded)
+            @test n_maximal_cells(MOAE) == n_maximal_cells(loaded)
             @test npoints(MOAE) == npoints(loaded)
         end
     end
