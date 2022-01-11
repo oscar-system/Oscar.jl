@@ -66,8 +66,13 @@ julia> vertexindices(L)
  90
 ```
 """
-function SimplicialComplex(generators::Union{Vector{Vector{Int}}, Vector{Set{Int}}})
+function SimplicialComplex(generators::Union{AbstractVector{<:AbstractVector{<:Base.Integer}}, AbstractVector{<:AbstractSet{<:Base.Integer}}})
     K = Polymake.topaz.SimplicialComplex(INPUT_FACES=generators)
+    SimplicialComplex(K)
+end
+
+function SimplicialComplex(generators::IncidenceMatrix)
+    K = Polymake.@convert_to Array{Set} Polymake.common.rows(generators)
     SimplicialComplex(K)
 end
 
