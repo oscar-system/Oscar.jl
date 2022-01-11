@@ -1643,12 +1643,16 @@ function intersect(M::SubQuo{T}, N::SubQuo{T}) where T
     F2 = ambient_free_module(M)
     phi = FreeModuleHom(F1,F2,vcat(gens(M.sub),gens(N.sub),gens(M_quo)))
     K,i = kernel(phi)
-    intersection_gens = SubModuleOfFreeModule(ambient_free_module(M),[sum([repres(k)[i]*M.sub[i] for i=1:ngens(M.sub)]) for k in gens(K)])
+
+    intersection_gens_array_with_zeros = [sum([repres(k)[i]*M.sub[i] for i=1:ngens(M.sub)]) for k in gens(K)]
+    iszero_array = map(!iszero, intersection_gens_array_with_zeros)
+
+    intersection_gens = SubModuleOfFreeModule(ambient_free_module(M), intersection_gens_array_with_zeros[iszero_array] )
     SQ = SubQuo(intersection_gens,M_quo)
 
     m = ngens(M)
-    M_hom = SubQuoHom(SQ,M,[sum([repres(k)[i]*M[i] for i=1:m]) for k in gens(K)])
-    N_hom = SubQuoHom(SQ,N,[sum([repres(k)[i]*N[i-m] for i=m+1:m+ngens(N)]) for k in gens(K)])
+    M_hom = SubQuoHom(SQ,M,[sum([repres(k)[i]*M[i] for i=1:m]) for k in gens(K)][iszero_array])
+    N_hom = SubQuoHom(SQ,N,[sum([repres(k)[i]*N[i-m] for i=m+1:m+ngens(N)]) for k in gens(K)][iszero_array])
 
     register_morphism!(M_hom)
     register_morphism!(N_hom)
