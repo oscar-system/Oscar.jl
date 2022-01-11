@@ -53,7 +53,7 @@ abstract type ModuleMap{T1, T2} <: Map{T1, T2, Hecke.HeckeMap, ModuleFPHom} end
 
 
 @doc Markdown.doc"""
-    FreeMod{T <: RingElem} <: ModuleFP{T}
+    FreeMod{T <: RingElem} <: AbstractFreeMod{T}
 
 The type of free modules.
 Free modules are determined by their base ring, the rank and the names of 
@@ -141,15 +141,15 @@ function show(io::IO, F::FreeMod)
 end
 
 @doc Markdown.doc"""
-    rank(F::AbstractFreeMod)
+    rank(F::FreeMod)
     ngens(F::AbstractFreeMod)
     dim(F::AbstractFreeMod)
 
 Return the rank of `F`.
 """
 dim(F::AbstractFreeMod) = rank(F)
-rank(F::AbstractFreeMod) = F.n
-ngens(F::AbstractFreeMod) = dim(F)
+rank(F::FreeMod) = F.n
+ngens(F::AbstractFreeMod) = rank(F)
 
 @doc Markdown.doc"""
     ==(F::FreeMod, G::FreeMod)
@@ -268,7 +268,7 @@ function (F::FreeMod{T})(c::Vector{T}) where T
  return FreeModElem(c, F)
 end
 
-function (F::FreeMod{T})(v::FreeModElem{T}) where T
+function (F::AbstractFreeMod{T})(v::AbstractFreeModElem{T}) where T
   @assert parent(v) === F
   return v
 end
@@ -297,7 +297,7 @@ end
 
 #######################################################
 @doc Markdown.doc"""
-    coefficients(f::FreeModElem)
+    coefficients(f::AbstractFreeModElem)
 
 Return the coefficients of `f` with respect to the basis of standard unit vectors. 
 
@@ -318,7 +318,7 @@ julia> coefficients(f)
 Sparse row with positions [1, 3] and values fmpq_mpoly[x, y]
 ```
 """
-coefficients(f::FreeModElem) = coeffs(f)
+coefficients(f::AbstractFreeModElem) = coeffs(f)
 #########################################################
 
 @doc Markdown.doc"""
@@ -342,11 +342,15 @@ parent_type(::Type{FreeModElem{T}}) where {T} = FreeMod{T}
 elem_type(::FreeMod{T}) where {T} = FreeModElem{T}
 parent_type(::FreeModElem{T}) where {T} = FreeMod{T}
 
-function expressify(e::FreeModElem; context = nothing)
+function generator_symbols(F::FreeMod)
+  return F.S
+end
+
+function expressify(e::AbstractFreeModElem; context = nothing)
   sum = Expr(:call, :+)
   for (pos, val) in e.coords
-     # assuming e.parent.S is an array of strings/symbols
-     push!(sum.args, Expr(:call, :*, expressify(val, context = context), e.parent.S[pos]))
+     # assuming generator_symbols(parent(e)) is an array of strings/symbols
+     push!(sum.args, Expr(:call, :*, expressify(val, context = context), generator_symbols(parent(e))[pos]))
   end
   return sum
 end
@@ -369,7 +373,7 @@ Return the standard basis of `F`.
 function basis(F::AbstractFreeMod)
   bas = elem_type(F)[]
   for i=1:dim(F)
-    s = Hecke.sparse_row(F.R, [(i, F.R(1))])
+    s = Hecke.sparse_row(base_ring(F), [(i, base_ring(F)(1))])
     push!(bas, FreeModElem(s, F))
   end
   return bas
@@ -392,7 +396,7 @@ Return the `i`th basis vector of `F`, that is, return the `i`th standard unit ve
 """
 function basis(F::AbstractFreeMod, i::Int)
   @assert 0 < i <= ngens(F)
-  s = Hecke.sparse_row(F.R, [(i, F.R(1))])
+  s = Hecke.sparse_row(base_ring(F), [(i, base_ring(F)(1))])
   return FreeModElem(s, F)
 end
 gen(F::AbstractFreeMod, i::Int) = basis(F,i)
@@ -407,23 +411,23 @@ end
 
 Return the underlying ring of `F`.
 """
-base_ring(F::AbstractFreeMod) = F.R
+base_ring(F::FreeMod) = F.R
 
 #TODO: Parent - checks everywhere!!!
 
 # the negative of a free module element
--(a::AbstractFreeModElem) = FreeModElem(-a.coords, a.parent)
+-(a::AbstractFreeModElem) = FreeModElem(-coords(a), parent(a))
 
 # Addition of free module elements
 function +(a::AbstractFreeModElem, b::AbstractFreeModElem)
    check_parent(a, b)
-   return FreeModElem(a.coords+b.coords, parent(a))
+   return FreeModElem(coords(a)+coords(b), parent(a))
 end
 
 # Subtraction of free module elements
 function -(a::AbstractFreeModElem, b::AbstractFreeModElem)
     check_parent(a,b)
-    return FreeModElem(a.coords-b.coords, parent(a))
+    return FreeModElem(coords(a)-coords(b), parent(a))
 end
 
 # Equality of free module elements
@@ -439,30 +443,30 @@ function *(a::MPolyElem_dec, b::AbstractFreeModElem)
   if parent(a) !== base_ring(parent(b))
     error("elements not compatible")
   end
-  return FreeModElem(a*b.coords, parent(b))
+  return FreeModElem(a*coords(b), parent(b))
 end
 function *(a::MPolyElem, b::AbstractFreeModElem) 
   if parent(a) !== base_ring(parent(b))
     error("elements not compatible")
   end
-  return FreeModElem(a*b.coords, parent(b))
+  return FreeModElem(a*coords(b), parent(b))
 end
 function *(a::RingElem, b::AbstractFreeModElem) 
   if parent(a) !== base_ring(parent(b))
     error("elements not compatible")
   end
-  return FreeModElem(a*b.coords, parent(b))
+  return FreeModElem(a*coords(b), parent(b))
 end
-*(a::Int, b::AbstractFreeModElem) = FreeModElem(a*b.coords, parent(b))
-*(a::Integer, b::AbstractFreeModElem) = FreeModElem(b.parent.R(a)*b.coords, parent(b))
-*(a::fmpq, b::AbstractFreeModElem) = FreeModElem(b.parent.R(a)*b.coords, parent(b))
+*(a::Int, b::AbstractFreeModElem) = FreeModElem(a*coords(b), parent(b))
+*(a::Integer, b::AbstractFreeModElem) = FreeModElem(base_ring(parent(b))(a)*coords(b), parent(b))
+*(a::fmpq, b::AbstractFreeModElem) = FreeModElem(base_ring(parent(b))(a)*coords(b), parent(b))
 
 @doc Markdown.doc"""
     zero(F::AbstractFreeMod)
 
 Return the zero element of  `F`.
 """
-zero(F::AbstractFreeMod) = FreeModElem(sparse_row(F.R, Tuple{Int, elem_type(F.R)}[]), F)
+zero(F::AbstractFreeMod) = FreeModElem(sparse_row(base_ring(F), Tuple{Int, elem_type(base_ring(F))}[]), F)
 
 @doc Markdown.doc"""
     parent(a::AbstractFreeModElem)
@@ -1958,7 +1962,7 @@ function index_of_gen(v::SubQuoElem)
 end
 
 # function to check whether a free module element is in a particular free module
-function check_parent(a::Union{FreeModElem,SubQuoElem}, b::Union{FreeModElem,SubQuoElem})
+function check_parent(a::Union{AbstractFreeModElem,SubQuoElem}, b::Union{AbstractFreeModElem,SubQuoElem})
   if parent(a) !== parent(b)
     error("elements not compatible")
   end  
@@ -2375,7 +2379,7 @@ function presentation(SQ::SubQuo)
   #TODO sort decoration and fix maps, same decoration should be bundled (to match pretty printing)
   G = FreeMod(R, length(q))
   h_G_F = hom(G, F, q)
-  h_F_SQ = hom(F, SQ, gens(SQ)) # DO NOT CHANGE THIS LINE, see present and preimage
+  h_F_SQ = hom(F, SQ, gens(SQ)) # DO NOT CHANGE THIS LINE, see present_as_cokernel and preimage
 
   Z = FreeMod(F.R, 0)
   set_attribute!(Z, :name => "Zero")
