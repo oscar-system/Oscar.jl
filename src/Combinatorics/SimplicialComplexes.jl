@@ -7,6 +7,7 @@ export
     dim,
     euler_characteristic,
     facets,
+    fundamental_group,
     f_vector,
     h_vector,
     minimal_nonfaces,
@@ -284,6 +285,38 @@ Multivariate Polynomial Ring in 6 variables a, b, c, d, ..., f over Integer Ring
 ```
 """
 stanley_reisner_ring(R::FmpzMPolyRing, K::SimplicialComplex) = quo(R, stanley_reisner_ideal(R, K))
+
+function fundamental_group(K::SimplicialComplex)
+    n, r = pm_object(K).FUNDAMENTAL_GROUP
+    F = free_group(n)
+    return fundamental_group(F, K)
+end
+
+@doc Markdown.doc"""
+    fundamental_group([F::FPGroup,] K::SimplicialComplex)
+
+Return the fundamental group of the abstract simplicial complex `K`, as a quotient of a given Group `F`.
+
+# Example
+```jldoctest
+julia> x = fundamental_group(torus());
+
+julia> describe(x[1])
+"Z x Z"
+```
+"""
+function fundamental_group(F::FPGroup, K::SimplicialComplex)
+    n, r = pm_object(K).FUNDAMENTAL_GROUP
+    rvec = Vector{FPGroupElem}(undef, length(r))
+    for (i, relation) in enumerate(r)
+        relem = one(F)
+        for term in relation
+            relem *= F[first(term) + 1]^last(term)
+        end
+        rvec[i] = relem
+    end
+    return quo(F, rvec)
+end
 
 ################################################################################
 ##  Standard examples

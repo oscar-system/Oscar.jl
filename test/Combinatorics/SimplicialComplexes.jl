@@ -22,6 +22,11 @@
         R, _ = PolynomialRing(ZZ, ["a", "x", "i_7", "n"])
         @test stanley_reisner_ideal(sphere) == ideal([P([1], [[1, 1, 1, 1]])])
         @test stanley_reisner_ideal(R, sphere) == ideal([R([1], [[1, 1, 1, 1]])])
+        @test isisomorphic(fundamental_group(sphere)[1], free_group())[1]
+        @test string.(gens(fundamental_group(sphere)[1])) == string.(gens(free_group(3)))
+        F = free_group([string('a' + i, i * i) for i in 0:2])
+        @test isisomorphic(fundamental_group(F, sphere)[1], free_group())[1]
+        @test string.(gens(fundamental_group(F, sphere)[1])) == string.(gens(F))
         
     end
     
