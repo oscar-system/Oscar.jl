@@ -1690,7 +1690,12 @@ julia> O[2]
 Map with following data
 Domain:
 =======
-M
+Subquotient of Submodule with 1 generator
+1 -> x*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
 Codomain:
 =========
 Subquotient of Submodule with 2 generators
@@ -1705,7 +1710,12 @@ julia> O[3]
 Map with following data
 Domain:
 =======
-N
+Subquotient of Submodule with 1 generator
+1 -> y*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
 Codomain:
 =========
 Subquotient of Submodule with 2 generators
@@ -3271,8 +3281,7 @@ Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational
 julia> kernel(a)
 (Submodule with 1 generator
 1 -> x*z*e[1] - y*z*e[2] + y^2*e[3]
-represented as subquotient with no relations.
-, Map with following data
+represented as subquotient with no relations., Map with following data
 Domain:
 =======
 Submodule with 1 generator
@@ -3280,7 +3289,7 @@ Submodule with 1 generator
 represented as subquotient with no relations.
 Codomain:
 =========
-F)
+Free module of rank 3 over Multivariate Polynomial Ring in x, y, z over Rational Field)
 ```
 """
 function kernel(h::FreeModuleHom)  #ONLY for free modules...
@@ -3350,8 +3359,7 @@ julia> image(a)
 1 -> y*e[1]
 2 -> x*e[1] + y*e[2]
 3 -> z*e[2]
-represented as subquotient with no relations.
-, Map with following data
+represented as subquotient with no relations., Map with following data
 Domain:
 =======
 Submodule with 3 generators
@@ -3361,7 +3369,7 @@ Submodule with 3 generators
 represented as subquotient with no relations.
 Codomain:
 =========
-G)
+Free module of rank 2 over Multivariate Polynomial Ring in x, y, z over Rational Field)
 ```
 """
 function image(h::FreeModuleHom)
