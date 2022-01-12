@@ -201,7 +201,7 @@ function Base.getproperty(G::MatrixGroup, sym::Symbol)
    isdefined(G,sym) && return getfield(G,sym)
 
    if sym === :ring_iso
-      G.ring_iso = ring_iso_oscar_gap(G.ring)
+      G.ring_iso = iso_oscar_gap(G.ring)
 
    elseif sym === :X
       if isdefined(G,:descr)
