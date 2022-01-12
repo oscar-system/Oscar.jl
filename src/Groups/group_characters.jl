@@ -25,7 +25,7 @@ export
     trivial_character
 
 
-complex_conjugate(elm::QabElem) = elm^QabAutomorphism(-1)
+conj(elm::QabElem) = elm^QabAutomorphism(-1)
 
 
 #############################################################################
@@ -281,7 +281,7 @@ function matrix_of_strings(tbl::GAPGroupCharacterTable; alphabet::String = "", r
             name, state = iterate(iter, state)
             disp = as_sum_of_roots(val.data, root)
             push!(legend, (val, name, disp))
-            valbar = complex_conjugate(val)
+            valbar = conj(val)
             if valbar != val
               # The complex conjugate of a known name is shown relative to
               # that name.
@@ -630,7 +630,7 @@ function Base.:^(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable)
     return GAPGroupClassFunction(tbl, GAP.Globals.InducedClassFunction(chi.values, tbl.GAPTable))
 end
 
-function complex_conjugate(chi::GAPGroupClassFunction)
+function conj(chi::GAPGroupClassFunction)
     return GAPGroupClassFunction(chi.table, GAP.Globals.ComplexConjugate(chi.values))
 end
 
@@ -754,7 +754,7 @@ function schur_index(chi::GAPGroupClassFunction, recurse::Bool = true)
 
     # The character field contains an `m`-th root of unity.
     values = chi.values
-    if complex_conjugate(chi) == chi
+    if conj(chi) == chi
       bound = 2
     else
       # Compute the conductor of the largest cyclotomic field
