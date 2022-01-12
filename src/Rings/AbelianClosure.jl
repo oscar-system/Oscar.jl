@@ -119,7 +119,7 @@ _variable(K::QabField) = K.s
 
 _variable(b::QabElem) = Expr(:call, Symbol(_variable(_Qab)), b.c)
 
-function cyclotomic_field(K::QabField, c::Int)
+function Hecke.cyclotomic_field(K::QabField, c::Int)
   if haskey(K.fields, c)
     k = K.fields[c]
     return k, gen(k)

@@ -5,19 +5,23 @@ import Oscar:action
 import AbstractAlgebra: Group, Module
 import Base: parent
 
-#TODO: rename into GModule
 @attributes mutable struct GModule{gT,mT}
   G::gT
   M::mT
   ac::Vector{Map} # automorphisms of M, one for each generator of G
 
-  function GModule(G::T, ac::Vector{<:Map}) where {T <: Oscar.GAPGroup}
-    r = new{T,typeof(domain(ac[1]))}()
+  function GModule(M, G::T, ac::Vector{<:Map}) where {T <: Oscar.GAPGroup}
+    r = new{T,typeof(M)}()
     r.G = G
     r.ac = ac
-    r.M = domain(ac[1])
+    r.M = M
     @assert all(x -> domain(x) == codomain(x) == r.M, ac)
     return r
+  end
+
+
+  function GModule(G::T, ac::Vector{<:Map}) where {T <: Oscar.GAPGroup}
+    return GModule(domain(ac[1]), G, ac)
   end
 
   F::Group # G as an Fp-group (if set)
@@ -61,6 +65,21 @@ function Oscar.relations(F::FPGroup)
   z = one(free_group(F))
   return [(x, z) for x = R]
 end
+
+function Oscar.relations(G::Oscar.GAPGroup)
+   f = GAP.Globals.IsomorphismFpGroupByGenerators(G.X, GAP.Globals.GeneratorsOfGroup(G.X))
+   f !=GAP.Globals.fail || throw(ArgumentError("Could not convert group into a group of type FPGroup"))
+   H = FPGroup(GAP.Globals.Image(f))
+   return relations(H)
+end
+
+function Oscar.relations(G::PcGroup)
+   f = GAP.Globals.IsomorphismFpGroupByPcgs(GAP.Globals.FamilyPcgs(G.X), GAP.julia_to_gap("g"))
+   f !=GAP.Globals.fail || throw(ArgumentError("Could not convert group into a group of type FPGroup"))
+   H = FPGroup(GAP.Globals.Image(f))
+   return relations(H)
+end
+
 
 AbstractAlgebra.Group(C::GModule) = C.G
 AbstractAlgebra.Module(C::GModule) = C.M
@@ -183,6 +202,22 @@ function H_zero(C::GModule)
   return k, z
 end
 
+#= TODO
+ - break out coboundaries and cochains
+ - depending on the module type:
+   - intersect yields an embedding (Z-module) or not GrpAb
+   - make sure that image/ kernel are consisten
+   - preimage 
+   - issubset yields (for GrpAb) only true/ false, not the map
+   - issubgroup has the "wrong" order of arguments (and cannot apply
+     to modules)
+   - quo does ONLY work if B is a direct submodule of A (Z-modules)
+   - mat or matrix is used to get "the matrix" from a hom
+   - zero_hom/ zero_obj/ identity_hom is missing
+   - Janko-Module-Homs have different types, they probably need to
+     come under a common abstract type or be more selective
+=#
+
 function H_one(C::GModule)
   z = get_attribute(C, :H_one)
   if z !== nothing
@@ -197,8 +232,8 @@ function H_one(C::GModule)
   X(r_i) corresponds to some map phi_i : M^r -> M
   phi_i = oplus h_j M for some homs h_j coming from the word in r
   so, a kernel computation again
-
   =#
+
   G = Group(C)
   n = ngens(G)
   M = Module(C)
@@ -407,6 +442,11 @@ function Oscar.mat(M::FreeModuleHom{FreeMod{QabElem}, FreeMod{QabElem}})
   return M.matrix
 end
 
+#= Hulpke-Dietrich:
+UNIVERSAL COVERS OF FINITE GROUPS
+https://arxiv.org/pdf/1910.11453.pdf
+almost the same as Holt
+=#
 function H_two(C::GModule)
   z = get_attribute(C, :H_two)
   if z !== nothing
@@ -693,7 +733,7 @@ function H_two(C::GModule)
 end
 
 """
-For a cohomology module `C` compute the `i`-th cohomology group
+For a gmodule `C` compute the `i`-th cohomology group
   where `i` can be `0`, `1` or `2`.
 Together with the abstract module, a map is provided that will 
   produce explicit cochains.
@@ -817,6 +857,9 @@ Note: we do not check that this defined indeed a `ZZ[H]` module.
 function gmodule(H::Oscar.GAPGroup, ac::Vector{<:Map})
   return GModule(H, ac)
 end
+function gmodule(M, H::Oscar.GAPGroup, ac::Vector{<:Map})
+  return GModule(M, H, ac)
+end
 
 function _gmodule(k::AnticNumberField, H::PermGroup, mu::Map{GrpAbFinGen, FacElemMon{AnticNumberField}})
   u = domain(mu)
@@ -927,7 +970,7 @@ Oscar.group(C::GModule) = C.G
 
 #= TODO
   for Z, Z/nZ, F_p and F_q moduln -> find Fp-presentation
-  #done: for GrpAbFinGen            -> find Fp-presentation
+  #done: for GrpAbFinGen          -> find Fp-presentation
   #done: for a in H^2 find Fp-presentation
   for a in H^2 find (low degree) perm group using the perm group we have?
   Magma's DistinctExtensions
@@ -937,9 +980,6 @@ Sort:
  - move the additional GrpAbFinGenMap stuff elsewhere
  - move (and fix) the ModuleHom stuff
  - add proper quo for Modules
-
-  group better: the GModule should
-   - cache the H^i's that are computed
 
   features   
    - inflation, restriction, long exact sequence  
@@ -953,7 +993,6 @@ Sort:
      https://doi.org/10.1017/S2040618500033050
    - understand Derek Holt and use BSGS for large perm groups
      rather than the RWS (or use BSGS to get an RWS?)
-
 
   GModule for 
     - local field (add (trivial) and mult)
