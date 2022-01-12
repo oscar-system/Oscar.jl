@@ -9,10 +9,10 @@ export
     dim,
     betti_numbers, euler_characteristic, homology, cohomology,
     minimal_nonfaces, alexander_dual, stanley_reisner_ideal, stanley_reisner_ring,
-    load_simplicialcomplex, save_simplicialcomplex,
-    complex_projective_plane,
     real_projective_plane, klein_bottle, torus, # requires a distinction from, e.g., an algebraic group
-    star_subcomplex, link_subcomplex
+    complex_projective_plane,
+    star_subcomplex, link_subcomplex,
+    load_simplicialcomplex, save_simplicialcomplex
 
 ################################################################################
 ##  Constructing

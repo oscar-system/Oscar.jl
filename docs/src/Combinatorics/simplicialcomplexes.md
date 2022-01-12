@@ -70,20 +70,23 @@ cohomology(K::SimplicialComplex, i::Int)
 
 ## Connection to commutative algebra
 
+The complements of the minimal non-faces form the facets of the Alexander dual.
+
+```@docs
+minimal_nonfaces(K::SimplicialComplex)
+alexander_dual(K::SimplicialComplex)
+```
+
 Let $K$ be a simplicial complex on $n$ vertices.
 The minimal non-faces of $K$ generate a square-free monomial ideal, known as the *Stanley-Reisner ideal* of $K$.
 The quotient of the polynomial ring (in $n$ variables, with integer coefficients) modulo that ideal is the *Stanley-Reisner ring*.
 For details see Chapter 5 of [BH09](@cite).
 
-The complements of the minimal non-faces form the facets of the Alexander dual.
-
 ```@docs
-minimal_nonfaces(K::SimplicialComplex)
 stanley_reisner_ideal(K::SimplicialComplex)
-stanley_reisner_ring(K::SimplicialComplex)
 stanley_reisner_ideal(R::MPolyRing, K::SimplicialComplex)
+stanley_reisner_ring(K::SimplicialComplex)
 stanley_reisner_ring(R::MPolyRing, K::SimplicialComplex)
-alexander_dual(K::SimplicialComplex)
 ```
 
 ## Saving and loading
