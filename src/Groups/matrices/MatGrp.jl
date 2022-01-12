@@ -484,8 +484,8 @@ compute_order(G::MatrixGroup{T}) where {T <: Union{nf_elem, fmpq}} = order(isomo
 
 function order(::Type{T}, G::MatrixGroup) where T <: IntegerUnion
    res = get_attribute!(G, :order) do
-     return compute_order(G)::fmpz
-   end
+     return compute_order(G)
+   end::fmpz
    return T(res)::T
 end
 

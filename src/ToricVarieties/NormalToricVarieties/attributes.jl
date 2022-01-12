@@ -10,8 +10,8 @@ Return the dimension of the normal toric variety `v`.
 """
 function dim(v::AbstractNormalToricVariety)
     return get_attribute!(v, :dim) do
-        return pm_object(v).FAN_DIM::Int
-    end
+        return pm_object(v).FAN_DIM
+    end::Int
 end
 export dim
 
@@ -29,7 +29,7 @@ function dim_of_torusfactor(v::AbstractNormalToricVariety)
         dimension_of_fan = pm_object(v).FAN_DIM::Int
         ambient_dimension = pm_object(v).FAN_AMBIENT_DIM::Int
         return ambient_dimension - dimension_of_fan
-    end
+    end::Int
 end
 export dim_of_torusfactor
 
