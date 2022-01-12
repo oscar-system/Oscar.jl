@@ -25,7 +25,10 @@ function iso_oscar_gap(F::Union{Nemo.GaloisField, Nemo.GaloisFmpzField})
    e = GAPWrap.One(G)
 
    f(x::Union{Nemo.gfp_elem, Nemo.gfp_fmpz_elem}) = GAP.Obj(lift(x))*e
-   finv(x) = F(fmpz(GAPWrap.IntFFE(x)))
+   function finv(x::GAP.Obj)
+      y = GAPWrap.IntFFE(x)
+      return y isa Int ? F(y) : F(fmpz(y))
+   end
 
    return MapFromFunc(f, finv, F, G)
 end
@@ -40,7 +43,10 @@ function iso_oscar_gap(F::Union{Nemo.FqNmodFiniteField, Nemo.FqFiniteField})
    # prime fields are easy and efficient to deal with, handle them separately
    if d == 1
       f1(x::Union{Nemo.fq_nmod, Nemo.fq}) = GAP.Obj(coeff(x, 0))*e
-      finv1(x) = F(fmpz(GAPWrap.IntFFE(x)))
+      function finv1(x::GAP.Obj)
+         y = GAPWrap.IntFFE(x)
+         return y isa Int ? F(y) : F(fmpz(y))
+      end
       return MapFromFunc(f1, finv1, F, Fp_gap)
    end
 
@@ -87,7 +93,7 @@ function iso_oscar_gap(F::Union{Nemo.FqNmodFiniteField, Nemo.FqFiniteField})
    end
 
    # For "small" primes x should be an FFE, but for bigger ones it's GAP_jll.Mptr (?)
-   function finv(x)
+   function finv(x::GAP.Obj)
       v = GAPWrap.Coefficients(Basis_G, x)
       v_int = [ fmpz(GAPWrap.IntFFE(v[i])) for i = 1:length(v) ]
       return sum([ v_int[i]*Basis_F[i] for i = 1:d ])
@@ -118,7 +124,7 @@ function iso_oscar_gap(F::AnticNumberField)
       return GAPWrap.CycList(GAP.GapObj(coeffs; recursive=true))
    end
 
-   function finv(x)
+   function finv(x::GAP.Obj)
       GAPWrap.IsCyc(x) || error("$x is not a GAP cyclotomic")
       denom = GAPWrap.DenominatorCyc(x)
       n = GAPWrap.Conductor(x)
