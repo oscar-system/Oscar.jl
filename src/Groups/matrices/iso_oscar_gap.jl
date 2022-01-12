@@ -19,7 +19,7 @@ end
 ################################################################################
 
 # computes the isomorphism between the Oscar field F and the corresponding GAP field
-function ring_iso_oscar_gap(F::Union{Nemo.GaloisField, Nemo.GaloisFmpzField})
+function iso_oscar_gap(F::Union{Nemo.GaloisField, Nemo.GaloisFmpzField})
    p = characteristic(F)
    G = GAPWrap.GF(GAP.Obj(p))
    e = GAPWrap.One(G)
@@ -30,7 +30,7 @@ function ring_iso_oscar_gap(F::Union{Nemo.GaloisField, Nemo.GaloisFmpzField})
    return MapFromFunc(f, finv, F, G)
 end
 
-function ring_iso_oscar_gap(F::Union{Nemo.FqNmodFiniteField, Nemo.FqFiniteField})
+function iso_oscar_gap(F::Union{Nemo.FqNmodFiniteField, Nemo.FqFiniteField})
    p = characteristic(F)
    d = degree(F)
    p_gap = GAP.Obj(p)
@@ -96,7 +96,7 @@ function ring_iso_oscar_gap(F::Union{Nemo.FqNmodFiniteField, Nemo.FqFiniteField}
    return MapFromFunc(f, finv, F, G)
 end
 
-function ring_iso_oscar_gap(F::FlintRationalField)
+function iso_oscar_gap(F::FlintRationalField)
    return MapFromFunc(x -> GAP.Obj(x), x -> fmpq(x), F, GAP.Globals.Rationals)
 end
 
@@ -104,7 +104,7 @@ end
 # General number fields will require caching,
 # in order to achieve that Oscar matrix groups over the same number field
 # are mapped to GAP matrix groups over the same `AlgebraicExtension` field.
-function ring_iso_oscar_gap(F::AnticNumberField)
+function iso_oscar_gap(F::AnticNumberField)
 
    flag, N = Hecke.iscyclotomic_type(F)
    flag || error("$F is not a cyclotomic field")
@@ -134,7 +134,7 @@ function ring_iso_oscar_gap(F::AnticNumberField)
    return MapFromFunc(f, finv, F, G)
 end
 
-#TODO function ring_iso_oscar_gap(F::T) where T <: QabField
+#TODO function iso_oscar_gap(F::T) where T <: QabField
 
 
 ################################################################################
