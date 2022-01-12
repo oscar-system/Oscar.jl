@@ -935,6 +935,55 @@ function resolvent(C::GaloisCtx, G::PermGroup, U::PermGroup, extra::Int = 5)
   end
 end
 
+"""
+    minpoly(C::GaloisCtx, I, extra::Int = 5)
+
+Computes the minimal polynomial of `I` evaluated at the roots
+stored in `C`.
+"""
+function Hecke.minpoly(C::GaloisCtx, I, extra::Int = 5)
+  O = probable_orbit(C.G, I)
+  n = length(O)
+  rt = roots(C)
+  #make square-free (in residue field)
+  k, mk = ResidueField(parent(rt[1]))
+  k_rt = map(mk, rt)
+  ts = gen(Hecke.Globals.Zx)
+  while true
+    r = map(ts, k_rt)
+    s = Set(map(x->evaluate(x, r), O))
+    if length(s) < length(O)
+      while true
+        ts = rand(Zx, 2:rand(2:max(2, length(r))), -4:4) #TODO: try smaller degrees stronger
+        if degree(ts) > 0
+          break
+        end
+      end
+    else
+      break
+    end
+  end
+
+  B = 2*n*evaluate(I, map(ts, [C.B for i = 1:ngens(parent(I))]))^n
+  rt = roots(C, bound_to_precision(C, B, extra))
+  rt = map(ts, rt)
+  rt = [evaluate(i, rt) for i = O]
+  pr = copy(rt)
+  ps = [isinteger(C, B, sum(pr))[2]]
+  while length(ps) < n
+    pr .*=  rt
+    push!(ps, isinteger(C, B, sum(pr))[2])
+  end
+  if isa(ps[1], fmpz)
+    return Hecke.power_sums_to_polynomial(map(fmpq, ps))
+  else
+    return Hecke.power_sums_to_polynomial(ps)
+  end
+end
+
+Hecke.minpoly(R::FmpzPolyRing, C::GaloisCtx, I, extra::Int = 5) = Hecke.minpoly(C, I, extra = extra)(gen(R))
+Hecke.minpoly(R::FmpqPolyRing, C::GaloisCtx, I, extra::Int = 5) = Hecke.minpoly(C, I, extra = extra)(gen(R))
+
 struct GroupFilter
   f::Vector{Function}
   GroupFilter() = new([x->true])
@@ -1317,6 +1366,10 @@ function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = 
   GC = GaloisCtx(Hecke.Globals.Zx(K.pol), p)
 
   G, F, si = starting_group(GC, K, useSubfields = useSubfields)
+  if degree(K) == 1
+    GC.G = G
+    return G, GC
+  end
 
   # TODO: here we know that we are primitive; can we detect 2-transitive (inside starting_group)?
 
@@ -1750,7 +1803,9 @@ function galois_group(f::fmpq_poly; pStart::Int = 2*degree(f))
   G, emb, pro = inner_direct_product([x.G for x = C], morphisms = true)
 
   CC = GaloisCtx(Hecke.Globals.Zx(g), p)
-  rr = roots(CC, 5)
+  rr = roots(CC, 5, raw = true) #raw is neccessary for non-monic case
+                                #the scaling factor is the lead coeff
+                                #thus not the same for all factors...
   @assert length(Set(rr)) == length(rr)
 
   d = map(frobenius, rr)
@@ -1762,7 +1817,7 @@ function galois_group(f::fmpq_poly; pStart::Int = 2*degree(f))
   rr = map(mk, rr)
   po = Int[]
   for GC = C
-    r = roots(GC, 5)
+    r = roots(GC, 5, raw = true)
     K, mK = ResidueField(parent(r[1]))
     r = map(mK, r)
     phi = find_morphism(K, k)
