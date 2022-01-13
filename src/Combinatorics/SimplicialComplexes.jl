@@ -55,9 +55,9 @@ The original vertices can be recovered.
 julia> L = SimplicialComplex([[0,2,17],[2,17,90]]);
 
 julia> facets(L)
-2-element Vector{Vector{Int64}}:
- [1, 3, 2]
- [3, 4, 2]
+2-element Vector{Set{Int64}}:
+ Set([2, 3, 1])
+ Set([4, 2, 3])
 
 julia> vertexindices(L)
 4-element Vector{Int64}:
