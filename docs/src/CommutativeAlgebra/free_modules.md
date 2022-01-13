@@ -10,10 +10,10 @@ using Oscar
 Pages = ["free_modules.md"]
 ```
 
-# Free Modules Over Commutative Rings
+# Free Modules Over Multivariate Rings
 
 In this section, the expression *free module*  refers to a free module of finite rank
-over a commutative ring. More concretely, given a commutative ring $R$, 
+over a multivariate polynomial ring. More concretely, given a multivariate polynomial ring $R$, 
 the free $R$-modules considered are of type $R^p$, where we think of $R^p$ as a
 free module with a given basis, namely the basis of standard unit vectors.
 Accordingly, elements of free modules are represented by coordinate vectors,
@@ -24,13 +24,14 @@ and homomorphisms between free modules by matrices.
 
 ## Types
 
-All OSCAR types for finitely presented modules over commutative rings belong to the abstract type `ModuleFP{T}`.
+All OSCAR types for finitely presented modules over multivariate polynomial rings belong to the abstract type `ModuleFP{T}`.
 For free modules, OSCAR provides the abstract subtype `AbstractFreeMod{T} <: ModuleFP{T}` and its concrete
 descendant `FreeMod{T <: RingElem}`.
 
 !!! note
-    The `FreeMod` type is designed so that it allows for the caching of incoming
-     and outgoing homomorphisms when executing functions. The `direct_sum` function discussed
+    Canonical maps such us the canonical projection onto a quotient module arise in many 
+    constructions in commutative algebra. The `FreeMod` type is designed so that it allows
+    for the caching of such maps when executing functions. The `direct_sum` function discussed
     in this section provides an example.
 
 ## Constructor
@@ -59,7 +60,7 @@ rank(F)
 
 ## Elements of Free Modules
 
-All OSCAR types for elements of finitely presented modules over commutative rings belong to the abstract type `ModuleElemFP{T}`.
+All OSCAR types for elements of finitely presented modules over multivariate polynomial rings belong to the abstract type `ModuleElemFP{T}`.
 For elements of free modules, there are the abstract subtype `AbstractFreeModElem{T} <: ModuleFPElem{T}` and its concrete
 descendant `FreeModElem{T}` which implements an element $f$ of a free module $F$ as a sparse row,
 that is, as an object of type `SRow{T}`. This object specifies the coordinates of $f$ with respect to

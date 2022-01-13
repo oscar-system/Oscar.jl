@@ -97,7 +97,7 @@ function FreeMod(R::Ring, n::Int, name::String = "e"; cached::Bool = false) # TO
 end
 
 @doc Markdown.doc"""
-    free_module(R::Ring, p::Int, name::String = "e"; cached::Bool = false)
+    free_module(R::MPolyRing, p::Int, name::String = "e"; cached::Bool = false)
 
 Return the free module $R^p$, created with its basis of standard unit vectors.
 
