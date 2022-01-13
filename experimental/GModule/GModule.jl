@@ -25,7 +25,7 @@ function __init__()
   set_verbose_level(:MinField, 0)
 end
 
-function GAP.gap_to_julia(::Type{QabElem}, a::GAPInt)
+function GAP.gap_to_julia(::Type{QabElem}, a::GAP.GAPInt)
   E = abelian_closure(QQ)[1]
   return E(fmpz(a))
 end
