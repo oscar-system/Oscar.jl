@@ -8,6 +8,7 @@ export
     f_vector, h_vector,
     dim,
     betti_numbers, euler_characteristic, homology, cohomology,
+    fundamental_group,
     minimal_nonfaces, alexander_dual, stanley_reisner_ideal, stanley_reisner_ring,
     real_projective_plane, klein_bottle, torus, # requires a distinction from, e.g., an algebraic group
     complex_projective_plane,
@@ -59,8 +60,13 @@ julia> vertexindices(L)
  90
 ```
 """
-function SimplicialComplex(generators::Union{Vector{Vector{Int}}, Vector{Set{Int}}})
+function SimplicialComplex(generators::Union{AbstractVector{<:AbstractVector{<:Base.Integer}}, AbstractVector{<:AbstractSet{<:Base.Integer}}})
     K = Polymake.topaz.SimplicialComplex(INPUT_FACES=generators)
+    SimplicialComplex(K)
+end
+
+function SimplicialComplex(generators::IncidenceMatrix)
+    K = Polymake.@convert_to Array{Set} Polymake.common.rows(generators)
     SimplicialComplex(K)
 end
 
@@ -70,7 +76,7 @@ function _SimplicialComplex(generators::Union{Vector{Vector{Int}}, Vector{Set{In
     K = Polymake.topaz.SimplicialComplex(FACETS=generators)
     SimplicialComplex(K)
 end
-
+    
 ################################################################################
 ##  Auxiliary
 ################################################################################
@@ -336,6 +342,38 @@ Multivariate Polynomial Ring in 6 variables a, b, c, d, ..., f over Integer Ring
 ```
 """
 stanley_reisner_ring(R::MPolyRing, K::SimplicialComplex) = quo(R, stanley_reisner_ideal(R, K))
+
+function fundamental_group(K::SimplicialComplex)
+    n, r = pm_object(K).FUNDAMENTAL_GROUP
+    F = free_group(n)
+    return fundamental_group(F, K)
+end
+
+@doc Markdown.doc"""
+    fundamental_group([F::FPGroup,] K::SimplicialComplex)
+
+Return the fundamental group of the abstract simplicial complex `K`, as a quotient of a given Group `F`.
+
+# Example
+```jldoctest
+julia> x = fundamental_group(torus());
+
+julia> describe(x[1])
+"Z x Z"
+```
+"""
+function fundamental_group(F::FPGroup, K::SimplicialComplex)
+    n, r = pm_object(K).FUNDAMENTAL_GROUP
+    rvec = Vector{FPGroupElem}(undef, length(r))
+    for (i, relation) in enumerate(r)
+        relem = one(F)
+        for term in relation
+            relem *= F[first(term) + 1]^last(term)
+        end
+        rvec[i] = relem
+    end
+    return quo(F, rvec)
+end
 
 ################################################################################
 ###  Surface examples
