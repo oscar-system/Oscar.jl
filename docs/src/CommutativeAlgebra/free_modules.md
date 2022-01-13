@@ -36,7 +36,7 @@ descendant `FreeMod{T <: RingElem}`.
 ## Constructor
 
 ```@docs
-free_module(R::Ring, n::Int, name::String = "e"; cached::Bool = false)
+free_module(R::MPolyRing, n::Int, name::String = "e"; cached::Bool = false)
 ```
 
 ## Data Associated to Free Modules

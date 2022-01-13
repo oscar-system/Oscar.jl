@@ -118,7 +118,7 @@ julia> typeof(F)
 FreeMod{fmpq_mpoly}
 ```
 """
-free_module(R::Ring, p::Int, name::String = "e"; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
+free_module(R::MPolyRing, p::Int, name::String = "e"; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
 
 #=XXX this cannot be as it is inherently ambigous
   - FreeModule(R, n)
@@ -4398,6 +4398,7 @@ end
 #############################
 #TODO move to Hecke
 #  re-evaluate and use or not
+#=
 function differential(c::Hecke.ChainComplex, i::Int)
   return map(c,length(c)-i)
 end
@@ -4407,6 +4408,7 @@ function module_in_complex(c::Hecke.ChainComplex, i::Int)
 end
 
 getindex(c::Hecke.ChainComplex, i::Int) = module_in_complex(c,i)
+=#
 
 function getindex(r::Hecke.SRow, u::UnitRange)
   R = base_ring(r)
