@@ -10,7 +10,7 @@
         @test sphere2 isa SimplicialComplex
         @test vertexindices(sphere) == [1, 2, 3, 4]
         @test nvertices(sphere) == 4
-        @test facets(sphere) == [[1, 3, 2], [1, 4, 2], [1, 3, 4], [3, 4, 2]]
+        @test facets(sphere) == Set{Int}.([[1, 3, 2], [1, 4, 2], [1, 3, 4], [3, 4, 2]])
         @test facets(sphere2) == facets(sphere)
         @test dim(sphere) == 2
         @test f_vector(sphere) == [4, 6, 4]
@@ -24,9 +24,6 @@
         @test stanley_reisner_ideal(R, sphere) == ideal([R([1], [[1, 1, 1, 1]])])
         @test isisomorphic(fundamental_group(sphere)[1], free_group())[1]
         @test string.(gens(fundamental_group(sphere)[1])) == string.(gens(free_group(3)))
-        F = free_group([string('a' + i, i * i) for i in 0:2])
-        @test isisomorphic(fundamental_group(F, sphere)[1], free_group())[1]
-        @test string.(gens(fundamental_group(F, sphere)[1])) == string.(gens(F))
         
     end
     

@@ -126,8 +126,8 @@ Return the maximal (by inclusion) faces of the abstract simplicial complex `K`.
 """
 function facets(K::SimplicialComplex)
     bigobject = pm_object(K)
-    the_facets = Vector{Set{Int}}(bigobject.FACETS)
-    return Polymake.to_one_based_indexing(the_facets)
+    the_facets = Polymake.to_one_based_indexing(bigobject.FACETS)
+    return Vector{Set{Int}}(the_facets)
 end
 
 @doc Markdown.doc"""
@@ -286,16 +286,10 @@ Multivariate Polynomial Ring in 6 variables a, b, c, d, ..., f over Integer Ring
 """
 stanley_reisner_ring(R::FmpzMPolyRing, K::SimplicialComplex) = quo(R, stanley_reisner_ideal(R, K))
 
-function fundamental_group(K::SimplicialComplex)
-    n, r = pm_object(K).FUNDAMENTAL_GROUP
-    F = free_group(n)
-    return fundamental_group(F, K)
-end
-
 @doc Markdown.doc"""
-    fundamental_group([F::FPGroup,] K::SimplicialComplex)
+    fundamental_group(K::SimplicialComplex)
 
-Return the fundamental group of the abstract simplicial complex `K`, as a quotient of a given Group `F`.
+Return the fundamental group of the abstract simplicial complex `K`.
 
 # Example
 ```jldoctest
@@ -305,8 +299,9 @@ julia> describe(x[1])
 "Z x Z"
 ```
 """
-function fundamental_group(F::FPGroup, K::SimplicialComplex)
+function fundamental_group(K::SimplicialComplex)
     n, r = pm_object(K).FUNDAMENTAL_GROUP
+    F = free_group(n)
     rvec = Vector{FPGroupElem}(undef, length(r))
     for (i, relation) in enumerate(r)
         relem = one(F)
