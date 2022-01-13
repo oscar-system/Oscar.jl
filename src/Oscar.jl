@@ -70,6 +70,7 @@ function __init__()
     ])
     GAP.Packages.load("ctbllib")
     GAP.Packages.load("forms")
+    __init_IsoGapOscar()
 end
 
 const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
@@ -249,6 +250,7 @@ include("Rings/AbelianClosure.jl")
 
 include("GAP/gap_to_oscar.jl")
 include("GAP/oscar_to_gap.jl")
+include("GAP/iso_gap_oscar.jl")
 
 include("Groups/group_characters.jl")  # needs some Rings functionality
 
