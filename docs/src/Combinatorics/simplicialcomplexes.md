@@ -67,6 +67,11 @@ homology(K::SimplicialComplex, i::Int)
 betti_numbers(K::SimplicialComplex)
 cohomology(K::SimplicialComplex, i::Int)
 ```
+## Fundamental group
+
+```@docs
+fundamental_group(K::SimplicialComplex)
+```
 
 ## Connection to commutative algebra
 

@@ -343,11 +343,9 @@ Multivariate Polynomial Ring in 6 variables a, b, c, d, ..., f over Integer Ring
 """
 stanley_reisner_ring(R::MPolyRing, K::SimplicialComplex) = quo(R, stanley_reisner_ideal(R, K))
 
-function fundamental_group(K::SimplicialComplex)
-    n, r = pm_object(K).FUNDAMENTAL_GROUP
-    F = free_group(n)
-    return fundamental_group(F, K)
-end
+################################################################################
+###  Fundaemental group
+################################################################################
 
 @doc Markdown.doc"""
     fundamental_group([F::FPGroup,] K::SimplicialComplex)
@@ -362,6 +360,12 @@ julia> describe(x[1])
 "Z x Z"
 ```
 """
+function fundamental_group(K::SimplicialComplex)
+    n, r = pm_object(K).FUNDAMENTAL_GROUP
+    F = free_group(n)
+    return fundamental_group(F, K)
+end
+
 function fundamental_group(F::FPGroup, K::SimplicialComplex)
     n, r = pm_object(K).FUNDAMENTAL_GROUP
     rvec = Vector{FPGroupElem}(undef, length(r))
