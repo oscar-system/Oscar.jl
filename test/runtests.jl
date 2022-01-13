@@ -2,6 +2,7 @@ using Oscar
 using Test
 
 include("PolyhedralGeometry/runtests.jl")
+include("Combinatorics/runtests.jl")
 
 include("GAP/runtests.jl")
 
