@@ -2,7 +2,7 @@ import AbstractAlgebra.Ring
 import Base: intersect
 
 export Spec, OO
-export ⊂
+export EmptyScheme
 
 export is_open_embedding, is_closed_embedding, hypersurface_complement, subscheme, name_of, set_name!
 export closure, product
@@ -145,6 +145,7 @@ locus of ``f``.
 function hypersurface_complement(X::Spec{BRT, BRET, RT, RET, MST}, f::RET) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
   R = base_ring(OO(X))
   parent(f) == R || error("the element does not belong to the correct ring")
+  iszero(f) && return subscheme(X, [one(R)])
   return Spec(Localization(OO(X), MPolyPowersOfElement(f)))
 end
 
@@ -165,12 +166,11 @@ end
 
 
 ### testing containment
-⊂(
-  X::Scheme{BRT, BRET}, 
-  Y::Scheme{BRT, BRET}
- ) where {BRT, BRET} = issubset(X, Y)
-
 issubset(X::EmptyScheme{BRT, BRET}, Y::Scheme{BRT, BRET}) where {BRT, BRET} = true
+
+function issubset(Y::Spec{BRT, BRET, RT, RET, MST1}, X::EmptyScheme{BRT, BRET}) where {BRT, BRET, RT, RET, MST1} 
+  return iszero(one(OO(Y)))
+end
 
 @Markdown.doc """
     issubset(
@@ -202,6 +202,7 @@ function ==(
     X::Spec{BRT, BRET, RT, RET, MST1}, 
     Y::Spec{BRT, BRET, RT, RET, MST2}
   ) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
+  X == EmptyScheme(coefficient_ring(base_ring(OO(Y)))) && Y == EmptyScheme(coefficient_ring(base_ring(OO(X)))) && return true
   base_ring(OO(X)) == base_ring(OO(Y)) || return false
   return issubset(X, Y) && issubset(Y, X)
 end

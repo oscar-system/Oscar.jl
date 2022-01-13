@@ -266,7 +266,8 @@ include("Combinatorics/SimplicialComplexes.jl")
 
 include("../experimental/Schemes/AffineSchemes.jl")
 include("../experimental/Schemes/SpecOpen.jl")
-include("../experimental/Schemes/CoveredSchemes.jl")
+include("../experimental/Schemes/Glueing.jl")
+include("../experimental/Schemes/CoveredScheme.jl")
 include("../experimental/Schemes/ProjectiveSchemes.jl")
 
 include("../StraightLinePrograms/src/StraightLinePrograms.jl")

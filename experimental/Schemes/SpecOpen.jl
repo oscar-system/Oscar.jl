@@ -150,6 +150,7 @@ function intersections(U::SpecOpen)
   if !isdefined(U, :intersections)
     X = ambient(U)
     V = patches(U)
+    U.intersections = Dict{Tuple{Int}, typeof(X)}()
     for i in 2:length(V)
       for j in 1:i-1
 	U.intersections[(i,j)] = U.intersections[(j,i)] = intersect(V[i], V[j])
