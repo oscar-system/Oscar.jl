@@ -10,7 +10,7 @@ using Oscar
 Pages = ["modules.md"]
 ```
 
-# Modules Over Polynomial Rings
+# Modules Over Multivariate Rings
 
 In this section, the term module will refer to a finitely presented module over a multivariate polynomial ring.
 In OSCAR, the most general way of implementing such a module is that of a *subquotient*, that is,
@@ -47,7 +47,7 @@ and regard $M$ as a submodule of that ambient module, embedded in the natural wa
 
 ## Types
 
-All OSCAR types for finitely presented modules over commutative rings belong to the abstract type `ModuleFP{T}`.
+All OSCAR types for finitely presented modules over multivariate polynomial rings belong to the abstract type `ModuleFP{T}`.
 For subquotients, OSCAR provides the abstract subtype `AbstractSubQuo{T} <: ModuleFP{T}` and its concrete
 descendant `SubQuo{T}`.
 
@@ -96,7 +96,7 @@ ambient_module(M)
 
 ## Elements of Subqotients
 
-All OSCAR types for elements of finitely presented modules over commutative rings belong to the abstract type `ModuleElemFP{T}`.
+All OSCAR types for elements of finitely presented modules over multivariate polynomial rings belong to the abstract type `ModuleElemFP{T}`.
 For elements of subquotients, there  are the abstract subtype `AbstractSubQuoElem{T} <: ModuleFPElem{T}`
 and its concrete descendant `SubQuoElem{T}` which implements an element $m$ of a subquotient
 $M$ over a ring $R$ as a sparse row, that is, as an object of type `SRow{T}`.
