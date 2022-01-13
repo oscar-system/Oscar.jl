@@ -58,7 +58,7 @@ of the complement of ``U``.
 gens(U::SpecOpen) = U.gens
 
 @Markdown.doc """
-    getindex(U::SpecOpen, i::Int) = patches(U)[i]
+    getindex(U::SpecOpen, i::Int)
 
 Return the hypersurface complement of ``fᵢ`` in the 
 ambient scheme ``X`` of ``U`` where ``f₁,…,fᵣ`` are 
