@@ -265,10 +265,14 @@ Polymake.convert_to_pm_type(::Type{SubObjectIterator{PointVector{T}}}) where T =
 Base.convert(::Type{<:Polymake.Matrix}, iter::SubObjectIterator) = matrix_for_polymake(iter; homogenized=true)
 
 function homogenized_matrix(x::SubObjectIterator{<:PointVector}, v::Number = 1)
-    @assert v == 1
+    if v != 1
+        throw(ArgumentError("PointVectors can only be (re-)homogenized with parameter 1, please convert to a matrix first."))
+    end
     return matrix_for_polymake(x; homogenized=true)
 end
 function homogenized_matrix(x::SubObjectIterator{<:RayVector}, v::Number = 0)
-    @assert v == 0
+    if v != 0
+        throw(ArgumentError("RayVectors can only be (re-)homogenized with parameter 0, please convert to a matrix first."))
+    end
     return matrix_for_polymake(x; homogenized=true)
 end

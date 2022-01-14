@@ -375,11 +375,11 @@ This (non-smooth) cone in the plane has a hilbert basis with three elements.
 julia> C = Cone([1 0; 1 2])
 A polyhedral cone in ambient dimension 2
 
-julia> hilbert_basis(C)
-pm::Matrix<pm::Integer>
-1 0
-1 1
-1 2
+julia> matrix(ZZ, hilbert_basis(C))
+[1   0]
+[1   2]
+[1   1]
+
 ```
 """
 function hilbert_basis(C::Cone)
