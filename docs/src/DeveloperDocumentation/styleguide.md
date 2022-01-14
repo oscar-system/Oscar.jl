@@ -10,35 +10,40 @@ deviate from them in some cases; in that case just do so.
 
 The usual [Julia naming conventions](https://docs.julialang.org/en/v1/manual/style-guide/#Use-naming-conventions-consistent-with-Julia-base/)
 apply to Oscar, too (that said, for various reasons our code still violates
-quite some of them; but in general we strive to reduce these)
+quite some of them; but in general we strive to reduce these).
+Here is a summary of the naming convention followed in Oscar:
 
-- `CamelCase` for types, `snake_case` for everything else
-- `isfoo` not `is_foo`
-- for generic concepts choose generic names, based on general algebraic
+- Use `CamelCase` for types and `snake_case` for *everything* else. (Internal functions do not have to follow these rules.)
+- Noteworthy difference to Julia base is that we do not have exceptions `is*` or `has*`.
+  It is `is_foo` instead of `isfoo` and `has_bar` instead of `hasbar`.
+- For generic concepts choose generic names, based on general algebraic
   concepts, preferably not special names from your area of speciality.
-- use Julia conventions where applicable.
-- in Julia we have multiple dispatch, so we do not need a function like
-  `point_from_matrix` as the from part is clear by the type of the argument.
+- Use Julia conventions where applicable.
+- In Julia we have multiple dispatch, so we do not need functions like
+  `point_from_matrix` as the "from" part is clear by the type of the argument.
   It should be called `points(T::Matrix)` in some variation.
-  Similar: `matrix_to_points`. It is fine to use them internally, where
+  Similarly for `matrix_to_points`. Of course it is fine to use them internally, where
   useful.
-- follow the mathematics. If your function needs a list of points, you should
-  create a point-type and then use this. For user-facing functions, please do not
-  use re-purposed lists, arrays, matrices...
-- if already existing types in Oscar are almost what you need, consider
-  improving them instead of writing you own. While it might be
+- Follow the mathematics. If your function needs a list of points, you should
+  create a point-type (or use the one already ehre) and then use this.
+  For user-facing functions, please do not use re-purposed lists, arrays,
+  matrices...
+- If already existing types in Oscar are almost what you need, consider
+  improving them instead of writing your own. While it might be
   tempting to create a new polynomial ring type for the new application because
-  some feature is missing, it causes a lot of work: will the new type support
-  - normal functions (gcd, factor)
-  - quotient fields
-  - modules and residue rings
+  some feature is missing, it causes a lot of work and compability issues: Will the new type support
+  - normal functions (gcd, factor),
+  - quotient fields,
+  - modules and residue rings,
   - conversion to and from other already existing types?
 
 ## Code formatting
 
 ### Whitespace
-- DO NOT put spaces "inside" parenthesis
-- DO put spaces after commas
+
+- Do not use tabs.
+- Do not put spaces "inside" parenthesis.
+- Do put spaces after commas.
 
 Good example:
 ```julia
@@ -116,7 +121,7 @@ end
     ```
 
 - Functions should not have too many arguments.
-  If you need a bunch arguments, chances are that introducing a new object
+  If you need a bunch arguments, chances are that introducing a new type
   makes it more readable.
 
 - Functions should not be too long; very long functions are in general harder
