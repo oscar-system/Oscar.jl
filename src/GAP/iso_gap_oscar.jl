@@ -1,5 +1,5 @@
 # Basically the same as the usual preimage function but without a type check
-# since we don't have elem_type(C) in this case
+# since we don't have elem_type(D) in this case
 function preimage(M::Map{D, C}, a) where {D <: GapObj, C}
   if isdefined(M.header, :preimage)
     p = M.header.preimage(a)
@@ -149,12 +149,9 @@ end
 # the function gets called in Oscar's `__init__`.
 function __init_IsoGapOscar()
     if ! hasproperty(GAP.Globals, :IsoGapOscar)
-      GAP.evalstr("""
-DeclareAttribute( "IsoGapOscar", IsDomain );
-InstallMethod( IsoGapOscar,
-[ IsDomain ],
-D -> Julia.Oscar._iso_gap_oscar( D ) );
-""")
+      GAP.Globals.DeclareAttribute(GAP.Obj("IsoGapOscar"), GAP.Globals.IsDomain);
+      GAP.Globals.InstallMethod(GAP.Globals.IsoGapOscar,
+        GAP.Obj([GAP.Globals.IsDomain]), GAP.GapObj(_iso_gap_oscar));
     end
 end
 
