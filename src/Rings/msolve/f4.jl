@@ -41,27 +41,20 @@ function f4(
         info_level::Int=0
         )
 
-    singular_assure(I)
-    SI    = I.gens.S
-    R     = I.gens.Sx
-    # skip zero generators in ideal
-    ptr = Singular.libSingular.id_Copy(SI.ptr, R.ptr)
-    J   = Singular.Ideal(R, ptr)
-    Singular.libSingular.idSkipZeroes(J.ptr)
-    # get number of variables
-    nr_vars = Singular.nvars(R)
-    nr_gens = Singular.ngens(J)
+    R = base_ring(I)
+    nr_vars     = nvars(R)
+    nr_gens     = ngens(I)
+    field_char  = Int(characteristic(R))
 
     mon_order       = 0
     elim_block_size = 0
-    field_char  = Singular.characteristic(R)
 
-    # convert Singular ideal to flattened arrays of ints
+    # convert ideal to flattened arrays of ints
     if !(isprime(field_char))
         error("At the moment f4 only supports finite fields.")
     end
 
-    lens, cfs, exps = convert_singular_ideal_to_array(J)
+    lens, cfs, exps = convert_oscar_ideal_to_array(I)
 
     gb_ld  = Ref(Cint(0))
     gb_len = Ref(Ptr{Cint}(0))
@@ -79,6 +72,7 @@ function f4(
     if nr_terms == 0
         error("Something went wrong in the C code of F4.")
     end
+
     # convert to julia array, also give memory management to julia
     jl_ld   = gb_ld[]
     jl_len  = Base.unsafe_wrap(Array, gb_len[], jl_ld)
@@ -96,17 +90,15 @@ function f4(
     #     basis = convert_qq_gb_array_to_singular_ideal(
     #       jl_ld, jl_len, jl_cf, jl_exp, R)
     # else
-        basis = convert_ff_gb_array_to_singular_ideal(
-          jl_ld, jl_len, jl_cf, jl_exp, R)
+        basis = convert_ff_gb_array_to_oscar_array(
+                                                   jl_ld, jl_len, jl_cf, jl_exp, base_ring(I))
     # end
     ccall((:free_f4_julia_result_data, libneogb), Nothing ,
           (Ptr{Nothing}, Ptr{Ptr{Cint}}, Ptr{Ptr{Cint}},
            Ptr{Ptr{Cvoid}}, Int, Int),
           cglobal(:jl_free), gb_len, gb_exp, gb_cf, jl_ld, field_char)
 
-    I.gb        = BiPolyArray(base_ring(I), basis)
-    I.gb.isGB   = true
-    I.gb.S.isGB = true
+    I.gb        = BiPolyArray(basis, keep_ordering=false, isGB=true)
     
-    return I.gb
+    return basis
 end
