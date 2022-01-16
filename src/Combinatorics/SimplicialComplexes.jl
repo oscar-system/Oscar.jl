@@ -207,7 +207,10 @@ julia> minimal_nonfaces(K)
  Set([4, 1])
 ```
 """
-minimal_nonfaces(K::SimplicialComplex) = Vector{Set{Int}}(Polymake.to_one_based_indexing(pm_object(K).MINIMAL_NON_FACES))
+function minimal_nonfaces(K::SimplicialComplex)
+    I = pm_object(K).MINIMAL_NON_FACES
+    return Vector{Set{Int}}([Polymake.row(I,i) for i in 1:Polymake.nrows(I)])
+end
 
 @doc Markdown.doc"""
     stanley_reisner_ideal(K::SimplicialComplex)
