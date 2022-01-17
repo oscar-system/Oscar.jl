@@ -18,7 +18,7 @@ Load a cone stored in JSON format, given the filename as input.
 function load_cone(filename::String)
    bigobject = Polymake.load_bigobject(filename)
    typename = Polymake.type_name(bigobject)
-   if typename[1:4] != "Cone"
+   if typename != "Cone<Rational>"
       throw(ArgumentError("Loaded object is not of polymake type Cone, it has type " * typename))
    end
    return Cone(bigobject)
@@ -44,7 +44,7 @@ Load a polyhedron stored in JSON format, given the filename as input.
 function load_polyhedron(filename::String)
    bigobject = Polymake.load_bigobject(filename)
    typename = Polymake.type_name(bigobject)
-   if typename[1:8] != "Polytope"
+   if typename != "Polytope<Rational>"
       throw(ArgumentError("Loaded object is not of polymake type Polytope, it has type " * typename))
    end
    return Polyhedron(bigobject)
@@ -70,7 +70,7 @@ Load a polyhedral fan stored in JSON format, given the filename as input.
 function load_polyhedralfan(filename::String)
    bigobject = Polymake.load_bigobject(filename)
    typename = Polymake.type_name(bigobject)
-   if typename[1:13] != "PolyhedralFan"
+   if typename != "PolyhedralFan<Rational>"
       throw(ArgumentError("Loaded object is not of polymake type PolyhedralFan, it has type " * typename))
    end
    return PolyhedralFan(bigobject)
@@ -97,7 +97,7 @@ Load a linear program stored in JSON format, given the filename as input.
 function load_linearprogram(filename::String)
    fr = Polymake.load_bigobject(filename)
    typename = Polymake.type_name(fr)
-   if typename[1:8] != "Polytope"
+   if typename != "Polytope<Rational>"
       throw(ArgumentError("Loaded object is not of polymake type LinearProgram."))
    end
    if !Polymake.exists(fr, "LP")
@@ -136,7 +136,7 @@ Load a subdivision of points stored in JSON format, given the filename as input.
 function load_subdivisionofpoints(filename::String)
    bigobject = Polymake.load_bigobject(filename)
    typename = Polymake.type_name(bigobject)
-   if typename[1:19] != "SubdivisionOfPoints"
+   if typename != "SubdivisionOfPoints<Rational>"
       throw(ArgumentError("Loaded object is not of polymake type SubdivisionOfPoints, it has type " * typename))
    end
    return SubdivisionOfPoints(bigobject)
@@ -163,7 +163,7 @@ Load a polyhedral complex stored in JSON format, given the filename as input.
 function load_polyhedralcomplex(filename::String)
    bigobject = Polymake.load_bigobject(filename)
    typename = Polymake.type_name(bigobject)
-   if typename[1:17] != "PolyhedralComplex"
+   if typename != "PolyhedralComplex<Rational>"
       throw(ArgumentError("Loaded object is not of polymake type PolyhedralComplex, it has type " * typename))
    end
    return PolyhedralComplex(bigobject)
