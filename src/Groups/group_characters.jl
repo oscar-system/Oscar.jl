@@ -18,11 +18,14 @@ export
     character_field,
     character_table,
     decomposition_matrix,
+    indicator,
+    induced_cyclic,
     scalar_product,
+    schur_index,
     trivial_character
 
 
-complex_conjugate(elm::QabElem) = elm^QabAutomorphism(-1)
+conj(elm::QabElem) = elm^QabAutomorphism(-1)
 
 
 #############################################################################
@@ -278,7 +281,7 @@ function matrix_of_strings(tbl::GAPGroupCharacterTable; alphabet::String = "", r
             name, state = iterate(iter, state)
             disp = as_sum_of_roots(val.data, root)
             push!(legend, (val, name, disp))
-            valbar = complex_conjugate(val)
+            valbar = conj(val)
             if valbar != val
               # The complex conjugate of a known name is shown relative to
               # that name.
@@ -495,6 +498,19 @@ function decomposition_matrix(modtbl::GAPGroupCharacterTable)
     return matrix(ZZ, GAP.Globals.DecompositionMatrix(modtbl.GAPTable))
 end
 
+function names_of_fusion_sources(tbl::GAPGroupCharacterTable)
+    return [string(name) for name in GAP.Globals.NamesOfFusionSources(tbl.GAPTable)]
+end
+
+function known_class_fusion(subtbl::GAPGroupCharacterTable, tbl::GAPGroupCharacterTable)
+    map = GAP.Globals.GetFusionMap(subtbl.GAPTable, tbl.GAPTable)
+    if map == GAP.Globals.fail
+      return (false, Int[])
+    else
+      return (true, Vector{Int}(map))
+    end
+end
+
 
 #############################################################################
 ##
@@ -542,6 +558,16 @@ function trivial_character(G::GAPGroup)
     return group_class_function(G, [val for i in 1:GAP.Globals.NrConjugacyClasses(G.X)])
 end
 
+@doc Markdown.doc"""
+    induced_cyclic(tbl::GAPGroupCharacterTable)
+
+Return the array of permutation characters of `tbl` that are induced from
+cyclic subgroups.
+"""
+function induced_cyclic(tbl::GAPGroupCharacterTable)
+    return [GAPGroupClassFunction(tbl, chi) for chi in GAP.Globals.InducedCyclic(tbl.GAPTable)]
+end
+
 Base.length(chi::GAPGroupClassFunction) = length(chi.values)
 
 Base.iterate(chi::GAPGroupClassFunction, state = 1) = state > length(chi.values) ? nothing : (chi[state], state+1)
@@ -562,7 +588,7 @@ function Base.:(==)(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
     return chi.values == psi.values
 end
 
-# aritmetics with class functions
+# arithmetics with class functions
 function Base.:+(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
     chi.table === psi.table || error("character tables must be identical")
     return GAPGroupClassFunction(chi.table, chi.values + psi.values)
@@ -600,6 +626,14 @@ function Base.:^(chi::GAPGroupClassFunction, n::IntegerUnion)
     return GAPGroupClassFunction(chi.table, chi.values ^ n)
 end
 
+function Base.:^(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable)
+    return GAPGroupClassFunction(tbl, GAP.Globals.InducedClassFunction(chi.values, tbl.GAPTable))
+end
+
+function conj(chi::GAPGroupClassFunction)
+    return GAPGroupClassFunction(chi.table, GAP.Globals.ComplexConjugate(chi.values))
+end
+
 # apply a class function to a group element
 function(chi::GAPGroupClassFunction)(g::BasicGAPGroupElem)
     # Identify the conjugacy class of `g`.
@@ -610,6 +644,32 @@ function(chi::GAPGroupClassFunction)(g::BasicGAPGroupElem)
       end
     end
     error("$g is not an element in the underlying group")
+end
+
+function class_positions_of_kernel(chi::GAPGroupClassFunction)
+    deg = degree(chi)
+    return filter(i -> chi[i] == deg, 1:length(chi))
+end
+
+function class_positions_of_kernel(list::Vector{T}) where T
+    length(list) == 0 && return T[]
+    deg = list[1]
+    return filter(i -> list[i] == deg, 1:length(list))
+end
+
+@doc Markdown.doc"""
+    indicator(chi::GAPGroupClassFunction, n::Int = 2)
+
+Return the `n`-th Frobenius-Schur indicator of `chi`, that is,
+the value $(∑_{g ∈ G} chi(g^n))/|G|$, where $G$ is the group of `chi`.
+
+If `chi` is irreducible then `indicator(chi)` is
+`0` if `chi` is not real-valued,
+`1` if `chi` is afforded by a real representation of $G$, and
+`-1` if `chi` is real-valued but not afforded by a real representation of $G$.
+"""
+function indicator(chi::GAPGroupClassFunction, n::Int = 2)::Int
+    return GAP.Globals.Indicator(chi.table.GAPTable, GAP.GapObj([chi.values]), n)[1]
 end
 
 @doc Markdown.doc"""
@@ -675,4 +735,80 @@ function character_field(chi::GAPGroupClassFunction)
     end
 
     return F, MapFromFunc(f, finv, F, FF)
+end
+
+@doc Markdown.doc"""
+    schur_index(chi::GAPGroupClassFunction)
+
+Return either the minimal integer `m` such that the character `m * chi`
+is afforded by a representation over the character field of `chi`,
+or `nothing`.
+
+The latter happens if character theoretic criteria do not suffice for
+computing `m`.
+"""
+function schur_index(chi::GAPGroupClassFunction, recurse::Bool = true)
+    deg = numerator(degree(chi))
+    deg == 1 && return 1
+    indicator(chi) == -1 && return 2
+
+    # The character field contains an `m`-th root of unity.
+    values = chi.values
+    if conj(chi) == chi
+      bound = 2
+    else
+      # Compute the conductor of the largest cyclotomic field
+      # that is contained in the character field of `chi`.
+      gapfield = GAP.Globals.Field(values)
+      N = GAP.Globals.Conductor(gapfield)
+      for n in reverse(sort(divisors(N)))
+        if GAP.Globals.E(n) in gapfield
+          if isodd(n)
+            bound = 2*n
+          else
+            bound = n
+          end
+          break
+        end
+      end
+    end
+
+    # `m` divides `deg`
+    bound = gcd(bound, deg)
+    bound == 1 && return 1
+
+    # `m` divides the multiplicity of `chi` in any rational character
+    # with trivial Schur index.
+    # - Consider permutation characters induced from cyclic subgroups.
+    tbl = chi.table
+    for psi in induced_cyclic(tbl)
+      bound = gcd(bound, scalar_product(chi, psi))
+      bound == 1 && return 1
+    end
+    # - Consider characters induced from other known subgroups.
+    for name in names_of_fusion_sources(tbl)
+      s = character_table(name)
+      known, fus = known_class_fusion(s, tbl)
+      @assert known "the class fusion is not stored"
+      if length(class_positions_of_kernel(fus)) == 1
+        psi = trivial_character(s)^(tbl)
+        bound = gcd(bound, scalar_product(chi, psi))
+        bound == 1 && return 1
+      end
+    end
+
+    if recurse
+      # Consider tensor products of rational characters with Schur index 1.
+      cand = filter(psi -> degree(character_field(psi)[1]) == 1 &&
+                           schur_index(psi, false) == 1, collect(tbl))
+      for i in 1:length(cand)
+        for j in 1:i
+          bound = gcd(bound, scalar_product(chi, cand[i] * cand[j]))
+          bound == 1 && return 1
+        end
+      end
+    end
+
+    # For the moment, we do not have more character theoretic criteria.
+    return
 end

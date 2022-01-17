@@ -2,7 +2,7 @@
 
    @testset for (p,d) in [(2,1),(5,1),(2,4),(3,3),(2,8)]
       F = GF(p,d)
-      f = Oscar.ring_iso_oscar_gap(F)
+      f = Oscar.iso_oscar_gap(F)
       g = elm -> map_entries(f, elm)
       for a in F
          for b in F
@@ -23,7 +23,7 @@
    # (Oscar chooses a polynomial that is not a Conway polynomial.)
    p = next_prime(10^6)
    F = GF(p, 2)
-   f = Oscar.ring_iso_oscar_gap(F)
+   f = Oscar.iso_oscar_gap(F)
    for x in [ F(3), gen(F) ]
       a = f(x)
       @test preimage(f, a) == x
@@ -109,7 +109,7 @@ end
    push!(fields, (QQ, 1))
 
    @testset for (F, z) in fields
-      f = Oscar.ring_iso_oscar_gap(F)
+      f = Oscar.iso_oscar_gap(F)
       g = elm -> map_entries(f, elm)
       for i in 1:10
          a = my_rand_bits(F, 5)

@@ -11,6 +11,7 @@ export AbsLocalizedIdeal
 export ideal
 
 import AbstractAlgebra.Ring
+import AbstractAlgebra: expressify, show_via_expressify
 
 #################################################################################
 # General framework for localizations of rings; to be used with affine algebras #
@@ -30,7 +31,7 @@ abstract type AbsMultSet{RingType<:Ring, RingElemType<:RingElem} end
 
 ### required getter functions
 @Markdown.doc """
-ambient_ring(S::AbsMultSet)
+    ambient_ring(S::AbsMultSet)
 
 Return the ambient ring `R` for a multiplicatively closed set `S ⊂ R`.
 """
@@ -72,7 +73,7 @@ abstract type AbsLocalizedRing{RingType, RingElemType, MultSetType} <: Ring end
 
 ### required getter functions
 @Markdown.doc """
-base_ring(W::AbsLocalizedRing)
+    base_ring(W::AbsLocalizedRing)
 
 Return the base ring R for a localized ring of the form W = R[S⁻¹].
 """
@@ -81,7 +82,7 @@ function base_ring(W::AbsLocalizedRing)
 end
 
 @Markdown.doc """
-inverted_set(W::AbsLocalizedRing)
+    inverted_set(W::AbsLocalizedRing)
 
 Return the set S of at which has been localized for a localized ring W = R[S⁻¹].
 """
@@ -91,7 +92,7 @@ end
 
 ### required functionality
 @Markdown.doc """
-Localization(S::AbsMultSet)
+    Localization(S::AbsMultSet)
 
 Return the localization of the `ambient_ring` of `S` at `S` itself.
 """
@@ -149,7 +150,7 @@ abstract type AbsLocalizedRingElem{
 
 ### required getter functions 
 @Markdown.doc """
-numerator(f::AbsLocalizedRingElem)
+    numerator(f::AbsLocalizedRingElem)
 
 Return the numerator of `f`.
 """
@@ -158,7 +159,7 @@ function numerator(f::AbsLocalizedRingElem)
 end
 
 @Markdown.doc """
-denominator(f::AbsLocalizedRingElem)
+    denominator(f::AbsLocalizedRingElem)
 
 Return the denominator of `f`.
 """
@@ -167,7 +168,7 @@ function denominator(f::AbsLocalizedRingElem)
 end
 
 @Markdown.doc """
-parent(f::AbsLocalizedRingElem)
+    parent(f::AbsLocalizedRingElem)
 
 Return the parent ring R[S⁻¹] of `f`.
 """
@@ -175,14 +176,9 @@ function parent(f::AbsLocalizedRingElem)
   error("`parent` is not implemented for the type $(typeof(f))")
 end
 
-### default functionality for printing
-function Base.show(io::IO, f::AbsLocalizedRingElem)
-  if needs_parentheses(f)
-    print(io, "($(numerator(f)))//($(denominator(f)))")
-  else 
-    print(io, "$(numerator(f))//$(denominator(f))")
-  end
-end
+expressify(f::AbsLocalizedRingElem; context=nothing) = Expr(:call, ://, expressify(numerator(f), context=context), expressify(denominator(f), context=context))
+
+@enable_all_show_via_expressify AbsLocalizedRingElem
 
 
 ########################################################################
@@ -190,7 +186,7 @@ end
 ########################################################################
 
 @Markdown.doc """
-reduce_fraction(a::AbsLocalizedRingElem)
+    reduce_fraction(a::AbsLocalizedRingElem)
 
 Reduce the fraction a = p/q. **Warning**: The catchall-implementation does nothing!
 """
@@ -263,7 +259,6 @@ function divexact(a::T, b::T; check::Bool=false) where {T<:AbsLocalizedRingElem}
 end
 
 function inv(a::AbsLocalizedRingElem) 
-  numerator(a) in inverted_set(parent(a)) || error("the given element is not a unit")
   return parent(a)(denominator(a), numerator(a))
 end
 
@@ -301,8 +296,6 @@ function Base.show(io::IO, W::AbsLocalizedRing)
   print(io, " at the ")
   print(io, inverted_set(W))
 end
-
-needs_parentheses(f::AbsLocalizedRingElem) = true
 
 function zero!(a::AbsLocalizedRingElem) 
   a = zero(parent(a))
@@ -344,7 +337,7 @@ iszero(a::AbsLocalizedRingElem) = iszero(numerator(a))
 ############################################################################
 
 @Markdown.doc """
-AbsLocalizedIdeal{RingType, RingElemType, MultSetType}
+    AbsLocalizedIdeal{RingType, RingElemType, MultSetType}
 
 Abstract type for finitely generated ideals ``I ⊂ R[S⁻¹]`` in localized rings. 
 """
@@ -430,7 +423,7 @@ end
 ########################################################################
 
 @Markdown.doc """
-AbsLocalizedRingHom{RingType, RingElemType, DomainMultSetType, CodomainMultSetType} 
+    AbsLocalizedRingHom{RingType, RingElemType, DomainMultSetType, CodomainMultSetType} 
 
 Homomorphism ``ϕ : P[U⁻¹] → Q[V⁻¹]`` of localized rings with ``P`` and 
 ``Q`` of type `RingType`, ``U`` of type `DomainMultSetType`, and 
@@ -452,7 +445,7 @@ end
 
 ### required getter functions
 @Markdown.doc """
-domain(f::AbsLocalizedRingHom) 
+    domain(f::AbsLocalizedRingHom) 
 
 Return the domain of definition of `f`.
 """
@@ -461,7 +454,7 @@ function domain(f::AbsLocalizedRingHom)
 end
 
 @Markdown.doc """
-codomain(f::AbsLocalizedRingHom) 
+    codomain(f::AbsLocalizedRingHom) 
 
 Return the codomain of `f`.
 """
@@ -471,7 +464,7 @@ end
 
 ### required functionality
 @Markdown.doc """
-(f::AbsLocalizedRingHom)(a::T) where {T<:RingElement}
+    (f::AbsLocalizedRingHom)(a::T) where {T<:RingElement}
 
 Applies the map `f` to the element `a` in the domain of `f`.
 """
@@ -483,7 +476,7 @@ Applies the map `f` to the element `a` in the domain of `f`.
 (f::AbsLocalizedRingHom)(a::fmpz) = f(domain(f)(a))
 
 @Markdown.doc """
-(f::AbsLocalizedRingHom)(I::Ideal)
+    (f::AbsLocalizedRingHom)(I::Ideal)
 
 Return the ideal generated by the images `f(hᵢ)` of the generators `hᵢ` of `I`.
 """
