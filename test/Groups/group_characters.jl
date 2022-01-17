@@ -420,3 +420,8 @@ end
     end
   end
 end
+
+@testset "Schur index" begin
+  t = character_table("2.A5")
+  @test map(schur_index, collect(t)) == [1,1,1,1,1,2,2,2,2]
+end

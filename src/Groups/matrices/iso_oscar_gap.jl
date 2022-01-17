@@ -19,18 +19,21 @@ end
 ################################################################################
 
 # computes the isomorphism between the Oscar field F and the corresponding GAP field
-function ring_iso_oscar_gap(F::Union{Nemo.GaloisField, Nemo.GaloisFmpzField})
+function _iso_oscar_gap(F::Union{Nemo.GaloisField, Nemo.GaloisFmpzField})
    p = characteristic(F)
    G = GAPWrap.GF(GAP.Obj(p))
    e = GAPWrap.One(G)
 
    f(x::Union{Nemo.gfp_elem, Nemo.gfp_fmpz_elem}) = GAP.Obj(lift(x))*e
-   finv(x) = F(fmpz(GAPWrap.IntFFE(x)))
+   function finv(x::GAP.Obj)
+      y = GAPWrap.IntFFE(x)
+      return y isa Int ? F(y) : F(fmpz(y))
+   end
 
    return MapFromFunc(f, finv, F, G)
 end
 
-function ring_iso_oscar_gap(F::Union{Nemo.FqNmodFiniteField, Nemo.FqFiniteField})
+function _iso_oscar_gap(F::Union{Nemo.FqNmodFiniteField, Nemo.FqFiniteField})
    p = characteristic(F)
    d = degree(F)
    p_gap = GAP.Obj(p)
@@ -40,7 +43,10 @@ function ring_iso_oscar_gap(F::Union{Nemo.FqNmodFiniteField, Nemo.FqFiniteField}
    # prime fields are easy and efficient to deal with, handle them separately
    if d == 1
       f1(x::Union{Nemo.fq_nmod, Nemo.fq}) = GAP.Obj(coeff(x, 0))*e
-      finv1(x) = F(fmpz(GAPWrap.IntFFE(x)))
+      function finv1(x::GAP.Obj)
+         y = GAPWrap.IntFFE(x)
+         return y isa Int ? F(y) : F(fmpz(y))
+      end
       return MapFromFunc(f1, finv1, F, Fp_gap)
    end
 
@@ -87,7 +93,7 @@ function ring_iso_oscar_gap(F::Union{Nemo.FqNmodFiniteField, Nemo.FqFiniteField}
    end
 
    # For "small" primes x should be an FFE, but for bigger ones it's GAP_jll.Mptr (?)
-   function finv(x)
+   function finv(x::GAP.Obj)
       v = GAPWrap.Coefficients(Basis_G, x)
       v_int = [ fmpz(GAPWrap.IntFFE(v[i])) for i = 1:length(v) ]
       return sum([ v_int[i]*Basis_F[i] for i = 1:d ])
@@ -96,7 +102,8 @@ function ring_iso_oscar_gap(F::Union{Nemo.FqNmodFiniteField, Nemo.FqFiniteField}
    return MapFromFunc(f, finv, F, G)
 end
 
-function ring_iso_oscar_gap(F::FlintRationalField)
+@attributes FlintRationalField # TODO: port this to Nemo
+function _iso_oscar_gap(F::FlintRationalField)
    return MapFromFunc(x -> GAP.Obj(x), x -> fmpq(x), F, GAP.Globals.Rationals)
 end
 
@@ -104,7 +111,7 @@ end
 # General number fields will require caching,
 # in order to achieve that Oscar matrix groups over the same number field
 # are mapped to GAP matrix groups over the same `AlgebraicExtension` field.
-function ring_iso_oscar_gap(F::AnticNumberField)
+function _iso_oscar_gap(F::AnticNumberField)
 
    flag, N = Hecke.iscyclotomic_type(F)
    flag || error("$F is not a cyclotomic field")
@@ -118,7 +125,7 @@ function ring_iso_oscar_gap(F::AnticNumberField)
       return GAPWrap.CycList(GAP.GapObj(coeffs; recursive=true))
    end
 
-   function finv(x)
+   function finv(x::GAP.Obj)
       GAPWrap.IsCyc(x) || error("$x is not a GAP cyclotomic")
       denom = GAPWrap.DenominatorCyc(x)
       n = GAPWrap.Conductor(x)
@@ -134,7 +141,13 @@ function ring_iso_oscar_gap(F::AnticNumberField)
    return MapFromFunc(f, finv, F, G)
 end
 
-#TODO function ring_iso_oscar_gap(F::T) where T <: QabField
+function iso_oscar_gap(F)
+   return get_attribute!(F, :iso_oscar_gap) do
+      return _iso_oscar_gap(F)
+   end
+end
+
+#TODO function iso_oscar_gap(F::T) where T <: QabField
 
 
 ################################################################################

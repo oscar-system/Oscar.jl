@@ -48,7 +48,9 @@ function (F::FinField)(x::GAP.FFE)
         return F(val)
     end
 
-    error("TODO: add support for FFE outside the prime field")
+    # HACK: use `iso_oscar_gap` for now, until `iso_gap_oscar` becomes available
+    iso = iso_oscar_gap(F)
+    return preimage(iso, x)
 end
 
 # test code for producing a gap finite field element not stored as FFE:  `GAP.Globals.Z(65537)`
@@ -62,11 +64,9 @@ function (F::FinField)(x::GapObj)
         return F(val)
     end
 
-    # TODO: conversion of elements from extension field; code for this
-    # already exists in `src/Groups/matrices/iso_oscar_gap.jl` but it may require
-    # precomputations, which we should cache
-
-    error("TODO: add support for FFE outside the prime field")
+    # HACK: use `iso_oscar_gap` for now, until `iso_gap_oscar` becomes available
+    iso = iso_oscar_gap(F)
+    return preimage(iso, x)
 end
 
 ##
