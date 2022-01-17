@@ -107,6 +107,11 @@ function _iso_oscar_gap(F::FlintRationalField)
    return MapFromFunc(x -> GAP.Obj(x), x -> fmpq(x), F, GAP.Globals.Rationals)
 end
 
+@attributes FlintIntegerRing # TODO: port this to Nemo
+function _iso_oscar_gap(F::FlintIntegerRing)
+   return MapFromFunc(x -> GAP.Obj(x), x -> fmpz(x), F, GAP.Globals.Integers)
+end
+
 # For the moment, support only cyclotomic fields.
 # General number fields will require caching,
 # in order to achieve that Oscar matrix groups over the same number field
