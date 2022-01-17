@@ -48,9 +48,9 @@ The original vertices can be recovered.
 julia> L = SimplicialComplex([[0,2,17],[2,17,90]]);
 
 julia> facets(L)
-2-element Vector{Vector{Int64}}:
- [1, 3, 2]
- [3, 4, 2]
+2-element Vector{Set{Int64}}:
+ Set([2, 3, 1])
+ Set([4, 2, 3])
 
 julia> vertexindices(L)
 4-element Vector{Int64}:
@@ -135,8 +135,8 @@ Return the maximal (by inclusion) faces of the abstract simplicial complex `K`.
 """
 function facets(K::SimplicialComplex)
     bigobject = pm_object(K)
-    the_facets = Vector{Set{Int}}(bigobject.FACETS)
-    return Polymake.to_one_based_indexing(the_facets)
+    the_facets = Polymake.to_one_based_indexing(bigobject.FACETS)
+    return Vector{Set{Int}}(the_facets)
 end
 
 @doc Markdown.doc"""
@@ -255,7 +255,10 @@ julia> minimal_nonfaces(K)
  Set([4, 1])
 ```
 """
-minimal_nonfaces(K::SimplicialComplex) = Vector{Set{Int}}(Polymake.to_one_based_indexing(pm_object(K).MINIMAL_NON_FACES))
+function minimal_nonfaces(K::SimplicialComplex)
+    I = pm_object(K).MINIMAL_NON_FACES
+    return Vector{Set{Int}}([Polymake.row(I,i) for i in 1:Polymake.nrows(I)])
+end
 
 @doc Markdown.doc"""
     alexander_dual(K::SimplicialComplex)
@@ -348,9 +351,9 @@ stanley_reisner_ring(R::MPolyRing, K::SimplicialComplex) = quo(R, stanley_reisne
 ################################################################################
 
 @doc Markdown.doc"""
-    fundamental_group([F::FPGroup,] K::SimplicialComplex)
+    fundamental_group(K::SimplicialComplex)
 
-Return the fundamental group of the abstract simplicial complex `K`, as a quotient of a given Group `F`.
+Return the fundamental group of the abstract simplicial complex `K`.
 
 # Example
 ```jldoctest
@@ -363,11 +366,6 @@ julia> describe(x[1])
 function fundamental_group(K::SimplicialComplex)
     n, r = pm_object(K).FUNDAMENTAL_GROUP
     F = free_group(n)
-    return fundamental_group(F, K)
-end
-
-function fundamental_group(F::FPGroup, K::SimplicialComplex)
-    n, r = pm_object(K).FUNDAMENTAL_GROUP
     rvec = Vector{FPGroupElem}(undef, length(r))
     for (i, relation) in enumerate(r)
         relem = one(F)
@@ -420,7 +418,7 @@ complex_projective_plane() = SimplicialComplex(Polymake.topaz.complex_projective
 ################################################################################
 
 @doc Markdown.doc"""
-    star_complex(K::SimplicialComplex, sigma::Union{Vector{Int}, Set{Int}})
+    star_subcomplex(K::SimplicialComplex, sigma::Union{Vector{Int}, Set{Int}})
 
 Return the star of the face `sigma` in the abstract simplicial complex `K`.
 
@@ -432,11 +430,10 @@ julia> star_subcomplex(K,[1])
 Abstract simplicial complex of dimension 2 on 3 vertices
 ```
 """
-star_subcomplex(K::SimplicialComplex, sigma::Union{Vector{Int}, Set{Int}}) = SimplicialComplex(Polymake.topaz.star(pm_object(K), Polymake.to_zero_based_indexing(sigma)))
-# in polymake 4.6 functions will be renamed as link_complex->link_subcomplex, star->star_subcomplex
+star_subcomplex(K::SimplicialComplex, sigma::Union{Vector{Int}, Set{Int}}) = SimplicialComplex(Polymake.topaz.star_subcomplex(pm_object(K), Polymake.to_zero_based_indexing(sigma)))
 
 @doc Markdown.doc"""
-    link_complex(K::SimplicialComplex, sigma::Union{Vector{Int}, Set{Int}})
+    link_subcomplex(K::SimplicialComplex, sigma::Union{Vector{Int}, Set{Int}})
 
 Return the link of the face `sigma` in the abstract simplicial complex `K`.
 
@@ -448,8 +445,7 @@ julia> link_subcomplex(K,[2,3])
 Abstract simplicial complex of dimension 0 on 2 vertices
 ```
 """
-link_subcomplex(K::SimplicialComplex, sigma::Union{Vector{Int}, Set{Int}}) = SimplicialComplex(Polymake.topaz.link_complex(pm_object(K), Polymake.to_zero_based_indexing(sigma)))
-# in polymake 4.6 functions will be renamed as link_complex->link_subcomplex, star->star_subcomplex
+link_subcomplex(K::SimplicialComplex, sigma::Union{Vector{Int}, Set{Int}}) = SimplicialComplex(Polymake.topaz.link_subcomplex(pm_object(K), Polymake.to_zero_based_indexing(sigma)))
 
 ###############################################################################
 ### Display

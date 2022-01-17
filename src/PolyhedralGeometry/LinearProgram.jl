@@ -96,45 +96,11 @@ feasible_region(lp::LinearProgram) = lp.feasible_region
 ###############################################################################
 ###############################################################################
 
-"""
-    minimal_vertex(LP::LinearProgram)
-
-Return either a point of the feasible region of `LP` which minimizes the objective
-function of `LP`, or `nothing` if no such point exists.
-
-# Examples
-The following example constructs a linear program over the three dimensional cube.
-Although the linear program is given using the `:max` convention, one may still call
-`minimal_vertex`.
-```jldoctest
-julia> C=cube(3)
-A polyhedron in ambient dimension 3
-
-julia> LP=LinearProgram(C,[1,2,-3])
-The linear program
-   max{c⋅x + k | x ∈ P}
-where P is a Polyhedron and
-   c=Polymake.Rational[1 2 -3]
-   k=0
-
-julia> minimal_vertex(LP)
-pm::Vector<pm::Rational>
--1 -1 1
-```
-"""
-function minimal_vertex(lp::LinearProgram)
-   mv = lp.polymake_lp.MINIMAL_VERTEX
-   if mv != nothing
-      return dehomogenize(mv)
-   else
-      return nothing
-   end
-end
 
 """
-    maximal_vertex(LP::LinearProgram)
+    optimal_vertex(LP::LinearProgram)
 
-Return either a point of the feasible region of `LP` which maximizes the objective
+Return either a point of the feasible region of `LP` which optimizes the objective
 function of `LP`, or `nothing` if no such point exists.
 
 # Examples
@@ -151,15 +117,20 @@ where P is a Polyhedron and
    c=Polymake.Rational[1 2 -3]
    k=0
 
-julia> maximal_vertex(LP)
+julia> optimal_vertex(LP)
 pm::Vector<pm::Rational>
 1 1 -1
 ```
 """
-function maximal_vertex(lp::LinearProgram)
-   mv = lp.polymake_lp.MAXIMAL_VERTEX
-   if mv != nothing
-      return dehomogenize(mv)
+function optimal_vertex(lp::LinearProgram)
+   opt_vert = nothing
+   if lp.convention == :max
+      opt_vert = lp.polymake_lp.MAXIMAL_VERTEX
+   else
+      opt_vert = lp.polymake_lp.MINIMAL_VERTEX
+   end
+   if opt_vert != nothing
+      return dehomogenize(opt_vert)
    else
       return nothing
    end
@@ -167,10 +138,10 @@ end
 
 
 """
-    minimal_value(LP::LinearProgram)
+    optimal_value(LP::LinearProgram)
 
-Return, if it exists, the minimal value of the objective function of `LP` over the feasible region
-of `LP`. Otherwise, return `-inf`.
+Return, if it exists, the optimal value of the objective function of `LP` over the feasible region
+of `LP`. Otherwise, return `-inf` or `inf` depending on convention.
 
 # Examples
 The following example constructs a linear program over the three dimensional cube, and
@@ -179,45 +150,25 @@ obtains the minimal value of the function (x,y,z) ↦ x+2y-3z over that cube.
 julia> C=cube(3)
 A polyhedron in ambient dimension 3
 
-julia> LP=LinearProgram(C,[1,2,-3])
+julia> LP=LinearProgram(C,[1,2,-3]; convention = :min)
 The linear program
-   max{c⋅x + k | x ∈ P}
+   min{c⋅x + k | x ∈ P}
 where P is a Polyhedron and
    c=Polymake.Rational[1 2 -3]
    k=0
 
-julia> minimal_value(LP)
+julia> optimal_value(LP)
 -6
 ```
 """
-minimal_value(lp::LinearProgram) = lp.polymake_lp.MINIMAL_VALUE
+function optimal_value(lp::LinearProgram)
+   if lp.convention == :max
+      return lp.polymake_lp.MAXIMAL_VALUE
+   else
+      return lp.polymake_lp.MINIMAL_VALUE
+   end
+end
 
-
-"""
-    maximal_value(LP::LinearProgram)
-
-Return the maximal value of the objective function of `LP` over the feasible region
-of `LP`. Otherwise, return `inf`.
-
-# Examples
-The following example constructs a linear program over the three dimensional cube, and
-obtains the maximal value of the function (x,y,z) ↦ x+2y-3z over that cube.
-```jldoctest
-julia> C=cube(3)
-A polyhedron in ambient dimension 3
-
-julia> LP=LinearProgram(C,[1,2,-3])
-The linear program
-   max{c⋅x + k | x ∈ P}
-where P is a Polyhedron and
-   c=Polymake.Rational[1 2 -3]
-   k=0
-
-julia> maximal_value(LP)
-6
-```
-"""
-maximal_value(lp::LinearProgram) = lp.polymake_lp.MAXIMAL_VALUE
 
 """
     solve_lp(LP::LinearProgram)
@@ -228,9 +179,5 @@ Return a pair `(m,v)` where the optimal value `m` of the objective
  `nothing`.
 """
 function solve_lp(lp::LinearProgram)
-   if lp.convention == :max
-      return maximal_value(lp),maximal_vertex(lp)
-   elseif lp.convention == :min
-      return minimal_value(lp),minimal_vertex(lp)
-   end
+   return optimal_value(lp),optimal_vertex(lp)
 end
