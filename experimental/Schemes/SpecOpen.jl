@@ -1,8 +1,8 @@
-export SpecOpen, ambient, gens, complement, npatches, patches, intersections, name, intersect, issubset, closure, find_non_zero_divisor, is_non_zero_divisor, is_dense
+export SpecOpen, ambient, gens, complement, npatches, affine_patches, intersections, name, intersect, issubset, closure, find_non_zero_divisor, is_non_zero_divisor, is_dense
 
-export StructureSheafRing, variety, domain, OO
+export StructureSheafRing, scheme, domain, OO
 
-export StructureSheafElem, domain, representatives, patches, restrict, npatches
+export StructureSheafElem, domain, restrictions, patches, restrict, npatches
 
 export SpecOpenMor, maps_on_patches, restriction, identity_map, preimage, generic_fractions, pullback, maximal_extension
 
@@ -12,10 +12,10 @@ export SpecOpenMor, maps_on_patches, restriction, identity_map, preimage, generi
 Zariski open subset ``U`` of an affine scheme ``X = Spec(R)``. 
 This stores a list of generators ``f₁,…,fᵣ`` of an ideal 
 ``I`` defining the complement ``Z = X ∖ U``. 
-The variety ``X`` is referred to as the *ambient variety* and 
+The scheme ``X`` is referred to as the *ambient scheme* and 
 the list ``f₁,…,fᵣ`` as the *generators* for ``U``.
 """
-mutable struct SpecOpen{BRT, BRET, RT, RET, MST} <: Scheme{BRT, BRET}
+@attributes mutable struct SpecOpen{BRT, BRET, RT, RET, MST} <: Scheme{BRT, BRET}
   X::Spec{BRT, BRET, RT, RET, MST} # the ambient scheme
   gens::Vector{RET} # a list of functions defining the complement of the open subset
 
@@ -29,46 +29,45 @@ mutable struct SpecOpen{BRT, BRET, RT, RET, MST} <: Scheme{BRT, BRET}
     for a in f
       parent(a) == base_ring(OO(X)) || error("element does not belong to the correct ring")
     end
-    if length(name) > 0 
-      U = new{BRT, BRET, RT, RET, MST}(OO(X), f)
-      set_name!(U, name)
-      return U
-    end
-    return new{BRT, BRET, RT, RET, MST}(X, f)
+    U = new{BRT, BRET, RT, RET, MST}(X, f)
+    length(name) > 0 && set_name!(U, name)
+    return U
   end
 end
 
 @Markdown.doc """
     ambient(U::SpecOpen)
 
-Returns the ambient scheme ``X`` of a Zariski open subset ``U ⊂ X``.
+Return the ambient scheme ``X`` of a Zariski open subset ``U ⊂ X``.
 """
 ambient(U::SpecOpen) = U.X
 
 @Markdown.doc """
     npatches(U::SpecOpen)
 
-Returns the number of generators stored for describing the complement of ``U``.
+Return the number of generators stored for describing the complement of ``U``.
 """
 npatches(U::SpecOpen) = length(U.gens)
 
 @Markdown.doc """
-    gens(U::SpecOpen) = U.gens
+    gens(U::SpecOpen)
 
-Returns the generators ``[f₁,…,fᵣ]`` stored for the description 
+Return the generators ``[f₁,…,fᵣ]`` stored for the description 
 of the complement of ``U``.
 """
 gens(U::SpecOpen) = U.gens
 
 @Markdown.doc """
-    getindex(U::SpecOpen, i::Int) = patches(U)[i]
+    affine_patch(U::SpecOpen, i::Int)
 
-Returns the hypersurface complement of ``fᵢ`` in the 
+Return the hypersurface complement of ``fᵢ`` in the 
 ambient scheme ``X`` of ``U`` where ``f₁,…,fᵣ`` are 
 the generators stored for the description of the complement 
-of ``U``.
+of ``U``. This function can also be called using the 
+`getindex` method or simply via `U[i]`.
 """
-getindex(U::SpecOpen, i::Int) = patches(U)[i]
+affine_patch(U::SpecOpen, i::Int) = affine_patches(U)[i]
+getindex(U::SpecOpen, i::Int) = affine_patches(U)[i]
 
 function Base.show(io::IO, U::SpecOpen)
   if isdefined(U, :name) 
@@ -79,23 +78,17 @@ function Base.show(io::IO, U::SpecOpen)
 end
 
 @Markdown.doc """
-    function SpecOpen(
-      X::Spec{BRT, BRET, RT, RET, MST},
-      I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST}
-    ) where {BRT, BRET, RT, RET, MST}
+    function SpecOpen(X::Spec, I::MPolyLocalizedIdeal)
 
-Returns the complement of the zero locus of ``I`` in ``X``.
+Return the complement of the zero locus of ``I`` in ``X``.
 """
 function SpecOpen(
     X::Spec{BRT, BRET, RT, RET, MST},
     I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST}
   ) where {BRT, BRET, RT, RET, MST}
-  base_ring(I) == localized_ring(OO(X)) || error("Ideal does not belong to the correct ring")
+  base_ring(I) === localized_ring(OO(X)) || error("Ideal does not belong to the correct ring")
   f = [reduce(f, groebner_basis(localized_modulus(OO(X)))) for f in gens(I)]
-  g = Vector{elem_type(base_ring(OO(X)))}()
-  for a in f
-    iszero(numerator(a)) || (push!(g, numerator(a)))
-  end
+  g = [numerator(a) for a in f if !iszero(numerator(a))]
   return SpecOpen(X, g)
 end
 
@@ -124,18 +117,14 @@ function complement(U::SpecOpen)
 end
 
 @Markdown.doc """
-    patches(U::SpecOpen)
+    affine_patches(U::SpecOpen)
 
-Returns a list of principal affine open subschemes covering ``U``.
+Return a list of principal affine open subschemes covering ``U``.
 """
-function patches(U::SpecOpen)
+function affine_patches(U::SpecOpen)
   if !isdefined(U, :patches)
     X = ambient(U)
-    V = Vector{typeof(X)}()
-    for f in gens(U)
-      push!(V, hypersurface_complement(X, f))
-    end
-    U.patches = V
+    U.patches = [hypersurface_complement(X, f) for f in gens(U)]
   end
   return U.patches
 end
@@ -143,17 +132,16 @@ end
 @Markdown.doc """
     intersections(U::SpecOpen)
 
-Returns a list of pairwise intersections of the 
+Return a list of pairwise intersections of the 
 principal open subschemes covering ``U``.
 """
 function intersections(U::SpecOpen)
   if !isdefined(U, :intersections)
     X = ambient(U)
-    V = patches(U)
-    U.intersections = Dict{Tuple{Int}, typeof(X)}()
+    V = affine_patches(U)
     for i in 2:length(V)
       for j in 1:i-1
-	U.intersections[(i,j)] = U.intersections[(j,i)] = intersect(V[i], V[j])
+        U.intersections[(i,j)] = U.intersections[(j,i)] = intersect(V[i], V[j])
       end
     end
   end
@@ -172,6 +160,7 @@ function intersect(
     U::SpecOpen{BRT, BRET, RT, RET, MST}
   ) where {BRT, BRET, RT, RET, MST}
   X = ambient(U)
+  base_ring(OO(X)) === base_ring(OO(Y)) || error("Schemes can not be compared")
   if !issubset(Y, X)
     Y = intersect(Y, X)
   end
@@ -190,12 +179,12 @@ function intersect(
     V::SpecOpen{BRT, BRET, RT, RET, MST}
   ) where {BRT, BRET, RT, RET, MST}
   X = ambient(U) 
-  X == ambient(V) || error("method not implemented")
+  X == ambient(V) || error("ambient schemes do not coincide")
   return SpecOpen(X, [a*b for a in gens(U) for b in gens(V)])
 end
 
 function Base.union(U::T, V::T) where {T<:SpecOpen}
-  ambient(U) == ambient(V) || error("the two open sets do not lay in the same ambient variety")
+  ambient(U) == ambient(V) || error("the two open sets do not lay in the same ambient scheme")
   return SpecOpen(ambient(U), vcat(gens(U), gens(V)))
 end
 
@@ -210,14 +199,14 @@ function issubset(
     U::SpecOpen{BRT, BRET, RT, RET, MST},
     Y::Spec{BRT, BRET, RT, RET, MST}
   ) where {BRT, BRET, RT, RET, MST}
-  for V in patches(U)
+  for V in affine_patches(U)
     issubset(V, Y) || return false
   end
   return true
 end
 
 function issubset(U::T, V::T) where {T<:SpecOpen}
-  base_ring(OO(ambient(U))) == base_ring(OO(ambient(V))) || return false
+  base_ring(OO(ambient(U))) === base_ring(OO(ambient(V))) || return false
   return issubset(complement(intersect(V, ambient(U))), complement(U))
 end
 
@@ -242,8 +231,8 @@ end
 @Markdown.doc """
     closure(U::SpecOpen)
 
-Computes the Zariski closure of an open set ``U ⊂ X`` 
-with ``X`` is the affine ambient scheme of ``U``.
+Compute the Zariski closure of an open set ``U ⊂ X`` 
+where ``X`` is the affine ambient scheme of ``U``.
 """
 function closure(U::SpecOpen)
   X = ambient(U)
@@ -254,12 +243,9 @@ function closure(U::SpecOpen)
 end
 
 @Markdown.doc """
-    closure(
-      U::SpecOpen{BRT, BRET, RT, RET, MST},
-      Y::Spec{BRT, BRET, RT, RET, MST} 
-    ) where {BRT, BRET, RT, RET, MST}
+    closure(U::SpecOpen, Y::Spec)
 
-Computes the closure of ``U ⊂ Y``.
+Compute the closure of ``U ⊂ Y``.
 """
 function closure(
     U::SpecOpen{BRT, BRET, RT, RET, MST},
@@ -272,36 +258,36 @@ end
 
 
 @Markdown.doc """
-StructureSheafRing{BRT, BRET, RT, RET, MST}
+    StructureSheafRing{BRT, BRET, RT, RET, MST}
 
 The ring of regular functions ``𝒪(X, U)`` on an open subset ``U`` of an 
 affine scheme ``X``.
 """
 mutable struct StructureSheafRing{BRT, BRET, RT, RET, MST}
-  variety::Spec{BRT, BRET, RT, RET, MST}
+  scheme::Spec{BRT, BRET, RT, RET, MST}
   domain::SpecOpen{BRT, BRET, RT, RET, MST}
 
   function StructureSheafRing(
       X::Spec{BRT, BRET, RT, RET, MST}, 
       U::SpecOpen{BRT, BRET, RT, RET, MST}
     ) where {BRT, BRET, RT, RET, MST}
-    issubset(U, X) || error("open set does not lay in the variety")
+    issubset(U, X) || error("open set does not lay in the scheme")
     return new{BRT, BRET, RT, RET, MST}(X, U)
   end
 end
 
 @Markdown.doc """
-    variety(R::StructureSheafRing)
+    scheme(R::StructureSheafRing)
 
 The ring ``R = 𝒪(X, U)`` belongs to a sheaf of rings ``𝒪(X, -)`` and this returns 
-the variety ``X`` on which ``𝒪`` is defined.
+the scheme ``X`` on which ``𝒪`` is defined.
 """
-variety(R::StructureSheafRing) = R.variety
+scheme(R::StructureSheafRing) = R.scheme
 
 @Markdown.doc """
     domain(R::StructureSheafRing)
 
-For a ring ``R = 𝒪(X, U)`` this returns ``U``.
+For a ring ``R = 𝒪(X, U)``, return ``U``.
 """
 domain(R::StructureSheafRing) = R.domain
 
@@ -309,7 +295,7 @@ OO(U::SpecOpen) = StructureSheafRing(ambient(U), U)
 OO(X::Spec{BRT, BRET, RT, RET, MST}, U::SpecOpen{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = StructureSheafRing(X, U)
 
 function ==(R::T, S::T) where {T<:StructureSheafRing} 
-  variety(R) == variety(S) || return false
+  scheme(R) == scheme(S) || return false
   domain(S) == domain(R) || return false
   return true
 end
@@ -317,59 +303,56 @@ end
 elem_type(R::StructureSheafRing{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST}= Type{StructureSheafElem{BRT, BRET, RT, RET, MST}}
 
 @Markdown.doc """
-StructureSheafElem{BRT, BRET, RT, RET, MST}
+    StructureSheafElem{BRT, BRET, RT, RET, MST}
 
 An element ``f ∈ 𝒪(X, U)`` of the ring of regular functions on 
-an open set ``U`` of an affine variety ``X``.
+an open set ``U`` of an affine scheme ``X``.
 """
 mutable struct StructureSheafElem{BRT, BRET, RT, RET, MST}
   domain::SpecOpen{BRT, BRET, RT, RET, MST}
-  representatives::Vector{MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}}
+  restrictions::Vector{MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}}
 
   function StructureSheafElem(
       U::SpecOpen{BRT, BRET, RT, RET, MST},
       f::Vector{MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}}
     ) where {BRT, BRET, RT, RET, MST}
     n = length(f)
-    n == length(patches(U)) || error("the number of representatives does not coincide with the number of affine patches")
+    n == length(affine_patches(U)) || error("the number of restrictions does not coincide with the number of affine patches")
     for i in 1:n 
-      OO(patches(U)[i])(lift(f[i])) # throws an error if conversion is not possible
+      OO(affine_patches(U)[i])(lift(f[i])) # throws an error if conversion is not possible
     end
     return new{BRT, BRET, RT, RET, MST}(U, f)
   end
 end
 
-variety(f::StructureSheafElem) = ambient(domain(f))
+scheme(f::StructureSheafElem) = ambient(domain(f))
 domain(f::StructureSheafElem) = f.domain
-representatives(f::StructureSheafElem) = f.representatives
-patches(f::StructureSheafElem) = patches(domain(f))
-npatches(f::StructureSheafElem) = length(f.representatives)
-getindex(f::StructureSheafElem, i::Int) = getindex(representatives(f), i)
-ambient(f::StructureSheafElem) = OO(variety(f), domain(f))
+restrictions(f::StructureSheafElem) = f.restrictions
+affine_patches(f::StructureSheafElem) = affine_patches(domain(f))
+npatches(f::StructureSheafElem) = length(f.restrictions)
+getindex(f::StructureSheafElem, i::Int) = getindex(restrictions(f), i)
+ambient(f::StructureSheafElem) = OO(scheme(f), domain(f))
 
 function restrict(
     f::StructureSheafElem{BRT, BRET, RT, RET, MST}, 
     V::Spec{BRT, BRET, RT, RET, MST}
   ) where {BRT, BRET, RT, RET, MST}
-  for i in 1:length(representatives(f))
-    if V == patches(domain(f))[i]
-      return representatives(f)[i]
+  for i in 1:length(restrictions(f))
+    if V == affine_patches(domain(f))[i]
+      return restrictions(f)[i]
     end
   end
   issubset(V, domain(f)) || error("the set is not contained in the domain of definition of the function")
-  VU = [intersect(V, U) for U in patches(domain(f))]
+  VU = [intersect(V, U) for U in affine_patches(domain(f))]
   g = [OO(VU[i])(f[i]) for i in 1:length(VU)]
   l = write_as_linear_combination(one(OO(V)), OO(V).(lifted_denominator.(g)))
   return dot(l, OO(V).(lifted_numerator.(g)))
 end
 
 @Markdown.doc """
-    maximal_extension(
-      X::Spec{BRT, BRET, RT, RET, MST}, 
-      f::AbstractAlgebra.Generic.Frac{RET}
-    ) where {BRT, BRET, RT, RET, MST}
+    maximal_extension(X::Spec, f::AbstractAlgebra.Generic.Frac)
 
-Returns the maximal extension of the restriction of ``f`` 
+Return the maximal extension of the restriction of ``f`` 
 to a rational function on ``X`` on a maximal domain of 
 definition ``U ⊂ X``. 
 """
@@ -382,17 +365,14 @@ function maximal_extension(
   W = localized_ring(OO(X))
   I = quotient(ideal(W, b) + localized_modulus(OO(X)), ideal(W, a))
   U = SpecOpen(X, I)
-  g = [OO(V)(f) for V in patches(U)]
+  g = [OO(V)(f) for V in affine_patches(U)]
   return StructureSheafElem(U, g)
 end
 
 @Markdown.doc """
-    maximal_extension(
-      X::Spec{BRT, BRET, RT, RET, MST}, 
-      f::Vector{AbstractAlgebra.Generic.Frac{RET}}
-    ) where {BRT, BRET, RT, RET, MST}
+    maximal_extension(X::Spec, f::Vector{AbstractAlgebra.Generic.Frac})
 
-Returns the extension of the restriction of the ``fᵢ`` as a 
+Return the extension of the restriction of the ``fᵢ`` as a 
 set of rational functions on ``X`` as *regular* functions to a 
 common maximal domain of definition ``U ⊂ X``.
 """
@@ -416,7 +396,7 @@ function maximal_extension(
     I = intersect(quotient(ideal(W, denominator(p)) + localized_modulus(OO(X)), ideal(W, numerator(p))), I)
   end
   U = SpecOpen(X, I)
-  return U, [StructureSheafElem(U, [OO(V)(a) for V in patches(U)]) for a in f]
+  return U, [StructureSheafElem(U, [OO(V)(a) for V in affine_patches(U)]) for a in f]
 end
 
 @Markdown.doc """
@@ -442,11 +422,11 @@ mutable struct SpecOpenMor{BRT, BRET, RT, RET, MST1, MST2}
     ) where {BRT, BRET, RT, RET, MST1, MST2}
     Y = ambient(V)
     n = length(f)
-    n == length(patches(U)) || error("number of patches does not coincide with the number of maps")
+    n == length(affine_patches(U)) || error("number of patches does not coincide with the number of maps")
     if check
       for i in 1:n
-	domain(f[i]) == patches(U)[i] || error("domain of definition of the map does not coincide with the patch")
-	codomain(f[i]) == Y || error("codomain is not compatible")
+        domain(f[i]) == affine_patches(U)[i] || error("domain of definition of the map does not coincide with the patch")
+        codomain(f[i]) == Y || error("codomain is not compatible")
       end
       for i in 1:n-1
 	for j in i+1:n
@@ -470,7 +450,7 @@ getindex(f::SpecOpenMor, i::Int) = maps_on_patches(f)[i]
 
 function SpecOpenMor(U::SpecOpenType, V::SpecOpenType, f::Vector) where {SpecOpenType<:SpecOpen}
   Y = ambient(V)
-  return SpecOpenMor(U, V, [SpecMor(W, Y, f) for W in patches(U)]) 
+  return SpecOpenMor(U, V, [SpecMor(W, Y, f) for W in affine_patches(U)]) 
 end
 
 function inclusion_morphism(U::SpecOpenType, V::SpecOpenType) where {SpecOpenType<:SpecOpen}
@@ -483,7 +463,7 @@ end
 @Markdown.doc """
     compose(f::T, g::T) where {T<:SpecOpenMor}
 
-computes the composition of two morphisms 
+Compute the composition of two morphisms 
 
       f    g
     U →  V →  W
@@ -523,12 +503,12 @@ function compose(f::T, g::T) where {T<:SpecOpenMor}
   n = length(gens(V))
   result_maps = Vector{typeof(f_maps[1])}()
   for i in 1:m
-    U_i = patches(U)[i]
+    U_i = affine_patches(U)[i]
     f_i = f_maps[i]
     z_i = Vector{elem_type(OO(U_i))}() # the pullbacks of the coordinate functions of Z on Uᵢ
     z_ij = Vector{Vector{elem_type(OO(U_i))}}()
     for j in 1:n
-      V_j = patches(V)[j]
+      V_j = affine_patches(V)[j]
       g_j = g_maps[j]
       U_ij = intersect(U_i, preimage(f_i, V_j))
       g_ij = compose(restrict(f_i, U_ij, V_j), g_j)
@@ -547,15 +527,6 @@ function compose(f::T, g::T) where {T<:SpecOpenMor}
   return SpecOpenMor(U, W, result_maps)
 end
 
-#function restriction(
-#   f::SpecOpenMor{BRT, BRET, RT, RET, MST1, MST2}, 
-#   U::SpecOpen{BRT, BRET, RT, RET, MST1},
-#   V::SpecOpen{BRT, BRET, RT, RET, MST2}
-# ) where {BRT, BRET, RT, RET, MST1, MST2}
-# g = compose(inclusion_morphism(U, domain(f)), f)
-# return SpecOpenMor(U, V, maps_on_patches(g))
-#end
-
 function pullback(f::SpecOpenMor{BRT, BRET, RT, RET, MST1, MST2}, a::RET) where {BRT, BRET, RT, RET, MST1, MST2}
   U = domain(f)
   X = ambient(U)
@@ -568,11 +539,7 @@ function pullback(f::SpecOpenMor{BRT, BRET, RT, RET, MST1, MST2}, a::RET) where 
 end
 
 @Markdown.doc """
-    maximal_extension(
-      X::Spec{BRT, BRET, RT, RET, MST}, 
-      Y::Spec{BRT, BRET, RT, RET, MST}, 
-      f::AbstractAlgebra.Generic.Frac{RET}
-    ) where {BRT, BRET, RT, RET, MST}
+    maximal_extension(X::Spec, Y::Spec, f::AbstractAlgebra.Generic.Frac)
 
 Given a rational map ``ϕ : X ---> Y ⊂ Spec 𝕜[y₁,…,yₙ]`` of affine schemes 
 determined by ``ϕ*(yⱼ) = fⱼ = aⱼ/bⱼ``, find the maximal open subset ``U⊂ X`` 
@@ -584,10 +551,10 @@ function maximal_extension(
     f::Vector{AbstractAlgebra.Generic.Frac{RET}}
   ) where {BRT, BRET, RT, RET, MST}
   U, g = maximal_extension(X, f)
-  n = length(patches(U))
+  n = length(affine_patches(U))
   maps = Vector{SpecMor{BRT, BRET, RT, RET, MST, MST}}()
   for i in 1:n
-    push!(maps, SpecMor(patches(U)[i], Y, [representatives(a)[i] for a in g]))
+    push!(maps, SpecMor(affine_patches(U)[i], Y, [restrictions(a)[i] for a in g]))
   end
   return SpecOpenMor(U, SpecOpen(Y), maps)
 end
@@ -605,19 +572,19 @@ function restriction(
     U::SpecOpen{BRT, BRET, RT, RET, MST1},
     V::SpecOpen{BRT, BRET, RT, RET, MST2}
   ) where {BRT, BRET, RT, RET, MST1, MST2}
-  inc = SpecOpenMor(U, domain(f), [SpecMor(W, ambient(domain(f)), gens(localized_ring(OO(W)))) for W in patches(U)])
+  inc = SpecOpenMor(U, domain(f), [SpecMor(W, ambient(domain(f)), gens(localized_ring(OO(W)))) for W in affine_patches(U)])
   help_map = compose(inc, f)
   return SpecOpenMor(U, V, maps_on_patches(help_map))
 end
 
-identity_map(U::SpecOpen) = SpecOpenMor(U, U, [SpecMor(V, ambient(U), gens(localized_ring(OO(V)))) for V in patches(U)])
+identity_map(U::SpecOpen) = SpecOpenMor(U, U, [SpecMor(V, ambient(U), gens(localized_ring(OO(V)))) for V in affine_patches(U)])
 
 function ==(f::T, g::T) where {T<:SpecOpenMor} 
   domain(f) == domain(g) || return false
   codomain(f) == codomain(g) || return false
   Y = ambient(codomain(f))
-  m = length(patches(domain(f)))
-  n = length(patches(domain(g)))
+  m = length(affine_patches(domain(f)))
+  n = length(affine_patches(domain(g)))
   for i in 1:m
     for j in 1:n
       restrict(f[i], intersect(domain(f)[i], domain(g)[i]), Y) == 
@@ -632,7 +599,7 @@ function preimage(f::SpecOpenMor{BRT, BRET, RT, RET, MST1, MST2},
   ) where {BRT, BRET, RT, RET, MST1, MST2}
   U = domain(f) 
   X = ambient(U)
-  n = length(patches(U))
+  n = length(affine_patches(U))
   W = localized_ring(OO(X))
   I = ideal(W, one(W))
   for i in 1:n 
@@ -656,7 +623,7 @@ function preimage(f::SpecOpenMor{BRT, BRET, RT, RET, MST1, MST2},
 end
 
 function is_non_zero_divisor(f::RET, U::SpecOpen{BRT, BRET, RT, RET}) where {BRT, BRET, RT, RET}
-  for V in patches(U)
+  for V in affine_patches(U)
     zero_ideal = ideal(OO(V), [zero(OO(V))])
     zero_ideal == quotient(zero_ideal, ideal(OO(V), [f])) || return false
   end
@@ -674,6 +641,19 @@ function find_non_zero_divisor(U::SpecOpen)
   return d
 end
 
+@Markdown.doc """
+    generic_fractions(f::SpecOpenMor)
+
+Given a morphism ``f : U → V`` of Zariski open subsets ``U ⊂ X ⊂ 𝔸ᵐ`` and ``V ⊂ Y ⊂ 𝔸ⁿ``, 
+produce a tuple of fractions ``[a₁/b₁,…,aₙ/bₙ]`` such that ``f`` can be recovered 
+as the maximal extension of the rational map given by 
+```
+   U ⊃ U' → 𝔸ⁿ,  x ↦ [a₁(x)/b₁(x),…,aₙ(x)/bₙ(x)]
+```
+where ``U'`` is the complement of the zero loci of the denominators ``bᵢ`` in ``U``.
+In particular, this requires ``U'`` to be dense in ``U`` and this subset 
+is chosen at random.
+"""
 function generic_fractions(f::SpecOpenMor)
   U = domain(f)
   X = ambient(U)
@@ -686,7 +666,7 @@ end
 
 function is_dense(U::SpecOpen)
   X = ambient(U)
-  I = [localized_modulus(OO(closure(V, X))) for V in patches(U)]
+  I = [localized_modulus(OO(closure(V, X))) for V in affine_patches(U)]
   J = ideal(OO(X), [one(OO(X))])
   for i in I
     J = intersect(J, i)
