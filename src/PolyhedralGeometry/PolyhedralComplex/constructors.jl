@@ -49,11 +49,10 @@ A polyhedral complex in ambient dimension 2
 ```
 """
 function PolyhedralComplex(Incidence::IncidenceMatrix, VR::Union{SubObjectIterator{<:Union{PointVector,PointVector}}, Oscar.MatElem, AbstractMatrix}, far_vertices::Union{Vector{Int}, Nothing} = nothing, L::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix, Nothing} = nothing)
-    VRM = matrix_for_polymake(VR)
-    LM = isnothing(L) || isempty(L) ? Polymake.Matrix{Polymake.Rational}(undef, 0, size(VRM, 2)) : matrix_for_polymake(L)
+    LM = isnothing(L) || isempty(L) ? Polymake.Matrix{Polymake.Rational}(undef, 0, size(VR, 2)) : L
 
     # Rays and Points are homogenized and combined and
-    points = homogenize(VRM, 1)
+    points = homogenize(VR, 1)
     # If some vertices are far vertices, give them a leading 0
     if !isnothing(far_vertices)
         points[far_vertices,1] .= 0
