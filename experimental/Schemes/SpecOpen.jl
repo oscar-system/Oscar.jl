@@ -29,12 +29,9 @@ the list ``f₁,…,fᵣ`` as the *generators* for ``U``.
     for a in f
       parent(a) == base_ring(OO(X)) || error("element does not belong to the correct ring")
     end
-    if length(name) > 0 
-      U = new{BRT, BRET, RT, RET, MST}(X, f)
-      set_name!(U, name)
-      return U
-    end
-    return new{BRT, BRET, RT, RET, MST}(X, f)
+    U = new{BRT, BRET, RT, RET, MST}(X, f)
+    length(name) > 0 && set_name!(U, name)
+    return U
   end
 end
 
