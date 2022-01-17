@@ -218,11 +218,7 @@ end
      come under a common abstract type or be more selective
 =#
 
-function H_one(C::GModule)
-  z = get_attribute(C, :H_one)
-  if z !== nothing
-    return domain(z), z
-  end
+function H_one_maps(C::GModule)
   #= idea, after Holt:
   H^1 = crossed homs. due to action on the right
   f(ab) = f(a)^b + f(b)
@@ -234,7 +230,7 @@ function H_one(C::GModule)
   so, a kernel computation again
   =#
 
-  G = Group(C)
+  @show G = Group(C)
   n = ngens(G)
   M = Module(C)
   D, pro, inj = direct_product([M for i=1:n]..., task = :both)
@@ -247,6 +243,10 @@ function H_one(C::GModule)
   iac = inv_action(C)
   idM = hom(M, M, gens(M)) #identity map to start with
                            #TODO: require an identity_hom constructor
+
+  Kr, pKr, iKr = direct_product([M for i=R]..., task = :both)
+  gg = nothing
+  i = 1
   for r = R
     W = word(r)
     g = idM
@@ -260,7 +260,12 @@ function H_one(C::GModule)
         g = g*ac[w]
       end
     end
-    K = intersect(kernel(P)[1], K)
+    if gg === nothing
+      gg = P*iKr[i]
+    else
+      gg += P*iKr[i]
+    end
+    i += 1
   end
   #K is Z[1]  - the co-cycles
   #TODO: is kernel(g) directly faster than the method above (H_zero)
@@ -268,9 +273,26 @@ function H_one(C::GModule)
   #TODO: cache the expensive objects!!!
 
   g = sum((ac[i] - idM)*inj[i] for i=1:n)
+  return g, gg
+end
+
+function H_one(C::GModule)
+  z = get_attribute(C, :H_one)
+  if z !== nothing
+    return domain(z), z
+  end
+
+  g, gg = H_one_maps(C)
+
+  K = kernel(gg)[1]
+  D = domain(gg)
   lf, lft = issubgroup(D, K)
 
   Q, mQ = quo(K, image(g)[1])
+
+  M = Module(C)
+  G = group(C)
+
   z = MapFromFunc(
     x->CoChain{1,elem_type(G),elem_type(M)}(C, Dict([(gen(G, i),) => pro[i](lft(preimage(mQ, x))) for i=1:ngens(G)])), 
     y->mQ(preimage(lft, sum(inj[i](y(gen(G, i))) for i=1:n))), Q, AllCoChains{1, elem_type(G), elem_type(M)}())
@@ -496,7 +518,14 @@ function H_two(C::GModule)
     push!(pos, n)
   end
 
-  D, pro, inj = direct_product([M for i=1:n]..., task = :both)
+  if n == 0
+    D = sub(M, elem_type(M)[])[1]
+    pro = []
+    inj = []
+  else
+    D, pro, inj = direct_product([M for i=1:n]..., task = :both)
+  end
+  
 
   #when collecting (i.e. applying the RWS we need to also
   #use the tails:  g v h -> gh h(v) 
@@ -507,7 +536,7 @@ function H_two(C::GModule)
   # at the beginning, module at the end, the tail.
   # collect will call the extra function c.f if set in the
   # CollectCtx
-  c.f = function(C::CollectCtx, w::Vector{Int}, r::Int, p::Int)
+  function symbolic_collect(C::CollectCtx, w::Vector{Int}, r::Int, p::Int)
     #w = ABC and B == r[1], B -> r[2] * tail[r]
     # -> A r[2] C C(tail)
     # C = c1 c2 ... C(tail):
@@ -526,6 +555,7 @@ function H_two(C::GModule)
     end
     C.T += T
   end
+  c.f = symbolic_collect
 
   E = D
   all_T = []
@@ -576,13 +606,24 @@ function H_two(C::GModule)
     end
   end
 
-  Q, jinj = direct_product([M for i in all_T]..., task = :sum)
-  mm = sum(all_T[i]*jinj[i] for i = 1:length(all_T))
+  if length(all_T) == 0
+    Q = sub(M, elem_type(M)[])[1]
+    jinj = hom(M, Q, elem_type(Q)[Q[0] for m = gens(M)])
+  else
+    Q, jinj = direct_product([M for i in all_T]..., task = :sum)
+  end
+  mm = reduce(+, [all_T[i]*jinj[i] for i = 1:length(all_T)], init = hom(D, Q, elem_type(Q)[Q[0] for i=1:ngens(D)]))
   E, mE = kernel(mm)
 
 
-  B, B_pro, B_inj = direct_product([M for i=1:length(ac)]..., task = :both)
-  CC = hom(B, D, [zero(D) for i=1:ngens(B)], check = false)
+  if length(ac) == 0
+    B = sub(M, elem_type(M)[])[1]
+    B_pro = []
+    B_inj = []
+  else
+    B, B_pro, B_inj = direct_product([M for i=1:length(ac)]..., task = :both)
+  end
+  CC = hom(B, D, elem_type(D)[zero(D) for i=1:ngens(B)], check = false)
   for i=1:length(R)
     if pos[i] == 0
       continue
@@ -682,7 +723,7 @@ function H_two(C::GModule)
     end
 
     di = Dict{NTuple{2, elem_type(G)}, elem_type(M)}()
-    w = [word(preimage(mFF, g)) for g = gens(G)]
+    w = [word(order(G) == 1 ? one(domain(mFF)) : preimage(mFF, g)) for g = gens(G)]
     #= if I figure out how to extend from generators
     for i=1:ngens(G)
       for j=1:ngens(G)
@@ -695,12 +736,26 @@ function H_two(C::GModule)
     for g = G
       for h = G
         c.T = zero(M)
-        collect(vcat(word(preimage(mFF, g)), word(preimage(mFF, h))), c)
+        collect(vcat(word(order(G) == 1 ? one(domain(mFF)) : preimage(mFF, g)), word(order(G) == 1 ? one(domain(mFF)) : preimage(mFF, h))), c)
         di[(g, h)] = c.T
       end
     end
     return CoChain{2,elem_type(G),elem_type(M)}(C, di)
   end
+
+  symbolic_chain = function(g::FPGroupElem, h::FPGroupElem)
+    c.f = symbolic_collect
+    c.T = Z
+    if order(G) == 1
+      w = word(preimage(mFF, one(G)))
+    else
+      w = word(preimage(mFF, g*h))
+    end
+    collect(w, c)
+    return mE*c.T
+  end
+
+  set_attribute!(C, :H_two_symbolic_chain => (symbolic_chain, mH2))
 
   function iscoboundary(c::CoChain{2})
     t = TailFromCoChain(c)
@@ -749,6 +804,10 @@ function cohomology_group(C::GModule{PermGroup,GrpAbFinGen}, i::Int)
   end
   error("only H^0, H^1 and H^2 are supported")
 end
+#TODO:
+#     versions of fp_group(GrpAbFinGen) and extension
+#     to return PcGroups
+#     (via 1st argument being PcGroup)
 
 """
 For a fin. presented abelian group, return an isomorphic fp-group as well
@@ -763,11 +822,17 @@ function fp_group(M::GrpAbFinGen)
   return F, MapFromFunc(x->reduce(+, [sign(w)*gen(M, abs(w)) for w = word(x)], init = zero(M)), y->mF(reduce(*, [gen(G, i)^y[i] for i=1:ngens(M)], init = one(G))), F, M)
 end
 
+function underlying_word(g::FPGroupElem)
+  return FPGroupElem(free_group(parent(g)), GAP.Globals.UnderlyingElement(g.X))
+end
+
 """
 Given a 2-cocycle, return the corresponding group extension, ie. the large
-group, the injection of the abelian group and the quotient.
+group, the injection of the abelian group and the quotient as well as a map
+that given a tuple of elements in the group and the abelian group returns
+the corresponding elt in the extension. 
 """
-function extension(c::CoChain{2,PermGroupElem})
+function extension(c::CoChain{2,<:Oscar.GAPGroupElem})
   C = c.C
   G = Group(C)
   F, mF = fp_group(gens(G))
@@ -808,7 +873,18 @@ function extension(c::CoChain{2,PermGroupElem})
   @assert ngens(Q) == ngens(N)
   MtoQ = hom(fM, Q, gens(fM), gens(Q)[ngens(G)+1:end])
   QtoG = hom(Q, G, gens(Q), vcat(gens(G), [one(G) for i=1:ngens(fM)]))
-  return Q, inv(mfM)*MtoQ, QtoG
+  @assert domain(mfM) ==fM 
+  @assert codomain(mfM) == M
+
+  function GMtoQ(g::GAPGroupElem, m)
+    @assert parent(m) == M
+    @assert parent(g) == G
+    h1 = hom(free_group(G), N, gens(free_group(G)), [N[i] for i=1:ngens(G)])
+    h2 = hom(free_group(fM), N, gens(free_group(fM)), [N[i+ngens(G)] for i=1:ngens(fM)])
+    return mQ(h1(underlying_word(g))*h2(underlying_word(preimage(mfM, m))))
+  end
+
+  return Q, inv(mfM)*MtoQ, QtoG, GMtoQ
 end
 
 function fp_group(c::CoChain{2})
