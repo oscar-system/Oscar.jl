@@ -53,7 +53,7 @@ Return the number of generators stored for describing the complement of ``U``.
 npatches(U::SpecOpen) = length(U.gens)
 
 @Markdown.doc """
-    gens(U::SpecOpen) = U.gens
+    gens(U::SpecOpen)
 
 Return the generators ``[f₁,…,fᵣ]`` stored for the description 
 of the complement of ``U``.
@@ -61,13 +61,15 @@ of the complement of ``U``.
 gens(U::SpecOpen) = U.gens
 
 @Markdown.doc """
-    getindex(U::SpecOpen, i::Int) = patches(U)[i]
+    affine_patch(U::SpecOpen, i::Int)
 
 Return the hypersurface complement of ``fᵢ`` in the 
 ambient scheme ``X`` of ``U`` where ``f₁,…,fᵣ`` are 
 the generators stored for the description of the complement 
-of ``U``.
+of ``U``. This function can also be called using the 
+`getindex` method or simply via `U[i]`.
 """
+affine_patch(U::SpecOpen, i::Int) = affine_patches(U)[i]
 getindex(U::SpecOpen, i::Int) = affine_patches(U)[i]
 
 function Base.show(io::IO, U::SpecOpen)
@@ -79,10 +81,7 @@ function Base.show(io::IO, U::SpecOpen)
 end
 
 @Markdown.doc """
-    function SpecOpen(
-      X::Spec{BRT, BRET, RT, RET, MST},
-      I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST}
-    ) where {BRT, BRET, RT, RET, MST}
+    function SpecOpen(X::Spec, I::MPolyLocalizedIdeal)
 
 Return the complement of the zero locus of ``I`` in ``X``.
 """
@@ -92,10 +91,7 @@ function SpecOpen(
   ) where {BRT, BRET, RT, RET, MST}
   base_ring(I) === localized_ring(OO(X)) || error("Ideal does not belong to the correct ring")
   f = [reduce(f, groebner_basis(localized_modulus(OO(X)))) for f in gens(I)]
-  g = Vector{elem_type(base_ring(OO(X)))}()
-  for a in f
-    iszero(numerator(a)) || (push!(g, numerator(a)))
-  end
+  g = [numerator(a) for a in f if !iszero(numerator(a))]
   return SpecOpen(X, g)
 end
 
@@ -131,11 +127,7 @@ Return a list of principal affine open subschemes covering ``U``.
 function affine_patches(U::SpecOpen)
   if !isdefined(U, :patches)
     X = ambient(U)
-    V = Vector{typeof(X)}()
-    for f in gens(U)
-      push!(V, hypersurface_complement(X, f))
-    end
-    U.patches = V
+    U.patches = [hypersurface_complement(X, f) for f in gens(U)]
   end
   return U.patches
 end
@@ -152,7 +144,7 @@ function intersections(U::SpecOpen)
     V = affine_patches(U)
     for i in 2:length(V)
       for j in 1:i-1
-	U.intersections[(i,j)] = U.intersections[(j,i)] = intersect(V[i], V[j])
+        U.intersections[(i,j)] = U.intersections[(j,i)] = intersect(V[i], V[j])
       end
     end
   end
@@ -254,10 +246,7 @@ function closure(U::SpecOpen)
 end
 
 @Markdown.doc """
-    closure(
-      U::SpecOpen{BRT, BRET, RT, RET, MST},
-      Y::Spec{BRT, BRET, RT, RET, MST} 
-    ) where {BRT, BRET, RT, RET, MST}
+    closure(U::SpecOpen, Y::Spec)
 
 Compute the closure of ``U ⊂ Y``.
 """
@@ -272,7 +261,7 @@ end
 
 
 @Markdown.doc """
-StructureSheafRing{BRT, BRET, RT, RET, MST}
+    StructureSheafRing{BRT, BRET, RT, RET, MST}
 
 The ring of regular functions ``𝒪(X, U)`` on an open subset ``U`` of an 
 affine scheme ``X``.
@@ -317,7 +306,7 @@ end
 elem_type(R::StructureSheafRing{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST}= Type{StructureSheafElem{BRT, BRET, RT, RET, MST}}
 
 @Markdown.doc """
-StructureSheafElem{BRT, BRET, RT, RET, MST}
+    StructureSheafElem{BRT, BRET, RT, RET, MST}
 
 An element ``f ∈ 𝒪(X, U)`` of the ring of regular functions on 
 an open set ``U`` of an affine scheme ``X``.
@@ -364,10 +353,7 @@ function restrict(
 end
 
 @Markdown.doc """
-    maximal_extension(
-      X::Spec{BRT, BRET, RT, RET, MST}, 
-      f::AbstractAlgebra.Generic.Frac{RET}
-    ) where {BRT, BRET, RT, RET, MST}
+    maximal_extension(X::Spec, f::AbstractAlgebra.Generic.Frac)
 
 Return the maximal extension of the restriction of ``f`` 
 to a rational function on ``X`` on a maximal domain of 
@@ -387,10 +373,7 @@ function maximal_extension(
 end
 
 @Markdown.doc """
-    maximal_extension(
-      X::Spec{BRT, BRET, RT, RET, MST}, 
-      f::Vector{AbstractAlgebra.Generic.Frac{RET}}
-    ) where {BRT, BRET, RT, RET, MST}
+    maximal_extension(X::Spec, f::Vector{AbstractAlgebra.Generic.Frac})
 
 Return the extension of the restriction of the ``fᵢ`` as a 
 set of rational functions on ``X`` as *regular* functions to a 
@@ -559,11 +542,7 @@ function pullback(f::SpecOpenMor{BRT, BRET, RT, RET, MST1, MST2}, a::RET) where 
 end
 
 @Markdown.doc """
-    maximal_extension(
-      X::Spec{BRT, BRET, RT, RET, MST}, 
-      Y::Spec{BRT, BRET, RT, RET, MST}, 
-      f::AbstractAlgebra.Generic.Frac{RET}
-    ) where {BRT, BRET, RT, RET, MST}
+    maximal_extension(X::Spec, Y::Spec, f::AbstractAlgebra.Generic.Frac)
 
 Given a rational map ``ϕ : X ---> Y ⊂ Spec 𝕜[y₁,…,yₙ]`` of affine schemes 
 determined by ``ϕ*(yⱼ) = fⱼ = aⱼ/bⱼ``, find the maximal open subset ``U⊂ X`` 
