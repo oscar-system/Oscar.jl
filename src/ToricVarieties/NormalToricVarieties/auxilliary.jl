@@ -63,12 +63,12 @@ julia> toric_ideal(H)
 ideal(x[2]*x[3] - x[4]^2, -x[1]*x[3] + x[2]^2*x[4], -x[1]*x[4] + x[2]^3, -x[1]*x[3]^2 + x[2]*x[4]^3, -x[1]*x[3]^3 + x[4]^5)
 ```
 """
-function toric_ideal(pts::Union{AbstractMatrix, fmpz_mat})
-    intkernel = kernel(matrix(ZZ, pts), side=:left)
+function toric_ideal(pts::fmpz_mat)
+    intkernel = kernel(pts, side=:left)
     intkernel = intkernel[2]
     presat = binomial_exponents_to_ideal(intkernel)
     J = ideal([prod(gens(base_ring(presat)))])
     return saturation(presat, J)
 end
 
-toric_ideal(pts::SubObjectIterator) = toric_ideal(matrix_for_polymake(pts))
+toric_ideal(pts::Union{AbstractMatrix,SubObjectIterator}) = toric_ideal(matrix(ZZ, pts))
