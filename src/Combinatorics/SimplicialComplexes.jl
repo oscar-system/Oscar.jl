@@ -7,6 +7,7 @@ export
     dim,
     euler_characteristic,
     facets,
+    fundamental_group,
     f_vector,
     h_vector,
     minimal_nonfaces,
@@ -54,9 +55,9 @@ The original vertices can be recovered.
 julia> L = SimplicialComplex([[0,2,17],[2,17,90]]);
 
 julia> facets(L)
-2-element Vector{Vector{Int64}}:
- [1, 3, 2]
- [3, 4, 2]
+2-element Vector{Set{Int64}}:
+ Set([2, 3, 1])
+ Set([4, 2, 3])
 
 julia> vertexindices(L)
 4-element Vector{Int64}:
@@ -66,8 +67,13 @@ julia> vertexindices(L)
  90
 ```
 """
-function SimplicialComplex(generators::Union{Vector{Vector{Int}}, Vector{Set{Int}}})
+function SimplicialComplex(generators::Union{AbstractVector{<:AbstractVector{<:Base.Integer}}, AbstractVector{<:AbstractSet{<:Base.Integer}}})
     K = Polymake.topaz.SimplicialComplex(INPUT_FACES=generators)
+    SimplicialComplex(K)
+end
+
+function SimplicialComplex(generators::IncidenceMatrix)
+    K = Polymake.@convert_to Array{Set} Polymake.common.rows(generators)
     SimplicialComplex(K)
 end
 
@@ -120,8 +126,8 @@ Return the maximal (by inclusion) faces of the abstract simplicial complex `K`.
 """
 function facets(K::SimplicialComplex)
     bigobject = pm_object(K)
-    the_facets = Vector{Set{Int}}(bigobject.FACETS)
-    return Polymake.to_one_based_indexing(the_facets)
+    the_facets = Polymake.to_one_based_indexing(bigobject.FACETS)
+    return Vector{Set{Int}}(the_facets)
 end
 
 @doc Markdown.doc"""
@@ -207,7 +213,10 @@ julia> minimal_nonfaces(K)
  Set([4, 1])
 ```
 """
-minimal_nonfaces(K::SimplicialComplex) = Vector{Set{Int}}(Polymake.to_one_based_indexing(pm_object(K).MINIMAL_NON_FACES))
+function minimal_nonfaces(K::SimplicialComplex)
+    I = pm_object(K).MINIMAL_NON_FACES
+    return Vector{Set{Int}}([Polymake.row(I,i) for i in 1:Polymake.nrows(I)])
+end
 
 @doc Markdown.doc"""
     stanley_reisner_ideal(K::SimplicialComplex)
@@ -279,6 +288,33 @@ Multivariate Polynomial Ring in 6 variables a, b, c, d, ..., f over Integer Ring
 ```
 """
 stanley_reisner_ring(R::FmpzMPolyRing, K::SimplicialComplex) = quo(R, stanley_reisner_ideal(R, K))
+
+@doc Markdown.doc"""
+    fundamental_group(K::SimplicialComplex)
+
+Return the fundamental group of the abstract simplicial complex `K`.
+
+# Example
+```jldoctest
+julia> x = fundamental_group(torus());
+
+julia> describe(x[1])
+"Z x Z"
+```
+"""
+function fundamental_group(K::SimplicialComplex)
+    n, r = pm_object(K).FUNDAMENTAL_GROUP
+    F = free_group(n)
+    rvec = Vector{FPGroupElem}(undef, length(r))
+    for (i, relation) in enumerate(r)
+        relem = one(F)
+        for term in relation
+            relem *= F[first(term) + 1]^last(term)
+        end
+        rvec[i] = relem
+    end
+    return quo(F, rvec)
+end
 
 ################################################################################
 ##  Standard examples
