@@ -40,7 +40,7 @@ end
 Base.:*(f::GAPGroupHomomorphism{S, T}, g::GAPGroupHomomorphism{T, U}) where S where T where U = compose(g, f)
 
 function Base.inv(f::GAPGroupHomomorphism{S,T}) where S where T
-   @assert GAP.Globals.IsBijective(f.map) "f is not bijective"
+   @assert GAPWrap.IsBijective(f.map) "f is not bijective"
    return GAPGroupHomomorphism{T,S}(codomain(f), domain(f), GAP.Globals.InverseGeneralMapping(f.map))
 end
 
@@ -118,27 +118,17 @@ Return the group homomorphism defined by `gensG`[`i`] -> `imgs`[`i`] for every
 `i`. In order to work, the elements of `gensG` must generate `G`.
 """
 function hom(G::GAPGroup, H::GAPGroup, gensG::Vector, imgs::Vector)
-  vgens = GAP.julia_to_gap(GapObj[x.X for x in gensG])
-  vimgs = GAP.julia_to_gap(GapObj[x.X for x in imgs])
+  vgens = GapObj([x.X for x in gensG])
+  vimgs = GapObj([x.X for x in imgs])
   mp = GAP.Globals.GroupHomomorphismByImages(G.X, H.X, vgens, vimgs)
   if mp == GAP.Globals.fail throw(ArgumentError("Invalid input")) end
   return GAPGroupHomomorphism{typeof(G), typeof(H)}(G, H, mp)
 end
 
-"""
-    domain(f::GAPGroupHomomorphism)
-
-Return the domain of `f`.
-"""
 function domain(f::GAPGroupHomomorphism)
   return f.domain
 end
 
-"""
-    codomain(f::GAPGroupHomomorphism)
-
-Return the codomain of `f`.
-"""
 function codomain(f::GAPGroupHomomorphism)
   return f.codomain
 end
@@ -162,7 +152,7 @@ end
 Return whether `f` is surjective.
 """
 function issurjective(f::GAPGroupHomomorphism)
-  return GAP.Globals.IsSurjective(f.map)
+  return GAPWrap.IsSurjective(f.map)
 end
 
 """
@@ -171,7 +161,7 @@ end
 Return whether `f` is injective.
 """
 function isinjective(f::GAPGroupHomomorphism)
-  return GAP.Globals.IsInjective(f.map)
+  return GAPWrap.IsInjective(f.map)
 end
 
 """
@@ -180,7 +170,7 @@ end
 Return whether `f` is invertible.
 """
 function isinvertible(f::GAPGroupHomomorphism)
-  return GAP.Globals.IsBijective(f.map)
+  return GAPWrap.IsBijective(f.map)
 end
 
 """
@@ -189,7 +179,7 @@ end
 Return whether `f` is bijective.
 """
 function isbijective(f::GAPGroupHomomorphism)
-  return GAP.Globals.IsBijective(f.map)
+  return GAPWrap.IsBijective(f.map)
 end
 
 
@@ -203,7 +193,7 @@ or if `H` is not contained in `domain(f)`.
 """
 function isinvariant(f::GAPGroupHomomorphism, H::GAPGroup)
   @assert domain(f) == codomain(f) "Not an endomorphism!"
-  @assert GAP.Globals.IsSubset(domain(f).X, H.X) "Not a subgroup of the domain"
+  @assert GAPWrap.IsSubset(domain(f).X, H.X) "Not a subgroup of the domain"
   return GAP.Globals.Image(f.map, H.X) == H.X
 end
 
@@ -393,6 +383,20 @@ function Base.show(io::IO, A::AutomorphismGroup{T}) where T <: GAPGroup
 end
 
 """
+  domain(A::AutomorphismGroup) -> Group
+
+Return the domain of this group of automorphisms.
+"""
+domain(A::AutomorphismGroup) = A.G
+
+"""
+    domain(f::AutomorphismGroupElem) -> Group
+
+Return the domain of this automorphism.
+"""
+domain(f::AutomorphismGroupElem) = domain(parent(f))
+
+"""
     hom(f::GAPGroupElem{AutomorphismGroup{T}}) where T
 
 Return the element f of type `GAPGroupHomomorphism{T,T}`.
@@ -417,7 +421,7 @@ function apply_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, x::GAPGroupEl
   A = parent(f)
   G = parent(x)
   if check
-    @assert A.G == G || GAP.Globals.IN(x.X, A.G.X) "Not in the domain of f!"      #TODO Do we really need the IN check?
+    @assert A.G == G || GAPWrap.IN(x.X, A.G.X) "Not in the domain of f!"      #TODO Do we really need the IN check?
   end
   return typeof(x)(G, GAP.Globals.Image(f.X,x.X))
 end
@@ -442,11 +446,11 @@ Return whether `f` is an inner automorphism.
 """
 function isinner_automorphism(f::GAPGroupHomomorphism)
   @assert domain(f) == codomain(f) "Not an automorphism!"
-  return GAP.Globals.IsInnerAutomorphism(f.map)
+  return GAPWrap.IsInnerAutomorphism(f.map)
 end
 
 function isinner_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup
-  return GAP.Globals.IsInnerAutomorphism(f.X)
+  return GAPWrap.IsInnerAutomorphism(f.X)
 end
 
 """
@@ -465,7 +469,7 @@ end
 Return whether `f`(`H`) == `H`.
 """
 function isinvariant(f::GAPGroupElem{AutomorphismGroup{T}}, H::T) where T<:GAPGroup
-  @assert GAP.Globals.IsSubset(parent(f).G.X, H.X) "Not a subgroup of the domain"
+  @assert GAPWrap.IsSubset(parent(f).G.X, H.X) "Not a subgroup of the domain"
   return GAP.Globals.Image(f.X, H.X) == H.X
 end
 

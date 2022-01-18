@@ -19,28 +19,29 @@ correspond to the rays of the underlying fan.
 ## Constructors
 
 ```@docs
-ToricDivisor( v::AbstractNormalToricVariety, coeffs::Vector{Int} )
-DivisorOfCharacter( v::AbstractNormalToricVariety, character::Vector{Int} )
+DivisorOfCharacter(v::AbstractNormalToricVariety, character::Vector{Int})
+ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{Int})
 ```
 
 ## Properties of toric divisors
 
 ```@docs
-isample
-isbasepoint_free
-iscartier
+isample(td::ToricDivisor)
+isbasepoint_free(td::ToricDivisor)
+iscartier(td::ToricDivisor)
 iseffective(td::ToricDivisor)
-isintegral(td::ToricDivisor) 
-isnef
-isprime_divisor
-isprincipal
-isq_cartier
-isvery_ample
+isintegral(td::ToricDivisor)
+isnef(td::ToricDivisor)
+isprime_divisor(td::ToricDivisor)
+isprincipal(td::ToricDivisor)
+isq_cartier(td::ToricDivisor)
+isvery_ample(td::ToricDivisor)
 ```
 
 ## Operations for toric divisors
 
 ```@docs
-polyhedron(td::ToricDivisor)
 coefficients(td::ToricDivisor)
+polyhedron(td::ToricDivisor)
+toricvariety(td::ToricDivisor)
 ```

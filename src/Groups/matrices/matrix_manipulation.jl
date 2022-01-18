@@ -6,9 +6,6 @@
 # functions in this file are to be removed / moved / replaced
 # TODO: when this happens, files mentioned above need to be modified too.
 
-import AbstractAlgebra: FieldElem, map, Ring
-import Hecke: multiplicative_jordan_decomposition, PolyElem, _rational_canonical_form_setup, refine_for_jordan
-
 export
     complement,
     conjugate_transpose,
@@ -143,7 +140,7 @@ end
 Return the permutation matrix over the ring `R` corresponding to the sequence `Q` or to the permutation `p`.
 If `Q` is a sequence, then `Q` must contain exactly once every integer from 1 to some `n`.
 """
-function permutation_matrix(F::Ring, Q::AbstractVector{T}) where T <: Base.Integer
+function permutation_matrix(F::Ring, Q::AbstractVector{<:IntegerUnion})
    @assert Set(Q)==Set(1:length(Q)) "Invalid input"
    Z = zero_matrix(F,length(Q),length(Q))
    for i in 1:length(Q) Z[i,Q[i]] = 1 end
@@ -166,7 +163,7 @@ permutation_matrix(F::Ring, p::PermGroupElem) = permutation_matrix(F, Vector(p))
 
 Return whether the matrix `B` is skew-symmetric,
 i.e. `B = -transpose(B)` and `B` has zeros on the diagonal.
-Returns `false` if `B` is not a square matrix.
+Return `false` if `B` is not a square matrix.
 """
 function isskewsymmetric_matrix(B::MatElem{T}) where T <: RingElem
    n = nrows(B)
@@ -186,7 +183,7 @@ end
     ishermitian_matrix(B::MatElem{T}) where T <: FinFieldElem
 
 Return whether the matrix `B` is hermitian, i.e. `B = conjugate_transpose(B)`.
-Returns `false` if `B` is not a square matrix, or the field has not even degree.
+Return `false` if `B` is not a square matrix, or the field has not even degree.
 """
 function ishermitian_matrix(B::MatElem{T}) where T <: FinFieldElem
    n = nrows(B)

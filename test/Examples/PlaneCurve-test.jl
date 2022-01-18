@@ -371,7 +371,7 @@ end
 end
 
 @testset "Counting Points on Elliptic Curves" begin
-    K = GF(5, 7)[1]
+    K = GF(5, 7)
     S, (x, y, z) = PolynomialRing(K, ["x", "y", "z"])
     T, _ = grade(S)
     F = T(-x^3 - 3 * x^2 * y - 3 * x * y^2 - x * z^2 - y^3 + y^2 * z - y * z^2 - 4 * z^3)
@@ -446,9 +446,9 @@ end
     Y = gens(parent(I4[1]))
     @test I4 == [Y[1], -Y[2], -Y[5], -Y[4], -Y[7]]
     C4 = Oscar.rat_normal_curve_It_Proj_Even(D)
-    R3 = parent(C4.eq)
+    R3 = parent(C4[2].eq)
     U = gens(R3)
-    @test C4 == Oscar.ProjPlaneCurve(-U[1]*U[3] + U[2]^2)
+    @test C4[2] == Oscar.ProjPlaneCurve(-U[1]*U[3] + U[2]^2)
     C5 = Oscar.ProjPlaneCurve(T(-x^7-10*x^5*y^2-10*x^4*y^3-3*x^3*y^4+8*x^2*y^5+
     7*x*y^6+11*y^7+3*x^6*z+10*x^5*y*z+30*x^4*y^2*z+26*x^3*y^3*z-13*x^2*y^4*z-
     29*x*y^5*z-33*y^6*z-3*x^5*z^2-20*x^4*y*z^2-33*x^3*y^2*z^2-8*x^2*y^3*z^2+

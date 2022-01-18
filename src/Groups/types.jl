@@ -1,61 +1,6 @@
-import Hecke:
-    abelian_group,
-    automorphism_group,
-    center,
-    codomain,
-    cokernel,
-    compose,
-    degree,
-    derived_series,
-    direct_product,
-    domain,
-    elem_type,
-    elements,
-    free_abelian_group,
-    gen,
-    gens,
-    haspreimage,
-    hom,
-    id_hom,
-    image,
-    index,
-    inv!,
-    isabelian,
-    isbijective,
-    ischaracteristic,
-    isconjugate,
-    iscyclic,
-    isinjective,
-    isinvertible,
-    isisomorphic,
-    isnormal,
-    issimple,
-    issubgroup,
-    issurjective,
-    kernel,
-    Map,
-    mul,
-    mul!,
-    ngens,
-    normal_closure,
-    one!,
-    order,
-    parent_type,
-    perm,
-    preimage,
-    quo,
-    representative,
-    SetMap,
-    small_group,
-    sub,
-    subgroups
-
-import Base: ==, parent, show
-
-import GAP: GapObj, GapInt
-
 export
     AutomorphismGroup,
+    AutomorphismGroupElem,
     DirectProductGroup,
     DirectProductOfElem,
     FPGroup,
@@ -134,20 +79,25 @@ Every group of this type is the subgroup of Sym(n) for some n.
   the dihedral group of order `n` as a group of permutations.
   Same holds replacing `dihedral_group` by `quaternion_group`
 """
-mutable struct PermGroup <: GAPGroup
+@attributes mutable struct PermGroup <: GAPGroup
    X::GapObj
    deg::Int64       # G < Sym(deg)
-   AbstractAlgebra.@declare_other
    
    function PermGroup(G::GapObj)
-     @assert GAP.Globals.IsPermGroup(G)
-     n = GAP.Globals.LargestMovedPoint(G)::Int
+     @assert GAPWrap.IsPermGroup(G)
+     n = GAPWrap.LargestMovedPoint(G)::Int
+     if n == 0
+       # We support only positive degrees.
+       # (`symmetric_group(0)` yields an error,
+       # and `symmetric_group(1)` yields a GAP group with `n == 0`.)
+       n = 1
+     end
      z = new(G, n)
      return z
    end
    
    function PermGroup(G::GapObj, deg::Int)
-     @assert GAP.Globals.IsPermGroup(G)
+     @assert GAPWrap.IsPermGroup(G)
      z = new(G, deg)
      return z
    end
@@ -175,12 +125,11 @@ Polycyclic group
   direct product of cyclic groups of the orders
   `v[1]`, `v[2]`, ..., `v[length(v)]`
 """
-mutable struct PcGroup <: GAPGroup
+@attributes mutable struct PcGroup <: GAPGroup
   X::GapObj
-  AbstractAlgebra.@declare_other
 
   function PcGroup(G::GapObj)
-    @assert GAP.Globals.IsPcGroup(G)
+    @assert GAPWrap.IsPcGroup(G)
     z = new(G)
     return z
   end
@@ -200,12 +149,11 @@ Finitely presented group.
 Such groups can be constructed a factors of free groups,
 see [`free_group`](@ref).
 """
-mutable struct FPGroup <: GAPGroup
+@attributes mutable struct FPGroup <: GAPGroup
   X::GapObj
-  AbstractAlgebra.@declare_other
   
   function FPGroup(G::GapObj)
-    @assert GAP.Globals.IsSubgroupFpGroup(G)
+    @assert GAPWrap.IsSubgroupFpGroup(G)
     z = new(G)
     return z
   end
@@ -235,17 +183,31 @@ end
 
 Group of automorphisms over a group of type `T`. It can be defined via the function `automorphism_group`.
 """
-mutable struct AutomorphismGroup{T} <: GAPGroup
+@attributes mutable struct AutomorphismGroup{T} <: GAPGroup
   X::GapObj
   G::T
-  AbstractAlgebra.@declare_other
 
   function AutomorphismGroup{T}(G::GapObj, H::T) where T
-    @assert GAP.Globals.IsGroupOfAutomorphisms(G)
+    @assert GAPWrap.IsGroupOfAutomorphisms(G)
     z = new{T}(G, H)
     return z
   end
+
+  function AutomorphismGroup{T}(G::GapObj, H::T, to_gap, to_oscar) where T
+    @assert GAPWrap.IsGroupOfAutomorphisms(G)
+    z = new{T}(G, H, to_gap, to_oscar)
+    return z
+  end
 end
+
+(aut::AutomorphismGroup{T} where T)(x::GapObj) = group_element(aut,x)
+
+const AutomorphismGroupElem{T} = BasicGAPGroupElem{AutomorphismGroup{T}} where T
+
+function Base.show(io::IO, AGE::AutomorphismGroupElem{GrpAbFinGen}) 
+    println(io, "Automorphism of ", GrpAbFinGen, " with matrix representation ", matrix(AGE))
+end
+
 
 ################################################################################
 #

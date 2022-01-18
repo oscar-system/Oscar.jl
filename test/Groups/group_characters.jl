@@ -406,3 +406,22 @@ end
   t = character_table(g)
   @test mod(t, 2) == nothing
 end
+
+@testset "character fields" begin
+  for id in [ "C5", "A5" ]   # cyclotomic and non-cyclotomic number fields
+    for chi in character_table(id)
+      F, phi = character_field(chi)
+      for i in 1:length(chi)
+        x = chi[i]
+        xF = preimage(phi, x)
+        @test parent(xF) == F
+        @test phi(xF) == x
+      end
+    end
+  end
+end
+
+@testset "Schur index" begin
+  t = character_table("2.A5")
+  @test map(schur_index, collect(t)) == [1,1,1,1,1,2,2,2,2]
+end

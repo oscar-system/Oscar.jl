@@ -4,10 +4,6 @@
 #
 ################################################################################
 
-import Hecke: @req
-
-using Random, RandomExtensions
-
 # We represent number fields as quotients of the form K[x]/I where I is a zero-
 # dimensional irreducible ideal of a multivaraite polynomial ring over the
 # rationals or any number field.
@@ -23,13 +19,12 @@ using Random, RandomExtensions
 
 # We are tagging T to record the element type of the base field. This is needed
 # in Hecke to distinguish between relative and absolute fields.
-mutable struct NfNSGen{T, S} <: Hecke.NonSimpleNumField{T}
+@attributes mutable struct NfNSGen{T, S} <: Hecke.NonSimpleNumField{T}
   I::MPolyIdeal{S}
   S::Vector{Symbol}
   degree::Int
   basis
   auxilliary_data::Vector{Any}
-  AbstractAlgebra.@declare_other
 
   function NfNSGen{U, V}(I, S::Vector{Symbol}) where {U, V}
     Kx = base_ring(I)::parent_type(V)
@@ -679,7 +674,7 @@ function minpoly(a::NfNSGenElem)
   Qt, _ = PolynomialRing(k, "t", cached = false)
   while true
     if n % (i-1) == 0 && rank(M) < i
-      N = nullspace(sub(M, 1:i, 1:ncols(M))')
+      N = nullspace(transpose(sub(M, 1:i, 1:ncols(M))))
       @assert N[1] == 1
       v = Vector{elem_type(k)}(undef, i)
       for j in 1:i

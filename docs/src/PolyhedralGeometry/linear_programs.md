@@ -57,13 +57,11 @@ m, v = solve_lp(LP)
 ℓ(v) == m
 ```
 
-Despite the linear program being initially defined with the `:min` convention,
-one can still ask for the maximal value and a point on the cube for which
-$\ell$ is maximized.
+The optimal value and an optimal vertex may be obtained individually as well.
 
 ```@repl oscar
-M = maximal_value(LP)
-V = maximal_vertex(LP)
+M = optimal_value(LP)
+V = optimal_vertex(LP)
 ℓ(V) == M
 ```
 
@@ -85,20 +83,18 @@ the vertex at which the optimum is obtained
 solve_lp
 ```
 
-One can obtain the maximal or minimal value of the objective function over the
+One can obtain the optimal value of the objective function over the
 feasible region, if it exists.
 
 ```@docs
-maximal_value
-minimal_value
+optimal_value
 ```
 
-One can also obtain the maximal or minimal vertex at which the objective
-function attains its maximal or minimal value (respectively).
+One can also obtain an optimal vertex at which the objective
+function attains its optimal value (respectively).
 
 ```@docs
-maximal_vertex
-minimal_vertex
+optimal_vertex
 ```
 
 ## Saving and loading

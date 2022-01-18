@@ -100,7 +100,6 @@
      ],
       "PolyhedralGeometry/cones.md",
       "PolyhedralGeometry/fans.md",
-      "PolyhedralGeometry/graphs.md",
       "PolyhedralGeometry/linear_programs.md",
       "PolyhedralGeometry/subdivisions_of_points.md",
   ],
@@ -109,9 +108,11 @@
      "CommutativeAlgebra/intro.md",
      "CommutativeAlgebra/rings.md",
      "CommutativeAlgebra/ideals.md",
+     "CommutativeAlgebra/free_modules.md",
      "CommutativeAlgebra/modules.md",
      "CommutativeAlgebra/affine_algebras.md",
      "CommutativeAlgebra/binomial_ideals.md",
+     "CommutativeAlgebra/localizations.md",
   ],
 
   "Invariant Theory" => [
@@ -121,27 +122,45 @@
   ],
 
   "Algebraic Geometry" => [
-#     "Curves" => [
+     "AlgebraicGeometry/intro.md",
+     "Curves" => [
 #        "Experimental/introduction.md",
 #        "Experimental/plane_curves.md",
 #        "Experimental/divisors.md",
 #        "Experimental/elliptic_curves.md",
 #        "Experimental/non_plane_curves.md",
-#     ],
+         "AlgebraicGeometry/para_rational_curves.md",
+     ],
      "Toric Varieties" => [
         "ToricVarieties/intro.md",
         "ToricVarieties/NormalToricVarieties.md",
+        "ToricVarieties/CyclicQuotientSingularities.md",
         "ToricVarieties/ToricDivisors.md",
+        "ToricVarieties/ToricLineBundles.md",
      ],
+     "Schemes" => [
+        "AlgebraicGeometry/AffineSchemes.md",
+     ],
+  ],
+
+  "Combinatorics" => [
+      "Combinatorics/graphs.md",
+      "Combinatorics/simplicialcomplexes.md",
   ],
 
 
   "General" => [
-     "General/styleguide.md",
      "General/other.md",
      "General/faq.md",
   ],
 
   "References" => "references.md",
   "Index" => "manualindex.md",
+  "Developer Documentation" => [
+    "DeveloperDocumentation/styleguide.md",
+    "DeveloperDocumentation/build_documentation.md",
+    "Polyhedral Geometry" => [
+        "DeveloperDocumentation/SubObjectIterator.md",
+    ],
+  ],
 ]

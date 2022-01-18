@@ -35,8 +35,7 @@ _SL_order(n::Int, F::Ring) = _SL_order(n, order(F))
 ########################################################################
 
 # Compute a generating set for GL(n,q) and SL(n,q)
-# generators for GL(n,q) and SL(n,q) are described in: 
-# Taylor, D. E., Pairs of Generators for Matrix Groups. I, The Cayley Bulletin, 3 (1987)
+# generators for GL(n,q) and SL(n,q) are described in [Tay87]
 
 # returns elements of type MatElem{T}
 # returns a generating set for GL(n,F) of at most two elements
@@ -291,8 +290,7 @@ end
 #
 ########################################################################
 
-# generators for GL(n,q) and SL(n,q) are described in:
-# Taylor, D. E., Pairs of Generators for Matrix Groups. I, The Cayley Bulletin, 3 (1987)
+# generators for GL(n,q) and SL(n,q) are described in [Tay87]
 
 # returns elements of type MatElem{T}
 # returns a generating set for SL(n,F) of at most two elements
@@ -451,7 +449,7 @@ function centralizer(G::MatrixGroup{T}, x::MatrixGroupElem{T}) where T <: FinFie
    if isdefined(G,:descr) && (G.descr==:GL || G.descr==:SL)
       V,card = G.descr==:GL ? _centralizer_GL(x.elm) : _centralizer_SL(x.elm)
       H = MatrixGroup(G.deg, G.ring, V)
-      set_special(H, :order => fmpz(card))
+      set_attribute!(H, :order => fmpz(card))
       return H, nothing          # do not return the embedding of the centralizer into G to do not compute G.X
    end
    C = GAP.Globals.Centralizer(G.X, x.X)

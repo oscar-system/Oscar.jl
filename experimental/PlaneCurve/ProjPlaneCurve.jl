@@ -5,6 +5,7 @@ export issmooth, tangent, common_components, curve_intersect,
        tangent_lines, intersection_multiplicity, aretransverse,
        arithmetic_genus, geometric_genus
 
+
 ################################################################################
 # Functions for ProjPlaneCurves
 ################################################################################
@@ -326,7 +327,7 @@ end
 @doc Markdown.doc"""
      multiplicity(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
 
-Returns the multiplicity of `C` at `P`.
+Return the multiplicity of `C` at `P`.
 """
 function multiplicity(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
   if P.v[3] != 0
@@ -366,7 +367,7 @@ end
  @doc Markdown.doc"""
       tangent_lines(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
 
-Returns the tangent lines at `P` to `C` with their multiplicity.
+Return the tangent lines at `P` to `C` with their multiplicity.
  """
  function tangent_lines(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
    evaluate(C.eq, P.v) == 0 || error("The point is not on the curve.")
@@ -411,7 +412,7 @@ end
 @doc Markdown.doc"""
      intersection_multiplicity(C::ProjectivePlaneCurve{S}, D::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
 
-Returns the intersection multiplicity of `C` and `D` at `P`.
+Return the intersection multiplicity of `C` and `D` at `P`.
 """
 function intersection_multiplicity(C::ProjectivePlaneCurve{S}, D::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
    dim(P.parent) == 2 || error("The point needs to be in a projective two dimensional space")
@@ -436,7 +437,7 @@ end
 @doc Markdown.doc"""
      aretransverse(C::ProjectivePlaneCurve{S}, D::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S<:FieldElem
 
-Returns `true` if `C` and `D` intersect transversally at `P` and `false` otherwise.
+Return `true` if `C` and `D` intersect transversally at `P` and `false` otherwise.
 """
 function aretransverse(C::ProjectivePlaneCurve{S}, D::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
   return issmooth(C, P) && issmooth(D, P) && intersection_multiplicity(C, D, P) == 1
@@ -479,9 +480,20 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    geometric_genus(C::ProjectivePlaneCurve{S}) where S <: FieldElem
+    geometric_genus(C::ProjectivePlaneCurve{T}) where T <: FieldElem
 
 Return the geometric genus of `C`.
+
+# Example
+```jldoctest
+julia> R, (x,y,z) = GradedPolynomialRing(QQ, ["x", "y", "z"]);
+
+julia> C = ProjPlaneCurve(z*x^2-y^3)
+Projective plane curve defined by x^2*z - y^3
+
+julia> geometric_genus(C)
+0
+```
 """
 function geometric_genus(C::ProjectivePlaneCurve{S}) where S <: FieldElem
    F = defining_equation(C)

@@ -22,13 +22,13 @@ DirectProductGroup
 direct_product(L::AbstractVector{<:GAPGroup}; morphisms=false)
 inner_direct_product(L::AbstractVector{T}; morphisms=false) where T<:Union{PcGroup,PermGroup,FPGroup}
 number_of_factors(G::DirectProductGroup)
-cartesian_power(G::GAPGroup, n::Base.Integer)
-inner_cartesian_power(G::T, n::Base.Integer; morphisms=false) where T<: GAPGroup
-factor_of_direct_product(G::DirectProductGroup, j::Base.Integer)
+cartesian_power(G::GAPGroup, n::Int)
+inner_cartesian_power(G::T, n::Int; morphisms=false) where T<: GAPGroup
+factor_of_direct_product(G::DirectProductGroup, j::Int)
 as_perm_group(G::DirectProductGroup)
 as_polycyclic_group(G::DirectProductGroup)
-embedding(G::DirectProductGroup, j::Base.Integer)
-projection(G::DirectProductGroup, j::Base.Integer)
+embedding(G::DirectProductGroup, j::Int)
+projection(G::DirectProductGroup, j::Int)
 write_as_full(G::DirectProductGroup)
 isfull_direct_product(G::DirectProductGroup)
 ```
@@ -42,7 +42,7 @@ normal_subgroup(G::SemidirectProductGroup)
 acting_subgroup(G::SemidirectProductGroup)
 homomorphism_of_semidirect_product(G::SemidirectProductGroup)
 isfull_semidirect_product(G::SemidirectProductGroup)
-embedding(G::SemidirectProductGroup{S,T}, n::Base.Integer) where S where T
+embedding(G::SemidirectProductGroup{S,T}, n::Int) where S where T
 projection(G::SemidirectProductGroup)
 ```
 
@@ -56,5 +56,5 @@ acting_subgroup(W::WreathProductGroup)
 homomorphism_of_wreath_product(G::WreathProductGroup)
 isfull_wreath_product(G::WreathProductGroup)
 projection(W::WreathProductGroup)
-embedding(W::WreathProductGroup, n::Base.Integer)
+embedding(W::WreathProductGroup, n::Int)
 ```

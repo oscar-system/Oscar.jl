@@ -10,7 +10,13 @@ using Oscar
 Pages = ["ideals.md"]
 ```
 
-# Ideals in Polynomial Rings
+# Ideals in Multivariate Rings
+
+## Types
+
+The OSCAR type for ideals in multivariate polynomial rings -- decorated or not --
+is of parametrized form `MPolyIdeal{T}`, where `T` is the element type of the
+polynomial ring.
 
 ## Constructors
 
@@ -18,15 +24,11 @@ Pages = ["ideals.md"]
 ideal(g::Vector{T}) where {T <: MPolyElem}
 ```
 
-!!! note
-    The return types of all constructors above are subtypes of `MPolyIdeal`.
-
-
 ## Gröbner Bases
 
 Algorithmic means to deal with ideals in multivariate polynomial rings are provided by
-the concept of Gröbner bases and its workhorse, Buchberger's algorithm for computing
-such bases. For both the concept and the algorithm a convenient way of ordering the monomials
+the concept of Gröbner bases and the workhorse of this concept, Buchberger's algorithm for computing
+Gröbner bases. For both the concept and the algorithm a convenient way of ordering the monomials
 appearing in multivariate polynomials and, thus, to distinguish leading terms of such
 polynomials is needed.
 
@@ -233,9 +235,6 @@ O4 = revlex(gens(K))*degrevlex(gens(R))
 
 ```@docs
 normal_form(f::T, J::MPolyIdeal) where { T <: MPolyElem }
-```
-
-```@docs
 normal_form(A::Vector{T}, J::MPolyIdeal) where { T <: MPolyElem }
 ```
 
@@ -257,13 +256,20 @@ groebner_basis_with_transformation_matrix(I::MPolyIdeal; ordering::Symbol = :deg
 
     Hilbert-driven
 
+!!! warning "Expert functions for Gröbner bases"
+    The following functions are low-level implementations of various Gröbner
+    basis algorithms with many adjustable arguments. Only use these
+    functions directly if you know what you are doing.
+
+```@docs
+f4( I::MPolyIdeal; initial_hts::Int=17, nr_thrds::Int=1, max_nr_pairs::Int=0, la_option::Int=2, reduce_gb::Int=1, info_level::Int=0)
+```
+
+
 #### Leading Ideals
 
 ```@docs
 leading_ideal(g::Vector{T}, args...) where { T <: MPolyElem }
-```
-
-```@docs
 leading_ideal(I::MPolyIdeal)
 ```
 
@@ -297,16 +303,16 @@ syzygy_generators(a::Vector{<:MPolyElem})
 base_ring(I::MPolyIdeal)
 ```
 
-### Number of Generators
-
-```@docs
-ngens(I::MPolyIdeal)
-```
-
 ### Generators
 
 ```@docs
 gens(I::MPolyIdeal)
+```
+
+### Number of Generators
+
+```@docs
+ngens(I::MPolyIdeal)
 ```
 
 ### Dimension
@@ -333,19 +339,19 @@ codim(I::MPolyIdeal)
 #### Sum of Ideals
 
 ```@docs
-:+(I::MPolyIdeal, J::MPolyIdeal)
+:+(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 ```
 
 #### Product of Ideals
 
 ```@docs
-:*(I::MPolyIdeal, J::MPolyIdeal)
+:*(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 ```
 
 ### Intersection of Ideals
 
 ```@docs
-intersect(I::MPolyIdeal, J::MPolyIdeal)
+intersect(I::MPolyIdeal{T}, Js::MPolyIdeal{T}...) where T
 ```
 
 ### Ideal Quotients
@@ -355,7 +361,7 @@ Given two ideals $I, J$ of a ring $R$, the ideal quotient of $I$ by $J$ is the i
 $I:J= \bigl\{f \in R\:\big|\: f J \subset I\bigr\}\subset R.$
 
 ```@docs
-quotient(I::MPolyIdeal, J::MPolyIdeal)
+quotient(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 ```
 
 ### Saturation
@@ -365,17 +371,14 @@ Given two ideals $I, J$ of a ring $R$, the saturation of $I$ with respect to $J$
 $I:J^{\infty} = \bigl\{ f \in R \:\big|\: f J^k \!\subset I {\text{ for some }}k\geq 1 \bigr\} = \textstyle{\bigcup\limits_{k=1}^{\infty} (I:J^k)}.$
 
 ```@docs
-saturation(I::MPolyIdeal, J::MPolyIdeal)
-```
-
-```@docs
-saturation_with_index(I::MPolyIdeal, J::MPolyIdeal)
+saturation(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
+saturation_with_index(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 ```
 
 ### Elimination
 
 ```@docs
-eliminate(I::MPolyIdeal, l::Vector{T}) where T <: Union{MPolyElem, MPolyElem_dec}
+eliminate(I::MPolyIdeal{T}, l::Vector{T}) where T <: MPolyElem
 ```
 
 ## Tests on Ideals
@@ -384,34 +387,31 @@ eliminate(I::MPolyIdeal, l::Vector{T}) where T <: Union{MPolyElem, MPolyElem_dec
 
 ```@docs
 iszero(I::MPolyIdeal)
-```
-
-```@docs
 isone(I::MPolyIdeal)
 ```
 
 ### Equality of Ideals
 
 ```@docs
-:(==)(I::MPolyIdeal, J::MPolyIdeal)
+==(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 ```
 
 ### Containment of Ideals
 
 ```@docs
-issubset(I::MPolyIdeal, J::MPolyIdeal)
+issubset(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 ```
 
 ### Ideal Membership
 
 ```@docs
-ideal_membership(f::T, I::MPolyIdeal) where T <: Union{MPolyElem, MPolyElem_dec}
+ideal_membership(f::T, I::MPolyIdeal{T}) where T
 ```
 
 ### Radical Membership
 
 ```@docs
-radical_membership(f::T, I::MPolyIdeal) where T <: Union{MPolyElem, MPolyElem_dec}
+radical_membership(f::T, I::MPolyIdeal{T}) where T
 ```
 
 ### Primality Test
@@ -441,13 +441,19 @@ radical(I::MPolyIdeal)
 ### Primary Decomposition
 
 ```@docs
-primary_decomposition(I::MPolyIdeal)
+primary_decomposition(I::MPolyIdeal; alg = :GTZ)
+```
+
+### Absolute Primary Decomposition
+
+```@docs
+absolute_primary_decomposition(I::MPolyIdeal{fmpq_mpoly})
 ```
 
 ### Minimal Associated Primes
 
 ```@docs
-minimal_primes(I::MPolyIdeal)
+minimal_primes(I::MPolyIdeal; alg = :GTZ)
 ```
 
 ### Weak Equidimensional Decomposition
@@ -472,12 +478,6 @@ equidimensional_hull(I::MPolyIdeal)
 
 ```@docs
 equidimensional_hull_radical(I::MPolyIdeal)
-```
-
-### Absolute Primary Decomposition
-
-```@docs
-absolute_primary_decomposition(I::MPolyIdeal{fmpq_mpoly})
 ```
 
 ## Homogenization and Dehomogenization

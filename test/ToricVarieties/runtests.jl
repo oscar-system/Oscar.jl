@@ -7,8 +7,10 @@ antv = AffineNormalToricVariety(C)
 @testset "Affine toric varieties" begin
     @test issmooth(antv) == false
     @test isorbifold(antv) == true
+    @test dim(fan( antv )) == 2
+    @test dim(cone(antv)) == 2
     @test length(affine_open_covering(antv)) == 1
-    # @test toric_ideal_binomial_generators(antv) == [-1 -1 2]
+    @test length(gens(toric_ideal(antv))) == 1
     @test rank(torusinvariant_divisor_group(antv)) == 2
     @test rank(character_lattice(antv)) == 2
     map = map_from_character_to_principal_divisors(antv)
@@ -28,6 +30,16 @@ associated_affine_variety = AffineNormalToricVariety(ntv)
     @test length(affine_open_covering(associated_affine_variety)) == 1
 end
 
+cyc = CyclicQuotientSingularity(2,1)
+
+@testset "Cyclic quotient singularities" begin
+    @test isaffine(cyc) == true
+    @test issmooth( cyc ) == false
+    @test issimplicial( cyc ) == true
+    @test continued_fraction_hirzebruch_jung( cyc )[1] == 2
+    @test dual_continued_fraction_hirzebruch_jung(cyc)[1] == 2
+end
+
 square = Oscar.cube(2)
 nf = Oscar.normal_fan(square)
 ntv2 = NormalToricVariety(nf)
@@ -36,9 +48,11 @@ ntv3 = NormalToricVariety(square)
 @testset "Toric varieties from polyhedral fans" begin
     @test iscomplete(ntv2) == true
     @test iscomplete(ntv3) == true
+    @test rank(cartier_divisor_group(ntv2)) == 4
+    @test rank(domain(map_from_cartier_divisor_group_to_torus_invariant_divisor_group(ntv2))) == 4
 end
 
-P2 = toric_projective_space(2)
+P2 = NormalToricVariety(normal_fan(Oscar.simplex(2)))
 
 @testset "Projective space" begin
     @test isnormal(P2) == true
@@ -49,18 +63,20 @@ P2 = toric_projective_space(2)
     @test hastorusfactor(P2) == false
     @test isorbifold(P2) == true
     @test issimplicial(P2) == true
-    @test ith_betti_number(P2, 0) == 1
-    @test ith_betti_number(P2, 1) == 0
-    @test ith_betti_number(P2, 2) == 1
-    @test ith_betti_number(P2, 3) == 0
-    @test ith_betti_number(P2, 4) == 1
+    @test betti_number(P2, 0) == 1
+    @test betti_number(P2, 1) == 0
+    @test betti_number(P2, 2) == 1
+    @test betti_number(P2, 3) == 0
+    @test betti_number(P2, 4) == 1
     S = cox_ring(P2)
     @test ngens(S) == 3
     @test length(stanley_reisner_ideal(P2).gens) == 1
     @test length(irrelevant_ideal(P2).gens) == 3
 end
 
-H5 = hirzebruch_surface(5)
+fan_rays = [1 0; 0 1; -1 5; 0 -1]
+fan_cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,1]])
+H5 = NormalToricVariety(PolyhedralFan(fan_rays, fan_cones))
 
 @testset "Hirzebruch surface" begin
     @test isnormal(H5) == true
@@ -79,13 +95,12 @@ H5 = hirzebruch_surface(5)
     @test dim(H5) == 2
     @test dim_of_torusfactor(H5) == 0
     @test euler_characteristic(H5) == 4
-    @test ith_betti_number(H5, 0) == 1
-    @test ith_betti_number(H5, 1) == 0
-    @test ith_betti_number(H5, 2) == 2
-    @test ith_betti_number(H5, 3) == 0
-    @test ith_betti_number(H5, 4) == 1
+    @test betti_number(H5, 0) == 1
+    @test betti_number(H5, 1) == 0
+    @test betti_number(H5, 2) == 2
+    @test betti_number(H5, 3) == 0
+    @test betti_number(H5, 4) == 1
     @test length(affine_open_covering(H5)) == 4
-    @test fan_of_variety(H5).pm_fan.FAN_DIM == 2
     @test fan(H5).pm_fan.FAN_DIM == 2
     @test rank(torusinvariant_divisor_group(H5)) == 4
     @test rank(character_lattice(H5)) == 2
@@ -99,17 +114,30 @@ H5 = hirzebruch_surface(5)
     @test length(irrelevant_ideal(H5).gens) == 4
 end
 
+dP0 = NormalToricVariety(normal_fan(Oscar.simplex(2)))
+
+fan_rays = [1 0; 0 1; -1 0; -1 -1]
+fan_cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,1]])
+dP1 = NormalToricVariety(PolyhedralFan(fan_rays, fan_cones))
+
+fan_rays = [1 0; 0 1; -1 0; -1 -1; 0 -1]
+fan_cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,5],[5,1]])
+dP2 = NormalToricVariety(PolyhedralFan(fan_rays, fan_cones))
+
+fan_rays = [1 0; 1 1; 0 1; -1 0; -1 -1; 0 -1]
+fan_cones = IncidenceMatrix([[1,2],[2,3],[3,4],[4,5],[5,6],[6,1]])
+dP3 = NormalToricVariety(PolyhedralFan(fan_rays, fan_cones))
+
 @testset "delPezzo surfaces" begin
     @test_throws ArgumentError del_pezzo(-1)
-    dP0 = del_pezzo(0)
     @test length(torusinvariant_prime_divisors(dP0)) == 3
-    dP1 = del_pezzo(1)
     @test length(torusinvariant_prime_divisors(dP1)) == 4
-    dP2 = del_pezzo(2)
     @test length(torusinvariant_prime_divisors(dP2)) == 5
-    dP3 = del_pezzo(3)
+    @test rank(cartier_divisor_group(dP3)) == 6
     @test length(torusinvariant_prime_divisors(dP3)) == 6
     @test_throws ArgumentError del_pezzo(4)
+    @test rank(picard_group(dP3)) == 4
+    @test picard_group(dP3) == codomain(map_from_cartier_divisor_group_to_picard_group(dP3))
 end
 
 blowup_variety = blowup_on_ith_minimal_torus_orbit(P2, 1)
@@ -123,12 +151,13 @@ blowup_variety = blowup_on_ith_minimal_torus_orbit(P2, 1)
     @test hastorusfactor(blowup_variety) == false
     @test isorbifold(blowup_variety) == true
     @test issimplicial(blowup_variety) == true
-    @test ith_betti_number(blowup_variety, 0) == 1
-    @test ith_betti_number(blowup_variety, 1) == 0
-    @test ith_betti_number(blowup_variety, 2) == 2
-    @test ith_betti_number(blowup_variety, 3) == 0
-    @test ith_betti_number(blowup_variety, 4) == 1
+    @test betti_number(blowup_variety, 0) == 1
+    @test betti_number(blowup_variety, 1) == 0
+    @test betti_number(blowup_variety, 2) == 2
+    @test betti_number(blowup_variety, 3) == 0
+    @test betti_number(blowup_variety, 4) == 1
     @test euler_characteristic(blowup_variety) == 4
+    @test rank(picard_group(blowup_variety)) == 2
 end
 
 v = H5 * P2
@@ -142,15 +171,15 @@ v = H5 * P2
     @test hastorusfactor(v) == false
     @test isorbifold(v) == true
     @test issimplicial(v) == true
-    @test ith_betti_number(v, 0) == 1
-    @test ith_betti_number(v, 1) == 0
-    @test ith_betti_number(v, 2) == 3
-    @test ith_betti_number(v, 3) == 0
-    @test ith_betti_number(v, 4) == 4
-    @test ith_betti_number(v, 5) == 0
-    @test ith_betti_number(v, 6) == 3
-    @test ith_betti_number(v, 7) == 0
-    @test ith_betti_number(v, 8) == 1
+    @test betti_number(v, 0) == 1
+    @test betti_number(v, 1) == 0
+    @test betti_number(v, 2) == 3
+    @test betti_number(v, 3) == 0
+    @test betti_number(v, 4) == 4
+    @test betti_number(v, 5) == 0
+    @test betti_number(v, 6) == 3
+    @test betti_number(v, 7) == 0
+    @test betti_number(v, 8) == 1
 end
 
 @testset "ComparisonWithProjectiveSpace" begin
@@ -166,6 +195,7 @@ D=ToricDivisor(H5, [0,0,0,0])
 D2 = DivisorOfCharacter(H5, [1,2])
 
 @testset "Divisors" begin
+    @test dim(toricvariety(D)) == 2
     @test isprime_divisor(D) == false
     @test iscartier(D) == true
     @test isprincipal(D) == true
@@ -194,4 +224,11 @@ p = polyhedron(D)
 @testset "Polytopes of divisors" begin
     @test dim(p) == 0
     @test ambient_dim(p) == 2
+end
+
+line_bundle = ToricLineBundle(dP3, [1,2,3,4])
+
+@testset "Toric line bundles" begin
+    @test divisor_class(line_bundle).coeff == AbstractAlgebra.matrix(ZZ, [1 2 3 4])
+    @test dim(variety(line_bundle)) == 2
 end

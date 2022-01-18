@@ -191,8 +191,7 @@ julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 
 julia> C, _ = quo(R,  ideal(R, [x*y-1]))
 (Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x*y - 1), Map from
-Multivariate Polynomial Ring in x, y over Rational Field to Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x*y - 1) defined by a julia-function with inverse
-)
+Multivariate Polynomial Ring in x, y over Rational Field to Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x*y - 1) defined by a julia-function with inverse)
 
 julia> V = [y]
 1-element Vector{fmpq_mpoly}:
@@ -242,20 +241,10 @@ function (F::AlgHom)(p::U) where U <: Union{MPolyElem, MPolyQuoElem}
    return map_poly(F, p)
 end
 
-@doc Markdown.doc"""
-    function domain(F::AlgHom)
-
-Return the domain of `F`.
-"""
 function domain(F::AlgHom)
    return F.domain
 end
 
-@doc Markdown.doc"""
-    function codomain(F::AlgHom)
-
-Return the codomain of `F`.
-"""
 function codomain(F::AlgHom)
    return F.codomain
 end
@@ -269,7 +258,7 @@ end
 @doc Markdown.doc"""
     compose(F::AlgHom{T}, G::AlgHom{T}) where T
 
-Return the algebra homomorphism $H = G\circ F: domain(F) \rightarrow codomain(G)$.
+Return the algebra homomorphism $H = G\circ F: \text{domain}(F) \rightarrow \text{codomain}(G)$.
 """
 function compose(F::AlgHom{T}, G::AlgHom{T}) where T
    check_composable(F, G)
@@ -288,7 +277,7 @@ end
 @doc Markdown.doc"""
     preimage(F::AlgHom, I::U) where U <: Union{MPolyIdeal, MPolyQuoIdeal}
 
-Return the preimage of the ideal $I$ under the algebra homomorphism $F$.
+Return the preimage of the ideal `I` under the algebra homomorphism `F`.
 """
 function preimage(F::AlgHom, I::U) where U <: Union{MPolyIdeal, MPolyQuoIdeal}
 
@@ -305,7 +294,7 @@ end
 @doc Markdown.doc"""
     kernel(F::AlgHom)
 
-Return the kernel of the algebra homomorphism $F$.
+Return the kernel of `F`.
 """
 function kernel(F::AlgHom)
    isdefined(F, :kernel) && return F.kernel

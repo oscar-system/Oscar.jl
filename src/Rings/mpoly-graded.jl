@@ -1,16 +1,17 @@
 export weight, decorate, ishomogeneous, homogeneous_components, filtrate,
 grade, GradedPolynomialRing, homogeneous_component, jacobi_matrix, jacobi_ideal,
 HilbertData, hilbert_series, hilbert_series_reduced, hilbert_series_expanded, hilbert_function, hilbert_polynomial, grading,
-homogenization, dehomogenization, grading_group
+homogenization, dehomogenization, grading_group, is_z_graded, ismulti_graded
 export MPolyRing_dec, MPolyElem_dec, ishomogeneous, isgraded
 export minimal_subalgebra_generators
-mutable struct MPolyRing_dec{T, S} <: AbstractAlgebra.MPolyRing{T}
+
+@attributes mutable struct MPolyRing_dec{T, S} <: AbstractAlgebra.MPolyRing{T}
   R::S
   D::GrpAbFinGen
   d::Vector{GrpAbFinGenElem}
   lt
-  Hecke.@declare_other
   function MPolyRing_dec(R::S, d::Vector{GrpAbFinGenElem}) where {S}
+    @assert length(d) == ngens(R)
     r = new{elem_type(base_ring(R)), S}()
     r.R = R
     r.D = parent(d[1])
@@ -18,6 +19,7 @@ mutable struct MPolyRing_dec{T, S} <: AbstractAlgebra.MPolyRing{T}
     return r
   end
   function MPolyRing_dec(R::S, d::Vector{GrpAbFinGenElem}, lt) where {S}
+    @assert length(d) == ngens(R)
     r = new{elem_type(base_ring(R)), S}()
     r.R = R
     r.D = parent(d[1])
@@ -78,6 +80,9 @@ julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
 julia> typeof(R)
 FmpqMPolyRing
 
+julia> typeof(x)
+fmpq_mpoly
+
 julia> S, (x, y, z) = grade(R)
 (Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
@@ -86,6 +91,12 @@ julia> S, (x, y, z) = grade(R)
 
 julia> typeof(S)
 MPolyRing_dec{fmpq, FmpqMPolyRing}
+
+julia> typeof(S) <: MPolyRing
+true
+
+julia> typeof(x)
+MPolyElem_dec{fmpq, fmpq_mpoly}
 
 julia> W = [1, 2, 3];
 
@@ -96,16 +107,49 @@ julia> T, (x, y, z) = grade(R, W)
   z -> [3], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
 ```
 """
-function grade(R::MPolyRing, W::Vector{Int})
+function grade(R::MPolyRing, W::Vector{<:IntegerUnion})
+  @assert length(W) == ngens(R)
   A = abelian_group([0])
-  Hecke.set_special(A, :show_elem => show_special_elem_grad) 
+  set_attribute!(A, :show_elem => show_special_elem_grad) 
   S = MPolyRing_dec(R, [i*A[1] for i = W])
   return S, map(S, gens(R))
 end
+
+function grade(R::MPolyRing, W::Union{fmpz_mat, Matrix{<:IntegerUnion}})
+  @assert size(W, 2) == ngens(R)
+  A = abelian_group(zeros(Int, size(W, 1)))
+  set_attribute!(A, :show_elem => show_special_elem_grad) 
+  S = MPolyRing_dec(R, [A(view(W, :, i)) for i = 1:size(W, 2)])
+  return S, map(S, gens(R))
+end
+
+function grade(R::MPolyRing, W::Vector{<:Vector{<:IntegerUnion}})
+  @assert length(W) == ngens(R)
+  n = length(W[1])
+  @assert all(x->length(x) == n, W)
+
+  A = abelian_group(zeros(Int, n))
+  set_attribute!(A, :show_elem => show_special_elem_grad) 
+  S = MPolyRing_dec(R, [A(w) for w = W])
+  return S, map(S, gens(R))
+end
+
 function grade(R::MPolyRing)
   A = abelian_group([0])
   S = MPolyRing_dec(R, [1*A[1] for i = 1: ngens(R)])
   return S, map(S, gens(R))
+end
+
+function is_z_graded(R::MPolyRing_dec)
+  isgraded(R) || return false
+  A = grading_group(R)
+  return ngens(A) == 1 && rank(A) == 1 && isfree(A)
+end
+
+function ismulti_graded(R::MPolyRing_dec)
+  isgraded(R) || return false
+  A = grading_group(R)
+  return isfree(A) && ngens(A) == rank(A)
 end
 
 @doc Markdown.doc"""
@@ -124,9 +168,15 @@ julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"], [1, 2, 3])
   x -> [1]
   y -> [2]
   z -> [3], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+
+julia> S, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
+  x -> [1]
+  y -> [1]
+  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
 ```
 """
-function GradedPolynomialRing(C::Ring, V::Vector{String}, W::Vector{Int}; ordering=:lex)
+function GradedPolynomialRing(C::Ring, V::Vector{String}, W; ordering=:lex)
    return grade(PolynomialRing(C, V; ordering = ordering)[1], W)
 end
 function GradedPolynomialRing(C::Ring, V::Vector{String}; ordering=:lex)
@@ -146,7 +196,7 @@ end
 
 function filtrate(R::MPolyRing, v::Vector{Int})
   A = abelian_group([0])
-  Hecke.set_special(A, :show_elem => show_special_elem_grad) 
+  set_attribute!(A, :show_elem => show_special_elem_grad) 
   S = MPolyRing_dec(R, [i*A[1] for i = v], (x,y) -> x[1] < y[1])
   return S, map(S, gens(R))
 end
@@ -199,8 +249,8 @@ function (W::MPolyRing_dec)(f::MPolyElem)
   return MPolyElem_dec(f, W)
 end
 
-function (W::MPolyRing_dec)(a...)
-  return W(W.R(a...))
+function (W::MPolyRing_dec{T})(c::Vector{T}, e::Vector{Vector{Int}}) where T
+  return W(W.R(c, e))
 end
 
 (W::MPolyRing_dec)(g::MPolyElem_dec) = MPolyElem_dec(g.f, W)
@@ -268,7 +318,7 @@ end
 
 ################################################################################
 #
-#  Equality
+#  Factoring, division, ...
 #
 ################################################################################
 
@@ -298,6 +348,11 @@ function div(x::Oscar.MPolyElem_dec, y::Oscar.MPolyElem_dec)
   return R(div(x.f, y.f))
 end
 
+################################################################################
+#
+#  Equality
+#
+################################################################################
 
 ==(a::MPolyElem_dec, b::MPolyElem_dec) = a.f == b.f
 
@@ -314,6 +369,8 @@ end
 length(a::MPolyElem_dec) = length(a.f)
 monomial(a::MPolyElem_dec, i::Int) = parent(a)(monomial(a.f, i))
 coeff(a::MPolyElem_dec, i::Int) = coeff(a.f, i)
+term(a::MPolyElem_dec, i::Int) = parent(a)(term(a.f, i))
+exponent_vector(a::MPolyElem_dec, i::Int) = exponent_vector(a.f, i)
 
 function singular_ring(R::MPolyRing_dec; keep_ordering::Bool = false)
   return singular_ring(R.R, keep_ordering = keep_ordering)
@@ -386,11 +443,11 @@ function degree(a::MPolyElem_dec)
     for i=1:length(c)
       u += c[i]*d[i]
     end
-    if isfiltered(W)
-      w = W.lt(w, u) ? u : w
-    elseif first
+    if first
       first = false
       w = u
+    elseif isfiltered(W)
+      w = W.lt(w, u) ? u : w
     else
       w == u || error("element not homogeneous")
     end
@@ -398,12 +455,21 @@ function degree(a::MPolyElem_dec)
   return w
 end
 
+function degree(::Type{Int}, a::MPolyElem_dec)
+  @assert is_z_graded(parent(a))
+  return Int(degree(a)[1])
+end
+
+function degree(::Type{Vector{Int}}, a::MPolyElem_dec)
+  @assert ismulti_graded(parent(a))
+  d = degree(a)
+  return Int[d[i] for i=1:ngens(parent(d))]
+end
+
 @doc Markdown.doc"""
     ishomogeneous(F::MPolyElem_dec)
 
 Return `true` if `F` is homogeneous, `false` otherwise.
-
-Return the homogenization of `f`, `V`, or `I` in a graded ring with additional variable `var` at position `pos`.
 """
 function ishomogeneous(F::MPolyElem_dec)
   D = parent(F).D
@@ -479,9 +545,18 @@ function homogeneous_component(a::MPolyElem_dec, g::GrpAbFinGenElem)
   return parent(a)(r)
 end
 
+function homogeneous_component(a::MPolyElem_dec, g::IntegerUnion)
+  @assert is_z_graded(parent(a))
+  return homogeneous_component(a, grading_group(parent(a))([g]))
+end
+
+function homogeneous_component(a::MPolyElem_dec, g::Vector{<:IntegerUnion})
+  @assert ismulti_graded(parent(a))
+  return homogeneous_component(a, grading_group(parent(a))(g))
+end
+
 base_ring(W::MPolyRing_dec) = base_ring(W.R)
 Nemo.ngens(W::MPolyRing_dec) = Nemo.ngens(W.R)
-Nemo.ngens(R::MPolyRing) = Nemo.nvars(R)
 Nemo.gens(W::MPolyRing_dec) = map(W, gens(W.R))
 Nemo.gen(W::MPolyRing_dec, i::Int) = W(gen(W.R, i))
 Base.getindex(W::MPolyRing_dec, i::Int) = W(W.R[i])
@@ -489,8 +564,8 @@ Base.getindex(W::MPolyRing_dec, i::Int) = W(W.R[i])
 base_ring(f::MPolyElem_dec) = base_ring(f.f)
 
 function show_homo_comp(io::IO, M)
-  (W, d) = Hecke.get_special(M, :data)
-  n = Hecke.get_special(W, :name)
+  (W, d) = get_attribute(M, :data)
+  n = get_attribute(W, :name)
   if n != nothing
     print(io, "$(n)_$(d.coeff) of dim $(dim(M))")
   else
@@ -501,6 +576,8 @@ end
 function homogeneous_component(W::MPolyRing_dec, d::GrpAbFinGenElem)
   #TODO: lazy: ie. no enumeration of points
   #      aparently it is possible to get the number of points faster than the points
+  #TODO: in the presence of torsion, this is wrong. The component
+  #      would be a module over the deg-0-sub ring.
   D = W.D
   h = hom(free_abelian_group(ngens(W)), W.d)
   fl, p = haspreimage(h, d)
@@ -511,7 +588,7 @@ function homogeneous_component(W::MPolyRing_dec, d::GrpAbFinGenElem)
   #Ax = b, Cx >= 0
   C = identity_matrix(FlintZZ, ngens(W))
   A = vcat([x.coeff for x = W.d])
-  k = solve_mixed(A', d.coeff', C)
+  k = solve_mixed(transpose(A), transpose(d.coeff), C)
   B = elem_type(W)[]
   for ee = 1:nrows(k)
     e = k[ee, :]
@@ -520,7 +597,7 @@ function homogeneous_component(W::MPolyRing_dec, d::GrpAbFinGenElem)
     push!(B, W(finish(a)))
   end
   M, h = vector_space(R, B, target = W)
-  Hecke.set_special(M, :show => show_homo_comp, :data => (W, d))
+  set_attribute!(M, :show => show_homo_comp, :data => (W, d))
   add_relshp(M, W, x -> sum(x[i] * B[i] for i=1:length(B)))
 #  add_relshp(W, M, g)
   return M, h
@@ -597,20 +674,15 @@ end
 #########################################
 function add_relshp(R, S, h)
   #this assumes that h is essentially a canonical map from R -> S
-  if !isdefined(R, :other)
-    R.other = dict{Symbol, Any}()
-  end
-  if !haskey(R.other, :relshp)
-    R.other[:relshp] = Dict{Any, Any}()
-  end
-  if haskey(R.other[:relshp], S)
+  D = get_attribute!(() -> Dict{Any, Any}(), R, :relshp)::Dict{Any, Any}
+  if haskey(D, S)
     error("try to add double")
   end
-  R.other[:relshp][S] = h
+  D[S] = h
 end
 
 function hasrelshp(R, S)
-  r = Hecke.get_special(R, :relshp)
+  r = get_attribute(R, :relshp)
   if r === nothing
     return r
   end
@@ -751,9 +823,11 @@ end
 
     homogenization(I::MPolyIdeal{T}, var::String, pos::Int = 1; ordering::Symbol = :degrevlex) where {T <: MPolyElem}
 
-Return the homogenization of `f`, `V`, or `I` in a graded ring with additional variable `var` at position `pos`.
+Homogenize `f`, `V`, or `I` using an additional variable printing as `var`.
+Return the result as an element of a graded polynomial ring with an additional variable at position `pos` printing as `var`.
 
-CAVEAT: Homogenizing an ideal requires a Gröbner basis computation. This may take some time.
+!!! warning
+    Homogenizing an ideal requires a Gröbner basis computation. This may take some time.
 """
 function homogenization(f::MPolyElem, var::String, pos::Int = 1)
   R = parent(f)
@@ -801,7 +875,8 @@ end
 
     dehomogenization(I::MPolyIdeal{T}, pos::Int) where {T <: MPolyElem_dec}
 
-Return the dehomogenization of `F`, `V`, or `I` in a ring not depending on the variable at position `pos`.
+Dehomogenize `F`, `V`, or `I` using the variable at position `pos`. 
+Return the result as an element of a polynomial ring not depending on the variable at position `pos`.
 """
 function dehomogenization(F::MPolyElem_dec, pos::Int)
   S = parent(F)

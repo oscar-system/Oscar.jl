@@ -31,13 +31,7 @@ import Base: +, *, -, //, ==, zero, one, ^, div, isone, iszero, deepcopy_interna
 
 import ..Oscar: addeq!, isunit, parent_type, elem_type, gen, root_of_unity,
                 root, divexact, mul!, roots, isroot_of_unity, promote_rule,
-                AbstractAlgebra
-
-export abelian_closure,
-       QabField,
-       QabElem,
-       set_variable!,
-       get_variable
+                AbstractAlgebra, data
 
 ################################################################################
 #
@@ -125,7 +119,7 @@ _variable(K::QabField) = K.s
 
 _variable(b::QabElem) = Expr(:call, Symbol(_variable(_Qab)), b.c)
 
-function cyclotomic_field(K::QabField, c::Int)
+function Hecke.cyclotomic_field(K::QabField, c::Int)
   if haskey(K.fields, c)
     k = K.fields[c]
     return k, gen(k)
@@ -760,11 +754,17 @@ end
 
 end # module AbelianClosure
 
-using .AbelianClosure
-
-export abelian_closure,
+import .AbelianClosure:
+       abelian_closure,
+       QabAutomorphism,
        QabField,
        QabElem,
        set_variable!,
        get_variable
 
+export abelian_closure,
+       QabAutomorphism,
+       QabField,
+       QabElem,
+       set_variable!,
+       get_variable

@@ -146,7 +146,7 @@ isprobable_prime(ZZ(23))
 
 * `sign(n::fmpz) -> fmpz`
 
-Returns the sign of `n`, i.e. ``n/|n|`` if ``n \neq 0``, or ``0`` otherwise.
+Return the sign of `n`, i.e. ``n/|n|`` if ``n \neq 0``, or ``0`` otherwise.
 
 ```@repl oscar
 sign(ZZ(23))
@@ -192,7 +192,7 @@ These choices have been made for maximum parsimony with the Julia language.
 
 * `divexact(a::fmpz, b::fmpz) -> fmpz`
 
-Returns the quotient of ``a`` by ``b``. The result of the exact division of two
+Return the quotient of ``a`` by ``b``. The result of the exact division of two
 integers will always be another integer. Exact division raises an exception if
 the division is not exact, or if division by zero is attempted.
 
@@ -207,8 +207,7 @@ divexact(ZZ(6), 2)
 
 * `^(a::fmpz, b::Int) -> fmpz`
 
-Powering can be accomplished naturally using the special caret infix
-operator:
+Return the result of powering ``a`` by ``b``.
 
 ```@repl oscar
 ZZ(37)^37
@@ -323,7 +322,7 @@ divides(ZZ(0), ZZ(0))
 
 * `gcd(a::fmpz, b::fmpz) -> fmpz`
 
-Returns the greatest common divisor of its inputs, which is by definition the
+Return the greatest common divisor of its inputs, which is by definition the
 largest integer dividing the two inputs, unless both inputs are zero in which
 case it returns zero. The result will always be non-negative and will only be
 zero if both inputs are zero.
@@ -337,7 +336,7 @@ gcd(ZZ(3), ZZ(0))
 
 * `gcdx(a::fmpz, b::fmpz) -> (fmpz, fmpz, fmpz)`
 
-Returns a tuple ``(g, s, t)`` such that ``g`` is the greatest common divisor of
+Return a tuple ``(g, s, t)`` such that ``g`` is the greatest common divisor of
 ``a`` and ``b`` and ``g = as + bt``. Normally ``s`` and ``t`` are chosen so
 that ``|s| < |b|/(2g)`` and ``|t| < |a|/(2g)``, where this uniquely defines
 ``s`` and ``t``. The following cases are handled specially:
@@ -349,7 +348,7 @@ that ``|s| < |b|/(2g)`` and ``|t| < |a|/(2g)``, where this uniquely defines
 
 * `lcm(a::fmpz, b::fmpz) -> fmpz`
 
-Returns the least common multiple of ``a`` and ``b``. This is the least
+Return the least common multiple of ``a`` and ``b``. This is the least
 positive multiple of ``a`` and ``b``, unless ``a = 0`` or ``b = 0``
 which case we define the least common multiple to be zero.
 
@@ -371,7 +370,7 @@ We describe only the first of these here.
 
 * `isqrt(n::fmpz) -> fmpz`
 
-Returns the floor of the square root of its argument, i.e. the largest integer
+Return the floor of the square root of its argument, i.e. the largest integer
 whose square does not exceed its input. An exception is raised if a negative
 input is passed.
 
@@ -384,7 +383,7 @@ isqrt(ZZ(-3))
 
 * `isqrtrem(n::fmpz) -> (fmpz, fmpz)`
 
-Returns the tuple `(s, r)` such that ``s`` is equal to `isqrt(n)` and
+Return the tuple `(s, r)` such that ``s`` is equal to `isqrt(n)` and
 ``n = s^2 + r``.
 
 ```@repl oscar
@@ -396,7 +395,7 @@ isqrtrem(ZZ(5))
 
 * `root(a::fmpz, n::Int) -> fmpz`
 
-Returns the value ``r`` of largest absolute value such that ``r^n \leq a``.
+Return the value ``r`` of largest absolute value such that ``r^n \leq a``.
 When ``a`` is a perfect ``n``-th power, the return value will be an ``n``-th
 root of ``a``.
 
@@ -434,7 +433,7 @@ Int(ZZ(12348732648732648763274868732687324))
 
 * `fits(::Type{Int}, n::fmpz) -> Bool`
 
-Returns `true` if the Oscar integer will fit in an `Int`.
+Return `true` if the Oscar integer will fit in an `Int`.
 
 ```@repl oscar
 fits(Int, ZZ(123))
@@ -445,7 +444,7 @@ fits(Int, ZZ(12348732648732648763274868732687324))
 
 * `factor(n::fmpz) -> Fac{fmpz}`
 
-Returns a factorisation of the given integer. The return value is a special
+Return a factorisation of the given integer. The return value is a special
 factorisation struct which can be manipulated using the functions below.
 
 ```@repl oscar
@@ -507,14 +506,14 @@ F[ZZ(7)]
 
 * `factorial(n::fmpz) -> fmpz`
 
-Returns the factorial of ``n``, i.e. ``n!``. An exception is raised if
+Return the factorial of ``n``, i.e. ``n!``. An exception is raised if
 ``n < 0``. We define ``0! = 1``.
 
 * `rising_factorial(x::Int, n::Int) -> Int`
 * `rising_factorial(x::fmpz, n::Int) -> fmpz`
 * `rising_factorial(x::fmpz, n::fmpz) -> fmpz`
 
-Returns ``x(x + 1)(x + 2)\ldots(x + n - 1)``. An exception is raised if
+Return ``x(x + 1)(x + 2)\ldots(x + n - 1)``. An exception is raised if
 ``n < 0``. We define `rising_factorial(x, 0)` to be ``1``.
 
 ```@repl oscar
@@ -527,7 +526,7 @@ rising_factorial(ZZ(-30), 3)
 * `primorial(n::Int) -> Int`
 * `primorial(n::fmpz) -> fmpz`
 
-Returns the primorial ``P(n)``, i.e. the product of all primes less than or
+Return the primorial ``P(n)``, i.e. the product of all primes less than or
 equal to ``n``. An exception is raised if ``n < 0``. We define
 ``P(0) = P(1) = 1``.
 
@@ -540,7 +539,7 @@ primorial(ZZ(100))
 * `bell(n::Int) -> Int`
 * `bell(n::fmpz) -> fmpz`
 
-Returns the ``n``-th Bell number ``B(n)``, i.e. the number of ways of
+Return the ``n``-th Bell number ``B(n)``, i.e. the number of ways of
 partitioning a set of ``n`` elements. An exception is raised if ``n < 0``.
 
 ```@repl oscar
@@ -551,8 +550,8 @@ bell(ZZ(20))
 
 * `binomial(n::fmpz, k::fmpz) -> fmpz`
 
-Returns the binomial coefficient ``\frac{n!}{k!(n - k)!}``. If ``n, k < 0`` or
-``k > n`` we return zero.
+Return the binomial coefficient ``\frac{n (n-1) \cdots (n-k+1)}{k!}`` for
+``k \ge 0`` and returns `0` for `k < 0`.
 
 !!! note
     Julia already defines the `binomial` function for `Int`, which throws an
@@ -567,7 +566,7 @@ binomial(ZZ(72), ZZ(15))
 * `number_of_partitions(n::Int) -> Int`
 * `number_of_partitions(n::fmpz) -> fmpz`
 
-Returns the number of integer partitions ``p(n)`` of ``n``, i.e. the number
+Return the number of integer partitions ``p(n)`` of ``n``, i.e. the number
 of distinct ways to write ``n`` as a sum of positive integers. Note that
 ``p(0) = 1``, as the empty sum is counted. For ``n < 0`` we return zero.
 
@@ -580,7 +579,7 @@ number_of_partitions(ZZ(10^6))
 * `fibonacci(n::Int) -> Int`
 * `fibonacci(n::fmpz) -> fmpz`
 
-Returns the ``n``-th Fibonacci number ``F(n)``, defined by the recurrence
+Return the ``n``-th Fibonacci number ``F(n)``, defined by the recurrence
 relation ``F(1) = 1``, ``F(2) = 1`` and ``F(n) = F(n - 1) + F(n - 2)`` for
 ``n \geq 3``. We define ``F(0) = 0`` and for ``n > 0`` we have
 ``F(-n) = (-1)^{n+1}F(n)``.

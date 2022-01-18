@@ -8,26 +8,26 @@ abstract type ProjectiveCurve end
 @doc Markdown.doc"""
     ProjCurve(I::MPolyIdeal)
 
-Return the Projective Curve defined by the ideal `I`, where `I` defines a
-projective variety of dimension `1`.
+Given a homogeneous ideal `I` of Krull dimension 2, return the projective curve defined by `I`.
 
-# Example
+# Examples
 ```jldoctest
-julia> S, (x, y, z, t) = PolynomialRing(QQ, ["x", "y", "z", "t"])
-(Multivariate Polynomial Ring in x, y, z, t over Rational Field, fmpq_mpoly[x, y, z, t])
+julia> R, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"]);
 
-julia> T, _ = grade(S)
-(Multivariate Polynomial Ring in x, y, z, t over Rational Field graded by
-  x -> [1]
-  y -> [1]
-  z -> [1]
-  t -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z, t])
+julia> M = matrix(R, 2, 3, [w x y; x y z])
+[w   x   y]
+[x   y   z]
 
-julia> I = ideal(T, [x^2, y^2*z, z^2])
-ideal(x^2, y^2*z, z^2)
+julia> V = minors(M, 2)
+3-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+ w*y - x^2
+ w*z - x*y
+ x*z - y^2
 
-julia> C = Oscar.ProjCurve(I)
-Projective curve defined by the ideal(x^2, y^2*z, z^2)
+julia> I = ideal(R, V);
+
+julia> TC = ProjCurve(I)
+Projective curve defined by the ideal(w*y - x^2, w*z - x*y, x*z - y^2)
 ```
 """
 mutable struct ProjCurve <: ProjectiveCurve
@@ -38,13 +38,12 @@ mutable struct ProjCurve <: ProjectiveCurve
         dim(I) == 2 || error("wrong dimension for a projective curve")
         n = nvars(base_ring(I)) - 1
         new(I, n, Dict{ProjCurve, ProjCurve}())
-    end
-
+    end   
     function Base.show(io::IO, C::ProjCurve)
         if !get(io, :compact, false)
-            println(io, "Projective curve defined by the ", C.I)
+            print(io, "Projective curve defined by the ", C.I)
         else
-            println(io, C.I)
+            print(io, C.I)
         end
     end
 end

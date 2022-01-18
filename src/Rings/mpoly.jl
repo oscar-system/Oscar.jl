@@ -1,19 +1,5 @@
 #module MPolyModule
 
-import AbstractAlgebra: PolyRing, PolynomialRing, total_degree, degree, Ideal,
-                        MPolyElem, Generic.MPolyExponentVectors, Generic.MPolyCoeffs,
-                        Generic.MPolyBuildCtx, Generic.push_term!, Generic.finish, MPolyRing,
-                        base_ring, ngens, gens, dim, ordering, SetMap, Map
-import Nemo
-import Nemo: fmpz, fmpq
-
-import Singular
-
-import Hecke
-import Hecke: MapHeader, math_html
-
-
-
 export PolynomialRing, total_degree, degree,  MPolyIdeal, MPolyElem, ideal, coordinates,
        jacobi_matrix, jacobi_ideal,  normalize, divrem, isprimary, isprime
 
@@ -459,6 +445,16 @@ end
 #
 ##############################################################################
 
+@Markdown.doc """
+    mutable struct MPolyIdeal{S} <: Ideal{S}
+
+Ideal in a multivariate polynomial ring R with elements of type `S`.
+
+Fields:
+  * `gens::BiPolyArray{S}`, a bi-list of generators of the ideal. This is not supposed to be altered ever after assignment of the ideal;
+  * `gb::BiPolyArray{S}`, a field used for caching of Groebner basis computations;
+  * `dim::Int`, a field used for caching the dimension of the ideal.
+"""
 mutable struct MPolyIdeal{S} <: Ideal{S}
   gens::BiPolyArray{S}
   gb::BiPolyArray{S}
@@ -649,7 +645,6 @@ abstract type OscarMap <: SetMap end
 
 mutable struct MPolyHom_vars{T1, T2}  <: Map{T1, T2, Hecke.HeckeMap, MPolyHom_vars}
   header::Hecke.MapHeader
-  Hecke.@declare_other
   i::Vector{Int}
 
   function MPolyHom_vars{T1, T2}(R::T1, S::T2, i::Vector{Int}) where {T1 <: MPolyRing, T2 <: MPolyRing}

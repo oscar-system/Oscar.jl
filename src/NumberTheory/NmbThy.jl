@@ -97,8 +97,8 @@ function isirreducible(a::NfAbsOrdElem{AnticNumberField,nf_elem})
     return false
   end
   s, ms = Hecke.sunit_mod_units_group_fac_elem(S)
-  V = matrix([fmpz[valuation(ms(x), y) for y = S] for x = gens(s)])
-  b = matrix([fmpz[valuation(a, y) for y = S]])
+  V = transpose(matrix(ZZ, [fmpz[valuation(ms(x), y) for y = S] for x = gens(s)]))
+  b = transpose(matrix(ZZ, [fmpz[valuation(a, y) for y = S]]))
   sol = solve(V, b)
 
   #want to write sol = x+y where
@@ -126,7 +126,7 @@ end
 @doc Markdown.doc"""
     irreducibles(S::Vector{NfAbsOrdIdl{AnticNumberField,nf_elem}}) -> Vector{NfAbsOrdElem}
 
-Computes all irreducibles whose support is contained in $S$.
+Return all irreducibles whose support is contained in $S$.
 """
 function irreducibles(S::Vector{NfAbsOrdIdl{AnticNumberField,nf_elem}})
   if length(S) == 0
@@ -145,7 +145,7 @@ function irreducibles(S::Vector{NfAbsOrdIdl{AnticNumberField,nf_elem}})
   end
   c, mc = class_group(O)
 
-  V = matrix([[valuation(ms(x), y) for y = S] for x = gens(s)])
+  V = transpose(matrix(ZZ, [[valuation(ms(x), y) for y = S] for x = gens(s)]))
 
   cone = cone_from_inequalities(-V)
   @assert ispointed(cone) # otherwise the Hilbert basis is not unique
@@ -157,7 +157,7 @@ end
 @doc Markdown.doc"""
     factorisations(a::NfAbsOrdElem{AnticNumberField,nf_elem}) -> Vector{Fac{OrdElem}}
 
-Computes all factorisations of $a$ into irreducibles.
+Return all factorisations of $a$ into irreducibles.
 """
 function factorisations(a::NfAbsOrdElem{AnticNumberField,nf_elem})
   O = parent(a)
@@ -166,8 +166,8 @@ function factorisations(a::NfAbsOrdElem{AnticNumberField,nf_elem})
     return []
   end
   irr = irreducibles(S)
-  b = matrix([fmpz[valuation(a, y) for y = S]])
-  A = matrix([fmpz[valuation(x, y) for y = S] for x = irr])
+  b = transpose(matrix(ZZ, [fmpz[valuation(a, y) for y = S]]))
+  A = transpose(matrix(ZZ, [fmpz[valuation(x, y) for y = S] for x = irr]))
   #solving Ax = b for x >=0  and A >=0 implies that colums of A with
   #entries > those in b can never be part of a solution
   #thus we prune them

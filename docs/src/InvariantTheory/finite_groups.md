@@ -42,7 +42,7 @@ The most basic task here is to compute the invariants of  some given degree $d$,
 - The *Linear Algebra Method*, available in the non-modular and the modular case, finds the elements of a $K$-basis all at once by setting up and solving an appropriate $K$-linear system of equations.
 
 These methods are, in particular, crucial to the computation of primary and secondary invariants. Primary invariants and irreducible secondary invariants together generate $K[V]^G$ as a $K$-algebra. Omitting redundant generators yields a system of fundamental invariants.
-In the non-modular case, an alternative and typically more effective way to compute generators of $K[V]^G$ is King's algorithm which finds a system of fundamental invariants directly, without computing primary and secondary invariants. See [King13](@cite).
+In the non-modular case, an alternative and typically more effective way to compute generators of $K[V]^G$ is King's algorithm which finds a system of fundamental invariants directly, without computing primary and secondary invariants. See [Kin13](@cite).
 
 We discuss the relevant OSCAR functionality below.
 
@@ -103,7 +103,11 @@ reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPol
 ## Invariants of a Given Degree
 
 ```@docs
-basis(IR::InvRing, d::Int)
+basis(IR::InvRing, d::Int, algo::Symbol = :default)
+```
+
+```@docs
+iterate_basis(IR::InvRing, d::Int, algo::Symbol = :default)
 ```
 
 ## The Molien Series
@@ -115,7 +119,15 @@ basis(IR::InvRing, d::Int)
 ## Primary Invariants
 
 ```@docs
-primary_invariants(IR::InvRing)
+primary_invariants(IR::InvRing, algo::Symbol = :optimal_hsop)
+```
+
+```@docs
+primary_invariants_via_optimal_hsop(IR::InvRing)
+```
+
+```@docs
+primary_invariants_via_successive_algo(IR::InvRing)
 ```
 
 ## Secondary Invariants

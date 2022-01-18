@@ -13,11 +13,10 @@ const RingElem_dec = Union{MPolyElem_dec, MPolyQuoElem{<:Oscar.MPolyElem_dec}}
 # parametrization has to be by elem_type(coeff_ring) and not, like currently, the bottom coeff ring
 # Also: qring is a Singular native. So it needs to be added to the ring creation
 
-mutable struct FreeModule_dec{T} <: ModuleFP_dec{T}
+@attributes mutable struct FreeModule_dec{T} <: ModuleFP_dec{T}
   d::Vector{GrpAbFinGenElem}
   R::Ring_dec
   S::Vector{Symbol}
-  AbstractAlgebra.@declare_other
 
   function FreeModule_dec(a,b::Ring_dec,c)
     r = new{elem_type(b)}()
@@ -48,15 +47,15 @@ thus the "category" needs to be set explicitly
 =#
 
 function AbstractAlgebra.extra_name(F::FreeModule_dec)
-  t = Hecke.get_special(F, :twist)
+  t = get_attribute(F, :twist)
   if t !== nothing
-    n = Hecke.get_special(t[1], :name)
+    n = get_attribute(t[1], :name)
     if n !== nothing
       return "$n($(t[2]))"
     end
   end
   if length(Set(F.d)) == 1
-    n = Hecke.get_special(F.R, :name)
+    n = get_attribute(F.R, :name)
     if n !== nothing
       return "$n^$(ngens(F))($(-F.d[1]))"
     end
@@ -66,7 +65,7 @@ end
 
 function (F::FreeModule_dec)(a::GrpAbFinGenElem) 
   G = FreeModule(F.R, [x-a for x = F.d])
-  Hecke.set_special(G, :twist => (F, a))
+  set_attribute!(G, :twist => (F, a))
   return G
 end
 
@@ -389,7 +388,6 @@ abstract type Map_dec{T1, T2} <: Map{T1, T2, Hecke.HeckeMap, ModuleFPHom_dec} en
 
 mutable struct FreeModuleHom_dec{T1, T2} <: Map_dec{T1, T2} 
   header::MapHeader
-  Hecke.@declare_other
 
   function FreeModuleHom_dec(F::FreeModule_dec{T}, G::S, a::Vector) where {T, S}
 #    @assert isfiltered(F) || all(ishomogeneous, a) #necessary and sufficient according to Hans XXX
@@ -493,7 +491,7 @@ function homogeneous_components(h::T) where {T <: Map_dec}
   return c
 end
 
-mutable struct SubQuo_dec{T} <: ModuleFP_dec{T}
+@attributes mutable struct SubQuo_dec{T} <: ModuleFP_dec{T}
   #meant to represent sub+ quo mod quo - as lazy as possible
   F::FreeModule_dec{T}
   sub::BiModArray
@@ -501,7 +499,6 @@ mutable struct SubQuo_dec{T} <: ModuleFP_dec{T}
   sum::BiModArray
   std_sub::BiModArray
   std_quo::BiModArray
-  AbstractAlgebra.@declare_other
 
   function SubQuo_dec(F::FreeModule_dec{R}, O::Vector{<:FreeModuleElem_dec}) where {R}
     r = new{R}()
@@ -772,14 +769,14 @@ function presentation(SQ::SubQuo_dec)
   h_F_SQ = hom(F, SQ, gens(SQ))
   @assert iszero(h_F_SQ) || iszero(degree(h_F_SQ))
   Z = FreeModule(F.R, GrpAbFinGenElem[])
-  Hecke.set_special(Z, :name => "Zero")
+  set_attribute!(Z, :name => "Zero")
   h_SQ_Z = hom(SQ, Z, [zero(Z) for i=1:ngens(SQ)])
   return Hecke.ChainComplex(Oscar.ModuleFP_dec, Oscar.Map_dec[h_G_F, h_F_SQ, h_SQ_Z], check = false)
 end
 
 function presentation(F::FreeModule_dec)
   Z = FreeModule(F.R, GrpAbFinGenElem[])
-  Hecke.set_special(Z, :name => "Zero")
+  set_attribute!(Z, :name => "Zero")
   return Hecke.ChainComplex(ModuleFP_dec, Map_dec[hom(Z, F, FreeModuleElem_dec[]), hom(F, F, gens(F)), hom(F, Z, [zero(Z) for i=1:ngens(F)])], check = false)
 end
 
@@ -814,9 +811,9 @@ mutable struct SubQuoHom_dec{T1, T2} <: Map_dec{T1, T2}
 end
 
 function hom_tensor(G::ModuleFP_dec, H::ModuleFP_dec, A::Vector{ <: Map_dec})
-  tG = get_special(G, :tensor_product)
+  tG = get_attribute(G, :tensor_product)
   tG === nothing && error("both modules must be tensor products")
-  tH = get_special(H, :tensor_product)
+  tH = get_attribute(H, :tensor_product)
   tH === nothing && error("both modules must be tensor products")
   @assert length(tG) == length(tH) == length(A)
   @assert all(i-> domain(A[i]) == tG[i] && codomain(A[i]) == tH[i], 1:length(A))
@@ -830,9 +827,9 @@ function hom_tensor(G::ModuleFP_dec, H::ModuleFP_dec, A::Vector{ <: Map_dec})
 end
 
 function hom_prod_prod(G::ModuleFP_dec, H::ModuleFP_dec, A::Matrix{ <: Map_dec})
-  tG = get_special(G, :tensor_product)
+  tG = get_attribute(G, :tensor_product)
   tG === nothing && error("both modules must be direct products")
-  tH = get_special(H, :tensor_product)
+  tH = get_attribute(H, :tensor_product)
   tH === nothing && error("both modules must be direct products")
   @assert length(tG) == size(A, 1) && length(tH) == size(A, 2)
   @assert all((i,j)-> domain(A[i,j]) == tG[i] && codomain(A[i,j]) == tH[j], Base.Iterators.ProductIterator((1:size(A, 1), 1:size(A, 2))))
@@ -972,7 +969,7 @@ function hom(F::FreeModule_dec, G::FreeModule_dec)
   @assert base_ring(F) == base_ring(G)
   GH = FreeModule(F.R, [y-x for x = F.d for y = G.d])
   GH.S = [Symbol("($i -> $j)") for i = F.S for j = G.S]
-  Hecke.set_special(GH, :show => Hecke.show_hom, :hom => (F, G))
+  set_attribute!(GH, :show => Hecke.show_hom, :hom => (F, G))
 
   #list is g1 - f1, g2-f1, g3-f1, ...
   X = Hecke.MapParent(F, G, "homomorphisms")
@@ -1063,7 +1060,7 @@ function free_resolution(S::SubQuo_dec, limit::Int = -1)
     nz = findall(x->!iszero(x), gens(k))
     if length(nz) == 0 
       Z = FreeModule(base_ring(S), GrpAbFinGenElem[])
-      Hecke.set_special(Z, :name => "Zero")
+      set_attribute!(Z, :name => "Zero")
       h = hom(Z, domain(mp[1]), FreeModuleElem_dec[])
       insert!(mp, 1, h)
       break
@@ -1115,7 +1112,7 @@ function hom(M::ModuleFP_dec, N::ModuleFP_dec)
   psi = hom(kDelta[1], H_s0_t0, [psi(g) for g = gens(kDelta[1])])
 
   H = quo(sub(D, kDelta[1]), image(rho)[1])
-  Hecke.set_special(H, :show => Hecke.show_hom, :hom => (M, N))
+  set_attribute!(H, :show => Hecke.show_hom, :hom => (M, N))
 
   #x in ker delta: mH_s0_t0(pro[1](x)) should be a hom from M to N
   function im(x::SubQuoElem_dec)
@@ -1175,7 +1172,7 @@ function direct_product(F::FreeModule_dec{T}...; task::Symbol = :sum) where {T}
       push!(G.S, Symbol(s*string(t)*e))
     end
   end
-  Hecke.set_special(G, :show => Hecke.show_direct_product, :direct_product => F)
+  set_attribute!(G, :show => Hecke.show_direct_product, :direct_product => F)
   emb = []
   pro = []
   i = 0
@@ -1220,7 +1217,7 @@ end
 
 
 function Hecke.canonical_injection(G::ModuleFP_dec, i::Int)
-  H = Hecke.get_special(G, :direct_product)
+  H = get_attribute(G, :direct_product)
   if H === nothing
     error("module not a direct product")
   end
@@ -1230,7 +1227,7 @@ function Hecke.canonical_injection(G::ModuleFP_dec, i::Int)
 end
 
 function Hecke.canonical_projection(G::ModuleFP_dec, i::Int)
-  H = Hecke.get_special(G, :direct_product)
+  H = get_attribute(G, :direct_product)
   if H === nothing
     error("module not a direct product")
   end
@@ -1255,7 +1252,7 @@ function tensor_product(G::FreeModule_dec...; task::Symbol = :none)
 
   F = FreeModule(G[1].R, d)
   F.S = s
-  Hecke.set_special(F, :show => Hecke.show_tensor_product, :tensor_product => G)
+  set_attribute!(F, :show => Hecke.show_tensor_product, :tensor_product => G)
   if task == :none
     return F
   end
@@ -1373,7 +1370,7 @@ function homogeneous_component(F::T, d::GrpAbFinGenElem) where {T <: Union{FreeM
 #TODO: vector_space(QQ, module elems)
   if isa(F, MPolyIdeal)
     X, h = vector_space(base_ring(base_ring(F)), B)
-    Hecke.set_special(X, :show => show_homo_comp, :data => (F, d))
+    set_attribute!(X, :show => show_homo_comp, :data => (F, d))
     return X, h
   end
 
@@ -1383,7 +1380,7 @@ function homogeneous_component(F::T, d::GrpAbFinGenElem) where {T <: Union{FreeM
 
   deg = length(B)
   X = FreeModule(base_ring(W), deg)
-  Hecke.set_special(X, :show => show_homo_comp, :data => (F, d))
+  set_attribute!(X, :show => show_homo_comp, :data => (F, d))
 
   function pr(g::S) where {S <: Union{FreeModuleElem_dec, SubQuoElem_dec}}
     #TODO: add X() and some sane setting of coeffs in FreeElems
