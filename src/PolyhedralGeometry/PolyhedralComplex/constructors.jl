@@ -77,10 +77,10 @@ PolyhedralComplex(iter::SubObjectIterator{Polyhedron}) = PolyhedralComplex(iter.
 ###############################################################################
 ###############################################################################
 function Base.show(io::IO, PC::PolyhedralComplex)
-    ad = ambient_dim(PC)
-    if ad == -1.0
-        print(io, "A polyhedral complex without ambient dimension")
-    else
+    try
+        ad = ambient_dim(PC)
         print(io, "A polyhedral complex in ambient dimension $(ad)")
+    catch e
+        print(io, "A polyhedral complex without ambient dimension")
     end
 end

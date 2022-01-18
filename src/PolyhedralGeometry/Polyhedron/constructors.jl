@@ -160,11 +160,11 @@ end
 ###############################################################################
 ###############################################################################
 function Base.show(io::IO, P::Polyhedron)
-    ad = ambient_dim(P)
-    if ad == -1.0
-        print(io, "A polyhedron without ambient dimension")
-    else
+    try
+        ad = ambient_dim(P)
         print(io, "A polyhedron in ambient dimension $(ad)")
+    catch e
+        print(io, "A polyhedron without ambient dimension")
     end
 end
 
