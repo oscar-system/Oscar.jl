@@ -31,7 +31,7 @@
    @test collect(monomials(f, :wdeglex, w)) == [ x*y, z^3 ]
    @test collect(monomials(f, :wdegrevlex, w)) == [ x*y, z^3 ]
    @test collect(monomials(f, :negwdeglex, w)) == [ x*y, z^3 ]
-   @test collect(monomials(f, :negwdegrevlex, w)) == [ x*y, z^3 ]
+   @test collect(monomials(f, :negwdegrevlex, w)) == [ z^3, x*y ]
  
    M = [ 1 1 1; 1 0 0; 0 1 0 ]
    @test collect(monomials(f, M)) == collect(monomials(f, :deglex))
@@ -45,7 +45,7 @@ end
    @test collect(exponent_vectors(f, :deglex)) == [ [ 0, 0, 3 ], [ 1, 1, 0 ] ]
    @test collect(coefficients(f, :deglex)) == [ QQ(5), QQ(1) ]
 
-   Fp = FiniteField(7)
+   Fp = GF(7)
    R, (x, y, z) = PolynomialRing(Fp, 3, ordering = :deglex)
    f = x*y + 5*z^3
    @test collect(monomials(f, :lex)) == [ x*y, z^3 ]
