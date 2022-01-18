@@ -82,10 +82,7 @@ end
 
 Return the complement of the zero locus of ``I`` in ``X``.
 """
-function SpecOpen(
-    X::Spec{BRT, BRET, RT, RET, MST},
-    I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST}
-  ) where {BRT, BRET, RT, RET, MST}
+function SpecOpen(X::Spec, I::MPolyLocalizedIdeal)
   base_ring(I) === localized_ring(OO(X)) || error("Ideal does not belong to the correct ring")
   f = [reduce(f, groebner_basis(localized_modulus(OO(X)))) for f in gens(I)]
   g = [numerator(a) for a in f if !iszero(numerator(a))]
