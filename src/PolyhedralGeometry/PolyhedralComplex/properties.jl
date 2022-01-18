@@ -25,11 +25,11 @@ julia> ambient_dim(PC)
 2
 ```
 """
-ambient_dim(PC::PolyhedralComplex) = Polymake.fan.ambient_dim(pm_object(PC))
+ambient_dim(PC::PolyhedralComplex) = Polymake.fan.ambient_dim(pm_object(PC))::Int
 
 
 @doc Markdown.doc"""
-    vertices(as, PC)
+    vertices([as::Type,] PC::PolyhedralComplex)
 
 Return an iterator over the vertices of `PC` in the format defined by `as`.
 
@@ -204,7 +204,7 @@ julia> dim(PC)
 2
 ```
 """
-dim(PC::PolyhedralComplex) = Polymake.fan.dim(pm_object(PC))
+dim(PC::PolyhedralComplex) = Polymake.fan.dim(pm_object(PC))::Int
 
 @doc Markdown.doc"""
     polyhedra_of_dim(PC::PolyhedralComplex, polyhedron_dim::Int)
