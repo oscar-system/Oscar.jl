@@ -332,8 +332,8 @@ julia> far_vertices = [2,3,4];
 
 julia> PC = PolyhedralComplex(IM, VR, far_vertices);
 
-julia> nvertices(PC)
-1
+julia> nrays(PC)
+3
 ```
 """
 nrays(PC::PolyhedralComplex) = length(pm_object(PC).FAR_VERTICES)
@@ -354,8 +354,8 @@ julia> far_vertices = [2,3,4];
 
 julia> PC = PolyhedralComplex(IM, VR, far_vertices);
 
-julia> nrays(PC)
-3
+julia> nvertices(PC)
+1
 ```
 """
 nvertices(PC::PolyhedralComplex) = pm_object(PC).N_VERTICES - nrays(PC)
