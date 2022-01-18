@@ -22,7 +22,7 @@ the list ``f₁,…,fᵣ`` as the *generators* for ``U``.
   # fields used for caching
   name::String
   patches::Vector{Spec{BRT, BRET, RT, RET, MST}}
-  intersections::Dict{Tuple{Int}, Spec{BRT, BRET, RT, RET, MST}}
+  intersections::Dict{Int, Spec{BRT, BRET, RT, RET, MST}}
   complement::Spec{BRT, BRET, RT, RET, MST}
 
   function SpecOpen(X::Spec{BRT, BRET, RT, RET, MST}, f::Vector{RET}; name::String="") where {BRT, BRET, RT, RET, MST}
