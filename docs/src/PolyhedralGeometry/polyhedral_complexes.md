@@ -49,6 +49,7 @@ npolyhedra(PC::PolyhedralComplex)
 nrays(PC::PolyhedralComplex)
 nvertices(PC::PolyhedralComplex)
 polyhedra_of_dim
+rays(PC::PolyhedralComplex)
 vertices(PC::PolyhedralComplex)
 ```
 

@@ -73,6 +73,27 @@ rays(as::Type{RayVector{T}}, PC::PolyhedralComplex) where T = SubObjectIterator{
 
 rays(::Type{RayVector}, PC::PolyhedralComplex) = rays(RayVector{Polymake.Rational}, PC)
 
+@doc Markdown.doc"""
+    rays(PC::PolyhedralComplex)
+
+Return the rays of `PC`
+
+# Examples
+```jldoctest
+julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
+
+julia> VR = [0 0; 1 0; 1 1; 0 1];
+
+julia> PC = PolyhedralComplex(IM, VR, [2])
+A polyhedral complex in ambient dimension 2
+
+julia> rays(PC);
+
+julia> rays(PC)
+1-element SubObjectIterator{RayVector{Polymake.Rational}}:
+ [1, 0]
+```
+"""
 rays(PC::PolyhedralComplex) = rays(RayVector,PC)
 
 _ray_indices_polyhedral_complex(PC::Polymake.BigObject) = collect(Polymake.to_one_based_indexing(PC.FAR_VERTICES))
