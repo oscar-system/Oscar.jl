@@ -615,7 +615,25 @@ function reduce_fraction(f::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}) 
   return parent(f)(h)
 end
 
-# for local orderings, reduction does not give the correct result.
+### additional promotions
+AbstractAlgebra.promote_rule(::Type{RET}, ::Type{MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT<:Ring, RET<:RingElement, MST} = MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}
+
+AbstractAlgebra.promote_rule(::Type{BRET}, ::Type{MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}}) where {BRT<:Ring, BRET<:RingElement, RT<:Ring, RET<:RingElement, MST} = MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}
+
+AbstractAlgebra.promote_rule(::Type{Integer}, ::Type{MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}}) where {BRT<:Ring, BRET<:RingElement, RT<:Ring, RET<:RingElement, MST} = MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}
+
+AbstractAlgebra.promote_rule(::Type{fmpz}, ::Type{MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}}) where {BRT<:Ring, BRET<:RingElement, RT<:Ring, RET<:RingElement, MST} = MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}
+
+# treat fractions in localized polynomial rings as representatives of residue classes
+AbstractAlgebra.promote_rule(
+    ::Type{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}},
+    ::Type{MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}}
+  ) where {BRT<:Ring, BRET<:RingElement, RT<:Ring, RET<:RingElement, MST} = MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}
+
+# For local orderings, reduction does not preserve the values of 
+# the function at points of the variety (it allows multiplication 
+# by global units), so it does not give the correct result.
+# Hence, another routine has to be implemented.
 function reduce_fraction(f::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST<:MPolyComplementOfKPointIdeal}
   h = lift(f)
   g = gcd(numerator(h), denominator(h))

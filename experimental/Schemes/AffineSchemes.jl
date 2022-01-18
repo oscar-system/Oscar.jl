@@ -2,6 +2,7 @@ import AbstractAlgebra.Ring
 import Base: intersect
 
 export Spec, OO
+export affine_space
 export EmptyScheme
 
 export is_open_embedding, is_closed_embedding, hypersurface_complement, subscheme, name_of, set_name!
@@ -444,3 +445,12 @@ end
 #  return xor(r, hash(OO(X), u))
 #end
   
+function affine_space(kk::BRT, n::Int; variable_name="x") where {BRT<:Ring}
+  R, _ = PolynomialRing(kk, [ variable_name * "$i" for i in 1:n])
+  return Spec(R)
+end
+
+function affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Ring}
+  R, _ = PolynomialRing(kk, var_symbols)
+  return Spec(R)
+end
