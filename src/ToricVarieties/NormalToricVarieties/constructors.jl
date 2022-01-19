@@ -481,6 +481,20 @@ function Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety)
 end
 
 
+function push_attribute_if_exists!(result::Vector{String}, v::AbstractNormalToricVariety, property::Symbol, name::String, alt_string::Union{String,Nothing}=nothing)
+    if has_attribute(v, property)
+        if get_attribute(v, property)
+            push!(result, name)
+        else
+            if isnothing(alt_string)
+                push!(result, "non-"*name)
+            else
+                push!(result, alt_string)
+            end
+        end
+    end
+end
+
 ############################
 ### 5: Display
 ############################
@@ -488,88 +502,23 @@ function Base.show(io::IO, v::AbstractNormalToricVariety)
     # initiate properties string
     properties_string = ["A normal"]
 
-    # affine?
-    if has_attribute(v, :isaffine)
-        if get_attribute(v, :isaffine)
-            push!(properties_string, "affine")
-        else
-            push!(properties_string, "non-affine")
-        end
-    end
-    
-    # smooth/simplicial?
-    if has_attribute(v, :issmooth)
-        if get_attribute(v, :issmooth)
-            push!(properties_string, "smooth")
-        else
-            if has_attribute(v, :issimplicial)
-                if get_attribute(v, :issimplicial)
-                    push!(properties_string, "simplicial")
-                else
-                    push!(properties_string, "non-smooth")
-                end
-            end
-        end
-    end
-    
-    # complete/projective?
-    if has_attribute(v, :iscomplete)
-        if get_attribute(v, :iscomplete)
-            if has_attribute(v, :isprojective)
-                if get_attribute(v, :isprojective)
-                    push!(properties_string, "projective")
-                end
-            else
-                push!(properties_string, "complete")
-            end
-        else
-            push!(properties_string, "non-complete")
-        end
-    end
-    
-    # gorenstein?
-    if has_attribute(v, :isgorenstein)
-        if get_attribute(v, :isgorenstein)
-            push!(properties_string, "gorenstein")
-        else
-            push!(properties_string, "non-gorenstein")
-        end
-    end
-    
-    # q-gorenstein?
-    if has_attribute(v, :is_q_gorenstein)
-        if get_attribute(v, :is_q_gorenstein)
-            push!(properties_string, "q-gorenstein")
-        else
-            push!(properties_string, "non-q-gorenstein")
-        end
-    end
-    
-    # fano?
-    if has_attribute(v, :isfano)
-        if get_attribute(v, :isfano)
-            push!(properties_string, "fano")
-        else
-            push!(properties_string, "non-fano")
-        end
-    end
+    push_attribute_if_exists!(properties_string, v, :isaffine, "affine")
+    push_attribute_if_exists!(properties_string, v, :issmooth, "smooth")
+    push_attribute_if_exists!(properties_string, v, :issimplicial, "simplicial")
+    push_attribute_if_exists!(properties_string, v, :iscomplete, "complete")
+    push_attribute_if_exists!(properties_string, v, :isprojective, "projective")
+    push_attribute_if_exists!(properties_string, v, :isgorenstein, "gorenstein")
+    push_attribute_if_exists!(properties_string, v, :is_q_gorenstein, "q-gorenstein")
+    push_attribute_if_exists!(properties_string, v, :isfano, "fano")
     
     # dimension?
     if has_attribute(v, :dim)
         push!(properties_string, string(dim(v))*"-dimensional")
     end
+
+    properties_string = [join(properties_string, ", ")]
+    push!(properties_string, "toric variety")
+    push_attribute_if_exists!(properties_string, v, :hastorusfactor, "with torusfactor", "without torusfactor")
     
-    # torusfactor?
-    if has_attribute(v, :hastorusfactor)
-        if get_attribute(v, :hastorusfactor)
-            push!(properties_string, "toric variety with torusfactor")
-        else
-            push!(properties_string, "toric variety without torusfactor")
-        end
-    else
-        push!(properties_string, "toric variety")
-    end
-    
-    # print the information
-    join(io, properties_string, ", ", " ")
+    join(io, properties_string, " ")
 end
