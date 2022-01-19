@@ -506,12 +506,15 @@ function Base.show(io::IO, v::AbstractNormalToricVariety)
     # initiate properties string
     properties_string = ["A normal"]
 
-    push_attribute_if_exists!(properties_string, v, :isaffine, "affine")
+    affine = push_attribute_if_exists!(properties_string, v, :isaffine, "affine")
     smooth = push_attribute_if_exists!(properties_string, v, :issmooth, "smooth")
     if isnothing(smooth) || !smooth
         push_attribute_if_exists!(properties_string, v, :issimplicial, "simplicial")
     end
-    projective = push_attribute_if_exists!(properties_string, v, :isprojective, "projective")
+    projective = nothing
+    if isnothing(affine) || !affine
+        projective = push_attribute_if_exists!(properties_string, v, :isprojective, "projective")
+    end
     if isnothing(projective) || !projective
         push_attribute_if_exists!(properties_string, v, :iscomplete, "complete")
     end
