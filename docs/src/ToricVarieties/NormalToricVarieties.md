@@ -40,6 +40,7 @@ NormalToricVariety(P::Polyhedron)
 ### Famous Toric Vareties
 
 ```@docs
+toric_affine_space(d::Int)
 del_pezzo(b::Int)
 hirzebruch_surface(r::Int)
 toric_projective_space(d::Int)
@@ -126,5 +127,5 @@ toric_ideal(antv::AffineNormalToricVariety)
 
 ```@docs
 binomial_exponents_to_ideal(binoms::Union{AbstractMatrix, fmpz_mat})
-toric_ideal(pts::Union{AbstractMatrix, fmpz_mat})
+toric_ideal(pts::fmpz_mat)
 ```

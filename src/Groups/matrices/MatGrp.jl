@@ -201,7 +201,7 @@ function Base.getproperty(G::MatrixGroup, sym::Symbol)
    isdefined(G,sym) && return getfield(G,sym)
 
    if sym === :ring_iso
-      G.ring_iso = ring_iso_oscar_gap(G.ring)
+      G.ring_iso = iso_oscar_gap(G.ring)
 
    elseif sym === :X
       if isdefined(G,:descr)
@@ -483,11 +483,9 @@ compute_order(G::GAPGroup) = fmpz(GAP.Globals.Order(G.X))
 compute_order(G::MatrixGroup{T}) where {T <: Union{nf_elem, fmpq}} = order(isomorphic_group_over_finite_field(G)[1])
 
 function order(::Type{T}, G::MatrixGroup) where T <: IntegerUnion
-   res = get_attribute(G, :order)
-   if res == nothing
-     res = compute_order(G)::fmpz
-     set_attribute!(G, :order => res)
-   end
+   res = get_attribute!(G, :order) do
+     return compute_order(G)
+   end::fmpz
    return T(res)::T
 end
 

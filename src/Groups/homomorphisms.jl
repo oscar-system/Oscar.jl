@@ -383,6 +383,20 @@ function Base.show(io::IO, A::AutomorphismGroup{T}) where T <: GAPGroup
 end
 
 """
+  domain(A::AutomorphismGroup) -> Group
+
+Return the domain of this group of automorphisms.
+"""
+domain(A::AutomorphismGroup) = A.G
+
+"""
+    domain(f::AutomorphismGroupElem) -> Group
+
+Return the domain of this automorphism.
+"""
+domain(f::AutomorphismGroupElem) = domain(parent(f))
+
+"""
     hom(f::GAPGroupElem{AutomorphismGroup{T}}) where T
 
 Return the element f of type `GAPGroupHomomorphism{T,T}`.

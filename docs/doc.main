@@ -100,6 +100,7 @@
      ],
       "PolyhedralGeometry/cones.md",
       "PolyhedralGeometry/fans.md",
+      "PolyhedralGeometry/polyhedral_complexes.md",
       "PolyhedralGeometry/linear_programs.md",
       "PolyhedralGeometry/subdivisions_of_points.md",
   ],
@@ -129,7 +130,7 @@
 #        "Experimental/divisors.md",
 #        "Experimental/elliptic_curves.md",
 #        "Experimental/non_plane_curves.md",
-	 "AlgebraicGeometry/para_rational_curves.md",	 
+         "AlgebraicGeometry/para_rational_curves.md",
      ],
      "Toric Varieties" => [
         "ToricVarieties/intro.md",
@@ -150,12 +151,17 @@
 
 
   "General" => [
-     "General/styleguide.md",
      "General/other.md",
      "General/faq.md",
-     "General/SubObjectIterator.md"
   ],
 
   "References" => "references.md",
   "Index" => "manualindex.md",
+  "Developer Documentation" => [
+    "DeveloperDocumentation/styleguide.md",
+    "DeveloperDocumentation/build_documentation.md",
+    "Polyhedral Geometry" => [
+        "DeveloperDocumentation/SubObjectIterator.md",
+    ],
+  ],
 ]

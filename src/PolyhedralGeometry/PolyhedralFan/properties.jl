@@ -31,7 +31,7 @@ rays(PF::PolyhedralFan) = SubObjectIterator{RayVector{Polymake.Rational}}(pm_obj
 
 _ray_fan(::Type{RayVector{Polymake.Rational}}, PF::Polymake.BigObject, i::Base.Integer) = RayVector(PF.RAYS[i, :])
 
-_vector_matrix(::Val{_ray_fan}, PF::Polymake.BigObject) = PF.RAYS
+_vector_matrix(::Val{_ray_fan}, PF::Polymake.BigObject; homogenized=false) = PF.RAYS
 
 _matrix_for_polymake(::Val{_ray_fan}) = _vector_matrix
 
@@ -59,9 +59,9 @@ julia> for c in maximal_cones(PF)
 4
 ```
 """
-maximal_cones(PF::PolyhedralFan) = SubObjectIterator{Cone}(PF.pm_fan, _maximal_cone, nmaximal_cones(PF))
+maximal_cones(PF::PolyhedralFan) = SubObjectIterator{Cone}(pm_object(PF), _maximal_cone, nmaximal_cones(PF))
 
-_ray_incidences(::Val{_maximal_cone}, obj::Polymake.BigObject) = obj.MAXIMAL_CONES
+_ray_indices(::Val{_maximal_cone}, obj::Polymake.BigObject) = obj.MAXIMAL_CONES
 
 @doc Markdown.doc"""
     cones(PF::PolyhedralFan, cone_dim::Int)
@@ -92,14 +92,14 @@ julia> cones(PF, 2)
 function cones(PF::PolyhedralFan, cone_dim::Int)
     l = cone_dim  - length(lineality_space(PF))
     l < 1 && return nothing
-    return SubObjectIterator{Cone}(PF.pm_fan, _cone_of_dim, size(Polymake.fan.cones_of_dim(PF.pm_fan, l), 1), (c_dim = l,))
+    return SubObjectIterator{Cone}(pm_object(PF), _cone_of_dim, size(Polymake.fan.cones_of_dim(pm_object(PF), l), 1), (c_dim = l,))
 end
 
 function _cone_of_dim(::Type{Cone}, PF::Polymake.BigObject, i::Base.Integer; c_dim::Int = 0)
     return Cone(Polymake.polytope.Cone(RAYS = PF.RAYS[collect(Polymake.row(Polymake.fan.cones_of_dim(PF, c_dim), i)),:], LINEALITY_SPACE = PF.LINEALITY_SPACE))
 end
 
-_ray_incidences(::Val{_cone_of_dim}, PF::Polymake.BigObject; c_dim::Int = 0) = Polymake.fan.cones_of_dim(PF, c_dim)
+_ray_indices(::Val{_cone_of_dim}, PF::Polymake.BigObject; c_dim::Int = 0) = Polymake.fan.cones_of_dim(PF, c_dim)
 
 ###############################################################################
 ###############################################################################
@@ -268,7 +268,7 @@ lineality_space(PF::PolyhedralFan) = SubObjectIterator{RayVector{Polymake.Ration
 
 _lineality_fan(::Type{RayVector{Polymake.Rational}}, PF::Polymake.BigObject, i::Base.Integer) = RayVector(PF.LINEALITY_SPACE[i, :])
 
-_generator_matrix(::Val{_lineality_fan}, PF::Polymake.BigObject) = PF.LINEALITY_SPACE
+_generator_matrix(::Val{_lineality_fan}, PF::Polymake.BigObject; homogenized=false) = PF.LINEALITY_SPACE
 
 _matrix_for_polymake(::Val{_lineality_fan}) = _generator_matrix
 
@@ -358,7 +358,7 @@ iscomplete(PF::PolyhedralFan) = pm_object(PF).COMPLETE
 @doc Markdown.doc"""
     primitive_collections(PF::PolyhedralFan)
 
-Computes the primitive collections of a polyhedral fan.
+Return the primitive collections of a polyhedral fan.
 
 # Examples
 ```jldoctest
@@ -407,7 +407,7 @@ end
 @doc Markdown.doc"""
     starsubdivision(PF::PolyhedralFan, n::Int)
 
-Computes the star subdivision of a polyhedral fan at its n-th maximal torus orbit.
+Return the star subdivision of a polyhedral fan at its n-th maximal torus orbit.
 
 # Examples
 ```jldoctest
@@ -422,7 +422,7 @@ julia> rays(star)
  [1, 0, 0]
  [1, 1, 1]
 
-julia> ray_incidences(maximal_cones(star))
+julia> ray_indices(maximal_cones(star))
 6×5 IncidenceMatrix
 [1, 2, 3]
 [2, 3, 4]
@@ -478,7 +478,7 @@ end
 @doc Markdown.doc"""
     *(PF1::PolyhedralFan, PF2::PolyhedralFan)
 
-Computes the Cartesian/direct product of two polyhedral fans.
+Return the Cartesian/direct product of two polyhedral fans.
 
 # Examples
 ```jldoctest

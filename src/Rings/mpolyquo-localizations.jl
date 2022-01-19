@@ -634,6 +634,7 @@ AbstractAlgebra.promote_rule(
 # the function at points of the variety (it allows multiplication 
 # by global units), so it does not give the correct result.
 # Hence, another routine has to be implemented.
+# for local orderings, reduction does not give the correct result.
 function reduce_fraction(f::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST<:MPolyComplementOfKPointIdeal}
   h = lift(f)
   g = gcd(numerator(h), denominator(h))

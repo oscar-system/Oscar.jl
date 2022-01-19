@@ -11,6 +11,7 @@ export AbsLocalizedIdeal
 export ideal
 
 import AbstractAlgebra.Ring
+import AbstractAlgebra: expressify, show_via_expressify
 
 #################################################################################
 # General framework for localizations of rings; to be used with affine algebras #
@@ -32,7 +33,7 @@ abstract type AbsMultSet{RingType<:Ring, RingElemType<:RingElem} end
 @Markdown.doc """
     ambient_ring(S::AbsMultSet)
 
-Returns the ambient ring `R` for a multiplicatively closed set `S ⊂ R`.
+Return the ambient ring `R` for a multiplicatively closed set `S ⊂ R`.
 """
 function ambient_ring(S::AbsMultSet)
   error("method `ambient_ring` not implemented for multiplicatively closed sets of type $(typeof(S))")
@@ -42,7 +43,7 @@ end
 @Markdown.doc """
     in(f::RingElemType, S::AbsMultSet{RingType, RingElemType}) where {RingType, RingElemType}
 
-Returns `true` if `f` belongs to `S`; `false` otherwise.
+Return `true` if `f` belongs to `S`; `false` otherwise.
 
 **Note:** If this routine is not implemented, the function call will default to the 
 execution of an error message. 
@@ -74,7 +75,7 @@ abstract type AbsLocalizedRing{RingType, RingElemType, MultSetType} <: Ring end
 @Markdown.doc """
     base_ring(W::AbsLocalizedRing)
 
-Returns the base ring R for a localized ring of the form W = R[S⁻¹].
+Return the base ring R for a localized ring of the form W = R[S⁻¹].
 """
 function base_ring(W::AbsLocalizedRing)
   error("`base_ring` is not implemented for localized rings of type $(typeof(W))")
@@ -83,7 +84,7 @@ end
 @Markdown.doc """
     inverted_set(W::AbsLocalizedRing)
 
-Returns the set S of at which has been localized for a localized ring W = R[S⁻¹].
+Return the set S of at which has been localized for a localized ring W = R[S⁻¹].
 """
 function inverted_set(W::AbsLocalizedRing)
   error("`inverted_set` is not implemented for localized rings of type $(typeof(W))")
@@ -93,7 +94,7 @@ end
 @Markdown.doc """
     Localization(S::AbsMultSet)
 
-Returns the localization of the `ambient_ring` of `S` at `S` itself.
+Return the localization of the `ambient_ring` of `S` at `S` itself.
 """
 function Localization(S::AbsMultSet)
   error("localizations at multiplicatively closed sets of type $(typeof(S)) are not implemented")
@@ -151,7 +152,7 @@ abstract type AbsLocalizedRingElem{
 @Markdown.doc """
     numerator(f::AbsLocalizedRingElem)
 
-Returns the numerator of `f`.
+Return the numerator of `f`.
 """
 function numerator(f::AbsLocalizedRingElem)
   error("`numerator` is not implemented for elements of type $(typeof(f))")
@@ -160,7 +161,7 @@ end
 @Markdown.doc """
     denominator(f::AbsLocalizedRingElem)
 
-Returns the denominator of `f`.
+Return the denominator of `f`.
 """
 function denominator(f::AbsLocalizedRingElem)
   error("`denominator` is not implemented for elements of type $(typeof(f))")
@@ -169,20 +170,15 @@ end
 @Markdown.doc """
     parent(f::AbsLocalizedRingElem)
 
-Returns the parent ring R[S⁻¹] of `f`.
+Return the parent ring R[S⁻¹] of `f`.
 """
 function parent(f::AbsLocalizedRingElem)
   error("`parent` is not implemented for the type $(typeof(f))")
 end
 
-### default functionality for printing
-function Base.show(io::IO, f::AbsLocalizedRingElem)
-  if needs_parentheses(f)
-    print(io, "($(numerator(f)))//($(denominator(f)))")
-  else 
-    print(io, "$(numerator(f))//$(denominator(f))")
-  end
-end
+expressify(f::AbsLocalizedRingElem; context=nothing) = Expr(:call, ://, expressify(numerator(f), context=context), expressify(denominator(f), context=context))
+
+@enable_all_show_via_expressify AbsLocalizedRingElem
 
 
 ########################################################################
@@ -301,8 +297,6 @@ function Base.show(io::IO, W::AbsLocalizedRing)
   print(io, inverted_set(W))
 end
 
-needs_parentheses(f::AbsLocalizedRingElem) = true
-
 function zero!(a::AbsLocalizedRingElem) 
   a = zero(parent(a))
   return a
@@ -350,12 +344,12 @@ Abstract type for finitely generated ideals ``I ⊂ R[S⁻¹]`` in localized rin
 abstract type AbsLocalizedIdeal{RingType, RingElemType, MultSetType} <: Ideal{RingElemType} end
 
 ### required getter functions
-#Returns a Vector of generators of `I`.
+#Return a Vector of generators of `I`.
 function gens(I::AbsLocalizedIdeal)
   error("`gens(I)` has not been implemented for `I` of type $(typeof(I))")
 end
 
-# Returns the localized ring over which `I` is defined.
+# Return the localized ring over which `I` is defined.
 function base_ring(I::AbsLocalizedIdeal)
   error("`base_ring(I)` has not been implemented for `I` of type $(typeof(I))")
 end
@@ -408,7 +402,7 @@ end
 
 
 ### A catchall implementation for the ideal arithmetic 
-# Returns the product of the ideals `I` and `J`.
+# Return the product of the ideals `I` and `J`.
 function Base.:*(I::T, J::T) where {T<:AbsLocalizedIdeal}
   W = base_ring(I) 
   W == base_ring(J) || error("the given ideals do not belong to the same ring")
@@ -416,7 +410,7 @@ function Base.:*(I::T, J::T) where {T<:AbsLocalizedIdeal}
   return ideal(W, new_gens)
 end
 
-# Returns the sum of the ideals `I` and `J`.
+# Return the sum of the ideals `I` and `J`.
 function Base.:+(I::T, J::T) where {T<:AbsLocalizedIdeal}
   W = base_ring(I) 
   W == base_ring(J) || error("the given ideals do not belong to the same ring")
@@ -453,7 +447,7 @@ end
 @Markdown.doc """
     domain(f::AbsLocalizedRingHom) 
 
-Returns the domain of definition of `f`.
+Return the domain of definition of `f`.
 """
 function domain(f::AbsLocalizedRingHom) 
   error("`domain(f)` not implemented for `f` of type $(typeof(f))")
@@ -462,7 +456,7 @@ end
 @Markdown.doc """
     codomain(f::AbsLocalizedRingHom) 
 
-Returns the codomain of `f`.
+Return the codomain of `f`.
 """
 function codomain(f::AbsLocalizedRingHom) 
   error("`codomain(f)` not implemented for `f` of type $(typeof(f))")
@@ -484,7 +478,7 @@ Applies the map `f` to the element `a` in the domain of `f`.
 @Markdown.doc """
     (f::AbsLocalizedRingHom)(I::Ideal)
 
-Returns the ideal generated by the images `f(hᵢ)` of the generators `hᵢ` of `I`.
+Return the ideal generated by the images `f(hᵢ)` of the generators `hᵢ` of `I`.
 """
 (f::AbsLocalizedRingHom{RT, RET, DMST, CMST})(I::AbsLocalizedIdeal{RT, RET, DMST}) where {RT, RET, DMST, CMST} = ideal(codomain(f), f.(gens(I)))
 

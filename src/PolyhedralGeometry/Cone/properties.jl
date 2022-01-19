@@ -8,7 +8,7 @@ rays(as::Type{RayVector{T}}, C::Cone) where T = SubObjectIterator{as}(pm_object(
 
 _ray_cone(::Type{T}, C::Polymake.BigObject, i::Base.Integer) where T = T(C.RAYS[i, :])
 
-_vector_matrix(::Val{_ray_cone}, C::Polymake.BigObject) = C.RAYS
+_vector_matrix(::Val{_ray_cone}, C::Polymake.BigObject; homogenized=false) = C.RAYS
 
 _matrix_for_polymake(::Val{_ray_cone}) = _vector_matrix
 
@@ -55,6 +55,7 @@ RayVector{Polymake.Rational}[[1, 0, 0], [0, 1, 0]]
 ```
 """
 function faces(C::Cone, face_dim::Int)
+   face_dim == dim(C) - 1 && return SubObjectIterator{Cone}(pm_object(C), _face_cone_facet, nfacets(C))
    n = face_dim - length(lineality_space(C))
    n < 1 && return nothing
    return SubObjectIterator{Cone}(C.pm_cone, _face_cone, size(Polymake.polytope.faces_of_dim(pm_object(C), n), 1), (f_dim = n,))
@@ -64,10 +65,16 @@ function _face_cone(::Type{Cone}, C::Polymake.BigObject, i::Base.Integer; f_dim:
    return Cone(Polymake.polytope.Cone(RAYS = C.RAYS[collect(Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(C, f_dim)[i])), :], LINEALITY_SPACE = C.LINEALITY_SPACE))
 end
 
-function _ray_incidences(::Val{_face_cone}, C::Polymake.BigObject; f_dim::Int = 0)
+function _ray_indices(::Val{_face_cone}, C::Polymake.BigObject; f_dim::Int = 0)
    f = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(C, f_dim))
    return IncidenceMatrix([collect(f[i]) for i in 1:length(f)])
 end
+
+function _face_cone_facet(::Type{Cone}, C::Polymake.BigObject, i::Base.Integer)
+   return Cone(Polymake.polytope.Cone(RAYS = C.RAYS[collect(C.RAYS_IN_FACETS[i, :]), :], LINEALITY_SPACE = C.LINEALITY_SPACE))
+end
+
+_ray_indices(::Val{_face_cone_facet}, C::Polymake.BigObject) = C.RAYS_IN_FACETS
 
 ###############################################################################
 ###############################################################################
@@ -93,8 +100,7 @@ julia> nfacets(C)
 4
 ```
 """
-nfacets(C::Cone) = pm_object(C).N_FACETS
-
+nfacets(C::Cone) = pm_object(C).N_FACETS::Int
 
 @doc Markdown.doc"""
     nrays(C::Cone)
@@ -112,7 +118,7 @@ julia> nrays(PO)
 2
 ```
 """
-nrays(C::Cone) = pm_object(C).N_RAYS
+nrays(C::Cone) = pm_object(C).N_RAYS::Int
 
 @doc Markdown.doc"""
     dim(C::Cone)
@@ -128,7 +134,7 @@ julia> dim(C)
 2
 ```
 """
-dim(C::Cone) = pm_object(C).CONE_DIM
+dim(C::Cone) = pm_object(C).CONE_DIM::Int
 
 @doc Markdown.doc"""
     ambient_dim(C::Cone)
@@ -144,7 +150,7 @@ julia> ambient_dim(C)
 3
 ```
 """
-ambient_dim(C::Cone) = pm_object(C).CONE_AMBIENT_DIM
+ambient_dim(C::Cone) = pm_object(C).CONE_AMBIENT_DIM::Int
 
 @doc Markdown.doc"""
     codim(C::Cone)
@@ -224,7 +230,7 @@ julia> lineality_dim(C1)
 1
 ```
 """
-lineality_dim(C::Cone) = pm_object(C).LINEALITY_DIM
+lineality_dim(C::Cone) = pm_object(C).LINEALITY_DIM::Int
 
 
 
@@ -250,7 +256,7 @@ julia> ispointed(C)
 true
 ```
 """
-ispointed(C::Cone) = pm_object(C).POINTED
+ispointed(C::Cone) = pm_object(C).POINTED::Bool
 
 @doc Markdown.doc"""
     isfulldimensional(C::Cone)
@@ -266,7 +272,7 @@ julia> isfulldimensional(C)
 false
 ```
 """
-isfulldimensional(C::Cone) = pm_object(C).FULL_DIM
+isfulldimensional(C::Cone) = pm_object(C).FULL_DIM::Bool
 
 ###############################################################################
 ## Points properties
@@ -311,6 +317,8 @@ _linear_inequality_matrix(::Val{_facet_cone}, C::Polymake.BigObject) = -C.FACETS
 
 _linear_matrix_for_polymake(::Val{_facet_cone}) = _linear_inequality_matrix
 
+_ray_indices(::Val{_facet_cone}, C::Polymake.BigObject) = C.RAYS_IN_FACETS
+
 facets(C::Cone) = facets(LinearHalfspace, C)
 
 facets(::Type{Halfspace}, C::Cone) = facets(LinearHalfspace, C)
@@ -335,7 +343,7 @@ lineality_space(C::Cone) = SubObjectIterator{RayVector{Polymake.Rational}}(pm_ob
 
 _lineality_cone(::Type{RayVector{Polymake.Rational}}, C::Polymake.BigObject, i::Base.Integer) = RayVector(C.LINEALITY_SPACE[i, :])
 
-_generator_matrix(::Val{_lineality_cone}, C::Polymake.BigObject) = C.LINEALITY_SPACE
+_generator_matrix(::Val{_lineality_cone}, C::Polymake.BigObject; homogenized=false) = C.LINEALITY_SPACE
 
 _matrix_for_polymake(::Val{_lineality_cone}) = _generator_matrix
 
@@ -376,11 +384,11 @@ This (non-smooth) cone in the plane has a hilbert basis with three elements.
 julia> C = Cone([1 0; 1 2])
 A polyhedral cone in ambient dimension 2
 
-julia> hilbert_basis(C)
-pm::Matrix<pm::Integer>
-1 0
-1 1
-1 2
+julia> matrix(ZZ, hilbert_basis(C))
+[1   0]
+[1   2]
+[1   1]
+
 ```
 """
 function hilbert_basis(C::Cone)
@@ -393,6 +401,6 @@ end
 
 _hilbert_generator(::Type{PointVector{Polymake.Integer}}, C::Polymake.BigObject, i::Base.Integer) = PointVector{Polymake.Integer}(C.HILBERT_BASIS_GENERATORS[1][i, :])
 
-_generator_matrix(::Val{_hilbert_generator}, C::Polymake.BigObject) = C.HILBERT_BASIS_GENERATORS[1]
+_generator_matrix(::Val{_hilbert_generator}, C::Polymake.BigObject; homogenized=false) = C.HILBERT_BASIS_GENERATORS[1]
 
 _matrix_for_polymake(::Val{_hilbert_generator}) = _generator_matrix

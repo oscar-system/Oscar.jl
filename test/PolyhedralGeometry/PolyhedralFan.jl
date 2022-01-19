@@ -32,22 +32,22 @@
         @test nrays(F2) == 2
         @test maximal_cones(F1) isa SubObjectIterator{Cone}
         @test dim.(maximal_cones(F1)) == [2,2]
-        @test ray_incidences(maximal_cones(F1)) == incidence1
+        @test ray_indices(maximal_cones(F1)) == incidence1
         @test nmaximal_cones(F1) == 2
         @test lineality_space(F2) isa SubObjectIterator{RayVector{Polymake.Rational}}
         @test generator_matrix(lineality_space(F2)) == matrix(QQ, L)
         @test length(lineality_space(F2)) == 1
         @test lineality_space(F2)[] == RayVector(L[:])
-        @test Oscar.matrix_for_polymake(lineality_space(F2)) == L
+        @test matrix(QQ, lineality_space(F2)) == matrix(QQ, L)
         @test cones(F2, 2) isa SubObjectIterator{Cone}
         @test size(cones(F2, 2)) == (2,)
         @test generator_matrix(lineality_space(cones(F2, 2)[1])) == matrix(QQ, [0 1 0])
         @test rays(cones(F2, 2)[1])[] == RayVector([1, 0, 0])
         @test rays(cones(F2, 2)[2])[] == RayVector([0, 0, 1])
         @test isnothing(cones(F2, 1))
-        @test ray_incidences(cones(F1, 2)) == incidence1
+        @test ray_indices(cones(F1, 2)) == incidence1
 
-        II = ray_incidences(maximal_cones(NFsquare))
+        II = ray_indices(maximal_cones(NFsquare))
         NF0 = PolyhedralFan(rays(NFsquare), II)
         @test nrays(NF0) == 4
         FF0 = face_fan(C0)

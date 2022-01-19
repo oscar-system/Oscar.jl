@@ -70,6 +70,7 @@ function __init__()
     ])
     GAP.Packages.load("ctbllib")
     GAP.Packages.load("forms")
+    __init_IsoGapOscar()
 end
 
 const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
@@ -218,6 +219,7 @@ include("Groups/libraries/libraries.jl")
 include("Groups/GAPGroups.jl")
 include("Groups/directproducts.jl")
 include("Groups/matrices/matrices.jl")
+include("Groups/matrices/FiniteFormOrthogonalGroup.jl")
 include("Groups/action.jl")
 include("Groups/gsets.jl")
 include("Groups/MatrixDisplay.jl")
@@ -248,11 +250,13 @@ include("Rings/AbelianClosure.jl")
 
 include("GAP/gap_to_oscar.jl")
 include("GAP/oscar_to_gap.jl")
+include("GAP/iso_gap_oscar.jl")
 
 include("Groups/group_characters.jl")  # needs some Rings functionality
 
 include("Modules/UngradedModules.jl")
-include("Modules/FreeModules-graded.jl")
+#include("Modules/FreeModules-graded.jl")
+include("Modules/ModulesGraded.jl")
 
 include("Geometry/basics.jl")
 
@@ -279,6 +283,9 @@ include("Rings/binomial_ideals.jl")
 
 include("ToricVarieties/JToric.jl")
 
+include("../experimental/Schemes/AffineSchemes.jl")
+include("../experimental/Schemes/SpecOpen.jl")
+include("../experimental/Schemes/ProjectiveSchemes.jl")
 
 if is_dev
 #  include("../examples/ModStdNF.jl")

@@ -10,10 +10,10 @@ using Oscar
 Pages = ["free_modules.md"]
 ```
 
-# Free Modules Over Commutative Rings
+# Free Modules Over Multivariate Rings
 
 In this section, the expression *free module*  refers to a free module of finite rank
-over a commutative ring. More concretely, given a commutative ring $R$, 
+over a multivariate polynomial ring. More concretely, given a multivariate polynomial ring $R$, 
 the free $R$-modules considered are of type $R^p$, where we think of $R^p$ as a
 free module with a given basis, namely the basis of standard unit vectors.
 Accordingly, elements of free modules are represented by coordinate vectors,
@@ -24,14 +24,20 @@ and homomorphisms between free modules by matrices.
 
 ## Types
 
-The abstract supertype for all finitely presented modules over commutative rings in OSCAR is `ModuleFP{T}`.
-For free modules, OSCAR provides the abstract type `AbstractFreeMod{T} <: ModuleFP{T}` and its concrete
+All OSCAR types for finitely presented modules over multivariate polynomial rings belong to the abstract type `ModuleFP{T}`.
+For free modules, OSCAR provides the abstract subtype `AbstractFreeMod{T} <: ModuleFP{T}` and its concrete
 descendant `FreeMod{T <: RingElem}`.
+
+!!! note
+    Canonical maps such us the canonical projection onto a quotient module arise in many 
+    constructions in commutative algebra. The `FreeMod` type is designed so that it allows
+    for the caching of such maps when executing functions. The `direct_sum` function discussed
+    in this section provides an example.
 
 ## Constructor
 
 ```@docs
-free_module(R::Ring, n::Int, name::String = "e"; cached::Bool = false)
+free_module(R::MPolyRing, n::Int, name::String = "e"; cached::Bool = false)
 ```
 
 ## Data Associated to Free Modules
@@ -54,12 +60,11 @@ rank(F)
 
 ## Elements of Free Modules
 
-The abstract supertype for all elements of finitely presented modules over commutative rings in OSCAR is `ModuleFPElem{T}`.
-The abstract type for elements of free modules is `AbstractFreeModElem{T} <: ModuleFPElem{T}`. Its concrete
-descendant `FreeModElem{T}` implements an element $f$ of a free module $F$ as a sparse row,
+All OSCAR types for elements of finitely presented modules over multivariate polynomial rings belong to the abstract type `ModuleElemFP{T}`.
+For elements of free modules, there are the abstract subtype `AbstractFreeModElem{T} <: ModuleFPElem{T}` and its concrete
+descendant `FreeModElem{T}` which implements an element $f$ of a free module $F$ as a sparse row,
 that is, as an object of type `SRow{T}`. This object specifies the coordinates of $f$ with respect to
-the basis of standard unit vectors of $F$. To create an element, enter its coordinates as an object
-of type `SRow{T}` or `Vector{T}`: 
+the basis of standard unit vectors of $F$. To create an element, enter its coordinates as a sparse row or a vector: 
 
 
 ```@julia
@@ -121,8 +126,8 @@ iszero(F::AbstractFreeMod)
 
 ## Homomorphisms From Free Modules
 
-A homomorphism from a free module $F$ is determined by specifying the images
-of the basis vectors of $F$. In OSCAR, such homomorphisms have type `FreeModuleHom{T1, T2}`, where
+A homomorphism $F\rightarrow M$ from a free module $F$ is determined by specifying the images
+of the basis vectors of $F$ in $M$. In OSCAR, such homomorphisms have type `FreeModuleHom{T1, T2}`, where
 `T1` and `T2` are the element types of the domain and codomain, respectively. They are created
 by using one of the following constructors:
 
@@ -173,4 +178,3 @@ L = direct_product(F, G, task = :both)
 basis(L[1])
 L[3][2]
 ```
-

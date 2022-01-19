@@ -2,6 +2,7 @@ using Oscar
 using Test
 
 include("PolyhedralGeometry/runtests.jl")
+include("Combinatorics/runtests.jl")
 
 include("GAP/runtests.jl")
 
@@ -40,9 +41,11 @@ include("Examples/ModStdQt-test.jl")
 include("Examples/ModStdNF-test.jl")
 
 include("Modules/UngradedModules.jl")
+include("Modules/ModulesGraded.jl")
 
 include("InvariantTheory/runtests.jl")
 
 include("ToricVarieties/runtests.jl")
 
 include("Schemes/AffineSchemes.jl")
+include("Schemes/SpecOpen.jl")
