@@ -10,6 +10,20 @@ The type variable `T` refers to the type of the elements of the base ring.
 """
 abstract type ModuleFP{T} end
 
+@doc Markdown.doc"""
+    AbstractFreeMod{T} <: ModuleFP{T}
+
+The abstract supertype of all free modules.
+"""
+abstract type AbstractFreeMod{T} <: ModuleFP{T} end
+
+@doc Markdown.doc"""
+    AbstractSubQuo{T} <: ModuleFP{T}
+
+The abstract supertype of all subquotient modules.
+"""
+abstract type AbstractSubQuo{T} <: ModuleFP{T} end
+
 
 @doc Markdown.doc"""
     ModuleFPElem{T}
@@ -17,6 +31,20 @@ abstract type ModuleFP{T} end
 The abstract supertype of all elements of finitely presented modules.
 """
 abstract type ModuleFPElem{T} end
+
+@doc Markdown.doc"""
+    AbstractFreeModElem{T} <: ModuleFPElem{T}
+
+The abstract supertype of all elements of free modules.
+"""
+abstract type AbstractFreeModElem{T} <: ModuleFPElem{T} end
+
+@doc Markdown.doc"""
+    AbstractSubQuoElem{T} <: ModuleFPElem{T}
+
+The abstract supertype of all elements of subquotient modules.
+"""
+abstract type AbstractSubQuoElem{T} <: ModuleFPElem{T} end
 
 abstract type ModuleFPHom end
 
@@ -38,7 +66,7 @@ Moreover, canonical incoming and outgoing morphisms are stored if the correspond
 option is set in suitable functions.
 `FreeMod{T}` is a subtype of `ModuleFP{T}`.
 """
-@attributes mutable struct FreeMod{T <: RingElem} <: ModuleFP{T}
+@attributes mutable struct FreeMod{T <: RingElem} <: AbstractFreeMod{T}
   R::Ring
   n::Int
   S::Vector{Symbol}
@@ -87,7 +115,7 @@ julia> f == g
 true
 ```
 """
-struct FreeModElem{T} <: ModuleFPElem{T}
+struct FreeModElem{T} <: AbstractFreeModElem{T}
   coords::SRow{T} # also usable via coeffs()
   parent::FreeMod{T}
 
@@ -208,7 +236,7 @@ Moreover, canonical incoming and outgoing morphisms are stored if the correspond
 option is set in suitable functions.
 `SubQuo{T}` is a subtype of `ModuleFP{T}`.
 """
-@attributes mutable struct SubQuo{T} <: ModuleFP{T}
+@attributes mutable struct SubQuo{T} <: AbstractSubQuo{T}
   #meant to represent sub+ quo mod quo - as lazy as possible
   F::FreeMod{T}
   sub::SubModuleOfFreeModule
@@ -344,7 +372,7 @@ julia> f == g
 true
 ```
 """
-struct SubQuoElem{T} <: ModuleFPElem{T} 
+struct SubQuoElem{T} <: AbstractSubQuoElem{T} 
   coeffs::SRow{T}
   repres::FreeModElem{T}
   parent::SubQuo
@@ -397,10 +425,6 @@ end
 ###############################################################################
 # Graded modules
 ###############################################################################
-abstract type ModuleFP_dec{T} <: ModuleFP{T} end
-
-abstract type ModuleFPElem_dec{T} <: ModuleFPElem{T} end
-
 const CRing_dec = Union{MPolyRing_dec, MPolyQuo{<:Oscar.MPolyElem_dec}}
 const CRingElem_dec = Union{MPolyElem_dec, MPolyQuoElem{<:Oscar.MPolyElem_dec}}
 #TODO: other name for CRing_dec -> which?
@@ -415,7 +439,7 @@ Moreover, canonical incoming and outgoing morphisms are stored if the correspond
 option is set in suitable functions.
 `FreeMod_dec{T}` is a subtype of `ModuleFP{T}`.
 """
-@attributes mutable struct FreeMod_dec{T <: CRingElem_dec} <: ModuleFP_dec{T}
+@attributes mutable struct FreeMod_dec{T <: CRingElem_dec} <: AbstractFreeMod{T}
   F::FreeMod{T}
   d::Vector{GrpAbFinGenElem}
 
@@ -440,7 +464,7 @@ The type of decorated free module elements. An element of a decorated free modul
 given by a sparse row (`SRow`) which specifies its coordinates with respect to the basis
 of standard unit vectors of $F$.
 """
-struct FreeModElem_dec{T} <: ModuleFPElem_dec{T}
+struct FreeModElem_dec{T} <: AbstractFreeModElem{T}
   coords::SRow{T} # also usable via coeffs()
   parent::FreeMod_dec{T}
 
@@ -454,11 +478,17 @@ end
 
 
 
-const AbstractFreeMod{T} = Union{FreeMod{T}, FreeMod_dec{T}}
-const AbstractFreeModElem{T} = Union{FreeModElem{T}, FreeModElem_dec{T}}
+#abstract type ModuleFP_dec{T} <: ModuleFP{T} end
 
-const AbstractSubQuo{T} = Union{SubQuo{T}}
-const AbstractSubQuoElem{T} = Union{SubQuoElem{T}}
+#abstract type ModuleFPElem_dec{T} <: ModuleFPElem{T} end
+const ModuleFP_dec{T} = Union{FreeMod_dec{T}} # SubQuo_dec{T} will be included
+const ModuleFPElem_dec{T} = Union{FreeModElem_dec{T}} # SubQuoElem_dec{T} will be included
+
+#const AbstractFreeMod{T} = Union{FreeMod{T}, FreeMod_dec{T}}
+#const AbstractFreeModElem{T} = Union{FreeModElem{T}, FreeModElem_dec{T}}
+
+#const AbstractSubQuo{T} = Union{SubQuo{T}}
+#const AbstractSubQuoElem{T} = Union{SubQuoElem{T}}
 
 
 

@@ -235,7 +235,7 @@ function FreeModElem(coords::SRow{T}, parent::FreeMod_dec{T}) where T <: CRingEl
 end
 
 @doc Markdown.doc"""
-    FreeModElem_dec(v::FreeModElem, parent::FreeMod_dec{T}) where T <: CRingElem_dec
+    FreeModElem_dec(v::FreeModElem{T}, parent::FreeMod_dec{T}) where T <: CRingElem_dec
 
 Lift `v` to the decorated module `parent`.
 """
