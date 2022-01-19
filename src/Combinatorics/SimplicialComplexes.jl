@@ -3,24 +3,17 @@ import Oscar: Polymake, pm_object
 
 export
     SimplicialComplex,
-    betti_numbers,
-    dim,
-    euler_characteristic,
-    facets,
-    fundamental_group,
-    f_vector,
-    h_vector,
-    minimal_nonfaces,
-    nvertices,
+    facets, nvertices,
     vertexindices,
-    stanley_reisner_ideal,
-    stanley_reisner_ring,
-    load_simplicialcomplex,
-    save_simplicialcomplex,
+    f_vector, h_vector,
+    dim,
+    betti_numbers, euler_characteristic, homology, cohomology,
+    fundamental_group,
+    minimal_nonfaces, alexander_dual, stanley_reisner_ideal, stanley_reisner_ring,
+    real_projective_plane, klein_bottle, torus, # requires a distinction from, e.g., an algebraic group
     complex_projective_plane,
-    real_projective_plane,
-    klein_bottle,
-    torus # requires a distinction from, e.g., an algebraic group
+    star_subcomplex, link_subcomplex,
+    load_simplicialcomplex, save_simplicialcomplex
 
 ################################################################################
 ##  Constructing
@@ -77,6 +70,13 @@ function SimplicialComplex(generators::IncidenceMatrix)
     SimplicialComplex(K)
 end
 
+# more efficient UNEXPORTED+UNDOCUMENTED version, which requires consecutive vertices, and facets as generators;
+# will produce errors / segfaults or worse if used improperly
+function _SimplicialComplex(generators::Union{Vector{Vector{Int}}, Vector{Set{Int}}})
+    K = Polymake.topaz.SimplicialComplex(FACETS=generators)
+    SimplicialComplex(K)
+end
+    
 ################################################################################
 ##  Auxiliary
 ################################################################################
@@ -89,10 +89,10 @@ function _vertexindices(K::Polymake.BigObject)
     end
 end
 
-vertexindices(L::SimplicialComplex) = _vertexindices(pm_object(L))
+vertexindices(K::SimplicialComplex) = _vertexindices(pm_object(K))
 
 # currently unused
-_reindexset(M::Set{Int}, ind::Vector{Int}) = [ ind[x+1] for x in M ]
+_reindexset(M::Set{Int}, ind::Vector{Int}) = [ ind[x] for x in M ]
 
 function _characteristic_vector(M::Set{Int}, n::Int)
     chi = zeros(Int, n)
@@ -100,6 +100,15 @@ function _characteristic_vector(M::Set{Int}, n::Int)
         chi[x] = 1
     end
     return chi
+end
+
+function _convert_finitely_generated_abelian_group(A::Polymake.HomologyGroupAllocated{Polymake.Integer})
+    vec = ones(Int, Polymake.betti_number(A))
+    torsion_i = Polymake.torsion(A)
+    for (p,k) in torsion_i
+        append!(vec, fill(p,k))
+    end
+    return vec
 end
 
 ################################################################################
@@ -200,6 +209,39 @@ julia> euler_characteristic(complex_projective_plane())
 euler_characteristic(K::SimplicialComplex) = pm_object(K).EULER_CHARACTERISTIC::Int
 
 @doc Markdown.doc"""
+    homology(K::SimplicialComplex, i::Int)
+
+Return `i`-th reduced integral homology group of `K`.
+Recall that the 0-th homology group is trivial if and only if `K` is connected.
+
+# Example
+```jldoctest
+julia> [ homology(real_projective_plane(), i) for i in [0,1,2] ]
+3-element Vector{GrpAbFinGen}:
+ GrpAb: Z/1
+ GrpAb: Z/2
+ GrpAb: Z/1
+```
+"""
+homology(K::SimplicialComplex, i::Int) = abelian_group(_convert_finitely_generated_abelian_group(pm_object(K).HOMOLOGY[i+1])) # index shift
+
+@doc Markdown.doc"""
+    cohomology(K::SimplicialComplex, i::Int)
+
+Return `i`-th reduced integral cohomology group of `K`.
+
+# Example
+```jldoctest
+julia> K = SimplicialComplex([[0,1],[1,2],[0,2]]);
+
+julia> cohomology(K,1)
+(General) abelian group with relation matrix
+[1]
+```
+"""
+cohomology(K::SimplicialComplex, i::Int) = abelian_group(_convert_finitely_generated_abelian_group(pm_object(K).COHOMOLOGY[i+1])) # index shift
+
+@doc Markdown.doc"""
     minimal_nonfaces(K::SimplicialComplex)
 
 Return the minimal non-faces of the abstract simplicial complex `K`.
@@ -219,6 +261,21 @@ function minimal_nonfaces(K::SimplicialComplex)
 end
 
 @doc Markdown.doc"""
+    alexander_dual(K::SimplicialComplex)
+
+Return the Alexander dual of the abstract simplicial complex `K`.
+
+# Example
+```jldoctest
+julia> K = SimplicialComplex([[1,2,3],[2,3,4]]);
+
+julia> alexander_dual(K)
+Abstract simplicial complex of dimension 1 on 2 vertices
+```
+"""
+alexander_dual(K::SimplicialComplex) = SimplicialComplex(Polymake.topaz.alexander_dual(pm_object(K)))
+
+@doc Markdown.doc"""
     stanley_reisner_ideal(K::SimplicialComplex)
 
 Return the Stanley-Reisner ideal of the abstract simplicial complex `K`.
@@ -231,24 +288,24 @@ ideal(x1*x2*x3, x1*x2*x4, x1*x5*x6, x2*x5*x6, x1*x3*x6, x1*x4*x5, x3*x4*x5, x3*x
 """
 function stanley_reisner_ideal(K::SimplicialComplex)
     n = nvertices(K)
-    R, _ = PolynomialRing(ZZ, n)
+    R, _ = PolynomialRing(QQ, n, cached=false)
     return stanley_reisner_ideal(R, K)
 end
 
 @doc Markdown.doc"""
-    stanley_reisner_ideal(R::FmpzMPolyRing, K::SimplicialComplex)
+    stanley_reisner_ideal(R::MPolyRing, K::SimplicialComplex)
 
 Return the Stanley-Reisner ideal of the abstract simplicial complex `K`, in the given ring `R`.
 
 # Example
 ```jldoctest
-julia> R, _ = ZZ["a","b","c","d","e","f"];
+julia> R, _ = QQ["a","b","c","d","e","f"];
 
 julia> stanley_reisner_ideal(R, real_projective_plane())
 ideal(a*b*c, a*b*d, a*e*f, b*e*f, a*c*f, a*d*e, c*d*e, c*d*f, b*c*e, b*d*f)
 ```
 """
-function stanley_reisner_ideal(R::FmpzMPolyRing, K::SimplicialComplex)
+function stanley_reisner_ideal(R::MPolyRing, K::SimplicialComplex)
     n = nvertices(K)
     return ideal([ R([1], [_characteristic_vector(f,n)]) for f in minimal_nonfaces(K) ])
 end
@@ -263,18 +320,18 @@ Return the Stanley-Reisner ring of the abstract simplicial complex `K`.
 julia> K = SimplicialComplex([[1,2,3],[2,3,4]]);
 
 julia> stanley_reisner_ring(K)
-(Quotient of Multivariate Polynomial Ring in x1, x2, x3, x4 over Integer Ring by ideal(x1*x4), Map from
-Multivariate Polynomial Ring in x1, x2, x3, x4 over Integer Ring to Quotient of Multivariate Polynomial Ring in x1, x2, x3, x4 over Integer Ring by ideal(x1*x4) defined by a julia-function with inverse)
+(Quotient of Multivariate Polynomial Ring in x1, x2, x3, x4 over Rational Field by ideal(x1*x4), Map from
+Multivariate Polynomial Ring in x1, x2, x3, x4 over Rational Field to Quotient of Multivariate Polynomial Ring in x1, x2, x3, x4 over Rational Field by ideal(x1*x4) defined by a julia-function with inverse)
 ```
 """
 function stanley_reisner_ring(K::SimplicialComplex)
     n = nvertices(K)
-    R, _ = PolynomialRing(ZZ, n)
+    R, _ = PolynomialRing(QQ, n, cached=false)
     return stanley_reisner_ring(R, K)
 end
 
 @doc Markdown.doc"""
-    stanley_reisner_ring(R::FmpzMPolyRing, K::SimplicialComplex)
+    stanley_reisner_ring(R::MPolyRing, K::SimplicialComplex)
 
 Return the Stanley-Reisner ring of the abstract simplicial complex `K`, as a quotient of a given ring `R`.
 
@@ -287,7 +344,11 @@ julia> stanley_reisner_ring(R, real_projective_plane())
 Multivariate Polynomial Ring in 6 variables a, b, c, d, ..., f over Integer Ring to Quotient of Multivariate Polynomial Ring in 6 variables a, b, c, d, ..., f over Integer Ring by ideal(a*b*c, a*b*d, a*e*f, b*e*f, a*c*f, a*d*e, c*d*e, c*d*f, b*c*e, b*d*f) defined by a julia-function with inverse)
 ```
 """
-stanley_reisner_ring(R::FmpzMPolyRing, K::SimplicialComplex) = quo(R, stanley_reisner_ideal(R, K))
+stanley_reisner_ring(R::MPolyRing, K::SimplicialComplex) = quo(R, stanley_reisner_ideal(R, K))
+
+################################################################################
+###  Fundamental group
+################################################################################
 
 @doc Markdown.doc"""
     fundamental_group(K::SimplicialComplex)
@@ -296,34 +357,40 @@ Return the fundamental group of the abstract simplicial complex `K`.
 
 # Example
 ```jldoctest
-julia> x = fundamental_group(torus());
+julia> pi_1 = fundamental_group(torus());
 
-julia> describe(x[1])
+julia> describe(pi_1)
 "Z x Z"
 ```
 """
 function fundamental_group(K::SimplicialComplex)
-    n, r = pm_object(K).FUNDAMENTAL_GROUP
-    F = free_group(n)
-    rvec = Vector{FPGroupElem}(undef, length(r))
-    for (i, relation) in enumerate(r)
-        relem = one(F)
-        for term in relation
-            relem *= F[first(term) + 1]^last(term)
+    ngens, relations = pm_object(K).FUNDAMENTAL_GROUP
+    F = free_group(ngens)
+    nrels = length(relations)
+    if nrels==0
+        return F
+    else
+        rvec = Vector{FPGroupElem}(undef, nrels)
+        for (i, relation) in enumerate(relations)
+            relem = one(F)
+            for term in relation
+                relem *= F[first(term) + 1]^last(term)
+            end
+            rvec[i] = relem
         end
-        rvec[i] = relem
+        pi_1, _ = quo(F, rvec)
+        return pi_1
     end
-    return quo(F, rvec)
 end
 
 ################################################################################
-##  Standard examples
+###  Surface examples
 ################################################################################
 
 """
     torus()
 
-Construct Császár's (vertex-minimal) 7-vertex triangulation of the torus (surface).
+Construct Möbius' (vertex-minimal) 7-vertex triangulation of the torus (surface).
 """
 torus() = SimplicialComplex(Polymake.topaz.torus())
 
@@ -341,12 +408,50 @@ Construct the (vertex-minimal) 6-vertex triangulation of the real projective pla
 """
 real_projective_plane() = SimplicialComplex(Polymake.topaz.real_projective_plane())
 
+################################################################################
+###  Other examples
+################################################################################
+
 """
     complex_projective_plane()
 
 Construct the (vertex-minimal) 9-vertex triangulation of the complex projective plane.
 """
 complex_projective_plane() = SimplicialComplex(Polymake.topaz.complex_projective_plane())
+
+################################################################################
+###  Subcomplexes
+################################################################################
+
+@doc Markdown.doc"""
+    star_subcomplex(K::SimplicialComplex, sigma::Union{Vector{Int}, Set{Int}})
+
+Return the star of the face `sigma` in the abstract simplicial complex `K`.
+
+# Example
+```jldoctest
+julia> K = SimplicialComplex([[1,2,3],[2,3,4]]);
+
+julia> star_subcomplex(K,[1])
+Abstract simplicial complex of dimension 2 on 3 vertices
+```
+"""
+star_subcomplex(K::SimplicialComplex, sigma::Union{Vector{Int}, Set{Int}}) = SimplicialComplex(Polymake.topaz.star_subcomplex(pm_object(K), Polymake.to_zero_based_indexing(sigma)))
+
+@doc Markdown.doc"""
+    link_subcomplex(K::SimplicialComplex, sigma::Union{Vector{Int}, Set{Int}})
+
+Return the link of the face `sigma` in the abstract simplicial complex `K`.
+
+# Example
+```jldoctest
+julia> K = SimplicialComplex([[1,2,3],[2,3,4]]);
+
+julia> link_subcomplex(K,[2,3])
+Abstract simplicial complex of dimension 0 on 2 vertices
+```
+"""
+link_subcomplex(K::SimplicialComplex, sigma::Union{Vector{Int}, Set{Int}}) = SimplicialComplex(Polymake.topaz.link_subcomplex(pm_object(K), Polymake.to_zero_based_indexing(sigma)))
 
 ###############################################################################
 ### Display
@@ -359,7 +464,7 @@ function Base.show(io::IO, K::SimplicialComplex)
 end
 
 ###############################################################################
-### Serialization
+## Serialization
 ###############################################################################
 
 """
