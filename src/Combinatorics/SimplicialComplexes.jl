@@ -347,7 +347,7 @@ Multivariate Polynomial Ring in 6 variables a, b, c, d, ..., f over Integer Ring
 stanley_reisner_ring(R::MPolyRing, K::SimplicialComplex) = quo(R, stanley_reisner_ideal(R, K))
 
 ################################################################################
-###  Fundaemental group
+###  Fundamental group
 ################################################################################
 
 @doc Markdown.doc"""
@@ -357,24 +357,30 @@ Return the fundamental group of the abstract simplicial complex `K`.
 
 # Example
 ```jldoctest
-julia> x = fundamental_group(torus());
+julia> pi_1 = fundamental_group(torus());
 
-julia> describe(x[1])
+julia> describe(pi_1)
 "Z x Z"
 ```
 """
 function fundamental_group(K::SimplicialComplex)
-    n, r = pm_object(K).FUNDAMENTAL_GROUP
-    F = free_group(n)
-    rvec = Vector{FPGroupElem}(undef, length(r))
-    for (i, relation) in enumerate(r)
-        relem = one(F)
-        for term in relation
-            relem *= F[first(term) + 1]^last(term)
+    ngens, relations = pm_object(K).FUNDAMENTAL_GROUP
+    F = free_group(ngens)
+    nrels = length(relations)
+    if nrels==0
+        return F
+    else
+        rvec = Vector{FPGroupElem}(undef, nrels)
+        for (i, relation) in enumerate(relations)
+            relem = one(F)
+            for term in relation
+                relem *= F[first(term) + 1]^last(term)
+            end
+            rvec[i] = relem
         end
-        rvec[i] = relem
+        pi_1, _ = quo(F, rvec)
+        return pi_1
     end
-    return quo(F, rvec)
 end
 
 ################################################################################
