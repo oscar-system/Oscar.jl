@@ -13,7 +13,7 @@ the other moves it across. In the latter case there are no global sections
 anymore and the polyhedron becomes empty.
 ```
 julia> H = hirzebruch_surface(4)
-A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> td0 = ToricDivisor(H, [0,0,0,0])
 A torus-invariant, non-prime divisor on a normal toric variety
@@ -53,7 +53,7 @@ Identify the coefficients of a toric divisor in the group of torus invariant Wei
 # Examples
 ```
 julia> H = hirzebruch_surface(4)
-A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> D = ToricDivisor(H, [1,2,3,4])
 A torus-invariant, non-prime divisor on a normal toric variety

@@ -238,7 +238,7 @@ Construct the projective space of dimension `d`.
 # Examples
 ```jldoctest
 julia> toric_projective_space(2)
-A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, fano, 2-dimensional toric variety without torusfactor
+A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 ```
 """
 function toric_projective_space(d::Int)
@@ -287,7 +287,7 @@ Constructs the r-th Hirzebruch surface.
 # Examples
 ```jldoctest
 julia> hirzebruch_surface(5)
-A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 ```
 """
 function hirzebruch_surface(r::Int)
@@ -340,7 +340,7 @@ Constructs the delPezzo surface with b blowups for b at most 3.
 # Examples
 ```jldoctest
 julia> del_pezzo(3)
-A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, fano, 2-dimensional toric variety without torusfactor
+A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 ```
 """
 function del_pezzo(b::Int)
@@ -450,7 +450,7 @@ Return the blowup of the normal toric variety `v` on its i-th minimal torus orbi
 # Examples
 ```jldoctest
 julia> P2 = toric_projective_space(2)
-A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, fano, 2-dimensional toric variety without torusfactor
+A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> blowup_on_ith_minimal_torus_orbit(P2,1)
 A normal toric variety
@@ -470,7 +470,7 @@ Return the Cartesian/direct product of two normal toric varieties `v` and `w`.
 # Examples
 ```jldoctest
 julia> P2 = toric_projective_space(2)
-A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, fano, 2-dimensional toric variety without torusfactor
+A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> P2 * P2
 A normal toric variety
