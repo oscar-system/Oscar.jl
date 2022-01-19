@@ -546,8 +546,8 @@ function *(a::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}, b::RET) where 
   return b*a
 end
 
-function *(a::BRET, b::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET <: RingElem, MST}
-  return reduce_fraction((parent(b))(base_ring(b)(a)*lifted_numerator(b), lifted_denominator(b)))
+function *(a::BRET, b::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET<:RingElem, RT, RET <: RingElem, MST}
+  return reduce_fraction((parent(b))(base_ring(parent(b))(a)*lifted_numerator(b), lifted_denominator(b)))
 end
 
 function *(a::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}, b::BRET) where {BRT, BRET, RT, RET <: RingElem, MST}
