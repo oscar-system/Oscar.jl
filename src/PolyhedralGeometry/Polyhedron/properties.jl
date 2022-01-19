@@ -767,7 +767,7 @@ end
 ## Boolean properties
 ###############################################################################
 @doc Markdown.doc"""
-    isvery_ample(P::Polyhedron)
+    is_very_ample(P::Polyhedron)
 
 Check whether `P` is very ample.
 
@@ -776,17 +776,17 @@ Check whether `P` is very ample.
 julia> c = cube(3)
 A polyhedron in ambient dimension 3
 
-julia> isvery_ample(c)
+julia> is_very_ample(c)
 true
 
 julia> P = convex_hull([0 0 0; 1 1 0; 1 0 1; 0 1 1])
 A polyhedron in ambient dimension 3
 
-julia> isvery_ample(P)
+julia> is_very_ample(P)
 false
 ```
 """
-isvery_ample(P::Polyhedron) = pm_object(P).VERY_AMPLE::Bool
+is_very_ample(P::Polyhedron) = pm_object(P).VERY_AMPLE::Bool
 
 
 @doc Markdown.doc"""
