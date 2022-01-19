@@ -19,6 +19,7 @@ Singular = "bcd08a7b-43d2-5ff7-b6d4-c458787f915c"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 cohomCalg_jll = "5558cf25-a90e-53b0-b813-cadaa3ae7ade"
 msolve_jll = "6d01cc9a-e8f6-580e-8c54-544227e08205"
+JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 
 [compat]
 AbstractAlgebra = "0.25.0"
@@ -32,3 +33,4 @@ Singular = "0.9.2"
 julia = "1.6"
 msolve_jll = "0.2.3"
 Preferences = "1"
+JSON = "^0.20, ^0.21"

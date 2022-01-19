@@ -159,6 +159,7 @@
      "General/architecture.md",
      "General/other.md",
      "General/faq.md",
+     "General/serialization.md",
   ],
 
   "References" => "references.md",
