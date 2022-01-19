@@ -8,10 +8,11 @@ export MorphismOfProjectiveSchemes, domain, codomain, images_of_variables, map_o
 @Markdown.doc """
     ProjectiveScheme{CoeffRingType, CoeffRingElemType, RingType, RingElemType}
 
-Closed subschemes ``X ⊂ ℙʳ(A)`` of projective space of ``fiber_dimension`` ``r`` 
+Closed subschemes ``X ⊂ ℙʳ(A)`` of projective space of `fiber_dimension` ``r`` 
 over a ring of coefficients ``A`` of type `CoeffRingType` with elements of 
 type `CoeffRingElemType`. The subscheme ``X`` is given by means of a homogeneous 
-ideal ``I`` in the graded ring ``A[s₀,…,sᵣ]``.
+ideal ``I`` in the graded ring ``A[s₀,…,sᵣ]`` and the latter is of type 
+`RingType` with elements of type `RingElemType`.
 """
 mutable struct ProjectiveScheme{CoeffRingType, CoeffRingElemType, RingType, RingElemType}
   A::CoeffRingType	# the base ring
@@ -118,7 +119,7 @@ end
 homogeneous_coordinate(P::ProjectiveScheme, i::Int) = homogeneous_coordinates(P)[i]
 
 @Markdown.doc """
-    generators_of_defining_ideal(X::ProjectiveScheme) = X.I
+    generators_of_defining_ideal(X::ProjectiveScheme)
 
 On ``X ⊂ ℙʳ(A)`` this returns a set of homogeneous generators of the 
 ideal ``I ⊂ A[s₀,…,sᵣ]`` defining ``X``.
@@ -145,7 +146,7 @@ function subscheme(P::ProjectiveScheme, I::Vector{T}) where {T<:RingElem}
 end
 
 @Markdown.doc """
-    convert_to_fraction(X::ProjectiveScheme, f)
+    convert_to_fraction(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::RET) where {CRT<:MPolyQuoLocalizedRing, CRET, RT, RET}
 
 Convert a homogeneous polynomial ``f`` to an element of the ring of 
 regular functions on the `affine_cone` of ``X``.
@@ -162,7 +163,7 @@ function convert_to_fraction(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::RET) wh
   return evaluate(f, homogeneous_coordinates(X))
 end
 @Markdown.doc """
-    convert_to_homog_polys(X::ProjectiveScheme, f) 
+    convert_to_homog_polys(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::MPolyLocalizedRingElem) where {CRT<:MPolyRing, CRET, RT, RET}
 
 Convert a regular function ``f = a/b`` on some open subset of the affine 
 cone of ``X`` to a pair of homogeneous polynomials ``(p, q)``, lifting 

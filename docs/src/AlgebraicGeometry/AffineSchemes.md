@@ -14,7 +14,7 @@ of their affine patches and glueings are instances of
 Scheme{BaseRingType<:Ring, BaseRingElemType<:RingElement}
 ```
 
-## Affine schemes over noetherian base rings
+# Affine schemes over noetherian base rings
 
 Let ``\mathbb k`` be a commutative noetherian base ring 
 (in practice: an algebraic extension of ``\mathbb Q`` or ``\mathbb F_p``). 
@@ -72,10 +72,10 @@ Among the basic functionality for affine schemes we have
 product(X::Spec{BRT, BRET, RT, RET, MST}, Y::Spec{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement}
 ```
 
-## Projective Schemes
+# Projective Schemes
 
 In Oscar we provide the functionality to handle *relative projective space* and their subschemes 
-over various base rings as presented in [Har77].
+over various base rings as presented in [Har77](@cite).
 ```@docs
     ProjectiveScheme{CoeffRingType, CoeffRingElemType, RingType, RingElemType}
 ```
@@ -90,7 +90,7 @@ and the various other getters are
 ```@docs
     fiber_dimension(X::ProjectiveScheme)
     homogeneous_coordinate_ring(X::ProjectiveScheme)
-    generators_of_defining_ideal(X::ProjectiveScheme) = X.I
+    generators_of_defining_ideal(X::ProjectiveScheme)
 ```
 Internally, projective varieties are modeled via their affine cones. 
 ```@docs
@@ -101,8 +101,8 @@ ring ``S`` of a projective scheme ``X`` and the coordinate ring ``R`` of
 its affine cone ``C(X)``, we provide the following methods:
 ```@docs
     homogeneous_coordinates(X::ProjectiveScheme)
-    convert_to_fraction(X::ProjectiveScheme, f)
-    convert_to_homog_polys(X::ProjectiveScheme, f) 
+    convert_to_fraction(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::RET) where {CRT<:MPolyQuoLocalizedRing, CRET, RT, RET}
+    convert_to_homog_polys(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::MPolyLocalizedRingElem) where {CRT<:MPolyRing, CRET, RT, RET}
 ```
 
   
