@@ -160,7 +160,6 @@ grade(R::MPolyRing, W::Union{fmpz_mat, Matrix{<:IntegerUnion}})
 ```@docs
 grade(R::MPolyRing, W::Vector{<:IntegerUnion})
 ```
-:
 ```@docs
 GradedPolynomialRing(C::Ring, V::Vector{String}, W; ordering=:lex)
 ```
