@@ -485,13 +485,17 @@ function push_attribute_if_exists!(result::Vector{String}, v::AbstractNormalTori
     if has_attribute(v, property)
         if get_attribute(v, property)
             push!(result, name)
+            return true
         else
             if isnothing(alt_string)
                 push!(result, "non-"*name)
             else
                 push!(result, alt_string)
             end
+            return false
         end
+    else
+        return nothing
     end
 end
 
@@ -503,12 +507,18 @@ function Base.show(io::IO, v::AbstractNormalToricVariety)
     properties_string = ["A normal"]
 
     push_attribute_if_exists!(properties_string, v, :isaffine, "affine")
-    push_attribute_if_exists!(properties_string, v, :issmooth, "smooth")
-    push_attribute_if_exists!(properties_string, v, :issimplicial, "simplicial")
-    push_attribute_if_exists!(properties_string, v, :iscomplete, "complete")
-    push_attribute_if_exists!(properties_string, v, :isprojective, "projective")
-    push_attribute_if_exists!(properties_string, v, :isgorenstein, "gorenstein")
-    push_attribute_if_exists!(properties_string, v, :is_q_gorenstein, "q-gorenstein")
+    smooth = push_attribute_if_exists!(properties_string, v, :issmooth, "smooth")
+    if isnothing(smooth) || !smooth
+        push_attribute_if_exists!(properties_string, v, :issimplicial, "simplicial")
+    end
+    projective = push_attribute_if_exists!(properties_string, v, :isprojective, "projective")
+    if isnothing(projective) || !projective
+        push_attribute_if_exists!(properties_string, v, :iscomplete, "complete")
+    end
+    gorenstein = push_attribute_if_exists!(properties_string, v, :isgorenstein, "gorenstein")
+    if isnothing(gorenstein) || !gorenstein
+        push_attribute_if_exists!(properties_string, v, :is_q_gorenstein, "q-gorenstein")
+    end
     push_attribute_if_exists!(properties_string, v, :isfano, "fano")
     
     # dimension?
