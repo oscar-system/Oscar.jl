@@ -165,7 +165,7 @@ function groebner_basis_with_transform(B::BiPolyArray; ord::Symbol = :degrevlex,
     return BiPolyArray(B.Ox, i), map_entries(x->B.Ox(x), m)
   end
   if !isdefined(B, :S)
-    B.S = Singular.Ideal(B.Sx, [B.Sx(x) for x = B.O])
+    singular_assure(B)
   end
 #  @show "dtd", B.S
 
@@ -361,7 +361,6 @@ julia> Oscar.normal_form_internal(I,J)
 ```
 """
 function normal_form_internal(I::Singular.sideal, J::MPolyIdeal)
-    singular_assure(J)
     if !isdefined(J, :gb)
         groebner_assure(J)
     end
@@ -396,6 +395,7 @@ a^3
 ```
 """
 function normal_form(f::T, J::MPolyIdeal) where { T <: MPolyElem }
+    singular_assure(J)
     I = Singular.Ideal(J.gens.Sx, J.gens.Sx(f))
     N = normal_form_internal(I, J)
     return N[1]
@@ -437,6 +437,7 @@ julia> normal_form(A, J)
 ```
 """
 function normal_form(A::Vector{T}, J::MPolyIdeal) where { T <: MPolyElem }
+    singular_assure(J)
     I = Singular.Ideal(J.gens.Sx, [J.gens.Sx(x) for x in A])
     normal_form_internal(I, J)
 end
@@ -445,7 +446,7 @@ function groebner_assure(I::MPolyIdeal, ord::MonomialOrdering; complete_reductio
   R = base_ring(I)
   Rx = singular_ring(R, ord.o)
 
-  if !isdefined(I, :gb) || ordering(J.gb.Sx) != ordering(Rx)
+  if !isdefined(I, :gb) || ordering(I.gb.Sx) != ordering(Rx)
     I.gens.Sx = Rx
     I.gens.S = Singular.Ideal(Rx, Rx.(gens(I)))
     I.gb = BiPolyArray(I.gens.Ox, Singular.std(I.gens.S, complete_reduction = complete_reduction))

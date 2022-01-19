@@ -487,7 +487,6 @@ mutable struct BiPolyArray{S}
     r.O = a
     r.Ox = R
     r.isGB = isGB
-    r.Sx = singular_ring(r.Ox, keep_ordering = keep_ordering)
     return r
   end
 
@@ -788,6 +787,7 @@ end
 
 function singular_assure(I::BiPolyArray)
   if !isdefined(I, :S)
+    I.Sx = singular_ring(I.Ox, keep_ordering=false)
     I.S = Singular.Ideal(I.Sx, elem_type(I.Sx)[I.Sx(x) for x = I.O])
     if I.isGB
       I.S.isGB = true
