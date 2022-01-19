@@ -320,20 +320,20 @@ vector of variables.
 
 # Examples
 ```jldoctest
-julia> R, (t, x, y) = PolynomialRing(QQ, ["t", "x", "y"])
+ulia> R, (t, x, y) = PolynomialRing(QQ, ["t", "x", "y"])
 (Multivariate Polynomial Ring in t, x, y over Rational Field, fmpq_mpoly[t, x, y])
 
 julia> typeof(R)
 FmpqMPolyRing
 
-julia> typeof(x)
+julia>  typeof(x)
 fmpq_mpoly
 
 julia> G = abelian_group([0])
 GrpAb: Z
 
 julia> S, (t, x, y) = grade(R, [-gen(G, 1), gen(G, 1), gen(G, 1)])
-(Multivariate Polynomial Ring in t, x, y over Rational Field graded by 
+(Multivariate Polynomial Ring in t, x, y over Rational Field graded by
   t -> [-1]
   x -> [1]
   y -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[t, x, y])
@@ -355,19 +355,33 @@ GrpAb: Z^2
 
 julia> g = gens(G)
 2-element Vector{GrpAbFinGenElem}:
- Element of A with components [1 0]
- Element of A with components [0 1]
+ Element of
+GrpAb: Z^2
+with components [1 0]
+ Element of
+GrpAb: Z^2
+with components [0 1]
 
 julia> W = [g[1], g[1], g[2], g[2], g[2]]
 5-element Vector{GrpAbFinGenElem}:
- Element of A with components [1 0]
- Element of A with components [1 0]
- Element of A with components [0 1]
- Element of A with components [0 1]
- Element of A with components [0 1]
+ Element of
+GrpAb: Z^2
+with components [1 0]
+ Element of
+GrpAb: Z^2
+with components [1 0]
+ Element of
+GrpAb: Z^2
+with components [0 1]
+ Element of
+GrpAb: Z^2
+with components [0 1]
+ Element of
+GrpAb: Z^2
+with components [0 1]
 
 julia> S, _ = grade(R, W)
-(Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by 
+(Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
   x[1] -> [1 0]
   x[2] -> [1 0]
   y[1] -> [0 1]
@@ -400,21 +414,48 @@ julia> G = abelian_group([0, 0, 2, 2])
 
 julia> g = gens(G)
 4-element Vector{GrpAbFinGenElem}:
- Element of G with components [1 0 0 0]
- Element of G with components [0 1 0 0]
- Element of G with components [0 0 1 0]
- Element of G with components [0 0 0 1]
+ Element of
+(General) abelian group with relation matrix
+[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
+with components [1 0 0 0]
+ Element of
+(General) abelian group with relation matrix
+[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
+with components [0 1 0 0]
+ Element of
+(General) abelian group with relation matrix
+[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
+with components [0 0 1 0]
+ Element of
+(General) abelian group with relation matrix
+[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
+with components [0 0 0 1]
 
 julia> W = [g[1]+g[3]+g[4], g[2]+g[4], g[1]+g[3], g[2], g[1]+g[2]]
 5-element Vector{GrpAbFinGenElem}:
- Element of A with components [1 0 1 1]
- Element of A with components [0 1 0 1]
- Element of A with components [1 0 1 0]
- Element of A with components [0 1 0 0]
- Element of A with components [1 1 0 0]
+ Element of
+(General) abelian group with relation matrix
+[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
+with components [1 0 1 1]
+ Element of
+(General) abelian group with relation matrix
+[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
+with components [0 1 0 1]
+ Element of
+(General) abelian group with relation matrix
+[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
+with components [1 0 1 0]
+ Element of
+(General) abelian group with relation matrix
+[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
+with components [0 1 0 0]
+ Element of
+(General) abelian group with relation matrix
+[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
+with components [1 1 0 0]
 
 julia> S, x = grade(R, W)
-(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field graded by 
+(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field graded by
   x[1] -> [1 0 1 1]
   x[2] -> [0 1 0 1]
   x[3] -> [1 0 1 0]
@@ -676,7 +717,7 @@ julia> g = gens(G);
 julia> W = [g[1]+g[3]+g[4], g[2]+g[4], g[1]+g[3], g[2], g[1]+g[2]];
 
 julia> S, x = grade(R, W)
-(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field graded by 
+(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field graded by
   x[1] -> [1 0 1 1]
   x[2] -> [0 1 0 1]
   x[3] -> [1 0 1 0]
@@ -687,7 +728,10 @@ julia> f = x[2]^2+2*x[4]^2
 x[2]^2 + 2*x[4]^2
 
 julia> degree(f)
-Element of G with components [0 2 0 0]
+Element of
+(General) abelian group with relation matrix
+[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
+with components [0 2 0 0]
 
 julia> W = [[1, 0], [0, 1], [1, 0], [4, 1]]
 4-element Vector{Vector{Int64}}:
@@ -697,7 +741,7 @@ julia> W = [[1, 0], [0, 1], [1, 0], [4, 1]]
  [4, 1]
 
 julia> R, x = GradedPolynomialRing(QQ, ["x[1]", "x[2]", "x[3]", "x[4]"], W)
-(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4] over Rational Field graded by 
+(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4] over Rational Field graded by
   x[1] -> [1 0]
   x[2] -> [0 1]
   x[3] -> [1 0]
@@ -714,8 +758,8 @@ julia> degree(Vector{Int}, f)
  4
  1
 
-julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"], [1, 2, 3])
-(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
+julia>  R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"], [1, 2, 3])
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [2]
   z -> [3], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
@@ -1046,7 +1090,7 @@ julia> g = gens(G);
 julia> W = [g[1]+g[3]+g[4], g[2]+g[4], g[1]+g[3], g[2], g[1]+g[2]];
 
 julia> S, x = grade(R, W)
-(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field graded by 
+(Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field graded by
   x[1] -> [1 0 1 1]
   x[2] -> [0 1 0 1]
   x[3] -> [1 0 1 0]
@@ -1056,11 +1100,33 @@ julia> S, x = grade(R, W)
 julia> L = homogeneous_component(S, g[1]+g[3]);
 
 julia> L[1]
-S_[1 0 1 0] of dim 1
+homogeneous component of Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field graded by
+  x[1] -> [1 0 1 1]
+  x[2] -> [0 1 0 1]
+  x[3] -> [1 0 1 0]
+  x[4] -> [0 1 0 0]
+  x[5] -> [1 1 0 0] of degree Element of
+(General) abelian group with relation matrix
+[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
+with components [1 0 1 0]
 
 julia> L[2]
 Map from
-S_[1 0 1 0] of dim 1 to S defined by a julia-function with inverse
+homogeneous component of Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field graded by
+  x[1] -> [1 0 1 1]
+  x[2] -> [0 1 0 1]
+  x[3] -> [1 0 1 0]
+  x[4] -> [0 1 0 0]
+  x[5] -> [1 1 0 0] of degree Element of
+(General) abelian group with relation matrix
+[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
+with components [1 0 1 0]
+ to Multivariate Polynomial Ring in x[1], x[2], x[3], x[4], x[5] over Rational Field graded by
+  x[1] -> [1 0 1 1]
+  x[2] -> [0 1 0 1]
+  x[3] -> [1 0 1 0]
+  x[4] -> [0 1 0 0]
+  x[5] -> [1 1 0 0] defined by a julia-function with inverse
 ```
 """
 function homogeneous_component(W::MPolyRing_dec, d::GrpAbFinGenElem)

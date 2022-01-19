@@ -249,7 +249,7 @@ An often more effective way to create polynomials is to use the `MPoly` build co
 R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 B = MPolyBuildCtx(R)
 for i = 1:5 push_term!(B, QQ(i), [i, i-1]) end
-finish(B::MPolyBuildCtx)
+finish(B)
 ```
 
 
@@ -307,3 +307,4 @@ degree(f::MPolyElem_dec)
 
 How to handle homomorphisms of multivariate polynomial rings and their graded versions is described in
 a more general context in the section on affine algebras. 
+
