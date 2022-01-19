@@ -320,7 +320,7 @@ vector of variables.
 
 # Examples
 ```jldoctest
-ulia> R, (t, x, y) = PolynomialRing(QQ, ["t", "x", "y"])
+julia> R, (t, x, y) = PolynomialRing(QQ, ["t", "x", "y"])
 (Multivariate Polynomial Ring in t, x, y over Rational Field, fmpq_mpoly[t, x, y])
 
 julia> typeof(R)
