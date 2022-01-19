@@ -94,7 +94,12 @@ end
 
 function fp_group(C::GModule)
   if !isdefined(C, :F)
-    C.F, C.mF = fp_group(gens(Group(C)))
+    if order(Group(C)) == 1
+      C.F = free_group(0)
+      C.mF = hom(C.F, Group(C), gens(C.F), elem_type(Group(C))[])
+    else
+      C.F, C.mF = fp_group(gens(Group(C)))
+    end
   end
   return C.F, C.mF
 end
@@ -115,7 +120,7 @@ function action(C::GModule, g, v::Array)
 end
 
 function action(C::GModule, g, v)
-  return action(C, g, [v])
+  return action(C, g, [v])[1]
 end
 
 function action(C::GModule, g)
@@ -230,7 +235,7 @@ function H_one_maps(C::GModule)
   so, a kernel computation again
   =#
 
-  @show G = Group(C)
+  G = Group(C)
   n = ngens(G)
   M = Module(C)
   D, pro, inj = direct_product([M for i=1:n]..., task = :both)
@@ -743,7 +748,7 @@ function H_two(C::GModule)
     return CoChain{2,elem_type(G),elem_type(M)}(C, di)
   end
 
-  symbolic_chain = function(g::FPGroupElem, h::FPGroupElem)
+  symbolic_chain = function(g, h)
     c.f = symbolic_collect
     c.T = Z
     if order(G) == 1
@@ -816,10 +821,125 @@ as the map between the 2 groups
 function fp_group(M::GrpAbFinGen)
   G = free_group(ngens(M))
   R = rels(M)
-  s = vcat([i*j*inv(i)*inv(j) for i = gens(G) for j = gens(G)], 
-                  [reduce(*, [gen(G, i)^R[j,i] for i=1:ngens(M) if !iszero(R[j,i])], init = one(G)) for j=1:nrows(R)])
+  s = vcat(elem_type(G)[i*j*inv(i)*inv(j) for i = gens(G) for j = gens(G) if i != j], 
+                  elem_type(G)[reduce(*, [gen(G, i)^R[j,i] for i=1:ngens(M) if !iszero(R[j,i])], init = one(G)) for j=1:nrows(R)])
   F, mF = quo(G, s)
-  return F, MapFromFunc(x->reduce(+, [sign(w)*gen(M, abs(w)) for w = word(x)], init = zero(M)), y->mF(reduce(*, [gen(G, i)^y[i] for i=1:ngens(M)], init = one(G))), F, M)
+  return F, MapFromFunc(
+    x->reduce(+, [sign(w)*gen(M, abs(w)) for w = word(x)], init = zero(M)),
+    y->mF(reduce(*, [gen(G, i)^y[i] for i=1:ngens(M)], init = one(G))),
+    F, M)
+end
+
+#=
+function get_collector(G::GAP.GapObj)
+  @show G
+  return GAP.evalstr("x -> FamilyObj(x.1)!.rewritingSystem")(G)
+end
+=#
+
+"""
+Compute an isomorphic pc-group (amd the isomorphism). If `refine` is true,
+the pc-generators will all have prime relative order, thus the
+group should be safe to use.
+If `refine` is false, then the relative orders are just used from the hnf
+of the relation matrix.
+"""
+function pc_group(M::GrpAbFinGen; refine::Bool = true)
+  @assert isfinite(M)
+  R = rels(M)
+  h = hnf(R)
+  if nrows(h) > ncols(h)
+    h = view(h, 1:ncols(h), :)
+  end
+  @assert nrows(h) == ncols(h)
+  if refine
+    r = sparse_matrix(ZZ)
+    ng = 1
+    gp = []
+    hm = elem_type(M)[]
+    for i=1:nrows(h)
+      lf = factor(h[i,i]).fac
+      for (p,k) = lf
+        v = divexact(h[i,i], p^k)*M[i]
+        for j=1:k-1
+          push!(r, sparse_row(ZZ, [ng, ng+1], [p, fmpz(-1)]))
+          push!(hm, v)
+          v *= p
+          ng += 1
+        end
+        push!(r, sparse_row(ZZ, [ng], [p]))
+        push!(gp, ng)
+        push!(hm, v)
+        ng += 1
+      end
+    end
+    for i=1:nrows(h)
+      for j=i+1:ncols(h)
+        if !iszero(h[i,j])
+          push!(r.rows[gp[i]], gp[j])
+          push!(r.values(gp[i], h[i,j]))
+        end
+      end
+    end
+    MM = abelian_group(matrix(r))
+    h = hom(MM, M, hm)
+    M = MM
+    mM = h
+  else
+    mM = hom(M, M, gens(M))
+  end
+
+  G = free_group(ngens(M))
+  h = rels(M)
+  @assert !any(x->h[x,x] == 1, 1:ncols(h))
+
+  C = GAP.Globals.SingleCollector(G.X, GAP.julia_to_gap([h[i,i] for i=1:nrows(h)], recursive = true))
+  F = GAP.Globals.FamilyObj(GAP.Globals.Identity(G.X))
+
+  B = PcGroup(GAP.Globals.GroupByRws(C))
+  FB = GAP.Globals.FamilyObj(GAP.Globals.Identity(B.X))
+
+  Julia_to_gap = function(a::GrpAbFinGenElem)
+    r = fmpz[]
+    for i=1:ngens(M)
+      if !iszero(a[i])
+        push!(r, i)
+        push!(r, a[i])
+      end
+    end
+    return GAP.Globals.ObjByExtRep(FB, GAP.julia_to_gap(r, recursive = true))
+  end
+
+  gap_to_julia = function(a::GAP.GapObj)
+    e = GAP.Globals.ExtRepOfObj(a)
+    z = zeros(fmpz, ngens(M))
+    for i=1:2:length(e)
+      if !iszero(e[i+1])
+        z[e[i]] = e[i+1]
+      end
+    end
+    return M(z)
+  end
+
+  for i=1:ngens(M)-1
+    r = fmpz[]
+    for j=i+1:ngens(M)
+      push!(r, j)
+      push!(r, -h[i, j])
+      GAP.Globals.SetConjugate(C, j, i, gen(G, j).X)
+    end
+    rr = GAP.Globals.ObjByExtRep(F, GAP.julia_to_gap(r, recursive = true))
+    GAP.Globals.SetPower(C, i, rr)
+  end
+
+  return B, MapFromFunc(
+    x->image(mM, gap_to_julia(x.X)),
+    y->PcGroupElem(B, Julia_to_gap(preimage(mM, y))),
+    B, codomain(mM))
+end
+
+function fp_group(::Type{PcGroup}, M::GrpAbFinGen; refine::Bool = true)
+  return pc_group(M)
 end
 
 function underlying_word(g::FPGroupElem)
@@ -831,6 +951,9 @@ Given a 2-cocycle, return the corresponding group extension, ie. the large
 group, the injection of the abelian group and the quotient as well as a map
 that given a tuple of elements in the group and the abelian group returns
 the corresponding elt in the extension. 
+
+If the gmodule is defined via a pc-group and the 1st argument if the 
+`Type{PcGroup}`, the resulting group is also pc.
 """
 function extension(c::CoChain{2,<:Oscar.GAPGroupElem})
   C = c.C
@@ -887,11 +1010,123 @@ function extension(c::CoChain{2,<:Oscar.GAPGroupElem})
   return Q, inv(mfM)*MtoQ, QtoG, GMtoQ
 end
 
+function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
+  C = c.C
+  G = Group(C)
+  @assert isa(G, PcGroup)
+  M = Module(C)
+  ac = action(C)
+  iac = inv_action(C)
+  fM, mfM = pc_group(M)
+
+  N = free_group(ngens(G) + ngens(fM))
+  Gp = GAP.Globals.Pcgs(G.X)
+  Go = GAP.Globals.RelativeOrders(Gp)
+
+  Mp = GAP.Globals.Pcgs(fM.X)
+  Mo = GAP.Globals.RelativeOrders(Mp)
+
+  CN = GAP.Globals.SingleCollector(N.X, GAP.Globals.Concatenation(Go, Mo))
+  FN = GAP.Globals.FamilyObj(N[1].X)
+
+  for i=1:ngens(fM)
+    lp = GAP.Globals.ExtRepOfObj(Mp[i]^Mo[i])
+    for k=1:2:length(lp)
+      lp[k] += ngens(G)
+    end
+    GAP.Globals.SetPower(CN, i+ngens(G), GAP.Globals.ObjByExtRep(FN, lp))
+    for j=i+1:ngens(fM)
+      p = Mp[j]^Mp[i]
+      lp = GAP.Globals.ExtRepOfObj(p)
+      for k=1:2:length(lp)
+        lp[k] += ngens(G)
+      end
+      GAP.Globals.SetConjugate(CN, j+ngens(G), i+ngens(G), GAP.Globals.ObjByExtRep(FN, lp))
+    end
+  end
+
+  fMtoN = function(x)
+    lp = GAP.Globals.ExtRepOfObj(x.X)
+    for k=1:2:length(lp)
+      lp[k] += ngens(G)
+    end
+    return GAP.Globals.ObjByExtRep(FN, lp)
+  end
+
+  word = function(y)
+    z = GAP.Globals.UnderlyingElement(y)
+    return map(Int, GAP.Globals.LetterRepAssocWord(z))
+  end
+
+  word_to_elem = function(R)
+    t = zero(M)
+    g = one(G)
+    r = one(N)
+    for w = word(R)
+      if w > 0
+        t = ac[w](t) + c(g, gen(G, w))
+        g = g*gen(G, w)
+        r = r*gen(N, w)
+      else
+        t = iac[-w](t) + c(g, inv(gen(G, -w)))
+        g = g*inv(gen(G, -w))
+        r = r*inv(gen(N, -w))
+      end
+    end
+    return r.X*fMtoN(preimage(mfM, t))
+  end
+
+  for i=1:ngens(G)
+    p = Gp[i]^Go[i]
+    GAP.Globals.SetPower(CN, i, word_to_elem(p))
+    for j=i+1:ngens(G)
+      p = Gp[j]^Gp[i]
+      GAP.Globals.SetConjugate(CN, j, i, word_to_elem(p))
+    end
+    for j=1:ngens(fM)
+      GAP.Globals.SetConjugate(CN, j+ngens(G), i, fMtoN(preimage(mfM, action(C, gen(G, i), mfM(gen(fM, j))))))
+    end
+  end
+
+
+  Q = PcGroup(GAP.Globals.GroupByRws(CN))
+  mQ = hom(N, Q, gens(N), gens(Q))
+
+  @assert ngens(Q) == ngens(N)
+  MtoQ = hom(fM, Q, gens(fM), gens(Q)[ngens(G)+1:end])
+  QtoG = hom(Q, G, gens(Q), vcat(gens(G), [one(G) for i=1:ngens(fM)]))
+  @assert domain(mfM) ==fM 
+  @assert codomain(mfM) == M
+
+  mfG = GAP.Globals.EpimorphismFromFreeGroup(G.X)
+  fG = FPGroup(GAP.Globals.Source(mfG))
+  mfG = Oscar._hom_from_gap_map(fG, G, mfG)
+
+  mffM = GAP.Globals.EpimorphismFromFreeGroup(fM.X)
+  ffM = FPGroup(GAP.Globals.Source(mffM))
+  mffM = Oscar._hom_from_gap_map(ffM, fM, mffM)
+
+  function GMtoQ(g::GAPGroupElem, m)
+    @assert parent(m) == M
+    @assert parent(g) == G
+    h1 = hom(fG, N, gens(fG), [N[i] for i=1:ngens(G)])
+    h2 = hom(ffM, N, gens(ffM), [N[i+ngens(G)] for i=1:ngens(fM)])
+    return mQ(h1(preimage(mfG, g))*h2(preimage(mffM, preimage(mfM, m))))
+  end
+
+  return Q, inv(mfM)*MtoQ, QtoG, GMtoQ
+end
+
 function fp_group(c::CoChain{2})
   return extension(c)[1]
 end
 
+function pc_group(c::CoChain{2, <:Oscar.PcGroupElem})
+  return extension(PcGroup, c)[1]
+end
+
 Oscar.elem_type(::Type{Hecke.NfMorSet{T}}) where {T <: Hecke.LocalField} = Hecke.LocalFieldMor{T, T}
+
 function Oscar.automorphism_group(::Type{PermGroup}, k)
   G, mG = automorphism_group(k)
   H = symmetric_group(degree(k))
@@ -1038,7 +1273,7 @@ function local_cohomology_easy(A::ClassField, p::NfOrdIdl)
 end
 
 export GModule, gmodule, word, fp_group, confluent_fp_group
-       action, cohomology_group, extension, iscoboundary
+       action, cohomology_group, extension, iscoboundary, pc_group
 
 Oscar.dim(C::GModule) = rank(C.M)
 Oscar.base_ring(C::GModule) = base_ring(C.M)
@@ -1079,5 +1314,5 @@ Sort:
 end # module GrpCoh
 
 using .GrpCoh
-export gmodule, GModule
+export gmodule, GModule, fp_group, pc_group
 

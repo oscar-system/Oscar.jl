@@ -426,6 +426,8 @@ function Oscar.gmodule(::Type{GrpAbFinGen}, C::GModule{T, Generic.FreeModule{gfp
   A = abelian_group([characteristic(base_ring(C)) for i=1:rank(C.M)])
   return Oscar.gmodule(A, Group(C), [hom(A, A, map_entries(lift, mat(x))) for x = C.ac])
 end
+#TODO: cover all finite fields
+#      make the Modules work
 
 #to bypass the vec(collect(M)) which copies twice
 function Base.vec(M::Generic.Mat)
@@ -709,7 +711,7 @@ function extend(C::GModule, m::Map)
 end
 
 
-function brueckner(G::FPGroup)
+function brueckner(G::Oscar.GAPGroup)
   #=
   actually, the initial prime list should be from
   the order of the maximal abelian quotient
@@ -717,9 +719,9 @@ function brueckner(G::FPGroup)
   =#
   F = free_module(QQ, 1)
   h = hom(F, F, [F[1]])
-  Q = free_group(1)
-  Q = quo(Q, [Q[1]])[1]
-  mQ = hom(G, Q, gens(G), [Q[1] for i=1:ngens(G)])
+
+  Q = Oscar.GrpCoh.pc_group(abelian_group([1]))[1]
+  mQ = hom(G, Q, gens(G), [one(Q) for i=1:ngens(G)])
 
   C = gmodule(F, G, [h for g = gens(G)])
   CZ = gmodule(GrpAbFinGen, gmodule(ZZ, C))
@@ -741,15 +743,17 @@ function brueckner(G::FPGroup)
   t = torsion_subgroup(q)[1]
   lp = collect(keys(factor(order(t)).fac))
   allR = Dict{Int, Vector{Any}}()
-  @assert ngens(Q) == 1
+
   allR[0] = [gmodule(F, Q, typeof(h)[])]
   for p = lp
     F = free_module(GF(p), 1)
+    F = abelian_group([p])
     h = hom(F, F, [F[1]])
     allR[p] = [gmodule(F, Q, [h])]
   end
   return allR
 end
+
 Base.getindex(M::AbstractAlgebra.FPModule, i::Int) = i==0 ? zero(M) : gens(M)[i]
 Oscar.gen(M::AbstractAlgebra.FPModule, i::Int) = M[i]
 
@@ -829,10 +833,10 @@ function lift(C::GModule, mp::Map)
     chn = pDE[2](mk(x)) #the tail data
     #TODO: not all "chn" yield distinct groups - the factoring by the 
     #      co-boundaries is missing
-    #      not all "epi" are epi, ie. sujective. The part of the thm
+    #      not all "epi" are epi, ie. surjective. The part of the thm
     #      is missing...
     # (Thm 15, part b & c)
-    GG, GGinj, GGpro, GMtoGG = Oscar.GrpCoh.extension(z(chn))
+    GG, GGinj, GGpro, GMtoGG = Oscar.GrpCoh.extension(PcGroup, z(chn))
     #map G[i] -> <mp(G[i]), pro[i](epi)>
     push!(allG, (GG, [hom(G, GG, gens(G), [GMtoGG(mp(G[i]), pro[i](epi)) for i=1:ngens(G)])]))
   end
