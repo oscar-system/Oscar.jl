@@ -306,7 +306,7 @@ function Base.getproperty(f::SesquilinearForm, sym::Symbol)
    if isdefined(f,sym) return getfield(f,sym) end
 
    if sym === :ring_iso
-      f.ring_iso = ring_iso_oscar_gap(base_ring(f))
+      f.ring_iso = iso_oscar_gap(base_ring(f))
 
    elseif sym == :X
       if !isdefined(f, :X)

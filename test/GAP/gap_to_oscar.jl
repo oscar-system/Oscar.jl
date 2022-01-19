@@ -115,9 +115,31 @@ end
     @test_throws GAP.ConversionError GAP.gap_to_julia(fmpq_mat, val)
 end
 
+@testset "finite field elements" begin
+  @testset "with characteristic $p" for p in [ 5, fmpz(5), 65537, fmpz(65537) ]
+    @testset "with finite field $F" for F in [ GF(p), GF(p,1), GF(p,2) ]
+        x = F(2)
+        q = order(F)
+
+        # GAP large integers
+        val = GAP.evalstr( "2+$p*2^65" )
+        @test F(val) == x
+
+        # finite field elements from prime field
+        z_gap = GAP.evalstr( "Z($p)" )
+        @test F(z_gap)^2 == F(z_gap^2)
+
+        # finite field elements from full field
+        # FIXME: this is not yet implemented in general
+        #z_gap = GAP.evalstr( "Z($q)" )
+        #@test F(z_gap)^2 == F(z_gap^2)
+    end
+  end
+end
+
 @testset "finite field matrix" begin
   @testset "with characteristic $p" for p in [ 5, fmpz(5), 65537, fmpz(65537) ]
-    @testset "with finite field $F" for F in [ GF(p), FiniteField(p,1,"a")[1], FiniteField(p,2,"a")[1] ]
+    @testset "with finite field $F" for F in [ GF(p), GF(p,1), GF(p,2) ]
         x = F[1 2; 3 4]
 
         # matrix of small (GAP) integers

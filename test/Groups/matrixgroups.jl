@@ -2,7 +2,7 @@
 
    @testset for (p,d) in [(2,1),(5,1),(2,4),(3,3),(2,8)]
       F = GF(p,d)
-      f = Oscar.ring_iso_oscar_gap(F)
+      f = Oscar.iso_oscar_gap(F)
       g = elm -> map_entries(f, elm)
       for a in F
          for b in F
@@ -23,7 +23,7 @@
    # (Oscar chooses a polynomial that is not a Conway polynomial.)
    p = next_prime(10^6)
    F = GF(p, 2)
-   f = Oscar.ring_iso_oscar_gap(F)
+   f = Oscar.iso_oscar_gap(F)
    for x in [ F(3), gen(F) ]
       a = f(x)
       @test preimage(f, a) == x
@@ -109,7 +109,7 @@ end
    push!(fields, (QQ, 1))
 
    @testset for (F, z) in fields
-      f = Oscar.ring_iso_oscar_gap(F)
+      f = Oscar.iso_oscar_gap(F)
       g = elm -> map_entries(f, elm)
       for i in 1:10
          a = my_rand_bits(F, 5)
@@ -155,41 +155,32 @@ end
 end
 
 @testset "faithful reduction from char. zero to finite fields" begin
-   M = matrix(QQ, [ 0 1 0; -1 0 0; 0 0 -1 ])
-   G, g = Oscar.isomorphic_group_over_finite_field(matrix_group([ M ]))
-   for i in 1:10
-     x, y = rand(G), rand(G)
-     @test (g\x) * (g\y) == g\(x * y)
-     @test g(g\x) == x
-   end
-   H = GAP.Globals.Group(GAP.julia_to_gap([ 0 1 0; -1 0 0; 0 0 -1 ]))
-   f = GAP.Globals.GroupHomomorphismByImages(G.X, H)
-   @test GAP.Globals.IsBijective(f)
 
    M = matrix(QQ, [ 2 0; 0 2 ])
    @test_throws ErrorException Oscar.isomorphic_group_over_finite_field(matrix_group([M]))
 
    K, a = CyclotomicField(5, "a")
-   M = matrix(K, [ a 0; 0 a ])
-   G, g = Oscar.isomorphic_group_over_finite_field(matrix_group([M]))
-   for i in 1:10
-     x, y = rand(G), rand(G)
-     @test (g\x) * (g\y) == g\(x * y)
-     @test g(g\x) == x
-   end
-   H = GAP.Globals.Group(GAP.julia_to_gap([ GAP.Globals.E(5) 0; 0 GAP.Globals.E(5) ]))
-   f = GAP.Globals.GroupHomomorphismByImages(G.X, H)
-   @test GAP.Globals.IsBijective(f)
+   L, b = CyclotomicField(3, "b")
 
-   K, a = CyclotomicField(3, "a")
-   M1 = matrix(K, 2, 2, [ a, 0, -a - 1, 1 ])
-   M2 = matrix(K, 2, 2, [ 1, a + 1, 0, a ])
-   G, g = Oscar.isomorphic_group_over_finite_field(matrix_group([ M1, M2 ]))
-   @test order(G) == 24
-   for i in 1:10
-     x, y = rand(G), rand(G)
-     @test (g\x) * (g\y) == g\(x * y)
-     @test g(g\x) == x
+   inputs = [
+     #[ matrix(ZZ, [ 0 1 0; -1 0 0; 0 0 -1 ]) ],
+     [ matrix(QQ, [ 0 1 0; -1 0 0; 0 0 -1 ]) ],
+     [ matrix(K, [ a 0; 0 a ]) ],
+     [ matrix(L, 2, 2, [ b, 0, -b - 1, 1 ]), matrix(L, 2, 2, [ 1, b + 1, 0, b ]) ]
+   ]
+
+   @testset "... over ring $(base_ring(mats[1]))" for mats in inputs
+     G0 = matrix_group(mats)
+     G, g = Oscar.isomorphic_group_over_finite_field(G0)
+     for i in 1:10
+       x, y = rand(G), rand(G)
+       @test (g\x) * (g\y) == g\(x * y)
+       @test g(g\x) == x
+     end
+     H = GAP.Globals.Group(GAP.julia_to_gap(gens(G0); recursive=true))
+     f = GAP.Globals.GroupHomomorphismByImages(G.X, H)
+     @test GAP.Globals.IsBijective(f)
+     @test order(G) == GAP.Globals.Order(H)
    end
 end
 

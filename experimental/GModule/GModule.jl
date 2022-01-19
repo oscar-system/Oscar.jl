@@ -175,7 +175,7 @@ function Hecke.modular_proj(C::GModule{T, Generic.FreeModule{nf_elem}}, me::Heck
   return R
 end
 
-function Gap(C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}}, h=Oscar.ring_iso_oscar_gap(base_ring(C)))
+function Gap(C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}}, h=Oscar.iso_oscar_gap(base_ring(C)))
   z = get_attribute(C, :Gap)
   if z !== nothing
     return z
@@ -216,7 +216,7 @@ end
 
 function hom_base(C::T, D::T) where T <: GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}}
   @assert base_ring(C) == base_ring(D)
-  h = Oscar.ring_iso_oscar_gap(base_ring(C))
+  h = Oscar.iso_oscar_gap(base_ring(C))
   hb = GAP.Globals.MTX.BasisModuleHomomorphisms(Gap(C, h), Gap(D, h))
   n = length(hb)
   b = map(x->matrix(map(y->preimage(h, y), Oscar.GAP.gap_to_julia(Matrix{Any}, x))), hb)
@@ -536,7 +536,7 @@ end
 if isdefined(Hecke, :stub_composition_factors)
   function Hecke.stub_composition_factors(x::Vector{T}) where {T}
     F = base_ring(x[1])
-    h = Oscar.ring_iso_oscar_gap(F)
+    h = Oscar.iso_oscar_gap(F)
     V = _to_gap(h, x)
     Vcf = GAP.Globals.MTX.CompositionFactors(V)
     res = Vector{T}[]
@@ -550,7 +550,7 @@ end
 if isdefined(Hecke, :stub_basis_hom_space)
   function Hecke.stub_basis_hom_space(x::Vector, y::Vector)
     F = base_ring(x[1])
-    h = Oscar.ring_iso_oscar_gap(F)
+    h = Oscar.iso_oscar_gap(F)
     @assert base_ring(x[1]) == base_ring(y[1])
     @assert length(x) == length(y)
     hb = GAP.Globals.MTX.BasisModuleHomomorphisms(_to_gap(h, x), _to_gap(h, y))

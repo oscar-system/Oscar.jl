@@ -17,8 +17,8 @@ true
 """
 function iscartier(td::ToricDivisor)
     return get_attribute!(td, :iscartier) do
-        return pm_tdivisor(td).CARTIER::Bool
-    end
+        return pm_tdivisor(td).CARTIER
+    end::Bool
 end
 export iscartier
 
@@ -41,8 +41,8 @@ false
 """
 function isprincipal(td::ToricDivisor)
     return get_attribute!(td, :isprincipal) do
-        return pm_tdivisor(td).PRINCIPAL::Bool
-    end
+        return pm_tdivisor(td).PRINCIPAL
+    end::Bool
 end
 export isprincipal
 
@@ -65,8 +65,8 @@ true
 """
 function isbasepoint_free(td::ToricDivisor)
     return get_attribute!(td, :isbasepoint_free) do
-        return pm_tdivisor(td).BASEPOINT_FREE::Bool
-    end
+        return pm_tdivisor(td).BASEPOINT_FREE
+    end::Bool
 end
 export isbasepoint_free
 
@@ -89,8 +89,8 @@ true
 """
 function iseffective(td::ToricDivisor)
     return get_attribute!(td, :iseffective) do
-        return pm_tdivisor(td).EFFECTIVE::Bool
-    end
+        return pm_tdivisor(td).EFFECTIVE
+    end::Bool
 end
 export iseffective
 
@@ -113,8 +113,8 @@ true
 """
 function isintegral(td::ToricDivisor)
     return get_attribute!(td, :isintegral) do
-        return pm_tdivisor(td).INTEGRAL::Bool
-    end
+        return pm_tdivisor(td).INTEGRAL
+    end::Bool
 end
 export isintegral
 
@@ -137,8 +137,8 @@ false
 """
 function isample(td::ToricDivisor)
     return get_attribute!(td, :isample) do
-        return pm_tdivisor(td).AMPLE::Bool
-    end
+        return pm_tdivisor(td).AMPLE
+    end::Bool
 end
 export isample
 
@@ -161,8 +161,8 @@ false
 """
 function isvery_ample(td::ToricDivisor)
     return get_attribute!(td, :isvery_ample) do
-        return pm_tdivisor(td).VERY_AMPLE::Bool
-    end
+        return pm_tdivisor(td).VERY_AMPLE
+    end::Bool
 end
 export isvery_ample
 
@@ -185,8 +185,8 @@ true
 """
 function isnef(td::ToricDivisor)
     return get_attribute!(td, :isnef) do
-        return pm_tdivisor(td).NEF::Bool
-    end
+        return pm_tdivisor(td).NEF
+    end::Bool
 end
 export isnef
 
@@ -209,8 +209,8 @@ true
 """
 function isq_cartier(td::ToricDivisor)
     return get_attribute!(td, :isq_cartier) do
-        return pm_tdivisor(td).Q_CARTIER::Bool
-    end
+        return pm_tdivisor(td).Q_CARTIER
+    end::Bool
 end
 export isq_cartier
 
@@ -239,6 +239,6 @@ function isprime_divisor(td::ToricDivisor)
         else
             return all(y -> (y == 1 || y == 0), coefficients(td))
         end
-    end    
+    end::Bool
 end
 export isprime_divisor

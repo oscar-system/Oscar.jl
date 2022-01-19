@@ -36,13 +36,14 @@ A polyhedral cone in ambient dimension 2
 ```
 """
 function Cone(R::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix}, L::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix, Nothing} = nothing; non_redundant::Bool = false)
-    RM = matrix_for_polymake(R)
-    LM = isnothing(L) || isempty(L) ? Polymake.Matrix{Polymake.Rational}(undef, 0, size(RM, 2)) : matrix_for_polymake(L)
+    if isnothing(L) || isempty(L)
+        L = Polymake.Matrix{Polymake.Rational}(undef, 0, size(R, 2))
+    end
 
     if non_redundant
-        return Cone(Polymake.polytope.Cone{Polymake.Rational}(RAYS = RM, LINEALITY_SPACE = LM,))
+        return Cone(Polymake.polytope.Cone{Polymake.Rational}(RAYS = R, LINEALITY_SPACE = L,))
     else
-        return Cone(Polymake.polytope.Cone{Polymake.Rational}(INPUT_RAYS = RM, INPUT_LINEALITY = LM,))
+        return Cone(Polymake.polytope.Cone{Polymake.Rational}(INPUT_RAYS = R, INPUT_LINEALITY = L,))
     end
 end
 
@@ -74,9 +75,8 @@ A polyhedral cone in ambient dimension 2
 ```
 """
 function positive_hull(R::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix})
-    # TODO: Filter out zero rows
     C=Polymake.polytope.Cone{Polymake.Rational}(INPUT_RAYS =
-      matrix_for_polymake(remove_zero_rows(R)))
+      remove_zero_rows(R))
     Cone(C)
 end
 

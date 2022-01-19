@@ -32,8 +32,8 @@ false
 """
 function isaffine(v::AbstractNormalToricVariety)
     return get_attribute!(v, :isaffine) do
-        return pm_object(v).AFFINE::Bool
-    end
+        return pm_object(v).AFFINE
+    end::Bool
 end
 export isaffine
 
@@ -51,8 +51,8 @@ true
 """
 function isprojective(v::AbstractNormalToricVariety)
     return get_attribute!(v, :isprojective) do
-        return pm_object(v).PROJECTIVE::Bool
-    end
+        return pm_object(v).PROJECTIVE
+    end::Bool
 end
 export isprojective
 
@@ -96,7 +96,7 @@ function isprojective_space(v::AbstractNormalToricVariety)
             end
         end
         return irrelevant_ideal(v) == ideal(gens(cox_ring(v)))
-    end
+    end::Bool
 end
 export isprojective_space
 
@@ -114,8 +114,8 @@ true
 """
 function issmooth(v::AbstractNormalToricVariety)
     return get_attribute!(v, :issmooth) do
-        return pm_object(v).SMOOTH::Bool
-    end
+        return pm_object(v).SMOOTH
+    end::Bool
 end
 export issmooth
 
@@ -133,8 +133,8 @@ true
 """
 function iscomplete(v::AbstractNormalToricVariety)
     return get_attribute!(v, :iscomplete) do
-        return pm_object(v).COMPLETE::Bool
-    end
+        return pm_object(v).COMPLETE
+    end::Bool
 end
 export iscomplete
 
@@ -153,7 +153,7 @@ false
 function hastorusfactor(v::AbstractNormalToricVariety)
     return get_attribute!(v, :hastorusfactor) do
         return pm_object(v).FAN_DIM < pm_object(v).FAN_AMBIENT_DIM
-    end
+    end::Bool
 end
 export hastorusfactor
 
@@ -171,8 +171,8 @@ true
 """
 function isorbifold(v::AbstractNormalToricVariety)
     return get_attribute!(v, :isorbifold) do
-        return pm_object(v).SIMPLICIAL::Bool
-    end
+        return pm_object(v).SIMPLICIAL
+    end::Bool
 end
 export isorbifold
 
@@ -207,8 +207,8 @@ true
 """
 function isgorenstein(v::AbstractNormalToricVariety)
     return get_attribute!(v, :isgorenstein) do
-        return pm_object(v).GORENSTEIN::Bool
-    end
+        return pm_object(v).GORENSTEIN
+    end::Bool
 end
 export isgorenstein
 
@@ -226,8 +226,8 @@ true
 """
 function isq_gorenstein(v::AbstractNormalToricVariety)
     return get_attribute!(v, :isq_gorenstein) do
-        return pm_object(v).Q_GORENSTEIN::Bool
-    end
+        return pm_object(v).Q_GORENSTEIN
+    end::Bool
 end
 export isq_gorenstein
 
@@ -245,7 +245,7 @@ true
 """
 function isfano(v::AbstractNormalToricVariety)
     return get_attribute!(v, :isfano) do
-        return pm_object(v).FANO::Bool
-    end
+        return pm_object(v).FANO
+    end::Bool
 end
 export isfano
