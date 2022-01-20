@@ -90,44 +90,15 @@ function Base.show(io::IO, td::ToricDivisor)
     # initiate properties string
     properties_string = ["A torus-invariant"]
     
-    # cartier?
-    if has_attribute(td, :iscartier)
-        if get_attribute(td, :iscartier)
-            push!(properties_string, "cartier")
-        else
-            if has_attribute(td, :is_q_cartier)
-                if get_attribute(td, :is_q_cartier)
-                    push!(properties_string, "q-cartier")
-                else
-                    push!(properties_string, "non-q-cartier")
-                end
-            else
-                push!(properties_string, "non-cartier")
-            end
-        end
-    end
-    
+    q_car_cb!(a,b) = push_attribute_if_exists!(a, b, :is_q_cartier, "q_cartier")
+    push_attribute_if_exists!(properties_string, td, :iscartier, "cartier"; callback=q_car_cb!)
     push_attribute_if_exists!(properties_string, td, :isprincipal, "principal")
     push_attribute_if_exists!(properties_string, td, :is_basepoint_free, "basepoint-free")
     push_attribute_if_exists!(properties_string, td, :iseffective, "effective")
     push_attribute_if_exists!(properties_string, td, :isintegral, "integral")
     
-    # (very) ample?
-    if has_attribute(td, :isample)
-        if get_attribute(td, :isample)
-            push!(properties_string, "ample")
-        else
-            if has_attribute(td, :is_very_ample)
-                if get_attribute(td, :is_very_ample)
-                    push!(properties_string, "very-ample")
-                else
-                    push!(properties_string, "non-very-ample")
-                end
-            else
-                push!(properties_string, "non-ample")
-            end
-        end
-    end
+    ample_cb!(a,b) = push_attribute_if_exists!(a, b, :isample, "ample")
+    push_attribute_if_exists!(properties_string, td, :is_very_ample, "very-ample"; callback=ample_cb!)
     
     push_attribute_if_exists!(properties_string, td, :isnef, "nef")
     push_attribute_if_exists!(properties_string, td, :isprime, "prime")

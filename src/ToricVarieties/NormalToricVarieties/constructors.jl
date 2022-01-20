@@ -481,16 +481,22 @@ function Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety)
 end
 
 
-function push_attribute_if_exists!(result::Vector{String}, v::AbstractNormalToricVariety, property::Symbol, name::String, alt_string::Union{String,Nothing}=nothing)
+function push_attribute_if_exists!(result::Vector{String}, v::AbstractNormalToricVariety, property::Symbol, name::String, alt_string::Union{String,Nothing}=nothing; callback=nothing)
     if has_attribute(v, property)
         if get_attribute(v, property)
             push!(result, name)
             return true
         else
-            if isnothing(alt_string)
-                push!(result, "non-"*name)
-            else
-                push!(result, alt_string)
+            cbval = true
+            if !isnothing(callback)
+                cbval = callback(result, v)
+            end
+            if isnothing(cbval) || cbval
+                if isnothing(alt_string)
+                    push!(result, "non-"*name)
+                else
+                    push!(result, alt_string)
+                end
             end
             return false
         end
@@ -507,21 +513,19 @@ function Base.show(io::IO, v::AbstractNormalToricVariety)
     properties_string = ["A normal"]
 
     affine = push_attribute_if_exists!(properties_string, v, :isaffine, "affine")
-    smooth = push_attribute_if_exists!(properties_string, v, :issmooth, "smooth")
-    if isnothing(smooth) || !smooth
-        push_attribute_if_exists!(properties_string, v, :issimplicial, "simplicial")
-    end
+
+    simplicial_cb!(a,b) = push_attribute_if_exists!(a, b, :issimplicial, "simplicial")
+    push_attribute_if_exists!(properties_string, v, :issmooth, "smooth"; callback=simplicial_cb!)
+
     projective = nothing
     if isnothing(affine) || !affine
-        projective = push_attribute_if_exists!(properties_string, v, :isprojective, "projective")
+        complete_cb!(a,b) = push_attribute_if_exists!(a, b, :iscomplete, "complete")
+        projective = push_attribute_if_exists!(properties_string, v, :isprojective, "projective"; callback=complete_cb!)
     end
-    if isnothing(projective) || !projective
-        push_attribute_if_exists!(properties_string, v, :iscomplete, "complete")
-    end
-    gorenstein = push_attribute_if_exists!(properties_string, v, :isgorenstein, "gorenstein")
-    if isnothing(gorenstein) || !gorenstein
-        push_attribute_if_exists!(properties_string, v, :is_q_gorenstein, "q-gorenstein")
-    end
+
+    q_gor_cb!(a,b) = push_attribute_if_exists!(a, b, :is_q_gorenstein, "q-gorenstein")
+    gorenstein = push_attribute_if_exists!(properties_string, v, :isgorenstein, "gorenstein"; callback=q_gor_cb!)
+    
     push_attribute_if_exists!(properties_string, v, :isfano, "fano")
     
     # dimension?
