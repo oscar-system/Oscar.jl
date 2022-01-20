@@ -3,17 +3,17 @@ export CoveredScheme
 import Oscar.Graphs: Graph, Directed
 
 
-mutable struct CoveredScheme{BRT, BRET, RT, RET} <:Scheme{BRT, BRET}
-  patches::Vector{Spec{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}}
-  glueings::Dict{Tuple{Spec{BRT, BRET, RT, RET}, Spec{BRT, BRET, RT, RET}}, Glueing{BRT, BRET, RT, RET}}
+mutable struct CoveredScheme{SpecType<:Spec, GlueingType<:Glueing, BRT, BRET} <:Scheme{BRT, BRET}
+  patches::Vector{SpecType}
+  glueings::Dict{Tuple{SpecType, SpecType}, GlueingType}
 
   # fields for caching
   glueing_graph::Graph{Directed}
 
   function CoveredScheme(
-      patches::Vector{Spec{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}},
-      glueings::Dict{Tuple{Spec{BRT, BRET, RT, RET}}, Glueing{BRT, BRET, RT, RET}}
-    ) where {BRT, BRET, RT, RET}
+      patches::Vector{SpecType},
+      glueings::Dict{Tuple{SpecType}, GlueingType}
+    ) where {SpecType<:Spec, GlueingType<:Glueing}
     n = length(patches)
     n > 0 || error("can not glue the empty scheme")
     kk = coefficient_ring(base_ring(OO(patches[1])))
@@ -29,7 +29,8 @@ mutable struct CoveredScheme{BRT, BRET, RT, RET} <:Scheme{BRT, BRET}
 	g[(Y, X)] = inverse(g[(X, Y)])
       end
     end
-    return new{BRT, BRET, RT, RET}(X, glueings)
+    X = patches[1]
+    return new{SpecType, GlueingType, typeof(base_ring(X)), elem_type(base_ring(X)) }(patches, glueings)
   end
 end
 
@@ -55,11 +56,11 @@ function glueing_graph(X::CoveredScheme)
   return X.glueing_graph
 end
 
-function are_glued(X::CoveredScheme, i::Int64, j::Int64)
-  return exists_path(glueing_graph(X), i, j)
+function are_glued(X::CoveredScheme, U::T, V::T) where {T<:Spec}
+  return exists_path(glueing_graph(X), U, V)
 end
 
-function getindex(X::CoveredScheme, a::Tuple{Int64, Int64})
+function getindex(X::CoveredScheme, a::Tuple{T, T}) where {T<:Spec}
   if haskey(glueings(X), a)
     return glueings(X)[a]
   end

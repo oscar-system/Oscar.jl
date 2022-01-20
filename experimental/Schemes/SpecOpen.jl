@@ -1,8 +1,8 @@
-export SpecOpen, ambient, gens, complement, npatches, affine_patches, intersections, name, intersect, issubset, closure, find_non_zero_divisor, is_non_zero_divisor, is_dense
+export SpecOpen, ambient, gens, complement, npatches, affine_patches, intersections, name, intersect, issubset, closure, find_non_zero_divisor, is_non_zero_divisor, is_dense, open_subset_type
 
-export StructureSheafRing, scheme, domain, OO
+export StructureSheafRing, scheme, domain, OO, structure_sheaf_ring_type
 
-export StructureSheafElem, domain, restrictions, patches, restrict, npatches
+export StructureSheafElem, domain, restrictions, patches, restrict, npatches, structure_sheaf_elem_type
 
 export SpecOpenMor, maps_on_patches, restriction, identity_map, preimage, generic_fractions, pullback, maximal_extension
 
@@ -25,25 +25,27 @@ of a polynomial ring and
  * RET is the type of the elements of ``𝕜[x₁,…,xₙ]``;
  * MST is the type of the multiplicative set ``S``.
 """
-@attributes mutable struct SpecOpen{BRT, BRET, RT, RET, MST} <: Scheme{BRT, BRET}
-  X::Spec{BRT, BRET, RT, RET, MST} # the ambient scheme
-  gens::Vector{RET} # a list of functions defining the complement of the open subset
+@attributes mutable struct SpecOpen{SpecType, BRT, BRET} <: Scheme{BRT, BRET}
+  X::SpecType # the ambient scheme
+  gens::Vector # a list of functions defining the complement of the open subset
 
   # fields used for caching
   name::String
-  patches::Vector{Spec{BRT, BRET, RT, RET, MST}}
-  intersections::Dict{Tuple{Int, Int}, Spec{BRT, BRET, RT, RET, MST}}
-  complement::Spec{BRT, BRET, RT, RET, MST}
+  patches::Vector{SpecType}
+  intersections::Dict{Tuple{Int, Int}, SpecType}
+  complement::SpecType
 
-  function SpecOpen(X::Spec{BRT, BRET, RT, RET, MST}, f::Vector{RET}; name::String="") where {BRT, BRET, RT, RET, MST}
+  function SpecOpen(X::SpecType, f::Vector{RET}; name::String="") where {SpecType<:Spec, RET<:RingElem}
     for a in f
       parent(a) == base_ring(OO(X)) || error("element does not belong to the correct ring")
     end
-    U = new{BRT, BRET, RT, RET, MST}(X, f)
+    U = new{SpecType, typeof(base_ring(X)), elem_type(base_ring(X))}(X, f)
     length(name) > 0 && set_name!(U, name)
     return U
   end
 end
+
+open_subset_type(X::Spec) = Type{SpecOpen{typeof(X), typeof(coefficient_ring(base_ring(OO(X)))), elem_type(coefficient_ring(base_ring(OO(X))))}}
 
 @Markdown.doc """
     ambient(U::SpecOpen)
@@ -65,7 +67,7 @@ npatches(U::SpecOpen) = length(U.gens)
 Return the generators ``[f₁,…,fᵣ]`` stored for the description 
 of the complement of ``U``.
 """
-gens(U::SpecOpen) = U.gens
+gens(U::SpecOpen) = U.gens::Vector{elem_type(base_ring(OO(ambient(U))))}
 
 @Markdown.doc """
     affine_patch(U::SpecOpen, i::Int)
@@ -267,18 +269,20 @@ end
 The ring of regular functions ``𝒪(X, U)`` on an open subset ``U`` of an 
 affine scheme ``X``.
 """
-mutable struct StructureSheafRing{BRT, BRET, RT, RET, MST}
-  scheme::Spec{BRT, BRET, RT, RET, MST}
-  domain::SpecOpen{BRT, BRET, RT, RET, MST}
+mutable struct StructureSheafRing{SpecType, OpenType}
+  scheme::SpecType
+  domain::OpenType
 
   function StructureSheafRing(
-      X::Spec{BRT, BRET, RT, RET, MST}, 
-      U::SpecOpen{BRT, BRET, RT, RET, MST}
-    ) where {BRT, BRET, RT, RET, MST}
+      X::SpecType, 
+      U::OpenType
+    ) where {SpecType<:Spec, OpenType<:SpecOpen}
     issubset(U, X) || error("open set does not lay in the scheme")
-    return new{BRT, BRET, RT, RET, MST}(X, U)
+    return new{SpecType, OpenType}(X, U)
   end
 end
+
+structure_sheaf_ring_type(X::Spec) = Type{StructureSheafRing{typeof(X), open_subset_type(X)}}
 
 @Markdown.doc """
     scheme(R::StructureSheafRing)
@@ -304,38 +308,46 @@ function ==(R::T, S::T) where {T<:StructureSheafRing}
   return true
 end
 
-elem_type(R::StructureSheafRing) where {BRT, BRET, RT, RET, MST} = Type{StructureSheafElem{BRT, BRET, RT, RET, MST}}
+function elem_type(R::StructureSheafRing) 
+  return Type{StructureSheafElem{typeof(R), elem_type(OO(scheme(R)))}}
+end
+
+function ==(R::T, S::T) where {T<:StructureSheafRing}
+  return scheme(R) == scheme(S) && domain(R) == domain(S)
+end
 
 @Markdown.doc """
-    StructureSheafElem{BRT, BRET, RT, RET, MST}
+    StructureSheafElem{RingType, RestrictionType}
 
 An element ``f ∈ 𝒪(X, U)`` of the ring of regular functions on 
 an open set ``U`` of an affine scheme ``X``.
 """
-mutable struct StructureSheafElem{BRT, BRET, RT, RET, MST}
-  domain::SpecOpen{BRT, BRET, RT, RET, MST}
-  restrictions::Vector{MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}}
+mutable struct StructureSheafElem{SpecOpenType, RestrictionType}
+  domain::SpecOpenType
+  restrictions::Vector{RestrictionType}
 
   function StructureSheafElem(
-      U::SpecOpen{BRT, BRET, RT, RET, MST},
-      f::Vector{MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}}
-    ) where {BRT, BRET, RT, RET, MST}
+      U::SpecOpenType,
+      f::Vector{RestrictionType}
+    ) where {SpecOpenType<:SpecOpen, RestrictionType<:RingElem}
     n = length(f)
     n == length(affine_patches(U)) || error("the number of restrictions does not coincide with the number of affine patches")
     for i in 1:n 
       OO(affine_patches(U)[i])(lift(f[i])) # throws an error if conversion is not possible
     end
-    return new{BRT, BRET, RT, RET, MST}(U, f)
+    return new{SpecOpenType, RestrictionType}(U, f)
   end
 end
 
+parent(f::StructureSheafElem) = OO(ambient(domain(f)), domain(f))
 scheme(f::StructureSheafElem) = ambient(domain(f))
 domain(f::StructureSheafElem) = f.domain
 restrictions(f::StructureSheafElem) = f.restrictions
 affine_patches(f::StructureSheafElem) = affine_patches(domain(f))
-npatches(f::StructureSheafElem) = length(f.restrictions)
+npatches(f::StructureSheafElem) = length(restrictions(f))
 getindex(f::StructureSheafElem, i::Int) = getindex(restrictions(f), i)
-ambient(f::StructureSheafElem) = OO(scheme(f), domain(f))
+
+structure_sheaf_elem_type(X::Spec) = Type{StructureSheafElem{structure_sheaf_ring_type(X), elem_type(OO(X))}}
 
 function restrict(
     f::StructureSheafElem, 
@@ -365,9 +377,9 @@ the numerator and denominator of ``f`` have to be elements of
 the ring ``𝕜[x₁,…,xₙ]``.
 """
 function maximal_extension(
-    X::Spec{BRT, BRET, RT, RET, MST}, 
+    X::Spec, 
     f::AbstractAlgebra.Generic.Frac{RET}
-  ) where {BRT, BRET, RT, RET, MST}
+  ) where {RET<:RingElem}
   a = numerator(f)
   b = denominator(f)
   W = localized_ring(OO(X))
@@ -389,11 +401,11 @@ the numerators and denominators of the entries of ``f`` have to
 be elements of the ring ``𝕜[x₁,…,xₙ]``.
 """
 function maximal_extension(
-    X::Spec{BRT, BRET, RT, RET, MST}, 
+    X::Spec, 
     f::Vector{AbstractAlgebra.Generic.Frac{RET}}
-  ) where {BRT, BRET, RT, RET, MST}
+  ) where {RET<:RingElem}
   if length(f) == 0
-    return SpecOpen(X), Vector{StructureSheafElem{BRT, BRET, RT, RET, MST}}()
+    return SpecOpen(X), Vector{structure_sheaf_elem_type(X)}()
   end
   R = base_ring(parent(f[1]))
   for a in f
@@ -431,20 +443,20 @@ then
  * MST1 is the type of the multiplicative set ``A``;
  * MST2 is the type of the multiplicative set ``B``;
 """
-mutable struct SpecOpenMor{BRT, BRET, RT, RET, MST1, MST2}
-  domain::SpecOpen{BRT, BRET, RT, RET, MST1}
-  codomain::SpecOpen{BRT, BRET, RT, RET, MST2}
-  maps_on_patches::Vector{SpecMor{BRT, BRET, RT, RET, MST1, MST2}}
+mutable struct SpecOpenMor{DomainType<:SpecOpen, CodomainType<:SpecOpen, SpecMorType<:SpecMor}
+  domain::DomainType
+  codomain::CodomainType
+  maps_on_patches::Vector{SpecMorType}
 
   # fields used for caching
-  inverse::SpecOpenMor{BRT, BRET, RT, RET, MST2, MST1}
+  inverse::SpecOpenMor
 
   function SpecOpenMor(
-      U::SpecOpen{BRT, BRET, RT, RET, MST1},
-      V::SpecOpen{BRT, BRET, RT, RET, MST2},
-      f::Vector{SpecMor{BRT, BRET, RT, RET, MST1, MST2}};
+      U::DomainType,
+      V::CodomainType,
+      f::Vector{SpecMorType};
       check::Bool=true
-    ) where {BRT, BRET, RT, RET, MST1, MST2}
+    ) where {DomainType<:SpecOpen, CodomainType<:SpecOpen, SpecMorType<:SpecMor}
     Y = ambient(V)
     n = length(f)
     n == length(affine_patches(U)) || error("number of patches does not coincide with the number of maps")
@@ -464,7 +476,7 @@ mutable struct SpecOpenMor{BRT, BRET, RT, RET, MST1, MST2}
 	one(localized_ring(OO(domain(g)))) in pullback(g)(I) + localized_modulus(OO(domain(g))) || error("image is not contained in the codomain")
       end
     end
-    return new{BRT, BRET, RT, RET, MST1, MST2}(U, V, f)
+    return new{DomainType, CodomainType, SpecMorType}(U, V, f)
   end
 end
 
@@ -552,7 +564,7 @@ function compose(f::T, g::T) where {T<:SpecOpenMor}
   return SpecOpenMor(U, W, result_maps)
 end
 
-function pullback(f::SpecOpenMor{BRT, BRET, RT, RET, MST1, MST2}, a::RET) where {BRT, BRET, RT, RET, MST1, MST2}
+function pullback(f::SpecOpenMor, a::RET) where {RET<:RingElem}
   U = domain(f)
   X = ambient(U)
   V = codomain(f)
@@ -571,13 +583,13 @@ determined by ``ϕ*(yⱼ) = fⱼ = aⱼ/bⱼ``, find the maximal open subset ``U
 to which ``ϕ`` can be extended to a regular map ``g : U → Y`` and return ``g``.
 """
 function maximal_extension(
-    X::Spec{BRT, BRET, RT, RET, MST}, 
-    Y::Spec{BRT, BRET, RT, RET, MST}, 
+    X::SpecType,
+    Y::SpecType,
     f::Vector{AbstractAlgebra.Generic.Frac{RET}}
-  ) where {BRT, BRET, RT, RET, MST}
+  ) where {SpecType<:Spec, RET<:RingElem}
   U, g = maximal_extension(X, f)
   n = length(affine_patches(U))
-  maps = Vector{SpecMor{BRT, BRET, RT, RET, MST, MST}}()
+  maps = Vector{morphism_type(X, Y)}()
   for i in 1:n
     push!(maps, SpecMor(affine_patches(U)[i], Y, [restrictions(a)[i] for a in g]))
   end
@@ -643,7 +655,7 @@ function preimage(f::SpecOpenMor, V::SpecOpen)
   return intersect(U, SpecOpen(X, gens(I)))
 end
 
-function is_non_zero_divisor(f::RET, U::SpecOpen{BRT, BRET, RT, RET}) where {BRT, BRET, RT, RET}
+function is_non_zero_divisor(f::RET, U::SpecOpen) where {RET<:RingElem}
   for V in affine_patches(U)
     zero_ideal = ideal(OO(V), [zero(OO(V))])
     zero_ideal == quotient(zero_ideal, ideal(OO(V), [f])) || return false

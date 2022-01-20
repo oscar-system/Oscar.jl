@@ -1,6 +1,7 @@
 import AbstractAlgebra.Ring
 import Base: intersect
 
+export Scheme
 export Spec, OO
 export affine_space
 export EmptyScheme
@@ -8,7 +9,7 @@ export EmptyScheme
 export is_open_embedding, is_closed_embedding, hypersurface_complement, subscheme, name_of, set_name!
 export closure, product
 
-export SpecMor
+export SpecMor, morphism_type
 export pullback, domain, codomain, preimage, restrict, graph
 
 AbstractAlgebra.promote_rule(::Type{gfp_mpoly}, ::Type{fmpz}) = gfp_mpoly
@@ -78,6 +79,8 @@ function Base.show(io::IO, X::Spec)
   end
   print(io, "Spec of $(OO(X))")
 end
+
+base_ring(X::Spec) = coefficient_ring(base_ring(OO(X)))
 
 ### Copy constructor
 Spec(X::Spec) = Spec(OO(X))
@@ -318,6 +321,14 @@ mutable struct SpecMor{BRT, BRET, RT, RET, MST1, MST2}
     OO(Y) == domain(pullback) || error("the coordinate ring of the codomain does not coincide with the domain of the pullback")
     return new{BRT, BRET, RT, RET, MST1, MST2}(X, Y, pullback)
   end
+end
+
+function morphism_type(X::SpecType1, Y::SpecType2) where {SpecType1<:Spec, SpecType2<:Spec} 
+  L = OO(X)
+  R = base_ring(L)
+  kk = coefficient_ring(R)
+  W = OO(Y)
+  return SpecMor{typeof(kk), elem_type(kk), typeof(R), elem_type(R), typeof(inverted_set(L)), typeof(inverted_set(W))}
 end
 
 ### getter functions
