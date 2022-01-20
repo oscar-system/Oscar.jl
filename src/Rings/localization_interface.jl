@@ -129,7 +129,9 @@ function (W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(a::RingElemT
 end
 
 ### Other conversions for the sake of convenience
-(W::AbsLocalizedRing)(a::Oscar.IntegerUnion) = W(base_ring(W)(a))
+(W::AbsLocalizedRing)(a::Int) = W(base_ring(W)(a))
+(W::AbsLocalizedRing)(a::Integer) = W(base_ring(W)(a))
+(W::AbsLocalizedRing)(a::fmpz) = W(base_ring(W)(a))
 
 
 #################################################################################

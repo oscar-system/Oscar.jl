@@ -1052,7 +1052,9 @@ parent_type(T::Type{MPolyLocalizedRingElem{BaseRingType, BaseRingElemType, RingT
 (W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(f::MPolyLocalizedRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}; check::Bool=true) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocalizedRingElem(W, fraction(f), check=check)
 
 (W::MPolyLocalizedRing)() = zero(W)
-(W::MPolyLocalizedRing)(a::Integer; check::Bool=true) = W(base_ring(W)(a), check=check)
+(W::MPolyLocalizedRing)(a::Integer) = W(base_ring(W)(a), check=false)
+(W::MPolyLocalizedRing)(a::Int64) = W(base_ring(W)(a), check=false)
+(W::MPolyLocalizedRing)(a::fmpz) = W(base_ring(W)(a), check=false)
 
 isdomain_type(T::Type{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = true 
 isexact_type(T::Type{MPolyLocalizedRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = true
