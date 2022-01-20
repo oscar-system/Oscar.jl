@@ -28,7 +28,7 @@ julia> I = ideal(R, [x+2*y+2*z-1, x^2+2*y^2+2*z^2-x, 2*x*y+2*y*z-y])
 ideal(x + 2*y + 2*z + 100, x^2 + 100*x + 2*y^2 + 2*z^2, 2*x*y + 2*y*z + 100*y)
 
 julia> f4(I)
-Oscar.BiPolyArray{gfp_mpoly}(gfp_mpoly[#undef, #undef, #undef, #undef], Singular ideal over Singular Polynomial Ring (ZZ/101),(x,y,z),(dp(3),C) with generators (x + 2*y + 2*z - 1, y*z - 19*z^2 + 10*y + 40*z, y^2 - 41*z^2 + 20*y - 20*z, z^3 + 28*z^2 - 37*y + 13*z), Multivariate Polynomial Ring in x, y, z over Galois field with characteristic 101, Singular Polynomial Ring (ZZ/101),(x,y,z),(dp(3),C), true, #undef)
+Oscar.BiPolyArray{gfp_mpoly}(gfp_mpoly[#undef, #undef, #undef, #undef], Singular ideal over Singular Polynomial Ring (ZZ/101),(x,y,z),(dp(3),C) with generators (x + 2*y + 2*z - 1, y*z - 19*z^2 + 10*y + 40*z, y^2 - 41*z^2 + 20*y - 20*z, z^3 + 28*z^2 - 37*y + 13*z), Multivariate Polynomial Ring in x, y, z over Galois field with characteristic 101, Singular Polynomial Ring (ZZ/101),(x,y,z),(dp(3),C), true, #undef, true)
 ```
 """
 function f4(

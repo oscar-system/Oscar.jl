@@ -46,7 +46,7 @@ julia> C = cross(3);
 julia> FF = face_fan(C)
 A polyhedral fan in ambient dimension 3
 
-julia> nmaximal_cones(FF) == nfacets(C)
+julia> n_maximal_cones(FF) == nfacets(C)
 true
 ```
 """
