@@ -481,7 +481,15 @@ function Base.:*(v::AbstractNormalToricVariety, w::AbstractNormalToricVariety)
 end
 
 
-function push_attribute_if_exists!(result::Vector{String}, v::AbstractNormalToricVariety, property::Symbol, name::String, alt_string::Union{String,Nothing}=nothing; callback=nothing)
+# If the property is A, then the callback can be used to ask for property B
+# with A=>B. Then if A is true, only A is displayed, and if B is false, only B
+# is displayed.
+function push_attribute_if_exists!(result::Vector{String}, 
+        v::Union{AbstractNormalToricVariety, ToricDivisor}, 
+        property::Symbol, name::String, 
+        alt_string::Union{String,Nothing}=nothing; 
+        callback=nothing
+    )
     if has_attribute(v, property)
         if get_attribute(v, property)
             push!(result, name)
@@ -501,7 +509,11 @@ function push_attribute_if_exists!(result::Vector{String}, v::AbstractNormalTori
             return false
         end
     else
-        return nothing
+        if !isnothing(callback)
+            return callback(result, v)
+        else
+            return nothing
+        end
     end
 end
 
