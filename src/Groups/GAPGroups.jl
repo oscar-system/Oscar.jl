@@ -68,7 +68,7 @@ export
 group_element(G::T, x::GapObj) where T <: GAPGroup = BasicGAPGroupElem{T}(G, x)
 
 function elements(G::T) where T <: GAPGroup
-  els = Vector{GapObj}(GAP.Globals.Elements(G.X))::Vector{GapObj}
+  els = Vector{GapObj}(GAP.Globals.Elements(G.X)::GapObj)
   elems = Vector{elem_type(G)}(undef, length(els))
   for i in 1:length(els)
     elems[i] = group_element(G, els[i])
@@ -281,7 +281,7 @@ Base.length(x::GAPGroup)::Int = order(x)
 Return whether `g` is an element of `G`.
 The parent of `g` need not be equal to `G`.
 """
-Base.in(g::GAPGroupElem, G::GAPGroup) = GAP.Globals.in(g.X, G.X)::Bool
+Base.in(g::GAPGroupElem, G::GAPGroup) = g.X in G.X
 
 """
     gens(G::Group)
@@ -361,6 +361,10 @@ struct GroupConjClass{T<:GAPGroup, S<:Union{GAPGroupElem,GAPGroup}}
    X::T
    repr::S
    CC::GapObj
+
+   function GroupConjClass(X::T, repr::S, CC::GapObj) where {T<:GAPGroup, S<:Union{GAPGroupElem,GAPGroup}}
+     return new{T, S}(X, repr, CC)
+   end
 end
 
 Base.eltype(::Type{GroupConjClass{T,S}}) where {T,S} = S
@@ -370,10 +374,6 @@ function Base.show(io::IO, x::GroupConjClass)
   print(io, String(GAP.Globals.StringViewObj(x.repr.X)),
             " ^ ",
             String(GAP.Globals.StringViewObj(x.X.X)))
-end
-
-function _conjugacy_class(G, g, cc::GapObj)         # function for assignment
-  return GroupConjClass{typeof(G), typeof(g)}(G, g, cc)
 end
 
 ==(a::GroupConjClass{T, S}, b::GroupConjClass{T, S}) where S where T = a.CC == b.CC 
@@ -392,7 +392,7 @@ representative(C::GroupConjClass) = C.repr
 Return the conjugacy class `cc` of `g` in `G`, where `g` = `representative`(`cc`).
 """
 function conjugacy_class(G::GAPGroup, g::GAPGroupElem)
-   return _conjugacy_class(G, g, GAP.Globals.ConjugacyClass(G.X,g.X))
+   return GroupConjClass(G, g, GAP.Globals.ConjugacyClass(G.X,g.X))
 end
 
 function Base.rand(C::GroupConjClass{S,T}) where S where T<:GAPGroupElem
@@ -412,8 +412,8 @@ Return the vector of all conjugacy classes of elements in G.
 It is guaranteed that the class of the identity is in the first position.
 """
 function conjugacy_classes(G::GAPGroup)
-   L=Vector{GapObj}(GAP.Globals.ConjugacyClasses(G.X))
-   return GroupConjClass{typeof(G), elem_type(G)}[ _conjugacy_class(G,group_element(G,GAP.Globals.Representative(cc)),cc) for cc in L]
+   L=Vector{GapObj}(GAP.Globals.ConjugacyClasses(G.X)::GapObj)
+   return [GroupConjClass(G, group_element(G,GAP.Globals.Representative(cc)),cc) for cc in L]
 end
 
 Base.:^(x::T, y::T) where T <: GAPGroupElem = group_element(_maxgroup(parent(x), parent(y)), x.X ^ y.X)
@@ -450,7 +450,7 @@ end
 Return the subgroup conjugacy class `cc` of `H` in `G`, where `H` = `representative`(`cc`).
 """
 function conjugacy_class(G::T, g::T) where T<:GAPGroup
-   return _conjugacy_class(G, g, GAP.Globals.ConjugacyClassSubgroups(G.X,g.X))
+   return GroupConjClass(G, g, GAP.Globals.ConjugacyClassSubgroups(G.X,g.X))
 end
 
 function Base.rand(C::GroupConjClass{S,T}) where S where T<:GAPGroup
@@ -467,9 +467,8 @@ end
 Return the vector of all conjugacy classes of subgroups of G.
 """
 function conjugacy_classes_subgroups(G::GAPGroup)
-   L=Vector{GapObj}(GAP.Globals.ConjugacyClassesSubgroups(G.X))
-   return GroupConjClass{typeof(G), typeof(G)}[_conjugacy_class(G, _as_subgroup_bare(G, GAP.Globals.Representative(cc)),cc) for cc in L]
-
+  L = Vector{GapObj}(GAP.Globals.ConjugacyClassesSubgroups(G.X)::GapObj)
+  return [GroupConjClass(G, _as_subgroup_bare(G, GAP.Globals.Representative(cc)), cc) for cc in L]
 end
 
 """
@@ -478,8 +477,8 @@ end
 Return the vector of all conjugacy classes of maximal subgroups of G.
 """
 function conjugacy_classes_maximal_subgroups(G::GAPGroup)
-  L = Vector{GapObj}(GAP.Globals.ConjugacyClassesMaximalSubgroups(G.X))
-   return GroupConjClass{typeof(G), typeof(G)}[_conjugacy_class(G, _as_subgroup_bare(G, GAP.Globals.Representative(cc)),cc) for cc in L]
+  L = Vector{GapObj}(GAP.Globals.ConjugacyClassesMaximalSubgroups(G.X)::GapObj)
+  return [GroupConjClass(G, _as_subgroup_bare(G, GAP.Globals.Representative(cc)), cc) for cc in L]
 end
 
 Base.:^(H::GAPGroup, y::GAPGroupElem) = typeof(H)(H.X ^ y.X)

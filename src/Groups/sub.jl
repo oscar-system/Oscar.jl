@@ -26,25 +26,16 @@ export
 ################################################################################
 
 function _as_subgroup_bare(G::T, H::GapObj) where T
-  if T==PermGroup
-    H1 = T(H, G.deg)
-  elseif T<:MatrixGroup
-    H1 = MatrixGroup(G.deg,G.ring)
-    H1.ring_iso = G.ring_iso
-    H1.X = H
-  else
-    H1 = T(H)
-  end
-  return H1
+  return T(H)
 end
 
-function _as_subgroup(G::T, H::GapObj, ::Type{S}) where { T, S }
+function _as_subgroup_bare(G::PermGroup, H::GapObj)
+  return PermGroup(H, G.deg)
+end
+
+function _as_subgroup(G::GAPGroup, H::GapObj)
   H1 = _as_subgroup_bare(G, H)
-  return H1, hom(H1, G, x::S -> group_element(G, x.X))
-end
-
-function _as_subgroup(G::T, H::GapObj) where T <: GAPGroup
-  return _as_subgroup(G, H, elem_type(G))
+  return H1, hom(H1, G, x -> group_element(G, x.X))
 end
 
 """
@@ -428,7 +419,7 @@ function maximal_abelian_quotient(G::GAPGroup)
   F = GAP.Globals.Range(map)
   S1 = _get_type(F)
   F = S1(F)
-  return F, _hom_from_gap_map(G, F, map)
+  return F, GAPGroupHomomorphism(G, F, map)
 end
 
 function maximal_abelian_quotient(::Type{Q}, G::GAPGroup) where Q <: GAPGroup
@@ -524,6 +515,6 @@ function isomorphic_group(::Type{T}, G::GAPGroup) where T <: GAPGroup
   f = _get_iso_function(T)
   mp = f(G.X)
   G1 = T(GAP.Globals.ImagesSource(mp))
-  fmap = _hom_from_gap_map(G, G1, mp)
+  fmap = GAPGroupHomomorphism(G, G1, mp)
   return G1, fmap
 end

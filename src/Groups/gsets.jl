@@ -320,7 +320,7 @@ function action_homomorphism(Omega::GSetByElements{T}) where T<:GAPGroup
         sym = symmetric_group(length(Omega))
         set_attribute!(Omega, :action_range => sym )
       end
-      acthom = GAPGroupHomomorphism{T,PermGroup}(G, sym, acthom)
+      acthom = GAPGroupHomomorphism(G, sym, acthom)
       set_attribute!(Omega, :action_homomorphism => acthom )
     end
     return acthom
