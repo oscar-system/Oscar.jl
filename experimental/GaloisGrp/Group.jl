@@ -90,7 +90,7 @@ function action_homomorphism(G::PermGroup, omega::AbstractVector{Int})
   mp = GAP.Globals.ActionHomomorphism(G.X, GAP.GapObj(omega))
   if mp == GAP.Globals.fail throw(ArgumentError("Invalid input")) end
   H = PermGroup(GAP.Globals.Range(mp))
-  return GAPGroupHomomorphism{typeof(G), typeof(H)}(G, H, mp)
+  return GAPGroupHomomorphism(G, H, mp)
 end
 
 function block_system(G::PermGroup, B::Vector{Int})
@@ -105,7 +105,7 @@ function action_on_blocks(G::PermGroup, B::Vector{Int})
   H = GAP.Globals.Image(act)
   T = Oscar._get_type(H)
   H = T(H)
-  return Oscar._hom_from_gap_map(G, H, act)
+  return Oscar.GAPGroupHomomorphism(G, H, act)
 end
 
 @doc Markdown.doc"""

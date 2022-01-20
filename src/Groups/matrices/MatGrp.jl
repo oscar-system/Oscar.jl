@@ -74,6 +74,13 @@ end
 
 MatrixGroup(m::Int, F::Ring, V::AbstractVector{T}) where T<:Union{MatElem,AbstractMatrixGroupElem} = MatrixGroup{elem_type(F), dense_matrix_type(elem_type(F))}(m,F,V)
 
+function _as_subgroup_bare(G::T, H::GapObj) where {T <: MatrixGroup}
+  H1 = T(G.deg,G.ring)
+  H1.ring_iso = G.ring_iso
+  H1.X = H
+  return H1
+end
+
 # NOTE: at least one of the fields :elm and :X must always defined, but not necessarily both of them.
 """
     MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}} <: AbstractMatrixGroupElem
@@ -234,7 +241,7 @@ end
 Base.IteratorSize(::Type{<:MatrixGroup}) = Base.SizeUnknown()
 
 function Base.iterate(G::MatrixGroup)
-  L=GAP.Globals.Iterator(G.X)
+  L=GAP.Globals.Iterator(G.X)::GapObj
   @assert ! GAPWrap.IsDoneIterator(L)
   i = GAPWrap.NextIterator(L)
   return MatrixGroupElem(G, i), L
@@ -287,7 +294,7 @@ function lies_in(x::MatElem, G::MatrixGroup, x_gap)
    else
       if x_gap==nothing x_gap = map_entries(G.ring_iso, x) end
      # x_gap !=nothing || x_gap = map_entries(G.ring_iso, x)
-      return GAP.Globals.in(x_gap,G.X), x_gap
+      return (x_gap in G.X), x_gap
    end
 end
 
@@ -325,7 +332,7 @@ function (G::MatrixGroup)(x::MatrixGroupElem; check=true)
          _is_true || throw(ArgumentError("Element not in the group"))
          return MatrixGroupElem(G,x.elm,x.X)
       else
-         GAP.Globals.in(x.X, G.X) || throw(ArgumentError("Element not in the group"))
+         x.X in G.X || throw(ArgumentError("Element not in the group"))
          return MatrixGroupElem(G,x.X)
       end
    else
@@ -461,13 +468,13 @@ degree(G::MatrixGroup) = G.deg
 Base.one(G::MatrixGroup) = MatrixGroupElem(G, identity_matrix(G.ring, G.deg))
 
 function Base.rand(rng::Random.AbstractRNG, G::MatrixGroup)
-   x_gap = GAP.Globals.Random(GAP.wrap_rng(rng), G.X)
+   x_gap = GAP.Globals.Random(GAP.wrap_rng(rng), G.X)::GapObj
    return MatrixGroupElem(G, x_gap)
 end
 
 function gens(G::MatrixGroup)
    if !isdefined(G,:gens)
-      L = GAP.Globals.GeneratorsOfGroup(G.X)
+      L = GAP.Globals.GeneratorsOfGroup(G.X)::GapObj
       G.gens = [MatrixGroupElem(G, a) for a in L]
    end
    return G.gens
@@ -478,7 +485,7 @@ gen(G::MatrixGroup, i::Int) = gens(G)[i]
 ngens(G::MatrixGroup) = length(gens(G))
 
 
-compute_order(G::GAPGroup) = fmpz(GAP.Globals.Order(G.X))
+compute_order(G::GAPGroup) = fmpz(GAP.Globals.Order(G.X)::GapInt)
 
 compute_order(G::MatrixGroup{T}) where {T <: Union{nf_elem, fmpq}} = order(isomorphic_group_over_finite_field(G)[1])
 
@@ -730,7 +737,7 @@ matrix_group(V::T...) where T<:Union{MatElem,MatrixGroupElem} = matrix_group(col
 function sub(G::MatrixGroup, elements::Vector{S}) where S <: GAPGroupElem
    @assert elem_type(G) == S
    elems_in_GAP = GAP.julia_to_gap(GapObj[x.X for x in elements])
-   H = GAP.Globals.Subgroup(G.X,elems_in_GAP)
+   H = GAP.Globals.Subgroup(G.X,elems_in_GAP)::GapObj
    #H is the group. I need to return the inclusion map too
    K,f = _as_subgroup(G, H)
    L = Vector{MatrixGroupElem}(undef, length(elements))
@@ -774,33 +781,9 @@ function Base.:^(H::MatrixGroup, y::MatrixGroupElem)
    return K
 end
 
-function conjugacy_classes_subgroups(G::MatrixGroup)
-   L = GAP.Globals.ConjugacyClassesSubgroups(G.X)
-   V = Vector{GroupConjClass{typeof(G), typeof(G)}}(undef, length(L))
-   for i in 1:length(L)
-      y = MatrixGroup(G.deg,G.ring)
-      y.X = GAP.Globals.Representative(L[i])
-      V[i] = _conjugacy_class(G,y,L[i])
-   end
-   return V
-#   return GroupConjClass{typeof(G), typeof(G)}[ _conjugacy_class(G,MatrixGroup(G.deg,G.ring,GAP.Globals.Representative(cc)),cc) for cc in L]
-end
-
-function conjugacy_classes_maximal_subgroups(G::MatrixGroup)
-   L = GAP.Globals.ConjugacyClassesMaximalSubgroups(G.X)
-   V = Vector{GroupConjClass{typeof(G), typeof(G)}}(undef, length(L))
-   for i in 1:length(L)
-      y = MatrixGroup(G.deg,G.ring)
-      y.X = GAP.Globals.Representative(L[i])
-      V[i] = _conjugacy_class(G,y,L[i])
-   end
-   return V
-#   return GroupConjClass{typeof(G), typeof(G)}[ _conjugacy_class(G,MatrixGroup(G.deg,G.ring,GAP.Globals.Representative(cc)),cc) for cc in L]
-end
-
 function Base.rand(rng::Random.AbstractRNG, C::GroupConjClass{S,T}) where S<:MatrixGroup where T<:MatrixGroup
    H = MatrixGroup(C.X.deg,C.X.ring)
-   H.X = GAP.Globals.Random(GAP.wrap_rng(rng), C.CC)
+   H.X = GAP.Globals.Random(GAP.wrap_rng(rng), C.CC)::GapObj
    return H
 end
 

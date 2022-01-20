@@ -42,8 +42,8 @@ function direct_product(L::AbstractVector{<:GAPGroup}; morphisms=false)
    X = GAP.Globals.DirectProduct(GapObj([G.X for G in L]))
    DP = DirectProductGroup(X,L,X,true)
    if morphisms
-      emb = [_hom_from_gap_map(L[i],DP,GAP.Globals.Embedding(X,i)) for i in 1:length(L)]
-      proj = [_hom_from_gap_map(DP,L[i],GAP.Globals.Projection(X,i)) for i in 1:length(L)]
+      emb = [GAPGroupHomomorphism(L[i],DP,GAP.Globals.Embedding(X,i)) for i in 1:length(L)]
+      proj = [GAPGroupHomomorphism(DP,L[i],GAP.Globals.Projection(X,i)) for i in 1:length(L)]
       return DP, emb, proj
    else
       return DP
@@ -74,8 +74,8 @@ function inner_direct_product(L::AbstractVector{T}; morphisms=false) where T<:Un
       DP = T(P)
    end
    if morphisms
-      emb = [_hom_from_gap_map(L[i],DP,GAP.Globals.Embedding(P,i)) for i in 1:length(L)]
-      proj = [_hom_from_gap_map(DP,L[i],GAP.Globals.Projection(P,i)) for i in 1:length(L)]
+      emb = [GAPGroupHomomorphism(L[i],DP,GAP.Globals.Embedding(P,i)) for i in 1:length(L)]
+      proj = [GAPGroupHomomorphism(DP,L[i],GAP.Globals.Projection(P,i)) for i in 1:length(L)]
       return DP, emb, proj
    else
       return DP
@@ -165,7 +165,7 @@ function embedding(G::DirectProductGroup, j::Int)
    f=GAP.Globals.Embedding(G.X,j)
    gr=G.L[j]
    typeG=typeof(gr)
-   return GAPGroupHomomorphism{typeG,DirectProductGroup}(gr,G,f)
+   return GAPGroupHomomorphism(gr,G,f)
 end
 
 """
@@ -178,7 +178,7 @@ function projection(G::DirectProductGroup, j::Int)
    j in 1:length(G.L) || throw(ArgumentError("index not valid"))
    H = G.L[j]
    p = GAP.Globals.GroupHomomorphismByFunction(G.X,H.X,y->GAP.Globals.Image(f,y))
-   return _hom_from_gap_map(G,H,p)
+   return GAPGroupHomomorphism(G,H,p)
 end
 
 
@@ -301,20 +301,18 @@ isfull_semidirect_product(G::SemidirectProductGroup) = G.isfull
 Return the embedding of the `n`-th component of `G` into `G`, for `n` = 1,2.
 It is not defined for proper subgroups of semidirect products.
 """
-function embedding(G::SemidirectProductGroup{S,T}, n::Int) where S where T
+function embedding(G::SemidirectProductGroup, n::Int)
    @assert G.isfull "Embedding not defined for proper subgroups of semidirect products"
    if n==1
       f=GAP.Globals.Embedding(G.X,2)
-      typeG=S
       gr=G.N
    elseif n==2
       f=GAP.Globals.Embedding(G.X,1)
-      typeG=T
       gr=G.H
    else
       throw(ArgumentError("n must be 1 or 2"))
    end
-   return GAPGroupHomomorphism{typeG,SemidirectProductGroup{S,T}}(gr,G,f)
+   return GAPGroupHomomorphism(gr,G,f)
 end
 
 """
@@ -326,7 +324,7 @@ function projection(G::SemidirectProductGroup)
    f=GAP.Globals.Projection(G.Xfull)
    H = G.H
    p = GAP.Globals.GroupHomomorphismByFunction(G.X,H.X,y->GAP.Globals.Image(f,y))
-   return _hom_from_gap_map(G,H,p)
+   return GAPGroupHomomorphism(G,H,p)
 end
 
 function _as_subgroup_bare(G::SemidirectProductGroup{S,T}, H::GapObj) where { S , T }
@@ -438,7 +436,7 @@ function projection(W::WreathProductGroup)
    f=GAP.Globals.Projection(W.Xfull)
    H = W.H
    p = GAP.Globals.GroupHomomorphismByFunction(W.X,H.X,y->GAP.Globals.Image(f,y))
-   return _hom_from_gap_map(W,H,p)
+   return GAPGroupHomomorphism(W,H,p)
 end
 
 """
@@ -453,7 +451,7 @@ function embedding(W::WreathProductGroup, n::Int)
    if n== GAP.Globals.NrMovedPoints(GAP.Globals.Image(W.a.map))+1 C=W.H
    else C=W.G
    end
-   return GAPGroupHomomorphism{typeof(C),WreathProductGroup}(C,W,f)
+   return GAPGroupHomomorphism(C,W,f)
 end
 
 Base.show(io::IO, x::WreathProductGroup) = print(io, String(GAP.Globals.StringView(x.X)))
