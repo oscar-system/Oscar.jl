@@ -63,7 +63,7 @@ julia> A = Oscar.BiPolyArray([x*y-3*x,y^3-2*x^2*y])
 Oscar.BiPolyArray{fmpq_mpoly}(fmpq_mpoly[x*y - 3*x, -2*x^2*y + y^3], #undef, Multivariate Polynomial Ring in x, y over Rational Field, #undef, false, #undef, true)
 
 julia> B = groebner_basis(A)
-Oscar.BiPolyArray{fmpq_mpoly}(fmpq_mpoly[#undef, #undef, #undef], Singular ideal over Singular Polynomial Ring (QQ),(x,y),(dp(2),C) with generators (x*y - 3*x, y^3 - 6*x^2, 2*x^3 - 9*x), Multivariate Polynomial Ring in x, y over Rational Field, Singular Polynomial Ring (QQ),(x,y),(dp(2),C), true, #undef, false)
+Oscar.BiPolyArray{fmpq_mpoly}(fmpq_mpoly[#undef, #undef, #undef], Singular ideal over Singular Polynomial Ring (QQ),(x,y),(dp(2),C) with generators (x*y - 3*x, y^3 - 6*x^2, 2*x^3 - 9*x), Multivariate Polynomial Ring in x, y over Rational Field, Singular Polynomial Ring (QQ),(x,y),(dp(2),C), true, #undef, true)
 ```
 """
 function groebner_basis(B::BiPolyArray; ordering::Symbol = :degrevlex, complete_reduction::Bool = false)
@@ -153,7 +153,7 @@ julia> A = Oscar.BiPolyArray([x*y-3*x,y^3-2*x^2*y])
 Oscar.BiPolyArray{fmpq_mpoly}(fmpq_mpoly[x*y - 3*x, -2*x^2*y + y^3], #undef, Multivariate Polynomial Ring in x, y over Rational Field, #undef, false, #undef, true)
 
 julia> B,m = Oscar.groebner_basis_with_transform(A)
-(Oscar.BiPolyArray{fmpq_mpoly}(fmpq_mpoly[#undef, #undef, #undef], Singular ideal over Singular Polynomial Ring (QQ),(x,y),(dp(2),C) with generators (x*y - 3*x, y^3 - 6*x^2, 6*x^3 - 27*x), Multivariate Polynomial Ring in x, y over Rational Field, Singular Polynomial Ring (QQ),(x,y),(dp(2),C), false, #undef, false), [1 2*x -2*x^2+y^2+3*y+9; 0 1 -x])
+(Oscar.BiPolyArray{fmpq_mpoly}(fmpq_mpoly[#undef, #undef, #undef], Singular ideal over Singular Polynomial Ring (QQ),(x,y),(dp(2),C) with generators (x*y - 3*x, y^3 - 6*x^2, 6*x^3 - 27*x), Multivariate Polynomial Ring in x, y over Rational Field, Singular Polynomial Ring (QQ),(x,y),(dp(2),C), false, #undef, true), [1 2*x -2*x^2+y^2+3*y+9; 0 1 -x])
 ```
 """
 function groebner_basis_with_transform(B::BiPolyArray; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
