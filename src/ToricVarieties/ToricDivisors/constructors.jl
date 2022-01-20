@@ -107,41 +107,10 @@ function Base.show(io::IO, td::ToricDivisor)
         end
     end
     
-    # principal?
-    if has_attribute(td, :isprincipal)
-        if get_attribute(td, :isprincipal)
-            push!(properties_string, "principal")
-        else
-            push!(properties_string, "non-principal")
-        end
-    end
-    
-    # basepoint free?
-    if has_attribute(td, :is_basepoint_free)
-        if get_attribute(td, :is_basepoint_free)
-            push!(properties_string, "basepoint-free")
-        else
-            push!(properties_string, "non-basepoint-free")
-        end
-    end
-    
-    # effective?
-    if has_attribute(td, :iseffective)
-        if get_attribute(td, :iseffective)
-            push!(properties_string, "effective")
-        else
-            push!(properties_string, "non-effective")
-        end
-    end
-    
-    # integral?
-    if has_attribute(td, :isintegral)
-        if get_attribute(td, :isintegral)
-            push!(properties_string, "integral")
-        else
-            push!(properties_string, "non-integral")
-        end
-    end
+    push_attribute_if_exists!(properties_string, td, :isprincipal, "principal")
+    push_attribute_if_exists!(properties_string, td, :is_basepoint_free, "basepoint-free")
+    push_attribute_if_exists!(properties_string, td, :iseffective, "effective")
+    push_attribute_if_exists!(properties_string, td, :isintegral, "integral")
     
     # (very) ample?
     if has_attribute(td, :isample)
@@ -160,23 +129,8 @@ function Base.show(io::IO, td::ToricDivisor)
         end
     end
     
-    # nef?
-    if has_attribute(td, :isnef)
-        if get_attribute(td, :isnef)
-            push!(properties_string, "nef")
-        else
-            push!(properties_string, "non-nef")
-        end
-    end
-    
-    # prime divisor?
-    if has_attribute(td, :is_prime_divisor)
-        if get_attribute(td, :is_prime_divisor)
-            push!(properties_string, "prime")
-        else
-            push!(properties_string, "non-prime")
-        end
-    end
+    push_attribute_if_exists!(properties_string, td, :isnef, "nef")
+    push_attribute_if_exists!(properties_string, td, :isprime, "prime")
     
     # print
     push!(properties_string, "divisor on a normal toric variety")
