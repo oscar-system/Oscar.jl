@@ -499,7 +499,7 @@ mutable struct BiPolyArray{S}
     r.Ox = Ox
     r.isGB = b.isGB
     r.Sx = base_ring(b)
-    r.keep_ordering = false
+    r.keep_ordering = true
     return r
   end
 end
@@ -646,7 +646,7 @@ function (SF::Singular.N_AlgExtField)(a::fq_nmod)
 end
 #### end stuff to move to singular.jl
 
-function singular_ring(Rx::MPolyRing{T}; keep_ordering::Bool = true) where {T <: RingElem}
+function singular_ring(Rx::MPolyRing{T}; keep_ordering::Bool = false) where {T <: RingElem}
   if keep_ordering
     return Singular.PolynomialRing(singular_ring(base_ring(Rx)),
               [string(x) for x = Nemo.symbols(Rx)],
