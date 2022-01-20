@@ -42,6 +42,7 @@
   S = MPolyPowersOfElement(x-1)
   T = MPolyComplementOfKPointIdeal(R, [1,1])
   V = MPolyComplementOfPrimeIdeal(ideal(R, f))
+  ⊂ = issubset
   @test S ⊂ V
   @test !(V ⊂ S)
   @test !(T ⊂ V)
