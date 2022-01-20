@@ -50,7 +50,7 @@ julia> c = cube(2)
 A polyhedron in ambient dimension 2
 
 julia> vertices(pyramid(c,5))
-5-element SubObjectIterator{PointVector{Polymake.Rational}}:
+5-element SubObjectIterator{PointVector{fmpq}}:
  [-1, -1, 0]
  [1, -1, 0]
  [-1, 1, 0]
@@ -58,7 +58,7 @@ julia> vertices(pyramid(c,5))
  [0, 0, 5]
 ```
 """
-function pyramid(P::Polyhedron, z::Number=1)
+function pyramid(P::Polyhedron{T}, z::Number=1) where T<:scalar_types
    pm_in = pm_object(P)
    has_group = Polymake.exists(pm_in, "GROUP")
    return Polyhedron(Polymake.polytope.pyramid(pm_in, z, group=has_group))

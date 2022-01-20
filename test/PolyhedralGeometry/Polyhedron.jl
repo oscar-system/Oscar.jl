@@ -3,7 +3,7 @@
 @testset "Polyhedron" begin
 
     pts = [1 0 0; 0 0 1]'
-    @test convex_hull(pts) isa Polyhedron
+    @test convex_hull(pts) isa Polyhedron{fmpq}
     Q0 = convex_hull(pts)
     @test convex_hull(pts; non_redundant = true) == Q0
     Q1 = convex_hull(pts, [1 1])
@@ -18,29 +18,29 @@
     @testset "core functionality" begin
         @test nvertices(Q0) == 3
         @test nvertices.(faces(Q0,1)) == [2,2,2]
-        @test lattice_points(Q0) isa SubObjectIterator{PointVector{Polymake.Integer}}
-        @test point_matrix(lattice_points(Q0)) == matrix(QQ, [0 0; 0 1; 1 0])
+        @test lattice_points(Q0) isa SubObjectIterator{PointVector{fmpz}}
+        @test point_matrix(lattice_points(Q0)) == matrix(ZZ, [0 0; 0 1; 1 0])
         @test matrix(ZZ, lattice_points(Q0)) == matrix(ZZ, [0 0; 0 1; 1 0])
         @test length(lattice_points(Q0)) == 3
-        @test lattice_points(Q0)[1] == PointVector{Polymake.Integer}([0, 0])
-        @test lattice_points(Q0)[2] == PointVector{Polymake.Integer}([0, 1])
-        @test lattice_points(Q0)[3] == PointVector{Polymake.Integer}([1, 0])
-        @test interior_lattice_points(square) isa SubObjectIterator{PointVector{Polymake.Integer}}
+        @test lattice_points(Q0)[1] == PointVector{fmpz}([0, 0])
+        @test lattice_points(Q0)[2] == PointVector{fmpz}([0, 1])
+        @test lattice_points(Q0)[3] == PointVector{fmpz}([1, 0])
+        @test interior_lattice_points(square) isa SubObjectIterator{PointVector{fmpz}}
         @test point_matrix(interior_lattice_points(square)) == matrix(ZZ, [0 0])
         @test matrix(ZZ, interior_lattice_points(square)) == matrix(ZZ,[0 0])
         @test length(interior_lattice_points(square)) == 1
-        @test interior_lattice_points(square)[] == PointVector{Polymake.Integer}([0, 0])
-        @test boundary_lattice_points(square) isa SubObjectIterator{PointVector{Polymake.Integer}}
+        @test interior_lattice_points(square)[] == PointVector{fmpz}([0, 0])
+        @test boundary_lattice_points(square) isa SubObjectIterator{PointVector{fmpz}}
         @test point_matrix(boundary_lattice_points(square)) == matrix(ZZ, [-1 -1; -1 0; -1 1; 0 -1; 0 1; 1 -1; 1 0; 1 1])
         @test length(boundary_lattice_points(square)) == 8
-        @test boundary_lattice_points(square)[1] == PointVector{Polymake.Integer}([-1, -1])
-        @test boundary_lattice_points(square)[2] == PointVector{Polymake.Integer}([-1, 0])
-        @test boundary_lattice_points(square)[3] == PointVector{Polymake.Integer}([-1, 1])
-        @test boundary_lattice_points(square)[4] == PointVector{Polymake.Integer}([0, -1])
-        @test boundary_lattice_points(square)[5] == PointVector{Polymake.Integer}([0, 1])
-        @test boundary_lattice_points(square)[6] == PointVector{Polymake.Integer}([1, -1])
-        @test boundary_lattice_points(square)[7] == PointVector{Polymake.Integer}([1, 0])
-        @test boundary_lattice_points(square)[8] == PointVector{Polymake.Integer}([1, 1])
+        @test boundary_lattice_points(square)[1] == PointVector{fmpz}([-1, -1])
+        @test boundary_lattice_points(square)[2] == PointVector{fmpz}([-1, 0])
+        @test boundary_lattice_points(square)[3] == PointVector{fmpz}([-1, 1])
+        @test boundary_lattice_points(square)[4] == PointVector{fmpz}([0, -1])
+        @test boundary_lattice_points(square)[5] == PointVector{fmpz}([0, 1])
+        @test boundary_lattice_points(square)[6] == PointVector{fmpz}([1, -1])
+        @test boundary_lattice_points(square)[7] == PointVector{fmpz}([1, 0])
+        @test boundary_lattice_points(square)[8] == PointVector{fmpz}([1, 1])
         @test isfeasible(Q0)
         @test issmooth(Q0)
         @test isnormal(Q0)
@@ -55,25 +55,25 @@
         @test codim(point) == 3
         @test !isfulldimensional(point)
         @test nrays(recession_cone(Pos)) == 3
-        @test vertices(PointVector{Polymake.Rational}, point) isa SubObjectIterator{PointVector{Polymake.Rational}}
-        @test vertices(PointVector, point) isa SubObjectIterator{PointVector{Polymake.Rational}}
-        @test vertices(point) isa SubObjectIterator{PointVector{Polymake.Rational}}
+        @test vertices(PointVector{fmpq}, point) isa SubObjectIterator{PointVector{fmpq}}
+        @test vertices(PointVector, point) isa SubObjectIterator{PointVector{fmpq}}
+        @test vertices(point) isa SubObjectIterator{PointVector{fmpq}}
         @test point_matrix(vertices(2*point)) == matrix(QQ, [0 2 0])
         @test point_matrix(vertices([0,1,0] + point)) == matrix(QQ, [0 2 0])
-        @test rays(RayVector{Polymake.Rational}, Pos) isa SubObjectIterator{RayVector{Polymake.Rational}}
-        @test rays(RayVector, Pos) isa SubObjectIterator{RayVector{Polymake.Rational}}
-        @test rays(Pos) isa SubObjectIterator{RayVector{Polymake.Rational}}
+        @test rays(RayVector{fmpq}, Pos) isa SubObjectIterator{RayVector{fmpq}}
+        @test rays(RayVector, Pos) isa SubObjectIterator{RayVector{fmpq}}
+        @test rays(Pos) isa SubObjectIterator{RayVector{fmpq}}
         @test vector_matrix(rays(Pos)) == matrix(QQ, [1 0 0; 0 1 0; 0 0 1])
         @test length(rays(Pos)) == 3
         @test rays(Pos)[1] == RayVector([1, 0, 0])
         @test rays(Pos)[2] == RayVector([0, 1, 0])
         @test rays(Pos)[3] == RayVector([0, 0, 1])
-        @test lineality_space(L) isa SubObjectIterator{RayVector{Polymake.Rational}}
+        @test lineality_space(L) isa SubObjectIterator{RayVector{fmpq}}
         @test generator_matrix(lineality_space(L)) == matrix(QQ, [0 0 1])
         @test matrix(ZZ, lineality_space(L)) == matrix(ZZ, [0 0 1])
         @test length(lineality_space(L)) == 1
         @test lineality_space(L)[] == RayVector([0, 0, 1])
-        @test faces(square, 1) isa SubObjectIterator{Polyhedron}
+        @test faces(square, 1) isa SubObjectIterator{Polyhedron{fmpq}}
         @test length(faces(square, 1)) == 4
         @test faces(square, 1)[1] == convex_hull([-1 -1; -1 1])
         @test faces(square, 1)[2] == convex_hull([1 -1; 1 1])
@@ -81,7 +81,7 @@
         @test faces(square, 1)[4] == convex_hull([-1 1; 1 1])
         @test vertex_indices(faces(square, 1)) == IncidenceMatrix([[1, 3], [2, 4], [1, 2], [3, 4]])
         @test ray_indices(faces(square, 1)) == IncidenceMatrix(4, 0)
-        @test faces(Pos, 1) isa SubObjectIterator{Polyhedron}
+        @test faces(Pos, 1) isa SubObjectIterator{Polyhedron{fmpq}}
         @test length(faces(Pos, 1)) == 3
         @test faces(Pos, 1)[1] == convex_hull([0 0 0], [1 0 0])
         @test faces(Pos, 1)[2] == convex_hull([0 0 0], [0 1 0])
@@ -97,7 +97,7 @@
         @test v[4] == PointVector([-1, 2])
         @test v[5] == PointVector([1, 2])
         @test point_matrix(v) == matrix(QQ, [2 -1; 2 1; -1 -1; -1 2; 1 2])
-        for T in [AffineHalfspace, Pair{Polymake.Matrix{Polymake.Rational}, Polymake.Rational}, Polyhedron]
+        for T in [AffineHalfspace, Pair{Matrix{fmpq}, fmpq}, Polyhedron{fmpq}]
             @test facets(T, Pos) isa SubObjectIterator{T}
             @test length(facets(T, Pos)) == 3
             @test affine_inequality_matrix(facets(T, Pos)) == matrix(QQ, Matrix{fmpq}([0 -1 0 0; 0 0 -1 0; 0 0 0 -1]))
@@ -108,7 +108,7 @@
             @test facets(T, Pos)[2] == T([0 -1 0], 0)
             @test facets(T, Pos)[3] == T([0 0 -1], 0)
         end
-        @test facets(Pair, Pos) isa SubObjectIterator{Pair{Polymake.Matrix{Polymake.Rational}, Polymake.Rational}}
+        @test facets(Pair, Pos) isa SubObjectIterator{Pair{Matrix{fmpq}, fmpq}}
         @test facets(Pos) isa SubObjectIterator{AffineHalfspace}
         @test facets(Halfspace, Pos) isa SubObjectIterator{AffineHalfspace}
         @test affine_hull(point) isa SubObjectIterator{AffineHyperplane}

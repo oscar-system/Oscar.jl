@@ -1,16 +1,42 @@
-struct Polyhedron #a real polymake polyhedron
+const scalar_types = Union{fmpq}
+
+const scalar_type_to_oscar = Dict{String, Type}([("Rational", fmpq)])
+
+struct Polyhedron{T} #a real polymake polyhedron
     pm_polytope::Polymake.BigObject
     boundedness::Symbol # Values: :unknown, :bounded, :unbounded
+    
+    # only allowing scalar_types;
+    # can be improved by testing if the template type of the `BigObject` corresponds to `T`
+    Polyhedron{T}(p::Polymake.BigObject, b::Symbol) where T<:scalar_types = new(p, b)
 end
+
+# default scalar type: `fmpq`
+Polyhedron(x...) = Polyhedron{fmpq}(x...)
+
+Polyhedron(p::Polymake.BigObject) = Polyhedron{detect_scalar_type(Polyhedron, p)}(p)
+Polyhedron(p::Polymake.BigObject, b::Symbol) = Polyhedron{detect_scalar_type(Polyhedron, p)}(p, b)
 
 struct Cone #a real polymake polyhedron
     pm_cone::Polymake.BigObject
 end
 
-struct PointVector{U} <: AbstractVector{U}
-    p::Polymake.Vector
-    PointVector{U}(p) where U = new(Polymake.Vector{Polymake.to_cxx_type(U)}(p))
+const pm_name_length = Dict{Type, Int}([(Polyhedron, 10)])
+
+scalar_type(::Polyhedron{T}) where T<:scalar_types = T
+
+function detect_scalar_type(n::Type{T}, p::Polymake.BigObject) where T<:Union{Polyhedron, Cone}
+    typename = Polymake.type_name(p)[pm_name_length[n]:end-1]
+    return scalar_type_to_oscar[typename]
 end
+
+const scalar_type_to_polymake = Dict{Type, Type}([(fmpq, Polymake.Rational)])
+
+struct PointVector{U} <: AbstractVector{U}
+    p::AbstractVector
+end
+
+Base.eltype(::PointVector{U}) where U = U
 
 Base.IndexStyle(::Type{<:PointVector}) = IndexLinear()
 
@@ -41,9 +67,10 @@ function Base.similar(bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{PointVector
 end
 
 struct RayVector{U} <: AbstractVector{U}
-    p::Polymake.Vector
-    RayVector{U}(p) where U = new(Polymake.Vector{Polymake.to_cxx_type(U)}(p))
+    p::AbstractVector
 end
+
+Base.eltype(::RayVector{U}) where U = U
 
 Base.IndexStyle(::Type{<:RayVector}) = IndexLinear()
 
@@ -209,8 +236,8 @@ for (sym, name) in (("point_matrix", "Point Matrix"), ("vector_matrix", "Vector 
     M = Symbol(sym)
     _M = Symbol(string("_", sym))
     @eval begin
-        $M(iter::SubObjectIterator{<:AbstractVector{Polymake.Rational}}) = matrix(QQ, Matrix{fmpq}($_M(Val(iter.Acc), iter.Obj; iter.options...)))
-        $M(iter::SubObjectIterator{<:AbstractVector{Polymake.Integer}}) = matrix(ZZ, $_M(Val(iter.Acc), iter.Obj; iter.options...))
+        $M(iter::SubObjectIterator{<:AbstractVector{fmpq}}) = matrix(QQ, Matrix{fmpq}($_M(Val(iter.Acc), iter.Obj; iter.options...)))
+        $M(iter::SubObjectIterator{<:AbstractVector{fmpz}}) = matrix(ZZ, $_M(Val(iter.Acc), iter.Obj; iter.options...))
         $_M(::Any, ::Polymake.BigObject) = throw(ArgumentError(string($name, " not defined in this context.")))
     end
 end
@@ -224,9 +251,9 @@ function matrix_for_polymake(iter::SubObjectIterator; homogenized=false)
 end
 
 # primitive generators only for ray based iterators
-matrix(R::FlintIntegerRing, iter::SubObjectIterator{RayVector{Polymake.Rational}}) =
+matrix(R::FlintIntegerRing, iter::SubObjectIterator{RayVector{fmpq}}) =
     matrix(R, Polymake.common.primitive(matrix_for_polymake(iter)))
-matrix(R::FlintIntegerRing, iter::SubObjectIterator{<:Union{RayVector{Polymake.Integer},PointVector{Polymake.Integer}}}) =
+matrix(R::FlintIntegerRing, iter::SubObjectIterator{<:Union{RayVector{fmpz},PointVector{fmpz}}}) =
     matrix(R, matrix_for_polymake(iter))
 matrix(R::FlintRationalField, iter::SubObjectIterator{<:Union{RayVector,PointVector}}) =
     matrix(R, Matrix{fmpq}(matrix_for_polymake(iter)))

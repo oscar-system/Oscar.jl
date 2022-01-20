@@ -7,7 +7,7 @@
 
         @test T(a) isa T{Polymake.Rational}
 
-        @testset "$T{$U}" for U in (Int64, Polymake.Integer, Polymake.Rational, Float64)
+        @testset "$T{$U}" for U in (Int64, fmpz, Polymake.Rational, Float64)
 
             @test T{U} <: AbstractVector
             @test T{U} <: AbstractVector{U}
@@ -18,8 +18,6 @@
             @test T{U}(7) == zeros(7)
 
             A = T{U}(a)
-
-            @test A.p isa Polymake.Vector{Polymake.to_cxx_type(U)}
 
             @test A[1] isa U
             @test A[2] == 2
@@ -34,7 +32,7 @@
             @test_throws BoundsError A[0]
             @test_throws BoundsError A[4]
 
-            for V in [Int64, Polymake.Integer, Polymake.Rational, Float64]
+            for V in [Int64, fmpz, Polymake.Rational, Float64]
 
                 B = T{V}(b)
 
