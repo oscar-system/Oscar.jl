@@ -189,7 +189,9 @@ true
 ```
 """
 function issimplicial(v::AbstractNormalToricVariety)
-    return isorbifold(v)
+    return get_attribute!(v, :issimplicial) do
+        return isorbifold(v)
+    end::Bool
 end
 export issimplicial
 
