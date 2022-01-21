@@ -431,9 +431,8 @@ end
 
 (h::FreeModuleHom_dec)(a::FreeModElem_dec) = image(h, a)
 
-# TODO FreeMod_dec in second argument -> ModuleFP_dec
-hom(F::FreeMod_dec{T}, G::FreeMod_dec{T}, V::Vector{<:FreeModElem_dec}) where T = FreeModuleHom_dec(F, G, V) 
-hom(F::FreeMod_dec{T}, G::FreeMod_dec{T}, A::MatElem{T}) where T = FreeModuleHom_dec(F, G, A)
+hom(F::FreeMod_dec{T}, G::ModuleFP_dec{T}, V::Vector{<:FreeModElem_dec}) where T = FreeModuleHom_dec(F, G, V) 
+hom(F::FreeMod_dec{T}, G::ModuleFP_dec{T}, A::MatElem{T}) where T = FreeModuleHom_dec(F, G, A)
 
 
 function hom(F::FreeMod_dec, G::FreeMod_dec)
