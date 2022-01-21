@@ -46,7 +46,10 @@ end
 ambient_ring(S::NmodComplementOfPrimeIdeal) = S.R
 
 ### additional constructors
-NmodComplementOfPrimeIdeal(R::NmodRing, i::Oscar.IntegerUnion) = NmodComplementOfPrimeIdeal(R(i))
+NmodComplementOfPrimeIdeal(R::NmodRing, i::fmpz) = NmodComplementOfPrimeIdeal(R(i))
+NmodComplementOfPrimeIdeal(R::NmodRing, i::Int) = NmodComplementOfPrimeIdeal(R(i))
+NmodComplementOfPrimeIdeal(R::NmodRing, i::Int) = NmodComplementOfPrimeIdeal(R(i))
+NmodComplementOfPrimeIdeal(R::NmodRing, i::Integer) = NmodComplementOfPrimeIdeal(R(i))
 
 ### additional functionality
 generator(S::NmodComplementOfPrimeIdeal) = S.gen
@@ -122,7 +125,9 @@ end
 
 ### additional conversions
 (W::NmodLocalizedRing)(a::T, b::T) where {T<:Oscar.IntegerUnion} = W(base_ring(W)(a), base_ring(W)(b))
-(W::NmodLocalizedRing)(a::Oscar.IntegerUnion) = W(base_ring(W)(a), one(base_ring(W)))
+(W::NmodLocalizedRing)(a::Int) = W(base_ring(W)(a), one(base_ring(W)))
+(W::NmodLocalizedRing)(a::Int64) = W(base_ring(W)(a), one(base_ring(W)))
+(W::NmodLocalizedRing)(a::fmpz) = W(base_ring(W)(a), one(base_ring(W)))
 (W::NmodLocalizedRing)(q::fmpq) = W(numerator(q), denominator(q))
 (W::NmodLocalizedRing)(q::Rational{T}) where {T<:Oscar.IntegerUnion} = W(numerator(q), denominator(q))
 
