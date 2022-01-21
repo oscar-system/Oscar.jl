@@ -10,6 +10,7 @@ export
     isnilpotent, hasisnilpotent, setisnilpotent,
     issolvable, hasissolvable, setissolvable,
     issupersolvable, hasissupersolvable, setissupersolvable,
+    maximal_abelian_quotient, hasmaximal_abelian_quotient, setmaximal_abelian_quotient,
     maximal_normal_subgroups, hasmaximal_normal_subgroups, setmaximal_normal_subgroups,
     maximal_subgroups, hasmaximal_subgroups, setmaximal_subgroups,
     minimal_normal_subgroups, hasminimal_normal_subgroups, setminimal_normal_subgroups,
@@ -291,7 +292,7 @@ i. e., `G` is finite and has a normal series with cyclic factors.
 
 ################################################################################
 #
-#  Quotient function
+#  Quotient functions
 #
 ################################################################################
 
@@ -339,6 +340,48 @@ function quo(G::T, H::T) where T <: GAPGroup
   mp_julia = __create_fun(mp, codom, S)
   return codom, hom(G, codom, mp_julia)
 end
+
+"""
+    maximal_abelian_quotient(G::GAPGroup)
+
+Return `F, epi` such that `F` is the largest abelian factor group of `G`
+and `epi` is an epimorphism from `G` to `F`.
+
+If `F` is finite then it has the type `PcGroup`, otherwise `FpGroup`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4);
+
+julia> F, epi = maximal_abelian_quotient(G);
+
+julia> order(F)
+2
+
+julia> domain(epi) === G && codomain(epi) === F
+true
+
+julia> typeof(F)
+PcGroup
+
+julia> typeof(maximal_abelian_quotient(free_group(1))[1])
+FPGroup
+```
+"""
+function maximal_abelian_quotient(G::GAPGroup)
+  map = GAP.Globals.MaximalAbelianQuotient(G.X)
+  F = GAP.Globals.Range(map)
+  if GAP.Globals.IsFinite(F)
+    F = PcGroup(F)
+  else
+    F = FPGroup(F)
+  end
+  return F, _hom_from_gap_map(G, F, map)
+end
+
+@gapwrap hasmaximal_abelian_quotient(G::GAPGroup) = GAP.Globals.HasMaximalAbelianQuotient(G.X)::Bool
+@gapwrap setmaximal_abelian_quotient(G::T, val::Tuple{GAPGroup, GAPGroupHomomorphism{T,S}}) where T <: GAPGroup where S = GAP.Globals.SetMaximalAbelianQuotient(G.X, val[2].map)::Nothing
+
 
 function __create_fun(mp, codom, ::Type{S}) where S
   function mp_julia(x::S)
