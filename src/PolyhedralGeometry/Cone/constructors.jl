@@ -74,10 +74,10 @@ julia> PO = positive_hull(R)
 A polyhedral cone in ambient dimension 2
 ```
 """
-function positive_hull(R::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix})
-    C=Polymake.polytope.Cone{Polymake.Rational}(INPUT_RAYS =
+function positive_hull(R::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix}; scalar::Type{<:scalar_types} = fmpq)
+    C=Polymake.polytope.Cone{scalar_type_to_polymake[scalar]}(INPUT_RAYS =
       remove_zero_rows(R))
-    Cone(C)
+    Cone{scalar}(C)
 end
 
 @doc Markdown.doc"""

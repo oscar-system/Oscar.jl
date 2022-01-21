@@ -27,15 +27,15 @@ julia> rays(NF)
  [0, 0, -1]
 ```
 """
-rays(PF::_FanLikeType) = SubObjectIterator{RayVector{Polymake.Rational}}(pm_object(PF), _ray_fan, pm_object(PF).N_RAYS)
+rays(PF::_FanLikeType{T}) where T<:scalar_types = SubObjectIterator{RayVector{T}}(pm_object(PF), _ray_fan, pm_object(PF).N_RAYS)
 
-_ray_fan(::Type{RayVector{Polymake.Rational}}, PF::Polymake.BigObject, i::Base.Integer) = RayVector(PF.RAYS[i, :])
+_ray_fan(::Type{RayVector{T}}, PF::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = RayVector{T}(PF.RAYS[i, :])
 
 _vector_matrix(::Val{_ray_fan}, PF::Polymake.BigObject; homogenized=false) = PF.RAYS
 
 _matrix_for_polymake(::Val{_ray_fan}) = _vector_matrix
 
-_maximal_cone(::Type{Cone}, PF::Polymake.BigObject, i::Base.Integer) = Cone(Polymake.fan.cone(PF, i - 1))
+_maximal_cone(::Type{Cone{T}}, PF::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = Cone{T}(Polymake.fan.cone(PF, i - 1))
 
 @doc Markdown.doc"""
     maximal_cones(PF::PolyhedralFan)
@@ -59,7 +59,7 @@ julia> for c in maximal_cones(PF)
 4
 ```
 """
-maximal_cones(PF::_FanLikeType) = SubObjectIterator{Cone}(pm_object(PF), _maximal_cone, n_maximal_cones(PF))
+maximal_cones(PF::_FanLikeType{T}) where T<:scalar_types = SubObjectIterator{Cone{T}}(pm_object(PF), _maximal_cone, n_maximal_cones(PF))
 
 _ray_indices(::Val{_maximal_cone}, obj::Polymake.BigObject) = obj.MAXIMAL_CONES
 
@@ -89,14 +89,14 @@ julia> cones(PF, 2)
  A polyhedral cone in ambient dimension 3
 ```
 """
-function cones(PF::_FanLikeType, cone_dim::Int)
+function cones(PF::_FanLikeType{T}, cone_dim::Int) where T<:scalar_types
     l = cone_dim  - length(lineality_space(PF))
     l < 1 && return nothing
-    return SubObjectIterator{Cone}(pm_object(PF), _cone_of_dim, size(Polymake.fan.cones_of_dim(pm_object(PF), l), 1), (c_dim = l,))
+    return SubObjectIterator{Cone{T}}(pm_object(PF), _cone_of_dim, size(Polymake.fan.cones_of_dim(pm_object(PF), l), 1), (c_dim = l,))
 end
 
-function _cone_of_dim(::Type{Cone}, PF::Polymake.BigObject, i::Base.Integer; c_dim::Int = 0)
-    return Cone(Polymake.polytope.Cone(RAYS = PF.RAYS[collect(Polymake.row(Polymake.fan.cones_of_dim(PF, c_dim), i)),:], LINEALITY_SPACE = PF.LINEALITY_SPACE))
+function _cone_of_dim(::Type{Cone{T}}, PF::Polymake.BigObject, i::Base.Integer; c_dim::Int = 0) where T<:scalar_types
+    return Cone{T}(Polymake.polytope.Cone{scalar_type_to_polymake[T]}(RAYS = PF.RAYS[collect(Polymake.row(Polymake.fan.cones_of_dim(PF, c_dim), i)),:], LINEALITY_SPACE = PF.LINEALITY_SPACE))
 end
 
 _ray_indices(::Val{_cone_of_dim}, PF::Polymake.BigObject; c_dim::Int = 0) = Polymake.fan.cones_of_dim(PF, c_dim)
@@ -264,9 +264,9 @@ julia> lineality_space(PF)
  [1, 0]
 ```
 """
-lineality_space(PF::_FanLikeType) = SubObjectIterator{RayVector{Polymake.Rational}}(pm_object(PF), _lineality_fan, lineality_dim(PF))
+lineality_space(PF::_FanLikeType{T}) where T<:scalar_types = SubObjectIterator{RayVector{T}}(pm_object(PF), _lineality_fan, lineality_dim(PF))
 
-_lineality_fan(::Type{RayVector{Polymake.Rational}}, PF::Polymake.BigObject, i::Base.Integer) = RayVector(PF.LINEALITY_SPACE[i, :])
+_lineality_fan(::Type{RayVector{T}}, PF::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = RayVector{T}(PF.LINEALITY_SPACE[i, :])
 
 _generator_matrix(::Val{_lineality_fan}, PF::Polymake.BigObject; homogenized=false) = PF.LINEALITY_SPACE
 
@@ -481,5 +481,6 @@ A polyhedral fan in ambient dimension 5
 ```
 """
 function Base.:*(PF1::PolyhedralFan, PF2::PolyhedralFan)
-    return PolyhedralFan(Polymake.fan.product(pm_object(PF1), pm_object(PF2)))
+    prod = Polymake.fan.product(pm_object(PF1), pm_object(PF2))
+    return PolyhedralFan{detect_scalar_type(PolyhedralFan, prod)}(prod)
 end

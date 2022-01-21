@@ -15,13 +15,13 @@
 
     @testset "core functionality" begin
         @test issmooth(NFsquare)
-        @test rays(NFsquare) isa SubObjectIterator{RayVector{Polymake.Rational}}
+        @test rays(NFsquare) isa SubObjectIterator{RayVector{fmpq}}
         @test vector_matrix(rays(NFsquare)) == matrix(QQ, [1 0; -1 0; 0 1; 0 -1])
         @test length(rays(NFsquare)) == 4
-        @test rays(NFsquare)[1] == RayVector([1, 0])
-        @test rays(NFsquare)[2] == RayVector([-1, 0])
-        @test rays(NFsquare)[3] == RayVector([0, 1])
-        @test rays(NFsquare)[4] == RayVector([0, -1])
+        @test rays(NFsquare)[1] == [1, 0]
+        @test rays(NFsquare)[2] == [-1, 0]
+        @test rays(NFsquare)[3] == [0, 1]
+        @test rays(NFsquare)[4] == [0, -1]
         @test isregular(NFsquare)
         @test iscomplete(NFsquare)
         @test !iscomplete(F0)
@@ -30,20 +30,20 @@
         @test dim(F1) == 2
         @test ambient_dim(F1) == 3
         @test nrays(F2) == 2
-        @test maximal_cones(F1) isa SubObjectIterator{Cone}
+        @test maximal_cones(F1) isa SubObjectIterator{Cone{fmpq}}
         @test dim.(maximal_cones(F1)) == [2,2]
         @test ray_indices(maximal_cones(F1)) == incidence1
         @test n_maximal_cones(F1) == 2
-        @test lineality_space(F2) isa SubObjectIterator{RayVector{Polymake.Rational}}
+        @test lineality_space(F2) isa SubObjectIterator{RayVector{fmpq}}
         @test generator_matrix(lineality_space(F2)) == matrix(QQ, L)
         @test length(lineality_space(F2)) == 1
-        @test lineality_space(F2)[] == RayVector(L[:])
+        @test lineality_space(F2)[] == L[:]
         @test matrix(QQ, lineality_space(F2)) == matrix(QQ, L)
-        @test cones(F2, 2) isa SubObjectIterator{Cone}
+        @test cones(F2, 2) isa SubObjectIterator{Cone{fmpq}}
         @test size(cones(F2, 2)) == (2,)
         @test generator_matrix(lineality_space(cones(F2, 2)[1])) == matrix(QQ, [0 1 0])
-        @test rays(cones(F2, 2)[1])[] == RayVector([1, 0, 0])
-        @test rays(cones(F2, 2)[2])[] == RayVector([0, 0, 1])
+        @test rays(cones(F2, 2)[1])[] == [1, 0, 0]
+        @test rays(cones(F2, 2)[2])[] == [0, 0, 1]
         @test isnothing(cones(F2, 1))
         @test ray_indices(cones(F1, 2)) == incidence1
 
