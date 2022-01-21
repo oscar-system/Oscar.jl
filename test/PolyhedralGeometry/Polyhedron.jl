@@ -97,7 +97,7 @@
         @test v[4] == PointVector([-1, 2])
         @test v[5] == PointVector([1, 2])
         @test point_matrix(v) == matrix(QQ, [2 -1; 2 1; -1 -1; -1 2; 1 2])
-        for T in [AffineHalfspace, Pair{Matrix{fmpq}, fmpq}, Polyhedron{fmpq}]
+        for T in [AffineHalfspace{fmpq}, Pair{Matrix{fmpq}, fmpq}, Polyhedron{fmpq}]
             @test facets(T, Pos) isa SubObjectIterator{T}
             @test length(facets(T, Pos)) == 3
             @test affine_inequality_matrix(facets(T, Pos)) == matrix(QQ, Matrix{fmpq}([0 -1 0 0; 0 0 -1 0; 0 0 0 -1]))
@@ -109,9 +109,9 @@
             @test facets(T, Pos)[3] == T([0 0 -1], 0)
         end
         @test facets(Pair, Pos) isa SubObjectIterator{Pair{Matrix{fmpq}, fmpq}}
-        @test facets(Pos) isa SubObjectIterator{AffineHalfspace}
-        @test facets(Halfspace, Pos) isa SubObjectIterator{AffineHalfspace}
-        @test affine_hull(point) isa SubObjectIterator{AffineHyperplane}
+        @test facets(Pos) isa SubObjectIterator{AffineHalfspace{fmpq}}
+        @test facets(Halfspace, Pos) isa SubObjectIterator{AffineHalfspace{fmpq}}
+        @test affine_hull(point) isa SubObjectIterator{AffineHyperplane{fmpq}}
         @test affine_equation_matrix(affine_hull(point)) == matrix(QQ, [0 -1 0 0; 1 0 -1 0; 0 0 0 -1])
         @test Oscar.affine_matrix_for_polymake(affine_hull(point)) == [0 -1 0 0; 1 0 -1 0; 0 0 0 -1]
         @test length(affine_hull(point)) == 3
@@ -135,7 +135,9 @@
     end
 
     @testset "volume" begin
+        @test volume(square) isa fmpq
         @test volume(square) == 4
+        @test normalized_volume(square) isa fmpq
         @test normalized_volume(square) == 8
         @test normalized_volume(s) == 1
     end

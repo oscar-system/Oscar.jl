@@ -349,9 +349,9 @@ julia> facets(C)
 1: x₃ ≦ 1
 ```
 """
-facets(P::Polyhedron) = facets(AffineHalfspace, P)
+facets(P::Polyhedron{T}) where T<:scalar_types = facets(AffineHalfspace{T}, P)
 
-facets(::Type{Halfspace}, P::Polyhedron) = facets(AffineHalfspace, P)
+facets(::Type{Halfspace}, P::Polyhedron{T}) where T<:scalar_types = facets(AffineHalfspace{T}, P)
 
 function _facet_index(P::Polymake.BigObject, i::Base.Integer)
     i < _facet_at_infinity(P) && return i
@@ -642,11 +642,11 @@ julia> affine_hull(t)
 
 ```
 """
-affine_hull(P::Polyhedron) = SubObjectIterator{AffineHyperplane}(pm_object(P), _affine_hull, size(pm_object(P).AFFINE_HULL, 1))
+affine_hull(P::Polyhedron{T}) where T<:scalar_types = SubObjectIterator{AffineHyperplane{T}}(pm_object(P), _affine_hull, size(pm_object(P).AFFINE_HULL, 1))
 
-function _affine_hull(::Type{AffineHyperplane}, P::Polymake.BigObject, i::Base.Integer)
+function _affine_hull(::Type{AffineHyperplane{T}}, P::Polymake.BigObject, i::Base.Integer) where T
     h = decompose_hdata(-P.AFFINE_HULL[[i], :])
-    return AffineHyperplane(h[1], h[2][])
+    return AffineHyperplane{T}(h[1], h[2][])
 end
 
 _affine_equation_matrix(::Val{_affine_hull}, P::Polymake.BigObject) = -P.AFFINE_HULL

@@ -1,4 +1,4 @@
-const scalar_types = Union{fmpq}
+const scalar_types = Union{fmpq, fmpz}
 
 const scalar_type_to_oscar = Dict{String, Type}([("Rational", fmpq)])
 
@@ -33,16 +33,19 @@ end
 const scalar_type_to_polymake = Dict{Type, Type}([(fmpq, Polymake.Rational)])
 
 struct PointVector{U} <: AbstractVector{U}
-    p::AbstractVector
+    p::AbstractVector{U}
+    
+    PointVector{U}(p::AbstractVector) where U<:scalar_types = new{U}(p)
+    PointVector(p::AbstractVector) = new{fmpq}(p)
 end
 
-Base.eltype(::PointVector{U}) where U = U
+# Base.eltype(::PointVector{U}) where U = U
 
 Base.IndexStyle(::Type{<:PointVector}) = IndexLinear()
 
-Base.getindex(po::PointVector, i::Base.Integer) = po.p[i]
+Base.getindex(po::PointVector{T}, i::Base.Integer) where T<:scalar_types  = convert(T, po.p[i])
 
-function Base.setindex!(po::PointVector{U}, val, i::Base.Integer) where U
+function Base.setindex!(po::PointVector, val, i::Base.Integer)
     @boundscheck checkbounds(po.p, i)
     po.p[i] = val
     return val
@@ -52,31 +55,34 @@ Base.firstindex(::PointVector) = 1
 Base.lastindex(iter::PointVector) = length(iter)
 Base.size(po::PointVector) = size(po.p)
 
-PointVector(x...) = PointVector{Polymake.Rational}(x...)
+# PointVector(x...) = PointVector{fmpq}(x...)
 
-PointVector{U}(n::Base.Integer) where U = PointVector{U}(Polymake.Vector{U}(undef, Polymake.Integer(n)))
+PointVector{U}(n::Base.Integer) where U = PointVector{U}(zeros(U, n))
 
-function Base.similar(X::PointVector, ::Type{S}, dims::Dims{1}) where S <: Union{Polymake.Rational, Polymake.Integer, Int64, Float64}
+function Base.similar(X::PointVector, ::Type{S}, dims::Dims{1}) where S <: scalar_types
     return PointVector{S}(dims...)
 end
 
 Base.BroadcastStyle(::Type{<:PointVector}) = Broadcast.ArrayStyle{PointVector}()
 
 function Base.similar(bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{PointVector}}, ::Type{ElType}) where ElType
-    return PointVector{Polymake.promote_to_pm_type(Vector, ElType)}(axes(bc)...)
+    return PointVector{ElType}(axes(bc)...)
 end
 
 struct RayVector{U} <: AbstractVector{U}
-    p::AbstractVector
+    p::AbstractVector{U}
+    
+    RayVector{U}(p::AbstractVector) where U<:scalar_types = new{U}(p)
+    RayVector(p::AbstractVector) = new{fmpq}(p)
 end
 
-Base.eltype(::RayVector{U}) where U = U
+# Base.eltype(::RayVector{U}) where U = U
 
 Base.IndexStyle(::Type{<:RayVector}) = IndexLinear()
 
-Base.getindex(po::RayVector, i::Base.Integer) = po.p[i]
+Base.getindex(po::RayVector{T}, i::Base.Integer) where T<:scalar_types  = convert(T, po.p[i])
 
-function Base.setindex!(po::RayVector{U}, val, i::Base.Integer) where U
+function Base.setindex!(po::RayVector, val, i::Base.Integer)
     @boundscheck checkbounds(po.p, i)
     po.p[i] = val
     return val
@@ -86,21 +92,23 @@ Base.firstindex(::RayVector) = 1
 Base.lastindex(iter::RayVector) = length(iter)
 Base.size(po::RayVector) = size(po.p)
 
-RayVector(x...) = RayVector{Polymake.Rational}(x...)
+# RayVector(x...) = RayVector{fmpq}(x...)
 
-RayVector{U}(n::Base.Integer) where U = RayVector{U}(Polymake.Vector{U}(undef, Polymake.Integer(n)))
+RayVector{U}(n::Base.Integer) where U = RayVector{U}(zeros(U, n))
 
-function Base.similar(X::RayVector, ::Type{S}, dims::Dims{1}) where S <: Union{Polymake.Rational, Polymake.Integer, Int64, Float64}
+function Base.similar(X::RayVector, ::Type{S}, dims::Dims{1}) where S <: scalar_types
     return RayVector{S}(dims...)
 end
 
 Base.BroadcastStyle(::Type{<:RayVector}) = Broadcast.ArrayStyle{RayVector}()
 
 function Base.similar(bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{RayVector}}, ::Type{ElType}) where ElType
-    return RayVector{Polymake.promote_to_pm_type(Vector, ElType)}(axes(bc)...)
+    return RayVector{ElType}(axes(bc)...)
 end
 
-abstract type Halfspace end
+Base.:*(k::scalar_types, po::Union{PointVector, RayVector}) = k .* po
+
+abstract type Halfspace{T} end
 
 @doc Markdown.doc"""
     Halfspace(a, b)
@@ -108,30 +116,30 @@ abstract type Halfspace end
 One halfspace `H(a,b)` is given by a vector `a` and a value `b` such that
 $$H(a,b) = \{ x | ax ≤ b \}.$$
 """
-struct AffineHalfspace <: Halfspace
-    a::Polymake.Vector{Polymake.Rational}
-    b::Polymake.Rational
+struct AffineHalfspace{T} <: Halfspace{T}
+    a::AbstractVector{T}
+    b::T
+    
+    AffineHalfspace{T}(a::Union{MatElem, AbstractMatrix, AbstractVector}, b=0) where T = new{T}(vec(a), b)
+    AffineHalfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}, b=0) = new{fmpq}(vec(a), b)
 end
 
-AffineHalfspace(a::Union{MatElem, AbstractMatrix}, b=0) = AffineHalfspace(vec(a), b)
-
-AffineHalfspace(a) = AffineHalfspace(a, 0)
+# AffineHalfspace(a) = AffineHalfspace(a, 0)
 
 Halfspace(a, b) = AffineHalfspace(a, b)
+Halfspace{T}(a, b) where T<:scalar_types = AffineHalfspace{T}(a, b)
 
-negbias(H::AffineHalfspace) = H.b
-
-struct LinearHalfspace <: Halfspace
-    a::Polymake.Vector{Polymake.Rational}
+struct LinearHalfspace{T} <: Halfspace{T}
+    a::AbstractVector{T}
+    
+    LinearHalfspace{T}(a::Union{MatElem, AbstractMatrix, AbstractVector}) where T = new{T}(vec(a))
+    LinearHalfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}) = new{fmpq}(vec(a))
 end
 
-LinearHalfspace(a::Union{MatElem, AbstractMatrix}) = LinearHalfspace(vec(a))
-
 Halfspace(a) = LinearHalfspace(a)
+Halfspace{T}(a) where T<:scalar_types = LinearHalfspace{T}(a)
 
-negbias(H::LinearHalfspace) = 0
-
-abstract type Hyperplane end
+abstract type Hyperplane{T} end
 
 @doc Markdown.doc"""
     AffineHyperplane(a, b)
@@ -139,28 +147,34 @@ abstract type Hyperplane end
 One hyperplane `H(a,b)` is given by a vector `a` and a value `b` such that
 $$H(a,b) = \{ x | ax = b \}.$$
 """
-struct AffineHyperplane <: Hyperplane
-    a::Polymake.Vector{Polymake.Rational}
-    b::Polymake.Rational
+struct AffineHyperplane{T} <: Hyperplane{T}
+    a::AbstractVector{T}
+    b::T
+    
+    AffineHyperplane{T}(a::Union{MatElem, AbstractMatrix, AbstractVector}, b=0) where T = new{T}(vec(a), b)
+    AffineHyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}, b=0) = new{fmpq}(vec(a), b)
 end
 
-AffineHyperplane(a::Union{MatElem, AbstractMatrix}, b) = AffineHyperplane(vec(a), b)
-
-AffineHyperplane(a) = AffineHyperplane(a, 0)
+# AffineHyperplane(a) = AffineHyperplane(a, 0)
 
 Hyperplane(a, b) = AffineHyperplane(a, b)
+Hyperplane{T}(a, b) where T<:scalar_types = AffineHyperplane{T}(a, b)
 
-negbias(H::AffineHyperplane) = H.b
-
-struct LinearHyperplane <: Hyperplane
-    a::Polymake.Vector{Polymake.Rational}
+struct LinearHyperplane{T} <: Hyperplane{T}
+    a::AbstractVector{T}
+    
+    LinearHyperplane{T}(a::Union{MatElem, AbstractMatrix, AbstractVector}) where T = new{T}(vec(a))
+    LinearHyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}) = new{fmpq}(vec(a))
 end
 
-LinearHyperplane(a::Union{MatElem, AbstractMatrix}) = LinearHyperplane(vec(a))
+# LinearHyperplane(a::Union{MatElem, AbstractMatrix}) = LinearHyperplane(vec(a))
 
 Hyperplane(a) = LinearHyperplane(a)
+Hyperplane{T}(a) where T<:scalar_types = LinearHyperplane{T}(a)
 
-negbias(H::LinearHyperplane) = 0
+negbias(H::Union{AffineHalfspace{T}, AffineHyperplane{T}}) where T<:scalar_types = H.b
+negbias(H::Union{LinearHalfspace{T}, LinearHyperplane{T}}) where T<:scalar_types = T(0)
+normal_vector(H::Union{Halfspace{T}, Hyperplane{T}}) where T <: scalar_types = Vector{T}(H.a)
 
 # TODO: abstract notion of equality
 Base.:(==)(x::AffineHalfspace, y::AffineHalfspace) = x.a == y.a && x.b == y.b
