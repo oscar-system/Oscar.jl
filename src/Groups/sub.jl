@@ -372,8 +372,20 @@ function maximal_abelian_quotient(G::GAPGroup)
   map = GAP.Globals.MaximalAbelianQuotient(G.X)
   F = GAP.Globals.Range(map)
   if GAP.Globals.IsFinite(F)
+    # force `PcGroup`
+    if !GAP.Globals.IsPcGroup(F)
+      map2 = GAP.Globals.IsomorphismPcGroup(F)
+      F = GAP.Globals.Range(map2)
+      map = GAP.Globals.CompositionMapping(map2, map)
+    end
     F = PcGroup(F)
   else
+    if !GAP.Globals.IsFpGroup(F)
+      map2 = GAP.Globals.IsomorphismFpGroup(F)
+#TODO: This does not work for example for infinite cyclic matrix groups.
+      F = GAP.Globals.Range(map2)
+      map = GAP.Globals.CompositionMapping(map2, map)
+    end
     F = FPGroup(F)
   end
   return F, _hom_from_gap_map(G, F, map)
