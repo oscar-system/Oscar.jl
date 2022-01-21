@@ -48,7 +48,7 @@ ambient_ring(S::NmodComplementOfPrimeIdeal) = S.R
 ### additional constructors
 NmodComplementOfPrimeIdeal(R::NmodRing, i::fmpz) = NmodComplementOfPrimeIdeal(R(i))
 NmodComplementOfPrimeIdeal(R::NmodRing, i::Int) = NmodComplementOfPrimeIdeal(R(i))
-NmodComplementOfPrimeIdeal(R::NmodRing, i::Int) = NmodComplementOfPrimeIdeal(R(i))
+NmodComplementOfPrimeIdeal(R::NmodRing, i::Int64) = NmodComplementOfPrimeIdeal(R(i))
 NmodComplementOfPrimeIdeal(R::NmodRing, i::Integer) = NmodComplementOfPrimeIdeal(R(i))
 
 ### additional functionality
