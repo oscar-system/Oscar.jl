@@ -132,11 +132,11 @@ julia> maximal_polyhedra(PC)
  A polyhedron in ambient dimension 2
 ```
 """
-maximal_polyhedra(PC::PolyhedralComplex) = SubObjectIterator{Polyhedron}(pm_object(PC), _maximal_polyhedron, nmaximal_polyhedra(PC))
+maximal_polyhedra(PC::PolyhedralComplex) = SubObjectIterator{Polyhedron}(pm_object(PC), _maximal_polyhedron, n_maximal_polyhedra(PC))
 
 
 @doc Markdown.doc"""
-    nmaximal_polyhedra(PC::PolyhedralComplex)
+    n_maximal_polyhedra(PC::PolyhedralComplex)
 
 Return the number of maximal polyhedra of `PC`
 
@@ -158,11 +158,11 @@ julia> VR = [0 0; 1 0; 1 1; 0 1]
 julia> PC = PolyhedralComplex(IM, VR, [2])
 A polyhedral complex in ambient dimension 2
 
-julia> nmaximal_polyhedra(PC)
+julia> n_maximal_polyhedra(PC)
 2
 ```
 """
-nmaximal_polyhedra(PC::PolyhedralComplex) = pm_object(PC).N_MAXIMAL_POLYTOPES
+n_maximal_polyhedra(PC::PolyhedralComplex) = pm_object(PC).N_MAXIMAL_POLYTOPES
 
 
 @doc Markdown.doc"""

@@ -219,7 +219,8 @@ function hom_base(C::T, D::T) where T <: GModule{<:Any, <:Generic.FreeModule{<:F
   h = Oscar.iso_oscar_gap(base_ring(C))
   hb = GAP.Globals.MTX.BasisModuleHomomorphisms(Gap(C, h), Gap(D, h))
   n = length(hb)
-  b = map(x->matrix(map(y->preimage(h, y), Oscar.GAP.gap_to_julia(Matrix{Any}, x))), hb)
+  b = [matrix([preimage(h, x[i, j]) for i in 1:GAPWrap.NrRows(x), j in 1:GAPWrap.NrCols(x)]) for x in hb]
+#  b = map(x->matrix(map(y->preimage(h, y), Matrix{Any}(x))), hb)
 #  @show [mat(C.ac[i])*b[1] == b[1]*mat(D.ac[i]) for i=1:length(C.ac)]
   return b
 end
@@ -569,7 +570,7 @@ module RepPc
 using Oscar
 
 Base.pairs(M::MatElem) = Base.pairs(IndexCartesian(), M)
-Base.pairs(::IndexCartesian, M::MatElem) = Base.Pairs(M, CartesianIndices(axes(M)))
+Base.pairs(::IndexCartesian, M::MatElem) = Base.Iterators.Pairs(M, CartesianIndices(axes(M)))
 
 function Hecke.roots(a::fq_nmod, i::Int)
   kx, x = PolynomialRing(parent(a), cached = false)

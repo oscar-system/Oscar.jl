@@ -33,7 +33,7 @@
         @test maximal_cones(F1) isa SubObjectIterator{Cone}
         @test dim.(maximal_cones(F1)) == [2,2]
         @test ray_indices(maximal_cones(F1)) == incidence1
-        @test nmaximal_cones(F1) == 2
+        @test n_maximal_cones(F1) == 2
         @test lineality_space(F2) isa SubObjectIterator{RayVector{Polymake.Rational}}
         @test generator_matrix(lineality_space(F2)) == matrix(QQ, L)
         @test length(lineality_space(F2)) == 1

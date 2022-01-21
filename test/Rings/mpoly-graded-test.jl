@@ -196,3 +196,12 @@ end
   D = grading_group(R)
   @test isisomorphic(D, abelian_group([0]))
 end
+
+# Conversion bug
+
+begin
+  R, (x,y) = QQ["x", "y"]
+  R_ext, _ = PolynomialRing(R, ["u", "v"])
+  S, (u,v) = grade(R_ext, [1,1])
+  @test S(R_ext(x)) == @inferred S(x)
+end

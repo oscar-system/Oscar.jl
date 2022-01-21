@@ -42,9 +42,9 @@ function ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{Int})
     
     # set attributes
     if sum(coeffs) != 1
-        set_attribute!(td, :isprime_divisor, false)
+        set_attribute!(td, :is_prime_divisor, false)
     else
-        set_attribute!(td, :isprime_divisor, all(y -> (y == 1 || y == 0), coeffs))
+        set_attribute!(td, :is_prime_divisor, all(y -> (y == 1 || y == 0), coeffs))
     end
     
     # return the result
@@ -93,8 +93,8 @@ function Base.show(io::IO, td::ToricDivisor)
         if get_attribute(td, :iscartier)
             push!(properties_string, "cartier")
         else
-            if has_attribute(td, :isq_cartier)
-                if get_attribute(td, :isq_cartier)
+            if has_attribute(td, :is_q_cartier)
+                if get_attribute(td, :is_q_cartier)
                     push!(properties_string, "q-cartier")
                 else
                     push!(properties_string, "non-q-cartier")
@@ -115,8 +115,8 @@ function Base.show(io::IO, td::ToricDivisor)
     end
     
     # basepoint free?
-    if has_attribute(td, :isbasepoint_free)
-        if get_attribute(td, :isbasepoint_free)
+    if has_attribute(td, :is_basepoint_free)
+        if get_attribute(td, :is_basepoint_free)
             push!(properties_string, "basepoint-free")
         else
             push!(properties_string, "non-basepoint-free")
@@ -146,8 +146,8 @@ function Base.show(io::IO, td::ToricDivisor)
         if get_attribute(td, :isample)
             push!(properties_string, "ample")
         else
-            if has_attribute(td, :isvery_ample)
-                if get_attribute(td, :isvery_ample)
+            if has_attribute(td, :is_very_ample)
+                if get_attribute(td, :is_very_ample)
                     push!(properties_string, "very-ample")
                 else
                     push!(properties_string, "non-very-ample")
@@ -168,8 +168,8 @@ function Base.show(io::IO, td::ToricDivisor)
     end
     
     # prime divisor?
-    if has_attribute(td, :isprime_divisor)
-        if get_attribute(td, :isprime_divisor)
+    if has_attribute(td, :is_prime_divisor)
+        if get_attribute(td, :is_prime_divisor)
             push!(properties_string, "prime")
         else
             push!(properties_string, "non-prime")
