@@ -76,14 +76,44 @@
 
             @test A != B
 
-            @test A.a == a
-            @test A.b == Oscar.negbias(A) == 0
-
-            @test B.a == b
-            @test B.b == Oscar.negbias(B) == 2
+            @test Oscar.normal_vector(A) isa Vector{U}
+            @test Oscar.normal_vector(A) == a
+            @test Oscar.negbias(A) isa U
+            @test Oscar.negbias(A) == 0
+            
+            
+            @test Oscar.normal_vector(B) == b
+            @test Oscar.negbias(B) == 2
         end
         
         @test T(a, 0) isa T{fmpq}
+        
+    end
+    
+    @testset "$T" for T in (LinearHalfspace, LinearHyperplane)
+        
+        for U in (fmpz, fmpq)
+            @test T{U}(a) isa T{U}
+            @test T{U}(a') isa T{U}
+
+            @test T{U}(a) == T{U}(a')
+
+            A = T{U}(a)
+            B = T{U}(b)
+
+            @test A != B
+
+            @test Oscar.normal_vector(A) isa Vector{U}
+            @test Oscar.normal_vector(A) == a
+            @test Oscar.negbias(A) isa U
+            @test Oscar.negbias(A) == 0
+            
+            
+            @test Oscar.normal_vector(B) == b
+            @test Oscar.negbias(B) == 0
+        end
+        
+        @test T(a) isa T{fmpq}
         
     end
     

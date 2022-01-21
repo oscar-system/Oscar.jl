@@ -46,7 +46,7 @@ end
 
 function _face_polyhedron(::Type{Polyhedron{T}}, P::Polymake.BigObject, i::Base.Integer; f_dim::Int = -1, f_ind::Vector{Int64} = Vector{Int64}()) where T<:scalar_types
     pface = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(P, f_dim))[f_ind[i]]
-    return Polyhedron{T}(Polymake.polytope.Polytope(VERTICES = P.VERTICES[collect(pface),:], LINEALITY_SPACE = P.LINEALITY_SPACE))
+    return Polyhedron{T}(Polymake.polytope.Polytope{scalar_type_to_polymake[T]}(VERTICES = P.VERTICES[collect(pface),:], LINEALITY_SPACE = P.LINEALITY_SPACE))
 end
 
 function _vertex_indices(::Val{_face_polyhedron}, P::Polymake.BigObject; f_dim = -1, f_ind::Vector{Int64} = Vector{Int64}())
@@ -59,7 +59,7 @@ end
 
 function _face_polyhedron_facet(::Type{Polyhedron{T}}, P::Polymake.BigObject, i::Base.Integer) where T<:scalar_types
     pface = P.VERTICES_IN_FACETS[_facet_index(P, i), :]
-    return Polyhedron{T}(Polymake.polytope.Polytope(VERTICES = P.VERTICES[collect(pface),:], LINEALITY_SPACE = P.LINEALITY_SPACE))
+    return Polyhedron{T}(Polymake.polytope.Polytope{scalar_type_to_polymake[T]}(VERTICES = P.VERTICES[collect(pface),:], LINEALITY_SPACE = P.LINEALITY_SPACE))
 end
 
 _vertex_indices(::Val{_face_polyhedron_facet}, P::Polymake.BigObject) = vcat(P.VERTICES_IN_FACETS[1:(_facet_at_infinity(P) - 1), _vertex_indices(P)], P.VERTICES_IN_FACETS[(_facet_at_infinity(P) + 1):end, _vertex_indices(P)])
@@ -301,9 +301,9 @@ julia> facets(Halfspace, C)
 1: x₃ ≦ 1
 ```
 """
-facets(as::Type{T}, P::Polyhedron) where {R, S, T<:Union{AffineHalfspace, Pair{R, S}, Polyhedron}} = SubObjectIterator{as}(pm_object(P), _facet_polyhedron, nfacets(P))
+facets(as::Type{T}, P::Polyhedron) where {R, S<:scalar_types, T<:Union{AffineHalfspace{S}, Pair{R, S}, Polyhedron{S}}} = SubObjectIterator{as}(pm_object(P), _facet_polyhedron, nfacets(P))
 
-function _facet_polyhedron(::Type{T}, P::Polymake.BigObject, i::Base.Integer) where {R, S, T<:Union{Polyhedron, AffineHalfspace, Pair{R, S}}}
+function _facet_polyhedron(::Type{T}, P::Polymake.BigObject, i::Base.Integer) where {R, S<:scalar_types, T<:Union{Polyhedron{S}, AffineHalfspace{S}, Pair{R, S}}}
     h = decompose_hdata(P.FACETS[[_facet_index(P, i)], :])
     return T(h[1], h[2][])
 end
@@ -615,7 +615,7 @@ julia> lineality_space(UH)
 """
 lineality_space(P::Polyhedron{T}) where T<:scalar_types = SubObjectIterator{RayVector{T}}(pm_object(P), _lineality_polyhedron, lineality_dim(P))
 
-_lineality_polyhedron(::Type{RayVector{fmpq}}, P::Polymake.BigObject, i::Base.Integer) = RayVector(P.LINEALITY_SPACE[i, 2:end])
+_lineality_polyhedron(::Type{RayVector{T}}, P::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = RayVector{T}(P.LINEALITY_SPACE[i, 2:end])
 
 _generator_matrix(::Val{_lineality_polyhedron}, P::Polymake.BigObject; homogenized=false) = P.LINEALITY_SPACE[:, (homogenized ? 1 : 2):end]
 
@@ -677,7 +677,7 @@ julia> rays(recession_cone(P))
  [1, 1]
 ```
 """
-recession_cone(P::Polyhedron) = Cone(Polymake.polytope.recession_cone(pm_object(P)))
+recession_cone(P::Polyhedron{T}) where T<:scalar_types = Cone{T}(Polymake.polytope.recession_cone(pm_object(P)))
 
 
 @doc Markdown.doc"""

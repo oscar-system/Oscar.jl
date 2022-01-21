@@ -54,6 +54,7 @@
         @test codim(square) == 0
         @test codim(point) == 3
         @test !isfulldimensional(point)
+        @test recession_cone(Pos) isa Cone{fmpq}
         @test nrays(recession_cone(Pos)) == 3
         @test vertices(PointVector{fmpq}, point) isa SubObjectIterator{PointVector{fmpq}}
         @test vertices(PointVector, point) isa SubObjectIterator{PointVector{fmpq}}

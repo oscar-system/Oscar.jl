@@ -15,31 +15,31 @@ const pm = Polymake
     @testset "core functionality" begin
         @test ispointed(Cone1)
         @test isfulldimensional(Cone1)
-        @test hilbert_basis(Cone1) isa SubObjectIterator{PointVector{Polymake.Integer}}
+        @test hilbert_basis(Cone1) isa SubObjectIterator{PointVector{fmpz}}
         @test length(hilbert_basis(Cone1)) == 2
-        @test hilbert_basis(Cone1)[1] == PointVector{Polymake.Integer}([1, 0])
-        @test hilbert_basis(Cone1)[2] == PointVector{Polymake.Integer}([0, 1])
+        @test hilbert_basis(Cone1)[1] == PointVector{fmpz}([1, 0])
+        @test hilbert_basis(Cone1)[2] == PointVector{fmpz}([0, 1])
         @test generator_matrix(hilbert_basis(Cone1)) == matrix(QQ, [1 0; 0 1])
         @test nrays(Cone1) == 2
-        @test rays(RayVector{Polymake.Rational}, Cone1) isa SubObjectIterator{RayVector{Polymake.Rational}}
-        @test rays(Cone1) isa SubObjectIterator{RayVector{Polymake.Rational}}
-        @test rays(RayVector, Cone1) isa SubObjectIterator{RayVector{Polymake.Rational}}
+        @test rays(RayVector{fmpq}, Cone1) isa SubObjectIterator{RayVector{fmpq}}
+        @test rays(Cone1) isa SubObjectIterator{RayVector{fmpq}}
+        @test rays(RayVector, Cone1) isa SubObjectIterator{RayVector{fmpq}}
         @test vector_matrix(rays(Cone1)) == matrix(QQ, [1 0; 0 1])
         @test matrix(QQ,rays(Cone1)) == matrix(QQ, [1 0; 0 1])
         @test matrix(ZZ,rays(Cone6)) == matrix(ZZ, [2 3; 2 5])
         @test length(rays(Cone1)) == 2
-        @test rays(Cone1)[1] == RayVector([1, 0])
-        @test rays(Cone1)[2] == RayVector([0, 1])
-        for T in [AffineHalfspace, LinearHalfspace, Cone, Polyhedron]
+        @test rays(Cone1)[1] == [1, 0]
+        @test rays(Cone1)[2] == [0, 1]
+        for T in [AffineHalfspace{fmpq}, LinearHalfspace{fmpq}, Cone{fmpq}, Polyhedron{fmpq}]
             @test facets(T, Cone1) isa SubObjectIterator{T}
             @test length(facets(T, Cone1)) == 2
             @test linear_inequality_matrix(facets(T, Cone1)) == matrix(QQ, [-1 0; 0 -1])
             @test Oscar.linear_matrix_for_polymake(facets(T, Cone1)) == [-1 0; 0 -1]
             @test ray_indices(facets(T, Cone1)) == IncidenceMatrix([[2], [1]])
-            if T == Cone
+            if T == Cone{fmpq}
                 @test facets(T, Cone1)[1] == cone_from_inequalities([-1 0])
                 @test facets(T, Cone1)[2] == cone_from_inequalities([0 -1])
-            elseif T == LinearHalfspace
+            elseif T == LinearHalfspace{fmpq}
                 @test facets(T, Cone1)[1] == T([-1, 0])
                 @test facets(T, Cone1)[2] == T([0, -1])
             else
@@ -47,11 +47,11 @@ const pm = Polymake
                 @test facets(T, Cone1)[2] == T([0 -1], 0)
             end
         end
-        @test facets(Halfspace, Cone1) isa SubObjectIterator{LinearHalfspace}
-        @test facets(Cone1) isa SubObjectIterator{LinearHalfspace}
-        @test linear_span(Cone4) isa SubObjectIterator{LinearHyperplane}
+        @test facets(Halfspace, Cone1) isa SubObjectIterator{LinearHalfspace{fmpq}}
+        @test facets(Cone1) isa SubObjectIterator{LinearHalfspace{fmpq}}
+        @test linear_span(Cone4) isa SubObjectIterator{LinearHyperplane{fmpq}}
         @test length(linear_span(Cone4)) == 1
-        @test linear_span(Cone4)[] == LinearHyperplane([0 1 0])
+        @test linear_span(Cone4)[] == LinearHyperplane{fmpq}([0 1 0])
         @test linear_equation_matrix(linear_span(Cone4)) == matrix(QQ, [0 1 0])
 
         @test !ispointed(Cone2)
@@ -63,7 +63,7 @@ const pm = Polymake
         @test dim(Cone4) == 2
         @test dim(Cone2) == 3
         @test ambient_dim(Cone2) == 3
-        @test lineality_space(Cone2) isa SubObjectIterator{RayVector{Polymake.Rational}}
+        @test lineality_space(Cone2) isa SubObjectIterator{RayVector{fmpq}}
         @test generator_matrix(lineality_space(Cone2)) == matrix(QQ, L)
         @test matrix(QQ, lineality_space(Cone2)) == matrix(QQ, L)
         @test matrix(ZZ, lineality_space(Cone2)) == matrix(ZZ, L)
@@ -72,13 +72,13 @@ const pm = Polymake
         @test vector_matrix(rays(Cone4)) == matrix(QQ, R)
         @test codim(Cone4) == 1
         @test codim(Cone3) == 0
-        @test faces(Cone2, 2) isa SubObjectIterator{Cone}
+        @test faces(Cone2, 2) isa SubObjectIterator{Cone{fmpq}}
         @test length(faces(Cone2, 2)) == 2
         @test faces(Cone2, 2)[1] == Cone([0 0 1], [0 1 0])
         @test faces(Cone2, 2)[2] == Cone([1 0 0], [0 1 0])
         @test isnothing(faces(Cone2, 1))
         @test ray_indices(faces(Cone2, 2)) == IncidenceMatrix([[2], [1]])
-        @test faces(Cone4, 1) isa SubObjectIterator{Cone}
+        @test faces(Cone4, 1) isa SubObjectIterator{Cone{fmpq}}
         @test length(faces(Cone4, 1)) == 2
         @test faces(Cone4, 1)[1] == Cone([0 0 1])
         @test faces(Cone4, 1)[2] == Cone([1 0 0])

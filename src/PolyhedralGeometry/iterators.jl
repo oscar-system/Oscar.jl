@@ -17,13 +17,21 @@ Polyhedron(x...) = Polyhedron{fmpq}(x...)
 Polyhedron(p::Polymake.BigObject) = Polyhedron{detect_scalar_type(Polyhedron, p)}(p)
 Polyhedron(p::Polymake.BigObject, b::Symbol) = Polyhedron{detect_scalar_type(Polyhedron, p)}(p, b)
 
-struct Cone #a real polymake polyhedron
+struct Cone{T} #a real polymake polyhedron
     pm_cone::Polymake.BigObject
+    
+    # only allowing scalar_types;
+    # can be improved by testing if the template type of the `BigObject` corresponds to `T`
+    Cone{T}(c::Polymake.BigObject) where T<:scalar_types = new(c)
 end
 
-const pm_name_length = Dict{Type, Int}([(Polyhedron, 10)])
+# default scalar type: `fmpq`
+Cone(x...) = Cone{fmpq}(x...)
 
-scalar_type(::Polyhedron{T}) where T<:scalar_types = T
+Cone(p::Polymake.BigObject) = Cone{detect_scalar_type(Cone, p)}(p)
+
+# actually name length + 2, corresponding to the index of the first character of the scalar type
+const pm_name_length = Dict{Type, Int}([(Polyhedron, 10), (Cone, 6)])
 
 function detect_scalar_type(n::Type{T}, p::Polymake.BigObject) where T<:Union{Polyhedron, Cone}
     typename = Polymake.type_name(p)[pm_name_length[n]:end-1]
@@ -184,6 +192,10 @@ Base.:(==)(x::LinearHalfspace, y::LinearHalfspace) = x.a == y.a
 Base.:(==)(x::AffineHyperplane, y::AffineHyperplane) = x.a == y.a && x.b == y.b
 
 Base.:(==)(x::LinearHyperplane, y::LinearHyperplane) = x.a == y.a
+
+####################
+
+scalar_type(::Union{Polyhedron{T}, Cone{T}, Hyperplane{T}, Halfspace{T}}) where T<:scalar_types = T
 
 ####################
 

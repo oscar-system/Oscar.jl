@@ -102,14 +102,14 @@ julia> rays(C)
  [1, 1]
 ```
 """
-function cone_from_inequalities(I::Union{SubObjectIterator{<:Halfspace}, Oscar.MatElem, AbstractMatrix}, E::Union{Nothing, SubObjectIterator{<:Hyperplane}, Oscar.MatElem, AbstractMatrix} = nothing; non_redundant::Bool = false)
+function cone_from_inequalities(I::Union{SubObjectIterator{<:Halfspace}, Oscar.MatElem, AbstractMatrix}, E::Union{Nothing, SubObjectIterator{<:Hyperplane}, Oscar.MatElem, AbstractMatrix} = nothing; non_redundant::Bool = false, scalar::Type{<:scalar_types} = fmpq)
     IM = -linear_matrix_for_polymake(I)
-    EM = isnothing(E) || isempty(E) ? Polymake.Matrix{Polymake.Rational}(undef, 0, size(IM, 2)) : linear_matrix_for_polymake(E)
+    EM = isnothing(E) || isempty(E) ? Polymake.Matrix{scalar_type_to_polymake[scalar]}(undef, 0, size(IM, 2)) : linear_matrix_for_polymake(E)
 
     if non_redundant
-        return Cone(Polymake.polytope.Cone{Polymake.Rational}(FACETS = IM, LINEAR_SPAN = EM))
+        return Cone{scalar}(Polymake.polytope.Cone{scalar_type_to_polymake[scalar]}(FACETS = IM, LINEAR_SPAN = EM))
     else
-        return Cone(Polymake.polytope.Cone{Polymake.Rational}(INEQUALITIES = IM, EQUATIONS = EM))
+        return Cone{scalar}(Polymake.polytope.Cone{scalar_type_to_polymake[scalar]}(INEQUALITIES = IM, EQUATIONS = EM))
     end
 end
 
