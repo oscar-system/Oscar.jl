@@ -485,11 +485,11 @@ end
 # with A=>B. Then if A is true, only A is displayed, and if B is false, only B
 # is displayed.
 function push_attribute_if_exists!(result::Vector{String}, 
-        v::Union{AbstractNormalToricVariety, ToricDivisor}, 
+        v::T,
         property::Symbol, name::String, 
         alt_string::Union{String,Nothing}=nothing; 
         callback=nothing
-    )
+    ) where T
     if has_attribute(v, property)
         if get_attribute(v, property)
             push!(result, name)
