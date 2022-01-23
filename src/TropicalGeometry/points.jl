@@ -48,7 +48,30 @@ export random_linear_polynomials
 
 
 
+#=======
+tropical Groebner basis
+todo: proper documentation
+Example:
+
+val_2 = ValuationMap(QQ,2)
+Kx,(x,y,z) = PolynomialRing(QQ,3)
+I = ideal([x+2*y,y+2*z])
+tropical_points(I,val_2)
+
+Kt,t = RationalFunctionField(QQ,"t")
+val_t = ValuationMap(Kt,t)
+Ktx,(x,y,z) = PolynomialRing(Kt,3)
+I = ideal([x+t*y,y+t*z])
+tropical_points(I,val_t)
+=======#
 function tropical_points(I,val::ValuationMap{K,p} where{K,p})
+
+  Kx = base_ring(I)
+  I0 = I + ideal(Kx,random_linear_polynomials(codim(I),Kx,val))
+
+  # todo: compute the tropical variety of I0
+
+  return zeros(Int,0,length(symbols(Kx)))
 
 end
 export tropical_points
