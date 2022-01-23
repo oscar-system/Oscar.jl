@@ -22,21 +22,21 @@ val_t = ValuationMap(Kt,t)
 Ktx,(x,y,z) = PolynomialRing(Kt,3)
 random_linear_polynomials(3,Ktx,val_t)
 =======#
-function random_linear_polynomials(k::Int,Kx,val::ValuationMap{K,p} where{K,p}; coeff_bound::Int=1023, val_bound::Int=15)
+function random_linear_polynomials(k::Int,Kx,val::ValuationMap{K,p} where{K,p}; coeff_bound::Int=1023, val_bound::Int=9)
   n = length(gens(Kx))
   p = val.uniformizer
 
-  coeffs = rand(0:coeff_bound,k,n)
-  vals = rand(0:val_bound,k,n)
-  expvs = zeros(Int,n,n) # Question: is there a simpler way to construct identity matrix?
-  for i in 1:n           #   identity_matrix(...), diagonal_matrix(ones(...)) do not seem to work
+  coeffs = rand(0:coeff_bound,k,n+1)
+  vals = rand(0:val_bound,k,n+1)
+  expvs = zeros(Int,n+1,n) # Question: is there a simpler way to construct identity matrix?
+  for i in 1:n             #   identity_matrix(...), diagonal_matrix(ones(...)) do not seem to work
     expvs[i,i] = 1
   end
 
   lin_polys = []
   for i in 1:k
     lin_poly = MPolyBuildCtx(Kx)
-    for (c,v,j) in zip(coeffs[i,:],vals[i,:],1:n)
+    for (c,v,j) in zip(coeffs[i,:],vals[i,:],1:n+1)
       push_term!(lin_poly,c*p^v,expvs[j,:])
     end
     push!(lin_polys,finish(lin_poly))
