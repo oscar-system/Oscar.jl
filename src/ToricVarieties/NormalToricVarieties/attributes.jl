@@ -164,7 +164,7 @@ julia> C = positive_hull([1 0 0; 1 1 0; 1 0 1; 1 1 1])
 A polyhedral cone in ambient dimension 3
 
 julia> antv = AffineNormalToricVariety(C)
-A normal, affine, non-complete toric variety
+A normal, affine toric variety
 
 julia> toric_ideal(antv)
 ideal(-x[1]*x[2] + x[3]*x[4])
@@ -623,9 +623,9 @@ A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric 
 
 julia> affine_open_covering(p2)
 3-element Vector{AffineNormalToricVariety}:
- A normal, affine, non-complete toric variety
- A normal, affine, non-complete toric variety
- A normal, affine, non-complete toric variety
+ A normal, affine toric variety
+ A normal, affine toric variety
+ A normal, affine toric variety
 ```
 """
 function affine_open_covering(v::AbstractNormalToricVariety)

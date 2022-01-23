@@ -37,7 +37,7 @@ julia> C = positive_hull([1 0; 0 1])
 A polyhedral cone in ambient dimension 2
 
 julia> antv = AffineNormalToricVariety(C)
-A normal, affine, non-complete toric variety
+A normal, affine toric variety
 ```
 """
 function AffineNormalToricVariety(C::Cone)
@@ -71,7 +71,7 @@ Set `C` to be the positive orthant in two dimensions.
 julia> C = positive_hull([1 0; 0 1])
 A polyhedral cone in ambient dimension 2
 julia> ntv = NormalToricVariety(C)
-A normal, affine, non-complete toric variety
+A normal, affine toric variety
 ```
 """
 function NormalToricVariety(C::Cone)
@@ -161,10 +161,10 @@ this method turns it into an affine toric variety.
 # Examples
 ```jldoctest
 julia> v = NormalToricVariety(positive_hull([1 0; 0 1]))
-A normal, affine, non-complete toric variety
+A normal, affine toric variety
 
 julia> affineVariety = AffineNormalToricVariety(v)
-A normal, affine, non-complete toric variety
+A normal, affine toric variety
 ```
 """
 function AffineNormalToricVariety(v::NormalToricVariety)
@@ -197,7 +197,7 @@ Constructs the (toric) affine space of dimension `d`.
 # Examples
 ```jldoctest
 julia> toric_affine_space(2)
-A normal, affine, non-complete, 2-dimensional toric variety
+A normal, affine, 2-dimensional toric variety
 ```
 """
 function toric_affine_space(d::Int)
