@@ -15,14 +15,14 @@ todo: proper documentation
 
 val_2 = ValuationMap(QQ,2)
 Kx,(x,y,z) = PolynomialRing(QQ,3)
-random_linear_polynomials(3,Kx,val_2)
+random_affine_linear_polynomials(3,Kx,val_2)
 
 Kt,t = RationalFunctionField(QQ,"t")
 val_t = ValuationMap(Kt,t)
 Ktx,(x,y,z) = PolynomialRing(Kt,3)
-random_linear_polynomials(3,Ktx,val_t)
+random_affine_linear_polynomials(3,Ktx,val_t)
 =======#
-function random_linear_polynomials(k::Int,Kx,val::ValuationMap{K,p} where{K,p}; coeff_bound::Int=1023, val_bound::Int=9)
+function random_affine_linear_polynomials(k::Int,Kx,val::ValuationMap{K,p} where{K,p}; coeff_bound::Int=1023, val_bound::Int=9)
   n = length(gens(Kx))
   p = val.uniformizer
 
@@ -44,7 +44,7 @@ function random_linear_polynomials(k::Int,Kx,val::ValuationMap{K,p} where{K,p}; 
 
   return lin_polys
 end
-export random_linear_polynomials
+export random_affine_linear_polynomials
 
 
 
