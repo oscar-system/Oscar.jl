@@ -25,7 +25,7 @@ julia> R,(x,y,z) = PolynomialRing(GF(101), ["x","y","z"], ordering=:degrevlex)
 (Multivariate Polynomial Ring in x, y, z over Galois field with characteristic 101, gfp_mpoly[x, y, z])
 
 julia> I = ideal(R, [x+2*y+2*z-1, x^2+2*y^2+2*z^2-x, 2*x*y+2*y*z-y])
-ideal(x + 2*y + 2*z + 100, x^2 + 100*x + 2*y^2 + 2*z^2, 2*x*y + 2*y*z + 100*y)
+ideal(x + 2*y + 2*z + 100, x^2 + 2*y^2 + 2*z^2 + 100*x, 2*x*y + 2*y*z + 100*y)
 
 julia> f4(I)
 4-element Vector{gfp_mpoly}:
