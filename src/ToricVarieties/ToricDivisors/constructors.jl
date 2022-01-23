@@ -101,7 +101,7 @@ function Base.show(io::IO, td::ToricDivisor)
     push_attribute_if_exists!(properties_string, td, :is_very_ample, "very-ample"; callback=ample_cb!)
     
     push_attribute_if_exists!(properties_string, td, :isnef, "nef")
-    push_attribute_if_exists!(properties_string, td, :isprime, "prime")
+    push_attribute_if_exists!(properties_string, td, :is_prime_divisor, "prime")
     
     # print
     push!(properties_string, "divisor on a normal toric variety")
