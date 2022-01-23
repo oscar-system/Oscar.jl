@@ -46,31 +46,3 @@ function groebner_polyhedron(I,val::ValuationMap{K,p} where {K,p},w::Vector{Int}
   return Polyhedron(A,b)
 end
 export groebner_polyhedron
-
-
-
-#=======
-homogeneity space
-todo: proper documentation
-Example:
-Kx,(x,y,z) = PolynomialRing(QQ,3)
-I = ideal([x+2*y,y+2*z])
-homogeneity_space(I)
-=======#
-function homogeneity_space(I)
-  GB = groebner_basis(I,complete_reduction=true)
-  n = length(symbols(base_ring(I)))
-
-  A = zeros(Int,0,n)
-  b = zeros(Int,0)
-  for f in GB
-    leadexpv, tailexpvs = Iterators.peel(exponent_vectors(f))
-    for tailexpv in tailexpvs
-      A = vcat(A,transpose(tailexpv-leadexpv)) # todo: is there a better way of doing this line?
-      push!(b,0)
-    end
-  end
-
-  return Polyhedron((zeros(Int,0,n),zeros(Int,0)),(A,b))
-end
-export homogeneity_space
