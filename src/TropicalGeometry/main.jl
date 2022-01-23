@@ -7,6 +7,7 @@ _whyohwhy2 = FmpqMPolyRing
 _whyohwhy3 = FlintRationalField
 @attributes _whyohwhy3
 
+using pAdicSolver # to compute tropicalizations of zero-dimensional ideals (through solve_macaulay)
 
 include("numbers.jl")
 include("valuation.jl")
@@ -15,6 +16,7 @@ include("initial.jl")
 include("groebner_basis.jl")
 include("groebner_polyhedron.jl")
 include("points.jl")
+include("links.jl")
 
 # Temporarily we will turn tropical polynomials into strings. This will be
 # removed once Polymake.jl wraps its tropical polynomials and tropical numbers
