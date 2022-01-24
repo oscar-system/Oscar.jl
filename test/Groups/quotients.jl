@@ -1,3 +1,72 @@
+@testset "quo for trivial kernel" begin
+   @testset for G in [symmetric_group(4), special_linear_group(2, 3), special_linear_group(2, 4), free_group(1), abelian_group(PcGroup, [2, 3, 4])]
+      subgens = elem_type(G)[]
+      F, epi = quo(G, subgens)
+      if isfinite(G)
+        @test order(F) == order(G)
+      else
+        @test ! isfinite(F)
+      end
+   end
+end
+
+@testset "types of factor groups" begin
+   # - `quo` without prescribed type:
+   #   same type as the input type if the kernel is trivial,
+   #   otherwise `PcGroup` if solvable, `PermGroup` if not
+   # - `quo` with prescribed type:
+   #    return a group of this type if possible
+   G = symmetric_group(4)
+   N = pcore(G, 2)[1]
+   for subgens in [N, gens(N)]
+      @test quo(G, subgens)[1] isa PcGroup
+      @test quo(PermGroup, G, subgens)[1] isa PermGroup
+   end
+   N = trivial_subgroup(G)[1]
+   for subgens in [N, gens(N)]
+      @test quo(G, subgens)[1] isa PermGroup
+      @test quo(PcGroup, G, subgens)[1] isa PcGroup
+   end
+   G = special_linear_group(2, 5)
+   N = centre(G)[1]
+   for subgens in [N, gens(N)]
+      @test quo(G, subgens)[1] isa PermGroup
+      @test quo(FPGroup, G, subgens)[1] isa FPGroup
+      @test_throws ErrorException quo(PcGroup, G, subgens)
+   end
+   N = trivial_subgroup(G)[1]
+   for subgens in [N, gens(N)]
+      @test quo(G, subgens)[1] isa MatrixGroup
+      @test quo(PermGroup, G, subgens)[1] isa PermGroup
+      @test_throws ErrorException quo(PcGroup, G, subgens)
+   end
+
+   # - `maximal_abelian_quotient` without prescribed type:
+   #   same type as the input type if abelian,
+   #   otherwise `PcGroup` if finite, `FPGroup` if not
+   # - `maximal_abelian_quotient` with prescribed type:
+   #    return a group of this type if possible
+   for T in [ PermGroup, PcGroup ]
+      G = abelian_group(T, [2, 3, 4])
+      @test maximal_abelian_quotient(G)[1] isa T
+      @test maximal_abelian_quotient(PermGroup, G)[1] isa PermGroup
+   end
+   T = FPGroup
+   G = abelian_group(T, [2, 3, 4])
+   @test maximal_abelian_quotient(G)[1] isa PcGroup
+   @test maximal_abelian_quotient(PermGroup, G)[1] isa PermGroup
+   G = symmetric_group(4)
+   @test maximal_abelian_quotient(G)[1] isa PcGroup
+   @test maximal_abelian_quotient(PermGroup, G)[1] isa PermGroup
+   G = special_linear_group(2, 3)
+   @test maximal_abelian_quotient(G)[1] isa PcGroup
+   @test maximal_abelian_quotient(PermGroup, G)[1] isa PermGroup
+   G = free_group(1)
+   @test maximal_abelian_quotient(G)[1] isa FPGroup
+   @test maximal_abelian_quotient(FPGroup, G)[1] isa FPGroup
+   @test_throws MethodError quo(PcGroup, G)
+end
+
 @testset "Finitely presented groups" begin
    F = free_group(2)
    x,y = gens(F)

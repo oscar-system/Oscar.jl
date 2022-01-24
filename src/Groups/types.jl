@@ -291,7 +291,21 @@ const _gap_group_types = Tuple{GAP.GapObj, Type}[]
 function _get_type(G::GapObj)
   for pair in _gap_group_types
     if pair[1](G)
-      return pair[2]
+      if pair[2] == MatrixGroup
+#T HACK: We need more information in the case of matrix groups.
+#T (Usually we should not need to guess the Oscar side of a GAP group.)
+        return function(dom::GAP.GapObj)
+                 deg = GAP.Globals.DimensionOfMatrixGroup(dom)
+                 iso = iso_gap_oscar(GAP.Globals.FieldOfMatrixGroup(dom))
+                 ring = codomain(iso)
+                 matgrp = MatrixGroup(deg, ring)
+                 matgrp.ring_iso = inv(iso)
+                 matgrp.X = dom
+                 return matgrp
+               end
+      else
+        return pair[2]
+      end
     end
   end
   error("Not a known type of group")
