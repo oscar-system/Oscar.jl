@@ -72,53 +72,93 @@ Kx,(x1,x2,x3,x4,x5) = PolynomialRing(QQ,5)
 # inI = ideal([-10*x2^2*x3+9*x1*x3^2+31*x2*x3^2-25*x1*x3*x4-14*x2^2*x5+6*x1*x5^2+46*x2*x5^2-32*x4*x5^2,
 #              10*x1^3-2*x1^2*x2+38*x1^2*x3+6*x2^2*x3+34*x1*x2*x4-x3^2*x4+8*x1*x4^2+18*x2*x4^2+47*x3^2*x5-22*x4^2*x5+43*x2*x5^2+16*x3*x5^2,
 #              49*x1^2*x4-50*x1*x2*x4-20*x1*x4^2+40*x1*x2*x5-27*x1*x3*x5+4*x1*x4*x5+22*x3*x5^2])
-inI = ideal([21*x1^2+31*x1*x2+46*x3^2-46*x1*x4+17*x2*x4+50*x3*x4-6*x4^2+30*x1*x5-28*x2*x5+46*x3*x5+x4*x5-7*x5^2,39*x1^2-25*x1*x2+37*x2^2-3*x1*x3+15*x2*x3+35*x3^2+44*x1*x5-8*x2*x5+17*x3*x5+37*x4*x5-9*x5^2,20*x1^2+42*x1*x2+8*x1*x3-42*x2*x3-33*x3^2-10*x2*x4+6*x3*x4-3*x1*x5+15*x3*x5-49*x4*x5-26*x5^2])
+inI = ideal([14*x1*x2-50*x1*x3+x2*x3+13*x3^2+40*x1*x4+16*x1*x5-27*x3*x5,-37*x1*x2+36*x3^2-x2*x4-12*x1*x5+37*x2*x5+12*x3*x5-20*x4*x5-26*x5^2,-2*x2*x3+39*x1*x4-5*x2*x5])
 tropical_link(inI)
 =======#
-function tropical_link(inI)
+function tropical_link(inI; p_adic_prime=32003)
 
-  # Compute the homogeneity space and identify the pivots (and non-pivots) of its equation matrix in rref
+  ###
+  # Step 1: Compute the homogeneity space and identify the pivots (and non-pivots) of its equation matrix in rref
+  ###
   H = homogeneity_space(inI,compute_groebner_basis=true)
   _,Eqs = rref(affine_equation_matrix(affine_hull(H)))            # rref returns rank first, which is not required here
   pivotIndices = pivots(Eqs)
   nonpivotIndices = setdiff(collect(1:ncols(Eqs)-1),pivotIndices) # the final column of Eqs represents the RHS of the linear equations,
                                                                   # not a variable in the polynomial ring
 
-  # Construct linear equations to cut down the homogeneity space
+  ###
+  # Step 2: Construct linear equations and cut down the homogeneity space
+  ###
   Kx = base_ring(inI)
   x = gens(Kx)
   inI1 = inI + ideal(Kx,[x[i]-1 for i in nonpivotIndices])        # dim(inI1) = 1, Trop(inI) = Trop(inI1)+H
 
-  # Quickly compute a partially saturated GB using satstd (copied from GITFans.jl)
+  ###
+  # Optional: Compute a partially saturated GB using satstd
+  ###
   Oscar.singular_assure(inI1)    # defines necessary objects on the Singular side
   singularIdeal = inI1.gens.S
-  singularRing = base_ring(singularIdealSinginI1)
+  singularRing = base_ring(singularIdeal)
   singularIdeal = Singular.satstd(singularIdeal,Singular.MaximalIdeal(singularRing,1))
   inI1 = ideal(Kx,singularIdeal) # cast the singular ideal back to a oscar ideal
 
-  # Create a p-adic field over a sufficiently large prime
-  val_p = ValuationMap(QQ,1000003)   # todo: increase p when necessary
+  ###
+  # Step 3.0: Create a p-adic field over a sufficiently large prime
+  ###
+  val_p = ValuationMap(QQ,p_adic_prime)   # todo: increase p when necessary
 
-  # Intersect the resulting one-dimensional ideal with hyperplanes p*x1-1, ..., p*xn-1, x1+...+xn-p
+  ###
+  # Step 3.1: Intersect the resulting one-dimensional ideal with hyperplanes p*x1-1, ..., p*xn-1, x1+...+xn-p
+  ###
   hyperplanes = [val_p.uniformizer*x[i]-1 for i in pivotIndices]
   push!(hyperplanes,sum(x)-val_p.uniformizer)
   rayGenerators = [];
+  rayMultiplicities = [];
   for hyperplane in hyperplanes
     inI0 = inI1+ideal(Kx,hyperplane)
-    inI0 = saturation(inI0,ideal(Kx,prod(x)))
-    inI0 = ideal(groebner_basis(inI0))
-    print(inI0)
-    pointsOnRays = tropical_points(inI0,val_p,p_adic_precision=3) # = matrix of rational numbers
-    pointsOnRays = [pointsOnRays[i,:] for i in 1:size(pointsOnRays,1)]                 # = array of vectors of rational numbers
-    for pointOnRay in pointsOnRays
-      pointOnRay = pointOnRay*lcm([denominator(pi) for pi in pointOnRay])
-      pointOnRay = [numerator(pi) for pi in pointOnRay]                                # = vector of integers
-      if findfirst(isequal(pointOnRay),rayGenerators) == nothing
-        push!(rayGenerators,pointOnRay)
+
+    ###
+    # Optional: Compute a partially saturated GB using satstd
+    ###
+    Oscar.singular_assure(inI0)    # defines necessary objects on the Singular side
+    singularIdeal = inI0.gens.S
+    singularRing = base_ring(singularIdeal)
+    singularIdeal = Singular.satstd(singularIdeal,Singular.MaximalIdeal(singularRing,1))
+    inI0 = ideal(Kx,singularIdeal) # cast the singular ideal back to a oscar ideal
+
+    ###
+    # Step 3.2: bookkeeping points on slice and their multiplicities
+    ###
+    pointsOfSliceMatrix = tropical_points(inI0,val_p) # = rational matrix
+    pointsOfSlice = []
+    multsOfSlice = []
+    for i in 1:size(pointsOfSliceMatrix,1)
+      pointOfSlice = pointsOfSliceMatrix[i,:]        # = rational vector
+      commonDenominator = lcm([denominator(pj) for pj in pointOfSlice])
+      pointOfSlice = [numerator(commonDenominator*pj) for pj in pointOfSlice] # = integer vector
+      j = findfirst(isequal(pointOfSlice),pointsOfSlice)
+      if j == nothing
+        push!(pointsOfSlice,pointOfSlice)
+        push!(multsOfSlice,1)
+      else
+        multsOfSlice[j] += 1
+      end
+    end
+
+    ###
+    # Step 3.3: merge points and multiplicities on slice and check for consistency
+    ###
+    for (pointOfSlice,m) in 1:size(pointsOfSlice)
+      j = findfirst(isequal(pointOfSlice),rayGenerators)
+      if j == nothing
+        push!(rayGenerators,pointOfSlice)
+        push!(rayMultiplicities,m)
+      else
+        @assert rayMultiplicities[j] == m
       end
     end
   end
 
-  return rayGenerators
+  return rayGenerators,rayMultiplicities
 end
 export tropical_link
