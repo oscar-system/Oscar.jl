@@ -6,7 +6,7 @@ export Spec, OO
 export affine_space
 export EmptyScheme
 
-export is_open_embedding, is_closed_embedding, hypersurface_complement, subscheme, name_of, set_name!
+export is_open_embedding, is_closed_embedding, hypersurface_complement, subscheme, name_of, set_name!, isempty
 export closure, product
 
 export SpecMor, morphism_type
@@ -210,6 +210,14 @@ function ==(
   base_ring(OO(X)) == base_ring(OO(Y)) || return false
   return issubset(X, Y) && issubset(Y, X)
 end
+
+function ==(X::Spec, Y::EmptyScheme)
+  return issubset(X, Y)
+end
+
+==(X::EmptyScheme, Y::Spec) = (Y == X)
+
+isempty(X::Spec) = iszero(one(OO(X)))
 
 @Markdown.doc """
     is_open_embedding(
