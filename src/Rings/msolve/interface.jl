@@ -46,7 +46,7 @@ end
 
 function convert_ff_gb_array_to_oscar_array(
         bld::Int32,
-        blen::Array{Int32,1},
+        blen::Vector{Int32},
         bcf::Array{Int32,1},
         bexp::Array{Int32,1},
         R::GFPMPolyRing
