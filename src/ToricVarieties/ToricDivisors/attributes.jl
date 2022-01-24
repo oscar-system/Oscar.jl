@@ -59,7 +59,7 @@ julia> D = ToricDivisor(H, [1,2,3,4])
 A torus-invariant, non-prime divisor on a normal toric variety
 
 julia> coefficients(D)
-4-element Vector{Int64}:
+4-element Vector{fmpz}:
  1
  2
  3
