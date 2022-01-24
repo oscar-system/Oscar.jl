@@ -43,5 +43,5 @@ is_very_ample(td::ToricDivisor)
 ```@docs
 coefficients(td::ToricDivisor)
 polyhedron(td::ToricDivisor)
-toricvariety(td::ToricDivisor)
+toric_variety(td::ToricDivisor)
 ```
