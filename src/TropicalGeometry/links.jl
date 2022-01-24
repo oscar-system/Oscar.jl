@@ -96,11 +96,11 @@ function tropical_link(inI; p_adic_prime=1000003)
   ###
   # Optional: Compute a partially saturated GB using satstd
   ###
-  Oscar.singular_assure(inI1)    # defines necessary objects on the Singular side
+  singular_assure(inI1)    # defines necessary objects on the Singular side
   singularIdeal = inI1.gens.S
   singularRing = base_ring(singularIdeal)
   singularIdeal = Singular.satstd(singularIdeal,Singular.MaximalIdeal(singularRing,1))
-  inI1 = ideal(Kx,singularIdeal) # cast the singular ideal back to a oscar ideal
+  inI1 = ideal(Kx,singularIdeal) # cast the Singular ideal back to an Oscar ideal
 
   ###
   # Step 3.0: Create a p-adic field over a sufficiently large prime
@@ -123,11 +123,11 @@ function tropical_link(inI; p_adic_prime=1000003)
     ###
     # Optional: Compute a partially saturated GB using satstd
     ###
-    Oscar.singular_assure(inI0)    # defines necessary objects on the Singular side
+    singular_assure(inI0)    # defines necessary objects on the Singular side
     singularIdeal = inI0.gens.S
     singularRing = base_ring(singularIdeal)
     singularIdeal = Singular.satstd(singularIdeal,Singular.MaximalIdeal(singularRing,1))
-    inI0 = ideal(Kx,singularIdeal) # cast the singular ideal back to a oscar ideal
+    inI0 = ideal(Kx,singularIdeal) # cast the Singular ideal back to an Oscar ideal
 
     ###
     # Step 3.2: bookkeeping points on slice and their multiplicities
