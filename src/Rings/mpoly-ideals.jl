@@ -536,7 +536,6 @@ end
 function _map_to_ext(Qx::MPolyRing, I::Oscar.Singular.sideal)
   Qxa = base_ring(I)
   @assert nvars(Qxa) == nvars(Qx) + 1
-  # TODO AbstractAlgebra's coefficients_of_univariate is still broken
   p = I[1]
   minpoly = zero(Hecke.Globals.Qx)
   for (c, e) in zip(coefficients(p), exponent_vectors(p))
