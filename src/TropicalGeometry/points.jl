@@ -74,9 +74,16 @@ function tropical_points(I,val_p::ValuationMap{FlintRationalField, fmpz}; p_adic
     I0 = I + ideal(Kx,random_affine_linear_polynomials(dim(I),Kx,val_p))
   end
 
-  Qp = PadicField(val_p.uniformizer,p_adic_precision) #todo: increase precision if necessary
-  I0p = [change_base_ring(Qp,f) for f in groebner_basis(I0)]
+  while true
+    try
+      Qp = PadicField(val_p.uniformizer,p_adic_precision)
+      I0p = [change_base_ring(Qp,f) for f in groebner_basis(I0)]
+      return solve_macaulay(I0p,eigenvector_method = "tropical") #todo: pass groebner basis flag+ordering
+    catch
+      p_adic_precision *= 2 # double precision if solver unsuccessful
+    end
+  end
 
-  return solve_macaulay(I0p,eigenvector_method = "tropical") #todo: pass groebner basis flag+ordering
+  return TI0p
 end
 export tropical_points
