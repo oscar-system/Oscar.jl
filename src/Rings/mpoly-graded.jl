@@ -1131,15 +1131,13 @@ julia> FG = gens(L[1])
 1-element Vector{AbstractAlgebra.Generic.FreeModuleElem{fmpq}}:
  (1)
 
-julia> EMB = L[2]
-Map from
-S_[1 0 1 0] of dim 1 to S defined by a julia-function with inverse
+julia> EMB = L[2];
 
 julia> for i in 1:length(FG) println(EMB(FG[i])) end
 x[3]
 
 julia> T, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"])
-(Multivariate Polynomial Ring in x, y, z over Rational Field graded by 
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
   z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
@@ -1148,8 +1146,19 @@ julia> G = grading_group(T)
 GrpAb: Z
 
 julia> L = homogeneous_component(T, 2*gen(G,1))
-(T_[2] of dim 6, Map from
-T_[2] of dim 6 to T defined by a julia-function with inverse)
+(homogeneous component of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1] of degree graded by [2]
+, Map from
+homogeneous component of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1] of degree graded by [2]
+ to Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1] defined by a julia-function with inverse)
 
 julia> FG = gens(L[1])
 6-element Vector{AbstractAlgebra.Generic.FreeModuleElem{fmpq}}:
@@ -1160,9 +1169,7 @@ julia> FG = gens(L[1])
  (0, 0, 0, 0, 1, 0)
  (0, 0, 0, 0, 0, 1)
 
-julia> EMB = L[2]
-Map from
-T_[2] of dim 6 to T defined by a julia-function with inverse
+julia> EMB = L[2];
 
 julia> for i in 1:length(FG) println(EMB(FG[i])) end
 z^2
