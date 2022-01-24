@@ -4,23 +4,25 @@
     singular_assure(I)
     res = Int32[2, 3], BigInt[1, 1, 13, 1, 1, 1, -12, 5, -1, 1], Int32[1, 0, 0, 1, 2, 1, 0, 2, 1, 0]
     @test Oscar.convert_singular_ideal_to_array(I.gens.S) == res
-    R,(x,y) = PolynomialRing(GF(32003), ["x","y"])
+    R,(x,y) = PolynomialRing(GF(32003), ["x","y"], ordering=:degrevlex)
     I = ideal(R,[x+13*y,x^2*y-12*y^2-x])
     singular_assure(I)
     res = Int32[2, 3], Int32[1, 13, 1, 31991, 32002], Int32[1, 0, 0, 1, 2, 1, 0, 2, 1, 0]
+    @test Oscar.convert_oscar_ideal_to_array(I) == res
     @test Oscar.convert_singular_ideal_to_array(I.gens.S) == res
     @test Singular.equal(I.gens.S, Oscar.convert_ff_gb_array_to_singular_ideal(Int32(2), res[1], res[2], res[3], base_ring(I.gens.S)))
-    R, (x1,x2,x3,x4) = PolynomialRing(GF(next_prime(2^28)), ["x1", "x2", "x3", "x4"])
+    @test I.gens.O == Oscar.convert_ff_gb_array_to_oscar_array(Int32(2), res[1], res[2], res[3], base_ring(I))
+    R, (x1,x2,x3,x4) = PolynomialRing(GF(next_prime(2^28)), ["x1", "x2", "x3", "x4"], ordering=:degrevlex)
     I = ideal(R,[x1+2*x2+2*x3+2*x4-1,
             x1^2+2*x2^2+2*x3^2+2*x4^2-x1,
             2*x1*x2+2*x2*x3+2*x3*x4-x2,
             x2^2+2*x1*x3+2*x2*x4-x3])
 
-    f4(I);
-    G = Singular.Ideal(I.gens.Sx,
-            (I.gens.Sx).(
-                         [x1 + 2*x2 + 2*x3 + 2*x4 - 1, x3^2 + 2*x2*x4 + 76695850*x3*x4 + 115043772*x4^2 + 115043768*x2 - 76695846*x3 - 38347924*x4, x2*x3 - 2*x2*x4 - 38347926*x3*x4 + 76695842*x4^2 - 57521884*x2 + 38347923*x3 - 115043767*x4, x2^2 + 2*x2*x4 - 115043767*x3*x4 - 38347921*x4^2 - 38347923*x2 + 115043768*x3 - 76695846*x4, x3*x4^2 - 29826161*x4^3 + 14913081*x2*x4 + 56338306*x3*x4 + 129246702*x4^2 - 4971027*x2 - 8285045*x3 - 9942054*x4, x2*x4^2 + 89478486*x4^3 + 29826162*x2*x4 - 4971027*x3*x4 - 29826162*x4^2 - 126761189*x2 + 9942054*x3, x4^4 + 35851649*x4^3 - 35550375*x2*x4 - 17256326*x3*x4 - 36956322*x4^2 - 76950494*x2 + 85955250*x3 - 101027337*x4]))
-    @test Singular.equal(I.gb.S, G)
+    H = f4(I);
+    G = gfp_mpoly[x1 + 2*x2 + 2*x3 + 2*x4 + 268435458, x3^2 + 2*x2*x4 + 76695850*x3*x4 + 115043772*x4^2 + 115043768*x2 + 191739613*x3 + 230087535*x4, x2*x3 + 268435457*x2*x4 + 230087533*x3*x4 + 76695842*x4^2 + 210913575*x2 + 38347923*x3 + 153391692*x4, x2^2 + 2*x2*x4 + 153391692*x3*x4 + 230087538*x4^2 + 230087536*x2 + 115043768*x3 + 191739613*x4, x3*x4^2 + 238609298*x4^3 + 14913081*x2*x4 + 56338306*x3*x4 + 129246702*x4^2 + 263464432*x2 + 260150414*x3 + 258493405*x4, x2*x4^2 + 89478486*x4^3 + 29826162*x2*x4 + 263464432*x3*x4 + 238609297*x4^2 + 141674270*x2 + 9942054*x3, x4^4 + 35851649*x4^3 + 232885084*x2*x4 + 251179133*x3*x4 + 231479137*x4^2 + 191484965*x2 + 85955250*x3 + 167408122*x4 ]
+    @test H == G
+    @test isdefined(I, :gb)
+    @test I.gb.O == G
 
     R, (x1,x2,x3) = PolynomialRing(QQ, ["x1", "x2", "x3"])
     I = ideal(R, [x1+2*x2+2*x3-1, x1^2+2*x2^2+2*x3^2-x1, 2*x1*x2+2*x2*x3-x2])
