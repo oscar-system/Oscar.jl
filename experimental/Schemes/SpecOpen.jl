@@ -7,7 +7,7 @@ export StructureSheafElem, domain, restrictions, patches, restrict, npatches, st
 export SpecOpenMor, maps_on_patches, restriction, identity_map, preimage, generic_fractions, pullback, maximal_extension
 
 @Markdown.doc """
-    SpecOpen{BRT, BRET, RT, RET, MST} <: Scheme{BRT, BRET}
+    SpecOpen{SpecType, BRT, BRET} <: Scheme{BRT, BRET}
 
 Zariski open subset ``U`` of an affine scheme ``X = Spec(R)``. 
 This stores a list of generators ``f₁,…,fᵣ`` of an ideal 
@@ -19,11 +19,10 @@ The type parameters stand for the following: The ring
 ``R = (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` is a localization of the quotient 
 of a polynomial ring and 
 
- * BRT is the type of the coefficient ring ``𝕜``;
- * BRET is the type of the elements of ``𝕜``;
- * RT is the type of the polynomial ring ``𝕜[x₁,…,xₙ]``;
- * RET is the type of the elements of ``𝕜[x₁,…,xₙ]``;
- * MST is the type of the multiplicative set ``S``.
+ * `SpecType` is the type of the affine scheme ``X`` of which 
+this is an open subset;
+ * `BRT` is the type of the coefficient ring ``𝕜``;
+ * `BRET` is the type of the elements of ``𝕜``.
 """
 @attributes mutable struct SpecOpen{SpecType, BRT, BRET} <: Scheme{BRT, BRET}
   X::SpecType # the ambient scheme
@@ -264,10 +263,14 @@ end
 
 
 @Markdown.doc """
-    StructureSheafRing{BRT, BRET, RT, RET, MST}
+    StructureSheafRing{SpecType, OpenType}
 
 The ring of regular functions ``𝒪(X, U)`` on an open subset ``U`` of an 
 affine scheme ``X``.
+
+ * `SpecType` is the type of the affine scheme ``X`` on which 
+this sheaf is defined;
+ * `OpenType` is the type of the (Zariski) open subsets of ``U``.
 """
 mutable struct StructureSheafRing{SpecType, OpenType}
   scheme::SpecType
@@ -317,10 +320,14 @@ function ==(R::T, S::T) where {T<:StructureSheafRing}
 end
 
 @Markdown.doc """
-    StructureSheafElem{RingType, RestrictionType}
+    StructureSheafElem{SpecOpenType, RestrictionType}
 
 An element ``f ∈ 𝒪(X, U)`` of the ring of regular functions on 
 an open set ``U`` of an affine scheme ``X``.
+
+ * `SpecOpenType` is the type of the open sets ``U`` of ``X``;
+ * `RestrictionType` is the type of the restrictions of ``f`` to
+the affine patches of ``U``.
 """
 mutable struct StructureSheafElem{SpecOpenType, RestrictionType}
   domain::SpecOpenType
@@ -426,7 +433,7 @@ end
 #TODO: implement the catchall versions of the above functions.
 
 @Markdown.doc """
-    SpecOpenMor{BRT, BRET, RT, RET, MST1, MST2}
+    SpecOpenMor{DomainType<:SpecOpen, CodomainType<:SpecOpen, SpecMorType<:SpecMor}
 
 Morphisms ``f : U → V`` of open sets ``U ⊂ X`` and ``V ⊂ Y`` of affine schemes.
 These are stored as morphisms ``fᵢ: Uᵢ→ Y`` on the affine patches 
@@ -436,12 +443,10 @@ The type parameters stand for the following: When ``X = Spec(R)`` and
 ``Y = Spec(S)`` with ``R = (𝕜[x₁,…,xₘ]/I)[A⁻¹]`` and ``S = (𝕜[y₁,…,yₙ]/J)[B⁻¹]``
 then 
 
- * BRT is the type of the coefficient ring ``𝕜``;
- * BRET is the type of the elements of ``𝕜``;
- * RT is the type of the polynomial rings ``𝕜[x₁,…,xₘ]`` and ``𝕜[y₁,…,yₙ];
- * RET is the type of the elements of these rings;
- * MST1 is the type of the multiplicative set ``A``;
- * MST2 is the type of the multiplicative set ``B``;
+ * `DomainType` is the type of the domain;
+ * `CodomainType` is the type of the codomain;
+ * `SpecMorType` is the type of the restriction of the morphism to the
+affine patches of the domain to the affine ambient scheme of the codomain. 
 """
 mutable struct SpecOpenMor{DomainType<:SpecOpen, CodomainType<:SpecOpen, SpecMorType<:SpecMor}
   domain::DomainType
