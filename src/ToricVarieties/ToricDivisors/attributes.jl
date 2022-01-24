@@ -73,11 +73,11 @@ export coefficients
 
 
 @doc Markdown.doc"""
-    toricvariety(td::ToricDivisor)
+    toric_variety(td::ToricDivisor)
 
 Return the toric variety of a torus-invariant Weil divisor.
 """
-function toricvariety(td::ToricDivisor)
-    return td.toricvariety
+function toric_variety(td::ToricDivisor)
+    return td.toric_variety
 end
-export toricvariety
+export toric_variety

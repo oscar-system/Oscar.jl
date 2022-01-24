@@ -4,9 +4,9 @@
 
 @attributes mutable struct ToricDivisor
            polymake_divisor::Polymake.BigObject
-           toricvariety::AbstractNormalToricVariety
+           toric_variety::AbstractNormalToricVariety
            coeffs::Vector{fmpz}
-           ToricDivisor(polymake_divisor::Polymake.BigObject, toricvariety::AbstractNormalToricVariety, coeffs::Vector{fmpz}) = new(polymake_divisor, toricvariety, coeffs)
+           ToricDivisor(polymake_divisor::Polymake.BigObject, toric_variety::AbstractNormalToricVariety, coeffs::Vector{fmpz}) = new(polymake_divisor, toric_variety, coeffs)
 end
 export ToricDivisor
 
