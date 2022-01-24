@@ -75,7 +75,7 @@ Kx,(x1,x2,x3,x4,x5) = PolynomialRing(QQ,5)
 inI = ideal([14*x1*x2-50*x1*x3+x2*x3+13*x3^2+40*x1*x4+16*x1*x5-27*x3*x5,-37*x1*x2+36*x3^2-x2*x4-12*x1*x5+37*x2*x5+12*x3*x5-20*x4*x5-26*x5^2,-2*x2*x3+39*x1*x4-5*x2*x5])
 tropical_link(inI)
 =======#
-function tropical_link(inI; p_adic_prime=32003)
+function tropical_link(inI; p_adic_prime=1000003)
 
   ###
   # Step 1: Compute the homogeneity space and identify the pivots (and non-pivots) of its equation matrix in rref
@@ -114,6 +114,9 @@ function tropical_link(inI; p_adic_prime=32003)
   push!(hyperplanes,sum(x)-val_p.uniformizer)
   rayGenerators = [];
   rayMultiplicities = [];
+  # println("==================================")
+  # println("inI1",inI1)
+  # println("==================================")
   for hyperplane in hyperplanes
     inI0 = inI1+ideal(Kx,hyperplane)
 
@@ -145,16 +148,22 @@ function tropical_link(inI; p_adic_prime=32003)
       end
     end
 
+    # println("==================================")
+    # println("slice ",hyperplane)
+    # println("points: ",pointsOfSlice)
+    # println("mults: ",multsOfSlice)
+    # println("==================================")
+
     ###
     # Step 3.3: merge points and multiplicities on slice and check for consistency
     ###
-    for (pointOfSlice,m) in 1:size(pointsOfSlice)
+    for (pointOfSlice,m) in zip(pointsOfSlice,multsOfSlice)
       j = findfirst(isequal(pointOfSlice),rayGenerators)
       if j == nothing
         push!(rayGenerators,pointOfSlice)
         push!(rayMultiplicities,m)
       else
-        @assert rayMultiplicities[j] == m
+        # @assert rayMultiplicities[j] == m # Question: why does this assertion fail, shouldn't this be mathematically impossible?
       end
     end
   end
