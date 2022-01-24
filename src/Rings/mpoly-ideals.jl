@@ -463,7 +463,7 @@ function primary_decomposition(I::MPolyIdeal; alg=:GTZ)
 end
 ########################################################
 @doc Markdown.doc"""
-    absolute_primary_decomposition(I::MPolyIdeal{fmpq_mpoly})
+    absolute_primary_decomposition(I::MPolyIdeal{<:MPolyElem{fmpq}})
 
 If `I` is an ideal in a multivariate polynomial ring over the rationals, return an absolute minimal primary decomposition of `I`. 
 
@@ -517,7 +517,7 @@ julia> minpoly(a)
 x^2 + 1
 ```
 """
-function absolute_primary_decomposition(I::MPolyIdeal{fmpq_mpoly})
+function absolute_primary_decomposition(I::MPolyIdeal{<:MPolyElem{fmpq}})
   R = base_ring(I)
   singular_assure(I)
   (S, d) = Singular.LibPrimdec.absPrimdecGTZ(I.gens.Sx, I.gens.S)
