@@ -47,6 +47,15 @@ end
 export random_affine_linear_polynomials
 
 
+function contains_zero_entry(p)
+  for pi in p
+    if pi==0
+      return true
+    end
+  end
+  return false
+end
+
 
 #=======
 tropical Groebner basis
@@ -64,7 +73,7 @@ tropical_points(I,val_2)
 # I = ideal([x+t*y,y+t*z])
 # tropical_points(I,val_t)
 =======#
-function tropical_points(I,val_p::ValuationMap{FlintRationalField, fmpz}; p_adic_precision::Int=9) # currently only p-adic supported
+function tropical_points(I,val_p::ValuationMap{FlintRationalField, fmpz}; p_adic_precision::Int=9, remove_points_at_infinity::Bool=false) # currently only p-adic supported
 
   Kx = base_ring(I)
   K = base_ring(Kx)
@@ -78,12 +87,17 @@ function tropical_points(I,val_p::ValuationMap{FlintRationalField, fmpz}; p_adic
     try
       Qp = PadicField(val_p.uniformizer,p_adic_precision)
       I0p = [change_base_ring(Qp,f) for f in groebner_basis(I0)]
-      return solve_macaulay(I0p,eigenvector_method = "tropical") #todo: pass groebner basis flag+ordering
+      global TI0p = solve_macaulay(I0p,eigenvector_method = "tropical") #todo: pass groebner basis flag+ordering
+      break
     catch
       p_adic_precision *= 2 # double precision if solver unsuccessful
     end
   end
 
-  return TI0p
+  if remove_points_at_infinity
+    return [TI0p[i,:] for i in 1:size(TI0p,1) if !contains_zero_entry(TI0p[i,:])]
+  else
+    return [TI0p[i,:] for i in 1:size(TI0p,1)]
+  end
 end
 export tropical_points

@@ -132,10 +132,9 @@ function tropical_link(inI; p_adic_prime=1000003)
     ###
     # Step 3.2: bookkeeping points on slice and their multiplicities
     ###
-    pointsOfSliceMatrix = tropical_points(inI0,val_p) # = rational matrix
     pointsOfSlice = []
     multsOfSlice = []
-    for i in 1:size(pointsOfSliceMatrix,1)
+    for pointOfSlice in tropical_points(inI0,val_p,remove_points_at_infinity=true)
       pointOfSlice = pointsOfSliceMatrix[i,:]        # = rational vector
       commonDenominator = lcm([denominator(pj) for pj in pointOfSlice])
       pointOfSlice = [numerator(commonDenominator*pj) for pj in pointOfSlice] # = integer vector
