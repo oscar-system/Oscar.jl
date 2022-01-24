@@ -12,6 +12,9 @@ function convert_oscar_ideal_to_array(
     lens        = Int32[length(I[i]) for i in 1:nr_gens]
     nterms      = sum(lens)
 
+    if field_char > 2^31
+        error("At the moment f4 only supports finite fields up to prime characteristic < 2^31.")
+    end
     # get coefficients
     if field_char == 0
         cfs = BigInt[]
@@ -80,6 +83,9 @@ function convert_singular_ideal_to_array(id::Singular.sideal)
     lens    = Int32[Singular.length(id[i]) for i in 1:ngens]
     nterms  = sum(lens)
     exps    = Int32[]
+    if char > 2^31
+        error("At the moment f4 only supports finite fields up to prime characteristic < 2^31.")
+    end
     if char ==  0
         cfs = BigInt[]
     else
