@@ -1,3 +1,10 @@
+###
+# Computing multiplicities of maximal-dimensional polyhedra on tropical varieties
+# ===============================================================================
+#
+# Uses the forumla in Lemma 3.4.7 of
+#   D. Maclagan, B. Sturmfels: Introduction to tropical geometry
+###
 
 
 #=======
