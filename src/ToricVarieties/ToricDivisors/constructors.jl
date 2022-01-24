@@ -6,9 +6,9 @@
            polymake_divisor::Polymake.BigObject
            toricvariety::AbstractNormalToricVariety
            coeffs::Vector{fmpz}
+           ToricDivisor(polymake_divisor::Polymake.BigObject, toricvariety::AbstractNormalToricVariety, coeffs::Vector{fmpz}) = new(polymake_divisor, toricvariety, coeffs)
 end
 export ToricDivisor
-
 
 function pm_tdivisor(td::ToricDivisor)
     return td.polymake_divisor
@@ -40,7 +40,7 @@ function ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{fmpz})
     # construct the divisor
     ptd = Polymake.fulton.TDivisor(COEFFICIENTS=Polymake.Vector{Polymake.Integer}(coeffs))
     Polymake.add(pm_object(v), "DIVISOR", ptd)
-    td = ToricDivisor(ptd, v, coeffs, Dict())
+    td = ToricDivisor(ptd, v, coeffs)
     
     # set attributes
     if sum(coeffs) != 1

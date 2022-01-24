@@ -5,11 +5,13 @@ abstract type AbstractNormalToricVariety end
 
 @attributes mutable struct NormalToricVariety <: AbstractNormalToricVariety
            polymakeNTV::Polymake.BigObject
+           NormalToricVariety(polymakeNTV::Polymake.BigObject) = new(polymakeNTV)
 end
 export NormalToricVariety
 
 @attributes mutable struct AffineNormalToricVariety <: AbstractNormalToricVariety
            polymakeNTV::Polymake.BigObject
+           AffineNormalToricVariety(polymakeNTV::Polymake.BigObject) = new(polymakeNTV)
 end
 export AffineNormalToricVariety
 
@@ -42,7 +44,7 @@ function AffineNormalToricVariety(C::Cone)
     # construct the variety
     fan = PolyhedralFan(C)
     pmntv = Polymake.fulton.NormalToricVariety(Oscar.pm_object(fan))
-    variety = AffineNormalToricVariety(pmntv, Dict())
+    variety = AffineNormalToricVariety(pmntv)
     
     # set known attributes
     set_attribute!(variety, :cone, C)
@@ -76,7 +78,7 @@ function NormalToricVariety(C::Cone)
     # construct the variety
     fan = PolyhedralFan(C)
     pmntv = Polymake.fulton.NormalToricVariety(Oscar.pm_object(fan))
-    variety = NormalToricVariety(pmntv, Dict())
+    variety = NormalToricVariety(pmntv)
     
     # set known attributes
     set_attribute!(variety, :fan, fan)
@@ -112,7 +114,7 @@ function NormalToricVariety(PF::PolyhedralFan)
     # construct the variety    
     fan = Oscar.pm_object(PF)
     pmntv = Polymake.fulton.NormalToricVariety(fan)
-    variety = NormalToricVariety(pmntv, Dict())
+    variety = NormalToricVariety(pmntv)
     
     # set attributes
     set_attribute!(variety, :fan, PF)
@@ -170,7 +172,7 @@ function AffineNormalToricVariety(v::NormalToricVariety)
     isaffine(v) || error("Cannot construct affine toric variety from non-affine input")
     
     # set variety
-    variety = AffineNormalToricVariety(pm_object(v), Dict())
+    variety = AffineNormalToricVariety(pm_object(v))
     
     # set properties of variety
     set_attribute!(variety, :isaffine, true)
@@ -209,7 +211,7 @@ function toric_affine_space(d::Int)
     # construct the variety
     fan = PolyhedralFan(C)
     pmntv = Polymake.fulton.NormalToricVariety(Oscar.pm_object(fan))
-    variety = NormalToricVariety(pmntv, Dict())
+    variety = NormalToricVariety(pmntv)
     
     # set known properties
     set_attribute!(variety, :isaffine, true)
@@ -243,7 +245,7 @@ function toric_projective_space(d::Int)
     # construct the variety
     f = normal_fan(Oscar.simplex(d))
     pm_object = Polymake.fulton.NormalToricVariety(Oscar.pm_object(f))
-    variety = NormalToricVariety(pm_object, Dict())
+    variety = NormalToricVariety(pm_object)
     
     # set properties
     set_attribute!(variety, :isaffine, false)
