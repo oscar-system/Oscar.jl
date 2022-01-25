@@ -32,6 +32,8 @@
    @test issemiregular(H)
    @test !isregular(H)
    @test isregular(H,[1,2])
+
+   @test_throws AssertionError transitive_group(1, 2)
 end
 
 @testset "Perfect groups" begin
@@ -47,6 +49,8 @@ end
    @test [number_perfect_groups(i) for i in 2:59]==[0 for i in 1:58]
    x = perfect_identification(alternating_group(5))
    @test isisomorphic(perfect_group(x[1],x[2]),alternating_group(5))[1]
+
+   @test_throws AssertionError perfect_group(60, 2)
 end
 
 @testset "Small groups" begin
@@ -62,4 +66,10 @@ end
    @test length(all_small_groups(16, isabelian))==5
    @test number_small_groups(16)==14
    @test number_small_groups(17)==1   
+
+   @test_throws AssertionError small_group(1, 2)
+end
+
+@testset "Primitive groups" begin
+   @test_throws AssertionError primitive_group(1, 1)
 end
