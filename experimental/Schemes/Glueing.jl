@@ -1,11 +1,12 @@
 export Glueing
 export glueing_morphism, patches, glueing_domains, inverse_glueing_morphism, inverse
+export glueing_type
 
 export compose, maximal_extension
 
 
 @Markdown.doc """
-Glueing{BRT, BRET, RT, RET}
+Glueing{SpecType<:Spec, OpenType<:SpecOpen, MorType<:SpecOpenMor}
 
 Glueing of two affine schemes ``X ↩ U ≅ V ↪ Y`` along open subsets 
 ``U ⊂ X`` and ``V ⊂ Y via some isomorphism ``φ : U → V``.
@@ -23,8 +24,8 @@ mutable struct Glueing{SpecType<:Spec, OpenType<:SpecOpen, MorType<:SpecOpenMor}
     ) where {
       SpecType<:Spec, MorType<:SpecOpenMor
     }
-    parent(domain(f)) == X || error("the domain of the glueing morphism is not an open subset of the first argument")
-    parent(codomain(f)) == Y || error("the codomain of the glueing morphism is not an open subset of the second argument")
+    ambient(domain(f)) == X || error("the domain of the glueing morphism is not an open subset of the first argument")
+    ambient(codomain(f)) == Y || error("the codomain of the glueing morphism is not an open subset of the second argument")
     (domain(f) == codomain(g) && domain(g) == codomain(f)) || error("maps can not be isomorphisms")
     return new{SpecType, open_subset_type(X), MorType}(X, Y, domain(f), codomain(f), f, g)
   end
@@ -96,4 +97,12 @@ function ==(G::GlueingType, H::GlueingType) where {GlueingType<:Glueing}
   patches(G)[2] == patches(H)[2] || return false
   glueing_morphisms(G) == glueing_morphisms(H) || return false
   return true
+end
+
+function glueing_type(X::SpecType) where {SpecType<:Spec}
+  return Glueing{SpecType, open_subset_type(SpecType), morphism_type(open_subset_type(SpecType), open_subset_type(SpecType))}
+end
+
+function glueing_type(::Type{SpecType}) where {SpecType}
+  return Glueing{SpecType, open_subset_type(SpecType), morphism_type(open_subset_type(SpecType), open_subset_type(SpecType))}
 end

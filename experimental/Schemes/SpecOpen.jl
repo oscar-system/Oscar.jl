@@ -1,4 +1,4 @@
-export SpecOpen, ambient, gens, complement, npatches, affine_patches, intersections, name, intersect, issubset, closure, find_non_zero_divisor, is_non_zero_divisor, is_dense, open_subset_type
+export SpecOpen, ambient, gens, complement, npatches, affine_patches, intersections, name, intersect, issubset, closure, find_non_zero_divisor, is_non_zero_divisor, is_dense, open_subset_type, ambient_type
 
 export StructureSheafRing, scheme, domain, OO, structure_sheaf_ring_type
 
@@ -44,7 +44,11 @@ this is an open subset;
   end
 end
 
-open_subset_type(X::Spec) = Type{SpecOpen{typeof(X), typeof(coefficient_ring(base_ring(OO(X)))), elem_type(coefficient_ring(base_ring(OO(X))))}}
+open_subset_type(X::Spec) = SpecOpen{typeof(X), typeof(coefficient_ring(base_ring(OO(X)))), elem_type(coefficient_ring(base_ring(OO(X))))}
+open_subset_type(::Type{Spec{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = SpecOpen{Spec{BRT, BRET, RT, RET, MST}, BRT, BRET}
+
+ambient_type(U::SpecOpen{SpecType, BRT, BRET}) where {SpecType<:Spec, BRT, BRET} = SpecType
+ambient_type(::Type{SpecOpen{SpecType, BRT, BRET}}) where {SpecType<:Spec, BRT, BRET} = SpecType
 
 @Markdown.doc """
     ambient(U::SpecOpen)
@@ -484,6 +488,9 @@ mutable struct SpecOpenMor{DomainType<:SpecOpen, CodomainType<:SpecOpen, SpecMor
     return new{DomainType, CodomainType, SpecMorType}(U, V, f)
   end
 end
+
+morphism_type(U::S, V::T) where {S<:SpecOpen, T<:SpecOpen} = SpecOpenMor{S, T, morphism_type(ambient(U), ambient(V))}
+morphism_type(::Type{DomainType}, ::Type{CodomainType}) where {DomainType<:SpecOpen, CodomainType<:SpecOpen} = SpecOpenMor{DomainType, CodomainType, morphism_type(ambient_type(DomainType), ambient_type(CodomainType))}
 
 domain(f::SpecOpenMor) = f.domain
 codomain(f::SpecOpenMor) = f.codomain

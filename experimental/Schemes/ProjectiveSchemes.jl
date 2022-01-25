@@ -1,6 +1,6 @@
 import Oscar.AlgHom
 
-export ProjectiveScheme, base_ring, fiber_dimension, homogeneous_coordinate_ring, gens, getindex
+export ProjectiveScheme, base_ring, fiber_dimension, homogeneous_coordinate_ring, gens, getindex, affine_patch_type
 export projective_space, subscheme
 export projection_to_base, affine_cone, base_scheme, homogeneous_coordinates, convert_to_fraction, convert_to_homog_polys
 export MorphismOfProjectiveSchemes, domain, codomain, images_of_variables, map_on_affine_cones, is_well_defined
@@ -18,7 +18,7 @@ mutable struct ProjectiveScheme{CoeffRingType, CoeffRingElemType, RingType, Ring
   A::CoeffRingType	# the base ring
   r::Int	# the relative dimension
   S::RingType
-  I::Vector{RingElemType} # generators for the defining ideal
+  I::MPolyIdeal{RingElemType} # generators for the defining ideal
   #TODO: Once MPolyIdeal is finally generic, use that instead of storing the generators.
 
   # fields used for caching
@@ -31,12 +31,12 @@ mutable struct ProjectiveScheme{CoeffRingType, CoeffRingElemType, RingType, Ring
     #TODO: Check that all weights are equal to 1
     n = ngens(S)-1
     A = coefficient_ring(S)
-    I = [zero(S)]
+    I = ideal(S, [zero(S)])
     return new{typeof(A), elem_type(A), typeof(S), elem_type(S)}(A, n, S, I)
   end
 
-  function ProjectiveScheme(S::MPolyRing_dec, I::Vector{T}) where {T<:RingElem}
-    for f in I
+  function ProjectiveScheme(S::MPolyRing_dec, I::MPolyIdeal{T}) where {T<:RingElem}
+    for f in gens(I)
       parent(f) == S || error("elements do not belong to the correct ring")
     end
     #TODO: Check that all weights are equal to 1
@@ -119,30 +119,91 @@ end
 homogeneous_coordinate(P::ProjectiveScheme, i::Int) = homogeneous_coordinates(P)[i]
 
 @Markdown.doc """
-    generators_of_defining_ideal(X::ProjectiveScheme)
+    defining_ideal(X::ProjectiveScheme)
 
-On ``X ⊂ ℙʳ(A)`` this returns a set of homogeneous generators of the 
+On ``X ⊂ ℙʳ(A)`` this returns the homogeneous 
 ideal ``I ⊂ A[s₀,…,sᵣ]`` defining ``X``.
 """
-generators_of_defining_ideal(X::ProjectiveScheme) = X.I
+defining_ideal(X::ProjectiveScheme) = X.I
 
 function Base.show(io::IO, P::ProjectiveScheme) 
-  print(io, "subscheme of ℙ^$(fiber_dimension(P))_{$(base_ring(P))} defined as the zero locus of  $(generators_of_defining_ideal(P))")
+  print(io, "subscheme of ℙ^$(fiber_dimension(P))_{$(base_ring(P))} defined as the zero locus of  $(defining_ideal(P))")
 end
 
-function projective_space(A::CoeffRingType, r::Int; var_name::String="s") where {CoeffRingType<:Ring}
-  R, _ = PolynomialRing(A, [var_name*"$i" for i in 0:n])
-  S = grade(S, [1 for i in 0:n ])
+original_ring(S::MPolyRing_dec) = S.R
+
+function affine_patch_type(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:AbstractAlgebra.Field, CRET, RT, RET}
+  return Spec{typeof(base_ring(X)), 
+              elem_type(base_ring(X)), 
+              typeof(original_ring(homogeneous_coordinate_ring(X))), 
+              elem_type(original_ring(homogeneous_coordinate_ring(X))), 
+              MPolyPowersOfElement{
+                                   typeof(base_ring(X)), 
+                                   elem_type(base_ring(X)), 
+                                   typeof(original_ring(homogeneous_coordinate_ring(X))), 
+                                   elem_type(original_ring(homogeneous_coordinate_ring(X)))
+                                  }
+             }
+end
+
+function affine_patch_type(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyRing, CRET, RT, RET}
+  return Spec{typeof(coefficient_ring(base_ring(X))), 
+              elem_type(coefficient_ring(base_ring(X))), 
+              typeof(base_ring(X)), 
+              elem_type(base_ring(X)),
+              MPolyPowersOfElement{
+                                   typeof(coefficient_ring(base_ring(X))), 
+                                   elem_type(coefficient_ring(base_ring(X))), 
+                                   typeof(original_ring(homogeneous_coordinate_ring(X))), 
+                                   elem_type(original_ring(homogeneous_coordinate_ring(X)))
+                                  }
+             }
+end
+
+# TODO: This only supports the localizations at hypersurfaces for now. 
+# In the future this will have to be modified as in the commented line; 
+# but then caching on the type should be used to avoid the computations of 
+# the product of multiplicative sets. 
+function affine_patch_type(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyQuoLocalizedRing, CRET, RT, RET}
+  Y = base_scheme(X)
+  return Spec{typeof(coefficient_ring(base_ring(OO(Y)))), 
+              elem_type(coefficient_ring(base_ring(OO(Y)))), 
+              typeof(base_ring(OO(Y))), 
+              elem_type(base_ring(OO(Y))),
+              MPolyPowersOfElement{
+                                   typeof(coefficient_ring(base_ring(OO(Y)))), 
+                                   elem_type(coefficient_ring(base_ring(OO(Y)))), 
+                                   typeof(base_ring(OO(Y))), 
+                                   elem_type(base_ring(OO(Y)))
+                                  }
+              #typeof(inverted_set(OO(affine_cone(X)))*Localization(OO(affine_cone(X)), prod(lifted_numerator.(homogeneous_coordinates(X)))))
+             }
+end
+
+function projective_space(A::CoeffRingType, var_symb::Vector{Symbol}) where {CoeffRingType<:Ring}
+  n = length(var_symb)
+  R, _ = PolynomialRing(A, var_symb)
+  S, _ = grade(R, [1 for i in 1:n ])
   I = ideal(S, [zero(S)])
   return ProjectiveScheme(S, I)
 end
 
-function subscheme(P::ProjectiveScheme, I::Vector{T}) where {T<:RingElem}
+projective_space(A::CoeffRingType, var_names::Vector{String}) where {CoeffRingType<:Ring} = projective_space(A, Symbol.(var_names))
+
+
+function projective_space(A::CoeffRingType, r::Int; var_name::String="s") where {CoeffRingType<:Ring}
+  R, _ = PolynomialRing(A, [var_name*"$i" for i in 0:n])
+  S, _ = grade(R, [1 for i in 1:n ])
+  I = ideal(S, [zero(S)])
+  return ProjectiveScheme(S, I)
+end
+
+function subscheme(P::ProjectiveScheme, I::MPolyIdeal{T}) where {T<:RingElem}
   S = homogeneous_coordinate_ring(P)
-  for f in I
+  for f in gens(I)
     parent(f) == S || error("elements do not belong to the correct ring")
   end
-  return ProjectiveScheme(S, vcat(I, generators_of_defining_ideal(P)))
+  return ProjectiveScheme(S, I + defining_ideal(P))
 end
 
 @Markdown.doc """
@@ -238,7 +299,7 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyR
       return evaluate(map_coefficients(pullback(pr_base), g1), X.homog_coord)
     end
 
-    I = ideal(OO(C), [complicated_evaluation(g) for g in generators_of_defining_ideal(X)])
+    I = ideal(OO(C), [complicated_evaluation(g) for g in gens(defining_ideal(X))])
     X.C = subscheme(C, I)
     X.projection_to_base = restrict(pr_base, X.C, Y)
   end
@@ -262,7 +323,7 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyQ
       return evaluate(map_coefficients(pullback(pr_base), g1), X.homog_coord)
     end
 
-    I = ideal(OO(C), [complicated_evaluation(g) for g in generators_of_defining_ideal(X)])
+    I = ideal(OO(C), [complicated_evaluation(g) for g in gens(defining_ideal(X))])
     X.C = subscheme(C, I)
     X.projection_to_base = restrict(pr_base, X.C, Y)
   end
@@ -274,7 +335,7 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:Abstra
     kk = base_ring(X)
     C = affine_space(kk, symbols(homogeneous_coordinate_ring(X)))
     X.homog_coord = gens(OO(C))
-    I = ideal(OO(C), [convert_to_fraction(X, g) for g in generators_of_defining_ideal(X)])
+    I = ideal(OO(C), [convert_to_fraction(X, g) for g in gens(defining_ideal(X))])
     X.C = subscheme(C, I)
   end
   return X.C

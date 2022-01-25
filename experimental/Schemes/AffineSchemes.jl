@@ -6,7 +6,7 @@ export Spec, OO
 export affine_space
 export EmptyScheme
 
-export is_open_embedding, is_closed_embedding, hypersurface_complement, subscheme, name_of, set_name!, isempty
+export is_open_embedding, is_closed_embedding, hypersurface_complement, subscheme, name_of, set_name!
 export closure, product
 
 export SpecMor, morphism_type
@@ -217,7 +217,7 @@ end
 
 ==(X::EmptyScheme, Y::Spec) = (Y == X)
 
-isempty(X::Spec) = iszero(one(OO(X)))
+Base.isempty(X::Spec) = iszero(one(OO(X)))
 
 @Markdown.doc """
     is_open_embedding(
@@ -338,6 +338,11 @@ function morphism_type(X::SpecType1, Y::SpecType2) where {SpecType1<:Spec, SpecT
   W = OO(Y)
   return SpecMor{typeof(kk), elem_type(kk), typeof(R), elem_type(R), typeof(inverted_set(L)), typeof(inverted_set(W))}
 end
+
+function morphism_type(::Type{Spec{BRT, BRET, RT, RET, MST1}}, ::Type{Spec{BRT, BRET, RT, RET, MST2}}) where {BRT, BRET, RT, RET, MST1, MST2}
+  return SpecMor{BRT, BRET, RT, RET, MST1, MST2}
+end
+
 
 ### getter functions
 pullback(phi::SpecMor) = phi.pullback
