@@ -866,7 +866,7 @@ For other groups, the function tries to decompose `G` as a direct product
 or a semidirect product,
 and if this is not possible as a non-splitting extension of
 a normal subgroup $N$ with the factor group `G`$/N$,
-where $N$ is the centre or the derived subgroup or the Frattini subgroup
+where $N$ is the center or the derived subgroup or the Frattini subgroup
 of `G`.
 
 Note that

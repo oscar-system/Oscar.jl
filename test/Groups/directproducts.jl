@@ -148,7 +148,7 @@ end
    @test index(G,H)==4
    @test !isfull_semidirect_product(H)
    @test projection(G)(x)==projection(H)(x)
-   @test H==centre(G)[1]
+   @test H==center(G)[1]
    y=G(Q[1],one(C))
    K = sub(G,gens(G))[1]
 #   @test isfull_semidirect_product(K)
