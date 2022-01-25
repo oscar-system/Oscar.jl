@@ -316,7 +316,9 @@ _vertex_indices(::Val{_facet_polyhedron}, P::Polymake.BigObject) = vcat(P.VERTIC
 
 _ray_indices(::Val{_facet_polyhedron}, P::Polymake.BigObject) = vcat(P.VERTICES_IN_FACETS[1:(_facet_at_infinity(P) - 1), _ray_indices(P)], P.VERTICES_IN_FACETS[(_facet_at_infinity(P) + 1):end, _ray_indices(P)])
 
-facets(::Type{Pair}, P::Polyhedron) = facets(Pair{Matrix{fmpq}, fmpq}, P)
+facets(::Type{Pair}, P::Polyhedron{T}) where T<:scalar_types = facets(Pair{Matrix{T}, T}, P)
+
+facets(::Type{Polyhedron}, P::Polyhedron{T}) where T<:scalar_types = facets(Polyhedron{T}, P)
 
 @doc Markdown.doc"""
     facets(P::Polyhedron)
@@ -352,6 +354,8 @@ julia> facets(C)
 facets(P::Polyhedron{T}) where T<:scalar_types = facets(AffineHalfspace{T}, P)
 
 facets(::Type{Halfspace}, P::Polyhedron{T}) where T<:scalar_types = facets(AffineHalfspace{T}, P)
+
+facets(::Type{AffineHalfspace}, P::Polyhedron{T}) where T<:scalar_types = facets(AffineHalfspace{T}, P)
 
 function _facet_index(P::Polymake.BigObject, i::Base.Integer)
     i < _facet_at_infinity(P) && return i

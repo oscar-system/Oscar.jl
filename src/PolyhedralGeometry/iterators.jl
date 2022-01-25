@@ -71,7 +71,7 @@ true
 struct PolyhedralFan{T} <:_FanLikeType{T}
    pm_fan::Polymake.BigObject
    
-   PolyhedralFan{T}(pm::Polymake.BigObject) where T<:scalar_types = new(pm)
+   PolyhedralFan{T}(pm::Polymake.BigObject) where T<:scalar_types = new{T}(pm)
 end
 
 # default scalar type: `fmpq`
@@ -79,10 +79,21 @@ PolyhedralFan(x...) = PolyhedralFan{fmpq}(x...)
 
 PolyhedralFan(p::Polymake.BigObject) = PolyhedralFan{detect_scalar_type(PolyhedralFan, p)}(p)
 
-# actually name length + 2, corresponding to the index of the first character of the scalar type
-const pm_name_length = Dict{Type, Int}([(Polyhedron, 10), (Cone, 6), (PolyhedralFan, 15)])
+struct SubdivisionOfPoints{T}
+   pm_subdivision::Polymake.BigObject
+   
+   SubdivisionOfPoints{T}(pm::Polymake.BigObject) where T<: scalar_types = new{T}(pm)
+end
 
-function detect_scalar_type(n::Type{T}, p::Polymake.BigObject) where T<:Union{Polyhedron, Cone, PolyhedralFan}
+# default scalar type: `fmpq`
+SubdivisionOfPoints(x...) = SubdivisionOfPoints{fmpq}(x...)
+
+SubdivisionOfPoints(p::Polymake.BigObject) = SubdivisionOfPoints{detect_scalar_type(SubdivisionOfPoints, p)}(p)
+
+# actually name length + 2, corresponding to the index of the first character of the scalar type
+const pm_name_length = Dict{Type, Int}([(Polyhedron, 10), (Cone, 6), (PolyhedralFan, 15), (SubdivisionOfPoints, 21)])
+
+function detect_scalar_type(n::Type{T}, p::Polymake.BigObject) where T<:Union{Polyhedron, Cone, PolyhedralFan, SubdivisionOfPoints}
     typename = Polymake.type_name(p)[pm_name_length[n]:end-1]
     return scalar_type_to_oscar[typename]
 end
@@ -174,7 +185,7 @@ One halfspace `H(a,b)` is given by a vector `a` and a value `b` such that
 $$H(a,b) = \{ x | ax ≤ b \}.$$
 """
 struct AffineHalfspace{T} <: Halfspace{T}
-    a::AbstractVector{T}
+    a::Vector{T}
     b::T
     
     AffineHalfspace{T}(a::Union{MatElem, AbstractMatrix, AbstractVector}, b=0) where T = new{T}(vec(a), b)
@@ -187,7 +198,7 @@ Halfspace(a, b) = AffineHalfspace(a, b)
 Halfspace{T}(a, b) where T<:scalar_types = AffineHalfspace{T}(a, b)
 
 struct LinearHalfspace{T} <: Halfspace{T}
-    a::AbstractVector{T}
+    a::Vector{T}
     
     LinearHalfspace{T}(a::Union{MatElem, AbstractMatrix, AbstractVector}) where T = new{T}(vec(a))
     LinearHalfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}) = new{fmpq}(vec(a))
@@ -205,7 +216,7 @@ One hyperplane `H(a,b)` is given by a vector `a` and a value `b` such that
 $$H(a,b) = \{ x | ax = b \}.$$
 """
 struct AffineHyperplane{T} <: Hyperplane{T}
-    a::AbstractVector{T}
+    a::Vector{T}
     b::T
     
     AffineHyperplane{T}(a::Union{MatElem, AbstractMatrix, AbstractVector}, b=0) where T = new{T}(vec(a), b)
@@ -218,7 +229,7 @@ Hyperplane(a, b) = AffineHyperplane(a, b)
 Hyperplane{T}(a, b) where T<:scalar_types = AffineHyperplane{T}(a, b)
 
 struct LinearHyperplane{T} <: Hyperplane{T}
-    a::AbstractVector{T}
+    a::Vector{T}
     
     LinearHyperplane{T}(a::Union{MatElem, AbstractMatrix, AbstractVector}) where T = new{T}(vec(a))
     LinearHyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}) = new{fmpq}(vec(a))
