@@ -9,6 +9,13 @@
 end
 export CyclicQuotientSingularity
 
+function Base.show(io::IO, cqs::CyclicQuotientSingularity)
+    n = pm_object(cqs).N
+    q = pm_object(cqs).Q
+    print(io, "The cyclic quotient singularity Y($(n), $(q))")
+end
+
+
 
 ################################################################################
 ################################################################################
