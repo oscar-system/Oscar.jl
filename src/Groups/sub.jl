@@ -1,6 +1,6 @@
 export
     centralizer,
-    centre, hascentre, setcentre,
+    center, hascenter, setcenter,
     characteristic_subgroups, hascharacteristic_subgroups, setcharacteristic_subgroups,
     derived_series, hasderived_series, setderived_series,
     derived_subgroup, hasderived_subgroup, setderived_subgroup,
@@ -207,13 +207,13 @@ i.e., those subgroups that are invariant under all automorphisms of `G`.
   _as_subgroups(G, GAP.Globals.CharacteristicSubgroups(G.X))
 
 @doc Markdown.doc"""
-    centre(G::Group)
+    center(G::Group)
 
-Return the centre of `G`, i.e.,
+Return the center of `G`, i.e.,
 the subgroup of all $x$ in `G` such that $x y$ equals $y x$ for every $y$
 in `G`, together with its embedding morphism into `G`.
 """
-@gapattribute centre(G::GAPGroup) = _as_subgroup(G, GAP.Globals.Centre(G.X))
+@gapattribute center(G::GAPGroup) = _as_subgroup(G, GAP.Globals.Centre(G.X))
 
 @doc Markdown.doc"""
     centralizer(G::Group, H::Group)

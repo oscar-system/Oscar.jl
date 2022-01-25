@@ -146,7 +146,7 @@ end
 @testset "Cosets" begin
   
    G = dihedral_group(8)
-   H, mH = centre(G)
+   H, mH = center(G)
   
    @test index(G, H) == 4
   
@@ -250,7 +250,7 @@ end
 @testset "Predicates for groups" begin
    @test !issimple(alternating_group(4))
    @test issimple(alternating_group(5))
-   @test issimple(quo(SL(4,3), centre(SL(4,3))[1])[1])
+   @test issimple(quo(SL(4,3), center(SL(4,3))[1])[1])
 
    @test isalmostsimple(symmetric_group(5))
    @test !issimple(symmetric_group(5))
@@ -329,8 +329,8 @@ end
    @test fitting_subgroup(S)==sub(S,[S([3,4,1,2]), S([4,3,2,1])])
    @test frattini_subgroup(S)==sub(S,[one(S)])
    @test frattini_subgroup(G)[1]==intersect(maximal_subgroups(G))[1]
-   @test frattini_subgroup(G)==centre(G)
-   @test ischaracteristic(G,centre(G)[1])
+   @test frattini_subgroup(G)==center(G)
+   @test ischaracteristic(G,center(G)[1])
    @test socle(G)==frattini_subgroup(G)
    @test socle(S)==fitting_subgroup(S)   
    @test radical_subgroup(S)[1]==S

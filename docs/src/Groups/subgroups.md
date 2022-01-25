@@ -34,7 +34,7 @@ of the same type of `G` and `f` is the embedding homomorphism of `H` into `G`.
 
 ```@docs
 trivial_subgroup
-centre
+center(G::GAPGroup)
 sylow_subgroup(G::GAPGroup, p::IntegerUnion)
 derived_subgroup
 fitting_subgroup
