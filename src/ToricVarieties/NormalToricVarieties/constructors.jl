@@ -490,7 +490,7 @@ function Base.show(io::IO, v::AbstractNormalToricVariety)
 
     affine = push_attribute_if_exists!(properties_string, v, :isaffine, "affine")
 
-    simplicial_cb!(a,b) = push_attribute_if_exists!(a, b, :issimplicial, "simplicial")
+    simplicial_cb!(a,b) = push_attribute_if_exists!(a, b, :isorbifold, "simplicial")
     push_attribute_if_exists!(properties_string, v, :issmooth, "smooth"; callback=simplicial_cb!)
 
     projective = nothing
