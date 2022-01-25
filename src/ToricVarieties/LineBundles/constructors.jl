@@ -4,9 +4,10 @@
 
 abstract type ToricCoherentSheaf end
 
-struct ToricLineBundle <: ToricCoherentSheaf
+@attributes mutable struct ToricLineBundle <: ToricCoherentSheaf
     variety::AbstractNormalToricVariety
     divisor_class::GrpAbFinGenElem
+    ToricLineBundle(variety::AbstractNormalToricVariety, divisor_class::GrpAbFinGenElem) = new(variety, divisor_class)
 end
 export ToricLineBundle
 

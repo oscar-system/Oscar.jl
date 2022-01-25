@@ -4,11 +4,11 @@
 
 @attributes mutable struct ToricDivisor
            polymake_divisor::Polymake.BigObject
-           toricvariety::AbstractNormalToricVariety
-           coeffs::Vector{Int}
+           toric_variety::AbstractNormalToricVariety
+           coeffs::Vector{fmpz}
+           ToricDivisor(polymake_divisor::Polymake.BigObject, toric_variety::AbstractNormalToricVariety, coeffs::Vector{fmpz}) = new(polymake_divisor, toric_variety, coeffs)
 end
 export ToricDivisor
-
 
 function pm_tdivisor(td::ToricDivisor)
     return td.polymake_divisor
@@ -29,16 +29,18 @@ julia> ToricDivisor(toric_projective_space(2), [1,1,2])
 A torus-invariant, non-prime divisor on a normal toric variety
 ```
 """
-function ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{Int})
+ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{Int}) = ToricDivisor(v, [fmpz(k) for k in coeffs])
+
+function ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{fmpz})
     # check input
     if length(coeffs) != pm_object(v).N_RAYS
         throw(ArgumentError("Number of coefficients needs to match number of prime divisors!"))
     end
     
     # construct the divisor
-    ptd = Polymake.fulton.TDivisor(COEFFICIENTS=coeffs)
+    ptd = Polymake.fulton.TDivisor(COEFFICIENTS=Polymake.Vector{Polymake.Integer}(coeffs))
     Polymake.add(pm_object(v), "DIVISOR", ptd)
-    td = ToricDivisor(ptd, v, coeffs, Dict())
+    td = ToricDivisor(ptd, v, coeffs)
     
     # set attributes
     if sum(coeffs) != 1
@@ -74,7 +76,7 @@ function DivisorOfCharacter(v::AbstractNormalToricVariety, character::Vector{Int
     end
     f = map_from_character_to_principal_divisors(v)
     char = sum(character .* gens(domain(f)))
-    coeffs = [Int(x) for x in transpose(f(char).coeff)][:,1]
+    coeffs = [fmpz(x) for x in transpose(f(char).coeff)][:,1]
     return ToricDivisor(v, coeffs)
 end
 export DivisorOfCharacter

@@ -195,7 +195,7 @@ D=ToricDivisor(H5, [0,0,0,0])
 D2 = DivisorOfCharacter(H5, [1,2])
 
 @testset "Divisors" begin
-    @test dim(toricvariety(D)) == 2
+    @test dim(toric_variety(D)) == 2
     @test is_prime_divisor(D) == false
     @test iscartier(D) == true
     @test isprincipal(D) == true
@@ -229,6 +229,11 @@ end
 line_bundle = ToricLineBundle(dP3, [1,2,3,4])
 
 @testset "Toric line bundles" begin
+    @test degree(line_bundle) == 10
     @test divisor_class(line_bundle).coeff == AbstractAlgebra.matrix(ZZ, [1 2 3 4])
     @test dim(variety(line_bundle)) == 2
+    @test istrivial(line_bundle) == false
+    @test is_basepoint_free(line_bundle) == false
+    @test isample(line_bundle) == false
+    @test is_very_ample(line_bundle) == false
 end

@@ -894,14 +894,13 @@ julia> S, x = grade(R, W)
   x[4] -> [0 1 0 0]
   x[5] -> [1 1 0 0], MPolyElem_dec{fmpq, fmpq_mpoly}[x[1], x[2], x[3], x[4], x[5]])
 
-julia> f = x[1]+x[3]+x[5]
-x[1] + x[3] + x[5]
+julia> f = x[1]^2+x[3]^2+x[5]^2
+x[1]^2 + x[3]^2 + x[5]^2
 
 julia> homogeneous_components(f)
-Dict{GrpAbFinGenElem, MPolyElem_dec{fmpq, fmpq_mpoly}} with 3 entries:
-  [1 0 1 1] => x[1]
-  [1 1 0 0] => x[5]
-  [1 0 1 0] => x[3]
+Dict{GrpAbFinGenElem, MPolyElem_dec{fmpq, fmpq_mpoly}} with 2 entries:
+  [2 0 0 0] => x[1]^2 + x[3]^2
+  [2 2 0 0] => x[5]^2
 ```
 """
 function homogeneous_components(a::MPolyElem_dec{T, S}) where {T, S}
@@ -984,11 +983,11 @@ julia> S, x = grade(R, W)
   x[4] -> [0 1 0 0]
   x[5] -> [1 1 0 0], MPolyElem_dec{fmpq, fmpq_mpoly}[x[1], x[2], x[3], x[4], x[5]])
 
-julia> f = x[1]+x[3]+x[5]
-x[1] + x[3] + x[5]
+julia> f = x[1]^2+x[3]^2+x[5]^2
+x[1]^2 + x[3]^2 + x[5]^2
 
-julia> homogeneous_component(f, g[1]+g[3]+g[4])
-x[1]
+julia> homogeneous_component(f, 2*g[1])
+x[1]^2 + x[3]^2
 
 julia> W = [[1, 0], [0, 1], [1, 0], [4, 1]]
 4-element Vector{Vector{Int64}}:
@@ -1130,6 +1129,58 @@ with components [1 0 1 0]
   x[3] -> [1 0 1 0]
   x[4] -> [0 1 0 0]
   x[5] -> [1 1 0 0] defined by a julia-function with inverse
+
+julia> FG = gens(L[1])
+1-element Vector{AbstractAlgebra.Generic.FreeModuleElem{fmpq}}:
+ (1)
+
+julia> EMB = L[2];
+
+julia> for i in 1:length(FG) println(EMB(FG[i])) end
+x[3]
+
+julia> T, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+
+julia> G = grading_group(T)
+GrpAb: Z
+
+julia> L = homogeneous_component(T, 2*gen(G,1))
+(homogeneous component of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1] of degree graded by [2]
+, Map from
+homogeneous component of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1] of degree graded by [2]
+ to Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1] defined by a julia-function with inverse)
+
+julia> FG = gens(L[1])
+6-element Vector{AbstractAlgebra.Generic.FreeModuleElem{fmpq}}:
+ (1, 0, 0, 0, 0, 0)
+ (0, 1, 0, 0, 0, 0)
+ (0, 0, 1, 0, 0, 0)
+ (0, 0, 0, 1, 0, 0)
+ (0, 0, 0, 0, 1, 0)
+ (0, 0, 0, 0, 0, 1)
+
+julia> EMB = L[2];
+
+julia> for i in 1:length(FG) println(EMB(FG[i])) end
+z^2
+y*z
+y^2
+x*z
+x*y
+x^2
 ```
 """
 function homogeneous_component(W::MPolyRing_dec, d::GrpAbFinGenElem)
@@ -1382,11 +1433,58 @@ end
 
     homogenization(I::MPolyIdeal{T}, var::String, pos::Int = 1; ordering::Symbol = :degrevlex) where {T <: MPolyElem}
 
-Homogenize `f`, `V`, or `I` using an additional variable printing as `var`.
-Return the result as an element of a graded polynomial ring with an additional variable at position `pos` printing as `var`.
+Homogenize `f`, `V`, or `I` with respect to the standard $\mathbb Z$-grading using a homogenizing variable printing as `var`.
+Return the result as an element of a graded polynomial ring with the homogenizing variable at position `pos`.
 
 !!! warning
-    Homogenizing an ideal requires a Gröbner basis computation. This may take some time.
+    Homogenizing an ideal `I` means to homogenize the elements of a Gröbner basis of `I` with respect to a degree compatible monomial ordering such as `degrevlex` (default).
+    If a Gröbner basis with respect to the specified ordering has not yet been computed and, thus, not yet been cached, executing the `homogenization` function with argument `I` may take some time.
+    Note that the degree compatibility of the specified ordering is not checked by the function.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field, fmpq_mpoly[x, y, z])
+
+julia> f = x^3-y^2-z
+x^3 - y^2 - z
+
+julia> F = homogenization(f, "w", 4)
+x^3 - y^2*w - z*w^2
+
+julia> parent(F)
+Multivariate Polynomial Ring in x, y, z, w over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1]
+  w -> [1]
+
+julia> V = [y-x^2, z-x^3]
+2-element Vector{fmpq_mpoly}:
+ -x^2 + y
+ -x^3 + z
+
+julia> homogenization(V, "w")
+2-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+ w*y - x^2
+ w^2*z - x^3
+
+julia> I = ideal(R, V)
+ideal(-x^2 + y, -x^3 + z)
+
+julia> PTC = homogenization(I, "w")
+ideal(-x*z + y^2, -w*z + x*y, -w*y + x^2)
+
+julia> parent(PTC[1])
+Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
+  w -> [1]
+  x -> [1]
+  y -> [1]
+  z -> [1]
+
+julia> homogenization(I, "w", ordering = :deglex)
+ideal(x*z - y^2, -w*z + x*y, -w*y + x^2, -w*z^2 + y^3)
+```
 """
 function homogenization(f::MPolyElem, var::String, pos::Int = 1)
   R = parent(f)
@@ -1434,8 +1532,42 @@ end
 
     dehomogenization(I::MPolyIdeal{T}, pos::Int) where {T <: MPolyElem_dec}
 
-Dehomogenize `F`, `V`, or `I` using the variable at position `pos`. 
+Dehomogenize `F`, `V`, or `I` with respect to the standard $\mathbb Z$-grading using the variable at position `pos`. 
 Return the result as an element of a polynomial ring not depending on the variable at position `pos`.
+
+# Examples
+```jldoctest
+julia> S, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"])
+(Multivariate Polynomial Ring in x, y, z over Rational Field graded by
+  x -> [1]
+  y -> [1]
+  z -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
+
+julia> F = x^3-x^2*y-x*z^2
+x^3 - x^2*y - x*z^2
+
+julia> f = dehomogenization(F, 1)
+-y - z^2 + 1
+
+julia> parent(f)
+Multivariate Polynomial Ring in y, z over Rational Field
+
+julia> V = [x*y-z^2, x^2*z-x^3]
+2-element Vector{MPolyElem_dec{fmpq, fmpq_mpoly}}:
+ x*y - z^2
+ -x^3 + x^2*z
+
+julia> dehomogenization(V, 3)
+2-element Vector{fmpq_mpoly}:
+ x*y - 1
+ -x^3 + x^2
+
+julia> I = ideal(S, V)
+ideal(x*y - z^2, -x^3 + x^2*z)
+
+julia> dehomogenization(I, 3)
+ideal(x*y - 1, -x^3 + x^2)
+```
 """
 function dehomogenization(F::MPolyElem_dec, pos::Int)
   S = parent(F)
