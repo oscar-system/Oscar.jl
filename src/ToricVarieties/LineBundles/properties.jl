@@ -6,7 +6,7 @@ Returns "true" if the toric line bundle `l` is trivial and "false" otherwise.
 # Examples
 ```jldoctest
 julia> H = hirzebruch_surface(4)
-A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> istrivial(ToricLineBundle(H, [1,0]))
 false
@@ -27,7 +27,7 @@ Returns "true" if the toric line bundle `l` is basepoint free and "false" otherw
 # Examples
 ```jldoctest
 julia> H = hirzebruch_surface(4)
-A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> is_basepoint_free(ToricLineBundle(H, [1,0]))
 true
@@ -45,7 +45,7 @@ Returns "true" if the toric line bundle `l` is ample and "false" otherwise.
 # Examples
 ```jldoctest
 julia> H = hirzebruch_surface(4)
-A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> isample(ToricLineBundle(H, [1,0]))
 false
@@ -63,7 +63,7 @@ Returns "true" if the toric line bundle `l` is very ample and "false" otherwise.
 # Examples
 ```jldoctest
 julia> H = hirzebruch_surface(4)
-A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> is_very_ample(ToricLineBundle(H, [1,0]))
 false
