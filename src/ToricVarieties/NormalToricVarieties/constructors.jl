@@ -487,7 +487,7 @@ end
 function push_attribute_if_exists!(result::Vector{String}, 
         v::T,
         property::Symbol, name::String, 
-        alt_string::Union{String,Nothing}=nothing; 
+        non_name::String="non-"*name; 
         callback=nothing
     ) where T
     if has_attribute(v, property)
@@ -500,11 +500,7 @@ function push_attribute_if_exists!(result::Vector{String},
                 cbval = callback(result, v)
             end
             if isnothing(cbval) || cbval
-                if isnothing(alt_string)
-                    push!(result, "non-"*name)
-                else
-                    push!(result, alt_string)
-                end
+                push!(result, non_name)
             end
             return false
         end
