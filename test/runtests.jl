@@ -28,10 +28,6 @@ include("Rings/NumberField.jl")
 include("Rings/FunctionField-test.jl")
 include("Rings/AbelianClosure.jl")
 
-if Oscar.is_dev
-  include("Examples/PlaneCurve-test.jl")
-end
-
 include("Rings/binomial-ideals-test.jl")
 
 include("Examples/galois-test.jl")
