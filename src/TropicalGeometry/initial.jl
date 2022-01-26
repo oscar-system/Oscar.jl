@@ -100,7 +100,7 @@ export initial
 
 
 
-# function initial(I, val, w; skip_groebner_basis_computation::Bool=true, skip_legality_check::Bool=false) #todo: default skip_groebner_basis_computation to false
+# function initial(I, val, w; skip_groebner_basis_computation::Bool=false, skip_legality_check::Bool=false)
 
 #   if !skip_legality_check
 #     check_legality(I,w,ignore_valuation=ignore_valuation,skip_groebner_basis_computation)
@@ -110,41 +110,53 @@ export initial
 #   return I
 # end
 
+# returns true if the exponent vectors of g have the same sum
+# return false otherwise
+function sloppy_is_homogeneous(g)
+  leadexpv,tailexpvs = Iterators.peel(exponent_vectors(g))
+  d = sum(leadexpv)
+  for tailexpv in tailexpvs
+    if d != sum(tailexpv)
+      return false
+    end
+  end
+  return true
+end
+
 
 # todo: this needs a better name
 # checks whether the following conditions are satisfied:
-# - if ignore_valuation==false and coefficient ring has non-trivial valuation, then ideal needs to be homogeneous
 # - if weight vector has negative entries, then ideal needs to be homogeneous
 # returns true if they are, returns false otherwise
-# function check_legality(I,w;ignore_valuation::Bool=false, skip_groebner_basis_computation::Bool=false)
-#   if !skip_groebner_basis_computation
-#     G = groebner_basis(I)
-#   else
-#     G
-#   end
+function check_weight_vector_for_legality(I, val, w; skip_groebner_basis_computation::Bool=false)
+  if !skip_groebner_basis_computation
+    G = groebner_basis(I,complete_reduction=true)
+  else
+    G = gens(G)
+  end
 
-#   is_ideal_homogeneous = true
-#   for g in G
-#     if !ishomogeneous(g)
-#       is_ideal_homogeneous = false
-#       break;
-#     end
-#   end
+  is_ideal_homogeneous = true
+  for g in G
+    if sloppy_is_homogeneous(g)
+      is_ideal_homogeneous = false
+      break;
+    end
+  end
 
-#   K = coefficient_ring(G)
-#   if !is_ideal_homogeneous && !ignore_valuation && K isa NonArchLocalField
-#     error("check_legality: ideal needs to be homogeneous if computing w.r.t. non-trivial valuation")
-#   end
+  K = coefficient_ring(G)
+  if !is_ideal_homogeneous && is_valuation_trivial(val)
+    error("check_legality: ideal needs to be homogeneous if computing w.r.t. non-trivial valuation")
+  end
 
-#   is_weight_vector_nonnegative = true
-#   for wi in w
-#     if wi<0
-#       is_weight_vector_nonnegative = false
-#       break
-#     end
-#   end
+  is_weight_vector_nonnegative = true
+  for wi in w
+    if wi<0
+      is_weight_vector_nonnegative = false
+      break
+    end
+  end
 
-#   if !is_ideal_homogeneous && !is_weight_nonnegative
-#     error("check_legality: ideal needs to be homogenous if computing w.r.t. negative weight vector")
-#   end
-# end
+  if !is_ideal_homogeneous && !is_weight_nonnegative
+    error("check_legality: ideal needs to be homogenous if computing w.r.t. negative weight vector")
+  end
+end

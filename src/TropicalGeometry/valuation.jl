@@ -17,7 +17,7 @@ export ValuationMap
 ###
 
 # Constructor:
-function ValuationMap(K)
+function ValuationMap()
   residue_map(c) = return c
   return ValuationMap{typeof(K),Nothing}(K,nothing,K,residue_map)
 end
@@ -71,6 +71,25 @@ end
 # Evaluation:
 (val::ValuationMap{AbstractAlgebra.Generic.RationalFunctionField{K},AbstractAlgebra.Generic.Rat{K}} where {K})(c) = t_adic_valuation(val.uniformizer,c)
 
+
+
+
+###
+# Check whether valuation is p-adic (as in: p-adic numbers), t-adic (as in: function fields), or trivial
+# ======================================================================================================
+###
+
+function is_valuation_p_adic(val::ValuationMap)
+  return typeof(val.valued_field)==FlintRationalField && typeof(val.uniformizer)==fmpz
+end
+
+function is_valuation_t_adic(val::ValuationMap)
+  return typeof(val.valued_field)==AbstractAlgebra.Generic.RationalFunctionField{fmpq} && typeof(val.uniformizer)==AbstractAlgebra.Generic.Rat{fmpq}
+end
+
+function is_valuation_trivial(val::ValuationMap)
+  return typeof(val.uniformizer)==Nothing
+end
 
 
 
