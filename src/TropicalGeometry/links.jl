@@ -113,7 +113,8 @@ function tropical_link(inI; p_adic_prime=1000003)
   hyperplanes = [val_p.uniformizer*x[i]-1 for i in pivotIndices]
   push!(hyperplanes,sum(x)-val_p.uniformizer)
   rayGenerators = [];
-  rayMultiplicities = [];
+  # rayMultiplicities = []; # ray multiplicities cannot be generally computed using this method,
+                            # however this method gives lower bounds on the multiplicities which may be used for sanity checking later
   # println("==================================")
   # println("inI1",inI1)
   # println("==================================")
@@ -160,9 +161,7 @@ function tropical_link(inI; p_adic_prime=1000003)
       j = findfirst(isequal(pointOfSlice),rayGenerators)
       if j == nothing
         push!(rayGenerators,pointOfSlice)
-        push!(rayMultiplicities,m)
-      else
-        # @assert rayMultiplicities[j] == m # Question: why does this assertion fail, shouldn't this be mathematically impossible?
+        # push!(rayMultiplicities,m)
       end
     end
   end
