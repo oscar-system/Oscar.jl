@@ -125,7 +125,7 @@ Kx,(x,y,z) = PolynomialRing(QQ,3)
 I = ideal([x+2*y,y+2*z])
 simulate_valuation(I,val_2)
 =======#
-function simulate_valuation(I,val_t::ValuationMap{AbstractAlgebra.Generic.RationalFunctionField{K}, AbstractAlgebra.Generic.Rat{K}} where {K})
+function simulate_valuation(I::MPolyIdeal,val_t::ValuationMap{AbstractAlgebra.Generic.RationalFunctionField{K}, AbstractAlgebra.Generic.Rat{K}} where {K})
 
   Ktx = base_ring(I)
   Kt = base_ring(Ktx)
@@ -158,7 +158,7 @@ function simulate_valuation(I,val_t::ValuationMap{AbstractAlgebra.Generic.Ration
   vvI = ideal(Rtx,vvG)
   return vvI
 end
-function simulate_valuation(I,val_p::ValuationMap{FlintRationalField, fmpz})
+function simulate_valuation(I::MPolyIdeal,val_p::ValuationMap{FlintRationalField, fmpz})
 
   Kx = base_ring(I)
   K = coefficient_ring(Kx)
@@ -183,6 +183,15 @@ function simulate_valuation(I,val_p::ValuationMap{FlintRationalField, fmpz})
 end
 export simulate_valuation
 
+function simulate_valuation(w::Vector,val::ValuationMap)
+  # if the valuation is non-trivial, prepend -1 to the vector
+  if !is_valuation_trivial(val)
+    w = vcat([-1],w)
+  end
+  # either way, scale vector to make entries integral
+  commonDenom = lcm([denominator(wi) for wi in w])
+  return [numerator(commonDenom*wi) for wi in w]
+end
 
 #=======
 functions which, given an ideal I in variables x1, ..., xn over a field with valuation,

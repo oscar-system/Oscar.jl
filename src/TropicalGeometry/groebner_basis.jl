@@ -58,9 +58,9 @@ w = [0,0,0]
 I = ideal([x+t*y,y+t*z])
 groebner_basis(I,val_t,w,return_lead=true)
 =======#
-function groebner_basis(I,val::ValuationMap{K,p} where{K,p},w::Vector{Int}; complete_reduction::Bool=false, return_lead::Bool=false)
+function groebner_basis(I,val::ValuationMap,w::Vector{<: Union{Int,Rational{Int}} }; complete_reduction::Bool=false, return_lead::Bool=false)
   vvI = simulate_valuation(I,val)
-  w = vcat([-1],w)
+  w = simulate_valuation(w,val)
 
   Rtx = base_ring(vvI)
   # todo: replace with groebner_bases in OSCAR once more orderings are supported
