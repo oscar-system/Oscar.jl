@@ -841,3 +841,31 @@ true
 ```
 """
 project_full(P::Polyhedron) = Polyhedron(Polymake.polytope.project_full(pm_object(P)))
+
+
+
+@doc Markdown.doc"""
+
+    gelfand_tsetlin(λ::AbstractVecOrMat)
+
+Construct the Gelfand Tsetlin polytope indexed by λ where λ is weakly decreasing.
+
+```jldoctest
+julia> P = gelfand_tsetlin([5,3,2])
+A polyhedron in ambient dimension 6
+
+julia> isfulldimensional(P)
+false
+
+julia> p = project_full(P)
+A polyhedron in ambient dimension 3
+
+julia> isfulldimensional(p)
+true
+
+julia> volume(p)
+8
+```
+"""
+#It doesn't like the integer type so I have to convert it to Rational. Why?
+gelfand_tsetlin(λ::AbstractVecOrMat) = Polyhedron(Polymake.polytope.gelfand_tsetlin(Array{Rational,1}(λ),projected=false))

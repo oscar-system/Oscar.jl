@@ -112,6 +112,7 @@ archimedean_solid
 birkhoff
 cross
 cube
+gelfand_tsetlin
 simplex
 ```
 
