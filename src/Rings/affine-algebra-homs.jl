@@ -1,5 +1,5 @@
 export AlgebraHomomorphism, codomain, compose, domain, hom,
-       IdentityAlgebraHomomorphism, kernel, preimage
+       IdentityAlgebraHomomorphism, kernel, preimage, AlgHom
         
 
 ###############################################################################
