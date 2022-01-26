@@ -28,7 +28,7 @@ end
       @test quo(PcGroup, G, subgens)[1] isa PcGroup
    end
    G = special_linear_group(2, 5)
-   N = centre(G)[1]
+   N = center(G)[1]
    for subgens in [N, gens(N)]
       @test quo(G, subgens)[1] isa PermGroup
       @test quo(FPGroup, G, subgens)[1] isa FPGroup
