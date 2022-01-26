@@ -7,8 +7,13 @@
 ###
 
 
+function multiplicity(I,val::ValuationMap{K,p} where {K,p},w::Vector{Int})
+  return multiplicity(initial(I, val, w))
+end
+
+
 #=======
-tropical_link
+multiplicity
 todo: proper documentation
 Example:
 Kx,(x1,x2,x3,x4,x5) = PolynomialRing(QQ,5)
