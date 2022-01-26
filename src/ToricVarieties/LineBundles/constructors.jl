@@ -35,7 +35,7 @@ Convenience method for ToricLineBundle(v::AbstractNormalToricVariety, c::Vector{
 # Examples
 ```jldoctest
 julia> v = toric_projective_space(2)
-A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, fano, 2-dimensional toric variety without torusfactor
+A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> l = ToricLineBundle( v, [ 2 ] )
 A line bundle on a normal toric variety corresponding to a polyhedral fan in ambient dimension 2

@@ -65,7 +65,7 @@ Decides if the normal toric varieties `v` is a projective space.
 # Examples
 ```jldoctest
 julia> H5 = hirzebruch_surface(5)
-A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 
 julia> is_projective_space(H5)
 false
@@ -189,7 +189,9 @@ true
 ```
 """
 function issimplicial(v::AbstractNormalToricVariety)
-    return isorbifold(v)
+    return get_attribute!(v, :isorbifold) do
+        return isorbifold(v)
+    end::Bool
 end
 export issimplicial
 

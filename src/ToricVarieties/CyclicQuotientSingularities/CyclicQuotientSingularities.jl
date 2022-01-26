@@ -9,6 +9,13 @@
 end
 export CyclicQuotientSingularity
 
+function Base.show(io::IO, cqs::CyclicQuotientSingularity)
+    n = pm_object(cqs).N
+    q = pm_object(cqs).Q
+    print(io, "The cyclic quotient singularity Y($(n), $(q))")
+end
+
+
 
 ################################################################################
 ################################################################################
@@ -25,7 +32,7 @@ $0<q<n$ and $q,n$ coprime.
 # Examples
 ```jldoctest
 julia> cqs = CyclicQuotientSingularity(7,5)
-A normal toric variety
+The cyclic quotient singularity Y(7, 5)
 
 julia> isaffine(cqs)
 true
@@ -60,7 +67,7 @@ differs in sign from what is commonly known as continued fraction.
 # Examples
 ```jldoctest
 julia> cqs = CyclicQuotientSingularity(7,5)
-A normal toric variety
+The cyclic quotient singularity Y(7, 5)
 
 julia> cf = continued_fraction_hirzebruch_jung(cqs)
 3-element Vector{fmpz}:
@@ -95,7 +102,7 @@ differs in sign from what is commonly known as continued fraction.
 # Examples
 ```jldoctest
 julia> cqs = CyclicQuotientSingularity(7,5)
-A normal toric variety
+The cyclic quotient singularity Y(7, 5)
 
 julia> dcf = dual_continued_fraction_hirzebruch_jung(cqs)
 2-element Vector{fmpz}:
@@ -128,7 +135,7 @@ differs in sign from what is commonly known as continued fraction.
 # Examples
 ```jldoctest
 julia> cqs = CyclicQuotientSingularity(7,5)
-A normal toric variety
+The cyclic quotient singularity Y(7, 5)
 
 julia> v = continued_fraction_hirzebruch_jung(cqs)
 3-element Vector{fmpz}:

@@ -196,7 +196,7 @@ D2 = DivisorOfCharacter(H5, [1,2])
 
 @testset "Divisors" begin
     @test dim(toric_variety(D)) == 2
-    @test is_prime_divisor(D) == false
+    @test isprime(D) == false
     @test iscartier(D) == true
     @test isprincipal(D) == true
     @test is_basepoint_free(D) == true
@@ -206,7 +206,7 @@ D2 = DivisorOfCharacter(H5, [1,2])
     @test isintegral(D) == true
     @test is_q_cartier(D) == true
     @test coefficients(D) == [0,0,0,0]
-    @test is_prime_divisor(D2) == false
+    @test isprime(D2) == false
     @test iscartier(D2) == true
     @test isprincipal(D2) == true
     @test is_basepoint_free(D2) == true
@@ -215,7 +215,7 @@ D2 = DivisorOfCharacter(H5, [1,2])
     @test isnef(D2) == true
     @test isintegral(D2) == true
     @test is_q_cartier(D2) == true
-    @test is_prime_divisor(D2) == false
+    @test isprime(D2) == false
     @test coefficients(D2) == [1, 2, 9, -2]
 end
 
