@@ -934,8 +934,9 @@ julia> f_vector(cube(5))
  10
 ```
 """
-# the following differs from polymake's count in the unbounded case; polymake takes the far face into account, too
 function f_vector(P::Polyhedron)::Vector{Int}
+    # the following differs from polymake's count in the unbounded case;
+    # polymake takes the far face into account, too
     ldim = lineality_dim(P)
     f_vec=vcat(zeros(Int64, ldim), [length(faces(P,i)) for i in ldim:dim(P)-1])
     return f_vec
