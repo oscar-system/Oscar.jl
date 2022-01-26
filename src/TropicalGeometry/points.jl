@@ -83,19 +83,24 @@ function tropical_points(I,val_p::ValuationMap{FlintRationalField, fmpz}; p_adic
     I0 = I + ideal(Kx,random_affine_linear_polynomials(dim(I),Kx,val_p))
   end
 
-  while true
-    try
-      Qp = PadicField(val_p.uniformizer,p_adic_precision)
-      I0p = [change_base_ring(Qp,f) for f in groebner_basis(I0)]
-      global TI0p = solve_macaulay(I0p,eigenvector_method = "tropical") #todo: pass groebner basis flag+ordering
-      break
-    catch
-      p_adic_precision *= 2 # double precision if solver unsuccessful
-    end
-  end
+  GB0 = groebner_basis(I0,complete_reduction=true)
+  L0 = gens(leading_ideal(I0)) # todo: check whether this invokes a seperate GB computation
+
+  # while true
+    # try
+  Qp = PadicField(val_p.uniformizer,p_adic_precision)
+  GB0p = [change_base_ring(Qp,f) for f in GB0]
+  L0p = [change_base_ring(Qp,f) for f in L0]
+
+  global TI0p = pAdicSolver.solve_affine_groebner_system(GB0p,L0p,eigenvector_method = "tropical") #todo: pass groebner basis flag+ordering
+      # break
+    # catch
+    #   p_adic_precision *= 2 # double precision if solver unsuccessful
+    # end
+  # end
 
   if remove_points_at_infinity
-    return [TI0p[i,:] for i in 1:size(TI0p,1) if !contains_approximate_zero_entry(TI0p[i,:],-2^63)] # pAdicSolver returns valuation -2^63 if it encounters 0
+    return [TI0p[i,:] for i in 1:size(TI0p,1) if !contains_approximate_zero_entry(TI0p[i,:],2^63)] # pAdicSolver returns valuation -2^63 if it encounters 0
   else
     return [TI0p[i,:] for i in 1:size(TI0p,1)]
   end
