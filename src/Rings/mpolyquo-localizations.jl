@@ -255,6 +255,14 @@ function rand(W::MPolyQuoLocalizedRing, v1::UnitRange{Int}, v2::UnitRange{Int}, 
   return W(rand(localized_ring(W), v1, v2, v3))
 end
 
+### deepcopy
+# TODO: This is not really implemented at this point and in fact an open 
+# question how this should proceed.
+function Base.deepcopy_internal(W::MPolyQuoLocalizedRing, dict::IdDict) 
+  return W
+end
+
+
 ########################################################################
 # Elements of localizations of polynomial algebras                     #
 ########################################################################
@@ -652,6 +660,16 @@ elem_type(T::Type{MPolyQuoLocalizedRing{BaseRingType, BaseRingElemType, RingType
 parent_type(W::MPolyQuoLocalizedRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyQuoLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
 parent_type(T::Type{MPolyQuoLocalizedRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyQuoLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
 
+### copying
+function Base.deepcopy_internal(a::MPolyQuoLocalizedRingElem, dict::IdDict) 
+  return parent(a)(Base.deepcopy_internal(lifted_numerator(a), dict),
+           Base.deepcopy_internal(lifted_denominator(a), dict)
+          )
+end
+
+function Base.copy(a::MPolyQuoLocalizedRingElem) 
+  return W(copy(lifted_numerator(a)), copy(lifted_denominator(a)), check=false)
+end
 
 ### ideal constructors
 # Note that by convention an ideal J in a localized algebra 
