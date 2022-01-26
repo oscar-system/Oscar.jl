@@ -12,7 +12,7 @@
 @doc Markdown.doc"""
     homogeneity_space(I::MPolyIdeal; skip_groebner_basis_computation::Bool=false)
 
-Returns the homogeneity space of `I`, i.e., the space of all weight vectors with respect to which `I` is weighted homogeneous. The homogeneity space is the lineality space of the tropicalization independent of the valuation.
+Computes the homogeneity space of `I`, i.e., the space of all weight vectors with respect to which `I` is weighted homogeneous. The homogeneity space is the lineality space of the tropicalization independent of the valuation.
 
 Requires a Groebner basis computation, set `skip_groebner_basis_computation=true` at your own risk.
 
@@ -99,6 +99,59 @@ export pivots
 
 
 
+@doc Markdown.doc"""
+    tropical_link(I::MPolyIdeal, val::ValuationMap, w::Vector; p_adic_prime::Integer=1000003)
+
+Computes the tropical link of `I` around `w`, i.e., returns a minimal array of vectors `L` such that for every maximal Groebner polyhedron $\sigma\in\Trop(I)$ containing `w` there is a $u$ in `L` such that $w+\varepsilon*u\in\sigma$ for $\varepsilon>0$ sufficiently small.
+
+# Warning
+Requires that `w` lies in the relative interior of a one-codimensional Groebner polyhedron of `\Trop(I)`.
+
+# Examples
+```jldoctest
+julia> Kx,(x1,x2,x3,x4) = PolynomialRing(QQ,4);
+
+julia> I = ideal([x1 - 2*x2 + 3*x3, 3*x2 - 4*x3 + 5*x4]);
+
+julia> val_2 = ValuationMap(QQ,2);
+
+julia> w2_1 = [2,0,2,0];
+
+julia> w2_2 = [0,1,0,1];
+
+julia> val_3 = ValuationMap(QQ,3);
+
+julia> w3_1 = [0,0,1,1];
+
+julia> w3_2 = [1,1,0,0];
+
+julia> val_5 = ValuationMap(QQ,5);
+
+julia> w5 = [1,1,1,0];
+
+julia> val_7 = ValuationMap(QQ,7);
+
+julia> w7 = [0,0,0,0];
+
+julia> tropical_link(I,val_2,w2_1)
+
+julia> tropical_link(I,val_2,w2_2)
+
+julia> tropical_link(I,val_3,w3_1)
+
+julia> tropical_link(I,val_3,w3_2)
+
+julia> tropical_link(I,val_4,w4)
+
+julia> tropical_link(I,val_5,w5)
+
+```
+"""
+function tropical_link(I::MPolyIdeal, val::ValuationMap, w::Vector; p_adic_prime::Integer=1000003)
+  return tropical_link(initial(I,val,w),p_adic_prime=p_adic_prime)
+end
+
+
 #=======
 tropical_link
 todo: proper documentation
@@ -110,7 +163,7 @@ Kx,(x1,x2,x3,x4,x5) = PolynomialRing(QQ,5)
 inI = ideal([14*x1*x2-50*x1*x3+x2*x3+13*x3^2+40*x1*x4+16*x1*x5-27*x3*x5,-37*x1*x2+36*x3^2-x2*x4-12*x1*x5+37*x2*x5+12*x3*x5-20*x4*x5-26*x5^2,-2*x2*x3+39*x1*x4-5*x2*x5])
 tropical_link(inI)
 =======#
-function tropical_link(inI; p_adic_prime=1000003)
+function tropical_link(inI; p_adic_prime::Integer=1000003)
 
   ###
   # Step 1: Compute the homogeneity space and identify the pivots (and non-pivots) of its equation matrix in rref
