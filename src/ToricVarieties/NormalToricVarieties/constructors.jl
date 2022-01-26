@@ -73,6 +73,7 @@ Set `C` to be the positive orthant in two dimensions.
 ```jldoctest
 julia> C = positive_hull([1 0; 0 1])
 A polyhedral cone in ambient dimension 2
+
 julia> ntv = NormalToricVariety(C)
 A normal, affine toric variety
 ```
@@ -433,7 +434,7 @@ julia> P2 = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> bP2 = blowup_on_ith_minimal_torus_orbit(P2,1,"e")
-A normal toric variety
+A normal toric variety over QQ
 
 julia> cox_ring(bP2)
 Multivariate Polynomial Ring in x2, x3, x1, e over Rational Field graded by 
@@ -518,10 +519,24 @@ function Base.show(io::IO, v::AbstractNormalToricVariety)
     if has_attribute(v, :dim)
         push!(properties_string, string(dim(v))*"-dimensional")
     end
-
+    
+    # join with ","
     properties_string = [join(properties_string, ", ")]
-    push!(properties_string, "toric variety")
+    
+    # add coefficient ring and torusfactor
+    if has_attribute(v, :coefficient_ring)
+        if coefficient_ring(v) == QQ
+            push!(properties_string, "toric variety over QQ")
+        elseif coefficient_ring(v) == ZZ
+            push!(properties_string, "toric variety over ZZ")
+        else
+            push!(properties_string, "toric variety over coefficient_ring(variety)")
+        end
+    else
+        push!(properties_string, "toric variety")
+    end
     push_attribute_if_exists!(properties_string, v, :hastorusfactor, "with torusfactor", "without torusfactor")
     
+    # print string
     join(io, properties_string, " ")
 end
