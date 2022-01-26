@@ -430,7 +430,8 @@ julia> A, _ = quo(R, ideal(R, [x^3*y^2-y^3*x^2, x*y^4-x*y^2]));
 julia> a = ideal(A, [x^3*y^4-x+y, x*y+y^2*x])
 ideal(x^3*y^4 - x + y, x*y^2 + x*y)
 
-julia> simplify(a);
+julia> simplify(a)
+ideal(x^2*y^3 - x + y, x*y^2 + x*y)
 
 julia> a
 ideal(x^3*y^4 - x + y, x*y^2 + x*y)
@@ -664,6 +665,9 @@ Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
   z -> [1] by ideal(x^2*z - y^3, x - y) defined by a julia-function with inverse)
+
+julia> typeof(B)
+MPolyQuo{MPolyElem_dec{fmpq, fmpq_mpoly}}
 ```
 """
 function quo(R::MPolyRing, I::MPolyIdeal) 

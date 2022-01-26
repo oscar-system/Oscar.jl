@@ -257,7 +257,7 @@ Otherwise, return `(false, 0)`.
 
 # Examples
 ```jldoctest
-julia> R, x = PolynomialRing(QQ, :x => 1:3)
+julia> R, x = PolynomialRing(QQ, "x" => 1:3)
 (Multivariate Polynomial Ring in x[1], x[2], x[3] over Rational Field, fmpq_mpoly[x[1], x[2], x[3]])
 
 julia> f = x[1]^6*x[2]^6-x[1]^6*x[3]^6;
