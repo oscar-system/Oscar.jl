@@ -235,7 +235,7 @@ function FreeModElem(coords::SRow{T}, parent::FreeMod_dec{T}) where T <: CRingEl
 end
 
 @doc Markdown.doc"""
-    FreeModElem_dec(v::FreeModElem, parent::FreeMod_dec{T}) where T <: CRingElem_dec
+    FreeModElem_dec(v::FreeModElem{T}, parent::FreeMod_dec{T}) where T <: CRingElem_dec
 
 Lift `v` to the decorated module `parent`.
 """
@@ -412,3 +412,45 @@ function tensor_product(G::FreeMod_dec...; task::Symbol = :none)
   return F, MapFromFunc(pure, inv_pure, Hecke.TupleParent(Tuple([g[0] for g = G])), F)
 end
 
+
+###############################################################################
+# FreeModuleHom_dec constructors
+###############################################################################
+
+FreeModuleHom_dec(F::FreeMod_dec{T}, G::ModuleFP_dec, a::Vector) where {T} = FreeModuleHom_dec{T}(F, G, a)
+
+FreeModuleHom_dec(F::FreeMod_dec{T}, G::ModuleFP_dec, mat::MatElem{T}) where {T} = FreeModuleHom{T}(F, G, mat)
+
+function forget_decoration(f::FreeModuleHom_dec)
+  return f.f
+end
+
+function matrix(a::FreeModuleHom_dec)
+  return matrix(forget_decoration(a))
+end
+
+(h::FreeModuleHom_dec)(a::FreeModElem_dec) = image(h, a)
+
+hom(F::FreeMod_dec{T}, G::ModuleFP_dec{T}, V::Vector{<:FreeModElem_dec}) where T = FreeModuleHom_dec(F, G, V) 
+hom(F::FreeMod_dec{T}, G::ModuleFP_dec{T}, A::MatElem{T}) where T = FreeModuleHom_dec(F, G, A)
+
+
+function hom(F::FreeMod_dec, G::FreeMod_dec)
+  undecorated_hom, elem_to_hom = hom(forget_decoration(F), forget_decoration(G))
+  d = [y-x for x in decoration(F) for y in decoration(G)]
+  GH = FreeMod_dec(undecorated_hom, d)
+  X = Hecke.MapParent(F, G, "homomorphisms")
+
+  function im(v::FreeModElem_dec)
+    return hom(F, G, [FreeModElem_dec(elem_to_hom(forget_decoration(v))(forget_decoration(u)),G) for u in gens(F)])
+  end
+
+  function pre(f::FreeModuleHom_dec)
+    undecorated_v = inv(elem_to_hom)(forget_decoration(f))
+    return FreeModElem_dec(undecorated_v, GH)
+  end
+
+  to_hom_map = Hecke.MapFromFunc(im, pre, GH, X)
+  set_attribute!(GH, :show => Hecke.show_hom, :hom => (F, G), :module_to_hom_map => to_hom_map)
+  return GH, to_hom_map
+end

@@ -1,17 +1,29 @@
 export ModuleFP, ModuleFPElem, ModuleFPHom, ModuleMap, FreeMod,
        FreeModElem, SubQuo, SubQuoElem, FreeModuleHom, SubQuoHom,
-       FreeMod_dec, FreeModElem_dec, 
+       FreeMod_dec, FreeModElem_dec, FreeModuleHom_dec
 
 @doc Markdown.doc"""
     ModuleFP{T}
 
-The abstract supertype of all modules. Here, all modules are finitely presented.
+The abstract supertype of all finitely presented modules.
 The type variable `T` refers to the type of the elements of the base ring.
 """
 abstract type ModuleFP{T} end
 
+@doc Markdown.doc"""
+    AbstractFreeMod{T} <: ModuleFP{T}
+
+The abstract supertype of all finitely generated free modules.
+"""
 abstract type AbstractFreeMod{T} <: ModuleFP{T} end
+
+@doc Markdown.doc"""
+    AbstractSubQuo{T} <: ModuleFP{T}
+
+The abstract supertype of all finitely presented subquotient modules.
+"""
 abstract type AbstractSubQuo{T} <: ModuleFP{T} end
+
 
 @doc Markdown.doc"""
     ModuleFPElem{T}
@@ -20,7 +32,18 @@ The abstract supertype of all elements of finitely presented modules.
 """
 abstract type ModuleFPElem{T} end
 
+@doc Markdown.doc"""
+    AbstractFreeModElem{T} <: ModuleFPElem{T}
+
+The abstract supertype of all elements of finitely generated free modules.
+"""
 abstract type AbstractFreeModElem{T} <: ModuleFPElem{T} end
+
+@doc Markdown.doc"""
+    AbstractSubQuoElem{T} <: ModuleFPElem{T}
+
+The abstract supertype of all elements of subquotient modules.
+"""
 abstract type AbstractSubQuoElem{T} <: ModuleFPElem{T} end
 
 abstract type ModuleFPHom end
@@ -34,7 +57,7 @@ The abstract supertype of module morphisms.
 abstract type ModuleMap{T1, T2} <: Map{T1, T2, Hecke.HeckeMap, ModuleFPHom} end
 
 @doc Markdown.doc"""
-    FreeMod{T <: RingElem} <: AbstractFreeMod{T}
+    FreeMod{T <: RingElem} <: ModuleFP{T}
 
 The type of free modules.
 Free modules are determined by their base ring, the rank and the names of 
@@ -63,6 +86,7 @@ option is set in suitable functions.
     return r
   end
 end
+
 
 @doc Markdown.doc"""
     FreeModElem{T}
@@ -144,55 +168,6 @@ mutable struct ModuleGens{T}
   end
 end
 
-@doc Markdown.doc"""
-    FreeModuleHom{T1, T2} <: ModuleMap{T1, T2} 
-
-Data structure for morphisms where the domain is a free module (`FreeMod`).
-`T1` and `T2` are the types of domain and codomain respectively.
-`FreeModuleHom` is a subtype of `ModuleMap`.
-When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
-(in case there exists one) (via `inv()`) are cached.
-"""
-@attributes mutable struct FreeModuleHom{T1, T2} <: ModuleMap{T1, T2} 
-  matrix::MatElem
-  header::MapHeader
-  inverse_isomorphism::ModuleMap
-
-  # generate homomorphism of free modules from F to G where the vector a contains the images of
-  # the generators of F
-  function FreeModuleHom{T,S}(F::FreeMod{T}, G::S, a::Vector) where {T, S}
-    @assert all(x->parent(x) === G, a)
-    @assert length(a) == ngens(F)
-    r = new{typeof(F), typeof(G)}()
-    function im_func(x::FreeModElem)
-      b = zero(G)
-      for (i,v) = x.coords
-        b += v*a[i]
-      end
-      return b
-    end
-    function pr_func(x)
-      @assert parent(x) === G
-      c = coordinates(repres(x), sub(G, a))
-      return FreeModElem(c, F)
-    end
-    r.header = MapHeader{typeof(F), typeof(G)}(F, G, im_func, pr_func)
-
-    return r
-  end
-
-  function FreeModuleHom{T,S}(F::FreeMod{T}, G::S, mat::MatElem{T}) where {T,S}
-    @assert nrows(mat) == ngens(F)
-    @assert ncols(mat) == ngens(G)
-    if typeof(G) <: FreeMod
-      hom = FreeModuleHom(F, G, [FreeModElem(sparse_row(mat[i,:]), G) for i=1:ngens(F)])
-    else
-      hom = FreeModuleHom(F, G, [SubQuoElem(sparse_row(mat[i,:]), G) for i=1:ngens(F)])
-    end
-    hom.matrix = mat
-    return hom
-  end
-end
 
 
 @doc Markdown.doc"""
@@ -351,6 +326,7 @@ option is set in suitable functions.
   end
 end
 
+
 @doc Markdown.doc"""
     SubQuoElem{T}
 
@@ -396,7 +372,7 @@ julia> f == g
 true
 ```
 """
-struct SubQuoElem{T} <: AbstractSubQuoElem{T} # this needs to be redone TODO
+struct SubQuoElem{T} <: AbstractSubQuoElem{T} 
   coeffs::SRow{T}
   repres::FreeModElem{T}
   parent::SubQuo
@@ -417,6 +393,7 @@ struct SubQuoElem{T} <: AbstractSubQuoElem{T} # this needs to be redone TODO
     return r
   end
 end
+
 
 mutable struct SubQuoHom{T1, T2} <: ModuleMap{T1, T2}
   matrix::MatElem
@@ -445,25 +422,15 @@ mutable struct SubQuoHom{T1, T2} <: ModuleMap{T1, T2}
 end
 
 
-
 ###############################################################################
 # Graded modules
 ###############################################################################
-
 const CRing_dec = Union{MPolyRing_dec, MPolyQuo{<:Oscar.MPolyElem_dec}}
 const CRingElem_dec = Union{MPolyElem_dec, MPolyQuoElem{<:Oscar.MPolyElem_dec}}
 #TODO: other name for CRing_dec -> which?
 
-abstract type ModuleFP_dec{T} <: ModuleFP{T} end
-abstract type AbstractFreeMod_dec{T} <: AbstractFreeMod{T} end
-abstract type AbstractSubQuo_dec{T} <: AbstractSubQuo{T} end
-
-abstract type AbstractFreeModElem_dec{T} <: AbstractFreeModElem{T} end
-abstract type AbstractSubQuoElem_dec{T} <: AbstractSubQuoElem{T} end
-
-
 @doc Markdown.doc"""
-    FreeMod_dec{T <: CRingElem_dec} <: AbstractFreeMod_dec{T}
+    FreeMod_dec{T <: CRingElem_dec} <: ModuleFP_dec{T}
 
 The type of decorated (graded or filtered) free modules.
 Decorated free modules are determined by their base ring, the rank,
@@ -472,7 +439,7 @@ Moreover, canonical incoming and outgoing morphisms are stored if the correspond
 option is set in suitable functions.
 `FreeMod_dec{T}` is a subtype of `ModuleFP{T}`.
 """
-@attributes mutable struct FreeMod_dec{T <: CRingElem_dec} <: AbstractFreeMod_dec{T}
+@attributes mutable struct FreeMod_dec{T <: CRingElem_dec} <: AbstractFreeMod{T}
   F::FreeMod{T}
   d::Vector{GrpAbFinGenElem}
 
@@ -497,12 +464,100 @@ The type of decorated free module elements. An element of a decorated free modul
 given by a sparse row (`SRow`) which specifies its coordinates with respect to the basis
 of standard unit vectors of $F$.
 """
-struct FreeModElem_dec{T} <: AbstractFreeModElem_dec{T}
+struct FreeModElem_dec{T} <: AbstractFreeModElem{T}
   coords::SRow{T} # also usable via coeffs()
   parent::FreeMod_dec{T}
 
   function FreeModElem_dec{T}(coords::SRow{T}, parent::FreeMod_dec{T}) where T
     r = new{T}(coords,parent)
+    return r
+  end
+end
+
+
+
+
+
+#abstract type ModuleFP_dec{T} <: ModuleFP{T} end
+
+#abstract type ModuleFPElem_dec{T} <: ModuleFPElem{T} end
+const ModuleFP_dec{T} = Union{FreeMod_dec{T}} # SubQuo_dec{T} will be included
+const ModuleFPElem_dec{T} = Union{FreeModElem_dec{T}} # SubQuoElem_dec{T} will be included
+
+#const AbstractFreeMod{T} = Union{FreeMod{T}, FreeMod_dec{T}}
+#const AbstractFreeModElem{T} = Union{FreeModElem{T}, FreeModElem_dec{T}}
+
+#const AbstractSubQuo{T} = Union{SubQuo{T}}
+#const AbstractSubQuoElem{T} = Union{SubQuoElem{T}}
+
+
+
+@doc Markdown.doc"""
+    FreeModuleHom{T1, T2} <: ModuleMap{T1, T2} 
+
+Data structure for morphisms where the domain is a free module (`FreeMod`).
+`T1` and `T2` are the types of domain and codomain respectively.
+`FreeModuleHom` is a subtype of `ModuleMap`.
+When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
+(in case there exists one) (via `inv()`) are cached.
+"""
+@attributes mutable struct FreeModuleHom{T1, T2} <: ModuleMap{T1, T2} 
+  matrix::MatElem
+  header::MapHeader
+  inverse_isomorphism::ModuleMap
+
+  # generate homomorphism of free modules from F to G where the vector a contains the images of
+  # the generators of F
+  function FreeModuleHom{T,S}(F::AbstractFreeMod{T}, G::S, a::Vector) where {T, S}
+    @assert all(x->parent(x) === G, a)
+    @assert length(a) == ngens(F)
+    r = new{typeof(F), typeof(G)}()
+    function im_func(x::AbstractFreeModElem)
+      b = zero(G)
+      for (i,v) = x.coords
+        b += v*a[i]
+      end
+      return b
+    end
+    function pr_func(x)
+      @assert parent(x) === G
+      c = coordinates(repres(x), sub(G, a))
+      return FreeModElem(c, F)
+    end
+    r.header = MapHeader{typeof(F), typeof(G)}(F, G, im_func, pr_func)
+
+    return r
+  end
+
+  function FreeModuleHom{T,S}(F::AbstractFreeMod{T}, G::S, mat::MatElem{T}) where {T,S}
+    @assert nrows(mat) == ngens(F)
+    @assert ncols(mat) == ngens(G)
+    if typeof(G) <: AbstractFreeMod
+      hom = FreeModuleHom(F, G, [FreeModElem(sparse_row(mat[i,:]), G) for i=1:ngens(F)])
+    else
+      hom = FreeModuleHom(F, G, [SubQuoElem(sparse_row(mat[i,:]), G) for i=1:ngens(F)])
+    end
+    hom.matrix = mat
+    return hom
+  end
+end
+
+
+
+struct FreeModuleHom_dec{T1, T2} <: ModuleMap{T1, T2}
+  f::FreeModuleHom{T1,T2}
+  header::MapHeader
+  # TODO degree and homogeneity
+
+  function FreeModuleHom_dec{T}(F::FreeMod_dec{T}, G::ModuleFP_dec{T}, a::Vector) where {T}
+    f = FreeModuleHom(F,G,a)
+    r = new{typeof(F), typeof(G)}(f, f.header)
+    return r
+  end
+
+  function FreeModuleHom_dec{T}(F::FreeMod_dec{T}, G::ModuleFP_dec{T}, mat::MatElem{T}) where {T}
+    f = FreeModuleHom(F,G,mat)
+    r = new{typeof(F), typeof(G)}(f, f.header)
     return r
   end
 end
