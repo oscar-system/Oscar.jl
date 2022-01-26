@@ -204,7 +204,7 @@ I = ideal([x+2*y,y+2*z])
 vvI = simulate_valuation(I,val_2)
 desimulate_valuation(vvI,val_2)
 =======#
-function desimulate_valuation(vvI,val_p::ValuationMap{FlintRationalField, fmpz})
+function desimulate_valuation(vvI::MPolyIdeal,val_p::ValuationMap{FlintRationalField, fmpz})
   Rtx = base_ring(vvI)
   x = copy(symbols(Rtx))
   popfirst!(x)
@@ -236,7 +236,7 @@ I = ideal([x+t*y,y+t*z])
 vvI = simulate_valuation(I,val_t)
 desimulate_valuation(vvI,val_t)
 =======#
-function desimulate_valuation(vvI,val_t::ValuationMap{AbstractAlgebra.Generic.RationalFunctionField{K}, AbstractAlgebra.Generic.Rat{K}} where {K})
+function desimulate_valuation(vvI::MPolyIdeal,val_t::ValuationMap{AbstractAlgebra.Generic.RationalFunctionField{K}, AbstractAlgebra.Generic.Rat{K}} where {K})
   Rtx = base_ring(vvI)
   x = copy(symbols(Rtx))
   popfirst!(x)
@@ -258,3 +258,13 @@ function desimulate_valuation(vvI,val_t::ValuationMap{AbstractAlgebra.Generic.Ra
   return ideal(Ktx,G)
 end
 export desimulate_valuation
+
+function desimulate_valuation(w::Vector,val::ValuationMap)
+  # if the valuation is non-trivial, scale the vector so that first entry is -1
+  #   and then remove first entry
+  if !is_valuation_trivial(val)
+    w /= w[1]
+    popfirst!(w)
+  end
+  return w
+end
