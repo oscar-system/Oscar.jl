@@ -16,13 +16,13 @@ A `Vector` containing the six sides of the 3-dimensional cube can be obtained
 via the following input:
 ```jldoctest
 julia> F = faces(cube(3), 2)
-6-element SubObjectIterator{Polyhedron}:
- A polyhedron in ambient dimension 3
- A polyhedron in ambient dimension 3
- A polyhedron in ambient dimension 3
- A polyhedron in ambient dimension 3
- A polyhedron in ambient dimension 3
- A polyhedron in ambient dimension 3
+6-element SubObjectIterator{Polyhedron{fmpq}}:
+ A polyhedron in ambient dimension 3 with fmpq type coefficients
+ A polyhedron in ambient dimension 3 with fmpq type coefficients
+ A polyhedron in ambient dimension 3 with fmpq type coefficients
+ A polyhedron in ambient dimension 3 with fmpq type coefficients
+ A polyhedron in ambient dimension 3 with fmpq type coefficients
+ A polyhedron in ambient dimension 3 with fmpq type coefficients
 ```
 """
 function faces(P::Polyhedron{T}, face_dim::Int) where T<:scalar_types
@@ -113,7 +113,7 @@ a square:
 julia> P = simplex(2) + cube(2);
 
 julia> vertices(PointVector, P)
-5-element SubObjectIterator{PointVector{Polymake.Rational}}:
+5-element SubObjectIterator{PointVector{fmpq}}:
  [-1, -1]
  [2, -1]
  [2, 1]
@@ -143,7 +143,7 @@ a square:
 julia> P = simplex(2) + cube(2);
 
 julia> vertices(P)
-5-element SubObjectIterator{PointVector{Polymake.Rational}}:
+5-element SubObjectIterator{PointVector{fmpq}}:
  [-1, -1]
  [2, -1]
  [2, 1]
@@ -203,7 +203,7 @@ rays in positive unit direction:
 julia> PO = convex_hull([0 0], [1 0; 0 1]);
 
 julia> rays(RayVector, PO)
-2-element SubObjectIterator{RayVector{Polymake.Rational}}:
+2-element SubObjectIterator{RayVector{fmpq}}:
  [1, 0]
  [0, 1]
 ```
@@ -231,7 +231,7 @@ rays in positive unit direction:
 julia> PO = convex_hull([0 0], [1 0; 0 1]);
 
 julia> rays(PO)
-2-element SubObjectIterator{RayVector{Polymake.Rational}}:
+2-element SubObjectIterator{RayVector{fmpq}}:
  [1, 0]
  [0, 1]
 ```
@@ -272,16 +272,16 @@ We can retrieve the six facets of the 3-dimensional cube this way:
 julia> C = cube(3);
 
 julia> facets(Polyhedron, C)
-6-element SubObjectIterator{Polyhedron}:
- A polyhedron in ambient dimension 3
- A polyhedron in ambient dimension 3
- A polyhedron in ambient dimension 3
- A polyhedron in ambient dimension 3
- A polyhedron in ambient dimension 3
- A polyhedron in ambient dimension 3
+6-element SubObjectIterator{Polyhedron{fmpq}}:
+ A polyhedron in ambient dimension 3 with fmpq type coefficients
+ A polyhedron in ambient dimension 3 with fmpq type coefficients
+ A polyhedron in ambient dimension 3 with fmpq type coefficients
+ A polyhedron in ambient dimension 3 with fmpq type coefficients
+ A polyhedron in ambient dimension 3 with fmpq type coefficients
+ A polyhedron in ambient dimension 3 with fmpq type coefficients
 
 julia> facets(Halfspace, C)
-6-element SubObjectIterator{AffineHalfspace}:
+6-element SubObjectIterator{AffineHalfspace{fmpq}}:
  The Halfspace of R^3 described by
 1: -x₁ ≦ 1
 
@@ -331,7 +331,7 @@ We can retrieve the six facets of the 3-dimensional cube this way:
 julia> C = cube(3);
 
 julia> facets(C)
-6-element SubObjectIterator{AffineHalfspace}:
+6-element SubObjectIterator{AffineHalfspace{fmpq}}:
  The Halfspace of R^3 described by
 1: -x₁ ≦ 1
 
@@ -396,7 +396,7 @@ affine subspace contained in `P`.
 Polyhedron with one lineality direction.
 ```jldoctest
 julia> C = convex_hull([0 0], [1 0], [1 1])
-A polyhedron in ambient dimension 2
+A polyhedron in ambient dimension 2 with fmpq type coefficients
 
 julia> lineality_dim(C)
 1
@@ -509,7 +509,7 @@ Return the integer points contained in the interior of the bounded polyhedron
 # Examples
 ```jldoctest
 julia> c = cube(3)
-A polyhedron in ambient dimension 3
+A polyhedron in ambient dimension 3 with fmpq type coefficients
 
 julia> interior_lattice_points(c)
 1-element SubObjectIterator{PointVector{fmpz}}:
@@ -536,7 +536,7 @@ Return the integer points contained in the boundary of the bounded polyhedron
 # Examples
 ```jldoctest
 julia> c = polarize(cube(3))
-A polyhedron in ambient dimension 3
+A polyhedron in ambient dimension 3 with fmpq type coefficients
 
 julia> boundary_lattice_points(c)
 6-element SubObjectIterator{PointVector{fmpz}}:
@@ -613,7 +613,7 @@ its lineality in $x$-direction is recognized:
 julia> UH = convex_hull([0 0],[0 1; 1 0; -1 0]);
 
 julia> lineality_space(UH)
-1-element SubObjectIterator{RayVector{Polymake.Rational}}:
+1-element SubObjectIterator{RayVector{fmpq}}:
  [1, 0]
 ```
 """
@@ -637,7 +637,7 @@ $P = \{ (x_1, x_2, x_3, x_4) | x_3 = 2 ∧ x_4 = 5 \}$.
 julia> t = convex_hull([0 0 2 5; 1 0 2 5; 0 1 2 5]);
 
 julia> affine_hull(t)
-2-element SubObjectIterator{AffineHyperplane}:
+2-element SubObjectIterator{AffineHyperplane{fmpq}}:
  The Hyperplane of R^4 described by
 1: x₃ = 2
 
@@ -667,17 +667,17 @@ Return the recession cone of `P`.
 julia> P = Polyhedron([1 -2; -1 1; -1 0; 0 -1],[2,1,1,1]);
 
 julia> vertices(P)
-3-element SubObjectIterator{PointVector{Polymake.Rational}}:
+3-element SubObjectIterator{PointVector{fmpq}}:
  [0, -1]
  [-1, 0]
  [-1, -1]
 
 julia> recession_cone(P)
-A polyhedral cone in ambient dimension 2
+A polyhedral cone in ambient dimension 2 with fmpq type coefficients
 
 julia> rays(recession_cone(P))
-2-element SubObjectIterator{RayVector{Polymake.Rational}}:
- [1, 1/2]
+2-element SubObjectIterator{RayVector{fmpq}}:
+ [1, 1//2]
  [1, 1]
 ```
 """
@@ -692,7 +692,7 @@ Compute the Ehrhart polynomial of `P`.
 # Examples
 ```jldoctest
 julia> c = cube(3)
-A polyhedron in ambient dimension 3
+A polyhedron in ambient dimension 3 with fmpq type coefficients
 
 julia> ehrhart_polynomial(c)
 8*x^3 + 12*x^2 + 6*x + 1
@@ -714,7 +714,7 @@ julia> R, x = PolynomialRing(QQ, "x")
 (Univariate Polynomial Ring in x over Rational Field, x)
 
 julia> c = cube(3)
-A polyhedron in ambient dimension 3
+A polyhedron in ambient dimension 3 with fmpq type coefficients
 
 julia> ehrhart_polynomial(R, c)
 8*x^3 + 12*x^2 + 6*x + 1
@@ -734,12 +734,12 @@ Compute the $h^*$ polynomial of `P`.
 # Examples
 ```jldoctest
 julia> c = cube(3)
-A polyhedron in ambient dimension 3
+A polyhedron in ambient dimension 3 with fmpq type coefficients
 
 julia> h_star_polynomial(c)
 x^3 + 23*x^2 + 23*x + 1
 """
-function h_star_polynomial(P::Polyhedron)
+function h_star_polynomial(P::Polyhedron{fmpq})
     R, x = PolynomialRing(QQ, "x")
     return h_star_polynomial(R, P)
 end
@@ -756,13 +756,13 @@ julia> R, x = PolynomialRing(QQ, "x")
 (Univariate Polynomial Ring in x over Rational Field, x)
 
 julia> c = cube(3)
-A polyhedron in ambient dimension 3
+A polyhedron in ambient dimension 3 with fmpq type coefficients
 
 julia> h_star_polynomial(R, c)
 x^3 + 23*x^2 + 23*x + 1
 ```
 """
-function h_star_polynomial(R::FmpqPolyRing, P::Polyhedron)
+function h_star_polynomial(R::FmpqPolyRing, P::Polyhedron{fmpq})
     coeffs = pm_object(P).H_STAR_VECTOR
     return (R)(Vector{fmpq}(coeffs))
 end
@@ -778,13 +778,13 @@ Check whether `P` is very ample.
 # Examples
 ```jldoctest
 julia> c = cube(3)
-A polyhedron in ambient dimension 3
+A polyhedron in ambient dimension 3 with fmpq type coefficients
 
 julia> is_very_ample(c)
 true
 
 julia> P = convex_hull([0 0 0; 1 1 0; 1 0 1; 0 1 1])
-A polyhedron in ambient dimension 3
+A polyhedron in ambient dimension 3 with fmpq type coefficients
 
 julia> is_very_ample(P)
 false
@@ -855,7 +855,7 @@ Check whether `P` is normal.
 The 3-cube is normal.
 ```jldoctest
 julia> C = cube(3)
-A polyhedron in ambient dimension 3
+A polyhedron in ambient dimension 3 with fmpq type coefficients
 
 julia> isnormal(C)
 true
@@ -895,7 +895,7 @@ Check whether `P` is simple.
 # Examples
 ```jldoctest
 julia> c = cube(2,0,1)
-A polyhedron in ambient dimension 2
+A polyhedron in ambient dimension 2 with fmpq type coefficients
 
 julia> issimple(c)
 true
@@ -998,15 +998,15 @@ contained in any facet.
 The square $[-1,1]^3$ has the origin as a relative interior point.
 ```jldoctest
 julia> square = cube(2)
-A polyhedron in ambient dimension 2
+A polyhedron in ambient dimension 2 with fmpq type coefficients
 
 julia> relative_interior_point(square)
-2-element PointVector{Polymake.Rational}:
+2-element PointVector{fmpq}:
  0
  0
 
 julia> vertices(square)
-4-element SubObjectIterator{PointVector{Polymake.Rational}}:
+4-element SubObjectIterator{PointVector{fmpq}}:
  [-1, -1]
  [1, -1]
  [-1, 1]
@@ -1036,9 +1036,9 @@ julia> ψ([1,2,3])
 -6
 ```
 """
-function support_function(P::Polyhedron; convention = :max)
+function support_function(P::Polyhedron{T}; convention = :max) where T<:scalar_types
     function h(ω::AbstractVector)
-        lp=LinearProgram(P,ω; convention = convention)
+        lp=LinearProgram{T}(P,ω; convention = convention)
         return solve_lp(lp)[1]
     end
     return h
@@ -1053,7 +1053,6 @@ Trivial inequalities are counted but omitted. They are included if `trivial` is
 set to `true`.
 
 # Examples
-The 3-cube is given by $-1 ≦ x_i ≦ 0 ∀ i ∈ \{1, 2, 3\}$.
 ```jldoctest
 julia> print_constraints([-1 0 4 5; 4 4 4 3; 1 0 0 0; 0 0 0 0; 0 0 0 0; 9 9 9 9], [0, 1, 2, 3, -4, 5])
 1: -x₁ + 4*x₃ + 5*x₄ ≦ 0
@@ -1108,7 +1107,7 @@ Trivial inequalities are counted but omitted. They are included if `trivial` is
 set to `true`.
 
 # Examples
-The 3-cube is given by $-1 ≦ x_i ≦ 0 ∀ i ∈ \{1, 2, 3\}$.
+The 3-cube is given by $-1 ≦ x_i ≦ 1 ∀ i ∈ \{1, 2, 3\}$.
 ```jldoctest
 julia> print_constraints(cube(3))
 1: -x₁ ≦ 1
@@ -1121,9 +1120,9 @@ julia> print_constraints(cube(3))
 """
 print_constraints(P::Polyhedron; trivial::Bool = false, io::IO = stdout) = print_constraints(halfspace_matrix_pair(facets(P))...; trivial = trivial, io = io)
 
-print_constraints(H::Halfspace; trivial::Bool = false, io::IO = stdout) = print_constraints(vcat(H.a'), [negbias(H)]; trivial = trivial, io = io)
+print_constraints(H::Halfspace; trivial::Bool = false, io::IO = stdout) = print_constraints(hcat(normal_vector(H)...), [negbias(H)]; trivial = trivial, io = io)
 
-print_constraints(H::Hyperplane; trivial::Bool = false, io::IO = stdout) = print_constraints(vcat(H.a'), [negbias(H)]; trivial = trivial, io = io, cmp = "=")
+print_constraints(H::Hyperplane; trivial::Bool = false, io::IO = stdout) = print_constraints(hcat(normal_vector(H)...), [negbias(H)]; trivial = trivial, io = io, cmp = "=")
 
 function Base.show(io::IO, H::Halfspace)
     n = length(H.a)

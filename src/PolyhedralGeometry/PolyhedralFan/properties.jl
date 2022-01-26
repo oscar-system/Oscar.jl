@@ -18,7 +18,7 @@ julia> C = cube(3);
 julia> NF = normal_fan(C);
 
 julia> rays(NF)
-6-element SubObjectIterator{RayVector{Polymake.Rational}}:
+6-element SubObjectIterator{RayVector{fmpq}}:
  [1, 0, 0]
  [-1, 0, 0]
  [0, 1, 0]
@@ -74,19 +74,19 @@ The 12 edges of the 3-cube correspond to the 2-dimensional cones of its face fan
 julia> PF = face_fan(cube(3));
 
 julia> cones(PF, 2)
-12-element SubObjectIterator{Cone}:
- A polyhedral cone in ambient dimension 3
- A polyhedral cone in ambient dimension 3
- A polyhedral cone in ambient dimension 3
- A polyhedral cone in ambient dimension 3
- A polyhedral cone in ambient dimension 3
- A polyhedral cone in ambient dimension 3
- A polyhedral cone in ambient dimension 3
- A polyhedral cone in ambient dimension 3
- A polyhedral cone in ambient dimension 3
- A polyhedral cone in ambient dimension 3
- A polyhedral cone in ambient dimension 3
- A polyhedral cone in ambient dimension 3
+12-element SubObjectIterator{Cone{fmpq}}:
+ A polyhedral cone in ambient dimension 3 with fmpq type coefficients
+ A polyhedral cone in ambient dimension 3 with fmpq type coefficients
+ A polyhedral cone in ambient dimension 3 with fmpq type coefficients
+ A polyhedral cone in ambient dimension 3 with fmpq type coefficients
+ A polyhedral cone in ambient dimension 3 with fmpq type coefficients
+ A polyhedral cone in ambient dimension 3 with fmpq type coefficients
+ A polyhedral cone in ambient dimension 3 with fmpq type coefficients
+ A polyhedral cone in ambient dimension 3 with fmpq type coefficients
+ A polyhedral cone in ambient dimension 3 with fmpq type coefficients
+ A polyhedral cone in ambient dimension 3 with fmpq type coefficients
+ A polyhedral cone in ambient dimension 3 with fmpq type coefficients
+ A polyhedral cone in ambient dimension 3 with fmpq type coefficients
 ```
 """
 function cones(PF::_FanLikeType{T}, cone_dim::Int) where T<:scalar_types
@@ -189,7 +189,7 @@ The f-vector of the normal fan of a polytope is the reverse of the f-vector of
 the polytope.
 ```jldoctest
 julia> c = cube(3)
-A polyhedron in ambient dimension 3
+A polyhedron in ambient dimension 3 with fmpq type coefficients
 
 julia> f_vector(c)
 3-element Vector{Int64}:
@@ -198,7 +198,7 @@ julia> f_vector(c)
   6
 
 julia> nfc = normal_fan(c)
-A polyhedral fan in ambient dimension 3
+A polyhedral fan in ambient dimension 3 with fmpq type coefficients
 
 julia> f_vector(nfc)
 3-element Vector{Polymake.Integer}:
@@ -224,13 +224,13 @@ the dimension of the largest linear subspace.
 The dimension of the lineality space is zero if and only if the fan is pointed.
 ```jldoctest
 julia> C = convex_hull([0 0; 1 0])
-A polyhedron in ambient dimension 2
+A polyhedron in ambient dimension 2 with fmpq type coefficients
 
 julia> isfulldimensional(C)
 false
 
 julia> nf = normal_fan(C)
-A polyhedral fan in ambient dimension 2
+A polyhedral fan in ambient dimension 2 with fmpq type coefficients
 
 julia> ispointed(nf)
 false
@@ -257,10 +257,10 @@ one containing all the points with $y ≥ 0$. The fan's lineality is the common
 lineality of these two cones, i.e. in $x$-direction.
 ```jldoctest
 julia> PF = PolyhedralFan([1 0; 0 1; -1 0; 0 -1], IncidenceMatrix([[1, 2, 3], [3, 4, 1]]))
-A polyhedral fan in ambient dimension 2
+A polyhedral fan in ambient dimension 2 with fmpq type coefficients
 
 julia> lineality_space(PF)
-1-element SubObjectIterator{RayVector{Polymake.Rational}}:
+1-element SubObjectIterator{RayVector{fmpq}}:
  [1, 0]
 ```
 """
@@ -284,13 +284,13 @@ Determine whether `PF` is pointed, i.e. all its cones are pointed.
 The normal fan of a non-fulldimensional polytope is not pointed.
 ```jldoctest
 julia> C = convex_hull([0 0; 1 0])
-A polyhedron in ambient dimension 2
+A polyhedron in ambient dimension 2 with fmpq type coefficients
 
 julia> isfulldimensional(C)
 false
 
 julia> nf = normal_fan(C)
-A polyhedral fan in ambient dimension 2
+A polyhedral fan in ambient dimension 2 with fmpq type coefficients
 
 julia> ispointed(nf)
 false
@@ -406,10 +406,10 @@ Return the star subdivision of a polyhedral fan at its n-th maximal torus orbit.
 # Examples
 ```jldoctest
 julia> star = starsubdivision(normal_fan(simplex(3)), 1)
-A polyhedral fan in ambient dimension 3
+A polyhedral fan in ambient dimension 3 with fmpq type coefficients
 
 julia> rays(star)
-5-element SubObjectIterator{RayVector{Polymake.Rational}}:
+5-element SubObjectIterator{RayVector{fmpq}}:
  [0, 1, 0]
  [0, 0, 1]
  [-1, -1, -1]
@@ -426,7 +426,7 @@ julia> ray_indices(maximal_cones(star))
 [1, 4, 5]
 ```
 """
-function starsubdivision(PF::_FanLikeType, n::Int)
+function starsubdivision(PF::_FanLikeType{T}, n::Int) where T<:scalar_types
     # extract defining information on the fan
     maxcones = IncidenceMatrix(pm_object(PF).MAXIMAL_CONES)
     R = Polymake.common.primitive(pm_object(PF).RAYS)
@@ -461,7 +461,7 @@ function starsubdivision(PF::_FanLikeType, n::Int)
     newmaxcones = IncidenceMatrix(newmaxcones)
     
     # return the new fan
-    return PolyhedralFan(newrays, newmaxcones)
+    return PolyhedralFan{T}(newrays, newmaxcones)
     
 end
 
@@ -477,7 +477,7 @@ Return the Cartesian/direct product of two polyhedral fans.
 # Examples
 ```jldoctest
 julia> normal_fan(simplex(2))*normal_fan(simplex(3))
-A polyhedral fan in ambient dimension 5
+A polyhedral fan in ambient dimension 5 with fmpq type coefficients
 ```
 """
 function Base.:*(PF1::PolyhedralFan, PF2::PolyhedralFan)

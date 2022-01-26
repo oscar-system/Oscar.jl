@@ -22,7 +22,7 @@ To construct the positive orthant as a `Cone`, you can write:
 julia> R = [1 0; 0 1];
 
 julia> PO = Cone(R)
-A polyhedral cone in ambient dimension 2
+A polyhedral cone in ambient dimension 2 with fmpq type coefficients
 ```
 
 To obtain the upper half-space of the plane:
@@ -32,18 +32,18 @@ julia> R = [0 1];
 julia> L = [1 0];
 
 julia> HS = Cone(R, L)
-A polyhedral cone in ambient dimension 2
+A polyhedral cone in ambient dimension 2 with fmpq type coefficients
 ```
 """
-function Cone(R::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix}, L::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix, Nothing} = nothing; non_redundant::Bool = false)
+function Cone{T}(R::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix}, L::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix, Nothing} = nothing; non_redundant::Bool = false) where T<:scalar_types
     if isnothing(L) || isempty(L)
-        L = Polymake.Matrix{Polymake.Rational}(undef, 0, size(R, 2))
+        L = Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(R, 2))
     end
 
     if non_redundant
-        return Cone(Polymake.polytope.Cone{Polymake.Rational}(RAYS = R, LINEALITY_SPACE = L,))
+        return Cone{T}(Polymake.polytope.Cone{scalar_type_to_polymake[T]}(RAYS = R, LINEALITY_SPACE = L,))
     else
-        return Cone(Polymake.polytope.Cone{Polymake.Rational}(INPUT_RAYS = R, INPUT_LINEALITY = L,))
+        return Cone{T}(Polymake.polytope.Cone{scalar_type_to_polymake[T]}(INPUT_RAYS = R, INPUT_LINEALITY = L,))
     end
 end
 
@@ -71,7 +71,7 @@ Redundant rays are allowed.
 julia> R = [1 0; 0 1];
 
 julia> PO = positive_hull(R)
-A polyhedral cone in ambient dimension 2
+A polyhedral cone in ambient dimension 2 with fmpq type coefficients
 ```
 """
 function positive_hull(R::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix}; scalar::Type{<:scalar_types} = fmpq)
@@ -94,10 +94,10 @@ avoid unnecessary redundancy checks.
 # Examples
 ```jldoctest
 julia> C = cone_from_inequalities([0 -1; -1 1])
-A polyhedral cone in ambient dimension 2
+A polyhedral cone in ambient dimension 2 with fmpq type coefficients
 
 julia> rays(C)
-2-element SubObjectIterator{RayVector{Polymake.Rational}}:
+2-element SubObjectIterator{RayVector{fmpq}}:
  [1, 0]
  [1, 1]
 ```
@@ -127,8 +127,8 @@ pm_object(C::Cone) = C.pm_cone
 ###############################################################################
 ###############################################################################
 
-function Base.show(io::IO, C::Cone)
-    print(io,"A polyhedral cone in ambient dimension $(ambient_dim(C))")
+function Base.show(io::IO, C::Cone{T}) where T<:scalar_types
+    print(io,"A polyhedral cone in ambient dimension $(ambient_dim(C)) with $T type coefficients")
 end
 
 Polymake.visual(C::Cone; opts...) = Polymake.visual(pm_object(C); opts...)

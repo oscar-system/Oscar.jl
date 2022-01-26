@@ -5,20 +5,20 @@ The linear program on the feasible set `P` (a Polyhedron) with
 respect to the function x ↦ dot(c,x)+k.
 
 """
-struct LinearProgram
+struct LinearProgram{T}
    feasible_region::Polyhedron
    polymake_lp::Polymake.BigObject
    convention::Symbol
 end
 
-function LinearProgram(Q::Polyhedron, objective::AbstractVector; k = 0, convention = :max)
+function LinearProgram{T}(Q::Polyhedron, objective::AbstractVector; k = 0, convention = :max) where T<:scalar_types
    if convention != :max && convention != :min
       throw(ArgumentError("convention must be set to :min or :max."))
    end
-   P=Polyhedron(Polymake.polytope.Polytope(pm_object(Q)))
+   P=Polyhedron{T}(Polymake.polytope.Polytope{scalar_type_to_polymake[T]}(pm_object(Q)))
    ambDim = ambient_dim(P)
    size(objective, 1) == ambDim || error("objective has wrong dimension.")
-   lp = Polymake.polytope.LinearProgram(LINEAR_OBJECTIVE=homogenize(objective, k))
+   lp = Polymake.polytope.LinearProgram{scalar_type_to_polymake[T]}(LINEAR_OBJECTIVE=homogenize(objective, k))
    if convention == :max
       Polymake.attach(lp, "convention", "max")
    elseif convention == :min
@@ -28,8 +28,12 @@ function LinearProgram(Q::Polyhedron, objective::AbstractVector; k = 0, conventi
    LinearProgram(P, lp, convention)
 end
 
-LinearProgram(A::Union{Oscar.MatElem,AbstractMatrix}, b, c::AbstractVector; k = 0, convention = :max) =
-   LinearProgram(Polyhedron(A, b), c;  k = k, convention = convention)
+LinearProgram(Q::Polyhedron{T},  objective::AbstractVector; k = 0, convention = :max) where T<:scalar_types = LinearProgram{T}(Q, objective; k = k, convention = convention)
+
+LinearProgram{T}(A::Union{Oscar.MatElem,AbstractMatrix}, b, c::AbstractVector; k = 0, convention = :max)  where T =
+   LinearProgram{T}(Polyhedron{T}(A, b), c;  k = k, convention = convention)
+
+LinearProgram(x...) = LinearProgram{fmpq}(x...)
 
 
 ###############################################################################
@@ -108,12 +112,12 @@ The following example constructs a linear program over the three dimensional cub
 obtains the vertex of the cube which maximizes the function (x,y,z) ↦ x+2y-3z.
 ```jldoctest
 julia> C=cube(3)
-A polyhedron in ambient dimension 3
+A polyhedron in ambient dimension 3 with fmpq type coefficients
 
 julia> LP=LinearProgram(C,[1,2,-3])
 The linear program
    max{c⋅x + k | x ∈ P}
-where P is a Polyhedron and
+where P is a Polyhedron{fmpq} and
    c=Polymake.Rational[1 2 -3]
    k=0
 
@@ -148,12 +152,12 @@ The following example constructs a linear program over the three dimensional cub
 obtains the minimal value of the function (x,y,z) ↦ x+2y-3z over that cube.
 ```jldoctest
 julia> C=cube(3)
-A polyhedron in ambient dimension 3
+A polyhedron in ambient dimension 3 with fmpq type coefficients
 
 julia> LP=LinearProgram(C,[1,2,-3]; convention = :min)
 The linear program
    min{c⋅x + k | x ∈ P}
-where P is a Polyhedron and
+where P is a Polyhedron{fmpq} and
    c=Polymake.Rational[1 2 -3]
    k=0
 

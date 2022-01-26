@@ -23,13 +23,13 @@ julia> VR2 = [0 0; 0 1; 1 1]
  1  1
 
 julia> PC1 = PolyhedralComplex(IM,VR1)
-A polyhedral complex in ambient dimension 2
+A polyhedral complex in ambient dimension 2 with fmpq type coefficients
 
 julia> PC2 = PolyhedralComplex(IM,VR2)
-A polyhedral complex in ambient dimension 2
+A polyhedral complex in ambient dimension 2 with fmpq type coefficients
 
 julia> common_refinement(PC1,PC2)
-A polyhedral complex in ambient dimension 2
+A polyhedral complex in ambient dimension 2 with fmpq type coefficients
 ```
 """
 function common_refinement(PC1::PolyhedralComplex,PC2::PolyhedralComplex) 
@@ -57,16 +57,16 @@ julia> VR = [0 0; 1 0; 1 1]
  1  1
 
 julia> PC1 = PolyhedralComplex(IM,VR)
-A polyhedral complex in ambient dimension 2
+A polyhedral complex in ambient dimension 2 with fmpq type coefficients
 
 julia> k_skeleton(PC1,1)
-A polyhedral complex in ambient dimension 2
+A polyhedral complex in ambient dimension 2 with fmpq type coefficients
 ```
 """
-function k_skeleton(PC::PolyhedralComplex,k::Int)
+function k_skeleton(PC::PolyhedralComplex{T},k::Int) where T<:scalar_types
     pm_PC = pm_object(PC)
-    ksk = Polymake.fan.PolyhedralComplex(Polymake.fan.k_skeleton(pm_PC,k))
-    return PolyhedralComplex(ksk)
+    ksk = Polymake.fan.PolyhedralComplex{scalar_type_to_polymake[T]}(Polymake.fan.k_skeleton(pm_PC,k))
+    return PolyhedralComplex{T}(ksk)
 end
 
 

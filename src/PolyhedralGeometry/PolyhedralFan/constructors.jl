@@ -23,7 +23,7 @@ julia> R = [1 0; 1 1; 0 1; -1 0; 0 -1];
 julia> IM=IncidenceMatrix([[1,2],[2,3],[3,4],[4,5],[1,5]]);
 
 julia> PF=PolyhedralFan(R,IM)
-A polyhedral fan in ambient dimension 2
+A polyhedral fan in ambient dimension 2 with fmpq type coefficients
 ```
 """
 function PolyhedralFan{T}(Rays::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix) where T<:scalar_types
@@ -68,6 +68,6 @@ end
 ### Display
 ###############################################################################
 ###############################################################################
-function Base.show(io::IO, PF::PolyhedralFan)
-    print(io, "A polyhedral fan in ambient dimension $(ambient_dim(PF))")
+function Base.show(io::IO, PF::PolyhedralFan{T}) where T<:scalar_types
+    print(io, "A polyhedral fan in ambient dimension $(ambient_dim(PF)) with $T type coefficients")
 end

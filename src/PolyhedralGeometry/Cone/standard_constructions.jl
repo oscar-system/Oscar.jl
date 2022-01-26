@@ -11,16 +11,16 @@ Return the intersection $C0 \cap C1$ of `C0` and `C1`.
 # Examples
 ```jldoctest
 julia> C0 = positive_hull([1 0])
-A polyhedral cone in ambient dimension 2
+A polyhedral cone in ambient dimension 2 with fmpq type coefficients
 
 julia> C1 = positive_hull([0 1])
-A polyhedral cone in ambient dimension 2
+A polyhedral cone in ambient dimension 2 with fmpq type coefficients
 
 julia> C01 = intersect(C0, C1)
-A polyhedral cone in ambient dimension 2
+A polyhedral cone in ambient dimension 2 with fmpq type coefficients
 
 julia> rays(C01)
-0-element SubObjectIterator{RayVector{Polymake.Rational}}
+0-element SubObjectIterator{RayVector{fmpq}}
 
 julia> dim(C01)
 0
@@ -40,14 +40,14 @@ evaluate positively on all of `C`.
 # Examples
 ```jldoctest
 julia> C = positive_hull([1 0; -1 2])
-A polyhedral cone in ambient dimension 2
+A polyhedral cone in ambient dimension 2 with fmpq type coefficients
 
 julia> Cv = polarize(C)
-A polyhedral cone in ambient dimension 2
+A polyhedral cone in ambient dimension 2 with fmpq type coefficients
 
 julia> rays(Cv)
-2-element SubObjectIterator{RayVector{Polymake.Rational}}:
- [1, 1/2]
+2-element SubObjectIterator{RayVector{fmpq}}:
+ [1, 1//2]
  [0, 1]
 ```
 """

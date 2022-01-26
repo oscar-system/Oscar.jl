@@ -19,7 +19,7 @@ julia> V = [0 0; 1 0; 1 1; 0 1]
  0  1
 
 julia> PC = PolyhedralComplex(IM, V)
-A polyhedral complex in ambient dimension 2
+A polyhedral complex in ambient dimension 2 with fmpq type coefficients
 
 julia> ambient_dim(PC)
 2
@@ -37,7 +37,7 @@ Optional arguments for `as` include
 * `PointVector`.
 
 """
-vertices(as::Type{PointVector{T}}, PC::PolyhedralComplex) where T = SubObjectIterator{as}(pm_object(PC), _vertex_polyhedron, length(_vertex_indices(pm_object(PC))))
+vertices(as::Type{PointVector{T}}, PC::PolyhedralComplex) where T<:scalar_types = SubObjectIterator{as}(pm_object(PC), _vertex_polyhedron, length(_vertex_indices(pm_object(PC))))
 
 
 function _all_vertex_indices(P::Polymake.BigObject)
@@ -50,7 +50,7 @@ function _all_vertex_indices(P::Polymake.BigObject)
     return vi
 end
 
-function _vertex_or_ray_polyhedron(::Type{Union{PointVector{T}, RayVector{T}}}, P::Polymake.BigObject, i::Base.Integer) where T 
+function _vertex_or_ray_polyhedron(::Type{Union{PointVector{T}, RayVector{T}}}, P::Polymake.BigObject, i::Base.Integer) where T<:scalar_types
     A = P.VERTICES
     if iszero(A[_all_vertex_indices(P)[i],1])
         return RayVector{T}(P.VERTICES[_all_vertex_indices(P)[i], 2:end])
@@ -59,19 +59,19 @@ function _vertex_or_ray_polyhedron(::Type{Union{PointVector{T}, RayVector{T}}}, 
     end
 end
 
-vertices(as::Type{Union{RayVector{T}, PointVector{T}}}, PC::PolyhedralComplex) where T = SubObjectIterator{as}(pm_object(PC), _vertex_or_ray_polyhedron, length(_all_vertex_indices(pm_object(PC))))
+vertices(as::Type{Union{RayVector{T}, PointVector{T}}}, PC::PolyhedralComplex) where T<:scalar_types = SubObjectIterator{as}(pm_object(PC), _vertex_or_ray_polyhedron, length(_all_vertex_indices(pm_object(PC))))
 
-vertices(::Type{Union{RayVector, PointVector}}, PC::PolyhedralComplex) = vertices(Union{RayVector{Polymake.Rational}, PointVector{Polymake.Rational}}, PC)
+vertices(::Type{Union{RayVector, PointVector}}, PC::PolyhedralComplex) where T<:scalar_types = vertices(Union{RayVector{T}, PointVector{T}}, PC)
 
 vertices_and_rays(PC::PolyhedralComplex) = vertices(Union{PointVector, RayVector}, PC)
 
-vertices(::Type{PointVector}, PC::PolyhedralComplex) = vertices(PointVector{Polymake.Rational}, PC)
+vertices(::Type{PointVector}, PC::PolyhedralComplex{T}) where T<:scalar_types = vertices(PointVector{T}, PC)
 
 vertices(PC::PolyhedralComplex) = vertices(PointVector, PC)
 
-rays(as::Type{RayVector{T}}, PC::PolyhedralComplex) where T = SubObjectIterator{as}(pm_object(PC), _ray_polyhedral_complex, length(_ray_indices_polyhedral_complex(pm_object(PC))))
+rays(as::Type{RayVector{T}}, PC::PolyhedralComplex) where T<:scalar_types = SubObjectIterator{as}(pm_object(PC), _ray_polyhedral_complex, length(_ray_indices_polyhedral_complex(pm_object(PC))))
 
-rays(::Type{RayVector}, PC::PolyhedralComplex) = rays(RayVector{Polymake.Rational}, PC)
+rays(::Type{RayVector}, PC::PolyhedralComplex) = rays(RayVector{fmpq}, PC)
 
 @doc Markdown.doc"""
     rays(PC::PolyhedralComplex)
@@ -85,12 +85,12 @@ julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
 julia> VR = [0 0; 1 0; 1 1; 0 1];
 
 julia> PC = PolyhedralComplex(IM, VR, [2])
-A polyhedral complex in ambient dimension 2
+A polyhedral complex in ambient dimension 2 with fmpq type coefficients
 
 julia> rays(PC);
 
 julia> rays(PC)
-1-element SubObjectIterator{RayVector{Polymake.Rational}}:
+1-element SubObjectIterator{RayVector{fmpq}}:
  [1, 0]
 ```
 """
@@ -98,9 +98,9 @@ rays(PC::PolyhedralComplex) = rays(RayVector,PC)
 
 _ray_indices_polyhedral_complex(PC::Polymake.BigObject) = collect(Polymake.to_one_based_indexing(PC.FAR_VERTICES))
 
-_ray_polyhedral_complex(::Type{RayVector{T}}, PC::Polymake.BigObject, i::Base.Integer) where T = RayVector{T}(PC.VERTICES[_ray_indices_polyhedral_complex(PC)[i], 2:end])
+_ray_polyhedral_complex(::Type{RayVector{T}}, PC::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = RayVector{T}(PC.VERTICES[_ray_indices_polyhedral_complex(PC)[i], 2:end])
 
-_maximal_polyhedron(::Type{Polyhedron}, PC::Polymake.BigObject, i::Base.Integer) = Polyhedron(Polymake.fan.polytope(PC, i-1))
+_maximal_polyhedron(::Type{Polyhedron{T}}, PC::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = Polyhedron{T}(Polymake.fan.polytope(PC, i-1))
 
 
 @doc Markdown.doc"""
@@ -124,15 +124,15 @@ julia> VR = [0 0; 1 0; 1 1; 0 1]
  0  1
 
 julia> PC = PolyhedralComplex(IM, VR, [2])
-A polyhedral complex in ambient dimension 2
+A polyhedral complex in ambient dimension 2 with fmpq type coefficients
 
 julia> maximal_polyhedra(PC)
-2-element SubObjectIterator{Polyhedron}:
- A polyhedron in ambient dimension 2
- A polyhedron in ambient dimension 2
+2-element SubObjectIterator{Polyhedron{fmpq}}:
+ A polyhedron in ambient dimension 2 with fmpq type coefficients
+ A polyhedron in ambient dimension 2 with fmpq type coefficients
 ```
 """
-maximal_polyhedra(PC::PolyhedralComplex) = SubObjectIterator{Polyhedron}(pm_object(PC), _maximal_polyhedron, n_maximal_polyhedra(PC))
+maximal_polyhedra(PC::PolyhedralComplex{T}) where T<:scalar_types = SubObjectIterator{Polyhedron{T}}(pm_object(PC), _maximal_polyhedron, n_maximal_polyhedra(PC))
 
 
 @doc Markdown.doc"""
@@ -156,7 +156,7 @@ julia> VR = [0 0; 1 0; 1 1; 0 1]
  0  1
 
 julia> PC = PolyhedralComplex(IM, VR, [2])
-A polyhedral complex in ambient dimension 2
+A polyhedral complex in ambient dimension 2 with fmpq type coefficients
 
 julia> n_maximal_polyhedra(PC)
 2
@@ -177,7 +177,7 @@ julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
 julia> VR = [0 0; 1 0; 1 1; 0 1];
 
 julia> PC = PolyhedralComplex(IM, VR)
-A polyhedral complex in ambient dimension 2
+A polyhedral complex in ambient dimension 2 with fmpq type coefficients
 
 julia> issimplicial(PC)
 true
@@ -198,7 +198,7 @@ julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
 julia> VR = [0 0; 1 0; 1 1; 0 1];
 
 julia> PC = PolyhedralComplex(IM, VR)
-A polyhedral complex in ambient dimension 2
+A polyhedral complex in ambient dimension 2 with fmpq type coefficients
 
 julia> ispure(PC)
 true
@@ -219,7 +219,7 @@ julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
 julia> VR = [0 0; 1 0; 1 1; 0 1];
 
 julia> PC = PolyhedralComplex(IM, VR)
-A polyhedral complex in ambient dimension 2
+A polyhedral complex in ambient dimension 2 with fmpq type coefficients
 
 julia> dim(PC)
 2
@@ -241,12 +241,12 @@ julia> VR = [0 0; 1 0; 1 1; 0 1];
 julia> PC = PolyhedralComplex(IM, VR);
 
 julia> P1s = polyhedra_of_dim(PC,1)
-5-element SubObjectIterator{Polyhedron}:
- A polyhedron in ambient dimension 2
- A polyhedron in ambient dimension 2
- A polyhedron in ambient dimension 2
- A polyhedron in ambient dimension 2
- A polyhedron in ambient dimension 2
+5-element SubObjectIterator{Polyhedron{fmpq}}:
+ A polyhedron in ambient dimension 2 with fmpq type coefficients
+ A polyhedron in ambient dimension 2 with fmpq type coefficients
+ A polyhedron in ambient dimension 2 with fmpq type coefficients
+ A polyhedron in ambient dimension 2 with fmpq type coefficients
+ A polyhedron in ambient dimension 2 with fmpq type coefficients
 
 julia> for p in P1s
        println(dim(p))
@@ -258,7 +258,7 @@ julia> for p in P1s
 1
 ```
 """
-function polyhedra_of_dim(PC::PolyhedralComplex, polyhedron_dim::Int)
+function polyhedra_of_dim(PC::PolyhedralComplex{T}, polyhedron_dim::Int) where T<:scalar_types
     n = polyhedron_dim - lineality_dim(PC) + 1
     n < 0 && return nothing
     pfaces = Polymake.fan.cones_of_dim(pm_object(PC), n)
@@ -274,15 +274,15 @@ function polyhedra_of_dim(PC::PolyhedralComplex, polyhedron_dim::Int)
             append!(rfaces, index)
         end
     end
-    return SubObjectIterator{Polyhedron}(pm_object(PC), _ith_polyhedron, length(rfaces), (f_dim = n, f_ind = rfaces))
+    return SubObjectIterator{Polyhedron{T}}(pm_object(PC), _ith_polyhedron, length(rfaces), (f_dim = n, f_ind = rfaces))
 end
 
-function _ith_polyhedron(::Type{Polyhedron}, PC::Polymake.BigObject, i::Base.Integer; f_dim::Int = -1, f_ind::Vector{Int64} = Vector{Int64}())
+function _ith_polyhedron(::Type{Polyhedron{T}}, PC::Polymake.BigObject, i::Base.Integer; f_dim::Int = -1, f_ind::Vector{Int64} = Vector{Int64}()) where T<:scalar_types
     pface = Polymake.row(Polymake.fan.cones_of_dim(PC, f_dim), f_ind[i])
-    return Polyhedron(Polymake.polytope.Polytope(VERTICES = PC.VERTICES[collect(pface),:], LINEALITY_SPACE = PC.LINEALITY_SPACE))
+    return Polyhedron{T}(Polymake.polytope.Polytope{scalar_type_to_polymake[T]}(VERTICES = PC.VERTICES[collect(pface),:], LINEALITY_SPACE = PC.LINEALITY_SPACE))
 end
 
-lineality_space(PC::PolyhedralComplex) = SubObjectIterator{RayVector{Polymake.Rational}}(pm_object(PC), _lineality_polyhedron, lineality_dim(PC))
+lineality_space(PC::PolyhedralComplex{T}) where T<:scalar_types = SubObjectIterator{RayVector{T}}(pm_object(PC), _lineality_polyhedron, lineality_dim(PC))
 
 lineality_dim(PC::PolyhedralComplex) = pm_object(PC).LINEALITY_DIM::Int
 
@@ -396,7 +396,7 @@ julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4]]);
 julia> far_vertices = [2,3,4];
 
 julia> PC = PolyhedralComplex(IM, VR, far_vertices)
-A polyhedral complex in ambient dimension 2
+A polyhedral complex in ambient dimension 2 with fmpq type coefficients
 
 julia> codim(PC)
 1
@@ -418,7 +418,7 @@ julia> VR = [0 0; 1 0; -1 0; 0 1];
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4]]);
 
 julia> PC = PolyhedralComplex(IM, VR)
-A polyhedral complex in ambient dimension 2
+A polyhedral complex in ambient dimension 2 with fmpq type coefficients
 
 julia> isembedded(PC)
 true

@@ -269,7 +269,7 @@ $\mathbb{P}^1\times\mathbb{P}^1$. Note that this cone is self-dual, the toric
 ideal comes from the dual cone.
 ```jldoctest
 julia> C = positive_hull([1 0 0; 1 1 0; 1 0 1; 1 1 1])
-A polyhedral cone in ambient dimension 3
+A polyhedral cone in ambient dimension 3 with fmpq type coefficients
 
 julia> antv = AffineNormalToricVariety(C)
 A normal, affine toric variety
@@ -636,8 +636,8 @@ Return the nef cone of the normal toric variety `v`.
 julia> p2 = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> nef = nef_cone(p2)
-A polyhedral cone in ambient dimension 1
+julia> nef = nef_cone(pp)
+A polyhedral cone in ambient dimension 1 with fmpq type coefficients
 
 julia> dim(nef)
 1
@@ -659,8 +659,13 @@ Return the mori cone of the normal toric variety `v`.
 julia> p2 = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
+<<<<<<< HEAD
 julia> mori = mori_cone(p2)
 A polyhedral cone in ambient dimension 1
+=======
+julia> mori = mori_cone(pp)
+A polyhedral cone in ambient dimension 1 with fmpq type coefficients
+>>>>>>> template parameter introduced everywhere and adjusted doctests; polehdral geometry tests running
 
 julia> dim(mori)
 1
@@ -683,11 +688,18 @@ julia> p2 = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> fan(p2)
-A polyhedral fan in ambient dimension 2
+A polyhedral fan in ambient dimension 2 with fmpq type coefficients
 ```
 """
+<<<<<<< HEAD
 @attr PolyhedralFan function fan(v::AbstractNormalToricVariety)
     return PolyhedralFan(pm_object(v))
+=======
+function fan(v::AbstractNormalToricVariety)
+    return get_attribute!(v, :fan) do
+        return PolyhedralFan{fmpq}(pm_object(v))
+    end
+>>>>>>> template parameter introduced everywhere and adjusted doctests; polehdral geometry tests running
 end
 export fan
 
@@ -700,7 +712,7 @@ Return the cone of the affine normal toric variety `v`.
 # Examples
 ```jldoctest
 julia> cone(AffineNormalToricVariety(Oscar.positive_hull([1 1; -1 1])))
-A polyhedral cone in ambient dimension 2
+A polyhedral cone in ambient dimension 2 with fmpq type coefficients
 ```
 """
 @attr Cone function cone(v::AffineNormalToricVariety)

@@ -34,7 +34,7 @@ reason for keeping cones as a distinct type.
 
 ```@docs
 positive_hull(::Union{Oscar.MatElem, AbstractMatrix})
-secondary_cone(SOP::SubdivisionOfPoints)
+secondary_cone(SOP::SubdivisionOfPoints{T}) where T<:scalar_types
 ```
 
 ## Saving and loading
@@ -68,7 +68,7 @@ intersect(C0::Cone, C1::Cone)
 ispointed(C::Cone)
 isfulldimensional(C::Cone)
 lineality_dim(C::Cone)
-lineality_space(C::Cone)
+lineality_space(C::Cone{T}) where T<:scalar_types
 nfacets(C::Cone)
 nrays(C::Cone)
 rays(C::Cone)

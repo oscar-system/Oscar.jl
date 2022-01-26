@@ -13,10 +13,10 @@ direction.
 julia> C = cube(3);
 
 julia> NF = normal_fan(C)
-A polyhedral fan in ambient dimension 3
+A polyhedral fan in ambient dimension 3 with fmpq type coefficients
 
 julia> rays(NF)
-6-element SubObjectIterator{RayVector{Polymake.Rational}}:
+6-element SubObjectIterator{RayVector{fmpq}}:
  [1, 0, 0]
  [-1, 0, 0]
  [0, 1, 0]
@@ -25,10 +25,10 @@ julia> rays(NF)
  [0, 0, -1]
 ```
 """
-function normal_fan(P::Polyhedron)
+function normal_fan(P::Polyhedron{T}) where T<:scalar_types
    pmp = pm_object(P)
    pmnf = Polymake.fan.normal_fan(pmp)
-   return PolyhedralFan(pmnf)
+   return PolyhedralFan{T}(pmnf)
 end
 
 """
@@ -44,14 +44,14 @@ maximal cones of its face fan.
 julia> C = cross(3);
 
 julia> FF = face_fan(C)
-A polyhedral fan in ambient dimension 3
+A polyhedral fan in ambient dimension 3 with fmpq type coefficients
 
 julia> n_maximal_cones(FF) == nfacets(C)
 true
 ```
 """
-function face_fan(P::Polyhedron)
+function face_fan(P::Polyhedron{T}) where T<:scalar_types
    pmp = pm_object(P)
    pmff = Polymake.fan.face_fan(pmp)
-   return PolyhedralFan(pmff)
+   return PolyhedralFan{T}(pmff)
 end

@@ -29,7 +29,7 @@ struct Cone{T} #a real polymake polyhedron
 end
 
 # default scalar type: `fmpq`
-Cone(x...) = Cone{fmpq}(x...)
+Cone(x...; kwargs...) = Cone{fmpq}(x...; kwargs...)
 
 Cone(p::Polymake.BigObject) = Cone{detect_scalar_type(Cone, p)}(p)
 
@@ -82,7 +82,7 @@ PolyhedralFan(p::Polymake.BigObject) = PolyhedralFan{detect_scalar_type(Polyhedr
 struct SubdivisionOfPoints{T}
    pm_subdivision::Polymake.BigObject
    
-   SubdivisionOfPoints{T}(pm::Polymake.BigObject) where T<: scalar_types = new{T}(pm)
+   SubdivisionOfPoints{T}(pm::Polymake.BigObject) where T<:scalar_types = new{T}(pm)
 end
 
 # default scalar type: `fmpq`
@@ -90,10 +90,21 @@ SubdivisionOfPoints(x...) = SubdivisionOfPoints{fmpq}(x...)
 
 SubdivisionOfPoints(p::Polymake.BigObject) = SubdivisionOfPoints{detect_scalar_type(SubdivisionOfPoints, p)}(p)
 
-# actually name length + 2, corresponding to the index of the first character of the scalar type
-const pm_name_length = Dict{Type, Int}([(Polyhedron, 10), (Cone, 6), (PolyhedralFan, 15), (SubdivisionOfPoints, 21)])
+struct PolyhedralComplex{T}
+    pm_complex::Polymake.BigObject
+    
+     PolyhedralComplex{T}(pm::Polymake.BigObject) where T<:scalar_types = new{T}(pm)
+end
 
-function detect_scalar_type(n::Type{T}, p::Polymake.BigObject) where T<:Union{Polyhedron, Cone, PolyhedralFan, SubdivisionOfPoints}
+# default scalar type: `fmpq`
+PolyhedralComplex(x...) = PolyhedralComplex{fmpq}(x...)
+
+PolyhedralComplex(p::Polymake.BigObject) = PolyhedralComplex{detect_scalar_type(PolyhedralComplex, p)}(p)
+
+# actually name length + 2, corresponding to the index of the first character of the scalar type
+const pm_name_length = Dict{Type, Int}([(Polyhedron, 10), (Cone, 6), (PolyhedralFan, 15), (SubdivisionOfPoints, 21), (PolyhedralComplex, 19)])
+
+function detect_scalar_type(n::Type{T}, p::Polymake.BigObject) where T<:Union{Polyhedron, Cone, PolyhedralFan, SubdivisionOfPoints, PolyhedralComplex}
     typename = Polymake.type_name(p)[pm_name_length[n]:end-1]
     return scalar_type_to_oscar[typename]
 end
