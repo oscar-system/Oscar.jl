@@ -95,9 +95,19 @@ function tropical_points(I,val_p::ValuationMap{FlintRationalField, fmpz}; p_adic
   end
 
   if remove_points_at_infinity
-    return [TI0p[i,:] for i in 1:size(TI0p,1) if !contains_zero_entry(TI0p[i,:])]
+    return [TI0p[i,:] for i in 1:size(TI0p,1) if !contains_approximate_zero_entry(TI0p[i,:],-2^63)] # pAdicSolver returns valuation -2^63 if it encounters 0
   else
     return [TI0p[i,:] for i in 1:size(TI0p,1)]
   end
 end
 export tropical_points
+
+
+function contains_approximate_zero_entry(tropical_point,p_adic_precision)
+  for tropical_point_entry in tropical_point
+    if tropical_point_entry>=p_adic_precision
+      return true
+    end
+  end
+  return false
+end
