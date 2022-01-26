@@ -84,7 +84,7 @@ julia> Ktxy, (x,y) = PolynomialRing(Kt,["x", "y"]);
 
 julia> f = 2*x+2*y+1;
 
-julia> val_t = ValuationMap(Kt,t)
+julia> val_t = ValuationMap(Kt,t);
 
 julia> initial(f,val_t,w)       # polynomial over QQ
 
@@ -174,7 +174,6 @@ julia> initial(Cyclic5Homogenized_Kt, val_t, w) # same leading monomials as for 
 
 julia> initial(Katsura5Homogenized_Kt, val_t, w) # different leading monomials as for val_2
                                                  # same leading monomials as for val_3
-
 ```
 """
 function initial(I::MPolyIdeal, val::ValuationMap, w::Vector; skip_groebner_basis_computation::Bool=false, skip_legality_check::Bool=false)

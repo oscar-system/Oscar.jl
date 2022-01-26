@@ -9,17 +9,55 @@
 
 
 
-#=======
-homogeneity space
-todo: proper documentation
-Example:
-Kx,(x,y,z) = PolynomialRing(QQ,3)
-I = ideal([x+2*y,y+2*z])
-homogeneity_space(I)
-=======#
-function homogeneity_space(I; compute_groebner_basis::Bool=false)
+@doc Markdown.doc"""
+    homogeneity_space(I::MPolyIdeal; skip_groebner_basis_computation::Bool=false)
 
-  if compute_groebner_basis
+Returns the homogeneity space of `I`, i.e., the space of all weight vectors with respect to which `I` is weighted homogeneous. The homogeneity space is the lineality space of the tropicalization independent of the valuation.
+
+Requires a Groebner basis computation, set `skip_groebner_basis_computation=true` at your own risk.
+
+# Examples
+```jldoctest
+julia> Kp,(p01,p02,p03,p04,p12,p13,p14,p23,p24,p34) = PolynomialRing(QQ,10);
+
+julia> Grass25 = ideal([p03*p12-p02*p13+p01*p23,
+                        p04*p12-p02*p14+p01*p24,
+                        p04*p13-p03*p14+p01*p34,
+                        p04*p23-p03*p24+p02*p34,
+                        p03*p12-p02*p13+p01*p23,
+                        p04*p12-p02*p14+p01*p24,
+                        p04*p13-p03*p14+p01*p34,
+                        p14*p23-p13*p24+p12*p34,
+                        p03*p12-p02*p13+p01*p23,
+                        p04*p12-p02*p14+p01*p24,
+                        p04*p23-p03*p24+p02*p34,
+                        p14*p23-p13*p24+p12*p34,
+                        p03*p12-p02*p13+p01*p23,
+                        p04*p13-p03*p14+p01*p34,
+                        p04*p23-p03*p24+p02*p34,
+                        p14*p23-p13*p24+p12*p34,
+                        p04*p12-p02*p14+p01*p24,
+                        p04*p13-p03*p14+p01*p34,
+                        p04*p23-p03*p24+p02*p34,
+                        p14*p23-p13*p24+p12*p34]);
+
+julia> H = homogeneity_space(Grass25) # = linear space in form of a polyhedron
+
+julia> display(rref(affine_equation_matrix(affine_hull(H)))[2]) # = equations in row-echelon form
+
+julia> Kx,(x1,x2) = PolynomialRing(QQ,2);
+
+julia> I = ideal([x1+x2,x1-x2])
+
+julia> dim(homogeneity_space(I))
+
+julia> dim(homogeneity_space(I,skip_groebner_basis_computation=true)) # if GB computation is skipped,
+                                                                      # output may not be entire homogeneity space
+```
+"""
+function homogeneity_space(I::MPolyIdeal; skip_groebner_basis_computation::Bool=false)
+
+  if !skip_groebner_basis_computation
     GB = groebner_basis(I,complete_reduction=true)
   else
     GB = gens(I)
@@ -59,9 +97,6 @@ function pivots(M)
 end
 export pivots
 
-
-function rational_matrix_clear_denom(M)
-end
 
 
 #=======
