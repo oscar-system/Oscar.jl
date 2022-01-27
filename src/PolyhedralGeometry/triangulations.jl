@@ -3,6 +3,12 @@
 
 Compute all triangulations on the points given as the rows of `pts`.
 
+The return type is a `Vector{Vector{Vector{Int}}}` where each
+`Vector{Vector{Int}}` encodes a triangulation, in which a `Vector{Int}` encodes
+a simplex as the set of indices of the vertices of the simplex. I.e. the
+`Vector{Int}` `[1,2,4]` corresponds to the simplex that is the convex hull of
+the first, second, and fourth input point.
+
 # Examples
 ```jldoctest
 julia> c = cube(2,0,1)
@@ -36,6 +42,12 @@ end
 Compute all triangulations that can be formed using the vertices of the given
 polytope `P`.
 
+The return type is a `Vector{Vector{Vector{Int}}}` where each
+`Vector{Vector{Int}}` encodes a triangulation, in which a `Vector{Int}` encodes
+a simplex as the set of indices of the vertices of the simplex. I.e. the
+`Vector{Int}` `[1,2,4]` corresponds to the simplex that is the convex hull of
+the first, second, and fourth input point.
+
 # Examples
 ```jldoctest
 julia> c = cube(2,0,1)
@@ -59,6 +71,12 @@ A triangulation is regular if it can be induced by weights, i.e. attach a
 weight to every point, take the convex hull of these new vectors and then take
 the subdivision corresponding to the facets visible from below (lower
 envelope).
+
+The return type is a `Vector{Vector{Vector{Int}}}` where each
+`Vector{Vector{Int}}` encodes a triangulation, in which a `Vector{Int}` encodes
+a simplex as the set of indices of the vertices of the simplex. I.e. the
+`Vector{Int}` `[1,2,4]` corresponds to the simplex that is the convex hull of
+the first, second, and fourth input point.
 
 # Examples
 ```jldoctest
@@ -97,6 +115,12 @@ A triangulation is regular if it can be induced by weights, i.e. attach a
 weight to every point, take the convex hull of these new vectors and then take
 the subdivision corresponding to the facets visible from below (lower
 envelope).
+
+The return type is a `Vector{Vector{Vector{Int}}}` where each
+`Vector{Vector{Int}}` encodes a triangulation, in which a `Vector{Int}` encodes
+a simplex as the set of indices of the vertices of the simplex. I.e. the
+`Vector{Int}` `[1,2,4]` corresponds to the simplex that is the convex hull of
+the first, second, and fourth input point.
 
 # Examples
 ```jldoctest
