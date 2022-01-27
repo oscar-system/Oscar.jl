@@ -1,6 +1,7 @@
 @testset "Polynomial Orderings construction" begin
    R, (x, y, z) = PolynomialRing(QQ, 3)
    f = x*y + 5*z^3
+   g = (1 + x + y + z)^2
  
    @test isa(lex([x, y]), MonomialOrdering)
    @test isa(revlex([x, y, z]), MonomialOrdering)
@@ -17,7 +18,16 @@
    @test isa(negwdegrevlex([x, y], [1, 2]), MonomialOrdering)
  
    @test isa(revlex([x, y])*neglex([z]), MonomialOrdering)
- 
+
+   @test collect(monomials(g, :lex)) == [x^2, x*y, x*z, x, y^2, y*z, y, z^2, z, 1] # lp
+   @test collect(monomials(g, :revlex)) == [z^2, y*z, x*z, z, y^2, x*y, y, x^2, x, 1] # rp
+   @test collect(monomials(g, :deglex)) == [x^2, x*y, x*z, y^2, y*z, z^2, x, y, z, 1] # Dp
+   @test collect(monomials(g, :degrevlex)) == [x^2, x*y, y^2, x*z, y*z, z^2, x, y, z, 1] # dp
+   @test collect(monomials(g, :neglex)) == [1, z, z^2, y, y*z, y^2, x, x*z, x*y, x^2] # ls
+   @test collect(monomials(g, :negrevlex)) == [1, x, x^2, y, x*y, y^2, z, x*z, y*z, z^2] # rs not documented ?
+   @test collect(monomials(g, :negdeglex)) == [1, x, y, z, x^2, x*y, x*z, y^2, y*z, z^2] # Ds
+   @test collect(monomials(g, :negdegrevlex)) == [1, x, y, z, x^2, x*y, y^2, x*z, y*z, z^2] # ds
+
    @test collect(monomials(f, :lex)) == [ x*y, z^3 ]
    @test collect(monomials(f, :revlex)) == [ z^3, x*y ]
    @test collect(monomials(f, :deglex)) == [ z^3, x*y ]
@@ -31,7 +41,7 @@
    @test collect(monomials(f, :wdeglex, w)) == [ x*y, z^3 ]
    @test collect(monomials(f, :wdegrevlex, w)) == [ x*y, z^3 ]
    @test collect(monomials(f, :negwdeglex, w)) == [ x*y, z^3 ]
-   @test collect(monomials(f, :negwdegrevlex, w)) == [ z^3, x*y ]
+   @test collect(monomials(f, :negwdegrevlex, w)) == [ x*y, z^3 ]
  
    M = [ 1 1 1; 1 0 0; 0 1 0 ]
    @test collect(monomials(f, M)) == collect(monomials(f, :deglex))

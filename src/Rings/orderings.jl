@@ -576,70 +576,59 @@ end  # module Orderings
 # _isless_:ord(f, k, l) returns true if the k-th term is lower than the l-th
 # term of f in the ordering :ord.
 
-function _isless_lex(f::MPolyElem, k::Int, l::Int)
+ # lp: weight matrix [1 0 0; 0 1 0; 0 0 1]
+ function _isless_lex(f::MPolyElem, k::Int, l::Int)
    n = nvars(parent(f))
    for i = 1:n
      ek = exponent(f, k, i)
      el = exponent(f, l, i)
-     if ek == el
-       continue
-     elseif ek > el
-       return false
-     else
-       return true
+     if ek != el
+       return ek < el
      end
    end
    return false
  end
  
+ # ls: weight matrix [-1 0 0; 0 -1 0; 0 0 -1]   !!! confusing !!!
  function _isless_neglex(f::MPolyElem, k::Int, l::Int)
    n = nvars(parent(f))
    for i = 1:n
      ek = exponent(f, k, i)
      el = exponent(f, l, i)
-     if ek == el
-       continue
-     elseif ek < el
-       return false
-     else
-       return true
+     if ek != el
+       return ek > el
      end
    end
    return false
  end
  
+ # rp: weight matrix [0 0 1; 0 1 0; 1 0 0]   !!! confusing !!!
  function _isless_revlex(f::MPolyElem, k::Int, l::Int)
    n = nvars(parent(f))
    for i = n:-1:1
      ek = exponent(f, k, i)
      el = exponent(f, l, i)
-     if ek == el
-       continue
-     elseif ek > el
-       return false
-     else
-       return true
+     if ek != el
+        return ek < el
      end
    end
    return false
  end
  
+ # rs: weight matrix [0 0 -1; 0 -1 0; -1 0 0]   !!! confusing !!!
  function _isless_negrevlex(f::MPolyElem, k::Int, l::Int)
    n = nvars(parent(f))
    for i = n:-1:1
      ek = exponent(f, k, i)
      el = exponent(f, l, i)
-     if ek == el
-       continue
-     elseif ek < el
-       return false
-     else
-       return true
+     if ek != el
+       return ek > el
      end
    end
    return false
  end
  
+ # Dp: weight matrix [1 1 1; 1 0 0; 0 1 0; 0 0 1]
  function _isless_deglex(f::MPolyElem, k::Int, l::Int)
    tdk = total_degree(term(f, k))
    tdl = total_degree(term(f, l))
@@ -651,35 +640,32 @@ function _isless_lex(f::MPolyElem, k::Int, l::Int)
    return _isless_lex(f, k, l)
  end
  
+ # dp: weight matrix [1 1 1; 0 0 -1; 0 -1 0; -1 0 0]
  function _isless_degrevlex(f::MPolyElem, k::Int, l::Int)
    tdk = total_degree(term(f, k))
    tdl = total_degree(term(f, l))
-   if tdk < tdl
-     return true
-   elseif tdk > tdl
-     return false
+   if tdk != tdl
+     return tdk < tdl
    end
    return _isless_negrevlex(f, k, l)
  end
  
+ # Ds: weight matrix [-1 -1 -1; 1 0 0; 0 1 0; 0 0 1]
  function _isless_negdeglex(f::MPolyElem, k::Int, l::Int)
    tdk = total_degree(term(f, k))
    tdl = total_degree(term(f, l))
-   if tdk > tdl
-     return true
-   elseif tdk < tdl
-     return false
+   if tdk != tdl
+     return tdk > tdl
    end
    return _isless_lex(f, k, l)
  end
  
+ # ds: weight matrix [-1 -1 -1; 0 0 -1; 0 -1 0; -1 0 0]
  function _isless_negdegrevlex(f::MPolyElem, k::Int, l::Int)
    tdk = total_degree(term(f, k))
    tdl = total_degree(term(f, l))
-   if tdk > tdl
-     return true
-   elseif tdk < tdl
-     return false
+   if tdk != tdl
+     return tdk > tdl
    end
    return _isless_negrevlex(f, k, l)
  end
@@ -697,48 +683,44 @@ function _isless_lex(f::MPolyElem, k::Int, l::Int)
    return dot(ek, w)
  end
 
+ # Wp: the matrix is [w; 1 0 0; 0 1 0; 0 0 1]
  function _isless_weightdeglex(f::MPolyElem, k::Int, l::Int, w::Vector{Int})
    dk = weighted_degree(f, k, w)
    dl = weighted_degree(f, l, w)
-   if dk < dl
-     return true
-   elseif dk > dl
-     return false
+   if dk != dl
+     return dk < dl
    end
    return _isless_lex(f, k, l)
  end
- 
+
+ # wp: the matrix is [w; 0 0 -1; 0 -1 0; -1 0 0]
  function _isless_weightdegrevlex(f::MPolyElem, k::Int, l::Int, w::Vector{Int})
    dk = weighted_degree(f, k, w)
    dl = weighted_degree(f, l, w)
-   if dk < dl
-     return true
-   elseif dk > dl
-     return false
+   if dk != dl
+     return dk < dl
    end
    return _isless_negrevlex(f, k, l)
  end
  
+ # Ws: the matrix is [-w; 1 0 0; 0 1 0; 0 0 1]
  function _isless_weightnegdeglex(f::MPolyElem, k::Int, l::Int, w::Vector{Int})
    dk = weighted_degree(f, k, w)
    dl = weighted_degree(f, l, w)
-   if dk > dl
-     return true
-   elseif dk < dl
-     return false
+   if dk != dl
+     return dk > dl
    end
    return _isless_lex(f, k, l)
  end
- 
+
+ # ws: the matrix is [-w; 0 0 -1; 0 -1 0; -1 0 0]
  function _isless_weightnegdegrevlex(f::MPolyElem, k::Int, l::Int, w::Vector{Int})
    dk = weighted_degree(f, k, w)
    dl = weighted_degree(f, l, w)
-   if dk > dl
-     return true
-   elseif dk < dl
-     return false
+   if dk != dl
+     return dk > dl
    end
-   return _isless_revlex(f, k, l)
+   return _isless_negrevlex(f, k, l)
  end
  
  function _isless_matrix(f::MPolyElem, k::Int, l::Int, M::Union{ Matrix{T}, MatElem{T} }) where T
