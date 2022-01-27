@@ -16,19 +16,17 @@ julia> V = vertices(c)
  [1, 1]
 
 julia> all_triangulations(point_matrix(V))
-pm::Array<pm::Array<pm::Set<long, pm::operations::cmp>>>
-<{0 1 2}
-{1 2 3}
->
-<{0 1 3}
-{0 2 3}
->
+2-element Vector{Vector{Vector{Int64}}}:
+ [[1, 2, 3], [2, 3, 4]]
+ [[1, 2, 4], [1, 3, 4]]
 ```
 """
 function all_triangulations(pts::AnyVecOrMat)
-    input = homogenize(matrix_for_polymake(pts))
+    input = homogenize(pts)
     PC = Polymake.polytope.PointConfiguration(POINTS=input)
-    return Polymake.polytope.topcom_all_triangulations(PC)
+    triangs = Polymake.polytope.topcom_all_triangulations(PC)
+    result = [[[e for e in simplex] for simplex in triang] for triang in triangs]
+    return Polymake.to_one_based_indexing(result)
 end
 
 
@@ -44,13 +42,9 @@ julia> c = cube(2,0,1)
 A polyhedron in ambient dimension 2
 
 julia> all_triangulations(c)
-pm::Array<pm::Array<pm::Set<long, pm::operations::cmp>>>
-<{0 1 2}
-{1 2 3}
->
-<{0 1 3}
-{0 2 3}
->
+2-element Vector{Vector{Vector{Int64}}}:
+ [[1, 2, 3], [2, 3, 4]]
+ [[1, 2, 4], [1, 3, 4]]
 ```
 """
 all_triangulations(P::Polyhedron) = all_triangulations(point_matrix(vertices(P)))
@@ -79,19 +73,17 @@ julia> V = vertices(c)
  [1, 1]
 
 julia> regular_triangulations(point_matrix(V))
-pm::Array<pm::Array<pm::Set<long, pm::operations::cmp>>>
-<{0 1 2}
-{1 2 3}
->
-<{0 1 3}
-{0 2 3}
->
+2-element Vector{Vector{Vector{Int64}}}:
+ [[1, 2, 3], [2, 3, 4]]
+ [[1, 3, 4], [1, 2, 4]]
 ```
 """
 function regular_triangulations(pts::AnyVecOrMat)
-    input = homogenize(matrix_for_polymake(pts))
+    input = homogenize(pts)
     PC = Polymake.polytope.PointConfiguration(POINTS=input)
-    return Polymake.polytope.topcom_regular_triangulations(PC)
+    triangs = Polymake.polytope.topcom_regular_triangulations(PC)
+    result = [[[e for e in simplex] for simplex in triang] for triang in triangs]
+    return Polymake.to_one_based_indexing(result)
 end
 
 
@@ -112,13 +104,9 @@ julia> c = cube(2,0,1)
 A polyhedron in ambient dimension 2
 
 julia> regular_triangulations(c)
-pm::Array<pm::Array<pm::Set<long, pm::operations::cmp>>>
-<{0 1 2}
-{1 2 3}
->
-<{0 1 3}
-{0 2 3}
->
+2-element Vector{Vector{Vector{Int64}}}:
+ [[1, 2, 3], [2, 3, 4]]
+ [[1, 3, 4], [1, 2, 4]]
 ```
 """
 regular_triangulations(P::Polyhedron) = regular_triangulations(point_matrix(vertices(P)))
