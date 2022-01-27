@@ -425,6 +425,43 @@ function Oscar.gmodule(::Type{GrpAbFinGen}, C::GModule{T, Generic.FreeModule{gfp
   A = abelian_group([characteristic(base_ring(C)) for i=1:rank(C.M)])
   return Oscar.gmodule(A, Group(C), [hom(A, A, map_entries(lift, mat(x))) for x = C.ac])
 end
+
+function Oscar.gmodule(::Type{GrpAbFinGen}, C::GModule{T, Generic.FreeModule{gfp_elem}}) where {T <: Oscar.GAPGroup}
+  A = abelian_group([characteristic(base_ring(C)) for i=1:rank(C.M)])
+  return Oscar.gmodule(A, Group(C), [hom(A, A, map_entries(lift, mat(x))) for x = C.ac])
+end
+
+function Oscar.abelian_group(M::Generic.FreeModule{fq_nmod})
+  k = base_ring(M)
+  A = abelian_group([characteristic(k) for i = 1:dim(M)*degree(k)])
+  n = degree(k)
+  function to_A(m::Generic.FreeModuleElem{fq_nmod})
+    a = fmpz[]
+    for i=1:dim(M)
+      c = m[i]
+      for j=0:n-1
+        push!(a, coeff(c, j))
+      end
+    end
+    return A(a)
+  end
+  function to_M(a::GrpAbFinGenElem)
+    m = fq_nmod[]
+    for i=1:dim(M)
+      push!(m, k([a[j] for j=(i-1)*n+1:i*n]))
+    end
+    return M(m)
+  end
+  return A, MapFromFunc(to_M, to_A, A, M)
+end
+
+function Oscar.gmodule(::Type{GrpAbFinGen}, C::GModule{T, Generic.FreeModule{fq_nmod}}) where {T <: Oscar.GAPGroup}
+  k = base_ring(C)
+  A, mA = abelian_group(C.M)
+
+  return Oscar.gmodule(A, Group(C), [hom(A, A, [preimage(mA, x(mA(a))) for a = gens(A)]) for x = C.ac])
+end
+
 #TODO: cover all finite fields
 #      make the Modules work
 
@@ -560,6 +597,14 @@ export irreducible_modules, isabsolutely_irreducible, isdecomposable
 module RepPc
 using Oscar
 
+export maximal_abelian_quotient, coimage
+
+function maximal_abelian_quotient(G::Oscar.GAPGroup)
+  mg = GAP.Globals.MaximalAbelianQuotient(G.X)
+  A = PcGroup(GAP.Globals.Range(mg))
+  return A, Oscar._hom_from_gap_map(G, A, mg)
+end
+
 Base.pairs(M::MatElem) = Base.pairs(IndexCartesian(), M)
 Base.pairs(::IndexCartesian, M::MatElem) = Base.Iterators.Pairs(M, CartesianIndices(axes(M)))
 
@@ -577,10 +622,16 @@ end
 =# 
 
 function reps(K, G::PcGroup)
+  if order(G) == 1
+    F = free_module(K, 1)
+    h = hom(F, F, [F[1]])
+    return [gmodule(F, G, typeof(h)[])]
+  end
   s, ms = sub(G, [gens(G)[end]])
   o = Int(order(s))
   @assert isprime(o)
   z = roots(K(1), o)
+  @assert characteristic(K) == o || length(z) == o
   F = free_module(K, 1)
   R = [gmodule(F, s, [hom(F, F, [r*F[1]])]) for r = z]
 
@@ -608,6 +659,7 @@ function reps(K, G::PcGroup)
         @assert C*Xp == Y
         # I think they should always be roots of one here.
         rt = roots(C, p)
+        @assert characteristic(K) == p || length(rt) == p
         Y = r.ac
         for x = rt
           nw = gmodule(F, ns,  vcat([hom(F, F, x*X)], Y))
@@ -709,46 +761,63 @@ function extend(C::GModule, m::Map)
   return nr
 end
 
+function find_primes(mp::Map{FPGroup, PcGroup})
+  G = domain(mp)
+  Q = codomain(mp)
+  I = irreducible_modules(ZZ, Q) 
+  lp = Set(collect(keys(factor(order(Q)).fac)))
+  for i = I
+    ib = gmodule(i.M, G, [action(i, mp(g)) for g = gens(G)])
+    ia = gmodule(GrpAbFinGen, ib)
+    a, b = Oscar.GrpCoh.H_one_maps(ia)
+    da = Oscar.dual(a)
+    db = Oscar.dual(b)
+    #=
+    R = Q/Z, then we should have
+      R^l -a-> R^n -b-> R^m
+    and the H^1 we want is ker(b)/im(a)
+    however, actually, a and b run between Z^l's.
+    Taking duals:
+      Z^l <-a'- Z^n <-b'- Z^m
+    should give me
+      quo(im(b'), ker(a'))
+    as the dual to what I want.
+    =#
+    global last_ab = (a, b, da, db)
+    q = quo(kernel(da)[1], image(db)[1])[1]
+    t = torsion_subgroup(q)[1]
+    if order(t) > 1
+      push!(lp, collect(keys(factor(order(t)).fac))...)
+    end
+  end
+  return lp
+end
 
-function brueckner(G::Oscar.GAPGroup)
-  #=
-  actually, the initial prime list should be from
-  the order of the maximal abelian quotient
-  However, this is intended to be "pure"...
-  =#
-  F = free_module(QQ, 1)
-  h = hom(F, F, [F[1]])
+function brueckner(mQ::Map{FPGroup, PcGroup}; primes::Vector=[])
 
-  Q = Oscar.GrpCoh.pc_group(abelian_group([1]))[1]
-  mQ = hom(G, Q, gens(G), [one(Q) for i=1:ngens(G)])
+  Q = codomain(mQ)
+  G = domain(mQ)
+  if length(primes) == 0
+    lp = find_primes(mQ)
+  else
+    lp = map(fmpz, primes)
+  end
 
-  C = gmodule(F, G, [h for g = gens(G)])
-  CZ = gmodule(GrpAbFinGen, gmodule(ZZ, C))
-  a, b = Oscar.GrpCoh.H_one_maps(CZ)
-  #=
-  R = Q/Z, then we should have
-    R^l -a-> R^n -b-> R^m
-  and the H^1 we want is ker(b)/im(a)
-  however, actually, a and b run between Z^l's.
-  Taking duals:
-    Z^l <-a'- Z^n <-b'- Z^m
-  should give me
-    quo(im(b'), ker(a'))
-  as the dual to what I want.
-  =#
-  da = dual(a)
-  db = dual(b)
-  q = quo(kernel(da)[1], image(db)[1])[1]
-  t = torsion_subgroup(q)[1]
-  lp = collect(keys(factor(order(t)).fac))
-  allR = Dict{Int, Vector{Any}}()
-
-  allR[0] = [gmodule(F, Q, typeof(h)[])]
+  allR = []
   for p = lp
-    F = free_module(GF(p), 1)
-    F = abelian_group([p])
-    h = hom(F, F, [F[1]])
-    allR[p] = [gmodule(F, Q, [h])]
+    _, j = ppio(order(Q), p)
+    f = j == 1 ? 1 : modord(p, j)
+    @assert (p^f-1) % j == 0
+    if f == 1
+      I = reps(GF(Int(p)), Q)
+    else
+      I = reps(GF(Int(p), f), Q)
+    end
+
+    for i = I
+      l = lift(gmodule(GrpAbFinGen, i), mQ)
+      append!(allR, [x for x in l])# if issurjective(x)])
+    end
   end
   return allR
 end
@@ -756,22 +825,40 @@ end
 Base.getindex(M::AbstractAlgebra.FPModule, i::Int) = i==0 ? zero(M) : gens(M)[i]
 Oscar.gen(M::AbstractAlgebra.FPModule, i::Int) = M[i]
 
-function dual(h::Map{GrpAbFinGen, GrpAbFinGen})
+Oscar.isfree(M::Generic.FreeModule) = true
+Oscar.isfree(M::Generic.DirectSumModule) = all(isfree, M.m)
+
+function Oscar.dual(h::Map{GrpAbFinGen, GrpAbFinGen})
   A = domain(h)
   B = codomain(h)
   @assert isfree(A) && isfree(B)
   return hom(B, A, transpose(h.map))
 end
 
-function coimage(h::Map{GrpAbFinGen, GrpAbFinGen})
+function Oscar.dual(h::Map{<:AbstractAlgebra.FPModule{fmpz}, <:AbstractAlgebra.FPModule{fmpz}})
+  A = domain(h)
+  B = codomain(h)
+  @assert isfree(A) && isfree(B)
+  return hom(B, A, transpose(mat(h)))
+end
+
+
+function coimage(h::Map)
   return quo(domain(h), kernel(h)[1])
 end
 
 function Base.iterate(M::Generic.Submodule{<:FinFieldElem})
   k = base_ring(M)
+  if dim(M) == 0
+    return zero(M), iterate([1])
+  end
   p = Base.Iterators.ProductIterator(Tuple([k for i=1:dim(M)]))
   f = iterate(p)
-  return M([f[1][i] for i=1:dim(M)]), (f[2], p)
+  return M(elem_type(k)[f[1][i] for i=1:dim(M)]), (f[2], p)
+end
+
+function Base.iterate(::AbstractAlgebra.Generic.Submodule{fq_nmod}, ::Tuple{Int64, Int64})
+  return nothing
 end
 
 function Base.iterate(M::Generic.Submodule{<:FinFieldElem}, st::Tuple{<:Tuple, <:Base.Iterators.ProductIterator})
@@ -779,7 +866,7 @@ function Base.iterate(M::Generic.Submodule{<:FinFieldElem}, st::Tuple{<:Tuple, <
   if n === nothing
     return n
   end
-  return M([n[1][i] for i=1:dim(M)]), (n[2], st[2])
+  return M(elem_type(base_ring(M))[n[1][i] for i=1:dim(M)]), (n[2], st[2])
 end
 
 function lift(C::GModule, mp::Map)
@@ -824,14 +911,14 @@ function lift(C::GModule, mp::Map)
     a = (one(N), hom(DE, M, [zero(M) for i=1:ngens(DE)]))
     for i = Oscar.GrpCoh.word(r)
       if i<0
-        h = inv(mp(G[-i]))
-        m = -pro[-i]
+        h = inv(mp(G[-i])) 
+        m = -pDE[1]*pro[-i]*action(C, h) - pDE[2]*sc(inv(h), h)
       else
         h = mp(G[i])
-        m = pro[i]
+        m = pDE[1]*pro[i]
       end
-      # a *(h, m) = (x, y)(h, m) = (xh, m^h + y + si(x, h))
-      a = (a[1]*h, pDE[1]*m*action(C, h) + a[2] + pDE[2]*sc(a[1], h))
+      # a *(h, m) = (x, y)(h, m) = (xh, m + y^h + si(x, h))
+      a = (a[1]*h, m + a[2]*action(C, h) + pDE[2]*sc(a[1], h))
     end
     @assert isone(a[1])
     s += a[2]*iK[j]
@@ -842,7 +929,7 @@ function lift(C::GModule, mp::Map)
   k, mk = kernel(s)
   allG = []
   z = get_attribute(C, :H_two)[1]
-  seen = Set(elem_type(codomain(mH2))[])
+
   for x = k
     epi = pDE[1](mk(x)) #the map
     chn = pDE[2](mk(x)) #the tail data
@@ -851,15 +938,24 @@ function lift(C::GModule, mp::Map)
     #      not all "epi" are epi, ie. surjective. The part of the thm
     #      is missing...
     # (Thm 15, part b & c)
-    zz = mH2(chn)
-    if zz in seen
+    @show (preimage(z, z(chn)) - chn).coeff
+    @show order(preimage(z, z(chn)) - chn)
+    @show mH2(preimage(z, z(chn)) - chn).coeff
+    @assert preimage(z, z(chn)) == chn
+    GG, GGinj, GGpro, GMtoGG = Oscar.GrpCoh.extension(PcGroup, z(chn))
+#    _GG, _ = Oscar.GrpCoh.extension(z(chn))
+#    @assert isisomorphic(GG, _GG)[1]
+    #map G[i] -> <mp(G[i]), pro[i](epi)>
+#    @show [(mp(G[i]), pro[i](epi)) for i=1:ngens(G)]
+#    @show [GMtoGG(mp(G[i]), pro[i](epi)) for i=1:ngens(G)]
+    h = hom(G, GG, gens(G), [GMtoGG(mp(G[i]), pro[i](epi)) for i=1:ngens(G)])
+    if !issurjective(h)
+      @show :darn
       continue
     else
-      push!(seen, zz)
+      @show :bingo
     end
-    GG, GGinj, GGpro, GMtoGG = Oscar.GrpCoh.extension(PcGroup, z(mH2(chn)))
-    #map G[i] -> <mp(G[i]), pro[i](epi)>
-    push!(allG, (GG, [hom(G, GG, gens(G), [GMtoGG(mp(G[i]), pro[i](epi)) for i=1:ngens(G)])]))
+    push!(allG, h)
   end
   return allG
 end
@@ -867,3 +963,5 @@ end
 end #module RepPc
 
 using .RepPc
+
+export maximal_abelian_quotient, coimage
