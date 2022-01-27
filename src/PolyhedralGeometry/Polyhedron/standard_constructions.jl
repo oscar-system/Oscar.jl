@@ -864,7 +864,7 @@ julia> isfulldimensional(p)
 true
 
 julia> volume(p)
-8
+3
 ```
 """
 gelfand_tsetlin(lambda::AbstractVector) = Polyhedron(Polymake.polytope.gelfand_tsetlin(Vector{Rational}(lambda),projected=false))
