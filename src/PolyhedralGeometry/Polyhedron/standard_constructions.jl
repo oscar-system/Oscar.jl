@@ -867,5 +867,4 @@ julia> volume(p)
 8
 ```
 """
-#It doesn't like the integer type so I have to convert it to Rational. Why?
 gelfand_tsetlin(λ::AbstractVecOrMat) = Polyhedron(Polymake.polytope.gelfand_tsetlin(Array{Rational,1}(λ),projected=false))
