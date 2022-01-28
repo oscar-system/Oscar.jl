@@ -39,14 +39,14 @@ function save_intern(s::SerializerState, lp::LinearProgram)
     serialized = Polymake.call_function(Symbol("Core::Serializer"), :serialize, lpcoeffs)
     jsonstr = Polymake.call_function(:common, :encode_json, serialized)
     return Dict(
-        :feasible_region => save_intern(s, lp.feasible_region),
+        :feasible_region => save(s, lp.feasible_region),
         :convention => lp.convention,
         :lpcoeffs => JSON.parse(jsonstr)
     )
 end
 
 function load_intern(s::DeserializerState, ::Type{LinearProgram}, dict::Dict)
-    fr = load_intern(s, Polyhedron, dict[:feasible_region])
+    fr = load(s, Polyhedron, dict[:feasible_region])
     conv = dict[:convention]
     lpcoeffs = Polymake.call_function(:common, :deserialize_json_string, json(dict[:lpcoeffs]))
     all = Polymake._lookup_multi(pm_object(fr), "LP")

@@ -3,7 +3,7 @@ using JSON
 # struct which tracks state for (de)serialization
 struct SerializerState
     # dict to track already serialized objects
-    objmap::IdDict{Any,Int}
+    objmap::IdDict{Any, Int}
 
     # TODO: if we don't want to produce intermediate dictionaries (which is a lot of overhead), we would probably store an `IO` object here
     # io::IO
@@ -14,11 +14,11 @@ function SerializerState()
 end
 
 struct DeserializerState
-    objs::Vector{Any}  # or perhaps Dict{Int,Any} to be resilient against corrupts/malicious files using huge ids
+    objs::Dict{Int, Any}  # or perhaps Dict{Int,Any} to be resilient against corrupts/malicious files using huge ids
 end
 
 function DeserializerState()
-    return DeserializerState(Vector{Any}())
+    return DeserializerState(Dict{Int, Any}())
 end
 
 
@@ -32,8 +32,24 @@ function backref(ref::Int)
 end
 
 ################################################################################
-# Some setup for encoding types as strings and back and for getting the version
-# info.
+# Version info
+
+function get_version_info()
+    result = Dict{Symbol, Any}(
+        :Oscar => ["https://github.com/oscar-system/Oscar.jl", VERSION_NUMBER],
+        :Julia => ["https://julialang.org/", VERSION]
+    )
+    return result
+end
+const versionInfo = get_version_info()
+
+
+################################################################################
+# (De|En)coding types
+#
+# Right now this is still quite primitive, however there is functionality for
+# encoding Vectors without explicitly adding them to the typeMap. This will
+# have to be adapted though to make it more generic for matrices, arrays, etc.
 const typeMap = Dict{Type, String}([
     Int => "Base.Int",
     Cone => "Oscar.Cone",
@@ -44,19 +60,37 @@ const typeMap = Dict{Type, String}([
     Graphs.Graph{Graphs.Undirected} => "Oscar.Graphs.Graph{Oscar.Graphs.Undirected}",
     Graphs.Graph{Graphs.Directed} => "Oscar.Graphs.Graph{Oscar.Graphs.Directed}",
     SimplicialComplex => "Oscar.SimplicialComplex",
-    LinearProgram => "Oscar.LinearProgram"
+    LinearProgram => "Oscar.LinearProgram",
+    Vector => "Vector"
 ])
 
 const reverseTypeMap = Dict{String, Type}(value => key for (key, value) in typeMap)
 
-function get_version_info()
-    result = Dict{Symbol, Any}(
-        :Oscar => ["https://github.com/oscar-system/Oscar.jl", VERSION_NUMBER],
-        :Julia => ["https://julialang.org/", VERSION]
-    )
-    return result
+
+function encodeType(::Type{T}) where T
+    if haskey(typeMap, T)
+        return typeMap[T]
+    end
 end
-const versionInfo = get_version_info()
+
+
+function encodeType(::Type{Vector{T}}) where T
+    return [encodeType(T)]
+end
+
+
+function decodeType(input::String)
+    if Symbol(input) == backref_sym
+        return backref_sym
+    else
+        return reverseTypeMap[input]
+    end
+end
+
+
+function decodeType(input::Vector{T}) where T
+    return Vector{decodeType(input[1])}
+end
 
 
 ################################################################################
@@ -73,15 +107,26 @@ function save(s::SerializerState, obj::T) where T
         ref = -1
     end
     # invoke the actual serializer
-    typestr = typeMap[T]
+    encodedType = encodeType(T)
     return Dict(
         :_ns => versionInfo,
-        :type => typestr,
+        :type => encodedType,
         :id => ref,
         :data => save_intern(s, obj)
     )
 end
 
+function load(s::DeserializerState, ::Type{T}, dict::Dict) where T
+    decodedType = decodeType(dict[:type])
+    id = dict[:id]
+    # TODO: deal with versions? enforce their presence?
+    if decodedType == backref_sym
+        return s.objs[id]
+    end
+    result = load_intern(s, T, dict[:data])
+    s.objs[id] = result
+    return result
+end
 
 function load(s::DeserializerState, dict::Dict)
     haskey(dict, :_ns) || throw(ArgumentError("Namespace is missing"))
@@ -91,24 +136,31 @@ function load(s::DeserializerState, dict::Dict)
         return load_from_polymake(dict)
     end
     haskey(_ns, :Oscar) || throw(ArgumentError("Not an Oscar object"))
-    typestr = dict[:type]
-    id = dict[:id]
-    # TODO: deal with versions? enforce their presence?
 
-    if typestr == backref_sym
-        return s.objs[id]
-    end
-
-    T = reverseTypeMap[typestr]
+    encodedType = dict[:type]
+    T = decodeType(encodedType)
 
     Base.issingletontype(T) && return T()
 
     # TODO: offer a generic handler for primitive
     # types e.g. storing them as byte strings or so
     #Base.isprimitivetype(T) && return load_primitivetype(T, dict) #
-
-    return load_intern(s, T, dict[:data])
+    return load(s, T, dict)
 end
+
+################################################################################
+# Saving and loading vectors
+function save_intern(s::SerializerState, vec::Vector{T}) where T
+    return Dict(
+        :vector => [save(s, x) for x in vec]
+    )
+end
+
+function load_intern(s::DeserializerState, ::Type{Vector{T}}, dict::Dict) where T
+   return [load(s, T, x) for x in dict[:vector]]
+end
+
+
 
 ################################################################################
 # Interacting with files

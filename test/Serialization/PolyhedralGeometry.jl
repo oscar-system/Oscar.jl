@@ -1,4 +1,4 @@
-@testset "Serialization" begin
+@testset "PolyhedralGeometry" begin
     
     mktempdir() do path
         @testset "Graph" begin
