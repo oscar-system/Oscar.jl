@@ -7,21 +7,6 @@ import Oscar:gmodule, GAPWrap
 import AbstractAlgebra: Group, Module
 import Base: parent
 
-function GAP.gap_to_julia(::Type{QabElem}, a::GAP.GapObj) #which should be a Cyclotomic
-  c = GAPWrap.Conductor(a)
-  E = abelian_closure(QQ)[2](c)
-  z = parent(E)(0)
-  co = GAP.Globals.CoeffsCyc(a, c)
-  for i=1:c
-    if !iszero(co[i])
-      z += fmpq(co[i])*E^(i-1)
-    end
-  end
-  return z
-end
-
-(::QabField)(a::GAP.GapObj) = GAP.gap_to_julia(QabElem, a)
-
 function irreducible_modules(G::Oscar.GAPGroup)
   im = GAP.Globals.IrreducibleRepresentations(G.X)
   IM = GModule[] 
@@ -219,7 +204,8 @@ function hom_base(C::T, D::T) where T <: GModule{<:Any, <:Generic.FreeModule{<:F
   h = Oscar.iso_oscar_gap(base_ring(C))
   hb = GAP.Globals.MTX.BasisModuleHomomorphisms(Gap(C, h), Gap(D, h))
   n = length(hb)
-  b = map(x->matrix(map(y->preimage(h, y), Oscar.GAP.gap_to_julia(Matrix{Any}, x))), hb)
+  b = [matrix([preimage(h, x[i, j]) for i in 1:GAPWrap.NrRows(x), j in 1:GAPWrap.NrCols(x)]) for x in hb]
+#  b = map(x->matrix(map(y->preimage(h, y), Matrix{Any}(x))), hb)
 #  @show [mat(C.ac[i])*b[1] == b[1]*mat(D.ac[i]) for i=1:length(C.ac)]
   return b
 end
@@ -569,7 +555,7 @@ module RepPc
 using Oscar
 
 Base.pairs(M::MatElem) = Base.pairs(IndexCartesian(), M)
-Base.pairs(::IndexCartesian, M::MatElem) = Base.Pairs(M, CartesianIndices(axes(M)))
+Base.pairs(::IndexCartesian, M::MatElem) = Base.Iterators.Pairs(M, CartesianIndices(axes(M)))
 
 function Hecke.roots(a::fq_nmod, i::Int)
   kx, x = PolynomialRing(parent(a), cached = false)

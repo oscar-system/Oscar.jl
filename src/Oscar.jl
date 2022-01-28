@@ -224,6 +224,7 @@ include("Groups/action.jl")
 include("Groups/gsets.jl")
 include("Groups/MatrixDisplay.jl")
 include("Groups/abelian_aut.jl")
+include("Groups/GrpAb.jl")
 
 include("Rings/integer.jl")
 include("Rings/rational.jl")
@@ -279,6 +280,7 @@ include("Rings/binomial_ideals.jl")
 include("ToricVarieties/JToric.jl")
 
 include("../experimental/Schemes/AffineSchemes.jl")
+include("../experimental/Schemes/SpecOpen.jl")
 
 if is_dev
 #  include("../examples/ModStdNF.jl")

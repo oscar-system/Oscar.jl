@@ -41,7 +41,7 @@
             @test loaded isa PolyhedralFan
             @test Base.propertynames(nfsquare) == Base.propertynames(loaded)
             @test nrays(nfsquare) == nrays(loaded)
-            @test nmaximal_cones(nfsquare) == nmaximal_cones(loaded)
+            @test n_maximal_cones(nfsquare) == n_maximal_cones(loaded)
             @test dim(nfsquare) == dim(loaded)
         end
         
@@ -64,7 +64,7 @@
             loaded = load_subdivisionofpoints(joinpath(path, "moae.sop"))
             @test loaded isa SubdivisionOfPoints
             @test Base.propertynames(MOAE) == Base.propertynames(loaded)
-            @test nmaximal_cells(MOAE) == nmaximal_cells(loaded)
+            @test n_maximal_cells(MOAE) == n_maximal_cells(loaded)
             @test npoints(MOAE) == npoints(loaded)
         end
     end

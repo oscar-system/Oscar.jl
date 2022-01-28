@@ -125,7 +125,7 @@ vertices(as::Type{PointVector{T}}, P::Polyhedron) where T = SubObjectIterator{as
 
 _vertex_polyhedron(::Type{PointVector{T}}, P::Polymake.BigObject, i::Base.Integer) where T = PointVector{T}(P.VERTICES[_vertex_indices(P)[i], 2:end])
 
-_point_matrix(::Val{_vertex_polyhedron}, P::Polymake.BigObject) = P.VERTICES[_vertex_indices(P), 2:end]
+_point_matrix(::Val{_vertex_polyhedron}, P::Polymake.BigObject; homogenized=false) = P.VERTICES[_vertex_indices(P), (homogenized ? 1 : 2):end]
 
 _matrix_for_polymake(::Val{_vertex_polyhedron}) = _point_matrix
 
@@ -212,7 +212,7 @@ rays(as::Type{RayVector{T}}, P::Polyhedron) where T = SubObjectIterator{as}(pm_o
 
 _ray_polyhedron(::Type{RayVector{T}}, P::Polymake.BigObject, i::Base.Integer) where T = RayVector{T}(P.VERTICES[_ray_indices(P)[i], 2:end])
 
-_vector_matrix(::Val{_ray_polyhedron}, P::Polymake.BigObject) = P.VERTICES[_ray_indices(P), 2:end]
+_vector_matrix(::Val{_ray_polyhedron}, P::Polymake.BigObject; homogenized=false) = P.VERTICES[_ray_indices(P), (homogenized ? 1 : 2):end]
 
 _matrix_for_polymake(::Val{_ray_polyhedron}) = _vector_matrix
 
@@ -492,7 +492,7 @@ end
 
 _lattice_point(::Type{PointVector{Polymake.Integer}}, P::Polymake.BigObject, i::Base.Integer) = PointVector{Polymake.Integer}(P.LATTICE_POINTS_GENERATORS[1][i, 2:end])
 
-_point_matrix(::Val{_lattice_point}, P::Polymake.BigObject) = P.LATTICE_POINTS_GENERATORS[1][:, 2:end]
+_point_matrix(::Val{_lattice_point}, P::Polymake.BigObject; homogenized=false) = P.LATTICE_POINTS_GENERATORS[1][:, (homogenized ? 1 : 2):end]
 
 _matrix_for_polymake(::Val{_lattice_point}) = _point_matrix
 
@@ -519,7 +519,7 @@ end
 
 _interior_lattice_point(::Type{PointVector{Polymake.Integer}}, P::Polymake.BigObject, i::Base.Integer) = PointVector{Polymake.Integer}(P.INTERIOR_LATTICE_POINTS[i, 2:end])
 
-_point_matrix(::Val{_interior_lattice_point}, P::Polymake.BigObject) = P.INTERIOR_LATTICE_POINTS[:, 2:end]
+_point_matrix(::Val{_interior_lattice_point}, P::Polymake.BigObject; homogenized=false) = P.INTERIOR_LATTICE_POINTS[:, (homogenized ? 1 : 2):end]
 
 _matrix_for_polymake(::Val{_interior_lattice_point}) = _point_matrix
 
@@ -551,7 +551,7 @@ end
 
 _boundary_lattice_point(::Type{PointVector{Polymake.Integer}}, P::Polymake.BigObject, i::Base.Integer) = PointVector{Polymake.Integer}(P.BOUNDARY_LATTICE_POINTS[i, 2:end])
 
-_point_matrix(::Val{_boundary_lattice_point}, P::Polymake.BigObject) = P.BOUNDARY_LATTICE_POINTS[:, 2:end]
+_point_matrix(::Val{_boundary_lattice_point}, P::Polymake.BigObject; homogenized=false) = P.BOUNDARY_LATTICE_POINTS[:, (homogenized ? 1 : 2):end]
 
 _matrix_for_polymake(::Val{_boundary_lattice_point}) = _point_matrix
 
@@ -617,7 +617,7 @@ lineality_space(P::Polyhedron) = SubObjectIterator{RayVector{Polymake.Rational}}
 
 _lineality_polyhedron(::Type{RayVector{Polymake.Rational}}, P::Polymake.BigObject, i::Base.Integer) = RayVector(P.LINEALITY_SPACE[i, 2:end])
 
-_generator_matrix(::Val{_lineality_polyhedron}, P::Polymake.BigObject) = P.LINEALITY_SPACE[:, 2:end]
+_generator_matrix(::Val{_lineality_polyhedron}, P::Polymake.BigObject; homogenized=false) = P.LINEALITY_SPACE[:, (homogenized ? 1 : 2):end]
 
 _matrix_for_polymake(::Val{_lineality_polyhedron}) = _generator_matrix
 
@@ -767,7 +767,7 @@ end
 ## Boolean properties
 ###############################################################################
 @doc Markdown.doc"""
-    isvery_ample(P::Polyhedron)
+    is_very_ample(P::Polyhedron)
 
 Check whether `P` is very ample.
 
@@ -776,17 +776,17 @@ Check whether `P` is very ample.
 julia> c = cube(3)
 A polyhedron in ambient dimension 3
 
-julia> isvery_ample(c)
+julia> is_very_ample(c)
 true
 
 julia> P = convex_hull([0 0 0; 1 1 0; 1 0 1; 0 1 1])
 A polyhedron in ambient dimension 3
 
-julia> isvery_ample(P)
+julia> is_very_ample(P)
 false
 ```
 """
-isvery_ample(P::Polyhedron) = pm_object(P).VERY_AMPLE::Bool
+is_very_ample(P::Polyhedron) = pm_object(P).VERY_AMPLE::Bool
 
 
 @doc Markdown.doc"""
@@ -919,7 +919,7 @@ isfulldimensional(P::Polyhedron) = pm_object(P).FULL_DIM::Bool
 @doc Markdown.doc"""
     f_vector(P::Polyhedron)
 
-Compute the vector $(f₀,f₁,f₂,...,f_{(dim(P)-1))$` where $f_i$ is the number of
+Return the vector $(f₀,f₁,f₂,...,f_{(dim(P)-1))$` where $f_i$ is the number of
 faces of $P$ of dimension $i$.
 
 # Examples
@@ -934,12 +934,55 @@ julia> f_vector(cube(5))
  10
 ```
 """
-function f_vector(P::Polyhedron)
+function f_vector(P::Polyhedron)::Vector{Int}
+    # the following differs from polymake's count in the unbounded case;
+    # polymake takes the far face into account, too
     ldim = lineality_dim(P)
     f_vec=vcat(zeros(Int64, ldim), [length(faces(P,i)) for i in ldim:dim(P)-1])
     return f_vec
 end
 
+@doc Markdown.doc"""
+    h_vector(P::Polyhedron)
+
+Return the (toric) h-vector of a polytope.
+For simplicial polytopes this is a linear transformation of the f-vector.
+Undefined for unbounded polyhedra.
+
+# Examples
+```jldoctest
+julia> h_vector(cross(3))
+4-element Vector{Int64}:
+ 1
+ 3
+ 3
+ 1
+```
+"""
+function h_vector(P::Polyhedron)::Vector{Int}
+    isbounded(P) || throw(ArgumentError("defined for bounded polytopes only"))
+    return pm_object(P).H_VECTOR
+end
+
+@doc Markdown.doc"""
+    g_vector(P::Polyhedron)
+
+Return the (toric) $g$-vector of a polytope.
+Defined by $g_0 = 1 $ and $g_k = h_k - h_{k-1}$, for $1 \leq k \leq \lceil (d+1)/2\rceil$ where $h$ is the $h$-vector and $d=\dim(P)$.
+Undefined for unbounded polyhedra.
+
+# Examples
+```jldoctest
+julia> g_vector(cross(3))
+2-element Vector{Int64}:
+ 1
+ 2
+```
+"""
+function g_vector(P::Polyhedron)::Vector{Int}
+    isbounded(P) || throw(ArgumentError("defined for bounded polytopes only"))
+    return pm_object(P).G_VECTOR
+end
 
 @doc Markdown.doc"""
     relative_interior_point(P::Polyhedron)

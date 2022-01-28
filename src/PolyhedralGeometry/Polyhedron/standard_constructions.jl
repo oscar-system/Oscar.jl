@@ -766,17 +766,30 @@ catalan_solid(s::String) = Polyhedron(Polymake.polytope.catalan_solid(s))
 
 @doc Markdown.doc"""
 
-    upper_bound_theorem(d::Int, n::Int)
+    upper_bound_f_vector(d::Int, n::Int)
 
-Return a polyhedron which contains the combinatioral data shared by all
-simplicial d-polytopes with n vertices with the maximal number of facets as
-given by McMullen's Upper-Bound-Theorem.
-
-Essentially, one can read the
-`H_VECTOR` and `F_VECTOR` of a polytope that attains the McMullen's
-upperbounds.
+Return the maximal f-vector of a `d`-polytope with `n` vertices;
+this is given by McMullen's Upper-Bound-Theorem.
 """
-upper_bound_theorem(d::Int,n::Int) = Polyhedron(Polymake.polytope.upper_bound_theorem(d,n))
+upper_bound_f_vector(d::Int,n::Int) = Vector{Int}(Polymake.polytope.upper_bound_theorem(d,n).F_VECTOR)
+
+@doc Markdown.doc"""
+
+    upper_bound_g_vector(d::Int, n::Int)
+
+Return the maximal g-vector of a `d`-polytope with `n` vertices;
+this is given by McMullen's Upper-Bound-Theorem.
+"""
+upper_bound_g_vector(d::Int,n::Int) = Vector{Int}(Polymake.polytope.upper_bound_theorem(d,n).G_VECTOR)
+
+@doc Markdown.doc"""
+
+    upper_bound_h_vector(d::Int, n::Int)
+
+Return the maximal h-vector of a `d`-polytope with `n` vertices;
+this is given by McMullen's Upper-Bound-Theorem.
+"""
+upper_bound_h_vector(d::Int,n::Int) = Vector{Int}(Polymake.polytope.upper_bound_theorem(d,n).H_VECTOR)
 
 
 @doc Markdown.doc"""

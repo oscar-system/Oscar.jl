@@ -88,7 +88,7 @@ H5 = NormalToricVariety(PolyhedralFan(fan_rays, fan_cones))
     @test isorbifold(H5) == true
     @test issimplicial(H5) == true
     @test isgorenstein(H5) == true
-    @test isq_gorenstein(H5) == true
+    @test is_q_gorenstein(H5) == true
     @test isfano(H5) == false
     nef_cone(H5)
     mori_cone(H5)
@@ -183,39 +183,39 @@ v = H5 * P2
 end
 
 @testset "ComparisonWithProjectiveSpace" begin
-    @test isprojective_space(H5) == false
-    @test isprojective_space(P2) == true
-    @test isprojective_space(blowup_variety) == false
-    @test isprojective_space(v) == false
-    @test isprojective_space(ntv) == false
-    @test isprojective_space(ntv2) == false
+    @test is_projective_space(H5) == false
+    @test is_projective_space(P2) == true
+    @test is_projective_space(blowup_variety) == false
+    @test is_projective_space(v) == false
+    @test is_projective_space(ntv) == false
+    @test is_projective_space(ntv2) == false
 end
 
 D=ToricDivisor(H5, [0,0,0,0])
 D2 = DivisorOfCharacter(H5, [1,2])
 
 @testset "Divisors" begin
-    @test dim(toricvariety(D)) == 2
-    @test isprime_divisor(D) == false
+    @test dim(toric_variety(D)) == 2
+    @test isprime(D) == false
     @test iscartier(D) == true
     @test isprincipal(D) == true
-    @test isbasepoint_free(D) == true
+    @test is_basepoint_free(D) == true
     @test isample(D) == false
-    @test isvery_ample(D) == false
+    @test is_very_ample(D) == false
     @test isnef(D) == true
     @test isintegral(D) == true
-    @test isq_cartier(D) == true
+    @test is_q_cartier(D) == true
     @test coefficients(D) == [0,0,0,0]
-    @test isprime_divisor(D2) == false
+    @test isprime(D2) == false
     @test iscartier(D2) == true
     @test isprincipal(D2) == true
-    @test isbasepoint_free(D2) == true
+    @test is_basepoint_free(D2) == true
     @test isample(D2) == false
-    @test isvery_ample(D2) == false
+    @test is_very_ample(D2) == false
     @test isnef(D2) == true
     @test isintegral(D2) == true
-    @test isq_cartier(D2) == true
-    @test isprime_divisor(D2) == false
+    @test is_q_cartier(D2) == true
+    @test isprime(D2) == false
     @test coefficients(D2) == [1, 2, 9, -2]
 end
 
@@ -229,6 +229,11 @@ end
 line_bundle = ToricLineBundle(dP3, [1,2,3,4])
 
 @testset "Toric line bundles" begin
+    @test degree(line_bundle) == 10
     @test divisor_class(line_bundle).coeff == AbstractAlgebra.matrix(ZZ, [1 2 3 4])
     @test dim(variety(line_bundle)) == 2
+    @test istrivial(line_bundle) == false
+    @test is_basepoint_free(line_bundle) == false
+    @test isample(line_bundle) == false
+    @test is_very_ample(line_bundle) == false
 end

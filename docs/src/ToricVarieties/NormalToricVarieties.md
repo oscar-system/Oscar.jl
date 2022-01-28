@@ -67,8 +67,8 @@ issmooth(v::AbstractNormalToricVariety)
 isnormal(v::AbstractNormalToricVariety)
 isorbifold(v::AbstractNormalToricVariety)
 isprojective(v::AbstractNormalToricVariety)
-isprojective_space(v::AbstractNormalToricVariety)
-isq_gorenstein(v::AbstractNormalToricVariety)
+is_projective_space(v::AbstractNormalToricVariety)
+is_q_gorenstein(v::AbstractNormalToricVariety)
 ```
 
 
@@ -127,5 +127,5 @@ toric_ideal(antv::AffineNormalToricVariety)
 
 ```@docs
 binomial_exponents_to_ideal(binoms::Union{AbstractMatrix, fmpz_mat})
-toric_ideal(pts::Union{AbstractMatrix, fmpz_mat})
+toric_ideal(pts::fmpz_mat)
 ```

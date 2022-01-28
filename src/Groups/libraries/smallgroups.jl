@@ -19,7 +19,8 @@ The group is given of type `PcGroup` if the group is solvable,
 `PermGroup` otherwise.
 """
 function small_group(n::Int, m::Int)
-  @assert m<= number_small_groups(n) "There are less than $m groups of order $n, up to isomorphism."
+  N = number_small_groups(n)
+  @assert m <= N "There are only $N groups of order $n, up to isomorphism."
   G = GAP.Globals.SmallGroup(n, m)
   T = _get_type(G)
   return T(G)

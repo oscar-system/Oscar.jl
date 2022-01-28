@@ -100,6 +100,7 @@
      ],
       "PolyhedralGeometry/cones.md",
       "PolyhedralGeometry/fans.md",
+      "PolyhedralGeometry/polyhedral_complexes.md",
       "PolyhedralGeometry/linear_programs.md",
       "PolyhedralGeometry/subdivisions_of_points.md",
   ],

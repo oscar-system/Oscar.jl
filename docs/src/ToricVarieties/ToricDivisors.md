@@ -27,15 +27,15 @@ ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{Int})
 
 ```@docs
 isample(td::ToricDivisor)
-isbasepoint_free(td::ToricDivisor)
+is_basepoint_free(td::ToricDivisor)
 iscartier(td::ToricDivisor)
 iseffective(td::ToricDivisor)
 isintegral(td::ToricDivisor)
 isnef(td::ToricDivisor)
-isprime_divisor(td::ToricDivisor)
+isprime(td::ToricDivisor)
 isprincipal(td::ToricDivisor)
-isq_cartier(td::ToricDivisor)
-isvery_ample(td::ToricDivisor)
+is_q_cartier(td::ToricDivisor)
+is_very_ample(td::ToricDivisor)
 ```
 
 ## Operations for toric divisors
@@ -43,5 +43,5 @@ isvery_ample(td::ToricDivisor)
 ```@docs
 coefficients(td::ToricDivisor)
 polyhedron(td::ToricDivisor)
-toricvariety(td::ToricDivisor)
+toric_variety(td::ToricDivisor)
 ```

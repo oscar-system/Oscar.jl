@@ -215,13 +215,21 @@ for (sym, name) in (("point_matrix", "Point Matrix"), ("vector_matrix", "Vector 
     end
 end
 
-function matrix_for_polymake(iter::SubObjectIterator)
+function matrix_for_polymake(iter::SubObjectIterator; homogenized=false)
     if hasmethod(_matrix_for_polymake, Tuple{Val{iter.Acc}})
-        return _matrix_for_polymake(Val(iter.Acc))(Val(iter.Acc), iter.Obj; iter.options...)
+        return _matrix_for_polymake(Val(iter.Acc))(Val(iter.Acc), iter.Obj; homogenized=homogenized, iter.options...)
     else
         throw(ArgumentError("Matrix for Polymake not defined in this context."))
     end
 end
+
+# primitive generators only for ray based iterators
+matrix(R::FlintIntegerRing, iter::SubObjectIterator{RayVector{Polymake.Rational}}) =
+    matrix(R, Polymake.common.primitive(matrix_for_polymake(iter)))
+matrix(R::FlintIntegerRing, iter::SubObjectIterator{<:Union{RayVector{Polymake.Integer},PointVector{Polymake.Integer}}}) =
+    matrix(R, matrix_for_polymake(iter))
+matrix(R::FlintRationalField, iter::SubObjectIterator{<:Union{RayVector,PointVector}}) =
+    matrix(R, Matrix{fmpq}(matrix_for_polymake(iter)))
 
 function linear_matrix_for_polymake(iter::SubObjectIterator)
     if hasmethod(_linear_matrix_for_polymake, Tuple{Val{iter.Acc}})
@@ -250,4 +258,21 @@ function halfspace_matrix_pair(iter::SubObjectIterator)
     catch e
         throw(ArgumentError("Halfspace-Matrix-Pair not defined in this context."))
     end
+end
+
+Polymake.convert_to_pm_type(::Type{SubObjectIterator{RayVector{T}}}) where T = Polymake.Matrix{T}
+Polymake.convert_to_pm_type(::Type{SubObjectIterator{PointVector{T}}}) where T = Polymake.Matrix{T}
+Base.convert(::Type{<:Polymake.Matrix}, iter::SubObjectIterator) = matrix_for_polymake(iter; homogenized=true)
+
+function homogenized_matrix(x::SubObjectIterator{<:PointVector}, v::Number = 1)
+    if v != 1
+        throw(ArgumentError("PointVectors can only be (re-)homogenized with parameter 1, please convert to a matrix first."))
+    end
+    return matrix_for_polymake(x; homogenized=true)
+end
+function homogenized_matrix(x::SubObjectIterator{<:RayVector}, v::Number = 0)
+    if v != 0
+        throw(ArgumentError("RayVectors can only be (re-)homogenized with parameter 0, please convert to a matrix first."))
+    end
+    return matrix_for_polymake(x; homogenized=true)
 end

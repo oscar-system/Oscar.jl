@@ -1,6 +1,6 @@
 export
     centralizer,
-    centre, hascentre, setcentre,
+    center, hascenter, setcenter,
     characteristic_subgroups, hascharacteristic_subgroups, setcharacteristic_subgroups,
     derived_series, hasderived_series, setderived_series,
     derived_subgroup, hasderived_subgroup, setderived_subgroup,
@@ -10,6 +10,7 @@ export
     isnilpotent, hasisnilpotent, setisnilpotent,
     issolvable, hasissolvable, setissolvable,
     issupersolvable, hasissupersolvable, setissupersolvable,
+    maximal_abelian_quotient, hasmaximal_abelian_quotient, setmaximal_abelian_quotient,
     maximal_normal_subgroups, hasmaximal_normal_subgroups, setmaximal_normal_subgroups,
     maximal_subgroups, hasmaximal_subgroups, setmaximal_subgroups,
     minimal_normal_subgroups, hasminimal_normal_subgroups, setminimal_normal_subgroups,
@@ -207,13 +208,13 @@ i.e., those subgroups that are invariant under all automorphisms of `G`.
   _as_subgroups(G, GAP.Globals.CharacteristicSubgroups(G.X))
 
 @doc Markdown.doc"""
-    centre(G::Group)
+    center(G::Group)
 
-Return the centre of `G`, i.e.,
+Return the center of `G`, i.e.,
 the subgroup of all $x$ in `G` such that $x y$ equals $y x$ for every $y$
 in `G`, together with its embedding morphism into `G`.
 """
-@gapattribute centre(G::GAPGroup) = _as_subgroup(G, GAP.Globals.Centre(G.X))
+@gapattribute center(G::GAPGroup) = _as_subgroup(G, GAP.Globals.Centre(G.X))
 
 @doc Markdown.doc"""
     centralizer(G::Group, H::Group)
@@ -291,7 +292,7 @@ i. e., `G` is finite and has a normal series with cyclic factors.
 
 ################################################################################
 #
-#  Quotient function
+#  Quotient functions
 #
 ################################################################################
 
@@ -307,31 +308,68 @@ function quo(G::FPGroup, elements::Vector{S}) where T <: GAPGroup where S <: GAP
 end
 
 """
-    quo(G::T, elements::Vector{S})
+    quo([::Type{Q}, ]G::T, elements::Vector{elem_type(G)})) where {Q <: GAPGroup, T <: GAPGroup}
 
-Return the quotient group `G/H` of type `FPGroup` (if `T`=`FPGroup`),
-`PcGroup` (if the quotient group is solvable) or `PermGroup` (otherwise),
-where `H` is the normal closure of `elements` in `G`.
+Return the quotient group `G/N`, together with the projection `G` -> `G/N`,
+where `N` is the normal closure of `elements` in `G`.
+
+See [`quo(G::T, N::T) where T <: GAPGroup`](@ref)
+for information about the type of `G/N`.
 """
 function quo(G::T, elements::Vector{S}) where T <: GAPGroup where S <: GAPGroupElem
   @assert elem_type(G) == S
-  elems_in_gap = GapObj([x.X for x in elements])
-  H = GAP.Globals.NormalClosure(G.X,GAP.Globals.Group(elems_in_gap))
-  @assert GAPWrap.IsNormal(G.X, H)
-  H1 = T(H)
+  if length(elements) == 0
+    H1 = trivial_subgroup(G)[1]
+  else
+    elems_in_gap = GapObj([x.X for x in elements])
+    H = GAP.Globals.NormalClosure(G.X,GAP.Globals.Group(elems_in_gap))
+    @assert GAPWrap.IsNormal(G.X, H)
+    H1 = _as_subgroup_bare(G, H)
+  end
   return quo(G, H1)
 end
-#T prescribe other type?
+
+function quo(::Type{Q}, G::T, elements::Vector{S}) where {Q <: GAPGroup, T <: GAPGroup, S <: GAPGroupElem}
+  F, epi = quo(G, elements)
+  if !(F isa Q)
+    F, map = isomorphic_group(Q, F)
+    epi = compose(map, epi)
+  end
+  return F, epi
+end
 
 """
-    quo(G::T, H::T)
+    quo([::Type{Q}, ]G::T, N::T) where {Q <: GAPGroup, T <: GAPGroup}
 
-Return the quotient group `G/H` of type `PcGroup` (if the quotient group is
-solvable) or `PermGroup` (otherwise), together with the projection `G` ->
-`G/H`.
+Return the quotient group `G/N`, together with the projection `G` -> `G/N`.
+
+If `Q` is given then `G/N` has type `Q` if possible,
+and an exception is thrown if not.
+
+If `Q` is not given then the type of `G/N` is not determined by the type of `G`.
+- `G/N` may have the same type as `G` (which is reasonable if `N` is trivial),
+- `G/N` may have type `PcGroup` (which is reasonable if `G/N` is finite and solvable), or
+- `G/N` may have type `PermGroup` (which is reasonable if `G/N` is finite and non-solvable).
+- `G/N` may have type `FPGroup` (which is reasonable if `G/N` is infinite).
+
+An exception is thrown if `N` is not a normal subgroup of `G`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4)
+Sym( [ 1 .. 4 ] )
+
+julia> N = pcore(G, 2)[1];
+
+julia> typeof(quo(G, N)[1])
+PcGroup
+
+julia> typeof(quo(PermGroup, G, N)[1])
+PermGroup
+```
 """
-function quo(G::T, H::T) where T <: GAPGroup
-  mp = GAP.Globals.NaturalHomomorphismByNormalSubgroup(G.X, H.X)
+function quo(G::T, N::T) where T <: GAPGroup
+  mp = GAP.Globals.NaturalHomomorphismByNormalSubgroup(G.X, N.X)
   cod = GAP.Globals.ImagesSource(mp)
   S = elem_type(G)
   S1 = _get_type(cod)
@@ -339,6 +377,72 @@ function quo(G::T, H::T) where T <: GAPGroup
   mp_julia = __create_fun(mp, codom, S)
   return codom, hom(G, codom, mp_julia)
 end
+
+function quo(::Type{Q}, G::T, N::T) where {Q <: GAPGroup, T <: GAPGroup}
+  F, epi = quo(G, N)
+  if !(F isa Q)
+    F, map = isomorphic_group(Q, F)
+    epi = compose(map, epi)
+  end
+  return F, epi
+end
+
+"""
+    maximal_abelian_quotient([::Type{Q}, ]G::GAPGroup)
+
+Return `F, epi` such that `F` is the largest abelian factor group of `G`
+and `epi` is an epimorphism from `G` to `F`.
+
+If `Q` is given then `F` has type `Q` if possible,
+and an exception is thrown if not.
+
+If `Q` is not given then the type of `F` is not determined by the type of `G`.
+- `F` may have the same type as `G` (which is reasonable if `G` is abelian),
+- `F` may have type `PcGroup` (which is reasonable if `F` is finite), or
+- `F` may have type `FPGroup` (which is reasonable if `F` is infinite).
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4);
+
+julia> F, epi = maximal_abelian_quotient(G);
+
+julia> order(F)
+2
+
+julia> domain(epi) === G && codomain(epi) === F
+true
+
+julia> typeof(F)
+PcGroup
+
+julia> typeof(maximal_abelian_quotient(free_group(1))[1])
+FPGroup
+
+julia> typeof(maximal_abelian_quotient(PermGroup, G)[1])
+PermGroup
+```
+"""
+function maximal_abelian_quotient(G::GAPGroup)
+  map = GAP.Globals.MaximalAbelianQuotient(G.X)
+  F = GAP.Globals.Range(map)
+  S1 = _get_type(F)
+  F = S1(F)
+  return F, _hom_from_gap_map(G, F, map)
+end
+
+function maximal_abelian_quotient(::Type{Q}, G::GAPGroup) where Q <: GAPGroup
+  F, epi = maximal_abelian_quotient(G)
+  if !(F isa Q)
+    F, map = isomorphic_group(Q, F)
+    epi = compose(map, epi)
+  end
+  return F, epi
+end
+
+@gapwrap hasmaximal_abelian_quotient(G::GAPGroup) = GAP.Globals.HasMaximalAbelianQuotient(G.X)::Bool
+@gapwrap setmaximal_abelian_quotient(G::T, val::Tuple{GAPGroup, GAPGroupHomomorphism{T,S}}) where T <: GAPGroup where S = GAP.Globals.SetMaximalAbelianQuotient(G.X, val[2].map)::Nothing
+
 
 function __create_fun(mp, codom, ::Type{S}) where S
   function mp_julia(x::S)

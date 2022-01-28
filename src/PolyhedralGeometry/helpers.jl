@@ -1,13 +1,8 @@
 import Polymake: IncidenceMatrix
 
-matrix_for_polymake(x::Union{Oscar.fmpz_mat,AbstractMatrix{Oscar.fmpz}}) = Matrix{BigInt}(x)
-matrix_for_polymake(x::Union{Oscar.fmpq_mat,AbstractMatrix{Oscar.fmpq}}) =
-    Polymake.Matrix{Polymake.Rational}(x)
-matrix_for_polymake(x) = x
+affine_matrix_for_polymake(x::Tuple) = hcat(-x[2], x[1])
 
-affine_matrix_for_polymake(x::Tuple) = matrix_for_polymake(hcat(-x[2], x[1]))
-
-linear_matrix_for_polymake(x::Union{Oscar.fmpz_mat, Oscar.fmpq_mat, AbstractMatrix}) = matrix_for_polymake(x)
+linear_matrix_for_polymake(x::Union{Oscar.fmpz_mat, Oscar.fmpq_mat, AbstractMatrix}) = x
 
 function Polymake.Matrix{Polymake.Rational}(x::Union{Oscar.fmpq_mat,AbstractMatrix{Oscar.fmpq}})
     res = Polymake.Matrix{Polymake.Rational}(size(x)...)
@@ -24,8 +19,18 @@ Base.convert(::Type{Polymake.Integer}, x::fmpz) = Polymake.Integer(BigInt(x))
 Base.convert(::Type{Polymake.Rational}, x::fmpz) = Polymake.Rational(convert(Polymake.Integer, x), convert(Polymake.Integer, 1))
 Base.convert(::Type{Polymake.Rational}, x::fmpq) = Polymake.Rational(convert(Polymake.Integer, numerator(x)), convert(Polymake.Integer, denominator(x)))
 
-function remove_zero_rows(A::Union{Oscar.MatElem,AbstractMatrix})
+Base.convert(T::Type{<:Polymake.Matrix}, x::Union{fmpz_mat,fmpq_mat}) = Base.convert(T, Matrix(x))
+
+Polymake.convert_to_pm_type(::Type{Oscar.fmpz_mat}) = Polymake.Matrix{Polymake.Integer}
+Polymake.convert_to_pm_type(::Type{Oscar.fmpq_mat}) = Polymake.Matrix{Polymake.Rational}
+Polymake.convert_to_pm_type(::Type{Oscar.fmpz}) = Polymake.Integer
+Polymake.convert_to_pm_type(::Type{Oscar.fmpq}) = Polymake.Rational
+
+function remove_zero_rows(A::AbstractMatrix)
     A[findall(x->!iszero(x),collect(eachrow(A))),:]
+end
+function remove_zero_rows(A::Oscar.MatElem)
+    remove_zero_rows(Matrix(A))
 end
 
 # function remove_redundant_rows(A::Union{Oscar.MatElem,AbstractMatrix})
@@ -63,6 +68,7 @@ homogenize(vec::AbstractVector, val::Number = 0) = augment(vec, val)
 homogenize(mat::AbstractMatrix, val::Number = 1) = augment(mat, fill(val, size(mat, 1)))
 homogenize(mat::MatElem, val::Number = 1) = homogenize(Matrix(mat), val)
 homogenize(nothing,val::Number)=nothing
+homogenized_matrix(x::Union{AbstractVecOrMat,MatElem,Nothing}, val::Number) = homogenize(x, val)
 
 dehomogenize(vec::AbstractVector) = vec[2:end]
 dehomogenize(mat::AbstractMatrix) = mat[:, 2:end]

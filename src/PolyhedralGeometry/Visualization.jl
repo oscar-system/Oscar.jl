@@ -30,3 +30,14 @@ function visualize(PF::PolyhedralFan)
     Polymake.visual(pmF)
 end
 
+
+@doc Markdown.doc"""
+    visualize(PF::PolyhedralComplex)
+
+Visualize a polyhedral complex.
+"""
+function visualize(PC::PolyhedralComplex)
+    pmPC = pm_object(PC)
+    Polymake.visual(pmPC)
+end
+

@@ -64,14 +64,14 @@ A polyhedral fan in ambient dimension 2
 """
 function PolyhedralFan(Rays::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix)
    PolyhedralFan(Polymake.fan.PolyhedralFan{Polymake.Rational}(
-      INPUT_RAYS = matrix_for_polymake(Rays),
+      INPUT_RAYS = Rays,
       INPUT_CONES = Incidence,
    ))
 end
 function PolyhedralFan(Rays::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem,AbstractMatrix}, LS::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix)
    PolyhedralFan(Polymake.fan.PolyhedralFan{Polymake.Rational}(
-      INPUT_RAYS = matrix_for_polymake(Rays),
-      INPUT_LINEALITY = matrix_for_polymake(LS),
+      INPUT_RAYS = Rays,
+      INPUT_LINEALITY = LS,
       INPUT_CONES = Incidence,
    ))
 end

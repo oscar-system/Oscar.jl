@@ -37,7 +37,7 @@ A subdivision of points in ambient dimension 3
 function SubdivisionOfPoints(Points::Union{Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix)
    arr = @Polymake.convert_to Array{Set{Int}} Polymake.common.rows(Incidence)
    SubdivisionOfPoints(Polymake.fan.SubdivisionOfPoints{Polymake.Rational}(
-      POINTS = matrix_for_polymake(homogenize(Points,1)),
+      POINTS = homogenize(Points,1),
       MAXIMAL_CELLS = arr,
    ))
 end
@@ -62,13 +62,13 @@ julia> moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2];
 julia> SOP = SubdivisionOfPoints(moaepts, [1,1,1,1,1,1])
 A subdivision of points in ambient dimension 3
 
-julia> nmaximal_cells(SOP)
+julia> n_maximal_cells(SOP)
 1
 ```
 """
 function SubdivisionOfPoints(Points::Union{Oscar.MatElem,AbstractMatrix}, Weights::AbstractVector)
    SubdivisionOfPoints(Polymake.fan.SubdivisionOfPoints{Polymake.Rational}(
-      POINTS = matrix_for_polymake(homogenize(Points,1)),
+      POINTS = homogenize(Points,1),
       WEIGHTS = Weights,
    ))
 end

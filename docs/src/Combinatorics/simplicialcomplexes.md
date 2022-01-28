@@ -29,6 +29,13 @@ General textbooks offering details on the theory include:
 SimplicialComplex(K::Vector{Vector{Int}})
 ```
 
+### Subcomplexes
+
+```@docs
+star_subcomplex(K::SimplicialComplex, sigma::Union{Vector{Int}, Set{Int}})
+link_subcomplex(K::SimplicialComplex, sigma::Union{Vector{Int}, Set{Int}})
+```
+
 ### Surface examples
 
 ```@docs
@@ -51,21 +58,40 @@ dim(K::SimplicialComplex)
 f_vector(K::SimplicialComplex)
 h_vector(K::SimplicialComplex)
 euler_characteristic(K::SimplicialComplex)
+```
+
+## Homology and cohomology
+
+```@docs
+homology(K::SimplicialComplex, i::Int)
 betti_numbers(K::SimplicialComplex)
+cohomology(K::SimplicialComplex, i::Int)
+```
+## Fundamental group
+
+```@docs
+fundamental_group(K::SimplicialComplex)
 ```
 
 ## Connection to commutative algebra
+
+The complements of the minimal non-faces form the facets of the Alexander dual.
+
+```@docs
+minimal_nonfaces(K::SimplicialComplex)
+alexander_dual(K::SimplicialComplex)
+```
 
 Let $K$ be a simplicial complex on $n$ vertices.
 The minimal non-faces of $K$ generate a square-free monomial ideal, known as the *Stanley-Reisner ideal* of $K$.
 The quotient of the polynomial ring (in $n$ variables, with integer coefficients) modulo that ideal is the *Stanley-Reisner ring*.
 For details see Chapter 5 of [BH09](@cite).
+
 ```@docs
-minimal_nonfaces(K::SimplicialComplex)
 stanley_reisner_ideal(K::SimplicialComplex)
+stanley_reisner_ideal(R::MPolyRing, K::SimplicialComplex)
 stanley_reisner_ring(K::SimplicialComplex)
-stanley_reisner_ideal(R::FmpzMPolyRing, K::SimplicialComplex)
-stanley_reisner_ring(R::FmpzMPolyRing, K::SimplicialComplex)
+stanley_reisner_ring(R::MPolyRing, K::SimplicialComplex)
 ```
 
 ## Saving and loading

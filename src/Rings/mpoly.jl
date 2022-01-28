@@ -164,6 +164,7 @@ mutable struct BiPolyArray{S}
   Sx # Singular Poly Ring, poss. with different ordering
   isGB::Bool #if the Singular side (the sideal) will be a GB
   ord :: Orderings.AbsOrdering #for this ordering
+  keep_ordering::Bool
 
   function BiPolyArray(a::Vector{T}; keep_ordering::Bool = true, isGB::Bool = false) where {T <: MPolyElem}
     return BiPolyArray(parent(a[1]), a; keep_ordering = keep_ordering,
@@ -175,7 +176,7 @@ mutable struct BiPolyArray{S}
     r.O = a
     r.Ox = R
     r.isGB = isGB
-    r.Sx = singular_ring(r.Ox, keep_ordering = keep_ordering)
+    r.keep_ordering = keep_ordering
     return r
   end
 
@@ -186,6 +187,7 @@ mutable struct BiPolyArray{S}
     r.Ox = Ox
     r.isGB = b.isGB
     r.Sx = base_ring(b)
+    r.keep_ordering = true
     return r
   end
 end
@@ -332,7 +334,7 @@ function (SF::Singular.N_AlgExtField)(a::fq_nmod)
 end
 #### end stuff to move to singular.jl
 
-function singular_ring(Rx::MPolyRing{T}; keep_ordering::Bool = true) where {T <: RingElem}
+function singular_ring(Rx::MPolyRing{T}; keep_ordering::Bool = false) where {T <: RingElem}
   if keep_ordering
     return Singular.PolynomialRing(singular_ring(base_ring(Rx)),
               [string(x) for x = Nemo.symbols(Rx)],
@@ -503,6 +505,7 @@ end
 
 function singular_assure(I::BiPolyArray)
   if !isdefined(I, :S)
+    I.Sx = singular_ring(I.Ox, keep_ordering=I.keep_ordering)
     I.S = Singular.Ideal(I.Sx, elem_type(I.Sx)[I.Sx(x) for x = I.O])
     if I.isGB
       I.S.isGB = true

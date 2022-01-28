@@ -140,15 +140,10 @@ A polyhedron in ambient dimension 2
 ```
 """
 function convex_hull(V::Union{SubObjectIterator{PointVector}, AnyVecOrMat, Oscar.MatElem}, R::Union{SubObjectIterator{RayVector}, AnyVecOrMat, Oscar.MatElem, Nothing} = nothing, L::Union{SubObjectIterator{RayVector}, AnyVecOrMat, Oscar.MatElem, Nothing} = nothing; non_redundant::Bool = false)
-    # we access the matrices which polymake can work with.
-    VM = matrix_for_polymake(V)
-    RM = isnothing(R) || isempty(R) ? Polymake.Matrix{Polymake.Rational}(undef, 0, size(VM, 2)) : matrix_for_polymake(R)
-    LM = isnothing(L) || isempty(L) ? Polymake.Matrix{Polymake.Rational}(undef, 0, size(VM, 2)) : matrix_for_polymake(L)
-
     # Rays and Points are homogenized and combined and
     # Lineality is homogenized
-    points = stack(homogenize(VM, 1), homogenize(RM, 0))
-    lineality = homogenize(LM, 0)
+    points = stack(homogenized_matrix(V, 1), homogenized_matrix(R, 0))
+    lineality = isnothing(L) || isempty(L) ? zero_matrix(QQ, 0, size(points,2)) : homogenized_matrix(L, 0)
 
     # These matrices are in the right format for polymake.
     # given non_redundant can avoid unnecessary redundancy checks
@@ -165,11 +160,11 @@ end
 ###############################################################################
 ###############################################################################
 function Base.show(io::IO, P::Polyhedron)
-    ad = ambient_dim(P)
-    if ad == -1.0
-        print(io, "A polyhedron without ambient dimension")
-    else
+    try
+        ad = ambient_dim(P)
         print(io, "A polyhedron in ambient dimension $(ad)")
+    catch e
+        print(io, "A polyhedron without ambient dimension")
     end
 end
 

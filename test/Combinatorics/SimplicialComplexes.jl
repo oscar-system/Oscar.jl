@@ -18,12 +18,9 @@
         @test betti_numbers(sphere) == [0, 0, 1]
         @test euler_characteristic(sphere) == 1
         @test minimal_nonfaces(sphere) == [Set{Int}([1, 2, 3, 4])]
-        P, _ = PolynomialRing(ZZ, 4)
         R, _ = PolynomialRing(ZZ, ["a", "x", "i_7", "n"])
-        @test stanley_reisner_ideal(sphere) == ideal([P([1], [[1, 1, 1, 1]])])
         @test stanley_reisner_ideal(R, sphere) == ideal([R([1], [[1, 1, 1, 1]])])
-        @test isisomorphic(fundamental_group(sphere)[1], free_group())[1]
-        @test string.(gens(fundamental_group(sphere)[1])) == string.(gens(free_group(3)))
+        @test isisomorphic(fundamental_group(sphere), free_group())[1]
         
     end
     
