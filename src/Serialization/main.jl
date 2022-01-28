@@ -112,6 +112,11 @@ end
 
 ################################################################################
 # Interacting with files
+@doc Markdown.doc"""
+    save(obj::T, filename::String) where T
+
+Save an object `T` to a file.
+"""
 function save(obj::T, filename::String) where T
     state = SerializerState()
     jsoncompatible = save(state, obj)
@@ -121,7 +126,11 @@ function save(obj::T, filename::String) where T
     end
 end
 
+@doc Markdown.doc"""
+    load(filename::String)
 
+Load the object stored in a file.
+"""
 function load(filename::String)
     state = DeserializerState()
     # Check for type of file somewhere here?
