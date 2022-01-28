@@ -69,6 +69,10 @@ end
 # Evaluation:
 (val::ValuationMap{K,Nothing} where {K})(c) = return 0
 
+# Display:
+function Base.show(io::IO, val::ValuationMap{K,Nothing} where {K})
+    print(io, "The trivial valuation on $(val.valued_field)")
+end
 
 
 ###
@@ -86,6 +90,10 @@ ValuationMap(Q::FlintRationalField,p) = ValuationMap(Q,QQ(p)) # for other types 
 # Evaluation:
 (val::ValuationMap{FlintRationalField,fmpq})(c) = valuation(QQ(c),val.uniformizer_ring)
 
+# Display:
+function Base.show(io::IO, val::ValuationMap{FlintRationalField,fmpq})
+    print(io, "The $(val.uniformizer_field)-adic valuation on $(val.valued_field)")
+end
 
 
 ###
@@ -121,6 +129,10 @@ end
 # Evaluation:
 (val::ValuationMap{AbstractAlgebra.Generic.RationalFunctionField{K},AbstractAlgebra.Generic.Rat{K}} where {K})(c) = t_adic_valuation(c)
 
+# Display:
+function Base.show(io::IO, val::ValuationMap{AbstractAlgebra.Generic.RationalFunctionField{K},AbstractAlgebra.Generic.Rat{K}} where {K})
+    print(io, "The $(val.uniformizer_field)-adic valuation on $(val.valued_field)")
+end
 
 
 
