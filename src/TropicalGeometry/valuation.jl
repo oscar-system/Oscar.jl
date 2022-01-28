@@ -141,6 +141,10 @@ function is_valuation_trivial(val::ValuationMap)
   return typeof(val.uniformizer_field)==Nothing
 end
 
+function is_valuation_nontrivial(val::ValuationMap)
+  return typeof(val.uniformizer_field)!=Nothing
+end
+
 
 
 ###
@@ -293,21 +297,17 @@ end
 
 
 #=======
-functions which reduces polynomials in variables t,x1, ..., xn simulating the valuation by p-t
-Example:
-Kt,t = RationalFunctionField(QQ,"t")
-val_t = ValuationMap(Kt,t)
-Ktx,(x,y,z) = PolynomialRing(Kt,3)
-I = ideal([x+t*y,y+t*z])
-simulate_valuation(I,val_t)
-
-val_2 = ValuationMap(QQ,2)
-Kx,(x,y,z) = PolynomialRing(QQ,3)
-I = ideal([x+2*y,y+2*z])
-simulate_valuation(I,val_2)
+function which reduces polynomials in variables t,x1, ..., xn simulating the valuation by p-t
+unless the polynomial to be reduced is p-t or t-p
 =======#
 function tighten_simulation(f::MPolyElem,val::ValuationMap)
+
   Rtx = parent(f)
+  pt = val.uniformizer_ring - gens(Rtx)[1]
+  if f==pt || f==-pt
+    return f
+  end
+
   R = coefficient_ring(f)
   p = val.uniformizer_field
   f_tightened = MPolyBuildCtx(Rtx)
@@ -318,6 +318,4 @@ function tighten_simulation(f::MPolyElem,val::ValuationMap)
   end
   return finish(f_tightened)
 end
-function tighten_simulation(I::MPolyIdeal,val::ValuationMap)
-  return ideal([tighten_simulation(f) for f in gens(I)] + [])
-end
+export tighten_simulation
