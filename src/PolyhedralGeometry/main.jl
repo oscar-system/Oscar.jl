@@ -20,6 +20,7 @@ export AffineHalfspace,
     affine_equation_matrix,
     affine_hull,
     affine_inequality_matrix,
+    all_triangulations,
     archimedean_solid,
     ambient_dim,
     bipyramid,
@@ -111,6 +112,7 @@ export AffineHalfspace,
     project_full,
     pyramid,
     recession_cone,
+    regular_triangulations,
     relative_interior_point,
     save_cone,
     save_linearprogram,
@@ -118,6 +120,7 @@ export AffineHalfspace,
     save_polyhedron,
     save_subdivisionofpoints,
     secondary_cone,
+    secondary_polytope,
     simplex,
     solve_lp,
     starsubdivision,
@@ -159,6 +162,7 @@ include("Groups.jl")
 include("Serialization.jl")
 include("Visualization.jl")
 include("solving_integrally.jl")
+include("triangulations.jl")
 
 # Some temporary aliases to avoid breaking all current PRs
 pm_cone(C::Cone) = pm_object(C)
