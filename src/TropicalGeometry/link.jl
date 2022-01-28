@@ -147,28 +147,27 @@ julia> tropical_link(I,val_5,w5)
 
 ```
 """
-function tropical_link(I::MPolyIdeal, val::ValuationMap, w::Vector; p_adic_prime::Integer=1000003)
-  return tropical_link(initial(I,val,w),p_adic_prime=p_adic_prime)
+function tropical_link(I::MPolyIdeal, val::ValuationMap, w::Vector; p_adic_prime::Integer=32003, p_adic_precision::Integer=19)
+  return tropical_link(initial(I,val,w),p_adic_prime=p_adic_prime, p_adic_precision=p_adic_precision)
 end
 
 
 #=======
 tropical_link
-todo: proper documentation
 Example:
 Kx,(x1,x2,x3,x4,x5) = PolynomialRing(QQ,5)
 # inI = ideal([-10*x2^2*x3+9*x1*x3^2+31*x2*x3^2-25*x1*x3*x4-14*x2^2*x5+6*x1*x5^2+46*x2*x5^2-32*x4*x5^2,
 #              10*x1^3-2*x1^2*x2+38*x1^2*x3+6*x2^2*x3+34*x1*x2*x4-x3^2*x4+8*x1*x4^2+18*x2*x4^2+47*x3^2*x5-22*x4^2*x5+43*x2*x5^2+16*x3*x5^2,
 #              49*x1^2*x4-50*x1*x2*x4-20*x1*x4^2+40*x1*x2*x5-27*x1*x3*x5+4*x1*x4*x5+22*x3*x5^2])
 inI = ideal([14*x1*x2-50*x1*x3+x2*x3+13*x3^2+40*x1*x4+16*x1*x5-27*x3*x5,-37*x1*x2+36*x3^2-x2*x4-12*x1*x5+37*x2*x5+12*x3*x5-20*x4*x5-26*x5^2,-2*x2*x3+39*x1*x4-5*x2*x5])
-tropical_link(inI)
+tropical_link(inI,p_adic_precision=29)
 =======#
-function tropical_link(inI; p_adic_prime::Integer=1000003)
+function tropical_link(inI; p_adic_prime::Integer=32003, p_adic_precision::Integer=19)
 
   ###
   # Step 1: Compute the homogeneity space and identify the pivots (and non-pivots) of its equation matrix in rref
   ###
-  H = homogeneity_space(inI,compute_groebner_basis=true)
+  H = homogeneity_space(inI)
   _,Eqs = rref(affine_equation_matrix(affine_hull(H)))            # rref returns rank first, which is not required here
   pivotIndices = pivots(Eqs)
   nonpivotIndices = setdiff(collect(1:ncols(Eqs)-1),pivotIndices) # the final column of Eqs represents the RHS of the linear equations,
@@ -198,8 +197,8 @@ function tropical_link(inI; p_adic_prime::Integer=1000003)
   ###
   # Step 3.1: Intersect the resulting one-dimensional ideal with hyperplanes p*x1-1, ..., p*xn-1, x1+...+xn-p
   ###
-  hyperplanes = [val_p.uniformizer*x[i]-1 for i in pivotIndices]
-  push!(hyperplanes,sum(x)-val_p.uniformizer)
+  hyperplanes = [val_p.uniformizer_ring*x[i]-1 for i in pivotIndices]
+  push!(hyperplanes,sum(x)-val_p.uniformizer_ring)
   rayGenerators = [];
   # rayMultiplicities = []; # ray multiplicities cannot be generally computed using this method,
                             # however this method gives lower bounds on the multiplicities which may be used for sanity checking later
@@ -223,7 +222,7 @@ function tropical_link(inI; p_adic_prime::Integer=1000003)
     ###
     pointsOfSlice = []
     multsOfSlice = []
-    for pointOfSlice in tropical_points(inI0,val_p,remove_points_at_infinity=true)
+    for pointOfSlice in tropical_points(inI0,val_p,p_adic_precision=p_adic_precision,remove_points_at_infinity=true)
       pointOfSlice = pointsOfSliceMatrix[i,:]        # = rational vector
       commonDenominator = lcm([denominator(pj) for pj in pointOfSlice])
       pointOfSlice = [numerator(commonDenominator*pj) for pj in pointOfSlice] # = integer vector

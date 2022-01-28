@@ -73,7 +73,7 @@ tropical_points(I,val_2)
 # I = ideal([x+t*y,y+t*z])
 # tropical_points(I,val_t)
 =======#
-function tropical_points(I,val_p::ValuationMap{FlintRationalField, fmpz}; p_adic_precision::Int=9, remove_points_at_infinity::Bool=false) # currently only p-adic supported
+function tropical_points(I,val_p::ValuationMap{FlintRationalField, fmpq}; p_adic_precision::Int=9, remove_points_at_infinity::Bool=false) # currently only p-adic supported
 
   Kx = base_ring(I)
   K = base_ring(Kx)
@@ -88,7 +88,7 @@ function tropical_points(I,val_p::ValuationMap{FlintRationalField, fmpz}; p_adic
 
   # while true
     # try
-  Qp = PadicField(val_p.uniformizer,p_adic_precision)
+  Qp = PadicField(val_p.uniformizer_ring,p_adic_precision)
   GB0p = [change_base_ring(Qp,f) for f in GB0]
   L0p = [change_base_ring(Qp,f) for f in L0]
 
