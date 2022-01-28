@@ -1,5 +1,4 @@
 using JSON
-using Pkg
 
 # struct which tracks state for (de)serialization
 struct SerializerState
@@ -51,9 +50,11 @@ const typeMap = Dict{Type, String}([
 const reverseTypeMap = Dict{String, Type}(value => key for (key, value) in typeMap)
 
 function get_version_info()
-    pkginfo = [v for (p,v) in Pkg.dependencies() if v.name == "Oscar"]
-    pkginfo = pkginfo[1]
-    result = (:Oscar => ["https://github.com/oscar-system/Oscar.jl", pkginfo.version])
+    result = Dict{Symbol, Any}(
+        :Oscar => ["https://github.com/oscar-system/Oscar.jl", VERSION_NUMBER],
+        :Julia => ["https://julialang.org/", VERSION]
+    )
+    return result
 end
 const versionInfo = get_version_info()
 
