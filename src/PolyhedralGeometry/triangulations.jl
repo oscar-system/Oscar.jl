@@ -21,14 +21,14 @@ julia> V = vertices(c)
  [0, 1]
  [1, 1]
 
-julia> all_triangulations(point_matrix(V))
+julia> all_triangulations(V)
 2-element Vector{Vector{Vector{Int64}}}:
  [[1, 2, 3], [2, 3, 4]]
  [[1, 2, 4], [1, 3, 4]]
 ```
 """
-function all_triangulations(pts::AnyVecOrMat)
-    input = homogenize(pts)
+function all_triangulations(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem})
+    input = homogenized_matrix(pts, 1)
     PC = Polymake.polytope.PointConfiguration(POINTS=input)
     triangs = Polymake.polytope.topcom_all_triangulations(PC)
     result = [[[e for e in simplex] for simplex in triang] for triang in triangs]
@@ -59,7 +59,7 @@ julia> all_triangulations(c)
  [[1, 2, 4], [1, 3, 4]]
 ```
 """
-all_triangulations(P::Polyhedron) = all_triangulations(point_matrix(vertices(P)))
+all_triangulations(P::Polyhedron) = all_triangulations(vertices(P))
 
 
 @doc Markdown.doc"""
@@ -90,14 +90,14 @@ julia> V = vertices(c)
  [0, 1]
  [1, 1]
 
-julia> regular_triangulations(point_matrix(V))
+julia> regular_triangulations(V)
 2-element Vector{Vector{Vector{Int64}}}:
  [[1, 2, 3], [2, 3, 4]]
  [[1, 3, 4], [1, 2, 4]]
 ```
 """
-function regular_triangulations(pts::AnyVecOrMat)
-    input = homogenize(pts)
+function regular_triangulations(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem})
+    input = homogenized_matrix(pts, 1)
     PC = Polymake.polytope.PointConfiguration(POINTS=input)
     triangs = Polymake.polytope.topcom_regular_triangulations(PC)
     result = [[[e for e in simplex] for simplex in triang] for triang in triangs]
@@ -133,7 +133,7 @@ julia> regular_triangulations(c)
  [[1, 3, 4], [1, 2, 4]]
 ```
 """
-regular_triangulations(P::Polyhedron) = regular_triangulations(point_matrix(vertices(P)))
+regular_triangulations(P::Polyhedron) = regular_triangulations(vertices(P))
 
 
 @doc Markdown.doc"""

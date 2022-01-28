@@ -64,6 +64,7 @@ project_full(P::Polyhedron)
 print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = false)
 print_constraints(P::Polyhedron; trivial::Bool = false)
 regular_triangulations
+secondary_polytope
 solve_ineq(A::fmpz_mat, b::fmpz_mat)
 solve_mixed(A::fmpz_mat, b::fmpz_mat, C::fmpz_mat, d::fmpz_mat)
 solve_mixed(A::fmpz_mat, b::fmpz_mat, C::fmpz_mat)
