@@ -16,7 +16,7 @@ mutable struct Glueing{SpecType<:Spec, OpenType<:SpecOpen, MorType<:SpecOpenMor}
   Y::SpecType
   U::OpenType
   V::OpenType
-  f::MorType
+  f::MorType # f : U → V 
   g::MorType
 
   function Glueing(

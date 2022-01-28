@@ -241,3 +241,39 @@ function disjoint_union(C1::T, C2::T) where {T<:Covering}
   end
   return C
 end
+
+mutable struct CoveringMorphism{SpecType<:Spec, CoveringType<:Covering, SpecMorType<:SpecMor}
+  domain::CoveringType
+  codomain::CoveringType
+  morphisms::Dict{SpecType, SpecMorType} # on a patch X of the domain covering, this 
+                                         # returns the morphism φ : X → Y to the corresponding 
+                                         # patch Y of the codomain covering. 
+
+  function CoveringMorphism(
+      domain::CoveringType, 
+      codomain::CoveringType, 
+      morphisms::Dict{SpecType, SpecMorType}; 
+      check::Bool=true
+    ) where {
+             SpecType<:Spec, 
+             CoveringType<:Covering, 
+             SpecMorType<:SpecMor
+            }
+    # TODO: check domain/codomain compatibility
+    # TODO: if check is true, check that all morphisms glue.
+    return new{SpecType, CoveringType, SpecMorType}(domain, codomain, morphisms)
+  end
+end
+
+
+mutable struct CoveredScheme{CoveringType<:Covering, CoveringMorphismType<:CoveringMorphism}
+  coverings::Vector{CoveringType}
+  refinements::Dict{Tuple{CoveringType, CoveringType}, CoveringMorphismType}
+  refinement_graph::Graph{Directed}
+
+  function CoveredScheme(coverings::Vector{CoveringType}, refinements::Dict{Tuple{CoveringType, CoveringType}, CoveringMorphismType}) where {CoveringType<:Covering, CoveringMorphismType<:CoveringMorphism}
+    # TODO: Check whether the refinements form a connected graph.
+    return new{CoveringType, CoveringMorphismType}(coverings, refinements)
+  end
+end
+

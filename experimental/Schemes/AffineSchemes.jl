@@ -96,6 +96,8 @@ Spec(Q::MPolyQuo) = Spec(MPolyQuoLocalizedRing(Q))
 Spec(W::MPolyLocalizedRing) = Spec(MPolyQuoLocalizedRing(W))
 
 Spec(R::MPolyRing, I::MPolyIdeal, U::AbsMPolyMultSet) = Spec(MPolyQuoLocalizedRing(R, I, U))
+Spec(R::MPolyRing, U::AbsMPolyMultSet) = Spec(MPolyQuoLocalizedRing(R, ideal(R, [zero(R)]), U))
+Spec(R::MPolyRing, I::MPolyIdeal) = Spec(MPolyQuoLocalizedRing(R, I, units_of(R)))
 
 ### closed subschemes defined by ideals
 function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST}

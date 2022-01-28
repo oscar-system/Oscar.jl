@@ -2,7 +2,7 @@ import Oscar.AlgHom
 
 export ProjectiveScheme, base_ring, fiber_dimension, homogeneous_coordinate_ring, gens, getindex, affine_patch_type
 export projective_space, subscheme
-export projection_to_base, affine_cone, base_scheme, homogeneous_coordinates, convert_to_fraction, convert_to_homog_polys
+export projection_to_base, affine_cone, set_base_scheme!, base_scheme, homogeneous_coordinates, convert_to_fraction, convert_to_homog_polys
 export MorphismOfProjectiveSchemes, domain, codomain, images_of_variables, map_on_affine_cones, is_well_defined
 
 @Markdown.doc """
@@ -17,7 +17,7 @@ ideal ``I`` in the graded ring ``A[s₀,…,sᵣ]`` and the latter is of type
 mutable struct ProjectiveScheme{CoeffRingType, CoeffRingElemType, RingType, RingElemType}
   A::CoeffRingType	# the base ring
   r::Int	# the relative dimension
-  S::RingType
+  S::RingType   # A[s₀,…,sᵣ]
   I::MPolyIdeal{RingElemType} # generators for the defining ideal
   #TODO: Once MPolyIdeal is finally generic, use that instead of storing the generators.
 
@@ -73,6 +73,13 @@ function base_scheme(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:Union{
   end
   return X.Y
 end
+
+function set_base_scheme!(P::ProjectiveScheme{CRT, CRET, RT, RET}, X::Spec) where {CRT<:MPolyQuoLocalizedRing, CRET, RT, RET}
+  OO(X) == base_ring(P) || error("schemes are not compatible")
+  P.Y = X
+  return P
+end
+
 
 function projection_to_base(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyRing, CRET, RT, RET}
   if !isdefined(X, :projection_to_base)
@@ -192,10 +199,28 @@ projective_space(A::CoeffRingType, var_names::Vector{String}) where {CoeffRingTy
 
 
 function projective_space(A::CoeffRingType, r::Int; var_name::String="s") where {CoeffRingType<:Ring}
-  R, _ = PolynomialRing(A, [var_name*"$i" for i in 0:n])
-  S, _ = grade(R, [1 for i in 1:n ])
+  R, _ = PolynomialRing(A, [var_name*"$i" for i in 0:r])
+  S, _ = grade(R, [1 for i in 0:r ])
   I = ideal(S, [zero(S)])
   return ProjectiveScheme(S, I)
+end
+
+function projective_space(W::Spec, r::Int; var_name::String="s") 
+  P = projective_space(OO(W), r, var_name=var_name)
+  set_base_scheme!(P, W)
+  return P
+end
+
+function projective_space(W::Spec, var_names::Vector{Symbol}) 
+  P = projective_space(OO(W), var_name)
+  set_base_scheme!(P, W)
+  return P
+end
+
+function projective_space(W::Spec, var_names::Vector{String}) 
+  P = projective_space(OO(W), var_name)
+  set_base_scheme!(P, W)
+  return P
 end
 
 function subscheme(P::ProjectiveScheme, I::MPolyIdeal{T}) where {T<:RingElem}
