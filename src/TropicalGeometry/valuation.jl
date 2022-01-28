@@ -3,11 +3,55 @@
 # ==================================================
 ###
 
+@doc Markdown.doc"""
+
+    ValuationMap(K,p)
+
+A valuation map for computations in the tropical geometry package. Currently, the only supported valuations are:
+- t-adic valuation on QQ(t)
+- p-adic valuations on QQ
+- trivial valuation on any field
+
+# Example for p-adic valuation on QQ
+```jldoctest
+julia> val_2 = ValuationMap(QQ,2);
+
+julia> val_2(4)
+2
+julia> val_2(1//4)
+-2
+```
+
+# Example for t-adic valuation on QQ(t)
+```jldoctest
+julia> Kt,t = RationalFunctionField(QQ,"t");
+
+julia> val_t = ValuationMap(Kt,t);
+
+julia> val_t(t^2)
+2
+julia> val_2(1//t^2)
+-2
+```
+
+# Example for p-adic valuation on QQ
+```jldoctest
+julia> val = ValuationMap(QQ);
+
+julia> val(4)
+0
+julia> val(1//4)
+0
+```
+"""
 struct ValuationMap{typeofValuedField,typeofUniformizer}
   valued_field::typeofValuedField
-  uniformizer::typeofUniformizer
+  uniformizer_field::typeofUniformizer
+  valued_ring
+  uniformizer_ring
   residue_field
   residue_map
+  uniformizer_symbol
 end
 export ValuationMap
 
@@ -19,7 +63,7 @@ export ValuationMap
 # Constructor:
 function ValuationMap(K)
   residue_map(c) = return c
-  return ValuationMap{typeof(K),Nothing}(K,nothing,K,residue_map)
+  return ValuationMap{typeof(K),Nothing}(K,nothing,K,nothing,K,residue_map,nothing)
 end
 
 # Evaluation:
@@ -32,15 +76,15 @@ end
 ###
 
 # Constructor:
-function ValuationMap(Q::FlintRationalField,p::fmpz)
+function ValuationMap(Q::FlintRationalField,p::fmpq)
   residue_map(c) = FiniteField(p)[1](c)
-  return ValuationMap{typeof(Q),typeof(p)}(Q,p,FiniteField(p)[1],residue_map)
+  return ValuationMap{typeof(Q),typeof(p)}(Q,p,ZZ,ZZ(p),FiniteField(ZZ(p))[1],residue_map,:p)
 end
 
-ValuationMap(Q::FlintRationalField,p) = ValuationMap(Q,ZZ(p)) # for other types of `p` such as `Int`
+ValuationMap(Q::FlintRationalField,p) = ValuationMap(Q,QQ(p)) # for other types of `p` such as `Integer`
 
 # Evaluation:
-(val::ValuationMap{FlintRationalField,fmpz})(c) = valuation(c, val.uniformizer)
+(val::ValuationMap{FlintRationalField,fmpq})(c) = valuation(QQ(c),val.uniformizer_ring)
 
 
 
@@ -48,24 +92,30 @@ ValuationMap(Q::FlintRationalField,p) = ValuationMap(Q,ZZ(p)) # for other types 
 # Laurent valuation on K(t)
 ###
 
-# Constructor:
-function t_adic_valuation(c)
+# t-adic valuation for elements in the valued field (=rational functions):
+function t_adic_valuation(c::AbstractAlgebra.Generic.Rat)
   num = numerator(c)
   nom = denominator(c)
   valnum = first(i for i in 0:degree(num) if !iszero(coeff(num, i)))
   valnom = first(i for i in 0:degree(nom) if !iszero(coeff(nom, i)))
   return valnum-valnom
 end
+# t-adic valuation for elements in the valued ring (=polynomials):
+function t_adic_valuation(c::fmpq_poly)
+  return first(i for i in 0:degree(c) if !iszero(coeff(c, i)))
+end
 
+# Constructor:
 function ValuationMap(Kt::AbstractAlgebra.Generic.RationalFunctionField,t::AbstractAlgebra.Generic.Rat)
-    function residue_map(c)
-        valc = t_adic_valuation(c)
-        if (valc<0)
-            error("residue_map: input has negative valuation, not in valuation ring")
-        end
-        return base_ring(Kt)(evaluate(c,0))
+  function residue_map(c)
+    valc = t_adic_valuation(c)
+    if (valc<0)
+      error("residue_map: input has negative valuation, not in valuation ring")
     end
-    return ValuationMap{typeof(Kt),typeof(t)}(Kt,t,base_ring(Kt),residue_map)
+    return base_ring(Kt)(evaluate(c,0))
+  end
+  Rt,_ = PolynomialRing(base_ring(Kt),symbols(Kt))
+  return ValuationMap{typeof(Kt),typeof(t)}(Kt,t,Rt,Rt(t),base_ring(Kt),residue_map,:t)
 end
 
 # Evaluation:
@@ -80,15 +130,15 @@ end
 ###
 
 function is_valuation_p_adic(val::ValuationMap)
-  return typeof(val.valued_field)==FlintRationalField && typeof(val.uniformizer)==fmpz
+  return typeof(val.valued_field)==FlintRationalField && typeof(val.uniformizer_field)==fmpq
 end
 
 function is_valuation_t_adic(val::ValuationMap)
-  return typeof(val.valued_field)==AbstractAlgebra.Generic.RationalFunctionField{fmpq} && typeof(val.uniformizer)==AbstractAlgebra.Generic.Rat{fmpq}
+  return typeof(val.valued_field)==AbstractAlgebra.Generic.RationalFunctionField{fmpq} && typeof(val.uniformizer_field)==AbstractAlgebra.Generic.Rat{fmpq}
 end
 
 function is_valuation_trivial(val::ValuationMap)
-  return typeof(val.uniformizer)==Nothing
+  return typeof(val.uniformizer_field)==Nothing
 end
 
 
@@ -114,10 +164,10 @@ functions which, given an ideal I in variables x1, ..., xn over a field with val
 returns an ideal vvI in variables t, x1, ..., xn such that tropical Groebner bases of I w.r.t. w
 correspond to standard bases of I w.r.t. (-1,w)
 Example:
-Kt,t = RationalFunctionField(QQ,"t")
-val_t = ValuationMap(Kt,t)
-Ktx,(x,y,z) = PolynomialRing(Kt,3)
-I = ideal([x+t*y,y+t*z])
+K,s = RationalFunctionField(QQ,"s")
+val_t = ValuationMap(K,s)
+Kx,(x1,x2,x3) = PolynomialRing(K,3)
+I = ideal([x1+s*x2,x2+s*x3])
 simulate_valuation(I,val_t)
 
 val_2 = ValuationMap(QQ,2)
@@ -125,57 +175,27 @@ Kx,(x,y,z) = PolynomialRing(QQ,3)
 I = ideal([x+2*y,y+2*z])
 simulate_valuation(I,val_2)
 =======#
-function simulate_valuation(I::MPolyIdeal,val_t::ValuationMap{AbstractAlgebra.Generic.RationalFunctionField{K}, AbstractAlgebra.Generic.Rat{K}} where {K})
+function simulate_valuation(I::MPolyIdeal, val::ValuationMap)
 
-  Ktx = base_ring(I)
-  Kt = base_ring(Ktx)
-  K = base_ring(Kt)
-  @assert K==QQ "simulate_valuation: only function fields over QQ supported for now"
-
-  Rtx,_ = PolynomialRing(QQ,vcat(symbols(Kt),symbols(Ktx)));
-  R = base_ring(Rtx)
-  vvG = []
-  for f in gens(I)
-    fRtx = MPolyBuildCtx(Rtx)
-    for (cKt,expvKtx) in zip(coefficients(f),exponent_vectors(f))
-      # cKt = coefficient in K(t)
-      # expvKtx = exponent vector in K(t)[x1,...,xn]
-      expvRtx = vcat([0],expvKtx)  # exponent vector in R[t,x1,...,xn]
-      @assert isone(denominator(cKt)) "change_base_ring: coefficient denominators need to be 1"
-      cKt = numerator(cKt)           # coefficient in K[t]
-      cK = coefficients(cKt)         # vector in K
-      M = lcm([denominator(c) for c in cK])
-      cR = [R(M*c) for c in cK]      # vector in R
-
-      for c in cR
-        push_term!(fRtx,c,expvRtx)
-        expvRtx[1] += 1
-      end
-    end
-    push!(vvG,finish(fRtx))
+  # if the valuation is trivial, then nothing needs to be done
+  if is_valuation_trivial(val)
+    return I
   end
 
-  vvI = ideal(Rtx,vvG)
-  return vvI
-end
-function simulate_valuation(I::MPolyIdeal,val_p::ValuationMap{FlintRationalField, fmpz})
+  R = val.valued_ring
+  t = val.uniformizer_symbol
 
-  Kx = base_ring(I)
-  K = coefficient_ring(Kx)
-
-  Rtx,tx = PolynomialRing(ZZ,vcat([:t],symbols(Kx)))
-  vvG = [val_p.uniformizer-tx[1]]
+  Rtx,tx = PolynomialRing(R,vcat([t],symbols(base_ring(I))))
+  vvG = [val.uniformizer_ring-tx[1]]
   for f in gens(I)
     fRtx = MPolyBuildCtx(Rtx)
     for (cK,expvKx) = zip(coefficients(f),exponent_vectors(f))
-      # cK = coefficient in K
-      # expvKx = exponent vector in K[x1,...,xn]
       @assert isone(denominator(cK)) "change_base_ring: coefficient denominators need to be 1"
-      cR = numerator(cK)          # coefficient in R
+      cR = R(numerator(cK))       # coefficient in R
       expvRtx = vcat([0],expvKx)  # exponent vector in R[t,x1,...,xn]
       push_term!(fRtx,cR,expvRtx)
     end
-    push!(vvG,finish(fRtx))
+    push!(vvG,tighten_simulation(finish(fRtx),val))
   end
 
   vvI = ideal(Rtx,vvG)
@@ -183,7 +203,7 @@ function simulate_valuation(I::MPolyIdeal,val_p::ValuationMap{FlintRationalField
 end
 export simulate_valuation
 
-function simulate_valuation(w::Vector,val::ValuationMap)
+function simulate_valuation(w::Vector, val::ValuationMap)
   # if the valuation is non-trivial, prepend -1 to the vector
   if !is_valuation_trivial(val)
     w = vcat([-1],w)
@@ -191,6 +211,18 @@ function simulate_valuation(w::Vector,val::ValuationMap)
   # either way, scale vector to make entries integral
   commonDenom = lcm([denominator(wi) for wi in w])
   return [numerator(commonDenom*wi) for wi in w]
+end
+
+function simulate_valuation(w::Vector, u::Vector, val::ValuationMap)
+  # if the valuation is non-trivial, prepend -1 to the vector
+  if !is_valuation_trivial(val)
+    w = vcat([-1],w)
+    u = vcat([-1],u)
+  end
+  # either way, scale vector to make entries integral
+  w_commonDenom = lcm([denominator(wi) for wi in w])
+  u_commonDenom = lcm([denominator(ui) for ui in u])
+  return [numerator(w_commonDenom*wi) for wi in w],[numerator(u_commonDenom*ui) for ui in u]
 end
 
 #=======
@@ -203,59 +235,38 @@ Kx,(x,y,z) = PolynomialRing(QQ,3)
 I = ideal([x+2*y,y+2*z])
 vvI = simulate_valuation(I,val_2)
 desimulate_valuation(vvI,val_2)
+
+Ks,s = RationalFunctionField(QQ,"s")
+val_s = ValuationMap(Ks,s)
+Ksx,(x1,x2,x3) = PolynomialRing(Ks,3)
+I = ideal([x1+s*x2,x2+s*x3])
+vvI = simulate_valuation(I,val_s)
+desimulate_valuation(vvI,val_s)
 =======#
-function desimulate_valuation(vvI::MPolyIdeal,val_p::ValuationMap{FlintRationalField, fmpz})
-  Rtx = base_ring(vvI)
-  x = copy(symbols(Rtx))
+function desimulate_valuation(vvI::MPolyIdeal,val::ValuationMap)
+  Rx = base_ring(vvI)
+  R = coefficient_ring(Rx)
+  x = copy(symbols(Rx))
   popfirst!(x)
-  K = val_p.valued_field
+
+  K = val.valued_field
   Kx,_ = PolynomialRing(K,x)
 
-  vvG = [evaluate(g,[1],[val_p.uniformizer]) for g in gens(vvI)]
+  vvG = [evaluate(g,[1],[val.uniformizer_ring]) for g in gens(vvI)]
   G = []
   for vvg in vvG
     if !iszero(vvg) # vvI contained p-t, so one entry of vvG is 0
       g = MPolyBuildCtx(Kx)
-      for (c, expvRtx) = Base.Iterators.zip(Singular.coefficients(vvg), Singular.exponent_vectors(vvg))
+      for (c, expvRtx) = Base.Iterators.zip(coefficients(vvg), exponent_vectors(vvg))
         expvKx = copy(expvRtx) # exponent vector in R[t,x1,...,xn]
         popfirst!(expvKx)      # exponent vector in K[x1,...,xn]
-        push_term!(g,c,expvKx)
+        push_term!(g,K(c),expvKx)
       end
       push!(G,finish(g))
     end
   end
 
   return ideal(Kx,G)
-end
-#=======
-Example:
-Kt,t = RationalFunctionField(QQ,"t")
-val_t = ValuationMap(Kt,t)
-Ktx,(x,y,z) = PolynomialRing(Kt,3)
-I = ideal([x+t*y,y+t*z])
-vvI = simulate_valuation(I,val_t)
-desimulate_valuation(vvI,val_t)
-=======#
-function desimulate_valuation(vvI::MPolyIdeal,val_t::ValuationMap{AbstractAlgebra.Generic.RationalFunctionField{K}, AbstractAlgebra.Generic.Rat{K}} where {K})
-  Rtx = base_ring(vvI)
-  x = copy(symbols(Rtx))
-  popfirst!(x)
-  Kt = val_t.valued_field
-  t = val_t.uniformizer
-  Ktx,_ = PolynomialRing(Kt,x)
-
-  G = []
-  for vvg in gens(vvI)
-    g = MPolyBuildCtx(Ktx)
-    for (c, expvRtx) = Base.Iterators.zip(Singular.coefficients(vvg), Singular.exponent_vectors(vvg))
-      expvKtx = copy(expvRtx) # exponent vector in R[t,x1,...,xn]
-      d = popfirst!(expvKtx)  # exponent vector in K(t)[x1,...,xn]
-      push_term!(g,Kt(c)*t^d,expvKtx)
-    end
-    push!(G,finish(g))
-  end
-
-  return ideal(Ktx,G)
 end
 export desimulate_valuation
 
@@ -267,4 +278,35 @@ function desimulate_valuation(w::Vector,val::ValuationMap)
     popfirst!(w)
   end
   return w
+end
+
+
+#=======
+functions which reduces polynomials in variables t,x1, ..., xn simulating the valuation by p-t
+Example:
+Kt,t = RationalFunctionField(QQ,"t")
+val_t = ValuationMap(Kt,t)
+Ktx,(x,y,z) = PolynomialRing(Kt,3)
+I = ideal([x+t*y,y+t*z])
+simulate_valuation(I,val_t)
+
+val_2 = ValuationMap(QQ,2)
+Kx,(x,y,z) = PolynomialRing(QQ,3)
+I = ideal([x+2*y,y+2*z])
+simulate_valuation(I,val_2)
+=======#
+function tighten_simulation(f::MPolyElem,val::ValuationMap)
+  Rtx = parent(f)
+  R = coefficient_ring(f)
+  p = val.uniformizer_field
+  f_tightened = MPolyBuildCtx(Rtx)
+  for (c,alpha) in zip(coefficients(f),exponent_vectors(f))
+    v = val(c)
+    alpha[1] += v
+    push_term!(f_tightened,R(c*p^-v),alpha)
+  end
+  return finish(f_tightened)
+end
+function tighten_simulation(I::MPolyIdeal,val::ValuationMap)
+  return ideal([tighten_simulation(f) for f in gens(I)] + [])
 end
