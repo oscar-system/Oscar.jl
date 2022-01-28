@@ -280,6 +280,17 @@ function desimulate_valuation(w::Vector,val::ValuationMap)
   return w
 end
 
+function desimulate_valuation(w::Vector, u::Vector, val::ValuationMap)
+  # if the valuation is non-trivial, scale the vector w so that first entry is -1
+  #   and then remove first entry of both w and u
+  if !is_valuation_trivial(val)
+    w /= w[1]
+    popfirst!(w)
+    popfirst!(u)
+  end
+  return w,u
+end
+
 
 #=======
 functions which reduces polynomials in variables t,x1, ..., xn simulating the valuation by p-t
