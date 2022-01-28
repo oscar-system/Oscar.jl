@@ -135,16 +135,21 @@ function groebner_basis(I::MPolyIdeal,val::ValuationMap,w::Vector{<: Union{Int,R
 
 
   ###
-  # Step 3: if complete_reduction = true and val is non-trivial, eliminate tail-monomials contained in the leading ideal in the tropical sense
-  #  In the simulation, these monomials corresponds to tail-monomials contained in the leading ideal up to saturation by t
-  #  and elimination means eliminating them after multiplying by a sufficiently high power in t
+  # Step 3: if complete_reduction = true and val is non-trivial,
+  #   eliminate tail-monomials contained in the leading ideal in the tropical sense
+  #   Inside the tightened simulation, monomials to be eliminated are tail-monomials contained in the leading ideal up to saturation by t
+  #   and elimination means eliminating them after multiplying the GB element by a sufficiently high power in t
   ###
   if complete_reduction==true && is_valuation_nontrivial(val)
     sort!(vvGB,lt=x_monomial_lt) # sort vvGB by their leading x monomial from small to large
     Singular.libSingular.set_option("OPT_INFREDTAIL", true)
     for i in 1:length(vvGB)-1
       for j in i+1:length(vvGB)
-        vvGB[j] = Singular.reduce(vvGB[j],Singular.std(Singular.Ideal(S,vvGB[i])))
+        t_ecart = x_monomial_ecart(vvGB[j],vvGB[i])
+        if t_ecart>=0
+          vvGB[j] = Singular.reduce(val.uniformizer_ring^t_ecart*vvGB[j],Singular.std(Singular.Ideal(S,vvGB[i])))
+          vvGB[j] = S(tighten_simulation(Rtx(vvGB[j]),val))
+        end
       end
     end
     Singular.libSingular.set_option("OPT_INFREDTAIL", false)
@@ -161,11 +166,57 @@ function groebner_basis(I::MPolyIdeal,val::ValuationMap,w::Vector{<: Union{Int,R
 end
 
 
-function x_monomial_lt(f::Singular.spoly,g::Singular.spoly)
-  expv_f = copy(Singular.leading_exponent_vector(f))
-  expv_g = copy(Singular.leading_exponent_vector(g))
-  popfirst!(expv_f)
-  popfirst!(expv_g)
-  return expv_f<expv_g
+###
+# returns true if (leading x-monomial of f) <_lex (leading x-monomial of g)
+# returns false otherwise
+###
+function x_monomial_lt(f::Singular.spoly, g::Singular.spoly)
+  exp_x_f = copy(Singular.leading_exponent_vector(f))
+  exp_x_g = copy(Singular.leading_exponent_vector(g))
+  popfirst!(exp_x_f)
+  popfirst!(exp_x_g)
+  return exp_x_f<exp_x_g
 end
 export x_monomial_lt
+
+
+###
+# returns true if x^expv_g divides x^expv_f
+# returns false otherwise
+###
+function x_monomial_divides(exp_x_g::Vector,exp_x_f::Vector)
+  for (eg,ef) in zip(exp_x_g,exp_x_f)
+    if eg>ef
+      return false
+    end
+  end
+  return true
+end
+export x_monomial_divides
+
+
+###
+# if the leading x-monomial of g divides x-monomials in f
+#   returns l=max(0, (t_g-exponent of g) - (t-exponents of f))
+#   so that f*t^l can be reduced by g to eliminate all the x-monomials
+# otherwise, returns -1
+###
+function x_monomial_ecart(f::Singular.spoly, g::Singular.spoly)
+  exp_x_g = copy(Singular.leading_exponent_vector(g))
+  exp_t_g = popfirst!(exp_x_g)
+  e = 0
+  dividend_found = false
+  for exp_f in exponent_vectors(f)
+    exp_x_f = copy(exp_f)
+    exp_t_f = popfirst!(exp_x_f)
+    if x_monomial_divides(exp_x_g,exp_x_f)
+      e = max(e,exp_t_g-exp_t_f)
+      dividend_found = true
+    end
+  end
+  if dividend_found
+    return e
+  end
+  return -1
+end
+export x_monomial_ecart
