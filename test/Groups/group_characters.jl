@@ -407,6 +407,32 @@ end
   @test mod(t, 2) == nothing
 end
 
+@testset "natural characters" begin
+  G = symmetric_group(4)
+  chi = Oscar.natural_character(G)
+  @test degree(chi) == 4
+  psi = chi
+  @test scalar_product(chi, psi) == 2
+  @test scalar_product(chi, chi) == 2
+  @test scalar_product(chi, trivial_character(G)) == 1
+
+  K, a = CyclotomicField(5, "a")
+  L, b = CyclotomicField(3, "b")
+
+  inputs = [
+    #[ matrix(ZZ, [0 1 0; -1 0 0; 0 0 -1]) ],
+    [ matrix(QQ, [0 1 0; -1 0 0; 0 0 -1]) ],
+    [ matrix(K, [a 0; 0 a]) ],
+    [ matrix(L, 2, 2, [b, 0, -b - 1, 1]), matrix(L, 2, 2, [1, b + 1, 0, b]) ],
+  ]
+
+  @testset "... over ring $(base_ring(mats[1]))" for mats in inputs
+    G = matrix_group(mats)
+    chi = Oscar.natural_character(G)
+    @test degree(chi) == degree(G)
+  end
+end
+
 @testset "character fields" begin
   for id in [ "C5", "A5" ]   # cyclotomic and non-cyclotomic number fields
     for chi in character_table(id)

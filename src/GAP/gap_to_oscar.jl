@@ -162,22 +162,22 @@ function (F::AnticNumberField)(obj::GapObj)
 end
 
 ## single GAP cyclotomic to `QabElem`
-function QabElem(cyc::GapInt)
-    GAPWrap.IsCyc(cyc) || error("cyc must be a GAP cyclotomic")
-    denom = GAPWrap.DenominatorCyc(cyc)
-    n = GAPWrap.Conductor(cyc)
-    coeffs = GAP.Globals.ExtRepOfObj(cyc * denom)
-    cycpol = GAP.Globals.CyclotomicPol(n)
-    dim = length(cycpol)-1
-    GAP.Globals.ReduceCoeffs(coeffs, cycpol)
-    coeffs = Vector{fmpz}(coeffs)
-    coeffs = coeffs[1:dim]
-    denom = fmpz(denom)
-    FF = abelian_closure(QQ)[1]
-    F, z = Oscar.AbelianClosure.cyclotomic_field(FF, n)
-    val = Nemo.elem_from_mat_row(F, Nemo.matrix(Nemo.ZZ, 1, dim, coeffs), 1, denom)
-    return QabElem(val, n)
+function QabElem(a::GapInt)
+  c = GAPWrap.Conductor(a)
+  E = abelian_closure(QQ)[2](c)
+  z = parent(E)(0)
+  co = GAP.Globals.CoeffsCyc(a, c)
+  for i=1:c
+    if !iszero(co[i])
+      z += fmpq(co[i])*E^(i-1)
+    end
+  end
+  return z
 end
+
+GAP.gap_to_julia(::Type{QabElem}, a::GapInt) = QabElem(a)
+
+(::QabField)(a::GAP.GapObj) = GAP.gap_to_julia(QabElem, a)
 
 ## nonempty list of GAP matrices over the same cyclotomic field
 function matrices_over_cyclotomic_field(gapmats::GapObj)
