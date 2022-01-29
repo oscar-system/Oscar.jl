@@ -848,7 +848,7 @@ project_full(P::Polyhedron) = Polyhedron(Polymake.polytope.project_full(pm_objec
 
     gelfand_tsetlin(lambda::AbstractVector)
 
-Construct the Gelfand Tsetlin polytope indexed by lambda where lambda is weakly decreasing vector.
+Construct the Gelfand Tsetlin polytope indexed by a weakly decreasing vector `lambda`.
 
 ```jldoctest
 julia> P = gelfand_tsetlin([5,3,2])
