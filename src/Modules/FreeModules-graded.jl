@@ -1,5 +1,5 @@
 #TODO make d and S a function optionally - to support HUGE degree
-export presentation, grading_group
+export presentation, grading_group, ModuleOrdering
 
 abstract type ModuleFP_dec{T} end
 
@@ -117,7 +117,7 @@ end
 dim(F::FreeModule_dec)  = length(F.d)
 ngens(F::FreeModule_dec) = dim(F)
 
-struct FreeModuleElem_dec{T}
+struct FreeModuleElem_dec{T} <: AbstractAlgebra.ModuleElem{T}
   r::SRow{T}
   parent::FreeModule_dec{T}
 end

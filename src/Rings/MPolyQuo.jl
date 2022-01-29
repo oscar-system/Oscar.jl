@@ -575,6 +575,7 @@ function simplify(f::MPolyQuoElem)
   g = f.f
   return R(I.gens.Ox(reduce(Sx(g), I.gb.S)))
 end
+
 function simplify!(f::MPolyQuoElem)
   R = parent(f)
   I = R.I
