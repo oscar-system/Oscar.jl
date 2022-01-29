@@ -162,7 +162,7 @@ Kx,(x1,x2,x3,x4,x5) = PolynomialRing(QQ,5)
 inI = ideal([14*x1*x2-50*x1*x3+x2*x3+13*x3^2+40*x1*x4+16*x1*x5-27*x3*x5,-37*x1*x2+36*x3^2-x2*x4-12*x1*x5+37*x2*x5+12*x3*x5-20*x4*x5-26*x5^2,-2*x2*x3+39*x1*x4-5*x2*x5])
 tropical_link(inI,p_adic_precision=29)
 =======#
-function tropical_link(inI; p_adic_prime::Integer=32003, p_adic_precision::Integer=19)
+function tropical_link(inI::MPolyIdeal; p_adic_prime::Integer=32003, p_adic_precision::Integer=19)
 
   ###
   # Step 1: Compute the homogeneity space and identify the pivots (and non-pivots) of its equation matrix in rref
@@ -172,6 +172,9 @@ function tropical_link(inI; p_adic_prime::Integer=32003, p_adic_precision::Integ
   pivotIndices = pivots(Eqs)
   nonpivotIndices = setdiff(collect(1:ncols(Eqs)-1),pivotIndices) # the final column of Eqs represents the RHS of the linear equations,
                                                                   # not a variable in the polynomial ring
+  if (dim(inI)!=dim(H)+1)
+    error("Homogeneity space not one-codimensional.")
+  end
 
   ###
   # Step 2: Construct linear equations and cut down the homogeneity space
