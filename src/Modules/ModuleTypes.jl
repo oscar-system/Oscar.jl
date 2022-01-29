@@ -478,17 +478,8 @@ end
 
 
 
-#abstract type ModuleFP_dec{T} <: ModuleFP{T} end
-
-#abstract type ModuleFPElem_dec{T} <: ModuleFPElem{T} end
 const ModuleFP_dec{T} = Union{FreeMod_dec{T}} # SubQuo_dec{T} will be included
 const ModuleFPElem_dec{T} = Union{FreeModElem_dec{T}} # SubQuoElem_dec{T} will be included
-
-#const AbstractFreeMod{T} = Union{FreeMod{T}, FreeMod_dec{T}}
-#const AbstractFreeModElem{T} = Union{FreeModElem{T}, FreeModElem_dec{T}}
-
-#const AbstractSubQuo{T} = Union{SubQuo{T}}
-#const AbstractSubQuoElem{T} = Union{SubQuoElem{T}}
 
 
 
