@@ -841,3 +841,30 @@ true
 ```
 """
 project_full(P::Polyhedron) = Polyhedron(Polymake.polytope.project_full(pm_object(P)))
+
+
+
+@doc Markdown.doc"""
+
+    gelfand_tsetlin(lambda::AbstractVector)
+
+Construct the Gelfand Tsetlin polytope indexed by a weakly decreasing vector `lambda`.
+
+```jldoctest
+julia> P = gelfand_tsetlin([5,3,2])
+A polyhedron in ambient dimension 6
+
+julia> isfulldimensional(P)
+false
+
+julia> p = project_full(P)
+A polyhedron in ambient dimension 3
+
+julia> isfulldimensional(p)
+true
+
+julia> volume(p)
+3
+```
+"""
+gelfand_tsetlin(lambda::AbstractVector) = Polyhedron(Polymake.polytope.gelfand_tsetlin(Vector{Rational}(lambda),projected=false))

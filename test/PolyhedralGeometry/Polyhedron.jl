@@ -159,6 +159,10 @@
         b2 = birkhoff(3, even = true)
         @test nvertices(pyramid(b1)) + 1 == nvertices(bipyramid(b1))
         @test nvertices(b1) == nvertices(b2) * 2
+        P = gelfand_tsetlin([3,2,1])
+        p = project_full(P)
+        @test volume(P) == 0
+        @test volume(p) == 1
     end
 
 end
