@@ -152,7 +152,7 @@ false
 """
 function hastorusfactor(v::AbstractNormalToricVariety)
     return get_attribute!(v, :hastorusfactor) do
-        return pm_object(v).FAN_DIM < pm_object(v).FAN_AMBIENT_DIM
+        return Polymake.common.rank(rays(fan(v))) < ambient_dim(fan(v))
     end::Bool
 end
 export hastorusfactor

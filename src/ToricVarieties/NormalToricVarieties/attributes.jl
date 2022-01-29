@@ -205,7 +205,7 @@ GrpAb: Z^2
 """
 function character_lattice(v::AbstractNormalToricVariety)
     return get_attribute!(v, :character_lattice) do
-        return free_abelian_group(dim(fan(v)))
+        return free_abelian_group(ambient_dim(fan(v)))
     end
 end
 export character_lattice
