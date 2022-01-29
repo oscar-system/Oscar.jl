@@ -205,7 +205,7 @@ GrpAb: Z^2
 """
 function character_lattice(v::AbstractNormalToricVariety)
     return get_attribute!(v, :character_lattice) do
-        return free_abelian_group(dim(fan(v)))
+        return free_abelian_group(ambient_dim(fan(v)))
     end
 end
 export character_lattice
@@ -475,14 +475,11 @@ function map_from_cartier_divisor_group_to_picard_group(v::AbstractNormalToricVa
             throw(ArgumentError("Group of the torus-invariant Cartier divisors can only be computed if the variety has no torus factor."))
         end
         
-        # compute the mappings
+        # compute mapping
         map1 = map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v)
         map2 = map_from_weil_divisors_to_class_group(v)
-        map3 = inv(image(map1*map2)[2])
-        map4 = snf(codomain(map3))[2]
+        return restrict_codomain(map1*map2)
         
-        # return the composed map
-        return map1*map2*map3*map4
     end
 end
 export map_from_cartier_divisor_group_to_picard_group

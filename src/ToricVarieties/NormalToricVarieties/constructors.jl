@@ -53,6 +53,7 @@ function AffineNormalToricVariety(C::Cone)
     set_attribute!(variety, :iscomplete, false)
     set_attribute!(variety, :isprojective, false)
     set_attribute!(variety, :is_projective_space, false)
+    set_attribute!(variety, :picard_group, free_abelian_group(0))
     
     # return
     return variety
@@ -86,6 +87,7 @@ function NormalToricVariety(C::Cone)
     set_attribute!(variety, :iscomplete, false)
     set_attribute!(variety, :isprojective, false)
     set_attribute!(variety, :is_projective_space, false)
+    set_attribute!(variety, :picard_group, free_abelian_group(0))
     
     # return
     return variety
