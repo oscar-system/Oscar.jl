@@ -62,10 +62,12 @@ tropical Groebner basis
 todo: proper documentation
 Example:
 
-val_2 = ValuationMap(QQ,2)
 Kx,(x,y,z) = PolynomialRing(QQ,3)
-I = ideal([x+2*y,y+2*z,x+y+z+1])
-tropical_points(I,val_2)
+p = 32003
+val_p = ValuationMap(QQ,32003)
+I = ideal([x+p*y,y+p*z,x+y+z+1])
+p_adic_precision=29
+tropical_points(I,val_p,p_adic_precision=29)
 
 # Kt,t = RationalFunctionField(QQ,"t")
 # val_t = ValuationMap(Kt,t)
@@ -73,46 +75,54 @@ tropical_points(I,val_2)
 # I = ideal([x+t*y,y+t*z])
 # tropical_points(I,val_t)
 =======#
-function tropical_points(I,val_p::ValuationMap{FlintRationalField, fmpq}; p_adic_precision::Int=9, remove_points_at_infinity::Bool=false) # currently only p-adic supported
+function tropical_points(I,val_p::ValuationMap{FlintRationalField, fmpq}; p_adic_precision::Int=29) # currently only p-adic supported
 
-  Kx = base_ring(I)
-  K = base_ring(Kx)
-  I0 = I
-
-  while (dim(I0)!=0)
-    I0 = I + ideal(Kx,random_affine_linear_polynomials(dim(I),Kx,val_p))
+  ###
+  # Step 0: Check whether I has solutions.
+  #   If I isn't zero-dimensional, make it zero-dimensional by adding random affine linear equations.
+  ###
+  d = dim(I)
+  if (d<0)
+    error("input ideal is 1")
+  end
+  while (d>0)
+    I = I + ideal(random_affine_linear_polynomials(d,Kx,val_p))
+    d = dim(I)
   end
 
-  GB0 = groebner_basis(I0,complete_reduction=true)
-  L0 = gens(leading_ideal(I0)) # todo: check whether this invokes a seperate GB computation
+  ###
+  # Step 1: Construct a Groebner basis (previously computed for dim)
+  #   and pass it to pAdicSolver.solve_affine_groebner_system
+  ###
+  G = groebner_basis(I,complete_reduction=true)
 
   # while true
-    # try
-  Qp = PadicField(val_p.uniformizer_ring,p_adic_precision)
-  GB0p = [change_base_ring(Qp,f) for f in GB0]
-  L0p = [change_base_ring(Qp,f) for f in L0]
-
-  global TI0p = pAdicSolver.solve_affine_groebner_system(GB0p,L0p,eigenvector_method = "tropical") #todo: pass groebner basis flag+ordering
-      # break
-    # catch
-    #   p_adic_precision *= 2 # double precision if solver unsuccessful
-    # end
+  #   try
+      Qp = PadicField(val_p.uniformizer_ring,p_adic_precision)
+      Gp = [change_base_ring(Qp,g) for g in G]
+      global Tp = pAdicSolver.solve_affine_groebner_system(Gp, eigenvector_method=:tropical, ordering=:degrevlex)
+  #     break
+  #   catch
+  #     p_adic_precision *= 2 # double precision if solver unsuccessful
+  #   end
   # end
 
-  if remove_points_at_infinity
-    return [TI0p[i,:] for i in 1:size(TI0p,1) if !contains_approximate_zero_entry(TI0p[i,:],2^63)] # pAdicSolver returns valuation -2^63 if it encounters 0
-  else
-    return [TI0p[i,:] for i in 1:size(TI0p,1)]
-  end
-end
-export tropical_points
-
-
-function contains_approximate_zero_entry(tropical_point,p_adic_precision)
-  for tropical_point_entry in tropical_point
-    if tropical_point_entry>=p_adic_precision
-      return true
+  ###
+  # Step 2: remove solutions outside the torus and return
+  ###
+  T = [];
+  for w in eachrow(Tp)
+    is_finite = true
+    for wj in w
+      if max(wj)===Inf
+        is_inf = false
+        break
+      end
+    end
+    if is_finite
+      push!(T,[(wi->-min(wi)).(w)]) # replace every entry of w with its -min (MAX CONVENTION!!!)
     end
   end
-  return false
+  return T
 end
+export tropical_points

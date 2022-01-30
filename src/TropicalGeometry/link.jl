@@ -200,8 +200,8 @@ function tropical_link(inI::MPolyIdeal; p_adic_prime::Integer=32003, p_adic_prec
   ###
   # Step 3.1: Intersect the resulting one-dimensional ideal with hyperplanes p*x1-1, ..., p*xn-1, x1+...+xn-p
   ###
-  hyperplanes = [val_p.uniformizer_ring*x[i]-1 for i in pivotIndices]
-  push!(hyperplanes,sum(x)-val_p.uniformizer_ring)
+  hyperplanes = [x[i]-val_p.uniformizer_field for i in pivotIndices]
+  push!(hyperplanes,val_p.uniformizer_field*sum(x)-1)
   rayGenerators = [];
   # rayMultiplicities = []; # ray multiplicities cannot be generally computed using this method,
                             # however this method gives lower bounds on the multiplicities which may be used for sanity checking later
@@ -217,24 +217,26 @@ function tropical_link(inI::MPolyIdeal; p_adic_prime::Integer=32003, p_adic_prec
     singular_assure(inI0)    # defines necessary objects on the Singular side
     singularIdeal = inI0.gens.S
     singularRing = base_ring(singularIdeal)
+    Singular.libSingular.set_option("OPT_REDSB", true)
     singularIdeal = Singular.satstd(singularIdeal,Singular.MaximalIdeal(singularRing,1))
+    Singular.libSingular.set_option("OPT_REDSD", false)
     inI0 = ideal(Kx,singularIdeal) # cast the Singular ideal back to an Oscar ideal
 
     ###
-    # Step 3.2: bookkeeping points on slice and their multiplicities
+    # Step 3.2: compute tropical points on slice and merge them to rayGenerators
     ###
     pointsOfSlice = []
-    multsOfSlice = []
-    for pointOfSlice in tropical_points(inI0,val_p,p_adic_precision=p_adic_precision,remove_points_at_infinity=true)
-      pointOfSlice = pointsOfSliceMatrix[i,:]        # = rational vector
-      commonDenominator = lcm([denominator(pj) for pj in pointOfSlice])
-      pointOfSlice = [numerator(commonDenominator*pj) for pj in pointOfSlice] # = integer vector
-      j = findfirst(isequal(pointOfSlice),pointsOfSlice)
-      if j == nothing
-        push!(pointsOfSlice,pointOfSlice)
-        push!(multsOfSlice,1)
-      else
-        multsOfSlice[j] += 1
+    for pointsOfSlice in tropical_points(inI0,val_p,p_adic_precision=p_adic_precision) # todo: check how long it takes to saturate inI0
+      #   so that points at infinity are hard erros
+      for pointOfSlice in pointsOfSlice
+        commonDenominator = lcm([denominator(pj) for pj in pointOfSlice])
+        pointOfSlice = [commonDenominator*pj for pj in pointOfSlice] # = integer vector
+        commonFactor = gcd([numerator(pj) for pj in pointOfSlice])
+        rayGenerator = [numerator(pj//commonFactor) for pj in pointOfSlice]
+        j = findfirst(isequal(pointOfSlice),rayGenerators)
+        if j == nothing
+          push!(rayGenerators,pointOfSlice)
+        end
       end
     end
 
@@ -244,18 +246,8 @@ function tropical_link(inI::MPolyIdeal; p_adic_prime::Integer=32003, p_adic_prec
     # println("mults: ",multsOfSlice)
     # println("==================================")
 
-    ###
-    # Step 3.3: merge points and multiplicities on slice and check for consistency
-    ###
-    for (pointOfSlice,m) in zip(pointsOfSlice,multsOfSlice)
-      j = findfirst(isequal(pointOfSlice),rayGenerators)
-      if j == nothing
-        push!(rayGenerators,pointOfSlice)
-        # push!(rayMultiplicities,m)
-      end
-    end
   end
 
-  return rayGenerators,rayMultiplicities
+  return rayGenerators
 end
 export tropical_link
