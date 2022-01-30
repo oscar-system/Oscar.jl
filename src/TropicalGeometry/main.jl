@@ -58,6 +58,21 @@ function tropical_polynomial_to_polymake(f)
 end
 
 
+###
+# Allow gcd of vectors of univariate rational polynomials
+# to make their handling similar to that of integers
+###
+function gcd(F::Vector{fmpq_poly})
+  F_gcd,F_latter = Iterators.peel(F)
+
+  for f in F_latter
+    F_gcd = gcd(F_gcd,f)
+  end
+
+  return F_gcd
+end
+
+
 
 include("variety_supertype.jl")
 include("variety.jl")

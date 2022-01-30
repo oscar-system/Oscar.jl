@@ -308,45 +308,25 @@ function desimulate_valuation(w::Vector, u::Vector, val::ValuationMap)
 end
 
 
-# #=======
-# function which reduces polynomials in variables t,x1, ..., xn simulating the valuation by p-t
-# unless the polynomial to be reduced is p-t or t-p
-# =======#
-# function tighten_simulation(f::MPolyElem,val::ValuationMap)
-
-#   Rtx = parent(f)
-#   pt = val.uniformizer_ring - gens(Rtx)[1]
-#   if f==pt || f==-pt
-#     return f
-#   end
-
-#   R = coefficient_ring(f)
-#   p = val.uniformizer_field
-#   f_tightened = MPolyBuildCtx(Rtx)
-#   for (c,alpha) in zip(coefficients(f),exponent_vectors(f))
-#     v = val(c)
-#     alpha[1] += v
-#     push_term!(f_tightened,R(c*p^-v),alpha)
-#   end
-
-#   return finish(f_tightened)
-
-# end
-# export tighten_simulation
-
-
 #=======
 function which reduces polynomials in variables t,x1, ..., xn simulating the valuation by p-t
 unless the polynomial to be reduced is p-t or t-p
 Example:
 val_2 = ValuationMap(QQ,2)
-Kx,(x1,x2,x3) = PolynomialRing(QQ,3)
-I = ideal([x1+2*x2,x2+2*x3])
-vvI = simulate_valuation(I,val_2)
-Rtx = base_ring(vvI)
-(p,x1,x2,x3) = gens(Rtx)
+Rtx,(p,x1,x2,x3) = PolynomialRing(val_2.valued_ring,["p","x1","x2","x3"])
 f = x1+p*x1+p^2*x1+2^2*x2+p*x2+p^2*x2+x3
 tighten_simulation(f,val_2)
+tighten_simulation(2^3*f,val_2)
+tighten_simulation(p^3*f,val_2)
+
+K,s = RationalFunctionField(QQ,"s")
+val_s = ValuationMap(K,s)
+s = val_s.uniformizer_ring
+Rtx,(t,x1,x2,x3) = PolynomialRing(val_s.valued_ring,["t","x1","x2","x3"])
+f = x1+t*x1+t^2*x1+s^2*x2+t*x2+t^2*x2+x3
+tighten_simulation(f,val_s)
+tighten_simulation(s^3*f,val_s)
+tighten_simulation(t^3*f,val_s)
 =======#
 function tighten_simulation(f::MPolyElem,val::ValuationMap)
 
@@ -359,16 +339,21 @@ function tighten_simulation(f::MPolyElem,val::ValuationMap)
   end
 
   # subsitute first variable by uniformizer_ring so that all monomials have distinct x-monomials
+  # and compute the gcd of its coefficients
   f = evaluate(f,[1],[p]) # todo: sanity check that f is not 0
+  cGcd = val.valued_field(gcd([c for c in coefficients(f)]))
 
-  # next replace uniformizer_ring with first variable first exponent equals valuation
-  R = coefficient_ring(f)
+  # next divide f by the gcd of its coefficients
+  # and replace uniformizer_ring by first variable
+  K = val.valued_field
+  R = val.valued_ring
   p = val.uniformizer_field
   f_tightened = MPolyBuildCtx(Rtx)
   for (c,alpha) in zip(coefficients(f),exponent_vectors(f))
+    c = K(c)//cGcd # casting c into K for the t-adic valuation case where typeof(c)=fmpq_poly
     v = val(c)
     alpha[1] += v
-    push_term!(f_tightened,R(c*p^-v),alpha)
+    push_term!(f_tightened,R(c//p^v),alpha)
   end
 
   return finish(f_tightened)
