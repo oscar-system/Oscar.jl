@@ -25,7 +25,7 @@ Construct the torus invariant divisor on the normal toric variety `v` as linear 
 
 # Examples
 ```jldoctest
-julia> ToricDivisor(toric_projective_space(2), [1,1,2])
+julia> ToricDivisor(projective_space(NormalToricVariety, 2), [1,1,2])
 A torus-invariant, non-prime divisor on a normal toric variety
 ```
 """
@@ -66,7 +66,7 @@ Construct the torus invariant divisor associated to a character of the normal to
 
 # Examples
 ```jldoctest
-julia> DivisorOfCharacter(toric_projective_space(2), [1,2])
+julia> DivisorOfCharacter(projective_space(NormalToricVariety, 2), [1,2])
 A torus-invariant, non-prime divisor on a normal toric variety
 ```
 """

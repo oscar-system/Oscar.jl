@@ -1,3 +1,5 @@
+import Oscar.projective_space
+
 ######################
 # 1: The Julia type for ToricVarieties
 ######################
@@ -192,17 +194,17 @@ end
 ######################
 
 @doc Markdown.doc"""
-    toric_affine_space(d::Int)
+    affine_space(::Type{NormalToricVariety}, d::Int)
 
 Constructs the (toric) affine space of dimension `d`.
 
 # Examples
 ```jldoctest
-julia> toric_affine_space(2)
+julia> affine_space(NormalToricVariety, 2)
 A normal, affine, 2-dimensional toric variety
 ```
 """
-function toric_affine_space(d::Int)
+function affine_space(::Type{NormalToricVariety}, d::Int)
     # construct the cone of the variety
     m = zeros(Int, d, d)
     for i in 1:d
@@ -229,21 +231,21 @@ function toric_affine_space(d::Int)
     # return the variety
     return variety
 end
-export toric_affine_space
+export affine_space
 
 
 @doc Markdown.doc"""
-    toric_projective_space(d::Int)
+    projective_space(::Type{NormalToricVariety}, d::Int)
 
 Construct the projective space of dimension `d`.
 
 # Examples
 ```jldoctest
-julia> toric_projective_space(2)
+julia> projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 ```
 """
-function toric_projective_space(d::Int)
+function projective_space(::Type{NormalToricVariety}, d::Int)
     # construct the variety
     f = normal_fan(Oscar.simplex(d))
     pm_object = Polymake.fulton.NormalToricVariety(Oscar.pm_object(f))
@@ -278,7 +280,7 @@ function toric_projective_space(d::Int)
     # return the variety
     return variety
 end
-export toric_projective_space
+export projective_space
 
 
 @doc Markdown.doc"""
@@ -356,7 +358,7 @@ function del_pezzo(b::Int)
     
     # special case of projective space
     if b == 0 
-        return toric_projective_space(2)
+        return projective_space(NormalToricVariety, 2)
     end
     
     # construct the "true" toric del Pezzo surfaces
@@ -451,7 +453,7 @@ Return the blowup of the normal toric variety `v` on its i-th minimal torus orbi
 
 # Examples
 ```jldoctest
-julia> P2 = toric_projective_space(2)
+julia> P2 = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> blowup_on_ith_minimal_torus_orbit(P2,1)
@@ -471,7 +473,7 @@ Return the Cartesian/direct product of two normal toric varieties `v` and `w`.
 
 # Examples
 ```jldoctest
-julia> P2 = toric_projective_space(2)
+julia> P2 = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> P2 * P2

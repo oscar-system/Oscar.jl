@@ -34,7 +34,7 @@ Convenience method for ToricLineBundle(v::AbstractNormalToricVariety, c::Vector{
 
 # Examples
 ```jldoctest
-julia> v = toric_projective_space(2)
+julia> v = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> l = ToricLineBundle( v, [ 2 ] )
