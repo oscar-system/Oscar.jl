@@ -38,7 +38,7 @@ julia> v = toric_projective_space(2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> l = ToricLineBundle( v, [ 2 ] )
-A line bundle on a normal toric variety corresponding to a polyhedral fan in ambient dimension 2
+A toric line bundle on a normal toric variety
 ```
 """
 function ToricLineBundle(v::AbstractNormalToricVariety, input_class::Vector{Int})
@@ -52,6 +52,21 @@ end
 ########################
 
 function Base.show(io::IO, line_bundle::ToricLineBundle)
-    ambdim = pm_object(line_bundle.variety).FAN_AMBIENT_DIM
-    print(io, "A line bundle on a normal toric variety corresponding to a polyhedral fan in ambient dimension $(ambdim)")
+    
+    # initiate properties string
+    properties_string = ["A toric"]
+    
+    # collect known properties
+    if has_attribute(line_bundle, :toric_divisor)
+        td = toric_divisor(line_bundle)        
+        push_attribute_if_exists!(properties_string, td, :isprincipal, "trivial")
+        push_attribute_if_exists!(properties_string, td, :is_basepoint_free, "basepoint-free")
+        ample_cb!(a,b) = push_attribute_if_exists!(a, b, :isample, "ample")
+        push_attribute_if_exists!(properties_string, td, :is_very_ample, "very-ample"; callback=ample_cb!)
+    end
+    
+    # print
+    push!(properties_string, "line bundle on a normal toric variety")
+    join(io, properties_string, ", ", " ")
+    
 end
