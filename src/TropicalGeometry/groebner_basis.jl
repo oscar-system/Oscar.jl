@@ -9,7 +9,6 @@
 ###
 
 
-
 #=======
 tropical Groebner basis
 todo: proper documentation
@@ -95,14 +94,15 @@ function groebner_basis(I::MPolyIdeal,val::ValuationMap,w::Vector{<: Union{Int,R
   # todo: replace with groebner_bases in OSCAR once more orderings are supported
   S,_ = Singular.PolynomialRing(singular_ring(base_ring(Rtx)), map(string, Nemo.symbols(Rtx)), ordering = Singular.ordering_a(w)*Singular.ordering_dp())
   SI = Singular.Ideal(S, [S(g) for g in gens(vvI)])
-  vvGB = Singular.gens(Singular.std(SI,complete_reduction=complete_reduction))
+  Singular.libSingular.set_option("OPT_REDSB", true)
+  vvGB = Singular.gens(Singular.satstd(SI,Singular.MaximalIdeal(S,1)))
+  Singular.libSingular.set_option("OPT_REDSD", false)
 
 
   ###
-  # Step 2: tighten simulation so that no two monomials of the standard basis elements have the same x-monomial
+  # Step 2: tighten simulation
   ###
   vvGB = [S(tighten_simulation(Rtx(g),val)) for g in vvGB]
-
 
   ###
   # Step 3: if complete_reduction = true and val is non-trivial,
@@ -125,14 +125,14 @@ function groebner_basis(I::MPolyIdeal,val::ValuationMap,w::Vector{<: Union{Int,R
     Singular.libSingular.set_option("OPT_INFREDTAIL", false)
   end
 
-  GB = desimulate_valuation(ideal(Rtx,vvGB),val)
+  GB = desimulate_valuation(ideal(Rtx,vvGB),val) #todo rewrite (de)simulate_valuation to accept polys + vector of polys
   if return_lead
     vvLI = Singular.lead(vvGB)
     LI = desimulate_valuation(ideal(Rtx,Singular.gens(vvLI)),val)
     return gens(GB),gens(LI)
   end
-
   return gens(GB)
+
 end
 
 
