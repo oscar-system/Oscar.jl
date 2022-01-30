@@ -48,7 +48,38 @@ end
 
 
 ########################
-# 3: Display
+# 3: Special constructors
+########################
+
+# The following is both a special constructor of a toric line bundle and an attribute of a toric variety.
+# We hence provide snake case and Camel case methods to call it.
+
+@doc Markdown.doc"""
+    StructureSheaf(v::AbstractNormalToricVariety)
+
+Construct the structure sheaf of a normal toric variety.
+
+# Examples
+```jldoctest
+julia> v = projective_space(NormalToricVariety, 2)
+A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+
+julia> StructureSheaf(v)
+A toric line bundle on a normal toric variety
+```
+"""
+function StructureSheaf(v::AbstractNormalToricVariety)
+    return get_attribute!(v, :structure_sheaf) do
+        class = zero(picard_group(v))
+        return ToricLineBundle(v, class)
+    end
+end
+structure_sheaf(v::AbstractNormalToricVariety) = StructureSheaf(v)
+export StructureSheaf, structure_sheaf
+
+
+########################
+# 4: Display
 ########################
 
 function Base.show(io::IO, line_bundle::ToricLineBundle)
