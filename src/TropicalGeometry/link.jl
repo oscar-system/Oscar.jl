@@ -225,18 +225,15 @@ function tropical_link(inI::MPolyIdeal; p_adic_prime::Integer=32003, p_adic_prec
     ###
     # Step 3.2: compute tropical points on slice and merge them to rayGenerators
     ###
-    pointsOfSlice = []
-    for pointsOfSlice in tropical_points(inI0,val_p,p_adic_precision=p_adic_precision) # todo: check how long it takes to saturate inI0
+    for pointOfSlice in tropical_points(inI0,val_p,p_adic_precision=p_adic_precision) # todo: check how long it takes to saturate inI0
       #   so that points at infinity are hard erros
-      for pointOfSlice in pointsOfSlice
-        commonDenominator = lcm([denominator(pj) for pj in pointOfSlice])
-        pointOfSlice = [commonDenominator*pj for pj in pointOfSlice] # = integer vector
-        commonFactor = gcd([numerator(pj) for pj in pointOfSlice])
-        rayGenerator = [numerator(pj//commonFactor) for pj in pointOfSlice]
-        j = findfirst(isequal(pointOfSlice),rayGenerators)
-        if j == nothing
-          push!(rayGenerators,pointOfSlice)
-        end
+      commonDenominator = lcm([denominator(pj) for pj in pointOfSlice])
+      pointOfSlice = [commonDenominator*pj for pj in pointOfSlice] # = integer vector
+      commonFactor = gcd([numerator(pj) for pj in pointOfSlice])
+      rayGenerator = [numerator(pj//commonFactor) for pj in pointOfSlice]
+      j = findfirst(isequal(pointOfSlice),rayGenerators)
+      if j == nothing
+        push!(rayGenerators,pointOfSlice)
       end
     end
 
