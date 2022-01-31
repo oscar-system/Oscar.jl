@@ -2,7 +2,7 @@ import Oscar.AlgHom
 
 export ProjectiveScheme, base_ring, fiber_dimension, homogeneous_coordinate_ring, gens, getindex, affine_patch_type
 export projective_space, subscheme
-export projection_to_base, affine_cone, set_base_scheme!, base_scheme, homogeneous_coordinates, convert_to_fraction, convert_to_homog_polys
+export projection_to_base, affine_cone, set_base_scheme!, base_scheme, homogeneous_coordinates, convert_to_fraction, convert_to_homog_polys, as_covered_scheme, covered_projection_to_base, dehomogenize
 export MorphismOfProjectiveSchemes, domain, codomain, images_of_variables, map_on_affine_cones, is_well_defined
 
 @Markdown.doc """
@@ -14,7 +14,7 @@ type `CoeffRingElemType`. The subscheme ``X`` is given by means of a homogeneous
 ideal ``I`` in the graded ring ``A[s₀,…,sᵣ]`` and the latter is of type 
 `RingType` with elements of type `RingElemType`.
 """
-mutable struct ProjectiveScheme{CoeffRingType, CoeffRingElemType, RingType, RingElemType}
+@attributes mutable struct ProjectiveScheme{CoeffRingType, CoeffRingElemType, RingType, RingElemType}
   A::CoeffRingType	# the base ring
   r::Int	# the relative dimension
   S::RingType   # A[s₀,…,sᵣ]
@@ -491,5 +491,49 @@ function CoherentSheafOnProjectiveSpace(M)
   S = base_ring(M)
   X = ProjectiveScheme(S)
   return CoherentSheafOnProjectiveScheme(X, M)
+end
+
+function as_covered_scheme(P::ProjectiveScheme)
+  if has_attribute(P, :as_covered_scheme) 
+    return get_attribute(P, :as_covered_scheme)
+  end
+  C = standard_covering(P) 
+  X = CoveredScheme(C)
+  set_attribute!(P, :as_covered_scheme, X)
+  return X
+  #return X::covering_type(P) TODO: establish type assertion here!
+end
+
+function covered_projection_to_base(X::ProjectiveScheme{CRT}) where {CRT<:MPolyQuoLocalizedRing}
+  if has_attribute(X, :covered_projection_to_base) 
+    return get_attribute(X, :covered_projection_to_base)
+  end
+  C = standard_covering(X)
+  return get_attribute(X, :covered_projection_to_base) # TODO: establish type assertion here!
+end
+
+
+function dehomogenize(X::ProjectiveScheme{CRT}, f::RingElemType, i::Int) where {CRT<:MPolyQuoLocalizedRing, RingElemType<:MPolyElem_dec}
+  i in 0:fiber_dimension(X) || error("the given integer is not in the admissible range")
+  S = homogeneous_coordinate_ring(X)
+  parent(f) == S || error("the given polynomial does not have the correct parent")
+  C = standard_covering(X)
+  U = C[i+1]
+  p = covered_projection_to_base(X)
+  s = vcat(gens(OO(U))[1:i], [one(OO(U))], gens(OO(U))[i+1:fiber_dimension(X)])
+  return evaluate(map_coefficients(pullback(p[U]), f), s)
+end
+
+function dehomogenize(X::ProjectiveScheme{CRT}, f::Vector{RingElemType}, i::Int) where {CRT<:MPolyQuoLocalizedRing, RingElemType<:MPolyElem_dec}
+  i in 0:fiber_dimension(X) || error("the given integer is not in the admissible range")
+  S = homogeneous_coordinate_ring(X)
+  for a in f 
+    parent(a) == S || error("the given polynomial does not have the correct parent")
+  end
+  C = standard_covering(X)
+  U = C[i+1]
+  p = covered_projection_to_base(X)
+  s = vcat(gens(OO(U))[1:i], [one(OO(U))], gens(OO(U))[i+1:fiber_dimension(X)])
+  return [evaluate(map_coefficients(pullback(p[U]), a), s) for a in f]
 end
 

@@ -2,7 +2,7 @@ export Glueing
 export glueing_morphism, patches, glueing_domains, inverse_glueing_morphism, inverse
 export glueing_type
 
-export compose, maximal_extension
+export compose, maximal_extension, restriction
 
 
 @Markdown.doc """
@@ -106,4 +106,10 @@ end
 
 function glueing_type(::Type{SpecType}) where {SpecType}
   return Glueing{SpecType, open_subset_type(SpecType), morphism_type(open_subset_type(SpecType), open_subset_type(SpecType))}
+end
+
+function restriction(G::Glueing, X::SpecType, Y::SpecType) where {SpecType<:Spec}
+  U, V = glueing_domains(G)
+  f, g = glueing_morphisms(G)
+  return Glueing(X, Y, restriction(f, intersect(X, U), intersect(Y, V)), restriction(g, intersect(Y, V), intersect(X, U)))
 end

@@ -273,6 +273,7 @@ include("../experimental/Schemes/SpecOpen.jl")
 include("../experimental/Schemes/Glueing.jl")
 include("../experimental/Schemes/ProjectiveSchemes.jl")
 include("../experimental/Schemes/CoveredScheme.jl")
+include("../experimental/Schemes/IdealSheaves.jl")
 
 include("../StraightLinePrograms/src/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl")

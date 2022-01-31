@@ -1,6 +1,14 @@
 export Covering, patches, npatches, glueings, add_glueing!, standard_covering, glueing_graph, update_glueing_graph, transition_graph, edge_dict, disjoint_union
 export fill_transitions!
 
+export affine_patch_type, glueing_type
+
+export CoveringMorphism
+export morphism_type
+
+export CoveredScheme
+export coverings, refinements
+
 import Oscar.Graphs: Graph, Directed, Undirected, add_edge!, vertices, edges, all_neighbors, neighbors, add_vertex!, nv, ne, has_edge
 
 
@@ -63,6 +71,11 @@ getindex(C::Covering, i::Int, j::Int) = glueings(C)[(patches(C)[i], patches(C)[j
 getindex(C::Covering, X::SpecType, Y::SpecType) where {SpecType<:Spec} = glueings(C)[(X, Y)]
 edge_dict(C::Covering) = C.edge_dict
 
+affine_patch_type(C::Covering{SpecType, GlueingType}) where {SpecType<:Spec, GlueingType<:Glueing} = SpecType
+glueing_type(C::Covering{SpecType, GlueingType}) where {SpecType<:Spec, GlueingType<:Glueing} = GlueingType
+affine_patch_type(::Type{Covering{SpecType, GlueingType}}) where {SpecType<:Spec, GlueingType<:Glueing} = SpecType
+glueing_type(::Type{Covering{SpecType, GlueingType}}) where {SpecType<:Spec, GlueingType<:Glueing} = GlueingType
+
 # TODO: For some reason, the `indexin` method won't work. In the long 
 # run, one should probably find out why and fix it. 
 function getindex(C::Covering, X::SpecType) where {SpecType<:Spec} 
@@ -105,7 +118,10 @@ end
 
 ### standard constructors 
 
-function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:AbstractAlgebra.Field}
+function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:AbstractAlgebra.Ring}
+  if has_attribute(X, :standard_covering) 
+    return get_attribute(X, :standard_covering)
+  end
   CX = affine_cone(X)
   kk = base_ring(X)
   S = homogeneous_coordinate_ring(X)
@@ -125,13 +141,17 @@ function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:AbstractAlgebra
     y = gens(base_ring(OO(U[i])))
     f = maximal_extension(U[1], U[i], vcat([1//x[i-1]], [x[k]//x[i-1] for k in 1:i-2], [x[k]//x[i-1] for k in i:r]))
     g = maximal_extension(U[i], U[1], vcat([y[k]//y[1] for k in 2:i-1], [1//y[1]], [y[k]//y[1] for k in i:r]))
-    add_glueing!(result, Glueing(U[1], U[i], restriction(f, domain(f), domain(g)), restriction(g, domain(g), domain(f))))
+    add_glueing!(result, Glueing(U[1], U[i], restrict(f, domain(f), domain(g)), restrict(g, domain(g), domain(f))))
   end
   fill_transitions!(result)
+  set_attribute!(P, :standard_covering, result)
   return result
 end
 
 function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:MPolyQuoLocalizedRing}
+  if has_attribute(X, :standard_covering) 
+    return get_attribute(X, :standard_covering)
+  end
   CX = affine_cone(X)
   Y = base_scheme(X)
   L = OO(Y)
@@ -141,6 +161,7 @@ function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:MPolyQuoLocaliz
   S = homogeneous_coordinate_ring(X)
   r = fiber_dimension(X)
   U = Vector{affine_patch_type(X)}()
+  pU = Dict{affine_patch_type(X), morphism_type(affine_patch_type(X), typeof(Y))}()
   # TODO: Check that all weights are equal to one. Otherwise the routine is not implemented.
   s = symbols(S)
   # for each homogeneous variable, set up the chart 
@@ -152,8 +173,11 @@ function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:MPolyQuoLocaliz
     mapped_polys = [map_coefficients(pullback(pY), f) for f in gens(defining_ideal(X))]
     patch = subscheme(ambient_space, [evaluate(f, vcat(fiber_vars[1:i], [one(OO(ambient_space))], fiber_vars[i+1:end])) for f in mapped_polys])
     push!(U, patch)
+    pU[patch] = restrict(pY, patch, Y)
   end
   result = Covering(U)
+  # manually glue sufficiently many patches.
+  # TODO: this needs adjustment since the patches might not be sufficiently dense one in another.
   for i in 2:r+1
     x = gens(base_ring(OO(U[1])))
     y = gens(base_ring(OO(U[i])))
@@ -162,6 +186,9 @@ function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:MPolyQuoLocaliz
     add_glueing!(result, Glueing(U[1], U[i], restriction(f, domain(f), domain(g)), restriction(g, domain(g), domain(f))))
   end
   fill_transitions!(result)
+  covered_projection = CoveringMorphism(result, Covering(Y), pU)
+  set_attribute!(X, :covered_projection_to_base, covered_projection)
+  set_attribute!(X, :standard_covering, result)
   return result
 end
 
@@ -281,8 +308,15 @@ mutable struct CoveringMorphism{SpecType<:Spec, CoveringType<:Covering, SpecMorT
   end
 end
 
+morphism_type(C::Covering{SpecType, GlueingType}) where {SpecType<:Spec, GlueingType<:Glueing} = CoveringMorphism{SpecType, Covering{SpecType, GlueingType}, morphism_type(SpecType, SpecType)}
+morphism_type(::Type{Covering{SpecType, GlueingType}}) where {SpecType<:Spec, GlueingType<:Glueing} = CoveringMorphism{SpecType, Covering{SpecType, GlueingType}, morphism_type(SpecType, SpecType)}
 
-mutable struct CoveredScheme{CoveringType<:Covering, CoveringMorphismType<:CoveringMorphism}
+domain(f::CoveringMorphism) = f.domain
+codomain(f::CoveringMorphism) = f.codomain
+getindex(f::CoveringMorphism, U::Spec) = f.morphisms[U]
+
+
+@attributes mutable struct CoveredScheme{CoveringType<:Covering, CoveringMorphismType<:CoveringMorphism}
   coverings::Vector{CoveringType}
   refinements::Dict{Tuple{CoveringType, CoveringType}, CoveringMorphismType}
   refinement_graph::Graph{Directed}
@@ -291,5 +325,16 @@ mutable struct CoveredScheme{CoveringType<:Covering, CoveringMorphismType<:Cover
     # TODO: Check whether the refinements form a connected graph.
     return new{CoveringType, CoveringMorphismType}(coverings, refinements)
   end
+end
+
+coverings(X::CoveredScheme) = X.coverings
+refinements(X::CoveredScheme) = X.refinements
+getindex(X::CoveredScheme, C::CoveringType, D::CoveringType) where {CoveringType<:Covering} = X.refinements[(C, D)]
+
+function CoveredScheme(C::Covering)
+  refinements = Dict{Tuple{typeof(C), typeof(C)}, morphism_type(C)}()
+  X = CoveredScheme([C], refinements)
+  set_attribute!(X, :seed_covering, C)
+  return X
 end
 
