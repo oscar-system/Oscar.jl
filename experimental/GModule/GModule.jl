@@ -136,6 +136,146 @@ function gmodule(::FlintRationalField, C::GModule{<:Any, Generic.FreeModule{nf_e
   return GModule(F, group(C), [hom(F, F, hvcat(dim(C), [representation_matrix(x) for x = transpose(mat(y))]...)) for y = C.ac])
 end
 
+
+function Hecke.frobenius(K::FinField, i::Int=1)
+  MapFromFunc(x->Hecke.frobenius(x, i), y -> Hecke.frobenius(x, degree(K)-i), K, K)
+end
+
+function gmodule_minimal_field(C::GModule{<:Any, <:Generic.FreeModule{gfp_elem}})
+  return C
+end
+
+function gmodule_minimal_field(C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}})
+  K =  base_ring(C)
+  d = 1
+  while d < degree(K)
+    degree(K) % d == 0 || continue
+    k = GF(Int(characteristic(K)), d)
+    D = gmodule_over(k, C, do_error = false)
+    D === nothing || return D
+  end
+  return C
+end
+
+function gmodule_over(k::FinField, C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}}; do_error::Bool = false)
+  #mathematically, k needs to contain the character field
+  #only works for irreducible modules
+  #requires rel cyclic Galois group, not really finite field...
+  #
+  K = base_ring(C)
+  #method: let s = sigma be a generator for Gal(K/k), and rho the representation
+  #attached to C, then if there is A s.th. 
+  #    A^-1 rho(g) A in GL(k)
+  # then
+  #    A^-s rho(g)^s A^s = A^-1 rho(g) A
+  # so
+  #    rho(g)^s = A^sA^-1 rho(g) A A^-s
+  # Let thus B s.th.
+  #    rho(g)^s = B^-1 rho(g) B
+  # so
+  #    rho(g)^(s^2) = (rho(g)^s)^s =
+  #                 = (B^-1 rho(g) B)^s 
+  #                 = B^-s rho(g)^s B^s 
+  #                 = B^-s B^-1 rho(g) B B^s
+  # inductively:
+  #    rho(g)^(s^i) = B^-(s^i-1) B^-(s^(i-1)) ... B^-1 rho(g) B B^s ...
+  # From s^n = 1, we obtain N(B) = prod_i=0^n-1 B^(s^i) = lambda I
+  # (since rho is irreducible and thus the matrix unque up to scalar)
+  # IF B is, as above A^(1-s), then N(B) = 1, so there should be
+  # alpha s.th. N(alpha) = lambda
+  # thus N(alpha^-1 B) = I
+  # Hilbert 90: alpha^-1 B = S^(1-s) and we can use this S to conjugate down
+
+  # ALGO
+  s = frobenius(K, degree(k))
+  mkK = embed(k, K)
+  os = divexact(degree(K), degree(k))
+  hB = hom_base(C, gmodule(C.M, Group(C), [hom(C.M, C.M, map_entries(s, mat(x))) for x = C.ac]))
+  if length(hB) != 1
+    do_error && error("does not work")
+    return nothing
+  end
+  B = hB[1]
+  D = norm(B, s, os)
+  lambda = D[1,1]
+  @assert D == lambda*identity_matrix(K, dim(C))
+  alpha = _norm_equation(K, preimage(mkK, lambda))
+  B *= inv(alpha)
+  @assert isone(norm(B, s, os))
+  D = hilbert90_cyclic(B, s, os)
+  Di = inv(D)
+  F = free_module(k, dim(C))
+  return gmodule(F, Group(C), [hom(F, F, map_entries(x -> preimage(mkK, x), Di*mat(x)*D)) for x = C.ac])
+  # return C^-1 x C for x = action_gens(C), coerced into k
+end
+
+"""
+Hunt for b s.th. prod_i=0^os-1 b^(s^i) =a
+"""
+#TODO conflicts with the "same" algo in Hecke - where it does not
+#     work due to a missing function or so.
+function _norm_equation(K::FinField, a::FinFieldElem)
+  # a in K, k = fix(K, <s>)
+  # we want irr. poly over k of degree(K:k) with constant term \pm a
+  # then a root in K has the norm...
+  k = parent(a)
+  fkK = embed(k, K)
+  os = divexact(degree(K), degree(k))
+  if isodd(os)
+    a = -a
+  end
+  kt, t = PolynomialRing(k, cached = false)
+  while true
+    f = t^os + a + sum(t^rand(1:os-1)*rand(k) for i=1:rand(1:os-1))
+    isirreducible(f) || continue
+    r = roots(map_coefficients(fkK, f))[1]
+    return r
+  end
+end
+
+function norm(A::MatElem, s, os::Int)
+  B = A
+  C = map_entries(s, A)
+  for i=1:os-1
+    B *= C
+    C = map_entries(s, C)
+  end
+  return B
+end
+"""
+A needs to have norm 1 wrt. to s, so
+  A A^s, .. A^(s^n) = I
+for ord(s) = n+1. Then this will find B s.th.
+  A = B^(1-s)
+"""
+function hilbert90_cyclic(A::MatElem{<:FinFieldElem}, s, os::Int)
+  #apart form rand, this would also work over a number field
+  cnt = 1
+  while true
+    B = rand(parent(A))
+    Bs = map_entries(s, B)
+    As = A
+    for i=1:os-1
+      B += As*Bs
+      As = A*map_entries(s, As)
+      Bs = map_entries(s, Bs)
+    end
+    if !iszero(det(B))
+      @assert A == B*inv(map_entries(s, B))
+      return B
+    else
+      if cnt > 10
+        error("")
+      end
+      cnt += 1
+      @show :darn
+    end
+  end
+end
+
+function character_field(C::GModule{<:Any, Generic.FreeModule{<:FinField}})
+end
+
 function gmodule(k::Nemo.GaloisField, C::GModule{<:Any, Generic.FreeModule{fmpq}})
   F = free_module(k, dim(C))
   return GModule(group(C), [hom(F, F, map_entries(k, mat(x))) for x=C.ac])
@@ -815,7 +955,8 @@ function brueckner(mQ::Map{FPGroup, PcGroup}; primes::Vector=[])
     end
 
     for i = I
-      l = lift(gmodule(GrpAbFinGen, i), mQ)
+      ii = Oscar.GModuleFromGap.gmodule_minimal_field(i)
+      l = lift(gmodule(GrpAbFinGen, ii), mQ)
       append!(allR, [x for x in l])# if issurjective(x)])
     end
   end
@@ -938,6 +1079,7 @@ function lift(C::GModule, mp::Map)
     #      not all "epi" are epi, ie. surjective. The part of the thm
     #      is missing...
     # (Thm 15, part b & c)
+    global last_c = z(chn)
     @show (preimage(z, z(chn)) - chn).coeff
     @show order(preimage(z, z(chn)) - chn)
     @show mH2(preimage(z, z(chn)) - chn).coeff

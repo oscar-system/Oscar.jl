@@ -700,21 +700,21 @@ function H_two(C::GModule)
     CC += (T-S)*inj[pos[i]]
   end
   i, mi = image(CC)
+#  @show intersect(i, E)
   H2, mH2 = quo(E, i)
 
   function TailFromCoChain(cc::CoChain{2})
     #for all tails, ie. rules with pos[r]>0, we need to use
-    #the 2-chain to compute r[1]*inv(r[2])
+    #the 2-chain to compute inv(r[2])*r[1]
+    #rule with tail: r[1] = r[2]*t, so t = r[2]^-1*r[1]
     T = zero(D)
     for r=1:length(pos)
       if pos[r] == 0
         continue
       end
-      w = copy(R[r][1])
-      for v in reverse(R[r][2])
-        push!(w, -v)
-      end
-      #w is r[1]*inv(r[2])
+      w = [-x for x = reverse(R[r][2])]
+      append!(w, R[r][1])
+      #w is inv(r[2])*r[1]
 
       t = zero(M)
       g = one(G)
@@ -731,6 +731,8 @@ function H_two(C::GModule)
       end
       T += inj[pos[r]](t)
     end
+    @show T.coeff
+    @show preimage(mE, T).coeff
     return T
   end
 
@@ -959,6 +961,8 @@ function pc_group(M::GrpAbFinGen; refine::Bool = true)
     return M(z)
   end
 
+  @assert isisomorphic(B, fp_group(M)[1])[1]
+
   return B, MapFromFunc(
     x->image(mM, gap_to_julia(x.X)),
     y->PcGroupElem(B, Julia_to_gap(preimage(mM, y))),
@@ -1042,6 +1046,8 @@ function pc_group(M::Generic.FreeModule{<:FinFieldElem}; refine::Bool = true)
     end
     GAP.Globals.SetPower(C, i, GAP.Globals.Identity(F))
   end
+  @assert isabelian(B)
+  @assert order(B) == order(M)
 
   return B, MapFromFunc(
     x->gap_to_julia(x.X),
