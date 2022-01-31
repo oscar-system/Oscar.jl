@@ -26,7 +26,8 @@ mutable struct Glueing{SpecType<:Spec, OpenType<:SpecOpen, MorType<:SpecOpenMor}
     }
     ambient(domain(f)) == X || error("the domain of the glueing morphism is not an open subset of the first argument")
     ambient(codomain(f)) == Y || error("the codomain of the glueing morphism is not an open subset of the second argument")
-    (domain(f) == codomain(g) && domain(g) == codomain(f)) || error("maps can not be isomorphisms")
+    (canonically_isomorphic(domain(f), codomain(g)) && 
+     canonically_isomorphic(domain(g), codomain(f))) || error("maps can not be isomorphisms")
     return new{SpecType, open_subset_type(X), MorType}(X, Y, domain(f), codomain(f), f, g)
   end
 end

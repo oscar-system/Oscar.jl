@@ -6,7 +6,7 @@ export Spec, OO
 export affine_space
 export EmptyScheme
 
-export is_open_embedding, is_closed_embedding, hypersurface_complement, subscheme, name_of, set_name!
+export is_open_embedding, is_closed_embedding, canonically_isomorphic, hypersurface_complement, subscheme, name_of, set_name!
 export closure, product
 
 export SpecMor, morphism_type
@@ -224,20 +224,24 @@ function issubset(
   return issubset(J, localized_modulus(OO(X)))
 end
 
-function ==(
+function ==(X::T, Y::T) where {T<:Spec}
+  return X === Y
+end
+
+function canonically_isomorphic(
     X::Spec{BRT, BRET, RT, RET, MST1}, 
     Y::Spec{BRT, BRET, RT, RET, MST2}
   ) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
-  X == EmptyScheme(coefficient_ring(base_ring(OO(Y)))) && Y == EmptyScheme(coefficient_ring(base_ring(OO(X)))) && return true
+  isempty(X) && isempty(Y) && return true
   base_ring(OO(X)) == base_ring(OO(Y)) || return false
   return issubset(X, Y) && issubset(Y, X)
 end
 
-function ==(X::Spec, Y::EmptyScheme)
+function canonically_isomorphic(X::Spec, Y::EmptyScheme)
   return issubset(X, Y)
 end
 
-==(X::EmptyScheme, Y::Spec) = (Y == X)
+canonically_isomorphic(X::EmptyScheme, Y::Spec) = canonically_isomorphic(Y, X)
 
 Base.isempty(X::Spec) = iszero(one(OO(X)))
 

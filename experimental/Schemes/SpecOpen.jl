@@ -1,4 +1,4 @@
-export SpecOpen, ambient, gens, complement, npatches, affine_patches, intersections, name, intersect, issubset, closure, find_non_zero_divisor, is_non_zero_divisor, is_dense, open_subset_type, ambient_type
+export SpecOpen, ambient, gens, complement, npatches, affine_patches, intersections, name, intersect, issubset, closure, find_non_zero_divisor, is_non_zero_divisor, is_dense, open_subset_type, ambient_type, canonically_isomorphic
 
 export StructureSheafRing, scheme, domain, OO, structure_sheaf_ring_type
 
@@ -189,12 +189,12 @@ function intersect(
     V::SpecOpen
   )
   X = ambient(U) 
-  X == ambient(V) || error("ambient schemes do not coincide")
+  canonically_isomorphic(X, ambient(V)) || error("ambient schemes do not coincide")
   return SpecOpen(X, [a*b for a in gens(U) for b in gens(V)])
 end
 
 function Base.union(U::T, V::T) where {T<:SpecOpen}
-  ambient(U) == ambient(V) || error("the two open sets do not lay in the same ambient scheme")
+  canonically_isomorphic(ambient(U), ambient(V)) || error("the two open sets do not lay in the same ambient scheme")
   return SpecOpen(ambient(U), vcat(gens(U), gens(V)))
 end
 
@@ -220,22 +220,22 @@ function issubset(U::T, V::T) where {T<:SpecOpen}
   return issubset(complement(intersect(V, ambient(U))), complement(U))
 end
 
-function ==(U::T, V::T) where {T<:SpecOpen}
+function canonically_isomorphic(U::T, V::T) where {T<:SpecOpen}
   return issubset(U, V) && issubset(V, U)
 end
 
-function ==(
+function canonically_isomorphic(
     U::SpecOpen,
     Y::Spec
   )
   return issubset(U, Y) && issubset(Y, U)
 end
 
-function ==(
+function canonically_isomorphic(
     Y::Spec,
     U::SpecOpen
   )
-  return U == Y
+  return canonically_isomorphic(U, Y)
 end
 
 @Markdown.doc """
@@ -311,8 +311,8 @@ OO(U::SpecOpen) = StructureSheafRing(ambient(U), U)
 OO(X::Spec, U::SpecOpen) = StructureSheafRing(X, U)
 
 function ==(R::T, S::T) where {T<:StructureSheafRing} 
-  scheme(R) == scheme(S) || return false
-  domain(S) == domain(R) || return false
+  canonically_isomorphic(scheme(R), scheme(S)) || return false
+  canonically_isomorphic(domain(S), domain(R)) || return false
   return true
 end
 
@@ -321,7 +321,7 @@ function elem_type(R::StructureSheafRing)
 end
 
 function ==(R::T, S::T) where {T<:StructureSheafRing}
-  return scheme(R) == scheme(S) && domain(R) == domain(S)
+  return canonically_isomorphic(scheme(R), scheme(S)) && canonically_isomorphic(domain(R), domain(S))
 end
 
 @Markdown.doc """
@@ -505,7 +505,7 @@ end
 
 function inclusion_morphism(U::T, V::T) where {T<:SpecOpen}
   X = ambient(U)
-  ambient(V) == X || error("method not implemented")
+  canonically_isomorphic(ambient(V), X) || error("method not implemented")
   return SpecOpenMor(U, V, gens(base_ring(OO(X))))
 end
 
@@ -630,8 +630,8 @@ end
 identity_map(U::SpecOpen) = SpecOpenMor(U, U, [SpecMor(V, ambient(U), gens(localized_ring(OO(V)))) for V in affine_patches(U)])
 
 function ==(f::T, g::T) where {T<:SpecOpenMor} 
-  domain(f) == domain(g) || return false
-  codomain(f) == codomain(g) || return false
+  canonically_isomorphic(domain(f), domain(g)) || return false
+  canonically_isomorphic(codomain(f), codomain(g)) || return false
   Y = ambient(codomain(f))
   m = length(affine_patches(domain(f)))
   n = length(affine_patches(domain(g)))
