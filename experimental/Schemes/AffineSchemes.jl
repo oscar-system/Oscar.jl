@@ -128,6 +128,26 @@ function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, f::Vector{RET}) where {BRT,
   return subscheme(X, I)
 end
 
+function subscheme(X::Spec, f::RET) where {RET<:MPolyQuoLocalizedRingElem}
+  I = ideal(OO(X), [f])
+  return subscheme(X, I)
+end
+
+function subscheme(X::Spec, f::Vector{RET}) where {RET<:MPolyQuoLocalizedRingElem}
+  I = ideal(OO(X), f)
+  return subscheme(X, I)
+end
+
+function subscheme(X::Spec, f::RET) where {RET<:MPolyLocalizedRingElem}
+  I = ideal(OO(X), [f])
+  return subscheme(X, I)
+end
+
+function subscheme(X::Spec, f::Vector{RET}) where {RET<:MPolyLocalizedRingElem}
+  I = ideal(OO(X), f)
+  return subscheme(X, I)
+end
+
 function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, f::BRET) where {BRT, BRET, RT, RET, MST}
   R = base_ring(OO(X))
   I = ideal(R, R(f))
@@ -362,11 +382,14 @@ end
 
 function restrict(f::SpecMor{BRT, BRET, RT, RET, MST1, MST2}, 
     U::Spec{BRT, BRET, RT, RET, MST1},
-    V::Spec{BRT, BRET, RT, RET, MST2}
+    V::Spec{BRT, BRET, RT, RET, MST2};
+    check::Bool=true
   ) where {BRT, BRET, RT, RET, MST1, MST2}
-  issubset(U, domain(f)) || error("second argument does not lay in the domain of the map")
-  issubset(V, codomain(f)) || error("third argument does not lay in the codomain of the map")
-  issubset(U, preimage(f, V)) || error("the image of the restriction is not contained in the restricted codomain")
+  if check
+    issubset(U, domain(f)) || error("second argument does not lay in the domain of the map")
+    issubset(V, codomain(f)) || error("third argument does not lay in the codomain of the map")
+    issubset(U, preimage(f, V)) || error("the image of the restriction is not contained in the restricted codomain")
+  end
   return SpecMor(U, V, images(pullback(f)))
 end
 

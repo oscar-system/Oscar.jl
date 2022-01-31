@@ -91,6 +91,17 @@ function Covering(patches::Vector{SpecType}) where {SpecType<:Spec}
   return Covering(patches, g)
 end
 
+Covering(X::SpecType) where {SpecType<:Spec} = Covering([X])
+
+function Base.show(io::IO, C::Covering) 
+  println(io, 
+          "Covering with $(npatches(C)) patch" * 
+          (npatches(C) == 1 ? "" : "es") * 
+          " and glueing graph")
+  print(io, glueing_graph(C))
+end
+
+
 
 ### standard constructors 
 
@@ -104,7 +115,9 @@ function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:AbstractAlgebra
   s = symbols(S)
   for i in 0:r
     R, x = PolynomialRing(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
-    push!(U, Spec(R))
+    dehomog_mor = AlgebraHomomorphism(S, R, vcat(gens(R)[1:i], [one(R)], gens(R)[i+2:r]))
+    I = ideal(R, dehomog_mor.(gens(defining_ideal(CX))))
+    push!(U, Spec(R, I))
   end
   result = Covering(U)
   for i in 2:r+1
@@ -130,11 +143,14 @@ function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:MPolyQuoLocaliz
   U = Vector{affine_patch_type(X)}()
   # TODO: Check that all weights are equal to one. Otherwise the routine is not implemented.
   s = symbols(S)
+  # for each homogeneous variable, set up the chart 
   for i in 0:r
-    R, x = PolynomialRing(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
-    F = Spec(R)
-    patch, _, _ = product(F, Y)
-    # TODO: Harvest the projection maps
+    R_fiber, x = PolynomialRing(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
+    F = Spec(R_fiber)
+    ambient_space, pF, pY = product(F, Y)
+    fiber_vars = pullback(pF).(gens(R_fiber))
+    mapped_polys = [map_coefficients(pullback(pY), f) for f in gens(defining_ideal(X))]
+    patch = subscheme(ambient_space, [evaluate(f, vcat(fiber_vars[1:i], [one(OO(ambient_space))], fiber_vars[i+1:end])) for f in mapped_polys])
     push!(U, patch)
   end
   result = Covering(U)

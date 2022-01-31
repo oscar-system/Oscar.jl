@@ -37,6 +37,7 @@ this is an open subset;
   function SpecOpen(X::SpecType, f::Vector{RET}; name::String="") where {SpecType<:Spec, RET<:RingElem}
     for a in f
       parent(a) == base_ring(OO(X)) || error("element does not belong to the correct ring")
+      iszero(OO(X)(a)) && error("generators must not be zero")
     end
     U = new{SpecType, typeof(base_ring(X)), elem_type(base_ring(X))}(X, f)
     length(name) > 0 && set_name!(U, name)
@@ -664,7 +665,7 @@ function preimage(f::SpecOpenMor, V::SpecOpen)
   for i in 1:npatches(U)
     I = intersect(I, saturated_ideal(ideal(OO(U[i]), pullback(f[i]).(gens(V)))))
   end
-  return intersect(U, SpecOpen(X, gens(I)))
+  return intersect(U, SpecOpen(X, I))
 end
 
 function is_non_zero_divisor(f::RET, U::SpecOpen) where {RET<:RingElem}

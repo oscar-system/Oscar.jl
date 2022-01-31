@@ -187,6 +187,27 @@ function affine_patch_type(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:
              }
 end
 
+function subscheme(P::ProjectiveScheme, f::RingElemType) where {RingElemType<:MPolyElem_dec}
+  S = homogeneous_coordinate_ring(P)
+  parent(f) == S || error("ring element does not belong to the correct ring")
+  return ProjectiveScheme(S, defining_ideal(P) + ideal(S, [f]))
+end
+
+function subscheme(P::ProjectiveScheme, f::Vector{RingElemType}) where {RingElemType<:MPolyElem_dec}
+  S = homogeneous_coordinate_ring(P)
+  length(f) == 1 && return P #TODO: Replace P by an honest copy!
+  for i in 1:length(f)
+    parent(f) == S || error("ring element does not belong to the correct ring")
+  end
+  return ProjectiveScheme(S, defining_ideal(P) + ideal(S, f))
+end
+
+function subscheme(P::ProjectiveScheme, I::MPolyIdeal{T}) where {T<:RingElem}
+  S = homogeneous_coordinate_ring(P)
+  base_ring(I) == S || error("ideal does not belong to the correct ring")
+  return ProjectiveScheme(S, I + defining_ideal(P))
+end
+
 function projective_space(A::CoeffRingType, var_symb::Vector{Symbol}) where {CoeffRingType<:Ring}
   n = length(var_symb)
   R, _ = PolynomialRing(A, var_symb)
@@ -221,14 +242,6 @@ function projective_space(W::Spec, var_names::Vector{String})
   P = projective_space(OO(W), var_name)
   set_base_scheme!(P, W)
   return P
-end
-
-function subscheme(P::ProjectiveScheme, I::MPolyIdeal{T}) where {T<:RingElem}
-  S = homogeneous_coordinate_ring(P)
-  for f in gens(I)
-    parent(f) == S || error("elements do not belong to the correct ring")
-  end
-  return ProjectiveScheme(S, I + defining_ideal(P))
 end
 
 @Markdown.doc """

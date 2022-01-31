@@ -404,6 +404,10 @@ function (L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST})(f::MPolyQuoElem{RET
   return L(lift(f))
 end
 
+function (L::MPolyQuoLocalizedRing)() 
+  return L(zero(base_ring(L)))
+end
+
 ### additional functionality
 @Markdown.doc """
     lift(f::MPolyQuoLocalizedRingElem)
@@ -507,7 +511,7 @@ function convert(
   lower = pop!(powers_of_d)
   while length(powers_of_d) > 0
     middle = lower*pop!(powers_of_d)
-    (result, coefficient) = divides(Q(a*last(powers_of_d)), Q(b))
+    (result, coefficient) = divides(Q(a*middle), Q(b))
     if result 
       upper = middle
     else 
