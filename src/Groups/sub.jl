@@ -324,7 +324,7 @@ function quo(::Type{Q}, G::T, elements::Vector{S}) where {Q <: GAPGroup, T <: GA
   F, epi = quo(G, elements)
   if !(F isa Q)
     F, map = isomorphic_group(Q, F)
-    epi = compose(map, epi)
+    epi = compose(epi, map)
   end
   return F, epi
 end
@@ -373,7 +373,7 @@ function quo(::Type{Q}, G::T, N::T) where {Q <: GAPGroup, T <: GAPGroup}
   F, epi = quo(G, N)
   if !(F isa Q)
     F, map = isomorphic_group(Q, F)
-    epi = compose(map, epi)
+    epi = compose(epi, map)
   end
   return F, epi
 end
@@ -426,7 +426,7 @@ function maximal_abelian_quotient(::Type{Q}, G::GAPGroup) where Q <: GAPGroup
   F, epi = maximal_abelian_quotient(G)
   if !(F isa Q)
     F, map = isomorphic_group(Q, F)
-    epi = compose(map, epi)
+    epi = compose(epi, map)
   end
   return F, epi
 end
