@@ -474,6 +474,8 @@ mutable struct SpecOpenMor{DomainType<:SpecOpen, CodomainType<:SpecOpen, SpecMor
       for i in 1:n
         domain(f[i]) == affine_patches(U)[i] || error("domain of definition of the map does not coincide with the patch")
         codomain(f[i]) == Y || error("codomain is not compatible")
+        #canonically_isomorphic(domain(f[i]), affine_patches(U)[i]) || error("domain of definition of the map does not coincide with the patch")
+        #canonically_isomorphic(codomain(f[i]), Y) || error("codomain is not compatible")
       end
       for i in 1:n-1
 	for j in i+1:n
@@ -497,6 +499,10 @@ domain(f::SpecOpenMor) = f.domain
 codomain(f::SpecOpenMor) = f.codomain
 maps_on_patches(f::SpecOpenMor) = f.maps_on_patches
 getindex(f::SpecOpenMor, i::Int) = maps_on_patches(f)[i]
+
+function Base.show(io::IO, f::SpecOpenMor) 
+  print(io, "Morphism from $(domain(f)) to $(codomain(f)) given by the rational map $(generic_fractions(f))")
+end
 
 function SpecOpenMor(U::T, V::T, f::Vector) where {T<:SpecOpen}
   Y = ambient(V)
@@ -617,14 +623,40 @@ function maximal_extension(
   return maximal_extension(X, Y, FractionField(base_ring(OO(X))).(f))
 end
 
+### the restriction of a morphism to open subsets in domain and codomain
 function restriction(
     f::SpecOpenMor,
     U::SpecOpen,
-    V::SpecOpen
+    V::SpecOpen;
+    check::Bool=true
   )
+  if check
+    issubset(U, domain(f)) || error("the given open is not an open subset of the domain of the map")
+    issubset(V, codomain(f)) || error("the given open is not an open subset of the codomain of the map")
+  end
   inc = SpecOpenMor(U, domain(f), [SpecMor(W, ambient(domain(f)), gens(localized_ring(OO(W)))) for W in affine_patches(U)])
   help_map = compose(inc, f)
   return SpecOpenMor(U, V, maps_on_patches(help_map))
+end
+
+### the restriction of a morphism to closed subsets in domain and codomain
+function restriction(
+    f::SpecOpenMor,
+    X::SpecType,
+    Y::SpecType;
+    check::Bool=true
+  ) where {SpecType<:Spec}
+  U = intersect(X, domain(f))
+  V = intersect(Y, codomain(f))
+
+  # first restrict in the domain by composing with the inclusion
+  inc = SpecOpenMor(U, domain(f), [SpecMor(W, ambient(domain(f)), gens(localized_ring(OO(W)))) for W in affine_patches(U)])
+  help_map = compose(inc, f)
+
+  # then manually restrict on the codomain by modifying the maps on the patches
+  new_maps_on_patches = [restrict(h, domain(h), Y) for h in maps_on_patches(help_map)]
+
+  return SpecOpenMor(U, V, new_maps_on_patches)
 end
 
 identity_map(U::SpecOpen) = SpecOpenMor(U, U, [SpecMor(V, ambient(U), gens(localized_ring(OO(V)))) for V in affine_patches(U)])

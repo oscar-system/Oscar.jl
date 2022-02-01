@@ -108,8 +108,12 @@ function glueing_type(::Type{SpecType}) where {SpecType}
   return Glueing{SpecType, open_subset_type(SpecType), morphism_type(open_subset_type(SpecType), open_subset_type(SpecType))}
 end
 
-function restriction(G::Glueing, X::SpecType, Y::SpecType) where {SpecType<:Spec}
+function restriction(G::Glueing, X::SpecType, Y::SpecType; check::Bool=true) where {SpecType<:Spec}
   U, V = glueing_domains(G)
   f, g = glueing_morphisms(G)
-  return Glueing(X, Y, restriction(f, intersect(X, U), intersect(Y, V)), restriction(g, intersect(Y, V), intersect(X, U)))
+  if check
+    is_closed_embedding(intersect(X, ambient(U)), ambient(U)) || error("the scheme is not a closed in the ambient scheme of the open set")
+    is_closed_embedding(intersect(Y, ambient(V)), ambient(V)) || error("the scheme is not a closed in the ambient scheme of the open set")
+  end
+  return Glueing(X, Y, restriction(f, X, Y, check=check), restriction(g, Y, X, check=check))
 end

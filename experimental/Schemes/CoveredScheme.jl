@@ -1,4 +1,4 @@
-export Covering, patches, npatches, glueings, add_glueing!, standard_covering, glueing_graph, update_glueing_graph, transition_graph, edge_dict, disjoint_union
+export Covering, patches, npatches, glueings, add_glueing!, standard_covering, glueing_graph, update_glueing_graph, transition_graph, edge_dict, disjoint_union, neighbor_patches
 export fill_transitions!
 
 export affine_patch_type, glueing_type
@@ -7,7 +7,7 @@ export CoveringMorphism
 export morphism_type
 
 export CoveredScheme
-export coverings, refinements
+export coverings, refinements, default_covering, set_name!, name_of
 
 import Oscar.Graphs: Graph, Directed, Undirected, add_edge!, vertices, edges, all_neighbors, neighbors, add_vertex!, nv, ne, has_edge
 
@@ -71,6 +71,12 @@ getindex(C::Covering, i::Int, j::Int) = glueings(C)[(patches(C)[i], patches(C)[j
 getindex(C::Covering, X::SpecType, Y::SpecType) where {SpecType<:Spec} = glueings(C)[(X, Y)]
 edge_dict(C::Covering) = C.edge_dict
 
+function neighbor_patches(C::Covering, U::Spec)
+  gg = glueing_graph(C)
+  n = neighbors(gg, C[U])
+  return [C[i] for i in n]
+end
+
 affine_patch_type(C::Covering{SpecType, GlueingType}) where {SpecType<:Spec, GlueingType<:Glueing} = SpecType
 glueing_type(C::Covering{SpecType, GlueingType}) where {SpecType<:Spec, GlueingType<:Glueing} = GlueingType
 affine_patch_type(::Type{Covering{SpecType, GlueingType}}) where {SpecType<:Spec, GlueingType<:Glueing} = SpecType
@@ -131,8 +137,8 @@ function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:AbstractAlgebra
   s = symbols(S)
   for i in 0:r
     R, x = PolynomialRing(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
-    dehomog_mor = AlgebraHomomorphism(S, R, vcat(gens(R)[1:i], [one(R)], gens(R)[i+2:r]))
-    I = ideal(R, dehomog_mor.(gens(defining_ideal(CX))))
+    dehomog_mor = AlgebraHomomorphism(S, R, vcat(gens(R)[1:i], [one(R)], gens(R)[i+1:r]))
+    I = ideal(R, dehomog_mor.(gens(defining_ideal(X))))
     push!(U, Spec(R, I))
   end
   result = Covering(U)
@@ -141,10 +147,10 @@ function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:AbstractAlgebra
     y = gens(base_ring(OO(U[i])))
     f = maximal_extension(U[1], U[i], vcat([1//x[i-1]], [x[k]//x[i-1] for k in 1:i-2], [x[k]//x[i-1] for k in i:r]))
     g = maximal_extension(U[i], U[1], vcat([y[k]//y[1] for k in 2:i-1], [1//y[1]], [y[k]//y[1] for k in i:r]))
-    add_glueing!(result, Glueing(U[1], U[i], restrict(f, domain(f), domain(g)), restrict(g, domain(g), domain(f))))
+    add_glueing!(result, Glueing(U[1], U[i], restriction(f, domain(f), domain(g)), restriction(g, domain(g), domain(f))))
   end
   fill_transitions!(result)
-  set_attribute!(P, :standard_covering, result)
+  set_attribute!(X, :standard_covering, result)
   return result
 end
 
@@ -321,15 +327,29 @@ getindex(f::CoveringMorphism, U::Spec) = f.morphisms[U]
   refinements::Dict{Tuple{CoveringType, CoveringType}, CoveringMorphismType}
   refinement_graph::Graph{Directed}
 
+  default_covering::CoveringType
+
   function CoveredScheme(coverings::Vector{CoveringType}, refinements::Dict{Tuple{CoveringType, CoveringType}, CoveringMorphismType}) where {CoveringType<:Covering, CoveringMorphismType<:CoveringMorphism}
     # TODO: Check whether the refinements form a connected graph.
-    return new{CoveringType, CoveringMorphismType}(coverings, refinements)
+    X = new{CoveringType, CoveringMorphismType}(coverings, refinements)
+    X.default_covering = X.coverings[1]
+    return X
   end
 end
 
 coverings(X::CoveredScheme) = X.coverings
 refinements(X::CoveredScheme) = X.refinements
 getindex(X::CoveredScheme, C::CoveringType, D::CoveringType) where {CoveringType<:Covering} = X.refinements[(C, D)]
+default_covering(X::CoveredScheme) = X.default_covering
+
+set_name!(X::CoveredScheme, name::String) = set_attribute!(X, :name, name)
+name_of(X::CoveredScheme) = get_attribute(X, :name)::String
+
+function set_default_covering!(X::CoveredScheme, C::Covering) 
+  C in coverings(X) || error("covering is not listed")
+  X.default_covering = C
+  return X
+end
 
 function CoveredScheme(C::Covering)
   refinements = Dict{Tuple{typeof(C), typeof(C)}, morphism_type(C)}()
@@ -338,3 +358,10 @@ function CoveredScheme(C::Covering)
   return X
 end
 
+function Base.show(io::IO, X::CoveredScheme)
+  if has_attribute(X, :name)
+    print(io, name_of(X))
+    return
+  end
+  print(io, "covered scheme with $(npatches(default_covering(X))) affine patches in its default covering")
+end

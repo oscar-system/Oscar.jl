@@ -37,3 +37,10 @@ add_glueing!(C, Glueing(X, Y, restriction(f, domain(f), domain(g)), restriction(
 
 # Extend the glueing to the whole covered scheme
 fill_transitions!(C)
+
+X = CoveredScheme(C)
+U = Cs[3]
+(uw, vw, sw) = gens(base_ring(OO(U)))
+fws = vw^2 - uw^3 - -14*sw^12 + 10*uw*sw^8 + 10*sw^5
+I = IdealSheaf(X, [fws])
+S = subscheme(I)

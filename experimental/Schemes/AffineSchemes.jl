@@ -2,7 +2,8 @@ import AbstractAlgebra.Ring
 import Base: intersect
 
 export Scheme
-export Spec, OO
+export Spec, OO, defining_ideal
+export base_ring_type, base_ring_elem_type, poly_type, poly_ring_type, mult_set_type
 export affine_space
 export EmptyScheme
 
@@ -51,6 +52,22 @@ mutable struct Spec{BRT, BRET, RT, RET, MST} <: Scheme{BRT, BRET}
   end
 end
 
+### Type getters
+
+base_ring_type(X::Spec{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = BRT
+base_ring_elem_type(X::Spec{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = BRET
+mult_set_type(X::Spec{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = MST
+poly_ring_type(X::Spec{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = RT
+poly_type(X::Spec{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = RET
+
+base_ring_type(::Type{Spec{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = BRT
+base_ring_elem_type(::Type{Spec{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = BRET
+mult_set_type(::Type{Spec{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = MST
+poly_ring_type(::Type{Spec{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = RT
+poly_type(::Type{Spec{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = RET
+
+
+
 
 ### Getter functions
 
@@ -81,6 +98,7 @@ function Base.show(io::IO, X::Spec)
 end
 
 base_ring(X::Spec) = coefficient_ring(base_ring(OO(X)))
+defining_ideal(X::Spec) = modulus(OO(X))
 
 ### Copy constructor
 Spec(X::Spec) = Spec(OO(X))
