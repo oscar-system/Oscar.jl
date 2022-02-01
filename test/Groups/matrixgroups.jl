@@ -686,3 +686,34 @@ end
    g = -identity_matrix(K, 3)
    @test g in G
 end
+
+@testset "deepcopy" begin
+   g = general_linear_group(2, 4)
+
+   m = MatrixGroupElem(g, gen(g, 1).X);  # do not call `show`!
+   @test isdefined(m, :X)
+   @test ! isdefined(m, :elm)
+   c = deepcopy(m);
+   @test isdefined(c, :X)
+   @test ! isdefined(c, :elm)
+   @test c.X == m.X
+
+   m = MatrixGroupElem(g, gen(g, 1).elm, gen(g, 1).X)
+   @test isdefined(m, :X)
+   @test isdefined(m, :elm)
+   c = deepcopy(m);
+   @test isdefined(c, :X)
+   @test isdefined(c, :elm)
+   @test c.X == m.X
+   @test c.elm == m.elm
+
+   m = MatrixGroupElem(g, gen(g, 1).elm)
+   @test ! isdefined(m, :X)
+   @test isdefined(m, :elm)
+   c = deepcopy(m);
+   @test ! isdefined(c, :X)
+   @test isdefined(c, :elm)
+   @test c.elm == m.elm
+
+   @test deepcopy([one(g)]) == [one(g)]
+end

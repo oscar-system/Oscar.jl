@@ -125,6 +125,23 @@ parent_type(::Type{T}) where T<:MatrixGroupElem{RE,S} where {RE,S} = MatrixGroup
 parent_type(::T) where T<:MatrixGroupElem{RE,S} where {RE,S} = MatrixGroup{RE,S}
 
 
+function Base.deepcopy_internal(x::MatrixGroupElem, dict::IdDict)
+  if isdefined(x, :X)
+    X = Base.deepcopy_internal(x.X, dict)
+    if isdefined(x, :elm)
+      elm = Base.deepcopy_internal(x.elm, dict)
+      return MatrixGroupElem(x.parent, elm, X)
+    else
+      return MatrixGroupElem(x.parent, X)
+    end
+  elseif isdefined(x, :elm)
+    elm = Base.deepcopy_internal(x.elm, dict)
+    return MatrixGroupElem(x.parent, elm)
+  end
+  error("$x has neither :X nor :elm")
+end
+
+
 ########################################################################
 #
 # Basic

@@ -131,3 +131,15 @@ end
    @test_throws ErrorException gen(G, 0)
 end
 
+@testset "deepcopy" begin
+   for g in [symmetric_group(5), free_group(2), small_group(8, 1),
+             automorphism_group(alternating_group(4))]
+     m = Oscar.BasicGAPGroupElem(g, gen(g, 1).X)
+     @test isdefined(m, :X)
+     c = deepcopy(m);
+     @test isdefined(c, :X)
+     @test c.X == m.X
+
+     @test deepcopy([one(g)]) == [one(g)]
+   end
+end
