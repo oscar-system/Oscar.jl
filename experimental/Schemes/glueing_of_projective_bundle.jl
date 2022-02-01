@@ -44,3 +44,14 @@ U = Cs[3]
 fws = vw^2 - uw^3 - -14*sw^12 + 10*uw*sw^8 + 10*sw^5
 I = IdealSheaf(X, [fws])
 S = subscheme(I)
+
+X = S
+set_name!(X, "X")
+H2 = IdealSheaf(X, [sw^2])
+set_name!(H2, "H2")
+D = WeilDivisor(H2)
+L = IdealSheaf(X, [vw^2])
+set_name!(L, "L")
+D = D + 7*WeilDivisor(L)
+
+I = IdealSheaf(X, [fws^8+1])

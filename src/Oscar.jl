@@ -274,6 +274,7 @@ include("../experimental/Schemes/Glueing.jl")
 include("../experimental/Schemes/ProjectiveSchemes.jl")
 include("../experimental/Schemes/CoveredScheme.jl")
 include("../experimental/Schemes/IdealSheaves.jl")
+include("../experimental/Schemes/WeilDivisor.jl")
 
 include("../StraightLinePrograms/src/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl")
@@ -283,10 +284,6 @@ include("../experimental/Experimental.jl")
 include("Rings/binomial_ideals.jl")
 
 include("ToricVarieties/JToric.jl")
-
-include("../experimental/Schemes/AffineSchemes.jl")
-include("../experimental/Schemes/SpecOpen.jl")
-include("../experimental/Schemes/ProjectiveSchemes.jl")
 
 if is_dev
 #  include("../examples/ModStdNF.jl")

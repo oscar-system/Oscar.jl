@@ -686,7 +686,7 @@ function preimage(f::SpecOpenMor, Z::Spec)
     I = intersect(I, localized_modulus(OO(closure(preimage(f[i], Z), X))))
   end
   fZbar = subscheme(X, I)
-  return SpecOpen(fZbar, gens(U))
+  return SpecOpen(fZbar, [g for g in gens(U) if !iszero(OO(fZbar)(g))])
 end
 
 function preimage(f::SpecOpenMor, V::SpecOpen)
