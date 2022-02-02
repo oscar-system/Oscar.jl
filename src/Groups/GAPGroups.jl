@@ -32,7 +32,7 @@ export
     isalmostsimple, hasisalmostsimple, setisalmostsimple,
     isconjugate,
     isfinite, hasisfinite, setisfinite,
-    isfinite_order,
+    isfiniteorder,
     isperfect, hasisperfect, setisperfect,
     ispgroup,
     issimple, hasissimple, setissimple,
@@ -100,21 +100,23 @@ false
 Base.isfinite(G::PcGroup) = true
 
 """
-    isfinite_order(g::GAPGroupElem) -> Bool
+    isfiniteorder(g::GAPGroupElem) -> Bool
 
 Return `true` if `g` has finite order, and `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> isfinite_order(gen(symmetric_group(5), 1))
+julia> isfiniteorder(gen(symmetric_group(5), 1))
 true
 
-julia> isfinite_order(gen(free_group(2), 1))
+julia> isfiniteorder(gen(free_group(2), 1))
 false
 
 ```
 """
-isfinite_order(x::GAPGroupElem) = GAPWrap.IsInt(GAP.Globals.Order(x.X))::Bool
+isfiniteorder(x::GAPGroupElem) = GAPWrap.IsInt(GAP.Globals.Order(x.X))::Bool
+
+@deprecate isfinite_order(x::GAPGroupElem) isfiniteorder(x)
 
 """
     order(::Type{T} = fmpz, x::Union{GAPGroupElem, GAPGroup}) where T <: IntegerUnion
@@ -131,7 +133,7 @@ use [`isfinite`](@ref) in order to check for finiteness.
 function order(::Type{T}, x::Union{GAPGroupElem, GAPGroup}) where T <: IntegerUnion
    ord = GAP.Globals.Order(x.X)::GapInt
    if ord === GAP.Globals.infinity
-      error("order() not supported for infinite groups, use isfinite()")
+      throw(GroupsCore.InfiniteOrder(x))
    end
    return T(ord)
 end
@@ -140,6 +142,10 @@ order(x::Union{GAPGroupElem, GAPGroup}) = order(fmpz, x)
 
 @gapwrap hasorder(G::GAPGroup) = GAP.Globals.HasSize(G.X)
 @gapwrap setorder(G::GAPGroup, val::T) where T<:IntegerUnion = GAP.Globals.SetSize(G.X, GapObj(val))
+
+
+@gapattribute istrivial(x::GAPGroup) = GAP.Globals.IsTrivial(x.X)::Bool
+
 
 @doc Markdown.doc"""
     exponent(::Type{T} = fmpz, G::GAPGroup) where T <: IntegerUnion

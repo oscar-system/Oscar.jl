@@ -1,6 +1,15 @@
 L = [ alternating_group(5), cyclic_group(18), SL(3,3), free_group(0), free_group(1), free_group(2) ]
 
-@testset "GAPGroups_interface_conformance" for G in L
+import Oscar.AbstractAlgebra.GroupsCore
+
+#include(joinpath(dirname(pathof(GroupsCore)), "..", "test", "conformance_test.jl"))
+
+@testset "GAPGroups_interface_conformance for $(G)" for G in L
+
+   # TODO: enable GroupsCore conformance tests; this requires a new GroupsCore
+   # release with https://github.com/kalmarek/GroupsCore.jl/pull/41 merged.
+   #test_Group_interface(G)
+   #test_GroupElement_interface(rand(G, 2)...)
 
    g, h = rand(G,2)
 
@@ -26,8 +35,9 @@ L = [ alternating_group(5), cyclic_group(18), SL(3,3), free_group(0), free_group
       if isfinite(G)
          @test order(G) isa fmpz
          @test order(G) > 0
+         @test istrivial(G) == (order(G) == 1)
       else
-        @test_throws ErrorException order(G)
+        @test_throws GroupsCore.InfiniteOrder{typeof(G)} order(G)
       end
    end
 

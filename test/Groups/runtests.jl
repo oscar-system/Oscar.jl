@@ -2,7 +2,7 @@ using Oscar
 using Test
 
 include("abelian_aut.jl")
-include("testing.jl")
+include("conformance.jl")
 include("constructors.jl")
 include("operations.jl")
 include("elements.jl")
