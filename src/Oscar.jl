@@ -58,7 +58,7 @@ function __init__()
     print("... \n ... which comes with absolutely no warranty whatsoever")
     println()
     println("Type: '?Oscar' for more information")
-    println("(c) 2019-2021 by The Oscar Development Team")
+    println("(c) 2019-2022 by The Oscar Development Team")
   end
 
   append!(_gap_group_types,

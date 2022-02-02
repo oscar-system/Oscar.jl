@@ -37,10 +37,10 @@ julia> using Oscar
  -----    -----    -----   -     -  -     -
 
 ...combining (and extending) ANTIC, GAP, Polymake and Singular
-Version 0.7.2-DEV ...
+Version 0.8.0-DEV ...
 ... which comes with absolutely no warranty whatsoever
 Type: '?Oscar' for more information
-(c) 2019-2021 by The Oscar Development Team
+(c) 2019-2022 by The Oscar Development Team
 
 julia> k, a = quadratic_field(-5)
 (Imaginary quadratic field defined by x^2 + 5, sqrt(-5))
@@ -141,6 +141,32 @@ PropertyValue wrapping pm::Array<polymake::topaz::HomologyGroup<pm::Integer>>
 ({(2 1)} 0)
 ({} 0)
 ```
+
+## Citing OSCAR
+
+If you have used OSCAR in the preparation of a paper please cite it as described below:
+
+    [OSCAR]
+        OSCAR -- Open Source Computer Algebra Research system, Version 0.8.0-DEV, The OSCAR Team, 2022. (https://oscar.computeralgebra.de)
+    [OSCAR-book]
+        Christian Eder, Wolfram Decker, Claus Fieker, Max Horn, Michael Joswig, The OSCAR book, 2024.
+
+If you are using BibTeX, you can use the following BibTeX entries:
+
+    @misc{OSCAR,
+      key          = {OSCAR},
+      organization = {The OSCAR Team},
+      title        = {OSCAR -- Open Source Computer Algebra Research system,
+                      Version 0.8.0-DEV},
+      year         = {2022},
+      url          = {https://oscar.computeralgebra.de},
+      }
+
+    @Book{OSCAR-book,
+      editor = {Eder, Christian and Decker, Wolfram and Fieker, Claus and Horn, Max and Joswig, Michael},
+      title = {The OSCAR book},
+      year = {2024},
+    }
 
 ## Funding
 
