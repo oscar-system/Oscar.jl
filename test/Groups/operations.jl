@@ -3,8 +3,7 @@
    @testset "Elements of Sym($i)" for i in 8:16
       if i>1
       G=symmetric_group(i)
-      x=@inferred rand(G)
-      y=rand(G)
+      x,y = @inferred rand(G, 2)
       #z=cperm(1:i)
       z=G(vcat([j for j in 2:i],[1]))
       if i>3

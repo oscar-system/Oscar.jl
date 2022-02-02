@@ -1,44 +1,9 @@
-export FreeMod_dec, FreeModElem_dec, decoration, free_module_dec
-
-abstract type ModuleFP_dec{T} <: ModuleFP{T} end
-abstract type AbstractFreeMod_dec{T} <: AbstractFreeMod{T} end
-abstract type AbstractSubQuo_dec{T} <: AbstractSubQuo{T} end
-
-abstract type AbstractFreeModElem_dec{T} <: AbstractFreeModElem{T} end
-abstract type AbstractSubQuoElem_dec{T} <: AbstractSubQuoElem{T} end
-
-const CRing_dec = Union{MPolyRing_dec, MPolyQuo{<:Oscar.MPolyElem_dec}}
-const CRingElem_dec = Union{MPolyElem_dec, MPolyQuoElem{<:Oscar.MPolyElem_dec}}
-#TODO: other name for CRing_dec -> which?
+export decoration, free_module_dec
 
 
-@doc Markdown.doc"""
-    FreeMod_dec{T <: CRingElem_dec} <: AbstractFreeMod_dec{T}
-
-The type of decorated (graded or filtered) free modules.
-Decorated free modules are determined by their base ring, the rank,
-the grading or filtration and the names of the (standard) generators.
-Moreover, canonical incoming and outgoing morphisms are stored if the corresponding
-option is set in suitable functions.
-`FreeMod_dec{T}` is a subtype of `ModuleFP{T}`.
-"""
-@attributes mutable struct FreeMod_dec{T <: CRingElem_dec} <: AbstractFreeMod_dec{T}
-  F::FreeMod{T}
-  d::Vector{GrpAbFinGenElem}
-
-  function FreeMod_dec{T}(F::FreeMod, d::Vector{GrpAbFinGenElem}) where T <: CRingElem_dec
-    @assert length(d) == rank(F)
-    r = new{elem_type(base_ring(F))}(F, d)
-    return r
-  end
-
-  function FreeMod_dec{T}(R::CRing_dec,S::Vector{Symbol},d::Vector{GrpAbFinGenElem}) where T <: CRingElem_dec
-    r = new{elem_type(R)}()
-    r.F = FreeMod{T}(length(d),R,S)
-    r.d = d
-    return r
-  end
-end
+###############################################################################
+# FreeMod_dec constructors
+###############################################################################
 
 @doc Markdown.doc"""
     FreeMod_dec(R::CRing_dec, n::Int, name::String = "e"; cached::Bool = false) 
@@ -206,22 +171,9 @@ function Base.:(==)(F::FreeMod_dec, G::FreeMod_dec)
   return forget_decoration(F) == forget_decoration(G) && F.d == G.d
 end
 
-@doc Markdown.doc"""
-    FreeModElem_dec{T}
-
-The type of decorated free module elements. An element of a decorated free module $F$ is 
-given by a sparse row (`SRow`) which specifies its coordinates with respect to the basis
-of standard unit vectors of $F$.
-"""
-struct FreeModElem_dec{T} <: AbstractFreeModElem_dec{T}
-  coords::SRow{T} # also usable via coeffs()
-  parent::FreeMod_dec{T}
-
-  function FreeModElem_dec{T}(coords::SRow{T}, parent::FreeMod_dec{T}) where T
-    r = new{T}(coords,parent)
-    return r
-  end
-end
+###############################################################################
+# FreeModElem_dec constructors
+###############################################################################
 
 @doc Markdown.doc"""
     FreeModElem_dec(c::SRow{T}, parent::FreeMod_dec{T}) where T
@@ -283,7 +235,7 @@ function FreeModElem(coords::SRow{T}, parent::FreeMod_dec{T}) where T <: CRingEl
 end
 
 @doc Markdown.doc"""
-    FreeModElem_dec(v::FreeModElem, parent::FreeMod_dec{T}) where T <: CRingElem_dec
+    FreeModElem_dec(v::FreeModElem{T}, parent::FreeMod_dec{T}) where T <: CRingElem_dec
 
 Lift `v` to the decorated module `parent`.
 """
@@ -460,3 +412,45 @@ function tensor_product(G::FreeMod_dec...; task::Symbol = :none)
   return F, MapFromFunc(pure, inv_pure, Hecke.TupleParent(Tuple([g[0] for g = G])), F)
 end
 
+
+###############################################################################
+# FreeModuleHom_dec constructors
+###############################################################################
+
+FreeModuleHom_dec(F::FreeMod_dec{T}, G::ModuleFP_dec, a::Vector) where {T} = FreeModuleHom_dec{T}(F, G, a)
+
+FreeModuleHom_dec(F::FreeMod_dec{T}, G::ModuleFP_dec, mat::MatElem{T}) where {T} = FreeModuleHom{T}(F, G, mat)
+
+function forget_decoration(f::FreeModuleHom_dec)
+  return f.f
+end
+
+function matrix(a::FreeModuleHom_dec)
+  return matrix(forget_decoration(a))
+end
+
+(h::FreeModuleHom_dec)(a::FreeModElem_dec) = image(h, a)
+
+hom(F::FreeMod_dec{T}, G::ModuleFP_dec{T}, V::Vector{<:FreeModElem_dec}) where T = FreeModuleHom_dec(F, G, V) 
+hom(F::FreeMod_dec{T}, G::ModuleFP_dec{T}, A::MatElem{T}) where T = FreeModuleHom_dec(F, G, A)
+
+
+function hom(F::FreeMod_dec, G::FreeMod_dec)
+  undecorated_hom, elem_to_hom = hom(forget_decoration(F), forget_decoration(G))
+  d = [y-x for x in decoration(F) for y in decoration(G)]
+  GH = FreeMod_dec(undecorated_hom, d)
+  X = Hecke.MapParent(F, G, "homomorphisms")
+
+  function im(v::FreeModElem_dec)
+    return hom(F, G, [FreeModElem_dec(elem_to_hom(forget_decoration(v))(forget_decoration(u)),G) for u in gens(F)])
+  end
+
+  function pre(f::FreeModuleHom_dec)
+    undecorated_v = inv(elem_to_hom)(forget_decoration(f))
+    return FreeModElem_dec(undecorated_v, GH)
+  end
+
+  to_hom_map = Hecke.MapFromFunc(im, pre, GH, X)
+  set_attribute!(GH, :show => Hecke.show_hom, :hom => (F, G), :module_to_hom_map => to_hom_map)
+  return GH, to_hom_map
+end

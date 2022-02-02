@@ -40,7 +40,7 @@
    @test isdefined(G, :ring_iso)
    @test G.ring_iso(z) isa GAP.FFE
    Z = G.ring_iso(z)
-   @test GAP.Globals.IN(Z,codomain(G.ring_iso))
+   @test Z in codomain(G.ring_iso)
    @test preimage(G.ring_iso, Z)==z
    @test domain(G.ring_iso) == F
    @test GAP.Globals.IsField(codomain(G.ring_iso))
@@ -77,7 +77,7 @@
          @test G.ring_iso(a-b)==G.ring_iso(a)-G.ring_iso(b)
       end
    end
-   @test GAP.Globals.IN(Z,codomain(G.ring_iso))
+   @test Z in codomain(G.ring_iso)
    @test preimage(G.ring_iso, Z)==z
    @test preimage(G.ring_iso, G.ring_iso(F(2)))==F(2)
    @test domain(G.ring_iso) == F
@@ -134,7 +134,7 @@ end
       @test isdefined(G, :X)
       @test isdefined(G, :ring_iso)
       Z = G.ring_iso(z)
-      @test GAP.Globals.IN(Z, codomain(G.ring_iso))
+      @test Z in codomain(G.ring_iso)
       @test preimage(G.ring_iso, Z) == z
       @test domain(G.ring_iso) == F
       @test GAP.Globals.IsField(codomain(G.ring_iso))
@@ -576,8 +576,8 @@ end
 
    G = GL(2,3)
    @test length(conjugacy_classes(G))==8
-   @test length(conjugacy_classes_subgroups(G))==16
-   @test length(conjugacy_classes_maximal_subgroups(G))==3
+   @test length(@inferred conjugacy_classes_subgroups(G))==16
+   @test length(@inferred conjugacy_classes_maximal_subgroups(G))==3
 end
 
 @testset "Jordan structure" begin
@@ -685,4 +685,35 @@ end
    G = orthogonal_group(L)
    g = -identity_matrix(K, 3)
    @test g in G
+end
+
+@testset "deepcopy" begin
+   g = general_linear_group(2, 4)
+
+   m = MatrixGroupElem(g, gen(g, 1).X);  # do not call `show`!
+   @test isdefined(m, :X)
+   @test ! isdefined(m, :elm)
+   c = deepcopy(m);
+   @test isdefined(c, :X)
+   @test ! isdefined(c, :elm)
+   @test c.X == m.X
+
+   m = MatrixGroupElem(g, gen(g, 1).elm, gen(g, 1).X)
+   @test isdefined(m, :X)
+   @test isdefined(m, :elm)
+   c = deepcopy(m);
+   @test isdefined(c, :X)
+   @test isdefined(c, :elm)
+   @test c.X == m.X
+   @test c.elm == m.elm
+
+   m = MatrixGroupElem(g, gen(g, 1).elm)
+   @test ! isdefined(m, :X)
+   @test isdefined(m, :elm)
+   c = deepcopy(m);
+   @test ! isdefined(c, :X)
+   @test isdefined(c, :elm)
+   @test c.elm == m.elm
+
+   @test deepcopy([one(g)]) == [one(g)]
 end

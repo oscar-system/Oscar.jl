@@ -5,9 +5,18 @@
 @doc Markdown.doc"""
     betti_number(v::AbstractNormalToricVariety, i::Int)
 
-Compute the `i`-th Betti number of the normal toric variety `v`.
+Compute the `i`-th Betti number of the normal toric variety `v`. 
+Specifically, this method returns the dimension of the i-th 
+simplicial homology group (with rational coefficients) of `v`. 
+The employed algorithm is derived from theorem 12.3.12 in 
+[CLS11](@cite). Note that this theorem requires that the normal 
+toric variety `v` is both complete and simplicial.
 """
 function betti_number(v::AbstractNormalToricVariety, i::Int)
+    if (!iscomplete(v) || !issimplicial(v))
+        throw(ArgumentError("Currently, the computation of Betti numbers is limited to complete and simplicial toric varieties."))
+    end
+    
     # check input
     d = dim(v)::Int
     if i > 2*d || i < 0 || isodd(i)

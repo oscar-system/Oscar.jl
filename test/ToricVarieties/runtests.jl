@@ -30,6 +30,14 @@ associated_affine_variety = AffineNormalToricVariety(ntv)
     @test length(affine_open_covering(associated_affine_variety)) == 1
 end
 
+r = [1 0 0; 1 0 1; 1 1 1; 1 1 0]
+c = IncidenceMatrix([[1,2,3,4]])
+antv2 = NormalToricVariety(PolyhedralFan(r, c))
+
+@testset "Affine toric varieties created from fan" begin
+    @test istrivial(picard_group(antv2)) == true
+end
+
 cyc = CyclicQuotientSingularity(2,1)
 
 @testset "Cyclic quotient singularities" begin

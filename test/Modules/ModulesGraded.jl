@@ -78,3 +78,20 @@ end
         @test degree(v) == degree(a) + degree(b)
     end
 end
+
+@testset "Hom module for decorated free modules" begin
+    Z = abelian_group(0)
+    Qx, x = PolynomialRing(QQ, 3)
+    R, x = grade(Qx, [Z[1] for _ in 1:3])
+    F = FreeMod_dec(R, [Z[1], 2*Z[1]])
+    G = FreeMod_dec(R, [Z[1], 2*Z[1], 3*Z[1]])
+
+    H,_ = hom(G,F)
+    for v in gens(H)
+        @test v == module_elem(H, homomorphism(v))
+    end
+    
+    phi = H[1]
+    v = x[1]*F[1] + F[2]
+    @test degree(phi) == degree(homomorphism(phi)(v)) - degree(v)
+end

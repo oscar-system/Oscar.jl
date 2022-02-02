@@ -61,7 +61,7 @@ Note that [CLS11](@cite) refers to this ring as the "total coordinate ring".
 
 # Examples
 ```jldoctest
-julia> p2 = toric_projective_space(2);
+julia> p2 = projective_space(NormalToricVariety, 2);
 
 julia> cox_ring(p2)
 Multivariate Polynomial Ring in x[1], x[2], x[3] over Rational Field graded by
@@ -87,7 +87,7 @@ Return the Stanley-Reisner ideal of a normal toric variety `v`.
 
 # Examples
 ```jldoctest
-julia> p2 = toric_projective_space(2);
+julia> p2 = projective_space(NormalToricVariety, 2);
 
 julia> ngens(stanley_reisner_ideal(p2))
 1
@@ -111,7 +111,7 @@ Return the irrelevant ideal of a normal toric variety `v`.
 
 # Examples
 ```jldoctest
-julia> p2 = toric_projective_space(2);
+julia> p2 = projective_space(NormalToricVariety, 2);
 
 julia> length(irrelevant_ideal(p2).gens)
 3
@@ -197,7 +197,7 @@ Return the character lattice of a normal toric variety `v`.
 
 # Examples
 ```jldoctest
-julia> p2 = toric_projective_space(2);
+julia> p2 = projective_space(NormalToricVariety, 2);
 
 julia> character_lattice(p2)
 GrpAb: Z^2
@@ -205,7 +205,7 @@ GrpAb: Z^2
 """
 function character_lattice(v::AbstractNormalToricVariety)
     return get_attribute!(v, :character_lattice) do
-        return free_abelian_group(dim(fan(v)))
+        return free_abelian_group(ambient_dim(fan(v)))
     end
 end
 export character_lattice
@@ -218,7 +218,7 @@ Return the torusinvariant divisor group of a normal toric variety `v`.
 
 # Examples
 ```jldoctest
-julia> p2 = toric_projective_space(2);
+julia> p2 = projective_space(NormalToricVariety, 2);
 
 julia> torusinvariant_divisor_group(p2)
 GrpAb: Z^3
@@ -239,7 +239,7 @@ Return the map from the character lattice to the group of principal divisors of 
 
 # Examples
 ```jldoctest
-julia> p2 = toric_projective_space(2);
+julia> p2 = projective_space(NormalToricVariety, 2);
 
 julia> map_from_character_to_principal_divisors(p2)
 Map with following data
@@ -268,7 +268,7 @@ Return the list of all torus invariant prime divisors in a normal toric variety 
 
 # Examples
 ```jldoctest
-julia> p2 = toric_projective_space(2);
+julia> p2 = projective_space(NormalToricVariety, 2);
 
 julia> torusinvariant_prime_divisors(p2)
 3-element Vector{ToricDivisor}:
@@ -299,7 +299,7 @@ Return the class group of the normal toric variety `v`.
 
 # Examples
 ```jldoctest
-julia> p2 = toric_projective_space(2);
+julia> p2 = projective_space(NormalToricVariety, 2);
 
 julia> class_group(p2)
 GrpAb: Z
@@ -320,7 +320,7 @@ Return the map from the group of Weil divisors to the class of group of a normal
 
 # Examples
 ```jldoctest
-julia> p2 = toric_projective_space(2);
+julia> p2 = projective_space(NormalToricVariety, 2);
 
 julia> map_from_weil_divisors_to_class_group(p2)
 Map with following data
@@ -350,7 +350,7 @@ torus-invariant Weil divisors of an abstract normal toric variety `v`.
 
 # Examples
 ```jldoctest
-julia> p2 = toric_projective_space(2)
+julia> p2 = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> map_from_cartier_divisor_group_to_torus_invariant_divisor_group(p2)
@@ -432,7 +432,7 @@ Return the Cartier divisor group of an abstract normal toric variety `v`.
 
 # Examples
 ```jldoctest
-julia> p2 = toric_projective_space(2)
+julia> p2 = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> cartier_divisor_group(p2)
@@ -455,7 +455,7 @@ of an abstract normal toric variety `v`.
 
 # Examples
 ```jldoctest
-julia> p2 = toric_projective_space(2)
+julia> p2 = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> map_from_cartier_divisor_group_to_picard_group(p2)
@@ -475,14 +475,11 @@ function map_from_cartier_divisor_group_to_picard_group(v::AbstractNormalToricVa
             throw(ArgumentError("Group of the torus-invariant Cartier divisors can only be computed if the variety has no torus factor."))
         end
         
-        # compute the mappings
+        # compute mapping
         map1 = map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v)
         map2 = map_from_weil_divisors_to_class_group(v)
-        map3 = inv(image(map1*map2)[2])
-        map4 = snf(codomain(map3))[2]
+        return restrict_codomain(map1*map2)
         
-        # return the composed map
-        return map1*map2*map3*map4
     end
 end
 export map_from_cartier_divisor_group_to_picard_group
@@ -495,7 +492,7 @@ Return the Picard group of an abstract normal toric variety `v`.
 
 # Examples
 ```jldoctest
-julia> p2 = toric_projective_space(2)
+julia> p2 = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> picard_group(p2)
@@ -522,7 +519,7 @@ Return the nef cone of the normal toric variety `v`.
 
 # Examples
 ```jldoctest
-julia> pp = toric_projective_space(2)
+julia> pp = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> nef = nef_cone(pp)
@@ -547,7 +544,7 @@ Return the mori cone of the normal toric variety `v`.
 
 # Examples
 ```jldoctest
-julia> pp = toric_projective_space(2)
+julia> pp = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> mori = mori_cone(pp)
@@ -572,7 +569,7 @@ Return the fan of an abstract normal toric variety `v`.
 
 # Examples
 ```jldoctest
-julia> p2 = toric_projective_space(2)
+julia> p2 = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> fan(p2)
@@ -618,7 +615,7 @@ Compute an affine open cover of the normal toric variety `v`, i.e. returns a lis
 
 # Examples
 ```jldoctest
-julia> p2 = toric_projective_space(2)
+julia> p2 = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> affine_open_covering(p2)

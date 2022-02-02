@@ -41,7 +41,7 @@ Base.:*(f::GAPGroupHomomorphism{S, T}, g::GAPGroupHomomorphism{T, U}) where S wh
 
 function Base.inv(f::GAPGroupHomomorphism{S,T}) where S where T
    @assert GAPWrap.IsBijective(f.map) "f is not bijective"
-   return GAPGroupHomomorphism{T,S}(codomain(f), domain(f), GAP.Globals.InverseGeneralMapping(f.map))
+   return GAPGroupHomomorphism(codomain(f), domain(f), GAP.Globals.InverseGeneralMapping(f.map))
 end
 
 order(f::GAPGroupHomomorphism) = GAP.Globals.Order(f.map)
@@ -51,7 +51,7 @@ function Base.:^(f::GAPGroupHomomorphism{S,T}, n::Int64) where S where T
      return f
    else
       @assert domain(f) == codomain(f) "Domain and codomain do not coincide"
-      return GAPGroupHomomorphism{S,S}(domain(f),codomain(f),(f.map)^n)
+      return GAPGroupHomomorphism(domain(f),codomain(f),(f.map)^n)
    end
 end
 
@@ -60,10 +60,10 @@ function compose(g::GAPGroupHomomorphism{T, U}, f::GAPGroupHomomorphism{S, T}) w
   cod = codomain(g)
   @assert codomain(f) == domain(g)
   mp = GAP.Globals.CompositionMapping(g.map, f.map)
-  return GAPGroupHomomorphism{S, U}(dom, cod, mp)
+  return GAPGroupHomomorphism(dom, cod, mp)
 end
 
-(g::GAPGroupHomomorphism{T, U})(f::GAPGroupHomomorphism{S, T}) where {S,T,U} = compose(g,f)
+#(g::GAPGroupHomomorphism{T, U})(f::GAPGroupHomomorphism{S, T}) where {S,T,U} = compose(g,f)
 
 """
     id_hom(G::GAPGroup)
@@ -88,10 +88,6 @@ function trivial_morphism(G::GAPGroup)
   return hom(G, G, x -> one(G))
 end
 
-function _hom_from_gap_map(G::GAPGroup, H::GAPGroup, mp::GapObj)
-  return GAPGroupHomomorphism{typeof(G), typeof(H)}(G, H, mp)
-end
-
 """
     hom(G::GAPGroup, H::GAPGroup, f::Function)
 
@@ -108,7 +104,7 @@ function hom(G::GAPGroup, H::GAPGroup, img::Function)
     return img_el.X
   end
   mp = GAP.Globals.GroupHomomorphismByFunction(G.X, H.X, GAP.julia_to_gap(gap_fun))
-  return GAPGroupHomomorphism{typeof(G), typeof(H)}(G, H, mp)
+  return GAPGroupHomomorphism(G, H, mp)
 end
 
 """
@@ -122,7 +118,7 @@ function hom(G::GAPGroup, H::GAPGroup, gensG::Vector, imgs::Vector)
   vimgs = GapObj([x.X for x in imgs])
   mp = GAP.Globals.GroupHomomorphismByImages(G.X, H.X, vgens, vimgs)
   if mp == GAP.Globals.fail throw(ArgumentError("Invalid input")) end
-  return GAPGroupHomomorphism{typeof(G), typeof(H)}(G, H, mp)
+  return GAPGroupHomomorphism(G, H, mp)
 end
 
 function domain(f::GAPGroupHomomorphism)
@@ -211,7 +207,7 @@ function restrict_homomorphism(f::GAPGroupHomomorphism, H::GAPGroup)
   # in the case that `H` is not a subgroup of `f.domain`,
   # and in fact just the given map may be returned.)
   @assert issubgroup(domain(f), H)[1] "Not a subgroup!"
-  return _hom_from_gap_map(H, f.codomain, GAP.Globals.RestrictedMapping(f.map,H.X))
+  return GAPGroupHomomorphism(H, f.codomain, GAP.Globals.RestrictedMapping(f.map,H.X))
 end
 
 ################################################################################
@@ -309,7 +305,7 @@ function isisomorphic(G::GAPGroup, H::GAPGroup)
   if mp == GAP.Globals.fail
     return false, trivial_morphism(G, H)
   else
-    return true, _hom_from_gap_map(G, H, mp)
+    return true, GAPGroupHomomorphism(G, H, mp)
   end
 end
 
@@ -326,7 +322,7 @@ function isomorphic_perm_group(G::GAPGroup)
    H = GAP.Globals.Image(f)
    n = GAP.Globals.NrMovedPoints(H)
    H = PermGroup(H,n)
-   return H, _hom_from_gap_map(G,H,f)
+   return H, GAPGroupHomomorphism(G,H,f)
 end
 
 """
@@ -340,7 +336,7 @@ function isomorphic_pc_group(G::GAPGroup)
    f = GAP.Globals.IsomorphismPcGroup(G.X)
    f!=GAP.Globals.fail || throw(ArgumentError("Could not convert group into a group of type PcGroup"))
    H = PcGroup(GAP.Globals.Image(f))
-   return H, _hom_from_gap_map(G,H,f)
+   return H, GAPGroupHomomorphism(G,H,f)
 end
 
 """
@@ -352,7 +348,7 @@ function isomorphic_fp_group(G::GAPGroup)
    f = GAP.Globals.IsomorphismFpGroup(G.X)
    f!=GAP.Globals.fail || throw(ArgumentError("Could not convert group into a group of type FPGroup"))
    H = FPGroup(GAP.Globals.Image(f))
-   return H, _hom_from_gap_map(G,H,f)
+   return H, GAPGroupHomomorphism(G,H,f)
 end
 
 
@@ -375,7 +371,7 @@ of type `GAPGroupHomomorphism`; in this last case, the result has type
 """
 function automorphism_group(G::GAPGroup)
   AutGAP = GAP.Globals.AutomorphismGroup(G.X)
-  return AutomorphismGroup{typeof(G)}(AutGAP, G)
+  return AutomorphismGroup(AutGAP, G)
 end
 
 function Base.show(io::IO, A::AutomorphismGroup{T}) where T <: GAPGroup
@@ -404,7 +400,7 @@ Return the element f of type `GAPGroupHomomorphism{T,T}`.
 function hom(x::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup
   A = parent(x)
   G = A.G
-  return _hom_from_gap_map(G, G, x.X)
+  return GAPGroupHomomorphism(G, G, x.X)
 end
 
 (f::GAPGroupElem{AutomorphismGroup{T}})(x::GAPGroupElem) where T <: GAPGroup = apply_automorphism(f, x, true)
@@ -417,11 +413,11 @@ function (A::AutomorphismGroup{T})(f::GAPGroupHomomorphism{T,T}) where T <: GAPG
    return group_element(A, f.map)
 end
 
-function apply_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, x::GAPGroupElem, check=true) where T <: GAPGroup
+function apply_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, x::GAPGroupElem, check::Bool=true) where T <: GAPGroup
   A = parent(f)
   G = parent(x)
   if check
-    @assert A.G == G || GAPWrap.IN(x.X, A.G.X) "Not in the domain of f!"      #TODO Do we really need the IN check?
+    @assert A.G == G || x.X in A.G.X "Not in the domain of f!"      #TODO Do we really need the IN check?
   end
   return typeof(x)(G, GAP.Globals.Image(f.X,x.X))
 end
@@ -435,7 +431,7 @@ Base.:*(f::GAPGroupHomomorphism, g::GAPGroupElem{AutomorphismGroup{T}}) where T 
 Return the inner automorphism in `automorphism_group(parent(g))` defined by `x` -> `x^g`.
 """
 function inner_automorphism(g::GAPGroupElem)
-  return _hom_from_gap_map(parent(g), parent(g), GAP.Globals.ConjugatorAutomorphism(parent(g).X, g.X))
+  return GAPGroupHomomorphism(parent(g), parent(g), GAP.Globals.ConjugatorAutomorphism(parent(g).X, g.X))
 end
 
 """
@@ -486,7 +482,7 @@ function induced_automorphism(f::GAPGroupHomomorphism, mH::GAPGroupHomomorphism)
   @assert isinvariant(mH, kernel(f)[1]) "The kernel is not invariant under g!"
   map = GAP.Globals.InducedAutomorphism(f.map, mH.map)
   A = automorphism_group(image(f)[1])
-  return A(_hom_from_gap_map(codomain(f), codomain(f), map))
+  return A(GAPGroupHomomorphism(codomain(f), codomain(f), map))
 end
 
 induced_automorphism(f::GAPGroupHomomorphism, mH::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup = induced_automorphism(f,hom(mH))
@@ -507,13 +503,6 @@ function restrict_homomorphism(f::GAPGroupElem{AutomorphismGroup{T}}, H::T) wher
   return restrict_homomorphism(hom(f),H)
 end
 
-## the next function needs a redefinition if G is an AutomorphismGroup
-function _as_subgroup(G::AutomorphismGroup{T}, H::GapObj, ::Type{S}) where { T, S }
-  function img(x::S)
-    return group_element(G, x.X)
-  end
-  H1 = AutomorphismGroup{T}(H,G.G)
-  return H1, hom(H1, G, img)
+function _as_subgroup_bare(G::AutomorphismGroup{T}, H::GapObj) where T
+  return AutomorphismGroup{T}(H, G.G)
 end
-
-

@@ -60,40 +60,6 @@
   @test Set(gens(R)) == union(Set(x), Set(y), Set(z))
 end
 
-@testset "Polynomial Orderings" begin
-  R, (x, y, z) = PolynomialRing(QQ, 3)
-  f = x*y + 5*z^3
-
-  @test collect(monomials(f, :lex)) == [ x*y, z^3 ]
-  @test collect(monomials(f, :revlex)) == [ z^3, x*y ]
-  @test collect(monomials(f, :deglex)) == [ z^3, x*y ]
-  @test collect(monomials(f, :degrevlex)) == [ z^3, x*y ]
-  @test collect(monomials(f, :neglex)) == [ z^3, x*y ]
-  @test collect(monomials(f, :negrevlex)) == [ x*y, z^3 ]
-  @test collect(monomials(f, :negdeglex)) == [ x*y, z^3 ]
-  @test collect(monomials(f, :negdegrevlex)) == [ x*y, z^3 ]
-
-  w = [ 1, 2, 1 ]
-  @test collect(monomials(f, :weightlex, w)) == [ x*y, z^3 ]
-  @test collect(monomials(f, :weightrevlex, w)) == [ x*y, z^3 ]
-
-  M = [ 1 1 1; 1 0 0; 0 1 0 ]
-  @test collect(monomials(f, M)) == collect(monomials(f, :deglex))
-
-  @test collect(terms(f, :deglex)) == [ 5z^3, x*y ]
-  @test collect(exponent_vectors(f, :deglex)) == [ [ 0, 0, 3 ], [ 1, 1, 0 ] ]
-  @test collect(coefficients(f, :deglex)) == [ QQ(5), QQ(1) ]
-
-  Fp = GF(7)
-  R, (x, y, z) = PolynomialRing(Fp, 3, ordering = :deglex)
-  f = x*y + 5*z^3
-  @test collect(monomials(f, :lex)) == [ x*y, z^3 ]
-  @test Oscar.leading_monomial(f, :lex) == x*y
-  @test Oscar.leading_coefficient(f, :lex) == Fp(1)
-  @test Oscar.leading_term(f, :lex) == x*y
-
-end
-
 @testset "Polynomial homs" begin
   R, (x, y) = PolynomialRing(QQ, ["x", "y"])
   I1 = x^2 + y^2
@@ -225,8 +191,8 @@ end
 @testset "Groebner" begin
   R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
   I = ideal([x+y^2+4*z-5,x+y*z+5*z-2])
-  @test groebner_basis(I,ordering=:lex) == [y^2 - y*z - z - 3, x + y*z + 5*z - 2]
-  @test groebner_basis(I,ordering=:degrevlex, complete_reduction = true) == [x + y*z + 5*z - 2, x + y^2 + 4*z - 5, x*y - x*z - 5*x - 2*y - 4*z^2 - 20*z + 10, x^2 + x*z^2 + 10*x*z - 4*x + 4*z^3 + 20*z^2 - 20*z + 4]
+  @test groebner_basis(I;ordering=:lex) == [y^2 - y*z - z - 3, x + y*z + 5*z - 2]
+  @test groebner_basis(I;ordering=:degrevlex, complete_reduction = true) == [x + y*z + 5*z - 2, x + y^2 + 4*z - 5, x*y - x*z - 5*x - 2*y - 4*z^2 - 20*z + 10, x^2 + x*z^2 + 10*x*z - 4*x + 4*z^3 + 20*z^2 - 20*z + 4]
 
   # Test coefficient rings that are actually fields for safety. The first three
   # are native to singular while gfp_fmpz_elem now has a proper wrapper
@@ -234,14 +200,14 @@ end
              GF(fmpz(10)^50+151)]
     R, (x, y) = PolynomialRing(Zn, ["x", "y"], ordering = :degrevlex)
     l = [x*y+x^3+1, x*y^2+x^2+1]
-    g = groebner_basis(ideal(R, l), ordering = :degrevlex)
+    g = groebner_basis(ideal(R, l); ordering = :degrevlex)
     @test iszero(divrem(l[1] + l[2], g)[2])
   end
 
   F, a = FiniteField(11, 2, "a")
   R, (x, y, z) = PolynomialRing(F, ["x", "y", "z"], ordering = :degrevlex)
   l = [3*x^5 + a*x*y^2 + a^2*z^2, z^3*x^2 + 7*y^3 + z]
-  gb = groebner_basis(ideal(R, l), ordering = :degrevlex)
+  gb = groebner_basis(ideal(R, l); ordering = :degrevlex)
   @test iszero(divrem(l[1] + l[2], gb)[2])
 end
 

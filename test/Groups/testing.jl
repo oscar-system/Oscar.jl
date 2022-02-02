@@ -2,8 +2,7 @@ L = [ alternating_group(5), cyclic_group(18), SL(3,3), free_group(0), free_group
 
 @testset "GAPGroups_interface_conformance" for G in L
 
-   g=rand(G)
-   h=rand(G)
+   g, h = rand(G,2)
 
    @test parent(g) isa typeof(G)
    @test parent(h) isa typeof(G)

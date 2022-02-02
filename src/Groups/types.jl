@@ -61,6 +61,11 @@ struct BasicGAPGroupElem{T<:GAPGroup} <: GAPGroupElem{T}
    X::GapObj
 end
 
+function Base.deepcopy_internal(x::BasicGAPGroupElem, dict::IdDict)
+  X = Base.deepcopy_internal(x.X, dict)
+  return BasicGAPGroupElem(x.parent, X)
+end
+
 Base.hash(x::GAPGroup, h::UInt) = h # FIXME
 Base.hash(x::GAPGroupElem, h::UInt) = h # FIXME
 
@@ -176,7 +181,12 @@ struct GAPGroupHomomorphism{S<: GAPGroup, T<: GAPGroup} <: Map{S,T,GAPMap,GAPGro
    domain::S
    codomain::T
    map::GapObj
+
+   function GAPGroupHomomorphism(G::S, H::T, mp::GapObj) where {S<: GAPGroup, T<: GAPGroup}
+     return new{S, T}(G, H, mp)
+   end
 end
+
 
 """
     AutomorphismGroup{T} <: GAPGroup
@@ -192,12 +202,10 @@ Group of automorphisms over a group of type `T`. It can be defined via the funct
     z = new{T}(G, H)
     return z
   end
+end
 
-  function AutomorphismGroup{T}(G::GapObj, H::T, to_gap, to_oscar) where T
-    @assert GAPWrap.IsGroupOfAutomorphisms(G)
-    z = new{T}(G, H, to_gap, to_oscar)
-    return z
-  end
+function AutomorphismGroup(G::GapObj, H::T) where T
+  return AutomorphismGroup{T}(G, H)
 end
 
 (aut::AutomorphismGroup{T} where T)(x::GapObj) = group_element(aut,x)
