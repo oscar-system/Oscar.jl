@@ -33,6 +33,7 @@ export
     rem_vertex!,
     reverse,
     save_graph,
+    shortest_path_dijkstra,
     src
 
 ################################################################################
@@ -531,6 +532,11 @@ function all_neighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undire
 end
 
 
+################################################################################
+################################################################################
+##  Higher order algorithms
+################################################################################
+################################################################################
 @doc Markdown.doc"""
     automorphisms(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 
@@ -552,6 +558,54 @@ function automorphisms(g::Graph{T}) where {T <: Union{Directed, Undirected}}
     result = Polymake.graph.automorphisms(pmg)
     return [[x+1 for x in a] for a in result]
 end
+
+
+@doc Markdown.doc"""
+    shortest_path_dijkstra(g::Graph{T}, s::Int64, t::Int64; reverse::Bool=false) where {T <: Union{Directed, Undirected}}
+
+Compute the shortest path between two vertices in a graph using Dijkstra's
+algorithm. All edges are set to have a length of 1. The optional parameter
+indicates whether the edges should be considered reversed.
+
+# Examples
+```jldoctest
+julia> g = Graph{Directed}(3);
+
+julia> add_edge!(g, 1, 2);
+
+julia> add_edge!(g, 2, 3);
+
+julia> add_edge!(g, 3, 1);
+
+julia> shortest_path_dijkstra(g, 3, 1)
+2-element Vector{Int64}:
+ 3
+ 1
+
+julia> shortest_path_dijkstra(g, 1, 3)
+3-element Vector{Int64}:
+ 1
+ 2
+ 3
+
+julia> shortest_path_dijkstra(g, 3, 1; reverse=true)
+3-element Vector{Int64}:
+ 3
+ 2
+ 1
+```
+"""
+function shortest_path_dijkstra(g::Graph{T}, s::Int64, t::Int64; reverse::Bool=false) where {T <: Union{Directed, Undirected}}
+    pmg = pm_object(g)
+    em = Polymake.EdgeMap{T, Int64}(pmg)
+    for e in edges(g)
+        Polymake._set_entry(em, src(e)-1, dst(e)-1, 1)
+    end
+    result = Polymake._shortest_path_dijkstra(pmg, em, s-1, t-1, !reverse)
+    return Polymake.to_one_based_indexing(result)
+end
+
+
 ################################################################################
 ################################################################################
 ##  Standard constructions
