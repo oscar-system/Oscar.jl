@@ -89,6 +89,11 @@ import AbstractAlgebra:
     symbols,
     total_degree
 
+import AbstractAlgebra.GroupsCore
+import AbstractAlgebra.GroupsCore:
+    isfiniteorder,
+    istrivial
+
 import GAP:
     @gapattribute,
     @gapwrap,
