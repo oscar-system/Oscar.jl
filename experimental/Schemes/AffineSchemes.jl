@@ -11,7 +11,7 @@ export is_open_embedding, is_closed_embedding, canonically_isomorphic, hypersurf
 export closure, product
 
 export SpecMor, morphism_type
-export pullback, domain, codomain, preimage, restrict, graph
+export pullback, domain, codomain, preimage, restrict, graph, identity_map, inclusion_map
 
 AbstractAlgebra.promote_rule(::Type{gfp_mpoly}, ::Type{fmpz}) = gfp_mpoly
 AbstractAlgebra.promote_rule(::Type{gfp_elem}, ::Type{fmpz}) = gfp_elem
@@ -401,6 +401,9 @@ function SpecMor(
   ) where {BRT, BRET, RT, RET, MST1, MST2}
   return SpecMor(X, Y, MPolyQuoLocalizedRingHom(OO(Y), OO(X), f))
 end
+
+identity_map(X::Spec) = SpecMor(X, X, gens(base_ring(OO(X))))
+inclusion_map(X::T, Y::T) where {T<:Spec} = SpecMor(X, Y, gens(base_ring(OO(Y))))
 
 function restrict(f::SpecMor{BRT, BRET, RT, RET, MST1, MST2}, 
     U::Spec{BRT, BRET, RT, RET, MST1},

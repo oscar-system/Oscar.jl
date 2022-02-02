@@ -2,7 +2,9 @@ export IdealSheaf
 
 export scheme, covering, getindex, subscheme, covered_patches, extend!
 
-mutable struct IdealSheaf{
+export ideal_sheaf_type
+
+@attributes mutable struct IdealSheaf{
     CoveredSchemeType<:CoveredScheme,
     CoveringType<:Covering,
     SpecType<:Spec,
@@ -44,6 +46,18 @@ covering(I::IdealSheaf) = I.C
 covered_patches(I::IdealSheaf) = [U for U in keys(I.ideal_gens)]
 getindex(I::IdealSheaf, U::Spec) = I.ideal_gens[U]
 
+set_name!(X::IdealSheaf, name::String) = set_attribute!(X, :name, name)
+name_of(X::IdealSheaf) = get_attribute(X, :name)::String
+has_name(X::IdealSheaf) = has_attribute(X, :name)
+
+function ideal_sheaf_type(X::T) where {T<:CoveredScheme}
+  return IdealSheaf{T, covering_type(T), affine_patch_type(T), poly_type(affine_patch_type(T))}
+end
+
+function ideal_sheaf_type(::Type{T}) where {T<:CoveredScheme}
+  return IdealSheaf{T, covering_type(T), affine_patch_type(T), poly_type(affine_patch_type(T))}
+end
+
 function setindex!(I::IdealSheaf, g::Vector{RET}, U::Spec) where {RET<:MPolyElem} 
   for f in g
     parent(f) == base_ring(OO(U)) || error("polynomials do not belong to the correct ring")
@@ -79,7 +93,7 @@ function IdealSheaf(X::CoveredScheme, C::Covering, U::Spec, g::Vector{RET}) wher
     parent(f) == base_ring(OO(U)) || error("the generators do not belong to the correct ring")
   end
   D = Dict{typeof(U), typeof(g)}()
-  D[U] = g
+  D[U] = [f for f in g if !iszero(OO(U)(f))]
   I = IdealSheaf(X, C, D)
   extend!(I)
   return I
@@ -169,7 +183,7 @@ function extend!(I::IdealSheaf)
       # if not, extend I to this patch
       f, _ = glueing_morphisms(C[V, U])
       ZV = closure(preimage(f, Z))
-      I[V] = gens(defining_ideal(ZV))
+      I[V] = [f for f in gens(defining_ideal(ZV)) if !iszero(OO(V)(f))]
       V in dirty_patches || push!(dirty_patches, V)
     end
   end
@@ -178,5 +192,9 @@ function extend!(I::IdealSheaf)
 end
 
 function Base.show(io::IO, I::IdealSheaf)
+  if has_name(I)
+    print(io, name_of(I))
+    return 
+  end
   print(io, "sheaf of ideals on $(scheme(I))")
 end

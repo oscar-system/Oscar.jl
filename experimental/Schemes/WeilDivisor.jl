@@ -153,3 +153,26 @@ end
 
 +(D::WeilDivisor, I::IdealSheaf) = D + WeilDivisor(I)
 
+function intersection(D::T, E::T) where {T<:WeilDivisor}
+  X = scheme(D)
+  X == scheme(E) || error("divisors do not live on the same scheme")
+  R = coefficient_ring(D)
+  R == coefficient_ring(E) || error("divisors do not have the same coefficient ring")
+  # prepare a copy of the divisors
+  D_copy = WeilDivisor(X, R)
+  E_copy = WeilDivisor(X, R)
+  # check whether a common refinement of the covering is necessary
+  CD = covering(D)
+  CE = covering(E)
+  if CD != CE
+    CC, f, g = common_refinement(X, CD, CE)
+    D_copy = pullback(f, D)
+    E_copy = pullback(g, E)
+  else
+    D_copy = D
+    E_copy = E
+  end
+  # TODO: Work out the intersection
+end
+
+
