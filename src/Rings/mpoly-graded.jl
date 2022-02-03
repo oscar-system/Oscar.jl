@@ -264,9 +264,13 @@ function is_positively_graded(R::MPolyRing_dec)
   isgraded(R) || return false
   G = grading_group(R)
   try 
-  homogeneous_component(R, zero(G))
+    homogeneous_component(R, zero(G))
   catch e
-    return false
+    if e isa ArgumentError && e.msg == "Polyhedron not bounded"
+      return false
+    else
+      rethrow(e)
+    end
   end
   return true
 end
