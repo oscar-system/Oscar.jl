@@ -586,21 +586,20 @@ julia> affine_algebra(IR)
   y[1] -> [3]
   y[2] -> [3]
   y[3] -> [6]
-  y[4] -> [9] by ideal(y[1]^6 - 3*y[1]^4*y[3] - 16*y[1]^3*y[2]^3 - 4*y[1]^3*y[4] + 3*y[1]^2*y[3]^2 + 24*y[1]*y[2]^3*y[3] + 4*y[1]*y[3]*y[4] + 72*y[2]^6 + 24*y[2]^3*y[4] - y[3]^3 + 8*y[4]^2), Algebra homomorphism with
-
-domain: Quotient of Multivariate Polynomial Ring in y[1], y[2], y[3], y[4] over Cyclotomic field of order 3 graded by
+  y[4] -> [9] by ideal(y[1]^6 - 3*y[1]^4*y[3] - 16*y[1]^3*y[2]^3 - 4*y[1]^3*y[4] + 3*y[1]^2*y[3]^2 + 24*y[1]*y[2]^3*y[3] + 4*y[1]*y[3]*y[4] + 72*y[2]^6 + 24*y[2]^3*y[4] - y[3]^3 + 8*y[4]^2), Map with following data
+Domain:
+=======
+Quotient of Multivariate Polynomial Ring in y[1], y[2], y[3], y[4] over Cyclotomic field of order 3 graded by
   y[1] -> [3]
   y[2] -> [3]
   y[3] -> [6]
   y[4] -> [9] by ideal(y[1]^6 - 3*y[1]^4*y[3] - 16*y[1]^3*y[2]^3 - 4*y[1]^3*y[4] + 3*y[1]^2*y[3]^2 + 24*y[1]*y[2]^3*y[3] + 4*y[1]*y[3]*y[4] + 72*y[2]^6 + 24*y[2]^3*y[4] - y[3]^3 + 8*y[4]^2)
-
-codomain: Multivariate Polynomial Ring in x[1], x[2], x[3] over Cyclotomic field of order 3 graded by
+Codomain:
+=========
+Multivariate Polynomial Ring in x[1], x[2], x[3] over Cyclotomic field of order 3 graded by
   x[1] -> [1]
   x[2] -> [1]
-  x[3] -> [1]
-
-defining images of generators: MPolyElem_dec{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}[x[1]^3 + x[2]^3 + x[3]^3, x[1]*x[2]*x[3], x[1]^6 + x[2]^6 + x[3]^6, x[1]^6*x[3]^3 + x[1]^3*x[2]^6 + x[2]^3*x[3]^6]
-)
+  x[3] -> [1])
 ```
 """
 function affine_algebra(IR::InvRing)

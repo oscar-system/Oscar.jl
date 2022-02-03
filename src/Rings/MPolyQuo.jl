@@ -573,7 +573,7 @@ function simplify(f::MPolyQuoElem)
   singular_assure(I.gb)
   Sx = base_ring(I.gb.S)
   g = f.f
-  return R(I.gens.Ox(reduce(Sx(g), I.gb.S)))
+  return R(I.gens.Ox(reduce(Sx(g), I.gb.S)))::elem_type(R)
 end
 
 function simplify!(f::MPolyQuoElem)
@@ -584,7 +584,7 @@ function simplify!(f::MPolyQuoElem)
   Sx = base_ring(I.gb.S)
   g = f.f
   f.f = I.gens.Ox(reduce(Sx(g), I.gb.S))
-  return f
+  return f::elem_type(R)
 end
 
 
@@ -1047,4 +1047,18 @@ function minimal_subalgebra_generators(V::Vector{S}) where S <: Union{MPolyElem,
     end
   end
   return result
+end
+
+################################################################################
+#
+#  Promote rule
+#
+################################################################################
+
+function AbstractAlgebra.promote_rule(::Type{MPolyQuoElem{S}}, ::Type{T}) where {S, T <: RingElem}
+  if AbstractAlgebra.promote_rule(S, T) === S
+    return MPolyQuoElem{S}
+  else
+    return Union{}
+  end
 end
