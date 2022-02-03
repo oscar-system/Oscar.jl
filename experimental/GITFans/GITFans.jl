@@ -50,7 +50,7 @@ function rewrite_action_to_orbits(homs)
 
     for hom in homs
       for j in 1:length(generators_new_perm)
-        img = listperm(image(hom, Ggens[j]))
+        img = Vector{Int}(image(hom, Ggens[j]))
         if length(img) == 0
           img = Int[1]
         end
@@ -206,7 +206,7 @@ function action_on_target(Q::Matrix{Int}, G::Oscar.GAPGroup)
     permgens = gens(G)
     matgens = typeof(mat)[]
     for ppi in permgens
-      matimg = mat[listperm(ppi), 1:n]  # permute the rows with `ppi`
+      matimg = mat[Vector{Int}(ppi), 1:n]  # permute the rows with `ppi`
       push!(matgens, Nemo.solve(mat, matimg))
     end
 
