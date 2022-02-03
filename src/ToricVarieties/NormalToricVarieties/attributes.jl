@@ -8,10 +8,8 @@
 
 Return the dimension of the normal toric variety `v`.
 """
-function dim(v::AbstractNormalToricVariety)
-    return get_attribute!(v, :dim) do
-        return pm_object(v).FAN_DIM
-    end::Int
+@attr Int function dim(v::AbstractNormalToricVariety)
+    return pm_object(v).FAN_DIM
 end
 export dim
 
@@ -21,15 +19,13 @@ export dim
 
 Return the dimension of the torus factor of the normal toric variety `v`.
 """
-function dim_of_torusfactor(v::AbstractNormalToricVariety)
-    return get_attribute!(v, :dim_of_torusfactor) do
-        if hastorusfactor(v) == false
-            return 0
-        end
-        dimension_of_fan = pm_object(v).FAN_DIM::Int
-        ambient_dimension = pm_object(v).FAN_AMBIENT_DIM::Int
-        return ambient_dimension - dimension_of_fan
-    end::Int
+@attr Int function dim_of_torusfactor(v::AbstractNormalToricVariety)
+    if hastorusfactor(v) == false
+        return 0
+    end
+    dimension_of_fan = pm_object(v).FAN_DIM::Int
+    ambient_dimension = pm_object(v).FAN_AMBIENT_DIM::Int
+    return ambient_dimension - dimension_of_fan
 end
 export dim_of_torusfactor
 
@@ -39,11 +35,9 @@ export dim_of_torusfactor
 
 Return the Euler characteristic of the normal toric variety `v`.
 """
-function euler_characteristic(v::AbstractNormalToricVariety)
-    return get_attribute!(v, :euler_characteristic) do
-        f_vector = Vector{Int}(pm_object(v).F_VECTOR)
-        return f_vector[dim(v)]
-    end
+@attr Int function euler_characteristic(v::AbstractNormalToricVariety)
+    f_vector = Vector{Int}(pm_object(v).F_VECTOR)
+    return f_vector[dim(v)]
 end
 export euler_characteristic
 
@@ -364,10 +358,8 @@ julia> character_lattice(p2)
 GrpAb: Z^2
 ```
 """
-function character_lattice(v::AbstractNormalToricVariety)
-    return get_attribute!(v, :character_lattice) do
-        return free_abelian_group(ambient_dim(fan(v)))
-    end
+@attr GrpAbFinGen function character_lattice(v::AbstractNormalToricVariety)
+    return free_abelian_group(ambient_dim(fan(v)))
 end
 export character_lattice
 
@@ -385,10 +377,8 @@ julia> torusinvariant_divisor_group(p2)
 GrpAb: Z^3
 ```
 """
-function torusinvariant_divisor_group(v::AbstractNormalToricVariety)
-    return get_attribute!(v, :torusinvariant_divisor_group) do
-        return free_abelian_group(nrays(fan(v)))
-    end
+@attr GrpAbFinGen function torusinvariant_divisor_group(v::AbstractNormalToricVariety)
+    return free_abelian_group(nrays(fan(v)))
 end
 export torusinvariant_divisor_group
 
