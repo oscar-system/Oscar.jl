@@ -68,7 +68,7 @@ x1^2 + x2
 julia> degree(f)
 graded by [2]
 
-julia> F = FreeModule(R, 1)
+julia> F = free_module(R, 1)
 Free module of rank 1 over R, graded as R^1([0])
 
 julia> s = sub(F, [f*F[1]])
