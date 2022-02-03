@@ -1,7 +1,7 @@
 export weight, decorate, ishomogeneous, homogeneous_components, filtrate,
 grade, GradedPolynomialRing, homogeneous_component, jacobi_matrix, jacobi_ideal,
 HilbertData, hilbert_series, hilbert_series_reduced, hilbert_series_expanded, hilbert_function, hilbert_polynomial, grading,
-homogenization, dehomogenization, grading_group, is_z_graded, is_zm_graded
+homogenization, dehomogenization, grading_group, is_z_graded, is_zm_graded, is_positively_graded
 export MPolyRing_dec, MPolyElem_dec, ishomogeneous, isgraded
 export minimal_subalgebra_generators
 
@@ -236,6 +236,39 @@ function is_zm_graded(R::MPolyRing_dec)
   isgraded(R) || return false
   A = grading_group(R)
   return isfree(A) && ngens(A) == rank(A)
+end
+
+@doc Markdown.doc"""
+    is_positively_graded(R::MPolyRing_dec)
+
+Return `true` if `R` is positively graded, `false` otherwise.
+# Examples
+```jldoctest
+julia> R, (t, x, y) = PolynomialRing(QQ, ["t", "x", "y"])
+(Multivariate Polynomial Ring in t, x, y over Rational Field, fmpq_mpoly[t, x, y])
+
+julia> G = abelian_group([0])
+GrpAb: Z
+
+julia> S, (t, x, y) = grade(R, [-1, 1, 1])
+(Multivariate Polynomial Ring in t, x, y over Rational Field graded by
+  t -> [-1]
+  x -> [1]
+  y -> [1], MPolyElem_dec{fmpq, fmpq_mpoly}[t, x, y])
+
+julia> is_positively_graded(S)
+false
+```
+"""
+function is_positively_graded(R::MPolyRing_dec)
+  isgraded(R) || return false
+  G = grading_group(R)
+  try 
+  homogeneous_component(R, zero(G))
+  catch e
+    return false
+  end
+  return true
 end
 
 @doc Markdown.doc"""
@@ -1074,9 +1107,24 @@ function show_homo_comp(io::IO, M)
 end
 
 @doc Markdown.doc"""
-    homogeneous_component(R::MPolyRing_dec, g::GrpAbFinGenElem)
+    homogeneous_component(R::MPolyRing_dec, g::GrpAbFinGenElem) 
 
-Return the homogeneous component of `R` of degree `g`.
+Given a polynomial ring `R` which is graded by a finitely
+generated Abelian group, and given an element `g` of that group,
+return the homogeneous component of `R` of degree `g`.
+
+    homogeneous_component(R::MPolyRing_dec, g::Vector{<:IntegerUnion})
+
+Given a $\mathbb  Z^m$-graded polynomial ring, and given
+a vector `g` of $m$ integers, convert `g` into an element of the group 
+$\mathbb  Z^m$, and return the homogeneous component of `R` whose degree 
+is that element.
+
+    homogeneous_component(R::MPolyRing_dec, g::IntegerUnion)
+
+Given a $\mathbb  Z$-graded polynomial ring, and given
+an integer `g`, convert `g` into an element of the group $\mathbb  Z$, 
+and return the homogeneous component of `R` whose degree is that element.
 
 # Examples
 ```jldoctest
@@ -1148,7 +1196,7 @@ julia> T, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"])
 julia> G = grading_group(T)
 GrpAb: Z
 
-julia> L = homogeneous_component(T, 2*gen(G,1))
+julia> L = homogeneous_component(T, 2)
 (homogeneous component of Multivariate Polynomial Ring in x, y, z over Rational Field graded by
   x -> [1]
   y -> [1]
@@ -1211,6 +1259,16 @@ function homogeneous_component(W::MPolyRing_dec, d::GrpAbFinGenElem)
   add_relshp(M, W, x -> sum(x[i] * B[i] for i=1:length(B)))
 #  add_relshp(W, M, g)
   return M, h
+end
+
+function homogeneous_component(R::MPolyRing_dec, g::Vector{<:IntegerUnion})
+  @assert is_zm_graded(R)
+  return homogeneous_component(R, grading_group(R)(g))
+end
+
+function homogeneous_component(R::MPolyRing_dec, g::IntegerUnion)
+  @assert is_z_graded(R)
+  return homogeneous_component(R, grading_group(R)([g]))
 end
 
 function vector_space(K::AbstractAlgebra.Field, e::Vector{T}; target = nothing) where {T <:MPolyElem}
