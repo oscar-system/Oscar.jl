@@ -899,8 +899,8 @@ x[1]^2 + x[3]^2 + x[5]^2
 
 julia> homogeneous_components(f)
 Dict{GrpAbFinGenElem, MPolyElem_dec{fmpq, fmpq_mpoly}} with 2 entries:
-  [2 0 0 0] => x[1]^2 + x[3]^2
   [2 2 0 0] => x[5]^2
+  [2 0 0 0] => x[1]^2 + x[3]^2
 ```
 """
 function homogeneous_components(a::MPolyElem_dec{T, S}) where {T, S}
