@@ -1,3 +1,5 @@
+################################################################################
+# TODO: Remove the following two functions after next polymake release 4.7
 function _is_full_triangulation(triang::Vector{Vector{Int}}, npoints::Int)
     u = Set{Int}()
     for v in triang
@@ -9,6 +11,15 @@ function _is_full_triangulation(triang::Vector{Vector{Int}}, npoints::Int)
     return false
 end
 
+function _postprocess(triangs::Vector{Vector{Vector{Int}}}, full::Bool)
+    result = Polymake.to_one_based_indexing(triangs)
+    if full
+        result = [t for t in result if _is_full_triangulation(t)]
+    end
+    return result
+end
+################################################################################
+
 function _is_star_triangulation(triang::Vector{Vector{Int}})
     u = Set{Int}()
     for v in triang
@@ -17,14 +28,6 @@ function _is_star_triangulation(triang::Vector{Vector{Int}})
         end
     end
     return true
-end
-
-function _postprocess(triangs::Vector{Vector{Vector{Int}}}, full::Bool)
-    result = Polymake.to_one_based_indexing(triangs)
-    if full
-        result = [t for t in result if _is_full_triangulation(t)]
-    end
-    return result
 end
 
 @doc Markdown.doc"""
@@ -72,7 +75,6 @@ end
 
 Compute all triangulations that can be formed using the vertices of the given
 polytope `P`.
-p
 The return type is a `Vector{Vector{Vector{Int}}}` where each
 `Vector{Vector{Int}}` encodes a triangulation, in which a `Vector{Int}` encodes
 a simplex as the set of indices of the vertices of the simplex. I.e. the
@@ -114,6 +116,7 @@ function star_triangulations(pts::AnyVecOrMat; full::Bool=false, regular::Bool=f
     end
     return [t for t in result if _is_star_triangulation(t)]
 end
+
 @doc Markdown.doc"""
     star_triangulations(P::Polyhedron; full::Bool=false, regular::Bool=false)
 
