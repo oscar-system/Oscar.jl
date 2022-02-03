@@ -1,33 +1,35 @@
 using JSON
+using UUIDs
 
 # struct which tracks state for (de)serialization
-struct SerializerState
+mutable struct SerializerState
     # dict to track already serialized objects
-    objmap::IdDict{Any, Int}
+    objmap::IdDict{Any, UUID}
+    depth::Int
 
     # TODO: if we don't want to produce intermediate dictionaries (which is a lot of overhead), we would probably store an `IO` object here
     # io::IO
 end
 
 function SerializerState()
-    return SerializerState(IdDict{Any, Int}())
+    return SerializerState(IdDict{Any, UUID}(), 0)
 end
 
 struct DeserializerState
-    objs::Dict{Int, Any}  # or perhaps Dict{Int,Any} to be resilient against corrupts/malicious files using huge ids
+    objs::Dict{UUID, Any}  # or perhaps Dict{Int,Any} to be resilient against corrupts/malicious files using huge ids
 end
 
 function DeserializerState()
-    return DeserializerState(Dict{Int, Any}())
+    return DeserializerState(Dict{UUID, Any}())
 end
 
 
 const backref_sym = Symbol("#backref")
-function backref(ref::Int)
+function backref(ref::UUID)
    return Dict(
      :type=>backref_sym,
      :version=>1, # ???
-     :id=>ref,
+     :id=>string(ref),
      )
 end
 
@@ -102,23 +104,31 @@ function save(s::SerializerState, obj::T) where T
         ref = get(s.objmap, obj, nothing)
         ref !== nothing && return backref(ref)
         # otherwise, 
-        ref = s.objmap[obj] = length(s.objmap)
+        ref = s.objmap[obj] = uuid4()
     else
         ref = -1
     end
     # invoke the actual serializer
     encodedType = encodeType(T)
-    return Dict(
-        :_ns => versionInfo,
+    s.depth += 1
+    result = Dict(
         :type => encodedType,
-        :id => ref,
+        :id => string(ref),
         :data => save_intern(s, obj)
     )
+    s.depth -= 1
+    if s.depth == 0
+        result[:_ns] = versionInfo
+    end
+    return result
 end
 
 function load(s::DeserializerState, ::Type{T}, dict::Dict) where T
     decodedType = decodeType(dict[:type])
     id = dict[:id]
+    if id != "-1"
+        id = UUID(id)
+    end
     # TODO: deal with versions? enforce their presence?
     if decodedType == backref_sym
         return s.objs[id]
