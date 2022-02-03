@@ -1176,7 +1176,8 @@ function singular_assure(lbpa::LocalizedBiPolyArray)
     shift_hom = hom(base_ring(oscar_ring(lbpa)), base_ring(oscar_ring(lbpa)), 
         [gen(base_ring(oscar_ring(lbpa)), i) + lbpa.shift[i] for i in (1:nvars(base_ring(oscar_ring(lbpa))))])
     lbpa.singular_gens = Singular.Ideal(lbpa.singular_ring,
-	[lbpa.singular_ring(shift_hom(numerator(x))) for x in oscar_gens(lbpa)])
+                                        (elem_type(lbpa.singular_ring))[lbpa.singular_ring(shift_hom(numerator(x))) for x in oscar_gens(lbpa)])
+    #lbpa.singular_gens = (length(oscar_gens(lbpa)) == 0 ? Singular.Ideal(lbpa.singular_ring) : Singular.Ideal(lbpa.singular_ring, [lbpa.singular_ring(shift_hom(numerator(x))) for x in oscar_gens(lbpa)]))
   end
 end
 

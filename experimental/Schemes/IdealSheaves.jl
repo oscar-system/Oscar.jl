@@ -41,6 +41,8 @@ export ideal_sheaf_type
   end
 end
 
+### getter methods
+
 scheme(I::IdealSheaf) = I.X
 covering(I::IdealSheaf) = I.C
 covered_patches(I::IdealSheaf) = [U for U in keys(I.ideal_gens)]

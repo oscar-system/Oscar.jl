@@ -7,6 +7,7 @@ export CoveringMorphism
 export morphism_type
 
 export CoveredScheme
+export empty_covered_scheme
 export coverings, refinements, default_covering, set_name!, name_of, has_name
 export covering_type, covering_morphism_type, affine_patch_type
 
@@ -408,12 +409,22 @@ function set_default_covering!(X::CoveredScheme, C::Covering)
   return X
 end
 
+### constructors 
+
 function CoveredScheme(C::Covering)
   refinements = Dict{Tuple{typeof(C), typeof(C)}, morphism_type(C)}()
   X = CoveredScheme([C], refinements)
   set_attribute!(X, :seed_covering, C)
   return X
 end
+
+CoveredScheme(X::Spec) = CoveredScheme(Covering(X))
+
+# construct the empty covered scheme over the ring R
+function empty_covered_scheme(R::RT) where {RT<:AbstractAlgebra.Ring}
+  return CoveredScheme(empty_spec(R))
+end
+
 
 function Base.show(io::IO, X::CoveredScheme)
   if has_name(X)

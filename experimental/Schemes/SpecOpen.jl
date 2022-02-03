@@ -37,7 +37,7 @@ this is an open subset;
   function SpecOpen(X::SpecType, f::Vector{RET}; name::String="") where {SpecType<:Spec, RET<:RingElem}
     for a in f
       parent(a) == base_ring(OO(X)) || error("element does not belong to the correct ring")
-      iszero(OO(X)(a)) && error("generators must not be zero")
+      !isempty(X) && iszero(OO(X)(a)) && error("generators must not be zero")
     end
     U = new{SpecType, typeof(base_ring(X)), elem_type(base_ring(X))}(X, f)
     length(name) > 0 && set_name!(U, name)
@@ -432,7 +432,9 @@ function maximal_extension(
     I = intersect(quotient(ideal(W, denominator(p)) + localized_modulus(OO(X)), ideal(W, numerator(p))), I)
   end
   U = SpecOpen(X, I)
-  return U, [StructureSheafElem(U, [OO(V)(a) for V in affine_patches(U)]) for a in f]
+  # TODO: For some reason, the type of the inner vector is not inferred if it has no entries. 
+  # Investigate why? Type instability?
+  return U, [StructureSheafElem(U, (elem_type(OO(X))[OO(V)(a) for V in affine_patches(U)])) for a in f]
 end
 
 #TODO: implement the catchall versions of the above functions.

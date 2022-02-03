@@ -3,8 +3,9 @@ import Base: intersect
 
 export Scheme
 export Spec, OO, defining_ideal
+export spec_type
 export base_ring_type, base_ring_elem_type, poly_type, poly_ring_type, mult_set_type
-export affine_space
+export affine_space, empty_spec
 export EmptyScheme
 
 export is_open_embedding, is_closed_embedding, canonically_isomorphic, hypersurface_complement, subscheme, name_of, set_name!
@@ -66,7 +67,14 @@ mult_set_type(::Type{Spec{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, 
 poly_ring_type(::Type{Spec{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = RT
 poly_type(::Type{Spec{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = RET
 
+### type constructors
 
+# this defaults to Specs over localizations of polynomial rings at hypersurfaces
+# and does not cover localizations for germs!
+spec_type(R::T) where {T<:AbstractAlgebra.Ring} = Spec{T, elem_type(T), mpoly_ring_type(T), mpoly_type(T), MPolyPowersOfElement{T, elem_type(T), mpoly_ring_type(T), mpoly_type(T)}}
+spec_type(::Type{T}) where {T<:AbstractAlgebra.Ring} = Spec{T, elem_type(T), mpoly_ring_type(T), mpoly_type(T), MPolyPowersOfElement{T, elem_type(T), mpoly_ring_type(T), mpoly_type(T)}}
+spec_type(L::MPolyQuoLocalizedRing{S, T, U, V, W}) where {S, T, U, V, W} = Spec{S, T, U, V, W}
+spec_type(::Type{MPolyQuoLocalizedRing{S, T, U, V, W}}) where {S, T, U, V, W} = Spec{S, T, U, V, W}
 
 
 ### Getter functions
@@ -116,6 +124,13 @@ Spec(W::MPolyLocalizedRing) = Spec(MPolyQuoLocalizedRing(W))
 Spec(R::MPolyRing, I::MPolyIdeal, U::AbsMPolyMultSet) = Spec(MPolyQuoLocalizedRing(R, I, U))
 Spec(R::MPolyRing, U::AbsMPolyMultSet) = Spec(MPolyQuoLocalizedRing(R, ideal(R, [zero(R)]), U))
 Spec(R::MPolyRing, I::MPolyIdeal) = Spec(MPolyQuoLocalizedRing(R, I, units_of(R)))
+
+# Hack for the construction of the empty scheme over kk 
+# as an instance of Spec
+function empty_spec(kk::BRT) where {BRT<:AbstractAlgebra.Ring} 
+  R, (x,) = PolynomialRing(kk, ["x"])
+  return Spec(R, ideal(R, [x]), MPolyPowersOfElement(x))
+end
 
 ### closed subschemes defined by ideals
 function subscheme(X::Spec{BRT, BRET, RT, RET, MST}, I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST}

@@ -328,7 +328,9 @@ mutable struct MPolyQuoLocalizedRingElem{
     R = base_ring(L)
     parent(a) == parent(b) == R || error("elements do not belong to the correct ring")
     if !(b in inverted_set(L))
-      return convert(L, a//b)
+      # TODO: Move the conversion out ouf the inner constructor to allow 
+      # type stable code!
+      error("denominator is not admissible!")
     end
     return new{BaseRingType, BaseRingElemType, RingType, RingElemType, MPolyPowersOfElement{BaseRingType, BaseRingElemType, RingType, RingElemType}}(L, a, b)
   end
@@ -369,7 +371,13 @@ fraction(a::MPolyQuoLocalizedRingElem) = lifted_numerator(a)//lifted_denominator
 
 ### required conversions
 (L::MPolyQuoLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(f::RingElemType) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyQuoLocalizedRingElem(L, f, one(f))
-(L::MPolyQuoLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(a::RingElemType, b::RingElemType) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyQuoLocalizedRingElem(L, a, b)
+
+function (L::MPolyQuoLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(a::RingElemType, b::RingElemType) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} 
+  if !(b in inverted_set(L))
+    return convert(L, a//b)
+  end
+  return MPolyQuoLocalizedRingElem(L, a, b)
+end
 
 ### additional conversions
 function (L::MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST})(f::Frac{RET}) where {BRT, BRET, RT, RET, MST}
@@ -496,7 +504,7 @@ function convert(
   ### apply logarithmic bisection to find a power a ⋅dᵏ ≡  c ⋅ b mod I
   (result, coefficient) = divides(Q(a), Q(b))
   # check whether f is already a unit
-  result && return L(coefficient)
+  result && return MPolyQuoLocalizedRingElem(L, lift(coefficient), one(lift(coefficient)))
   push!(powers_of_d, d)
   abort = false
   # find some power which works
