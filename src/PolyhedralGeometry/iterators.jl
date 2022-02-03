@@ -1,9 +1,7 @@
 # We define all relevant types at the beginning to allow objects of different
-# types to know to each other, e.g. constructing a normal fan from a polyhedron
+# types to know to each other, e.g. constructing a normal fan from a polyhedronconst scalar_types = Union{fmpq, Hecke.NfRelElem{nf_elem}}
 
-const scalar_types = Union{fmpq, fmpz}
-
-const scalar_type_to_oscar = Dict{String, Type}([("Rational", fmpq)])
+const scalar_type_to_oscar = Dict{String, Type}([("Rational", fmpq), ("QuadraticExtension<Rational>", Hecke.NfRelElem{nf_elem})])
 
 struct Polyhedron{T} #a real polymake polyhedron
     pm_polytope::Polymake.BigObject
@@ -109,12 +107,14 @@ function detect_scalar_type(n::Type{T}, p::Polymake.BigObject) where T<:Union{Po
     return scalar_type_to_oscar[typename]
 end
 
-const scalar_type_to_polymake = Dict{Type, Type}([(fmpq, Polymake.Rational)])
+const scalar_type_to_polymake = Dict{Type, Type}([(fmpq, Polymake.Rational), (Hecke.NfRelElem{nf_elem}, Polymake.QuadraticExtension{Polymake.Rational})])
+
+const scalar_types_extended = Union{scalar_types, fmpz}
 
 struct PointVector{U} <: AbstractVector{U}
-    p::AbstractVector{U}
+    p::Vector{U}
     
-    PointVector{U}(p::AbstractVector) where U<:scalar_types = new{U}(p)
+    PointVector{U}(p::AbstractVector) where U<:scalar_types_extended = new{U}(p)
     PointVector(p::AbstractVector) = new{fmpq}(p)
 end
 
@@ -122,7 +122,7 @@ end
 
 Base.IndexStyle(::Type{<:PointVector}) = IndexLinear()
 
-Base.getindex(po::PointVector{T}, i::Base.Integer) where T<:scalar_types  = convert(T, po.p[i])
+Base.getindex(po::PointVector{T}, i::Base.Integer) where T<:scalar_types_extended  = convert(T, po.p[i])
 
 function Base.setindex!(po::PointVector, val, i::Base.Integer)
     @boundscheck checkbounds(po.p, i)
@@ -136,9 +136,9 @@ Base.size(po::PointVector) = size(po.p)
 
 # PointVector(x...) = PointVector{fmpq}(x...)
 
-PointVector{U}(n::Base.Integer) where U = PointVector{U}(zeros(U, n))
+PointVector{U}(n::Base.Integer) where U<:scalar_types_extended = PointVector{U}(zeros(U, n))
 
-function Base.similar(X::PointVector, ::Type{S}, dims::Dims{1}) where S <: scalar_types
+function Base.similar(X::PointVector, ::Type{S}, dims::Dims{1}) where S <: scalar_types_extended
     return PointVector{S}(dims...)
 end
 
@@ -149,9 +149,9 @@ function Base.similar(bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{PointVector
 end
 
 struct RayVector{U} <: AbstractVector{U}
-    p::AbstractVector{U}
+    p::Vector{U}
     
-    RayVector{U}(p::AbstractVector) where U<:scalar_types = new{U}(p)
+    RayVector{U}(p::AbstractVector) where U<:scalar_types_extended = new{U}(p)
     RayVector(p::AbstractVector) = new{fmpq}(p)
 end
 
@@ -159,7 +159,7 @@ end
 
 Base.IndexStyle(::Type{<:RayVector}) = IndexLinear()
 
-Base.getindex(po::RayVector{T}, i::Base.Integer) where T<:scalar_types  = convert(T, po.p[i])
+Base.getindex(po::RayVector{T}, i::Base.Integer) where T<:scalar_types_extended  = convert(T, po.p[i])
 
 function Base.setindex!(po::RayVector, val, i::Base.Integer)
     @boundscheck checkbounds(po.p, i)
@@ -173,9 +173,9 @@ Base.size(po::RayVector) = size(po.p)
 
 # RayVector(x...) = RayVector{fmpq}(x...)
 
-RayVector{U}(n::Base.Integer) where U = RayVector{U}(zeros(U, n))
+RayVector{U}(n::Base.Integer) where U<:scalar_types_extended = RayVector{U}(zeros(U, n))
 
-function Base.similar(X::RayVector, ::Type{S}, dims::Dims{1}) where S <: scalar_types
+function Base.similar(X::RayVector, ::Type{S}, dims::Dims{1}) where S <: scalar_types_extended
     return RayVector{S}(dims...)
 end
 
@@ -185,7 +185,7 @@ function Base.similar(bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{RayVector}}
     return RayVector{ElType}(axes(bc)...)
 end
 
-Base.:*(k::scalar_types, po::Union{PointVector, RayVector}) = k .* po
+Base.:*(k::scalar_types_extended, po::Union{PointVector, RayVector}) = k .* po
 
 abstract type Halfspace{T} end
 
@@ -199,7 +199,7 @@ struct AffineHalfspace{T} <: Halfspace{T}
     a::Vector{T}
     b::T
     
-    AffineHalfspace{T}(a::Union{MatElem, AbstractMatrix, AbstractVector}, b=0) where T = new{T}(vec(a), b)
+    AffineHalfspace{T}(a::Union{MatElem, AbstractMatrix, AbstractVector}, b=0) where T<:scalar_types = new{T}(vec(a), b)
     AffineHalfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}, b=0) = new{fmpq}(vec(a), b)
 end
 
@@ -211,7 +211,7 @@ Halfspace{T}(a, b) where T<:scalar_types = AffineHalfspace{T}(a, b)
 struct LinearHalfspace{T} <: Halfspace{T}
     a::Vector{T}
     
-    LinearHalfspace{T}(a::Union{MatElem, AbstractMatrix, AbstractVector}) where T = new{T}(vec(a))
+    LinearHalfspace{T}(a::Union{MatElem, AbstractMatrix, AbstractVector}) where T<:scalar_types = new{T}(vec(a))
     LinearHalfspace(a::Union{MatElem, AbstractMatrix, AbstractVector}) = new{fmpq}(vec(a))
 end
 
@@ -230,7 +230,7 @@ struct AffineHyperplane{T} <: Hyperplane{T}
     a::Vector{T}
     b::T
     
-    AffineHyperplane{T}(a::Union{MatElem, AbstractMatrix, AbstractVector}, b=0) where T = new{T}(vec(a), b)
+    AffineHyperplane{T}(a::Union{MatElem, AbstractMatrix, AbstractVector}, b=0) where T<:scalar_types = new{T}(vec(a), b)
     AffineHyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}, b=0) = new{fmpq}(vec(a), b)
 end
 
@@ -242,7 +242,7 @@ Hyperplane{T}(a, b) where T<:scalar_types = AffineHyperplane{T}(a, b)
 struct LinearHyperplane{T} <: Hyperplane{T}
     a::Vector{T}
     
-    LinearHyperplane{T}(a::Union{MatElem, AbstractMatrix, AbstractVector}) where T = new{T}(vec(a))
+    LinearHyperplane{T}(a::Union{MatElem, AbstractMatrix, AbstractVector}) where T<:scalar_types = new{T}(vec(a))
     LinearHyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}) = new{fmpq}(vec(a))
 end
 

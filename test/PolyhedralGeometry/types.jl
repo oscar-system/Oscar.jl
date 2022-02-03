@@ -65,7 +65,7 @@
 
     @testset "$T" for T in (AffineHalfspace, AffineHyperplane)
         
-        for U in (fmpz, fmpq)
+        for U in [fmpq]
             @test T{U}(a, 0) isa T{U}
             @test T{U}(a', 0) isa T{U}
 
@@ -92,7 +92,7 @@
     
     @testset "$T" for T in (LinearHalfspace, LinearHyperplane)
         
-        for U in (fmpz, fmpq)
+        for U in [fmpq]
             @test T{U}(a) isa T{U}
             @test T{U}(a') isa T{U}
 

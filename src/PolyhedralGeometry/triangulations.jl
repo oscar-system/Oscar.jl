@@ -251,6 +251,6 @@ julia> sc = secondary_polytope(c)
 A polyhedron in ambient dimension 8
 ```
 """
-function secondary_polytope(P::Polyhedron)
-    return Polyhedron(Polymake.polytope.secondary_polytope(pm_object(P)))
+function secondary_polytope(P::Polyhedron{T}) where T<:scalar_types
+    return Polyhedron{T}(Polymake.polytope.secondary_polytope(pm_object(P)))
 end
