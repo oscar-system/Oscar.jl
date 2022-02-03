@@ -399,7 +399,7 @@ mutable struct CollectCtx
     for i = 1:length(R)
       r = R[i]
       if length(r[1]) == 1
-#        @assert length(r[2]) == 1
+        @assert length(r[2]) == 1
         n.d1[r[1][1]] = r[2][1]
         continue
       end
@@ -425,6 +425,9 @@ function Base.collect(w::Vector{Int}, C::CollectCtx)
   do_f = isdefined(C, :f)
   for i=1:length(w)
     if haskey(d1, w[i])
+      if do_f
+        C.f(C, w, [[w[i]], [d1[w[i]]]], i)
+      end
       w[i] = d1[w[i]]
     end
   end
@@ -501,7 +504,7 @@ almost the same as Holt
 =#
 function H_two(C::GModule)
   z = get_attribute(C, :H_two)
-  if z !== nothing
+  if false && z !== nothing
     return domain(z[1]), z[1], z[2]
   end
   G = Group(C)
@@ -531,7 +534,7 @@ function H_two(C::GModule)
   c = CollectCtx(R)
 
   #rules with length(LHS) == 1 and rules of the form
-  # [a a^-1] -> [], [a^-1 1] -> [] do not get tails
+  # [a a^-1] -> [], [a^-1 a] -> [] do not get tails
   pos = Vector{Int}()
   n = 0
   for i = 1:length(R)
@@ -592,15 +595,9 @@ function H_two(C::GModule)
   Z = hom(D, M, [M[0] for i=1:ngens(D)], check = false)
   for i = 1:length(R)
     r = R[i]
-    #rules of LHS length 1 do not generate equations
-    if length(r[1]) == 1
-      continue
-    end
     for j=1:length(R)
+#      i == j && continue
       s = R[j]
-      if length(s[1]) == 1
-        continue
-      end
       #we want overlaps, all of them:
       #r[1] = AB, s[1] = BC this is what we need to find...
       #(then we call collect on r[2]C and As[2] they should agree)
@@ -644,6 +641,7 @@ function H_two(C::GModule)
   end
   mm = reduce(+, [all_T[i]*jinj[i] for i = 1:length(all_T)], init = hom(D, Q, elem_type(Q)[Q[0] for i=1:ngens(D)]))
   E, mE = kernel(mm)
+  @assert all(x->all(y->iszero(y(mE(x))), all_T), gens(E))
   @assert all(x->iszero(mm(mE(x))), gens(E))
 
 
@@ -660,7 +658,7 @@ function H_two(C::GModule)
       continue
     end
     r = R[i]
-    if length(r[1]) == 1
+    if false && length(r[1]) == 1
       continue
     end
     #we have words r[1] and r[2] of shape g_1 g_2 .... 
@@ -729,10 +727,21 @@ function H_two(C::GModule)
           g = g*inv(gen(G, -w[i]))
         end
       end
+      #= Maybe? Not clear what I actually want/ need here, darn
+      wrong currently...
+      if length(R[r][2]) > 0
+        r2 = R[r][2][1] < 0 ? inv(gen(FF, -R[r][2][1])) : gen(FF, R[r][2][1])
+        for i=2:length(R[r][2])
+          r2 *= R[r][2][i] < 0 ? inv(gen(FF, -R[r][2][i])) : gen(FF, R[r][2][i])
+        end
+      else
+        r2 = one(FF)
+      end
+      @show r2, mFF(r2)
+      t = t + cc(mFF(inv(r2)), mFF(r2))
+      =#
       T += inj[pos[r]](t)
     end
-    @show T.coeff
-    @show preimage(mE, T).coeff
     return T
   end
 
@@ -771,7 +780,13 @@ function H_two(C::GModule)
     for g = G
       for h = G
         c.T = zero(M)
-        collect(vcat(word(order(G) == 1 ? one(domain(mFF)) : preimage(mFF, g)), word(order(G) == 1 ? one(domain(mFF)) : preimage(mFF, h))), c)
+        if order(G) > 1
+          @show g, h
+          @show gg = collect(word(preimage(mFF, g)), c)
+          @show hh = collect(word(preimage(mFF, h)), c)
+          c.T = zero(M)
+          @show d = collect(vcat(gg, hh), c)
+        end
         di[(g, h)] = c.T
       end
     end
@@ -780,14 +795,17 @@ function H_two(C::GModule)
 
   symbolic_chain = function(g, h)
     c.f = symbolic_collect
-    c.T = Z
     if order(G) == 1
       w = word(preimage(mFF, one(G)))
     else
-      w = vcat(word(preimage(mFF, g)), word(preimage(mFF, h)))
+      c.T = Z
+      wg = collect(word(preimage(mFF, g)), c)
+      wh = collect(word(preimage(mFF, h)), c)
+      w = vcat(wg, wh)
     end
-    collect(w, c)
-    return mE*c.T
+    c.T = Z
+    w, collect(w, c)
+    return mE*c.T, w
   end
 
   set_attribute!(C, :H_two_symbolic_chain => (symbolic_chain, mH2))
@@ -1229,6 +1247,7 @@ function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
 #  s = GAP.Globals.GapInputPcGroup(z, GAP.julia_to_gap("Z"))
 #  @show GAP.gap_to_julia(s)
   Q = PcGroup(GAP.Globals.GroupByRws(CN))
+  fQ = GAP.Globals.FamilyObj(one(Q).X)
   mQ = hom(N, Q, gens(N), gens(Q))
 
   @assert ngens(Q) == ngens(N)
@@ -1248,11 +1267,14 @@ function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
   mffM = Oscar._hom_from_gap_map(ffM, fM, mffM)
 
   function GMtoQ(g::GAPGroupElem, m)
-    @assert parent(m) == M
-    @assert parent(g) == G
-    h1 = hom(fG, N, gens(fG), [N[i] for i=1:ngens(G)])
-    h2 = hom(ffM, N, gens(ffM), [N[i+ngens(G)] for i=1:ngens(fM)])
-    return mQ(h1(preimage(mfG, g))*h2(preimage(mffM, preimage(mfM, m))))
+    @show g, m, typeof(g), typeof(m)
+    @show wg = GAP.gap_to_julia(GAP.Globals.ExtRepOfObj(g.X))
+    @show wm = GAP.gap_to_julia(GAP.Globals.ExtRepOfObj(preimage(mffM, preimage(mfM, m)).X))
+    for i=1:2:length(wm)
+      push!(wg, wm[i]+ngens(G))
+      push!(wg, wm[i+1])
+    end
+    return PcGroupElem(Q, GAP.Globals.ObjByExtRep(fQ, GAP.julia_to_gap(wg)))
   end
 
   return Q, inv(mfM)*MtoQ, QtoG, GMtoQ

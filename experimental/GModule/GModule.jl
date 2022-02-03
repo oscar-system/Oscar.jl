@@ -1019,7 +1019,8 @@ function lift(C::GModule, mp::Map)
   @assert codomain(mp) == N
 
   _ = Oscar.GrpCoh.H_two(C)
-  sc, mH2 = get_attribute(C, :H_two_symbolic_chain)
+  ssc, mH2 = get_attribute(C, :H_two_symbolic_chain)
+  sc = (x,y) -> ssc(x, y)[1]
   R = relators(G)
   M = C.M
   D, pro, inj = direct_product([M for i=1:ngens(G)]..., task = :both)
@@ -1053,7 +1054,7 @@ function lift(C::GModule, mp::Map)
     for i = Oscar.GrpCoh.word(r)
       if i<0
         h = inv(mp(G[-i])) 
-        m = -pDE[1]*pro[-i]*action(C, h) - pDE[2]*sc(inv(h), h)
+        m = -pDE[1]*pro[-i]*action(C, h)# - pDE[2]*sc(inv(h), h)
       else
         h = mp(G[i])
         m = pDE[1]*pro[i]
@@ -1080,17 +1081,54 @@ function lift(C::GModule, mp::Map)
     #      is missing...
     # (Thm 15, part b & c)
     global last_c = z(chn)
-    @show (preimage(z, z(chn)) - chn).coeff
-    @show order(preimage(z, z(chn)) - chn)
-    @show mH2(preimage(z, z(chn)) - chn).coeff
+    @assert all(x->all(y->sc(x, y)(chn) == last_c(x, y), gens(N)), gens(N))
+#    @show (preimage(z, z(chn)) - chn).coeff
+#    @show order(preimage(z, z(chn)) - chn)
+#    @show mH2(preimage(z, z(chn)) - chn).coeff
     @assert preimage(z, z(chn)) == chn
     GG, GGinj, GGpro, GMtoGG = Oscar.GrpCoh.extension(PcGroup, z(chn))
-#    _GG, _ = Oscar.GrpCoh.extension(z(chn))
-#    @assert isisomorphic(GG, _GG)[1]
+    _GG, _ = Oscar.GrpCoh.extension(z(chn))
+    @assert isisomorphic(GG, _GG)[1]
     #map G[i] -> <mp(G[i]), pro[i](epi)>
 #    @show [(mp(G[i]), pro[i](epi)) for i=1:ngens(G)]
-#    @show [GMtoGG(mp(G[i]), pro[i](epi)) for i=1:ngens(G)]
-    h = hom(G, GG, gens(G), [GMtoGG(mp(G[i]), pro[i](epi)) for i=1:ngens(G)])
+    for r = R
+      @show r
+      a = (one(N), zero(M))
+      for i = Oscar.GrpCoh.word(r)
+        if i<0
+          h = inv(mp(G[-i])) 
+          m = action(C, h)(-pro[-i](epi)) #- last_c(inv(h), h)
+        else
+          h = mp(G[i])
+          m = pro[i](epi)
+        end
+        @show (h, m.coeff)
+        @show (a[1], a[2].coeff)
+        # a *(h, m) = (x, y)(h, m) = (xh, m + y^h + si(x, h))
+        a = (a[1]*h, m + action(C, h)(a[2]) + last_c(a[1], h))
+        @show (a[1], a[2].coeff)
+      end
+      @assert isone(a[1])
+      @assert iszero(a[2])
+    end
+
+    function reduce(g) #in G
+      h = mp(g)
+      c = ssc(h, one(N))[2]
+      k = one(N)
+      for i = c
+        k *= i < 0 ? inv(gen(N, -i)) : gen(N, i)
+      end
+      return k
+    end
+    l= [GMtoGG(reduce(gen(G, i)), pro[i](epi)) for i=1:ngens(G)]
+    @show l
+    @show map(order, l)
+    @show [reduce(gen(G, i)) for i =1:ngens(G)]
+    @show [pro[i](epi).coeff for i=1:ngens(G)]
+    @show :hallo
+
+    h = hom(G, GG, gens(G), [GMtoGG(reduce(gen(G, i)), pro[i](epi)) for i=1:ngens(G)])
     if !issurjective(h)
       @show :darn
       continue
