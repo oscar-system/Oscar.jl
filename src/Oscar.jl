@@ -19,6 +19,8 @@ Oscar is licensed under the GPL v3+ (see LICENSE.md).
 """
 module Oscar
 
+using Preferences
+
 include("imports.jl")
 
 # to allow access to the cornerstones! Otherwise, not even import or using from the

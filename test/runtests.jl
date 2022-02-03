@@ -1,6 +1,8 @@
 using Oscar
 using Test
 
+include("printing.jl")
+
 include("PolyhedralGeometry/runtests.jl")
 include("Combinatorics/runtests.jl")
 

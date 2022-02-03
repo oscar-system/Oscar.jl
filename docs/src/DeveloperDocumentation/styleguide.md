@@ -39,6 +39,41 @@ Here is a summary of the naming convention followed in Oscar:
 
 ## Code formatting
 
+### Unicode
+
+As most modern programming languages, Julia allows the use of Unicode, e.g.,
+`α`, in the REPL as well as in source code. As this reduces accessibility
+to various groups of users and developers, the use of Unicode should be kept
+to a minimum. Here is a general principle:
+
+> Do not use Unicode characters inside functions. See below for the exception
+> concerning printing.
+
+Per default output should be ANSI only (no Unicode). Implementors of 
+`Base.show` and related functions can branch on the output of
+`Oscar.is_unicode_allowed()` to display objects using non-ASCII characters.
+This will then be used for users which enabled Unicode using
+`allow_unicode(true)`. Note that
+
+- there must be a default ANSI only output, since this is the default setting
+  for new users, and
+- OSCAR library code is not allowed to call `Oscar.allow_unicode`.
+
+Here is an example with and without output using Unicode:
+
+```julia
+  struct AtoB
+  end
+
+  function Base.show(io::IO, ::AtoB)
+    if Oscar.is_unicode_allowed()
+      print(io, "A→B")
+    else
+      print(io, "A->B")
+    end
+  end
+```
+
 ### Whitespace
 
 - Do not use tabs.
