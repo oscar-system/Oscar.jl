@@ -388,40 +388,20 @@ function del_pezzo(b::Int)
     # set attributes that depend on b
     if b == 1
         set_attribute!(variety, :euler_characteristic, 4)
-        set_attribute!(variety, :torusinvariant_divisor_group, free_abelian_group(4))    
-        ring = PolynomialRing(QQ, ["x1", "x2", "x3", "e1"])[1]
-        weights = [map_from_weil_divisors_to_class_group(variety)(x) for x in Hecke.gens(torusinvariant_divisor_group(variety))]
-        set_attribute!(variety, :cox_ring, grade(ring,weights)[1])
-        gens = Hecke.gens(ring)
-        set_attribute!(variety, :stanley_reisner_ideal, ideal([gens[1]*gens[3], gens[2]*gens[4]]))
-        set_attribute!(variety, :irrelevant_ideal, ideal([gens[3]*gens[4], gens[1]*gens[4], gens[1]*gens[2], gens[3]*gens[2]]))
+        set_attribute!(variety, :torusinvariant_divisor_group, free_abelian_group(4))
+        set_attribute!(variety, :coordinate_names, ["x1", "x2", "x3", "e1"])
         set_attribute!(variety, :betti_number, [fmpz(1),fmpz(2),fmpz(1)])
     end
     if b == 2
         set_attribute!(variety, :euler_characteristic, 5)
         set_attribute!(variety, :torusinvariant_divisor_group, free_abelian_group(5))
-        ring = PolynomialRing(QQ, ["x1", "x2", "x3", "e1", "e2"])[1]
-        weights = [map_from_weil_divisors_to_class_group(variety)(x) for x in Hecke.gens(torusinvariant_divisor_group(variety))]
-        set_attribute!(variety, :cox_ring, grade(ring,weights)[1])
-        gens = Hecke.gens(ring)
-        set_attribute!(variety, :stanley_reisner_ideal, ideal([gens[1]*gens[3], gens[1]*gens[4], 
-                                                                                          gens[2]*gens[4], gens[2]*gens[5], gens[3]*gens[5]]))
-        set_attribute!(variety, :irrelevant_ideal, ideal([gens[3]*gens[4]*gens[5], gens[1]*gens[4]*gens[5], 
-                                                                                 gens[1]*gens[2]*gens[5], gens[1]*gens[2]*gens[3], gens[2]*gens[3]*gens[4]]))
+        set_attribute!(variety, :coordinate_names, ["x1", "x2", "x3", "e1", "e2"])
         set_attribute!(variety, :betti_number, [fmpz(1),fmpz(3),fmpz(1)])
     end
     if b == 3
         set_attribute!(variety, :euler_characteristic, 6)
         set_attribute!(variety, :torusinvariant_divisor_group, free_abelian_group(6))
-        ring = PolynomialRing(QQ, ["x1", "x2", "x3", "e1", "e2", "e3"])[1]
-        weights = [map_from_weil_divisors_to_class_group(variety)(x) for x in Hecke.gens(torusinvariant_divisor_group(variety))]
-        set_attribute!(variety, :cox_ring, grade(ring,weights)[1])
-        gens = Hecke.gens(ring)
-        set_attribute!(variety, :stanley_reisner_ideal, ideal([gens[1]*gens[3], gens[1]*gens[4], gens[1]*gens[5], gens[2]*gens[4], 
-                                                                                          gens[2]*gens[5], gens[2]*gens[6], gens[3]*gens[5], gens[3]*gens[6], gens[4]*gens[6]]))
-        set_attribute!(variety, :irrelevant_ideal, ideal([gens[3]*gens[4] *gens[5]*gens[6], gens[1]*gens[4] *gens[5]*gens[6],
-                                                                                 gens[1]*gens[2] *gens[5]*gens[6], gens[1]*gens[2] *gens[3]*gens[6],
-                                                                                 gens[1]*gens[2] *gens[3]*gens[4], gens[2]*gens[3] *gens[4]*gens[5]]))
+        set_attribute!(variety, :coordinate_names, ["x1", "x2", "x3", "e1", "e2", "e3"])
         set_attribute!(variety, :betti_number, [fmpz(1),fmpz(4),fmpz(1)])
     end
     
