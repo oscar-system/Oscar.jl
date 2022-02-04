@@ -64,6 +64,9 @@ function set_coefficient_ring(v::AbstractNormalToricVariety, coefficient_ring::A
     if has_attribute(v, :cox_ring)
         error("Cox ring already constructed. Coefficient ring must not be changed.")
     end
+    if has_attribute(v, :toric_ideal)
+        error("Toric ideal already constructed. Coefficient ring must not be changed.")
+    end
     set_attribute!(v, :coefficient_ring, coefficient_ring)
 end
 export set_coefficient_ring
@@ -251,8 +254,14 @@ ideal(-x1*x2 + x3*x4)
 """
 function toric_ideal(antv::AffineNormalToricVariety)
     return get_attribute!(antv, :toric_ideal) do
+        # is the coefficient_ring set? If not, set default value
+        if !has_attribute(antv, :coefficient_ring)
+            set_attribute!(antv, :coefficient_ring, QQ)
+        end
+        
+        # construct the toric ideal
         cone = Cone(pm_object(antv).WEIGHT_CONE)
-        return toric_ideal(hilbert_basis(cone))
+        return toric_ideal(hilbert_basis(cone), coefficient_ring(antv))
     end
 end
 export toric_ideal
