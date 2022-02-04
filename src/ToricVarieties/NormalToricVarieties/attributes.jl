@@ -133,7 +133,7 @@ function irrelevant_ideal(v::AbstractNormalToricVariety)
         
         # compute generators
         indeterminates = Hecke.gens(cox_ring(v))
-        gens = MPolyElem_dec{fmpq, fmpq_mpoly}[]
+        gens = typeof(indeterminates[1])[]
         for i in 1:length(maximal_cones)
             monom = indeterminates[1]^(1 - maximal_cones[i][1])
             for j in 2:length(maximal_cones[i])
