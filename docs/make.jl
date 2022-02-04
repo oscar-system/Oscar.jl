@@ -2,7 +2,7 @@ using Documenter, Oscar
 
 include(normpath(joinpath(Oscar.oscardir, "docs", "make_work.jl")))
 
-BuildDoc.doit(Oscar; strict=true, local_build=false, doctest=true)
+BuildDoc.doit(Oscar; strict=true, local_build=false, doctest=:fix)
 
 deploydocs(
    repo   = "github.com/oscar-system/Oscar.jl.git",
