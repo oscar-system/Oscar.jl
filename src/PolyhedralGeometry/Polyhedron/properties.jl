@@ -471,7 +471,7 @@ dim(P::Polyhedron) = Polymake.polytope.dim(pm_object(P))::Int
 
 
 @doc Markdown.doc"""
-    lattice_points(P::Polyhedron)
+    lattice_points(P::Polyhedron{fmpq})
 
 Return the integer points contained in the bounded polyhedron `P`.
 
@@ -489,7 +489,7 @@ julia> lattice_points(S)
  [2, 0]
 ```
 """
-function lattice_points(P::Polyhedron)
+function lattice_points(P::Polyhedron{fmpq})
     pm_object(P).BOUNDED || throw(ArgumentError("Polyhedron not bounded"))
     return SubObjectIterator{PointVector{fmpz}}(pm_object(P), _lattice_point, size(pm_object(P).LATTICE_POINTS_GENERATORS[1], 1))
 end
@@ -501,7 +501,7 @@ _point_matrix(::Val{_lattice_point}, P::Polymake.BigObject; homogenized=false) =
 _matrix_for_polymake(::Val{_lattice_point}) = _point_matrix
 
 @doc Markdown.doc"""
-    interior_lattice_points(P::Polyhedron)
+    interior_lattice_points(P::Polyhedron{fmpq})
 
 Return the integer points contained in the interior of the bounded polyhedron
 `P`.
@@ -516,7 +516,7 @@ julia> interior_lattice_points(c)
  [0, 0, 0]
 ```
 """
-function interior_lattice_points(P::Polyhedron)
+function interior_lattice_points(P::Polyhedron{fmpq})
     pm_object(P).BOUNDED || throw(ArgumentError("Polyhedron not bounded"))
     return SubObjectIterator{PointVector{fmpz}}(pm_object(P), _interior_lattice_point, size(pm_object(P).INTERIOR_LATTICE_POINTS, 1))
 end
@@ -528,7 +528,7 @@ _point_matrix(::Val{_interior_lattice_point}, P::Polymake.BigObject; homogenized
 _matrix_for_polymake(::Val{_interior_lattice_point}) = _point_matrix
 
 @doc Markdown.doc"""
-    boundary_lattice_points(P::Polyhedron)
+    boundary_lattice_points(P::Polyhedron{fmpq})
 
 Return the integer points contained in the boundary of the bounded polyhedron
 `P`.
@@ -548,7 +548,7 @@ julia> boundary_lattice_points(c)
  [1, 0, 0]
 ```
 """
-function boundary_lattice_points(P::Polyhedron)
+function boundary_lattice_points(P::Polyhedron{fmpq})
     pm_object(P).BOUNDED || throw(ArgumentError("Polyhedron not bounded"))
     return SubObjectIterator{PointVector{fmpz}}(pm_object(P), _boundary_lattice_point, size(pm_object(P).BOUNDARY_LATTICE_POINTS, 1))
 end
@@ -830,7 +830,7 @@ contains(P::Polyhedron, v::AbstractVector) = Polymake.polytope.contains(pm_objec
 
 
 @doc Markdown.doc"""
-    issmooth(P::Polyhedron)
+    issmooth(P::Polyhedron{fmpq})
 
 Check whether `P` is smooth.
 
@@ -843,11 +843,11 @@ julia> issmooth(C)
 true
 ```
 """
-issmooth(P::Polyhedron) = pm_object(P).SMOOTH::Bool
+issmooth(P::Polyhedron{fmpq}) = pm_object(P).SMOOTH::Bool
 
 
 @doc Markdown.doc"""
-    isnormal(P::Polyhedron)
+    isnormal(P::Polyhedron{fmpq})
 
 Check whether `P` is normal.
 
@@ -868,7 +868,7 @@ julia> isnormal(P)
 false
 ```
 """
-isnormal(P::Polyhedron) = pm_object(P).NORMAL::Bool
+isnormal(P::Polyhedron{fmpq}) = pm_object(P).NORMAL::Bool
 
 
 @doc Markdown.doc"""

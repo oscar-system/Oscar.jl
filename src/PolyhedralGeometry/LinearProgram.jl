@@ -6,7 +6,7 @@ respect to the function x ↦ dot(c,x)+k.
 
 """
 struct LinearProgram{T}
-   feasible_region::Polyhedron
+   feasible_region::Polyhedron{T}
    polymake_lp::Polymake.BigObject
    convention::Symbol
 end
@@ -25,7 +25,7 @@ function LinearProgram{T}(Q::Polyhedron, objective::AbstractVector; k = 0, conve
       Polymake.attach(lp, "convention", "min")
    end
    pm_object(P).LP = lp
-   LinearProgram(P, lp, convention)
+   LinearProgram{T}(P, lp, convention)
 end
 
 LinearProgram(Q::Polyhedron{T},  objective::AbstractVector; k = 0, convention = :max) where T<:scalar_types = LinearProgram{T}(Q, objective; k = k, convention = convention)
@@ -75,9 +75,9 @@ The allowed values for `as` are
 
 
 """
-function objective_function(lp::LinearProgram; as::Symbol = :pair)
+function objective_function(lp::LinearProgram{T}; as::Symbol = :pair) where T<:scalar_types
    if as == :pair
-      return dehomogenize(lp.polymake_lp.LINEAR_OBJECTIVE),lp.polymake_lp.LINEAR_OBJECTIVE[1]
+      return Vector{T}(dehomogenize(lp.polymake_lp.LINEAR_OBJECTIVE)),convert(T, lp.polymake_lp.LINEAR_OBJECTIVE[1])
    elseif as == :function
       (c,k) = objective_function(lp, as = :pair)
       return x -> sum(x.*c)+k
@@ -126,7 +126,7 @@ pm::Vector<pm::Rational>
 1 1 -1
 ```
 """
-function optimal_vertex(lp::LinearProgram)
+function optimal_vertex(lp::LinearProgram{T}) where T<:scalar_types
    opt_vert = nothing
    if lp.convention == :max
       opt_vert = lp.polymake_lp.MAXIMAL_VERTEX
@@ -134,7 +134,7 @@ function optimal_vertex(lp::LinearProgram)
       opt_vert = lp.polymake_lp.MINIMAL_VERTEX
    end
    if opt_vert != nothing
-      return dehomogenize(opt_vert)
+      return PointVector{T}(dehomogenize(opt_vert))
    else
       return nothing
    end
@@ -165,10 +165,13 @@ julia> optimal_value(LP)
 -6
 ```
 """
-function optimal_value(lp::LinearProgram)
+function optimal_value(lp::LinearProgram{T}) where T<:scalar_types
    if lp.convention == :max
+      # TODO: consider inf
+      # return convert(T, lp.polymake_lp.MAXIMAL_VALUE)
       return lp.polymake_lp.MAXIMAL_VALUE
    else
+      # return convert(T, lp.polymake_lp.MINIMAL_VALUE)
       return lp.polymake_lp.MINIMAL_VALUE
    end
 end

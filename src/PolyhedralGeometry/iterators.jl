@@ -1,7 +1,6 @@
-# We define all relevant types at the beginning to allow objects of different
-# types to know to each other, e.g. constructing a normal fan from a polyhedronconst scalar_types = Union{fmpq, Hecke.NfRelElem{nf_elem}}
+const scalar_types = Union{fmpq, nf_scalar}
 
-const scalar_type_to_oscar = Dict{String, Type}([("Rational", fmpq), ("QuadraticExtension<Rational>", Hecke.NfRelElem{nf_elem})])
+const scalar_type_to_oscar = Dict{String, Type}([("Rational", fmpq), ("QuadraticExtension<Rational>", nf_scalar)])
 
 struct Polyhedron{T} #a real polymake polyhedron
     pm_polytope::Polymake.BigObject
@@ -107,7 +106,7 @@ function detect_scalar_type(n::Type{T}, p::Polymake.BigObject) where T<:Union{Po
     return scalar_type_to_oscar[typename]
 end
 
-const scalar_type_to_polymake = Dict{Type, Type}([(fmpq, Polymake.Rational), (Hecke.NfRelElem{nf_elem}, Polymake.QuadraticExtension{Polymake.Rational})])
+const scalar_type_to_polymake = Dict{Type, Type}([(fmpq, Polymake.Rational), (nf_scalar, Polymake.QuadraticExtension{Polymake.Rational})])
 
 const scalar_types_extended = Union{scalar_types, fmpz}
 
@@ -135,6 +134,8 @@ Base.lastindex(iter::PointVector) = length(iter)
 Base.size(po::PointVector) = size(po.p)
 
 # PointVector(x...) = PointVector{fmpq}(x...)
+
+PointVector{FieldElem}(x...) = PointVector{nf_scalar}(x...)
 
 PointVector{U}(n::Base.Integer) where U<:scalar_types_extended = PointVector{U}(zeros(U, n))
 
@@ -323,7 +324,8 @@ for (sym, name) in (("linear_inequality_matrix", "Linear Inequality Matrix"), ("
     M = Symbol(sym)
     _M = Symbol(string("_", sym))
     @eval begin
-        $M(iter::SubObjectIterator) = matrix(QQ, Matrix{fmpq}($_M(Val(iter.Acc), iter.Obj; iter.options...)))
+        $M(iter::SubObjectIterator{<:Union{Halfspace{fmpq}, Hyperplane{fmpq}, Polyhedron{fmpq}, Cone{fmpq}, Pair{Matrix{fmpq}, fmpq}}}) = matrix(QQ, Matrix{fmpq}($_M(Val(iter.Acc), iter.Obj; iter.options...)))
+        $M(iter::SubObjectIterator{<:Union{Halfspace{T}, Hyperplane{T}, Polyhedron{T}, Cone{T}, Pair{Matrix{T}, T}}}) where T<:scalar_types = Matrix{T}($_M(Val(iter.Acc), iter.Obj; iter.options...))
         $_M(::Any, ::Polymake.BigObject) = throw(ArgumentError(string($name, " not defined in this context.")))
     end
 end
@@ -335,6 +337,7 @@ for (sym, name) in (("point_matrix", "Point Matrix"), ("vector_matrix", "Vector 
     @eval begin
         $M(iter::SubObjectIterator{<:AbstractVector{fmpq}}) = matrix(QQ, Matrix{fmpq}($_M(Val(iter.Acc), iter.Obj; iter.options...)))
         $M(iter::SubObjectIterator{<:AbstractVector{fmpz}}) = matrix(ZZ, $_M(Val(iter.Acc), iter.Obj; iter.options...))
+        $M(iter::SubObjectIterator{<:AbstractVector{nf_scalar}}) = Matrix{nf_scalar}($_M(Val(iter.Acc), iter.Obj; iter.options...))
         $_M(::Any, ::Polymake.BigObject) = throw(ArgumentError(string($name, " not defined in this context.")))
     end
 end
@@ -348,7 +351,7 @@ function matrix_for_polymake(iter::SubObjectIterator; homogenized=false)
 end
 
 # primitive generators only for ray based iterators
-matrix(R::FlintIntegerRing, iter::SubObjectIterator{RayVector{fmpq}}) =
+matrix(R::FlintIntegerRing, iter::SubObjectIterator{<:RayVector}) =
     matrix(R, Polymake.common.primitive(matrix_for_polymake(iter)))
 matrix(R::FlintIntegerRing, iter::SubObjectIterator{<:Union{RayVector{fmpz},PointVector{fmpz}}}) =
     matrix(R, matrix_for_polymake(iter))
@@ -375,10 +378,19 @@ function affine_matrix_for_polymake(iter::SubObjectIterator)
     throw(ArgumentError("Affine Matrix for Polymake not defined in this context."))
 end
 
-function halfspace_matrix_pair(iter::SubObjectIterator)
+function halfspace_matrix_pair(iter::SubObjectIterator{<:Union{Halfspace{fmpq}, Hyperplane{fmpq}, Polyhedron{fmpq}, Cone{fmpq}, Pair{Matrix{fmpq}, fmpq}}})
     try
         h = affine_matrix_for_polymake(iter)
         return (A = matrix(QQ, Matrix{fmpq}(h[:, 2:end])), b = -h[:, 1])
+    catch e
+        throw(ArgumentError("Halfspace-Matrix-Pair not defined in this context."))
+    end
+end
+
+function halfspace_matrix_pair(iter::SubObjectIterator{<:Union{Halfspace{T}, Hyperplane{T}, Polyhedron{T}, Cone{T}, Pair{Matrix{T}, T}}}) where T<:scalar_types
+    try
+        h = affine_matrix_for_polymake(iter)
+        return (A = Matrix{T}(h[:, 2:end]), b = -h[:, 1])
     catch e
         throw(ArgumentError("Halfspace-Matrix-Pair not defined in this context."))
     end

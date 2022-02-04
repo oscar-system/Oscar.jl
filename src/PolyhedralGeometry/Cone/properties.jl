@@ -311,7 +311,7 @@ _facet_cone(::Type{T}, C::Polymake.BigObject, i::Base.Integer) where {U<:scalar_
 
 _facet_cone(::Type{LinearHalfspace{T}}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = LinearHalfspace{T}(-C.FACETS[[i], :])
 
-_facet_cone(::Type{Cone{T}}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = cone_from_inequalities(-C.FACETS[[i], :]; scalar = fmpq)
+_facet_cone(::Type{Cone{T}}, C::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = cone_from_inequalities(-C.FACETS[[i], :]; scalar_type = T)
 
 _linear_inequality_matrix(::Val{_facet_cone}, C::Polymake.BigObject) = -C.FACETS
 

@@ -19,7 +19,17 @@ Base.convert(::Type{Polymake.Integer}, x::fmpz) = Polymake.Integer(BigInt(x))
 Base.convert(::Type{Polymake.Rational}, x::fmpz) = Polymake.Rational(convert(Polymake.Integer, x), convert(Polymake.Integer, 1))
 Base.convert(::Type{Polymake.Rational}, x::fmpq) = Polymake.Rational(convert(Polymake.Integer, numerator(x)), convert(Polymake.Integer, denominator(x)))
 
-function Base.convert(::Type{Polymake.QuadraticExtension{Polymake.Rational}}, x::Hecke.NfRelElem{nf_elem})
+const nf_scalar = Union{nf_elem, fmpq}
+
+export nf_scalar
+
+# Base.zero(::Type{nf_scalar}) = fmpq()
+# Base.one(::Type{nf_scalar}) = fmpq(1)
+
+Base.convert(::Type{nf_scalar}, x::Number) = convert(fmpq, x)
+Base.convert(::Type{nf_scalar}, x::nf_elem) = x
+
+function Base.convert(::Type{Polymake.QuadraticExtension{Polymake.Rational}}, x::nf_scalar)
     p = defining_polynomial(parent(x))
     if (length(p) != 3 && coeff(p, 1) != 0) || sign(coeff(p, 2)) == sign(coeff(p, 0))
         throw(ArgumentError("Conversion from NfAbsNSElem to QuadraticExtension{Rational} only defined for elements of number fields defined by a polynomial of the form 'ax^2 - b'."))
@@ -29,13 +39,13 @@ function Base.convert(::Type{Polymake.QuadraticExtension{Polymake.Rational}}, x:
     return Polymake.QuadraticExtension{Polymake.Rational}(convert(Polymake.Rational, c[1]), convert(Polymake.Rational, c[2]), r)
 end
 
-function Base.convert(::Type{Hecke.NfRelElem{nf_elem}}, x::Polymake.QuadraticExtension{Polymake.Rational})
+function Base.convert(::Type{nf_scalar}, x::Polymake.QuadraticExtension{Polymake.Rational})
     g = Polymake.generating_field_elements(x)
-    Qx, _ = rationals_as_number_field()
-    # Qx, _ = PolynomialRing(QQ; cached = true)
-    # if g.r == 0
-    #     return Qx(convert(fmpq, g.a))
-    # end
+    # Qx, _ = rationals_as_number_field()
+    Qx, _ = PolynomialRing(QQ; cached = true)
+    if g.r == 0
+        return convert(fmpq, g.a)
+    end
     dp = Qx([-convert(fmpq, g.r), 0, 1])
     Nf, a = NumberField(dp; cached = true)
     return convert(fmpq, g.a) + convert(fmpq, g.b) * a

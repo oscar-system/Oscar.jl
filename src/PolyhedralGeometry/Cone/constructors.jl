@@ -74,10 +74,10 @@ julia> PO = positive_hull(R)
 A polyhedral cone in ambient dimension 2 with fmpq type coefficients
 ```
 """
-function positive_hull(R::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix}; scalar::Type{<:scalar_types} = fmpq)
-    C=Polymake.polytope.Cone{scalar_type_to_polymake[scalar]}(INPUT_RAYS =
+function positive_hull(R::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix}; scalar_type::Type{<:scalar_types} = fmpq)
+    C=Polymake.polytope.Cone{scalar_type_to_polymake[scalar_type]}(INPUT_RAYS =
       remove_zero_rows(R))
-    Cone{scalar}(C)
+    Cone{scalar_type}(C)
 end
 
 @doc Markdown.doc"""
@@ -102,14 +102,14 @@ julia> rays(C)
  [1, 1]
 ```
 """
-function cone_from_inequalities(I::Union{SubObjectIterator{<:Halfspace}, Oscar.MatElem, AbstractMatrix}, E::Union{Nothing, SubObjectIterator{<:Hyperplane}, Oscar.MatElem, AbstractMatrix} = nothing; non_redundant::Bool = false, scalar::Type{<:scalar_types} = fmpq)
+function cone_from_inequalities(I::Union{SubObjectIterator{<:Halfspace}, Oscar.MatElem, AbstractMatrix}, E::Union{Nothing, SubObjectIterator{<:Hyperplane}, Oscar.MatElem, AbstractMatrix} = nothing; non_redundant::Bool = false, scalar_type::Type{<:scalar_types} = fmpq)
     IM = -linear_matrix_for_polymake(I)
-    EM = isnothing(E) || isempty(E) ? Polymake.Matrix{scalar_type_to_polymake[scalar]}(undef, 0, size(IM, 2)) : linear_matrix_for_polymake(E)
+    EM = isnothing(E) || isempty(E) ? Polymake.Matrix{scalar_type_to_polymake[scalar_type]}(undef, 0, size(IM, 2)) : linear_matrix_for_polymake(E)
 
     if non_redundant
-        return Cone{scalar}(Polymake.polytope.Cone{scalar_type_to_polymake[scalar]}(FACETS = IM, LINEAR_SPAN = EM))
+        return Cone{scalar_type}(Polymake.polytope.Cone{scalar_type_to_polymake[scalar_type]}(FACETS = IM, LINEAR_SPAN = EM))
     else
-        return Cone{scalar}(Polymake.polytope.Cone{scalar_type_to_polymake[scalar]}(INEQUALITIES = IM, EQUATIONS = EM))
+        return Cone{scalar_type}(Polymake.polytope.Cone{scalar_type_to_polymake[scalar_type]}(INEQUALITIES = IM, EQUATIONS = EM))
     end
 end
 
