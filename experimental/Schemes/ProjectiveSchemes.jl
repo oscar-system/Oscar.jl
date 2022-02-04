@@ -343,7 +343,12 @@ cone of ``X`` to a pair of homogeneous polynomials ``(p, q)``, lifting
 function frac_to_homog(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::CRET) where {CRT<:MPolyRing, CRET, RT, RET}
   S = homogeneous_coordinate_ring(X)
   A = base_ring(S)
-  f_nested = renest(S, f)
+  f_nested = zero(S)
+  if parent(f) == A
+    f_nested = S(f)
+  else
+    f_nested = renest(S, f)
+  end
   return f_nested
 end
 
@@ -362,9 +367,15 @@ function frac_to_homog(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::MPolyQuoLocal
 end
 
 function frac_to_homog(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::Vector{CRET}) where {CRT<:MPolyRing, CRET, RT, RET}
+  length(f) == 0 && return elem_type(S)[]
   S = homogeneous_coordinate_ring(X)
   A = base_ring(S)
-  f_nested = [renest(S, a) for a in f]
+  f_nested = elem_type(S)[]
+  if parent(f[1]) == A
+    f_nested = S.(f)
+  else
+    f_nested = [renest(S, a) for a in f]
+  end
   return f_nested
 end
 
@@ -387,8 +398,13 @@ function frac_to_homog(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::PolyType) whe
   S = homogeneous_coordinate_ring(X)
   A = base_ring(S)
   R = base_ring(A)
-  T = PolynomialRing(R, symbols(S))
-  f_nested = renest(T, f)
+  T, _ = PolynomialRing(R, symbols(S))
+  f_nested = zero(T)
+  if parent(f) == R
+    f_nested = T(f)
+  else
+    f_nested = renest(T, f)
+  end
   function coeff_map(a::T) where {T<:MPolyElem} 
     return A(evaluate(a, gens(base_ring(A))))
   end
@@ -400,7 +416,7 @@ function frac_to_homog(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::MPolyLocalize
   S = homogeneous_coordinate_ring(X)
   A = base_ring(S)
   R = base_ring(A)
-  T = PolynomialRing(R, symbols(S))
+  T, _ = PolynomialRing(R, symbols(S))
   a = numerator(f)
   b = denominator(f)
   a_nested = renest(T, a)
@@ -418,11 +434,16 @@ function frac_to_homog(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::MPolyQuoLocal
 end
     
 function frac_to_homog(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::Vector{PolyType}) where {CRT<:MPolyQuoLocalizedRing, PolyType<:MPolyElem, CRET, RT, RET}
+  length(f) == 0 && return elem_type(S)[]
   S = homogeneous_coordinate_ring(X)
   A = base_ring(S)
   R = base_ring(A)
-  T = PolynomialRing(R, symbols(S))
-  f_nested = [renest(T, a) for a in f]
+  T, _ = PolynomialRing(R, symbols(S))
+  if parent(f[1]) == R
+    f_nested = [T(a) for a in f]
+  else
+    f_nested = [renest(T, a) for a in f]
+  end
   function coeff_map(a::T) where {T<:MPolyElem} 
     return A(evaluate(a, gens(base_ring(A))))
   end
@@ -434,7 +455,7 @@ function frac_to_homog(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::Vector{Fracti
   S = homogeneous_coordinate_ring(X)
   A = base_ring(S)
   R = base_ring(A)
-  T = PolynomialRing(R, symbols(S))
+  T, _ = PolynomialRing(R, symbols(S))
   a = numerator.(f)
   b = denominator.(f)
   a_nested = [renest(S, p) for p in a]
