@@ -54,6 +54,41 @@ export euler_characteristic
 
 
 @doc Markdown.doc"""
+    set_coordinate_names(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
+
+Allows to set the names of the homogeneous coordinates. If
+the Cox ring of the variety has already been computed, we do
+not allow changes of the coordinate names. In this case, an error
+is triggered.
+"""
+function set_coordinate_names(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
+    if has_attribute(v, :cox_ring)
+        error("Cox ring already constructed. Coordinate names cannot be changed anymore.")
+    end
+    if length(coordinate_names) != nrays(fan(v))
+        throw(ArgumentError("The provided list of coordinate names must match the number of rays in the fan."))
+    end
+    set_attribute!(v, :coordinate_names, coordinate_names)
+end
+export set_coordinate_names
+
+
+@doc Markdown.doc"""
+    coordinate_names(v::AbstractNormalToricVariety)
+
+This method returns the names of the homogeneous coordinates of 
+the normal toric variety `v`. If they are not yet set an error is returned.
+"""
+function coordinate_names(v::AbstractNormalToricVariety)
+    if !has_attribute(v, :coordinate_names)
+        error("Coordinate names not yet set.")
+    end
+    return get_attribute(v, :coordinate_names)
+end
+export coordinate_names
+
+
+@doc Markdown.doc"""
     cox_ring(v::AbstractNormalToricVariety)
 
 Computes the Cox ring of the normal toric variety `v`.
