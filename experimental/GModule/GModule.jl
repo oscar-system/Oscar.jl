@@ -753,13 +753,7 @@ export irreducible_modules, isabsolutely_irreducible, isdecomposable
 module RepPc
 using Oscar
 
-export maximal_abelian_quotient, coimage
-
-function maximal_abelian_quotient(G::Oscar.GAPGroup)
-  mg = GAP.Globals.MaximalAbelianQuotient(G.X)
-  A = PcGroup(GAP.Globals.Range(mg))
-  return A, Oscar._hom_from_gap_map(G, A, mg)
-end
+export coimage
 
 Base.pairs(M::MatElem) = Base.pairs(IndexCartesian(), M)
 Base.pairs(::IndexCartesian, M::MatElem) = Base.Iterators.Pairs(M, CartesianIndices(axes(M)))
@@ -1231,4 +1225,4 @@ end #module RepPc
 
 using .RepPc
 
-export maximal_abelian_quotient, coimage
+export coimage
