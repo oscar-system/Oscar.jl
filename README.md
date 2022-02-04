@@ -99,12 +99,6 @@ Subquotient of Submodule with 1 generator
 1 -> e[1]
 by Submodule with 1 generator
 1 -> (x1^2 + x2)*e[1]
-
-julia> homogeneous_component(H, D[0])
-(H_[0] of dim 2, Map from
-H_[0] of dim 2 to H defined by a julia-function with inverse
-)
-
 ```
 
 Of course, the cornerstones are also available directly:
