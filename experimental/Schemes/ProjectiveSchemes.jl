@@ -787,7 +787,7 @@ end
 
 
 function dehomogenize(
-    X::ProjectiveScheme{ProjectiveScheme{CRT}}, 
+    X::ProjectiveScheme{CRT}, 
     f::RingElemType, 
     i::Int
   ) where {
@@ -805,7 +805,7 @@ function dehomogenize(
 end
 
 function dehomogenize(
-    X::ProjectiveScheme{ProjectiveScheme{CRT}}, 
+    X::ProjectiveScheme{CRT}, 
     f::Vector{RingElemType}, 
     i::Int
   ) where {
