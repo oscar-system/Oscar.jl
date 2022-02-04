@@ -573,8 +573,9 @@ function simplify(f::MPolyQuoElem)
   singular_assure(I.gb)
   Sx = base_ring(I.gb.S)
   g = f.f
-  return R(I.gens.Ox(reduce(Sx(g), I.gb.S)))
+  return R(I.gens.Ox(reduce(Sx(g), I.gb.S)))::elem_type(R)
 end
+
 function simplify!(f::MPolyQuoElem)
   R = parent(f)
   I = R.I
@@ -583,7 +584,7 @@ function simplify!(f::MPolyQuoElem)
   Sx = base_ring(I.gb.S)
   g = f.f
   f.f = I.gens.Ox(reduce(Sx(g), I.gb.S))
-  return f
+  return f::elem_type(R)
 end
 
 
