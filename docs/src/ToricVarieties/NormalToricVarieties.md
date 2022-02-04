@@ -116,9 +116,11 @@ betti_number(v::AbstractNormalToricVariety, i::Int)
 ### Rings and ideals
 
 ```@docs
+coefficient_ring(v::AbstractNormalToricVariety)
 coordinate_names(v::AbstractNormalToricVariety)
 cox_ring(v::AbstractNormalToricVariety)
 irrelevant_ideal(v::AbstractNormalToricVariety)
+set_coefficient_ring(v::AbstractNormalToricVariety, coefficient_ring::AbstractAlgebra.Ring)
 set_coordinate_names(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
 stanley_reisner_ideal(v::AbstractNormalToricVariety)
 toric_ideal(antv::AffineNormalToricVariety)

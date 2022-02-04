@@ -54,6 +54,37 @@ export euler_characteristic
 
 
 @doc Markdown.doc"""
+    set_coefficient_ring(v::AbstractNormalToricVariety, coefficient_ring::AbstractAlgebra.Ring)
+
+Allows to set the coefficient_ring. If the Cox ring of the variety has
+already been computed, we do not allow this to be changed.
+In this case an error is triggered.
+"""
+function set_coefficient_ring(v::AbstractNormalToricVariety, coefficient_ring::AbstractAlgebra.Ring)
+    if has_attribute(v, :cox_ring)
+        error("Cox ring already constructed. Coefficient ring must not be changed.")
+    end
+    set_attribute!(v, :coefficient_ring, coefficient_ring)
+end
+export set_coefficient_ring
+
+
+@doc Markdown.doc"""
+    coefficient_ring(v::AbstractNormalToricVariety)
+
+This method returns the coefficient_ring of the normal toric variety `v`.
+An error is triggered if it is not yet set.
+"""
+function coefficient_ring(v::AbstractNormalToricVariety)
+    if !has_attribute(v, :coefficient_ring)
+        error("Coefficient ring not yet set.")
+    end
+    return get_attribute(v, :coefficient_ring)
+end
+export coefficient_ring
+
+
+@doc Markdown.doc"""
     set_coordinate_names(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
 
 Allows to set the names of the homogeneous coordinates. If

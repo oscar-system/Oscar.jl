@@ -182,7 +182,7 @@ function AffineNormalToricVariety(v::NormalToricVariety)
     set_attribute!(variety, :isaffine, true)
     set_attribute!(variety, :iscomplete, false)
     set_attribute!(variety, :isprojective, false)
-    set_attribute!(variety, :is_projective_space, false)    
+    set_attribute!(variety, :is_projective_space, false)
     
     # construct the affine variety and copy all cached information from v
     return variety
