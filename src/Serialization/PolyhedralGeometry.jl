@@ -8,7 +8,6 @@ end
 
 function save_intern(s::SerializerState, p::T) where {T <: Union{
                     Cone, 
-#                    LinearProgram,
                     PolyhedralComplex, 
                     Polyhedron, 
                     PolyhedralFan,
@@ -21,7 +20,6 @@ end
 
 function load_intern(s::DeserializerState, p::Type{T}, dict::Dict) where {T <: Union{
                     Cone, 
-#                    LinearProgram,
                     PolyhedralComplex, 
                     Polyhedron, 
                     PolyhedralFan,

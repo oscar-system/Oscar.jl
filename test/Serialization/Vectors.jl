@@ -16,5 +16,25 @@
             @test optimal_value(loaded[1]) == optimal_value(v[1])
             @test optimal_value(loaded[2]) == optimal_value(v[2])
         end
+
+        @testset "Vector{gfp_fmpz_elem}" begin
+            F = GF(fmpz(77777732222322222232222222223))
+            one = F(1)
+            minusone = F(-1)
+            v = [one, minusone]
+            save(v, joinpath(path, "vgfe.json"))
+            loaded = load(joinpath(path, "vgfe.json"))
+            @test v == loaded
+        end
+        
+        @testset "Vector{gfp_elem}" begin
+            F = GF(7)
+            one = F(1)
+            minusone = F(-1)
+            v = [one, minusone]
+            save(v, joinpath(path, "vge.json"))
+            loaded = load(joinpath(path, "vge.json"))
+            @test v == loaded
+        end
     end
 end

@@ -63,7 +63,12 @@ const typeMap = Dict{Type, String}([
     Graphs.Graph{Graphs.Directed} => "Oscar.Graphs.Graph{Oscar.Graphs.Directed}",
     SimplicialComplex => "Oscar.SimplicialComplex",
     LinearProgram => "Oscar.LinearProgram",
-    Vector => "Vector"
+    Vector => "Vector",
+    Nemo.GaloisField => "Nemo.GaloisField",
+    Nemo.GaloisFmpzField => "Nemo.GaloisFmpzField",
+    fmpz => "fmpz",
+    gfp_elem => "Nemo.gfp_elem",
+    gfp_fmpz_elem => "Nemo.gfp_fmpz_elem",
 ])
 
 const reverseTypeMap = Dict{String, Type}(value => key for (key, value) in typeMap)
@@ -206,4 +211,4 @@ end
 
 include("PolyhedralGeometry.jl")
 include("Combinatorics.jl")
-
+include("Fields.jl")
