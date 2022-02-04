@@ -107,9 +107,17 @@ Multivariate Polynomial Ring in x1, x2, x3 over Rational Field graded by
 """
 function cox_ring(v::AbstractNormalToricVariety)
     return get_attribute!(v, :cox_ring) do
-        Qx, x = PolynomialRing(QQ, [ "x" * string(i) for i in 1:rank(torusinvariant_divisor_group(v))])
-        weights = [map_from_weil_divisors_to_class_group(v)(x) for x in gens(torusinvariant_divisor_group(v))]
-        return grade(Qx,weights)[1]
+        
+        # are coordinates names set? If not, set default values
+        if !has_attribute(v, :coordinate_names)
+            set_attribute!(v, :coordinate_names, ["x" * string(i) for i in 1:rank(torusinvariant_divisor_group(v))])
+        end
+        
+        # construct the cox ring
+        S, _ = PolynomialRing(QQ, coordinate_names(v))
+        weights = [map_from_weil_divisors_to_class_group(v)(x) for x in gens(torusinvariant_divisor_group(v))]        
+        return grade(S,weights)[1]
+        
     end
 end
 export cox_ring
