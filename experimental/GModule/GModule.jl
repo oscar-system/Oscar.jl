@@ -7,13 +7,16 @@ import Oscar:gmodule, GAPWrap
 import AbstractAlgebra: Group, Module
 import Base: parent
 
-add_verbose_scope(:BruecknerSQ)
+function __init__()
+  add_verbose_scope(:BruecknerSQ)
+  set_verbose_level(:BruecknerSQ, 0)
 
-add_assert_scope(:BruecknerSQ)
-set_assert_level(:BruecknerSQ, 0)
+  add_assert_scope(:BruecknerSQ)
+  set_assert_level(:BruecknerSQ, 0)
 
-add_assert_scope(:MinField)
-set_assert_level(:MinField, 0)
+  add_assert_scope(:MinField)
+  set_assert_level(:MinField, 0)
+end
 
 function irreducible_modules(G::Oscar.GAPGroup)
   im = GAP.Globals.IrreducibleRepresentations(G.X)
@@ -143,7 +146,6 @@ function gmodule(::FlintRationalField, C::GModule{<:Any, Generic.FreeModule{nf_e
   F = free_module(QQ, dim(C)*degree(base_ring(C)))
   return GModule(F, group(C), [hom(F, F, hvcat(dim(C), [representation_matrix(x) for x = transpose(mat(y))]...)) for y = C.ac])
 end
-
 
 function Hecke.frobenius(K::FinField, i::Int=1)
   MapFromFunc(x->Hecke.frobenius(x, i), y -> Hecke.frobenius(x, degree(K)-i), K, K)
