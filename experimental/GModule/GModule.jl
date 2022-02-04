@@ -155,8 +155,9 @@ end
 
 function gmodule_minimal_field(C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}})
   K =  base_ring(C)
-  d = 1
-  while d < degree(K)
+  d = 0
+  while d < degree(K)-1
+    d += 1
     degree(K) % d == 0 || continue
     k = GF(Int(characteristic(K)), d)
     D = gmodule_over(k, C, do_error = false)
@@ -171,6 +172,7 @@ function gmodule_over(k::FinField, C::GModule{<:Any, <:Generic.FreeModule{<:FinF
   #requires rel cyclic Galois group, not really finite field...
   #
   K = base_ring(C)
+  @assert degree(K) != degree(k)
   #method: let s = sigma be a generator for Gal(K/k), and rho the representation
   #attached to C, then if there is A s.th. 
   #    A^-1 rho(g) A in GL(k)
@@ -790,7 +792,8 @@ function reps(K, G::PcGroup)
     h = hom(F, F, [F[1]])
     return [gmodule(F, G, typeof(h)[])]
   end
-  s, ms = sub(G, [gens(G)[end]])
+  gG = [PcGroupElem(G, x) for x = GAP.Globals.Pcgs(G.X)]
+  s, ms = sub(G, [gG[end]])
   o = Int(order(s))
   @assert isprime(o)
   z = roots(K(1), o)
@@ -798,9 +801,9 @@ function reps(K, G::PcGroup)
   F = free_module(K, 1)
   R = [gmodule(F, s, [hom(F, F, [r*F[1]])]) for r = z]
 
-  for i=ngens(G)-1:-1:1
-    h = G[i]
-    ns, mns = sub(G, gens(G)[i:end])
+  for i=length(gG)-1:-1:1
+    h = gG[i]
+    ns, mns = sub(G, gG[i:end])
     p = Int(divexact(order(ns), order(s)))
     @assert isprime(p)
     new_R = []
@@ -977,26 +980,35 @@ If neccessary, the prime(s) p that can be used are computed as well.
 function brueckner(mQ::Map{FPGroup, PcGroup}; primes::Vector=[])
   Q = codomain(mQ)
   G = domain(mQ)
+  @vprint :BruecknerSQ 1 "lifting $mQ using SQ\n"
   if length(primes) == 0
+    @vprint :BruecknerSQ 1 "primes not provided, searching...\n"
     lp = find_primes(mQ)
   else
     lp = map(fmpz, primes)
   end
+  @vprint :BruecknerSQ 1 "using primes $lp\n"
 
   allR = []
   for p = lp
     _, j = ppio(order(Q), p)
     f = j == 1 ? 1 : modord(p, j)
     @assert (p^f-1) % j == 0
+    @vprint :BruecknerSQ 2 "computing reps over GF($p, $f)\n"
     if f == 1
-      I = reps(GF(Int(p)), Q)
+      @vtime :BruecknerSQ 2 I = reps(GF(Int(p)), Q)
     else
-      I = reps(GF(Int(p), f), Q)
+      @vtime :BruecknerSQ 2 I = reps(GF(Int(p), f), Q)
     end
+    @vprint :BruecknerSQ 1 "have $(length(I)) representations\n"
 
     for i = I
-      ii = Oscar.GModuleFromGap.gmodule_minimal_field(i)
-      l = lift(gmodule(GrpAbFinGen, ii), mQ)
+      @vprint :BruecknerSQ 1 "starting to process module\n"
+      @vprint :BruecknerSQ 2 "... transfer over min. field\n"
+      @vtime :BruecknerSQ 2 ii = Oscar.GModuleFromGap.gmodule_minimal_field(i)
+      @vprint :BruecknerSQ 2 "... lift...\n"
+      @vtime :BruecknerSQ 2 l = lift(gmodule(GrpAbFinGen, ii), mQ)
+      @vprint :BruecknerSQ 2 "found $(length(l)) many\n"
       append!(allR, [x for x in l])# if issurjective(x)])
     end
   end

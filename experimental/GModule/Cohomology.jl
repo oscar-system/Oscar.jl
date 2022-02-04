@@ -399,7 +399,9 @@ mutable struct CollectCtx
     for i = 1:length(R)
       r = R[i]
       if length(r[1]) == 1
-        @assert length(r[2]) == 1
+        #still confused about that one...
+        # but I have a rule [-1] -> [1, 2]
+#        @assert length(r[2]) == 1
         n.d1[r[1][1]] = r[2][1]
         continue
       end
