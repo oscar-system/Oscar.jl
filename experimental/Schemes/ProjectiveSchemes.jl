@@ -332,13 +332,21 @@ end
 function homog_to_frac(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::RET) where {CRT<:AbstractAlgebra.Field, CRET, RT, RET}
   return evaluate(f, homogeneous_coordinates(X))
 end
+
 @Markdown.doc """
-    frac_to_homog(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::MPolyLocalizedRingElem) where {CRT<:MPolyRing, CRET, RT, RET}
+    frac_to_homog(X::ProjectiveScheme, f::T) where {T<:RingElem}
 
 Convert a regular function ``f = a/b`` on some open subset of the affine 
 cone of ``X`` to a pair of homogeneous polynomials ``(p, q)``, lifting 
 ``a`` and ``b``, respectively.
 """
+function frac_to_homog(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::CRET) where {CRT<:MPolyRing, CRET, RT, RET}
+  S = homogeneous_coordinate_ring(X)
+  A = base_ring(S)
+  f_nested = renest(S, f)
+  return f_nested
+end
+
 function frac_to_homog(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::MPolyLocalizedRingElem) where {CRT<:MPolyRing, CRET, RT, RET}
   S = homogeneous_coordinate_ring(X)
   A = base_ring(S)
@@ -351,6 +359,41 @@ end
 
 function frac_to_homog(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::MPolyQuoLocalizedRingElem) where {CRT<:MPolyRing, CRET, RT, RET}
   return frac_to_homog(X, lift(f))
+end
+
+function frac_to_homog(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::Vector{CRET}) where {CRT<:MPolyRing, CRET, RT, RET}
+  S = homogeneous_coordinate_ring(X)
+  A = base_ring(S)
+  f_nested = [renest(S, a) for a in f]
+  return f_nested
+end
+
+function frac_to_homog(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::Vector{MPolyLocalizedRingElem}) where {CRT<:MPolyRing, CRET, RT, RET}
+  S = homogeneous_coordinate_ring(X)
+  A = base_ring(S)
+  a = numerator.(f)
+  b = denominator.(f)
+  a_nested = [renest(S, p) for p in a]
+  b_nested = [renest(S, q) for q in b]
+  return [(a_nested[i], b_nested[i]) for i in 1:length(a_nested)]
+end
+
+function frac_to_homog(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::Vector{MPolyQuoLocalizedRingElem}) where {CRT<:MPolyRing, CRET, RT, RET}
+  return frac_to_homog(X, lift.(f))
+end
+
+### projective space over an honest base scheme
+function frac_to_homog(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::PolyType) where {CRT<:MPolyQuoLocalizedRing, PolyType<:MPolyElem, CRET, RT, RET}
+  S = homogeneous_coordinate_ring(X)
+  A = base_ring(S)
+  R = base_ring(A)
+  T = PolynomialRing(R, symbols(S))
+  f_nested = renest(T, f)
+  function coeff_map(a::T) where {T<:MPolyElem} 
+    return A(evaluate(a, gens(base_ring(A))))
+  end
+  f_evaluated = evaluate(map_coefficients(coeff_map, f_nested), gens(S))
+  return f_evaluated
 end
 
 function frac_to_homog(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::MPolyLocalizedRingElem) where {CRT<:MPolyQuoLocalizedRing, CRET, RT, RET}
@@ -374,6 +417,41 @@ function frac_to_homog(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::MPolyQuoLocal
   return frac_to_homog(X, lift(f))
 end
     
+function frac_to_homog(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::Vector{PolyType}) where {CRT<:MPolyQuoLocalizedRing, PolyType<:MPolyElem, CRET, RT, RET}
+  S = homogeneous_coordinate_ring(X)
+  A = base_ring(S)
+  R = base_ring(A)
+  T = PolynomialRing(R, symbols(S))
+  f_nested = [renest(T, a) for a in f]
+  function coeff_map(a::T) where {T<:MPolyElem} 
+    return A(evaluate(a, gens(base_ring(A))))
+  end
+  f_evaluated = [evaluate(map_coefficients(coeff_map, a), gens(S)) for a in f_nested]
+  return f_evaluated
+end
+
+function frac_to_homog(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::Vector{FractionType}) where {CRT<:MPolyQuoLocalizedRing, FractionType<:MPolyLocalizedRingElem, CRET, RT, RET}
+  S = homogeneous_coordinate_ring(X)
+  A = base_ring(S)
+  R = base_ring(A)
+  T = PolynomialRing(R, symbols(S))
+  a = numerator.(f)
+  b = denominator.(f)
+  a_nested = [renest(S, p) for p in a]
+  b_nested = [renest(S, q) for q in b]
+  function coeff_map(a::T) where {T<:MPolyElem} 
+    return A(evaluate(a, gens(base_ring(A))))
+  end
+  a_evaluated = [evaluate(map_coefficients(coeff_map, p), gens(S)) for p in a_nested]
+  b_evaluated = [evaluate(map_coefficients(coeff_map, q), gens(S)) for q in b_nested]
+  return [(a_evaluated[i], b_evaluated[i]) for i in 1:length(a_evaluated)]
+end
+
+function frac_to_homog(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::Vector{T}) where {CRT<:MPolyQuoLocalizedRing, T<:MPolyQuoLocalizedRingElem, CRET, RT, RET}
+  return frac_to_homog(X, lift.(f))
+end
+    
+### projective space over a field
 function frac_to_homog(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::MPolyLocalizedRingElem) where {CRT<:AbstractAlgebra.Field, CRET, RT, RET}
   S = homogeneous_coordinate_ring(X)
   return (evaluate(numerator(f), gens(S)), evaluate(denominator(f), gens(S)))
@@ -381,6 +459,15 @@ end
 
 function frac_to_homog(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::MPolyQuoLocalizedRingElem) where {CRT<:AbstractAlgebra.Field, CRET, RT, RET}
   return frac_to_homog(X, lift(f))
+end
+    
+function frac_to_homog(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::Vector{T}) where {CRT<:AbstractAlgebra.Field, T<:MPolyLocalizedRingElem, CRET, RT, RET}
+  S = homogeneous_coordinate_ring(X)
+  return [(evaluate(numerator(g), gens(S)), evaluate(denominator(g), gens(S))) for g in f]
+end
+
+function frac_to_homog(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::Vector{T}) where {CRT<:AbstractAlgebra.Field, T<:MPolyQuoLocalizedRingElem, CRET, RT, RET}
+  return frac_to_homog(X, lift.(f))
 end
     
 ### This is a temporary fix that needs to be addressed in AbstractAlgebra, issue #1105
