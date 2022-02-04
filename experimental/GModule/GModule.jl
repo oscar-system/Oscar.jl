@@ -800,17 +800,21 @@ function reps(K, G::PcGroup)
   @assert characteristic(K) == o || length(z) == o
   F = free_module(K, 1)
   R = [gmodule(F, s, [hom(F, F, [r*F[1]])]) for r = z]
+  @hassert :BruecknerSQ 2 Oscar.GrpCoh.isconsistent(R[1])
 
   for i=length(gG)-1:-1:1
     h = gG[i]
     ns, mns = sub(G, gG[i:end])
+    @assert mns(ns[1]) == h
     p = Int(divexact(order(ns), order(s)))
     @assert isprime(p)
     new_R = []
     #TODO: use extend below
     for r = R
       F = r.M
+      @assert group(r) == s
       rh = gmodule(group(r), [action(r, preimage(ms, x^h)) for x = gens(s)])
+      @hassert :BruecknerSQ 2 Oscar.GrpCoh.isconsistent(rh)
       l = Oscar.GModuleFromGap.hom_base(r, rh)
       @assert length(l) <= 1
       nr = []
@@ -829,15 +833,22 @@ function reps(K, G::PcGroup)
         Y = r.ac
         for x = rt
           nw = gmodule(F, ns,  vcat([hom(F, F, x*X)], Y))
+          @hassert :BruecknerSQ 2 Oscar.GrpCoh.isconsistent(nw)
           push!(nr, nw)
         end
       else #need to extend dim
         n = dim(r)
         F = free_module(K, dim(r)*p)
         z = zero_matrix(K, dim(F), dim(F))
-        z[(p-1)*n+1:end, 1:n] = Y
-        for i=1:p-1
-          z[(i-1)*n+1:i*n, i*n+1:(i+1)*n] = identity_matrix(K, n)
+        z[1:n,(p-1)*n+1:end] = inv(Y)
+        #= This is wrong in Brueckner - or he's using a different
+           conjugation. Max figured out what to do: the identity block
+           needs to be lower left, and ubbber right the inverse.
+
+           He might have been doing other conjugations s.w.
+        =#   
+        for i=2:p
+          z[(i-1)*n+1:i*n, (i-2)*n+1:(i-1)*n] = identity_matrix(K, n)
         end
         md = [hom(F, F, z)]
         for g = gens(s)
@@ -845,11 +856,12 @@ function reps(K, G::PcGroup)
           for j=1:p
             Y = action(r, g)
             z[(j-1)*n+1:j*n, (j-1)*n+1:j*n] = mat(Y)
-            g = preimage(ms, g^h)
+            g = preimage(ms, ms(g)^h)
           end
           push!(md, hom(F, F, z))
         end
         push!(nr, gmodule(F, ns, md))
+        @hassert :BruecknerSQ 2 Oscar.GrpCoh.isconsistent(nr[end])
       end
       for nw = nr
         if any(x->length(Oscar.GModuleFromGap.hom_base(x, nw))>0, new_R)
@@ -865,12 +877,42 @@ function reps(K, G::PcGroup)
   return R
 end
 
+#TODO: do this properly, eventually...
+#      hnf is a rref. maybe we could use a ref s.w.?
+#      in this file, all(?) hnf are actually over GF(p), so 
+#      maybe use this as well?
+function Nemo._hnf(x::fmpz_mat)
+  if nrows(x) * ncols(x) > 100
+    @show :sparse, size(x)
+    s = sparse_matrix(x)
+    if sparsity(s) > 0.7
+      return matrix(Hecke.hnf(s))
+    end
+  end
+  return Nemo.__hnf(x) # ist die original Nemo flint hnf
+end
+
+function Nemo._hnf_with_transform(x::fmpz_mat)
+  if nrows(x) * ncols(x) > 100
+    @show :sparse_t, size(x)
+    s = sparse_matrix(x)
+    if sparsity(s) > 0.7
+      s = hcat(s, identity_matrix(SMat, ZZ, nrows(x)))
+      m = matrix(Hecke.hnf(s))
+      return m[:, 1:ncols(x)], m[:, ncols(x)+1:end]
+    end
+  end
+  return Nemo.__hnf_with_transform(x) # ist die original Nemo flint hnf
+end
+
+
 function extend(C::GModule, m::Map)
   #N acts and is normal in <h, N> 
   #m injects N into <h, N>  (at least h, maybe more)
   #h = gen(domain(m), 1)
   #h has order p in <h, N>/N
   #Satz 10 in Brueckner, Chap 1.2.3
+  #TODO: should be used above in reps!
 
   F = Module(C)
   N = group(C)
@@ -908,6 +950,8 @@ function extend(C::GModule, m::Map)
     n = dim(r)
     F = free_module(K, dim(r)*p)
     z = zero_matrix(K, dim(F), dim(F))
+    #TODO: see above in reps, this is wrong.
+    #TODO: fuse
     z[(p-1)*n+1:end, 1:n] = Y
     for i=1:p-1
       z[(i-1)*n+1:i*n, i*n+1:(i+1)*n] = identity_matrix(K, n)
@@ -1129,14 +1173,22 @@ function lift(C::GModule, mp::Map)
   allG = []
   z = get_attribute(C, :H_two)[1]
 
+  seen = Set{Tuple{elem_type(D), elem_type(codomain(mH2))}}()
+  #TODO: the projection maps seem to be rather slow - in particular
+  #      as they SHOULD be trivial...
   for x = k
     epi = pDE[1](mk(x)) #the map
     chn = pDE[2](mk(x)) #the tail data
+    if (epi,mH2(chn)) in seen
+      continue
+    else
+      push!(seen, (epi, mH2(chn)))
+    end
     #TODO: not all "chn" yield distinct groups - the factoring by the 
     #      co-boundaries is missing
     #      not all "epi" are epi, ie. surjective. The part of the thm
     #      is missing...
-    # (Thm 15, part b & c)
+    # (Thm 15, part b & c) (and the weird lemma)
     @hassert :BruecknerSQ 2 all(x->all(y->sc(x, y)(chn) == last_c(x, y), gens(N)), gens(N))
     @hassert :BruecknerSQ 2 preimage(z, z(chn)) == chn
     GG, GGinj, GGpro, GMtoGG = Oscar.GrpCoh.extension(PcGroup, z(chn))
