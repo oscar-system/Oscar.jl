@@ -781,11 +781,10 @@ function H_two(C::GModule)
       for h = G
         c.T = zero(M)
         if order(G) > 1
-          @show g, h
-          @show gg = collect(word(preimage(mFF, g)), c)
-          @show hh = collect(word(preimage(mFF, h)), c)
+          gg = collect(word(preimage(mFF, g)), c)
+          hh = collect(word(preimage(mFF, h)), c)
           c.T = zero(M)
-          @show d = collect(vcat(gg, hh), c)
+          d = collect(vcat(gg, hh), c)
         end
         di[(g, h)] = c.T
       end
@@ -804,7 +803,7 @@ function H_two(C::GModule)
       w = vcat(wg, wh)
     end
     c.T = Z
-    w, collect(w, c)
+    w = collect(w, c)
     return mE*c.T, w
   end
 
@@ -1144,7 +1143,6 @@ function extension(c::CoChain{2,<:Oscar.GAPGroupElem})
 end
 
 function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
-  global last_ex = c
   C = c.C
   G = Group(C)
   @assert isa(G, PcGroup)
@@ -1199,6 +1197,8 @@ function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
     return map(Int, GAP.Globals.LetterRepAssocWord(z))
   end
 
+  #for W = (w1, ... w_n) compute ((w1, 0), ..., (wn, 0))
+  #and return the tail only.
   word_to_elem = function(W)
     t = zero(M)
     g = one(G)
@@ -1214,22 +1214,30 @@ function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
         r = r*inv(gen(N, -w))
       end
     end
-    @assert isone(g)
+    return t
     return fMtoN(preimage(mfM, t))
   end
 
+  #to lift the pc-relations:
+  # F^p = w (order relation)
+  #  compute (F, 0)^p = (?, t) = (?, 0)(1, t)
+  #  compute (w, 0)   = (?, s) = (?, 0)(1, s)
+  #  so (?, 0) = (w, 0)(1,s)^-1= (w, 0)(1,-s) if chain is normalised
+  #  thus (F, 0)^p = (?, 0)(1, t) = (w, 0)(1,-s)(1, t)
+  #  the ? should be identical, namely the collected version of w
+  #  then (F, 0)^p = (w, t-s) might be the answer
+  # F^G = w (conjugate relation): same
+  #  (F, 0)^(G, 0) = (?, t) = (?, 0)(1, t)
+  #  (w, 0)        = (?, s) = (?, 0)(1, s)
+  #  thus (F, 0)^(G, 0) = (w, t-s)
   for i=1:ngens(G)
     p = Gp[i]^Go[i]
     pp = GAP.Globals.ObjByExtRep(FN, GAP.Globals.ExtRepOfObj(p))
-    m = word_to_elem(vcat([-x for x = reverse(word(p))], [i for j=1:Go[i]]))
+    m = fMtoN(preimage(mfM, word_to_elem([i for k=1:Go[i]])-word_to_elem(word(p))))
     GAP.Globals.SetPower(CN, i, pp*m)
     for j=i+1:ngens(G)
       p = Gp[j]^Gp[i]
-      #a^b = inv(b)*a*b
-      # p = j^i => inv(j^i)*p = 1
-      #we eval using word_to_elem giving M, then
-      #p*M should be what we want?
-      m = word_to_elem(vcat([-x for x = reverse(word(p))], [-i, j, i]))
+      m = fMtoN(preimage(mfM, word_to_elem([-i, j, i])-word_to_elem(word(p))))
       pp = GAP.Globals.ObjByExtRep(FN, GAP.Globals.ExtRepOfObj(p))
       GAP.Globals.SetConjugate(CN, j, i, pp*m)
     end
@@ -1255,26 +1263,24 @@ function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
   QtoG = hom(Q, G, gens(Q), vcat(gens(G), [one(G) for i=1:ngens(fM)]))
   @assert domain(mfM) ==fM 
   @assert codomain(mfM) == M
-  @assert issurjective(QtoG)
-  @assert isinjective(MtoQ)
+#  @assert issurjective(QtoG)
+#  @assert isinjective(MtoQ)
 
   mfG = GAP.Globals.EpimorphismFromFreeGroup(G.X)
   fG = FPGroup(GAP.Globals.Source(mfG))
-  mfG = Oscar._hom_from_gap_map(fG, G, mfG)
+  mfG = Oscar.GAPGroupHomomorphism(fG, G, mfG)
 
   mffM = GAP.Globals.EpimorphismFromFreeGroup(fM.X)
   ffM = FPGroup(GAP.Globals.Source(mffM))
-  mffM = Oscar._hom_from_gap_map(ffM, fM, mffM)
+  mffM = Oscar.GAPGroupHomomorphism(ffM, fM, mffM)
 
-  function GMtoQ(g::GAPGroupElem, m)
-    @show g, m, typeof(g), typeof(m)
-    @show wg = GAP.gap_to_julia(GAP.Globals.ExtRepOfObj(g.X))
-    @show wm = GAP.gap_to_julia(GAP.Globals.ExtRepOfObj(preimage(mffM, preimage(mfM, m)).X))
+  function GMtoQ(wg, m)
+    wm = GAP.gap_to_julia(GAP.Globals.ExtRepOfObj(preimage(mffM, preimage(mfM, m)).X))
     for i=1:2:length(wm)
       push!(wg, wm[i]+ngens(G))
       push!(wg, wm[i+1])
     end
-    return PcGroupElem(Q, GAP.Globals.ObjByExtRep(fQ, GAP.julia_to_gap(wg)))
+    return mQ(FPGroupElem(N, GAP.Globals.ObjByExtRep(FN, GAP.julia_to_gap(wg))))
   end
 
   return Q, inv(mfM)*MtoQ, QtoG, GMtoQ
@@ -1415,6 +1421,7 @@ function isunramified(p::NfOrdIdl)
   return ramification_index(p) == 1
 end
 
+#=
 """
 `p` has to be unramifed in the `base_ring` of `A`
 """
@@ -1434,6 +1441,7 @@ function local_cohomology_easy(A::ClassField, p::NfOrdIdl)
     U^1 = Z_q via log (in general this is wrong)
   =#
 end
+=#
 
 export GModule, gmodule, word, fp_group, confluent_fp_group
        action, cohomology_group, extension, iscoboundary, pc_group

@@ -7,6 +7,14 @@ import Oscar:gmodule, GAPWrap
 import AbstractAlgebra: Group, Module
 import Base: parent
 
+add_verbose_scope(:BruecknerSQ)
+
+add_assert_scope(:BruecknerSQ)
+set_assert_level(:BruecknerSQ, 0)
+
+add_assert_scope(:MinField)
+set_assert_level(:MinField, 0)
+
 function irreducible_modules(G::Oscar.GAPGroup)
   im = GAP.Globals.IrreducibleRepresentations(G.X)
   IM = GModule[] 
@@ -190,18 +198,22 @@ function gmodule_over(k::FinField, C::GModule{<:Any, <:Generic.FreeModule{<:FinF
   s = frobenius(K, degree(k))
   mkK = embed(k, K)
   os = divexact(degree(K), degree(k))
-  hB = hom_base(C, gmodule(C.M, Group(C), [hom(C.M, C.M, map_entries(s, mat(x))) for x = C.ac]))
+  hB = hom_base(C, gmodule(C.M, Group(C), 
+                      [hom(C.M, C.M, map_entries(s, mat(x))) for x = C.ac]))
   if length(hB) != 1
-    do_error && error("does not work")
+    if do_error
+      length(hB) == 0 && error("Module cannot be written over $k")
+      length(hB) > 1  && error("Module not irreducible, hom too large")
+    end
     return nothing
   end
   B = hB[1]
   D = norm(B, s, os)
   lambda = D[1,1]
-  @assert D == lambda*identity_matrix(K, dim(C))
+  @hassert :MinField 2 D == lambda*identity_matrix(K, dim(C))
   alpha = _norm_equation(K, preimage(mkK, lambda))
   B *= inv(alpha)
-  @assert isone(norm(B, s, os))
+  @hassert :MinField 2 isone(norm(B, s, os))
   D = hilbert90_cyclic(B, s, os)
   Di = inv(D)
   F = free_module(k, dim(C))
@@ -233,6 +245,11 @@ function _norm_equation(K::FinField, a::FinFieldElem)
   end
 end
 
+"""
+Norm of A wrt. s. s acts on the entries of A, this computes
+  A * A^s * A^s^2 ... A^s^(os-1)
+os is meant to be the order of s
+"""
 function norm(A::MatElem, s, os::Int)
   B = A
   C = map_entries(s, A)
@@ -242,10 +259,11 @@ function norm(A::MatElem, s, os::Int)
   end
   return B
 end
+
 """
 A needs to have norm 1 wrt. to s, so
   A A^s, .. A^(s^n) = I
-for ord(s) = n+1. Then this will find B s.th.
+for ord(s) = os = n+1. Then this will find B s.th.
   A = B^(1-s)
 """
 function hilbert90_cyclic(A::MatElem{<:FinFieldElem}, s, os::Int)
@@ -261,19 +279,15 @@ function hilbert90_cyclic(A::MatElem{<:FinFieldElem}, s, os::Int)
       Bs = map_entries(s, Bs)
     end
     if !iszero(det(B))
-      @assert A == B*inv(map_entries(s, B))
+      @hassert :MinField 2 A == B*inv(map_entries(s, B))
       return B
     else
-      if cnt > 10
+      if cnt > 10 && get_assert_level(:MinField) > 1
         error("")
       end
       cnt += 1
-      @show :darn
     end
   end
-end
-
-function character_field(C::GModule{<:Any, Generic.FreeModule{<:FinField}})
 end
 
 function gmodule(k::Nemo.GaloisField, C::GModule{<:Any, Generic.FreeModule{fmpq}})
@@ -447,7 +461,7 @@ function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:Generic.FreeModule{
         fl || break
         push!(S, s)
       end
-      if nbits(pp) > 1000
+      if nbits(pp) > 1000 && get_assert_level(:MinField) > 1
         error("ndw")
       end
       if length(S) == length(T)
@@ -760,7 +774,16 @@ end
  - conjugate to smallest field?
  - allow trivial stuff
 =# 
+"""
+  For K a finite field, Q, a number field or Qab, find all
+abs. irred. representations of G.
 
+Note: the reps are NOT neccessarily over the smallest field.
+
+Note: the field is NOT extended - but it throws an error if it was too small.
+
+Implements: Brueckner, Chap 1.2.3
+"""
 function reps(K, G::PcGroup)
   if order(G) == 1
     F = free_module(K, 1)
@@ -844,7 +867,7 @@ function extend(C::GModule, m::Map)
   #m injects N into <h, N>  (at least h, maybe more)
   #h = gen(domain(m), 1)
   #h has order p in <h, N>/N
-  #Satz 10 in Brueckner
+  #Satz 10 in Brueckner, Chap 1.2.3
 
   F = Module(C)
   N = group(C)
@@ -901,6 +924,16 @@ function extend(C::GModule, m::Map)
   return nr
 end
 
+"""
+Brueckner Chap 1.3.1
+
+Given 
+  mp: G ->> Q
+
+Find a set of primes suth that are any irreducible F_p module M
+s.th. there is an epimorphism of G onto the extension of Q by M,
+the p is in the set.
+"""
 function find_primes(mp::Map{FPGroup, PcGroup})
   G = domain(mp)
   Q = codomain(mp)
@@ -923,7 +956,6 @@ function find_primes(mp::Map{FPGroup, PcGroup})
       quo(im(b'), ker(a'))
     as the dual to what I want.
     =#
-    global last_ab = (a, b, da, db)
     q = quo(kernel(da)[1], image(db)[1])[1]
     t = torsion_subgroup(q)[1]
     if order(t) > 1
@@ -933,8 +965,16 @@ function find_primes(mp::Map{FPGroup, PcGroup})
   return lp
 end
 
-function brueckner(mQ::Map{FPGroup, PcGroup}; primes::Vector=[])
+"""
+Given 
+    mQ: G ->> Q
+Find all possible extensions of Q by an irreducible F_p module
+that admit an epimorphism from G.
+Implements the SQ-Algorithm by Brueckner, Chap 1.3
 
+If neccessary, the prime(s) p that can be used are computed as well.
+"""
+function brueckner(mQ::Map{FPGroup, PcGroup}; primes::Vector=[])
   Q = codomain(mQ)
   G = domain(mQ)
   if length(primes) == 0
@@ -983,7 +1023,6 @@ function Oscar.dual(h::Map{<:AbstractAlgebra.FPModule{fmpz}, <:AbstractAlgebra.F
   return hom(B, A, transpose(mat(h)))
 end
 
-
 function coimage(h::Map)
   return quo(domain(h), kernel(h)[1])
 end
@@ -1010,12 +1049,18 @@ function Base.iterate(M::Generic.Submodule{<:FinFieldElem}, st::Tuple{<:Tuple, <
   return M(elem_type(base_ring(M))[n[1][i] for i=1:dim(M)]), (n[2], st[2])
 end
 
+"""
+  mp: G ->> Q
+  C a F_p[Q]-module
+  Find all extensions of Q my C s.th. mp can be lifted to an epi.
+"""
 function lift(C::GModule, mp::Map)
   #m: G->group(C)
   #compute all(?) of H^2 that will descibe groups s.th. m can be lifted to
 
   G = domain(mp)
   N = group(C)
+  @assert isa(N, PcGroup)
   @assert codomain(mp) == N
 
   _ = Oscar.GrpCoh.H_two(C)
@@ -1054,7 +1099,7 @@ function lift(C::GModule, mp::Map)
     for i = Oscar.GrpCoh.word(r)
       if i<0
         h = inv(mp(G[-i])) 
-        m = -pDE[1]*pro[-i]*action(C, h)# - pDE[2]*sc(inv(h), h)
+        m = -pDE[1]*pro[-i]*action(C, h)  - pDE[2]*sc(inv(h), h)
       else
         h = mp(G[i])
         m = pDE[1]*pro[i]
@@ -1080,53 +1125,31 @@ function lift(C::GModule, mp::Map)
     #      not all "epi" are epi, ie. surjective. The part of the thm
     #      is missing...
     # (Thm 15, part b & c)
-    global last_c = z(chn)
-    @assert all(x->all(y->sc(x, y)(chn) == last_c(x, y), gens(N)), gens(N))
-#    @show (preimage(z, z(chn)) - chn).coeff
-#    @show order(preimage(z, z(chn)) - chn)
-#    @show mH2(preimage(z, z(chn)) - chn).coeff
-    @assert preimage(z, z(chn)) == chn
+    @hassert :BruecknerSQ 2 all(x->all(y->sc(x, y)(chn) == last_c(x, y), gens(N)), gens(N))
+    @hassert :BruecknerSQ 2 preimage(z, z(chn)) == chn
     GG, GGinj, GGpro, GMtoGG = Oscar.GrpCoh.extension(PcGroup, z(chn))
-    _GG, _ = Oscar.GrpCoh.extension(z(chn))
-    @assert isisomorphic(GG, _GG)[1]
-    #map G[i] -> <mp(G[i]), pro[i](epi)>
-#    @show [(mp(G[i]), pro[i](epi)) for i=1:ngens(G)]
-    for r = R
-      @show r
-      a = (one(N), zero(M))
-      for i = Oscar.GrpCoh.word(r)
-        if i<0
-          h = inv(mp(G[-i])) 
-          m = action(C, h)(-pro[-i](epi)) #- last_c(inv(h), h)
-        else
-          h = mp(G[i])
-          m = pro[i](epi)
-        end
-        @show (h, m.coeff)
-        @show (a[1], a[2].coeff)
-        # a *(h, m) = (x, y)(h, m) = (xh, m + y^h + si(x, h))
-        a = (a[1]*h, m + action(C, h)(a[2]) + last_c(a[1], h))
-        @show (a[1], a[2].coeff)
-      end
-      @assert isone(a[1])
-      @assert iszero(a[2])
+    if get_assert_level(:BruecknerSQ) > 1
+      _GG, _ = Oscar.GrpCoh.extension(z(chn))
+      @assert isisomorphic(GG, _GG)[1]
     end
 
     function reduce(g) #in G
       h = mp(g)
       c = ssc(h, one(N))[2]
-      k = one(N)
-      for i = c
-        k *= i < 0 ? inv(gen(N, -i)) : gen(N, i)
+      if length(c) == 0
+        return c
       end
-      return k
+      d = Int[abs(c[1]), sign(c[1])]
+      for i=c[2:end]
+        if abs(i) == d[end-1]
+          d[end] += sign(i)
+        else
+          push!(d, abs(i), sign(i))
+        end
+      end
+      return d
     end
     l= [GMtoGG(reduce(gen(G, i)), pro[i](epi)) for i=1:ngens(G)]
-    @show l
-    @show map(order, l)
-    @show [reduce(gen(G, i)) for i =1:ngens(G)]
-    @show [pro[i](epi).coeff for i=1:ngens(G)]
-    @show :hallo
 
     h = hom(G, GG, gens(G), [GMtoGG(reduce(gen(G, i)), pro[i](epi)) for i=1:ngens(G)])
     if !issurjective(h)
