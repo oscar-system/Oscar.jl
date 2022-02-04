@@ -144,8 +144,13 @@ function cox_ring(v::AbstractNormalToricVariety)
             set_attribute!(v, :coordinate_names, ["x" * string(i) for i in 1:rank(torusinvariant_divisor_group(v))])
         end
         
+        # is the coefficient_ring set? If not, set default value
+        if !has_attribute(v, :coefficient_ring)
+            set_attribute!(v, :coefficient_ring, QQ)
+        end
+        
         # construct the cox ring
-        S, _ = PolynomialRing(QQ, coordinate_names(v))
+        S, _ = PolynomialRing(coefficient_ring(v), coordinate_names(v))
         weights = [map_from_weil_divisors_to_class_group(v)(x) for x in gens(torusinvariant_divisor_group(v))]        
         return grade(S,weights)[1]
         
