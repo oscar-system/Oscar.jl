@@ -272,8 +272,7 @@ function projective_space(::Type{NormalToricVariety}, d::Int)
     set_attribute!(variety, :torusinvariant_divisor_group, free_abelian_group(d+1))
     set_attribute!(variety, :map_from_cartier_divisor_group_to_torus_invariant_divisor_group, Hecke.identity_map(torusinvariant_divisor_group(variety)))
     set_attribute!(variety, :map_from_cartier_divisor_group_to_picard_group, map_from_weil_divisors_to_class_group(variety))
-    set_attribute!(variety, :stanley_reisner_ideal, ideal([prod(Hecke.gens(cox_ring(variety)))]))
-    set_attribute!(variety, :irrelevant_ideal, ideal(Hecke.gens(cox_ring(variety))))
+    
     betti_numbers = fill(fmpz(1), d+1)
     set_attribute!(variety, :betti_number, betti_numbers)
     
@@ -325,9 +324,6 @@ function hirzebruch_surface(r::Int)
     set_attribute!(variety, :torusinvariant_divisor_group, free_abelian_group(4))
     set_attribute!(variety, :map_from_cartier_divisor_group_to_torus_invariant_divisor_group, Hecke.identity_map(torusinvariant_divisor_group(variety)))
     set_attribute!(variety, :map_from_cartier_divisor_group_to_picard_group, map_from_weil_divisors_to_class_group(variety))
-    gens = Hecke.gens(cox_ring(variety))
-    set_attribute!(variety, :stanley_reisner_ideal, ideal([gens[1]*gens[3],gens[2]*gens[4]]))
-    set_attribute!(variety, :irrelevant_ideal, ideal([gens[1]*gens[2], gens[3]*gens[2], gens[1]*gens[4], gens[3]*gens[4]]))
     set_attribute!(variety, :betti_number, [fmpz(1),fmpz(2),fmpz(1)])
     
     # return the result
