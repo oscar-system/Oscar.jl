@@ -155,6 +155,14 @@ julia> W = [1 1 0 0 0; 0 0 1 1 1]
 2×5 Matrix{Int64}:
  1  1  0  0  0
  0  0  1  1  1
+
+julia> grade(R, W)
+(Multivariate Polynomial Ring in x[1], x[2], y[1], y[2], y[3] over Rational Field graded by
+  x[1] -> [1 0]
+  x[2] -> [1 0]
+  y[1] -> [0 1]
+  y[2] -> [0 1]
+  y[3] -> [0 1], MPolyElem_dec{fmpq, fmpq_mpoly}[x[1], x[2], y[1], y[2], y[3]])
 ```
 """
 function grade(R::MPolyRing, W::Union{fmpz_mat, Matrix{<:IntegerUnion}})
@@ -733,15 +741,15 @@ end
 @doc Markdown.doc"""
     degree(f::MPolyElem_dec)
 
-Given an element `f` of a graded ring, return the degree of `f`.
+Given a homogeneous element `f` of a graded polynomial ring, return the degree of `f`.
 
     degree(::Type{Vector{Int}}, f::MPolyElem_dec)
 
-Given an element `f` of a $\mathbb Z^m$-graded ring, return the degree of `f`, converted to a vector of integer numbers.
+Given a homogeneous element `f` of a $\mathbb Z^m$-graded polynomial ring, return the degree of `f`, converted to a vector of integer numbers.
 
     degree(::Type{Int}, f::MPolyElem_dec)
 
-Given an element `f` of a $\mathbb Z$-graded ring, return the degree of `f`, converted to an integer number.
+Given a homogeneous element `f` of a $\mathbb Z$-graded polynomial ring, return the degree of `f`, converted to an integer number.
 
 # Examples
 ```jldoctest
