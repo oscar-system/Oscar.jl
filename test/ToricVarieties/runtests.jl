@@ -199,6 +199,15 @@ end
     @test is_projective_space(ntv2) == false
 end
 
+P = polarize(Polyhedron(Polymake.polytope.rand_sphere(5,60; seed=42)))
+big_variety = NormalToricVariety(P)
+big_variety2 = NormalToricVariety(P)
+set_coefficient_ring(big_variety2, GF(13))
+
+@testset "Additional test for Stanley-Reisner ideal" begin
+    @test ngens(stanley_reisner_ideal(big_variety)) == ngens(stanley_reisner_ideal(big_variety2))
+end
+
 D=ToricDivisor(H5, [0,0,0,0])
 D2 = DivisorOfCharacter(H5, [1,2])
 

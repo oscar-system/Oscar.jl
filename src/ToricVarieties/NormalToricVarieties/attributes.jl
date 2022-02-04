@@ -181,10 +181,18 @@ julia> ngens(stanley_reisner_ideal(p2))
 """
 function stanley_reisner_ideal(v::AbstractNormalToricVariety)
     return get_attribute!(v, :stanley_reisner_ideal) do
-        collections = primitive_collections(fan(v))
-        vars = Hecke.gens(cox_ring(v))
-        SR_generators = [prod(vars[I]) for I in collections]
-        return ideal(SR_generators)
+        if has_attribute(v, :polyhedron)
+            # compute via simplicial complex
+            I = pm_object(get_attribute(v, :polyhedron)).FACETS_THRU_VERTICES
+            K = SimplicialComplex([Polymake.row(I,k) for k = 1:size(I)[1]])
+            return stanley_reisner_ideal(cox_ring(v), K)
+        else
+            # compute via primitive collections
+            collections = primitive_collections(fan(v))
+            vars = Hecke.gens(cox_ring(v))
+            SR_generators = [prod(vars[I]) for I in collections]
+            return ideal(SR_generators)
+        end
     end
 end
 export stanley_reisner_ideal
