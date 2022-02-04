@@ -100,9 +100,6 @@ Subquotient of Submodule with 1 generator
 by Submodule with 1 generator
 1 -> (x1^2 + x2)*e[1]
 
-julia> D = grading_group(H)
-GrpAb: Z
-
 julia> homogeneous_component(H, D[0])
 (H_[0] of dim 2, Map from
 H_[0] of dim 2 to H defined by a julia-function with inverse
