@@ -252,7 +252,14 @@ function iterate_basis_linear_algebra(IR::InvRing, d::Int)
   K = base_ring(R)
 
   group_gens = action(IR)
-  M = zero_matrix(K, length(group_gens)*length(mons), length(mons))
+
+  M = sparse_matrix(K)
+  M.c = length(mons)
+  M.r = length(group_gens)*length(mons)
+  for i = 1:M.r
+    push!(M.rows, sparse_row(K))
+  end
+
   for i = 1:length(group_gens)
     offset = (i - 1)*length(mons)
     phi = right_action(R, group_gens[i])
@@ -260,7 +267,10 @@ function iterate_basis_linear_algebra(IR::InvRing, d::Int)
       f = mons[j]
       g = phi(f) - f
       for (c, m) in zip(coefficients(g), monomials(g))
-        M[offset + mons_to_rows[m], j] = c
+        k = offset + mons_to_rows[m]
+        push!(M.rows[k].pos, j)
+        push!(M.rows[k].values, c)
+        M.nnz += 1
       end
     end
   end
