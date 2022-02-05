@@ -54,6 +54,75 @@ export euler_characteristic
 
 
 @doc Markdown.doc"""
+    set_coefficient_ring(v::AbstractNormalToricVariety, coefficient_ring::AbstractAlgebra.Ring)
+
+Allows to set the coefficient_ring. If the Cox ring of the variety has
+already been computed, we do not allow this to be changed.
+In this case an error is triggered.
+"""
+function set_coefficient_ring(v::AbstractNormalToricVariety, coefficient_ring::AbstractAlgebra.Ring)
+    if has_attribute(v, :cox_ring)
+        error("Cox ring already constructed. Coefficient ring must not be changed.")
+    end
+    if has_attribute(v, :toric_ideal)
+        error("Toric ideal already constructed. Coefficient ring must not be changed.")
+    end
+    set_attribute!(v, :coefficient_ring, coefficient_ring)
+end
+export set_coefficient_ring
+
+
+@doc Markdown.doc"""
+    coefficient_ring(v::AbstractNormalToricVariety)
+
+This method returns the coefficient_ring of the normal toric variety `v`.
+An error is triggered if it is not yet set.
+"""
+function coefficient_ring(v::AbstractNormalToricVariety)
+    if !has_attribute(v, :coefficient_ring)
+        error("Coefficient ring not yet set.")
+    end
+    return get_attribute(v, :coefficient_ring)
+end
+export coefficient_ring
+
+
+@doc Markdown.doc"""
+    set_coordinate_names(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
+
+Allows to set the names of the homogeneous coordinates. If
+the Cox ring of the variety has already been computed, we do
+not allow changes of the coordinate names. In this case, an error
+is triggered.
+"""
+function set_coordinate_names(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
+    if has_attribute(v, :cox_ring)
+        error("Cox ring already constructed. Coordinate names cannot be changed anymore.")
+    end
+    if length(coordinate_names) != nrays(fan(v))
+        throw(ArgumentError("The provided list of coordinate names must match the number of rays in the fan."))
+    end
+    set_attribute!(v, :coordinate_names, coordinate_names)
+end
+export set_coordinate_names
+
+
+@doc Markdown.doc"""
+    coordinate_names(v::AbstractNormalToricVariety)
+
+This method returns the names of the homogeneous coordinates of 
+the normal toric variety `v`. If they are not yet set an error is returned.
+"""
+function coordinate_names(v::AbstractNormalToricVariety)
+    if !has_attribute(v, :coordinate_names)
+        error("Coordinate names not yet set.")
+    end
+    return get_attribute(v, :coordinate_names)
+end
+export coordinate_names
+
+
+@doc Markdown.doc"""
     cox_ring(v::AbstractNormalToricVariety)
 
 Computes the Cox ring of the normal toric variety `v`.
@@ -63,18 +132,35 @@ Note that [CLS11](@cite) refers to this ring as the "total coordinate ring".
 ```jldoctest
 julia> p2 = projective_space(NormalToricVariety, 2);
 
+julia> set_coordinate_names(p2, ["y1", "y2", "y3"])
+
+julia> set_coefficient_ring(p2, ZZ)
+
 julia> cox_ring(p2)
-Multivariate Polynomial Ring in x[1], x[2], x[3] over Rational Field graded by
-  x[1] -> [1]
-  x[2] -> [1]
-  x[3] -> [1]
+Multivariate Polynomial Ring in y1, y2, y3 over Integer Ring graded by 
+  y1 -> [1]
+  y2 -> [1]
+  y3 -> [1]
 ```
 """
 function cox_ring(v::AbstractNormalToricVariety)
     return get_attribute!(v, :cox_ring) do
-        Qx, x = PolynomialRing(QQ, :x=>1:rank(torusinvariant_divisor_group(v)))
-        weights = [map_from_weil_divisors_to_class_group(v)(x) for x in gens(torusinvariant_divisor_group(v))]
-        return grade(Qx,weights)[1]
+        
+        # are coordinates names set? If not, set default values
+        if !has_attribute(v, :coordinate_names)
+            set_attribute!(v, :coordinate_names, ["x" * string(i) for i in 1:rank(torusinvariant_divisor_group(v))])
+        end
+        
+        # is the coefficient_ring set? If not, set default value
+        if !has_attribute(v, :coefficient_ring)
+            set_attribute!(v, :coefficient_ring, QQ)
+        end
+        
+        # construct the cox ring
+        S, _ = PolynomialRing(coefficient_ring(v), coordinate_names(v))
+        weights = [map_from_weil_divisors_to_class_group(v)(x) for x in gens(torusinvariant_divisor_group(v))]        
+        return grade(S,weights)[1]
+        
     end
 end
 export cox_ring
@@ -95,10 +181,18 @@ julia> ngens(stanley_reisner_ideal(p2))
 """
 function stanley_reisner_ideal(v::AbstractNormalToricVariety)
     return get_attribute!(v, :stanley_reisner_ideal) do
-        collections = primitive_collections(fan(v))
-        vars = Hecke.gens(cox_ring(v))
-        SR_generators = [prod(vars[I]) for I in collections]
-        return ideal(SR_generators)
+        if has_attribute(v, :polyhedron)
+            # compute via simplicial complex
+            I = pm_object(get_attribute(v, :polyhedron)).FACETS_THRU_VERTICES
+            K = SimplicialComplex(I)
+            return stanley_reisner_ideal(cox_ring(v), K)
+        else
+            # compute via primitive collections
+            collections = primitive_collections(fan(v))
+            vars = Hecke.gens(cox_ring(v))
+            SR_generators = [prod(vars[I]) for I in collections]
+            return ideal(SR_generators)
+        end
     end
 end
 export stanley_reisner_ideal
@@ -121,10 +215,9 @@ function irrelevant_ideal(v::AbstractNormalToricVariety)
     return get_attribute!(v, :irrelevant_ideal) do
         # prepare maximal cones
         max_cones = [findall(x->x!=0, l) for l in eachrow(pm_object(v).MAXIMAL_CONES)]
-        n_ray = size(pm_object(v).RAYS, 1)
         maximal_cones = Vector{Int}[]
         for c in max_cones
-            buffer = zeros(Int, n_ray)
+            buffer = zeros(Int, nrays(fan(v)))
             for k in c
                 buffer[k] = 1
             end
@@ -133,7 +226,7 @@ function irrelevant_ideal(v::AbstractNormalToricVariety)
         
         # compute generators
         indeterminates = Hecke.gens(cox_ring(v))
-        gens = MPolyElem_dec{fmpq, fmpq_mpoly}[]
+        gens = typeof(indeterminates[1])[]
         for i in 1:length(maximal_cones)
             monom = indeterminates[1]^(1 - maximal_cones[i][1])
             for j in 2:length(maximal_cones[i])
@@ -167,13 +260,19 @@ julia> antv = AffineNormalToricVariety(C)
 A normal, affine toric variety
 
 julia> toric_ideal(antv)
-ideal(-x[1]*x[2] + x[3]*x[4])
+ideal(-x1*x2 + x3*x4)
 ```
 """
 function toric_ideal(antv::AffineNormalToricVariety)
     return get_attribute!(antv, :toric_ideal) do
+        # is the coefficient_ring set? If not, set default value
+        if !has_attribute(antv, :coefficient_ring)
+            set_attribute!(antv, :coefficient_ring, QQ)
+        end
+        
+        # construct the toric ideal
         cone = Cone(pm_object(antv).WEIGHT_CONE)
-        return toric_ideal(hilbert_basis(cone))
+        return toric_ideal(hilbert_basis(cone), coefficient_ring(antv))
     end
 end
 export toric_ideal
@@ -253,9 +352,8 @@ Abelian group with structure: Z^3
 """
 function map_from_character_to_principal_divisors(v::AbstractNormalToricVariety)
     return get_attribute!(v, :map_from_character_to_principal_divisors) do
-        mat = transpose(Matrix{Int}(Polymake.common.primitive(pm_object(v).RAYS)))
-        matrix = AbstractAlgebra.matrix(ZZ, mat)
-        return hom(character_lattice(v), torusinvariant_divisor_group(v), matrix)
+        mat = transpose(matrix(ZZ, rays(fan(v))))
+        return hom(character_lattice(v), torusinvariant_divisor_group(v), mat)
     end
 end
 export map_from_character_to_principal_divisors
@@ -370,9 +468,9 @@ function map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v::Abst
         end
         
         # identify fan_rays and cones
-        fan_rays = Polymake.common.primitive(pm_object(v).RAYS)
+        fan_rays = transpose(matrix(ZZ, rays(fan(v))))
         max_cones = ray_indices(maximal_cones(fan(v)))
-        number_of_rays = size(fan_rays)[1]
+        number_of_rays = ncols(fan_rays)
         number_of_cones = size(max_cones)[1]
         
         # compute quantities needed to construct the matrices
@@ -386,7 +484,7 @@ function map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v::Abst
         col = 1
         for i in 1:number_of_rays
             for j in cones_ray_is_part_of[i]
-                map_for_scalar_products[(j-1)*rc+1:j*rc, col] = [fmpz(c) for c in fan_rays[i,:]]
+                map_for_scalar_products[(j-1)*rc+1:j*rc, col] = [fmpz(c) for c in fan_rays[:,i]]
                 col += 1
             end
         end
@@ -406,7 +504,7 @@ function map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v::Abst
         # compute the matrix for mapping to torusinvariant Weil divisors
         map_to_weil_divisors = zero_matrix(ZZ, number_of_cones * rc, rank(torusinvariant_divisor_group(v)))
         for i in 1:number_of_rays
-            map_to_weil_divisors[(cones_ray_is_part_of[i][1]-1)*rc+1:cones_ray_is_part_of[i][1]*rc, i] = [fmpz(-c) for c in fan_rays[i,:]]
+            map_to_weil_divisors[(cones_ray_is_part_of[i][1]-1)*rc+1:cones_ray_is_part_of[i][1]*rc, i] = [fmpz(-c) for c in fan_rays[:,i]]
         end
         
         # compute the total map
