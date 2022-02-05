@@ -213,7 +213,7 @@ end
 D=ToricDivisor(H5, [0,0,0,0])
 D2 = DivisorOfCharacter(H5, [1,2])
 
-@testset "Divisors" begin
+@testset "Toric divisors" begin
     @test dim(toric_variety(D)) == 2
     @test isprime(D) == false
     @test iscartier(D) == true
@@ -243,9 +243,19 @@ end
 
 p = polyhedron(D)
 
-@testset "Polytopes of divisors" begin
+@testset "Polytopes of toric divisors" begin
     @test dim(p) == 0
     @test ambient_dim(p) == 2
+end
+
+DC1 = ToricDivisorClass(H5, [0,0])
+DC2 = ToricDivisorClass(H5, [1,2])
+
+@testset "Toric divisor classes" begin
+    @test istrivial(DC1) == true
+    @test istrivial(2 * DC1 + DC2) == false
+    @test toric_variety(DC1) === toric_variety(DC2)
+    @test (divisor_class(DC1) == divisor_class(DC2)) == false
 end
 
 line_bundle = ToricLineBundle(dP3, [1,2,3,4])

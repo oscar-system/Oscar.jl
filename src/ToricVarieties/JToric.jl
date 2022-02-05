@@ -46,10 +46,13 @@ include("ToricDivisors/constructors.jl")
 include("ToricDivisors/properties.jl")
 include("ToricDivisors/attributes.jl")
 
+include("ToricDivisorClasses/constructors.jl")
+include("ToricDivisorClasses/properties.jl")
+include("ToricDivisorClasses/attributes.jl")
+
 include("ToricLineBundles/constructors.jl")
 include("ToricLineBundles/properties.jl")
 include("ToricLineBundles/attributes.jl")
-
 
 include("cohomCalg.jl")
 
