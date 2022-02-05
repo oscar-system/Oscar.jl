@@ -64,9 +64,6 @@ function set_coefficient_ring(v::AbstractNormalToricVariety, coefficient_ring::A
     if has_attribute(v, :cox_ring)
         error("Cox ring already constructed. Coefficient ring must not be changed.")
     end
-    if has_attribute(v, :toric_ideal)
-        error("Toric ideal already constructed. Coefficient ring must not be changed.")
-    end
     set_attribute!(v, :coefficient_ring, coefficient_ring)
 end
 export set_coefficient_ring
@@ -80,7 +77,7 @@ An error is triggered if it is not yet set.
 """
 function coefficient_ring(v::AbstractNormalToricVariety)
     if !has_attribute(v, :coefficient_ring)
-        error("Coefficient ring not yet set.")
+        return QQ
     end
     return get_attribute(v, :coefficient_ring)
 end
@@ -160,7 +157,6 @@ function cox_ring(v::AbstractNormalToricVariety)
         S, _ = PolynomialRing(coefficient_ring(v), coordinate_names(v))
         weights = [map_from_weil_divisors_to_class_group(v)(x) for x in gens(torusinvariant_divisor_group(v))]        
         return grade(S,weights)[1]
-        
     end
 end
 export cox_ring
@@ -242,6 +238,7 @@ end
 export irrelevant_ideal
 
 
+
 @doc Markdown.doc"""
     toric_ideal(antv::AffineNormalToricVariety)
 
@@ -264,22 +261,20 @@ ideal(-x1*x2 + x3*x4)
 ```
 """
 function toric_ideal(antv::AffineNormalToricVariety)
-    return get_attribute!(antv, :toric_ideal) do
-        # is the coefficient_ring set? If not, set default value
-        if !has_attribute(antv, :coefficient_ring)
-            set_attribute!(antv, :coefficient_ring, QQ)
-        end
-        
-        # construct the toric ideal
-        cone = Cone(pm_object(antv).WEIGHT_CONE)
-        return toric_ideal(hilbert_basis(cone), coefficient_ring(antv))
-    end
+    cone = Cone(pm_object(antv).WEIGHT_CONE)
+    n = length(hilbert_basis(cone))
+    R,_ = PolynomialRing(coefficient_ring(antv), n, cached=false)
+    return toric_ideal(R, antv)
 end
-export toric_ideal
+function toric_ideal(R::MPolyRing, antv::AffineNormalToricVariety)
+    cone = Cone(pm_object(antv).WEIGHT_CONE)
+    gens = pm_object(cone).CONE_TORIC_IDEAL.BINOMIAL_GENERATORS
+    return binomial_exponents_to_ideal(R, gens)
+end
 
 function toric_ideal(ntv::NormalToricVariety)
     isaffine(ntv) || error("Cannot construct affine toric variety from non-affine input")    
-    return get_attribute!(() -> toric_ideal(AffineNormalToricVariety(ntv)), ntv, :toric_ideal)
+    return toric_ideal(AffineNormalToricVariety(ntv))
 end
 export toric_ideal
 

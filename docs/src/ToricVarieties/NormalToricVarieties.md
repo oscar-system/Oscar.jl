@@ -152,6 +152,6 @@ toric_ideal(antv::AffineNormalToricVariety)
 ## Auxillary Methods
 
 ```@docs
-binomial_exponents_to_ideal(binoms::Union{AbstractMatrix, fmpz_mat}, coefficient_ring::AbstractAlgebra.Ring)
-toric_ideal(pts::fmpz_mat, coefficient_ring::AbstractAlgebra.Ring)
+binomial_exponents_to_ideal(binoms::Union{AbstractMatrix, fmpz_mat})
+toric_ideal(pts::fmpz_mat)
 ```
