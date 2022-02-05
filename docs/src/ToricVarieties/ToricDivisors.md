@@ -33,6 +33,12 @@ Base.:-(td1::ToricDivisor, td2::ToricDivisor)
 Base.:*(c::fmpz, td::ToricDivisor)
 ```
 
+### Equality
+
+```@docs
+Base.:(==)(td1::ToricDivisor, td2::ToricDivisor)
+```
+
 
 ## Properties of toric divisors
 
