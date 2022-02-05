@@ -237,6 +237,7 @@ D2 = DivisorOfCharacter(H5, [1,2])
     @test isprime(D2) == false
     @test coefficients(D2) == [1, 2, 9, -2]
     @test coefficients(D2+D2) == coefficients(2*D2)
+    @test coefficients(D2-D2) == [0,0,0,0]
 end
 
 p = polyhedron(D)
