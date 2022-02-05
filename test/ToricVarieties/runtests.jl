@@ -3,6 +3,7 @@ using Test
 
 C = Oscar.positive_hull([1 1; -1 1])
 antv = AffineNormalToricVariety(C)
+f = map_from_character_lattice_to_torus_invariant_weil_divisor_group(antv)
 
 @testset "Affine toric varieties" begin
     @test issmooth(antv) == false
@@ -13,9 +14,8 @@ antv = AffineNormalToricVariety(C)
     @test length(gens(toric_ideal(antv))) == 1
     @test rank(torusinvariant_divisor_group(antv)) == 2
     @test rank(character_lattice(antv)) == 2
-    map = map_from_character_to_principal_divisors(antv)
-    @test rank(domain(map)) == 2
-    @test rank(codomain(map)) == 2
+    @test rank(domain(f)) == 2
+    @test rank(codomain(f)) == 2
     @test elementary_divisors(codomain(map_from_weil_divisors_to_class_group(antv))) == [ 2 ]
     @test elementary_divisors(class_group(antv)) == [ 2 ]
     @test ngens(cox_ring(antv)) == 2
@@ -112,7 +112,7 @@ H5 = NormalToricVariety(PolyhedralFan(fan_rays, fan_cones))
     @test fan(H5).pm_fan.FAN_DIM == 2
     @test rank(torusinvariant_divisor_group(H5)) == 4
     @test rank(character_lattice(H5)) == 2
-    map = map_from_character_to_principal_divisors(H5)
+    map = map_from_character_lattice_to_torus_invariant_weil_divisor_group(H5)
     @test rank(domain(map)) == 2
     @test rank(codomain(map)) == 4
     @test rank(class_group(H5)) == 2

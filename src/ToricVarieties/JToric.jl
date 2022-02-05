@@ -50,4 +50,8 @@ include("ToricLineBundles/constructors.jl")
 include("ToricLineBundles/properties.jl")
 include("ToricLineBundles/attributes.jl")
 
+
 include("cohomCalg.jl")
+
+# deprecated functions
+@deprecate map_from_character_to_principal_divisors(v::AbstractNormalToricVariety) map_from_character_lattice_to_torus_invariant_weil_divisor_group(v)

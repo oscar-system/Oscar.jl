@@ -366,7 +366,7 @@ export torusinvariant_divisor_group
 
 
 @doc Markdown.doc"""
-    map_from_character_to_principal_divisors(v::AbstractNormalToricVariety)
+    map_from_character_lattice_to_torus_invariant_weil_divisor_group(v::AbstractNormalToricVariety)
 
 Return the map from the character lattice to the group of principal divisors of a normal toric variety `v`.
 
@@ -374,7 +374,7 @@ Return the map from the character lattice to the group of principal divisors of 
 ```jldoctest
 julia> p2 = projective_space(NormalToricVariety, 2);
 
-julia> map_from_character_to_principal_divisors(p2)
+julia> map_from_character_lattice_to_torus_invariant_weil_divisor_group(p2)
 Map with following data
 Domain:
 =======
@@ -384,11 +384,11 @@ Codomain:
 Abelian group with structure: Z^3
 ```
 """
-@attr GrpAbFinGenMap function map_from_character_to_principal_divisors(v::AbstractNormalToricVariety)
+@attr GrpAbFinGenMap function map_from_character_lattice_to_torus_invariant_weil_divisor_group(v::AbstractNormalToricVariety)
     mat = transpose(matrix(ZZ, rays(v)))
     return hom(character_lattice(v), torusinvariant_divisor_group(v), mat)
 end
-export map_from_character_to_principal_divisors
+export map_from_character_lattice_to_torus_invariant_weil_divisor_group
 
 
 @doc Markdown.doc"""
@@ -459,7 +459,7 @@ Abelian group with structure: Z
 ```
 """
 @attr GrpAbFinGenMap function map_from_weil_divisors_to_class_group(v::AbstractNormalToricVariety)
-    map1 = cokernel(map_from_character_to_principal_divisors(v))[2]
+    map1 = cokernel(map_from_character_lattice_to_torus_invariant_weil_divisor_group(v))[2]
     map2 = inv(snf(codomain(map1))[2])
     return map1*map2
 end
