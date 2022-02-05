@@ -16,7 +16,7 @@ f = map_from_character_lattice_to_torus_invariant_weil_divisor_group(antv)
     @test rank(character_lattice(antv)) == 2
     @test rank(domain(f)) == 2
     @test rank(codomain(f)) == 2
-    @test elementary_divisors(codomain(map_from_weil_divisors_to_class_group(antv))) == [ 2 ]
+    @test elementary_divisors(codomain(map_from_torus_invariant_weil_divisor_group_to_class_group(antv))) == [ 2 ]
     @test elementary_divisors(class_group(antv)) == [ 2 ]
     @test ngens(cox_ring(antv)) == 2
     @test length(torusinvariant_prime_divisors(antv)) == 2
@@ -116,7 +116,7 @@ H5 = NormalToricVariety(PolyhedralFan(fan_rays, fan_cones))
     @test rank(domain(map)) == 2
     @test rank(codomain(map)) == 4
     @test rank(class_group(H5)) == 2
-    @test rank(codomain(map_from_weil_divisors_to_class_group(H5))) == 2
+    @test rank(codomain(map_from_torus_invariant_weil_divisor_group_to_class_group(H5))) == 2
     @test ngens(cox_ring(H5)) == 4
     @test length(stanley_reisner_ideal(H5).gens) == 2
     @test length(irrelevant_ideal(H5).gens) == 4

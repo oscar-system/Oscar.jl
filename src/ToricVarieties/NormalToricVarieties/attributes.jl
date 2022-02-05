@@ -94,7 +94,7 @@ coordinate_names(v::AbstractNormalToricVariety) = get_attribute!(v, :coordinate_
 
 function _cox_ring_weights(v::AbstractNormalToricVariety)
     return get_attribute(v, :cox_ring_weights) do
-        return [map_from_weil_divisors_to_class_group(v)(x) for x in gens(torusinvariant_divisor_group(v))]
+        return [map_from_torus_invariant_weil_divisor_group_to_class_group(v)(x) for x in gens(torusinvariant_divisor_group(v))]
     end
 end
 
@@ -434,13 +434,13 @@ GrpAb: Z
 ```
 """
 @attr GrpAbFinGen function class_group(v::AbstractNormalToricVariety)
-    return codomain(map_from_weil_divisors_to_class_group(v))
+    return codomain(map_from_torus_invariant_weil_divisor_group_to_class_group(v))
 end
 export class_group
 
 
 @doc Markdown.doc"""
-    map_from_weil_divisors_to_class_group(v::AbstractNormalToricVariety)
+    map_from_torus_invariant_weil_divisor_group_to_class_group(v::AbstractNormalToricVariety)
 
 Return the map from the group of Weil divisors to the class of group of a normal toric variety `v`.
 
@@ -448,7 +448,7 @@ Return the map from the group of Weil divisors to the class of group of a normal
 ```jldoctest
 julia> p2 = projective_space(NormalToricVariety, 2);
 
-julia> map_from_weil_divisors_to_class_group(p2)
+julia> map_from_torus_invariant_weil_divisor_group_to_class_group(p2)
 Map with following data
 Domain:
 =======
@@ -458,12 +458,12 @@ Codomain:
 Abelian group with structure: Z
 ```
 """
-@attr GrpAbFinGenMap function map_from_weil_divisors_to_class_group(v::AbstractNormalToricVariety)
+@attr GrpAbFinGenMap function map_from_torus_invariant_weil_divisor_group_to_class_group(v::AbstractNormalToricVariety)
     map1 = cokernel(map_from_character_lattice_to_torus_invariant_weil_divisor_group(v))[2]
     map2 = inv(snf(codomain(map1))[2])
     return map1*map2
 end
-export map_from_weil_divisors_to_class_group
+export map_from_torus_invariant_weil_divisor_group_to_class_group
 
 
 @doc Markdown.doc"""
@@ -592,10 +592,10 @@ Abelian group with structure: Z
     if hastorusfactor(v)
         throw(ArgumentError("Group of the torus-invariant Cartier divisors can only be computed if the variety has no torus factor."))
     end
-
+    
     # compute mapping
     map1 = map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v)
-    map2 = map_from_weil_divisors_to_class_group(v)
+    map2 = map_from_torus_invariant_weil_divisor_group_to_class_group(v)
     return restrict_codomain(map1*map2)
 end
 export map_from_cartier_divisor_group_to_picard_group
