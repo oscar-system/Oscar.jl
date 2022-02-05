@@ -381,41 +381,16 @@ Return the primitive collections of a polyhedral fan.
 
 # Examples
 ```jldoctest
-julia> primitive_collections(normal_fan(Oscar.simplex(3)))
-1-element Vector{Vector{Int64}}:
- [1, 2, 3, 4]
+julia> primitive_collections(normal_fan(simplex(3)))
+1-element Vector{Set{Int64}}:
+ Set([4, 2, 3, 1])
 ```
 """
 function primitive_collections(PF::PolyhedralFan)
-    # collect data
-    cones = [findall(x->x!=0, l) for l in eachrow(pm_object(PF).MAXIMAL_CONES)]
-    all_points = [i for i in 1 : pm_object(PF).N_RAYS]
-    d_max = maximum([length(i) for i in cones]) + 1
-    # identify and return the primitive collections
-    collections = Vector{Int}[]
-    for d in 1:d_max
-        checked  = Vector{Int}[]
-        for cone in cones
-            d <= length(cone) || continue
-            for I_minus_j in Oscar.Hecke.subsets(cone, d)
-                scanner = setdiff(all_points, I_minus_j)
-                for j in scanner
-                    I = vcat(I_minus_j, [j])
-                    I in checked && continue
-                    push!(checked, I)
-                    # (1) I is contained in the primitive collections iff it is not contained in any cone
-                    if !any(test_cone -> issubset(I, test_cone), cones)
-                        # (2) I is generator of the primitive collections iff primitive_collections does not contain a "smaller" generator
-                        if !any(prim -> issubset(prim, I), collections)
-                            push!(collections, I) # add new generator
-                        end
-                    end
-                end
-            end
-        end
-    end
-    # return the computed primitive collections
-    return collections
+    issimplicial(PF) || throw(ArgumentError("PolyhedralFan must be simplicial."))
+    I = ray_indices(maximal_cones(PF))
+    K = SimplicialComplex(I)
+    return minimal_nonfaces(K)
 end
 
 
@@ -478,7 +453,7 @@ function starsubdivision(PF::PolyhedralFan, n::Int)
     # identify all maximal cones in the new fan
     d = Polymake.polytope.dim(cone)
     newmaxcones = [Vector{Int64}(Polymake.row(maxcones, i)) for i in 1:(Polymake.nrows(maxcones)) if i!= n]
-    for subset in Oscar.Hecke.subsets(Vector{Int64}(nthmaxcone), d-1)
+    for subset in Hecke.subsets(Vector{Int64}(nthmaxcone), d-1)
         tmp = Vector{Int64}(subset)
         append!(tmp, newindex)
         push!(newmaxcones, tmp)
@@ -501,7 +476,7 @@ Return the Cartesian/direct product of two polyhedral fans.
 
 # Examples
 ```jldoctest
-julia> normal_fan(Oscar.simplex(2))*normal_fan(Oscar.simplex(3))
+julia> normal_fan(simplex(2))*normal_fan(simplex(3))
 A polyhedral fan in ambient dimension 5
 ```
 """
