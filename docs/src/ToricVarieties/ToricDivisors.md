@@ -29,6 +29,7 @@ ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{Int})
 
 ```@docs
 Base.:+(td1::ToricDivisor, td2::ToricDivisor)
+Base.:-(td1::ToricDivisor, td2::ToricDivisor)
 Base.:*(c::fmpz, td::ToricDivisor)
 ```
 
