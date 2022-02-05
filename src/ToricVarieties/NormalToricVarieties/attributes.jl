@@ -132,11 +132,15 @@ Note that [CLS11](@cite) refers to this ring as the "total coordinate ring".
 ```jldoctest
 julia> p2 = projective_space(NormalToricVariety, 2);
 
+julia> set_coordinate_names(p2, ["y1", "y2", "y3"])
+
+julia> set_coefficient_ring(p2, ZZ)
+
 julia> cox_ring(p2)
-Multivariate Polynomial Ring in x1, x2, x3 over Rational Field graded by 
-  x1 -> [1]
-  x2 -> [1]
-  x3 -> [1]
+Multivariate Polynomial Ring in y1, y2, y3 over Integer Ring graded by 
+  y1 -> [1]
+  y2 -> [1]
+  y3 -> [1]
 ```
 """
 function cox_ring(v::AbstractNormalToricVariety)
