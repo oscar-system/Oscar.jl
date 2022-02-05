@@ -39,7 +39,7 @@ Returns a divisor corresponding to the toric line bundle `l`.
     set_attribute!(td, :iscartier, true)
     return td
 end
-export divisor
+export toric_divisor
 
 
 @doc Markdown.doc"""

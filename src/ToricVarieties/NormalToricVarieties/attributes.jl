@@ -467,7 +467,7 @@ export map_from_torus_invariant_weil_divisor_group_to_class_group
 
 
 @doc Markdown.doc"""
-    map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v::AbstractNormalToricVariety)
+    map_from_torus_invariant_cartier_divisor_group_to_torus_invariant_weil_divisor_group(v::AbstractNormalToricVariety)
 
 Return the embedding of the group of Cartier divisors into the group of
 torus-invariant Weil divisors of an abstract normal toric variety `v`.
@@ -477,7 +477,7 @@ torus-invariant Weil divisors of an abstract normal toric variety `v`.
 julia> p2 = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> map_from_cartier_divisor_group_to_torus_invariant_divisor_group(p2)
+julia> map_from_torus_invariant_cartier_divisor_group_to_torus_invariant_weil_divisor_group(p2)
 Identity map with
 
 Domain:
@@ -485,7 +485,7 @@ Domain:
 GrpAb: Z^3
 ```
 """
-@attr Map{GrpAbFinGen, GrpAbFinGen} function map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v::AbstractNormalToricVariety)
+@attr Map{GrpAbFinGen, GrpAbFinGen} function map_from_torus_invariant_cartier_divisor_group_to_torus_invariant_weil_divisor_group(v::AbstractNormalToricVariety)
     # check input
     if hastorusfactor(v)
         throw(ArgumentError("Group of the torus-invariant Cartier divisors can only be computed if the variety has no torus factor."))
@@ -512,7 +512,7 @@ GrpAb: Z^3
             col += 1
         end
     end
-
+    
     # compute the matrix for differences
     map_for_difference_of_elements = zero_matrix(ZZ, s, s-number_of_rays)
     row = 1
@@ -524,7 +524,7 @@ GrpAb: Z^3
         row += ncol + 1
         col += ncol
     end
-
+    
     # compute the matrix for mapping to torusinvariant Weil divisors
     map_to_weil_divisors = zero_matrix(ZZ, number_of_cones * rc, rank(torusinvariant_divisor_group(v)))
     for i in 1:number_of_rays
@@ -544,7 +544,7 @@ GrpAb: Z^3
     # return the image of this embedding
     return image(embedding)[2]
 end
-export map_from_cartier_divisor_group_to_torus_invariant_divisor_group
+export map_from_torus_invariant_cartier_divisor_group_to_torus_invariant_weil_divisor_group
 
 @doc Markdown.doc"""
     cartier_divisor_group(v::AbstractNormalToricVariety)
@@ -561,7 +561,7 @@ GrpAb: Z^3
 ```
 """
 @attr GrpAbFinGen function cartier_divisor_group(v::AbstractNormalToricVariety)
-    return domain(map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v))
+    return domain(map_from_torus_invariant_cartier_divisor_group_to_torus_invariant_weil_divisor_group(v))
 end
 export cartier_divisor_group
 
@@ -594,7 +594,7 @@ Abelian group with structure: Z
     end
     
     # compute mapping
-    map1 = map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v)
+    map1 = map_from_torus_invariant_cartier_divisor_group_to_torus_invariant_weil_divisor_group(v)
     map2 = map_from_torus_invariant_weil_divisor_group_to_class_group(v)
     return restrict_codomain(map1*map2)
 end

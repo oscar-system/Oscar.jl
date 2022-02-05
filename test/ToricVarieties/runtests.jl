@@ -57,7 +57,7 @@ ntv3 = NormalToricVariety(square)
     @test iscomplete(ntv2) == true
     @test iscomplete(ntv3) == true
     @test rank(cartier_divisor_group(ntv2)) == 4
-    @test rank(domain(map_from_cartier_divisor_group_to_torus_invariant_divisor_group(ntv2))) == 4
+    @test rank(domain(map_from_torus_invariant_cartier_divisor_group_to_torus_invariant_weil_divisor_group(ntv2))) == 4
 end
 
 P2 = NormalToricVariety(normal_fan(Oscar.simplex(2)))
