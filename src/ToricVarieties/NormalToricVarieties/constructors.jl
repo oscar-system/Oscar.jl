@@ -274,7 +274,7 @@ function projective_space(::Type{NormalToricVariety}, d::Int)
     set_attribute!(variety, :character_lattice, free_abelian_group(d))
     set_attribute!(variety, :torusinvariant_divisor_group, free_abelian_group(d+1))
     set_attribute!(variety, :map_from_torus_invariant_cartier_divisor_group_to_torus_invariant_weil_divisor_group, identity_map(torusinvariant_divisor_group(variety)))
-    set_attribute!(variety, :map_from_cartier_divisor_group_to_picard_group, map_from_torus_invariant_weil_divisor_group_to_class_group(variety))
+    set_attribute!(variety, :map_from_torus_invariant_cartier_divisor_group_to_picard_group, map_from_torus_invariant_weil_divisor_group_to_class_group(variety))
     betti_numbers = fill(fmpz(1), d+1)
     set_attribute!(variety, :betti_number, betti_numbers)
     
@@ -325,7 +325,7 @@ function hirzebruch_surface(r::Int)
     set_attribute!(variety, :character_lattice, free_abelian_group(2))
     set_attribute!(variety, :torusinvariant_divisor_group, free_abelian_group(4))
     set_attribute!(variety, :map_from_torus_invariant_cartier_divisor_group_to_torus_invariant_weil_divisor_group, identity_map(torusinvariant_divisor_group(variety)))
-    set_attribute!(variety, :map_from_cartier_divisor_group_to_picard_group, map_from_torus_invariant_weil_divisor_group_to_class_group(variety))
+    set_attribute!(variety, :map_from_torus_invariant_cartier_divisor_group_to_picard_group, map_from_torus_invariant_weil_divisor_group_to_class_group(variety))
     set_attribute!(variety, :betti_number, [fmpz(1),fmpz(2),fmpz(1)])
     
     # return the result
@@ -412,7 +412,7 @@ function del_pezzo(b::Int)
     set_attribute!(variety, :dim_of_torusfactor, 0)
     set_attribute!(variety, :character_lattice, free_abelian_group(2))
     set_attribute!(variety, :map_from_torus_invariant_cartier_divisor_group_to_torus_invariant_weil_divisor_group, identity_map(torusinvariant_divisor_group(variety)))
-    set_attribute!(variety, :map_from_cartier_divisor_group_to_picard_group, map_from_torus_invariant_weil_divisor_group_to_class_group(variety))
+    set_attribute!(variety, :map_from_torus_invariant_cartier_divisor_group_to_picard_group, map_from_torus_invariant_weil_divisor_group_to_class_group(variety))
     
     # return the result
     return variety    

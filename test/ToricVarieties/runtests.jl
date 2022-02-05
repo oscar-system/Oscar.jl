@@ -145,7 +145,7 @@ dP3 = NormalToricVariety(PolyhedralFan(fan_rays, fan_cones))
     @test length(torusinvariant_prime_divisors(dP3)) == 6
     @test_throws ArgumentError del_pezzo(4)
     @test rank(picard_group(dP3)) == 4
-    @test picard_group(dP3) == codomain(map_from_cartier_divisor_group_to_picard_group(dP3))
+    @test picard_group(dP3) == codomain(map_from_torus_invariant_cartier_divisor_group_to_picard_group(dP3))
 end
 
 blowup_variety = blowup_on_ith_minimal_torus_orbit(P2, 1, "e")
