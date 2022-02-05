@@ -181,7 +181,39 @@ end
 
 
 ######################
-# 5: Display
+# 5: Equality
+######################s
+
+@doc Markdown.doc"""
+    Base.:(==)(td1::ToricDivisor, td2::ToricDivisor)
+
+Returns true if the toric divisors `td1` and `td2` are equal and false otherwise.
+
+# Examples
+```jldoctest
+julia> P2 = projective_space(NormalToricVariety, 2)
+A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+
+julia> td1 = ToricDivisor(P2, [1,2,3])
+A torus-invariant, non-prime divisor on a normal toric variety
+
+julia> td2 = ToricDivisor(P2, [1,2,3])
+A torus-invariant, non-prime divisor on a normal toric variety
+
+julia> td1 == td2
+true
+```
+"""
+function Base.:(==)(td1::ToricDivisor, td2::ToricDivisor)
+    if !(toric_variety(td1) === toric_variety(td2))
+        return false
+    end
+    return coefficients(td1) == coefficients(td2)
+end
+
+
+######################
+# 6: Display
 ######################s
 
 function Base.show(io::IO, td::ToricDivisor)
