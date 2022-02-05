@@ -120,6 +120,30 @@ function Base.:+(td1::ToricDivisor, td2::ToricDivisor)
 end
 
 
+@doc Markdown.doc"""
+    Base.:*(c::fmpz, td::ToricDivisor)
+
+Return `c`-times the toric divisor `td`.
+
+# Examples
+```jldoctest
+julia> P2 = projective_space(NormalToricVariety, 2)
+A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+
+julia> td = ToricDivisor(projective_space(NormalToricVariety, 2), [1,1,2])
+A torus-invariant, non-prime divisor on a normal toric variety
+
+julia> fmpz(2)*td
+A torus-invariant, non-prime divisor on a normal toric variety
+```
+"""
+function Base.:*(c::fmpz, td::ToricDivisor)
+    return ToricDivisor(toric_variety(td), [c*x for x in coefficients(td)])
+end
+
+function Base.:*(c::Int, td::ToricDivisor)
+    return ToricDivisor(toric_variety(td), [fmpz(c)*x for x in coefficients(td)])
+end
 
 
 ######################
