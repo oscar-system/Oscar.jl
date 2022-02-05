@@ -162,6 +162,20 @@ end
 export cox_ring
 
 
+function _stanley_reisner_complex(v::AbstractNormalToricVariety)
+    return get_attribute(v, :stanley_reisner_complex) do
+        I = ray_indices(maximal_cones(fan(v)))
+        K = SimplicialComplex(I)
+        return K
+    end
+end
+
+function stanley_reisner_ideal(R::MPolyRing, v::AbstractNormalToricVariety)
+    n = nrays(fan(v))
+    n == nvars(R) || throw(ArgumentError("Wrong number of variables"))
+    K = _stanley_reisner_complex(v)
+    return stanley_reisner_ideal(R, K)
+end
 @doc Markdown.doc"""
     stanley_reisner_ideal(v::AbstractNormalToricVariety)
 
@@ -175,22 +189,7 @@ julia> ngens(stanley_reisner_ideal(p2))
 1
 ```
 """
-function stanley_reisner_ideal(v::AbstractNormalToricVariety)
-    return get_attribute!(v, :stanley_reisner_ideal) do
-        if has_attribute(v, :polyhedron)
-            # compute via simplicial complex
-            I = pm_object(get_attribute(v, :polyhedron)).FACETS_THRU_VERTICES
-            K = SimplicialComplex(I)
-            return stanley_reisner_ideal(cox_ring(v), K)
-        else
-            # compute via primitive collections
-            collections = primitive_collections(fan(v))
-            vars = Hecke.gens(cox_ring(v))
-            SR_generators = [prod(vars[I]) for I in collections]
-            return ideal(SR_generators)
-        end
-    end
-end
+stanley_reisner_ideal(v::AbstractNormalToricVariety) = stanley_reisner_ideal(cox_ring(v), v)
 export stanley_reisner_ideal
 
 
