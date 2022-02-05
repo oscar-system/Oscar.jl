@@ -236,6 +236,7 @@ D2 = DivisorOfCharacter(H5, [1,2])
     @test is_q_cartier(D2) == true
     @test isprime(D2) == false
     @test coefficients(D2) == [1, 2, 9, -2]
+    @test coefficients(D2+D2) == [2, 4, 18, -4]
 end
 
 p = polyhedron(D)
