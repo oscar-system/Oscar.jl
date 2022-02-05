@@ -184,7 +184,7 @@ function stanley_reisner_ideal(v::AbstractNormalToricVariety)
         if has_attribute(v, :polyhedron)
             # compute via simplicial complex
             I = pm_object(get_attribute(v, :polyhedron)).FACETS_THRU_VERTICES
-            K = SimplicialComplex([Polymake.row(I,k) for k = 1:size(I)[1]])
+            K = SimplicialComplex(I)
             return stanley_reisner_ideal(cox_ring(v), K)
         else
             # compute via primitive collections
