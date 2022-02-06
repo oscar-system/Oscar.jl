@@ -50,7 +50,7 @@ is_very_ample(l::ToricLineBundle)
 degree(l::ToricLineBundle)
 divisor_class(l::ToricLineBundle)
 toric_divisor(l::ToricLineBundle)
-variety(l::ToricLineBundle)
+toric_variety(l::ToricLineBundle)
 ```
 
 ## Method
