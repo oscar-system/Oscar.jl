@@ -61,9 +61,6 @@ already been computed, we do not allow this to be changed.
 In this case an error is triggered.
 """
 function set_coefficient_ring(v::AbstractNormalToricVariety, coefficient_ring::AbstractAlgebra.Ring)
-    if has_attribute(v, :cox_ring)
-        error("Cox ring already constructed. Coefficient ring must not be changed.")
-    end
     set_attribute!(v, :coefficient_ring, coefficient_ring)
 end
 export set_coefficient_ring
@@ -77,7 +74,7 @@ An error is triggered if it is not yet set.
 """
 function coefficient_ring(v::AbstractNormalToricVariety)
     if !has_attribute(v, :coefficient_ring)
-        return QQ
+        set_attribute!(v, :coefficient_ring, QQ)
     end
     return get_attribute(v, :coefficient_ring)
 end
@@ -112,12 +109,18 @@ the normal toric variety `v`. If they are not yet set an error is returned.
 """
 function coordinate_names(v::AbstractNormalToricVariety)
     if !has_attribute(v, :coordinate_names)
-        error("Coordinate names not yet set.")
+        set_attribute!(v, :coordinate_names, ["x" * string(i) for i in 1:rank(torusinvariant_divisor_group(v))])
     end
     return get_attribute(v, :coordinate_names)
 end
 export coordinate_names
 
+
+function _cox_ring_weights(v::AbstractNormalToricVariety)
+    return get_attribute(v, :cox_ring_weights) do
+        return [map_from_weil_divisors_to_class_group(v)(x) for x in gens(torusinvariant_divisor_group(v))]
+    end
+end
 
 @doc Markdown.doc"""
     cox_ring(v::AbstractNormalToricVariety)
@@ -141,23 +144,13 @@ Multivariate Polynomial Ring in y1, y2, y3 over Integer Ring graded by
 ```
 """
 function cox_ring(v::AbstractNormalToricVariety)
-    return get_attribute!(v, :cox_ring) do
-        
-        # are coordinates names set? If not, set default values
-        if !has_attribute(v, :coordinate_names)
-            set_attribute!(v, :coordinate_names, ["x" * string(i) for i in 1:rank(torusinvariant_divisor_group(v))])
-        end
-        
-        # is the coefficient_ring set? If not, set default value
-        if !has_attribute(v, :coefficient_ring)
-            set_attribute!(v, :coefficient_ring, QQ)
-        end
-        
-        # construct the cox ring
-        S, _ = PolynomialRing(coefficient_ring(v), coordinate_names(v))
-        weights = [map_from_weil_divisors_to_class_group(v)(x) for x in gens(torusinvariant_divisor_group(v))]        
-        return grade(S,weights)[1]
-    end
+    S, _ = PolynomialRing(coefficient_ring(v), coordinate_names(v), cached=false)
+    return cox_ring(S, v)
+end
+function cox_ring(R::MPolyRing, v::AbstractNormalToricVariety)
+    weights = _cox_ring_weights(v)
+    length(weights) == nvars(R) or throw(ArgumentError("Wrong number of variables"))
+    return grade(R, weights)[1]
 end
 export cox_ring
 
