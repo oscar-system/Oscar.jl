@@ -102,24 +102,31 @@ function initial(f, val::ValuationMap, w::Vector)
   # initial(f) is the sum over all pi(c_alpha*t^-val(c_alpha))x^alpha
   # where c_alpha x^alpha is a term of maximal valued weighted degree
   # and pi is the map from the valued field to the residue field
-  if val.uniformizer==nothing
+  if is_valuation_trivial(val)
     t = val.valued_field(1)
   else
-    t = val.valued_field(val.uniformizer)
+    t = val.valued_field(val.uniformizer_field)
   end
   kx, x = PolynomialRing(val.residue_field,[repr(x) for x in gens(parent(f))])
+  R = val.valued_ring
   pi = val.residue_map
 
   initialf = MPolyBuildCtx(kx)
   for (vwdi,cf,expv) in zip(vwds,coefficients(f),exponent_vectors(f))
     if vwdi == vwd
-      push_term!(initialf,pi(t^-val(cf)*cf),expv)
+      push_term!(initialf, pi(R(t^-val(cf)*cf)), expv)
     end
   end
 
   return finish(initialf)
 end
 export initial
+
+
+function initial(G::Vector{<:MPolyIdeal}, val::ValuationMap, w::Vector; skip_groebner_basis_computation::Bool=false)
+  return [initial(g,val,w) for g in G]
+end
+
 
 
 
@@ -177,66 +184,11 @@ julia> initial(Katsura5Homogenized_Kt, val_t, w) # different leading monomials a
 
 ```
 """
-function initial(I::MPolyIdeal, val::ValuationMap, w::Vector; skip_groebner_basis_computation::Bool=false, skip_legality_check::Bool=false)
-
-  if !skip_legality_check
-    check_legality(I,val,w,skip_groebner_basis_computation=skip_groebner_basis_computation)
-  end
-
+function initial(I::MPolyIdeal, val::ValuationMap, w::Vector; skip_groebner_basis_computation::Bool=false)
   if !skip_groebner_basis_computation
-    G = groebner_basis(I,complete_reduction=true)
+    G = groebner_basis(I,val,w)
   else
     G = gens(G)
   end
-
-  return ideal([initial(g,val,w) for g in G])
-end
-
-# returns true if the exponent vectors of g have the same sum
-# return false otherwise
-function sloppy_is_homogeneous(g)
-  leadexpv,tailexpvs = Iterators.peel(exponent_vectors(g))
-  d = sum(leadexpv)
-  for tailexpv in tailexpvs
-    if d != sum(tailexpv)
-      return false
-    end
-  end
-  return true
-end
-
-
-# checks whether the following conditions are satisfied:
-# - if weight vector has negative entries, then ideal needs to be homogeneous
-# returns true if they are, returns false otherwise
-function check_legality(I::MPolyIdeal, val::ValuationMap, w::Vector; skip_groebner_basis_computation::Bool=false)
-  if !skip_groebner_basis_computation
-    G = groebner_basis(I,complete_reduction=true)
-  else
-    G = gens(G)
-  end
-
-  is_ideal_homogeneous = true
-  for g in G
-    if sloppy_is_homogeneous(g)
-      is_ideal_homogeneous = false
-      break;
-    end
-  end
-
-  if !is_ideal_homogeneous && is_valuation_trivial(val)
-    error("check_legality: ideal needs to be homogeneous if computing w.r.t. non-trivial valuation")
-  end
-
-  is_weight_vector_nonnegative = true
-  for wi in w
-    if wi<0
-      is_weight_vector_nonnegative = false
-      break
-    end
-  end
-
-  if !is_ideal_homogeneous && !is_weight_vector_nonnegative
-    error("check_legality: ideal needs to be homogenous if computing w.r.t. negative weight vector")
-  end
+  return ideal(initial(G,val,w))
 end
