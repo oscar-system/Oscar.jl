@@ -200,7 +200,7 @@ function tropical_link(inI::MPolyIdeal; p_adic_prime::Integer=32003, p_adic_prec
   ###
   # Step 3.1: Intersect the resulting one-dimensional ideal with hyperplanes p*x1-1, ..., p*xn-1, x1+...+xn-p
   ###
-  hyperplanes = [x[i]-val_p.uniformizer_field for i in pivotIndices]
+  hyperplanes = [x[i]-val_p.uniformizer_field for i in pivotIndices] # todo: only x[i] for i in indep set
   push!(hyperplanes,val_p.uniformizer_field*sum(x)-1)
   rayGenerators = [];
   # rayMultiplicities = []; # ray multiplicities cannot be generally computed using this method,
@@ -221,6 +221,10 @@ function tropical_link(inI::MPolyIdeal; p_adic_prime::Integer=32003, p_adic_prec
     singularIdeal = Singular.satstd(singularIdeal,Singular.MaximalIdeal(singularRing,1))
     Singular.libSingular.set_option("OPT_REDSD", false)
     inI0 = ideal(Kx,singularIdeal) # cast the Singular ideal back to an Oscar ideal
+
+    if dim(inI0)!=0
+      continue
+    end
 
     ###
     # Step 3.2: compute tropical points on slice and merge them to rayGenerators
