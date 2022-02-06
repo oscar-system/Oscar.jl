@@ -47,9 +47,37 @@ function ToricLineBundle(v::AbstractNormalToricVariety, input_class::Vector{Int}
 end
 
 
+########################
+# 3: Special constructor
+########################
+
+@doc Markdown.doc"""
+    ToricLineBundle(v::AbstractNormalToricVariety, d::ToricDivisor)
+
+Construct the toric variety associated to a (Cartier) torus-invariant divisor `d` on the normal toric variety `v`.
+
+# Examples
+```jldoctest
+julia> v = projective_space(NormalToricVariety, 2)
+A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+
+julia> l = ToricLineBundle(v, ToricDivisor(v,[1,2,3]))
+A toric line bundle on a normal toric variety
+```
+"""
+function ToricLineBundle(v::AbstractNormalToricVariety, d::ToricDivisor)
+    if !(iscartier(d))
+        throw(ArgumentError("The toric divisor must be Cartier to define a toric line bundle."))
+    end
+    f = map_from_torus_invariant_cartier_divisor_group_to_picard_group(v)
+    class = f(sum([coefficients(d)[i] * gens(domain(f))[i] for i in 1:length(gens(domain(f)))]))
+    return ToricLineBundle(v, class)
+end
+ToricLineBundle(d::ToricDivisor) = ToricLineBundle(toric_variety(d), d)
+
 
 ########################
-# 3: Tensor products
+# 4: Tensor products
 ########################
 
 @doc Markdown.doc"""
