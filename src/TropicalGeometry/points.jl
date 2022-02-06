@@ -69,13 +69,13 @@ I = ideal([x+p*y,y+p*z,x+y+z+1])
 p_adic_precision=29
 tropical_points(I,val_p,p_adic_precision=29)
 
-# Kt,t = RationalFunctionField(QQ,"t")
-# val_t = ValuationMap(Kt,t)
-# Ktx,(x,y,z) = PolynomialRing(Kt,3)
-# I = ideal([x+t*y,y+t*z])
-# tropical_points(I,val_t)
+Ks,s = RationalFunctionField(QQ,"s")
+val_s = ValuationMap(Ks,s)
+Ksx,(x,y,z) = PolynomialRing(Ks,3)
+I = ideal([x+s*y,y+s*z,x+y+z+1])
+tropical_points(I,val_s)
 =======#
-function tropical_points(I,val_p::ValuationMap{FlintRationalField, fmpq}; p_adic_precision::Int=29) # currently only p-adic supported
+function tropical_points(I::MPolyIdeal,val_p::ValuationMap{FlintRationalField, fmpq}; p_adic_precision::Int=29) # currently only p-adic supported
 
   ###
   # Step 0: Check whether I has solutions.
@@ -84,6 +84,7 @@ function tropical_points(I,val_p::ValuationMap{FlintRationalField, fmpq}; p_adic
   Kx = base_ring(I)
   d = dim(I)
   if (d<0)
+    println(I)
     error("input ideal is has no solutions")
   end
   while (d>0)
@@ -128,5 +129,28 @@ function tropical_points(I,val_p::ValuationMap{FlintRationalField, fmpq}; p_adic
   end
 
   return T
+end
+function tropical_points(I::MPolyIdeal,val_s::ValuationMap{AbstractAlgebra.Generic.RationalFunctionField{K}, AbstractAlgebra.Generic.Rat{K} }  where {K}; p_adic_prime::Int=32003, p_adic_precision::Int=29) # shortcut: compute p-adic points for sufficiently high p
+
+  Ks = val_s.valued_ring
+  K = coefficient_ring(Ks)
+  s = symbols(Ks)[1]
+
+  Kx,x = PolynomialRing(K,symbols(base_ring(I)))
+  Gp = []
+  for f in gens(I)
+    fKx = MPolyBuildCtx(Kx)
+    for (cKs,expvKsx) = zip(coefficients(f),exponent_vectors(f))
+      @assert isone(denominator(cKs)) "change_base_ring: coefficient denominators need to be 1"
+      cK = evaluate(numerator(cKs),p_adic_prime)       # coefficient in R
+      push_term!(fKx,cK,expvKsx)
+    end
+    push!(Gp,finish(fKx))
+  end
+
+  I_p = ideal(Gp)
+  val_p = ValuationMap(K,p_adic_prime)
+
+  return tropical_points(I_p,val_p)
 end
 export tropical_points
