@@ -81,7 +81,9 @@ end
 
 # Constructor:
 function ValuationMap(Q::FlintRationalField,p::fmpq)
-  residue_map(c) = FiniteField(p)[1](c)
+  function residue_map(c)
+    return FiniteField(ZZ(p))[1](ZZ(c))
+  end
   return ValuationMap{typeof(Q),typeof(p)}(Q,p,ZZ,ZZ(p),FiniteField(ZZ(p))[1],residue_map,:p)
 end
 
@@ -192,18 +194,24 @@ I = ideal([x+2*y,y+2*z])
 simulate_valuation(I,val_2)
 =======#
 function simulate_valuation(I::MPolyIdeal, val::ValuationMap)
+  return ideal(simulate_valuation(gens(I),val))
+end
+function simulate_valuation(G::Vector{<:MPolyElem}, val::ValuationMap)
 
   # if the valuation is trivial, then nothing needs to be done
   if is_valuation_trivial(val)
-    return I
+    return G
+  end
+  if length(G)==0
+    error("input vector of polynomials empty, thus ambient polynomial ring unknown")
   end
 
   R = val.valued_ring
   t = val.uniformizer_symbol
 
-  Rtx,tx = PolynomialRing(R,vcat([t],symbols(base_ring(I))))
+  Rtx,tx = PolynomialRing(R,vcat([t],symbols(parent(G[1]))))
   vvG = [val.uniformizer_ring-tx[1]]
-  for f in gens(I)
+  for f in G
     fRtx = MPolyBuildCtx(Rtx)
     for (cK,expvKx) = zip(coefficients(f),exponent_vectors(f))
       @assert isone(denominator(cK)) "change_base_ring: coefficient denominators need to be 1"
@@ -214,8 +222,7 @@ function simulate_valuation(I::MPolyIdeal, val::ValuationMap)
     push!(vvG,tighten_simulation(finish(fRtx),val))
   end
 
-  vvI = ideal(Rtx,vvG)
-  return vvI
+  return vvG
 end
 export simulate_valuation
 
@@ -226,7 +233,7 @@ function simulate_valuation(w::Vector, val::ValuationMap)
   end
   # either way, scale vector to make entries integral
   commonDenom = lcm([denominator(wi) for wi in w])
-  return [numerator(commonDenom*wi) for wi in w]
+  return [Int(numerator(commonDenom*wi)) for wi in w] # casting vector entries to Int32 for Singular
 end
 
 function simulate_valuation(w::Vector, u::Vector, val::ValuationMap)
@@ -238,7 +245,7 @@ function simulate_valuation(w::Vector, u::Vector, val::ValuationMap)
   # either way, scale vector to make entries integral
   w_commonDenom = lcm([denominator(wi) for wi in w])
   u_commonDenom = lcm([denominator(ui) for ui in u])
-  return [numerator(w_commonDenom*wi) for wi in w],[numerator(u_commonDenom*ui) for ui in u]
+  return [Int(numerator(w_commonDenom*wi)) for wi in w],[Int(numerator(u_commonDenom*ui)) for ui in u]
 end
 
 #=======
@@ -260,7 +267,16 @@ vvI = simulate_valuation(I,val_s)
 desimulate_valuation(vvI,val_s)
 =======#
 function desimulate_valuation(vvI::MPolyIdeal,val::ValuationMap)
-  Rx = base_ring(vvI)
+  return ideal([g for g in desimulate_valuation(gens(vvI),val) if !iszero(g)])
+end
+export desimulate_valuation
+
+function desimulate_valuation(vvG::Vector{<:MPolyElem}, val::ValuationMap)
+  return [desimulate_valuation(vvg,val) for vvg in vvG]
+end
+
+function desimulate_valuation(vvg::MPolyElem, val::ValuationMap)
+  Rx = parent(vvg)
   R = coefficient_ring(Rx)
   x = copy(symbols(Rx))
   popfirst!(x)
@@ -268,23 +284,19 @@ function desimulate_valuation(vvI::MPolyIdeal,val::ValuationMap)
   K = val.valued_field
   Kx,_ = PolynomialRing(K,x)
 
-  vvG = [evaluate(g,[1],[val.uniformizer_ring]) for g in gens(vvI)]
-  G = []
-  for vvg in vvG
-    if !iszero(vvg) # vvI contained p-t, so one entry of vvG is 0
-      g = MPolyBuildCtx(Kx)
-      for (c, expvRtx) = Base.Iterators.zip(coefficients(vvg), exponent_vectors(vvg))
-        expvKx = copy(expvRtx) # exponent vector in R[t,x1,...,xn]
-        popfirst!(expvKx)      # exponent vector in K[x1,...,xn]
-        push_term!(g,K(c),expvKx)
-      end
-      push!(G,finish(g))
-    end
+  vvg = evaluate(vvg,[1],[val.uniformizer_ring])
+  if iszero(vvg) # vvg may be p-t
+    return Kx(0)
   end
 
-  return ideal(Kx,G)
+  g = MPolyBuildCtx(Kx)
+  for (c, expvRtx) = Base.Iterators.zip(coefficients(vvg), exponent_vectors(vvg))
+    expvKx = copy(expvRtx) # exponent vector in R[t,x1,...,xn]
+    popfirst!(expvKx)      # exponent vector in K[x1,...,xn]
+    push_term!(g,K(c),expvKx)
+  end
+  return finish(g)
 end
-export desimulate_valuation
 
 function desimulate_valuation(w::Vector,val::ValuationMap)
   # if the valuation is non-trivial, scale the vector so that first entry is -1
