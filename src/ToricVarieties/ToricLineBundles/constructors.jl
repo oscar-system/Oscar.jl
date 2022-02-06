@@ -5,7 +5,7 @@
 abstract type ToricCoherentSheaf end
 
 @attributes mutable struct ToricLineBundle <: ToricCoherentSheaf
-    variety::AbstractNormalToricVariety
+    toric_variety::AbstractNormalToricVariety
     divisor_class::GrpAbFinGenElem
     ToricLineBundle(variety::AbstractNormalToricVariety, divisor_class::GrpAbFinGenElem) = new(variety, divisor_class)
 end
@@ -74,12 +74,12 @@ A toric line bundle on a normal toric variety
 """
 function Base.:*(l1::ToricLineBundle, l2::ToricLineBundle)
     # check input
-    if !(variety(l1) === variety(l2))
+    if !(toric_variety(l1) === toric_variety(l2))
         throw(ArgumentError("The line bundles must be defined on identically the same toric variety."))
     end
     
     # return the new divisor class
-    return ToricLineBundle(variety(l1), divisor_class(l1) + divisor_class(l2))
+    return ToricLineBundle(toric_variety(l1), divisor_class(l1) + divisor_class(l2))
 end
 
 
@@ -101,7 +101,7 @@ A toric line bundle on a normal toric variety
 ```
 """
 function Base.:inv(l::ToricLineBundle)
-    return ToricLineBundle(variety(l), (-1)*divisor_class(l))
+    return ToricLineBundle(toric_variety(l), (-1)*divisor_class(l))
 end
 
 
@@ -123,7 +123,7 @@ A toric line bundle on a normal toric variety
 ```
 """
 function Base.:^(l::ToricLineBundle, p::fmpz)
-    return ToricLineBundle(variety(l), p * divisor_class(l))
+    return ToricLineBundle(toric_variety(l), p * divisor_class(l))
 end
 
 function Base.:^(l::ToricLineBundle, p::Int)
@@ -187,7 +187,7 @@ true
 ```
 """
 function Base.:(==)(l1::ToricLineBundle, l2::ToricLineBundle)
-    if !(variety(l1) === variety(l2))
+    if !(toric_variety(l1) === toric_variety(l2))
         return false
     end
     return iszero(divisor_class(l1) - divisor_class(l2))
