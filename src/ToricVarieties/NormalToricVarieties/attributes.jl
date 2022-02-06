@@ -149,7 +149,7 @@ function cox_ring(v::AbstractNormalToricVariety)
 end
 function cox_ring(R::MPolyRing, v::AbstractNormalToricVariety)
     weights = _cox_ring_weights(v)
-    length(weights) == nvars(R) or throw(ArgumentError("Wrong number of variables"))
+    length(weights) == nvars(R) || throw(ArgumentError("Wrong number of variables"))
     return grade(R, weights)[1]
 end
 export cox_ring

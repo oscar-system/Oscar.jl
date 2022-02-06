@@ -458,9 +458,8 @@ function blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int
     
     # check for name clash with variable name chosen for blowup
     old_vars = [string(x) for x in Hecke.gens(cox_ring(v))]
-    if length(findall(x->occursin(coordinate_name, x), old_vars)) > 0
+    isnothing(findfirst(x->occursin(coordinate_name, x), old_vars)) ||
         throw(ArgumentError("The provided name for the blowup coordinate is already taken as homogeneous coordinate of the provided toric variety."))
-    end
     
     # set up Cox ring of new variety
     new_vars = [if new_rays[i] in old_rays old_vars[findfirst(x->x==new_rays[i], old_rays)] else coordinate_name end for i in 1:length(new_rays)]
