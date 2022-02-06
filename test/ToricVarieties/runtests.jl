@@ -259,6 +259,7 @@ DC2 = ToricDivisorClass(H5, [1,2])
 end
 
 line_bundle = ToricLineBundle(dP3, [1,2,3,4])
+line_bundle2 = ToricLineBundle(D2)
 
 @testset "Toric line bundles" begin
     @test degree(line_bundle) == 10
