@@ -19,6 +19,7 @@ include("groebner_polyhedron.jl")
 include("points.jl")
 include("link.jl")
 include("multiplicity.jl")
+include("traversal.jl")
 
 # Temporarily we will turn tropical polynomials into strings. This will be
 # removed once Polymake.jl wraps its tropical polynomials and tropical numbers
