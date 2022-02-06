@@ -47,8 +47,92 @@ function ToricLineBundle(v::AbstractNormalToricVariety, input_class::Vector{Int}
 end
 
 
+
 ########################
-# 3: Special constructors
+# 3: Tensor products
+########################
+
+@doc Markdown.doc"""
+    Base.:*(l1::ToricLineBundle, l2::ToricLineBundle)
+
+Return the tensor product of two line bundles `l1` and `l2`.
+
+# Examples
+```jldoctest
+julia> P2 = projective_space(NormalToricVariety, 2)
+A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+
+julia> l1 = ToricLineBundle(P2, [1])
+A toric line bundle on a normal toric variety
+
+julia> l2 = ToricLineBundle(P2, [2])
+A toric line bundle on a normal toric variety
+
+julia> l1*l2
+A toric line bundle on a normal toric variety
+```
+"""
+function Base.:*(l1::ToricLineBundle, l2::ToricLineBundle)
+    # check input
+    if !(variety(l1) === variety(l2))
+        throw(ArgumentError("The line bundles must be defined on identically the same toric variety."))
+    end
+    
+    # return the new divisor class
+    return ToricLineBundle(variety(l1), divisor_class(l1) + divisor_class(l2))
+end
+
+
+@doc Markdown.doc"""
+    Base.:inv(l::ToricLineBundle)
+
+Returns the inverse of the toric line bundle `l`.
+
+# Examples
+```jldoctest
+julia> P2 = projective_space(NormalToricVariety, 2)
+A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+
+julia> l = ToricLineBundle(P2, [1])
+A toric line bundle on a normal toric variety
+
+julia> inv(l)
+A toric line bundle on a normal toric variety
+```
+"""
+function Base.:inv(l::ToricLineBundle)
+    return ToricLineBundle(variety(l), (-1)*divisor_class(l))
+end
+
+
+@doc Markdown.doc"""
+    Base.:^(l::ToricLineBundle, p::fmpz)
+
+Return the `p`-th tensor power of the toric line bundle `l`.
+
+# Examples
+```jldoctest
+julia> P2 = projective_space(NormalToricVariety, 2)
+A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+
+julia> l = ToricLineBundle(P2, [1])
+A toric line bundle on a normal toric variety
+
+julia> l^(-1)
+A toric line bundle on a normal toric variety
+```
+"""
+function Base.:^(l::ToricLineBundle, p::fmpz)
+    return ToricLineBundle(variety(l), p * divisor_class(l))
+end
+
+function Base.:^(l::ToricLineBundle, p::Int)
+    return l^fmpz(p)
+end
+
+
+########################
+# 4: Special constructors
 ########################
 
 # The following is both a special constructor of a toric line bundle and an attribute of a toric variety.
@@ -79,7 +163,39 @@ export StructureSheaf, structure_sheaf
 
 
 ########################
-# 4: Display
+# 5: Equality
+########################
+
+@doc Markdown.doc"""
+    Base.:(==)(l1::ToricLineBundle, l2::ToricLineBundle)
+
+Returns true if the toric line bundles `l1` and `l2` are isomorphic and false otherwise.
+
+# Examples
+```jldoctest
+julia> P2 = projective_space(NormalToricVariety, 2)
+A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+
+julia> l1 = ToricLineBundle(P2, [0])
+A toric line bundle on a normal toric variety
+
+julia> l2 = l1^(-1)
+A toric line bundle on a normal toric variety
+
+julia> l1 == l2
+true
+```
+"""
+function Base.:(==)(l1::ToricLineBundle, l2::ToricLineBundle)
+    if !(variety(l1) === variety(l2))
+        return false
+    end
+    return iszero(divisor_class(l1) - divisor_class(l2))
+end
+
+
+########################
+# 6: Display
 ########################
 
 function Base.show(io::IO, line_bundle::ToricLineBundle)

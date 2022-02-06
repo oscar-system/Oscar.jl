@@ -262,6 +262,8 @@ line_bundle = ToricLineBundle(dP3, [1,2,3,4])
 
 @testset "Toric line bundles" begin
     @test degree(line_bundle) == 10
+    @test degree(line_bundle * line_bundle) == 20
+    @test degree(line_bundle^(-1)) == -10
     @test divisor_class(line_bundle).coeff == AbstractAlgebra.matrix(ZZ, [1 2 3 4])
     @test dim(variety(line_bundle)) == 2
     @test istrivial(line_bundle) == false
