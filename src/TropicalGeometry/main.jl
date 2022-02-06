@@ -88,6 +88,16 @@ function Singular.satstd(I::Singular.sideal{Singular.spoly{T}}, J::Singular.side
    return Singular.sideal{Singular.spoly{T}}(R, ptr, true)
 end
 
+###
+# Allow dot product between Vector{fmpq} and Vector{Int64}
+###
+function dot(x::Vector{fmpq}, y::Vector{Int64})
+  xy = 0
+  for (xi,yi) in zip(x,y)
+    xy += xi*yi
+  end
+  return xy
+end
 
 # # Workaround for turning a PolyhedralFan of polymake into a proper PolyhedralComplex
 # function polyhedral_complex_workaround(pm::Polymake.BigObject)
