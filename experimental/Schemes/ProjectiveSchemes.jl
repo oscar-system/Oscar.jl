@@ -583,7 +583,7 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:Abstra
     C = affine_space(kk, symbols(homogeneous_coordinate_ring(X)))
     X.homog_coord = gens(OO(C))
     S = homogeneous_coordinate_ring(X)
-    help_map = hom(S, OO(C), gens(OO(C)))
+    help_map = hom(S, OO(C), (x -> OO(C)(x)), gens(OO(C)))
     I = help_map(defining_ideal(X))
     CX = subscheme(C, I)
     set_attribute!(X, :homog_to_frac, hom(S, OO(CX), gens(OO(CX))))
