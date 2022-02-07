@@ -86,7 +86,11 @@ end
 # The two main evaluation methods
 function (F::MPolyAnyMap{<: MPolyQuo})(g)
   if g isa elem_type(domain(F))
-    return _evaluate_plain(F, g)
+    if coefficient_map(F) === nothing
+      return _evaluate_plain(F, g)
+    else 
+      return _evaluate_general(F, g)
+    end
   else 
     gg = domain(F)(g)
     @assert parent(gg) === domain(F)

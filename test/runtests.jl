@@ -29,6 +29,8 @@ include("Rings/NumberField.jl")
 include("Rings/FunctionField-test.jl")
 include("Rings/AbelianClosure.jl")
 
+include("Rings/MPolyAnyMap.jl")
+
 if Oscar.is_dev
   include("Examples/GITFans-test.jl")
 end
