@@ -37,6 +37,8 @@ ideal ``I`` in the graded ring ``A[s₀,…,sᵣ]`` and the latter is of type
   end
 
   function ProjectiveScheme(S::MPolyRing_dec, I::MPolyIdeal{T}) where {T<:RingElem}
+    @show I
+    @show typeof(I)
     for f in gens(I)
       parent(f) == S || error("elements do not belong to the correct ring")
     end
@@ -333,6 +335,14 @@ function homog_to_frac(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::RET) where {C
   return evaluate(f, homogeneous_coordinates(X))
 end
 
+function homog_to_frac(X::ProjectiveScheme) 
+  if !has_attribute(X, :homog_to_frac)
+    affine_cone(X)
+  end
+  #TODO: insert type assertion here!
+  return get_attribute(X, :homog_to_frac)
+end
+
 @Markdown.doc """
     frac_to_homog(X::ProjectiveScheme, f::T) where {T<:RingElem}
 
@@ -510,13 +520,10 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyR
     C, pr_fiber, pr_base = product(F, Y)
     X.homog_coord = lift.([pullback(pr_fiber)(u) for u in gens(OO(F))])
 
-    function complicated_evaluation(g::MPolyElem_dec)
-      R = OO(Y)
-      g1 = map_coefficients(R, g)
-      return evaluate(map_coefficients(pullback(pr_base), g1), X.homog_coord)
-    end
-
-    I = ideal(OO(C), [complicated_evaluation(g) for g in gens(defining_ideal(X))])
+    S = homogeneous_coordinate_ring(X)
+    inner_help_map = hom(A, OO(C), [pr_base(x) for x in gens(OO(Y))])
+    help_map = hom(S, OO(C), inner_help_map, [pr_fiber(y) for y in gens(OO(F))])
+    I = ideal(OO(C), [help_map(g) for g in gens(defining_ideal(X))])
     X.C = subscheme(C, I)
     X.projection_to_base = restrict(pr_base, X.C, Y)
   end
