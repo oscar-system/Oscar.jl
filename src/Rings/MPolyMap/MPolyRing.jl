@@ -91,3 +91,13 @@ function (F::MPolyAnyMap{<: MPolyRing})(g)
     return _evaluate_plain(F, gg)
   end
 end
+
+function (F::MPolyAnyMap{<: MPolyRing, <:AbstractAlgebra.NCRing, <:Oscar.MPolyAnyMap})(g)
+  if g isa elem_type(domain(F))
+    return _evaluate_general(F, g)
+  else 
+    gg = domain(F)(g)
+    @assert parent(gg) === domain(F)
+    return _evaluate_general(F, gg)
+  end
+end
