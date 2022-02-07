@@ -48,6 +48,9 @@ const _DomainTypes = Union{MPolyRing, MPolyQuo}
                                 coeff_map::U,
                                 img_gens::Vector{V}) where {D, C, U, V}
       @assert V === elem_type(C)
+      for g in img_gens
+        @assert parent(g) === codomain "elements does not have the correct parent"
+      end
     return new{D, C, U, V}(domain, codomain, coeff_map, img_gens)
   end
 end
