@@ -77,17 +77,10 @@ function msolve(
         info_level::Int=0,                    # info level for print outs
         precision::Int=32                     # precision of the solution set
         )
-    singular_assure(I)
-    SI    = I.gens.S
-    R     = I.gens.Sx
-    # skip zero generators in ideal
-    ptr = Singular.libSingular.id_Copy(SI.ptr, R.ptr)
-    J   = Singular.Ideal(R, ptr)
-    Singular.libSingular.idSkipZeroes(J.ptr)
-    # get number of variables
-    nr_vars = Singular.nvars(R)
-    nr_gens = Singular.ngens(J)
-    vars    = Singular.gens(R)
+    R = base_ring(I)
+    nr_vars     = nvars(R)
+    nr_gens     = ngens(I)
+    field_char  = Int(characteristic(R))
 
     variable_names = map(string, Singular.symbols(R))
 
@@ -107,7 +100,7 @@ function msolve(
         error("At the moment msolve only supports the rationals as ground field.")
     end
     # convert Singular ideal to flattened arrays of ints
-    lens, cfs, exps   = convert_singular_ideal_to_array(J)
+    lens, cfs, exps   = convert_oscar_ideal_to_array(I)
 
     res_ld    = Ref(Cint(0))
     res_dim   = Ref(Cint(0))

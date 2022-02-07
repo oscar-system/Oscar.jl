@@ -12,11 +12,10 @@ Pages = ["rings.md"]
 
 # Creating Multivariate Rings
 
-We present examples which illustrate how
-to create multivariate polynomial rings and their elements, while at the same time
-introducing and illustrating a ring type for handling gradings on these rings.
-More details on polynomials and their coefficient rings (fields)
-can be found in  the rings and fields chapters of this documentation.
+In this section, we illustrate by examples how to create multivariate polynomial rings and their elements,
+while at the same time introducing and illustrating a special ring type for modelling multivariate polynomial
+rings with gradings. For more details on multivariate polynomial rings, their coefficient rings (fields),
+and their elements, we refer to the chapters on rings and fields. 
 
 ## Types
 
@@ -25,11 +24,6 @@ ring types belong to the abstract type `PolyRing{T}`, their elements have abstra
 `PolyRingElem{T}`. The multivariate ring types belong to the abstract type `MPolyRing{T}`,
 their elements have abstract type `MPolyRingElem{T}`. Here, `T` is the element type
 of the coefficient ring of the polynomial ring.
-
-Multivariate rings with gradings are
-modelled by objects of type `MPolyRing_dec{T, S}  :< MPolyRing{T}`, with elements of type
-`MPolyRingElem_dec{T, S}  :< MPolyRingElem{T}`. Here, `S` is the element type of the
-multivariate ring, and  `T` is the element type of its coefficient ring as above.
 
 ## Constructors
 
@@ -143,6 +137,15 @@ are thought of as column vectors in $\mathbb Z^m$, and $W$ as an $m \times n$-ma
 entries in $\mathbb Z$. In particular, if $G = \mathbb Z$, $W$ is thought of as a row vector
 in $\mathbb Z^n$.
 
+### Types
+
+
+Multivariate rings with gradings are modelled by objects of type
+`MPolyRing_dec{T, S}  :< MPolyRing{T}`, with elements of type
+`MPolyRingElem_dec{T, S}  :< MPolyRingElem{T}`. Here, `S` is the element type of the
+multivariate ring, and  `T` is the element type of its coefficient ring as above.
+
+
 ### Constructors for Graded Rings
 
 There are two basic ways of creating graded polynomial rings:
@@ -176,7 +179,7 @@ is_zm_graded(R::MPolyRing_dec)
 
 ## Data Associated to Multivariate Rings
 
-If `R` is  a multivariate polynomial ring with coefficient ring `C`, or a graded version of such a ring, then
+Given  a multivariate polynomial ring `R` with coefficient ring `C`, 
 
 - `coefficient_ring(R)` refers to `C`,
 - `gens(R)` to the generators (variables) of `R`,
@@ -208,7 +211,7 @@ homogeneous_component(R::MPolyRing_dec, g::GrpAbFinGenElem)
 
 ### Constructors
 
-One way to create elements of a multivariate  polynomial ring, or a graded such ring, is
+One way to create elements of a multivariate  polynomial ring is
 to build up polynomials from the generators (variables) of the ring using
 basic arithmetic as shown below:
 
@@ -255,7 +258,7 @@ finish(B)
 ### Special Elements
 
 Given a multivariate polynomial ring `R`, `zero(R)` and `one(R)` refer to the additive and multiplicative identity of `R`, respectively.
-The respective test calls on an element `f` of `R` are  `iszero(f)` and `isone(f)`.
+Relevant test calls on an element `f` of `R` are  `iszero(f)` and `isone(f)`.
 
 
 ### Data Associated to Elements of Multivariate Rings

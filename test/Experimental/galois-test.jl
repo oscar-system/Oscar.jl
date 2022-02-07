@@ -1,4 +1,4 @@
-@testset "Examples.galois_group" begin
+@testset "Experimental.galois_group" begin
 
   Zx, x = ZZ["x"]
   k, a = number_field(x^5-2)

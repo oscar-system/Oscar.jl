@@ -43,3 +43,7 @@ julia> isisomorphic(G,symmetric_group(3))[1]
 true
 ```
 Similarly to the subgroups, the output consists of a pair (`Q`,`p`), where `Q` is the quotient group and `p` is the projection homomorphism of `G` into `Q`.
+
+```@docs
+maximal_abelian_quotient
+```

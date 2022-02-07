@@ -5,11 +5,13 @@ abstract type AbstractNormalToricVariety end
 
 @attributes mutable struct NormalToricVariety <: AbstractNormalToricVariety
            polymakeNTV::Polymake.BigObject
+           NormalToricVariety(polymakeNTV::Polymake.BigObject) = new(polymakeNTV)
 end
 export NormalToricVariety
 
 @attributes mutable struct AffineNormalToricVariety <: AbstractNormalToricVariety
            polymakeNTV::Polymake.BigObject
+           AffineNormalToricVariety(polymakeNTV::Polymake.BigObject) = new(polymakeNTV)
 end
 export AffineNormalToricVariety
 
@@ -35,14 +37,14 @@ julia> C = positive_hull([1 0; 0 1])
 A polyhedral cone in ambient dimension 2
 
 julia> antv = AffineNormalToricVariety(C)
-A normal, affine, non-complete toric variety
+A normal, affine toric variety
 ```
 """
 function AffineNormalToricVariety(C::Cone)
     # construct the variety
     fan = PolyhedralFan(C)
     pmntv = Polymake.fulton.NormalToricVariety(Oscar.pm_object(fan))
-    variety = AffineNormalToricVariety(pmntv, Dict())
+    variety = AffineNormalToricVariety(pmntv)
     
     # set known attributes
     set_attribute!(variety, :cone, C)
@@ -69,14 +71,14 @@ Set `C` to be the positive orthant in two dimensions.
 julia> C = positive_hull([1 0; 0 1])
 A polyhedral cone in ambient dimension 2
 julia> ntv = NormalToricVariety(C)
-A normal, affine, non-complete toric variety
+A normal, affine toric variety
 ```
 """
 function NormalToricVariety(C::Cone)
     # construct the variety
     fan = PolyhedralFan(C)
     pmntv = Polymake.fulton.NormalToricVariety(Oscar.pm_object(fan))
-    variety = NormalToricVariety(pmntv, Dict())
+    variety = NormalToricVariety(pmntv)
     
     # set known attributes
     set_attribute!(variety, :fan, fan)
@@ -112,7 +114,7 @@ function NormalToricVariety(PF::PolyhedralFan)
     # construct the variety    
     fan = Oscar.pm_object(PF)
     pmntv = Polymake.fulton.NormalToricVariety(fan)
-    variety = NormalToricVariety(pmntv, Dict())
+    variety = NormalToricVariety(pmntv)
     
     # set attributes
     set_attribute!(variety, :fan, PF)
@@ -159,10 +161,10 @@ this method turns it into an affine toric variety.
 # Examples
 ```jldoctest
 julia> v = NormalToricVariety(positive_hull([1 0; 0 1]))
-A normal, affine, non-complete toric variety
+A normal, affine toric variety
 
 julia> affineVariety = AffineNormalToricVariety(v)
-A normal, affine, non-complete toric variety
+A normal, affine toric variety
 ```
 """
 function AffineNormalToricVariety(v::NormalToricVariety)
@@ -170,7 +172,7 @@ function AffineNormalToricVariety(v::NormalToricVariety)
     isaffine(v) || error("Cannot construct affine toric variety from non-affine input")
     
     # set variety
-    variety = AffineNormalToricVariety(pm_object(v), Dict())
+    variety = AffineNormalToricVariety(pm_object(v))
     
     # set properties of variety
     set_attribute!(variety, :isaffine, true)
@@ -195,7 +197,7 @@ Constructs the (toric) affine space of dimension `d`.
 # Examples
 ```jldoctest
 julia> toric_affine_space(2)
-A normal, affine, non-complete, 2-dimensional toric variety
+A normal, affine, 2-dimensional toric variety
 ```
 """
 function toric_affine_space(d::Int)
@@ -209,7 +211,7 @@ function toric_affine_space(d::Int)
     # construct the variety
     fan = PolyhedralFan(C)
     pmntv = Polymake.fulton.NormalToricVariety(Oscar.pm_object(fan))
-    variety = NormalToricVariety(pmntv, Dict())
+    variety = NormalToricVariety(pmntv)
     
     # set known properties
     set_attribute!(variety, :isaffine, true)
@@ -236,14 +238,14 @@ Construct the projective space of dimension `d`.
 # Examples
 ```jldoctest
 julia> toric_projective_space(2)
-A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, fano, 2-dimensional toric variety without torusfactor
+A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 ```
 """
 function toric_projective_space(d::Int)
     # construct the variety
     f = normal_fan(Oscar.simplex(d))
     pm_object = Polymake.fulton.NormalToricVariety(Oscar.pm_object(f))
-    variety = NormalToricVariety(pm_object, Dict())
+    variety = NormalToricVariety(pm_object)
     
     # set properties
     set_attribute!(variety, :isaffine, false)
@@ -285,7 +287,7 @@ Constructs the r-th Hirzebruch surface.
 # Examples
 ```jldoctest
 julia> hirzebruch_surface(5)
-A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+A normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
 ```
 """
 function hirzebruch_surface(r::Int)
@@ -338,7 +340,7 @@ Constructs the delPezzo surface with b blowups for b at most 3.
 # Examples
 ```jldoctest
 julia> del_pezzo(3)
-A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, fano, 2-dimensional toric variety without torusfactor
+A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 ```
 """
 function del_pezzo(b::Int)
@@ -448,7 +450,7 @@ Return the blowup of the normal toric variety `v` on its i-th minimal torus orbi
 # Examples
 ```jldoctest
 julia> P2 = toric_projective_space(2)
-A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, fano, 2-dimensional toric variety without torusfactor
+A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> blowup_on_ith_minimal_torus_orbit(P2,1)
 A normal toric variety
@@ -468,7 +470,7 @@ Return the Cartesian/direct product of two normal toric varieties `v` and `w`.
 # Examples
 ```jldoctest
 julia> P2 = toric_projective_space(2)
-A normal, non-affine, smooth, projective, gorenstein, q-gorenstein, fano, 2-dimensional toric variety without torusfactor
+A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
 julia> P2 * P2
 A normal toric variety
@@ -486,88 +488,30 @@ function Base.show(io::IO, v::AbstractNormalToricVariety)
     # initiate properties string
     properties_string = ["A normal"]
 
-    # affine?
-    if has_attribute(v, :isaffine)
-        if get_attribute(v, :isaffine)
-            push!(properties_string, "affine")
-        else
-            push!(properties_string, "non-affine")
-        end
+    affine = push_attribute_if_exists!(properties_string, v, :isaffine, "affine")
+
+    simplicial_cb!(a,b) = push_attribute_if_exists!(a, b, :isorbifold, "simplicial")
+    push_attribute_if_exists!(properties_string, v, :issmooth, "smooth"; callback=simplicial_cb!)
+
+    projective = nothing
+    if isnothing(affine) || !affine
+        complete_cb!(a,b) = push_attribute_if_exists!(a, b, :iscomplete, "complete")
+        projective = push_attribute_if_exists!(properties_string, v, :isprojective, "projective"; callback=complete_cb!)
     end
+
+    q_gor_cb!(a,b) = push_attribute_if_exists!(a, b, :is_q_gorenstein, "q-gorenstein")
+    gorenstein = push_attribute_if_exists!(properties_string, v, :isgorenstein, "gorenstein"; callback=q_gor_cb!)
     
-    # smooth/simplicial?
-    if has_attribute(v, :issmooth)
-        if get_attribute(v, :issmooth)
-            push!(properties_string, "smooth")
-        else
-            if has_attribute(v, :issimplicial)
-                if get_attribute(v, :issimplicial)
-                    push!(properties_string, "simplicial")
-                else
-                    push!(properties_string, "non-smooth")
-                end
-            end
-        end
-    end
-    
-    # complete/projective?
-    if has_attribute(v, :iscomplete)
-        if get_attribute(v, :iscomplete)
-            if has_attribute(v, :isprojective)
-                if get_attribute(v, :isprojective)
-                    push!(properties_string, "projective")
-                end
-            else
-                push!(properties_string, "complete")
-            end
-        else
-            push!(properties_string, "non-complete")
-        end
-    end
-    
-    # gorenstein?
-    if has_attribute(v, :isgorenstein)
-        if get_attribute(v, :isgorenstein)
-            push!(properties_string, "gorenstein")
-        else
-            push!(properties_string, "non-gorenstein")
-        end
-    end
-    
-    # q-gorenstein?
-    if has_attribute(v, :is_q_gorenstein)
-        if get_attribute(v, :is_q_gorenstein)
-            push!(properties_string, "q-gorenstein")
-        else
-            push!(properties_string, "non-q-gorenstein")
-        end
-    end
-    
-    # fano?
-    if has_attribute(v, :isfano)
-        if get_attribute(v, :isfano)
-            push!(properties_string, "fano")
-        else
-            push!(properties_string, "non-fano")
-        end
-    end
+    push_attribute_if_exists!(properties_string, v, :isfano, "fano")
     
     # dimension?
     if has_attribute(v, :dim)
         push!(properties_string, string(dim(v))*"-dimensional")
     end
+
+    properties_string = [join(properties_string, ", ")]
+    push!(properties_string, "toric variety")
+    push_attribute_if_exists!(properties_string, v, :hastorusfactor, "with torusfactor", "without torusfactor")
     
-    # torusfactor?
-    if has_attribute(v, :hastorusfactor)
-        if get_attribute(v, :hastorusfactor)
-            push!(properties_string, "toric variety with torusfactor")
-        else
-            push!(properties_string, "toric variety without torusfactor")
-        end
-    else
-        push!(properties_string, "toric variety")
-    end
-    
-    # print the information
-    join(io, properties_string, ", ", " ")
+    join(io, properties_string, " ")
 end

@@ -215,10 +215,11 @@ end
   I = ideal(R, [(z+1)*(z^2+1)*(z^3+2)^2, x-y*z^2])
   d = absolute_primary_decomposition(I)
   @test length(d) == 3
-  @test isa(d, Vector{Tuple{MPolyIdeal{fmpq_mpoly},
-                            MPolyIdeal{fmpq_mpoly},
-                            MPolyIdeal{AbstractAlgebra.Generic.MPoly{nf_elem}},
-                            Int}})
+
+  R,(x,y,z) = GradedPolynomialRing(QQ, ["x", "y", "z"])
+  I = ideal(R, [(z+y)*(z^2+y^2)*(z^3+2*y^3)^2, x^3-y*z^2])
+  d = absolute_primary_decomposition(I)
+  @test length(d) == 5
 end
 
 @testset "Groebner" begin

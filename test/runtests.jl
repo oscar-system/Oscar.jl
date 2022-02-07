@@ -30,9 +30,11 @@ include("Rings/AbelianClosure.jl")
 
 include("Rings/binomial-ideals-test.jl")
 
-include("Examples/galois-test.jl")
-include("Examples/ModStdQt-test.jl")
-include("Examples/ModStdNF-test.jl")
+include("Experimental/PlaneCurve-test.jl")
+include("Experimental/galois-test.jl")
+include("Experimental/gmodule-test.jl")
+include("Experimental/ModStdQt-test.jl")
+include("Experimental/ModStdNF-test.jl")
 
 include("Modules/UngradedModules.jl")
 include("Modules/ModulesGraded.jl")

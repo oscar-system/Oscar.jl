@@ -16,7 +16,8 @@ perfect groups in GAP's Perfect Groups Library.
 The type `T` can be either `PermGroup` or `FPGroup`.
 """
 function perfect_group(::Type{T}, n::Int, m::Int) where T <: GAPGroup
-   @assert m<= number_perfect_groups(n) "There are less than $m perfect groups of order $n, up to isomorphism."
+   N = number_perfect_groups(n)
+   @assert m <= N "There are only $N perfect groups of order $n, up to isomorphism."
    if T==PermGroup
       G = T(GAP.Globals.PerfectGroup(GAP.Globals.IsPermGroup,n,m))
    elseif T==FPGroup
