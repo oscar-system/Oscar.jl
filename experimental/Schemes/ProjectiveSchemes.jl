@@ -263,7 +263,7 @@ end
 function subscheme(P::ProjectiveScheme, f::RingElemType) where {RingElemType<:MPolyElem_dec}
   S = homogeneous_coordinate_ring(P)
   parent(f) == S || error("ring element does not belong to the correct ring")
-  return ProjectiveScheme(S, defining_ideal(P) + ideal(S, [f]))
+  return ProjectiveScheme(S, ideal(S, vcat(gens(defining_ideal(P)), [f])))
 end
 
 function subscheme(P::ProjectiveScheme, f::Vector{RingElemType}) where {RingElemType<:MPolyElem_dec}
@@ -272,13 +272,13 @@ function subscheme(P::ProjectiveScheme, f::Vector{RingElemType}) where {RingElem
   for i in 1:length(f)
     parent(f) == S || error("ring element does not belong to the correct ring")
   end
-  return ProjectiveScheme(S, defining_ideal(P) + ideal(S, f))
+  return ProjectiveScheme(S, ideal(S, vcat(gens(defining_ideal(P)),f)))
 end
 
 function subscheme(P::ProjectiveScheme, I::MPolyIdeal{T}) where {T<:RingElem}
   S = homogeneous_coordinate_ring(P)
   base_ring(I) == S || error("ideal does not belong to the correct ring")
-  return ProjectiveScheme(S, I + defining_ideal(P))
+  return ProjectiveScheme(S, ideal(S, vcat(gens(I), gens(defining_ideal(P)))))
 end
 
 function projective_space(A::CoeffRingType, var_symb::Vector{Symbol}) where {CoeffRingType<:Ring}
@@ -521,8 +521,8 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyR
     X.homog_coord = lift.([pullback(pr_fiber)(u) for u in gens(OO(F))])
 
     S = homogeneous_coordinate_ring(X)
-    inner_help_map = hom(A, OO(C), [pr_base(x) for x in gens(OO(Y))])
-    help_map = hom(S, OO(C), inner_help_map, [pr_fiber(y) for y in gens(OO(F))])
+    inner_help_map = hom(A, OO(C), [pullback(pr_base)(x) for x in gens(OO(Y))])
+    help_map = hom(S, OO(C), inner_help_map, [pullback(pr_fiber)(y) for y in gens(OO(F))])
     I = ideal(OO(C), [help_map(g) for g in gens(defining_ideal(X))])
     X.C = subscheme(C, I)
     X.projection_to_base = restrict(pr_base, X.C, Y)
