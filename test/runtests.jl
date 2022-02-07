@@ -29,6 +29,8 @@ include("Rings/NumberField.jl")
 include("Rings/FunctionField-test.jl")
 include("Rings/AbelianClosure.jl")
 
+include("Rings/MPolyAnyMap.jl")
+
 include("Rings/binomial-ideals-test.jl")
 
 include("Experimental/PlaneCurve-test.jl")
