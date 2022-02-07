@@ -112,11 +112,11 @@ function Oscar.groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevl
   end
 end
 
-function Oscar.groebner_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}; ordering::Symbol = :degrevlex, complete_reduction::Bool = true, use_hilbert::Bool = false)
-
+function groebner_basis_with_transform_inner(I::MPolyIdeal{fmpq_mpoly}, ord::MonomialOrdering; complete_reduction::Bool = true, use_hilbert::Bool = false)
   if iszero(I)
     I.gb = BiPolyArray(base_ring(I), fmpq_mpoly[], isGB = true, keep_ordering = false)
-    singular_assure(I.gb)
+    I.gb.ord = ord.o
+    singular_assure(I.gb, ord)
     return fmpq_mpoly[], matrix(base_ring(I), ngens(I), 0, fmpq_mpoly[])
   end
     
@@ -147,7 +147,7 @@ function Oscar.groebner_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}; ordering
     R = GF(p)
     Rt, t = PolynomialRing(R, [string(s) for s = symbols(Qt)], cached = false)
     @vtime :ModStdQ 3 Ip = Oscar.BiPolyArray([Rt(x) for x = gI], keep_ordering = false)
-    Gp, Tp = Oscar.groebner_basis_with_transform(Ip, ord = ordering, complete_reduction = complete_reduction)
+    Gp, Tp = Oscar.groebner_basis_with_transform(Ip, ord; complete_reduction = complete_reduction)
     length_gc = length(Gp)
     Jp = vcat(map(x->lift(Zt, x), Gp), map(x->lift(Zt, x), reshape(collect(Tp), :)))
 
@@ -193,10 +193,13 @@ function Oscar.groebner_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}; ordering
           T = matrix(Qt, length_gc, length(gI), gd[length_gc+1:end])
           #at this point we SHOULD have T*gens(I) == G...
           if T*matrix(Qt, length(gI), 1, gI) == matrix(Qt, length_gc, 1, G)
-            if ordering == :degrevlex && !isdefined(I, :gb)
+            if !isdefined(I.gens, :ord)
+               I.gens.ord = ord.o
+            end
+            if ord.o == I.gens.ord && !isdefined(I, :gb)
               I.gb = BiPolyArray(gd[1:length_gc], keep_ordering = false)
+              I.gb.isGB = true
               singular_assure(I.gb)
-              I.gb.S.isGB = true
             end
             return G, T
           else
@@ -209,6 +212,14 @@ function Oscar.groebner_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}; ordering
   end
 end
 
+function Oscar.groebner_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}; ordering::Symbol = :degrevlex, complete_reduction::Bool = true, use_hilbert::Bool = false)
+   ord = Oscar.Orderings.MonomialOrdering(base_ring(I), Oscar.Orderings.ordering(gens(base_ring(I)), ordering))
+   return groebner_basis_with_transform_inner(I, ord; complete_reduction=complete_reduction, use_hilbert=use_hilbert)
+end
+
+function Oscar.groebner_basis_with_transform(I::MPolyIdeal{fmpq_mpoly}, ord::MonomialOrdering; complete_reduction::Bool = true, use_hilbert::Bool = false)
+   return groebner_basis_with_transform_inner(I, ord; complete_reduction=complete_reduction, use_hilbert=use_hilbert)
+end
 
 function Oscar.lift(R::Nemo.Ring, f::Union{gfp_mpoly, nmod_mpoly})
   g = MPolyBuildCtx(R)

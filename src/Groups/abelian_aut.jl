@@ -70,9 +70,8 @@ Return the automorphism group of `G`.
 function automorphism_group(G::GrpAbFinGen)
   Ggap, to_gap, to_oscar = _isomorphic_gap_group(G)
   AutGAP = GAP.Globals.AutomorphismGroup(Ggap.X)
-  aut = AutomorphismGroup{typeof(G)}(AutGAP, G)
-  set_attribute!(aut,:to_gap => to_gap)
-  set_attribute!(aut,:to_oscar => to_oscar)
+  aut = AutomorphismGroup(AutGAP, G)
+  set_attribute!(aut, :to_gap => to_gap, :to_oscar => to_oscar)
   return aut
 end
 
@@ -103,8 +102,7 @@ function _as_subgroup(aut::AutGrpAbTor, subgrp::GapObj, ::Type{S}) where S
   to_gap = get_attribute(aut, :to_gap)
   to_oscar = get_attribute(aut, :to_oscar)
   subgrp1 = AutomorphismGroup{T}(subgrp, aut.G)
-  set_attribute!(subgrp1, :to_gap => to_gap)
-  set_attribute!(subgrp1, :to_oscar => to_oscar)
+  set_attribute!(subgrp1, :to_gap => to_gap, :to_oscar => to_oscar)
   return subgrp1, hom(subgrp1, aut, img)
 end
 
@@ -187,9 +185,8 @@ function _orthogonal_group(T::TorQuadMod, gensOT::Vector{fmpz_mat}; check=true)
   to_oscar = compose(to_oscar, A_to_T)
   to_gap = compose(T_to_A, to_gap)
   AutGAP = GAP.Globals.AutomorphismGroup(Ggap.X)
-  ambient = AutomorphismGroup{typeof(T)}(AutGAP, T)
-  set_attribute!(ambient,:to_gap => to_gap)
-  set_attribute!(ambient,:to_oscar => to_oscar)
+  ambient = AutomorphismGroup(AutGAP, T)
+  set_attribute!(ambient, :to_gap => to_gap, :to_oscar => to_oscar)
   gens_aut = GapObj([ambient(g, check=check).X for g in gensOT])  # performs the checks
   if check
     # expensive for large groups
@@ -197,9 +194,8 @@ function _orthogonal_group(T::TorQuadMod, gensOT::Vector{fmpz_mat}; check=true)
   else
     subgrp_gap =GAP.Globals.SubgroupNC(ambient.X, gens_aut)
   end
-  aut = AutomorphismGroup{typeof(T)}(subgrp_gap, T)
-  set_attribute!(aut,:to_gap => to_gap)
-  set_attribute!(aut,:to_oscar => to_oscar)
+  aut = AutomorphismGroup(subgrp_gap, T)
+  set_attribute!(aut, :to_gap => to_gap, :to_oscar => to_oscar)
   return aut
 end
 

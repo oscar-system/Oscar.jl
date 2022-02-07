@@ -178,8 +178,11 @@ end
     @test x == fmpz(2)^64
 
     F, z = abelian_closure(QQ)
-    x = QabElem(GAP.evalstr("EB(5)"))
+    val = GAP.evalstr("EB(5)")
+    x = QabElem(val)
     @test x == z(5) + z(5)^4
+    @test F(val) == x
+    @test GAP.gap_to_julia(QabElem, val) == x
 
     # not supported conversions
     F, z = quadratic_field(5)
@@ -195,7 +198,7 @@ end
     a = GAP.Globals.PrimitiveElement(gapF)
     @test_throws ArgumentError F(a)
 
-    @test_throws ErrorException QabElem(GAP.evalstr("[ E(3) ]"))
+    @test_throws GAP.ConversionError QabElem(GAP.evalstr("[ E(3) ]"))
 end
 
 @testset "matrices over a cyclotomic field" begin
@@ -209,7 +212,7 @@ end
 
     @test_throws ArgumentError Oscar.matrices_over_cyclotomic_field(GAP.Globals.E(4))
     @test_throws ArgumentError Oscar.matrices_over_cyclotomic_field(GAP.evalstr("[]"))
-    @test_throws ArgumentError Oscar.matrices_over_cyclotomic_field(GAP.evalstr("[ [ [ Z(2) ] ] ]"))
+    @test_throws MethodError Oscar.matrices_over_cyclotomic_field(GAP.evalstr("[ [ [ Z(2) ] ] ]"))
 
     F, z = quadratic_field(5)
     @test_throws ArgumentError matrix(F, GAP.evalstr("[ [ Sqrt(5) ] ]"))
@@ -228,5 +231,5 @@ end
     @test matrix(F, GAP.evalstr("[ [ E(5) ] ]"))[1,1] == z
 
     F, z = CyclotomicField(7)
-    @test_throws GAP.ConversionError matrix(F, GAP.evalstr("[ [ E(5) ] ]"))
+    @test_throws ErrorException matrix(F, GAP.evalstr("[ [ E(5) ] ]"))
 end

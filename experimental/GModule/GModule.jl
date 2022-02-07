@@ -7,21 +7,6 @@ import Oscar:gmodule, GAPWrap
 import AbstractAlgebra: Group, Module
 import Base: parent
 
-function GAP.gap_to_julia(::Type{QabElem}, a::GAP.GapObj) #which should be a Cyclotomic
-  c = GAPWrap.Conductor(a)
-  E = abelian_closure(QQ)[2](c)
-  z = parent(E)(0)
-  co = GAP.Globals.CoeffsCyc(a, c)
-  for i=1:c
-    if !iszero(co[i])
-      z += fmpq(co[i])*E^(i-1)
-    end
-  end
-  return z
-end
-
-(::QabField)(a::GAP.GapObj) = GAP.gap_to_julia(QabElem, a)
-
 function irreducible_modules(G::Oscar.GAPGroup)
   im = GAP.Globals.IrreducibleRepresentations(G.X)
   IM = GModule[] 

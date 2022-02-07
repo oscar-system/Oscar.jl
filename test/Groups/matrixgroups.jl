@@ -1,37 +1,4 @@
 @testset "Oscar-GAP relationship for finite fields" begin
-
-   @testset for (p,d) in [(2,1),(5,1),(2,4),(3,3),(2,8)]
-      F = GF(p,d)
-      f = Oscar.iso_oscar_gap(F)
-      g = elm -> map_entries(f, elm)
-      for a in F
-         for b in F
-            @test f(a*b)==f(a)*f(b)
-            @test f(a-b)==f(a)-f(b)
-         end
-      end
-      G = GL(4,F)
-      for a in gens(G)
-         for b in gens(G)
-            @test g(a.elm*b.elm)==g(a.elm)*g(b.elm)
-            @test g(a.elm-b.elm)==g(a.elm)-g(b.elm)
-         end
-      end
-   end
-
-   # Test a large non-prime field.
-   # (Oscar chooses a polynomial that is not a Conway polynomial.)
-   p = next_prime(10^6)
-   F = GF(p, 2)
-   f = Oscar.iso_oscar_gap(F)
-   for x in [ F(3), gen(F) ]
-      a = f(x)
-      @test preimage(f, a) == x
-   end
-   @test GAP.Globals.DefiningPolynomial(codomain(f)) !=
-         GAP.Globals.ConwayPolynomial(p, 2)
-   @test GAP.Globals.IsAlgebraicExtension(codomain(f))
-
    F = GF(29, 1)
    z = F(2)
    G = GL(3,F)
@@ -40,7 +7,7 @@
    @test isdefined(G, :ring_iso)
    @test G.ring_iso(z) isa GAP.FFE
    Z = G.ring_iso(z)
-   @test GAP.Globals.IN(Z,codomain(G.ring_iso))
+   @test Z in codomain(G.ring_iso)
    @test preimage(G.ring_iso, Z)==z
    @test domain(G.ring_iso) == F
    @test GAP.Globals.IsField(codomain(G.ring_iso))
@@ -77,7 +44,7 @@
          @test G.ring_iso(a-b)==G.ring_iso(a)-G.ring_iso(b)
       end
    end
-   @test GAP.Globals.IN(Z,codomain(G.ring_iso))
+   @test Z in codomain(G.ring_iso)
    @test preimage(G.ring_iso, Z)==z
    @test preimage(G.ring_iso, G.ring_iso(F(2)))==F(2)
    @test domain(G.ring_iso) == F
@@ -101,24 +68,12 @@
 end
 
 @testset "Oscar-GAP relationship for cyclotomic fields" begin
-   # for computing random elements of the fields in question
-   my_rand_bits(F::FlintRationalField, b::Int) = rand_bits(F, b)
-   my_rand_bits(F::AnticNumberField, b::Int) = F([rand_bits(QQ, b) for i in 1:degree(F)])
-
    fields = Any[CyclotomicField(n) for n in [1, 3, 4, 5, 8, 15, 45]]
    push!(fields, (QQ, 1))
 
    @testset for (F, z) in fields
       f = Oscar.iso_oscar_gap(F)
       g = elm -> map_entries(f, elm)
-      for i in 1:10
-         a = my_rand_bits(F, 5)
-         for j in 1:10
-            b = my_rand_bits(F, 5)
-            @test f(a*b) == f(a)*f(b)
-            @test f(a - b) == f(a) - f(b)
-         end
-      end
       G = MatrixGroup(3, F)
       mats = [matrix(F, [0 z 0; 0 0 1; 1 0 0]),
               matrix(F, [0 1 0; 1 0 0; 0 0 1])]
@@ -134,7 +89,7 @@ end
       @test isdefined(G, :X)
       @test isdefined(G, :ring_iso)
       Z = G.ring_iso(z)
-      @test GAP.Globals.IN(Z, codomain(G.ring_iso))
+      @test Z in codomain(G.ring_iso)
       @test preimage(G.ring_iso, Z) == z
       @test domain(G.ring_iso) == F
       @test GAP.Globals.IsField(codomain(G.ring_iso))
@@ -576,8 +531,8 @@ end
 
    G = GL(2,3)
    @test length(conjugacy_classes(G))==8
-   @test length(conjugacy_classes_subgroups(G))==16
-   @test length(conjugacy_classes_maximal_subgroups(G))==3
+   @test length(@inferred conjugacy_classes_subgroups(G))==16
+   @test length(@inferred conjugacy_classes_maximal_subgroups(G))==3
 end
 
 @testset "Jordan structure" begin
@@ -685,4 +640,35 @@ end
    G = orthogonal_group(L)
    g = -identity_matrix(K, 3)
    @test g in G
+end
+
+@testset "deepcopy" begin
+   g = general_linear_group(2, 4)
+
+   m = MatrixGroupElem(g, gen(g, 1).X);  # do not call `show`!
+   @test isdefined(m, :X)
+   @test ! isdefined(m, :elm)
+   c = deepcopy(m);
+   @test isdefined(c, :X)
+   @test ! isdefined(c, :elm)
+   @test c.X == m.X
+
+   m = MatrixGroupElem(g, gen(g, 1).elm, gen(g, 1).X)
+   @test isdefined(m, :X)
+   @test isdefined(m, :elm)
+   c = deepcopy(m);
+   @test isdefined(c, :X)
+   @test isdefined(c, :elm)
+   @test c.X == m.X
+   @test c.elm == m.elm
+
+   m = MatrixGroupElem(g, gen(g, 1).elm)
+   @test ! isdefined(m, :X)
+   @test isdefined(m, :elm)
+   c = deepcopy(m);
+   @test ! isdefined(c, :X)
+   @test isdefined(c, :elm)
+   @test c.elm == m.elm
+
+   @test deepcopy([one(g)]) == [one(g)]
 end

@@ -30,6 +30,14 @@ associated_affine_variety = AffineNormalToricVariety(ntv)
     @test length(affine_open_covering(associated_affine_variety)) == 1
 end
 
+r = [1 0 0; 1 0 1; 1 1 1; 1 1 0]
+c = IncidenceMatrix([[1,2,3,4]])
+antv2 = NormalToricVariety(PolyhedralFan(r, c))
+
+@testset "Affine toric varieties created from fan" begin
+    @test istrivial(picard_group(antv2)) == true
+end
+
 cyc = CyclicQuotientSingularity(2,1)
 
 @testset "Cyclic quotient singularities" begin
@@ -140,7 +148,7 @@ dP3 = NormalToricVariety(PolyhedralFan(fan_rays, fan_cones))
     @test picard_group(dP3) == codomain(map_from_cartier_divisor_group_to_picard_group(dP3))
 end
 
-blowup_variety = blowup_on_ith_minimal_torus_orbit(P2, 1)
+blowup_variety = blowup_on_ith_minimal_torus_orbit(P2, 1, "e")
 
 @testset "Blowup of projective space" begin
     @test isnormal(blowup_variety) == true
@@ -189,6 +197,15 @@ end
     @test is_projective_space(v) == false
     @test is_projective_space(ntv) == false
     @test is_projective_space(ntv2) == false
+end
+
+P = polarize(Polyhedron(Polymake.polytope.rand_sphere(5,60; seed=42)))
+big_variety = NormalToricVariety(P)
+big_variety2 = NormalToricVariety(P)
+set_coefficient_ring(big_variety2, GF(13))
+
+@testset "Additional test for Stanley-Reisner ideal" begin
+    @test ngens(stanley_reisner_ideal(big_variety)) == ngens(stanley_reisner_ideal(big_variety2))
 end
 
 D=ToricDivisor(H5, [0,0,0,0])

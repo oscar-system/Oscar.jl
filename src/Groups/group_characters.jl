@@ -15,17 +15,62 @@
 # character values are elements from QabField
 
 export
+    atlas_irrationality,
     character_field,
     character_table,
     decomposition_matrix,
     indicator,
     induced_cyclic,
+    natural_character,
     scalar_product,
     schur_index,
     trivial_character
 
 
 conj(elm::QabElem) = elm^QabAutomorphism(-1)
+
+
+#############################################################################
+##
+##  Atlas irrationalities
+##
+"""
+    atlas_irrationality([F::AnticNumberField, ]description::String)
+
+Return the value encoded by `description`.
+If `F` is given and is a cyclotomic field that contains the value then
+the result is in `F`,
+if `F` is not given then the result has type `QabElem`.
+
+`description` is assumed to have the format defined in
+[CCNPW85](@cite), Chapter 6, Section 10.
+
+```jldoctest
+julia> atlas_irrationality("r5")
+-2*ζ(5)^3 - 2*ζ(5)^2 - 1
+
+julia> atlas_irrationality(CyclotomicField(5)[1], "r5")
+-2*z_5^3 - 2*z_5^2 - 1
+
+julia> atlas_irrationality("i")
+ζ(4)
+
+julia> atlas_irrationality("b7*3")
+-ζ(7)^4 - ζ(7)^2 - ζ(7) - 1
+
+julia> atlas_irrationality("3y'''24*13-2&5")
+-5*ζ(24)^7 - 2*ζ(24)^5 + 2*ζ(24)^3 - 3*ζ(24)
+
+```
+"""
+function atlas_irrationality(F::AnticNumberField, description::String)
+    return F(GAP.Globals.AtlasIrrationality(GAP.GapObj(description)))
+end
+
+function atlas_irrationality(description::String)
+    F = abelian_closure(QQ)[1]
+    return F(GAP.Globals.AtlasIrrationality(GAP.GapObj(description)))
+end
 
 
 #############################################################################
@@ -555,7 +600,35 @@ end
 
 function trivial_character(G::GAPGroup)
     val = QabElem(1)
-    return group_class_function(G, [val for i in 1:GAP.Globals.NrConjugacyClasses(G.X)])
+    return group_class_function(G, [val for i in 1:Int(number_conjugacy_classes(G))])
+end
+
+@doc Markdown.doc"""
+    natural_character(G::PermGroup)
+
+Return the permutation character of degree `degree(G)`
+that maps each element of `G` to the number of its fixed points.
+"""
+function natural_character(G::PermGroup)
+    ccl = conjugacy_classes(G)
+    FF = abelian_closure(QQ)[1]
+    n = degree(G)
+    vals = [FF(n - number_moved_points(representative(x))) for x in ccl]
+    return group_class_function(G, vals)
+end
+
+@doc Markdown.doc"""
+    natural_character(G::Union{MatrixGroup{fmpq}, MatrixGroup{nf_elem}})
+
+Return the character that maps each element of `G` to its trace.
+We assume that the entries of the elements of `G` are either of type `fmpq`
+or contained in a cyclotomic field.
+"""
+function natural_character(G::Union{MatrixGroup{fmpq}, MatrixGroup{nf_elem}})
+    ccl = conjugacy_classes(G)
+    FF = abelian_closure(QQ)[1]
+    vals = [FF(tr(representative(x))) for x in ccl]
+    return group_class_function(G, vals)
 end
 
 @doc Markdown.doc"""
@@ -634,12 +707,12 @@ function conj(chi::GAPGroupClassFunction)
     return GAPGroupClassFunction(chi.table, GAP.Globals.ComplexConjugate(chi.values))
 end
 
-# apply a class function to a group element
+# Apply a class function to a group element.
 function(chi::GAPGroupClassFunction)(g::BasicGAPGroupElem)
     # Identify the conjugacy class of `g`.
-    ccl = GAP.Globals.ConjugacyClasses(GAP.Globals.UnderlyingGroup(chi.table.GAPTable))
+    ccl = conjugacy_classes(chi.table.GAPGroup)
     for i in 1:length(ccl)
-      if g.X in ccl[i]
+      if g in ccl[i]
         return chi[i]
       end
     end
@@ -668,8 +741,8 @@ If `chi` is irreducible then `indicator(chi)` is
 `1` if `chi` is afforded by a real representation of $G$, and
 `-1` if `chi` is real-valued but not afforded by a real representation of $G$.
 """
-function indicator(chi::GAPGroupClassFunction, n::Int = 2)::Int
-    return GAP.Globals.Indicator(chi.table.GAPTable, GAP.GapObj([chi.values]), n)[1]
+function indicator(chi::GAPGroupClassFunction, n::Int = 2)
+    return GAP.Globals.Indicator(chi.table.GAPTable, GAP.GapObj([chi.values]), n)[1]::Int
 end
 
 @doc Markdown.doc"""
@@ -810,5 +883,5 @@ function schur_index(chi::GAPGroupClassFunction, recurse::Bool = true)
     end
 
     # For the moment, we do not have more character theoretic criteria.
-    return
+    return nothing
 end

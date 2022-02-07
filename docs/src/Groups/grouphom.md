@@ -118,7 +118,7 @@ Oscar supports the following operations on homomorphisms.
 * `f^n` = the homomorphism `f` composed `n` times with itself.
   An exception is thrown if the domain and the codomain of `f` do not coincide
   (unless `n=1`). If `n` is negative, the result is the inverse of `f` composed `n` times with itself.
-* `compose(g,f)` = composition of `g` and `f`. This works only if the codomain of `g` coincide with the domain of `f`. Shorter equivalent expressions are `g*f` and `f(g)`.
+* `compose(f, g)` = composition of `f` and `g`. This works only if the codomain of `f` coincides with the domain of `g`. Shorter equivalent expressions are `f*g` and `g(f)`.
 
   **Example:**
 ```jldoctest

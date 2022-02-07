@@ -314,3 +314,12 @@ end
    @test isisomorphic(A,GL(2,3))[1]
    @test order(inner_automorphisms_group(A)[1])==1
 end
+
+@testset "Composition of mappings" begin
+   g = symmetric_group(4)
+   q, epi = quo(g, pcore(g, 2)[1])
+   F, iso = isomorphic_perm_group(q)
+   comp = compose(epi, iso)
+   @test domain(comp) == domain(epi)
+   @test codomain(comp) == codomain(iso)
+end
