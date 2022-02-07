@@ -195,7 +195,7 @@ Return the irrelevant ideal of a normal toric variety `v`.
 ```jldoctest
 julia> p2 = projective_space(NormalToricVariety, 2);
 
-julia> length(irrelevant_ideal(p2).gens)
+julia> length(gens(irrelevant_ideal(p2)))
 3
 ```
 """
@@ -213,18 +213,18 @@ function irrelevant_ideal(v::AbstractNormalToricVariety)
         end
         
         # compute generators
-        indeterminates = Hecke.gens(cox_ring(v))
-        gens = typeof(indeterminates[1])[]
+        indeterminates = gens(cox_ring(v))
+        generators = typeof(indeterminates[1])[]
         for i in 1:length(maximal_cones)
             monom = indeterminates[1]^(1 - maximal_cones[i][1])
             for j in 2:length(maximal_cones[i])
                 monom = monom * indeterminates[j]^(1 - maximal_cones[i][j])
             end
-            push!(gens, monom)
+            push!(generators, monom)
         end
         
         # return the ideal
-        return ideal(gens)
+        return ideal(generators)
     end
 end
 export irrelevant_ideal

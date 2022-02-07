@@ -453,7 +453,7 @@ function starsubdivision(PF::PolyhedralFan, n::Int)
     # identify all maximal cones in the new fan
     d = Polymake.polytope.dim(cone)
     newmaxcones = [Vector{Int64}(Polymake.row(maxcones, i)) for i in 1:(Polymake.nrows(maxcones)) if i!= n]
-    for subset in Hecke.subsets(Vector{Int64}(nthmaxcone), d-1)
+    for subset in subsets(Vector{Int64}(nthmaxcone), d-1)
         tmp = Vector{Int64}(subset)
         append!(tmp, newindex)
         push!(newmaxcones, tmp)

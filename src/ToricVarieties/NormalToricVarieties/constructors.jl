@@ -273,7 +273,7 @@ function projective_space(::Type{NormalToricVariety}, d::Int)
     set_attribute!(variety, :euler_characteristic, d+1)
     set_attribute!(variety, :character_lattice, free_abelian_group(d))
     set_attribute!(variety, :torusinvariant_divisor_group, free_abelian_group(d+1))
-    set_attribute!(variety, :map_from_cartier_divisor_group_to_torus_invariant_divisor_group, Hecke.identity_map(torusinvariant_divisor_group(variety)))
+    set_attribute!(variety, :map_from_cartier_divisor_group_to_torus_invariant_divisor_group, identity_map(torusinvariant_divisor_group(variety)))
     set_attribute!(variety, :map_from_cartier_divisor_group_to_picard_group, map_from_weil_divisors_to_class_group(variety))
     
     betti_numbers = fill(fmpz(1), d+1)
@@ -325,7 +325,7 @@ function hirzebruch_surface(r::Int)
     set_attribute!(variety, :euler_characteristic, 4)
     set_attribute!(variety, :character_lattice, free_abelian_group(2))
     set_attribute!(variety, :torusinvariant_divisor_group, free_abelian_group(4))
-    set_attribute!(variety, :map_from_cartier_divisor_group_to_torus_invariant_divisor_group, Hecke.identity_map(torusinvariant_divisor_group(variety)))
+    set_attribute!(variety, :map_from_cartier_divisor_group_to_torus_invariant_divisor_group, identity_map(torusinvariant_divisor_group(variety)))
     set_attribute!(variety, :map_from_cartier_divisor_group_to_picard_group, map_from_weil_divisors_to_class_group(variety))
     set_attribute!(variety, :betti_number, [fmpz(1),fmpz(2),fmpz(1)])
     
@@ -412,7 +412,7 @@ function del_pezzo(b::Int)
     set_attribute!(variety, :dim, 2)
     set_attribute!(variety, :dim_of_torusfactor, 0)
     set_attribute!(variety, :character_lattice, free_abelian_group(2))
-    set_attribute!(variety, :map_from_cartier_divisor_group_to_torus_invariant_divisor_group, Hecke.identity_map(torusinvariant_divisor_group(variety)))
+    set_attribute!(variety, :map_from_cartier_divisor_group_to_torus_invariant_divisor_group, identity_map(torusinvariant_divisor_group(variety)))
     set_attribute!(variety, :map_from_cartier_divisor_group_to_picard_group, map_from_weil_divisors_to_class_group(variety))
     
     # return the result
@@ -457,7 +457,7 @@ function blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int
     new_rays = rays(new_fan)
     
     # check for name clash with variable name chosen for blowup
-    old_vars = [string(x) for x in Hecke.gens(cox_ring(v))]
+    old_vars = [string(x) for x in gens(cox_ring(v))]
     isnothing(findfirst(x->occursin(coordinate_name, x), old_vars)) ||
         throw(ArgumentError("The provided name for the blowup coordinate is already taken as homogeneous coordinate of the provided toric variety."))
     
