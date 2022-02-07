@@ -37,8 +37,6 @@ ideal ``I`` in the graded ring ``A[s₀,…,sᵣ]`` and the latter is of type
   end
 
   function ProjectiveScheme(S::MPolyRing_dec, I::MPolyIdeal{T}) where {T<:RingElem}
-    @show I
-    @show typeof(I)
     for f in gens(I)
       parent(f) == S || error("elements do not belong to the correct ring")
     end
@@ -521,13 +519,31 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyR
     X.homog_coord = lift.([pullback(pr_fiber)(u) for u in gens(OO(F))])
 
     S = homogeneous_coordinate_ring(X)
+    # use the new mapping types for polynomial rings.
     inner_help_map = hom(A, OO(C), [pullback(pr_base)(x) for x in gens(OO(Y))])
     help_map = hom(S, OO(C), inner_help_map, [pullback(pr_fiber)(y) for y in gens(OO(F))])
-    I = ideal(OO(C), [help_map(g) for g in gens(defining_ideal(X))])
-    X.C = subscheme(C, I)
-    X.projection_to_base = restrict(pr_base, X.C, Y)
+
+    # use the map to convert ideals:
+    #I = ideal(OO(C), [help_map(g) for g in gens(defining_ideal(X))])
+    I = help_map(defining_ideal(X))
+    CX = subscheme(C, I)
+    set_attribute!(X, :affine_cone, CX)
+    X.C = get_attribute(X, :affine_cone)
+    pr_base_res = restrict(pr_base, CX, Y)
+    pr_fiber_res = restrict(pr_fiber, CX, F)
+    set_attribute!(X, :homog_to_frac, 
+                    hom(S, OO(CX), 
+                          hom(A, OO(CX), [pullback(pr_base_res)(x) for x in gens(OO(Y))]),
+                          [pullback(pr_fiber)(y) for y in gens(OO(F))]
+                       )
+                  )
+    X.projection_to_base = pr_base_res
   end
   return X.C
+end
+
+function (f::MPolyAnyMap)(I::MPolyIdeal)
+  return ideal(codomain(f), [f(g) for g in gens(I)])
 end
 
 function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyQuoLocalizedRing, CRET, RT, RET}

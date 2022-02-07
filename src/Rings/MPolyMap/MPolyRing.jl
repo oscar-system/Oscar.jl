@@ -92,7 +92,7 @@ function (F::MPolyAnyMap{<: MPolyRing})(g)
   end
 end
 
-function (F::MPolyAnyMap{<: MPolyRing, <:AbstractAlgebra.NCRing, <:Oscar.MPolyAnyMap})(g)
+function (F::MPolyAnyMap{<: MPolyRing, <:AbstractAlgebra.NCRing, <:AbstractAlgebra.Map})(g)
   if g isa elem_type(domain(F))
     return _evaluate_general(F, g)
   else 
