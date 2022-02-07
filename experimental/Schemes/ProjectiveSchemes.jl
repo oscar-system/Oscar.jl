@@ -534,7 +534,7 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyR
     set_attribute!(X, :homog_to_frac, 
                     hom(S, OO(CX), 
                           hom(A, OO(CX), [pullback(pr_base_res)(x) for x in gens(OO(Y))]),
-                          [pullback(pr_fiber)(y) for y in gens(OO(F))]
+                          [pullback(pr_fiber_res)(y) for y in gens(OO(F))]
                        )
                   )
     X.projection_to_base = pr_base_res
