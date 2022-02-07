@@ -58,7 +58,7 @@ function _evaluate_plain(F::MPolyAnyMap{<: MPolyRing}, u)
 end
 
 function _evaluate_general(F::MPolyAnyMap{<: MPolyRing}, u)
-  if domain(F) === codomain(F)
+  if domain(F) === codomain(F) && coefficient_map(F) === nothing
     return evaluate(map_coefficients(coefficient_map(F), u,
                                      parent = domain(F)), F.img_gens)
   else
