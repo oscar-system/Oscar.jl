@@ -12,7 +12,7 @@ export is_open_embedding, is_closed_embedding, canonically_isomorphic, hypersurf
 export closure, product
 
 export SpecMor, morphism_type
-export pullback, domain, codomain, preimage, restrict, graph, identity_map, inclusion_map
+export pullback, domain, codomain, preimage, restrict, graph, identity_map, inclusion_map, is_isomorphism, is_inverse_of
 
 AbstractAlgebra.promote_rule(::Type{gfp_mpoly}, ::Type{fmpz}) = gfp_mpoly
 AbstractAlgebra.promote_rule(::Type{gfp_elem}, ::Type{fmpz}) = gfp_elem
@@ -467,6 +467,10 @@ function is_isomorphism(f::SpecMor{BRT, BRET, RT, RET, MST1, MST2}) where {BRT, 
   is_isomorphism(pullback(f)) || return false
   f.inverse = SpecMor(codomain(f), domain(f), inverse(pullback(f)))
   return true
+end
+
+function is_inverse_of(f::S, g::T) where {S<:SpecMor, T<:SpecMor}
+  return is_isomorphism(f) && (inverse(f) == g)
 end
 
 function inverse(f::SpecMor{BRT, BRET, RT, RET, MST1, MST2}) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
