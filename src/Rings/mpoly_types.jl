@@ -1,5 +1,10 @@
 export mpoly_type, mpoly_ring_type
 
+mpoly_ring_type(R::T) where {T<:AbstractAlgebra.Ring} = MPolyRing{elem_type(T)}
+mpoly_ring_type(::Type{T}) where {T<:AbstractAlgebra.Ring} = MPolyRing{elem_type(T)}
+mpoly_type(R::T) where {T<:AbstractAlgebra.Ring} = MPolyElem{elem_type(T)}
+mpoly_type(::Type{T}) where {T<:AbstractAlgebra.Ring} = MPolyElem{elem_type(T)}
+
 mpoly_ring_type(R::T) where {T<:AbstractAlgebra.Field} = MPolyRing{elem_type(T)}
 mpoly_ring_type(::Type{T}) where {T<:AbstractAlgebra.Field} = MPolyRing{elem_type(T)}
 mpoly_ring_type(a::T) where {T<:AbstractAlgebra.FieldElem} = MPolyRing{T}
