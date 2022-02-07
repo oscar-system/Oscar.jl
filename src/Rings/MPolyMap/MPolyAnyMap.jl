@@ -122,7 +122,7 @@ end
 
 function temp_ring(f::MPolyAnyMap{<:Any, <: Any, <: Map{D, C}}) where {D, C}
   if isdefined(f, :temp_ring)
-    return f.temp_ring::mpoly_type(D)
+    return f.temp_ring::mpoly_ring_type(C)
   end
 
   S, = PolynomialRing(codomain(coefficient_map(f)), nvars(domain(f)))
