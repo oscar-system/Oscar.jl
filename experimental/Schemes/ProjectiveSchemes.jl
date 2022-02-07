@@ -542,30 +542,37 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyR
   return X.C
 end
 
-function (f::MPolyAnyMap)(I::MPolyIdeal)
+function (f::MPolyAnyMap{<:MPolyRing, <:AbstractAlgebra.NCRing})(I::MPolyIdeal)
   return ideal(codomain(f), [f(g) for g in gens(I)])
 end
 
 function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyQuoLocalizedRing, CRET, RT, RET}
   if !isdefined(X, :C)
     A = base_ring(X)
-    Y = Spec(A)
-    X.Y = Y
+    Y = base_scheme(X)
     R = base_ring(A)
     kk = coefficient_ring(R)
     F = affine_space(kk, symbols(homogeneous_coordinate_ring(X)))
     C, pr_fiber, pr_base = product(F, Y)
     X.homog_coord = lift.([pullback(pr_fiber)(u) for u in gens(OO(F))])
+    S = homogeneous_coordinate_ring(X)
 
-    function complicated_evaluation(g::MPolyElem_dec)
-      R = OO(Y)
-      g1 = map_coefficients(R, g)
-      return evaluate(map_coefficients(pullback(pr_base), g1), X.homog_coord)
-    end
+    help_map = hom(S, OO(C), 
+                   (x -> pullback(pr_base)(x)),
+                   [pullback(pr_fiber)(y) for y in gens(OO(F))]
+                  )
 
-    I = ideal(OO(C), [complicated_evaluation(g) for g in gens(defining_ideal(X))])
-    X.C = subscheme(C, I)
-    X.projection_to_base = restrict(pr_base, X.C, Y)
+    I = help_map(defining_ideal(X))
+    CX = subscheme(C, I)
+    pr_base_res = restrict(pr_base, CX, Y)
+    pr_fiber_res = restrict(pr_fiber, CX, F)
+    set_attribute!(X, :homog_to_frac, 
+                    hom(S, OO(CX), 
+                        pullback(pr_base_res),
+                        [pullback(pr_fiber_res)(y) for y in gens(OO(F))]
+                       )
+                  )
+    X.C = CX
   end
   return X.C
 end
@@ -575,8 +582,12 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:Abstra
     kk = base_ring(X)
     C = affine_space(kk, symbols(homogeneous_coordinate_ring(X)))
     X.homog_coord = gens(OO(C))
-    I = ideal(OO(C), [homog_to_frac(X, g) for g in gens(defining_ideal(X))])
-    X.C = subscheme(C, I)
+    S = homogeneous_coordinate_ring(X)
+    help_map = hom(S, OO(C), gens(OO(C)))
+    I = help_map(defining_ideal(X))
+    CX = subscheme(C, I)
+    set_attribute!(X, :homog_to_frac, hom(S, OO(CX), gens(OO(CX))))
+    X.C = CX
   end
   return X.C
 end
