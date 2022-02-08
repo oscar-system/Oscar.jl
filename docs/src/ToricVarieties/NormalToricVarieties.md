@@ -143,15 +143,19 @@ If no choice is made, we invoke the following default values:
 
 ```@docs
 cox_ring(v::AbstractNormalToricVariety)
+cox_ring(R::MPolyRing, v::AbstractNormalToricVariety)
 irrelevant_ideal(v::AbstractNormalToricVariety)
+irrelevant_ideal(R::MPolyRing, v::AbstractNormalToricVariety)
 stanley_reisner_ideal(v::AbstractNormalToricVariety)
+stanley_reisner_ideal(R::MPolyRing, v::AbstractNormalToricVariety)
 toric_ideal(antv::AffineNormalToricVariety)
+toric_ideal(R::MPolyRing, antv::AffineNormalToricVariety)
 ```
 
 
 ## Auxillary Methods
 
 ```@docs
-binomial_exponents_to_ideal(binoms::Union{AbstractMatrix, fmpz_mat}, coefficient_ring::AbstractAlgebra.Ring)
-toric_ideal(pts::fmpz_mat, coefficient_ring::AbstractAlgebra.Ring)
+binomial_exponents_to_ideal(binoms::Union{AbstractMatrix, fmpz_mat})
+toric_ideal(pts::fmpz_mat)
 ```
