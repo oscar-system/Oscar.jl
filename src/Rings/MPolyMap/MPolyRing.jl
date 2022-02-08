@@ -92,6 +92,6 @@ function (F::MPolyAnyMap{<: MPolyRing})(g)
   else 
     gg = domain(F)(g)
     @assert parent(gg) === domain(F)
-    return _evaluate_plain(F, gg)
+    return _evaluate_general(F, gg)
   end
 end
