@@ -235,8 +235,6 @@ function cperm(g::PermGroup,L::AbstractVector{T}...) where T <: IntegerUnion
    end
 end
 
-@deprecate listperm(x::PermGroupElem) Vector(x)
-
 """
     Vector{T}(x::PermGroupElem, n::Int = x.parent.deg) where T <: IntegerUnion
     Vector(x::PermGroupElem, n::Int = x.parent.deg)

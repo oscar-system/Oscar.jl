@@ -100,7 +100,7 @@ end
 
   F = free_group("x","y")
   @test F isa FPGroup
-  @test_throws ErrorException order(F)
+  @test_throws GroupsCore.InfiniteOrder{FPGroup} order(F)
   @test_throws ErrorException index(F, trivial_subgroup(F)[1])
   @test_throws MethodError degree(F)
   @test !isfinite(F)

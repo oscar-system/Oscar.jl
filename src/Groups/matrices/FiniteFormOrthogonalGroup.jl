@@ -110,7 +110,7 @@ function _normal(G::Union{fmpz_mod_mat, nmod_mat}, p)
   end
 end
 
-function lift(x::AbstractAlgebra.Generic.MatSpaceElem{gfp_fmpz_elem})
+function lift(x::gfp_fmpz_mat)
   return map_entries(lift , x)
 end
 

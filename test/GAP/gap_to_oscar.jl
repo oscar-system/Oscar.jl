@@ -212,7 +212,7 @@ end
 
     @test_throws ArgumentError Oscar.matrices_over_cyclotomic_field(GAP.Globals.E(4))
     @test_throws ArgumentError Oscar.matrices_over_cyclotomic_field(GAP.evalstr("[]"))
-    @test_throws ArgumentError Oscar.matrices_over_cyclotomic_field(GAP.evalstr("[ [ [ Z(2) ] ] ]"))
+    @test_throws MethodError Oscar.matrices_over_cyclotomic_field(GAP.evalstr("[ [ [ Z(2) ] ] ]"))
 
     F, z = quadratic_field(5)
     @test_throws ArgumentError matrix(F, GAP.evalstr("[ [ Sqrt(5) ] ]"))
@@ -231,5 +231,5 @@ end
     @test matrix(F, GAP.evalstr("[ [ E(5) ] ]"))[1,1] == z
 
     F, z = CyclotomicField(7)
-    @test_throws GAP.ConversionError matrix(F, GAP.evalstr("[ [ E(5) ] ]"))
+    @test_throws ErrorException matrix(F, GAP.evalstr("[ [ E(5) ] ]"))
 end

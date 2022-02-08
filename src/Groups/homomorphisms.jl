@@ -37,7 +37,7 @@ function ==(f::GAPGroupHomomorphism{S,T}, g::GAPGroupHomomorphism{S,T}) where S 
    return f.map == g.map
 end
 
-Base.:*(f::GAPGroupHomomorphism{S, T}, g::GAPGroupHomomorphism{T, U}) where S where T where U = compose(g, f)
+Base.:*(f::GAPGroupHomomorphism{S, T}, g::GAPGroupHomomorphism{T, U}) where S where T where U = compose(f, g)
 
 function Base.inv(f::GAPGroupHomomorphism{S,T}) where S where T
    @assert GAPWrap.IsBijective(f.map) "f is not bijective"
@@ -55,7 +55,7 @@ function Base.:^(f::GAPGroupHomomorphism{S,T}, n::Int64) where S where T
    end
 end
 
-function compose(g::GAPGroupHomomorphism{T, U}, f::GAPGroupHomomorphism{S, T}) where S where T where U
+function compose(f::GAPGroupHomomorphism{S, T}, g::GAPGroupHomomorphism{T, U}) where {S, T, U}
   dom = domain(f)
   cod = codomain(g)
   @assert codomain(f) == domain(g)
@@ -63,7 +63,7 @@ function compose(g::GAPGroupHomomorphism{T, U}, f::GAPGroupHomomorphism{S, T}) w
   return GAPGroupHomomorphism(dom, cod, mp)
 end
 
-#(g::GAPGroupHomomorphism{T, U})(f::GAPGroupHomomorphism{S, T}) where {S,T,U} = compose(g,f)
+#(g::GAPGroupHomomorphism{T, U})(f::GAPGroupHomomorphism{S, T}) where {S,T,U} = compose(f,g)
 
 """
     id_hom(G::GAPGroup)
