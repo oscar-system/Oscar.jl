@@ -11,7 +11,7 @@
 ################################################################################
 
 function _check_imgs(S::NCRing, imgs)
-  for i in 1:n, j in 1:(i - 1)
+  for i in 2:n, j in 1:(i - 1)
     @req imgs[i] * imgs[j] == imgs[j] * imgs[i] "Images $i and $j do not commute"
   end
   return nothing

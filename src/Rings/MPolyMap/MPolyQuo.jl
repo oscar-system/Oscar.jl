@@ -59,7 +59,7 @@ function _evaluate_plain(F::MPolyAnyMap{<: MPolyQuo}, u)
 end
 
 function _evaluate_general(F::MPolyAnyMap{<: MPolyQuo}, u)
-  if domain(F) === codomain(F)
+  if domain(F) === codomain(F) && coefficient_map(F) === nothing
     return evaluate(map_coefficients(coefficient_map(F), lift(u),
                                      parent = domain(F)), F.img_gens)
   else
@@ -94,6 +94,6 @@ function (F::MPolyAnyMap{<: MPolyQuo})(g)
   else 
     gg = domain(F)(g)
     @assert parent(gg) === domain(F)
-    return _evaluate_plain(F, gg)
+    return _evaluate_general(F, gg)
   end
 end
