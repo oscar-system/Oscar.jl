@@ -97,9 +97,7 @@ function _coerce(S, img_gens)
     return img_gens::Vector{elem_type(S)}
   else
     _img_gens = S.(img_gens)
-    if eltype(_img_gens) !== elem_type(S)
-      @req false "Elements cannot be coerced into the codomain"
-    end
+    @req eltype(_img_gens) === elem_type(S) "Elements cannot be coerced into the codomain"
     return _img_gens::Vector{elem_type(S)}
   end
 end
@@ -107,11 +105,11 @@ end
 # The following is used when the domain is graded
 
 # if the codomain is graded, the images must be homogenous?!
-_isgraded(::Ring) = false
+_isgraded(::NCRing) = false
 _isgraded(R::MPolyRing_dec) = isgraded(R) # filtered not considered graded
 _isgraded(R::MPolyQuo) = _isgraded(R.R)
 
-function _check_homo(S::Ring, images)
+function _check_homo(S::NCRing, images)
   if _isgraded(S)
     for i in images
       @req ishomogeneous(i) "Images must be homogenous"
@@ -119,9 +117,9 @@ function _check_homo(S::Ring, images)
   end
 end
 
-# When evaluating the map phi at a polynomial f, we first construct the polynomial
-# map_coefficients(phi.coeff_map, f), which is a polynomial over
-# codomain(phi.coeff_map).
+# When evaluating the map F at a polynomial f, we first construct the polynomial
+# map_coefficients(coefficient_map(F), f), which is a polynomial over
+# codomain(coefficient_map(F)).
 
 function temp_ring(f::MPolyAnyMap{<:Any, <: Any, <: Map}) where {D, C}
   if isdefined(f, :temp_ring)
@@ -133,6 +131,13 @@ function temp_ring(f::MPolyAnyMap{<:Any, <: Any, <: Map}) where {D, C}
   return S
 end
 
+# If the coefficient_map is nothing, we can just evaluate the polynomial directly
+function temp_ring(f::MPolyAnyMap{<:Any, <: Any, Nothing})
+  return nothing
+end
+
+# If the coefficient_map is e.g. a julia function, there is not too much we can
+# do, so we do the defensive thing
 function temp_ring(f::MPolyAnyMap{<:Any, <: Any})
   return nothing
 end

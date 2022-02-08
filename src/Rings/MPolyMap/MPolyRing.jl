@@ -11,6 +11,7 @@
 ################################################################################
 
 function _check_imgs(S::NCRing, imgs)
+  n = length(imgs)
   for i in 2:n, j in 1:(i - 1)
     @req imgs[i] * imgs[j] == imgs[j] * imgs[i] "Images $i and $j do not commute"
   end
@@ -20,7 +21,7 @@ end
 # no check for commutative codomains
 _check_imgs(S::Ring, imgs) = nothing 
 
-function hom(R::MPolyRing, S::Ring, images::Vector; check::Bool = true)
+function hom(R::MPolyRing, S::NCRing, images::Vector; check::Bool = true)
   n = ngens(R)
   @req n == length(images) "Number of images must be $n"
   # Now coerce into S or throw an error if not possible
@@ -92,6 +93,6 @@ function (F::MPolyAnyMap{<: MPolyRing})(g)
   else 
     gg = domain(F)(g)
     @assert parent(gg) === domain(F)
-    return _evaluate_general(F, gg)
+    return F(gg)
   end
 end
