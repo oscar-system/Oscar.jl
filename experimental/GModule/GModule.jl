@@ -170,6 +170,55 @@ function Oscar.representation_matrix(a::fq_nmod)
   return m
 end
 
+function _character(C::GModule{<:Any, <:Generic.FreeModule{<:Union{nf_elem, fmpq}}})
+  G = group(C)
+  phi = GAP.Globals.EpimorphismFromFreeGroup(G.X)
+  ac = Oscar.GrpCoh.action(C)
+  iac = Oscar.GrpCoh.inv_action(C)
+
+  n = dim(C)
+  K = base_ring(C)
+
+  chr = []
+  for c = conjugacy_classes(G)
+    r = representative(c)
+    if isone(r)
+      push!(chr, (c, K(n)))
+      continue
+    end
+    p = GAP.Globals.PreImagesRepresentative(phi, r.X)
+    w = map(Int, GAP.Globals.LetterRepAssocWord(p))
+    T = w[1]<0 ? iac[-w[1]] : ac[w[1]]
+    for i=2:length(w)
+      T = T*(w[i]<0 ? iac[-w[i]] : ac[w[i]])
+    end
+    push!(chr, (c, trace(mat(T))))
+  end
+  return chr
+end
+
+character_field(C::GModule{<:Any, <:Generic.FreeModule{fmpq}}) = QQ
+
+function character_field(C::GModule{<:Any, <:Generic.FreeModule{nf_elem}})
+  val = _character(C)
+  k, mkK = Hecke.subfield(base_ring(C), [x[2] for x = val])
+  return k
+end
+
+function character(C::GModule{<:Any, <:Generic.FreeModule{nf_elem}})
+  chr = _character(C)
+  k, mkK = Hecke.subfield(base_ring(C), [x[2] for x = chr])
+  A = maximal_abelian_subfield(ClassField, k)
+  c = Hecke.norm(conductor(A)[1])
+  K = cyclotomic_field(Int(c))[1]
+  fl, em = issubfield(k, K)
+  return [(x[1], em(preimage(mkK, x[2]))) for x = chr]
+end
+
+function character(C::GModule{<:Any, <:Generic.FreeModule{fmpq}})
+  return _character(C)
+end
+
 function gmodule(k::Nemo.GaloisField, C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}})
   F = free_module(k, dim(C)*degree(base_ring(C)))
   return GModule(F, group(C), [hom(F, F, hvcat(dim(C), [representation_matrix(x) for x = transpose(mat(y))]...)) for y = C.ac])
