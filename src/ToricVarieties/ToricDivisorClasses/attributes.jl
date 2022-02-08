@@ -17,9 +17,7 @@ GrpAb: Z
 with components [1]
 ```
 """
-function divisor_class(tdc::ToricDivisorClass)
-    return tdc.class
-end
+divisor_class(tdc::ToricDivisorClass) = tdc.class
 export divisor_class
 
 
@@ -40,9 +38,7 @@ julia> toric_variety(tdc)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 ```
 """
-function toric_variety(tdc::ToricDivisorClass)
-    return tdc.toric_variety
-end
+toric_variety(tdc::ToricDivisorClass) = tdc.toric_variety
 export toric_variety
 
 

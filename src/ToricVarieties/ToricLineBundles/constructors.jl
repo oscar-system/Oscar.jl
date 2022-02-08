@@ -128,9 +128,7 @@ julia> inv(l)
 A toric line bundle on a normal toric variety
 ```
 """
-function Base.:inv(l::ToricLineBundle)
-    return ToricLineBundle(toric_variety(l), (-1)*divisor_class(l))
-end
+Base.:inv(l::ToricLineBundle) = ToricLineBundle(toric_variety(l), (-1)*divisor_class(l))
 
 
 @doc Markdown.doc"""
@@ -150,13 +148,8 @@ julia> l^(-1)
 A toric line bundle on a normal toric variety
 ```
 """
-function Base.:^(l::ToricLineBundle, p::fmpz)
-    return ToricLineBundle(toric_variety(l), p * divisor_class(l))
-end
-
-function Base.:^(l::ToricLineBundle, p::Int)
-    return l^fmpz(p)
-end
+Base.:^(l::ToricLineBundle, p::fmpz) = ToricLineBundle(toric_variety(l), p * divisor_class(l))
+Base.:^(l::ToricLineBundle, p::Int) = l^fmpz(p)
 
 
 ########################

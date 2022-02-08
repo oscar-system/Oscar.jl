@@ -163,13 +163,8 @@ julia> fmpz(2)*tdc
 A divisor class on a normal toric variety
 ```
 """
-function Base.:*(c::fmpz, tdc::ToricDivisorClass)
-    return ToricDivisorClass(toric_variety(tdc), c * divisor_class(tdc))
-end
-
-function Base.:*(c::Int, tdc::ToricDivisorClass)
-    return ToricDivisorClass(toric_variety(tdc), fmpz(c) * divisor_class(tdc))
-end
+Base.:*(c::fmpz, tdc::ToricDivisorClass) = ToricDivisorClass(toric_variety(tdc), c * divisor_class(tdc))
+Base.:*(c::Int, tdc::ToricDivisorClass) = ToricDivisorClass(toric_variety(tdc), fmpz(c) * divisor_class(tdc))
 
 
 ########################

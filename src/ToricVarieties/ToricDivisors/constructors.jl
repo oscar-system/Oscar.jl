@@ -171,13 +171,8 @@ julia> fmpz(2)*td
 A torus-invariant, non-prime divisor on a normal toric variety
 ```
 """
-function Base.:*(c::fmpz, td::ToricDivisor)
-    return ToricDivisor(toric_variety(td), [c*x for x in coefficients(td)])
-end
-
-function Base.:*(c::Int, td::ToricDivisor)
-    return ToricDivisor(toric_variety(td), [fmpz(c)*x for x in coefficients(td)])
-end
+Base.:*(c::fmpz, td::ToricDivisor) = ToricDivisor(toric_variety(td), [c*x for x in coefficients(td)])
+Base.:*(c::Int, td::ToricDivisor) = ToricDivisor(toric_variety(td), [fmpz(c)*x for x in coefficients(td)])
 
 
 ######################
