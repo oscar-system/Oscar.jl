@@ -1675,3 +1675,16 @@ end
 
 (f::MPolyElem_dec)(x...) = evaluate(f, collect(x))
 
+################################################################################
+#
+#  Promote rule
+#
+################################################################################
+
+function AbstractAlgebra.promote_rule(::Type{MPolyElem_dec{S, T}}, ::Type{U}) where {S, T, U}
+  if AbstractAlgebra.promote_rule(T, U) === T
+    return MPolyElem_dec{S, T}
+  else
+    return Union{}
+  end
+end
