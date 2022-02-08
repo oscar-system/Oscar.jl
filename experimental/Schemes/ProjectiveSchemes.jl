@@ -4,7 +4,7 @@ export ProjectiveScheme, base_ring, fiber_dimension, homogeneous_coordinate_ring
 export projective_scheme_type, affine_patch_type
 export projective_space, subscheme
 export projection_to_base, affine_cone, set_base_scheme!, base_scheme, homogeneous_coordinates, frac_to_homog, homog_to_frac, as_covered_scheme, covered_projection_to_base, dehomogenize
-export ProjectiveSchemeMor, domain, codomain, images_of_variables, map_on_affine_cones, is_well_defined
+export ProjectiveSchemeMor, domain, codomain, images_of_variables, map_on_affine_cones, is_well_defined, poly_to_homog, frac_to_homog_pair
 
 @Markdown.doc """
     ProjectiveScheme{CoeffRingType, CoeffRingElemType, RingType, RingElemType}
@@ -316,29 +316,46 @@ function projective_space(W::Spec, var_names::Vector{String})
 end
 
 @Markdown.doc """
-    homog_to_frac(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::RET) where {CRT<:MPolyQuoLocalizedRing, CRET, RT, RET}
+    homog_to_frac(X::ProjectiveScheme) 
 
-Convert a homogeneous polynomial ``f`` to an element of the ring of 
-regular functions on the `affine_cone` of ``X``.
+Returns a map that converts a polynomial in the 
+`homogeneous_coordinate_ring` of `X` into a function on the 
+`affine_cone` of `X`.
 """
-function homog_to_frac(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::RET) where {CRT<:MPolyQuoLocalizedRing, CRET, RT, RET}
-  return evaluate(map_coefficients(pullback(projection_to_base(X)), f), homogeneous_coordinates(X))
-end
-
-function homog_to_frac(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::RET) where {CRT<:MPolyRing, CRET, RT, RET}
-  return evaluate(map_coefficients(pullback(projection_to_base(X)), f), homogeneous_coordinates(X))
-end
-
-function homog_to_frac(X::ProjectiveScheme{CRT, CRET, RT, RET}, f::RET) where {CRT<:AbstractAlgebra.Field, CRET, RT, RET}
-  return evaluate(f, homogeneous_coordinates(X))
-end
-
 function homog_to_frac(X::ProjectiveScheme) 
   if !has_attribute(X, :homog_to_frac)
     affine_cone(X)
   end
-  #TODO: insert type assertion here!
   return get_attribute(X, :homog_to_frac)
+end
+
+@Markdown.doc """
+    poly_to_homog(X::ProjectiveScheme)
+
+Returns a map that converts an element of the `base_ring` of 
+ring of functions `OO` of the `affine_cone` of `X` into 
+an element of the `homogeneous_coordinate_ring` of `X`.
+"""
+function poly_to_homog(X::ProjectiveScheme)
+  if !has_attribute(X, :poly_to_homog)
+    affine_cone(X)
+  end
+  return get_attribute(X, :poly_to_homog)
+end
+
+@Markdown.doc """
+    function frac_to_homog_pair(X::ProjectiveScheme)
+
+Returns a map that converts an element ``f = p/q`` of the ring of 
+functions `OO` of the `affine_cone` of `X` into a pair 
+``(a, b)`` of elements of the `homogeneous_coordinate_ring` of `X`
+corresponding to ``p`` and ``q``, respectively.
+"""
+function frac_to_homog_pair(X::ProjectiveScheme)
+  if !has_attribute(X, :frac_to_homog_pair)
+    affine_cone(X)
+  end
+  return get_attribute(X, :frac_to_homog_pair)
 end
 
 @Markdown.doc """
@@ -531,12 +548,17 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyR
     X.C = get_attribute(X, :affine_cone)
     pr_base_res = restrict(pr_base, CX, Y)
     pr_fiber_res = restrict(pr_fiber, CX, F)
+
+    # store the various conversion maps
     set_attribute!(X, :homog_to_frac, 
                     hom(S, OO(CX), 
                           hom(A, OO(CX), [pullback(pr_base_res)(x) for x in gens(OO(Y))]),
                           [pullback(pr_fiber_res)(y) for y in gens(OO(F))]
                        )
                   )
+    pth = hom(base_ring(OO(CX)), S, vcat(gens(S), S.(gens(A))))
+    set_attribute!(X, :poly_to_homog, pth)
+    set_attribute!(X, :frac_to_homog_pair, (f -> (pth(lifted_numerator(OO(CX)(f))), pth(lifted_numerator(OO(CX)(f))))))
     X.projection_to_base = pr_base_res
   end
   return X.C
@@ -557,6 +579,7 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyQ
     X.homog_coord = lift.([pullback(pr_fiber)(u) for u in gens(OO(F))])
     S = homogeneous_coordinate_ring(X)
 
+    # store the various conversion maps
     help_map = hom(S, OO(C), 
                    (x -> pullback(pr_base)(x)),
                    [pullback(pr_fiber)(y) for y in gens(OO(F))]
@@ -566,12 +589,16 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyQ
     CX = subscheme(C, I)
     pr_base_res = restrict(pr_base, CX, Y)
     pr_fiber_res = restrict(pr_fiber, CX, F)
+
     set_attribute!(X, :homog_to_frac, 
                     hom(S, OO(CX), 
                         pullback(pr_base_res),
                         [pullback(pr_fiber_res)(y) for y in gens(OO(F))]
                        )
                   )
+    pth = hom(base_ring(OO(CX)), S, vcat(gens(S), S.(gens(A))))
+    set_attribute!(X, :poly_to_homog, pth)
+    set_attribute!(X, :frac_to_homog_pair, (f -> (pth(lifted_numerator(OO(CX)(f))), pth(lifted_numerator(OO(CX)(f))))))
     X.C = CX
   end
   return X.C
@@ -583,10 +610,15 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:Abstra
     C = affine_space(kk, symbols(homogeneous_coordinate_ring(X)))
     X.homog_coord = gens(OO(C))
     S = homogeneous_coordinate_ring(X)
-    help_map = hom(S, OO(C), (x -> OO(C)(x)), gens(OO(C)))
+    help_map = hom(S, OO(C), gens(OO(C)))
     I = help_map(defining_ideal(X))
     CX = subscheme(C, I)
+
+    # store the various conversion maps
     set_attribute!(X, :homog_to_frac, hom(S, OO(CX), gens(OO(CX))))
+    pth = hom(base_ring(OO(CX)), S, gens(S))
+    set_attribute!(X, :poly_to_homog, pth)
+    set_attribute!(X, :frac_to_homog_pair, (f -> (pth(lifted_numerator(OO(CX)(f))), pth(lifted_numerator(OO(CX)(f))))))
     X.C = CX
   end
   return X.C
