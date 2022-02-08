@@ -2,7 +2,13 @@ module GModuleFromGap
 using Oscar
 using Hecke
 
+#XXX: clash of names!
+#   gmodule(k, C) vs gmodule_ver(k, C)
+#   first does a "restriction of scalars" or blow up with the rep mat
+#   second tries to conjugate down to k
+
 import Oscar:gmodule, GAPWrap
+import Oscar.GrpCoh: MultGrp, MultGrpElem
 
 import AbstractAlgebra: Group, Module
 import Base: parent
@@ -17,6 +23,7 @@ function __init__()
   add_assert_scope(:MinField)
   set_assert_level(:MinField, 0)
 end
+
 
 function irreducible_modules(G::Oscar.GAPGroup)
   im = GAP.Globals.IrreducibleRepresentations(G.X)
@@ -147,6 +154,27 @@ function gmodule(::FlintRationalField, C::GModule{<:Any, Generic.FreeModule{nf_e
   return GModule(F, group(C), [hom(F, F, hvcat(dim(C), [representation_matrix(x) for x = transpose(mat(y))]...)) for y = C.ac])
 end
 
+gmodule(k::Nemo.GaloisField, C::GModule{<:Any, Generic.FreeModule{gfp_elem}}) = C
+
+function Oscar.representation_matrix(a::fq_nmod)
+  K = parent(a)
+  k = GF(Int(characteristic(K)))
+  m = zero_matrix(k, degree(K), degree(K))
+  b = basis(K)
+  for i=1:degree(K)
+    c = a*b[i]
+    for j=1:degree(K)
+      m[i,j] = coeff(c, j-1)
+    end
+  end
+  return m
+end
+
+function gmodule(k::Nemo.GaloisField, C::GModule{<:Any, <:Generic.FreeModule{<:FinFieldElem}})
+  F = free_module(k, dim(C)*degree(base_ring(C)))
+  return GModule(F, group(C), [hom(F, F, hvcat(dim(C), [representation_matrix(x) for x = transpose(mat(y))]...)) for y = C.ac])
+end
+
 function Hecke.frobenius(K::FinField, i::Int=1)
   MapFromFunc(x->Hecke.frobenius(x, i), y -> Hecke.frobenius(x, degree(K)-i), K, K)
 end
@@ -225,8 +253,172 @@ function gmodule_over(k::FinField, C::GModule{<:Any, <:Generic.FreeModule{<:FinF
   # return C^-1 x C for x = action_gens(C), coerced into k
 end
 
+#...now the same for number fields - and non-cyclic fields.
+function gmodule_over(em::Map{AnticNumberField, AnticNumberField}, C::GModule{<:Any, <:Generic.FreeModule{nf_elem}}; do_error::Bool = false)
+  K = base_ring(C)
+  k = domain(em)
+  @assert codomain(em) == K
+  gk = em(gen(k))
+
+  A, mA = automorphism_group(PermGroup, K)
+  s, ms = sub(A, [a for a = A if mA(a)(gk) == gk])
+  ac =  _two_cocycle(ms*mA, C, do_error = do_error)  
+  F = free_module(k, dim(C))
+  return gmodule(F, group(C), [hom(F, F, map_entries(t->preimage(em, t), x)) for x = ac])
+end
+
+function gmodule_over(::FlintRationalField, C::GModule{<:Any, <:Generic.FreeModule{nf_elem}}; do_error::Bool = false)
+  K = base_ring(C)
+  A, mA = automorphism_group(PermGroup, K)
+  ac = _two_cocycle(mA, C, do_error = do_error)  
+  F = free_module(QQ, dim(C))
+  return gmodule(F, group(C), [hom(F, F, map_entries(QQ, x)) for x = ac])
+end
+
+function Oscar.hom(M::MultGrp, N::MultGrp, h::Map)
+  return MapFromFunc(x->N(h(x.data)), y->M(preimage(h, N.data)), M, N)
+end
+
+function Oscar.content_ideal(M::MatElem{nf_elem})
+  zk = maximal_order(base_ring(M))
+  C = fractional_ideal(zk, 1*zk)
+  if nrows(M)*ncols(M) == 0
+    return C
+  end
+
+  for i=1:nrows(M)
+    for j=1:ncols(M)
+      if !iszero(M[i,j])
+        C += M[i,j]*zk
+      end
+    end
+  end
+  return C
+end
+
+function _two_cocycle(mA::Map, C::GModule{<:Any, <:Generic.FreeModule{nf_elem}}; do_error::Bool = false)
+  G = domain(mA)
+  K = base_ring(C)
+
+  homs = []
+  @vprint :MinField 1 "Gathering Galois images of the generators...\n"
+  for g = gens(G)
+    @vprint :MinField 2 "gen: $g\n"
+    @vtime :MinField 2 hb = hom_base(C, C^mA(g))
+    if length(hb) == 0
+      do_error && return nothing
+      error("field too small")
+    end
+    if length(hb) > 1
+      do_error && return nothing
+      error("rep. not abs. irr.")
+    end
+    #as the matrices are only unique up to scalars, try to
+    #"reduce" them via the content(ideal)...
+    @vprint :MinField 2 "trying to (size) reduce matrix...\n"
+    @vprint :MinField 3 "from\n$(hb[1])\n"
+    c = content_ideal(hb[1])
+    d = Hecke.short_elem(inv(c))
+    @vprint :MinField 3 "via $d to\n"
+    push!(homs, d*hb[1])
+    @vprint :MinField 3 "$(homs[end])\n"
+  end
+  I = identity_matrix(K, dim(C))
+
+  @vprint :MinField 1 "computing un-normalised 1-chain (of matrices)\n"
+  # pairs: (g, X_g) with operation (g, X_g)(h, X_h) = (gh, X_h*X_g^h)
+  @vtime :MinField 2 
+    c = closure([(gen(G, i), homs[i]) for i=1:ngens(G)], 
+              (a, b) -> (a[1]*b[1], b[2]*map_entries(mA(b[1]), a[2])),
+              (one(G), I),
+              eq = (a,b) -> a[1] == b[1])
+  X = Dict(x[1] => x[2] for x = c)
+  X[one(G)] = I
+
+  #now we need a 2-cycle:
+  #X[g] X[h] = sigma(g, h) X[gh] should hold...
+
+  @vprint :MinField 1 "now the 2-cocycle (scalars)\n"
+  MK = MultGrp(K)
+  sigma = Dict{Tuple{PermGroupElem, PermGroupElem}, MultGrpElem{nf_elem}}()
+  for g = G
+    for h = G
+      if isone(g)
+        sigma[(g, h)] = MK(one(K))
+      elseif isone(h)
+        sigma[(g, h)] = MK(one(K))
+      else
+        lf = findfirst(x->!iszero(x), X[g*h])
+        sigma[(g, h)] = MK(X[g*h][lf]//(X[h]*map_entries(mA(h), X[g]))[lf])
+      end
+    end
+  end
+
+  @vprint :MinField 1 "test for co-boundary\n"
+  D = gmodule(G, [hom(MK, MK, mA(x)) for x = gens(G)])
+  Sigma = Oscar.GrpCoh.CoChain{2,PermGroupElem, MultGrpElem{nf_elem}}(D, sigma)
+  @vtime :MinField 2 fl, cb = Oscar.GrpCoh.iscoboundary(Sigma)
+
+  if !fl
+    do_error || return nothing
+    error("field too small")
+  end
+  for g = G
+    X[g] *= inv(cb(g).data)
+  end
+
+  #now X should be in H^1(G, Gl(n, K)) which is trivial
+  #hence a Hilbert-90 should find A s.th. A^(1-g) = X[g] for all g
+
+  @vprint :MinField 1 "calling Hilbert-90 on matrices\n"
+  @vtime :MinField 2 A, Ai = hilbert90_generic(X, mA)
+  c = content_ideal(A)
+  d = Hecke.short_elem(inv(c))
+  A *= d
+  Ai *= inv(d)
+
+  @vprint :MinField 1 "conjugating the generators\n"
+  @vtime :MinField 2 r = [Ai*mat(x)*A for x = C.ac]
+  return r
+end
+
 """
-Hunt for b s.th. prod_i=0^os-1 b^(s^i) =a
+  Hilbert-90: H^1(G, Gl(n, K)) = 1
+for G = aut(K) and any number field K.
+
+`X` is a 1-chain, X_g = X[g]. This will find a matrix S s.th.
+  S^(1-g) = X_g
+for all g.
+
+`G` is both the keys of `X` and the domain of `mA`.
+
+Call at your peril. Used in writing a gmodule over a different
+number field.
+"""
+function hilbert90_generic(X::Dict, mA)
+  G = domain(mA)
+  K = domain(mA(one(G))) #can map parent do this better?
+  n = nrows(first(values(X)))
+  cnt = 0
+  while true
+    local Y
+    while true #TODO: choose Y more sparse
+      #Glasby shows that this approach, over a finite field,
+      #has a high success probability.
+      Y = matrix(K, n, n, [rand(K, -5:5) for i=1:n*n])
+      fl = isinvertible(Y)
+      fl && break
+      cnt += 1
+      if cnt > 10 error("s.th. wiered") end
+    end
+    S = sum(v*map_entries(mA(g), Y) for (g,v) = X)
+    fl, Si = isinvertible_with_inverse(S)
+    fl && return S, Si
+  end
+end
+
+"""
+Hunt for b s.th. N(b) == a
 """
 #TODO conflicts with the "same" algo in Hecke - where it does not
 #     work due to a missing function or so.
@@ -369,7 +561,9 @@ end
 
 """
   C*T[i] = T[i]*D
-on return
+on return.
+
+Currently assumes no bad primes.
 """
 function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:Generic.FreeModule{nf_elem}}
   @assert base_ring(C) == base_ring(D)
@@ -415,6 +609,7 @@ function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:Generic.FreeModule{
         fl || break
         push!(S, s)
       end
+      length(S) == 0 && continue
       @assert base_ring(S[1]) == k
       s = S[1]
       if length(S) == length(T)
@@ -1047,7 +1242,8 @@ function brueckner(mQ::Map{FPGroup, PcGroup}; primes::Vector=[])
       @vprint :BruecknerSQ 2 "... transfer over min. field\n"
       @vtime :BruecknerSQ 2 ii = Oscar.GModuleFromGap.gmodule_minimal_field(i)
       @vprint :BruecknerSQ 2 "... lift...\n"
-      @vtime :BruecknerSQ 2 l = lift(gmodule(GrpAbFinGen, ii), mQ)
+      iii = Oscar.GModuleFromGap.gmodule(GF(Int(p)), ii)
+      @vtime :BruecknerSQ 2 l = lift(iii, mQ)
       @vprint :BruecknerSQ 2 "found $(length(l)) many\n"
       append!(allR, [x for x in l])# if issurjective(x)])
     end
