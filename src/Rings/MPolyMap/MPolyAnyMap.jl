@@ -123,9 +123,9 @@ end
 # map_coefficients(phi.coeff_map, f), which is a polynomial over
 # codomain(phi.coeff_map).
 
-function temp_ring(f::MPolyAnyMap{<:Any, <: Any, <: Map{D, C}}) where {D, C}
+function temp_ring(f::MPolyAnyMap{<:Any, <: Any, <: Map}) where {D, C}
   if isdefined(f, :temp_ring)
-    return f.temp_ring::mpoly_ring_type(C)
+    return f.temp_ring::mpoly_ring_type(codomain(coefficient_map(f)))
   end
 
   S, = PolynomialRing(codomain(coefficient_map(f)), nvars(domain(f)))
