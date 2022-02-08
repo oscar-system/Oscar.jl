@@ -147,6 +147,28 @@ function cox_ring(v::AbstractNormalToricVariety)
     S, _ = PolynomialRing(coefficient_ring(v), coordinate_names(v), cached=false)
     return cox_ring(S, v)
 end
+
+
+@doc Markdown.doc"""
+    cox_ring(R::MPolyRing, v::AbstractNormalToricVariety)
+
+Computes the Cox ring of the normal toric variety `v`, in this case by adding
+the Cox grading to the given ring `R`.
+Note that [CLS11](@cite) refers to this ring as the "total coordinate ring".
+
+# Examples
+```jldoctest
+julia> p2 = projective_space(NormalToricVariety, 2);
+
+julia> R,_ = PolynomialRing(QQ, 3);
+
+julia> cox_ring(R, p2)
+Multivariate Polynomial Ring in x1, x2, x3 over Rational Field graded by 
+  x1 -> [1]
+  x2 -> [1]
+  x3 -> [1]
+```
+"""
 function cox_ring(R::MPolyRing, v::AbstractNormalToricVariety)
     weights = _cox_ring_weights(v)
     length(weights) == nvars(R) || throw(ArgumentError("Wrong number of variables"))
@@ -163,12 +185,29 @@ function _stanley_reisner_complex(v::AbstractNormalToricVariety)
     end
 end
 
+@doc Markdown.doc"""
+    stanley_reisner_ideal(R::MPolyRing, v::AbstractNormalToricVariety)
+
+Return the Stanley-Reisner ideal of a normal toric variety `v` as an ideal of
+`R`.
+
+# Examples
+```jldoctest
+julia> p2 = projective_space(NormalToricVariety, 2);
+
+julia> R,_ = PolynomialRing(QQ, 3);
+
+julia> ngens(stanley_reisner_ideal(R, p2))
+1
+```
+"""
 function stanley_reisner_ideal(R::MPolyRing, v::AbstractNormalToricVariety)
     n = nrays(fan(v))
     n == nvars(R) || throw(ArgumentError("Wrong number of variables"))
     K = _stanley_reisner_complex(v)
     return stanley_reisner_ideal(R, K)
 end
+
 @doc Markdown.doc"""
     stanley_reisner_ideal(v::AbstractNormalToricVariety)
 
@@ -186,6 +225,20 @@ stanley_reisner_ideal(v::AbstractNormalToricVariety) = stanley_reisner_ideal(cox
 export stanley_reisner_ideal
 
 
+
+function _irrelevant_ideal_monomials(v::AbstractNormalToricVariety)
+    return get_attribute!(v, :irrelevant_ideal_monomials) do
+        mc = ray_indices(maximal_cones(fan(v)))
+        result = Vector{Vector{Int}}()
+        onesv = ones(Int, Polymake.ncols(mc))
+        for i in 1:Polymake.nrows(mc)
+            push!(result, onesv - Vector{Int}(mc[i,:]))
+        end
+        return result
+    end
+end
+
+
 @doc Markdown.doc"""
     irrelevant_ideal(v::AbstractNormalToricVariety)
 
@@ -200,32 +253,29 @@ julia> length(gens(irrelevant_ideal(p2)))
 ```
 """
 function irrelevant_ideal(v::AbstractNormalToricVariety)
-    return get_attribute!(v, :irrelevant_ideal) do
-        # prepare maximal cones
-        max_cones = [findall(x->x!=0, l) for l in eachrow(pm_object(v).MAXIMAL_CONES)]
-        maximal_cones = Vector{Int}[]
-        for c in max_cones
-            buffer = zeros(Int, nrays(fan(v)))
-            for k in c
-                buffer[k] = 1
-            end
-            push!(maximal_cones, buffer)
-        end
-        
-        # compute generators
-        indeterminates = gens(cox_ring(v))
-        generators = typeof(indeterminates[1])[]
-        for i in 1:length(maximal_cones)
-            monom = indeterminates[1]^(1 - maximal_cones[i][1])
-            for j in 2:length(maximal_cones[i])
-                monom = monom * indeterminates[j]^(1 - maximal_cones[i][j])
-            end
-            push!(generators, monom)
-        end
-        
-        # return the ideal
-        return ideal(generators)
-    end
+    R = cox_ring(v)
+    return irrelevant_ideal(R, v)
+end
+
+@doc Markdown.doc"""
+    irrelevant_ideal(R::MPolyRing, v::AbstractNormalToricVariety)
+
+Return the irrelevant ideal of a normal toric variety `v` as an ideal in `R`.
+
+# Examples
+```jldoctest
+julia> p2 = projective_space(NormalToricVariety, 2);
+
+julia> R,_ = PolynomialRing(QQ, 3);
+
+julia> length(gens(irrelevant_ideal(R, p2)))
+3
+```
+"""
+function irrelevant_ideal(R::MPolyRing, v::AbstractNormalToricVariety)
+    monoms = _irrelevant_ideal_monomials(v)
+    nvars(R) == nrays(fan(v)) || throw(ArgumentError("Wrong number of variables in polynomial ring."))
+    return ideal([R([1], [x]) for x in monoms])
 end
 export irrelevant_ideal
 
@@ -258,6 +308,31 @@ function toric_ideal(antv::AffineNormalToricVariety)
     R,_ = PolynomialRing(coefficient_ring(antv), n, cached=false)
     return toric_ideal(R, antv)
 end
+
+@doc Markdown.doc"""
+    toric_ideal(R::MPolyRing, antv::AffineNormalToricVariety)
+
+Return the toric ideal defining the affine normal toric variety as an ideal in
+`R`.
+
+# Examples
+Take the cone over the square at height one. The resulting toric variety has
+one defining equation. In projective space this corresponds to
+$\mathbb{P}^1\times\mathbb{P}^1$. Note that this cone is self-dual, the toric
+ideal comes from the dual cone.
+```jldoctest
+julia> C = positive_hull([1 0 0; 1 1 0; 1 0 1; 1 1 1])
+A polyhedral cone in ambient dimension 3
+
+julia> antv = AffineNormalToricVariety(C)
+A normal, affine toric variety
+
+julia> R,_ = PolynomialRing(QQ, 4);
+
+julia> toric_ideal(R, antv)
+ideal(-x1*x2 + x3*x4)
+```
+"""
 function toric_ideal(R::MPolyRing, antv::AffineNormalToricVariety)
     cone = Cone(pm_object(antv).WEIGHT_CONE)
     gens = pm_object(cone).CONE_TORIC_IDEAL.BINOMIAL_GENERATORS
