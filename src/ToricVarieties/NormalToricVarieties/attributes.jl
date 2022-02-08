@@ -177,11 +177,11 @@ end
 export cox_ring
 
 
-function _stanley_reisner_complex(v::AbstractNormalToricVariety)
-    return get_attribute(v, :stanley_reisner_complex) do
+function _minimal_nonfaces(v::AbstractNormalToricVariety)
+    return get_attribute(v, :minimal_nonfaces) do
         I = ray_indices(maximal_cones(fan(v)))
         K = SimplicialComplex(I)
-        return K
+        return minimal_nonfaces(IncidenceMatrix, K)
     end
 end
 
@@ -204,8 +204,8 @@ julia> ngens(stanley_reisner_ideal(R, p2))
 function stanley_reisner_ideal(R::MPolyRing, v::AbstractNormalToricVariety)
     n = nrays(fan(v))
     n == nvars(R) || throw(ArgumentError("Wrong number of variables"))
-    K = _stanley_reisner_complex(v)
-    return stanley_reisner_ideal(R, K)
+    mnf = _minimal_nonfaces(v)
+    return ideal([ R([1], [Vector{Int}(mnf[i,:])]) for i in 1:Polymake.nrows(mnf) ])
 end
 
 @doc Markdown.doc"""
