@@ -4,6 +4,7 @@ export
 	matroid_from_matrix, matroid_from_reduced_matrix,
 	cycle_matroid, bond_matroid, cocycle_matroid,
 	dual_matroid, direct_sum, restriction, deletion, contraction, minor,
+	principal_extension,
 	uniform_matroid, fano_matroid, non_fano_matroid
 
 ################################################################################
@@ -300,6 +301,16 @@ function minor(M::Matroid,set_del::Union{AbstractVector, Set},set_cont::Union{Ab
 	return contraction(deletion(M, set_del), set_contr)
 end
 
+function principal_extension(M::Matroid, set::Union{AbstractVector,Set}, elem::Union{Int,Char,String})
+	if(issubset([elem],M.groundset))
+		throw("The element you are about to add is already contained in the ground set")
+	end
+	gs2num = copy(M.gs2num)
+	gs2num[elem] = length(M.groundset)
+	Matroid(Polymake.matroid.principal_extension(M.pm_matroid,Set(set)),[M.groundset;elem],gs2num)
+end
+
+
 function uniform_matroid(r::Int,n::Int)
 	gs2num = Dict{Any,Int}()
 	i = 1
@@ -310,7 +321,7 @@ function uniform_matroid(r::Int,n::Int)
 	Matroid(Polymake.matroid.uniform_matroid(r,n),1:n,gs2num)
 end
 
-fano_matroid() = Matroid(Polymake.matroid.fano_matroid(),1:7, Dict{Any,Int}(1=>1, 2=>2, 3=>3, 4=>4, 5=>5, 6=>6, 7=>7))
+fano_matroid() = Matroid(Polymake.matroid.fano_matroid(),0:6, Dict{Any,Int}(1=>0, 2=>1, 3=>2, 4=>3, 5=>4, 6=>5, 7=>6))
 
-non_fano_matroid() = Matroid(Polymake.matroid.non_fano_matroid(),1:7, Dict{Any,Int}(1=>1, 2=>2, 3=>3, 4=>4, 5=>5, 6=>6, 7=>7))
+non_fano_matroid() = Matroid(Polymake.matroid.non_fano_matroid(),0:6, Dict{Any,Int}(1=>0, 2=>1, 3=>2, 4=>3, 5=>4, 6=>5, 7=>6))
 

@@ -1,5 +1,5 @@
 export
-	bases, circuits, hyperplanes, rank, nullity,
+	bases, circuits, hyperplanes, flats, cyclic_flats, closure, rank, nullity,
 	spanning_sets, independent_sets, girth,
 	cobases, cocircuits, cohyperplanes, corank,
 	is_clutter, get_blocker,
@@ -9,7 +9,10 @@ export
 	connectivity_function, is_vertical_k_separation,
 	vertical_connectivity, tutte_connectivity,
 	direct_sum_components, loops, coloops, is_loopless, is_coloopless,
-	isomorphism, fundamental_circuit, fundamental_cocircuit
+	extension,
+	isomorphism, fundamental_circuit, fundamental_cocircuit,
+	tutte_polynomial, characteristic_polynomial, reduced_characteristic_polynomial,
+	visualize
 
 ################################################################################
 ##  Properties and basic functions
@@ -56,6 +59,30 @@ circuits(M::Matroid) = [[M.groundset[i+1] for i in sort(collect(C))] for C in Ve
 
 hyperplanes(M::Matroid) = [[M.groundset[i+1] for i in sort(collect(C))] for C in Vector{Set{Int}}(M.pm_matroid.MATROID_HYPERPLANES)]
 
+
+function flats(M::Matroid)
+	pm_IncidenceMatrix = Polymake.@pm common.convert_to{IncidenceMatrix}(M.pm_matroid.LATTICE_OF_FLATS.FACES)
+	indices = M.pm_matroid.LATTICE_OF_FLATS.TOP_NODE!=0 ? (1:Polymake.size(pm_IncidenceMatrix,1)) : reverse(1:Polymake.size(pm_IncidenceMatrix,1))
+	return [[M.groundset[i] for i in flat] for flat in [Vector{Int}(Polymake.row(pm_IncidenceMatrix, i)) for i in indices]]
+end
+
+function cyclic_flats(M::Matroid)
+	pm_IncidenceMatrix = Polymake.@pm common.convert_to{IncidenceMatrix}(M.pm_matroid.LATTICE_OF_CYCLIC_FLATS.FACES)
+	indices = M.pm_matroid.LATTICE_OF_CYCLIC_FLATS.TOP_NODE==0 ? (1:Polymake.size(pm_IncidenceMatrix,1)) : reverse(1:Polymake.size(pm_IncidenceMatrix,1))
+	return [[M.groundset[i] for i in flat] for flat in [Vector{Int}(Polymake.row(pm_IncidenceMatrix, i)) for i in indices]]
+end
+
+function closure(M::Matroid,set::Union{AbstractVector,Set})
+	cl = M.groundset
+	for flat in flats(M)
+		if(issubset(set,flat) && issubset(flat,cl))
+			cl = flat
+		end
+	end
+	return cl
+end
+
+
 @doc Markdown.doc"""
     rank(M::matroid,set::Vector)
 
@@ -70,10 +97,6 @@ julia>
 rank(M::Matroid, set::Union{AbstractVector,Set}) = Polymake.matroid.rank( M.pm_matroid, Set([M.gs2num[i]-1 for i in set]) )
 
 nullity(M::Matroid, set::Union{AbstractVector,Set}) = size(set)[1]-Polymake.matroid.rank( M.pm_matroid, Set([M.gs2num[i]-1 for i in set]) )
-
-
-#flats M.pm_matroid.LATTICE_OF_FLATS.DECORATION
-#TODO closure
 
 @doc Markdown.doc"""
     independet_sets(M::matroid)
@@ -103,8 +126,6 @@ function spanning_sets(M::Matroid)
 	end
 	return sets
 end
-
-
 
 function independent_sets(M::Matroid)
 	pm_bases = Vector{Set{Int}}(M.pm_matroid.BASES)
@@ -164,7 +185,6 @@ loops(M::Matroid) = [M.groundset[i+1] for i in M.pm_matroid.LOOPS]
 coloops(M::Matroid) = [M.groundset[i+1] for i in M.pm_matroid.DUAL.LOOPS]
 is_loopless(M::Matroid) = length(M.pm_matroid.LOOPS)==0 ? true : false
 is_coloopless(M::Matroid) = length(M.pm_matroid.DUAL.LOOPS)==0 ? true : false
-
 
 function direct_sum_components(M::Matroid)
 	res = Vector{Matroid}()
@@ -239,5 +259,30 @@ function tutte_connectivity(M::Matroid)
 	return minimum([vertical_connectivity(M),girth(M)])
 end
 
+function tutte_polynomial(M::Matroid)
+	R, (x, y) = PolynomialRing(ZZ, ["x", "y"])
+	poly = M.pm_matroid.TUTTE_POLYNOMIAL
+	exp = Polymake.monomials_as_matrix(poly)
+	return R(Vector{Int}(Polymake.coefficients_as_vector(poly)),[[exp[i,1],exp[i,2]] for i in 1:size(exp)[1]])
+end
 
+function characteristic_polynomial(M::Matroid)
+	R, q = PolynomialRing(ZZ, 'q')
+	return (-1)^M.pm_matroid.RANK*tutte_polynomial(M)(1-q,0)
+end
+
+function reduced_characteristic_polynomial(M::Matroid)
+	R, q = PolynomialRing(ZZ, 'q')
+	p = characteristic_polynomial(M)
+	c = Vector{Int}(undef,degree(p))
+	s = 0
+	for i in 1:degree(p)
+		s-= coeff(p,i-1)
+		c[i] = s
+	end
+	return R(c)
+end
+
+
+visualize(M::Matroid) = Polymake.visual(M.pm_matroid.LATTICE_OF_FLATS)
 
