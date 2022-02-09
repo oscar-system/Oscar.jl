@@ -148,7 +148,7 @@ dP3 = NormalToricVariety(PolyhedralFan(fan_rays, fan_cones))
     @test picard_group(dP3) == codomain(map_from_cartier_divisor_group_to_picard_group(dP3))
 end
 
-blowup_variety = blowup_on_ith_minimal_torus_orbit(P2, 1)
+blowup_variety = blowup_on_ith_minimal_torus_orbit(P2, 1, "e")
 
 @testset "Blowup of projective space" begin
     @test isnormal(blowup_variety) == true
@@ -197,6 +197,15 @@ end
     @test is_projective_space(v) == false
     @test is_projective_space(ntv) == false
     @test is_projective_space(ntv2) == false
+end
+
+P = polarize(Polyhedron(Polymake.polytope.rand_sphere(5,60; seed=42)))
+big_variety = NormalToricVariety(P)
+big_variety2 = NormalToricVariety(P)
+set_coefficient_ring(big_variety2, GF(13))
+
+@testset "Additional test for Stanley-Reisner ideal" begin
+    @test ngens(stanley_reisner_ideal(big_variety)) == ngens(stanley_reisner_ideal(big_variety2))
 end
 
 D=ToricDivisor(H5, [0,0,0,0])

@@ -17,7 +17,13 @@
 
 ## Notes for Polymake users
 
-- TODO
+- OSCAR (and Julia) is `1`-based, meaning that it counts from `1`, rather than
+  from `0` like polymake. For most properties we have taken care of the
+  translation but be aware that it might pop up at some point and generate
+  confusion.
+- Polyhedra and polyhedral complexes in OSCAR are represented inhomogeneously,
+  i.e. without the leading `1` for vertices or `0` for rays. Hence constructors
+  take points, rays, and lineality generators separately.
 - TODO: also talk about how to use it from Oscar?
 
 ## Notes for Magma users

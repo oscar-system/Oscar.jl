@@ -89,6 +89,11 @@ import AbstractAlgebra:
     symbols,
     total_degree
 
+import AbstractAlgebra.GroupsCore
+import AbstractAlgebra.GroupsCore:
+    isfiniteorder,
+    istrivial
+
 import GAP:
     @gapattribute,
     @gapwrap,
@@ -168,6 +173,7 @@ import Hecke:
     FinFieldElem,
     FqNmodFiniteField,
     free_abelian_group,
+    gens,
     gram_matrix,
     gram_matrix_quadratic,
     haspreimage,
@@ -212,6 +218,7 @@ import Hecke:
     representative,
     small_group,
     sub,
+    subsets,
     subgroups,
     TorQuadMod,
     TorQuadModElem,
