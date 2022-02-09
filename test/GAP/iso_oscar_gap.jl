@@ -67,18 +67,18 @@ end
    end
 end
 
-@testset "field of rationals" begin
-  iso = Oscar.iso_oscar_gap(QQ)
-  x = QQ(2//3)
-  y = QQ(1)
-  ox = iso(x)
-  oy = iso(y)
-  for i in 1:10
-    xi = x^i
-    oxi = iso(xi)
-    @test preimage(iso, oxi) == xi
-    @test oxi == ox^i
-    @test oxi + oy == iso(xi + y)
+@testset "field of rationals, ring of integers" begin
+  for (R, x, y) in [(QQ, QQ(2//3), QQ(1)), (ZZ, ZZ(2), ZZ(1))]
+    iso = Oscar.iso_oscar_gap(R)
+    ox = iso(x)
+    oy = iso(y)
+    for i in 1:10
+      xi = x^i
+      oxi = iso(xi)
+      @test preimage(iso, oxi) == xi
+      @test oxi == ox^i
+      @test oxi + oy == iso(xi + y)
+    end
   end
 end
 
@@ -101,5 +101,25 @@ end
             @test f(a - b) == f(a) - f(b)
          end
       end
+   end
+end
+
+@testset "univariate polynomial rings" begin
+   baserings = [QQ,                           # yields `FmpqPolyRing`
+                ZZ,                           # yields `FmpzPolyRing`
+                GF(2,2),                      # yields `FqNmodPolyRing`
+                FqFiniteField(fmpz(2),2,:z),  # yields `FqPolyRing`
+                GF(fmpz(2)),                  # yields `GFPFmpzPolyRing`
+                GF(2),                        # yields `GFPPolyRing`
+               ]
+   @testset for R in baserings
+      PR, x = PolynomialRing(R, "x")
+      iso = Oscar.iso_oscar_gap(PR)
+      for pol in [zero(x), one(x), x, x^3+x+1]
+         img = iso(pol)
+         @test preimage(iso, img) == pol
+      end
+      m = matrix([x x; x x])
+      @test map_entries(inv(iso), map_entries(iso, m)) == m
    end
 end
