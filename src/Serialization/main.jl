@@ -81,10 +81,6 @@ function encodeType(::Type{T}) where T
 end
 
 
-function encodeType(::Type{Vector{T}}) where T
-    return [encodeType(T)]
-end
-
 
 function decodeType(input::String)
     if Symbol(input) == backref_sym
@@ -95,9 +91,6 @@ function decodeType(input::String)
 end
 
 
-function decodeType(input::Vector{T}) where T
-    return Vector{decodeType(input[1])}
-end
 
 
 ################################################################################
@@ -163,18 +156,6 @@ function load(s::DeserializerState, dict::Dict)
     return load(s, T, dict)
 end
 
-################################################################################
-# Saving and loading vectors
-function save_intern(s::SerializerState, vec::Vector{T}) where T
-    return Dict(
-        :vector => [save(s, x) for x in vec]
-    )
-end
-
-function load_intern(s::DeserializerState, ::Type{Vector{T}}, dict::Dict) where T
-   return [load(s, T, x) for x in dict[:vector]]
-end
-
 
 
 ################################################################################
@@ -208,7 +189,8 @@ end
 
 
 
-
+include("basic_types.jl")
+include("containers.jl")
 include("PolyhedralGeometry.jl")
 include("Combinatorics.jl")
 include("Fields.jl")
