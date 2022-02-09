@@ -876,9 +876,14 @@ true
 function Base.issubset(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
   # avoid Singular.contains as it does not save the gb it might compute
   singular_assure(I)
-  groebner_assure(J)
-  singular_assure(J.gb)
-  return Singular.iszero(Singular.reduce(I.gens.S, J.gb.S))
+  # if no GB previously computed, generate a degrevlex one
+  if isempty(J.gb)
+      G = groebner_assure(J, degrevlex(gens(base_ring(J))))
+  else # take any GB already computed
+      G = collect(values(J.gb))[1]
+  end
+  singular_assure(G)
+  return Singular.iszero(Singular.reduce(I.gens.S, G.S))
 end
 
 ### todo: wenn schon GB's  bekannt ...
