@@ -1,0 +1,215 @@
+{
+    "_ns": {
+        "Julia": [
+            "https://julialang.org/",
+            {
+                "major": 1,
+                "minor": 7,
+                "patch": 1,
+                "prerelease": [],
+                "build": []
+            }
+        ],
+        "Oscar": [
+            "https://github.com/oscar-system/Oscar.jl",
+            {
+                "major": 0,
+                "minor": 8,
+                "patch": 1,
+                "prerelease": [
+                    "DEV"
+                ],
+                "build": []
+            }
+        ]
+    },
+    "id": "86efb40e-2aa0-4d8f-81f2-84fe7a515c5a",
+    "type": {
+        "container": "Vector",
+        "element": "Oscar.LinearProgram"
+    },
+    "data": {
+        "vector": [
+            {
+                "id": "e4b76089-be0c-4c4c-a76d-aaa936d2b161",
+                "type": "Oscar.LinearProgram",
+                "data": {
+                    "lpcoeffs": {
+                        "data": [
+                            "0",
+                            "2",
+                            "2",
+                            "-3"
+                        ],
+                        "_ns": {
+                            "polymake": [
+                                "https://polymake.org",
+                                "4.6"
+                            ]
+                        },
+                        "_type": "common::Vector<Rational>"
+                    },
+                    "convention": "max",
+                    "feasible_region": {
+                        "id": "b5a394b1-0b80-4226-bf8a-ad7ce35d7c23",
+                        "type": "Oscar.Polyhedron",
+                        "data": {
+                            "_ns": {
+                                "polymake": [
+                                    "https://polymake.org",
+                                    "4.6"
+                                ]
+                            },
+                            "LP": [
+                                {
+                                    "_attrs": {
+                                        "convention": {
+                                            "attachment": true
+                                        }
+                                    },
+                                    "convention": "max",
+                                    "_id": "unnamed#0",
+                                    "LINEAR_OBJECTIVE": [
+                                        "0",
+                                        "2",
+                                        "2",
+                                        "-3"
+                                    ]
+                                },
+                                {
+                                    "LINEAR_OBJECTIVE": [
+                                        "0",
+                                        "2",
+                                        "2",
+                                        "4"
+                                    ],
+                                    "convention": "max",
+                                    "_id": "unnamed#1",
+                                    "_attrs": {
+                                        "convention": {
+                                            "attachment": true
+                                        }
+                                    }
+                                }
+                            ],
+                            "_attrs": {
+                                "FACETS": {
+                                    "_type": "SparseMatrix<Rational, NonSymmetric>"
+                                }
+                            },
+                            "CONE_AMBIENT_DIM": 4,
+                            "_type": "polytope::Polytope<Rational>",
+                            "BOUNDED": true,
+                            "_info": {
+                                "description": "cube of dimension 3\n"
+                            },
+                            "AFFINE_HULL": [
+                                {
+                                    "cols": 4
+                                }
+                            ],
+                            "CONE_DIM": 4,
+                            "VERTICES_IN_FACETS": [
+                                [
+                                    0,
+                                    2,
+                                    4,
+                                    6
+                                ],
+                                [
+                                    1,
+                                    3,
+                                    5,
+                                    7
+                                ],
+                                [
+                                    0,
+                                    1,
+                                    4,
+                                    5
+                                ],
+                                [
+                                    2,
+                                    3,
+                                    6,
+                                    7
+                                ],
+                                [
+                                    0,
+                                    1,
+                                    2,
+                                    3
+                                ],
+                                [
+                                    4,
+                                    5,
+                                    6,
+                                    7
+                                ],
+                                {
+                                    "cols": 8
+                                }
+                            ],
+                            "FACETS": [
+                                {
+                                    "1": "1",
+                                    "0": "1"
+                                },
+                                {
+                                    "1": "-1",
+                                    "0": "1"
+                                },
+                                {
+                                    "0": "1",
+                                    "2": "1"
+                                },
+                                {
+                                    "0": "1",
+                                    "2": "-1"
+                                },
+                                {
+                                    "0": "1",
+                                    "3": "1"
+                                },
+                                {
+                                    "0": "1",
+                                    "3": "-1"
+                                },
+                                {
+                                    "cols": 4
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            {
+                "id": "fb8a82a2-bb08-4bf0-8fe6-d57478aadc4d",
+                "type": "Oscar.LinearProgram",
+                "data": {
+                    "lpcoeffs": {
+                        "data": [
+                            "0",
+                            "2",
+                            "2",
+                            "4"
+                        ],
+                        "_ns": {
+                            "polymake": [
+                                "https://polymake.org",
+                                "4.6"
+                            ]
+                        },
+                        "_type": "common::Vector<Rational>"
+                    },
+                    "convention": "max",
+                    "feasible_region": {
+                        "version": 1,
+                        "id": "b5a394b1-0b80-4226-bf8a-ad7ce35d7c23",
+                        "type": "#backref"
+                    }
+                }
+            }
+        ]
+    }
+}
