@@ -150,12 +150,10 @@ function _iso_oscar_gap(FO::FinField)
 end
 
 
-@attributes FlintRationalField # TODO: port this to Nemo
 function _iso_oscar_gap(F::FlintRationalField)
    return MapFromFunc(x -> GAP.Obj(x), x -> fmpq(x), F, GAP.Globals.Rationals)
 end
 
-@attributes FlintIntegerRing # TODO: port this to Nemo
 function _iso_oscar_gap(F::FlintIntegerRing)
    return MapFromFunc(x -> GAP.Obj(x), x -> fmpz(x), F, GAP.Globals.Integers)
 end
@@ -209,6 +207,50 @@ function iso_oscar_gap(F)
 end
 
 #TODO function iso_oscar_gap(F::T) where T <: QabField
+
+
+################################################################################
+#
+# Univariate polynomial rings
+#
+@attributes FmpqPolyRing # TODO: port this to Nemo
+@attributes FmpzPolyRing # TODO: port this to Nemo
+@attributes FqNmodPolyRing # TODO: port this to Nemo
+@attributes FqPolyRing # TODO: port this to Nemo
+@attributes GFPFmpzPolyRing # TODO: port this to Nemo
+@attributes GFPPolyRing # TODO: port this to Nemo
+#TODO: support
+# `NmodPolyRing` (from `Nemo.NmodRing(UInt64(6))`)
+# `FmpzModPolyRing` (from `Nemo.FmpzModRing(fmpz(2))`)
+# `FqDefaultPolyRing` (from `FqDefaultFiniteField(fmpz(2), 3, :x)`)
+
+function _iso_oscar_gap_polynomial_ring_functions(RO::PolyRing{T}, RG::GAP.GapObj, coeffs_iso::MapFromFunc) where T
+   fam = GAP.Globals.ElementsFamily(GAP.Globals.FamilyObj(codomain(coeffs_iso)))
+   ind = GAP.Globals.IndeterminateNumberOfUnivariateRationalFunction(
+           GAP.Globals.IndeterminatesOfPolynomialRing(RG)[1])
+
+   f = function(x::PolyElem{T})
+      cfs = GAP.GapObj([coeffs_iso(x) for x in coefficients(x)])
+      return GAP.Globals.UnivariatePolynomialByCoefficients(fam, cfs, ind)
+   end
+
+   finv = function(x)
+      GAP.Globals.IsPolynomial(x) || error("$x is not a GAP polynomial")
+      cfs = Vector{Any}(GAP.Globals.CoefficientsOfUnivariatePolynomial(x))
+      return RO([preimage(coeffs_iso, c) for c in cfs])
+   end
+
+   return (f, finv)
+end
+
+function _iso_oscar_gap(RO::PolyRing{T}) where T
+   coeffs_iso = iso_oscar_gap(base_ring(RO))
+   RG = GAP.Globals.PolynomialRing(codomain(coeffs_iso))
+
+   f, finv = _iso_oscar_gap_polynomial_ring_functions(RO, RG, coeffs_iso)
+
+   return MapFromFunc(f, finv, RO, RG)
+end
 
 
 ################################################################################

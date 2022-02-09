@@ -29,6 +29,10 @@ function _iso_gap_oscar(F::GAP.GapObj)
          end
        end
      end
+   elseif GAP.Globals.IsIntegers(F)
+     return _iso_gap_oscar_ring_integers(F)
+   elseif GAP.Globals.IsUnivariatePolynomialRing(F)
+     return _iso_gap_oscar_univariate_polynomial_ring(F)
    end
 
    error("no method found")
@@ -55,12 +59,25 @@ function _iso_gap_oscar_field_rationals(F::GAP.GapObj)
    return MapFromFunc(x -> fmpq(x), x -> GAP.Obj(x), F, QQ)
 end
 
+function _iso_gap_oscar_ring_integers(F::GAP.GapObj)
+   return MapFromFunc(x -> fmpz(x), x -> GAP.Obj(x), F, ZZ)
+end
+
 function _iso_gap_oscar_field_cyclotomic(FG::GAP.GapObj)
    FO = CyclotomicField(GAPWrap.Conductor(FG))[1]
    finv, f = _iso_oscar_gap_field_cyclotomic_functions(FO, FG)
 
    return MapFromFunc(f, finv, FG, FO)
 end
+
+function _iso_gap_oscar_univariate_polynomial_ring(RG::GAP.GapObj)
+   coeffs_iso = iso_gap_oscar(GAP.Globals.LeftActingDomain(RG))
+   RO, x = PolynomialRing(codomain(coeffs_iso), "x")
+   finv, f = _iso_oscar_gap_polynomial_ring_functions(RO, RG, inv(coeffs_iso))
+
+   return MapFromFunc(f, finv, RG, RO)
+end
+
 
 # Use a GAP attribute for caching the mapping.
 # The following must be executed at runtime,
