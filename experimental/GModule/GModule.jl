@@ -22,6 +22,9 @@ function __init__()
 
   add_assert_scope(:MinField)
   set_assert_level(:MinField, 0)
+
+  add_verbose_scope(:MinField)
+  set_verbose_level(:MinField, 0)
 end
 
 
@@ -87,7 +90,7 @@ function Oscar.conductor(a::QabElem)
   return conductor(data(a))
 end
 
-function irreducible_modules(::Type{AnticNumberField}, G::Oscar.GAPGroup)
+function irreducible_modules(::Type{AnticNumberField}, G::Oscar.GAPGroup; minimal_degree::Bool = false)
   z = irreducible_modules(G)
   Z = GModule[]
   for m in z
@@ -100,7 +103,28 @@ function irreducible_modules(::Type{AnticNumberField}, G::Oscar.GAPGroup)
       push!(Z, a)
     end
   end
-  return Z
+
+  if !minimal_degree
+    return Z
+  else
+    res = GModule[]
+    for V in Z
+      k, m = _character_field(V)
+      #chi = _character(V)
+      #if schur_index(chi) != 1
+      #  error("Not implemented for non-trivial Schur indicies yet")
+      #end
+      if degree(k) == degree(base_ring(V))
+        push!(res, V)
+      else
+        @info("Going from $(degree(base_ring(V))) to $(degree(k))")
+        Vmin = gmodule_over(m, V)
+        push!(res, Vmin)
+      end
+    end
+    @assert length(res) == length(irreps)
+    return res
+  end
 end
 
 function irreducible_modules(::typeof(CyclotomicField), G::Oscar.GAPGroup)
@@ -199,10 +223,14 @@ end
 
 character_field(C::GModule{<:Any, <:Generic.FreeModule{fmpq}}) = QQ
 
-function character_field(C::GModule{<:Any, <:Generic.FreeModule{nf_elem}})
+function _character_field(C::GModule{<:Any, <:Generic.FreeModule{nf_elem}})
   val = _character(C)
   k, mkK = Hecke.subfield(base_ring(C), [x[2] for x = val])
-  return k
+  return k, mkK
+end
+
+function character_field(C::GModule{<:Any, <:Generic.FreeModule{nf_elem}})
+  return _character_field(C)[1]
 end
 
 function character(C::GModule{<:Any, <:Generic.FreeModule{nf_elem}})

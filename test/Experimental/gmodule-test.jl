@@ -10,5 +10,6 @@
   z = irreducible_modules(ZZ, G)
   @test length(z) == 5
 
+  l = irreducible_modules(AnticNumberField, small_group(48, 17), minimal_degree = true)
 end
 
