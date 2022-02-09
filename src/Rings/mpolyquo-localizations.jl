@@ -416,6 +416,14 @@ function (L::MPolyQuoLocalizedRing)()
   return L(zero(base_ring(L)))
 end
 
+# generic conversion through the base ring
+function (L::MPolyQuoLocalizedRing{<:Any, BRET})(a::BRET) where {BRET<:RingElem}
+  return L(base_ring(L)(a), one(base_ring(L)))
+end
+function (L::MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, RET})(a::RET) where {RET<:RingElem}
+  return L(base_ring(L)(a), one(base_ring(L)))
+end
+
 ### additional functionality
 @Markdown.doc """
     lift(f::MPolyQuoLocalizedRingElem)
@@ -633,6 +641,12 @@ function reduce_fraction(f::MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}) 
   g = gcd(numerator(h), denominator(h))
   h = parent(h)(divexact(numerator(h), g), divexact(denominator(h), g))
   return parent(f)(h)
+end
+
+### promotion rules
+function AbstractAlgebra.promote_rule(::Type{MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}}, ::Type{T}) where {BRT<:Ring, BRET<:RingElement, RT<:Ring, RET<:RingElement, MST, T<:RingElement} 
+  AbstractAlgebra.promote_rule(RET, T) == RET && return MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST}
+  return AbstractAlgebra.promote_rule(BRET, T) == BRET ? MPolyQuoLocalizedRingElem{BRT, BRET, RT, RET, MST} : Union{}
 end
 
 ### additional promotions
