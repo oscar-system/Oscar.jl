@@ -156,3 +156,27 @@ A polyhedron in ambient dimension 8
 function secondary_polytope(P::Polyhedron)
     return Polyhedron(Polymake.polytope.secondary_polytope(pm_object(P)))
 end
+
+@doc Markdown.doc"""
+    is_regular(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem},T::Vector{Vector{Vector{Int64}}})
+
+Compute whether a triangulation is regular.
+
+# Examples
+Compute the secondary polytope of the cube.
+```jldoctest
+julia> c = cube(2)
+A polyhedron in ambient dimension 3
+
+julia> T=[[1,2,3],[2,3,4]];
+
+julia> is_regular(vertices(cube(2)),T)
+true
+```
+"""
+function is_regular(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem},T::Vector{Vector{Int64}})
+    points = homogenized_matrix(pts, 1)
+    triang = Polymake.to_zero_based_indexing(T)
+    Polymake.polytope.is_regular(points,triang)
+    #how do I extract information from: PropertyValue wrapping std::pair<bool, pm::Vector<pm::Rational> >?
+end
