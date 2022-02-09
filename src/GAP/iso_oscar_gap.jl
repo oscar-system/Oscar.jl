@@ -118,17 +118,32 @@ end
 
 # Compute the isomorphism between the Oscar field `FO` and a corresponding
 # GAP field.
-# Avoid finite fields of the kind `IsAlgebraicExtension` on the GAP side,
+# Try to avoid finite fields of the kind `IsAlgebraicExtension` on the GAP side,
 # because they do not permit a lot of interesting computations.
 # (Matrices over these fields are not suitable for MeatAxe functions,
 # `FieldOfMatrixList` does not work, etc.)
 # This means that we do not attempt to create a field on the GAP side
 # whose defining polynomial fits to the one on the Oscar side;
 # instead, we adjust this on the Oscar side if necessary.
+# However, if an `IsAlgebraicExtension` field is the (currently) only supported
+# field on the GAP side then we choose such a field,
+# with the defining polynomial of the Oscar field.
 function _iso_oscar_gap(FO::FinField)
-   p = characteristic(FO)
+   p = GAP.Obj(characteristic(FO))
    d = degree(FO)
-   FG = GAPWrap.GF(GAP.Obj(p), d)
+   if GAP.Globals.IsCheapConwayPolynomial(p, d)
+     FG = GAPWrap.GF(p, d)
+   else
+     # Calling `GAPWrap.GF(p, d)` would throw a GAP error.
+     polFO = defining_polynomial(FO)
+     coeffsFO = collect(coefficients(polFO))
+
+     e = one(GAP.Globals.Z(p))
+     fam = GAP.Globals.FamilyObj(e)
+     coeffsFG = GAP.GapObj([GAP.Obj(lift(x))*e for x in coeffsFO])
+     polFG = GAP.Globals.UnivariatePolynomialByCoefficients(fam, coeffsFG, 1)
+     FG = GAPWrap.GF(p, polFG)
+   end
    f, finv = _iso_oscar_gap_field_finite_functions(FO, FG)
 
    return MapFromFunc(f, finv, FO, FG)

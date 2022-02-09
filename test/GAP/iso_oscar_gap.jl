@@ -33,9 +33,9 @@
 end
 
 @testset "a large non-prime field (FqNmodFiniteField)" begin
-   # (The defining polynomial of the Oscar field is not a Conway polynomial,
+   # The defining polynomial of the Oscar field is not a Conway polynomial,
    # the polynomial of the GAP field is a Conway polynomial,
-   # thus we need an intermediate field on the Oscar side.)
+   # thus we need an intermediate field on the Oscar side.
    p = next_prime(10^6)
    F = GF(p, 2)
    f = Oscar.iso_oscar_gap(F)
@@ -46,6 +46,25 @@ end
    @test GAP.Globals.DefiningPolynomial(codomain(f)) ==
          GAP.Globals.ConwayPolynomial(p, 2)
    @test F.is_conway == 0
+end
+
+@testset "another large non-prime field (FqNmodFiniteField)" begin
+   # GAP's `GF(p, d)` throws an error if the Conway polynomial in question
+   # is neither known nor cheap to compute.
+   # Here we can translate from Oscar to GAP by choosing the
+   # defining polynomial of the Oscar field for constructing the GAP field.
+   p = 1031
+   d = 10
+   F = GF(p, d)
+
+   # Check whether the current example is still relevant.
+   @test ! GAP.Globals.IsCheapConwayPolynomial(p, d)
+
+   f = Oscar.iso_oscar_gap(F)
+   for x in [ F(3), gen(F) ]
+      a = f(x)
+      @test preimage(f, a) == x
+   end
 end
 
 @testset "field of rationals" begin
