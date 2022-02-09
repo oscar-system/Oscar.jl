@@ -443,6 +443,7 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyQ
     set_attribute!(X, :poly_to_homog, pth)
     set_attribute!(X, :frac_to_homog_pair, (f -> (pth(lifted_numerator(OO(CX)(f))), pth(lifted_numerator(OO(CX)(f))))))
     X.C = CX
+    X.projection_to_base = pr_base_res
   end
   return X.C
 end
@@ -473,8 +474,18 @@ end
 Given ``ℙʳ(A)`` and a ring homomorphism ``φ : A → B``, 
 return ``ℙʳ(B)`` together with its morphism ``ℙʳ(B)→ ℙʳ(A)``.
 """
-function change_of_rings(P::ProjectiveScheme, phi)
-  error("not implemented")
+function change_of_rings(P::ProjectiveScheme, phi::Map{D, C}) where {D<:AbstractAlgebra.Ring, C<:AbstractAlgebra.Ring}
+  S = homogeneous_coordinate_ring(P)
+  A = base_ring(P)
+  domain(phi) === A || error("rings not compatible")
+  B = codomain(phi)
+  Q_ambient = ProjectiveScheme(B, symbols(S))
+  T = homogeneous_coordinate_ring(Q_ambient)
+  phi_ext = hom(S, T, phi, gens(T))
+  I = ideal(T, [phi_ext(g) for g in gens(defining_ideal(P))])
+  Q = subscheme(Q_ambient, I)
+  f = ProjectiveSchemeMor(Q, P, phi_ext)
+  return Q, f
 end
 
 @Markdown.doc """
@@ -502,73 +513,47 @@ space over the same ring with the identity on the base.
 mutable struct ProjectiveSchemeMor{
     DomainType<:ProjectiveScheme, 
     CodomainType<:ProjectiveScheme, 
-    BasePullbackType, 
-    RingElemType<:MPolyElem
+    PullbackType
   }
   domain::DomainType
   codomain::CodomainType
-  images_of_variables::Vector{RingElemType}
-  pullback_on_base::BasePullbackType
+  pullback::PullbackType
 
   #fields for caching
   map_on_base_schemes::SpecMor
   map_on_affine_cones::SpecMor
 
-  # constructor for morphisms over the same base
   function ProjectiveSchemeMor(
       P::DomainType,
       Q::CodomainType,
-      imgs::Vector{RET};
+      f::PullbackType;
       check::Bool=true
-    ) where {DomainType, CodomainType, BasePullbackType, RET}
-    A = base_ring(P)
-    A == base_ring(Q) || error("projective schemes are not defined over the same ring")
-    m = fiber_dimension(P)
-    n = fiber_dimension(Q)
-    length(imgs) == n+1 || error("the number of images does not agree with the number of variables")
-    for i in 1:n+1
-      parent(imgs[i]) == homogeneous_coordinate_ring(P) || error("elements do not belong to the correct ring")
+    ) where {DomainType, CodomainType, PullbackType}
+    T = homogeneous_coordinate_ring(P)
+    S = homogeneous_coordinate_ring(Q)
+    (S === domain(f) && T === codomain(f)) || error("pullback map incompatible")
+    if check
+      #TODO: Check map on ideals (not available yet)
     end
-    return new{DomainType, CodomainType, Any, RET}(P, Q, imgs)
-  end
-
-  # constructor for morphisms with base change
-  function ProjectiveSchemeMor(
-      P::DomainType,
-      Q::CodomainType,
-      f::BasePullbackType,
-      imgs::Vector{RET};
-      check::Bool=true
-    ) where {DomainType, CodomainType, BasePullbackType, RET}
-    B = base_ring(P)
-    A = base_ring(Q)
-    domain(f) == B || error("pullback is not compatible with the given base rings")
-    codomain(f) == A || error("pullback is not compatible with the given base rings")
-    m = fiber_dimension(P)
-    n = fiber_dimension(Q)
-    length(imgs) == n+1 || error("the number of images does not agree with the number of variables")
-    for i in 1:n+1
-      parent(imgs[i]) == homogeneous_coordinate_ring(P) || error("elements do not belong to the correct ring")
-    end
-    return new{DomainType, CodomainType, BasePullbackType, RET}(P, Q, imgs, f)
+    return new{DomainType, CodomainType, PullbackType}(P, Q, f)
   end
 end
 
 domain(phi::ProjectiveSchemeMor) = phi.domain
 codomain(phi::ProjectiveSchemeMor) = phi.codomain
-images_of_variables(phi::ProjectiveSchemeMor) = phi.images_of_variables
-pullback_on_base(phi::ProjectiveSchemeMor) = phi.pullback_on_base
+pullback(phi::ProjectiveSchemeMor) = phi.pullback
+base_ring_morphism(phi::ProjectiveSchemeMor) = coefficient_map(pullback(phi))
 
 # in case we have honest base schemes, also make the map of schemes available
-function base_map(phi::ProjectiveSchemeMor{ProjectiveScheme{CRT}}) where {CRT<:MPolyQuoLocalizedRing}
+function base_map(phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:MPolyQuoLocalizedRing}})
   if !isdefined(phi, :map_on_base_schemes)
-    phi.map_on_base_schemes = SpecMor(base_scheme(domain(phi)), base_scheme(codomain(phi)), pullback_on_base)
+    phi.map_on_base_schemes = SpecMor(base_scheme(domain(phi)), base_scheme(codomain(phi)), coefficient_map(pullback(phi)))
   end
   return phi.map_on_base_schemes::morphism_type(affine_patch_type(domain(phi)), affine_patch_type(codomain(phi)))
 end
 
 ### dispatch for morphisms over the same base scheme/ring
-function map_on_affine_cones(phi::ProjectiveSchemeMor{ProjectiveScheme{CRT}}) where {CRT<:MPolyQuoLocalizedRing}
+function map_on_affine_cones(phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:MPolyQuoLocalizedRing}}) 
   if !isdefined(phi, :map_on_affine_cones)
     A = base_ring(domain(phi))
     S = homogeneous_coordinate_ring(codomain(phi))
@@ -578,13 +563,13 @@ function map_on_affine_cones(phi::ProjectiveSchemeMor{ProjectiveScheme{CRT}}) wh
     pb_P = pullback(projection_to_base(P))
     pb_Q = pullback(projection_to_base(Q))
     imgs_base = pb_P.(gens(A))
-    imgs_fiber = [homog_to_frac(P, g) for g in images_of_variables(phi)]
+    imgs_fiber = [homog_to_frac(P)(g) for g in pullback(phi).(gens(S))]
     phi.map_on_affine_cones = SpecMor(affine_cone(P), affine_cone(Q), vcat(imgs_fiber, imgs_base))
   end
   return phi.map_on_affine_cones
 end
 
-function map_on_affine_cones(phi::ProjectiveSchemeMor{ProjectiveScheme{CRT}}) where {CRT<:MPolyRing}
+function map_on_affine_cones(phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:MPolyRing}})
   if !isdefined(phi, :map_on_affine_cones)
     Y = base_scheme(domain(phi))
     A = OO(Y)
@@ -595,79 +580,22 @@ function map_on_affine_cones(phi::ProjectiveSchemeMor{ProjectiveScheme{CRT}}) wh
     pb_P = pullback(projection_to_base(P))
     pb_Q = pullback(projection_to_base(Q))
     imgs_base = pb_P.(gens(A))
-    imgs_fiber = [homog_to_frac(P, g) for g in images_of_variables(phi)]
+    imgs_fiber = [homog_to_frac(P)(g) for g in pullback(phi).(gens(S))]
     phi.map_on_affine_cones = SpecMor(affine_cone(P), affine_cone(Q), vcat(imgs_fiber, imgs_base))
   end
   return phi.map_on_affine_cones
 end
     
-function map_on_affine_cones(phi::ProjectiveSchemeMor{ProjectiveScheme{CRT}}) where {CRT<:AbstractAlgebra.Field}
+function map_on_affine_cones(phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:AbstractAlgebra.Field}})
   if !isdefined(phi, :map_on_affine_cones)
     S = homogeneous_coordinate_ring(codomain(phi))
     T = homogeneous_coordinate_ring(domain(phi))
     P = domain(phi)
     Q = codomain(phi)
-    imgs_fiber = [homog_to_frac(P, g) for g in images_of_variables(phi)]
+    imgs_fiber = [homog_to_frac(P)(g) for g in pullback(phi).(gens(S))]
     phi.map_on_affine_cones = SpecMor(affine_cone(P), affine_cone(Q), imgs_fiber)
   end
   return phi.map_on_affine_cones
-end
-
-
-### dispatch for morphisms over a given morphism of bases
-function map_on_affine_cones(
-    phi::ProjectiveSchemeMor{ProjectiveScheme{CRT}, CDT, BMT}
-  ) where {
-    CRT<:MPolyQuoLocalizedRing,
-    CDT,
-    BMT<:AbstractAlgebra.Map
-  }
-  if !isdefined(phi, :map_on_affine_cones)
-    A = base_ring(domain(phi))
-    S = homogeneous_coordinate_ring(codomain(phi))
-    T = homogeneous_coordinate_ring(domain(phi))
-    P = domain(phi)
-    Q = codomain(phi)
-    pb_Q = pullback(projection_to_base(Q))
-    # also employ the morphism of the base implicitly
-    imgs_base = pb_Q.(pullback_on_base(phi).(gens(A)))
-    imgs_fiber = [homog_to_frac(P, g) for g in images_of_variables(phi)]
-    phi.map_on_affine_cones = SpecMor(affine_cone(P), affine_cone(Q), vcat(imgs_fiber, imgs_base))
-  end
-  return phi.map_on_affine_cones::morphism_type{affine_patch_type(domain(phi)), affine_patch_type(codomain(phi))}
-end
-
-function map_on_affine_cones(
-    phi::ProjectiveSchemeMor{ProjectiveScheme{CRT}, CDT, BMT}
-  ) where {
-    CRT<:MPolyRing,
-    CDT,
-    BMT<:AbstractAlgebra.Map
-  }
-  if !isdefined(phi, :map_on_affine_cones)
-    Y = base_scheme(domain(phi))
-    A = OO(Y)
-    S = homogeneous_coordinate_ring(codomain(phi))
-    T = homogeneous_coordinate_ring(domain(phi))
-    P = domain(phi)
-    Q = codomain(phi)
-    pb_Q = pullback(projection_to_base(Q))
-    # also employ the morphism of the base implicitly
-    imgs_base = pb_Q.(pullback_on_base(phi).(gens(A)))
-    imgs_fiber = [homog_to_frac(P, g) for g in images_of_variables(phi)]
-    phi.map_on_affine_cones = SpecMor(affine_cone(P), affine_cone(Q), vcat(imgs_fiber, imgs_base))
-  end
-  return phi.map_on_affine_cones
-end
-    
-function map_on_affine_cones(
-    phi::ProjectiveSchemeMor{ProjectiveScheme{CRT}, CDT, BMT}
-  ) where {
-    CRT<:Field,
-    CDT,
-    BMT<:AbstractAlgebra.Map
-  }
-  error("not implemented")
 end
 
 function is_well_defined(phi::ProjectiveSchemeMor) 
@@ -686,7 +614,7 @@ function as_covered_scheme(P::ProjectiveScheme)
   return X
 end
 
-function covered_projection_to_base(X::ProjectiveSchemeMor{ProjectiveScheme{CRT}}) where {CRT<:MPolyQuoLocalizedRing}
+function covered_projection_to_base(X::ProjectiveScheme{<:MPolyQuoLocalizedRing})
   if has_attribute(X, :covered_projection_to_base) 
     return get_attribute(X, :covered_projection_to_base)
   end
