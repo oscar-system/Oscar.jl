@@ -460,19 +460,21 @@ Fields:
 """
 mutable struct MPolyIdeal{S} <: Ideal{S}
   gens::BiPolyArray{S}
-  gb::BiPolyArray{S}
+  gb::Dict{MonomialOrdering, BiPolyArray{S}}
   dim::Int
 
   function MPolyIdeal(g::Vector{T}) where {T <: MPolyElem}
     r = new{T}()
     r.dim = -1 #not known
     r.gens = BiPolyArray(g, keep_ordering = false)
+    r.gb = Dict()
     return r
   end
   function MPolyIdeal(Ox::T, s::Singular.sideal) where {T <: MPolyRing}
     r = new{elem_type(T)}()
     r.dim = -1 #not known
     r.gens = BiPolyArray(Ox, s)
+    r.gb = Dict()
     if s.isGB
       r.gb = r.gens
     end
@@ -480,8 +482,9 @@ mutable struct MPolyIdeal{S} <: Ideal{S}
   end
   function MPolyIdeal(B::BiPolyArray{T}) where T
     r = new{T}()
-    r.dim = -1
+    r.dim = -1 #not known
     r.gens = B
+    r.gb = Dict()
     return r
   end
 end
