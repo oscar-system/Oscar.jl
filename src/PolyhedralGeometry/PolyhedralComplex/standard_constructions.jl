@@ -32,11 +32,11 @@ julia> common_refinement(PC1,PC2)
 A polyhedral complex in ambient dimension 2 with fmpq type coefficients
 ```
 """
-function common_refinement(PC1::PolyhedralComplex,PC2::PolyhedralComplex) 
+function common_refinement(PC1::PolyhedralComplex{T},PC2::PolyhedralComplex{T})  where T<:scalar_types
     pm_PC1 = pm_object(PC1)
     pm_PC2 = pm_object(PC2)
     result = Polymake.fan.PolyhedralComplex(Polymake.fan.common_refinement(pm_PC1,pm_PC2))
-    return PolyhedralComplex(result)
+    return PolyhedralComplex{T}(result)
 end
 
 

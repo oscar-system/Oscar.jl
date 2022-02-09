@@ -19,8 +19,7 @@ const pm = Polymake
         if T == fmpq
             @test hilbert_basis(Cone1) isa SubObjectIterator{PointVector{fmpz}}
             @test length(hilbert_basis(Cone1)) == 2
-            @test hilbert_basis(Cone1)[1] == PointVector{fmpz}([1, 0])
-            @test hilbert_basis(Cone1)[2] == PointVector{fmpz}([0, 1])
+            @test hilbert_basis(Cone1) == [[1, 0], [0, 1]]
             @test generator_matrix(hilbert_basis(Cone1)) == matrix(QQ, [1 0; 0 1])
         end
         @test nrays(Cone1) == 2
@@ -35,8 +34,7 @@ const pm = Polymake
             @test vector_matrix(rays(Cone1)) == [1 0; 0 1]
         end
         @test length(rays(Cone1)) == 2
-        @test rays(Cone1)[1] == [1, 0]
-        @test rays(Cone1)[2] == [0, 1]
+        @test rays(Cone1) == [[1, 0], [0, 1]]
         for S in [AffineHalfspace{T}, LinearHalfspace{T}, Cone{T}, Polyhedron{T}]
             @test facets(S, Cone1) isa SubObjectIterator{S}
             @test length(facets(S, Cone1)) == 2
@@ -45,28 +43,22 @@ const pm = Polymake
                 @test Oscar.linear_matrix_for_polymake(facets(S, Cone1)) == [-1 0; 0 -1]
                 @test ray_indices(facets(S, Cone1)) == IncidenceMatrix([[2], [1]])
                 if S == Cone{T}
-                    @test facets(S, Cone1)[1] == cone_from_inequalities([-1 0])
-                    @test facets(S, Cone1)[2] == cone_from_inequalities([0 -1])
+                    @test facets(S, Cone1) == cone_from_inequalities.([[-1 0], [0 -1]])
                 elseif S == LinearHalfspace{T}
-                    @test facets(S, Cone1)[1] == S([-1, 0])
-                    @test facets(S, Cone1)[2] == S([0, -1])
+                    @test facets(S, Cone1) == S.([[-1, 0], [0, -1]])
                 else
-                    @test facets(S, Cone1)[1] == S([-1 0], 0)
-                    @test facets(S, Cone1)[2] == S([0 -1], 0)
+                    @test facets(S, Cone1) == S.([[-1 0], [0 -1]], [0])
                 end
             else
                 @test linear_inequality_matrix(facets(S, Cone1)) == [0 -1; -1 0]
                 @test Oscar.linear_matrix_for_polymake(facets(S, Cone1)) == [0 -1; -1 0]
                 @test ray_indices(facets(S, Cone1)) == IncidenceMatrix([[1], [2]])
                 if S == Cone{T}
-                    @test facets(S, Cone1)[1] == cone_from_inequalities([0 -1]; scalar_type = T)
-                    @test facets(S, Cone1)[2] == cone_from_inequalities([-1 0]; scalar_type = T)
+                    @test facets(S, Cone1) == cone_from_inequalities.([[0 -1], [-1 0]]; scalar_type = T)
                 elseif S == LinearHalfspace{T}
-                    @test facets(S, Cone1)[1] == S([0, -1])
-                    @test facets(S, Cone1)[2] == S([-1, 0])
+                    @test facets(S, Cone1) == S.([[0, -1], [-1, 0]])
                 else
-                    @test facets(S, Cone1)[1] == S([0 -1], 0)
-                    @test facets(S, Cone1)[2] == S([-1 0], 0)
+                    @test facets(S, Cone1) == S.([[0 -1], [-1 0]], [0])
                 end
             end
         end
@@ -74,7 +66,7 @@ const pm = Polymake
         @test facets(Cone1) isa SubObjectIterator{LinearHalfspace{T}}
         @test linear_span(Cone4) isa SubObjectIterator{LinearHyperplane{T}}
         @test length(linear_span(Cone4)) == 1
-        @test linear_span(Cone4)[] == LinearHyperplane{fmpq}([0 1 0])
+        @test linear_span(Cone4) == [LinearHyperplane{fmpq}([0 1 0])]
         if T == fmpq
             @test linear_equation_matrix(linear_span(Cone4)) == matrix(QQ, [0 1 0])
         else
@@ -99,7 +91,7 @@ const pm = Polymake
             @test generator_matrix(lineality_space(Cone2)) == L
         end
         @test length(lineality_space(Cone2)) == 1
-        @test lineality_space(Cone2)[] == L[1, :]
+        @test lineality_space(Cone2) == [L[1, :]]
         if T == fmpq
             @test vector_matrix(rays(Cone4)) == matrix(QQ, R)
         else
@@ -112,18 +104,14 @@ const pm = Polymake
         @test faces(Cone4, 1) isa SubObjectIterator{Cone{T}}
         @test length(faces(Cone4, 1)) == 2
         if T == fmpq
-            @test faces(Cone2, 2)[1] == Cone{T}([0 0 1], [0 1 0])
-            @test faces(Cone2, 2)[2] == Cone{T}([1 0 0], [0 1 0])
+            @test faces(Cone2, 2) == Cone{T}.([[0 0 1], [1 0 0]], [[0 1 0]])
             @test ray_indices(faces(Cone2, 2)) == IncidenceMatrix([[2], [1]])
-            @test faces(Cone4, 1)[1] == Cone{T}([0 0 1])
-            @test faces(Cone4, 1)[2] == Cone{T}([1 0 0])
+            @test faces(Cone4, 1) == Cone{T}.([[0 0 1], [1 0 0]])
             @test ray_indices(faces(Cone4, 1)) == IncidenceMatrix([[2], [1]])
         else
-            @test faces(Cone2, 2)[1] == Cone{T}([1 0 0], [0 1 0])
-            @test faces(Cone2, 2)[2] == Cone{T}([0 0 1], [0 1 0])
+            @test faces(Cone2, 2) == Cone{T}.([[1 0 0], [0 0 1]], [[0 1 0]])
             @test ray_indices(faces(Cone2, 2)) == IncidenceMatrix([[1], [2]])
-            @test faces(Cone4, 1)[1] == Cone{T}([1 0 0])
-            @test faces(Cone4, 1)[2] == Cone{T}([0 0 1])
+            @test faces(Cone4, 1) == Cone{T}.([[1 0 0], [0 0 1]])
             @test ray_indices(faces(Cone4, 1)) == IncidenceMatrix([[1], [2]])
         end
         @test isnothing(faces(Cone2, 1))

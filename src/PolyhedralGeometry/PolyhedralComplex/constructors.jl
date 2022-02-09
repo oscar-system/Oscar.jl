@@ -68,8 +68,9 @@ function PolyhedralComplex{T}(
     ))
 end
 
+# TODO: Only works for this specific case; implement generalization using `iter.Acc`
 # This makes sure that PolyhedralComplex(maximal_polyhedra(PC)) returns an Oscar PolyhedralComplex,
-PolyhedralComplex(iter::SubObjectIterator{Polyhedron}) = PolyhedralComplex(iter.Obj)
+PolyhedralComplex(iter::SubObjectIterator{Polyhedron{T}}) where T<:scalar_types = PolyhedralComplex{T}(iter.Obj)
 
 ###############################################################################
 ###############################################################################

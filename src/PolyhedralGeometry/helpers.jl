@@ -23,31 +23,36 @@ const nf_scalar = Union{nf_elem, fmpq}
 
 export nf_scalar
 
-# Base.zero(::Type{nf_scalar}) = fmpq()
+Base.zero(::Type{nf_scalar}) = fmpq()
 # Base.one(::Type{nf_scalar}) = fmpq(1)
 
 Base.convert(::Type{nf_scalar}, x::Number) = convert(fmpq, x)
 Base.convert(::Type{nf_scalar}, x::nf_elem) = x
 
-function Base.convert(::Type{Polymake.QuadraticExtension{Polymake.Rational}}, x::nf_scalar)
+nf_scalar(x::Union{Number, nf_elem}) = convert(nf_scalar, x)
+
+function Base.convert(::Type{Polymake.QuadraticExtension{Polymake.Rational}}, x::nf_elem)
     p = defining_polynomial(parent(x))
     if (length(p) != 3 && coeff(p, 1) != 0) || sign(coeff(p, 2)) == sign(coeff(p, 0))
-        throw(ArgumentError("Conversion from NfAbsNSElem to QuadraticExtension{Rational} only defined for elements of number fields defined by a polynomial of the form 'ax^2 - b'."))
+        throw(ArgumentError("Conversion from nf_elem to QuadraticExtension{Rational} only defined for elements of number fields defined by a polynomial of the form 'ax^2 - b'."))
     end
     r = convert(Polymake.Rational, -coeff(p, 0)//coeff(p, 2))
     c = coordinates(x)
     return Polymake.QuadraticExtension{Polymake.Rational}(convert(Polymake.Rational, c[1]), convert(Polymake.Rational, c[2]), r)
 end
 
+Base.convert(::Type{Polymake.QuadraticExtension{Polymake.Rational}}, x::fmpq) = Polymake.QuadraticExtension(convert(Polymake.Rational, x))
+
 function Base.convert(::Type{nf_scalar}, x::Polymake.QuadraticExtension{Polymake.Rational})
     g = Polymake.generating_field_elements(x)
-    # Qx, _ = rationals_as_number_field()
-    Qx, _ = PolynomialRing(QQ; cached = true)
-    if g.r == 0
+    if g.r == 0 || g.b == 0
         return convert(fmpq, g.a)
     end
-    dp = Qx([-convert(fmpq, g.r), 0, 1])
-    Nf, a = NumberField(dp; cached = true)
+    # Qx, _ = rationals_as_number_field()
+    Qx, _ = PolynomialRing(QQ; cached = true)
+    R, a = quadratic_field(convert(fmpz,  g.r))
+    # dp = Qx([-convert(fmpq, g.r), 0, 1])
+    # Nf, a = NumberField(dp; cached = true)
     return convert(fmpq, g.a) + convert(fmpq, g.b) * a
 end
 
@@ -176,6 +181,8 @@ function decompose_hdata(A)
 end
 
 Base.convert(::Type{fmpq}, q::Polymake.Rational) = fmpq(Polymake.numerator(q), Polymake.denominator(q))
+
+Base.convert(::Type{fmpz}, q::Polymake.Rational) = convert(fmpz, convert(Polymake.Integer, q))
 
 # TODO: different printing within oscar? if yes, implement the following method
 # Base.show(io::IO, ::MIME"text/plain", I::IncidenceMatrix) = show(io, "text/plain", Matrix{Bool}(I))

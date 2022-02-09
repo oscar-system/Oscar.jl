@@ -23,25 +23,16 @@
             @test point_matrix(lattice_points(Q0)) == matrix(ZZ, [0 0; 0 1; 1 0])
             @test matrix(ZZ, lattice_points(Q0)) == matrix(ZZ, [0 0; 0 1; 1 0])
             @test length(lattice_points(Q0)) == 3
-            @test lattice_points(Q0)[1] == PointVector{fmpz}([0, 0])
-            @test lattice_points(Q0)[2] == PointVector{fmpz}([0, 1])
-            @test lattice_points(Q0)[3] == PointVector{fmpz}([1, 0])
+            @test lattice_points(Q0) == [[0, 0], [0, 1], [1, 0]]
             @test interior_lattice_points(square) isa SubObjectIterator{PointVector{fmpz}}
             @test point_matrix(interior_lattice_points(square)) == matrix(ZZ, [0 0])
             @test matrix(ZZ, interior_lattice_points(square)) == matrix(ZZ,[0 0])
             @test length(interior_lattice_points(square)) == 1
-            @test interior_lattice_points(square)[] == PointVector{fmpz}([0, 0])
+            @test interior_lattice_points(square) == [[0, 0]]
             @test boundary_lattice_points(square) isa SubObjectIterator{PointVector{fmpz}}
             @test point_matrix(boundary_lattice_points(square)) == matrix(ZZ, [-1 -1; -1 0; -1 1; 0 -1; 0 1; 1 -1; 1 0; 1 1])
             @test length(boundary_lattice_points(square)) == 8
-            @test boundary_lattice_points(square)[1] == PointVector{fmpz}([-1, -1])
-            @test boundary_lattice_points(square)[2] == PointVector{fmpz}([-1, 0])
-            @test boundary_lattice_points(square)[3] == PointVector{fmpz}([-1, 1])
-            @test boundary_lattice_points(square)[4] == PointVector{fmpz}([0, -1])
-            @test boundary_lattice_points(square)[5] == PointVector{fmpz}([0, 1])
-            @test boundary_lattice_points(square)[6] == PointVector{fmpz}([1, -1])
-            @test boundary_lattice_points(square)[7] == PointVector{fmpz}([1, 0])
-            @test boundary_lattice_points(square)[8] == PointVector{fmpz}([1, 1])
+            @test boundary_lattice_points(square) == [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]]
             @test issmooth(Q0)
             @test isnormal(Q0)
         end
@@ -75,14 +66,11 @@
         @test length(rays(Pos)) == 3
         if T == fmpq
             @test vector_matrix(rays(Pos)) == matrix(QQ, [1 0 0; 0 1 0; 0 0 1])
-            @test rays(Pos)[1] == [1, 0, 0]
-            @test rays(Pos)[2] == [0, 1, 0]
+            @test rays(Pos) == [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
         else
             @test vector_matrix(rays(Pos)) == [0 1 0; 1 0 0; 0 0 1]
-            @test rays(Pos)[1] == [0, 1, 0]
-            @test rays(Pos)[2] == [1, 0, 0]
+            @test rays(Pos) == [[0, 1, 0], [1, 0, 0], [0, 0, 1]]
         end
-        @test rays(Pos)[3] == [0, 0, 1]
         @test lineality_space(L) isa SubObjectIterator{RayVector{T}}
         if T == fmpq
             @test generator_matrix(lineality_space(L)) == matrix(QQ, [0 0 1])
@@ -91,35 +79,25 @@
             @test generator_matrix(lineality_space(L)) == [0 0 1]
         end
         @test length(lineality_space(L)) == 1
-        @test lineality_space(L)[] == [0, 0, 1]
+        @test lineality_space(L) == [[0, 0, 1]]
         @test faces(square, 1) isa SubObjectIterator{Polyhedron{T}}
         @test length(faces(square, 1)) == 4
-        @test faces(square, 1)[1] == convex_hull([-1 -1; -1 1]; scalar_type = T)
-        @test faces(square, 1)[2] == convex_hull([1 -1; 1 1]; scalar_type = T)
-        @test faces(square, 1)[3] == convex_hull([-1 -1; 1 -1]; scalar_type = T)
-        @test faces(square, 1)[4] == convex_hull([-1 1; 1 1]; scalar_type = T)
+        @test faces(square, 1) == convex_hull.([[-1 -1; -1 1], [1 -1; 1 1], [-1 -1; 1 -1], [-1 1; 1 1]]; scalar_type = T)
         @test vertex_indices(faces(square, 1)) == IncidenceMatrix([[1, 3], [2, 4], [1, 2], [3, 4]])
         @test ray_indices(faces(square, 1)) == IncidenceMatrix(4, 0)
         @test faces(Pos, 1) isa SubObjectIterator{Polyhedron{T}}
         @test length(faces(Pos, 1)) == 3
         if T == fmpq
-            @test faces(Pos, 1)[1] == convex_hull([0 0 0], [1 0 0]; scalar_type = T)
-            @test faces(Pos, 1)[2] == convex_hull([0 0 0], [0 1 0]; scalar_type = T)
+            @test faces(Pos, 1) == convex_hull.([[0 0 0]], [[1 0 0], [0 1 0] , [0 0 1]]; scalar_type = T)
         else
-            @test faces(Pos, 1)[1] == convex_hull([0 0 0], [0 1 0]; scalar_type = T)
-            @test faces(Pos, 1)[2] == convex_hull([0 0 0], [1 0 0]; scalar_type = T)
+            @test faces(Pos, 1) == convex_hull.([[0 0 0]], [[0 1 0], [1 0 0], [0 0 1]]; scalar_type = T)
         end
-        @test faces(Pos, 1)[3] == convex_hull([0 0 0], [0 0 1]; scalar_type = T)
         @test vertex_indices(faces(Pos, 1)) == IncidenceMatrix([[1], [1], [1]])
         @test ray_indices(faces(Pos, 1)) == IncidenceMatrix([[1], [2], [3]])
         @test isnothing(faces(Q2, 0))
         v = vertices(minkowski_sum(Q0, square))
         @test length(v) == 5
-        @test v[1] == [2, -1]
-        @test v[2] == [2, 1]
-        @test v[3] == [-1, -1]
-        @test v[4] == [-1, 2]
-        @test v[5] == [1, 2]
+        @test v == [[2, -1], [2, 1], [-1, -1], [-1, 2], [1, 2]]
         if T == fmpq
             @test point_matrix(v) == matrix(QQ, [2 -1; 2 1; -1 -1; -1 2; 1 2])
         else
@@ -138,9 +116,7 @@
                 @test ray_indices(facets(S, Pos)) == IncidenceMatrix([[1, 3], [2, 3], [1, 2]])
             end
             @test vertex_indices(facets(S, Pos)) == IncidenceMatrix([[1], [1], [1]])
-            @test facets(S, Pos)[1] == S([-1 0 0], 0)
-            @test facets(S, Pos)[2] == S([0 -1 0], 0)
-            @test facets(S, Pos)[3] == S([0 0 -1], 0)
+            @test facets(S, Pos) == S.([[-1 0 0], [0 -1 0], [0 0 -1]], [0])
         end
         @test facets(Pair, Pos) isa SubObjectIterator{Pair{Matrix{T}, T}}
         @test facets(Pos) isa SubObjectIterator{AffineHalfspace{T}}
@@ -154,9 +130,7 @@
         @test Oscar.affine_matrix_for_polymake(affine_hull(point)) == [0 -1 0 0; 1 0 -1 0; 0 0 0 -1]
         @test length(affine_hull(point)) == 3
         # TODO: restrict comparison to same scalar?
-        @test affine_hull(point)[1] == Hyperplane([1 0 0], 0)
-        @test affine_hull(point)[2] == Hyperplane([0 1 0], 1)
-        @test affine_hull(point)[3] == Hyperplane([0 0 1], 0)
+        @test affine_hull(point) == [Hyperplane([1 0 0], 0), Hyperplane([0 1 0], 1), Hyperplane([0 0 1], 0)]
         @test nfacets(square) == 4
         @test lineality_dim(Q0) == 0
         @test nrays(Q1) == 1
@@ -192,8 +166,8 @@
     @testset "standard_constructions" begin
         nc = normal_cone(square, 1)
         @test nc isa Cone{T}
+        @test rays(nc) == [[1, 0], [0, 1]]
         if T == fmpq
-            @test vector_matrix(rays(nc)) == matrix(QQ, [1 0; 0 1])
             @test upper_bound_f_vector(4,8) == [8, 28, 40, 20]
             @test upper_bound_g_vector(4,8) == [1, 3, 6]
             @test upper_bound_h_vector(4,8) == [1, 4, 10, 4 ,1]
@@ -215,8 +189,6 @@
             @test p isa Polyhedron{fmpq}
             @test volume(P) == 0
             @test volume(p) == 1
-        else
-            @test vector_matrix(rays(nc)) == [1 0; 0 1]
         end
         
     end

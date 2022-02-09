@@ -22,10 +22,7 @@
         end
         @test rays(NFsquare) isa SubObjectIterator{RayVector{T}}
         @test length(rays(NFsquare)) == 4
-        @test rays(NFsquare)[1] == [1, 0]
-        @test rays(NFsquare)[2] == [-1, 0]
-        @test rays(NFsquare)[3] == [0, 1]
-        @test rays(NFsquare)[4] == [0, -1]
+        @test rays(NFsquare) == [[1, 0], [-1, 0], [0, 1], [0, -1]]
         @test isregular(NFsquare)
         @test iscomplete(NFsquare)
         @test !iscomplete(F0)
@@ -46,16 +43,11 @@
             @test generator_matrix(lineality_space(F2)) == L
         end
         @test length(lineality_space(F2)) == 1
-        @test lineality_space(F2)[] == L[:]
+        @test lineality_space(F2) == [L[:]]
         @test cones(F2, 2) isa SubObjectIterator{Cone{T}}
         @test size(cones(F2, 2)) == (2,)
-        if T == fmpq
-            @test generator_matrix(lineality_space(cones(F2, 2)[1])) == matrix(QQ, [0 1 0])
-        else
-            @test generator_matrix(lineality_space(cones(F2, 2)[1])) == [0 1 0]
-        end
-        @test rays(cones(F2, 2)[1])[] == [1, 0, 0]
-        @test rays(cones(F2, 2)[2])[] == [0, 0, 1]
+        @test lineality_space(cones(F2, 2)[1]) == [[0, 1, 0]]
+        @test rays.(cones(F2, 2)) == [[1, 0, 0], [0, 0, 1]]
         @test isnothing(cones(F2, 1))
         @test ray_indices(cones(F1, 2)) == incidence1
 

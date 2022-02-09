@@ -63,7 +63,9 @@ vertices(as::Type{Union{RayVector{T}, PointVector{T}}}, PC::PolyhedralComplex) w
 
 vertices(::Type{Union{RayVector, PointVector}}, PC::PolyhedralComplex) where T<:scalar_types = vertices(Union{RayVector{T}, PointVector{T}}, PC)
 
-vertices_and_rays(PC::PolyhedralComplex) = vertices(Union{PointVector, RayVector}, PC)
+vertices_and_rays(PC::PolyhedralComplex{T}) where T<:scalar_types = vertices(Union{PointVector{T}, RayVector{T}}, PC)
+
+_vector_matrix(::Val{_vertex_or_ray_polyhedron}, PC::Polymake.BigObject; homogenized = false) = PC.VERTICES[:, (homogenized ? 1 : 2):end]
 
 vertices(::Type{PointVector}, PC::PolyhedralComplex{T}) where T<:scalar_types = vertices(PointVector{T}, PC)
 
@@ -71,7 +73,7 @@ vertices(PC::PolyhedralComplex) = vertices(PointVector, PC)
 
 rays(as::Type{RayVector{T}}, PC::PolyhedralComplex) where T<:scalar_types = SubObjectIterator{as}(pm_object(PC), _ray_polyhedral_complex, length(_ray_indices_polyhedral_complex(pm_object(PC))))
 
-rays(::Type{RayVector}, PC::PolyhedralComplex) = rays(RayVector{fmpq}, PC)
+rays(::Type{RayVector}, PC::PolyhedralComplex{T}) where T<:scalar_types = rays(RayVector{T}, PC)
 
 @doc Markdown.doc"""
     rays(PC::PolyhedralComplex)
@@ -99,6 +101,8 @@ rays(PC::PolyhedralComplex) = rays(RayVector,PC)
 _ray_indices_polyhedral_complex(PC::Polymake.BigObject) = collect(Polymake.to_one_based_indexing(PC.FAR_VERTICES))
 
 _ray_polyhedral_complex(::Type{RayVector{T}}, PC::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = RayVector{T}(PC.VERTICES[_ray_indices_polyhedral_complex(PC)[i], 2:end])
+
+_vector_matrix(::Val{_ray_polyhedral_complex}, PC::Polymake.BigObject; homogenized = false) where T<:scalar_types = PC.VERTICES[_ray_indices_polyhedral_complex(PC), (homogenized ? 1 : 2):end]
 
 _maximal_polyhedron(::Type{Polyhedron{T}}, PC::Polymake.BigObject, i::Base.Integer) where T<:scalar_types = Polyhedron{T}(Polymake.fan.polytope(PC, i-1))
 
