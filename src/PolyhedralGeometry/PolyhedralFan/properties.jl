@@ -27,7 +27,7 @@ julia> rays(NF)
  [0, 0, -1]
 ```
 """
-rays(PF::PolyhedralFan) = SubObjectIterator{RayVector{Polymake.Rational}}(pm_object(PF), _ray_fan, pm_object(PF).N_RAYS)
+rays(PF::_FanLikeType) = SubObjectIterator{RayVector{Polymake.Rational}}(pm_object(PF), _ray_fan, pm_object(PF).N_RAYS)
 
 _ray_fan(::Type{RayVector{Polymake.Rational}}, PF::Polymake.BigObject, i::Base.Integer) = RayVector(PF.RAYS[i, :])
 
@@ -59,7 +59,7 @@ julia> for c in maximal_cones(PF)
 4
 ```
 """
-maximal_cones(PF::PolyhedralFan) = SubObjectIterator{Cone}(pm_object(PF), _maximal_cone, n_maximal_cones(PF))
+maximal_cones(PF::_FanLikeType) = SubObjectIterator{Cone}(pm_object(PF), _maximal_cone, n_maximal_cones(PF))
 
 _ray_indices(::Val{_maximal_cone}, obj::Polymake.BigObject) = obj.MAXIMAL_CONES
 
@@ -89,7 +89,7 @@ julia> cones(PF, 2)
  A polyhedral cone in ambient dimension 3
 ```
 """
-function cones(PF::PolyhedralFan, cone_dim::Int)
+function cones(PF::_FanLikeType, cone_dim::Int)
     l = cone_dim  - length(lineality_space(PF))
     l < 1 && return nothing
     return SubObjectIterator{Cone}(pm_object(PF), _cone_of_dim, size(Polymake.fan.cones_of_dim(pm_object(PF), l), 1), (c_dim = l,))
@@ -126,7 +126,7 @@ julia> dim(PF)
 2
 ```
 """
-dim(PF::PolyhedralFan) = pm_object(PF).FAN_DIM
+dim(PF::_FanLikeType) = pm_object(PF).FAN_DIM
 
 @doc Markdown.doc"""
     n_maximal_cones(PF::PolyhedralFan)
@@ -143,7 +143,7 @@ julia> n_maximal_cones(PF)
 2
 ```
 """
-n_maximal_cones(PF::PolyhedralFan) = pm_object(PF).N_MAXIMAL_CONES
+n_maximal_cones(PF::_FanLikeType) = pm_object(PF).N_MAXIMAL_CONES
 
 @doc Markdown.doc"""
     ambient_dim(PF::PolyhedralFan)
@@ -161,7 +161,7 @@ julia> ambient_dim(normal_fan(cube(4)))
 4
 ```
 """
-ambient_dim(PF::PolyhedralFan) = pm_object(PF).FAN_AMBIENT_DIM
+ambient_dim(PF::_FanLikeType) = pm_object(PF).FAN_AMBIENT_DIM
 
 @doc Markdown.doc"""
     nrays(PF::PolyhedralFan)
@@ -175,7 +175,7 @@ julia> nrays(face_fan(cube(3)))
 8
 ```
 """
-nrays(PF::PolyhedralFan) = pm_object(PF).N_RAYS
+nrays(PF::_FanLikeType) = pm_object(PF).N_RAYS
 
 
 @doc Markdown.doc"""
@@ -207,7 +207,7 @@ julia> f_vector(nfc)
   8
 ```
 """
-function f_vector(PF::PolyhedralFan)
+function f_vector(PF::_FanLikeType)
     pmf = pm_object(PF)
     ldim = pmf.LINEALITY_DIM
     return vcat(fill(0,ldim),pmf.F_VECTOR)
@@ -239,7 +239,7 @@ julia> lineality_dim(nf)
 1
 ```
 """
-lineality_dim(PF::PolyhedralFan) = pm_object(PF).LINEALITY_DIM
+lineality_dim(PF::_FanLikeType) = pm_object(PF).LINEALITY_DIM
 
 ###############################################################################
 ## Points properties
@@ -264,7 +264,7 @@ julia> lineality_space(PF)
  [1, 0]
 ```
 """
-lineality_space(PF::PolyhedralFan) = SubObjectIterator{RayVector{Polymake.Rational}}(pm_object(PF), _lineality_fan, lineality_dim(PF))
+lineality_space(PF::_FanLikeType) = SubObjectIterator{RayVector{Polymake.Rational}}(pm_object(PF), _lineality_fan, lineality_dim(PF))
 
 _lineality_fan(::Type{RayVector{Polymake.Rational}}, PF::Polymake.BigObject, i::Base.Integer) = RayVector(PF.LINEALITY_SPACE[i, :])
 
@@ -299,7 +299,7 @@ julia> lineality_dim(nf)
 1
 ```
 """
-ispointed(PF::PolyhedralFan) = pm_object(PF).POINTED::Bool
+ispointed(PF::_FanLikeType) = pm_object(PF).POINTED::Bool
 
 
 @doc Markdown.doc"""
@@ -317,7 +317,7 @@ julia> issmooth(PF)
 false
 ```
 """
-issmooth(PF::PolyhedralFan) = pm_object(PF).SMOOTH_FAN::Bool
+issmooth(PF::_FanLikeType) = pm_object(PF).SMOOTH_FAN::Bool
 
 @doc Markdown.doc"""
     isregular(PF::PolyhedralFan)
@@ -333,7 +333,7 @@ julia> isregular(PF)
 false
 ```
 """
-isregular(PF::PolyhedralFan) = pm_object(PF).REGULAR::Bool
+isregular(PF::_FanLikeType) = pm_object(PF).REGULAR::Bool
 
 @doc Markdown.doc"""
     iscomplete(PF::PolyhedralFan)
@@ -348,7 +348,7 @@ julia> iscomplete(normal_fan(cube(3)))
 true
 ```
 """
-iscomplete(PF::PolyhedralFan) = pm_object(PF).COMPLETE::Bool
+iscomplete(PF::_FanLikeType) = pm_object(PF).COMPLETE::Bool
 
 
 @doc Markdown.doc"""
@@ -367,7 +367,7 @@ julia> issimplicial(face_fan(cube(3)))
 false
 ```
 """
-issimplicial(PF::PolyhedralFan) = pm_object(PF).SIMPLICIAL::Bool
+issimplicial(PF::_FanLikeType) = pm_object(PF).SIMPLICIAL::Bool
 
 
 ###############################################################################
@@ -386,7 +386,7 @@ julia> primitive_collections(normal_fan(simplex(3)))
  Set([4, 2, 3, 1])
 ```
 """
-function primitive_collections(PF::PolyhedralFan)
+function primitive_collections(PF::_FanLikeType)
     issimplicial(PF) || throw(ArgumentError("PolyhedralFan must be simplicial."))
     I = ray_indices(maximal_cones(PF))
     K = SimplicialComplex(I)
@@ -426,7 +426,7 @@ julia> ray_indices(maximal_cones(star))
 [1, 4, 5]
 ```
 """
-function starsubdivision(PF::PolyhedralFan, n::Int)
+function starsubdivision(PF::_FanLikeType, n::Int)
     # extract defining information on the fan
     maxcones = IncidenceMatrix(pm_object(PF).MAXIMAL_CONES)
     R = Polymake.common.primitive(pm_object(PF).RAYS)

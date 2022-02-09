@@ -132,7 +132,7 @@ julia> hastorusfactor(projective_space(NormalToricVariety, 2))
 false
 ```
 """
-@attr Bool hastorusfactor(v::AbstractNormalToricVariety) = Polymake.common.rank(rays(fan(v))) < ambient_dim(fan(v))
+@attr Bool hastorusfactor(v::AbstractNormalToricVariety) = Polymake.common.rank(rays(v)) < ambient_dim(v)
 export hastorusfactor
 
 
