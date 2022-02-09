@@ -1518,7 +1518,6 @@ function homogenization(f::MPolyElem, S::MPolyRing_dec, pos::Int = 1)
   B = MPolyBuildCtx(S)
   for (c,e) = zip(coefficients(f), exponent_vectors(f))
     insert!(e, pos, d-sum(e))
-    @show w
     push_term!(B, c, e)
   end
   return finish(B)
