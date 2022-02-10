@@ -255,18 +255,12 @@ end
 
 Return the full orthogonal group of this torsion quadratic module.
 """
-function orthogonal_group(T::TorQuadMod)
+@attr AutomorphismGroup function orthogonal_group(T::TorQuadMod)
   !isdegenerate(T) || error("T must be non-degenerate to compute the full orthogonal group")
-  return get_attribute!(T, :orthogonal_group) do
-    N, i = normal_form(T)
-    j = inv(i)
-    gensOT = _compute_gens(N)
-    gensOT = [hom(N, N, g) for g in gensOT]
-    if isdefined(Hecke, :pkg_version) && Hecke.pkg_version > v"0.10.28"
-      gensOT = [compose(compose(i,g),j).map_ab.map for g in gensOT]
-    else
-      gensOT = [compose(compose(j,g),i).map_ab.map for g in gensOT]
-    end
-    return _orthogonal_group(T, gensOT, check=false)
-  end
+  N, i = normal_form(T)
+  j = inv(i)
+  gensOT = _compute_gens(N)
+  gensOT = [hom(N, N, g) for g in gensOT]
+  gensOT = [compose(compose(i,g),j).map_ab.map for g in gensOT]
+  return _orthogonal_group(T, gensOT, check=false)
 end
