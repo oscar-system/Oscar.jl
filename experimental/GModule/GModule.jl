@@ -1026,13 +1026,18 @@ Note: the field is NOT extended - but it throws an error if it was too small.
 
 Implements: Brueckner, Chap 1.2.3
 """
-function reps(K, G::PcGroup)
+function reps(K, G::Oscar.GAPGroup)
+  isfinite(G) || error("the group is not finite")
   if order(G) == 1
     F = free_module(K, 1)
     h = hom(F, F, [F[1]])
     return [gmodule(F, G, typeof(h)[])]
   end
-  gG = [PcGroupElem(G, x) for x = GAP.Globals.Pcgs(G.X)]
+
+  pcgs = GAP.Globals.Pcgs(G.X)
+  pcgs == GAP.Globals.fail && error("the group is not polycyclic")
+
+  gG = [Oscar.group_element(G, x) for x = pcgs]
   s, ms = sub(G, [gG[end]])
   o = Int(order(s))
   @assert isprime(o)
@@ -1049,65 +1054,85 @@ function reps(K, G::PcGroup)
     p = Int(divexact(order(ns), order(s)))
     @assert isprime(p)
     new_R = []
+    todo = trues(length(R)) # which entries in `R` have to be handled
     #TODO: use extend below
-    for r = R
-      F = r.M
-      @assert group(r) == s
-      rh = gmodule(group(r), [action(r, preimage(ms, x^h)) for x = gens(s)])
-      @hassert :BruecknerSQ 2 Oscar.GrpCoh.isconsistent(rh)
-      l = Oscar.GModuleFromGap.hom_base(r, rh)
-      @assert length(l) <= 1
-      nr = []
-      Y = mat(action(r, preimage(ms, h^p)))
-      if length(l) == 1
-        X = l[1]
-        Xp = X^p
-        #Brueckner: C*Xp == Y for some scalar C
-        i = findfirst(x->!iszero(x), Xp)
-        @assert !iszero(Y[i])
-        C = divexact(Y[i], Xp[i])
-        @assert C*Xp == Y
-        # I think they should always be roots of one here.
-        rt = roots(C, p)
-        @assert characteristic(K) == p || length(rt) == p
-        Y = r.ac
-        for x = rt
-          nw = gmodule(F, ns,  vcat([hom(F, F, x*X)], Y))
-          @hassert :BruecknerSQ 2 Oscar.GrpCoh.isconsistent(nw)
-          push!(nr, nw)
-        end
-      else #need to extend dim
-        n = dim(r)
-        F = free_module(K, dim(r)*p)
-        z = zero_matrix(K, dim(F), dim(F))
-        z[1:n,(p-1)*n+1:end] = inv(Y)
-        #= This is wrong in Brueckner - or he's using a different
-           conjugation. Max figured out what to do: the identity block
-           needs to be lower left, and ubbber right the inverse.
-
-           He might have been doing other conjugations s.w.
-        =#   
-        for i=2:p
-          z[(i-1)*n+1:i*n, (i-2)*n+1:(i-1)*n] = identity_matrix(K, n)
-        end
-        md = [hom(F, F, z)]
-        for g = gens(s)
-          z = zero_matrix(K, dim(F), dim(F))
-          for j=1:p
-            Y = action(r, g)
-            z[(j-1)*n+1:j*n, (j-1)*n+1:j*n] = mat(Y)
-            g = preimage(ms, ms(g)^h)
+    for pos in 1:length(R)
+      if todo[pos]
+        r = R[pos]
+        F = r.M
+        @assert group(r) == s
+        rh = gmodule(group(r), [action(r, preimage(ms, x^h)) for x = gens(s)])
+        @hassert :BruecknerSQ 2 Oscar.GrpCoh.isconsistent(rh)
+        l = Oscar.GModuleFromGap.hom_base(r, rh)
+        @assert length(l) <= 1
+        Y = mat(action(r, preimage(ms, h^p)))
+        if length(l) == 1
+          # The representation extends from the subgroup,
+          # all these extensions are pairwise inequivalent.
+          X = l[1]
+          Xp = X^p
+          #Brueckner: C*Xp == Y for some scalar C
+          ii = findfirst(x->!iszero(x), Xp)
+          @assert !iszero(Y[ii])
+          C = divexact(Y[ii], Xp[ii])
+          @assert C*Xp == Y
+          # I think they should always be roots of one here.
+          rt = roots(C, p)
+          @assert characteristic(K) == p || length(rt) == p
+          Y = r.ac
+          for x = rt
+            nw = gmodule(F, ns,  vcat([hom(F, F, x*X)], Y))
+            @hassert :BruecknerSQ 2 Oscar.GrpCoh.isconsistent(nw)
+            push!(new_R, nw)
           end
-          push!(md, hom(F, F, z))
-        end
-        push!(nr, gmodule(F, ns, md))
-        @hassert :BruecknerSQ 2 Oscar.GrpCoh.isconsistent(nr[end])
-      end
-      for nw = nr
-        if any(x->length(Oscar.GModuleFromGap.hom_base(x, nw))>0, new_R)
-          continue
-        else
-          push!(new_R, nw)
+        else #need to extend dim
+          n = dim(r)
+          F = free_module(K, dim(r)*p)
+
+          # a block permutation matrix for the element `h`
+          z = zero_matrix(K, dim(F), dim(F))
+          z[1:n,(p-1)*n+1:end] = inv(Y)
+          #= This is wrong in Brueckner - or he's using a different
+             conjugation. Max figured out what to do: the identity block
+             needs to be lower left, and ubbber right the inverse.
+
+             He might have been doing other conjugations s.w.
+          =#
+          for ii=2:p
+            z[(ii-1)*n+1:ii*n, (ii-2)*n+1:(ii-1)*n] = identity_matrix(K, n)
+          end
+          md = [hom(F, F, z)]
+
+          conjreps = [eltype(md)[] for i in 1:p]
+          M = free_module(K, dim(r))
+
+          # a block diagonal matrix for each generators of `s`
+          for g = gens(s)
+            z = zero_matrix(K, dim(F), dim(F))
+            for j=1:p
+              Y = action(r, g)
+              m = mat(Y)
+              z[(j-1)*n+1:j*n, (j-1)*n+1:j*n] = m
+              push!(conjreps[j], hom(M, M, m))
+              g = preimage(ms, ms(g)^h)
+            end
+            push!(md, hom(F, F, z))
+          end
+
+          # Find the positions of the equiv. classes of the `h`-conjugate
+          # representations, we need not deal with them later on
+          for j in 2:p
+            for k in (pos+1):length(R)
+              if length(Oscar.GModuleFromGap.hom_base(
+                          gmodule(M, s, conjreps[j]), R[k])) > 0
+                todo[k] = false
+                continue
+              end
+            end
+          end
+
+          push!(new_R, gmodule(F, ns, md))
+          @hassert :BruecknerSQ 2 Oscar.GrpCoh.isconsistent(new_R[end])
         end
       end
     end
