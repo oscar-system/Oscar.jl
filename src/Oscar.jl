@@ -311,4 +311,5 @@ export ANTIC
 
 export OSCAR, oscar
 
+include("precompile_includer.jl")
 end # module
