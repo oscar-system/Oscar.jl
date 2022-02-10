@@ -517,19 +517,27 @@ function singular_assure(I::BiPolyArray)
   end
 end
 
-function singular_assure(I::MPolyIdeal, O::MonomialOrdering)
-   singular_assure(I.gens, O)
+function singular_assure(I::MPolyIdeal, ordering::MonomialOrdering)
+   singular_assure(I.gens, ordering)
 end
 
-function singular_assure(I::BiPolyArray, O::MonomialOrdering)
-   if !isdefined(I, :ord) || I.ord != O.o
-      I.ord = O.o
-      I.Sx = singular_ring(I.Ox, O.o)
-      I.S = Singular.Ideal(I.Sx, elem_type(I.Sx)[I.Sx(x) for x = I.O])
-      I.isGB = false
-   else
-      singular_assure(I)
-   end
+function singular_assure(I::BiPolyArray, ordering::MonomialOrdering)
+    if !isdefined(I, :S) 
+        I.ord = ordering.o
+        I.Sx = singular_ring(I.Ox, ordering.o)
+        I.S = Singular.Ideal(I.Sx, elem_type(I.Sx)[I.Sx(x) for x = I.O])
+        I.isGB = false
+    else
+        #= singular ideal exists, but the singular ring has the wrong ordering
+         = attached, thus we have to create a new singular ring and map the ideal. =#
+        if !isdefined(I, :ord) || I.ord != ordering.o
+            I.ord = ordering.o
+            SR    = singular_ring(I.Ox, ordering.o)
+            f     = Singular.AlgebraHomomorphism(I.Sx, SR, gens(SR))
+            I.S   = Singular.map_ideal(f, I.S)
+            I.Sx  = SR
+        end
+    end
 end 
 
 function oscar_assure(I::MPolyIdeal)
