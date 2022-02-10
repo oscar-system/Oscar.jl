@@ -64,29 +64,17 @@ export set_coefficient_ring
     coefficient_ring(v::AbstractNormalToricVariety)
 
 This method returns the coefficient_ring of the normal toric variety `v`.
-An error is triggered if it is not yet set.
+The default is the ring `QQ`.
 """
-function coefficient_ring(v::AbstractNormalToricVariety)
-    if !has_attribute(v, :coefficient_ring)
-        set_attribute!(v, :coefficient_ring, QQ)
-    end
-    return get_attribute(v, :coefficient_ring)
-end
-export coefficient_ring
+coefficient_ring(v::AbstractNormalToricVariety) = get_attribute!(v, :coefficient_ring, QQ)
 
 
 @doc Markdown.doc"""
     set_coordinate_names(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
 
-Allows to set the names of the homogeneous coordinates. If
-the Cox ring of the variety has already been computed, we do
-not allow changes of the coordinate names. In this case, an error
-is triggered.
+Allows to set the names of the homogeneous coordinates.
 """
 function set_coordinate_names(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
-    if has_attribute(v, :cox_ring)
-        error("Cox ring already constructed. Coordinate names cannot be changed anymore.")
-    end
     if length(coordinate_names) != nrays(v)
         throw(ArgumentError("The provided list of coordinate names must match the number of rays in the fan."))
     end
@@ -98,16 +86,10 @@ export set_coordinate_names
 @doc Markdown.doc"""
     coordinate_names(v::AbstractNormalToricVariety)
 
-This method returns the names of the homogeneous coordinates of
-the normal toric variety `v`. If they are not yet set an error is returned.
+This method returns the names of the homogeneous coordinates of 
+the normal toric variety `v`. The default is `x1,...,xn`.
 """
-function coordinate_names(v::AbstractNormalToricVariety)
-    if !has_attribute(v, :coordinate_names)
-        set_attribute!(v, :coordinate_names, ["x" * string(i) for i in 1:rank(torusinvariant_divisor_group(v))])
-    end
-    return get_attribute(v, :coordinate_names)
-end
-export coordinate_names
+coordinate_names(v::AbstractNormalToricVariety) = get_attribute!(v, :coordinate_names, ["x$(i)" for i in 1:rank(torusinvariant_divisor_group(v))])
 
 
 function _cox_ring_weights(v::AbstractNormalToricVariety)
