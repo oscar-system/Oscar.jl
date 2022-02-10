@@ -184,12 +184,12 @@
             b2 = birkhoff(3, even = true)
             @test nvertices(pyramid(b1)) + 1 == nvertices(bipyramid(b1))
             @test nvertices(b1) == nvertices(b2) * 2
-            P = gelfand_tsetlin([3,2,1])
-            p = project_full(P)
-            @test p isa Polyhedron{fmpq}
-            @test volume(P) == 0
-            @test volume(p) == 1
         end
+        P = gelfand_tsetlin([3,2,1]; scalar_type = T)
+        p = project_full(P)
+        @test p isa Polyhedron{T}
+        @test volume(P) == 0
+        @test volume(p) == 1
         
     end
 

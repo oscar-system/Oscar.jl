@@ -47,7 +47,7 @@ function Cone{T}(R::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, Abstrac
     end
 end
 
-function ==(C0::Cone, C1::Cone)
+function ==(C0::Cone{T}, C1::Cone{T}) where T<:scalar_types
     # TODO: Remove the following 3 lines, see #758
     for pair in Iterators.product([C0, C1], ["RAYS", "FACETS"])
         Polymake.give(pm_object(pair[1]),pair[2])

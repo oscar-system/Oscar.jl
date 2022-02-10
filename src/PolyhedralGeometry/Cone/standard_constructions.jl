@@ -26,8 +26,8 @@ julia> dim(C01)
 0
 ```
 """
-function intersect(C0::Cone, C1::Cone)
-   return Cone(Polymake.polytope.intersection(pm_object(C0), pm_object(C1)))
+function intersect(C0::Cone{T}, C1::Cone{T}) where T<:scalar_types
+   return Cone{T}(Polymake.polytope.intersection(pm_object(C0), pm_object(C1)))
 end
 
 
@@ -51,6 +51,6 @@ julia> rays(Cv)
  [0, 1]
 ```
 """
-function polarize(C::Cone)
-    return Cone(Polymake.polytope.polarize(pm_object(C)))
+function polarize(C::Cone{T}) where T<:scalar_types
+    return Cone{T}(Polymake.polytope.polarize(pm_object(C)))
 end

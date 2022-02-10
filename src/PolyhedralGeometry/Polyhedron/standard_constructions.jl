@@ -172,7 +172,7 @@ function orbit_polytope(V::AbstractMatrix, G::PermGroup)
    generators = PermGroup_to_polymake_array(G)
    pmGroup = Polymake.group.PermutationAction(GENERATORS=generators)
    pmPolytope = Polymake.polytope.orbit_polytope(homogenize(V,1), pmGroup)
-   return Polyhedron(pmPolytope)
+   return Polyhedron{fmpq}(pmPolytope)
 end
 function orbit_polytope(V::AbstractVector, G::PermGroup)
    return orbit_polytope(Matrix(reshape(V,(1,length(V)))), G)
@@ -252,8 +252,8 @@ julia> rays(PO)
  [0, 1]
 ```
 """
-function intersect(P::Polyhedron, Q::Polyhedron)
-   return Polyhedron(Polymake.polytope.intersection(pm_object(P), pm_object(Q)))
+function intersect(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types
+   return Polyhedron{T}(Polymake.polytope.intersection(pm_object(P), pm_object(Q)))
 end
 
 
@@ -277,11 +277,11 @@ julia> nvertices(M)
 8
 ```
 """
-function minkowski_sum(P::Polyhedron, Q::Polyhedron; algorithm::Symbol=:standard)
+function minkowski_sum(P::Polyhedron{T}, Q::Polyhedron{T}; algorithm::Symbol=:standard) where T<:scalar_types
    if algorithm == :standard
-      return Polyhedron(Polymake.polytope.minkowski_sum(pm_object(P), pm_object(Q)))
+      return Polyhedron{T}(Polymake.polytope.minkowski_sum(pm_object(P), pm_object(Q)))
    elseif algorithm == :fukuda
-      return Polyhedron(Polymake.polytope.minkowski_sum_fukuda(pm_object(P), pm_object(Q)))
+      return Polyhedron{T}(Polymake.polytope.minkowski_sum_fukuda(pm_object(P), pm_object(Q)))
    else
       throw(ArgumentError("Unknown minkowski sum `algorithm` argument: $algorithm"))
    end
@@ -309,7 +309,7 @@ julia> length(vertices(product(T,S)))
 6
 ```
 """
-product(P::Polyhedron, Q::Polyhedron) = Polyhedron(Polymake.polytope.product(pm_object(P), pm_object(Q)))
+product(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.product(pm_object(P), pm_object(Q)))
 
 @doc Markdown.doc"""
     *(P::Polyhedron, Q::Polyhedron)
@@ -329,7 +329,7 @@ julia> length(vertices(T*S))
 6
 ```
 """
-*(P::Polyhedron, Q::Polyhedron) = product(P,Q)
+*(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types = product(P,Q)
 
 @doc Markdown.doc"""
     convex_hull(P::Polyhedron, Q::Polyhedron)
@@ -353,7 +353,7 @@ julia> f_vector(T)
  4
 ```
 """
-convex_hull(P::Polyhedron,Q::Polyhedron) = Polyhedron(Polymake.polytope.conv(pm_object(P),pm_object(Q)))
+convex_hull(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.conv(pm_object(P),pm_object(Q)))
 
 
 
@@ -379,7 +379,7 @@ julia> nvertices(M)
 8
 ```
 """
-+(P::Polyhedron, Q::Polyhedron) = minkowski_sum(P,Q)
++(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types = minkowski_sum(P,Q)
 
 
 #TODO: extend to different fields
@@ -405,7 +405,7 @@ julia> volume(SC)//volume(C)
 64
 ```
 """
-*(k::Int, P::Polyhedron) = Polyhedron(Polymake.polytope.scale(pm_object(P),k))
+*(k::Int, P::Polyhedron{T}) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.scale(pm_object(P),k))
 
 
 @doc Markdown.doc"""
@@ -429,7 +429,7 @@ julia> volume(SC)//volume(C)
 64
 ```
 """
-*(P::Polyhedron,k::Int) = k*P
+*(P::Polyhedron{T},k::Int) where T<:scalar_types = k*P
 
 
 @doc Markdown.doc"""
@@ -493,7 +493,7 @@ julia> vertices(S)
  [0, 0, 1]
 ```
 """
-+(v::AbstractVector,P::Polyhedron) = P+v
++(v::AbstractVector,P::Polyhedron{T}) where T<:scalar_types = P+v
 
 @doc Markdown.doc"""
 
@@ -868,4 +868,4 @@ julia> volume(p)
 3
 ```
 """
-gelfand_tsetlin(lambda::AbstractVector) = Polyhedron(Polymake.polytope.gelfand_tsetlin(Vector{Rational}(lambda),projected=false))
+gelfand_tsetlin(lambda::AbstractVector; scalar_type::Type{<:scalar_types} = fmpq) = Polyhedron{scalar_type}(Polymake.polytope.gelfand_tsetlin(Polymake.Vector{scalar_type_to_polymake[scalar_type]}(lambda),projected=false))
