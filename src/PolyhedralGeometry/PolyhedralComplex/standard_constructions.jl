@@ -1,5 +1,5 @@
 @doc Markdown.doc"""
-    common_refinement(PC::PolyhedralComplex,PC::PolyhedralComplex)
+    common_refinement(PC1::PolyhedralComplex{T},PC2::PolyhedralComplex{T}) where T<:scalar_types
 
 Return the common refinement of two polyhedral complexes. 
 
@@ -32,7 +32,7 @@ julia> common_refinement(PC1,PC2)
 A polyhedral complex in ambient dimension 2 with fmpq type coefficients
 ```
 """
-function common_refinement(PC1::PolyhedralComplex{T},PC2::PolyhedralComplex{T})  where T<:scalar_types
+function common_refinement(PC1::PolyhedralComplex{T},PC2::PolyhedralComplex{T}) where T<:scalar_types
     pm_PC1 = pm_object(PC1)
     pm_PC2 = pm_object(PC2)
     result = Polymake.fan.PolyhedralComplex(Polymake.fan.common_refinement(pm_PC1,pm_PC2))

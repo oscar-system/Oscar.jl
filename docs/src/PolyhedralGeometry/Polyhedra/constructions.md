@@ -122,17 +122,17 @@ they can be added using Minkowski addition or scaled; each of which results in
 a new polyhedron.
 
 ```@docs
-+(::Polyhedron, ::Polyhedron)
-*(::Int, ::Polyhedron)
-*(::Polyhedron, ::Polyhedron)
++(::Polyhedron{T}, ::Polyhedron{T}) where T<:scalar_types
+*(::Int, ::Polyhedron{T}) where T<:scalar_types
+*(::Polyhedron{T}, ::Polyhedron{T})  where T<:scalar_types
 bipyramid
-intersect(::Polyhedron, ::Polyhedron)
+intersect(::Polyhedron{T}, ::Polyhedron{T}) where T<:scalar_types
 pyramid
 ```
 
 The convex hull of two polytopes can be computed via `convex_hull`.
 ```@docs
-convex_hull(::Polyhedron,::Polyhedron)
+convex_hull(::Polyhedron{T},::Polyhedron{T}) where T<:scalar_types
 ```
 
 ## Polyhedra from other mathematical objects

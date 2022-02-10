@@ -63,8 +63,8 @@ f_vector(C::Cone)
 hilbert_basis(C::Cone)
 codim(C::Cone)
 dim(C::Cone)
-polarize(C::Cone)
-intersect(C0::Cone, C1::Cone)
+polarize(C::Cone{T}) where T<:scalar_types
+intersect(C0::Cone{T}, C1::Cone{T}) where T<:scalar_types
 ispointed(C::Cone)
 isfulldimensional(C::Cone)
 lineality_dim(C::Cone)

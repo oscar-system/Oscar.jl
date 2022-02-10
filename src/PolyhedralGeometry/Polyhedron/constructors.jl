@@ -6,7 +6,7 @@
 
 @doc Markdown.doc"""
 
-    Polyhedron(P::Polymake.BigObject)
+    Polyhedron{T}(P::Polymake.BigObject) where T<:scalar_types
 
 Construct a `Polyhedron` corresponding to a `Polymake.BigObject` of type `Polytope`.
 """
@@ -16,7 +16,7 @@ end
 
 @doc Markdown.doc"""
 
-    Polyhedron(A::Union{Oscar.MatElem,AbstractMatrix}, b)
+    Polyhedron{T}(A::Union{Oscar.MatElem,AbstractMatrix}, b) where T<:scalar_types
 
 The (convex) polyhedron defined by
 
@@ -80,7 +80,7 @@ end
 
 ### Construct polyhedron from V-data, as the convex hull of points, rays and lineality.
 @doc Markdown.doc"""
-    convex_hull(V [, R [, L]]; non_redundant::Bool = false)
+    convex_hull(V [, R [, L]]; non_redundant::Bool = false, scalar_type::Type{<:scalar_types} = fmpq)
 
 Construct the convex hull of the vertices `V`, rays `R`, and lineality `L`. If
 `R` or `L` are omitted, then they are assumed to be zero.

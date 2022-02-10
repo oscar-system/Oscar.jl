@@ -8,7 +8,7 @@ pm_object(pc::PolyhedralComplex) = pc.pm_complex
 
 
 @doc Markdown.doc"""
-    PolyhedralComplex(polyhedra, vr, far_vertices, L)
+    PolyhedralComplex{T}(polyhedra, vr, far_vertices, L) where T<:scalar_types
 
 # Arguments
 - `polyhedra::IncidenceMatrix`: An incidence matrix; there is a 1 at position
@@ -69,6 +69,7 @@ function PolyhedralComplex{T}(
 end
 
 # TODO: Only works for this specific case; implement generalization using `iter.Acc`
+# Fallback like: PolyhedralFan(itr::AbstractVector{Cone{T}}) where T<:scalar_types
 # This makes sure that PolyhedralComplex(maximal_polyhedra(PC)) returns an Oscar PolyhedralComplex,
 PolyhedralComplex(iter::SubObjectIterator{Polyhedron{T}}) where T<:scalar_types = PolyhedralComplex{T}(iter.Obj)
 

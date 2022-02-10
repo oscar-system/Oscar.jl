@@ -4,7 +4,7 @@
 ###############################################################################
 ###############################################################################
 @doc Markdown.doc"""
-    intersect(C0::Cone, C1::Cone)
+    intersect(C0::Cone{T}, C1::Cone{T}) where T<:scalar_types
 
 Return the intersection $C0 \cap C1$ of `C0` and `C1`.
 

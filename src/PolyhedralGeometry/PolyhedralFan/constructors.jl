@@ -5,7 +5,7 @@
 ###############################################################################
 
 @doc Markdown.doc"""
-    PolyhedralFan(Rays, Cones)
+    PolyhedralFan{T}(Rays, Cones) where T<:scalar_types
 
 # Arguments
 - `R::Matrix`: Rays generating the cones of the fan; encoded row-wise as representative vectors.

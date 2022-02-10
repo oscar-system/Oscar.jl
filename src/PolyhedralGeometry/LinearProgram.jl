@@ -122,8 +122,10 @@ where P is a Polyhedron{fmpq} and
    k=0
 
 julia> optimal_vertex(LP)
-pm::Vector<pm::Rational>
-1 1 -1
+3-element PointVector{fmpq}:
+ 1
+ 1
+ -1
 ```
 """
 function optimal_vertex(lp::LinearProgram{T}) where T<:scalar_types

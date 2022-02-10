@@ -8,7 +8,7 @@
 #interior description?
 
 @doc Markdown.doc"""
-    Cone(R::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator} [, L::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator}])
+    Cone{T}(R::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator} [, L::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator}]) where T<:scalar_types
 
 A polyhedral cone, not necessarily pointed, defined by the positive hull of the
 rays `R`, with lineality given by `L`.
@@ -57,7 +57,7 @@ end
 
 
 @doc Markdown.doc"""
-    positive_hull(R::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator})
+    positive_hull(R::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator}; scalar_type::Type{<:scalar_types} = fmpq)
 
 A polyhedral cone, not necessarily pointed, defined by the positive hull of the
 rows of the matrix `R`. This means the cone consists of all positive linear
@@ -82,7 +82,7 @@ end
 
 @doc Markdown.doc"""
 
-    cone_from_inequalities(I::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator} [, E::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator}]; non_redundant::Bool = false)
+    cone_from_inequalities(I::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator} [, E::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator}]; non_redundant::Bool = false, scalar_type::Type{<:scalar_types} = fmpq)
 
 The (convex) cone defined by
 
