@@ -365,6 +365,7 @@ function restrict(
     f::StructureSheafElem, 
     V::Spec
   )
+  isempty(V) && return zero(OO(V))
   for i in 1:length(restrictions(f))
     if V == affine_patches(domain(f))[i]
       return restrictions(f)[i]
@@ -559,7 +560,7 @@ function compose(f::T, g::T) where {T<:SpecOpenMor}
   #####################################################################
   m = length(gens(U))
   n = length(gens(V))
-  result_maps = Vector{typeof(f_maps[1])}()
+  result_maps = Vector{morphism_type(X, Y)}()
   for i in 1:m
     U_i = affine_patches(U)[i]
     f_i = f_maps[i]
@@ -592,7 +593,7 @@ function pullback(f::SpecOpenMor, a::RET) where {RET<:RingElem}
   Y = ambient(V)
   R = base_ring(OO(Y))
   parent(a) == R || error("element does not belong to the correct ring")
-  pb_a = [pullback(f[i])(a) for i in 1:npatches(U)]
+  pb_a = elem_type(OO(X))[pullback(f[i])(a) for i in 1:npatches(U)]
   return StructureSheafElem(U, pb_a)
 end
 
@@ -713,8 +714,11 @@ end
 function find_non_zero_divisor(U::SpecOpen)
   n = length(gens(U))
   X = ambient(U)
-  kk = coefficient_ring(base_ring(OO(X)))
-  d = dot([rand(kk, 0:100) for i in 1:n], gens(U))
+  R = base_ring(OO(X))
+  n == 0 && return zero(R)
+  kk = coefficient_ring(R)
+  coeff = elem_type(kk)[rand(kk, 0:100) for i in 1:n]
+  d = sum([coeff[i]*gens(U)[i] for i in 1:n])
   while !is_non_zero_divisor(d, U)
     d = dot([rand(kk, 0:100) for i in 1:n], gens(U))
   end

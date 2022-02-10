@@ -131,6 +131,35 @@ function IdealSheaf(X::CoveredScheme, C::Covering, g::Vector{RET}) where {RET<:M
   error("the given set of generators could not be associated to an affine patch of the scheme")
 end
 
+@Markdown.doc """
+    simplify!(I::IdealSheaf)
+
+Replaces the set of generators of the ideal sheaf by a minimal 
+set of random linear combinations in every affine patch. 
+"""
+function simplify!(I::IdealSheaf)
+  for U in patches(covering(I))
+    n = length(I[U]) 
+    n == 0 && continue
+    J = ideal(OO(U), I[U])
+    R = base_ring(OO(U))
+    kk = coefficient_ring(R)
+    new_gens = elem_type(base_ring(OO(U)))[]
+    K = ideal(OO(U), new_gens) 
+    while !issubset(J, K)
+      new_gen = dot([rand(kk, 1:100) for i in 1:n], I[U])
+      while new_gen in K
+        new_gen = dot([rand(kk, 1:100) for i in 1:n], I[U])
+      end
+      push!(new_gens, new_gen)
+      K = ideal(OO(U), new_gens)
+    end
+    I[U] = new_gens
+  end
+  return I
+end
+
+
 
 
 ### Given an ideal sheaf I, return the associated 
