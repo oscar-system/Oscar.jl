@@ -213,13 +213,60 @@ function secondary_invariants_modular(RG::InvRing)
   for d = 1:sum( total_degree(f) - 1 for f in p_invars )
     Md = generators_for_given_degree!(C, s_invars, d, false)[1]
 
-    B = BasisOfPolynomials(R, Md)
+    # We have to find invariants of degree d which are not in the linear span of Md.
+    # We could call iterate_basis(RG, d) and reduce any element by the basis matrix
+    # of Md, but we can do a little bit better.
 
-    for f in iterate_basis(RG, d)
-      f = f.f
-      if add_to_basis!(B, f)
-        push!(s_invars, f)
+    # Build the basis matrix of Md compatible with Bd
+    Bd = iterate_basis_linear_algebra(RG, d)
+    mons_to_rows = Dict{elem_type(R), Int}(Bd.monomials_collected[i].f => i for i = 1:length(Bd.monomials_collected))
+    B = zero_matrix(K, length(Md), length(Bd.monomials_collected))
+    ncB1 = ncols(B) + 1
+    for i = 1:length(Md)
+      for (a, m) in zip(coefficients(Md[i]), monomials(Md[i]))
+        # Need to reverse the columns of B, see below
+        B[i, ncB1 - mons_to_rows[m]] = deepcopy(a)
       end
+    end
+    rref!(B)
+    N = Bd.kernel
+
+    # Now find all columns of N which are not in the span of B.
+    # (The rows of B must span a subspace of the columns of N.)
+    # B is in upper-right reduced row echelon form, N in upper-right reduced
+    # column echelon form and column i of B corresponds to row nrows(N) - i + 1
+    # of N in terms of basis elements since we reversed the columns of B.
+    # We iterate N from the bottom right corner and B from the top left.
+
+    c = ncols(N)
+    b = 1
+    for r = nrows(N):-1:1
+      if c < 1
+        break
+      end
+      if iszero(N[r, c])
+        continue
+      end
+      # N[r, c] is a pivot of N
+
+      if b <= nrows(B) && !iszero(B[b, ncB1 - r])
+        # B has also has a pivot at the corresponding position, so we can skip
+        # this column of N.
+        c -= 1
+        b += 1
+        continue
+      end
+
+      f = R()
+      for j = 1:nrows(N)
+        if iszero(N[j, c])
+          continue
+        end
+        f += N[j, c]*Bd.monomials_collected[j].f
+      end
+      push!(s_invars, inv(leading_coefficient(f))*f)
+
+      c -= 1
     end
   end
   return [ Rgraded(f) for f in s_invars ]
