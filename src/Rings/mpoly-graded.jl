@@ -1741,14 +1741,17 @@ function homogenization(I::MPolyIdeal{T}, var::String, pos::Int = 1; ordering::S
   return ideal(homogenization(groebner_basis(I, ordering=ordering), var, pos))
 end
 
-###function dehomogenization(F::MPolyElem_dec, R::MPolyRing, pos::Int)
-###  B = MPolyBuildCtx(R)
-###  for (c,e) = zip(coefficients(F), exponent_vectors(F))
-###    deleteat!(e, pos)
-###    push_term!(B, c, e)
-###  end
-###  return finish(B)
-###end
+### needed for: PlaneCurve-test.jl, ProjPlaneCurve.jl
+function dehomogenization(F::MPolyElem_dec, R::MPolyRing, pos::Int)
+  B = MPolyBuildCtx(R)
+  for (c,e) = zip(coefficients(F), exponent_vectors(F))
+    deleteat!(e, pos)
+    push_term!(B, c, e)
+  end
+  return finish(B)
+end
+
+
 
 function _dehomogenization(F::MPolyElem_dec, R::MPolyRing, pos::Int, m::Int)
   B = MPolyBuildCtx(R)
