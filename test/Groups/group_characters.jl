@@ -380,10 +380,24 @@ end
 
   scp = scalar_product(t[1], t[1])
   @test scp == 1
-  @test scp isa fmpz
+  @test scp isa fmpq
+  for T in [fmpz, fmpq, Int64, QabElem]
+    scpT = scalar_product(T, t[1],t[1])
+    @test scpT == scp
+    @test scpT isa T
+  end
   scp = scalar_product(t[1], t[2])
   @test scp == 0
-  @test scp isa fmpz
+  @test scp isa fmpq
+
+  # conjugate characters
+  h = pcore(g, 2)[1]
+  th = character_table(h)
+  chi = th[2]
+  ggens = gens(g)
+  x = ggens[1]*ggens[2]
+  psi = chi^x
+  @test all(y -> chi(x*y*x^-1) == psi(y), collect(h))
 
   # a corresponding Brauer table (possible because the group is solvable)
   tmod2 = mod(t, 2);
@@ -405,6 +419,36 @@ end
   g = symmetric_group(5)
   t = character_table(g)
   @test mod(t, 2) == nothing
+
+  g = general_linear_group(2, 3)
+  h = derived_subgroup(g)[1]
+  p = 2
+  t = mod(character_table(h), p)
+  chi = t[2]
+  x = gen(g, 1)
+  @test ! (x in h)
+  psi = chi^x
+  @test all(y -> mod(order(y), p) == 0 || chi(x*y*x^-1) == psi(y), collect(h))
+end
+
+@testset "Galois conjugacy of characters" begin
+  g = alternating_group(4)
+  t = character_table(g)
+  @test all(x -> conj(x) == QabAutomorphism(5)(x), t)
+  @test all(x -> x == QabAutomorphism(4)(x), t)
+end
+
+@testset "induction of characters" begin
+  g = symmetric_group(4)
+  t = character_table(g)
+  indcyc = induced_cyclic(t)
+  @test sort!([degree(chi) for chi in indcyc]) == [6, 8, 12, 12, 24]
+  @test all(x -> scalar_product(trivial_character(t), x) == 1, indcyc)
+
+  h = derived_subgroup(g)[1]
+  ind = [chi^t for chi in character_table(h)]
+  @test sort!([degree(chi) for chi in ind]) == [2, 2, 2, 6]
+  @test [scalar_product(trivial_character(t), x) for x in ind] == [1, 0, 0, 0]
 end
 
 @testset "natural characters" begin
