@@ -31,7 +31,7 @@ function groebner_polyhedron(I::MPolyIdeal, val::ValuationMap, w::Vector; pertub
   if skip_groebner_basis_computation
     GB = interreduce_tropically(gens(I),val,w,pertubation=pertubation)
   else
-    GB = interreduce_groebner_basis(groebner_basis(I,val,w,pertubation=pertubation),val,w,pertubation=pertubation)
+    GB = interreduce_tropically(groebner_basis(I,val,w,pertubation=pertubation),val,w,pertubation=pertubation)
   end
 
   return groebner_polyhedron(GB,initial(GB,val,w,pertubation=pertubation),val)

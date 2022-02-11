@@ -33,8 +33,13 @@ function groebner_flip(I::MPolyIdeal,val::ValuationMap,w::Vector,u::Vector)
   sinI = Singular.Ideal(s, [evaluate(g,gens(s)) for g in gens(rinI)])
   sinJ = Singular.std(sinI) # todo: this GB should be fast, as sinI is homogeneous and contains the uniformizer, check that this is indeed so
 
+  println(sinJ)
   rinJ = Singular.Ideal(r, [evaluate(g,gens(r)) for g in gens(sinJ)])
+  println("asdf")
+  println(rinJ)
+  println(rI)
   rJ = Singular.reduce(rinJ,rI)
+  println("qwer")
 
   sJ = Singular.Ideal(s, [evaluate(g,gens(s)) for g in gens(rJ)])
   vvJ = ideal(Rtx,Singular.gens(sJ))

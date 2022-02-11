@@ -190,7 +190,7 @@ function interreduce_tropically(G::Vector{<:MPolyElem}, val::ValuationMap, w::Ve
   ###
   # Step 0: simulate valuation and change coefficient ring to valued field
   ###
-  vG = simulate_valuation(G,val)
+  vG = simulate_valuation(G,val,coefficient_field=true)
   vw = simulate_valuation(w,val)
   Rtx = parent(vG[1])
   S,_ = Singular.PolynomialRing(singular_ring(val.valued_field),
@@ -246,7 +246,7 @@ function interreduce_tropically(G::Vector{<:MPolyElem}, val::ValuationMap, w::Ve
       end
     end
 
-    # save slice
+    # overwrite old slice with the new reduced slice
     sG_slices[d] = H
   end
 
@@ -254,11 +254,31 @@ function interreduce_tropically(G::Vector{<:MPolyElem}, val::ValuationMap, w::Ve
   ###
   # Step 3: reduce each slice by its predecessors
   ###
+  for (d,H) in enumerate(sG_slices)
+    # save the length of H
+    # as H increases in size, the first k elements will always be its original elements
+    k = length(H)
 
+    for h in H
+    end
+    # H
+    # for
+    # end
+
+    # overwrite old slice with the first k entries of H
+    sG_slices[d] = H[1:k]
+  end
   # todo: Step 3
 
   Singular.libSingular.set_option("OPT_INFREDTAIL", false)
-  return append!(sG_slice0,collect(Iterators.flatten(sG_slices)))
+
+
+  ###
+  # Step 4: return reduced GB
+  ###
+  sG = append!(sG_slice0,collect(Iterators.flatten(sG_slices)))
+  vG = [Rtx(sg) for sg in sG] # problem: sg lives over Q(t), Rtx lives over Q[t]
+  return desimulate_valuation(vG,val)
 
   ###
   # Step 3: if complete_reduction = true and val is non-trivial,

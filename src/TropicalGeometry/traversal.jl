@@ -15,11 +15,12 @@ tropical variety of an ideal
 todo: proper documentation
 Example:
 import Random
-Random.seed!(13371337)
-K,s = RationalFunctionField(QQ,"s")
-Kx,(x1,x2,x3,x4) = PolynomialRing(K,4)
-val = ValuationMap(K,s)
-I = ideal([x1-s*x2+(s+1)*x3,3*x2-s^2*x3+(s^2+1)*x4])
+K,s = RationalFunctionField(QQ,"s");
+Kx,(x1,x2,x3,x4) = PolynomialRing(K,4);
+val = ValuationMap(K,s);
+I = ideal([x1-s*x2+(s+1)*x3,3*x2-s^2*x3+(s^2+1)*x4]);
+Random.seed!(13371337);
+tropical_variety(I,val)
 =======#
 function tropical_variety(I::MPolyIdeal, val::ValuationMap)
   print("computing starting points... ")
@@ -41,13 +42,14 @@ function tropical_variety(I::MPolyIdeal, val::ValuationMap)
     println("length(groebner_polyhedra_done): ",length(groebner_polyhedra_done))
 
     (w,C,G) = popfirst!(groebner_polyhedra_todo)
-
     facet_points_to_traverse = facet_points(C)
+    println("facet_points_to_traverse:")
+    println(facet_points_to_traverse)
     for facet_point in facet_points_to_traverse
 
       # skip facet_point if it lies in links_done
       index = searchsortedfirst(links_done,facet_point)
-      if links_done[index]==facet_point # todo: is facet_point the sum of the vertices?
+      if index<=length(links_done) && links_done[index]==facet_point # todo: is facet_point the sum of the vertices?
         continue
       end
       # add facet_point to links_done
@@ -55,21 +57,26 @@ function tropical_variety(I::MPolyIdeal, val::ValuationMap)
 
       # compute tropical link
       facet_link = tropical_link(ideal(G),val,facet_point)
+      println("facet_link:")
+      println(facet_link)
       for u in facet_link
         # compute neighboring data
+        println("groebner_flip")
         G_neighbor = groebner_flip(ideal(G),val,facet_point,u)
+        println("groebner_polyhedron")
         C_neighbor = groebner_polyhedron(I,val,starting_point) # todo: this computes an unnecessary GB
+        println("summing vertices")
         w_neighbor = convert(Vector{fmpq},sum(vertices(C)))
 
         # if neighboring polyhedra is in done list, skip
         index = searchsortedfirst(groebner_polyhedra_done,w_neighbor,by=x->x[1]t)
-        if groebner_polyhedra_done[index][1]==w_neighbor
+        if index<=length(groebner_polyhedra_done) && groebner_polyhedra_done[index][1]==w_neighbor
           continue
         end
 
         # if neighboring polyhedra is in todo list, skip
-        index = searchsortedfirst(groebner_polyhedra_done,w_neighbor,by=x->x[1]t)
-        if groebner_polyhedra_done[index][1]==w_neighbor
+        index = searchsortedfirst(groebner_polyhedra_todo,w_neighbor,by=x->x[1]t)
+        if index<=length(links_todo) && groebner_polyhedra_todo[index][1]==w_neighbor
           continue
         end
         # otherwise, add data to todo list
@@ -92,7 +99,9 @@ facet_points(P)
 function facet_points(P::Polyhedron)
   points = []
   for facet in faces(P,dim(P)-1)
-    push!(points,convert(Vector{fmpq},relative_interior_point(facet)))
+    if length(vertices(facet))>0 # skipping fake facets
+      push!(points,convert(Vector{fmpq},relative_interior_point(facet)))
+    end
   end
   return points
 end

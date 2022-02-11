@@ -193,10 +193,10 @@ Kx,(x,y,z) = PolynomialRing(QQ,3)
 I = ideal([x+2*y,y+2*z])
 simulate_valuation(I,val_2)
 =======#
-function simulate_valuation(I::MPolyIdeal, val::ValuationMap)
-  return ideal(simulate_valuation(gens(I),val))
+function simulate_valuation(I::MPolyIdeal, val::ValuationMap; coefficient_field::Bool=false)
+  return ideal(simulate_valuation(gens(I),val,coefficient_field=coefficient_field))
 end
-function simulate_valuation(G::Vector{<:MPolyElem}, val::ValuationMap)
+function simulate_valuation(G::Vector{<:MPolyElem}, val::ValuationMap; coefficient_field::Bool=false)
 
   # if the valuation is trivial, then nothing needs to be done
   if is_valuation_trivial(val)
@@ -206,7 +206,11 @@ function simulate_valuation(G::Vector{<:MPolyElem}, val::ValuationMap)
     error("input vector of polynomials empty, thus ambient polynomial ring unknown")
   end
 
-  R = val.valued_ring
+  if coefficient_field
+    R = val.valued_field
+  else
+    R = val.valued_ring
+  end
   t = val.uniformizer_symbol
 
   Rtx,tx = PolynomialRing(R,vcat([t],symbols(parent(G[1]))))
@@ -267,12 +271,13 @@ vvI = simulate_valuation(I,val_s)
 desimulate_valuation(vvI,val_s)
 =======#
 function desimulate_valuation(vvI::MPolyIdeal,val::ValuationMap)
-  return ideal([g for g in desimulate_valuation(gens(vvI),val) if !iszero(g)])
+  return ideal(desimulate_valuation(gens(vvI),val))
 end
 export desimulate_valuation
 
 function desimulate_valuation(vvG::Vector{<:MPolyElem}, val::ValuationMap)
-  return [desimulate_valuation(vvg,val) for vvg in vvG]
+  G = [desimulate_valuation(vvg,val) for vvg in vvG]
+  return [g for g in G if !iszero(g)]
 end
 
 function desimulate_valuation(vvg::MPolyElem, val::ValuationMap)
@@ -283,6 +288,7 @@ function desimulate_valuation(vvg::MPolyElem, val::ValuationMap)
 
   K = val.valued_field
   Kx,_ = PolynomialRing(K,x)
+
 
   vvg = evaluate(vvg,[1],[val.uniformizer_ring])
   if iszero(vvg) # vvg may be p-t
@@ -352,13 +358,14 @@ function tighten_simulation(f::MPolyElem,val::ValuationMap)
 
   # subsitute first variable by uniformizer_ring so that all monomials have distinct x-monomials
   # and compute the gcd of its coefficients
+  # note: if the coefficient ring is a field, gcd will always be 1
   f = evaluate(f,[1],[p]) # todo: sanity check that f is not 0
-  cGcd = val.valued_field(gcd([c for c in coefficients(f)]))
+  cGcd = val.valued_field(gcd(collect(coefficients(f))))
 
   # next divide f by the gcd of its coefficients
   # and replace uniformizer_ring by first variable
   K = val.valued_field
-  R = val.valued_ring
+  R = coefficient_ring(Rtx)
   p = val.uniformizer_field
   f_tightened = MPolyBuildCtx(Rtx)
   for (c,alpha) in zip(coefficients(f),exponent_vectors(f))
