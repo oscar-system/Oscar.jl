@@ -19,6 +19,7 @@ import Base:
     *,
     ^,
     ==,
+    conj,
     convert,
     eltype,
     exponent,

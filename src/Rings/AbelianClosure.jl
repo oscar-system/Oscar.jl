@@ -590,6 +590,8 @@ function ^(val::QabElem, sigma::QabAutomorphism)
   return QabElem(F(R(res)), n)
 end
 
+Base.conj(elm::QabElem) = elm^QabAutomorphism(-1)
+
 ###############################################################################
 #
 #   Elements in quadratic subfields of cyclotomic fields
