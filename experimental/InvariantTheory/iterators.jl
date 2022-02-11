@@ -322,7 +322,7 @@ function iterate_reynolds(BI::InvRingBasisIterator)
       continue
     end
     g = inv(leading_coefficient(g))*g
-    B = BasisOfPolynomials(polynomial_ring(BI.R), [ g ], BI.dim)
+    B = BasisOfPolynomials(polynomial_ring(BI.R), [ g ])
     return g, (B, state)
   end
 end
@@ -332,7 +332,7 @@ function iterate_reynolds(BI::InvRingBasisIterator, state)
 
   B = state[1]
   monomial_state = state[2]
-  if B.r == BI.dim
+  if nrows(B.M) == BI.dim
     return nothing
   end
 

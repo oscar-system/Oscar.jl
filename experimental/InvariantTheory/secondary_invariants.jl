@@ -160,34 +160,27 @@ function generators_for_given_degree!(C::PowerProductCache{S, T}, module_gens::V
 end
 
 # Adds f to the span of the polynomials in BasisOfPolynomials.
-# Returns true iff the rank of the span increased, i.e. if f were not an element
+# Returns true iff the rank of the span increased, i.e. if f was not an element
 # of the span.
 function add_to_basis!(B::BasisOfPolynomials{T}, f::T) where {T <: MPolyElem}
   @assert B.R === parent(f)
 
-  zero!.(B.v)
   c = ncols(B.M)
+  srow = sparse_row(coefficient_ring(B.R))
   for (a, m) in zip(coefficients(f), monomials(f))
     if !haskey(B.monomial_to_column, m)
       c += 1
       B.monomial_to_column[m] = c
-      push!(B.v, deepcopy(a))
+      push!(srow.pos, c)
+      push!(srow.values, deepcopy(a))
     else
       col = B.monomial_to_column[m]
-      B.v[col] = deepcopy(a)
+      k = searchsortedfirst(srow.pos, col)
+      insert!(srow.pos, k, col)
+      insert!(srow.values, k, deepcopy(a))
     end
   end
-  new_cols = c - ncols(B.M)
-  if !iszero(new_cols)
-    append!(B.pivot_rows, zeros(Int, new_cols))
-    B.M = hcat(B.M, zero_matrix(base_ring(B.M), nrows(B.M), new_cols))
-  end
-  if B.r == nrows(B.M)
-    B.M = vcat(B.M, zero_matrix(base_ring(B.M), 1, ncols(B.M)))
-  end
-  b = Hecke._add_row_to_rref!(B.M, B.v, B.pivot_rows, B.r + 1)
-  b && (B.r += 1)
-  return b
+  return Hecke._add_row_to_rref!(B.M, srow)
 end
 
 ################################################################################
@@ -345,7 +338,7 @@ function secondary_invariants_nonmodular(RG::InvRing)
   is_invars = elem_type(R)[] # irreducible secondary invariants
 
   # sum(coefficients(h)) is the number of secondary invariants we need in total.
-  B = BasisOfPolynomials(R, [ one(R) ], Int(numerator(sum(coefficients(h)))))
+  B = BasisOfPolynomials(R, [ one(R) ])
 
   # We try to construct as many invariants as possible as power products from
   # already computed ones using all_power_products_of_degree! .
