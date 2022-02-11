@@ -1,7 +1,7 @@
 import Oscar.AlgHom
 
 export ProjectiveScheme, base_ring, fiber_dimension, homogeneous_coordinate_ring, gens, getindex, affine_patch_type
-export projective_scheme_type, affine_patch_type
+export projective_scheme_type, affine_patch_type, base_ring_type, base_scheme_type, morphism_type
 export projective_space, subscheme
 export projection_to_base, affine_cone, set_base_scheme!, base_scheme, homogeneous_coordinates, homog_to_frac, as_covered_scheme, covered_projection_to_base, dehomogenize
 export ProjectiveSchemeMor, domain, codomain, images_of_variables, map_on_affine_cones, is_well_defined, poly_to_homog, frac_to_homog_pair
@@ -59,14 +59,25 @@ ideal ``I`` in the graded ring ``A[s₀,…,sᵣ]`` and the latter is of type
   end
 end
 
-### type getters
-#affine_patch_type(X::ProjectiveScheme{R, S, T, U}) where {R<:AbstractAlgebra.Field, S, T, U} = 
+### type getters & constructors
+projective_scheme_type(A::T) where {T<:AbstractAlgebra.Ring} = projective_scheme_type(typeof(A))
+projective_scheme_type(::Type{T}) where {T<:AbstractAlgebra.Ring} = 
+ProjectiveScheme{T, elem_type(T), mpoly_dec_ring_type(mpoly_ring_type(T)), mpoly_dec_type(mpoly_ring_type(T))}
+
+base_ring_type(P::ProjectiveScheme{S, T, U, V}) where {S, T, U, V} = S
+base_ring_type(::Type{ProjectiveScheme{S, T, U, V}}) where {S, T, U, V} = S
+
+ring_type(P::ProjectiveScheme{S, T, U, V}) where {S, T, U, V} = U
+ring_type(::Type{ProjectiveScheme{S, T, U, V}}) where {S, T, U, V} = U
+
+base_scheme_type(P::ProjectiveScheme{S, T, U, V}) where {S, T, U, V} = spec_type(S)
+base_scheme_type(::Type{ProjectiveScheme{S, T, U, V}}) where {S, T, U, V} = spec_type(S)
 
 ### type constructors 
 
 # the type of a relative projective scheme over a given base scheme
-projective_scheme_type(X::Spec{RT, RET, BRT, BRET, MST}) where {RT, RET, BRT, BRET, MST} = ProjectiveScheme{MPolyQuoLocalizedRing{RT, RET, BRT, BRET, MST}, MPolyQuoLocalizedRingElem{RT, RET, BRT, BRET, MST}, BRT, BRET}
-projective_scheme_type(::Type{Spec{RT, RET, BRT, BRET, MST}}) where {RT, RET, BRT, BRET, MST} = ProjectiveScheme{MPolyQuoLocalizedRing{RT, RET, BRT, BRET, MST}, MPolyQuoLocalizedRingElem{RT, RET, BRT, BRET, MST}, BRT, BRET}
+projective_scheme_type(X::T) where {T<:Spec} = projective_scheme_type(ring_type(T))
+projective_scheme_type(::Type{T}) where {T<:Spec} = projective_scheme_type(ring_type(T))
 
 # the type of the affine cone for a projective scheme
 affine_cone_type(P::ProjectiveScheme{CRT}) where {CRT<:AbstractAlgebra.Field} = spec_type(CRT)
@@ -264,7 +275,11 @@ end
 function subscheme(P::ProjectiveScheme, f::RingElemType) where {RingElemType<:MPolyElem_dec}
   S = homogeneous_coordinate_ring(P)
   parent(f) == S || error("ring element does not belong to the correct ring")
-  return ProjectiveScheme(S, ideal(S, vcat(gens(defining_ideal(P)), [f])))
+  Q = ProjectiveScheme(S, ideal(S, vcat(gens(defining_ideal(P)), [f])))
+  if isdefined(P, :Y) 
+    set_base_scheme!(Q, base_scheme(P))
+  end
+  return Q
 end
 
 function subscheme(P::ProjectiveScheme, f::Vector{RingElemType}) where {RingElemType<:MPolyElem_dec}
@@ -273,13 +288,21 @@ function subscheme(P::ProjectiveScheme, f::Vector{RingElemType}) where {RingElem
   for i in 1:length(f)
     parent(f[i]) == S || error("ring element does not belong to the correct ring")
   end
-  return ProjectiveScheme(S, ideal(S, vcat(gens(defining_ideal(P)),f)))
+  Q = ProjectiveScheme(S, ideal(S, vcat(gens(defining_ideal(P)),f)))
+  if isdefined(P, :Y) 
+    set_base_scheme!(Q, base_scheme(P))
+  end
+  return Q
 end
 
 function subscheme(P::ProjectiveScheme, I::MPolyIdeal{T}) where {T<:RingElem}
   S = homogeneous_coordinate_ring(P)
   base_ring(I) == S || error("ideal does not belong to the correct ring")
-  return ProjectiveScheme(S, ideal(S, vcat(gens(I), gens(defining_ideal(P)))))
+  Q = ProjectiveScheme(S, ideal(S, vcat(gens(I), gens(defining_ideal(P)))))
+  if isdefined(P, :Y) 
+    set_base_scheme!(Q, base_scheme(P))
+  end
+  return Q
 end
 
 function projective_space(A::CoeffRingType, var_symb::Vector{Symbol}) where {CoeffRingType<:Ring}
@@ -472,26 +495,6 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:Abstra
 end
     
 @Markdown.doc """
-    change_of_rings(P::ProjectiveScheme, phi)
-
-Given ``ℙʳ(A)`` and a ring homomorphism ``φ : A → B``, 
-return ``ℙʳ(B)`` together with its morphism ``ℙʳ(B)→ ℙʳ(A)``.
-"""
-function change_of_rings(P::ProjectiveScheme, phi::Map{D, C}) where {D<:AbstractAlgebra.Ring, C<:AbstractAlgebra.Ring}
-  S = homogeneous_coordinate_ring(P)
-  A = base_ring(P)
-  domain(phi) === A || error("rings not compatible")
-  B = codomain(phi)
-  Q_ambient = ProjectiveScheme(B, symbols(S))
-  T = homogeneous_coordinate_ring(Q_ambient)
-  phi_ext = hom(S, T, phi, gens(T))
-  I = ideal(T, [phi_ext(g) for g in gens(defining_ideal(P))])
-  Q = subscheme(Q_ambient, I)
-  f = ProjectiveSchemeMor(Q, P, phi_ext)
-  return Q, f
-end
-
-@Markdown.doc """
     ProjectiveSchemeMor
 
 A morphism of projective schemes 
@@ -542,6 +545,14 @@ mutable struct ProjectiveSchemeMor{
   end
 end
 
+### type getters
+morphism_type(P::S, Q::T) where {S<:ProjectiveScheme, T<:ProjectiveScheme} = morphism_type(S, T)
+morphism_type(::Type{S}, ::Type{T}) where {S<:ProjectiveScheme, T<:ProjectiveScheme} = ProjectiveSchemeMor{S, T, MPolyAnyMap{ring_type(T), ring_type(S), morphism_type(base_ring_type(T), base_ring_type(S)), elem_type(ring_type(T))}}
+
+morphism_type(P::S) where {S<:ProjectiveScheme} = morphism_type(S, S)
+morphism_type(::Type{S}) where {S<:ProjectiveScheme} = morphism_type(S, S)
+
+### getters 
 domain(phi::ProjectiveSchemeMor) = phi.domain
 codomain(phi::ProjectiveSchemeMor) = phi.codomain
 pullback(phi::ProjectiveSchemeMor) = phi.pullback
@@ -705,40 +716,30 @@ end
 
 function dehomogenize(
     X::ProjectiveScheme{CRT}, 
-    f::RingElemType, 
     i::Int
   ) where {
-    CRT<:MPolyQuoLocalizedRing, 
-    RingElemType<:MPolyElem_dec
+    CRT<:MPolyQuoLocalizedRing
   }
   i in 0:fiber_dimension(X) || error("the given integer is not in the admissible range")
   S = homogeneous_coordinate_ring(X)
-  parent(f) == S || error("the given polynomial does not have the correct parent")
   C = standard_covering(X)
   U = C[i+1]
   p = covered_projection_to_base(X)
   s = vcat(gens(OO(U))[1:i], [one(OO(U))], gens(OO(U))[i+1:fiber_dimension(X)])
-  return evaluate(map_coefficients(pullback(p[U]), f), s)
+  return hom(S, OO(U), pullback(p[U]), s)
 end
 
 function dehomogenize(
     X::ProjectiveScheme{CRT}, 
-    f::Vector{RingElemType}, 
     i::Int
   ) where {
-    CRT<:MPolyQuoLocalizedRing, 
-    RingElemType<:MPolyElem_dec
+    CRT<:AbstractAlgebra.Ring
   }
   i in 0:fiber_dimension(X) || error("the given integer is not in the admissible range")
   S = homogeneous_coordinate_ring(X)
-  for a in f 
-    parent(a) == S || error("the given polynomial does not have the correct parent")
-  end
   C = standard_covering(X)
   U = C[i+1]
-  p = covered_projection_to_base(X)
   s = vcat(gens(OO(U))[1:i], [one(OO(U))], gens(OO(U))[i+1:fiber_dimension(X)])
-  return [evaluate(map_coefficients(pullback(p[U]), a), s) for a in f]
+  return hom(S, OO(U), s)
 end
 
-# TODO: Write the other dispatch for the dehomogenization routines

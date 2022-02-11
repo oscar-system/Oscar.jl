@@ -518,6 +518,13 @@ function inclusion_morphism(U::T, V::T) where {T<:SpecOpen}
   return SpecOpenMor(U, V, gens(base_ring(OO(X))))
 end
 
+function SpecOpenMor(X::SpecType, d::RET, Y::SpecType, e::RET, f::Vector{RET}) where {SpecType<:Spec, RET<:RingElem}
+  U = SpecOpen(X, [d])
+  V = SpecOpen(Y, [e])
+  return SpecOpenMor(U, V, [SpecMor(U[1], Y, f)])
+end
+
+
 
 @Markdown.doc """
     compose(f::T, g::T) where {T<:SpecOpenMor}

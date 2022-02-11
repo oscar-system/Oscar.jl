@@ -104,7 +104,7 @@ function glueing_type(X::SpecType) where {SpecType<:Spec}
   return Glueing{SpecType, open_subset_type(SpecType), morphism_type(open_subset_type(SpecType), open_subset_type(SpecType))}
 end
 
-function glueing_type(::Type{SpecType}) where {SpecType}
+function glueing_type(::Type{SpecType}) where {SpecType<:Spec}
   return Glueing{SpecType, open_subset_type(SpecType), morphism_type(open_subset_type(SpecType), open_subset_type(SpecType))}
 end
 

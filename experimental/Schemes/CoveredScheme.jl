@@ -186,14 +186,38 @@ function standard_covering(X::ProjectiveScheme{CRT}) where {CRT<:MPolyQuoLocaliz
   result = Covering(U)
   # manually glue sufficiently many patches.
   # TODO: this needs adjustment since the patches might not be sufficiently dense one in another.
-  for i in 2:r+1
-    x = gens(base_ring(OO(U[1])))
-    y = gens(base_ring(OO(U[i])))
-    f = maximal_extension(U[1], U[i], vcat([1//x[i-1]], [x[k]//x[i-1] for k in 1:i-2], [x[k]//x[i-1] for k in i:r], x[r+1:end]))
-    g = maximal_extension(U[i], U[1], vcat([y[k]//y[1] for k in 2:i-1], [1//y[1]], [y[k]//y[1] for k in i:r], y[r+1:end]))
-    add_glueing!(result, Glueing(U[1], U[i], restriction(f, domain(f), domain(g)), restriction(g, domain(g), domain(f))))
+# for i in 2:r+1
+#   x = gens(base_ring(OO(U[1])))
+#   y = gens(base_ring(OO(U[i])))
+#   f = maximal_extension(U[1], U[i], vcat([1//x[i-1]], [x[k]//x[i-1] for k in 1:i-2], [x[k]//x[i-1] for k in i:r], x[r+1:end]))
+#   g = maximal_extension(U[i], U[1], vcat([y[k]//y[1] for k in 2:i-1], [1//y[1]], [y[k]//y[1] for k in i:r], y[r+1:end]))
+#   add_glueing!(result, Glueing(U[1], U[i], restriction(f, domain(f), domain(g)), restriction(g, domain(g), domain(f))))
+# end
+
+  for i in 1:r
+    for j in i+1:r+1
+      x = gens(base_ring(OO(U[i])))
+      y = gens(base_ring(OO(U[j])))
+      f = SpecOpenMor(U[i], x[j-1], 
+                      U[j], y[i],
+                      vcat([x[k]//x[j-1] for k in 1:i-1],
+                           [1//x[j-1]],
+                           [x[k-1]//x[j-1] for k in i+1:j-1],
+                           [x[k]//x[j-1] for k in j:r],
+                           x[r+1:end])
+                     )
+      g = SpecOpenMor(U[j], y[i],
+                      U[i], x[j-1],
+                      vcat([y[k]//y[i] for k in 1:i-1],
+                           [y[k+1]//y[i] for k in i:j-2],
+                           [1//y[i]],
+                           [y[k]//y[i] for k in j:r],
+                           y[r+1:end])
+                     )
+      add_glueing!(result, Glueing(U[i], U[j], f, g))
+    end
   end
-  fill_transitions!(result)
+  #fill_transitions!(result)
   covered_projection = CoveringMorphism(result, Covering(Y), pU)
   set_attribute!(X, :covered_projection_to_base, covered_projection)
   set_attribute!(X, :standard_covering, result)
@@ -388,6 +412,9 @@ getindex(X::CoveredScheme, C::CoveringType, D::CoveringType) where {CoveringType
 setindex(X::CoveredScheme, f::CoveringMorphismType, C::CoveringType, D::CoveringType) where {CoveringMorphismType<:CoveringMorphism, CoveringType<:Covering} = X.refinements[(C, D)]
 default_covering(X::CoveredScheme) = X.default_covering
 getindex(X::CoveredScheme, i::Int) = coverings(X)[i]
+
+patches(X::CoveredScheme) = patches(default_covering(X))
+glueings(X::CoveredScheme) = glueings(default_covering(X))
 
 function getindex(X::CoveredScheme, C::Covering)
   for i in 1:length(coverings(X))

@@ -74,7 +74,7 @@ function IdealSheaf(X::ProjectiveScheme, g::Vector{RingElemType}) where {RingEle
   r = fiber_dimension(X)
   I = Dict{affine_patch_type(X), Vector{poly_type(affine_patch_type(X))}}()
   for i in 0:r
-    I[C[i+1]] = lifted_numerator.(dehomogenize(X, g, i))
+    I[C[i+1]] = lifted_numerator.(dehomogenize(X, i).(g))
   end
   return IdealSheaf(X_covered, C, I, check=false)
 end

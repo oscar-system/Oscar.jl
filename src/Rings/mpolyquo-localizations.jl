@@ -9,6 +9,7 @@ export MPolyQuoLocalizedRingElem
 export numerator, denominator, parent, lift, isunit, inv, convert, lifted_numerator, lifted_denominator, fraction
 
 export MPolyQuoLocalizedRingHom
+export morphism_type
 export domain, codomain, images
 export helper_ring, helper_images, minimal_denominators, helper_eta, helper_kappa, common_denominator, helper_ideal
 
@@ -948,6 +949,11 @@ mutable struct MPolyQuoLocalizedRingHom{
     return new{typeof(k), elem_type(k), typeof(R), elem_type(R), typeof(inverted_set(L)), typeof(inverted_set(M))}(L, M, a)
   end
 end
+
+### type constructors
+
+morphism_type(A::MPolyQuoLocalizedRing{S, T, U, V, W1}, W::MPolyQuoLocalizedRing{S, T, U, V, W2}) where {S, T, U, V, W1, W2} = MPolyQuoLocalizedRingHom{S, T, U, V, W1, W2}
+morphism_type(::Type{MPolyQuoLocalizedRing{S, T, U, V, W1}}, ::Type{MPolyQuoLocalizedRing{S, T, U, V, W2}}) where {S, T, U, V, W1, W2} = MPolyQuoLocalizedRingHom{S, T, U, V, W1, W2}
 
 ### required getter functions
 domain(f::MPolyQuoLocalizedRingHom) = f.domain

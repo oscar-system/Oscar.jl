@@ -1,5 +1,5 @@
 export MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal, MPolyPowersOfElement, MPolyProductOfMultSets
-export rand, sets, issubset, units_of, simplify!
+export rand, sets, issubset, units_of, simplify!, is_trivial
 
 export MPolyLocalizedRing
 export ambient_ring, point_coordinates, inverted_set, denominators, gens
@@ -105,6 +105,8 @@ function Base.in(
   (i, o) = ppio(f, d)
   return divides(one(R), o)[1]
 end
+
+is_trivial(U::MPolyPowersOfElement) = (U == units_of(ambient_ring(U)))
 
 ### printing
 function Base.show(io::IO, S::MPolyPowersOfElement)
@@ -1396,6 +1398,10 @@ function saturated_ideal(
     I::MPolyLocalizedIdeal{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}
   ) where {BRT, BRET, RT, RET}
   if !isdefined(I, :saturated_ideal)
+    if is_trivial(inverted_set(base_ring(I)))
+      I.saturated_ideal = ideal(base_ring(base_ring(I)), numerator.(gens(I)))
+      return I.saturated_ideal
+    end
     W = base_ring(I)
     R = base_ring(W)
     U = inverted_set(W)

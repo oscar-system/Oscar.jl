@@ -1,6 +1,8 @@
 export ProjectiveGlueing
+export glueing_type
 
 export CoveredProjectiveScheme
+export base_scheme, base_covering, projective_patches, as_covered_scheme
 
 export blow_up, empty_covered_projective_scheme
 
@@ -36,8 +38,8 @@ mutable struct ProjectiveGlueing{
     (X, Y) = patches(G)
     (U, V) = glueing_domains(G)
     (base_scheme(P) == X && base_scheme(Q) == Y) || error("base glueing is incompatible with the projective schemes")
-    P_on_U_patches = Vector{MorphismType}()
-    Q_on_V_patches = Vector{MorphismType}()
+    P_on_U_patches = Vector{M}()
+    Q_on_V_patches = Vector{M}()
     
     length(f) == npatches(U) || error("base glueing is incompatible with the projective schemes")
     # for every patch Uᵢ of U we need to set up and store 
@@ -82,6 +84,11 @@ mutable struct ProjectiveGlueing{
     return new{GlueingType, T, M}(G, P, Q, P_on_U_patches, Q_on_V_patches, f, g)
   end
 end
+
+### type getters
+
+glueing_type(P::T) where {T<:ProjectiveScheme} = ProjectiveGlueing{glueing_type(base_scheme_type(T)), T, morphism_type(T)}
+glueing_type(::Type{T}) where {T<:ProjectiveScheme} = ProjectiveGlueing{glueing_type(base_scheme_type(T)), T, morphism_type(T)}
 
 ### Proper schemes π : Z → X over a covered base scheme X
 # 
@@ -133,9 +140,16 @@ mutable struct CoveredProjectiveScheme{
     for (U, V) in keys(glueings(C))
       (U, V) in keys(projective_glueings) || error("not all projective glueings were provided")
     end
-    return new{CoveredSchemeType, CoveringType, SpecType, ProjectiveSchemeType, ProjectiveGlueingType, base_ring_type(SpecType), elem_type(base_ring_type(SpecType))}(Y, C, projective_patches, projective_glueings)
+    return new{BaseSchemeType, CoveringType, SpecType, ProjectiveSchemeType, ProjectiveGlueingType, base_ring_type(SpecType), elem_type(base_ring_type(SpecType))}(Y, C, projective_patches, projective_glueings)
   end
 end
+
+base_scheme(P::CoveredProjectiveScheme) = P.Y
+base_covering(P::CoveredProjectiveScheme) = P.BC
+base_patches(P::CoveredProjectiveScheme) = patches(P.BC)
+projective_patches(P::CoveredProjectiveScheme) = values(P.patches)
+getindex(P::CoveredProjectiveScheme, U::Spec) = (P.patches)[U]
+getindex(P::CoveredProjectiveScheme, U::Spec, V::Spec) = (P.glueings)[(U, V)]
 
 function empty_covered_projective_scheme(R::T) where {T<:AbstractAlgebra.Ring}
   Y = empty_covered_scheme(R)
@@ -188,29 +202,85 @@ function blow_up(W::Spec, I::Vector{RingElemType}) where {RingElemType<:MPolyEle
   return subscheme(Pw, SIWpre), [S(A(g)) for g in I]
 end
 
-
 function blow_up(I::IdealSheaf)
   X = scheme(I)
   C = covering(I)
   local_blowups = [blow_up(U, I[U]) for U in patches(C)]
+  ProjectivePatchType = projective_scheme_type(affine_patch_type(X))
+  projective_glueings = Dict{Tuple{affine_patch_type(X), affine_patch_type(X)}, glueing_type(ProjectivePatchType)}()
+
+  # prepare for the projective glueings
   for (U, V) in keys(glueings(C))
-    @show (U, V)
+    P = local_blowups[C[U]][1]
+    base_scheme(P) == U || error()
+    SP = homogeneous_coordinate_ring(P)
+    Q = local_blowups[C[V]][1]
+    base_scheme(Q) == V || error()
+    SQ = homogeneous_coordinate_ring(Q)
     G = C[U, V]
-    UV, _ = glueing_domains(G)
-    f, _ = glueing_morphisms(G)
+    UV, VU = glueing_domains(G)
+    f, g = glueing_morphisms(G)
+
+    # set up the maps on the patches of the overlap in U
+    P_on_U_patches_to_Q = morphism_type(ProjectivePatchType)[]
     for i in 1:npatches(UV) 
       W = UV[i]
-      @show W
       gensUW = OO(W).(I[U])
-      gensVW = pullback(f[i]).(I[V])
-      transitionUV = [write_as_linear_combination(g, gensVW) for g in gensUW]
+      gensVW = OO(W).(pullback(f[i]).(I[V])) # TODO: Why is this conversion necessary?!
       transitionVU = [write_as_linear_combination(g, gensUW) for g in gensVW]
-      @show transitionUV
-      @show transitionVU
+      PW, _ = fiber_product(W, P)
+      SPW = homogeneous_coordinate_ring(PW)
+      push!(P_on_U_patches_to_Q, 
+            ProjectiveSchemeMor(PW, Q, 
+                                hom(SQ, SPW,
+                                    pullback(f[i]),
+                                    [dot(gens(SPW), SPW.(OO(W).(transitionVU[j]))) for j in 1:ngens(SQ)]
+                                   )
+                               )
+           )
     end
+    
+    # set up the maps on the patches of the overlap in V
+    Q_on_V_patches_to_P = morphism_type(ProjectivePatchType)[]
+    for i in 1:npatches(VU) 
+      W = VU[i]
+      gensVW = OO(W).(I[V])
+      gensUW = OO(W).(pullback(g[i]).(I[U]))
+      transitionUV = [write_as_linear_combination(g, gensVW) for g in gensUW]
+      QW, _ = fiber_product(W, Q)
+      SQW = homogeneous_coordinate_ring(QW)
+      push!(Q_on_V_patches_to_P, 
+            ProjectiveSchemeMor(QW, P, 
+                                hom(SP, SQW,
+                                    pullback(g[i]),
+                                    [dot(gens(SQW), SQW.(OO(W).(transitionUV[j]))) for j in 1:ngens(SP)]
+                                   )
+                               )
+           )
+    end
+    projective_glueings[(U, V)] = ProjectiveGlueing(G, P, Q, P_on_U_patches_to_Q, Q_on_V_patches_to_P)
   end
+  tmp = Dict{affine_patch_type(X), ProjectivePatchType}()
+  for U in patches(C)
+    tmp[U] = local_blowups[C[U]][1]
+  end
+  # TODO: Also return the exceptional divisor as an ideal sheaf.
+  return CoveredProjectiveScheme(X, C, tmp, projective_glueings)
 end
 
-
+function as_covered_scheme(P::CoveredProjectiveScheme)
+  X = base_scheme(P)
+  C = base_covering(P)
+  SpecType = affine_patch_type(X)
+  new_patches = Vector{SpecType}()
+  new_glueings = Dict{Tuple{SpecType, SpecType}, glueing_type(SpecType)}()
+  for U in patches(C)
+    PU = as_covered_scheme(P[U])
+    new_patches = vcat(new_patches, patches(coverings(PU)[1]))
+    merge!(new_glueings, glueings(PU))
+  end
+  #TODO: extend the remaining glueings
+  return CoveredScheme(Covering(new_patches, new_glueings))
+end
 
 
