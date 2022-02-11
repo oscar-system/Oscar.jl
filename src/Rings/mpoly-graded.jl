@@ -1487,16 +1487,19 @@ end
 ### Homogenization and Dehomogenization
 ############################################################################
 
+
 ###old: special and to be applied with care
-###function homogenization(f::MPolyElem, S::MPolyRing_dec, pos::Int = 1)
-###  d = total_degree(f)
-###  B = MPolyBuildCtx(S)
-###  for (c,e) = zip(coefficients(f), exponent_vectors(f))
-###    insert!(e, pos, d-sum(e))
-###    push_term!(B, c, e)
-###  end
-###  return finish(B)
-###end
+### needed for: AffinePlaneCurve.jl
+### TODO: make adjustments there and omitt fuction below
+function homogenization(f::MPolyElem, S::MPolyRing_dec, pos::Int = 1)
+  d = total_degree(f)
+  B = MPolyBuildCtx(S)
+  for (c,e) = zip(coefficients(f), exponent_vectors(f))
+    insert!(e, pos, d-sum(e))
+    push_term!(B, c, e)
+  end
+  return finish(B)
+end
 
 function _homogenization(f::MPolyElem, S::MPolyRing_dec, start_pos::Int = 1)
    len_gg  = ngens(S.D)
@@ -1742,6 +1745,7 @@ function homogenization(I::MPolyIdeal{T}, var::String, pos::Int = 1; ordering::S
 end
 
 ### needed for: PlaneCurve-test.jl, ProjPlaneCurve.jl
+### TODO: make adjustments there and omitt fuction below
 function dehomogenization(F::MPolyElem_dec, R::MPolyRing, pos::Int)
   B = MPolyBuildCtx(R)
   for (c,e) = zip(coefficients(F), exponent_vectors(F))
