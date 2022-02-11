@@ -17,7 +17,7 @@ export PolynomialRing, total_degree, degree,  MPolyIdeal, MPolyElem, ideal, coor
 # PolynomialRing(QQ, :a=>1:3, "b"=>1:3, "c=>1:5:10)
 # -> QQx, [a1, a2, a3], [b1 ,b2, b3], ....
 
-function PolynomialRing(R::AbstractAlgebra.Ring, v1::Pair{<:Union{String, Symbol}, <:Any}, v...; cached::Bool = false, ordering::Symbol = :lex) where {M, N, S}
+function PolynomialRing(R::AbstractAlgebra.Ring, v1::Pair{<:Union{String, Symbol}, <:Any}, v...; cached::Bool = false, ordering::Symbol = :lex)
   w = (v1, v...)
   str = _make_strings(w)
   strings = vcat(str...)
