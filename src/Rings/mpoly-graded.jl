@@ -528,6 +528,10 @@ mutable struct MPolyElem_dec{T, S} <: MPolyElem{T}
   end
 end
 
+function Base.deepcopy_internal(f::MPolyElem_dec{T, S}, dict::IdDict) where {T, S}
+  return MPolyElem_dec(Base.deepcopy_internal(f.f, dict), f.parent)
+end
+
 function show(io::IO, w::MPolyElem_dec)
   show(io, w.f)
 end
