@@ -81,7 +81,7 @@ julia> groebner_basis(Katsura5Homogenized_Kt, val_t, w) # different leading mono
                                                         # same leading monomials as for val_3
 ```
 """
-function groebner_basis(I::MPolyIdeal,val::ValuationMap,w::Vector{<: Union{Int,Rational{Int},fmpz,fmpq} }; skip_legality_check::Bool=false)
+function groebner_basis(I::MPolyIdeal,val::ValuationMap,w::Vector{<: Union{Int,Rational{Int},fmpz,fmpq} }; pertubation::Vector=[], skip_legality_check::Bool=false)
 
   ###
   # Step 0: check legality of input unless stated otherwise
@@ -96,9 +96,14 @@ function groebner_basis(I::MPolyIdeal,val::ValuationMap,w::Vector{<: Union{Int,R
   # Step 1: Compute a standard basis in the simulation ring
   ###
   vvI = simulate_valuation(I,val)
-  w = simulate_valuation(w,val)
   Rtx = base_ring(vvI)
-  S,_ = Singular.PolynomialRing(singular_ring(base_ring(Rtx)), map(string, Nemo.symbols(Rtx)), ordering = Singular.ordering_a(w)*Singular.ordering_dp())
+  if isempty(pertubation)
+    w = simulate_valuation(w,val)
+    S,_ = Singular.PolynomialRing(singular_ring(base_ring(Rtx)), map(string, Nemo.symbols(Rtx)), ordering = Singular.ordering_a(w)*Singular.ordering_dp())
+  else
+    w,u = simulate_valuation(w,pertubation,val)
+    S,_ = Singular.PolynomialRing(singular_ring(base_ring(Rtx)), map(string, Nemo.symbols(Rtx)), ordering = Singular.ordering_a(w)*Singular.ordering_a(u)*Singular.ordering_dp())
+  end
   SI = Singular.Ideal(S, [S(g) for g in gens(vvI)])
   vvGB = Singular.gens(Singular.satstd(SI,Singular.MaximalIdeal(S,1)))
 
@@ -191,11 +196,18 @@ function interreduce_tropically(G::Vector{<:MPolyElem}, val::ValuationMap, w::Ve
   # Step 0: simulate valuation and change coefficient ring to valued field
   ###
   vG = simulate_valuation(G,val,coefficient_field=true)
-  vw = simulate_valuation(w,val)
   Rtx = parent(vG[1])
-  S,_ = Singular.PolynomialRing(singular_ring(val.valued_field),
-                                map(string, Nemo.symbols(Rtx)),
-                                ordering = Singular.ordering_a(vw)*Singular.ordering_dp())
+  if isempty(pertubation)
+    vw = simulate_valuation(w,val)
+    S,_ = Singular.PolynomialRing(singular_ring(val.valued_field),
+                                  map(string, Nemo.symbols(Rtx)),
+                                  ordering = Singular.ordering_a(vw)*Singular.ordering_dp())
+  else
+    vw,vu = simulat_valuation(w,pertubation,val)
+    S,_ = Singular.PolynomialRing(singular_ring(val.valued_field),
+                                  map(string, Nemo.symbols(Rtx)),
+                                  ordering = Singular.ordering_a(vw)*Singular.ordering_a(vu)*Singular.ordering_dp())
+  end
   sG = [S(change_base_ring(val.valued_field,g)) for g in vG] # todo: remove workaround when fixed
 
 

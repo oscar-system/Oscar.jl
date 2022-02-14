@@ -42,45 +42,49 @@ function tropical_variety(I::MPolyIdeal, val::ValuationMap)
     println("length(groebner_polyhedra_done): ",length(groebner_polyhedra_done))
 
     (w,C,G) = popfirst!(groebner_polyhedra_todo)
-    facet_points_to_traverse = facet_points(C)
-    println("facet_points_to_traverse:")
-    println(facet_points_to_traverse)
-    for facet_point in facet_points_to_traverse
+    points_to_traverse = facet_points(C)
+    println("points_to_traverse:")
+    println(points_to_traverse)
+    for point_to_traverse in points_to_traverse
 
       # skip facet_point if it lies in links_done
-      index = searchsortedfirst(links_done,facet_point)
-      if index<=length(links_done) && links_done[index]==facet_point # todo: is facet_point the sum of the vertices?
+      i = searchsortedfirst(links_done,point_to_traverse)
+      if i<=length(links_done) && links_done[i]==point_to_traverse # todo: is facet_point the sum of the vertices?
         continue
       end
       # add facet_point to links_done
-      insert!(links_done, index, facet_point)
+      insert!(links_done, i, point_to_traverse)
 
       # compute tropical link
-      facet_link = tropical_link(ideal(G),val,facet_point)
-      println("facet_link:")
-      println(facet_link)
-      for u in facet_link
+      directions_to_traverse = tropical_link(ideal(G),val,point_to_traverse)
+      println("directions_to_traverse:")
+      println(directions_to_traverse)
+      for direction_to_traverse in directions_to_traverse
         # compute neighboring data
         println("groebner_flip")
-        G_neighbor = groebner_flip(ideal(G),val,facet_point,u)
+        G_neighbor = groebner_flip(G,val,w,point_to_traverse,direction_to_traverse)
         println("groebner_polyhedron")
-        C_neighbor = groebner_polyhedron(I,val,starting_point) # todo: this computes an unnecessary GB
+        C_neighbor = groebner_polyhedron(G_neighbor,val,point_to_traverse,pertubation=direction_to_traverse) # todo: this computes an unnecessary GB
         println("summing vertices")
         w_neighbor = convert(Vector{fmpq},sum(vertices(C)))
 
         # if neighboring polyhedra is in done list, skip
-        index = searchsortedfirst(groebner_polyhedra_done,w_neighbor,by=x->x[1]t)
-        if index<=length(groebner_polyhedra_done) && groebner_polyhedra_done[index][1]==w_neighbor
+        i = searchsortedfirst(groebner_polyhedra_done,
+                              (w_neighbor,C_neighbor,G_neighbor),
+                              by=x->x[1])
+        if i<=length(groebner_polyhedra_done) && groebner_polyhedra_done[i][1]==w_neighbor
           continue
         end
 
         # if neighboring polyhedra is in todo list, skip
-        index = searchsortedfirst(groebner_polyhedra_todo,w_neighbor,by=x->x[1]t)
-        if index<=length(links_todo) && groebner_polyhedra_todo[index][1]==w_neighbor
+        i = searchsortedfirst(groebner_polyhedra_todo,
+                              (w_neighbor,C_neighbor,G_neighbor),
+                              by=x->x[1])
+        if i<=length(groebner_polyhedra_todo) && groebner_polyhedra_todo[i][1]==w_neighbor
           continue
         end
         # otherwise, add data to todo list
-        insert!(groebner_polyhedra_todo, index, (w_neighbor,C_neighbor,G_neighbor))
+        insert!(groebner_polyhedra_todo, i, (w_neighbor,C_neighbor,G_neighbor))
       end
     end
   end
@@ -100,7 +104,7 @@ function facet_points(P::Polyhedron)
   points = []
   for facet in faces(P,dim(P)-1)
     if length(vertices(facet))>0 # skipping fake facets
-      push!(points,convert(Vector{fmpq},relative_interior_point(facet)))
+      push!(points,convert(Vector{fmpq},sum(vertices(facet))))
     end
   end
   return points

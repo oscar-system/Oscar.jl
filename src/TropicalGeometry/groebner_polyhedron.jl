@@ -29,11 +29,17 @@ groebner_polyhedron(I,val_t,w)
 =======#
 function groebner_polyhedron(I::MPolyIdeal, val::ValuationMap, w::Vector; pertubation::Vector=[], skip_groebner_basis_computation::Bool=false)
   if skip_groebner_basis_computation
-    GB = interreduce_tropically(gens(I),val,w,pertubation=pertubation)
+    GB = gens(I)
   else
-    GB = interreduce_tropically(groebner_basis(I,val,w,pertubation=pertubation),val,w,pertubation=pertubation)
+    GB = groebner_basis(I,val,w,pertubation=pertubation)
   end
 
+  GB = interreduce_tropically(GB,val,w,pertubation=pertubation)
+
+  return groebner_polyhedron(GB,val,w,pertubation=pertubation)
+end
+
+function groebner_polyhedron(GB::Vector{<:MPolyElem}, val::ValuationMap, w::Vector; pertubation::Vector=[], skip_groebner_basis_computation::Bool=false)
   return groebner_polyhedron(GB,initial(GB,val,w,pertubation=pertubation),val)
 end
 
