@@ -30,7 +30,7 @@ include("Rings/FunctionField-test.jl")
 include("Rings/AbelianClosure.jl")
 
 include("Rings/MPolyAnyMap/MPolyRing.jl")
-include("Rings/MPolyAnyMap/MPolyQuo.jl")
+#include("Rings/MPolyAnyMap/MPolyQuo.jl")
 
 if Oscar.is_dev
   include("Examples/GITFans-test.jl")
@@ -51,5 +51,5 @@ include("InvariantTheory/runtests.jl")
 
 include("ToricVarieties/runtests.jl")
 
-include("Schemes/AffineSchemes.jl")
+#include("Schemes/AffineSchemes.jl")
 include("Schemes/SpecOpen.jl")
