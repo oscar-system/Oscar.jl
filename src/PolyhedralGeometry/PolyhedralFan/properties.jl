@@ -126,7 +126,7 @@ julia> dim(PF)
 2
 ```
 """
-dim(PF::_FanLikeType) = pm_object(PF).FAN_DIM
+dim(PF::_FanLikeType) = pm_object(PF).FAN_DIM::Int
 
 @doc Markdown.doc"""
     n_maximal_cones(PF::PolyhedralFan)
@@ -143,7 +143,7 @@ julia> n_maximal_cones(PF)
 2
 ```
 """
-n_maximal_cones(PF::_FanLikeType) = pm_object(PF).N_MAXIMAL_CONES
+n_maximal_cones(PF::_FanLikeType) = pm_object(PF).N_MAXIMAL_CONES::Int
 
 @doc Markdown.doc"""
     ambient_dim(PF::PolyhedralFan)
@@ -161,7 +161,7 @@ julia> ambient_dim(normal_fan(cube(4)))
 4
 ```
 """
-ambient_dim(PF::_FanLikeType) = pm_object(PF).FAN_AMBIENT_DIM
+ambient_dim(PF::_FanLikeType) = pm_object(PF).FAN_AMBIENT_DIM::Int
 
 @doc Markdown.doc"""
     nrays(PF::PolyhedralFan)
@@ -175,7 +175,7 @@ julia> nrays(face_fan(cube(3)))
 8
 ```
 """
-nrays(PF::_FanLikeType) = pm_object(PF).N_RAYS
+nrays(PF::_FanLikeType) = pm_object(PF).N_RAYS::Int
 
 
 @doc Markdown.doc"""
@@ -239,7 +239,7 @@ julia> lineality_dim(nf)
 1
 ```
 """
-lineality_dim(PF::_FanLikeType) = pm_object(PF).LINEALITY_DIM
+lineality_dim(PF::_FanLikeType) = pm_object(PF).LINEALITY_DIM::Int
 
 ###############################################################################
 ## Points properties
