@@ -4,6 +4,12 @@
 ###############################################################################
 ###############################################################################
 
+# We introduce this abstract (hidden) type to allow for other objects to be
+# used like polyhedral fans without duplicating too much code, concretely we
+# want to be able to directly access rays, maximal_cones, etc for
+# NormalToricVariety's.
+abstract type _FanLikeType end
+
 @doc Markdown.doc"""
     PolyhedralFan(Rays::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator}, [LS::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator},] Cones::IncidenceMatrix)
 
@@ -33,7 +39,7 @@ A polyhedral fan in ambient dimension 2
 julia> iscomplete(PF)
 true
 """
-struct PolyhedralFan
+struct PolyhedralFan <: _FanLikeType
    pm_fan::Polymake.BigObject
    function PolyhedralFan(pm::Polymake.BigObject)
       return new(pm)

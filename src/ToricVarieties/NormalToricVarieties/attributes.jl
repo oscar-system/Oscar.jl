@@ -64,30 +64,18 @@ export set_coefficient_ring
     coefficient_ring(v::AbstractNormalToricVariety)
 
 This method returns the coefficient_ring of the normal toric variety `v`.
-An error is triggered if it is not yet set.
+The default is the ring `QQ`.
 """
-function coefficient_ring(v::AbstractNormalToricVariety)
-    if !has_attribute(v, :coefficient_ring)
-        set_attribute!(v, :coefficient_ring, QQ)
-    end
-    return get_attribute(v, :coefficient_ring)
-end
-export coefficient_ring
+coefficient_ring(v::AbstractNormalToricVariety) = get_attribute!(v, :coefficient_ring, QQ)
 
 
 @doc Markdown.doc"""
     set_coordinate_names(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
 
-Allows to set the names of the homogeneous coordinates. If
-the Cox ring of the variety has already been computed, we do
-not allow changes of the coordinate names. In this case, an error
-is triggered.
+Allows to set the names of the homogeneous coordinates.
 """
 function set_coordinate_names(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
-    if has_attribute(v, :cox_ring)
-        error("Cox ring already constructed. Coordinate names cannot be changed anymore.")
-    end
-    if length(coordinate_names) != nrays(fan(v))
+    if length(coordinate_names) != nrays(v)
         throw(ArgumentError("The provided list of coordinate names must match the number of rays in the fan."))
     end
     set_attribute!(v, :coordinate_names, coordinate_names)
@@ -98,16 +86,10 @@ export set_coordinate_names
 @doc Markdown.doc"""
     coordinate_names(v::AbstractNormalToricVariety)
 
-This method returns the names of the homogeneous coordinates of
-the normal toric variety `v`. If they are not yet set an error is returned.
+This method returns the names of the homogeneous coordinates of 
+the normal toric variety `v`. The default is `x1,...,xn`.
 """
-function coordinate_names(v::AbstractNormalToricVariety)
-    if !has_attribute(v, :coordinate_names)
-        set_attribute!(v, :coordinate_names, ["x" * string(i) for i in 1:rank(torusinvariant_divisor_group(v))])
-    end
-    return get_attribute(v, :coordinate_names)
-end
-export coordinate_names
+coordinate_names(v::AbstractNormalToricVariety) = get_attribute!(v, :coordinate_names, ["x$(i)" for i in 1:rank(torusinvariant_divisor_group(v))])
 
 
 function _cox_ring_weights(v::AbstractNormalToricVariety)
@@ -173,7 +155,7 @@ export cox_ring
 
 function _minimal_nonfaces(v::AbstractNormalToricVariety)
     return get_attribute(v, :minimal_nonfaces) do
-        I = ray_indices(maximal_cones(fan(v)))
+        I = ray_indices(maximal_cones(v))
         K = SimplicialComplex(I)
         return minimal_nonfaces(IncidenceMatrix, K)
     end
@@ -196,7 +178,7 @@ julia> ngens(stanley_reisner_ideal(R, p2))
 ```
 """
 function stanley_reisner_ideal(R::MPolyRing, v::AbstractNormalToricVariety)
-    n = nrays(fan(v))
+    n = nrays(v)
     n == nvars(R) || throw(ArgumentError("Wrong number of variables"))
     mnf = _minimal_nonfaces(v)
     return ideal([ R([1], [Vector{Int}(mnf[i,:])]) for i in 1:Polymake.nrows(mnf) ])
@@ -222,7 +204,7 @@ export stanley_reisner_ideal
 
 function _irrelevant_ideal_monomials(v::AbstractNormalToricVariety)
     return get_attribute!(v, :irrelevant_ideal_monomials) do
-        mc = ray_indices(maximal_cones(fan(v)))
+        mc = ray_indices(maximal_cones(v))
         result = Vector{Vector{Int}}()
         onesv = ones(Int, Polymake.ncols(mc))
         for i in 1:Polymake.nrows(mc)
@@ -268,7 +250,7 @@ julia> length(gens(irrelevant_ideal(R, p2)))
 """
 function irrelevant_ideal(R::MPolyRing, v::AbstractNormalToricVariety)
     monoms = _irrelevant_ideal_monomials(v)
-    nvars(R) == nrays(fan(v)) || throw(ArgumentError("Wrong number of variables in polynomial ring."))
+    nvars(R) == nrays(v) || throw(ArgumentError("Wrong number of variables in polynomial ring."))
     return ideal([R([1], [x]) for x in monoms])
 end
 export irrelevant_ideal
@@ -359,7 +341,7 @@ GrpAb: Z^2
 ```
 """
 @attr GrpAbFinGen function character_lattice(v::AbstractNormalToricVariety)
-    return free_abelian_group(ambient_dim(fan(v)))
+    return free_abelian_group(ambient_dim(v))
 end
 export character_lattice
 
@@ -378,7 +360,7 @@ GrpAb: Z^3
 ```
 """
 @attr GrpAbFinGen function torusinvariant_divisor_group(v::AbstractNormalToricVariety)
-    return free_abelian_group(nrays(fan(v)))
+    return free_abelian_group(nrays(v))
 end
 export torusinvariant_divisor_group
 
@@ -403,7 +385,7 @@ Abelian group with structure: Z^3
 ```
 """
 @attr GrpAbFinGenMap function map_from_character_to_principal_divisors(v::AbstractNormalToricVariety)
-    mat = transpose(matrix(ZZ, rays(fan(v))))
+    mat = transpose(matrix(ZZ, rays(v)))
     return hom(character_lattice(v), torusinvariant_divisor_group(v), mat)
 end
 export map_from_character_to_principal_divisors
@@ -510,8 +492,8 @@ GrpAb: Z^3
     end
 
     # identify fan_rays and cones
-    fan_rays = transpose(matrix(ZZ, rays(fan(v))))
-    max_cones = ray_indices(maximal_cones(fan(v)))
+    fan_rays = transpose(matrix(ZZ, rays(v)))
+    max_cones = ray_indices(maximal_cones(v))
     number_of_rays = ncols(fan_rays)
     number_of_cones = size(max_cones)[1]
 
@@ -722,7 +704,7 @@ A polyhedral cone in ambient dimension 2
 ```
 """
 @attr Cone function cone(v::AffineNormalToricVariety)
-    return maximal_cones(fan(v))[1]
+    return maximal_cones(v)[1]
 end
 export cone
 
