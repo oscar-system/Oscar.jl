@@ -245,7 +245,8 @@ include("Rings/mpoly-affine-algebras.jl")
 include("Rings/mpoly-local.jl")
 include("Rings/localization_interface.jl")
 include("Rings/mpoly-localizations.jl")
-include("Rings/mpolyquo-localizations.jl")
+#include("Rings/mpolyquo-localizations.jl")
+include("Rings/mpoly_types.jl")
 include("Rings/FinField.jl")
 include("Rings/NumberField.jl")
 include("Rings/FunctionField.jl")
@@ -285,9 +286,6 @@ include("../experimental/Experimental.jl")
 include("Rings/binomial_ideals.jl")
 
 include("ToricVarieties/JToric.jl")
-
-include("../experimental/Schemes/AffineSchemes.jl")
-include("../experimental/Schemes/SpecOpen.jl")
 
 if is_dev
 #  include("../examples/ModStdNF.jl")
