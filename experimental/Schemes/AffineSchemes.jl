@@ -4,7 +4,7 @@ import Base: intersect
 export Scheme
 export Spec, OO, defining_ideal
 export spec_type, ring_type
-export base_ring_type, base_ring_elem_type, poly_type, poly_ring_type, mult_set_type
+export base_ring_type, base_ring_elem_type, poly_type, poly_ring_type, mult_set_type, ring_type
 export affine_space, empty_spec
 export EmptyScheme
 
@@ -54,6 +54,9 @@ mutable struct Spec{BRT, BRET, RT, RET, MST} <: Scheme{BRT, BRET}
 end
 
 ### Type getters
+
+ring_type(::Type{Spec{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = MPolyQuoLocalizedRing{BRT, BRET, RT, RET, MST}
+ring_type(X::Spec) = ring_type(typeof(X))
 
 base_ring_type(X::Spec{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = BRT
 base_ring_elem_type(X::Spec{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = BRET
@@ -374,36 +377,27 @@ end
 # Morphisms of affine schemes                                      #
 ########################################################################
 
-mutable struct SpecMor{BRT, BRET, RT, RET, MST1, MST2}
-  domain::Spec{BRT, BRET, RT, RET, MST1}
-  codomain::Spec{BRT, BRET, RT, RET, MST2}
-  pullback::MPolyQuoLocalizedRingHom{BRT, BRET, RT, RET, MST2, MST1}
-
-  # fields used for caching
-  inverse::SpecMor{BRT, BRET, RT, RET, MST2, MST1}
+@attributes mutable struct SpecMor{DomainType<:Spec, CodomainType<:Spec, PullbackType<:MPolyQuoLocalizedRingHom}
+  domain::DomainType
+  codomain::CodomainType
+  pullback::PullbackType
 
   function SpecMor(
-      X::Spec{BRT, BRET, RT, RET, MST1},
-      Y::Spec{BRT, BRET, RT, RET, MST2},
-      pullback::MPolyQuoLocalizedRingHom{BRT, BRET, RT, RET, MST2, MST1}
-    ) where {BRT, BRET, RT, RET, MST1, MST2}
+      X::DomainType,
+      Y::CodomainType,
+      pullback::PullbackType
+    ) where {DomainType<:Spec, CodomainType<:Spec, PullbackType<:MPolyQuoLocalizedRingHom}
     OO(X) == codomain(pullback) || error("the coordinate ring of the domain does not coincide with the codomain of the pullback")
     OO(Y) == domain(pullback) || error("the coordinate ring of the codomain does not coincide with the domain of the pullback")
-    return new{BRT, BRET, RT, RET, MST1, MST2}(X, Y, pullback)
+    return new{DomainType, CodomainType, PullbackType}(X, Y, pullback)
   end
 end
 
-function morphism_type(X::SpecType1, Y::SpecType2) where {SpecType1<:Spec, SpecType2<:Spec} 
-  L = OO(X)
-  R = base_ring(L)
-  kk = coefficient_ring(R)
-  W = OO(Y)
-  return SpecMor{typeof(kk), elem_type(kk), typeof(R), elem_type(R), typeof(inverted_set(L)), typeof(inverted_set(W))}
+function morphism_type(::Type{SpecType1}, ::Type{SpecType2}) where {SpecType1<:Spec, SpecType2<:Spec}
+  return SpecMor{SpecType1, SpecType1, morphism_type(ring_type(SpecType2), ring_type(SpecType1))}
 end
 
-function morphism_type(::Type{Spec{BRT, BRET, RT, RET, MST1}}, ::Type{Spec{BRT, BRET, RT, RET, MST2}}) where {BRT, BRET, RT, RET, MST1, MST2}
-  return SpecMor{BRT, BRET, RT, RET, MST1, MST2}
-end
+morphism_type(X::Spec, Y::Spec) = morphism_type(typeof(X), typeof(Y))
 
 
 ### getter functions
@@ -423,11 +417,7 @@ end
 identity_map(X::Spec) = SpecMor(X, X, gens(base_ring(OO(X))))
 inclusion_map(X::T, Y::T) where {T<:Spec} = SpecMor(X, Y, gens(base_ring(OO(Y))))
 
-function restrict(f::SpecMor{BRT, BRET, RT, RET, MST1, MST2}, 
-    U::Spec{BRT, BRET, RT, RET, MST1},
-    V::Spec{BRT, BRET, RT, RET, MST2};
-    check::Bool=true
-  ) where {BRT, BRET, RT, RET, MST1, MST2}
+function restrict(f::SpecMor, U::Spec, V::Spec; check::Bool=true)
   if check
     issubset(U, domain(f)) || error("second argument does not lay in the domain of the map")
     issubset(V, codomain(f)) || error("third argument does not lay in the codomain of the map")
@@ -451,7 +441,7 @@ end
 
 ### functionality
 function preimage(
-    phi::SpecMor{BRT, BRET, RT, RET, MST1, MST2}, 
+    phi::SpecMor{Spec{BRT, BRET, RT, RET, MST1}, Spec{BRT, BRET, RT, RET, MST2}},
     Z::Spec{BRT, BRET, RT, RET, MST3}
   ) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST3<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
   X = domain(phi)
@@ -466,9 +456,9 @@ function preimage(
   return Spec(MPolyQuoLocalizedRing(R, ideal(R, new_gens) + modulus(OO(X)), inverted_set(OO(X))*new_units))
 end
 
-function is_isomorphism(f::SpecMor{BRT, BRET, RT, RET, MST1, MST2}) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
+function is_isomorphism(f::SpecMor)
   is_isomorphism(pullback(f)) || return false
-  f.inverse = SpecMor(codomain(f), domain(f), inverse(pullback(f)))
+  set_attribute!(f, :inverse, SpecMor(codomain(f), domain(f), inverse(pullback(f))))
   return true
 end
 
@@ -476,12 +466,11 @@ function is_inverse_of(f::S, g::T) where {S<:SpecMor, T<:SpecMor}
   return is_isomorphism(f) && (inverse(f) == g)
 end
 
-function inverse(f::SpecMor{BRT, BRET, RT, RET, MST1, MST2}) where {BRT, BRET, RT, RET, MST1<:MPolyPowersOfElement{BRT, BRET, RT, RET}, MST2<:MPolyPowersOfElement{BRT, BRET, RT, RET}}
-  if isdefined(f, :inverse) 
-    return f.inverse
+function inverse(f::SpecMor) 
+  if !has_attribute(f, :inverse) 
+    is_isomorphism(f) || error("the given morphism is not an isomorphism")
   end
-  is_isomorphism(f) || error("the given morphism is not an isomorphism")
-  return f.inverse
+  return get_attribute(f, :inverse)::morphism_type(codomain(f), domain(f))
 end
 
 @Markdown.doc """
@@ -518,7 +507,9 @@ function product(X::Spec{BRT, BRET, RT, RET, MST}, Y::Spec{BRT, BRET, RT, RET, M
 end
 
   
-function graph(f::SpecMor{BRT, BRET, RT, RET, MST, MST}) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement}
+function graph(f::SpecMor{<:Spec{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}, 
+                          <:Spec{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
+  )
   X = domain(f)
   Y = codomain(f)
   XxY, prX, prY = product(X, Y)

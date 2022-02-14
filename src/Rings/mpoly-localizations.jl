@@ -106,6 +106,11 @@ function Base.in(
   return divides(one(R), o)[1]
 end
 
+### iteration 
+Base.iterate(U::MPolyPowersOfElement) = (U.a[1], 1)
+Base.iterate(U::MPolyPowersOfElement, a::Tuple{<:MPolyElem, Int}) = (a[2] < length(U.a) ? (U.a[a[2]+1], a[2]+1) : nothing)
+Base.iterate(U::MPolyPowersOfElement, i::Int) = (i < length(U.a) ? (U.a[i+1], i+1) : nothing)
+
 is_trivial(U::MPolyPowersOfElement) = (U == units_of(ambient_ring(U)))
 
 ### printing
@@ -1859,118 +1864,99 @@ end
 ########################################################################
 # Homomorphisms of localized polynomial rings                          #
 ########################################################################
-#
-# Let P = 𝕜[x₁,…,xₘ] and Q = 𝕜[y₁,…,yₙ] be polynomial rings 
-# Any homomorphism ϕ : P[U⁻¹] → Q[V⁻¹] is completely determined 
-# by the images of the variables 
-#
-#     ϕ(xᵢ) = aᵢ(y)/ bᵢ(y)
-#
-# where bᵢ(y) ∈ V for all i. Given such a list of images
-# one can always define the associated homomorphism ϕ' : P → Q[V⁻¹]. 
-# This extends to a well defined homomorphism ϕ as above iff
-#
-#     for all f ∈ U : ϕ'(f) is a unit in Q[V⁻¹]            (*)
-#
-# and this is easily seen to be the case iff there exists an 
-# element c ∈ V such that c⋅ϕ'(f) ∈ V
 
-mutable struct MPolyLocalizedRingHom{BaseRingType, BaseRingElemType, 
-    RingType, RingElemType, DomainMultSetType, CodomainMultSetType
-  } <: AbsLocalizedRingHom{
-    RingType, RingElemType, DomainMultSetType, CodomainMultSetType
-  }
+mutable struct MPolyLocalizedRingHom{
+                                     DomainType<:MPolyLocalizedRing, 
+                                     CodomainType<:Ring, 
+                                     RestrictedMapType<:Map
+                                    } <: AbsLocalizedRingHom{
+                                                             DomainType, 
+                                                             CodomainType, 
+                                                             RestrictedMapType
+                                                            }
   # the domain of definition
-  V::MPolyLocalizedRing{BaseRingType, BaseRingElemType, 
-			RingType, RingElemType, DomainMultSetType}
-  # the codomain 
-  W::MPolyLocalizedRing{BaseRingType, BaseRingElemType, 
-			RingType, RingElemType, CodomainMultSetType}
-  # the images of the variables
-  images::Vector{MPolyLocalizedRingElem{
-    BaseRingType, BaseRingElemType, RingType, RingElemType, 
-    CodomainMultSetType}}
+  W::DomainType
+
+  ### the codomain
+  # Why do we need to store the codomain explicitly and not extract it from 
+  # the restricted map? 
+  # Because the restricted map res probably takes values in a strictly 
+  # smaller or even completely different ring than S. If C is the codomain 
+  # of res, then we impliticly assume (and check) that coercion from elements 
+  # of C to S is possible. This is strictly weaker than requiring res to implement 
+  # the full map interface. In that case, one would -- for example -- need to 
+  # implement a new type just for the inclusion map R → R[U⁻¹] of a ring into 
+  # its localization.
+  S::CodomainType
+
+  # the restriction of the map to the base_ring of the domain
+  res::RestrictedMapType
 
   function MPolyLocalizedRingHom(
-      V::MPolyLocalizedRing{BRT, BRET, RT, RET, DMST}, 
-      W::MPolyLocalizedRing{BRT, BRET, RT, RET, CMST}, 
-      a::Vector{MPolyLocalizedRingElem{BRT, BRET, RT, RET, CMST}}
-    ) where {BRT, BRET, RT, RET, CMST, DMST}
-    R = base_ring(V)
-    S = base_ring(W)
-    k = coefficient_ring(R) 
-    k == coefficient_ring(S) || error("the two polynomial rings are not defined over the same coefficient ring")
-    ngens(R) == length(a) || error("the number of images does not coincide with the number of variables")
-    parent_check = true
-    for x in a
-      parent_check = parent_check && parent(x) == W
-      denominator(x) in inverted_set(W) || error("the homomorphism is not well defined")
+      W::DomainType,
+      S::CodomainType,
+      res::RestrictedMapType;
+      check::Bool=true
+    ) where {DomainType<:MPolyLocalizedRing, CodomainType<:Ring, RestrictedMapType<:Map}
+    R = base_ring(W)
+    U = inverted_set(W)
+    domain(res) === R || error("the domain of the restricted map does not coincide with the base ring of the localization")
+    for f in U
+      isunit(S(res(f))) || error("image of $f is not a unit in the codomain")
     end
-    parent_check || error("the images of the variables are not elements of the codomain")
-    # Check whether this homomorphism is well defined
-    # TODO: Implement that!
-    return new{typeof(k), elem_type(k), typeof(R), elem_type(R), typeof(inverted_set(V)), typeof(inverted_set(W))}(V, W, a)
+    return new{DomainType, CodomainType, RestrictedMapType}(W, S, res) 
   end
 end
   
 ### additional constructors
 function MPolyLocalizedRingHom(
-      R::RT,
-      W::MPolyLocalizedRing{BRT, BRET, RT, RET, CMST}, 
-      a::Vector{MPolyLocalizedRingElem{BRT, BRET, RT, RET, CMST}}
-    ) where {BRT, BRET, RT, RET, CMST}
-  return MPolyLocalizedRingHom(Localization(units_of(R)), W, a)
+      R::MPolyRing,
+      S::Ring,
+      a::Vector{RingElemType}
+  ) where {RingElemType<:RingElem}
+  res = hom(R, S, a)
+  return MPolyLocalizedRingHom(Localization(units_of(R)), S, res)
 end
 
 function MPolyLocalizedRingHom(
-      V::MPolyLocalizedRing{BRT, BRET, RT, RET, DMST}, 
-      S::RT,
-      a::Vector{RET}
-    ) where {BRT, BRET, RT, RET, DMST}
-  W = Localization(units_of(S))
-  return MPolyLocalizedRingHom(V, W, W.(a))
+      W::MPolyLocalizedRing,
+      S::Ring,
+      a::Vector{RingElemType}
+  ) where {RingElemType<:RingElem}
+  R = base_ring(W)
+  res = hom(R, S, a)
+  return MPolyLocalizedRingHom(W, S, res)
 end
+
+hom(W::MPolyLocalizedRing, S::Ring, res::Map) = MPolyLocalizedRingHom(W, S, res)
+hom(W::MPolyLocalizedRing, S::Ring, a::Vector{RET}) where {RET<:RingElem} = MPolyLocalizedRingHom(W, S, a)
 
 ### required getter functions
-domain(f::MPolyLocalizedRingHom) = f.V
-codomain(f::MPolyLocalizedRingHom) = f.W
-images(f::MPolyLocalizedRingHom) = f.images
-
-### required functionality
-function (f::MPolyLocalizedRingHom{BRT, BRET, RT, RET, DMST, CMST})(p::MPolyLocalizedRingElem{BRT, BRET, RT, RET, DMST}) where {BRT, BRET, RT, RET, DMST, CMST}
-  parent(p) == domain(f) || error("the given element does not belong to the domain of the map")
-  return evaluate(numerator(p), images(f))//evaluate(denominator(p), images(f))
-end
-
-### overwriting of the generic method
-function (f::MPolyLocalizedRingHom{BRT, BRET, RT, RET, DMST, CMST})(p::RET) where {BRT, BRET, RT, RET, DMST, CMST}
-  parent(p) == base_ring(domain(f)) || error("the given element does not belong to the domain of the map")
-  return evaluate(p, images(f))
-end
-
-### provide an extra method for elements of the base ring
-function (f::MPolyLocalizedRingHom{BRT, BRET, RT, RET, DMST, CMST})(p::BRET) where {BRT, BRET, RT, RET, DMST, CMST}
-  parent(p) == coefficient_ring(base_ring(domain(f))) || error("the given element does not belong to the domain of the map")
-  return codomain(f)(p)
-end
-
-### remove the ambiguity of methods in case the base ring is ℤ
-function (f::MPolyLocalizedRingHom)(p::fmpz) 
-  return codomain(f)(p)
-end
+domain(f::MPolyLocalizedRingHom) = f.W
+codomain(f::MPolyLocalizedRingHom) = f.S
+restricted_map(f::MPolyLocalizedRingHom) = f.res
 
 ### implementing the Oscar map interface
-identity_map(W::T) where {T<:MPolyLocalizedRing} = MPolyLocalizedRingHom(W, W, W.(gens(base_ring(W))))
-function compose(
-    f::MPolyLocalizedRingHom{BRT, BRET, RT, RET, MST1, MST2}, 
-    g::MPolyLocalizedRingHom{BRT, BRET, RT, RET, MST2, MST3}
-  ) where {BRT, BRET, RT, RET, MST1, MST2, MST3}
-  codomain(f) == domain(g) || error("maps are not compatible")
-  return MPolyLocalizedRingHom(domain(f), codomain(g), g.(images(f)))
+function identity_map(W::T) where {T<:MPolyLocalizedRing} 
+  MPolyLocalizedRingHom(W, W, identity_map(base_ring(W)))
 end
 
-function preimage(f::MPolyLocalizedRingHom, I::MPolyLocalizedIdeal)
-  base_ring(I) == codomain(f) || error("the ideal does not belong to the codomain of the map")
-  R = base_ring(domain(f))
-  error("not implemented")
+function compose(
+    f::MPolyLocalizedRingHom, 
+    g::MPolyLocalizedRingHom
+  )
+  codomain(f) === domain(g) || error("maps are not compatible")
+  return MPolyLocalizedRingHom(domain(f), codomain(g), compose(restricted_map(f), g))
 end
+
+(f::MPolyLocalizedRingHom)(I::Ideal) = ideal(codomain(f), domain(f).(gens(I)))
+
+function ==(f::MPolyLocalizedRingHom, g::MPolyLocalizedRingHom) 
+  domain(f) === domain(g) || return false
+  codomain(f) === codomain(g) || return false
+  for x in gens(base_ring(domain(f)))
+    f(x) == g(x) || return false
+  end
+  return true
+end
+

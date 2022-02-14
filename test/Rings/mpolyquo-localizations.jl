@@ -35,6 +35,7 @@
   
   ### second round of tests
   #kk = GF(101)
+  ⊂ = issubset
   kk = QQ
   R, (x,y) = kk["x", "y"]
 

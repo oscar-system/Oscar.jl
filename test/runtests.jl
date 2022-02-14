@@ -30,6 +30,7 @@ include("Rings/FunctionField-test.jl")
 include("Rings/AbelianClosure.jl")
 
 include("Rings/MPolyAnyMap/MPolyRing.jl")
+include("Rings/MPolyAnyMap/MPolyQuo.jl")
 
 include("Rings/binomial-ideals-test.jl")
 
