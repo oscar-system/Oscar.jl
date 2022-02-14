@@ -17,7 +17,7 @@ Use `even = true` to get the vertices only for the even permutation matrices.
 # Example
 ```jldoctest
 julia> b = birkhoff(3)
-A polyhedron in ambient dimension 9 with fmpq type coefficients
+A polyhedron in ambient dimension 9
 
 julia> vertices(b)
 6-element SubObjectIterator{PointVector{fmpq}}:
@@ -47,7 +47,7 @@ is the distance between the vertex barycenter and `v`.
 # Example
 ```jldoctest
 julia> c = cube(2)
-A polyhedron in ambient dimension 2 with fmpq type coefficients
+A polyhedron in ambient dimension 2
 
 julia> vertices(pyramid(c,5))
 5-element SubObjectIterator{PointVector{fmpq}}:
@@ -79,7 +79,7 @@ vertex barycenter of `P`.
 # Example
 ```jldoctest
 julia> c = cube(2)
-A polyhedron in ambient dimension 2 with fmpq type coefficients
+A polyhedron in ambient dimension 2
 
 julia> vertices(bipyramid(c,2))
 6-element SubObjectIterator{PointVector{fmpq}}:
@@ -112,7 +112,7 @@ attain their minimum at the `i`-th vertex.
 Build the normal cones at the first vertex of the square (in this case [-1,-1]).
 ```jldoctest
 julia> square = cube(2)
-A polyhedron in ambient dimension 2 with fmpq type coefficients
+A polyhedron in ambient dimension 2
 
 julia> vertices(square)
 4-element SubObjectIterator{PointVector{fmpq}}:
@@ -122,7 +122,7 @@ julia> vertices(square)
  [1, 1]
 
 julia> nc = normal_cone(square, 1)
-A polyhedral cone in ambient dimension 2 with fmpq type coefficients
+A polyhedral cone in ambient dimension 2
 
 julia> rays(nc)
 2-element SubObjectIterator{RayVector{fmpq}}:
@@ -153,7 +153,7 @@ julia> V = [1 2 3];
 julia> G = symmetric_group(3);
 
 julia> P = orbit_polytope(V, G)
-A polyhedron in ambient dimension 3 with fmpq type coefficients
+A polyhedron in ambient dimension 3
 
 julia> vertices(P)
 6-element SubObjectIterator{PointVector{fmpq}}:
@@ -179,7 +179,7 @@ function orbit_polytope(V::AbstractVector, G::PermGroup)
 end
 
 @doc Markdown.doc"""
-    cube(d::Int , [l::Rational = -1, u::Rational = 1])
+    cube([::Type{T} = fmpq,] d::Int , [l::Rational = -1, u::Rational = 1])
 
 Construct the $[l,u]$-cube in dimension $d$.
 
@@ -213,7 +213,7 @@ julia> f = x^3*y + 3x*y^2 + 1
 x^3*y + 3*x*y^2 + 1
 
 julia> NP = newton_polytope(f)
-A polyhedron in ambient dimension 2 with fmpq type coefficients
+A polyhedron in ambient dimension 2
 
 julia> vertices(NP)
 3-element SubObjectIterator{PointVector{fmpq}}:
@@ -244,7 +244,7 @@ julia> UH1 = convex_hull([0 0],[1 0],[0 1]);
 julia> UH2 = convex_hull([0 0],[0 1],[1 0]);
 
 julia> PO = intersect(UH1, UH2)
-A polyhedron in ambient dimension 2 with fmpq type coefficients
+A polyhedron in ambient dimension 2
 
 julia> rays(PO)
 2-element SubObjectIterator{RayVector{fmpq}}:
@@ -271,7 +271,7 @@ julia> P = cube(2);
 julia> Q = cross(2);
 
 julia> M = minkowski_sum(P, Q)
-A polyhedron in ambient dimension 2 with fmpq type coefficients
+A polyhedron in ambient dimension 2
 
 julia> nvertices(M)
 8
@@ -300,10 +300,10 @@ Return the Cartesian product of `P` and `Q`.
 The Cartesian product of a triangle and a line segment is a triangular prism.
 ```jldoctest
 julia> T=simplex(2)
-A polyhedron in ambient dimension 2 with fmpq type coefficients
+A polyhedron in ambient dimension 2
 
 julia> S=cube(1)
-A polyhedron in ambient dimension 1 with fmpq type coefficients
+A polyhedron in ambient dimension 1
 
 julia> length(vertices(product(T,S)))
 6
@@ -320,10 +320,10 @@ Return the Cartesian product of `P` and `Q` (see also `product`).
 The Cartesian product of a triangle and a line segment is a triangular prism.
 ```jldoctest
 julia> T=simplex(2)
-A polyhedron in ambient dimension 2 with fmpq type coefficients
+A polyhedron in ambient dimension 2
 
 julia> S=cube(1)
-A polyhedron in ambient dimension 1 with fmpq type coefficients
+A polyhedron in ambient dimension 1
 
 julia> length(vertices(T*S))
 6
@@ -340,10 +340,10 @@ Return the convex_hull of `P` and `Q`.
 The convex hull of the following two line segments in $R^3$ is a tetrahedron.
 ```jldoctest
 julia> L₁ = convex_hull([-1 0 0; 1 0 0])
-A polyhedron in ambient dimension 3 with fmpq type coefficients
+A polyhedron in ambient dimension 3
 
 julia> L₂ = convex_hull([0 -1 0; 0 1 0])
-A polyhedron in ambient dimension 3 with fmpq type coefficients
+A polyhedron in ambient dimension 3
 
 julia> T=convex_hull(L₁,L₂);
 
@@ -373,7 +373,7 @@ julia> P = cube(2);
 julia> Q = cross(2);
 
 julia> M = minkowski_sum(P, Q)
-A polyhedron in ambient dimension 2 with fmpq type coefficients
+A polyhedron in ambient dimension 2
 
 julia> nvertices(M)
 8
@@ -399,7 +399,7 @@ This example confirms the statement for the 6-dimensional cube and $k = 2$.
 julia> C = cube(6);
 
 julia> SC = 2*C
-A polyhedron in ambient dimension 6 with fmpq type coefficients
+A polyhedron in ambient dimension 6
 
 julia> volume(SC)//volume(C)
 64
@@ -423,7 +423,7 @@ This example confirms the statement for the 6-dimensional cube and $k = 2$.
 julia> C = cube(6);
 
 julia> SC = C*2
-A polyhedron in ambient dimension 6 with fmpq type coefficients
+A polyhedron in ambient dimension 6
 
 julia> volume(SC)//volume(C)
 64
@@ -448,7 +448,7 @@ julia> P = convex_hull([100 200 300; 101 200 300; 100 201 300; 100 200 301]);
 julia> v = [-100, -200, -300];
 
 julia> S = P + v
-A polyhedron in ambient dimension 3 with fmpq type coefficients
+A polyhedron in ambient dimension 3
 
 julia> vertices(S)
 4-element SubObjectIterator{PointVector{fmpq}}:
@@ -483,7 +483,7 @@ julia> P = convex_hull([100 200 300; 101 200 300; 100 201 300; 100 200 301]);
 julia> v = [-100, -200, -300];
 
 julia> S = v + P
-A polyhedron in ambient dimension 3 with fmpq type coefficients
+A polyhedron in ambient dimension 3
 
 julia> vertices(S)
 4-element SubObjectIterator{PointVector{fmpq}}:
@@ -497,7 +497,7 @@ julia> vertices(S)
 
 @doc Markdown.doc"""
 
-    simplex(d::Int [,n::Rational])
+    simplex([::Type{T} = fmpq,] d::Int [,n::Rational])
 
 Construct the simplex which is the convex hull of the standard basis vectors
 along with the origin in $\mathbb{R}^d$, scaled by $n$.
@@ -506,7 +506,7 @@ along with the origin in $\mathbb{R}^d$, scaled by $n$.
 Here we take a look at the facets of the 7-simplex and a scaled 7-simplex:
 ```jldoctest
 julia> s = simplex(7)
-A polyhedron in ambient dimension 7 with fmpq type coefficients
+A polyhedron in ambient dimension 7
 
 julia> facets(s)
 8-element SubObjectIterator{AffineHalfspace{fmpq}}:
@@ -535,7 +535,7 @@ julia> facets(s)
 1: x₁ + x₂ + x₃ + x₄ + x₅ + x₆ + x₇ ≦ 1
 
 julia> t = simplex(7, 5)
-A polyhedron in ambient dimension 7 with fmpq type coefficients
+A polyhedron in ambient dimension 7
 
 julia> facets(t)
 8-element SubObjectIterator{AffineHalfspace{fmpq}}:
@@ -571,7 +571,7 @@ simplex(x...) = simplex(fmpq, x...)
 
 @doc Markdown.doc"""
 
-    cross(d::Int [,n::Rational])
+    cross([::Type{T} = fmpq,] d::Int [,n::Rational])
 
 Construct a $d$-dimensional cross polytope around origin with vertices located
 at $\pm e_i$ for each unit vector $e_i$ of $R^d$, scaled by $n$.
@@ -581,7 +581,7 @@ Here we print the facets of a non-scaled and a scaled 3-dimensional cross
 polytope:
 ```jldoctest
 julia> C = cross(3)
-A polyhedron in ambient dimension 3 with fmpq type coefficients
+A polyhedron in ambient dimension 3
 
 julia> facets(C)
 8-element SubObjectIterator{AffineHalfspace{fmpq}}:
@@ -610,7 +610,7 @@ julia> facets(C)
 1: -x₁ - x₂ - x₃ ≦ 1
 
 julia> D = cross(3, 2)
-A polyhedron in ambient dimension 3 with fmpq type coefficients
+A polyhedron in ambient dimension 3
 
 julia> facets(D)
 8-element SubObjectIterator{AffineHalfspace{fmpq}}:
@@ -691,7 +691,7 @@ exact; Vertex-facet-incidences are correct in all cases.
 # Examples
 ```jldoctest
 julia> T = archimedean_solid("cuboctahedron")
-A polyhedron in ambient dimension 3 with fmpq type coefficients
+A polyhedron in ambient dimension 3
 
 julia> sum([nvertices(F) for F in faces(T, 2)] .== 3)
 8
@@ -804,10 +804,10 @@ whose evaluation on `P` does not exceed 1.
 # Examples
 ```jldoctest
 julia> square = cube(2)
-A polyhedron in ambient dimension 2 with fmpq type coefficients
+A polyhedron in ambient dimension 2
 
 julia> P = polarize(square)
-A polyhedron in ambient dimension 2 with fmpq type coefficients
+A polyhedron in ambient dimension 2
 
 julia> vertices(P)
 4-element SubObjectIterator{PointVector{fmpq}}:
@@ -831,13 +831,13 @@ ambient space.
 
 ```jldoctest
 julia> P = convex_hull([1 0 0; 0 0 0])
-A polyhedron in ambient dimension 3 with fmpq type coefficients
+A polyhedron in ambient dimension 3
 
 julia> isfulldimensional(P)
 false
 
 julia> p = project_full(P)
-A polyhedron in ambient dimension 1 with fmpq type coefficients
+A polyhedron in ambient dimension 1
 
 julia> isfulldimensional(p)
 true
@@ -847,7 +847,7 @@ project_full(P::Polyhedron{T}) where T<:scalar_types = Polyhedron{T}(Polymake.po
 
 @doc Markdown.doc"""
 
-    gelfand_tsetlin(lambda::AbstractVector)
+    gelfand_tsetlin([::Type{T} = fmpq,] lambda::AbstractVector)
 
 Construct the Gelfand Tsetlin polytope indexed by a weakly decreasing vector `lambda`.
 
@@ -868,4 +868,6 @@ julia> volume(p)
 3
 ```
 """
-gelfand_tsetlin(lambda::AbstractVector; scalar_type::Type{<:scalar_types} = fmpq) = Polyhedron{scalar_type}(Polymake.polytope.gelfand_tsetlin(Polymake.Vector{scalar_type_to_polymake[scalar_type]}(lambda),projected=false))
+gelfand_tsetlin(::Type{T}, lambda::AbstractVector) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.gelfand_tsetlin(Polymake.Vector{scalar_type_to_polymake[T]}(lambda), projected = false))
+
+gelfand_tsetlin(x...) = gelfand_tsetlin(fmpq, x...)

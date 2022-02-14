@@ -32,7 +32,7 @@ The complete $H$-representation can be retrieved using [`facets`](@ref facets)
 and [`affine_hull`](@ref affine_hull):
 ```jldoctest
 julia> P = Polyhedron(([-1 0; 1 0], [0,1]), ([0 1], [0]))
-A polyhedron in ambient dimension 2 with fmpq type coefficients
+A polyhedron in ambient dimension 2
 
 julia> facets(P)
 2-element SubObjectIterator{AffineHalfspace{fmpq}}:
@@ -50,13 +50,13 @@ julia> affine_hull(P)
 
 
 julia> Q0 = Polyhedron(facets(P))
-A polyhedron in ambient dimension 2 with fmpq type coefficients
+A polyhedron in ambient dimension 2
 
 julia> P == Q0
 false
 
 julia> Q1 = Polyhedron(facets(P), affine_hull(P))
-A polyhedron in ambient dimension 2 with fmpq type coefficients
+A polyhedron in ambient dimension 2
 
 julia> P == Q1
 true
@@ -65,7 +65,7 @@ true
 ### Computing convex hulls: $V$-representation
 
 ```@docs
-convex_hull(::AnyVecOrMat; non_redundant::Bool=false)
+convex_hull(::Type{T}, ::AnyVecOrMat; non_redundant::Bool=false) where T<:scalar_types
 ```
 
 This is a standard triangle, defined via a (redundant) $V$-representation  and
@@ -81,16 +81,16 @@ vertices), [`rays`](@ref rays) and [`lineality_space`](@ref lineality_space):
 
 ```jldoctest; filter = r"^polymake: +WARNING.*\n|^"
 julia> P = convex_hull([0 0], [1 0], [0 1])
-A polyhedron in ambient dimension 2 with fmpq type coefficients
+A polyhedron in ambient dimension 2
 
 julia> Q0 = convex_hull(vertices(P))
-A polyhedron in ambient dimension 2 with fmpq type coefficients
+A polyhedron in ambient dimension 2
 
 julia> P == Q0
 false
 
 julia> Q1 = convex_hull(vertices(P), rays(P))
-A polyhedron in ambient dimension 2 with fmpq type coefficients
+A polyhedron in ambient dimension 2
 
 julia> P == Q1
 false
@@ -99,7 +99,7 @@ julia> Q0 == Q1
 false
 
 julia> Q2 = convex_hull(vertices(P), rays(P), lineality_space(P))
-A polyhedron in ambient dimension 2 with fmpq type coefficients
+A polyhedron in ambient dimension 2
 
 julia> P == Q2
 true

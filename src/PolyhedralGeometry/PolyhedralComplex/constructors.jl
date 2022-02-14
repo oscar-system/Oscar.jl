@@ -39,7 +39,7 @@ julia> vr = [0 0; 1 0; 1 1; 0 1]
  0  1
 
 julia> PC = PolyhedralComplex(IM, vr)
-A polyhedral complex in ambient dimension 2 with fmpq type coefficients
+A polyhedral complex in ambient dimension 2
 ```
 """
 function PolyhedralComplex{T}(
@@ -81,7 +81,8 @@ PolyhedralComplex(iter::SubObjectIterator{Polyhedron{T}}) where T<:scalar_types 
 function Base.show(io::IO, PC::PolyhedralComplex{T}) where T<:scalar_types
     try
         ad = ambient_dim(PC)
-        print(io, "A polyhedral complex in ambient dimension $(ad) with $T type coefficients")
+        print(io, "A polyhedral complex in ambient dimension $(ad)")
+        T != fmpq && print(io, " with $T type coefficients")
     catch e
         print(io, "A polyhedral complex without ambient dimension")
     end

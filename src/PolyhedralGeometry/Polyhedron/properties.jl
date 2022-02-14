@@ -17,12 +17,12 @@ via the following input:
 ```jldoctest
 julia> F = faces(cube(3), 2)
 6-element SubObjectIterator{Polyhedron{fmpq}}:
- A polyhedron in ambient dimension 3 with fmpq type coefficients
- A polyhedron in ambient dimension 3 with fmpq type coefficients
- A polyhedron in ambient dimension 3 with fmpq type coefficients
- A polyhedron in ambient dimension 3 with fmpq type coefficients
- A polyhedron in ambient dimension 3 with fmpq type coefficients
- A polyhedron in ambient dimension 3 with fmpq type coefficients
+ A polyhedron in ambient dimension 3
+ A polyhedron in ambient dimension 3
+ A polyhedron in ambient dimension 3
+ A polyhedron in ambient dimension 3
+ A polyhedron in ambient dimension 3
+ A polyhedron in ambient dimension 3
 ```
 """
 function faces(P::Polyhedron{T}, face_dim::Int) where T<:scalar_types
@@ -273,12 +273,12 @@ julia> C = cube(3);
 
 julia> facets(Polyhedron, C)
 6-element SubObjectIterator{Polyhedron{fmpq}}:
- A polyhedron in ambient dimension 3 with fmpq type coefficients
- A polyhedron in ambient dimension 3 with fmpq type coefficients
- A polyhedron in ambient dimension 3 with fmpq type coefficients
- A polyhedron in ambient dimension 3 with fmpq type coefficients
- A polyhedron in ambient dimension 3 with fmpq type coefficients
- A polyhedron in ambient dimension 3 with fmpq type coefficients
+ A polyhedron in ambient dimension 3
+ A polyhedron in ambient dimension 3
+ A polyhedron in ambient dimension 3
+ A polyhedron in ambient dimension 3
+ A polyhedron in ambient dimension 3
+ A polyhedron in ambient dimension 3
 
 julia> facets(Halfspace, C)
 6-element SubObjectIterator{AffineHalfspace{fmpq}}:
@@ -396,7 +396,7 @@ affine subspace contained in `P`.
 Polyhedron with one lineality direction.
 ```jldoctest
 julia> C = convex_hull([0 0], [1 0], [1 1])
-A polyhedron in ambient dimension 2 with fmpq type coefficients
+A polyhedron in ambient dimension 2
 
 julia> lineality_dim(C)
 1
@@ -509,7 +509,7 @@ Return the integer points contained in the interior of the bounded polyhedron
 # Examples
 ```jldoctest
 julia> c = cube(3)
-A polyhedron in ambient dimension 3 with fmpq type coefficients
+A polyhedron in ambient dimension 3
 
 julia> interior_lattice_points(c)
 1-element SubObjectIterator{PointVector{fmpz}}:
@@ -536,7 +536,7 @@ Return the integer points contained in the boundary of the bounded polyhedron
 # Examples
 ```jldoctest
 julia> c = polarize(cube(3))
-A polyhedron in ambient dimension 3 with fmpq type coefficients
+A polyhedron in ambient dimension 3
 
 julia> boundary_lattice_points(c)
 6-element SubObjectIterator{PointVector{fmpz}}:
@@ -673,7 +673,7 @@ julia> vertices(P)
  [-1, -1]
 
 julia> recession_cone(P)
-A polyhedral cone in ambient dimension 2 with fmpq type coefficients
+A polyhedral cone in ambient dimension 2
 
 julia> rays(recession_cone(P))
 2-element SubObjectIterator{RayVector{fmpq}}:
@@ -692,7 +692,7 @@ Compute the Ehrhart polynomial of `P`.
 # Examples
 ```jldoctest
 julia> c = cube(3)
-A polyhedron in ambient dimension 3 with fmpq type coefficients
+A polyhedron in ambient dimension 3
 
 julia> ehrhart_polynomial(c)
 8*x^3 + 12*x^2 + 6*x + 1
@@ -714,7 +714,7 @@ julia> R, x = PolynomialRing(QQ, "x")
 (Univariate Polynomial Ring in x over Rational Field, x)
 
 julia> c = cube(3)
-A polyhedron in ambient dimension 3 with fmpq type coefficients
+A polyhedron in ambient dimension 3
 
 julia> ehrhart_polynomial(R, c)
 8*x^3 + 12*x^2 + 6*x + 1
@@ -734,7 +734,7 @@ Compute the $h^*$ polynomial of `P`.
 # Examples
 ```jldoctest
 julia> c = cube(3)
-A polyhedron in ambient dimension 3 with fmpq type coefficients
+A polyhedron in ambient dimension 3
 
 julia> h_star_polynomial(c)
 x^3 + 23*x^2 + 23*x + 1
@@ -756,7 +756,7 @@ julia> R, x = PolynomialRing(QQ, "x")
 (Univariate Polynomial Ring in x over Rational Field, x)
 
 julia> c = cube(3)
-A polyhedron in ambient dimension 3 with fmpq type coefficients
+A polyhedron in ambient dimension 3
 
 julia> h_star_polynomial(R, c)
 x^3 + 23*x^2 + 23*x + 1
@@ -778,13 +778,13 @@ Check whether `P` is very ample.
 # Examples
 ```jldoctest
 julia> c = cube(3)
-A polyhedron in ambient dimension 3 with fmpq type coefficients
+A polyhedron in ambient dimension 3
 
 julia> is_very_ample(c)
 true
 
 julia> P = convex_hull([0 0 0; 1 1 0; 1 0 1; 0 1 1])
-A polyhedron in ambient dimension 3 with fmpq type coefficients
+A polyhedron in ambient dimension 3
 
 julia> is_very_ample(P)
 false
@@ -855,7 +855,7 @@ Check whether `P` is normal.
 The 3-cube is normal.
 ```jldoctest
 julia> C = cube(3)
-A polyhedron in ambient dimension 3 with fmpq type coefficients
+A polyhedron in ambient dimension 3
 
 julia> isnormal(C)
 true
@@ -895,7 +895,7 @@ Check whether `P` is simple.
 # Examples
 ```jldoctest
 julia> c = cube(2,0,1)
-A polyhedron in ambient dimension 2 with fmpq type coefficients
+A polyhedron in ambient dimension 2
 
 julia> issimple(c)
 true
@@ -998,7 +998,7 @@ contained in any facet.
 The square $[-1,1]^3$ has the origin as a relative interior point.
 ```jldoctest
 julia> square = cube(2)
-A polyhedron in ambient dimension 2 with fmpq type coefficients
+A polyhedron in ambient dimension 2
 
 julia> relative_interior_point(square)
 2-element PointVector{fmpq}:

@@ -3,16 +3,16 @@
 @testset "Polyhedron{$T}" for T in [fmpq, nf_scalar]
 
     pts = [1 0 0; 0 0 1]'
-    @test convex_hull(pts; scalar_type = T) isa Polyhedron{T}
-    Q0 = convex_hull(pts; scalar_type = T)
-    @test convex_hull(pts; scalar_type = T, non_redundant = true) == Q0
-    Q1 = convex_hull(pts, [1 1]; scalar_type = T)
-    Q2 = convex_hull(pts, [1 1], [1 1]; scalar_type = T)
+    @test convex_hull(T, pts) isa Polyhedron{T}
+    Q0 = convex_hull(T, pts)
+    @test convex_hull(T, pts; non_redundant = true) == Q0
+    Q1 = convex_hull(T, pts, [1 1])
+    Q2 = convex_hull(T, pts, [1 1], [1 1])
     square = cube(T, 2)
     C1 = cube(T, 2, 0, 1)
     Pos = Polyhedron{T}([-1 0 0; 0 -1 0; 0 0 -1], [0,0,0])
     L = Polyhedron{T}([-1 0 0; 0 -1 0], [0,0])
-    point = convex_hull([0 1 0]; scalar_type = T)
+    point = convex_hull(T, [0 1 0])
     s = simplex(T, 2)
 
     @testset "core functionality" begin
@@ -41,7 +41,7 @@
         @test isfulldimensional(Q0)
         @test f_vector(Q0) == [3,3]
         @test intersect(Q0, Q0) == Q0
-        @test minkowski_sum(Q0, Q0) == convex_hull(2 * pts; scalar_type = T)
+        @test minkowski_sum(Q0, Q0) == convex_hull(T, 2 * pts)
         @test Q0+Q0 == minkowski_sum(Q0, Q0)
         @test f_vector(Pos) == [1,3,3]
         @test f_vector(L) == [0, 1, 2]
@@ -82,15 +82,15 @@
         @test lineality_space(L) == [[0, 0, 1]]
         @test faces(square, 1) isa SubObjectIterator{Polyhedron{T}}
         @test length(faces(square, 1)) == 4
-        @test faces(square, 1) == convex_hull.([[-1 -1; -1 1], [1 -1; 1 1], [-1 -1; 1 -1], [-1 1; 1 1]]; scalar_type = T)
+        @test faces(square, 1) == convex_hull.(T, [[-1 -1; -1 1], [1 -1; 1 1], [-1 -1; 1 -1], [-1 1; 1 1]])
         @test vertex_indices(faces(square, 1)) == IncidenceMatrix([[1, 3], [2, 4], [1, 2], [3, 4]])
         @test ray_indices(faces(square, 1)) == IncidenceMatrix(4, 0)
         @test faces(Pos, 1) isa SubObjectIterator{Polyhedron{T}}
         @test length(faces(Pos, 1)) == 3
         if T == fmpq
-            @test faces(Pos, 1) == convex_hull.([[0 0 0]], [[1 0 0], [0 1 0] , [0 0 1]]; scalar_type = T)
+            @test faces(Pos, 1) == convex_hull.(T, [[0 0 0]], [[1 0 0], [0 1 0] , [0 0 1]])
         else
-            @test faces(Pos, 1) == convex_hull.([[0 0 0]], [[0 1 0], [1 0 0], [0 0 1]]; scalar_type = T)
+            @test faces(Pos, 1) == convex_hull.(T, [[0 0 0]], [[0 1 0], [1 0 0], [0 0 1]])
         end
         @test vertex_indices(faces(Pos, 1)) == IncidenceMatrix([[1], [1], [1]])
         @test ray_indices(faces(Pos, 1)) == IncidenceMatrix([[1], [2], [3]])
@@ -185,7 +185,7 @@
             @test nvertices(pyramid(b1)) + 1 == nvertices(bipyramid(b1))
             @test nvertices(b1) == nvertices(b2) * 2
         end
-        P = gelfand_tsetlin([3,2,1]; scalar_type = T)
+        P = gelfand_tsetlin(T, [3,2,1])
         p = project_full(P)
         @test p isa Polyhedron{T}
         @test volume(P) == 0

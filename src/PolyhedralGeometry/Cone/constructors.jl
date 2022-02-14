@@ -22,7 +22,7 @@ To construct the positive orthant as a `Cone`, you can write:
 julia> R = [1 0; 0 1];
 
 julia> PO = Cone(R)
-A polyhedral cone in ambient dimension 2 with fmpq type coefficients
+A polyhedral cone in ambient dimension 2
 ```
 
 To obtain the upper half-space of the plane:
@@ -32,7 +32,7 @@ julia> R = [0 1];
 julia> L = [1 0];
 
 julia> HS = Cone(R, L)
-A polyhedral cone in ambient dimension 2 with fmpq type coefficients
+A polyhedral cone in ambient dimension 2
 ```
 """
 function Cone{T}(R::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix}, L::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix, Nothing} = nothing; non_redundant::Bool = false) where T<:scalar_types
@@ -57,7 +57,7 @@ end
 
 
 @doc Markdown.doc"""
-    positive_hull(R::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator}; scalar_type::Type{<:scalar_types} = fmpq)
+    positive_hull([:.Type{T} = fmpq,] R::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator})
 
 A polyhedral cone, not necessarily pointed, defined by the positive hull of the
 rows of the matrix `R`. This means the cone consists of all positive linear
@@ -71,18 +71,20 @@ Redundant rays are allowed.
 julia> R = [1 0; 0 1];
 
 julia> PO = positive_hull(R)
-A polyhedral cone in ambient dimension 2 with fmpq type coefficients
+A polyhedral cone in ambient dimension 2
 ```
 """
-function positive_hull(R::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix}; scalar_type::Type{<:scalar_types} = fmpq)
-    C=Polymake.polytope.Cone{scalar_type_to_polymake[scalar_type]}(INPUT_RAYS =
+function positive_hull(::Type{T}, R::Union{SubObjectIterator{<:RayVector}, Oscar.MatElem, AbstractMatrix}) where T<:scalar_types
+    C=Polymake.polytope.Cone{scalar_type_to_polymake[T]}(INPUT_RAYS =
       remove_zero_rows(R))
-    Cone{scalar_type}(C)
+    Cone{T}(C)
 end
+
+positive_hull(x...) = positive_hull(fmpq, x...)
 
 @doc Markdown.doc"""
 
-    cone_from_inequalities(I::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator} [, E::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator}]; non_redundant::Bool = false, scalar_type::Type{<:scalar_types} = fmpq)
+    cone_from_inequalities([::Type{T} = fmpq,] I::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator} [, E::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator}]; non_redundant::Bool = false)
 
 The (convex) cone defined by
 
@@ -94,7 +96,7 @@ avoid unnecessary redundancy checks.
 # Examples
 ```jldoctest
 julia> C = cone_from_inequalities([0 -1; -1 1])
-A polyhedral cone in ambient dimension 2 with fmpq type coefficients
+A polyhedral cone in ambient dimension 2
 
 julia> rays(C)
 2-element SubObjectIterator{RayVector{fmpq}}:
@@ -102,16 +104,18 @@ julia> rays(C)
  [1, 1]
 ```
 """
-function cone_from_inequalities(I::Union{SubObjectIterator{<:Halfspace}, Oscar.MatElem, AbstractMatrix}, E::Union{Nothing, SubObjectIterator{<:Hyperplane}, Oscar.MatElem, AbstractMatrix} = nothing; non_redundant::Bool = false, scalar_type::Type{<:scalar_types} = fmpq)
+function cone_from_inequalities(::Type{T}, I::Union{SubObjectIterator{<:Halfspace}, Oscar.MatElem, AbstractMatrix}, E::Union{Nothing, SubObjectIterator{<:Hyperplane}, Oscar.MatElem, AbstractMatrix} = nothing; non_redundant::Bool = false) where T<:scalar_types
     IM = -linear_matrix_for_polymake(I)
-    EM = isnothing(E) || isempty(E) ? Polymake.Matrix{scalar_type_to_polymake[scalar_type]}(undef, 0, size(IM, 2)) : linear_matrix_for_polymake(E)
+    EM = isnothing(E) || isempty(E) ? Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(IM, 2)) : linear_matrix_for_polymake(E)
 
     if non_redundant
-        return Cone{scalar_type}(Polymake.polytope.Cone{scalar_type_to_polymake[scalar_type]}(FACETS = IM, LINEAR_SPAN = EM))
+        return Cone{T}(Polymake.polytope.Cone{scalar_type_to_polymake[T]}(FACETS = IM, LINEAR_SPAN = EM))
     else
-        return Cone{scalar_type}(Polymake.polytope.Cone{scalar_type_to_polymake[scalar_type]}(INEQUALITIES = IM, EQUATIONS = EM))
+        return Cone{T}(Polymake.polytope.Cone{scalar_type_to_polymake[T]}(INEQUALITIES = IM, EQUATIONS = EM))
     end
 end
+
+cone_from_inequalities(x...) = cone_from_inequalities(fmpq, x...)
 
 """
     pm_object(C::Cone)
@@ -128,7 +132,8 @@ pm_object(C::Cone) = C.pm_cone
 ###############################################################################
 
 function Base.show(io::IO, C::Cone{T}) where T<:scalar_types
-    print(io,"A polyhedral cone in ambient dimension $(ambient_dim(C)) with $T type coefficients")
+    print(io, "A polyhedral cone in ambient dimension $(ambient_dim(C))")
+    T != fmpq && print(io, " with $T type coefficients")
 end
 
 Polymake.visual(C::Cone; opts...) = Polymake.visual(pm_object(C); opts...)

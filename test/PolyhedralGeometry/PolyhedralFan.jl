@@ -3,8 +3,8 @@
     NFsquare = normal_fan(C0)
     R = [1 0 0; 0 0 1]
     L = [0 1 0]
-    Cone4 = positive_hull(R; scalar_type = T)
-    Cone5 = positive_hull([1 0 0; 0 1 0]; scalar_type = T)
+    Cone4 = positive_hull(T, R)
+    Cone5 = positive_hull(T, [1 0 0; 0 1 0])
 
     F0 = PolyhedralFan([Cone4, Cone5])
     I3 = [1 0 0; 0 1 0; 0 0 1]

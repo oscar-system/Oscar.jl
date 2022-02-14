@@ -36,7 +36,7 @@ cone `C`.
 Set `C` to be the positive orthant in two dimensions.
 ```jldoctest
 julia> C = positive_hull([1 0; 0 1])
-A polyhedral cone in ambient dimension 2 with fmpq type coefficients
+A polyhedral cone in ambient dimension 2
 
 julia> antv = AffineNormalToricVariety(C)
 A normal, affine toric variety
@@ -106,10 +106,10 @@ Construct the normal toric variety $X_{PF}$ corresponding to a polyhedral fan `P
 Take `PF` to be the normal fan of the square.
 ```jldoctest
 julia> square = cube(2)
-A polyhedron in ambient dimension 2 with fmpq type coefficients
+A polyhedron in ambient dimension 2
 
 julia> nf = normal_fan(square)
-A polyhedral fan in ambient dimension 2 with fmpq type coefficients
+A polyhedral fan in ambient dimension 2
 
 julia> ntv = NormalToricVariety(nf)
 A normal toric variety
@@ -142,7 +142,7 @@ from the affine relations of the lattice points in `P`, if `P` is very ample.
 Set `P` to be a square.
 ```jldoctest
 julia> square = cube(2)
-A polyhedron in ambient dimension 2 with fmpq type coefficients
+A polyhedron in ambient dimension 2
 
 julia> ntv = NormalToricVariety(square)
 A normal toric variety

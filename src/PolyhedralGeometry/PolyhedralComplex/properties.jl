@@ -19,7 +19,7 @@ julia> V = [0 0; 1 0; 1 1; 0 1]
  0  1
 
 julia> PC = PolyhedralComplex(IM, V)
-A polyhedral complex in ambient dimension 2 with fmpq type coefficients
+A polyhedral complex in ambient dimension 2
 
 julia> ambient_dim(PC)
 2
@@ -87,7 +87,7 @@ julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
 julia> VR = [0 0; 1 0; 1 1; 0 1];
 
 julia> PC = PolyhedralComplex(IM, VR, [2])
-A polyhedral complex in ambient dimension 2 with fmpq type coefficients
+A polyhedral complex in ambient dimension 2
 
 julia> rays(PC);
 
@@ -128,12 +128,12 @@ julia> VR = [0 0; 1 0; 1 1; 0 1]
  0  1
 
 julia> PC = PolyhedralComplex(IM, VR, [2])
-A polyhedral complex in ambient dimension 2 with fmpq type coefficients
+A polyhedral complex in ambient dimension 2
 
 julia> maximal_polyhedra(PC)
 2-element SubObjectIterator{Polyhedron{fmpq}}:
- A polyhedron in ambient dimension 2 with fmpq type coefficients
- A polyhedron in ambient dimension 2 with fmpq type coefficients
+ A polyhedron in ambient dimension 2
+ A polyhedron in ambient dimension 2
 ```
 """
 maximal_polyhedra(PC::PolyhedralComplex{T}) where T<:scalar_types = SubObjectIterator{Polyhedron{T}}(pm_object(PC), _maximal_polyhedron, n_maximal_polyhedra(PC))
@@ -160,7 +160,7 @@ julia> VR = [0 0; 1 0; 1 1; 0 1]
  0  1
 
 julia> PC = PolyhedralComplex(IM, VR, [2])
-A polyhedral complex in ambient dimension 2 with fmpq type coefficients
+A polyhedral complex in ambient dimension 2
 
 julia> n_maximal_polyhedra(PC)
 2
@@ -181,7 +181,7 @@ julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
 julia> VR = [0 0; 1 0; 1 1; 0 1];
 
 julia> PC = PolyhedralComplex(IM, VR)
-A polyhedral complex in ambient dimension 2 with fmpq type coefficients
+A polyhedral complex in ambient dimension 2
 
 julia> issimplicial(PC)
 true
@@ -202,7 +202,7 @@ julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
 julia> VR = [0 0; 1 0; 1 1; 0 1];
 
 julia> PC = PolyhedralComplex(IM, VR)
-A polyhedral complex in ambient dimension 2 with fmpq type coefficients
+A polyhedral complex in ambient dimension 2
 
 julia> ispure(PC)
 true
@@ -223,7 +223,7 @@ julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
 julia> VR = [0 0; 1 0; 1 1; 0 1];
 
 julia> PC = PolyhedralComplex(IM, VR)
-A polyhedral complex in ambient dimension 2 with fmpq type coefficients
+A polyhedral complex in ambient dimension 2
 
 julia> dim(PC)
 2
@@ -246,11 +246,11 @@ julia> PC = PolyhedralComplex(IM, VR);
 
 julia> P1s = polyhedra_of_dim(PC,1)
 5-element SubObjectIterator{Polyhedron{fmpq}}:
- A polyhedron in ambient dimension 2 with fmpq type coefficients
- A polyhedron in ambient dimension 2 with fmpq type coefficients
- A polyhedron in ambient dimension 2 with fmpq type coefficients
- A polyhedron in ambient dimension 2 with fmpq type coefficients
- A polyhedron in ambient dimension 2 with fmpq type coefficients
+ A polyhedron in ambient dimension 2
+ A polyhedron in ambient dimension 2
+ A polyhedron in ambient dimension 2
+ A polyhedron in ambient dimension 2
+ A polyhedron in ambient dimension 2
 
 julia> for p in P1s
        println(dim(p))
@@ -400,7 +400,7 @@ julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4]]);
 julia> far_vertices = [2,3,4];
 
 julia> PC = PolyhedralComplex(IM, VR, far_vertices)
-A polyhedral complex in ambient dimension 2 with fmpq type coefficients
+A polyhedral complex in ambient dimension 2
 
 julia> codim(PC)
 1
@@ -422,7 +422,7 @@ julia> VR = [0 0; 1 0; -1 0; 0 1];
 julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4]]);
 
 julia> PC = PolyhedralComplex(IM, VR)
-A polyhedral complex in ambient dimension 2 with fmpq type coefficients
+A polyhedral complex in ambient dimension 2
 
 julia> isembedded(PC)
 true

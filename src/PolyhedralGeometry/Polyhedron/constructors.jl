@@ -32,14 +32,14 @@ julia> A = [1 0; 0 1; -1 0 ; 0 -1];
 julia> b = [1, 1, 0, 0];
 
 julia> Polyhedron(A,b)
-A polyhedron in ambient dimension 2 with fmpq type coefficients
+A polyhedron in ambient dimension 2
 ```
 
 As an example for a polyhedron constructed from both inequalities and
 equations, we construct the polytope $[0,1]\times\{0\}\subset\mathbb{R}^2$
 ```jldoctest
 julia> P = Polyhedron(([-1 0; 1 0], [0,1]), ([0 1], [0]))
-A polyhedron in ambient dimension 2 with fmpq type coefficients
+A polyhedron in ambient dimension 2
 
 julia> isfeasible(P)
 true
@@ -80,7 +80,7 @@ end
 
 ### Construct polyhedron from V-data, as the convex hull of points, rays and lineality.
 @doc Markdown.doc"""
-    convex_hull(V [, R [, L]]; non_redundant::Bool = false, scalar_type::Type{<:scalar_types} = fmpq)
+    convex_hull([::Type{T} = fmpq,] V [, R [, L]]; non_redundant::Bool = false)
 
 Construct the convex hull of the vertices `V`, rays `R`, and lineality `L`. If
 `R` or `L` are omitted, then they are assumed to be zero.
@@ -105,7 +105,7 @@ See Def. 2.11 and Def. 3.1  of [JT13](@cite).
 The following lines define the square $[0,1]^2 \subset \mathbb{R}^2$:
 ```jldoctest
 julia> Square = convex_hull([0 0; 0 1; 1 0; 1 1])
-A polyhedron in ambient dimension 2 with fmpq type coefficients
+A polyhedron in ambient dimension 2
 ```
 To construct the positive orthant, rays have to be passed:
 ```jldoctest
@@ -114,7 +114,7 @@ julia> V = [0 0];
 julia> R = [1 0; 0 1];
 
 julia> PO = convex_hull(V, R)
-A polyhedron in ambient dimension 2 with fmpq type coefficients
+A polyhedron in ambient dimension 2
 ```
 The closed-upper half plane can be constructed by passing rays and a lineality space:
 ```jldoctest
@@ -125,7 +125,7 @@ julia> R = [0 1];
 julia> L = [1 0];
 
 julia> UH = convex_hull(V, R, L)
-A polyhedron in ambient dimension 2 with fmpq type coefficients
+A polyhedron in ambient dimension 2
 ```
 To obtain the x-axis in $\mathbb{R}^2$:
 ```jldoctest
@@ -136,10 +136,10 @@ julia> R = nothing;
 julia> L = [1 0];
 
 julia> XA = convex_hull(V, R, L)
-A polyhedron in ambient dimension 2 with fmpq type coefficients
+A polyhedron in ambient dimension 2
 ```
 """
-function convex_hull(V::Union{SubObjectIterator{PointVector}, AnyVecOrMat, Oscar.MatElem}, R::Union{SubObjectIterator{RayVector}, AnyVecOrMat, Oscar.MatElem, Nothing} = nothing, L::Union{SubObjectIterator{RayVector}, AnyVecOrMat, Oscar.MatElem, Nothing} = nothing; non_redundant::Bool = false, scalar_type::Type{<:scalar_types} = fmpq)
+function convex_hull(::Type{T}, V::Union{SubObjectIterator{PointVector}, AnyVecOrMat, Oscar.MatElem}, R::Union{SubObjectIterator{RayVector}, AnyVecOrMat, Oscar.MatElem, Nothing} = nothing, L::Union{SubObjectIterator{RayVector}, AnyVecOrMat, Oscar.MatElem, Nothing} = nothing; non_redundant::Bool = false) where T<:scalar_types
     # Rays and Points are homogenized and combined and
     # Lineality is homogenized
     points = stack(homogenized_matrix(V, 1), homogenized_matrix(R, 0))
@@ -148,11 +148,13 @@ function convex_hull(V::Union{SubObjectIterator{PointVector}, AnyVecOrMat, Oscar
     # These matrices are in the right format for polymake.
     # given non_redundant can avoid unnecessary redundancy checks
     if non_redundant
-        return Polyhedron{scalar_type}(Polymake.polytope.Polytope{scalar_type_to_polymake[scalar_type]}(VERTICES = points, LINEALITY_SPACE = lineality))
+        return Polyhedron{T}(Polymake.polytope.Polytope{scalar_type_to_polymake[T]}(VERTICES = points, LINEALITY_SPACE = lineality))
     else
-        return Polyhedron{scalar_type}(Polymake.polytope.Polytope{scalar_type_to_polymake[scalar_type]}(POINTS = remove_zero_rows(points), INPUT_LINEALITY = remove_zero_rows(lineality)))
+        return Polyhedron{T}(Polymake.polytope.Polytope{scalar_type_to_polymake[T]}(POINTS = remove_zero_rows(points), INPUT_LINEALITY = remove_zero_rows(lineality)))
     end
 end
+
+convex_hull(x...) = convex_hull(fmpq, x...)
 
 ###############################################################################
 ###############################################################################
@@ -162,7 +164,8 @@ end
 function Base.show(io::IO, P::Polyhedron{T}) where T<:scalar_types
     try
         ad = ambient_dim(P)
-        print(io, "A polyhedron in ambient dimension $(ad) with $T type coefficients")
+        print(io, "A polyhedron in ambient dimension $(ad)")
+        T != fmpq && print(io, " with $T type coefficients")
     catch e
         print(io, "A polyhedron without ambient dimension")
     end

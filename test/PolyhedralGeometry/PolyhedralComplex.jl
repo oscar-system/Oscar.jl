@@ -56,7 +56,7 @@
          end
          @test maximal_polyhedra(PC) isa SubObjectIterator{Polyhedron{T}}
          @test length(maximal_polyhedra(PC)) == 2
-         @test maximal_polyhedra(PC) == convex_hull.([P[1:3, :], P[[2, 4], :]]; scalar_type = T)
+         @test maximal_polyhedra(PC) == convex_hull.(T, [P[1:3, :], P[[2, 4], :]])
          @test n_maximal_polyhedra(PC) == 2
          @test issimplicial(PC)
          @test !ispure(PCL)
@@ -64,9 +64,9 @@
          @test polyhedra_of_dim(PC, 1) isa SubObjectIterator{Polyhedron{T}}
          @test length(polyhedra_of_dim(PC, 1)) == 4
          if T == fmpq
-             @test polyhedra_of_dim(PC, 1) == convex_hull.([P[[2, 4], :], P[[1, 3], :], P[[1, 2], :], P[[2, 3], :]]; scalar_type = T)
+             @test polyhedra_of_dim(PC, 1) == convex_hull.(T, [P[[2, 4], :], P[[1, 3], :], P[[1, 2], :], P[[2, 3], :]])
          else
-             @test polyhedra_of_dim(PC, 1) == convex_hull.([P[[2, 4], :], P[[1, 3], :], P[[2, 3], :], P[[1, 2], :]]; scalar_type = T)
+             @test polyhedra_of_dim(PC, 1) == convex_hull.(T, [P[[2, 4], :], P[[1, 3], :], P[[2, 3], :], P[[1, 2], :]])
          end
          @test lineality_space(PCL) isa SubObjectIterator{RayVector{T}}
          @test length(lineality_space(PCL)) == 1

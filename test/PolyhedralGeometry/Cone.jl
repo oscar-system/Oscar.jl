@@ -4,14 +4,14 @@ const pm = Polymake
 @testset "Cone{$T}" for T in [fmpq, nf_scalar]
     
     pts = [1 0 0; 0 0 1]'
-    Cone1=positive_hull(pts; scalar_type = T)
+    Cone1=positive_hull(T, pts)
     R = [1 0 0; 0 0 1]
     L = [0 1 0]
     Cone2 = Cone{T}(R, L)
     Cone3 = Cone{T}(R, L; non_redundant=true)
-    Cone4 = positive_hull(R; scalar_type = T)
-    Cone5 = positive_hull([1 0 0; 1 1 0; 1 1 1; 1 0 1]; scalar_type = T)
-    Cone6 = positive_hull([1//3 1//2; 4//5 2]; scalar_type = T)
+    Cone4 = positive_hull(T, R)
+    Cone5 = positive_hull(T, [1 0 0; 1 1 0; 1 1 1; 1 0 1])
+    Cone6 = positive_hull(T, [1//3 1//2; 4//5 2])
 
     @testset "core functionality" begin
         @test ispointed(Cone1)
@@ -54,7 +54,7 @@ const pm = Polymake
                 @test Oscar.linear_matrix_for_polymake(facets(S, Cone1)) == [0 -1; -1 0]
                 @test ray_indices(facets(S, Cone1)) == IncidenceMatrix([[1], [2]])
                 if S == Cone{T}
-                    @test facets(S, Cone1) == cone_from_inequalities.([[0 -1], [-1 0]]; scalar_type = T)
+                    @test facets(S, Cone1) == cone_from_inequalities.(T, [[0 -1], [-1 0]])
                 elseif S == LinearHalfspace{T}
                     @test facets(S, Cone1) == S.([[0, -1], [-1, 0]])
                 else
@@ -125,9 +125,9 @@ const pm = Polymake
     end
 
     @testset "constructors" begin
-        @test cone_from_inequalities([-1 0 0; 0 0 -1]; scalar_type = T) == Cone2
-        @test cone_from_inequalities([-1 0 0; 0 0 -1]; non_redundant = true, scalar_type = T) == Cone2
-        @test cone_from_inequalities(facets(Cone4), linear_span(Cone4); scalar_type = T) == Cone4
-        @test cone_from_inequalities(facets(Cone4), linear_span(Cone4); non_redundant = true, scalar_type = T) == Cone4
+        @test cone_from_inequalities(T, [-1 0 0; 0 0 -1]) == Cone2
+        @test cone_from_inequalities(T, [-1 0 0; 0 0 -1]; non_redundant = true) == Cone2
+        @test cone_from_inequalities(T, facets(Cone4), linear_span(Cone4)) == Cone4
+        @test cone_from_inequalities(T, facets(Cone4), linear_span(Cone4); non_redundant = true) == Cone4
     end
 end

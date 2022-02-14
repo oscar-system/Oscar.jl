@@ -112,7 +112,7 @@ The following example constructs a linear program over the three dimensional cub
 obtains the vertex of the cube which maximizes the function (x,y,z) ↦ x+2y-3z.
 ```jldoctest
 julia> C=cube(3)
-A polyhedron in ambient dimension 3 with fmpq type coefficients
+A polyhedron in ambient dimension 3
 
 julia> LP=LinearProgram(C,[1,2,-3])
 The linear program
@@ -154,7 +154,7 @@ The following example constructs a linear program over the three dimensional cub
 obtains the minimal value of the function (x,y,z) ↦ x+2y-3z over that cube.
 ```jldoctest
 julia> C=cube(3)
-A polyhedron in ambient dimension 3 with fmpq type coefficients
+A polyhedron in ambient dimension 3
 
 julia> LP=LinearProgram(C,[1,2,-3]; convention = :min)
 The linear program

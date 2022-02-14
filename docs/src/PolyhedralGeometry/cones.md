@@ -33,7 +33,7 @@ reason for keeping cones as a distinct type.
 ## Construction
 
 ```@docs
-positive_hull(::Union{Oscar.MatElem, AbstractMatrix})
+positive_hull(::Type{T}, ::Union{Oscar.MatElem, AbstractMatrix}) where T<:scalar_types
 secondary_cone(SOP::SubdivisionOfPoints{T}) where T<:scalar_types
 ```
 
