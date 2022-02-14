@@ -503,7 +503,7 @@ Applies the map `f` to the element `a` in the domain of `f`.
 """
 function (f::AbsLocalizedRingHom)(a::AbsLocalizedRingElem)
   parent(a) === domain(f) || return f(domain(f)(a))
-  return restricted_map(f)(numerator(a))*inv(restricted_map(f)(denominator(a)))
+  return codomain(f)(restricted_map(f)(numerator(a)))*inv(codomain(f)(restricted_map(f)(denominator(a))))
 end
 
 ### generic functions
@@ -526,4 +526,10 @@ check_composable(
 
 function Base.show(io::IO, f::AbsLocalizedRingHom)
   print(io, "morphism from the localized ring $(domain(f)) to $(codomain(f))")
+end
+
+function ==(f::T, g::T) where {T<:AbsLocalizedRingHom}
+  domain(f) === domain(g) || return false
+  codomain(f) === codomain(g) || return false
+  return restricted_map(f) == restricted_map(g)
 end

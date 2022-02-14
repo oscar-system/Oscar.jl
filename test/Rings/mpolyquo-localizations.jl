@@ -1,5 +1,6 @@
 @testset "mpolyquo-localizations" begin
   #kk = GF(101)
+  ⊂ = issubset
   kk = QQ
   R, (x,y) = kk["x", "y"]
 
