@@ -5,6 +5,7 @@
 ################################################################################
 
 function _check_imgs_quo(R, S::NCRing, imgs)
+  n = length(imgs)
   for i in 1:n, j in 1:(i - 1)
     @req imgs[i] * imgs[j] == imgs[j] * imgs[i] "Images $i and $j do not commute"
   end
@@ -23,13 +24,13 @@ function _check_imgs_quo(R, S::Ring, imgs)
   end
 end
 
-function hom(R::MPolyQuo, S::Ring, images::Vector; check::Bool = true)
+function hom(R::MPolyQuo, S::NCRing, images::Vector; check::Bool = true)
   n = ngens(R)
   @req n == length(images) "Number of images must be $n"
   # Now coerce into S or throw an error if not possible
   imgs = _coerce(S, images)
   if check
-    _check_imgs(S, imgs)
+    _check_imgs_quo(R, S, imgs)
     _check_homo(S, imgs)
   end
   return MPolyAnyMap(R, S, nothing, copy(imgs)) # copy because of #655
@@ -41,7 +42,7 @@ function hom(R::MPolyQuo, S::Ring, coeff_map, images::Vector; check::Bool = true
   # Now coerce into S or throw an error if not possible
   imgs = _coerce(S, images)
   if check
-    _check_imgs(S, imgs)
+    _check_imgs_quo(R, S, imgs)
     _check_homo(S, imgs)
   end
 
@@ -94,6 +95,6 @@ function (F::MPolyAnyMap{<: MPolyQuo})(g)
   else 
     gg = domain(F)(g)
     @assert parent(gg) === domain(F)
-    return _evaluate_general(F, gg)
+    return F(gg)
   end
 end
