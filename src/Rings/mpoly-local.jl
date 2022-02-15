@@ -218,23 +218,26 @@ mutable struct BiPolyArrayLoc{S}
   S::Singular.sideal
   Ox::MPolyRingLoc
   Sx::Singular.PolyRing
+  isGB::Bool
 
   function BiPolyArrayLoc(Ox::MPolyRingLoc{T}, b::Singular.sideal) where {T}
     r = new{elem_type(Ox)}()
-    r.S = b
-    r.Ox = Ox
-    r.Sx = base_ring(b)
-    R = Ox.base_ring
-    m = Ox.max_ideal
-    phi = hom(R, R, m.gens.O)
-    r.O = Ox.(phi.([R(x) for x = gens(b)]))
+    r.S     = b
+    r.Ox    = Ox
+    r.Sx    = base_ring(b)
+    R       = Ox.base_ring
+    m       = Ox.max_ideal
+    phi     = hom(R, R, m.gens.O)
+    r.O     = Ox.(phi.([R(x) for x = gens(b)]))
+    r.isGB  = false
     return r
   end
   function BiPolyArrayLoc(a::Vector{T}; ord::Symbol = :negdegrevlex) where T <: MPolyElemLoc
     r = new{T}()
-    r.O = a
-    r.Ox = parent(a[1])
-    r.Sx = singular_ring_loc(r.Ox, ord = ord)
+    r.O     = a
+    r.Ox    = parent(a[1])
+    r.Sx    = singular_ring_loc(r.Ox, ord = ord)
+    r.isGB  = false
     return r
   end
 end
@@ -445,7 +448,7 @@ function minimal_generators(I::MPolyIdealLoc)
   return I.min_gens.O
 end
 
-function groebner_assure(I::MPolyIdealLoc, ordering::MonomialOrdering=negdegrevlex(gens(base_ring(I))), complete_reduction::Bool = false)
+function groebner_assure(I::MPolyIdealLoc, ordering::MonomialOrdering=negdegrevlex(gens(base_ring(I).base_ring)), complete_reduction::Bool = false)
     @show "HERE LOCAL"
     if get(I.gb, ordering, -1) == -1
         I.gb[ordering]  = groebner_basis(I.gens, ordering, complete_reduction)
@@ -455,7 +458,7 @@ function groebner_assure(I::MPolyIdealLoc, ordering::MonomialOrdering=negdegrevl
 end
 
 function groebner_basis(B::BiPolyArrayLoc, ordering::MonomialOrdering, complete_reduction::Bool = false)
-   singular_assure(B, ordering)
+   singular_assure(B)
    R = B.Sx
    !Oscar.Singular.has_local_ordering(R) && error("The ordering has to be a local ordering.")
    I  = Singular.Ideal(R, gens(B.S)...)
@@ -469,7 +472,7 @@ function groebner_basis(B::BiPolyArrayLoc, ordering::MonomialOrdering, complete_
    return BA
 end
 
-function groebner_basis(I::MPolyIdealLoc; ordering::MonomialOrdering = negdegrevlex(gens(base_ring(I))), complete_reduction::Bool=false)
+function groebner_basis(I::MPolyIdealLoc; ordering::MonomialOrdering = negdegrevlex(gens(base_ring(I).base_ring)), complete_reduction::Bool=false)
     groebner_assure(I, ordering, complete_reduction)
     return collect(I.gb[ordering])
 end
