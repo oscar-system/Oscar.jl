@@ -1595,6 +1595,7 @@ function groebner_basis(I::MPolyLocalizedIdeal)
 end
 
 function groebner_assure(I::MPolyLocalizedIdeal)
+    @show "oder here?"
   D = groebner_bases(I)
   if length(D) > 0 
     return

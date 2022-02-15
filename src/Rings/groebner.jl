@@ -20,7 +20,7 @@ julia> R,(x,y) = PolynomialRing(QQ, ["x","y"], ordering=:degrevlex)
 julia> I = ideal([x*y-3*x,y^3-2*x^2*y])
 ideal(x*y - 3*x, -2*x^2*y + y^3)
 
-julia> Oscar.groebner_assure(I)
+julia> Oscar.groebner_assure(I, degrevlex(gens(R)))
 3-element Vector{fmpq_mpoly}:
  x*y - 3*x
  y^3 - 6*x^2
@@ -30,16 +30,19 @@ julia> I.gb
 Oscar.BiPolyArray{fmpq_mpoly}(fmpq_mpoly[x*y - 3*x, y^3 - 6*x^2, x^3 - 9//2*x], Singular ideal over Singular Polynomial Ring (QQ),(x,y),(dp(2),C) with generators (x*y - 3*x, y^3 - 6*x^2, x^3 - 9//2*x), Multivariate Polynomial Ring in x, y over Rational Field, Singular Polynomial Ring (QQ),(x,y),(dp(2),C), true, #undef, false)
 ```
 """
-function groebner_assure(I::MPolyIdeal, ordering::MonomialOrdering; complete_reduction::Bool = false)
-  if get(I.gb, ordering, -1) == -1
-    I.gb[ordering] = groebner_basis(I.gens, ordering)
-  end
+function groebner_assure(I::MPolyIdeal, ordering::MonomialOrdering=degrevlex(gens(base_ring(I))), complete_reduction::Bool = false)
+    @show I.gb
+    @show "original"
+    @show get(I.gb, ordering, -1)
+    if get(I.gb, ordering, -1) == -1
+        I.gb[ordering]  = groebner_basis(I.gens, ordering, complete_reduction)
+    end
 
-  return I.gb[ordering]
+    return I.gb[ordering]
 end
 
 @doc Markdown.doc"""
-    groebner_basis(B::BiPolyArray, ordering::MonomialOrdering; complete_reduction::Bool = false)
+    groebner_basis(B::BiPolyArray, ordering::MonomialOrdering, complete_reduction::Bool = false)
 
 **Note**: Internal function, subject to change, do not use.
 
@@ -56,17 +59,24 @@ julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"], ordering=:degrevlex)
 julia> A = Oscar.BiPolyArray([x*y-3*x,y^3-2*x^2*y])
 Oscar.BiPolyArray{fmpq_mpoly}(fmpq_mpoly[x*y - 3*x, -2*x^2*y + y^3], #undef, Multivariate Polynomial Ring in x, y over Rational Field, #undef, false, #undef, true)
 
-julia> B = groebner_basis(A)
+julia> B = groebner_basis(A, degrevlex(gens(R)))
 Oscar.BiPolyArray{fmpq_mpoly}(fmpq_mpoly[#undef, #undef, #undef], Singular ideal over Singular Polynomial Ring (QQ),(x,y),(dp(2),C) with generators (x*y - 3*x, y^3 - 6*x^2, 2*x^3 - 9*x), Multivariate Polynomial Ring in x, y over Rational Field, Singular Polynomial Ring (QQ),(x,y),(dp(2),C), true, #undef, true)
 ```
 """
-function groebner_basis(B::BiPolyArray, ordering::MonomialOrdering; complete_reduction::Bool = false)
+function groebner_basis(B::BiPolyArray, ordering::MonomialOrdering, complete_reduction::Bool = false)
    singular_assure(B, ordering)
    R = B.Sx
    !Oscar.Singular.has_global_ordering(R) && error("The ordering has to be a global ordering.")
-   I = Singular.Ideal(R, gens(B.S)...)
-   i = Singular.std(I, complete_reduction = complete_reduction)
-   return BiPolyArray(B.Ox, i)
+   @show "gb starts?"
+   I  = Singular.Ideal(R, gens(B.S)...)
+   i  = Singular.std(I, complete_reduction = complete_reduction)
+   BA = BiPolyArray(B.Ox, i)
+   BA.isGB  = true
+   if isdefined(BA, :S)
+       BA.S.isGB  = true
+   end
+
+   return BA
 end
 
 @doc Markdown.doc"""
@@ -93,7 +103,7 @@ julia> H = groebner_basis(I; ordering=:lex(gens(R)))
 ```
 """
 function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = degrevlex(gens(base_ring(I))), complete_reduction::Bool=false)
-    groebner_assure(I, ordering)
+    groebner_assure(I, ordering, complete_reduction)
     return collect(I.gb[ordering])
 end
 
@@ -334,7 +344,8 @@ function normal_form_internal(I::Singular.sideal, J::MPolyIdeal)
     if !isdefined(J, :gb)
         groebner_assure(J)
     end
-    K = ideal(base_ring(J), reduce(I, J.gb.S))
+    @show J.gb
+    K = ideal(base_ring(J), reduce(I, collect(values(J.gb))[1].S))
     return [J.gens.Ox(x) for x = gens(K.gens.S)]
 end
 

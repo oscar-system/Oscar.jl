@@ -511,9 +511,10 @@ function singular_assure(I::BiPolyArray)
   if !isdefined(I, :S)
     I.Sx = singular_ring(I.Ox, keep_ordering=I.keep_ordering)
     I.S = Singular.Ideal(I.Sx, elem_type(I.Sx)[I.Sx(x) for x = I.O])
-    if I.isGB
-      I.S.isGB = true
-    end
+  end
+  @show "here"
+  if I.isGB
+    I.S.isGB = true
   end
 end
 
@@ -522,11 +523,14 @@ function singular_assure(I::MPolyIdeal, ordering::MonomialOrdering)
 end
 
 function singular_assure(I::BiPolyArray, ordering::MonomialOrdering)
+    @show isdefined(I, :S)
     if !isdefined(I, :S) 
         I.ord = ordering.o
         I.Sx = singular_ring(I.Ox, ordering.o)
         I.S = Singular.Ideal(I.Sx, elem_type(I.Sx)[I.Sx(x) for x = I.O])
-        I.isGB = false
+        if I.isGB
+            I.S.isGB = true
+        end
     else
         #= singular ideal exists, but the singular ring has the wrong ordering
          = attached, thus we have to create a new singular ring and map the ideal. =#

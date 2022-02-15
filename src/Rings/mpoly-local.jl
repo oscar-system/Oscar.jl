@@ -251,28 +251,28 @@ and some further fields used for caching.
 mutable struct MPolyIdealLoc{S} <: Ideal{S}
   gens::BiPolyArrayLoc{S}
   min_gens::BiPolyArrayLoc{S}
-  gb::BiPolyArrayLoc{S}
+  gb::Dict{MonomialOrdering, BiPolyArrayLoc{S}}
   dim::Int
 
   function MPolyIdealLoc(Ox::T, s::Singular.sideal) where {T <: MPolyRingLoc}
     r = new{elem_type(T)}()
     r.dim = -1 # not known
     r.gens = BiPolyArrayLoc(Ox, s)
-    if s.isGB
-      r.gb = gens
-    end
+    r.gb = Dict()
     return r
   end
   function MPolyIdealLoc(B::BiPolyArrayLoc{T}) where T
     r = new{T}()
     r.dim = -1
     r.gens = B
+    r.gb = Dict()
     return r
   end
   function MPolyIdealLoc(g::Vector{T}) where {T <: MPolyElemLoc}
     r = new{T}()
     r.dim = -1 # not known
     r.gens = BiPolyArrayLoc(g)
+    r.gb = Dict()
     return r
   end
 end
@@ -385,30 +385,30 @@ function base_ring(I::MPolyIdealLoc)
   return I.gens.Ox
 end
 
-function groebner_assure(I::MPolyIdealLoc)
-  if !isdefined(I, :gb)
-    if !isdefined(I.gens, :S)
-      singular_assure(I)
-    end
-    R = I.gens.Sx
-    i = Singular.std(I.gens.S)
-    I.gb = BiPolyArrayLoc(I.gens.Ox, i)
-  end
-end
-
-function groebner_basis(I::MPolyIdealLoc; ordering::Symbol = :negdegrevlex)
-  if ordering != :negdegrevlex
-    B = BiPolyArrayLoc(I.gens.O, ordering = ordering)
-    singular_assure(B)
-    R = B.Sx
-    !Oscar.Singular.has_local_ordering(R) && error("The ordering has to be a local ordering.")
-    i = Singular.std(B.S)
-    I.gb = BiPolyArrayLoc(I.gens.Ox, i)
-  else
-    groebner_assure(I)
-  end
-  return I.gb.O
-end
+#= function groebner_assure(I::MPolyIdealLoc)
+ =   if !isdefined(I, :gb)
+ =     if !isdefined(I.gens, :S)
+ =       singular_assure(I)
+ =     end
+ =     R = I.gens.Sx
+ =     i = Singular.std(I.gens.S)
+ =     I.gb = BiPolyArrayLoc(I.gens.Ox, i)
+ =   end
+ = end
+ =
+ = function groebner_basis(I::MPolyIdealLoc; ordering::Symbol = :negdegrevlex)
+ =   if ordering != :negdegrevlex
+ =     B = BiPolyArrayLoc(I.gens.O, ordering = ordering)
+ =     singular_assure(B)
+ =     R = B.Sx
+ =     !Oscar.Singular.has_local_ordering(R) && error("The ordering has to be a local ordering.")
+ =     i = Singular.std(B.S)
+ =     I.gb = BiPolyArrayLoc(I.gens.Ox, i)
+ =   else
+ =     groebner_assure(I)
+ =   end
+ =   return I.gb.O
+ = end =#
 
 ###############################################################################
 # Ideal functions                                                             #
@@ -443,4 +443,33 @@ function minimal_generators(I::MPolyIdealLoc)
     end
   end
   return I.min_gens.O
+end
+
+function groebner_assure(I::MPolyIdealLoc, ordering::MonomialOrdering=negdegrevlex(gens(base_ring(I))), complete_reduction::Bool = false)
+    @show "HERE LOCAL"
+    if get(I.gb, ordering, -1) == -1
+        I.gb[ordering]  = groebner_basis(I.gens, ordering, complete_reduction)
+    end
+
+    return I.gb[ordering]
+end
+
+function groebner_basis(B::BiPolyArrayLoc, ordering::MonomialOrdering, complete_reduction::Bool = false)
+   singular_assure(B, ordering)
+   R = B.Sx
+   !Oscar.Singular.has_local_ordering(R) && error("The ordering has to be a local ordering.")
+   I  = Singular.Ideal(R, gens(B.S)...)
+   i  = Singular.std(I)
+   BA = BiPolyArrayLoc(B.Ox, i)
+   BA.isGB  = true
+   if isdefined(BA, :S)
+       BA.S.isGB  = true
+   end
+
+   return BA
+end
+
+function groebner_basis(I::MPolyIdealLoc; ordering::MonomialOrdering = negdegrevlex(gens(base_ring(I))), complete_reduction::Bool=false)
+    groebner_assure(I, ordering, complete_reduction)
+    return collect(I.gb[ordering])
 end

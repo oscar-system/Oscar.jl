@@ -355,13 +355,15 @@ end
 
 ##################################################################
 
-function singular_ring(Rx::MPolyQuo; keep_ordering::Bool = true)
+function singular_ring(Rx::MPolyQuo, ordering::MonomialOrdering = degrevlex(gens(Rx.R)); keep_ordering::Bool = true)
   if !isdefined(Rx, :SQR)
-    groebner_assure(Rx.I)
-    singular_assure(Rx.I.gb)
+    @show ordering
+    groebner_assure(Rx.I, ordering)
+    singular_assure(Rx.I.gb[ordering], ordering)
+    @show Rx.I.gb
     Rx.SQR = Singular.create_ring_from_singular_ring(
-                      Singular.libSingular.rQuotientRing(Rx.I.gb.S.ptr,
-                                             base_ring(Rx.I.gb.S).ptr))
+                Singular.libSingular.rQuotientRing(Rx.I.gb[ordering].S.ptr,
+                base_ring(Rx.I.gb[ordering].S).ptr))
   end
   return Rx.SQR
 end
@@ -569,21 +571,28 @@ x
 function simplify(f::MPolyQuoElem)
   R = parent(f)
   I = R.I
-  groebner_assure(I)
-  singular_assure(I.gb)
-  Sx = base_ring(I.gb.S)
+  @show I
+  @show I.gens
+  groebner_assure(I, degrevlex(gens(R.R)))
+  @show I.gb
+  #= G = collect(values(I.gb))[1] =#
+  G = I.gb[degrevlex(gens(R.R))]
+  singular_assure(G)
+  Sx = base_ring(G.S)
   g = f.f
-  return R(I.gens.Ox(reduce(Sx(g), I.gb.S)))::elem_type(R)
+return R(I.gens.Ox(reduce(Sx(g), G.S)))::elem_type(R)
 end
 
 function simplify!(f::MPolyQuoElem)
   R = parent(f)
   I = R.I
-  groebner_assure(I)
-  singular_assure(I.gb)
-  Sx = base_ring(I.gb.S)
+  groebner_assure(I, degrevlex(gens(R.R)))
+  G = I.gb[degrevlex(gens(R.R))]
+  @show G.isGB
+  singular_assure(G)
+  Sx = base_ring(G.S)
   g = f.f
-  f.f = I.gens.Ox(reduce(Sx(g), I.gb.S))
+  f.f = I.gens.Ox(reduce(Sx(g), G.S))
   return f::elem_type(R)
 end
 
