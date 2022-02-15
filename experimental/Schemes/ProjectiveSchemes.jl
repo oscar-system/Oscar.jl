@@ -534,7 +534,7 @@ mutable struct ProjectiveSchemeMor{
       Q::CodomainType,
       f::PullbackType;
       check::Bool=true
-    ) where {DomainType, CodomainType, PullbackType}
+    ) where {DomainType<:ProjectiveScheme, CodomainType<:ProjectiveScheme, PullbackType<:Map}
     T = homogeneous_coordinate_ring(P)
     S = homogeneous_coordinate_ring(Q)
     (S === domain(f) && T === codomain(f)) || error("pullback map incompatible")
@@ -557,6 +557,14 @@ domain(phi::ProjectiveSchemeMor) = phi.domain
 codomain(phi::ProjectiveSchemeMor) = phi.codomain
 pullback(phi::ProjectiveSchemeMor) = phi.pullback
 base_ring_morphism(phi::ProjectiveSchemeMor) = coefficient_map(pullback(phi))
+
+### additional constructors
+function ProjectiveSchemeMor(X::T, Y::T, a::Vector{RET}) where {T<:ProjectiveScheme, RET<:MPolyElem_dec}
+  base_ring(X) === base_ring(Y) || error("projective schemes must be defined over the same base ring")
+  Q = homogeneous_coordinate_ring(X)
+  P = homogeneous_coordinate_ring(Y)
+  return ProjectiveSchemeMor(X, Y, hom(P, Q, a))
+end
 
 # in case we have honest base schemes, also make the map of schemes available
 function base_map(phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:MPolyQuoLocalizedRing}})

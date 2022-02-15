@@ -299,6 +299,8 @@ one(W::AbsLocalizedRing) = W(one(base_ring(W)))
 
 zero(W::AbsLocalizedRing) = W(zero(base_ring(W)))
 
+(W::AbsLocalizedRing)() = zero(W)
+
 canonical_unit(f::LocRingElemType) where {LocRingElemType<:AbsLocalizedRingElem} = one(parent(f))
 
 characteristic(W::AbsLocalizedRing) = characteristic(base_ring(W))

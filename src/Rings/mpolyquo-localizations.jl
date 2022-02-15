@@ -529,7 +529,7 @@ function convert(
   lower = pop!(powers_of_d)
   while length(powers_of_d) > 0
     middle = lower*pop!(powers_of_d)
-    (result, coefficient) = divides(Q(a*last(powers_of_d)), Q(b))
+    (result, coefficient) = divides(Q(a*middle), Q(b))
     if result 
       upper = middle
     else 
@@ -969,7 +969,7 @@ function compose(
   return MPolyQuoLocalizedRingHom(domain(f), codomain(g), hom(R, codomain(g), [g(f(x)) for x in gens(R)]))
 end
 
-(f::MPolyQuoLocalizedRingHom)(I::Ideal) = ideal(codomain(f), domain(f).(gens(I)))
+(f::MPolyQuoLocalizedRingHom)(I::Ideal) = ideal(codomain(f), f.(domain(f).(gens(I))))
 
 function ==(f::MPolyQuoLocalizedRingHom, g::MPolyQuoLocalizedRingHom) 
   domain(f) === domain(g) || return false
