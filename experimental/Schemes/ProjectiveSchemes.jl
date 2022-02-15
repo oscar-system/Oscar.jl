@@ -474,7 +474,7 @@ function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:MPolyQ
   return X.C
 end
     
-function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:AbstractAlgebra.Field, CRET, RT, RET}
+function affine_cone(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:AbstractAlgebra.Ring, CRET, RT, RET}
   if !isdefined(X, :C)
     kk = base_ring(X)
     C = affine_space(kk, symbols(homogeneous_coordinate_ring(X)))
