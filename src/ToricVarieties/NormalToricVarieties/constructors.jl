@@ -72,7 +72,7 @@ polyhedral fan $\Sigma = C$ consisting only of the cone `C`.
 Set `C` to be the positive orthant in two dimensions.
 ```jldoctest
 julia> C = positive_hull([1 0; 0 1])
-A polyhedral cone in ambient dimension 2 with fmpq type coefficients
+A polyhedral cone in ambient dimension 2
 
 julia> ntv = NormalToricVariety(C)
 A normal, affine toric variety

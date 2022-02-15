@@ -477,7 +477,7 @@ Return the Cartesian/direct product of two polyhedral fans.
 # Examples
 ```jldoctest
 julia> normal_fan(simplex(2))*normal_fan(simplex(3))
-A polyhedral fan in ambient dimension 5 with fmpq type coefficients
+A polyhedral fan in ambient dimension 5
 ```
 """
 function Base.:*(PF1::PolyhedralFan, PF2::PolyhedralFan)

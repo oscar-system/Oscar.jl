@@ -636,7 +636,7 @@ Return the nef cone of the normal toric variety `v`.
 julia> p2 = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> nef = nef_cone(pp)
+julia> nef = nef_cone(p2)
 A polyhedral cone in ambient dimension 1
 
 julia> dim(nef)
@@ -661,9 +661,6 @@ A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric 
 
 julia> mori = mori_cone(p2)
 A polyhedral cone in ambient dimension 1
-=======
-A polyhedral cone in ambient dimension 1
->>>>>>> optional scalar argument is now passed first everywhere; print scalar type only for T!=fmpq
 
 julia> dim(mori)
 1
@@ -692,6 +689,7 @@ A polyhedral fan in ambient dimension 2
 @attr PolyhedralFan function fan(v::AbstractNormalToricVariety)
     return get_attribute!(v, :fan) do
         return PolyhedralFan{fmpq}(pm_object(v))
+    end
 end
 export fan
 

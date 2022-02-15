@@ -49,7 +49,7 @@ julia> c = cube(2,0,1)
 A polyhedron in ambient dimension 2
 
 julia> V = vertices(c)
-4-element SubObjectIterator{PointVector{Polymake.Rational}}:
+4-element SubObjectIterator{PointVector{fmpq}}:
  [0, 0]
  [1, 0]
  [0, 1]
@@ -182,7 +182,7 @@ julia> c = cube(2,0,1)
 A polyhedron in ambient dimension 2
 
 julia> V = vertices(c)
-4-element SubObjectIterator{PointVector{Polymake.Rational}}:
+4-element SubObjectIterator{PointVector{fmpq}}:
  [0, 0]
  [1, 0]
  [0, 1]
