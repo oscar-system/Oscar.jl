@@ -1,6 +1,7 @@
 # Basically the same as the usual image function but without a type check since
 # we don't have elem_type(C) in this case
-function image(M::Map{D, C}, a) where {D, C <: GapObj}
+function image(M::Map{D, C}, a; check::Bool = true) where {D, C <: GapObj}
+  parent(a) === domain(M) || error("the element is not in the map's domain")
   if isdefined(M, :header)
     if isdefined(M.header, :image)
       return M.header.image(a)
@@ -10,6 +11,17 @@ function image(M::Map{D, C}, a) where {D, C <: GapObj}
   else
     return M(a)
   end
+end
+
+# needed in order to do a generic argument check on the GAP side
+function preimage(M::Map{D, C}, a; check::Bool = true) where {D, C <: GapObj}
+  if isdefined(M.header, :preimage)
+    check && (a in codomain(M) || error("the element is not in the map's codomain"))
+    p = M.header.preimage(a)::elem_type(D)
+    @assert parent(p) === domain(M)
+    return p
+  end
+  error("No preimage function known")
 end
 
 ################################################################################
@@ -150,12 +162,30 @@ function _iso_oscar_gap(FO::FinField)
 end
 
 
-function _iso_oscar_gap(F::FlintRationalField)
-   return MapFromFunc(x -> GAP.Obj(x), x -> fmpq(x), F, GAP.Globals.Rationals::GapObj)
+function _iso_oscar_gap_field_rationals_functions(FO::FlintRationalField, FG::GapObj)
+#TODO   return (GAP.Obj, fmpq)
+   return (x -> GAP.Obj(x), x -> fmpq(x))
 end
 
-function _iso_oscar_gap(F::FlintIntegerRing)
-   return MapFromFunc(x -> GAP.Obj(x), x -> fmpz(x), F, GAP.Globals.Integers::GapObj)
+function _iso_oscar_gap(FO::FlintRationalField)
+   FG = GAP.Globals.Rationals::GapObj
+
+   f, finv = _iso_oscar_gap_field_rationals_functions(FO, FG)
+
+   return MapFromFunc(f, finv, FO, FG)
+end
+
+function _iso_oscar_gap_ring_integers_functions(FO::FlintIntegerRing, FG::GapObj)
+#TODO  return (GAP.Obj, fmpz)
+   return (x -> GAP.Obj(x), x -> fmpz(x))
+end
+
+function _iso_oscar_gap(FO::FlintIntegerRing)
+   FG = GAP.Globals.Integers::GapObj
+
+   f, finv = _iso_oscar_gap_ring_integers_functions(FO, FG)
+
+   return MapFromFunc(f, finv, FO, FG)
 end
 
 # For the moment, support only cyclotomic fields.
