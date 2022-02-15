@@ -216,14 +216,14 @@ kernel(F::AlgHom)
 ###### Examples
 
 ```@repl oscar
-D1, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
-C1, (s,t) = PolynomialRing(QQ, ["s", "t"])
+D1, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"])
+C1, (s,t) = GradedPolynomialRing(QQ, ["s", "t"])
 V1 = [s^3, s^2*t, s*t^2, t^3]
 para = hom(D1, C1, V1)
 twistedCubic = kernel(para)
-C2, _ = quo(D1, twistedCubic)
-D2, (a, b, b) = PolynomialRing(QQ, ["a", "b", "c"])
-V2 = [w-y, x, z]
+C2, p2 = quo(D1, twistedCubic)
+D2, (a, b, c) = GradedPolynomialRing(QQ, ["a", "b", "c"])
+V2 = [p2(w-y), p2(x), p2(z)]
 proj = hom(D2, C2, V2)
 nodalCubic = kernel(proj)
 ```

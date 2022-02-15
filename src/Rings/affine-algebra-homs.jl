@@ -189,12 +189,12 @@ julia> D, (t,) = PolynomialRing(QQ, ["t"])
 julia> R, (x, y) = PolynomialRing(QQ, ["x", "y"])
 (Multivariate Polynomial Ring in x, y over Rational Field, fmpq_mpoly[x, y])
 
-julia> C, _ = quo(R,  ideal(R, [x*y-1]))
+julia> C, p = quo(R,  ideal(R, [x*y-1]))
 (Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x*y - 1), Map from
 Multivariate Polynomial Ring in x, y over Rational Field to Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x*y - 1) defined by a julia-function with inverse)
 
-julia> V = [y]
-1-element Vector{fmpq_mpoly}:
+julia> V = [p(y)]
+1-element Vector{MPolyQuoElem{fmpq_mpoly}}:
  y
 
 julia> P = hom(D, C, V)
@@ -204,7 +204,7 @@ domain: Multivariate Polynomial Ring in t over Rational Field
 
 codomain: Quotient of Multivariate Polynomial Ring in x, y over Rational Field by ideal(x*y - 1)
 
-defining images of generators: fmpq_mpoly[y]
+defining images of generators: MPolyQuoElem{fmpq_mpoly}[y]
 ```
 """
 function AlgebraHomomorphism(D::U, C::W, V::Vector{X}) where 
