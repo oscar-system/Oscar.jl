@@ -19,57 +19,75 @@ K,s = RationalFunctionField(QQ,"s");
 Kx,(x1,x2,x3,x4) = PolynomialRing(K,4);
 val = ValuationMap(K,s);
 I = ideal([x1-s*x2+(s+1)*x3,3*x2-s^2*x3+(s^2+1)*x4]);
-Random.seed!(13371337);
+Random.seed!(3847598273423);
 tropical_variety(I,val)
 =======#
 function tropical_variety(I::MPolyIdeal, val::ValuationMap)
 
   ###
-  # Part 1: Computing starting points and initializing working lists
+  # Part 1: Initialize working list and (re)compute starting points
+  #   until all starting points lie in the relative interior of maximal cells
   ###
-  print("computing starting points... ")
-  starting_points = tropical_points(I,val)
-  println("done")
 
-  # Note: in this function, a Groebner polyhedra means a triple (w,C,G) where
+  # Note: in this function, a working list entry consists of a triple (w,C,G) where
   #   * G is a (tropical) Groebner basis
-  #   * C is the actual Groebner polyhedron
+  #   * C is the Groebner polyhedron
   #   * w is the sum of vertices and rays of C
-  # In particular, w is a weight vector with respect to which G is a Groebner basis,
-  #   w is compatible with coordinate permutations if symmetries exist,
-  #   and instead of comparing C it suffices to compare w.
-  maximal_cells_todo = [] # list of groebner polyhedra with potentially unknown neighbours
-  maximal_cells_done = [] # list of groebner polyhedra with known neighbours
-  facets_done = []        # list of facet points whose tropical links were computed and traversed
-  for starting_point in starting_points
-    G = groebner_basis(I,val,starting_point)
-    C = groebner_polyhedron(I,val,starting_point,skip_groebner_basis_computation=true)
-    w = anchor_point(C)
-    push!(maximal_cells_todo, (w,C,G))
+  # In particular:
+  #   * w is a weight vector with respect to which G is a Groebner basis,
+  #   * w is compatible with coordinate permutations if symmetries exist,
+  #   * instead of comparing C it suffices to compare w.
+  working_list_todo = [] # list of groebner polyhedra with potentially unknown neighbours
+  working_list_done = [] # list of groebner polyhedra with known neighbours
+  facet_points_done = [] # list of facet points whose tropical links were computed and traversed
+
+  compute_starting_points = true
+  while compute_starting_points
+    print("computing random starting points... ")
+    starting_points = tropical_points(I,val)
+    println("starting_points:")
+    println(starting_points)
+
+    working_list_todo = []
+    working_list_done = []
+    facet_points_done = []
+    compute_starting_points = false
+    for starting_point in starting_points
+      G = groebner_basis(I,val,starting_point)
+      C = groebner_polyhedron(I,val,starting_point,skip_groebner_basis_computation=true)
+      w = anchor_point(C)
+      push!(working_list_todo, (w,C,G))
+
+      if dim(C)!=dim(I)
+        println("random starting point on lower-dimensional cell, recomputing...")
+        compute_starting_points = true
+        break
+      end
+    end
   end
 
   ###
   # Part 2: Traversing the tropical variety
   ###
-  while !isempty(maximal_cells_todo)
-    println("length(maximal_cells_todo): ",length(maximal_cells_todo))
-    println("length(maximal_cells_done): ",length(maximal_cells_done))
+  while !isempty(working_list_todo)
+    println("length(working_list_todo): ",length(working_list_todo))
+    println("length(working_list_done): ",length(working_list_done))
 
     # pick a groebner polyhedron from todo list, add it to the done list, and compute its facet points
-    (w,C,G) = popfirst!(maximal_cells_todo)
-    push!(maximal_cells_done, (w,C,G))
+    (w,C,G) = popfirst!(working_list_todo)
+    push!(working_list_done, (w,C,G))
     points_to_traverse = facet_points(C)
     println("points_to_traverse:")
     println(points_to_traverse)
 
     for point_to_traverse in points_to_traverse
       # if point was traversed before, skip
-      i = searchsortedfirst(facets_done,point_to_traverse)
-      if i<=length(facets_done) && facets_done[i]==point_to_traverse
+      i = searchsortedfirst(facet_points_done,point_to_traverse)
+      if i<=length(facet_points_done) && facet_points_done[i]==point_to_traverse
         continue
       end
-      # otherwise add point_to_traverse to facets_done
-      insert!(facets_done, i, point_to_traverse)
+      # otherwise add point_to_traverse to facet_points_done
+      insert!(facet_points_done, i, point_to_traverse)
 
       # compute tropical link
       directions_to_traverse = tropical_link(ideal(G),val,point_to_traverse)
@@ -78,29 +96,27 @@ function tropical_variety(I::MPolyIdeal, val::ValuationMap)
 
       for direction_to_traverse in directions_to_traverse
         # compute neighbour
-        println("groebner_flip")
         G_neighbor = groebner_flip(G,val,w,point_to_traverse,direction_to_traverse)
-        println("groebner_polyhedron")
         C_neighbor = groebner_polyhedron(G_neighbor,val,point_to_traverse,pertubation=direction_to_traverse)
         w_neighbor = anchor_point(C_neighbor)
 
         # if neighbour is in done list, skip
-        i = searchsortedfirst(maximal_cells_done,
+        i = searchsortedfirst(working_list_done,
                               (w_neighbor,C_neighbor,G_neighbor),
                               by=x->x[1])
-        if i<=length(maximal_cells_done) && maximal_cells_done[i][1]==w_neighbor
+        if i<=length(working_list_done) && working_list_done[i][1]==w_neighbor
           continue
         end
 
         # if neighbour is in todo list, skip
-        i = searchsortedfirst(maximal_cells_todo,
+        i = searchsortedfirst(working_list_todo,
                               (w_neighbor,C_neighbor,G_neighbor),
                               by=x->x[1])
-        if i<=length(maximal_cells_todo) && maximal_cells_todo[i][1]==w_neighbor
+        if i<=length(working_list_todo) && working_list_todo[i][1]==w_neighbor
           continue
         end
         # otherwise, add data to todo list
-        insert!(maximal_cells_todo, i, (w_neighbor,C_neighbor,G_neighbor))
+        insert!(working_list_todo, i, (w_neighbor,C_neighbor,G_neighbor))
       end
     end
   end
@@ -112,7 +128,7 @@ function tropical_variety(I::MPolyIdeal, val::ValuationMap)
   incidence_matrix = Vector{Vector{Int}}()
   vertices_and_rays = Vector{Vector{Polymake.Rational}}()
   far_vertices = Vector{Int}()
-  for (w,C,G) in maximal_cells_done
+  for (w,C,G) in working_list_done
     push!(weights_and_groebner_bases,(w,G))
 
     incidence_vector = Vector{Int}()
