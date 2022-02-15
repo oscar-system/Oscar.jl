@@ -33,7 +33,7 @@ function tropical_variety(I::MPolyIdeal, val::ValuationMap)
   for starting_point in starting_points
     G = groebner_basis(I,val,starting_point)
     C = groebner_polyhedron(I,val,starting_point,skip_groebner_basis_computation=true)
-    w = convert(Vector{fmpq},sum(vertices(C)))
+    w = anchor_point(C)
     push!(groebner_polyhedra_todo, (w,C,G))
   end
 
@@ -66,7 +66,7 @@ function tropical_variety(I::MPolyIdeal, val::ValuationMap)
         println("groebner_polyhedron")
         C_neighbor = groebner_polyhedron(G_neighbor,val,point_to_traverse,pertubation=direction_to_traverse) # todo: this computes an unnecessary GB
         println("summing vertices")
-        w_neighbor = convert(Vector{fmpq},sum(vertices(C)))
+        w_neighbor = anchor_point(C)
 
         # if neighboring polyhedra is in done list, skip
         i = searchsortedfirst(groebner_polyhedra_done,
@@ -94,17 +94,34 @@ export tropical_variety
 
 
 #=======
-tropical variety of an ideal
-todo: proper documentation
 Example:
 P = cube(4)
+anchor_point(P)
 facet_points(P)
 =======#
+function anchor_point(P::Polyhedron) # todo: simplify this function
+  # compute the sum of vertices and rays in homogenized coordinates
+  pt = convert(Vector{fmpq},sum([vertices(P)...,rays(P)...]))
+  pushfirst!(pt,nvertices(P))
+
+  # project to orthogonal complement of lineality space if necessary
+  if lineality_dim(P)>0
+    pt = Polymake.Matrix{Polymake.Rational}(vcat(transpose(pt)))
+    Polymake.common.project_to_orthogonal_complement(pt, nf.pm_fan.LINEALITY_SPACE)
+    pt = convert(Matrix{fmpq}, pt)[1,:]
+  end
+
+  # rescale until first entry is 1 and remove it
+  pt = [pt[i]//pt[1] for i in 2:length(pt)]
+  return pt
+end
+export anchor_point
+
 function facet_points(P::Polyhedron)
   points = []
   for facet in faces(P,dim(P)-1)
-    if length(vertices(facet))>0 # skipping fake facets
-      push!(points,convert(Vector{fmpq},sum(vertices(facet))))
+    if length(vertices(facet))>0 # skipping facets at infinity
+      push!(points,anchor_point(facet))
     end
   end
   return points
