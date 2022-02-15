@@ -33,9 +33,9 @@
 end
 
 @testset "a large non-prime field (FqNmodFiniteField)" begin
-   # (The defining polynomial of the Oscar field is not a Conway polynomial,
+   # The defining polynomial of the Oscar field is not a Conway polynomial,
    # the polynomial of the GAP field is a Conway polynomial,
-   # thus we need an intermediate field on the Oscar side.)
+   # thus we need an intermediate field on the Oscar side.
    p = next_prime(10^6)
    F = GF(p, 2)
    f = Oscar.iso_oscar_gap(F)
@@ -48,18 +48,37 @@ end
    @test F.is_conway == 0
 end
 
-@testset "field of rationals" begin
-  iso = Oscar.iso_oscar_gap(QQ)
-  x = QQ(2//3)
-  y = QQ(1)
-  ox = iso(x)
-  oy = iso(y)
-  for i in 1:10
-    xi = x^i
-    oxi = iso(xi)
-    @test preimage(iso, oxi) == xi
-    @test oxi == ox^i
-    @test oxi + oy == iso(xi + y)
+@testset "another large non-prime field (FqNmodFiniteField)" begin
+   # GAP's `GF(p, d)` throws an error if the Conway polynomial in question
+   # is neither known nor cheap to compute.
+   # Here we can translate from Oscar to GAP by choosing the
+   # defining polynomial of the Oscar field for constructing the GAP field.
+   p = 1031
+   d = 10
+   F = GF(p, d)
+
+   # Check whether the current example is still relevant.
+   @test ! GAP.Globals.IsCheapConwayPolynomial(p, d)
+
+   f = Oscar.iso_oscar_gap(F)
+   for x in [ F(3), gen(F) ]
+      a = f(x)
+      @test preimage(f, a) == x
+   end
+end
+
+@testset "field of rationals, ring of integers" begin
+  for (R, x, y) in [(QQ, QQ(2//3), QQ(1)), (ZZ, ZZ(2), ZZ(1))]
+    iso = Oscar.iso_oscar_gap(R)
+    ox = iso(x)
+    oy = iso(y)
+    for i in 1:10
+      xi = x^i
+      oxi = iso(xi)
+      @test preimage(iso, oxi) == xi
+      @test oxi == ox^i
+      @test oxi + oy == iso(xi + y)
+    end
   end
 end
 
@@ -82,5 +101,25 @@ end
             @test f(a - b) == f(a) - f(b)
          end
       end
+   end
+end
+
+@testset "univariate polynomial rings" begin
+   baserings = [QQ,                           # yields `FmpqPolyRing`
+                ZZ,                           # yields `FmpzPolyRing`
+                GF(2,2),                      # yields `FqNmodPolyRing`
+                FqFiniteField(fmpz(2),2,:z),  # yields `FqPolyRing`
+                GF(fmpz(2)),                  # yields `GFPFmpzPolyRing`
+                GF(2),                        # yields `GFPPolyRing`
+               ]
+   @testset for R in baserings
+      PR, x = PolynomialRing(R, "x")
+      iso = Oscar.iso_oscar_gap(PR)
+      for pol in [zero(x), one(x), x, x^3+x+1]
+         img = iso(pol)
+         @test preimage(iso, img) == pol
+      end
+      m = matrix([x x; x x])
+      @test map_entries(inv(iso), map_entries(iso, m)) == m
    end
 end

@@ -17,13 +17,14 @@ export PolynomialRing, total_degree, degree,  MPolyIdeal, MPolyElem, ideal, coor
 # PolynomialRing(QQ, :a=>1:3, "b"=>1:3, "c=>1:5:10)
 # -> QQx, [a1, a2, a3], [b1 ,b2, b3], ....
 
-function PolynomialRing(R::AbstractAlgebra.Ring, v::Vararg{<:Pair{<:Union{String, Symbol}, <:Any}, N}; cached::Bool = false, ordering::Symbol = :lex) where {M, N, S}
-  str = _make_strings(v)
+function PolynomialRing(R::AbstractAlgebra.Ring, v1::Pair{<:Union{String, Symbol}, <:Any}, v...; cached::Bool = false, ordering::Symbol = :lex)
+  w = (v1, v...)
+  str = _make_strings(w)
   strings = vcat(str...)
   Rx, c = PolynomialRing(R, strings, cached = cached, ordering = ordering)
   # Now we need to collect the variables
   # We do it recursively to make it type stable
-  Rx, _collect_variables(c, v)...
+  Rx, _collect_variables(c, w)...
 end
 
 # To print [1, 2, 3] or (1, 2, 3) as "1, 2, 3"

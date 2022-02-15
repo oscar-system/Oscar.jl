@@ -21,13 +21,11 @@ export
     decomposition_matrix,
     indicator,
     induced_cyclic,
+    known_class_fusion,
     natural_character,
     scalar_product,
     schur_index,
     trivial_character
-
-
-conj(elm::QabElem) = elm^QabAutomorphism(-1)
 
 
 #############################################################################
@@ -79,6 +77,24 @@ end
 ##
 abstract type GroupCharacterTable end
 
+"""
+    GAPGroupCharacterTable <: GroupCharacterTable
+
+This is the type of (ordinary or Brauer) character tables that can delegate
+tasks to an underlying character table object in the GAP system
+(field `GAPTable`).
+
+An object of type `GAPGroup` can (but need not) be stored
+in the field `GAPGroup`.
+
+The value of the field `characteristic` determines whether the table
+is an ordinary one (value `0`) or a `p`-modular one (value `p`).
+
+Objects of type `GAPGroupCharacterTable` support [`get_attribute`](@ref),
+for example in order to store the already computed `p`-modular tables
+in an ordinary table, and to store the corresponding ordinary table
+in a `p`-modular table.
+"""
 @attributes mutable struct GAPGroupCharacterTable <: GroupCharacterTable
     GAPGroup::GAPGroup    # the underlying group, if any
     GAPTable::GAP.GapObj  # the character table object
@@ -127,7 +143,7 @@ Sym( [ 1 .. 3 ] )
 
 
 julia> character_table( symmetric_group(3), 2 )
-Sym( [ 1 .. 3 ] )
+Sym( [ 1 .. 3 ] ) mod 2
 
  2  1  .
  3  1  1
@@ -414,6 +430,9 @@ function Base.show(io::IO, tbl::GAPGroupCharacterTable)
 
     if isdefined(tbl, :GAPGroup)
       headerstring = string(tbl.GAPGroup)
+      if tbl.characteristic != 0
+        headerstring = "$headerstring mod $(tbl.characteristic)"
+      end
     else
       headerstring = String(GAP.Globals.Identifier(gaptbl))
     end
@@ -513,6 +532,7 @@ function Base.mod(tbl::GAPGroupCharacterTable, p::Int)
       end
     end
 
+    set_attribute!(modtbls[p], :ordinary_table, tbl)
     return modtbls[p]
 end
 
@@ -543,10 +563,34 @@ function decomposition_matrix(modtbl::GAPGroupCharacterTable)
     return matrix(ZZ, GAP.Globals.DecompositionMatrix(modtbl.GAPTable))
 end
 
+@doc Markdown.doc"""
+    names_of_fusion_sources(tbl::GAPGroupCharacterTable)
+
+Return the array of strings that are identifiers of those character tables
+which store a class fusion to `tbl`.
+"""
 function names_of_fusion_sources(tbl::GAPGroupCharacterTable)
     return [string(name) for name in GAP.Globals.NamesOfFusionSources(tbl.GAPTable)]
 end
 
+@doc Markdown.doc"""
+    known_class_fusion(tbl1::GAPGroupCharacterTable, tbl2::GAPGroupCharacterTable)
+
+Return `(flag, fus)` where `flag == true` if a class fusion to `tbl2` is stored
+on `tbl1`, and `flag == false` otherwise.
+
+In the former case,
+`fus` is the vector of integers, of length `number_conjugacy_classes(tbl1)`,
+such that the $i$-th conjugacy class of `tbl1` corresponds to the `fus`[$i$]-th
+conjugacy class of `tbl2`, in the following sense.
+
+If the group of `tbl1` is a *subgroup* of the group of `tbl2` then
+the $i$-th conjugacy class of `tbl1` is contained in the `fus`[$i$]-th
+conjugacy class of `tbl2`.
+If the group of `tbl2` is a *factor group* of the group of `tbl1` then
+the image of the $i$-th conjugacy class `tbl1` under the relevant epimorphism
+is the `fus`[$i$]-th conjugacy class of `tbl2`.
+"""
 function known_class_fusion(subtbl::GAPGroupCharacterTable, tbl::GAPGroupCharacterTable)
     map = GAP.Globals.GetFusionMap(subtbl.GAPTable, tbl.GAPTable)
     if map == GAP.Globals.fail
@@ -562,8 +606,6 @@ end
 ##  class functions (and characters)
 ##
 abstract type GroupClassFunction end
-#TODO: support character rings and elements of it?
-#      if yes then there is no need to have class other functions than these
 
 struct GAPGroupClassFunction <: GroupClassFunction
     table::GAPGroupCharacterTable
@@ -593,11 +635,22 @@ function group_class_function(G::GAPGroup, values::Vector{QabElem})
     return group_class_function(character_table(G), values)
 end
 
+@doc Markdown.doc"""
+    trivial_character(tbl::GAPGroupCharacterTable)
+
+Return the character of `tbl` that has the value `QabElem(1)` in each position.
+"""
 function trivial_character(tbl::GAPGroupCharacterTable)
     val = QabElem(1)
     return group_class_function(tbl, [val for i in 1:ncols(tbl)])
 end
 
+@doc Markdown.doc"""
+    trivial_character(G::GAPGroup)
+
+Return the character of (the ordinary character table of) `G`
+that has the value `QabElem(1)` in each position.
+"""
 function trivial_character(G::GAPGroup)
     val = QabElem(1)
     return group_class_function(G, [val for i in 1:Int(number_conjugacy_classes(G))])
@@ -645,23 +698,32 @@ Base.length(chi::GAPGroupClassFunction) = length(chi.values)
 
 Base.iterate(chi::GAPGroupClassFunction, state = 1) = state > length(chi.values) ? nothing : (chi[state], state+1)
 
-# the degree is an fmpq
-# (for general class functions, denominators can occur)
-function Nemo.degree(chi::GAPGroupClassFunction)
-    val = values(chi)[1]
-    return Nemo.coeff(val.data, 0)
-end
+@doc Markdown.doc"""
+    degree(::Type{T} = fmpq, chi::GAPGroupClassFunction)
+           where T <: Union{IntegerUnion, fmpz, mpq, QabElem}
+
+Return `chi[1]`, as an instance of `T`.
+"""
+Nemo.degree(chi::GAPGroupClassFunction) = Nemo.degree(fmpq, chi)::fmpq
+
+Nemo.degree(::Type{fmpq}, chi::GAPGroupClassFunction) = Nemo.coeff(values(chi)[1].data, 0)::fmpq
+
+Nemo.degree(::Type{fmpz}, chi::GAPGroupClassFunction) = ZZ(Nemo.coeff(values(chi)[1].data, 0))::fmpz
+
+Nemo.degree(::Type{QabElem}, chi::GAPGroupClassFunction) = values(chi)[1]::QabElem
+
+Nemo.degree(::Type{T}, chi::GAPGroupClassFunction) where T <: IntegerUnion = T(Nemo.degree(fmpz, chi))::T
 
 # access character values
 Base.getindex(chi::GAPGroupClassFunction, i::Int) = QabElem(GAP.Globals.ValuesOfClassFunction(chi.values)[i])
 
+# arithmetics with class functions
 function Base.:(==)(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
     chi.table === psi.table || error("character tables must be identical")
 #T check_parent?
     return chi.values == psi.values
 end
 
-# arithmetics with class functions
 function Base.:+(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
     chi.table === psi.table || error("character tables must be identical")
     return GAPGroupClassFunction(chi.table, chi.values + psi.values)
@@ -686,9 +748,18 @@ end
 
 Base.one(chi::GAPGroupClassFunction) = trivial_character(chi.table)
 
-function scalar_product(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
+@doc Markdown.doc"""
+    scalar_product(::Type{T} = fmpq, chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
+                   where T <: Union{IntegerUnion, fmpz, fmpq, QabElem}
+
+Return $\sum_{g \in G}$ `chi`($g$) `conj(psi)`($g$) / $|G|$,
+where $G$ is the group of both `chi` and `psi`.
+"""
+scalar_product(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction) = scalar_product(fmpq, chi, psi)
+
+function scalar_product(::Type{T}, chi::GAPGroupClassFunction, psi::GAPGroupClassFunction) where T <: Union{Integer, fmpz, fmpq, QabElem}
     chi.table === psi.table || error("character tables must be identical")
-    return Nemo.fmpz(GAP.Globals.ScalarProduct(chi.values, psi.values))
+    return T(GAP.Globals.ScalarProduct(chi.values, psi.values))::T
 end
 
 function Base.:*(n::IntegerUnion, chi::GAPGroupClassFunction)
@@ -703,24 +774,85 @@ function Base.:^(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable)
     return GAPGroupClassFunction(tbl, GAP.Globals.InducedClassFunction(chi.values, tbl.GAPTable))
 end
 
+function Base.:^(chi::GAPGroupClassFunction, g::GAPGroupElem)
+    tbl = chi.table
+    isdefined(tbl, :GAPGroup) || error("character table stores no group")
+    G = tbl.GAPGroup
+    ccl = conjugacy_classes(G)
+    if tbl.characteristic != 0
+      known, fus = known_class_fusion(tbl, get_attribute(tbl, :ordinary_table))
+      @assert known "the class fusion is not stored"
+      ccl = ccl[fus]
+    end
+    reps = [representative(c) for c in ccl]
+    pi = [findfirst(x -> x^g in c, reps) for c in ccl]
+    return group_class_function(tbl, values(chi)[pi])
+end
+
+@doc Markdown.doc"""
+    conj(chi::GAPGroupClassFunction)
+
+Return the class function whose values are the complex conjugates of
+the values of `chi`.
+"""
 function conj(chi::GAPGroupClassFunction)
-    return GAPGroupClassFunction(chi.table, GAP.Globals.ComplexConjugate(chi.values))
+    return GAPGroupClassFunction(chi.table, GAP.Globals.GaloisCyc(chi.values, -1))
+end
+
+@doc Markdown.doc"""
+    (sigma::QabAutomorphism)(chi::GAPGroupClassFunction)
+
+Return the class function whose values are the images of the values of `chi`
+under `sigma`.
+"""
+function (sigma::QabAutomorphism)(chi::GAPGroupClassFunction)
+    return GAPGroupClassFunction(chi.table, GAP.Globals.GaloisCyc(chi.values, sigma.exp))
+end
+
+Base.:^(chi::Oscar.GAPGroupClassFunction, sigma::QabAutomorphism) = sigma(chi)
+
+@doc Markdown.doc"""
+    isirreducible(chi::GAPGroupClassFunction)
+
+Return `true` if `chi` is an irreducible character, and `alse` otherwise.
+
+A character is irreducible if it cannot be written as the sum of two
+characters.
+For ordinary characters this can be checked using the scalar product of
+class functions (see [`scalar_product`](@ref).
+For Brauer characters there is no generic method for checking irreducibility.
+"""
+function isirreducible(chi::GAPGroupClassFunction)
+    return GAP.Globals.IsIrreducibleCharacter(chi.table, chi.values)
 end
 
 # Apply a class function to a group element.
-function(chi::GAPGroupClassFunction)(g::BasicGAPGroupElem)
+function(chi::GAPGroupClassFunction)(g::GAPGroupElem)
+    tbl = chi.table
+    if tbl.characteristic != 0
+      known, fus = known_class_fusion(tbl, get_attribute(tbl, :ordinary_table))
+      @assert known "the class fusion is not stored"
+    else
+      fus = 1:length(tbl)
+    end
+
     # Identify the conjugacy class of `g`.
-    ccl = conjugacy_classes(chi.table.GAPGroup)
-    for i in 1:length(ccl)
-      if g in ccl[i]
+    ccl = conjugacy_classes(tbl.GAPGroup)
+    for i in 1:length(fus)
+      if g in ccl[fus[i]]
         return chi[i]
       end
     end
     error("$g is not an element in the underlying group")
 end
 
+@doc Markdown.doc"""
+    class_positions_of_kernel(chi::GAPGroupClassFunction)
+
+Return the array of those integers `i` such that `chi[i] == chi[1]` holds.
+"""
 function class_positions_of_kernel(chi::GAPGroupClassFunction)
-    deg = degree(chi)
+    deg = chi[1]
     return filter(i -> chi[i] == deg, 1:length(chi))
 end
 
@@ -828,7 +960,7 @@ function schur_index(chi::GAPGroupClassFunction, recurse::Bool = true)
     # The character field contains an `m`-th root of unity.
     values = chi.values
     if conj(chi) == chi
-      bound = 2
+      bound = fmpz(2)
     else
       # Compute the conductor of the largest cyclotomic field
       # that is contained in the character field of `chi`.
@@ -837,9 +969,9 @@ function schur_index(chi::GAPGroupClassFunction, recurse::Bool = true)
       for n in reverse(sort(divisors(N)))
         if GAP.Globals.E(n) in gapfield
           if isodd(n)
-            bound = 2*n
+            bound = fmpz(2*n)
           else
-            bound = n
+            bound = fmpz(n)
           end
           break
         end
@@ -855,7 +987,7 @@ function schur_index(chi::GAPGroupClassFunction, recurse::Bool = true)
     # - Consider permutation characters induced from cyclic subgroups.
     tbl = chi.table
     for psi in induced_cyclic(tbl)
-      bound = gcd(bound, scalar_product(chi, psi))
+      bound = gcd(bound, scalar_product(fmpz, chi, psi))
       bound == 1 && return 1
     end
     # - Consider characters induced from other known subgroups.
@@ -865,7 +997,7 @@ function schur_index(chi::GAPGroupClassFunction, recurse::Bool = true)
       @assert known "the class fusion is not stored"
       if length(class_positions_of_kernel(fus)) == 1
         psi = trivial_character(s)^(tbl)
-        bound = gcd(bound, scalar_product(chi, psi))
+        bound = gcd(bound, scalar_product(fmpz, chi, psi))
         bound == 1 && return 1
       end
     end
@@ -876,7 +1008,7 @@ function schur_index(chi::GAPGroupClassFunction, recurse::Bool = true)
                            schur_index(psi, false) == 1, collect(tbl))
       for i in 1:length(cand)
         for j in 1:i
-          bound = gcd(bound, scalar_product(chi, cand[i] * cand[j]))
+          bound = gcd(bound, scalar_product(fmpz, chi, cand[i] * cand[j]))
           bound == 1 && return 1
         end
       end

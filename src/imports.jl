@@ -19,6 +19,7 @@ import Base:
     *,
     ^,
     ==,
+    conj,
     convert,
     eltype,
     exponent,
@@ -40,6 +41,7 @@ import Base:
     zero
 
 import AbstractAlgebra:
+    @attr,
     @attributes,
     @show_name,
     @show_special,
