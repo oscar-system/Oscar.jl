@@ -1187,7 +1187,7 @@ end
 ################################################################################
 
 @doc Markdown.doc"""
-    ismonomial(f:: MPolyElem)
+    ismonomial(f::MPolyElem)
 
 Return `true` if `f` is a monomial, `false` otherwise.
 
@@ -1216,7 +1216,7 @@ julia> ismonomial(ideal(R, [f, g]))
 true
 ```
 """
-function ismonomial(f:: MPolyElem)
+function ismonomial(f::MPolyElem)
    if (length(f) == 1 && coeff(f, 1) == 1)
       return true
    else
@@ -1229,11 +1229,11 @@ function _ismonomial(V::Vector{<: MPolyElem})
 end
 
 function ismonomial(I::MPolyIdeal)
-  if (_ismonomial(gens(I)))
+  if _ismonomial(gens(I))
     return true
   end
   GB = groebner_basis(I, complete_reduction = true)
-  if (_ismonomial(GB))
+  if _ismonomial(GB)
     return true
   end
   return false

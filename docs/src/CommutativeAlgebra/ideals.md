@@ -393,7 +393,7 @@ isone(I::MPolyIdeal)
 ```
 
 ```@docs
-ismonomial(f:: MPolyElem)
+ismonomial(f::MPolyElem)
 ```
 
 ### Containment of Ideals
