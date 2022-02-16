@@ -25,12 +25,8 @@ export
 #
 ################################################################################
 
-function _as_subgroup_bare(G::T, H::GapObj) where T
-  return T(H)
-end
-
-function _as_subgroup_bare(G::PermGroup, H::GapObj)
-  return PermGroup(H, G.deg)
+function _as_subgroup_bare(G::T, H::GapObj) where T <: GAPGroup
+  return _oscar_group(H, G)
 end
 
 function _as_subgroup(G::GAPGroup, H::GapObj)

@@ -169,6 +169,34 @@ TODO: document this
 """
 const FPGroupElem = BasicGAPGroupElem{FPGroup}
 
+
+################################################################################
+#
+# Construct an Oscar group wrapping the GAP group `obj`
+# *and* compatible with a given Oscar group `G`.
+
+# default: ignore `G`
+_oscar_group(obj::GapObj, G::T) where T <: GAPGroup = T(obj)
+
+# `PermGroup`: set the degree of `G`
+function _oscar_group(obj::GapObj, G::PermGroup)
+  n = GAP.Globals.LargestMovedPoint(obj)
+  N = degree(G)
+  n <= N || error("requested degree ($N) is smaller than the largest moved point ($n)")
+  return PermGroup(obj, N)
+end
+
+# `MatrixGroup`: set dimension and ring of `G`
+# (This cannot be defined here because `MatrixGroup` is not yet defined.)
+
+
+################################################################################
+#
+# "Coerce" an Oscar group `G` to one that is compatible with
+# the given Oscar group `S`.
+compatible_group(G::T, S::T) where T <: GAPGroup = _oscar_group(G.X, S)
+
+
 ################################################################################
 #
 #  Group Homomorphism
