@@ -83,7 +83,7 @@ affine_open_covering( v::AbstractNormalToricVariety )
 ### Characters, Weil Divisors, Cartier Divisors, Class Group and Picard Group
 
 ```@docs
-cartier_divisor_group(v::AbstractNormalToricVariety)
+torus_invariant_cartier_divisor_group(v::AbstractNormalToricVariety)
 character_lattice(v::AbstractNormalToricVariety)
 class_group(v::AbstractNormalToricVariety)
 map_from_torus_invariant_cartier_divisor_group_to_torus_invariant_weil_divisor_group(v::AbstractNormalToricVariety)
