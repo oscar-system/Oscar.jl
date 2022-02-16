@@ -9,7 +9,7 @@ export morphism_type
 export CoveredScheme
 export empty_covered_scheme
 export coverings, refinements, default_covering, set_name!, name_of, has_name
-export covering_type, covering_morphism_type, affine_patch_type
+export covering_type, covering_morphism_type, affine_patch_type, covered_scheme_type
 
 import Oscar.Graphs: Graph, Directed, Undirected, add_edge!, vertices, edges, all_neighbors, neighbors, add_vertex!, nv, ne, has_edge
 
@@ -64,6 +64,10 @@ mutable struct Covering{SpecType<:Spec, GlueingType<:Glueing}
     return new{SpecType, GlueingType}(patches, glueings)
   end
 end
+
+### type constructors
+covering_type(::Type{T}) where {T<:Spec} = Covering{T, glueing_type(T)}
+covering_type(X::Spec) = covering_type(typeof(X))
 
 patches(C::Covering) = C.patches
 npatches(C::Covering) = length(C.patches)
@@ -404,6 +408,13 @@ covering_morphism_type(X::CoveredScheme{S, T}) where {S, T} = T
 covering_morphism_type(::Type{CoveredScheme{S, T}}) where {S, T} = T
 affine_patch_type(X::CoveredSchemeType) where {CoveredSchemeType<:CoveredScheme} = affine_patch_type(covering_type(CoveredSchemeType))
 affine_patch_type(::Type{CoveredSchemeType}) where {CoveredSchemeType<:CoveredScheme} = affine_patch_type(covering_type(CoveredSchemeType))
+
+### type constructors
+covered_scheme_type(::Type{T}) where {T<:Spec} = CoveredScheme{covering_type(T), morphism_type(covering_type(T))}
+covered_scheme_type(X::Spec) = covered_scheme_type(typeof(X))
+
+covered_scheme_type(::Type{T}) where {T<:ProjectiveScheme} = covered_scheme_type(affine_patch_type(P))
+covered_scheme_type(P::ProjectiveScheme) = covered_scheme_type(typeof(P))
 
 ### getter methods
 coverings(X::CoveredScheme) = X.coverings

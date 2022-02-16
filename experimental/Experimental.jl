@@ -14,4 +14,5 @@ include("Schemes/CoveredScheme.jl")
 include("Schemes/IdealSheaves.jl")
 include("Schemes/WeilDivisor.jl")
 include("Schemes/CoveredProjectiveSchemes.jl")
+include("Schemes/VectorBundle.jl")
 

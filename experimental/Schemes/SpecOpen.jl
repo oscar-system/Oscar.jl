@@ -1,8 +1,8 @@
 export SpecOpen, ambient, gens, complement, npatches, affine_patches, intersections, name, intersect, issubset, closure, find_non_zero_divisor, is_non_zero_divisor, is_dense, open_subset_type, ambient_type, canonically_isomorphic
 
-export StructureSheafRing, scheme, domain, OO, structure_sheaf_ring_type
+export SpecOpenRing, scheme, domain, OO, structure_sheaf_ring_type
 
-export StructureSheafElem, domain, restrictions, patches, restrict, npatches, structure_sheaf_elem_type
+export SpecOpenRingElem, domain, restrictions, patches, restrict, npatches, structure_sheaf_elem_type
 
 export SpecOpenMor, maps_on_patches, restriction, identity_map, preimage, generic_fractions, pullback, maximal_extension
 
@@ -84,6 +84,13 @@ of ``U``. This function can also be called using the
 """
 affine_patch(U::SpecOpen, i::Int) = affine_patches(U)[i]
 getindex(U::SpecOpen, i::Int) = affine_patches(U)[i]
+
+function getindex(U::SpecOpen, X::Spec) 
+  for i in 1:npatches(U)
+    X == U[i] && return i
+  end
+  error("scheme $X not found among the open patches in $U")
+end
 
 function Base.show(io::IO, U::SpecOpen)
   if isdefined(U, :name) 
@@ -268,7 +275,7 @@ end
 
 
 @Markdown.doc """
-    StructureSheafRing{SpecType, OpenType}
+    SpecOpenRing{SpecType, OpenType}
 
 The ring of regular functions ``𝒪(X, U)`` on an open subset ``U`` of an 
 affine scheme ``X``.
@@ -277,11 +284,11 @@ affine scheme ``X``.
 this sheaf is defined;
  * `OpenType` is the type of the (Zariski) open subsets of ``U``.
 """
-mutable struct StructureSheafRing{SpecType, OpenType}
+mutable struct SpecOpenRing{SpecType, OpenType} <: Ring
   scheme::SpecType
   domain::OpenType
 
-  function StructureSheafRing(
+  function SpecOpenRing(
       X::SpecType, 
       U::OpenType
     ) where {SpecType<:Spec, OpenType<:SpecOpen}
@@ -290,42 +297,41 @@ mutable struct StructureSheafRing{SpecType, OpenType}
   end
 end
 
-structure_sheaf_ring_type(X::Spec) = Type{StructureSheafRing{typeof(X), open_subset_type(X)}}
+SpecOpenRing(U::SpecOpen) = SpecOpenRing(ambient(U), U)
+
+spec_open_ring_type(::Type{T}) where {T<:Spec} = SpecOpenRing{T, open_subset_type(T)}
+spec_open_ring_type(X::Spec) = spec_open_ring_type(typeof(X))
 
 @Markdown.doc """
-    scheme(R::StructureSheafRing)
+    scheme(R::SpecOpenRing)
 
 The ring ``R = 𝒪(X, U)`` belongs to a sheaf of rings ``𝒪(X, -)`` and this returns 
 the scheme ``X`` on which ``𝒪`` is defined.
 """
-scheme(R::StructureSheafRing) = R.scheme
+scheme(R::SpecOpenRing) = R.scheme
 
 @Markdown.doc """
-    domain(R::StructureSheafRing)
+    domain(R::SpecOpenRing)
 
 For a ring ``R = 𝒪(X, U)``, return ``U``.
 """
-domain(R::StructureSheafRing) = R.domain
+domain(R::SpecOpenRing) = R.domain
 
-OO(U::SpecOpen) = StructureSheafRing(ambient(U), U)
-OO(X::Spec, U::SpecOpen) = StructureSheafRing(X, U)
+OO(U::SpecOpen) = SpecOpenRing(ambient(U), U)
+OO(X::Spec, U::SpecOpen) = SpecOpenRing(X, U)
 
-function ==(R::T, S::T) where {T<:StructureSheafRing} 
+function ==(R::T, S::T) where {T<:SpecOpenRing} 
   canonically_isomorphic(scheme(R), scheme(S)) || return false
   canonically_isomorphic(domain(S), domain(R)) || return false
   return true
 end
 
-function elem_type(R::StructureSheafRing) 
-  return Type{StructureSheafElem{typeof(R), elem_type(OO(scheme(R)))}}
-end
-
-function ==(R::T, S::T) where {T<:StructureSheafRing}
+function ==(R::T, S::T) where {T<:SpecOpenRing}
   return canonically_isomorphic(scheme(R), scheme(S)) && canonically_isomorphic(domain(R), domain(S))
 end
 
 @Markdown.doc """
-    StructureSheafElem{SpecOpenType, RestrictionType}
+    SpecOpenRingElem{SpecOpenType, RestrictionType}
 
 An element ``f ∈ 𝒪(X, U)`` of the ring of regular functions on 
 an open set ``U`` of an affine scheme ``X``.
@@ -334,35 +340,47 @@ an open set ``U`` of an affine scheme ``X``.
  * `RestrictionType` is the type of the restrictions of ``f`` to
 the affine patches of ``U``.
 """
-mutable struct StructureSheafElem{SpecOpenType, RestrictionType}
-  domain::SpecOpenType
+mutable struct SpecOpenRingElem{SpecOpenRingType, RestrictionType} <: RingElem
+  parent::SpecOpenRingType
   restrictions::Vector{RestrictionType}
 
-  function StructureSheafElem(
-      U::SpecOpenType,
-      f::Vector{RestrictionType}
-    ) where {SpecOpenType<:SpecOpen, RestrictionType<:RingElem}
+  function SpecOpenRingElem(
+      R::SpecOpenRingType,
+      f::Vector{RestrictionType};
+      check::Bool=true
+    ) where {SpecOpenRingType<:SpecOpenRing, RestrictionType<:RingElem}
     n = length(f)
+    U = domain(R)
     n == length(affine_patches(U)) || error("the number of restrictions does not coincide with the number of affine patches")
-    for i in 1:n 
-      OO(affine_patches(U)[i])(lift(f[i])) # throws an error if conversion is not possible
-    end
-    return new{SpecOpenType, RestrictionType}(U, f)
+    g = elem_type(ring_type(scheme(R)))[OO(U[i])(f[i]) for i in 1:n] # will throw if conversion is not possible
+    return new{SpecOpenRingType, RestrictionType}(R, g)
   end
 end
 
-parent(f::StructureSheafElem) = OO(ambient(domain(f)), domain(f))
-scheme(f::StructureSheafElem) = ambient(domain(f))
-domain(f::StructureSheafElem) = f.domain
-restrictions(f::StructureSheafElem) = f.restrictions
-affine_patches(f::StructureSheafElem) = affine_patches(domain(f))
-npatches(f::StructureSheafElem) = length(restrictions(f))
-getindex(f::StructureSheafElem, i::Int) = getindex(restrictions(f), i)
+### type getters
+elem_type(::Type{SpecOpenRing{S, T}}) where {S, T} = SpecOpenRingElem{SpecOpenRing{S, T}, elem_type(ring_type(S))}
 
-structure_sheaf_elem_type(X::Spec) = Type{StructureSheafElem{structure_sheaf_ring_type(X), elem_type(OO(X))}}
+elem_type(R::SpecOpenRing) = elem_type(typeof(R))
+
+parent_type(::Type{SpecOpenRingElem{S, T}}) where {S, T} = S
+parent_type(f::SpecOpenRingElem) = parent_type(typeof(f))
+
+parent(f::SpecOpenRingElem) = f.parent
+scheme(f::SpecOpenRingElem) = scheme(parent(f))
+domain(f::SpecOpenRingElem) = domain(parent(f))
+restrictions(f::SpecOpenRingElem) = f.restrictions
+affine_patches(f::SpecOpenRingElem) = affine_patches(domain(f))
+npatches(f::SpecOpenRingElem) = length(restrictions(f))
+getindex(f::SpecOpenRingElem, i::Int) = getindex(restrictions(f), i)
+getindex(f::SpecOpenRingElem, U::Spec) = restrictions(f)[domain(f)[U]]
+
+### copying
+function Base.deepcopy_internal(f::SpecOpenRingElem, dict::IdDict)
+  return SpecOpenRingElem(parent(f), copy(restrictions(f)), check=false)
+end
 
 function restrict(
-    f::StructureSheafElem, 
+    f::SpecOpenRingElem, 
     V::Spec
   )
   isempty(V) && return zero(OO(V))
@@ -377,6 +395,97 @@ function restrict(
   l = write_as_linear_combination(one(OO(V)), OO(V).(lifted_denominator.(g)))
   return dot(l, OO(V).(lifted_numerator.(g)))
 end
+
+(R::MPolyQuoLocalizedRing)(f::SpecOpenRingElem) = restrict(f, Spec(R))
+
+(R::SpecOpenRing)(f::RingElem) = SpecOpenRingElem(R, [OO(U)(f) for U in affine_patches(domain(R))])
+(R::SpecOpenRing)(f::Vector{T}) where {T<:RingElem} = SpecOpenRingElem(R, [OO(domain(R)[i])(f[i]) for i in 1:length(f)])
+
+function (R::SpecOpenRing)(f::SpecOpenRingElem) 
+  parent(f) === R && return f
+  return SpecOpenRingElem(R, [restrict(f, U) for U in affine_patches(domain(R))])
+end
+
+function +(a::T, b::T) where {T<:SpecOpenRingElem}
+  parent(a) === parent(b) || return a + (parent(a)(b))
+  return SpecOpenRingElem(parent(a), [a[i] + b[i] for i in 1:length(restrictions(a))], check=false)
+end
+
+function -(a::T, b::T) where {T<:SpecOpenRingElem}
+  parent(a) === parent(b) || return a - (parent(a)(b))
+  return SpecOpenRingElem(parent(a), [a[i] - b[i] for i in 1:length(restrictions(a))], check=false)
+end
+
+function -(a::T) where {T<:SpecOpenRingElem}
+  return SpecOpenRingElem(parent(a), [-a[i] for i in 1:length(restrictions(a))], check=false)
+end
+
+function *(a::T, b::T) where {T<:SpecOpenRingElem}
+  parent(a) === parent(b) || return a * (parent(a)(b))
+  return SpecOpenRingElem(parent(a), [a[i] * b[i] for i in 1:length(restrictions(a))], check=false)
+end
+
+function *(a::RingElem, b::T) where {T<:SpecOpenRingElem}
+  return b*(parent(b)(a))
+end
+
+function *(a::Integer, b::T) where {T<:SpecOpenRingElem}
+  return b*(parent(b)(a))
+end
+
+function *(b::T, a::RingElem) where {T<:SpecOpenRingElem}
+  return a*b
+end
+
+function ==(a::T, b::T) where {T<:SpecOpenRingElem}
+  parent(a) === parent(b) || return a == (parent(a)(b))
+  for i in 1:length(restrictions(a))
+    a[i] == b[i] || return false
+  end
+  return true
+end
+
+function ^(a::SpecOpenRingElem, i::Int64)
+  return SpecOpenRingElem(parent(a), [a[k]^i for k in 1:length(restrictions(a))])
+end
+function ^(a::SpecOpenRingElem, i::Integer)
+  return SpecOpenRingElem(parent(a), [a[k]^i for k in 1:length(restrictions(a))])
+end
+function ^(a::SpecOpenRingElem, i::fmpz)
+  return SpecOpenRingElem(parent(a), [a[k]^i for k in 1:length(restrictions(a))])
+end
+
+function divexact(a::T, b::T; check::Bool=false) where {T<:SpecOpenRingElem} 
+  parent(a) === parent(b) || return divexact(a, (parent(a)(b)))
+  return SpecOpenRingElem(parent(a), [divexact(a[i], b[i]) for i in 1:length(restrictions(a))])
+end
+
+function isunit(a::SpecOpenRingElem) 
+  for i in 1:length(restrictions(a))
+    isunit(a[i]) || return false
+  end
+  return true
+end
+
+inv(a::SpecOpenRingElem) = SpecOpenRingElem(parent(a), [inv(f) for f in restrictions(a)], check=false)
+
+one(R::SpecOpenRing) = SpecOpenRingElem(R, [one(OO(U)) for U in affine_patches(domain(R))], check=false)
+zero(R::SpecOpenRing) = SpecOpenRingElem(R, [zero(OO(U)) for U in affine_patches(domain(R))], check=false)
+(R::SpecOpenRing)() = zero(R)
+(R::SpecOpenRing)(a::Integer) = SpecOpenRingElem(R, [OO(U)(a) for U in affine_patches(domain(R))], check=false)
+(R::SpecOpenRing)(a::Int64) = SpecOpenRingElem(R, [OO(U)(a) for U in affine_patches(domain(R))], check=false)
+(R::SpecOpenRing)(a::fmpz) = SpecOpenRingElem(R, [OO(U)(a) for U in affine_patches(domain(R))], check=false)
+
+isdomain_type(::Type{SpecOpenRing}) = true
+isexact_type(::Type{SpecOpenRing}) = true
+
+AbstractAlgebra.promote_rule(::Type{T}, ::Type{RET}) where {T<:SpecOpenRingElem, RET<:Integer} = T
+AbstractAlgebra.promote_rule(::Type{RET}, ::Type{T}) where {T<:SpecOpenRingElem, RET<:Integer} = T
+### TODO: Rethink this. For instance, restrictions can happen both from and to Specs.
+function AbstractAlgebra.promote_rule(::Type{T}, ::Type{RET}) where {T<:SpecOpenRingElem, RET<:RingElem} 
+  return T
+end
+
 
 @Markdown.doc """
     maximal_extension(X::Spec, f::AbstractAlgebra.Generic.Frac)
@@ -399,7 +508,8 @@ function maximal_extension(
   I = quotient(ideal(W, b) + localized_modulus(OO(X)), ideal(W, a))
   U = SpecOpen(X, I)
   g = [OO(V)(f) for V in affine_patches(U)]
-  return StructureSheafElem(U, g)
+  R = SpecOpenRing(X, U)
+  return R(g)
 end
 
 @Markdown.doc """
@@ -433,9 +543,10 @@ function maximal_extension(
     I = intersect(quotient(ideal(W, denominator(p)) + localized_modulus(OO(X)), ideal(W, numerator(p))), I)
   end
   U = SpecOpen(X, I)
+  S = SpecOpenRing(X, U)
   # TODO: For some reason, the type of the inner vector is not inferred if it has no entries. 
   # Investigate why? Type instability?
-  return U, [StructureSheafElem(U, (elem_type(OO(X))[OO(V)(a) for V in affine_patches(U)])) for a in f]
+  return U, [SpecOpenRingElem(S, (elem_type(OO(X))[OO(V)(a) for V in affine_patches(U)])) for a in f]
 end
 
 #TODO: implement the catchall versions of the above functions.
@@ -601,7 +712,7 @@ function pullback(f::SpecOpenMor, a::RET) where {RET<:RingElem}
   R = base_ring(OO(Y))
   parent(a) == R || error("element does not belong to the correct ring")
   pb_a = elem_type(OO(X))[pullback(f[i])(a) for i in 1:npatches(U)]
-  return StructureSheafElem(U, pb_a)
+  return SpecOpenRingElem(SpecOpenRing(X, U), pb_a)
 end
 
 @Markdown.doc """

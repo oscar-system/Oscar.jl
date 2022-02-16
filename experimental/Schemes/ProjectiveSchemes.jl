@@ -80,8 +80,8 @@ projective_scheme_type(X::T) where {T<:Spec} = projective_scheme_type(ring_type(
 projective_scheme_type(::Type{T}) where {T<:Spec} = projective_scheme_type(ring_type(T))
 
 # the type of the affine cone for a projective scheme
-affine_cone_type(P::ProjectiveScheme{CRT}) where {CRT<:AbstractAlgebra.Field} = spec_type(CRT)
-affine_cone_type(::Type{ProjectiveScheme{CRT}}) where {CRT<:AbstractAlgebra.Field} = spec_type(CRT)
+affine_cone_type(P::ProjectiveScheme{CRT}) where {CRT<:AbstractAlgebra.Ring} = spec_type(CRT)
+affine_cone_type(::Type{ProjectiveScheme{CRT}}) where {CRT<:AbstractAlgebra.Ring} = spec_type(CRT)
 
 # again, this is the default assuming localizations at hypersurfaces
 affine_cone_type(P::ProjectiveScheme{CRT}) where {CRT<:MPolyQuoLocalizedRing} = spec_type(CRT)
@@ -224,7 +224,7 @@ end
 
 original_ring(S::MPolyRing_dec) = S.R
 
-function affine_patch_type(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:AbstractAlgebra.Field, CRET, RT, RET}
+function affine_patch_type(X::ProjectiveScheme{CRT, CRET, RT, RET}) where {CRT<:AbstractAlgebra.Ring, CRET, RT, RET}
   return Spec{typeof(base_ring(X)), 
               elem_type(base_ring(X)), 
               typeof(original_ring(homogeneous_coordinate_ring(X))), 
@@ -607,7 +607,7 @@ function map_on_affine_cones(phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:MPoly
   return phi.map_on_affine_cones
 end
     
-function map_on_affine_cones(phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:AbstractAlgebra.Field}})
+function map_on_affine_cones(phi::ProjectiveSchemeMor{<:ProjectiveScheme{<:AbstractAlgebra.Ring}})
   if !isdefined(phi, :map_on_affine_cones)
     S = homogeneous_coordinate_ring(codomain(phi))
     T = homogeneous_coordinate_ring(domain(phi))

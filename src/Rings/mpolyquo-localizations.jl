@@ -374,6 +374,11 @@ For ``A//B ∈ (𝕜[x₁,…,xₙ]/I)[S⁻¹]`` this returns a representative
 """
 fraction(a::MPolyQuoLocalizedRingElem) = lifted_numerator(a)//lifted_denominator(a)
 
+### copying of elements
+function Base.deepcopy_internal(f::MPolyQuoLocalizedRingElem, dict::IdDict)
+  return parent(f)(f, check=false)
+end
+
 ### required conversions
 (L::MPolyQuoLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(f::RingElemType) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyQuoLocalizedRingElem(L, f, one(f), check=false)
 
