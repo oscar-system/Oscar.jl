@@ -152,6 +152,11 @@ toric_ideal(antv::AffineNormalToricVariety)
 toric_ideal(R::MPolyRing, antv::AffineNormalToricVariety)
 ```
 
+### Sheaves
+
+```@docs
+StructureSheaf(v::AbstractNormalToricVariety)
+```
 
 ## Auxillary Methods
 

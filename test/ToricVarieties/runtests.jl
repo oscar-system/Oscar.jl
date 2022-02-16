@@ -255,6 +255,7 @@ line_bundle = ToricLineBundle(dP3, [1,2,3,4])
     @test is_basepoint_free(line_bundle) == false
     @test isample(line_bundle) == false
     @test is_very_ample(line_bundle) == false
+    @test istrivial(structure_sheaf(dP3)) == true
     @test all_cohomologies(line_bundle) == [11,0,0]
     @test cohomology(line_bundle,0) == 11
 end
