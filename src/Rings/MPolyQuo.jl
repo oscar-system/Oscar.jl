@@ -357,10 +357,8 @@ end
 
 function singular_ring(Rx::MPolyQuo, ordering::MonomialOrdering = degrevlex(gens(Rx.R)); keep_ordering::Bool = true)
   if !isdefined(Rx, :SQR)
-    @show ordering
     groebner_assure(Rx.I, ordering)
     singular_assure(Rx.I.gb[ordering], ordering)
-    @show Rx.I.gb
     Rx.SQR = Singular.create_ring_from_singular_ring(
                 Singular.libSingular.rQuotientRing(Rx.I.gb[ordering].S.ptr,
                 base_ring(Rx.I.gb[ordering].S).ptr))
@@ -571,11 +569,7 @@ x
 function simplify(f::MPolyQuoElem)
   R = parent(f)
   I = R.I
-  @show I
-  @show I.gens
   groebner_assure(I, degrevlex(gens(R.R)))
-  @show I.gb
-  #= G = collect(values(I.gb))[1] =#
   G = I.gb[degrevlex(gens(R.R))]
   singular_assure(G)
   Sx = base_ring(G.S)
@@ -588,7 +582,6 @@ function simplify!(f::MPolyQuoElem)
   I = R.I
   groebner_assure(I, degrevlex(gens(R.R)))
   G = I.gb[degrevlex(gens(R.R))]
-  @show G.isGB
   singular_assure(G)
   Sx = base_ring(G.S)
   g = f.f
@@ -839,9 +832,10 @@ function divides(a::MPolyQuoElem, b::MPolyQuoElem)
 
   Q = parent(a)
   I = Q.I
-  if isdefined(I, :gb)
-    oscar_assure(I)
-    J = I.gb.O
+  if !isempty(I.gb)
+      GI = collect(values(I.gb))[1]
+      oscar_assure(GI)
+      J = GI.O
   else
     J = gens(I)
   end

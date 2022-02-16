@@ -31,9 +31,6 @@ Oscar.BiPolyArray{fmpq_mpoly}(fmpq_mpoly[x*y - 3*x, y^3 - 6*x^2, x^3 - 9//2*x], 
 ```
 """
 function groebner_assure(I::MPolyIdeal, ordering::MonomialOrdering=degrevlex(gens(base_ring(I))), complete_reduction::Bool = false)
-    @show I.gb
-    @show "original"
-    @show get(I.gb, ordering, -1)
     if get(I.gb, ordering, -1) == -1
         I.gb[ordering]  = groebner_basis(I.gens, ordering, complete_reduction)
     end
@@ -67,7 +64,6 @@ function groebner_basis(B::BiPolyArray, ordering::MonomialOrdering, complete_red
    singular_assure(B, ordering)
    R = B.Sx
    !Oscar.Singular.has_global_ordering(R) && error("The ordering has to be a global ordering.")
-   @show "gb starts?"
    I  = Singular.Ideal(R, gens(B.S)...)
    i  = Singular.std(I, complete_reduction = complete_reduction)
    BA = BiPolyArray(B.Ox, i)
@@ -344,7 +340,6 @@ function normal_form_internal(I::Singular.sideal, J::MPolyIdeal)
     if !isdefined(J, :gb)
         groebner_assure(J)
     end
-    @show J.gb
     K = ideal(base_ring(J), reduce(I, collect(values(J.gb))[1].S))
     return [J.gens.Ox(x) for x = gens(K.gens.S)]
 end
