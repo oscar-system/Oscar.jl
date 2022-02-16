@@ -12,7 +12,7 @@ f = map_from_character_lattice_to_torus_invariant_weil_divisor_group(antv)
     @test dim(cone(antv)) == 2
     @test length(affine_open_covering(antv)) == 1
     @test length(gens(toric_ideal(antv))) == 1
-    @test rank(torusinvariant_divisor_group(antv)) == 2
+    @test rank(torus_invariant_weil_divisor_group(antv)) == 2
     @test rank(character_lattice(antv)) == 2
     @test rank(domain(f)) == 2
     @test rank(codomain(f)) == 2
@@ -110,7 +110,7 @@ H5 = NormalToricVariety(PolyhedralFan(fan_rays, fan_cones))
     @test betti_number(H5, 4) == 1
     @test length(affine_open_covering(H5)) == 4
     @test fan(H5).pm_fan.FAN_DIM == 2
-    @test rank(torusinvariant_divisor_group(H5)) == 4
+    @test rank(torus_invariant_weil_divisor_group(H5)) == 4
     @test rank(character_lattice(H5)) == 2
     map = map_from_character_lattice_to_torus_invariant_weil_divisor_group(H5)
     @test rank(domain(map)) == 2
