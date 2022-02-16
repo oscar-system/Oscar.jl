@@ -59,7 +59,7 @@ function tropical_variety(I::MPolyIdeal, val::ValuationMap)
       push!(working_list_todo, (w,C,G))
 
       if dim(C)!=dim(I)
-        println("random starting point on lower-dimensional cell, recomputing...")
+        println("starting point on lower-dimensional cell, recomputing...")
         compute_starting_points = true
         break
       end
@@ -75,10 +75,12 @@ function tropical_variety(I::MPolyIdeal, val::ValuationMap)
 
     # pick a groebner polyhedron from todo list, add it to the done list, and compute its facet points
     (w,C,G) = popfirst!(working_list_todo)
-    push!(working_list_done, (w,C,G))
+    i = searchsortedfirst(working_list_done,(w,C,G),by=x->x[1])
+    insert!(working_list_done, i, (w,C,G))
+
     points_to_traverse = facet_points(C)
-    println("points_to_traverse:")
-    println(points_to_traverse)
+    # println("points_to_traverse:")
+    # println(points_to_traverse)
 
     for point_to_traverse in points_to_traverse
       # if point was traversed before, skip
@@ -91,35 +93,40 @@ function tropical_variety(I::MPolyIdeal, val::ValuationMap)
 
       # compute tropical link
       directions_to_traverse = tropical_link(ideal(G),val,point_to_traverse)
-      println("directions_to_traverse:")
-      println(directions_to_traverse)
+      # println("directions_to_traverse:")
+      # println(directions_to_traverse)
 
       for direction_to_traverse in directions_to_traverse
         # compute neighbour
-        G_neighbor = groebner_flip(G,val,w,point_to_traverse,direction_to_traverse)
-        C_neighbor = groebner_polyhedron(G_neighbor,val,point_to_traverse,pertubation=direction_to_traverse)
-        w_neighbor = anchor_point(C_neighbor)
+        G_neighbour = groebner_flip(G,val,w,point_to_traverse,direction_to_traverse)
+        C_neighbour = groebner_polyhedron(G_neighbour,val,point_to_traverse,pertubation=direction_to_traverse)
+        w_neighbour = anchor_point(C_neighbour)
 
-        # if neighbour is in done list, skip
+        # if neighbour is already in done list, skip
         i = searchsortedfirst(working_list_done,
-                              (w_neighbor,C_neighbor,G_neighbor),
+                              (w_neighbour,C_neighbour,G_neighbour),
                               by=x->x[1])
-        if i<=length(working_list_done) && working_list_done[i][1]==w_neighbor
+        if i<=length(working_list_done) && working_list_done[i][1]==w_neighbour
           continue
         end
-
-        # if neighbour is in todo list, skip
+        # if neighbour is already in todo list, skip
         i = searchsortedfirst(working_list_todo,
-                              (w_neighbor,C_neighbor,G_neighbor),
+                              (w_neighbour,C_neighbour,G_neighbour),
                               by=x->x[1])
-        if i<=length(working_list_todo) && working_list_todo[i][1]==w_neighbor
+        if i<=length(working_list_todo) && working_list_todo[i][1]==w_neighbour
           continue
         end
-        # otherwise, add data to todo list
-        insert!(working_list_todo, i, (w_neighbor,C_neighbor,G_neighbor))
+        # otherwise, add neighbour to todo list
+        # println(w_neighbour)
+        # println([w for (w,C,G) in working_list_done])
+        # println([w for (w,C,G) in working_list_todo])
+        insert!(working_list_todo, i, (w_neighbour,C_neighbour,G_neighbour))
       end
     end
   end
+
+  # for debugging
+  return working_list_done
 
   ###
   # Part 3: Preparing data to return
