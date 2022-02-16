@@ -91,7 +91,7 @@ map_from_torus_invariant_cartier_divisor_group_to_picard_group(v::AbstractNormal
 map_from_character_lattice_to_torus_invariant_weil_divisor_group(v::AbstractNormalToricVariety)
 map_from_torus_invariant_weil_divisor_group_to_class_group(v::AbstractNormalToricVariety)
 picard_group(v::AbstractNormalToricVariety)
-torusinvariant_divisor_group(v::AbstractNormalToricVariety)
+torus_invariant_weil_divisor_group(v::AbstractNormalToricVariety)
 torusinvariant_prime_divisors(v::AbstractNormalToricVariety)
 ```
 

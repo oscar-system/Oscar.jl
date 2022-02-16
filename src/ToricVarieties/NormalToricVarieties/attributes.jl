@@ -89,12 +89,12 @@ export set_coordinate_names
 This method returns the names of the homogeneous coordinates of 
 the normal toric variety `v`. The default is `x1,...,xn`.
 """
-coordinate_names(v::AbstractNormalToricVariety) = get_attribute!(v, :coordinate_names, ["x$(i)" for i in 1:rank(torusinvariant_divisor_group(v))])
+coordinate_names(v::AbstractNormalToricVariety) = get_attribute!(v, :coordinate_names, ["x$(i)" for i in 1:rank(torus_invariant_weil_divisor_group(v))])
 
 
 function _cox_ring_weights(v::AbstractNormalToricVariety)
     return get_attribute(v, :cox_ring_weights) do
-        return [map_from_torus_invariant_weil_divisor_group_to_class_group(v)(x) for x in gens(torusinvariant_divisor_group(v))]
+        return [map_from_torus_invariant_weil_divisor_group_to_class_group(v)(x) for x in gens(torus_invariant_weil_divisor_group(v))]
     end
 end
 
@@ -347,7 +347,7 @@ export character_lattice
 
 
 @doc Markdown.doc"""
-    torusinvariant_divisor_group(v::AbstractNormalToricVariety)
+    torus_invariant_weil_divisor_group(v::AbstractNormalToricVariety)
 
 Return the torusinvariant divisor group of a normal toric variety `v`.
 
@@ -355,14 +355,14 @@ Return the torusinvariant divisor group of a normal toric variety `v`.
 ```jldoctest
 julia> p2 = projective_space(NormalToricVariety, 2);
 
-julia> torusinvariant_divisor_group(p2)
+julia> torus_invariant_weil_divisor_group(p2)
 GrpAb: Z^3
 ```
 """
-@attr GrpAbFinGen function torusinvariant_divisor_group(v::AbstractNormalToricVariety)
+@attr GrpAbFinGen function torus_invariant_weil_divisor_group(v::AbstractNormalToricVariety)
     return free_abelian_group(nrays(v))
 end
-export torusinvariant_divisor_group
+export torus_invariant_weil_divisor_group
 
 
 @doc Markdown.doc"""
@@ -386,7 +386,7 @@ Abelian group with structure: Z^3
 """
 @attr GrpAbFinGenMap function map_from_character_lattice_to_torus_invariant_weil_divisor_group(v::AbstractNormalToricVariety)
     mat = transpose(matrix(ZZ, rays(v)))
-    return hom(character_lattice(v), torusinvariant_divisor_group(v), mat)
+    return hom(character_lattice(v), torus_invariant_weil_divisor_group(v), mat)
 end
 export map_from_character_lattice_to_torus_invariant_weil_divisor_group
 
@@ -408,7 +408,7 @@ julia> torusinvariant_prime_divisors(p2)
 ```
 """
 @attr Vector{ToricDivisor} function torusinvariant_prime_divisors(v::AbstractNormalToricVariety)
-    ti_divisors = torusinvariant_divisor_group(v)
+    ti_divisors = torus_invariant_weil_divisor_group(v)
     prime_divisors = ToricDivisor[]
     for i in 1:rank(ti_divisors)
         coeffs = zeros(Int, rank(ti_divisors))
@@ -526,7 +526,7 @@ GrpAb: Z^3
     end
     
     # compute the matrix for mapping to torusinvariant Weil divisors
-    map_to_weil_divisors = zero_matrix(ZZ, number_of_cones * rc, rank(torusinvariant_divisor_group(v)))
+    map_to_weil_divisors = zero_matrix(ZZ, number_of_cones * rc, rank(torus_invariant_weil_divisor_group(v)))
     for i in 1:number_of_rays
         map_to_weil_divisors[(cones_ray_is_part_of[i][1]-1)*rc+1:cones_ray_is_part_of[i][1]*rc, i] = [fmpz(-c) for c in fan_rays[:,i]]
     end
@@ -539,7 +539,7 @@ GrpAb: Z^3
 
     # identify the embedding of the cartier_data_group
     ker = kernel(total_map)
-    embedding = snf(ker[1])[2] * ker[2] * hom(codomain(ker[2]), torusinvariant_divisor_group(v), map_to_weil_divisors)
+    embedding = snf(ker[1])[2] * ker[2] * hom(codomain(ker[2]), torus_invariant_weil_divisor_group(v), map_to_weil_divisors)
 
     # return the image of this embedding
     return image(embedding)[2]

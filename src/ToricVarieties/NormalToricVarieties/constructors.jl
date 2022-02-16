@@ -463,7 +463,7 @@ function blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int
     # set up Cox ring of new variety
     new_vars = [if new_rays[i] in old_rays old_vars[findfirst(x->x==new_rays[i], old_rays)] else coordinate_name end for i in 1:length(new_rays)]
     set_attribute!(new_variety, :coordinate_names, new_vars)
-    weights = [map_from_torus_invariant_weil_divisor_group_to_class_group(new_variety)(x) for x in gens(torusinvariant_divisor_group(new_variety))]
+    weights = [map_from_torus_invariant_weil_divisor_group_to_class_group(new_variety)(x) for x in gens(torus_invariant_weil_divisor_group(new_variety))]
     set_attribute!(new_variety, :cox_ring_weights, weights)
     if has_attribute(v, :coefficient_ring)
         set_attribute!(new_variety, :coefficient_ring, coefficient_ring(v))
