@@ -56,7 +56,7 @@ ntv3 = NormalToricVariety(square)
 @testset "Toric varieties from polyhedral fans" begin
     @test iscomplete(ntv2) == true
     @test iscomplete(ntv3) == true
-    @test rank(cartier_divisor_group(ntv2)) == 4
+    @test rank(torus_invariant_cartier_divisor_group(ntv2)) == 4
     @test rank(domain(map_from_torus_invariant_cartier_divisor_group_to_torus_invariant_weil_divisor_group(ntv2))) == 4
 end
 
@@ -141,7 +141,7 @@ dP3 = NormalToricVariety(PolyhedralFan(fan_rays, fan_cones))
     @test length(torusinvariant_prime_divisors(dP0)) == 3
     @test length(torusinvariant_prime_divisors(dP1)) == 4
     @test length(torusinvariant_prime_divisors(dP2)) == 5
-    @test rank(cartier_divisor_group(dP3)) == 6
+    @test rank(torus_invariant_cartier_divisor_group(dP3)) == 6
     @test length(torusinvariant_prime_divisors(dP3)) == 6
     @test_throws ArgumentError del_pezzo(4)
     @test rank(picard_group(dP3)) == 4

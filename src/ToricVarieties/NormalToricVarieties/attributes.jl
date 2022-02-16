@@ -547,7 +547,7 @@ end
 export map_from_torus_invariant_cartier_divisor_group_to_torus_invariant_weil_divisor_group
 
 @doc Markdown.doc"""
-    cartier_divisor_group(v::AbstractNormalToricVariety)
+    torus_invariant_cartier_divisor_group(v::AbstractNormalToricVariety)
 
 Return the Cartier divisor group of an abstract normal toric variety `v`.
 
@@ -556,14 +556,14 @@ Return the Cartier divisor group of an abstract normal toric variety `v`.
 julia> p2 = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> cartier_divisor_group(p2)
+julia> torus_invariant_cartier_divisor_group(p2)
 GrpAb: Z^3
 ```
 """
-@attr GrpAbFinGen function cartier_divisor_group(v::AbstractNormalToricVariety)
+@attr GrpAbFinGen function torus_invariant_cartier_divisor_group(v::AbstractNormalToricVariety)
     return domain(map_from_torus_invariant_cartier_divisor_group_to_torus_invariant_weil_divisor_group(v))
 end
-export cartier_divisor_group
+export torus_invariant_cartier_divisor_group
 
 
 @doc Markdown.doc"""
