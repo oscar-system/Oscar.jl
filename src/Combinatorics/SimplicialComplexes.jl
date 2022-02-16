@@ -249,10 +249,14 @@ julia> minimal_nonfaces(K)
 """
 minimal_nonfaces(K::SimplicialComplex) = minimal_nonfaces(Vector{Set{Int}}, K)
 function minimal_nonfaces(::Type{Vector{Set{Int}}}, K::SimplicialComplex)
-    I = pm_object(K).MINIMAL_NON_FACES
+    I = minimal_nonfaces(IncidenceMatrix, K)
     return Vector{Set{Int}}([Polymake.row(I,i) for i in 1:Polymake.nrows(I)])
 end
-minimal_nonfaces(::Type{IncidenceMatrix}, K::SimplicialComplex) = pm_object(K).MINIMAL_NON_FACES
+function minimal_nonfaces(::Type{IncidenceMatrix}, K::SimplicialComplex)
+    # the following line must stay to ensure polymake uses the correct algorithm for the non-faces
+    nvertices(K)
+    return pm_object(K).MINIMAL_NON_FACES
+end
 
 @doc Markdown.doc"""
     alexander_dual(K::SimplicialComplex)

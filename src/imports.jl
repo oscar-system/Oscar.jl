@@ -227,3 +227,5 @@ import Hecke:
     TorQuadModMor,
     tr,
     trace
+
+import cohomCalg_jll

@@ -201,11 +201,13 @@ end
 
 P = polarize(Polyhedron(Polymake.polytope.rand_sphere(5,60; seed=42)))
 big_variety = NormalToricVariety(P)
-big_variety2 = NormalToricVariety(P)
-set_coefficient_ring(big_variety2, GF(13))
+set_coefficient_ring(big_variety, GF(13))
 
 @testset "Additional test for Stanley-Reisner ideal" begin
-    @test ngens(stanley_reisner_ideal(big_variety)) == ngens(stanley_reisner_ideal(big_variety2))
+    # this should run in a few seconds at most
+    duration = @elapsed stanley_reisner_ideal(big_variety)
+    @test duration < 10
+    @test ngens(stanley_reisner_ideal(big_variety)) == 1648
 end
 
 D=ToricDivisor(H5, [0,0,0,0])
@@ -253,4 +255,6 @@ line_bundle = ToricLineBundle(dP3, [1,2,3,4])
     @test is_basepoint_free(line_bundle) == false
     @test isample(line_bundle) == false
     @test is_very_ample(line_bundle) == false
+    @test all_cohomologies(line_bundle) == [11,0,0]
+    @test cohomology(line_bundle,0) == 11
 end

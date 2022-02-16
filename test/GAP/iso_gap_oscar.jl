@@ -16,6 +16,10 @@
       @test oxi == ox^i
       @test oxi + oy == iso(xi + y)
     end
+    p2 = next_prime(p)
+    @test_throws ErrorException iso(GAP.Globals.Z(GAP.Obj(p2)))
+    @test_throws ErrorException image(iso, GAP.Globals.Z(GAP.Obj(p2)))
+    @test_throws ErrorException preimage(iso, GF(p2)(1))
   end
 end
 
@@ -44,6 +48,11 @@ end
         @test oxi == ox^i
         @test oxi + oy == iso(xi + y)
       end
+      p2 = next_prime(p)
+      o = GAP.Globals.One(GAP.Globals.GF(GAP.Obj(p2)))
+      @test_throws ErrorException iso(o)
+      @test_throws ErrorException image(iso, o)
+      @test_throws ErrorException preimage(iso, GF(p2)(1))
     end
   end
 end
@@ -62,6 +71,10 @@ end
       @test oxi == ox^i
       @test oxi + oy == iso(xi + y)
     end
+    @test_throws ErrorException preimage(iso, 1)
+    @test_throws ErrorException iso(GAP.Globals.Z(2))
+    @test_throws ErrorException image(iso, GAP.Globals.Z(2))
+    @test_throws ErrorException preimage(iso, GF(2)(1))
   end
 end
 
@@ -80,6 +93,9 @@ end
       @test oxi == ox^i
       @test oxi + oy == iso(xi + y)
     end
+    @test_throws ErrorException iso(GAP.Globals.Z(2))
+    @test_throws ErrorException image(iso, GAP.Globals.Z(2))
+    @test_throws ErrorException preimage(iso, CyclotomicField(2)[2])
   end
 end
 
@@ -97,5 +113,8 @@ end
          img = iso(pol)
          @test preimage(iso, img) == pol
       end
+      @test_throws ErrorException iso(GAP.Globals.Z(2))
+      @test_throws ErrorException image(iso, GAP.Globals.Z(2))
+      @test_throws ErrorException preimage(iso, PolynomialRing(QQ, "y")[1]())
    end
 end
