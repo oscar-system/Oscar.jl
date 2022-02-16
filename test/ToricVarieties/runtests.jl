@@ -3,7 +3,7 @@ using Test
 
 C = Oscar.positive_hull([1 1; -1 1])
 antv = AffineNormalToricVariety(C)
-f = map_from_character_lattice_to_torus_invariant_weil_divisor_group(antv)
+f = map_from_character_lattice_to_torusinvariant_weil_divisor_group(antv)
 
 @testset "Affine toric varieties" begin
     @test issmooth(antv) == false
@@ -12,11 +12,11 @@ f = map_from_character_lattice_to_torus_invariant_weil_divisor_group(antv)
     @test dim(cone(antv)) == 2
     @test length(affine_open_covering(antv)) == 1
     @test length(gens(toric_ideal(antv))) == 1
-    @test rank(torus_invariant_weil_divisor_group(antv)) == 2
+    @test rank(torusinvariant_weil_divisor_group(antv)) == 2
     @test rank(character_lattice(antv)) == 2
     @test rank(domain(f)) == 2
     @test rank(codomain(f)) == 2
-    @test elementary_divisors(codomain(map_from_torus_invariant_weil_divisor_group_to_class_group(antv))) == [ 2 ]
+    @test elementary_divisors(codomain(map_from_torusinvariant_weil_divisor_group_to_class_group(antv))) == [ 2 ]
     @test elementary_divisors(class_group(antv)) == [ 2 ]
     @test ngens(cox_ring(antv)) == 2
     @test length(torusinvariant_prime_divisors(antv)) == 2
@@ -56,8 +56,8 @@ ntv3 = NormalToricVariety(square)
 @testset "Toric varieties from polyhedral fans" begin
     @test iscomplete(ntv2) == true
     @test iscomplete(ntv3) == true
-    @test rank(torus_invariant_cartier_divisor_group(ntv2)) == 4
-    @test rank(domain(map_from_torus_invariant_cartier_divisor_group_to_torus_invariant_weil_divisor_group(ntv2))) == 4
+    @test rank(torusinvariant_cartier_divisor_group(ntv2)) == 4
+    @test rank(domain(map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(ntv2))) == 4
 end
 
 P2 = NormalToricVariety(normal_fan(Oscar.simplex(2)))
@@ -110,13 +110,13 @@ H5 = NormalToricVariety(PolyhedralFan(fan_rays, fan_cones))
     @test betti_number(H5, 4) == 1
     @test length(affine_open_covering(H5)) == 4
     @test fan(H5).pm_fan.FAN_DIM == 2
-    @test rank(torus_invariant_weil_divisor_group(H5)) == 4
+    @test rank(torusinvariant_weil_divisor_group(H5)) == 4
     @test rank(character_lattice(H5)) == 2
-    map = map_from_character_lattice_to_torus_invariant_weil_divisor_group(H5)
+    map = map_from_character_lattice_to_torusinvariant_weil_divisor_group(H5)
     @test rank(domain(map)) == 2
     @test rank(codomain(map)) == 4
     @test rank(class_group(H5)) == 2
-    @test rank(codomain(map_from_torus_invariant_weil_divisor_group_to_class_group(H5))) == 2
+    @test rank(codomain(map_from_torusinvariant_weil_divisor_group_to_class_group(H5))) == 2
     @test ngens(cox_ring(H5)) == 4
     @test length(stanley_reisner_ideal(H5).gens) == 2
     @test length(irrelevant_ideal(H5).gens) == 4
@@ -141,11 +141,11 @@ dP3 = NormalToricVariety(PolyhedralFan(fan_rays, fan_cones))
     @test length(torusinvariant_prime_divisors(dP0)) == 3
     @test length(torusinvariant_prime_divisors(dP1)) == 4
     @test length(torusinvariant_prime_divisors(dP2)) == 5
-    @test rank(torus_invariant_cartier_divisor_group(dP3)) == 6
+    @test rank(torusinvariant_cartier_divisor_group(dP3)) == 6
     @test length(torusinvariant_prime_divisors(dP3)) == 6
     @test_throws ArgumentError del_pezzo(4)
     @test rank(picard_group(dP3)) == 4
-    @test picard_group(dP3) == codomain(map_from_torus_invariant_cartier_divisor_group_to_picard_group(dP3))
+    @test picard_group(dP3) == codomain(map_from_torusinvariant_cartier_divisor_group_to_picard_group(dP3))
 end
 
 blowup_variety = blowup_on_ith_minimal_torus_orbit(P2, 1, "e")

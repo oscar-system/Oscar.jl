@@ -83,15 +83,15 @@ affine_open_covering( v::AbstractNormalToricVariety )
 ### Characters, Weil Divisors, Cartier Divisors, Class Group and Picard Group
 
 ```@docs
-torus_invariant_cartier_divisor_group(v::AbstractNormalToricVariety)
+torusinvariant_cartier_divisor_group(v::AbstractNormalToricVariety)
 character_lattice(v::AbstractNormalToricVariety)
 class_group(v::AbstractNormalToricVariety)
-map_from_torus_invariant_cartier_divisor_group_to_torus_invariant_weil_divisor_group(v::AbstractNormalToricVariety)
-map_from_torus_invariant_cartier_divisor_group_to_picard_group(v::AbstractNormalToricVariety)
-map_from_character_lattice_to_torus_invariant_weil_divisor_group(v::AbstractNormalToricVariety)
-map_from_torus_invariant_weil_divisor_group_to_class_group(v::AbstractNormalToricVariety)
+map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(v::AbstractNormalToricVariety)
+map_from_torusinvariant_cartier_divisor_group_to_picard_group(v::AbstractNormalToricVariety)
+map_from_character_lattice_to_torusinvariant_weil_divisor_group(v::AbstractNormalToricVariety)
+map_from_torusinvariant_weil_divisor_group_to_class_group(v::AbstractNormalToricVariety)
 picard_group(v::AbstractNormalToricVariety)
-torus_invariant_weil_divisor_group(v::AbstractNormalToricVariety)
+torusinvariant_weil_divisor_group(v::AbstractNormalToricVariety)
 torusinvariant_prime_divisors(v::AbstractNormalToricVariety)
 ```
 
