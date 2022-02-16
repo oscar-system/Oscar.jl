@@ -916,11 +916,12 @@ julia> g in I
 false
 ```
 """
-function ideal_membership(f::T, I::MPolyIdeal{T}) where T
-  groebner_assure(I)
-  singular_assure(I.gb)
-  Sx = base_ring(I.gb.S)
-  return Singular.iszero(reduce(Sx(f), I.gb.S))
+function ideal_membership(f::T, I::MPolyIdeal{T}; ordering::MonomialOrdering = degrevlex(gens(base_ring(I)))) where T
+  groebner_assure(I, ordering)
+  GI = I.gb[ordering]
+  singular_assure(GI)
+  Sx = base_ring(GI.S)
+  return Singular.iszero(reduce(Sx(f), GI.S))
 end
 Base.:in(f::MPolyElem, I::MPolyIdeal) = ideal_membership(f,I)
 #######################################################
