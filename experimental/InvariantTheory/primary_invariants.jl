@@ -181,17 +181,22 @@ julia> primary_invariants_via_optimal_hsop(IR, primary_degrees = [ 3, 6, 6 ])
 ```
 """
 function primary_invariants_via_optimal_hsop(RG::InvRing; ensure_minimality::Int = 0, degree_bound::Int = 1, primary_degrees::Vector{Int} = Int[])
+  invars_cache = _primary_invariants_via_optimal_hsop(RG; ensure_minimality = ensure_minimality, degree_bound = degree_bound, primary_degrees = primary_degrees)
+  return invars_cache.invars
+end
+
+function _primary_invariants_via_optimal_hsop(RG::InvRing; ensure_minimality::Int = 0, degree_bound::Int = 1, primary_degrees::Vector{Int} = Int[])
   iters = Dict{Int, VectorSpaceIterator}()
   ideals = Dict{Set{elem_type(polynomial_ring(RG))}, Int}()
 
   if !isempty(primary_degrees)
     @assert length(primary_degrees) == degree(group(RG))
-    invars = elem_type(polynomial_ring(RG))[]
-    b, k = primary_invariants_via_optimal_hsop!(RG, primary_degrees, invars, iters, ideals, ensure_minimality, 0)
+    invars_cache = PrimaryInvarsCache{elem_type(polynomial_ring(RG))}()
+    b, k = primary_invariants_via_optimal_hsop!(RG, primary_degrees, invars_cache, iters, ideals, ensure_minimality, 0)
     if !b
       error("No primary invariants of the given degrees exist")
     end
-    return invars
+    return invars_cache
   end
 
   bad_prefixes = Vector{Vector{Int}}()
@@ -199,9 +204,9 @@ function primary_invariants_via_optimal_hsop(RG::InvRing; ensure_minimality::Int
   while true
     degrees = candidates_primary_degrees(RG, l, bad_prefixes)
     for ds in degrees
-      invars = elem_type(polynomial_ring(RG))[]
-      b, k = primary_invariants_via_optimal_hsop!(RG, ds, invars, iters, ideals, ensure_minimality, 0)
-      b && return invars
+      invars_cache = PrimaryInvarsCache{elem_type(polynomial_ring(RG))}()
+      b, k = primary_invariants_via_optimal_hsop!(RG, ds, invars_cache, iters, ideals, ensure_minimality, 0)
+      b && return invars_cache
       push!(bad_prefixes, ds[1:k])
     end
     l += 1
@@ -211,15 +216,15 @@ end
 # Kemper "An Algorithm to Calculate Optimal Homogeneous Systems of Parameters", 1999, [Kem99]
 # Return a bool b and an integer k.
 # b == true iff primary invariants of the given degrees exist. In this case
-# invars will contain those invariants.
+# invars_cache will contain those invariants.
 # k is only needed for recursive calls of the function.
-function primary_invariants_via_optimal_hsop!(RG::InvRing{FldT, GrpT, PolyElemT}, degrees::Vector{Int}, invars::Vector{PolyElemT}, iters::Dict{Int, <: VectorSpaceIterator}, ideals::Dict{Set{PolyElemT}, Int}, ensure_minimality::Int = 0, k::Int = 0) where {FldT, GrpT, PolyElemT}
+function primary_invariants_via_optimal_hsop!(RG::InvRing{FldT, GrpT, PolyElemT}, degrees::Vector{Int}, invars_cache::PrimaryInvarsCache{PolyElemT}, iters::Dict{Int, <: VectorSpaceIterator}, ideals::Dict{Set{PolyElemT}, Int}, ensure_minimality::Int = 0, k::Int = 0) where {FldT, GrpT, PolyElemT}
 
-  n = length(degrees) - length(invars)
+  n = length(degrees) - length(invars_cache.invars)
   R = polynomial_ring(RG)
 
-  if length(invars) != length(degrees)
-    d = degrees[length(invars) + 1]
+  if length(invars_cache.invars) != length(degrees)
+    d = degrees[length(invars_cache.invars) + 1]
 
     iter = get!(iters, Int(d)) do
       vector_space_iterator(coefficient_ring(RG), iterate_basis(RG, Int(d)))
@@ -227,28 +232,28 @@ function primary_invariants_via_optimal_hsop!(RG::InvRing{FldT, GrpT, PolyElemT}
 
     attempts = 1
     for f in iter
-      if f in invars
+      if f in invars_cache.invars
         continue
       end
       if ensure_minimality > 0 && attempts > ensure_minimality
         break
       end
       attempts += 1
-      push!(invars, f)
+      push!(invars_cache.invars, f)
       if k > 0
-        if !check_primary_degrees(RG, degrees, invars, k - 1, iters, ideals)
-          pop!(invars)
+        if !check_primary_degrees(RG, degrees, invars_cache.invars, k - 1, iters, ideals)
+          pop!(invars_cache.invars)
           continue
         end
       end
-      b, kk = primary_invariants_via_optimal_hsop!(RG, degrees, invars, iters, ideals, ensure_minimality, k - 1)
+      b, kk = primary_invariants_via_optimal_hsop!(RG, degrees, invars_cache, iters, ideals, ensure_minimality, k - 1)
       if b
         return true, 0
       end
-      pop!(invars)
+      pop!(invars_cache.invars)
       if kk >= k
         k = kk + 1
-        if !check_primary_degrees(RG, degrees, invars, k, iters, ideals)
+        if !check_primary_degrees(RG, degrees, invars_cache.invars, k, iters, ideals)
           break
         end
       end
@@ -257,8 +262,10 @@ function primary_invariants_via_optimal_hsop!(RG::InvRing{FldT, GrpT, PolyElemT}
 
   if k <= 1
     k = 1
-    dimI = get!(ideals, Set(invars)) do
-      dim(ideal(polynomial_ring(RG), invars))
+    dimI = get!(ideals, Set(invars_cache.invars)) do
+      # Cache the Gröbner basis
+      invars_cache.ideal = ideal(polynomial_ring(RG), invars_cache.invars)
+      return dim(invars_cache.ideal)
     end
     if dimI > n
       k = 0
@@ -295,19 +302,23 @@ julia> primary_invariants_via_successive_algo(IR)
 ```
 """
 function primary_invariants_via_successive_algo(IR::InvRing)
-  IR.primary_singular = Singular.LibFinvar.primary_invariants(_action_singular(IR)...)
-  if ismodular(IR)
-    P = IR.primary_singular
-  else
-    P = IR.primary_singular[1]
+  invars_cache = _primary_invariants_via_successive_algo(IR)
+  return invars_cache.invars
+end
+
+function _primary_invariants_via_successive_algo(IR::InvRing)
+  P = Singular.LibFinvar.primary_invariants(_action_singular(IR)...)
+  if !ismodular(IR)
+    P = P[1]
   end
   R = polynomial_ring(IR)
   p = Vector{elem_type(R)}()
   for i = 1:ncols(P)
     push!(p, R(P[1, i]))
   end
-  IR.primary = p
-  return IR.primary
+  invars_cache = PrimaryInvarsCache{elem_type(polynomial_ring(IR))}()
+  invars_cache.invars = p
+  return invars_cache
 end
 
 @doc Markdown.doc"""
@@ -347,12 +358,21 @@ julia> primary_invariants(IR)
 function primary_invariants(IR::InvRing, algo::Symbol = :optimal_hsop)
   if !isdefined(IR, :primary)
     if algo == :optimal_hsop
-      IR.primary = primary_invariants_via_optimal_hsop(IR)
+      IR.primary = _primary_invariants_via_optimal_hsop(IR)
     elseif algo == :successive_algo
-      IR.primary = primary_invariants_via_successive_algo(IR)
+      IR.primary = _primary_invariants_via_successive_algo(IR)
     else
       error("Unsupported argument :$(algo) for algo.")
     end
   end
-  return copy(IR.primary)
+  return copy(IR.primary.invars)
+end
+
+# Access the (possibly) cached ideal generated by the primary invariants
+function ideal_of_primary_invariants(RG::InvRing)
+  _ = primary_invariants(RG)
+  if !isdefined(RG.primary, :ideal)
+    RG.primary.ideal = ideal(polynomial_ring(RG), RG.primary.invars)
+  end
+  return RG.primary.ideal
 end
