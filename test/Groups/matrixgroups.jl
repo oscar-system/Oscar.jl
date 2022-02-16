@@ -69,7 +69,7 @@ end
 
 @testset "Oscar-GAP relationship for cyclotomic fields" begin
    fields = Any[CyclotomicField(n) for n in [1, 3, 4, 5, 8, 15, 45]]
-   push!(fields, (QQ, 1))
+   push!(fields, (QQ, QQ(1)))
 
    @testset for (F, z) in fields
       f = Oscar.iso_oscar_gap(F)
