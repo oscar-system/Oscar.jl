@@ -48,4 +48,22 @@
   is_invars = irreducible_secondary_invariants(RGm)
   @test issubset(is_invars, secondary_invariants(RGm))
   @test length(is_invars) == 2
+
+  R, x = PolynomialRing(QQ, "x" => 1:3)
+  C = Oscar.PowerProductCache(R, x)
+  @test Set(Oscar.all_power_products_of_degree!(C, 3, false)) == Set(collect(Oscar.all_monomials(R, 3)))
+  mons = Oscar.all_power_products_of_degree!(C, 3, true)
+  @test Set(mons) == Set(collect(Oscar.all_monomials(R, 3)))
+  for m in mons
+    @test haskey(C.exponent_vectors, m)
+    @test set_exponent_vector!(one(R), 1, C.exponent_vectors[m]) == m
+  end
+
+  C = Oscar.PowerProductCache(R, [ x[1], x[2] ])
+  gens, exps = Oscar.generators_for_given_degree!(C, [ x[3] ], 3, true)
+  @test Set(gens) == Set([ x[1]^2*x[3], x[1]*x[2]*x[3], x[2]^2*x[3] ])
+  for m in gens
+    @test haskey(exps, m)
+    @test set_exponent_vector!(one(R), 1, exps[m]) == m
+  end
 end
