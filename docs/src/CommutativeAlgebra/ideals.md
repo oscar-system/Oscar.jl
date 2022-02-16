@@ -386,7 +386,14 @@ eliminate(I::MPolyIdeal{T}, l::Vector{T}) where T <: MPolyElem
 
 ```@docs
 iszero(I::MPolyIdeal)
+```
+
+```@docs
 isone(I::MPolyIdeal)
+```
+
+```@docs
+ismonomial(f::MPolyElem)
 ```
 
 ### Containment of Ideals
