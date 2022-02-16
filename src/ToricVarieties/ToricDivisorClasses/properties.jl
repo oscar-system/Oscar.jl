@@ -15,9 +15,4 @@ julia> istrivial(tdc)
 false
 ```
 """
-function istrivial(tdc::ToricDivisorClass)
-    return get_attribute!(tdc, :istrivial) do
-        return iszero(divisor_class(tdc))::Bool
-    end
-end
-export istrivial
+@attr Bool istrivial(tdc::ToricDivisorClass) = iszero(divisor_class(tdc))

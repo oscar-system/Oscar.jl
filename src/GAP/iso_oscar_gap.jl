@@ -230,10 +230,8 @@ function _iso_oscar_gap(FO::AnticNumberField)
    return MapFromFunc(f, finv, FO, FG)
 end
 
-function iso_oscar_gap(F)
-   return get_attribute!(F, :iso_oscar_gap) do
-      return _iso_oscar_gap(F)
-   end
+@attr Map function iso_oscar_gap(F)
+   return _iso_oscar_gap(F)
 end
 
 #TODO function iso_oscar_gap(F::T) where T <: QabField
