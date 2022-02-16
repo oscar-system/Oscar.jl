@@ -31,8 +31,8 @@ Returns a divisor corresponding to the toric line bundle `l`.
 """
 @attr ToricDivisor function toric_divisor(l::ToricLineBundle)
     class = divisor_class(l)
-    map1 = map_from_torus_invariant_cartier_divisor_group_to_picard_group(toric_variety(l))
-    map2 = map_from_torus_invariant_cartier_divisor_group_to_torus_invariant_weil_divisor_group(toric_variety(l))
+    map1 = map_from_torusinvariant_cartier_divisor_group_to_picard_group(toric_variety(l))
+    map2 = map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(toric_variety(l))
     image = map2(preimage(map1, class)).coeff
     coeffs = vec([fmpz(x) for x in image])
     td = ToricDivisor(toric_variety(l), coeffs)

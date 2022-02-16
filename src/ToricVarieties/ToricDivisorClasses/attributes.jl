@@ -61,7 +61,7 @@ A torus-invariant, prime divisor on a normal toric variety
 """
 function toric_divisor(tdc::ToricDivisorClass)
     return get_attribute!(tdc, :toric_divisor) do
-        f = map_from_torus_invariant_weil_divisor_group_to_class_group(toric_variety(tdc))
+        f = map_from_torusinvariant_weil_divisor_group_to_class_group(toric_variety(tdc))
         coeffs = vec([fmpz(x) for x in preimage(f, divisor_class(tdc)).coeff])
         return ToricDivisor(toric_variety(tdc), coeffs)
     end

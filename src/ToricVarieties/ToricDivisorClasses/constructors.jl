@@ -74,7 +74,7 @@ A divisor class on a normal toric variety
 ```
 """
 function ToricDivisorClass(td::ToricDivisor)
-    f = map_from_torus_invariant_weil_divisor_group_to_class_group(toric_variety(td))
+    f = map_from_torusinvariant_weil_divisor_group_to_class_group(toric_variety(td))
     class = f(sum(coefficients(td) .* gens(domain(f))))
     return ToricDivisorClass(toric_variety(td), class)
 end
