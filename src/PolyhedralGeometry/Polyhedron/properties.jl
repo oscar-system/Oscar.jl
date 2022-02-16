@@ -420,6 +420,8 @@ julia> volume(C)
 """
 volume(P::Polyhedron{T}) where T<:scalar_types = convert(T, (pm_object(P)).VOLUME)
 
+volume(P::Polyhedron{nf_elem}) = convert(nf_scalar, pm_object(P).VOLUME)
+
 
 @doc Markdown.doc"""
     lattice_volume(P::Polyhedron)
@@ -451,6 +453,8 @@ julia> normalized_volume(C)
 ```
 """
 normalized_volume(P::Polyhedron{T}) where T<:scalar_types = convert(T, factorial(dim(P))*(pm_object(P)).VOLUME)
+
+normalized_volume(P::Polyhedron{nf_elem}) = convert(nf_scalar, factorial(dim(P))*(pm_object(P)).VOLUME)
 
 @doc Markdown.doc"""
     dim(P::Polyhedron)

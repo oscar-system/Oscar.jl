@@ -1,4 +1,4 @@
-@testset "PolyhedralFan{$T}" for T in [fmpq, nf_scalar]
+@testset "PolyhedralFan{$T}" for T in [fmpq, nf_elem]
     C0 = cube(T, 2)
     NFsquare = normal_fan(C0)
     R = [1 0 0; 0 0 1]

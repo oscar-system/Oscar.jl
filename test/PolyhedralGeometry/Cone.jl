@@ -1,7 +1,6 @@
 const pm = Polymake
 
-
-@testset "Cone{$T}" for T in [fmpq, nf_scalar]
+@testset "Cone{$T}" for T in [fmpq, nf_elem]
     
     pts = [1 0 0; 0 0 1]'
     Cone1=positive_hull(T, pts)

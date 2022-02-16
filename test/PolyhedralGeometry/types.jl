@@ -3,20 +3,20 @@
     @testset "nf_scalar" begin
         
         qe = Polymake.QuadraticExtension{Polymake.Rational}(123, 456, 789)
-        @test convert(nf_scalar, qe) isa nf_elem
-        nfe = convert(nf_scalar, qe)
+        @test convert(Oscar.nf_scalar, qe) isa nf_elem
+        nfe = convert(Oscar.nf_scalar, qe)
         @test coordinates(nfe) == [123, 456]
         p = defining_polynomial(parent(nfe))
         @test p == parent(p)([-789, 0, 1])
         @test convert(Polymake.QuadraticExtension{Polymake.Rational}, nfe) == qe
         
         qet = Polymake.QuadraticExtension{Polymake.Rational}(9)
-        @test convert(nf_scalar, qet) isa fmpq
-        @test convert(nf_scalar, qet) == 9
-        @test convert(Polymake.QuadraticExtension{Polymake.Rational}, convert(nf_scalar, qet)) == qet
+        @test convert(Oscar.nf_scalar, qet) isa fmpq
+        @test convert(Oscar.nf_scalar, qet) == 9
+        @test convert(Polymake.QuadraticExtension{Polymake.Rational}, convert(Oscar.nf_scalar, qet)) == qet
         
-        @test convert(nf_scalar, 5) isa fmpq
-        @test convert(nf_scalar, 5) == 5
+        @test convert(Oscar.nf_scalar, 5) isa fmpq
+        @test convert(Oscar.nf_scalar, 5) == 5
         
     end
 
@@ -28,7 +28,7 @@
 
         @test T(a) isa T{fmpq}
 
-        @testset "$T{$U}" for U in (fmpz, fmpq, nf_scalar)
+        @testset "$T{$U}" for U in (fmpz, fmpq, Oscar.nf_scalar)
 
             @test T{U} <: AbstractVector
             @test T{U} <: AbstractVector{U}
@@ -53,7 +53,7 @@
             @test_throws BoundsError A[0]
             @test_throws BoundsError A[4]
 
-            for V in [fmpz, fmpq, nf_scalar]
+            for V in [fmpz, fmpq, Oscar.nf_scalar]
             
                 B = T{V}(b)
             

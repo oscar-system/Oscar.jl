@@ -1,4 +1,4 @@
-@testset "PolyhedralComplex{$T}" for T in [fmpq, nf_scalar]
+@testset "PolyhedralComplex{$T}" for T in [fmpq, nf_elem]
     
     I = IncidenceMatrix([[1, 2, 3], [2, 4]])
     P = [0 0; 1 0; 0 1; 1 1]
@@ -48,7 +48,11 @@
          @test vertices_and_rays(PCFL) isa SubObjectIterator{Union{RayVector{T}, PointVector{T}}}
          @test length(vertices_and_rays(PCFL)) == 4
          @test vertices_and_rays(PCFL) == [[0, 0, 0], [1, 0, 0], [0, 1, 0], [1, 1, 0]]
-         @test typeof.(vertices_and_rays(PCFL)) == [PointVector{T}, PointVector{T}, PointVector{T}, RayVector{T}]
+         if T == nf_elem
+             @test typeof.(vertices_and_rays(PCFL)) == [PointVector{Oscar.nf_scalar}, PointVector{Oscar.nf_scalar}, PointVector{Oscar.nf_scalar}, RayVector{Oscar.nf_scalar}]
+         else
+             @test typeof.(vertices_and_rays(PCFL)) == [PointVector{T}, PointVector{T}, PointVector{T}, RayVector{T}]
+         end
          if T == fmpq
              @test vector_matrix(vertices_and_rays(PCFL)) == matrix(QQ, P2)
          else

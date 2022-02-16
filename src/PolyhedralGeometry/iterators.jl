@@ -1,6 +1,6 @@
-const scalar_types = Union{fmpq, nf_scalar}
+const scalar_types = Union{fmpq, nf_elem}
 
-const scalar_type_to_oscar = Dict{String, Type}([("Rational", fmpq), ("QuadraticExtension<Rational>", nf_scalar)])
+const scalar_type_to_oscar = Dict{String, Type}([("Rational", fmpq), ("QuadraticExtension<Rational>", nf_elem)])
 
 struct Polyhedron{T} #a real polymake polyhedron
     pm_polytope::Polymake.BigObject
@@ -8,7 +8,7 @@ struct Polyhedron{T} #a real polymake polyhedron
     
     # only allowing scalar_types;
     # can be improved by testing if the template type of the `BigObject` corresponds to `T`
-    Polyhedron{T}(p::Polymake.BigObject, b::Symbol) where T<:scalar_types = new(p, b)
+    Polyhedron{T}(p::Polymake.BigObject, b::Symbol) where T<:scalar_types = new{T}(p, b)
 end
 
 # default scalar type: `fmpq`
@@ -22,7 +22,7 @@ struct Cone{T} #a real polymake polyhedron
     
     # only allowing scalar_types;
     # can be improved by testing if the template type of the `BigObject` corresponds to `T`
-    Cone{T}(c::Polymake.BigObject) where T<:scalar_types = new(c)
+    Cone{T}(c::Polymake.BigObject) where T<:scalar_types = new{T}(c)
 end
 
 # default scalar type: `fmpq`
@@ -98,6 +98,24 @@ PolyhedralComplex(x...) = PolyhedralComplex{fmpq}(x...)
 
 PolyhedralComplex(p::Polymake.BigObject) = PolyhedralComplex{detect_scalar_type(PolyhedralComplex, p)}(p)
 
+@doc Markdown.doc"""
+    LinearProgram(P, c; k = 0, convention = :max)
+
+The linear program on the feasible set `P` (a Polyhedron) with
+respect to the function x ↦ dot(c,x)+k.
+
+"""
+struct LinearProgram{T}
+   feasible_region::Polyhedron{T}
+   polymake_lp::Polymake.BigObject
+   convention::Symbol
+   
+   LinearProgram{T}(fr::Polyhedron{T}, lp::Polymake.BigObject, c::Symbol) where T<:scalar_types = new{T}(fr, lp, c)
+end
+
+# no default = `fmpq` here; scalar type can be derived from the feasible region
+LinearProgram(p::Polyhedron{T}, x...) where T<:scalar_types = LinearProgram{T}(p, x...)
+
 # actually name length + 2, corresponding to the index of the first character of the scalar type
 const pm_name_length = Dict{Type, Int}([(Polyhedron, 10), (Cone, 6), (PolyhedralFan, 15), (SubdivisionOfPoints, 21), (PolyhedralComplex, 19)])
 
@@ -106,7 +124,7 @@ function detect_scalar_type(n::Type{T}, p::Polymake.BigObject) where T<:Union{Po
     return scalar_type_to_oscar[typename]
 end
 
-const scalar_type_to_polymake = Dict{Type, Type}([(fmpq, Polymake.Rational), (nf_scalar, Polymake.QuadraticExtension{Polymake.Rational})])
+const scalar_type_to_polymake = Dict{Type, Type}([(fmpq, Polymake.Rational), (nf_elem, Polymake.QuadraticExtension{Polymake.Rational})])
 
 const scalar_types_extended = Union{scalar_types, fmpz}
 
@@ -116,8 +134,6 @@ struct PointVector{U} <: AbstractVector{U}
     PointVector{U}(p::AbstractVector) where U<:scalar_types_extended = new{U}(p)
     PointVector(p::AbstractVector) = new{fmpq}(p)
 end
-
-# Base.eltype(::PointVector{U}) where U = U
 
 Base.IndexStyle(::Type{<:PointVector}) = IndexLinear()
 
@@ -133,9 +149,9 @@ Base.firstindex(::PointVector) = 1
 Base.lastindex(iter::PointVector) = length(iter)
 Base.size(po::PointVector) = size(po.p)
 
-# PointVector(x...) = PointVector{fmpq}(x...)
-
 PointVector{FieldElem}(x...) = PointVector{nf_scalar}(x...)
+
+PointVector{nf_elem}(p::AbstractVector) = PointVector{nf_scalar}(p)
 
 PointVector{U}(n::Base.Integer) where U<:scalar_types_extended = PointVector{U}(zeros(U, n))
 
@@ -172,7 +188,7 @@ Base.firstindex(::RayVector) = 1
 Base.lastindex(iter::RayVector) = length(iter)
 Base.size(po::RayVector) = size(po.p)
 
-# RayVector(x...) = RayVector{fmpq}(x...)
+RayVector{nf_elem}(p::AbstractVector) = RayVector{nf_scalar}(p)
 
 RayVector{U}(n::Base.Integer) where U<:scalar_types_extended = RayVector{U}(zeros(U, n))
 
@@ -235,8 +251,6 @@ struct AffineHyperplane{T} <: Hyperplane{T}
     AffineHyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}, b=0) = new{fmpq}(vec(a), b)
 end
 
-# AffineHyperplane(a) = AffineHyperplane(a, 0)
-
 Hyperplane(a, b) = AffineHyperplane(a, b)
 Hyperplane{T}(a, b) where T<:scalar_types = AffineHyperplane{T}(a, b)
 
@@ -246,8 +260,6 @@ struct LinearHyperplane{T} <: Hyperplane{T}
     LinearHyperplane{T}(a::Union{MatElem, AbstractMatrix, AbstractVector}) where T<:scalar_types = new{T}(vec(a))
     LinearHyperplane(a::Union{MatElem, AbstractMatrix, AbstractVector}) = new{fmpq}(vec(a))
 end
-
-# LinearHyperplane(a::Union{MatElem, AbstractMatrix}) = LinearHyperplane(vec(a))
 
 Hyperplane(a) = LinearHyperplane(a)
 Hyperplane{T}(a) where T<:scalar_types = LinearHyperplane{T}(a)
@@ -266,6 +278,18 @@ Base.:(==)(x::AffineHyperplane, y::AffineHyperplane) = x.a == y.a && x.b == y.b
 Base.:(==)(x::LinearHyperplane, y::LinearHyperplane) = x.a == y.a
 
 ####################
+
+for T in [LinearHalfspace, LinearHyperplane]
+    @eval begin
+        $T{nf_elem}(a::Union{MatElem, AbstractMatrix, AbstractVector}) = $T{nf_scalar}(a)
+    end
+end
+
+for T in [AffineHalfspace, AffineHyperplane]
+    @eval begin
+        $T{nf_elem}(a::Union{MatElem, AbstractMatrix, AbstractVector}, b = 0) = $T{nf_scalar}(a, b)
+    end
+end
 
 scalar_type(::Union{Polyhedron{T}, Cone{T}, Hyperplane{T}, Halfspace{T}}) where T<:scalar_types = T
 
@@ -298,6 +322,8 @@ end
 
 SubObjectIterator{T}(Obj::Polymake.BigObject, Acc::Function, n::Base.Integer) where T = SubObjectIterator{T}(Obj, Acc, n, NamedTuple())
 
+SubObjectIterator{Pair{Matrix{nf_elem}, nf_elem}}(Obj::Polymake.BigObject, Acc::Function, n::Base.Integer, options::NamedTuple = NamedTuple()) = SubObjectIterator{Pair{Matrix{nf_scalar}, nf_scalar}}(Obj, Acc, n, options)
+
 Base.IndexStyle(::Type{<:SubObjectIterator}) = IndexLinear()
 
 function Base.getindex(iter::SubObjectIterator{T}, i::Base.Integer) where T
@@ -326,6 +352,7 @@ for (sym, name) in (("linear_inequality_matrix", "Linear Inequality Matrix"), ("
     @eval begin
         $M(iter::SubObjectIterator{<:Union{Halfspace{fmpq}, Hyperplane{fmpq}, Polyhedron{fmpq}, Cone{fmpq}, Pair{Matrix{fmpq}, fmpq}}}) = matrix(QQ, Matrix{fmpq}($_M(Val(iter.Acc), iter.Obj; iter.options...)))
         $M(iter::SubObjectIterator{<:Union{Halfspace{T}, Hyperplane{T}, Polyhedron{T}, Cone{T}, Pair{Matrix{T}, T}}}) where T<:scalar_types = Matrix{T}($_M(Val(iter.Acc), iter.Obj; iter.options...))
+        $M(iter::SubObjectIterator{<:Union{Halfspace{nf_elem}, Hyperplane{nf_elem}, Polyhedron{nf_elem}, Cone{nf_elem}}}) = Matrix{nf_scalar}($_M(Val(iter.Acc), iter.Obj; iter.options...))
         $_M(::Any, ::Polymake.BigObject) = throw(ArgumentError(string($name, " not defined in this context.")))
     end
 end
@@ -337,7 +364,7 @@ for (sym, name) in (("point_matrix", "Point Matrix"), ("vector_matrix", "Vector 
     @eval begin
         $M(iter::SubObjectIterator{<:AbstractVector{fmpq}}) = matrix(QQ, Matrix{fmpq}($_M(Val(iter.Acc), iter.Obj; iter.options...)))
         $M(iter::SubObjectIterator{<:AbstractVector{fmpz}}) = matrix(ZZ, $_M(Val(iter.Acc), iter.Obj; iter.options...))
-        $M(iter::SubObjectIterator{<:AbstractVector{nf_scalar}}) = Matrix{nf_scalar}($_M(Val(iter.Acc), iter.Obj; iter.options...))
+        $M(iter::SubObjectIterator{<:AbstractVector{nf_elem}}) = Matrix{nf_scalar}($_M(Val(iter.Acc), iter.Obj; iter.options...))
         $_M(::Any, ::Polymake.BigObject) = throw(ArgumentError(string($name, " not defined in this context.")))
     end
 end
@@ -391,6 +418,15 @@ function halfspace_matrix_pair(iter::SubObjectIterator{<:Union{Halfspace{T}, Hyp
     try
         h = affine_matrix_for_polymake(iter)
         return (A = Matrix{T}(h[:, 2:end]), b = -h[:, 1])
+    catch e
+        throw(ArgumentError("Halfspace-Matrix-Pair not defined in this context."))
+    end
+end
+
+function halfspace_matrix_pair(iter::SubObjectIterator{<:Union{Halfspace{nf_elem}, Hyperplane{nf_elem}, Polyhedron{nf_elem}, Cone{nf_elem}}})
+    try
+        h = affine_matrix_for_polymake(iter)
+        return (A = Matrix{nf_scalar}(h[:, 2:end]), b = -h[:, 1])
     catch e
         throw(ArgumentError("Halfspace-Matrix-Pair not defined in this context."))
     end

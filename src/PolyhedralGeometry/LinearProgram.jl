@@ -1,16 +1,3 @@
-@doc Markdown.doc"""
-    LinearProgram(P, c; k = 0, convention = :max)
-
-The linear program on the feasible set `P` (a Polyhedron) with
-respect to the function x ↦ dot(c,x)+k.
-
-"""
-struct LinearProgram{T}
-   feasible_region::Polyhedron{T}
-   polymake_lp::Polymake.BigObject
-   convention::Symbol
-end
-
 function LinearProgram{T}(Q::Polyhedron, objective::AbstractVector; k = 0, convention = :max) where T<:scalar_types
    if convention != :max && convention != :min
       throw(ArgumentError("convention must be set to :min or :max."))

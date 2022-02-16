@@ -21,7 +21,7 @@ Base.convert(::Type{Polymake.Rational}, x::fmpq) = Polymake.Rational(convert(Pol
 
 const nf_scalar = Union{nf_elem, fmpq}
 
-export nf_scalar
+# export nf_scalar
 
 Base.zero(::Type{nf_scalar}) = fmpq()
 # Base.one(::Type{nf_scalar}) = fmpq(1)

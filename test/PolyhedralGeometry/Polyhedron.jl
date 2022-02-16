@@ -1,6 +1,6 @@
 #TODO: include more examples with nontrivial lineality space
 
-@testset "Polyhedron{$T}" for T in [fmpq, nf_scalar]
+@testset "Polyhedron{$T}" for T in [fmpq, nf_elem]
 
     pts = [1 0 0; 0 0 1]'
     @test convex_hull(T, pts) isa Polyhedron{T}
@@ -104,7 +104,13 @@
             @test point_matrix(v) == [2 -1; 2 1; -1 -1; -1 2; 1 2]
         end
         for S in [AffineHalfspace{T}, Pair{Matrix{T}, T}, Polyhedron{T}]
-            @test facets(S, Pos) isa SubObjectIterator{S}
+            if S == Pair{Matrix{nf_elem}, nf_elem}
+                @test facets(S, Pos) isa SubObjectIterator{Pair{Matrix{Oscar.nf_scalar}, Oscar.nf_scalar}}
+                @test facets(S, Pos) == Pair{Matrix{Oscar.nf_scalar}, Oscar.nf_scalar}.([[-1 0 0], [0 -1 0], [0 0 -1]], [0])
+            else
+                @test facets(S, Pos) isa SubObjectIterator{S}
+                @test facets(S, Pos) == S.([[-1 0 0], [0 -1 0], [0 0 -1]], [0])
+            end
             @test length(facets(S, Pos)) == 3
             if T == fmpq
                 @test affine_inequality_matrix(facets(S, Pos)) == matrix(QQ, [0 -1 0 0; 0 0 -1 0; 0 0 0 -1])
@@ -116,9 +122,12 @@
                 @test ray_indices(facets(S, Pos)) == IncidenceMatrix([[1, 3], [2, 3], [1, 2]])
             end
             @test vertex_indices(facets(S, Pos)) == IncidenceMatrix([[1], [1], [1]])
-            @test facets(S, Pos) == S.([[-1 0 0], [0 -1 0], [0 0 -1]], [0])
         end
-        @test facets(Pair, Pos) isa SubObjectIterator{Pair{Matrix{T}, T}}
+        if T == nf_elem
+            @test facets(Pair, Pos) isa SubObjectIterator{Pair{Matrix{Oscar.nf_scalar}, Oscar.nf_scalar}}
+        else
+            @test facets(Pair, Pos) isa SubObjectIterator{Pair{Matrix{T}, T}}
+        end
         @test facets(Pos) isa SubObjectIterator{AffineHalfspace{T}}
         @test facets(Halfspace, Pos) isa SubObjectIterator{AffineHalfspace{T}}
         @test affine_hull(point) isa SubObjectIterator{AffineHyperplane{T}}
@@ -156,9 +165,14 @@
     end
 
     @testset "volume" begin
-        @test volume(square) isa T
+        if T == nf_elem
+            @test volume(square) isa Oscar.nf_scalar
+            @test normalized_volume(square) isa Oscar.nf_scalar
+        else
+            @test volume(square) isa T
+            @test normalized_volume(square) isa T
+        end
         @test volume(square) == 4
-        @test normalized_volume(square) isa T
         @test normalized_volume(square) == 8
         @test normalized_volume(s) == 1
     end
