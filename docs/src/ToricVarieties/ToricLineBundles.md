@@ -36,3 +36,13 @@ divisor_class(l::ToricLineBundle)
 toric_divisor(l::ToricLineBundle)
 variety(l::ToricLineBundle)
 ```
+
+## Method
+
+We use [cohomCalg](https://github.com/BenjaminJurke/cohomCalg)
+to compute line bundle cohomologies. This is achieved with the following methods.
+
+```@docs
+all_cohomologies(l::ToricLineBundle)
+cohomology(l::ToricLineBundle, i::Int)
+```

@@ -69,6 +69,7 @@ ne(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 neighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 nv(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 outneighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
+shortest_path_dijkstra
 ```
 
 ### Edges

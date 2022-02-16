@@ -8,6 +8,17 @@
                @test f(a-b) == f(a)-f(b)
             end
          end
+         C = codomain(f)
+         for a in C
+            for b in C
+               @test preimage(f, a*b) == preimage(f, a)*preimage(f, b)
+               @test preimage(f, a-b) == preimage(f, a)-preimage(f, b)
+            end
+         end
+         p2 = next_prime(p)
+         @test_throws ErrorException f(GF(p2)(1))
+         @test_throws ErrorException image(f, GF(p2)(1))
+         @test_throws ErrorException preimage(f, GAP.Globals.Z(GAP.Obj(p2)))
       end
    end
 
@@ -21,6 +32,13 @@
                @test f(a-b) == f(a)-f(b)
             end
          end
+         C = codomain(f)
+         for a in C
+            for b in C
+               @test preimage(f, a*b) == preimage(f, a)*preimage(f, b)
+               @test preimage(f, a-b) == preimage(f, a)-preimage(f, b)
+            end
+         end
          G = GL(4,F)
          for a in gens(G)
             for b in gens(G)
@@ -28,6 +46,10 @@
                @test g(a.elm-b.elm) == g(a.elm)-g(b.elm)
             end
          end
+         p2 = next_prime(p)
+         @test_throws ErrorException f(GF(p2)(1))
+         @test_throws ErrorException image(f, GF(p2)(1))
+         @test_throws ErrorException preimage(f, GAP.Globals.Z(GAP.Obj(p2)))
       end
    end
 end
@@ -46,6 +68,10 @@ end
    @test GAP.Globals.DefiningPolynomial(codomain(f)) ==
          GAP.Globals.ConwayPolynomial(p, 2)
    @test F.is_conway == 0
+   p2 = next_prime(p)
+   @test_throws ErrorException f(GF(p2)(1))
+   @test_throws ErrorException image(f, GF(p2)(1))
+   @test_throws ErrorException preimage(f, GAP.Globals.Z(GAP.Obj(p2)))
 end
 
 @testset "another large non-prime field (FqNmodFiniteField)" begin
@@ -65,6 +91,10 @@ end
       a = f(x)
       @test preimage(f, a) == x
    end
+   p2 = next_prime(p)
+   @test_throws ErrorException f(GF(p2)(1))
+   @test_throws ErrorException image(f, GF(p2)(1))
+   @test_throws ErrorException preimage(f, GAP.Globals.Z(GAP.Obj(p2)))
 end
 
 @testset "field of rationals, ring of integers" begin
@@ -79,6 +109,11 @@ end
       @test oxi == ox^i
       @test oxi + oy == iso(xi + y)
     end
+    @test_throws ErrorException iso(1)
+    @test_throws ErrorException image(iso, 1)
+    @test_throws ErrorException iso(GF(2)(1))
+    @test_throws ErrorException image(iso, GF(2)(1))
+    @test_throws ErrorException preimage(iso, GAP.Globals.Z(2))
   end
 end
 
@@ -101,6 +136,9 @@ end
             @test f(a - b) == f(a) - f(b)
          end
       end
+      @test_throws ErrorException f(CyclotomicField(2)[2])
+      @test_throws ErrorException image(f, CyclotomicField(2)[2])
+      @test_throws ErrorException preimage(f, GAP.Globals.Z(2))
    end
 end
 
@@ -121,5 +159,8 @@ end
       end
       m = matrix([x x; x x])
       @test map_entries(inv(iso), map_entries(iso, m)) == m
+      @test_throws ErrorException iso(PolynomialRing(R, "y")[1]())
+      @test_throws ErrorException image(iso, PolynomialRing(R, "y")[1]())
+      @test_throws ErrorException preimage(iso, GAP.Globals.Z(2))
    end
 end

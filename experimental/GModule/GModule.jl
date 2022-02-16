@@ -1148,7 +1148,6 @@ end
 #      maybe use this as well?
 function Nemo._hnf(x::fmpz_mat)
   if nrows(x) * ncols(x) > 100
-    @show :sparse, size(x)
     s = sparse_matrix(x)
     if sparsity(s) > 0.7
       return matrix(Hecke.hnf(s))
@@ -1159,7 +1158,6 @@ end
 
 function Nemo._hnf_with_transform(x::fmpz_mat)
   if nrows(x) * ncols(x) > 100
-    @show :sparse_t, size(x)
     s = sparse_matrix(x)
     if sparsity(s) > 0.7
       s = hcat(s, identity_matrix(SMat, ZZ, nrows(x)))
