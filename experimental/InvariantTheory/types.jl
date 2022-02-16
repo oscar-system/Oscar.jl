@@ -226,8 +226,10 @@ mutable struct BasisOfPolynomials{PolyElemT, PolyRingT, FieldElemT}
     for i = 1:length(polys)
       srow = sparse_row(K)
       for (a, m) in zip(coefficients(polys[i]), monomials(polys[i]))
-        push!(srow.pos, monomial_to_column[m])
-        push!(srow.values, deepcopy(a))
+        col = monomial_to_column[m]
+        k = searchsortedfirst(srow.pos, col)
+        insert!(srow.pos, k, col)
+        insert!(srow.values, k, deepcopy(a))
       end
       Hecke.push_row!(M, srow)
     end
