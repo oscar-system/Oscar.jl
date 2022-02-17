@@ -2,6 +2,80 @@
 # an int array lengths storing the lengths of each generator
 # an int array cfs storing the coefficients of each generator
 # an int array exps storing the exponent vectors of each generator
+function convert_oscar_ideal_to_array(
+        I::MPolyIdeal)
+
+    R = base_ring(I)
+    nr_vars     = nvars(R)
+    nr_gens     = ngens(I)
+    field_char  = characteristic(R)
+    lens        = Int32[length(I[i]) for i in 1:nr_gens]
+    nterms      = sum(lens)
+
+    if field_char > 2^31
+        error("At the moment f4 only supports finite fields up to prime characteristic < 2^31.")
+    end
+    # get coefficients
+    if field_char == 0
+        cfs = BigInt[]
+    else
+        cfs = Int32[]
+    end
+    if field_char == 0
+        for i in 1:nr_gens
+            for cf in coefficients(I[i])
+                push!(cfs, BigInt(numerator(cf)))
+                push!(cfs, BigInt(denominator(cf)))
+            end
+        end
+    else
+        for i in 1:nr_gens
+            for cf in coefficients(I[i])
+                push!(cfs, Int32(cf.data))
+            end
+        end
+    end
+
+    # get exponent vectors
+    exps  = Int32[]
+    for i in 1:nr_gens
+        for ev in exponent_vectors(I[i])
+            append!(exps, convert(Vector{Int32}, ev))
+        end
+    end
+
+    return lens, cfs, exps
+end
+
+function convert_ff_gb_array_to_oscar_array(
+        bld::Int32,
+        blen::Vector{Int32},
+        bcf::Vector{Int32},
+        bexp::Vector{Int32},
+        R::GFPMPolyRing
+        )
+
+    nr_gens = bld
+    nr_vars = nvars(R)
+    CR      = coefficient_ring(R)
+
+    basis = Vector{gfp_mpoly}(undef, nr_gens)
+
+    len   = 0
+
+    for i in 1:nr_gens
+        g  = MPolyBuildCtx(R)
+        for j in 1:blen[i]
+            push_term!(g, CR(bcf[len+j]),
+                       convert(Vector{Int}, bexp[(len+j-1)*nr_vars+1:(len+j)*nr_vars]))
+        end
+        len +=  blen[i]
+        basis[i]  = g.poly
+    end
+
+    return basis
+end
+
 function convert_singular_ideal_to_array(id::Singular.sideal)
     ngens   = Singular.ngens(id)
     nvars   = Singular.nvars(base_ring(id))
@@ -9,6 +83,9 @@ function convert_singular_ideal_to_array(id::Singular.sideal)
     lens    = Int32[Singular.length(id[i]) for i in 1:ngens]
     nterms  = sum(lens)
     exps    = Int32[]
+    if char > 2^31
+        error("At the moment f4 only supports finite fields up to prime characteristic < 2^31.")
+    end
     if char ==  0
         cfs = BigInt[]
     else

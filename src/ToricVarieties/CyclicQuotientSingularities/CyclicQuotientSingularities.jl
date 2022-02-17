@@ -9,6 +9,13 @@
 end
 export CyclicQuotientSingularity
 
+function Base.show(io::IO, cqs::CyclicQuotientSingularity)
+    n = pm_object(cqs).N
+    q = pm_object(cqs).Q
+    print(io, "The cyclic quotient singularity Y($(n), $(q))")
+end
+
+
 
 ################################################################################
 ################################################################################
@@ -25,7 +32,7 @@ $0<q<n$ and $q,n$ coprime.
 # Examples
 ```jldoctest
 julia> cqs = CyclicQuotientSingularity(7,5)
-A normal toric variety
+The cyclic quotient singularity Y(7, 5)
 
 julia> isaffine(cqs)
 true
@@ -60,7 +67,7 @@ differs in sign from what is commonly known as continued fraction.
 # Examples
 ```jldoctest
 julia> cqs = CyclicQuotientSingularity(7,5)
-A normal toric variety
+The cyclic quotient singularity Y(7, 5)
 
 julia> cf = continued_fraction_hirzebruch_jung(cqs)
 3-element Vector{fmpz}:
@@ -72,10 +79,8 @@ julia> ecf = cf[1]-1//(cf[2]-fmpq(1,cf[3]))
 7//5
 ```
 """
-function continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity)
-    return get_attribute!(cqs, :continued_fraction_hirzebruch_jung) do
-        return Vector{fmpz}(pm_object(cqs).CONTINUED_FRACTION)
-    end::Vector{fmpz}
+@attr Vector{fmpz} function continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity)
+    return Vector{fmpz}(pm_object(cqs).CONTINUED_FRACTION)
 end
 export continued_fraction_hirzebruch_jung
 
@@ -95,7 +100,7 @@ differs in sign from what is commonly known as continued fraction.
 # Examples
 ```jldoctest
 julia> cqs = CyclicQuotientSingularity(7,5)
-A normal toric variety
+The cyclic quotient singularity Y(7, 5)
 
 julia> dcf = dual_continued_fraction_hirzebruch_jung(cqs)
 2-element Vector{fmpz}:
@@ -106,10 +111,8 @@ julia> edcf = dcf[1] - fmpq(1,dcf[2])
 7//2
 ```
 """
-function dual_continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity)
-    return get_attribute!(cqs, :dual_continued_fraction_hirzebruch_jung) do
-        return Vector{fmpz}(pm_object(cqs).DUAL_CONTINUED_FRACTION)
-    end::Vector{fmpz}
+@attr Vector{fmpz} function dual_continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity)
+    return Vector{fmpz}(pm_object(cqs).DUAL_CONTINUED_FRACTION)
 end
 export dual_continued_fraction_hirzebruch_jung
 
@@ -128,7 +131,7 @@ differs in sign from what is commonly known as continued fraction.
 # Examples
 ```jldoctest
 julia> cqs = CyclicQuotientSingularity(7,5)
-A normal toric variety
+The cyclic quotient singularity Y(7, 5)
 
 julia> v = continued_fraction_hirzebruch_jung(cqs)
 3-element Vector{fmpz}:

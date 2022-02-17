@@ -172,7 +172,7 @@ function Base.:(==)(F::FreeMod_dec, G::FreeMod_dec)
 end
 
 ###############################################################################
-# FreeModElem_dec
+# FreeModElem_dec constructors
 ###############################################################################
 
 @doc Markdown.doc"""

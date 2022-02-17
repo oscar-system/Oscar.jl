@@ -37,10 +37,10 @@ julia> using Oscar
  -----    -----    -----   -     -  -     -
 
 ...combining (and extending) ANTIC, GAP, Polymake and Singular
-Version 0.7.2-DEV ...
+Version 0.8.1-DEV ...
 ... which comes with absolutely no warranty whatsoever
 Type: '?Oscar' for more information
-(c) 2019-2021 by The Oscar Development Team
+(c) 2019-2022 by The Oscar Development Team
 
 julia> k, a = quadratic_field(-5)
 (Imaginary quadratic field defined by x^2 + 5, sqrt(-5))
@@ -68,35 +68,25 @@ x1^2 + x2
 julia> degree(f)
 graded by [2]
 
-julia> F = FreeModule(R, 1)
-Free module of rank 1 over R, graded as R^1([0])
+julia> F = free_module(R, 1)
+Free module of rank 1 over R
 
 julia> s = sub(F, [f*F[1]])
-Subquotient by Array of length 1
+Submodule with 1 generator
 1 -> (x1^2 + x2)*e[1]
-
-
+represented as subquotient with no relations.
 
 julia> H, mH = hom(s, quo(F, s))
-(hom of (s, Subquotient of Array of length 1
-1 -> (1)*e[1]
- by Array of length 1
+(hom of (s, Subquotient of Submodule with 1 generator
+1 -> e[1]
+by Submodule with 1 generator
+1 -> (x1^2 + x2)*e[1]), Map from
+H to Set of all homomorphisms from Submodule with 1 generator
 1 -> (x1^2 + x2)*e[1]
-defined on the Singular side
-
-), Map from
-H to Set of all homomorphisms from Subquotient by Array of length 1
-1 -> (x1^2 + x2)*e[1]
-defined on the Singular side
-
- to Subquotient of Array of length 1
-1 -> (1)*e[1]
- by Array of length 1
-1 -> (x1^2 + x2)*e[1]
-defined on the Singular side
-
- defined by a julia-function with inverse
-)
+represented as subquotient with no relations. to Subquotient of Submodule with 1 generator
+1 -> e[1]
+by Submodule with 1 generator
+1 -> (x1^2 + x2)*e[1] defined by a julia-function with inverse)
 
 julia> mH(H[1])
 Map with following data
@@ -105,23 +95,10 @@ Domain:
 s
 Codomain:
 =========
-Subquotient of Array of length 1
-1 -> (1)*e[1]
- by Array of length 1
+Subquotient of Submodule with 1 generator
+1 -> e[1]
+by Submodule with 1 generator
 1 -> (x1^2 + x2)*e[1]
-defined on the Singular side
-
-
-
-
-julia> D = grading_group(H)
-GrpAb: Z
-
-julia> homogeneous_component(H, D[0])
-(H_[0] of dim 2, Map from
-H_[0] of dim 2 to H defined by a julia-function with inverse
-)
-
 ```
 
 Of course, the cornerstones are also available directly:
@@ -141,6 +118,32 @@ PropertyValue wrapping pm::Array<polymake::topaz::HomologyGroup<pm::Integer>>
 ({(2 1)} 0)
 ({} 0)
 ```
+
+## Citing OSCAR
+
+If you have used OSCAR in the preparation of a paper please cite it as described below:
+
+    [OSCAR]
+        OSCAR -- Open Source Computer Algebra Research system, Version 0.8.1-DEV The OSCAR Team, 2022. (https://oscar.computeralgebra.de)
+    [OSCAR-book]
+        Christian Eder, Wolfram Decker, Claus Fieker, Max Horn, Michael Joswig, The OSCAR book, 2024.
+
+If you are using BibTeX, you can use the following BibTeX entries:
+
+    @misc{OSCAR,
+      key          = {OSCAR},
+      organization = {The OSCAR Team},
+      title        = {OSCAR -- Open Source Computer Algebra Research system,
+                      Version 0.8.1-DEV},
+      year         = {2022},
+      url          = {https://oscar.computeralgebra.de},
+      }
+
+    @Book{OSCAR-book,
+      editor = {Eder, Christian and Decker, Wolfram and Fieker, Claus and Horn, Max and Joswig, Michael},
+      title = {The OSCAR book},
+      year = {2024},
+    }
 
 ## Funding
 

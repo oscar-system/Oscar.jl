@@ -5,7 +5,7 @@ export ModuleFP, ModuleFPElem, ModuleFPHom, ModuleMap, FreeMod,
 @doc Markdown.doc"""
     ModuleFP{T}
 
-The abstract supertype of all modules. Here, all modules are finitely presented.
+The abstract supertype of all finitely presented modules.
 The type variable `T` refers to the type of the elements of the base ring.
 """
 abstract type ModuleFP{T} end
@@ -13,14 +13,14 @@ abstract type ModuleFP{T} end
 @doc Markdown.doc"""
     AbstractFreeMod{T} <: ModuleFP{T}
 
-The abstract supertype of all free modules.
+The abstract supertype of all finitely generated free modules.
 """
 abstract type AbstractFreeMod{T} <: ModuleFP{T} end
 
 @doc Markdown.doc"""
     AbstractSubQuo{T} <: ModuleFP{T}
 
-The abstract supertype of all subquotient modules.
+The abstract supertype of all finitely presented subquotient modules.
 """
 abstract type AbstractSubQuo{T} <: ModuleFP{T} end
 
@@ -35,7 +35,7 @@ abstract type ModuleFPElem{T} end
 @doc Markdown.doc"""
     AbstractFreeModElem{T} <: ModuleFPElem{T}
 
-The abstract supertype of all elements of free modules.
+The abstract supertype of all elements of finitely generated free modules.
 """
 abstract type AbstractFreeModElem{T} <: ModuleFPElem{T} end
 
@@ -478,17 +478,8 @@ end
 
 
 
-#abstract type ModuleFP_dec{T} <: ModuleFP{T} end
-
-#abstract type ModuleFPElem_dec{T} <: ModuleFPElem{T} end
 const ModuleFP_dec{T} = Union{FreeMod_dec{T}} # SubQuo_dec{T} will be included
 const ModuleFPElem_dec{T} = Union{FreeModElem_dec{T}} # SubQuoElem_dec{T} will be included
-
-#const AbstractFreeMod{T} = Union{FreeMod{T}, FreeMod_dec{T}}
-#const AbstractFreeModElem{T} = Union{FreeModElem{T}, FreeModElem_dec{T}}
-
-#const AbstractSubQuo{T} = Union{SubQuo{T}}
-#const AbstractSubQuoElem{T} = Union{SubQuoElem{T}}
 
 
 

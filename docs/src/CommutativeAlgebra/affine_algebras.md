@@ -18,9 +18,6 @@ modulo an ideal $I$ of $R$, we refer to $A$ as an affine algebra over $C$, or an
 functionality for handling such algebras in OSCAR.
 
 !!! note
-    If $R$ is graded, the modulus $I$ is required to be homogeneous, so that $R/I$ inherits the grading. 
-
-!!! note
     As for the entire chapter on commutative algebra, most of the functions discussed here rely on Gröbner basis techniques. They are implemented for affine algebras over fields (exact fields supported by OSCAR) and, if not indicated otherwise, for affine algebras over the integers.
 
 !!! note
@@ -30,8 +27,8 @@ functionality for handling such algebras in OSCAR.
 
 ## Types
 
-The OSCAR type for quotient rings of  a multivariate polynomial ring -- decorated or not -- is of parametrized form `MPolyQuo{T}`,
-where `T` is the element type of the polynomial ring. In turn, the type for elements of quotient rings is of parametrized form `MPolyQuoElem{T}`.
+The OSCAR type for quotient rings of  multivariate polynomial rings is of parametrized form `MPolyQuo{T}`,
+with elements of type `MPolyQuoElem{T}`. Here, `T` is the element type of the polynomial ring.
     
 ## Constructors
 
@@ -68,6 +65,24 @@ dim(A::MPolyQuo)
 ```
 
 ## Elements of Affine Algebras
+
+### Types
+
+The OSCAR type for elements of quotient rings of  multivariate polynomial rings is of
+parametrized form `MPolyQuo{T}`, where `T` is the element type of the polynomial ring.
+
+### Creating Elements of Affine Algebras
+
+Elements of an affine algebra $R/I$ are created as images of elements of $R$ under the projection map.
+
+###### Examples
+
+```@repl oscar
+R, (x, y) = PolynomialRing(QQ, ["x", "y"]);
+A, p = quo(R, ideal(R, [x^3*y^2-y^3*x^2, x*y^4-x*y^2]))
+f = p(x^3*y^2-y^3*x^2+x*y)
+typeof(f)
+```
 
 ### Reducing Elements of Affine Algebras
 
@@ -201,14 +216,14 @@ kernel(F::AlgHom)
 ###### Examples
 
 ```@repl oscar
-D1, (w, x, y, z) = PolynomialRing(QQ, ["w", "x", "y", "z"])
-C1, (s,t) = PolynomialRing(QQ, ["s", "t"])
+D1, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"])
+C1, (s,t) = GradedPolynomialRing(QQ, ["s", "t"])
 V1 = [s^3, s^2*t, s*t^2, t^3]
 para = hom(D1, C1, V1)
 twistedCubic = kernel(para)
-C2, _ = quo(D1, twistedCubic)
-D2, (a, b, b) = PolynomialRing(QQ, ["a", "b", "c"])
-V2 = [w-y, x, z]
+C2, p2 = quo(D1, twistedCubic)
+D2, (a, b, c) = GradedPolynomialRing(QQ, ["a", "b", "c"])
+V2 = [p2(w-y), p2(x), p2(z)]
 proj = hom(D2, C2, V2)
 nodalCubic = kernel(proj)
 ```

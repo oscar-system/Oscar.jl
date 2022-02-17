@@ -42,7 +42,7 @@ normal_subgroup(G::SemidirectProductGroup)
 acting_subgroup(G::SemidirectProductGroup)
 homomorphism_of_semidirect_product(G::SemidirectProductGroup)
 isfull_semidirect_product(G::SemidirectProductGroup)
-embedding(G::SemidirectProductGroup{S,T}, n::Int) where S where T
+embedding(G::SemidirectProductGroup, n::Int)
 projection(G::SemidirectProductGroup)
 ```
 

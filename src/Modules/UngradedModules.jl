@@ -1134,7 +1134,7 @@ by Submodule with 3 generators
 ```
 """
 function cokernel(f::FreeModuleHom)
-  @assert typeof(codomain(f)) <: FreeMod
+  @assert codomain(f) isa FreeMod
   return quo(codomain(f), image(f)[1])
 end
 
@@ -2386,7 +2386,7 @@ Return the morphism $D \to C$ corresponding to the given matrix, where $D$ is a 
 function SubQuoHom(D::SubQuo, C::ModuleFP, mat::MatElem)
   @assert nrows(mat) == ngens(D)
   @assert ncols(mat) == ngens(C)
-  if typeof(C) <: FreeMod
+  if C isa FreeMod
     hom = SubQuoHom(D, C, [FreeModElem(sparse_row(mat[i,:]), C) for i=1:ngens(D)])
     return hom
   else
@@ -2511,7 +2511,7 @@ false
 hom(M::SubQuo{T}, N::ModuleFP{T}, V::Vector{<:ModuleFPElem}) where T = SubQuoHom(M, N, V) 
 hom(M::SubQuo{T}, N::ModuleFP{T},  A::MatElem{T}) where T = SubQuoHom(M, N, A)
 function iswelldefined(H::ModuleMap)
-  if typeof(H) <: Union{FreeModuleHom,FreeModuleHom_dec}
+  if H isa Union{FreeModuleHom,FreeModuleHom_dec}
     return true
   end
   M = domain(H)
@@ -2742,7 +2742,7 @@ function preimage(f::SubQuoHom, a::Union{SubQuoElem,FreeModElem})
   @assert parent(a) === codomain(f)
   D = domain(f)
   i = zero(D)
-  b = coordinates(typeof(a) <: FreeModElem ? a : a.repres, image(f)[1])
+  b = coordinates(a isa FreeModElem ? a : a.repres, image(f)[1])
   for (p,v) = b
     i += v*gen(D, p)
   end
@@ -3099,7 +3099,7 @@ that converts elements from $S$ into morphisms $M \to N$.
 If `alg` is `:matrices` a different implementation that is using matrices instead of maps is used.
 """
 function hom(M::ModuleFP, N::ModuleFP, alg::Symbol=:maps)  
-  if alg == :matrices && typeof(M) <: SubQuo && typeof(N) <: SubQuo
+  if alg == :matrices && M isa SubQuo && N isa SubQuo
     return hom_matrices(M,N,false)
   end
   p1 = presentation(M)
@@ -3219,7 +3219,7 @@ Return, if possible, a homomorphism, which is mathematically identical to `H`,
 but has codomain `M`. `M` has to be a submodule of the codomain of `H`.
 """
 function restrict_codomain(H::ModuleMap, M::SubQuo)
-  @assert typeof(codomain(H)) <: SubQuo
+  @assert codomain(H) isa SubQuo
   return hom(domain(H), M, map(v -> SubQuoElem(v, M), map(x -> H(x).repres, gens(domain(H)))))
 end
 
@@ -3655,7 +3655,7 @@ function tensor_product(G::ModuleFP...; task::Symbol = :none)
   # the example above we would store (G[1][2], G[2][1], G[2][5]).
   corresponding_tuples = map(index_tuple -> Tuple(map(index -> G[index][index_tuple[index]],1:length(index_tuple))), corresponding_tuples_as_indices)
 
-  generating_tensors = map(mF, map(tuple -> map(x -> typeof(parent(x)) <: FreeMod ? x : x.repres, tuple), corresponding_tuples))
+  generating_tensors = map(mF, map(tuple -> map(x -> parent(x) isa FreeMod ? x : x.repres, tuple), corresponding_tuples))
   s, emb = sub(F, generating_tensors, :with_morphism)
   #s, emb = sub(F, vec([mF(x) for x = Base.Iterators.ProductIterator(Tuple(gens(x, ambient_free_module(x)) for x = G))]), :with_morphism)
   q = vcat([vec([mF(x) for x = Base.Iterators.ProductIterator(Tuple(i == j ? rels(G[i]) : gens(ambient_free_module(G[i])) for i=1:length(G)))]) for j=1:length(G)]...) 

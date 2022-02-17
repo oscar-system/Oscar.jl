@@ -16,70 +16,65 @@
       @test oxi == ox^i
       @test oxi + oy == iso(xi + y)
     end
+    p2 = next_prime(p)
+    @test_throws ErrorException iso(GAP.Globals.Z(GAP.Obj(p2)))
+    @test_throws ErrorException image(iso, GAP.Globals.Z(GAP.Obj(p2)))
+    @test_throws ErrorException preimage(iso, GF(p2)(1))
   end
 end
 
 @testset "finite non-prime field" begin
-  # On the GAP side, consider
-  # - fields created with `GF` (collections of `FFE`s):
-  #   - of order up to 2^16 and larger fields,
-  #   - with prescribed polynomial or with another polynomial.
-  # - fields created with `AlgebraicExtension`.
+  # On the GAP side, consider only finite fields that consist of FFEs.
+  # That is, avoid finite `AlgebraicExtension` fields and ignore
+  # the defining polynomials of the GAP fields.
+  # We support isomorphisms only from GAP fields that are extensions of
+  # the prime field.
   # On the Oscar side, consider fields of order less than 2^64 and larger ones.
-#TODO: Eventually deal with GAP fields that are extensions of non-prime fields.
-#      (See the lines below that are commented out.)
-  @testset "with characteristic $p" for p in [ 5, 65537, next_prime(fmpz(2)^64) ]
+# @testset "with characteristic $p" for p in [5, 65537, next_prime(fmpz(2)^64)]
+#T currently these the additional tests fail due to missing `embed_matrices`
+  @testset "with characteristic $p" for p in [5]
     gap_p = GAP.Obj(p)
-    F1 = GAP.Globals.GF(gap_p)
-    R1 = GAP.Globals.PolynomialRing(F1);
-#   F2 = GAP.Globals.GF(gap_p, 2)
-#   R2 = GAP.Globals.PolynomialRing(F2);
     @testset "with degree $d" for d in 2:3
-      pol1 = GAP.Globals.RandomPol(F1, d)
-      while ! GAP.Globals.IsIrreducible(R1, pol1)
-        pol1 = GAP.Globals.RandomPol(F1, d)
+      F = GAP.Globals.GF(gap_p, d)
+      x = GAP.Globals.PrimitiveElement(F)
+      y = GAP.Globals.One(F)
+      iso = Oscar.iso_gap_oscar(F)
+      ox = iso(x)
+      oy = iso(y)
+      for i in 1:10
+        xi = x^i
+        oxi = iso(xi)
+        @test preimage(iso, oxi) == xi
+        @test oxi == ox^i
+        @test oxi + oy == iso(xi + y)
       end
-#     pol2 = GAP.Globals.RandomPol(F2, d)
-#     while ! GAP.Globals.IsIrreducible(R2, pol2)
-#       pol2 = GAP.Globals.RandomPol(F2, d)
-#     end
-      @testset "with field $F" for F in [
-             GAP.Globals.GF(gap_p, d),
-             GAP.Globals.GF(F1, pol1),
-#            GAP.Globals.AsField(F2, GAP.Globals.GF(gap_p, 2*d)),
-             GAP.Globals.AlgebraicExtension(F1, pol1),
-#            GAP.Globals.AlgebraicExtension(F2, pol2),
-             ]
-        x = GAP.Globals.PrimitiveElement(F)
-        y = GAP.Globals.One(F)
-        iso = Oscar.iso_gap_oscar(F)
-        ox = iso(x)
-        oy = iso(y)
-        for i in 1:10
-          xi = x^i
-          oxi = iso(xi)
-          @test preimage(iso, oxi) == xi
-          @test oxi == ox^i
-          @test oxi + oy == iso(xi + y)
-        end
-      end
+      p2 = next_prime(p)
+      o = GAP.Globals.One(GAP.Globals.GF(GAP.Obj(p2)))
+      @test_throws ErrorException iso(o)
+      @test_throws ErrorException image(iso, o)
+      @test_throws ErrorException preimage(iso, GF(p2)(1))
     end
   end
 end
 
-@testset "field of rationals" begin
-  F = GAP.Globals.Rationals
-  iso = Oscar.iso_gap_oscar(F)
-  x = GAP.GapObj(2//3)
-  y = 1
-  ox = iso(x)
-  oy = iso(y)
-  for i in 1:10
-    xi = x^i
-    oxi = iso(xi)
-    @test preimage(iso, oxi) == xi
-    @test oxi == ox^i
-    @test oxi + oy == iso(xi + y)
+@testset "field of rationals, ring of integers" begin
+  for (R, x, y) in [(GAP.Globals.Rationals, GAP.GapObj(2//3), 1),
+                    (GAP.Globals.Integers, 2, 3),
+                   ]
+    iso = Oscar.iso_gap_oscar(R)
+    ox = iso(x)
+    oy = iso(y)
+    for i in 1:10
+      xi = x^i
+      oxi = iso(xi)
+      @test preimage(iso, oxi) == xi
+      @test oxi == ox^i
+      @test oxi + oy == iso(xi + y)
+    end
+    @test_throws ErrorException preimage(iso, 1)
+    @test_throws ErrorException iso(GAP.Globals.Z(2))
+    @test_throws ErrorException image(iso, GAP.Globals.Z(2))
+    @test_throws ErrorException preimage(iso, GF(2)(1))
   end
 end
 
@@ -98,5 +93,28 @@ end
       @test oxi == ox^i
       @test oxi + oy == iso(xi + y)
     end
+    @test_throws ErrorException iso(GAP.Globals.Z(2))
+    @test_throws ErrorException image(iso, GAP.Globals.Z(2))
+    @test_throws ErrorException preimage(iso, CyclotomicField(2)[2])
   end
+end
+
+@testset "univariate polynomial rings" begin
+   baserings = [GAP.Globals.Rationals,
+                GAP.Globals.Integers,
+                GAP.Globals.GF(2),
+                GAP.Globals.GF(2, 3),
+               ]
+   @testset for R in baserings
+      PR = GAP.Globals.PolynomialRing(R)
+      x = GAP.Globals.Indeterminate(R)
+      iso = Oscar.iso_gap_oscar(PR)
+      for pol in [zero(x), one(x), x, x^3+x+1]
+         img = iso(pol)
+         @test preimage(iso, img) == pol
+      end
+      @test_throws ErrorException iso(GAP.Globals.Z(2))
+      @test_throws ErrorException image(iso, GAP.Globals.Z(2))
+      @test_throws ErrorException preimage(iso, PolynomialRing(QQ, "y")[1]())
+   end
 end

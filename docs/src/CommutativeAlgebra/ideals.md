@@ -14,9 +14,8 @@ Pages = ["ideals.md"]
 
 ## Types
 
-The OSCAR type for ideals in multivariate polynomial rings -- decorated or not --
-is of parametrized form `MPolyIdeal{T}`, where `T` is the element type of the
-polynomial ring.
+The OSCAR type for ideals in multivariate polynomial rings is of parametrized form
+`MPolyIdeal{T}`, where `T` is the element type of the polynomial ring.
 
 ## Constructors
 
@@ -157,7 +156,7 @@ $x^\alpha>x^\beta  \;\Leftrightarrow\;  x_1^{\alpha_1}\cdots x_s^{\alpha_s} >_1 
 \bigl(x_1^{\alpha_1}\cdots x_s^{\alpha_s} = x_1^{\beta_1}\cdots x_s^{\beta_s} \text{ and }  x_{s+1}^{\alpha_{s+1}}\cdots x_n^{\alpha_n} >_2
 x_{s+1}^{\beta_{s+1}}\cdots x_n^{\beta_n}\bigr).$
           
-Note that $>=(>_1, >_2)$ is global (local) iff $>_1$ and $>_2$ are global (local). Mixed orderings arise by choosing
+Note that $>=(>_1, >_2)$ is global (local) iff both $>_1$ and $>_2$ are global (local). Mixed orderings arise by choosing
 one of $>_1$ and $>_2$ global and the other one local.
 		  
 #### Creating Matrix Orderings
@@ -176,7 +175,62 @@ m_{i-1}\alpha\ =m_{i-1}\beta,\ m_i\alpha>m_i\beta$
 
 To create matrix orderings, OSCAR allows for matrices with integer coefficients as input matrices.
 
-### Normal Forms
+#### Functions for creating orderings
+
+When computing Gröbner bases an ordering must be supplied. Standard Singular
+orderings, including block orderings, weighted orderings and local orderings
+are available.
+
+The basic orderings are `:lex`, `:revlex`, `:deglex`, `:degrevlex`,
+`:neglex`, `:negrevlex`, `:negdeglex`, `:negdegrevlex`, `:wdeglex`,
+`:wdegrevlex`, `:negwdeglex` and `:negwdegrevlex`.
+
+The orderings starting with `w` are weighted orderings.
+
+The following functions exist for creating orderings:
+
+```@docs
+lex(::AbstractVector{<:MPolyElem})
+revlex(::AbstractVector{<:MPolyElem})
+deglex(::AbstractVector{<:MPolyElem})
+degrevlex(::AbstractVector{<:MPolyElem})
+neglex(::AbstractVector{<:MPolyElem})
+negrevlex(::AbstractVector{<:MPolyElem})
+negdeglex(::AbstractVector{<:MPolyElem})
+negdegrevlex(::AbstractVector{<:MPolyElem})
+```
+
+```@docs
+wdeglex(::AbstractVector{<:MPolyElem}, ::Vector{Int})
+wdegrevlex(::AbstractVector{<:MPolyElem}, ::Vector{Int})
+negwdeglex(::AbstractVector{<:MPolyElem}, ::Vector{Int})
+negwdegrevlex(::AbstractVector{<:MPolyElem}, ::Vector{Int})
+```
+
+Block orderings can be obtained by concatening monomial orderings using the `*`
+operator.
+
+Term over position and position over term module orderings are also available.
+These are also specified byy concatenation using the `*` operator. One creates
+the requisite module ordering (`lex` or `revlex`) for the generators of the
+free module.
+
+Term over position is specified by appending the module ordering to the
+monomial ordering and position over term by prepending the module ordering.
+
+###### Examples
+
+```@repl oscar
+R, (x, y, s, t, u) = PolynomialRing(QQ, ["x", "y", "s", "t", "u"])
+O1 = degrevlex(gens(R))
+O2 = lex([x, y])*deglex([s, t, u])
+O3 = wdeglex(gens(R), [2, 3, 5, 7, 3])
+
+K = FreeModule(R, 3)
+O4 = revlex(gens(K))*degrevlex(gens(R))
+```
+
+## Normal Forms
 
 ```@docs
 normal_form(f::T, J::MPolyIdeal) where { T <: MPolyElem }
@@ -332,19 +386,26 @@ eliminate(I::MPolyIdeal{T}, l::Vector{T}) where T <: MPolyElem
 
 ```@docs
 iszero(I::MPolyIdeal)
+```
+
+```@docs
 isone(I::MPolyIdeal)
 ```
 
-### Equality of Ideals
-
 ```@docs
-==(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
+ismonomial(f::MPolyElem)
 ```
 
 ### Containment of Ideals
 
 ```@docs
 issubset(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
+```
+
+### Equality of Ideals
+
+```@docs
+==(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 ```
 
 ### Ideal Membership
@@ -427,42 +488,18 @@ equidimensional_hull_radical(I::MPolyIdeal)
 
 ## Homogenization and Dehomogenization
 
+Referring to [KR05](@cite) for definitions and technical details, we discuss homogenization and dehomogenization in the context of $\mathbb Z^m$-gradings. 
+
 ```@docs
-homogenization(f::MPolyElem, var::String, pos::Int=1)
+homogenization(f::MPolyElem, W::Union{fmpz_mat, Matrix{<:IntegerUnion}}, var::String, pos::Int = 1)
 ```
 
-###### Examples
-
-```@repl oscar
-R, (x, y, z) = PolynomialRing(QQ, ["x", "y", "z"])
-f = x^3-y^2-z
-F = homogenization(f, "w", 4)
-parent(F)
-V = [y-x^2, z-x^3]
-homogenization(V, "w")
-I = ideal(R, V)
-PTC = homogenization(I, "w")
-parent(PTC[1])
-homogenization(I, "w", ordering = :deglex)
+```@docs
+homogenization(f::MPolyElem, var::String, pos::Int=1)
 ```
 
 ```@docs
 dehomogenization(F::MPolyElem_dec, pos::Int)
 ```
-
-###### Examples
-
-```@repl oscar
-S, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"])
-F = x^3-x^2*y-x*z^2
-f = dehomogenization(F, 1)
-parent(f)
-V = [x*y-z^2, x^2*z-x^3]
-dehomogenization(V, 3)
-I = ideal(S, V)
-dehomogenization(I, 3)
-```
-
-	
 
 

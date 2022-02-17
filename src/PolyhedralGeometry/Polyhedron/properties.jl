@@ -919,7 +919,7 @@ isfulldimensional(P::Polyhedron) = pm_object(P).FULL_DIM::Bool
 @doc Markdown.doc"""
     f_vector(P::Polyhedron)
 
-Compute the vector $(f₀,f₁,f₂,...,f_{(dim(P)-1))$` where $f_i$ is the number of
+Return the vector $(f₀,f₁,f₂,...,f_{(dim(P)-1))$` where $f_i$ is the number of
 faces of $P$ of dimension $i$.
 
 # Examples
@@ -934,12 +934,55 @@ julia> f_vector(cube(5))
  10
 ```
 """
-function f_vector(P::Polyhedron)
+function f_vector(P::Polyhedron)::Vector{Int}
+    # the following differs from polymake's count in the unbounded case;
+    # polymake takes the far face into account, too
     ldim = lineality_dim(P)
     f_vec=vcat(zeros(Int64, ldim), [length(faces(P,i)) for i in ldim:dim(P)-1])
     return f_vec
 end
 
+@doc Markdown.doc"""
+    h_vector(P::Polyhedron)
+
+Return the (toric) h-vector of a polytope.
+For simplicial polytopes this is a linear transformation of the f-vector.
+Undefined for unbounded polyhedra.
+
+# Examples
+```jldoctest
+julia> h_vector(cross(3))
+4-element Vector{Int64}:
+ 1
+ 3
+ 3
+ 1
+```
+"""
+function h_vector(P::Polyhedron)::Vector{Int}
+    isbounded(P) || throw(ArgumentError("defined for bounded polytopes only"))
+    return pm_object(P).H_VECTOR
+end
+
+@doc Markdown.doc"""
+    g_vector(P::Polyhedron)
+
+Return the (toric) $g$-vector of a polytope.
+Defined by $g_0 = 1 $ and $g_k = h_k - h_{k-1}$, for $1 \leq k \leq \lceil (d+1)/2\rceil$ where $h$ is the $h$-vector and $d=\dim(P)$.
+Undefined for unbounded polyhedra.
+
+# Examples
+```jldoctest
+julia> g_vector(cross(3))
+2-element Vector{Int64}:
+ 1
+ 2
+```
+"""
+function g_vector(P::Polyhedron)::Vector{Int}
+    isbounded(P) || throw(ArgumentError("defined for bounded polytopes only"))
+    return pm_object(P).G_VECTOR
+end
 
 @doc Markdown.doc"""
     relative_interior_point(P::Polyhedron)

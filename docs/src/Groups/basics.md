@@ -25,7 +25,7 @@ BasicGAPGroupElem{T<:GAPGroup}
 elem_type(::Type{T}) where T <: GAPGroup
 one(x::GAPGroup)
 one(x::GAPGroupElem)
-isfinite_order(x::GAPGroupElem)
+isfiniteorder(x::GAPGroupElem)
 gens(::GAPGroup)
 ngens(G::GAPGroup)
 gen(::GAPGroup, i::Int)

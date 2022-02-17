@@ -21,7 +21,8 @@ Return the `i`-th group in the catalogue of transitive groups over the set
 The output is a group of type `PermGroup`.
 """
 function transitive_group(deg::Int, n::Int)
-   @assert n<= number_transitive_groups(deg) "There are less than $n transitive groups of degree $deg, up to permutation isomorphism."
+   N = number_transitive_groups(deg)
+   @assert n <= N "There are only $N transitive groups of degree $deg, up to permutation isomorphism."
 
    return PermGroup(GAP.Globals.TransitiveGroup(deg,n), deg)
 end

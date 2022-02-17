@@ -62,7 +62,7 @@
      @test !representative_action(G,x,y)[1]
   end
 
-  CC = conjugacy_classes_subgroups(G)
+  CC = @inferred conjugacy_classes_subgroups(G)
   @test length(CC)==11
   @testset for C in CC
      @test C == conjugacy_class(G, representative(C))
@@ -85,7 +85,7 @@
      @test !representative_action(G,x,y)[1]
   end
 
-  CC = conjugacy_classes_maximal_subgroups(G)
+  CC = @inferred conjugacy_classes_maximal_subgroups(G)
   @test length(CC)==3
   @test Set([order(Int, representative(l)) for l in CC])==Set([6,8,12])
 
@@ -94,7 +94,7 @@
   @test normalizer(G,H)==normalizer(G,x)
 
   G = symmetric_group(5)
-  CC = conjugacy_classes_maximal_subgroups(G)
+  CC = @inferred conjugacy_classes_maximal_subgroups(G)
   all(H -> degree(H) == degree(G), map(representative, CC))
 
   G = symmetric_group(10)

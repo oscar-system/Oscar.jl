@@ -58,7 +58,7 @@ function __init__()
     print("... \n ... which comes with absolutely no warranty whatsoever")
     println()
     println("Type: '?Oscar' for more information")
-    println("(c) 2019-2021 by The Oscar Development Team")
+    println("(c) 2019-2022 by The Oscar Development Team")
   end
 
   append!(_gap_group_types,
@@ -224,9 +224,11 @@ include("Groups/action.jl")
 include("Groups/gsets.jl")
 include("Groups/MatrixDisplay.jl")
 include("Groups/abelian_aut.jl")
+include("Groups/GrpAb.jl")
 
 include("Rings/integer.jl")
 include("Rings/rational.jl")
+include("Rings/orderings.jl")
 include("Rings/mpoly.jl")
 include("Rings/mpoly-graded.jl")
 include("Rings/mpoly-ideals.jl")
@@ -251,6 +253,7 @@ include("Rings/AbelianClosure.jl")
 include("GAP/gap_to_oscar.jl")
 include("GAP/oscar_to_gap.jl")
 include("GAP/iso_gap_oscar.jl")
+include("GAP/iso_oscar_gap.jl")
 
 include("Groups/group_characters.jl")  # needs some Rings functionality
 

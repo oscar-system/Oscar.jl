@@ -766,17 +766,30 @@ catalan_solid(s::String) = Polyhedron(Polymake.polytope.catalan_solid(s))
 
 @doc Markdown.doc"""
 
-    upper_bound_theorem(d::Int, n::Int)
+    upper_bound_f_vector(d::Int, n::Int)
 
-Return a polyhedron which contains the combinatioral data shared by all
-simplicial d-polytopes with n vertices with the maximal number of facets as
-given by McMullen's Upper-Bound-Theorem.
-
-Essentially, one can read the
-`H_VECTOR` and `F_VECTOR` of a polytope that attains the McMullen's
-upperbounds.
+Return the maximal f-vector of a `d`-polytope with `n` vertices;
+this is given by McMullen's Upper-Bound-Theorem.
 """
-upper_bound_theorem(d::Int,n::Int) = Polyhedron(Polymake.polytope.upper_bound_theorem(d,n))
+upper_bound_f_vector(d::Int,n::Int) = Vector{Int}(Polymake.polytope.upper_bound_theorem(d,n).F_VECTOR)
+
+@doc Markdown.doc"""
+
+    upper_bound_g_vector(d::Int, n::Int)
+
+Return the maximal g-vector of a `d`-polytope with `n` vertices;
+this is given by McMullen's Upper-Bound-Theorem.
+"""
+upper_bound_g_vector(d::Int,n::Int) = Vector{Int}(Polymake.polytope.upper_bound_theorem(d,n).G_VECTOR)
+
+@doc Markdown.doc"""
+
+    upper_bound_h_vector(d::Int, n::Int)
+
+Return the maximal h-vector of a `d`-polytope with `n` vertices;
+this is given by McMullen's Upper-Bound-Theorem.
+"""
+upper_bound_h_vector(d::Int,n::Int) = Vector{Int}(Polymake.polytope.upper_bound_theorem(d,n).H_VECTOR)
 
 
 @doc Markdown.doc"""
@@ -828,3 +841,30 @@ true
 ```
 """
 project_full(P::Polyhedron) = Polyhedron(Polymake.polytope.project_full(pm_object(P)))
+
+
+
+@doc Markdown.doc"""
+
+    gelfand_tsetlin(lambda::AbstractVector)
+
+Construct the Gelfand Tsetlin polytope indexed by a weakly decreasing vector `lambda`.
+
+```jldoctest
+julia> P = gelfand_tsetlin([5,3,2])
+A polyhedron in ambient dimension 6
+
+julia> isfulldimensional(P)
+false
+
+julia> p = project_full(P)
+A polyhedron in ambient dimension 3
+
+julia> isfulldimensional(p)
+true
+
+julia> volume(p)
+3
+```
+"""
+gelfand_tsetlin(lambda::AbstractVector) = Polyhedron(Polymake.polytope.gelfand_tsetlin(Vector{Rational}(lambda),projected=false))

@@ -205,3 +205,20 @@ begin
   S, (u,v) = grade(R_ext, [1,1])
   @test S(R_ext(x)) == @inferred S(x)
 end
+
+begin
+  R, (x,y) = QQ["x", "y"]
+  P, (s, t) = R["s", "t"]
+  S, (u, v) = grade(P, [1,1])
+  @test one(QQ)*u == u
+end
+
+begin
+  R, (x, y) = QQ["x", "y"]
+  S, (u, v) = grade(R)
+  @test hash(S(u)) == hash(S(u))
+
+  D = Dict(u => 1)
+  @test haskey(D, u)
+  @test !haskey(D, v)
+end
