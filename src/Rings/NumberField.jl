@@ -187,9 +187,10 @@ function assert_has_gb(K::NfNSGen)
     return nothing
   end
   I = defining_ideal(K)
-  groebner_assure(I)
-  singular_assure(I.gb)
-  I.gb.S.isGB = true
+  groebner_assure(I, degrevlex(gens(base_ring(I))))
+  GI = collect(values(I.gb))[1]
+  singular_assure(GI)
+  GI.S.isGB = true
   return nothing
 end
 
@@ -197,9 +198,10 @@ function reduce!(a::NfNSGenElem)
   K = parent(a)
   assert_has_gb(K)
   I = defining_ideal(K)
-  Sx = base_ring(I.gb.S)
+  GI = collect(values(I.gb))[1]
+  Sx = base_ring(GI.S)
   f = a.f
-  a.f = I.gens.Ox(reduce(Sx(f), I.gb.S))
+  a.f = I.gens.Ox(reduce(Sx(f), GI.S))
   return a
 end
 
@@ -545,7 +547,8 @@ function basis(K::NfNSGen; copy::Bool = true)
   else
     I = defining_ideal(K)
     assert_has_gb(K)
-    s = Singular.kbase(I.gb.S)
+    GI = collect(values(I.gb))[1]
+    s = Singular.kbase(GI.S)
     if iszero(s)
       error("ideal was not zero-dimensional")
     end
