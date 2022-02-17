@@ -1,10 +1,12 @@
 export SpecOpen, ambient, gens, complement, npatches, affine_patches, intersections, name, intersect, issubset, closure, find_non_zero_divisor, is_non_zero_divisor, is_dense, open_subset_type, ambient_type, canonically_isomorphic
 
-export SpecOpenRing, scheme, domain, OO, structure_sheaf_ring_type
+export SpecOpenRing, scheme, domain, OO, structure_sheaf_ring_type, isdomain_type, isexact_type
 
 export SpecOpenRingElem, domain, restrictions, patches, restrict, npatches, structure_sheaf_elem_type
 
 export SpecOpenMor, maps_on_patches, restriction, identity_map, preimage, generic_fractions, pullback, maximal_extension
+
+export adjoint
 
 @Markdown.doc """
     SpecOpen{SpecType, BRT, BRET} <: Scheme{BRT, BRET}
@@ -476,11 +478,18 @@ zero(R::SpecOpenRing) = SpecOpenRingElem(R, [zero(OO(U)) for U in affine_patches
 (R::SpecOpenRing)(a::Int64) = SpecOpenRingElem(R, [OO(U)(a) for U in affine_patches(domain(R))], check=false)
 (R::SpecOpenRing)(a::fmpz) = SpecOpenRingElem(R, [OO(U)(a) for U in affine_patches(domain(R))], check=false)
 
-isdomain_type(::Type{SpecOpenRing}) = true
-isexact_type(::Type{SpecOpenRing}) = true
+isdomain_type(::Type{T}) where {T<:SpecOpenRingElem} = true
+isdomain_type(a::SpecOpenRingElem) = isdomain_type(typeof(a))
+isexact_type(::Type{T}) where {T<:SpecOpenRingElem} = true
+isexact_type(a::SpecOpenRingElem) = isexact_type(typeof(a))
+isdomain_type(::Type{T}) where {T<:SpecOpenRing} = true
+isdomain_type(R::SpecOpenRing) = isdomain_type(typeof(R))
+isexact_type(::Type{T}) where {T<:SpecOpenRing} = true
+isexact_type(R::SpecOpenRing) = isexact_type(typeof(R))
 
 AbstractAlgebra.promote_rule(::Type{T}, ::Type{RET}) where {T<:SpecOpenRingElem, RET<:Integer} = T
 AbstractAlgebra.promote_rule(::Type{RET}, ::Type{T}) where {T<:SpecOpenRingElem, RET<:Integer} = T
+
 ### TODO: Rethink this. For instance, restrictions can happen both from and to Specs.
 function AbstractAlgebra.promote_rule(::Type{T}, ::Type{RET}) where {T<:SpecOpenRingElem, RET<:RingElem} 
   return T
@@ -715,6 +724,10 @@ function pullback(f::SpecOpenMor, a::RET) where {RET<:RingElem}
   return SpecOpenRingElem(SpecOpenRing(X, U), pb_a)
 end
 
+function pullback(f::SpecOpenMor, a::SpecOpenRingElem)
+  error("not implemented")
+end
+
 @Markdown.doc """
     maximal_extension(X::Spec, Y::Spec, f::AbstractAlgebra.Generic.Frac)
 
@@ -875,3 +888,24 @@ function is_dense(U::SpecOpen)
   end
   return J == localized_modulus(OO(X))
 end
+
+#function Base.adjoint(M::AbstractAlgebra.Generic.MatSpaceElem{T}) where {T} 
+function Base.adjoint(M::MatElem)
+  n = ncols(M)
+  n == nrows(M) || error("matrix is not square")
+  N = zero(M)
+  rows = collect(1:n)
+  cols = collect(1:n)
+  row_sign = 1
+  for i in 1:n
+    column_sign = row_sign
+    for j in 1:n
+      N[j, i] = column_sign* det(M[deleteat!(copy(rows), i), deleteat!(copy(cols), j)])
+      column_sign = column_sign*(-1)
+    end
+    row_sign = row_sign*(-1)
+  end
+  return N
+end
+
+Base.inv(M::MatElem) = inv(det(M))*adjoint(M)

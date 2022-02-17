@@ -24,6 +24,14 @@ export scheme, covering, transitions, set_name!, has_name, name_of, vector_bundl
       (U in patches(C) && V in patches(C)) || error("affine patches not listed")
       A = g[(U, V)]
       ncols(A) == nrows(A) == r || error("matrix does not have the correct size")
+      if check 
+        G = C[U, V]
+        W1, W2 = glueing_domains(G)
+        h1, h2 = glueing_morphisms(G)
+        ### the following method is not yet implemented
+        #B = map_entries(tmp -> pullback(h1, tmp), g[(V, U)])
+        #inv(A) == B || error("transition matrices are not inverse to each other")
+      end
     end
     if check
       #TODO: Do some more sophisticated checks
