@@ -69,7 +69,9 @@ vectors of the embeddings (resp. projections) of the direct product `G`.
 function inner_direct_product(L::AbstractVector{T}; morphisms=false) where T<:Union{PcGroup,PermGroup,FPGroup}
    P = GAP.Globals.DirectProduct(GapObj([G.X for G in L]))
    if T==PermGroup
-      DP = T(P,GAP.Globals.NrMovedPoints(P))
+      # Make sure that the degree of the direct product
+      # is the sum of the degrees of its factors.
+      DP = T(P, sum([degree(G) for G in L], init = 0))
    else
       DP = T(P)
    end
