@@ -164,7 +164,7 @@ julia> m * gens(I) == G
 true
 ```
 """
- function groebner_basis_with_transformation_matrix(I::MPolyIdeal, ordering::MonomialOrdering; complete_reduction::Bool=false)
+function groebner_basis_with_transformation_matrix(I::MPolyIdeal, ordering::MonomialOrdering=degrevlex(gens(base_ring(I))); complete_reduction::Bool=false)
    G, m = Oscar.groebner_basis_with_transform(I, ordering; complete_reduction=complete_reduction)
    return G, Array(m)
  end

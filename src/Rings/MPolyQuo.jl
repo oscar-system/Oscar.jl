@@ -448,10 +448,11 @@ function simplify(a::MPolyQuoIdeal)
    RI  = base_ring(a.I)
    J = R.I
    groebner_assure(J)
-   singular_assure(J.gb)
+   GJ = collect(values(J.gb))[1]
+   singular_assure(GJ)
    oscar_assure(a)
    singular_assure(a.I)
-   red  = reduce(a.I.gens.S, J.gb.S)
+   red  = reduce(a.I.gens.S, GJ.S)
    SR   = singular_ring(R)
    si   = Singular.Ideal(SR, gens(red))
    red  = MPolyQuoIdeal(R, si)
@@ -463,10 +464,11 @@ function simplify!(a::MPolyQuoIdeal)
     RI  = base_ring(a.I)
     J = R.I
     groebner_assure(J)
-    singular_assure(J.gb)
+    GJ = collect(values(J.gb))[1]
+    singular_assure(GJ)
     oscar_assure(a)
     singular_assure(a.I)
-    red  = reduce(a.I.gens.S, J.gb.S)
+    red  = reduce(a.I.gens.S, GJ.S)
     SR   = singular_ring(R)
     a.SI = Singular.Ideal(SR, gens(red))
     a.I  = ideal(RI, RI.(gens(a.SI)))
@@ -729,9 +731,10 @@ one(Q::MPolyQuo) = Q(1)
 function isinvertible_with_inverse(a::MPolyQuoElem)
   Q = parent(a)
   I = Q.I
-  if isdefined(I, :gb)
-    oscar_assure(I)
-    J = I.gb.O
+  if !isempty(I.gb)
+    G = collect(values(I.gb))[1]
+    oscar_assure(G)
+    J = G.O
   else
     J = gens(I)
   end
@@ -857,9 +860,12 @@ end
 #TODO: find a more descriptive, meaningful name
 function _kbase(Q::MPolyQuo)
   I = Q.I
-  groebner_assure(I)
-  singular_assure(I.gb)
-  s = Singular.kbase(I.gb.S)
+  if isempty(I.gb)
+      groebner_assure(I, degrevlex(gens(Q.R)))
+  end
+  GI  = collect(values(I.gb))[1]
+  singular_assure(GI)
+  s = Singular.kbase(GI.S)
   if iszero(s)
     error("ideal was no zero-dimensional")
   end
