@@ -1,4 +1,4 @@
-export mpoly_type, mpoly_ring_type
+export mpoly_type, mpoly_ring_type, mpoly_dec_ring_type, mpoly_dec_type
 
 mpoly_ring_type(R::T) where {T<:AbstractAlgebra.Ring} = Generic.MPolyRing{elem_type(T)}
 mpoly_ring_type(::Type{T}) where {T<:AbstractAlgebra.Ring} = Generic.MPolyRing{elem_type(T)}
@@ -30,3 +30,8 @@ mpoly_type(R::Nemo.GaloisField) = gfp_mpoly
 mpoly_type(::Type{Nemo.GaloisField}) = gfp_mpoly
 mpoly_type(a::gfp_elem) = gfp_mpoly
 mpoly_type(::Type{gfp_elem}) = gfp_mpoly
+
+mpoly_dec_ring_type(A::T) where {T<:MPolyRing} = mpoly_dec_ring_type(typeof(A))
+mpoly_dec_type(A::T) where {T<:MPolyRing} = mpoly_dec_type(typeof(A))
+mpoly_dec_ring_type(::Type{T}) where {S<:RingElem, T<:MPolyRing{S}} = MPolyRing_dec{S, T}
+mpoly_dec_type(::Type{T}) where {S<:RingElem, T<:MPolyRing{S}} = MPolyElem_dec{S, elem_type(T)}

@@ -380,7 +380,7 @@ function Base.deepcopy_internal(f::MPolyQuoLocalizedRingElem, dict::IdDict)
 end
 
 ### required conversions
-(L::MPolyQuoLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(f::RingElemType) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyQuoLocalizedRingElem(L, f, one(f), check=false)
+(L::MPolyQuoLocalizedRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(f::RingElemType) where {BaseRingType, BaseRingElemType, RingType, RingElemType<:RingElem, MultSetType} = MPolyQuoLocalizedRingElem(L, f, one(f), check=false)
 
 function (L::MPolyQuoLocalizedRing{
                                    BaseRingType, 

@@ -889,7 +889,7 @@ fraction(a::MPolyLocalizedRingElem) = a.frac
     BaseRingType, 
     BaseRingElemType, 
     RingType, 
-    RingElemType, 
+    RingElemType<:RingElem, 
     MultSetType
   } = MPolyLocalizedRingElem(W, FractionField(base_ring(W))(f), check=check)
 

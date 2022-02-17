@@ -333,14 +333,14 @@ function addeq!(a::T, b::T) where {T<:AbsLocalizedRingElem}
 end
 
 ### promotion rules
-promote_rule(::Type{AbsLocalizedRingElem{RT, RET, MST}}, ::Type{AbsLocalizedRingElem{RT, RET, MST}}) where {RT<:Ring, RET<:RingElement, MST} = AbsLocalizedRingElem{RT, RET, MST}
+AbstractAlgebra.promote_rule(::Type{S}, ::Type{S}) where {S<:AbsLocalizedRingElem} = S
 
-function promote_rule(::Type{AbsLocalizedRingElem{RT, RET, MST}}, ::Type{T}) where {RT<:Ring, RET<:RingElement, MST, T<:RingElement} 
-  promote_rule(RET, T) ? AbsLocalizedRingElem{RT, RET, MST} : Union{}
+function AbstractAlgebra.promote_rule(::Type{S}, ::Type{T}) where {RT<:Ring, RET<:RingElement, MST, S<:AbsLocalizedRingElem{RT, RET, MST}, T<:RingElement} 
+  AbstractAlgebra.promote_rule(RET, T) == RET ? S : Union{}
 end
 
-
-
+### default conversion passing through the base ring
+(L::AbsLocalizedRing)(f::RET) where {RET<:RingElem} = L(base_ring(L)(f))
 
 
 ### Needs to be overwritten in case of zero divisors!
