@@ -4,6 +4,19 @@
 ###############################################################################
 ###############################################################################
 
+struct SubdivisionOfPoints{T}
+   pm_subdivision::Polymake.BigObject
+   
+   SubdivisionOfPoints{T}(pm::Polymake.BigObject) where T<:scalar_types = new{T}(pm)
+end
+
+# default scalar type: `fmpq`
+SubdivisionOfPoints(x...) = SubdivisionOfPoints{fmpq}(x...)
+
+# Automatic detection of corresponding OSCAR scalar type;
+# Avoid, if possible, to increase type stability
+SubdivisionOfPoints(p::Polymake.BigObject) = SubdivisionOfPoints{detect_scalar_type(SubdivisionOfPoints, p)}(p)
+
 @doc Markdown.doc"""
     SubdivisionOfPoints(Points, Cells)
 

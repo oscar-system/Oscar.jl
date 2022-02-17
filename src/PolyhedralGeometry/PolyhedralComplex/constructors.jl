@@ -4,6 +4,17 @@
 ###############################################################################
 ###############################################################################
 
+struct PolyhedralComplex{T}
+    pm_complex::Polymake.BigObject
+    
+     PolyhedralComplex{T}(pm::Polymake.BigObject) where T<:scalar_types = new{T}(pm)
+end
+
+# default scalar type: `fmpq`
+PolyhedralComplex(x...) = PolyhedralComplex{fmpq}(x...)
+
+PolyhedralComplex(p::Polymake.BigObject) = PolyhedralComplex{detect_scalar_type(PolyhedralComplex, p)}(p)
+
 pm_object(pc::PolyhedralComplex) = pc.pm_complex
 
 

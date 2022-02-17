@@ -7,6 +7,21 @@
 #TODO: have cone accept exterior description and reserve positive  hull for
 #interior description?
 
+struct Cone{T} #a real polymake polyhedron
+    pm_cone::Polymake.BigObject
+    
+    # only allowing scalar_types;
+    # can be improved by testing if the template type of the `BigObject` corresponds to `T`
+    Cone{T}(c::Polymake.BigObject) where T<:scalar_types = new{T}(c)
+end
+
+# default scalar type: `fmpq`
+Cone(x...; kwargs...) = Cone{fmpq}(x...; kwargs...)
+
+# Automatic detection of corresponding OSCAR scalar type;
+# Avoid, if possible, to increase type stability
+Cone(p::Polymake.BigObject) = Cone{detect_scalar_type(Cone, p)}(p)
+
 @doc Markdown.doc"""
     Cone{T}(R::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator} [, L::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator}]) where T<:scalar_types
 
