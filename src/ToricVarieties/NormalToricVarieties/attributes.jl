@@ -153,12 +153,10 @@ end
 export cox_ring
 
 
-function _minimal_nonfaces(v::AbstractNormalToricVariety)
-    return get_attribute(v, :minimal_nonfaces) do
-        I = ray_indices(maximal_cones(v))
-        K = SimplicialComplex(I)
-        return minimal_nonfaces(IncidenceMatrix, K)
-    end
+@attr Polymake.IncidenceMatrixAllocated{Polymake.NonSymmetric} function _minimal_nonfaces(v::AbstractNormalToricVariety)
+    I = ray_indices(maximal_cones(v))
+    K = SimplicialComplex(I)
+    return minimal_nonfaces(IncidenceMatrix, K)
 end
 
 @doc Markdown.doc"""
@@ -201,17 +199,14 @@ stanley_reisner_ideal(v::AbstractNormalToricVariety) = stanley_reisner_ideal(cox
 export stanley_reisner_ideal
 
 
-
-function _irrelevant_ideal_monomials(v::AbstractNormalToricVariety)
-    return get_attribute!(v, :irrelevant_ideal_monomials) do
-        mc = ray_indices(maximal_cones(v))
-        result = Vector{Vector{Int}}()
-        onesv = ones(Int, Polymake.ncols(mc))
-        for i in 1:Polymake.nrows(mc)
-            push!(result, onesv - Vector{Int}(mc[i,:]))
-        end
-        return result
-    end::Vector{Vector{Int}}
+@attr Vector{Vector{Int}} function _irrelevant_ideal_monomials(v::AbstractNormalToricVariety)
+    mc = ray_indices(maximal_cones(v))
+    result = Vector{Vector{Int}}()
+    onesv = ones(Int, Polymake.ncols(mc))
+    for i in 1:Polymake.nrows(mc)
+        push!(result, onesv - Vector{Int}(mc[i,:]))
+    end
+    return result
 end
 
 

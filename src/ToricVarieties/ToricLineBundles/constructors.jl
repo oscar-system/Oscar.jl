@@ -173,11 +173,9 @@ julia> StructureSheaf(v)
 A toric line bundle on a normal toric variety
 ```
 """
-function StructureSheaf(v::AbstractNormalToricVariety)
-    return get_attribute!(v, :structure_sheaf) do
-        class = zero(picard_group(v))
-        return ToricLineBundle(v, class)
-    end
+@attr ToricLineBundle function StructureSheaf(v::AbstractNormalToricVariety)
+    class = zero(picard_group(v))
+    return ToricLineBundle(v, class)
 end
 structure_sheaf(v::AbstractNormalToricVariety) = StructureSheaf(v)
 export StructureSheaf, structure_sheaf
