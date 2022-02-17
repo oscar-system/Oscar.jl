@@ -4305,12 +4305,12 @@ end
 # Not only for testing
 ######################################
 @doc Markdown.doc"""
-    map(F::FreeMod{T}, A::MatElem{T}) where T
+    map(F::FreeMod{T}, A::MatrixElem{T}) where T
 
 Converts a given $n \times m$-matrix into the corresponding morphism $A : R^n \to F$, 
 with `rank(F) == m`.
 """
-function map(F::FreeMod{T}, A::MatElem{T}) where T
+function map(F::FreeMod{T}, A::MatrixElem{T}) where {T <: RingElement}
   R = base_ring(F)
   F_domain = FreeMod(R, nrows(A))
 
