@@ -66,7 +66,7 @@ A toric line bundle on a normal toric variety
 ```
 """
 function ToricLineBundle(v::AbstractNormalToricVariety, d::ToricDivisor)
-    if !(iscartier(d))
+    if !iscartier(d)
         throw(ArgumentError("The toric divisor must be Cartier to define a toric line bundle."))
     end
     f = map_from_torusinvariant_cartier_divisor_group_to_picard_group(v)
@@ -102,7 +102,7 @@ A toric line bundle on a normal toric variety
 """
 function Base.:*(l1::ToricLineBundle, l2::ToricLineBundle)
     # check input
-    if !(toric_variety(l1) === toric_variety(l2))
+    if toric_variety(l1) !== toric_variety(l2)
         throw(ArgumentError("The line bundles must be defined on identically the same toric variety."))
     end
     
@@ -173,11 +173,9 @@ julia> StructureSheaf(v)
 A toric line bundle on a normal toric variety
 ```
 """
-function StructureSheaf(v::AbstractNormalToricVariety)
-    return get_attribute!(v, :structure_sheaf) do
-        class = zero(picard_group(v))
-        return ToricLineBundle(v, class)
-    end
+@attr ToricLineBundle function StructureSheaf(v::AbstractNormalToricVariety)
+    class = zero(picard_group(v))
+    return ToricLineBundle(v, class)
 end
 structure_sheaf(v::AbstractNormalToricVariety) = StructureSheaf(v)
 export StructureSheaf, structure_sheaf
@@ -208,7 +206,7 @@ true
 ```
 """
 function Base.:(==)(l1::ToricLineBundle, l2::ToricLineBundle)
-    if !(toric_variety(l1) === toric_variety(l2))
+    if toric_variety(l1) !== toric_variety(l2)
         return false
     end
     return iszero(divisor_class(l1) - divisor_class(l2))
