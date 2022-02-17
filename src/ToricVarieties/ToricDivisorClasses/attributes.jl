@@ -59,11 +59,9 @@ julia> toric_divisor(tdc)
 A torus-invariant, prime divisor on a normal toric variety
 ```
 """
-function toric_divisor(tdc::ToricDivisorClass)
-    return get_attribute!(tdc, :toric_divisor) do
-        f = map_from_torusinvariant_weil_divisor_group_to_class_group(toric_variety(tdc))
-        coeffs = vec([fmpz(x) for x in preimage(f, divisor_class(tdc)).coeff])
-        return ToricDivisor(toric_variety(tdc), coeffs)
-    end
+@attr ToricDivisor function toric_divisor(tdc::ToricDivisorClass)
+    f = map_from_torusinvariant_weil_divisor_group_to_class_group(toric_variety(tdc))
+    coeffs = vec([fmpz(x) for x in preimage(f, divisor_class(tdc)).coeff])
+    return ToricDivisor(toric_variety(tdc), coeffs)
 end
 export toric_divisor

@@ -108,7 +108,7 @@ A torus-invariant, non-prime divisor on a normal toric variety
 """
 function Base.:+(td1::ToricDivisor, td2::ToricDivisor)
     # check input
-    if !(toric_variety(td1) === toric_variety(td2))
+    if toric_variety(td1) !== toric_variety(td2)
         throw(ArgumentError("The toric divisors must be defined on identically the same toric variety."))
     end
     
@@ -142,7 +142,7 @@ A torus-invariant, non-prime divisor on a normal toric variety
 """
 function Base.:-(td1::ToricDivisor, td2::ToricDivisor)
     # check input
-    if !(toric_variety(td1) === toric_variety(td2))
+    if toric_variety(td1) !== toric_variety(td2)
         throw(ArgumentError("The toric divisors must be defined on identically the same toric variety."))
     end
     
@@ -200,7 +200,7 @@ true
 ```
 """
 function Base.:(==)(td1::ToricDivisor, td2::ToricDivisor)
-    if !(toric_variety(td1) === toric_variety(td2))
+    if toric_variety(td1) !== toric_variety(td2)
         return false
     end
     return coefficients(td1) == coefficients(td2)
