@@ -45,8 +45,9 @@ function tropical_variety(I::MPolyIdeal, val::ValuationMap)
   while compute_starting_points
     print("computing random starting points... ")
     starting_points = tropical_points(I,val)
-    println("starting_points:")
-    println(starting_points)
+    println("done")
+    # println("starting_points:")
+    # println(starting_points)
 
     working_list_todo = []
     working_list_done = []
@@ -70,8 +71,8 @@ function tropical_variety(I::MPolyIdeal, val::ValuationMap)
   # Part 2: Traversing the tropical variety
   ###
   while !isempty(working_list_todo)
-    println("length(working_list_todo): ",length(working_list_todo))
-    println("length(working_list_done): ",length(working_list_done))
+    print("#working_list_todo: ",length(working_list_todo),"  ")
+    println("#working_list_done: ",length(working_list_done))
 
     # pick a groebner polyhedron from todo list, add it to the done list, and compute its facet points
     (w,C,G) = popfirst!(working_list_todo)
@@ -125,19 +126,15 @@ function tropical_variety(I::MPolyIdeal, val::ValuationMap)
     end
   end
 
-  # for debugging
-  return working_list_done
-
   ###
   # Part 3: Preparing data to return
   ###
-  weights_and_groebner_bases = []
+
+  # 3.1 construct incidence_matrix, vertices_and_rays, and far_vertices for PolyhedralComplex
   incidence_matrix = Vector{Vector{Int}}()
   vertices_and_rays = Vector{Vector{Polymake.Rational}}()
   far_vertices = Vector{Int}()
   for (w,C,G) in working_list_done
-    push!(weights_and_groebner_bases,(w,G))
-
     incidence_vector = Vector{Int}()
     for vert in vertices(C)
       i = findfirst(isequal(vert),vertices_and_rays)
@@ -166,14 +163,21 @@ function tropical_variety(I::MPolyIdeal, val::ValuationMap)
   end
   vertices_and_rays = permutedims(reduce(hcat, vertices_and_rays)) # convert Vector{Vector} to Matrix
 
-  println("incidence_matrix:")
-  println(incidence_matrix)
-  println("vertices_and_rays:")
-  println(vertices_and_rays)
+  # construct lineality space
+  (w,C,G) = first(working_list_done)
+  lineality_space_gens = matrix(QQ,lineality_space(C))
+
+  # println("incidence_matrix:")
+  # println(incidence_matrix)
+  # println("vertices_and_rays:")
+  # println(vertices_and_rays)
   Trop_I = PolyhedralComplex(IncidenceMatrix(incidence_matrix),
                              vertices_and_rays,
-                             far_vertices)
+                             far_vertices,
+                             lineality_space_gens)
 
+  # construct list of weights and Groebner bases
+  weights_and_groebner_bases = [(w,G) for (w,C,G) in working_list_done]
   return Trop_I, weights_and_groebner_bases
 end
 export tropical_variety
