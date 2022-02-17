@@ -59,7 +59,7 @@ julia> all_cohomologies(ToricLineBundle(dP3, [1,2,3,4]))
 """
 function all_cohomologies(l::ToricLineBundle)
     # check if we can apply cohomCalg
-    v = variety(l)
+    v = toric_variety(l)
     if !((issmooth(v) && iscomplete(v)) || (issimplicial(v) && isprojective(v)))
         throw(ArgumentError("cohomCalg only applies to toric varieties that are either smooth, complete or simplicial, projective."))
     end
@@ -146,14 +146,14 @@ function all_cohomologies(l::ToricLineBundle)
         close(err.in)
         
         # was there an error?
-        stderr = String(read(err))
+        stderr = read(err, String)
         code = process.exitcode
         if code != 0
             error("cohomCalg encountered the error " * stderr)
         end
         
         # read out the result
-        stdout = String(read(out))
+        stdout = read(out, String)
         result = [fmpz(parse(Int,c)) for c in split(chop(chop(split(stdout, "{" )[4])), ",")]
         
         # consistency check

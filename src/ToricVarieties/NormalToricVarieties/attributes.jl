@@ -89,12 +89,12 @@ export set_coordinate_names
 This method returns the names of the homogeneous coordinates of 
 the normal toric variety `v`. The default is `x1,...,xn`.
 """
-coordinate_names(v::AbstractNormalToricVariety) = get_attribute!(v, :coordinate_names, ["x$(i)" for i in 1:rank(torusinvariant_divisor_group(v))])
+coordinate_names(v::AbstractNormalToricVariety) = get_attribute!(v, :coordinate_names, ["x$(i)" for i in 1:rank(torusinvariant_weil_divisor_group(v))])
 
 
 function _cox_ring_weights(v::AbstractNormalToricVariety)
     return get_attribute(v, :cox_ring_weights) do
-        return [map_from_weil_divisors_to_class_group(v)(x) for x in gens(torusinvariant_divisor_group(v))]
+        return [map_from_torusinvariant_weil_divisor_group_to_class_group(v)(x) for x in gens(torusinvariant_weil_divisor_group(v))]
     end
 end
 
@@ -153,12 +153,10 @@ end
 export cox_ring
 
 
-function _minimal_nonfaces(v::AbstractNormalToricVariety)
-    return get_attribute(v, :minimal_nonfaces) do
-        I = ray_indices(maximal_cones(v))
-        K = SimplicialComplex(I)
-        return minimal_nonfaces(IncidenceMatrix, K)
-    end
+@attr Polymake.IncidenceMatrixAllocated{Polymake.NonSymmetric} function _minimal_nonfaces(v::AbstractNormalToricVariety)
+    I = ray_indices(maximal_cones(v))
+    K = SimplicialComplex(I)
+    return minimal_nonfaces(IncidenceMatrix, K)
 end
 
 @doc Markdown.doc"""
@@ -201,17 +199,14 @@ stanley_reisner_ideal(v::AbstractNormalToricVariety) = stanley_reisner_ideal(cox
 export stanley_reisner_ideal
 
 
-
-function _irrelevant_ideal_monomials(v::AbstractNormalToricVariety)
-    return get_attribute!(v, :irrelevant_ideal_monomials) do
-        mc = ray_indices(maximal_cones(v))
-        result = Vector{Vector{Int}}()
-        onesv = ones(Int, Polymake.ncols(mc))
-        for i in 1:Polymake.nrows(mc)
-            push!(result, onesv - Vector{Int}(mc[i,:]))
-        end
-        return result
-    end::Vector{Vector{Int}}
+@attr Vector{Vector{Int}} function _irrelevant_ideal_monomials(v::AbstractNormalToricVariety)
+    mc = ray_indices(maximal_cones(v))
+    result = Vector{Vector{Int}}()
+    onesv = ones(Int, Polymake.ncols(mc))
+    for i in 1:Polymake.nrows(mc)
+        push!(result, onesv - Vector{Int}(mc[i,:]))
+    end
+    return result
 end
 
 
@@ -347,7 +342,7 @@ export character_lattice
 
 
 @doc Markdown.doc"""
-    torusinvariant_divisor_group(v::AbstractNormalToricVariety)
+    torusinvariant_weil_divisor_group(v::AbstractNormalToricVariety)
 
 Return the torusinvariant divisor group of a normal toric variety `v`.
 
@@ -355,18 +350,18 @@ Return the torusinvariant divisor group of a normal toric variety `v`.
 ```jldoctest
 julia> p2 = projective_space(NormalToricVariety, 2);
 
-julia> torusinvariant_divisor_group(p2)
+julia> torusinvariant_weil_divisor_group(p2)
 GrpAb: Z^3
 ```
 """
-@attr GrpAbFinGen function torusinvariant_divisor_group(v::AbstractNormalToricVariety)
+@attr GrpAbFinGen function torusinvariant_weil_divisor_group(v::AbstractNormalToricVariety)
     return free_abelian_group(nrays(v))
 end
-export torusinvariant_divisor_group
+export torusinvariant_weil_divisor_group
 
 
 @doc Markdown.doc"""
-    map_from_character_to_principal_divisors(v::AbstractNormalToricVariety)
+    map_from_character_lattice_to_torusinvariant_weil_divisor_group(v::AbstractNormalToricVariety)
 
 Return the map from the character lattice to the group of principal divisors of a normal toric variety `v`.
 
@@ -374,7 +369,7 @@ Return the map from the character lattice to the group of principal divisors of 
 ```jldoctest
 julia> p2 = projective_space(NormalToricVariety, 2);
 
-julia> map_from_character_to_principal_divisors(p2)
+julia> map_from_character_lattice_to_torusinvariant_weil_divisor_group(p2)
 Map with following data
 Domain:
 =======
@@ -384,11 +379,11 @@ Codomain:
 Abelian group with structure: Z^3
 ```
 """
-@attr GrpAbFinGenMap function map_from_character_to_principal_divisors(v::AbstractNormalToricVariety)
+@attr GrpAbFinGenMap function map_from_character_lattice_to_torusinvariant_weil_divisor_group(v::AbstractNormalToricVariety)
     mat = transpose(matrix(ZZ, rays(v)))
-    return hom(character_lattice(v), torusinvariant_divisor_group(v), mat)
+    return hom(character_lattice(v), torusinvariant_weil_divisor_group(v), mat)
 end
-export map_from_character_to_principal_divisors
+export map_from_character_lattice_to_torusinvariant_weil_divisor_group
 
 
 @doc Markdown.doc"""
@@ -408,7 +403,7 @@ julia> torusinvariant_prime_divisors(p2)
 ```
 """
 @attr Vector{ToricDivisor} function torusinvariant_prime_divisors(v::AbstractNormalToricVariety)
-    ti_divisors = torusinvariant_divisor_group(v)
+    ti_divisors = torusinvariant_weil_divisor_group(v)
     prime_divisors = ToricDivisor[]
     for i in 1:rank(ti_divisors)
         coeffs = zeros(Int, rank(ti_divisors))
@@ -434,13 +429,13 @@ GrpAb: Z
 ```
 """
 @attr GrpAbFinGen function class_group(v::AbstractNormalToricVariety)
-    return codomain(map_from_weil_divisors_to_class_group(v))
+    return codomain(map_from_torusinvariant_weil_divisor_group_to_class_group(v))
 end
 export class_group
 
 
 @doc Markdown.doc"""
-    map_from_weil_divisors_to_class_group(v::AbstractNormalToricVariety)
+    map_from_torusinvariant_weil_divisor_group_to_class_group(v::AbstractNormalToricVariety)
 
 Return the map from the group of Weil divisors to the class of group of a normal toric variety `v`.
 
@@ -448,7 +443,7 @@ Return the map from the group of Weil divisors to the class of group of a normal
 ```jldoctest
 julia> p2 = projective_space(NormalToricVariety, 2);
 
-julia> map_from_weil_divisors_to_class_group(p2)
+julia> map_from_torusinvariant_weil_divisor_group_to_class_group(p2)
 Map with following data
 Domain:
 =======
@@ -458,16 +453,16 @@ Codomain:
 Abelian group with structure: Z
 ```
 """
-@attr GrpAbFinGenMap function map_from_weil_divisors_to_class_group(v::AbstractNormalToricVariety)
-    map1 = cokernel(map_from_character_to_principal_divisors(v))[2]
+@attr GrpAbFinGenMap function map_from_torusinvariant_weil_divisor_group_to_class_group(v::AbstractNormalToricVariety)
+    map1 = cokernel(map_from_character_lattice_to_torusinvariant_weil_divisor_group(v))[2]
     map2 = inv(snf(codomain(map1))[2])
     return map1*map2
 end
-export map_from_weil_divisors_to_class_group
+export map_from_torusinvariant_weil_divisor_group_to_class_group
 
 
 @doc Markdown.doc"""
-    map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v::AbstractNormalToricVariety)
+    map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(v::AbstractNormalToricVariety)
 
 Return the embedding of the group of Cartier divisors into the group of
 torus-invariant Weil divisors of an abstract normal toric variety `v`.
@@ -477,7 +472,7 @@ torus-invariant Weil divisors of an abstract normal toric variety `v`.
 julia> p2 = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> map_from_cartier_divisor_group_to_torus_invariant_divisor_group(p2)
+julia> map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(p2)
 Identity map with
 
 Domain:
@@ -485,7 +480,7 @@ Domain:
 GrpAb: Z^3
 ```
 """
-@attr Map{GrpAbFinGen, GrpAbFinGen} function map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v::AbstractNormalToricVariety)
+@attr Map{GrpAbFinGen, GrpAbFinGen} function map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(v::AbstractNormalToricVariety)
     # check input
     if hastorusfactor(v)
         throw(ArgumentError("Group of the torus-invariant Cartier divisors can only be computed if the variety has no torus factor."))
@@ -512,7 +507,7 @@ GrpAb: Z^3
             col += 1
         end
     end
-
+    
     # compute the matrix for differences
     map_for_difference_of_elements = zero_matrix(ZZ, s, s-number_of_rays)
     row = 1
@@ -524,9 +519,9 @@ GrpAb: Z^3
         row += ncol + 1
         col += ncol
     end
-
+    
     # compute the matrix for mapping to torusinvariant Weil divisors
-    map_to_weil_divisors = zero_matrix(ZZ, number_of_cones * rc, rank(torusinvariant_divisor_group(v)))
+    map_to_weil_divisors = zero_matrix(ZZ, number_of_cones * rc, rank(torusinvariant_weil_divisor_group(v)))
     for i in 1:number_of_rays
         map_to_weil_divisors[(cones_ray_is_part_of[i][1]-1)*rc+1:cones_ray_is_part_of[i][1]*rc, i] = [fmpz(-c) for c in fan_rays[:,i]]
     end
@@ -539,15 +534,15 @@ GrpAb: Z^3
 
     # identify the embedding of the cartier_data_group
     ker = kernel(total_map)
-    embedding = snf(ker[1])[2] * ker[2] * hom(codomain(ker[2]), torusinvariant_divisor_group(v), map_to_weil_divisors)
+    embedding = snf(ker[1])[2] * ker[2] * hom(codomain(ker[2]), torusinvariant_weil_divisor_group(v), map_to_weil_divisors)
 
     # return the image of this embedding
     return image(embedding)[2]
 end
-export map_from_cartier_divisor_group_to_torus_invariant_divisor_group
+export map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group
 
 @doc Markdown.doc"""
-    cartier_divisor_group(v::AbstractNormalToricVariety)
+    torusinvariant_cartier_divisor_group(v::AbstractNormalToricVariety)
 
 Return the Cartier divisor group of an abstract normal toric variety `v`.
 
@@ -556,18 +551,18 @@ Return the Cartier divisor group of an abstract normal toric variety `v`.
 julia> p2 = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> cartier_divisor_group(p2)
+julia> torusinvariant_cartier_divisor_group(p2)
 GrpAb: Z^3
 ```
 """
-@attr GrpAbFinGen function cartier_divisor_group(v::AbstractNormalToricVariety)
-    return domain(map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v))
+@attr GrpAbFinGen function torusinvariant_cartier_divisor_group(v::AbstractNormalToricVariety)
+    return domain(map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(v))
 end
-export cartier_divisor_group
+export torusinvariant_cartier_divisor_group
 
 
 @doc Markdown.doc"""
-    map_from_cartier_divisor_group_to_picard_group(v::AbstractNormalToricVariety)
+    map_from_torusinvariant_cartier_divisor_group_to_picard_group(v::AbstractNormalToricVariety)
 
 Return the map from the Cartier divisors to the Picard group
 of an abstract normal toric variety `v`.
@@ -577,7 +572,7 @@ of an abstract normal toric variety `v`.
 julia> p2 = projective_space(NormalToricVariety, 2)
 A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
 
-julia> map_from_cartier_divisor_group_to_picard_group(p2)
+julia> map_from_torusinvariant_cartier_divisor_group_to_picard_group(p2)
 Map with following data
 Domain:
 =======
@@ -587,18 +582,18 @@ Codomain:
 Abelian group with structure: Z
 ```
 """
-@attr GrpAbFinGenMap function map_from_cartier_divisor_group_to_picard_group(v::AbstractNormalToricVariety)
+@attr GrpAbFinGenMap function map_from_torusinvariant_cartier_divisor_group_to_picard_group(v::AbstractNormalToricVariety)
     # check input
     if hastorusfactor(v)
         throw(ArgumentError("Group of the torus-invariant Cartier divisors can only be computed if the variety has no torus factor."))
     end
-
+    
     # compute mapping
-    map1 = map_from_cartier_divisor_group_to_torus_invariant_divisor_group(v)
-    map2 = map_from_weil_divisors_to_class_group(v)
+    map1 = map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(v)
+    map2 = map_from_torusinvariant_weil_divisor_group_to_class_group(v)
     return restrict_codomain(map1*map2)
 end
-export map_from_cartier_divisor_group_to_picard_group
+export map_from_torusinvariant_cartier_divisor_group_to_picard_group
 
 
 @doc Markdown.doc"""
@@ -616,7 +611,7 @@ GrpAb: Z
 ```
 """
 @attr GrpAbFinGen function picard_group(v::AbstractNormalToricVariety)
-    return codomain(map_from_cartier_divisor_group_to_picard_group(v))
+    return codomain(map_from_torusinvariant_cartier_divisor_group_to_picard_group(v))
 end
 export picard_group
 

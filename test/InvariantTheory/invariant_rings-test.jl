@@ -55,24 +55,6 @@
   @test length(basis(RGm, 1, :linear_algebra)) == 1
   @test_throws AssertionError basis(RGm, 1, :reynolds)
 
-  secondaries = secondary_invariants(RG0)
-  for f in secondaries
-    @test reynolds_operator(RG0, f) == f
-  end
-  irrs = irreducible_secondary_invariants(RG0)
-  for f in irrs
-    @test reynolds_operator(RG0, f) == f
-  end
-
-  secondaries = secondary_invariants(RGp)
-  for f in secondaries
-    @test reynolds_operator(RGp, f) == f
-  end
-  irrs = irreducible_secondary_invariants(RGp)
-  for f in irrs
-    @test reynolds_operator(RGp, f) == f
-  end
-
   mol = molien_series(RG0)
   F = parent(mol)
   t = gens(base_ring(F))[1]

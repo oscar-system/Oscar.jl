@@ -18,10 +18,27 @@ correspond to the rays of the underlying fan.
 
 ## Constructors
 
+### General constructors
+
 ```@docs
 DivisorOfCharacter(v::AbstractNormalToricVariety, character::Vector{Int})
 ToricDivisor(v::AbstractNormalToricVariety, coeffs::Vector{Int})
 ```
+
+### Special constructors
+
+```@docs
+Base.:+(td1::ToricDivisor, td2::ToricDivisor)
+Base.:-(td1::ToricDivisor, td2::ToricDivisor)
+Base.:*(c::fmpz, td::ToricDivisor)
+```
+
+### Equality
+
+```@docs
+Base.:(==)(td1::ToricDivisor, td2::ToricDivisor)
+```
+
 
 ## Properties of toric divisors
 

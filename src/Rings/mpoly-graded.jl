@@ -880,11 +880,29 @@ julia> R, (x, y, z) = GradedPolynomialRing(QQ, ["x", "y", "z"], [1, 2, 3])
   y -> [2]
   z -> [3], MPolyElem_dec{fmpq, fmpq_mpoly}[x, y, z])
 
-julia> f = x^2+y+z
-x^2 + y + z
+julia> f = x^2+y*z
+x^2 + y*z
 
 julia> ishomogeneous(f)
 false
+
+julia> W = [1 2 1 0; 3 4 0 1]
+2×4 Matrix{Int64}:
+ 1  2  1  0
+ 3  4  0  1
+
+julia> S, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"], W)
+(Multivariate Polynomial Ring in w, x, y, z over Rational Field graded by
+  w -> [1 3]
+  x -> [2 4]
+  y -> [1 0]
+  z -> [0 1], MPolyElem_dec{fmpq, fmpq_mpoly}[w, x, y, z])
+
+julia> F = w^3*y^3*z^3 + w^2*x*y^2*z^2 + w*x^2*y*z + x^3
+w^3*y^3*z^3 + w^2*x*y^2*z^2 + w*x^2*y*z + x^3
+
+julia> ishomogeneous(F)
+true
 ```
 """
 function ishomogeneous(F::MPolyElem_dec)
@@ -1547,9 +1565,7 @@ function _homogenization(f::MPolyElem, W::fmpz_mat, var::String, pos::Int = 1)
   R = parent(f)
   A = String.(symbols(R))
   l = length(A)
-  if (pos > l+1) ||  (pos <1)
-      throw(ArgumentError("Index out of range."))
-  end
+  pos in 1:l+1 || throw(ArgumentError("Index out of range."))
   if size(W, 1) == 1
      insert!(A, pos, var)
   else
@@ -1629,9 +1645,7 @@ function homogenization(V::Vector{T},  W::Union{fmpz_mat, Matrix{<:IntegerUnion}
   R = parent(V[1])
   A = String.(symbols(R))
   l = length(A)
-  if (pos > l+1) ||  (pos <1)
-      throw(ArgumentError("Index out of range."))
-  end
+  pos in 1:l+1 || throw(ArgumentError("Index out of range."))
   if size(W, 1) == 1
      insert!(A, pos, var)
   else
@@ -1721,9 +1735,7 @@ function homogenization(f::MPolyElem, var::String, pos::Int = 1)
   R = parent(f)
   A = String.(symbols(R))
   l = length(A)
-  if (pos > l+1) ||  (pos <1)
-      throw(ArgumentError("Index out of range."))
-  end
+  pos in 1:l+1 || throw(ArgumentError("Index out of range."))
   insert!(A, pos, var)
   L, _ = PolynomialRing(R.base_ring, A)
   S, = grade(L)
@@ -1734,9 +1746,7 @@ function homogenization(V::Vector{T}, var::String, pos::Int = 1) where {T <: MPo
   R = parent(V[1])
   A = String.(symbols(R))
   l = length(A)
-  if (pos > l+1) ||  (pos <1)
-      throw(ArgumentError("Index out of range."))
-  end
+  pos in 1:l+1 || throw(ArgumentError("Index out of range."))
   insert!(A, pos, var)
   L, _ = PolynomialRing(R.base_ring, A)
   S, = grade(L)
@@ -1764,9 +1774,7 @@ end
 function _dehomogenization(F::MPolyElem_dec, R::MPolyRing, pos::Int, m::Int)
   B = MPolyBuildCtx(R)
   for (c,e) = zip(coefficients(F), exponent_vectors(F))
-      for i = (pos+m-1):-1:pos
-         deleteat!(e, i)
-      end
+    deleteat!(e, pos:pos+m-1)
     push_term!(B, c, e)
   end
   return finish(B)
@@ -1836,11 +1844,11 @@ julia> S, (w, x, y, z) = GradedPolynomialRing(QQ, ["w", "x", "y", "z"], W)
   y -> [1 0]
   z -> [0 1], MPolyElem_dec{fmpq, fmpq_mpoly}[w, x, y, z])
 
-julia> F = w^3*y^3*z^3 + w^2*x*y^2*z^2 + w*x^2*x*z + x^3
-w^3*y^3*z^3 + w^2*x*y^2*z^2 + w*x^3*z + x^3
+julia> F = w^3*y^3*z^3 + w^2*x*y^2*z^2 + w*x^2*y*z + x^3
+w^3*y^3*z^3 + w^2*x*y^2*z^2 + w*x^2*y*z + x^3
 
 julia> dehomogenization(F, 3)
-w^3 + w^2*x + w*x^3 + x^3
+w^3 + w^2*x + w*x^2 + x^3
 ```
 """
 function dehomogenization(F::MPolyElem_dec, pos::Int)
@@ -1849,16 +1857,12 @@ function dehomogenization(F::MPolyElem_dec, pos::Int)
   l = ngens(S)
   G = grading_group(S)
   m = ngens(G)
-  if (pos > l-m+1) ||  (pos <1)
-      throw(ArgumentError("Index out of range."))
-  end
+  pos in 1:l-m+1 || throw(ArgumentError("Index out of range."))
   for i = 1:m
       @assert degree(gens(S)[pos-1+i]) == gen(G, i)
   end
   A = String.(symbols(S))
-  for i = (pos+m-1):-1:pos
-     deleteat!(A, i)
-  end
+  deleteat!(A, pos:pos+m-1)
   R, _ = PolynomialRing(base_ring(S), A)
   return _dehomogenization(F, R, pos, m)
 end
@@ -1869,16 +1873,12 @@ function dehomogenization(V::Vector{T}, pos::Int) where {T <: MPolyElem_dec}
   l = ngens(S)
   G = grading_group(S)
   m = ngens(G)
-  if (pos > l-m+1) ||  (pos <1)
-      throw(ArgumentError("Index out of range."))
-  end
+  pos in 1:l-m+1 || throw(ArgumentError("Index out of range."))
   for i = 1:m
       @assert degree(gens(S)[pos-1+i]) == gen(G, i)
   end
   A = String.(symbols(S))
-  for i = (pos+m-1):-1:pos
-     deleteat!(A, i)
-  end
+  deleteat!(A, pos:pos+m-1)
   R, _ = PolynomialRing(base_ring(S), A)
   l = length(V)
   return [_dehomogenization(V[i], R, pos, m) for i=1:l]

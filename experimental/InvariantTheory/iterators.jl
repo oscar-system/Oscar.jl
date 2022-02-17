@@ -252,7 +252,14 @@ function iterate_basis_linear_algebra(IR::InvRing, d::Int)
   K = base_ring(R)
 
   group_gens = action(IR)
-  M = zero_matrix(K, length(group_gens)*length(mons), length(mons))
+
+  M = sparse_matrix(K)
+  M.c = length(mons)
+  M.r = length(group_gens)*length(mons)
+  for i = 1:M.r
+    push!(M.rows, sparse_row(K))
+  end
+
   for i = 1:length(group_gens)
     offset = (i - 1)*length(mons)
     phi = right_action(R, group_gens[i])
@@ -260,7 +267,10 @@ function iterate_basis_linear_algebra(IR::InvRing, d::Int)
       f = mons[j]
       g = phi(f) - f
       for (c, m) in zip(coefficients(g), monomials(g))
-        M[offset + mons_to_rows[m], j] = c
+        k = offset + mons_to_rows[m]
+        push!(M.rows[k].pos, j)
+        push!(M.rows[k].values, c)
+        M.nnz += 1
       end
     end
   end
@@ -298,14 +308,6 @@ function iterate_reynolds(BI::InvRingBasisIterator)
     return nothing
   end
 
-  K = base_ring(polynomial_ring(BI.R))
-
-  monomial_to_basis = Dict{elem_type(polynomial_ring(BI.R)), Int}()
-
-  if BI.degree == 0
-    return one(polynomial_ring(BI.R)), (zero_matrix(K, 1, 0), monomial_to_basis, Vector{Int}())
-  end
-
   state = nothing
   while true
     fstate = iterate(BI.monomials, state)
@@ -319,38 +321,21 @@ function iterate_reynolds(BI::InvRingBasisIterator)
     if iszero(g)
       continue
     end
-    M = zero_matrix(K, BI.dim, length(g))
-    pivot_rows = zeros(Int, length(g))
     g = inv(leading_coefficient(g))*g
-    i = 1
-    for (c, m) in zip(coefficients(g), monomials(g))
-      monomial_to_basis[m] = i
-      M[1, i] = c
-      i += 1
-    end
-    pivot_rows[1] = 1
-    @assert M[1, 1] == 1
-    v = zeros(K, ncols(M))
-    return g, (M, monomial_to_basis, state, pivot_rows, 1, v)
+    B = BasisOfPolynomials(polynomial_ring(BI.R), [ g ])
+    return g, (B, state)
   end
 end
 
 function iterate_reynolds(BI::InvRingBasisIterator, state)
   @assert BI.reynolds
 
-  M = state[1]
-  r = state[5]
-  if r == BI.dim
+  B = state[1]
+  monomial_state = state[2]
+  if nrows(B.M) == BI.dim
     return nothing
   end
 
-  pivot_rows = state[4]
-  v = state[6]
-
-  K = base_ring(polynomial_ring(BI.R))
-
-  monomial_to_basis = state[2]
-  monomial_state = state[3]
   while true
     fmonomial_state = iterate(BI.monomials, monomial_state)
     if fmonomial_state === nothing
@@ -364,24 +349,8 @@ function iterate_reynolds(BI::InvRingBasisIterator, state)
       continue
     end
 
-    v = zero!.(v)
-    new_cols = 0
-    for (c, m) in zip(coefficients(g), monomials(g))
-      if !haskey(monomial_to_basis, m)
-        monomial_to_basis[m] = length(v) + 1
-        new_cols += 1
-        push!(v, c)
-      else
-        col = monomial_to_basis[m]
-        v[col] = c
-      end
-    end
-    if !iszero(new_cols)
-      append!(pivot_rows, zeros(Int, new_cols))
-      M = hcat(M, zero_matrix(K, nrows(M), new_cols))
-    end
-    if Hecke._add_row_to_rref!(M, v, pivot_rows, r + 1)
-      return inv(leading_coefficient(g))*g, (M, monomial_to_basis, monomial_state, pivot_rows, r + 1, v)
+    if add_to_basis!(B, g)
+      return inv(leading_coefficient(g))*g, (B, monomial_state)
     end
   end
 end
