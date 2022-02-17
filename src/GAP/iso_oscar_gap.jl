@@ -294,7 +294,7 @@ end
 #
 ################################################################################
 
-function AbstractAlgebra.map_entries(f::Map{T, GapObj}, a::MatrixElem) where T
+function AbstractAlgebra.map_entries(f::Map{T, GapObj}, a::MatrixElem{S}) where {S <: RingElement}
    isempty(a) && error("empty matrices are not supported by GAP")
    @assert base_ring(a) === domain(f)
    rows = Vector{GapObj}(undef, nrows(a))
