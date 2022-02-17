@@ -5,6 +5,9 @@ n = 6
    x = G(vcat(2:n-1, [1]))
 
    g = hom(G, G, gens(G), [y^x for y in gens(G)])
+   @test g == hom(G, G, gens(G), [y^x for y in gens(G)], check = false)
+   @test g == hom(G, G, [y^x for y in gens(G)])
+   @test g == hom(G, G, [y^x for y in gens(G)], check = false)
    @test typeof(g) == Oscar.GAPGroupHomomorphism{PermGroup, PermGroup}
    @test domain(g) == G
    @test codomain(g) == G
