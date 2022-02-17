@@ -108,15 +108,22 @@ function hom(G::GAPGroup, H::GAPGroup, img::Function)
 end
 
 """
-    hom(G::GAPGroup, H::GAPGroup, gensG::Vector, imgs::Vector)
+    hom(G::GAPGroup, H::GAPGroup, gensG::Vector, imgs::Vector; check::Bool = true)
 
 Return the group homomorphism defined by `gensG`[`i`] -> `imgs`[`i`] for every
 `i`. In order to work, the elements of `gensG` must generate `G`.
+
+If `check` is set to `false` then it is not checked whether the mapping
+defines a group homomorphism.
 """
-function hom(G::GAPGroup, H::GAPGroup, gensG::Vector, imgs::Vector)
+function hom(G::GAPGroup, H::GAPGroup, gensG::Vector, imgs::Vector; check::Bool = true)
   vgens = GapObj([x.X for x in gensG])
   vimgs = GapObj([x.X for x in imgs])
-  mp = GAP.Globals.GroupHomomorphismByImages(G.X, H.X, vgens, vimgs)
+  if check
+    mp = GAP.Globals.GroupHomomorphismByImages(G.X, H.X, vgens, vimgs)
+  else
+    mp = GAP.Globals.GroupHomomorphismByImagesNC(G.X, H.X, vgens, vimgs)
+  end
   if mp == GAP.Globals.fail throw(ArgumentError("Invalid input")) end
   return GAPGroupHomomorphism(G, H, mp)
 end
@@ -495,7 +502,7 @@ An exception is thrown if `H` is not invariant under `f`.
 """
 function restrict_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, H::T, A=automorphism_group(H)) where T <: GAPGroup
   @assert isinvariant(f,H) "H is not invariant under f!"
-  fh = hom(H,H,gens(H), [f(x) for x in gens(H)])
+  fh = hom(H, H, gens(H), [f(x) for x in gens(H)], check = false)
   return A(fh)
 end
 
