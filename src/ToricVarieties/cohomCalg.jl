@@ -146,14 +146,14 @@ function all_cohomologies(l::ToricLineBundle)
         close(err.in)
         
         # was there an error?
-        stderr = String(read(err))
+        stderr = read(err, String)
         code = process.exitcode
         if code != 0
             error("cohomCalg encountered the error " * stderr)
         end
         
         # read out the result
-        stdout = String(read(out))
+        stdout = read(out, String)
         result = [fmpz(parse(Int,c)) for c in split(chop(chop(split(stdout, "{" )[4])), ",")]
         
         # consistency check
