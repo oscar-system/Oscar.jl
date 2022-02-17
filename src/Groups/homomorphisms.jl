@@ -71,21 +71,17 @@ end
 Return the identity homomorphism on the group `G`.
 """
 function id_hom(G::GAPGroup)
-  return hom(G, G, x -> x)
+  return GAPGroupHomomorphism(G, G, GAP.Globals.IdentityMapping(G.X))
 end
 
 """
-    trivial_morphism(G::GAPGroup, H::GAPGroup)
+    trivial_morphism(G::GAPGroup, H::GAPGroup = G)
 
 Return the homomorphism from `G` to `H` sending every element of `G` into the
-identity of `H`. If `H` is not specified, it is taken equal to `G`.
+identity of `H`.
 """
-function trivial_morphism(G::GAPGroup, H::GAPGroup)
+function trivial_morphism(G::GAPGroup, H::GAPGroup = G)
   return hom(G, H, x -> one(H))
-end
-
-function trivial_morphism(G::GAPGroup)
-  return hom(G, G, x -> one(G))
 end
 
 """
@@ -108,7 +104,7 @@ function hom(G::GAPGroup, H::GAPGroup, img::Function)
 end
 
 """
-    hom(G::GAPGroup, H::GAPGroup, gensG::Vector, imgs::Vector; check::Bool = true)
+    hom(G::GAPGroup, H::GAPGroup, gensG::Vector = gens(G), imgs::Vector; check::Bool = true)
 
 Return the group homomorphism defined by `gensG`[`i`] -> `imgs`[`i`] for every
 `i`. In order to work, the elements of `gensG` must generate `G`.
@@ -126,6 +122,10 @@ function hom(G::GAPGroup, H::GAPGroup, gensG::Vector, imgs::Vector; check::Bool 
   end
   if mp == GAP.Globals.fail throw(ArgumentError("Invalid input")) end
   return GAPGroupHomomorphism(G, H, mp)
+end
+
+function hom(G::GAPGroup, H::GAPGroup, imgs::Vector; check::Bool = true)
+  return hom(G, H, gens(G), imgs; check)
 end
 
 function domain(f::GAPGroupHomomorphism)
