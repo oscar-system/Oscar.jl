@@ -102,7 +102,7 @@ Every group of this type is the subgroup of Sym(n) for some n.
    end
    
    function PermGroup(G::GapObj, deg::Int)
-     @assert GAPWrap.IsPermGroup(G)
+     @assert GAPWrap.IsPermGroup(G) && deg > 0 && deg >= GAPWrap.LargestMovedPoint(G)::Int
      z = new(G, deg)
      return z
    end
