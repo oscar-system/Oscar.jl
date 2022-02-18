@@ -805,6 +805,38 @@ function H_two(C::GModule)
       if pos[r] == 0
         continue
       end
+      t1 = zero(M)
+      g1 = one(G)
+      w = R[r][1]
+      for i=1:length(w)
+        if w[i] > 0
+          t1 = ac[w[i]](t1)+cc(g1, mFF(gen(FF, w[i])))
+          g1 = g1*mFF(gen(FF, w[i]))
+        else
+          #need to mult by (w, 0)^-1 = (w^-1, -cc(w, w^-1))
+          #so (g, t) (w, 0)^-1 = (g w^-1, t^w^-1 - cc(w, w^-1) + cc(g, w^-1)
+          t1 = iac[-w[i]](t1)-cc(mFF(gen(FF, -w[i])), inv(mFF(gen(FF, -w[i]))))+cc(g1, inv(mFF(gen(FF, -w[i]))))
+          g1 = g1*mFF(inv(gen(FF, -w[i])))
+        end
+      end
+
+      t2 = zero(M)
+      g2 = one(G)
+      w = R[r][2]
+      for i=1:length(w)
+        if w[i] > 0
+          t2 = ac[w[i]](t2)+cc(g2, mFF(gen(FF, w[i])))
+          g2 = g2*mFF(gen(FF, w[i]))
+        else
+          #need to mult by (w, 0)^-1 = (w^-1, -cc(w, w^-1))
+          #so (g, t) (w, 0)^-1 = (g w^-1, t^w^-1 - cc(w, w^-1) + cc(g, w^-1)
+          t2 = iac[-w[i]](t2)-cc(mFF(gen(FF, -w[i])), inv(mFF(gen(FF, -w[i]))))+cc(g2, inv(mFF(gen(FF, -w[i]))))
+          g2 = g2*mFF(inv(gen(FF, -w[i])))
+        end
+      end
+      @assert g1 == g2
+
+      #=
       w = [-x for x = reverse(R[r][2])]
       append!(w, R[r][1])
       #w is inv(r[2])*r[1]
@@ -835,7 +867,8 @@ function H_two(C::GModule)
       @show r2, mFF(r2)
       t = t + cc(mFF(inv(r2)), mFF(r2))
       =#
-      T += inj[pos[r]](t)
+      =#
+      T += inj[pos[r]](t1-t2)
     end
     return T
   end
@@ -904,25 +937,36 @@ function H_two(C::GModule)
 
   set_attribute!(C, :H_two_symbolic_chain => (symbolic_chain, mH2))
 
-  function iscoboundary(c::CoChain{2})
-    t = TailFromCoChain(c)
+  function iscoboundary(cc::CoChain{2})
+    t = TailFromCoChain(cc)
     fl, b = haspreimage(CC, t)
     if !fl
       return false, nothing
     end
-    #check: is the inverse correct???
     d = Dict{Tuple{elem_type(G), }, elem_type(M)}()
+    # t gives, directly, the images of the generators (of FF)
+    im_g = [B_pro[i](b) for i=1:ngens(FF)]
+    # otherwise: sigma(g, h) + sigma(gh) = sigma(g)^h + sigma(h)
+    # this gives the images fir the inverses, and then for everything
+    im_gi = [cc((mFF(gen(FF, i)), mFF(inv(gen(FF, i))))) - iac[i](im_g[i]) for i=1:ngens(FF)]
+    @assert domain(mFF) == FF
+    @assert codomain(mFF) == G == group(cc.C)
     for g = G
       m = zero(M)
+      h = one(G)
       w = word(preimage(mFF, g))
+
       for i=1:length(w)
         if w[i] < 0
-          m = iac[-w[i]](m-B_pro[-w[i]](b))
+          m = iac[-w[i]](m)+im_gi[-w[i]]-cc((h, mFF(inv(gen(FF, -w[i])))))
+          h = h*mFF(inv(gen(FF, -w[i])))
         else
-          m = ac[w[i]](m)+B_pro[w[i]](b)
+          m = ac[w[i]](m)+im_g[w[i]]-cc((h, mFF(gen(FF, w[i]))))
+          h = h*mFF(gen(FF, w[i]))
         end
       end
       d[(g,)] = m
+      @assert g == h
     end
     return true, CoChain{1,elem_type(G),elem_type(M)}(C, d)
   end
@@ -1577,7 +1621,7 @@ function iscoboundary(c::CoChain{2,PermGroupElem,MultGrpElem{nf_elem}})
     u, mu = Hecke.sunit_group_fac_elem(collect(S))
   end
   C = gmodule(Group(c.C), mu)
-  _, _, z = cohomology_group(C, 2)
+  H2, _, z = cohomology_group(C, 2)
   cc = CoChain{2,PermGroupElem,GrpAbFinGenElem}(C, Dict((h, preimage(mu, FacElem(v.data))) for (h,v) = c.d))
   fl, d = z(cc)
   if !fl
