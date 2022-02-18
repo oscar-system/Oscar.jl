@@ -103,7 +103,8 @@ function Base.in(
   # We need to check whether for some a ∈ R and k ∈ ℕ we have 
   #   a⋅f = dᵏ.
   (i, o) = ppio(f, d)
-  return divides(one(R), o)[1]
+  #return divides(one(R), o)[1]
+  return isunit(o)
 end
 
 ### iteration 

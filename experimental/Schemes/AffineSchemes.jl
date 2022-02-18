@@ -78,8 +78,6 @@ spec_type(R::T) where {T<:AbstractAlgebra.Ring} = Spec{T, elem_type(T), mpoly_ri
 spec_type(::Type{T}) where {T<:AbstractAlgebra.Ring} = Spec{T, elem_type(T), mpoly_ring_type(T), mpoly_type(T), MPolyPowersOfElement{T, elem_type(T), mpoly_ring_type(T), mpoly_type(T)}}
 spec_type(L::MPolyQuoLocalizedRing{S, T, U, V, W}) where {S, T, U, V, W} = Spec{S, T, U, V, W}
 spec_type(::Type{MPolyQuoLocalizedRing{S, T, U, V, W}}) where {S, T, U, V, W} = Spec{S, T, U, V, W}
-ring_type(X::Spec{S, T, U, V, W}) where {S, T, U, V, W} = MPolyQuoLocalizedRing{S, T, U, V, W}
-ring_type(::Type{Spec{S, T, U, V, W}}) where {S, T, U, V, W} = MPolyQuoLocalizedRing{S, T, U, V, W}
 
 
 

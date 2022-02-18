@@ -38,7 +38,8 @@ mutable struct Covering{SpecType<:Spec, GlueingType<:Glueing}
 
   function Covering(
       patches::Vector{SpecType},
-      glueings::Dict{Tuple{SpecType, SpecType}, GlueingType}
+      glueings::Dict{Tuple{SpecType, SpecType}, GlueingType};
+      check::Bool=true
     ) where {SpecType<:Spec, GlueingType<:Glueing}
     n = length(patches)
     n > 0 || error("can not glue the empty scheme")
@@ -56,7 +57,9 @@ mutable struct Covering{SpecType<:Spec, GlueingType<:Glueing}
       X in patches || error("glueings are not compatible with the patches")
       Y in patches || error("glueings are not compatible with the patches")
       if haskey(glueings, (Y, X))
-	inverse(glueings[(X, Y)]) == glueings[(Y, X)] || error("glueings are not inverse of each other")
+        if check
+          inverse(glueings[(X, Y)]) == glueings[(Y, X)] || error("glueings are not inverse of each other")
+        end
       else
 	glueings[(Y, X)] = inverse(glueings[(X, Y)])
       end
@@ -113,7 +116,7 @@ function Covering(patches::Vector{SpecType}) where {SpecType<:Spec}
     f = maximal_extension(X, X, fraction.(gens(OO(X))))
     g[X,X] = Glueing(X, X, f, f)
   end
-  return Covering(patches, g)
+  return Covering(patches, g, check=false)
 end
 
 Covering(X::SpecType) where {SpecType<:Spec} = Covering([X])

@@ -280,7 +280,7 @@ function as_covered_scheme(P::CoveredProjectiveScheme)
     merge!(new_glueings, glueings(PU))
   end
   #TODO: extend the remaining glueings
-  return CoveredScheme(Covering(new_patches, new_glueings))
+  return CoveredScheme(Covering(new_patches, new_glueings, check=false))
 end
 
 

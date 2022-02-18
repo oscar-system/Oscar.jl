@@ -129,8 +129,9 @@ SpecOpen(X::Spec) = SpecOpen(X, [one(base_ring(OO(X)))])
 
 function complement(U::SpecOpen) 
   if !isdefined(U, :complement)
-    I = radical(saturated_ideal(ideal(localized_ring(OO(ambient(U))), gens(U))))
-    U.complement = subscheme(ambient(U), I)
+    #I = radical(saturated_ideal(ideal(localized_ring(OO(ambient(U))), gens(U))))
+    #U.complement = subscheme(ambient(U), I)
+    U.complement = subscheme(ambient(U), gens(U))
   end
   return U.complement
 end
@@ -226,7 +227,14 @@ end
 
 function issubset(U::T, V::T) where {T<:SpecOpen}
   base_ring(OO(ambient(U))) === base_ring(OO(ambient(V))) || return false
-  return issubset(complement(intersect(V, ambient(U))), complement(U))
+  Z = complement(V)
+  # perform an implicit radical membership test (Rabinowitsch) that is way more 
+  # efficient than computing radicals.
+  for g in gens(U)
+    isempty(hypersurface_complement(Z, g)) || return false
+  end
+  return true
+  #return issubset(complement(intersect(V, ambient(U))), complement(U))
 end
 
 function canonically_isomorphic(U::T, V::T) where {T<:SpecOpen}
@@ -321,12 +329,6 @@ domain(R::SpecOpenRing) = R.domain
 
 OO(U::SpecOpen) = SpecOpenRing(ambient(U), U)
 OO(X::Spec, U::SpecOpen) = SpecOpenRing(X, U)
-
-function ==(R::T, S::T) where {T<:SpecOpenRing} 
-  canonically_isomorphic(scheme(R), scheme(S)) || return false
-  canonically_isomorphic(domain(S), domain(R)) || return false
-  return true
-end
 
 function ==(R::T, S::T) where {T<:SpecOpenRing}
   return canonically_isomorphic(scheme(R), scheme(S)) && canonically_isomorphic(domain(R), domain(S))
@@ -803,8 +805,8 @@ function ==(f::T, g::T) where {T<:SpecOpenMor}
   n = length(affine_patches(domain(g)))
   for i in 1:m
     for j in 1:n
-      restrict(f[i], intersect(domain(f)[i], domain(g)[i]), Y) == 
-      restrict(g[i], intersect(domain(f)[i], domain(g)[i]), Y) || return false
+      U = intersect(domain(f)[i], domain(g)[i])
+      restrict(f[i], U, Y) == restrict(g[i], U, Y) || return false
     end
   end
   return true
