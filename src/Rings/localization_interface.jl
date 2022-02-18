@@ -10,6 +10,8 @@ export numerator, denominator, parent
 export AbsLocalizedIdeal
 export ideal
 
+export AbsLocalizedRingHom, domain, codomain, restricted_map
+
 import AbstractAlgebra.Ring
 import AbstractAlgebra: expressify, show_via_expressify
 
@@ -51,6 +53,15 @@ execution of an error message.
 function Base.in(f::RingElemType, S::AbsMultSet{RingType, RingElemType}) where {RingType, RingElemType}
   error("method not implemented for multiplicatively closed sets of type $(typeof(S))")
 end
+
+### iterator over the multiplicative set
+# This can (and should) be used to iterate over some set of generators 
+# of the multiplicative set whenever possible. For instance, this is 
+# used to check well-definedness of homomorphisms from localized rings. 
+# By default, however, this iteration does nothing.
+Base.iterate(U::T) where {T<:AbsMultSet} = (one(ambient_ring(U)), 1)
+Base.iterate(U::T, a::Tuple{<:RingElem, Int}) where {T<:AbsMultSet} = nothing
+Base.iterate(U::T, i::Int) where {T<:AbsMultSet} = nothing
 
 
 #################################################################################
@@ -129,7 +140,9 @@ function (W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(a::RingElemT
 end
 
 ### Other conversions for the sake of convenience
-(W::AbsLocalizedRing)(a::Oscar.IntegerUnion) = W(base_ring(W)(a))
+(W::AbsLocalizedRing)(a::Int) = W(base_ring(W)(a))
+(W::AbsLocalizedRing)(a::Integer) = W(base_ring(W)(a))
+(W::AbsLocalizedRing)(a::fmpz) = W(base_ring(W)(a))
 
 
 #################################################################################
@@ -286,6 +299,8 @@ one(W::AbsLocalizedRing) = W(one(base_ring(W)))
 
 zero(W::AbsLocalizedRing) = W(zero(base_ring(W)))
 
+(W::AbsLocalizedRing)() = zero(W)
+
 canonical_unit(f::LocRingElemType) where {LocRingElemType<:AbsLocalizedRingElem} = one(parent(f))
 
 characteristic(W::AbsLocalizedRing) = characteristic(base_ring(W))
@@ -318,14 +333,14 @@ function addeq!(a::T, b::T) where {T<:AbsLocalizedRingElem}
 end
 
 ### promotion rules
-promote_rule(::Type{AbsLocalizedRingElem{RT, RET, MST}}, ::Type{AbsLocalizedRingElem{RT, RET, MST}}) where {RT<:Ring, RET<:RingElement, MST} = AbsLocalizedRingElem{RT, RET, MST}
+AbstractAlgebra.promote_rule(::Type{S}, ::Type{S}) where {S<:AbsLocalizedRingElem} = S
 
-function promote_rule(::Type{AbsLocalizedRingElem{RT, RET, MST}}, ::Type{T}) where {RT<:Ring, RET<:RingElement, MST, T<:RingElement} 
-  promote_rule(RET, T) ? AbsLocalizedRingElem{RT, RET, MST} : Union{}
+function AbstractAlgebra.promote_rule(::Type{S}, ::Type{T}) where {RT<:Ring, RET<:RingElement, MST, S<:AbsLocalizedRingElem{RT, RET, MST}, T<:RingElement} 
+  AbstractAlgebra.promote_rule(RET, T) == RET ? S : Union{}
 end
 
-
-
+### default conversion passing through the base ring
+(L::AbsLocalizedRing)(f::RET) where {RET<:RingElem} = L(base_ring(L)(f))
 
 
 ### Needs to be overwritten in case of zero divisors!
@@ -423,23 +438,33 @@ end
 ########################################################################
 
 @Markdown.doc """
-    AbsLocalizedRingHom{RingType, RingElemType, DomainMultSetType, CodomainMultSetType} 
+    AbsLocalizedRingHom{
+        DomainType<:AbsLocalizedRing,
+        CodomainType<:Ring,
+        RestrictedMapType
+      } <: Map{
+        DomainType,
+        CodomainType,
+        SetMap,
+        AbsLocalizedRingHom
+      }
 
-Homomorphism ``ϕ : P[U⁻¹] → Q[V⁻¹]`` of localized rings with ``P`` and 
-``Q`` of type `RingType`, ``U`` of type `DomainMultSetType`, and 
-``V`` of type `CodomainMultSetType`.
+Homomorphism ``ϕ : R[U⁻¹] → S`` from the localization ``R[U⁻¹]`` of type 
+``DomainType`` to an arbitrary ring `S` of type `CodomainType`. Such a 
+homomorphism is completely determined by its restriction ``ϕ' : R → S`` 
+to the original ring before localization and the type parameter 
+`RestrictedMapType` is reserved for that map. 
 """
 abstract type AbsLocalizedRingHom{
-    RingType, 
-    RingElemType, 
-    DomainMultSetType, 
-    CodomainMultSetType
-  } <: Map{
-    AbsLocalizedRing{RingType, RingElemType, DomainMultSetType}, 
-    AbsLocalizedRing{RingType, RingElemType, CodomainMultSetType}, 
-    SetMap,
-    AbsLocalizedRingHom
-  }
+                                  DomainType<:AbsLocalizedRing,
+                                  CodomainType<:Ring,
+                                  RestrictedMapType
+                                 } <: Map{
+                                          DomainType,
+                                          CodomainType,
+                                          SetMap,
+                                          AbsLocalizedRingHom
+                                         }
 end
 
 
@@ -462,16 +487,29 @@ function codomain(f::AbsLocalizedRingHom)
   error("`codomain(f)` not implemented for `f` of type $(typeof(f))")
 end
 
+@Markdown.doc """
+    restricted_map(f::AbsLocalizedRingHom) 
+
+For a ring homomorphism ``ϕ : R[U⁻¹] → S`` return the underlying 
+restriction ``ϕ' : R → S``.
+"""
+function restricted_map(f::AbsLocalizedRingHom) 
+  error("`restricted_map(f)` not implemented for `f` of type $(typeof(f))")
+end
+
 ### required functionality
 @Markdown.doc """
     (f::AbsLocalizedRingHom)(a::T) where {T<:RingElement}
 
 Applies the map `f` to the element `a` in the domain of `f`.
 """
-(f::AbsLocalizedRingHom{RT, RET, DMST, CMST})(a::AbsLocalizedRingElem{RT, RET, DMST}) where {RT, RET, DMST, CMST} = error("mapping of elements of type $(typeof(a)) not implemented")
+function (f::AbsLocalizedRingHom)(a::AbsLocalizedRingElem)
+  parent(a) === domain(f) || return f(domain(f)(a))
+  return codomain(f)(restricted_map(f)(numerator(a)))*inv(codomain(f)(restricted_map(f)(denominator(a))))
+end
 
 ### generic functions
-(f::AbsLocalizedRingHom{RT, RET, DMST, CMST})(a::RET) where {RT, RET, DMST, CMST} = f(domain(f)(a))
+(f::AbsLocalizedRingHom)(a::RingElem) = f(domain(f)(a))
 (f::AbsLocalizedRingHom)(a::Integer) = f(domain(f)(a))
 (f::AbsLocalizedRingHom)(a::fmpz) = f(domain(f)(a))
 
@@ -480,16 +518,20 @@ Applies the map `f` to the element `a` in the domain of `f`.
 
 Return the ideal generated by the images `f(hᵢ)` of the generators `hᵢ` of `I`.
 """
-(f::AbsLocalizedRingHom{RT, RET, DMST, CMST})(I::AbsLocalizedIdeal{RT, RET, DMST}) where {RT, RET, DMST, CMST} = ideal(codomain(f), f.(gens(I)))
-
-(f::AbsLocalizedRingHom{RT, RET, DMST, CMST})(I::Ideal{RET}) where {RT, RET, DMST, CMST} = ideal(codomain(f), f.(domain(f).(gens(I))))
+(f::AbsLocalizedRingHom)(I::Ideal) = ideal(codomain(f), f.(domain(f).(gens(I))))
 
 ### implementing the Oscar map interface
 check_composable(
-    f::AbsLocalizedRingHom{RT, RET, MST1, MST2},
-    g::AbsLocalizedRingHom{RT, RET, MST2, MST3}
-  ) where {RT, RET, MST1, MST2, MST3} = (codomain(f) == domain(g))
+                 f::AbsLocalizedRingHom{D, C},
+                 g::AbsLocalizedRingHom{C, E}
+                ) where {C, D, E}  = (codomain(f) == domain(g))
 
-function Base.show(io::IO, f::AbsLocalizedRingHom{RT, RET, MST1, MST2}) where {RT, RET, MST1, MST2}
-  print(io, "morphism of localized rings from $(domain(f)) to $(codomain(f))")
+function Base.show(io::IO, f::AbsLocalizedRingHom)
+  print(io, "morphism from the localized ring $(domain(f)) to $(codomain(f))")
+end
+
+function ==(f::T, g::T) where {T<:AbsLocalizedRingHom}
+  domain(f) === domain(g) || return false
+  codomain(f) === codomain(g) || return false
+  return restricted_map(f) == restricted_map(g)
 end

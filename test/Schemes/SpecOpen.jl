@@ -10,7 +10,7 @@
 
   Y = closure(UX)
   Z = closure(UX, A)
-  @test Z == Y
+  @test canonically_isomorphic(Z, Y)
 end
 
 @testset "SpecOpen_2" begin
