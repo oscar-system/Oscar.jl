@@ -451,9 +451,9 @@ end
 
 Homomorphism ``ϕ : R[U⁻¹] → S`` from the localization ``R[U⁻¹]`` of type 
 ``DomainType`` to an arbitrary ring `S` of type `CodomainType`. Such a 
-homomorphism is completely determined by its restriction ``ϕ' : R → S`` 
-to the original ring before localization and the type parameter 
-`RestrictedMapType` is reserved for that map. 
+homomorphism is completely determined by its 'restriction' 
+``ϕ' : R → R[U⁻¹] → S`` to the `base_ring` ``R`` before localization and 
+the type parameter `RestrictedMapType` is reserved for that map. 
 """
 abstract type AbsLocalizedRingHom{
                                   DomainType<:AbsLocalizedRing,
