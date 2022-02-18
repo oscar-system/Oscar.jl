@@ -330,6 +330,7 @@ mutable struct GaloisCtx{T}
   C::T # a suitable root context
   B::BoundRingElem # a "bound" on the roots, might be "anything"
   G::PermGroup
+  rt_num::Dict{Int, Int}
   chn::Vector{Tuple{PermGroup, SLPoly, fmpz_poly, Vector{PermGroupElem}}}
   start::Vector{Vector{Vector{Int}}} # a list of block systems
   data::Any #whatever else is needed in special cases
@@ -459,10 +460,14 @@ The bound in the `GaloisCtx` is also adjusted.
 """
 function Hecke.roots(G::GaloisCtx{Hecke.qAdicRootCtx}, pr::Int=5; raw::Bool = false)
   a = Hecke.roots(G.C, pr)::Vector{qadic}
+  b = Hecke.expand(a, all = true, flat = false, degs = Hecke.degrees(G.C.H))::Vector{qadic}
+  if isdefined(G, :rt_num)
+    b = [b[G.rt_num[i]] for i=1:length(G.rt_num)]
+  end
   if raw
-    return Hecke.expand(a, all = true, flat = false, degs = Hecke.degrees(G.C.H))::Vector{qadic}
+    return b
   else
-    return leading_coefficient(G.f) .* Hecke.expand(a, all = true, flat = false, degs = Hecke.degrees(G.C.H))::Vector{qadic}
+    return leading_coefficient(G.f) .* b
   end
 end
 function Hecke.setprecision(a::Generic.RelSeries, p::Int)
@@ -478,6 +483,9 @@ function Hecke.roots(G::GaloisCtx{<:Hecke.MPolyFact.HenselCtxFqRelSeries}, pr::T
   end
   rt = [-coeff(x, 0) for x = C.lf[1:C.n]]
   rt = map(y->map_coefficients(x->setprecision(x, pr[1]), setprecision(y, pr[2]), parent = parent(y)), rt)
+  if isdefined(G, :rt_num)
+    rt = [rt[G.rt_num[i]] for i=1:length(G.rt_num)]
+  end
   return rt
 end
 
@@ -797,7 +805,7 @@ function invariant(G::PermGroup, H::PermGroup)
         I = J
         break
       end
-      @show ex += 1
+      ex += 1
     end
     @hassert :GaloisInvariant 2 isprobably_invariant(I, H)
     @hassert :GaloisInvariant 2 !isprobably_invariant(I, G)
@@ -1166,7 +1174,7 @@ function starting_group(GC::GaloisCtx, K::AnticNumberField; useSubfields::Bool =
     pr = 5
     local v
     while true
-      c = roots(GC, pr)
+      c = roots(GC, pr, raw = true)
 
       g = ms(gen(s))
       d = map(parent(K.pol)(g), c)
@@ -1291,6 +1299,10 @@ function find_prime(f::fmpq_poly, extra::Int = 5; pStart::Int = 2*degree(f))
   # careful: group could be (C_2)^n hence d_min might be small...
   no_p = 0
   for p = Hecke.PrimesSet(pStart, -1)
+    k = GF(p)
+    if k(leading_coefficient(f)) == 0
+      continue
+    end
     lf = factor(f, GF(p))
     if any(x->x>1, values(lf.fac))
       continue
@@ -1616,6 +1628,8 @@ function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
   if index(G, U) == 1 # not type stable
     return QQ
   end
+  #XXX: seems to be broken for reducible f, ie. intransitive groups
+
   c = reverse(maximal_subgroup_chain(G, U))
   @vprint :GaloisGroup 2 "using a subgroup chain with orders $(map(order, c))\n"
 
@@ -1779,29 +1793,65 @@ function find_morphism(k::FqNmodFiniteField, K::FqNmodFiniteField)
   return phi
 end
 
+function blow_up(G::PermGroup, C::GaloisCtx, lf::Vector, con::PermGroupElem=one(G))
+  if all(x->x[2] == 1, lf)
+    return G, C
+  end
+  
+  n = degree(G)
+  st = 0
+  mp = Dict{Int, Int}(i => i for i=1:n)
+
+  icon = inv(con)
+
+  gs = map(Vector, gens(G))
+  for (g, k) = lf
+    for j=2:k
+      for i=1:degree(g)
+        mp[n+i] = (st+i)^con
+      end
+      for h = gs
+        for i=1:degree(g)
+          push!(h, h[(st+i)^con]^icon-st+n)
+        end
+      end
+      n += degree(g)
+    end
+    st += degree(g)
+  end
+
+  C.rt_num = mp
+  S = symmetric_group(n)
+  GG, _ = sub(S, map(S, gs))
+
+  h = hom(G, GG, gens(G), gens(GG))
+  @assert isinjective(h) && issurjective(h)
+  return GG, C
+end
+
+
 #TODO: do not move from fmpz_poly to fmpq_poly to fmpz_poly...
 function galois_group(f::fmpz_poly; pStart::Int = 2*degree(f))
   return galois_group(f(gen(Hecke.Globals.Qx)), pStart = pStart)
 end
 
 function galois_group(f::fmpq_poly; pStart::Int = 2*degree(f))
-  lf = factor(f)
-  if any(x-> x > 1, values(lf.fac)) #think about this: do we drop the multiplicity or not
-    error("polynomial must be squarefree")
-  end
+  lf = [(k,v) for  (k,v) = factor(f).fac]
 
-  if length(keys(lf.fac)) == 1
-    @vprint :GaloisGroup 1 "poly irreducible\n"
-    return galois_group(number_field(f, cached = false)[1])
+  #inner_direct_product is dropping trivial
+  sort!(lf, lt = (a,b) -> degree(a[1]) > degree(b[1]))
+  @show lf
+
+  if length(lf) == 1
+    @vprint :GaloisGroup 1 "poly has only one factor\n"
+    G, C = galois_group(number_field(lf[1][1], cached = false)[1])
+    return blow_up(G, C, lf)
   end
 
   @vprint :GaloisGroup 1 "factoring input...gives\n$lf\n"
 
-  lg = sort(collect(keys(lf.fac)), lt = (a,b) -> isless(degree(b), degree(a)))
-  #problem: inner_direct_product is "dropping" trivial factors.
-  #trivial factors at the end are harmless, so I sort...
-  #Max and/or Thomas are putting an option into Gap to not remove the
-  #trivial factors (actually in general it is more complicated)
+  lg = [x[1] for x = lf]
+  
   g = prod(lg)
   p, ct = find_prime(g, pStart = pStart)
 
@@ -1829,6 +1879,7 @@ function galois_group(f::fmpq_poly; pStart::Int = 2*degree(f))
     phi = find_morphism(K, k)
     po = vcat(po, [findfirst(x->x == phi(y), rr) for y = r])
   end
+  @show po
   con = (symmetric_group(length(po))(po))
   G = G^con
   F = GroupFilter()
@@ -1839,8 +1890,10 @@ function galois_group(f::fmpq_poly; pStart::Int = 2*degree(f))
   end
   push!(F, fi)
 =#  
+
   push!(F, x->all(y->pro[y](x^inv(con))[1] == C[y].G, 1:length(C)))
-  return descent(CC, G, F, G(si), grp_id = x->(:-,:-))
+  G, C =  descent(CC, G, F, G(si), grp_id = x->(:-,:-))
+  return blow_up(G, C, lf, con)
 end
 
 function Nemo.cyclotomic(n::Int, x::fmpq_poly)
