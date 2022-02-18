@@ -170,6 +170,7 @@ end
 
    @test ngens(G)==2
    @test isdefined(G,:gens)
+   @test typeof(gens(G)) == Vector{elem_type(G)}
 
    x = matrix(F,2,2,[1,0,0,1])
    x = G(x)
@@ -190,6 +191,7 @@ end
    H,f = sub(G,[x,y])
    @test isdefined(H,:gens)
    @test gens(H)==[x,y]
+   @test typeof(gens(H)) == Vector{elem_type(H)}
    @test H==SL(2,F)
    @test parent(x)==G
    @test parent(H[1])==H
@@ -203,6 +205,7 @@ end
    @test isdefined(K, :gens)
    @test !isdefined(K,:X)
    @test K.gens==[x,x^2,y]
+   @test typeof(gens(K)) == Vector{elem_type(K)}
    @test parent(x)==G
    @test x==K[1]                           #TODO changes in future if we decide to keep track of the parent
    @test parent(K[1])==K
