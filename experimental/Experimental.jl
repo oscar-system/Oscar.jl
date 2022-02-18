@@ -9,4 +9,5 @@ include("GModule.jl")
 include("Schemes/AffineSchemes.jl")
 include("Schemes/SpecOpen.jl")
 include("Schemes/Glueing.jl")
+include("Schemes/ProjectiveSchemes.jl")
 
