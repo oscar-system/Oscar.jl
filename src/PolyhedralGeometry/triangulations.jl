@@ -264,7 +264,7 @@ Compute whether a triangulation is regular.
 Compute whether a triangulation of the square is regular.
 ```jldoctest
 julia> c = cube(2)
-A polyhedron in ambient dimension 3
+A polyhedron in ambient dimension 2
 
 julia> T=[[1,2,3],[2,3,4]];
 

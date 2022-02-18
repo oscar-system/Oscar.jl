@@ -44,7 +44,7 @@ end
 
 
 @doc Markdown.doc"""
-    SubdivisionOfPoints(Points::Matrix, Weights::AbstractVector)
+    SubdivisionOfPoints(Points::Union{Oscar.MatElem,AbstractMatrix}, Weights::AbstractVector)
 
 # Arguments
 - `Points::Matrix`: Points generating the cells of the subdivision; encoded row-wise as representative vectors.
@@ -86,6 +86,15 @@ pm_object(SOP::SubdivisionOfPoints) = SOP.pm_subdivision
 #Same construction for when the user gives Matrix{Bool} as incidence matrix
 function SubdivisionOfPoints(Points::Union{Oscar.MatElem,AbstractMatrix}, Incidence::Matrix{Bool})
    SubdivisionOfPoints(Points,IncidenceMatrix(Polymake.IncidenceMatrix(Incidence)))
+end
+
+
+
+
+
+#Same construction for when the user provides maximal cells
+function SubdivisionOfPoints(Points::Union{Oscar.MatElem,AbstractMatrix}, MaximalCells::Vector{Vector{Int64}})
+   SubdivisionOfPoints(Points,IncidenceMatrix(MaximalCells))
 end
 
 ###############################################################################
