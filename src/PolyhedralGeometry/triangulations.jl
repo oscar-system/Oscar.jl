@@ -362,6 +362,10 @@ pm::Vector<pm::Rational>
 function gkz_vector(SOP::SubdivisionOfPoints)
     V = SOP.pm_subdivision.POINTS
     T = SOP.pm_subdivision.MAXIMAL_CELLS
+    n = ambient_dim(SOP)
+    for i in 1:size(T,1)
+        @assert sum(T[i,:]) == n+1 #poor check that subdivision is triangulation
+    end
     TT = [Polymake.to_zero_based_indexing(Polymake.row(T,i)) for i in 1:Polymake.nrows(T)]
     Polymake.call_function(:polytope, :gkz_vector, V, TT)
 end
