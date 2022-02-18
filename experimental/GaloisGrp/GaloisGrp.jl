@@ -1840,7 +1840,6 @@ function galois_group(f::fmpq_poly; pStart::Int = 2*degree(f))
 
   #inner_direct_product is dropping trivial
   sort!(lf, lt = (a,b) -> degree(a[1]) > degree(b[1]))
-  @show lf
 
   if length(lf) == 1
     @vprint :GaloisGroup 1 "poly has only one factor\n"
@@ -1879,7 +1878,7 @@ function galois_group(f::fmpq_poly; pStart::Int = 2*degree(f))
     phi = find_morphism(K, k)
     po = vcat(po, [findfirst(x->x == phi(y), rr) for y = r])
   end
-  @show po
+
   con = (symmetric_group(length(po))(po))
   G = G^con
   F = GroupFilter()
