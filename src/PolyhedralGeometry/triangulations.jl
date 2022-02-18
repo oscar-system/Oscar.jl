@@ -280,14 +280,91 @@ end
 
 #These all seem like natural ways to construct a subdivision of points from the data
 #  of a triangulation.
-SubdivisionOfPoints(P::Polyhedron, Incidence::Matrix{Bool}) = SubdivisionOfPoints(point_matrix(vertices(P)), Incidence)
+
+
+
+@doc Markdown.doc"""
+    SubdivisionOfPoints(P::Polyhdron, Incidence::IncidenceMatrix)
+
+# Arguments
+- `P::Polyhedron`: A polyhedron whose vertices are the points of the subdivision.
+- `Incidence::IncidenceMatrix`: An incidence matrix; there is a 1 at position (i,j) if cell i contains point j, and 0 otherwise.
+
+A subdivision of points formed from points and cells made of these points. The
+cells are given as an IncidenceMatrix, where the columns represent the points
+and the rows represent the cells.
+
+# Examples
+Compute a triangulation of the square
+```jldoctest
+julia> C = cube(2);
+
+julia> Incidence = IncidenceMatrix([[1,2,3],[2,3,4]]);
+
+julia> S = SubdivisionOfPoints(C, Incidence)
+A subdivision of points in ambient dimension 2
+```
+"""
+SubdivisionOfPoints(P::Polyhedron, Incidence::IncidenceMatrix) = SubdivisionOfPoints(point_matrix(vertices(P)), Incidence)
+
+
+@doc Markdown.doc"""
+    SubdivisionOfPoints(P::Polyhdron, Weights::AbstractVector)
+
+# Arguments
+- `P::Polyhedron`: A polyhedron whose vertices are the points of the subdivision.
+- `Weights::AbstractVector`: A vector with one entry for every point indicating the height of this point.
+
+A subdivision of points formed by placing every vertex of `P` at the corresponding
+height, then taking the convex hull and then only considering those cells
+corresponding to faces visible from below ("lower envelope").
+
+# Examples
+Compute a triangulation of the square
+```jldoctest
+julia> C = cube(2);
+
+julia> Weights = [0,0,1,2];
+
+julia> S = SubdivisionOfPoints(C, Weights)
+A subdivision of points in ambient dimension 2
+```
+"""
 SubdivisionOfPoints(P::Polyhedron, Weights::AbstractVector) = SubdivisionOfPoints(point_matrix(vertices(P)), Weights)
+
+
 SubdivisionOfPoints(P::Polyhedron, MaximalCells::Vector{Vector{Int64}}) = SubdivisionOfPoints(point_matrix(vertices(P)), IncidenceMatrix(MaximalCells))
-SubdivisionOfPoints(Iter::SubObjectIterator{<:PointVector}, Incidence::Matrix{Bool}) = SubdivisionOfPoints(point_matrix(Iter), Incidence)
+SubdivisionOfPoints(Iter::SubObjectIterator{<:PointVector}, Incidence::IncidenceMatrix) = SubdivisionOfPoints(point_matrix(Iter), Incidence)
 SubdivisionOfPoints(Iter::SubObjectIterator{<:PointVector}, Weights::AbstractVector) = SubdivisionOfPoints(point_matrix(Iter), Weights)
 SubdivisionOfPoints(Iter::SubObjectIterator{<:PointVector}, MaximalCells::Vector{Vector{Int64}}) = SubdivisionOfPoints(point_matrix(Iter), IncidenceMatrix(MaximalCells))
 
 
+
+
+@doc Markdown.doc"""
+    gkz_vector(SOP::SubdivisionOfPoints)
+
+Compute the gkz vector of a triangulation given as a subdivision of points, SOP.
+More generally, when SOP is not a triangulation, compute the vector `v` whose
+i-th coordinate is the sum of the normalized volumes of all maximal cells
+containing the i-th point.
+
+# Examples
+Compute the gkz vector of one of the two regular triangulations of the square.
+```jldoctest
+julia> C = cube(2);
+
+julia> Triang = SubdivisionOfPoints(C,[[1,2,3],[2,3,4]])
+A subdivision of points in ambient dimension 2
+
+julia> gkz_vector(Triang)
+4-element Vector{Int64}:
+ 4
+ 8
+ 8
+ 4
+```
+"""
 function gkz_vector(SOP::SubdivisionOfPoints)
     gkz = []
     #after coding points as SubObjectIterator, take
@@ -296,7 +373,7 @@ function gkz_vector(SOP::SubdivisionOfPoints)
     point_mat = hcat(points(SOP)...)'
     for i in 1:length(points(SOP))
         sum_of_volume = 0
-        #maximal_cells are given as Sets. Do we want them to be vectors?
+        #maximal_cells are given as Sets, so we collect to make them vectors.
         for triangle ∈ filter(x->i ∈ x, collect(maximal_cells(SOP)))
             sum_of_volume += normalized_volume(convex_hull(point_mat[Vector(triangle),:]))
         end

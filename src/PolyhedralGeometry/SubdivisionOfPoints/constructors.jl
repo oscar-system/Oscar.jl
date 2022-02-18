@@ -12,11 +12,11 @@ struct SubdivisionOfPoints
 end
 
 @doc Markdown.doc"""
-    SubdivisionOfPoints(Points, Cells)
+    SubdivisionOfPoints(Points::Union{Oscar.MatElem,AbstractMatrix}, Incidence::IncidenceMatrix)
 
 # Arguments
 - `Points::Matrix`: Points generating the cells of the subdivision; encoded row-wise as representative vectors.
-- `Cells::IncidenceMatrix`: An incidence matrix; there is a 1 at position (i,j) if cell i contains point j, and 0 otherwise.
+- `Incidence::IncidenceMatrix`: An incidence matrix; there is a 1 at position (i,j) if cell i contains point j, and 0 otherwise.
 
 A subdivision of points formed from points and cells made of these points. The
 cells are given as an IncidenceMatrix, where the columns represent the points
@@ -44,7 +44,7 @@ end
 
 
 @doc Markdown.doc"""
-    SubdivisionOfPoints(Points, Weights)
+    SubdivisionOfPoints(Points::Matrix, Weights::AbstractVector)
 
 # Arguments
 - `Points::Matrix`: Points generating the cells of the subdivision; encoded row-wise as representative vectors.

@@ -4,12 +4,37 @@
 ###############################################################################
 ###############################################################################
 
-#Should these be coded as SubObjectIterators?
-#  For example, so we can apply point_matrix(points(SOP))?
+#TODO:Code as a SubObjectIterator
+#  so we can apply point_matrix(points(SOP))
 @doc Markdown.doc"""
     points(SOP::SubdivisionOfPoints)
 
-Return an iterator over the points of `SOP`.
+Return the points of the subdivision of points, `SOP`.
+
+# Examples
+Display the points of the "mother of all examples" non-regular triangulation.
+```jldoctest
+julia> moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2];
+
+julia> moaeimnonreg0 = IncidenceMatrix([[4,5,6],[1,4,2],[2,4,5],[2,3,5],[3,5,6],[1,3,6],[1,4,6]]);
+
+julia> MOAE = SubdivisionOfPoints(moaepts, moaeimnonreg0);
+
+julia> for p in points(MOAE)
+       println(p)
+       end
+pm::Vector<pm::Rational>
+4 0 0
+pm::Vector<pm::Rational>
+0 4 0
+pm::Vector<pm::Rational>
+0 0 4
+pm::Vector<pm::Rational>
+2 1 1
+pm::Vector<pm::Rational>
+1 2 1
+pm::Vector<pm::Rational>
+1 1 2
 """
 function points(SOP::SubdivisionOfPoints)
    PointSOPIterator(SOP)
