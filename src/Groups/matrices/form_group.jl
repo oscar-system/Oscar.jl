@@ -651,16 +651,9 @@ Return the group of isometries of the lattice `L`.
 
 The transformations are represented with respect to the ambient space of `L`.
 """
-function isometry_group(L::Hecke.AbsLat)
-   z = get_attribute(L, :isometry_group)
-   if z !== nothing
-     T = elem_type(base_field(L))
-     return z::MatrixGroup{T, dense_matrix_type(T)}
-   end
-
+@attr MatrixGroup{elem_type(base_field(L)), dense_matrix_type(elem_type(base_field(L)))} function isometry_group(L::Hecke.AbsLat)
    gens = Hecke.automorphism_group_generators(L)
    G = matrix_group(gens)
-   set_attribute!(L, :isometry_group => G)
    return G
 end
 
