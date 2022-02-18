@@ -305,7 +305,7 @@ julia> S = SubdivisionOfPoints(C, Incidence)
 A subdivision of points in ambient dimension 2
 ```
 """
-SubdivisionOfPoints(P::Polyhedron, Incidence::IncidenceMatrix) = SubdivisionOfPoints(point_matrix(vertices(P)), Incidence)
+SubdivisionOfPoints(P::Polyhedron, Incidence::IncidenceMatrix) = SubdivisionOfPoints(vertices(P), Incidence)
 
 
 @doc Markdown.doc"""
@@ -330,10 +330,8 @@ julia> S = SubdivisionOfPoints(C, Weights)
 A subdivision of points in ambient dimension 2
 ```
 """
-SubdivisionOfPoints(P::Polyhedron, Weights::AbstractVector) = SubdivisionOfPoints(point_matrix(vertices(P)), Weights)
-
-
-SubdivisionOfPoints(P::Polyhedron, MaximalCells::Vector{Vector{Int64}}) = SubdivisionOfPoints(point_matrix(vertices(P)), IncidenceMatrix(MaximalCells))
+SubdivisionOfPoints(P::Polyhedron, Weights::AbstractVector) = SubdivisionOfPoints(vertices(P), Weights)
+SubdivisionOfPoints(P::Polyhedron, MaximalCells::Vector{Vector{Int64}}) = SubdivisionOfPoints(vertices(P), IncidenceMatrix(MaximalCells))
 SubdivisionOfPoints(Iter::SubObjectIterator{<:PointVector}, Incidence::IncidenceMatrix) = SubdivisionOfPoints(point_matrix(Iter), Incidence)
 SubdivisionOfPoints(Iter::SubObjectIterator{<:PointVector}, Weights::AbstractVector) = SubdivisionOfPoints(point_matrix(Iter), Weights)
 SubdivisionOfPoints(Iter::SubObjectIterator{<:PointVector}, MaximalCells::Vector{Vector{Int64}}) = SubdivisionOfPoints(point_matrix(Iter), IncidenceMatrix(MaximalCells))
