@@ -44,7 +44,7 @@ MatrixGroup(m::Int, F::Ring) = MatrixGroup{elem_type(F), dense_matrix_type(elem_
 function MatrixGroup{RE,S}(m::Int, F::Ring, V::AbstractVector{T}) where {RE,S} where T<:Union{MatElem,AbstractMatrixGroupElem}
    G = MatrixGroup(m,F)
 
-   L = Vector{MatrixGroupElem}(undef, length(V))
+   L = Vector{elem_type(G)}(undef, length(V))
    for i in 1:length(V)
       @assert base_ring(V[i])==F "The elements must have the same base ring"
       @assert nrows(V[i])==m "The elements must have the same dimension"
@@ -767,8 +767,6 @@ end
 matrix_group(V::T...) where T<:Union{MatElem,MatrixGroupElem} = matrix_group(collect(V))
 
 
-
-
 ########################################################################
 #
 # Subgroups
@@ -776,19 +774,18 @@ matrix_group(V::T...) where T<:Union{MatElem,MatrixGroupElem} = matrix_group(col
 ########################################################################
 
 function sub(G::MatrixGroup, elements::Vector{S}) where S <: GAPGroupElem
-   @assert elem_type(G) == S
+   @assert elem_type(G) === S
    elems_in_GAP = GAP.julia_to_gap(GapObj[x.X for x in elements])
    H = GAP.Globals.Subgroup(G.X,elems_in_GAP)::GapObj
    #H is the group. I need to return the inclusion map too
    K,f = _as_subgroup(G, H)
-   L = Vector{MatrixGroupElem}(undef, length(elements))
+   L = Vector{elem_type(K)}(undef, length(elements))
    for i in 1:length(L)
       L[i] = MatrixGroupElem(K, elements[i].elm, elements[i].X)
    end
    K.gens = L
    return K,f
 end
-
 
 
 ########################################################################
