@@ -345,9 +345,6 @@ SubdivisionOfPoints(Iter::SubObjectIterator{<:PointVector}, MaximalCells::Vector
     gkz_vector(SOP::SubdivisionOfPoints)
 
 Compute the gkz vector of a triangulation given as a subdivision of points, SOP.
-More generally, when SOP is not a triangulation, compute the vector `v` whose
-i-th coordinate is the sum of the normalized volumes of all maximal cells
-containing the i-th point.
 
 # Examples
 Compute the gkz vector of one of the two regular triangulations of the square.
@@ -358,26 +355,13 @@ julia> Triang = SubdivisionOfPoints(C,[[1,2,3],[2,3,4]])
 A subdivision of points in ambient dimension 2
 
 julia> gkz_vector(Triang)
-4-element Vector{Int64}:
- 4
- 8
- 8
- 4
+pm::Vector<pm::Rational>
+4 8 8 4
 ```
 """
 function gkz_vector(SOP::SubdivisionOfPoints)
-    gkz = []
-    #after coding points as SubObjectIterator, take
-    #    point_mat = point_matrix(points(SOP))
-    #instead
-    point_mat = hcat(points(SOP)...)'
-    for i in 1:length(points(SOP))
-        sum_of_volume = 0
-        #maximal_cells are given as Sets, so we collect to make them vectors.
-        for triangle ∈ filter(x->i ∈ x, collect(maximal_cells(SOP)))
-            sum_of_volume += normalized_volume(convex_hull(point_mat[Vector(triangle),:]))
-        end
-        push!(gkz,sum_of_volume)
-    end
-    Vector{Int64}(gkz)
+    V = SOP.pm_subdivision.POINTS
+    T = SOP.pm_subdivision.MAXIMAL_CELLS
+    TT = [Polymake.to_zero_based_indexing(Polymake.row(T,i)) for i in 1:Polymake.nrows(T)]
+    Polymake.call_function(:polytope, :gkz_vector, V, TT)
 end
