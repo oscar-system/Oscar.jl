@@ -1838,9 +1838,6 @@ end
 function galois_group(f::fmpq_poly; pStart::Int = 2*degree(f))
   lf = [(k,v) for  (k,v) = factor(f).fac]
 
-  #inner_direct_product is dropping trivial
-  sort!(lf, lt = (a,b) -> degree(a[1]) > degree(b[1]))
-
   if length(lf) == 1
     @vprint :GaloisGroup 1 "poly has only one factor\n"
     G, C = galois_group(number_field(lf[1][1], cached = false)[1])
