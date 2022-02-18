@@ -2,6 +2,7 @@ using Oscar
 using Test
 
 include("abelian_aut.jl")
+include("spinor_norms.jl")
 include("conformance.jl")
 include("constructors.jl")
 include("operations.jl")
