@@ -289,9 +289,6 @@ include("Rings/binomial_ideals.jl")
 
 include("ToricVarieties/JToric.jl")
 
-include("../experimental/Schemes/AffineSchemes.jl")
-include("../experimental/Schemes/SpecOpen.jl")
-
 if is_dev
 #  include("../examples/ModStdNF.jl")
 #  include("../examples/ModStdQ.jl")
