@@ -107,7 +107,7 @@ The return type is a `Vector{Vector{Vector{Int}}}` where each
 a simplex as the set of indices of the vertices of the simplex. I.e. the
 `Vector{Int}` `[1,2,4]` corresponds to the simplex that is the convex hull of
 the first, second, and fourth input point.
-"""    
+"""
 function star_triangulations(pts::AnyVecOrMat; full::Bool=false, regular::Bool=false)
     if regular
         result = regular_triangulations(pts; full=full)
@@ -144,7 +144,7 @@ A polyhedron in ambient dimension 2
 julia> star_triangulations(hex)
 ([0 0; -1 -1; 0 -1; 1 0; 1 1; 0 1; -1 0], [[[1, 2, 3], [1, 2, 7], [1, 3, 4], [1, 4, 5], [1, 5, 6], [1, 6, 7]]])
 ```
-"""    
+"""
 function star_triangulations(P::Polyhedron; full::Bool=false, regular::Bool=false)
     zero = [0 for i in 1:dim(P)]
     contains(P, zero) || throw(ArgumentError("Input polyhedron must contain origin."))
@@ -256,25 +256,51 @@ function secondary_polytope(P::Polyhedron)
 end
 
 @doc Markdown.doc"""
-    is_regular(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem},T::Vector{Vector{Vector{Int64}}})
+    isregular(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem},T::Vector{Vector{Vector{Int64}}})
 
 Compute whether a triangulation is regular.
 
 # Examples
-Compute the secondary polytope of the cube.
+Compute whether a triangulation of the square is regular.
 ```jldoctest
 julia> c = cube(2)
 A polyhedron in ambient dimension 3
 
 julia> T=[[1,2,3],[2,3,4]];
 
-julia> is_regular(vertices(cube(2)),T)
+julia> isregular(point_matrix(vertices(c)),T)
 true
 ```
 """
-function is_regular(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem},T::Vector{Vector{Int64}})
-    points = homogenized_matrix(pts, 1)
-    triang = Polymake.to_zero_based_indexing(T)
-    Polymake.polytope.is_regular(points,triang)
-    #how do I extract information from: PropertyValue wrapping std::pair<bool, pm::Vector<pm::Rational> >?
+function isregular(pts::Union{SubObjectIterator{<:PointVector}, AbstractMatrix, Oscar.MatElem},T::Vector{Vector{Int64}})
+    as_sop = SubdivisionOfPoints(pts,T)
+    isregular(as_sop)
+end
+
+
+#These all seem like natural ways to construct a subdivision of points from the data
+#  of a triangulation.
+SubdivisionOfPoints(P::Polyhedron, Incidence::Matrix{Bool}) = SubdivisionOfPoints(point_matrix(vertices(P)), Incidence)
+SubdivisionOfPoints(P::Polyhedron, Weights::AbstractVector) = SubdivisionOfPoints(point_matrix(vertices(P)), Weights)
+SubdivisionOfPoints(P::Polyhedron, MaximalCells::Vector{Vector{Int64}}) = SubdivisionOfPoints(point_matrix(vertices(P)), IncidenceMatrix(MaximalCells))
+SubdivisionOfPoints(Iter::SubObjectIterator{<:PointVector}, Incidence::Matrix{Bool}) = SubdivisionOfPoints(point_matrix(Iter), Incidence)
+SubdivisionOfPoints(Iter::SubObjectIterator{<:PointVector}, Weights::AbstractVector) = SubdivisionOfPoints(point_matrix(Iter), Weights)
+SubdivisionOfPoints(Iter::SubObjectIterator{<:PointVector}, MaximalCells::Vector{Vector{Int64}}) = SubdivisionOfPoints(point_matrix(Iter), IncidenceMatrix(MaximalCells))
+
+
+function gkz_vector(SOP::SubdivisionOfPoints)
+    gkz = []
+    #after coding points as SubObjectIterator, take
+    #    point_mat = point_matrix(points(SOP))
+    #instead
+    point_mat = hcat(points(SOP)...)'
+    for i in 1:length(points(SOP))
+        sum_of_volume = 0
+        #maximal_cells are given as Sets. Do we want them to be vectors?
+        for triangle ∈ filter(x->i ∈ x, collect(maximal_cells(SOP)))
+            sum_of_volume += normalized_volume(convex_hull(point_mat[Vector(triangle),:]))
+        end
+        push!(gkz,sum_of_volume)
+    end
+    Vector{Int64}(gkz)
 end

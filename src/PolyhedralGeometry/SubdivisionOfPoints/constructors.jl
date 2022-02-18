@@ -96,8 +96,3 @@ end
 function Base.show(io::IO, SOP::SubdivisionOfPoints)
     print(io, "A subdivision of points in ambient dimension $(ambient_dim(SOP))")
 end
-
-
-subdivision_of_vertices(P::Polyhedron, Incidence::Matrix{Bool}) = SubdivisionOfPoints(hcat(collect(vertices(P))...)', Incidence)
-subdivision_of_vertices(P::Polyhedron, Weights::AbstractVector) = SubdivisionOfPoints(hcat(collect(vertices(P))...)', Weights)
-subdivision_of_vertices(P::Polyhedron, MaximalCells::Vector{Vector{Int64}}) = SubdivisionOfPoints(hcat(collect(vertices(P))...)', IncidenceMatrix(MaximalCells))

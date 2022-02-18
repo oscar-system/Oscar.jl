@@ -4,6 +4,34 @@
 ###############################################################################
 ###############################################################################
 
+#Should these be coded as SubObjectIterators?
+#  For example, so we can apply point_matrix(points(SOP))?
+@doc Markdown.doc"""
+    points(SOP::SubdivisionOfPoints)
+
+Return an iterator over the points of `SOP`.
+"""
+function points(SOP::SubdivisionOfPoints)
+   PointSOPIterator(SOP)
+end
+
+struct PointSOPIterator
+    SOP::SubdivisionOfPoints
+end
+
+function Base.iterate(iter::PointSOPIterator, index = 1)
+    n_points = npoints(iter.SOP)
+    if index > n_points
+        return nothing
+    end
+    #dehomogenize doesn't check if the first entry is 0. I think this okay here.
+    current_point = dehomogenize(pm_object(iter.SOP).POINTS[index,:])
+    return (current_point, index + 1)
+end
+Base.length(iter::PointSOPIterator) = npoints(iter.SOP)
+
+
+
 
 """
     maximal_cells(SOP::SubdivisionOfPoints)
