@@ -4,9 +4,9 @@
   s = Oscar.spin(G, g)
   @test issquare(s//5)
 
-  G =  QQ[4//5 0 0 0 0; 0 0 1//4 0 0; 0 1//4 0 0 0; 0 0 0 1//2 1//4; 0 0 0 1//4 1//2]
-  Oscar.sigma_sharp(4, 1280, G, 5)
-  Oscar.sigma_sharp(4, 1280, G, 2)
+  L = 2*root_lattice(:A,4)
+  Oscar.sigma_sharp(L, 5)
+  Oscar.sigma_sharp(L, 2)
 
 
   diag = QQ[3//2;]

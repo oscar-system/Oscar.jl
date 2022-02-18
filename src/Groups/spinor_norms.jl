@@ -1,22 +1,19 @@
 export image_in_Oq
 
 @doc Markdown.doc"""
-  sigma_sharp(rankL, detL, q::fmpq_mat, p) -> Vector{Tuple{fmpz, fmpq}}
+  sigma_sharp(L::ZLat, p) -> Vector{Tuple{fmpz, fmpq}}
 
 Return generators for `\Sigma^\#(L\otimes \ZZ_p)` of a lattice `L`.
 
-- `rkL` -- an non-negative integer
-- ``detL`` -- an integer
-- ``q`` -- a rational matrix representing a torsion quadratic form in normal form
-- ``p`` -- a prime number
-
-
 - a list of tuples `(det_p,spin_p)` with `det = \pm 1`.
 """
-function sigma_sharp(rankL, detL, q::fmpq_mat, p)
-  res = _sigma_sharp(rankL, detL, q, p)
+function sigma_sharp(L::ZLat, p)
+  T = primary_part(discriminant_group(L), p)[1]
+  q = Hecke.gram_matrix_quadratic(normal_form(T)[1])
+  res = _sigma_sharp(rank(L), det(L), q, p)
   return [(ZZ(a[1]),QQ(a[2])) for a in res]
 end
+
 
 
 function _sigma_sharp(rkL, detL, q, p)
@@ -362,8 +359,7 @@ function det_spin_homomorphism(L::ZLat, signed=false)
   # of O(L) --> O(L^v / L)
   sigma_sharp_gens = elem_type(A)[]
   for p in S
-    q_p = Hecke.gram_matrix_quadratic(normal_form(primary_part(T, p)[1])[1])
-    ss = sigma_sharp(rank(L),det(L),q_p,p)
+    ss = sigma_sharp(L, p)
     for s in ss
       push!(sigma_sharp_gens, det_hom[p](s[1])+inj[p](s[2]))
     end
