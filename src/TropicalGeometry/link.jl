@@ -80,15 +80,13 @@ export homogeneity_space
 
 
 function pivots(M)
-  n = nrows(M)
-  m = ncols(M)
-  c = 1
+  r = 1
   pivotsM = []
-  for j = 1:m-1
-    for i = c:min(j,n)
-      if !iszero(M[i,j])
-        push!(pivotsM,j)
-        c += 1
+  for c = 1:ncols(M)
+    if !iszero(M[r,c])
+      push!(pivotsM,c)
+      r += 1
+      if r>nrows(M)
         break
       end
     end
@@ -168,20 +166,20 @@ function tropical_link(inI::MPolyIdeal; p_adic_prime::Integer=32003, p_adic_prec
   # Step 1: Compute the homogeneity space and identify the pivots (and non-pivots) of its equation matrix in rref
   ###
   H = homogeneity_space(inI)
-  _,Eqs = rref(affine_equation_matrix(affine_hull(H)))            # rref returns rank first, which is not required here
+  _,Eqs = rref(matrix(QQ,lineality_space(H))) # rref returns rank first, which is not required here
   pivotIndices = pivots(Eqs)
-  nonpivotIndices = setdiff(collect(1:ncols(Eqs)-1),pivotIndices) # the final column of Eqs represents the RHS of the linear equations,
-                                                                  # not a variable in the polynomial ring
+  nonpivotIndices = setdiff(collect(1:ncols(Eqs)),pivotIndices)
   if (dim(inI)!=dim(H)+1)
     error("Homogeneity space not one-codimensional.")
   end
+
 
   ###
   # Step 2: Construct linear equations and cut down the homogeneity space
   ###
   Kx = base_ring(inI)
   x = gens(Kx)
-  inI1 = inI + ideal(Kx,[x[i]-1 for i in nonpivotIndices])        # dim(inI1) = 1, Trop(inI) = Trop(inI1)+H
+  inI1 = inI + ideal(Kx,[x[i]-1 for i in pivotIndices]) # dim(inI1) = 1, Trop(inI) = Trop(inI1)+H
 
   ###
   # Optional: Compute a partially saturated GB using satstd
@@ -200,14 +198,11 @@ function tropical_link(inI::MPolyIdeal; p_adic_prime::Integer=32003, p_adic_prec
   ###
   # Step 3.1: Intersect the resulting one-dimensional ideal with hyperplanes p*x1-1, ..., p*xn-1, x1+...+xn-p
   ###
-  hyperplanes = [x[i]-val_p.uniformizer_field for i in pivotIndices] # todo: only x[i] for i in indep set
-  push!(hyperplanes,val_p.uniformizer_field*sum(x)-1)
+  hyperplanes = [x[i]-val_p.uniformizer_field for i in nonpivotIndices] # todo: only x[i] for i in indep set
+  append!(hyperplanes,[val_p.uniformizer_field*x[i]-1 for i in nonpivotIndices])
   rayGenerators = [];
   # rayMultiplicities = []; # ray multiplicities cannot be generally computed using this method,
                             # however this method gives lower bounds on the multiplicities which may be used for sanity checking later
-  # println("==================================")
-  # println("inI1",inI1)
-  # println("==================================")
   for hyperplane in hyperplanes
     inI0 = inI1+ideal(Kx,hyperplane)
 
@@ -240,12 +235,6 @@ function tropical_link(inI::MPolyIdeal; p_adic_prime::Integer=32003, p_adic_prec
         push!(rayGenerators,pointOfSlice)
       end
     end
-
-    # println("==================================")
-    # println("slice ",hyperplane)
-    # println("points: ",pointsOfSlice)
-    # println("mults: ",multsOfSlice)
-    # println("==================================")
 
   end
 
