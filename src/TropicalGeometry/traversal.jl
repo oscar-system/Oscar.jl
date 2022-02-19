@@ -29,14 +29,14 @@ function tropical_variety(I::MPolyIdeal, val::ValuationMap)
   #   until all starting points lie in the relative interior of maximal cells
   ###
 
-  # Note: in this function, a working list entry consists of a triple (w,C,G) where
+  # Note: a working list entry consists of a triple (w,C,G) where
   #   * G is a (tropical) Groebner basis
   #   * C is the Groebner polyhedron
   #   * w is the sum of vertices and rays of C
   # In particular:
   #   * w is a weight vector with respect to which G is a Groebner basis,
   #   * w is compatible with coordinate permutations if symmetries exist,
-  #   * instead of comparing C it suffices to compare w.
+  #   * instead of comparing C or G it suffices to compare w.
   working_list_todo = [] # list of groebner polyhedra with potentially unknown neighbours
   working_list_done = [] # list of groebner polyhedra with known neighbours
   facet_points_done = [] # list of facet points whose tropical links were computed and traversed
@@ -46,8 +46,6 @@ function tropical_variety(I::MPolyIdeal, val::ValuationMap)
     print("computing random starting points... ")
     starting_points = tropical_points(I,val)
     println("done")
-    # println("starting_points:")
-    # println(starting_points)
 
     working_list_todo = []
     working_list_done = []
@@ -57,13 +55,21 @@ function tropical_variety(I::MPolyIdeal, val::ValuationMap)
       G = groebner_basis(I,val,starting_point)
       C = groebner_polyhedron(I,val,starting_point,skip_groebner_basis_computation=true)
       w = anchor_point(C)
-      push!(working_list_todo, (w,C,G))
 
+      # if C is lower-dimensional, recompute all starting points
       if dim(C)!=dim(I)
         println("starting point on lower-dimensional cell, recomputing...")
         compute_starting_points = true
         break
       end
+
+      # if (w,C,G) already is in working_list_todo, skip
+      i = searchsortedfirst(working_list_todo,(w,C,G),by=x->x[1])
+      if i<=length(working_list_todo) && working_list_todo[i][1]==w
+        continue
+      end
+      # otherwise, add (w,C,G) to todo list
+      insert!(working_list_todo, i, (w,C,G))
     end
   end
 
@@ -80,9 +86,8 @@ function tropical_variety(I::MPolyIdeal, val::ValuationMap)
     insert!(working_list_done, i, (w,C,G))
 
     points_to_traverse = facet_points(C)
-    # println("points_to_traverse:")
-    # println(points_to_traverse)
-
+    # println("================================================== points_to_traverse")
+    # display(points_to_traverse)
     for point_to_traverse in points_to_traverse
       # if point was traversed before, skip
       i = searchsortedfirst(facet_points_done,point_to_traverse)
@@ -92,11 +97,9 @@ function tropical_variety(I::MPolyIdeal, val::ValuationMap)
       # otherwise add point_to_traverse to facet_points_done
       insert!(facet_points_done, i, point_to_traverse)
 
-      # compute tropical link
-      directions_to_traverse = tropical_link(ideal(G),val,point_to_traverse)
-      # println("directions_to_traverse:")
-      # println(directions_to_traverse)
-
+      directions_to_traverse = tropical_link(ideal(G),val,point_to_traverse) # todo, this output can be wrong
+      # println("================================================== directions_to_traverse")
+      # display(directions_to_traverse)
       for direction_to_traverse in directions_to_traverse
         # compute neighbour
         G_neighbour = groebner_flip(G,val,w,point_to_traverse,direction_to_traverse)
@@ -118,9 +121,14 @@ function tropical_variety(I::MPolyIdeal, val::ValuationMap)
           continue
         end
         # otherwise, add neighbour to todo list
+        # println("================================================== new working_list_done entry")
+        # println(point_to_traverse)
+        # println(direction_to_traverse)
+        # display(G_neighbour)
         # println(w_neighbour)
-        # println([w for (w,C,G) in working_list_done])
-        # println([w for (w,C,G) in working_list_todo])
+        # display(facet_points(C_neighbour))
+        # display([wCG[1] for wCG in working_list_todo])
+        # display([wCG[1] for wCG in working_list_done])
         insert!(working_list_todo, i, (w_neighbour,C_neighbour,G_neighbour))
       end
     end
