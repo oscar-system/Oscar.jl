@@ -192,6 +192,11 @@ G = groebner_basis(Cyclic5Homogenized_Ks, val, w)
 =======#
 function interreduce_tropically(G::Vector{<:MPolyElem}, val::ValuationMap, w::Vector; pertubation::Vector=[]) # todo: why does normal interreduce not work?
 
+  # println("================================================== inside interreduce_tropically")
+  # println(G)
+  # println(w)
+  # println(pertubation)
+
   ###
   # Step 0: simulate valuation and change coefficient ring to valued field
   ###
@@ -203,7 +208,7 @@ function interreduce_tropically(G::Vector{<:MPolyElem}, val::ValuationMap, w::Ve
                                   map(string, Nemo.symbols(Rtx)),
                                   ordering = Singular.ordering_a(vw)*Singular.ordering_dp())
   else
-    vw,vu = simulat_valuation(w,pertubation,val)
+    vw,vu = simulate_valuation(w,pertubation,val)
     S,_ = Singular.PolynomialRing(singular_ring(val.valued_field),
                                   map(string, Nemo.symbols(Rtx)),
                                   ordering = Singular.ordering_a(vw)*Singular.ordering_a(vu)*Singular.ordering_dp())
