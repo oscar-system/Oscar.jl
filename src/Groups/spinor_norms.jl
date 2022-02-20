@@ -458,7 +458,7 @@ function det_spin_homomorphism(L::ZLat, signed=false)
     end
   end
   Agap, i1,_ = _isomorphic_gap_group(D)
-  return hom(Oq,Agap,gens(Oq),[i1(proj(result[f])) for f in gens(Oq)])
+  return hom(Oq,Agap,gens(Oq),[i1(proj(result[f])) for f in gens(Oq)],check=false)
 end
 
 
