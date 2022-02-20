@@ -317,6 +317,53 @@ end
 export toric_ideal
 
 
+@doc Markdown.doc"""
+    set_coordinate_names_of_torus(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
+
+Allows to set the names of the coordinates of the torus.
+"""
+function set_coordinate_names_of_torus(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
+    if length(coordinate_names) != ambient_dim(v)
+        throw(ArgumentError("The provided list of coordinate names must match the ambient dimension of the fan."))
+    end
+    set_attribute!(v, :coordinate_names_of_torus, coordinate_names)
+end
+export set_coordinate_names_of_torus
+
+
+@doc Markdown.doc"""
+    coordinate_names_of_torus(v::AbstractNormalToricVariety)
+
+This method returns the names of the coordinates of the torus of
+the normal toric variety `v`. The default is `x1,...,xn`.
+"""
+coordinate_names_of_torus(v::AbstractNormalToricVariety) = get_attribute!(v, :coordinate_names_of_torus, ["x$(i)" for i in 1:ambient_dim(v)])
+export coordinate_names_of_torus
+
+
+@doc Markdown.doc"""
+    coordinate_ring_of_torus(v::AbstractNormalToricVariety)
+
+Computes the coordinate ring of the torus of the normal toric variety `v`.
+
+# Examples
+```jldoctest
+julia> p2 = projective_space(NormalToricVariety, 2);
+
+julia> set_coordinate_names_of_torus(p2, ["y1", "y2"])
+
+julia> coordinate_ring_of_torus(p2)
+Quotient of Multivariate Polynomial Ring in y1, y2, y1_, y2_ over Rational Field by ideal(y1*y1_ - 1, y2*y2_ - 1)
+```
+"""
+function coordinate_ring_of_torus(v::AbstractNormalToricVariety)
+    S, _ = PolynomialRing(coefficient_ring(v), vcat(coordinate_names_of_torus(v), [x*"_" for x in coordinate_names_of_torus(v)]), cached=false)
+    relations = [gens(S)[i] * gens(S)[i+length(coordinate_names_of_torus(v))] - one(coefficient_ring(v)) for i in 1:length(coordinate_names_of_torus(v))]
+    return quo(S, ideal(relations))[1]
+end
+export coordinate_ring_of_torus
+
+
 ############################
 # Characters, Weil divisor and the class group
 ############################

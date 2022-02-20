@@ -138,6 +138,14 @@ If no choice is made, we invoke the following default values:
 - `coefficient_ring` is chosen as the field of rational numbers,
 - `coordinate_names` is chosen as `[x1, x2, ... ]`.
 
+Similarly, for the computation of the coordinate ring of the torus, coordinate names have to be chosen.
+The default value is `[x1, x2, ... ]`. The user can overwrite this default value.
+
+```@docs
+coordinate_names_of_torus(v::AbstractNormalToricVariety)
+set_coordinate_names_of_torus(v::AbstractNormalToricVariety, coordinate_names::Vector{String})
+```
+
 
 ### Rings and ideals
 
@@ -150,6 +158,7 @@ stanley_reisner_ideal(v::AbstractNormalToricVariety)
 stanley_reisner_ideal(R::MPolyRing, v::AbstractNormalToricVariety)
 toric_ideal(antv::AffineNormalToricVariety)
 toric_ideal(R::MPolyRing, antv::AffineNormalToricVariety)
+coordinate_ring_of_torus(v::AbstractNormalToricVariety)
 ```
 
 ### Sheaves

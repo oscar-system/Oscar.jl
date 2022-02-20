@@ -275,3 +275,9 @@ line_bundle2 = ToricLineBundle(D2)
     @test all_cohomologies(line_bundle) == [11,0,0]
     @test cohomology(line_bundle,0) == 11
 end
+
+torus_coordinate_ring = coordinate_ring_of_torus(dP3)
+
+@testset "Characters and rational functions" begin
+    @test ngens(torus_coordinate_ring.I) == 2
+end
