@@ -286,7 +286,12 @@ torus_coordinate_ring = coordinate_ring_of_torus(dP3)
 end
 
 P = convex_hull([0 0 0; 0 0 1; 1 0 1; 1 1 1; 0 1 1])
+charges = zero_matrix(ZZ, 1, 3);
+charges[1,1] = 1;
+charges[1,2] = 1;
+charges[1,3] = 1;
 
 @testset "ToricVarieties from triangulations and GLSMs" begin
     @test length(NormalToricVarietyFromTriangulation(P)) == 2
+    @test length(NormalToricVarietyFromGLSM(charges)) == 1
 end
