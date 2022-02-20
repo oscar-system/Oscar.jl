@@ -74,7 +74,7 @@ function DivisorOfCharacter(v::AbstractNormalToricVariety, character::Vector{Int
     if length(character) != rank(character_lattice(v))
         throw(ArgumentError("Character must consist of $(rank(character_lattice(v))) integers!"))
     end
-    f = map_from_character_to_principal_divisors(v)
+    f = map_from_character_lattice_to_torusinvariant_weil_divisor_group(v)
     char = sum(character .* gens(domain(f)))
     coeffs = [fmpz(x) for x in transpose(f(char).coeff)][:,1]
     return ToricDivisor(v, coeffs)
@@ -82,8 +82,133 @@ end
 export DivisorOfCharacter
 
 
+########################
+# 4: Addition and scalar multiplication
+########################
+
+@doc Markdown.doc"""
+    Base.:+(td1::ToricDivisor, td2::ToricDivisor)
+
+Return the sum of the toric divisors `td1` and `td2`.
+
+# Examples
+```jldoctest
+julia> P2 = projective_space(NormalToricVariety, 2)
+A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+
+julia> td1 = ToricDivisor(P2, [1,1,2])
+A torus-invariant, non-prime divisor on a normal toric variety
+
+julia> td2 = ToricDivisor(P2, [2,3,4])
+A torus-invariant, non-prime divisor on a normal toric variety
+
+julia> td1+td2
+A torus-invariant, non-prime divisor on a normal toric variety
+```
+"""
+function Base.:+(td1::ToricDivisor, td2::ToricDivisor)
+    # check input
+    if toric_variety(td1) !== toric_variety(td2)
+        throw(ArgumentError("The toric divisors must be defined on identically the same toric variety."))
+    end
+    
+    # extract the coefficients of both divisor and add them
+    new_coeffiicients = coefficients(td1) + coefficients(td2)
+
+    # return the new divisor
+    return ToricDivisor(toric_variety(td1), new_coeffiicients)
+end
+
+
+@doc Markdown.doc"""
+    Base.:-(td1::ToricDivisor, td2::ToricDivisor)
+
+Return the difference of the toric divisors `td1` and `td2`.
+
+# Examples
+```jldoctest
+julia> P2 = projective_space(NormalToricVariety, 2)
+A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+
+julia> td1 = ToricDivisor(P2, [1,1,2])
+A torus-invariant, non-prime divisor on a normal toric variety
+
+julia> td2 = ToricDivisor(P2, [2,3,4])
+A torus-invariant, non-prime divisor on a normal toric variety
+
+julia> td1-td2
+A torus-invariant, non-prime divisor on a normal toric variety
+```
+"""
+function Base.:-(td1::ToricDivisor, td2::ToricDivisor)
+    # check input
+    if toric_variety(td1) !== toric_variety(td2)
+        throw(ArgumentError("The toric divisors must be defined on identically the same toric variety."))
+    end
+    
+    # extract the coefficients of both divisor and subtract them
+    new_coeffiicients = coefficients(td1) - coefficients(td2)
+
+    # return the new divisor
+    return ToricDivisor(toric_variety(td1), new_coeffiicients)
+end
+
+
+@doc Markdown.doc"""
+    Base.:*(c::fmpz, td::ToricDivisor)
+
+Return `c`-times the toric divisor `td`.
+
+# Examples
+```jldoctest
+julia> P2 = projective_space(NormalToricVariety, 2)
+A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+
+julia> td = ToricDivisor(projective_space(NormalToricVariety, 2), [1,1,2])
+A torus-invariant, non-prime divisor on a normal toric variety
+
+julia> fmpz(2)*td
+A torus-invariant, non-prime divisor on a normal toric variety
+```
+"""
+Base.:*(c::fmpz, td::ToricDivisor) = ToricDivisor(toric_variety(td), [c*x for x in coefficients(td)])
+Base.:*(c::Int, td::ToricDivisor) = ToricDivisor(toric_variety(td), [fmpz(c)*x for x in coefficients(td)])
+
+
 ######################
-### 4: Display
+# 5: Equality
+######################s
+
+@doc Markdown.doc"""
+    Base.:(==)(td1::ToricDivisor, td2::ToricDivisor)
+
+Returns true if the toric divisors `td1` and `td2` are equal and false otherwise.
+
+# Examples
+```jldoctest
+julia> P2 = projective_space(NormalToricVariety, 2)
+A normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+
+julia> td1 = ToricDivisor(P2, [1,2,3])
+A torus-invariant, non-prime divisor on a normal toric variety
+
+julia> td2 = ToricDivisor(P2, [1,2,3])
+A torus-invariant, non-prime divisor on a normal toric variety
+
+julia> td1 == td2
+true
+```
+"""
+function Base.:(==)(td1::ToricDivisor, td2::ToricDivisor)
+    if toric_variety(td1) !== toric_variety(td2)
+        return false
+    end
+    return coefficients(td1) == coefficients(td2)
+end
+
+
+######################
+# 6: Display
 ######################s
 
 function Base.show(io::IO, td::ToricDivisor)

@@ -425,6 +425,12 @@ function forget_decoration(f::FreeModuleHom_dec)
   return f.f
 end
 
+function forget_decoration_completely(f::FreeModuleHom_dec)
+  F = forget_decoration(domain(f))
+  G = forget_decoration(codomain(f))
+  return hom(F, G, [forget_decoration(f(v)) for v in gens(domain(f))])
+end
+
 function matrix(a::FreeModuleHom_dec)
   return matrix(forget_decoration(a))
 end
@@ -446,7 +452,7 @@ function hom(F::FreeMod_dec, G::FreeMod_dec)
   end
 
   function pre(f::FreeModuleHom_dec)
-    undecorated_v = inv(elem_to_hom)(forget_decoration(f))
+    undecorated_v = inv(elem_to_hom)(forget_decoration_completely(f))
     return FreeModElem_dec(undecorated_v, GH)
   end
 

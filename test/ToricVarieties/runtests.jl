@@ -3,6 +3,7 @@ using Test
 
 C = Oscar.positive_hull([1 1; -1 1])
 antv = AffineNormalToricVariety(C)
+f = map_from_character_lattice_to_torusinvariant_weil_divisor_group(antv)
 
 @testset "Affine toric varieties" begin
     @test issmooth(antv) == false
@@ -11,12 +12,11 @@ antv = AffineNormalToricVariety(C)
     @test dim(cone(antv)) == 2
     @test length(affine_open_covering(antv)) == 1
     @test length(gens(toric_ideal(antv))) == 1
-    @test rank(torusinvariant_divisor_group(antv)) == 2
+    @test rank(torusinvariant_weil_divisor_group(antv)) == 2
     @test rank(character_lattice(antv)) == 2
-    map = map_from_character_to_principal_divisors(antv)
-    @test rank(domain(map)) == 2
-    @test rank(codomain(map)) == 2
-    @test elementary_divisors(codomain(map_from_weil_divisors_to_class_group(antv))) == [ 2 ]
+    @test rank(domain(f)) == 2
+    @test rank(codomain(f)) == 2
+    @test elementary_divisors(codomain(map_from_torusinvariant_weil_divisor_group_to_class_group(antv))) == [ 2 ]
     @test elementary_divisors(class_group(antv)) == [ 2 ]
     @test ngens(cox_ring(antv)) == 2
     @test length(torusinvariant_prime_divisors(antv)) == 2
@@ -56,8 +56,8 @@ ntv3 = NormalToricVariety(square)
 @testset "Toric varieties from polyhedral fans" begin
     @test iscomplete(ntv2) == true
     @test iscomplete(ntv3) == true
-    @test rank(cartier_divisor_group(ntv2)) == 4
-    @test rank(domain(map_from_cartier_divisor_group_to_torus_invariant_divisor_group(ntv2))) == 4
+    @test rank(torusinvariant_cartier_divisor_group(ntv2)) == 4
+    @test rank(domain(map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(ntv2))) == 4
 end
 
 P2 = NormalToricVariety(normal_fan(Oscar.simplex(2)))
@@ -110,13 +110,13 @@ H5 = NormalToricVariety(PolyhedralFan(fan_rays, fan_cones))
     @test betti_number(H5, 4) == 1
     @test length(affine_open_covering(H5)) == 4
     @test fan(H5).pm_fan.FAN_DIM == 2
-    @test rank(torusinvariant_divisor_group(H5)) == 4
+    @test rank(torusinvariant_weil_divisor_group(H5)) == 4
     @test rank(character_lattice(H5)) == 2
-    map = map_from_character_to_principal_divisors(H5)
+    map = map_from_character_lattice_to_torusinvariant_weil_divisor_group(H5)
     @test rank(domain(map)) == 2
     @test rank(codomain(map)) == 4
     @test rank(class_group(H5)) == 2
-    @test rank(codomain(map_from_weil_divisors_to_class_group(H5))) == 2
+    @test rank(codomain(map_from_torusinvariant_weil_divisor_group_to_class_group(H5))) == 2
     @test ngens(cox_ring(H5)) == 4
     @test length(stanley_reisner_ideal(H5).gens) == 2
     @test length(irrelevant_ideal(H5).gens) == 4
@@ -141,11 +141,11 @@ dP3 = NormalToricVariety(PolyhedralFan(fan_rays, fan_cones))
     @test length(torusinvariant_prime_divisors(dP0)) == 3
     @test length(torusinvariant_prime_divisors(dP1)) == 4
     @test length(torusinvariant_prime_divisors(dP2)) == 5
-    @test rank(cartier_divisor_group(dP3)) == 6
+    @test rank(torusinvariant_cartier_divisor_group(dP3)) == 6
     @test length(torusinvariant_prime_divisors(dP3)) == 6
     @test_throws ArgumentError del_pezzo(4)
     @test rank(picard_group(dP3)) == 4
-    @test picard_group(dP3) == codomain(map_from_cartier_divisor_group_to_picard_group(dP3))
+    @test picard_group(dP3) == codomain(map_from_torusinvariant_cartier_divisor_group_to_picard_group(dP3))
 end
 
 blowup_variety = blowup_on_ith_minimal_torus_orbit(P2, 1, "e")
@@ -213,7 +213,7 @@ end
 D=ToricDivisor(H5, [0,0,0,0])
 D2 = DivisorOfCharacter(H5, [1,2])
 
-@testset "Divisors" begin
+@testset "Toric divisors" begin
     @test dim(toric_variety(D)) == 2
     @test isprime(D) == false
     @test iscartier(D) == true
@@ -236,21 +236,37 @@ D2 = DivisorOfCharacter(H5, [1,2])
     @test is_q_cartier(D2) == true
     @test isprime(D2) == false
     @test coefficients(D2) == [1, 2, 9, -2]
+    @test coefficients(D2+D2) == coefficients(2*D2)
+    @test coefficients(D2-D2) == [0,0,0,0]
+    @test (D == D2) == false
 end
 
 p = polyhedron(D)
 
-@testset "Polytopes of divisors" begin
+@testset "Polytopes of toric divisors" begin
     @test dim(p) == 0
     @test ambient_dim(p) == 2
 end
 
+DC1 = ToricDivisorClass(H5, [0,0])
+DC2 = ToricDivisorClass(H5, [1,2])
+
+@testset "Toric divisor classes" begin
+    @test istrivial(DC1) == true
+    @test istrivial(2 * DC1 + DC2) == false
+    @test toric_variety(DC1) === toric_variety(DC2)
+    @test (divisor_class(DC1) == divisor_class(DC2)) == false
+end
+
 line_bundle = ToricLineBundle(dP3, [1,2,3,4])
+line_bundle2 = ToricLineBundle(D2)
 
 @testset "Toric line bundles" begin
     @test degree(line_bundle) == 10
+    @test degree(line_bundle * line_bundle) == 20
+    @test degree(line_bundle^(-1)) == -10
     @test divisor_class(line_bundle).coeff == AbstractAlgebra.matrix(ZZ, [1 2 3 4])
-    @test dim(variety(line_bundle)) == 2
+    @test dim(toric_variety(line_bundle)) == 2
     @test istrivial(line_bundle) == false
     @test is_basepoint_free(line_bundle) == false
     @test isample(line_bundle) == false

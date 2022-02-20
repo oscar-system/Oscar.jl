@@ -273,9 +273,8 @@ function projective_space(::Type{NormalToricVariety}, d::Int)
     set_attribute!(variety, :euler_characteristic, d+1)
     set_attribute!(variety, :character_lattice, free_abelian_group(d))
     set_attribute!(variety, :torusinvariant_divisor_group, free_abelian_group(d+1))
-    set_attribute!(variety, :map_from_cartier_divisor_group_to_torus_invariant_divisor_group, identity_map(torusinvariant_divisor_group(variety)))
-    set_attribute!(variety, :map_from_cartier_divisor_group_to_picard_group, map_from_weil_divisors_to_class_group(variety))
-    
+    set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group, identity_map(torusinvariant_divisor_group(variety)))
+    set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_picard_group, map_from_torusinvariant_weil_divisor_group_to_class_group(variety))
     betti_numbers = fill(fmpz(1), d+1)
     set_attribute!(variety, :betti_number, betti_numbers)
     
@@ -325,8 +324,8 @@ function hirzebruch_surface(r::Int)
     set_attribute!(variety, :euler_characteristic, 4)
     set_attribute!(variety, :character_lattice, free_abelian_group(2))
     set_attribute!(variety, :torusinvariant_divisor_group, free_abelian_group(4))
-    set_attribute!(variety, :map_from_cartier_divisor_group_to_torus_invariant_divisor_group, identity_map(torusinvariant_divisor_group(variety)))
-    set_attribute!(variety, :map_from_cartier_divisor_group_to_picard_group, map_from_weil_divisors_to_class_group(variety))
+    set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group, identity_map(torusinvariant_divisor_group(variety)))
+    set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_picard_group, map_from_torusinvariant_weil_divisor_group_to_class_group(variety))
     set_attribute!(variety, :betti_number, [fmpz(1),fmpz(2),fmpz(1)])
     
     # return the result
@@ -412,8 +411,8 @@ function del_pezzo(b::Int)
     set_attribute!(variety, :dim, 2)
     set_attribute!(variety, :dim_of_torusfactor, 0)
     set_attribute!(variety, :character_lattice, free_abelian_group(2))
-    set_attribute!(variety, :map_from_cartier_divisor_group_to_torus_invariant_divisor_group, identity_map(torusinvariant_divisor_group(variety)))
-    set_attribute!(variety, :map_from_cartier_divisor_group_to_picard_group, map_from_weil_divisors_to_class_group(variety))
+    set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group, identity_map(torusinvariant_divisor_group(variety)))
+    set_attribute!(variety, :map_from_torusinvariant_cartier_divisor_group_to_picard_group, map_from_torusinvariant_weil_divisor_group_to_class_group(variety))
     
     # return the result
     return variety    
@@ -464,7 +463,7 @@ function blowup_on_ith_minimal_torus_orbit(v::AbstractNormalToricVariety, n::Int
     # set up Cox ring of new variety
     new_vars = [if new_rays[i] in old_rays old_vars[findfirst(x->x==new_rays[i], old_rays)] else coordinate_name end for i in 1:length(new_rays)]
     set_attribute!(new_variety, :coordinate_names, new_vars)
-    weights = [map_from_weil_divisors_to_class_group(new_variety)(x) for x in gens(torusinvariant_divisor_group(new_variety))]
+    weights = [map_from_torusinvariant_weil_divisor_group_to_class_group(new_variety)(x) for x in gens(torusinvariant_weil_divisor_group(new_variety))]
     set_attribute!(new_variety, :cox_ring_weights, weights)
     if has_attribute(v, :coefficient_ring)
         set_attribute!(new_variety, :coefficient_ring, coefficient_ring(v))

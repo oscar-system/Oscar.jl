@@ -12,9 +12,26 @@ Pages = ["ToricLineBundles.md"]
 
 ## Constructors
 
+### Generic constructors
+
 ```@docs
 ToricLineBundle(v::AbstractNormalToricVariety, c::Vector{fmpz})
 ToricLineBundle(v::AbstractNormalToricVariety, c::Vector{Int})
+ToricLineBundle(v::AbstractNormalToricVariety, d::ToricDivisor)
+```
+
+### Tensor products
+
+```@docs
+Base.:*(l1::ToricLineBundle, l2::ToricLineBundle)
+Base.:^(l::ToricLineBundle, p::fmpz)
+Base.:inv(l::ToricLineBundle)
+```
+
+### Equality
+
+```@docs
+Base.:(==)(l1::ToricLineBundle, l2::ToricLineBundle)
 ```
 
 
@@ -34,7 +51,7 @@ is_very_ample(l::ToricLineBundle)
 degree(l::ToricLineBundle)
 divisor_class(l::ToricLineBundle)
 toric_divisor(l::ToricLineBundle)
-variety(l::ToricLineBundle)
+toric_variety(l::ToricLineBundle)
 ```
 
 ## Method

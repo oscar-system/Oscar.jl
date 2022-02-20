@@ -138,6 +138,7 @@
         "ToricVarieties/NormalToricVarieties.md",
         "ToricVarieties/CyclicQuotientSingularities.md",
         "ToricVarieties/ToricDivisors.md",
+        "ToricVarieties/ToricDivisorClasses.md",
         "ToricVarieties/ToricLineBundles.md",
      ],
      "Schemes" => [
