@@ -39,7 +39,7 @@ julia> M = matroid_from_bases([[1,2],[1,'i'],[1,'j'],[2,'i'],[2,'j']],[2,1,'i','
 """
 matroid_from_bases(bases::Union{AbstractVector{<:AbstractVector{<:Base.Integer}}, AbstractVector{<:AbstractSet{<:Base.Integer}}}, nelements::Int) = matroid_from_bases(bases,Vector(1:nelements))
 
-function matroid_from_bases(bases::Union{AbstractVector{<:AbstractVector}, AbstractVector{<:AbstractSet}},groundset::AbstractVector, check_input::Bool=true)
+function matroid_from_bases(bases::Union{AbstractVector{<:AbstractVector}, AbstractVector{<:AbstractSet}},groundset::AbstractVector, check::Bool=true)
 	if check_input && size(groundset)[1]!=length(Set(groundset))
 		throw("Input is not a valid groundset of a matroid")
 	end
@@ -51,7 +51,7 @@ function matroid_from_bases(bases::Union{AbstractVector{<:AbstractVector}, Abstr
 	end
 	pm_bases = [[gs2num[i]-1 for i in B] for B in bases]
     	M = Polymake.matroid.Matroid(BASES=pm_bases,N_ELEMENTS=size(groundset)[1])
-	if check_input && !Polymake.matroid.check_basis_exchange_axiom(M.BASES)
+	if check && !Polymake.matroid.check_basis_exchange_axiom(M.BASES)
 		throw("Input is not a collection of bases")
 	end
     	Matroid(M,groundset,gs2num)
@@ -76,7 +76,7 @@ julia> M = matroid_from_bases([[1,2,'i'],[1,2,'j'],['i','j']],[2,1,'i','j']);
 """
 matroid_from_circuits(circuits::Union{AbstractVector{<:AbstractVector{<:Base.Integer}}, AbstractVector{<:AbstractSet{<:Base.Integer}}}, nelements::Int) = matroid_from_circuits(circuits,Vector(1:nelements))
 
-function matroid_from_circuits(circuits::Union{AbstractVector{<:AbstractVector}, AbstractVector{<:AbstractSet}},groundset::AbstractVector, check_input::Bool=true)
+function matroid_from_circuits(circuits::Union{AbstractVector{<:AbstractVector}, AbstractVector{<:AbstractSet}},groundset::AbstractVector, check::Bool=true)
 	if check_input && size(groundset)[1]!=length(Set(groundset))
 		throw("Input is not a valid groundset of a matroid")
 	end
@@ -89,7 +89,7 @@ function matroid_from_circuits(circuits::Union{AbstractVector{<:AbstractVector},
 	pm_circuits = [[gs2num[i]-1 for i in C] for C in circuits]
     	M = Polymake.matroid.Matroid(CIRCUITS=pm_circuits,N_ELEMENTS=size(groundset)[1])
 	#TODO check_circuit_exchange_axiom
-	#if check_input && !Polymake.matroid.check_circuit_exchange_axiom(M.CIRCUITS)
+	#if check && !Polymake.matroid.check_circuit_exchange_axiom(M.CIRCUITS)
 	#	throw("Input is not a collection of circuits")
 	#end
     	Matroid(M,groundset,gs2num)
