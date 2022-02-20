@@ -1,4 +1,4 @@
-export chow_ring
+export chow_ring, select
 
 function chow_ring(M::Matroid, extended=false)
 	Flats = flats(M)
@@ -86,3 +86,10 @@ function relations_extended_ring(ring, proper_flats, vars)
 	return relations
 end
 
+function select(include::Union{AbstractVector,Set},exclude::Union{AbstractVector,Set},set::Union{AbstractVector,Set})
+	all = []
+	for e in set
+		all = union(all,e)
+	end
+	return findall(s->issubset(include,s)&&issubset(s,setdiff(all,exclude)),set);
+end

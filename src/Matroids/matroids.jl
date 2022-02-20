@@ -321,7 +321,8 @@ function uniform_matroid(r::Int,n::Int)
 	Matroid(Polymake.matroid.uniform_matroid(r,n),1:n,gs2num)
 end
 
-fano_matroid() = Matroid(Polymake.matroid.fano_matroid(),0:6, Dict{Any,Int}(1=>0, 2=>1, 3=>2, 4=>3, 5=>4, 6=>5, 7=>6))
+fano_matroid() = Matroid(Polymake.matroid.fano_matroid(),[7;1:6], Dict{Any,Int}(7=>1, 1=>2, 2=>3, 3=>4, 4=>5, 5=>6, 6=>7))
 
-non_fano_matroid() = Matroid(Polymake.matroid.non_fano_matroid(),0:6, Dict{Any,Int}(1=>0, 2=>1, 3=>2, 4=>3, 5=>4, 6=>5, 7=>6))
+non_fano_matroid() = Matroid(Polymake.matroid.non_fano_matroid(),[7;1:6], Dict{Any,Int}(7=>1, 1=>2, 2=>3, 3=>4, 4=>5, 5=>6, 6=>7))
+
 

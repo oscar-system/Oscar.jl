@@ -1,35 +1,39 @@
 export
-	bases, circuits, hyperplanes, flats, cyclic_flats, closure, rank, nullity,
-	spanning_sets, independent_sets, girth,
+	isomorphism, size_groundset,
+	bases, circuits, hyperplanes, flats, cyclic_flats, closure, 
+	rank, nullity, 
+	fundamental_circuit, fundamental_cocircuit,
+	spanning_sets, independent_sets,
 	cobases, cocircuits, cohyperplanes, corank,
 	is_clutter, get_blocker,
 	is_regular, is_graphic, is_cographic,
-	is_binary,
+	is_binary, is_ternary,
 	n_connected_components, connected_components, is_connected,
+	loops, coloops, is_loopless, is_coloopless, direct_sum_components,
 	connectivity_function, is_vertical_k_separation,
-	vertical_connectivity, tutte_connectivity,
-	direct_sum_components, loops, coloops, is_loopless, is_coloopless,
-	extension,
-	isomorphism, fundamental_circuit, fundamental_cocircuit,
+	vertical_connectivity, girth, tutte_connectivity,
+	principal_extension, free_extension, series_extension,
 	tutte_polynomial, characteristic_polynomial, reduced_characteristic_polynomial,
-	visualize
+	is_quotient
 
 ################################################################################
 ##  Properties and basic functions
 ################################################################################
 
-@doc Markdown.doc"""
-    rank(M::matroid)
+function isomorphism(M::Matroid, gs::AbstractVector)
+	if(size(M.groundset)[1]!=size(gs)[1])
+		throw("Sets of different size")
+	end
+	gs2num = Dict{Any,Int}()
+	i = 1
+	for elem in gs
+		gs2num[elem] = i
+		i+=1
+	end
+	Matroid(M.pm_matroid,gs,gs2num)
+end
 
-Return the rank of the matroid `M`.
-
-# Example
-```jldoctest
-julia> groundset(fano())
-```
-"""
-rank(M::Matroid) = M.pm_matroid.RANK::Int
-
+size_groundset(M::Matroid) = length(M.groundset)[1]
 
 @doc Markdown.doc"""
     bases(M::matroid)
@@ -83,6 +87,21 @@ function closure(M::Matroid,set::Union{AbstractVector,Set})
 end
 
 
+
+@doc Markdown.doc"""
+    rank(M::matroid)
+
+Return the rank of the matroid `M`.
+
+# Example
+```jldoctest
+julia> M = 
+julia> groundset(M)
+```
+"""
+rank(M::Matroid) = M.pm_matroid.RANK::Int
+
+
 @doc Markdown.doc"""
     rank(M::matroid,set::Vector)
 
@@ -97,6 +116,21 @@ julia>
 rank(M::Matroid, set::Union{AbstractVector,Set}) = Polymake.matroid.rank( M.pm_matroid, Set([M.gs2num[i]-1 for i in set]) )
 
 nullity(M::Matroid, set::Union{AbstractVector,Set}) = size(set)[1]-Polymake.matroid.rank( M.pm_matroid, Set([M.gs2num[i]-1 for i in set]) )
+
+function fundamental_circuit(M::Matroid, basis::AbstractVector, elem::Union{Int,Char,String})
+	if(!(basis in bases(M)))
+		throw("The set is not a basis of M")
+	end
+	if(!(elem in M.groundset))
+		throw("The element is not in the groundset")
+	end
+	if(elem in basis)
+		throw("The element is in the basis, but has to be in the complement")
+	end
+	return circuits(restriction(M,[elem; basis]))[1]
+end
+
+fundamental_cocircuit(M::Matroid, basis::AbstractVector, elem::Union{Int,Char,String}) = fundamental_circuit(dual_matroid(M),basis,elem)
 
 @doc Markdown.doc"""
     independet_sets(M::matroid)
@@ -146,8 +180,6 @@ function independent_sets(M::Matroid)
 	return sets
 end
 
-girth(M::Matroid, set::Vector=M.groundset) = minimum([inf; [issubset(C,set) ? size(C)[1] : inf for C in circuits(M)]])
-
 cobases(M::Matroid) = bases( dual_matroid(M) )
 
 cocircuits(M::Matroid) = circuits( dual_matroid(M) )
@@ -155,7 +187,6 @@ cocircuits(M::Matroid) = circuits( dual_matroid(M) )
 cohyperplanes(M::Matroid) = hyperplanes( dual_matroid(M) )
 
 corank(M::Matroid, set::Vector) = size(set)[1]-rank(M, set) + rank(M, setdiff(M.groundset,set))
-#or corank_function? TODO
 
 function is_clutter(sets::Union{AbstractVector{<:AbstractVector}, AbstractVector{<:AbstractSet}})
 	for A in sets
@@ -173,17 +204,26 @@ function get_blocker(clutter::Union{AbstractVector{<:AbstractVector}, AbstractVe
 end
 
 is_regular(M::Matroid) = M.pm_matroid.REGULAR
+
 is_graphic(M::Matroid) = true #TODO
+
 is_cographic(M::Matroid) = is_graphic(dual_matroid(M))
+
 is_binary(M::Matroid) = M.pm_matroid.BINARY
 
+is_ternary(M::Matroid) = M.pm_matroid.TERNARY
+
 n_connected_components(M::Matroid) = size(M.pm_matroid.CONNECTED_COMPONENTS)[1]
+
 connected_components(M::Matroid) = [[M.groundset[i+1] for i in comp] for comp in M.pm_matroid.CONNECTED_COMPONENTS]
 is_connected(M::Matroid) = M.pm_matroid.CONNECTED
 
 loops(M::Matroid) = [M.groundset[i+1] for i in M.pm_matroid.LOOPS]
+
 coloops(M::Matroid) = [M.groundset[i+1] for i in M.pm_matroid.DUAL.LOOPS]
+
 is_loopless(M::Matroid) = length(M.pm_matroid.LOOPS)==0 ? true : false
+
 is_coloopless(M::Matroid) = length(M.pm_matroid.DUAL.LOOPS)==0 ? true : false
 
 function direct_sum_components(M::Matroid)
@@ -194,42 +234,11 @@ function direct_sum_components(M::Matroid)
 	return res
 end
 
-function isomorphism(M::Matroid, gs::AbstractVector)
-	if(size(M.groundset)[1]!=size(gs)[1])
-		throw("Sets of different size")
-	end
-	gs2num = Dict{Any,Int}()
-	i = 1
-	for elem in gs
-		gs2num[elem] = i
-		i+=1
-	end
-	Matroid(M.pm_matroid,gs,gs2num)
-end
-
-function fundamental_circuit(M::Matroid, basis::AbstractVector, elem::Union{Int,Char,String})
-	if(!(basis in bases(M)))
-		throw("The set is not a basis of M")
-	end
-	if(!(elem in M.groundset))
-		throw("The element is not in the groundset")
-	end
-	if(elem in basis)
-		throw("The element is in the basis, but has to be in the complement")
-	end
-	return circuits(restriction(M,[elem; basis]))[1]
-end
-
-fundamental_cocircuit(M::Matroid, basis::AbstractVector, elem::Union{Int,Char,String}) = fundamental_circuit(dual_matroid(M),basis,elem)
-
 connectivity_function(M::Matroid, set::Union{AbstractVector, Set}) = rank(M,set) + rank(M,setdiff( Set(M.groundset), set)) - rank(M)
-#lambda in the book
 
 is_vertical_k_separation(M::Matroid,k::Int, set::Union{AbstractVector,Set}) = k<=rank(M,set) && k<=rank(M,setdiff( Set(M.groundset), set)) && k> connectivity_function(M,set)
-#TODO name?
 
 is_k_separation(M::Matroid,k::Int, set::Union{AbstractVector,Set}) = k<=size(set)[1] && k<=size(setdiff( Set(M.groundset), set))[1] && k> connectivity_function(M,set)
-#TODO name?
 
 function vertical_connectivity(M::Matroid)
 	gs = Set(M.groundset)
@@ -249,6 +258,9 @@ function vertical_connectivity(M::Matroid)
 	return res
 end
 
+girth(M::Matroid, set::Vector=M.groundset) = minimum([inf; [issubset(C,set) ? size(C)[1] : inf for C in circuits(M)]])
+
+
 function tutte_connectivity(M::Matroid)
 	r = M.pm_matroid.RANK
 	n = M.pm_matroid.N_ELEMENTS
@@ -258,6 +270,10 @@ function tutte_connectivity(M::Matroid)
 	end
 	return minimum([vertical_connectivity(M),girth(M)])
 end
+
+principal_extension()=0
+free_extension()=0
+series_extension()=0
 
 function tutte_polynomial(M::Matroid)
 	R, (x, y) = PolynomialRing(ZZ, ["x", "y"])
@@ -283,6 +299,4 @@ function reduced_characteristic_polynomial(M::Matroid)
 	return R(c)
 end
 
-
-visualize(M::Matroid) = Polymake.visual(M.pm_matroid.LATTICE_OF_FLATS)
-
+is_quotient() = 0
