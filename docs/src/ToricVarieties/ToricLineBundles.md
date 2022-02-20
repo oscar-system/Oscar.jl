@@ -64,9 +64,9 @@ all_cohomologies(l::ToricLineBundle)
 cohomology(l::ToricLineBundle, i::Int)
 ```
 
-In addition, we can also compute a basis of the global sections
-from characters.
+We can also compute a basis of the global sections.
 
 ```@docs
-basis_of_global_sections(l::ToricLineBundle)
+basis_of_global_sections_via_rational_functions(l::ToricLineBundle)
+basis_of_global_sections_via_homogeneous_component(l::ToricLineBundle)
 ```
