@@ -51,3 +51,19 @@ Returns the degree of the toric line bundle `l`.
     return sum(coefficients(toric_divisor(l)))
 end
 export degree
+
+
+#####################
+# 2. Basis of global sections
+#####################
+
+@doc Markdown.doc"""
+    basis_of_global_sections(l::ToricLineBundle)
+
+Returns a basis of the global sections of the toric line bundle `l`.
+"""
+@attr function basis_of_global_sections(l::ToricLineBundle)
+    characters = matrix(ZZ, lattice_points(polyhedron(toric_divisor(l))))
+    return [character_to_rational_function(toric_variety(l), vec([fmpz(c) for c in characters[i,:]])) for i in 1:nrows(characters)]
+end
+export basis_of_global_sections
