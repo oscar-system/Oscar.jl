@@ -54,7 +54,7 @@ function matroid_from_bases(bases::Union{AbstractVector{<:AbstractVector}, Abstr
 	if check && !Polymake.matroid.check_basis_exchange_axiom(M.BASES)
 		throw("Input is not a collection of bases")
 	end
-    	Matroid(M,groundset,gs2num)
+    	return Matroid(M,groundset,gs2num)
 end
 
 @doc Markdown.doc"""
@@ -92,7 +92,7 @@ function matroid_from_circuits(circuits::Union{AbstractVector{<:AbstractVector},
 	#if check && !Polymake.matroid.check_circuit_exchange_axiom(M.CIRCUITS)
 	#	throw("Input is not a collection of circuits")
 	#end
-    	Matroid(M,groundset,gs2num)
+    	return Matroid(M,groundset,gs2num)
 end
 
 @doc Markdown.doc"""
@@ -123,7 +123,7 @@ function matroid_from_matrix(A::MatrixElem)
 			push!(bases, set);
 		end
 	end
-	matroid_from_bases(bases,ncols(A))
+	return matroid_from_bases(bases,ncols(A))
 end
 
 @doc Markdown.doc"""
@@ -147,7 +147,7 @@ function cycle_matroid(g::Oscar.Graphs.Graph)
 		gs2num[elem] = i
 		i+=1
 	end
-	Matroid(M,1:n,gs2num)
+	return Matroid(M,1:n,gs2num)
 end
 
 @doc Markdown.doc"""
@@ -224,7 +224,7 @@ function direct_sum(M::Matroid, N::Matroid)
 		i+=1
 	end
 	gs2num = merge(M.gs2num,new_gs2num)
-	Matroid(Polymake.matroid.direct_sum(M.pm_matroid,N.pm_matroid),[M.groundset;gsN],gs2num)
+	return Matroid(Polymake.matroid.direct_sum(M.pm_matroid,N.pm_matroid),[M.groundset;gsN],gs2num)
 end
 
 direct_sum(comp::Vector{Matroid}) = foldl(direct_sum, comp)
@@ -267,7 +267,7 @@ function restriction(M::Matroid,set::Union{AbstractVector, Set})
 	end
 	pm_complement = setdiff(Set(0:size(M.groundset)[1]-1),Set([M.gs2num[i]-1 for i in set]))
 	pm_rest = Polymake.matroid.deletion(M.pm_matroid, pm_complement)
-	Matroid(pm_rest, sort_set, gs2num)
+	return Matroid(pm_rest, sort_set, gs2num)
 end
 
 function contraction(M::Matroid,set::Union{AbstractVector, Set})
@@ -282,7 +282,7 @@ function contraction(M::Matroid,set::Union{AbstractVector, Set})
 		end
 	end
 	pm_contr = Polymake.matroid.contraction(M.pm_matroid, Set([M.gs2num[i]-1 for i in set]))
-	Matroid(pm_contr, sort_set, gs2num)
+	return Matroid(pm_contr, sort_set, gs2num)
 end
 
 contraction(M::Matroid,elem::Union{Int,Char,String}) = contraction(M,Vector([elem]))
@@ -301,7 +301,7 @@ function principal_extension(M::Matroid, set::Union{AbstractVector,Set}, elem::U
 	end
 	gs2num = copy(M.gs2num)
 	gs2num[elem] = length(M.groundset)
-	Matroid(Polymake.matroid.principal_extension(M.pm_matroid,Set(set)),[M.groundset;elem],gs2num)
+	return Matroid(Polymake.matroid.principal_extension(M.pm_matroid,Set(set)),[M.groundset;elem],gs2num)
 end
 
 
@@ -312,7 +312,7 @@ function uniform_matroid(r::Int,n::Int)
 		gs2num[elem] = i
 		i+=1
 	end
-	Matroid(Polymake.matroid.uniform_matroid(r,n),1:n,gs2num)
+	return Matroid(Polymake.matroid.uniform_matroid(r,n),1:n,gs2num)
 end
 
 fano_matroid() = Matroid(Polymake.matroid.fano_matroid(),[7;1:6], Dict{Any,Int}(7=>1, 1=>2, 2=>3, 3=>4, 4=>5, 5=>6, 6=>7))
