@@ -495,7 +495,53 @@ end
 
 
 ############################
-### 5: Display
+# 5: Toric varieties from triangulations
+############################
+
+@doc Markdown.doc"""
+    NormalToricVarietyFromTriangulation(P::Polyhedron)
+
+Returns the list of toric varieties obtained from fine regular
+star triangulations of the polyhedron P.
+
+# Examples
+```jldoctest
+julia> P = convex_hull([0 0 0; 0 0 1; 1 0 1; 1 1 1; 0 1 1])
+A polyhedron in ambient dimension 3
+
+julia> NormalToricVarietyFromTriangulation(P::Polyhedron)
+2-element Vector{NormalToricVariety}:
+ A normal toric variety
+ A normal toric variety
+```
+"""
+function NormalToricVarietyFromTriangulation(P::Polyhedron)
+    # triangulate the polyhedron
+    trias = star_triangulations(P)
+    
+    # Currently, the rays in trias[1]
+    # (a) are encoded as fmpq_mat (fmpz expected)
+    # (b) contain the origin as first element (not a rays, so to be removed)
+    rays = trias[1]
+    integral_rays = zeros(ZZ, nrows(rays)-1, ncols(rays))
+    for i in 2:nrows(rays)
+        integral_rays[i-1, 1:ncols(rays)] = [ZZ(c) for c in rays[i,1:ncols(rays)]]
+    end
+    
+    # trias[2] contains the max_cones as list of lists
+    # (a) needs to be converted to incidence matrix
+    # (b) one has to remove origin from list of indices (as removed above)
+    max_cones = trias[2]
+    max_cones = [IncidenceMatrix([[c[i]-1 for i in 2:length(c)] for c in t]) for t in max_cones]
+    
+    # construct the varieties
+    return [NormalToricVariety(PolyhedralFan(integral_rays, cones)) for cones in max_cones]
+end
+export NormalToricVarietyFromTriangulation
+
+
+############################
+### 6: Display
 ############################
 function Base.show(io::IO, v::AbstractNormalToricVariety)
     # initiate properties string

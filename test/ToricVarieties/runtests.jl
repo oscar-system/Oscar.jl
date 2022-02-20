@@ -284,3 +284,9 @@ torus_coordinate_ring = coordinate_ring_of_torus(dP3)
     @test length(basis_of_global_sections_via_rational_functions(line_bundle2)) == 1
     @test length(basis_of_global_sections_via_rational_functions(line_bundle2^2)) == length(basis_of_global_sections_via_homogeneous_component(line_bundle2^2))
 end
+
+P = convex_hull([0 0 0; 0 0 1; 1 0 1; 1 1 1; 0 1 1])
+
+@testset "ToricVarieties from triangulations and GLSMs" begin
+    @test length(NormalToricVarietyFromTriangulation(P)) == 2
+end
