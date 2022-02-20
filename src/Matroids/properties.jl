@@ -21,7 +21,7 @@ export
 ################################################################################
 
 function isomorphism(M::Matroid, gs::AbstractVector)
-	if(size(M.groundset)[1]!=size(gs)[1])
+	if size(M.groundset)[1]!=size(gs)[1]
 		throw("Sets of different size")
 	end
 	gs2num = Dict{Any,Int}()
@@ -30,7 +30,7 @@ function isomorphism(M::Matroid, gs::AbstractVector)
 		gs2num[elem] = i
 		i+=1
 	end
-	Matroid(M.pm_matroid,gs,gs2num)
+	return Matroid(M.pm_matroid,gs,gs2num)
 end
 
 size_groundset(M::Matroid) = length(M.groundset)[1]
@@ -79,7 +79,7 @@ end
 function closure(M::Matroid,set::Union{AbstractVector,Set})
 	cl = M.groundset
 	for flat in flats(M)
-		if(issubset(set,flat) && issubset(flat,cl))
+		if issubset(set,flat) && issubset(flat,cl)
 			cl = flat
 		end
 	end
@@ -118,13 +118,13 @@ rank(M::Matroid, set::Union{AbstractVector,Set}) = Polymake.matroid.rank( M.pm_m
 nullity(M::Matroid, set::Union{AbstractVector,Set}) = size(set)[1]-Polymake.matroid.rank( M.pm_matroid, Set([M.gs2num[i]-1 for i in set]) )
 
 function fundamental_circuit(M::Matroid, basis::AbstractVector, elem::Union{Int,Char,String})
-	if(!(basis in bases(M)))
+	if !(basis in bases(M))
 		throw("The set is not a basis of M")
 	end
-	if(!(elem in M.groundset))
+	if !(elem in M.groundset)
 		throw("The element is not in the groundset")
 	end
-	if(elem in basis)
+	if elem in basis
 		throw("The element is in the basis, but has to be in the complement")
 	end
 	return circuits(restriction(M,[elem; basis]))[1]
@@ -151,8 +151,8 @@ function spanning_sets(M::Matroid)
 	for k in rank(M):n
 		for set in Oscar.Hecke.subsets(Vector(0:n-1),k)
 			for B in pm_bases
-				if(issubset(B,set))
-					sets = [sets; [Vector([gs[i+1] for i in set])]]
+				if issubset(B,set)
+					push!(sets, [Vector([gs[i+1] for i in set])])
 					break
 				end
 			end
@@ -169,8 +169,8 @@ function independent_sets(M::Matroid)
 	for k in 1:rank(M)
 		for set in Oscar.Hecke.subsets(Vector(0:n-1),k)
 			for B in pm_bases
-				if(issubset(set,B))
-					sets = [sets; [Vector([gs[i+1] for i in set])]]
+				if issubset(set,B)
+					push!( sets, [Vector([gs[i+1] for i in set])])
 					break
 				end
 			end
@@ -191,7 +191,7 @@ corank(M::Matroid, set::Vector) = size(set)[1]-rank(M, set) + rank(M, setdiff(M.
 function is_clutter(sets::Union{AbstractVector{<:AbstractVector}, AbstractVector{<:AbstractSet}})
 	for A in sets
 		for B in sets
-			if(issubset(A,B) ⊻ issubset(B,A))
+			if issubset(A,B) ⊻ issubset(B,A)
 				return false
 			end
 		end
@@ -245,13 +245,13 @@ function vertical_connectivity(M::Matroid)
 	res = rank(M)
 	for set in cocircuits(M)
 		comp = setdiff(gs,set)
-		if(length(set)==0 || length(set)>length(comp))
+		if length(set)==0 || length(set)>length(comp)
 			continue
 		end
 		rk_set = rank(M,set)
 		rk_comp = rank(M,comp)
 		k = minimum([rk_set,rk_comp])
-		if(k<res && k>rk_set+rk_comp-rank(M))
+		if k<res && k>rk_set+rk_comp-rank(M)
 			res = k
 		end
 	end
@@ -265,7 +265,7 @@ function tutte_connectivity(M::Matroid)
 	r = M.pm_matroid.RANK
 	n = M.pm_matroid.N_ELEMENTS
 	#if M is uniform, apply Cor. 8.6.3 otherwise Thm. 8.6.4
-	if(n>2r && M.pm_matroid.N_BASES==binomial(n,r))
+	if n>2r && M.pm_matroid.N_BASES==binomial(n,r)
 		return n>=2r-2 ? r+1 : inf
 	end
 	return minimum([vertical_connectivity(M),girth(M)])
