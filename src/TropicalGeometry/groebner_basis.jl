@@ -190,7 +190,7 @@ G = groebner_basis(Cyclic5Homogenized_Ks, val, w)
 # G = groebner_basis(Katsura5Homogenized_Ks, val, w)
 
 =======#
-function interreduce_tropically(G::Vector{<:MPolyElem}, val::ValuationMap, w::Vector; pertubation::Vector=[]) # todo: why does normal interreduce not work?
+function interreduce_tropically(G::Vector{<:MPolyElem}, val::ValuationMap, w::Vector; pertubation::Vector=[])
 
   # println("================================================== inside interreduce_tropically")
   # println(G)
@@ -236,7 +236,7 @@ function interreduce_tropically(G::Vector{<:MPolyElem}, val::ValuationMap, w::Ve
 
 
   ###
-  # Step 2: sort and interreduce_tropically each slice
+  # Step 2: sort and interreduce_tropically each degree slice
   ###
   Singular.libSingular.set_option("OPT_INFREDTAIL", true)
   for (d,H) in enumerate(sG_slices)
@@ -246,8 +246,14 @@ function interreduce_tropically(G::Vector{<:MPolyElem}, val::ValuationMap, w::Ve
       continue
     end
 
-    # sort H
-    sort!(H)
+    # println("================================================== H start of step 2")
+    # display(H)
+
+    # sort H by leading monomial from large to small
+    sort!(H,rev=true)
+
+    # println("================================================== H after sort")
+    # display(H)
 
     # first pass, remove leading x-monomial of H[i] from H[j] for i<j
     for i in 1:length(H)-1
@@ -256,6 +262,9 @@ function interreduce_tropically(G::Vector{<:MPolyElem}, val::ValuationMap, w::Ve
       end
     end
 
+    # println("================================================== H after 1st pass")
+    # display(H)
+
     # second pass, remove leading x-monomial of H[j] from H[i] for i<j
     for i in 1:length(H)-1
       for j in i+1:length(H)
@@ -263,62 +272,136 @@ function interreduce_tropically(G::Vector{<:MPolyElem}, val::ValuationMap, w::Ve
       end
     end
 
+    # println("================================================== H after 2nd pass")
+    # display(H)
+
     # overwrite old slice with the new reduced slice
     sG_slices[d] = H
   end
 
 
   ###
-  # Step 3: reduce each slice by its predecessors
+  # Step 3: reduce each degree slice by its lower-degree predecessors
   ###
-  for (d,H) in enumerate(sG_slices)
-    # save the length of H
-    # as H increases in size, the first k elements will always be its original elements
-    k = length(H)
+  # records whether we have encountered the lowest degree slice
+  # this is so we can skip the lowest degree slice without any reduction
+  sG_reduced = []
+  for H in sG_slices
 
-    for h in H
+    # if slice is empty, skip to next slice
+    if isempty(H)
+      continue
     end
-    # H
-    # for
-    # end
 
-    # overwrite old slice with the first k entries of H
-    sG_slices[d] = H[1:k]
+    # if no reducers exist, add current slice to reducers and skip to next slice
+    if isempty(sG_reduced)
+      append!(sG_reduced,H)
+      continue
+    end
+
+    # H will increase in size during the reduction process
+    # the following vector keeps track which of its entries are original elements
+    H_original_poly_indices = collect(1:length(H))
+    # records up to which term each original element of H has been reduced
+    # * 1 means only leading monomial is reduced which is always true
+    # * 0 means that all elements of H have been reduced
+    H_original_tail_indices = ones(Int,length(H))
+    zero_vector = zeros(Int,length(H))
+    while H_original_tail_indices>zero_vector
+      # Step 3.1: Find the maximal monomial to be reduced
+      monomials_to_be_reduced = [first(Iterators.drop(monomials(H[i]),j))
+                                 for (i,j) in zip(H_original_poly_indices,
+                                                  H_original_tail_indices) if j>0]
+      index_to_be_reduced = argmax(monomials_to_be_reduced)
+      monomial_to_be_reduced = monomials_to_be_reduced[index_to_be_reduced]
+
+      # Step 3.2: Find the reducer that is maximal once multiplied to the right x-degree
+      #   as the x-monomial will be the same as that of monomial_to_be_reduced,
+      #   this is equivalent to finding the reducer with maximal t-degree.
+      #   (the maximality is optional, but comes with several practical advantages)
+      new_reducer_t_degree = -1
+      new_reducer = 0
+      for g in sG_reduced
+        b,q = divides(monomial_to_be_reduced,leading_monomial(g))
+        if b && new_reducer_t_degree<Singular.leading_exponent_vector(g)[1]
+          new_reducer = q*g
+          new_reducer_t_degree = Singular.leading_exponent_vector(g)[1]
+        end
+      end
+
+      # if there is no reducer, increment H_original_tail_indices_to_be_reduced
+      #   and skip to next monomial_to_be_reduced
+      if iszero(new_reducer)
+        H_original_tail_indices[index_to_be_reduced] += 1
+        # set H_original_tail_indices to 0 if length exceeded
+        if length(H[H_original_poly_indices[index_to_be_reduced]])>=H_original_tail_indices[index_to_be_reduced]
+          H_original_tail_indices[index_to_be_reduced] = 0
+        end
+        continue
+      end
+
+      # Step 3.3: Add new_reducer to H and update H_original_element_indices
+      new_reducer_position = searchsortedfirst(H,new_reducer)
+      insert!(H,new_reducer_position,new_reducer)
+      for i in 1:length(H_original_poly_indices)
+        if H_original_poly_indices[i] >= new_reducer_position
+          H_original_poly_indices[i] += 1
+        end
+      end
+
+      # Step 3.4: Reduce new H
+      # first pass, remove leading x-monomial of H[i] from H[j] for i<j when new_reducer_position<=j
+      for i in 1:length(H)-1
+        for j in max(new_reducer_position,i+1):length(H)
+          H[j] = Singular.reduce(H[j],Singular.std(Singular.Ideal(S,H[i])))
+        end
+      end
+      # second pass, remove leading x-monomial of H[j] from H[i] for i<j when new_reducer_position<=j
+      for i in 1:length(H)-1
+        for j in max(new_reducer_position,i+1):length(H)
+          H[i] = Singular.reduce(H[i],Singular.std(Singular.Ideal(S,H[j])))
+        end
+      end
+
+      # Step 3.5: update H_original_tail_indices by replacing larger equal length entries with 0
+      for (i,j) in enumerate(H_original_poly_indices)
+        if H_original_tail_indices[i]>=length(H[j])
+          H_original_tail_indices[i] = 0
+        end
+      end
+    end
+
+    # append original elements to sG_reduced
+    append!(sG_reduced,H[H_original_poly_indices])
   end
-  # todo: Step 3
-
   Singular.libSingular.set_option("OPT_INFREDTAIL", false)
 
 
   ###
   # Step 4: return reduced GB
   ###
-  sG = append!(sG_slice0,collect(Iterators.flatten(sG_slices)))
-  vG = [Rtx(sg) for sg in sG] # problem: sg lives over Q(t), Rtx lives over Q[t]
+  vG = [Rtx(sg) for sg in sG_reduced]
   return desimulate_valuation(vG,val)
 
   ###
-  # Step 3: if complete_reduction = true and val is non-trivial,
-  #   eliminate tail-monomials contained in the leading ideal in the tropical sense
-  #   Inside the tightened simulation, monomials to be eliminated are tail-monomials contained in the leading ideal up to saturation by t
-  #   and elimination means eliminating them after multiplying the GB element by a sufficiently high power in t
+  # old code:
   ###
-  if is_valuation_trivial(val)
-    # todo: just call Singular.interred using the correct ordering
-  else
-    sort!(vvGB,lt=x_monomial_lt) # sort vvGB by their leading x monomial from small to large
-    Singular.libSingular.set_option("OPT_INFREDTAIL", true)
-    for i in 1:length(vvGB)-1
-      for j in i+1:length(vvGB)
-        t_ecart = x_monomial_ecart(vvGB[j],vvGB[i])
-        if t_ecart>=0
-          vvGB[j] = Singular.reduce(val.uniformizer_ring^t_ecart*vvGB[j],Singular.std(Singular.Ideal(S,vvGB[i])))
-          vvGB[j] = S(tighten_simulation(Rtx(vvGB[j]),val))
-        end
-      end
-    end
-    Singular.libSingular.set_option("OPT_INFREDTAIL", false)
-  end
+  # if is_valuation_trivial(val)
+  #   # todo: just call Singular.interred using the correct ordering
+  # else
+  #   sort!(vvGB,lt=x_monomial_lt) # sort vvGB by their leading x monomial from small to large
+  #   Singular.libSingular.set_option("OPT_INFREDTAIL", true)
+  #   for i in 1:length(vvGB)-1
+  #     for j in i+1:length(vvGB)
+  #       t_ecart = x_monomial_ecart(vvGB[j],vvGB[i])
+  #       if t_ecart>=0
+  #         vvGB[j] = Singular.reduce(val.uniformizer_ring^t_ecart*vvGB[j],Singular.std(Singular.Ideal(S,vvGB[i])))
+  #         vvGB[j] = S(tighten_simulation(Rtx(vvGB[j]),val))
+  #       end
+  #     end
+  #   end
+  #   Singular.libSingular.set_option("OPT_INFREDTAIL", false)
+  # end
 
 end
 export interreduce_tropically
