@@ -364,6 +364,38 @@ end
 export coordinate_ring_of_torus
 
 
+@doc Markdown.doc"""
+    character_to_rational_function(v::AbstractNormalToricVariety, character::Vector{fmpz})
+
+Computes the rational function corresponding to a character of the normal toric variety `v`.
+
+# Examples
+```jldoctest
+julia> p2 = projective_space(NormalToricVariety, 2);
+
+julia> character_to_rational_function(p2, [-1,2])
+x2^2*x1_
+```
+"""
+function character_to_rational_function(v::AbstractNormalToricVariety, character::Vector{fmpz})
+    if ambient_dim(v) != length(character)
+        throw(ArgumentError("A character consist of as many integers as the ambient dimension of the variety."))
+    end
+    generators = gens(coordinate_ring_of_torus(v))
+    rational_function = one(coefficient_ring(v))
+    for i in 1:length(character)
+        if character[i] < 0
+            rational_function = rational_function * generators[i+ambient_dim(v)]^(-1*character[i])
+        else
+            rational_function = rational_function * generators[i]^(character[i])
+        end
+    end
+    return rational_function
+end
+character_to_rational_function(v::AbstractNormalToricVariety, character::Vector{Int}) = character_to_rational_function(v, [fmpz(k) for k in character])
+export character_to_rational_function
+
+
 ############################
 # Characters, Weil divisor and the class group
 ############################
