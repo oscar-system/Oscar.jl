@@ -449,7 +449,6 @@ function minimal_generators(I::MPolyIdealLoc)
 end
 
 function groebner_assure(I::MPolyIdealLoc, ordering::MonomialOrdering=negdegrevlex(gens(base_ring(I).base_ring)), complete_reduction::Bool = false)
-    @show "HERE LOCAL"
     if get(I.gb, ordering, -1) == -1
         I.gb[ordering]  = groebner_basis(I.gens, ordering, complete_reduction)
     end
