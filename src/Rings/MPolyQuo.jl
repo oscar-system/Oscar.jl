@@ -447,8 +447,7 @@ function simplify(a::MPolyQuoIdeal)
    oscar_assure(a)
    RI  = base_ring(a.I)
    J = R.I
-   groebner_assure(J)
-   GJ = collect(values(J.gb))[1]
+   GJ = groebner_assure(J)
    singular_assure(GJ)
    oscar_assure(a)
    singular_assure(a.I)
@@ -463,8 +462,7 @@ function simplify!(a::MPolyQuoIdeal)
     oscar_assure(a)
     RI  = base_ring(a.I)
     J = R.I
-    groebner_assure(J)
-    GJ = collect(values(J.gb))[1]
+    GJ = groebner_assure(J)
     singular_assure(GJ)
     oscar_assure(a)
     singular_assure(a.I)
@@ -571,8 +569,7 @@ x
 function simplify(f::MPolyQuoElem)
   R = parent(f)
   I = R.I
-  groebner_assure(I, degrevlex(gens(R.R)))
-  G = I.gb[degrevlex(gens(R.R))]
+  G = groebner_assure(I)
   singular_assure(G)
   Sx = base_ring(G.S)
   g = f.f
@@ -582,8 +579,7 @@ end
 function simplify!(f::MPolyQuoElem)
   R = parent(f)
   I = R.I
-  groebner_assure(I, degrevlex(gens(R.R)))
-  G = I.gb[degrevlex(gens(R.R))]
+  G = groebner_assure(I)
   singular_assure(G)
   Sx = base_ring(G.S)
   g = f.f
@@ -859,11 +855,8 @@ end
 
 #TODO: find a more descriptive, meaningful name
 function _kbase(Q::MPolyQuo)
-  I = Q.I
-  if isempty(I.gb)
-      groebner_assure(I, degrevlex(gens(Q.R)))
-  end
-  GI  = collect(values(I.gb))[1]
+  I  = Q.I
+  GI = groebner_assure(I)
   singular_assure(GI)
   s = Singular.kbase(GI.S)
   if iszero(s)
