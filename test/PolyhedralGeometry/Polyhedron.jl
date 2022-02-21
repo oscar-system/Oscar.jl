@@ -254,10 +254,10 @@
                         @test facets(S, D) == [S(A[i], b[i]) for i in 1:12]
                     end
                     @test length(facets(S, D)) == 12
-                    # @test affine_inequality_matrix(facets(S, D)) == [0 -1 0 0; 0 0 -1 0; 0 0 0 -1]
-                    # @test halfspace_matrix_pair(facets(S, Pos)).A == [-1 0 0; 0 -1 0; 0 0 -1] && halfspace_matrix_pair(facets(S, Pos)).b == [0, 0, 0]
-                    # @test ray_indices(facets(S, Pos)) == IncidenceMatrix([[1, 3], [2, 3], [1, 2]])
-                    # @test vertex_indices(facets(S, Pos)) == IncidenceMatrix([[1], [1], [1]])
+                    @test affine_inequality_matrix(facets(S, D)) == hcat(-b, vcat(A...))
+                    @test halfspace_matrix_pair(facets(S, D)).A == vcat(A...) && halfspace_matrix_pair(facets(S, D)).b == b
+                    @test ray_indices(facets(S, D)) == IncidenceMatrix(12, 0)
+                    @test vertex_indices(facets(S, D)) == IncidenceMatrix([[1, 3, 5, 9, 10], [1, 2, 3, 4, 6], [1, 2, 5, 7, 8], [11, 12, 16, 18, 20], [5, 8, 10, 15, 17], [2, 4, 7, 11, 12], [3, 6, 9, 13, 14], [4, 6, 11, 13, 16], [13, 14, 16, 19, 20], [7, 8, 12, 15, 18], [9, 10, 14, 17, 19], [15, 17, 18, 19, 20]])
                 end
                 
             end
