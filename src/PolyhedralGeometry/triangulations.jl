@@ -11,10 +11,10 @@ function _is_full_triangulation(triang::Vector{Vector{Int}}, npoints::Int)
     return false
 end
 
-function _postprocess(triangs::Vector{Vector{Vector{Int}}}, full::Bool)
+function _postprocess(triangs::Vector{Vector{Vector{Int}}}, npoints::Int, full::Bool)
     result = Polymake.to_one_based_indexing(triangs)
     if full
-        result = [t for t in result if _is_full_triangulation(t)]
+        result = [t for t in result if _is_full_triangulation(t, npoints)]
     end
     return result
 end
@@ -66,7 +66,7 @@ function all_triangulations(pts::Union{SubObjectIterator{<:PointVector}, Abstrac
     PC = Polymake.polytope.PointConfiguration(POINTS=input)
     triangs = Polymake.polytope.topcom_all_triangulations(PC)
     result = [[[e for e in simplex] for simplex in triang] for triang in triangs]
-    return _postprocess(result, full)
+    return _postprocess(result, nrows(input), full)
 end
 
 
@@ -199,7 +199,7 @@ function regular_triangulations(pts::Union{SubObjectIterator{<:PointVector}, Abs
     PC = Polymake.polytope.PointConfiguration(POINTS=input)
     triangs = Polymake.polytope.topcom_regular_triangulations(PC)
     result = [[[e for e in simplex] for simplex in triang] for triang in triangs]
-    return _postprocess(result, full)
+    return _postprocess(result, nrows(input), full)
 end
 
 
