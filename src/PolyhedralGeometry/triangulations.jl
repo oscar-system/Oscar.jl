@@ -143,6 +143,12 @@ A polyhedron in ambient dimension 2
 
 julia> star_triangulations(hex)
 ([0 0; -1 -1; 0 -1; 1 0; 1 1; 0 1; -1 0], [[[1, 2, 3], [1, 2, 7], [1, 3, 4], [1, 4, 5], [1, 5, 6], [1, 6, 7]]])
+
+julia> star_triangulations(hex; full=true)
+([0 0; -1 -1; 0 -1; 1 0; 1 1; 0 1; -1 0], [[[1, 2, 3], [1, 2, 7], [1, 3, 4], [1, 4, 5], [1, 5, 6], [1, 6, 7]]])
+
+julia> star_triangulations(hex; full=true, regular=true)
+([0 0; -1 -1; 0 -1; 1 0; 1 1; 0 1; -1 0], [[[1, 2, 3], [1, 3, 4], [1, 4, 5], [1, 5, 6], [1, 6, 7], [1, 2, 7]]])
 ```
 """    
 function star_triangulations(P::Polyhedron; full::Bool=false, regular::Bool=false)
