@@ -11,10 +11,10 @@ function _is_full_triangulation(triang::Vector{Vector{Int}}, npoints::Int)
     return false
 end
 
-function _postprocess(triangs::Vector{Vector{Vector{Int}}}, full::Bool)
+function _postprocess(triangs::Vector{Vector{Vector{Int}}}, npoints::Int, full::Bool)
     result = Polymake.to_one_based_indexing(triangs)
     if full
-        result = [t for t in result if _is_full_triangulation(t)]
+        result = [t for t in result if _is_full_triangulation(t, npoints)]
     end
     return result
 end
@@ -66,7 +66,7 @@ function all_triangulations(pts::Union{SubObjectIterator{<:PointVector}, Abstrac
     PC = Polymake.polytope.PointConfiguration(POINTS=input)
     triangs = Polymake.polytope.topcom_all_triangulations(PC)
     result = [[[e for e in simplex] for simplex in triang] for triang in triangs]
-    return _postprocess(result, full)
+    return _postprocess(result, nrows(input), full)
 end
 
 
@@ -143,6 +143,12 @@ A polyhedron in ambient dimension 2
 
 julia> star_triangulations(hex)
 ([0 0; -1 -1; 0 -1; 1 0; 1 1; 0 1; -1 0], [[[1, 2, 3], [1, 2, 7], [1, 3, 4], [1, 4, 5], [1, 5, 6], [1, 6, 7]]])
+
+julia> star_triangulations(hex; full=true)
+([0 0; -1 -1; 0 -1; 1 0; 1 1; 0 1; -1 0], [[[1, 2, 3], [1, 2, 7], [1, 3, 4], [1, 4, 5], [1, 5, 6], [1, 6, 7]]])
+
+julia> star_triangulations(hex; full=true, regular=true)
+([0 0; -1 -1; 0 -1; 1 0; 1 1; 0 1; -1 0], [[[1, 2, 3], [1, 3, 4], [1, 4, 5], [1, 5, 6], [1, 6, 7], [1, 2, 7]]])
 ```
 """    
 function star_triangulations(P::Polyhedron; full::Bool=false, regular::Bool=false)
@@ -199,7 +205,7 @@ function regular_triangulations(pts::Union{SubObjectIterator{<:PointVector}, Abs
     PC = Polymake.polytope.PointConfiguration(POINTS=input)
     triangs = Polymake.polytope.topcom_regular_triangulations(PC)
     result = [[[e for e in simplex] for simplex in triang] for triang in triangs]
-    return _postprocess(result, full)
+    return _postprocess(result, nrows(input), full)
 end
 
 
