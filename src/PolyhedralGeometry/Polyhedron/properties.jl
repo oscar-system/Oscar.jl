@@ -301,7 +301,7 @@ julia> facets(Halfspace, C)
 1: x₃ ≦ 1
 ```
 """
-facets(as::Type{T}, P::Polyhedron) where {R, S<:scalar_types, T<:Union{AffineHalfspace{S}, Pair{R, S}, Polyhedron{S}}} = SubObjectIterator{as}(pm_object(P), _facet_polyhedron, nfacets(P))
+facets(as::Type{T}, P::Polyhedron{S}) where {R, S<:scalar_types, T<:Union{AffineHalfspace{S}, Pair{R, S}, Polyhedron{S}}} = SubObjectIterator{as}(pm_object(P), _facet_polyhedron, nfacets(P))
 
 function _facet_polyhedron(::Type{T}, P::Polymake.BigObject, i::Base.Integer) where {R, S<:scalar_types, T<:Union{Polyhedron{S}, AffineHalfspace{S}, Pair{R, S}}}
     h = decompose_hdata(P.FACETS[[_facet_index(P, i)], :])
@@ -424,7 +424,7 @@ volume(P::Polyhedron{nf_elem}) = convert(nf_scalar, pm_object(P).VOLUME)
 
 
 @doc Markdown.doc"""
-    lattice_volume(P::Polyhedron)
+    lattice_volume(P::Polyhedron{fmpq})
 
 Return the lattice volume of `P`.
 
@@ -436,7 +436,7 @@ julia> lattice_volume(C)
 8
 ```
 """
-lattice_volume(P::Polyhedron)::fmpz = (pm_object(P)).LATTICE_VOLUME
+lattice_volume(P::Polyhedron{fmpq})::fmpz = (pm_object(P)).LATTICE_VOLUME
 
 
 @doc Markdown.doc"""
@@ -689,7 +689,7 @@ recession_cone(P::Polyhedron{T}) where T<:scalar_types = Cone{T}(Polymake.polyto
 
 
 @doc Markdown.doc"""
-    ehrhart_polynomial(P::Polyhedron)
+    ehrhart_polynomial(P::Polyhedron{fmpq})
 
 Compute the Ehrhart polynomial of `P`.
 
@@ -701,14 +701,14 @@ A polyhedron in ambient dimension 3
 julia> ehrhart_polynomial(c)
 8*x^3 + 12*x^2 + 6*x + 1
 """
-function ehrhart_polynomial(P::Polyhedron)
+function ehrhart_polynomial(P::Polyhedron{fmpq})
     R, x = PolynomialRing(QQ, "x")
     return ehrhart_polynomial(R, P)
 end
 
 
 @doc Markdown.doc"""
-    ehrhart_polynomial(R::FmpqMPolyRing, P::Polyhedron)
+    ehrhart_polynomial(R::FmpqMPolyRing, P::Polyhedron{fmpq})
 
 Compute the Ehrhart polynomial of `P` and return it as a polynomial in `R`.
 
@@ -724,7 +724,7 @@ julia> ehrhart_polynomial(R, c)
 8*x^3 + 12*x^2 + 6*x + 1
 ```
 """
-function ehrhart_polynomial(R::FmpqPolyRing, P::Polyhedron)
+function ehrhart_polynomial(R::FmpqPolyRing, P::Polyhedron{fmpq})
     coeffs = Polymake.polytope.ehrhart_polynomial_coeff(pm_object(P))
     return (R)(Vector{fmpq}(coeffs))
 end
@@ -775,7 +775,7 @@ end
 ## Boolean properties
 ###############################################################################
 @doc Markdown.doc"""
-    is_very_ample(P::Polyhedron)
+    is_very_ample(P::Polyhedron{fmpq})
 
 Check whether `P` is very ample.
 
@@ -794,7 +794,7 @@ julia> is_very_ample(P)
 false
 ```
 """
-is_very_ample(P::Polyhedron) = pm_object(P).VERY_AMPLE::Bool
+is_very_ample(P::Polyhedron{fmpq}) = pm_object(P).VERY_AMPLE::Bool
 
 
 @doc Markdown.doc"""
@@ -942,7 +942,7 @@ julia> f_vector(cube(5))
  10
 ```
 """
-function f_vector(P::Polyhedron)::Vector{Int}
+function f_vector(P::Polyhedron)::Vector{fmpz}
     # the following differs from polymake's count in the unbounded case;
     # polymake takes the far face into account, too
     ldim = lineality_dim(P)
@@ -967,7 +967,7 @@ julia> h_vector(cross(3))
  1
 ```
 """
-function h_vector(P::Polyhedron)::Vector{Int}
+function h_vector(P::Polyhedron)::Vector{fmpz}
     isbounded(P) || throw(ArgumentError("defined for bounded polytopes only"))
     return pm_object(P).H_VECTOR
 end
@@ -987,7 +987,7 @@ julia> g_vector(cross(3))
  2
 ```
 """
-function g_vector(P::Polyhedron)::Vector{Int}
+function g_vector(P::Polyhedron)::Vector{fmpz}
     isbounded(P) || throw(ArgumentError("defined for bounded polytopes only"))
     return pm_object(P).G_VECTOR
 end
@@ -1082,12 +1082,12 @@ function print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = fa
             if iszero(A[i, j])
                 terms[j] = ""
             else
-                if isone(abs(A[i, j]))
+                if isone(A[i, j]) || isone(-A[i, j])
                     terms[j] = first ? string(isone(A[i, j]) ? "x" : "-x" , ['₀'+ d for d in digits(j)]...) :
                         string(isone(A[i, j]) ? " + x" : " - x", ['₀'+ d for d in digits(j)]...)
                 else
-                    terms[j] = first ? string(A[i, j], "*x", ['₀'+ d for d in digits(j)]...) :
-                        string(A[i, j] < 0 ? " - " : " + ", abs(A[i, j]), "*x", ['₀'+ d for d in digits(j)]...)
+                    terms[j] = first ? string("(", A[i, j], ")*x", ['₀'+ d for d in digits(j)]...) :
+                        string("(", A[i, j] < 0 ? string(" - ", -A[i, j]) : string(" + ", A[i, j]), ")*x", ['₀'+ d for d in digits(j)]...)
                 end
                 first = false
             end

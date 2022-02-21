@@ -16,7 +16,7 @@ end
 # no default = `fmpq` here; scalar type can be derived from the feasible region
 LinearProgram(p::Polyhedron{T}, x...) where T<:scalar_types = LinearProgram{T}(p, x...)
 
-function LinearProgram{T}(Q::Polyhedron, objective::AbstractVector; k = 0, convention = :max) where T<:scalar_types
+function LinearProgram{T}(Q::Polyhedron{T}, objective::AbstractVector; k = 0, convention = :max) where T<:scalar_types
    if convention != :max && convention != :min
       throw(ArgumentError("convention must be set to :min or :max."))
    end

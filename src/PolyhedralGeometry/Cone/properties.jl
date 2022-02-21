@@ -198,7 +198,7 @@ julia> f_vector(square)
 function f_vector(C::Cone)
     pmc = pm_object(C)
     ldim = pmc.LINEALITY_DIM
-    return Vector{Int}(vcat(fill(0, ldim), pmc.F_VECTOR))
+    return Vector{fmpz}(vcat(fill(0, ldim), pmc.F_VECTOR))
 end
 
 
@@ -374,7 +374,7 @@ _linear_equation_matrix(::Val{_linear_span}, C::Polymake.BigObject) = C.LINEAR_S
 _linear_matrix_for_polymake(::Val{_linear_span}) = _linear_equation_matrix
 
 @doc Markdown.doc"""
-    hilbert_basis(C::Cone)
+    hilbert_basis(C::Cone{fmpq})
 
 Return the Hilbert basis of a pointed cone `C` as the rows of a matrix.
 
@@ -391,7 +391,7 @@ julia> matrix(ZZ, hilbert_basis(C))
 
 ```
 """
-function hilbert_basis(C::Cone)
+function hilbert_basis(C::Cone{fmpq})
    if ispointed(C)
       return SubObjectIterator{PointVector{fmpz}}(pm_object(C), _hilbert_generator, size(pm_object(C).HILBERT_BASIS_GENERATORS[1], 1))
    else

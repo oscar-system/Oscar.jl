@@ -60,7 +60,7 @@ load_cone(filename::String)
 ```@docs
 ambient_dim(C::Cone)
 f_vector(C::Cone)
-hilbert_basis(C::Cone)
+hilbert_basis(C::Cone{fmpq})
 codim(C::Cone)
 dim(C::Cone)
 polarize(C::Cone{T}) where T<:scalar_types

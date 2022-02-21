@@ -847,7 +847,7 @@ project_full(P::Polyhedron{T}) where T<:scalar_types = Polyhedron{T}(Polymake.po
 
 @doc Markdown.doc"""
 
-    gelfand_tsetlin([::Type{T} = fmpq,] lambda::AbstractVector)
+    gelfand_tsetlin(lambda::AbstractVector)
 
 Construct the Gelfand Tsetlin polytope indexed by a weakly decreasing vector `lambda`.
 
@@ -868,6 +868,4 @@ julia> volume(p)
 3
 ```
 """
-gelfand_tsetlin(::Type{T}, lambda::AbstractVector) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.gelfand_tsetlin(Polymake.Vector{scalar_type_to_polymake[T]}(lambda), projected = false))
-
-gelfand_tsetlin(x...) = gelfand_tsetlin(fmpq, x...)
+gelfand_tsetlin(lambda::AbstractVector)= Polyhedron{fmpq}(Polymake.polytope.gelfand_tsetlin(Polymake.Vector{Polymake.Rational}(lambda), projected = false))

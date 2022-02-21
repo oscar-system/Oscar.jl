@@ -144,6 +144,7 @@
         @test lineality_dim(Q0) == 0
         @test nrays(Q1) == 1
         @test lineality_dim(Q2) == 1
+        @test relative_interior_point(Q0) == [1//3, 1//3]
     end
 
     @testset "linear programs" begin
@@ -198,12 +199,84 @@
             b2 = birkhoff(3, even = true)
             @test nvertices(pyramid(b1)) + 1 == nvertices(bipyramid(b1))
             @test nvertices(b1) == nvertices(b2) * 2
+            
+            P = gelfand_tsetlin([3,2,1])
+            p = project_full(P)
+            @test p isa Polyhedron{T}
+            @test volume(P) == 0
+            @test volume(p) == 1
         end
-        P = gelfand_tsetlin(T, [3,2,1])
-        p = project_full(P)
-        @test p isa Polyhedron{T}
-        @test volume(P) == 0
-        @test volume(p) == 1
+        
+    end
+    
+    if T == nf_elem
+        
+        @testset "Dodecahedron" begin
+            
+            R, a = quadratic_field(5)
+            
+            V = [[1//2, a//4 + 3//4, 0],
+                [-1//2, a//4 + 3//4, 0],
+                [a//4 + 1//4, a//4 + 1//4, a//4 + 1//4],
+                [-a//4 - 1//4, a//4 + 1//4, a//4 + 1//4],
+                [a//4 + 1//4, a//4 + 1//4, -a//4 - 1//4],
+                [0, 1//2, a//4 + 3//4],
+                [-a//4 - 1//4, a//4 + 1//4, -a//4 - 1//4],
+                [0, 1//2, -a//4 - 3//4],
+                [a//4 + 3//4, 0, 1//2],
+                [a//4 + 3//4, 0, -1//2],
+                [-a//4 - 3//4, 0, 1//2],
+                [-a//4 - 3//4, 0, -1//2],
+                [0, -1//2, a//4 + 3//4],
+                [a//4 + 1//4, -a//4 - 1//4, a//4 + 1//4],
+                [0, -1//2, -a//4 - 3//4],
+                [-a//4 - 1//4, -a//4 - 1//4, a//4 + 1//4],
+                [a//4 + 1//4, -a//4 - 1//4, -a//4 - 1//4],
+                [-a//4 - 1//4, -a//4 - 1//4, -a//4 - 1//4],
+                [1//2, -a//4 - 3//4, 0],
+                [-1//2, -a//4 - 3//4, 0]]
+            
+            D = Polyhedron{T}(Polymake.polytope.dodecahedron())
+            @test D isa Polyhedron{T}
+            @test Polyhedron(Polymake.polytope.dodecahedron()) == D
+            
+            @test nvertices(D) == 20
+            @test vertices(D) == V
+            
+            let A = Vector{Matrix{Oscar.nf_scalar}}([[a//2+1//2 1 0], [0 a//2+1//2 1], [0 a//2+1//2 -1], [-a//2-1//2 -1 0], [a//2-1//2 0 -1], [-a//2-1//2 1 0], [a//2-1//2 0 1], [-a//2+1//2 0 1], [0 -a//2-1//2 1], [-a//2+1//2 0 -1], [a//2+1//2 -1 0], [0 -a//2-1//2 -1]]), b = [a//2 + 1, a//2 + 1, a//2 + 1, a//2 + 1, a//4 + 3//4, a//2 + 1, a//4 + 3//4, a//4 + 3//4, a//2 + 1, a//4 + 3//4, a//2 + 1, a//2 + 1]
+                
+                for S in [AffineHalfspace{T}, Pair{Matrix{T}, T}, Polyhedron{T}]
+                    if S == Pair{Matrix{T}, T}
+                        @test facets(S, D) isa SubObjectIterator{Pair{Matrix{Oscar.nf_scalar}, Oscar.nf_scalar}}
+                        @test facets(S, D) == [Pair{Matrix{Oscar.nf_scalar}, Oscar.nf_scalar}(A[i], b[i]) for i in 1:12]
+                    else
+                        @test facets(S, D) isa SubObjectIterator{S}
+                        @test facets(S, D) == [S(A[i], b[i]) for i in 1:12]
+                    end
+                    @test length(facets(S, D)) == 12
+                    # @test affine_inequality_matrix(facets(S, D)) == [0 -1 0 0; 0 0 -1 0; 0 0 0 -1]
+                    # @test halfspace_matrix_pair(facets(S, Pos)).A == [-1 0 0; 0 -1 0; 0 0 -1] && halfspace_matrix_pair(facets(S, Pos)).b == [0, 0, 0]
+                    # @test ray_indices(facets(S, Pos)) == IncidenceMatrix([[1, 3], [2, 3], [1, 2]])
+                    # @test vertex_indices(facets(S, Pos)) == IncidenceMatrix([[1], [1], [1]])
+                end
+                
+            end
+            
+            @test isfeasible(D)
+            @test isbounded(D)
+            @test isfulldimensional(D)
+            @test f_vector(D) == [20, 30, 12]
+            @test codim(D) == 0
+            @test nrays(recession_cone(D)) == 0
+            @test nrays(D) == 0
+            @test isempty(rays(D))
+            @test lineality_dim(D) == 0
+            @test isempty(lineality_space(D))
+            @test faces(D, 0) == convex_hull.(T, V)
+            @test isempty(affine_hull(D))
+            @test relative_interior_point(D) == [0, 0, 0]
+            
+        end
         
     end
 

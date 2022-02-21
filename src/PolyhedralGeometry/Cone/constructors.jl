@@ -72,7 +72,7 @@ end
 
 
 @doc Markdown.doc"""
-    positive_hull([:.Type{T} = fmpq,] R::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator})
+    positive_hull([::Type{T} = fmpq,] R::Union{Oscar.MatElem, AbstractMatrix, SubObjectIterator})
 
 A polyhedral cone, not necessarily pointed, defined by the positive hull of the
 rows of the matrix `R`. This means the cone consists of all positive linear

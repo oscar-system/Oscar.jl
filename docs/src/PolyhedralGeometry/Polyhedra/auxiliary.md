@@ -47,17 +47,17 @@ h_vector(P::Polyhedron)
 all_triangulations
 boundary_lattice_points(P::Polyhedron{fmpq})
 contains(P::Polyhedron, v::AbstractVector)
-ehrhart_polynomial(P::Polyhedron)
-ehrhart_polynomial(R::FmpqPolyRing, P::Polyhedron)
+ehrhart_polynomial(P::Polyhedron{fmpq})
+ehrhart_polynomial(R::FmpqPolyRing, P::Polyhedron{fmpq})
 h_star_polynomial(P::Polyhedron{fmpq})
 h_star_polynomial(R::FmpqPolyRing, P::Polyhedron{fmpq})
 interior_lattice_points(P::Polyhedron{fmpq})
 isnormal(P::Polyhedron{fmpq})
 issimple(P::Polyhedron)
 issmooth(P::Polyhedron{fmpq})
-is_very_ample(P::Polyhedron)
+is_very_ample(P::Polyhedron{fmpq})
 lattice_points(P::Polyhedron{fmpq})
-lattice_volume(P::Polyhedron)
+lattice_volume(P::Polyhedron{fmpq})
 normalized_volume(P::Polyhedron{T}) where T<:scalar_types
 polarize(P::Polyhedron{T}) where T<:scalar_types
 project_full(P::Polyhedron{T}) where T<:scalar_types

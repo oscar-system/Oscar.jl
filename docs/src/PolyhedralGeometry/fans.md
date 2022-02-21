@@ -67,7 +67,7 @@ iscomplete(PF::PolyhedralFan)
 ispointed(PF::PolyhedralFan)
 isregular(PF::PolyhedralFan)
 issimplicial(PF::PolyhedralFan)
-issmooth(PF::PolyhedralFan)
+issmooth(PF::PolyhedralFan{fmpq})
 lineality_dim(PF::PolyhedralFan)
 lineality_space(PF::PolyhedralFan{T}) where T<:scalar_types
 maximal_cones(PF::PolyhedralFan{T}) where T<:scalar_types

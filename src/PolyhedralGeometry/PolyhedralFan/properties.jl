@@ -303,7 +303,7 @@ ispointed(PF::_FanLikeType) = pm_object(PF).POINTED::Bool
 
 
 @doc Markdown.doc"""
-    issmooth(PF::PolyhedralFan)
+    issmooth(PF::PolyhedralFan{fmpq})
 
 Determine whether `PF` is smooth.
 
@@ -317,7 +317,7 @@ julia> issmooth(PF)
 false
 ```
 """
-issmooth(PF::_FanLikeType) = pm_object(PF).SMOOTH_FAN::Bool
+issmooth(PF::_FanLikeType{fmpq}) = pm_object(PF).SMOOTH_FAN::Bool
 
 @doc Markdown.doc"""
     isregular(PF::PolyhedralFan)

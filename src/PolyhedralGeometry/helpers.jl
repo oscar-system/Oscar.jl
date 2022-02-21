@@ -1,6 +1,8 @@
 import Polymake: IncidenceMatrix
 
 affine_matrix_for_polymake(x::Tuple) = hcat(-x[2], x[1])
+# affine_matrix_for_polymake(x::Tuple{<:Any, <:AbstractVector}) = augment(x[1], -x[2])
+# affine_matrix_for_polymake(x::Tuple{<:Any, <:Any}) = augment(x[1], [-x[2]])
 
 linear_matrix_for_polymake(x::Union{Oscar.fmpz_mat, Oscar.fmpq_mat, AbstractMatrix}) = x
 
@@ -32,11 +34,11 @@ Base.convert(::Type{nf_scalar}, x::nf_elem) = x
 nf_scalar(x::Union{Number, nf_elem}) = convert(nf_scalar, x)
 
 function Base.convert(::Type{Polymake.QuadraticExtension{Polymake.Rational}}, x::nf_elem)
-    p = defining_polynomial(parent(x))
-    if (length(p) != 3 && coeff(p, 1) != 0) || sign(coeff(p, 2)) == sign(coeff(p, 0))
-        throw(ArgumentError("Conversion from nf_elem to QuadraticExtension{Rational} only defined for elements of number fields defined by a polynomial of the form 'ax^2 - b'."))
+    isq = Hecke.isquadratic_type(parent(x))
+    if !isq[1] || isq[2] < 0
+        throw(ArgumentError("Conversion from nf_elem to QuadraticExtension{Rational} only defined for elements of real quadratic number fields defined by a polynomial of the form 'ax^2 - b'."))
     end
-    r = convert(Polymake.Rational, -coeff(p, 0)//coeff(p, 2))
+    r = convert(Polymake.Rational, isq[2])
     c = coordinates(x)
     return Polymake.QuadraticExtension{Polymake.Rational}(convert(Polymake.Rational, c[1]), convert(Polymake.Rational, c[2]), r)
 end
@@ -48,11 +50,7 @@ function Base.convert(::Type{nf_scalar}, x::Polymake.QuadraticExtension{Polymake
     if g.r == 0 || g.b == 0
         return convert(fmpq, g.a)
     end
-    # Qx, _ = rationals_as_number_field()
-    Qx, _ = PolynomialRing(QQ; cached = true)
     R, a = quadratic_field(convert(fmpz,  g.r))
-    # dp = Qx([-convert(fmpq, g.r), 0, 1])
-    # Nf, a = NumberField(dp; cached = true)
     return convert(fmpq, g.a) + convert(fmpq, g.b) * a
 end
 
@@ -147,11 +145,11 @@ julia> stack([1 2], [])
 stack(A::AbstractMatrix,nothing) = A
 stack(nothing,B::AbstractMatrix) = B
 stack(A::AbstractMatrix, B::AbstractMatrix) = [A; B]
-stack(A::AbstractMatrix, B::AbstractVector) = isempty(B) ? A :  [A; B']
-stack(A::AbstractVector, B::AbstractMatrix) = isempty(A) ? B : [A'; B]
-stack(A::AbstractVector, B::AbstractVector) = isempty(A) ? B : [A'; B']
-stack(A::AbstractVector,nothing) = A'
-stack(nothing,B::AbstractVector) = B'
+stack(A::AbstractMatrix, B::AbstractVector) = isempty(B) ? A :  [A; permutedims(B)]
+stack(A::AbstractVector, B::AbstractMatrix) = isempty(A) ? B : [permutedims(A); B]
+stack(A::AbstractVector, B::AbstractVector) = isempty(A) ? B : [permutedims(A); permutedims(B)]
+stack(A::AbstractVector,nothing) = permutedims(A)
+stack(nothing,B::AbstractVector) = permutedims(B)
 #=
 function stack(A::Vector{Polymake.Vector{Polymake.Rational}})
     if length(A)==2
