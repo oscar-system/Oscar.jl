@@ -1,10 +1,30 @@
 import Polymake: IncidenceMatrix
 
-affine_matrix_for_polymake(x::Tuple) = hcat(-x[2], x[1])
-# affine_matrix_for_polymake(x::Tuple{<:Any, <:AbstractVector}) = augment(x[1], -x[2])
-# affine_matrix_for_polymake(x::Tuple{<:Any, <:Any}) = augment(x[1], [-x[2]])
+function assure_matrix_polymake(m::Union{AbstractMatrix{Any}, AbstractMatrix{FieldElem}})
+    i = findfirst(_cannot_convert_to_fmpq, m)
+    m = Polymake.Matrix{scalar_type_to_polymake[typeof(m[i])]}(m)
+    return m
+end
 
-linear_matrix_for_polymake(x::Union{Oscar.fmpz_mat, Oscar.fmpq_mat, AbstractMatrix}) = x
+assure_matrix_polymake(m::AbstractMatrix{nf_scalar}) = Polymake.Matrix{Polymake.QuadraticExtension{Polymake.Rational}}(m)
+
+assure_matrix_polymake(m::Union{Oscar.fmpz_mat, Oscar.fmpq_mat, AbstractMatrix{<:Union{fmpq, fmpz, Base.Integer, Base.Rational, Polymake.Rational, Polymake.QuadraticExtension}}}) = m
+
+function assure_vector_polymake(v::Union{AbstractVector{Any}, AbstractVector{FieldElem}})
+    i = findfirst(_cannot_convert_to_fmpq, v)
+    v = Polymake.Vector{scalar_type_to_polymake[typeof(v[i])]}(v)
+    return v
+end
+
+assure_vector_polymake(v::AbstractVector{nf_scalar}) = Polymake.Vector{Polymake.QuadraticExtension{Polymake.Rational}}(v)
+
+assure_vector_polymake(v::AbstractVector{<:Union{fmpq, fmpz, Base.Integer, Base.Rational, Polymake.Rational, Polymake.QuadraticExtension}}) = v
+
+affine_matrix_for_polymake(x::Tuple) = assure_matrix_polymake(hcat(-x[2], x[1]))
+
+_cannot_convert_to_fmpq(x::Any) = !hasmethod(convert, Tuple{Type{fmpq}, typeof(x)})
+
+linear_matrix_for_polymake(x::Union{Oscar.fmpz_mat, Oscar.fmpq_mat, AbstractMatrix}) = assure_matrix_polymake(x)
 
 function Polymake.Matrix{Polymake.Rational}(x::Union{Oscar.fmpq_mat,AbstractMatrix{Oscar.fmpq}})
     res = Polymake.Matrix{Polymake.Rational}(size(x)...)
@@ -88,7 +108,7 @@ function augment(vec::AbstractVector, val)
     res = similar(vec, (s[1] + 1,))
     res[1] = val
     res[2:end] = vec
-    return res
+    return assure_vector_polymake(res)
 end
 
 function augment(mat::AbstractMatrix, vec::AbstractVector)
@@ -96,7 +116,7 @@ function augment(mat::AbstractMatrix, vec::AbstractVector)
     res = similar(mat, (s[1], s[2] + 1))
     res[:, 1] = vec
     res[:, 2:end] = mat
-    return res
+    return assure_matrix_polymake(res)
 end
 
 homogenize(vec::AbstractVector, val::Number = 0) = augment(vec, val)

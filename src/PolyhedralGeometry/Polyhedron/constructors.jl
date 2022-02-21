@@ -73,8 +73,8 @@ julia> vertices(P)
 Polyhedron{T}(A::Union{Oscar.MatElem,AbstractMatrix}, b) where T<:scalar_types = Polyhedron{T}((A, b))
 
 function Polyhedron{T}(I::Union{SubObjectIterator, Tuple{<:Union{Oscar.MatElem, AbstractMatrix}, Any}}, E::Union{Nothing, SubObjectIterator, Tuple{<:Union{Oscar.MatElem, AbstractMatrix}, Any}} = nothing) where T<:scalar_types
-    IM = Polymake.Matrix{scalar_type_to_polymake[T]}(-affine_matrix_for_polymake(I))
-    EM = isnothing(E) || _isempty_halfspace(E) ? Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(IM, 2)) : Polymake.Matrix{scalar_type_to_polymake[T]}(affine_matrix_for_polymake(E))
+    IM = -affine_matrix_for_polymake(I)
+    EM = isnothing(E) || _isempty_halfspace(E) ? Polymake.Matrix{scalar_type_to_polymake[T]}(undef, 0, size(IM, 2)) : affine_matrix_for_polymake(E)
 
     return Polyhedron{T}(Polymake.polytope.Polytope{scalar_type_to_polymake[T]}(INEQUALITIES = remove_zero_rows(IM), EQUATIONS = remove_zero_rows(EM)))
 end
@@ -159,8 +159,8 @@ A polyhedron in ambient dimension 2
 function convex_hull(::Type{T}, V::Union{SubObjectIterator{PointVector}, AnyVecOrMat, Oscar.MatElem}, R::Union{SubObjectIterator{RayVector}, AnyVecOrMat, Oscar.MatElem, Nothing} = nothing, L::Union{SubObjectIterator{RayVector}, AnyVecOrMat, Oscar.MatElem, Nothing} = nothing; non_redundant::Bool = false) where T<:scalar_types
     # Rays and Points are homogenized and combined and
     # Lineality is homogenized
-    points = Polymake.Matrix{scalar_type_to_polymake[T]}(stack(homogenized_matrix(V, 1), homogenized_matrix(R, 0)))
-    lineality = isnothing(L) || isempty(L) ? zero_matrix(QQ, 0, size(points,2)) : Polymake.Matrix{scalar_type_to_polymake[T]}(homogenized_matrix(L, 0))
+    points = stack(homogenized_matrix(V, 1), homogenized_matrix(R, 0))
+    lineality = isnothing(L) || isempty(L) ? zero_matrix(QQ, 0, size(points,2)) : homogenized_matrix(L, 0)
 
     # These matrices are in the right format for polymake.
     # given non_redundant can avoid unnecessary redundancy checks
