@@ -874,7 +874,8 @@ true
 ```
 """
 function Base.issubset(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
-  G = groebner_assure(I)
+  singular_assure(I)
+  G = groebner_assure(J)
   singular_assure(G)
   return Singular.iszero(Singular.reduce(I.gens.S, G.S))
 end
