@@ -30,13 +30,32 @@ julia> I.gb
 Oscar.BiPolyArray{fmpq_mpoly}(fmpq_mpoly[x*y - 3*x, y^3 - 6*x^2, x^3 - 9//2*x], Singular ideal over Singular Polynomial Ring (QQ),(x,y),(dp(2),C) with generators (x*y - 3*x, y^3 - 6*x^2, x^3 - 9//2*x), Multivariate Polynomial Ring in x, y over Rational Field, Singular Polynomial Ring (QQ),(x,y),(dp(2),C), true, #undef, false)
 ```
 """
-function groebner_assure(I::MPolyIdeal, ordering::MonomialOrdering=degrevlex(gens(base_ring(I))), complete_reduction::Bool = false)
-    if get(I.gb, ordering, -1) == -1
-        I.gb[ordering]  = groebner_basis(I.gens, ordering, complete_reduction)
+function groebner_assure(I::MPolyIdeal, ordering::MonomialOrdering=nothing, complete_reduction::Bool = false)
+    if ordering == nothing
+        if isempty(I.gb)
+            drl = MonomialOrdering(degrevlex(gens(base_ring(I))))
+            I.gb[drl] = groebner_basis(I.gens, drl, complete_reduction)
+            G = I.gb[drl]
+        else
+            G = collect(values(I.gb))[1]
+        end
+    else
+        if get(I.gb, ordering, -1) == -1
+            I.gb[ordering]  = groebner_basis(I.gens, ordering, complete_reduction)
+        end
+        G = I.gb[ordering]
     end
 
-    return I.gb[ordering]
+    return G
 end
+#= 
+ = function groebner_assure(I::MPolyIdeal, ordering::MonomialOrdering=degrevlex(gens(base_ring(I))), complete_reduction::Bool = false)
+ =     if get(I.gb, ordering, -1) == -1
+ =         I.gb[ordering]  = groebner_basis(I.gens, ordering, complete_reduction)
+ =     end
+ =
+ =     return I.gb[ordering]
+ = end =#
 
 @doc Markdown.doc"""
     groebner_basis(B::BiPolyArray, ordering::MonomialOrdering, complete_reduction::Bool = false)
