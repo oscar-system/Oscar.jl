@@ -1,5 +1,7 @@
 import Polymake: IncidenceMatrix
 
+const nf_scalar = Union{nf_elem, fmpq}
+
 function assure_matrix_polymake(m::Union{AbstractMatrix{Any}, AbstractMatrix{FieldElem}})
     i = findfirst(_cannot_convert_to_fmpq, m)
     m = Polymake.Matrix{scalar_type_to_polymake[typeof(m[i])]}(m)
@@ -40,8 +42,6 @@ _isempty_halfspace(x) = isempty(x)
 Base.convert(::Type{Polymake.Integer}, x::fmpz) = Polymake.Integer(BigInt(x))
 Base.convert(::Type{Polymake.Rational}, x::fmpz) = Polymake.Rational(convert(Polymake.Integer, x), convert(Polymake.Integer, 1))
 Base.convert(::Type{Polymake.Rational}, x::fmpq) = Polymake.Rational(convert(Polymake.Integer, numerator(x)), convert(Polymake.Integer, denominator(x)))
-
-const nf_scalar = Union{nf_elem, fmpq}
 
 # export nf_scalar
 
