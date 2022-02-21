@@ -28,7 +28,7 @@ end
 #  crt in parallel
 #  use walk, tracing, ...
 
-function Oscar.groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevlex; use_hilbert::Bool = false, Proof::Bool = true)
+function exp_groebner_assure(I::MPolyIdeal{fmpq_mpoly}, ord::Symbol = :degrevlex; use_hilbert::Bool = false, Proof::Bool = true)
   if isdefined(I, :gb) && ord == :degrevlex
     return collect(I.gb)
   end
@@ -252,7 +252,7 @@ function induce_crt(f::fmpz_mpoly, d::fmpz, g::fmpz_mpoly, p::fmpz, b::Bool)
 end
 
 function exp_groebner_basis(I::MPolyIdeal{fmpq_mpoly}; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
-  H = Oscar.exp_groebner_assure(I, ord)
+  H = exp_groebner_assure(I, ord)
   return H
 end
 
