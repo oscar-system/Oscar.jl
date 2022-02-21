@@ -874,14 +874,7 @@ true
 ```
 """
 function Base.issubset(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
-  # avoid Singular.contains as it does not save the gb it might compute
-  singular_assure(I)
-  # if no GB previously computed, generate a degrevlex one
-  if isempty(J.gb)
-      G = groebner_assure(J, degrevlex(gens(base_ring(J))))
-  else # take any GB already computed
-      G = collect(values(J.gb))[1]
-  end
+  G = groebner_assure(I)
   singular_assure(G)
   return Singular.iszero(Singular.reduce(I.gens.S, G.S))
 end
@@ -1104,9 +1097,9 @@ function dim(I::MPolyIdeal)
   if I.dim > -1
     return I.dim
   end
-  groebner_assure(I)
-  singular_assure(I.gb)
-  I.dim = Singular.dimension(I.gb.S)
+  G = groebner_assure(I)
+  singular_assure(G)
+  I.dim = Singular.dimension(G.S)
   return I.dim
 end
 
