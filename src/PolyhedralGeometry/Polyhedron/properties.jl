@@ -1086,8 +1086,8 @@ function print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = fa
                     terms[j] = first ? string(isone(A[i, j]) ? "x" : "-x" , ['₀'+ d for d in digits(j)]...) :
                         string(isone(A[i, j]) ? " + x" : " - x", ['₀'+ d for d in digits(j)]...)
                 else
-                    terms[j] = first ? string("(", A[i, j], ")*x", ['₀'+ d for d in digits(j)]...) :
-                        string("(", A[i, j] < 0 ? string(" - ", -A[i, j]) : string(" + ", A[i, j]), ")*x", ['₀'+ d for d in digits(j)]...)
+                    terms[j] = first ? string(_constraint_string(A[i, j]), "*x", ['₀'+ d for d in digits(j)]...) :
+                        string(A[i, j] < 0 ? string(" - ", _contraint_string(-A[i, j])) : string(" + ", _constraint_string(A[i, j])), "*x", ['₀'+ d for d in digits(j)]...)
                 end
                 first = false
             end
@@ -1101,6 +1101,10 @@ function print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = fa
         println(io, string(i, ": ", terms..., " ", cmp, " ", b[i]))
     end
 end
+
+_constraint_string(x::Any) = string(x)
+
+_constraint_string(x::nf_elem) = string("(", x, ")")
 
 @doc Markdown.doc"""
     print_constraints(P::Polyhedron; trivial::Bool = false)
