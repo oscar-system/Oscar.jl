@@ -182,7 +182,7 @@ julia> C = positive_hull([1 0 0; 1 1 0; 1 1 1; 1 0 1])
 A polyhedral cone in ambient dimension 3
 
 julia> f_vector(C)
-2-element Vector{Int64}:
+2-element Vector{fmpz}:
  4
  4
 
@@ -190,7 +190,7 @@ julia> square = cube(2)
 A polyhedron in ambient dimension 2
 
 julia> f_vector(square)
-2-element Vector{Int64}:
+2-element Vector{fmpz}:
  4
  4
 ```
@@ -294,15 +294,10 @@ julia> c = positive_hull([1 0 0; 0 1 0; 1 1 1])
 A polyhedral cone in ambient dimension 3
 
 julia> f = facets(Halfspace, c)
-3-element SubObjectIterator{LinearHalfspace{fmpq}}:
- The Halfspace of R^3 described by
-1: -x₃ ≦ 0
-
- The Halfspace of R^3 described by
-1: -x₁ + x₃ ≦ 0
-
- The Halfspace of R^3 described by
-1: -x₂ + x₃ ≦ 0
+3-element SubObjectIterator{LinearHalfspace{fmpq}} over the Halfspaces of R^3 described by:
+-x₃ ≦ 0
+-x₁ + x₃ ≦ 0
+-x₂ + x₃ ≦ 0
 ```
 """
 facets(as::Type{<:Union{AffineHalfspace{T}, LinearHalfspace{T}, Polyhedron{T}, Cone{T}}}, C::Cone) where T<:scalar_types = SubObjectIterator{as}(pm_object(C), _facet_cone, pm_object(C).N_FACETS)
@@ -359,10 +354,8 @@ $H = \{ (x_1, x_2, x_3) | x_3 = 0 \}$.
 julia> c = Cone([1 0 0; 0 1 0]);
 
 julia> linear_span(c)
-1-element SubObjectIterator{LinearHyperplane{fmpq}}:
- The Hyperplane of R^3 described by
-1: x₃ = 0
-
+1-element SubObjectIterator{LinearHyperplane{fmpq}} over the Hyperplanes of R^3 described by:
+x₃ = 0
 ```
 """
 linear_span(C::Cone{T}) where T<:scalar_types = SubObjectIterator{LinearHyperplane{T}}(pm_object(C), _linear_span, size(pm_object(C).LINEAR_SPAN, 1))

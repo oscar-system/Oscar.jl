@@ -132,11 +132,11 @@
         @test facets(Halfspace, Pos) isa SubObjectIterator{AffineHalfspace{T}}
         @test affine_hull(point) isa SubObjectIterator{AffineHyperplane{T}}
         if T == fmpq
-            @test affine_equation_matrix(affine_hull(point)) == matrix(QQ, [0 -1 0 0; 1 0 -1 0; 0 0 0 -1])
+            @test affine_equation_matrix(affine_hull(point)) == matrix(QQ, [0 1 0 0; -1 0 1 0; 0 0 0 1])
         else
-            @test affine_equation_matrix(affine_hull(point)) == [0 -1 0 0; 1 0 -1 0; 0 0 0 -1]
+            @test affine_equation_matrix(affine_hull(point)) == [0 1 0 0; -1 0 1 0; 0 0 0 1]
         end
-        @test Oscar.affine_matrix_for_polymake(affine_hull(point)) == [0 -1 0 0; 1 0 -1 0; 0 0 0 -1]
+        @test Oscar.affine_matrix_for_polymake(affine_hull(point)) == [0 1 0 0; -1 0 1 0; 0 0 0 1]
         @test length(affine_hull(point)) == 3
         # TODO: restrict comparison to same scalar?
         @test affine_hull(point) == [Hyperplane([1 0 0], 0), Hyperplane([0 1 0], 1), Hyperplane([0 0 1], 0)]

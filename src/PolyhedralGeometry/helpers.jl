@@ -10,7 +10,7 @@ end
 
 assure_matrix_polymake(m::AbstractMatrix{nf_scalar}) = Polymake.Matrix{Polymake.QuadraticExtension{Polymake.Rational}}(m)
 
-assure_matrix_polymake(m::Union{Oscar.fmpz_mat, Oscar.fmpq_mat, AbstractMatrix{<:Union{fmpq, fmpz, Base.Integer, Base.Rational, Polymake.Rational, Polymake.QuadraticExtension}}}) = m
+assure_matrix_polymake(m::Union{Oscar.fmpz_mat, Oscar.fmpq_mat, AbstractMatrix{<:Union{fmpq, fmpz, Base.Integer, Base.Rational, Polymake.Rational, Polymake.QuadraticExtension, Float64}}}) = m
 
 function assure_vector_polymake(v::Union{AbstractVector{Any}, AbstractVector{FieldElem}})
     i = findfirst(_cannot_convert_to_fmpq, v)

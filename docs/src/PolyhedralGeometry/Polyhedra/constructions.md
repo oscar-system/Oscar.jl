@@ -35,18 +35,14 @@ julia> P = Polyhedron(([-1 0; 1 0], [0,1]), ([0 1], [0]))
 A polyhedron in ambient dimension 2
 
 julia> facets(P)
-2-element SubObjectIterator{AffineHalfspace{fmpq}}:
- The Halfspace of R^2 described by
-1: -x₁ ≦ 0
-
- The Halfspace of R^2 described by
-1: x₁ ≦ 1
+2-element SubObjectIterator{AffineHalfspace{fmpq}} over the Halfspaces of R^2 described by:
+-x₁ ≦ 0
+x₁ ≦ 1
 
 
 julia> affine_hull(P)
-1-element SubObjectIterator{AffineHyperplane{fmpq}}:
- The Hyperplane of R^2 described by
-1: x₂ = 0
+1-element SubObjectIterator{AffineHyperplane{fmpq}} over the Hyperplanes of R^2 described by:
+x₂ = 0
 
 
 julia> Q0 = Polyhedron(facets(P))

@@ -348,7 +348,7 @@ A polyhedron in ambient dimension 3
 julia> T=convex_hull(L₁,L₂);
 
 julia> f_vector(T)
-2-element Vector{Int64}:
+2-element Vector{fmpz}:
  4
  4
 ```
@@ -509,59 +509,29 @@ julia> s = simplex(7)
 A polyhedron in ambient dimension 7
 
 julia> facets(s)
-8-element SubObjectIterator{AffineHalfspace{fmpq}}:
- The Halfspace of R^7 described by
-1: -x₁ ≦ 0
-
- The Halfspace of R^7 described by
-1: -x₂ ≦ 0
-
- The Halfspace of R^7 described by
-1: -x₃ ≦ 0
-
- The Halfspace of R^7 described by
-1: -x₄ ≦ 0
-
- The Halfspace of R^7 described by
-1: -x₅ ≦ 0
-
- The Halfspace of R^7 described by
-1: -x₆ ≦ 0
-
- The Halfspace of R^7 described by
-1: -x₇ ≦ 0
-
- The Halfspace of R^7 described by
-1: x₁ + x₂ + x₃ + x₄ + x₅ + x₆ + x₇ ≦ 1
+8-element SubObjectIterator{AffineHalfspace{fmpq}} over the Halfspaces of R^7 described by:
+-x₁ ≦ 0
+-x₂ ≦ 0
+-x₃ ≦ 0
+-x₄ ≦ 0
+-x₅ ≦ 0
+-x₆ ≦ 0
+-x₇ ≦ 0
+x₁ + x₂ + x₃ + x₄ + x₅ + x₆ + x₇ ≦ 1
 
 julia> t = simplex(7, 5)
 A polyhedron in ambient dimension 7
 
 julia> facets(t)
-8-element SubObjectIterator{AffineHalfspace{fmpq}}:
- The Halfspace of R^7 described by
-1: -x₁ ≦ 0
-
- The Halfspace of R^7 described by
-1: -x₂ ≦ 0
-
- The Halfspace of R^7 described by
-1: -x₃ ≦ 0
-
- The Halfspace of R^7 described by
-1: -x₄ ≦ 0
-
- The Halfspace of R^7 described by
-1: -x₅ ≦ 0
-
- The Halfspace of R^7 described by
-1: -x₆ ≦ 0
-
- The Halfspace of R^7 described by
-1: -x₇ ≦ 0
-
- The Halfspace of R^7 described by
-1: x₁ + x₂ + x₃ + x₄ + x₅ + x₆ + x₇ ≦ 5
+8-element SubObjectIterator{AffineHalfspace{fmpq}} over the Halfspaces of R^7 described by:
+-x₁ ≦ 0
+-x₂ ≦ 0
+-x₃ ≦ 0
+-x₄ ≦ 0
+-x₅ ≦ 0
+-x₆ ≦ 0
+-x₇ ≦ 0
+x₁ + x₂ + x₃ + x₄ + x₅ + x₆ + x₇ ≦ 5
 ```
 """
 simplex(::Type{T}, d::Int64,n) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.simplex{scalar_type_to_polymake[T]}(d,n))
@@ -584,59 +554,29 @@ julia> C = cross(3)
 A polyhedron in ambient dimension 3
 
 julia> facets(C)
-8-element SubObjectIterator{AffineHalfspace{fmpq}}:
- The Halfspace of R^3 described by
-1: x₁ + x₂ + x₃ ≦ 1
-
- The Halfspace of R^3 described by
-1: -x₁ + x₂ + x₃ ≦ 1
-
- The Halfspace of R^3 described by
-1: x₁ - x₂ + x₃ ≦ 1
-
- The Halfspace of R^3 described by
-1: -x₁ - x₂ + x₃ ≦ 1
-
- The Halfspace of R^3 described by
-1: x₁ + x₂ - x₃ ≦ 1
-
- The Halfspace of R^3 described by
-1: -x₁ + x₂ - x₃ ≦ 1
-
- The Halfspace of R^3 described by
-1: x₁ - x₂ - x₃ ≦ 1
-
- The Halfspace of R^3 described by
-1: -x₁ - x₂ - x₃ ≦ 1
+8-element SubObjectIterator{AffineHalfspace{fmpq}} over the Halfspaces of R^3 described by:
+x₁ + x₂ + x₃ ≦ 1
+-x₁ + x₂ + x₃ ≦ 1
+x₁ - x₂ + x₃ ≦ 1
+-x₁ - x₂ + x₃ ≦ 1
+x₁ + x₂ - x₃ ≦ 1
+-x₁ + x₂ - x₃ ≦ 1
+x₁ - x₂ - x₃ ≦ 1
+-x₁ - x₂ - x₃ ≦ 1
 
 julia> D = cross(3, 2)
 A polyhedron in ambient dimension 3
 
 julia> facets(D)
-8-element SubObjectIterator{AffineHalfspace{fmpq}}:
- The Halfspace of R^3 described by
-1: x₁ + x₂ + x₃ ≦ 2
-
- The Halfspace of R^3 described by
-1: -x₁ + x₂ + x₃ ≦ 2
-
- The Halfspace of R^3 described by
-1: x₁ - x₂ + x₃ ≦ 2
-
- The Halfspace of R^3 described by
-1: -x₁ - x₂ + x₃ ≦ 2
-
- The Halfspace of R^3 described by
-1: x₁ + x₂ - x₃ ≦ 2
-
- The Halfspace of R^3 described by
-1: -x₁ + x₂ - x₃ ≦ 2
-
- The Halfspace of R^3 described by
-1: x₁ - x₂ - x₃ ≦ 2
-
- The Halfspace of R^3 described by
-1: -x₁ - x₂ - x₃ ≦ 2
+8-element SubObjectIterator{AffineHalfspace{fmpq}} over the Halfspaces of R^3 described by:
+x₁ + x₂ + x₃ ≦ 2
+-x₁ + x₂ + x₃ ≦ 2
+x₁ - x₂ + x₃ ≦ 2
+-x₁ - x₂ + x₃ ≦ 2
+x₁ + x₂ - x₃ ≦ 2
+-x₁ + x₂ - x₃ ≦ 2
+x₁ - x₂ - x₃ ≦ 2
+-x₁ - x₂ - x₃ ≦ 2
 ```
 """
 cross(::Type{T}, d::Int64,n) where T<:scalar_types = Polyhedron{T}(Polymake.polytope.cross{scalar_type_to_polymake[T]}(d,n))
@@ -868,4 +808,4 @@ julia> volume(p)
 3
 ```
 """
-gelfand_tsetlin(lambda::AbstractVector)= Polyhedron{fmpq}(Polymake.polytope.gelfand_tsetlin(Polymake.Vector{Polymake.Rational}(lambda), projected = false))
+gelfand_tsetlin(lambda::AbstractVector) = Polyhedron{fmpq}(Polymake.polytope.gelfand_tsetlin(Polymake.Vector{Polymake.Rational}(lambda), projected = false))

@@ -281,24 +281,13 @@ julia> facets(Polyhedron, C)
  A polyhedron in ambient dimension 3
 
 julia> facets(Halfspace, C)
-6-element SubObjectIterator{AffineHalfspace{fmpq}}:
- The Halfspace of R^3 described by
-1: -x₁ ≦ 1
-
- The Halfspace of R^3 described by
-1: x₁ ≦ 1
-
- The Halfspace of R^3 described by
-1: -x₂ ≦ 1
-
- The Halfspace of R^3 described by
-1: x₂ ≦ 1
-
- The Halfspace of R^3 described by
-1: -x₃ ≦ 1
-
- The Halfspace of R^3 described by
-1: x₃ ≦ 1
+6-element SubObjectIterator{AffineHalfspace{fmpq}} over the Halfspaces of R^3 described by:
+-x₁ ≦ 1
+x₁ ≦ 1
+-x₂ ≦ 1
+x₂ ≦ 1
+-x₃ ≦ 1
+x₃ ≦ 1
 ```
 """
 facets(as::Type{T}, P::Polyhedron{S}) where {R, S<:scalar_types, T<:Union{AffineHalfspace{S}, Pair{R, S}, Polyhedron{S}}} = SubObjectIterator{as}(pm_object(P), _facet_polyhedron, nfacets(P))
@@ -331,24 +320,13 @@ We can retrieve the six facets of the 3-dimensional cube this way:
 julia> C = cube(3);
 
 julia> facets(C)
-6-element SubObjectIterator{AffineHalfspace{fmpq}}:
- The Halfspace of R^3 described by
-1: -x₁ ≦ 1
-
- The Halfspace of R^3 described by
-1: x₁ ≦ 1
-
- The Halfspace of R^3 described by
-1: -x₂ ≦ 1
-
- The Halfspace of R^3 described by
-1: x₂ ≦ 1
-
- The Halfspace of R^3 described by
-1: -x₃ ≦ 1
-
- The Halfspace of R^3 described by
-1: x₃ ≦ 1
+6-element SubObjectIterator{AffineHalfspace{fmpq}} over the Halfspaces of R^3 described by:
+-x₁ ≦ 1
+x₁ ≦ 1
+-x₂ ≦ 1
+x₂ ≦ 1
+-x₃ ≦ 1
+x₃ ≦ 1
 ```
 """
 facets(P::Polyhedron{T}) where T<:scalar_types = facets(AffineHalfspace{T}, P)
@@ -641,13 +619,9 @@ $P = \{ (x_1, x_2, x_3, x_4) | x_3 = 2 ∧ x_4 = 5 \}$.
 julia> t = convex_hull([0 0 2 5; 1 0 2 5; 0 1 2 5]);
 
 julia> affine_hull(t)
-2-element SubObjectIterator{AffineHyperplane{fmpq}}:
- The Hyperplane of R^4 described by
-1: x₃ = 2
-
- The Hyperplane of R^4 described by
-1: x₄ = 5
-
+2-element SubObjectIterator{AffineHyperplane{fmpq}} over the Hyperplanes of R^4 described by:
+x₃ = 2
+x₄ = 5
 ```
 """
 affine_hull(P::Polyhedron{T}) where T<:scalar_types = SubObjectIterator{AffineHyperplane{T}}(pm_object(P), _affine_hull, size(pm_object(P).AFFINE_HULL, 1))
@@ -657,7 +631,7 @@ function _affine_hull(::Type{AffineHyperplane{T}}, P::Polymake.BigObject, i::Bas
     return AffineHyperplane{T}(h[1], h[2][])
 end
 
-_affine_equation_matrix(::Val{_affine_hull}, P::Polymake.BigObject) = -P.AFFINE_HULL
+_affine_equation_matrix(::Val{_affine_hull}, P::Polymake.BigObject) = P.AFFINE_HULL
 
 _affine_matrix_for_polymake(::Val{_affine_hull}) = _affine_equation_matrix
 
@@ -934,7 +908,7 @@ faces of $P$ of dimension $i$.
 Here we compute the f-vector of the 5-cube:
 ```jldoctest
 julia> f_vector(cube(5))
-5-element Vector{Int64}:
+5-element Vector{fmpz}:
  32
  80
  80
@@ -960,7 +934,7 @@ Undefined for unbounded polyhedra.
 # Examples
 ```jldoctest
 julia> h_vector(cross(3))
-4-element Vector{Int64}:
+4-element Vector{fmpz}:
  1
  3
  3
@@ -982,7 +956,7 @@ Undefined for unbounded polyhedra.
 # Examples
 ```jldoctest
 julia> g_vector(cross(3))
-2-element Vector{Int64}:
+2-element Vector{fmpz}:
  1
  2
 ```
@@ -1049,7 +1023,7 @@ function support_function(P::Polyhedron{T}; convention = :max) where T<:scalar_t
 end
 
 @doc Markdown.doc"""
-    print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = false)
+    print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = false, numbered::Bool = false)
 
 Pretty print the constraints given by $P(A,b) = \{ x |  Ax ≤ b \}$.
 
@@ -1058,7 +1032,7 @@ set to `true`.
 
 # Examples
 ```jldoctest
-julia> print_constraints([-1 0 4 5; 4 4 4 3; 1 0 0 0; 0 0 0 0; 0 0 0 0; 9 9 9 9], [0, 1, 2, 3, -4, 5])
+julia> print_constraints([-1 0 4 5; 4 4 4 3; 1 0 0 0; 0 0 0 0; 0 0 0 0; 9 9 9 9], [0, 1, 2, 3, -4, 5]; numbered = true)
 1: -x₁ + 4*x₃ + 5*x₄ ≦ 0
 2: 4*x₁ + 4*x₂ + 4*x₃ + 3*x₄ ≦ 1
 3: x₁ ≦ 2
@@ -1066,15 +1040,15 @@ julia> print_constraints([-1 0 4 5; 4 4 4 3; 1 0 0 0; 0 0 0 0; 0 0 0 0; 9 9 9 9]
 6: 9*x₁ + 9*x₂ + 9*x₃ + 9*x₄ ≦ 5
 
 julia> print_constraints([-1 0 4 5; 4 4 4 3; 1 0 0 0; 0 0 0 0; 0 0 0 0; 9 9 9 9], [0, 1, 2, 3, -4, 5]; trivial = true)
-1: -x₁ + 4*x₃ + 5*x₄ ≦ 0
-2: 4*x₁ + 4*x₂ + 4*x₃ + 3*x₄ ≦ 1
-3: x₁ ≦ 2
-4: 0 ≦ 3
-5: 0 ≦ -4
-6: 9*x₁ + 9*x₂ + 9*x₃ + 9*x₄ ≦ 5
+-x₁ + 4*x₃ + 5*x₄ ≦ 0
+4*x₁ + 4*x₂ + 4*x₃ + 3*x₄ ≦ 1
+x₁ ≦ 2
+0 ≦ 3
+0 ≦ -4
+9*x₁ + 9*x₂ + 9*x₃ + 9*x₄ ≦ 5
 ```
 """
-function print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = false, io::IO = stdout, cmp::String = "≦")
+function print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = false, numbered::Bool = false, io::IO = stdout, cmp::String = "≦")
     for i in 1:length(b)
         terms = Vector{String}(undef, size(A)[2])
         first = true
@@ -1087,7 +1061,7 @@ function print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = fa
                         string(isone(A[i, j]) ? " + x" : " - x", ['₀'+ d for d in digits(j)]...)
                 else
                     terms[j] = first ? string(_constraint_string(A[i, j]), "*x", ['₀'+ d for d in digits(j)]...) :
-                        string(A[i, j] < 0 ? string(" - ", _contraint_string(-A[i, j])) : string(" + ", _constraint_string(A[i, j])), "*x", ['₀'+ d for d in digits(j)]...)
+                        string(A[i, j] < 0 ? string(" - ", _constraint_string(-A[i, j])) : string(" + ", _constraint_string(A[i, j])), "*x", ['₀'+ d for d in digits(j)]...)
                 end
                 first = false
             end
@@ -1098,7 +1072,7 @@ function print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = fa
             end
             terms[1] = "0"
         end
-        println(io, string(i, ": ", terms..., " ", cmp, " ", b[i]))
+        println(io, string(numbered ? string(i, ": ") : "", terms..., " ", cmp, " ", b[i]))
     end
 end
 
@@ -1107,7 +1081,7 @@ _constraint_string(x::Any) = string(x)
 _constraint_string(x::nf_elem) = string("(", x, ")")
 
 @doc Markdown.doc"""
-    print_constraints(P::Polyhedron; trivial::Bool = false)
+    print_constraints(P::Polyhedron; trivial::Bool = false, numbered::Bool = false)
 
 Pretty print the constraints given by $P(A,b) = \{ x |  Ax ≤ b \}$.
 
@@ -1118,23 +1092,27 @@ set to `true`.
 The 3-cube is given by $-1 ≦ x_i ≦ 1 ∀ i ∈ \{1, 2, 3\}$.
 ```jldoctest
 julia> print_constraints(cube(3))
-1: -x₁ ≦ 1
-2: x₁ ≦ 1
-3: -x₂ ≦ 1
-4: x₂ ≦ 1
-5: -x₃ ≦ 1
-6: x₃ ≦ 1
+-x₁ ≦ 1
+x₁ ≦ 1
+-x₂ ≦ 1
+x₂ ≦ 1
+-x₃ ≦ 1
+x₃ ≦ 1
 ```
 """
-print_constraints(P::Polyhedron; trivial::Bool = false, io::IO = stdout) = print_constraints(halfspace_matrix_pair(facets(P))...; trivial = trivial, io = io)
+print_constraints(P::Polyhedron; trivial::Bool = false, numbered::Bool = false, io::IO = stdout) = print_constraints(halfspace_matrix_pair(facets(P))...; trivial = trivial, io = io)
 
 print_constraints(H::Halfspace; trivial::Bool = false, io::IO = stdout) = print_constraints(hcat(normal_vector(H)...), [negbias(H)]; trivial = trivial, io = io)
 
 print_constraints(H::Hyperplane; trivial::Bool = false, io::IO = stdout) = print_constraints(hcat(normal_vector(H)...), [negbias(H)]; trivial = trivial, io = io, cmp = "=")
 
+print_constraints(H::SubObjectIterator{<:Halfspace}; numbered::Bool = false, io::IO = stdout) = print_constraints(halfspace_matrix_pair(H)...; trivial = true, numbered = numbered, io = io)
+
+print_constraints(H::SubObjectIterator{<:Hyperplane}; numbered::Bool = false, io::IO = stdout) = print_constraints(halfspace_matrix_pair(H)...; trivial = true, numbered = numbered, io = io, cmp = "=")
+
 function Base.show(io::IO, H::Halfspace)
-    n = length(H.a)
-    if iszero(H.a) && H.b >= 0
+    n = length(normal_vector(H))
+    if iszero(normal_vector(H)) && negbias(H) >= 0
         print(io, "The trivial Halfspace, R^$n")
     else
         print(io, "The Halfspace of R^$n described by\n")
@@ -1143,12 +1121,52 @@ function Base.show(io::IO, H::Halfspace)
 end
 
 function Base.show(io::IO, H::Hyperplane)
-    n = length(H.a)
+    n = length(normal_vector(H))
     b = negbias(H)
-    if iszero(b) && iszero(H.a)
+    if iszero(b) && iszero(normal_vector(H))
         print(io, "The trivial Hyperplane, R^$n")
     else
         print(io, "The Hyperplane of R^$n described by\n")
         print_constraints(H; io = io)
+    end
+end
+
+Base.show(io::IO, ::MIME"text/plain", H::SubObjectIterator{<:Union{Halfspace, Hyperplane}}) = show(io, H)
+
+function Base.show(io::IO, H::SubObjectIterator{<:Halfspace})
+    s = length(H)
+    t = typeof(H)
+    d = displaysize(io)[1] - 5
+    print(io, "$s-element $t")
+    if !isempty(H)
+        n = length(normal_vector(H[1]))
+        print(io, " over the Halfspaces of R^$n described by:\n")
+        if s < d
+            print_constraints(H; io = io)
+        else
+            A, b = halfspace_matrix_pair(H)
+            print_constraints(A[1:floor(Int, d/2), :], b[1:floor(Int, d/2)]; io = io)
+            println(io, "⋮")
+            print_constraints(A[(s - floor(Int, d/2) + d%2):end, :], b[(s - floor(Int, d/2) + d%2):end]; io = io)
+        end
+    end
+end
+
+function Base.show(io::IO, H::SubObjectIterator{<:Hyperplane})
+    s = length(H)
+    t = typeof(H)
+    d = displaysize(io)[1] - 5
+    print(io, "$s-element $t")
+    if !isempty(H)
+        n = length(normal_vector(H[1]))
+        print(io, " over the Hyperplanes of R^$n described by:\n")
+        if s < d
+            print_constraints(H; io = io)
+        else
+            A, b = halfspace_matrix_pair(H)
+            print_constraints(A[1:floor(Int, d/2), :], b[1:floor(Int, d/2)]; io = io, cmp = "=")
+            println(io, "⋮")
+            print_constraints(A[(s - floor(Int, d/2) + d%2):end, :], b[(s - floor(Int, d/2) + d%2):end]; io = io, cmp = "=")
+        end
     end
 end

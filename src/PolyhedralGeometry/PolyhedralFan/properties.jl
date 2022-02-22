@@ -192,25 +192,26 @@ julia> c = cube(3)
 A polyhedron in ambient dimension 3
 
 julia> f_vector(c)
-3-element Vector{Int64}:
-  8
+3-element Vector{fmpz}:
+ 8
  12
-  6
+ 6
+
 
 julia> nfc = normal_fan(c)
 A polyhedral fan in ambient dimension 3
 
 julia> f_vector(nfc)
-3-element Vector{Polymake.Integer}:
-  6
+3-element Vector{fmpz}:
+ 6
  12
-  8
+ 8
 ```
 """
 function f_vector(PF::_FanLikeType)
     pmf = pm_object(PF)
     ldim = pmf.LINEALITY_DIM
-    return vcat(fill(0,ldim),pmf.F_VECTOR)
+    return Vector{fmpz}(vcat(fill(0,ldim),pmf.F_VECTOR))
 end
 
 
