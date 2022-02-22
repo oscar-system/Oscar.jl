@@ -116,7 +116,7 @@ function irreducible_modules(::Type{AnticNumberField}, G::Oscar.GAPGroup; minima
       if degree(k) == degree(base_ring(V))
         push!(res, V)
       else
-        @info("Going from $(degree(base_ring(V))) to $(degree(k))")
+        @vprint :MinField 1 "Going from $(degree(base_ring(V))) to $(degree(k))"
         Vmin = gmodule_over(m, V)
         push!(res, Vmin)
       end
@@ -495,7 +495,6 @@ function isone_cochain(X::Dict{<:GAPGroupElem, <:MatElem{nf_elem}}, mA)
 end
 
 function isone_cochain(X::Dict{<:GAPGroupElem, nf_elem}, mA)
-  @show X
   G = domain(mA)
   for g = G
     for h = G
