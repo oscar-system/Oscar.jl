@@ -285,16 +285,16 @@ ideal(x*y^2, x^4, y^5)
 """
 function leading_ideal(I::MPolyIdeal)
   singular_assure(I)
-  groebner_assure(I)
-  singular_assure(I.gb)
-  return MPolyIdeal(base_ring(I), Singular.Ideal(I.gb.Sx, [Singular.leading_monomial(g) for g in gens(I.gb.S)]))
+  G = groebner_assure(I)
+  singular_assure(G)
+  return MPolyIdeal(base_ring(I), Singular.Ideal(G.Sx, [Singular.leading_monomial(g) for g in gens(G.S)]))
 end
 
 function leading_ideal(I::MPolyIdeal, ord::MonomialOrdering)
   singular_assure(I, ord)
-  groebner_assure(I, ord)
-  singular_assure(I.gb, ord)
-  return MPolyIdeal(base_ring(I), Singular.Ideal(I.gb.Sx, [Singular.leading_monomial(g) for g in gens(I.gb.S)]))
+  G = groebner_assure(I, ord)
+  singular_assure(G)
+  return MPolyIdeal(base_ring(I), Singular.Ideal(G.Sx, [Singular.leading_monomial(g) for g in gens(G.S)]))
 end
 
 @doc Markdown.doc"""
