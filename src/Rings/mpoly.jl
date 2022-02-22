@@ -476,7 +476,12 @@ mutable struct MPolyIdeal{S} <: Ideal{S}
     r.gens = BiPolyArray(Ox, s)
     r.gb = Dict()
     if s.isGB
-      r.gb = r.gens
+      # We need to get the monomial ordering from the Singular side,
+      # there should be an easier and more versatile implementation
+      # for this in orderings.jl.
+      ord = MonomialOrdering(parent(first(gens(Ox))),
+                             Orderings.ordering(gens(Ox), Singular.ordering_as_symbol(base_ring(s))))
+      r.gb[ord] = r.gens
     end
     return r
   end
