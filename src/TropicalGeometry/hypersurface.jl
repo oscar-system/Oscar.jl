@@ -87,10 +87,12 @@ function TropicalHypersurface(f::Union{AbstractAlgebra.Generic.MPoly{Oscar.Tropi
     pmpoly = Polymake.common.totropicalpolynomial(fstr...)
     pmhypproj = Polymake.tropical.Hypersurface{convention}(POLYNOMIAL=pmpoly)
     pmhyp = Polymake.tropical.affine_chart(pmhypproj)
-
+    
     Vf = TropicalHypersurface{convention, true}(PolyhedralComplex(pmhyp))
+    w = pmhypproj.WEIGHTS
     set_attribute!(Vf,:polymake_bigobject,pmhypproj)
     set_attribute!(Vf,:tropical_polynomial,f)
+    set_attribute!(Vf,:weights,w)
     return Vf
 end
 
@@ -145,8 +147,10 @@ julia> TropicalHypersurface{max}(f)
 function TropicalHypersurface{M}(f::AbstractAlgebra.Generic.MPoly{<:RingElement}) where {M}
     tropf = tropical_polynomial(f,M)
     Tf = TropicalHypersurface(tropf)
+    w = pm_object(Tf).WEIGHTS
     set_attribute!(Tf,:algebraic_polynomial,f)
     set_attribute!(Tf,:tropical_polynomial,tropf)
+    set_attribute!(Tf,:weights,w)
   return Tf
 end
 
@@ -212,3 +216,30 @@ function dual_subdivision(TH::TropicalHypersurface{M,EMB}) where {M,EMB}
     return SubdivisionOfPoints(pm_object(TH).DUAL_SUBDIVISION)
 end
 export dual_subdivision
+
+
+@doc Markdown.doc"""
+    polynomial(TH::TropicalHypersurface{M, EMB})
+
+Returns the tropical polynomial of `TH` if it is embedded. Returns error otherwise
+
+# Examples
+```jldoctest
+julia> T = tropical_numbers(min);
+
+julia> Txy,(x,y) = T["x","y"];
+
+julia> f = x+y+1;
+
+julia> TH = TropicalHypersurface(f);
+
+julia> polynomial(TH)
+```
+"""
+function polynomial(TH::TropicalHypersurface{M,EMB}) where {M,EMB}
+    if !EMB
+        error("tropical hypersurface not embedded")
+    end
+    return get_attribute(TH,:tropical_polynomial)
+end
+export polynomial
