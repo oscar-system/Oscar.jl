@@ -1558,7 +1558,7 @@ function _gmodule(k::AnticNumberField, H::PermGroup, mu::Map{GrpAbFinGen, FacEle
   u = domain(mu)
   U = [mu(g) for g = gens(u)]
   G, mG = automorphism_group(PermGroup, k)
-  ac = [hom(u, u, [preimage(mu, mG(g)(x)) for x = U]) for g = gens(H)]
+  ac = [hom(u, u, [preimage(mu, mG(G(g))(x)) for x = U]) for g = gens(H)]
   return gmodule(H, ac)
 end
 
