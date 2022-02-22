@@ -43,7 +43,7 @@ end
 
 function groebner_assure(I::MPolyIdeal, ordering::MonomialOrdering,  complete_reduction::Bool = false)
     if get(I.gb, ordering, -1) == -1
-        I.gb[ordering]  = groebner_basis(I.gens, ordering, complete_reduction)
+        I.gb[ordering]  = _compute_groebner_basis(I.gens, ordering, complete_reduction)
     end
     G = I.gb[ordering]
 
@@ -59,7 +59,7 @@ end
  = end =#
 
 @doc Markdown.doc"""
-    groebner_basis(B::BiPolyArray, ordering::MonomialOrdering, complete_reduction::Bool = false)
+    _compute_groebner_basis(B::BiPolyArray, ordering::MonomialOrdering, complete_reduction::Bool = false)
 
 **Note**: Internal function, subject to change, do not use.
 
@@ -80,7 +80,7 @@ julia> B = groebner_basis(A, degrevlex(gens(R)))
 Oscar.BiPolyArray{fmpq_mpoly}(fmpq_mpoly[#undef, #undef, #undef], Singular ideal over Singular Polynomial Ring (QQ),(x,y),(dp(2),C) with generators (x*y - 3*x, y^3 - 6*x^2, 2*x^3 - 9*x), Multivariate Polynomial Ring in x, y over Rational Field, Singular Polynomial Ring (QQ),(x,y),(dp(2),C), true, #undef, true)
 ```
 """
-function groebner_basis(B::BiPolyArray, ordering::MonomialOrdering, complete_reduction::Bool = false)
+function _compute_groebner_basis(B::BiPolyArray, ordering::MonomialOrdering, complete_reduction::Bool = false)
    singular_assure(B, ordering)
    R = B.Sx
    !Oscar.Singular.has_global_ordering(R) && error("The ordering has to be a global ordering.")
