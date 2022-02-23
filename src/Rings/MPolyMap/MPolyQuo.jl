@@ -36,7 +36,7 @@ function hom(R::MPolyQuo, S::NCRing, images::Vector; check::Bool = true)
   return MPolyAnyMap(R, S, nothing, copy(imgs)) # copy because of #655
 end
 
-function hom(R::MPolyQuo, S::Ring, coeff_map, images::Vector; check::Bool = true)
+function hom(R::MPolyQuo, S::NCRing, coeff_map, images::Vector; check::Bool = true)
   n = ngens(R)
   @req n == length(images) "Number of images must be $n"
   # Now coerce into S or throw an error if not possible

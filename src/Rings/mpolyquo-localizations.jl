@@ -1247,7 +1247,7 @@ function preimage(
                                                         <:MPolyPowersOfElement
                                                        },
                                 <:MPolyQuoLocalizedRing{<:Any, <:Any, <:Any, <:Any, 
-                                                        <:MPolyPowersOfElement
+                                                        <:MPolyComplementOfKPointIdeal
                                                        }
                                },
     I::MPolyLocalizedIdeal

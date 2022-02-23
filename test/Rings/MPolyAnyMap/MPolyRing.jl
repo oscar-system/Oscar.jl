@@ -7,6 +7,8 @@
   for K in [GF(2), GF(fmpz(2)), GF(2, 2), GF(fmpz(2), 2), ZZ, QQ, Qsqrt2, Zx, Zxy]
     Kx, (x, y) = K["x", "y"]
     h = @inferred hom(Kx, Kx, [y, x])
+    @test h isa Oscar.morphism_type(Kx, Kx)
+    @test h isa Oscar.morphism_type(typeof(Kx), typeof(Kx))
     @test sprint(show, h) isa String
     @test sprint(show, "text/plain", h) isa String
     @test domain(h) === Kx
@@ -27,33 +29,47 @@
     end
 
     h = @inferred hom(Kx, Kx, fmpz[1, 1])
+    @test h isa Oscar.morphism_type(Kx, Kx)
     @test (@inferred h(x + y)) == Kx(2)
     @test (@inferred h(x + y)) == Kx(2)
 
     Kh, (z1, z2) = K["z1", "z2"]
     Kh, (zz1, zz2) = grade(Kh)
     h = @inferred hom(Kx, Kh, [z1 + z2, z2])
+    @test h isa Oscar.morphism_type(Kx, Kh)
+    @test h isa Oscar.morphism_type(typeof(Kx), typeof(Kh))
     @test (@inferred h(x)) == zz1 + zz2
     @test (@inferred h(x)) == zz1 + zz2
     @test (@inferred h(y)) == zz2
     @test (@inferred h(y)) == zz2
     @test_throws ArgumentError hom(Kx, Kh, [zz1 + zz1^2, zz2])
     h = @inferred hom(Kx, Kh, [zz1 + zz1^2, zz2], check = false)
+    @test h isa Oscar.morphism_type(Kx, Kh)
+    @test h isa Oscar.morphism_type(typeof(Kx), typeof(Kh))
   
     # julia-function  
     R, (x, y) = K["x", "y"]
     S, (u, v) = R["u", "v"]
-    h = hom(S, S, let S = S; a -> S(a^2); end, gens(S))
+    g = let S = S; a -> S(a^2); end
+    h = hom(S, S, g, gens(S))
+    @test h isa Oscar.morphism_type(S, S, g)
+    @test h isa Oscar.morphism_type(typeof(S), typeof(S), typeof(g))
     @test (@inferred h(u)) == u
     @test (@inferred h(u)) == u
     @test (@inferred h(x*u)) == x^2 * u
     @test (@inferred h(x*u)) == x^2 * u
-    h = hom(S, S, let S = S; a -> S(a^2); end, gens(S))
+    g = let S = S; a -> S(a^2); end
+    h = hom(S, S, g, gens(S))
+    @test h isa Oscar.morphism_type(S, S, g)
+    @test h isa Oscar.morphism_type(typeof(S), typeof(S), typeof(g))
     @test (h(u)) == u
     @test (h(u)) == u
     @test (h(x*u)) == x^2 * u
     @test (h(x*u)) == x^2 * u
-    h = hom(S, S, a -> a^2, gens(S))
+    g = a -> a^2
+    h = hom(S, S, g, gens(S))
+    @test h isa Oscar.morphism_type(S, S, g)
+    @test h isa Oscar.morphism_type(typeof(S), typeof(S), typeof(g))
     @test (@inferred h(u)) == u
     @test (@inferred h(u)) == u
     @test (@inferred h(x*u)) == x^2 * u
@@ -61,8 +77,12 @@
   
     A, (x,y) = K["x", "y"]
     f = hom(A, A, [2*x, 5*y])
+    @test f isa Oscar.morphism_type(A, A)
+    @test f isa Oscar.morphism_type(typeof(A), typeof(A))
     R, (u, v) = A["u", "v"]
     h = hom(R, R, f, [u+v, u*v])
+    @test h isa Oscar.morphism_type(R, R, f)
+    @test h isa Oscar.morphism_type(typeof(R), typeof(R), typeof(f))
     @test (@inferred h(x*u)) == 2*x*u + 2*x*v
     @test (@inferred h(x*u)) == 2*x*u + 2*x*v
 
@@ -77,6 +97,8 @@
     a = S([1 0; 0 2])
     b = S([2 0; 0 2])
     h = hom(A, S, [a, b])
+    @test h isa Oscar.morphism_type(A, S)
+    @test h isa Oscar.morphism_type(typeof(A), typeof(S))
 
     # bug in AA
     #@test (@inferred h(x * y)) == a * b
@@ -106,6 +128,12 @@
     @test fg(y) == g(f(y))
     @test fg(z1) == g(f(z1))
     @test fg(z2) == g(f(z2))
+
+    f = hom(Kx, Kx, [y, x])
+    g = hom(Kx, K, [K(1), K(1)])
+    fg = @inferred f * g
+    @test fg(x) == g(f(x))
+    @test fg(y) == g(f(y))
   end
 
   # composition with coefficient map
@@ -126,4 +154,16 @@
   @test fg(i) == g(f(i))
   @test fg(x) == g(f(x))
   @test fg(y) == g(f(y))
+
+  # composition with arbitrary maps
+  h = hom(Qi, Qi, -i)
+  f = hom(Qix, Qi, [i, 0])
+  fh = @inferred f*h
+  @test fh(x) == h(f(x))
+  f = hom(Qix, Qi, h, [i, 0])
+  fh = @inferred f * h
+  @test fh(x) == h(f(x)) 
+  f = hom(Qix, Qi, x -> x, [i, 0])
+  @test fh(x) == h(f(x)) 
+  f = hom(Qix, Qi, x -> x, [i, 0])
 end
