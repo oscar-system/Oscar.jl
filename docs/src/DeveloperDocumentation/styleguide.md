@@ -1,4 +1,4 @@
-# Developer Style Guide
+# [Developer Style Guide](@id styleguide)
 
 In general we aim to follow the [Julia Style Guide](https://docs.julialang.org/en/v1/manual/style-guide/)
 but there are some exceptions due to our specific needs and a different background.

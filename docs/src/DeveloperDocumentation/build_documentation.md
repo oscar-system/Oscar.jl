@@ -1,4 +1,4 @@
-# Building the OSCAR documentation
+# [Building the OSCAR documentation](@id building_docs)
 
 To build the OSCAR documentation (especially when editing it, which
 usually requires rebuilding it several times to test the outcome), we

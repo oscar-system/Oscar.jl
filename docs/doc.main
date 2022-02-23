@@ -161,6 +161,7 @@
   "References" => "references.md",
   "Index" => "manualindex.md",
   "Developer Documentation" => [
+    "DeveloperDocumentation/new_developers.md",
     "DeveloperDocumentation/styleguide.md",
     "DeveloperDocumentation/build_documentation.md",
     "Polyhedral Geometry" => [
