@@ -1423,8 +1423,8 @@ mutable struct HilbertData
        throw(ArgumentError("The generators of the ideal must be homogeneous."))
     end
     
-    Oscar.groebner_assure(I)
-    h = sing_hilb(I.gb.S)
+    G = groebner_assure(I)
+    h = sing_hilb(G.S)
     return new(h, I)
   end
   function HilbertData(B::BiPolyArray)
